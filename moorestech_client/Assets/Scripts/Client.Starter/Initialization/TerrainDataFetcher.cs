@@ -33,7 +33,7 @@ namespace Client.Starter.Initialization
             // A template-mode world owns no terrain binary, so there is nothing to fetch
             if (mapLayout.MapMode == WorldProvisioner.TemplateMapMode) return 0;
 
-            var terrainMeta = new TerrainTransferMeta(mapLayout.MapMode, mapLayout.WorldId, mapLayout.TerrainResolution, mapLayout.TerrainTileCount, mapLayout.TerrainChunkTotal);
+            var terrainMeta = new TerrainTransferMeta(mapLayout.MapMode, mapLayout.WorldId, mapLayout.TerrainResolution, mapLayout.TerrainTileCount, mapLayout.TerrainChunkTotal, mapLayout.WorldSeed);
             var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(mapLayout.WorldId));
             var segments = TerrainTransferMeta.EnumerateStreamSegments(cacheWorldDirectory, terrainMeta.TerrainTileCount, terrainMeta.TerrainResolution).ToList();
 

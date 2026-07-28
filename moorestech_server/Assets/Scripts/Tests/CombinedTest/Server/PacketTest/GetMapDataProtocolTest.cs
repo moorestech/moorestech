@@ -114,6 +114,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, response.TerrainResolution);
             Assert.AreEqual(0, response.TerrainTileCount);
             Assert.AreEqual(0, response.TerrainChunkTotal);
+
+            // world.jsonが無い構成にはseedという概念自体が無いため0を載せる（地形なしの合図はTerrainResolution=0が担う）
+            // A config without world.json has no seed at all, so 0 is carried (TerrainResolution=0 remains the terrain-less signal)
+            Assert.AreEqual(0, response.WorldSeed);
         }
 
         [Test]
@@ -143,6 +147,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(expectedChunkTotal, response.TerrainChunkTotal);
 
             Assert.IsTrue(response.WorldId.Length == 16 && response.WorldId.All(Uri.IsHexDigit), $"WorldId is not a 16-digit hex: '{response.WorldId}'");
+
+            // クライアントは分類段の再実行にこのseedを使う。値がずれると別ワールドの海岸線を転送地形に貼ることになる
+            // Clients re-run the classification stage with this seed; a wrong value paints another world's coastline onto the transferred terrain
+            Assert.AreEqual(12345, worldMeta.Seed, "前提: 指定したseedがworld.jsonに記録されている");
+            Assert.AreEqual(worldMeta.Seed, response.WorldSeed);
         }
 
         [Test]
@@ -164,6 +173,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             var secondWorld = ProvisionWorld(WorldProvisioner.TemplateMapMode, 43);
             var secondResponse = RequestMapDataLayout(secondWorld);
             Assert.AreNotEqual(firstResponse.WorldId, secondResponse.WorldId);
+
+            // templateもworld.jsonにseedを持つので実値をそのまま載せる。地形を構築しないので分類段では使われない
+            // A template world still records a seed in world.json, so the real value is carried; it builds no terrain, so the classification stage never consumes it
+            Assert.AreEqual(42, firstResponse.WorldSeed);
+            Assert.AreEqual(43, secondResponse.WorldSeed);
         }
 
         private WorldDataDirectory ProvisionWorld(string mapMode, int seed)

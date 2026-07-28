@@ -19,13 +19,18 @@ namespace Game.MapGeneration.Transfer
         public readonly int TerrainTileCount;
         public readonly int TerrainChunkTotal;
 
-        public TerrainTransferMeta(string mapMode, string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal)
+        // world.jsonのseedそのもの。クライアントは転送地形と整合する分類段(海陸・ビーチ・バイオーム重み)をこのseedで再現する
+        // The world.json seed verbatim; clients reproduce the classification stage (land/sea, beach, biome weights) consistent with the transferred terrain from it
+        public readonly int WorldSeed;
+
+        public TerrainTransferMeta(string mapMode, string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed)
         {
             MapMode = mapMode;
             WorldId = worldId;
             TerrainResolution = terrainResolution;
             TerrainTileCount = terrainTileCount;
             TerrainChunkTotal = terrainChunkTotal;
+            WorldSeed = worldSeed;
         }
 
         // generatedなのにチャンク0本は生成失敗かファイル切り詰め。地形なしと同一視すると壊れたワールドを正常として配る
@@ -87,10 +92,12 @@ namespace Game.MapGeneration.Transfer
         }
 
         // ワールドディレクトリを持たない構成(テスト・クライアント単体デバッグ)用。地形もワールド同一性も存在しない
+        // world.jsonが無いのでseedという概念自体が存在せず0を置く。WorldIdを空文字にしているのと同じ「不在」の表明
         // For configurations without a world directory (tests, standalone client debug): neither terrain nor world identity exists
+        // With no world.json there is no seed concept at all, so 0 declares absence just as the empty WorldId does
         public static TerrainTransferMeta CreateWithoutWorldDirectory()
         {
-            return new TerrainTransferMeta(WorldProvisioner.TemplateMapMode, string.Empty, 0, 0, 0);
+            return new TerrainTransferMeta(WorldProvisioner.TemplateMapMode, string.Empty, 0, 0, 0, 0);
         }
     }
 }

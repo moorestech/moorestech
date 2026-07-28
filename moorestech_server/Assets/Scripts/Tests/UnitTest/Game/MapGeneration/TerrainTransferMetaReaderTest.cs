@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Linq;
+using Game.MapGeneration.Export;
 using Game.MapGeneration.Transfer;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Tests.Module;
 
@@ -39,6 +41,28 @@ namespace Tests.UnitTest.Game.MapGeneration
             File.WriteAllBytes(strayFilePath, new byte[TerrainTransferMeta.ChunkByteSize]);
 
             Assert.AreEqual(chunkTotalBeforeStrayFile, TerrainTransferMetaReader.Read(worldDataDirectory).TerrainChunkTotal);
+        }
+
+        [Test]
+        public void ワールドseedはworld_jsonの値そのままメタに載る()
+        {
+            // クライアントはこのseedで分類段を再実行する。別の値を載せると別ワールドの海岸線が転送地形に貼られる
+            // Clients re-run the classification stage with this seed; any other value paints another world's coastline onto the transferred terrain
+            const int seed = 12345;
+            var worldDataDirectory = _testScope.ProvisionGeneratedWorld(seed);
+
+            var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
+            Assert.AreEqual(seed, worldMeta.Seed, "前提: 指定したseedがworld.jsonに記録されている");
+
+            Assert.AreEqual(seed, TerrainTransferMetaReader.Read(worldDataDirectory).WorldSeed);
+        }
+
+        [Test]
+        public void ワールドディレクトリを持たない構成のseedは0になる()
+        {
+            // world.jsonが無い＝seedという概念が存在しない構成。地形なしの合図はTerrainResolution=0が担う
+            // No world.json means the concept of a seed does not exist here; TerrainResolution=0 remains the terrain-less signal
+            Assert.AreEqual(0, TerrainTransferMeta.CreateWithoutWorldDirectory().WorldSeed);
         }
 
         [Test]

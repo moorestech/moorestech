@@ -129,6 +129,10 @@ namespace Server.Protocol.PacketResponse
             // SHA256 of the whole logical stream for client cache validation; empty for terrain-less worlds
             [Key(10)] public string TerrainHash { get; set; }
 
+            // world.jsonのseed。クライアントは転送地形と整合する分類段をこのseedで再現する（WorldIdはハッシュなので復元できない）
+            // The world.json seed; clients reproduce the classification stage consistent with the transferred terrain from it (WorldId is a hash and cannot be inverted)
+            [Key(11)] public int WorldSeed { get; set; }
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseMapDataMessagePack() { }
 
@@ -145,6 +149,7 @@ namespace Server.Protocol.PacketResponse
                 TerrainTileCount = terrainMeta.TerrainTileCount;
                 TerrainChunkTotal = terrainMeta.TerrainChunkTotal;
                 TerrainHash = terrainHash;
+                WorldSeed = terrainMeta.WorldSeed;
             }
         }
     }

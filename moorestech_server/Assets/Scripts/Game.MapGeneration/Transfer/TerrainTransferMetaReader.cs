@@ -33,7 +33,9 @@ namespace Game.MapGeneration.Transfer
                 _ => throw new InvalidOperationException($"Unknown map mode in world.json: '{worldMeta.MapMode}'")
             };
 
-            return new TerrainTransferMeta(worldMeta.MapMode, CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount, chunkTotal);
+            // seedはmapModeに関わらず実値を載せる。地形なしの合図はTerrainResolution=0が担っており二重に持たせない
+            // The seed is carried verbatim regardless of map mode; TerrainResolution=0 alone signals terrain-less, so the meaning is not duplicated
+            return new TerrainTransferMeta(worldMeta.MapMode, CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount, chunkTotal, worldMeta.Seed);
 
             #region Internal
 
