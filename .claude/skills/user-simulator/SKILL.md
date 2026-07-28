@@ -24,7 +24,7 @@ description: |
 | ユーザーへの設計質問を出す直前 | `modes/preanswer/protocol.md` |
 | `improve <id>` 引数つき起動 | `modes/improve/protocol.md` |
 | review/preanswerで外しが発生 | `modes/improve/protocol.md`（発行手順） |
-| 設計セッション終了後の盲検採点（体感遅延ゼロの育成データ回収） | `modes/shadow/protocol.md` |
+| 設計セッション終了後の盲検採点（体感遅延ゼロの育成データ回収）。grill終了時はshadow-gateが自動発動 | `modes/shadow/protocol.md` |
 
 ## 判事の起動（review/preanswer共通）
 

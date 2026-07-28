@@ -2,7 +2,10 @@
 
 設計セッション（grill等）のtranscriptから質問と実回答を抽出し、「実回答を見せずに」盲検再予測させて採点する
 非同期シャドー評価。セッション本体の体感遅延ゼロで育成データを蓄積し、的中率・ベースライン比較・確信度校正を
-misses.mdに記録する。発動はuser-simulator本体のモード判定表から（「シャドー採点して」等）。
+misses.mdに記録する。発動は (a) user-simulator本体のモード判定表から（「シャドー採点して」等）、
+(b) grillセッション終了時の **shadow-gate自動発動**（moores-grill-with-docsのfrontmatter hooks →
+`scripts/shadow-gate.sh`。設計doc書き込みで武装し、Stopブロックメッセージに自transcriptパスが渡される。
+datasets/への格納で解除）。自動発動時は手順1のtranscript特定が不要（メッセージ内のパスを使う）。
 
 設計セッションを素で走らせた後、シミュレーターが同じ文脈で各質問を予測できたかを事後検証する。
 インライン予測（preanswer）と違いユーザーの待ち時間を一切増やさず、訓練信号（質問・文脈・実回答・予測）を全量回収する。
