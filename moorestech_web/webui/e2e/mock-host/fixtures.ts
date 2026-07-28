@@ -146,7 +146,7 @@ export const buildMenu = {
     { entryType: "block", entryKey: "belt-conveyor", label: "ベルトコンベア", category: "物流", subCategory: "電気コンベア", requiredItems: [], iconUrl: "/icons/belt-conveyor.png" },
     { entryType: "block", entryKey: "rail", label: "鉄道レール", category: "輸送", subCategory: "鉄道", requiredItems: [], iconUrl: "/icons/rail.png" },
     { entryType: "trainCar", entryKey: "cargo-car", label: "貨物車両", category: "輸送", subCategory: "車両", requiredItems: [], iconUrl: "/icons/cargo-car.png" },
-    { entryType: "blueprint", entryKey: "starter-base", label: "starter-base", category: "ブループリント", subCategory: "保存済み", requiredItems: [] },
+    { entryType: "blueprint", entryKey: "3f6a9c1e-8b2d-4f7a-9e3c-1a2b3c4d5e6f", label: "starter-base", category: "ブループリント", subCategory: "保存済み", requiredItems: [] },
   ],
 } satisfies BuildMenuData;
 

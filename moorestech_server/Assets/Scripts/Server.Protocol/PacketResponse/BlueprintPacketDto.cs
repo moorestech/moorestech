@@ -99,11 +99,13 @@ namespace Server.Protocol.PacketResponse
             BlueprintGuidStr = jsonObject.BlueprintGuidStr;
         }
 
-        // クライアントがBP実データ（貼り付け計算の入力）へ戻す口
-        // Converts back to the domain model used by paste calculation
+        // クライアントがBP実データ（貼り付け計算の入力）へ戻す口。Guidも保持したまま渡す
+        // Converts back to the domain model used by paste calculation, preserving the GUID
         public BlueprintJsonObject ToJsonObject()
         {
-            return new BlueprintJsonObject(Name, Blocks.Select(b => b.ToJsonObject()).ToList());
+            var jsonObject = new BlueprintJsonObject(Name, Blocks.Select(b => b.ToJsonObject()).ToList());
+            jsonObject.SetBlueprintGuid(BlueprintGuid);
+            return jsonObject;
         }
     }
 

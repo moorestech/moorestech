@@ -85,10 +85,8 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void BlueprintGuidはJsonシリアライズを経由しても保持される()
         {
-            // BlueprintGuidStrはprivate setterのため、実際のセーブ経路であるNewtonsoft経由で
-            // 復元できることを確認する（Registerの直接呼び出しだけでは検証できない）
-            // BlueprintGuidStr has a private setter, so verify it round-trips through the actual
-            // Newtonsoft save path (a direct Register call alone would not exercise this)
+            // private setterのBlueprintGuidStrがNewtonsoft経由でも復元されるか検証する
+            // Verify BlueprintGuidStr (a private setter) round-trips through Newtonsoft
             var original = new BlueprintJsonObject("json-roundtrip", new List<BlueprintBlockJsonObject>());
             original.SetBlueprintGuid(Guid.NewGuid());
 

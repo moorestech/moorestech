@@ -26,8 +26,8 @@ test("エントリ選択とBP右クリック削除のアクション契約", asy
   await expect.poll(() => payloadsOf(page, "build_menu.select")).toContainEqual({ entryType: "block", entryKey: "wood-chest" });
 
   await page.getByTestId("build-menu-category-ブループリント").click();
-  await page.getByTestId("build-menu-entry-blueprint-starter-base").click({ button: "right" });
-  await expect.poll(() => payloadsOf(page, "blueprint.delete")).toContainEqual({ id: "starter-base" });
+  await page.getByTestId("build-menu-entry-blueprint-3f6a9c1e-8b2d-4f7a-9e3c-1a2b3c4d5e6f").click({ button: "right" });
+  await expect.poll(() => payloadsOf(page, "blueprint.delete")).toContainEqual({ id: "3f6a9c1e-8b2d-4f7a-9e3c-1a2b3c4d5e6f" });
 });
 
 test("閉じるボタンはGameScreen遷移を要求する", async ({ page }) => {

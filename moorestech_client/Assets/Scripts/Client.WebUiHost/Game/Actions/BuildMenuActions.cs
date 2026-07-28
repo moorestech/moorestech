@@ -78,7 +78,10 @@ namespace Client.WebUiHost.Game.Actions
             if (payload["id"] is not JValue { Type: JTokenType.String } idValue) return ActionResult.Fail("invalid_payload");
             if (!Guid.TryParse((string)idValue, out var blueprintGuid)) return ActionResult.Fail("invalid_payload");
 
-            await _blueprintLibrary.DeleteBlueprint(blueprintGuid, CancellationToken.None);
+            // サーバー側の削除失敗（NotFound等）を成功として返さない
+            // Do not report success when the server-side deletion actually failed (e.g. NotFound)
+            var deleted = await _blueprintLibrary.DeleteBlueprint(blueprintGuid, CancellationToken.None);
+            if (!deleted) return ActionResult.Fail("delete_failed");
             return ActionResult.Success();
         }
     }

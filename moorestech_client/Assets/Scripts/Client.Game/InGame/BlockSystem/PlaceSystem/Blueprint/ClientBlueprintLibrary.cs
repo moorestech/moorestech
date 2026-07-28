@@ -43,10 +43,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             return (response.Success, response.Success ? Guid.Parse(response.RegisteredGuidStr) : Guid.Empty);
         }
 
-        public async UniTask DeleteBlueprint(Guid blueprintGuid, CancellationToken ct)
+        public async UniTask<bool> DeleteBlueprint(Guid blueprintGuid, CancellationToken ct)
         {
             var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(BlueprintRequest.CreateDeleteRequest(blueprintGuid), ct);
             ApplyResponse(response);
+            return response is { Success: true };
         }
 
         private void ApplyResponse(BlueprintResponse response)

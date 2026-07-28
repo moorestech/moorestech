@@ -44,10 +44,8 @@ namespace Game.Blueprint
             _blueprints.Clear();
             _blueprints.AddRange(blueprints);
 
-            // 旧セーブ（Guid未発行）を読み込み時に補完する。ユーザー生成データの欠損補完であり、
-            // マスタ由来値への ?? Default フォールバック禁止（設計レンズ6）とは別種の判断
-            // Backfill legacy saves lacking a GUID at load time; this is user-data completion,
-            // distinct from the forbidden ?? Default fallback for master-derived values
+            // 旧セーブ（Guid未発行）を読み込み時に補完する。ユーザー生成データの欠損補完である
+            // Backfill legacy saves lacking a GUID at load time; this is user-data completion
             foreach (var blueprint in _blueprints)
             {
                 if (blueprint.BlueprintGuid == Guid.Empty) blueprint.SetBlueprintGuid(Guid.NewGuid());

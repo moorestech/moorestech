@@ -65,6 +65,33 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
+        public void ToJsonObjectはBlueprintGuidを保持するTest()
+        {
+            var (packet, _) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            // MessagePack→JsonObject変換後もGuidが失われないことを確認
+            // ToJsonObject must not drop the GUID carried by the MessagePack DTO
+            var createResponse = Send(BlueprintRequest.CreateCreateRequest("base", new Vector3Int(0, 0, 0), new Vector3Int(5, 2, 5)));
+            var registeredGuid = Guid.Parse(createResponse.RegisteredGuidStr);
+            var jsonObject = createResponse.Blueprints[0].ToJsonObject();
+            Assert.AreEqual(registeredGuid, jsonObject.BlueprintGuid);
+
+            #region Internal
+
+            BlueprintResponse Send(BlueprintRequest request)
+            {
+                var payload = MessagePackSerializer.Serialize(request);
+                var responses = packet.GetPacketResponse(payload, new PacketResponseContext(null));
+                return MessagePackSerializer.Deserialize<BlueprintResponse>(responses[0]);
+            }
+
+            #endregion
+        }
+
+        [Test]
         public void CreateFailuresTest()
         {
             var (packet, _) = new MoorestechServerDIContainerGenerator()
@@ -85,6 +112,40 @@ namespace Tests.CombinedTest.Server.PacketTest
             var missingDelete = Send(BlueprintRequest.CreateDeleteRequest(Guid.NewGuid()));
             Assert.IsFalse(missingDelete.Success);
             Assert.AreEqual(BlueprintFailureReason.NotFound, missingDelete.FailureReason);
+
+            #region Internal
+
+            BlueprintResponse Send(BlueprintRequest request)
+            {
+                var payload = MessagePackSerializer.Serialize(request);
+                var responses = packet.GetPacketResponse(payload, new PacketResponseContext(null));
+                return MessagePackSerializer.Deserialize<BlueprintResponse>(responses[0]);
+            }
+
+            #endregion
+        }
+
+        [Test]
+        public void 同名BPをパケットで2件作成しGuid指定で片方だけパケット削除できるTest()
+        {
+            var (packet, _) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            // 同名BPをパケット経由で2件作成する（連番付与は無い）
+            // Create two same-name blueprints via packets; no numbering suffix is applied
+            var create1 = Send(BlueprintRequest.CreateCreateRequest("dup", new Vector3Int(0, 0, 0), new Vector3Int(5, 2, 5)));
+            var create2 = Send(BlueprintRequest.CreateCreateRequest("dup", new Vector3Int(0, 0, 0), new Vector3Int(5, 2, 5)));
+            var guid1 = Guid.Parse(create1.RegisteredGuidStr);
+            var guid2 = Guid.Parse(create2.RegisteredGuidStr);
+
+            // 片方をGuid指定でパケット削除すると、もう片方だけ残る
+            // Deleting one by GUID via packet leaves only the other
+            var deleteResponse = Send(BlueprintRequest.CreateDeleteRequest(guid1));
+            Assert.IsTrue(deleteResponse.Success);
+            Assert.AreEqual(1, deleteResponse.Blueprints.Count);
+            Assert.AreEqual(guid2.ToString(), deleteResponse.Blueprints[0].BlueprintGuidStr);
 
             #region Internal
 
