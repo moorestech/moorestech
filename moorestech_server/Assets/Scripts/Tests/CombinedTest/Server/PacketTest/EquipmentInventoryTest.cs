@@ -22,11 +22,15 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var (packet, playerInventory) = CreateServerWithPlayerInventory();
             var toolItemId = ToolItemId();
-            playerInventory.MainOpenableInventory.SetItem(0, toolItemId, 5);
+
+            // 全スロットを埋めてなお余る数をマスタから決める
+            // Derive an amount from master that fills every slot and still has leftovers
+            var insertCount = MasterHolder.ToolMaster.EquipmentSlotCount + 2;
+            playerInventory.MainOpenableInventory.SetItem(0, toolItemId, insertCount);
 
             // Insert経路では各スロットに1個ずつ入り、入りきらない分はメインに残る
             // The insert path puts one item per slot and leaves the rest in main
-            packet.GetPacketResponse(MoveItemPacket(5, 0, 0, ItemMoveType.InsertSlot), new PacketResponseContext(null));
+            packet.GetPacketResponse(MoveItemPacket(insertCount, 0, 0, ItemMoveType.InsertSlot), new PacketResponseContext(null));
 
             var equipmentInventory = playerInventory.EquipmentInventory;
             Assert.AreEqual(MasterHolder.ToolMaster.EquipmentSlotCount, equipmentInventory.GetSlotSize());
@@ -35,7 +39,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 Assert.AreEqual(toolItemId, equipmentInventory.GetItem(slot).Id);
                 Assert.AreEqual(1, equipmentInventory.GetItem(slot).Count);
             }
-            Assert.AreEqual(5 - equipmentInventory.GetSlotSize(), playerInventory.MainOpenableInventory.GetItem(0).Count);
+            Assert.AreEqual(insertCount - equipmentInventory.GetSlotSize(), playerInventory.MainOpenableInventory.GetItem(0).Count);
         }
 
         [Test]
@@ -55,12 +59,14 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void 入れ替え経路でも装備スロットは1個しか受け取らない()
+        public void 空の装備スロットへの入れ替え指定は1個だけ受け取り残りは戻る()
         {
             var (packet, playerInventory) = CreateServerWithPlayerInventory();
             var toolItemId = ToolItemId();
             playerInventory.MainOpenableInventory.SetItem(0, toolItemId, 4);
 
+            // 移動先が空のためSwapSlot指定でも入れ替えではなくReplaceItem経路を通る
+            // The destination is empty, so SwapSlot still goes through the ReplaceItem path instead of a swap
             packet.GetPacketResponse(MoveItemPacket(4, 0, 0, ItemMoveType.SwapSlot), new PacketResponseContext(null));
 
             Assert.AreEqual(1, playerInventory.EquipmentInventory.GetItem(0).Count);

@@ -31,6 +31,10 @@ namespace Game.PlayerInventory.ItemManaged
                 InvokeEvent, ServerContext.ItemStackFactory,
                 MasterHolder.ToolMaster.EquipmentSlotCount,
                 new OpenableInventoryItemDataStoreServiceOption(this));
+
+            // 初期選択は先頭スロットだが、装備スロットが無いマスタでは素手へ丸める
+            // The initial selection is the first slot, clamped to bare hands when master has no equipment slot
+            ApplySelectedEquipmentIndexWithoutEvent(0);
         }
 
         public bool CanAccept(ItemId itemId)
@@ -45,14 +49,21 @@ namespace Game.PlayerInventory.ItemManaged
 
         public void SetSelectedEquipmentIndex(int index)
         {
-            // -1(素手)からスロット末尾までにクランプし、変化した時だけ通知する
-            // Clamp between -1 (bare hands) and the last slot, notifying only on an actual change
-            var clampedIndex = Math.Clamp(index, -1, GetSlotSize() - 1);
-            if (clampedIndex == SelectedEquipmentIndex) return;
+            // クランプ後の値が変化した時だけ通知する
+            // Notify only when the clamped value actually changes
+            var previousIndex = SelectedEquipmentIndex;
+            ApplySelectedEquipmentIndexWithoutEvent(index);
+            if (previousIndex == SelectedEquipmentIndex) return;
 
-            SelectedEquipmentIndex = clampedIndex;
             _equipmentInventoryUpdateEvent.OnSelectedEquipmentIndexUpdateInvoke(
-                new EquipmentSelectedIndexUpdateEventProperties(_playerId, clampedIndex));
+                new EquipmentSelectedIndexUpdateEventProperties(_playerId, SelectedEquipmentIndex));
+        }
+
+        private void ApplySelectedEquipmentIndexWithoutEvent(int index)
+        {
+            // -1(素手)からスロット末尾までにクランプする
+            // Clamp between -1 (bare hands) and the last slot
+            SelectedEquipmentIndex = Math.Clamp(index, -1, GetSlotSize() - 1);
         }
 
         public IItemStack GetSelectedItem()
@@ -83,7 +94,9 @@ namespace Game.PlayerInventory.ItemManaged
                 RestoreSlot(slot, savedItems[slot]);
             }
 
-            SetSelectedEquipmentIndex(selectedEquipmentIndex);
+            // 復元はアイテムも選択も無発火で揃え、ロード時に差分イベントを積まない
+            // Restoring keeps both items and selection event-free so loading queues no diff events
+            ApplySelectedEquipmentIndexWithoutEvent(selectedEquipmentIndex);
             return rejectedItems;
 
             #region Internal
