@@ -90,6 +90,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 11a1992a34e634165885d02b6f372a5e
+    m_Address: Vanilla/Environment/Vein/Item/Copper
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 128b54dbcc554431eb290f8f50d59f35
     m_Address: Vanilla/Block/metal_gear belt conveyor down
     m_ReadOnly: 0
@@ -122,6 +127,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 186b231c7e36d2b4db90c4e2de5c1119
     m_Address: Vanilla/Block/Old/smelting
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 19d0fd83682574f808ae8b05e94b3b29
+    m_Address: Vanilla/Environment/Vein/Item/Coal
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -475,6 +485,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 64b3a814a7a4c47c6882b438ad1feea6
+    m_Address: Vanilla/Environment/Vein/Item/Stone
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 66b2692d1f051412b9556e6abc2b9393
     m_Address: Vanilla/Block/Util/PreviewOnly
     m_ReadOnly: 0
@@ -580,6 +595,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7ab1ed06c5c0c457390dd26c2d94fc25
+    m_Address: Vanilla/Environment/Vein/Item/Iron
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7ab89c4d500216c4f837a2fe7be439af
     m_Address: Vanilla/Block/Old/pole
     m_ReadOnly: 0
@@ -590,6 +610,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7ca897a22f2fc4b68b93d719a1c29e63
+    m_Address: Vanilla/Environment/Vein/Item/Tree
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7d2d6647768134bdd8bed5cd77d70333
     m_Address: Vanilla/Block/Chainer_Fast_BeltConveyor_Straight
     m_ReadOnly: 0
@@ -597,6 +622,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7f11cff8c8744412fabe737ce09dc92d
     m_Address: Vanilla/Skit/Animations/anim_wait01_lp
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7f55482510f234525afa594a55651e8a
+    m_Address: Vanilla/Environment/Vein/Fluid/Water
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -612,6 +642,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 82c5a9bbcacd7407db450e1634f29464
     m_Address: Vanilla/Block/Chainer_Fast_BeltConveyor_Cross Variant
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 82d9cae2807d64a7d8344f4b0a4a83fb
+    m_Address: Vanilla/Environment/Vein/Item/Bronze
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -850,6 +885,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ad41348a8f5fb4af29d2993d54ea8691
+    m_Address: Vanilla/Environment/Vein/Fluid/Oil
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: addad9320f24544a69ad9f0ca74078b3
     m_Address: Vanilla/Block/Mining Machine Primitive
     m_ReadOnly: 0
@@ -927,6 +967,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c046183dce621409983886cf2752bfca
     m_Address: Vanilla/Block/gear belt conveyor splitter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c0d5290809496402a813db693dbdb912
+    m_Address: Vanilla/Environment/Vein/Item/Clay
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1202,6 +1247,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f9ae1e03db1ef44cab6a98150fc5bfe4
     m_Address: Vanilla/Block/Primitive_Windmill blue
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fa0c26db2965f4f498f127fdaae01c8b
+    m_Address: Vanilla/Environment/Vein/Item/Tungsten
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

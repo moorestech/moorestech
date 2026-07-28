@@ -35,7 +35,8 @@
         "Game.UnlockState",
         "Common.Debug",
         "Game.Paths",
-        "Game.MapGeneration"
+        "Game.MapGeneration",
+        "VContainer"
     ],
     "includePlatforms": [
         "Editor"

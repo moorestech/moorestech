@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.Skit;
@@ -23,12 +24,13 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly PlacementTargetPickService _placementTargetPickService;
         private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
         private readonly BuildUndoService _buildUndoService;
+        private readonly IMapVeinRangeView _mapVeinRangeView;
         private readonly ReactiveProperty<int> _placementHeight = new(0);
 
         public IObservable<int> OnPlacementHeightChanged => _placementHeight;
         public int GetPlacementHeight() => _placementHeight.Value;
 
-        public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, IPlayerCameraInteractionApplier cameraInteractionApplier, BuildUndoService buildUndoService)
+        public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, IPlayerCameraInteractionApplier cameraInteractionApplier, BuildUndoService buildUndoService, IMapVeinRangeView mapVeinRangeView)
         {
             _skitManager = skitManager;
             _blockGameObjectDataStore = blockGameObjectDataStore;
@@ -36,6 +38,7 @@ namespace Client.Game.InGame.UI.UIState.State
             _placementTargetPickService = placementTargetPickService;
             _cameraInteractionApplier = cameraInteractionApplier;
             _buildUndoService = buildUndoService;
+            _mapVeinRangeView = mapVeinRangeView;
         }
 
         public void OnEnter(UITransitContext context)
@@ -91,6 +94,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
             _placeSystemStateController.ManualUpdate();
 
+            // 設置プレビュー中かだけを渡す。veinの解決・絞り込み・描画はサービス内部
+            // Pass only whether a placement preview is active; vein resolution, filtering and rendering live inside the service
+            _mapVeinRangeView.ManualUpdate(_placeSystemStateController.CurrentTarget != null);
+
             // Ctrl+Z判定はサービス内部
             // Ctrl+Z detection lives inside the service
             _buildUndoService.ManualUpdate();
@@ -125,6 +132,10 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraInteractionApplier.SetCursorVisible(true);
             _cameraInteractionApplier.SetCameraRotatable(false);
             _placeSystemStateController.Disable();
+
+            // 配置モード離脱で範囲表示も畳む。破棄漏れがそのまま残存ボックスになる
+            // Leaving placement mode folds the range view too; a missed destroy would linger as a stray box
+            _mapVeinRangeView.ManualUpdate(false);
 
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {

@@ -119,3 +119,6 @@ properties:
             schemaId: fluids
             foreignKeyIdPath: /data/[*]/fluidGuid
             displayElementPath: /data/[*]/name
+    - key: outcropAddressablePath
+      type: string
+      default: Vanilla/Environment/Vein/
