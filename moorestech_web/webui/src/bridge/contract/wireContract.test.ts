@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
 import { validateTopicPayload } from "./validators";
-import { loadFixture } from "./wireFixtures";
+import { loadFixture } from "./wireFixtures.test-helper";
 import { BENIGN_ERRORS } from "../transport/actions";
 import { TopicEnvelopeSchema, Topics } from "../transport/protocol";
 import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData, BuildMenuData, ChallengeTreeData, ChallengeCurrentData, PauseMenuData } from "./payloadTypes";

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { loadFixture } from "./wireFixtures";
+import { loadFixture } from "./wireFixtures.test-helper";
 import { ACTION_TYPES } from "../transport/protocol";
 
 // action 名の C#⇔TS パリティ。C# 側 NUnit(WireContractActionNamesTest) が同じフィクスチャを照合する
