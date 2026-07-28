@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
@@ -24,7 +25,7 @@ namespace Client.Game.InGame.UI.BuildMenu
         [Inject] private ClientBlueprintLibrary _blueprintLibrary;
 
         private readonly List<ItemSlotView> _slotViews = new();
-        private readonly List<string> _displayedBlueprintNames = new();
+        private readonly List<Guid> _displayedBlueprintGuids = new();
         private BuildMenuEntry? _clickedEntry;
 
         public void SetActive(bool active)
@@ -60,7 +61,7 @@ namespace Client.Game.InGame.UI.BuildMenu
 
                 // BP一覧が表示中と同一なら再構築せず、RTT中のクリックを握り潰さない
                 // Skip the destructive rebuild when the BP list is unchanged so clicks in the RTT window survive
-                if (_blueprintLibrary.Blueprints.Select(b => b.Name).SequenceEqual(_displayedBlueprintNames)) return;
+                if (_blueprintLibrary.Blueprints.Select(b => b.BlueprintGuid).SequenceEqual(_displayedBlueprintGuids)) return;
 
                 RebuildEntryList();
             }
@@ -94,7 +95,7 @@ namespace Client.Game.InGame.UI.BuildMenu
         {
             foreach (var slotView in _slotViews) Destroy(slotView.gameObject);
             _slotViews.Clear();
-            _displayedBlueprintNames.Clear();
+            _displayedBlueprintGuids.Clear();
 
             // カタログが組み立てたエントリ一覧からスロットを生成する
             // Create slots from the entries assembled by the catalog
@@ -114,8 +115,8 @@ namespace Client.Game.InGame.UI.BuildMenu
                 // Only blueprint entries are deletable: right-click deletes immediately (no confirm dialog in v1)
                 if (entry.Target is BlueprintPlacementTarget blueprintTarget)
                 {
-                    _displayedBlueprintNames.Add(blueprintTarget.BlueprintName);
-                    slotView.OnRightClickUp.Subscribe(_ => DeleteBlueprintAndRebuild(blueprintTarget.BlueprintName).Forget()).AddTo(slotView);
+                    _displayedBlueprintGuids.Add(blueprintTarget.BlueprintGuid);
+                    slotView.OnRightClickUp.Subscribe(_ => DeleteBlueprintAndRebuild(blueprintTarget.BlueprintGuid).Forget()).AddTo(slotView);
                 }
 
                 _slotViews.Add(slotView);
@@ -127,9 +128,9 @@ namespace Client.Game.InGame.UI.BuildMenu
 
             #region Internal
 
-            async UniTask DeleteBlueprintAndRebuild(string blueprintName)
+            async UniTask DeleteBlueprintAndRebuild(Guid blueprintGuid)
             {
-                await _blueprintLibrary.DeleteBlueprint(blueprintName, this.GetCancellationTokenOnDestroy());
+                await _blueprintLibrary.DeleteBlueprint(blueprintGuid, this.GetCancellationTokenOnDestroy());
 
                 // 成功時はキャッシュが最新全件に置き換わるため、そこから再構築する
                 // On success the cache holds the refreshed full list, so rebuild from it

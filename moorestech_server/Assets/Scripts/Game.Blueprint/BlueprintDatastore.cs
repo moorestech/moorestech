@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,30 +10,28 @@ namespace Game.Blueprint
 
         public IReadOnlyList<BlueprintJsonObject> Blueprints => _blueprints;
 
-        public string Register(BlueprintJsonObject blueprint)
+        public Guid Register(BlueprintJsonObject blueprint)
         {
-            // 重複名には " (2)" 形式の連番を付与して常に登録成功させる
-            // Suffix duplicates with " (2)" style numbering so register always succeeds
-            var name = blueprint.Name;
-            var suffix = 2;
-            while (_blueprints.Any(b => b.Name == name))
-            {
-                name = $"{blueprint.Name} ({suffix})";
-                suffix++;
-            }
-
-            blueprint.Name = name;
+            // 名前は加工せずGuidを発行して登録する
+            // Register without renaming; issue a GUID as the identity
+            var guid = Guid.NewGuid();
+            blueprint.SetBlueprintGuid(guid);
             _blueprints.Add(blueprint);
-            return name;
+            return guid;
         }
 
-        public bool Delete(string name)
+        public bool Delete(Guid blueprintGuid)
         {
-            var target = _blueprints.FirstOrDefault(b => b.Name == name);
-            if (target == null) return false;
-
-            _blueprints.Remove(target);
+            var index = _blueprints.FindIndex(b => b.BlueprintGuid == blueprintGuid);
+            if (index < 0) return false;
+            _blueprints.RemoveAt(index);
             return true;
+        }
+
+        public bool TryGet(Guid blueprintGuid, out BlueprintJsonObject blueprint)
+        {
+            blueprint = _blueprints.FirstOrDefault(b => b.BlueprintGuid == blueprintGuid);
+            return blueprint != null;
         }
 
         public List<BlueprintJsonObject> GetSaveJsonObject()
@@ -44,6 +43,15 @@ namespace Game.Blueprint
         {
             _blueprints.Clear();
             _blueprints.AddRange(blueprints);
+
+            // 旧セーブ（Guid未発行）を読み込み時に補完する。ユーザー生成データの欠損補完であり、
+            // マスタ由来値への ?? Default フォールバック禁止（設計レンズ6）とは別種の判断
+            // Backfill legacy saves lacking a GUID at load time; this is user-data completion,
+            // distinct from the forbidden ?? Default fallback for master-derived values
+            foreach (var blueprint in _blueprints)
+            {
+                if (blueprint.BlueprintGuid == Guid.Empty) blueprint.SetBlueprintGuid(Guid.NewGuid());
+            }
         }
     }
 }

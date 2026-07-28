@@ -40,7 +40,9 @@ export function BuildMenuPanel() {
 
   const select = (entry: BuildMenuEntryData) =>
     void dispatchAction("build_menu.select", { entryType: entry.entryType, entryKey: entry.entryKey });
-  const remove = (entry: BuildMenuEntryData) => void dispatchAction("blueprint.delete", { name: entry.entryKey });
+  // ブループリントのentryKeyはGuid文字列（名前ではなくGuidで一意識別する）
+  // A blueprint's entryKey is a GUID string, used as the unique identity instead of the name
+  const remove = (entry: BuildMenuEntryData) => void dispatchAction("blueprint.delete", { id: entry.entryKey });
   // 閉じるはGameScreen遷移要求
   // Close requests a GameScreen transition
   const close = () => void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });

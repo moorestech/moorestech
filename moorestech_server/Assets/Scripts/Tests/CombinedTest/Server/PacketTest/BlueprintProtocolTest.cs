@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Game.Block.Interface;
+using Game.Blueprint;
 using Game.Context;
 using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
@@ -25,13 +29,15 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
-            // Create:範囲内ブロックでBP登録
-            // Create registers a blueprint from the area
+            // Create:範囲内ブロックでBP登録。応答は発行されたGuid
+            // Create registers a blueprint from the area; the response carries the issued GUID
             var createResponse = Send(BlueprintRequest.CreateCreateRequest("base", new Vector3Int(0, 0, 0), new Vector3Int(5, 2, 5)));
             Assert.IsTrue(createResponse.Success);
-            Assert.AreEqual("base", createResponse.RegisteredName);
+            var registeredGuid = Guid.Parse(createResponse.RegisteredGuidStr);
+            Assert.AreNotEqual(Guid.Empty, registeredGuid);
             Assert.AreEqual(1, createResponse.Blueprints.Count);
             Assert.AreEqual(1, createResponse.Blueprints[0].Blocks.Count);
+            Assert.AreEqual(registeredGuid.ToString(), createResponse.Blueprints[0].BlueprintGuidStr);
 
             // GetAll: 登録済みBPが返る
             // GetAll returns registered blueprints
@@ -40,9 +46,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(1, getAllResponse.Blueprints.Count);
             Assert.AreEqual("base", getAllResponse.Blueprints[0].Name);
 
-            // Delete: 削除後は0件
-            // Delete removes the blueprint
-            var deleteResponse = Send(BlueprintRequest.CreateDeleteRequest("base"));
+            // Delete: Guid指定で削除後は0件
+            // Delete removes the blueprint by GUID
+            var deleteResponse = Send(BlueprintRequest.CreateDeleteRequest(registeredGuid));
             Assert.IsTrue(deleteResponse.Success);
             Assert.AreEqual(0, deleteResponse.Blueprints.Count);
 
@@ -76,7 +82,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsFalse(noName.Success);
             Assert.AreEqual(BlueprintFailureReason.InvalidName, noName.FailureReason);
 
-            var missingDelete = Send(BlueprintRequest.CreateDeleteRequest("missing"));
+            var missingDelete = Send(BlueprintRequest.CreateDeleteRequest(Guid.NewGuid()));
             Assert.IsFalse(missingDelete.Success);
             Assert.AreEqual(BlueprintFailureReason.NotFound, missingDelete.FailureReason);
 
@@ -90,6 +96,42 @@ namespace Tests.CombinedTest.Server.PacketTest
             }
 
             #endregion
+        }
+
+        [Test]
+        public void 同名ブループリントは連番なしでそのまま登録されGuidで区別される()
+        {
+            // 既存テストと同じ初期化でdatastoreを取得する
+            // Use the same initialization as existing tests to get the datastore
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var datastore = serviceProvider.GetService<IBlueprintDatastore>();
+
+            var guid1 = datastore.Register(new BlueprintJsonObject("同じ名前", new List<BlueprintBlockJsonObject>()));
+            var guid2 = datastore.Register(new BlueprintJsonObject("同じ名前", new List<BlueprintBlockJsonObject>()));
+
+            // 名前は加工されず同名2件が共存し、Guidは異なる
+            // Names are untouched; two same-name entries coexist with distinct GUIDs
+            Assert.AreEqual(2, datastore.Blueprints.Count(b => b.Name == "同じ名前"));
+            Assert.AreNotEqual(guid1, guid2);
+
+            // Guidで片方だけ削除できる
+            // Deleting by GUID removes exactly one
+            Assert.IsTrue(datastore.Delete(guid1));
+            Assert.AreEqual(1, datastore.Blueprints.Count(b => b.Name == "同じ名前"));
+        }
+
+        [Test]
+        public void Guid無しの旧セーブはロード時にGuidが発行される()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var datastore = serviceProvider.GetService<IBlueprintDatastore>();
+
+            // Guid未設定（旧セーブ相当）のオブジェクトをロードする
+            // Load an object without a GUID (legacy save)
+            var legacy = new BlueprintJsonObject("旧BP", new List<BlueprintBlockJsonObject>());
+            datastore.LoadBlueprints(new List<BlueprintJsonObject> { legacy });
+
+            Assert.AreNotEqual(Guid.Empty, datastore.Blueprints[0].BlueprintGuid);
         }
     }
 }

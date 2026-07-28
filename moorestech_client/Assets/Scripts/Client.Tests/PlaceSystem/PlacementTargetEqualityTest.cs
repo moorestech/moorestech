@@ -32,8 +32,12 @@ namespace Client.Tests.PlaceSystem
             var connectToolGuid = Guid.NewGuid();
             Assert.IsTrue(new ConnectToolPlacementTarget(connectToolGuid).Equals(new ConnectToolPlacementTarget(connectToolGuid)));
             Assert.IsFalse(new ConnectToolPlacementTarget(connectToolGuid).Equals(new ConnectToolPlacementTarget(Guid.NewGuid())));
-            Assert.IsTrue(new BlueprintPlacementTarget("bp1").Equals(new BlueprintPlacementTarget("bp1")));
-            Assert.IsFalse(new BlueprintPlacementTarget("bp1").Equals(new BlueprintPlacementTarget("bp2")));
+
+            // ブループリントはGuidで区別する（同名でも別Guidなら別物、同Guidなら名前が違っても同一）
+            // Blueprints are distinguished by GUID (same name with a different GUID is distinct; same GUID is identical even with a different name)
+            var blueprintGuid = Guid.NewGuid();
+            Assert.IsTrue(new BlueprintPlacementTarget(blueprintGuid, "bp1").Equals(new BlueprintPlacementTarget(blueprintGuid, "bp1")));
+            Assert.IsFalse(new BlueprintPlacementTarget(blueprintGuid, "bp1").Equals(new BlueprintPlacementTarget(Guid.NewGuid(), "bp1")));
         }
 
         [Test]
@@ -42,7 +46,7 @@ namespace Client.Tests.PlaceSystem
             Assert.IsTrue(new BlueprintCopyToolPlacementTarget().Equals(new BlueprintCopyToolPlacementTarget()));
             var guid = Guid.NewGuid();
             Assert.IsFalse(new BlockPlacementTarget(new BlockId(1), null).Equals(new TrainCarPlacementTarget(guid)));
-            Assert.IsFalse(new BlueprintPlacementTarget("x").Equals(new ConnectToolPlacementTarget(Guid.NewGuid())));
+            Assert.IsFalse(new BlueprintPlacementTarget(Guid.NewGuid(), "x").Equals(new ConnectToolPlacementTarget(Guid.NewGuid())));
         }
     }
 }

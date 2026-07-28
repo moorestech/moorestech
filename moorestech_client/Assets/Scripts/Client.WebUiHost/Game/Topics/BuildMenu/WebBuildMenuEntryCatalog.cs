@@ -76,7 +76,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             var (blueprintCategory, blueprintSubCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.savedBlueprints);
             foreach (var blueprint in blueprintLibrary.Blueprints)
             {
-                entries.Add(new WebBuildMenuEntry(new BlueprintPlacementTarget(blueprint.Name), blueprint.Name, blueprintCategory, blueprintSubCategory, new List<WebBuildMenuEntry.RequiredItem>()));
+                entries.Add(new WebBuildMenuEntry(new BlueprintPlacementTarget(blueprint.BlueprintGuid, blueprint.Name), blueprint.Name, blueprintCategory, blueprintSubCategory, new List<WebBuildMenuEntry.RequiredItem>()));
             }
 
             return entries;

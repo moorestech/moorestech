@@ -70,7 +70,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 BlockPlacementTarget block => block.BlockId.AsPrimitive().ToString(),
                 TrainCarPlacementTarget trainCar => trainCar.TrainCarGuid.ToString(),
                 ConnectToolPlacementTarget connectTool => connectTool.ConnectToolGuid.ToString(),
-                BlueprintPlacementTarget blueprint => blueprint.BlueprintName,
+                BlueprintPlacementTarget blueprint => blueprint.BlueprintGuid.ToString(),
                 _ => string.Empty,
             };
         }

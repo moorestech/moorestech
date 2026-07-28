@@ -72,7 +72,7 @@ namespace Client.Game.InGame.UI.BuildMenu
             // Append entries for saved blueprints
             foreach (var blueprint in blueprintLibrary.Blueprints)
             {
-                entries.Add(new BuildMenuEntry(new BlueprintPlacementTarget(blueprint.Name), null, blueprint.Name));
+                entries.Add(new BuildMenuEntry(new BlueprintPlacementTarget(blueprint.BlueprintGuid, blueprint.Name), null, blueprint.Name));
             }
 
             return entries;

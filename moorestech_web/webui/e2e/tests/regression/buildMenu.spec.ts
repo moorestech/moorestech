@@ -27,7 +27,7 @@ test("エントリ選択とBP右クリック削除のアクション契約", asy
 
   await page.getByTestId("build-menu-category-ブループリント").click();
   await page.getByTestId("build-menu-entry-blueprint-starter-base").click({ button: "right" });
-  await expect.poll(() => payloadsOf(page, "blueprint.delete")).toContainEqual({ name: "starter-base" });
+  await expect.poll(() => payloadsOf(page, "blueprint.delete")).toContainEqual({ id: "starter-base" });
 });
 
 test("閉じるボタンはGameScreen遷移を要求する", async ({ page }) => {

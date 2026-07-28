@@ -30,22 +30,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             ApplyResponse(response);
         }
 
-        public async UniTask<(bool success, string registeredName)> CreateBlueprint(string name, Vector3Int min, Vector3Int max, CancellationToken ct)
+        public async UniTask<(bool success, Guid blueprintGuid)> CreateBlueprint(string name, Vector3Int min, Vector3Int max, CancellationToken ct)
         {
             var request = BlueprintRequest.CreateCreateRequest(name, min, max);
             var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(request, ct);
 
             // タイムアウト等のnull応答は失敗扱い
             // Treat a null response (timeout etc.) as failure
-            if (response == null) return (false, null);
+            if (response == null) return (false, Guid.Empty);
 
             ApplyResponse(response);
-            return (response.Success, response.RegisteredName);
+            return (response.Success, response.Success ? Guid.Parse(response.RegisteredGuidStr) : Guid.Empty);
         }
 
-        public async UniTask DeleteBlueprint(string name, CancellationToken ct)
+        public async UniTask DeleteBlueprint(Guid blueprintGuid, CancellationToken ct)
         {
-            var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(BlueprintRequest.CreateDeleteRequest(name), ct);
+            var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(BlueprintRequest.CreateDeleteRequest(blueprintGuid), ct);
             ApplyResponse(response);
         }
 

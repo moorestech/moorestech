@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
@@ -74,9 +75,10 @@ namespace Client.WebUiHost.Game.Actions
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (payload == null) return ActionResult.Fail("invalid_payload");
-            if (payload["name"] is not JValue { Type: JTokenType.String } nameValue) return ActionResult.Fail("invalid_payload");
+            if (payload["id"] is not JValue { Type: JTokenType.String } idValue) return ActionResult.Fail("invalid_payload");
+            if (!Guid.TryParse((string)idValue, out var blueprintGuid)) return ActionResult.Fail("invalid_payload");
 
-            await _blueprintLibrary.DeleteBlueprint((string)nameValue, CancellationToken.None);
+            await _blueprintLibrary.DeleteBlueprint(blueprintGuid, CancellationToken.None);
             return ActionResult.Success();
         }
     }

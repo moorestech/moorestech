@@ -29,7 +29,7 @@ export type ActionPayloads = {
   // text accompanies only the confirm of an input modal
   "ui.modal.respond": { id: string; result: "confirm" | "cancel"; text?: string };
   "build_menu.select": { entryType: BuildMenuEntryType; entryKey: string };
-  "blueprint.delete": { name: string };
+  "blueprint.delete": { id: string };
   "block_inventory.move_item": { from: BlockSlotRef; to: BlockSlotRef; count: number };
   "block_inventory.split": { from: BlockSlotRef };
   "block_inventory.collect": { slot: BlockSlotRef };
