@@ -1,0 +1,1 @@
+{"idx":17,"predictions":[{"header":"ツール定義","predicted_label":"トップレベル tools 配列に列挙するだけ（推奨）","rationale":"裁定コーパス「新yaml禁止・既存スキーマのトップレベル配列へ統合」(blockCategories→buildMenu, modules/levelFamilies→items)と「optionalでの欠損吸収は敗北(PR978)」に合致し、toolType層は「将来拡張の裁定は先送り」傾向でYAGNI却下されるため","confidence":"高"}]}

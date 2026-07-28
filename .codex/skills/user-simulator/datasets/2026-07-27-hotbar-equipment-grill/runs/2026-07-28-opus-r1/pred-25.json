@@ -1,0 +1,1 @@
+{"idx":25,"predictions":[{"header":"ドキュメント","predicted_label":"ADR＋設計ドキュメントを書く（推奨）","rationale":"ID体系の論点（自分が持ち出した唯一の差し戻し理由）が4問で解消済みで、直近23問中17問が推奨選択という追従傾向。加えてリポジトリに docs/adr/0001-placement-target-id-as-single-guid.md 〜 0004-server-authoritative-mining.md が選択肢と同名で実在し本セッションの決定内容そのものを記述している（commit b14d32752／revert 5d3882ce7）ため、この選択が実際に採られた蓋然性が高い","confidence":"高"}]}

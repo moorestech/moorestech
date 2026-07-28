@@ -1,0 +1,1 @@
+{"idx": 2, "predictions": [{"header": "選択時の挙動", "predicted_label": "即建築モード、同キーで解除（推奨）", "rationale": "元依頼が「satisfactoryみたいに」と明示しており、推奨案がそのSatisfactory準拠そのもの。中間状態を作らない＝機構の最小化でもあり、直前の質問でも推奨（IPlacementTarget参照のみ）に追従している。ただし操作方式の質問は過去に逆回答の前科があるため確信は中に留める。", "confidence": "中"}]}
