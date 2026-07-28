@@ -116,30 +116,35 @@ namespace Client.Tests.EditModeInPlayingTest
                 // ②プレビュー開始で範囲表示が現れ、vein1本につき1個だけになる
                 // (2) Starting a preview makes the range view appear, exactly one box per vein
                 await DriveRangeViewFrames(rangeView, nearVeins, true);
-                Assert.AreEqual(veinLayouts.Count, await CountRangeViewObjects(), "range view object count does not match the vein count while previewing");
+                Assert.AreEqual(veinLayouts.Count, await CountVisibleRangeViewObjects(), "range view object count does not match the vein count while previewing");
 
-                // ③プレビュー終了でシーンから消える
-                // (3) Ending the preview removes them from the scene
+                // プール込みの総数を基準に取る。以降これが増えたら表示のたびに作り直している
+                // Snapshot the pooled total as a baseline; any later growth means boxes are rebuilt on every show
+                var pooledTotalBaseline = FindRangeViewRoot().childCount;
+
+                // ③プレビュー終了で表示が消える
+                // (3) Ending the preview hides them all
                 await DriveRangeViewFrames(rangeView, nearVeins, false);
-                Assert.AreEqual(0, await CountRangeViewObjects(), "range view objects survived the preview exit");
+                Assert.AreEqual(0, await CountVisibleRangeViewObjects(), "range view objects survived the preview exit");
 
-                // ④開始と終了を3回繰り返しても1本1個のまま。二重生成も破棄漏れもここで落ちる
-                // (4) Three show/hide cycles keep one box per vein; both duplication and missed destroys fail here
+                // ④開始と終了を3回繰り返しても1本1個のまま。二重表示も消し漏れもここで落ちる
+                // (4) Three show/hide cycles keep one box per vein; both duplication and missed hides fail here
                 for (var i = 0; i < 3; i++)
                 {
                     await DriveRangeViewFrames(rangeView, nearVeins, true);
-                    Assert.AreEqual(veinLayouts.Count, await CountRangeViewObjects(), $"range view object count changed on cycle {i}");
+                    Assert.AreEqual(veinLayouts.Count, await CountVisibleRangeViewObjects(), $"range view object count changed on cycle {i}");
+                    Assert.AreEqual(pooledTotalBaseline, FindRangeViewRoot().childCount, $"range view boxes accumulated on cycle {i}");
 
                     await DriveRangeViewFrames(rangeView, nearVeins, false);
-                    Assert.AreEqual(0, await CountRangeViewObjects(), $"range view objects survived cycle {i}");
+                    Assert.AreEqual(0, await CountVisibleRangeViewObjects(), $"range view objects survived cycle {i}");
                 }
 
                 // プレビュー中でも遠ざかれば消える。表示条件がプレビュー有無だけに退化していないことを見る
                 // Moving far away clears them even while previewing, proving the visibility rule is not just the preview flag
                 await DriveRangeViewFrames(rangeView, nearVeins, true);
-                Assert.AreEqual(veinLayouts.Count, await CountRangeViewObjects(), "range view did not reappear near the veins");
+                Assert.AreEqual(veinLayouts.Count, await CountVisibleRangeViewObjects(), "range view did not reappear near the veins");
                 await DriveRangeViewFrames(rangeView, farAway, true);
-                Assert.AreEqual(0, await CountRangeViewObjects(), "range view survived while the camera was far from every vein");
+                Assert.AreEqual(0, await CountVisibleRangeViewObjects(), "range view survived while the camera was far from every vein");
             }
 
             async UniTask DriveRangeViewFrames(IMapVeinRangeView rangeView, Vector3 cameraPosition, bool isPreviewing)
@@ -164,16 +169,23 @@ namespace Client.Tests.EditModeInPlayingTest
                 return sum / veinLayouts.Count;
             }
 
-            async UniTask<int> CountRangeViewObjects()
+            async UniTask<int> CountVisibleRangeViewObjects()
             {
-                // Destroyはフレーム終わりに効くので、数える前に必ずフレームを跨ぐ
-                // Destroy takes effect at the end of the frame, so always cross a frame before counting
-                await UniTask.Yield();
+                // 非表示ボックスは破棄せずプールへ戻るので、活性なものだけを数える
+                // Hidden boxes are parked in a pool instead of destroyed, so count only the active ones
                 await UniTask.Yield();
 
+                var visibleCount = 0;
+                foreach (Transform child in FindRangeViewRoot())
+                    if (child.gameObject.activeSelf) visibleCount++;
+                return visibleCount;
+            }
+
+            Transform FindRangeViewRoot()
+            {
                 var root = GameObject.Find(MapVeinRangeViewService.RootObjectName);
                 Assert.IsNotNull(root, "MapVeinRangeViewRoot was not found in scene");
-                return root.transform.childCount;
+                return root.transform;
             }
 
             #endregion

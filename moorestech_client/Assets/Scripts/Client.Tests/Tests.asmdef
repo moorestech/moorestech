@@ -36,6 +36,9 @@
         "Common.Debug",
         "Game.Paths",
         "Game.MapGeneration",
+        "Game.PlayerRiding.Interface",
+        "Game.Research",
+        "Server.Event",
         "VContainer"
     ],
     "includePlatforms": [

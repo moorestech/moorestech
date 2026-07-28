@@ -121,4 +121,4 @@ properties:
             displayElementPath: /data/[*]/name
     - key: outcropAddressablePath
       type: string
-      default: Vanilla/Environment/Vein/
+      default: ""

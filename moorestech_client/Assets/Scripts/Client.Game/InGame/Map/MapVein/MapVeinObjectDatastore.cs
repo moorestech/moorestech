@@ -30,6 +30,10 @@ namespace Client.Game.InGame.Map.MapVein
         private const float GroundProbeStartHeight = 1000f;
         private const float GroundProbeDistance = 2000f;
 
+        // 例外メッセージに載せる不正veinの上限。1772本全部を並べるとログが埋まって原因が読めない
+        // Cap of bad veins listed in the exception message; all 1772 would bury the log and hide the cause
+        private const int MaxListedUnresolvedVeins = 10;
+
         // 同一アドレスを複数のveinが共有するため、guidではなくアドレスでキャッシュする
         // Several veins share one address, so cache by address rather than by guid
         private readonly Dictionary<string, GameObject> _prefabCacheByAddress = new();
@@ -47,6 +51,10 @@ namespace Client.Game.InGame.Map.MapVein
             {
                 var cancellationToken = this.GetCancellationTokenOnDestroy();
 
+                // 地表を解決できなかったveinは1本目で打ち切らず全件記録する。1本の不正が残り全件を巻き添えにしないため
+                // Record every vein whose surface could not be resolved instead of aborting on the first; one bad vein must not take the rest down
+                var unresolvedGroundVeins = new List<string>();
+
                 var processedCount = 0;
                 foreach (var layout in handshakeResponse.MapLayout.MapVeins)
                 {
@@ -57,16 +65,32 @@ namespace Client.Game.InGame.Map.MapVein
                     // min/max are inclusive cell coords, so add one cell on the max side to get the AABB center XZ
                     var centerX = (layout.MinX + layout.MaxX + 1) * 0.5f;
                     var centerZ = (layout.MinZ + layout.MaxZ + 1) * 0.5f;
-                    var position = new Vector3(centerX, ResolveGroundHeight(centerX, centerZ), centerZ);
-
-                    // veinGuidを名前に残し、どの鉱脈の露頭かをシーン上で辿れるようにする
-                    // Keep the veinGuid in the name so each outcrop can be traced back to its vein in the scene
-                    var instance = Instantiate(prefab, position, Quaternion.identity, transform);
-                    instance.name = $"{OutcropObjectNamePrefix}{layout.VeinGuid}";
 
                     processedCount++;
                     if (processedCount % FrameYieldObjectInterval == 0) await UniTask.Yield(cancellationToken);
+
+                    if (!TryResolveGroundHeight(centerX, centerZ, out var groundHeight))
+                    {
+                        unresolvedGroundVeins.Add($"veinGuid:{layout.VeinGuid} X:{centerX} Z:{centerZ}");
+                        continue;
+                    }
+
+                    // veinGuidを名前に残し、どの鉱脈の露頭かをシーン上で辿れるようにする
+                    // Keep the veinGuid in the name so each outcrop can be traced back to its vein in the scene
+                    var instance = Instantiate(prefab, new Vector3(centerX, groundHeight, centerZ), Quaternion.identity, transform);
+                    instance.name = $"{OutcropObjectNamePrefix}{layout.VeinGuid}";
                 }
+
+                // 地表が無いveinはワールドデータ不正。Y=0へ落とさず、全件を評価したうえで列挙して起動時に顕在化させる
+                // Veins with no surface are invalid world data; after evaluating them all, list them and surface it at startup instead of falling back to Y=0
+                if (unresolvedGroundVeins.Count > 0) throw new InvalidOperationException(BuildUnresolvedGroundMessage(unresolvedGroundVeins));
+            }
+
+            string BuildUnresolvedGroundMessage(List<string> unresolvedGroundVeins)
+            {
+                var listedCount = Mathf.Min(unresolvedGroundVeins.Count, MaxListedUnresolvedVeins);
+                var listed = string.Join(" / ", unresolvedGroundVeins.GetRange(0, listedCount));
+                return $"[MapVeinObjectDatastore] 露頭を立てる地表がありません 該当vein数:{unresolvedGroundVeins.Count} 先頭{listedCount}件 {listed}";
             }
 
             GameObject ResolveOutcropPrefab(Guid veinGuid)
@@ -88,25 +112,21 @@ namespace Client.Game.InGame.Map.MapVein
                 return loaded;
             }
 
-            float ResolveGroundHeight(float x, float z)
+            bool TryResolveGroundHeight(float x, float z, out float groundHeight)
             {
                 // 地面判定は設置系と同じGroundGameObjectで行う。手前の非地面コライダーに遮られないよう全ヒットから選ぶ
                 // Identify ground by GroundGameObject as the placement systems do; scan every hit so a nearer non-ground collider cannot mask it
                 var origin = new Vector3(x, GroundProbeStartHeight, z);
                 var hits = Physics.RaycastAll(origin, Vector3.down, GroundProbeDistance, LayerConst.Without_Player_MapObject_Block_LayerMask);
 
-                var groundHeight = float.NegativeInfinity;
+                groundHeight = float.NegativeInfinity;
                 foreach (var hit in hits)
                 {
                     if (!hit.transform.TryGetComponent<GroundGameObject>(out _)) continue;
                     if (hit.point.y > groundHeight) groundHeight = hit.point.y;
                 }
 
-                // 地表が無いveinはワールドデータ不正。Y=0へ落とさず起動時に顕在化させる
-                // A vein with no surface beneath it is invalid world data; surface it at startup instead of falling back to Y=0
-                if (float.IsNegativeInfinity(groundHeight)) throw new InvalidOperationException($"[MapVeinObjectDatastore] 露頭を立てる地表がありません X:{x} Z:{z}");
-
-                return groundHeight;
+                return !float.IsNegativeInfinity(groundHeight);
             }
 
             #endregion

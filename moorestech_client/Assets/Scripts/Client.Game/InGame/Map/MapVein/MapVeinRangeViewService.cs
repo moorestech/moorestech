@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Client.Common;
 using Client.Network.API;
 using Core.Master;
 using Mooresmaster.Model.MapModule;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Client.Game.InGame.Map.MapVein
 {
@@ -23,10 +21,14 @@ namespace Client.Game.InGame.Map.MapVein
         // Show only veins within this distance of the camera; showing them all would fill the distance with boxes
         private const float VisibleRadius = 96f;
 
-        // 種別の色分けはveinTypeから導出する。汎用のプレビュー色とは別物なのでここで持つ
-        // Type coloring derives from veinType; these are distinct from the generic preview colors so they live here
-        private static readonly Color ItemVeinColor = new(0.95f, 0.72f, 0.25f, 1f);
-        private static readonly Color FluidVeinColor = new(0.25f, 0.62f, 0.95f, 1f);
+        private const string BoxObjectName = "MapVeinRangeBox";
+
+        private readonly MapVeinRangeBoxMaterials _boxMaterials = new();
+
+        // 非表示になったボックスは破棄せずここへ戻す。veinは1772本規模なので毎回作り直すと生成破棄が延々続く
+        // Hidden boxes come back here instead of being destroyed; with ~1772 veins, rebuilding them would churn forever
+        private readonly Stack<GameObject> _boxPool = new();
+        private readonly Mesh _boxMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
 
         private readonly List<VeinRangeEntry> _entries = new();
         private readonly Camera _mainCamera;
@@ -37,8 +39,8 @@ namespace Client.Game.InGame.Map.MapVein
             _mainCamera = mainCamera;
             _root = new GameObject(RootObjectName).transform;
 
-            // veinは動かないのでAABBと色は起動時に確定させ、毎フレームのmaster参照と再計算を無くす
-            // Veins never move, so fix their AABB and color at startup and drop the per-frame master lookup and recomputation
+            // veinは動かないのでAABBと材質は起動時に確定させ、毎フレームのmaster参照と再計算を無くす
+            // Veins never move, so fix their AABB and material at startup and drop the per-frame master lookup and recomputation
             foreach (var layout in handshakeResponse.MapLayout.MapVeins)
             {
                 var veinGuid = new Guid(layout.VeinGuid);
@@ -52,7 +54,8 @@ namespace Client.Game.InGame.Map.MapVein
                 var bounds = new Bounds();
                 bounds.SetMinMax(min, max);
 
-                _entries.Add(new VeinRangeEntry(bounds, element.VeinParam is FluidVeinParam ? FluidVeinColor : ItemVeinColor));
+                var material = element.VeinParam is FluidVeinParam ? _boxMaterials.FluidMaterial : _boxMaterials.ItemMaterial;
+                _entries.Add(new VeinRangeEntry(bounds, material));
             }
         }
 
@@ -66,8 +69,8 @@ namespace Client.Game.InGame.Map.MapVein
 
             foreach (var entry in _entries)
             {
-                // プレビュー外は距離を問わず全消し。範囲内だけボックスを持たせ、外れたものは即破棄する
-                // Outside a preview everything goes, regardless of distance; only in-range veins keep a box and the rest are destroyed at once
+                // プレビュー外は距離を問わず全消し。範囲内だけボックスを持たせ、外れたものはプールへ返す
+                // Outside a preview everything goes, regardless of distance; only in-range veins keep a box and the rest return to the pool
                 var isVisible = isPlacementPreviewing && IsWithinVisibleRadius(entry.Bounds, cameraPosition);
                 if (isVisible) ShowEntry(entry);
                 else HideEntry(entry);
@@ -84,54 +87,56 @@ namespace Client.Game.InGame.Map.MapVein
 
             void ShowEntry(VeinRangeEntry entry)
             {
-                // veinは動かないので既存ボックスは作り直さない。これが再入時の二重生成を防ぐ
-                // Veins never move, so an existing box is never rebuilt; this is what prevents duplicates on re-entry
+                // veinは動かないので既存ボックスは置き直さない。これが再入時の二重表示を防ぐ
+                // Veins never move, so an existing box is never re-placed; this is what prevents duplicates on re-entry
                 if (entry.ViewObject != null) return;
-                entry.ViewObject = CreateBox(entry.Bounds, entry.Color);
+                entry.ViewObject = RentBox(entry.Bounds, entry.Material);
             }
 
             void HideEntry(VeinRangeEntry entry)
             {
                 if (entry.ViewObject == null) return;
-                Object.Destroy(entry.ViewObject);
+                entry.ViewObject.SetActive(false);
+                _boxPool.Push(entry.ViewObject);
                 entry.ViewObject = null;
             }
 
-            GameObject CreateBox(Bounds bounds, Color color)
+            GameObject RentBox(Bounds bounds, Material material)
             {
-                var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                var box = _boxPool.Count > 0 ? _boxPool.Pop() : CreateBox();
+                box.GetComponent<MeshRenderer>().sharedMaterial = material;
+                box.transform.position = bounds.center;
+                box.transform.localScale = bounds.size;
+                box.SetActive(true);
+                return box;
+            }
 
-                // 設置レイキャストや採掘レイを遮らないようコライダーを外す（純表示）
-                // Strip the collider so it blocks neither placement nor mining raycasts (display only)
-                Object.Destroy(cube.GetComponent<Collider>());
-
-                // 設置プレビュー材質を複製し、種別色を適用する
-                // Clone the placement preview material and tint it with the type color
-                var material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial());
-                material.SetColor(MaterialConst.PreviewColorPropertyName, color);
-                cube.GetComponent<MeshRenderer>().sharedMaterial = material;
-
-                cube.transform.SetParent(_root, false);
-                cube.transform.position = bounds.center;
-                cube.transform.localScale = bounds.size;
-                return cube;
+            GameObject CreateBox()
+            {
+                // CreatePrimitiveは必ずコライダーを付け、その破棄はフレーム末まで効かない。1フレームだけ設置レイを遮るので自前で組む
+                // CreatePrimitive always attaches a collider and destroying it only lands at frame end, blocking placement rays for a frame, so build it by hand
+                var box = new GameObject(BoxObjectName);
+                box.transform.SetParent(_root, false);
+                box.AddComponent<MeshFilter>().sharedMesh = _boxMesh;
+                box.AddComponent<MeshRenderer>();
+                return box;
             }
 
             #endregion
         }
 
-        // 起動時に確定するveinのAABBと色、および現在の表示ボックスを束ねる
-        // Bundles a vein's startup-fixed AABB and color with its current view box
+        // 起動時に確定するveinのAABBと材質、および現在の表示ボックスを束ねる
+        // Bundles a vein's startup-fixed AABB and material with its current view box
         private class VeinRangeEntry
         {
             public readonly Bounds Bounds;
-            public readonly Color Color;
+            public readonly Material Material;
             public GameObject ViewObject;
 
-            public VeinRangeEntry(Bounds bounds, Color color)
+            public VeinRangeEntry(Bounds bounds, Material material)
             {
                 Bounds = bounds;
-                Color = color;
+                Material = material;
             }
         }
     }
