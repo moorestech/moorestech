@@ -130,6 +130,8 @@ namespace Client.Game.InGame.UI.BuildMenu
 
             async UniTask DeleteBlueprintAndRebuild(Guid blueprintGuid)
             {
+                // uGUIはWeb移行済みの残置のため失敗結果は見ない。webui側のBlueprintDeleteActionHandlerがフィードバックを担う
+                // uGUI is a leftover pending removal after the web migration; the failure result is intentionally ignored (webui's BlueprintDeleteActionHandler owns feedback)
                 await _blueprintLibrary.DeleteBlueprint(blueprintGuid, this.GetCancellationTokenOnDestroy());
 
                 // 成功時はキャッシュが最新全件に置き換わるため、そこから再構築する

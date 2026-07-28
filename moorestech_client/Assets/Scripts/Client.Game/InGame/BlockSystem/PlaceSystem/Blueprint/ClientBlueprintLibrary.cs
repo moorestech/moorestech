@@ -9,6 +9,15 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 {
+    // DeleteBlueprintの結果種別。呼び出し側がNotFound（サーバー応答あり）と通信失敗を区別するために使う
+    // Result kind for DeleteBlueprint; lets callers distinguish a server-side NotFound from a communication failure
+    public enum BlueprintDeleteResult
+    {
+        Success,
+        NotFound,
+        RequestFailed,
+    }
+
     /// <summary>
     ///     サーバーのBPライブラリのクライアント側キャッシュ
     ///     Client-side cache of the server blueprint library
@@ -43,11 +52,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             return (response.Success, response.Success ? Guid.Parse(response.RegisteredGuidStr) : Guid.Empty);
         }
 
-        public async UniTask<bool> DeleteBlueprint(Guid blueprintGuid, CancellationToken ct)
+        public async UniTask<BlueprintDeleteResult> DeleteBlueprint(Guid blueprintGuid, CancellationToken ct)
         {
             var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(BlueprintRequest.CreateDeleteRequest(blueprintGuid), ct);
             ApplyResponse(response);
-            return response is { Success: true };
+
+            // null応答（タイムアウト等）は通信失敗、Success=falseはサーバー側NotFoundとして区別する
+            // A null response (timeout etc.) is a communication failure; distinguish it from a server-side NotFound (Success=false)
+            if (response == null) return BlueprintDeleteResult.RequestFailed;
+            return response.Success ? BlueprintDeleteResult.Success : BlueprintDeleteResult.NotFound;
         }
 
         private void ApplyResponse(BlueprintResponse response)
