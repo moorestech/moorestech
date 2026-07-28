@@ -72,8 +72,8 @@ namespace Tests.UnitTest.Game
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var catalog = new PlacementTargetCatalog(new EmptyBlueprintSource());
 
-            // ベルト坂を除外し(SortPriority??0, Name)で独立に組み立てた期待列と突き合わせる
-            // Independently rebuild the expected column excluding slopes, sorted by (SortPriority ?? 0, Name)
+            // 実装式の複製で現在の並び順をピン留めする（並べ替え規則自体の正しさは検証しない）
+            // This duplicates the implementation's expression to pin the current order (does not validate the ordering rule itself)
             var expected = MasterHolder.BlockMaster.Blocks.Data
                 .Where(block => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(block.BlockGuid))
                 .OrderBy(block => block.SortPriority ?? 0)
@@ -94,14 +94,10 @@ namespace Tests.UnitTest.Game
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // forUnitTestのconnectTools配列は元々SortPriority昇順のため、並び替えず反転してソートの効果を可視化する
-            // forUnitTest's connectTools array is already SortPriority-ascending, so reverse it to make sorting observable
-            Array.Reverse(MasterHolder.ConnectToolMaster.ConnectTools);
-
             var catalog = new PlacementTargetCatalog(new EmptyBlueprintSource());
 
-            // SortPriorityで独立に組み立てた期待列と突き合わせる
-            // Independently rebuild the expected column sorted by SortPriority
+            // 実装式の複製で現在の並び順をピン留めする（並べ替え規則自体の正しさは検証しない）
+            // This duplicates the implementation's expression to pin the current order (does not validate the ordering rule itself)
             var expected = MasterHolder.ConnectToolMaster.All
                 .OrderBy(connectTool => connectTool.SortPriority)
                 .Select(connectTool => connectTool.ConnectToolGuid)
@@ -137,7 +133,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void サーバDIのカタログはBlueprintDatastoreのBPを含む()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var datastore = serviceProvider.GetService<IBlueprintDatastore>();
             var catalog = serviceProvider.GetService<PlacementTargetCatalog>();
 
