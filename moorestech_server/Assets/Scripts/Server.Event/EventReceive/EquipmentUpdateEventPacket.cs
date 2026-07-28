@@ -51,6 +51,10 @@ namespace Server.Event.EventReceive
         public const string SlotEventType = "slot";
         public const string SelectedEventType = "selected";
 
+        // 選択変更イベントのSlotに入れる番兵。前例はUnifiedInventoryEventMessagePack.CreateRemove
+        // Sentinel slot for selected events; the precedent is UnifiedInventoryEventMessagePack.CreateRemove
+        public const int UnusedSlot = -1;
+
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public EquipmentUpdateEventMessagePack()
         {
@@ -73,9 +77,11 @@ namespace Server.Event.EventReceive
 
         // 選択変更でもItemは空アイテムで埋め、受信側がnull参照を踏まないようにする
         // Selected events still carry an empty item so receivers never dereference null
+        // Slotは0が正当な装備スロットなので、受信側がEventType分岐を落としても気づけるよう範囲外の-1を入れる
+        // Slot uses out-of-range -1 because 0 is a valid equipment slot, so a missed EventType branch fails loudly
         public static EquipmentUpdateEventMessagePack CreateSelectedEvent(int selectedIndex)
         {
-            return new EquipmentUpdateEventMessagePack(SelectedEventType, 0, new ItemMessagePack(ItemMaster.EmptyItemId, 0), selectedIndex);
+            return new EquipmentUpdateEventMessagePack(SelectedEventType, UnusedSlot, new ItemMessagePack(ItemMaster.EmptyItemId, 0), selectedIndex);
         }
 
         [Key(0)] public string EventType { get; set; }
