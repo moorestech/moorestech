@@ -11,7 +11,6 @@ namespace Client.WebUiHost.Boot
     {
         public string Op;
         public List<string> Topics;
-        public string Topic;
         public string Type;
         public string RequestId;
         public JObject Payload;

@@ -49,10 +49,6 @@ namespace Client.WebUiHost.Boot
                     if (msg.Topics == null) return;
                     foreach (var t in msg.Topics) conn.Topics.TryRemove(t, out _);
                     break;
-                case "snapshot":
-                    if (msg.Topic == null) return;
-                    await SendSnapshotAsync(conn, msg.Topic);
-                    break;
                 case "action":
                     await HandleActionAsync(conn, msg);
                     break;
@@ -67,7 +63,7 @@ namespace Client.WebUiHost.Boot
 
         // 指定接続へトピックの snapshot を送る
         // Send the topic snapshot to the given connection
-        public async UniTask SendSnapshotAsync(WebSocketConnection conn, string topic)
+        private async UniTask SendSnapshotAsync(WebSocketConnection conn, string topic)
         {
             if (!_handlers.TryGetValue(topic, out var handler)) return;
             // 生成前のrevisionを固定し、生成中eventより新しい番号を古いsnapshotへ付けない
