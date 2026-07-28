@@ -1,5 +1,6 @@
 using System;
 using Core.Inventory;
+using Core.Item.Interface;
 using Game.Context;
 using UnityEngine;
 
@@ -37,19 +38,28 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             var originItem = fromInventory.GetItem(fromSlot);
             //移動アイテム数が本来のアイテムより多い時は、本来のアイテム数に修正する
             if (originItem.Count < itemCount) itemCount = originItem.Count;
-            
-            //実際に移動するアイテムインスタンスの作成
-            var moveItem = ServerContext.ItemStackFactory.Create(originItem.Id, itemCount);
-            
+
             var destinationInventoryItem = toInventory.GetItem(toSlot);
-            
+
             //移動先アイテムがなかった時はそのまま入れかえる
             //移動先と同じIDの時は移動先スロットに加算し、余ったアイテムを移動元インベントリに入れる
             if (destinationInventoryItem.Count == 0 || originItem.Id == destinationInventoryItem.Id)
             {
+                // 移動先が受入制限を宣言していれば、受入可否と1スロット上限を尊重する
+                // Honor the acceptance flag and the per-slot cap declared by the destination
+                if (toInventory is IItemAcceptanceInventory acceptanceInventory)
+                {
+                    if (!acceptanceInventory.CanAccept(originItem.Id)) return;
+                    itemCount = Math.Min(itemCount, acceptanceInventory.GetMaxCountPerSlot(originItem.Id) - destinationInventoryItem.Count);
+                    if (itemCount <= 0) return;
+                }
+
+                //実際に移動するアイテムインスタンスの作成
+                var moveItem = ServerContext.ItemStackFactory.Create(originItem.Id, itemCount);
+
                 //移動先インベントリにアイテムを移動
                 var replaceItem = toInventory.ReplaceItem(toSlot, moveItem);
-                
+
                 //移動元インベントリに残るアイテムを計算
                 //ゼロの時は自動でNullItemになる
                 var playerItemCount = originItem.Count - itemCount;
@@ -63,9 +73,29 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             //一部入れ替え時は入れ替え作業は実行しない
             else if (itemCount == originItem.Count)
             {
+                // 入れ替えは両スロットへ書き戻すため、双方の受入制限を満たす時だけ実行する
+                // A swap writes into both slots, so run it only when both sides accept the result
+                if (!IsAcceptableResult(toInventory, originItem)) return;
+                if (!IsAcceptableResult(fromInventory, destinationInventoryItem)) return;
+
                 toInventory.SetItem(toSlot, originItem);
                 fromInventory.SetItem(fromSlot, destinationInventoryItem);
             }
+
+            #region Internal
+
+            bool IsAcceptableResult(IOpenableInventory inventory, IItemStack resultItem)
+            {
+                // 受入制限を宣言していないインベントリと、空スロットになる結果は常に許可する
+                // Inventories without restrictions and results that leave the slot empty are always allowed
+                if (inventory is not IItemAcceptanceInventory acceptanceInventory) return true;
+                if (resultItem.Count == 0) return true;
+
+                if (!acceptanceInventory.CanAccept(resultItem.Id)) return false;
+                return resultItem.Count <= acceptanceInventory.GetMaxCountPerSlot(resultItem.Id);
+            }
+
+            #endregion
         }
     }
 }
