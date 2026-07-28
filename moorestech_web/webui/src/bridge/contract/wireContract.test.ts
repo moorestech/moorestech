@@ -18,6 +18,10 @@ function loadFixture(name: string): unknown {
 }
 
 describe("wire contract fixtures (shared with C#)", () => {
+  it("削除した重複採掘HUD topicを公開しない", () => {
+    expect(Object.values(Topics)).not.toContain("ui.mining_hud");
+  });
+
   it("accepts Phase C4 presentation fixtures", () => {
     expect(validateTopicPayload(Topics.gameState, loadFixture("game_state.json"))).toBe(true);
     expect(validateTopicPayload(Topics.tutorialPresentation, loadFixture("tutorial_presentation.json"))).toBe(true);
@@ -115,7 +119,7 @@ describe("wire contract fixtures (shared with C#)", () => {
     const cases = [
       [Topics.placementMode, "placement_mode.json"], [Topics.deleteMode, "delete_mode.json"],
       [Topics.crosshair, "visibility.json"],
-      [Topics.uiVisibility, "visibility.json"], [Topics.miningHud, "mining_hud.json"],
+      [Topics.uiVisibility, "visibility.json"],
       [Topics.tooltip, "tooltip.json"],
     ] as const;
     for (const [topic, fixture] of cases) expect(validateTopicPayload(topic, loadFixture(fixture))).toBe(true);

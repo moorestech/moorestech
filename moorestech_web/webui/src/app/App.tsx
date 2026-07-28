@@ -13,7 +13,6 @@ import { ChallengePanel, CurrentChallengeHud } from "@/features/challenge";
 import { PauseMenuPanel } from "@/features/pauseMenu";
 import { DeleteModeHud, PlacementModeHud } from "@/features/modeHud";
 import { Crosshair } from "@/features/commonHud";
-import { MiningHud } from "@/features/miningHud";
 import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
 import { useI18n } from "@/shared/i18n";
@@ -103,7 +102,6 @@ export default function App() {
         {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
         {uiState === UiStateNames.deleteBar && <DeleteModeHud />}
         <Crosshair />
-        <MiningHud />
         <CursorTooltip />
         <BlockInventoryPanel />
         {/* スキット会話窓は1280基準の固定長で組むためstage内に置く（暗転だけPortalへ分離） */}

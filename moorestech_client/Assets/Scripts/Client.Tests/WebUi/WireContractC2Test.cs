@@ -28,12 +28,6 @@ namespace Client.Tests.WebUi
         }
 
         [Test]
-        public void MiningHudMatchesFixture()
-        {
-            AssertMatches(new MiningHudDto { Visible = true, TargetName = "Rock", Mining = true, Progress = 0.5f }, "mining_hud.json");
-        }
-
-        [Test]
         public void TooltipMatchesFixture()
         {
             AssertMatches(new TooltipDto { Visible = true, TextKey = "Cannot remove", FontSize = 36 }, "tooltip.json");

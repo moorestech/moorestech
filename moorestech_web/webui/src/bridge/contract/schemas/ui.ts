@@ -34,9 +34,6 @@ export const PlacementModeDataSchema = z.object({
 export const DeleteModeDataSchema = z.object({ unavailableReason: z.string() });
 export const CrosshairDataSchema = z.object({ visible: z.boolean() });
 export const UiVisibilityDataSchema = z.object({ visible: z.boolean() });
-export const MiningHudDataSchema = z.object({
-  visible: z.boolean(), targetName: z.string(), mining: z.boolean(), progress: z.number().min(0).max(1),
-});
 export const TooltipDataSchema = z.object({ visible: z.boolean(), textKey: z.string(), fontSize: z.number().positive() });
 
 // snapshotを持たない一時イベントのため、接続直後は{}が届く。全フィールドoptionalにしそれを許容する

@@ -60,13 +60,17 @@ export async function setTopicScenario(page: Page, scenario: TopicScenario) {
   return requestMockControl(page, "", `/__topic-control?scenario=${encodeURIComponent(scenario)}`);
 }
 
-export async function injectTopicSnapshot(page: Page, scenario: TopicScenario, revision: number, text: string) {
-  const path = `/__topic-control?scenario=${encodeURIComponent(scenario)}&snapshot=1&revision=${revision}&text=${encodeURIComponent(text)}`;
+export async function setMiningProgress(page: Page, progress: number) {
+  return requestMockControl(page, "", `/__topic-control?scenario=mining&progress=${progress}`);
+}
+
+export async function injectTopicSnapshot(page: Page, scenario: TopicScenario, revision: number, progress: number) {
+  const path = `/__topic-control?scenario=${encodeURIComponent(scenario)}&snapshot=1&revision=${revision}&progress=${progress}`;
   return requestMockControl(page, "", path);
 }
 
-export async function setTopicScenarioRevision(page: Page, scenario: TopicScenario, revision: number, text: string) {
-  const path = `/__topic-control?scenario=${encodeURIComponent(scenario)}&revision=${revision}&setWireRevision=1&text=${encodeURIComponent(text)}`;
+export async function setTopicScenarioRevision(page: Page, scenario: TopicScenario, revision: number, progress: number) {
+  const path = `/__topic-control?scenario=${encodeURIComponent(scenario)}&revision=${revision}&setWireRevision=1&progress=${progress}`;
   return requestMockControl(page, "", path);
 }
 

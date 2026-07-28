@@ -4,6 +4,15 @@
 /* Overrides Mantine's global body background (--mantine-color-body) via import order */
 :root {
   --slot-size: 3rem;
+  /* ホットバーと採掘ゲージが共有する固定寸法と配置基準 */
+  /* Fixed dimensions and placement references shared by the hotbar and mining gauge */
+  --hotbar-slot-size: 3.23rem;
+  --hotbar-slot-gap: 5px;
+  --hotbar-bottom: 2px;
+  --hotbar-number-tab-overhang: 16px;
+  --hotbar-horizontal-offset: 0.782875px;
+  --hotbar-width: calc(var(--hotbar-slot-size) * 9 + var(--hotbar-slot-gap) * 8);
+  --progress-hotbar-gap: 12px;
   /* 面の左右フェード幅。%指定はパネル幅で伸びるため固定長で統一 */
   /* Horizontal face-fade span; fixed length so it never scales with panel width */
   --panel-edge-fade: 12px;

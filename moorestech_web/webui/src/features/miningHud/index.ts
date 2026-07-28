@@ -1,1 +1,0 @@
-export { MiningHud } from "./MiningHud";
