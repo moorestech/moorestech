@@ -23,6 +23,11 @@ namespace Client.Tests.Map
         private const string ItemVeinGuid = "11111111-0000-0000-0000-000000000001";
         private const string FluidVeinGuid = "11111111-0000-0000-0000-000000000002";
 
+        // item2本+fluid1本。vein数と種別数を必ず食い違わせ、種別ごと1枚とボックスごと1枚を数で区別できるようにする
+        // Two item veins plus one fluid: vein count must differ from type count so per-type and per-box materials are told apart by number
+        private const int VeinCount = 3;
+        private const int VeinTypeCount = 2;
+
         // 1周では溜まりが見えないので複数周させる
         // A single cycle would not reveal accumulation, so run several
         private const int ShowHideCycleCount = 5;
@@ -56,31 +61,32 @@ namespace Client.Tests.Map
             var service = new MapVeinRangeViewService(CreateHandshakeResponse(), _camera);
             var root = GameObject.Find(MapVeinRangeViewService.RootObjectName).transform;
 
-            // 1周目でボックスとマテリアルが揃った状態を基準にする
-            // Take the state after the first cycle, once boxes and materials exist, as the baseline
-            RunShowHideCycle(service);
+            // 3本全部が表示されていること。1本でも欠けると次の枚数比較が空振りする
+            // Every one of the three must be showing; a missing box would make the next count comparison vacuous
+            service.ManualUpdate(true);
+            Assert.AreEqual(VeinCount, root.childCount, "not every vein got a range view box");
+
+            // ボックス3個に対し材質は2枚だけ。ボックス毎に作っていれば3枚になり、数で分岐して落ちる
+            // Three boxes share only two materials; per-box creation would make it three and diverge by count alone
+            var sharedMaterials = CollectVisibleBoxMaterials(root);
+            Assert.AreEqual(VeinTypeCount, sharedMaterials.Count, "range boxes do not share one material per vein type");
+
             var materialBaseline = CountRangeBoxMaterials();
             var boxBaseline = root.childCount;
 
             for (var cycle = 0; cycle < ShowHideCycleCount; cycle++)
             {
-                RunShowHideCycle(service);
+                service.ManualUpdate(false);
+                service.ManualUpdate(true);
+
+                // 同じMaterialインスタンスが戻ってくること。表示毎の作り直しは命名にも破棄挙動にも依らずここで落ちる
+                // The very same Material instances must come back; per-show rebuilding fails here without relying on naming or destroy behaviour
+                Assert.IsTrue(sharedMaterials.SetEquals(CollectVisibleBoxMaterials(root)), $"range box materials were rebuilt on cycle {cycle}");
                 Assert.AreEqual(materialBaseline, CountRangeBoxMaterials(), $"range box materials increased on cycle {cycle}");
                 Assert.AreEqual(boxBaseline, root.childCount, $"range box objects increased on cycle {cycle}");
             }
 
-            // 使われている材質はitem/fluidの2枚だけ。ボックス毎・表示毎の生成はここで落ちる
-            // Only two materials are ever in use, one per vein type; per-box or per-show creation fails here
-            service.ManualUpdate(true);
-            Assert.AreEqual(2, CollectVisibleBoxMaterials(root).Count, "range boxes do not share one material per vein type");
-
             #region Internal
-
-            void RunShowHideCycle(MapVeinRangeViewService rangeView)
-            {
-                rangeView.ManualUpdate(true);
-                rangeView.ManualUpdate(false);
-            }
 
             int CountRangeBoxMaterials()
             {
@@ -107,9 +113,12 @@ namespace Client.Tests.Map
         {
             // 範囲表示が読むのはMapLayout.MapVeinsだけなので、他の応答はdefaultで埋める
             // The range view only reads MapLayout.MapVeins, so every other response is left at default
+            // itemを2本並べる。ForUnitTestのitem veinは1種しかないが、範囲表示はguid重複を問題にしない
+            // Two item veins side by side; ForUnitTest only defines one item vein, and the range view does not care about duplicate guids
             var veinLayouts = new List<VeinLayoutMessagePack>
             {
                 new(ItemVeinGuid, 0, 0, 0, 2, 2, 2),
+                new(ItemVeinGuid, 8, 0, 8, 10, 2, 10),
                 new(FluidVeinGuid, 4, 0, 4, 6, 2, 6)
             };
             var mapLayout = new GetMapDataProtocol.ResponseMapDataMessagePack(new Vector3MessagePack(Vector3.zero),

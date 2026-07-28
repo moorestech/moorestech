@@ -23,21 +23,30 @@ namespace Client.Game.InGame.Map.MapVein
 
         private const string BoxObjectName = "MapVeinRangeBox";
 
+        // ボックスの見た目は単位立方体。CreatePrimitiveは必ずコライダーを付け、その破棄はフレーム末まで効かないので組み込みメッシュを直接使う
+        // The box is a unit cube; CreatePrimitive always attaches a collider whose destroy only lands at frame end, so take the builtin mesh instead
+        private const string BuiltinCubeMeshName = "Cube.fbx";
+
         private readonly MapVeinRangeBoxMaterials _boxMaterials = new();
 
         // 非表示になったボックスは破棄せずここへ戻す。veinは1772本規模なので毎回作り直すと生成破棄が延々続く
         // Hidden boxes come back here instead of being destroyed; with ~1772 veins, rebuilding them would churn forever
         private readonly Stack<GameObject> _boxPool = new();
-        private readonly Mesh _boxMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
 
         private readonly List<VeinRangeEntry> _entries = new();
         private readonly Camera _mainCamera;
+        private readonly Mesh _boxMesh;
         private readonly Transform _root;
 
         public MapVeinRangeViewService(InitialHandshakeResponse handshakeResponse, Camera mainCamera)
         {
             _mainCamera = mainCamera;
             _root = new GameObject(RootObjectName).transform;
+
+            // メッシュがnullだとMeshFilterが空になり、例外も出ないままボックスが1つも描かれないので起動時に落とす
+            // A null mesh leaves MeshFilter empty and silently draws no box at all, so fail at startup instead
+            _boxMesh = Resources.GetBuiltinResource<Mesh>(BuiltinCubeMeshName);
+            if (_boxMesh == null) throw new InvalidOperationException($"[MapVeinRangeViewService] 組み込みメッシュ{BuiltinCubeMeshName}をロードできません");
 
             // veinは動かないのでAABBと材質は起動時に確定させ、毎フレームのmaster参照と再計算を無くす
             // Veins never move, so fix their AABB and material at startup and drop the per-frame master lookup and recomputation
@@ -113,8 +122,8 @@ namespace Client.Game.InGame.Map.MapVein
 
             GameObject CreateBox()
             {
-                // CreatePrimitiveは必ずコライダーを付け、その破棄はフレーム末まで効かない。1フレームだけ設置レイを遮るので自前で組む
-                // CreatePrimitive always attaches a collider and destroying it only lands at frame end, blocking placement rays for a frame, so build it by hand
+                // コライダーを一切持たせずに組む。設置レイも採掘レイも1フレームたりとも遮らせない（純表示）
+                // Build it without ever attaching a collider so it blocks neither placement nor mining rays, not even for a frame (display only)
                 var box = new GameObject(BoxObjectName);
                 box.transform.SetParent(_root, false);
                 box.AddComponent<MeshFilter>().sharedMesh = _boxMesh;
