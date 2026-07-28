@@ -56,7 +56,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         }
 
         [Test]
-        public void ComputeStreamHashは論理ストリーム全体のSHA256と一致する()
+        public void TerrainStreamHasherは論理ストリーム全体のSHA256と一致する()
         {
             var worldDataDirectory = CreateSyntheticFourTileWorld(SyntheticFileByteSize);
             var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(ExpectedStreamFilePathsOfFourTiles(worldDataDirectory));
@@ -65,7 +65,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var expectedHash = BitConverter.ToString(sha256.ComputeHash(expectedStreamBytes)).Replace("-", string.Empty).ToLowerInvariant();
 
             var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
-            Assert.AreEqual(expectedHash, TerrainChunkReader.ComputeStreamHash(worldDataDirectory, terrainMeta));
+            Assert.AreEqual(expectedHash, TerrainStreamHasher.Compute(worldDataDirectory, terrainMeta));
         }
 
         [Test]
@@ -103,7 +103,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
 
             Assert.Throws<InvalidOperationException>(() => TerrainChunkReader.Read(worldDataDirectory, 0));
-            Assert.AreEqual(string.Empty, TerrainChunkReader.ComputeStreamHash(worldDataDirectory, terrainMeta));
+            Assert.AreEqual(string.Empty, TerrainStreamHasher.Compute(worldDataDirectory, terrainMeta));
         }
 
         [Test]
@@ -116,7 +116,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.AreEqual(WorldProvisioner.GeneratedMapMode, terrainMeta.MapMode);
             Assert.AreEqual(0, terrainMeta.TerrainChunkTotal);
 
-            var hashException = Assert.Throws<InvalidOperationException>(() => TerrainChunkReader.ComputeStreamHash(worldDataDirectory, terrainMeta));
+            var hashException = Assert.Throws<InvalidOperationException>(() => TerrainStreamHasher.Compute(worldDataDirectory, terrainMeta));
             StringAssert.Contains("truncated", hashException.Message);
             var readException = Assert.Throws<InvalidOperationException>(() => TerrainChunkReader.Read(worldDataDirectory, 0));
             StringAssert.Contains("truncated", readException.Message);

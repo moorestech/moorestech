@@ -28,6 +28,15 @@ namespace Game.MapGeneration.Transfer
             TerrainChunkTotal = terrainChunkTotal;
         }
 
+        // generatedなのにチャンク0本は生成失敗かファイル切り詰め。地形なしと同一視すると壊れたワールドを正常として配る
+        // Zero chunks in generated mode means a failed generation or truncated files; equating it with terrain-less would ship a broken world as healthy
+        public void ThrowIfGeneratedWorldOwnsNoChunk()
+        {
+            if (0 < TerrainChunkTotal) return;
+            throw new InvalidOperationException(
+                $"Generated world '{WorldId}' owns zero terrain chunk: the terrain files are missing or truncated.");
+        }
+
         // 論理ストリームを構成するタイルの並び順。一辺√TileCountの正方格子をz行→x列で走査する
         // Tile order composing the logical stream: a square grid of side sqrt(TileCount), scanned row (z) then column (x)
         public static List<(int TileX, int TileZ)> EnumerateTileCoordinates(int terrainTileCount)

@@ -8,7 +8,6 @@ using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Server.Protocol.PacketResponse;
-using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Starter.Initialization
@@ -51,7 +50,7 @@ namespace Client.Starter.Initialization
 
             // 書き込み後に再ハッシュして転送破損を検出する。壊れた地形をキャッシュヒット扱いで持ち越さない
             // Re-hash after writing to catch transfer corruption instead of carrying broken terrain forward as a cache hit
-            var restoredHash = TerrainChunkReader.ComputeStreamHash(cacheWorldDirectory, terrainMeta);
+            var restoredHash = TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta);
             if (restoredHash != mapLayout.TerrainHash)
                 throw new InvalidOperationException(
                     $"Restored terrain hash '{restoredHash}' does not match the server hash '{mapLayout.TerrainHash}'.");
@@ -63,7 +62,7 @@ namespace Client.Starter.Initialization
             bool IsCacheMatchingServer()
             {
                 if (segments.Any(segment => !File.Exists(segment.FilePath))) return false;
-                return TerrainChunkReader.ComputeStreamHash(cacheWorldDirectory, terrainMeta) == mapLayout.TerrainHash;
+                return TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta) == mapLayout.TerrainHash;
             }
 
             async UniTask DownloadAllChunks()

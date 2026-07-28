@@ -1,15 +1,14 @@
 using System;
 using System.IO;
 using System.IO.Compression;
-using System.Security.Cryptography;
 using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 
 namespace Server.Protocol.PacketResponse.MapData
 {
-    // terrain実ファイル群を1本の論理ストリームとして扱い、GZip圧縮したチャンク断片と全体ハッシュを返す
-    // Treats the terrain files as one logical stream, returning GZip-compressed chunk slices and the whole-stream hash
+    // terrain実ファイル群を1本の論理ストリームとして扱い、GZip圧縮したチャンク断片を返す
+    // Treats the terrain files as one logical stream, returning GZip-compressed chunk slices
     public static class TerrainChunkReader
     {
         public static byte[] Read(WorldDataDirectory worldDataDirectory, int chunkIndex)
@@ -21,7 +20,7 @@ namespace Server.Protocol.PacketResponse.MapData
             if (terrainMeta.MapMode == WorldProvisioner.TemplateMapMode)
                 throw new InvalidOperationException($"World in '{terrainMeta.MapMode}' mode owns no terrain chunk to read.");
 
-            ThrowIfGeneratedWorldOwnsNoChunk(terrainMeta);
+            terrainMeta.ThrowIfGeneratedWorldOwnsNoChunk();
             if (chunkIndex < 0 || terrainMeta.TerrainChunkTotal <= chunkIndex)
                 throw new ArgumentOutOfRangeException(nameof(chunkIndex),
                     $"ChunkIndex {chunkIndex} is out of range 0..{terrainMeta.TerrainChunkTotal - 1}.");
@@ -29,38 +28,6 @@ namespace Server.Protocol.PacketResponse.MapData
             var sliceStartOffset = (long)chunkIndex * TerrainTransferMeta.ChunkByteSize;
             var sliceBytes = ReadStreamRange(worldDataDirectory, terrainMeta.TerrainTileCount, sliceStartOffset);
             return Compress(sliceBytes);
-        }
-
-        // terrain実ファイルが真実源なので毎回実体から計算する。保存もキャッシュもしない(差し替え・再生成で乖離するため)
-        // The real terrain files are the source of truth, so recompute every time; never persist or cache (it would drift)
-        // メタは呼び出し側が読んだものを受け取る。同一応答のチャンク総数とハッシュが別スナップショットを指さないようにするため
-        // The caller passes in the meta it already read, so a single response never mixes two terrain snapshots
-        public static string ComputeStreamHash(WorldDataDirectory worldDataDirectory, TerrainTransferMeta terrainMeta)
-        {
-            // 地形が無いワールドはハッシュ対象が存在しない。空文字が「地形なし」の表明になる
-            // A terrain-less world has nothing to hash; the empty string states "no terrain"
-            if (terrainMeta.MapMode == WorldProvisioner.TemplateMapMode) return string.Empty;
-
-            ThrowIfGeneratedWorldOwnsNoChunk(terrainMeta);
-
-            using var sha256 = SHA256.Create();
-            foreach (var filePath in TerrainTransferMeta.EnumerateStreamFilePaths(worldDataDirectory, terrainMeta.TerrainTileCount))
-            {
-                var fileBytes = File.ReadAllBytes(filePath);
-                sha256.TransformBlock(fileBytes, 0, fileBytes.Length, null, 0);
-            }
-            sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
-
-            return BitConverter.ToString(sha256.Hash).Replace("-", string.Empty).ToLowerInvariant();
-        }
-
-        // generatedなのにチャンク0本は生成失敗かファイル切り詰め。地形なしと同一視すると壊れたワールドを正常として配る
-        // Zero chunks in generated mode means a failed generation or truncated files; equating it with terrain-less would ship a broken world as healthy
-        private static void ThrowIfGeneratedWorldOwnsNoChunk(TerrainTransferMeta terrainMeta)
-        {
-            if (0 < terrainMeta.TerrainChunkTotal) return;
-            throw new InvalidOperationException(
-                $"Generated world '{terrainMeta.WorldId}' owns zero terrain chunk: the terrain files are missing or truncated.");
         }
 
         // 論理ストリーム上の[startOffset, startOffset+ChunkByteSize)をファイル境界をまたいで切り出す

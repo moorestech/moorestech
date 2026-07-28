@@ -67,7 +67,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 読み終えたメタをそのままハッシュ計算にも渡す。読み直すとチャンク総数とハッシュが別時点の地形を指しうる
                 // Reuse the meta just read for the hash too; re-reading could make the chunk total and hash describe different snapshots
-                return new ResponseMapDataMessagePack(spawn, mapObjects, mapVeins, terrainMeta, TerrainChunkReader.ComputeStreamHash(_worldDataDirectory, terrainMeta));
+                return new ResponseMapDataMessagePack(spawn, mapObjects, mapVeins, terrainMeta, TerrainStreamHasher.Compute(_worldDataDirectory, terrainMeta));
             }
 
             ProtocolMessagePackBase CreateTerrainChunkResponse()

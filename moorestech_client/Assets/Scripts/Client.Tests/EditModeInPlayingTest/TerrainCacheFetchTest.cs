@@ -10,6 +10,7 @@ using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using NUnit.Framework;
+using Server.Protocol.PacketResponse;
 using UnityEditor;
 using UnityEngine.TestTools;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
@@ -50,13 +51,16 @@ namespace Client.Tests.EditModeInPlayingTest
                 Assert.AreEqual(WorldProvisioner.GeneratedMapMode, mapLayout.MapMode, "generatedモードで起動していない");
                 Assert.Less(0, mapLayout.TerrainChunkTotal, "地形チャンクが1本も無い");
 
+                var terrainMeta = new TerrainTransferMeta(mapLayout.MapMode, mapLayout.WorldId,
+                    mapLayout.TerrainResolution, mapLayout.TerrainTileCount, mapLayout.TerrainChunkTotal);
                 var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(mapLayout.WorldId));
                 var segments = TerrainTransferMeta
                     .EnumerateStreamSegments(cacheWorldDirectory, mapLayout.TerrainTileCount, mapLayout.TerrainResolution).ToList();
 
-                // ① 起動時のフェッチでキャッシュに元のファイル名・想定バイト長で復元されている
-                // (1) The boot-time fetch restored the cache with the original file names and expected byte lengths
+                // ① 起動時のフェッチでキャッシュに元のファイル名・想定バイト長・同一内容で復元されている
+                // (1) The boot-time fetch restored the cache with the original file names, expected byte lengths, and identical content
                 AssertAllSegmentsRestored(segments);
+                Assert.AreEqual(mapLayout.TerrainHash, TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta), "復元内容がサーバーの地形と一致しない");
 
                 // ② キャッシュが最新なら1チャンクも取得しない
                 // (2) A up-to-date cache fetches zero chunks
@@ -64,12 +68,22 @@ namespace Client.Tests.EditModeInPlayingTest
                 var reuseFetchedCount = await terrainDataFetcher.RunAsync(mapLayout);
                 Assert.AreEqual(0, reuseFetchedCount, "キャッシュヒットなのにチャンクを取得した");
 
-                // ③ キャッシュファイルを1個破損させると全チャンクを取り直して内容を復元する
-                // (3) Corrupting one cached file forces a full re-fetch that restores the content
-                CorruptFile(segments[0].FilePath);
+                // ③ キャッシュファイルを1個破損させると全チャンクを取り直して壊したバイトまで元に戻す
+                // (3) Corrupting one cached file forces a full re-fetch that restores even the broken byte
+                var originalFirstByte = CorruptFile(segments[0].FilePath);
                 var refetchedCount = await terrainDataFetcher.RunAsync(mapLayout);
                 Assert.AreEqual(mapLayout.TerrainChunkTotal, refetchedCount, "破損検知後に全チャンクを取り直していない");
                 AssertAllSegmentsRestored(segments);
+                Assert.AreEqual(originalFirstByte, File.ReadAllBytes(segments[0].FilePath)[0], "破損させたバイトが復元されていない");
+                Assert.AreEqual(mapLayout.TerrainHash, TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta), "再取得後の内容がサーバーの地形と一致しない");
+
+                // ④ 届いたバイトがサーバー申告のハッシュと食い違えば例外にする。転送破損をキャッシュヒットとして持ち越さない
+                // (4) Bytes disagreeing with the hash the server declared must throw, never carry transfer corruption forward as a cache hit
+                var tamperedLayout = new GetMapDataProtocol.ResponseMapDataMessagePack(
+                    mapLayout.Spawn, mapLayout.MapObjects, mapLayout.MapVeins, terrainMeta, new string('0', mapLayout.TerrainHash.Length));
+                var tamperedFetchException = await CaptureFetchException(terrainDataFetcher, tamperedLayout);
+                Assert.IsNotNull(tamperedFetchException, "申告ハッシュと不一致なのに取得が成功扱いになった");
+                StringAssert.Contains("does not match the server hash", tamperedFetchException.Message);
 
                 // 検証で汚したキャッシュとワールドを片付ける
                 // Clean up the cache and world this test created
@@ -86,13 +100,30 @@ namespace Client.Tests.EditModeInPlayingTest
                 }
             }
 
-            // 先頭バイトを別の値に書き換えて、ハッシュ不一致を起こす
-            // Rewrite the first byte with a different value to trigger a hash mismatch
-            void CorruptFile(string filePath)
+            // 先頭バイトを別の値に書き換えてハッシュ不一致を起こし、復元確認用に元の値を返す
+            // Rewrite the first byte with a different value to trigger a hash mismatch, returning the original for the restore check
+            byte CorruptFile(string filePath)
             {
                 var fileBytes = File.ReadAllBytes(filePath);
-                fileBytes[0] = (byte)(fileBytes[0] ^ 0xFF);
+                var originalByte = fileBytes[0];
+                fileBytes[0] = (byte)(originalByte ^ 0xFF);
                 File.WriteAllBytes(filePath, fileBytes);
+                return originalByte;
+            }
+
+            async UniTask<Exception> CaptureFetchException(TerrainDataFetcher terrainDataFetcher, GetMapDataProtocol.ResponseMapDataMessagePack layout)
+            {
+                // 非同期例外の捕捉は自前で行う。NUnitのAssert.ThrowsAsyncはUniTaskの継続を回すPlayerLoopごと止めてしまう
+                // Capture the async exception by hand: NUnit's Assert.ThrowsAsync would block the very PlayerLoop that drives UniTask continuations
+                try
+                {
+                    await terrainDataFetcher.RunAsync(layout);
+                }
+                catch (InvalidOperationException fetchException)
+                {
+                    return fetchException;
+                }
+                return null;
             }
 
             #endregion
