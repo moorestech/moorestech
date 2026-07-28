@@ -1,14 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.PlacementTarget;
 
 namespace Game.Blueprint
 {
-    public class BlueprintDatastore : IBlueprintDatastore
+    public class BlueprintDatastore : IBlueprintDatastore, IBlueprintCatalogSource
     {
         private readonly List<BlueprintJsonObject> _blueprints = new();
 
         public IReadOnlyList<BlueprintJsonObject> Blueprints => _blueprints;
+
+        // PlacementTargetCatalogへブループリントを供給する
+        // Supplies blueprints to PlacementTargetCatalog
+        public IReadOnlyList<(Guid id, string name)> BlueprintEntries =>
+            _blueprints.Select(b => (b.BlueprintGuid, b.Name)).ToList();
 
         public Guid Register(BlueprintJsonObject blueprint)
         {

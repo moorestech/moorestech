@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
+using Game.Blueprint;
 using Game.PlacementTarget;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -39,6 +41,19 @@ namespace Tests.UnitTest.Game
             // 未知のGuidは解決できない
             // Unknown GUIDs do not resolve
             Assert.IsFalse(catalog.TryGetEntry(Guid.NewGuid(), out _));
+        }
+
+        [Test]
+        public void サーバDIのカタログはBlueprintDatastoreのBPを含む()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var datastore = serviceProvider.GetService<IBlueprintDatastore>();
+            var catalog = serviceProvider.GetService<PlacementTargetCatalog>();
+
+            var guid = datastore.Register(new BlueprintJsonObject("カタログ確認用", new List<BlueprintBlockJsonObject>()));
+
+            Assert.IsTrue(catalog.TryGetEntry(guid, out var entry));
+            Assert.AreEqual(PlacementTargetKind.Blueprint, entry.Kind);
         }
     }
 }

@@ -23,6 +23,7 @@ using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
 using Game.Paths;
+using Game.PlacementTarget;
 using Game.PlayerConnection;
 using Game.PlayerInventory;
 using Game.PlayerInventory.Event;
@@ -184,6 +185,11 @@ namespace Server.Boot
             services.AddSingleton<IItemStackLevelUnlocker>(itemStackLevelDataStore);
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
+
+            // BlueprintDatastoreと同一インスタンスをカタログのBP供給元として登録する
+            // Register the same BlueprintDatastore instance as the catalog's blueprint source
+            services.AddSingleton<IBlueprintCatalogSource>(provider => (IBlueprintCatalogSource)provider.GetRequiredService<IBlueprintDatastore>());
+            services.AddSingleton<PlacementTargetCatalog>();
             services.AddSingleton<ResearchEvent>();
 
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
