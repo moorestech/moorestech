@@ -29,5 +29,8 @@
     "skit.set_auto",
     "skit.skip",
     "skit.set_ui_hidden"
+  ],
+  "excludedFromWebContract": [
+    "playtest.dom_query_result"
   ]
 }
