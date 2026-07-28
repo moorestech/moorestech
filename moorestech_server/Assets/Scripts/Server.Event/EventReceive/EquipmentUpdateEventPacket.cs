@@ -1,0 +1,89 @@
+using System;
+using Core.Item.Interface;
+using Core.Master;
+using Game.Context;
+using Game.PlayerInventory.Interface.Event;
+using MessagePack;
+using Server.Util.MessagePack;
+
+namespace Server.Event.EventReceive
+{
+    /// <summary>
+    ///     装備スロットの中身と選択中スロットの変化を、装備を持つプレイヤーへ伝えるパケット
+    ///     Packet that reports equipment slot content and selected slot changes to the owning player
+    /// </summary>
+    public class EquipmentUpdateEventPacket : IBootInitializable
+    {
+        public const string EventTag = "va:event:equipmentUpdate";
+
+        private readonly IEquipmentInventoryUpdateEvent _equipmentInventoryUpdateEvent;
+        private readonly EventProtocolProvider _eventProtocolProvider;
+
+        public EquipmentUpdateEventPacket(IEquipmentInventoryUpdateEvent equipmentInventoryUpdateEvent,
+            EventProtocolProvider eventProtocolProvider)
+        {
+            _equipmentInventoryUpdateEvent = equipmentInventoryUpdateEvent;
+            _eventProtocolProvider = eventProtocolProvider;
+        }
+
+        public void Load()
+        {
+            _equipmentInventoryUpdateEvent.Subscribe(ReceivedSlotEvent);
+            _equipmentInventoryUpdateEvent.SubscribeSelectedEquipmentIndex(ReceivedSelectedIndexEvent);
+        }
+
+        private void ReceivedSlotEvent(PlayerInventoryUpdateEventProperties properties)
+        {
+            var messagePack = EquipmentUpdateEventMessagePack.CreateSlotEvent(properties.InventorySlot, properties.ItemStack);
+            _eventProtocolProvider.AddEvent(properties.PlayerId, EventTag, MessagePackSerializer.Serialize(messagePack));
+        }
+
+        private void ReceivedSelectedIndexEvent(EquipmentSelectedIndexUpdateEventProperties properties)
+        {
+            var messagePack = EquipmentUpdateEventMessagePack.CreateSelectedEvent(properties.SelectedEquipmentIndex);
+            _eventProtocolProvider.AddEvent(properties.PlayerId, EventTag, MessagePackSerializer.Serialize(messagePack));
+        }
+    }
+
+    [MessagePackObject]
+    public class EquipmentUpdateEventMessagePack
+    {
+        public const string SlotEventType = "slot";
+        public const string SelectedEventType = "selected";
+
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public EquipmentUpdateEventMessagePack()
+        {
+        }
+
+        // EventTypeごとに必要フィールドが違うため、生成はstatic factoryへ寄せる
+        // Fields differ per EventType, so construction goes through the static factories below
+        private EquipmentUpdateEventMessagePack(string eventType, int slot, ItemMessagePack item, int selectedIndex)
+        {
+            EventType = eventType;
+            Slot = slot;
+            Item = item;
+            SelectedIndex = selectedIndex;
+        }
+
+        public static EquipmentUpdateEventMessagePack CreateSlotEvent(int slot, IItemStack itemStack)
+        {
+            return new EquipmentUpdateEventMessagePack(SlotEventType, slot, new ItemMessagePack(itemStack), 0);
+        }
+
+        // 選択変更でもItemは空アイテムで埋め、受信側がnull参照を踏まないようにする
+        // Selected events still carry an empty item so receivers never dereference null
+        public static EquipmentUpdateEventMessagePack CreateSelectedEvent(int selectedIndex)
+        {
+            return new EquipmentUpdateEventMessagePack(SelectedEventType, 0, new ItemMessagePack(ItemMaster.EmptyItemId, 0), selectedIndex);
+        }
+
+        [Key(0)] public string EventType { get; set; }
+
+        [Key(1)] public int Slot { get; set; }
+
+        [Key(2)] public ItemMessagePack Item { get; set; }
+
+        [Key(3)] public int SelectedIndex { get; set; }
+    }
+}

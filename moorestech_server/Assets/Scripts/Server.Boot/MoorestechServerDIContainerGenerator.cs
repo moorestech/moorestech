@@ -247,6 +247,7 @@ namespace Server.Boot
             services.AddSingleton<MainInventoryUpdateEventPacket>();
             services.AddSingleton<UnifiedInventoryEventPacket>();
             services.AddSingleton<GrabInventoryUpdateEventPacket>();
+            services.AddSingleton<EquipmentUpdateEventPacket>();
             services.AddSingleton<PlaceBlockEventPacket>();
             services.AddSingleton<RemoveBlockToSetEventPacket>();
             services.AddSingleton<CompletedChallengeEventPacket>();

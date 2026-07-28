@@ -31,6 +31,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GearChainPoleExtendProtocol.Tag, new GearChainPoleExtendProtocol(serviceProvider));
             _packetResponseDictionary.Add(InventoryItemMoveProtocol.ProtocolTag, new InventoryItemMoveProtocol(serviceProvider));
             _packetResponseDictionary.Add(SortInventoryProtocol.ProtocolTag, new SortInventoryProtocol(serviceProvider));
+            _packetResponseDictionary.Add(EquipmentProtocol.ProtocolTag, new EquipmentProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlaceBlockProtocol.ProtocolTag, new PlaceBlockProtocol(serviceProvider));
             _packetResponseDictionary.Add(InventoryRequestProtocol.ProtocolTag, new InventoryRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveBlockProtocol.ProtocolTag, new RemoveBlockProtocol(serviceProvider));
