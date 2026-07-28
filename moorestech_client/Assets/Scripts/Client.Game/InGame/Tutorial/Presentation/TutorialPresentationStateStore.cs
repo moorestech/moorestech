@@ -36,15 +36,15 @@ namespace Client.Game.InGame.Tutorial
             Publish();
         }
 
-        // highlightごとのviewを返し、既存challenge lifecycleから同じ宣言を除去できるようにする
-        // Return a per-highlight view so the existing challenge lifecycle can remove that declaration
-        public ITutorialView AddHighlight(string anchorId, string kind, string message)
+        // outline用途だけを公開し、廃止済みkindの再流入を防ぐ
+        // Expose only the outline use case to prevent removed kinds from returning
+        public ITutorialView AddOutlineHighlight(string anchorId, string message)
         {
             var highlight = new TutorialHighlightData
             {
                 HighlightId = Guid.NewGuid().ToString(),
                 AnchorId = anchorId,
-                Kind = kind,
+                Kind = "outline",
                 Message = message,
                 PaddingPx = 8,
                 BlocksPointerInput = false,

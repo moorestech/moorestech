@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const GameStateDataSchema = z.object({ state: z.enum(["InGame", "Skit", "CutScene"]) });
 export const TutorialHighlightSchema = z.object({
-  highlightId: z.string(), anchorId: z.string(), kind: z.enum(["outline", "spotlight", "callout"]),
+  highlightId: z.string(), anchorId: z.string(), kind: z.enum(["outline", "callout"]),
   messageKey: z.string().optional(), message: z.string(), paddingPx: z.number().nonnegative(),
   blocksPointerInput: z.boolean(),
 });

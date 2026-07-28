@@ -134,7 +134,7 @@ MapObjectPin、HudArrow、BlockPlacePreview の manager と view は Unity の�
 ### 4.1 TypeScript 型
 
 ```ts
-type TutorialHighlightKind = "outline" | "spotlight" | "callout";
+type TutorialHighlightKind = "outline" | "callout";
 type TutorialAnchorStatus = "ready" | "not-found" | "hidden";
 type TutorialAnchorReason =
   | "mounted"
@@ -240,7 +240,7 @@ React の各 feature は共通 helper で `data-tutorial-anchor` を付けるだ
 
 - Mutation/Resize/Intersection/capture scroll/viewport observer を統合する。
 - ready/not-found/hidden 判定、重複検知、rAF batching、cleanup を Vitest（happy-domだけで不足する箇所は Playwright component/e2e）で検証する。
-- spotlight/outline/callout の最小 overlay と pointer input 方針を実装する。
+- outline/callout の最小 overlay と pointer input 方針を実装する。
 
 ### Phase T2: Unity presentation と ack 契約
 

@@ -23,7 +23,7 @@ const styles = {
   machineInventoryBody: read("./details/machine/machineInventoryBody.module.css"),
 };
 
-const appTokens = read("../../app/index.css");
+const appTokens = read("../../app/tokens.css");
 
 describe("block inventory design whitelist", () => {
   it.each(Object.entries(sources))("%sから禁止Mantine部品とテーマ色を除去する", (_, source) => {
@@ -34,7 +34,7 @@ describe("block inventory design whitelist", () => {
   it("パネル面と閉じる操作をshared uiへ集約する", () => {
     expect(sources.panel).toContain("<GamePanel");
     expect(sources.panel).toContain('variant="default"');
-    expect(sources.panel).toContain("<PanelCloseButton");
+    expect(sources.panel).toContain("<IconButton");
   });
 
   it("ブロックパネルをviewer領域へ上端揃えで配置する", () => {

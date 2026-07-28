@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ScrollArea } from "@mantine/core";
 import { useTopic, dispatchAction, Topics, UiStateNames } from "@/bridge";
-import { GamePanel, PanelCloseButton } from "@/shared/ui";
+import { GamePanel, IconButton } from "@/shared/ui";
 import { useI18n } from "@/shared/i18n";
 import type { BuildMenuEntryData } from "@/bridge";
 import { resolveSelectedCategory, searchSections, sectionsForCategory, visibleCategories } from "./buildMenuGrouping";
@@ -48,7 +48,7 @@ export function BuildMenuPanel() {
   return (
     <div className={styles.panel} data-testid="build-menu-panel">
       <GamePanel title={t("ビルドメニュー")} variant="default">
-        <PanelCloseButton onClick={close} ariaLabel={t("閉じる")} className={styles.close} testId="build-menu-close" />
+        <IconButton onClick={close} ariaLabel={t("閉じる")} className={styles.close} testId="build-menu-close" />
         <div className={styles.columns}>
           <CategorySidebar
             categories={visible}

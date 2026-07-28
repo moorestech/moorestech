@@ -31,13 +31,6 @@ describe("common HUD schemas", () => {
   });
 });
 
-describe("mining HUD schema", () => {
-  it("accepts fixed-screen mining state", () => {
-    expect(validateTopicPayload(Topics.miningHud, { visible: true, targetName: "Rock", mining: true, progress: 0.5 })).toBe(true);
-    expect(validateTopicPayload(Topics.miningHud, { visible: true, progress: 2 })).toBe(false);
-  });
-});
-
 describe("tooltip schema", () => {
   it("requires a complete cursor-tooltip snapshot", () => {
     expect(validateTopicPayload(Topics.tooltip, { visible: true, textKey: "Cannot remove", fontSize: 36 })).toBe(true);

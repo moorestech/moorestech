@@ -13,6 +13,9 @@ export function topicData(topic: string, inventory: PlayerInventoryData, demo: b
   if (topic === Topics.itemList) return demo ? fx.demoItemList : fx.itemList;
   if (topic === Topics.blockInventory) return state.currentBlock;
   if (topic === Topics.modal) return { modal: state.currentModal };
+  // 実ホストのNotificationTopicと同じ空snapshot。返さないとrestoringのままで操作が塞がる
+  // Same empty snapshot as the real NotificationTopic; without it the client stays restoring and input is blocked
+  if (topic === Topics.notification) return {};
   if (topic === Topics.progress) return demo ? fx.demoProgress : fx.progressSample;
   if (topic === Topics.uiState) return state.currentUiState;
   if (topic === Topics.researchTree) return state.researchTree;
@@ -25,7 +28,6 @@ export function topicData(topic: string, inventory: PlayerInventoryData, demo: b
   if (topic === Topics.deleteMode) return { unavailableReason: "" };
   if (topic === Topics.crosshair) return { visible: true };
   if (topic === Topics.uiVisibility) return { visible: true };
-  if (topic === Topics.miningHud) return { visible: false, targetName: "", mining: false, progress: 0 };
   if (topic === Topics.tooltip) return { visible: false, textKey: "", fontSize: 14 };
   if (topic === Topics.gameState) return state.gameState;
   if (topic === Topics.tutorialPresentation) return fx.tutorialPresentation;
