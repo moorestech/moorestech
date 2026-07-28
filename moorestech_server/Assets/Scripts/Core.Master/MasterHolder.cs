@@ -8,6 +8,7 @@ namespace Core.Master
     public class MasterHolder
     {
         public static ItemMaster ItemMaster { get; private set; }
+        public static ToolMaster ToolMaster { get; private set; }
         public static BlockMaster BlockMaster { get; private set; }
         public static ChallengeMaster ChallengeMaster { get; private set; }
         public static CraftRecipeMaster CraftRecipeMaster { get; private set; }
@@ -33,6 +34,11 @@ namespace Core.Master
             // Base Masters (no dependencies)
             ItemMaster = new ItemMaster(GetJson(masterJsonFileContainer, new JsonFileName("items")));
             InitializeMaster(ItemMaster);
+
+            // ItemMaster依存（toolItemGuidの実在を検証）
+            // Depends on ItemMaster (validates toolItemGuid existence)
+            ToolMaster = new ToolMaster(GetJson(masterJsonFileContainer, new JsonFileName("items")));
+            InitializeMaster(ToolMaster);
 
             FluidMaster = new FluidMaster(GetJson(masterJsonFileContainer, new JsonFileName("fluids")));
             InitializeMaster(FluidMaster);

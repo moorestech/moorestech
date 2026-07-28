@@ -590,5 +590,11 @@
                 100
             ]
         }
+    ],
+    "equipmentSlotCount": 3,
+    "tools": [
+        {
+            "toolItemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
+        }
     ]
 }
