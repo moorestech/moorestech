@@ -77,9 +77,25 @@
         {
           "veinGuid": "11111111-0000-0000-0000-000000000001",
           "biomes": [
-            "Grassland"
+            "Grassland",
+            "Forest",
+            "Savanna",
+            "Desert",
+            "Mesa",
+            "Alpine",
+            "Jungle",
+            "Woods"
           ],
-          "bands": [],
+          "bands": [
+            {
+              "outerRadiusMeters": -1,
+              "density": 1.0,
+              "maxObjectsPerCluster": 5,
+              "clusterRadius": 6,
+              "minDistanceBetweenOres": 1,
+              "placementRetries": 10
+            }
+          ],
           "useSlopeFilter": true,
           "slopeMax": 30,
           "slopeSmoothness": 5,
@@ -90,9 +106,25 @@
         {
           "veinGuid": "11111111-0000-0000-0000-000000000002",
           "biomes": [
-            "Grassland"
+            "Grassland",
+            "Forest",
+            "Savanna",
+            "Desert",
+            "Mesa",
+            "Alpine",
+            "Jungle",
+            "Woods"
           ],
-          "bands": [],
+          "bands": [
+            {
+              "outerRadiusMeters": -1,
+              "density": 1.0,
+              "maxObjectsPerCluster": 5,
+              "clusterRadius": 6,
+              "minDistanceBetweenOres": 1,
+              "placementRetries": 10
+            }
+          ],
           "useSlopeFilter": true,
           "slopeMax": 30,
           "slopeSmoothness": 5,

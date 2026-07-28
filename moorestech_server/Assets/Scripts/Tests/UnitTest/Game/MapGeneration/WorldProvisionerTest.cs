@@ -1,14 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Core.Master;
 using Game.Map.Interface.Json;
 using Game.MapGeneration.Provisioning;
 using Game.Paths;
+using Mooresmaster.Model.MapModule;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 namespace Tests.UnitTest.Game.MapGeneration
@@ -66,6 +70,34 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.IsTrue(File.Exists(_worldDataDirectory.WorldMetaFilePath));
             Assert.IsTrue(File.Exists(_worldDataDirectory.TerrainHeightFilePath(0, 0)));
             Assert.IsTrue(File.Exists(_worldDataDirectory.TerrainBiomeFilePath(0, 0)));
+
+            // mapVeinsをveinGuid→MapVeinMasterのveinTypeで振り分け、item/fluid双方の非空を検証する
+            // Classify mapVeins by veinType via veinGuid→MapVeinMaster lookup; verify both are non-empty
+            var (itemVeinPositions, fluidVeinPositions) = ClassifyVeinsByType();
+            Assert.That(fluidVeinPositions, Is.Not.Empty, "generated map.json should contain at least one veinType=fluid vein");
+            Assert.That(itemVeinPositions, Is.Not.Empty, "generated map.json should contain at least one veinType=item vein");
+
+            // rngSeedOffset分離(VeinPlacementCore)の狙い通りitem/fluidが同一座標に重ならないことを固定する
+            // Pin that the rngSeedOffset separation (VeinPlacementCore) keeps item/fluid veins off identical positions
+            Assert.IsFalse(itemVeinPositions.ToHashSet().Overlaps(fluidVeinPositions), "item and fluid veins should not collapse onto identical positions");
+
+            #region Internal
+
+            (List<Vector3Int> itemPositions, List<Vector3Int> fluidPositions) ClassifyVeinsByType()
+            {
+                var itemPositions = new List<Vector3Int>();
+                var fluidPositions = new List<Vector3Int>();
+                foreach (var vein in mapInfoJson.MapVeins)
+                {
+                    var element = MasterHolder.MapVeinMaster.GetElementOrNull(vein.VeinGuid);
+                    Assert.IsNotNull(element, $"veinGuid {vein.VeinGuid} was not found in MapVeinMaster");
+                    if (element.VeinParam is FluidVeinParam) fluidPositions.Add(vein.MinPosition);
+                    else if (element.VeinParam is ItemVeinParam) itemPositions.Add(vein.MinPosition);
+                }
+                return (itemPositions, fluidPositions);
+            }
+
+            #endregion
         }
 
         [Test]
