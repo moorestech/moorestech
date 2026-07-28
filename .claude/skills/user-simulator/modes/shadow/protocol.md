@@ -63,7 +63,8 @@ datasets/<YYYY-MM-DD>-<slug>/
   README.md              # 数行: 経緯・予測と実測サマリ・学び・再チェック手順
   tasks/task-XX.md       # 盲検入力（凍結）
   gold.json              # 実回答ラベル（凍結）
-  runs/<日付-ラベル>/     # 実行1回分: pred-XX.json + gold.json + score.txt。再チェックごとに増える
+  runs/<日付-ラベル>/     # 実行1回分: pred-XX.json + gold.json + score.txt + RUN_INFO.txt。再チェックごとに増える
+                         # RUN_INFO.txt必須: model・実行時の知識ベースコミットハッシュ・結果1行（run間のスコア差を知識変更に帰属させるため）
   transcripts/*.jsonl    # 匿名化済みセッションログ全量（本体＋圧縮継続。sedで /Users/<name>→/Users/USER・メール置換）
   HEAD.txt               # セッションが見ていたリポジトリ状態（コミット範囲・worktree・期間）
   dirty.patch            # セッション中に未コミットの参照物があった場合のみ（git diff HEAD）
