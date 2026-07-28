@@ -50,10 +50,15 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                         return showAllPlaceable || (unlockState.TrainCarUnlockStateInfos.TryGetValue(entry.Id, out var trainCarInfo) && trainCarInfo.IsUnlocked);
                     case PlacementTargetKind.ConnectTool:
                         return unlockState.ConnectToolUnlockStateInfos.TryGetValue(entry.Id, out var connectToolInfo) && connectToolInfo.IsUnlocked;
-                    default:
+                    case PlacementTargetKind.BuildTool:
+                    case PlacementTargetKind.Blueprint:
                         // ビルドツールとBPは解放条件を持たず常に表示する
                         // Build tools and blueprints have no unlock condition and are always shown
                         return true;
+                    default:
+                        // 未知のKindは型で排除する到達不能ケース
+                        // Unreachable: unknown Kind is excluded by the type
+                        throw new ArgumentOutOfRangeException(nameof(entry.Kind), entry.Kind, null);
                 }
             }
 
@@ -85,8 +90,12 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                         return CreateCostlessEntry(entry, target, BuildMenuSubCategoryElement.EntrySourceConst.connectTools);
                     case PlacementTargetKind.BuildTool:
                         return CreateCostlessEntry(entry, target, BuildMenuSubCategoryElement.EntrySourceConst.blueprintCopyTool);
-                    default:
+                    case PlacementTargetKind.Blueprint:
                         return CreateCostlessEntry(entry, target, BuildMenuSubCategoryElement.EntrySourceConst.savedBlueprints);
+                    default:
+                        // 未知のKindは型で排除する到達不能ケース
+                        // Unreachable: unknown Kind is excluded by the type
+                        throw new ArgumentOutOfRangeException(nameof(entry.Kind), entry.Kind, null);
                 }
             }
 

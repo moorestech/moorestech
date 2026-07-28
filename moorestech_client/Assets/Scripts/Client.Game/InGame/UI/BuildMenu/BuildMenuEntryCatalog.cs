@@ -52,10 +52,15 @@ namespace Client.Game.InGame.UI.BuildMenu
                         return showAllPlaceable || (unlockState.TrainCarUnlockStateInfos.TryGetValue(entry.Id, out var trainCarInfo) && trainCarInfo.IsUnlocked);
                     case PlacementTargetKind.ConnectTool:
                         return unlockState.ConnectToolUnlockStateInfos.TryGetValue(entry.Id, out var connectToolInfo) && connectToolInfo.IsUnlocked;
-                    default:
+                    case PlacementTargetKind.BuildTool:
+                    case PlacementTargetKind.Blueprint:
                         // ビルドツールとBPは解放条件を持たず常に表示する
                         // Build tools and blueprints have no unlock condition and are always shown
                         return true;
+                    default:
+                        // 未知のKindは型で排除する到達不能ケース
+                        // Unreachable: unknown Kind is excluded by the type
+                        throw new ArgumentOutOfRangeException(nameof(entry.Kind), entry.Kind, null);
                 }
             }
 
@@ -84,10 +89,15 @@ namespace Client.Game.InGame.UI.BuildMenu
                         var iconView = ClientContext.ConnectToolImageContainer.GetConnectToolView(entry.Id);
                         return new BuildMenuEntry(target, iconView, entry.DisplayName);
                     }
-                    default:
+                    case PlacementTargetKind.BuildTool:
+                    case PlacementTargetKind.Blueprint:
                         // ビルドツールとBPはアイコン無し（テキスト表示スロット）
                         // Build tools and blueprints have no icon and render as text-only slots
                         return new BuildMenuEntry(target, null, entry.DisplayName);
+                    default:
+                        // 未知のKindは型で排除する到達不能ケース
+                        // Unreachable: unknown Kind is excluded by the type
+                        throw new ArgumentOutOfRangeException(nameof(entry.Kind), entry.Kind, null);
                 }
             }
 
