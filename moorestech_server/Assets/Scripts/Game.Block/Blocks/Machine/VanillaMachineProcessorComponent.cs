@@ -144,6 +144,10 @@ namespace Game.Block.Blocks.Machine
         {
             BlockException.CheckDestroy(this);
 
+            // 産出スロットの接続先への払い出しをここで駆動する（旧: inventory自身のグローバル購読。破壊後も残るゾンビ購読だった）
+            // Drive output insertion into connected inventories here (was a global subscription on the inventory that outlived block destruction)
+            _context.OutputInventory.InsertConnectInventory();
+
             // 直前tickで蓄積された供給電力を確定し、加算器をリセットする（未供給なら0になり電力を失う）
             // Latch the power accumulated during the previous tick and reset the accumulator (no supply -> 0, power is lost)
             _context.CurrentPower = _context.SuppliedPower;
