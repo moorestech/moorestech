@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Core.Master.Validator;
 using Mooresmaster.Loader.ItemsModule;
@@ -7,8 +6,8 @@ using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
-    // 装備ツール（斧・石器等）のマスタ。生ロードとGuid索引のみを保持する
-    // Master for equippable tools (axe, stone tool, etc.); holds only raw load and a Guid index
+    // 装備ツール（斧・石器等）のマスタ。生ロードとItemId索引のみを保持する
+    // Master for equippable tools (axe, stone tool, etc.); holds only raw load and an ItemId index
     public class ToolMaster : IMasterValidator
     {
         public readonly ToolMasterElement[] Tools;
