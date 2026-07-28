@@ -57,6 +57,9 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
                 //ゼロの時は自動でNullItemになる
                 var playerItemCount = originItem.Count - itemCount;
                 var addItem = ServerContext.ItemStackFactory.Create(originItem.Id, playerItemCount);
+
+                //この分岐は移動先が空か同一IDのため、ReplaceItemの戻りは必ずmoveItem以下でありAddItemが捨てる余りは常に空になる
+                //In this branch the destination is empty or the same id, so ReplaceItem returns at most moveItem and AddItem never discards anything
                 var remainItem = replaceItem.AddItem(addItem).ProcessResultItemStack;
                 
                 //移動元インベントリに残りのアイテムをセット
