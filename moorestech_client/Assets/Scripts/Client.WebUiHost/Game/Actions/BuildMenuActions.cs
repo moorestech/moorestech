@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Game.Topics.BuildMenu;
 using Cysharp.Threading.Tasks;
+using Game.PlacementTarget;
 using Game.UnlockState;
 using Newtonsoft.Json.Linq;
 
@@ -21,14 +22,14 @@ namespace Client.WebUiHost.Game.Actions
 
         private readonly UIStateControl _uiStateControl;
         private readonly IGameUnlockStateData _unlockState;
-        private readonly ClientBlueprintLibrary _blueprintLibrary;
+        private readonly PlacementTargetCatalog _placementTargetCatalog;
         private readonly BuildMenuView _buildMenuView;
 
-        public BuildMenuSelectActionHandler(UIStateControl uiStateControl, IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary, BuildMenuView buildMenuView)
+        public BuildMenuSelectActionHandler(UIStateControl uiStateControl, IGameUnlockStateData unlockState, PlacementTargetCatalog placementTargetCatalog, BuildMenuView buildMenuView)
         {
             _uiStateControl = uiStateControl;
             _unlockState = unlockState;
-            _blueprintLibrary = blueprintLibrary;
+            _placementTargetCatalog = placementTargetCatalog;
             _buildMenuView = buildMenuView;
         }
 
@@ -46,7 +47,7 @@ namespace Client.WebUiHost.Game.Actions
             // Match by id against the current catalog (locked entries already excluded), rejecting stale clicks such as deleted blueprints
             // Idはカタログ内で一意のためFirstOrDefaultで足りる（複数一致はそもそも起こり得ない）
             // Id is unique within the catalog, so FirstOrDefault suffices (multiple matches can never occur)
-            var entries = WebBuildMenuEntryCatalog.CreateEntries(_unlockState, _blueprintLibrary);
+            var entries = WebBuildMenuEntryCatalog.CreateEntries(_unlockState, _placementTargetCatalog);
             var matched = entries.FirstOrDefault(e => e.Target.Id == targetId);
             if (matched.Target == null) return UniTask.FromResult(ActionResult.Fail("unknown_entry"));
 
@@ -84,7 +85,7 @@ namespace Client.WebUiHost.Game.Actions
             return result switch
             {
                 BlueprintDeleteResult.Success => ActionResult.Success(),
-                BlueprintDeleteResult.NotFound => ActionResult.Fail("delete_failed"),
+                BlueprintDeleteResult.NotFound => ActionResult.Fail("blueprint_delete_not_found"),
                 _ => ActionResult.Fail("blueprint_delete_request_failed"),
             };
         }

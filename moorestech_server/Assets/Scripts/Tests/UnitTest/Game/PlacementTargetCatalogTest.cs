@@ -14,27 +14,26 @@ namespace Tests.UnitTest.Game
 {
     public class PlacementTargetCatalogTest
     {
-        private class EmptyBlueprintSource : IBlueprintCatalogSource
+        // 任意のBP群を供給する唯一のスタブ（空・複数件・Guid衝突・Empty混入をすべて表現する）
+        // The single blueprint stub, expressing empty / multi-entry / guid-collision / empty-guid cases alike
+        private class ConfigurableBlueprintSource : IBlueprintCatalogSource
         {
-            public IReadOnlyList<(Guid id, string name)> BlueprintEntries => new List<(Guid, string)>();
+            public IReadOnlyList<(Guid id, string name)> BlueprintEntries { get; }
+            public ConfigurableBlueprintSource(params (Guid id, string name)[] entries) { BlueprintEntries = entries; }
         }
 
-        private class StubBlueprintSource : IBlueprintCatalogSource
+        [SetUp]
+        public void SetUp()
         {
-            public IReadOnlyList<(Guid id, string name)> BlueprintEntries { get; } = new List<(Guid, string)>
-            {
-                (Guid.NewGuid(), "スタブBP1"),
-                (Guid.NewGuid(), "スタブBP2"),
-            };
+            // MasterHolderの静的初期化だけが目的で戻り値は使わない
+            // Only used to initialize the static MasterHolder; the return values are unused
+            var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
         }
 
         [Test]
         public void マスタ由来の設置対象がGuidで解決できる()
         {
-            // MasterHolderの静的初期化だけが目的で戻り値は使わない
-            // Only used to initialize the static MasterHolder; the return values are unused
-            var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var catalog = new PlacementTargetCatalog(new EmptyBlueprintSource());
+            var catalog = new PlacementTargetCatalog(new ConfigurableBlueprintSource());
 
             // ブロック・車両・接続ツール・ビルドツールが全部エントリに入っている
             // Blocks, train cars, connect tools, and build tools are all present
@@ -58,8 +57,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void Kind群の連続性と登場順が保たれる()
         {
-            var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var catalog = new PlacementTargetCatalog(new EmptyBlueprintSource());
+            var catalog = new PlacementTargetCatalog(new ConfigurableBlueprintSource());
 
             // Kind群はBlock→TrainCar→ConnectTool→BuildTool→Blueprintの順で連続していること
             // Kind groups appear contiguously in Block→TrainCar→ConnectTool→BuildTool→Blueprint order
@@ -69,8 +67,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void Blockの並び順がSortPriorityと名前で固定される()
         {
-            var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var catalog = new PlacementTargetCatalog(new EmptyBlueprintSource());
+            var catalog = new PlacementTargetCatalog(new ConfigurableBlueprintSource());
 
             // 実装式の複製で現在の並び順をピン留めする（並べ替え規則自体の正しさは検証しない）
             // This duplicates the implementation's expression to pin the current order (does not validate the ordering rule itself)
@@ -94,9 +91,7 @@ namespace Tests.UnitTest.Game
         {
             // forUnitTestのconnectTools配列は意図的に非SortPriority順（120→100→110）。昇順に整えるとこのテストが同語反復化する
             // The forUnitTest connectTools array is deliberately not in SortPriority order; sorting it would make this test tautological
-            var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            var catalog = new PlacementTargetCatalog(new EmptyBlueprintSource());
+            var catalog = new PlacementTargetCatalog(new ConfigurableBlueprintSource());
 
             // 実装式の複製で現在の並び順をピン留めする（並べ替え規則自体の正しさは検証しない）
             // This duplicates the implementation's expression to pin the current order (does not validate the ordering rule itself)
@@ -116,8 +111,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void Blueprint群はBuildToolより後ろの末尾に来る()
         {
-            var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var blueprintSource = new StubBlueprintSource();
+            var blueprintSource = new ConfigurableBlueprintSource((Guid.NewGuid(), "スタブBP1"), (Guid.NewGuid(), "スタブBP2"));
             var catalog = new PlacementTargetCatalog(blueprintSource);
             var entries = catalog.Entries;
 
@@ -143,6 +137,37 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(catalog.TryGetEntry(guid, out var entry));
             Assert.AreEqual(PlacementTargetKind.Blueprint, entry.Kind);
+        }
+
+        [Test]
+        public void 種別横断のGuid衝突は例外になる()
+        {
+            // マスタのブロックGuidをBPにも混入させ、Kindが違っても救済されないことを確認する
+            // Inject a master block guid into the blueprint source: a differing Kind must not rescue the collision
+            var blockGuid = MasterHolder.BlockMaster.Blocks.Data.First().BlockGuid;
+            AssertEntriesThrowContaining(new ConfigurableBlueprintSource((blockGuid, "衝突BP")), blockGuid.ToString());
+        }
+
+        [Test]
+        public void BP同士のGuid重複は例外になる()
+        {
+            var duplicatedGuid = Guid.NewGuid();
+            AssertEntriesThrowContaining(new ConfigurableBlueprintSource((duplicatedGuid, "BP1"), (duplicatedGuid, "BP2")), duplicatedGuid.ToString());
+        }
+
+        [Test]
+        public void GuidEmptyのエントリは例外になる()
+        {
+            AssertEntriesThrowContaining(new ConfigurableBlueprintSource((Guid.Empty, "空GuidBP")), "空GuidBP");
+        }
+
+        // 例外メッセージが違反エントリを名指ししていることまで確認する
+        // Also verifies the exception message names the offending entry
+        private static void AssertEntriesThrowContaining(IBlueprintCatalogSource blueprintSource, string expectedInMessage)
+        {
+            var catalog = new PlacementTargetCatalog(blueprintSource);
+            var exception = Assert.Throws<InvalidOperationException>(() => _ = catalog.Entries);
+            Assert.That(exception.Message, Does.Contain(expectedInMessage));
         }
 
         private static void AssertKindGroupsContiguousAndOrdered(IReadOnlyList<PlacementTargetEntry> targetEntries)

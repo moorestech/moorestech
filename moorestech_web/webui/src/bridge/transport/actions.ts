@@ -17,7 +17,7 @@ export const BENIGN_ERRORS: Partial<Record<keyof ActionPayloads, ReadonlySet<str
   "build_menu.select": new Set(["invalid_state", "unknown_entry"]),
   // 二重右クリック等でサーバーが既にNotFoundを返す stale 削除はトースト不要（通信失敗は別コードで従来通りトーストする）
   // A stale delete where the server already returns NotFound (e.g. double right-click) needs no toast; communication failure keeps toasting under a separate code
-  "blueprint.delete": new Set(["delete_failed"]),
+  "blueprint.delete": new Set(["blueprint_delete_not_found"]),
 };
 
 export function shouldToastFailure(type: keyof ActionPayloads, error: string | undefined): boolean {

@@ -46,7 +46,7 @@ describe("shouldToastFailure", () => {
   // blueprint削除のstale失敗は抑止し、通信失敗は表示する
   // Suppress the stale-delete failure but still toast a communication failure
   it("blueprintのstale削除は抑止し通信失敗は表示する", () => {
-    expect(shouldToastFailure("blueprint.delete", "delete_failed")).toBe(false);
+    expect(shouldToastFailure("blueprint.delete", "blueprint_delete_not_found")).toBe(false);
     expect(shouldToastFailure("blueprint.delete", "blueprint_delete_request_failed")).toBe(true);
   });
 });

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Common.Debug;
@@ -18,7 +17,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     /// </summary>
     public static class WebBuildMenuEntryCatalog
     {
-        public static List<WebBuildMenuEntry> CreateEntries(IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary)
+        public static List<WebBuildMenuEntry> CreateEntries(IGameUnlockStateData unlockState, PlacementTargetCatalog placementTargetCatalog)
         {
             var entries = new List<WebBuildMenuEntry>();
             var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
@@ -29,9 +28,9 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
             // 共有カタログの列挙順（ブロック→車両→接続ツール→ビルドツール→BP）がそのまま表示順
             // The shared catalog's order (blocks, train cars, connect tools, build tools, blueprints) is the display order
-            foreach (var entry in new PlacementTargetCatalog(blueprintLibrary).Entries)
+            foreach (var entry in placementTargetCatalog.Entries)
             {
-                if (!IsUnlocked(entry)) continue;
+                if (!PlacementTargetUnlockFilter.IsUnlocked(entry, unlockState, showAllPlaceable)) continue;
                 if (!PlacementTargetFactory.TryCreate(entry, out var target)) continue;
                 entries.Add(CreateEntry(entry, target));
             }
@@ -39,28 +38,6 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             return entries;
 
             #region Internal
-
-            bool IsUnlocked(PlacementTargetEntry entry)
-            {
-                switch (entry.Kind)
-                {
-                    case PlacementTargetKind.Block:
-                        return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(entry.Id, out var blockInfo) && blockInfo.IsUnlocked);
-                    case PlacementTargetKind.TrainCar:
-                        return showAllPlaceable || (unlockState.TrainCarUnlockStateInfos.TryGetValue(entry.Id, out var trainCarInfo) && trainCarInfo.IsUnlocked);
-                    case PlacementTargetKind.ConnectTool:
-                        return unlockState.ConnectToolUnlockStateInfos.TryGetValue(entry.Id, out var connectToolInfo) && connectToolInfo.IsUnlocked;
-                    case PlacementTargetKind.BuildTool:
-                    case PlacementTargetKind.Blueprint:
-                        // ビルドツールとBPは解放条件を持たず常に表示する
-                        // Build tools and blueprints have no unlock condition and are always shown
-                        return true;
-                    default:
-                        // 未知のKindは型で排除する到達不能ケース
-                        // Unreachable: unknown Kind is excluded by the type
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
 
             WebBuildMenuEntry CreateEntry(PlacementTargetEntry entry, IPlacementTarget target)
             {

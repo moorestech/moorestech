@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "Core.Master",
-        "Game.Block.Interface"
+        "Game.Block.Interface",
+        "Game.UnlockState"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

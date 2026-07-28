@@ -5,6 +5,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
+using Game.PlacementTarget;
 using Game.UnlockState;
 using UniRx;
 
@@ -22,16 +23,18 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         private readonly UIStateControl _uiStateControl;
         private readonly IGameUnlockStateData _unlockState;
         private readonly ClientBlueprintLibrary _blueprintLibrary;
+        private readonly PlacementTargetCatalog _placementTargetCatalog;
         private readonly IDisposable _librarySubscription;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public BuildMenuTopic(WebSocketHub hub, UIStateControl uiStateControl, IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary)
+        public BuildMenuTopic(WebSocketHub hub, UIStateControl uiStateControl, IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary, PlacementTargetCatalog placementTargetCatalog)
         {
             _hub = hub;
             _uiStateControl = uiStateControl;
             _unlockState = unlockState;
             _blueprintLibrary = blueprintLibrary;
+            _placementTargetCatalog = placementTargetCatalog;
 
             // BuildMenu入場で再配信、BPライブラリ更新でも再配信する
             // Republish on BuildMenu entry and on blueprint-library updates
@@ -87,7 +90,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             var dto = new BuildMenuTopicDto
             {
                 Categories = BuildMenuEntryDtoFactory.CreateCategoryDtos(),
-                Entries = BuildMenuEntryDtoFactory.CreateDtos(_unlockState, _blueprintLibrary),
+                Entries = BuildMenuEntryDtoFactory.CreateDtos(_unlockState, _placementTargetCatalog),
             };
             return WebUiJson.Serialize(dto);
         }

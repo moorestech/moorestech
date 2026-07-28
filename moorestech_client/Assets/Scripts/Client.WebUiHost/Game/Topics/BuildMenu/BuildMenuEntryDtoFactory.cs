@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Core.Master;
 using Game.PlacementTarget;
@@ -15,12 +14,12 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     /// </summary>
     public static class BuildMenuEntryDtoFactory
     {
-        public static List<BuildMenuEntryDto> CreateDtos(IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary)
+        public static List<BuildMenuEntryDto> CreateDtos(IGameUnlockStateData unlockState, PlacementTargetCatalog placementTargetCatalog)
         {
             var dtos = new List<BuildMenuEntryDto>();
             // カテゴリ整合はマスタロード時に検証済み（block参照はBlockMasterUtil・非ブロックはentrySource必須定義）
             // Category consistency is validated at master load (block refs by BlockMasterUtil, non-blocks by required entrySource)
-            foreach (var entry in WebBuildMenuEntryCatalog.CreateEntries(unlockState, blueprintLibrary))
+            foreach (var entry in WebBuildMenuEntryCatalog.CreateEntries(unlockState, placementTargetCatalog))
             {
                 dtos.Add(new BuildMenuEntryDto
                 {

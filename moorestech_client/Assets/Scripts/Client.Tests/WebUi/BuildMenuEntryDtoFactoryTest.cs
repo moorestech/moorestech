@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.WebUiHost.Game.Topics.BuildMenu;
 using Core.Master;
+using Game.PlacementTarget;
 using Game.UnlockState;
 using Game.UnlockState.States;
 using NUnit.Framework;
@@ -28,7 +29,7 @@ namespace Client.Tests.WebUi
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var unlockState = new AllBlockAndConnectToolUnlockedStateData();
 
-            var dtos = BuildMenuEntryDtoFactory.CreateDtos(unlockState, new ClientBlueprintLibrary());
+            var dtos = BuildMenuEntryDtoFactory.CreateDtos(unlockState, new PlacementTargetCatalog(new ClientBlueprintLibrary()));
 
             // 実マスタ規模で複数エントリが返ること（空リストでは以降の検証が無意味）
             // Multiple entries must come back at real-master scale (an empty list would make the rest of this test meaningless)

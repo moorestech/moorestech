@@ -41,7 +41,26 @@ namespace Game.PlacementTarget
                     entries.Add(new PlacementTargetEntry(buildTool.BuildToolGuid, PlacementTargetKind.BuildTool, buildTool.Name));
                 foreach (var (id, name) in _blueprintSource.BlueprintEntries)
                     entries.Add(new PlacementTargetEntry(id, PlacementTargetKind.Blueprint, name));
+
+                // 生Guidだけが識別子のため、全供給元横断の非Empty・一意をここで保証する
+                // The raw Guid is the sole identifier, so non-emptiness and uniqueness across every source are guaranteed here
+                ValidateIdentity(entries);
                 return entries;
+            }
+        }
+
+        // 破ると TryGetEntry とビルドメニューのId照合が別対象へ無言で解決するため、kindでの救済はせず即例外にする
+        // A violation would silently resolve TryGetEntry and the build-menu id lookup to a different target, so this throws instead of disambiguating by kind
+        private static void ValidateIdentity(IReadOnlyList<PlacementTargetEntry> entries)
+        {
+            var seenById = new Dictionary<Guid, PlacementTargetEntry>();
+            foreach (var entry in entries)
+            {
+                if (entry.Id == Guid.Empty)
+                    throw new InvalidOperationException($"PlacementTargetCatalog: Guid.Empty entry found (Kind={entry.Kind}, DisplayName={entry.DisplayName})");
+                if (seenById.TryGetValue(entry.Id, out var duplicated))
+                    throw new InvalidOperationException($"PlacementTargetCatalog: duplicated Guid {entry.Id} between {duplicated.Kind} '{duplicated.DisplayName}' and {entry.Kind} '{entry.DisplayName}'");
+                seenById.Add(entry.Id, entry);
             }
         }
 
