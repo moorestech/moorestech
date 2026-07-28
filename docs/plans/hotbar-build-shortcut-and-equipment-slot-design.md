@@ -12,8 +12,9 @@
 - 採掘はクライアント権威。`MapObjectMiningFocusState` がツールを照合し、`attackDamage` をサーバへ送る。サーバは無検証。
 - ツールは 石の斧 / 石器 の2種のみ。`miningTools` は mapObject 側に damage / attackSpeed を持つ。アイテム側に「ツールである」情報は無い。
 - `PlaceBlockState` はカーソル表示・カメラ回転オフ、`GameScreenState` はカーソルロック・回転オンで、建築モードと通常モードは操作系が別物。
-- ホイールは通常モードのホットバー切替と、建築モードのBPコピー枠高さにしか使われていない。
+- ホイールは通常モードのホットバー切替（`HotBarView` / web `HotbarPanel`）と、建築モードのBPコピー枠高さ（`BlueprintCopySystem`）にしか使われていない。
 - スキル文書 `hotbar-driven-systems.md` が説明する `usePlaceItems`（手持ちアイテム駆動の設置システム）は**コードにもマスタにも既に存在しない**。文書が陳腐化している。
+- ビルドメニューのエントリ組み立ては uGUI 用（`BuildMenuEntryCatalog`）と web 用（`WebBuildMenuEntryCatalog`）の2本が並存している。
 
 ## 設計
 
@@ -27,8 +28,9 @@
 | ビルドツール（BPコピー） | `buildMenu.yml` の `buildTools` に新設するGUID |
 | ブループリント | 作成時に発行するGUID |
 
-- Web契約の `entryType + entryKey` は廃止し、設置対象IDひとつにする。実行時 `BlockId` は永続・通信に使わない。
-- 設置対象カタログを共有アセンブリに1本置く。マスタ由来のエントリは共有コードで列挙し、ブループリントの供給元だけインターフェースで差し替える（サーバ=`BlueprintDatastore` / クライアント=`ClientBlueprintLibrary`）。
+- Web契約の `entryType + entryKey` は廃止し、設置対象ID（Guid文字列）ひとつにする。表示・振る舞い用の種別 `kind` は残すが**識別子ではない**。実行時 `BlockId` は永続・通信に使わない。
+- 設置対象カタログを共有アセンブリ `Game.PlacementTarget` に1本置く。マスタ由来のエントリは共有コードで列挙し、ブループリントの供給元だけ `IBlueprintCatalogSource` で差し替える（サーバ=`BlueprintDatastore` / クライアント=`ClientBlueprintLibrary`）。
+- カタログは「ビルドメニューに並びうるもの」の集合であり、ベルトの坂ブロックのようにメニューに出ないものは含まない。アンロック状態はカタログの関心ではない。
 - ブループリント名は表示名。削除・参照はGUID。同名を許容し `" (2)"` の連番付与は廃止。
 - 設置の向きは設置対象の一部にしない。`BlockPlacementTarget.PickedDirection` は設置操作中の一時状態に留め、ホットバー割当には保存しない。
 
@@ -44,9 +46,9 @@
 ### 装備スロット
 
 - `InventoryType.Equipment` を追加し、`PlayerInventoryData` に独立した `IOpenableInventory` を持たせる。既存のアイテム移動・整理プロトコルで操作する。
-- スロット数はマスタ定義の固定値（3想定）。1枠1個まで。
+- スロット数はマスタ定義の固定値（`items.yml` の `equipmentSlotCount`、初期値3）。1枠1個まで。
 - `items.yml` のトップレベルに `tools` 配列を新設し、そこに列挙されたアイテムだけが入る。採掘性能（damage / attackSpeed）は従来どおり mapObject 側。
-- インベントリが受入可否を宣言し、移動サービスがそれを尊重する機構を新設する。
+- 「特定アイテムしか受け付けない・1枠1個」は `Core.Inventory` の `IItemAcceptanceInventory` で宣言し、アイテム移動サービスが尊重する。
 - 通常モードのホイールで循環選択（空も含む）。HUD右端に3枠常設し、選択中をハイライト。
 - 手持ち3Dモデルと採掘アニメーションの参照元を装備スロットへ移す。
 
@@ -61,18 +63,55 @@
 
 ### Web
 
-- 装備は `inventory` トピックへ（`hotbarSlots` / `selectedHotbar` を置換）。ホットバーは新トピック。
-- アクションは `inventory.select_hotbar` を廃止し、ホットバートピック側に選択・割当を、装備側に選択を置く。
+- 装備は `inventory` トピックへ（`hotbarSlots` / `selectedHotbar` を置換）。ホットバーは新トピック `local_player.hotbar`。
+- アクションは `inventory.select_hotbar` を廃止し、ホットバートピック側に選択・割当（select / assign / clear / swap）を、装備側に選択（`inventory.select_equipment`）を置く。
 - HUDは「左：ホットバー9枠」「右端：装備3枠」。
 
-## 実装順
+## 実装計画の分割
 
-1. 設置対象IDの統一（カタログ、ブループリントGUID、`buildTools` マスタ追加、Web契約差し替え）
-2. 装備インベントリの新設（`InventoryType.Equipment`、受入制限、`tools` マスタ、セーブ）
-3. 採掘のサーバ権威化（プロトコル改修、クールダウン、デバッグ移設）
-4. ホットバーの作り替え（割当の永続とプロトコル、クライアントモデル、uGUI削除）
-5. Web UI（ホットバートピック、装備HUD、割当D&D）
-6. プレイテストDSLとスキル文書の更新
+逐次依存はあるが、それぞれ単体で出荷・テスト可能な3本に分ける。B が C より先なのは、ホットバーからアイテムが消えると採掘ツールを選べなくなるためと、ホイールの奪い合いを解消するため。
+
+| plan | 内容 |
+|---|---|
+| [A](../superpowers/plans/2026-07-28-placement-target-id-unification.md) | 設置対象IDの統一。ゲーム挙動は不変 |
+| [B](../superpowers/plans/2026-07-28-equipment-slot-and-server-authoritative-mining.md) | 装備スロット＋採掘サーバ権威化。ホイールが装備切替へ移り、ホットバーはキーのみになる |
+| [C](../superpowers/plans/2026-07-28-hotbar-build-shortcut.md) | ホットバーの建築ショートカット化 |
+
+## 配置と前例
+
+| 項目 | 配置先 | 前例 |
+|---|---|---|
+| `buildTools` 配列 | `VanillaSchema/buildMenu.yml` のトップレベル | 同ファイルの `connectTools`（新yamlを作らず既存へ統合） |
+| `BuildToolMaster` / `ToolMaster` | `moorestech_server/Assets/Scripts/Core.Master/` | `ConnectToolMaster.cs`（既存yamlの一部配列だけを読むラッパーMaster） |
+| `PlacementTargetCatalog` 他 | 新アセンブリ `Game.PlacementTarget` | `Game.Blueprint` / `Game.UnlockState`（小さな単一責務asmdef） |
+| `EquipmentInventoryData` | `Game.PlayerInventory/ItemManaged/` | `GrabInventoryData.cs`（`OpenableInventoryItemDataStoreService` 委譲の薄いIOpenableInventory） |
+| `EquipmentInventoryIdentifierResolver` | `Server.Protocol/.../InventoryService/Resolver/` | `GrabInventoryIdentifierResolver.cs` |
+| ホットバー割当プロトコル | `Server.Protocol/PacketResponse/` | `BlueprintProtocol.cs`（1プロトコル内のOperation enum分岐） |
+| 装備・ホットバーの購読同期 | `Client.WebUiHost/Game/Topics/` | `InventoryTopic.cs`（PostLateUpdateでまとめてpublish） |
+| 装備選択の変化通知 | UniRx `Subject<T>` | `ConnectToolUnlockStateHolder`（`Subject`+`IObservable`） |
+
+新機構は2つ: ①`IItemAcceptanceInventory`（受入制限。マシンのモジュールスロットは無制限で前例にならない）②設置対象カタログ（Guid→設置対象の解決。既存は種別ごとの個別解決）。どちらも spec で新規パターンとして明示する。
+
+## 機能パリティ死活表
+
+計画が触れる機構（ホットバー・プレイヤーインベントリ移動・採掘・ビルドメニュー選択）にぶら下がる全操作:
+
+| 操作 | 計画後 | 根拠 |
+|---|---|---|
+| ホットバー 1〜9 キー | 生きる（意味が変わる） | plan C で建築ショートカットへ |
+| ホットバーのホイール切替 | **死ぬ** | ユーザー裁定「切替は通常モードのホイールで装備循環」。ホットバーはキーのみ |
+| ホットバー ⇄ メインの Shift 配分 | **死ぬ** | ユーザー裁定「旧ホットバーの特別扱いは完全撤廃」。hotbar エリア自体が消滅 |
+| 拾得時のホットバー優先挿入 | **死ぬ** | 同上 |
+| インベントリソートのホットバー除外 | **死ぬ** | 同上 |
+| BP名の重複連番 `" (2)"` | **死ぬ** | ユーザー裁定「同名BP許容・識別はGUID」 |
+| 手持ち3Dモデル | 生きる（出所が装備へ） | plan B |
+| 採掘（ツール／PickUp とも） | 生きる | plan B。ツールの出所が装備スロットへ |
+| デバッグ高速採掘 | 生きる（サーバ側へ移設） | plan B |
+| ミドルクリックのスポイト | 生きる | 変更なし |
+| ビルドメニュー選択・BP削除 | 生きる（キーがGUIDへ） | plan A |
+| チュートリアルのアイテムハイライト | 生きる（解決先が装備HUD／インベントリへ） | plan B の検証項目 |
+
+死ぬ操作はすべてユーザー裁定済み。裁定なしで落とす操作はない。
 
 ## 検証・QA観点
 
@@ -82,4 +121,46 @@
 - 装備中のツールをインベントリへ戻した直後の打撃がサーバで拒否されること。
 - 連打連送でクールダウンを超えて採掘できないこと。
 - チュートリアルの `itemViewHighLight`（石の斧・石器）のDOMアンカー解決先が装備HUD／インベントリへ移ること。
-- 旧セーブのマイグレーションは不要（末尾9スロットは通常スロットになるだけ、装備インベントリは空で開始）。それが実際に成り立つことを確認する。
+- 旧セーブのマイグレーションは、ブループリントGUIDの発行を除いて不要（末尾9スロットは通常スロットになるだけ、装備インベントリは空で開始）。それが実際に成り立つことを確認する。
+
+## 判断記録（ADR）
+
+- **ホットバーは設置対象IDの参照のみを持ちアイテムを保持しない**（出所: ユーザー裁定 AskUserQuestion 2026-07-27。詳細 ADR-0002）
+- **数字キーで即建築モード・同キーで解除・空枠は建築モードを抜ける**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）
+- **ホットバー割当はサーバ永続（save の player 単位）**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）
+- **割当の入口はキー長押しと Web D&D の両方**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）
+- **解決不能な割当はロード時に削除する**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）。マスタに存在するが未解放のものは保持（出所: agent前提（拒否権つき））
+- **メインインベントリ末尾9スロットの特別扱いを完全撤廃**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）
+- **uGUI `HotBarView` を削除し非MonoBehaviourモデルへ移す**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）
+- **装備スロットは独立した `IOpenableInventory`（`InventoryType.Equipment`）**（出所: ユーザー裁定 AskUserQuestion 2026-07-27。詳細 ADR-0003）。メイン末尾レンジ案は、メインが `playerInventorySlotLevels` で可変長のためインデックスがサイズ依存になる（旧ホットバーと同じ罠）ので不採用
+- **スロット数はマスタ定義の固定値・1枠1個・空も循環に含む**（出所: ユーザー裁定「スロット数はマスタ。個数は固定」2026-07-27）
+- **切替は通常モードのホイール循環・HUD右端に3枠**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）
+- **`items.yml` トップレベルに `tools` 配列を新設し、装備可能アイテムを列挙する**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）。採掘性能は mapObject 側に残す
+- **採掘はサーバ権威。打撃イベント＋サーバ側 `attackSpeed` クールダウン**（出所: ユーザー裁定 AskUserQuestion 2026-07-27。詳細 ADR-0004）。距離検証はしない（座標がクライアント申告値のため防御力が乏しい）
+- **設置対象IDを Guid 1本に統一する**（出所: ユーザー裁定「統合的にビルドメニューにおくもののキー、ID的なものの仕組みを策定したほうが良い」2026-07-27。詳細 ADR-0001）
+- **BPコピーツールは `buildMenu.yml` の `buildTools` でマスタ化する**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）
+- **設置の向きは割当に保存しない**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）
+- **カタログは共有アセンブリに1本・BP供給だけ差し替え**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）
+- **BP名は表示名へ格下げし同名を許容、`" (2)"` 連番は廃止**（出所: agent前提（拒否権つき）2026-07-27。ユーザーに提示済みで異議なし）
+- **永続キーは BlockGuid（実行時 BlockId は不使用）**（出所: agent前提（拒否権つき）2026-07-27）
+- **Webトピックは装備＝`inventory`、ホットバー＝新トピック**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）
+- **`IItemAcceptanceInventory` を `Core.Inventory` に新設して移動サービスが尊重する**（出所: agent前提（拒否権つき））。マシンのモジュールスロットは投入無制限で前例にならないため新機構となる
+- **`Game.PlacementTarget` を新規アセンブリとして作る**（出所: agent前提（拒否権つき））。`Core.Master` へ置く案は「共有層へのドメインロジック混入」に該当するため不採用
+- **既存セーブのブループリントはロード時にGUIDを発行する**（出所: agent前提（拒否権つき））。ユーザー生成データであり、マスタ由来値のフォールバックとは別物
+- **実装計画は A/B/C の3本に分割し、今回すべて執筆する**（出所: ユーザー裁定 AskUserQuestion 2026-07-28）
+
+plan執筆時（2026-07-28）の追加判断（詳細は各planの「判断記録（ADR）」。各行末は改修対象のレンズ該当ファイル）:
+
+- **設置対象IDは生 `Guid`（ラッパー型なし）・`IPlacementTarget` に `Guid Id` を追加**（出所: agent前提（拒否権つき）。前例: マスタ識別子は生Guid）
+- **`buildTools` は `BuildToolMaster` が読み、`tools`/`equipmentSlotCount` は `ToolMaster` が読む**（出所: ユーザー裁定のマスタ化2件の具体化。前例: `ConnectToolMaster` の「同一JSONの自配列だけ読むラッパーMaster」）— 対象: `BuildToolMaster.cs` / `ToolMaster.cs` / `MasterHolder.cs`
+- **BPのGUID発行・同名許容・GuidベースDelete/TryGetへのAPI変更**（出所: ユーザー裁定「同名BP許容・識別はGUID」の具体化）— 対象: `IBlueprintDatastore.cs` / `BlueprintDatastore.cs` / `BlueprintProtocol.cs`
+- **受入制限 `IItemAcceptanceInventory` は移動先が宣言し移動サービス2種が尊重する**（出所: ユーザー裁定「items.ymlにツール定義」＋新機構裁定の具体化）— 対象: `InventoryItemMoveService.cs` / `InventoryItemInsertService.cs`
+- **装備インベントリは `PlayerInventoryData` 配下で生成・セーブし、Resolverは grab 前例に追随**（出所: ADR-0003の具体化）— 対象: `PlayerInventoryDataStore.cs` / `EquipmentInventoryIdentifierResolver.cs`
+- **装備同期は3点セット標準で新設**（イベント＋初期データ同梱＋選択プロトコル。1プロトコル=1 VanillaApiメソッド）（出所: `.claude/rules/server-protocol.md` 標準）— 対象: `EquipmentUpdateEventPacket.cs` / `PlayerInventoryResponseProtocol.cs` / `EquipmentProtocol.cs` / `PacketResponseCreator.cs` / `VanillaApiSendOnly.cs`
+- **選択中の装備は `EquipmentInventoryData` が所有し `-1`＝素手を正式値とする**（出所: agent前提（拒否権つき））
+- **採掘のダメージ解決＋クールダウンは `Game.Map/MapObjectMiningService` が担い、プロトコルは `AttackDamage` を廃してinstanceIdのみ受ける**（出所: ADR-0004の具体化。時刻は `DateTime.UtcNow`・揮発Dictionary保持は agent前提（拒否権つき））— 対象: `MapObjectAcquisitionProtocol.cs` / `VanillaApiSendOnly.cs`
+- **`HotbarAssignmentDatastore` は新asmdef `Game.Hotbar` に置き、書き込み時もカタログ検証する。クライアント側は非MonoBehaviourの `ClientHotbarDatastore` が割当と選択枠を所有**（出所: ADR-0002の具体化＋agent前提（拒否権つき）。前例: `Game.UnlockState` の小asmdef・`PlayerInventoryDataStore` のplayer別Dictionary）— 対象: `HotbarAssignmentDatastore.cs` / `ClientHotbarDatastore.cs`
+- **ホットバー同期は3点セット標準で新設・操作は `va:hotbar` 1本のOperation分岐**（出所: `.claude/rules/server-protocol.md` 標準＋ユーザー裁定「プロトコルは1本にモード分岐」）— 対象: `HotbarProtocol.cs` / `GetHotbarProtocol.cs` / `HotbarUpdateEventPacket.cs` / `PacketResponseCreator.cs`
+- **旧ホットバーの特別扱い撤廃はソート除外の削除を含む**（出所: ユーザー裁定「完全撤廃」の具体化）— 対象: `SortInventoryProtocol.cs`
+- **選択中のホットバー枠はクライアントのみの状態（サーバ非保持・非セーブ）**（出所: ADR-0002の具体化）
+- **チュートリアル `itemViewHighLight` はレシピパネルアンカー解決でありホットバー非依存と判明、対応不要**（出所: 現状調査 2026-07-28。死活表の当該行を「変更不要の確認」に読み替え）
