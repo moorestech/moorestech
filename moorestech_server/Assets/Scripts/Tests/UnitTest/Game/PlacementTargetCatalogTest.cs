@@ -92,6 +92,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void ConnectToolの並び順がSortPriorityで固定される()
         {
+            // forUnitTestのconnectTools配列は意図的に非SortPriority順（120→100→110）。昇順に整えるとこのテストが同語反復化する
+            // The forUnitTest connectTools array is deliberately not in SortPriority order; sorting it would make this test tautological
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var catalog = new PlacementTargetCatalog(new EmptyBlueprintSource());
