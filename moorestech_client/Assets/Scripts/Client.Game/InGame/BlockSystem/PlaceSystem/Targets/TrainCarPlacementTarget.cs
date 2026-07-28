@@ -6,6 +6,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
     {
         public readonly Guid TrainCarGuid;
 
+        public Guid Id => TrainCarGuid;
+
         public TrainCarPlacementTarget(Guid trainCarGuid)
         {
             TrainCarGuid = trainCarGuid;

@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
-using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Common.Debug;
-using Game.Block.Interface.Extension;
 using Client.Mod.Texture;
 using Core.Master;
+using Game.PlacementTarget;
 using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.TrainModule;
@@ -17,8 +16,8 @@ using Mooresmaster.Model.TrainModule;
 namespace Client.Game.InGame.UI.BuildMenu
 {
     /// <summary>
-    /// ビルドメニューの表示エントリ一覧を組み立てる（ブロック→車両→接続ツール→BPの順）
-    /// Builds the list of build-menu entries: blocks, train cars, connect tools, then blueprints
+    /// ビルドメニューの表示エントリ一覧を組み立てる（共有カタログの列挙順にアイコンとツールチップを付ける）
+    /// Builds the list of build-menu entries by decorating the shared catalog's enumeration with icons and tooltips
     /// </summary>
     public static class BuildMenuEntryCatalog
     {
@@ -30,58 +29,66 @@ namespace Client.Game.InGame.UI.BuildMenu
             // In free-placement debug mode, show every placeable block/train car including locked ones
             var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
 
-            // 解放済み（無料設置時は全）ブロックをソート順に列挙し、ベルトの坂は除外する
-            // Enumerate unlocked (all in free mode) blocks in sort order while excluding belt slopes
-            var unlockedBlocks = MasterHolder.BlockMaster.Blocks.Data
-                .Where(b => showAllPlaceable || IsBlockUnlocked(unlockState, b))
-                .Where(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid))
-                .OrderBy(b => b.SortPriority ?? 0)
-                .ThenBy(b => b.Name);
-            foreach (var blockMaster in unlockedBlocks)
+            // 共有カタログの列挙順（ブロック→車両→接続ツール→ビルドツール→BP）がそのまま表示順
+            // The shared catalog's order (blocks, train cars, connect tools, build tools, blueprints) is the display order
+            foreach (var entry in new PlacementTargetCatalog(blueprintLibrary).Entries)
             {
-                var blockId = MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);
-                var iconView = ClientContext.BlockImageContainer.GetBlockView(blockId);
-                entries.Add(new BuildMenuEntry(new BlockPlacementTarget(blockId, null), iconView, CreateBlockToolTip(blockMaster)));
-            }
-
-            // 解放済み車両を列挙する
-            // Enumerate unlocked train cars
-            foreach (var trainCar in MasterHolder.TrainUnitMaster.Train.TrainCars)
-            {
-                if (!showAllPlaceable && (!unlockState.TrainCarUnlockStateInfos.TryGetValue(trainCar.TrainCarGuid, out var state) || !state.IsUnlocked)) continue;
-                var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(trainCar.TrainCarGuid);
-                entries.Add(new BuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView, CreateTrainCarToolTip(trainCar, iconView)));
-            }
-
-            // 解放済みconnectToolをSortPriority順に1エントリずつ表示（アイコンはimagePath由来）
-            // Show one entry per unlocked connectTool in SortPriority order (icon comes from imagePath)
-            var unlockedConnectTools = MasterHolder.ConnectToolMaster.All
-                .Where(element => unlockState.ConnectToolUnlockStateInfos.TryGetValue(element.ConnectToolGuid, out var info) && info.IsUnlocked)
-                .OrderBy(element => element.SortPriority);
-            foreach (var connectTool in unlockedConnectTools)
-            {
-                var iconView = ClientContext.ConnectToolImageContainer.GetConnectToolView(connectTool.ConnectToolGuid);
-                entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(connectTool.ConnectToolGuid), iconView, connectTool.Name));
-            }
-
-            // 接続ツール群にBPコピーツール追加（テキスト表示）
-            // Append the blueprint copy tool alongside the connect tools (icon-less text slot)
-            entries.Add(new BuildMenuEntry(new BlueprintCopyToolPlacementTarget(), null, "ブループリントコピー"));
-
-            // 保存済みBPのエントリを追加
-            // Append entries for saved blueprints
-            foreach (var blueprint in blueprintLibrary.Blueprints)
-            {
-                entries.Add(new BuildMenuEntry(new BlueprintPlacementTarget(blueprint.BlueprintGuid, blueprint.Name), null, blueprint.Name));
+                if (!IsUnlocked(entry)) continue;
+                if (!PlacementTargetFactory.TryCreate(entry, out var target)) continue;
+                entries.Add(CreateEntry(entry, target));
             }
 
             return entries;
 
             #region Internal
 
-            bool IsBlockUnlocked(IGameUnlockStateData state, BlockMasterElement blockMaster)
+            bool IsUnlocked(PlacementTargetEntry entry)
             {
-                return state.BlockUnlockStateInfos.TryGetValue(blockMaster.BlockGuid, out var info) && info.IsUnlocked;
+                switch (entry.Kind)
+                {
+                    case PlacementTargetKind.Block:
+                        return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(entry.Id, out var blockInfo) && blockInfo.IsUnlocked);
+                    case PlacementTargetKind.TrainCar:
+                        return showAllPlaceable || (unlockState.TrainCarUnlockStateInfos.TryGetValue(entry.Id, out var trainCarInfo) && trainCarInfo.IsUnlocked);
+                    case PlacementTargetKind.ConnectTool:
+                        return unlockState.ConnectToolUnlockStateInfos.TryGetValue(entry.Id, out var connectToolInfo) && connectToolInfo.IsUnlocked;
+                    default:
+                        // ビルドツールとBPは解放条件を持たず常に表示する
+                        // Build tools and blueprints have no unlock condition and are always shown
+                        return true;
+                }
+            }
+
+            BuildMenuEntry CreateEntry(PlacementTargetEntry entry, IPlacementTarget target)
+            {
+                switch (entry.Kind)
+                {
+                    case PlacementTargetKind.Block:
+                    {
+                        var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(entry.Id);
+                        var iconView = ClientContext.BlockImageContainer.GetBlockView(MasterHolder.BlockMaster.GetBlockId(entry.Id));
+                        return new BuildMenuEntry(target, iconView, CreateBlockToolTip(blockMaster));
+                    }
+                    case PlacementTargetKind.TrainCar:
+                    {
+                        // カタログのGuidは車両マスタ由来のため必ず引ける
+                        // The catalog's guid always originates from the train car master, so this lookup always succeeds
+                        MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(entry.Id, out var trainCar);
+                        var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(entry.Id);
+                        return new BuildMenuEntry(target, iconView, CreateTrainCarToolTip(trainCar, iconView));
+                    }
+                    case PlacementTargetKind.ConnectTool:
+                    {
+                        // 接続ツールのアイコンはconnectToolのimagePath由来
+                        // The connect tool icon comes from the connectTool's imagePath
+                        var iconView = ClientContext.ConnectToolImageContainer.GetConnectToolView(entry.Id);
+                        return new BuildMenuEntry(target, iconView, entry.DisplayName);
+                    }
+                    default:
+                        // ビルドツールとBPはアイコン無し（テキスト表示スロット）
+                        // Build tools and blueprints have no icon and render as text-only slots
+                        return new BuildMenuEntry(target, null, entry.DisplayName);
+                }
             }
 
             string CreateBlockToolTip(BlockMasterElement blockMaster)

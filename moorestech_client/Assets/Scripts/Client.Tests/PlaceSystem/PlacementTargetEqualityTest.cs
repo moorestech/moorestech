@@ -41,9 +41,11 @@ namespace Client.Tests.PlaceSystem
         }
 
         [Test]
-        public void CopyToolTargetsAreAlwaysEqualAndCrossTypeNeverEqual()
+        public void BuildToolTargetsAreEqualByGuidAndCrossTypeNeverEqual()
         {
-            Assert.IsTrue(new BlueprintCopyToolPlacementTarget().Equals(new BlueprintCopyToolPlacementTarget()));
+            var buildToolGuid = Guid.NewGuid();
+            Assert.IsTrue(new BuildToolPlacementTarget(buildToolGuid).Equals(new BuildToolPlacementTarget(buildToolGuid)));
+            Assert.IsFalse(new BuildToolPlacementTarget(buildToolGuid).Equals(new BuildToolPlacementTarget(Guid.NewGuid())));
             var guid = Guid.NewGuid();
             Assert.IsFalse(new BlockPlacementTarget(new BlockId(1), null).Equals(new TrainCarPlacementTarget(guid)));
             Assert.IsFalse(new BlueprintPlacementTarget(Guid.NewGuid(), "x").Equals(new ConnectToolPlacementTarget(Guid.NewGuid())));

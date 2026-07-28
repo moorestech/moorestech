@@ -52,10 +52,10 @@ namespace Client.WebUiHost.Game.Topics
             {
                 var target = _controller.CurrentTarget;
                 if (target is BlockPlacementTarget block) return MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).Name;
-                if (target is BlueprintPlacementTarget blueprint) return blueprint.BlueprintName;
+                if (target is BlueprintPlacementTarget blueprint) return blueprint.DisplayName;
                 if (target is ConnectToolPlacementTarget tool) return MasterHolder.ConnectToolMaster.GetElementOrNull(tool.ConnectToolGuid)?.Name ?? "";
                 if (target is TrainCarPlacementTarget) return "Train Car";
-                if (target is BlueprintCopyToolPlacementTarget) return "Blueprint Copy";
+                if (target is BuildToolPlacementTarget) return "Blueprint Copy";
                 return "";
             }
 

@@ -12,6 +12,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         // Direction picked by the eyedropper (null when selected from the menu)
         public readonly BlockDirection? PickedDirection;
 
+        // 設置対象IDは揮発BlockIdではなくマスタのBlockGuid
+        // The placement target id is the master's BlockGuid, not the volatile BlockId
+        public Guid Id => MasterHolder.BlockMaster.GetBlockMaster(BlockId).BlockGuid;
+
         public BlockPlacementTarget(BlockId blockId, BlockDirection? pickedDirection)
         {
             BlockId = blockId;

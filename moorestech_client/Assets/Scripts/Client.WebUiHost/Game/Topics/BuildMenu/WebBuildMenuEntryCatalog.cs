@@ -2,14 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
-using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Common.Debug;
 using Core.Master;
-using Game.Block.Interface.Extension;
+using Game.PlacementTarget;
 using Game.UnlockState;
-using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.BuildMenuModule;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
@@ -29,63 +27,75 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             // In free-placement debug mode, show every placeable block/train car including locked ones
             var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
 
-            // 解放済み（無料設置時は全）ブロックをソート順に列挙し、ベルトの坂は除外する
-            // Enumerate unlocked (all in free mode) blocks in sort order while excluding belt slopes
-            var unlockedBlocks = MasterHolder.BlockMaster.Blocks.Data
-                .Where(b => showAllPlaceable || IsBlockUnlocked(unlockState, b))
-                .Where(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid))
-                .OrderBy(b => b.SortPriority ?? 0)
-                .ThenBy(b => b.Name);
-            foreach (var blockMaster in unlockedBlocks)
+            // 共有カタログの列挙順（ブロック→車両→接続ツール→ビルドツール→BP）がそのまま表示順
+            // The shared catalog's order (blocks, train cars, connect tools, build tools, blueprints) is the display order
+            foreach (var entry in new PlacementTargetCatalog(blueprintLibrary).Entries)
             {
-                var blockId = MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);
-                var requiredItems = ToRequiredItems(blockMaster.RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
-                entries.Add(new WebBuildMenuEntry(new BlockPlacementTarget(blockId, null), blockMaster.Name, blockMaster.Category, blockMaster.SubCategory, requiredItems));
-            }
-
-            // 解放済み車両を列挙する。行き先はentrySource:trainCarsのサブカテゴリ
-            // Enumerate unlocked train cars; they go to the entrySource:trainCars sub category
-            var (trainCarCategory, trainCarSubCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.trainCars);
-            foreach (var trainCar in MasterHolder.TrainUnitMaster.Train.TrainCars)
-            {
-                if (!showAllPlaceable && (!unlockState.TrainCarUnlockStateInfos.TryGetValue(trainCar.TrainCarGuid, out var state) || !state.IsUnlocked)) continue;
-
-                // 車両マスタにnameが無いため、アイコンビューの表示名（addressablePath末尾）を使う
-                // Train car masters have no name, so use the icon view's display name (addressablePath tail)
-                var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(trainCar.TrainCarGuid);
-                var requiredItems = ToRequiredItems(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
-                entries.Add(new WebBuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView.ItemName, trainCarCategory, trainCarSubCategory, requiredItems));
-            }
-
-            // 解放済みconnectToolをSortPriority順に列挙。行き先はentrySource:connectToolsのサブカテゴリ
-            // Enumerate unlocked connectTools in SortPriority order; they go to the entrySource:connectTools sub category
-            var (connectToolCategory, connectToolSubCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.connectTools);
-            var unlockedConnectTools = MasterHolder.ConnectToolMaster.All
-                .Where(element => unlockState.ConnectToolUnlockStateInfos.TryGetValue(element.ConnectToolGuid, out var info) && info.IsUnlocked)
-                .OrderBy(element => element.SortPriority);
-            foreach (var connectTool in unlockedConnectTools)
-            {
-                entries.Add(new WebBuildMenuEntry(new ConnectToolPlacementTarget(connectTool.ConnectToolGuid), connectTool.Name, connectToolCategory, connectToolSubCategory, new List<WebBuildMenuEntry.RequiredItem>()));
-            }
-
-            // BPコピーツールと保存済みBPもentrySource定義のサブカテゴリへ入れる
-            // The blueprint copy tool and saved blueprints also go to their entrySource-defined sub categories
-            var (copyToolCategory, copyToolSubCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.blueprintCopyTool);
-            entries.Add(new WebBuildMenuEntry(new BlueprintCopyToolPlacementTarget(), "ブループリントコピー", copyToolCategory, copyToolSubCategory, new List<WebBuildMenuEntry.RequiredItem>()));
-
-            var (blueprintCategory, blueprintSubCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.savedBlueprints);
-            foreach (var blueprint in blueprintLibrary.Blueprints)
-            {
-                entries.Add(new WebBuildMenuEntry(new BlueprintPlacementTarget(blueprint.BlueprintGuid, blueprint.Name), blueprint.Name, blueprintCategory, blueprintSubCategory, new List<WebBuildMenuEntry.RequiredItem>()));
+                if (!IsUnlocked(entry)) continue;
+                if (!PlacementTargetFactory.TryCreate(entry, out var target)) continue;
+                entries.Add(CreateEntry(entry, target));
             }
 
             return entries;
 
             #region Internal
 
-            bool IsBlockUnlocked(IGameUnlockStateData state, BlockMasterElement blockMaster)
+            bool IsUnlocked(PlacementTargetEntry entry)
             {
-                return state.BlockUnlockStateInfos.TryGetValue(blockMaster.BlockGuid, out var info) && info.IsUnlocked;
+                switch (entry.Kind)
+                {
+                    case PlacementTargetKind.Block:
+                        return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(entry.Id, out var blockInfo) && blockInfo.IsUnlocked);
+                    case PlacementTargetKind.TrainCar:
+                        return showAllPlaceable || (unlockState.TrainCarUnlockStateInfos.TryGetValue(entry.Id, out var trainCarInfo) && trainCarInfo.IsUnlocked);
+                    case PlacementTargetKind.ConnectTool:
+                        return unlockState.ConnectToolUnlockStateInfos.TryGetValue(entry.Id, out var connectToolInfo) && connectToolInfo.IsUnlocked;
+                    default:
+                        // ビルドツールとBPは解放条件を持たず常に表示する
+                        // Build tools and blueprints have no unlock condition and are always shown
+                        return true;
+                }
+            }
+
+            WebBuildMenuEntry CreateEntry(PlacementTargetEntry entry, IPlacementTarget target)
+            {
+                switch (entry.Kind)
+                {
+                    case PlacementTargetKind.Block:
+                    {
+                        // ブロックだけはカテゴリをブロックマスタ自身が持つ
+                        // Only blocks carry their category on the block master itself
+                        var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(entry.Id);
+                        var requiredItems = ToRequiredItems(blockMaster.RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
+                        return new WebBuildMenuEntry(target, blockMaster.Name, blockMaster.Category, blockMaster.SubCategory, requiredItems);
+                    }
+                    case PlacementTargetKind.TrainCar:
+                    {
+                        // カタログのGuidは車両マスタ由来のため必ず引ける
+                        // The catalog's guid always originates from the train car master, so this lookup always succeeds
+                        MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(entry.Id, out var trainCar);
+
+                        // 車両マスタにnameが無いため、アイコンビューの表示名（addressablePath末尾）を使う
+                        // Train car masters have no name, so use the icon view's display name (addressablePath tail)
+                        var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(entry.Id);
+                        var (category, subCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.trainCars);
+                        return new WebBuildMenuEntry(target, iconView.ItemName, category, subCategory, ToRequiredItems(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));
+                    }
+                    case PlacementTargetKind.ConnectTool:
+                        return CreateCostlessEntry(entry, target, BuildMenuSubCategoryElement.EntrySourceConst.connectTools);
+                    case PlacementTargetKind.BuildTool:
+                        return CreateCostlessEntry(entry, target, BuildMenuSubCategoryElement.EntrySourceConst.blueprintCopyTool);
+                    default:
+                        return CreateCostlessEntry(entry, target, BuildMenuSubCategoryElement.EntrySourceConst.savedBlueprints);
+                }
+            }
+
+            WebBuildMenuEntry CreateCostlessEntry(PlacementTargetEntry entry, IPlacementTarget target, string entrySource)
+            {
+                // 建設コストを持たない種別はentrySource定義のサブカテゴリへ入れるだけ
+                // Kinds without construction costs merely go to their entrySource-defined sub category
+                var (category, subCategory) = categoryMaster.GetPairByEntrySource(entrySource);
+                return new WebBuildMenuEntry(target, entry.DisplayName, category, subCategory, new List<WebBuildMenuEntry.RequiredItem>());
             }
 
             List<WebBuildMenuEntry.RequiredItem> ToRequiredItems(IEnumerable<(Guid itemGuid, int count)> requiredItems)

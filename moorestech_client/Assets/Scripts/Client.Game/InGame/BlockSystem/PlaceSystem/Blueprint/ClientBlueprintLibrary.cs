@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
+using Game.PlacementTarget;
 using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEngine;
@@ -22,7 +23,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
     ///     サーバーのBPライブラリのクライアント側キャッシュ
     ///     Client-side cache of the server blueprint library
     /// </summary>
-    public class ClientBlueprintLibrary
+    public class ClientBlueprintLibrary : IBlueprintCatalogSource
     {
         // キャッシュが最新全件に置き換わったら発火する（BuildMenuTopic の再配信トリガ）
         // Fires when the cache is replaced with a fresh full list (republish trigger for BuildMenuTopic)
@@ -32,6 +33,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
         private readonly List<BlueprintMessagePack> _blueprints = new();
 
         public IReadOnlyList<BlueprintMessagePack> Blueprints => _blueprints;
+
+        // 設置対象カタログへBPを供給する（キャッシュの現在値をGuidと表示名の組で渡す）
+        // Supplies blueprints to the placement target catalog as (guid, display name) pairs from the current cache
+        public IReadOnlyList<(Guid id, string name)> BlueprintEntries
+        {
+            get
+            {
+                var entries = new List<(Guid, string)>();
+                foreach (var blueprint in _blueprints) entries.Add((blueprint.BlueprintGuid, blueprint.Name));
+                return entries;
+            }
+        }
 
         public async UniTask Refresh(CancellationToken ct)
         {

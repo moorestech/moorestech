@@ -61,6 +61,7 @@ using Client.Skit.Skit;
 using Client.Skit.UI;
 using Core.Item.Interface;
 using Game.Context;
+using Game.PlacementTarget;
 using Game.PlayerRiding.Interface;
 using Game.Train.Unit;
 using Game.UnlockState;
@@ -197,7 +198,8 @@ namespace Client.Starter
             builder.Register<ElectricWireConnectSystem>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
-            builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
+            builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton).AsSelf().As<IBlueprintCatalogSource>();
+            builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
 

@@ -8,6 +8,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         // Guid of the selected connectTool; type, icon and materials are resolved from the master
         public readonly Guid ConnectToolGuid;
 
+        public Guid Id => ConnectToolGuid;
+
         public ConnectToolPlacementTarget(Guid connectToolGuid)
         {
             ConnectToolGuid = connectToolGuid;

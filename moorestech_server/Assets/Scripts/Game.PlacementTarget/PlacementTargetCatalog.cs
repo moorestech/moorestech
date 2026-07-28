@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Master;
 using Game.Block.Interface.Extension;
 
@@ -23,16 +24,18 @@ namespace Game.PlacementTarget
                 // マスタ由来のエントリを列挙し、末尾に現在のブループリントを足す
                 // Enumerate master-derived entries, then append current blueprints
                 var entries = new List<PlacementTargetEntry>();
-                foreach (var block in MasterHolder.BlockMaster.Blocks.Data)
-                {
-                    // WebBuildMenuEntryCatalog/BuildMenuEntryCatalogと同様、ベルトの坂はメニューに出さないため除外
-                    // Excluded like WebBuildMenuEntryCatalog/BuildMenuEntryCatalog: belt slopes never appear in the build menu
-                    if (BeltConveyorPlaceFamilyUtil.IsSlopeBlock(block.BlockGuid)) continue;
+
+                // ベルトの坂はメニューに出さないため除外し、sortPriority→名前の表示順で並べる
+                // Belt slopes never appear in the menu, so exclude them; order by sortPriority then name for display
+                var blocks = MasterHolder.BlockMaster.Blocks.Data
+                    .Where(block => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(block.BlockGuid))
+                    .OrderBy(block => block.SortPriority ?? 0)
+                    .ThenBy(block => block.Name);
+                foreach (var block in blocks)
                     entries.Add(new PlacementTargetEntry(block.BlockGuid, PlacementTargetKind.Block, block.Name));
-                }
                 foreach (var trainCar in MasterHolder.TrainUnitMaster.Train.TrainCars)
                     entries.Add(new PlacementTargetEntry(trainCar.TrainCarGuid, PlacementTargetKind.TrainCar, trainCar.Name));
-                foreach (var connectTool in MasterHolder.ConnectToolMaster.All)
+                foreach (var connectTool in MasterHolder.ConnectToolMaster.All.OrderBy(connectTool => connectTool.SortPriority))
                     entries.Add(new PlacementTargetEntry(connectTool.ConnectToolGuid, PlacementTargetKind.ConnectTool, connectTool.Name));
                 foreach (var buildTool in MasterHolder.BuildToolMaster.All)
                     entries.Add(new PlacementTargetEntry(buildTool.BuildToolGuid, PlacementTargetKind.BuildTool, buildTool.Name));

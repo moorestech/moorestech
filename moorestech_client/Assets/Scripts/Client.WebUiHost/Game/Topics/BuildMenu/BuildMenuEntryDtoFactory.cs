@@ -55,7 +55,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 BlockPlacementTarget => "block",
                 TrainCarPlacementTarget => "trainCar",
                 ConnectToolPlacementTarget => "connectTool",
-                BlueprintCopyToolPlacementTarget => "blueprintCopy",
+                BuildToolPlacementTarget => "blueprintCopy",
                 BlueprintPlacementTarget => "blueprint",
                 _ => target.GetType().Name,
             };

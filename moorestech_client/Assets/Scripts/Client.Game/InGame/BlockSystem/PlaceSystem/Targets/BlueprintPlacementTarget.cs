@@ -7,12 +7,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         // 識別はGuid、表示は名前（同名複数を区別するためGuidを一意キーとする）
         // Identity is the GUID; the name is display-only (a GUID uniquely distinguishes same-name entries)
         public readonly Guid BlueprintGuid;
-        public readonly string BlueprintName;
+        public readonly string DisplayName;
 
-        public BlueprintPlacementTarget(Guid blueprintGuid, string blueprintName)
+        public Guid Id => BlueprintGuid;
+
+        public BlueprintPlacementTarget(Guid blueprintGuid, string displayName)
         {
             BlueprintGuid = blueprintGuid;
-            BlueprintName = blueprintName;
+            DisplayName = displayName;
         }
 
         public bool Equals(IPlacementTarget other)

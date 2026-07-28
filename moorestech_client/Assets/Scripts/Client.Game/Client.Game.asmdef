@@ -64,7 +64,8 @@
         "Unity.Mathematics",
         "Unity.Splines",
         "Unity.InputSystem",
-        "Game.Blueprint"
+        "Game.Blueprint",
+        "Game.PlacementTarget"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
