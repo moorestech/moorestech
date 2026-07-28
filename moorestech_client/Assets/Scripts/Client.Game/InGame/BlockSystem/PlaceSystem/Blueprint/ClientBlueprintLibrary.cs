@@ -57,10 +57,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(BlueprintRequest.CreateDeleteRequest(blueprintGuid), ct);
             ApplyResponse(response);
 
-            // null応答（タイムアウト等）は通信失敗、Success=falseはサーバー側NotFoundとして区別する
-            // A null response (timeout etc.) is a communication failure; distinguish it from a server-side NotFound (Success=false)
+            // null応答（タイムアウト等）は通信失敗、FailureReasonでNotFoundとそれ以外の失敗を区別する
+            // A null response (timeout etc.) is a communication failure; use FailureReason to distinguish NotFound from other failures
             if (response == null) return BlueprintDeleteResult.RequestFailed;
-            return response.Success ? BlueprintDeleteResult.Success : BlueprintDeleteResult.NotFound;
+            if (response.Success) return BlueprintDeleteResult.Success;
+            return response.FailureReason == BlueprintFailureReason.NotFound
+                ? BlueprintDeleteResult.NotFound
+                : BlueprintDeleteResult.RequestFailed;
         }
 
         private void ApplyResponse(BlueprintResponse response)
