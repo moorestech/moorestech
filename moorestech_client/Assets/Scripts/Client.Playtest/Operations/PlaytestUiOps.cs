@@ -25,14 +25,6 @@ namespace Client.Playtest.Operations
         private const float AimGlideSeconds = 0.3f;
         private const float DragGlideSeconds = 0.5f;
 
-        // web版ビルドメニューのtestidは設置対象Guidで組まれる（揮発BlockIdは通信に出ない）
-        // The web build menu's testid is built from the placement target Guid; the volatile BlockId never goes on the wire
-        public static string BuildMenuBlockTestId(string blockName)
-        {
-            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId(blockName)).BlockGuid;
-            return $"build-menu-entry-block-{blockGuid}";
-        }
-
         public static UIStateEnum CurrentUiState()
         {
             return Object.FindFirstObjectByType<UIStateControl>().CurrentState;
@@ -70,7 +62,7 @@ namespace Client.Playtest.Operations
             // Under CEF, wait for the panel and select the entry by its stable BlockGuid-derived testid
             var useWebUi = CefScreenMapper.IsWebUiAvailable();
             var blockId = PlaytestBlockOps.ResolveBlockId(blockName);
-            var webUiTestid = BuildMenuBlockTestId(blockName);
+            var webUiTestid = PlaytestWebUiOps.BuildMenuBlockTestId(blockName);
             if (useWebUi)
             {
                 await PlaytestWebUiOps.WaitWebUiElement("build-menu-panel", 15f);

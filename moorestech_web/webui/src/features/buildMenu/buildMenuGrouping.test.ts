@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import type { BuildMenuCategory, BuildMenuEntryData } from "../../bridge/contract/payloadTypes";
 import { resolveSelectedCategory, searchSections, sectionsForCategory, visibleCategories } from "./buildMenuGrouping";
 
+// idはGuid形状という契約不変条件を保つため、labelではなく連番Guidを使う
+// id keeps the GUID-shaped contract invariant, so use a sequential GUID instead of the label
+let nextIdSuffix = 1;
 const entry = (label: string, category: string, subCategory: string): BuildMenuEntryData => ({
-  id: label, kind: "block", label, category, subCategory, requiredItems: [],
+  id: `aaaaaaaa-0000-4000-8000-${String(nextIdSuffix++).padStart(12, "0")}`, kind: "block", label, category, subCategory, requiredItems: [],
 });
 
 const categories: BuildMenuCategory[] = [

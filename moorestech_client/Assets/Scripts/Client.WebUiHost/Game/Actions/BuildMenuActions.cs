@@ -44,13 +44,15 @@ namespace Client.WebUiHost.Game.Actions
 
             // 現在のカタログ（未解放を除外済み）とIdで照合し、削除済みBP等へのstaleクリックを弾く
             // Match by id against the current catalog (locked entries already excluded), rejecting stale clicks such as deleted blueprints
+            // Idはカタログ内で一意のためFirstOrDefaultで足りる（複数一致はそもそも起こり得ない）
+            // Id is unique within the catalog, so FirstOrDefault suffices (multiple matches can never occur)
             var entries = WebBuildMenuEntryCatalog.CreateEntries(_unlockState, _blueprintLibrary);
-            var matched = entries.Where(e => e.Target.Id == targetId).ToList();
-            if (matched.Count == 0) return UniTask.FromResult(ActionResult.Fail("unknown_entry"));
+            var matched = entries.FirstOrDefault(e => e.Target.Id == targetId);
+            if (matched.Target == null) return UniTask.FromResult(ActionResult.Fail("unknown_entry"));
 
             // uGUIの消費キューへはターゲットとラベルのみ渡す（uGUI表示は使われない）
             // Feed only the target and label into the uGUI consume queue (its visual display is unused)
-            _buildMenuView.SetSelectedEntry(new BuildMenuEntry(matched[0].Target, null, matched[0].Label));
+            _buildMenuView.SetSelectedEntry(new BuildMenuEntry(matched.Target, null, matched.Label));
             return UniTask.FromResult(ActionResult.Success());
         }
     }

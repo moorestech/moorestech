@@ -72,7 +72,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                         // Only blocks carry their category on the block master itself
                         var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(entry.Id);
                         var requiredItems = ToRequiredItems(blockMaster.RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
-                        return new WebBuildMenuEntry(target, blockMaster.Name, blockMaster.Category, blockMaster.SubCategory, requiredItems);
+                        return new WebBuildMenuEntry(target, entry.Kind, blockMaster.Name, blockMaster.Category, blockMaster.SubCategory, requiredItems);
                     }
                     case PlacementTargetKind.TrainCar:
                     {
@@ -84,7 +84,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                         // Train car masters have no name, so use the icon view's display name (addressablePath tail)
                         var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(entry.Id);
                         var (category, subCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.trainCars);
-                        return new WebBuildMenuEntry(target, iconView.ItemName, category, subCategory, ToRequiredItems(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));
+                        return new WebBuildMenuEntry(target, entry.Kind, iconView.ItemName, category, subCategory, ToRequiredItems(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));
                     }
                     case PlacementTargetKind.ConnectTool:
                         return CreateCostlessEntry(entry, target, BuildMenuSubCategoryElement.EntrySourceConst.connectTools);
@@ -104,7 +104,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 // 建設コストを持たない種別はentrySource定義のサブカテゴリへ入れるだけ
                 // Kinds without construction costs merely go to their entrySource-defined sub category
                 var (category, subCategory) = categoryMaster.GetPairByEntrySource(entrySource);
-                return new WebBuildMenuEntry(target, entry.DisplayName, category, subCategory, new List<WebBuildMenuEntry.RequiredItem>());
+                return new WebBuildMenuEntry(target, entry.Kind, entry.DisplayName, category, subCategory, new List<WebBuildMenuEntry.RequiredItem>());
             }
 
             List<WebBuildMenuEntry.RequiredItem> ToRequiredItems(IEnumerable<(Guid itemGuid, int count)> requiredItems)

@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Core.Master;
+using Game.PlacementTarget;
 using Game.UnlockState;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
@@ -23,7 +25,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 dtos.Add(new BuildMenuEntryDto
                 {
                     Id = GetId(entry.Target),
-                    Kind = GetKind(entry.Target),
+                    Kind = GetKind(entry.Kind),
                     Label = entry.Label,
                     Category = entry.Category,
                     SubCategory = entry.SubCategory,
@@ -48,21 +50,23 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
         // 設置対象IDはGuid文字列1本。kindは表示・振る舞い用で識別子ではない
         // The id is a single GUID string; kind is for display/behavior, not identity
-        public static string GetId(IPlacementTarget target)
+        private static string GetId(IPlacementTarget target)
         {
             return target.Id.ToString();
         }
 
-        public static string GetKind(IPlacementTarget target)
+        // PlacementTargetCatalogが既に確定させたKind enumを網羅switchで文字列化する（型switchの二重分類・未知値文字列漏れを禁止）
+        // Stringify the Kind enum the PlacementTargetCatalog already determined via an exhaustive switch (no duplicate type-pattern classification, no unknown-value string leak)
+        private static string GetKind(PlacementTargetKind kind)
         {
-            return target switch
+            return kind switch
             {
-                BlockPlacementTarget => "block",
-                TrainCarPlacementTarget => "trainCar",
-                ConnectToolPlacementTarget => "connectTool",
-                BuildToolPlacementTarget => "buildTool",
-                BlueprintPlacementTarget => "blueprint",
-                _ => target.GetType().Name,
+                PlacementTargetKind.Block => "block",
+                PlacementTargetKind.TrainCar => "trainCar",
+                PlacementTargetKind.ConnectTool => "connectTool",
+                PlacementTargetKind.BuildTool => "buildTool",
+                PlacementTargetKind.Blueprint => "blueprint",
+                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
             };
         }
 
@@ -71,6 +75,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             switch (target)
             {
                 case BlockPlacementTarget block:
+                    // block-icons はblock inventoryトピックのBlockIconと共有するため揮発BlockIdのまま（Guid化はplan Aのスコープ外）
+                    // block-icons is shared with the block inventory topic's BlockIcon, so it stays volatile BlockId (GUID conversion is out of plan A's scope)
                     return $"{BlockIconEndpoint.PathPrefix}{block.BlockId.AsPrimitive()}{BlockIconEndpoint.PathSuffix}";
                 case TrainCarPlacementTarget trainCar:
                     return $"{TrainCarIconEndpoint.PathPrefix}{trainCar.TrainCarGuid}{TrainCarIconEndpoint.PathSuffix}";

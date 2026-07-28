@@ -1,6 +1,7 @@
 using System;
 using Client.Playtest.Input;
 using Client.Playtest.WebUi;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -15,6 +16,14 @@ namespace Client.Playtest.Operations
         private const float ActionTimeoutSeconds = 15f;
         private const float QueryTimeoutSeconds = 1f;
         private const float MouseGlideSeconds = 0.3f;
+
+        // web版ビルドメニューのtestidは設置対象Guidで組まれる（揮発BlockIdは通信に出ない）
+        // The web build menu's testid is built from the placement target Guid; the volatile BlockId never goes on the wire
+        public static string BuildMenuBlockTestId(string blockName)
+        {
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId(blockName)).BlockGuid;
+            return $"build-menu-entry-block-{blockGuid}";
+        }
 
         public static async UniTask ClickWebUi(string testid)
         {

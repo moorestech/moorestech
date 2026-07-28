@@ -106,7 +106,7 @@ namespace Client.Playtest
             _reporter.EndWait(waitEntry);
             await UniTask.Delay(TimeSpan.FromSeconds(PlaytestReporter.ActionIntervalSeconds), ignoreTimeScale: true);
         }
-        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickWebUi(PlaytestUiOps.BuildMenuBlockTestId(blockName));
+        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickWebUi(PlaytestWebUiOps.BuildMenuBlockTestId(blockName));
         public async UniTask CloseWebUiPanel() => await ClickWebUi("build-menu-close");
         // slotは0始まり（HotBarView.SelectIndexと同じ）。0→キー1、8→キー9
         // slot is zero-based (same as HotBarView.SelectIndex): 0 -> key "1", 8 -> key "9"
