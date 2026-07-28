@@ -93,19 +93,29 @@ namespace Client.Tests.UnitTest
         }
 
         [Test]
-        public void SkipsEntriesWhosePrototypeAssetIsUnresolved()
+        public void ThrowsWhenAPrototypeAssetIsUnresolved()
         {
-            // アドレス未解決のプロトタイプはprototypes/mapsのどちらにも現れない。索引の対応が崩れないことも兼ねる
-            // An unresolved prototype appears in neither prototypes nor maps, keeping the two lists index-aligned
+            // 黙って読み飛ばすとアドレス整備漏れが「草が1本も生えない」形でしか現れず、原因に辿り着けない
+            // Silently skipping would surface a missing address only as "no grass at all", leaving no trail to the cause
             var unresolvedEntry = DetailTestConfigBuilder.CreateEntry(1f, 16);
             unresolvedEntry.prototypeConfig.SetPrototypeTexture(null);
-            var resolvedEntry = DetailTestConfigBuilder.CreateEntry(1f, 16);
 
-            var (prototypes, maps) = GenerateBoth(DetailTestConfigBuilder.CreateFullMask(), DetailTestConfigBuilder.CreateFlatSlopes(0f), unresolvedEntry, resolvedEntry);
+            Assert.Throws<System.InvalidOperationException>(
+                () => GenerateBoth(DetailTestConfigBuilder.CreateFullMask(), DetailTestConfigBuilder.CreateFlatSlopes(0f), unresolvedEntry));
+        }
 
-            Assert.That(prototypes.Count, Is.EqualTo(1));
-            Assert.That(maps.Count, Is.EqualTo(1));
+        [Test]
+        public void KeepsPrototypesAndMapsIndexAligned()
+        {
+            var firstEntry = DetailTestConfigBuilder.CreateEntry(1f, 16);
+            var secondEntry = DetailTestConfigBuilder.CreateEntry(0.5f, 16);
+
+            var (prototypes, maps) = GenerateBoth(DetailTestConfigBuilder.CreateFullMask(), DetailTestConfigBuilder.CreateFlatSlopes(0f), firstEntry, secondEntry);
+
+            Assert.That(prototypes.Count, Is.EqualTo(2));
+            Assert.That(maps.Count, Is.EqualTo(2));
             Assert.That(maps[0][0, 0], Is.EqualTo(16));
+            Assert.That(maps[1][0, 0], Is.EqualTo(8));
         }
 
         private static List<int[,]> Generate(bool[,] mask, float[,] slopes, params DetailEntry[] entries)

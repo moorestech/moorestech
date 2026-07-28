@@ -46,7 +46,9 @@ namespace Client.Game.InGame.Environment.Terrain.Visual
 
             foreach (var entry in detailConfig.entries)
             {
-                if (!entry.prototypeConfig.IsValid) continue;
+                // 未解決のエントリを読み飛ばすとアドレス整備漏れが「草が生えない」形でしか現れない。ここで落とす
+                // Skipping an unresolved entry would surface a missing address only as absent grass, so it fails here instead
+                entry.prototypeConfig.ThrowIfUnresolved();
 
                 prototypes.Add(entry.prototypeConfig.ToDetailPrototype());
                 maps.Add(BuildDensityMap(entry, context, maps));

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
@@ -39,11 +40,18 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
         public bool useInstancing;
         public bool useDensityScaling;
 
-        // メッシュ・テクスチャのどちらかが解決済みでなければDetailとして成立しない
-        // A detail is only valid once either its mesh or its texture has been resolved
-        public bool IsValid =>
-            (usePrototypeMesh && prototypeMesh != null) ||
-            (!usePrototypeMesh && prototypeTexture != null);
+        // どちらのアセットが必須かはusePrototypeMeshが決める。未解決を黙って捨てると「草が1本も生えない」形でしか整備漏れに気づけない
+        // usePrototypeMesh decides which asset is required; silently dropping an unresolved one would surface the gap only as "no grass at all"
+        public void ThrowIfUnresolved()
+        {
+            if (usePrototypeMesh && prototypeMesh == null)
+                throw new InvalidOperationException(
+                    $"Detail prototype mesh '{prototypeMeshAddressablePath}' was not resolved before detail generation.");
+
+            if (!usePrototypeMesh && prototypeTexture == null)
+                throw new InvalidOperationException(
+                    $"Detail prototype texture '{prototypeTextureAddressablePath}' was not resolved before detail generation.");
+        }
 
         public void SetPrototypeMesh(GameObject resolvedPrototypeMesh)
         {

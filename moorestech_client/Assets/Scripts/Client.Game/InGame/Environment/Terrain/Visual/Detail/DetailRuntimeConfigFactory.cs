@@ -49,6 +49,16 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
 
         private static DetailPrototypeConfig ToPrototypeConfig(Mooresmaster.Model.BiomeDetailConfigModule.PrototypeConfig generated)
         {
+            // どちらのアドレスが必須かはusePrototypeMeshが決める。必須側の空文字は「意図的に未設定」ではなく整備漏れ
+            // usePrototypeMesh decides which address is required; an empty required address is a data gap, not a deliberate blank
+            if (generated.UsePrototypeMesh && string.IsNullOrEmpty(generated.PrototypeMeshAddressablePath))
+                throw new InvalidOperationException(
+                    "[DetailRuntimeConfigFactory] A detail prototype has usePrototypeMesh=true but an empty prototypeMeshAddressablePath.");
+
+            if (!generated.UsePrototypeMesh && string.IsNullOrEmpty(generated.PrototypeTextureAddressablePath))
+                throw new InvalidOperationException(
+                    "[DetailRuntimeConfigFactory] A detail prototype has usePrototypeMesh=false but an empty prototypeTextureAddressablePath.");
+
             return new DetailPrototypeConfig
             {
                 prototypeMeshAddressablePath = generated.PrototypeMeshAddressablePath,
