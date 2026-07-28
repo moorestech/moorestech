@@ -20,6 +20,7 @@ using UnityEngine;
 using static Tests.Util.ElectricNetworkReflectionTestUtil;
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+using Tests.Util;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -52,7 +53,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var posB = new Vector3Int(3, 0, 0);
             var (connectorA, connectorB) = PlaceTwoPoles(posA, posB);
             var inventory = GiveWire(5);
-            var networkDatastore = _serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            var networkDatastore = _serviceProvider.GetService<IElectricWireNetworkLookup>();
             // トポロジ反映のため1tick進める
             // Advance one tick for the topology flush
             GameUpdater.UpdateOneTick();
