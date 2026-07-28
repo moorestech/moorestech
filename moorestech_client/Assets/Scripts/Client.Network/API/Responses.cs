@@ -1,26 +1,51 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Context;
 using Game.Train.Unit;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.PlayerInventoryResponseProtocol;
 
 namespace Client.Network.API
 {
     public class PlayerInventoryResponse
     {
-        public PlayerInventoryResponse(List<IItemStack> mainInventory, IItemStack grabItem)
+        public PlayerInventoryResponse(List<IItemStack> mainInventory, IItemStack grabItem, List<IItemStack> equipment, int selectedEquipmentIndex)
         {
             MainInventory = mainInventory;
             GrabItem = grabItem;
+            Equipment = equipment;
+            SelectedEquipmentIndex = selectedEquipmentIndex;
         }
-        
+
+        /// <summary>
+        ///     応答messagepackからの変換はDTO側に置く（前例は同ファイルの <see cref="BlockInfo" />）。
+        ///     装備は専用の取得プロトコルを持たずこの応答に同梱されるため、ここで必ず読み出す。
+        ///     Conversion from the response messagepack lives in the DTO, following the BlockInfo precedent in this file.
+        ///     Equipment has no dedicated fetch protocol and rides on this response, so it must be read here.
+        /// </summary>
+        public PlayerInventoryResponse(PlayerInventoryResponseProtocolMessagePack response)
+        {
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            MainInventory = response.Main.Select(item => itemStackFactory.Create(item.Id, item.Count)).ToList();
+            GrabItem = itemStackFactory.Create(response.Grab.Id, response.Grab.Count);
+            Equipment = response.Equipment.Select(item => itemStackFactory.Create(item.Id, item.Count)).ToList();
+            SelectedEquipmentIndex = response.SelectedEquipmentIndex;
+        }
+
         public List<IItemStack> MainInventory { get; }
         public IItemStack GrabItem { get; }
+
+        // 装備スロットの中身と、選択中スロット（-1は素手）
+        // Equipment slot contents and the selected slot (-1 means bare hands)
+        public List<IItemStack> Equipment { get; }
+        public int SelectedEquipmentIndex { get; }
     }
     
     public class WorldDataResponse

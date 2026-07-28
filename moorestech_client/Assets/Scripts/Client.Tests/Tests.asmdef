@@ -30,6 +30,8 @@
         "Game.Train",
         "Core.Update",
         "Core.Inventory",
+        "Server.Event",
+        "Game.PlayerInventory.Interface",
         "Client.WebUiHost",
         "Client.Skit",
         "Game.UnlockState",

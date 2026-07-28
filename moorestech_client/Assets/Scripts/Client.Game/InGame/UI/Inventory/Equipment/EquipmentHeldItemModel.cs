@@ -2,39 +2,62 @@ using System;
 using System.Threading;
 using Client.Common.Asset;
 using Client.Game.InGame.Player;
-using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using Game.PlayerInventory.Interface;
+using UniRx;
 using UnityEngine;
+using VContainer.Unity;
 
-namespace Client.Game.InGame.UI.Inventory
+namespace Client.Game.InGame.UI.Inventory.Equipment
 {
     /// <summary>
-    /// ホットバー選択に応じて手持ち3Dモデルをロード/破棄する
-    /// Loads and disposes the held 3D model according to the hotbar selection
+    ///     選択中の装備に応じて手持ち3Dモデルをロード/破棄する
+    ///     Loads and disposes the held 3D model according to the selected equipment
     /// </summary>
-    public class HotBarHeldItemModel
+    public class EquipmentHeldItemModel : IInitializable, IDisposable
     {
-        private readonly ILocalPlayerInventory _localPlayerInventory;
+        private readonly LocalPlayerEquipment _localPlayerEquipment;
 
         private GameObject _currentGrabItem;
         private CancellationTokenSource _loadCancellationTokenSource;
         private LoadedAsset<GameObject> _currentLoadedAsset;
+        private IDisposable _changedSubscription;
+        private ItemId _currentItemId = ItemMaster.EmptyItemId;
 
-        public HotBarHeldItemModel(ILocalPlayerInventory localPlayerInventory)
+        public EquipmentHeldItemModel(LocalPlayerEquipment localPlayerEquipment)
         {
-            _localPlayerInventory = localPlayerInventory;
+            _localPlayerEquipment = localPlayerEquipment;
         }
 
-        public async UniTaskVoid UpdateAsync(int selectIndex)
+        public void Initialize()
+        {
+            // 購読前に適用済みの初期データにも追従するため、購読直後に一度反映する
+            // Reflect once right after subscribing so initial data applied before this still gets followed
+            _changedSubscription = _localPlayerEquipment.OnChanged.Subscribe(_ => ApplySelectedItem());
+            ApplySelectedItem();
+        }
+
+        private void ApplySelectedItem()
+        {
+            // スロット更新でも変更通知は飛ぶため、手持ちアイテムが実際に変わった時だけ再ロードする
+            // Slot updates raise the notification too, so reload only when the held item actually changed
+            var itemId = _localPlayerEquipment.SelectedItem.Id;
+            if (itemId == _currentItemId) return;
+
+            _currentItemId = itemId;
+            UpdateAsync(itemId).Forget();
+        }
+
+        private async UniTaskVoid UpdateAsync(ItemId itemId)
         {
             // 既存のロード処理をキャンセル
+            // Cancel the in-flight load
             _loadCancellationTokenSource?.Cancel();
             _loadCancellationTokenSource?.Dispose();
             _loadCancellationTokenSource = new CancellationTokenSource();
 
             // 既存のアイテムをクリーンアップ
+            // Clean up the existing item
             if (_currentGrabItem != null)
             {
                 UnityEngine.Object.Destroy(_currentGrabItem.gameObject);
@@ -42,13 +65,14 @@ namespace Client.Game.InGame.UI.Inventory
             }
 
             // Addressableリソースを解放
+            // Release the Addressable resource
             _currentLoadedAsset?.Dispose();
             _currentLoadedAsset = null;
 
-            var itemId = _localPlayerInventory[_localPlayerInventory.GetHotBarInventorySlot(selectIndex)].Id;
-
             if (itemId == ItemMaster.EmptyItemId) return;
 
+            // Addressableロードは外部境界のため、失敗をここで隔離する
+            // The Addressable load is an external boundary, so its failure is isolated here
             try
             {
                 var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
@@ -80,14 +104,18 @@ namespace Client.Game.InGame.UI.Inventory
 
         public void Dispose()
         {
-            // キャンセルトークンソースをクリーンアップ
+            // 購読とキャンセルトークンソースをクリーンアップ
+            // Clean up the subscription and the cancellation token source
+            _changedSubscription?.Dispose();
             _loadCancellationTokenSource?.Cancel();
             _loadCancellationTokenSource?.Dispose();
 
             // Addressableリソースを解放
+            // Release the Addressable resource
             _currentLoadedAsset?.Dispose();
 
             // ゲームオブジェクトを破棄
+            // Destroy the game object
             if (_currentGrabItem != null)
             {
                 UnityEngine.Object.Destroy(_currentGrabItem);

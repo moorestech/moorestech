@@ -72,6 +72,16 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
+        /// <summary>
+        /// 選択中の装備スロットをサーバーへ通知する（結果は装備更新イベントで返る）
+        /// Notify the server of the selected equipment slot; the result comes back through the equipment update event
+        /// </summary>
+        public void SetSelectedEquipment(int selectedIndex)
+        {
+            var request = EquipmentProtocol.EquipmentProtocolMessagePack.CreateSetSelectedIndexRequest(_playerId, selectedIndex);
+            _packetSender.Send(request);
+        }
+
         public void SendCommand(string command)
         {
             var request = new SendCommandProtocol.SendCommandProtocolMessagePack(command);
