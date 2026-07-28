@@ -17,6 +17,7 @@
         "Game.Entity",
         "Game.Entity.Interface",
         "Game.Paths",
+        "Game.MapGeneration",
         "Game.PlayerInventory",
         "Game.PlayerInventory.Interface",
         "Game.SaveLoad",
