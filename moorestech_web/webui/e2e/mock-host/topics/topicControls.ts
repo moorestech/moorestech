@@ -20,13 +20,20 @@ export function serveDictionary(url: string, response: ServerResponse): void {
 const control = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]) => ({ topic, data });
 const controls = {
   placement: () => control(Topics.placementMode, { selectedName: "Assembler", height: 3, unavailableReason: "" }),
+  placementUnavailable: () => control(Topics.placementMode, { selectedName: "Assembler", height: 3, unavailableReason: "Blocked by terrain" }),
+  placementEmpty: () => control(Topics.placementMode, { selectedName: "", height: 0, unavailableReason: "" }),
   delete: () => control(Topics.deleteMode, { unavailableReason: "Protected area" }),
+  deleteEmpty: () => control(Topics.deleteMode, { unavailableReason: "" }),
   crosshairHidden: () => control(Topics.crosshair, { visible: false }),
   crosshairVisible: () => control(Topics.crosshair, { visible: true }),
   uiHidden: () => control(Topics.uiVisibility, { visible: false }),
   uiVisible: () => control(Topics.uiVisibility, { visible: true }),
-  mining: (params: URLSearchParams) => control(Topics.miningHud, { visible: true, targetName: params.get("text") ?? "Iron Ore", mining: true, progress: 0.65 }),
-  miningHidden: () => control(Topics.miningHud, { visible: false, targetName: "", mining: false, progress: 0 }),
+  progressLabeled: () => control(Topics.progress, { visible: true, progress: 0.4, label: "Crafting" }),
+  mining: (params: URLSearchParams) => control(Topics.progress, {
+    visible: true,
+    progress: Number(params.get("progress") ?? "0.65"),
+  }),
+  miningHidden: () => control(Topics.progress, { visible: false, progress: 0 }),
   tooltip: () => control(Topics.tooltip, { visible: true, textKey: "TOOLTIP_WORLD", fontSize: 18 }),
   tooltipHidden: () => control(Topics.tooltip, { visible: false, textKey: "", fontSize: 14 }),
   pauseConnected: () => control(Topics.pauseMenu, { disconnected: false }),
@@ -34,10 +41,26 @@ const controls = {
   japanese: () => control(Topics.localization, { locale: "japanese" }),
   english: () => control(Topics.localization, { locale: "english" }),
   challengeActive: () => control(Topics.challengeCurrent, clone(fx.challengeCurrent)),
+  challengeJapanese: () => control(Topics.challengeCurrent, clone(fx.challengeJapanese)),
+  challengeMultiple: () => control(Topics.challengeCurrent, clone(fx.challengeMultiple)),
+  challengeLong: () => control(Topics.challengeCurrent, clone(fx.challengeLong)),
+  challengeMultipleLong: () => control(Topics.challengeCurrent, clone(fx.challengeMultipleLong)),
   challengeCompleted: () => control(Topics.challengeCurrent, { challenges: [], completedChallengeGuid: "ch-2" }),
   notificationAchievement: () => control(Topics.notification, { seq: 1, category: "achievement", messageId: "achievement.researchCompleted", messageParams: ["原始研究1"], itemId: 1 }),
   notificationItemUnlocked: () => control(Topics.notification, { seq: 2, category: "achievement", messageId: "achievement.unlockedItem", messageParams: [], itemId: 2 }),
   notificationDenied: () => control(Topics.notification, { seq: 3, category: "operationDenied", messageId: "denied.researchNotCompletable", messageParams: [], itemId: null }),
+  tutorialOutline: () => control(Topics.tutorialPresentation, {
+    tutorialSessionId: "tutorial-session-1", revision: 1, challengeId: "tutorial-challenge-1",
+    highlights: [{
+      highlightId: "tutorial-highlight-1",
+      anchorId: "game.crosshair",
+      kind: "outline" as const,
+      message: "", paddingPx: 8, blocksPointerInput: false,
+    }],
+  }),
+  tutorialEmpty: () => control(Topics.tutorialPresentation, {
+    tutorialSessionId: "", revision: 0, challengeId: "", highlights: [],
+  }),
 };
 export type TopicScenario = keyof typeof controls;
 

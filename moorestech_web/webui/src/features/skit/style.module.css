@@ -1,76 +1,88 @@
-.backgroundBox,
-.blockingBox {
-  position: fixed;
-  z-index: var(--z-skit, 500);
-  padding: 16px 20px;
-  color: white;
-  background: rgb(13 18 28 / 92%);
-  border: 1px solid rgb(255 255 255 / 28%);
-  border-radius: 10px;
-}
-
-.backgroundBox {
-  right: 36px;
-  bottom: 116px;
-  width: min(520px, calc(100vw - 72px));
+/* スキットUIはstage内の絶対配置レイヤーに乗せる。入力を受けるのは会話窓・選択肢・ツールだけ */
+/* The skit UI rides an absolutely positioned layer inside the stage; only the window, choices, and tools take input */
+.root {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-skit);
   pointer-events: none;
 }
 
-.blockingBox {
-  right: 8vw;
-  bottom: 7vh;
-  left: 8vw;
-  min-height: 150px;
+/* 会話窓の中身。上端フェード帯に文字が載らないよう安全余白を足した上下余白を取る */
+/* Window content; its vertical padding adds a safe area so text never sits on the top fade band */
+.window {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  padding-top: calc(var(--skit-window-top-fade) + var(--skit-window-edge-safe-area));
+  padding-bottom: var(--skit-window-edge-safe-area);
   cursor: pointer;
+  pointer-events: auto;
+}
+
+/* 話者名と本文は同じ高コントラスト色。階層はサイズ差だけで作る（合成boldは禁止） */
+/* Speaker and body share the high-contrast color; hierarchy comes from size alone (synthetic bold is forbidden) */
+.speaker,
+.body {
+  padding-right: var(--skit-rule-inset);
+  padding-left: var(--skit-window-content-inset);
+  color: var(--text-high-contrast);
 }
 
 .speaker {
-  margin-bottom: 6px;
-  color: #ffdd88;
-  font-weight: 700;
+  font-size: var(--skit-speaker-font-size);
+  line-height: 1.2;
 }
 
 .body {
-  min-height: 1.5em;
+  font-size: var(--skit-body-font-size);
+  line-height: 1.5;
   white-space: pre-wrap;
 }
 
-.choices,
-.controls {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
+/* 区切りは共通FadeRule。専用CSSを持たず左右インセットで幅だけ絞る */
+/* The divider is the shared FadeRule; it has no dedicated CSS and is only narrowed by its insets */
+.rule {
+  padding: 0 var(--skit-rule-inset);
+  margin: var(--skit-rule-margin-top) 0 var(--skit-rule-margin-bottom);
 }
 
-.choices {
-  flex-direction: column;
+/* 送り待ちマーカーは本文の右下。フローを食わないよう絶対配置にする */
+/* The advance marker sits at the body's bottom-right, positioned absolutely so it never eats body space */
+.advanceMarker {
+  position: absolute;
+  right: var(--skit-advance-marker-right);
+  bottom: var(--skit-window-edge-safe-area);
+  width: var(--skit-advance-marker-size);
+  height: var(--skit-advance-marker-size);
+  fill: none;
+  stroke: var(--select-cyan);
+  stroke-width: var(--skit-advance-marker-stroke-width);
+  stroke-linecap: square;
 }
 
-.choices button,
-.controls button,
-.restore {
-  padding: 8px 14px;
-  color: white;
-  background: rgb(40 52 72 / 95%);
-  border: 1px solid rgb(255 255 255 / 32%);
-  border-radius: 6px;
+/* 背景スキットは面も枠も持たない画面下部中央の1行。入力は必ず素通しさせる */
+/* The background skit is a faceless centered line near the screen bottom and must always pass input through */
+.backgroundLine {
+  position: absolute;
+  right: 0;
+  bottom: var(--skit-background-bottom);
+  left: 0;
+  overflow: hidden;
+  color: var(--text-high-contrast);
+  font-size: var(--skit-background-font-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  pointer-events: none;
 }
 
-.controls {
-  justify-content: flex-end;
-}
-
-.restore {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: var(--z-skit, 500);
-}
-
+/* 暗転だけはstage外の全画面。会話窓より上に敷き、入力は捕まえない */
+/* The blackout alone spans the full screen outside the stage, above the window and never capturing input */
 .transition {
   position: fixed;
   inset: 0;
-  z-index: calc(var(--z-skit, 500) - 1);
-  background: black;
+  z-index: var(--z-skit-transition);
+  background: var(--skit-transition-face);
   pointer-events: none;
 }

@@ -1,0 +1,22 @@
+:root {
+  /* スロット枠の既定(持ち物基準)。正本のスロット間ギャップ実測(パネル縁でなく格子中間で断面採取)は
+     中間トーン2px+明灰2pxの2層のみ(暗リングは存在しない・パネル縁で見えた濃色帯は別要素)。カタログ/
+     ホットバーは各自で上書きする */
+  /* Default slot bevel (inventory baseline). The reference's true slot-to-slot gap cross-section (sampled
+     mid-grid, not at the panel edge) is only 2 layers — mid-tone 2px + light-gray 2px, no dark ring; the
+     darker band seen at the panel's own edge is a separate element. Catalog/hotbar override locally */
+  /* iter6: 旧値(0.15/0.22px)はサブピクセルで実質不可視だった。正本断面(y800)は中間2px+明灰2pxが
+     screenshot-pxで実測できる太さのため、CSSpx換算(÷2.5547)へ引き上げて可視な2層リングにする */
+  /* iter6: The old values (0.15/0.22px) were sub-pixel and effectively invisible. The reference cross-section
+     (y800) shows a mid 2px + light-gray 2px ring at a measurable screenshot-px width, so both are scaled up
+     (÷2.5547) into CSS px to render as a genuinely visible 2-layer ring */
+  --face-inset: 0px;
+  --bevel-1: 0.782875px;
+  --bevel-2: 1.565749px;
+  --bevel-3: 1.565749px;
+  /* リング色もuGUIスロット原色族(#323443/#7d7f85)の同輝度寒色へ揃える */
+  /* Ring colors also follow the uGUI slot family (#323443/#7d7f85) at the same luminance */
+  --bevel-c1: rgb(56 58 72);
+  --bevel-c2: rgb(104 106 120);
+  --bevel-c3: rgb(104 106 120);
+}

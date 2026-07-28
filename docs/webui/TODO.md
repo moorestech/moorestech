@@ -66,7 +66,7 @@
 - [x] 設置モード HUD（選択ブロック・高さ・キー表示。3D プレビューは Unity 残置）（ui.placement_mode。2026-07-18）
 - [x] 削除モード HUD + 不可理由ツールチップ（ui.delete_mode。不可理由は既存実装が意味的理由を持たないため契約のみ用意し現状空文字。2026-07-18）
 - [x] 給電範囲オーバーレイの表示連携（3D は Unity 残置）（placement_mode topicに統合。2026-07-18）
-- [x] 直接採掘 HUD（フォーカス・進捗）（ui.mining_hud・100msサンプリング。2026-07-18）
+- [x] 直接採掘 HUD（進捗はui.progressへ統合し対象名表示を撤去。2026-07-27）
 - [x] ツールチップ基盤（カーソル追従。3D オブジェクト由来の表示も key を Topic 連携で吸収 = WORLD-1 の表示側）（shared/tooltip + ui.tooltip。2026-07-18）
 - [x] コンテキストメニュー / キー操作ヒント / クロスヘア / 全 UI 一括非表示（Ctrl+U）/ カーソル追従オーバーレイ（棚卸しのうえ処遇を記録）（ui.context_menu(ID照合Action)/ui.key_hints/ui.crosshair/ui.visibility。UICursorFollowControlは個別移植不要と判定 — grab/ContextMenuはWeb側で吸収済み・uGUIフォールバック用に残置。2026-07-18）
 

@@ -1,6 +1,7 @@
-import { Progress, Text } from "@mantine/core";
+import { Text } from "@mantine/core";
 import { useTopic, Topics } from "@/bridge";
-import { clamp01 } from "@/shared/clamp01";
+import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
+import { GaugeBar } from "@/shared/ui";
 import styles from "./style.module.css";
 
 // uGUI ProgressBarView を模した表示専用オーバーレイ。visible で Show/Hide を切り替える。
@@ -12,16 +13,16 @@ export function ProgressBar() {
   // Render nothing before the first snapshot (null) or while hidden.
   if (!data || !data.visible) return null;
 
-  // 画面下部中央に固定し、任意ラベル・トラック・割合フィルを重ねる。
-  // Pin to the bottom-center, layering the optional label, track, and proportional fill.
+  // 単一ゲージにラベルと進捗表示
+  // Render the label and progress in one gauge
   return (
-    <div data-testid="progress-bar" className={styles.wrapper}>
-      {data.label != null && (
-        <Text size="sm" c="dimmed" mb={4}>{data.label}</Text>
-      )}
-      <Progress.Root size="md" transitionDuration={0}>
-        <Progress.Section data-testid="progress-fill" value={clamp01(data.progress) * 100} color="green" />
-      </Progress.Root>
+    <div
+      data-testid="progress-bar"
+      className={styles.wrapper}
+      {...tutorialAnchor(TutorialAnchorIds.miningHud)}
+    >
+      {data.label != null && <Text className={styles.label}>{data.label}</Text>}
+      <GaugeBar value={data.progress} testId="progress-gauge" />
     </div>
   );
 }

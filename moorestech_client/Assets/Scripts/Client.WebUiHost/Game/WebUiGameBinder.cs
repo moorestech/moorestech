@@ -15,7 +15,6 @@ using Game.UnlockState;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.UI.Crosshair;
-using Client.Game.InGame.Mining;
 using Client.Game.InGame.UI.Tooltip;
 using VContainer;
 using Client.Network.API;
@@ -109,10 +108,6 @@ namespace Client.WebUiHost.Game
             // 通知トピックを登録
             // Register the notification topic
             hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub));
-
-            // 直接採掘HUDを固定間隔サンプリングTopicへ接続する
-            // Connect direct-mining HUD state to a fixed-interval sampled topic
-            hub.RegisterTopic(MiningHudTopic.TopicName, new MiningHudTopic(hub, resolver.Resolve<MapObjectMiningController>()));
 
             // uGUI/3D由来のツールチップを共通Web基盤へ接続する
             // Connect uGUI/3D tooltip sources to the shared web tooltip foundation

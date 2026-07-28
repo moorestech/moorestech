@@ -32,3 +32,4 @@ description: |
 
 - 詳細な PR 作成フロー（情報収集・差分分析・ブランチ/コミット作成・`gh pr create`）は `agent.md` 側に定義済み。本体で重複実装しない
 - 実際のマージ（`gh pr merge` 等）は行わない。PR作成と base 設定までが範囲
+- `tree1` / `tree2` のような `tree`+数字のブランチは git worktree 運用用の使い回しブランチ。PR の head にはせず、別ブランチを切って PR を作る（詳細は `agent.md` ステップ3）

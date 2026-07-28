@@ -13,11 +13,10 @@ import { ChallengePanel, CurrentChallengeHud } from "@/features/challenge";
 import { PauseMenuPanel } from "@/features/pauseMenu";
 import { DeleteModeHud, PlacementModeHud } from "@/features/modeHud";
 import { Crosshair } from "@/features/commonHud";
-import { MiningHud } from "@/features/miningHud";
 import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
 import { useI18n } from "@/shared/i18n";
-import { SkitPresentation } from "@/features/skit";
+import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenForUiState } from "@/shared/uiState";
@@ -70,6 +69,11 @@ export default function App() {
   // ビルドメニュー等の独立メニューも背景ディムは共有するが、インベントリは重畳しない
   // Standalone menus (build menu, etc.) share the dim backdrop but do not overlay the inventory
   const modalScreen = inventoryScreen || screen === "researchTree" || screen === "buildMenu" || screen === "challengeList" || screen === "pauseMenu" || screen === "trainPause";
+  // 常駐チャレンジHUDはゲームプレイを専有しない画面だけへ出す
+  // Show the resident challenge HUD only on screens that do not own gameplay interaction
+  const challengeHudVisible = !modalScreen
+    && uiState !== UiStateNames.placeBlock
+    && uiState !== UiStateNames.deleteBar;
 
   // Ctrl+U中はPortalを含む全Web UIをunmountする
   // Unmount the entire Web UI, including portals, while Ctrl+U is active
@@ -98,9 +102,11 @@ export default function App() {
         {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
         {uiState === UiStateNames.deleteBar && <DeleteModeHud />}
         <Crosshair />
-        <MiningHud />
         <CursorTooltip />
         <BlockInventoryPanel />
+        {/* スキット会話窓は1280基準の固定長で組むためstage内に置く（暗転だけPortalへ分離） */}
+        {/* The skit window lives in the stage so its fixed lengths stay on the 1280 baseline (only the blackout splits into the portal) */}
+        <SkitPresentation />
         <ModalHost />
         <ProgressBar />
         <BlockInventoryKeyHandler />
@@ -110,8 +116,10 @@ export default function App() {
       <Portal>
         <ToastHost />
         <NotificationHost />
-        <CurrentChallengeHud />
-        <SkitPresentation />
+        {/* モーダル画面と操作モードでは各画面へ情報を集約し、常駐HUDとの衝突を避ける */}
+        {/* Modal screens and interaction modes own their information without colliding with the resident HUD */}
+        {challengeHudVisible && <CurrentChallengeHud />}
+        <SkitTransition />
         <TutorialOverlay />
         <WorldPinOverlay />
       </Portal>

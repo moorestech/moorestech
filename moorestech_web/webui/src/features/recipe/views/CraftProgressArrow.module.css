@@ -1,38 +1,40 @@
-/* 素材→結果を示す白い矢印グリフ。長押し進捗は下の細いバーで控えめに示す。正本は121x78screenshot-px相当と大きい */
-/* White arrow glyph from materials to result; hold progress shows subtly in the thin bar below. The reference arrow is large (~121x78 screenshot px) */
-/* グリッド行のcenter揃えだと矢印の上端が正本より少し下がるため、上へ寄せる */
-/* Row-level center alignment leaves the arrow's top edge slightly low versus the reference, so nudge it upward */
+/* 素材→結果の矢印。矢印グリフ自体が長押し進捗のゲージで、下に別バーは敷かない（webui-design §8.12） */
+/* Arrow from materials to result; the glyph itself is the hold-progress gauge, with no separate bar beneath (webui-design §8.12) */
+/* 旧構成は矢印+下バーの2段で、行のcenter揃えとの差分をmargin-topで詰めていた。バー廃止で列が6px縮んだ分、
+   同じ見た目位置を保つため上寄せ量を倍にした（中央揃えの item は margin-top の半分だけ動くため）。
+   値は --craft-arrow-offset-y にあり、行の揃え方・矢印高・旧バーの6px footprint に依存する */
+/* The old layout stacked arrow + bar and used margin-top to offset row centering. Dropping the bar shrinks the
+   column by 6px, so the nudge doubled to hold the same visual position (a centered item moves half its margin-top).
+   The value lives in --craft-arrow-offset-y and depends on the row alignment, arrow height, and the old bar's 6px */
 .craftArrow {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 53.622px;
-  margin-top: -6.218px;
+  width: var(--craft-arrow-width);
+  margin-top: var(--craft-arrow-offset-y);
 }
-/* D11: 正本は太い単色でなくシアンの細い輪郭+弱い影。fillは白のまま保ちbbox検出(min>190)を崩さず、
-   輪郭だけ4方向1pxのシアンへ差し替える */
-/* D11: the reference reads as a thin cyan outline with a soft shadow rather than a thick flat fill; keep the
-   white fill so the bbox detector (min>190) still matches, swapping only the outline to a 4-direction 1px cyan */
+/* 正本の柔らかな影を再現する（parity diff-inventory 項目32） */
+/* Reproduce the reference's soft shadow (parity diff-inventory item 32) */
 .craftArrowGlyph {
   display: block;
-  width: 53.622px;
-  height: 30.53px;
+  width: var(--craft-arrow-width);
+  height: var(--craft-arrow-height);
   overflow: visible;
-  fill: var(--color-content-primary);
-  stroke: rgb(79 224 244 / 70%);
-  stroke-width: 2px;
   filter: drop-shadow(0 1px 1px rgb(0 0 0 / 45%));
 }
+/* 溝はGaugeBarと同じ--gauge-track。空の器であることが他のゲージと同じトーンで読める */
+/* The track reuses GaugeBar's --gauge-track so an empty vessel reads in the same tone as every other gauge */
 .craftArrowTrack {
-  width: 1.9rem;
-  height: 3px;
-  margin-top: 3px;
-  border-radius: 2px;
-  background: rgb(255 255 255 / 14%);
-  overflow: hidden;
+  fill: var(--gauge-track);
 }
+/* 充填だけは--gauge-fillでなく正本の白を引き継ぐ。uGUI正本の白矢印がクラフト完了状態の見た目そのものであり、
+   value=1で正本と一致させるため（ユーザー裁定・webui-design §8.12） */
+/* The fill keeps the reference white instead of --gauge-fill: uGUI's white arrow *is* the completed-craft look,
+   so value=1 matches the reference (user ruling, webui-design §8.12) */
 .craftArrowFill {
-  height: 100%;
-  background: var(--mantine-color-green-6);
+  fill: var(--color-content-primary);
+}
+/* 輪郭は塗りを持たず、溝でも充填でも矢印の形が読めるようにする */
+/* The outline carries no fill so the silhouette stays readable over both track and fill */
+.craftArrowOutline {
+  fill: none;
+  stroke: var(--craft-arrow-outline);
+  stroke-width: 2px;
 }

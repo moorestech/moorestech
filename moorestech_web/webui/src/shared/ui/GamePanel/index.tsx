@@ -4,19 +4,24 @@ import styles from "./style.module.css";
 type Props = {
   gridArea?: string;
   title?: ReactNode;
-  // craft は中央詳細用の細めバリアント
-  // "craft" is the narrower variant for the center detail
-  variant?: "default" | "craft";
+  // craft: 中央詳細用の細め
+  // craft: narrower variant for the center detail
+  // skit: 画面下部の全幅会話帯
+  // skit: full-bleed dialogue band at the screen bottom
+  variant?: "default" | "craft" | "skit";
   style?: CSSProperties;
   children: ReactNode;
 };
 
+const VARIANT_CLASS_NAMES = { default: "", craft: styles.craft, skit: styles.skit };
+
 // uGUI風の額縁パネル。タイトル+罫線+本文を囲う共通ラッパ
 // uGUI-style framed panel wrapping title + deco rule + body
 export default function GamePanel({ gridArea, title, variant = "default", style, children }: Props) {
-  const className = variant === "craft" ? `${styles.panel} ${styles.craft}` : styles.panel;
+  const variantClassName = VARIANT_CLASS_NAMES[variant];
+  const className = variantClassName === "" ? styles.panel : `${styles.panel} ${variantClassName}`;
   return (
-    <div className={className} style={{ gridArea, ...style }}>
+    <div className={className} data-variant={variant} style={{ gridArea, ...style }}>
       {title !== undefined ? (
         <>
           <div className={`${styles.decoLine} ${styles.decoLineTop}`} aria-hidden="true" />

@@ -3,7 +3,7 @@
 .hotbarArea {
   position: absolute;
   right: 0;
-  bottom: 2px;
+  bottom: var(--hotbar-bottom);
   left: 0;
   display: flex;
   justify-content: center;
@@ -14,10 +14,10 @@
 /* Place slots directly over the scene without an outer frame */
 .hotbarFrame {
   display: flex;
-  gap: 5px;
+  gap: var(--hotbar-slot-gap);
   /* 白面をkey-hints検出窓の外へ出すため列全体を2物理px右へ寄せる */
   /* Shift the row two device pixels right so its white face stays outside the key-hints detection window */
-  transform: translateX(0.782875px);
+  transform: translateX(var(--hotbar-horizontal-offset));
 }
 
 /* 番号タブをスロット左上に重ねる */
@@ -31,7 +31,7 @@
 .cell {
   position: relative;
   display: block;
-  --slot-size: 3.23rem;
+  --slot-size: var(--hotbar-slot-size);
   --selected-face-bottom-trim: 0.78px;
   --selected-face-ring-inset: 1.565749px;
   /* iter7: hotbar-pitch(非オレンジ判定)がこのpaddingに依存するため、用途別分離後も5pxの床を明示維持する */
@@ -50,11 +50,11 @@
   --bevel-c1: rgb(125 127 133);
   --bevel-c2: rgb(116 118 125);
   --bevel-c3: rgb(116 118 125);
-  /* 選択帯はframe_select.pngコア原色#00ddffのフラット単色を2層の全域へ適用する */
-  /* Apply frame_select.png's core cyan #00ddff flat across both layers of the selection band */
-  --sel-c1: rgb(0 221 255);
-  --sel-c2: rgb(0 221 255);
-  --sel-c3: rgb(0 221 255);
+  /* 選択帯はframe_select.png由来の共通シアン(--select-cyan)をフラット単色で2層の全域へ適用する */
+  /* Apply the shared frame_select.png cyan (--select-cyan) flat across both layers of the selection band */
+  --sel-c1: var(--select-cyan);
+  --sel-c2: var(--select-cyan);
+  --sel-c3: var(--select-cyan);
 }
 
 /* 正本は角張った(角丸0)・約38px角(≈14.9CSS)の半透明茶タグ+細い明枠。旧44px角は一回り大きすぎたため縮小 */
@@ -67,7 +67,7 @@
    stays legible against the face */
 .num {
   position: absolute;
-  top: -16px;
+  top: calc(var(--hotbar-number-tab-overhang) * -1);
   left: 17px;
   z-index: 2;
   min-width: 15px;

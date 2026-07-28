@@ -20,7 +20,7 @@ export default function ChallengePanel() {
 
   return (
     <section className={styles.panel} data-testid="challenge-panel" {...tutorialAnchor(TutorialAnchorIds.challengePanel)}>
-      <Title order={2}>{t("challenge.title")}</Title>
+      <Title order={2}>{t("チャレンジ")}</Title>
       <Group className={styles.categories} {...tutorialAnchor(TutorialAnchorIds.challengeCategories)}>
         {categories.map((category) => (
           <Button key={category.guid} variant={category.guid === selected?.guid ? "filled" : "subtle"}

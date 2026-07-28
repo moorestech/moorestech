@@ -1,0 +1,37 @@
+/* パネル面と競合しない透明なアイコン操作を描く。寸法は呼び出し側が--icon-button-*の局所上書きで変える */
+/* Draws a transparent icon control that does not compete with the panel face; callers resize it by overriding --icon-button-* */
+.button {
+  display: grid;
+  width: var(--icon-button-size);
+  height: var(--icon-button-size);
+  padding: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  place-items: center;
+}
+
+/* 既定の×は画像を使わず、親ボタンの文字色を継承する線だけで表す */
+/* The default cross uses no image and consists only of lines inheriting the button color */
+.icon {
+  width: var(--icon-button-icon-size);
+  height: var(--icon-button-icon-size);
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: square;
+  stroke-width: var(--bevel-1);
+}
+
+/* 無効時はホバーの持ち上げを起こさない */
+/* Disabled buttons never take the hover lift */
+.button:not(:disabled):hover,
+.button:not(:disabled):focus-visible {
+  color: var(--text-high-contrast);
+}
+
+.button:focus-visible {
+  outline: var(--bevel-1) solid var(--text-high-contrast);
+  outline-offset: var(--bevel-1);
+}
