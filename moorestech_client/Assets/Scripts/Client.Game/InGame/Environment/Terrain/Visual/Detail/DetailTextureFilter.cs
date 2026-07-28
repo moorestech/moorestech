@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
@@ -35,6 +36,18 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
         public float otherTextureWeight;
 
         public TextureFilterEntry[] entries;
+
+        // Evaluateの早期脱出条件と揃える。無効フィルタのエントリは出力に一切影響しないため未解決でも落とさない
+        // Mirrors Evaluate's early exit: a disabled filter's entries never affect the output, so an unresolved layer there is not fatal
+        public void ThrowIfUnresolved()
+        {
+            if (!enabled || entries == null || entries.Length == 0) return;
+
+            foreach (var entry in entries)
+                if (entry.layer == null)
+                    throw new InvalidOperationException(
+                        $"Detail texture filter layer '{entry.layerAddressablePath}' was not resolved before detail generation.");
+        }
 
         public float Evaluate(float[,,] splatmap, int z, int x, TerrainLayer[] terrainLayers)
         {

@@ -23,7 +23,7 @@ namespace Client.Tests.UnitTest
                 new GenTexture.EntriesElement(
                     0, "addr/cliff", 0.5f,
                     true, 1.1f, 1.2f, 1.3f,
-                    true, 2.1f, 2.2f, 2.3f,
+                    false, 2.1f, 2.2f, 2.3f,
                     true, 3.1f, 3.2f, 3.3f,
                     "Worley", 4.1f, 4.2f),
             });
@@ -33,12 +33,14 @@ namespace Client.Tests.UnitTest
             Assert.That(entry.layerAddressablePath, Is.EqualTo("addr/cliff"));
             Assert.That(entry.weight, Is.EqualTo(0.5f));
 
+            // 3枠のuseXxxFilterをtrue/false/trueに撒き分け、隣接フィルタとの取り違えを検知する
+            // The three useXxxFilter bools alternate true/false/true so a swap with a neighbouring filter is detectable
             Assert.That(entry.useSlopeFilter, Is.True);
             Assert.That(entry.slopeMin, Is.EqualTo(1.1f));
             Assert.That(entry.slopeMax, Is.EqualTo(1.2f));
             Assert.That(entry.slopeSmoothness, Is.EqualTo(1.3f));
 
-            Assert.That(entry.useHeightFilter, Is.True);
+            Assert.That(entry.useHeightFilter, Is.False);
             Assert.That(entry.heightMin, Is.EqualTo(2.1f));
             Assert.That(entry.heightMax, Is.EqualTo(2.2f));
             Assert.That(entry.heightSmoothness, Is.EqualTo(2.3f));

@@ -22,6 +22,12 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
             IReadOnlyDictionary<string, int> layerIndexByAddress,
             NativeArray<BiomeParams> biomeParams, Allocator allocator)
         {
+            // 確保より前に全アドレスを検証する。確保後に投げると呼び出し側のfinallyの外でNativeArrayが漏れる
+            // Validate every address before allocating; throwing afterward would leak the NativeArray outside the caller's finally
+            foreach (var biomeTextureConfig in biomeTextureConfigs)
+                foreach (var entry in biomeTextureConfig.entries)
+                    RequireLayerIndex(entry.layerAddressablePath, layerIndexByAddress);
+
             var textureRandom = new Random(worldSeed + TextureNoiseSeedOffset);
 
             var totalEntryCount = 0;
@@ -45,10 +51,8 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
                 parameters.textureEntryCount = entries.Length;
                 biomeParams[biome] = parameters;
 
-                // 移植元にあるデッドコードをそのまま残している。textureRandomはこのメソッドのローカルで以降どこからも引かれず、
-                // 消しても現在の出力は変わらない。移植元との差分を作らないためだけに保存している
-                // Dead code preserved verbatim from the source: textureRandom is local to this method and never drawn from again,
-                // so removing it would not change today's output. It is kept solely to avoid diverging from the source
+                // 移植元にあるデッドコード。textureRandomはこのメソッドのローカルで以降どこからも引かれず、消しても出力は変わらない
+                // Dead code from the source: textureRandom is local here and never drawn from again, so removing it would not change the output
                 ConsumeOffsets(textureRandom, Math.Max(entries.Length * 4, 4));
 
                 for (var entryIndex = 0; entryIndex < entries.Length; entryIndex++)
@@ -64,15 +68,9 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
         private static TextureEntryParams ToTextureEntryParams(
             TextureEntry entry, IReadOnlyDictionary<string, int> layerIndexByAddress, int noiseOffsetIndex)
         {
-            // SplatLayerTableが全アドレスを登録済みなので未登録は表の組み立て漏れ。0番へ黙って倒さない
-            // SplatLayerTable registered every address, so a miss means the table was built wrong; never fall back to index 0
-            if (!layerIndexByAddress.TryGetValue(entry.layerAddressablePath, out var layerIndex))
-                throw new InvalidOperationException(
-                    $"[TextureEntryParamsBuilder] Layer address '{entry.layerAddressablePath}' is missing from the splat layer table.");
-
             return new TextureEntryParams
             {
-                layerIndex = layerIndex,
+                layerIndex = RequireLayerIndex(entry.layerAddressablePath, layerIndexByAddress),
                 weight = entry.weight,
 
                 useSlopeFilter = entry.useSlopeFilter ? 1 : 0,
@@ -104,6 +102,16 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
                 random.NextDouble();
                 random.NextDouble();
             }
+        }
+
+        // SplatLayerTableが全アドレスを登録済みなので未登録は表の組み立て漏れ。0番へ黙って倒さない
+        // SplatLayerTable registered every address, so a miss means the table was built wrong; never fall back to index 0
+        private static int RequireLayerIndex(string layerAddressablePath, IReadOnlyDictionary<string, int> layerIndexByAddress)
+        {
+            if (!layerIndexByAddress.TryGetValue(layerAddressablePath, out var layerIndex))
+                throw new InvalidOperationException(
+                    $"[TextureEntryParamsBuilder] Layer address '{layerAddressablePath}' is missing from the splat layer table.");
+            return layerIndex;
         }
     }
 }

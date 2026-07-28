@@ -105,6 +105,22 @@ namespace Client.Tests.UnitTest
         }
 
         [Test]
+        public void ThrowsWhenATextureFilterLayerIsUnresolved()
+        {
+            // layerが未解決のままだとEvaluateが永久に一致せず、分布が黙って違う形でしか気づけない
+            // An unresolved layer would leave Evaluate never matching, surfacing only as a silently wrong distribution
+            var unresolvedEntry = DetailTestConfigBuilder.CreateEntry(1f, 16);
+            unresolvedEntry.textureFilter = new DetailTextureFilter
+            {
+                enabled = true,
+                entries = new[] { new DetailTextureFilter.TextureFilterEntry { layerAddressablePath = "addr/grass", weight = 1f } },
+            };
+
+            Assert.Throws<System.InvalidOperationException>(
+                () => GenerateBoth(DetailTestConfigBuilder.CreateFullMask(), DetailTestConfigBuilder.CreateFlatSlopes(0f), unresolvedEntry));
+        }
+
+        [Test]
         public void KeepsPrototypesAndMapsIndexAligned()
         {
             var firstEntry = DetailTestConfigBuilder.CreateEntry(1f, 16);

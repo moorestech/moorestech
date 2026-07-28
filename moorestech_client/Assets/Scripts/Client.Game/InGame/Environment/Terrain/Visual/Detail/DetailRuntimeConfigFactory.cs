@@ -133,11 +133,9 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
             var entries = new List<DetailTextureFilter.TextureFilterEntry>();
             foreach (var generatedEntry in generated.Entries)
             {
-                // エントリが存在すること自体が「このレイヤー上に寄せたい」という意図の表明なので、enabledでは分岐しない。
-                // アドレスが無いとlayerを解決できず、Evaluateが永久に一致せず全レイヤーがotherTextureWeightへ倒れる
-                // An entry's mere existence declares intent to bias toward a layer, so this does not branch on enabled.
-                // Without an address layer can never be resolved, Evaluate never matches, and every layer falls to otherTextureWeight
-                if (string.IsNullOrEmpty(generatedEntry.LayerAddressablePath))
+                // disabledなフィルタのエントリはEvaluateの早期脱出で出力に一切影響しないため、空アドレスを致命化しない
+                // A disabled filter's entries never affect the output because Evaluate exits early, so an empty address is not fatal there
+                if (generated.Enabled && string.IsNullOrEmpty(generatedEntry.LayerAddressablePath))
                     throw new InvalidOperationException(
                         "[DetailRuntimeConfigFactory] A detail textureFilter entry has an empty layerAddressablePath.");
 
