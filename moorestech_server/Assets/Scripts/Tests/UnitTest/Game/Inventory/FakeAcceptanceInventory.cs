@@ -5,7 +5,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
 
-namespace Tests.UnitTest.Game
+namespace Tests.UnitTest.Game.Inventory
 {
     /// <summary>
     ///     受入制限を宣言するテスト用インベントリ。実体はOpenableInventoryItemDataStoreServiceへ委譲する
@@ -23,7 +23,11 @@ namespace Tests.UnitTest.Game
         {
             _acceptableItemIds = acceptableItemIds;
             _maxCountPerSlot = maxCountPerSlot;
-            _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotCount);
+
+            // 受入制限は自身を判定元としてストアサービスへ渡し、インベントリ自身に守らせる
+            // Pass itself as the acceptance source so the store service enforces the restriction
+            var option = new OpenableInventoryItemDataStoreServiceOption(this);
+            _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotCount, option);
         }
 
         public bool CanAccept(ItemId itemId)

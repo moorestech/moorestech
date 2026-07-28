@@ -98,7 +98,7 @@ namespace Tests.UnitTest.Core.Inventory
                 new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var option = new OpenableInventoryItemDataStoreServiceOption { AllowMultipleStacksPerItemOnInsert = false };
+            var option = new OpenableInventoryItemDataStoreServiceOption(UnrestrictedItemAcceptance.Instance) { AllowMultipleStacksPerItemOnInsert = false };
             var toInventory = new OpenableInventoryItemDataStoreService((_, _) => { }, itemStackFactory, 10, option);
 
             // スロット0にItemId(1)を30個挿入
@@ -122,7 +122,7 @@ namespace Tests.UnitTest.Core.Inventory
                 new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var option = new OpenableInventoryItemDataStoreServiceOption { AllowMultipleStacksPerItemOnInsert = false };
+            var option = new OpenableInventoryItemDataStoreServiceOption(UnrestrictedItemAcceptance.Instance) { AllowMultipleStacksPerItemOnInsert = false };
             var toInventory = new OpenableInventoryItemDataStoreService((_, _) => { }, itemStackFactory, 10, option);
 
             // スロット0にItemId(1)を100個（満タン）挿入
@@ -147,7 +147,7 @@ namespace Tests.UnitTest.Core.Inventory
                 new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var option = new OpenableInventoryItemDataStoreServiceOption { AllowMultipleStacksPerItemOnInsert = false };
+            var option = new OpenableInventoryItemDataStoreServiceOption(UnrestrictedItemAcceptance.Instance) { AllowMultipleStacksPerItemOnInsert = false };
             var toInventory = new OpenableInventoryItemDataStoreService((_, _) => { }, itemStackFactory, 10, option);
 
             // スロット0にItemId(1)を80個挿入
@@ -172,7 +172,7 @@ namespace Tests.UnitTest.Core.Inventory
                 new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var option = new OpenableInventoryItemDataStoreServiceOption { AllowMultipleStacksPerItemOnInsert = false };
+            var option = new OpenableInventoryItemDataStoreServiceOption(UnrestrictedItemAcceptance.Instance) { AllowMultipleStacksPerItemOnInsert = false };
             var toInventory = new OpenableInventoryItemDataStoreService((_, _) => { }, itemStackFactory, 10, option);
 
             // 空のインベントリにItemId(1)を50個挿入
@@ -191,7 +191,7 @@ namespace Tests.UnitTest.Core.Inventory
                 new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var option = new OpenableInventoryItemDataStoreServiceOption { AllowMultipleStacksPerItemOnInsert = false };
+            var option = new OpenableInventoryItemDataStoreServiceOption(UnrestrictedItemAcceptance.Instance) { AllowMultipleStacksPerItemOnInsert = false };
             var toInventory = new OpenableInventoryItemDataStoreService((_, _) => { }, itemStackFactory, 10, option);
 
             // SetItemでスロット0にItemId(1)を60個、スロット2にItemId(1)を70個を配置

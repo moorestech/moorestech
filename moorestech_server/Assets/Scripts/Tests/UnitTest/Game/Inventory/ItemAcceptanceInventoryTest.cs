@@ -8,11 +8,11 @@ using Server.Boot;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 using Tests.Module.TestMod;
 
-namespace Tests.UnitTest.Game
+namespace Tests.UnitTest.Game.Inventory
 {
     /// <summary>
-    ///     IItemAcceptanceInventoryの受入制限を移動サービスが尊重することを検証する
-    ///     Verifies that the move services honor the restrictions declared by IItemAcceptanceInventory
+    ///     移動サービス経由の操作でもIItemAcceptanceInventoryの受入制限が守られることを検証する
+    ///     Verifies that the acceptance restrictions still hold for operations going through the move service
     /// </summary>
     public class ItemAcceptanceInventoryTest
     {
@@ -63,6 +63,36 @@ namespace Tests.UnitTest.Game
 
             AssertSlot(destination, 0, AcceptableItemId, 1);
             AssertSlot(source, 0, AcceptableItemId, 5);
+        }
+
+        [Test]
+        public void 上限3のスロットへ既存1個がある状態で5個移動すると2個だけ入り3個残る()
+        {
+            // 部分的に積み増しされる経路で、アイテムの消失も増殖も起きないことを検証する
+            // Verifies the partial stacking path neither loses nor duplicates items
+            var source = CreateSourceInventory(1);
+            source.SetItem(0, AcceptableItemId, 5);
+            var destination = new FakeAcceptanceInventory(new List<ItemId> { AcceptableItemId }, 3, 1);
+            destination.SetItem(0, AcceptableItemId, 1);
+
+            InventoryItemMoveService.Move(source, 0, destination, 0, 5);
+
+            AssertSlot(destination, 0, AcceptableItemId, 3);
+            AssertSlot(source, 0, AcceptableItemId, 3);
+        }
+
+        [Test]
+        public void 上限3のスロットへ一部だけ移動しても総数は保存される()
+        {
+            var source = CreateSourceInventory(1);
+            source.SetItem(0, AcceptableItemId, 5);
+            var destination = new FakeAcceptanceInventory(new List<ItemId> { AcceptableItemId }, 3, 1);
+            destination.SetItem(0, AcceptableItemId, 1);
+
+            InventoryItemMoveService.Move(source, 0, destination, 0, 3);
+
+            AssertSlot(destination, 0, AcceptableItemId, 3);
+            AssertSlot(source, 0, AcceptableItemId, 3);
         }
 
         [Test]

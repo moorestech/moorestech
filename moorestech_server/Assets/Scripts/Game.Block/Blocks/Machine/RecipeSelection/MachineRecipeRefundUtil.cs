@@ -45,7 +45,7 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             // Copy that mirrors the machine input insertion rule (no multiple stacks per item)
             OpenableInventoryItemDataStoreService CopyMachineInput()
             {
-                var option = new OpenableInventoryItemDataStoreServiceOption { AllowMultipleStacksPerItemOnInsert = false };
+                var option = new OpenableInventoryItemDataStoreServiceOption(UnrestrictedItemAcceptance.Instance) { AllowMultipleStacksPerItemOnInsert = false };
                 var sim = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, input.InputSlot.Count, option);
                 for (var i = 0; i < input.InputSlot.Count; i++) sim.SetItemWithoutEvent(i, input.InputSlot[i]);
                 return sim;

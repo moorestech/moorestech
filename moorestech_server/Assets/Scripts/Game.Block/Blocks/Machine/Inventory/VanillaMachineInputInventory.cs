@@ -45,7 +45,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             _blockInstanceId = blockInstanceId;
             _gameUnlockStateData = gameUnlockStateData;
             
-            var option = new OpenableInventoryItemDataStoreServiceOption()
+            var option = new OpenableInventoryItemDataStoreServiceOption(UnrestrictedItemAcceptance.Instance)
             {
                 AllowMultipleStacksPerItemOnInsert = false,
             };

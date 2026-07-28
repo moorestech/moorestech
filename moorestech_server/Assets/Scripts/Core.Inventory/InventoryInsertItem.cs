@@ -84,7 +84,7 @@ namespace Core.Inventory
                     if (inventory[i].Id != currentItemStack.Id) continue;
                     if (!inventory[i].IsAllowedToAddWithRemain(currentItemStack)) continue;
 
-                    var remain = InsertionItemBySlot(i, currentItemStack, inventory, factory, slotUpdate);
+                    var remain = InsertionItemBySlot(i, currentItemStack, inventory, factory, option, slotUpdate);
 
                     if (remain.Count == 0) return remain;
                     currentItemStack = remain;
@@ -140,7 +140,7 @@ namespace Core.Inventory
                     
                     // スロットにアイテムを挿入し、入りきらなかった余りを取得
                     // Insert items into the slot and get the remainder that didn't fit
-                    var remain = InsertionItemBySlot(slot, currentItemStack, inventory, factory, slotUpdate);
+                    var remain = InsertionItemBySlot(slot, currentItemStack, inventory, factory, option, slotUpdate);
                     
                     // 余りがない（すべて挿入できた）場合は処理を終了
                     // If there's no remainder (all items were inserted), end the process
@@ -157,7 +157,7 @@ namespace Core.Inventory
                 {
                     if (!inventory[slot].IsAllowedToAddWithRemain(currentItemStack)) continue;
                     
-                    var remain = InsertionItemBySlot(slot, currentItemStack, inventory, factory, slotUpdate);
+                    var remain = InsertionItemBySlot(slot, currentItemStack, inventory, factory, option, slotUpdate);
                     if (remain.Count == 0) return remain;
                     
                     currentItemStack = remain;
@@ -193,7 +193,7 @@ namespace Core.Inventory
                     
                     // 挿入実行
                     // Execute insertion
-                    var remain = InsertionItemBySlot(i, currentItemStack, inventory, factory, slotUpdate);
+                    var remain = InsertionItemBySlot(i, currentItemStack, inventory, factory, option, slotUpdate);
 
                     // 挿入結果が空のアイテムならそのまま処理を終了
                     // If the insertion result is an empty item, end the process
@@ -266,7 +266,7 @@ namespace Core.Inventory
 
                 if (allSlots[slotIndex].IsAllowedToAddWithRemain(targetItemStack))
                 {
-                    var remain = InsertionItemBySlot(slotIndex, targetItemStack, allSlots, factory, slotUpdate);
+                    var remain = InsertionItemBySlot(slotIndex, targetItemStack, allSlots, factory, option, slotUpdate);
                     return remain;
                 }
 
@@ -280,21 +280,36 @@ namespace Core.Inventory
         ///     指定されたスロットにアイテムを挿入する
         /// </summary>
         /// <returns>余ったアイテム 余ったアイテムがなければ空のアイテムを返す</returns>
-        private static IItemStack InsertionItemBySlot(int slot, IItemStack itemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, Action<int> onSlotUpdate = null)
+        private static IItemStack InsertionItemBySlot(int slot, IItemStack itemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, OpenableInventoryItemDataStoreServiceOption option, Action<int> onSlotUpdate)
         {
             if (itemStack.Count == 0) return itemStack;
             if (!inventoryItems[slot].IsAllowedToAddWithRemain(itemStack)) return itemStack;
-            
-            var result = inventoryItems[slot].AddItem(itemStack);
-            
+
+            // 受け入れられないアイテムは1個も入らない
+            // Not a single item fits when the inventory does not accept it
+            if (!option.ItemAcceptance.CanAccept(itemStack.Id)) return itemStack;
+
+            // 1スロット上限を超える分は挿入せず、切り詰めた分だけを挿入する
+            // Insert only the trimmed amount so the per-slot cap is never exceeded
+            var addableCount = Math.Min(option.ItemAcceptance.GetMaxCountPerSlot(itemStack.Id) - inventoryItems[slot].Count, itemStack.Count);
+            if (addableCount <= 0) return itemStack;
+            var isClamped = addableCount < itemStack.Count;
+            var addingItemStack = isClamped ? itemStack.SubItem(itemStack.Count - addableCount) : itemStack;
+
+            var result = inventoryItems[slot].AddItem(addingItemStack);
+
             //挿入を試した結果が今までと違う場合は入れ替えをしてイベントを発火
             if (!inventoryItems[slot].Equals(result.ProcessResultItemStack))
             {
                 inventoryItems[slot] = result.ProcessResultItemStack;
                 onSlotUpdate?.Invoke(slot);
             }
-            
-            return result.RemainderItemStack;
+
+            if (!isClamped) return result.RemainderItemStack;
+
+            // 切り詰めた場合は、実際に入った分だけを元のアイテムから差し引いて返す
+            // When clamped, subtract only the consumed amount from the original stack
+            return itemStack.SubItem(addingItemStack.Count - result.RemainderItemStack.Count);
         }
     }
 }

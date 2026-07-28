@@ -45,15 +45,8 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             //移動先と同じIDの時は移動先スロットに加算し、余ったアイテムを移動元インベントリに入れる
             if (destinationInventoryItem.Count == 0 || originItem.Id == destinationInventoryItem.Id)
             {
-                // 移動先が受入制限を宣言していれば、受入可否と1スロット上限を尊重する
-                // Honor the acceptance flag and the per-slot cap declared by the destination
-                if (toInventory is IItemAcceptanceInventory acceptanceInventory)
-                {
-                    if (!acceptanceInventory.CanAccept(originItem.Id)) return;
-                    itemCount = Math.Min(itemCount, acceptanceInventory.GetMaxCountPerSlot(originItem.Id) - destinationInventoryItem.Count);
-                    if (itemCount <= 0) return;
-                }
-
+                //受入制限は移動先インベントリのReplaceItemが守り、入らなかった分が余りとして返る
+                //The destination inventory enforces acceptance inside ReplaceItem and returns what did not fit
                 //実際に移動するアイテムインスタンスの作成
                 var moveItem = ServerContext.ItemStackFactory.Create(originItem.Id, itemCount);
 
