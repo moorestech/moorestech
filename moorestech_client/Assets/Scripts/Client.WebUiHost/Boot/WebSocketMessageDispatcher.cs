@@ -63,7 +63,7 @@ namespace Client.WebUiHost.Boot
 
         // 指定接続へトピックの snapshot を送る
         // Send the topic snapshot to the given connection
-        public async UniTask SendSnapshotAsync(WebSocketConnection conn, string topic)
+        private async UniTask SendSnapshotAsync(WebSocketConnection conn, string topic)
         {
             if (!_handlers.TryGetValue(topic, out var handler)) return;
             // 生成前のrevisionを固定し、生成中eventより新しい番号を古いsnapshotへ付けない

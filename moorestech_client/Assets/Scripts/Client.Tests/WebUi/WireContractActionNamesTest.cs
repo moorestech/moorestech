@@ -23,23 +23,31 @@ namespace Client.Tests.WebUi
             var implemented = CollectImplementedActionTypes();
             var shared = JObject.Parse(LoadFixture("action_names.json"))["actions"].ToObject<List<string>>();
 
+            // 重複と非定数(null/空)は HashSet 比較で消える前に検出する
+            // Catch duplicates and non-constant (null/empty) values before the set comparison can absorb them
             Assert.AreEqual(shared.Count, new HashSet<string>(shared).Count, "action_names.json に重複がある / duplicate action names");
-            Assert.That(new HashSet<string>(shared), Is.EquivalentTo(implemented), "action_names.json が C# の action 集合と不一致 / mismatch with the C# action set");
-        }
+            Assert.That(implemented, Is.All.Not.Null.And.Not.Empty, "ActionType が定数を返していない / an ActionType is not a constant");
+            Assert.AreEqual(implemented.Count, new HashSet<string>(implemented).Count, "ActionType が重複している / duplicate ActionType across handlers");
+            Assert.That(implemented, Is.EquivalentTo(shared), "action_names.json が C# の action 集合と不一致 / mismatch with the C# action set");
 
-        // ハンドラのコンストラクタはゲーム状態の依存を要求するため、生成せずに ActionType だけを読む
-        // Handler constructors demand game-state dependencies, so read ActionType without constructing them
-        private static HashSet<string> CollectImplementedActionTypes()
-        {
-            var types = typeof(IActionHandler).Assembly.GetTypes()
-                .Where(t => typeof(IActionHandler).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
-            return new HashSet<string>(types.Select(t => ((IActionHandler)FormatterServices.GetUninitializedObject(t)).ActionType));
-        }
+            #region Internal
 
-        private static string LoadFixture(string fixtureName)
-        {
-            var path = Path.Combine(Application.dataPath, "Scripts/Client.Tests/WebUi/WireFixtures", fixtureName);
-            return File.ReadAllText(path);
+            List<string> CollectImplementedActionTypes()
+            {
+                // ハンドラのコンストラクタはゲーム状態の依存を要求するため、生成せずに ActionType だけを読む
+                // Handler constructors demand game-state dependencies, so read ActionType without constructing them
+                var types = typeof(IActionHandler).Assembly.GetTypes()
+                    .Where(t => typeof(IActionHandler).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+                return types.Select(t => ((IActionHandler)FormatterServices.GetUninitializedObject(t)).ActionType).ToList();
+            }
+
+            string LoadFixture(string fixtureName)
+            {
+                var path = Path.Combine(Application.dataPath, "Scripts/Client.Tests/WebUi/WireFixtures", fixtureName);
+                return File.ReadAllText(path);
+            }
+
+            #endregion
         }
     }
 }

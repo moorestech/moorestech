@@ -1,5 +1,5 @@
 import type { AddressInfo } from "node:net";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, onTestFinished } from "vitest";
 import { blockIconUrl, itemIconUrl } from "../../../src/bridge/transport/httpEndpoints";
 import { createMockHttpServer, injectDemoBackground } from "../httpHandler";
 
@@ -29,6 +29,9 @@ describe("injectDemoBackground", () => {
 describe("icon endpoints", () => {
   it("アイテムとブロックのアイコンURLが同じ404応答になる", async () => {
     const server = createMockHttpServer();
+    // アサート失敗時もサーバを確実に閉じる（close 行未到達によるリーク防止）
+    // Always close the server even when the assertion fails (prevents a leak from the unreached close line)
+    onTestFinished(() => new Promise<void>((resolve) => server.close(() => resolve())));
     await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
     const { port } = server.address() as AddressInfo;
 
@@ -37,6 +40,5 @@ describe("icon endpoints", () => {
     );
 
     expect(responses.map((res) => res.status)).toEqual([404, 404]);
-    await new Promise<void>((resolve) => server.close(() => resolve()));
   });
 });

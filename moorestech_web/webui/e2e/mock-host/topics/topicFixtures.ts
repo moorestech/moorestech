@@ -22,8 +22,8 @@ const topicFixtures: TopicFixtureRegistry = {
   [Topics.machineRecipes]: () => fx.machineRecipes,
   [Topics.itemList]: ({ demo }) => (demo ? fx.demoItemList : fx.itemList),
   [Topics.blockInventory]: () => state.currentBlock,
-  // 実ホストは NullValueHandling.Ignore で modal キーごと省略する
-  // The real host omits the modal key entirely via NullValueHandling.Ignore
+  // ModalData.modal は optional（null 不可）のため型適合で undefined 化。ワイヤ上の null 除去は wire.ts の stripNulls が担う
+  // Coerce to undefined to satisfy the optional (non-nullable) ModalData.modal; wire.ts stripNulls owns null removal on the wire
   [Topics.modal]: () => ({ modal: state.currentModal ?? undefined }),
   // 実ホストの NotificationTopic と同じ空snapshot。返さないと restoring のままで操作が塞がる
   // Same empty snapshot as the real NotificationTopic; without it the client stays restoring and input is blocked
@@ -52,6 +52,8 @@ const topicFixtures: TopicFixtureRegistry = {
 // Overrides win; topics without a snapshot (e.g. playtest.dom_query) are absent from the registry and yield undefined
 export function topicData(topic: string, inventory: PlayerInventoryData, demo: boolean): unknown {
   if (state.topicOverrides.has(topic)) return state.topicOverrides.get(topic);
-  const build = topicFixtures[topic as keyof TopicPayloads];
-  return build?.({ inventory, demo });
+  // prototype キー（toString 等）を既知 topic と誤認しないよう own property のみ引く
+  // Look up own properties only so prototype keys (toString etc.) are not mistaken for known topics
+  if (!Object.hasOwn(topicFixtures, topic)) return undefined;
+  return topicFixtures[topic as keyof TopicPayloads]({ inventory, demo });
 }

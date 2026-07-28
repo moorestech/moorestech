@@ -10,11 +10,11 @@ const bridge = vi.hoisted(() => ({
 
 // topic 名は実契約の Topics をそのまま使う。mock 固有の別名は本番との drift を隠す
 // Use the real contract's Topics; mock-only aliases would hide drift from production
-vi.mock("@/bridge", async () => {
-  const { Topics } = await import("@/bridge/transport/protocol");
+vi.mock("@/bridge", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/bridge")>();
   return {
-    Topics,
-    readTopic: (topic: string) => topic === Topics.inventory ? bridge.inventory : bridge.blockInventory,
+    ...actual,
+    readTopic: (topic: string) => topic === actual.Topics.inventory ? bridge.inventory : bridge.blockInventory,
     readItemMaster: () => bridge.itemMaster,
     dispatchAction: bridge.dispatchAction,
   };
