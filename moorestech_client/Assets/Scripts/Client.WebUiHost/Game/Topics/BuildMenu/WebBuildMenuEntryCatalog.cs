@@ -80,8 +80,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                         // The catalog's guid always originates from the train car master, so this lookup always succeeds
                         MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(entry.Id, out var trainCar);
 
-                        // 車両マスタにnameが無いため、アイコンビューの表示名（addressablePath末尾）を使う
-                        // Train car masters have no name, so use the icon view's display name (addressablePath tail)
+                        // アイコン撮影時にModAssetIconLoaderが確定させた表示名をそのまま使う（trainCar.Nameとは別管理）
+                        // Reuse the display name ModAssetIconLoader fixed at icon-capture time (tracked separately from trainCar.Name)
                         var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(entry.Id);
                         var (category, subCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.trainCars);
                         return new WebBuildMenuEntry(target, entry.Kind, iconView.ItemName, category, subCategory, ToRequiredItems(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));

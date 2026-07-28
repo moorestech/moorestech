@@ -33,7 +33,8 @@
         "Client.WebUiHost",
         "Client.Skit",
         "Game.UnlockState",
-        "Common.Debug"
+        "Common.Debug",
+        "Game.PlacementTarget"
     ],
     "includePlatforms": [
         "Editor"

@@ -34,6 +34,51 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 });
             }
             return dtos;
+
+            #region Internal
+
+            // 設置対象IDはGuid文字列1本。kindは表示・振る舞い用で識別子ではない
+            // The id is a single GUID string; kind is for display/behavior, not identity
+            string GetId(IPlacementTarget target)
+            {
+                return target.Id.ToString();
+            }
+
+            // PlacementTargetCatalogが既に確定させたKind enumを網羅switchで文字列化する（型switchの二重分類・未知値文字列漏れを禁止）
+            // Stringify the Kind enum the PlacementTargetCatalog already determined via an exhaustive switch (no duplicate type-pattern classification, no unknown-value string leak)
+            string GetKind(PlacementTargetKind kind)
+            {
+                return kind switch
+                {
+                    PlacementTargetKind.Block => "block",
+                    PlacementTargetKind.TrainCar => "trainCar",
+                    PlacementTargetKind.ConnectTool => "connectTool",
+                    PlacementTargetKind.BuildTool => "buildTool",
+                    PlacementTargetKind.Blueprint => "blueprint",
+                    _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+                };
+            }
+
+            string CreateIconUrl(IPlacementTarget target)
+            {
+                switch (target)
+                {
+                    case BlockPlacementTarget block:
+                        // block-icons はblock inventoryトピックのBlockIconと共有するため揮発BlockIdのまま（Guid化はplan Aのスコープ外）
+                        // block-icons is shared with the block inventory topic's BlockIcon, so it stays volatile BlockId (GUID conversion is out of plan A's scope)
+                        return $"{BlockIconEndpoint.PathPrefix}{block.BlockId.AsPrimitive()}{BlockIconEndpoint.PathSuffix}";
+                    case TrainCarPlacementTarget trainCar:
+                        return $"{TrainCarIconEndpoint.PathPrefix}{trainCar.TrainCarGuid}{TrainCarIconEndpoint.PathSuffix}";
+                    case ConnectToolPlacementTarget connectTool:
+                        // 接続ツールのアイコンはconnectToolのimagePathから配信する
+                        // The connect tool icon is served from the connectTool's imagePath
+                        return $"{ConnectToolIconEndpoint.PathPrefix}{connectTool.ConnectToolGuid}{ConnectToolIconEndpoint.PathSuffix}";
+                    default:
+                        return null;
+                }
+            }
+
+            #endregion
         }
 
         public static List<BuildMenuCategoryDto> CreateCategoryDtos()
@@ -46,47 +91,6 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     Name = c.Name,
                     SubCategories = c.SubCategories.Select(s => s.Name).ToList(),
                 }).ToList();
-        }
-
-        // 設置対象IDはGuid文字列1本。kindは表示・振る舞い用で識別子ではない
-        // The id is a single GUID string; kind is for display/behavior, not identity
-        private static string GetId(IPlacementTarget target)
-        {
-            return target.Id.ToString();
-        }
-
-        // PlacementTargetCatalogが既に確定させたKind enumを網羅switchで文字列化する（型switchの二重分類・未知値文字列漏れを禁止）
-        // Stringify the Kind enum the PlacementTargetCatalog already determined via an exhaustive switch (no duplicate type-pattern classification, no unknown-value string leak)
-        private static string GetKind(PlacementTargetKind kind)
-        {
-            return kind switch
-            {
-                PlacementTargetKind.Block => "block",
-                PlacementTargetKind.TrainCar => "trainCar",
-                PlacementTargetKind.ConnectTool => "connectTool",
-                PlacementTargetKind.BuildTool => "buildTool",
-                PlacementTargetKind.Blueprint => "blueprint",
-                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
-            };
-        }
-
-        private static string CreateIconUrl(IPlacementTarget target)
-        {
-            switch (target)
-            {
-                case BlockPlacementTarget block:
-                    // block-icons はblock inventoryトピックのBlockIconと共有するため揮発BlockIdのまま（Guid化はplan Aのスコープ外）
-                    // block-icons is shared with the block inventory topic's BlockIcon, so it stays volatile BlockId (GUID conversion is out of plan A's scope)
-                    return $"{BlockIconEndpoint.PathPrefix}{block.BlockId.AsPrimitive()}{BlockIconEndpoint.PathSuffix}";
-                case TrainCarPlacementTarget trainCar:
-                    return $"{TrainCarIconEndpoint.PathPrefix}{trainCar.TrainCarGuid}{TrainCarIconEndpoint.PathSuffix}";
-                case ConnectToolPlacementTarget connectTool:
-                    // 接続ツールのアイコンはconnectToolのimagePathから配信する
-                    // The connect tool icon is served from the connectTool's imagePath
-                    return $"{ConnectToolIconEndpoint.PathPrefix}{connectTool.ConnectToolGuid}{ConnectToolIconEndpoint.PathSuffix}";
-                default:
-                    return null;
-            }
         }
     }
 }

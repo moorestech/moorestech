@@ -153,7 +153,7 @@ namespace Tests.UnitTest.Game
             var groupOrder = new List<PlacementTargetKind>();
             foreach (var entry in targetEntries)
             {
-                if (groupOrder.Count > 0 && groupOrder[^1] == entry.Kind) continue;
+                if (0 < groupOrder.Count && groupOrder[^1] == entry.Kind) continue;
                 Assert.IsFalse(groupOrder.Contains(entry.Kind), $"Kind {entry.Kind} appears in more than one group");
                 groupOrder.Add(entry.Kind);
             }

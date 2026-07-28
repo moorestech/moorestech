@@ -110,8 +110,8 @@ namespace Client.Game.InGame.UI.BuildMenu
 
             string CreateTrainCarToolTip(TrainCarMasterElement trainCar, ItemViewData iconView)
             {
-                // 車両マスタにnameが無いため、アイコンビューの表示名（addressablePath末尾）を使う
-                // Train car masters have no name, so use the icon view's display name (addressablePath tail)
+                // アイコン撮影時にModAssetIconLoaderが確定させた表示名をそのまま使う（trainCar.Nameとは別管理）
+                // Reuse the display name ModAssetIconLoader fixed at icon-capture time (tracked separately from trainCar.Name)
                 var builder = new StringBuilder(iconView.ItemName);
                 AppendRequiredItems(builder, ConstructionCostTexts(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));
                 return builder.ToString();
