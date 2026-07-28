@@ -20,7 +20,10 @@ export function serveDictionary(url: string, response: ServerResponse): void {
 const control = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]) => ({ topic, data });
 const controls = {
   placement: () => control(Topics.placementMode, { selectedName: "Assembler", height: 3, unavailableReason: "" }),
+  placementUnavailable: () => control(Topics.placementMode, { selectedName: "Assembler", height: 3, unavailableReason: "Blocked by terrain" }),
+  placementEmpty: () => control(Topics.placementMode, { selectedName: "", height: 0, unavailableReason: "" }),
   delete: () => control(Topics.deleteMode, { unavailableReason: "Protected area" }),
+  deleteEmpty: () => control(Topics.deleteMode, { unavailableReason: "" }),
   crosshairHidden: () => control(Topics.crosshair, { visible: false }),
   crosshairVisible: () => control(Topics.crosshair, { visible: true }),
   uiHidden: () => control(Topics.uiVisibility, { visible: false }),
@@ -38,6 +41,10 @@ const controls = {
   japanese: () => control(Topics.localization, { locale: "japanese" }),
   english: () => control(Topics.localization, { locale: "english" }),
   challengeActive: () => control(Topics.challengeCurrent, clone(fx.challengeCurrent)),
+  challengeJapanese: () => control(Topics.challengeCurrent, clone(fx.challengeJapanese)),
+  challengeMultiple: () => control(Topics.challengeCurrent, clone(fx.challengeMultiple)),
+  challengeLong: () => control(Topics.challengeCurrent, clone(fx.challengeLong)),
+  challengeMultipleLong: () => control(Topics.challengeCurrent, clone(fx.challengeMultipleLong)),
   challengeCompleted: () => control(Topics.challengeCurrent, { challenges: [], completedChallengeGuid: "ch-2" }),
   notificationAchievement: () => control(Topics.notification, { seq: 1, category: "achievement", messageId: "achievement.researchCompleted", messageParams: ["原始研究1"], itemId: 1 }),
   notificationItemUnlocked: () => control(Topics.notification, { seq: 2, category: "achievement", messageId: "achievement.unlockedItem", messageParams: [], itemId: 2 }),

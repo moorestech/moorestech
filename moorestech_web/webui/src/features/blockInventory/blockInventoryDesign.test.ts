@@ -23,7 +23,7 @@ const styles = {
   machineInventoryBody: read("./details/machine/machineInventoryBody.module.css"),
 };
 
-const appTokens = read("../../app/index.css");
+const appTokens = read("../../app/tokens.css");
 
 describe("block inventory design whitelist", () => {
   it.each(Object.entries(sources))("%sから禁止Mantine部品とテーマ色を除去する", (_, source) => {

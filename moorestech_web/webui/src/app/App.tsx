@@ -69,6 +69,11 @@ export default function App() {
   // ビルドメニュー等の独立メニューも背景ディムは共有するが、インベントリは重畳しない
   // Standalone menus (build menu, etc.) share the dim backdrop but do not overlay the inventory
   const modalScreen = inventoryScreen || screen === "researchTree" || screen === "buildMenu" || screen === "challengeList" || screen === "pauseMenu" || screen === "trainPause";
+  // 常駐チャレンジHUDはゲームプレイを専有しない画面だけへ出す
+  // Show the resident challenge HUD only on screens that do not own gameplay interaction
+  const challengeHudVisible = !modalScreen
+    && uiState !== UiStateNames.placeBlock
+    && uiState !== UiStateNames.deleteBar;
 
   // Ctrl+U中はPortalを含む全Web UIをunmountする
   // Unmount the entire Web UI, including portals, while Ctrl+U is active
@@ -111,7 +116,9 @@ export default function App() {
       <Portal>
         <ToastHost />
         <NotificationHost />
-        <CurrentChallengeHud />
+        {/* モーダル画面と操作モードでは各画面へ情報を集約し、常駐HUDとの衝突を避ける */}
+        {/* Modal screens and interaction modes own their information without colliding with the resident HUD */}
+        {challengeHudVisible && <CurrentChallengeHud />}
         <SkitTransition />
         <TutorialOverlay />
         <WorldPinOverlay />

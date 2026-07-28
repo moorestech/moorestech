@@ -264,6 +264,24 @@ description: |
 - `value` は `clamp01` を通す（NaN は 0）。クリップ矩形は矢印 path の水平範囲（viewBox 座標系）に合わせ、`value=0` で完全に空、`value=1` で完全に充填になること。
 - 進捗はアニメーション（transition）を付けない。`useHoldCraft` の rAF が毎フレーム値を更新するため、補間は二重になる。
 
+## 8.14 チャレンジHUD
+
+- 常時表示HUD族として、面・枠・角丸を持たず、左上に浮かせる。
+- 構成は「`--text-muted` の従属見出し → `FadeRule` → `--text-high-contrast` の目標一覧」だけとする。
+- 位置・幅・間隔・文字サイズ・文字影は `--challenge-hud-*` 固定長トークンで管理する。
+- 複数目標は受信順で縦積みし、長文・長語を固定幅内で折り返す。
+- アイコン、ゲージ、箇条書き装飾、光彩、アニメーションは追加しない。
+- `pointer-events: none` を維持し、blockingスキット中は表示しない。
+
+## 8.15 操作モードHUD
+
+- 配置・削除モードの状態表示は、stage左上で `GamePanel variant="craft"` に収める。クラフトレシピ詳細と同じ半透明ネイビー面・1px枠・内周線・右下グリップをそのまま再利用し、独自の面や枠を作らない。
+- 構成は「`--text-muted` の従属見出し → `FadeRule` → `--text-high-contrast` の詳細一覧」とし、警告だけ `--text-insufficient` を使う。
+- Mantineの `Paper` / `Stack` / `Title` / `Text` は使わず、意味を持つHTML要素・`GamePanel`・`FadeRule` だけで構成する。
+- 位置・幅・間隔・文字サイズは `--operation-hud-*` 固定長トークンで管理する。
+- 光彩、アニメーション、独自色、合成boldは追加せず、`pointer-events: none` でゲーム入力を素通しする。
+- 操作モードHUDの表示中は同じ左上領域を使うチャレンジHUDを表示しない。
+
 ## 9. やらないことリスト（再掲・明示）
 
 - 全画面UI・不透明な面での塗り潰し（唯一の例外は §8.12 のスキット暗転）

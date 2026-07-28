@@ -3,6 +3,17 @@ import type { TopicScenario } from "../mock-host/topics/topicControls";
 
 // mock-host 制御エンドポイントの薄いラッパ。URL リテラルの散在を防ぐ
 // Thin wrappers over the mock-host control endpoints; keeps URL literals in one place
+export async function requestMockControl(page: Page, baseUrl: string, path: string): Promise<void> {
+  // HTTP・mock応答を境界で検証する
+  // Validate HTTP and mock responses at the boundary
+  const response = await page.request.get(`${baseUrl}${path}`);
+  const body = await response.json() as unknown;
+  const accepted = typeof body === "object" && body !== null && "ok" in body && body.ok === true;
+  if (!response.ok() || !accepted) {
+    throw new Error(`mock control failed: ${path} (${response.status()}) ${JSON.stringify(body)}`);
+  }
+}
+
 export function setBlock(page: Page, type: string) {
   return page.request.get(`/__block?type=${type}`);
 }
@@ -46,26 +57,23 @@ export function setSkitStage(page: Page, stage: "none" | "background" | "text" |
 }
 
 export async function setTopicScenario(page: Page, scenario: TopicScenario) {
-  const response = await page.request.get(`/__topic-control?scenario=${encodeURIComponent(scenario)}`);
-  if (!response.ok()) throw new Error(`topic control failed: ${response.status()}`);
+  return requestMockControl(page, "", `/__topic-control?scenario=${encodeURIComponent(scenario)}`);
 }
 
 export async function setMiningProgress(page: Page, progress: number) {
-  const response = await page.request.get(`/__topic-control?scenario=mining&progress=${progress}`);
-  if (!response.ok()) throw new Error(`mining progress control failed: ${response.status()}`);
+  return requestMockControl(page, "", `/__topic-control?scenario=mining&progress=${progress}`);
 }
 
 export async function injectTopicSnapshot(page: Page, scenario: TopicScenario, revision: number, progress: number) {
-  const response = await page.request.get(`/__topic-control?scenario=${encodeURIComponent(scenario)}&snapshot=1&revision=${revision}&progress=${progress}`);
-  if (!response.ok()) throw new Error(`topic snapshot control failed: ${response.status()}`);
+  const path = `/__topic-control?scenario=${encodeURIComponent(scenario)}&snapshot=1&revision=${revision}&progress=${progress}`;
+  return requestMockControl(page, "", path);
 }
 
 export async function setTopicScenarioRevision(page: Page, scenario: TopicScenario, revision: number, progress: number) {
-  const response = await page.request.get(`/__topic-control?scenario=${encodeURIComponent(scenario)}&revision=${revision}&setWireRevision=1&progress=${progress}`);
-  if (!response.ok()) throw new Error(`topic revision control failed: ${response.status()}`);
+  const path = `/__topic-control?scenario=${encodeURIComponent(scenario)}&revision=${revision}&setWireRevision=1&progress=${progress}`;
+  return requestMockControl(page, "", path);
 }
 
 export async function setWoodItemName(page: Page, name: string) {
-  const response = await page.request.get(`/__item-master?woodName=${encodeURIComponent(name)}`);
-  if (!response.ok()) throw new Error(`item master control failed: ${response.status()}`);
+  return requestMockControl(page, "", `/__item-master?woodName=${encodeURIComponent(name)}`);
 }
