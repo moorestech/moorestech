@@ -1,21 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 
 import { validateTopicPayload } from "./validators";
+import { loadFixture } from "./wireFixtures";
 import { BENIGN_ERRORS } from "../transport/actions";
 import { TopicEnvelopeSchema, Topics } from "../transport/protocol";
 import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData, BuildMenuData, ChallengeTreeData, ChallengeCurrentData, PauseMenuData } from "./payloadTypes";
-
-// C# NUnit(WireContractTest) と同一のフィクスチャを参照する単一ソース。TS 側は validators と型消費で契約を確認する
-// Single source shared with the C# NUnit (WireContractTest); the TS side checks the contract via validators + type consumption
-const fixturesDir = fileURLToPath(
-  new URL("../../../../../moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/", import.meta.url),
-);
-
-function loadFixture(name: string): unknown {
-  return JSON.parse(readFileSync(fixturesDir + name, "utf8"));
-}
 
 describe("wire contract fixtures (shared with C#)", () => {
   it("削除した重複採掘HUD topicを公開しない", () => {

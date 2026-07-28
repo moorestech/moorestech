@@ -35,8 +35,7 @@ export type ClientMsg =
   | { op: "unsubscribe"; topics: string[] }
   | { op: "action"; type: string; requestId: string; payload: unknown }
   | { op: "input_state"; pointerOverUi: boolean; textInputFocused: boolean }
-  | { op: "ping" }
-  | { op: "pong" };
+  | { op: "ping" };
 
 export type ActionResult = { ok: boolean; error?: string };
 

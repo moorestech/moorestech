@@ -1,4 +1,4 @@
-import type { GameStateData, SkitPresentationData, TutorialPresentationData, WorldPinPresentationData } from "../../../src/bridge/contract/payloadTypes";
+import type { ChallengeCurrentData, ChallengeTreeData, GameStateData, SkitPresentationData, TutorialPresentationData, WorldPinPresentationData } from "../../../src/bridge/contract/payloadTypes";
 
 export const challengeTree = {
   categories: [{
@@ -10,8 +10,8 @@ export const challengeTree = {
       { guid: "ch-2", title: "Second Step", summary: "keep going", iconItemId: 2, state: "current", position: { x: 220, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: ["ch-1"] },
     ],
   }],
-};
-export const challengeCurrent = { challenges: [{ guid: "ch-2", title: "Second Step", categoryGuid: "cat-1" }] };
+} satisfies ChallengeTreeData;
+export const challengeCurrent = { challenges: [{ guid: "ch-2", title: "Second Step", categoryGuid: "cat-1" }] } satisfies ChallengeCurrentData;
 export const challengeJapanese = {
   challenges: [{ guid: "ch-jp", title: "石を採掘する", categoryGuid: "cat-1" }],
 };

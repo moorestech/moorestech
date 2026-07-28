@@ -49,10 +49,6 @@ namespace Client.WebUiHost.Boot
                     if (msg.Topics == null) return;
                     foreach (var t in msg.Topics) conn.Topics.TryRemove(t, out _);
                     break;
-                case "snapshot":
-                    if (msg.Topic == null) return;
-                    await SendSnapshotAsync(conn, msg.Topic);
-                    break;
                 case "action":
                     await HandleActionAsync(conn, msg);
                     break;
