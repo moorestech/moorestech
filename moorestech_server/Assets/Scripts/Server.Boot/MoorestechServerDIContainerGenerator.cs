@@ -238,6 +238,7 @@ namespace Server.Boot
             // Register events.
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
+            services.AddSingleton<IEquipmentInventoryUpdateEvent, EquipmentInventoryUpdateEvent>();
             services.AddSingleton<CraftEvent, CraftEvent>();
 
             //イベントレシーバーを登録

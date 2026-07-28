@@ -4,6 +4,7 @@ using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.PlayerInventory.ItemManaged;
 using UniRx;
+using UnityEngine;
 
 namespace Game.PlayerInventory
 {
@@ -13,6 +14,7 @@ namespace Game.PlayerInventory
     /// </summary>
     public class PlayerInventoryDataStore : IPlayerInventoryDataStore
     {
+        private readonly EquipmentInventoryUpdateEvent _equipmentInventoryUpdateEvent;
         private readonly GrabInventoryUpdateEvent _grabInventoryUpdateEvent;
 
 
@@ -20,11 +22,12 @@ namespace Game.PlayerInventory
         private readonly Dictionary<int, PlayerInventoryData> _playerInventoryData = new();
         private readonly IPlayerInventorySlotLevelDataStore _slotLevelDataStore;
 
-        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent, IGrabInventoryUpdateEvent grabInventoryUpdateEvent, IPlayerInventorySlotLevelDataStore slotLevelDataStore)
+        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent, IGrabInventoryUpdateEvent grabInventoryUpdateEvent, IEquipmentInventoryUpdateEvent equipmentInventoryUpdateEvent, IPlayerInventorySlotLevelDataStore slotLevelDataStore)
         {
             //イベントの呼び出しをアセンブリに隠蔽するため、インターフェースをキャストします。
             _mainInventoryUpdateEvent = (MainInventoryUpdateEvent)mainInventoryUpdateEvent;
             _grabInventoryUpdateEvent = (GrabInventoryUpdateEvent)grabInventoryUpdateEvent;
+            _equipmentInventoryUpdateEvent = (EquipmentInventoryUpdateEvent)equipmentInventoryUpdateEvent;
             _slotLevelDataStore = slotLevelDataStore;
 
             // レベル上昇で全プレイヤー拡張
@@ -47,8 +50,9 @@ namespace Game.PlayerInventory
             {
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _slotLevelDataStore.CurrentSlotCount);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent);
-                
-                _playerInventoryData.Add(playerId, new PlayerInventoryData(main, grab));
+                var equipment = new EquipmentInventoryData(playerId, _equipmentInventoryUpdateEvent);
+
+                _playerInventoryData.Add(playerId, new PlayerInventoryData(main, grab, equipment));
             }
             
             return _playerInventoryData[playerId];
@@ -75,7 +79,7 @@ namespace Game.PlayerInventory
             foreach (var saveInventory in saveInventoryDataList)
             {
                 var playerId = saveInventory.PlayerId;
-                (var mainItems, var grabItem) = saveInventory.GetPlayerInventoryData();
+                (var mainItems, var grabItem, var equipmentItems, var selectedEquipmentIndex) = saveInventory.GetPlayerInventoryData();
                 
                 //アイテムを復元
                 // セーブ済みアイテム数が現レベルのスロット数を超える場合はアイテム数まで拡張する
@@ -83,8 +87,16 @@ namespace Game.PlayerInventory
                 var slotCount = System.Math.Max(_slotLevelDataStore.CurrentSlotCount, mainItems.Count);
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, slotCount, mainItems);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, grabItem);
-                
-                var playerInventory = new PlayerInventoryData(main, grab);
+
+                // 装備できないセーブアイテムはメインへ退避し、アイテムを消さない
+                // Saved items that cannot be equipped fall back into main so nothing is destroyed
+                var equipment = new EquipmentInventoryData(playerId, _equipmentInventoryUpdateEvent);
+                var rejectedEquipmentItems = equipment.RestoreFromSave(equipmentItems, selectedEquipmentIndex);
+                var notInsertedItems = main.InsertItem(rejectedEquipmentItems);
+                foreach (var notInsertedItem in notInsertedItems)
+                    Debug.LogWarning($"装備から退避したアイテムがメインインベントリに入りきりませんでした playerId:{playerId} item:{notInsertedItem.Id} count:{notInsertedItem.Count}");
+
+                var playerInventory = new PlayerInventoryData(main, grab, equipment);
                 
                 //インベントリの追加を行う　既にあるなら置き換える
                 _playerInventoryData[playerId] = playerInventory;

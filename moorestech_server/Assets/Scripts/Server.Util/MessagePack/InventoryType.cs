@@ -6,6 +6,7 @@ namespace Server.Util.MessagePack
         Grab,
         Block,
         Train,
+        Equipment,
     }
 
     public static class InventoryTypeExtension
