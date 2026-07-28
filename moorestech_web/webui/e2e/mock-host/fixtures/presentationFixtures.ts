@@ -12,6 +12,30 @@ export const challengeTree = {
   }],
 };
 export const challengeCurrent = { challenges: [{ guid: "ch-2", title: "Second Step", categoryGuid: "cat-1" }] };
+export const challengeJapanese = {
+  challenges: [{ guid: "ch-jp", title: "石を採掘する", categoryGuid: "cat-1" }],
+};
+export const challengeMultiple = {
+  challenges: [
+    { guid: "ch-a", title: "石を採掘する", categoryGuid: "cat-1" },
+    { guid: "ch-b", title: "石器をクラフトする", categoryGuid: "cat-1" },
+    { guid: "ch-c", title: "木を伐採して拠点へ運ぶ", categoryGuid: "cat-2" },
+  ],
+};
+export const challengeLong = {
+  challenges: [{
+    guid: "ch-long",
+    title: "VeryLongUnbrokenChallengeObjectiveTextThatMustWrapInsideTheHudWithoutOverflowing",
+    categoryGuid: "cat-1",
+  }],
+};
+export const challengeMultipleLong = {
+  challenges: [
+    { guid: "ch-ml-a", title: "地下深くにある非常に長い名前の鉱床を見つけて必要な石を採掘する", categoryGuid: "cat-1" },
+    { guid: "ch-ml-b", title: "遠方の森林から建築に必要な木材を伐採して拠点まで運搬する", categoryGuid: "cat-2" },
+    { guid: "ch-ml-c", title: "VeryLongUnbrokenSecondaryObjectiveTextThatMustAlsoWrapInsideTheHud", categoryGuid: "cat-3" },
+  ],
+};
 export const gameState = { state: "InGame" } satisfies GameStateData;
 export const tutorialPresentation = {
   tutorialSessionId: "", revision: 0, challengeId: "", highlights: [],

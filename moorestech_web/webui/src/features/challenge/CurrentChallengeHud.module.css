@@ -1,0 +1,38 @@
+/* 世界上へ文字だけを重ね、操作やカード面を持たない常駐HUDにする */
+/* Overlay text directly on the world as a resident HUD without interaction or a card face */
+.hud {
+  position: fixed;
+  top: var(--challenge-hud-top);
+  left: var(--challenge-hud-left);
+  z-index: var(--z-overlay-panel);
+  width: var(--challenge-hud-width);
+  color: var(--text-high-contrast);
+  pointer-events: none;
+  text-shadow: var(--challenge-hud-text-shadow);
+}
+
+/* 控えめな見出しから共有罫線へ固定間隔でつなぐ */
+/* Connect the subdued label to the shared rule with a fixed gap */
+.label {
+  margin-bottom: var(--challenge-hud-label-rule-gap);
+  color: var(--text-muted);
+  font-size: var(--challenge-hud-label-font-size);
+  letter-spacing: var(--challenge-hud-letter-spacing);
+}
+
+/* 全目標を受信順のまま縦に並べ、罫線との間隔を保つ */
+/* Stack every objective in received order while preserving its distance from the rule */
+.objectives {
+  display: flex;
+  flex-direction: column;
+  gap: var(--challenge-hud-objective-gap);
+  margin-top: var(--challenge-hud-rule-list-gap);
+}
+
+/* 分割不能な長文もHUD固定幅の内側で必ず折り返す */
+/* Force even unbroken long text to wrap inside the HUD's fixed width */
+.objective {
+  overflow-wrap: anywhere;
+  font-size: var(--challenge-hud-objective-font-size);
+  line-height: var(--challenge-hud-objective-line-height);
+}

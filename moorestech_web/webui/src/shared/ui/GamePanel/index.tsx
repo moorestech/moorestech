@@ -21,7 +21,7 @@ export default function GamePanel({ gridArea, title, variant = "default", style,
   const variantClassName = VARIANT_CLASS_NAMES[variant];
   const className = variantClassName === "" ? styles.panel : `${styles.panel} ${variantClassName}`;
   return (
-    <div className={className} style={{ gridArea, ...style }}>
+    <div className={className} data-variant={variant} style={{ gridArea, ...style }}>
       {title !== undefined ? (
         <>
           <div className={`${styles.decoLine} ${styles.decoLineTop}`} aria-hidden="true" />
