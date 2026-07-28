@@ -58,7 +58,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     default:
                         // 未知のKindは型で排除する到達不能ケース
                         // Unreachable: unknown Kind is excluded by the type
-                        throw new ArgumentOutOfRangeException(nameof(entry.Kind), entry.Kind, null);
+                        throw new ArgumentOutOfRangeException();
                 }
             }
 
@@ -95,7 +95,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     default:
                         // 未知のKindは型で排除する到達不能ケース
                         // Unreachable: unknown Kind is excluded by the type
-                        throw new ArgumentOutOfRangeException(nameof(entry.Kind), entry.Kind, null);
+                        throw new ArgumentOutOfRangeException();
                 }
             }
 
