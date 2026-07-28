@@ -1,4 +1,4 @@
-import type { SlotRef, BlockSlotRef, BuildMenuEntryType } from "../contract/payloadTypes";
+import type { SlotRef, BlockSlotRef } from "../contract/payloadTypes";
 
 // C# UIStateEnum 由来の state 名。文字列リテラルの散在を防ぐ
 // State names from the C# UIStateEnum; prevents scattered string literals
@@ -28,7 +28,9 @@ export type ActionPayloads = {
   // text は input モーダルの確定時のみ付与する
   // text accompanies only the confirm of an input modal
   "ui.modal.respond": { id: string; result: "confirm" | "cancel"; text?: string };
-  "build_menu.select": { entryType: BuildMenuEntryType; entryKey: string };
+  // 設置対象はGuid1本で指す。build_menu.select も blueprint.delete も同じ id 語彙
+  // A placement target is addressed by a single GUID; build_menu.select and blueprint.delete share the id vocabulary
+  "build_menu.select": { id: string };
   "blueprint.delete": { id: string };
   "block_inventory.move_item": { from: BlockSlotRef; to: BlockSlotRef; count: number };
   "block_inventory.split": { from: BlockSlotRef };

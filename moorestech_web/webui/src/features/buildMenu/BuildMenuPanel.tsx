@@ -34,15 +34,12 @@ export function BuildMenuPanel() {
 
   // topic再配信で hovered が消えたエントリを指し続けても、描画時に現データ側の実在エントリへ引き直す
   // If a topic rebroadcast leaves hovered pointing at a removed entry, re-resolve to the live entry at render time
-  const previewEntry = hovered
-    ? data.entries.find((e) => e.entryType === hovered.entryType && e.entryKey === hovered.entryKey) ?? null
-    : null;
+  const previewEntry = hovered ? data.entries.find((e) => e.id === hovered.id) ?? null : null;
 
-  const select = (entry: BuildMenuEntryData) =>
-    void dispatchAction("build_menu.select", { entryType: entry.entryType, entryKey: entry.entryKey });
-  // ブループリントのentryKeyはGuid文字列（名前ではなくGuidで一意識別する）
-  // A blueprint's entryKey is a GUID string, used as the unique identity instead of the name
-  const remove = (entry: BuildMenuEntryData) => void dispatchAction("blueprint.delete", { id: entry.entryKey });
+  const select = (entry: BuildMenuEntryData) => void dispatchAction("build_menu.select", { id: entry.id });
+  // BPのidはBPのGuid。設置対象と削除対象で同じidを使う
+  // A blueprint's id is its GUID; placement and deletion address it with the same id
+  const remove = (entry: BuildMenuEntryData) => void dispatchAction("blueprint.delete", { id: entry.id });
   // 閉じるはGameScreen遷移要求
   // Close requests a GameScreen transition
   const close = () => void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });

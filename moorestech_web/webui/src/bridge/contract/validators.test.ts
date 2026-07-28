@@ -167,18 +167,22 @@ describe("validCraftRecipes", () => {
 describe("validBuildMenu", () => {
   const categories = [{ name: "物流", subCategories: ["チェスト"] }];
   const entry = {
-    entryType: "block", entryKey: "1", label: "鉄の機械", category: "物流", subCategory: "チェスト",
+    id: "b10c0000-0000-4000-8000-000000000001", kind: "block", label: "鉄の機械", category: "物流", subCategory: "チェスト",
     requiredItems: [{ itemId: 3, count: 5 }], iconUrl: "/api/block-icons/1.png",
   };
   it("accepts icon and text entries", () => {
     const d = {
       categories,
-      entries: [entry, { entryType: "blueprint", entryKey: "家", label: "家", category: "物流", subCategory: "チェスト", requiredItems: [] }],
+      entries: [entry, { id: "bb1e0000-0000-4000-8000-000000000001", kind: "blueprint", label: "家", category: "物流", subCategory: "チェスト", requiredItems: [] }],
     };
     expect(validateTopicPayload(Topics.buildMenu, d)).toBe(true);
   });
-  it("rejects a non-string entryKey", () => {
-    const d = { categories, entries: [{ ...entry, entryKey: 1 }] };
+  it("rejects a non-string id", () => {
+    const d = { categories, entries: [{ ...entry, id: 1 }] };
+    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
+  });
+  it("rejects an unknown kind", () => {
+    const d = { categories, entries: [{ ...entry, kind: "blueprintCopy" }] };
     expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
   });
   it("rejects a missing entries array", () => {

@@ -177,11 +177,11 @@ namespace Client.Tests.WebUi
                 },
                 Entries = new List<BuildMenuEntryDto>
                 {
-                    new() { EntryType = "block", EntryKey = "1", Label = "鉄の機械", Category = "物流", SubCategory = "チェスト", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 3, Count = 5 } }, IconUrl = "/api/block-icons/1.png" },
-                    new() { EntryType = "trainCar", EntryKey = "8f9c2a51-0000-0000-0000-000000000001", Label = "貨物車両", Category = "輸送", SubCategory = "車両", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 7, Count = 2 } }, IconUrl = "/api/train-car-icons/8f9c2a51-0000-0000-0000-000000000001.png" },
-                    new() { EntryType = "connectTool", EntryKey = "BeltConveyor", Label = "接続ツール", Category = "ツール", SubCategory = "接続", RequiredItems = new List<BuildMenuRequiredItemDto>(), IconUrl = "/api/connect-tool-icons/3.png" },
-                    new() { EntryType = "blueprintCopy", EntryKey = "", Label = "ブループリントコピー", Category = "ツール", SubCategory = "ブループリント", RequiredItems = new List<BuildMenuRequiredItemDto>() },
-                    new() { EntryType = "blueprint", EntryKey = "starter-base", Label = "starter-base", Category = "ブループリント", SubCategory = "保存済み", RequiredItems = new List<BuildMenuRequiredItemDto>() },
+                    new() { Id = "b10c0000-0000-4000-8000-000000000001", Kind = "block", Label = "鉄の機械", Category = "物流", SubCategory = "チェスト", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 3, Count = 5 } }, IconUrl = "/api/block-icons/1.png" },
+                    new() { Id = "8f9c2a51-0000-0000-0000-000000000001", Kind = "trainCar", Label = "貨物車両", Category = "輸送", SubCategory = "車両", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 7, Count = 2 } }, IconUrl = "/api/train-car-icons/8f9c2a51-0000-0000-0000-000000000001.png" },
+                    new() { Id = "c07e0000-0000-4000-8000-000000000001", Kind = "connectTool", Label = "接続ツール", Category = "ツール", SubCategory = "接続", RequiredItems = new List<BuildMenuRequiredItemDto>(), IconUrl = "/api/connect-tool-icons/c07e0000-0000-4000-8000-000000000001.png" },
+                    new() { Id = "3f8f6de0-0000-4000-8000-000000000001", Kind = "buildTool", Label = "ブループリントコピー", Category = "ツール", SubCategory = "ブループリント", RequiredItems = new List<BuildMenuRequiredItemDto>() },
+                    new() { Id = "bb1e0000-0000-4000-8000-000000000001", Kind = "blueprint", Label = "starter-base", Category = "ブループリント", SubCategory = "保存済み", RequiredItems = new List<BuildMenuRequiredItemDto>() },
                 },
             };
             AssertMatchesFixture(dto, "build_menu_snapshot.json");

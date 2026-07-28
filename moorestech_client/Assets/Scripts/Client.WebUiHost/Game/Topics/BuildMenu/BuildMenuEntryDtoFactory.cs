@@ -22,8 +22,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             {
                 dtos.Add(new BuildMenuEntryDto
                 {
-                    EntryType = GetEntryTypeName(entry.Target),
-                    EntryKey = GetEntryKey(entry.Target),
+                    Id = GetId(entry.Target),
+                    Kind = GetKind(entry.Target),
                     Label = entry.Label,
                     Category = entry.Category,
                     SubCategory = entry.SubCategory,
@@ -46,32 +46,23 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 }).ToList();
         }
 
-        // web契約の entryType 文字列（select アクションの照合と共有する）
-        // The web-contract entryType string (shared with the select action's matching)
-        public static string GetEntryTypeName(IPlacementTarget target)
+        // 設置対象IDはGuid文字列1本。kindは表示・振る舞い用で識別子ではない
+        // The id is a single GUID string; kind is for display/behavior, not identity
+        public static string GetId(IPlacementTarget target)
+        {
+            return target.Id.ToString();
+        }
+
+        public static string GetKind(IPlacementTarget target)
         {
             return target switch
             {
                 BlockPlacementTarget => "block",
                 TrainCarPlacementTarget => "trainCar",
                 ConnectToolPlacementTarget => "connectTool",
-                BuildToolPlacementTarget => "blueprintCopy",
+                BuildToolPlacementTarget => "buildTool",
                 BlueprintPlacementTarget => "blueprint",
                 _ => target.GetType().Name,
-            };
-        }
-
-        // 種別ごとの安定キー（配列indexは再配信でずれるため使わない）
-        // Stable key per type (array indices shift across republishes, so they are never used)
-        public static string GetEntryKey(IPlacementTarget target)
-        {
-            return target switch
-            {
-                BlockPlacementTarget block => block.BlockId.AsPrimitive().ToString(),
-                TrainCarPlacementTarget trainCar => trainCar.TrainCarGuid.ToString(),
-                ConnectToolPlacementTarget connectTool => connectTool.ConnectToolGuid.ToString(),
-                BlueprintPlacementTarget blueprint => blueprint.BlueprintGuid.ToString(),
-                _ => string.Empty,
             };
         }
 

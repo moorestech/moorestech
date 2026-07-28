@@ -3,7 +3,7 @@ import type { BuildMenuCategory, BuildMenuEntryData } from "../../bridge/contrac
 import { resolveSelectedCategory, searchSections, sectionsForCategory, visibleCategories } from "./buildMenuGrouping";
 
 const entry = (label: string, category: string, subCategory: string): BuildMenuEntryData => ({
-  entryType: "block", entryKey: label, label, category, subCategory, requiredItems: [],
+  id: label, kind: "block", label, category, subCategory, requiredItems: [],
 });
 
 const categories: BuildMenuCategory[] = [

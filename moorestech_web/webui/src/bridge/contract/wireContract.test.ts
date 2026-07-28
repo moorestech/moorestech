@@ -90,7 +90,8 @@ describe("wire contract fixtures (shared with C#)", () => {
     const d = loadFixture("build_menu_snapshot.json");
     expect(validateTopicPayload(Topics.buildMenu, d)).toBe(true);
     const typed = d as BuildMenuData;
-    expect(typed.entries[0].entryType).toBe("block");
+    expect(typed.entries[0].kind).toBe("block");
+    expect(typed.entries[0].id).toBe("b10c0000-0000-4000-8000-000000000001");
     expect(typed.entries[0].category).toBe("物流");
     expect(typed.categories[0].name).toBe("物流");
     expect(typed.entries[3].iconUrl).toBeUndefined();

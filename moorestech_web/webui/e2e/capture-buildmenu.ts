@@ -3,6 +3,9 @@
 
 import { chromium } from "@playwright/test";
 import { WebSocketServer } from "ws";
+// fixtures は型と定数のみでMOCK_DEMOを読まないため、静的importしてよい
+// fixtures holds only types and constants and never reads MOCK_DEMO, so a static import is safe
+import { buildMenuEntryIds } from "./mock-host/fixtures";
 
 const PORT = Number(process.env.CAPTURE_PORT ?? 5401);
 const OUT_DIR = process.env.CAPTURE_OUT_DIR ?? ".";
@@ -49,7 +52,7 @@ async function main() {
   // 3.ホバー(検索クリア後)
   // 3. Hover (after clearing search)
   await page.getByTestId("build-menu-search").fill("");
-  await page.getByTestId("build-menu-entry-block-wood-chest").hover();
+  await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`).hover();
   await page.getByTestId("build-menu-preview").waitFor();
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT_DIR}/buildmenu-3-hover.png` });

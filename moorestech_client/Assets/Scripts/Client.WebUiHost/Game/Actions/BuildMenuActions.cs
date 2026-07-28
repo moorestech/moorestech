@@ -35,19 +35,17 @@ namespace Client.WebUiHost.Game.Actions
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
-            if (payload["entryType"] is not JValue { Type: JTokenType.String } typeValue) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
-            if (payload["entryKey"] is not JValue { Type: JTokenType.String } keyValue) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
+            if (payload["id"] is not JValue { Type: JTokenType.String } idValue) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
+            if (!Guid.TryParse((string)idValue, out var targetId)) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
 
             // BuildMenu以外でのstale到達（Unity側が先に閉じたレース）は拒否する
             // Reject stale arrivals outside BuildMenu (the Unity side closed the menu first)
             if (_uiStateControl.CurrentState != UIStateEnum.BuildMenu) return UniTask.FromResult(ActionResult.Fail("invalid_state"));
 
-            // 現在のカタログと種別+キーで照合し、削除済みBP等へのstaleクリックを弾く
-            // Match against the current catalog by type+key, rejecting stale clicks (e.g. deleted blueprints)
-            var entryType = (string)typeValue;
-            var entryKey = (string)keyValue;
+            // 現在のカタログ（未解放を除外済み）とIdで照合し、削除済みBP等へのstaleクリックを弾く
+            // Match by id against the current catalog (locked entries already excluded), rejecting stale clicks such as deleted blueprints
             var entries = WebBuildMenuEntryCatalog.CreateEntries(_unlockState, _blueprintLibrary);
-            var matched = entries.Where(e => BuildMenuEntryDtoFactory.GetEntryTypeName(e.Target) == entryType && BuildMenuEntryDtoFactory.GetEntryKey(e.Target) == entryKey).ToList();
+            var matched = entries.Where(e => e.Target.Id == targetId).ToList();
             if (matched.Count == 0) return UniTask.FromResult(ActionResult.Fail("unknown_entry"));
 
             // uGUIの消費キューへはターゲットとラベルのみ渡す（uGUI表示は使われない）

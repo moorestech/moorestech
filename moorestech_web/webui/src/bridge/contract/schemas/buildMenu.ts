@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-export const BuildMenuEntryTypeSchema = z.enum(["block", "trainCar", "connectTool", "blueprintCopy", "blueprint"]);
+// kind は表示・振る舞いの分類で識別子ではない。設置対象の同一性は id(Guid) だけが持つ
+// kind classifies display/behavior only; identity of a placement target lives solely in id (a GUID)
+export const BuildMenuEntryKindSchema = z.enum(["block", "trainCar", "connectTool", "buildTool", "blueprint"]);
 
 export const BuildMenuRequiredItemSchema = z.object({
   itemId: z.number().int(),
@@ -8,8 +10,8 @@ export const BuildMenuRequiredItemSchema = z.object({
 });
 
 export const BuildMenuEntryDataSchema = z.object({
-  entryType: BuildMenuEntryTypeSchema,
-  entryKey: z.string(),
+  id: z.string(),
+  kind: BuildMenuEntryKindSchema,
   label: z.string(),
   category: z.string(),
   subCategory: z.string(),
