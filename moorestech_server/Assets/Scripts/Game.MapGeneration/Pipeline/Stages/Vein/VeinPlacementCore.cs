@@ -7,34 +7,34 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Stages
 {
-    // ステージ6: ワールド全体の鉱脈配置と、クラスターごとの整数 AABB(PlacedVein) 変換。
-    // 鉱石岩の見た目(PlacedMapObject)は出力しない（地表ビジュアルは露頭に一本化・ADR#10）。
-    // Stage 6: world-wide vein placement and per-cluster integer AABB (PlacedVein) conversion.
-    // No ore-rock visual (PlacedMapObject) is emitted; surface visuals unify on outcrops (ADR#10).
-    public static class OrePlacementStage
+    // OrePlacementStage/FluidVeinPlacementStage共通のクラスタ配置ロジック(entry型に依存しない)。
+    // rngSeedOffsetを分けることでitem/fluidが同一seedでも同一座標に重ならないようにする。
+    // Cluster-placement logic shared by OrePlacementStage/FluidVeinPlacementStage (entry-type agnostic).
+    // A distinct rngSeedOffset keeps item/fluid from landing on identical coordinates under the same seed.
+    public static class VeinPlacementCore
     {
         public static List<PlacedVein> Generate(
+            OreEntry[] entries, float borderMargin,
             TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
-            float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements)
+            float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
+            int rngSeedOffset)
         {
             var veins = new List<PlacedVein>();
-            var ore = config.oreConfig;
-            if (!config.generateOre || ore?.entries == null || ore.entries.Length == 0) return veins;
+            if (!config.generateOre || entries == null || entries.Length == 0) return veins;
 
             int biomeCount = biomeTypes.Length;
             int res = config.Resolution;
-            var entries = ore.entries;
 
-            // 各 OreEntry の対象バイオーム合成マスク（OR）を構築する。
-            // Build the OR-composite biome mask for each OreEntry.
+            // 各エントリの対象バイオーム合成マスク（OR）を構築する。
+            // Build the OR-composite biome mask for each entry.
             var entryMasks = BuildEntryMasks(entries, masks, biomeTypes, biomeCount, res);
 
             var treeGrid = SpatialGrid.FromPlacements(treeEntries, config.terrainWidth, config.terrainLength, 0f);
             var objectGrid = ObjectsToGrid(objectPlacements, config);
             var dims = TerrainDimensions.From(config, 0f);
-            var oreRng = new System.Random(config.seed + 7000);
+            var rng = new System.Random(config.seed + rngSeedOffset);
             var members = OrePlacementGenerator.GenerateForWorld(
-                entries, entryMasks, ore.borderMargin, heights2D, dims, oreRng, treeGrid, objectGrid);
+                entries, entryMasks, borderMargin, heights2D, dims, rng, treeGrid, objectGrid);
 
             // クラスター単位でメンバー座標の min/max を整数化し PlacedVein を1件生成する。
             // Snap each cluster's member coord min/max to integers and emit one PlacedVein per cluster.

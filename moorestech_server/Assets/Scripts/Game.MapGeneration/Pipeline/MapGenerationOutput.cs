@@ -13,6 +13,7 @@ namespace Game.MapGeneration.Pipeline
         public Vector3 SpawnPoint;         // ワールド座標のスポーン地点 / spawn point in world space
         public List<PlacedMapObject> MapObjects = new List<PlacedMapObject>();
         public List<PlacedVein> ItemVeins = new List<PlacedVein>();
+        public List<PlacedVein> FluidVeins = new List<PlacedVein>();
     }
 
     // 木・石など見た目マップオブジェクト1件（GUID + ワールド座標）。

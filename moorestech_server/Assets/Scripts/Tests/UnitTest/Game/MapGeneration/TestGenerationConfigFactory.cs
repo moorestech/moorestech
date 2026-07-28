@@ -16,6 +16,10 @@ namespace Tests.UnitTest.Game.MapGeneration
         // Fixed test vein GUID referenced by the OreEntry.
         public const string TestVeinGuid = "11111111-0000-0000-0000-000000000001";
 
+        // FluidVeinEntry が参照するテスト用鉱脈 GUID（map.json の test:WaterVein）。
+        // Fixed test vein GUID referenced by the FluidVeinEntry (test:WaterVein in map.json).
+        public const string TestFluidVeinGuid = "11111111-0000-0000-0000-000000000002";
+
         public static Generation CreateSmall()
         {
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
@@ -44,26 +48,36 @@ namespace Tests.UnitTest.Game.MapGeneration
             ap["jungleEnabled"] = false;
             ap["woodsEnabled"] = false;
 
-            // OreEntry を有効なバンド1本＋固定 GUID＋Grassland 出現に設定して鉱脈が必ず生成されるようにする。
-            // Configure the OreEntry with one valid band, fixed GUID, Grassland, so veins are always produced.
+            // OreEntry/FluidVeinEntry を有効なバンド1本＋固定 GUID＋Grassland 出現に設定して
+            // 鉱脈が必ず生成されるようにする（item/fluidとも同形）。
+            // Configure OreEntry/FluidVeinEntry with one valid band, fixed GUID, Grassland, so veins are
+            // always produced (item/fluid share the same shape).
             var ore = (JObject)ap["oreConfig"];
-            var entries = (JArray)ore["entries"];
-            var entry0 = (JObject)entries[0];
-            entry0["veinGuid"] = TestVeinGuid;
-            entry0["biomes"] = new JArray("Grassland", "Forest");
-            entry0["useSlopeFilter"] = false;
-            entry0["minDistanceFromOthers"] = 0;
-            entry0["bands"] = new JArray(new JObject
-            {
-                ["outerRadiusMeters"] = -1,
-                ["density"] = 1.0,
-                ["maxObjectsPerCluster"] = 5,
-                ["clusterRadius"] = 6,
-                ["minDistanceBetweenOres"] = 1,
-                ["placementRetries"] = 10,
-            });
+            ConfigureVeinEntry((JObject)((JArray)ore["entries"])[0], TestVeinGuid);
+            ConfigureVeinEntry((JObject)((JArray)ore["fluidEntries"])[0], TestFluidVeinGuid);
 
             return GenerationLoader.Load(root);
+
+            #region Internal
+
+            static void ConfigureVeinEntry(JObject entry, string veinGuid)
+            {
+                entry["veinGuid"] = veinGuid;
+                entry["biomes"] = new JArray("Grassland", "Forest");
+                entry["useSlopeFilter"] = false;
+                entry["minDistanceFromOthers"] = 0;
+                entry["bands"] = new JArray(new JObject
+                {
+                    ["outerRadiusMeters"] = -1,
+                    ["density"] = 1.0,
+                    ["maxObjectsPerCluster"] = 5,
+                    ["clusterRadius"] = 6,
+                    ["minDistanceBetweenOres"] = 1,
+                    ["placementRetries"] = 10,
+                });
+            }
+
+            #endregion
         }
     }
 }

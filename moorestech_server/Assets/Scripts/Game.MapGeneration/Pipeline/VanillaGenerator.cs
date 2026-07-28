@@ -61,8 +61,8 @@ namespace Game.MapGeneration.Pipeline
             }
         }
 
-        // ステージ3-6: 木・オブジェクト・鉱脈を配置し MapObjects / ItemVeins を確定する。
-        // Stage 3-6: place trees, objects, and veins; finalize MapObjects and ItemVeins.
+        // ステージ3-6: 木・オブジェクト・鉱脈を配置し MapObjects / ItemVeins / FluidVeins を確定する。
+        // Stage 3-6: place trees, objects, and veins; finalize MapObjects, ItemVeins, and FluidVeins.
         static void RunPlacement(
             TerrainGenerationConfig config, BiomePlacementHelper helper, BiomeType[] biomeTypes,
             JobBuffers buffers, float[] heights, int res, int biomeCount, MapGenerationOutput output)
@@ -83,6 +83,8 @@ namespace Game.MapGeneration.Pipeline
                     treeEntries, out objectEntries, out objectPlacements);
 
             output.ItemVeins = OrePlacementStage.Generate(
+                config, masks, biomeTypes, heights2D, treeEntries, objectPlacements);
+            output.FluidVeins = FluidVeinPlacementStage.Generate(
                 config, masks, biomeTypes, heights2D, treeEntries, objectPlacements);
 
             // 全配置確定後に木周辺の生成ハイトマップを摂動する（output.Heights と同一配列を書き換える）。

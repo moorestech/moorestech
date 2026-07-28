@@ -45,6 +45,38 @@ namespace Tests.UnitTest.Game.MapGeneration
         }
 
         [Test]
+        public void ItemAndFluidVeinsMergeIntoMapVeinsInOrder()
+        {
+            var output = CreateDummyOutput();
+            output.FluidVeins = new List<PlacedVein>
+            {
+                new()
+                {
+                    VeinGuid = "33333333-3333-3333-3333-333333333333",
+                    Min = new Vector3Int(13, 14, 15),
+                    Max = new Vector3Int(16, 17, 18),
+                },
+            };
+
+            var mapInfoJson = MapInfoJsonBuilder.Build(output);
+
+            // ItemVeins(2件)の後にFluidVeins(1件)が続く合流順であること。
+            // ItemVeins (2) must be followed by FluidVeins (1) in the merged output.
+            Assert.That(mapInfoJson.MapVeins.Count, Is.EqualTo(3));
+            Assert.That(mapInfoJson.MapVeins[0].VeinGuidStr, Is.EqualTo("11111111-1111-1111-1111-111111111111"));
+            Assert.That(mapInfoJson.MapVeins[1].VeinGuidStr, Is.EqualTo("22222222-2222-2222-2222-222222222222"));
+
+            var fluid = mapInfoJson.MapVeins[2];
+            Assert.That(fluid.VeinGuidStr, Is.EqualTo("33333333-3333-3333-3333-333333333333"));
+            Assert.That(fluid.MinX, Is.EqualTo(13));
+            Assert.That(fluid.MinY, Is.EqualTo(14));
+            Assert.That(fluid.MinZ, Is.EqualTo(15));
+            Assert.That(fluid.MaxX, Is.EqualTo(16));
+            Assert.That(fluid.MaxY, Is.EqualTo(17));
+            Assert.That(fluid.MaxZ, Is.EqualTo(18));
+        }
+
+        [Test]
         public void SpawnPointIsTranscribed()
         {
             var output = CreateDummyOutput();

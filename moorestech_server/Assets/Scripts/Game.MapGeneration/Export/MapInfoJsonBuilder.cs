@@ -47,10 +47,21 @@ namespace Game.MapGeneration.Export
                 return mapObjects;
             }
 
+            // ItemVeins/FluidVeinsを合流させて1本のmapVeins配列にする。item/fluidの区別はveinGuidから
+            // MapVeinMasterのveinTypeで導出するため、ここでは種別を持たない（MapVeinInfoJsonのコメント参照）。
+            // Merge ItemVeins/FluidVeins into one mapVeins array. Item/fluid is derived from MapVeinMaster
+            // via veinGuid, so no kind is carried here (see MapVeinInfoJson's comment).
             static List<MapVeinInfoJson> BuildMapVeins(MapGenerationOutput output)
             {
-                var mapVeins = new List<MapVeinInfoJson>(output.ItemVeins.Count);
-                foreach (var vein in output.ItemVeins)
+                var mapVeins = new List<MapVeinInfoJson>(output.ItemVeins.Count + output.FluidVeins.Count);
+                AppendVeins(mapVeins, output.ItemVeins);
+                AppendVeins(mapVeins, output.FluidVeins);
+                return mapVeins;
+            }
+
+            static void AppendVeins(List<MapVeinInfoJson> mapVeins, List<PlacedVein> veins)
+            {
+                foreach (var vein in veins)
                 {
                     mapVeins.Add(new MapVeinInfoJson
                     {
@@ -63,7 +74,6 @@ namespace Game.MapGeneration.Export
                         MaxZ = vein.Max.z,
                     });
                 }
-                return mapVeins;
             }
 
             #endregion
