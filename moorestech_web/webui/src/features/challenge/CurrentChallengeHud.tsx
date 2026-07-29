@@ -4,10 +4,14 @@ import { useI18n } from "@/shared/i18n";
 import { FadeRule } from "@/shared/ui";
 import styles from "./CurrentChallengeHud.module.css";
 
-export default function CurrentChallengeHud() {
+type CurrentChallengeHudProps = {
+  menuScreen: boolean;
+};
+
+export default function CurrentChallengeHud({ menuScreen }: CurrentChallengeHudProps) {
   const current = useTopic(Topics.challengeCurrent);
-  // HUDはPortal層で会話窓より上に来るため、blockingスキット中は演出を専有させて引っ込む
-  // The HUD paints above the dialogue window from the portal layer, so it withdraws and lets a blocking skit own the screen
+  // 会話中は演出を優先してHUDを隠す
+  // Withdraw the HUD during blocking skits so the dialogue presentation owns the screen
   const skitMode = useTopicSelector(Topics.skitPresentation, (value) => value?.presentationState.mode ?? "none");
   const { t } = useI18n();
   if (skitMode === "blocking") return null;
@@ -18,7 +22,7 @@ export default function CurrentChallengeHud() {
   const label = t("現在のチャレンジ");
   return (
     <section
-      className={styles.hud}
+      className={menuScreen ? `${styles.hud} ${styles.menuHud}` : styles.hud}
       aria-label={label}
       data-testid="challenge-hud"
       {...tutorialAnchor(TutorialAnchorIds.challengeCurrentHud)}

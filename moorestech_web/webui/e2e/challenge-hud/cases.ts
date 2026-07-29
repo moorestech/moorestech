@@ -15,7 +15,7 @@ export const expectedObjectives = {
 export type CaptureCase = {
   name: string;
   scenario: keyof typeof expectedObjectives;
-  uiState: "GameScreen" | "PlayerInventory" | "ChallengeList" | "PlaceBlock" | "DeleteBar";
+  uiState: "GameScreen" | "PlayerInventory" | "SubInventory" | "ResearchTree" | "BuildMenu" | "ChallengeList" | "PauseMenu" | "PlaceBlock" | "DeleteBar";
   skit: "none" | "background" | "text";
   background: "world" | "bright" | "dark";
   companionScenario: "placement" | "delete" | null;
@@ -37,17 +37,23 @@ export const captureCases: CaptureCase[] = [
   { name: "09-empty", scenario: "challengeCompleted", uiState: "GameScreen", skit: "none", background: "world", companionScenario: null },
   { name: "10-background-skit", scenario: "challengeJapanese", uiState: "GameScreen", skit: "background", background: "world", companionScenario: null },
   { name: "11-blocking-hidden", scenario: "challengeJapanese", uiState: "GameScreen", skit: "text", background: "world", companionScenario: null },
-  // 操作HUD・モーダルの衝突を検証する
-  // Verify operation-HUD and modal collisions
-  { name: "12-place-block-hidden", scenario: "challengeJapanese", uiState: "PlaceBlock", skit: "none", background: "world", companionScenario: "placement" },
-  { name: "13-delete-bar-hidden", scenario: "challengeJapanese", uiState: "DeleteBar", skit: "none", background: "world", companionScenario: "delete" },
-  { name: "14-multiple-long-inventory-hidden", scenario: "challengeMultipleLong", uiState: "PlayerInventory", skit: "none", background: "world", companionScenario: null },
+  // 操作モードとの表示分離を検証する
+  // Verify separation from operation-mode cues
+  { name: "12-place-block-visible", scenario: "challengeJapanese", uiState: "PlaceBlock", skit: "none", background: "world", companionScenario: "placement" },
+  { name: "13-delete-bar-visible", scenario: "challengeJapanese", uiState: "DeleteBar", skit: "none", background: "world", companionScenario: "delete" },
+  { name: "14-multiple-long-inventory-visible", scenario: "challengeMultipleLong", uiState: "PlayerInventory", skit: "none", background: "world", companionScenario: null },
   // 操作HUDを明暗背景で検証する
   // Verify operation HUDs on bright and dark backgrounds
   { name: "15-place-block-bright", scenario: "challengeJapanese", uiState: "PlaceBlock", skit: "none", background: "bright", companionScenario: "placement" },
   { name: "16-place-block-dark", scenario: "challengeJapanese", uiState: "PlaceBlock", skit: "none", background: "dark", companionScenario: "placement" },
   { name: "17-delete-bar-bright", scenario: "challengeJapanese", uiState: "DeleteBar", skit: "none", background: "bright", companionScenario: "delete" },
   { name: "18-delete-bar-dark", scenario: "challengeJapanese", uiState: "DeleteBar", skit: "none", background: "dark", companionScenario: "delete" },
+  // メニュー固有面と常駐HUDを目視する
+  // Visually verify the resident HUD against menu-specific surfaces
+  { name: "19-sub-inventory-long", scenario: "challengeMultipleLong", uiState: "SubInventory", skit: "none", background: "world", companionScenario: null },
+  { name: "20-research-long", scenario: "challengeMultipleLong", uiState: "ResearchTree", skit: "none", background: "world", companionScenario: null },
+  { name: "21-build-menu-long", scenario: "challengeMultipleLong", uiState: "BuildMenu", skit: "none", background: "world", companionScenario: null },
+  { name: "22-pause-menu-long", scenario: "challengeMultipleLong", uiState: "PauseMenu", skit: "none", background: "world", companionScenario: null },
 ];
 
 export const captureImageNames = captureCases.map((captureCase) => `${captureCase.name}.png`);

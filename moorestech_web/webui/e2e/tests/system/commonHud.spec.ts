@@ -9,7 +9,7 @@ test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "tooltipHidden");
 });
 
-test("設置・削除モードtopicをHUDへ反映する", async ({ page }) => {
+test("設置情報と削除警告帯を操作モードへ反映する", async ({ page }) => {
   await setTopicScenario(page, "placement");
   await setUiState(page, "PlaceBlock");
   await page.goto("/");
@@ -19,9 +19,11 @@ test("設置・削除モードtopicをHUDへ反映する", async ({ page }) => {
 
   await setTopicScenario(page, "delete");
   await setUiState(page, "DeleteBar");
-  const deletion = page.locator('[data-tutorial-anchor="delete.hud"]');
-  await expect(deletion).toContainText("Delete Mode");
-  await expect(deletion).toContainText("Protected area");
+  const deletion = page.getByTestId("delete-mode-warning");
+  await expect(deletion).toHaveAttribute("aria-label", "Delete Mode");
+  await expect(deletion.getByTestId("delete-mode-warning-band")).toHaveCount(2);
+  await expect(page.locator('[data-tutorial-anchor="delete.hud"]')).toHaveCSS("bottom", "0px");
+  await expect(page.getByText("Protected area", { exact: true })).toHaveCount(0);
 });
 
 test("採掘進捗・クロスヘア・tooltipのtopic eventを表示する", async ({ page }) => {
