@@ -1,7 +1,7 @@
 /* 世界上へ文字だけを重ね、操作やカード面を持たない常駐HUDにする */
 /* Overlay text directly on the world as a resident HUD without interaction or a card face */
 .hud {
-  position: fixed;
+  position: absolute;
   top: var(--challenge-hud-top);
   left: var(--challenge-hud-left);
   z-index: var(--z-overlay-panel);
@@ -9,6 +9,24 @@
   color: var(--text-high-contrast);
   pointer-events: none;
   text-shadow: var(--challenge-hud-text-shadow);
+}
+
+/* メニュー見出しと左右ペインを避けて上中央へ退避する */
+/* Move to the upper center to avoid menu headings and side panes */
+.menuHud {
+  top: var(--challenge-hud-menu-top);
+  left: 50%;
+  width: var(--challenge-hud-menu-width);
+  transform: translateX(-50%);
+}
+
+.menuHud .objectives {
+  gap: var(--challenge-hud-menu-objective-gap);
+}
+
+.menuHud .objective {
+  font-size: var(--challenge-hud-menu-objective-font-size);
+  line-height: var(--challenge-hud-menu-objective-line-height);
 }
 
 /* 控えめな見出しから共有罫線へ固定間隔でつなぐ */

@@ -1,22 +1,20 @@
 import { test, expect } from "@playwright/test";
 import { setSkitStage, setTopicScenario, setUiState } from "../support/mockControl";
-
+import { expectAbove, expectCenteredHorizontally, expectSeparatedHorizontally, expectWithinViewport } from "../support/layoutAssertions";
+import { expectCompactMenuChallengeHud, expectWrappedObjectives } from "../support/challengeHudAssertions";
 test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "challengeActive");
   await setSkitStage(page, "none");
   await setUiState(page, "PlayerInventory");
 });
-
 test("challenge.current完了eventで進行HUDを更新する", async ({ page }) => {
   await setTopicScenario(page, "challengeActive");
   await setUiState(page, "GameScreen");
   await page.goto("/");
   await expect(page.getByTestId("challenge-hud")).toContainText("Second Step");
-
   await setTopicScenario(page, "challengeCompleted");
   await expect(page.getByTestId("challenge-hud")).toBeHidden();
 });
-
 // 専用画面と内部キー非表示を検証する
 // Verify the dedicated screen and absence of internal keys
 test("チャレンジ画面が開きツリーだけを翻訳済み表示する", async ({ page }) => {
@@ -31,47 +29,71 @@ test("チャレンジ画面が開きツリーだけを翻訳済み表示する",
   await expect(page.getByText("完了", { exact: true })).toBeVisible();
   await expect(page.getByText("進行中", { exact: true })).toBeVisible();
   await expect(page.locator("body")).not.toContainText("challenge.");
-  await expect(page.getByTestId("challenge-hud")).toHaveCount(0);
+  await expect(page.getByTestId("challenge-hud")).toBeVisible();
+  await expectCenteredHorizontally(page.getByTestId("challenge-hud"), page.locator("body"));
 });
-
-test("常駐HUDをモーダル画面と操作モードだけで隠す", async ({ page }) => {
+test("常駐HUDをインベントリ・メニュー・操作モードで維持する", async ({ page }) => {
   await setTopicScenario(page, "challengeJapanese");
   await setUiState(page, "GameScreen");
   await page.goto("/");
   await expect(page.getByTestId("challenge-hud")).toBeVisible();
   await expect(page.getByTestId("challenge-panel")).toHaveCount(0);
-
-  // モーダルの情報集約を検証する
-  // Verify modal information consolidation
+  // インベントリでも常駐表示を維持する
+  // Retain the resident display in the inventory
   await setUiState(page, "PlayerInventory");
   await expect(page.getByTestId("main-grid")).toBeVisible();
-  await expect(page.getByTestId("challenge-hud")).toHaveCount(0);
+  await expect(page.getByTestId("challenge-hud")).toBeVisible();
 
-  // 操作HUDの単独表示を検証する
-  // Verify exclusive operation-HUD display
+  // 操作モードと常駐HUDを分離する
+  // Separate operation cues from the resident HUD
   await setTopicScenario(page, "placement");
   await setUiState(page, "PlaceBlock");
-  await expect(page.locator('[data-tutorial-anchor="placement.hud"]')).toBeVisible();
-  await expect(page.getByTestId("challenge-hud")).toHaveCount(0);
-
+  const placementHud = page.locator('[data-tutorial-anchor="placement.hud"]');
+  const challengeHud = page.getByTestId("challenge-hud");
+  await expect(placementHud).toBeVisible();
+  await expect(challengeHud).toBeVisible();
+  await expectSeparatedHorizontally(challengeHud, placementHud);
   await setTopicScenario(page, "delete");
   await setUiState(page, "DeleteBar");
-  await expect(page.locator('[data-tutorial-anchor="delete.hud"]')).toBeVisible();
-  await expect(page.getByTestId("challenge-hud")).toHaveCount(0);
-
-  // 非モーダル時の常駐HUDを検証する
-  // Verify the resident HUD in non-modal states
+  const deleteWarning = page.getByTestId("delete-mode-warning");
+  await expect(deleteWarning).toBeVisible();
+  await expect(challengeHud).toBeVisible();
+  const topBand = deleteWarning.getByTestId("delete-mode-warning-band").first();
+  await expectAbove(topBand, challengeHud);
   await setUiState(page, "ChallengeList");
   await expect(page.getByTestId("challenge-panel")).toBeVisible();
-  await expect(page.getByTestId("challenge-hud")).toHaveCount(0);
+  await expect(page.getByTestId("challenge-hud")).toBeVisible();
 
-  await setUiState(page, "TrainHUDScreen", "GameScreen");
-  await expect(page.getByTestId("challenge-hud")).toBeVisible();
-  await setUiState(page, "Debug");
-  await expect(page.getByTestId("challenge-hud")).toBeVisible();
-  await setUiState(page, "GameScreen");
-  await expect(page.getByTestId("challenge-panel")).toHaveCount(0);
-  await expect(page.getByTestId("challenge-hud")).toBeVisible();
+  // 全メニューで常駐表示を維持する
+  // Retain the resident display in every menu
+  await setTopicScenario(page, "challengeMultipleLong");
+  const upperSafeMenus = [
+    ["PlayerInventory", undefined, "main-grid"],
+    ["SubInventory", undefined, "main-grid"],
+    ["ResearchTree", undefined, "research-tree"],
+    ["BuildMenu", undefined, "build-menu-panel"],
+    ["PauseMenu", undefined, "pause-menu"],
+    ["TrainHUDScreen", "PauseMenuScreen", "pause-menu"],
+  ] as const;
+  for (const [state, subState, contentTestId] of upperSafeMenus) {
+    await setUiState(page, state, subState);
+    await expectCompactMenuChallengeHud(page);
+    await expectAbove(challengeHud, page.getByTestId(contentTestId));
+  }
+
+  // 一覧の左操作群とHUDを横分離する
+  // Keep the fullscreen challenge list clear through horizontal separation from its left controls
+  await setUiState(page, "ChallengeList");
+  await expectCompactMenuChallengeHud(page);
+  await expectSeparatedHorizontally(page.getByTestId("challenge-category-cat-1"), challengeHud);
+
+  // 縮小画面でもHUDを画面内へ収める
+  // Follow stage scaling and remain within a smaller viewport
+  await setUiState(page, "PlayerInventory");
+  await page.setViewportSize({ width: 1024, height: 576 });
+  await expectCompactMenuChallengeHud(page);
+  await expectWithinViewport(challengeHud);
+  await expectAbove(challengeHud, page.getByTestId("main-grid"));
 });
 
 test("進行中チャレンジを内部キーやカード面なしで表示する", async ({ page }) => {
@@ -133,22 +155,10 @@ test("複数目標を受信順で表示し長文をHUD幅内へ折り返す", as
   const objective = page.getByTestId("challenge-objective");
   await expect(objective).toHaveCount(1);
   await expect(objective).toContainText("VeryLongUnbrokenChallengeObjectiveText");
-
   // 長語の複数行折返しを寸法検証する
   // Verify multiline wrapping of unbroken text through geometry
-  const layout = await objective.evaluate((element) => {
-    const style = getComputedStyle(element);
-    return {
-      clientWidth: element.clientWidth,
-      scrollWidth: element.scrollWidth,
-      clientHeight: element.clientHeight,
-      lineHeight: Number.parseFloat(style.lineHeight),
-    };
-  });
-  expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
-  expect(layout.clientHeight / layout.lineHeight).toBeGreaterThan(1.5);
+  await expectWrappedObjectives(objective, 1);
 });
-
 test("複数の長文目標を受信順かつHUD幅内で表示する", async ({ page }) => {
   await setTopicScenario(page, "challengeMultipleLong");
   await setUiState(page, "GameScreen");
@@ -162,20 +172,11 @@ test("複数の長文目標を受信順かつHUD幅内で表示する", async ({
 
   // 各目標の折返しと横溢れを検証する
   // Verify each objective's wrapping and horizontal overflow
-  const multipleLongLayouts = await multipleLongObjectives.evaluateAll((elements) => elements.map((element) => {
-    const style = getComputedStyle(element);
-    return {
-      clientWidth: element.clientWidth,
-      scrollWidth: element.scrollWidth,
-      clientHeight: element.clientHeight,
-      lineHeight: Number.parseFloat(style.lineHeight),
-    };
-  }));
-  expect(multipleLongLayouts).toHaveLength(3);
-  for (const multipleLongLayout of multipleLongLayouts) {
-    expect(multipleLongLayout.scrollWidth).toBeLessThanOrEqual(multipleLongLayout.clientWidth);
-    expect(multipleLongLayout.clientHeight / multipleLongLayout.lineHeight).toBeGreaterThan(1.5);
-  }
+  await expectWrappedObjectives(multipleLongObjectives, 3);
+  await setUiState(page, "PlayerInventory");
+  const menuHud = page.getByTestId("challenge-hud");
+  await expectCompactMenuChallengeHud(page);
+  await expectAbove(menuHud, page.getByRole("heading", { name: "持ち物" }));
 });
 
 test("blockingスキット中だけ進行中チャレンジを隠す", async ({ page }) => {

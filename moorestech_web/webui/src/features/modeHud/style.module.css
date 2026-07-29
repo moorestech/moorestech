@@ -1,9 +1,9 @@
-/* 操作モード枠を世界上へ重ね、ゲーム入力だけは素通しする */
-/* Overlay the operation-mode frame on the world while passing game input through */
-.modeHud {
+/* 配置情報を右上へ重ね、左上のチャレンジとゲーム入力を維持する */
+/* Overlay placement information at the top-right while preserving challenges and game input */
+.placementHud {
   position: absolute;
   top: var(--operation-hud-top);
-  left: var(--operation-hud-left);
+  right: var(--operation-hud-right);
   z-index: var(--z-overlay-panel);
   width: var(--operation-hud-width);
   pointer-events: none;
@@ -47,4 +47,37 @@
 /* Switch only unavailable-operation reasons to the shared warning color without adding a new hue */
 .warning {
   color: var(--text-insufficient);
+}
+
+/* 警告帯の描画領域をstage全面へ固定し、削除操作を素通しする */
+/* Pin the warning-band canvas to the full stage while passing deletion input through */
+.deleteModeWarning {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-overlay-panel);
+  pointer-events: none;
+}
+
+/* uGUI原画の黄黒斜線をCSSで再現し、画像アセットへの依存を増やさない */
+/* Reproduce the uGUI yellow-black diagonals in CSS without adding an image dependency */
+.deleteModeWarningBand {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: var(--delete-mode-warning-band-height);
+  background: repeating-linear-gradient(
+    var(--delete-mode-warning-stripe-angle),
+    var(--delete-mode-warning-yellow) 0,
+    var(--delete-mode-warning-yellow) var(--delete-mode-warning-stripe-size),
+    var(--delete-mode-warning-black) var(--delete-mode-warning-stripe-size),
+    var(--delete-mode-warning-black) calc(var(--delete-mode-warning-stripe-size) * 2)
+  );
+}
+
+.deleteModeWarningBandTop {
+  top: 0;
+}
+
+.deleteModeWarningBandBottom {
+  bottom: 0;
 }
