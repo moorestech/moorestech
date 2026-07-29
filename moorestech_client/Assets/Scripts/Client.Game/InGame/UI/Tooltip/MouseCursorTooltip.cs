@@ -40,7 +40,7 @@ namespace Client.Game.InGame.UI.Tooltip
         public void Show(string key, int fontSize = IMouseCursorTooltip.DefaultFontSize, bool isLocalize = true)
         {
             canvasGroup.alpha = WebUiScreenGate.IsWebUiMode ? 0 : 1;
-            itemName.text = isLocalize ? Localize.Get(key) : key;
+            itemName.text = isLocalize ? Localize.GetLegacy(key) : key;
             itemName.fontSize = fontSize;
             _presentation.Value = new TooltipPresentation(true, key, fontSize);
         }

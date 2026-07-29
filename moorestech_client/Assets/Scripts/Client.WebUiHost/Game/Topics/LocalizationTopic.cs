@@ -42,7 +42,7 @@ namespace Client.WebUiHost.Game.Topics
         {
             return WebUiJson.Serialize(new LocalizationData
             {
-                Locale = Localize.CurrentLanguageCode,
+                Locale = Localize.GetCurrentLanguageCode(),
             });
         }
 

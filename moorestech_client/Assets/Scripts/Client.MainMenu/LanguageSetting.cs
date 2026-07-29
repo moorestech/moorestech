@@ -11,14 +11,15 @@ namespace Client.MainMenu
         private void Start()
         {
             tmpDropdown.ClearOptions();
-            tmpDropdown.AddOptions(Localize.LanguageCodes);
-            tmpDropdown.value = Localize.LanguageCodes.IndexOf(Localize.CurrentLanguageCode);
+            var languageCodes = Localize.GetLanguageCodes();
+            tmpDropdown.AddOptions(languageCodes);
+            tmpDropdown.value = languageCodes.IndexOf(Localize.GetCurrentLanguageCode());
             tmpDropdown.onValueChanged.AddListener(OnValueChanged);
         }
         
         private void OnValueChanged(int index)
         {
-            Localize.SetLanguage(Localize.LanguageCodes[index]);
+            Localize.SetLanguage(Localize.GetLanguageCodes()[index]);
         }
     }
 }

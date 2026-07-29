@@ -4,9 +4,7 @@
   "references": [
     "Unity.TextMeshPro",
     "UniRx",
-    "Core.Const",
-    "Client.Common",
-    "Server.Boot"
+    "Core.Const"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
