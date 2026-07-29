@@ -36,7 +36,8 @@
         "Client.Skit",
         "Game.UnlockState",
         "Common.Debug",
-        "Game.PlacementTarget"
+        "Game.PlacementTarget",
+        "Game.Research"
     ],
     "includePlatforms": [
         "Editor"
