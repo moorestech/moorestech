@@ -6,6 +6,8 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Environment;
+using Client.Game.InGame.Environment.Terrain;
 using Client.Game.InGame.UI.Modal;
 using Client.Network.API;
 using Client.Network.Settings;
@@ -160,6 +162,12 @@ namespace Client.Starter
             async UniTask FinalizeInitializationAsync()
             {
                 var starter = FindObjectOfType<MainGameStarter>();
+
+                // 地形はStartGameより前に建てる。露頭生成が解決直後に地表へレイキャストを飛ばすため
+                // Build the terrain before StartGame: outcrop instantiation raycasts the ground as soon as it is resolved
+                var environmentRoot = FindObjectOfType<EnvironmentRoot>();
+                await TerrainRuntimeBuilder.BuildAsync(serverResult.HandshakeResponse.MapLayout, environmentRoot.transform);
+
                 var resolver = starter.StartGame(serverResult.HandshakeResponse);
                 new ClientDIContext(new DIContainer(resolver));
 

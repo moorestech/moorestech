@@ -8,6 +8,7 @@ namespace Client.Common
         public static readonly int BlockLayer = LayerMask.NameToLayer("Block");
         public static readonly int BlockBoundingBoxLayer = LayerMask.NameToLayer("BlockBoundingBox");
         public static readonly int MapObjectLayer = LayerMask.NameToLayer("MapObject");
+        public static readonly int GroundLayer = LayerMask.NameToLayer("Ground");
         public static readonly int ElectricWireLayer = LayerMask.NameToLayer("ElectricWire");
 
         // このレイヤーマスク、列車の追加によって「ブロック」だけでなく、ワールド中にインタラクトできるもの、という意味になりつつあるからリネームを検討する
