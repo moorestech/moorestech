@@ -11,6 +11,7 @@ namespace Client.Tests.WebUi
         // 研究拡張後の54スロットで検証し、固定45スロット仮定が残っていないことを確認する
         // Verify against 54 slots (post research-expansion) to confirm no fixed 45-slot assumption remains
         private const int MainSlotCount = 54;
+        private const int EquipmentSlotCount = 3;
 
         [Test]
         public void SplitDragCountUsesHostGrabAndDestinationCount()
@@ -33,7 +34,7 @@ namespace Client.Tests.WebUi
         [Test]
         public void ResolveCollectTargetGrabHeldTargetsGrab()
         {
-            var (type, slot) = CollectActionHandler.ResolveCollectTarget(true, 7);
+            var (type, slot) = CollectActionHandler.ResolveCollectTarget(true, LocalMoveInventoryType.MainOrSub, 7);
             Assert.AreEqual(LocalMoveInventoryType.Grab, type);
             Assert.AreEqual(0, slot);
         }
@@ -43,19 +44,31 @@ namespace Client.Tests.WebUi
         [Test]
         public void ResolveCollectTargetEmptyHandedTargetsClickedSlot()
         {
-            var (type, slot) = CollectActionHandler.ResolveCollectTarget(false, 7);
+            var (type, slot) = CollectActionHandler.ResolveCollectTarget(false, LocalMoveInventoryType.MainOrSub, 7);
             Assert.AreEqual(LocalMoveInventoryType.MainOrSub, type);
             Assert.AreEqual(7, slot);
         }
 
-        // クリック可能スロット（main/hotbar）は受理する
-        // Clickable slots (main/hotbar) are accepted
-        [TestCase(@"{""area"":""main"",""slot"":3}", 3)]
-        [TestCase(@"{""area"":""hotbar"",""slot"":2}", 47)]
-        public void TryParseClickableSlotRefAcceptsClickableSlots(string json, int expectedSlot)
+        // 装備枠のクリックは装備を集積先にする（結合スロットへ潰さない）
+        // A clicked equipment slot targets equipment, never collapsing onto a combined slot
+        [Test]
+        public void ResolveCollectTargetEmptyHandedTargetsClickedEquipmentSlot()
         {
-            var ok = InventoryAreaMapper.TryParseClickableSlotRef(JToken.Parse(json), MainSlotCount, out var slot);
+            var (type, slot) = CollectActionHandler.ResolveCollectTarget(false, LocalMoveInventoryType.Equipment, 2);
+            Assert.AreEqual(LocalMoveInventoryType.Equipment, type);
+            Assert.AreEqual(2, slot);
+        }
+
+        // クリック可能スロット（main/hotbar/equipment）は受理する
+        // Clickable slots (main/hotbar/equipment) are accepted
+        [TestCase(@"{""area"":""main"",""slot"":3}", LocalMoveInventoryType.MainOrSub, 3)]
+        [TestCase(@"{""area"":""hotbar"",""slot"":2}", LocalMoveInventoryType.MainOrSub, 47)]
+        [TestCase(@"{""area"":""equipment"",""slot"":2}", LocalMoveInventoryType.Equipment, 2)]
+        public void TryParseClickableSlotRefAcceptsClickableSlots(string json, LocalMoveInventoryType expectedType, int expectedSlot)
+        {
+            var ok = InventoryAreaMapper.TryParseClickableSlotRef(JToken.Parse(json), MainSlotCount, EquipmentSlotCount, out var type, out var slot);
             Assert.IsTrue(ok);
+            Assert.AreEqual(expectedType, type);
             Assert.AreEqual(expectedSlot, slot);
         }
 
@@ -65,10 +78,11 @@ namespace Client.Tests.WebUi
         [TestCase(@"{""area"":""grab"",""slot"":0}")]
         [TestCase(@"{""area"":""sub"",""slot"":0}")]
         [TestCase(@"{""slot"":3}")]
+        [TestCase(@"{""area"":""equipment"",""slot"":3}")]
         [TestCase(@"null")]
         public void TryParseClickableSlotRefRejectsNonClickable(string json)
         {
-            var ok = InventoryAreaMapper.TryParseClickableSlotRef(JToken.Parse(json), MainSlotCount, out _);
+            var ok = InventoryAreaMapper.TryParseClickableSlotRef(JToken.Parse(json), MainSlotCount, EquipmentSlotCount, out _, out _);
             Assert.IsFalse(ok);
         }
     }

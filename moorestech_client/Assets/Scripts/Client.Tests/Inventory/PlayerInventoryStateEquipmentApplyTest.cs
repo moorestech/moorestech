@@ -81,7 +81,7 @@ namespace Client.Tests.Inventory
             SetPrivateField(viewController, "mainInventoryObject", CreateObject("MainInventory"));
             SetPrivateField(viewController, "subInventoryParent", CreateObject("SubInventoryParent").transform);
 
-            new PlayerInventoryState(recipeViewerView, viewController, new LocalPlayerInventoryController(new LocalPlayerInventory()), equipment, handshake);
+            new PlayerInventoryState(recipeViewerView, viewController, new LocalPlayerInventoryController(new LocalPlayerInventory(), equipment), equipment, handshake);
         }
 
         private T CreateComponent<T>(string name) where T : Component

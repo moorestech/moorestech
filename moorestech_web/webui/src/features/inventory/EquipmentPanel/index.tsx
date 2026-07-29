@@ -2,7 +2,9 @@ import { useRef } from "react";
 import { useTopic, readTopic, dispatchAction, Topics } from "@/bridge";
 import { isPointerOverWebUi, isWheelPassthrough, useGameLayerWheel, useScreenInteractive } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
-import { BARE_HANDS_INDEX, accumulateWheelSteps, cycleEquipment } from "./equipmentLogic";
+import type { SlotRef } from "@/bridge";
+import { accumulateWheelSteps, cycleEquipment } from "./equipmentLogic";
+import { slotActions } from "../slotActions";
 import styles from "./style.module.css";
 
 // 装備スロットの常時表示HUD。枠数はトピックの equipment 長がそのまま正となる
@@ -32,29 +34,30 @@ export default function EquipmentPanel() {
     void dispatchAction("inventory.select_equipment", { index });
   });
 
-  // 空枠も含めどのスロットも選択でき、選択済みを押した時だけ素手へ戻す
-  // Every slot is selectable including empty ones; pressing the selected slot returns to bare hands
-  const selectEquipment = (index: number) => {
-    const latest = readTopic(Topics.inventory);
-    if (!latest) return;
-    void dispatchAction("inventory.select_equipment", { index: index === latest.selectedEquipment ? BARE_HANDS_INDEX : index });
-  };
-
   // snapshot 未受信の間は HUD ごと出さない（HotbarPanel と同じ判断）
   // Hide the whole HUD until the first snapshot, matching HotbarPanel
   if (!inventory) return null;
 
+  // クリックは他のスロットと同じアイテム移動。装備の選択はホイール専用にする
+  // Clicks are ordinary item moves like every other slot; equipment selection belongs to the wheel alone
   return (
     <div className={styles.equipmentArea} data-testid="equipment-slots" data-wheel-passthrough>
-      {inventory.equipment.map((slot, i) => (
-        <ItemSlot
-          key={`equipment-${i}`}
-          itemId={slot.itemId}
-          count={slot.count}
-          selected={i === inventory.selectedEquipment}
-          onLeftDown={interactive ? () => selectEquipment(i) : undefined}
-        />
-      ))}
+      {inventory.equipment.map((slot, i) => {
+        const ref: SlotRef = { area: "equipment", slot: i };
+        return (
+          <ItemSlot
+            key={`equipment-${i}`}
+            itemId={slot.itemId}
+            count={slot.count}
+            selected={i === inventory.selectedEquipment}
+            onLeftDown={interactive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
+            onRightDown={interactive ? () => slotActions.onRightDown(ref) : undefined}
+            onRightEnter={interactive ? () => slotActions.onRightEnter(ref) : undefined}
+            onLeftEnter={interactive ? () => slotActions.onLeftEnter(ref) : undefined}
+            onDoubleClick={interactive ? () => slotActions.onDoubleClick(ref) : undefined}
+          />
+        );
+      })}
     </div>
   );
 }

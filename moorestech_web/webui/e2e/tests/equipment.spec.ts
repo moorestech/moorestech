@@ -42,14 +42,57 @@ test("ホイールは末尾スロットの次に素手(-1)を挟む", async ({ p
   await expect(equipmentSlots(page).nth(2)).not.toHaveAttribute("data-selected", "true");
 });
 
-test("空枠のクリックでもその枠が選択される", async ({ page }) => {
+// 装備へアイテムを入れる唯一のUI経路。これが壊れると実プレイで装備が永久に空になり採掘が成立しない
+// The only UI route that fills equipment; if it breaks, equipment stays empty forever in real play and mining never succeeds
+test("メインのアイテムをUI操作だけで装備スロットへ移せる", async ({ page }) => {
   await page.goto("/");
-  // fixture の 3枠目は空。空でも選択対象になる
-  // The fixture's third slot is empty; empty slots are still selectable
-  await equipmentSlots(page).nth(2).click();
+  await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
 
-  await expect.poll(() => payloadsOf(page, "inventory.select_equipment")).toContainEqual({ index: 2 });
-  await expect(equipmentSlots(page).nth(2)).toHaveAttribute("data-selected", "true");
+  // main[1] を掴み、空の装備枠[1]へ置く
+  // Pick up main[1] and drop it into the empty equipment slot [1]
+  await page.getByTestId("main-grid").locator("> div").nth(1).click();
+  await expect(page.getByTestId("grab-overlay")).toBeVisible();
+  await equipmentSlots(page).nth(1).click();
+
+  // grab 保持中の左押下はドラッグ配分セッションになるため、単独スロットへの配置も split_drag で届く
+  // A left press while holding grab opens the drag-allocation session, so even a single-slot drop arrives as split_drag
+  await expect.poll(() => payloadsOf(page, "inventory.split_drag")).toContainEqual({
+    slots: [{ area: "equipment", slot: 1 }],
+  });
+  await expect(equipmentSlots(page).nth(1)).toContainText("10");
+  await expect(page.getByTestId("grab-overlay")).toHaveCount(0);
+});
+
+test("装備枠のクリックは選択ではなくアイテム移動になる", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("equipment-slots")).toBeVisible();
+  const before = (await payloadsOf(page, "inventory.select_equipment")).length;
+
+  // fixture の装備[0]は中身あり。空手クリックは掴み取りであって選択送信ではない
+  // The fixture's equipment[0] is filled; an empty-handed click picks it up instead of selecting it
+  await equipmentSlots(page).nth(0).click();
+
+  await expect.poll(() => payloadsOf(page, "inventory.move_item")).toContainEqual({
+    from: { area: "equipment", slot: 0 },
+    to: { area: "grab", slot: 0 },
+    count: 1,
+  });
+  expect((await payloadsOf(page, "inventory.select_equipment")).length).toBe(before);
+});
+
+test("装備へ移したアイテムをホイールで選択できる", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("main-grid").locator("> div").nth(1).click();
+  await expect(page.getByTestId("grab-overlay")).toBeVisible();
+  await equipmentSlots(page).nth(1).click();
+  await expect(equipmentSlots(page).nth(1)).toContainText("10");
+
+  // 素手(-1)起点でホイール2段進めると装備[1]が選択状態になる
+  // Starting from bare hands (-1), two wheel steps land the selection on equipment[1]
+  for (let step = 0; step < 2; step++) {
+    await page.mouse.wheel(0, 100);
+    await expect(equipmentSlots(page).nth(step)).toHaveAttribute("data-selected", "true");
+  }
 });
 
 test("装備HUDの上でもホイールで装備が切り替わる", async ({ page }) => {

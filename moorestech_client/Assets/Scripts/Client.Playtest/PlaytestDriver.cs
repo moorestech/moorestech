@@ -60,6 +60,9 @@ namespace Client.Playtest
         }
         public async UniTask GiveItem(string itemName, int count) => await _reporter.Act($"give: {itemName} x{count}", () => PlaytestItemOps.GiveItemViaCommand(itemName, count, 10f));
         public int CountItem(string itemName) => PlaytestItemOps.CountItem(ClientContext.PlayerConnectionSetting.PlayerId, PlaytestItemOps.ResolveItemId(itemName));
+        // slotは0始まりの装備枠番号。入れると同時にその枠を選択する（採掘はサーバー権威で選択中装備を見るため）
+        // slot is the zero-based equipment slot; equipping also selects it (server-authoritative mining reads the selected equipment)
+        public async UniTask EquipItem(string itemName, int equipmentSlot) => await _reporter.Act($"装備{equipmentSlot + 1}へ装着: {itemName}", () => PlaytestItemOps.EquipItem(itemName, equipmentSlot, 15f));
         // ---- ブロック / Blocks ----
         public IBlock PlaceBlockDirect(string blockName, Vector3Int position, BlockDirection direction)
         {

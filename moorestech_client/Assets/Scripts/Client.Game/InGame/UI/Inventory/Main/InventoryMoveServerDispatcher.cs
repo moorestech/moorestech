@@ -34,6 +34,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                         ? CreateMainMessage(ClientContext.PlayerConnectionSetting.PlayerId)
                         : subInventory.ISubInventoryIdentifier.ToMessagePack(),
                     LocalMoveInventoryType.Grab => CreateGrabMessage(ClientContext.PlayerConnectionSetting.PlayerId),
+                    LocalMoveInventoryType.Equipment => CreateEquipmentMessage(ClientContext.PlayerConnectionSetting.PlayerId),
                     _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
                 };
             }
@@ -46,6 +47,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
                         ? localSlot
                         : localSlot - mainSlotCount,
                     LocalMoveInventoryType.Grab => 0,
+                    // 装備は結合スロットではないため、ローカルスロットがそのままサーバースロットになる
+                    // Equipment is not a combined slot, so the local slot is the server slot as-is
+                    LocalMoveInventoryType.Equipment => localSlot,
                     _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
                 };
             }

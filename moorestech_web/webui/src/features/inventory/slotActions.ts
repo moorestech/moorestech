@@ -65,5 +65,7 @@ export const slotActions: SlotActions = {
 };
 
 function resolveSlot(inventory: PlayerInventoryData, ref: SlotRef): SlotData {
+  if (ref.area === "grab") return inventory.grab;
+  if (ref.area === "equipment") return inventory.equipment[ref.slot];
   return ref.area === "main" ? inventory.mainSlots[ref.slot] : inventory.hotbarSlots[ref.slot];
 }

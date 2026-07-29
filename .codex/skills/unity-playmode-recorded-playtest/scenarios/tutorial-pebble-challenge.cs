@@ -15,6 +15,8 @@ var challenge2 = new Guid("7bafc2cf-d55c-5141-805f-99e0b78a9945"); // 石器を�
 var challenge3 = new Guid("fb529cac-5358-57fa-bd0a-08f3a6bb43c4"); // 木を伐採して原木を入手する
 var stoneToolRecipe = new Guid("9c20aa73-1877-4e0e-adcc-9f725c9377da"); // 石器クラフトレシピ(小石x3)
 var treeMapObject = new Guid("6a53fef8-2cf5-41fe-9922-21fd7dd4ab6c"); // mapObject「木」
+var stoneToolAttackSpeedSeconds = 2.1f; // 石器のattackSpeed=2。サーバーのクールダウン許容率を越える間隔で打つ
+var stoneToolMaxHits = 6; // 1打あたりの原木は1〜4個で乱数のため、3個に届くまでの上限打撃数
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
@@ -102,13 +104,25 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
 
     // 検証6: 実際に木を攻撃して原木ドロップ→#3完了（サーバー側VanillaStaticMapObjectの解決検証）
     // Verify 6: attack a real tree for log drops -> #3 done (validates server-side map object resolution)
+    // 採掘はサーバー権威で「選択中の装備」を見るため、石器を装備枠へ移して選択してから打撃する
+    // Server-authoritative mining reads the selected equipment, so move the stone tool into an equipment slot and select it before hitting
+    p.Note("石器を装備枠へ移して選択する");
+    await p.EquipItem("石器", 0);
+
     p.Note("最寄りの木をAttackMapObjectで伐採して原木を得る");
     var mapObjectDatastore = UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.Map.MapObject.MapObjectGameObjectDatastore>();
     var nearestTree = mapObjectDatastore.SearchNearestMapObject(treeMapObject, p.PlayerPosition);
     p.Assert(nearestTree != null, "最寄りの未破壊の木がクライアントで見つかった");
     if (nearestTree != null)
     {
-        Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.AttackMapObject(nearestTree.InstanceId);
+        // 木hp100/earnItemHpInterval10に対し石器はdamage10・attackSpeed2なので、1打では原木3個に届かない
+        // The tree has hp100 / earnItemHpInterval10 while the stone tool deals 10 per hit at attackSpeed 2, so one hit cannot yield 3 logs
+        for (var hit = 0; hit < stoneToolMaxHits && p.CountItem("原木") < 3; hit++)
+        {
+            Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.AttackMapObject(nearestTree.InstanceId);
+            await p.WaitSeconds(stoneToolAttackSpeedSeconds);
+        }
+
         var c3Done = await PollUntil(() => challengeStore.CurrentChallengeInfo.CompletedChallenges
             .Any(c => c.ChallengeGuid == challenge3), 30);
         p.Assert(3 <= p.CountItem("原木"), "原木が3個以上インベントリにある");

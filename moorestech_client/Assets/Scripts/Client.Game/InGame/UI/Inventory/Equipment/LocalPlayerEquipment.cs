@@ -54,15 +54,16 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
         public void SetSelectedIndex(int index)
         {
             var clamped = ClampIndex(index);
-            if (clamped == SelectedIndex) return;
 
+            // 同値でも必ず送る。サーバーは変化時のみ返すため、一度ズレると同値送信の握り潰しでズレが恒久化する
+            // Always send, even for an unchanged value: the server replies only on change, so swallowing same-value sends makes a desync permanent
             SelectedIndex = clamped;
             _onChanged.OnNext(Unit.Default);
             ClientContext.VanillaApi.SendOnly.SetSelectedEquipment(clamped);
         }
 
-        // 以下のApply系はサーバーからの購読・初期データ適用の入口
-        // The Apply methods below are the entry points for server subscriptions and initial data
+        // 以下のApply系はサーバー購読・初期データ適用の入口で、スロット更新は移動の楽観更新にも使う
+        // The Apply methods below are the entry points for server subscriptions and initial data; the slot update also serves optimistic move writes
 
         public void ApplySlotUpdate(int slot, IItemStack itemStack)
         {

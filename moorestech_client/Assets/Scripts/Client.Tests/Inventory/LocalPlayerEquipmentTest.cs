@@ -128,7 +128,7 @@ namespace Client.Tests.Inventory
 
         private NetworkEventInventoryUpdater CreateUpdater(LocalPlayerEquipment equipment)
         {
-            return new NetworkEventInventoryUpdater(new LocalPlayerInventoryController(new LocalPlayerInventory()), equipment);
+            return new NetworkEventInventoryUpdater(new LocalPlayerInventoryController(new LocalPlayerInventory(), equipment), equipment);
         }
 
         private IEquipmentInventory GetEquipmentInventory(ServiceProvider serviceProvider)
