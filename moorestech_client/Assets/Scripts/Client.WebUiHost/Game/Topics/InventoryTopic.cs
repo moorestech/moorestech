@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
@@ -12,8 +13,8 @@ using UniRx;
 namespace Client.WebUiHost.Game.Topics
 {
     /// <summary>
-    /// local_player.inventory トピック: main/hotbar/grab の全量を push
-    /// local_player.inventory topic: pushes the full main/hotbar/grab state
+    /// local_player.inventory トピック: main/hotbar/grab/equipment の全量を push
+    /// local_player.inventory topic: pushes the full main/hotbar/grab/equipment state
     /// </summary>
     public class InventoryTopic : ITopicHandler, IDisposable
     {
@@ -22,21 +23,24 @@ namespace Client.WebUiHost.Game.Topics
         private readonly WebSocketHub _hub;
         private readonly LocalPlayerInventoryController _controller;
         private readonly HotBarView _hotBarView;
+        private readonly LocalPlayerEquipment _equipment;
         private readonly IDisposable _subscription;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public InventoryTopic(WebSocketHub hub, LocalPlayerInventoryController controller, HotBarView hotBarView)
+        public InventoryTopic(WebSocketHub hub, LocalPlayerInventoryController controller, HotBarView hotBarView, LocalPlayerEquipment equipment)
         {
             _hub = hub;
             _controller = controller;
             _hotBarView = hotBarView;
+            _equipment = equipment;
 
-            // インデクサ経由の変更と、grab/全置換の更新の両方を購読する
-            // Subscribe to both indexer-driven changes and grab/full-replacement refreshes
+            // インデクサ経由の変更・grab/全置換の更新・装備のスロット/選択変更を購読する
+            // Subscribe to indexer-driven changes, grab/full-replacement refreshes, and equipment slot/selection changes
             _subscription = new CompositeDisposable(
                 _controller.LocalPlayerInventory.OnItemChange.Subscribe(_ => SchedulePublish()),
-                _controller.OnInventoryRefreshed.Subscribe(_ => SchedulePublish()));
+                _controller.OnInventoryRefreshed.Subscribe(_ => SchedulePublish()),
+                _equipment.OnChanged.Subscribe(_ => SchedulePublish()));
 
             // ホットバー選択が変わったら snapshot に含めて再配信する
             // Republish when the hotbar selection changes so the snapshot reflects it
@@ -98,9 +102,14 @@ namespace Client.WebUiHost.Game.Topics
                 HotbarSlots = new List<SlotDto>(PlayerInventoryConst.HotBarSlotCount),
                 Grab = ToDto(_controller.GrabInventory),
                 SelectedHotbar = _hotBarView.SelectIndex,
+                // 装備枠数はマスタ由来。素手は -1 のまま配信し、Web 側も -1 を素手として扱う
+                // The equipment slot count comes from the master; bare hands ships as -1 and the web side reads -1 the same way
+                Equipment = new List<SlotDto>(_equipment.Slots.Count),
+                SelectedEquipment = _equipment.SelectedIndex,
             };
             for (var i = 0; i < mainAreaSize; i++) dto.MainSlots.Add(ToDto(inv[i]));
             for (var i = mainAreaSize; i < mainSlotCount; i++) dto.HotbarSlots.Add(ToDto(inv[i]));
+            foreach (var equipmentSlot in _equipment.Slots) dto.Equipment.Add(ToDto(equipmentSlot));
             return WebUiJson.Serialize(dto);
 
             #region Internal
@@ -124,6 +133,8 @@ namespace Client.WebUiHost.Game.Topics
         public List<SlotDto> HotbarSlots;
         public SlotDto Grab;
         public int SelectedHotbar;
+        public List<SlotDto> Equipment;
+        public int SelectedEquipment;
     }
 
     public class SlotDto

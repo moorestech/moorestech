@@ -24,6 +24,9 @@ export type ActionPayloads = {
   "inventory.split_drag": { slots: SlotRef[] };
   "inventory.sort": Record<string, never>;
   "inventory.select_hotbar": { index: number };
+  // index は -1（素手）から装備スロット数-1 まで
+  // index ranges from -1 (bare hands) to the equipment slot count minus one
+  "inventory.select_equipment": { index: number };
   "craft.execute": { recipeGuid: string };
   // text は input モーダルの確定時のみ付与する
   // text accompanies only the confirm of an input modal
@@ -68,6 +71,7 @@ export const ACTION_TYPES = [
   "inventory.split_drag",
   "inventory.sort",
   "inventory.select_hotbar",
+  "inventory.select_equipment",
   "craft.execute",
   "ui.modal.respond",
   "build_menu.select",

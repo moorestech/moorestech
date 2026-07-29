@@ -3,6 +3,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.ProgressBar;
@@ -48,10 +49,11 @@ namespace Client.WebUiHost.Game
             var uiStateControl = resolver.Resolve<UIStateControl>();
             var subInventoryState = resolver.Resolve<SubInventoryState>();
             var trainHudState = resolver.Resolve<TrainHUDScreenState>();
+            var localPlayerEquipment = resolver.Resolve<LocalPlayerEquipment>();
 
-            // インベントリトピックを生成して Hub に登録（selectedHotbar 用に HotBarView を渡す）
-            // Create inventory topic and register it (HotBarView is passed for selectedHotbar)
-            var inventoryTopic = new InventoryTopic(hub, controller, hotBarView);
+            // インベントリトピックを生成して Hub に登録（選択状態用に HotBarView と装備モデルを渡す）
+            // Create inventory topic and register it (HotBarView and the equipment model supply the selection state)
+            var inventoryTopic = new InventoryTopic(hub, controller, hotBarView, localPlayerEquipment);
             hub.RegisterTopic(InventoryTopic.TopicName, inventoryTopic);
 
             // モーダルブリッジサービスを生成（topic と action で共有）
@@ -171,6 +173,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new SortInventoryActionHandler(controller));
             hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));
             hub.RegisterAction(new SelectHotbarActionHandler(hotBarView));
+            hub.RegisterAction(new SelectEquipmentActionHandler(localPlayerEquipment));
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
             hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));
             hub.RegisterAction(new BlockSplitGrabActionHandler(controller, subInventoryState));

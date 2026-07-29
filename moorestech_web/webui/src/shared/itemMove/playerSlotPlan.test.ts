@@ -9,6 +9,8 @@ const inv = (grabCount: number): PlayerInventoryData => ({
   hotbarSlots: [slot(0, 0)],
   grab: grabCount > 0 ? slot(9, grabCount) : slot(0, 0),
   selectedHotbar: 0,
+  equipment: [],
+  selectedEquipment: -1,
 });
 const ctx = (grabCount: number, blockItemSlots: { itemId: number; count: number }[] | null): PlayerSlotContext => ({
   inventory: inv(grabCount),

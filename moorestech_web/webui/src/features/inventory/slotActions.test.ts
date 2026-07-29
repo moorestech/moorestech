@@ -30,6 +30,8 @@ describe("slotActions", () => {
       hotbarSlots: [slot(0, 0)],
       grab: slot(0, 0),
       selectedHotbar: 0,
+      equipment: [],
+      selectedEquipment: -1,
     };
     bridge.blockInventory = null;
     bridge.itemMaster = new Map([[1, { itemId: 1, name: "item", maxStack: 100 }]]);
@@ -43,6 +45,8 @@ describe("slotActions", () => {
       hotbarSlots: [slot(0, 0)],
       grab: slot(0, 0),
       selectedHotbar: 0,
+      equipment: [],
+      selectedEquipment: -1,
     };
     bridge.blockInventory = {
       open: true,
@@ -75,6 +79,8 @@ describe("slotActions", () => {
       hotbarSlots: [],
       grab: slot(9, 3),
       selectedHotbar: 0,
+      equipment: [],
+      selectedEquipment: -1,
     };
 
     slotActions.onRightDown({ area: "main", slot: 0 });
@@ -95,6 +101,8 @@ describe("slotActions", () => {
       hotbarSlots: [],
       grab: slot(9, 3),
       selectedHotbar: 0,
+      equipment: [],
+      selectedEquipment: -1,
     };
     slotActions.onRightEnter({ area: "main", slot: 0 });
 

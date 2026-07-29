@@ -13,6 +13,8 @@ const validInventory = {
   hotbarSlots: [{ itemId: 0, count: 0 }],
   grab: { itemId: 0, count: 0 },
   selectedHotbar: 0,
+  equipment: [],
+  selectedEquipment: -1,
 };
 
 describe("deliverTopicPayload の validator 連携", () => {
