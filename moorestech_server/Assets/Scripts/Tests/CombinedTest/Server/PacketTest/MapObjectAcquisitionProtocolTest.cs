@@ -32,10 +32,6 @@ namespace Tests.CombinedTest.Server.PacketTest
         private const int ExpectedToolDamage = 7;
         private const double ExpectedAttackSpeed = 0.2;
 
-        // hp30 / earnItemHpInterval10 のため一撃破壊では閾値20・10・0の3回を跨ぐ
-        // hp30 with earnItemHpInterval 10 means a one-hit kill crosses thresholds 20, 10 and 0
-        private const int PickUpCrossedThresholdCount = 3;
-
         [TearDown]
         public void TearDown()
         {
@@ -45,7 +41,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void 対応ツール装備時のみサーバがダメージを算出して掘れる()
+        public void 素手では掘れず対応ツール装備時のみdamage分HPが減り閾値未達では報酬が入らない()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
@@ -132,8 +128,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             // The [minCount, maxCount] roll happens once per crossed threshold
             var earnItem = MasterHolder.MapObjectMaster.GetMapObjectElement(PickUpMapObjectGuid).EarnItems[0];
             var earnedCount = CountMainInventoryItem(playerInventory, MasterHolder.ItemMaster.GetItemId(earnItem.ItemGuid));
-            Assert.GreaterOrEqual(earnedCount, earnItem.MinCount * PickUpCrossedThresholdCount);
-            Assert.LessOrEqual(earnedCount, earnItem.MaxCount * PickUpCrossedThresholdCount);
+            var crossedThresholdCount = CalculateOneHitCrossedThresholdCount(PickUpMapObjectGuid);
+            Assert.GreaterOrEqual(earnedCount, earnItem.MinCount * crossedThresholdCount);
+            Assert.LessOrEqual(earnedCount, earnItem.MaxCount * crossedThresholdCount);
         }
 
         [Test]
@@ -178,6 +175,16 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectGuid);
             return MasterHolder.ItemMaster.GetItemId(mapObjectElement.EarnItems[0].ItemGuid);
+        }
+
+        /// <summary>
+        ///     一撃破壊がearnItemHpIntervalの閾値を何回跨ぐかをマスタのhpから導く
+        ///     Derives from the master hp how many earnItemHpInterval thresholds a one-hit kill crosses
+        /// </summary>
+        private int CalculateOneHitCrossedThresholdCount(Guid mapObjectGuid)
+        {
+            var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectGuid);
+            return (mapObjectElement.Hp - 1) / mapObjectElement.EarnItemHpInterval + 1;
         }
 
         private int CountMainInventoryItem(PlayerInventoryData playerInventory, ItemId itemId)
