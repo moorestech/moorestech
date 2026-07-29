@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -54,15 +55,17 @@ public sealed class SchemaWatchCache
         var lines = new List<string>();
         foreach (var targetHashes in hashesByWatchPath)
         {
+            lines.Add($"T|{Escape(targetHashes.Key)}");
             foreach (var fileHash in targetHashes.Value)
             {
-                lines.Add($"{targetHashes.Key}|{fileHash.Key}|{fileHash.Value}");
+                lines.Add($"F|{Escape(targetHashes.Key)}|{Escape(fileHash.Key)}|{fileHash.Value}");
             }
         }
 
         // 安定した順序で全対象を書き出し、対象別状態の欠落を防ぐ。
         // Write every target in stable order to avoid losing target-specific state.
         lines.Sort();
+        lines.Insert(0, "V|2");
         File.WriteAllLines(cacheFilePath, lines.ToArray());
     }
 
@@ -73,24 +76,61 @@ public sealed class SchemaWatchCache
             return;
         }
 
-        // 旧2列形式は安全に無視し、次回検査で全対象を初期同期する。
-        // Ignore the legacy two-column format and initialize all targets on the next check.
         var lines = File.ReadAllLines(cacheFilePath);
+        if (lines.Length > 0 && lines[0] == "V|2")
+        {
+            // version 2は空対象と区切り文字を含むパスを明示的に復元する。
+            // Version 2 restores empty targets and paths containing delimiters explicitly.
+            for (var index = 1; index < lines.Length; index++)
+            {
+                LoadVersionTwoLine(lines[index]);
+            }
+
+            return;
+        }
+
+        // 既存3列形式だけを移行し、旧2列形式は初回同期へ委ねる。
+        // Migrate only the existing three-column format and leave legacy two-column data to initial sync.
         foreach (var line in lines)
         {
             var parts = line.Split('|');
-            if (parts.Length != 3)
+            if (parts.Length == 3)
             {
-                continue;
+                EnsureTargetHashes(parts[0])[parts[1]] = parts[2];
             }
-
-            if (!hashesByWatchPath.TryGetValue(parts[0], out var targetHashes))
-            {
-                targetHashes = new Dictionary<string, string>();
-                hashesByWatchPath[parts[0]] = targetHashes;
-            }
-
-            targetHashes[parts[1]] = parts[2];
         }
+    }
+
+    private void LoadVersionTwoLine(string line)
+    {
+        var parts = line.Split('|');
+        if (parts.Length == 2 && parts[0] == "T")
+        {
+            EnsureTargetHashes(Uri.UnescapeDataString(parts[1]));
+            return;
+        }
+
+        if (parts.Length == 4 && parts[0] == "F")
+        {
+            var watchPath = Uri.UnescapeDataString(parts[1]);
+            var relativePath = Uri.UnescapeDataString(parts[2]);
+            EnsureTargetHashes(watchPath)[relativePath] = parts[3];
+        }
+    }
+
+    private Dictionary<string, string> EnsureTargetHashes(string watchPath)
+    {
+        if (!hashesByWatchPath.TryGetValue(watchPath, out var targetHashes))
+        {
+            targetHashes = new Dictionary<string, string>();
+            hashesByWatchPath[watchPath] = targetHashes;
+        }
+
+        return targetHashes;
+    }
+
+    private static string Escape(string value)
+    {
+        return Uri.EscapeDataString(value);
     }
 }

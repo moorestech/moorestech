@@ -21,7 +21,7 @@ public class LocalizationSourceGeneratorTest
 
         var result = RunGenerator(false, new[] { csvFile });
 
-        Assert.Empty(result.GeneratedSources);
+        Assert.Empty(FindLocalizationSources(result));
         Assert.Empty(result.Diagnostics);
     }
 
@@ -34,7 +34,7 @@ public class LocalizationSourceGeneratorTest
 
         var result = RunGenerator(true, new[] { otherFile });
 
-        Assert.Empty(result.GeneratedSources);
+        Assert.Empty(FindLocalizationSources(result));
         Assert.Empty(result.Diagnostics);
     }
 
@@ -46,7 +46,7 @@ public class LocalizationSourceGeneratorTest
             "key,Source,english\nui.menu.close,Close,Close\n");
 
         var result = RunGenerator(true, new[] { csvFile });
-        var generatedSource = Assert.Single(result.GeneratedSources);
+        var generatedSource = Assert.Single(FindLocalizationSources(result));
 
         Assert.Equal("mooresmaster.localization.g.cs", generatedSource.HintName);
         Assert.Contains("public static readonly LocalizationKey Close", generatedSource.SourceText.ToString());
@@ -64,7 +64,7 @@ public class LocalizationSourceGeneratorTest
         var diagnostic = Assert.Single(result.Diagnostics);
 
         Assert.Equal("MOORES003", diagnostic.Id);
-        Assert.Empty(result.GeneratedSources);
+        Assert.Empty(FindLocalizationSources(result));
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class LocalizationSourceGeneratorTest
 
         var result = RunGenerator(true, new[] { csvFile });
 
-        Assert.Empty(result.GeneratedSources);
+        Assert.Empty(FindLocalizationSources(result));
         Assert.Empty(result.Diagnostics);
     }
 
@@ -89,7 +89,7 @@ public class LocalizationSourceGeneratorTest
         var diagnostic = Assert.Single(result.Diagnostics);
 
         Assert.Equal("MOORES003", diagnostic.Id);
-        Assert.Empty(result.GeneratedSources);
+        Assert.Empty(FindLocalizationSources(result));
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public class LocalizationSourceGeneratorTest
         Assert.True(
             message.IndexOf("/a/localization.csv", System.StringComparison.Ordinal) <
             message.IndexOf("/z/localization.csv", System.StringComparison.Ordinal));
-        Assert.Empty(result.GeneratedSources);
+        Assert.Empty(FindLocalizationSources(result));
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class LocalizationSourceGeneratorTest
         var diagnostic = Assert.Single(result.Diagnostics);
 
         Assert.Equal("MOORES003", diagnostic.Id);
-        Assert.Empty(result.GeneratedSources);
+        Assert.Empty(FindLocalizationSources(result));
     }
 
     private static GeneratorRunResult RunGenerator(
@@ -139,10 +139,24 @@ public class LocalizationSourceGeneratorTest
         // 実Roslyn Driverでdefine・AdditionalFile・生成結果を一体検証する
         // Exercise defines, additional files, and output together through the real Roslyn driver
         var driver = CSharpGeneratorDriver.Create(
-            new ISourceGenerator[] { new LocalizationSourceGenerator() },
+            new ISourceGenerator[] { new MooresmasterSourceGenerator().AsSourceGenerator() },
             additionalTexts,
             parseOptions);
         return driver.RunGenerators(compilation).GetRunResult().Results.Single();
+    }
+
+    private static List<GeneratedSourceResult> FindLocalizationSources(GeneratorRunResult result)
+    {
+        var localizationSources = new List<GeneratedSourceResult>();
+        foreach (var source in result.GeneratedSources)
+        {
+            if (source.HintName == "mooresmaster.localization.g.cs")
+            {
+                localizationSources.Add(source);
+            }
+        }
+
+        return localizationSources;
     }
 
     private sealed class TestAdditionalText : AdditionalText
