@@ -8,7 +8,7 @@ spec: docs/superpowers/specs/2026-07-29-localization-foundation-design.md
 
 **Goal:** バニラ文言（コード参照UI文言）の正本CSVをリポジトリに新設し、SourceGeneratorでC#型付きキー＋埋め込み辞書、codegenでTS型付きキーを生成し、webuiの日本語原文キー430個を名前空間キーへ一括移行する。
 
-**Architecture:** `Localization/localization.csv` を単一正本とし、mooresmaster DLL内の第2 Generatorクラスが `Client.Localization` アセンブリへキー定数と辞書本体を埋め込む（実行時CSVロード廃止）。webuiは同一CSVからNode製スクリプトでTS定数を生成し、`t()` の引数をキーのstring-literal union型に絞ることで存在しないキーをコンパイルエラー化する。欠落解決は 対象言語→english→source（原文）→`[!key]`。
+**Architecture:** `Localization/localization.csv` を単一正本とし、runtime参照可能な `mooresmaster.LocalizationCsv` 共通DLLがCSVパース・行モデル・例外を一元所有する。mooresmaster DLL内の第2 GeneratorクラスとUnity runtimeは同じ共通DLLを参照し、generatorは `Client.Localization` アセンブリへキー定数と辞書本体を埋め込む（実行時バニラCSVロード廃止）。webuiは同一CSVからNode製スクリプトでTS定数を生成し、欠落解決は 対象言語→english→source（原文）→`[!key]` とする。
 
 **Tech Stack:** Roslyn IIncrementalGenerator (netstandard2.0) / Unity asmdef + csc.rsp / React + vitest + Node (mjs) / uloop
 
@@ -24,6 +24,7 @@ spec: docs/superpowers/specs/2026-07-29-localization-foundation-design.md
 - .csファイル変更後は必ず `uloop compile --project-path ./moorestech_client` を実行
 - 名前空間キーの表記: dot区切り・セグメントはlowerCamel（例 `ui.buildMenu.close`）。キーは「葉と枝を兼ねない」（`ui.save` と `ui.save.confirm` の併存禁止。generatorが検査）
 - CSVヘッダは `key,Source,english,japanese`（初期2言語。言語セットの唯一の定義はこのヘッダ）
+- generator用とUnity runtime用でCSV parser・行モデル・例外を複製しない。両者は `mooresmaster.LocalizationCsv.dll` の同一実装を参照する
 - コミットは各タスク末で必ず行う（worktree作業消失防止・AGENTS.md）
 
 ## File Structure
@@ -32,12 +33,19 @@ spec: docs/superpowers/specs/2026-07-29-localization-foundation-design.md
 Localization/
 └── localization.csv                     ← 新設・バニラ文言の単一正本
 
-mooresmaster/mooresmaster.Generator/
-├── LocalizationSourceGenerator.cs       ← 新設・第2の[Generator]（オーケストレーションのみ）
-└── Localization/
-    ├── LocalizationCsvParser.cs         ← 新設・CSV→行モデル（純関数）
-    ├── LocalizationKeyTree.cs           ← 新設・キー→ネスト木＋葉枝衝突検査（純関数）
-    └── LocalizationCodeGenerator.cs     ← 新設・木＋辞書→C#コード文字列（純関数）
+mooresmaster/
+├── mooresmaster.LocalizationCsv/        ← 新設・runtime参照可能なnetstandard2.0共通DLL
+│   ├── mooresmaster.LocalizationCsv.csproj
+│   ├── LocalizationCsv.cs              ← CSV/行モデル
+│   ├── LocalizationCsvException.cs     ← 不正入力例外
+│   └── LocalizationCsvParser.cs        ← generator/runtime共用parser
+├── mooresmaster.Generator/
+│   ├── mooresmaster.Generator.csproj    ← 共通DLL ProjectReference追加
+│   ├── LocalizationSourceGenerator.cs  ← 新設・第2の[Generator]（オーケストレーションのみ）
+│   └── Localization/
+│       ├── LocalizationKeyTree.cs       ← 新設・キー→ネスト木＋葉枝衝突検査（純関数）
+│       └── LocalizationCodeGenerator.cs ← 新設・木＋辞書→C#コード文字列（純関数）
+└── build.sh                             ← 共通DLL+generatorをclient/serverへデプロイ
 
 mooresmaster/mooresmaster.Tests/LocalizationTests/
 ├── LocalizationCsvParserTest.cs         ← 新設
@@ -49,6 +57,8 @@ moorestech_client/Assets/Scripts/Client.Localization/
 ├── _CompileRequester.cs                 ← 新設・SchemaWatcherのtouch先
 ├── Localize.cs                          ← 全面書き換え（埋め込み辞書化）
 └── TextMeshProLocalize.cs               ← try-catch除去・GetLegacy経由化
+
+moorestech_{client,server}/Assets/Plugins/mooresmaster.LocalizationCsv.dll ← build.sh生成・共通runtime DLL
 
 moorestech_client/Assets/Scripts/Client.Localization/Client.Localization.asmdef  ← versionDefines追加
 moorestech_server/Assets/Scripts/Editor/SchemaWatcher.cs                          ← 監視対象の複数化
@@ -101,17 +111,24 @@ git commit -m "feat: バニラローカライズCSV正本を新設"
 
 ---
 
-### Task 2: CSVパーサー（generator側・TDD）
+### Task 2: CSVパーサー共通DLL（generator/runtime共有・TDD）
 
 **Files:**
-- Create: `mooresmaster/mooresmaster.Generator/Localization/LocalizationCsvParser.cs`
+- Create: `mooresmaster/mooresmaster.LocalizationCsv/mooresmaster.LocalizationCsv.csproj`
+- Create: `mooresmaster/mooresmaster.LocalizationCsv/LocalizationCsv.cs`
+- Create: `mooresmaster/mooresmaster.LocalizationCsv/LocalizationCsvException.cs`
+- Create: `mooresmaster/mooresmaster.LocalizationCsv/LocalizationCsvParser.cs`
+- Modify: `mooresmaster/mooresmaster.Generator/mooresmaster.Generator.csproj`
+- Modify: `mooresmaster/mooresmaster.Tests/mooresmaster.Tests.csproj`
 - Test: `mooresmaster/mooresmaster.Tests/LocalizationTests/LocalizationCsvParserTest.cs`
 
 **Interfaces:**
+- Assembly/namespace: `mooresmaster.LocalizationCsv` / `Mooresmaster.LocalizationCsv`
 - Produces:
-  - `record LocalizationCsv(string[] LanguageCodes, LocalizationRow[] Rows)`
-  - `record LocalizationRow(string Key, string Source, string[] Texts)`（TextsはLanguageCodesと同順）
-  - `static LocalizationCsv LocalizationCsvParser.Parse(string csvText)`
+  - `sealed class LocalizationCsv { string[] LanguageCodes; LocalizationRow[] Rows; }`
+  - `sealed class LocalizationRow { string Key; string Source; string[] Texts; }`（TextsはLanguageCodesと同順）
+  - `public static LocalizationCsv LocalizationCsvParser.Parse(string csvText)`
+  - `public static List<List<string>> LocalizationCsvParser.ParseRecords(string csvText)` — settings mapperも同じquote-aware record分割を再利用する
   - 不正CSV（列数不一致・キー重複）は `LocalizationCsvException` を投げる（generator本体が既存のErrorFile機構で報告する）
 
 - [ ] **Step 1: 失敗するテストを書く**
@@ -119,7 +136,7 @@ git commit -m "feat: バニラローカライズCSV正本を新設"
 `mooresmaster/mooresmaster.Tests/LocalizationTests/LocalizationCsvParserTest.cs`:
 
 ```csharp
-using mooresmaster.Generator.Localization;
+using Mooresmaster.LocalizationCsv;
 using Xunit;
 
 namespace mooresmaster.Tests.LocalizationTests;
@@ -177,23 +194,26 @@ Expected: FAIL（LocalizationCsvParser が存在しない）
 
 - [ ] **Step 3: 実装する**
 
-`mooresmaster/mooresmaster.Generator/Localization/LocalizationCsvParser.cs`（netstandard2.0互換に注意・外部依存なしの自前パーサー。既存YamlDotNet同様、依存を増やさない）:
+`mooresmaster/mooresmaster.LocalizationCsv/mooresmaster.LocalizationCsv.csproj`:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+</Project>
+```
+
+`LocalizationCsv.cs` は上記interfaceの3値をconstructor必須で受ける2つのsealed class、`LocalizationCsvException.cs` は `Exception` 継承の公開例外とする。`LocalizationCsvParser.cs` はnetstandard2.0互換・外部依存なしで次を実装する:
 
 ```csharp
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace mooresmaster.Generator.Localization;
-
-public class LocalizationCsvException : Exception
-{
-    public LocalizationCsvException(string message) : base(message) { }
-}
-
-public record LocalizationRow(string Key, string Source, string[] Texts);
-
-public record LocalizationCsv(string[] LanguageCodes, LocalizationRow[] Rows);
+namespace Mooresmaster.LocalizationCsv;
 
 public static class LocalizationCsvParser
 {
@@ -203,7 +223,7 @@ public static class LocalizationCsvParser
     {
         // 行分割はクォート対応のフィールド分割で行う
         // Split records with quote-aware field splitting
-        var records = SplitRecords(csvText);
+        var records = ParseRecords(csvText);
         if (records.Count == 0) throw new LocalizationCsvException("localization.csv is empty");
 
         var header = records[0];
@@ -228,7 +248,7 @@ public static class LocalizationCsvParser
         return new LocalizationCsv(languageCodes, rows.ToArray());
     }
 
-    private static List<List<string>> SplitRecords(string text)
+    public static List<List<string>> ParseRecords(string text)
     {
         // RFC4180準拠の最小実装（ダブルクォート・埋め込みカンマ対応）
         // Minimal RFC4180-style parser (double quotes, embedded commas)
@@ -263,16 +283,27 @@ public static class LocalizationCsvParser
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [ ] **Step 4: generator/testsから共通projectだけを参照する**
+
+`mooresmaster.Generator.csproj` と `mooresmaster.Tests.csproj` へ通常のProjectReferenceを追加する。Generator側のLocalizationコードは `using Mooresmaster.LocalizationCsv;` に統一し、generator配下にparser/model/exceptionを作らない。
+
+```xml
+<ProjectReference Include="..\mooresmaster.LocalizationCsv\mooresmaster.LocalizationCsv.csproj" />
+```
+
+- [ ] **Step 5: テストを実行して通ることを確認する**
 
 Run: `cd mooresmaster && dotnet test --filter "FullyQualifiedName~LocalizationCsvParserTest"`
 Expected: PASS（5件）
 
-- [ ] **Step 5: コミットする**
+- [ ] **Step 6: 重複実装が無いことを検査してコミットする**
+
+Run: `rg -l "class LocalizationCsvParser" mooresmaster moorestech_client moorestech_server`
+Expected: `mooresmaster/mooresmaster.LocalizationCsv/LocalizationCsvParser.cs` の1件だけ
 
 ```bash
-git add mooresmaster/mooresmaster.Generator/Localization/LocalizationCsvParser.cs mooresmaster/mooresmaster.Tests/LocalizationTests/LocalizationCsvParserTest.cs
-git commit -m "feat: ローカライズCSVパーサーをgeneratorに追加"
+git add mooresmaster/mooresmaster.LocalizationCsv/ mooresmaster/mooresmaster.Generator/mooresmaster.Generator.csproj mooresmaster/mooresmaster.Tests/
+git commit -m "feat: generatorとruntime共用のローカライズCSVライブラリ"
 ```
 
 ---
@@ -294,6 +325,7 @@ git commit -m "feat: ローカライズCSVパーサーをgeneratorに追加"
 
 ```csharp
 using System.Linq;
+using Mooresmaster.LocalizationCsv;
 using mooresmaster.Generator.Localization;
 using Xunit;
 
@@ -428,6 +460,7 @@ git commit -m "feat: ローカライズキー木の構築と葉枝衝突検査"
 `mooresmaster/mooresmaster.Tests/LocalizationTests/LocalizationCodeGeneratorTest.cs`:
 
 ```csharp
+using Mooresmaster.LocalizationCsv;
 using mooresmaster.Generator.Localization;
 using Xunit;
 
@@ -583,6 +616,9 @@ git commit -m "feat: ローカライズC#コード生成器"
 
 **Files:**
 - Create: `mooresmaster/mooresmaster.Generator/LocalizationSourceGenerator.cs`
+- Modify: `mooresmaster/build.sh`（共通DLLも同時ビルド・デプロイ）
+- Modify: `moorestech_client/Assets/Plugins/mooresmaster.LocalizationCsv.dll`（build.sh経由）
+- Modify: `moorestech_server/Assets/Plugins/mooresmaster.LocalizationCsv.dll`（build.sh経由）
 - Modify: `moorestech_client/Assets/Plugins/mooresmaster.Generator.dll`（build.sh経由）
 - Modify: `moorestech_server/Assets/Plugins/mooresmaster.Generator.dll`（build.sh経由）
 
@@ -600,6 +636,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Mooresmaster.LocalizationCsv;
 using mooresmaster.Generator.Localization;
 
 namespace mooresmaster.Generator;
@@ -648,23 +685,33 @@ public class LocalizationSourceGenerator : IIncrementalGenerator
 }
 ```
 
-- [ ] **Step 2: 全テストとビルドを確認する**
+- [ ] **Step 2: build.shを共通DLLデプロイへ拡張する**
 
-Run: `cd mooresmaster && dotnet build mooresmaster.Generator/ -c Release && dotnet test`
+`mooresmaster/build.sh` は generator build後に `mooresmaster.LocalizationCsv/bin/Release/netstandard2.0/mooresmaster.LocalizationCsv.dll` の存在を検査し、generator DLLと同様にclient/serverの `Assets/Plugins/` へコピーする。既存meta生成関数を使って固定Guidの `.meta` をUnity経由の既存運用と同じ形で生成し、generatorだけ更新され共通DLLが古い状態を許さない。
+
+- [ ] **Step 3: 全テストとビルドを確認する**
+
+Run: `cd mooresmaster && dotnet build mooresmaster.LocalizationCsv/ -c Release && dotnet build mooresmaster.Generator/ -c Release && dotnet test`
 Expected: BUILD SUCCESS・全テストPASS
 
-- [ ] **Step 3: DLLを両プロジェクトへデプロイする**
+- [ ] **Step 4: DLLを両プロジェクトへデプロイする**
 
 Run: `./mooresmaster/build.sh`
-Expected: `Done! mooresmaster.Generator.dll has been deployed.`
+Expected: `mooresmaster.LocalizationCsv.dll` と `mooresmaster.Generator.dll` がclient/serverの両方へ配置される
 
-- [ ] **Step 4: コミットする**
+- [ ] **Step 5: 配置と参照を検証してコミットする**
+
+Run: `shasum -a 256 mooresmaster/mooresmaster.LocalizationCsv/bin/Release/netstandard2.0/mooresmaster.LocalizationCsv.dll moorestech_client/Assets/Plugins/mooresmaster.LocalizationCsv.dll moorestech_server/Assets/Plugins/mooresmaster.LocalizationCsv.dll`
+Expected: 3ファイルのhashが一致
 
 ```bash
 git add mooresmaster/mooresmaster.Generator/LocalizationSourceGenerator.cs \
+  mooresmaster/build.sh \
+  moorestech_client/Assets/Plugins/mooresmaster.LocalizationCsv.dll \
+  moorestech_server/Assets/Plugins/mooresmaster.LocalizationCsv.dll \
   moorestech_client/Assets/Plugins/mooresmaster.Generator.dll \
   moorestech_server/Assets/Plugins/mooresmaster.Generator.dll
-git commit -m "feat: ローカライズSourceGenerator(第2Generator)を追加しDLLデプロイ"
+git commit -m "feat: ローカライズ共通DLLとSourceGeneratorを両プロジェクトへデプロイ"
 ```
 
 ---
@@ -839,6 +886,7 @@ namespace Client.Localization
             // Legacy path for prefab-serialized keys; new code must use the LocalizationKey overload
             if (mergedDictionary[CurrentLanguageCode].TryGetValue(rawKey, out var value)) return value;
             if (mergedDictionary[DefaultLanguageCode].TryGetValue(rawKey, out var english)) return english;
+            if (mergedDictionary[SourcePseudoLocale].TryGetValue(rawKey, out var source)) return source;
             return $"[!{rawKey}]";
         }
 
@@ -982,7 +1030,7 @@ Expected: FAIL（スクリプト未実装）
 
 - [ ] **Step 3: 生成スクリプトを実装する**
 
-`scripts/generate-localization-keys.mjs`（`parseLocalizationCsv` はTask 2のC#パーサーと同仕様: クォート・埋め込みカンマ・`\n`変換・キー重複/列数検査。`generateLocalizationKeysSource` はキー木→ネストobjectリテラル＋union型を文字列生成。CLIとして直接実行されたら `src/shared/i18n/generated/localizationKeys.ts` へ書き込む）:
+`scripts/generate-localization-keys.mjs`（Nodeビルドツール用parserは共通fixtureでクォート・埋め込みカンマ・`\n`変換・キー重複/列数検査の期待値を固定する。C#のgenerator/runtime間ではTask 2の共通DLLだけを使う。`generateLocalizationKeysSource` はキー木→ネストobjectリテラル＋union型を文字列生成し、CLI実行時に生成物へ書き込む）:
 
 ```javascript
 import { readFileSync, writeFileSync } from "node:fs";
@@ -1229,12 +1277,15 @@ git status --short && git add -A && git commit -m "chore: ローカライズバ�
 - **Prefab直列化キーのために `GetLegacy(string)` を残す** — TextMeshProLocalize/UGuiTooltipTargetのSerializeFieldキーは文字列のままにし、値だけ新キーへ更新。uGUI残置方針（メモリ: ui-web-migration-complete）のため型付き化の投資をしない。出所: agent前提
 - **キーは葉と枝を兼ねない** — C#ネストクラス生成の構造的制約をCSV検査として明文化。出所: agent前提（generatorの型構造上の必然）
 - **SchemaWatcherは監視対象リストへ一般化** — VanillaSchema監視の既存機構（`SchemaWatcher.cs:19-26`）をそのまま複数対象化。出所: agent前提（既存前例の拡張）
+- **CSV parserはruntime参照可能な共通DLLへ分離** — generator/runtimeの依存方向を共通の純粋ライブラリへ揃え、実装コピーを禁止する。build.shは共通DLLとgenerator DLLをclient/serverへ同時デプロイする。出所: ユーザー裁定 2026-07-29
+- **GetLegacyもsourceを含む4段解決** — Prefab直列化キーも対象言語→english→source→`[!key]` を省略しない。出所: ユーザー裁定 2026-07-29
 
 ## 配置と前例
 
 | 項目 | 配置先 | 前例（パス） |
 |---|---|---|
-| LocalizationSourceGenerator ほかgenerator側3ファイル | mooresmaster.Generator（同一DLL・第2Generator） | `mooresmaster/mooresmaster.Generator/MooresmasterSourceGenerator.cs:20`（[Generator]クラス構造・ENABLE define検査・診断報告） |
+| LocalizationCsvParser / 行モデル / 例外 | mooresmaster.LocalizationCsv（netstandard2.0共通DLL） | generator/runtime双方の下流にドメイン語彙を持たない純粋CSV境界として新設。実装は1箇所のみ |
+| LocalizationSourceGenerator ほかgenerator側2ファイル | mooresmaster.Generator（同一DLL・第2Generator） | `mooresmaster/mooresmaster.Generator/MooresmasterSourceGenerator.cs:20`（[Generator]クラス構造・ENABLE define検査・診断報告） |
 | generatorテスト | mooresmaster.Tests/LocalizationTests | `mooresmaster/mooresmaster.Tests/`（機能別ディレクトリ構成） |
 | csc.rsp / versionDefines | Client.Localization | `moorestech_server/Assets/Scripts/Core.Master/csc.rsp:1` / `Core.Master.asmdef` versionDefines |
 | _CompileRequester | Client.Localization | `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs`（SchemaWatcher touch先の前例） |

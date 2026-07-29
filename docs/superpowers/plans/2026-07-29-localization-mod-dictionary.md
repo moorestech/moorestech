@@ -8,7 +8,7 @@ spec: docs/superpowers/specs/2026-07-29-localization-foundation-design.md
 
 **Goal:** mod同梱ローカライズCSVと `<type>.<guid>.<field>` 導出キーを実装し、ホスト側のマスタ名解決・payload同梱を全廃してWeb側辞書解決へ統一する（item/block・研究/チャレンジ・skit・ビルドメニュー）。
 
-**Architecture:** Plan1のバニラ基盤（埋め込み辞書・`Localize`・source擬似ロケール・TS型付きキー）の上に、①mod `localization/localization.csv` の合成、②MasterHolder原文のsource擬似ロケール投入、③`ContentLocalizationKeys`（C#）/`contentKeys.ts`（TS）による導出キー、④DTO/TopicのName削除とGuid化を積む。未翻訳チェーンは 対象言語→english→source（原文）→`[!key]`（ユーザー裁定 2026-07-29「英語→nameの原文」）。skitのみホスト解決の例外（判断記録参照）。
+**Architecture:** Plan1のバニラ基盤（埋め込み辞書・共通CSV DLL・`Localize`・source擬似ロケール・TS型付きキー）の上に、①mod CSV合成、②MasterHolder原文投入、③Guid導出キー、④DTO/TopicのGuid化を積む。skitは既存CommandForgeEditor辞書を保持し、`Client.Skit` のresolver interfaceに対する `Client.Game` 側のAddressables loader/resolverが開始時に対象言語+englishだけを読み、`skit.*` のみを欠けたキーとしてmod合成辞書へ重ねる。skitの解決順は mod対象言語→skit専用対象言語→mod英語→skit専用英語→JSON原文、それ以外は 対象言語→english→source→`[!key]`。
 
 **Tech Stack:** C# (Unity asmdef) / React + zustand / uloop / NUnit（クライアントプロジェクト経由でサーバーテスト実行）
 
@@ -16,8 +16,12 @@ spec: docs/superpowers/specs/2026-07-29-localization-foundation-design.md
 
 - Plan1（`docs/superpowers/plans/2026-07-29-localization-vanilla-foundation.md`）完了が前提
 - partial禁止・`Func<>`禁止・try-catch原則禁止（外部境界のみ・根拠コメント必須）・UniRx・200行/ファイル・日本語→英語2行コメント（AGENTS.md）
-- 導出キー規約: `<type>.<guid>.<field>`。Guidは `ToString("D")` 小文字。type/fieldはlowerCamel
+- マスタ導出キー規約: `<type>.<guid>.<field>`。Guidは `ToString("D")` 小文字、type/fieldはlowerCamel。Skit fieldだけはCommandForge schema名を正確に保持し `Option1Tag`〜`Option3Tag` の大文字も変えない
 - キーにmodIdを含めない（ユーザー裁定 2026-07-29）
+- CSV解析はPlan1の `mooresmaster.LocalizationCsv.dll` を参照し、runtime側にparser・行モデル・例外を複製しない
+- characters/buildMenuのGuidは必須追加し全JSONを一括更新する。optional・`?? Default`・ローダー補完は禁止
+- `Client.Skit` は `Client.Localization` / Addressablesを直接参照せず、下流 `Client.Game` の具体resolverをStoryContextへ登録する
+- skit開始時にロードする辞書は選択言語とenglishの2ファイルだけ。ゲーム辞書へ取り込むキーは `skit.` 接頭辞だけ
 - 変更の波及を恐れない: DTO契約の破壊的変更はホストとwebuiを同一タスク内で一括更新（AGENTS.md）
 - .csファイル変更後は必ず `uloop compile --project-path ./moorestech_client`
 - 各タスク末で必ずコミット
@@ -31,6 +35,15 @@ moorestech_client/Assets/Scripts/Client.Localization/
 ├── MasterSourceTextCollector.cs         ← 新設・MasterHolder原文→source擬似ロケール
 └── ContentLocalizationKeys.cs           ← 新設・導出キービルダー
 
+moorestech_client/Assets/Scripts/Client.Skit/
+├── Localization/ISkitLocalizationResolver.cs ← 新設・汎用層の解決interface（Localize非依存）
+└── Context/SkitExecutionIdentity.cs           ← 新設・skitTitleをcommandへ渡すcontext
+
+moorestech_client/Assets/Scripts/Client.Game/
+└── Skit/Localization/
+    ├── SkitLocalizationDictionaryLoader.cs    ← 新設・対象言語+englishのAddressables動的load
+    └── SkitLocalizationResolver.cs            ← 新設・skit.*限定合成と5段解決
+
 moorestech_client/Assets/Scripts/Client.WebUiHost/Game/
 ├── ItemMasterEndpoint.cs                ← Name削除・ItemGuid追加
 ├── Topics/BlockInventoryTopic.cs        ← BlockName削除・BlockGuid追加
@@ -43,8 +56,11 @@ moorestech_web/webui/src/
 ├── bridge/**（契約型）                    ← name削除・guid追加の追従
 └── 各消費コンポーネント                    ← 辞書解決化
 
-VanillaSchema/buildMenu.yml              ← カテゴリ/サブカテゴリへGuid追加（Task 7）
+VanillaSchema/characters.yml             ← 必須characterGuid追加（Task 6）
+VanillaSchema/buildMenu.yml              ← カテゴリ/サブカテゴリへ必須Guid追加（Task 7）
+../moorestech_master/**/master/characters.json ← 全characters JSONへcharacterGuid追加
 ../moorestech_master/server_v8/mods/moorestechAlphaMod_8/localization/localization.csv ← 新設サンプル
+moorestech_client/Assets/AddressableResources/Skit/i18n/{english,japanese}.json ← 保持しskit.*を追加
 ```
 
 ---
@@ -57,7 +73,7 @@ VanillaSchema/buildMenu.yml              ← カテゴリ/サブカテゴリへG
 - Modify: `moorestech_client/Assets/Scripts/Client.Localization/Localize.cs`
 
 **Interfaces:**
-- Consumes: Plan1の `mergedDictionary` 構造・`Mod.Loader.ModsResource`（`ExtractedPath` を各modが持つ。zip modは展開先ディレクトリ）
+- Consumes: Plan1の `mergedDictionary` 構造・`Mooresmaster.LocalizationCsv.LocalizationCsvParser`・`Mod.Loader.ModsResource`（`ExtractedPath` を各modが持つ。zip modは展開先ディレクトリ）
 - Produces:
   - `public static void Localize.MergeGameDictionaries(ModsResource modsResource)` — ①各mod `localization/localization.csv` を合成（`SortedModIds` 順・後勝ち）②`MasterSourceTextCollector.Collect()` をsource擬似ロケールへ合成。ゲーム開始（MasterHolder.Load後）に呼ぶ
   - `public static string Localize.GetContent(string derivedKey)` — 対象言語→english→source→`[!{derivedKey}]`
@@ -75,6 +91,7 @@ Expected: クライアント側でサーバー起動を駆動している箇所�
 using System.Collections.Generic;
 using System.IO;
 using Mod.Loader;
+using Mooresmaster.LocalizationCsv;
 
 namespace Client.Localization
 {
@@ -98,14 +115,19 @@ namespace Client.Localization
         {
             // フォーマットはバニラCSVと完全同一。ヘッダの言語列だけを合成対象にする
             // Same format as the vanilla CSV; only languages present in the header are merged
-            /* Plan1のLocalizationCsvParserと同仕様のパースを行い、
-               言語列ごとに mergedDictionary[code][key] = text、Source列は mergedDictionary["source"][key] = source */
+            var csv = LocalizationCsvParser.Parse(csvText);
+            foreach (var row in csv.Rows)
+            {
+                mergedDictionary["source"][row.Key] = row.Source;
+                for (var i = 0; i < csv.LanguageCodes.Length; i++)
+                    mergedDictionary[csv.LanguageCodes[i]][row.Key] = row.Texts[i];
+            }
         }
     }
 }
 ```
 
-（注: パーサーはgenerator DLL内の `LocalizationCsvParser` をランタイム参照できない〔RoslynAnalyzer扱いのDLLは実行時参照不可〕ため、`MergeCsv` に同仕様の最小パーサーを実装する。`ModsResource` のAPI実名（`SortedMods`/`ExtractedPath`）は `Mod.Loader/ModsResource.cs` を読んで実名に合わせる — zip modの展開先を返すプロパティが無い場合は `ModsResource` に追加する）
+`Client.Localization.asmdef` からPlan1でclient/serverへ配置済みの `mooresmaster.LocalizationCsv.dll` を参照する。`rg -l "class LocalizationCsvParser" mooresmaster moorestech_client moorestech_server` が共通ライブラリの1件だけであることを検査する。`ModsResource` のAPI実名（`SortedMods`/`ExtractedPath`）は `Mod.Loader/ModsResource.cs` を読んで合わせる。
 
 - [ ] **Step 3: MasterSourceTextCollector を実装する**
 
@@ -198,7 +220,7 @@ git add moorestech_client/Assets/Scripts/Client.Localization/ && git commit -m "
 - Modify: `moorestech_web/webui/src/shared/i18n/i18nStore.ts`（TranslationKey合流）
 
 **Interfaces:**
-- Produces（C#）: `public static class ContentLocalizationKeys` — `ItemName(Guid)`→`item.<guid>.name` / `BlockName(Guid)` / `ResearchNodeName(Guid)` / `ResearchNodeDescription(Guid)` / `ChallengeTitle(Guid)` / `ChallengeSummary(Guid)` / `ChallengeCategoryName(Guid)` / `CharacterName(Guid)` / `SkitLineText(string skitTitle, int commandId)`→`skit.<title>.<id>.text` / `BuildMenuCategoryName(Guid)`
+- Produces（C#）: `public static class ContentLocalizationKeys` — item/block/research/challenge/character/buildMenuのGuid導出キー、およびCommandForge schema field固定のskitキー
 - Produces（TS）: 同名のlowerCamel関数群＋`export type ContentLocalizationKey = \`item.${string}.name\` | \`block.${string}.name\` | ...`（テンプレートリテラル型）。`i18nStore.ts` の `TranslationKey = VanillaLocalizationKey | ContentLocalizationKey`
 
 - [ ] **Step 1: C#側を実装する**
@@ -217,11 +239,20 @@ namespace Client.Localization
         public static string ChallengeTitle(Guid guid) => $"challenge.{guid:D}.title";
         public static string ChallengeSummary(Guid guid) => $"challenge.{guid:D}.summary";
         public static string ChallengeCategoryName(Guid guid) => $"challengeCategory.{guid:D}.name";
-        public static string CharacterName(Guid guid) => $"character.{guid:D}.name";
-        public static string BuildMenuCategoryName(Guid guid) => $"buildMenuCategory.{guid:D}.name";
-        // skitはGuidを持たないためファイルtitle+コマンドidで識別する（spec裁定済みのGuid例外）
-        // Skits have no Guid; identified by file title + command id (adjudicated exception)
-        public static string SkitLineText(string skitTitle, int commandId) => $"skit.{skitTitle}.{commandId}.text";
+        public static string CharacterName(Guid characterGuid) => $"character.{characterGuid:D}.name";
+        public static string BuildMenuCategoryName(Guid categoryGuid) => $"buildMenuCategory.{categoryGuid:D}.name";
+        public static string BuildMenuSubCategoryName(Guid subCategoryGuid) => $"buildMenuSubCategory.{subCategoryGuid:D}.name";
+        public static string SkitTextBody(string skitTitle, int commandId) => SkitField(skitTitle, commandId, "body");
+        public static string SkitBackgroundBody(string skitTitle, int commandId) => SkitField(skitTitle, commandId, "body");
+        public static string SkitSelectionOption1Tag(string skitTitle, int commandId) => SkitField(skitTitle, commandId, "Option1Tag");
+        public static string SkitSelectionOption2Tag(string skitTitle, int commandId) => SkitField(skitTitle, commandId, "Option2Tag");
+        public static string SkitSelectionOption3Tag(string skitTitle, int commandId) => SkitField(skitTitle, commandId, "Option3Tag");
+        public static string SkitOverrideCharacterName(string skitTitle, int commandId) => SkitField(skitTitle, commandId, "overrideCharacterName");
+
+        private static string SkitField(string skitTitle, int commandId, string field)
+        {
+            return $"skit.{skitTitle}.{commandId}.{field}";
+        }
     }
 }
 ```
@@ -240,9 +271,10 @@ export type ContentLocalizationKey =
   | `challenge.${string}.summary`
   | `challengeCategory.${string}.name`
   | `character.${string}.name`
-  | `buildMenuCategory.${string}.name`;
-// skit行キーはホスト解決のみでWebから構築しない（Task 6参照）
-// Skit line keys resolve host-side only and are never built from the Web (see Task 6)
+  | `buildMenuCategory.${string}.name`
+  | `buildMenuSubCategory.${string}.name`;
+// skitキーはUnity側resolverで解決済みの表示文字列をpushするためWebから構築しない
+// Skit keys are resolved by the Unity-side resolver before display strings are pushed
 
 export const itemNameKey = (guid: string): ContentLocalizationKey => `item.${guid}.name`;
 export const blockNameKey = (guid: string): ContentLocalizationKey => `block.${guid}.name`;
@@ -251,6 +283,7 @@ export const researchNodeDescriptionKey = (guid: string): ContentLocalizationKey
 export const challengeTitleKey = (guid: string): ContentLocalizationKey => `challenge.${guid}.title`;
 export const challengeSummaryKey = (guid: string): ContentLocalizationKey => `challenge.${guid}.summary`;
 export const buildMenuCategoryNameKey = (guid: string): ContentLocalizationKey => `buildMenuCategory.${guid}.name`;
+export const buildMenuSubCategoryNameKey = (guid: string): ContentLocalizationKey => `buildMenuSubCategory.${guid}.name`;
 ```
 
 `i18nStore.ts`: `export type TranslationKey = VanillaLocalizationKey | ContentLocalizationKey;`（Plan1で用意した拡張点）。barrel（`src/shared/i18n/index.ts`）からre-export。
@@ -399,45 +432,93 @@ git add -A && git commit -m "feat: 研究・チャレンジ文言を導出キー
 
 ---
 
-### Task 6: skit台詞のローカライズ（ホスト解決の例外経路）
+### Task 6: Skit専用辞書の動的loader/resolverとcharacterGuid
 
 **Files:**
-- Modify: skit再生でテキストをTopicへpushしている箇所（`Client.Skit` → WebUiHostのskit topic。`grep -rn "speakerName\|SkitPresentationData" moorestech_client/Assets/Scripts --include="*.cs"` で実測）
-- Modify: `moorestech_web/webui/src/features/skit/SkitPresentation.tsx:106` / `controls/SkitChoiceList.tsx:24` のコメント更新
+- Modify: `VanillaSchema/characters.yml`（必須 `characterGuid`）
+- Modify: `/Users/katsumi/moorestech_master/**/master/characters.json`（全ファイル一括更新）
+- Create: `moorestech_client/Assets/Scripts/Client.Skit/Localization/ISkitLocalizationResolver.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Skit/Context/SkitExecutionIdentity.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Skit/Context/StoryContextExtension.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Skit/Commands/TextCommand.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Skit/Commands/SelectionCommand.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Skit/Commands/BackgroundSkitTextCommand.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Game/Skit/Localization/SkitLocalizationDictionaryLoader.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Game/Skit/Localization/SkitLocalizationResolver.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/Skit/SkitManager.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BackgroundSkit/BackgroundSkitManager.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Localization/Localize.cs`
+- Modify: `moorestech_client/Assets/AddressableResources/Skit/skits/*.json`（`overideCharacterName` をschema名へ正規化）
+- Modify: `moorestech_web/webui/src/features/skit/SkitPresentation.tsx`
+- Modify: `moorestech_web/webui/src/features/skit/controls/SkitChoiceList.tsx`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/**/SkitLocalizationResolverTest.cs`
 
 **Interfaces:**
-- Produces: skit行テキストはホストが `Localize.GetContent(ContentLocalizationKeys.SkitLineText(skitTitle, commandId))` で解決してpush（sourceはskit JSONの `body` をインラインフォールバック: 辞書に無ければ原文をそのまま流す）。話者名は `characterId`→characters master のGuid→`CharacterName` キーで解決
+- `ISkitLocalizationResolver.ResolveCommandField(string skitTitle, int commandId, string field, string sourceText)` — scoped対象言語→scoped english→手元原文
+- `ISkitLocalizationResolver.ResolveCharacterName(string characterId, string skitTitle, int commandId, bool useOverride, string overrideSource)` — override時は `overrideCharacterName` field、通常時は `characterId`→必須characterGuid→`character.<guid>.name`
+- `SkitLocalizationDictionaryLoader.LoadAsync(string languageCode)` — Address `Vanilla/Skit/i18n/{languageCode}` の `translations` から `skit.` キーだけを返す
+- `SkitLocalizationResolver.PrepareAsync(string skitTitle)` — 選択言語+englishの2辞書をloadし、各言語のmod合成辞書copyへ欠けたキーだけ追加する
+- `Localize.TryGetContentWithoutSource(string key, out string text)` — 現在言語→englishのみ。resolverのscoped辞書を作る際の基準と単体検査に使う
 
-- [ ] **Step 1: skit再生のテキスト供給点を特定する**
+- [ ] **Step 1: characterGuidを必須化し全characters JSONを一括更新する**
 
-Run: `grep -rn "body\|Text" moorestech_client/Assets/Scripts/Client.Skit --include="*.cs" | grep -i "command\|push\|topic" | head -20`
-テキストコマンド実行→表示データ化（`SkitPresentationData.cs`）の経路で、表示直前の1点を特定する。
+`edit-schema` スキルで `VanillaSchema/characters.yml` の `characterId` 前へ `characterGuid`（`type: uuid`, `autoGenerated: true`）を追加する。`find /Users/katsumi/moorestech_master -path '*/master/characters.json'` の全ファイルへ重複しないUUIDを追加し、optional・既存characterId由来の代替Guid・ローダー補完は作らない。`characterId` はCommandForgeの操作IDとして削除・改名しない。
 
-- [ ] **Step 2: ホスト解決を差し込む**
+Run: `uloop compile --project-path ./moorestech_client && rg -L '"characterGuid"' $(find /Users/katsumi/moorestech_master -path '*/master/characters.json')`
+Expected: compile成功、`characterGuid` 欠落ファイル0件
 
-特定した1点で:
+- [ ] **Step 2: CommandForge field名をschemaへ固定する**
+
+キーfieldは `commands.yaml` のプロパティ名 `body`、`Option1Tag`、`Option2Tag`、`Option3Tag`、`overrideCharacterName` をそのまま使う。既存skit JSONの旧誤字 `overideCharacterName` は全件 `overrideCharacterName` へ一括更新し、C#生成プロパティも `OverrideCharacterName`、JSONも `overrideCharacterName` に固定する。
+
+Run: `rg -n '"overideCharacterName"|\\.overideCharacterName' moorestech_client/Assets/AddressableResources/Skit moorestech_client/Assets/Scripts/Client.Skit`
+Expected: ヒット0
+
+- [ ] **Step 3: Client.SkitへLocalize非依存interfaceと実行identityを置く**
 
 ```csharp
-            // skit行はWeb辞書に原文が無いためホスト側で解決する（例外の根拠は判断記録）
-            // Skit lines resolve host-side because their source text is not in the web dictionary (see ADR)
-            var key = ContentLocalizationKeys.SkitLineText(skitTitle, command.Id);
-            var resolved = Localize.TryGetContentWithoutSource(key, out var text) ? text : command.Body;
+namespace Client.Skit.Localization
+{
+    public interface ISkitLocalizationResolver
+    {
+        string ResolveCommandField(string skitTitle, int commandId, string field, string sourceText);
+        string ResolveCharacterName(string characterId, string skitTitle, int commandId,
+            bool useOverride, string overrideSource);
+    }
+}
 ```
 
-`Localize` へ `TryGetContentWithoutSource(string key, out string text)`（対象言語→englishのみ。無ければfalse）を追加し、フォールバック原文は手元の `command.Body` を使う（skit原文をsource擬似ロケールへ事前投入しない — Addressables全ロードを避ける）。話者名は `overideCharacterName` があればそれを優先し、なければ `CharacterName(guid)` を同様に解決。
+`SkitExecutionIdentity` はconstructor必須の `string SkitTitle` だけを公開する。`StoryContextExtension` にresolver/identity取得を追加し、汎用 `Client.Skit` asmdefへ `Client.Localization` やAddressables参照を追加しない。
 
-- [ ] **Step 3: webuiのコメントを更新する**
+- [ ] **Step 4: Client.Game側にAddressables loaderと具体resolverを実装する**
 
-`SkitPresentation.tsx:106` の「Unity所有の表示データのためt()を通さない」コメントを「ホスト側でローカライズ解決済みのためt()を通さない」へ更新（構造は不変）。
+`SkitLocalizationDictionaryLoader` は `AddressableLoader.LoadAsyncDefault<TextAsset>($"Vanilla/Skit/i18n/{languageCode}")` で1ファイルを読み、CommandForge形式 `{ locale, name, translations }` の `translations` から `skit.` で始まるentryだけを返す。外部入力JSON境界のparse失敗は握り潰さず、対象addressを含むエラーとして表面化する。
 
-- [ ] **Step 4: mod辞書でskit行を訳せることを確認する**
+`SkitLocalizationResolver.PrepareAsync` は `Localize.CurrentLanguageCode` と `english` だけをロードする。`Localize.TryGetDictionary` のmod合成済み辞書を各言語ごとにcopyし、`TryAdd` 相当でSkit専用entryを欠けているキーだけ追加するためmodを上書きしない。解決はscoped対象言語→scoped english→`sourceText`。`Localize.OnLanguageChanged` を購読し、skit実行中の変更時は新しい対象言語+englishをreloadしてatomicにscopeを差し替える。reload前の現在行は再pushせず、完了後に次に表示する行から新言語を使う。
 
-Task 8のサンプル辞書に `skit.100_start_game.1.text` の行を入れ、english切替で台詞が変わることをPlayModeで確認。
+- [ ] **Step 5: skit titleとresolverを両開始経路のStoryContextへ登録する**
 
-- [ ] **Step 5: コミット**
+`SkitManager` はロード済み `TextAsset.name`（Addressable pathからロードした場合も同じ安定名）をtitleとし、command実行前にresolverを `PrepareAsync` して `ISkitLocalizationResolver` と `SkitExecutionIdentity` をbuilderへ登録する。`BackgroundSkitManager` もロード済み `TextAsset.name` を使って同じ登録を行う。resolverの購読はStoryContext終了時にDisposeする。
+
+- [ ] **Step 6: text/background/selection/overrideCharacterNameを表示直前に解決する**
+
+`TextCommand` と `BackgroundSkitTextCommand` は `CommandId` と `body` を使って本文を解決し、override時は同じCommandIdの `overrideCharacterName` を解決する。通常話者名はresolverが `characterId` からmasterを引き、必須 `CharacterGuid` で `CharacterName` キーを作る。`SelectionCommand` は `Option1Tag`〜`Option3Tag` を各field名で解決してからuGUI/Web双方のchoiceへ同じ表示文字列を渡す。音声clip検索は既存JSON原文 `Body` を維持し、翻訳文でvoice mappingを変えない。
+
+- [ ] **Step 7: resolver優先順位と接頭辞境界をテストする**
+
+テストfixtureにmod対象言語、Skit対象言語、mod英語、Skit英語、JSON原文を別値で入れ、5段それぞれを1ケースずつ検証する。`command.*` / `master.*` がloader出力に含まれないこと、characterGuid欠落を補完しないこと、言語reload後の次のResolveが新scopeを見ることも検証する。
+
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SkitLocalizationResolverTest"`
+Expected: 全ケースPASS
+
+- [ ] **Step 8: webuiコメント・コンパイル・コミット**
+
+Skit表示2コンポーネントのコメントは「Unity所有だから」ではなく「Unity側resolverで解決済みの表示文字列をpushするため `t()` を通さない」へ更新する。
 
 ```bash
-git add -A && git commit -m "feat: skit台詞をローカライズ解決（ホスト解決の例外経路）"
+uloop compile --project-path ./moorestech_client
+git add VanillaSchema/characters.yml moorestech_client/ && git commit -m "feat: Skit専用辞書を動的ロードし全表示fieldを解決"
+cd /Users/katsumi/moorestech_master && git add -- '**/master/characters.json' && git commit -m "feat: 全character masterへ必須characterGuidを追加"
 ```
 
 ---
@@ -445,13 +526,13 @@ git add -A && git commit -m "feat: skit台詞をローカライズ解決（ホ�
 ### Task 7: ビルドメニューカテゴリのGuid付与とキー化
 
 **Files:**
-- Modify: `VanillaSchema/buildMenu.yml`（categories/subCategoriesへ `categoryGuid` 追加。edit-schemaスキル参照）
+- Modify: `VanillaSchema/buildMenu.yml`（categoriesへ `categoryGuid`、subCategoriesへ `subCategoryGuid` を必須追加。edit-schemaスキル参照）
 - Modify: `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/buildMenu.json`（全カテゴリへGuid付与）
 - Modify: `BuildMenuEntryDtoFactory.cs:37-47`（Category/SubCategoryをGuid化）＋webui buildMenu表示
 
 - [ ] **Step 1: スキーマへGuidを追加する**
 
-edit-schemaスキルの手順に従い `buildMenu.yml` の categories 要素と subCategories 要素へ `- key: categoryGuid / type: uuid / autoGenerated: true` を追加（`research.yml` の `researchNodeGuid` 定義と同形式）。optional にしない（AGENTS.md: フォールバック禁止・全JSON一括更新）。
+edit-schemaスキルの手順に従い `buildMenu.yml` の categories 要素へ `categoryGuid`、subCategories要素へ `subCategoryGuid` を `type: uuid / autoGenerated: true` で追加する（`research.yml` の `researchNodeGuid` 定義と同形式）。どちらもoptionalにせず、ローダー補完も作らない。
 
 - [ ] **Step 2: 実データへGuidを付与し、SchemaWatcher再コンパイル→検証**
 
@@ -461,7 +542,7 @@ Expected: MooresmasterLoaderException が出ない
 
 - [ ] **Step 3: DTOと表示のキー化**
 
-`BuildMenuEntryDtoFactory.CreateCategoryDtos` を `Name` → `CategoryGuid` へ（entryの `Label` はblock/trainCar系なら削除し、webは `EntryType`+`EntryKey`（Guid）から `blockNameKey`/`trainCar…` で解決。blueprint等ユーザー命名エントリのみ `Label` 維持）。webuiのカテゴリタブは `t(buildMenuCategoryNameKey(guid))`。`MasterSourceTextCollector` へカテゴリ原文の投入を追加。
+`BuildMenuEntryDtoFactory.CreateCategoryDtos` をカテゴリ `Name` → `CategoryGuid`、サブカテゴリ `Name` → `SubCategoryGuid` へ変更する（entryの `Label` はblock/trainCar系なら削除し、webは `EntryType`+`EntryKey`（Guid）から解決。blueprint等ユーザー命名エントリのみ `Label` 維持）。webuiはカテゴリを `t(buildMenuCategoryNameKey(guid))`、サブカテゴリを `t(buildMenuSubCategoryNameKey(guid))` で表示する。`MasterSourceTextCollector` へ両方の原文を投入する。
 
 - [ ] **Step 4: 検証・コミット**
 
@@ -477,51 +558,77 @@ git add -A && git commit -m "feat: ビルドメニューカテゴリをGuid化�
 
 **Files:**
 - Create: `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/localization/localization.csv`
+- Modify: `moorestech_client/Assets/AddressableResources/Skit/i18n/english.json`
+- Modify: `moorestech_client/Assets/AddressableResources/Skit/i18n/japanese.json`
 
 - [ ] **Step 1: サンプル辞書を作る**
 
-主要アイテム/ブロック数件＋skit1行のenglish実訳（Guidは `items.json`/`blocks.json` の実値を使う）:
+主要アイテム/ブロック数件に加え、同じSkit keyをmod CSVとSkit専用JSONの双方へ意図的に配置して優先順位を検査する。Guidは `items.json`/`blocks.json` の実値を使う:
 
 ```csv
 key,Source,english,japanese
 item.<小石の実Guid>.name,Pebble,Pebble,小石
 item.<原木の実Guid>.name,Log,Log,原木
 block.<風力掘削機の実Guid>.name,Wind Drill,Wind Drill,風力掘削機
-skit.100_start_game.1.text,...Report log started,...Report log started,...レポート記録開始
+skit.100_start_game.1.body,...Report log started,MOD ENGLISH,MOD JAPANESE
 ```
+
+既存 `Skit/i18n/*.json` の `command.*` / `master.*` は一切削除・改名せず、`translations` へ次を追加する:
+
+```json
+"skit.100_start_game.1.body": "SKIT DICTIONARY VALUE",
+"skit.100_start_game.2.body": "SKIT ONLY VALUE",
+"skit.100_start_game.1.overrideCharacterName": "SKIT SPEAKER VALUE"
+```
+
+english/japaneseで値を変え、Task 6のselection command test fixtureには `Option1Tag`〜`Option3Tag`、背景skitには `skit.200_star_background.1.body` も追加して各field経路を通す。
 
 - [ ] **Step 2: PlayModeで結合確認する**
 
 unity-playmode-recorded-playtestスキルの手順でPlayMode起動:
-1. 日本語: 全アイテム名が原文（source経由）で表示される・`[!` が出ない
-2. `Localize.SetLanguage("english")`: サンプル辞書のあるアイテムだけ英語名、他はsource原文
-3. インベントリ・ビルドメニュー・研究ツリー・ブロックインベントリ・skitで確認
+1. 日本語: 同じkeyがmod/Skit辞書の双方にあるcommand 1は `MOD JAPANESE`（mod対象言語優先）
+2. mod日本語を持たずSkit日本語だけのcommand 2は `SKIT ONLY VALUE`
+3. 対象言語欠落かつmod英語/Skit英語双方ありのfixtureはmod英語、mod英語も無いfixtureはSkit英語
+4. 両辞書に無い行はskit JSON原文
+5. background本文、selection表示選択肢、overrideCharacterNameも翻訳され、`command.*` / `master.*` がゲーム辞書へ漏れていない
+6. インベントリ・ビルドメニュー・研究ツリー・ブロックインベントリでも従来の4段解決が維持される
 
 - [ ] **Step 3: コミット（moorestech_master側も）**
 
 ```bash
-cd ../moorestech_master && git add server_v8/mods/moorestechAlphaMod_8/localization/ && git commit -m "feat: v8 modサンプルローカライズ辞書"
-cd ../moorestech && git add -A && git commit -m "chore: mod辞書結合確認の調整" || true
+cd /Users/katsumi/moorestech_master && git add server_v8/mods/moorestechAlphaMod_8/localization/ && git commit -m "feat: v8 modサンプルローカライズ辞書"
+cd /Users/katsumi/moorestech && git add moorestech_client/Assets/AddressableResources/Skit/i18n/ && git commit -m "feat: CommandForge辞書へゲーム台詞キーを追加"
 ```
 
 ---
 
-### Task 9: 既存 Skit/i18n の処分（ユーザー裁定後）
+### Task 9: 既存CommandForgeEditor辞書の保持・完全性・動的ロード結合確認
 
 **Files:**
-- Delete: `moorestech_client/Assets/AddressableResources/Skit/i18n/`（裁定が「仮置き・廃止」の場合のみ）
+- Verify: `moorestech_client/Assets/AddressableResources/Skit/i18n/english.json`
+- Verify: `moorestech_client/Assets/AddressableResources/Skit/i18n/japanese.json`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/**/SkitLocalizationDictionaryCompletenessTest.cs`
 
-- [ ] **Step 1: 裁定を確認する**
+- [ ] **Step 1: CommandForgeEditor用キーの保持を検査する**
 
-specの判断記録「skit導出キーとSkit/i18n吸収廃止」の裁定状態を確認。**未裁定のままこのタスクを実行しない**（実装前にユーザーへ確認する — 機能パリティ死活表の裁定ゲート）。
+english/japanese両ファイルが `locale` / `name` / flatな `translations` を維持し、既存 `command.*` と `master.*` がTask 8前のkey集合から欠落していないことをgit diffとfixture testで検査する。ディレクトリ・JSON・meta・Addressable entryは削除しない。
 
-- [ ] **Step 2: 廃止裁定なら削除し、commandForgeEditor設定の参照が無いことを確認する**
+- [ ] **Step 2: ゲーム台詞キー完全性を検査する**
 
-Run: `grep -rn "i18n" moorestech_client/Assets/AddressableResources/Skit/commandForgeEditor.config.yaml moorestech_client/Assets/AddressableResources/Skit/commands.yaml`
-参照があればエディタ設定側の除去も同時に行う。削除はUnity上で行い.meta込みでコミット。
+全skit JSONを走査し、`text.body`、`backgroundSkitText.body`、存在するselectionの各OptionTag、override有効行の`overrideCharacterName`について `skit.<meta.title>.<id>.<schema field>` を組み立てる。翻訳対象として追加したサンプル範囲はenglish/japanese両方に存在すること、未知field名（`text`/`speaker`/`overideCharacterName`）が無いことを検査する。未翻訳行はJSON原文へ戻る設計なので全行翻訳必須にはしない。
+
+- [ ] **Step 3: Addressables動的ロードを結合検査する**
+
+`Vanilla/Skit/i18n/english` と `Vanilla/Skit/i18n/japanese` の2addressが実在することをAddressable settingsとPlayModeで確認する。english開始ではenglishを1回だけ、日本語開始ではjapanese+englishだけをloadし、全skit JSONや未選択言語をloadしないことをloader fakeの呼び出し記録で検査する。
+
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SkitLocalizationDictionaryCompletenessTest|SkitLocalizationResolverTest"`
+Expected: 全テストPASS、ロードaddressは選択言語+englishだけ
+
+- [ ] **Step 4: コンパイル・コミット**
 
 ```bash
-git add -A && git commit -m "chore: 旧Skit i18n辞書を廃止（新基盤へ吸収）"
+uloop compile --project-path ./moorestech_client
+git add moorestech_client/Assets/Scripts/Client.Tests/ && git commit -m "test: Skit専用辞書の保持と動的ロードを固定"
 ```
 
 ---
@@ -537,10 +644,12 @@ git add -A && git commit -m "chore: 旧Skit i18n辞書を廃止（新基盤へ�
 ## 判断記録（ADR）
 
 - 対応spec: [docs/superpowers/specs/2026-07-29-localization-foundation-design.md](../specs/2026-07-29-localization-foundation-design.md)
-- **skitのみホスト解決の例外** — skit原文はAddressables内JSONでWeb辞書のsourceに事前投入できず（全skit事前ロードのコスト）、行は1行ずつpushされる一過性payloadのため「言語切替時の再push漏れ」問題が構造的に無い。mod辞書の訳はホストの `TryGetContentWithoutSource` で効く。出所: agent前提（拒否権つき。ADR 0006「Web側解決統一」の限定例外）
-- **skit原文はsource擬似ロケールへ投入しない** — フォールバック原文は再生時に手元の `command.Body` を使う。出所: agent前提（Addressables全ロード回避）
-- **buildMenuカテゴリへGuid追加のスキーマ変更** — カテゴリは表示文言を持つが安定IDが無く、名前をIDに使うのは改名で翻訳が切れるため。required追加＋全JSON一括更新（AGENTS.md「変更の波及を恐れない」）。出所: agent前提（拒否権つき）
-- **ランタイムはgenerator DLLのパーサーを再利用しない** — RoslynAnalyzer扱いのDLLは実行時参照不可のため、`ModLocalizationMerger.MergeCsv` に同仕様パーサーを持つ（正本仕様はPlan1のC#パーサーテストが固定）。出所: agent前提（Unityの機構上の制約）
+- **Skit/i18nはCommandForgeEditor正式辞書として保持する** — `command.*` / `master.*` を維持し、`skit.*` を追加できる正本へ拡張する。削除タスクは置かない。出所: ユーザー裁定 2026-07-29
+- **Skit辞書は開始時に対象言語+englishだけをAddressables動的ロードする** — `skit.` だけをmod合成辞書copyへ欠けたキーとして追加し、mod対象→Skit対象→mod英語→Skit英語→JSON原文を保証する。出所: ユーザー裁定 2026-07-29
+- **Skitの全表示fieldをCommandId由来キーで扱う** — schemaの `body` / `Option1Tag`〜`Option3Tag` / `overrideCharacterName` をC#/JSONで固定し、本文・背景・選択肢・上書き話者名を同じresolverへ通す。出所: ユーザー裁定 2026-07-29
+- **characterGuidを必須追加しcharacterIdは操作IDとして維持する** — 表示名だけGuid導出し、optional・欠損フォールバックは設けず全characters JSONを一括更新する。出所: ユーザー裁定 2026-07-29
+- **buildMenuカテゴリ/サブカテゴリへ別々の必須Guidを追加する** — 名前をIDに使わずrequired追加＋全JSON一括更新する。出所: ユーザー裁定 2026-07-29
+- **CSV runtimeはPlan1の共通DLLを参照する** — generator/runtimeのparser・行モデル・例外は `mooresmaster.LocalizationCsv.dll` の1実装だけを使う。出所: ユーザー裁定 2026-07-29
 - **ItemMasterDtoはItemId（揮発）+ItemGuidの併載** — 表示中の軽量参照はItemIdのまま、ローカライズキーだけGuidを使う。出所: agent前提（既存契約の最小変更）
 
 ## 配置と前例
@@ -548,12 +657,14 @@ git add -A && git commit -m "chore: 旧Skit i18n辞書を廃止（新基盤へ�
 | 項目 | 配置先 | 前例（パス） |
 |---|---|---|
 | ModLocalizationMerger / MasterSourceTextCollector / ContentLocalizationKeys | Client.Localization | `Localize.cs`（合成辞書の正本はクライアントLocalize — ユーザー裁定） |
+| ISkitLocalizationResolver / SkitExecutionIdentity | Client.Skit（汎用interface/contextのみ） | `StoryContext` + VContainer service登録。汎用層へLocalize/Addressablesを持ち込まない |
+| SkitLocalizationDictionaryLoader / SkitLocalizationResolver | Client.Game/Skit/Localization | `SkitManager.PreProcess` / `BackgroundSkitManager.GetStoryContext` の具体service登録前例 |
 | ModsResourceからのCSV列挙 | Mod.Loader公開APIの利用（必要なら最小の公開追加） | `Mod.Config/ModJsonStringLoader.cs:22-30`（mod内相対パスのglob前例） |
 | DTOのGuid化 | Client.WebUiHost各Endpoint/Topic | `MachineRecipesTopic.cs`（BlockGuidを既に配信している前例） |
 | Web側名前解決hook | src/shared/i18n | `i18nStore.ts`（辞書解決の集約点） |
-| buildMenuカテゴリGuid | VanillaSchema/buildMenu.yml | `research.yml` の `researchNodeGuid`（uuid autoGenerated前例） |
+| characterGuid / buildMenuカテゴリ・サブカテゴリGuid | VanillaSchema/characters.yml / buildMenu.yml | `research.yml` の `researchNodeGuid`（uuid autoGenerated前例）。必須化+全JSON更新 |
 
-データフロー地図（Phase 1.5）: `マスタ/mod CSV →（起動時合成）→ [合成辞書 in Localize] →（/api/i18n・GetContent）→ 表示`。本planの新規コンポーネントは全て「書き手（起動時合成）」か「読み手（表示解決）」であり、既存フローへの交差点（bool戻り・第2書き込み経路）は無い。skitホスト解決も読み手の位置。
+データフロー地図（Phase 1.5）: `マスタ/mod CSV →（起動時合成）→ [合成辞書 in Localize] →（/api/i18n・GetContent）→ 表示`。Skitは `対象言語+english Addressables → [Client.Game resolverのskit実行scope] → Client.Skit command表示 → uGUI/Web push`。汎用Client.Skitはinterfaceの読み手だけで、具体辞書の書き手はClient.Gameに限定する。
 
 機能パリティ（Phase 2.5 死活表）:
 
@@ -562,6 +673,8 @@ git add -A && git commit -m "chore: 旧Skit i18n辞書を廃止（新基盤へ�
 | インベントリ/レシピ/研究のアイテム名ツールチップ | 生きる | Guid→辞書→source原文チェーンで現表示と同一文字列 |
 | ブロックインベントリのヘッダ名 | 生きる | blockGuid化＋辞書解決。日本語表示はsource経由で不変 |
 | ビルドメニューのカテゴリタブ・エントリ名 | 生きる | カテゴリGuid化・エントリはEntryKey(Guid)解決。blueprint命名はLabel維持 |
-| skit再生（本文・話者・選択肢） | 生きる | ホスト解決で従来と同経路。未翻訳時は原文 |
+| skit再生（本文・背景本文・話者・上書き話者・選択肢） | 生きる | 対象言語+english動的辞書をresolverで解決し、未翻訳時は各JSON原文 |
+| CommandForgeEditorのcommand/master表示辞書 | 生きる | 既存Skit/i18nを削除せず、ゲームはskit.*だけをfilterして取り込む |
+| skit中の言語切替 | 次の行から反映 | resolver reload後にscopeをatomic swap。表示済み同一行の即時再pushは非目標でQA判定 |
 | Unity側uGUIブロックインベントリ表示 | 生きる | GetContent置換（表示文字列は不変） |
 | 言語切替時のアイテム名即時反映 | 生きる（新規） | Web側解決のため `localization.current` →辞書再fetch→再描画で完結 |

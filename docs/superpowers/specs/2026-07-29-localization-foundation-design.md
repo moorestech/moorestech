@@ -11,7 +11,8 @@
 - `Localize.Get` の Unity 側消費は実質4箇所（uGUIは残置方針のため今後増えない）。
 - mod合成は未実装（`MasterHolder.GetJson` が mod[0] 固定）。出荷modの `modMeta.json` の id は空文字。
 - マスタJSONはネットワークを渡らず、クライアントは同一プロセス/ディレクトリの `MasterHolder` を直接参照する。
-- **skitは独立した既存構造を持つ**: 台詞はマスタJSONでなく `moorestech_client/Assets/AddressableResources/Skit/skits/*.json`（**Guidなし**・ファイル名が実質ID・各commandはint連番`id`・話者は`characterId`（例 `chr_001`）＋`overideCharacterName`上書き）。さらに `Skit/i18n/{japanese,english}.json` という**既存の別i18n辞書**（`master.characters.chr_001`形式キー）が実在するが、C#コードからの消費箇所はgrepで0件（commandForgeEditor由来の可能性）。
+- **skitは独立した既存構造を持つ**: 台詞はマスタJSONでなく `moorestech_client/Assets/AddressableResources/Skit/skits/*.json`（Guidなし・ファイル名が実質ID・各commandはint連番`id`・話者は`characterId`）。`Skit/i18n/{japanese,english}.json` はCommandForgeEditorが `<projectPath>/i18n/*.json` から動的ロードする正式なプロジェクト辞書で、Addressableアドレス `Vanilla/Skit/i18n/{language}` も登録済み。ゲームruntimeからの消費だけが未実装。
+- characters masterには操作ID `characterId` しかなく、表示名キー用の安定Guidがない。buildMenuカテゴリ/サブカテゴリも名前しか持たないため、いずれも必須Guid追加と全JSON一括更新が必要。
 - 研究/チャレンジのGuidは実在: `research.yml` の `researchNodeGuid`＋`researchNodeName`/`researchNodeDescription`、`challenges.yml` の `challengeGuid`＋`title`/`summary`、カテゴリ `categoryGuid`＋`categoryName`/`categoryDescription`。
 
 ## 設計
@@ -31,6 +32,7 @@
 ### 生成系
 
 - mooresmaster DLL 内に**第2の `[Generator]` クラス**を追加（既存YAML generatorと同居、`.csv` の AdditionalFile を処理）。キー定数＋バニラ辞書本体をC#へ埋め込み、`config/localization.csv` の実行時読み込みは廃止。
+- CSVパーサー・行モデル・例外は runtime 参照可能な独立共通DLLへ置き、generatorとUnity runtimeの双方が同じ実装を参照する。generator/runtimeへの実装コピーは禁止し、共通DLLのテスト・ビルド・client/server両方へのデプロイを同一手順に含める。
 - `Core.Master/csc.rsp`（または対象asmdefの新設csc.rsp）に `/additionalfile:` を追加。`SchemaWatcher` の監視対象に新ディレクトリを追加。
 - webui はビルド/コード生成ステップで同一CSVからTS定数を生成。`t()` への生文字列リテラルを lint で禁止（既存 `no-jsx-visible-literal` に追加）。
 - generator 変更時は `mooresmaster/build.sh` で client/server 両 DLL を再ビルドしコミット。
@@ -40,6 +42,7 @@
 - 合成辞書の正本はクライアント側 `Localize`（後継）。起動時にバニラ埋め込み辞書＋全mod CSVを単一辞書へ合成。サーバーは非関与。
 - Webへの配信は既存 `/api/i18n/{locale}` + `localization.current` を維持。
 - ホスト側 Name 解決・payload 同梱は**全廃**し、Web は Guid→導出キー→合成辞書で解決。言語切替はWeb側再描画のみで完結。
+- バニラ `GetLegacy` も対象言語→english→source→`[!key]` の順で解決し、sourceを省略しない。
 
 ### 言語切替
 
@@ -49,17 +52,39 @@
 ### スコープ
 
 初回対象: ①webui 430キーの名前空間キー一括移行、②item/block の name、③研究・チャレンジ等のマスタ文言、④skit台詞。
-skitはGuidを持たないため導出キーは `skit.<skitファイル名>.<行id>.text` / `.speaker` 形式（Guid規約の例外。ファイル名が実質IDである既存構造に従う）。既存の `Skit/i18n/*.json` 辞書は新基盤へ吸収して**廃止**する方針（この機構が正規か仮置きかの判定は要ユーザー裁定 — 下記判断記録参照）。
+skitはGuidを持たないため、安定した `TextAsset.name` またはAddressable path由来のskit titleとcommandの`CommandId`を使い、`skit.<skitTitle>.<commandId>.<field>` を導出する。fieldはCommandForge command schemaの正確なプロパティ名で固定し、`text.body` / `backgroundSkitText.body`、`selection.Option1Tag`〜`Option3Tag`、`text.overrideCharacterName` / `backgroundSkitText.overrideCharacterName` を対象にする。既存JSONの `overideCharacterName` はschemaの `overrideCharacterName` へ一括正規化する。
+
+既存 `Skit/i18n/{english,japanese}.json` は削除せず、CommandForgeEditor用 `command.*` / `master.*` キーを維持したまま `skit.*` を追加できる正本へ拡張する。ゲームはskit開始時に選択言語とenglishの2ファイルだけをAddressablesから動的ロードし、`skit.` 接頭辞だけを取り込む。mod合成済み辞書へSkit専用辞書を欠けているキーだけ追加したうえで `TryGetContentWithoutSource` を使うため、解決順は `mod対象言語 → skit専用対象言語 → mod英語 → skit専用英語 → skit JSON原文` になる。全skit JSONの事前ロードはしない。
+
+`Client.Skit` の汎用層は `Localize` / Addressablesを直接参照せず、`ISkitLocalizationResolver` とskit title/commandIdを保持する実行contextだけを持つ。`Client.Game`側の具体loader/resolverを `SkitManager` / `BackgroundSkitManager` がStoryContextへ登録する。character masterには必須 `characterGuid` を追加して全characters JSONを一括更新し、`characterId` は操作IDのまま維持して表示名キーだけGuidを使う。buildMenuカテゴリ・サブカテゴリも必須Guid化し、optionalや欠損補完は置かない。
+
+言語切替中に既に表示済みの同一行を即時再描画することは非目標とし、次に表示する行と次回skit開始から新言語を反映する。設定UIがskit中も操作できる場合は、辞書reload完了後の現在行再pushが必要かを後続QAでバグ狩りとして判定する。
 対象外: レガシーuGUI文言（`KeyControlDescription` 等の日本語ベタ書き11箇所）。
 付随修理: `modMeta.json` の id 空文字（required違反）、`Localize.cs` の未知ロケール例外経路、`TextMeshProLocalize` の try-catch 規約違反（基盤置換で自然消滅）。
+
+## 配置と前例
+
+| 項目 | 配置先 | 依存方向・前例 |
+|---|---|---|
+| CSV parser・行モデル・例外 | `mooresmaster.LocalizationCsv` 共通DLL | generator/runtime双方が参照する純粋な下流ライブラリ。実装コピーは禁止 |
+| SourceGenerator orchestration | `mooresmaster.Generator` | 既存 `MooresmasterSourceGenerator` と同じ第2generator。共通CSV DLLを参照 |
+| mod辞書合成・Guidキー | `Client.Localization` | 合成辞書の既存正本 `Localize` の責務内。MasterHolderは生データ保持だけで変更しない |
+| Skit resolver interface/context | `Client.Skit` | 汎用StoryContext serviceだけを定義し、`Localize` / Addressables / MasterHolderを持ち込まない |
+| Skit loader/resolver具体実装 | `Client.Game/Skit/Localization` | `SkitManager` / `BackgroundSkitManager` のVContainer登録点から下流interfaceへ注入 |
+| character/buildMenuのGuid | `VanillaSchema/*.yml` + 全master JSON | 既存 `researchNodeGuid` と同じ必須uuid。optional・default・ローダー補完は禁止 |
+
+データフローは `バニラCSV → generator → 埋め込み辞書` と `mod CSV → 共通parser → Localize合成辞書` に一本化する。Skitだけは `選択言語+englishのSkit/i18n → Client.Game resolverの実行scope → Client.Skit表示` とし、ゲーム全体辞書へは `skit.*` 以外を流さない。
 
 ## 判断記録（ADR）
 
 - [ADR 0005 名前空間キー正準化とバニラCSV埋め込み](../../adr/0005-namespaced-localization-keys-embedded-vanilla-csv.md) — 出所: ユーザー裁定 2026-07-29（AskUserQuestion「正準キー空間」「Web型付け」「CSVの所在」）
 - [ADR 0006 mod辞書・Guid導出キー・Web側解決](../../adr/0006-mod-localization-guid-derived-keys-web-side-resolution.md) — 出所: ユーザー裁定 2026-07-29（AskUserQuestion「マスタ名方式」「辞書の正本」「名前解決場所」「mod辞書形式」「キー構造」「欠落時挙動」「言語切替UI」「初回スコープ」および「未翻訳フォールバックは英語→name原文」の直接指示）
 - CSV置き場所をスキーマ外の専用ディレクトリとする — 出所: ユーザー裁定 2026-07-29「埋め込むが場所はスキーマ以外の場所にしたい（スキーマじゃないので）」
-- skit台詞の導出キー拡張（行ID等）の詳細はplanで確定 — 出所: agent前提（skitが行単位構造で `<type>.<guid>.<field>` に乗らないという調査事実に基づく）
+- skitは既存CommandForgeEditor辞書を保持し、選択言語+englishだけを開始時動的ロードして `skit.*` のみゲーム辞書へ欠けたキーとして合成する — 出所: ユーザー裁定 2026-07-29
+- skit fieldはCommandForge schemaのプロパティ名へ固定し、本文・背景本文・選択肢・上書き話者名を同一commandId由来キーで扱う — 出所: ユーザー裁定 2026-07-29
+- character masterの必須characterGuid追加（characterIdは操作IDとして維持）と全characters JSON一括更新 — 出所: ユーザー裁定 2026-07-29
+- buildMenuカテゴリ/サブカテゴリの必須Guid追加と全JSON一括更新 — 出所: ユーザー裁定 2026-07-29
+- CSV parserをruntime参照可能な共通DLLへ置き、generator/runtime双方から参照してclient/serverへデプロイする — 出所: ユーザー裁定 2026-07-29
 - 原文フォールバックは合成辞書の擬似ロケール `source` として実装（バニラはCSVのSource列、コンテンツはMasterHolderのname等原文から構築。解決チェーンは 対象言語→english→source→`[!key]` に統一され、Name同梱廃止と原文フォールバックが両立する）— 出所: agent前提（既存CSVのSource列と同概念の拡張）
-- 言語表示名の埋め込み統合と言語セット定義の辞書CSVヘッダ一本化 — 出所: シミュレーター予測（SSOT観点・二重定義の分裂指摘）→適用済み。ユーザー承認待ち
-- skit導出キーのファイル名＋行id規約（Guid例外）と既存 `Skit/i18n/*.json` の吸収廃止 — 出所: シミュレーター予測（既存別辞書機構の調査漏れ指摘）→吸収廃止は**要ユーザー裁定**（正規機構なら統合設計の再検討、commandForgeEditor仮置きなら廃止で確定）
+- 言語表示名の埋め込み統合と言語セット定義の辞書CSVヘッダ一本化 — 出所: シミュレーター予測→ユーザー承認 2026-07-29
 - 初期言語セットは english+japanese の2列のみ（言語セットはCSVヘッダで定義され列追加で拡張。29言語分の翻訳が存在しない状態で全列CI検査を課すのは不成立のため）— 出所: agent前提（欠落CI検査のユーザー裁定と翻訳実データ不在の両立）

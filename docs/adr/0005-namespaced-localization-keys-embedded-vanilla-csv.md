@@ -17,7 +17,9 @@
 2. **バニラCSVは moorestech リポジトリ内へ移動する**（スキーマではないため VanillaSchema/ とは別の専用ディレクトリ。案: リポジトリ直下 `Localization/`）。`config/localization.csv` の実行時読み込みは廃止する。
 3. **SourceGenerator（mooresmaster DLL 内の第2 generator クラス）がキー定数と辞書本体の両方を C# に埋め込む。** csc.rsp に additionalfile を追加し、SchemaWatcher の監視対象へ新ディレクトリを加える。
 4. **webui は同一CSVから TS 定数を生成する。** `t()` への生文字列リテラルは lint で禁止し、キー切れを C#=コンパイルエラー / TS=lint・型エラーとして両側でビルド時に検出する。
-5. **バニラキーの欠落は CI/テストで機械検出してエラー化する。** 実行時に万一欠けていれば `[!key]` の目立つ表示を出す（無言の英語フォールバックで欠損を吸収しない）。
+5. **バニラキーの欠落は CI/テストで機械検出してエラー化する。** 実行時の `Get` / `GetLegacy` は対象言語→english→source→`[!key]` で解決し、全段に欠けた場合は目立つ表示で露出させる。
+6. **CSVパーサー・行モデル・例外は runtime 参照可能な小さな共通DLLへ置く。** SourceGenerator と Unity runtime は同じ実装を参照し、parserをコピーしない。共通DLLは generator と同じビルドで client/server の両方へデプロイし、同一テスト群で検証する。
+7. **言語セットの唯一の定義は辞書CSVヘッダとする。** `localization_settings.csv` は表示名とSteam言語コードだけを持ち、ヘッダとの集合不一致はコンパイルエラーにする。
 
 ## 却下した選択肢
 
@@ -30,4 +32,5 @@
 
 - コードと文言が同一コミットで動き、ドリフトが構造的に消える。
 - mooresmaster generator 変更時は `mooresmaster/build.sh` で client/server 両方の DLL を再ビルド・コミットする運用が必要。
+- 共通CSVライブラリ変更時も `mooresmaster/build.sh` で parser DLL と generator DLL を client/server の両方へ再ビルド・コミットする。
 - 既存の `Localize.cs` の CSV パース・`TextMeshProLocalize` の try-catch（規約違反）は基盤改修で置き換えられ自然消滅する。

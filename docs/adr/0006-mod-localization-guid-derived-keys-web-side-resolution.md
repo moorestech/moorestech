@@ -16,6 +16,10 @@
 5. **ホスト側の Name 解決・payload 同梱を全廃し、Web は Guid から辞書解決に統一する。** 言語切替はトピック再push不要でWeb側の再描画だけで完結する。
 6. **modキーの未翻訳フォールバックは 対象言語 → english → master の name 原文 →（それも無ければ）`[!key]`。** mod制作者が辞書を書かないのは正常状態として扱う。
 7. **master の `name` フィールドは原文（フォールバック表示元）として維持する。** スキーマに言語マップは入れない。
+8. **character masterへ必須 `characterGuid` を追加する。** 全characters JSONを一括更新し、既存 `characterId` はスキット実行時の操作IDとして維持する。表示名の導出キーだけを `character.<characterGuid>.name` とし、optional・欠損フォールバックは設けない。
+9. **buildMenuのカテゴリとサブカテゴリへ必須Guidを追加する。** 名前を識別子にせず、全buildMenu JSONを一括更新して導出キーにGuidを使う。
+10. **既存 `Skit/i18n/{english,japanese}.json` は削除しない。** CommandForgeEditorが `<projectPath>/i18n/*.json` から動的ロードする正式なプロジェクト辞書として `command.*` / `master.*` を維持し、ゲーム台詞用の `skit.<skitTitle>.<commandId>.<field>` を同じ `translations` へ追加できる正本へ拡張する。
+11. **ゲームはskit開始時に対象言語とenglishのSkit専用辞書だけをAddressablesから動的ロードする。** `skit.` キーだけを取り込み、mod合成済み辞書へ欠けているキーだけ追加する。解決順は `mod対象言語 → skit専用対象言語 → mod英語 → skit専用英語 → skit JSON原文` とし、全skit JSONの事前ロードは行わない。
 
 ## 却下した選択肢
 
@@ -30,5 +34,6 @@
 
 - ItemMasterEndpoint の DTO から Name が消え、BlockInventoryTopic / MachineRecipesTopic / BuildMenuEntryDtoFactory のインライン名前解決を削除する（波及は一括更新で受ける）。
 - 初回スコープ: item/block の name、研究・チャレンジ等の文言、skit台詞。レガシーuGUI文言（KeyControlDescription 等）は対象外。出所: ユーザー裁定 2026-07-29（AskUserQuestion「初回スコープ」）
-- skit は行単位テキスト＋話者名で `<type>.<guid>.<field>` に素直に乗らないため、キー導出規約の拡張（行ID等）を実装計画で詰める（agent前提: 調査時点で Web 側が skit を「Unity所有の表示データ」として意図的に `t()` 迂回している実装を確認済み）。
+- skit本文・背景本文・選択肢・上書き話者名はCommandForge command schemaの正確なプロパティ名をfieldに使い、同じcommandIdからキーを導出する。Webは従来どおりUnityからpush済み表示文字列を受け取る。
+- `Client.Skit` へ `Localize` を直接依存させない。汎用層にresolver interfaceを置き、`Client.Game`側のAddressables loader/具体resolverをStoryContextへ登録する。
 - modMeta.json の id 空文字（スキーマ required 違反）はキー設計と無関係になったが、別途修理する。
