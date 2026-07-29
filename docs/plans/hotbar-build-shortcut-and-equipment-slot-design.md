@@ -46,9 +46,9 @@
 ### 装備スロット
 
 - `InventoryType.Equipment` を追加し、`PlayerInventoryData` に独立した `IOpenableInventory` を持たせる。既存のアイテム移動・整理プロトコルで操作する。
-- スロット数はマスタ定義の固定値（`items.yml` の `equipmentSlotCount`、初期値3）。1枠1個まで。
-- `items.yml` のトップレベルに `tools` 配列を新設し、そこに列挙されたアイテムだけが入る。採掘性能（damage / attackSpeed）は従来どおり mapObject 側。
-- 「特定アイテムしか受け付けない・1枠1個」は `Core.Inventory` の `IItemAcceptanceInventory` で宣言し、アイテム移動サービスが尊重する。
+- スロット数はマスタ定義の固定値（`items.yml` の `equipmentSlotCount`、初期値3）。受入制限は持たず、メインと同じ普通のスロットとして扱う（2026-07-29 裁定で「ツール限定」「1枠1個」の両方を撤回）。
+- `items.yml` のトップレベルに `tools` 配列を新設する。採掘性能（damage / attackSpeed）は従来どおり mapObject 側。受入制限の撤回により `tools` の利用先は現状無く、デッドデータとして残置している。
+- 採掘可否は「選択中アイテムが mapObject の `miningTools` に含まれるか」だけで決まるため、装備側に受入制限は要らない。
 - 通常モードのホイールで循環選択（空も含む）。HUD右端に3枠常設し、選択中をハイライト。
 - 手持ち3Dモデルと採掘アニメーションの参照元を装備スロットへ移す。
 
@@ -90,7 +90,9 @@
 | 装備・ホットバーの購読同期 | `Client.WebUiHost/Game/Topics/` | `InventoryTopic.cs`（PostLateUpdateでまとめてpublish） |
 | 装備選択の変化通知 | UniRx `Subject<T>` | `ConnectToolUnlockStateHolder`（`Subject`+`IObservable`） |
 
-新機構は2つ: ①`IItemAcceptanceInventory`（受入制限。マシンのモジュールスロットは無制限で前例にならない）②設置対象カタログ（Guid→設置対象の解決。既存は種別ごとの個別解決）。どちらも spec で新規パターンとして明示する。
+新機構は1つ: 設置対象カタログ（Guid→設置対象の解決。既存は種別ごとの個別解決）。spec で新規パターンとして明示する。
+
+（当初は `IItemAcceptanceInventory`（受入制限）も新機構として数えていたが、2026-07-29 の裁定で撤去したため新機構ではなくなった。装備インベントリの前例は `GrabInventoryData` である）
 
 ## 機能パリティ死活表
 
@@ -133,7 +135,7 @@
 - **メインインベントリ末尾9スロットの特別扱いを完全撤廃**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）
 - **uGUI `HotBarView` を削除し非MonoBehaviourモデルへ移す**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）
 - **装備スロットは独立した `IOpenableInventory`（`InventoryType.Equipment`）**（出所: ユーザー裁定 AskUserQuestion 2026-07-27。詳細 ADR-0003）。メイン末尾レンジ案は、メインが `playerInventorySlotLevels` で可変長のためインデックスがサイズ依存になる（旧ホットバーと同じ罠）ので不採用
-- **スロット数はマスタ定義の固定値・1枠1個・空も循環に含む**（出所: ユーザー裁定「スロット数はマスタ。個数は固定」2026-07-27）
+- **スロット数はマスタ定義の固定値・空も循環に含む**（出所: ユーザー裁定「スロット数はマスタ。個数は固定」2026-07-27）。~~1枠1個~~ は 2026-07-29 の受入制限撤去で撤回（下記参照）
 - **切替は通常モードのホイール循環・HUD右端に3枠**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）
 - **`items.yml` トップレベルに `tools` 配列を新設し、装備可能アイテムを列挙する**（出所: ユーザー裁定 AskUserQuestion 2026-07-27）。採掘性能は mapObject 側に残す
 - **採掘はサーバ権威。打撃イベント＋サーバ側 `attackSpeed` クールダウン**（出所: ユーザー裁定 AskUserQuestion 2026-07-27。詳細 ADR-0004）。距離検証はしない（座標がクライアント申告値のため防御力が乏しい）
@@ -149,6 +151,8 @@
 - **装備枠のクリックは常にアイテム移動、選択はホイール専用**（出所: ユーザー裁定 AskUserQuestion 2026-07-29）。クリックに「選択」と「移動」の2義を持たせない
 - **装備選択の楽観更新は維持し、同値時の送信抑止だけ外す**（出所: ユーザー裁定 AskUserQuestion 2026-07-29）。`clamped == SelectedIndex` の早期returnがあると、一度サーバとズレた際に同値再送が握り潰されて恒久的にズレたままになるため、常に送信する
 - **装備へのアイテム移動経路は plan B 内で実装する**（出所: ユーザー裁定 AskUserQuestion 2026-07-29）。ブランチ全体レビューで5系統が「移動経路が全層に無く実プレイで採掘が成立しない」と一致指摘したことを受けた裁定
+- **常時表示HUDのクリック可否と `GrabOverlay` の描画は同一の述語 `screenAllowsGrab` を読む**（出所: ユーザー裁定「ロジックをgrab itemの表示と完全に共通化で処理できないの？」2026-07-30）。両者が別々の画面名リテラルを持っていたため、`pauseMenu` / `buildMenu` / `challengeList` / `trainHud` では「クリックは通るが掴んだ絵が出ない」不可視grabが起きていた。どちらの集合に寄せるかを選ぶのではなく、リテラルが2箇所ある構造自体を潰す
+- **装備インベントリは `ISortExcludedSlots` で整理対象から外す**（出所: レビュー指摘の受諾 2026-07-30）。受入制限撤去でソート除外も消えたが、`SortInventoryProtocol` は identifier を無条件に解決するためプロトコル上は到達し、スロットが詰め直されて選択インデックスが別のツールを指す。役割同型の前例 `ISortExcludedSlots`（`VanillaMachineBlockInventoryComponent`）が既にあるのでそれに従う
 - **`Game.PlacementTarget` を新規アセンブリとして作る**（出所: agent前提（拒否権つき））。`Core.Master` へ置く案は「共有層へのドメインロジック混入」に該当するため不採用
 - **既存セーブのブループリントはロード時にGUIDを発行する**（出所: agent前提（拒否権つき））。ユーザー生成データであり、マスタ由来値のフォールバックとは別物
 - **実装計画は A/B/C の3本に分割し、今回すべて執筆する**（出所: ユーザー裁定 AskUserQuestion 2026-07-28）
@@ -158,7 +162,7 @@ plan執筆時（2026-07-28）の追加判断（詳細は各planの「判断記�
 - **設置対象IDは生 `Guid`（ラッパー型なし）・`IPlacementTarget` に `Guid Id` を追加**（出所: agent前提（拒否権つき）。前例: マスタ識別子は生Guid）
 - **`buildTools` は `BuildToolMaster` が読み、`tools`/`equipmentSlotCount` は `ToolMaster` が読む**（出所: ユーザー裁定のマスタ化2件の具体化。前例: `ConnectToolMaster` の「同一JSONの自配列だけ読むラッパーMaster」）— 対象: `BuildToolMaster.cs` / `ToolMaster.cs` / `MasterHolder.cs`
 - **BPのGUID発行・同名許容・GuidベースDelete/TryGetへのAPI変更**（出所: ユーザー裁定「同名BP許容・識別はGUID」の具体化）— 対象: `IBlueprintDatastore.cs` / `BlueprintDatastore.cs` / `BlueprintProtocol.cs`
-- **受入制限 `IItemAcceptanceInventory` は移動先が宣言し移動サービス2種が尊重する**（出所: ユーザー裁定「items.ymlにツール定義」＋新機構裁定の具体化）— 対象: `InventoryItemMoveService.cs` / `InventoryItemInsertService.cs`
+- ~~**受入制限 `IItemAcceptanceInventory` は移動先が宣言し移動サービス2種が尊重する**（出所: ユーザー裁定「items.ymlにツール定義」＋新機構裁定の具体化）— 対象: `InventoryItemMoveService.cs` / `InventoryItemInsertService.cs`~~ → **撤回**（2026-07-29。移動サービス2種は master とバイト一致まで復元済み）
 - **装備インベントリは `PlayerInventoryData` 配下で生成・セーブし、Resolverは grab 前例に追随**（出所: ADR-0003の具体化）— 対象: `PlayerInventoryDataStore.cs` / `EquipmentInventoryIdentifierResolver.cs`
 - **装備同期は3点セット標準で新設**（イベント＋初期データ同梱＋選択プロトコル。1プロトコル=1 VanillaApiメソッド）（出所: `.claude/rules/server-protocol.md` 標準）— 対象: `EquipmentUpdateEventPacket.cs` / `PlayerInventoryResponseProtocol.cs` / `EquipmentProtocol.cs` / `PacketResponseCreator.cs` / `VanillaApiSendOnly.cs`
 - **選択中の装備は `EquipmentInventoryData` が所有し `-1`＝素手を正式値とする**（出所: agent前提（拒否権つき））
