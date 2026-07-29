@@ -216,7 +216,7 @@ serverプロセス全体とCEF子プロセス／IPC接続（`CONNECTION`）／se
 
 ## 7. 未解決・進行中
 
-- **「ブロック型」崩壊（rAF 1〜8回/秒）は再現・計測完了**（§2.9）。残るは「ビジー型」慢性状態（server CPU 95〜146%が供給停止後も継続、Play再起動でのみ解消）の再現。計装版ソークを継続し、発症すればSTATS時系列で「何が最初に暴走するか」を確定できる
-- 121〜157msのGPU同期ストールの帰責（Unity Editor・CEF Renderer・OSのGPUスケジューリングのどれとの競合か）は未確定。Metal System Trace等による直接計測が次の一手
-- 純正serverでのソーク中（stock phase）にtree3のEditorが外部要因（全Unity一斉終了イベント）で終了したため、純正版の長時間データは不完全。計装版ソークで代替する
-- 計装版バイナリはPackageCache内のみの差し替えであり、パッケージ再解決で純正に戻る。純正バックアップはscratchpadに保存済み。調査終了時に復元すること
+- **「ブロック型」崩壊（rAF 1〜8回/秒）は再現・計測完了**（§2.9）。残るは「ビジー型」慢性状態（server CPU 95〜146%が供給停止後も継続、Play再起動でのみ解消）の再現。今回のソークは健常稼働＋ブロック型崩壊数回を記録した後、マシン上の全Unity Editor一斉終了イベント（19:21と20:14頃の2回・本調査外の要因）で打ち切りとなり、ビジー型は未再現
+- ビジー型の再現には、実webuiページ（WS再接続・React負荷）や数時間スケールの稼働が必要な可能性がある。再開手順: 同ディレクトリの `cef-unity-64f9a5f-stats-instrumentation.patch`（本調査で作成した計装パッチ全文）を `git worktree add <path> 64f9a5f` したcef-unityツリーに適用 → `cargo build --release` → `deploy.sh` → PackageCacheの `cef-unity-server.app` のみ差し替え（dylib変更不要・Editor再起動不要）
+- 121〜157ms（崩壊時は300〜440ms）のGPU同期ストールの帰責（Unity Editor・CEF Renderer・OSのGPUスケジューリングのどれとの競合か）は未確定。Metal System Trace等による直接計測が次の一手
+- 調査終了時のクリーンアップ実施済み: PackageCacheのserverバイナリは純正へ復元（`cmp`一致確認）、計装ビルド用worktree・一時プローブ・監視プロセスはすべて撤去。tree3のシーン・プロジェクトファイルに変更は残っていない
