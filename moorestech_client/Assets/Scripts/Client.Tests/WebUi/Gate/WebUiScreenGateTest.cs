@@ -1,40 +1,22 @@
-using System.Collections.Generic;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.UIState;
 using NUnit.Framework;
-using UniRx;
 using UnityEngine;
 
 namespace Client.Tests.WebUi.Gate
 {
     public class WebUiScreenGateTest
     {
-        [SetUp]
-        public void SetUp()
-        {
-            WebUiScreenGate.SetWebUiMode(false);
-            WebUiScreenGate.SetHostAvailable(false);
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            WebUiScreenGate.SetWebUiMode(false);
-            WebUiScreenGate.SetHostAvailable(false);
-        }
-
         [Test]
-        public void EffectiveModeChangesArePublishedWithoutDuplicates()
+        public void WebUiModeIsPermanentlyOnRegardlessOfHostAvailability()
         {
-            var changes = new List<bool>();
-            using var subscription = WebUiScreenGate.OnWebUiModeChanged.Subscribe(changes.Add);
+            // uGUI廃止Phase1: ホスト起動成否に関わらずWebモード恒久ON（uGUIフォールバック廃止）
+            // uGUI-retirement Phase1: web mode stays ON regardless of host availability (uGUI fallback removed)
+            WebUiScreenGate.SetHostAvailable(false);
+            Assert.IsTrue(WebUiScreenGate.IsWebUiMode);
 
-            WebUiScreenGate.SetWebUiMode(true);
             WebUiScreenGate.SetHostAvailable(true);
-            WebUiScreenGate.SetHostAvailable(true);
-            WebUiScreenGate.SetWebUiMode(false);
-
-            CollectionAssert.AreEqual(new[] { true, false }, changes);
+            Assert.IsTrue(WebUiScreenGate.IsWebUiMode);
         }
 
         [Test]
@@ -42,8 +24,6 @@ namespace Client.Tests.WebUi.Gate
         {
             // Start前は自身を止めず初期化を保つ
             // Preserve initialization by staying active before Start
-            WebUiScreenGate.SetWebUiMode(true);
-            WebUiScreenGate.SetHostAvailable(true);
             var hotBarObject = new GameObject("HotBarViewLifecycleTest");
             var hotBarView = hotBarObject.AddComponent<HotBarView>();
 
