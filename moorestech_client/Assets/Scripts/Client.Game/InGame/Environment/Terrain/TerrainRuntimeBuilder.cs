@@ -25,11 +25,11 @@ namespace Client.Game.InGame.Environment.Terrain
         // URP's defaultTerrainMaterial is editor-only and returns null in builds, so a project-owned material is resolved by address
         private const string TerrainMaterialAddress = "Vanilla/Environment/Terrain/TerrainLitMaterial";
 
-        // Environment.prefabのTerrainが持っていたオーサリング配置の移設先。prefab側はP3 Task 6で削除されるため、
-        // 以後この定数がTemplateTerrainDataの配置を記録する唯一の場所になる
+        // Environment.prefabのTerrainが持っていたオーサリング配置の移設先。prefab側は削除済みで、
+        // この定数がTemplateTerrainDataの配置を記録する唯一の場所になっている
         // sizeは2048角なのに位置は-1000で、中心合わせでは24mずれてベイク済みmapObject座標が全部崩れる
-        // Migrated from the authored placement on Environment.prefab's Terrain; that prefab object is removed in
-        // P3 Task 6, after which this constant is the only record of where TemplateTerrainData belongs
+        // Migrated from the authored placement on Environment.prefab's Terrain, which has since been deleted,
+        // leaving this constant as the only record of where TemplateTerrainData belongs
         // Its size is 2048 square yet the position is -1000, so centering it would shift 24m and break every baked mapObject coordinate
         private static readonly Vector3 TemplateTerrainOrigin = new(-1000f, 0f, -1000f);
 
