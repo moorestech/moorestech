@@ -45,61 +45,64 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
             if (itemId == _currentItemId) return;
 
             _currentItemId = itemId;
-            UpdateAsync(itemId).Forget();
-        }
+            UpdateAsync().Forget();
 
-        private async UniTaskVoid UpdateAsync(ItemId itemId)
-        {
-            // 既存のロード処理をキャンセル
-            // Cancel the in-flight load
-            _loadCancellationTokenSource?.Cancel();
-            _loadCancellationTokenSource?.Dispose();
-            _loadCancellationTokenSource = new CancellationTokenSource();
+            #region Internal
 
-            // 既存のアイテムをクリーンアップ
-            // Clean up the existing item
-            if (_currentGrabItem != null)
+            async UniTaskVoid UpdateAsync()
             {
-                UnityEngine.Object.Destroy(_currentGrabItem.gameObject);
-                _currentGrabItem = null;
-            }
+                // 既存のロード処理をキャンセル
+                // Cancel the in-flight load
+                _loadCancellationTokenSource?.Cancel();
+                _loadCancellationTokenSource?.Dispose();
+                _loadCancellationTokenSource = new CancellationTokenSource();
 
-            // Addressableリソースを解放
-            // Release the Addressable resource
-            _currentLoadedAsset?.Dispose();
-            _currentLoadedAsset = null;
-
-            if (itemId == ItemMaster.EmptyItemId) return;
-
-            // Addressableロードは外部境界のため、失敗をここで隔離する
-            // The Addressable load is an external boundary, so its failure is isolated here
-            try
-            {
-                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                var token = _loadCancellationTokenSource.Token;
-
-                // handGrabModelが設定されているかチェック
-                // Check if handGrabModel is set
-                if (!string.IsNullOrEmpty(itemMaster.AddressablePaths?.HandGrabModel))
+                // 既存のアイテムをクリーンアップ
+                // Clean up the existing item
+                if (_currentGrabItem != null)
                 {
-                    // Addressableからロード
-                    // Load from Addressable
-                    _currentLoadedAsset = await AddressableLoader.LoadAsync<GameObject>(itemMaster.AddressablePaths.HandGrabModel);
+                    UnityEngine.Object.Destroy(_currentGrabItem.gameObject);
+                    _currentGrabItem = null;
+                }
 
-                    if (token.IsCancellationRequested) return;
+                // Addressableリソースを解放
+                // Release the Addressable resource
+                _currentLoadedAsset?.Dispose();
+                _currentLoadedAsset = null;
 
-                    if (_currentLoadedAsset?.Asset != null)
+                if (itemId == ItemMaster.EmptyItemId) return;
+
+                // Addressableロードは外部境界のため、失敗をここで隔離する
+                // The Addressable load is an external boundary, so its failure is isolated here
+                try
+                {
+                    var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                    var token = _loadCancellationTokenSource.Token;
+
+                    // handGrabModelが設定されているかチェック
+                    // Check if handGrabModel is set
+                    if (!string.IsNullOrEmpty(itemMaster.AddressablePaths?.HandGrabModel))
                     {
-                        _currentGrabItem = UnityEngine.Object.Instantiate(_currentLoadedAsset.Asset);
-                        PlayerSystemContainer.Instance.PlayerGrabItemManager.SetItem(_currentGrabItem, false, Vector3.zero, Quaternion.identity);
-                        return;
+                        // Addressableからロード
+                        // Load from Addressable
+                        _currentLoadedAsset = await AddressableLoader.LoadAsync<GameObject>(itemMaster.AddressablePaths.HandGrabModel);
+
+                        if (token.IsCancellationRequested) return;
+
+                        if (_currentLoadedAsset?.Asset != null)
+                        {
+                            _currentGrabItem = UnityEngine.Object.Instantiate(_currentLoadedAsset.Asset);
+                            PlayerSystemContainer.Instance.PlayerGrabItemManager.SetItem(_currentGrabItem, false, Vector3.zero, Quaternion.identity);
+                        }
                     }
                 }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Failed to load hand grab model for item {itemId}: {e.Message}");
+                }
             }
-            catch (Exception e)
-            {
-                Debug.LogError($"Failed to load hand grab model for item {itemId}: {e.Message}");
-            }
+
+            #endregion
         }
 
         public void Dispose()

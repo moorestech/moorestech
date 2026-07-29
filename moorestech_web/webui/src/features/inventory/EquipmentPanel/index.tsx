@@ -1,6 +1,6 @@
 import { useRef } from "react";
-import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics } from "@/bridge";
-import { isPointerOverWebUi, screenForUiState, useGameLayerWheel } from "@/shared/uiState";
+import { useTopic, readTopic, dispatchAction, Topics } from "@/bridge";
+import { isPointerOverWebUi, isWheelPassthrough, useGameLayerWheel, useScreenInteractive } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
 import { BARE_HANDS_INDEX, accumulateWheelSteps, cycleEquipment } from "./equipmentLogic";
 import styles from "./style.module.css";
@@ -12,14 +12,16 @@ export default function EquipmentPanel() {
   const inventory = useTopic(Topics.inventory);
   // GameScreen 中はカーソルロックでクリックできないため、選択操作はホイールだけになる
   // The cursor is locked during GameScreen, so the wheel is the only selection input there
-  const interactive = useTopicSelector(Topics.uiState, (d) => screenForUiState(d?.state ?? null) !== "none");
+  const interactive = useScreenInteractive();
 
   // ホイールで素手を含む装備選択を循環。変化時のみ送信し、オーバーレイ表示中は共有フックが抑止する
   // Cycle the equipment selection (bare hands included) on wheel; dispatch only on change, with the shared hook suppressing overlays
   useGameLayerWheel((e) => {
     // Web UI の上のホイールは一覧スクロール等その画面の操作であり、装備切替へ二重発火させない
     // A wheel over Web UI is that screen's own gesture (list scrolling etc.), so it must not also switch equipment
-    if (isPointerOverWebUi(e.target)) return;
+    // ただし常時表示HUD自身はスクロールを持たずゲーム操作の場なので、その上のホイールは装備切替へ通す
+    // Always-on HUDs have no scrolling of their own and belong to the game, so a wheel over them still switches equipment
+    if (isPointerOverWebUi(e.target) && !isWheelPassthrough(e.target)) return;
     const latest = readTopic(Topics.inventory);
     if (!latest || latest.equipment.length === 0) return;
     const accumulated = accumulateWheelSteps(wheelRemainder.current, e.deltaY);
@@ -43,7 +45,7 @@ export default function EquipmentPanel() {
   if (!inventory) return null;
 
   return (
-    <div className={styles.equipmentArea} data-testid="equipment-slots">
+    <div className={styles.equipmentArea} data-testid="equipment-slots" data-wheel-passthrough>
       {inventory.equipment.map((slot, i) => (
         <ItemSlot
           key={`equipment-${i}`}

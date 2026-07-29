@@ -52,6 +52,32 @@ test("空枠のクリックでもその枠が選択される", async ({ page }) 
   await expect(equipmentSlots(page).nth(2)).toHaveAttribute("data-selected", "true");
 });
 
+test("装備HUDの上でもホイールで装備が切り替わる", async ({ page }) => {
+  await page.goto("/");
+  const slots = page.getByTestId("equipment-slots");
+  await expect(slots).toBeVisible();
+  const before = (await payloadsOf(page, "inventory.select_equipment")).length;
+
+  // HUD 自身は実UIだがゲーム操作の場であり、カーソルがここで止まっていても唯一の選択手段を殺してはならない
+  // The HUD is real UI yet belongs to the game: parking the cursor on it must not kill the only selection input
+  await slots.hover();
+  await page.mouse.wheel(0, 100);
+
+  await expect.poll(async () => (await payloadsOf(page, "inventory.select_equipment")).length).toBe(before + 1);
+});
+
+test("ホットバーHUDの上でもホイールで装備が切り替わる", async ({ page }) => {
+  await page.goto("/");
+  const hotbar = page.getByTestId("hotbar-grid");
+  await expect(hotbar).toBeVisible();
+  const before = (await payloadsOf(page, "inventory.select_equipment")).length;
+
+  await hotbar.hover();
+  await page.mouse.wheel(0, 100);
+
+  await expect.poll(async () => (await payloadsOf(page, "inventory.select_equipment")).length).toBe(before + 1);
+});
+
 test("持ち物画面の一覧スクロールでは装備が持ち替わらない", async ({ page }) => {
   await setUiState(page, "PlayerInventory");
   await page.goto("/");

@@ -19,6 +19,7 @@
         "Unity.InputSystem",
         "Unity.InputSystem.TestFramework",
         "Client.Common",
+        "Client.Input",
         "Server.Boot",
         "Client.Network",
         "Game.Context",

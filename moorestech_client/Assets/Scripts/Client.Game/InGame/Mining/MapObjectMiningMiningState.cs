@@ -48,7 +48,23 @@ namespace Client.Game.InGame.Mining
             {
                 return new MapObjectMiningFocusState();
             }
-            
+
+            // 採掘中に対象が採掘対象でなくなったらフォーカス状態でやり直す
+            // If the focused object stops being a mining target mid-mining, restart from the focus state
+            var masterElement = context.CurrentFocusMapObjectGameObject.MapObjectMasterElement;
+            if (masterElement == null || masterElement.MiningType != MapObjectMasterElement.MiningTypeConst.Mining)
+            {
+                return new MapObjectMiningFocusState();
+            }
+
+            // 採掘はサーバーが装備アイテムでGUID照合するため、装備が変わったら進捗を続けずフォーカスへ戻す
+            // The server matches the equipped item's GUID, so an equipment change must drop back to focus instead of advancing
+            var miningTools = ((MiningMiningParam)masterElement.MiningParam).MiningTools;
+            if (MapObjectMiningFocusState.ResolveUsableTool(miningTools, context.LocalPlayerEquipment.SelectedItem.Id) != _miningToolsElement)
+            {
+                return new MapObjectMiningFocusState();
+            }
+
             // デバッグ用で高速マイニングする
             // For debugging, mine super fast
             if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.MapObjectSuperMine))

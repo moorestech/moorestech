@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Core.Master;
-using Game.PlayerInventory.Interface;
 using Mooresmaster.Model.MapModule;
 
 namespace Client.Game.InGame.Mining
@@ -54,37 +52,32 @@ namespace Client.Game.InGame.Mining
             return this;
         }
         
-        private IMapObjectMiningState MiningProcess(MapObjectMasterElement masterElement,MapObjectMiningControllerContext context)
+        /// <summary>
+        ///     装備中アイテムに対応する採掘ツールを引く。採掘中の装備切替検知も同じ照合を使う
+        ///     Resolves the mining tool matching the equipped item; mid-mining equipment-change detection reuses this
+        /// </summary>
+        public static MiningToolsElement ResolveUsableTool(MiningToolsElement[] miningTools, ItemId equippedItemId)
         {
-            // 今持っているアイテムがマイニングツールとして登録されているかどうかをチェック
-            // Check if the item you are currently holding is registered as a mining tool
-            var inventoryItem = context.LocalPlayerEquipment.SelectedItem;
+            if (equippedItemId == ItemMaster.EmptyItemId) return null;
 
-
-            // 何も選択していない場合はフォーカスを維持
-            // If nothing is selected, maintain focus
-            var miningTools = ((MiningMiningParam)masterElement.MiningParam).MiningTools;
-            if (inventoryItem.Id == ItemMaster.EmptyItemId)
-            {
-                ShowRecommendMiningTools(miningTools);
-                return this;
-            }
-            
-            
-            // マイニングツールとして登録されているかどうかをチェック
-            // Check if it is registered as a mining tool
-            MiningToolsElement usableMiningTool = null; 
-            var currentItemGuid = MasterHolder.ItemMaster.GetItemMaster(inventoryItem.Id).ItemGuid;
+            var currentItemGuid = MasterHolder.ItemMaster.GetItemMaster(equippedItemId).ItemGuid;
             foreach (var miningTool in miningTools)
             {
-                if (miningTool.ToolItemGuid != currentItemGuid) continue;
-                
-                usableMiningTool = miningTool;
-                break;
+                if (miningTool.ToolItemGuid == currentItemGuid) return miningTool;
             }
-            
-            // マイニングツールとして登録されていない場合はフォーカスを維持
-            // If it is not registered as a mining tool, maintain focus
+
+            return null;
+        }
+
+        private IMapObjectMiningState MiningProcess(MapObjectMasterElement masterElement,MapObjectMiningControllerContext context)
+        {
+            // 今装備しているアイテムがマイニングツールとして登録されているかどうかをチェック
+            // Check if the item you are currently equipping is registered as a mining tool
+            var miningTools = ((MiningMiningParam)masterElement.MiningParam).MiningTools;
+            var usableMiningTool = ResolveUsableTool(miningTools, context.LocalPlayerEquipment.SelectedItem.Id);
+
+            // 未選択、またはマイニングツールとして登録されていない場合はフォーカスを維持
+            // If nothing is selected, or it is not registered as a mining tool, maintain focus
             if (usableMiningTool == null)
             {
                 ShowRecommendMiningTools(miningTools);

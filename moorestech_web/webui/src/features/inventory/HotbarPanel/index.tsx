@@ -1,5 +1,5 @@
-import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics } from "@/bridge";
-import { screenForUiState, useGameLayerKeydown } from "@/shared/uiState";
+import { useTopic, readTopic, dispatchAction, Topics } from "@/bridge";
+import { useGameLayerKeydown, useScreenInteractive } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
 import { keyToHotbarIndex } from "./hotbarLogic";
@@ -12,7 +12,7 @@ export default function HotbarPanel() {
   const inventory = useTopic(Topics.inventory);
   // GameScreen 中は表示+キー選択のみ（uGUI はカーソルロックでクリック不能。ホイールは装備切替が持つ）
   // Display + key selection only during GameScreen (uGUI locks the cursor, so no clicks; the wheel belongs to equipment)
-  const interactive = useTopicSelector(Topics.uiState, (d) => screenForUiState(d?.state ?? null) !== "none");
+  const interactive = useScreenInteractive();
 
   // 1-9 キーでホットバー選択。ゲートは共有フックが担い、最新値は readTopic で読む
   // Keys 1-9 select a hotbar slot; the shared hook gates it and the latest value comes via readTopic
@@ -31,8 +31,10 @@ export default function HotbarPanel() {
   // Hide the whole HUD until the first snapshot (InventoryPanel owns the connecting... text)
   if (!inventory) return null;
 
+  // 装備切替のホイールはこのHUD上でも生かす（帯はスクロールを持たずゲーム操作の場のため）
+  // Keep the equipment wheel alive over this HUD too: the band has no scrolling and belongs to the game
   return (
-    <div className={styles.hotbarArea}>
+    <div className={styles.hotbarArea} data-wheel-passthrough>
       <div className={styles.hotbarFrame} data-testid="hotbar-grid">
         {inventory.hotbarSlots.map((slot, i) => {
           const ref: SlotRef = { area: "hotbar", slot: i };
