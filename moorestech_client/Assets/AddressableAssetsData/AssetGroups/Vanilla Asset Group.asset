@@ -1345,6 +1345,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e94eb8fd5486d458b82dd6b9f4cc8ef2
+    m_Address: Vanilla/Environment/Terrain/TerrainLitMaterial
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e9b31dcee7d1c7b4cb1f02e097df293d
     m_Address: Vanilla/Block/itemshooter accelerator
     m_ReadOnly: 0
