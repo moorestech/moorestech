@@ -97,6 +97,7 @@ test("常駐HUDをインベントリ・メニュー・操作モードで維持�
   // Follow stage scaling and remain within a smaller viewport
   await page.setViewportSize({ width: 1024, height: 576 });
   await setUiState(page, "GameScreen");
+  await expect.poll(async () => (await challengeHud.boundingBox())?.width).toBe(512);
   const scaledWorldPresentation = await readChallengeHudPresentation(page);
   await setUiState(page, "PlayerInventory");
   await expect(page.getByTestId("main-grid")).toBeVisible();
