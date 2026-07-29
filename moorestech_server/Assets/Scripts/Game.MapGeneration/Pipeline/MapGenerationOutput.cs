@@ -4,20 +4,22 @@ using UnityEngine;
 namespace Game.MapGeneration.Pipeline
 {
     // 生成パイプラインの結果値オブジェクト。テクスチャ/スプラットは含まない（サーバー非対象）。
+    // 座標はすべて生成タイル基準のシーン座標で、スポーン探索の中央化オフセット G は差し引き済み。
     // Result value object of the generation pipeline; no texture/splat (server-irrelevant).
+    // All coordinates are scene-space relative to the generated tile, with the spawn-search offset G already removed.
     public class MapGenerationOutput
     {
         public float[] Heights;            // [Resolution*Resolution] 0-1 正規化高さ / normalized height
         public byte[] BiomeIndices;        // [Resolution*Resolution] BiomeType の値 / BiomeType value
         public int Resolution;             // 1辺のセル数 / cells per side
-        public Vector3 SpawnPoint;         // ワールド座標のスポーン地点 / spawn point in world space
+        public Vector3 SpawnPoint;         // シーン座標のスポーン地点 / spawn point in scene space
         public List<PlacedMapObject> MapObjects = new List<PlacedMapObject>();
         public List<PlacedVein> ItemVeins = new List<PlacedVein>();
         public List<PlacedVein> FluidVeins = new List<PlacedVein>();
     }
 
-    // 木・石など見た目マップオブジェクト1件（GUID + ワールド座標）。
-    // One visual map object (tree/rock, etc.): GUID plus world position.
+    // 木・石など見た目マップオブジェクト1件（GUID + シーン座標）。
+    // One visual map object (tree/rock, etc.): GUID plus scene position.
     public class PlacedMapObject
     {
         public string MapObjectGuid;
