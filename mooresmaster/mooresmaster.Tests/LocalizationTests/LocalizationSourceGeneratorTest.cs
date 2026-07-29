@@ -92,6 +92,40 @@ public class LocalizationSourceGeneratorTest
         Assert.Empty(result.GeneratedSources);
     }
 
+    [Fact]
+    public void LocalizationCsvが複数あれば全pathを順序固定でMOORES003へ報告する()
+    {
+        const string csvText = "key,Source,english\nui.menu.close,Close,Close\n";
+        var laterPathFile = new TestAdditionalText("/z/localization.csv", csvText);
+        var earlierPathFile = new TestAdditionalText("/a/localization.csv", csvText);
+
+        var result = RunGenerator(true, new[] { laterPathFile, earlierPathFile });
+        var diagnostic = Assert.Single(result.Diagnostics);
+        var message = diagnostic.GetMessage();
+
+        Assert.Equal("MOORES003", diagnostic.Id);
+        Assert.Contains("/a/localization.csv", message);
+        Assert.Contains("/z/localization.csv", message);
+        Assert.True(
+            message.IndexOf("/a/localization.csv", System.StringComparison.Ordinal) <
+            message.IndexOf("/z/localization.csv", System.StringComparison.Ordinal));
+        Assert.Empty(result.GeneratedSources);
+    }
+
+    [Fact]
+    public void Codegenで不正なLocalizationCsvもMOORES003を報告して生成しない()
+    {
+        var csvFile = new TestAdditionalText(
+            "/content/localization.csv",
+            "key,Source,english\nui.bad-key.close,Close,Close\n");
+
+        var result = RunGenerator(true, new[] { csvFile });
+        var diagnostic = Assert.Single(result.Diagnostics);
+
+        Assert.Equal("MOORES003", diagnostic.Id);
+        Assert.Empty(result.GeneratedSources);
+    }
+
     private static GeneratorRunResult RunGenerator(
         bool enabled,
         IEnumerable<AdditionalText> additionalTexts)
