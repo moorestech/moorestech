@@ -153,6 +153,7 @@ namespace Server.Boot
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();
+            services.AddSingleton<MapObjectMiningService>();
             // 具象はMasterTickUpdaterの再構築用、interfaceは参照系向け。同一インスタンスを共有する
             // The concrete type serves MasterTickUpdater's rebuild; the interface serves readers. Both share one instance
             services.AddSingleton<ElectricWireNetworkDatastore>();

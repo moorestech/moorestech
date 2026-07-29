@@ -77,7 +77,7 @@ namespace Client.DebugSystem
             
             rootPage.AddBoolWithSave(false, IsItemListViewForceShowLabel, IsItemListViewForceShowKey);
             rootPage.AddBoolWithSave(false, SkitPlaySettingsLabel, SkitPlaySettingsKey);
-            rootPage.AddBoolWithSave(false, MapObjectSuperMineLabel, MapObjectSuperMineKey);
+            rootPage.AddBoolWithSave(false, MapObjectSuperMineLabel, DebugParameterKeys.MapObjectSuperMine);
             rootPage.AddBoolWithSave(false, FixCraftTimeLabel, FixCraftTimeKey);
             rootPage.AddBoolWithSave(false, TrainAutoRunLabel, TrainAutoRunKey);
             rootPage.AddBoolWithSave(false, TrainUnitDebugOverlayLabel, TrainUnitDebugOverlayKey);

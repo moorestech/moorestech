@@ -13,6 +13,10 @@ namespace Common.Debug
         // ブロック設置を無料化する（建設コストを消費しない）
         // Make block placement free (do not consume construction cost)
         public const string FreeBlockPlacement = "FreeBlockPlacement";
+
+        // マップオブジェクトを一撃で採掘する（ダメージ最大・クールダウン無視）
+        // Mine map objects in one hit (max damage, no cooldown)
+        public const string MapObjectSuperMine = "MapObjectSuperMine";
     }
 
     public static class DebugParameters

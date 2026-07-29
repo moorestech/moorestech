@@ -45,7 +45,7 @@ namespace Client.Game.InGame.Mining
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
             {
                 MouseCursorTooltip.Instance.Hide();
-                return new MapObjectMiningMiningCompleteState(context.CurrentFocusMapObjectGameObject, int.MaxValue);
+                return new MapObjectMiningMiningCompleteState(context.CurrentFocusMapObjectGameObject);
             }
             
             // 左クリックがされていなければ現状を維持

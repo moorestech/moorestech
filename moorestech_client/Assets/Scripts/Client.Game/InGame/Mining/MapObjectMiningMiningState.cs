@@ -51,7 +51,7 @@ namespace Client.Game.InGame.Mining
             
             // デバッグ用で高速マイニングする
             // For debugging, mine super fast
-            if (DebugParameters.GetValueOrDefaultBool(DebugConst.MapObjectSuperMineKey))
+            if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.MapObjectSuperMine))
             {
                 dt *= 1000;
             }
@@ -63,8 +63,7 @@ namespace Client.Game.InGame.Mining
             // If mining is complete, transition to mining complete state
             if (_miningToolsElement.AttackSpeed <= _currentMiningProgressTime)
             {
-                var attackDamage = _miningToolsElement.Damage;
-                return new MapObjectMiningMiningCompleteState(context.CurrentFocusMapObjectGameObject, attackDamage);
+                return new MapObjectMiningMiningCompleteState(context.CurrentFocusMapObjectGameObject);
             }
             
             return this;

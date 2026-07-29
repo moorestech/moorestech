@@ -108,7 +108,7 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
     p.Assert(nearestTree != null, "最寄りの未破壊の木がクライアントで見つかった");
     if (nearestTree != null)
     {
-        Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.AttackMapObject(nearestTree.InstanceId, 100);
+        Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.AttackMapObject(nearestTree.InstanceId);
         var c3Done = await PollUntil(() => challengeStore.CurrentChallengeInfo.CompletedChallenges
             .Any(c => c.ChallengeGuid == challenge3), 30);
         p.Assert(3 <= p.CountItem("原木"), "原木が3個以上インベントリにある");
