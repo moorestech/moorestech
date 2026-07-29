@@ -100,7 +100,7 @@ namespace Client.Tests.Mining
         {
             var context = new MapObjectMiningControllerContext(CreateEquipmentHoldingTool());
             context.SetFocusMapObjectGameObject(CreateMiningMapObject());
-            var miningState = new MapObjectMiningMiningState(MiningToolOfFocusedMapObject(context));
+            var miningState = new MapObjectMiningMiningState(MiningToolOfFocusedMapObject(context), context.LocalPlayerEquipment.SelectedItem.Id);
             PressLeftClick();
 
             // 装備が変わらない限り採掘は継続する（この土台が無いと切替検知の失敗を検出できない）
@@ -119,7 +119,7 @@ namespace Client.Tests.Mining
             var context = new MapObjectMiningControllerContext(CreateEquipmentHoldingTool());
             context.SetFocusMapObjectGameObject(CreateMiningMapObject());
             var miningTool = MiningToolOfFocusedMapObject(context);
-            var miningState = new MapObjectMiningMiningState(miningTool);
+            var miningState = new MapObjectMiningMiningState(miningTool, context.LocalPlayerEquipment.SelectedItem.Id);
             PressLeftClick();
 
             // 切替検知が誤爆すると完了へ到達できなくなるため、同一装備での完走も固定する
@@ -147,7 +147,7 @@ namespace Client.Tests.Mining
         private MiningToolsElement MiningToolOfFocusedMapObject(MapObjectMiningControllerContext context)
         {
             var miningParam = (MiningMiningParam)context.CurrentFocusMapObjectGameObject.MapObjectMasterElement.MiningParam;
-            return MapObjectMiningFocusState.ResolveUsableTool(miningParam.MiningTools, context.LocalPlayerEquipment.SelectedItem.Id);
+            return context.ResolveUsableTool(miningParam.MiningTools);
         }
 
         private void PressLeftClick()

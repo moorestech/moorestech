@@ -52,29 +52,12 @@ namespace Client.Game.InGame.Mining
             return this;
         }
         
-        /// <summary>
-        ///     装備中アイテムに対応する採掘ツールを引く。採掘中の装備切替検知も同じ照合を使う
-        ///     Resolves the mining tool matching the equipped item; mid-mining equipment-change detection reuses this
-        /// </summary>
-        public static MiningToolsElement ResolveUsableTool(MiningToolsElement[] miningTools, ItemId equippedItemId)
-        {
-            if (equippedItemId == ItemMaster.EmptyItemId) return null;
-
-            var currentItemGuid = MasterHolder.ItemMaster.GetItemMaster(equippedItemId).ItemGuid;
-            foreach (var miningTool in miningTools)
-            {
-                if (miningTool.ToolItemGuid == currentItemGuid) return miningTool;
-            }
-
-            return null;
-        }
-
         private IMapObjectMiningState MiningProcess(MapObjectMasterElement masterElement,MapObjectMiningControllerContext context)
         {
             // 今装備しているアイテムがマイニングツールとして登録されているかどうかをチェック
             // Check if the item you are currently equipping is registered as a mining tool
             var miningTools = ((MiningMiningParam)masterElement.MiningParam).MiningTools;
-            var usableMiningTool = ResolveUsableTool(miningTools, context.LocalPlayerEquipment.SelectedItem.Id);
+            var usableMiningTool = context.ResolveUsableTool(miningTools);
 
             // 未選択、またはマイニングツールとして登録されていない場合はフォーカスを維持
             // If nothing is selected, or it is not registered as a mining tool, maintain focus
@@ -95,7 +78,7 @@ namespace Client.Game.InGame.Mining
             // マイニング状態に遷移
             // Transition to mining state
             MouseCursorTooltip.Instance.Hide();
-            return new MapObjectMiningMiningState(usableMiningTool);
+            return new MapObjectMiningMiningState(usableMiningTool, context.LocalPlayerEquipment.SelectedItem.Id);
         }
         
         
