@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -15,10 +16,12 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "inventory.move_item";
 
         private readonly LocalPlayerInventoryController _controller;
+        private readonly LocalPlayerEquipment _equipment;
 
-        public MoveItemActionHandler(LocalPlayerInventoryController controller)
+        public MoveItemActionHandler(LocalPlayerInventoryController controller, LocalPlayerEquipment equipment)
         {
             _controller = controller;
+            _equipment = equipment;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -30,7 +33,7 @@ namespace Client.WebUiHost.Game.Actions
             var count = (int)countLong;
 
             var mainSlotCount = _controller.LocalPlayerInventory.MainSlotCount;
-            var equipmentSlotCount = _controller.LocalPlayerEquipment.Slots.Count;
+            var equipmentSlotCount = _equipment.Slots.Count;
             if (!InventoryAreaMapper.TryParseSlotRef(payload["from"], mainSlotCount, equipmentSlotCount, out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
             if (!InventoryAreaMapper.TryParseSlotRef(payload["to"], mainSlotCount, equipmentSlotCount, out var toType, out var toSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
@@ -54,17 +57,19 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "inventory.split";
 
         private readonly LocalPlayerInventoryController _controller;
+        private readonly LocalPlayerEquipment _equipment;
 
-        public SplitGrabActionHandler(LocalPlayerInventoryController controller)
+        public SplitGrabActionHandler(LocalPlayerInventoryController controller, LocalPlayerEquipment equipment)
         {
             _controller = controller;
+            _equipment = equipment;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
 
-            if (!InventoryAreaMapper.TryParseClickableSlotRef(payload["from"], _controller.LocalPlayerInventory.MainSlotCount, _controller.LocalPlayerEquipment.Slots.Count, out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            if (!InventoryAreaMapper.TryParseClickableSlotRef(payload["from"], _controller.LocalPlayerInventory.MainSlotCount, _equipment.Slots.Count, out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
             if (_controller.GrabInventory.Id != ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("grab_not_empty"));
 
             var item = _controller.GetItem(fromType, fromSlot);
@@ -86,8 +91,13 @@ namespace Client.WebUiHost.Game.Actions
     {
         public string ActionType => "inventory.split_drag";
         private readonly LocalPlayerInventoryController _controller;
+        private readonly LocalPlayerEquipment _equipment;
 
-        public SplitDragActionHandler(LocalPlayerInventoryController controller) { _controller = controller; }
+        public SplitDragActionHandler(LocalPlayerInventoryController controller, LocalPlayerEquipment equipment)
+        {
+            _controller = controller;
+            _equipment = equipment;
+        }
 
         public static int CalculateCountPerSlot(int grabCount, int destinationCount)
         {
@@ -100,7 +110,7 @@ namespace Client.WebUiHost.Game.Actions
             var destinations = new List<(LocalMoveInventoryType type, int slot)>();
             foreach (var token in slots)
             {
-                if (!InventoryAreaMapper.TryParseClickableSlotRef(token, _controller.LocalPlayerInventory.MainSlotCount, _controller.LocalPlayerEquipment.Slots.Count, out var type, out var slot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+                if (!InventoryAreaMapper.TryParseClickableSlotRef(token, _controller.LocalPlayerInventory.MainSlotCount, _equipment.Slots.Count, out var type, out var slot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
                 if (destinations.Contains((type, slot))) continue;
                 if (!_controller.GetItem(type, slot).IsAllowedToAddWithRemain(_controller.GrabInventory)) continue;
                 destinations.Add((type, slot));
@@ -126,10 +136,12 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "inventory.collect";
 
         private readonly LocalPlayerInventoryController _controller;
+        private readonly LocalPlayerEquipment _equipment;
 
-        public CollectActionHandler(LocalPlayerInventoryController controller)
+        public CollectActionHandler(LocalPlayerInventoryController controller, LocalPlayerEquipment equipment)
         {
             _controller = controller;
+            _equipment = equipment;
         }
 
         // 収集先は host 自身の現在 grab 状態で決める。Web 側の grab 表示は dblclick 時点で必ず古いため
@@ -145,7 +157,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // 入力はクリック可能スロット（main/hotbar/equipment）のみ。grab はクライアントから来ない
             // Input is a clickable slot only (main/hotbar/equipment); grab never arrives from the client
-            if (!InventoryAreaMapper.TryParseClickableSlotRef(payload["slot"], _controller.LocalPlayerInventory.MainSlotCount, _controller.LocalPlayerEquipment.Slots.Count, out var clickedType, out var clickedSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            if (!InventoryAreaMapper.TryParseClickableSlotRef(payload["slot"], _controller.LocalPlayerInventory.MainSlotCount, _equipment.Slots.Count, out var clickedType, out var clickedSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
             // 収集先決定は uGUI の DoubleClick と同一。空手×空スロットは CollectItems が no-op（成功扱い）
             // Target choice mirrors uGUI DoubleClick; empty-handed on an empty slot is a CollectItems no-op (success)

@@ -17,7 +17,6 @@ namespace Client.Game.InGame.UI.Inventory.Main
     public class LocalPlayerInventoryController
     {
         public ILocalPlayerInventory LocalPlayerInventory => _localPlayerInventory;
-        public LocalPlayerEquipment LocalPlayerEquipment => _localPlayerEquipment;
         public IItemStack GrabInventory { get; private set; }
 
         // grab・全置換などインデクサを経由しない更新の通知

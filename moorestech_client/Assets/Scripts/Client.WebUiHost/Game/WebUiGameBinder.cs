@@ -166,16 +166,16 @@ namespace Client.WebUiHost.Game
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             hub.RegisterAction(new EchoActionHandler());
 #endif
-            hub.RegisterAction(new MoveItemActionHandler(controller));
-            hub.RegisterAction(new SplitGrabActionHandler(controller));
-            hub.RegisterAction(new SplitDragActionHandler(controller));
-            hub.RegisterAction(new CollectActionHandler(controller));
+            hub.RegisterAction(new MoveItemActionHandler(controller, localPlayerEquipment));
+            hub.RegisterAction(new SplitGrabActionHandler(controller, localPlayerEquipment));
+            hub.RegisterAction(new SplitDragActionHandler(controller, localPlayerEquipment));
+            hub.RegisterAction(new CollectActionHandler(controller, localPlayerEquipment));
             hub.RegisterAction(new SortInventoryActionHandler(controller));
             hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));
             hub.RegisterAction(new SelectHotbarActionHandler(hotBarView));
             hub.RegisterAction(new SelectEquipmentActionHandler(localPlayerEquipment));
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
-            hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));
+            hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState, localPlayerEquipment));
             hub.RegisterAction(new BlockSplitGrabActionHandler(controller, subInventoryState));
             hub.RegisterAction(new BlockCollectActionHandler(controller, subInventoryState));
             hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl, trainHudState));
