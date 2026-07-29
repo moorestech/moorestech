@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.MapGeneration.Provisioning;
 using Game.Paths;
+using UnityEngine;
 
 namespace Game.MapGeneration.Transfer
 {
@@ -23,7 +24,13 @@ namespace Game.MapGeneration.Transfer
         // The world.json seed verbatim; clients reproduce the classification stage (land/sea, beach, biome weights) consistent with the transferred terrain from it
         public readonly int WorldSeed;
 
-        public TerrainTransferMeta(string mapMode, string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed)
+        // 生成時のノイズ窓原点とシーン原点。seedと同じく生成時にしか決まらずマスタからは復元できない値
+        // The generation-time noise window origin and scene origin; like the seed, they exist only at generation and cannot be recovered from the master
+        public readonly Vector2 NoiseOrigin;
+        public readonly Vector2 SceneOrigin;
+
+        public TerrainTransferMeta(string mapMode, string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed,
+            Vector2 noiseOrigin, Vector2 sceneOrigin)
         {
             MapMode = mapMode;
             WorldId = worldId;
@@ -31,6 +38,8 @@ namespace Game.MapGeneration.Transfer
             TerrainTileCount = terrainTileCount;
             TerrainChunkTotal = terrainChunkTotal;
             WorldSeed = worldSeed;
+            NoiseOrigin = noiseOrigin;
+            SceneOrigin = sceneOrigin;
         }
 
         // generatedなのにチャンク0本は生成失敗かファイル切り詰め。地形なしと同一視すると壊れたワールドを正常として配る
@@ -97,7 +106,7 @@ namespace Game.MapGeneration.Transfer
         // With no world.json there is no seed concept at all, so 0 declares absence just as the empty WorldId does
         public static TerrainTransferMeta CreateWithoutWorldDirectory()
         {
-            return new TerrainTransferMeta(WorldProvisioner.TemplateMapMode, string.Empty, 0, 0, 0, 0);
+            return new TerrainTransferMeta(WorldProvisioner.TemplateMapMode, string.Empty, 0, 0, 0, 0, Vector2.zero, Vector2.zero);
         }
     }
 }

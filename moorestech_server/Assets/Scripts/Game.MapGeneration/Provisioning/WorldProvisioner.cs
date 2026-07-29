@@ -85,6 +85,13 @@ namespace Game.MapGeneration.Provisioning
                     CreatedAt = DateTime.UtcNow.ToString("O"),
                     TerrainResolution = output.Resolution,
                     TerrainTileCount = 1,
+
+                    // マスタ値ではなく生成が確定させた値を書く。スポーン探索のGはこの瞬間にしか存在しない
+                    // Record what generation settled on, not the master values; the spawn-search G exists only at this moment
+                    TerrainNoiseOriginX = output.NoiseOrigin.x,
+                    TerrainNoiseOriginZ = output.NoiseOrigin.y,
+                    TerrainSceneOriginX = output.SceneOrigin.x,
+                    TerrainSceneOriginZ = output.SceneOrigin.y,
                 };
             }
 
@@ -104,6 +111,13 @@ namespace Game.MapGeneration.Provisioning
                     CreatedAt = DateTime.UtcNow.ToString("O"),
                     TerrainResolution = 0,
                     TerrainTileCount = 0,
+
+                    // templateは地形を生成しないのでノイズ窓もシーン原点も存在しない。0は不在の表明
+                    // Template generates no terrain, so neither origin exists; 0 declares that absence
+                    TerrainNoiseOriginX = 0f,
+                    TerrainNoiseOriginZ = 0f,
+                    TerrainSceneOriginX = 0f,
+                    TerrainSceneOriginZ = 0f,
                 };
             }
 

@@ -13,6 +13,15 @@ namespace Game.MapGeneration.Pipeline
         public byte[] BiomeIndices;        // [Resolution*Resolution] BiomeType の値 / BiomeType value
         public int Resolution;             // 1辺のセル数 / cells per side
         public Vector3 SpawnPoint;         // シーン座標のスポーン地点 / spawn point in scene space
+
+        // 生成に使ったノイズ窓の原点。クライアントが分類段を再実行するとき同じ窓を指すのに要る。
+        // Origin of the noise window used for generation; clients need it to re-run the classification stage on the same window.
+        public Vector2 NoiseOrigin;
+
+        // 生成タイルがシーン上で占める原点(= NoiseOrigin - G)。地形の設置位置はこちらで、出力座標もこれを基準にする。
+        // Scene-space origin of the generated tile (= NoiseOrigin - G): where the terrain sits, and the basis of every output coordinate.
+        public Vector2 SceneOrigin;
+
         public List<PlacedMapObject> MapObjects = new List<PlacedMapObject>();
         public List<PlacedVein> ItemVeins = new List<PlacedVein>();
         public List<PlacedVein> FluidVeins = new List<PlacedVein>();

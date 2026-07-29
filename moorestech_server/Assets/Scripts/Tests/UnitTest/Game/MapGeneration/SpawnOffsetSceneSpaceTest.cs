@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Biomes;
@@ -5,6 +6,7 @@ using Game.MapGeneration.Pipeline.Runtime;
 using Game.MapGeneration.Pipeline.Spawn;
 using Game.MapGeneration.Pipeline.Stages;
 using Mooresmaster.Model.GenerationModule;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -35,6 +37,11 @@ namespace Tests.UnitTest.Game.MapGeneration
             // 探索が選んだ良地が実際に生成されていれば、スポーン地点の分類は Grassland になる。
             // If the region the search chose was really generated, the spawn point classifies as Grassland.
             Assert.That(BiomeAtSpawn(output, generation), Is.EqualTo(BiomeType.Grassland));
+
+            // world.json へ永続化されクライアントの分類段が使う値。ノイズ窓は G の位置、シーン原点はタイル基準の 0。
+            // These are persisted to world.json and drive the client's classification stage: the noise window sits at G, the scene origin at the tile's 0.
+            Assert.That(output.NoiseOrigin, Is.EqualTo(searchResult.WorldOffset));
+            Assert.That(output.SceneOrigin, Is.EqualTo(Vector2.zero));
         }
 
         [Test]
@@ -47,6 +54,49 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(searchResult.Success, Is.False);
 
             AssertOutputIsInsideTile(generation);
+        }
+
+        // 探索は master の worldOffsetX を見ずに絶対ノイズ空間で S を決めるため、G は上書きであって加算ではない。
+        // 加算にすると生成地形が master の基底ぶんズレ、探索が検証した地形と別物になる。
+        // The search picks S in absolute noise space without reading the master worldOffsetX, so G replaces it rather than adding.
+        // Adding would shift the generated terrain by the master base, making it a different place than the search verified.
+        [Test]
+        public void MasterWorldOffsetDoesNotMoveTerrainWhenSpawnSearchSucceeds()
+        {
+            var atOrigin = TestGenerationConfigFactory.Create(
+                TestGenerationConfigFactory.SpawnSearchSetup.Enabled);
+            var shifted = TestGenerationConfigFactory.CreateWithAlgorithmParamOverrides(
+                TestGenerationConfigFactory.SpawnSearchSetup.Enabled,
+                new JObject { ["worldOffsetX"] = 317.0, ["worldOffsetZ"] = -213.0 });
+
+            var expected = MapGenerationPipeline.Generate(atOrigin, Seed);
+            var actual = MapGenerationPipeline.Generate(shifted, Seed);
+
+            Assert.That(actual.SpawnPoint, Is.EqualTo(expected.SpawnPoint));
+            Assert.That(actual.Heights.Length, Is.EqualTo(expected.Heights.Length));
+
+            int differentIndex = FirstDifferentIndex(expected.Heights, actual.Heights);
+            Assert.That(differentIndex, Is.EqualTo(-1),
+                $"master の worldOffset がハイトマップを動かした: index={differentIndex}");
+        }
+
+        // 探索無効時のスポーンは master 値そのままで生成タイルの外を指しうる。clamp で吸収すると地形外スポーンが残る。
+        // With the search off the spawn stays at the master value and can point outside the generated tile; clamping it would leave an off-terrain spawn.
+        [Test]
+        public void SpawnOutsideTheGeneratedTileThrowsWhenSpawnSearchDisabled()
+        {
+            var generation = TestGenerationConfigFactory.CreateWithAlgorithmParamOverrides(
+                TestGenerationConfigFactory.SpawnSearchSetup.Disabled,
+                new JObject { ["spawnWorldPosition"] = new JArray(2116.69922, -807.6172) });
+
+            Assert.Throws<InvalidOperationException>(() => MapGenerationPipeline.Generate(generation, Seed));
+        }
+
+        private static int FirstDifferentIndex(float[] expected, float[] actual)
+        {
+            for (int i = 0; i < expected.Length; i++)
+                if (expected[i] != actual[i]) return i;
+            return -1;
         }
 
         private static SpawnSearchResult FindSpawnRegion(Generation generation)

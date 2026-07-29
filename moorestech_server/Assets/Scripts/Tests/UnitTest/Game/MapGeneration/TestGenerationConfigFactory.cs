@@ -40,6 +40,13 @@ namespace Tests.UnitTest.Game.MapGeneration
 
         public static Generation Create(SpawnSearchSetup spawnSearchSetup)
         {
+            return CreateWithAlgorithmParamOverrides(spawnSearchSetup, new JObject());
+        }
+
+        // algorithmParam の任意フィールドを差し替えて構築する。座標系まわりの条件を1件だけ変えたいテスト用。
+        // Builds with arbitrary algorithmParam fields replaced, for tests varying a single coordinate-system condition.
+        public static Generation CreateWithAlgorithmParamOverrides(SpawnSearchSetup spawnSearchSetup, JObject algorithmParamOverrides)
+        {
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
                 "mods", "forUnitTest", "master", "generation.json");
             var root = JObject.Parse(File.ReadAllText(path));
@@ -55,10 +62,6 @@ namespace Tests.UnitTest.Game.MapGeneration
             // 小さな1タイルは低周波の大陸性ノイズだと全面が海になりうるため、閾値を下げて陸を保証する。
             // A small single tile can turn all-ocean under low-frequency continentalness; lower the threshold to guarantee land.
             ap["landThreshold"] = 0.0;
-
-            // ブレンド半径はスポーン探索の縁マージン(≒blendRadius×m/px)を決めるため、狭い検証窓でも中心が残る値にする。
-            // The blend radius drives the spawn-search edge margin (~blendRadius x m/px), so keep it small enough for a narrow window.
-            ap["biomeBlendRadius"] = 20;
 
             // バイオームは Grassland + Forest の2種に絞る。
             // Restrict biomes to Grassland + Forest only.
@@ -79,9 +82,12 @@ namespace Tests.UnitTest.Game.MapGeneration
             ConfigureVeinEntry((JObject)((JArray)ore["entries"])[0], TestVeinGuid);
             ConfigureVeinEntry((JObject)((JArray)ore["fluidEntries"])[0], TestFluidVeinGuid);
 
-            // 独立散布オブジェクトを Grassland に1種置き、MapObjects が空にならないようにする。
-            // Place one independently scattered object in Grassland so MapObjects is never empty.
-            ((JArray)((JObject)((JObject)ap["grassland"])["objectConfig"])["entries"]).Add(BuildObjectEntry());
+            ConfigureForSpawnSearch(ap, spawnSearchSetup);
+
+            // 差し替えは最後に当てる。setup 側の既定を上書きしたいテストが必ず勝つようにするため。
+            // Overrides land last so a test that wants to replace a setup default always wins.
+            foreach (var overrideProperty in algorithmParamOverrides.Properties())
+                ap[overrideProperty.Name] = overrideProperty.Value;
 
             return GenerationLoader.Load(root);
 
@@ -98,6 +104,21 @@ namespace Tests.UnitTest.Game.MapGeneration
                 spawnSearch["maxExpandIterations"] = 1;
                 if (setup == SpawnSearchSetup.Unsatisfiable)
                     spawnSearch["minGrasslandArea"] = 1e12;
+            }
+
+            // 探索経路だけに要る調整。Disabled を使う既存テストの地形・配置物を動かさないよう分岐の内側に置く。
+            // Tuning needed only by the search path; kept inside the branch so Disabled tests keep their terrain and placements.
+            static void ConfigureForSpawnSearch(JObject ap, SpawnSearchSetup setup)
+            {
+                if (setup == SpawnSearchSetup.Disabled) return;
+
+                // ブレンド半径はスポーン探索の縁マージン(≒blendRadius×m/px)を決めるため、狭い検証窓でも中心が残る値にする。
+                // The blend radius drives the spawn-search edge margin (~blendRadius x m/px), so keep it small enough for a narrow window.
+                ap["biomeBlendRadius"] = 20;
+
+                // 独立散布オブジェクトを Grassland に1種置き、MapObjects が空にならないようにする。
+                // Place one independently scattered object in Grassland so MapObjects is never empty.
+                ((JArray)((JObject)((JObject)ap["grassland"])["objectConfig"])["entries"]).Add(BuildObjectEntry());
             }
 
             // ノイズ・傘フィルタを全て無効にした素の散布エントリ。スキーマ既定値と同値でも明示的に埋める。

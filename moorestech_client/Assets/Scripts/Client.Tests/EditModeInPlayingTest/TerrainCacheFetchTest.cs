@@ -12,6 +12,7 @@ using Game.Paths;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.TestTools;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
@@ -52,7 +53,9 @@ namespace Client.Tests.EditModeInPlayingTest
                 Assert.Less(0, mapLayout.TerrainChunkTotal, "地形チャンクが1本も無い");
 
                 var terrainMeta = new TerrainTransferMeta(mapLayout.MapMode, mapLayout.WorldId,
-                    mapLayout.TerrainResolution, mapLayout.TerrainTileCount, mapLayout.TerrainChunkTotal, mapLayout.WorldSeed);
+                    mapLayout.TerrainResolution, mapLayout.TerrainTileCount, mapLayout.TerrainChunkTotal, mapLayout.WorldSeed,
+                    new Vector2(mapLayout.TerrainNoiseOriginX, mapLayout.TerrainNoiseOriginZ),
+                    new Vector2(mapLayout.TerrainSceneOriginX, mapLayout.TerrainSceneOriginZ));
                 var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(mapLayout.WorldId));
                 var segments = TerrainTransferMeta
                     .EnumerateStreamSegments(cacheWorldDirectory, mapLayout.TerrainTileCount, mapLayout.TerrainResolution).ToList();

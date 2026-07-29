@@ -32,10 +32,16 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         private readonly BiomeVisualSections _visualSections;
         private readonly WorldDataDirectory _worldCacheDirectory;
 
+        // 地形をシーンへ置く原点。config.worldOffsetはノイズ窓の原点なので設置には使えない
+        // Scene origin the terrain is placed at; config.worldOffset is the noise window origin and cannot serve as a position
+        private readonly Vector2 _sceneOrigin;
+
         private GeneratedTerrainSource(
             TerrainGenerationConfig config, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
-            SplatLayerTable layerTable, TerrainLayer[] terrainLayers, WorldDataDirectory worldCacheDirectory)
+            SplatLayerTable layerTable, TerrainLayer[] terrainLayers, WorldDataDirectory worldCacheDirectory,
+            Vector2 sceneOrigin)
         {
+            _sceneOrigin = sceneOrigin;
             _config = config;
             _biomeTypes = biomeTypes;
             _visualSections = visualSections;
@@ -46,11 +52,17 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
         public static async UniTask<GeneratedTerrainSource> CreateAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout)
         {
-            // 生成時と同じ手順でConfigを組み直す。seedはworld.json由来の値をワイヤで受け取っている
-            // Rebuild the config exactly as generation did; the seed arrives over the wire from world.json
+            // 生成時と同じ手順でConfigを組み直す。seedとノイズ窓原点はworld.json由来の値をワイヤで受け取っている
+            // Rebuild the config exactly as generation did; the seed and noise window origin arrive over the wire from world.json
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = GenerationRuntimeConfigFactory.Build(selectedGeneration);
             config.seed = mapLayout.WorldSeed;
+
+            // マスタのworldOffsetはスポーン探索の中央化オフセットを含まない。そのまま使うと約2km離れた別の窓を分類することになる
+            // The master worldOffset lacks the spawn-search centering offset; using it would classify a different window ~2km away
+            config.worldOffsetX = mapLayout.TerrainNoiseOriginX;
+            config.worldOffsetZ = mapLayout.TerrainNoiseOriginZ;
+            var sceneOrigin = new Vector2(mapLayout.TerrainSceneOriginX, mapLayout.TerrainSceneOriginZ);
 
             // マスタを差し替えると解像度が動く。読み出し長がずれて全画素が1列ずつ流れるので黙って通さない
             // Swapping the master moves the resolution; the read length would shift every pixel by a column, so it never passes silently
@@ -68,16 +80,16 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             await DetailAssetResolver.ResolveAsync(visualSections.DetailConfigs);
 
             var worldCacheDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(mapLayout.WorldId));
-            return new GeneratedTerrainSource(config, biomeTypes, visualSections, layerTable, terrainLayers, worldCacheDirectory);
+            return new GeneratedTerrainSource(config, biomeTypes, visualSections, layerTable, terrainLayers, worldCacheDirectory, sceneOrigin);
         }
 
-        // タイルはワールドオフセットを原点として地形1枚ぶんずつ並ぶ
-        // Tiles are laid out one terrain apart, starting from the world offset
+        // タイルはシーン原点を起点に地形1枚ぶんずつ並ぶ。MapObjects/MapVeinsも同じ原点で配られる
+        // Tiles are laid out one terrain apart from the scene origin, the same origin MapObjects/MapVeins are served in
         public Vector3 TileWorldPosition(int tileX, int tileZ)
         {
             return new Vector3(
-                _config.worldOffsetX + tileX * _config.terrainWidth, 0f,
-                _config.worldOffsetZ + tileZ * _config.terrainLength);
+                _sceneOrigin.x + tileX * _config.terrainWidth, 0f,
+                _sceneOrigin.y + tileZ * _config.terrainLength);
         }
 
         public TerrainData CreateTerrainData(int tileX, int tileZ)

@@ -133,6 +133,16 @@ namespace Server.Protocol.PacketResponse
             // The world.json seed; clients reproduce the classification stage consistent with the transferred terrain from it (WorldId is a hash and cannot be inverted)
             [Key(11)] public int WorldSeed { get; set; }
 
+            // 生成時のノイズ窓原点。スポーン探索の中央化オフセットを含むためマスタからは組み直せない
+            // The generation-time noise window origin; it embeds the spawn-search centering offset and cannot be rebuilt from the master
+            [Key(12)] public float TerrainNoiseOriginX { get; set; }
+            [Key(13)] public float TerrainNoiseOriginZ { get; set; }
+
+            // 生成タイルのシーン原点。地形をこの位置に置くとMapObjects/MapVeinsの座標と揃う
+            // Scene origin of the generated tile; placing the terrain there aligns it with the MapObjects/MapVeins coordinates
+            [Key(14)] public float TerrainSceneOriginX { get; set; }
+            [Key(15)] public float TerrainSceneOriginZ { get; set; }
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseMapDataMessagePack() { }
 
@@ -150,6 +160,10 @@ namespace Server.Protocol.PacketResponse
                 TerrainChunkTotal = terrainMeta.TerrainChunkTotal;
                 TerrainHash = terrainHash;
                 WorldSeed = terrainMeta.WorldSeed;
+                TerrainNoiseOriginX = terrainMeta.NoiseOrigin.x;
+                TerrainNoiseOriginZ = terrainMeta.NoiseOrigin.y;
+                TerrainSceneOriginX = terrainMeta.SceneOrigin.x;
+                TerrainSceneOriginZ = terrainMeta.SceneOrigin.y;
             }
         }
     }
