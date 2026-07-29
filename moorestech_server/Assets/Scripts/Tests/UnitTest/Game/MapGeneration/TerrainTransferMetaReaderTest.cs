@@ -4,6 +4,7 @@ using System.Linq;
 using Game.MapGeneration.Export;
 using Game.MapGeneration.Transfer;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Tests.Module;
 
@@ -55,6 +56,25 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.AreEqual(seed, worldMeta.Seed, "前提: 指定したseedがworld.jsonに記録されている");
 
             Assert.AreEqual(seed, TerrainTransferMetaReader.Read(worldDataDirectory).WorldSeed);
+        }
+
+        // 非nullableなfloatはキー欠損でも例外にならず0になる。0は探索無効ワールドの正当な値なので区別が付かない
+        // A non-nullable float never throws on a missing key, it becomes 0, and 0 is a search-less world's legitimate value
+        [TestCase("terrainNoiseOriginX")]
+        [TestCase("terrainNoiseOriginZ")]
+        [TestCase("terrainSceneOriginX")]
+        [TestCase("terrainSceneOriginZ")]
+        public void world_jsonに原点キーが欠けていたら0で補わず例外を投げる(string missingKey)
+        {
+            var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
+
+            var worldMeta = JObject.Parse(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
+            Assert.IsTrue(worldMeta.Remove(missingKey), $"前提: world.jsonに'{missingKey}'が書かれている");
+            File.WriteAllText(worldDataDirectory.WorldMetaFilePath, worldMeta.ToString());
+
+            // 0で読み進めるとクライアントは別の場所のノイズ窓で分類段を回し、転送地形に無関係な海岸線と草を貼る
+            // Reading on with 0 would make clients classify another place's noise window, painting an unrelated coastline onto the transferred terrain
+            Assert.Throws<JsonSerializationException>(() => TerrainTransferMetaReader.Read(worldDataDirectory));
         }
 
         [Test]

@@ -107,38 +107,46 @@ namespace Tests.UnitTest.Game.MapGeneration
         }
 
         // スポーン地点のシーン座標をハイトマップ格子へ写し、その画素のバイオームを返す。
+        // 格子の原点は master の worldOffset ではなく、生成が確定させた SceneOrigin である。
         // Maps the spawn scene position onto the heightmap lattice and returns that pixel's biome.
+        // The lattice origin is the SceneOrigin generation settled on, not the master worldOffset.
         private static BiomeType BiomeAtSpawn(MapGenerationOutput output, Generation generation)
         {
             var vp = (VanillaGeneratorAlgorithmParam)generation.AlgorithmParam;
             int res = output.Resolution;
-            int px = Mathf.RoundToInt((output.SpawnPoint.x - vp.WorldOffsetX) / vp.TerrainWidth * (res - 1));
-            int pz = Mathf.RoundToInt((output.SpawnPoint.z - vp.WorldOffsetZ) / vp.TerrainLength * (res - 1));
+            int px = Mathf.RoundToInt((output.SpawnPoint.x - output.SceneOrigin.x) / vp.TerrainWidth * (res - 1));
+            int pz = Mathf.RoundToInt((output.SpawnPoint.z - output.SceneOrigin.y) / vp.TerrainLength * (res - 1));
             return (BiomeType)output.BiomeIndices[pz * res + px];
         }
 
         private static MapGenerationOutput AssertOutputIsInsideTile(Generation generation)
         {
             var vp = (VanillaGeneratorAlgorithmParam)generation.AlgorithmParam;
-            float maxX = vp.WorldOffsetX + vp.TerrainWidth;
-            float maxZ = vp.WorldOffsetZ + vp.TerrainLength;
-
             var output = MapGenerationPipeline.Generate(generation, Seed);
 
-            // スポーン地点は S-G = spawnTarget（グリッド中心）に構造的に一致するため、タイル中心へ落ちる。
-            // The spawn is structurally S-G = spawnTarget (grid center), so it lands at the tile center.
-            Assert.That(output.SpawnPoint.x, Is.EqualTo((vp.WorldOffsetX + maxX) * 0.5f).Within(0.01f));
-            Assert.That(output.SpawnPoint.z, Is.EqualTo((vp.WorldOffsetZ + maxZ) * 0.5f).Within(0.01f));
+            // タイルが占める範囲を決めるのは SceneOrigin。master の worldOffset を原点に使うとタイルの実位置とずれる。
+            // SceneOrigin decides the tile's extent; using the master worldOffset as origin would diverge from where the tile really is.
+            float minX = output.SceneOrigin.x;
+            float minZ = output.SceneOrigin.y;
+            float maxX = minX + vp.TerrainWidth;
+            float maxZ = minZ + vp.TerrainLength;
+
+            // スポーン地点は S-G = spawnTarget に構造的に一致する。テスト mod は overrideSpawnScenePosition=false かつ
+            // gridSizeX/Z が奇数なので spawnTarget は GridCenterWorld = タイル中心になる。
+            // The spawn is structurally S-G = spawnTarget. With overrideSpawnScenePosition=false and odd gridSizeX/Z
+            // in the test mod, spawnTarget is GridCenterWorld, which is the tile center.
+            Assert.That(output.SpawnPoint.x, Is.EqualTo((minX + maxX) * 0.5f).Within(0.01f));
+            Assert.That(output.SpawnPoint.z, Is.EqualTo((minZ + maxZ) * 0.5f).Within(0.01f));
 
             Assert.That(output.MapObjects, Is.Not.Empty);
             foreach (var mapObject in output.MapObjects)
             {
-                Assert.That(mapObject.Position.x, Is.InRange(vp.WorldOffsetX, maxX));
-                Assert.That(mapObject.Position.z, Is.InRange(vp.WorldOffsetZ, maxZ));
+                Assert.That(mapObject.Position.x, Is.InRange(minX, maxX));
+                Assert.That(mapObject.Position.z, Is.InRange(minZ, maxZ));
             }
 
-            AssertVeinsInsideTile(output.ItemVeins, vp.WorldOffsetX, maxX, vp.WorldOffsetZ, maxZ);
-            AssertVeinsInsideTile(output.FluidVeins, vp.WorldOffsetX, maxX, vp.WorldOffsetZ, maxZ);
+            AssertVeinsInsideTile(output.ItemVeins, minX, maxX, minZ, maxZ);
+            AssertVeinsInsideTile(output.FluidVeins, minX, maxX, minZ, maxZ);
             return output;
         }
 

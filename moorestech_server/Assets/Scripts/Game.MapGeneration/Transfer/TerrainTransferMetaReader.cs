@@ -37,8 +37,9 @@ namespace Game.MapGeneration.Transfer
             // seedはmapModeに関わらず実値を載せる。地形なしの合図はTerrainResolution=0が担っており二重に持たせない
             // The seed is carried verbatim regardless of map mode; TerrainResolution=0 alone signals terrain-less, so the meaning is not duplicated
             return new TerrainTransferMeta(worldMeta.MapMode, CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount, chunkTotal, worldMeta.Seed,
-                new Vector2(worldMeta.TerrainNoiseOriginX, worldMeta.TerrainNoiseOriginZ),
-                new Vector2(worldMeta.TerrainSceneOriginX, worldMeta.TerrainSceneOriginZ));
+                new TerrainOrigins(
+                    noiseOrigin: new Vector2(worldMeta.TerrainNoiseOriginX, worldMeta.TerrainNoiseOriginZ),
+                    sceneOrigin: new Vector2(worldMeta.TerrainSceneOriginX, worldMeta.TerrainSceneOriginZ)));
 
             #region Internal
 

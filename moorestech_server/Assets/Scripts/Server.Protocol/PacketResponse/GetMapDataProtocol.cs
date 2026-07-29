@@ -160,10 +160,10 @@ namespace Server.Protocol.PacketResponse
                 TerrainChunkTotal = terrainMeta.TerrainChunkTotal;
                 TerrainHash = terrainHash;
                 WorldSeed = terrainMeta.WorldSeed;
-                TerrainNoiseOriginX = terrainMeta.NoiseOrigin.x;
-                TerrainNoiseOriginZ = terrainMeta.NoiseOrigin.y;
-                TerrainSceneOriginX = terrainMeta.SceneOrigin.x;
-                TerrainSceneOriginZ = terrainMeta.SceneOrigin.y;
+                TerrainNoiseOriginX = terrainMeta.Origins.NoiseOrigin.x;
+                TerrainNoiseOriginZ = terrainMeta.Origins.NoiseOrigin.y;
+                TerrainSceneOriginX = terrainMeta.Origins.SceneOrigin.x;
+                TerrainSceneOriginZ = terrainMeta.Origins.SceneOrigin.y;
             }
         }
     }

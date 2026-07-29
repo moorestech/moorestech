@@ -16,12 +16,14 @@ namespace Game.MapGeneration.Export
 
         // 生成時に実際に使ったノイズ窓の原点。スポーン探索の中央化オフセットGを含むためマスタからは復元できない
         // The noise window origin actually used at generation; it embeds the spawn-search centering offset G and cannot be recovered from the master
-        [JsonProperty("terrainNoiseOriginX")] public float TerrainNoiseOriginX;
-        [JsonProperty("terrainNoiseOriginZ")] public float TerrainNoiseOriginZ;
+        // 非nullableなfloatはキー欠損時に無言で0になり「探索無効ワールドの正当な0」と区別が付かないのでRequiredで落とす
+        // A non-nullable float silently becomes 0 when the key is absent, indistinguishable from a search-less world's legitimate 0, so Required throws instead
+        [JsonProperty("terrainNoiseOriginX", Required = Required.Always)] public float TerrainNoiseOriginX;
+        [JsonProperty("terrainNoiseOriginZ", Required = Required.Always)] public float TerrainNoiseOriginZ;
 
         // 生成タイルがシーン上で占める原点。map.jsonの座標もこの原点基準で、地形もここへ置かれる
         // Scene-space origin of the generated tile; map.json coordinates share this origin and the terrain is placed there
-        [JsonProperty("terrainSceneOriginX")] public float TerrainSceneOriginX;
-        [JsonProperty("terrainSceneOriginZ")] public float TerrainSceneOriginZ;
+        [JsonProperty("terrainSceneOriginX", Required = Required.Always)] public float TerrainSceneOriginX;
+        [JsonProperty("terrainSceneOriginZ", Required = Required.Always)] public float TerrainSceneOriginZ;
     }
 }

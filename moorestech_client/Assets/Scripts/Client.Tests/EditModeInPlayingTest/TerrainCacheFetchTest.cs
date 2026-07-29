@@ -54,8 +54,9 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 var terrainMeta = new TerrainTransferMeta(mapLayout.MapMode, mapLayout.WorldId,
                     mapLayout.TerrainResolution, mapLayout.TerrainTileCount, mapLayout.TerrainChunkTotal, mapLayout.WorldSeed,
-                    new Vector2(mapLayout.TerrainNoiseOriginX, mapLayout.TerrainNoiseOriginZ),
-                    new Vector2(mapLayout.TerrainSceneOriginX, mapLayout.TerrainSceneOriginZ));
+                    new TerrainOrigins(
+                        noiseOrigin: new Vector2(mapLayout.TerrainNoiseOriginX, mapLayout.TerrainNoiseOriginZ),
+                        sceneOrigin: new Vector2(mapLayout.TerrainSceneOriginX, mapLayout.TerrainSceneOriginZ)));
                 var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(mapLayout.WorldId));
                 var segments = TerrainTransferMeta
                     .EnumerateStreamSegments(cacheWorldDirectory, mapLayout.TerrainTileCount, mapLayout.TerrainResolution).ToList();
