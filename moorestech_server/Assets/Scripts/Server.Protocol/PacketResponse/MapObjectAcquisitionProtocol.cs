@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using Common.Debug;
+using Core.Item.Interface;
 using Game.Context;
 using Game.Map;
 using Game.PlayerInventory.Interface;
@@ -32,12 +35,25 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<GetMapObjectProtocolProtocolMessagePack>(payload);
 
             var mapObject = ServerContext.MapObjectDatastore.Get(data.InstanceId);
+
+            // 破壊済みへの打撃は何も起こさない。デバッグフラグ読みのファイルIOもここで打ち切る
+            // A hit on a destroyed object does nothing; this also cuts off the debug flag file IO
+            if (mapObject.IsDestroyed) return null;
+
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
             var equippedItem = playerInventory.EquipmentInventory.GetSelectedItem();
 
-            // ダメージ算出とクールダウン検証はサーバが握る。弾かれた打撃は何も起こさない
-            // The server owns damage resolution and cooldown validation; a rejected hit changes nothing
-            if (!_mapObjectMiningService.TryAttack(data.PlayerId, mapObject, equippedItem, out var earnedItems)) return null;
+            // ダメージ算出とクールダウン検証はサーバが握り、デバッグ高速採掘のときだけそれを飛ばす
+            // The server owns damage and cooldown resolution; only the debug super-mine flag skips it
+            List<IItemStack> earnedItems;
+            if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.MapObjectSuperMine))
+            {
+                if (!_mapObjectMiningService.ForceDestroy(mapObject, out earnedItems)) return null;
+            }
+            else
+            {
+                if (!_mapObjectMiningService.TryAttack(data.PlayerId, mapObject, equippedItem, out earnedItems)) return null;
+            }
 
             // HP更新イベントを送信（破壊されていない場合のみ）
             if (!mapObject.IsDestroyed)

@@ -10,8 +10,7 @@
     "Game.SaveLoad",
     "Game.Context",
     "Core.ConfigJson",
-    "Core.Master",
-    "Common.Debug"
+    "Core.Master"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

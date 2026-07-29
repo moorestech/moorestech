@@ -32,6 +32,10 @@ namespace Tests.CombinedTest.Server.PacketTest
         private const int ExpectedToolDamage = 7;
         private const double ExpectedAttackSpeed = 0.2;
 
+        // hp30 / earnItemHpInterval10 のため一撃破壊では閾値20・10・0の3回を跨ぐ
+        // hp30 with earnItemHpInterval 10 means a one-hit kill crosses thresholds 20, 10 and 0
+        private const int PickUpCrossedThresholdCount = 3;
+
         [TearDown]
         public void TearDown()
         {
@@ -58,6 +62,36 @@ namespace Tests.CombinedTest.Server.PacketTest
             EquipTool(playerInventory);
             SendAttack(packet, mapObject.InstanceId);
             Assert.AreEqual(initialHp - ExpectedToolDamage, mapObject.CurrentHp);
+
+            // HP30→23はearnItemHpIntervalの閾値20に届かないため報酬アイテムは入らない
+            // HP 30->23 falls short of the earnItemHpInterval threshold 20, so no reward items arrive
+            var earnItemId = GetEarnItemId(MiningMapObjectGuid);
+            Assert.AreEqual(0, CountMainInventoryItem(playerInventory, earnItemId));
+        }
+
+        [Test]
+        public void 閾値を跨いだ回数だけ報酬アイテムが入る()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var mapObject = GetMapObject(MiningMapObjectGuid);
+            var earnItemId = GetEarnItemId(MiningMapObjectGuid);
+            EquipTool(playerInventory);
+
+            // 1打目はHP30→23で閾値20に未達なのでアイテムは入らない
+            // The first hit takes HP 30->23 and misses threshold 20, so no items arrive
+            SendAttack(packet, mapObject.InstanceId);
+            Assert.AreEqual(0, CountMainInventoryItem(playerInventory, earnItemId));
+
+            // 2打目でHP16となり閾値20を1回跨ぐ
+            // The second hit reaches HP 16 and crosses threshold 20 once
+            SendAttackAfterCooldown(packet, mapObject.InstanceId);
+            Assert.AreEqual(1, CountMainInventoryItem(playerInventory, earnItemId));
+
+            // 3打目でHP9となり閾値10も跨ぎ累計2回分になる
+            // The third hit reaches HP 9 and crosses threshold 10, totalling two rewards
+            SendAttackAfterCooldown(packet, mapObject.InstanceId);
+            Assert.AreEqual(2, CountMainInventoryItem(playerInventory, earnItemId));
         }
 
         [Test]
@@ -94,13 +128,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             SendAttack(packet, mapObject.InstanceId);
             Assert.IsTrue(mapObject.IsDestroyed);
 
-            var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(PickUpMapObjectGuid);
-            var expectedItemId = MasterHolder.ItemMaster.GetItemId(mapObjectElement.EarnItems[0].ItemGuid);
-            var mainInventory = playerInventory.MainOpenableInventory;
-            var earnedCount = Enumerable.Range(0, mainInventory.GetSlotSize()).
-                Where(slot => mainInventory.GetItem(slot).Id == expectedItemId).
-                Sum(slot => mainInventory.GetItem(slot).Count);
-            Assert.Greater(earnedCount, 0);
+            // 跨いだ閾値の回数だけ[minCount, maxCount]の抽選が行われる
+            // The [minCount, maxCount] roll happens once per crossed threshold
+            var earnItem = MasterHolder.MapObjectMaster.GetMapObjectElement(PickUpMapObjectGuid).EarnItems[0];
+            var earnedCount = CountMainInventoryItem(playerInventory, MasterHolder.ItemMaster.GetItemId(earnItem.ItemGuid));
+            Assert.GreaterOrEqual(earnedCount, earnItem.MinCount * PickUpCrossedThresholdCount);
+            Assert.LessOrEqual(earnedCount, earnItem.MaxCount * PickUpCrossedThresholdCount);
         }
 
         [Test]
@@ -133,6 +166,26 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var messagePack = new GetMapObjectProtocolProtocolMessagePack(PlayerId, instanceId);
             packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext(null));
+        }
+
+        private void SendAttackAfterCooldown(PacketResponseCreator packet, int instanceId)
+        {
+            Thread.Sleep((int)(ExpectedAttackSpeed * 1000) + 100);
+            SendAttack(packet, instanceId);
+        }
+
+        private ItemId GetEarnItemId(Guid mapObjectGuid)
+        {
+            var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectGuid);
+            return MasterHolder.ItemMaster.GetItemId(mapObjectElement.EarnItems[0].ItemGuid);
+        }
+
+        private int CountMainInventoryItem(PlayerInventoryData playerInventory, ItemId itemId)
+        {
+            var mainInventory = playerInventory.MainOpenableInventory;
+            return Enumerable.Range(0, mainInventory.GetSlotSize()).
+                Where(slot => mainInventory.GetItem(slot).Id == itemId).
+                Sum(slot => mainInventory.GetItem(slot).Count);
         }
     }
 }

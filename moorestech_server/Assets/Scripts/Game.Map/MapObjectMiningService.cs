@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Common.Debug;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Map.Interface.MapObject;
@@ -22,27 +21,35 @@ namespace Game.Map
         // Last hit time per (player, mapObject) for cooldown validation
         private readonly Dictionary<(int playerId, int instanceId), DateTime> _lastAttackTimes = new();
 
+        /// <summary>
+        ///     ツール照合もクールダウンも介さず一撃で破壊する
+        ///     Destroys in a single hit without tool matching or cooldown
+        /// </summary>
+        public bool ForceDestroy(IMapObject mapObject, out List<IItemStack> earnedItems)
+        {
+            earnedItems = null;
+
+            // 破壊済みへの打撃は何も起こさない
+            // A hit on an already destroyed object does nothing
+            if (mapObject.IsDestroyed) return false;
+
+            earnedItems = mapObject.Attack(int.MaxValue);
+            return true;
+        }
+
         public bool TryAttack(int playerId, IMapObject mapObject, IItemStack equippedItem, out List<IItemStack> earnedItems)
         {
             earnedItems = null;
 
-            // デバッグ高速採掘はダメージ最大・クールダウン無視
-            // Debug super-mine: max damage, no cooldown
-            if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.MapObjectSuperMine))
-            {
-                earnedItems = mapObject.Attack(int.MaxValue);
-                return true;
-            }
+            // 破壊済みへの打撃は何も起こさない
+            // A hit on an already destroyed object does nothing
+            if (mapObject.IsDestroyed) return false;
 
             var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObject.MapObjectGuid);
 
             // PickUpはツール不要の一撃取得
             // PickUp requires no tool and destroys in one hit
-            if (mapObjectElement.MiningType == MapObjectMasterElement.MiningTypeConst.PickUp)
-            {
-                earnedItems = mapObject.Attack(int.MaxValue);
-                return true;
-            }
+            if (mapObjectElement.MiningType == MapObjectMasterElement.MiningTypeConst.PickUp) return ForceDestroy(mapObject, out earnedItems);
 
             // 素手ではどのminingToolsにも一致しないので早期に弾く（空IDはItemMaster参照で例外になる）
             // Bare hands match no miningTools, so reject early; the empty id would throw in ItemMaster
