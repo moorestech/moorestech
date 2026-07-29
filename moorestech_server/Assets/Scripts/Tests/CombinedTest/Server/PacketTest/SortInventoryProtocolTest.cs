@@ -161,28 +161,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(lastModuleItem, machineComponent.GetItem(8));
         }
 
-        [Test]
-        public void EquipmentInventorySortTest()
-        {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            // 装備はスロット位置自体が意味を持つため、詰め直されると選択位置ごと壊れる
-            // Equipment slot positions carry meaning, so re-packing would break the selection along with them
-            var equipmentInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).EquipmentInventory;
-            var firstToolItemId = MasterHolder.ItemMaster.GetItemId(MasterHolder.ToolMaster.All[0].ToolItemGuid);
-            var secondToolItemId = MasterHolder.ItemMaster.GetItemId(MasterHolder.ToolMaster.All[1].ToolItemGuid);
-            equipmentInventory.SetItem(1, secondToolItemId, 1);
-            equipmentInventory.SetItem(2, firstToolItemId, 1);
-
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateEquipmentMessage(PlayerId)), new PacketResponseContext(null));
-
-            // 空きも並びも整理前のまま保たれる
-            // Both the empty slot and the ordering stay exactly as they were
-            Assert.AreEqual(ItemMaster.EmptyItemId, equipmentInventory.GetItem(0).Id);
-            Assert.AreEqual(secondToolItemId, equipmentInventory.GetItem(1).Id);
-            Assert.AreEqual(firstToolItemId, equipmentInventory.GetItem(2).Id);
-        }
-
         private byte[] GetPacket(InventoryIdentifierMessagePack target)
         {
             return MessagePackSerializer.Serialize(new SortInventoryProtocolMessagePack(target));

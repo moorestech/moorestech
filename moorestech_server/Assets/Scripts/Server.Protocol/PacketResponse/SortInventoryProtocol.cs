@@ -34,18 +34,11 @@ namespace Server.Protocol.PacketResponse
             var inventory = _openableInventoryResolver.Resolve(data.Target);
             if (inventory == null) return null;
 
-            // インベントリ種別ごとに整理対象外のスロットを決める
-            // Decide the slots excluded from sorting per inventory type.
-            IEnumerable<int> excludeSlots = data.Target.InventoryType switch
-            {
-                // メインインベントリはホットバーを整理対象から外す
-                // The main inventory keeps its hotbar out of sorting.
-                InventoryType.Main => PlayerInventoryConst.GetHotBarSlots(inventory.GetSlotSize()),
-                // 装備はスロット位置自体が意味を持つため全スロットを外す
-                // Equipment slot positions carry meaning, so every slot is excluded.
-                InventoryType.Equipment => Enumerable.Range(0, inventory.GetSlotSize()),
-                _ => Array.Empty<int>(),
-            };
+            // メインインベントリのときはホットバーを整理対象から除外する
+            // Exclude the hotbar from sorting when the target is the main inventory.
+            IEnumerable<int> excludeSlots = data.Target.InventoryType == InventoryType.Main
+                ? PlayerInventoryConst.GetHotBarSlots(inventory.GetSlotSize())
+                : Array.Empty<int>();
 
             // インベントリ自身が除外スロットを宣言している場合（機械のモジュールスロット等）は結合する
             // Union slots declared by the inventory itself (e.g. machine module slots).

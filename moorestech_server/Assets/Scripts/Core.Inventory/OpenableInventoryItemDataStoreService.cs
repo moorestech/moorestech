@@ -154,11 +154,12 @@ namespace Core.Inventory
         /// 受入可否と1スロット上限の判定先。制限が無いインベントリはUnrestrictedItemAcceptance.Instanceを渡します。
         /// Decides acceptance and the per-slot cap; unrestricted inventories pass UnrestrictedItemAcceptance.Instance.
         /// </summary>
-        public readonly IItemAcceptanceInventory ItemAcceptance;
+        public IItemAcceptanceInventory ItemAcceptance => _itemAcceptance;
+        private readonly IItemAcceptanceInventory _itemAcceptance;
 
         public OpenableInventoryItemDataStoreServiceOption(IItemAcceptanceInventory itemAcceptance)
         {
-            ItemAcceptance = itemAcceptance;
+            _itemAcceptance = itemAcceptance;
         }
     }
 }
