@@ -70,6 +70,9 @@ namespace Mooresmaster.LocalizationCsv
             var field = new StringBuilder();
             var inQuotes = false;
             var closedQuote = false;
+            // 空値でも明示quote構文があればレコードとして保持する
+            // Preserve records with explicit quote syntax even when their value is empty
+            var recordHasSyntax = false;
 
             // 文字単位の状態遷移で埋め込み改行とエスケープquoteを識別する
             // Use character-level state transitions for embedded newlines and escaped quotes
@@ -119,6 +122,7 @@ namespace Mooresmaster.LocalizationCsv
 
                 if (character == '"')
                 {
+                    recordHasSyntax = true;
                     if (field.Length != 0)
                     {
                         throw new LocalizationCsvException("Quote must begin at the start of a field");
@@ -174,12 +178,13 @@ namespace Mooresmaster.LocalizationCsv
             void AddRecord()
             {
                 AddField();
-                if (fields.Count > 1 || fields[0].Length > 0)
+                if (fields.Count > 1 || fields[0].Length > 0 || recordHasSyntax)
                 {
                     records.Add(fields);
                 }
 
                 fields = new List<string>();
+                recordHasSyntax = false;
             }
 
             #endregion

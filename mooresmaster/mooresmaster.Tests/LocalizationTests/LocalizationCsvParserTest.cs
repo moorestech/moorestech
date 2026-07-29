@@ -147,4 +147,29 @@ public class LocalizationCsvParserTest
         var record = Assert.Single(records);
         Assert.Equal(new[] { "a", "b,b", "" }, record);
     }
+
+    [Fact]
+    public void ParseRecordsは空の物理行を無視する()
+    {
+        var records = LocalizationCsvParser.ParseRecords("\n");
+
+        Assert.Empty(records);
+    }
+
+    [Fact]
+    public void ParseRecordsは明示的なquotedEmptyRecordを保持する()
+    {
+        var records = LocalizationCsvParser.ParseRecords("\"\"\n");
+
+        var record = Assert.Single(records);
+        Assert.Equal(new[] { "" }, record);
+    }
+
+    [Fact]
+    public void 明示的なquotedEmptyRecordの列数不一致は例外()
+    {
+        var csv = "key,Source,english\n\"\"\n";
+
+        Assert.Throws<LocalizationCsvException>(() => LocalizationCsvParser.Parse(csv));
+    }
 }
