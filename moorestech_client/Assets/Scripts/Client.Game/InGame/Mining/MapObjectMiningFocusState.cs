@@ -58,10 +58,9 @@ namespace Client.Game.InGame.Mining
         {
             // 今持っているアイテムがマイニングツールとして登録されているかどうかをチェック
             // Check if the item you are currently holding is registered as a mining tool
-            var hotBarInventoryIndex = context.LocalPlayerInventory.GetHotBarInventorySlot(context.HotBarView.SelectIndex);
-            var inventoryItem = context.LocalPlayerInventory[hotBarInventoryIndex];
-                
-            
+            var inventoryItem = context.LocalPlayerEquipment.SelectedItem;
+
+
             // 何も選択していない場合はフォーカスを維持
             // If nothing is selected, maintain focus
             var miningTools = ((MiningMiningParam)masterElement.MiningParam).MiningTools;

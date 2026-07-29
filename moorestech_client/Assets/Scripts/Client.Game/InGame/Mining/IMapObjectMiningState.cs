@@ -1,8 +1,5 @@
 using Client.Game.InGame.Map.MapObject;
-using Client.Game.InGame.Player;
-using Client.Game.InGame.UI.Inventory;
-using Client.Game.InGame.UI.Inventory.Main;
-using Cysharp.Threading.Tasks;
+using Client.Game.InGame.UI.Inventory.Equipment;
 
 namespace Client.Game.InGame.Mining
 {
@@ -10,19 +7,17 @@ namespace Client.Game.InGame.Mining
     {
         IMapObjectMiningState GetNextUpdate(MapObjectMiningControllerContext context, float dt);
     }
-    
+
     public class MapObjectMiningControllerContext
     {
         public MapObjectGameObject CurrentFocusMapObjectGameObject { get; private set; }
-        
-        
-        public readonly HotBarView HotBarView;
-        public readonly ILocalPlayerInventory LocalPlayerInventory;
-        
-        public MapObjectMiningControllerContext(HotBarView hotBarView, ILocalPlayerInventory localPlayerInventory)
+
+
+        public readonly LocalPlayerEquipment LocalPlayerEquipment;
+
+        public MapObjectMiningControllerContext(LocalPlayerEquipment localPlayerEquipment)
         {
-            HotBarView = hotBarView;
-            LocalPlayerInventory = localPlayerInventory;
+            LocalPlayerEquipment = localPlayerEquipment;
         }
         
         
