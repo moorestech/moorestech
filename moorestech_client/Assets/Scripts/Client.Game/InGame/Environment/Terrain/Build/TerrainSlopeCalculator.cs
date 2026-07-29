@@ -25,28 +25,36 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             var flatHeights = new NativeArray<float>(pixelCount, Allocator.TempJob);
             var flatSlopes = new NativeArray<float>(pixelCount, Allocator.TempJob);
 
-            for (var z = 0; z < resolution; z++)
-            for (var x = 0; x < resolution; x++)
-                flatHeights[z * resolution + x] = heights[z, x];
-
-            new SlopeComputeJob
+            // 途中で例外が出ても必ず解放できる状態を保つ（Step2のSplatmapRuntimeGeneratorと同じ方針）
+            // Keep everything releasable even if an exception escapes midway, as Step 2's SplatmapRuntimeGenerator does
+            try
             {
-                resolution = resolution,
-                terrainWidth = config.terrainWidth,
-                terrainHeight = config.terrainHeight,
-                terrainLength = config.terrainLength,
-                heights = flatHeights,
-                slopes = flatSlopes,
-            }.Schedule(pixelCount, JobBatchSize).Complete();
+                for (var z = 0; z < resolution; z++)
+                for (var x = 0; x < resolution; x++)
+                    flatHeights[z * resolution + x] = heights[z, x];
 
-            var slopes = new float[resolution, resolution];
-            for (var z = 0; z < resolution; z++)
-            for (var x = 0; x < resolution; x++)
-                slopes[z, x] = flatSlopes[z * resolution + x];
+                new SlopeComputeJob
+                {
+                    resolution = resolution,
+                    terrainWidth = config.terrainWidth,
+                    terrainHeight = config.terrainHeight,
+                    terrainLength = config.terrainLength,
+                    heights = flatHeights,
+                    slopes = flatSlopes,
+                }.Schedule(pixelCount, JobBatchSize).Complete();
 
-            flatSlopes.Dispose();
-            flatHeights.Dispose();
-            return slopes;
+                var slopes = new float[resolution, resolution];
+                for (var z = 0; z < resolution; z++)
+                for (var x = 0; x < resolution; x++)
+                    slopes[z, x] = flatSlopes[z * resolution + x];
+
+                return slopes;
+            }
+            finally
+            {
+                flatSlopes.Dispose();
+                flatHeights.Dispose();
+            }
         }
     }
 }

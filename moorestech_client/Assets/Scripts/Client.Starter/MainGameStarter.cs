@@ -90,6 +90,10 @@ namespace Client.Starter
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
         [SerializeField] private MapVeinObjectDatastore mapVeinObjectDatastore;
         [SerializeField] private EnvironmentRoot environmentRoot;
+
+        // 地形の実行時構築が StartGame より前にマウント先を要るため、DI登録とは別に読み取りだけ公開する
+        // Runtime terrain construction needs the mount point before StartGame, so expose read-only access alongside the DI registration
+        public EnvironmentRoot EnvironmentRoot => environmentRoot;
         
         [SerializeField] private HotBarView hotBarView;
         [SerializeField] private MapObjectMiningController mapObjectMiningController;
