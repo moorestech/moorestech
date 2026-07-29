@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
@@ -138,6 +139,40 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(slotCount, loadedEquipment.GetSlotSize());
             Assert.AreEqual(OverflowCount, CountInMainInventory(loadedInventory, NonToolItemId()));
             Assert.AreEqual(0, CountInMainInventory(loadedInventory, ToolItemId()));
+        }
+
+        [Test]
+        public void メインが満杯のセーブでも装備あふれ分だけ枠が伸びてアイテムが残る()
+        {
+            var saveStore = CreateInventoryDataStore();
+            var savedMainInventory = saveStore.GetInventoryData(PlayerId).MainOpenableInventory;
+
+            // 全スロットを最大スタックで埋め、あふれ装備の行き先が1枠も無いセーブを作る
+            // Fill every slot to max stack so the save leaves no room at all for the overflowing equipment
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ToolItemId());
+            var mainSlotCount = savedMainInventory.GetSlotSize();
+            for (var slot = 0; slot < mainSlotCount; slot++) savedMainInventory.SetItem(slot, ToolItemId(), maxStack);
+
+            var saveJsonObjects = saveStore.GetSaveJsonObject();
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            var savedEquipmentItems = new List<ItemStackSaveJsonObject>();
+            for (var slot = 0; slot < MasterHolder.ToolMaster.EquipmentSlotCount; slot++)
+                savedEquipmentItems.Add(new ItemStackSaveJsonObject(itemStackFactory.Create(ToolItemId(), 1)));
+            const int OverflowCount = 2;
+            for (var overflow = 0; overflow < OverflowCount; overflow++)
+                savedEquipmentItems.Add(new ItemStackSaveJsonObject(itemStackFactory.Create(NonToolItemId(), 1)));
+            saveJsonObjects[0].EquipmentInventoryItems = savedEquipmentItems;
+
+            var loadStore = CreateInventoryDataStore();
+            loadStore.LoadPlayerInventory(saveJsonObjects);
+            var loadedInventory = loadStore.GetInventoryData(PlayerId);
+
+            // 満杯のメインはあふれ分だけ末尾へ伸び、退避先が確保される
+            // The full main inventory grows by exactly the overflow count so the fallback has room
+            var loadedMainInventory = loadedInventory.MainOpenableInventory;
+            Assert.AreEqual(mainSlotCount + OverflowCount, loadedMainInventory.GetSlotSize());
+            Assert.AreEqual(OverflowCount, CountInMainInventory(loadedInventory, NonToolItemId()));
+            Assert.AreEqual(mainSlotCount * maxStack, CountInMainInventory(loadedInventory, ToolItemId()));
         }
 
         private int CountInMainInventory(PlayerInventoryData playerInventoryData, ItemId itemId)

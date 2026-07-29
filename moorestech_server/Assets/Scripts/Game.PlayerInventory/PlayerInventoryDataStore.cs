@@ -4,6 +4,7 @@ using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.PlayerInventory.ItemManaged;
 using UniRx;
+using UnityEngine;
 
 namespace Game.PlayerInventory
 {
@@ -90,7 +91,15 @@ namespace Game.PlayerInventory
                 // Expand slots until both the saved items and the equipment overflow fit so no item is ever lost
                 var slotCount = System.Math.Max(_slotLevelDataStore.CurrentSlotCount, mainItems.Count + overflowEquipmentItems.Count);
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, slotCount, mainItems);
-                main.InsertItem(overflowEquipmentItems);
+                var notInsertedItems = main.InsertItem(overflowEquipmentItems);
+
+                // 枠は算術上必ず足りるため、入り切らない分が出た時点でスロット数計算のバグを意味する
+                // The slot math always leaves room, so any leftover means the slot count calculation is broken
+                foreach (var notInserted in notInsertedItems)
+                {
+                    if (notInserted.Count == 0) continue;
+                    Debug.LogError($"装備あふれ分をメインインベントリへ退避できませんでした playerId:{playerId} itemId:{notInserted.Id} count:{notInserted.Count}");
+                }
 
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, grabItem);
 
