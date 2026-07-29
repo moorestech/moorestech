@@ -21,6 +21,10 @@ namespace Client.Game.InGame.Environment.Terrain
         private const string TemplateTerrainDataAddress = "Vanilla/Environment/TemplateTerrainData";
         private const string TerrainObjectName = "Terrain";
 
+        // URPのdefaultTerrainMaterialはエディタ専用でビルドではnullを返すため、プロジェクト所有のマテリアルをアドレスから引く
+        // URP's defaultTerrainMaterial is editor-only and returns null in builds, so a project-owned material is resolved by address
+        private const string TerrainMaterialAddress = "Vanilla/Environment/Terrain/TerrainLitMaterial";
+
         // Environment.prefabのTerrainが持っていたオーサリング配置の移設先。prefab側はP3 Task 6で削除されるため、
         // 以後この定数がTemplateTerrainDataの配置を記録する唯一の場所になる
         // sizeは2048角なのに位置は-1000で、中心合わせでは24mずれてベイク済みmapObject座標が全部崩れる
@@ -31,10 +35,17 @@ namespace Client.Game.InGame.Environment.Terrain
 
         public static async UniTask BuildAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot)
         {
+            // マテリアルはモードに依らず全タイル共通なので、分岐の前に1度だけ解決する
+            // The material is shared by every tile regardless of mode, so resolve it once before branching
+            var terrainMaterial = await AddressableLoader.LoadAsyncDefault<Material>(TerrainMaterialAddress);
+            if (terrainMaterial == null)
+                throw new InvalidOperationException(
+                    $"[TerrainRuntimeBuilder] Terrain material '{TerrainMaterialAddress}' could not be loaded from Addressables.");
+
             if (mapLayout.MapMode == WorldProvisioner.TemplateMapMode)
-                await BuildTemplateTerrainAsync(environmentRoot);
+                await BuildTemplateTerrainAsync(environmentRoot, terrainMaterial);
             else if (mapLayout.MapMode == WorldProvisioner.GeneratedMapMode)
-                await BuildGeneratedTerrainAsync(mapLayout, environmentRoot);
+                await BuildGeneratedTerrainAsync(mapLayout, environmentRoot, terrainMaterial);
             else
                 // 未知のモードをgenerated扱いすると、地形の無いワールドでキャッシュ読み出しが不可解に落ちる
                 // Treating an unknown mode as generated would fail obscurely in the cache read of a terrain-less world
@@ -47,18 +58,18 @@ namespace Client.Game.InGame.Environment.Terrain
 
         // templateは地形バイナリを持たないワールド。見た目は従来どおりオーサリング済みTerrainDataのまま
         // A template world owns no terrain binary; its look stays exactly the authored TerrainData as before
-        private static async UniTask BuildTemplateTerrainAsync(Transform environmentRoot)
+        private static async UniTask BuildTemplateTerrainAsync(Transform environmentRoot, Material terrainMaterial)
         {
             var templateTerrainData = await AddressableLoader.LoadAsyncDefault<TerrainData>(TemplateTerrainDataAddress);
             if (templateTerrainData == null)
                 throw new InvalidOperationException(
                     $"[TerrainRuntimeBuilder] Template TerrainData '{TemplateTerrainDataAddress}' could not be loaded from Addressables.");
 
-            TerrainObjectFactory.Create(environmentRoot, TerrainObjectName, TemplateTerrainOrigin, templateTerrainData);
+            TerrainObjectFactory.Create(environmentRoot, TerrainObjectName, TemplateTerrainOrigin, templateTerrainData, terrainMaterial);
         }
 
         private static async UniTask BuildGeneratedTerrainAsync(
-            GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot)
+            GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot, Material terrainMaterial)
         {
             var terrainSource = await GeneratedTerrainSource.CreateAsync(mapLayout);
             var terrainsByTileCoordinate = new Dictionary<Vector2Int, UnityEngine.Terrain>();
@@ -70,7 +81,7 @@ namespace Client.Game.InGame.Environment.Terrain
                 var terrainData = terrainSource.CreateTerrainData(tile.TileX, tile.TileZ);
                 var terrain = TerrainObjectFactory.Create(
                     environmentRoot, $"{TerrainObjectName}_{tile.TileX}_{tile.TileZ}",
-                    terrainSource.TileWorldPosition(tile.TileX, tile.TileZ), terrainData);
+                    terrainSource.TileWorldPosition(tile.TileX, tile.TileZ), terrainData, terrainMaterial);
 
                 terrainsByTileCoordinate[new Vector2Int(tile.TileX, tile.TileZ)] = terrain;
             }

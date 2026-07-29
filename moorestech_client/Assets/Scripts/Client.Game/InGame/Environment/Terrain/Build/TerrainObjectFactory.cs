@@ -1,7 +1,6 @@
 using Client.Common;
 using Client.Game.InGame.BlockSystem;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Client.Game.InGame.Environment.Terrain.Build
 {
@@ -19,7 +18,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         // Multiplier on the stored density: rendered instances/m² = stored density x this. 0.3 targets the reference rendered=1.16/m²
         private const float DetailObjectDensity = 0.3f;
 
-        public static UnityEngine.Terrain Create(Transform parent, string terrainObjectName, Vector3 worldPosition, TerrainData terrainData)
+        public static UnityEngine.Terrain Create(
+            Transform parent, string terrainObjectName, Vector3 worldPosition, TerrainData terrainData, Material terrainMaterial)
         {
             // 設置プレビュー・露頭のレイキャストはGroundレイヤーとGroundGameObjectの両方で地面を判定する
             // Placement preview and outcrop raycasts identify ground by both the Ground layer and GroundGameObject
@@ -34,9 +34,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             terrain.terrainData = terrainData;
             terrainCollider.terrainData = terrainData;
 
-            // 未設定だと地形がピンクになる。URPのdefaultTerrainMaterialはEnvironment.prefabが指していたTerrainLitと同一実体
-            // Leaving this unset renders the terrain pink; URP's defaultTerrainMaterial is the very TerrainLit Environment.prefab referenced
-            terrain.materialTemplate = GraphicsSettings.currentRenderPipeline.defaultTerrainMaterial;
+            // 未設定だと地形がピンクになる。URPのdefaultTerrainMaterialはエディタ専用(ビルドでnull)なので使えず、呼び出し側がアドレスから解決したものを受け取る
+            // Leaving this unset renders the terrain pink; URP's defaultTerrainMaterial is editor-only (null in builds), so the caller supplies one resolved from an address
+            terrain.materialTemplate = terrainMaterial;
 
             terrain.detailObjectDistance = DetailObjectDistance;
             terrain.detailObjectDensity = DetailObjectDensity;

@@ -33,13 +33,15 @@ namespace Client.Tests.UnitTest.Terrain
         private static readonly BiomeType[] BiomeTypes = { BiomeType.Grassland, BiomeType.Forest };
 
         [Test]
-        public void SkipsBiomesWithoutEntriesAndKeepsPrototypesAndMapsAligned()
+        public void KeepsPrototypesAndMapsAlignedAcrossBiomes()
         {
+            // 空バイオームのスキップ(TerrainDetailBuilder.csのentries.Length==0)自体はここから観測できない。
+            // continueを消してもGenerateForBiomeが空リストを返すだけで出力が完全に一致するため、名前も範囲に合わせてある
+            // The empty-biome skip is not observable here: dropping the continue only makes GenerateForBiome return
+            // empty lists and the output stays identical, so the name is scoped to what this actually pins
             var (prototypes, maps) = TerrainDetailBuilder.Build(
                 CreateConfig(), BiomeTypes, CreateVisualSections(), CreateHeights(), CreateBiomeIndices(), null, null);
 
-            // エントリ2件を持つのは1バイオームだけ。空バイオームが混ざると数が合わなくなる
-            // Only one biome owns its two entries; a leaked empty biome would break the count
             Assert.That(prototypes.Count, Is.EqualTo(2));
             Assert.That(maps.Count, Is.EqualTo(prototypes.Count), "prototypeとmapは同数");
 

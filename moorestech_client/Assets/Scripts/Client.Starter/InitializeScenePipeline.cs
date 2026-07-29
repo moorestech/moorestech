@@ -170,7 +170,12 @@ namespace Client.Starter
                 {
                     Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
                     SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+                    return;
                 }
+
+                // 初期化は完了済み。購読者を同期呼び出しするので、その例外までメインメニュー送りにしないようtryの外で発火する
+                // Initialization is already complete; firing outside the try keeps a subscriber's exception from bouncing to the main menu
+                GameInitializedEvent.FireGameInitialized();
             }
 
             async UniTask RunFinalizeInitializationAsync()
@@ -196,10 +201,9 @@ namespace Client.Starter
                 // Wait until every target applies its dispatched initial events; normally instant per the ordering contract
                 await WaitAllInitialEventApplyAsync(resolver);
 
-                // ログイン状態復元→初期化完了通知
-                // Restore login state, then announce initialization
+                // ログイン状態復元。初期化完了の通知は呼び出し元がtryの外で行う
+                // Restore login state; the caller announces initialization outside the try
                 starter.RestoreLoginState(serverResult.HandshakeResponse);
-                GameInitializedEvent.FireGameInitialized();
             }
 
             async UniTask WaitAllInitialEventApplyAsync(IObjectResolver resolver)
