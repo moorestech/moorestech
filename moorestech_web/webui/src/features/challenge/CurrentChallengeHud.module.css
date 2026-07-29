@@ -11,24 +11,6 @@
   text-shadow: var(--challenge-hud-text-shadow);
 }
 
-/* メニュー見出しと左右ペインを避けて上中央へ退避する */
-/* Move to the upper center to avoid menu headings and side panes */
-.menuHud {
-  top: var(--challenge-hud-menu-top);
-  left: 50%;
-  width: var(--challenge-hud-menu-width);
-  transform: translateX(-50%);
-}
-
-.menuHud .objectives {
-  gap: var(--challenge-hud-menu-objective-gap);
-}
-
-.menuHud .objective {
-  font-size: var(--challenge-hud-menu-objective-font-size);
-  line-height: var(--challenge-hud-menu-objective-line-height);
-}
-
 /* 控えめな見出しから共有罫線へ固定間隔でつなぐ */
 /* Connect the subdued label to the shared rule with a fixed gap */
 .label {

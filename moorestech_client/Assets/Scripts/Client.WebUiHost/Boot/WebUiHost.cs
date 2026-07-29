@@ -59,7 +59,7 @@ namespace Client.WebUiHost.Boot
                     // Validate the entire artifact before opening Kestrel so web mode never becomes available on failure
                     if (!WebUiArtifactValidator.TryValidate(WebUiPaths.ProductionDistRoot, out var failure))
                     {
-                        Debug.LogError($"[WebUiHost] production artifact rejected: {failure}; falling back to uGUI");
+                        Debug.LogError($"[WebUiHost] production artifact rejected: {failure}; Web UI remains unavailable");
                         return false;
                     }
                     staticFiles = new WebUiStaticFileEndpoint(WebUiPaths.ProductionDistRoot);

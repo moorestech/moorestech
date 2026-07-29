@@ -1,6 +1,6 @@
 .panel {
-  position: fixed;
-  inset: 0;
+  position: absolute;
+  inset: var(--menu-upper-safe-area) 0 0;
   z-index: var(--z-overlay-panel);
   background: var(--mantine-color-dark-8);
   display: flex;

@@ -4,11 +4,7 @@ import { useI18n } from "@/shared/i18n";
 import { FadeRule } from "@/shared/ui";
 import styles from "./CurrentChallengeHud.module.css";
 
-type CurrentChallengeHudProps = {
-  menuScreen: boolean;
-};
-
-export default function CurrentChallengeHud({ menuScreen }: CurrentChallengeHudProps) {
+export default function CurrentChallengeHud() {
   const current = useTopic(Topics.challengeCurrent);
   // 会話中は演出を優先してHUDを隠す
   // Withdraw the HUD during blocking skits so the dialogue presentation owns the screen
@@ -22,7 +18,7 @@ export default function CurrentChallengeHud({ menuScreen }: CurrentChallengeHudP
   const label = t("現在のチャレンジ");
   return (
     <section
-      className={menuScreen ? `${styles.hud} ${styles.menuHud}` : styles.hud}
+      className={styles.hud}
       aria-label={label}
       data-testid="challenge-hud"
       {...tutorialAnchor(TutorialAnchorIds.challengeCurrentHud)}

@@ -3,7 +3,7 @@ export const captureViewport = { width: 1280, height: 720 } as const;
 export const expectedObjectives = {
   challengeJapanese: ["石を採掘する"],
   challengeMultiple: ["石を採掘する", "石器をクラフトする", "木を伐採して拠点へ運ぶ"],
-  challengeLong: ["VeryLongUnbrokenChallengeObjectiveTextThatMustWrapInsideTheHudWithoutOverflowing"],
+  challengeLong: ["VeryLongUnbrokenChallengeObjectiveTextThatMustWrapInsideTheHudWithoutOverflowingAndStillRemainReadableAcrossEveryMenuScreenWithoutChangingTheChallengeHudLayout"],
   challengeMultipleLong: [
     "地下深くにある非常に長い名前の鉱床を見つけて必要な石を採掘する",
     "遠方の森林から建築に必要な木材を伐採して拠点まで運搬する",

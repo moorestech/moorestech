@@ -1,15 +1,49 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import { expectCenteredHorizontally, expectNoHorizontalOverflow } from "./layoutAssertions";
 
-export async function expectCompactMenuChallengeHud(page: Page) {
+type ChallengeHudPresentation = {
+  html: string;
+  className: string;
+  childCount: number;
+  ariaLabel: string | null;
+  rect: { x: number; y: number; width: number; height: number };
+  label: { fontSize: string; lineHeight: string; letterSpacing: string };
+  objectives: Array<{ fontSize: string; lineHeight: string; gap: string }>;
+};
+
+// 画面間比較用にHUD描画契約を一括取得
+// Read the HUD presentation contract for cross-screen comparison
+export async function readChallengeHudPresentation(page: Page): Promise<ChallengeHudPresentation> {
   const hud = page.getByTestId("challenge-hud");
-  const objectives = page.getByTestId("challenge-objective");
   await expect(hud).toBeVisible();
-  await expectCenteredHorizontally(hud, page.locator("body"));
-  await expect(objectives).toHaveCount(3);
-  await expectNoHorizontalOverflow(objectives);
-  await expect(objectives.first()).toHaveCSS("font-size", "14px");
-  await expect(objectives.first()).toHaveCSS("line-height", "20px");
+  return hud.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const label = element.firstElementChild!;
+    const objectives = Array.from(element.querySelectorAll<HTMLElement>('[data-testid="challenge-objective"]'));
+    const objectiveContainer = objectives[0]?.parentElement!;
+    return {
+      html: element.outerHTML,
+      className: element.className,
+      childCount: element.childElementCount,
+      ariaLabel: element.getAttribute("aria-label"),
+      rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+      label: {
+        fontSize: getComputedStyle(label).fontSize,
+        lineHeight: getComputedStyle(label).lineHeight,
+        letterSpacing: getComputedStyle(label).letterSpacing,
+      },
+      objectives: objectives.map((objective) => ({
+        fontSize: getComputedStyle(objective).fontSize,
+        lineHeight: getComputedStyle(objective).lineHeight,
+        gap: getComputedStyle(objectiveContainer).gap,
+      })),
+    };
+  });
+}
+
+// UIStateが変わってもチャレンジHUDのDOMと文字組は完全一致させる
+// Keep challenge HUD DOM and typography identical across UIState changes
+export async function expectChallengeHudPresentation(page: Page, expected: ChallengeHudPresentation) {
+  await expect(readChallengeHudPresentation(page)).resolves.toEqual(expected);
 }
 
 // 各目標が自身の行幅に収まり複数行へ折り返すことを検証する

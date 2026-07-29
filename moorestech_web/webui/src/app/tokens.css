@@ -37,25 +37,20 @@
   --recipe-action-background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
   /* メニュー内容を常駐HUDの下からホットバー手前までに収める */
   /* Keep menu content between the resident HUD and the hotbar */
-  --menu-upper-safe-area: 115px;
+  --menu-upper-safe-area: 128px;
   --menu-content-height: 525px;
-  /* 常駐チャレンジHUDの配置と文字階層は世界背景に左右されない固定長で揃える */
-  /* Keep the resident challenge HUD's placement and type hierarchy at fixed lengths independent of the world backdrop */
-  --challenge-hud-left: 24px;
+  /* 常駐チャレンジHUDは全画面で上中央の安全帯へ固定し、文字組を変えない */
+  /* Keep the resident challenge HUD in one upper-center safe area with unchanged typography on every screen */
+  --challenge-hud-left: 320px;
   --challenge-hud-top: 24px;
-  --challenge-hud-width: 288px;
-  --challenge-hud-menu-top: 8px;
-  --challenge-hud-menu-width: 640px;
-  --challenge-hud-menu-objective-font-size: 14px;
-  --challenge-hud-menu-objective-gap: 2px;
-  --challenge-hud-menu-objective-line-height: 20px;
+  --challenge-hud-width: 640px;
   --challenge-hud-label-font-size: 12px;
-  --challenge-hud-objective-font-size: 17px;
+  --challenge-hud-objective-font-size: 14px;
   --challenge-hud-label-rule-gap: 5px;
   --challenge-hud-rule-list-gap: 8px;
-  --challenge-hud-objective-gap: 5px;
+  --challenge-hud-objective-gap: 2px;
   --challenge-hud-letter-spacing: 1px;
-  --challenge-hud-objective-line-height: 25px;
+  --challenge-hud-objective-line-height: 20px;
   --challenge-hud-text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
   /* 配置モード情報を右上のクラフト枠へ固定長で配置する */
   /* Place placement-mode information in the top-right craft frame with fixed lengths */

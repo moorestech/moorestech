@@ -1,5 +1,5 @@
-/* 配置情報を右上へ重ね、左上のチャレンジとゲーム入力を維持する */
-/* Overlay placement information at the top-right while preserving challenges and game input */
+/* 配置情報を右上へ重ね、上中央のチャレンジとゲーム入力を維持する */
+/* Overlay placement information at the top-right while preserving upper-center challenges and game input */
 .placementHud {
   position: absolute;
   top: var(--operation-hud-top);
