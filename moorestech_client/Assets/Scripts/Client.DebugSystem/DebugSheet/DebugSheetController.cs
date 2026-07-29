@@ -83,7 +83,6 @@ namespace Client.DebugSystem
             rootPage.AddBoolWithSave(false, TrainUnitDebugOverlayLabel, TrainUnitDebugOverlayKey);
             rootPage.AddBoolWithSave(false, PlacePreviewKeepLabel, PlacePreviewKeepKey);
             rootPage.AddBoolWithSave(false, FreeBlockPlacementLabel, DebugParameterKeys.FreeBlockPlacement);
-            rootPage.AddBoolWithSave(true, WebUiCefActiveLabel, WebUiCefActiveKey);
         }
         public static void CloseDebugSheet()
         {
