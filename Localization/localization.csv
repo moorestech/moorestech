@@ -1,0 +1,7 @@
+key,Source,english,japanese
+ui.mainMenu.playLocally,Play locally,Play locally,ローカルでプレイ
+ui.mainMenu.exitGame,Exit Game,Exit Game,ゲームを終了
+ui.game.howToControl,How To Controll,How To Controll,"WASD : 移動\nTab : インベントリ\nG : 破壊モード\n1～9 : ブロック設置\nR : 設置時回転"
+ui.game.saveGame,Save this game,Save this game,ゲームをセーブする
+ui.game.saveAndBackToMainMenu,Save and Back to MainMenu,Save and Back to MainMenu,セーブしてメインメニューに戻る
+ui.game.disconnectedFromServer,Disconnected from server,Disconnected from server,"サーバーから切断されました！\nログデータを送っていただけると開発の助けになります。\n公式Discordにもフィードバックをよろしくお願いします！"
