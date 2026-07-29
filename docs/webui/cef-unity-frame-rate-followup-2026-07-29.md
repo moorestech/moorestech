@@ -10,6 +10,8 @@
 
 初回報告の主結論（cef-unity wrapper の待機・キュー・pump・転送設計が主因）は維持。今回の続報で次が新たに**確定**した。
 
+0. **最重要**: 計装版serverの実測で、**単発の全画面同期Metalコピー（`waitUntilCompleted`）が121〜157msに達してserverメインスレッドを凍結し、「タイマー崩壊→BeginFrame滞留→burst drain→paint低下→rAF 11回/秒」の連鎖が起きる**ことを最小構成ですら定常的に観測した（§2.8）。dirty rectは転送面積の2〜4%しかなく、コピーの96〜98%が無駄である
+
 1. **busy-wait は健常時でも毎フレーム平均2〜3ms・最大7.7msをUnityメインスレッドspinに消費している**（実測、`_enableLog=1` の内蔵カウンタで取得）
 2. **BeginFrame の過剰供給は実在する**。CEF内 rAF が24%の秒で62回/秒を超え、最大80回/秒（vsyncロックの通常ブラウザではあり得ない値。+3/+6ms flush が余剰フレームを実駆動している実証）
 3. **`64f9a5f`→main の101コミットで、7問題機構のうち修正されたのは damage-streak 発振（`a08f585`）の1件のみ**。他6機構（busy-wait・IPC burst・+3/+6ms flush・1000Hz pump・全画面Metalコピー・リソース寿命）はロジック完全無変更。ピン更新だけでは直らない
@@ -101,7 +103,30 @@ BeginFrame→paint latency (n=60): avg=6.141ms median=3.169ms min=0.097ms max=43
 - **ゾンビ: +0/サイクル**。ゾンビ蓄積は100% cef-unity起因と確定
 - **ポート: CEF無しでも平均+9/サイクル増加**（Unity Editor自体のPlay/Stopに伴う挙動）。CEFあり時の+12.5との差分≒+3.5/サイクルがcef帰属候補で、うち+1はコード確定の `g_receive_port`。ポート数の外部観測はノイズが大きく、+1リークの直接可視化には root権限の `lsmp` 等による port種別の内訳が必要
 
-### 2.8 FD継承の実証
+### 2.8 計装版serverによるSTATS計測（§8計測項目3〜7に対応）
+
+`64f9a5f`ベースに毎秒集計ログ（STATS行）だけを追加した計装版serverをビルドし（挙動不変を差分レビューで確認）、PackageCacheの`cef-unity-server.app`のみ差し替えて計測した（dylibは変更不要のためEditor再起動も不要。ビルド用worktreeはscratchpadに作成し、cef-unity本体リポジトリは無変更）。
+
+定常状態（1280x720、連続アニメーション）は秒単位で2レジームが交互に現れる:
+
+| 指標 | 良い秒 | 悪い秒 |
+|---|---|---|
+| ticks（1msタイマー実発火数/秒） | 970〜1060 | **214〜705（タイマー崩壊）** |
+| pump合計/単発max | 70〜100ms / 3〜7ms | 260〜390ms / **163〜214ms** |
+| maxdrain（1 tickのdrain数） | 1〜2 | **10〜15（burst実証）** |
+| bf_f3+bf_f6（追加flush発行/秒） | 0 | 5〜29 |
+| flush_ovw（pending flush上書き/秒） | 0 | 14〜34 |
+| paint/秒 | 60 | 36〜51 |
+| copy_wait合計/単発max | 28〜35ms / 2.6〜6ms | 170〜269ms / **121〜157ms** |
+| dirty_px / full_px | 2〜4% | 2〜4% |
+
+- **単発の`waitUntilCompleted`が121〜157msに達する**ことがあり、これがserverメインスレッドを凍結→1msタイマーが回れずticks崩壊→BeginFrameがIPCに滞留→burst drain→paint低下、という連鎖が実測で完結した。全画面同期Metalコピー（§初回報告5.4）は理論上の懸念ではなく、実測された最大のストール源である
+- ストール中の同秒にプローブページのrAFは11〜47回/秒まで低下（正常秒は60）。病的1fps状態は、この間欠的ストールがGPU/CPU競合の増大で慢性化したものという説明と整合する
+- 121〜157msという異常なGPU同期時間の原因は、同一GPUを共有するUnity Editor本体・CEF Rendererとのキュー競合と推定される（プロセス間GPUスケジューリングの直接計測は未実施）
+- **dirty rect面積は転送面積の2〜4%**。進捗バーの数ピクセル変化のために毎paint全画面をコピーしており、コピー帯域の96〜98%が無駄（初回報告§5.4の定量化）
+- flush上書き（`flush_ovw`）は悪い秒に毎秒14〜34回発生。+3/+6ms flushの機構が遅延時にほぼ空振りしていることの実証
+
+### 2.9 FD継承の実証
 
 tree2 の観測（lsof）で、cef-unity-server プロセスが親Unityの TCPソケット（moorestechゲームサーバーのポート11564 LISTEN・確立済み接続）を同一デバイスIDで保持していた。Rust `Command::spawn` はRust自身が開いたFDにはCLOEXECを付けるが、Unity(mono)側が開いたソケットには付いておらず、そのまま子へ継承される。
 
@@ -144,6 +169,8 @@ serverプロセス全体とCEF子プロセス／IPC接続（`CONNECTION`）／se
 
 `cef_unity_shutdown()` は Shutdownコマンドを fire-and-forget 送信 → 500ms固定sleep → 終了確認なしで抜ける（`lib.rs:358-366`）。クライアントはserverのPIDを保持していないため、shutdownハング（REFACTORING_REPORT.md SRV-9: Mutex poison時に `cef::shutdown()` 未到達）が起きるとserver+CEFヘルパー一式が孤児化し、検出手段がない。初回報告の観測（高CPU serverは対象Editorの子だった）から、今回の1fps症状の主因ではないが、再発時の切り分けとして `pgrep -f cef-unity-server` でプロセス数を確認する価値がある。
 
+**shutdownクラッシュの実測**: 今回のPlay/Stopサイクル実験のcycle1停止時（18:38:31）、純正serverがCEF内部（CrBrowserMainスレッド）で SIGSEGV（`KERN_INVALID_ADDRESS at 0x40`）でクラッシュした（`~/Library/Logs/DiagnosticReports/cef-unity-server-2026-07-29-183831.ips`、byPid=47231はcycle0のserver PIDと一致）。shutdown経路がクリーン終了しないケースは理論上の懸念ではなく実際に起きる。この時はプロセス自体は死んだためリソースはOSが回収したが、クラッシュ位置次第では孤児化しうる。
+
 ## 5. 計測手段の確定（instrumentation-scout調査）
 
 | 手段 | 取れるもの | コスト |
@@ -159,14 +186,17 @@ serverプロセス全体とCEF子プロセス／IPC接続（`CONNECTION`）／se
 
 初回報告§9の方針は全て有効。今回の確定事実により優先順位と根拠を更新:
 
-1. **busy-wait廃止（最優先・実測裏付け済み）**: 健常時でも毎フレーム2〜3ms消費、病的状態で正帰還。Viewer(`CefFrameSource.cs`)のノンブロッキング受信という成功前例がリポジトリ内にある
-2. **+3/+6ms flush と1000Hz pumpの廃止（実測裏付け済み）**: rAF>62の実証により「余剰BeginFrameが実際にCEFを余分に駆動している」ことが確定。CEF要求駆動（`OnScheduleMessagePumpWork`）へ
-3. **プロセスライフサイクルの根本修正（新規・確定バグ3件）**: (a) Child保持+shutdown時のwait/kill、(b) `g_receive_port` の解放（CLI-10の実装）、(c) spawn時のFD継承遮断
-4. **ピン更新（a08f585取り込み）**: damage-streak発振の解消のみ。単独では不十分だが、周期的な25%欠落の増幅要因を消せる
-5. Webフロント側の rAF 非依存化（`holdCraftLogic.ts` の0.25s cap問題）は初回報告どおり
+1. **全画面同期Metalコピーの廃止（最優先へ昇格・実測裏付け済み）**: 単発121〜157msのストールがpaint低下連鎖の直接の起点であることをSTATSで実証（§2.8）。dirty rectベースの部分コピー化、`waitUntilCompleted`の非同期化（completion handler / 次paint時にフェンス確認）、またはコピー自体の排除（IOSurfaceの直接共有）を検討
+2. **busy-wait廃止（実測裏付け済み）**: 健常時でも毎フレーム2〜3ms消費、病的状態で正帰還。Viewer(`CefFrameSource.cs`)のノンブロッキング受信という成功前例がリポジトリ内にある。serverストール時にUnity側も道連れでspinする複合を断ち切る
+3. **+3/+6ms flush と1000Hz pumpの廃止（実測裏付け済み）**: rAF>62の実証と、遅延時にflush上書きが毎秒14〜34回空振りしている実測（`flush_ovw`）。CEF要求駆動（`OnScheduleMessagePumpWork`）へ
+4. **プロセスライフサイクルの根本修正（新規・確定バグ3件）**: (a) Child保持+shutdown時のwait/kill（shutdown SIGSEGVも実測済み）、(b) `g_receive_port` の解放（CLI-10の実装）、(c) spawn時のFD継承遮断
+5. **ピン更新（a08f585取り込み）**: damage-streak発振の解消のみ。単独では不十分だが、周期的な25%欠落の増幅要因を消せる
+6. Webフロント側の rAF 非依存化（`holdCraftLogic.ts` の0.25s cap問題）は初回報告どおり
 
 ## 7. 未解決・進行中
 
-- **病的状態（1fps・CPU100%超）の再現**: 最小CEFシーンで長時間ソーク実施中（rAF時系列・プロセスCPU・ポート数を自動記録、劣化検知モニタ設置済み）。初回観測では発生まで1時間前後を要した。再現できれば「健常68%アイドル vs 病的99% pump」のスタック比較で発症箇所を確定できる
+- **病的状態（1fps・CPU100%超）の再現**: 計装版serverで長時間ソーク実施中（STATS毎秒・rAF時系列・プロセスCPUを自動記録、劣化検知モニタ設置済み）。初回観測では発生まで1時間前後を要した。再現すればSTATSの時系列で発症の因果順序（copy_wait悪化が先か、drain滞留が先か等）を直接確定できる
 - 病的状態が最小シーン（実webui無し・ゲーム無し）で再現するかどうか自体が切り分け情報になる: 再現すればcef-unity単独の問題、再現しなければ実ページ/ゲーム負荷との複合が必要条件
-- Rust再計装によるIPC drain・flush内訳・Metalコピー時間の直接計測は未実施（手順は§5で確立済み）
+- 121〜157msのGPU同期ストールの帰責（Unity Editor・CEF Renderer・OSのGPUスケジューリングのどれとの競合か）は未確定。Metal System Trace等による直接計測が次の一手
+- 純正serverでのソーク中（stock phase）にtree3のEditorが外部要因（全Unity一斉終了イベント）で終了したため、純正版の長時間データは不完全。計装版ソークで代替する
+- 計装版バイナリはPackageCache内のみの差し替えであり、パッケージ再解決で純正に戻る。純正バックアップはscratchpadに保存済み。調査終了時に復元すること
