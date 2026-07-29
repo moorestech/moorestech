@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine;
@@ -11,7 +12,7 @@ namespace Client.Localization
         private const string DefaultLanguageCode = "english";
         public const string SourcePseudoLocale = "source";
 
-        private static readonly Dictionary<string, Dictionary<string, string>> mergedDictionary = new();
+        private static readonly Dictionary<string, IReadOnlyDictionary<string, string>> mergedDictionary = new();
         private static readonly Subject<Unit> onLanguageChangedSubject = new();
         public static readonly IObservable<Unit> OnLanguageChanged = onLanguageChangedSubject;
         private static string currentLanguageCode;
@@ -33,7 +34,9 @@ namespace Client.Localization
                     languageDictionary.Add(entry.Key, entry.Value);
                 }
 
-                mergedDictionary.Add(languageCode, languageDictionary);
+                mergedDictionary.Add(
+                    languageCode,
+                    new ReadOnlyDictionary<string, string>(languageDictionary));
             }
 
             // Source列も同じ配信用辞書へ擬似ロケールとして追加する
@@ -45,7 +48,9 @@ namespace Client.Localization
                 sourceDictionary.Add(entry.Key, entry.Value);
             }
 
-            mergedDictionary.Add(SourcePseudoLocale, sourceDictionary);
+            mergedDictionary.Add(
+                SourcePseudoLocale,
+                new ReadOnlyDictionary<string, string>(sourceDictionary));
 
             // 選択不能な保存値は生成済み英語辞書へ戻す
             // Fall back to the generated English dictionary for unselectable persisted values
@@ -63,12 +68,7 @@ namespace Client.Localization
 
         public static string GetLegacy(string rawKey)
         {
-            // 対象言語から英語、Sourceの順に空でない文言を解決する
-            // Resolve non-empty text from target, English, then Source in order
-            if (mergedDictionary[currentLanguageCode].TryGetValue(rawKey, out var value)) return value;
-            if (mergedDictionary[DefaultLanguageCode].TryGetValue(rawKey, out var english)) return english;
-            if (mergedDictionary[SourcePseudoLocale].TryGetValue(rawKey, out var source)) return source;
-            return $"[!{rawKey}]";
+            return LocalizationTextResolver.Resolve(mergedDictionary, currentLanguageCode, rawKey);
         }
 
         public static void SetLanguage(string languageCode)

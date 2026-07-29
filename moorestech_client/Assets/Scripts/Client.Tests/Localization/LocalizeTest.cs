@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Client.Localization;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -64,6 +67,16 @@ namespace Client.Tests.Localization
         }
 
         [Test]
+        public void InitializeCanRunTwiceWithoutChangingResolvedText()
+        {
+            PlayerPrefs.SetString(LanguageCodePreferenceKey, "english");
+            Localize.Initialize();
+            Localize.Initialize();
+
+            Assert.AreEqual("Play locally", Localize.Get(LocalizationKeys.Ui.MainMenu.PlayLocally));
+        }
+
+        [Test]
         public void GetLegacyReturnsMissingMarkerForUnknownRawKey()
         {
             Localize.Initialize();
@@ -95,25 +108,45 @@ namespace Client.Tests.Localization
         }
 
         [Test]
-        public void SetLanguageUpdatesCurrentLanguageAndPersistsSelection()
+        public void TryGetDictionaryReturnsReadOnlyDictionary()
         {
             Localize.Initialize();
 
+            var found = Localize.TryGetDictionary("english", out var dictionary);
+
+            Assert.IsTrue(found);
+            Assert.IsInstanceOf<ReadOnlyDictionary<string, string>>(dictionary);
+            Assert.IsTrue(((ICollection<KeyValuePair<string, string>>)dictionary).IsReadOnly);
+        }
+
+        [Test]
+        public void SetLanguagePublishesExactlyOneEventAndPersistsSelection()
+        {
+            PlayerPrefs.SetString(LanguageCodePreferenceKey, "english");
+            Localize.Initialize();
+            var eventCount = 0;
+            using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
+
             Localize.SetLanguage("japanese");
 
+            Assert.AreEqual(1, eventCount);
             Assert.AreEqual("japanese", Localize.GetCurrentLanguageCode());
             Assert.AreEqual("japanese", PlayerPrefs.GetString(LanguageCodePreferenceKey));
         }
 
-        [Test]
-        public void SetLanguageRejectsSourcePseudoLocale()
+        [TestCase(Localize.SourcePseudoLocale)]
+        [TestCase("unknown")]
+        public void SetLanguageRejectsInvalidCodeWithoutChangingState(string invalidLanguageCode)
         {
             PlayerPrefs.SetString(LanguageCodePreferenceKey, "english");
             Localize.Initialize();
-            LogAssert.Expect(LogType.Error, "[Localize] Language Code : source is not found");
+            var eventCount = 0;
+            using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
+            LogAssert.Expect(LogType.Error, $"[Localize] Language Code : {invalidLanguageCode} is not found");
 
-            Localize.SetLanguage(Localize.SourcePseudoLocale);
+            Localize.SetLanguage(invalidLanguageCode);
 
+            Assert.AreEqual(0, eventCount);
             Assert.AreEqual("english", Localize.GetCurrentLanguageCode());
             Assert.AreEqual("english", PlayerPrefs.GetString(LanguageCodePreferenceKey));
         }

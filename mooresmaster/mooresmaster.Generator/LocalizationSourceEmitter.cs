@@ -75,6 +75,7 @@ public static class LocalizationSourceEmitter
         try
         {
             var csv = LocalizationCsvParser.Parse(sourceText.ToString());
+            LocalizationLanguageContract.Validate(csv);
             var generatedCode = LocalizationCodeGenerator.Generate(csv);
             context.AddSource(GeneratedSourceHintName, SourceText.From(generatedCode, Encoding.UTF8));
         }
