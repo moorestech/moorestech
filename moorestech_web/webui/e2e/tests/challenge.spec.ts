@@ -75,13 +75,16 @@ test("常駐HUDをインベントリ・メニュー・操作モードで維持�
     ["SubInventory", undefined, "main-grid"],
     ["ResearchTree", undefined, "research-tree"],
     ["BuildMenu", undefined, "build-menu-panel"],
+    ["ChallengeList", undefined, "challenge-panel"],
     ["PauseMenu", undefined, "pause-menu"],
     ["TrainHUDScreen", "PauseMenuScreen", "pause-menu"],
   ] as const;
   for (const [state, subState, contentTestId] of upperSafeMenus) {
     await setUiState(page, state, subState);
+    const menuContent = page.getByTestId(contentTestId);
+    await expect(menuContent).toBeVisible();
     await expectChallengeHudPresentation(page, worldPresentation);
-    await expectAbove(challengeHud, page.getByTestId(contentTestId));
+    await expectAbove(challengeHud, menuContent);
   }
 
   // 一覧の左操作群とHUDを横分離する
@@ -96,6 +99,7 @@ test("常駐HUDをインベントリ・メニュー・操作モードで維持�
   await setUiState(page, "GameScreen");
   const scaledWorldPresentation = await readChallengeHudPresentation(page);
   await setUiState(page, "PlayerInventory");
+  await expect(page.getByTestId("main-grid")).toBeVisible();
   await expectChallengeHudPresentation(page, scaledWorldPresentation);
   await expectWithinViewport(challengeHud);
   await expectAbove(challengeHud, page.getByTestId("main-grid"));
@@ -193,4 +197,15 @@ test("blockingスキット中だけ進行中チャレンジを隠す", async ({ 
   await expect(page.getByTestId("challenge-hud")).toBeHidden();
   await setSkitStage(page, "none");
   await expect(page.getByTestId("challenge-hud")).toBeVisible();
+});
+
+test("背景スキット中は進行中チャレンジの描画契約を維持する", async ({ page }) => {
+  await setTopicScenario(page, "challengeJapanese");
+  await setUiState(page, "GameScreen");
+  await setSkitStage(page, "none");
+  await page.goto("/");
+  const worldPresentation = await readChallengeHudPresentation(page);
+  await setSkitStage(page, "background");
+  await expect(page.getByTestId("background-skit")).toBeVisible();
+  await expectChallengeHudPresentation(page, worldPresentation);
 });

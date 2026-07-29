@@ -277,14 +277,14 @@ description: |
 
 ## 8.15 操作モードHUD
 
-- 配置モードの状態表示は、stage右上で `GamePanel variant="craft"` に収める。クラフトレシピ詳細と同じ半透明ネイビー面・1px枠・内周線・右下グリップをそのまま再利用し、左上のチャレンジHUDと併記する。
+- 配置モードの状態表示は、stage右上で `GamePanel variant="craft"` に収める。クラフトレシピ詳細と同じ半透明ネイビー面・1px枠・内周線・右下グリップをそのまま再利用し、上中央のチャレンジHUDと併記する。
 - 配置HUDは「`--text-muted` の従属見出し → `FadeRule` → `--text-high-contrast` の詳細一覧」とし、警告だけ `--text-insufficient` を使う。Mantineの `Paper` / `Stack` / `Title` / `Text` は使わない。
 - 削除モードでは説明パネルを出さず、uGUI正本の `delete bar.png` と同じ黄黒斜線帯をstage上下端へ表示する。正本の1920設計・高さ60px・端中央配置で画面内に見える半幅を1280基準へ換算し、帯高は20pxとする。
 - 削除警告帯はCSSの `repeating-linear-gradient` で再現し、色・帯高・斜線周期・角度は `--delete-mode-warning-*` 固定長トークンへ集約する。画像アセットはWebへ移植しない。
 - `delete.hud` のチュートリアルアンカーはstage全面の親ではなく下側警告帯へ付け、吹き出しを画面内へ保つ。
 - 位置・幅・間隔・文字サイズは `--operation-hud-*` 固定長トークンで管理する。
 - 配置HUD・削除警告帯とも光彩、アニメーション、合成boldを追加せず、`pointer-events: none` でゲーム入力を素通しする。
-- PlaceBlock / DeleteBar中もチャレンジHUDを表示する。配置HUDは右上、削除警告帯は上下端へ責務ごとに分離し、左上のチャレンジHUDと重ねない。
+- PlaceBlock / DeleteBar中もチャレンジHUDを表示する。配置HUDは右上、削除警告帯は上下端へ責務ごとに分離し、上中央のチャレンジHUDと重ねない。
 
 ## 9. やらないことリスト（再掲・明示）
 

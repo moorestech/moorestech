@@ -1,6 +1,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
 type ChallengeHudPresentation = {
+  html: string;
   className: string;
   childCount: number;
   ariaLabel: string | null;
@@ -9,8 +10,8 @@ type ChallengeHudPresentation = {
   objectives: Array<{ fontSize: string; lineHeight: string; gap: string }>;
 };
 
-// 画面状態をまたいで比較するため、HUDの描画契約を同じフレームから取得する
-// Read the HUD presentation contract from one frame for cross-screen comparison
+// 画面間比較用にHUD描画契約を一括取得
+// Read the HUD presentation contract for cross-screen comparison
 export async function readChallengeHudPresentation(page: Page): Promise<ChallengeHudPresentation> {
   const hud = page.getByTestId("challenge-hud");
   await expect(hud).toBeVisible();
@@ -20,6 +21,7 @@ export async function readChallengeHudPresentation(page: Page): Promise<Challeng
     const objectives = Array.from(element.querySelectorAll<HTMLElement>('[data-testid="challenge-objective"]'));
     const objectiveContainer = objectives[0]?.parentElement!;
     return {
+      html: element.outerHTML,
       className: element.className,
       childCount: element.childElementCount,
       ariaLabel: element.getAttribute("aria-label"),
