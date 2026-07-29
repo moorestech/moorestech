@@ -280,7 +280,7 @@ namespace Core.Inventory
         ///     指定されたスロットにアイテムを挿入する
         /// </summary>
         /// <returns>余ったアイテム 余ったアイテムがなければ空のアイテムを返す</returns>
-        private static IItemStack InsertionItemBySlot(int slot, IItemStack itemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, Action<int> onSlotUpdate = null)
+        private static IItemStack InsertionItemBySlot(int slot, IItemStack itemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, Action<int> onSlotUpdate)
         {
             if (itemStack.Count == 0) return itemStack;
             if (!inventoryItems[slot].IsAllowedToAddWithRemain(itemStack)) return itemStack;
