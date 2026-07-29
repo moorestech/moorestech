@@ -21,10 +21,12 @@ namespace Client.Game.InGame.Environment.Terrain
         private const string TemplateTerrainDataAddress = "Vanilla/Environment/TemplateTerrainData";
         private const string TerrainObjectName = "Terrain";
 
-        // templateワールドの地形配置はEnvironment.prefabが持っていたオーサリング値。sizeが2048角なのに対し
-        // 位置は-1000なので、ベイク済みmapObject座標と揃えるにはこの実測値そのものが要る
-        // The template world's terrain placement is the authored value Environment.prefab carried; its size is 2048
-        // square while the position is -1000, so matching the baked mapObject coordinates needs this exact value
+        // Environment.prefabのTerrainが持っていたオーサリング配置の移設先。prefab側はP3 Task 6で削除されるため、
+        // 以後この定数がTemplateTerrainDataの配置を記録する唯一の場所になる
+        // sizeは2048角なのに位置は-1000で、中心合わせでは24mずれてベイク済みmapObject座標が全部崩れる
+        // Migrated from the authored placement on Environment.prefab's Terrain; that prefab object is removed in
+        // P3 Task 6, after which this constant is the only record of where TemplateTerrainData belongs
+        // Its size is 2048 square yet the position is -1000, so centering it would shift 24m and break every baked mapObject coordinate
         private static readonly Vector3 TemplateTerrainOrigin = new(-1000f, 0f, -1000f);
 
         public static async UniTask BuildAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot)
