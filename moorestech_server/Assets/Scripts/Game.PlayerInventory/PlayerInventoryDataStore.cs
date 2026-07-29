@@ -4,7 +4,6 @@ using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.PlayerInventory.ItemManaged;
 using UniRx;
-using UnityEngine;
 
 namespace Game.PlayerInventory
 {
@@ -81,20 +80,21 @@ namespace Game.PlayerInventory
                 var playerId = saveInventory.PlayerId;
                 (var mainItems, var grabItem, var equipmentItems, var selectedEquipmentIndex) = saveInventory.GetPlayerInventoryData();
                 
+                // メインのスロット数を決める前に、装備できず退避される分を先に確定させる
+                // Settle the items rejected by equipment before deciding main's slot count
+                var equipment = new EquipmentInventoryData(playerId, _equipmentInventoryUpdateEvent);
+                var rejectedEquipmentItems = equipment.RestoreFromSave(equipmentItems, selectedEquipmentIndex);
+
                 //アイテムを復元
-                // セーブ済みアイテム数が現レベルのスロット数を超える場合はアイテム数まで拡張する
-                // Expand to the saved item count when it exceeds the current level's slot count
-                var slotCount = System.Math.Max(_slotLevelDataStore.CurrentSlotCount, mainItems.Count);
+                // セーブ済みアイテムと退避分が必ず収まるまでスロット数を拡張し、アイテムを消さない
+                // Expand the slot count until saved items and the fallback always fit, so nothing is destroyed
+                var slotCount = System.Math.Max(_slotLevelDataStore.CurrentSlotCount, mainItems.Count + rejectedEquipmentItems.Count);
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, slotCount, mainItems);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, grabItem);
 
-                // 装備できないセーブアイテムはメインへ退避し、アイテムを消さない
-                // Saved items that cannot be equipped fall back into main so nothing is destroyed
-                var equipment = new EquipmentInventoryData(playerId, _equipmentInventoryUpdateEvent);
-                var rejectedEquipmentItems = equipment.RestoreFromSave(equipmentItems, selectedEquipmentIndex);
-                var notInsertedItems = main.InsertItem(rejectedEquipmentItems);
-                foreach (var notInsertedItem in notInsertedItems)
-                    Debug.LogWarning($"装備から退避したアイテムがメインインベントリに入りきりませんでした playerId:{playerId} item:{notInsertedItem.Id} count:{notInsertedItem.Count}");
+                // 1スタックは必ず1スロットに収まるため、退避分の空きは上のスロット数確保で保証される
+                // A stack never exceeds one slot, so the reservation above guarantees room for every rejected item
+                main.InsertItem(rejectedEquipmentItems);
 
                 var playerInventory = new PlayerInventoryData(main, grab, equipment);
                 

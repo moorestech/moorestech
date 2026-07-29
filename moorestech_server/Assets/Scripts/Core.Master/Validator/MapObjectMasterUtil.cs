@@ -35,6 +35,14 @@ namespace Core.Master.Validator
                             if (itemId == null)
                             {
                                 logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has invalid ToolItemGuid:{miningTool.ToolItemGuid}\n";
+                                continue;
+                            }
+
+                            // itemsのtoolsに無いツールは装備できず、そのmapObjectが恒久的に採掘不能になる
+                            // A tool missing from items' tools can never be equipped, making the mapObject permanently unmineable
+                            if (!MasterHolder.ToolMaster.IsTool(itemId.Value))
+                            {
+                                logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has ToolItemGuid:{miningTool.ToolItemGuid} that is not registered in items tools\n";
                             }
                         }
                     }

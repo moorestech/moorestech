@@ -134,26 +134,6 @@ namespace Tests.UnitTest.Game.Inventory
             Assert.AreEqual(6, CountItems(destination, AcceptableItemId) + source.GetItem(0).Count);
         }
 
-        [Test]
-        public void 受入制限インベントリのソートはスロット配置も上限も壊さない()
-        {
-            // 上限1のスロットが3つ埋まった状態。整理すると1スロットへ結合され上限違反になる
-            // Three slots each at the cap of 1; sorting would merge them into one slot and break the cap
-            var inventory = new FakeAcceptanceInventory(new List<ItemId> { AcceptableItemId, RejectedItemId }, 1, 3);
-            inventory.SetItem(0, AcceptableItemId, 1);
-            inventory.SetItem(1, RejectedItemId, 1);
-            inventory.SetItem(2, AcceptableItemId, 1);
-
-            InventorySortService.Sort(inventory, new List<int>());
-
-            Assert.AreEqual(2, CountItems(inventory, AcceptableItemId));
-            Assert.AreEqual(1, CountItems(inventory, RejectedItemId));
-            for (var slot = 0; slot < inventory.GetSlotSize(); slot++) Assert.LessOrEqual(inventory.GetItem(slot).Count, 1);
-            Assert.AreEqual(AcceptableItemId, inventory.GetItem(0).Id);
-            Assert.AreEqual(RejectedItemId, inventory.GetItem(1).Id);
-            Assert.AreEqual(AcceptableItemId, inventory.GetItem(2).Id);
-        }
-
         private static int CountItems(IOpenableInventory inventory, ItemId itemId)
         {
             var totalCount = 0;

@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Core
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             Assert.AreEqual(3, MasterHolder.ToolMaster.EquipmentSlotCount);
-            Assert.AreEqual(1, MasterHolder.ToolMaster.All.Count);
+            Assert.AreEqual(2, MasterHolder.ToolMaster.All.Count);
 
             // tools記載のアイテムはIsTool=true、未記載はfalse
             // Listed items are tools; unlisted items are not

@@ -97,6 +97,38 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(2, CountInMainInventory(loadedInventory, ToolItemId()));
         }
 
+        [Test]
+        public void メインが満杯でも装備から退避したアイテムは消えない()
+        {
+            var saveStore = CreateInventoryDataStore();
+            var mainInventory = saveStore.GetInventoryData(PlayerId).MainOpenableInventory;
+
+            // 別アイテムを1個ずつ全スロットに置き、退避先の空きが一つも無い状態を作る
+            // Place a different item in every slot so the fallback has nowhere to go
+            var nonToolItemIds = NonToolItemIds(2);
+            var fillerItemId = nonToolItemIds[0];
+            for (var slot = 0; slot < mainInventory.GetSlotSize(); slot++) mainInventory.SetItem(slot, fillerItemId, 1);
+            var filledSlotCount = mainInventory.GetSlotSize();
+
+            // 装備できない非ツールが装備スロットに保存された壊れたセーブを作る
+            // Build a corrupted save where a non-tool sits in an equipment slot
+            var rejectedItemId = nonToolItemIds[1];
+            var saveJsonObjects = saveStore.GetSaveJsonObject();
+            saveJsonObjects[0].EquipmentInventoryItems = new List<ItemStackSaveJsonObject>
+            {
+                new(ServerContext.ItemStackFactory.Create(rejectedItemId, 1)),
+            };
+
+            var loadStore = CreateInventoryDataStore();
+            loadStore.LoadPlayerInventory(saveJsonObjects);
+            var loadedInventory = loadStore.GetInventoryData(PlayerId);
+
+            // 満杯でもスロットが拡張され、既存アイテムも退避アイテムも1個も失われない
+            // Slots expand even when full, so neither the existing items nor the fallback are lost
+            Assert.AreEqual(filledSlotCount, CountInMainInventory(loadedInventory, fillerItemId));
+            Assert.AreEqual(1, CountInMainInventory(loadedInventory, rejectedItemId));
+        }
+
         private int CountInMainInventory(PlayerInventoryData playerInventoryData, ItemId itemId)
         {
             var mainInventory = playerInventoryData.MainOpenableInventory;
@@ -121,7 +153,12 @@ namespace Tests.CombinedTest.Game
 
         private ItemId NonToolItemId()
         {
-            return MasterHolder.ItemMaster.GetItemAllIds().First(itemId => !MasterHolder.ToolMaster.IsTool(itemId));
+            return NonToolItemIds(1)[0];
+        }
+
+        private List<ItemId> NonToolItemIds(int count)
+        {
+            return MasterHolder.ItemMaster.GetItemAllIds().Where(itemId => !MasterHolder.ToolMaster.IsTool(itemId)).Take(count).ToList();
         }
     }
 }

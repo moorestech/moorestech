@@ -29,6 +29,11 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static readonly Guid MiningMapObjectGuid = Guid.Parse("00000000-0000-2222-0000-000000000001");
         private static readonly Guid PickUpMapObjectGuid = Guid.Parse("8c0e1339-be75-4690-99cd-58b5385a17cd");
         private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+
+        // toolsには登録されているがTestMiningRockのminingToolsには無いツール
+        // A tool registered in tools but absent from TestMiningRock's miningTools
+        private static readonly Guid UnmatchedToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
+
         private const int ExpectedToolDamage = 7;
         private const double ExpectedAttackSpeed = 0.2;
 
@@ -55,7 +60,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 対応ツールを装備して選択するとマスタのdamage分だけHPが減る
             // Equipping and selecting the matching tool reduces HP by the master-defined damage
-            EquipTool(playerInventory);
+            EquipTool(playerInventory, ToolItemGuid);
             SendAttack(packet, mapObject.InstanceId);
             Assert.AreEqual(initialHp - ExpectedToolDamage, mapObject.CurrentHp);
 
@@ -66,13 +71,35 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
+        public void 対応しないツールを装備してもHPは減らず報酬も入らない()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var mapObject = GetMapObject(MiningMapObjectGuid);
+            var initialHp = mapObject.CurrentHp;
+
+            // 装備可能だがminingToolsに無いツールでは、どのdamageにも解決されずHPは変化しない
+            // An equippable tool absent from miningTools resolves to no damage, so HP stays untouched
+            EquipTool(playerInventory, UnmatchedToolItemGuid);
+            SendAttack(packet, mapObject.InstanceId);
+            Assert.AreEqual(initialHp, mapObject.CurrentHp);
+            Assert.AreEqual(0, CountMainInventoryItem(playerInventory, GetEarnItemId(MiningMapObjectGuid)));
+
+            // 同じmapObjectでも対応ツールへ持ち替えれば掘れることまで確かめる
+            // Confirm the same mapObject is still mineable once the matching tool is equipped
+            EquipTool(playerInventory, ToolItemGuid);
+            SendAttackAfterCooldown(packet, mapObject.InstanceId);
+            Assert.AreEqual(initialHp - ExpectedToolDamage, mapObject.CurrentHp);
+        }
+
+        [Test]
         public void 閾値を跨いだ回数だけ報酬アイテムが入る()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             var mapObject = GetMapObject(MiningMapObjectGuid);
             var earnItemId = GetEarnItemId(MiningMapObjectGuid);
-            EquipTool(playerInventory);
+            EquipTool(playerInventory, ToolItemGuid);
 
             // 1打目はHP30→23で閾値20に未達なのでアイテムは入らない
             // The first hit takes HP 30->23 and misses threshold 20, so no items arrive
@@ -97,7 +124,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             var mapObject = GetMapObject(MiningMapObjectGuid);
             var initialHp = mapObject.CurrentHp;
-            EquipTool(playerInventory);
+            EquipTool(playerInventory, ToolItemGuid);
 
             // 1打目は通り、直後の2打目はクールダウンで捨てられる
             // The first hit lands and the immediate second hit is dropped by the cooldown
@@ -152,9 +179,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             return ServerContext.MapObjectDatastore.MapObjects.First(mapObject => mapObject.MapObjectGuid == mapObjectGuid);
         }
 
-        private void EquipTool(PlayerInventoryData playerInventory)
+        private void EquipTool(PlayerInventoryData playerInventory, Guid toolItemGuid)
         {
-            var toolItemId = MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
+            var toolItemId = MasterHolder.ItemMaster.GetItemId(toolItemGuid);
             playerInventory.EquipmentInventory.SetItem(0, toolItemId, 1);
             playerInventory.EquipmentInventory.SetSelectedEquipmentIndex(0);
         }

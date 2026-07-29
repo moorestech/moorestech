@@ -55,6 +55,10 @@ namespace Server.Event.EventReceive
         // Sentinel slot for selected events; the precedent is UnifiedInventoryEventMessagePack.CreateRemove
         public const int UnusedSlot = -1;
 
+        // スロット変更イベントのSelectedIndexに入れる番兵。-1は素手として正当なのでintの最小値を使う
+        // Sentinel selected index for slot events; -1 is a valid bare-hands value, so int.MinValue is used instead
+        public const int UnusedSelectedIndex = int.MinValue;
+
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public EquipmentUpdateEventMessagePack()
         {
@@ -70,9 +74,11 @@ namespace Server.Event.EventReceive
             SelectedIndex = selectedIndex;
         }
 
+        // SelectedIndexは-1(素手)も正当なので、範囲外のUnusedSelectedIndexを入れてEventType分岐落ちを検知させる
+        // A -1 selected index is valid (bare hands), so the out-of-range sentinel exposes a missed EventType branch
         public static EquipmentUpdateEventMessagePack CreateSlotEvent(int slot, IItemStack itemStack)
         {
-            return new EquipmentUpdateEventMessagePack(SlotEventType, slot, new ItemMessagePack(itemStack), 0);
+            return new EquipmentUpdateEventMessagePack(SlotEventType, slot, new ItemMessagePack(itemStack), UnusedSelectedIndex);
         }
 
         // 選択変更でもItemは空アイテムで埋め、受信側がnull参照を踏まないようにする

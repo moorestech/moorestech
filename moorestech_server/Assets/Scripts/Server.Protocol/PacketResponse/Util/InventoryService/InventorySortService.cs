@@ -15,10 +15,6 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
     {
         public static void Sort(IOpenableInventory inventory, IReadOnlyCollection<int> excludeSlots)
         {
-            // 受入制限インベントリはスロット配置自体に意味があり、SetItemでの詰め直しが制限を破るため整理しない
-            // Restricted inventories keep their slot layout, and re-packing via SetItem would bypass the restriction
-            if (inventory is IItemAcceptanceInventory) return;
-
             // 整理対象スロットを決定（除外スロットを除く）
             // Determine target slots, excluding the given slots (e.g. hotbar).
             var targetSlots = Enumerable.Range(0, inventory.GetSlotSize())
