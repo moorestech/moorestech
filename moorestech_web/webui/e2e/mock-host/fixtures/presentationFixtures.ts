@@ -25,7 +25,7 @@ export const challengeMultiple = {
 export const challengeLong = {
   challenges: [{
     guid: "ch-long",
-    title: "VeryLongUnbrokenChallengeObjectiveTextThatMustWrapInsideTheHudWithoutOverflowing",
+    title: "VeryLongUnbrokenChallengeObjectiveTextThatMustWrapInsideTheHudWithoutOverflowingAndStillRemainReadableAcrossEveryMenuScreenWithoutChangingTheChallengeHudLayout",
     categoryGuid: "cat-1",
   }],
 };

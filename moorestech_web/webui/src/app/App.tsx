@@ -96,9 +96,9 @@ export default function App() {
         {(screen === "trainHud" || screen === "trainPause") && <TrainRidingHud />}
         {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
         {uiState === UiStateNames.deleteBar && <DeleteModeWarningBands />}
-        {/* 常駐HUDをstageと一様拡縮し、メニュー中も上部安全帯へ維持する */}
-        {/* Scale the resident HUD with the stage and retain it in the upper safe area during menus */}
-        <CurrentChallengeHud menuScreen={modalScreen} />
+        {/* チャレンジHUDは画面状態と切り離し、stage内で同じ文字組を常時保つ */}
+        {/* Keep the challenge HUD screen-state-independent with identical typography inside the stage */}
+        <CurrentChallengeHud />
         <Crosshair />
         <CursorTooltip />
         <BlockInventoryPanel />
