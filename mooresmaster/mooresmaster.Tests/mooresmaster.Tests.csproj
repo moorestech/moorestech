@@ -32,6 +32,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <!-- Generator依存DLLをRoslynのAnalyzerLoadContextへ渡す -->
+        <!-- Supply the generator dependency to Roslyn's AnalyzerLoadContext -->
+        <ProjectReference Include="..\mooresmaster.LocalizationCsv\mooresmaster.LocalizationCsv.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
         <ProjectReference Include="..\mooresmaster.Generator\mooresmaster.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
 
