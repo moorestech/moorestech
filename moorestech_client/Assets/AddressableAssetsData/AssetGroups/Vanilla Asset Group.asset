@@ -40,6 +40,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0665214c1649e49ceb9fd45eb9e35850
+    m_Address: Vanilla/Environment/Terrain/Layer/Base/Snow01
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 06ec40813bb3d214c95767bf9c4f9999
     m_Address: Vanilla/Block/press machine
     m_ReadOnly: 0
@@ -57,6 +62,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 07df01a6c472c5e48915ca6a1969df88
     m_Address: Vanilla/Block/BeltConveyor_Up
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 091edcd28cb1c41c299b0e4a15195468
+    m_Address: Vanilla/Environment/Terrain/Detail/Redwood/Magnus_2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -105,6 +115,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 13c016c6aa0c74a88b904bd7edd1ad22
+    m_Address: Vanilla/Environment/Terrain/Detail/Savanna/SavannaGrass1_green
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 13d1bb4b5c9c44cb98c7a95978f2930a
     m_Address: Vanilla/Skit/commandForgeEditor
     m_ReadOnly: 0
@@ -112,6 +127,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 144a3298a538744adaa54c5dccec414c
     m_Address: Vanilla/Skit/Animations/anim_bittersmile01_lp
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1592a1e8aaf8d4e63809e36045f1c5e0
+    m_Address: Vanilla/Environment/Terrain/Detail/Redwood/Grass1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -127,6 +147,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 186b231c7e36d2b4db90c4e2de5c1119
     m_Address: Vanilla/Block/Old/smelting
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 189f19f06dcf94a279cbe2a81673b316
+    m_Address: Vanilla/Environment/Terrain/Layer/Oasis/SandLarge
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -170,6 +195,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1e67feffe3b034ccbb396d5fa15c62f8
+    m_Address: Vanilla/Environment/Terrain/Detail/Savanna/SavannaGrass1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1ea215d97cbcd4cf0893122dbf3714e0
     m_Address: Vanilla/Block/BeltConveyor_L
     m_ReadOnly: 0
@@ -182,6 +212,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1efaa2708894e41b2bf87cebcaa89746
     m_Address: Vanilla/Block/Electric_Ore_Crusher
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1f624ba74b0f64c2a9acf17f4d9777e3
+    m_Address: Vanilla/Environment/Terrain/Layer/MesaDesert/SandFine
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -202,6 +237,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 22a27ce62121b404882dff34ab352cca
     m_Address: Vanilla/UI/Block/FilterSplitterBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 235a3764eae124f51a59f372085a4ab8
+    m_Address: Vanilla/Environment/Terrain/Detail/Redwood/Grass2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -255,6 +295,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2f97a8cd74a144cac92a95a36c98a054
+    m_Address: Vanilla/Environment/Terrain/Detail/Redwood/ThinFern1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2fda64207decf264c9a9430c59cfe575
     m_Address: Vanilla/Block/Old/miner
     m_ReadOnly: 0
@@ -305,6 +350,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3ef68dbe78b244d858eeac560dd577fa
+    m_Address: Vanilla/Environment/Terrain/Layer/MesaDesert/SandFine_gravel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3f926b5e4f3ef4cb79a3487deb1bfe83
     m_Address: Vanilla/Train/CargoCar
     m_ReadOnly: 0
@@ -337,6 +387,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 48a7a1a619bcd4536a545efbbdc542c1
     m_Address: Vanilla/UI/Block/ElectricPoleNetworkInfoUI
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 491af791451a0418f9fb3da96da78623
+    m_Address: Vanilla/Environment/Terrain/Layer/Mountains/Mud01
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -375,6 +430,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4e8ce4cd36e9f4097a0268446762e672
+    m_Address: Vanilla/Environment/Terrain/Layer/Mountains/Mud02
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 509085a0c8b72442791d1a4ea662156d
+    m_Address: Vanilla/Environment/Terrain/Layer/Savanna/RedDirt_gravel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 50e0b09afaa3747d490bdd5d395c0c56
     m_Address: Vanilla/Block/Util/InventoryConnectorView
     m_ReadOnly: 0
@@ -382,6 +447,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 51692cd4fd70e9b49b011b850ce0d9b3
     m_Address: Vanilla/Block/WeldingProcessingMachine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 516f8de53af874646b49299ba2fca0b7
+    m_Address: Vanilla/Environment/Terrain/Detail/Mountains/Lupin1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5282662dbab1b4c49bfe5ca0e6343139
+    m_Address: Vanilla/Environment/Terrain/Layer/Redwood/Mud_darker
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -412,6 +487,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5635b42f628d34f4fa97c03bfe9d0d36
     m_Address: Vanilla/Character/Chr001
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5750b737ef390469fb7ddff5685ea06a
+    m_Address: Vanilla/Environment/Terrain/Detail/Mountains/Daisy
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -480,6 +560,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 62c4de59c879e43aa9061ee243987a2d
+    m_Address: Vanilla/Environment/Terrain/Layer/MesaDesert/SandFine_rubble
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 64343c606fc9fff41992f7bb60916462
     m_Address: Vanilla/Block/Old/miner mk2
     m_ReadOnly: 0
@@ -487,6 +572,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 64b3a814a7a4c47c6882b438ad1feea6
     m_Address: Vanilla/Environment/Vein/Item/Stone
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 662b60acfbd3a419f853be9fbbbe8922
+    m_Address: Vanilla/Environment/Terrain/Detail/Savanna/TallGrassDry
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -507,6 +597,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 679918cdb2be9a74b90e1396abee2ff3
     m_Address: Vanilla/Block/BeltConveyor_T
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 681f8912a7727458189ceb6c498291b6
+    m_Address: Vanilla/Environment/Terrain/Detail/Savanna/SavannaGrass2_green
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -555,6 +650,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 724734af464c74fd7b703cea3290da2a
+    m_Address: Vanilla/Environment/Terrain/Detail/Mountains/Grass4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 74c661b69539b4646b58bacbc3365a30
     m_Address: Vanilla/Block/PipeStraightWindow
     m_ReadOnly: 0
@@ -567,6 +667,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 764764c4c5bb8b043a34afd794f9c161
     m_Address: Vanilla/Block/Old/generator mk3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 76d0d5e77d3be49169f9e44ff110372f
+    m_Address: Vanilla/Environment/Terrain/Layer/Mountains/Grass01
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -595,6 +700,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7aa7b9071baf64801aa79a52e240dc7c
+    m_Address: Vanilla/Environment/Terrain/Detail/Mountains/Grass3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7ab1ed06c5c0c457390dd26c2d94fc25
     m_Address: Vanilla/Environment/Vein/Item/Iron
     m_ReadOnly: 0
@@ -607,6 +717,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7aee8b5230f4e4f43b96f1f498ee7f44
     m_Address: Vanilla/Block/Util/ElectricWireLine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7babaceddb1894be99847c82a77ef267
+    m_Address: Vanilla/Environment/Terrain/Detail/Redwood/ThinFern3
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -657,6 +772,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 85fb7a241b50442c68029a0d9748bf56
     m_Address: Vanilla/Game/DefaultTrain
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 86d36b8e0f0234fbabd4bda5125670a0
+    m_Address: Vanilla/Environment/Terrain/Detail/Redwood/GrassMoss
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -805,6 +925,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a46e19f67a9e4479587d8d33f50fe3c1
+    m_Address: Vanilla/Environment/Terrain/Detail/Mountains/Fern1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a51229a275812984e917c7dd78a1447a
     m_Address: Vanilla/Game/ItemEntity
     m_ReadOnly: 0
@@ -837,6 +962,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a65bf85d5ada24b82a2121b15422b180
     m_Address: Vanilla/Character/SkitChr003
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a703cdd24aef247f882ba47e778f9e4a
+    m_Address: Vanilla/Environment/Terrain/Layer/Islands/SandBeach
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a721141a3a10845e3b637b1486659034
+    m_Address: Vanilla/Environment/Terrain/Layer/Redwood/GrassPine
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -920,6 +1055,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b415bd5fde2c44412bbef6fdc2bba9a6
+    m_Address: Vanilla/Environment/Terrain/Detail/Redwood/ThinFern5
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b4ea5b2a3e1ea4e0da0638129fcd2958
     m_Address: Vanilla/Block/Primitive logging machine
     m_ReadOnly: 0
@@ -942,6 +1082,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b9fc9c8c6497a0a44b484f64d01458d4
     m_Address: Vanilla/Block/Spinning_machine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bb6caa6b14b904555b68b8bd3f474761
+    m_Address: Vanilla/Environment/Terrain/Layer/Oasis/MudDry
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -980,6 +1125,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c2922fe572bd641f099af6f44ec5e5aa
+    m_Address: Vanilla/Environment/Terrain/Detail/Mountains/Grass2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c297eff442e9c419db5659a81dba7084
     m_Address: Vanilla/Block/NoneBlock
     m_ReadOnly: 0
@@ -997,6 +1147,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c35136d02ef7ece45addc80eae509ea1
     m_Address: Vanilla/Block/itemshooter up
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c4e9d27300fcd49a6aa3d711165c8f17
+    m_Address: Vanilla/Environment/Terrain/Detail/Mountains/DaisyBlue
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1055,8 +1210,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d3ed6cc04ac114447977a9f0e44e8980
+    m_Address: Vanilla/Environment/Terrain/Layer/Mountains/Gravel2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d46b688521ba3496f9859d5df798b011
     m_Address: Vanilla/Block/metal_gear belt conveyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d484a88f0392c461b819e218e05381f7
+    m_Address: Vanilla/Environment/Terrain/Layer/Savanna/GrassGreen
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1072,6 +1237,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d6b9aecf810bb4074b1eee1c06cfa1c3
     m_Address: Vanilla/Character/Chr002
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d6cabca2e7338463994f27fd80aa8e46
+    m_Address: Vanilla/Environment/Terrain/Detail/Redwood/Grass3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d6e06709cb7ae4e2aa9eac927cce6496
+    m_Address: Vanilla/Environment/Terrain/Detail/Mountains/Grass1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1117,6 +1292,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: dc6116d42d12ea04c8eccb7c41618a1e
     m_Address: Vanilla/Block/Old/btc miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: de17a0208995a40b7b62d467a869c6c4
+    m_Address: Vanilla/Environment/Terrain/Layer/Mountains/Gravel1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1180,8 +1360,23 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ed624a56346f94f9183fda3efab25151
+    m_Address: Vanilla/Environment/Terrain/Detail/Redwood/Magnus_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: edb6fe869fe158a4ab9b4d1624436f1c
     m_Address: "Vanilla/Block/Old/tmp \u7CBE\u6CB9"
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ee8b694499cb44d58a75c1683942025c
+    m_Address: Vanilla/Environment/Terrain/Layer/Oasis/SandFine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f066f099a0fcb4b0188306e502ed38f3
+    m_Address: Vanilla/Environment/Terrain/Layer/Jungle/Moss
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1240,6 +1435,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f727a735702b14cb68dae68609c29064
+    m_Address: Vanilla/Environment/Terrain/Layer/Oasis/SandLarge_orange
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f992b7e8076e24bd89f9631bb1041d83
     m_Address: Vanilla/Environment/Pebble
     m_ReadOnly: 0
@@ -1275,6 +1475,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fd56bb86edd7542fd9ac2b475a7fc830
+    m_Address: Vanilla/Environment/Terrain/Layer/Redwood/SoilPine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: fdc0ac0187b65452087a9b5568d41643
     m_Address: Vanilla/Skit/Animations/anim_idle01_st
     m_ReadOnly: 0
@@ -1287,6 +1492,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ff0ce874150644b289f1028c53a9c17f
     m_Address: Vanilla/Block/iron_crasher
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ff64dd9dfacf349bdb8f570e98ab9382
+    m_Address: Vanilla/Environment/Terrain/Layer/Redwood/GrassMud
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

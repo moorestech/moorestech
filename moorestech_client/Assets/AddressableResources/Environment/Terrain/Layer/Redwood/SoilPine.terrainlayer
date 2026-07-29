@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1953259897 &8574412962073106934
+TerrainLayer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: SoilPine
+  m_DiffuseTexture: {fileID: 2800000, guid: c26897b20f004fa39d6f55744bec0230, type: 3}
+  m_NormalMapTexture: {fileID: 2800000, guid: 741407fda9a84b859565dd8e7b7dc853, type: 3}
+  m_MaskMapTexture: {fileID: 2800000, guid: 86d7e6abf6794ac19a654b48859d840c, type: 3}
+  m_TileSize: {x: 5, y: 5}
+  m_TileOffset: {x: 0, y: 0}
+  m_Specular: {r: 1, g: 1, b: 1, a: 0}
+  m_Metallic: 0
+  m_Smoothness: 1
+  m_NormalScale: 3
+  m_DiffuseRemapMin: {x: 0, y: 0, z: 0, w: 0}
+  m_DiffuseRemapMax: {x: 1, y: 1, z: 1, w: 1}
+  m_MaskMapRemapMin: {x: 0, y: 0, z: 0, w: 0}
+  m_MaskMapRemapMax: {x: 1, y: 1, z: 1, w: 0.25}
