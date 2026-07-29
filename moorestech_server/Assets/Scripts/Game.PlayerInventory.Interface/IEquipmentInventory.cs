@@ -4,8 +4,8 @@ using Core.Item.Interface;
 namespace Game.PlayerInventory.Interface
 {
     /// <summary>
-    ///     ツールだけを1枠1個で保持する装備インベントリ
-    ///     Equipment inventory that holds only tools, one item per slot
+    ///     選択中スロットが手持ちアイテムになる装備インベントリ
+    ///     Equipment inventory whose selected slot becomes the held item
     /// </summary>
     public interface IEquipmentInventory : IOpenableInventory
     {

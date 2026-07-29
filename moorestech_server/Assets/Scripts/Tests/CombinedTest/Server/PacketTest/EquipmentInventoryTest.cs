@@ -1,4 +1,4 @@
-using System.Linq;
+using System;
 using Core.Master;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -13,37 +13,40 @@ using static Server.Protocol.PacketResponse.InventoryItemMoveProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
+    /// <summary>
+    ///     装備インベントリが受入制限を持たない通常のインベントリとして振る舞うことを検証する
+    ///     Verify the equipment inventory behaves as a plain inventory without acceptance restrictions
+    /// </summary>
     public class EquipmentInventoryTest
     {
         private const int PlayerId = 0;
 
+        // toolsに登録されていない通常アイテム(Test2)
+        // A plain item (Test2) that is not registered in tools
+        private static readonly Guid NonToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000002");
+
         [Test]
-        public void ツールは装備スロットへ1枠1個ずつ入る()
+        public void ツールは装備スロットへスタックして入る()
         {
             var (packet, playerInventory) = CreateServerWithPlayerInventory();
             var toolItemId = ToolItemId();
 
-            // 全スロットを埋めてなお余る数をマスタから決める
-            // Derive an amount from master that fills every slot and still has leftovers
+            // 装備スロット数より多い個数でも、スタック上限までは1スロットに収まる
+            // Even more than the slot count fits into a single slot up to the stack limit
             var insertCount = MasterHolder.ToolMaster.EquipmentSlotCount + 2;
             playerInventory.MainOpenableInventory.SetItem(0, toolItemId, insertCount);
 
-            // Insert経路では各スロットに1個ずつ入り、入りきらない分はメインに残る
-            // The insert path puts one item per slot and leaves the rest in main
             packet.GetPacketResponse(MoveItemPacket(insertCount, 0, 0, ItemMoveType.InsertSlot), new PacketResponseContext(null));
 
             var equipmentInventory = playerInventory.EquipmentInventory;
             Assert.AreEqual(MasterHolder.ToolMaster.EquipmentSlotCount, equipmentInventory.GetSlotSize());
-            for (var slot = 0; slot < equipmentInventory.GetSlotSize(); slot++)
-            {
-                Assert.AreEqual(toolItemId, equipmentInventory.GetItem(slot).Id);
-                Assert.AreEqual(1, equipmentInventory.GetItem(slot).Count);
-            }
-            Assert.AreEqual(insertCount - equipmentInventory.GetSlotSize(), playerInventory.MainOpenableInventory.GetItem(0).Count);
+            Assert.AreEqual(toolItemId, equipmentInventory.GetItem(0).Id);
+            Assert.AreEqual(insertCount, equipmentInventory.GetItem(0).Count);
+            Assert.AreEqual(0, playerInventory.MainOpenableInventory.GetItem(0).Count);
         }
 
         [Test]
-        public void 非ツールは挿入経路で装備スロットに1個も入らない()
+        public void 非ツールも挿入経路で装備スロットに入る()
         {
             var (packet, playerInventory) = CreateServerWithPlayerInventory();
             var nonToolItemId = NonToolItemId();
@@ -51,15 +54,13 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             packet.GetPacketResponse(MoveItemPacket(5, 0, 0, ItemMoveType.InsertSlot), new PacketResponseContext(null));
 
-            Assert.AreEqual(5, playerInventory.MainOpenableInventory.GetItem(0).Count);
-            for (var slot = 0; slot < playerInventory.EquipmentInventory.GetSlotSize(); slot++)
-            {
-                Assert.AreEqual(0, playerInventory.EquipmentInventory.GetItem(slot).Count);
-            }
+            Assert.AreEqual(nonToolItemId, playerInventory.EquipmentInventory.GetItem(0).Id);
+            Assert.AreEqual(5, playerInventory.EquipmentInventory.GetItem(0).Count);
+            Assert.AreEqual(0, playerInventory.MainOpenableInventory.GetItem(0).Count);
         }
 
         [Test]
-        public void 空の装備スロットへの入れ替え指定は1個だけ受け取り残りは戻る()
+        public void 空の装備スロットへの入れ替え指定は全数を受け取る()
         {
             var (packet, playerInventory) = CreateServerWithPlayerInventory();
             var toolItemId = ToolItemId();
@@ -69,25 +70,25 @@ namespace Tests.CombinedTest.Server.PacketTest
             // The destination is empty, so SwapSlot still goes through the ReplaceItem path instead of a swap
             packet.GetPacketResponse(MoveItemPacket(4, 0, 0, ItemMoveType.SwapSlot), new PacketResponseContext(null));
 
-            Assert.AreEqual(1, playerInventory.EquipmentInventory.GetItem(0).Count);
-            Assert.AreEqual(3, playerInventory.MainOpenableInventory.GetItem(0).Count);
+            Assert.AreEqual(4, playerInventory.EquipmentInventory.GetItem(0).Count);
+            Assert.AreEqual(0, playerInventory.MainOpenableInventory.GetItem(0).Count);
         }
 
         [Test]
-        public void 非ツールは入れ替え経路でも装備スロットに入らない()
+        public void 非ツールは入れ替え経路でも装備スロットに入る()
         {
             var (packet, playerInventory) = CreateServerWithPlayerInventory();
             var toolItemId = ToolItemId();
             var nonToolItemId = NonToolItemId();
 
-            // 装備済みツールと非ツールを全数入れ替えようとする
-            // Try to swap an equipped tool with a non-tool in full
+            // 装備済みツールと非ツールを全数入れ替える
+            // Swap an equipped tool with a non-tool in full
             playerInventory.EquipmentInventory.SetItem(0, toolItemId, 1);
             playerInventory.MainOpenableInventory.SetItem(0, nonToolItemId, 1);
             packet.GetPacketResponse(MoveItemPacket(1, 0, 0, ItemMoveType.SwapSlot), new PacketResponseContext(null));
 
-            Assert.AreEqual(toolItemId, playerInventory.EquipmentInventory.GetItem(0).Id);
-            Assert.AreEqual(nonToolItemId, playerInventory.MainOpenableInventory.GetItem(0).Id);
+            Assert.AreEqual(nonToolItemId, playerInventory.EquipmentInventory.GetItem(0).Id);
+            Assert.AreEqual(toolItemId, playerInventory.MainOpenableInventory.GetItem(0).Id);
         }
 
         [Test]
@@ -133,7 +134,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private ItemId NonToolItemId()
         {
-            return MasterHolder.ItemMaster.GetItemAllIds().First(itemId => !MasterHolder.ToolMaster.IsTool(itemId));
+            return MasterHolder.ItemMaster.GetItemId(NonToolItemGuid);
         }
     }
 }

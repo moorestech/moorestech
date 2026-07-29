@@ -30,8 +30,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static readonly Guid PickUpMapObjectGuid = Guid.Parse("8c0e1339-be75-4690-99cd-58b5385a17cd");
         private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
-        // toolsには登録されているがTestMiningRockのminingToolsには無いツール
-        // A tool registered in tools but absent from TestMiningRock's miningTools
+        // TestMiningRockのminingToolsには無いアイテム
+        // An item absent from TestMiningRock's miningTools
         private static readonly Guid UnmatchedToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
 
         private const int ExpectedToolDamage = 7;
@@ -78,8 +78,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var mapObject = GetMapObject(MiningMapObjectGuid);
             var initialHp = mapObject.CurrentHp;
 
-            // 装備可能だがminingToolsに無いツールでは、どのdamageにも解決されずHPは変化しない
-            // An equippable tool absent from miningTools resolves to no damage, so HP stays untouched
+            // miningToolsに無いアイテムを装備してもどのdamageにも解決されずHPは変化しない
+            // An item absent from miningTools resolves to no damage, so HP stays untouched
             EquipTool(playerInventory, UnmatchedToolItemGuid);
             SendAttack(packet, mapObject.InstanceId);
             Assert.AreEqual(initialHp, mapObject.CurrentHp);

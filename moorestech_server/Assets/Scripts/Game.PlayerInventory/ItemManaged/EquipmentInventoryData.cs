@@ -11,7 +11,7 @@ using Game.PlayerInventory.Interface.Event;
 
 namespace Game.PlayerInventory.ItemManaged
 {
-    public class EquipmentInventoryData : IEquipmentInventory, IItemAcceptanceInventory
+    public class EquipmentInventoryData : IEquipmentInventory
     {
         public IReadOnlyList<IItemStack> InventoryItems => _openableInventoryService.InventoryItems;
         public int SelectedEquipmentIndex { get; private set; }
@@ -25,26 +25,15 @@ namespace Game.PlayerInventory.ItemManaged
             _playerId = playerId;
             _equipmentInventoryUpdateEvent = equipmentInventoryUpdateEvent;
 
-            // 受入制限は自身が持つため、自分をoptionへ渡してCore側の強制に乗せる
-            // This inventory owns the acceptance rule, so pass itself into the option to ride Core's enforcement
+            // スロット数はマスタの装備スロット数に従う
+            // The slot count follows the equipment slot count from master
             _openableInventoryService = new OpenableInventoryItemDataStoreService(
                 InvokeEvent, ServerContext.ItemStackFactory,
-                MasterHolder.ToolMaster.EquipmentSlotCount,
-                new OpenableInventoryItemDataStoreServiceOption(this));
+                MasterHolder.ToolMaster.EquipmentSlotCount);
 
             // 初期選択は先頭スロットだが、装備スロットが無いマスタでは素手へ丸める
             // The initial selection is the first slot, clamped to bare hands when master has no equipment slot
             ApplySelectedEquipmentIndexWithoutEvent(0);
-        }
-
-        public bool CanAccept(ItemId itemId)
-        {
-            return MasterHolder.ToolMaster.IsTool(itemId);
-        }
-
-        public int GetMaxCountPerSlot(ItemId itemId)
-        {
-            return 1;
         }
 
         public void SetSelectedEquipmentIndex(int index)
@@ -74,63 +63,20 @@ namespace Game.PlayerInventory.ItemManaged
         }
 
         /// <summary>
-        ///     セーブから装備を復元し、装備できなかったアイテムを返す。
-        ///     復元はSetItemWithoutEventで書き込むため受入制限が効かず、ここで明示的に検証する。
-        ///     Restore equipment from a save and return the items that could not be equipped.
-        ///     Restoring writes through SetItemWithoutEvent, which skips acceptance, so it is verified explicitly here.
+        ///     セーブから装備とその選択位置を復元する。
+        ///     Restore the equipment items and the selected index from a save.
         /// </summary>
-        public List<IItemStack> RestoreFromSave(List<IItemStack> savedItems, int selectedEquipmentIndex)
+        public void RestoreFromSave(List<IItemStack> savedItems, int selectedEquipmentIndex)
         {
-            var rejectedItems = new List<IItemStack>();
-            for (var slot = 0; slot < savedItems.Count; slot++)
-            {
-                // スロット数はマスタ由来で保存されないため、マスタが縮んだ分のセーブは丸ごと退避する
-                // The slot count comes from master and is not saved, so stacks beyond it are handed back whole
-                if (GetSlotSize() <= slot)
-                {
-                    AddRejectedItem(savedItems[slot]);
-                    continue;
-                }
-                RestoreSlot(slot, savedItems[slot]);
-            }
+            // スロット数はマスタ由来で保存されないため、マスタが縮んだ場合は入る分だけ復元する
+            // The slot count comes from master and is not saved, so restore only what fits when master shrank
+            var restoreCount = Math.Min(savedItems.Count, GetSlotSize());
+            for (var slot = 0; slot < restoreCount; slot++)
+                _openableInventoryService.SetItemWithoutEvent(slot, savedItems[slot]);
 
             // 復元はアイテムも選択も無発火で揃え、ロード時に差分イベントを積まない
             // Restoring keeps both items and selection event-free so loading queues no diff events
             ApplySelectedEquipmentIndexWithoutEvent(selectedEquipmentIndex);
-            return rejectedItems;
-
-            #region Internal
-
-            void RestoreSlot(int slot, IItemStack savedItem)
-            {
-                // ツールでないアイテムは装備させず丸ごと退避する
-                // Items that are not tools are never equipped and are handed back whole
-                if (!CanAccept(savedItem.Id))
-                {
-                    AddRejectedItem(savedItem);
-                    return;
-                }
-
-                // 1枠上限までを装備し、超過分だけを退避する
-                // Equip up to the per-slot cap and hand back only the excess
-                var maxCountPerSlot = GetMaxCountPerSlot(savedItem.Id);
-                if (savedItem.Count <= maxCountPerSlot)
-                {
-                    _openableInventoryService.SetItemWithoutEvent(slot, savedItem);
-                    return;
-                }
-
-                _openableInventoryService.SetItemWithoutEvent(slot, savedItem.SubItem(savedItem.Count - maxCountPerSlot));
-                AddRejectedItem(savedItem.SubItem(maxCountPerSlot));
-            }
-
-            void AddRejectedItem(IItemStack rejectedItem)
-            {
-                if (rejectedItem.Count == 0) return;
-                rejectedItems.Add(rejectedItem);
-            }
-
-            #endregion
         }
 
         public IItemStack GetItem(int slot)

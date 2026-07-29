@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
@@ -16,6 +16,10 @@ namespace Tests.CombinedTest.Game
     public class EquipmentInventorySaveLoadTest
     {
         private const int PlayerId = 0;
+
+        // toolsに登録されていない通常アイテム(Test2)
+        // A plain item (Test2) that is not registered in tools
+        private static readonly Guid NonToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000002");
 
         [Test]
         public void 装備と選択インデックスがセーブロードで往復する()
@@ -65,14 +69,14 @@ namespace Tests.CombinedTest.Game
         }
 
         [Test]
-        public void 装備できないセーブアイテムはメインインベントリへ退避する()
+        public void 非ツールも複数個の装備もセーブのまま復元する()
         {
             var saveStore = CreateInventoryDataStore();
             saveStore.GetInventoryData(PlayerId);
             var saveJsonObjects = saveStore.GetSaveJsonObject();
 
-            // 非ツールと上限超過のツールが装備スロットに保存された壊れたセーブを作る
-            // Build a corrupted save where a non-tool and an over-capped tool sit in equipment slots
+            // 非ツールと2個以上のツールが装備スロットに入ったセーブを作る
+            // Build a save where a non-tool and a stack of two or more tools sit in equipment slots
             var itemStackFactory = ServerContext.ItemStackFactory;
             saveJsonObjects[0].EquipmentInventoryItems = new List<ItemStackSaveJsonObject>
             {
@@ -85,16 +89,19 @@ namespace Tests.CombinedTest.Game
             loadStore.LoadPlayerInventory(saveJsonObjects);
             var loadedInventory = loadStore.GetInventoryData(PlayerId);
 
-            // 装備には受け入れ可能な1個だけが残る
-            // Equipment keeps only the single acceptable item
-            Assert.AreEqual(0, loadedInventory.EquipmentInventory.GetItem(0).Count);
-            Assert.AreEqual(ToolItemId(), loadedInventory.EquipmentInventory.GetItem(1).Id);
-            Assert.AreEqual(1, loadedInventory.EquipmentInventory.GetItem(1).Count);
+            // 受入制限が無いため、セーブ内容がそのまま装備スロットへ戻る
+            // Without acceptance restrictions the save content is restored into the equipment slots as is
+            var loadedEquipment = loadedInventory.EquipmentInventory;
+            Assert.AreEqual(NonToolItemId(), loadedEquipment.GetItem(0).Id);
+            Assert.AreEqual(1, loadedEquipment.GetItem(0).Count);
+            Assert.AreEqual(ToolItemId(), loadedEquipment.GetItem(1).Id);
+            Assert.AreEqual(3, loadedEquipment.GetItem(1).Count);
+            Assert.AreEqual(0, loadedEquipment.GetItem(2).Count);
 
-            // 入らなかった分はメインインベントリに残り、消失しない
-            // What did not fit stays in the main inventory instead of disappearing
-            Assert.AreEqual(1, CountInMainInventory(loadedInventory, NonToolItemId()));
-            Assert.AreEqual(2, CountInMainInventory(loadedInventory, ToolItemId()));
+            // メインインベントリへの退避は起きない
+            // Nothing falls back into the main inventory
+            Assert.AreEqual(0, CountInMainInventory(loadedInventory, NonToolItemId()));
+            Assert.AreEqual(0, CountInMainInventory(loadedInventory, ToolItemId()));
         }
 
         private int CountInMainInventory(PlayerInventoryData playerInventoryData, ItemId itemId)
@@ -121,7 +128,7 @@ namespace Tests.CombinedTest.Game
 
         private ItemId NonToolItemId()
         {
-            return MasterHolder.ItemMaster.GetItemAllIds().First(itemId => !MasterHolder.ToolMaster.IsTool(itemId));
+            return MasterHolder.ItemMaster.GetItemId(NonToolItemGuid);
         }
     }
 }

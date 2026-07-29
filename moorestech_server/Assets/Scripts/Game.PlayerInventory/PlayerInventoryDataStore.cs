@@ -4,7 +4,6 @@ using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.PlayerInventory.ItemManaged;
 using UniRx;
-using UnityEngine;
 
 namespace Game.PlayerInventory
 {
@@ -88,13 +87,8 @@ namespace Game.PlayerInventory
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, slotCount, mainItems);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, grabItem);
 
-                // 装備できないセーブアイテムはメインへ退避し、アイテムを消さない
-                // Saved items that cannot be equipped fall back into main so nothing is destroyed
                 var equipment = new EquipmentInventoryData(playerId, _equipmentInventoryUpdateEvent);
-                var rejectedEquipmentItems = equipment.RestoreFromSave(equipmentItems, selectedEquipmentIndex);
-                var notInsertedItems = main.InsertItem(rejectedEquipmentItems);
-                foreach (var notInsertedItem in notInsertedItems)
-                    Debug.LogWarning($"装備から退避したアイテムがメインインベントリに入りきりませんでした playerId:{playerId} item:{notInsertedItem.Id} count:{notInsertedItem.Count}");
+                equipment.RestoreFromSave(equipmentItems, selectedEquipmentIndex);
 
                 var playerInventory = new PlayerInventoryData(main, grab, equipment);
                 

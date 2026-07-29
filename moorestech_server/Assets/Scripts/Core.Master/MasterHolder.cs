@@ -67,8 +67,6 @@ namespace Core.Master
             BuildToolMaster = new BuildToolMaster(GetJson(masterJsonFileContainer, new JsonFileName("buildMenu")));
             InitializeMaster(BuildToolMaster);
 
-            // ItemMaster, ToolMaster依存（miningToolsのtoolItemGuidがtoolsに登録済みかを検証）
-            // Depends on ItemMaster, ToolMaster (validates miningTools' toolItemGuid is registered in tools)
             MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("map")));
             InitializeMaster(MapObjectMaster);
 

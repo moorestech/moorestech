@@ -6,8 +6,8 @@ using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
-    // 装備ツール（斧・石器等）のマスタ。生ロードとItemId索引のみを保持する
-    // Master for equippable tools (axe, stone tool, etc.); holds only raw load and an ItemId index
+    // 装備ツール（斧・石器等）と装備スロット数のマスタ
+    // Master for equippable tools (axe, stone tool, etc.) and the equipment slot count
     public class ToolMaster : IMasterValidator
     {
         public readonly int EquipmentSlotCount;
@@ -15,10 +15,6 @@ namespace Core.Master
         // 生配列は可変なので外部へは公開せず、参照はAllのみに絞る
         // The raw array is mutable, so it stays private and All is the only exposed view
         private readonly ToolMasterElement[] _tools;
-
-        // 装備可能アイテムIdの集合（IsTool判定用）
-        // Set of equippable itemIds (for IsTool lookup)
-        private HashSet<ItemId> _toolItemIds;
 
         public ToolMaster(JToken itemJToken)
         {
@@ -34,18 +30,10 @@ namespace Core.Master
 
         public void Initialize()
         {
-            _toolItemIds = new HashSet<ItemId>();
-            foreach (var element in _tools)
-            {
-                _toolItemIds.Add(MasterHolder.ItemMaster.GetItemId(element.ToolItemGuid));
-            }
+            // ToolMasterは追加の初期化処理がないため、空実装
+            // ToolMaster has no additional initialization, so empty implementation
         }
 
         public IReadOnlyList<ToolMasterElement> All => _tools;
-
-        public bool IsTool(ItemId itemId)
-        {
-            return _toolItemIds.Contains(itemId);
-        }
     }
 }

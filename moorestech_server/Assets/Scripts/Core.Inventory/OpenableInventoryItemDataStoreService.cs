@@ -23,7 +23,7 @@ namespace Core.Inventory
         {
             _itemStackFactory = itemStackFactory;
             _onInventoryUpdate = onInventoryUpdate;
-            _option = option ?? new OpenableInventoryItemDataStoreServiceOption(UnrestrictedItemAcceptance.Instance);
+            _option = option ?? new OpenableInventoryItemDataStoreServiceOption();
 
             _inventory = new List<IItemStack>();
             for (var i = 0; i < slotNumber; i++) _inventory.Add(_itemStackFactory.CreatEmpty());
@@ -98,7 +98,20 @@ namespace Core.Inventory
         
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
-            return InventoryReplaceItem.ReplaceItem(slot, itemStack, _inventory, _option, InvokeEvent);
+            //アイテムIDが同じの時はスタックして余ったものを返す
+            var item = _inventory[slot];
+            if (item.Id == itemStack.Id)
+            {
+                var result = item.AddItem(itemStack);
+                _inventory[slot] = result.ProcessResultItemStack;
+                InvokeEvent(slot);
+                return result.RemainderItemStack;
+            }
+            
+            //違う場合はそのまま入れ替える
+            _inventory[slot] = itemStack;
+            InvokeEvent(slot);
+            return item;
         }
         
         public IItemStack ReplaceItem(int slot, ItemId itemId, int count)
@@ -149,17 +162,5 @@ namespace Core.Inventory
         /// If true, inserting an item may create a new stack  even if another stack of the same item already exists.
         /// </summary>
         public bool AllowMultipleStacksPerItemOnInsert { get; set; } = true;
-
-        /// <summary>
-        /// 受入可否と1スロット上限の判定先。制限が無いインベントリはUnrestrictedItemAcceptance.Instanceを渡します。
-        /// Decides acceptance and the per-slot cap; unrestricted inventories pass UnrestrictedItemAcceptance.Instance.
-        /// </summary>
-        public IItemAcceptanceInventory ItemAcceptance => _itemAcceptance;
-        private readonly IItemAcceptanceInventory _itemAcceptance;
-
-        public OpenableInventoryItemDataStoreServiceOption(IItemAcceptanceInventory itemAcceptance)
-        {
-            _itemAcceptance = itemAcceptance;
-        }
     }
 }
