@@ -1,0 +1,83 @@
+using System.Text;
+using Mooresmaster.LocalizationCsv;
+
+namespace mooresmaster.Generator.Localization;
+
+internal static class LocalizationCodeSyntax
+{
+    public static void ValidateKeys(LocalizationCsv csv)
+    {
+        // 生成可能な識別子だけをキーsegmentとして受け入れる
+        // Accept only key segments that can become generated identifiers
+        foreach (var row in csv.Rows)
+        {
+            var segments = row.Key.Split('.');
+            var containingTypeName = "LocalizationKeys";
+            foreach (var segment in segments)
+            {
+                if (!IsLowerCamelSegment(segment))
+                {
+                    throw new LocalizationCsvException(
+                        $"Localization key segment '{segment}' in key '{row.Key}' must match [a-z][A-Za-z0-9]*");
+                }
+
+                // C#で禁止される親型と同名のメンバー生成を防ぐ
+                // Prevent members from receiving their containing type's forbidden name
+                var generatedName = ToPascalCase(segment);
+                if (generatedName == containingTypeName)
+                {
+                    throw new LocalizationCsvException(
+                        $"Localization key segment '{segment}' in key '{row.Key}' conflicts with its containing type");
+                }
+
+                containingTypeName = generatedName;
+            }
+        }
+    }
+
+    public static string Escape(string text)
+    {
+        var builder = new StringBuilder();
+        // 許可済みの制御文字だけをC#エスケープへ変換する
+        // Convert only approved control characters into C# escapes
+        foreach (var character in text)
+        {
+            if (character == '\\') builder.Append("\\\\");
+            else if (character == '"') builder.Append("\\\"");
+            else if (character == '\n') builder.Append("\\n");
+            else if (character == '\r') builder.Append("\\r");
+            else if (char.IsControl(character))
+                throw new LocalizationCsvException($"Unsupported control character U+{(int)character:X4} in localization text");
+            else builder.Append(character);
+        }
+
+        return builder.ToString();
+    }
+
+    public static string ToPascalCase(string segment)
+    {
+        return char.ToUpperInvariant(segment[0]) + segment.Substring(1);
+    }
+
+    private static bool IsLowerCamelSegment(string segment)
+    {
+        // 先頭小文字と後続ASCII英数字の契約を境界で検査する
+        // Enforce the leading lowercase and trailing ASCII alphanumeric contract
+        if (segment.Length == 0 || segment[0] < 'a' || segment[0] > 'z')
+        {
+            return false;
+        }
+
+        for (var index = 1; index < segment.Length; index++)
+        {
+            var character = segment[index];
+            var isLetter = character >= 'a' && character <= 'z' || character >= 'A' && character <= 'Z';
+            if (!isLetter && (character < '0' || character > '9'))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
