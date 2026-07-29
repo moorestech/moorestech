@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
@@ -11,10 +12,16 @@ using Game.PlayerInventory.Interface.Event;
 
 namespace Game.PlayerInventory.ItemManaged
 {
-    public class EquipmentInventoryData : IEquipmentInventory
+    public class EquipmentInventoryData : IEquipmentInventory, ISortExcludedSlots
     {
         public IReadOnlyList<IItemStack> InventoryItems => _openableInventoryService.InventoryItems;
         public int SelectedEquipmentIndex { get; private set; }
+
+        /// <summary>
+        ///     装備は選択インデックスがスロット位置を指すため、整理で詰め直されると別のツールを選ぶことになる
+        ///     The selected index points at a slot, so re-packing by sorting would silently select a different tool
+        /// </summary>
+        public IReadOnlyCollection<int> SortExcludedSlots => Enumerable.Range(0, GetSlotSize()).ToList();
 
         private readonly EquipmentInventoryUpdateEvent _equipmentInventoryUpdateEvent;
         private readonly OpenableInventoryItemDataStoreService _openableInventoryService;

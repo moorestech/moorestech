@@ -161,6 +161,31 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(lastModuleItem, machineComponent.GetItem(8));
         }
 
+        [Test]
+        public void EquipmentInventoryIsExcludedFromSortTest()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var equipmentInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).EquipmentInventory;
+            var itemStackFactory = ServerContext.ItemStackFactory;
+
+            // 前方に空きを残して装備を置き、選択インデックス2が指す中身を固定する
+            // Leave the front slots empty so the content pointed at by selected index 2 is pinned
+            var lastSlot = equipmentInventory.GetSlotSize() - 1;
+            equipmentInventory.SetItem(lastSlot, new ItemId(2), 3);
+            equipmentInventory.SetSelectedEquipmentIndex(lastSlot);
+
+            // 装備識別子はプロトコル上そのまま解決されるため、除外宣言が無いと実際に整理されてしまう
+            // The equipment identifier resolves as-is in the protocol, so without an exclusion it really would be tidied
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateEquipmentMessage(PlayerId)), new PacketResponseContext(null));
+
+            // 詰め直されると選択インデックスが空スロットを指すことになる
+            // Re-packing would leave the selected index pointing at an empty slot
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(2), 3), equipmentInventory.GetItem(lastSlot));
+            Assert.AreEqual(ItemMaster.EmptyItemId, equipmentInventory.GetItem(0).Id);
+            Assert.AreEqual(new ItemId(2), equipmentInventory.GetSelectedItem().Id);
+        }
+
         private byte[] GetPacket(InventoryIdentifierMessagePack target)
         {
             return MessagePackSerializer.Serialize(new SortInventoryProtocolMessagePack(target));

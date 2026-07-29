@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Game.Block.Interface.Component
+namespace Core.Inventory
 {
     /// <summary>
     ///     インベントリ整理（ソート）の対象から除外するスロットを宣言するインターフェース
