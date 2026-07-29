@@ -650,7 +650,7 @@ unity-playmode-recorded-playtestスキルの手順でPlayMode起動:
 2. command 2: mod日本語が空でSkit日本語が非空のためSkit日本語
 3. command 3: mod/Skit日本語が空でmod英語が非空のため `MOD ENGLISH 3`
 4. command 4: 対象言語2段とmod英語が空でSkit英語が非空のためSkit英語
-5. command 5: 4辞書すべて欠落のためskit JSON原文
+5. command 6: mod CSV/Skit専用辞書の4段すべてに未登録の実在text commandなのでskit JSON原文
 6. どのケースも空文字を表示せず、background本文、selection表示選択肢、overrideCharacterNameも同じ規則で翻訳される
 7. `command.*` / `master.*` がゲーム辞書へ漏れず、他画面でも対象言語→english→source→`[!key]` が維持される
 

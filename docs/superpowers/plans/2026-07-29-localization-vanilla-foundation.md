@@ -19,7 +19,7 @@ spec: docs/superpowers/specs/2026-07-29-localization-foundation-design.md
 - try-catch原則禁止。例外は外部境界のみ・根拠コメント必須（AGENTS.md）
 - 1ファイル200行以下（**自動生成ファイルとCSVは対象外**。生成物はMooresmaster.Model同様の扱い）
 - 主要処理に日本語→英語の2行セットコメント（AGENTS.md）
-- .metaファイル手動作成禁止。build.shの既存meta生成スクリプトはRoslynAnalyzer専用generator DLLだけの既存例外で、runtime共通DLLへ流用しない
+- .metaファイル手動作成・スクリプト生成・上書き禁止。build.shから既存 `generate_meta` 関数と全呼び出しを削除し、全metaはUnity Editorだけに生成/設定させる
 - Prefab/シーンの直接テキスト編集禁止。変更は `uloop execute-dynamic-code` 経由（AGENTS.md）
 - .csファイル変更後は必ず `uloop compile --project-path ./moorestech_client` を実行
 - 名前空間キーの表記: dot区切り・セグメントはlowerCamel（例 `ui.buildMenu.close`）。キーは「葉と枝を兼ねない」（`ui.save` と `ui.save.confirm` の併存禁止。generatorが検査）
@@ -709,7 +709,7 @@ public class LocalizationSourceGenerator : IIncrementalGenerator
 
 - [ ] **Step 2: build.shを共通DLLデプロイへ拡張する**
 
-`mooresmaster/build.sh` は generator build後に `mooresmaster.LocalizationCsv/bin/Release/netstandard2.0/mooresmaster.LocalizationCsv.dll` の存在を検査し、client/serverの `Assets/Plugins/` へDLL本体だけをコピーする。既存 `generate_meta` 呼び出しは `mooresmaster.Generator.dll` のRoslynAnalyzer label専用なので変更せず、共通DLLをその関数の対象へ絶対に追加しない。共通DLLの `.meta` は各Unity Editorにimportさせて生成し、通常runtime plugin前例（`Microsoft.Extensions.DependencyInjection.Abstractions.dll.meta` の `Any.enabled: 1`）と同じくruntime参照可能であることを確認する。
+`mooresmaster/build.sh` は generator build後に `mooresmaster.LocalizationCsv/bin/Release/netstandard2.0/mooresmaster.LocalizationCsv.dll` の存在を検査し、client/serverの `Assets/Plugins/` へgenerator/commonのDLL本体だけをコピーする。既存 `generate_meta` 関数、meta heredoc、`sed`置換、`echo "Generating .meta files..."`、generator metaへの2呼び出しをすべて削除し、いかなるmetaも生成・上書きしない。追跡済み `mooresmaster.Generator.dll.meta` は既存RoslynAnalyzer設定のまま保持し、build前後でdiffが無いことを検査する。新規共通DLLの `.meta` は各Unity Editorにimportさせ、通常runtime plugin前例（`Microsoft.Extensions.DependencyInjection.Abstractions.dll.meta` の `Any.enabled: 1`）と同じ設定をUnityの `PluginImporter` API/Inspectorから適用する。
 
 - [ ] **Step 3: 全テストとビルドを確認する**
 
@@ -722,12 +722,15 @@ Run: `./mooresmaster/build.sh`
 Expected: `mooresmaster.LocalizationCsv.dll` と `mooresmaster.Generator.dll` がclient/serverの両方へ配置される
 
 Run: `uloop compile --project-path ./moorestech_client && uloop compile --project-path ./moorestech_server`
-Expected: Unityが両方の `mooresmaster.LocalizationCsv.dll.meta` を生成し、RoslynAnalyzer labelなし・runtime plugin有効でcompile成功
+Expected: Unityが両方の `mooresmaster.LocalizationCsv.dll.meta` を生成し、RoslynAnalyzer labelなし・runtime plugin有効でcompile成功。設定がdefaultと異なる場合は `uloop execute-dynamic-code` から `PluginImporter.SetCompatibleWithAnyPlatform(true)` / `SaveAndReimport()` を実行し、meta YAMLを直接編集しない
 
 - [ ] **Step 5: 配置と参照を検証してコミットする**
 
 Run: `shasum -a 256 mooresmaster/mooresmaster.LocalizationCsv/bin/Release/netstandard2.0/mooresmaster.LocalizationCsv.dll moorestech_client/Assets/Plugins/mooresmaster.LocalizationCsv.dll moorestech_server/Assets/Plugins/mooresmaster.LocalizationCsv.dll`
 Expected: 3ファイルのhashが一致
+
+Run: `git diff --exit-code -- moorestech_client/Assets/Plugins/mooresmaster.Generator.dll.meta moorestech_server/Assets/Plugins/mooresmaster.Generator.dll.meta && ! rg -n "generate_meta|Generating \\.meta|\\.dll\\.meta" mooresmaster/build.sh`
+Expected: 追跡済みgenerator metaは無変更、build.shのmeta生成/上書き処理は0件
 
 ```bash
 git add mooresmaster/mooresmaster.Generator/LocalizationSourceGenerator.cs \
@@ -1320,7 +1323,7 @@ git status --short && git add -A && git commit -m "chore: ローカライズバ�
 - **CSV parserはruntime参照可能な共通DLLへ分離** — generator/runtimeの依存方向を共通の純粋ライブラリへ揃え、実装コピーを禁止する。build.shは共通DLLとgenerator DLLをclient/serverへ同時デプロイする。出所: ユーザー裁定 2026-07-29
 - **GetLegacyもsourceを含む4段解決** — Prefab直列化キーも対象言語→english→source→`[!key]` を省略しない。出所: ユーザー裁定 2026-07-29
 - **空文字は欠落としてfallbackを継続** — parserは空fieldを保持するが、runtime合成/解決は空文字を登録/返却しない。Source列のliteral `\n` も翻訳列と同様に実改行へ変換する。出所: Task 0 review finding 2026-07-29
-- **共通DLL metaはUnity生成** — RoslynAnalyzer専用generator metaをruntime DLLへ流用せず、build.shはDLLだけを配置してclient/server Unity Editorに通常runtime plugin metaを生成させる。出所: Task 0 review finding 2026-07-29
+- **全DLL metaはUnity管理** — build.shからgeneratorを含む全meta生成/上書きを撤廃する。追跡済みgenerator metaは保持し、新規runtime DLL metaとPluginImporter設定はclient/server Unity Editorの正規APIだけで作る。出所: Task 0 re-review finding 2026-07-29
 
 ## 配置と前例
 

@@ -33,5 +33,5 @@
 
 - コードと文言が同一コミットで動き、ドリフトが構造的に消える。
 - mooresmaster generator 変更時は `mooresmaster/build.sh` で client/server 両方の DLL を再ビルド・コミットする運用が必要。
-- 共通CSVライブラリ変更時も `mooresmaster/build.sh` で parser DLL と generator DLL を client/server の両方へ再ビルド・コミットする。generator DLLの既存metaはRoslynAnalyzer専用だが、共通DLLのmetaは流用・手動生成せずUnity自身にruntime pluginとして生成させる。
+- 共通CSVライブラリ変更時も `mooresmaster/build.sh` で parser DLL と generator DLL を client/server の両方へ再ビルド・コミットする。build.shから全meta生成/上書きを除去し、追跡済みgenerator metaは保持、新規共通DLL metaはUnity自身にruntime pluginとして生成・設定させる。
 - 既存の `Localize.cs` の CSV パース・`TextMeshProLocalize` の try-catch（規約違反）は基盤改修で置き換えられ自然消滅する。
