@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Mooresmaster.LocalizationCsv;
 using mooresmaster.Generator.Localization;
 using Xunit;
+using static mooresmaster.Tests.LocalizationTests.LocalizationGeneratedCodeCompiler;
 
 namespace mooresmaster.Tests.LocalizationTests;
 
@@ -19,14 +15,17 @@ public class LocalizationCodeGeneratorTest
         const string csvText = "key,Source,english,japanese\nui.buildMenu.close,Close,Close,閉じる\n";
 
         var code = LocalizationCodeGenerator.Generate(LocalizationCsvParser.Parse(csvText));
-        var syntaxTree = CSharpSyntaxTree.ParseText(code);
+        var tableType = CompileTable(code);
 
-        // 生成物の公開キー構造とC#構文を同時に固定する
-        // Lock down the public key structure and valid C# syntax together
+        // 生成物の公開キー構造と値を実アセンブリから検証する
+        // Verify the generated public key structure and value from a real assembly
         Assert.Contains("public static class Ui", code);
         Assert.Contains("public static class BuildMenu", code);
         Assert.Contains("public static readonly LocalizationKey Close = new LocalizationKey(\"ui.buildMenu.close\");", code);
-        AssertNoSyntaxErrors(syntaxTree);
+        var buildMenuType = tableType.Assembly.GetType(
+            "Mooresmaster.Localization.Generated.LocalizationKeys+Ui+BuildMenu")!;
+        var localizationKey = buildMenuType.GetField("Close")!.GetValue(null)!;
+        Assert.Equal("ui.buildMenu.close", localizationKey.GetType().GetField("Key")!.GetValue(localizationKey));
     }
 
     [Fact]
@@ -94,6 +93,26 @@ public class LocalizationCodeGeneratorTest
     }
 
     [Theory]
+    [InlineData("\u2028")]
+    [InlineData("\u2029")]
+    public void Unicode改行文字をCSharpリテラルから値として復元できる(string separator)
+    {
+        var languageCode = $"english{separator}code";
+        var text = $"before{separator}after";
+        var csv = new LocalizationCsv(
+            new[] { languageCode },
+            new[] { new LocalizationRow("ui.message.body", text, new[] { text }) });
+
+        var tableType = CompileTable(LocalizationCodeGenerator.Generate(csv));
+        var languageCodes = (string[])tableType.GetField("LanguageCodes")!.GetValue(null)!;
+        var sourceTexts = (IReadOnlyDictionary<string, string>)tableType.GetField("SourceTexts")!.GetValue(null)!;
+
+        Assert.Equal(languageCode, Assert.Single(languageCodes));
+        Assert.Equal(text, sourceTexts["ui.message.body"]);
+        AssertLanguage(tableType, languageCode, "ui.message.body", text);
+    }
+
+    [Theory]
     [InlineData("")]
     [InlineData("build-menu")]
     [InlineData("build_menu")]
@@ -145,54 +164,4 @@ public class LocalizationCodeGeneratorTest
         Assert.Equal(expectedText, dictionary[key]);
     }
 
-    private static Type CompileTable(string code)
-    {
-        var syntaxTree = CSharpSyntaxTree.ParseText(code);
-        AssertNoSyntaxErrors(syntaxTree);
-        var references = CreatePlatformReferences();
-        var compilation = CSharpCompilation.Create(
-            $"GeneratedLocalization_{Guid.NewGuid():N}",
-            new[] { syntaxTree },
-            references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-        // 実際のアセンブリ生成で型・API・初期化式の整合性を検査する
-        // Verify types, APIs, and initializers by emitting a real assembly
-        using var stream = new MemoryStream();
-        var emitResult = compilation.Emit(stream);
-        Assert.True(emitResult.Success, FormatDiagnostics(emitResult.Diagnostics));
-        var assembly = Assembly.Load(stream.ToArray());
-        return assembly.GetType("Mooresmaster.Localization.Generated.VanillaLocalizationTable")!;
-    }
-
-    private static List<MetadataReference> CreatePlatformReferences()
-    {
-        var references = new List<MetadataReference>();
-        var platformAssemblies = (string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!;
-        foreach (var assemblyPath in platformAssemblies.Split(Path.PathSeparator))
-        {
-            references.Add(MetadataReference.CreateFromFile(assemblyPath));
-        }
-
-        return references;
-    }
-
-    private static void AssertNoSyntaxErrors(SyntaxTree syntaxTree)
-    {
-        foreach (var diagnostic in syntaxTree.GetDiagnostics())
-        {
-            Assert.NotEqual(DiagnosticSeverity.Error, diagnostic.Severity);
-        }
-    }
-
-    private static string FormatDiagnostics(IEnumerable<Diagnostic> diagnostics)
-    {
-        var builder = new StringBuilder();
-        foreach (var diagnostic in diagnostics)
-        {
-            builder.AppendLine(diagnostic.ToString());
-        }
-
-        return builder.ToString();
-    }
 }

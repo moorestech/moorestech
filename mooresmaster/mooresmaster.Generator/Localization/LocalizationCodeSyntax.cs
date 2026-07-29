@@ -46,6 +46,8 @@ internal static class LocalizationCodeSyntax
             else if (character == '"') builder.Append("\\\"");
             else if (character == '\n') builder.Append("\\n");
             else if (character == '\r') builder.Append("\\r");
+            else if (character == '\u2028') builder.Append("\\u2028");
+            else if (character == '\u2029') builder.Append("\\u2029");
             else if (char.IsControl(character))
                 throw new LocalizationCsvException($"Unsupported control character U+{(int)character:X4} in localization text");
             else builder.Append(character);
