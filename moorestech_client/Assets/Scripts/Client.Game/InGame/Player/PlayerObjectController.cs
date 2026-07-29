@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using Client.Common;
 using Client.Game.InGame.BlockSystem;
 using Client.Network.API;
 using StarterAssets;
@@ -44,11 +42,17 @@ namespace Client.Game.InGame.Player
         private Quaternion rideFollowLocalRotation;
         private bool rideFollowStoredControllerEnabled;
         private bool rideFollowDisabledController;
-        
+        private Vector3 worldSpawnPosition;
+
         public void Initialize(InitialHandshakeResponse initialHandshakeResponse)
         {
             controller.Initialize();
             characterController = GetComponent<CharacterController>();
+
+            // 落下復帰先はワールドのスポーン地点。地形はランタイム構築なのでシーン配置のマーカーは当てにできない
+            // Fall recovery targets the world spawn; terrain is built at runtime so a scene-authored marker cannot be trusted
+            worldSpawnPosition = initialHandshakeResponse.MapLayout.Spawn;
+
             SetPlayerPosition(initialHandshakeResponse.PlayerPos);
         }
         
@@ -66,22 +70,12 @@ namespace Client.Game.InGame.Player
             // Run fall recovery only during normal player control
             if (transform.localPosition.y < -50)
             {
+                // 真下に地表があればその高さへ戻し、地形の外へ落ちたならスポーン地点へ戻す
+                // Land on the ground right below when there is one; otherwise return to the spawn point after falling off the terrain
                 var point = SlopeBlockPlaceSystem.GetGroundPoint(transform.position);
-                if (point.HasValue)
-                {
-                    SetPlayerPosition(new Vector3(transform.localPosition.x, point.Value.y, transform.localPosition.z));
-                }
-                else
-                {
-                    var spawnPoint = FindObjectsByType<SpawnPointObject>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault();
-                    if (spawnPoint == null)
-                    {
-                        SetPlayerPosition(new Vector3(0, 100, 0));
-                        Debug.LogError("SpawnPointObject not found in the scene.");
-                        return;
-                    }
-                    SetPlayerPosition(spawnPoint.transform.position);
-                }
+                SetPlayerPosition(point.HasValue
+                    ? new Vector3(transform.localPosition.x, point.Value.y, transform.localPosition.z)
+                    : worldSpawnPosition);
             }
         }
         
