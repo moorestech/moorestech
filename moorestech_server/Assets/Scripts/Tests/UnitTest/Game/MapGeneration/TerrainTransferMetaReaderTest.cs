@@ -2,11 +2,13 @@ using System;
 using System.IO;
 using System.Linq;
 using Game.MapGeneration.Export;
+using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Tests.Module;
+using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration
 {
@@ -58,13 +60,13 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.AreEqual(seed, TerrainTransferMetaReader.Read(worldDataDirectory).WorldSeed);
         }
 
-        // 非nullableなfloatはキー欠損でも例外にならず0になる。0は探索無効ワールドの正当な値なので区別が付かない
-        // A non-nullable float never throws on a missing key, it becomes 0, and 0 is a search-less world's legitimate value
+        // キー欠損を0として読み進めると、探索無効ワールドの正当な0と区別が付かないまま別の場所の地形を配ることになる
+        // Reading a missing key as 0 is indistinguishable from a search-less world's legitimate 0 and would ship another place's terrain
         [TestCase("terrainNoiseOriginX")]
         [TestCase("terrainNoiseOriginZ")]
         [TestCase("terrainSceneOriginX")]
         [TestCase("terrainSceneOriginZ")]
-        public void world_jsonに原点キーが欠けていたら0で補わず例外を投げる(string missingKey)
+        public void generatedのworld_jsonに原点キーが欠けていたら0で補わず例外を投げる(string missingKey)
         {
             var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
 
@@ -74,7 +76,30 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             // 0で読み進めるとクライアントは別の場所のノイズ窓で分類段を回し、転送地形に無関係な海岸線と草を貼る
             // Reading on with 0 would make clients classify another place's noise window, painting an unrelated coastline onto the transferred terrain
-            Assert.Throws<JsonSerializationException>(() => TerrainTransferMetaReader.Read(worldDataDirectory));
+            var exception = Assert.Throws<InvalidOperationException>(() => TerrainTransferMetaReader.Read(worldDataDirectory));
+
+            // 読み手はパケット応答経路で例外を握り潰されるため、ログ1行からどのworld.jsonをどうするか分かる必要がある
+            // The caller sits on a packet path that swallows exceptions, so the single log line must say which world.json to act on
+            Assert.That(exception.Message, Does.Contain(worldDataDirectory.WorldMetaFilePath));
+        }
+
+        // templateは地形を生成せず原点という概念自体が無い。旧バージョンが書いたキー無しのworld.jsonも読めねばならない
+        // Template worlds generate no terrain and have no origin concept, so a key-less world.json written by an older build must still read
+        [Test]
+        public void templateのworld_jsonは原点キーが無くても読める()
+        {
+            var worldDataDirectory = _testScope.ProvisionTemplateWorld(12345);
+
+            var worldMeta = JObject.Parse(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
+            foreach (var originKey in new[] { "terrainNoiseOriginX", "terrainNoiseOriginZ", "terrainSceneOriginX", "terrainSceneOriginZ" })
+                worldMeta.Remove(originKey);
+            File.WriteAllText(worldDataDirectory.WorldMetaFilePath, worldMeta.ToString());
+
+            var meta = TerrainTransferMetaReader.Read(worldDataDirectory);
+
+            Assert.AreEqual(WorldProvisioner.TemplateMapMode, meta.MapMode);
+            Assert.AreEqual(Vector2.zero, meta.Origins.NoiseOrigin);
+            Assert.AreEqual(Vector2.zero, meta.Origins.SceneOrigin);
         }
 
         [Test]

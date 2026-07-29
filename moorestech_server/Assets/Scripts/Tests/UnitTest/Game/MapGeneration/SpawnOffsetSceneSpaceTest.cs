@@ -53,7 +53,22 @@ namespace Tests.UnitTest.Game.MapGeneration
             var searchResult = FindSpawnRegion(generation);
             Assert.That(searchResult.Success, Is.False);
 
-            AssertOutputIsInsideTile(generation);
+            // フォールバックは G=0 なのでシーン原点もタイルの0。絶対値で固定しないとスポーンと原点が同量ずれても通る
+            // The fallback has G=0, so the scene origin is the tile's 0; without pinning it absolutely, spawn and origin could drift together unnoticed
+            var output = AssertOutputIsInsideTile(generation);
+            Assert.That(output.SceneOrigin, Is.EqualTo(Vector2.zero));
+        }
+
+        // 格子中心はgridSizeが偶数だとタイル角(0,0)に落ち、スポーンが地形の角に張り付く。無言で通さず生成を落とす
+        // An even gridSize drops the grid center onto the tile corner (0,0), pinning the spawn to the terrain corner; generation must throw rather than pass silently
+        [Test]
+        public void 偶数gridSizeで格子中心がタイル外へ落ちるならワールド生成を落とす()
+        {
+            var generation = TestGenerationConfigFactory.CreateWithAlgorithmParamOverrides(
+                TestGenerationConfigFactory.SpawnSearchSetup.Enabled,
+                new JObject { ["gridSizeX"] = 4, ["gridSizeZ"] = 4 });
+
+            Assert.Throws<InvalidOperationException>(() => MapGenerationPipeline.Generate(generation, Seed));
         }
 
         // 探索は master の worldOffsetX を見ずに絶対ノイズ空間で S を決めるため、G は上書きであって加算ではない。

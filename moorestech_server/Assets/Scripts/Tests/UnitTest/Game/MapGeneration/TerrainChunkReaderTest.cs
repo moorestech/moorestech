@@ -159,6 +159,13 @@ namespace Tests.UnitTest.Game.MapGeneration
                 CreatedAt = DateTime.UtcNow.ToString("O"),
                 TerrainResolution = 256,
                 TerrainTileCount = 4,
+
+                // generatedのworld.jsonは原点を必ず持つ契約。合成ワールドも原点0の実値として明示する
+                // A generated world.json always carries origins by contract, so the synthetic world states them explicitly as a real 0
+                TerrainNoiseOriginX = 0f,
+                TerrainNoiseOriginZ = 0f,
+                TerrainSceneOriginX = 0f,
+                TerrainSceneOriginZ = 0f,
             };
             File.WriteAllText(worldDataDirectory.WorldMetaFilePath, JsonConvert.SerializeObject(worldMeta, Formatting.Indented));
             return worldDataDirectory;

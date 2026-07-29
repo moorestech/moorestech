@@ -112,12 +112,12 @@ namespace Game.MapGeneration.Provisioning
                     TerrainResolution = 0,
                     TerrainTileCount = 0,
 
-                    // templateは地形を生成しないのでノイズ窓もシーン原点も存在しない。0は不在の表明
-                    // Template generates no terrain, so neither origin exists; 0 declares that absence
-                    TerrainNoiseOriginX = 0f,
-                    TerrainNoiseOriginZ = 0f,
-                    TerrainSceneOriginX = 0f,
-                    TerrainSceneOriginZ = 0f,
+                    // templateは地形を生成しないのでノイズ窓もシーン原点も存在しない。0ではなくnullで不在を表明する
+                    // Template generates no terrain, so neither origin exists; null declares that absence instead of 0
+                    TerrainNoiseOriginX = null,
+                    TerrainNoiseOriginZ = null,
+                    TerrainSceneOriginX = null,
+                    TerrainSceneOriginZ = null,
                 };
             }
 

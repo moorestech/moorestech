@@ -25,23 +25,35 @@ namespace Game.MapGeneration.Transfer
 
             var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
 
-            // terrainを持つのはgeneratedのみ。未知のmapModeはフォールバックせず例外にする
-            // Only generated worlds own terrain; an unknown map mode throws instead of falling back
-            var chunkTotal = worldMeta.MapMode switch
+            // terrainと原点を持つのはgeneratedのみ。未知のmapModeはフォールバックせず例外にする
+            // Only generated worlds own terrain and origins; an unknown map mode throws instead of falling back
+            var (chunkTotal, origins) = worldMeta.MapMode switch
             {
-                WorldProvisioner.GeneratedMapMode => CalculateChunkTotal(),
-                WorldProvisioner.TemplateMapMode => 0,
+                WorldProvisioner.GeneratedMapMode => (CalculateChunkTotal(), ReadGeneratedOrigins()),
+                WorldProvisioner.TemplateMapMode => (0, TerrainOrigins.WithoutTerrain()),
                 _ => throw new InvalidOperationException($"Unknown map mode in world.json: '{worldMeta.MapMode}'")
             };
 
             // seedはmapModeに関わらず実値を載せる。地形なしの合図はTerrainResolution=0が担っており二重に持たせない
             // The seed is carried verbatim regardless of map mode; TerrainResolution=0 alone signals terrain-less, so the meaning is not duplicated
-            return new TerrainTransferMeta(worldMeta.MapMode, CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount, chunkTotal, worldMeta.Seed,
-                new TerrainOrigins(
-                    noiseOrigin: new Vector2(worldMeta.TerrainNoiseOriginX, worldMeta.TerrainNoiseOriginZ),
-                    sceneOrigin: new Vector2(worldMeta.TerrainSceneOriginX, worldMeta.TerrainSceneOriginZ)));
+            return new TerrainTransferMeta(worldMeta.MapMode, CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount, chunkTotal, worldMeta.Seed, origins);
 
             #region Internal
+
+            // 原点は生成時にしか決まらず0でも補えない。旧バージョンのworld.jsonはキーごと欠けるので作り直しを促す
+            // The origins exist only at generation and cannot be filled with 0; older world.json files lack the keys entirely, so demand a regeneration
+            TerrainOrigins ReadGeneratedOrigins()
+            {
+                if (worldMeta.TerrainNoiseOriginX == null || worldMeta.TerrainNoiseOriginZ == null ||
+                    worldMeta.TerrainSceneOriginX == null || worldMeta.TerrainSceneOriginZ == null)
+                    throw new InvalidOperationException(
+                        $"Generated world.json '{worldDataDirectory.WorldMetaFilePath}' has no terrain origin keys " +
+                        "(terrainNoiseOriginX/Z, terrainSceneOriginX/Z). It predates the origin transfer; delete the world directory and generate the world again.");
+
+                return new TerrainOrigins(
+                    noiseOrigin: new Vector2(worldMeta.TerrainNoiseOriginX.Value, worldMeta.TerrainNoiseOriginZ.Value),
+                    sceneOrigin: new Vector2(worldMeta.TerrainSceneOriginX.Value, worldMeta.TerrainSceneOriginZ.Value));
+            }
 
             int CalculateChunkTotal()
             {
