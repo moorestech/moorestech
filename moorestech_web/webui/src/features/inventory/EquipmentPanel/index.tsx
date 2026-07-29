@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics } from "@/bridge";
-import { screenForUiState, useGameLayerWheel } from "@/shared/uiState";
+import { isPointerOverWebUi, screenForUiState, useGameLayerWheel } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
-import { BARE_HANDS_INDEX, accumulateWheelSteps, cycleEquipment } from "../equipmentLogic";
+import { BARE_HANDS_INDEX, accumulateWheelSteps, cycleEquipment } from "./equipmentLogic";
 import styles from "./style.module.css";
 
 // 装備スロットの常時表示HUD。枠数はトピックの equipment 長がそのまま正となる
@@ -17,6 +17,9 @@ export default function EquipmentPanel() {
   // ホイールで素手を含む装備選択を循環。変化時のみ送信し、オーバーレイ表示中は共有フックが抑止する
   // Cycle the equipment selection (bare hands included) on wheel; dispatch only on change, with the shared hook suppressing overlays
   useGameLayerWheel((e) => {
+    // Web UI の上のホイールは一覧スクロール等その画面の操作であり、装備切替へ二重発火させない
+    // A wheel over Web UI is that screen's own gesture (list scrolling etc.), so it must not also switch equipment
+    if (isPointerOverWebUi(e.target)) return;
     const latest = readTopic(Topics.inventory);
     if (!latest || latest.equipment.length === 0) return;
     const accumulated = accumulateWheelSteps(wheelRemainder.current, e.deltaY);

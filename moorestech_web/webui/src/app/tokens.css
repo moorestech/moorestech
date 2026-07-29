@@ -15,8 +15,10 @@
   --progress-hotbar-gap: 12px;
   /* 装備HUDは枠数がマスタ可変のため、寸法と余白だけを固定長で決め列の高さは内容に任せる */
   /* The equipment HUD's slot count is master-driven, so only sizes and margins are fixed and the column height follows its content */
-  --equipment-slot-size: 3.23rem;
-  --equipment-slot-gap: 5px;
+  /* マス目はホットバーと同じ常時表示HUD族なので寸法を共有し、リテラル複製で無言に食い違うのを防ぐ */
+  /* The cells belong to the same always-on HUD family as the hotbar, so they share its dimensions instead of silently drifting apart as duplicated literals */
+  --equipment-slot-size: var(--hotbar-slot-size);
+  --equipment-slot-gap: var(--hotbar-slot-gap);
   --equipment-right: 24px;
   /* ホットバーと同じ床に揃えて右端へ寄せる。上へ伸ばすと持ち物画面の一覧パネルへ食い込むため下詰めが必須 */
   /* Share the hotbar's floor at the right edge; the column grows upward, so bottom-anchoring is what keeps it clear of the inventory screen's list panel */

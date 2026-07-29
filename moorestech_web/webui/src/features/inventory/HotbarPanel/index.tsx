@@ -2,7 +2,7 @@ import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics } from "@
 import { screenForUiState, useGameLayerKeydown } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
-import { keyToHotbarIndex } from "../hotbarLogic";
+import { keyToHotbarIndex } from "./hotbarLogic";
 import { slotActions } from "../slotActions";
 import styles from "./style.module.css";
 

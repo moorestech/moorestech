@@ -65,6 +65,7 @@ description: |
 - **アイテム・ブロック・液体を1マスで表すものは `shared/ui` のコンポーネントのみ。**
   - `ItemSlot` / `BlockSlot` / `FluidSlot` / `FluidSlotRow` / 素枠は `SlotFrame`。
   - 並べるのは `SlotGrid`（既定9列）。独自の grid CSS でスロットを並べない。
+  - **ただしパネル内のスロット群に限る。常時表示HUD族（ホットバー・装備HUD）は `SlotGrid` の対象外**で、HUD自身の固定長トークンで組んだ1列のflexに並べる（前例: `HotbarPanel` / `EquipmentPanel`）。折返しの無い1列にグリッドの列数概念を持ち込まないため。
 - スロット寸法は `--slot-size`、間隔は `--slot-grid-gap` の局所上書きで調整する。コンポーネント内にpx直書きしない。
 - スロットの状態表現は data属性（`data-selected` / `data-filled` / `data-catalog` / `data-insufficient`）に統一。新しい状態が要るなら data属性を追加する。
 - マウス操作の契約は `useSlotMouse`（左押下・右押下・ドラッグ進入・ダブルクリック）。スロットに生の onClick を生やさない。
@@ -281,6 +282,16 @@ description: |
 - 位置・幅・間隔・文字サイズは `--operation-hud-*` 固定長トークンで管理する。
 - 光彩、アニメーション、独自色、合成boldは追加せず、`pointer-events: none` でゲーム入力を素通しする。
 - 操作モードHUDの表示中は同じ左上領域を使うチャレンジHUDを表示しない。
+
+## 8.16 装備HUD
+
+- 常時表示HUD族として、面・枠・角丸を持たず、画面右端に下詰めで浮かせる。ホットバーと同じ床に揃え、列は上へ伸ばす。
+- 枠数はマスタ可変（`inventory` トピックの `equipment` 長が正）のため、列の高さは内容に任せ、寸法だけを固定長で決める。
+- 1枠は `shared/ui` の `ItemSlot`。枠数可変の縦1列はHUD族の配置であり `SlotGrid` の対象外とする（§4）。
+- 位置・寸法・間隔は `--equipment-*` 固定長トークンで管理し、ホットバーと同族の寸法は `--hotbar-*` を参照して複製しない。
+- 選択の表現は `ItemSlot` の `selected`（`data-selected`）だけとし、新しい色相・光彩・アニメーションは追加しない。
+- 選択操作はホイール（素手=-1 を含む循環）。GameScreen中はカーソルロックでクリックできないため、クリック選択は画面表示中に限る。
+- ホイールは共有フック `useGameLayerWheel` で受け、**具体側のハンドラ先頭で `isPointerOverWebUi` によりWeb UI上のホイールを捨てる**。一覧のスクロールと二重発火するため。共有フックにこの判断を持ち込まない。
 
 ## 9. やらないことリスト（再掲・明示）
 
