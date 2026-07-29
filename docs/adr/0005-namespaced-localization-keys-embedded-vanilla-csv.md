@@ -20,6 +20,7 @@
 5. **バニラキーの欠落は CI/テストで機械検出してエラー化する。** 実行時の `Get` / `GetLegacy` は対象言語→english→source→`[!key]` で解決し、全段に欠けた場合は目立つ表示で露出させる。
 6. **CSVパーサー・行モデル・例外は runtime 参照可能な小さな共通DLLへ置く。** SourceGenerator と Unity runtime は同じ実装を参照し、parserをコピーしない。共通DLLは generator と同じビルドで client/server の両方へデプロイし、同一テスト群で検証する。
 7. **言語セットの唯一の定義は辞書CSVヘッダとする。** `localization_settings.csv` は表示名とSteam言語コードだけを持ち、ヘッダとの集合不一致はコンパイルエラーにする。
+8. **空文字の翻訳は「値」ではなく欠落として扱う。** runtime合成・解決では空文字を登録/返却せず次のfallback段へ進む。CSV parserは欠落検査のため空field自体は保持し、Source列を含むliteral `\n` は実改行へ正規化する。
 
 ## 却下した選択肢
 
@@ -32,5 +33,5 @@
 
 - コードと文言が同一コミットで動き、ドリフトが構造的に消える。
 - mooresmaster generator 変更時は `mooresmaster/build.sh` で client/server 両方の DLL を再ビルド・コミットする運用が必要。
-- 共通CSVライブラリ変更時も `mooresmaster/build.sh` で parser DLL と generator DLL を client/server の両方へ再ビルド・コミットする。
+- 共通CSVライブラリ変更時も `mooresmaster/build.sh` で parser DLL と generator DLL を client/server の両方へ再ビルド・コミットする。generator DLLの既存metaはRoslynAnalyzer専用だが、共通DLLのmetaは流用・手動生成せずUnity自身にruntime pluginとして生成させる。
 - 既存の `Localize.cs` の CSV パース・`TextMeshProLocalize` の try-catch（規約違反）は基盤改修で置き換えられ自然消滅する。

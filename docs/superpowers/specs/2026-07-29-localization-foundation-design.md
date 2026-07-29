@@ -26,7 +26,8 @@
 | 参照方法 | C#: SourceGenerator生成の型付きキー / TS: 同一CSVから生成した定数 | Guid から実行時に動的構築 |
 | 欠落時 | CI/テストでエラー化。実行時は `[!key]` | 対象言語 → english → master の name 原文 → `[!key]` |
 
-- CSVフォーマットは現行踏襲: `key,Source,english,japanese,...`（Source列は作者向け原文でコードから読まない）。
+- CSVフォーマットは現行踏襲: `key,Source,english,japanese,...`。Source列は作者向け原文であると同時にruntimeの最終原文fallbackとして `source` 擬似ロケールへ埋め込み/合成する。
+- 空文字の翻訳は欠落として扱い、runtime辞書へ登録せず次のfallback段へ進む。parserはCI欠落検査のため空fieldを保持し、Source/翻訳列のliteral `\n` を実改行へ同じように正規化する。
 - キーに modId は含めない（Guidがグローバル一意。翻訳modが他modの翻訳を提供可能）。
 
 ### 生成系
@@ -52,9 +53,9 @@
 ### スコープ
 
 初回対象: ①webui 430キーの名前空間キー一括移行、②item/block の name、③研究・チャレンジ等のマスタ文言、④skit台詞。
-skitはGuidを持たないため、安定した `TextAsset.name` またはAddressable path由来のskit titleとcommandの`CommandId`を使い、`skit.<skitTitle>.<commandId>.<field>` を導出する。fieldはCommandForge command schemaの正確なプロパティ名で固定し、`text.body` / `backgroundSkitText.body`、`selection.Option1Tag`〜`Option3Tag`、`text.overrideCharacterName` / `backgroundSkitText.overrideCharacterName` を対象にする。既存JSONの `overideCharacterName` はschemaの `overrideCharacterName` へ一括正規化する。
+skitはGuidを持たないため、Skit titleの唯一の正本をAddressable assetのbasename（runtimeで得る `TextAsset.name`）とし、commandの`CommandId`と組み合わせて `skit.<skitTitle>.<commandId>.<field>` を導出する。実測では `100_start_game` / `200_star_background` / `sample_short` のasset basenameとJSON `meta.title` は一致するが、`meta.title` はキー導出に使わず一致検査だけを行う。runtimeと完全性テストは同じ純粋な `SkitTitle.FromAssetName` を通す。fieldはCommandForge command schemaの正確なプロパティ名で固定し、`text.body` / `backgroundSkitText.body`、`selection.Option1Tag`〜`Option3Tag`、`text.overrideCharacterName` / `backgroundSkitText.overrideCharacterName` を対象にする。既存JSONの `overideCharacterName` はschemaの `overrideCharacterName` へ一括正規化する。
 
-既存 `Skit/i18n/{english,japanese}.json` は削除せず、CommandForgeEditor用 `command.*` / `master.*` キーを維持したまま `skit.*` を追加できる正本へ拡張する。ゲームはskit開始時に選択言語とenglishの2ファイルだけをAddressablesから動的ロードし、`skit.` 接頭辞だけを取り込む。mod合成済み辞書へSkit専用辞書を欠けているキーだけ追加したうえで `TryGetContentWithoutSource` を使うため、解決順は `mod対象言語 → skit専用対象言語 → mod英語 → skit専用英語 → skit JSON原文` になる。全skit JSONの事前ロードはしない。
+既存 `Skit/i18n/{english,japanese}.json` は削除せず、CommandForgeEditor用 `command.*` / `master.*` キーを維持したまま `skit.*` を追加できる正本へ拡張する。ゲームはskit開始時に選択言語とenglishの2ファイルだけをAddressablesから動的ロードし、`skit.` 接頭辞かつ非空の翻訳だけを取り込む。mod合成済み辞書へSkit専用辞書を欠けているキーだけ追加し、全段で空文字を欠落として扱うため、解決順は `mod対象言語 → skit専用対象言語 → mod英語 → skit専用英語 → skit JSON原文` になる。全skit JSONの事前ロードはしない。
 
 `Client.Skit` の汎用層は `Localize` / Addressablesを直接参照せず、`ISkitLocalizationResolver` とskit title/commandIdを保持する実行contextだけを持つ。`Client.Game`側の具体loader/resolverを `SkitManager` / `BackgroundSkitManager` がStoryContextへ登録する。character masterには必須 `characterGuid` を追加して全characters JSONを一括更新し、`characterId` は操作IDのまま維持して表示名キーだけGuidを使う。buildMenuカテゴリ・サブカテゴリも必須Guid化し、optionalや欠損補完は置かない。
 
@@ -66,7 +67,7 @@ skitはGuidを持たないため、安定した `TextAsset.name` またはAddres
 
 | 項目 | 配置先 | 依存方向・前例 |
 |---|---|---|
-| CSV parser・行モデル・例外 | `mooresmaster.LocalizationCsv` 共通DLL | generator/runtime双方が参照する純粋な下流ライブラリ。実装コピーは禁止 |
+| CSV parser・行モデル・例外 | `mooresmaster.LocalizationCsv` 共通DLL | generator/runtime双方が参照する純粋な下流ライブラリ。実装コピーは禁止。Unity自身がruntime plugin metaを生成 |
 | SourceGenerator orchestration | `mooresmaster.Generator` | 既存 `MooresmasterSourceGenerator` と同じ第2generator。共通CSV DLLを参照 |
 | mod辞書合成・Guidキー | `Client.Localization` | 合成辞書の既存正本 `Localize` の責務内。MasterHolderは生データ保持だけで変更しない |
 | Skit resolver interface/context | `Client.Skit` | 汎用StoryContext serviceだけを定義し、`Localize` / Addressables / MasterHolderを持ち込まない |
@@ -85,6 +86,8 @@ skitはGuidを持たないため、安定した `TextAsset.name` またはAddres
 - character masterの必須characterGuid追加（characterIdは操作IDとして維持）と全characters JSON一括更新 — 出所: ユーザー裁定 2026-07-29
 - buildMenuカテゴリ/サブカテゴリの必須Guid追加と全JSON一括更新 — 出所: ユーザー裁定 2026-07-29
 - CSV parserをruntime参照可能な共通DLLへ置き、generator/runtime双方から参照してclient/serverへデプロイする — 出所: ユーザー裁定 2026-07-29
+- 空翻訳を欠落として次段へfallbackし、Source列のliteral `\n` も実改行へ変換する — 出所: Task 0 review finding 2026-07-29
+- Skit titleの正本をAddressable asset basename / `TextAsset.name` に一本化し、JSON `meta.title` は一致検査だけに使う — 出所: Task 0 review finding 2026-07-29
 - 原文フォールバックは合成辞書の擬似ロケール `source` として実装（バニラはCSVのSource列、コンテンツはMasterHolderのname等原文から構築。解決チェーンは 対象言語→english→source→`[!key]` に統一され、Name同梱廃止と原文フォールバックが両立する）— 出所: agent前提（既存CSVのSource列と同概念の拡張）
 - 言語表示名の埋め込み統合と言語セット定義の辞書CSVヘッダ一本化 — 出所: シミュレーター予測→ユーザー承認 2026-07-29
 - 初期言語セットは english+japanese の2列のみ（言語セットはCSVヘッダで定義され列追加で拡張。29言語分の翻訳が存在しない状態で全列CI検査を課すのは不成立のため）— 出所: agent前提（欠落CI検査のユーザー裁定と翻訳実データ不在の両立）

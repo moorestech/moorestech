@@ -19,12 +19,13 @@ spec: docs/superpowers/specs/2026-07-29-localization-foundation-design.md
 - try-catch原則禁止。例外は外部境界のみ・根拠コメント必須（AGENTS.md）
 - 1ファイル200行以下（**自動生成ファイルとCSVは対象外**。生成物はMooresmaster.Model同様の扱い）
 - 主要処理に日本語→英語の2行セットコメント（AGENTS.md）
-- .metaファイル手動作成禁止（build.shの既存meta生成スクリプトは例外・既存機構）
+- .metaファイル手動作成禁止。build.shの既存meta生成スクリプトはRoslynAnalyzer専用generator DLLだけの既存例外で、runtime共通DLLへ流用しない
 - Prefab/シーンの直接テキスト編集禁止。変更は `uloop execute-dynamic-code` 経由（AGENTS.md）
 - .csファイル変更後は必ず `uloop compile --project-path ./moorestech_client` を実行
 - 名前空間キーの表記: dot区切り・セグメントはlowerCamel（例 `ui.buildMenu.close`）。キーは「葉と枝を兼ねない」（`ui.save` と `ui.save.confirm` の併存禁止。generatorが検査）
 - CSVヘッダは `key,Source,english,japanese`（初期2言語。言語セットの唯一の定義はこのヘッダ）
 - generator用とUnity runtime用でCSV parser・行モデル・例外を複製しない。両者は `mooresmaster.LocalizationCsv.dll` の同一実装を参照する
+- 空翻訳は欠落としてruntime辞書へ登録/返却せず次のfallback段へ進む。parserはCI検査のため空fieldを保持する
 - コミットは各タスク末で必ず行う（worktree作業消失防止・AGENTS.md）
 
 ## File Structure
@@ -58,7 +59,8 @@ moorestech_client/Assets/Scripts/Client.Localization/
 ├── Localize.cs                          ← 全面書き換え（埋め込み辞書化）
 └── TextMeshProLocalize.cs               ← try-catch除去・GetLegacy経由化
 
-moorestech_{client,server}/Assets/Plugins/mooresmaster.LocalizationCsv.dll ← build.sh生成・共通runtime DLL
+moorestech_client/Assets/Plugins/mooresmaster.LocalizationCsv.dll ← build.sh配置・Unityがruntime plugin metaを生成
+moorestech_server/Assets/Plugins/mooresmaster.LocalizationCsv.dll ← build.sh配置・Unityがruntime plugin metaを生成
 
 moorestech_client/Assets/Scripts/Client.Localization/Client.Localization.asmdef  ← versionDefines追加
 moorestech_server/Assets/Scripts/Editor/SchemaWatcher.cs                          ← 監視対象の複数化
@@ -129,6 +131,7 @@ git commit -m "feat: バニラローカライズCSV正本を新設"
   - `sealed class LocalizationRow { string Key; string Source; string[] Texts; }`（TextsはLanguageCodesと同順）
   - `public static LocalizationCsv LocalizationCsvParser.Parse(string csvText)`
   - `public static List<List<string>> LocalizationCsvParser.ParseRecords(string csvText)` — settings mapperも同じquote-aware record分割を再利用する
+  - parserは空fieldを保持する。Source列と全翻訳列のliteral `\n` は同じく実改行へ変換する
   - 不正CSV（列数不一致・キー重複）は `LocalizationCsvException` を投げる（generator本体が既存のErrorFile機構で報告する）
 
 - [ ] **Step 1: 失敗するテストを書く**
@@ -183,6 +186,22 @@ public class LocalizationCsvParserTest
     {
         var csv = "key,Source,english,japanese\nui.a,x,x\n";
         Assert.Throws<LocalizationCsvException>(() => LocalizationCsvParser.Parse(csv));
+    }
+
+    [Fact]
+    public void Source列の改行エスケープを実改行へ変換する()
+    {
+        var csv = "key,Source,english,japanese\nui.a,Author\\nNote,English,日本語\n";
+        var result = LocalizationCsvParser.Parse(csv);
+        Assert.Equal("Author\nNote", result.Rows[0].Source);
+    }
+
+    [Fact]
+    public void 空翻訳fieldは欠落検査のため保持する()
+    {
+        var csv = "key,Source,english,japanese\nui.a,Source,English,\n";
+        var result = LocalizationCsvParser.Parse(csv);
+        Assert.Equal("", result.Rows[0].Texts[1]);
     }
 }
 ```
@@ -241,8 +260,9 @@ public static class LocalizationCsvParser
                 throw new LocalizationCsvException($"Duplicated key: {key}");
             // \n エスケープは実改行へ変換する（既存Localize.csの挙動を踏襲）
             // Convert literal \n escapes to real newlines (same as legacy Localize.cs)
+            var source = fields[1].Replace("\\n", "\n");
             var texts = fields.Skip(LanguageStartColumn).Select(t => t.Replace("\\n", "\n")).ToArray();
-            rows.Add(new LocalizationRow(key, fields[1], texts));
+            rows.Add(new LocalizationRow(key, source, texts));
         }
 
         return new LocalizationCsv(languageCodes, rows.ToArray());
@@ -294,7 +314,7 @@ public static class LocalizationCsvParser
 - [ ] **Step 5: テストを実行して通ることを確認する**
 
 Run: `cd mooresmaster && dotnet test --filter "FullyQualifiedName~LocalizationCsvParserTest"`
-Expected: PASS（5件）
+Expected: PASS（7件。Source改行変換と空field保持を含む）
 
 - [ ] **Step 6: 重複実装が無いことを検査してコミットする**
 
@@ -619,6 +639,8 @@ git commit -m "feat: ローカライズC#コード生成器"
 - Modify: `mooresmaster/build.sh`（共通DLLも同時ビルド・デプロイ）
 - Modify: `moorestech_client/Assets/Plugins/mooresmaster.LocalizationCsv.dll`（build.sh経由）
 - Modify: `moorestech_server/Assets/Plugins/mooresmaster.LocalizationCsv.dll`（build.sh経由）
+- Create: `moorestech_client/Assets/Plugins/mooresmaster.LocalizationCsv.dll.meta`（Unity Editor自動生成）
+- Create: `moorestech_server/Assets/Plugins/mooresmaster.LocalizationCsv.dll.meta`（Unity Editor自動生成）
 - Modify: `moorestech_client/Assets/Plugins/mooresmaster.Generator.dll`（build.sh経由）
 - Modify: `moorestech_server/Assets/Plugins/mooresmaster.Generator.dll`（build.sh経由）
 
@@ -687,7 +709,7 @@ public class LocalizationSourceGenerator : IIncrementalGenerator
 
 - [ ] **Step 2: build.shを共通DLLデプロイへ拡張する**
 
-`mooresmaster/build.sh` は generator build後に `mooresmaster.LocalizationCsv/bin/Release/netstandard2.0/mooresmaster.LocalizationCsv.dll` の存在を検査し、generator DLLと同様にclient/serverの `Assets/Plugins/` へコピーする。既存meta生成関数を使って固定Guidの `.meta` をUnity経由の既存運用と同じ形で生成し、generatorだけ更新され共通DLLが古い状態を許さない。
+`mooresmaster/build.sh` は generator build後に `mooresmaster.LocalizationCsv/bin/Release/netstandard2.0/mooresmaster.LocalizationCsv.dll` の存在を検査し、client/serverの `Assets/Plugins/` へDLL本体だけをコピーする。既存 `generate_meta` 呼び出しは `mooresmaster.Generator.dll` のRoslynAnalyzer label専用なので変更せず、共通DLLをその関数の対象へ絶対に追加しない。共通DLLの `.meta` は各Unity Editorにimportさせて生成し、通常runtime plugin前例（`Microsoft.Extensions.DependencyInjection.Abstractions.dll.meta` の `Any.enabled: 1`）と同じくruntime参照可能であることを確認する。
 
 - [ ] **Step 3: 全テストとビルドを確認する**
 
@@ -699,6 +721,9 @@ Expected: BUILD SUCCESS・全テストPASS
 Run: `./mooresmaster/build.sh`
 Expected: `mooresmaster.LocalizationCsv.dll` と `mooresmaster.Generator.dll` がclient/serverの両方へ配置される
 
+Run: `uloop compile --project-path ./moorestech_client && uloop compile --project-path ./moorestech_server`
+Expected: Unityが両方の `mooresmaster.LocalizationCsv.dll.meta` を生成し、RoslynAnalyzer labelなし・runtime plugin有効でcompile成功
+
 - [ ] **Step 5: 配置と参照を検証してコミットする**
 
 Run: `shasum -a 256 mooresmaster/mooresmaster.LocalizationCsv/bin/Release/netstandard2.0/mooresmaster.LocalizationCsv.dll moorestech_client/Assets/Plugins/mooresmaster.LocalizationCsv.dll moorestech_server/Assets/Plugins/mooresmaster.LocalizationCsv.dll`
@@ -708,7 +733,9 @@ Expected: 3ファイルのhashが一致
 git add mooresmaster/mooresmaster.Generator/LocalizationSourceGenerator.cs \
   mooresmaster/build.sh \
   moorestech_client/Assets/Plugins/mooresmaster.LocalizationCsv.dll \
+  moorestech_client/Assets/Plugins/mooresmaster.LocalizationCsv.dll.meta \
   moorestech_server/Assets/Plugins/mooresmaster.LocalizationCsv.dll \
+  moorestech_server/Assets/Plugins/mooresmaster.LocalizationCsv.dll.meta \
   moorestech_client/Assets/Plugins/mooresmaster.Generator.dll \
   moorestech_server/Assets/Plugins/mooresmaster.Generator.dll
 git commit -m "feat: ローカライズ共通DLLとSourceGeneratorを両プロジェクトへデプロイ"
@@ -865,9 +892,13 @@ namespace Client.Localization
             foreach (var code in VanillaLocalizationTable.LanguageCodes)
             {
                 VanillaLocalizationTable.TryGetLanguage(code, out var table);
-                mergedDictionary[code] = table.ToDictionary(p => p.Key, p => p.Value);
+                mergedDictionary[code] = table
+                    .Where(p => !string.IsNullOrEmpty(p.Value))
+                    .ToDictionary(p => p.Key, p => p.Value);
             }
-            mergedDictionary[SourcePseudoLocale] = VanillaLocalizationTable.SourceTexts.ToDictionary(p => p.Key, p => p.Value);
+            mergedDictionary[SourcePseudoLocale] = VanillaLocalizationTable.SourceTexts
+                .Where(p => !string.IsNullOrEmpty(p.Value))
+                .ToDictionary(p => p.Key, p => p.Value);
 
             // PlayerPrefsの言語が現行の言語セットに無い場合はデフォルトへ戻す（旧実装の例外バグ修理）
             // Fall back to the default when the persisted language is no longer in the set (fixes legacy crash)
@@ -884,9 +915,9 @@ namespace Client.Localization
         {
             // Prefab直列化キーの後方経路。新規コードは必ずLocalizationKey側のGetを使うこと
             // Legacy path for prefab-serialized keys; new code must use the LocalizationKey overload
-            if (mergedDictionary[CurrentLanguageCode].TryGetValue(rawKey, out var value)) return value;
-            if (mergedDictionary[DefaultLanguageCode].TryGetValue(rawKey, out var english)) return english;
-            if (mergedDictionary[SourcePseudoLocale].TryGetValue(rawKey, out var source)) return source;
+            if (mergedDictionary[CurrentLanguageCode].TryGetValue(rawKey, out var value) && !string.IsNullOrEmpty(value)) return value;
+            if (mergedDictionary[DefaultLanguageCode].TryGetValue(rawKey, out var english) && !string.IsNullOrEmpty(english)) return english;
+            if (mergedDictionary[SourcePseudoLocale].TryGetValue(rawKey, out var source) && !string.IsNullOrEmpty(source)) return source;
             return $"[!{rawKey}]";
         }
 
@@ -1085,7 +1116,7 @@ git commit -m "feat: CSVからTSローカライズキー定数を生成"
 - Consumes: `VanillaLocalizationKey`（Task 8）
 - Produces:
   - `export type TranslationKey = VanillaLocalizationKey;`（Plan2でcontent key unionを合流させる拡張点）
-  - `t(key: TranslationKey, values?: InterpolationValues): string` — 解決チェーン: `dictionary[key] ?? fallbackDictionary[key] ?? sourceDictionary[key] ?? "[!" + key + "]"`
+  - `t(key: TranslationKey, values?: InterpolationValues): string` — 空文字を欠落へ正規化して対象辞書→fallback辞書→source辞書→`[!key]`
   - `I18nSnapshot` に `sourceDictionary: TranslationDictionary` を追加。`setDictionaries(locale, dictionary, fallbackDictionary, sourceDictionary)`
 
 - [ ] **Step 1: i18nStore.ts を変更する**
@@ -1097,10 +1128,17 @@ import type { VanillaLocalizationKey } from "./generated/localizationKeys";
 
 export type TranslationKey = VanillaLocalizationKey;
 
+function nonEmptyTranslation(value: string | undefined): string | undefined {
+  return value === undefined || value.length === 0 ? undefined : value;
+}
+
 export function createTranslator(current: I18nSnapshot) {
   const warnedKeysForGeneration = warnedMissingTranslationKeys;
   return (key: TranslationKey, values: InterpolationValues = {}): string => {
-    const template = current.dictionary[key] ?? current.fallbackDictionary[key] ?? current.sourceDictionary[key];
+    const template =
+      nonEmptyTranslation(current.dictionary[key]) ??
+      nonEmptyTranslation(current.fallbackDictionary[key]) ??
+      nonEmptyTranslation(current.sourceDictionary[key]);
     if (template === undefined && !warnedKeysForGeneration.has(key)) {
       warnedKeysForGeneration.add(key);
       console.warn(`[i18n] Missing translation key: ${key}`);
@@ -1152,6 +1190,8 @@ async function loadDictionaries(locale: string, signal: AbortSignal): Promise<vo
     }
   });
 ```
+
+`i18nStore` の単体テストへ、対象言語が `""` ならenglish、対象+englishが `""` ならsource、3段すべて `""` なら `[!key]` を返す3ケースを追加し、空文字が表示値にならないことを固定する。
 
 - [ ] **Step 4: テスト実行**
 
@@ -1279,12 +1319,14 @@ git status --short && git add -A && git commit -m "chore: ローカライズバ�
 - **SchemaWatcherは監視対象リストへ一般化** — VanillaSchema監視の既存機構（`SchemaWatcher.cs:19-26`）をそのまま複数対象化。出所: agent前提（既存前例の拡張）
 - **CSV parserはruntime参照可能な共通DLLへ分離** — generator/runtimeの依存方向を共通の純粋ライブラリへ揃え、実装コピーを禁止する。build.shは共通DLLとgenerator DLLをclient/serverへ同時デプロイする。出所: ユーザー裁定 2026-07-29
 - **GetLegacyもsourceを含む4段解決** — Prefab直列化キーも対象言語→english→source→`[!key]` を省略しない。出所: ユーザー裁定 2026-07-29
+- **空文字は欠落としてfallbackを継続** — parserは空fieldを保持するが、runtime合成/解決は空文字を登録/返却しない。Source列のliteral `\n` も翻訳列と同様に実改行へ変換する。出所: Task 0 review finding 2026-07-29
+- **共通DLL metaはUnity生成** — RoslynAnalyzer専用generator metaをruntime DLLへ流用せず、build.shはDLLだけを配置してclient/server Unity Editorに通常runtime plugin metaを生成させる。出所: Task 0 review finding 2026-07-29
 
 ## 配置と前例
 
 | 項目 | 配置先 | 前例（パス） |
 |---|---|---|
-| LocalizationCsvParser / 行モデル / 例外 | mooresmaster.LocalizationCsv（netstandard2.0共通DLL） | generator/runtime双方の下流にドメイン語彙を持たない純粋CSV境界として新設。実装は1箇所のみ |
+| LocalizationCsvParser / 行モデル / 例外 | mooresmaster.LocalizationCsv（netstandard2.0共通DLL） | generator/runtime双方の下流にドメイン語彙を持たない純粋CSV境界として新設。実装は1箇所、metaはUnity生成 |
 | LocalizationSourceGenerator ほかgenerator側2ファイル | mooresmaster.Generator（同一DLL・第2Generator） | `mooresmaster/mooresmaster.Generator/MooresmasterSourceGenerator.cs:20`（[Generator]クラス構造・ENABLE define検査・診断報告） |
 | generatorテスト | mooresmaster.Tests/LocalizationTests | `mooresmaster/mooresmaster.Tests/`（機能別ディレクトリ構成） |
 | csc.rsp / versionDefines | Client.Localization | `moorestech_server/Assets/Scripts/Core.Master/csc.rsp:1` / `Core.Master.asmdef` versionDefines |

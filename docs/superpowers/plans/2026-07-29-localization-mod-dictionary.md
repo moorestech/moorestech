@@ -19,9 +19,11 @@ spec: docs/superpowers/specs/2026-07-29-localization-foundation-design.md
 - マスタ導出キー規約: `<type>.<guid>.<field>`。Guidは `ToString("D")` 小文字、type/fieldはlowerCamel。Skit fieldだけはCommandForge schema名を正確に保持し `Option1Tag`〜`Option3Tag` の大文字も変えない
 - キーにmodIdを含めない（ユーザー裁定 2026-07-29）
 - CSV解析はPlan1の `mooresmaster.LocalizationCsv.dll` を参照し、runtime側にparser・行モデル・例外を複製しない
+- parserは空fieldを保持するが、merger/resolverは空文字を欠落として登録/返却せず必ず次のfallback段へ進む
 - characters/buildMenuのGuidは必須追加し全JSONを一括更新する。optional・`?? Default`・ローダー補完は禁止
 - `Client.Skit` は `Client.Localization` / Addressablesを直接参照せず、下流 `Client.Game` の具体resolverをStoryContextへ登録する
 - skit開始時にロードする辞書は選択言語とenglishの2ファイルだけ。ゲーム辞書へ取り込むキーは `skit.` 接頭辞だけ
+- Skit titleの正本はAddressable asset basename / runtimeの `TextAsset.name`。JSON `meta.title` はキーへ使わず一致検査だけに使う
 - 変更の波及を恐れない: DTO契約の破壊的変更はホストとwebuiを同一タスク内で一括更新（AGENTS.md）
 - .csファイル変更後は必ず `uloop compile --project-path ./moorestech_client`
 - 各タスク末で必ずコミット
@@ -37,6 +39,7 @@ moorestech_client/Assets/Scripts/Client.Localization/
 
 moorestech_client/Assets/Scripts/Client.Skit/
 ├── Localization/ISkitLocalizationResolver.cs ← 新設・汎用層の解決interface（Localize非依存）
+├── Localization/SkitTitle.cs                  ← 新設・asset basenameからtitleを導出する唯一の純粋処理
 └── Context/SkitExecutionIdentity.cs           ← 新設・skitTitleをcommandへ渡すcontext
 
 moorestech_client/Assets/Scripts/Client.Game/
@@ -118,9 +121,14 @@ namespace Client.Localization
             var csv = LocalizationCsvParser.Parse(csvText);
             foreach (var row in csv.Rows)
             {
-                mergedDictionary["source"][row.Key] = row.Source;
+                if (!string.IsNullOrEmpty(row.Source))
+                    mergedDictionary["source"][row.Key] = row.Source;
                 for (var i = 0; i < csv.LanguageCodes.Length; i++)
-                    mergedDictionary[csv.LanguageCodes[i]][row.Key] = row.Texts[i];
+                {
+                    var text = row.Texts[i];
+                    if (!string.IsNullOrEmpty(text))
+                        mergedDictionary[csv.LanguageCodes[i]][row.Key] = text;
+                }
             }
         }
     }
@@ -170,7 +178,9 @@ namespace Client.Localization
         {
             ModLocalizationMerger.Merge(modsResource, mergedDictionary);
             var sourceTexts = MasterSourceTextCollector.Collect();
-            foreach (var pair in sourceTexts) mergedDictionary[SourcePseudoLocale][pair.Key] = pair.Value;
+            foreach (var pair in sourceTexts)
+                if (!string.IsNullOrEmpty(pair.Value))
+                    mergedDictionary[SourcePseudoLocale][pair.Key] = pair.Value;
             // 辞書更新をWeb/UIへ通知する（既存の言語変更通知と同じ購読で再取得される）
             // Notify the Web/UI so subscribers refetch, same as a language change
             _onLanguageChangedSubject.OnNext(Unit.Default);
@@ -178,9 +188,9 @@ namespace Client.Localization
 
         public static string GetContent(string derivedKey)
         {
-            if (mergedDictionary[CurrentLanguageCode].TryGetValue(derivedKey, out var value)) return value;
-            if (mergedDictionary[DefaultLanguageCode].TryGetValue(derivedKey, out var english)) return english;
-            if (mergedDictionary[SourcePseudoLocale].TryGetValue(derivedKey, out var source)) return source;
+            if (mergedDictionary[CurrentLanguageCode].TryGetValue(derivedKey, out var value) && !string.IsNullOrEmpty(value)) return value;
+            if (mergedDictionary[DefaultLanguageCode].TryGetValue(derivedKey, out var english) && !string.IsNullOrEmpty(english)) return english;
+            if (mergedDictionary[SourcePseudoLocale].TryGetValue(derivedKey, out var source) && !string.IsNullOrEmpty(source)) return source;
             return $"[!{derivedKey}]";
         }
 ```
@@ -189,16 +199,29 @@ Step 1で特定した起動フローから `Localize.MergeGameDictionaries(modsR
 
 - [ ] **Step 5: テストを書く（クライアント経由でNUnit実行）**
 
-`MergeCsv` と `GetContent` のチェーンをユニットテスト化（creating-server-testsスキルの慣習に従い、テスト配置はClient.Localizationのテスト用asmdefが無ければ `Client.Tests` 配下の前例に合わせる）:
+`MergeCsv` と `GetContent` のチェーンをユニットテスト化（creating-server-testsスキルの慣習に従い、テスト配置はClient.Localizationのテスト用asmdefが無ければ `Client.Tests` 配下の前例に合わせる）。少なくとも空日本語/空sourceが既存値を上書きせずfallbackを塞がないことを次のfixtureで固定する:
 
 ```csharp
     [Test]
-    public void Modの辞書が後勝ちで合成されsourceフォールバックが機能する()
+    public void 空翻訳は登録せず既存値とfallbackを維持する()
     {
-        // vanilla: english列のみ存在するキー / mod: japaneseを上書き / source: 原文のみのキー
-        // 3経路それぞれで GetContent が正しい段を返すことを検証する
+        var dictionaries = new Dictionary<string, Dictionary<string, string>>
+        {
+            ["english"] = new() { ["item.test.name"] = "Vanilla English" },
+            ["japanese"] = new() { ["item.test.name"] = "既存日本語" },
+            ["source"] = new() { ["item.test.name"] = "既存原文" },
+        };
+        var csv = "key,Source,english,japanese\nitem.test.name,,Mod English,\n";
+
+        ModLocalizationMerger.MergeCsv(csv, dictionaries);
+
+        Assert.That(dictionaries["japanese"]["item.test.name"], Is.EqualTo("既存日本語"));
+        Assert.That(dictionaries["english"]["item.test.name"], Is.EqualTo("Mod English"));
+        Assert.That(dictionaries["source"]["item.test.name"], Is.EqualTo("既存原文"));
     }
 ```
+
+別ケースで対象言語に空文字が残った辞書を直接与え、`GetContent` / `TryGetContentWithoutSource` が空文字を返さずenglish、その次はsource、その次は`[!key]`へ進むことを各段1assertで検証する。
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ModLocalization"`
 Expected: PASS
@@ -438,6 +461,7 @@ git add -A && git commit -m "feat: 研究・チャレンジ文言を導出キー
 - Modify: `VanillaSchema/characters.yml`（必須 `characterGuid`）
 - Modify: `/Users/katsumi/moorestech_master/**/master/characters.json`（全ファイル一括更新）
 - Create: `moorestech_client/Assets/Scripts/Client.Skit/Localization/ISkitLocalizationResolver.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Skit/Localization/SkitTitle.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Skit/Context/SkitExecutionIdentity.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Skit/Context/StoryContextExtension.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Skit/Commands/TextCommand.cs`
@@ -456,7 +480,8 @@ git add -A && git commit -m "feat: 研究・チャレンジ文言を導出キー
 **Interfaces:**
 - `ISkitLocalizationResolver.ResolveCommandField(string skitTitle, int commandId, string field, string sourceText)` — scoped対象言語→scoped english→手元原文
 - `ISkitLocalizationResolver.ResolveCharacterName(string characterId, string skitTitle, int commandId, bool useOverride, string overrideSource)` — override時は `overrideCharacterName` field、通常時は `characterId`→必須characterGuid→`character.<guid>.name`
-- `SkitLocalizationDictionaryLoader.LoadAsync(string languageCode)` — Address `Vanilla/Skit/i18n/{languageCode}` の `translations` から `skit.` キーだけを返す
+- `SkitTitle.FromAssetName(string assetName)` — Addressable asset basename / `TextAsset.name` をSkit title正本として返す唯一の導出処理
+- `SkitLocalizationDictionaryLoader.LoadAsync(string languageCode)` — Address `Vanilla/Skit/i18n/{languageCode}` の `translations` から `skit.` かつ非空のキーだけを返す
 - `SkitLocalizationResolver.PrepareAsync(string skitTitle)` — 選択言語+englishの2辞書をloadし、各言語のmod合成辞書copyへ欠けたキーだけ追加する
 - `Localize.TryGetContentWithoutSource(string key, out string text)` — 現在言語→englishのみ。resolverのscoped辞書を作る際の基準と単体検査に使う
 
@@ -488,17 +513,47 @@ namespace Client.Skit.Localization
 }
 ```
 
-`SkitExecutionIdentity` はconstructor必須の `string SkitTitle` だけを公開する。`StoryContextExtension` にresolver/identity取得を追加し、汎用 `Client.Skit` asmdefへ `Client.Localization` やAddressables参照を追加しない。
+`SkitTitle` は `FromAssetName(string assetName)` だけを持つ純粋なstatic classとし、runtime/test双方のキー導出入口を1つにする。入力は拡張子なしのasset basenameであることを検査してそのまま返し、JSON `meta.title` を読む口は持たない。`SkitExecutionIdentity` はconstructor必須の `string SkitTitle` だけを公開する。`StoryContextExtension` にresolver/identity取得を追加し、汎用 `Client.Skit` asmdefへ `Client.Localization` やAddressables参照を追加しない。
+
+```csharp
+namespace Client.Skit.Localization
+{
+    public static class SkitTitle
+    {
+        public static string FromAssetName(string assetName)
+        {
+            if (assetName.Contains(".")) throw new System.ArgumentException("Skit asset name must not contain an extension");
+            return assetName;
+        }
+    }
+}
+```
 
 - [ ] **Step 4: Client.Game側にAddressables loaderと具体resolverを実装する**
 
-`SkitLocalizationDictionaryLoader` は `AddressableLoader.LoadAsyncDefault<TextAsset>($"Vanilla/Skit/i18n/{languageCode}")` で1ファイルを読み、CommandForge形式 `{ locale, name, translations }` の `translations` から `skit.` で始まるentryだけを返す。外部入力JSON境界のparse失敗は握り潰さず、対象addressを含むエラーとして表面化する。
+`SkitLocalizationDictionaryLoader` は `AddressableLoader.LoadAsyncDefault<TextAsset>($"Vanilla/Skit/i18n/{languageCode}")` で1ファイルを読み、CommandForge形式 `{ locale, name, translations }` の `translations` から `skit.` で始まり値が空文字でないentryだけを返す。空文字は辞書へ入れず欠落として後段へ進める。外部入力JSON境界のparse失敗は握り潰さず、対象addressを含むエラーとして表面化する。
 
-`SkitLocalizationResolver.PrepareAsync` は `Localize.CurrentLanguageCode` と `english` だけをロードする。`Localize.TryGetDictionary` のmod合成済み辞書を各言語ごとにcopyし、`TryAdd` 相当でSkit専用entryを欠けているキーだけ追加するためmodを上書きしない。解決はscoped対象言語→scoped english→`sourceText`。`Localize.OnLanguageChanged` を購読し、skit実行中の変更時は新しい対象言語+englishをreloadしてatomicにscopeを差し替える。reload前の現在行は再pushせず、完了後に次に表示する行から新言語を使う。
+`SkitLocalizationResolver.PrepareAsync` は `Localize.CurrentLanguageCode` と `english` だけをロードする。`Localize.TryGetDictionary` のmod合成済み辞書から非空entryだけを各言語scopeへcopyし、Skit専用entryも非空かつkeyが無い場合だけ追加するため、空mod値でSkit値を塞がず非空mod値も上書きしない。Resolve時も `TryGetValue && !string.IsNullOrEmpty(value)` を各段で使い、scoped対象言語→scoped english→`sourceText`へ進む。`Localize.OnLanguageChanged` を購読し、skit実行中の変更時は新しい対象言語+englishをreloadしてatomicにscopeを差し替える。reload前の現在行は再pushせず、完了後に次に表示する行から新言語を使う。
+
+```csharp
+foreach (var pair in skitDictionary)
+{
+    if (!string.IsNullOrEmpty(pair.Value) && !scope.ContainsKey(pair.Key))
+        scope.Add(pair.Key, pair.Value);
+}
+
+public static bool TryGetContentWithoutSource(string key, out string text)
+{
+    if (mergedDictionary[CurrentLanguageCode].TryGetValue(key, out text) && !string.IsNullOrEmpty(text)) return true;
+    if (mergedDictionary[DefaultLanguageCode].TryGetValue(key, out text) && !string.IsNullOrEmpty(text)) return true;
+    text = null;
+    return false;
+}
+```
 
 - [ ] **Step 5: skit titleとresolverを両開始経路のStoryContextへ登録する**
 
-`SkitManager` はロード済み `TextAsset.name`（Addressable pathからロードした場合も同じ安定名）をtitleとし、command実行前にresolverを `PrepareAsync` して `ISkitLocalizationResolver` と `SkitExecutionIdentity` をbuilderへ登録する。`BackgroundSkitManager` もロード済み `TextAsset.name` を使って同じ登録を行う。resolverの購読はStoryContext終了時にDisposeする。
+Skit titleの正本はAddressable asset basenameであり、runtimeではロード済み `TextAsset.name` を必ず `SkitTitle.FromAssetName` へ渡す。`SkitManager` と `BackgroundSkitManager` は得た同一titleでcommand実行前にresolverを `PrepareAsync` し、`ISkitLocalizationResolver` と `SkitExecutionIdentity` をbuilderへ登録する。JSON `meta.title` はruntime keyへ使わない。resolverの購読はStoryContext終了時にDisposeする。
 
 - [ ] **Step 6: text/background/selection/overrideCharacterNameを表示直前に解決する**
 
@@ -506,7 +561,7 @@ namespace Client.Skit.Localization
 
 - [ ] **Step 7: resolver優先順位と接頭辞境界をテストする**
 
-テストfixtureにmod対象言語、Skit対象言語、mod英語、Skit英語、JSON原文を別値で入れ、5段それぞれを1ケースずつ検証する。`command.*` / `master.*` がloader出力に含まれないこと、characterGuid欠落を補完しないこと、言語reload後の次のResolveが新scopeを見ることも検証する。
+テストfixtureに各段を別値で入れ、次の5ケースを固定する: ①mod対象が非空ならmod対象、②mod対象が空ならSkit対象、③対象2段が空ならmod英語、④mod英語も空ならSkit英語、⑤4辞書すべて空ならJSON原文。各ケースで空文字そのものを返さないこともassertする。加えて `command.*` / `master.*` がloader出力に含まれないこと、空の `skit.*` がloader出力に含まれないこと、characterGuid欠落を補完しないこと、言語reload後の次のResolveが新scopeを見ることを検証する。
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SkitLocalizationResolverTest"`
 Expected: 全ケースPASS
@@ -571,27 +626,33 @@ item.<小石の実Guid>.name,Pebble,Pebble,小石
 item.<原木の実Guid>.name,Log,Log,原木
 block.<風力掘削機の実Guid>.name,Wind Drill,Wind Drill,風力掘削機
 skit.100_start_game.1.body,...Report log started,MOD ENGLISH,MOD JAPANESE
+skit.100_start_game.2.body,Position report,MOD ENGLISH 2,
+skit.100_start_game.3.body,Crew report,MOD ENGLISH 3,
+skit.100_start_game.4.body,Warp report,,
 ```
 
 既存 `Skit/i18n/*.json` の `command.*` / `master.*` は一切削除・改名せず、`translations` へ次を追加する:
 
 ```json
-"skit.100_start_game.1.body": "SKIT DICTIONARY VALUE",
-"skit.100_start_game.2.body": "SKIT ONLY VALUE",
+"skit.100_start_game.1.body": "SKIT VALUE 1",
+"skit.100_start_game.2.body": "SKIT VALUE 2",
+"skit.100_start_game.3.body": "",
+"skit.100_start_game.4.body": "SKIT VALUE 4",
 "skit.100_start_game.1.overrideCharacterName": "SKIT SPEAKER VALUE"
 ```
 
-english/japaneseで値を変え、Task 6のselection command test fixtureには `Option1Tag`〜`Option3Tag`、背景skitには `skit.200_star_background.1.body` も追加して各field経路を通す。
+english/japaneseで値を変える。japaneseはcommand 2だけSkit値を持ち、command 3/4は空、englishはcommand 3/4のSkit値を持つfixtureにして5段の境界を作る。Task 6のselection command test fixtureには `Option1Tag`〜`Option3Tag`、背景skitには `skit.200_star_background.1.body` も追加して各field経路を通す。
 
 - [ ] **Step 2: PlayModeで結合確認する**
 
 unity-playmode-recorded-playtestスキルの手順でPlayMode起動:
-1. 日本語: 同じkeyがmod/Skit辞書の双方にあるcommand 1は `MOD JAPANESE`（mod対象言語優先）
-2. mod日本語を持たずSkit日本語だけのcommand 2は `SKIT ONLY VALUE`
-3. 対象言語欠落かつmod英語/Skit英語双方ありのfixtureはmod英語、mod英語も無いfixtureはSkit英語
-4. 両辞書に無い行はskit JSON原文
-5. background本文、selection表示選択肢、overrideCharacterNameも翻訳され、`command.*` / `master.*` がゲーム辞書へ漏れていない
-6. インベントリ・ビルドメニュー・研究ツリー・ブロックインベントリでも従来の4段解決が維持される
+1. command 1: mod/Skit双方が非空で `MOD JAPANESE`（mod対象言語優先）
+2. command 2: mod日本語が空でSkit日本語が非空のためSkit日本語
+3. command 3: mod/Skit日本語が空でmod英語が非空のため `MOD ENGLISH 3`
+4. command 4: 対象言語2段とmod英語が空でSkit英語が非空のためSkit英語
+5. command 5: 4辞書すべて欠落のためskit JSON原文
+6. どのケースも空文字を表示せず、background本文、selection表示選択肢、overrideCharacterNameも同じ規則で翻訳される
+7. `command.*` / `master.*` がゲーム辞書へ漏れず、他画面でも対象言語→english→source→`[!key]` が維持される
 
 - [ ] **Step 3: コミット（moorestech_master側も）**
 
@@ -615,7 +676,7 @@ english/japanese両ファイルが `locale` / `name` / flatな `translations` �
 
 - [ ] **Step 2: ゲーム台詞キー完全性を検査する**
 
-全skit JSONを走査し、`text.body`、`backgroundSkitText.body`、存在するselectionの各OptionTag、override有効行の`overrideCharacterName`について `skit.<meta.title>.<id>.<schema field>` を組み立てる。翻訳対象として追加したサンプル範囲はenglish/japanese両方に存在すること、未知field名（`text`/`speaker`/`overideCharacterName`）が無いことを検査する。未翻訳行はJSON原文へ戻る設計なので全行翻訳必須にはしない。
+全skit JSONを走査し、ファイルbasenameを `SkitTitle.FromAssetName` へ渡した結果で `skit.<title>.<id>.<schema field>` を組み立てる。JSON `meta.title` はキーへ使わず、basenameと一致することだけをassertする。実測済みの `100_start_game` / `200_star_background` / `sample_short` は両者一致。`text.body`、`backgroundSkitText.body`、存在するselectionの各OptionTag、override有効行の`overrideCharacterName`について、翻訳対象サンプルがenglish/japanese両方に存在すること、未知field名（`text`/`speaker`/`overideCharacterName`）が無いことを検査する。未翻訳行はJSON原文へ戻る設計なので全行翻訳必須にはしない。
 
 - [ ] **Step 3: Addressables動的ロードを結合検査する**
 
@@ -650,6 +711,8 @@ git add moorestech_client/Assets/Scripts/Client.Tests/ && git commit -m "test: S
 - **characterGuidを必須追加しcharacterIdは操作IDとして維持する** — 表示名だけGuid導出し、optional・欠損フォールバックは設けず全characters JSONを一括更新する。出所: ユーザー裁定 2026-07-29
 - **buildMenuカテゴリ/サブカテゴリへ別々の必須Guidを追加する** — 名前をIDに使わずrequired追加＋全JSON一括更新する。出所: ユーザー裁定 2026-07-29
 - **CSV runtimeはPlan1の共通DLLを参照する** — generator/runtimeのparser・行モデル・例外は `mooresmaster.LocalizationCsv.dll` の1実装だけを使う。出所: ユーザー裁定 2026-07-29
+- **空翻訳は欠落として次段へ進む** — parserは空fieldを保持するが、mod merger・Localize・Skit loader/resolverはいずれも空文字を登録/返却しない。出所: Task 0 review finding 2026-07-29
+- **Skit title正本はAddressable asset basename / TextAsset.name** — runtime/testとも `SkitTitle.FromAssetName` を使い、JSON `meta.title` はbasename一致検査だけに使う。出所: Task 0 review finding 2026-07-29
 - **ItemMasterDtoはItemId（揮発）+ItemGuidの併載** — 表示中の軽量参照はItemIdのまま、ローカライズキーだけGuidを使う。出所: agent前提（既存契約の最小変更）
 
 ## 配置と前例
@@ -658,6 +721,7 @@ git add moorestech_client/Assets/Scripts/Client.Tests/ && git commit -m "test: S
 |---|---|---|
 | ModLocalizationMerger / MasterSourceTextCollector / ContentLocalizationKeys | Client.Localization | `Localize.cs`（合成辞書の正本はクライアントLocalize — ユーザー裁定） |
 | ISkitLocalizationResolver / SkitExecutionIdentity | Client.Skit（汎用interface/contextのみ） | `StoryContext` + VContainer service登録。汎用層へLocalize/Addressablesを持ち込まない |
+| SkitTitle.FromAssetName | Client.Skit/Localization | Addressable asset basenameをruntime/test共通の純粋導出へ一本化。meta.titleは検証のみ |
 | SkitLocalizationDictionaryLoader / SkitLocalizationResolver | Client.Game/Skit/Localization | `SkitManager.PreProcess` / `BackgroundSkitManager.GetStoryContext` の具体service登録前例 |
 | ModsResourceからのCSV列挙 | Mod.Loader公開APIの利用（必要なら最小の公開追加） | `Mod.Config/ModJsonStringLoader.cs:22-30`（mod内相対パスのglob前例） |
 | DTOのGuid化 | Client.WebUiHost各Endpoint/Topic | `MachineRecipesTopic.cs`（BlockGuidを既に配信している前例） |

@@ -19,7 +19,8 @@
 8. **character masterへ必須 `characterGuid` を追加する。** 全characters JSONを一括更新し、既存 `characterId` はスキット実行時の操作IDとして維持する。表示名の導出キーだけを `character.<characterGuid>.name` とし、optional・欠損フォールバックは設けない。
 9. **buildMenuのカテゴリとサブカテゴリへ必須Guidを追加する。** 名前を識別子にせず、全buildMenu JSONを一括更新して導出キーにGuidを使う。
 10. **既存 `Skit/i18n/{english,japanese}.json` は削除しない。** CommandForgeEditorが `<projectPath>/i18n/*.json` から動的ロードする正式なプロジェクト辞書として `command.*` / `master.*` を維持し、ゲーム台詞用の `skit.<skitTitle>.<commandId>.<field>` を同じ `translations` へ追加できる正本へ拡張する。
-11. **ゲームはskit開始時に対象言語とenglishのSkit専用辞書だけをAddressablesから動的ロードする。** `skit.` キーだけを取り込み、mod合成済み辞書へ欠けているキーだけ追加する。解決順は `mod対象言語 → skit専用対象言語 → mod英語 → skit専用英語 → skit JSON原文` とし、全skit JSONの事前ロードは行わない。
+11. **ゲームはskit開始時に対象言語とenglishのSkit専用辞書だけをAddressablesから動的ロードする。** `skit.` の非空翻訳だけを取り込み、mod合成済み辞書へ欠けているキーだけ追加する。空文字は欠落として次段へ進み、解決順は `mod対象言語 → skit専用対象言語 → mod英語 → skit専用英語 → skit JSON原文` とする。全skit JSONの事前ロードは行わない。
+12. **Skit titleの正本はAddressable assetのbasename（runtimeの `TextAsset.name`）とする。** JSON `meta.title` はキー導出に使わず、完全性テストでbasenameと一致することだけを検証する。runtime/testは同じ `SkitTitle.FromAssetName` を通してキーを作る。
 
 ## 却下した選択肢
 
