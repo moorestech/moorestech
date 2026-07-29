@@ -280,6 +280,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2a1ae938302ca4d6894c5201638fbba5
+    m_Address: Vanilla/Environment/TemplateTerrainData
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2a8a673b3389afe41be6d69d8d8f7094
     m_Address: Vanilla/Block/Primitive_grinding_machine
     m_ReadOnly: 0
