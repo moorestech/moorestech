@@ -63,10 +63,10 @@ namespace Game.PlayerInventory.ItemManaged
         }
 
         /// <summary>
-        ///     セーブから装備とその選択位置を復元する。
-        ///     Restore the equipment items and the selected index from a save.
+        ///     セーブから装備とその選択位置を復元し、スロットに入り切らなかった分を返す。
+        ///     Restore the equipment items and the selected index from a save, returning what did not fit.
         /// </summary>
-        public void RestoreFromSave(List<IItemStack> savedItems, int selectedEquipmentIndex)
+        public List<IItemStack> RestoreFromSave(List<IItemStack> savedItems, int selectedEquipmentIndex)
         {
             // スロット数はマスタ由来で保存されないため、マスタが縮んだ場合は入る分だけ復元する
             // The slot count comes from master and is not saved, so restore only what fits when master shrank
@@ -74,9 +74,20 @@ namespace Game.PlayerInventory.ItemManaged
             for (var slot = 0; slot < restoreCount; slot++)
                 _openableInventoryService.SetItemWithoutEvent(slot, savedItems[slot]);
 
+            // あふれた装備は捨てずに呼び出し元へ返し、プレイヤーのアイテム消失を防ぐ
+            // Overflowing equipment is handed back to the caller instead of dropped so the player loses nothing
+            var overflowItems = new List<IItemStack>();
+            for (var index = restoreCount; index < savedItems.Count; index++)
+            {
+                if (savedItems[index].Count == 0) continue;
+                overflowItems.Add(savedItems[index]);
+            }
+
             // 復元はアイテムも選択も無発火で揃え、ロード時に差分イベントを積まない
             // Restoring keeps both items and selection event-free so loading queues no diff events
             ApplySelectedEquipmentIndexWithoutEvent(selectedEquipmentIndex);
+
+            return overflowItems;
         }
 
         public IItemStack GetItem(int slot)

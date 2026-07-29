@@ -104,6 +104,42 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(0, CountInMainInventory(loadedInventory, ToolItemId()));
         }
 
+        [Test]
+        public void 装備スロットに入り切らないセーブでもアイテムが消えない()
+        {
+            var saveStore = CreateInventoryDataStore();
+            saveStore.GetInventoryData(PlayerId);
+            var saveJsonObjects = saveStore.GetSaveJsonObject();
+
+            // マスタのスロット数を超える装備を持つセーブを作り、スロット縮小と同じ状況を再現する
+            // Build a save holding more equipment than master's slot count, reproducing a shrunk slot count
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            var slotCount = MasterHolder.ToolMaster.EquipmentSlotCount;
+            var savedEquipmentItems = new List<ItemStackSaveJsonObject>();
+            for (var slot = 0; slot < slotCount; slot++)
+                savedEquipmentItems.Add(new ItemStackSaveJsonObject(itemStackFactory.Create(ToolItemId(), 1)));
+            const int OverflowCount = 2;
+            for (var overflow = 0; overflow < OverflowCount; overflow++)
+                savedEquipmentItems.Add(new ItemStackSaveJsonObject(itemStackFactory.Create(NonToolItemId(), 1)));
+            saveJsonObjects[0].EquipmentInventoryItems = savedEquipmentItems;
+
+            var loadStore = CreateInventoryDataStore();
+            loadStore.LoadPlayerInventory(saveJsonObjects);
+            var loadedInventory = loadStore.GetInventoryData(PlayerId);
+
+            // 入る分は装備へ、あふれた分はメインへ退避し、総数が保存される
+            // What fits stays in equipment and the rest falls back to main, preserving the total count
+            var loadedEquipment = loadedInventory.EquipmentInventory;
+            for (var slot = 0; slot < slotCount; slot++)
+            {
+                Assert.AreEqual(ToolItemId(), loadedEquipment.GetItem(slot).Id);
+                Assert.AreEqual(1, loadedEquipment.GetItem(slot).Count);
+            }
+            Assert.AreEqual(slotCount, loadedEquipment.GetSlotSize());
+            Assert.AreEqual(OverflowCount, CountInMainInventory(loadedInventory, NonToolItemId()));
+            Assert.AreEqual(0, CountInMainInventory(loadedInventory, ToolItemId()));
+        }
+
         private int CountInMainInventory(PlayerInventoryData playerInventoryData, ItemId itemId)
         {
             var mainInventory = playerInventoryData.MainOpenableInventory;

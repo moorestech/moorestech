@@ -81,14 +81,18 @@ namespace Game.PlayerInventory
                 (var mainItems, var grabItem, var equipmentItems, var selectedEquipmentIndex) = saveInventory.GetPlayerInventoryData();
                 
                 //アイテムを復元
-                // セーブ済みアイテム数が現レベルのスロット数を超える場合はアイテム数まで拡張する
-                // Expand to the saved item count when it exceeds the current level's slot count
-                var slotCount = System.Math.Max(_slotLevelDataStore.CurrentSlotCount, mainItems.Count);
-                var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, slotCount, mainItems);
-                var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, grabItem);
-
+                // 装備を先に復元し、マスタのスロット数が縮んであふれた分を受け取る
+                // Restore equipment first and take the overflow caused by a shrunk master slot count
                 var equipment = new EquipmentInventoryData(playerId, _equipmentInventoryUpdateEvent);
-                equipment.RestoreFromSave(equipmentItems, selectedEquipmentIndex);
+                var overflowEquipmentItems = equipment.RestoreFromSave(equipmentItems, selectedEquipmentIndex);
+
+                // セーブ済みアイテム数と装備あふれ分が収まるまでスロットを拡張し、アイテムを絶対に消さない
+                // Expand slots until both the saved items and the equipment overflow fit so no item is ever lost
+                var slotCount = System.Math.Max(_slotLevelDataStore.CurrentSlotCount, mainItems.Count + overflowEquipmentItems.Count);
+                var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, slotCount, mainItems);
+                main.InsertItem(overflowEquipmentItems);
+
+                var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, grabItem);
 
                 var playerInventory = new PlayerInventoryData(main, grab, equipment);
                 
