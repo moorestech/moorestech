@@ -138,3 +138,461 @@
 - 状態更新: 完了（コミット 099d3b2e1）。親検証47/47・フェード断面検収OK（inv/recipe: y264輝度110-114→y300で55へ収束が正本一致、craftはハードエッジ維持）
 - 締め採点: ノイズ対策で2回実行。**A=49.5/100**（45.5→+4.0。craft 8.5→14.0へ回復、後退修正が奏功。recipe 9.5→8.0・全体整合11.5→9.5は微減）。**B=44.5/100**（inv 8.5/craft 10.0/recipe 8.5/hotbar 6.0/整合11.5）。**平均47.0、A-B差5.0** — 同一画像で±2.5の採点者ノイズを定量確認（区分レベルではinv 12.0vs8.5、craft 14.0vs10.0と大きく振れる）。以後のスコア解釈は±2.5を誤差帯とみなす
 - Block 1総括（スコア推移 37.5→42.5→45.0→50.0→45.5→49.5）: 幾何・色・ピッチ・フェードは収束。残る失点はcraft一点物装飾・スロット枠断面・タイポの床に集中。Block 2はアプローチ変更判断待ち（ユーザー制約: UI装飾の画像アセット化は禁止、CSS/DOM/インラインSVG限定）
+# Craft chrome parity — Task 5 (2026-07-30)
+
+- Scope: 3270x1844 craft tab and right-bottom grip only. Iterated one variable (or one SVG path) per capture, rebuilding before each capture because the mock-host captures `dist/`.
+- Mechanical result: **13/13 PASS**. Final tab: `166x69`, left delta `0`, bottom gap `2`; hammer relative bbox `(44,-53,99,-1)`, max delta `1`; grip `23x22`, gaps `20/20`. Representative color deltas: front/back/right-slope `0/0/0`, hammer `3`, grip `15`.
+- Changes: opaque reference composite tokens for tab back/front/side; edge chroma adjusted to prevent its antialiasing from merging with the comparator's hammer component; one hammer SVG path adjusted for bbox extrema, then its lower handle contour was restored to retain the hammer-color probe's reference negative space.
+- Artifacts: `/tmp/webui-craft-current.png`, `/tmp/webui-craft-reference-grid.png`, `/tmp/webui-craft-current-grid.png`, `/tmp/webui-craft-chrome/{tab,grip}-{ref,cur,blend,diff}.png`.
+- Status: mechanical convergence only; **do not commit** until a fresh independent visual reviewer explicitly returns `両要素とも区別できる差なし`. Full per-iteration evidence: `.superpowers/sdd/2026-07-30-craft-tab-corner-parity/task-5-report.md`.
+
+### Task 5 visual iteration round 1
+
+- Reviewer-only correction: changed exactly `toolTabFace`, from `M24 10H115L135 70H24Z` to `M25 10H115L129 72H25Z`, to correct its measured crop bounds from current `x45–153,y50–107` toward reference `x46–147,y50–109`. No CSS, token, other path, or grip change.
+- `pnpm build` and 1635x922 CSS viewport/dSF2 capture completed. Grids and tab/grip ref/current/blend/diff crops regenerated at the Task 5 artifact paths.
+- Exact comparator: panel-size ref `(1210,300,2071,1405)` cur `(1210,333,2071,1439)` Δ1; tab `166x69`, left 0, bottom gap 2; hammer relative `(44,-53,99,-1)` Δ1; grip `23x22`, gaps 20/20; colors front/back/right-slope/hammer/grip Δ `0/0/0/3/15`; **13/13 PASS**.
+- Status: fresh visual reviewer still required; no commit.
+
+### Task 5 visual iteration round 2
+
+- Reviewer-only correction: changed exactly `toolTabBack`, from `M15 0H125L166 70H0V10H15Z` to `M15 0H125L166 70H0V10H15ZM16 2V68H143L125 2Z`. The reverse-wound inner subpath cuts through the brown back fill and exposes the existing dark panel/background as the requested black rim; no token, CSS, other path, or grip rule changed.
+- Exact before/after metrics: 13/13 -> 13/13 PASS. Tab `166x69`, left 0, bottom gap 2; hammer relative `(44,-53,99,-1)` Δ1; grip `23x22`, gaps 20/20; colors front/back/right-slope/hammer/grip Δ `0/0/0/3/15`. Exact output follows.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(144, 145, 164) maxΔ=15
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 5
+
+- Changed exactly `--craft-grip-face`: `rgb(146 148 167 / 98%)` -> `rgb(134 136 152 / 98%)`; no size/inset/tab/path/CSS/other-token change.
+- Preserved 98% opacity and reverse-solved the observed backdrop: prior rendered `(144,145,164)` from authored `(146,148,167)` implies approximately `(46,0,17)` background. The new authored source produces the exact reference rendered median `(132,133,149)`.
+- Exact before/after: grip color max delta `15` -> `0`; 13/13 PASS remains 13/13. Rebuilt and regenerated current image, both grids, and all tab/grip crops. Fresh review required; no commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 14 — left dark rim
+
+- Changed only `toolTabSide`: initial right trapezoid `M118 8H125L141 70H136Z` -> plus left subpath settled as `M118 8H125L141 70H136ZM15 9H27V72H15Z`. All other implementation unchanged.
+- Exact dark mask: reference 932px `(36,48)-(161,109)`; current 734px `(36,47)-(160,109)`. New y48 left band exactly reaches x36–43; current later rows are x36–42 because x43 is covered by later face/edge paint. Right trapezoid was preserved and back/right-slope probes remain exact.
+- Exact final comparator is 13/13 PASS. Rebuilt and regenerated image, grids, and tab/grip crops. Fresh review required; no commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 13 — grip height
+
+- Changed only `--craft-grip-size`: `8.7px` -> `8.8px`; all inset/color/clip-path/tab/path/CSS/other-token values unchanged.
+- Comparator grip bbox `22x21` -> `23x22`, preserving right/bottom gaps 20/20 and remaining within tolerance. Exact face mask in equal-scale bottom-right crop: ref 96px `(107,107)-(118,118)`, current 215px `(98,99)-(118,119)`; this records the residual area for fresh review.
+- Exact final comparator is 13/13 PASS. Rebuilt and regenerated image, grids, and all crops. Fresh review required; no commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 12 — converged edge bottom
+
+- Changed exactly `toolTabEdge`: `M24 10H115L135 70H24Z` -> `M24 10H115L135 72H24Z`; face remains y73 and all other paths/tokens/CSS/grip stayed unchanged.
+- Row-mask result: pure front face bbox exactly matches reference `(46,50)-(147,109)`. Ref/current exact counts are 4864/4820; y106–109 row counts ref/current `84/85`, `84/88`, `84/89`, `84/92`; y110 `0/0`. The y73 edge trial yielded y110 and was rejected.
+- Exact final comparator is 13/13 PASS. Rebuilt and regenerated image, grids, and tab/grip crops. Fresh review required; no commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2029, 1398, 2050, 1418) size=(22, 21) maxΔ=1
+[PASS] grip-right-gap: bbox=(2029, 1398, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2029, 1398, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 11 — BLOCKED
+
+- Compound `toolTabFace` only trials, with unchanged CSS/fill-rule: outer y73 plus reverse-wound strip `M25 72.5V74H129V72.5Z`; then fully interior strip `M25 72.6V72.9H129V72.6Z`.
+- Both trials produced exactly the same pure mask as the uncut y73 polygon: `(46,50)-(147,110)`, 4734px; y108–109 empty and y110 95px. Reference is `(46,50)-(147,109)`, 4864px. Subtractive exclusions cannot create y108–109, and at this raster scale did not remove y110.
+- Restored clean `M25 10H115L129 73H25Z`. Final comparator remains 13/13 PASS, but exact pure-face target is blocked under the compound-path-only constraint. No commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2029, 1398, 2050, 1418) size=(22, 21) maxΔ=1
+[PASS] grip-right-gap: bbox=(2029, 1398, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2029, 1398, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 10
+
+- Changed only `toolTabFace`: starting `M25 10H115L129 72H25Z`; settled `M25 10H115L129 73H25Z`. No token, other path, height/margin, CSS, or grip change.
+- Pure-face mask arbitration: ref `(46,50)-(147,109)`, 4864px; current y72 `(46,50)-(147,107)`, 4645px. Trials y72.16/y72.25/y72.5/y73/y74 showed no y109 raster state: valid continuous states jump y107 -> y110 -> y111; fractional and second-subpath variants caused y110/right-AA or discontinuity. Settled y73 is the closest continuous silhouette: `(46,50)-(147,110)`, 4734px.
+- Exact final comparator is 13/13 PASS; all artifacts regenerated. Fresh review required, no commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2029, 1398, 2050, 1418) size=(22, 21) maxΔ=1
+[PASS] grip-right-gap: bbox=(2029, 1398, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2029, 1398, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 9
+
+- Changed only `--craft-grip-size`, with rasterization trials `9px` -> `8.6px` -> `8.7px` -> `8.8px` -> settled `8.7px`; no inset/color/tab/path/CSS/other-token change.
+- Exact results: 8.6/8.7px rasterize to `22x21`, anchored right/bottom gaps 20/20; 8.8px quantizes back to `23x22`. Thus exact `22x22` is unavailable through this token alone. Settled 8.7px removes 1px from visible left/top, meets comparator ±1 tolerance, and keeps 13/13 PASS.
+- Final capture/grids/crops regenerated; fresh review required and no commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2029, 1398, 2050, 1418) size=(22, 21) maxΔ=1
+[PASS] grip-right-gap: bbox=(2029, 1398, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2029, 1398, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 8
+
+- Changed only `--craft-tab-height` for the mandated trial: `27.397px` -> `28.18px` -> `27.397px` (settled). No other value changed.
+- Arbitration: fixed width plus default SVG preserve-aspect behavior letterboxed rather than stretched the viewBox. Trial front bounds `(46,50)-(147,107)` -> `(46,51)-(147,108)` and tab bbox `166x69` -> `165x68`, producing `tab-size` maxΔ2 FAIL (12/13). Height alone cannot add the missing lower 2px without moving the top and losing tab-size tolerance, so the token was restored.
+- Final result: 13/13 PASS and original valid tab bbox restored. The visual front-bottom residual y107 vs reference y109 is deferred; fresh review required and no commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 7
+
+- Changed exactly `toolTabSide`: `M125 0H126L143 70Z` -> `M118 8H125L141 70H136Z`; dark-side token, all other path/token/CSS rules, grip, and path order remain unchanged.
+- Equal-scale right-rim mask now follows reference closely: ref x138–145 at crop y48 and x156–161 at y108; current x139–144 at y48 and x155–158 at y102. Current exact dark count is 308px (right plane only) vs reference 932px (includes the separate left rim). Fixed right-slope probe remains brown and exact.
+- Exact before/after comparator: 13/13 -> 13/13 PASS. Rebuilt and regenerated image, grids, and all tab/grip crops. Fresh review required; no commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 6
+
+- Changed exactly `toolTabBack`: `M15 0H125L166 70H0V10H15ZM16 2V68H143L125 2Z` -> `M15 0H125L166 70H0V10H15Z`; all tokens, other paths, CSS, grip, and five-path order stayed unchanged.
+- Equal-scale `rgb(51,43,40)` rear mask: current 1788px -> 3601px with unchanged bounds `(21,39)-(184,107)`; reference is 2008px `(20,48)-(183,109)`. This explicitly removes the aggressive cutout and restores rear-layer area while keeping the back probe exact.
+- Exact before/after comparator: 13/13 -> 13/13 PASS. Rebuilt and regenerated current image, grids, and all tab/grip crops. Fresh review required; no commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+- Artifacts regenerated: `/tmp/webui-craft-current.png`, both `/tmp/webui-craft-*-grid.png`, and `/tmp/webui-craft-chrome/{tab,grip}-{ref,cur,blend,diff}.png`. Fresh visual review required; no commit.
+
+### Task 5 visual iteration round 3
+
+- Changed exactly `--craft-tab-side`: `rgb(51 43 40)` -> `rgb(16 15 21)`, the reviewer-supplied dominant reference dark-rim RGB. No path, other token, CSS, or grip change.
+- Exact before/after: 13/13 -> 12/13 PASS; all geometry remains PASS and `color:tab-right-slope` is the only regression, from Δ0 to ref `(51,43,40)`, cur `(19,17,23)`, Δ32. This temporary color-check loss is intentional for the isolated visual-rim trial.
+- Rebuilt and regenerated `/tmp/webui-craft-current.png`, both grid overlays, and all tab/grip ref/current/blend/diff crops. Fresh review required; no commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[FAIL] color:tab-right-slope: ref=(51, 43, 40) cur=(19, 17, 23) maxΔ=32
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(144, 145, 164) maxΔ=15
+
+== 12/13 checks passed ==
+```
+
+### Task 5 final acceptance — reviewer success
+
+- Independent reviewer verdict: `両要素とも区別できる差なし`.
+- Accepted rendering state is preserved: `--craft-grip-size: 9.2px`; the tab geometry and all other accepted rendering values remain unchanged.
+- Final artifacts: `/tmp/webui-craft-current.png`, `/tmp/webui-craft-reference-grid.png`, `/tmp/webui-craft-current-grid.png`, `/tmp/webui-craft-chrome/{tab,grip}-{ref,cur,blend,diff}.png`.
+- Final equal-scale metrics: exact dark tab rim reference/current `932px/(36,48)-(161,109)` vs `931px/(36,47)-(161,109)`; accepted grip exact face current `236px`, 22x22; grip comparator component `23x22`, gaps `20/20`, median `(132,133,149)`.
+- Verification: `pnpm build`; focused Playwright recipe/research/modeHud suite `11 passed`; `pnpm vitest run src/features/recipe/views/CraftProgressArrow.test.ts` `9 passed`; `git diff --check` passes. Source line counts: tokens 172, ItemHeader 28, craft Chrome assertion 61; bilingual comments remain paired.
+- The E2E grip contract now pins authored `9.2px` and Chromium computed `9.1875px` while retaining exact triangle, color, no-gradient, no-shadow, and no-visible-content-overlap assertions. The overlap check measures text-line rects so an element's empty line-height/margin box cannot create a false collision.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 15b — adopted grip-size candidate
+
+- Adopted only `--craft-grip-size: 9.2px` from the round-15 search. No tab, inset, color, clip-path, or other CSS rule changed.
+- The exact `rgb(132,133,149)` visible face improves from the 8.8px baseline 21x21/215px to 22x22/236px. The low-chroma comparator component remains 23x22 at `(2028,1397)-(2050,1418)`, with right/bottom gaps 20/20 and exact grip median `(132,133,149)`.
+- Fresh build, capture, comparator, crops, grid overlays, and `git diff --check` pass. This is the best same-variable raster state before the 9.3px height jump; fresh independent visual review is required. No commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 15 — grip-size raster search (BLOCKED)
+
+- Changed only `--craft-grip-size` for every trial; no tab, inset, color, clip-path, or other CSS change. Final value is reverted to the starting `8.8px`.
+
+| token | exact-color visible bbox | exact pixels | comparator bbox | result |
+| --- | --- | ---: | --- | --- |
+| 8.8px | 21x21 | 215 | 23x22 | baseline, 13/13 PASS |
+| 8.9px | 21x21 | 231 | 23x22 | 13/13 PASS |
+| 9px | 21x21 | 231 | 23x22 | 13/13 PASS |
+| 9.1px | 21x21 | 231 | 23x22 | 13/13 PASS |
+| 9.2px | 22x22 | 236 | 23x22 | 13/13 PASS |
+| 9.3px | 22x22 | 253 | 23x23 | 13/13 PASS, height condition violated |
+| 9.35px | 22x22 | 253 | 23x23 | 13/13 PASS, height condition violated |
+
+- `visible` is the exact `rgb(132,133,149)` face mask within the equal-scale grip crop. Reference exact-color bbox is 12x12/96px; it is recorded only as the stable color measurement, not substituted for the reviewer’s visible-raster criterion. The comparator’s low-chroma component uses different semantics.
+- There is no tested `8.8–9.35px` value with visible width 23px and height 22px. At 9.3px, height becomes 23px before the exact-color face gains a 23rd horizontal pixel. A 9.4px guard trial reached comparator 24x23 and failed 12/13, so it cannot satisfy the requirement.
+- Final 8.8px rebuild/capture/comparator/grid pass is recorded below. `git diff --check` passes. This isolated token cannot meet the requested raster state; no commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 14b — right dark-rim convergence
+
+- Changed only the existing `toolTabSide` path in `ItemHeader.tsx`; final path is `M118 8H125L143 72H130ZM15 9H28V72H15Z`.
+- Trial sequence within that one attribute: baseline `M118 8H125L141 70H136ZM15 9H27V72H15Z` (734px) -> `M118 8H125L141 70H130ZM15 9H27V72H15Z` (860px) -> `M118 8H125L142 72H130ZM15 9H28V72H15Z` (900px) -> final (931px).
+- Exact equal-scale `rgb(16,15,21)` mask: reference `932px`, bbox `(36,48)-(161,109)`; final current `931px`, bbox `(36,47)-(161,109)`. At the requested lower row y108, both contain the right rim at `x156–161`.
+- The final trial widened the left subpath by 1 viewBox unit and adjusted only the right plane lower outer point from `(142,72)` to `(143,72)`. No side token, other SVG path, CSS, tab geometry, or grip property changed.
+- Rebuilt, recaptured, regenerated tab/grip crops and both grid overlays. `git diff --check` passes. Fresh independent visual review remains required; no commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(132, 133, 149) maxΔ=0
+
+== 13/13 checks passed ==
+```
+
+### Task 5 visual iteration round 4
+
+- Changed exactly `toolTabSide`: `M125 0H143L166 70H145Z` -> `M125 0H126L143 70Z`; its `rgb(16 15 21)` token, every other path/token/CSS rule, and grip remained unchanged.
+- Equal-scale dark-rim mask: before current exact-dark bounds `(146,39)-(184,107)`, 1264px, exceeded the reference right rim (reference total `(36,48)-(161,109)`, 932px). After shrinking the side triangle, the fixed panel-relative `(+140,-20)` probe is brown `(51,43,40)`, matching reference instead of dark `(19,17,23)`.
+- Exact before/after comparator: 12/13 -> 13/13 PASS; the only previous failure `color:tab-right-slope` Δ32 recovered to Δ0. Rebuilt and regenerated current image, grid overlays, and tab/grip crops. Fresh review required; no commit.
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(144, 145, 164) maxΔ=15
+
+== 13/13 checks passed ==
+```
+
+```text
+[PASS] panel-size: ref=(1210, 300, 2071, 1405) cur=(1210, 333, 2071, 1439) maxΔ=1
+[PASS] tab-size: bbox=(1210, 262, 1375, 330) size=(166, 69) maxΔ=1
+[PASS] tab-left: bbox=(1210, 262, 1375, 330) got=0 maxΔ=0
+[PASS] tab-bottom-gap: bbox=(1210, 262, 1375, 330) got=2 range=(0, 3)
+[PASS] hammer-box: bbox=(1254, 280, 1309, 332) relative=(44, -53, 99, -1) maxΔ=1
+[PASS] grip-size: bbox=(2028, 1397, 2050, 1418) size=(23, 22) maxΔ=1
+[PASS] grip-right-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] grip-bottom-gap: bbox=(2028, 1397, 2050, 1418) got=20 maxΔ=1
+[PASS] color:tab-front: ref=(58, 59, 72) cur=(58, 59, 72) maxΔ=0
+[PASS] color:tab-back: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:tab-right-slope: ref=(51, 43, 40) cur=(51, 43, 40) maxΔ=0
+[PASS] color:hammer: ref=(58, 59, 72) cur=(61, 62, 72) maxΔ=3
+[PASS] color:grip: ref=(132, 133, 149) cur=(144, 145, 164) maxΔ=15
+
+== 13/13 checks passed ==
+```
