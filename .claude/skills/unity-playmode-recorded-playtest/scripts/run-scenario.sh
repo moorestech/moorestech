@@ -11,6 +11,20 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_PATH="${1:?usage: run-scenario.sh <unity-project-path> <scenario.cs> [master-server-dir]}"
 SCENARIO_FILE="${2:?scenario .cs file required}"
+source "$SCRIPT_DIR/fixed-world-environment.sh"
+
+# 固定worldの入力契約をmaster解決やpreflightより前に確定する
+# Resolve the fixed-world input contract before master resolution or preflight
+validate_fixed_world_environment
+FIXED_WORLD_ENVIRONMENT_STATUS=$?
+if [[ "$FIXED_WORLD_ENVIRONMENT_STATUS" -eq 2 ]]; then
+    exit 1
+fi
+if [[ "$FIXED_WORLD_ENVIRONMENT_STATUS" -eq 0 ]]; then
+    FIXED_WORLD_BOOT=true
+else
+    FIXED_WORLD_BOOT=false
+fi
 
 # masterピンworktreeを作業中プロジェクトの互換コミットから自動解決する（固定パスを持たない）
 # Resolve the pinned master worktree from the working project's own compat commit (no hardcoded path)
@@ -77,13 +91,9 @@ if [[ "$IS_PLAYING" == "True" ]]; then
     uloop control-play-mode --project-path "$PROJECT_PATH" --action stop >/dev/null 2>&1
     sleep 3
 fi
-# 固定world用の3環境変数が揃った場合だけ新APIを使い、既存の3引数呼び出しを維持する
-# Use the fixed-world API only when all three environment variables are present, preserving existing 3-argument calls
-if [[ -n "${PLAYTEST_WORLD_DIRECTORY:-}" && -n "${PLAYTEST_MAP_MODE:-}" && -n "${PLAYTEST_SEED:-}" ]]; then
-    if [[ ! "$PLAYTEST_SEED" =~ ^-?[0-9]+$ ]]; then
-        echo "NG: PLAYTEST_SEED must be an integer: $PLAYTEST_SEED"
-        exit 1
-    fi
+# 検証済みの分類だけで固定worldと従来起動を切り替える
+# Switch between fixed-world and legacy boot using only the validated classification
+if [[ "$FIXED_WORLD_BOOT" == true ]]; then
     MASTER_LITERAL=$(csharp_quote "$MASTER_DIR")
     WORLD_LITERAL=$(csharp_quote "$PLAYTEST_WORLD_DIRECTORY")
     MAP_MODE_LITERAL=$(csharp_quote "$PLAYTEST_MAP_MODE")

@@ -5,7 +5,7 @@ using UnityEditor;
 
 namespace Client.Playtest
 {
-    public static class PlaytestWorldBootSession
+    internal static class PlaytestWorldBootSession
     {
         private const string PendingKey = "Playtest_WorldBootPending";
         private const string ServerDirectoryKey = "Playtest_WorldBootServerDirectory";
@@ -46,6 +46,11 @@ namespace Client.Playtest
             proprieties = InitializeProprieties.CreateDefault();
             proprieties.CreateLocalServerArgs = CliConvert.Serialize(settings);
             return true;
+        }
+
+        public static bool IsPending()
+        {
+            return SessionState.GetBool(PendingKey, false);
         }
 
         public static void Clear()
