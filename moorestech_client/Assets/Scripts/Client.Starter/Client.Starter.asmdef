@@ -26,7 +26,8 @@
         "Game.PlayerRiding.Interface",
         "Core.Item.Interface",
         "Game.Paths",
-        "Game.MapGeneration"
+        "Game.MapGeneration",
+        "Common.Debug"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
