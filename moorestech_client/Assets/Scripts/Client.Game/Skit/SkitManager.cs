@@ -135,6 +135,7 @@ namespace Client.Game.Skit
                 // 表示の設定
                 skitUI.SetActive(!webUiMode);
                 mapObjectPin.SetActive(false);
+                cleanupOnce.MarkMapPinHidden();
 
                 // DIコンテナをセットアップ
                 var builder = new ContainerBuilder();
@@ -161,7 +162,7 @@ namespace Client.Game.Skit
                 // Restore every playback state exactly once from the outer finally
                 skitUI.SetActive(false);
                 if (presentationStarted) SkitPresentationStateStore.Instance.End();
-                mapObjectPin.SetActive(true);
+                if (cleanupOnce.TryTakeMapPinRestore()) mapObjectPin.SetActive(true);
                 characterContainer?.DestroyAllCharacters();
                 if (cameraRegistered) CameraManager.UnRegisterCamera(skitCamera);
                 storyContext?.Dispose();

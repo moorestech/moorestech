@@ -17,6 +17,25 @@ namespace Client.Tests.Localization.Skit
         }
 
         [Test]
+        public void EarlyFailureDoesNotRequestMapPinRestore()
+        {
+            var cleanup = new SkitCleanupOnce();
+
+            Assert.IsFalse(cleanup.TryTakeMapPinRestore());
+            Assert.IsFalse(cleanup.TryTakeMapPinRestore());
+        }
+
+        [Test]
+        public void HiddenMapPinRequestsRestoreExactlyOnce()
+        {
+            var cleanup = new SkitCleanupOnce();
+            cleanup.MarkMapPinHidden();
+
+            Assert.IsTrue(cleanup.TryTakeMapPinRestore());
+            Assert.IsFalse(cleanup.TryTakeMapPinRestore());
+        }
+
+        [Test]
         public void SkitManagerUsesOuterFinallyForEveryRequiredCleanup()
         {
             var source = ReadSource("Scripts/Client.Game/Skit/SkitManager.cs");
@@ -27,13 +46,21 @@ namespace Client.Tests.Localization.Skit
                 source,
                 "skitUI.SetActive(false);",
                 "SkitPresentationStateStore.Instance.End();",
-                "mapObjectPin.SetActive(true);",
                 "characterContainer?.DestroyAllCharacters();",
                 "CameraManager.UnRegisterCamera(skitCamera);",
                 "storyContext?.Dispose();",
                 "localizationResolver?.Dispose();",
                 "IsPlayingSkit = false;",
                 "_isSkip = false;");
+            StringAssert.Contains(
+                "mapObjectPin.SetActive(false);\n                cleanupOnce.MarkMapPinHidden();",
+                source);
+            StringAssert.Contains(
+                "if (cleanupOnce.TryTakeMapPinRestore()) mapObjectPin.SetActive(true);",
+                source);
+            StringAssert.DoesNotContain(
+                "\n                mapObjectPin.SetActive(true);",
+                source);
             StringAssert.DoesNotContain("catch", source);
         }
 
