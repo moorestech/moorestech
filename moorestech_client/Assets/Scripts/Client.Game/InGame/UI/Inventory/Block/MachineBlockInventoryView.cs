@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Localization;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface.State;
@@ -10,6 +11,7 @@ using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MachineRecipesModule;
 using TMPro;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
@@ -43,7 +45,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
             var itemList = new List<IItemStack>();
             // GearMachineParamとElectricMachineParamを共通して使える
             var param = blockGameObject.BlockMasterElement.BlockParam as IMachineParam;
-            machineBlockNameText.text = blockGameObject.BlockMasterElement.Name;
+            RefreshBlockName();
+            Localize.OnLanguageChanged.Subscribe(_ => RefreshBlockName()).AddTo(this);
             SetItemList();
             SetFluidList();
             // 電力機械プレハブでのみ電力ネットワーク情報を表示(歯車機械では未配線)
@@ -122,7 +125,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                     foreach (var item in recipeMaster.OutputItems)
                     {
                         var resultCount = item.Count * minutesCount;
-                        var itemName = MasterHolder.ItemMaster.GetItemMaster(item.ItemGuid).Name;
+                        var itemName = Localize.GetContent(ContentLocalizationKeys.ItemName(item.ItemGuid));
                         machineRecipeCountText += $"{itemName} : {resultCount:F1}/分 ";
                     }
                 }
@@ -170,6 +173,12 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
 
             #endregion
+        }
+
+        private void RefreshBlockName()
+        {
+            machineBlockNameText.text = Localize.GetContent(
+                ContentLocalizationKeys.BlockName(BlockGameObject.BlockMasterElement.BlockGuid));
         }
     }
 }

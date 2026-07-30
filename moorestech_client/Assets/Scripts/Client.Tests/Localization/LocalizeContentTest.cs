@@ -1,6 +1,8 @@
 using System;
 using System.IO;
+using Client.Game.InGame.UI.Inventory.Common;
 using Client.Localization;
+using Client.Mod.Texture;
 using Core.Master;
 using Game.Context;
 using Mod.Loader;
@@ -91,6 +93,25 @@ namespace Client.Tests.Localization
             Assert.AreEqual(1, eventCount);
         }
 
+        [Test]
+        public void ItemSlotの既定TooltipはItemGuidの翻訳を表示する()
+        {
+            using var itemIds = MasterHolder.ItemMaster.GetItemAllIds().GetEnumerator();
+            Assert.IsTrue(itemIds.MoveNext());
+            var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemIds.Current);
+            CreateItemLocalizationMod(itemMaster.ItemGuid);
+            Localize.MergeGameDictionaries(
+                new ModsResource(temporaryDirectory),
+                new[] { new ModId("author:item-tooltip") });
+
+            var texture = new Texture2D(1, 1);
+            var itemView = new ItemViewData(texture, itemMaster);
+            var tooltip = ItemSlotView.GetToolTipText(itemView);
+
+            Assert.AreEqual("翻訳済みアイテム", tooltip);
+            UnityEngine.Object.DestroyImmediate(texture);
+        }
+
         private void CreateLocalizationMod()
         {
             var modDirectory = Path.Combine(temporaryDirectory, "fallback-mod");
@@ -111,6 +132,22 @@ namespace Client.Tests.Localization
                 "content.english.name,English Source,English,\n" +
                 "content.source.name,Source,,\n" +
                 "content.missing.name,,,\n");
+        }
+
+        private void CreateItemLocalizationMod(Guid itemGuid)
+        {
+            var modDirectory = Path.Combine(temporaryDirectory, "item-tooltip-mod");
+            var masterDirectory = Path.Combine(modDirectory, "master");
+            var localizationDirectory = Path.Combine(modDirectory, "localization");
+            Directory.CreateDirectory(masterDirectory);
+            Directory.CreateDirectory(localizationDirectory);
+
+            File.WriteAllText(
+                Path.Combine(masterDirectory, "modMeta.json"),
+                "{\"id\":\"item-tooltip\",\"name\":\"item-tooltip\",\"version\":\"1.0\",\"author\":\"author\",\"description\":\"test\"}");
+            File.WriteAllText(
+                Path.Combine(localizationDirectory, "localization.csv"),
+                $"key,Source,english,japanese\nitem.{itemGuid:D}.name,Source,English,翻訳済みアイテム\n");
         }
     }
 }

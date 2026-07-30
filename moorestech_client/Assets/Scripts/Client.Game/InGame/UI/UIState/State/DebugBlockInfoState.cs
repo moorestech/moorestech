@@ -2,6 +2,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
+using Client.Localization;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
@@ -89,8 +90,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
                     var master = blockObject.BlockMasterElement;
                     var pos = blockObject.BlockPosInfo.OriginalPos;
+                    var blockName = Localize.GetContent(
+                        ContentLocalizationKeys.BlockName(master.BlockGuid));
                     Debug.Log(
-                        $"[DebugBlockInfo] Name={master.Name} " +
+                        $"[DebugBlockInfo] Name={blockName} " +
                         $"BlockId={blockObject.BlockId} " +
                         $"InstanceId={blockObject.BlockInstanceId} " +
                         $"Guid={master.BlockGuid} " +

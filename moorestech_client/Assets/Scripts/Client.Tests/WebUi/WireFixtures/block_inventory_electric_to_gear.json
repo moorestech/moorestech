@@ -3,7 +3,7 @@
   "source": "block",
   "blockType": "ElectricToGearGenerator",
   "identifier": "(4, 0, 2)",
-  "blockName": "回転生成機",
+  "blockGuid": "99999999-9999-9999-9999-999999999999",
   "itemSlots": [],
   "fluidSlots": [],
   "electricToGear": {

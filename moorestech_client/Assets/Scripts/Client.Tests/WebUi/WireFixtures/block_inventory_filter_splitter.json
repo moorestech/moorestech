@@ -3,7 +3,7 @@
   "source": "block",
   "blockType": "FilterSplitter",
   "identifier": "(2, 0, 2)",
-  "blockName": "フィルタ分岐器",
+  "blockGuid": "55555555-5555-5555-5555-555555555555",
   "itemSlots": [],
   "fluidSlots": [],
   "filterSplitter": {

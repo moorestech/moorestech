@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
+using Client.Localization;
 using Core.Master;
 using Game.PlayerInventory.Interface;
 using Mooresmaster.Model.MapModule;
@@ -113,8 +114,7 @@ namespace Client.Game.InGame.Mining
             
             foreach (var tool in miningTools)
             {
-                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(tool.ToolItemGuid);
-                result.Add(itemMaster.Name);
+                result.Add(Localize.GetContent(ContentLocalizationKeys.ItemName(tool.ToolItemGuid)));
             }
             
             var text = "このアイテムが必要です:" + string.Join(", ",result);

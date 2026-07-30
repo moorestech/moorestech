@@ -18,7 +18,6 @@ export const MachineRecipeSchema = z.object({
   recipeGuid: z.string(),
   blockGuid: z.string(),
   blockId: z.number(),
-  blockName: z.string(),
   time: z.number(),
   inputItems: z.array(MachineRecipeItemSchema),
   outputItems: z.array(MachineRecipeItemSchema),

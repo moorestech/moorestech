@@ -10,7 +10,7 @@ import { resolveBlockComponent } from "./registry/blockComponentRegistry";
 import styles from "./style.module.css";
 import BlockItemGrid from "./BlockItemGrid";
 import { buildMachineRecipeSelectionRows } from "./details/machine/machineRecipeSelectionLogic";
-import { L, useI18n, type TranslationKey } from "@/shared/i18n";
+import { blockNameKey, L, useI18n, type TranslationKey } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 
 // ブロック UI のオーバーレイ。uGUI の SubInventoryState 相当で、blockType から中身を静的解決する
@@ -29,7 +29,9 @@ export default function BlockInventoryPanel() {
   const trainError = data.source === "train" && data.error
     ? t(resolveTrainErrorKey(data.error))
     : null;
-  const title = data.source === "train" ? t(L.ui.blockInventory.trainInventory) : data.blockName;
+  const title = data.source === "train"
+    ? t(L.ui.blockInventory.trainInventory)
+    : t(blockNameKey(data.blockGuid));
 
   // レシピ選択を持つ機械だけ研究パネル同等のviewer〜items占有大型パネルへ広げる
   // Only recipe-capable machines expand to the research-sized panel spanning viewer..items

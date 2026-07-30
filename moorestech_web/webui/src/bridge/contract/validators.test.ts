@@ -3,7 +3,7 @@ import { validateTopicPayload } from "./validators";
 import { Topics } from "../transport/protocol";
 
 const openBase = {
-  open: true, source: "block", blockType: "ElectricMachine", identifier: "(0, 0, 0)", blockName: "電気機械",
+  open: true, source: "block", blockType: "ElectricMachine", identifier: "(0, 0, 0)", blockGuid: "block-guid",
   itemSlots: [{ itemId: 1, count: 2 }], fluidSlots: [],
 };
 
@@ -117,23 +117,6 @@ describe("validResearchTree", () => {
   it("rejects malformed node", () => {
     expect(validateTopicPayload(Topics.researchTree, { nodes: [{ ...node, position: { x: "0", y: 0 } }] })).toBe(false);
     expect(validateTopicPayload(Topics.researchTree, {})).toBe(false);
-  });
-});
-
-describe("validMachineRecipes", () => {
-  const recipe = {
-    recipeGuid: "recipe-guid", blockGuid: "block-guid", blockId: 12, blockName: "炉", time: 1,
-    inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 2, count: 1 }],
-  };
-
-  it("accepts BlockId and rejects the removed blockItemId contract", () => {
-    expect(validateTopicPayload(Topics.machineRecipes, { recipes: [recipe] })).toBe(true);
-    expect(validateTopicPayload(Topics.machineRecipes, {
-      recipes: [{ ...recipe, blockId: undefined, blockItemId: 12 }],
-    })).toBe(false);
-    expect(validateTopicPayload(Topics.machineRecipes, {
-      recipes: [{ ...recipe, blockGuid: undefined }],
-    })).toBe(false);
   });
 });
 

@@ -4,6 +4,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.UIState;
+using Client.Localization;
 using Cysharp.Threading.Tasks;
 using Game.UnlockState;
 using UniRx;
@@ -26,6 +27,16 @@ namespace Client.Game.InGame.UI.BuildMenu
         private readonly List<ItemSlotView> _slotViews = new();
         private readonly List<string> _displayedBlueprintNames = new();
         private BuildMenuEntry? _clickedEntry;
+
+        private void Start()
+        {
+            Localize.OnLanguageChanged
+                .Subscribe(_ =>
+                {
+                    if (gameObject.activeSelf && !WebUiScreenGate.IsWebUiMode) RebuildEntryList();
+                })
+                .AddTo(this);
+        }
 
         public void SetActive(bool active)
         {

@@ -51,7 +51,7 @@ describe("slotActions", () => {
       source: "block",
       blockType: "chest",
       identifier: "block-1",
-      blockName: "Chest",
+      blockGuid: "block-guid",
       itemSlots: [slot(1, 8), slot(0, 0)],
       fluidSlots: [],
     };

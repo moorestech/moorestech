@@ -87,7 +87,7 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
                 value={tab.key}
                 leftSection={tab.blockId !== null ? <BlockIcon blockId={tab.blockId} className={styles.tabIcon} /> : undefined}
               >
-                {tab.blockId === null ? t(tab.labelKey) : tab.label}
+                {t(tab.labelKey)}
               </Tabs.Tab>
             ))}
           </Tabs.List>

@@ -108,6 +108,7 @@ function createDictionaries(): Map<string, Record<string, string>> {
   result.set("source", {
     ...Object.fromEntries(csv.rows.map((row: { key: string; source: string }) => [row.key, row.source])),
     ...fx.itemNameDictionaries.source,
+    ...fx.blockNameDictionaries.source,
   });
   for (let languageIndex = 0; languageIndex < csv.languageCodes.length; languageIndex += 1) {
     const languageCode = csv.languageCodes[languageIndex];
@@ -116,6 +117,7 @@ function createDictionaries(): Map<string, Record<string, string>> {
       {
         ...Object.fromEntries(csv.rows.map((row: { key: string; texts: string[] }) => [row.key, row.texts[languageIndex]])),
         ...fx.itemNameDictionaries[languageCode],
+        ...fx.blockNameDictionaries[languageCode],
       },
     );
   }

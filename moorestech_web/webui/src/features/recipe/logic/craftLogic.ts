@@ -5,13 +5,11 @@ import type {
   MachineRecipesData,
 } from "@/bridge";
 import { hasEnoughItems } from "@/shared/ownedCounts";
-import { L, type TranslationKey } from "@/shared/i18n";
+import { blockNameKey, L, type TranslationKey } from "@/shared/i18n";
 
 // null はクラフトタブ
 // null denotes the craft tab
-type RecipeTab =
-  | { key: string; labelKey: TranslationKey; blockId: null }
-  | { key: string; label: string; blockId: number };
+type RecipeTab = { key: string; labelKey: TranslationKey; blockId: number | null };
 
 // 選択アイテムを生産するクラフトレシピを抽出する純関数。
 // Pure selector for craft recipes that produce the selected item.
@@ -45,7 +43,7 @@ export function buildRecipeTabs(
     tabs.push({ key: "craft", labelKey: L.ui.recipe.craftTab, blockId: null });
   }
   machineGroups.forEach((group, blockId) =>
-    tabs.push({ key: `m${blockId}`, label: group[0].blockName, blockId }),
+    tabs.push({ key: `m${blockId}`, labelKey: blockNameKey(group[0].blockGuid), blockId }),
   );
   return tabs;
 }

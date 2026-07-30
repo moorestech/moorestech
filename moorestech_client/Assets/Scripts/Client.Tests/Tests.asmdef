@@ -19,6 +19,7 @@
         "Unity.InputSystem",
         "Unity.InputSystem.TestFramework",
         "Client.Common",
+        "Client.Mod",
         "Client.Localization",
         "Server.SchemaWatch.Editor",
         "Server.Boot",

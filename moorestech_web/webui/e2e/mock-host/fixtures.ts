@@ -9,6 +9,10 @@ import type {
   BuildMenuData,
   TrainRidingData,
 } from "../../src/bridge/contract/payloadTypes";
+import {
+  CHEST_BLOCK_GUID,
+  TANK_BLOCK_GUID,
+} from "./fixtures/blockLocalizationFixtures";
 
 // BLK-2〜5/8 詳細ブロックと FEAT-RES-1 研究ツリーは別ファイルへ分割し再エクスポートする（200行制約）
 // Split the BLK-2..5/8 detail blocks and the FEAT-RES-1 research tree into separate files and re-export (200-line limit)
@@ -17,6 +21,7 @@ export * from "./researchFixtures";
 export * from "./fixtures/presentationFixtures";
 export * from "./fixtures/recipeFixtures";
 export * from "./fixtures/itemMasterFixtures";
+export * from "./fixtures/blockLocalizationFixtures";
 
 const empty = () => ({ itemId: 0, count: 0 });
 
@@ -43,7 +48,7 @@ export const blockChest = {
   // blockType matches the real master value (PascalCase); the web registry resolves "Chest"
   blockType: "Chest",
   identifier: "block:1",
-  blockName: "Chest",
+  blockGuid: CHEST_BLOCK_GUID,
   itemSlots: [{ itemId: 1, count: 7 }, { itemId: 2, count: 4 }, ...Array.from({ length: 7 }, empty)],
   fluidSlots: [],
 } satisfies BlockInventoryData;
@@ -55,7 +60,7 @@ export const blockTank = {
   source: "block",
   blockType: "tank",
   identifier: "block:2",
-  blockName: "Fluid Tank",
+  blockGuid: TANK_BLOCK_GUID,
   itemSlots: [],
   fluidSlots: [
     { fluidId: 10, amount: 500, capacity: 1000, name: "Water" },
@@ -75,7 +80,6 @@ export const trainCargo = {
   source: "train",
   blockType: "Train",
   identifier: "train:101",
-  blockName: "Train Inventory",
   itemSlots: [{ itemId: 1, count: 24 }, { itemId: 2, count: 8 }, ...Array.from({ length: 7 }, empty)],
   fluidSlots: [],
 } satisfies BlockInventoryData;
@@ -85,7 +89,6 @@ export const trainContainerMissing = {
   source: "train",
   blockType: "Train",
   identifier: "train:102",
-  blockName: "Train Inventory",
   itemSlots: [],
   fluidSlots: [],
   error: "containerMissing",

@@ -32,7 +32,7 @@ import MachineRecipeSelectionTab from "./MachineRecipeSelectionTab";
 
 function recipe(recipeGuid: string, itemId: number, time: number): MachineRecipe {
   return {
-    recipeGuid, blockGuid: "block-a", blockId: 10, blockName: "Machine", time,
+    recipeGuid, blockGuid: "block-a", blockId: 10, time,
     inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId, count: 1 }],
   };
 }

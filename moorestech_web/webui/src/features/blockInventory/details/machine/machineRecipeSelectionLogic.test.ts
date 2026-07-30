@@ -8,7 +8,7 @@ const emptyGuid = "00000000-0000-0000-0000-000000000000";
 
 function recipe(recipeGuid: string, blockGuid: string, outputItems = [{ itemId: 2, count: 3 }], inputItems = [{ itemId: 1, count: 4 }]) {
   return {
-    recipeGuid, blockGuid, blockId: 10, blockName: "Machine", time: 1, inputItems, outputItems,
+    recipeGuid, blockGuid, blockId: 10, time: 1, inputItems, outputItems,
   } as MachineRecipe;
 }
 

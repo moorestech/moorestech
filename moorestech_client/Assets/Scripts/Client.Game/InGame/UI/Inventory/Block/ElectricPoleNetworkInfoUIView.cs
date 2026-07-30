@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Localization;
 using Core.Item.Interface;
 using Game.PlayerInventory.Interface.Subscription;
 using TMPro;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
@@ -19,10 +21,20 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private TMP_Text blockNameText;
         [SerializeField] private ElectricNetworkInfoView electricNetworkInfoView;
 
+        private BlockGameObject _blockGameObject;
+
         public void Initialize(BlockGameObject blockGameObject)
         {
-            blockNameText.text = blockGameObject.BlockMasterElement.Name;
+            _blockGameObject = blockGameObject;
+            RefreshBlockName();
+            Localize.OnLanguageChanged.Subscribe(_ => RefreshBlockName()).AddTo(this);
             electricNetworkInfoView.Initialize(blockGameObject.BlockInstanceId);
+        }
+
+        private void RefreshBlockName()
+        {
+            blockNameText.text = Localize.GetContent(
+                ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid));
         }
 
         public IReadOnlyList<ItemSlotView> SubInventorySlotObjects { get; } = new List<ItemSlotView>();

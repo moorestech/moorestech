@@ -18,8 +18,8 @@ namespace Client.Tests.PlaceSystem.ConnectTool
         [Test]
         public void 空きスペース延長用ブロックをツール種別ごとに取得する()
         {
-            // 元配列を逆順にし、優先度と名前の整列を必須にする
-            // Reverse source order so priority and name sorting are required
+            // 元配列を逆順にし、優先度とGuidの整列を必須にする
+            // Reverse source order so priority and Guid sorting are required
             Array.Reverse(MasterHolder.BlockMaster.Blocks.Data);
 
             Assert.IsTrue(ConnectToolCatalog.TryGetPlaceBlock(ConnectToolType.TrainRailConnect, out var railBlockId, out var railBlockMaster));

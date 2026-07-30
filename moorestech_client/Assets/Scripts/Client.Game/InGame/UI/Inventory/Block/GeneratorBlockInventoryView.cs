@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Localization;
 using Core.Item.Interface;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using TMPro;
+using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -28,7 +30,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
             _blockGameObject = blockGameObject;
             base.Initialize(blockGameObject);
             
-            blockName.text = blockGameObject.BlockMasterElement.Name;
+            RefreshBlockName();
+            Localize.OnLanguageChanged.Subscribe(_ => RefreshBlockName()).AddTo(this);
             
             var itemList = new List<IItemStack>();
             var param = blockGameObject.BlockMasterElement.BlockParam;
@@ -45,6 +48,12 @@ namespace Client.Game.InGame.UI.Inventory.Block
             // 燃料スロットは維持したまま、ネットワーク情報部分を電柱UIと共通化
             // Keep the fuel slots while sharing the network-info portion with the electric pole UI
             electricNetworkInfoView.Initialize(blockGameObject.BlockInstanceId);
+        }
+
+        private void RefreshBlockName()
+        {
+            blockName.text = Localize.GetContent(
+                ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid));
         }
 
         private void Update()

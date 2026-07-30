@@ -135,7 +135,7 @@ namespace Client.WebUiHost.Game.Topics
                 Open = true,
                 Source = "block",
                 BlockType = blockSource.BlockTypeName,
-                BlockName = blockSource.BlockName,
+                BlockGuid = blockSource.BlockGuid.ToString("D"),
                 Identifier = blockSource.BlockPosition.ToString(),
                 ItemSlots = new List<BlockItemSlotDto>(sub.Count),
                 FluidSlots = new List<BlockFluidSlotDto>(),

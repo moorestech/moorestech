@@ -3,7 +3,7 @@
   "source": "block",
   "blockType": "TrainItemPlatform",
   "identifier": "(6, 0, 4)",
-  "blockName": "貨物プラットフォーム",
+  "blockGuid": "66666666-6666-6666-6666-666666666666",
   "itemSlots": [
     {
       "itemId": 3,

@@ -83,7 +83,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool
                 var blockMaster = MasterHolder.BlockMaster.Blocks.Data
                     .Where(block => block.BlockType == blockType)
                     .OrderBy(block => block.SortPriority ?? 0)
-                    .ThenBy(block => block.Name)
+                    .ThenBy(block => block.BlockGuid)
                     .FirstOrDefault();
 
                 return blockMaster == null ? null : MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);

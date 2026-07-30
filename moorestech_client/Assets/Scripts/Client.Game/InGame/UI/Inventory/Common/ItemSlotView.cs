@@ -1,5 +1,6 @@
 ﻿using System;
 using Client.Common.Asset;
+using Client.Localization;
 using Client.Mod.Texture;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -19,13 +20,27 @@ namespace Client.Game.InGame.UI.Inventory.Common
         public int Count { get; private set; }
         
         [SerializeField] private CommonSlotView commonSlotView;
-        
-        
-        public void SetItem(ItemViewData itemView, int count, string toolTipText = null)
+
+        private bool _usesDefaultToolTip;
+
+        private void Awake()
+        {
+            Localize.OnLanguageChanged
+                .Subscribe(_ => RefreshDefaultToolTip())
+                .AddTo(this);
+        }
+
+        public void SetItem(ItemViewData itemView, int count)
+        {
+            SetItem(itemView, count, null);
+        }
+
+        public void SetItem(ItemViewData itemView, int count, string toolTipText)
         {
             ItemViewData = itemView;
             Count = count;
-            
+            _usesDefaultToolTip = string.IsNullOrEmpty(toolTipText);
+
             if (itemView == null || itemView.IsEmpty)
             {
                 commonSlotView.SetViewClear();
@@ -86,9 +101,18 @@ namespace Client.Game.InGame.UI.Inventory.Common
         
         public static string GetToolTipText(ItemViewData itemView)
         {
-            return $"{itemView.ItemName}";
+            // マスタに紐づかないブロック・車両等は呼び出し側の専用表示かアセット名を維持する
+            // Preserve caller-owned presentation or asset names for blocks and vehicles without an item master
+            if (itemView.ItemMasterElement == null) return itemView.ItemName;
+            return Localize.GetContent(ContentLocalizationKeys.ItemName(itemView.ItemMasterElement.ItemGuid));
         }
-        
+
+        private void RefreshDefaultToolTip()
+        {
+            if (!_usesDefaultToolTip || ItemViewData == null || ItemViewData.IsEmpty) return;
+            SetItem(ItemViewData, Count);
+        }
+
         public static async UniTask LoadItemSlotViewPrefab()
         {
             const string itemSlotViewPath = "Vanilla/UI/ItemSlotView";

@@ -2,12 +2,14 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Localization;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Gear.Common;
 using Game.PlayerInventory.Interface.Subscription;
 using Server.Protocol.PacketResponse;
 using TMPro;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
@@ -24,8 +26,9 @@ namespace Client.Game.InGame.UI.Inventory.Block
 
         public void Initialize(BlockGameObject blockGameObject)
         {
-            blockNameText.text = blockGameObject.BlockMasterElement.Name;
             _blockGameObject = blockGameObject;
+            RefreshBlockName();
+            Localize.OnLanguageChanged.Subscribe(_ => RefreshBlockName()).AddTo(this);
 
             // UIオープン時に1度だけサーバーへ問い合わせ、ネットワーク集約値を取得
             // Fetch gear network aggregate info once when the UI opens
@@ -36,6 +39,12 @@ namespace Client.Game.InGame.UI.Inventory.Block
         {
             var ct = this.GetCancellationTokenOnDestroy();
             _cachedNetworkInfo = await ClientContext.VanillaApi.Response.GetGearNetworkInfo(_blockGameObject.BlockInstanceId, ct);
+        }
+
+        private void RefreshBlockName()
+        {
+            blockNameText.text = Localize.GetContent(
+                ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid));
         }
 
         private void Update()

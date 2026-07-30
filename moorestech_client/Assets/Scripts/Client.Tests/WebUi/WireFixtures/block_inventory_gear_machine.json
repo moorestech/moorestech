@@ -3,7 +3,7 @@
   "source": "block",
   "blockType": "GearMachine",
   "identifier": "(0, 0, 0)",
-  "blockName": "ギア機械",
+  "blockGuid": "22222222-2222-2222-2222-222222222222",
   "itemSlots": [ { "itemId": 3, "count": 2 }, { "itemId": 0, "count": 0 } ],
   "fluidSlots": [],
   "progress": 0.1,

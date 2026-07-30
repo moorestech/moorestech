@@ -13,7 +13,7 @@ namespace Client.WebUiHost.Game.Topics
         public string Source;
         public string BlockType;
         public string Identifier;
-        public string BlockName;
+        public string BlockGuid;
         public List<BlockItemSlotDto> ItemSlots;
         public List<BlockFluidSlotDto> FluidSlots;
         public double? Progress;

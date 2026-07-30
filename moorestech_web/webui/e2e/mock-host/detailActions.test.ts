@@ -38,7 +38,7 @@ function machineBlock(): BlockInventoryData {
     source: "block",
     blockType: "ElectricMachine",
     identifier: "block:3",
-    blockName: "電気機械",
+    blockGuid: "11111111-1111-1111-1111-111111111111",
     itemSlots: [],
     fluidSlots: [],
     machine: {

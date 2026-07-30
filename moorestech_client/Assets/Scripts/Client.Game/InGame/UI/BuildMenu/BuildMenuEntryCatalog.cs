@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
+using Client.Localization;
 using Common.Debug;
 using Game.Block.Interface.Extension;
 using Client.Mod.Texture;
@@ -36,7 +37,7 @@ namespace Client.Game.InGame.UI.BuildMenu
                 .Where(b => showAllPlaceable || IsBlockUnlocked(unlockState, b))
                 .Where(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid))
                 .OrderBy(b => b.SortPriority ?? 0)
-                .ThenBy(b => b.Name);
+                .ThenBy(b => Localize.GetContent(ContentLocalizationKeys.BlockName(b.BlockGuid)));
             foreach (var blockMaster in unlockedBlocks)
             {
                 var blockId = MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);
@@ -86,7 +87,8 @@ namespace Client.Game.InGame.UI.BuildMenu
 
             string CreateBlockToolTip(BlockMasterElement blockMaster)
             {
-                var builder = new StringBuilder(blockMaster.Name);
+                var builder = new StringBuilder(
+                    Localize.GetContent(ContentLocalizationKeys.BlockName(blockMaster.BlockGuid)));
                 AppendRequiredItems(builder, ConstructionCostTexts(blockMaster.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));
                 return builder.ToString();
             }
@@ -105,7 +107,7 @@ namespace Client.Game.InGame.UI.BuildMenu
                 if (requiredItems == null) yield break;
                 foreach (var (itemGuid, count) in requiredItems)
                 {
-                    yield return $"{MasterHolder.ItemMaster.GetItemMaster(itemGuid).Name} x{count}";
+                    yield return $"{Localize.GetContent(ContentLocalizationKeys.ItemName(itemGuid))} x{count}";
                 }
             }
 

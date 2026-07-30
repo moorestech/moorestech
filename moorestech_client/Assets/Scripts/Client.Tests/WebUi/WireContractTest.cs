@@ -7,7 +7,6 @@ using Client.WebUiHost.Game.Topics.BuildMenu;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
-
 namespace Client.Tests.WebUi
 {
     /// <summary>
@@ -55,7 +54,7 @@ namespace Client.Tests.WebUi
                 Source = "block",
                 BlockType = "Chest",
                 Identifier = "block:1",
-                BlockName = "Chest",
+                BlockGuid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
                 ItemSlots = new List<BlockItemSlotDto> { new BlockItemSlotDto { ItemId = 1, Count = 7 }, new BlockItemSlotDto { ItemId = 2, Count = 4 } },
                 FluidSlots = new List<BlockFluidSlotDto> { new BlockFluidSlotDto { FluidId = 10, Amount = 500, Capacity = 1000, Name = "Water" } },
                 Progress = 0.5,
@@ -70,7 +69,6 @@ namespace Client.Tests.WebUi
         {
             AssertMatchesFixture(new BlockInventoryDto { Open = false }, "block_inventory_closed.json");
         }
-
         // label あり: progress の label キーが存在する（presence 側）
         // With label: the progress label key is present (the presence variant)
         [Test]
@@ -78,7 +76,6 @@ namespace Client.Tests.WebUi
         {
             AssertMatchesFixture(new ProgressDto { Visible = true, Progress = 0.4f, Label = "Crafting" }, "progress_with_label.json");
         }
-
         // label なし: null の label キーが省略される（omission 側）
         // Without label: the null label key is omitted (the omission variant)
         [Test]
@@ -86,7 +83,6 @@ namespace Client.Tests.WebUi
         {
             AssertMatchesFixture(new ProgressDto { Visible = false, Progress = 0f, Label = null }, "progress_no_label.json");
         }
-
         // modal あり: modal オブジェクトが存在する（presence 側）
         // With modal: the modal object is present (the presence variant)
         [Test]
