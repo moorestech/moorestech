@@ -66,6 +66,20 @@ namespace Client.Tests.Localization
         }
 
         [Test]
+        public void BlueprintCopyTypedKeyReturnsTextForSelectedEnglishAndJapaneseLanguages()
+        {
+            Localize.Initialize();
+            Localize.SetLanguage("english");
+            var english = Localize.Get(LocalizationKeys.Ui.BuildMenu.BlueprintCopy);
+
+            Localize.SetLanguage("japanese");
+            var japanese = Localize.Get(LocalizationKeys.Ui.BuildMenu.BlueprintCopy);
+
+            Assert.AreEqual("Blueprint Copy", english);
+            Assert.AreEqual("ブループリントコピー", japanese);
+        }
+
+        [Test]
         public void InitializeCanRunTwiceWithoutChangingResolvedText()
         {
             PlayerPrefs.SetString(Localize.LanguagePreferenceKey, Localize.DefaultLanguageCode);

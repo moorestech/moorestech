@@ -78,7 +78,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             // BPコピーツールと保存済みBPもentrySource定義のサブカテゴリへ入れる
             // The blueprint copy tool and saved blueprints also go to their entrySource-defined sub categories
             var (copyToolCategory, copyToolSubCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.blueprintCopyTool);
-            entries.Add(new WebBuildMenuEntry(new BlueprintCopyToolPlacementTarget(), "ブループリントコピー", copyToolCategory, copyToolSubCategory, new List<WebBuildMenuEntry.RequiredItem>()));
+            entries.Add(new WebBuildMenuEntry(new BlueprintCopyToolPlacementTarget(), null, copyToolCategory, copyToolSubCategory, new List<WebBuildMenuEntry.RequiredItem>()));
 
             var (blueprintCategory, blueprintSubCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.savedBlueprints);
             foreach (var blueprint in blueprintLibrary.Blueprints)

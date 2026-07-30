@@ -12,6 +12,7 @@ using Game.Block.Interface.Extension;
 using Client.Mod.Texture;
 using Core.Master;
 using Game.UnlockState;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.TrainModule;
 
@@ -67,7 +68,10 @@ namespace Client.Game.InGame.UI.BuildMenu
 
             // 接続ツール群にBPコピーツール追加（テキスト表示）
             // Append the blueprint copy tool alongside the connect tools (icon-less text slot)
-            entries.Add(new BuildMenuEntry(new BlueprintCopyToolPlacementTarget(), null, "ブループリントコピー"));
+            entries.Add(new BuildMenuEntry(
+                new BlueprintCopyToolPlacementTarget(),
+                null,
+                Localize.Get(LocalizationKeys.Ui.BuildMenu.BlueprintCopy)));
 
             // 保存済みBPのエントリを追加
             // Append entries for saved blueprints

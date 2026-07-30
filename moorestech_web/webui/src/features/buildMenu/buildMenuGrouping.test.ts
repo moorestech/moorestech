@@ -95,6 +95,21 @@ describe("localizeBuildMenuEntries", () => {
     expect(entries[0].displayLabel).toBe("木のチェスト");
   });
 
+  it.each([
+    ["english", "Blueprint Copy"],
+    ["japanese", "ブループリントコピー"],
+  ])("blueprintCopyはraw labelなしで%s辞書から表示名を解決する", (_languageCode, expected) => {
+    const blueprintCopy = {
+      entryType: "blueprintCopy",
+      entryKey: "",
+      categoryGuid: logisticsCategoryGuid,
+      subCategoryGuid: chestSubCategoryGuid,
+      requiredItems: [],
+    } as unknown as BuildMenuEntryData;
+
+    expect(localizeBuildMenuEntries([blueprintCopy], () => expected)[0].displayLabel).toBe(expected);
+  });
+
   it("ユーザー命名blueprintはlabelをそのまま維持する", () => {
     const blueprint: BuildMenuEntryData = {
       entryType: "blueprint",

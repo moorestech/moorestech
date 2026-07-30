@@ -38,6 +38,7 @@ test("エントリ選択とBP右クリック削除のアクション契約", asy
   });
 
   await page.getByTestId(`build-menu-category-${blueprintCategoryGuid}`).click();
+  await expect(page.getByTestId("build-menu-entry-blueprintCopy-")).toContainText("ブループリントコピー");
   await page.getByTestId("build-menu-entry-blueprint-starter-base").click({ button: "right" });
   await expect.poll(() => payloadsOf(page, "blueprint.delete")).toContainEqual({ name: "starter-base" });
 });

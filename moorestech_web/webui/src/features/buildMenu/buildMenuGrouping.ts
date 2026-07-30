@@ -1,5 +1,5 @@
 import type { BuildMenuCategory, BuildMenuEntryData } from "../../bridge/contract/payloadTypes";
-import { blockNameKey, type TranslationKey } from "../../shared/i18n";
+import { L, blockNameKey, type TranslationKey } from "../../shared/i18n";
 
 export type BuildMenuSection = {
   categoryGuid: string;
@@ -9,15 +9,19 @@ export type BuildMenuSection = {
 
 export type BuildMenuDisplayEntry = BuildMenuEntryData & { displayLabel: string };
 
-// master由来block名だけをGuid導出キーで解決し、ユーザー入力等のlabelは保持する
-// Resolve only master-backed block names by GUID-derived keys and preserve user-authored labels
+// blockとBPコピーツールを辞書解決し、ユーザー入力等のlabelは保持する
+// Resolve blocks and the blueprint copy tool through dictionaries while preserving user-authored labels
 export function localizeBuildMenuEntries(
   entries: BuildMenuEntryData[],
   translate: (key: TranslationKey) => string,
 ): BuildMenuDisplayEntry[] {
   return entries.map((entry) => ({
     ...entry,
-    displayLabel: entry.entryType === "block" ? translate(blockNameKey(entry.entryKey)) : entry.label,
+    displayLabel: entry.entryType === "block"
+      ? translate(blockNameKey(entry.entryKey))
+      : entry.entryType === "blueprintCopy"
+        ? translate(L.ui.buildMenu.blueprintCopy)
+        : entry.label,
   }));
 }
 

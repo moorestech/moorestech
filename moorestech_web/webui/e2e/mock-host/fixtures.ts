@@ -141,6 +141,7 @@ export const buildMenu = {
     { entryType: "block", entryKey: "53000000-0000-4000-8000-000000000003", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000002", requiredItems: [], iconUrl: "/icons/belt-conveyor.png" },
     { entryType: "block", entryKey: "53000000-0000-4000-8000-000000000004", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: "/icons/rail.png" },
     { entryType: "trainCar", entryKey: "54000000-0000-4000-8000-000000000001", label: "貨物車両", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000004", requiredItems: [], iconUrl: "/icons/cargo-car.png" },
+    { entryType: "blueprintCopy", entryKey: "", categoryGuid: "51000000-0000-4000-8000-000000000003", subCategoryGuid: "52000000-0000-4000-8000-000000000005", requiredItems: [] },
     { entryType: "blueprint", entryKey: "starter-base", label: "starter-base", categoryGuid: "51000000-0000-4000-8000-000000000003", subCategoryGuid: "52000000-0000-4000-8000-000000000005", requiredItems: [] },
   ],
 } satisfies BuildMenuData;

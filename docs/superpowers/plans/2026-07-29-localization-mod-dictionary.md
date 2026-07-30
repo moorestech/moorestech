@@ -597,7 +597,7 @@ Expected: MooresmasterLoaderException が出ない
 
 - [ ] **Step 3: DTOと表示のキー化**
 
-`BuildMenuEntryDtoFactory.CreateCategoryDtos` をカテゴリ `Name` → `CategoryGuid`、サブカテゴリ `Name` → `SubCategoryGuid` へ変更する（entryの `Label` はblock/trainCar系なら削除し、webは `EntryType`+`EntryKey`（Guid）から解決。blueprint等ユーザー命名エントリのみ `Label` 維持）。webuiはカテゴリを `t(buildMenuCategoryNameKey(guid))`、サブカテゴリを `t(buildMenuSubCategoryNameKey(guid))` で表示する。`MasterSourceTextCollector` へ両方の原文を投入する。
+`BuildMenuEntryDtoFactory.CreateCategoryDtos` をカテゴリ `Name` → `CategoryGuid`、サブカテゴリ `Name` → `SubCategoryGuid` へ変更する。entryの `Label` はblockとblueprintCopyで削除し、webはblockを `EntryType`+`EntryKey`（Guid）、blueprintCopyをtyped UI keyで解決する。trainCar/connectToolは専用stable key/sourceが未定（trainCar masterにnameなし）のため `Label` を維持し、ユーザー命名blueprintも `Label` を維持する。webuiはカテゴリを `t(buildMenuCategoryNameKey(guid))`、サブカテゴリを `t(buildMenuSubCategoryNameKey(guid))` で表示する。`MasterSourceTextCollector` へ両方の原文を投入する。
 
 - [ ] **Step 4: 検証・コミット**
 

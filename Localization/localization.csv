@@ -47,6 +47,7 @@ ui.blockInventory.filterDefault,Default,Default,デフォルト
 ui.blockInventory.filterWhitelist,Whitelist,Whitelist,ホワイトリスト
 ui.blockInventory.filterBlacklist,Blacklist,Blacklist,ブラックリスト
 ui.blockInventory.outputNumber,Output {index},Output {index},出力 {index}
+ui.buildMenu.blueprintCopy,Blueprint Copy,Blueprint Copy,ブループリントコピー
 ui.buildMenu.detailHint,Hover over an item to view details,Hover over an item to view details,カーソルを合わせると詳細を表示します
 ui.buildMenu.title,Build Menu,Build Menu,ビルドメニュー
 ui.buildMenu.noResults,No results,No results,該当なし

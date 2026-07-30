@@ -32,7 +32,7 @@ const BuildMenuBlueprintCopyEntryDataSchema = z.object({
   entryType: z.literal("blueprintCopy"),
   entryKey: z.literal(""),
   ...BuildMenuEntryCommonFields,
-  label: z.string(),
+  label: z.never().optional(),
 });
 
 const BuildMenuBlueprintEntryDataSchema = z.object({

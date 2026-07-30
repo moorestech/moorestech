@@ -200,6 +200,26 @@ describe("validBuildMenu", () => {
     const copyEntry = {
       entryType: "blueprintCopy",
       entryKey: "copy",
+      categoryGuid,
+      subCategoryGuid,
+      requiredItems: [],
+    };
+    expect(validateTopicPayload(Topics.buildMenu, { categories, entries: [copyEntry] })).toBe(false);
+  });
+  it("accepts a blueprintCopy entry without a raw label", () => {
+    const copyEntry = {
+      entryType: "blueprintCopy",
+      entryKey: "",
+      categoryGuid,
+      subCategoryGuid,
+      requiredItems: [],
+    };
+    expect(validateTopicPayload(Topics.buildMenu, { categories, entries: [copyEntry] })).toBe(true);
+  });
+  it("rejects a raw label on blueprintCopy entries", () => {
+    const copyEntry = {
+      entryType: "blueprintCopy",
+      entryKey: "",
       label: "ブループリントコピー",
       categoryGuid,
       subCategoryGuid,

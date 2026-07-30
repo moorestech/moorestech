@@ -19,6 +19,7 @@ const source = {
   "block.53000000-0000-4000-8000-000000000002.name": "鉄のチェスト",
   "block.53000000-0000-4000-8000-000000000003.name": "ベルトコンベア",
   "block.53000000-0000-4000-8000-000000000004.name": "鉄道レール",
+  "ui.buildMenu.blueprintCopy": "ブループリントコピー",
   "challengeCategory.cat-1.name": "Basics",
   "challenge.ch-1.title": "First Craft",
   "challenge.ch-1.summary": "craft something",
@@ -38,6 +39,7 @@ export const contentLocalizationDictionaries: Record<string, Record<string, stri
   source,
   english: {
     ...source,
+    "ui.buildMenu.blueprintCopy": "Blueprint Copy",
     "challenge.ch-jp.title": "Mine stone",
   },
   japanese: source,
