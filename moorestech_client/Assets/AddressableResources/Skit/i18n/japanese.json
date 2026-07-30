@@ -226,6 +226,16 @@
     "command.backgroundSkitText.property.overrideCharacterName.name": "上書き名",
     "command.backgroundSkitText.property.overrideCharacterName.description": "上書きするキャラクター名",
     "command.backgroundSkitText.property.body.name": "本文",
-    "command.backgroundSkitText.property.body.description": "テキスト内容"
+    "command.backgroundSkitText.property.body.description": "テキスト内容",
+
+    "skit.100_start_game.1.body": "SKIT JAPANESE VALUE 1",
+    "skit.100_start_game.2.body": "SKIT JAPANESE VALUE 2",
+    "skit.100_start_game.3.body": "",
+    "skit.100_start_game.4.body": "",
+    "skit.100_start_game.31.overrideCharacterName": "SKIT JAPANESE SPEAKER",
+    "skit.sample_short.9.Option1Tag": "SKIT JAPANESE OPTION 1",
+    "skit.sample_short.9.Option2Tag": "SKIT JAPANESE OPTION 2",
+    "skit.sample_short.9.Option3Tag": "",
+    "skit.200_star_background.1.body": "SKIT JAPANESE BACKGROUND"
   }
 }

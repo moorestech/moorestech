@@ -157,6 +157,16 @@
     "command.skitObjectControl.property.action.description": "Action to perform",
     "command.skitObjectControl.property.action.enum.SetActive": "Set Active",
     "command.skitObjectControl.property.activeEnable.name": "Active State",
-    "command.skitObjectControl.property.activeEnable.description": "Active state of the object"
+    "command.skitObjectControl.property.activeEnable.description": "Active state of the object",
+
+    "skit.100_start_game.1.body": "SKIT ENGLISH VALUE 1",
+    "skit.100_start_game.2.body": "SKIT ENGLISH VALUE 2",
+    "skit.100_start_game.3.body": "SKIT ENGLISH VALUE 3",
+    "skit.100_start_game.4.body": "SKIT ENGLISH VALUE 4",
+    "skit.100_start_game.31.overrideCharacterName": "SKIT ENGLISH SPEAKER",
+    "skit.sample_short.9.Option1Tag": "SKIT ENGLISH OPTION 1",
+    "skit.sample_short.9.Option2Tag": "SKIT ENGLISH OPTION 2",
+    "skit.sample_short.9.Option3Tag": "SKIT ENGLISH OPTION 3",
+    "skit.200_star_background.1.body": "SKIT ENGLISH BACKGROUND"
   }
 }
