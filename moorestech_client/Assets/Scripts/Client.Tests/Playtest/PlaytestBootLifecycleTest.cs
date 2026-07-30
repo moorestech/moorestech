@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using Client.Playtest;
 using Client.Playtest.Core;
@@ -129,8 +128,8 @@ namespace Client.Tests.Playtest
             var legacyPreparation = typeof(PlaytestBootLifecycle).GetMethod("PrepareLegacyBootSession", BindingFlags.Static | BindingFlags.NonPublic);
             var worldPreparation = typeof(PlaytestBootLifecycle).GetMethod("PrepareWorldBootSession", BindingFlags.Static | BindingFlags.NonPublic);
 
-            Assert.That(ContainsCall(legacyEntry, legacyPreparation), Is.True);
-            Assert.That(ContainsCall(worldEntry, worldPreparation), Is.True);
+            Assert.That(MethodCallInspector.ContainsCall(legacyEntry, legacyPreparation), Is.True);
+            Assert.That(MethodCallInspector.ContainsCall(worldEntry, worldPreparation), Is.True);
         }
 
         [Test]
@@ -143,29 +142,14 @@ namespace Client.Tests.Playtest
             var sceneLoaded = typeof(PlaytestBootLifecycle).GetMethod("HandleWorldBootSceneLoaded", BindingFlags.Static | BindingFlags.NonPublic);
             var inject = typeof(PlaytestBootLifecycle).GetMethod("InjectWorldBootSettings", BindingFlags.Static | BindingFlags.NonPublic);
 
-            Assert.That(ContainsCall(domainReloadHook, restore), Is.True);
-            Assert.That(ContainsCall(sceneLoaded, inject), Is.True);
+            Assert.That(MethodCallInspector.ContainsCall(domainReloadHook, restore), Is.True);
+            Assert.That(MethodCallInspector.ContainsCall(sceneLoaded, inject), Is.True);
         }
 
         private static InitializeProprieties GetInitializeProprieties(InitializeScenePipeline pipeline)
         {
             var field = typeof(InitializeScenePipeline).GetField("_proprieties", BindingFlags.Instance | BindingFlags.NonPublic);
             return (InitializeProprieties)field.GetValue(pipeline);
-        }
-
-        private static bool ContainsCall(MethodInfo caller, MethodInfo callee)
-        {
-            var body = caller.GetMethodBody();
-            var bytes = body.GetILAsByteArray();
-            var targetToken = callee.MetadataToken;
-            for (var i = 0; i <= bytes.Length - sizeof(int) - 1; i++)
-            {
-                // call/callvirt直後のmetadata tokenが対象メソッドと一致するかを調べる
-                // Check whether the metadata token after call/callvirt matches the target method
-                if (bytes[i] != 0x28 && bytes[i] != 0x6f) continue;
-                if (BitConverter.ToInt32(bytes, i + 1) == targetToken) return true;
-            }
-            return false;
         }
     }
 }
