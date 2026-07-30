@@ -1,38 +1,47 @@
 import { useSyncExternalStore } from "react";
+import type { VanillaLocalizationKey } from "./generated/localizationKeys";
 
 export const FALLBACK_LOCALE = "english";
 
 export type TranslationDictionary = Readonly<Record<string, string>>;
 export type InterpolationValues = Readonly<Record<string, string | number>>;
+export type TranslationKey = VanillaLocalizationKey;
 
 export type I18nSnapshot = {
   locale: string;
   dictionary: TranslationDictionary;
   fallbackDictionary: TranslationDictionary;
+  sourceDictionary: TranslationDictionary;
 };
 
 let snapshot: I18nSnapshot = {
   locale: FALLBACK_LOCALE,
   dictionary: {},
   fallbackDictionary: {},
+  sourceDictionary: {},
 };
 const listeners = new Set<() => void>();
-let warnedMissingTranslationKeys = new Set<string>();
+let warnedMissingTranslationKeys = new Set<TranslationKey>();
 
 export function setDictionaries(
   locale: string,
   dictionary: TranslationDictionary,
   fallbackDictionary: TranslationDictionary,
+  sourceDictionary: TranslationDictionary,
 ): void {
-  snapshot = { locale, dictionary, fallbackDictionary };
-  warnedMissingTranslationKeys = new Set<string>();
+  snapshot = { locale, dictionary, fallbackDictionary, sourceDictionary };
+  warnedMissingTranslationKeys = new Set<TranslationKey>();
   listeners.forEach((listener) => listener());
 }
 
 export function createTranslator(current: I18nSnapshot) {
   const warnedKeysForGeneration = warnedMissingTranslationKeys;
-  return (key: string, values: InterpolationValues = {}): string => {
-    const template = current.dictionary[key] ?? current.fallbackDictionary[key];
+  return (key: TranslationKey, values: InterpolationValues = {}): string => {
+    const template =
+      nonEmptyTranslation(current.dictionary[key]) ??
+      nonEmptyTranslation(current.fallbackDictionary[key]) ??
+      nonEmptyTranslation(current.sourceDictionary[key]);
+
     // 同じ辞書世代では欠落キーごとの警告を一度に抑える
     // Warn only once per missing key within the same dictionary generation
     if (template === undefined && !warnedKeysForGeneration.has(key)) {
@@ -40,9 +49,9 @@ export function createTranslator(current: I18nSnapshot) {
       console.warn(`[i18n] Missing translation key: ${key}`);
     }
 
-    // 未登録keyもkey文字列をテンプレートとして補間する（移行期のkey=原文運用を成立させる）
-    // Interpolate the key itself when unregistered so the transitional key-as-source-text style works
-    return (template ?? key).replace(/\{([^{}]+)\}/g, (token, name: string) =>
+    // 欠落キーは目立つプレースホルダで露出させる
+    // Surface missing keys with a loud placeholder
+    return (template ?? `[!${key}]`).replace(/\{([^{}]+)\}/g, (token, name: string) =>
       Object.hasOwn(values, name) ? String(values[name]) : token);
   };
 }
@@ -59,4 +68,8 @@ function subscribe(listener: () => void): () => void {
 
 function getSnapshot(): I18nSnapshot {
   return snapshot;
+}
+
+function nonEmptyTranslation(value: string | undefined): string | undefined {
+  return value === undefined || value.length === 0 ? undefined : value;
 }

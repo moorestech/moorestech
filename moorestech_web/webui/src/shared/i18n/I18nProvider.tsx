@@ -21,13 +21,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
 async function loadDictionaries(locale: string, signal: AbortSignal): Promise<void> {
   const fallbackPromise = fetchDictionary(FALLBACK_LOCALE, signal);
+  const sourcePromise = fetchDictionary("source", signal);
   const dictionaryPromise = locale === FALLBACK_LOCALE ? fallbackPromise : fetchDictionary(locale, signal);
-  const [dictionary, fallbackDictionary] = await Promise.all([dictionaryPromise, fallbackPromise]);
+  const [dictionary, fallbackDictionary, sourceDictionary] =
+    await Promise.all([dictionaryPromise, fallbackPromise, sourcePromise]);
   if (signal.aborted) return;
 
   document.documentElement.lang = locale;
   document.documentElement.dataset.locale = locale;
-  setDictionaries(locale, dictionary, fallbackDictionary);
+  setDictionaries(locale, dictionary, fallbackDictionary, sourceDictionary);
 }
 
 async function fetchDictionary(locale: string, signal: AbortSignal): Promise<TranslationDictionary> {
