@@ -8,6 +8,10 @@ using Game.MapGeneration.Transfer;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
+// System.Diagnostics を丸ごと開くと Debug が UnityEngine.Debug と衝突する
+// Opening all of System.Diagnostics would collide Debug with UnityEngine.Debug
+using Stopwatch = System.Diagnostics.Stopwatch;
+
 namespace Client.Game.InGame.Environment.Terrain
 {
     /// <summary>
@@ -71,14 +75,18 @@ namespace Client.Game.InGame.Environment.Terrain
         private static async UniTask BuildGeneratedTerrainAsync(
             GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot, Material terrainMaterial)
         {
+            var buildStopwatch = Stopwatch.StartNew();
             var terrainSource = await GeneratedTerrainSource.CreateAsync(mapLayout);
             var terrainsByTileCoordinate = new Dictionary<Vector2Int, UnityEngine.Terrain>();
+            var visualCacheHitCount = 0;
 
             // タイルの並びは転送ストリームの定義（正方格子・z行→x列）をそのまま使う
             // The tile order reuses the transfer stream's own definition: a square grid scanned row (z) then column (x)
             foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(mapLayout.TerrainTileCount))
             {
-                var terrainData = terrainSource.CreateTerrainData(tile.TileX, tile.TileZ);
+                var terrainData = terrainSource.CreateTerrainData(tile.TileX, tile.TileZ, out var visualCacheHit);
+                if (visualCacheHit) visualCacheHitCount++;
+
                 var terrain = TerrainObjectFactory.Create(
                     environmentRoot, $"{TerrainObjectName}_{tile.TileX}_{tile.TileZ}",
                     terrainSource.TileWorldPosition(tile.TileX, tile.TileZ), terrainData, terrainMaterial);
@@ -87,6 +95,11 @@ namespace Client.Game.InGame.Environment.Terrain
             }
 
             TerrainNeighborLinker.Link(terrainsByTileCoordinate);
+
+            // 見た目キャッシュの効きは1行で測る。初回と2回目の差はこのヒット数と所要時間に出る
+            // One line measures how well the visual cache works; the first and second runs differ in this hit count and elapsed time
+            Debug.Log($"[TerrainRuntimeBuilder] Generated terrain built: tiles={terrainsByTileCoordinate.Count} " +
+                      $"visualCacheHits={visualCacheHitCount} elapsedMs={buildStopwatch.ElapsedMilliseconds}");
         }
     }
 }

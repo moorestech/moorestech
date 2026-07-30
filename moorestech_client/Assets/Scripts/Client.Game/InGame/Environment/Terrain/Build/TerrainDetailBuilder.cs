@@ -8,9 +8,9 @@ using UnityEngine;
 namespace Client.Game.InGame.Environment.Terrain.Build
 {
     /// <summary>
-    ///     有効バイオームを順に回してDetailのプロトタイプと密度マップを積み上げる。MapMaking TerrainGenerator の
+    ///     有効バイオームを順に回してDetailの密度マップを積み上げる。MapMaking TerrainGenerator の
     ///     Stage 5 の移植で、バイオームごとの入力整形だけを担い密度計算はDetailRuntimeGeneratorに委ねる
-    ///     Walks the enabled biomes accumulating detail prototypes and density maps; ported from MapMaking's
+    ///     Walks the enabled biomes accumulating detail density maps; ported from MapMaking's
     ///     TerrainGenerator Stage 5, shaping per-biome inputs while DetailRuntimeGenerator owns the density math
     /// </summary>
     public static class TerrainDetailBuilder
@@ -20,14 +20,13 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         private const int DetailSeedBase = 6000;
         private const int DetailSeedStridePerBiome = 100;
 
-        public static (List<DetailPrototype> prototypes, List<int[,]> maps) Build(
+        public static List<int[,]> Build(
             TerrainGenerationConfig config, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
             float[,] heights, byte[,] transferredBiomeIndices, float[,,] alphamap, TerrainLayer[] terrainLayers)
         {
             var slopes = TerrainSlopeCalculator.Compute(heights, config);
             var dimensions = TerrainDimensions.From(config, config.shoreConfig.waterMargin);
 
-            var prototypes = new List<DetailPrototype>();
             var maps = new List<int[,]>();
 
             for (var biomeIndex = 0; biomeIndex < biomeTypes.Length; biomeIndex++)
@@ -40,15 +39,12 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
                 // 木・オブジェクトの距離場はクライアントに配置情報が無いため渡さない。距離フィルタだけが休む
                 // The tree and object distance fields are absent client-side, so only the distance filters idle
-                var (biomePrototypes, biomeMaps) = DetailRuntimeGenerator.GenerateForBiome(
+                maps.AddRange(DetailRuntimeGenerator.GenerateForBiome(
                     mask, heights, slopes, dimensions, detailConfig, detailRandom,
-                    alphamap, terrainLayers, null, null);
-
-                prototypes.AddRange(biomePrototypes);
-                maps.AddRange(biomeMaps);
+                    alphamap, terrainLayers, null, null));
             }
 
-            return (prototypes, maps);
+            return maps;
         }
     }
 }

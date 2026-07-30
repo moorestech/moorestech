@@ -11,18 +11,21 @@ namespace Game.Paths
         public string MapJsonFilePath { get; }
         public string SaveJsonFilePath { get; }
         public string TerrainDirectory { get; }
+        public string TerrainVisualDirectory { get; }
         public string CacheDirectory { get; }
         public string CacheReadmeFilePath { get; }
         public string ProvisioningTempDirectory { get; }
 
         private WorldDataDirectory(string root, string worldMetaFilePath, string mapJsonFilePath, string saveJsonFilePath,
-            string terrainDirectory, string cacheDirectory, string cacheReadmeFilePath, string provisioningTempDirectory)
+            string terrainDirectory, string terrainVisualDirectory, string cacheDirectory, string cacheReadmeFilePath,
+            string provisioningTempDirectory)
         {
             Root = root;
             WorldMetaFilePath = worldMetaFilePath;
             MapJsonFilePath = mapJsonFilePath;
             SaveJsonFilePath = saveJsonFilePath;
             TerrainDirectory = terrainDirectory;
+            TerrainVisualDirectory = terrainVisualDirectory;
             CacheDirectory = cacheDirectory;
             CacheReadmeFilePath = cacheReadmeFilePath;
             ProvisioningTempDirectory = provisioningTempDirectory;
@@ -38,6 +41,13 @@ namespace Game.Paths
         public string TerrainBiomeFilePath(int tileX, int tileZ)
         {
             return Path.Combine(TerrainDirectory, $"biome_{tileX}_{tileZ}.bin");
+        }
+
+        // 高さ・バイオームから再構築できる見た目(splatmap/detail)の置き場。terrainとは別に消せるよう分けてある
+        // Holds the visuals (splatmap/detail) rebuildable from heights and biomes, kept apart from terrain so it can be dropped alone
+        public string TerrainVisualCacheFilePath(int tileX, int tileZ)
+        {
+            return Path.Combine(TerrainVisualDirectory, $"visual_{tileX}_{tileZ}.bin");
         }
 
         // テンプレートマップの配置(ServerDataDirectory/map/map.json)を一元定義する
@@ -61,6 +71,7 @@ namespace Game.Paths
                 Path.Combine(normalizedRoot, "map.json"),
                 Path.Combine(normalizedRoot, "save.json"),
                 Path.Combine(normalizedRoot, "terrain"),
+                Path.Combine(normalizedRoot, "visual"),
                 cacheDirectory,
                 Path.Combine(cacheDirectory, "README.txt"),
                 normalizedRoot + ".provisioning");
@@ -76,6 +87,7 @@ namespace Game.Paths
                 null,
                 ServerDataMapJsonPath(serverDataDirectory),
                 saveJsonFilePath,
+                null,
                 null,
                 null,
                 null,

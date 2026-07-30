@@ -56,7 +56,7 @@
       "beachLandTerrainRadius": 10,
       "beachSeaTextureRadius": 14,
       "beachSeaTerrainRadius": 11,
-      "beachLayerAddressablePath": "",
+      "beachLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Islands/SandBeach",
       "beachThreshold": 0.01,
       "deepSeaThreshold": 0.005,
       "sandBlendThreshold": 0.01,
@@ -98,7 +98,7 @@
     "boundaryWarpFrequency": 0.0024,
     "boundaryNoiseAmount": 0.207,
     "boundaryNoiseFrequency": 1,
-    "rockLayerAddressablePath": "",
+    "rockLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Mountains/Gravel1",
     "generateHeightmap": true,
     "generateTexture": true,
     "generateDetail": true,
@@ -119,7 +119,7 @@
       "detailAmplitude": 0.08,
       "baseHeight": 0.009333,
       "hillAmplitude": 0.12,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Mountains/Grass01",
       "textureConfig": {
         "entries": []
       },
@@ -213,7 +213,7 @@
       "detailWeight": 0.04,
       "baseHeight": 0.1,
       "amplitude": 0.35,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Redwood/GrassPine",
       "textureConfig": {
         "entries": []
       },
@@ -299,7 +299,7 @@
       "undulationAmplitude": 0.02,
       "baseHeight": 0.03,
       "amplitude": 0.2,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Savanna/GrassGreen",
       "textureConfig": {
         "entries": []
       },
@@ -388,7 +388,7 @@
       "cliffOctaves": 4,
       "absSmoothing": 0.1,
       "baseHeight": 0.03,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Oasis/SandLarge_orange",
       "textureConfig": {
         "entries": []
       },
@@ -490,7 +490,7 @@
       "topNoiseFreqMult": 5,
       "baseHeight": 0.05,
       "amplitude": 0.1,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/MesaDesert/SandFine",
       "textureConfig": {
         "entries": []
       },
@@ -603,7 +603,7 @@
       "boundaryRefineIterations": 2,
       "debugPlateauOverlay": true,
       "debugTerrainLayerAddressablePaths": [],
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Base/Snow01",
       "textureConfig": {
         "entries": []
       },
@@ -699,7 +699,7 @@
       "boundaryNoiseSlopeThreshold": 16.2,
       "baseHeight": 0.05,
       "amplitude": 0.2,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Jungle/Moss",
       "textureConfig": {
         "entries": []
       },
@@ -784,7 +784,7 @@
       "terraceSharpness": 0.7,
       "baseHeight": 0.05,
       "amplitude": 0.15,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Redwood/GrassMud",
       "textureConfig": {
         "entries": []
       },

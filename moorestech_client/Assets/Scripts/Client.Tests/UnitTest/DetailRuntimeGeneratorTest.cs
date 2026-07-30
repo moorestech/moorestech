@@ -93,18 +93,6 @@ namespace Client.Tests.UnitTest
         }
 
         [Test]
-        public void ThrowsWhenAPrototypeAssetIsUnresolved()
-        {
-            // 黙って読み飛ばすとアドレス整備漏れが「草が1本も生えない」形でしか現れず、原因に辿り着けない
-            // Silently skipping would surface a missing address only as "no grass at all", leaving no trail to the cause
-            var unresolvedEntry = DetailTestConfigBuilder.CreateEntry(1f, 16);
-            unresolvedEntry.prototypeConfig.SetPrototypeTexture(null);
-
-            Assert.Throws<System.InvalidOperationException>(
-                () => GenerateBoth(DetailTestConfigBuilder.CreateFullMask(), DetailTestConfigBuilder.CreateFlatSlopes(0f), unresolvedEntry));
-        }
-
-        [Test]
         public void ThrowsWhenATextureFilterLayerIsUnresolved()
         {
             // layerが未解決のままだとEvaluateが永久に一致せず、分布が黙って違う形でしか気づけない
@@ -117,30 +105,25 @@ namespace Client.Tests.UnitTest
             };
 
             Assert.Throws<System.InvalidOperationException>(
-                () => GenerateBoth(DetailTestConfigBuilder.CreateFullMask(), DetailTestConfigBuilder.CreateFlatSlopes(0f), unresolvedEntry));
+                () => Generate(DetailTestConfigBuilder.CreateFullMask(), DetailTestConfigBuilder.CreateFlatSlopes(0f), unresolvedEntry));
         }
 
         [Test]
-        public void KeepsPrototypesAndMapsIndexAligned()
+        public void KeepsMapsInTheEntryOrder()
         {
+            // mapsの並びはentriesの並びそのもの。TerrainDetailPrototypeListが同じ並びでプロトタイプを組む前提
+            // The map order is exactly the entry order, the premise TerrainDetailPrototypeList builds its prototypes on
             var firstEntry = DetailTestConfigBuilder.CreateEntry(1f, 16);
             var secondEntry = DetailTestConfigBuilder.CreateEntry(0.5f, 16);
 
-            var (prototypes, maps) = GenerateBoth(DetailTestConfigBuilder.CreateFullMask(), DetailTestConfigBuilder.CreateFlatSlopes(0f), firstEntry, secondEntry);
+            var maps = Generate(DetailTestConfigBuilder.CreateFullMask(), DetailTestConfigBuilder.CreateFlatSlopes(0f), firstEntry, secondEntry);
 
-            Assert.That(prototypes.Count, Is.EqualTo(2));
             Assert.That(maps.Count, Is.EqualTo(2));
             Assert.That(maps[0][0, 0], Is.EqualTo(16));
             Assert.That(maps[1][0, 0], Is.EqualTo(8));
         }
 
         private static List<int[,]> Generate(bool[,] mask, float[,] slopes, params DetailEntry[] entries)
-        {
-            return GenerateBoth(mask, slopes, entries).maps;
-        }
-
-        private static (List<DetailPrototype> prototypes, List<int[,]> maps) GenerateBoth(
-            bool[,] mask, float[,] slopes, params DetailEntry[] entries)
         {
             var detailConfig = new BiomeDetailConfig
             {

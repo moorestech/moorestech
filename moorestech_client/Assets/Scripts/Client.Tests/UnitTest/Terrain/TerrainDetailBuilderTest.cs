@@ -39,8 +39,10 @@ namespace Client.Tests.UnitTest.Terrain
             // continueを消してもGenerateForBiomeが空リストを返すだけで出力が完全に一致するため、名前も範囲に合わせてある
             // The empty-biome skip is not observable here: dropping the continue only makes GenerateForBiome return
             // empty lists and the output stays identical, so the name is scoped to what this actually pins
-            var (prototypes, maps) = TerrainDetailBuilder.Build(
-                CreateConfig(), BiomeTypes, CreateVisualSections(), CreateHeights(), CreateBiomeIndices(), null, null);
+            var visualSections = CreateVisualSections();
+            var maps = TerrainDetailBuilder.Build(
+                CreateConfig(), BiomeTypes, visualSections, CreateHeights(), CreateBiomeIndices(), null, null);
+            var prototypes = TerrainDetailPrototypeList.Build(BiomeTypes, visualSections);
 
             Assert.That(prototypes.Count, Is.EqualTo(2));
             Assert.That(maps.Count, Is.EqualTo(prototypes.Count), "prototypeとmapは同数");
@@ -65,7 +67,7 @@ namespace Client.Tests.UnitTest.Terrain
             var expected = GenerateDirectly(Seed + DetailSeedBase + PopulatedBiomeIndex * DetailSeedStridePerBiome);
             var slipped = GenerateDirectly(Seed + DetailSeedBase + 0 * DetailSeedStridePerBiome);
 
-            var (_, maps) = TerrainDetailBuilder.Build(
+            var maps = TerrainDetailBuilder.Build(
                 CreateConfig(), BiomeTypes, CreateVisualSections(), CreateHeights(), CreateBiomeIndices(), null, null);
 
             Assert.That(AreEqual(maps[0], expected), Is.True, "添字1のseedで生成されている");
@@ -79,7 +81,7 @@ namespace Client.Tests.UnitTest.Terrain
         {
             var config = CreateConfig();
             var heights = CreateHeights();
-            var (_, maps) = DetailRuntimeGenerator.GenerateForBiome(
+            var maps = DetailRuntimeGenerator.GenerateForBiome(
                 TransferredBiomeMaskBuilder.Build(CreateBiomeIndices(), BiomeTypes[PopulatedBiomeIndex], Resolution),
                 heights, TerrainSlopeCalculator.Compute(heights, config),
                 TerrainDimensions.From(config, config.shoreConfig.waterMargin),

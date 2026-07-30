@@ -8,8 +8,10 @@ using UnityEngine;
 namespace Client.Game.InGame.Environment.Terrain.Visual
 {
     /// <summary>
-    ///     バイオームのDetail密度マップとプロトタイプを生成する。MapMaking DetailPlacementGenerator の移植
-    ///     Builds a biome's detail density maps and prototypes; ported from MapMaking's DetailPlacementGenerator
+    ///     バイオームのDetail密度マップを生成する。MapMaking DetailPlacementGenerator の移植で、
+    ///     対応するプロトタイプの並びはTerrainDetailPrototypeListが持つ
+    ///     Builds a biome's detail density maps, ported from MapMaking's DetailPlacementGenerator;
+    ///     the matching prototype order lives in TerrainDetailPrototypeList
     /// </summary>
     public static class DetailRuntimeGenerator
     {
@@ -19,7 +21,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual
 
         // 距離場・splatmapは呼び出し側が供給する。まだ無い段階ではnullを渡すとそのフィルタだけが休む
         // The caller supplies the distance fields and splatmap; passing null idles only the filters that need them
-        public static (List<DetailPrototype> prototypes, List<int[,]> maps) GenerateForBiome(
+        public static List<int[,]> GenerateForBiome(
             bool[,] mask, float[,] heights, float[,] slopes, TerrainDimensions dimensions,
             BiomeDetailConfig detailConfig, System.Random rng,
             float[,,] splatmap, TerrainLayer[] terrainLayers,
@@ -27,7 +29,6 @@ namespace Client.Game.InGame.Environment.Terrain.Visual
         {
             var heightmapResolution = dimensions.Resolution;
             var detailResolution = heightmapResolution - 1;
-            var prototypes = new List<DetailPrototype>();
             var maps = new List<int[,]>();
 
             // 曲率・方位角は使うフィルタが1つでもある時だけ計算する
@@ -48,14 +49,12 @@ namespace Client.Game.InGame.Environment.Terrain.Visual
             {
                 // 未解決のエントリを読み飛ばすとアドレス整備漏れが「草が生えない」形でしか現れない。ここで落とす
                 // Skipping an unresolved entry would surface a missing address only as absent grass, so it fails here instead
-                entry.prototypeConfig.ThrowIfUnresolved();
                 entry.textureFilter.ThrowIfUnresolved();
 
-                prototypes.Add(entry.prototypeConfig.ToDetailPrototype());
                 maps.Add(BuildDensityMap(entry, context, maps));
             }
 
-            return (prototypes, maps);
+            return maps;
         }
 
         // 1エントリ分の密度マップを行単位で並列に埋める。各ピクセルは隣接を参照しないので完全に独立
