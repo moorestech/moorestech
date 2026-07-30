@@ -26,7 +26,7 @@
   - `EarthSimplePlanets/Skybox/rightImage.png`
   - `EarthSimplePlanets/Skybox/upImage.png`
   - `EarthSimplePlanets/Skybox/downImage.png`
-- 新規Material: `Assets/Asset/Skit/Materials/SkitStarObjectSkybox.mat`
+- 新規Material: `Assets/Asset/Skit/SkitStarObjectSkybox.mat`
 - 変更Prefab: `Assets/AddressableResources/Skit/Environment/100_start_1_SpaceShip.prefab`
 
 ## 設定内容
@@ -53,3 +53,13 @@ private側の画像、対象Shader、対象Prefab、`SpaceSkybox` のいずれ�
 - 欠損した元Cubemap GUIDの復元
 - private画像のpublicリポジトリへの追加
 - 他シーンのSkybox変更
+
+## Architecture Decision Record
+
+### 2026-07-30: private側の既存6面画像をSkit専用Materialから参照する
+
+- 状態: 採用
+- 決定者: ユーザー
+- 承認: 選択肢Aを明示承認
+- 理由: 欠損Cubemapを推測で復元せず、private側に現存する星空画像を既存のオブジェクト用6面Shaderへ割り当てることで、変更をSkit専用Materialと対象Prefabに限定できる。
+- 却下案: private側の既存Skybox Materialを直接使う案は、MeshRenderer上で通常のSkybox Shaderを使うため用途が合わない。新しいCubemapを生成する案は、元Cubemapの向きやインポート設定を推測する必要がある。
