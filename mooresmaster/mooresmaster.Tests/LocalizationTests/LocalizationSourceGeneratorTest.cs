@@ -45,7 +45,7 @@ public class LocalizationSourceGeneratorTest
             "/content/localization.csv",
             "key,Source,english\nui.menu.close,Close,Close\n");
 
-        var result = RunGenerator(true, new[] { csvFile });
+        var result = RunGenerator(true, WithSettings(csvFile));
         var generatedSource = Assert.Single(FindLocalizationSources(result));
 
         Assert.Equal("mooresmaster.localization.g.cs", generatedSource.HintName);
@@ -60,7 +60,7 @@ public class LocalizationSourceGeneratorTest
             "/content/localization.csv",
             "key,Source,english\nui.menu.close,Close\n");
 
-        var result = RunGenerator(true, new[] { csvFile });
+        var result = RunGenerator(true, WithSettings(csvFile));
         var diagnostic = Assert.Single(result.Diagnostics);
 
         Assert.Equal("MOORES003", diagnostic.Id);
@@ -85,7 +85,7 @@ public class LocalizationSourceGeneratorTest
     {
         var csvFile = new TestAdditionalText("/content/localization.csv", null);
 
-        var result = RunGenerator(true, new[] { csvFile });
+        var result = RunGenerator(true, WithSettings(csvFile));
         var diagnostic = Assert.Single(result.Diagnostics);
 
         Assert.Equal("MOORES003", diagnostic.Id);
@@ -99,7 +99,7 @@ public class LocalizationSourceGeneratorTest
         var laterPathFile = new TestAdditionalText("/z/localization.csv", csvText);
         var earlierPathFile = new TestAdditionalText("/a/localization.csv", csvText);
 
-        var result = RunGenerator(true, new[] { laterPathFile, earlierPathFile });
+        var result = RunGenerator(true, WithSettings(laterPathFile, earlierPathFile));
         var diagnostic = Assert.Single(result.Diagnostics);
         var message = diagnostic.GetMessage();
 
@@ -119,7 +119,7 @@ public class LocalizationSourceGeneratorTest
             "/content/localization.csv",
             "key,Source,english\nui.bad-key.close,Close,Close\n");
 
-        var result = RunGenerator(true, new[] { csvFile });
+        var result = RunGenerator(true, WithSettings(csvFile));
         var diagnostic = Assert.Single(result.Diagnostics);
 
         Assert.Equal("MOORES003", diagnostic.Id);
@@ -143,6 +143,17 @@ public class LocalizationSourceGeneratorTest
             additionalTexts,
             parseOptions);
         return driver.RunGenerators(compilation).GetRunResult().Results.Single();
+    }
+
+    private static AdditionalText[] WithSettings(params AdditionalText[] files)
+    {
+        var result = new List<AdditionalText>(files)
+        {
+            new TestAdditionalText(
+                "/content/localization_settings.csv",
+                "lang_name,display_name,steam_api_lang_code\nenglish,English,en\n"),
+        };
+        return result.ToArray();
     }
 
     private static List<GeneratedSourceResult> FindLocalizationSources(GeneratorRunResult result)

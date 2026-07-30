@@ -55,6 +55,9 @@ public class LocalizationLanguageContractSourceGeneratorTest
         var additionalTexts = new AdditionalText[]
         {
             new TestAdditionalText("/content/localization.csv", csvText),
+            new TestAdditionalText(
+                "/content/localization_settings.csv",
+                "lang_name,display_name,steam_api_lang_code\nenglish,English,en\njapanese,日本語,ja\n"),
         };
 
         // 実RoslynでCSV契約診断を検証

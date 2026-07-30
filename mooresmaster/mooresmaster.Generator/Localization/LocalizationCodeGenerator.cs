@@ -5,7 +5,7 @@ namespace mooresmaster.Generator.Localization;
 
 public static class LocalizationCodeGenerator
 {
-    public static string Generate(LocalizationCsv csv)
+    public static string Generate(LocalizationCsv csv, LanguageSetting[] settings)
     {
         LocalizationCodeSyntax.ValidateKeys(csv);
         var builder = new StringBuilder();
@@ -18,6 +18,7 @@ public static class LocalizationCodeGenerator
         builder.AppendLine("namespace Mooresmaster.Localization.Generated");
         builder.AppendLine("{");
         EmitKeyType(builder);
+        LanguageCatalogCodeEmitter.Emit(builder, csv.LanguageCodes, settings);
         EmitKeys(builder, LocalizationKeyTree.Build(csv.Rows));
         EmitTable(builder, csv);
         builder.AppendLine("}");

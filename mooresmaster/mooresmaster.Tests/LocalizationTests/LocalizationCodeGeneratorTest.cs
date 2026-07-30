@@ -14,7 +14,7 @@ public class LocalizationCodeGeneratorTest
     {
         const string csvText = "key,Source,english,japanese\nui.buildMenu.close,Close,Close,閉じる\n";
 
-        var code = LocalizationCodeGenerator.Generate(LocalizationCsvParser.Parse(csvText));
+        var code = Generate(LocalizationCsvParser.Parse(csvText));
         var tableType = CompileTable(code);
 
         // 公開キーを実assemblyで検証
@@ -36,7 +36,7 @@ public class LocalizationCodeGeneratorTest
             "ui.menu.close,Close,Close,閉じる\n" +
             "ui.menu.empty,,Empty,\n";
 
-        var tableType = CompileTable(LocalizationCodeGenerator.Generate(LocalizationCsvParser.Parse(csvText)));
+        var tableType = CompileTable(Generate(LocalizationCsvParser.Parse(csvText)));
         var languageCodes = (string[])tableType.GetField("LanguageCodes")!.GetValue(null)!;
         var sourceTexts = (IReadOnlyDictionary<string, string>)tableType.GetField("SourceTexts")!.GetValue(null)!;
 
@@ -51,7 +51,7 @@ public class LocalizationCodeGeneratorTest
     public void TryGetLanguageは未知言語でfalseとnullを返す()
     {
         const string csvText = "key,Source,english\nui.menu.close,Close,Close\n";
-        var tableType = CompileTable(LocalizationCodeGenerator.Generate(LocalizationCsvParser.Parse(csvText)));
+        var tableType = CompileTable(Generate(LocalizationCsvParser.Parse(csvText)));
         var arguments = new object?[] { "unknown", null };
 
         var found = (bool)tableType.GetMethod("TryGetLanguage")!.Invoke(null, arguments)!;
@@ -67,7 +67,7 @@ public class LocalizationCodeGeneratorTest
             Array.Empty<string>(),
             new[] { new LocalizationRow("ui.menu.close", "Close", Array.Empty<string>()) });
 
-        var tableType = CompileTable(LocalizationCodeGenerator.Generate(csv));
+        var tableType = CompileTable(Generate(csv));
         var languageCodes = (string[])tableType.GetField("LanguageCodes")!.GetValue(null)!;
 
         Assert.Empty(languageCodes);
@@ -81,7 +81,7 @@ public class LocalizationCodeGeneratorTest
             new[] { "english" },
             new[] { new LocalizationRow("ui.message.body", escapedText, new[] { escapedText }) });
 
-        var tableType = CompileTable(LocalizationCodeGenerator.Generate(csv));
+        var tableType = CompileTable(Generate(csv));
 
         AssertLanguage(tableType, "english", "ui.message.body", escapedText);
         var sourceTexts = (IReadOnlyDictionary<string, string>)tableType.GetField("SourceTexts")!.GetValue(null)!;
@@ -99,7 +99,7 @@ public class LocalizationCodeGeneratorTest
             new[] { languageCode },
             new[] { new LocalizationRow("ui.message.body", text, new[] { text }) });
 
-        var tableType = CompileTable(LocalizationCodeGenerator.Generate(csv));
+        var tableType = CompileTable(Generate(csv));
         var languageCodes = (string[])tableType.GetField("LanguageCodes")!.GetValue(null)!;
         var sourceTexts = (IReadOnlyDictionary<string, string>)tableType.GetField("SourceTexts")!.GetValue(null)!;
 
@@ -120,7 +120,7 @@ public class LocalizationCodeGeneratorTest
             new[] { "english" },
             new[] { new LocalizationRow($"ui.{invalidSegment}.close", "", new[] { "" }) });
 
-        Assert.Throws<LocalizationCsvException>(() => LocalizationCodeGenerator.Generate(csv));
+        Assert.Throws<LocalizationCsvException>(() => Generate(csv));
     }
 
     [Theory]
@@ -130,7 +130,7 @@ public class LocalizationCodeGeneratorTest
     {
         var csv = new LocalizationCsv(new[] { "english" }, new[] { new LocalizationRow(key, "", new[] { "" }) });
 
-        Assert.Throws<LocalizationCsvException>(() => LocalizationCodeGenerator.Generate(csv));
+        Assert.Throws<LocalizationCsvException>(() => Generate(csv));
     }
 
     [Theory]
@@ -143,7 +143,7 @@ public class LocalizationCodeGeneratorTest
             new[] { "english" },
             new[] { new LocalizationRow("ui.message.body", controlCharacter, new[] { controlCharacter }) });
 
-        Assert.Throws<LocalizationCsvException>(() => LocalizationCodeGenerator.Generate(csv));
+        Assert.Throws<LocalizationCsvException>(() => Generate(csv));
     }
 
     private static void AssertLanguage(
@@ -158,6 +158,18 @@ public class LocalizationCodeGeneratorTest
 
         Assert.True(found);
         Assert.Equal(expectedText, dictionary[key]);
+    }
+
+    private static string Generate(LocalizationCsv csv)
+    {
+        var settings = new LanguageSetting[csv.LanguageCodes.Length];
+        for (var index = 0; index < csv.LanguageCodes.Length; index++)
+        {
+            var code = csv.LanguageCodes[index];
+            settings[index] = new LanguageSetting(code, code, code);
+        }
+
+        return LocalizationCodeGenerator.Generate(csv, settings);
     }
 
 }
