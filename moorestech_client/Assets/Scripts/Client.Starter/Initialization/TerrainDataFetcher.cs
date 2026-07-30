@@ -32,13 +32,17 @@ namespace Client.Starter.Initialization
             // templateモードのワールドは地形バイナリを持たないので取得対象が無い
             // A template-mode world owns no terrain binary, so there is nothing to fetch
             if (mapLayout.MapMode == WorldProvisioner.TemplateMapMode) return 0;
+            if (mapLayout.MapMode != WorldProvisioner.GeneratedMapMode)
+                throw new InvalidOperationException($"[TerrainDataFetcher] Unknown map mode '{mapLayout.MapMode}'.");
 
-            var terrainMeta = new TerrainTransferMeta(mapLayout.MapMode, mapLayout.WorldId, mapLayout.TerrainResolution, mapLayout.TerrainTileCount, mapLayout.TerrainChunkTotal, mapLayout.WorldSeed,
+            var terrainMeta = TerrainTransferMeta.CreateGenerated(
+                mapLayout.WorldId, mapLayout.TerrainResolution, mapLayout.TerrainTileCount, mapLayout.TerrainChunkTotal, mapLayout.WorldSeed,
                 new TerrainOrigins(
                     noiseOrigin: new Vector2(mapLayout.TerrainNoiseOriginX, mapLayout.TerrainNoiseOriginZ),
                     sceneOrigin: new Vector2(mapLayout.TerrainSceneOriginX, mapLayout.TerrainSceneOriginZ)));
             var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(mapLayout.WorldId));
             var segments = TerrainTransferMeta.EnumerateStreamSegments(cacheWorldDirectory, terrainMeta.TerrainTileCount, terrainMeta.TerrainResolution).ToList();
+            var totalStreamByteLength = segments.Sum(segment => segment.ByteLength);
 
             // 欠損・不一致は区別せず、サーバーのハッシュと一致しなければ全チャンクを取り直す
             // Missing and mismatching are not distinguished: anything but a hash match triggers a full re-fetch
@@ -98,19 +102,39 @@ namespace Client.Starter.Initialization
                 if (response.ChunkIndex != chunkIndex)
                     throw new InvalidOperationException($"Terrain chunk index mismatch: requested {chunkIndex} but received {response.ChunkIndex}.");
 
-                return Decompress(response.Payload);
+                return Decompress(response.Payload, ExpectedChunkByteLength(chunkIndex));
+            }
+
+            int ExpectedChunkByteLength(int chunkIndex)
+            {
+                if (chunkIndex + 1 < terrainMeta.TerrainChunkTotal) return TerrainTransferMeta.ChunkByteSize;
+                return checked((int)(totalStreamByteLength - (long)chunkIndex * TerrainTransferMeta.ChunkByteSize));
             }
 
             #endregion
         }
 
-        private static byte[] Decompress(byte[] compressedBytes)
+        private static byte[] Decompress(byte[] compressedBytes, int expectedByteLength)
         {
             using var compressedStream = new MemoryStream(compressedBytes);
             using var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress);
-            using var rawStream = new MemoryStream();
-            gzipStream.CopyTo(rawStream);
-            return rawStream.ToArray();
+            var rawBytes = new byte[expectedByteLength];
+            var readOffset = 0;
+            while (readOffset < rawBytes.Length)
+            {
+                var readLength = gzipStream.Read(rawBytes, readOffset, rawBytes.Length - readOffset);
+                if (readLength == 0)
+                    throw new InvalidOperationException(
+                        $"Terrain chunk decompressed to {readOffset} bytes but expected {expectedByteLength}.");
+                readOffset += readLength;
+            }
+
+            // 契約長より1byteでも多い応答は、余剰をメモリへ展開せずその場で拒否する
+            // Reject even one byte beyond the contract without expanding the surplus into memory
+            if (gzipStream.ReadByte() != -1)
+                throw new InvalidOperationException(
+                    $"Terrain chunk decompressed beyond its expected {expectedByteLength} bytes.");
+            return rawBytes;
         }
     }
 }

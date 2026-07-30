@@ -39,8 +39,8 @@ namespace Client.Starter.StandaloneQa
                     behaviour.gameObject.SetActive(false);
             }
 
-            // タイル全体と起伏を同時に見渡せる斜め上の正投影カメラを生成する
-            // Create an elevated orthographic camera that frames the whole tile and its relief
+            // 俯瞰撮影カメラを生成
+            // Create an overview capture camera
             var terrainSize = terrain.terrainData.size;
             var frameSize = Mathf.Max(terrainSize.x, terrainSize.z);
             var terrainCenter = terrain.transform.position +

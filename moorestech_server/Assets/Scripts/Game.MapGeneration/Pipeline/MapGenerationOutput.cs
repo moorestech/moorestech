@@ -27,8 +27,6 @@ namespace Game.MapGeneration.Pipeline
         public List<PlacedVein> FluidVeins = new List<PlacedVein>();
     }
 
-    // 木・石など見た目マップオブジェクト1件（GUID + シーン座標）。
-    // One visual map object (tree/rock, etc.): GUID plus scene position.
     public class PlacedMapObject
     {
         public string MapObjectGuid;

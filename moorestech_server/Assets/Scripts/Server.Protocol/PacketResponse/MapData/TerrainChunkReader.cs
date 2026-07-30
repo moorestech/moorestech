@@ -7,8 +7,8 @@ using Game.Paths;
 
 namespace Server.Protocol.PacketResponse.MapData
 {
-    // terrain実ファイル群を1本の論理ストリームとして扱い、GZip圧縮したチャンク断片を返す
-    // Treats the terrain files as one logical stream, returning GZip-compressed chunk slices
+    // 地形群を論理列として圧縮分割する
+    // Compress and split terrain as one stream
     public static class TerrainChunkReader
     {
         public static byte[] Read(WorldDataDirectory worldDataDirectory, int chunkIndex)
@@ -42,8 +42,6 @@ namespace Server.Protocol.PacketResponse.MapData
             {
                 var fileEndOffset = fileStartOffset + new FileInfo(filePath).Length;
 
-                // 要求範囲と重なるファイルだけを、その重なり部分だけ読む
-                // Read only the overlapping part, and only from files that overlap the requested range
                 var overlapStartOffset = Math.Max(startOffset, fileStartOffset);
                 var overlapEndOffset = Math.Min(sliceEndOffset, fileEndOffset);
                 if (overlapStartOffset < overlapEndOffset)

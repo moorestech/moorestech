@@ -22,8 +22,8 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
             var heightmapZ = Mathf.Clamp(
                 Mathf.RoundToInt((float)z / (context.DetailResolution - 1) * (context.HeightmapResolution - 1)), 0, context.HeightmapResolution - 1);
 
-            // このバイオームの領域外と境界マージン内には置かない
-            // Nothing is placed outside this biome's area or inside its border margin
+            // 領域外と境界近傍を除外
+            // Exclude outside and border cells
             if (!context.Mask[heightmapZ, heightmapX]) return false;
             if (0f < context.BorderMarginPixels
                 && BiomeMaskBuilder.IsNearMaskEdge(context.Mask, heightmapX, heightmapZ, context.HeightmapResolution, context.BorderMarginPixels))
@@ -33,8 +33,8 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
             var worldZ = (float)z / context.DetailResolution * context.TerrainLength;
             var rejectThreshold = context.FilterRejectThreshold;
 
-            // ベース密度はエントリ重み。以降のフィルタが乗算で削っていく
-            // The base density is the entry weight, which the following filters whittle down multiplicatively
+            // エントリ重みへ各フィルタを乗算
+            // Multiply each filter into entry weight
             var computed = entry.weight;
 
             var slopeFactor = entry.slopeFilter.Evaluate(context.Slopes[heightmapZ, heightmapX], worldX, worldZ, context.NoiseOffsets);

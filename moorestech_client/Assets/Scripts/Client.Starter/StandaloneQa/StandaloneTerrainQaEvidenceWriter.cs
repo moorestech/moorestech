@@ -13,8 +13,8 @@ namespace Client.Starter.StandaloneQa
             if (File.Exists(path)) File.Delete(path);
             ScreenCapture.CaptureScreenshot(path);
 
-            // ScreenCaptureの非同期書き出し完了を期限付きで待つ
-            // Wait with a deadline for the asynchronous ScreenCapture write
+            // 撮影完了を期限付きで待つ
+            // Wait for capture with a deadline
             var deadline = Time.realtimeSinceStartup + 10f;
             while (!File.Exists(path) && Time.realtimeSinceStartup < deadline)
             {

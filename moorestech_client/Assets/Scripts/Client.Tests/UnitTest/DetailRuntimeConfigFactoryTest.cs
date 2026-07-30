@@ -80,8 +80,8 @@ namespace Client.Tests.UnitTest
         {
             var entry = Build().entries[0];
 
-            // 5枠それぞれに固有のweightを与え、取り違えを検知する
-            // Each of the five slots gets a distinct weight so a swap is detectable
+            // 各枠の固有値で取り違えを検知
+            // Use unique slot values to detect swaps
             Assert.That(entry.slopeFilter.weight, Is.EqualTo(0.51f));
             Assert.That(entry.curvatureFilter.weight, Is.EqualTo(0.52f));
             Assert.That(entry.angleFilter.weight, Is.EqualTo(0.53f));

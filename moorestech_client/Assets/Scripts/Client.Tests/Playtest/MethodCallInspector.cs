@@ -24,7 +24,7 @@ namespace Client.Tests.Playtest
 
         internal static bool ContainsCall(MethodInfo caller, MethodInfo callee)
         {
-            return FindCallOffset(caller, callee, 0) >= 0;
+            return 0 <= FindCallOffset(caller, callee, 0);
         }
 
         internal static bool CallsInOrder(MethodInfo caller, MethodInfo firstCallee, MethodInfo secondCallee)
@@ -32,7 +32,7 @@ namespace Client.Tests.Playtest
             var firstCallOffset = FindCallOffset(caller, firstCallee, 0);
             if (firstCallOffset < 0) return false;
 
-            return FindCallOffset(caller, secondCallee, firstCallOffset + 1) > firstCallOffset;
+            return firstCallOffset < FindCallOffset(caller, secondCallee, firstCallOffset + 1);
         }
 
         private static int FindCallOffset(MethodInfo caller, MethodInfo callee, int searchStartOffset)
@@ -47,7 +47,7 @@ namespace Client.Tests.Playtest
                 {
                     var token = BitConverter.ToInt32(bytes, position);
                     var calledMethod = caller.Module.ResolveMethod(token, caller.DeclaringType.GetGenericArguments(), caller.GetGenericArguments());
-                    if (instructionOffset >= searchStartOffset && calledMethod.Module == callee.Module && calledMethod.MetadataToken == callee.MetadataToken)
+                    if (searchStartOffset <= instructionOffset && calledMethod.Module == callee.Module && calledMethod.MetadataToken == callee.MetadataToken)
                         return instructionOffset;
                 }
                 position += GetOperandSize(opCode.OperandType, bytes, position);

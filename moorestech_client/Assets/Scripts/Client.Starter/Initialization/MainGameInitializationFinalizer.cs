@@ -1,15 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Environment.Terrain;
+using Client.Game.InGame.Map.MapVein;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using VContainer;
 using Debug = UnityEngine.Debug;
 
@@ -26,21 +25,7 @@ namespace Client.Starter.Initialization
 
         public async UniTask RunAsync()
         {
-            // Forgetされる非同期境界で例外を観測し、DI未構築のMainGameへ取り残さない
-            // Observe exceptions at the forgotten async boundary to avoid stranding MainGame without DI
-            try
-            {
-                await FinalizeAsync();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
-                SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
-                return;
-            }
-
-            // 購読者の例外で完了済みゲームをMainMenuへ戻さないため、発火は例外境界の外に置く
-            // Fire outside the exception boundary so subscriber failures cannot return an initialized game to MainMenu
+            await FinalizeAsync();
             GameInitializedEvent.FireGameInitialized();
         }
 
@@ -57,8 +42,9 @@ namespace Client.Starter.Initialization
             WebUiHost.Game.WebUiGameBinder.Bind();
             (_serverResult.VanillaApi.Event as VanillaApiEvent)?.InitializeDispatch();
 
-            // 初期イベント適用とログイン復元までを初期化完了契約に含める
-            // Include initial-event application and login restoration in the initialization completion contract
+            // 露頭生成と初期イベント適用の例外をこの境界へ戻し、完了前のGameInitialized発火を防ぐ
+            // Return outcrop and initial-event failures to this boundary, preventing GameInitialized before completion
+            await resolver.Resolve<MapVeinObjectDatastore>().WaitForInitializationAsync();
             await WaitAllInitialEventApplyAsync(resolver);
             starter.RestoreLoginState(_serverResult.HandshakeResponse);
         }
@@ -72,7 +58,7 @@ namespace Client.Starter.Initialization
             {
                 // 長時間未完了なら詰まっている対象を顕在化し、適用待機自体は継続する
                 // Surface targets stuck for too long while continuing to wait for their application
-                if (!warned && Time.realtimeSinceStartup >= warnAt)
+                if (!warned && warnAt <= Time.realtimeSinceStartup)
                 {
                     warned = true;
                     var pending = string.Join(", ", targets.Where(target => !target.IsInitialEventApplied).Select(target => target.GetType().Name));

@@ -125,6 +125,8 @@ namespace Client.Playtest
             UnsubscribeEnvironmentScene();
             EditorSceneManager.playModeStartScene = null;
 
+            // このPlaytestが設定した隔離だけを外し、テストfixture側の隔離を守る
+            // Clear only this playtest's isolation, preserving any test-fixture isolation
             var sessionDebugCache = PlaytestPaths.DebugCacheDirectory;
             if (!string.IsNullOrEmpty(sessionDebugCache) && DebugParametersCacheDirectory.GetOverride() == sessionDebugCache)
                 DebugParametersCacheDirectory.SetOverride(null);
@@ -133,6 +135,9 @@ namespace Client.Playtest
         private static void PrepareCommonBootSession(string serverDirectory)
         {
             SessionState.SetBool(PendingBootKey, true);
+
+            // IngameDebugConsole等のPlaytestノイズを防ぐためdebug object生成を止める
+            // Stop debug object creation to prevent playtest noise such as IngameDebugConsole
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", true);
             PlaytestPaths.ResetSession();
 

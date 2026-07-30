@@ -75,8 +75,6 @@ namespace Client.Tests.EditModeInPlayingTest
                 Assert.IsFalse(await CreateTileAndReportCacheHit(0, 0), "キャッシュが無いのにヒット扱いになった");
                 FileAssert.Exists(firstTileCacheFilePath);
 
-                // 検証で汚したキャッシュとワールドを片付ける
-                // Clean up the cache and world this test created
                 Directory.Delete(cacheWorldDirectory.Root, true);
                 Directory.Delete(worldDirectory, true);
 

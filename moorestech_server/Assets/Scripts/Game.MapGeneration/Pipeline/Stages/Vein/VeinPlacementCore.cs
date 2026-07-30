@@ -7,26 +7,22 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Stages
 {
-    // OrePlacementStage/FluidVeinPlacementStage共通のクラスタ配置ロジック(entry型に依存しない)。
-    // rngSeedOffsetを分けることでitem/fluidが同一seedでも同一座標に重ならないようにする。
-    // Cluster-placement logic shared by OrePlacementStage/FluidVeinPlacementStage (entry-type agnostic).
-    // A distinct rngSeedOffset keeps item/fluid from landing on identical coordinates under the same seed.
+    // 鉱脈種別に依存しない共通配置
+    // Shared placement independent of vein type
     public static class VeinPlacementCore
     {
         public static List<PlacedVein> Generate(
             OreEntry[] entries, float borderMargin,
             TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
             float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
-            int rngSeedOffset)
+            int rngSeedOffset, IReadOnlyList<PlacedVein> excludedVeins)
         {
             var veins = new List<PlacedVein>();
-            if (!config.generateOre || entries == null || entries.Length == 0) return veins;
+            if (entries.Length == 0) return veins;
 
             int biomeCount = biomeTypes.Length;
             int res = config.Resolution;
 
-            // 各エントリの対象バイオーム合成マスク（OR）を構築する。
-            // Build the OR-composite biome mask for each entry.
             var entryMasks = BuildEntryMasks(entries, masks, biomeTypes, biomeCount, res);
 
             var treeGrid = SpatialGrid.FromPlacements(treeEntries, config.terrainWidth, config.terrainLength, 0f);
@@ -38,7 +34,7 @@ namespace Game.MapGeneration.Pipeline.Stages
 
             // クラスター単位でメンバー座標の min/max を整数化し PlacedVein を1件生成する。
             // Snap each cluster's member coord min/max to integers and emit one PlacedVein per cluster.
-            return BuildVeins(members, veins);
+            return BuildVeins(members, veins, excludedVeins);
         }
 
         static bool[][,] BuildEntryMasks(
@@ -74,7 +70,8 @@ namespace Game.MapGeneration.Pipeline.Stages
             return grid;
         }
 
-        static List<PlacedVein> BuildVeins(List<PlacementEntry> members, List<PlacedVein> veins)
+        static List<PlacedVein> BuildVeins(
+            List<PlacementEntry> members, List<PlacedVein> veins, IReadOnlyList<PlacedVein> excludedVeins)
         {
             // clusterId → (guid, min, max) の集約。順序はクラスター発見順（決定論・挿入順）を保つ。
             // Aggregate by clusterId → (guid, min, max); preserve cluster discovery (insertion) order for determinism.
@@ -101,9 +98,24 @@ namespace Game.MapGeneration.Pipeline.Stages
             foreach (int id in order)
             {
                 var e = acc[id];
-                veins.Add(new PlacedVein { VeinGuid = e.guid, Min = e.min, Max = e.max });
+                var vein = new PlacedVein { VeinGuid = e.guid, Min = e.min, Max = e.max };
+                if (!OverlapsExcludedVein(vein)) veins.Add(vein);
             }
             return veins;
+
+            #region Internal
+
+            bool OverlapsExcludedVein(PlacedVein candidate)
+            {
+                foreach (var excluded in excludedVeins)
+                    if (candidate.Min.x <= excluded.Max.x && excluded.Min.x <= candidate.Max.x &&
+                        candidate.Min.y <= excluded.Max.y && excluded.Min.y <= candidate.Max.y &&
+                        candidate.Min.z <= excluded.Max.z && excluded.Min.z <= candidate.Max.z)
+                        return true;
+                return false;
+            }
+
+            #endregion
         }
     }
 }

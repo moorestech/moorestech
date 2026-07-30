@@ -27,12 +27,12 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
         public Vector2 range;
         public Vector2 smoothness;
 
-        // フィルタ自体をノイズで変調し、境界線をランダムに揺らす
-        // Modulates the filter itself with noise so its boundary wavers
+        // ノイズで境界を揺らす
+        // Distort the border with noise
         public DetailNoiseLayer noise;
 
-        // Curveモード: 入力値から出力値への自由なマッピング
-        // Curve mode: a free-form mapping from input value to output value
+        // Curve: 入力を自由変換
+        // Curve: freely remap input
         public AnimationCurve curve;
 
         public float Evaluate(float value, float worldX, float worldZ, Vector2[] noiseOffsets)

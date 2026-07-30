@@ -24,6 +24,10 @@ namespace Client.Game.InGame.Environment.Terrain
     {
         private const string TemplateTerrainDataAddress = "Vanilla/Environment/TemplateTerrainData";
         private const string TerrainObjectName = "Terrain";
+        private const float TemplateDetailObjectDistance = 80f;
+        private const float TemplateDetailObjectDensity = 1f;
+        private const float GeneratedDetailObjectDistance = 200f;
+        private const float GeneratedDetailObjectDensity = 0.3f;
 
         // URPのdefaultTerrainMaterialはエディタ専用でビルドではnullを返すため、プロジェクト所有のマテリアルをアドレスから引く
         // URP's defaultTerrainMaterial is editor-only and returns null in builds, so a project-owned material is resolved by address
@@ -69,7 +73,9 @@ namespace Client.Game.InGame.Environment.Terrain
                 throw new InvalidOperationException(
                     $"[TerrainRuntimeBuilder] Template TerrainData '{TemplateTerrainDataAddress}' could not be loaded from Addressables.");
 
-            TerrainObjectFactory.Create(environmentRoot, TerrainObjectName, TemplateTerrainOrigin, templateTerrainData, terrainMaterial);
+            TerrainObjectFactory.Create(
+                environmentRoot, TerrainObjectName, TemplateTerrainOrigin, templateTerrainData, terrainMaterial,
+                TemplateDetailObjectDistance, TemplateDetailObjectDensity);
         }
 
         private static async UniTask BuildGeneratedTerrainAsync(
@@ -89,7 +95,8 @@ namespace Client.Game.InGame.Environment.Terrain
 
                 var terrain = TerrainObjectFactory.Create(
                     environmentRoot, $"{TerrainObjectName}_{tile.TileX}_{tile.TileZ}",
-                    terrainSource.TileWorldPosition(tile.TileX, tile.TileZ), terrainData, terrainMaterial);
+                    terrainSource.TileWorldPosition(tile.TileX, tile.TileZ), terrainData, terrainMaterial,
+                    GeneratedDetailObjectDistance, GeneratedDetailObjectDensity);
 
                 terrainsByTileCoordinate[new Vector2Int(tile.TileX, tile.TileZ)] = terrain;
             }

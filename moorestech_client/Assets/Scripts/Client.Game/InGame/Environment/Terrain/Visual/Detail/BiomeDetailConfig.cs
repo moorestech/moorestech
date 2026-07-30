@@ -8,12 +8,12 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
     {
         public DetailEntry[] entries;
 
-        // フィルタ値がこれを下回った時点でそのピクセルを棄却する
-        // A pixel is rejected as soon as a filter value drops below this threshold
+        // 閾値未満の画素を棄却
+        // Reject pixels below this threshold
         public float filterRejectThreshold;
 
-        // バイオーム境界からこの距離(m)以内にはDetailを置かない
-        // No detail is placed within this distance (in meters) of the biome boundary
+        // 境界近傍にはDetailを置かない
+        // Keep details away from biome borders
         public float borderMargin;
     }
 }

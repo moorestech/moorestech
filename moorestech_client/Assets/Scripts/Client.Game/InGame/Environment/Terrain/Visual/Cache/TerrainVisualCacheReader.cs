@@ -19,7 +19,6 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
         {
             tileVisual = null;
             brokenReason = null;
-
             // cacheファイルはロック・削除・権限変更が起こり得る外部I/O境界なので、限定例外を取り逃しへ隔離する
             // Cache files form an external I/O boundary where locking, deletion, and permission changes can occur, so limited exceptions become misses
             try
@@ -47,7 +46,6 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
                 return false;
             }
         }
-
         private static bool TryReadOpenedStream(
             FileStream stream, string expectedCacheKey, int expectedAlphamapResolution, int expectedLayerCount,
             int expectedDetailResolution, int expectedDetailMapCount, out TerrainTileVisual tileVisual, out string brokenReason)
@@ -99,21 +97,15 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
                 return false;
             }
 
-            // サイズ検査済みpayloadだけを読み、復元より先に書き込み時のSHA-256と照合する
-            // Read only the size-validated payload and compare its write-time SHA-256 before reconstruction
-            var payloadBytes = new byte[(int)payloadByteLength];
-            if (!ReadExactly(stream, payloadBytes))
-            {
-                brokenReason = "payload ended before its validated length";
-                return false;
-            }
-            if (!MatchesPayloadChecksum(headerBytes, payloadBytes))
+            // 固定バッファでpayloadを検算し、数百MiBのpayload複製を作らず復元へ進む
+            // Validate the payload through a fixed buffer, avoiding a hundreds-of-MiB payload copy before reconstruction
+            if (!MatchesPayloadChecksum(stream, headerBytes))
             {
                 brokenReason = "payload checksum disagrees with the header";
                 return false;
             }
 
-            var readOffset = 0;
+            stream.Position = HeaderByteLength;
             tileVisual = new TerrainTileVisual(ReadAlphamap(), ReadDetailMaps());
             return true;
 
@@ -122,10 +114,16 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
             float[,,] ReadAlphamap()
             {
                 var alphamap = new float[alphamapResolution, alphamapResolution, layerCount];
+                var rowBytes = new byte[alphamapResolution * layerCount];
                 for (var z = 0; z < alphamapResolution; z++)
-                for (var x = 0; x < alphamapResolution; x++)
-                for (var layer = 0; layer < layerCount; layer++)
-                    alphamap[z, x, layer] = payloadBytes[readOffset++] / WeightQuantizeScale;
+                {
+                    if (!ReadExactly(stream, rowBytes))
+                        throw new EndOfStreamException("Alphamap payload changed while the cache was being read.");
+                    var rowOffset = 0;
+                    for (var x = 0; x < alphamapResolution; x++)
+                    for (var layer = 0; layer < layerCount; layer++)
+                        alphamap[z, x, layer] = rowBytes[rowOffset++] / WeightQuantizeScale;
+                }
 
                 return alphamap;
             }
@@ -133,14 +131,20 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
             List<int[,]> ReadDetailMaps()
             {
                 var detailMaps = new List<int[,]>(detailMapCount);
+                var rowBytes = new byte[detailResolution * DetailBytesPerCell];
                 for (var mapIndex = 0; mapIndex < detailMapCount; mapIndex++)
                 {
                     var detailMap = new int[detailResolution, detailResolution];
                     for (var z = 0; z < detailResolution; z++)
-                    for (var x = 0; x < detailResolution; x++)
                     {
-                        detailMap[z, x] = payloadBytes[readOffset] | (payloadBytes[readOffset + 1] << 8);
-                        readOffset += DetailBytesPerCell;
+                        if (!ReadExactly(stream, rowBytes))
+                            throw new EndOfStreamException("Detail payload changed while the cache was being read.");
+                        var rowOffset = 0;
+                        for (var x = 0; x < detailResolution; x++)
+                        {
+                            detailMap[z, x] = rowBytes[rowOffset] | (rowBytes[rowOffset + 1] << 8);
+                            rowOffset += DetailBytesPerCell;
+                        }
                     }
 
                     detailMaps.Add(detailMap);
@@ -174,10 +178,19 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
             return true;
         }
 
-        private static bool MatchesPayloadChecksum(byte[] headerBytes, byte[] payloadBytes)
+        private static bool MatchesPayloadChecksum(FileStream stream, byte[] headerBytes)
         {
-            using var sha256 = SHA256.Create();
-            var checksum = sha256.ComputeHash(payloadBytes);
+            const int checksumBufferByteLength = 1024 * 1024;
+            using var payloadHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            var buffer = new byte[checksumBufferByteLength];
+            while (stream.Position < stream.Length)
+            {
+                var bytesRead = stream.Read(buffer, 0, (int)Math.Min(buffer.Length, stream.Length - stream.Position));
+                if (bytesRead == 0) return false;
+                payloadHash.AppendData(buffer, 0, bytesRead);
+            }
+
+            var checksum = payloadHash.GetHashAndReset();
             for (var index = 0; index < PayloadChecksumByteLength; index++)
                 if (headerBytes[PayloadChecksumOffset + index] != checksum[index]) return false;
 

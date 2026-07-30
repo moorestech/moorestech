@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using Game.Paths;
 using UnityEngine;
 
@@ -41,7 +43,22 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
 
         public void Save(int tileX, int tileZ, TerrainTileVisual tileVisual)
         {
-            TerrainVisualCacheWriter.Write(_worldCacheDirectory.TerrainVisualCacheFilePath(tileX, tileZ), _cacheKey, tileVisual);
+            var filePath = _worldCacheDirectory.TerrainVisualCacheFilePath(tileX, tileZ);
+
+            // 派生キャッシュへの外部I/O失敗だけを隔離し、再構築済みの見た目で起動を継続する
+            // Isolate only external I/O failures for the derived cache so startup can continue with the rebuilt visuals
+            try
+            {
+                TerrainVisualCacheWriter.Write(filePath, _cacheKey, tileVisual);
+            }
+            catch (IOException exception)
+            {
+                Debug.LogWarning($"[TerrainVisualCache] Could not write '{filePath}': {exception.Message}");
+            }
+            catch (UnauthorizedAccessException exception)
+            {
+                Debug.LogWarning($"[TerrainVisualCache] Access denied while writing '{filePath}': {exception.Message}");
+            }
         }
     }
 }

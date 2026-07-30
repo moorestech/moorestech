@@ -5,8 +5,8 @@ using Game.Paths;
 
 namespace Game.MapGeneration.Transfer
 {
-    // 地形バイナリをクライアントへ分割転送するためのメタ情報。チャンク本体の転送はこの値を前提に行う
-    // Metadata describing the terrain binaries for chunked transfer to clients; chunk transfer builds on these values
+    // 地形分割転送用メタ
+    // Terrain chunk-transfer metadata
     public class TerrainTransferMeta
     {
         // 論理ストリームを切り出す単位(非圧縮)。チャンク総数の算出と実際の切り出しはこの値を共有する
@@ -27,7 +27,7 @@ namespace Game.MapGeneration.Transfer
         // The generation-time noise window origin and scene origin; like the seed, they exist only at generation and cannot be recovered from the master
         public readonly TerrainOrigins Origins;
 
-        public TerrainTransferMeta(string mapMode, string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed,
+        private TerrainTransferMeta(string mapMode, string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed,
             TerrainOrigins origins)
         {
             MapMode = mapMode;
@@ -37,6 +37,19 @@ namespace Game.MapGeneration.Transfer
             TerrainChunkTotal = terrainChunkTotal;
             WorldSeed = worldSeed;
             Origins = origins;
+        }
+
+        public static TerrainTransferMeta CreateGenerated(
+            string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed, TerrainOrigins origins)
+        {
+            return new TerrainTransferMeta(
+                WorldProvisioner.GeneratedMapMode, worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed, origins);
+        }
+
+        public static TerrainTransferMeta CreateTemplate(string worldId, int worldSeed)
+        {
+            return new TerrainTransferMeta(
+                WorldProvisioner.TemplateMapMode, worldId, 0, 0, 0, worldSeed, TerrainOrigins.WithoutTerrain());
         }
 
         // generatedなのにチャンク0本は生成失敗かファイル切り詰め。地形なしと同一視すると壊れたワールドを正常として配る
@@ -103,7 +116,7 @@ namespace Game.MapGeneration.Transfer
         // With no world.json there is no seed concept at all, so 0 declares absence just as the empty WorldId does
         public static TerrainTransferMeta CreateWithoutWorldDirectory()
         {
-            return new TerrainTransferMeta(WorldProvisioner.TemplateMapMode, string.Empty, 0, 0, 0, 0, TerrainOrigins.WithoutTerrain());
+            return CreateTemplate(string.Empty, 0);
         }
     }
 }

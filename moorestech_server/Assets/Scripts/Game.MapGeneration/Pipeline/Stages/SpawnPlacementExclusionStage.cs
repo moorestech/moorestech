@@ -17,7 +17,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             var spawn = new Vector2(spawnPoint.x, spawnPoint.z);
             var clearanceSquared = SpawnClearance * SpawnClearance;
 
-            for (var i = entries.Count - 1; i >= 0; i--)
+            for (var i = entries.Count - 1; 0 <= i; i--)
             {
                 var position = entries[i].WorldPosition;
                 var offset = new Vector2(position.x, position.z) - spawn;

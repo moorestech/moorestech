@@ -16,8 +16,8 @@ using static Server.Protocol.PacketResponse.GetMapDataProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    // 実際にプロビジョニングしたワールドを相手に、va:mapData Layoutが載せるterrainメタを検証する
-    // Verifies the terrain meta carried by va:mapData Layout against a really provisioned world
+    // 実生成ワールドの地形メタを検証する
+    // Verify metadata from a provisioned world
     public class GetMapDataTerrainMetaTest
     {
         private readonly List<WorldDataDirectory> _createdWorldDataDirectories = new();
@@ -46,8 +46,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             var worldDataDirectory = ProvisionWorld(WorldProvisioner.GeneratedMapMode, 12345);
             var response = RequestMapDataLayout(worldDataDirectory);
 
-            // MapMode・解像度・タイル数がworld.jsonの記録と一致する
-            // MapMode, resolution and tile count match what world.json recorded
             var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
             Assert.AreEqual(WorldProvisioner.GeneratedMapMode, response.MapMode);
             Assert.AreEqual(worldMeta.TerrainResolution, response.TerrainResolution);

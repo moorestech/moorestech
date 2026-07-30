@@ -20,8 +20,6 @@ namespace Client.Tests.StandaloneQa
                 "--qaSeed", "67890",
             };
 
-            // Player固有引数を正式なサーバー起動設定へ変換する
-            // Convert Player-specific arguments into the official server boot settings
             var success = StandaloneTerrainQaSettings.TryParse(args, out var settings, out var error);
             var proprieties = settings.CreateInitializeProprieties();
             var serverSettings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);

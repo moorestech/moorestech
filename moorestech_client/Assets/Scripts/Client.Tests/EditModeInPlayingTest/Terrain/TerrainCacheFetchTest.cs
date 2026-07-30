@@ -52,7 +52,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 Assert.AreEqual(WorldProvisioner.GeneratedMapMode, mapLayout.MapMode, "generatedモードで起動していない");
                 Assert.Less(0, mapLayout.TerrainChunkTotal, "地形チャンクが1本も無い");
 
-                var terrainMeta = new TerrainTransferMeta(mapLayout.MapMode, mapLayout.WorldId,
+                var terrainMeta = TerrainTransferMeta.CreateGenerated(mapLayout.WorldId,
                     mapLayout.TerrainResolution, mapLayout.TerrainTileCount, mapLayout.TerrainChunkTotal, mapLayout.WorldSeed,
                     new TerrainOrigins(
                         noiseOrigin: new Vector2(mapLayout.TerrainNoiseOriginX, mapLayout.TerrainNoiseOriginZ),
@@ -66,8 +66,8 @@ namespace Client.Tests.EditModeInPlayingTest
                 AssertAllSegmentsRestored(segments);
                 Assert.AreEqual(mapLayout.TerrainHash, TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta), "復元内容がサーバーの地形と一致しない");
 
-                // ② キャッシュが最新なら1チャンクも取得しない
-                // (2) A up-to-date cache fetches zero chunks
+                // ② 最新キャッシュでは取得しない
+                // (2) Fetch nothing for a fresh cache
                 var terrainDataFetcher = new TerrainDataFetcher(ClientContext.VanillaApi.Response);
                 var reuseFetchedCount = await terrainDataFetcher.RunAsync(mapLayout);
                 Assert.AreEqual(0, reuseFetchedCount, "キャッシュヒットなのにチャンクを取得した");
@@ -89,8 +89,6 @@ namespace Client.Tests.EditModeInPlayingTest
                 Assert.IsNotNull(tamperedFetchException, "申告ハッシュと不一致なのに取得が成功扱いになった");
                 StringAssert.Contains("does not match the server hash", tamperedFetchException.Message);
 
-                // 検証で汚したキャッシュとワールドを片付ける
-                // Clean up the cache and world this test created
                 Directory.Delete(cacheWorldDirectory.Root, true);
                 Directory.Delete(worldDirectory, true);
             }

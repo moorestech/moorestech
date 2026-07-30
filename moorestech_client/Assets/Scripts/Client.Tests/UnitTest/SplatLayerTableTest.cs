@@ -96,8 +96,8 @@ namespace Client.Tests.UnitTest
             Assert.That(textureEntries[1].layerIndex, Is.EqualTo(table.LayerIndexByAddress["addr/moss"]));
             Assert.That(textureEntries[2].layerIndex, Is.EqualTo(table.LayerIndexByAddress["addr/dune"]));
 
-            // ノイズオフセット索引は全バイオーム通しの連番
-            // The noise offset index is a single running counter across all biomes
+            // ノイズ索引は全バイオーム通し
+            // Noise indices span all biomes
             Assert.That(textureEntries[0].noiseOffsetIndex, Is.EqualTo(0));
             Assert.That(textureEntries[2].noiseOffsetIndex, Is.EqualTo(2));
 

@@ -36,8 +36,8 @@
     "worldOffsetX": 0,
     "worldOffsetZ": 0,
     "spawnWorldPosition": [
-      0,
-      0
+      500,
+      500
     ],
     "chunkPadding": 50,
     "overrideResolution": 0,

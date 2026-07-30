@@ -154,7 +154,14 @@ namespace Client.Starter
             void MainGameSceneLoaded(Scene scene, LoadSceneMode mode)
             {
                 SceneManager.sceneLoaded -= MainGameSceneLoaded;
-                new MainGameInitializationFinalizer(serverResult).RunAsync().Forget();
+
+                // Forget境界の例外を専用callbackで観測し、DI未構築のMainGameへ取り残さない
+                // Observe the forgotten boundary through its dedicated callback so MainGame is never stranded without DI
+                new MainGameInitializationFinalizer(serverResult).RunAsync().Forget(exception =>
+                {
+                    Debug.LogError($"初期化処理中にエラーが発生しました: {exception.GetType()} {exception.Message}\n{exception.StackTrace}");
+                    SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+                });
             }
 
             #endregion

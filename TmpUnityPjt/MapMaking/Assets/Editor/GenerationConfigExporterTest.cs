@@ -14,8 +14,6 @@ namespace MapGenerator.EditorExport
             File.WriteAllText(outputPath, "existing");
             try
             {
-                // 不正な参照を含む出力候補を渡し、既存ファイルが保持されることを検証する。
-                // Supply a candidate with an invalid reference and verify that the existing file is preserved.
                 var root = JObject.Parse("{\"algorithmParam\":{\"mapObjects\":[{\"mapObjectGuid\":\"\"}]}}");
                 Assert.Throws<InvalidOperationException>(() =>
                     GenerationConfigExporter.WriteValidatedOutput(outputPath, root));

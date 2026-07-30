@@ -27,15 +27,15 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
         public float slopeMax;
         public float slopeSmoothness;
 
-        // 高度フィルタ: 雪線・海岸ラインなど標高依存のテクスチャ
-        // Height filter: elevation-dependent textures such as snow lines and shorelines
+        // 高度依存のテクスチャ条件
+        // Height-based texture condition
         public bool useHeightFilter;
         public float heightMin;
         public float heightMax;
         public float heightSmoothness;
 
-        // 曲率フィルタ: 谷底に泥、尾根に露岩など凹凸ベースの配置
-        // Curvature filter: mud in valleys and exposed rock on ridges
+        // 曲率依存のテクスチャ条件
+        // Curvature-based texture condition
         public bool useCurvatureFilter;
         public float curvatureMin;
         public float curvatureMax;

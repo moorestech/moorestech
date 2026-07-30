@@ -16,8 +16,8 @@ using static Server.Protocol.PacketResponse.GetMapDataProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    // va:mapDataのTerrainChunkモードがterrain実ファイルをそのまま復元できるか、ワイヤ越しに検証する
-    // Verify over the wire that va:mapData's TerrainChunk mode restores the terrain files byte for byte
+    // ワイヤ経由の地形復元を検証する
+    // Verify terrain restoration over the wire
     public class GetMapDataTerrainChunkTest
     {
         private TerrainTransferTestScope _testScope;

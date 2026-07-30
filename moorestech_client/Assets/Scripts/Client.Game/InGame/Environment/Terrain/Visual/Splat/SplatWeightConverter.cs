@@ -30,8 +30,8 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
             {
                 for (var x = 0; x < alphamapRes; x++)
                 {
-                    // alphamap座標をheightmap座標へ変換する
-                    // Convert alphamap coordinates into heightmap coordinates
+                    // 高さマップ座標へ変換
+                    // Convert to heightmap coordinates
                     var heightmapX = Mathf.Clamp(
                         Mathf.RoundToInt((float)x / (alphamapRes - 1) * (heightmapRes - 1)), 0, heightmapRes - 1);
                     var heightmapZ = Mathf.Clamp(

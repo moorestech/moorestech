@@ -44,8 +44,6 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
             {
                 var entries = biomeTextureConfigs[biome].entries;
 
-                // どのスライスが自分のエントリかをBiomeParamsへ書き戻す
-                // Write back which slice of the flat array belongs to this biome
                 var parameters = biomeParams[biome];
                 parameters.textureEntryBase = cursor;
                 parameters.textureEntryCount = entries.Length;

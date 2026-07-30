@@ -6,6 +6,8 @@ namespace Game.Paths
 {
     public static class GameSystemPaths
     {
+        private const int WorldIdHexDigits = 16;
+
         public static string GameSystemDirectory
         {
             get
@@ -33,10 +35,32 @@ namespace Game.Paths
         // Per-world client cache; worldId is the world identity issued by the server
         public static string GetWorldCacheDirectory(string worldId)
         {
-            // 空のworldIdはworlds直下を指してしまい、全ワールドのキャッシュを混在させる
-            // An empty worldId would point at the worlds root and mix every world's cache together
-            if (string.IsNullOrEmpty(worldId)) throw new ArgumentException("World id must not be empty.", nameof(worldId));
-            return DirectoryCreator(WorldCacheDirectory, worldId);
+            // wire由来IDは生成規則どおりのlower-hexだけを許し、キャッシュ外へのパス逸脱を入口で拒否する
+            // Only the server's lower-hex ID format is accepted from the wire, rejecting cache-path escape at the boundary
+            if (!IsValidWorldId(worldId))
+                throw new ArgumentException(
+                    $"World id must be exactly {WorldIdHexDigits} lowercase hexadecimal characters.", nameof(worldId));
+
+            var cacheRoot = Path.GetFullPath(WorldCacheDirectory);
+            var worldDirectory = Path.GetFullPath(Path.Combine(cacheRoot, worldId));
+            var cacheRootPrefix = cacheRoot + Path.DirectorySeparatorChar;
+            if (!worldDirectory.StartsWith(cacheRootPrefix, StringComparison.Ordinal))
+                throw new ArgumentException("World id resolved outside the world cache directory.", nameof(worldId));
+
+            return DirectoryCreator(worldDirectory);
+
+            #region Internal
+
+            bool IsValidWorldId(string value)
+            {
+                if (value == null || value.Length != WorldIdHexDigits) return false;
+                foreach (var character in value)
+                    if (!('0' <= character && character <= '9') && !('a' <= character && character <= 'f'))
+                        return false;
+                return true;
+            }
+
+            #endregion
         }
 
         public static string GetExtractedModDirectory(string folderName)

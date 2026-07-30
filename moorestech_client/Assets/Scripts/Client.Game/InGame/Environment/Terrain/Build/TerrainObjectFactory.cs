@@ -10,16 +10,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
     /// </summary>
     public static class TerrainObjectFactory
     {
-        // Detailの描画距離(m)。既定の80mだと中距離で草が消えるため移植元と同じ200mにする
-        // Detail render distance in metres; the 80m default cuts grass off mid-range, so match the source's 200m
-        private const float DetailObjectDistance = 200f;
-
-        // 格納密度に掛かる係数。実機描画本数/m² = 格納密度 × この値で、0.3は参照値rendered=1.16/m²を狙った実測値
-        // Multiplier on the stored density: rendered instances/m² = stored density x this. 0.3 targets the reference rendered=1.16/m²
-        private const float DetailObjectDensity = 0.3f;
-
         public static UnityEngine.Terrain Create(
-            Transform parent, string terrainObjectName, Vector3 worldPosition, TerrainData terrainData, Material terrainMaterial)
+            Transform parent, string terrainObjectName, Vector3 worldPosition, TerrainData terrainData, Material terrainMaterial,
+            float detailObjectDistance, float detailObjectDensity)
         {
             // 設置プレビュー・露頭のレイキャストはGroundレイヤーとGroundGameObjectの両方で地面を判定する
             // Placement preview and outcrop raycasts identify ground by both the Ground layer and GroundGameObject
@@ -38,8 +31,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             // Leaving this unset renders the terrain pink; URP's defaultTerrainMaterial is editor-only (null in builds), so the caller supplies one resolved from an address
             terrain.materialTemplate = terrainMaterial;
 
-            terrain.detailObjectDistance = DetailObjectDistance;
-            terrain.detailObjectDensity = DetailObjectDensity;
+            terrain.detailObjectDistance = detailObjectDistance;
+            terrain.detailObjectDensity = detailObjectDensity;
             return terrain;
         }
     }

@@ -17,8 +17,8 @@ namespace Client.Game.InGame.Map.MapVein
     /// </summary>
     public class MapVeinObjectDatastore : MonoBehaviour
     {
-        // 露頭インスタンス名の接頭辞。この後ろにveinGuidが続く
-        // Prefix of an outcrop instance name, followed by the veinGuid
+        // 露頭名にveinGuidを付与
+        // Append the vein GUID to outcrop names
         public const string OutcropObjectNamePrefix = "VeinOutcrop_";
 
         // v8ワールドは1772本規模。1体がmapObjectより重いのでmapObject側の100より短い間隔でフレームを跨ぐ
@@ -37,13 +37,14 @@ namespace Client.Game.InGame.Map.MapVein
         // 同一アドレスを複数のveinが共有するため、guidではなくアドレスでキャッシュする
         // Several veins share one address, so cache by address rather than by guid
         private readonly Dictionary<string, GameObject> _prefabCacheByAddress = new();
+        private UniTask _initializationTask;
 
         [Inject]
         public void Construct(InitialHandshakeResponse handshakeResponse)
         {
-            // 生成本体はフレーム分散のfire-and-forgetへ委譲する
-            // Delegate the instantiation itself to a frame-distributed fire-and-forget
-            InstantiateOutcropsFromLayoutAsync().Forget();
+            // 生成本体は直ちに開始し、完了と例外を初期化パイプラインがawaitできる形で保持する
+            // Start instantiation immediately while retaining completion and exceptions for the initialization pipeline to await
+            _initializationTask = InstantiateOutcropsFromLayoutAsync().Preserve();
 
             #region Internal
 
@@ -83,7 +84,7 @@ namespace Client.Game.InGame.Map.MapVein
 
                 // 地表が無いveinはワールドデータ不正。Y=0へ落とさず、全件を評価したうえで列挙して起動時に顕在化させる
                 // Veins with no surface are invalid world data; after evaluating them all, list them and surface it at startup instead of falling back to Y=0
-                if (unresolvedGroundVeins.Count > 0) throw new InvalidOperationException(BuildUnresolvedGroundMessage(unresolvedGroundVeins));
+                if (0 < unresolvedGroundVeins.Count) throw new InvalidOperationException(BuildUnresolvedGroundMessage(unresolvedGroundVeins));
             }
 
             string BuildUnresolvedGroundMessage(List<string> unresolvedGroundVeins)
@@ -123,13 +124,18 @@ namespace Client.Game.InGame.Map.MapVein
                 foreach (var hit in hits)
                 {
                     if (!hit.transform.TryGetComponent<GroundGameObject>(out _)) continue;
-                    if (hit.point.y > groundHeight) groundHeight = hit.point.y;
+                    if (groundHeight < hit.point.y) groundHeight = hit.point.y;
                 }
 
                 return !float.IsNegativeInfinity(groundHeight);
             }
 
             #endregion
+        }
+
+        public UniTask WaitForInitializationAsync()
+        {
+            return _initializationTask;
         }
     }
 }

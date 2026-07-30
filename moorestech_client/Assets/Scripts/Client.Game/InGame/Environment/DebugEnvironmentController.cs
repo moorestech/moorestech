@@ -26,8 +26,8 @@ namespace Client.DebugSystem.Environment
             // This method is called once during AddEnumPickerWithSave initialization, so we subscribe to the event here
             SubscribeGameInitializedEvent();
 
-            // 未解決の環境ルートは非アクティブobjectを含めて現在のシーンから取得する
-            // Resolve missing environment roots from the current scene, including inactive objects
+            // 非アクティブな環境ルートも探す
+            // Search inactive environment roots too
             if (_debugEnvironment == null) _debugEnvironment = UnityEngine.Object.FindFirstObjectByType<DebugEnvironmentObjectRoot>(FindObjectsInactive.Include);
             if (_pureNatureEnvironment == null) _pureNatureEnvironment = UnityEngine.Object.FindFirstObjectByType<PureNatureEnvironmentObjectRoot>(FindObjectsInactive.Include);
             if (_otherEnvironment == null) _otherEnvironment = UnityEngine.Object.FindFirstObjectByType<OtherEnvironmentObjectRoot>(FindObjectsInactive.Include);

@@ -11,8 +11,8 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Transfer
 {
-    // world.jsonとterrain実ファイルからTerrainTransferMetaを組み立てる読み取り専用の入口
-    // Read-only entry point assembling TerrainTransferMeta from world.json and the real terrain files
+    // ワールド実体から地形メタを構築する
+    // Build terrain metadata from world files
     public static class TerrainTransferMetaReader
     {
         private const int WorldIdHexDigits = 16;
@@ -27,16 +27,14 @@ namespace Game.MapGeneration.Transfer
 
             // terrainと原点を持つのはgeneratedのみ。未知のmapModeはフォールバックせず例外にする
             // Only generated worlds own terrain and origins; an unknown map mode throws instead of falling back
-            var (chunkTotal, origins) = worldMeta.MapMode switch
+            return worldMeta.MapMode switch
             {
-                WorldProvisioner.GeneratedMapMode => (CalculateChunkTotal(), ReadGeneratedOrigins()),
-                WorldProvisioner.TemplateMapMode => (0, TerrainOrigins.WithoutTerrain()),
+                WorldProvisioner.GeneratedMapMode => TerrainTransferMeta.CreateGenerated(
+                    CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount,
+                    CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedOrigins()),
+                WorldProvisioner.TemplateMapMode => TerrainTransferMeta.CreateTemplate(CalculateWorldId(), worldMeta.Seed),
                 _ => throw new InvalidOperationException($"Unknown map mode in world.json: '{worldMeta.MapMode}'")
             };
-
-            // seedはmapModeに関わらず実値を載せる。地形なしの合図はTerrainResolution=0が担っており二重に持たせない
-            // The seed is carried verbatim regardless of map mode; TerrainResolution=0 alone signals terrain-less, so the meaning is not duplicated
-            return new TerrainTransferMeta(worldMeta.MapMode, CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount, chunkTotal, worldMeta.Seed, origins);
 
             #region Internal
 

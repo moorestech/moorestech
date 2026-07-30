@@ -18,8 +18,6 @@ namespace Client.Playtest
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) return "ERROR: already playing";
 
-            // 従来のNoSave起動を準備してから初期化シーンへ入る
-            // Prepare the legacy NoSave boot before entering the initializer scene
             PlaytestBootLifecycle.PrepareLegacyBootSession(serverDirectory, noSave);
             EnterPlayMode();
             return PlaytestPaths.SessionDirectory;
@@ -32,8 +30,6 @@ namespace Client.Playtest
             if (string.IsNullOrWhiteSpace(worldDirectory)) return "ERROR: world directory is required";
             if (string.IsNullOrWhiteSpace(mapMode)) return "ERROR: map mode is required";
 
-            // 固定worldの全設定を準備してから初期化シーンへ入る
-            // Prepare every fixed-world setting before entering the initializer scene
             PlaytestBootLifecycle.PrepareWorldBootSession(serverDirectory, worldDirectory, mapMode, seed);
             EnterPlayMode();
             return PlaytestPaths.SessionDirectory;

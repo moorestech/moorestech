@@ -24,10 +24,6 @@ namespace Client.Tests.EditModeInPlayingTest
     /// </summary>
     public class MapVeinOutcropAndRangeViewTest
     {
-        // 露頭生成はフレーム分散のfire-and-forgetなので、起動完了後もこの秒数まで待つ
-        // Outcrop generation is a frame-distributed fire-and-forget, so wait up to this many seconds after startup
-        private const float OutcropWaitSeconds = 20f;
-
         // 露頭が地表に接しているとみなす許容差。真上から短いレイを落として接地を確かめる
         // Tolerance for treating an outcrop as standing on the surface, checked by a short ray dropped from just above it
         private const float GroundContactTolerance = 0.05f;
@@ -53,8 +49,6 @@ namespace Client.Tests.EditModeInPlayingTest
 
             yield return new ExitPlayMode();
 
-            // テスト終了後にデバッグオブジェクト無効化フラグをクリア
-            // Clear debug objects disabled flag after test.
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
 
             #region Internal
@@ -79,10 +73,9 @@ namespace Client.Tests.EditModeInPlayingTest
                 var datastore = Object.FindFirstObjectByType<MapVeinObjectDatastore>(FindObjectsInactive.Include);
                 Assert.IsNotNull(datastore, "MapVeinObjectDatastore was not found in scene");
 
-                // ①全vein分の露頭が揃うまで待つ。揃わないまま期限を迎えたら生成が落ちている
-                // (1) Wait until one outcrop per vein exists; hitting the deadline means generation broke
-                var deadline = Time.realtimeSinceStartup + OutcropWaitSeconds;
-                while (datastore.transform.childCount < veinLayouts.Count && Time.realtimeSinceStartup < deadline) await UniTask.Yield();
+                // 初期化と同じawait経路を通し、生成例外がfire-and-forgetへ逃げないことも固定する
+                // Use the same await path as startup, also pinning that generation exceptions cannot escape into fire-and-forget
+                await datastore.WaitForInitializationAsync();
                 Assert.AreEqual(veinLayouts.Count, datastore.transform.childCount, "outcrop count does not match the vein count");
 
                 foreach (var layout in veinLayouts)

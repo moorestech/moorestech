@@ -8,8 +8,8 @@ using static Server.Protocol.PacketResponse.GetMapDataProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    // ワールドディレクトリを持たない構成でva:mapData Layoutが返すmap.json由来の内容を検証する
-    // Verifies the map.json-derived content va:mapData Layout returns for a configuration owning no world directory
+    // ディレクトリなしのLayoutを検証する
+    // Verify Layout without a world directory
     public class GetMapDataProtocolTest
     {
         [Test]

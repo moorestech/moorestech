@@ -11,7 +11,7 @@ namespace Client.Game.InGame.Map.MapVein
     ///     設置プレビュー中だけ、カメラ周辺の鉱脈AABBを半透明ボックスで実行時表示する
     ///     Renders nearby vein AABBs as translucent runtime boxes only while a placement preview is active
     /// </summary>
-    public class MapVeinRangeViewService : IMapVeinRangeView
+    public class MapVeinRangeViewService : IMapVeinRangeView, IDisposable
     {
         // 表示ボックスの親。テストとシーン確認がこの名前で残存数を数える
         // Parent of the view boxes; tests and scene inspection count survivors by this name
@@ -112,7 +112,7 @@ namespace Client.Game.InGame.Map.MapVein
 
             GameObject RentBox(Bounds bounds, Material material)
             {
-                var box = _boxPool.Count > 0 ? _boxPool.Pop() : CreateBox();
+                var box = 0 < _boxPool.Count ? _boxPool.Pop() : CreateBox();
                 box.GetComponent<MeshRenderer>().sharedMaterial = material;
                 box.transform.position = bounds.center;
                 box.transform.localScale = bounds.size;
@@ -134,8 +134,14 @@ namespace Client.Game.InGame.Map.MapVein
             #endregion
         }
 
-        // 起動時に確定するveinのAABBと材質、および現在の表示ボックスを束ねる
-        // Bundles a vein's startup-fixed AABB and material with its current view box
+        public void Dispose()
+        {
+            _boxMaterials.Dispose();
+            if (_root != null) UnityEngine.Object.Destroy(_root.gameObject);
+        }
+
+        // vein表示の固定値と状態を束ねる
+        // Bundle fixed vein data and view state
         private class VeinRangeEntry
         {
             public readonly Bounds Bounds;

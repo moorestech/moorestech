@@ -106,6 +106,9 @@ namespace Game.MapGeneration.Pipeline
             // Reserve spawn clearance before perturbing the final heightmap with only the remaining trees
             SpawnPlacementExclusionStage.RemoveInsideSpawnClearance(treeEntries, output.SpawnPoint);
             SpawnPlacementExclusionStage.RemoveInsideSpawnClearance(objectEntries, output.SpawnPoint);
+
+            // objectとveinを摂動前の高さで配置し、参照パイプラインの処理順を保つ
+            // Place objects and veins on pre-perturbation heights to preserve the reference pipeline order
             var heightModMap = TreeHeightModifier.BuildGuidModMap(helper, biomeTypes);
             TreeHeightModifier.Apply(heights, res, config, treeEntries, heightModMap);
 
@@ -126,7 +129,7 @@ namespace Game.MapGeneration.Pipeline
                 output.ItemVeins = OrePlacementStage.Generate(
                     config, masks, biomeTypes, heights2D, treeEntries, objectPlacements);
                 output.FluidVeins = FluidVeinPlacementStage.Generate(
-                    config, masks, biomeTypes, heights2D, treeEntries, objectPlacements);
+                    config, masks, biomeTypes, heights2D, treeEntries, objectPlacements, output.ItemVeins);
             }
 
             #endregion
@@ -165,6 +168,16 @@ namespace Game.MapGeneration.Pipeline
         static Vector3 ComputeSpawn(TerrainGenerationConfig config, float[] heights, int res, Vector2 spawnOffset)
         {
             Vector2 spawn = config.spawnWorldPosition;
+            var sceneSpawn = spawn - spawnOffset;
+
+            // 全分岐で落下復帰先を地形の開区間へ固定し、探索無効時だけ角スポーンが通る抜け道を残さない
+            // Keep fall recovery inside the terrain's open interval in every branch, leaving no corner-spawn gap when search is disabled
+            if (sceneSpawn.x <= 0f || config.terrainWidth <= sceneSpawn.x ||
+                sceneSpawn.y <= 0f || config.terrainLength <= sceneSpawn.y)
+                throw new InvalidOperationException(
+                    $"[VanillaGenerator] scene spawn ({sceneSpawn.x}, {sceneSpawn.y}) is not inside the generated tile " +
+                    $"(0, {config.terrainWidth}) x (0, {config.terrainLength}).");
+
             int px = Mathf.RoundToInt((spawn.x - config.worldOffsetX) / config.terrainWidth * (res - 1));
             int pz = Mathf.RoundToInt((spawn.y - config.worldOffsetZ) / config.terrainLength * (res - 1));
 
@@ -176,7 +189,7 @@ namespace Game.MapGeneration.Pipeline
                     $"[{config.worldOffsetX}, {config.worldOffsetX + config.terrainWidth}] x [{config.worldOffsetZ}, {config.worldOffsetZ + config.terrainLength}].");
 
             float heightMeters = heights[pz * res + px] * config.terrainHeight;
-            return new Vector3(spawn.x - spawnOffset.x, heightMeters, spawn.y - spawnOffset.y);
+            return new Vector3(sceneSpawn.x, heightMeters, sceneSpawn.y);
         }
     }
 }

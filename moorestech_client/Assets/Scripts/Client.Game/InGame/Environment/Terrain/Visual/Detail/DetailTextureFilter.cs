@@ -9,6 +9,8 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
     /// </summary>
     public class DetailTextureFilter
     {
+        private const float MinimumContributingSplatWeight = 0.01f;
+
         /// <summary>
         ///     1レイヤー分の配置重み。正で促進、負で抑制する
         ///     Placement weight for one layer; positive promotes and negative suppresses
@@ -59,7 +61,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
             for (var i = 0; i < layerCount; i++)
             {
                 var splatWeight = splatmap[z, x, i];
-                if (splatWeight < 0.01f) continue;
+                if (splatWeight < MinimumContributingSplatWeight) continue;
 
                 // このレイヤーに対応するエントリを探し、無ければotherTextureWeightを使う
                 // Look up the entry matching this layer, falling back to otherTextureWeight when absent

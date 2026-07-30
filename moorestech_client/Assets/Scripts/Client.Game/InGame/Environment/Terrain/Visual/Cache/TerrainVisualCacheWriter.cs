@@ -24,76 +24,79 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
             var detailMapCount = tileVisual.DetailMaps.Count;
             var detailResolution = detailMapCount == 0 ? 0 : tileVisual.DetailMaps[0].GetLength(0);
 
-            var bytes = new byte[HeaderByteLength
-                                 + alphamapResolution * alphamapResolution * layerCount
-                                 + detailMapCount * detailResolution * detailResolution * DetailBytesPerCell];
-
+            var headerBytes = new byte[HeaderByteLength];
             WriteHeader();
-            var writeOffset = HeaderByteLength;
-            WriteAlphamap();
-            WriteDetailMaps();
-            WritePayloadChecksum();
 
-            WriteAtomically();
+            // payload全体を複製せず、行バッファと逐次SHAだけで一時ファイルへ書き出す
+            // Stream through row buffers and incremental SHA into the temporary file without duplicating the whole payload
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            var temporaryFilePath = filePath + ".writing";
+            using (var stream = new FileStream(temporaryFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var payloadHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256))
+            {
+                stream.Write(headerBytes, 0, headerBytes.Length);
+                WriteAlphamap(stream, payloadHash);
+                WriteDetailMaps(stream, payloadHash);
+
+                var checksum = payloadHash.GetHashAndReset();
+                stream.Position = PayloadChecksumOffset;
+                stream.Write(checksum, 0, PayloadChecksumByteLength);
+                stream.Flush();
+            }
+
+            if (File.Exists(filePath)) File.Delete(filePath);
+            File.Move(temporaryFilePath, filePath);
 
             #region Internal
 
             void WriteHeader()
             {
-                WriteInt(bytes, 0, MagicNumber);
-                WriteInt(bytes, 4, FormatVersion);
-                Encoding.ASCII.GetBytes(cacheKey, 0, CacheKeyByteLength, bytes, 8);
-                WriteInt(bytes, AlphamapResolutionOffset, alphamapResolution);
-                WriteInt(bytes, LayerCountOffset, layerCount);
-                WriteInt(bytes, DetailResolutionOffset, detailResolution);
-                WriteInt(bytes, DetailMapCountOffset, detailMapCount);
+                WriteInt(headerBytes, 0, MagicNumber);
+                WriteInt(headerBytes, 4, FormatVersion);
+                Encoding.ASCII.GetBytes(cacheKey, 0, CacheKeyByteLength, headerBytes, 8);
+                WriteInt(headerBytes, AlphamapResolutionOffset, alphamapResolution);
+                WriteInt(headerBytes, LayerCountOffset, layerCount);
+                WriteInt(headerBytes, DetailResolutionOffset, detailResolution);
+                WriteInt(headerBytes, DetailMapCountOffset, detailMapCount);
             }
 
-            // payloadを丸ごと検算する。ヘッダだけでは同じ長さの1bit破損を見逃す
-            // Check the entire payload: a header alone cannot catch a one-bit corruption of the same length
-            void WritePayloadChecksum()
+            void WriteAlphamap(FileStream stream, IncrementalHash payloadHash)
             {
-                using var sha256 = SHA256.Create();
-                var checksum = sha256.ComputeHash(bytes, HeaderByteLength, bytes.Length - HeaderByteLength);
-                Array.Copy(checksum, 0, bytes, PayloadChecksumOffset, PayloadChecksumByteLength);
-            }
-
-            void WriteAlphamap()
-            {
+                var rowBytes = new byte[alphamapResolution * layerCount];
                 for (var z = 0; z < alphamapResolution; z++)
-                for (var x = 0; x < alphamapResolution; x++)
-                for (var layer = 0; layer < layerCount; layer++)
-                    bytes[writeOffset++] = (byte)Mathf.Clamp(
-                        Mathf.RoundToInt(tileVisual.Alphamap[z, x, layer] * WeightQuantizeScale), 0, byte.MaxValue);
-            }
-
-            void WriteDetailMaps()
-            {
-                foreach (var detailMap in tileVisual.DetailMaps)
-                for (var z = 0; z < detailResolution; z++)
-                for (var x = 0; x < detailResolution; x++)
                 {
-                    // 密度は1セルあたりの本数。ushortに収まらない値はこの形式では表せないので黙って切らずに落とす
-                    // Density is the instance count per cell; a value beyond ushort is unrepresentable here, so it fails instead of being clipped
-                    var density = detailMap[z, x];
-                    if (density < 0 || ushort.MaxValue < density)
-                        throw new InvalidOperationException(
-                            $"[TerrainVisualCacheWriter] Detail density {density} does not fit the 16-bit cache format.");
-
-                    bytes[writeOffset++] = (byte)(density & 0xFF);
-                    bytes[writeOffset++] = (byte)((density >> 8) & 0xFF);
+                    var rowOffset = 0;
+                    for (var x = 0; x < alphamapResolution; x++)
+                    for (var layer = 0; layer < layerCount; layer++)
+                        rowBytes[rowOffset++] = (byte)Mathf.Clamp(
+                            Mathf.RoundToInt(tileVisual.Alphamap[z, x, layer] * WeightQuantizeScale), 0, byte.MaxValue);
+                    stream.Write(rowBytes, 0, rowBytes.Length);
+                    payloadHash.AppendData(rowBytes);
                 }
             }
 
-            // 書き込み途中で落ちた半端なファイルを本体名で残さない。完成品だけを一手で置き換える
-            // A half-written file never lands under the real name; only the finished bytes replace it in one move
-            void WriteAtomically()
+            void WriteDetailMaps(FileStream stream, IncrementalHash payloadHash)
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-                var temporaryFilePath = filePath + ".writing";
-                File.WriteAllBytes(temporaryFilePath, bytes);
-                if (File.Exists(filePath)) File.Delete(filePath);
-                File.Move(temporaryFilePath, filePath);
+                var rowBytes = new byte[detailResolution * DetailBytesPerCell];
+                foreach (var detailMap in tileVisual.DetailMaps)
+                for (var z = 0; z < detailResolution; z++)
+                {
+                    var rowOffset = 0;
+                    for (var x = 0; x < detailResolution; x++)
+                    {
+                        // 密度は1セルあたりの本数。ushortに収まらない値はこの形式では表せないので黙って切らずに落とす
+                        // Density is the instance count per cell; a value beyond ushort is unrepresentable here, so it fails instead of being clipped
+                        var density = detailMap[z, x];
+                        if (density < 0 || ushort.MaxValue < density)
+                            throw new InvalidOperationException(
+                                $"[TerrainVisualCacheWriter] Detail density {density} does not fit the 16-bit cache format.");
+
+                        rowBytes[rowOffset++] = (byte)(density & 0xFF);
+                        rowBytes[rowOffset++] = (byte)((density >> 8) & 0xFF);
+                    }
+                    stream.Write(rowBytes, 0, rowBytes.Length);
+                    payloadHash.AppendData(rowBytes);
+                }
             }
 
             #endregion

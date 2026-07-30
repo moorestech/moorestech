@@ -4,23 +4,26 @@ using Game.MapGeneration.Pipeline.Config;
 
 namespace Game.MapGeneration.Pipeline.Stages
 {
-    // ステージ6: ワールド全体のfluid鉱脈配置。OreEntryと同形のfluidEntriesを消費し、
-    // クラスタ配置本体はOrePlacementStageと共有のVeinPlacementCoreへ委譲する。
-    // Stage 6: world-wide fluid vein placement. Consumes fluidEntries (same shape as OreEntry),
-    // delegating cluster placement to VeinPlacementCore, shared with OrePlacementStage.
+    // 配置本体は共通コアへ委譲する
+    // Delegate placement to the shared core
     public static class FluidVeinPlacementStage
     {
+        private const int FluidVeinRngSeedOffset = 7500;
+
         public static List<PlacedVein> Generate(
             TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
-            float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements)
+            float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
+            IReadOnlyList<PlacedVein> itemVeins)
         {
             var ore = config.oreConfig;
-            // item鉱脈(seed+7000)とrng列が重ならないよう別オフセットを使う。
-            // Use a distinct offset so the rng stream never overlaps the item vein pass (seed+7000).
+            if (!config.generateOre || ore.fluidEntries.Length == 0) return new List<PlacedVein>();
+
+            // item鉱脈とは別の乱数列を使い、同一seedでも配置候補列を独立させる
+            // Use a distinct random stream so item and fluid candidate sequences stay independent under the same seed
             return VeinPlacementCore.Generate(
                 ore.fluidEntries, ore.borderMargin,
                 config, masks, biomeTypes, heights2D, treeEntries, objectPlacements,
-                rngSeedOffset: 7500);
+                FluidVeinRngSeedOffset, itemVeins);
         }
     }
 }

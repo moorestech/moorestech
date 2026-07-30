@@ -32,6 +32,7 @@ namespace Client.Game.InGame.Player
         private bool rideFollowStoredControllerEnabled;
         private bool rideFollowDisabledController;
         private Vector3 worldSpawnPosition;
+        private bool isInitialized;
 
         public void Initialize(InitialHandshakeResponse initialHandshakeResponse)
         {
@@ -43,10 +44,15 @@ namespace Client.Game.InGame.Player
             worldSpawnPosition = initialHandshakeResponse.MapLayout.Spawn;
 
             SetPlayerPosition(initialHandshakeResponse.PlayerPos);
+            isInitialized = true;
         }
         
         private void LateUpdate()
         {
+            // handshake前は復帰先が未確定なので、既定値の原点へwarpさせない
+            // Before the handshake the recovery target is unknown, so never warp to the default origin
+            if (!isInitialized) return;
+
             // 乗車中は補間済み車両poseを最後に反映する
             // Apply the interpolated train-car pose last while riding
             if (rideFollowTarget != null)
@@ -67,8 +73,8 @@ namespace Client.Game.InGame.Player
 
         private static Vector3 ResolveFallRecoveryPosition(Vector3 fallenPosition, Vector3 spawnPosition)
         {
-            // 現在地の真下に地表が残る落下は同じXZへ戻す
-            // Recover at the same XZ when ground still exists below the fallen position
+            // 真下に地表があれば同じXZへ戻す
+            // Return to the same XZ when ground remains below
             var fallenGround = SlopeBlockPlaceSystem.GetGroundPoint(fallenPosition);
             if (fallenGround.HasValue) return new Vector3(fallenPosition.x, fallenGround.Value.y, fallenPosition.z);
 

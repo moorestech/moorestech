@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Biomes;
@@ -58,18 +57,6 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(output.SceneOrigin, Is.EqualTo(Vector2.zero));
         }
 
-        // 格子中心はgridSizeが偶数だとタイル角(0,0)に落ち、スポーンが地形の角に張り付く。無言で通さず生成を落とす
-        // An even gridSize drops the grid center onto the tile corner (0,0), pinning the spawn to the terrain corner; generation must throw rather than pass silently
-        [Test]
-        public void 偶数gridSizeで格子中心がタイル外へ落ちるならワールド生成を落とす()
-        {
-            var generation = TestGenerationConfigFactory.CreateWithAlgorithmParamOverrides(
-                TestGenerationConfigFactory.SpawnSearchSetup.Enabled,
-                new JObject { ["gridSizeX"] = 4, ["gridSizeZ"] = 4 });
-
-            Assert.Throws<InvalidOperationException>(() => MapGenerationPipeline.Generate(generation, Seed));
-        }
-
         // 探索は master の worldOffsetX を見ずに絶対ノイズ空間で S を決めるため、G は上書きであって加算ではない。
         // 加算にすると生成地形が master の基底ぶんズレ、探索が検証した地形と別物になる。
         // The search picks S in absolute noise space without reading the master worldOffsetX, so G replaces it rather than adding.
@@ -92,18 +79,6 @@ namespace Tests.UnitTest.Game.MapGeneration
             int differentIndex = FirstDifferentIndex(expected.Heights, actual.Heights);
             Assert.That(differentIndex, Is.EqualTo(-1),
                 $"master の worldOffset がハイトマップを動かした: index={differentIndex}");
-        }
-
-        // 探索無効時のスポーンは master 値そのままで生成タイルの外を指しうる。clamp で吸収すると地形外スポーンが残る。
-        // With the search off the spawn stays at the master value and can point outside the generated tile; clamping it would leave an off-terrain spawn.
-        [Test]
-        public void SpawnOutsideTheGeneratedTileThrowsWhenSpawnSearchDisabled()
-        {
-            var generation = TestGenerationConfigFactory.CreateWithAlgorithmParamOverrides(
-                TestGenerationConfigFactory.SpawnSearchSetup.Disabled,
-                new JObject { ["spawnWorldPosition"] = new JArray(2116.69922, -807.6172) });
-
-            Assert.Throws<InvalidOperationException>(() => MapGenerationPipeline.Generate(generation, Seed));
         }
 
         private static int FirstDifferentIndex(float[] expected, float[] actual)

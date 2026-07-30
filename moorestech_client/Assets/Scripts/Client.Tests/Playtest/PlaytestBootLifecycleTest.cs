@@ -38,8 +38,6 @@ namespace Client.Tests.Playtest
         [TestCase(WorldProvisioner.TemplateMapMode, 2, 12345)]
         public void PrepareWorldBootSession_mapMode別の隔離環境を構成する(string mapMode, int expectedEnvironmentType, int seed)
         {
-            // 公開入口がPlayMode遷移前に使う中心準備処理を直接検証する
-            // Verify the central preparation path used by the public entry before entering PlayMode
             PlaytestBootLifecycle.PrepareWorldBootSession("/master/server_v8", "/tmp/fixed-world", mapMode, seed);
 
             var restored = PlaytestWorldBootSession.TryCreateInitializeProprieties(out var proprieties);
@@ -133,8 +131,6 @@ namespace Client.Tests.Playtest
             PlaytestBootLifecycle.PrepareWorldBootSession("/master/server_v8", "/tmp/fixed-world", "generated", 12345);
             PlaytestBootLifecycle.RestoreAfterDomainReload(true);
 
-            // 実Editorイベントが呼ぶ唯一のcleanup入口を通す
-            // Use the sole cleanup entry invoked by the real Editor event
             PlaytestBootLifecycle.HandlePlayModeStateChanged(PlayModeStateChange.EnteredEditMode);
             var restoredWorld = PlaytestWorldBootSession.TryCreateInitializeProprieties(out _);
 

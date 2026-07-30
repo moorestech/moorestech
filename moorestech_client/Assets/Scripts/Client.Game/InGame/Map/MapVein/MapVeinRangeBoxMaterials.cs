@@ -1,3 +1,4 @@
+using System;
 using Client.Common;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -8,7 +9,7 @@ namespace Client.Game.InGame.Map.MapVein
     ///     範囲表示ボックス用の半透明マテリアルをitem/fluidの2枚だけ作って共有する
     ///     Creates exactly two translucent materials, one for item veins and one for fluid veins, and shares them
     /// </summary>
-    public class MapVeinRangeBoxMaterials
+    public class MapVeinRangeBoxMaterials : IDisposable
     {
         // テストがこの接頭辞でマテリアル枚数を数える。2枚を超えていたら作り捨てが復活している
         // Tests count materials by this prefix; more than two means per-box material creation came back
@@ -72,6 +73,12 @@ namespace Client.Game.InGame.Map.MapVein
             }
 
             #endregion
+        }
+
+        public void Dispose()
+        {
+            UnityEngine.Object.Destroy(ItemMaterial);
+            UnityEngine.Object.Destroy(FluidMaterial);
         }
     }
 }
