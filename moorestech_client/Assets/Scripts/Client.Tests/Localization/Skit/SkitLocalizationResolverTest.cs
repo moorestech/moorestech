@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Client.Game.Skit.Localization;
@@ -44,7 +45,8 @@ namespace Client.Tests.Localization.Skit
 
             source.SetLanguage("french");
             await UniTask.WaitUntil(() =>
-                resolver.ResolveCommandField("opening", 7, "body", "Source") == "Skit French");
+                    resolver.ResolveCommandField("opening", 7, "body", "Source") == "Skit French")
+                .Timeout(TimeSpan.FromSeconds(2));
 
             Assert.AreEqual(
                 "Skit French",
@@ -80,7 +82,8 @@ namespace Client.Tests.Localization.Skit
             using var resolver = new SkitLocalizationResolver(loader, source);
 
             var prepare = resolver.PrepareAsync("opening");
-            await UniTask.WaitUntil(() => loader.GetLoadCount("japanese") == 1);
+            await UniTask.WaitUntil(() => loader.GetLoadCount("japanese") == 1)
+                .Timeout(TimeSpan.FromSeconds(2));
             source.SetLanguage("french");
             initialGate.TrySetResult(new Dictionary<string, string>
                 { { SkitKey, "Stale Japanese" } });
@@ -99,7 +102,8 @@ namespace Client.Tests.Localization.Skit
 
             source.Set("japanese", SkitKey, "After");
             source.PublishDictionaryChange();
-            await UniTask.WaitUntil(() => Resolve(resolver) == "After");
+            await UniTask.WaitUntil(() => Resolve(resolver) == "After")
+                .Timeout(TimeSpan.FromSeconds(2));
 
             Assert.AreEqual("After", Resolve(resolver));
         }
@@ -116,9 +120,11 @@ namespace Client.Tests.Localization.Skit
             var frenchGate = loader.GateNext("french");
 
             source.SetLanguage("french");
-            await UniTask.WaitUntil(() => loader.GetLoadCount("french") == 1);
+            await UniTask.WaitUntil(() => loader.GetLoadCount("french") == 1)
+                .Timeout(TimeSpan.FromSeconds(2));
             source.SetLanguage("german");
-            await UniTask.WaitUntil(() => Resolve(resolver) == "German");
+            await UniTask.WaitUntil(() => Resolve(resolver) == "German")
+                .Timeout(TimeSpan.FromSeconds(2));
             frenchGate.TrySetResult(new Dictionary<string, string> { { SkitKey, "Stale French" } });
             await UniTask.Yield();
 

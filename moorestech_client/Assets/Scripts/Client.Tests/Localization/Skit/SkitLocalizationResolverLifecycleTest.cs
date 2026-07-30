@@ -19,7 +19,8 @@ namespace Client.Tests.Localization.Skit
             var source = new FakeSkitLocalizationSource();
             using var resolver = new SkitLocalizationResolver(loader, source);
             var firstPrepare = resolver.PrepareAsync("opening");
-            await UniTask.WaitUntil(() => loader.GetLoadCount("japanese") == 1);
+            await UniTask.WaitUntil(() => loader.GetLoadCount("japanese") == 1)
+                .Timeout(TimeSpan.FromSeconds(2));
             try
             {
                 Assert.ThrowsAsync<InvalidOperationException>(
@@ -42,7 +43,8 @@ namespace Client.Tests.Localization.Skit
             var source = new FakeSkitLocalizationSource();
             var resolver = new SkitLocalizationResolver(loader, source);
             var prepare = resolver.PrepareAsync("opening");
-            await UniTask.WaitUntil(() => loader.GetLoadCount("japanese") == 1);
+            await UniTask.WaitUntil(() => loader.GetLoadCount("japanese") == 1)
+                .Timeout(TimeSpan.FromSeconds(2));
             try
             {
                 resolver.Dispose();
@@ -68,7 +70,8 @@ namespace Client.Tests.Localization.Skit
             var source = new FakeSkitLocalizationSource();
             using var resolver = new SkitLocalizationResolver(loader, source);
             var prepare = resolver.PrepareAsync("opening");
-            await UniTask.WaitUntil(() => loader.GetLoadCount("japanese") == 1);
+            await UniTask.WaitUntil(() => loader.GetLoadCount("japanese") == 1)
+                .Timeout(TimeSpan.FromSeconds(2));
             try
             {
                 initialGate.TrySetException(new InvalidOperationException("load failed"));
@@ -91,13 +94,15 @@ namespace Client.Tests.Localization.Skit
             var source = new FakeSkitLocalizationSource();
             using var resolver = new SkitLocalizationResolver(loader, source);
             var prepare = resolver.PrepareAsync("opening");
-            await UniTask.WaitUntil(() => loader.GetLoadCount("japanese") == 1);
+            await UniTask.WaitUntil(() => loader.GetLoadCount("japanese") == 1)
+                .Timeout(TimeSpan.FromSeconds(2));
             try
             {
                 source.SetLanguage("french");
                 initialGate.TrySetException(new InvalidOperationException("load failed"));
                 Assert.ThrowsAsync<InvalidOperationException>(async () => await prepare);
-                await UniTask.WaitUntil(() => Resolve(resolver) == "French");
+                await UniTask.WaitUntil(() => Resolve(resolver) == "French")
+                    .Timeout(TimeSpan.FromSeconds(2));
                 Assert.AreEqual(1, loader.GetLoadCount("japanese"));
                 Assert.AreEqual(1, loader.GetLoadCount("french"));
             }

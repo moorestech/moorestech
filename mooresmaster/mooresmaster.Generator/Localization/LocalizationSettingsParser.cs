@@ -53,12 +53,26 @@ public static class LocalizationSettingsParser
                 throw new LocalizationCsvException("Language setting code must not be empty");
             }
 
+            // UIとSteam連携に必要な設定値を入力境界で保証
+            // Require UI and Steam integration values at the input boundary
+            var displayName = fields[1];
+            if (string.IsNullOrWhiteSpace(displayName))
+            {
+                throw new LocalizationCsvException("Language setting display name must not be empty");
+            }
+
+            var steamApiLangCode = fields[2];
+            if (string.IsNullOrWhiteSpace(steamApiLangCode))
+            {
+                throw new LocalizationCsvException("Language setting Steam API language code must not be empty");
+            }
+
             if (!seenCodes.Add(code))
             {
                 throw new LocalizationCsvException($"Duplicated language setting code: {code}");
             }
 
-            settings[recordIndex - 1] = new LanguageSetting(code, fields[1], fields[2]);
+            settings[recordIndex - 1] = new LanguageSetting(code, displayName, steamApiLangCode);
         }
 
         return settings;

@@ -6,7 +6,7 @@ spec: docs/superpowers/specs/2026-07-29-localization-foundation-design.md
 
 > **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development（推奨）または superpowers:executing-plans を使い、このplanをタスクごとに実装すること。ステップはチェックボックス（`- [ ]`）記法で進捗管理する。
 
-**Goal:** mod同梱ローカライズCSVと `<type>.<guid>.<field>` 導出キーを実装し、ホスト側のマスタ名解決・payload同梱を全廃してWeb側辞書解決へ統一する（item/block・研究/チャレンジ・skit・ビルドメニュー）。
+**Goal:** mod同梱ローカライズCSVと `<type>.<guid>.<field>` 導出キーを実装し、安定Guidと正準sourceを持つマスタ名はホスト側解決・payload同梱を廃止してWeb側辞書解決へ統一する（item/block・研究/チャレンジ・skit・ビルドメニュー）。ユーザー命名blueprintと正準source未定のtrainCar/connectToolは原文Labelを維持し、ホスト側では翻訳しない。
 
 **Architecture:** Plan1のバニラ基盤（埋め込み辞書・共通CSV DLL・`Localize`・source擬似ロケール・TS型付きキー）の上に、①mod CSV合成、②MasterHolder原文投入、③Guid導出キー、④DTO/TopicのGuid化を積む。skitは既存CommandForgeEditor辞書を保持し、`Client.Skit` のresolver interfaceに対する `Client.Game` 側のAddressables loader/resolverが開始時に対象言語+englishだけを読み、`skit.*` のみを欠けたキーとしてmod合成辞書へ重ねる。skitの解決順は mod対象言語→skit専用対象言語→mod英語→skit専用英語→JSON原文、それ以外は 対象言語→english→source→`[!key]`。
 
@@ -627,20 +627,20 @@ key,Source,english,japanese
 item.<小石の実Guid>.name,小石,Pebble,小石
 item.<原木の実Guid>.name,原木,Log,原木
 block.<風力掘削機の実Guid>.name,風力掘削機,Wind Drill,風力掘削機
-skit.100_start_game.1.body,...レポート記録開始,MOD ENGLISH,MOD JAPANESE
-skit.100_start_game.2.body,"現在位置、惑星セレスタル上空750km\n電力残り78%、ワームホールエネルギー残り98%\nスラスター燃料残り35%",MOD ENGLISH 2,
-skit.100_start_game.3.body,"搭乗員一名、ヨリ、睡眠薬による昏睡を確認",MOD ENGLISH 3,
+skit.100_start_game.1.body,...レポート記録開始,Beginning report recording.,……レポートの記録を開始します。
+skit.100_start_game.2.body,"現在位置、惑星セレスタル上空750km\n電力残り78%、ワームホールエネルギー残り98%\nスラスター燃料残り35%","Present position: 750 km above Celestal.\nRemaining power: 78%. Remaining wormhole energy: 98%.\nRemaining thruster fuel: 35%.",
+skit.100_start_game.3.body,"搭乗員一名、ヨリ、睡眠薬による昏睡を確認","Yori, the sole crew member, is confirmed unconscious under sedatives.",
 skit.100_start_game.4.body,"ワープシーケンスを開始。\n現在地、惑星セレスタル、目標、惑星アルカディア\n5..4..3..2..1....",,
 ```
 
 既存 `Skit/i18n/*.json` の `command.*` / `master.*` は一切削除・改名せず、`translations` へ次を追加する:
 
 ```json
-"skit.100_start_game.1.body": "SKIT VALUE 1",
-"skit.100_start_game.2.body": "SKIT VALUE 2",
+"skit.100_start_game.1.body": "Report recording initiated.",
+"skit.100_start_game.2.body": "Current position: 750 km above planet Celestal.\nPower remaining: 78%. Wormhole energy remaining: 98%.\nThruster fuel remaining: 35%.",
 "skit.100_start_game.3.body": "",
-"skit.100_start_game.4.body": "SKIT VALUE 4",
-"skit.100_start_game.31.overrideCharacterName": "SKIT SPEAKER VALUE"
+"skit.100_start_game.4.body": "Initiating warp sequence.\nCurrent location: planet Celestal. Destination: planet Arcadia.\n5...4...3...2...1...",
+"skit.100_start_game.31.overrideCharacterName": "　"
 ```
 
 english/japaneseで値を変える。japaneseはcommand 2だけSkit値を持ち、command 3/4は空、englishはcommand 3/4のSkit値を持つfixtureにして5段の境界を作る。通常ストーリーから参照されない既存開発用Addressable `sample_short.json` へ3択selectionと終了先commandを追加し、対応する `Option1Tag`〜`Option3Tag` を両言語辞書へ追加する。背景skitには `skit.200_star_background.1.body`、既存の話者上書き行には `skit.100_start_game.31.overrideCharacterName` を追加して各field経路を通す。CSVのSourceはMasterまたはSkit JSONの実原文へ完全一致させ、複数行は共通CSV parserが改行へ復元するliteral `\n` で記述する。
@@ -648,9 +648,9 @@ english/japaneseで値を変える。japaneseはcommand 2だけSkit値を持ち�
 - [ ] **Step 2: PlayModeで結合確認する**
 
 unity-playmode-recorded-playtestスキルの手順でPlayMode起動:
-1. command 1: mod/Skit双方が非空で `MOD JAPANESE`（mod対象言語優先）
+1. command 1: mod/Skit双方が非空で `……レポートの記録を開始します。`（mod対象言語優先）
 2. command 2: mod日本語が空でSkit日本語が非空のためSkit日本語
-3. command 3: mod/Skit日本語が空でmod英語が非空のため `MOD ENGLISH 3`
+3. command 3: mod/Skit日本語が空でmod英語が非空のため `Yori, the sole crew member, is confirmed unconscious under sedatives.`
 4. command 4: 対象言語2段とmod英語が空でSkit英語が非空のためSkit英語
 5. command 6: mod CSV/Skit専用辞書の4段すべてに未登録の実在text commandなのでskit JSON原文
 6. どのケースも空文字を表示せず、background本文、selection表示選択肢、overrideCharacterNameも同じ規則で翻訳される

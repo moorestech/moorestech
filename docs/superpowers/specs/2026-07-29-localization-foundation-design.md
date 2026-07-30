@@ -42,7 +42,7 @@
 
 - 合成辞書の正本はクライアント側 `Localize`（後継）。起動時にバニラ埋め込み辞書＋全mod CSVを単一辞書へ合成。サーバーは非関与。
 - Webへの配信は既存 `/api/i18n/{locale}` + `localization.current` を維持。
-- ホスト側 Name 解決・payload 同梱は**全廃**し、Web は Guid→導出キー→合成辞書で解決。言語切替はWeb側再描画のみで完結。
+- 安定Guidと正準sourceを持つマスタ由来表示名は、ホスト側 Name 解決・payload 同梱を廃止し、Web の Guid→導出キー→合成辞書で解決する。ユーザー命名blueprintは原文Labelを維持し、正準source未定のtrainCar/connectToolは暫定Labelを維持するがホスト側で翻訳しない。辞書解決対象の言語切替はWeb側再描画のみで完結。
 - バニラ `GetLegacy` も対象言語→english→source→`[!key]` の順で解決し、sourceを省略しない。
 
 ### 言語切替

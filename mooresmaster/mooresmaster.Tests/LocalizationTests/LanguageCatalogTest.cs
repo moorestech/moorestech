@@ -44,4 +44,28 @@ public class LanguageCatalogTest
         Assert.Equal("English, Global", setting.DisplayName);
         Assert.Equal("en", setting.SteamApiLangCode);
     }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void 表示名が空または空白なら例外(string displayName)
+    {
+        var settingsCsv =
+            $"lang_name,display_name,steam_api_lang_code\nenglish,{displayName},en\n";
+
+        Assert.Throws<LocalizationCsvException>(() =>
+            LocalizationSettingsParser.Parse(settingsCsv));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Steam言語コードが空または空白なら例外(string steamApiLangCode)
+    {
+        var settingsCsv =
+            $"lang_name,display_name,steam_api_lang_code\nenglish,English,{steamApiLangCode}\n";
+
+        Assert.Throws<LocalizationCsvException>(() =>
+            LocalizationSettingsParser.Parse(settingsCsv));
+    }
 }
