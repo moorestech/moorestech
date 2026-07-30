@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Client.Localization;
 using Core.Master;
@@ -21,14 +20,10 @@ namespace Client.Tests.Localization.MasterSource
         }
 
         [Test]
-        public void CollectorContainsEveryResearchCategoryAndChallengeSource()
+        public void CollectorMatchesEveryMasterSource()
         {
             var expected = BuildExpectedContentSources();
-            var actual = new Dictionary<string, string>();
-            foreach (var pair in MasterSourceTextCollector.Collect())
-            {
-                if (IsResearchOrChallengeKey(pair.Key)) actual.Add(pair.Key, pair.Value);
-            }
+            var actual = MasterSourceTextCollector.Collect();
 
             // 件数・キー集合・値を別々に照合して欠落と上書きを検出する
             // Compare counts, key sets, and values separately to catch omissions and overwrites
@@ -67,9 +62,21 @@ namespace Client.Tests.Localization.MasterSource
         {
             var expected = new Dictionary<string, string>();
 
-            // Builder実装に依存しない手計算キーで全研究を列挙する
-            // Enumerate every research using hand-derived keys independent from the builders
-            foreach (var research in MasterHolder.ResearchMaster.GetAllResearches())
+            // 全アイテムと全ブロックを正本から列挙する
+            // Enumerate every item and block from their canonical masters
+            foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
+            {
+                var item = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                expected.Add($"item.{item.ItemGuid:D}.name", item.Name);
+            }
+            foreach (var block in MasterHolder.BlockMaster.Blocks.Data)
+            {
+                expected.Add($"block.{block.BlockGuid:D}.name", block.Name);
+            }
+
+            // 辞書化前の正本配列を使い、研究Guid重複による欠落も検出する
+            // Use the canonical pre-dictionary array to catch loss from duplicate research GUIDs
+            foreach (var research in MasterHolder.ResearchMaster.Research.Data)
             {
                 expected.Add($"research.{research.ResearchNodeGuid:D}.name", research.ResearchNodeName);
                 expected.Add($"research.{research.ResearchNodeGuid:D}.description", research.ResearchNodeDescription);
@@ -77,7 +84,7 @@ namespace Client.Tests.Localization.MasterSource
 
             // 全カテゴリと全チャレンジをAddし、Guid重複もテスト失敗にする
             // Add every category and challenge so duplicate GUIDs also fail the test
-            foreach (var category in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
+            foreach (var category in MasterHolder.ChallengeMaster.Challenges.Data)
             {
                 expected.Add($"challengeCategory.{category.CategoryGuid:D}.name", category.CategoryName);
                 expected.Add($"challengeCategory.{category.CategoryGuid:D}.description", category.CategoryDescription);
@@ -89,13 +96,6 @@ namespace Client.Tests.Localization.MasterSource
             }
 
             return expected;
-        }
-
-        private static bool IsResearchOrChallengeKey(string key)
-        {
-            return key.StartsWith("research.", StringComparison.Ordinal) ||
-                   key.StartsWith("challenge.", StringComparison.Ordinal) ||
-                   key.StartsWith("challengeCategory.", StringComparison.Ordinal);
         }
     }
 }
