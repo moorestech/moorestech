@@ -59,11 +59,20 @@ extract_json() { sed -n '/^{/,$p'; }
 json_get() { python3 -c "import sys,json; print(json.load(sys.stdin).get('$1',''))" 2>/dev/null; }
 csharp_quote() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$1"; }
 
+# domain reloadが残したCLI Loop設定の退避を、boot後を含む全EDC試行前に復元する
+# Restore CLI Loop settings left backed up by domain reload before every EDC attempt, including post-boot calls
+restore_cli_loop_settings() {
+    local settings="$PROJECT_PATH/UserSettings/UnityMcpSettings.json"
+    local backup="${settings}.bak"
+    [[ -f "$settings" || ! -f "$backup" ]] || mv "$backup" "$settings"
+}
+
 edc() {
     # ドメインリロード直後はEDCが失敗するため、成功するまで最大8回リトライする
     # EDC fails right after a domain reload, so retry up to 8 times until it succeeds
     local attempt response success
     for attempt in $(seq 1 8); do
+        restore_cli_loop_settings
         response=$(uloop execute-dynamic-code --project-path "$PROJECT_PATH" --code "$1" 2>/dev/null | extract_json)
         success=$(echo "$response" | json_get Success)
         if [[ "$success" == "True" ]]; then
