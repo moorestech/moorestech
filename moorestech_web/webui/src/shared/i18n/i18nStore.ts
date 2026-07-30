@@ -1,5 +1,8 @@
 import { useSyncExternalStore } from "react";
-import type { VanillaLocalizationKey } from "./generated/localizationKeys";
+import {
+  VanillaLocalizationKeys,
+  type VanillaLocalizationKey,
+} from "./generated/localizationKeys";
 
 export const FALLBACK_LOCALE = "english";
 
@@ -22,6 +25,11 @@ let snapshot: I18nSnapshot = {
 };
 const listeners = new Set<() => void>();
 let warnedMissingTranslationKeys = new Set<TranslationKey>();
+const translationKeys = new Set<string>(VanillaLocalizationKeys);
+
+export function isTranslationKey(value: string): value is TranslationKey {
+  return translationKeys.has(value);
+}
 
 export function setDictionaries(
   locale: string,

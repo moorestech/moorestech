@@ -3,7 +3,7 @@ import { useItemMaster } from "@/bridge";
 import ItemIcon from "../ItemIcon";
 import SlotFrame from "../SlotFrame";
 import styles from "./style.module.css";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 
 type Props = {
   itemId: number;
@@ -58,7 +58,7 @@ export default function ItemSlot({ itemId, count, name, tooltip, selected, catal
       >
         {hasItem ? (
           <>
-            <ItemIcon itemId={itemId} alt={resolvedName ?? t("item {itemId}", { itemId })} className={styles.icon} />
+            <ItemIcon itemId={itemId} alt={resolvedName ?? t(L.ui.common.itemFallback, { itemId })} className={styles.icon} />
             {count !== undefined ? <span className={styles.count}>{count}</span> : null}
           </>
         ) : null}

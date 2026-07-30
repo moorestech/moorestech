@@ -9,6 +9,7 @@ import {
 } from "./researchLogic";
 import type { ResearchNodeData } from "@/bridge";
 import { hasEnoughItems } from "@/shared/ownedCounts";
+import { L } from "@/shared/i18n";
 
 const node = (guid: string, x: number, y: number, extra?: Partial<ResearchNodeData>): ResearchNodeData => ({
   guid, name: guid, description: "", state: "researchable", iconItemId: 1,
@@ -67,7 +68,11 @@ describe("deriveResearchButton", () => {
   it("disables completed nodes and never highlights completed consume items", () => {
     const n = node("done", 0, 0, { state: "completed", consumeItems: [{ itemId: 1, count: 1 }] });
     const owned = new Map([[1, 1]]);
-    expect(deriveResearchButton(n, owned)).toEqual({ completed: true, interactable: false, tooltip: "研究済み" });
+    expect(deriveResearchButton(n, owned)).toEqual({
+      completed: true,
+      interactable: false,
+      tooltipKey: L.ui.research.completed,
+    });
     expect(isItemSufficient(n, 1, 1, owned)).toBe(false);
   });
   it("enables researchable nodes when all consume items are owned", () => {
@@ -75,7 +80,7 @@ describe("deriveResearchButton", () => {
     expect(deriveResearchButton(n, new Map([[1, 1]]))).toEqual({
       completed: false,
       interactable: true,
-      tooltip: "クリックして研究",
+      tooltipKey: L.ui.research.clickToResearch,
     });
   });
   it("reports missing items when prerequisites are met but consume items are short", () => {
@@ -83,7 +88,7 @@ describe("deriveResearchButton", () => {
     expect(deriveResearchButton(n, new Map([[1, 1]]))).toEqual({
       completed: false,
       interactable: false,
-      tooltip: "研究アイテムが足りません。",
+      tooltipKey: L.ui.research.missingItems,
     });
   });
   it("reports missing prerequisites when items are sufficient", () => {
@@ -94,7 +99,7 @@ describe("deriveResearchButton", () => {
     expect(deriveResearchButton(n, new Map([[1, 1]]))).toEqual({
       completed: false,
       interactable: false,
-      tooltip: "前提研究が完了していません。",
+      tooltipKey: L.ui.research.missingPrerequisites,
     });
   });
   it("reports both missing items and prerequisites", () => {
@@ -105,7 +110,7 @@ describe("deriveResearchButton", () => {
     expect(deriveResearchButton(n, new Map([[1, 1]]))).toEqual({
       completed: false,
       interactable: false,
-      tooltip: "研究アイテムが足りません。\n前提研究が完了していません。",
+      tooltipKey: L.ui.research.missingItemsAndPrerequisites,
     });
   });
 });

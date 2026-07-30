@@ -116,7 +116,7 @@ describe("block inventory design whitelist", () => {
 
   it("モジュールスロットをラベル付きで加工行から1段下げる", () => {
     expect(sources.machineInventoryBody).toContain('data-testid="machine-module-label"');
-    expect(sources.machineInventoryBody).toContain('t("アップグレードスロット")');
+    expect(sources.machineInventoryBody).toContain("t(L.ui.blockInventory.upgradeSlots)");
     expect(sources.machineInventoryBody).toContain('mt="xs"');
   });
 });

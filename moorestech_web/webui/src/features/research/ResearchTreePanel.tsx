@@ -7,7 +7,7 @@ import { TreeView } from "@/shared/treeView";
 import type { TreePoint } from "@/shared/treeView";
 import ResearchNodeCard from "./ResearchNodeCard";
 import ResearchDetailPane from "./ResearchDetailPane";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import styles from "./style.module.css";
 
 // topic未受信時の空配列を固定参照にしてuseMemoの空振りを防ぐ
@@ -44,7 +44,7 @@ export default function ResearchTreePanel() {
 
   return (
     <div className={styles.researchArea} data-testid="research-tree">
-      <GamePanel title={t("研究")} style={{ height: "100%", boxSizing: "border-box" }}>
+      <GamePanel title={t(L.ui.research.title)} style={{ height: "100%", boxSizing: "border-box" }}>
         <div className={styles.treeContainer}>
           <TreeView nodes={nodes} getId={getResearchNodeId} getPosition={getResearchNodePosition}
             getPrevIds={getPreviousResearchNodeIds} nodeTargetSelector="[data-research-node]" testIdPrefix="research"

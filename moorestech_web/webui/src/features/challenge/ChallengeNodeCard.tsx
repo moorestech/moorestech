@@ -1,16 +1,8 @@
 import { Paper, Text } from "@mantine/core";
 import type { ChallengeNodeData } from "@/bridge";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n, type TranslationKey } from "@/shared/i18n";
 import styles from "./style.module.css";
 import { tutorialAnchor, challengeNodeAnchorId } from "@/shared/tutorialAnchor";
-
-// 全状態をsource翻訳へ対応づける
-// Map every state to source-string localization
-const challengeStateLabelSource: Record<ChallengeNodeData["state"], string> = {
-  locked: "未解放",
-  current: "進行中",
-  completed: "完了",
-};
 
 export default function ChallengeNodeCard({ node, left, top }: { node: ChallengeNodeData; left: number; top: number }) {
   const { t } = useI18n();
@@ -24,7 +16,13 @@ export default function ChallengeNodeCard({ node, left, top }: { node: Challenge
       style={{ left, top, transform: `translate(-50%, -50%) scale(${node.scale.x}, ${node.scale.y})` }}>
       <Text fw={700}>{node.title}</Text>
       <Text size="sm">{node.summary}</Text>
-      <Text size="xs">{t(challengeStateLabelSource[node.state])}</Text>
+      <Text size="xs">{t(resolveChallengeStateKey(node.state))}</Text>
     </Paper>
   );
+}
+
+function resolveChallengeStateKey(state: ChallengeNodeData["state"]): TranslationKey {
+  if (state === "locked") return L.ui.challenge.stateLocked;
+  if (state === "current") return L.ui.challenge.stateCurrent;
+  return L.ui.challenge.stateCompleted;
 }

@@ -5,7 +5,7 @@ import { Group, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import type { MachineRecipe } from "@/bridge";
 import { FadeRule, ItemSlot, SlotGrid } from "@/shared/ui";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import type { MachineRecipeSelectionRowData } from "./machineRecipeSelectionLogic";
 import styles from "./machineRecipeSelection.module.css";
 
@@ -36,15 +36,19 @@ export default function MachineRecipeSelectionTab({ rows, recipes, onSelected }:
               <ItemSlot key={i} itemId={item.itemId} count={item.count} />
             ))}
             <Stack gap={0} align="center" mx="xs">
-              <Text c="dimmed">{t("→")}</Text>
-              <Text c="dimmed" size="sm" data-testid="machine-recipe-detail-time">{t("{time}秒", { time: previewRecipe.time })}</Text>
+              <Text c="dimmed">{t(L.ui.common.rightArrow)}</Text>
+              <Text c="dimmed" size="sm" data-testid="machine-recipe-detail-time">
+                {t(L.ui.blockInventory.recipeDuration, { seconds: previewRecipe.time })}
+              </Text>
             </Stack>
             {previewRecipe.outputItems.map((item, i) => (
               <ItemSlot key={i} itemId={item.itemId} count={item.count} />
             ))}
           </Group>
         ) : (
-          <Text c="dimmed" data-testid="machine-recipe-detail-empty">{t("レシピをホバーで詳細、クリックで選択")}</Text>
+          <Text c="dimmed" data-testid="machine-recipe-detail-empty">
+            {t(L.ui.blockInventory.recipeSelectionHint)}
+          </Text>
         )}
       </div>
       <FadeRule />

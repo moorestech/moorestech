@@ -1,5 +1,6 @@
 import type { GearNetworkStopReason } from "@/bridge";
 import { clamp01 } from "@/shared/clamp01";
+import { L, type TranslationKey } from "@/shared/i18n";
 
 // uGUI CommonMachineBlockStateDetail.PowerRate と同式（ワイヤ非送信のためWeb側算出）
 // Same formula as uGUI CommonMachineBlockStateDetail.PowerRate (not on the wire; computed web-side)
@@ -33,8 +34,8 @@ export function fuelRatio(remainingFuelTime: number, currentFuelTime: number): n
 
 // uGUI GearEnergyTransformerUIView.GetStopReasonText と同文言
 // Same wording as uGUI GearEnergyTransformerUIView.GetStopReasonText
-export function stopReasonText(reason: GearNetworkStopReason): string {
-  if (reason === "rocked") return "ロック";
-  if (reason === "overRequirePower") return "パワー不足";
-  return "";
+export function stopReasonTranslationKey(reason: GearNetworkStopReason): TranslationKey | null {
+  if (reason === "rocked") return L.ui.blockInventory.stopReasonLocked;
+  if (reason === "overRequirePower") return L.ui.blockInventory.stopReasonInsufficientPower;
+  return null;
 }

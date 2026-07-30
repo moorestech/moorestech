@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { filterSlotClickAction, modeLabel } from "./filterSplitterLogic";
+import { L } from "@/shared/i18n";
+import { filterModeTranslationKey, filterSlotClickAction } from "./filterSplitterLogic";
 
-describe("modeLabel", () => {
-  it("3モードの表示キーを保持する", () => {
-    expect(modeLabel).toEqual({
-      default: "デフォルト",
-      whitelist: "ホワイトリスト",
-      blacklist: "ブラックリスト",
-    });
+describe("filterModeTranslationKey", () => {
+  it("3モードを型付き翻訳キーへ対応づける", () => {
+    expect(filterModeTranslationKey("default")).toBe(L.ui.blockInventory.filterDefault);
+    expect(filterModeTranslationKey("whitelist")).toBe(L.ui.blockInventory.filterWhitelist);
+    expect(filterModeTranslationKey("blacklist")).toBe(L.ui.blockInventory.filterBlacklist);
   });
 });
 

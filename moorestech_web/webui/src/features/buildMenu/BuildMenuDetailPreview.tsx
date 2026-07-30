@@ -1,5 +1,5 @@
 import { FadeRule, ItemSlot } from "@/shared/ui";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import type { BuildMenuEntryData } from "@/bridge";
 import styles from "./style.module.css";
 
@@ -13,7 +13,7 @@ export function BuildMenuDetailPreview({ entry }: Props) {
     <div className={styles.preview} data-testid="build-menu-preview">
       <div className={styles.previewBody}>
         {entry === null ? (
-          <span className={styles.previewHint}>{t("カーソルを合わせると詳細を表示します")}</span>
+          <span className={styles.previewHint}>{t(L.ui.buildMenu.detailHint)}</span>
         ) : (
           <>
             {entry.iconUrl && <img className={styles.previewIcon} src={entry.iconUrl} alt={entry.label} draggable={false} />}

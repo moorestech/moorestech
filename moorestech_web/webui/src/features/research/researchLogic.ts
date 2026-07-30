@@ -1,5 +1,6 @@
 import type { ResearchNodeData, ResearchNodeState } from "@/bridge";
 import { hasEnoughItems } from "@/shared/ownedCounts";
+import { L, type TranslationKey } from "@/shared/i18n";
 
 // uGUIのY上向き座標をCSS topへ反転写像（screenY = offsetY - y）
 // Flip uGUI's Y-up coords to CSS top (screenY = offsetY - y)
@@ -79,23 +80,33 @@ export function isItemSufficient(
   return node.state !== "completed" && (owned.get(itemId) ?? 0) >= required;
 }
 
-export type ResearchButtonState = { completed: boolean; interactable: boolean; tooltip: string };
+export type ResearchButtonState = {
+  completed: boolean;
+  interactable: boolean;
+  tooltipKey: TranslationKey;
+};
 
 // uGUI RefreshNodeAvailability 準拠のボタン活性/ツールチップ導出
 // Button availability/tooltip derivation mirroring uGUI RefreshNodeAvailability
 export function deriveResearchButton(node: ResearchNodeData, owned: Map<number, number>): ResearchButtonState {
-  if (node.state === "completed") return { completed: true, interactable: false, tooltip: "研究済み" };
+  if (node.state === "completed") {
+    return {
+      completed: true,
+      interactable: false,
+      tooltipKey: L.ui.research.completed,
+    };
+  }
   const preNodeMet = isPreNodeMet(node.state);
   const itemsSufficient = hasEnoughItems(node.consumeItems, owned);
   const interactable = preNodeMet && itemsSufficient;
-  const tooltip = preNodeMet
+  const tooltipKey = preNodeMet
     ? itemsSufficient
-      ? "クリックして研究"
-      : "研究アイテムが足りません。"
+      ? L.ui.research.clickToResearch
+      : L.ui.research.missingItems
     : itemsSufficient
-      ? "前提研究が完了していません。"
-      : "研究アイテムが足りません。\n前提研究が完了していません。";
-  return { completed: false, interactable, tooltip };
+      ? L.ui.research.missingPrerequisites
+      : L.ui.research.missingItemsAndPrerequisites;
+  return { completed: false, interactable, tooltipKey };
 }
 
 // カードのdata属性用の状態導出（lockedは前提未達）

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 // @ts-expect-error -- The build script is intentionally a plain ESM module.
 import { parseLocalizationCsv } from "../../../scripts/generate-localization-keys.mjs";
-import { L } from "./generated/localizationKeys";
+import { L } from "./index";
 
 let currentLocale = "english";
 let effectCleanup: (() => void) | undefined;

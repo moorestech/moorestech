@@ -15,7 +15,7 @@ import { DeleteModeHud, PlacementModeHud } from "@/features/modeHud";
 import { Crosshair } from "@/features/commonHud";
 import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
@@ -130,7 +130,7 @@ export default function App() {
           <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-reconnect)" data-testid="reconnect-overlay">
             <Stack align="center" gap="sm">
               <Loader color="gray" />
-              <Text c="white" fw={500}>{t("再接続中...")}</Text>
+              <Text c="white" fw={500}>{t(L.ui.error.reconnecting)}</Text>
             </Stack>
           </Overlay>
         </Portal>

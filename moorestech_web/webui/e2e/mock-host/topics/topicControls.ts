@@ -1,20 +1,30 @@
 import type { ServerResponse } from "node:http";
+import { readFileSync } from "node:fs";
 import { WebSocket } from "ws";
 import { Topics } from "../../../src/bridge/transport/protocol";
 import type { TopicPayloads } from "../../../src/bridge/transport/protocol";
+import { L } from "../../../src/shared/i18n/generated/localizationKeys";
+// JavaScriptのcodegen parserには型宣言がない
+// The JavaScript codegen parser has no type declarations
+// @ts-expect-error Importing the plain ESM parser is intentional
+import { parseLocalizationCsv } from "../../../scripts/generate-localization-keys.mjs";
 import * as fx from "../fixtures";
 import { state, topicSubscribers } from "../state";
 import { clone, send, setTopicRevision } from "../wire";
 
-const dictionaries: Record<string, Record<string, string>> = {
-  japanese: { "Pause Menu": "ポーズメニュー", "Save this game": "セーブする", CONTEXT_INSPECT: "調べる", TOOLTIP_WORLD: "世界の対象" },
-  english: { "Pause Menu": "Pause Menu", "Save this game": "Save Game", CONTEXT_INSPECT: "Inspect", TOOLTIP_WORLD: "World Target" },
-};
+const dictionaries = createDictionaries();
+
+// locale切替E2Eが辞書再取得を識別できる値を維持する
+// Preserve distinct values that let the locale-switch E2E identify dictionary reloads
+requireDictionary("japanese")[L.ui.pauseMenu.title] = "ポーズメニュー";
+requireDictionary("japanese")[L.ui.game.saveGame] = "セーブする";
+requireDictionary("english")[L.ui.pauseMenu.title] = "Pause Menu";
+requireDictionary("english")[L.ui.game.saveGame] = "Save Game";
 
 export function serveDictionary(url: string, response: ServerResponse): void {
   const locale = url.split("/api/i18n/")[1]?.split("?")[0] ?? "japanese";
   response.writeHead(200, { "Content-Type": "application/json" });
-  response.end(JSON.stringify(dictionaries[locale] ?? {}));
+  response.end(JSON.stringify(dictionaries.get(locale) ?? {}));
 }
 
 const control = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]) => ({ topic, data });
@@ -34,7 +44,7 @@ const controls = {
     progress: Number(params.get("progress") ?? "0.65"),
   }),
   miningHidden: () => control(Topics.progress, { visible: false, progress: 0 }),
-  tooltip: () => control(Topics.tooltip, { visible: true, textKey: "TOOLTIP_WORLD", fontSize: 18 }),
+  tooltip: () => control(Topics.tooltip, { visible: true, textKey: L.ui.tooltip.worldTarget, fontSize: 18 }),
   tooltipHidden: () => control(Topics.tooltip, { visible: false, textKey: "", fontSize: 14 }),
   pauseConnected: () => control(Topics.pauseMenu, { disconnected: false }),
   pauseDisconnected: () => control(Topics.pauseMenu, { disconnected: true }),
@@ -83,4 +93,28 @@ export function applyTopicControl(url: string, response: ServerResponse): void {
     send(ws, { op: params.get("snapshot") === "1" ? "snapshot" : "event", topic: controlValue.topic, revision, data: controlValue.data });
   }
   response.end(JSON.stringify({ ok: true }));
+}
+
+function createDictionaries(): Map<string, Record<string, string>> {
+  const csvUrl = new URL("../../../../../Localization/localization.csv", import.meta.url);
+  const csv = parseLocalizationCsv(readFileSync(csvUrl, "utf8"));
+  const result = new Map<string, Record<string, string>>();
+
+  // Sourceと各言語を本番CSVの同じ行集合から組み立てる
+  // Build Source and every locale from the same production CSV rows
+  result.set("source", Object.fromEntries(csv.rows.map((row: { key: string; source: string }) => [row.key, row.source])));
+  for (let languageIndex = 0; languageIndex < csv.languageCodes.length; languageIndex += 1) {
+    const languageCode = csv.languageCodes[languageIndex];
+    result.set(
+      languageCode,
+      Object.fromEntries(csv.rows.map((row: { key: string; texts: string[] }) => [row.key, row.texts[languageIndex]])),
+    );
+  }
+  return result;
+}
+
+function requireDictionary(locale: string): Record<string, string> {
+  const dictionary = dictionaries.get(locale);
+  if (dictionary === undefined) throw new Error(`Missing E2E localization dictionary: ${locale}`);
+  return dictionary;
 }

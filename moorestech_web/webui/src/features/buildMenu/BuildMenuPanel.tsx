@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ScrollArea } from "@mantine/core";
 import { useTopic, dispatchAction, Topics, UiStateNames } from "@/bridge";
 import { GamePanel, IconButton } from "@/shared/ui";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import type { BuildMenuEntryData } from "@/bridge";
 import { resolveSelectedCategory, searchSections, sectionsForCategory, visibleCategories } from "./buildMenuGrouping";
 import { BuildMenuCategoryGrid } from "./BuildMenuCategoryGrid";
@@ -47,8 +47,8 @@ export function BuildMenuPanel() {
 
   return (
     <div className={styles.panel} data-testid="build-menu-panel">
-      <GamePanel title={t("ビルドメニュー")} variant="default">
-        <IconButton onClick={close} ariaLabel={t("閉じる")} className={styles.close} testId="build-menu-close" />
+      <GamePanel title={t(L.ui.buildMenu.title)} variant="default">
+        <IconButton onClick={close} ariaLabel={t(L.ui.common.close)} className={styles.close} testId="build-menu-close" />
         <div className={styles.columns}>
           <CategorySidebar
             categories={visible}
@@ -61,7 +61,7 @@ export function BuildMenuPanel() {
             <BuildMenuDetailPreview entry={previewEntry} />
             <ScrollArea className={styles.scroll} type="auto">
               {sections.length === 0 && searching ? (
-                <span className={styles.noHit}>{t("該当なし")}</span>
+                <span className={styles.noHit}>{t(L.ui.buildMenu.noResults)}</span>
               ) : (
                 <BuildMenuCategoryGrid
                   sections={sections}

@@ -10,7 +10,7 @@ import styles from "./RecipeBox.module.css";
 import RecipePager from "./RecipePager";
 import CraftProgressArrow from "./CraftProgressArrow";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 
 type Props = {
   recipes: CraftRecipe[];
@@ -57,15 +57,18 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
                 <ItemSlot
                   itemId={r.itemId}
                   insufficient={(counts.get(r.itemId) ?? 0) < r.count}
-                  tooltip={<span style={{ whiteSpace: "pre-line" }}>{t("{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount}\nクリックでこのアイテムのレシピを確認", {
-                    itemName: itemMaster?.get(r.itemId)?.name ?? t("item {itemId}", { itemId: r.itemId }),
+                  tooltip={<span style={{ whiteSpace: "pre-line" }}>{t(L.ui.recipe.materialTooltip, {
+                    itemName: itemMaster?.get(r.itemId)?.name ?? t(L.ui.common.itemFallback, { itemId: r.itemId }),
                     ownedCount: counts.get(r.itemId) ?? 0,
                     requiredCount: r.count,
                   })}</span>}
                   onLeftDown={() => onSelect(r.itemId)}
                 />
                 <Text className={styles.materialCount} data-lack={(counts.get(r.itemId) ?? 0) < r.count || undefined}>
-                  {t("{ownedCount}/{requiredCount}", { ownedCount: counts.get(r.itemId) ?? 0, requiredCount: r.count })}
+                  {t(L.ui.recipe.itemCountSummary, {
+                    ownedCount: counts.get(r.itemId) ?? 0,
+                    requiredCount: r.count,
+                  })}
                 </Text>
             </Box>
           ))}
@@ -78,14 +81,16 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
         <Box className={styles.recipeResult}>
           <ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} />
         </Box>
-        <Text className={styles.craftTime} size="sm">{t("{craftTime}秒", { craftTime: recipe.craftTime })}</Text>
+        <Text className={styles.craftTime} size="sm">
+          {t(L.ui.recipe.duration, { seconds: recipe.craftTime })}
+        </Text>
       </div>
       <Button
         {...tutorialAnchor(TutorialAnchorIds.recipeCraftButton)}
         className={styles.craftButton}
         fullWidth
         disabled={!isCraftable}
-        title={t("長押しでクラフト（押し続けで連続クラフト）")}
+        title={t(L.ui.recipe.holdToCraft)}
         // 主ボタン（左クリック/主タッチ）以外では長押しを開始しない
         // Only the primary button/touch starts the hold; ignore right/middle clicks
         onPointerDown={(e) => { if (e.button === 0) start(); }}
@@ -100,7 +105,7 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
         onKeyUp={(e) => { if (e.key === "Enter" || e.key === " ") stop(); }}
         onBlur={stop}
       >
-        {t("Craft")}
+        {t(L.ui.recipe.craft)}
       </Button>
     </Stack>
   );

@@ -85,7 +85,10 @@ describe("generateLocalizationKeysSource", () => {
     expect(source).toContain('saveGame: "ui.game.saveGame"');
     expect(source.indexOf('"ui.mainMenu.playLocally"')).toBeLessThan(source.indexOf('"ui.game.saveGame"'));
     expect(source).toContain(
-      'export type VanillaLocalizationKey = "ui.mainMenu.playLocally" | "ui.mainMenu.exitGame"',
+      'export const VanillaLocalizationKeys = ["ui.mainMenu.playLocally", "ui.mainMenu.exitGame"',
+    );
+    expect(source).toContain(
+      "export type VanillaLocalizationKey = typeof VanillaLocalizationKeys[number]",
     );
   });
 
@@ -114,10 +117,11 @@ describe("generateLocalizationKeysSource", () => {
     expect(() => generateLocalizationKeysSource(csv)).toThrow(/must match \[a-z\]\[A-Za-z0-9\]\*/);
   });
 
-  it("emits an empty constant and never type for a header-only CSV", () => {
+  it("emits empty key constants and a tuple-derived never type for a header-only CSV", () => {
     const source = generateLocalizationKeysSource(parseLocalizationCsv("key,Source,english\n"));
 
     expect(source).toContain("export const L = {} as const;");
-    expect(source).toContain("export type VanillaLocalizationKey = never;");
+    expect(source).toContain("export const VanillaLocalizationKeys = [] as const;");
+    expect(source).toContain("export type VanillaLocalizationKey = typeof VanillaLocalizationKeys[number];");
   });
 });

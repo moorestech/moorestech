@@ -4,6 +4,7 @@ import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MachineRecipe } from "@/bridge";
+import { L } from "@/shared/i18n";
 import { buildMachineRecipeSelectionRows } from "./machineRecipeSelectionLogic";
 
 const dispatchMock = vi.hoisted(() => vi.fn());
@@ -12,7 +13,10 @@ vi.mock("@/bridge", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/bridge")>()),
   dispatchAction: dispatchMock,
 }));
-vi.mock("@/shared/i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("@/shared/i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/i18n")>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 vi.mock("@mantine/core", () => ({
   Group: ({ children, ...props }: { children: unknown }) => createElement("mock-group", props, children as never),
   Stack: ({ children, ...props }: { children: unknown }) => createElement("mock-stack", props, children as never),
@@ -68,7 +72,7 @@ describe("MachineRecipeSelectionTab", () => {
     // The selected recipe shows as the default detail
     const timeOf = () => renderer.root.findByProps({ "data-testid": "machine-recipe-detail-time" }).props.children;
     expect(renderer.root.findByProps({ "data-testid": "machine-recipe-detail" })).toBeTruthy();
-    expect(timeOf()).toBe("{time}秒");
+    expect(timeOf()).toBe(L.ui.blockInventory.recipeDuration);
 
     // ホバー中は選択より優先し、ホバー解除で選択中へ戻る
     // Hover overrides the selection and leaving hover falls back to it

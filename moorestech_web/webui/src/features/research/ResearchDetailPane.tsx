@@ -2,7 +2,7 @@ import type { ResearchNodeData } from "@/bridge";
 import { dispatchAction } from "@/bridge";
 import { GamePanel, ItemSlot } from "@/shared/ui";
 import { deriveResearchButton, isItemSufficient } from "./researchLogic";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import styles from "./style.module.css";
 
 type Props = {
@@ -24,7 +24,7 @@ export default function ResearchDetailPane({ node, owned, resolveName, onClose }
           <div className={styles.detailHeader}>
             <span className={styles.detailName}>{node.name}</span>
             <button type="button" className={styles.detailClose} data-testid="research-detail-close" onClick={onClose}>
-              {t("×")}
+              {t(L.ui.research.closeSymbol)}
             </button>
           </div>
           <p className={styles.detailDescription}>{node.description}</p>
@@ -53,10 +53,12 @@ export default function ResearchDetailPane({ node, owned, resolveName, onClose }
             data-testid={`research-button-${node.guid}`}
             onClick={() => void dispatchAction("research.complete", { researchGuid: node.guid })}
           >
-            {button.completed ? t("研究済み") : t("研究")}
+            {button.completed ? t(L.ui.research.completed) : t(L.ui.research.action)}
           </button>
           {!button.completed && !button.interactable && (
-            <p className={styles.detailReason} data-testid="research-detail-reason">{t(button.tooltip)}</p>
+            <p className={styles.detailReason} data-testid="research-detail-reason">
+              {t(button.tooltipKey)}
+            </p>
           )}
         </div>
       </GamePanel>

@@ -1,6 +1,6 @@
 import { Component, type ReactNode } from "react";
 import { Button, Stack, Text, Title } from "@mantine/core";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 
 type Props = { children: ReactNode };
 type State = { hasError: boolean };
@@ -36,9 +36,9 @@ function AppErrorFallback() {
   const { t } = useI18n();
   return (
     <Stack align="center" justify="center" h="100vh" gap="md" p="lg">
-      <Title order={2} size="h3">{t("UIエラーが発生しました")}</Title>
-      <Text size="sm" c="dimmed" ta="center">{t("画面の描画中に問題が発生しました。再読み込みしてください。")}</Text>
-      <Button color="red" onClick={() => location.reload()}>{t("再読み込み")}</Button>
+      <Title order={2} size="h3">{t(L.ui.error.uiErrorOccurred)}</Title>
+      <Text size="sm" c="dimmed" ta="center">{t(L.ui.error.renderFailed)}</Text>
+      <Button color="red" onClick={() => location.reload()}>{t(L.ui.error.reload)}</Button>
     </Stack>
   );
 }

@@ -1,8 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { L } from "./generated/localizationKeys";
+import { isTranslationKey, L } from "./index";
 import { createTranslator, setDictionaries } from "./i18nStore";
 
 describe("useI18n translation behavior", () => {
+  it("narrows only generated keys at an external string boundary", () => {
+    expect(isTranslationKey(L.ui.inventory.title)).toBe(true);
+    expect(isTranslationKey("持ち物")).toBe(false);
+    expect(isTranslationKey("ui.inventory.missing")).toBe(false);
+  });
+
   it("current locale wins and interpolates named values", () => {
     const t = createTranslator({
       locale: "japanese",

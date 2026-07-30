@@ -12,6 +12,7 @@ import type {
   MachineRecipe,
   MachineRecipesData,
 } from "@/bridge";
+import { L } from "@/shared/i18n";
 
 const craftRecipe = (resultItemId: number, guid: string): CraftRecipe => ({
   recipeGuid: guid,
@@ -100,7 +101,7 @@ describe("buildRecipeTabs", () => {
     );
     const tabs = buildRecipeTabs([craftRecipe(9, "a")], groups);
     expect(tabs).toEqual([
-      { key: "craft", label: "クラフト", blockId: null },
+      { key: "craft", labelKey: L.ui.recipe.craftTab, blockId: null },
       { key: "m10", label: "Furnace", blockId: 10 },
     ]);
   });

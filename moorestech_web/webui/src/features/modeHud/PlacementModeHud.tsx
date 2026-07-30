@@ -1,5 +1,5 @@
 import { Topics, useTopic } from "@/bridge";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { FadeRule, GamePanel } from "@/shared/ui";
 import styles from "./style.module.css";
@@ -10,9 +10,9 @@ export function PlacementModeHud() {
   if (!data) return null;
 
   const headingId = "placement-mode-hud-heading";
-  const title = t("Placement Mode");
-  const selected = t("Selected: {name}", { name: data.selectedName });
-  const height = t("Height: {height}", { height: data.height });
+  const title = t(L.ui.modeHud.placementModeTitle);
+  const selected = t(L.ui.modeHud.selectedBlock, { name: data.selectedName });
+  const height = t(L.ui.modeHud.placementHeight, { height: data.height });
 
   // 配置情報をクラフト枠で表示する
   // Show placement information in the craft frame

@@ -9,7 +9,10 @@ vi.mock("@/bridge", async (importOriginal) => ({
   dispatchAction: dispatchMock,
   useItemMaster: () => null,
 }));
-vi.mock("@/shared/i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("@/shared/i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/i18n")>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 // MantineProvider依存（Tooltip等）を避けるためGamePanel/ItemSlotはスタブにする
 // Stub GamePanel/ItemSlot to avoid MantineProvider dependencies (Tooltip, etc.)
 vi.mock("@/shared/ui", () => ({

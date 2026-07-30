@@ -1,5 +1,5 @@
 import { Topics, useTopic } from "@/bridge";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { FadeRule, GamePanel } from "@/shared/ui";
 import styles from "./style.module.css";
@@ -10,8 +10,8 @@ export function DeleteModeHud() {
   if (!data) return null;
 
   const headingId = "delete-mode-hud-heading";
-  const title = t("Delete Mode");
-  const guide = t("Drag to select objects to delete");
+  const title = t(L.ui.modeHud.deleteModeTitle);
+  const guide = t(L.ui.modeHud.deleteModeGuide);
 
   // 削除案内をクラフト枠で表示する
   // Show deletion guidance in the craft frame

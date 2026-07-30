@@ -17,7 +17,10 @@ vi.mock("@/bridge", async (importOriginal) => {
     useTopic: (topic: string) => topic === actual.Topics.researchTree ? mockState.tree : mockState.inventory,
   };
 });
-vi.mock("@/shared/i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("@/shared/i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/i18n")>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 vi.mock("@/shared/treeView", () => ({
   TreeView: (props: object) => createElement("div", { ...props, "data-testid": "mock-tree-view" }),
 }));
