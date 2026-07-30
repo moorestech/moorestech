@@ -7,7 +7,11 @@ namespace Server.Boot
     {
         private ServerInstanceManager _startServer;
         private string[] _args = Array.Empty<string>();
-        
+
+        // サーバーが実際にバインドしたポート。起動完了まで0
+        // The port the server actually bound; 0 until startup completes
+        public int BoundPort => _startServer?.BoundPort ?? 0;
+
         public void SetArgs(string[] args)
         {
             _args = args;

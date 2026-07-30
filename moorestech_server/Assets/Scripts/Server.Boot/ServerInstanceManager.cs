@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.Master;
@@ -27,20 +29,25 @@ namespace Server.Boot
         private Thread _connectionUpdateThread;
         private Thread _gameUpdateThread;
         private CancellationTokenSource _cancellationTokenSource;
-        
+        private Socket _listener;
+
         private readonly string[] _args;
-        
+
+        // 実際にバインドされた待ち受けポート。バインド前は0
+        // The actually bound listen port; 0 before binding
+        public int BoundPort => _listener == null ? 0 : ((IPEndPoint)_listener.LocalEndPoint).Port;
+
         public ServerInstanceManager(string[] args)
         {
             _args = args;
         }
-        
+
         public void Start()
         {
-            (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource) = Start(_args);
+            (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource, _listener) = Start(_args);
         }
-        
-        private static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource) Start(string[] args)
+
+        private static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource, Socket listener) Start(string[] args)
         {
             // 起動引数からワールドディレクトリのルートを解決する
             // Resolve the world directory root from launch arguments
@@ -98,9 +105,13 @@ namespace Server.Boot
             var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             var tickEndPacketQueue = serviceProvider.GetRequiredService<TickEndPacketQueue>();
 
+            // 起動設定のポートで待ち受けソケットをバインドする（未指定は既定ポート、0はOSが空きポートを採番）
+            // Bind the listen socket with the configured port (default when unspecified, OS assigns a free port for 0)
+            var listener = ServerListenAcceptor.CreateBoundListener(settings.Port ?? ServerListenAcceptor.DefaultPort);
+
             // パケットキュープロセッサを作成してメインスレッドで処理を開始
             var connectionUpdateThread = new Thread(() =>
-                ServerListenAcceptor.StartServer(packet, connectionRegistry, eventProtocolProvider, tickEndPacketQueue, token));
+                ServerListenAcceptor.StartServer(listener, packet, connectionRegistry, eventProtocolProvider, tickEndPacketQueue, token));
             connectionUpdateThread.Name = "[moorestech]通信受け入れスレッド";
             connectionUpdateThread.Start();
             
@@ -112,8 +123,8 @@ namespace Server.Boot
             var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token));
             gameUpdateThread.Name = "[moorestech]ゲームアップデートスレッド";
             gameUpdateThread.Start();
-            
-            return (connectionUpdateThread, gameUpdateThread, cancellationToken);
+
+            return (connectionUpdateThread, gameUpdateThread, cancellationToken, listener);
         }
         
         
@@ -130,6 +141,16 @@ namespace Server.Boot
             try
             {
                 _connectionUpdateThread?.Abort();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            // ネットワーク境界のソケット破棄。閉じ損ねるとポートが解放されないため隔離して確実に閉じる
+            // Socket teardown at the network boundary; isolate so the port is always released
+            try
+            {
+                _listener?.Close();
             }
             catch (Exception e)
             {
