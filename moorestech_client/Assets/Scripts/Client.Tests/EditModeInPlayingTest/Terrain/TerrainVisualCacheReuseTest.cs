@@ -105,7 +105,7 @@ namespace Client.Tests.EditModeInPlayingTest
             {
                 var mapLayout = await ClientContext.VanillaApi.Response.GetMapData(default);
                 var terrainSource = await GeneratedTerrainSource.CreateAsync(mapLayout);
-                var terrainData = terrainSource.CreateTerrainData(tileX, tileZ, out var visualCacheHit);
+                var (terrainData, visualCacheHit) = await terrainSource.CreateTerrainDataAsync(tileX, tileZ);
 
                 UnityEngine.Object.DestroyImmediate(terrainData);
                 return visualCacheHit;

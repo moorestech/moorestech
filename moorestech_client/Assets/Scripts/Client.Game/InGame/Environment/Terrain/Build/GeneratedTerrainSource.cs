@@ -105,7 +105,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
         // visualCacheHitは呼び出し側の計測用。1枚ごとに再構築を省けたかを返す
         // visualCacheHit reports, tile by tile, whether the rebuild was skipped, for the caller's measurement
-        public TerrainData CreateTerrainData(int tileX, int tileZ, out bool visualCacheHit)
+        public async UniTask<(TerrainData TerrainData, bool VisualCacheHit)> CreateTerrainDataAsync(int tileX, int tileZ)
         {
             var resolution = _config.Resolution;
             var heights = TerrainFileLoader.LoadHeights(_worldCacheDirectory, tileX, tileZ, resolution);
@@ -114,7 +114,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             // detailの解像度とプロトタイプ数を先に固定する。ヒット後に数違いで落とさず、Readerで壊れた取り逃しにする
             // Fix detail resolution and prototype count before loading so a mismatch becomes a broken miss in the Reader, never a post-hit failure
-            visualCacheHit = _visualCache.TryLoad(
+            var visualCacheHit = _visualCache.TryLoad(
                 tileX, tileZ, _config.AlphamapResolution, _terrainLayers.Length, resolution - 1, detailPrototypes.Count,
                 out var tileVisual);
             if (!visualCacheHit) tileVisual = RebuildAndCacheVisual();
@@ -130,9 +130,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             var terrainData = new TerrainData();
             ApplyHeightmap();
-            ApplySplatmap();
+            await ApplySplatmapAsync();
             ApplyDetail();
-            return terrainData;
+            return (terrainData, visualCacheHit);
 
             #region Internal
 
@@ -160,11 +160,11 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 terrainData.SetHeights(0, 0, heights);
             }
 
-            void ApplySplatmap()
+            async UniTask ApplySplatmapAsync()
             {
                 terrainData.alphamapResolution = alphamap.GetLength(0);
                 terrainData.terrainLayers = _terrainLayers;
-                terrainData.SetAlphamaps(0, 0, alphamap);
+                await TerrainAlphamapApplier.ApplyAsync(terrainData, alphamap);
             }
 
             void ApplyDetail()

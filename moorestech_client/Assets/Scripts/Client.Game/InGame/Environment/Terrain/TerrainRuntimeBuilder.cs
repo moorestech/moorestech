@@ -84,7 +84,7 @@ namespace Client.Game.InGame.Environment.Terrain
             // The tile order reuses the transfer stream's own definition: a square grid scanned row (z) then column (x)
             foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(mapLayout.TerrainTileCount))
             {
-                var terrainData = terrainSource.CreateTerrainData(tile.TileX, tile.TileZ, out var visualCacheHit);
+                var (terrainData, visualCacheHit) = await terrainSource.CreateTerrainDataAsync(tile.TileX, tile.TileZ);
                 if (visualCacheHit) visualCacheHitCount++;
 
                 var terrain = TerrainObjectFactory.Create(
