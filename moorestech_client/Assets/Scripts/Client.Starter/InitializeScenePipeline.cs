@@ -1,14 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Client.Common;
-using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Environment.Terrain;
 using Client.Game.InGame.UI.Modal;
-using Client.Network.API;
 using Client.Network.Settings;
 using Client.Starter.Initialization;
 using Cysharp.Threading.Tasks;
@@ -21,7 +16,6 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using VContainer;
 using Debug = UnityEngine.Debug;
 
 namespace Client.Starter
@@ -109,13 +103,18 @@ namespace Client.Starter
                 new MoorestechServerDIContainerGenerator().Create(options);
             }
 
+            // Scene有効化待ちがAsyncOperationキューを止める前に、列車Prefabを読み切る
+            // Finish train prefab loads before deferred scene activation stalls the AsyncOperation queue
+            var trainCarIconTargets = await ModAssetLoader.PreloadTrainCarIconTargetsAsync();
+            Debug.Log($"[InitializeScenePipeline] train car preload completed {loadingStopwatch.Elapsed}");
+
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
             var modalManager = new ModalManager();
 
             // サーバー接続・アセットロード・シーンロードを並列実行し結果を受け取る
             // Run server connection, asset load, and scene load in parallel and collect results
             var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingLog, loadingStopwatch, playerConnectionSetting);
-            var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, loadingLog, loadingStopwatch);
+            var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, trainCarIconTargets, loadingLog, loadingStopwatch);
             var sceneLoader = new MainGameSceneLoader(loadingLog, loadingStopwatch);
 
             ServerConnectionResult serverResult;
@@ -155,74 +154,7 @@ namespace Client.Starter
             void MainGameSceneLoaded(Scene scene, LoadSceneMode mode)
             {
                 SceneManager.sceneLoaded -= MainGameSceneLoaded;
-                FinalizeInitializationAsync().Forget();
-            }
-
-            // Forgetされる非同期境界。ここで捕まえないと例外が誰にも観測されず、DIもGameInitializedEventも無いシーンに取り残される
-            // A forgotten async boundary: an unobserved exception here strands the player in a scene with no DI and no GameInitializedEvent
-            async UniTask FinalizeInitializationAsync()
-            {
-                try
-                {
-                    await RunFinalizeInitializationAsync();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
-                    SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
-                    return;
-                }
-
-                // 初期化は完了済み。購読者を同期呼び出しするので、その例外までメインメニュー送りにしないようtryの外で発火する
-                // Initialization is already complete; firing outside the try keeps a subscriber's exception from bouncing to the main menu
-                GameInitializedEvent.FireGameInitialized();
-            }
-
-            async UniTask RunFinalizeInitializationAsync()
-            {
-                var starter = FindObjectOfType<MainGameStarter>();
-
-                // 地形はStartGameより前に建てる。露頭生成が解決直後に地表へレイキャストを飛ばすため
-                // Build the terrain before StartGame: outcrop instantiation raycasts the ground as soon as it is resolved
-                await TerrainRuntimeBuilder.BuildAsync(serverResult.HandshakeResponse.MapLayout, starter.EnvironmentRoot.transform);
-
-                var resolver = starter.StartGame(serverResult.HandshakeResponse);
-                new ClientDIContext(new DIContainer(resolver));
-
-                // Web UIをHubへバインド
-                // Bind the Web UI to the hub
-                WebUiHost.Game.WebUiGameBinder.Bind();
-
-                // ダウンキャストして初期化専用メソッドを呼ぶ
-                // Downcast and call the initialization-specific method
-                (serverResult.VanillaApi.Event as VanillaApiEvent)?.InitializeDispatch();
-
-                // ディスパッチ済み初期イベントの適用完了を全対象分待つ（順序契約により通常は即時完了する）
-                // Wait until every target applies its dispatched initial events; normally instant per the ordering contract
-                await WaitAllInitialEventApplyAsync(resolver);
-
-                // ログイン状態復元。初期化完了の通知は呼び出し元がtryの外で行う
-                // Restore login state; the caller announces initialization outside the try
-                starter.RestoreLoginState(serverResult.HandshakeResponse);
-            }
-
-            async UniTask WaitAllInitialEventApplyAsync(IObjectResolver resolver)
-            {
-                var targets = resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>();
-                var warnAt = Time.realtimeSinceStartup + 5f;
-                var warned = false;
-                while (!targets.All(t => t.IsInitialEventApplied))
-                {
-                    // 長時間未完了なら詰まっている対象を顕在化させる（待機自体は継続）
-                    // Surface stuck targets after a while; keep waiting regardless
-                    if (!warned && Time.realtimeSinceStartup >= warnAt)
-                    {
-                        warned = true;
-                        var pending = string.Join(", ", targets.Where(t => !t.IsInitialEventApplied).Select(t => t.GetType().Name));
-                        Debug.LogWarning($"[InitializeScenePipeline] 初期イベント適用が未完了のまま待機中: {pending}");
-                    }
-                    await UniTask.Yield();
-                }
+                new MainGameInitializationFinalizer(serverResult).RunAsync().Forget();
             }
 
             #endregion
