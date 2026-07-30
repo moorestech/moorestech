@@ -19,6 +19,7 @@
         "Game.Context",
         "Game.World.Interface",
         "Game.UnlockState",
+        "Game.MapGeneration",
         "Game.Block.Interface",
         "Game.PlayerInventory.Interface",
         "Common.Debug",

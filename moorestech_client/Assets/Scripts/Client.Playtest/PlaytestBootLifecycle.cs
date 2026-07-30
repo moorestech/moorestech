@@ -2,6 +2,7 @@ using Client.Game;
 using Client.Playtest.Core;
 using Client.Starter;
 using Common.Debug;
+using Game.MapGeneration.Provisioning;
 using Server.Boot;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -15,6 +16,7 @@ namespace Client.Playtest
         private const string PendingBootKey = "Playtest_PendingBoot";
         private const string DebugEnvironmentTypeKey = "DebugEnvironmentTypeKey";
         private const int PureNatureEnvironmentType = 1;
+        private const int OtherEnvironmentType = 2;
         private static bool _worldBootSceneHookRegistered;
 
         internal static void PrepareLegacyBootSession(string serverDirectory, bool noSave)
@@ -28,19 +30,34 @@ namespace Client.Playtest
 
         internal static void PrepareWorldBootSession(string serverDirectory, string worldDirectory, string mapMode, int seed)
         {
+            // 不正modeは起動状態とcacheを変更する前に拒否する
+            // Reject an invalid mode before changing boot state or cache
+            ValidateMapMode(mapMode);
+
             // 固定worldはGuid一時パスへの上書きを止め、正式な起動設定をdomain reload越しに渡す
             // Fixed-world boot disables the GUID temp-path override and carries official settings across domain reload
             SessionState.SetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, false);
             PlaytestWorldBootSession.Save(serverDirectory, worldDirectory, mapMode, seed);
             PrepareCommonBootSession(serverDirectory);
-            ConfigureFixedWorldDebugSettings();
+
+            // 固定QAはデバッグ環境設定を適用するため、共通準備で止めたbootstrapを戻す
+            // Fixed QA restores the bootstrap stopped by common setup so its debug environment is applied
+            SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
+            ConfigureFixedWorldDebugSettings(mapMode);
         }
 
-        internal static void ConfigureFixedWorldDebugSettings()
+        internal static void ConfigureFixedWorldDebugSettings(string mapMode)
         {
-            // 固定QAでは自然環境を選び、初回challengeの自動Skitを抑止する
-            // Fixed QA selects pure nature and suppresses the initial challenge's automatic skit
-            DebugParameters.SaveInt(DebugEnvironmentTypeKey, PureNatureEnvironmentType);
+            // generatedは重複地形を除外し、templateは外周mapobjectを含む既存地形を維持する
+            // Generated excludes overlapping terrain, while template preserves existing terrain with outer map objects
+            var environmentType = mapMode switch
+            {
+                WorldProvisioner.GeneratedMapMode => PureNatureEnvironmentType,
+                WorldProvisioner.TemplateMapMode => OtherEnvironmentType,
+                _ => throw new System.ArgumentException($"Unknown map mode: '{mapMode}'", nameof(mapMode)),
+            };
+
+            DebugParameters.SaveInt(DebugEnvironmentTypeKey, environmentType);
             DebugParameters.SaveBool(DebugConst.SkitPlaySettingsKey, true);
         }
 
@@ -107,6 +124,12 @@ namespace Client.Playtest
             DebugParametersCacheDirectory.SetOverride(PlaytestPaths.DebugCacheDirectory);
             if (!string.IsNullOrEmpty(serverDirectory))
                 DebugParameters.SaveString(ServerDirectory.DebugServerDirectorySettingKey, serverDirectory);
+        }
+
+        private static void ValidateMapMode(string mapMode)
+        {
+            if (mapMode == WorldProvisioner.GeneratedMapMode || mapMode == WorldProvisioner.TemplateMapMode) return;
+            throw new System.ArgumentException($"Unknown map mode: '{mapMode}'", nameof(mapMode));
         }
 
         private static void HandleWorldBootSceneLoaded(Scene scene, LoadSceneMode mode)

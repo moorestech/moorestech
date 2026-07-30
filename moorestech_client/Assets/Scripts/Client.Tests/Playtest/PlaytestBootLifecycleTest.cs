@@ -1,11 +1,11 @@
 using System;
-using System.IO;
 using System.Reflection;
 using Client.Game;
 using Client.Playtest;
 using Client.Playtest.Core;
 using Client.Starter;
 using Common.Debug;
+using Game.MapGeneration.Provisioning;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Args;
@@ -18,7 +18,6 @@ namespace Client.Tests.Playtest
     {
         private const string DebugEnvironmentTypeKey = "DebugEnvironmentTypeKey";
         private string _previousDebugCacheOverride;
-        private string _temporaryDebugCacheDirectory;
 
         [SetUp]
         public void SetUp()
@@ -33,33 +32,50 @@ namespace Client.Tests.Playtest
         {
             PlaytestBootLifecycle.HandlePlayModeStateChanged(PlayModeStateChange.EnteredEditMode);
             DebugParametersCacheDirectory.SetOverride(_previousDebugCacheOverride);
-            if (!string.IsNullOrEmpty(_temporaryDebugCacheDirectory) && Directory.Exists(_temporaryDebugCacheDirectory))
-                Directory.Delete(_temporaryDebugCacheDirectory, true);
         }
 
-        [TestCase(0)]
-        [TestCase(12345)]
-        public void PrepareWorldBootSession_固定起動の隔離設定を構成する(int seed)
+        [TestCase(WorldProvisioner.GeneratedMapMode, 1, 0)]
+        [TestCase(WorldProvisioner.TemplateMapMode, 2, 12345)]
+        public void PrepareWorldBootSession_mapMode別の隔離環境を構成する(string mapMode, int expectedEnvironmentType, int seed)
         {
             // 公開入口がPlayMode遷移前に使う中心準備処理を直接検証する
             // Verify the central preparation path used by the public entry before entering PlayMode
-            PlaytestBootLifecycle.PrepareWorldBootSession("/master/server_v8", "/tmp/fixed-world", "generated", seed);
+            PlaytestBootLifecycle.PrepareWorldBootSession("/master/server_v8", "/tmp/fixed-world", mapMode, seed);
 
             var restored = PlaytestWorldBootSession.TryCreateInitializeProprieties(out var proprieties);
             var settings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);
 
-            // NoSave上書き停止、隔離cache、PureNature、正式CLI値を一括で固定する
-            // Pin disabled NoSave override, isolated cache, PureNature, and official CLI values together
+            // NoSave上書き停止、隔離cache、mode別環境、正式CLI値を一括で固定する
+            // Pin disabled NoSave override, isolated cache, mode-specific environment, and official CLI values together
             Assert.That(SessionState.GetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, true), Is.False);
+            Assert.That(SessionState.GetBool("DebugObjectsBootstrap_Disabled", true), Is.False);
             Assert.That(DebugParametersCacheDirectory.GetOverride(), Is.EqualTo(PlaytestPaths.DebugCacheDirectory));
-            Assert.That(DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, -1), Is.EqualTo(1));
+            Assert.That(DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, -1), Is.EqualTo(expectedEnvironmentType));
             Assert.That(DebugParameters.GetValueOrDefaultBool(DebugConst.SkitPlaySettingsKey), Is.True);
             Assert.That(restored, Is.True);
             Assert.That(settings.ServerDataDirectory, Is.EqualTo("/master/server_v8"));
             Assert.That(settings.WorldDirectory, Is.EqualTo("/tmp/fixed-world"));
-            Assert.That(settings.MapMode, Is.EqualTo("generated"));
+            Assert.That(settings.MapMode, Is.EqualTo(mapMode));
             Assert.That(settings.Seed, Is.EqualTo(seed));
             Assert.That(settings.AutoSave, Is.False);
+        }
+
+        [Test]
+        public void PrepareWorldBootSession_未知のmapModeをPlayMode前に拒否する()
+        {
+            SessionState.SetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, true);
+            SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
+
+            Assert.Throws<ArgumentException>(() =>
+                PlaytestBootLifecycle.PrepareWorldBootSession("/master/server_v8", "/tmp/fixed-world", "unknown", 12345));
+
+            // 不正入力は共通準備より前に拒否し、次の起動へ状態を残さない
+            // Reject invalid input before common setup and leave no state for the next boot
+            Assert.That(SessionState.GetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, false), Is.True);
+            Assert.That(SessionState.GetBool("DebugObjectsBootstrap_Disabled", true), Is.False);
+            Assert.That(DebugParametersCacheDirectory.GetOverride(), Is.Null);
+            Assert.That(PlaytestWorldBootSession.TryCreateInitializeProprieties(out _), Is.False);
+            Assert.That(PlaytestBootLifecycle.RestoreAfterDomainReload(true), Is.False);
         }
 
         [Test]
@@ -102,6 +118,7 @@ namespace Client.Tests.Playtest
             var restoredWorld = PlaytestWorldBootSession.TryCreateInitializeProprieties(out _);
 
             Assert.That(SessionState.GetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, !noSave), Is.EqualTo(noSave));
+            Assert.That(SessionState.GetBool("DebugObjectsBootstrap_Disabled", false), Is.True);
             Assert.That(restoredBoot, Is.True);
             Assert.That(restoredWorld, Is.False);
             Assert.That(PlaytestBootLifecycle.IsWorldBootSceneHookRegistered(), Is.False);
@@ -126,20 +143,6 @@ namespace Client.Tests.Playtest
         }
 
         [Test]
-        public void ConfigureFixedWorldDebugSettings_自然環境とSkit抑止を設定する()
-        {
-            // 空の隔離cacheで固定world専用設定の値を直接検証する
-            // Verify fixed-world-only values directly in an empty isolated cache
-            _temporaryDebugCacheDirectory = Path.Combine(Path.GetTempPath(), $"moorestech_fixed_world_debug_{Guid.NewGuid():N}");
-            DebugParametersCacheDirectory.SetOverride(_temporaryDebugCacheDirectory);
-
-            PlaytestBootLifecycle.ConfigureFixedWorldDebugSettings();
-
-            Assert.That(DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, -1), Is.EqualTo(1));
-            Assert.That(DebugParameters.GetValueOrDefaultBool(DebugConst.SkitPlaySettingsKey), Is.True);
-        }
-
-        [Test]
         public void PublicEntrypoints_中央準備処理へ委譲する()
         {
             // 公開入口から中央準備処理への橋を削る退行をIL呼び出しで検出する
@@ -148,11 +151,13 @@ namespace Client.Tests.Playtest
             var worldEntry = typeof(PlaytestBoot).GetMethod(nameof(PlaytestBoot.PrepareWorldAndEnterPlayMode));
             var legacyPreparation = typeof(PlaytestBootLifecycle).GetMethod("PrepareLegacyBootSession", BindingFlags.Static | BindingFlags.NonPublic);
             var worldPreparation = typeof(PlaytestBootLifecycle).GetMethod("PrepareWorldBootSession", BindingFlags.Static | BindingFlags.NonPublic);
+            var commonPreparation = typeof(PlaytestBootLifecycle).GetMethod("PrepareCommonBootSession", BindingFlags.Static | BindingFlags.NonPublic);
             var fixedWorldDebugSettings = typeof(PlaytestBootLifecycle).GetMethod("ConfigureFixedWorldDebugSettings", BindingFlags.Static | BindingFlags.NonPublic);
 
             Assert.That(MethodCallInspector.ContainsCall(legacyEntry, legacyPreparation), Is.True);
             Assert.That(MethodCallInspector.ContainsCall(worldEntry, worldPreparation), Is.True);
             Assert.That(MethodCallInspector.ContainsCall(worldPreparation, fixedWorldDebugSettings), Is.True);
+            Assert.That(MethodCallInspector.CallsInOrder(worldPreparation, commonPreparation, fixedWorldDebugSettings), Is.True);
             Assert.That(MethodCallInspector.ContainsCall(legacyPreparation, fixedWorldDebugSettings), Is.False);
         }
 
