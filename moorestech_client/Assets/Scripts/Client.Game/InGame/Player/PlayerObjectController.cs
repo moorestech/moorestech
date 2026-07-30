@@ -16,15 +16,6 @@ namespace Client.Game.InGame.Player
         public void SetModelVisible(bool visible);
     }
     
-    public class PlayerAnimationState
-    {
-        public const string IdleWalkRunBlend = "Idle Walk Run Blend";
-        public const string JumpStart = "JumpStart";
-        public const string JumpInAir = "JumpInAir";
-        public const string JumpLand = "JumpLand";
-        public const string Axe = "Axe";
-    }
-    
     public class PlayerObjectController : MonoBehaviour, IPlayerObjectController
     {
         public Vector3 Position => transform.position;
@@ -70,11 +61,23 @@ namespace Client.Game.InGame.Player
             {
                 // 真下に地表があればその高さへ戻し、地形の外へ落ちたならスポーン地点へ戻す
                 // Land on the ground right below when there is one; otherwise return to the spawn point after falling off the terrain
-                var point = SlopeBlockPlaceSystem.GetGroundPoint(transform.position);
-                SetPlayerPosition(point.HasValue
-                    ? new Vector3(transform.localPosition.x, point.Value.y, transform.localPosition.z)
-                    : worldSpawnPosition);
+                SetPlayerPosition(ResolveFallRecoveryPosition(transform.position, worldSpawnPosition));
             }
+        }
+
+        private static Vector3 ResolveFallRecoveryPosition(Vector3 fallenPosition, Vector3 spawnPosition)
+        {
+            // 現在地の真下に地表が残る落下は同じXZへ戻す
+            // Recover at the same XZ when ground still exists below the fallen position
+            var fallenGround = SlopeBlockPlaceSystem.GetGroundPoint(fallenPosition);
+            if (fallenGround.HasValue) return new Vector3(fallenPosition.x, fallenGround.Value.y, fallenPosition.z);
+
+            // LayoutのSpawn Yではなく、そのXZにある実地表へ復帰する
+            // Recover on the actual ground at the Spawn XZ instead of trusting the Layout Spawn Y
+            var spawnGround = SlopeBlockPlaceSystem.GetGroundPoint(spawnPosition);
+            return spawnGround.HasValue
+                ? new Vector3(spawnPosition.x, spawnGround.Value.y, spawnPosition.z)
+                : spawnPosition;
         }
         
         /// <summary>
