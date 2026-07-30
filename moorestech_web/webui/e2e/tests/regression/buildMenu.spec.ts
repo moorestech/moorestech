@@ -20,6 +20,9 @@ test("ui_stateでビルドメニューを開閉し既定カテゴリのエント
   await page.goto("/");
 
   await expect(page.getByTestId("build-menu-panel")).toBeVisible();
+  await expect(page.getByTestId(`build-menu-category-${logisticsCategoryGuid}`)).toContainText("物流");
+  await expect(page.getByTestId(`build-menu-category-${transportCategoryGuid}`)).toContainText("輸送");
+  await expect(page.getByTestId(`build-menu-section-${logisticsCategoryGuid}-${chestSubCategoryGuid}`)).toContainText("チェスト");
   await expect(page.getByTestId(`build-menu-entry-block-${woodChestBlockGuid}`)).toBeVisible();
   await expect(page.getByTestId(`build-menu-entry-trainCar-${cargoCarGuid}`)).toBeHidden();
 
@@ -69,8 +72,8 @@ test("横断検索は複合見出しで区切りサイドバーを無効化す�
   await page.goto("/");
 
   await page.getByTestId("build-menu-search").fill("鉄");
-  await expect(page.getByTestId(`build-menu-section-${logisticsCategoryGuid}-${chestSubCategoryGuid}`)).toBeVisible();
-  await expect(page.getByTestId(`build-menu-section-${transportCategoryGuid}-${railSubCategoryGuid}`)).toBeVisible();
+  await expect(page.getByTestId(`build-menu-section-${logisticsCategoryGuid}-${chestSubCategoryGuid}`)).toContainText("物流 / チェスト");
+  await expect(page.getByTestId(`build-menu-section-${transportCategoryGuid}-${railSubCategoryGuid}`)).toContainText("輸送 / 鉄道");
   await expect(page.getByTestId("build-menu-sidebar")).toHaveAttribute("data-disabled", "true");
 
   await page.getByTestId("build-menu-search").fill("");

@@ -46,7 +46,7 @@ namespace Client.WebUiHost.Game.Actions
             var entryType = (string)typeValue;
             var entryKey = (string)keyValue;
             var entries = WebBuildMenuEntryCatalog.CreateEntries(_unlockState, _blueprintLibrary);
-            var matched = entries.Where(e => BuildMenuEntryDtoFactory.GetEntryTypeName(e.Target) == entryType && BuildMenuEntryDtoFactory.GetEntryKey(e.Target) == entryKey).ToList();
+            var matched = entries.Where(e => BuildMenuEntryDtoFactory.MatchesIdentity(e, entryType, entryKey)).ToList();
             if (matched.Count == 0) return UniTask.FromResult(ActionResult.Fail("unknown_entry"));
 
             // uGUIの消費キューへはターゲットとラベルのみ渡す（uGUI表示は使われない）

@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Common.Debug;
 using Core.Master;
 using Game.Block.Interface.Extension;
 using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.BuildMenuModule;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
 {
@@ -23,7 +21,6 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         public static List<WebBuildMenuEntry> CreateEntries(IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary)
         {
             var entries = new List<WebBuildMenuEntry>();
-            var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
 
             // 無料設置デバッグ時は未解放も含め設置可能な全ブロック/車両を表示する
             // In free-placement debug mode, show every placeable block/train car including locked ones
@@ -40,19 +37,11 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             {
                 var blockId = MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);
                 var requiredItems = ToRequiredItems(blockMaster.RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
-                var (categoryGuid, subCategoryGuid) =
-                    categoryMaster.GetGuidPair(blockMaster.Category, blockMaster.SubCategory);
-                entries.Add(new WebBuildMenuEntry(
-                    new BlockPlacementTarget(blockId, null),
-                    null,
-                    categoryGuid,
-                    subCategoryGuid,
-                    requiredItems));
+                entries.Add(WebBuildMenuEntry.CreateBlock(blockId, blockMaster, requiredItems));
             }
 
             // 解放済み車両を列挙する。行き先はentrySource:trainCarsのサブカテゴリ
             // Enumerate unlocked train cars; they go to the entrySource:trainCars sub category
-            var (trainCarCategory, trainCarSubCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.trainCars);
             foreach (var trainCar in MasterHolder.TrainUnitMaster.Train.TrainCars)
             {
                 if (!showAllPlaceable && (!unlockState.TrainCarUnlockStateInfos.TryGetValue(trainCar.TrainCarGuid, out var state) || !state.IsUnlocked)) continue;
@@ -61,29 +50,26 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 // Train car masters have no name, so use the icon view's display name (addressablePath tail)
                 var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(trainCar.TrainCarGuid);
                 var requiredItems = ToRequiredItems(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
-                entries.Add(new WebBuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView.ItemName, trainCarCategory, trainCarSubCategory, requiredItems));
+                entries.Add(WebBuildMenuEntry.CreateTrainCar(trainCar.TrainCarGuid, iconView.ItemName, requiredItems));
             }
 
             // 解放済みconnectToolをSortPriority順に列挙。行き先はentrySource:connectToolsのサブカテゴリ
             // Enumerate unlocked connectTools in SortPriority order; they go to the entrySource:connectTools sub category
-            var (connectToolCategory, connectToolSubCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.connectTools);
             var unlockedConnectTools = MasterHolder.ConnectToolMaster.All
                 .Where(element => unlockState.ConnectToolUnlockStateInfos.TryGetValue(element.ConnectToolGuid, out var info) && info.IsUnlocked)
                 .OrderBy(element => element.SortPriority);
             foreach (var connectTool in unlockedConnectTools)
             {
-                entries.Add(new WebBuildMenuEntry(new ConnectToolPlacementTarget(connectTool.ConnectToolGuid), connectTool.Name, connectToolCategory, connectToolSubCategory, new List<WebBuildMenuEntry.RequiredItem>()));
+                entries.Add(WebBuildMenuEntry.CreateConnectTool(connectTool.ConnectToolGuid, connectTool.Name, new List<WebBuildMenuEntry.RequiredItem>()));
             }
 
             // BPコピーツールと保存済みBPもentrySource定義のサブカテゴリへ入れる
             // The blueprint copy tool and saved blueprints also go to their entrySource-defined sub categories
-            var (copyToolCategory, copyToolSubCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.blueprintCopyTool);
-            entries.Add(new WebBuildMenuEntry(new BlueprintCopyToolPlacementTarget(), null, copyToolCategory, copyToolSubCategory, new List<WebBuildMenuEntry.RequiredItem>()));
+            entries.Add(WebBuildMenuEntry.CreateBlueprintCopy(new List<WebBuildMenuEntry.RequiredItem>()));
 
-            var (blueprintCategory, blueprintSubCategory) = categoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.savedBlueprints);
             foreach (var blueprint in blueprintLibrary.Blueprints)
             {
-                entries.Add(new WebBuildMenuEntry(new BlueprintPlacementTarget(blueprint.Name), blueprint.Name, blueprintCategory, blueprintSubCategory, new List<WebBuildMenuEntry.RequiredItem>()));
+                entries.Add(WebBuildMenuEntry.CreateBlueprint(blueprint.Name, new List<WebBuildMenuEntry.RequiredItem>()));
             }
 
             return entries;

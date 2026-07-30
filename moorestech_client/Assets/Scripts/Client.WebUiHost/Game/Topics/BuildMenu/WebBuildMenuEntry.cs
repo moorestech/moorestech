@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Core.Master;
+using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.BuildMenuModule;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
 {
@@ -17,7 +20,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         public readonly Guid SubCategoryGuid;
         public readonly IReadOnlyList<RequiredItem> RequiredItems;
 
-        public WebBuildMenuEntry(
+        private WebBuildMenuEntry(
             IPlacementTarget target,
             string label,
             Guid categoryGuid,
@@ -29,6 +32,77 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             CategoryGuid = categoryGuid;
             SubCategoryGuid = subCategoryGuid;
             RequiredItems = requiredItems;
+        }
+
+        public static WebBuildMenuEntry CreateBlock(
+            BlockId blockId,
+            BlockMasterElement blockMaster,
+            IReadOnlyList<RequiredItem> requiredItems)
+        {
+            var (categoryGuid, subCategoryGuid) =
+                MasterHolder.BuildMenuCategoryMaster.GetGuidPair(blockMaster.Category, blockMaster.SubCategory);
+            return new WebBuildMenuEntry(
+                new BlockPlacementTarget(blockId, null),
+                null,
+                categoryGuid,
+                subCategoryGuid,
+                requiredItems);
+        }
+
+        public static WebBuildMenuEntry CreateTrainCar(
+            Guid trainCarGuid,
+            string label,
+            IReadOnlyList<RequiredItem> requiredItems)
+        {
+            var (categoryGuid, subCategoryGuid) =
+                MasterHolder.BuildMenuCategoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.trainCars);
+            return new WebBuildMenuEntry(
+                new TrainCarPlacementTarget(trainCarGuid),
+                label,
+                categoryGuid,
+                subCategoryGuid,
+                requiredItems);
+        }
+
+        public static WebBuildMenuEntry CreateConnectTool(
+            Guid connectToolGuid,
+            string label,
+            IReadOnlyList<RequiredItem> requiredItems)
+        {
+            var (categoryGuid, subCategoryGuid) =
+                MasterHolder.BuildMenuCategoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.connectTools);
+            return new WebBuildMenuEntry(
+                new ConnectToolPlacementTarget(connectToolGuid),
+                label,
+                categoryGuid,
+                subCategoryGuid,
+                requiredItems);
+        }
+
+        public static WebBuildMenuEntry CreateBlueprintCopy(IReadOnlyList<RequiredItem> requiredItems)
+        {
+            var (categoryGuid, subCategoryGuid) =
+                MasterHolder.BuildMenuCategoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.blueprintCopyTool);
+            return new WebBuildMenuEntry(
+                new BlueprintCopyToolPlacementTarget(),
+                null,
+                categoryGuid,
+                subCategoryGuid,
+                requiredItems);
+        }
+
+        public static WebBuildMenuEntry CreateBlueprint(
+            string blueprintName,
+            IReadOnlyList<RequiredItem> requiredItems)
+        {
+            var (categoryGuid, subCategoryGuid) =
+                MasterHolder.BuildMenuCategoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.savedBlueprints);
+            return new WebBuildMenuEntry(
+                new BlueprintPlacementTarget(blueprintName),
+                blueprintName,
+                categoryGuid,
+                subCategoryGuid,
+                requiredItems);
         }
 
         public readonly struct RequiredItem

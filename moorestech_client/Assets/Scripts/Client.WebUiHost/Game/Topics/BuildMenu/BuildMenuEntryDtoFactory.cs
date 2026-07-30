@@ -20,18 +20,23 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             // Category consistency is validated at master load (block refs by BlockMasterUtil, non-blocks by required entrySource)
             foreach (var entry in WebBuildMenuEntryCatalog.CreateEntries(unlockState, blueprintLibrary))
             {
-                dtos.Add(new BuildMenuEntryDto
-                {
-                    EntryType = GetEntryTypeName(entry.Target),
-                    EntryKey = GetEntryKey(entry.Target),
-                    Label = entry.Label,
-                    CategoryGuid = entry.CategoryGuid.ToString(),
-                    SubCategoryGuid = entry.SubCategoryGuid.ToString(),
-                    RequiredItems = entry.RequiredItems.Select(r => new BuildMenuRequiredItemDto { ItemId = r.ItemId.AsPrimitive(), Count = r.Count }).ToList(),
-                    IconUrl = CreateIconUrl(entry.Target),
-                });
+                dtos.Add(CreateDto(entry));
             }
             return dtos;
+        }
+
+        public static BuildMenuEntryDto CreateDto(WebBuildMenuEntry entry)
+        {
+            return new BuildMenuEntryDto
+            {
+                EntryType = GetEntryTypeName(entry.Target),
+                EntryKey = GetEntryKey(entry.Target),
+                Label = entry.Label,
+                CategoryGuid = entry.CategoryGuid.ToString("D"),
+                SubCategoryGuid = entry.SubCategoryGuid.ToString("D"),
+                RequiredItems = entry.RequiredItems.Select(r => new BuildMenuRequiredItemDto { ItemId = r.ItemId.AsPrimitive(), Count = r.Count }).ToList(),
+                IconUrl = CreateIconUrl(entry.Target),
+            };
         }
 
         public static List<BuildMenuCategoryDto> CreateCategoryDtos()
@@ -41,8 +46,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             return MasterHolder.BuildMenuCategoryMaster.Categories
                 .Select(c => new BuildMenuCategoryDto
                 {
-                    CategoryGuid = c.CategoryGuid.ToString(),
-                    SubCategoryGuids = c.SubCategories.Select(s => s.SubCategoryGuid.ToString()).ToList(),
+                    CategoryGuid = c.CategoryGuid.ToString("D"),
+                    SubCategoryGuids = c.SubCategories.Select(s => s.SubCategoryGuid.ToString("D")).ToList(),
                 }).ToList();
         }
 
@@ -68,12 +73,18 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             return target switch
             {
                 BlockPlacementTarget block => MasterHolder.BlockMaster
-                    .GetBlockMaster(block.BlockId).BlockGuid.ToString(),
-                TrainCarPlacementTarget trainCar => trainCar.TrainCarGuid.ToString(),
-                ConnectToolPlacementTarget connectTool => connectTool.ConnectToolGuid.ToString(),
+                    .GetBlockMaster(block.BlockId).BlockGuid.ToString("D"),
+                TrainCarPlacementTarget trainCar => trainCar.TrainCarGuid.ToString("D"),
+                ConnectToolPlacementTarget connectTool => connectTool.ConnectToolGuid.ToString("D"),
                 BlueprintPlacementTarget blueprint => blueprint.BlueprintName,
                 _ => string.Empty,
             };
+        }
+
+        public static bool MatchesIdentity(WebBuildMenuEntry entry, string entryType, string entryKey)
+        {
+            return GetEntryTypeName(entry.Target) == entryType &&
+                   GetEntryKey(entry.Target) == entryKey;
         }
 
         private static string CreateIconUrl(IPlacementTarget target)
@@ -83,11 +94,11 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 case BlockPlacementTarget block:
                     return $"{BlockIconEndpoint.PathPrefix}{block.BlockId.AsPrimitive()}{BlockIconEndpoint.PathSuffix}";
                 case TrainCarPlacementTarget trainCar:
-                    return $"{TrainCarIconEndpoint.PathPrefix}{trainCar.TrainCarGuid}{TrainCarIconEndpoint.PathSuffix}";
+                    return $"{TrainCarIconEndpoint.PathPrefix}{trainCar.TrainCarGuid.ToString("D")}{TrainCarIconEndpoint.PathSuffix}";
                 case ConnectToolPlacementTarget connectTool:
                     // 接続ツールのアイコンはconnectToolのimagePathから配信する
                     // The connect tool icon is served from the connectTool's imagePath
-                    return $"{ConnectToolIconEndpoint.PathPrefix}{connectTool.ConnectToolGuid}{ConnectToolIconEndpoint.PathSuffix}";
+                    return $"{ConnectToolIconEndpoint.PathPrefix}{connectTool.ConnectToolGuid.ToString("D")}{ConnectToolIconEndpoint.PathSuffix}";
                 default:
                     return null;
             }
