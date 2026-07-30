@@ -1,4 +1,5 @@
 export const itemMasterUrl = "/api/master/items";
+export const localizationLanguagesUrl = "/api/i18n-languages";
 
 // アイコン経路 prefix は mock host も同じ定数を参照する（並行実装の禁止）
 // Icon path prefixes are shared with the mock host (no parallel implementation)

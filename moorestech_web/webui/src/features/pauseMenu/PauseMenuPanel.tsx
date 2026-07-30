@@ -2,6 +2,7 @@ import { Button, Stack, Text, Title } from "@mantine/core";
 import { dispatchAction, Topics, useTopic } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
+import { LanguageSelect } from "@/features/settings/LanguageSelect";
 import styles from "./style.module.css";
 
 export function PauseMenuPanel() {
@@ -26,6 +27,7 @@ export function PauseMenuPanel() {
         <Button {...tutorialAnchor(TutorialAnchorIds.pauseBack)} onClick={back}>
           {backLabel}
         </Button>
+        <LanguageSelect />
       </Stack>
     </section>
   );

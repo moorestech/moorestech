@@ -94,6 +94,7 @@ ui.notification.railEditUnknownError,Rail edit failed,Rail edit failed,Rail edit
 ui.notification.unknownMessage,Unknown notification: {messageId},Unknown notification: {messageId},Unknown notification: {messageId}
 ui.pauseMenu.title,Pause Menu,Pause Menu,Pause Menu
 ui.pauseMenu.disconnected,Disconnected from server,Disconnected from server,Disconnected from server
+ui.settings.language,Language,Language,言語
 ui.recipe.catalogTitle,CRAFT RECIPE,CRAFT RECIPE,CRAFT RECIPE
 ui.recipe.selectItemHint,Select an item from the list on the right,Select an item from the list on the right,右のリストからアイテムを選択してください
 ui.recipe.materialTooltip,"{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount}\nClick to view recipes for this item","{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount}\nClick to view recipes for this item","{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount}\nクリックでこのアイテムのレシピを確認"
