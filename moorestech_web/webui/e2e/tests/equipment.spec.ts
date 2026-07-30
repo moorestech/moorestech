@@ -121,6 +121,37 @@ test("ホットバーHUDの上でもホイールで装備が切り替わる", as
   await expect.poll(async () => (await payloadsOf(page, "inventory.select_equipment")).length).toBe(before + 1);
 });
 
+// カーソルロック中のホイールは画面中央で起きる。中央にはクロスヘアが居るため、そこが本命の経路になる
+// A wheel under cursor lock happens at the screen center, where the crosshair sits, so that is the primary route
+test("画面中央のクロスヘアの上でもホイールで装備が切り替わる", async ({ page }) => {
+  await setUiState(page, "GameScreen");
+  await page.goto("/");
+  await expect(page.locator('[data-tutorial-anchor="game.crosshair"]')).toBeVisible();
+  const before = (await payloadsOf(page, "inventory.select_equipment")).length;
+
+  const viewport = page.viewportSize()!;
+  await page.mouse.move(viewport.width / 2, viewport.height / 2);
+  await page.mouse.wheel(0, 100);
+
+  await expect.poll(async () => (await payloadsOf(page, "inventory.select_equipment")).length).toBe(before + 1);
+});
+
+// ホットバー帯はスロット列の左右が空箱のまま画面全幅に伸びるため、そこで入力を止めてはならない
+// The hotbar band stretches full width with empty boxes beside the slot row, so it must not swallow input there
+test("ホットバー帯のスロット列外でもホイールで装備が切り替わる", async ({ page }) => {
+  await setUiState(page, "GameScreen");
+  await page.goto("/");
+  const hotbar = page.getByTestId("hotbar-grid");
+  await expect(hotbar).toBeVisible();
+  const box = (await hotbar.boundingBox())!;
+  const before = (await payloadsOf(page, "inventory.select_equipment")).length;
+
+  await page.mouse.move(box.x / 2, box.y + box.height / 2);
+  await page.mouse.wheel(0, 100);
+
+  await expect.poll(async () => (await payloadsOf(page, "inventory.select_equipment")).length).toBe(before + 1);
+});
+
 test("持ち物画面の一覧スクロールでは装備が持ち替わらない", async ({ page }) => {
   await setUiState(page, "PlayerInventory");
   await page.goto("/");

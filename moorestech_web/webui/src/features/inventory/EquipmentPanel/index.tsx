@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { useTopic, readTopic, dispatchAction, Topics } from "@/bridge";
-import { isPointerOverWebUi, isWheelPassthrough, useGameLayerWheel, useScreenInteractive } from "@/shared/uiState";
+import { isPointerOverWebUi, isWheelPassthrough, useGameLayerWheel, useGrabInteractive } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
 import { accumulateWheelSteps, cycleEquipment } from "./equipmentLogic";
@@ -12,9 +12,9 @@ import styles from "./style.module.css";
 export default function EquipmentPanel() {
   const wheelRemainder = useRef(0);
   const inventory = useTopic(Topics.inventory);
-  // GameScreen 中はカーソルロックでクリックできないため、選択操作はホイールだけになる
-  // The cursor is locked during GameScreen, so the wheel is the only selection input there
-  const interactive = useScreenInteractive();
+  // 掴んだ絵が出ない画面ではクリックを受けず、選択操作はホイールだけになる
+  // Where the held item cannot be seen, clicks are refused and the wheel is the only selection input
+  const grabInteractive = useGrabInteractive();
 
   // ホイールで素手を含む装備選択を循環。変化時のみ送信し、オーバーレイ表示中は共有フックが抑止する
   // Cycle the equipment selection (bare hands included) on wheel; dispatch only on change, with the shared hook suppressing overlays
@@ -50,11 +50,11 @@ export default function EquipmentPanel() {
             itemId={slot.itemId}
             count={slot.count}
             selected={i === inventory.selectedEquipment}
-            onLeftDown={interactive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
-            onRightDown={interactive ? () => slotActions.onRightDown(ref) : undefined}
-            onRightEnter={interactive ? () => slotActions.onRightEnter(ref) : undefined}
-            onLeftEnter={interactive ? () => slotActions.onLeftEnter(ref) : undefined}
-            onDoubleClick={interactive ? () => slotActions.onDoubleClick(ref) : undefined}
+            onLeftDown={grabInteractive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
+            onRightDown={grabInteractive ? () => slotActions.onRightDown(ref) : undefined}
+            onRightEnter={grabInteractive ? () => slotActions.onRightEnter(ref) : undefined}
+            onLeftEnter={grabInteractive ? () => slotActions.onLeftEnter(ref) : undefined}
+            onDoubleClick={grabInteractive ? () => slotActions.onDoubleClick(ref) : undefined}
           />
         );
       })}

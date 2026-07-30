@@ -115,7 +115,9 @@ export default function App() {
         <BlockInventoryKeyHandler />
         <RecipeSelectionKeyHandler />
       </div>
-      {(inventoryScreen || researchScreen) && <GrabOverlay />}
+      {/* 掴める画面かは GrabOverlay 自身が共通述語で判断する（App は画面名を持たない） */}
+      {/* GrabOverlay decides for itself via the shared predicate, keeping screen names out of App */}
+      <GrabOverlay />
       <Portal>
         <ToastHost />
         <NotificationHost />

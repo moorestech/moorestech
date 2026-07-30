@@ -1,5 +1,5 @@
 import { useTopic, readTopic, dispatchAction, Topics } from "@/bridge";
-import { useGameLayerKeydown, useScreenInteractive } from "@/shared/uiState";
+import { useGameLayerKeydown, useGrabInteractive } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
 import { keyToHotbarIndex } from "./hotbarLogic";
@@ -10,9 +10,9 @@ import styles from "./style.module.css";
 // Always-on hotbar HUD mirroring uGUI GameStateController (independent of the UIState)
 export default function HotbarPanel() {
   const inventory = useTopic(Topics.inventory);
-  // GameScreen 中は表示+キー選択のみ（uGUI はカーソルロックでクリック不能。ホイールは装備切替が持つ）
-  // Display + key selection only during GameScreen (uGUI locks the cursor, so no clicks; the wheel belongs to equipment)
-  const interactive = useScreenInteractive();
+  // 掴んだ絵が出ない画面では表示+キー選択のみ。クリックを許すのは grab が成立する画面だけ
+  // Display + key selection where the held item cannot be seen; clicks are allowed only where a grab holds
+  const grabInteractive = useGrabInteractive();
 
   // 1-9 キーでホットバー選択。ゲートは共有フックが担い、最新値は readTopic で読む
   // Keys 1-9 select a hotbar slot; the shared hook gates it and the latest value comes via readTopic
@@ -31,11 +31,11 @@ export default function HotbarPanel() {
   // Hide the whole HUD until the first snapshot (InventoryPanel owns the connecting... text)
   if (!inventory) return null;
 
-  // 装備切替のホイールはこのHUD上でも生かす（帯はスクロールを持たずゲーム操作の場のため）
-  // Keep the equipment wheel alive over this HUD too: the band has no scrolling and belongs to the game
+  // 装備切替のホイールはスロット列の上でも生かす（列はスクロールを持たずゲーム操作の場のため）
+  // Keep the equipment wheel alive over the slot row too: the row has no scrolling and belongs to the game
   return (
-    <div className={styles.hotbarArea} data-wheel-passthrough>
-      <div className={styles.hotbarFrame} data-testid="hotbar-grid">
+    <div className={styles.hotbarArea}>
+      <div className={styles.hotbarFrame} data-testid="hotbar-grid" data-wheel-passthrough>
         {inventory.hotbarSlots.map((slot, i) => {
           const ref: SlotRef = { area: "hotbar", slot: i };
           return (
@@ -45,11 +45,11 @@ export default function HotbarPanel() {
                 itemId={slot.itemId}
                 count={slot.count}
                 selected={i === inventory.selectedHotbar}
-                onLeftDown={interactive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
-                onRightDown={interactive ? () => slotActions.onRightDown(ref) : undefined}
-                onRightEnter={interactive ? () => slotActions.onRightEnter(ref) : undefined}
-                onLeftEnter={interactive ? () => slotActions.onLeftEnter(ref) : undefined}
-                onDoubleClick={interactive ? () => slotActions.onDoubleClick(ref) : undefined}
+                onLeftDown={grabInteractive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
+                onRightDown={grabInteractive ? () => slotActions.onRightDown(ref) : undefined}
+                onRightEnter={grabInteractive ? () => slotActions.onRightEnter(ref) : undefined}
+                onLeftEnter={grabInteractive ? () => slotActions.onLeftEnter(ref) : undefined}
+                onDoubleClick={grabInteractive ? () => slotActions.onDoubleClick(ref) : undefined}
               />
             </div>
           );
