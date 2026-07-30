@@ -35,6 +35,7 @@ export function LanguageSelect() {
   const options = languages.map((language) => ({
     value: language.code,
     label: language.displayName,
+    testId: `language-select-option-${language.code}`,
   }));
 
   return (

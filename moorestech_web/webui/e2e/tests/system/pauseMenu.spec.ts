@@ -23,5 +23,5 @@ test("pause_menu.currentの切断状態を表示する", async ({ page }) => {
   await setTopicScenario(page, "pauseDisconnected");
   await setUiState(page, "PauseMenu");
   await page.goto("/");
-  await expect(page.getByTestId("pause-menu")).toContainText("Disconnected from server");
+  await expect(page.getByTestId("pause-menu")).toContainText("サーバーから切断されました");
 });

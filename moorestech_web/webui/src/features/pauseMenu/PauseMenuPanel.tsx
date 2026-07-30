@@ -7,7 +7,7 @@ import styles from "./style.module.css";
 
 export function PauseMenuPanel() {
   const data = useTopic(Topics.pauseMenu);
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const title = t(L.ui.pauseMenu.title);
   const disconnected = t(L.ui.pauseMenu.disconnected);
   const saveLabel = t(L.ui.game.saveGame);
@@ -18,7 +18,7 @@ export function PauseMenuPanel() {
 
   return (
     <section className={styles.panel} data-testid="pause-menu" {...tutorialAnchor(TutorialAnchorIds.pauseMenu)}>
-      <Stack gap="md">
+      <Stack gap="md" data-testid={`pause-menu-locale-${locale}`}>
         <Title order={1}>{title}</Title>
         {data?.disconnected && <Text c={disconnectColor}>{disconnected}</Text>}
         <Button {...tutorialAnchor(TutorialAnchorIds.pauseSave)} onClick={save}>

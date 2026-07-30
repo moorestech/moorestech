@@ -82,6 +82,20 @@ namespace Client.Tests.Localization.Skit
                 loader.RequestedLanguages);
         }
 
+        [Test]
+        public void JapaneseAddressableAssetContainsNaturalBackgroundText()
+        {
+            // address対応を固定した実ファイルを本番parserへ通す
+            // Parse the real file pinned by the address mapping through the production parser
+            var dictionary = SkitLocalizationDictionaryLoader.Parse(
+                JapaneseAddress,
+                File.ReadAllText(GetI18nPath("japanese")));
+
+            Assert.AreEqual(
+                "ひとまず、周りの石を集めましょう。",
+                dictionary["skit.200_star_background.1.body"]);
+        }
+
         private static string GetI18nPath(string languageCode)
         {
             return Path.Combine(
