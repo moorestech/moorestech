@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Topics } from "../../src/bridge/transport/protocol";
+import { BLOCK_ICON_PREFIX, ITEM_ICON_PREFIX } from "../../src/bridge/transport/httpEndpoints";
 import type { BlockInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
@@ -149,12 +150,17 @@ export function createMockHttpServer(): Server {
     // presentationControls.tsへ分離
     // Split into presentationControls.ts
     if (applyPresentationControl(url, res)) return;
-    if (url.startsWith("/api/icons/")) {
+    // アイテムとブロックのアイコンは本番 httpEndpoints と同じ2経路を同形で配信する
+    // Item and block icons are served identically on the same two paths as production httpEndpoints
+    const isBlockIcon = url.startsWith(BLOCK_ICON_PREFIX);
+    if (url.startsWith(ITEM_ICON_PREFIX) || isBlockIcon) {
       // DEMO時は実ゲームアイコン(無ければプレースホルダ)、通常時は404で#idフォールバック
       // DEMO serves real game icons (placeholder if absent); otherwise 404 for the #id fallback
       if (DEMO) {
-        const id = Number(url.split("/api/icons/")[1]?.replace(".png", "")) || 0;
-        const real = realIconFor(id);
+        const id = Number(url.split("/").pop()?.replace(".png", "")) || 0;
+        // ブロック画像は実アセットが無いため常にプレースホルダ（実ホストはBlockImageContainerのPNG）
+        // Block images have no real asset so always use the placeholder (the real host renders BlockImageContainer PNGs)
+        const real = isBlockIcon ? null : realIconFor(id);
         if (real) {
           res.setHeader("content-type", "image/jpeg");
           res.end(real);

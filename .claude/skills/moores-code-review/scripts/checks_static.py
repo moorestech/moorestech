@@ -24,6 +24,17 @@ MAX_FILE_LINES = 200
 MAX_DIR_FILES = 10
 
 
+# テストコードは200行/10ファイル規約の適用外（ユーザー裁定 2026-07-28）
+# Test code is exempt from the 200-line / 10-file rules (user ruling 2026-07-28)
+def _is_test_path(path: str) -> bool:
+    parts = Path(path).parts
+    if any(p in ("e2e", "tests", "__tests__") or "Tests" in p for p in parts[:-1]):
+        return True
+    name = parts[-1]
+    stem = re.sub(r"\.(cs|ts|tsx)$", "", name)
+    return name.endswith((".test.ts", ".test.tsx", ".spec.ts")) or stem.endswith(("Test", "Tests"))
+
+
 def run(files: list[FileDiff], repo_root: Path) -> list[dict]:
     findings: list[dict] = []
     findings += _added_line_rules(files)
@@ -66,7 +77,7 @@ def _added_line_rules(files: list[FileDiff]) -> list[dict]:
 def _file_length_rule(files: list[FileDiff], repo_root: Path) -> list[dict]:
     findings = []
     for f in files:
-        if not f.path.endswith(SOURCE_EXTS):
+        if not f.path.endswith(SOURCE_EXTS) or _is_test_path(f.path):
             continue
         p = repo_root / f.path
         if not p.is_file():
@@ -82,7 +93,7 @@ def _dir_count_rule(files: list[FileDiff], repo_root: Path) -> list[dict]:
     findings = []
     seen: set[str] = set()
     for f in files:
-        if not (f.is_new and f.path.endswith(SOURCE_EXTS)):
+        if not (f.is_new and f.path.endswith(SOURCE_EXTS)) or _is_test_path(f.path):
             continue
         rel_dir = str(Path(f.path).parent)
         if rel_dir in seen:

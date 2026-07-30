@@ -12,13 +12,13 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:getElectricNetInfo";
 
-        private readonly IElectricWireNetworkDatastore _energySegmentDatastore;
+        private readonly IElectricWireNetworkLookup _energySegmentDatastore;
 
         public GetElectricNetworkInfoProtocol(ServiceProvider serviceProvider)
         {
             // 電力はGearのstaticと異なりDIインスタンスから取得して保持
             // Unlike the gear static datastore, resolve and hold the energy datastore from DI
-            _energySegmentDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            _energySegmentDatastore = serviceProvider.GetService<IElectricWireNetworkLookup>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)

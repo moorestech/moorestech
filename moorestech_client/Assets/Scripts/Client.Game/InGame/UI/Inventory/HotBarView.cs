@@ -1,3 +1,5 @@
+// [uGUI廃止Phase1] uGUI描画は恒久停止・ビューは未メンテ。ただし本クラスは外部（Web UIブリッジ等）から参照中のため削除前に整理が必要（docs/webui/ugui-retirement-plan.md）
+// [uGUI retirement Phase1] uGUI rendering is permanently disabled and the view is unmaintained, but this class is still referenced externally (e.g. Web UI bridge); untangle before deletion (docs/webui/ugui-retirement-plan.md)
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
@@ -27,15 +29,6 @@ namespace Client.Game.InGame.UI.Inventory
         public int SelectIndex { get; private set; }
         private bool _isInitialized;
         private bool _isGameStateVisible = true;
-
-        private void Awake()
-        {
-            // 実効モード変化を旧表示へ反映する
-            // Reflect effective-mode changes in the legacy view
-            WebUiScreenGate.OnWebUiModeChanged
-                .Subscribe(_ => ApplyVisibility())
-                .AddTo(this);
-        }
 
         private void Start()
         {

@@ -42,6 +42,19 @@ PRのタイトルと概要を作成する。
 - タイトルは70文字以内
 - 詳細は本文（body）に記述
 
+### 2.5 Web変更の画像を準備する
+
+差分に `moorestech_web/webui/`、Webフロントエンド、またはユーザーが見るWeb UIの変更が含まれる場合は、PR本文への実画面画像添付を必須とする。
+
+1. タスク中に生成した最新スクリーンショットを探し、変更後の画面と一致することを確認する。
+2. 画像が無い、古い、または主要状態が不足する場合は、既存のcaptureスクリプトやPlaywright E2Eを使って代表状態を撮影する。
+3. レイアウト変更では、影響を受ける主要画面・モードが比較できる最小十分な枚数を選ぶ。
+4. 選んだ画像を `docs/pr-assets/<PRの題材>/` へコピーし、実装変更と同じPRブランチへコミットする。画像には秘密情報や一時的なデバッグ表示を含めない。
+5. push後、画像を含むコミットSHAを固定した `https://github.com/<owner>/<repo>/blob/<commit-sha>/docs/pr-assets/<PRの題材>/<image>.png?raw=true` 形式のURLを `## スクリーンショット` 節へ埋め込む。
+6. ローカル絶対パス、`file://` URL、実行環境だけで見えるURLはPR本文へ書かない。
+
+Web変更で画像のコミットやGitHub上での参照確認ができない場合は、画像を省略したまま完了報告をしてはいけない。失敗した操作と必要な復旧操作を明記して呼び出し元へ返す。
+
 ### 3. Prepare Branch and Commit
 ステップ1の結果を元に、ブランチやコミットがない場合は自動で作成する。ユーザーに確認せず実行すること。
 
@@ -81,6 +94,9 @@ gh pr create --base <BASE> --head <PR_BRANCH> --title "the pr title" --body "$(c
 ## Summary
 <1-3 bullet points>
 
+## スクリーンショット
+<Web関連変更の場合のみ、docs/pr-assetsへコミットした実画面画像のGitHub URLを配置>
+
 ## Test plan
 [Bulleted markdown checklist of TODOs for testing the pull request...]
 
@@ -92,6 +108,7 @@ EOF
 ## Important Notes
 
 - 完了したらPRのURLを返す（呼び出し元がユーザーに提示できるように）。worktree用ブランチ（`treeN`）から切り出した場合は、作成したPR用ブランチ名も併せて報告する
+- Web関連変更では、`gh api` で各画像がPRブランチのコミットに存在することを確認し、`gh pr view --json body` で `## スクリーンショット` 節とGitHub上の画像URLを確認して掲載画像数も報告する
 - `treeN` のようなworktree運用ブランチをそのままPRのheadにしない。必ず内容を表す別ブランチを切ってからPRを作る
 - 明示的な許可なく破壊的なgitコマンドを使わない
 - 実際のマージ（`gh pr merge` 等）は行わない。PR作成とbase設定までが担当範囲

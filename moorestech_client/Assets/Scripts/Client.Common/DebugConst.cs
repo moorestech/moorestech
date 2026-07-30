@@ -30,9 +30,6 @@ namespace Client.Game
 
         public const string FpsLimitLabel = "FPS Limit";
         public const string FpsLimitKey = "FpsLimit";
-
-        public const string WebUiCefActiveLabel = "Web UI (CEF) active";
-        public const string WebUiCefActiveKey = "WebUiCefActive";
     }
 
     /// <summary>

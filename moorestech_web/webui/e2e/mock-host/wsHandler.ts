@@ -36,6 +36,9 @@ export function attachWsHandlers(wss: WebSocketServer) {
         send(ws, { op: "pong" });
         return;
       }
+      // 入力排他は Unity 側だけの関心事。mock には反映先が無いので受理して捨てる
+      // Input exclusivity concerns only the Unity side; the mock has nothing to apply it to, so accept and drop
+      if (msg.op === "input_state") return;
       if (msg.op === "subscribe") {
         for (const topic of msg.topics) {
           const subscribers = topicSubscribers.get(topic) ?? new Set();

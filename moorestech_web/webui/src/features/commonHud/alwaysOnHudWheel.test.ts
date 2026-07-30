@@ -8,7 +8,8 @@ import { describe, expect, it } from "vitest";
 const passiveHuds: [string, string, string][] = [
   ["クロスヘア", "./style.module.css", ".crosshair"],
   ["現在チャレンジ", "../challenge/CurrentChallengeHud.module.css", ".hud"],
-  ["操作モード", "../modeHud/style.module.css", ".modeHud"],
+  ["配置モード", "../modeHud/style.module.css", ".placementHud"],
+  ["削除モード警告", "../modeHud/style.module.css", ".deleteModeWarning"],
   ["列車搭乗", "../trainHud/style.module.css", ".hud"],
   ["ホットバー帯", "../inventory/HotbarPanel/style.module.css", ".hotbarArea"],
 ];

@@ -30,8 +30,9 @@ namespace Game.Block.Blocks
         
         
         private readonly IDisposable _blockUpdateDisposable;
-        
-        private readonly List<IUpdatableBlockComponent> _updatableComponents;
+
+        private readonly List<IUpdatableBlockComponent> _centralDrivenComponents;
+        private readonly List<IUpdatableBlockComponent> _selfDrivenComponents;
         private readonly List<IBlockStateDetail> _blockStateDetails;
         
         
@@ -52,10 +53,16 @@ namespace Game.Block.Blocks
             }
             
             // NOTE 他の場所からコンポーネントを追加するようになったら、このリストに追加するようにする
-            _updatableComponents = _blockComponentManager.GetComponents<IUpdatableBlockComponent>();
+            var updatableComponents = _blockComponentManager.GetComponents<IUpdatableBlockComponent>();
+            _centralDrivenComponents = updatableComponents.Where(c => c is not ISelfDrivenUpdatableBlockComponent).ToList();
+            _selfDrivenComponents = updatableComponents.Where(c => c is ISelfDrivenUpdatableBlockComponent).ToList();
             _blockStateDetails = _blockComponentManager.GetComponents<IBlockStateDetail>();
-            
-            _blockUpdateDisposable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
+
+            // 自走宣言コンポーネントを持つブロックだけ購読を維持する（他はMasterTickUpdaterの中央ループが駆動）
+            // Only blocks holding self-driven components keep the subscription; the rest are driven by MasterTickUpdater's central loop
+            _blockUpdateDisposable = _selfDrivenComponents.Count == 0
+                ? Disposable.Empty
+                : GameUpdater.UpdateObservable.Subscribe(_ => UpdateComponents(_selfDrivenComponents));
             
             OneBlockUpdateMarker = CreateUpdateMarker(BlockMasterElement);
         }
@@ -93,19 +100,24 @@ namespace Game.Block.Blocks
             return result;
         }
         
-        private void Update()
+        public void TickUpdate()
+        {
+            UpdateComponents(_centralDrivenComponents);
+        }
+
+        private void UpdateComponents(List<IUpdatableBlockComponent> components)
         {
             BlockUpdateMarker.Begin();
             OneBlockUpdateMarker.Begin();
-            
-            foreach (var component in _updatableComponents)
+
+            foreach (var component in components)
             {
                 var componentUpdateMarker = CreateComponentUpdateMarker(BlockMasterElement, component);
                 componentUpdateMarker.Begin();
                 component.Update();
                 componentUpdateMarker.End();
             }
-            
+
             OneBlockUpdateMarker.End();
             BlockUpdateMarker.End();
         }

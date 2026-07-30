@@ -4,7 +4,7 @@
   grid-column: viewer-start / items-end;
   grid-row: 1;
   width: 759.3px;
-  height: 525px;
+  height: var(--menu-content-height);
   min-width: 0;
   position: relative;
   z-index: var(--z-screen);

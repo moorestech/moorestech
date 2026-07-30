@@ -45,22 +45,26 @@
   --text-insufficient: #ff7878;
   --color-content-primary: #f2f3f7;
   --recipe-action-background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
-  /* 常駐チャレンジHUDの配置と文字階層は世界背景に左右されない固定長で揃える */
-  /* Keep the resident challenge HUD's placement and type hierarchy at fixed lengths independent of the world backdrop */
-  --challenge-hud-left: 24px;
+  /* メニュー内容を常駐HUDの下からホットバー手前までに収める */
+  /* Keep menu content between the resident HUD and the hotbar */
+  --menu-upper-safe-area: 128px;
+  --menu-content-height: 525px;
+  /* 常駐チャレンジHUDは全画面で上中央の安全帯へ固定し、文字組を変えない */
+  /* Keep the resident challenge HUD in one upper-center safe area with unchanged typography on every screen */
+  --challenge-hud-left: 320px;
   --challenge-hud-top: 24px;
-  --challenge-hud-width: 288px;
+  --challenge-hud-width: 640px;
   --challenge-hud-label-font-size: 12px;
-  --challenge-hud-objective-font-size: 17px;
+  --challenge-hud-objective-font-size: 14px;
   --challenge-hud-label-rule-gap: 5px;
   --challenge-hud-rule-list-gap: 8px;
-  --challenge-hud-objective-gap: 5px;
+  --challenge-hud-objective-gap: 2px;
   --challenge-hud-letter-spacing: 1px;
-  --challenge-hud-objective-line-height: 25px;
+  --challenge-hud-objective-line-height: 20px;
   --challenge-hud-text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
-  /* クラフト枠内の操作モード情報を固定長で配置する */
-  /* Place operation-mode information inside the craft frame with fixed lengths */
-  --operation-hud-left: 24px;
+  /* 配置モード情報を右上のクラフト枠へ固定長で配置する */
+  /* Place placement-mode information in the top-right craft frame with fixed lengths */
+  --operation-hud-right: 24px;
   --operation-hud-top: 24px;
   --operation-hud-width: 288px;
   --operation-hud-label-font-size: 12px;
@@ -70,6 +74,13 @@
   --operation-hud-detail-gap: 5px;
   --operation-hud-letter-spacing: 1px;
   --operation-hud-detail-line-height: 25px;
+  /* uGUIの削除バーを1280基準へ縮尺し、上下端に見える半幅と斜線周期を固定する */
+  /* Scale the uGUI deletion bar to the 1280 baseline and lock its visible half-height and stripe period */
+  --delete-mode-warning-band-height: 20px;
+  --delete-mode-warning-stripe-size: 32px;
+  --delete-mode-warning-stripe-angle: 117deg;
+  --delete-mode-warning-yellow: rgb(255 187 36);
+  --delete-mode-warning-black: rgb(0 0 0);
   /* ゲージの溝は世界が透ける半透明ネイビー面にする */
   /* Use a translucent navy face for gauge tracks so the world remains visible */
   --gauge-track: rgb(10 14 27 / 80%);
