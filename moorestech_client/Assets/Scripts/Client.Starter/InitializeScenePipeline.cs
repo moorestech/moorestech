@@ -32,10 +32,6 @@ namespace Client.Starter
     /// </summary>
     public class InitializeScenePipeline : MonoBehaviour
     {
-        // ツールバーの「セーブをロード・保存しない再生ボタン」が立てるセッションフラグのキー
-        // SessionState key set by the toolbar "play without loading/saving" button
-        public const string SkipSaveLoadSessionKey = "moorestech_SkipSaveLoadPlayMode";
-
         [SerializeField] private BlockIconImagePhotographer blockIconImagePhotographer;
         [SerializeField] private BlockGameObject missingBlockIdObject;
 
@@ -85,7 +81,7 @@ namespace Client.Starter
 #if UNITY_EDITOR
             // ツールバーの専用再生ボタン経由なら、セーブデータをロード・保存しないよう起動引数を上書きする
             // When launched via the dedicated toolbar play button, override launch args to skip loading/saving save data
-            ApplySkipSaveLoadModeIfNeeded(_proprieties);
+            Editor.SkipSaveLoadPlayModeSettings.ApplyIfNeeded(_proprieties);
 #endif
 
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
@@ -198,20 +194,5 @@ namespace Client.Starter
             #endregion
         }
 
-#if UNITY_EDITOR
-        // ツールバーの「セーブをロード・保存しない再生ボタン」用に起動引数を上書きする
-        // Override launch args for the toolbar "play without loading/saving" button
-        private static void ApplySkipSaveLoadModeIfNeeded(InitializeProprieties proprieties)
-        {
-            if (!UnityEditor.SessionState.GetBool(SkipSaveLoadSessionKey, false)) return;
-
-            // 存在しない一時ワールドディレクトリを指定してロードを回避し、オートセーブも無効化する
-            // Point to a non-existent temporary world directory to skip loading, and disable auto-save
-            var settings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);
-            settings.WorldDirectory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"no_save_play_mode_{Guid.NewGuid()}");
-            settings.AutoSave = false;
-            proprieties.CreateLocalServerArgs = CliConvert.Serialize(settings);
-        }
-#endif
     }
 }

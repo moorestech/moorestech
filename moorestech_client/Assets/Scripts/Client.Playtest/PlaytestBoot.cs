@@ -1,6 +1,6 @@
 using Client.Game.Common;
 using Client.Playtest.Core;
-using Client.Starter;
+using Client.Starter.Editor;
 using Common.Debug;
 using Server.Boot;
 using UniRx;
@@ -24,7 +24,7 @@ namespace Client.Playtest
 
             // NoSaveフラグと起動待ちフラグはSessionStateでドメインリロードを越えて保持される
             // The NoSave flag and pending-boot flag persist across domain reload via SessionState
-            SessionState.SetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, noSave);
+            SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, noSave);
             SessionState.SetBool(PendingBootKey, true);
 
             // テストと同様にデバッグオブジェクト生成を無効化する（IngameDebugConsole等のノイズ防止）
@@ -68,7 +68,7 @@ namespace Client.Playtest
 
             // 再生終了時にフラグと開始シーン設定を復元する（通常の再生ボタンへ影響させない）
             // Restore flags and the start-scene setting when play ends (keeps the normal play button unaffected)
-            SessionState.SetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, false);
+            SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, false);
             SessionState.SetBool(PendingBootKey, false);
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
             EditorSceneManager.playModeStartScene = null;

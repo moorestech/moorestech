@@ -1,4 +1,4 @@
-using Client.Starter;
+using Client.Starter.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.Toolbars;
@@ -42,7 +42,7 @@ namespace Client.Editor.Toolbar
 
             // セーブをロード・保存しないフラグを立てる（ドメインリロードを越えて保持される）
             // Set the skip-save-load flag (persists across domain reload)
-            SessionState.SetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, true);
+            SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, true);
 
             // ゲーム初期化シーンから再生を開始する
             // Start play mode from the game initializer scene
@@ -56,7 +56,7 @@ namespace Client.Editor.Toolbar
             // Reset the flag and start-scene setting when play mode ends (so the normal play button is unaffected)
             if (state != PlayModeStateChange.EnteredEditMode) return;
 
-            SessionState.SetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, false);
+            SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, false);
             EditorSceneManager.playModeStartScene = null;
         }
     }
