@@ -69,19 +69,34 @@ namespace Client.Localization
             var candidate = VanillaLocalizationDictionaryFactory.Create();
             ModLocalizationMerger.Merge(modsResource, orderedModIds, candidate);
 
-            // マスタ原文はmod CSVのSourceより後に正本として重ねる
-            // Overlay master source text as the source of truth after mod CSV Source values
-            foreach (var sourceText in MasterSourceTextCollector.Collect())
-            {
-                if (string.IsNullOrEmpty(sourceText.Value)) continue;
-                candidate[SourcePseudoLocale][sourceText.Key] = sourceText.Value;
-            }
+            // mod Sourceの後へMaster正本を重ね、空原文も欠落として確定する
+            // Overlay canonical Master after mod Source and finalize empty sources as omissions
+            OverlayMasterSourceTexts(candidate, MasterSourceTextCollector.Collect());
 
             // 全合成成功後にfreeze済みsnapshot参照を一度だけ公開する
             // Publish the frozen snapshot reference once only after composition fully succeeds
             var snapshot = VanillaLocalizationDictionaryFactory.Freeze(candidate);
             Volatile.Write(ref publishedSnapshot, snapshot);
             onLanguageChangedSubject.OnNext(Unit.Default);
+        }
+
+        internal static void OverlayMasterSourceTexts(
+            Dictionary<string, Dictionary<string, string>> dictionaries,
+            IReadOnlyDictionary<string, string> masterSourceTexts)
+        {
+            var sourceDictionary = dictionaries[SourcePseudoLocale];
+            foreach (var sourceText in masterSourceTexts)
+            {
+                // 空Masterはmod由来Sourceを残さずcanonical欠落にする
+                // Empty Master removes mod Source so the canonical value remains missing
+                if (string.IsNullOrEmpty(sourceText.Value))
+                {
+                    sourceDictionary.Remove(sourceText.Key);
+                    continue;
+                }
+
+                sourceDictionary[sourceText.Key] = sourceText.Value;
+            }
         }
 
         public static void SetLanguage(string languageCode)

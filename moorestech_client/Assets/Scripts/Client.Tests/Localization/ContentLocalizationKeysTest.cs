@@ -27,6 +27,14 @@ namespace Client.Tests.Localization
         }
 
         [Test]
+        public void ChallengeCategoryDescriptionBuilderUsesCanonicalLowercaseSegment()
+        {
+            Assert.AreEqual(
+                "challengeCategory.01234567-89ab-cdef-0123-456789abcdef.description",
+                ContentLocalizationKeys.ChallengeCategoryDescription(ContentGuid));
+        }
+
+        [Test]
         public void SkitBuildersPreserveCommandForgeFieldCasing()
         {
             // CommandForgeフィールド名の大文字小文字をそのまま維持する

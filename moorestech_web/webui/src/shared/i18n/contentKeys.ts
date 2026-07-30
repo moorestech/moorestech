@@ -6,6 +6,7 @@ export type ContentLocalizationKey =
   | `challenge.${string}.title`
   | `challenge.${string}.summary`
   | `challengeCategory.${string}.name`
+  | `challengeCategory.${string}.description`
   | `character.${string}.name`
   | `buildMenuCategory.${string}.name`
   | `buildMenuSubCategory.${string}.name`;
@@ -24,6 +25,8 @@ export const challengeSummaryKey = (guid: string): ContentLocalizationKey =>
   `challenge.${canonicalGuidSegment(guid)}.summary`;
 export const challengeCategoryNameKey = (guid: string): ContentLocalizationKey =>
   `challengeCategory.${canonicalGuidSegment(guid)}.name`;
+export const challengeCategoryDescriptionKey = (guid: string): ContentLocalizationKey =>
+  `challengeCategory.${canonicalGuidSegment(guid)}.description`;
 export const characterNameKey = (guid: string): ContentLocalizationKey =>
   `character.${canonicalGuidSegment(guid)}.name`;
 export const buildMenuCategoryNameKey = (guid: string): ContentLocalizationKey =>

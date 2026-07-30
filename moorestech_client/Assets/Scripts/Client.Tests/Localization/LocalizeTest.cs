@@ -119,6 +119,35 @@ namespace Client.Tests.Localization
         }
 
         [Test]
+        public void EmptyMasterSourceRemovesModSourceWithoutRemovingTargetOrEnglish()
+        {
+            var candidate = VanillaLocalizationDictionaryFactory.Create();
+            ModLocalizationMerger.MergeCsv(
+                "key,Source,english,japanese\n" +
+                "content.empty.english,Wrong Source,English,\n" +
+                "content.empty.marker,Wrong Source,,\n" +
+                "content.empty.target,Wrong Source,English,対象\n",
+                candidate);
+            var masterSources = new Dictionary<string, string>
+            {
+                { "content.empty.english", "" },
+                { "content.empty.marker", "" },
+                { "content.empty.target", "" },
+            };
+
+            Localize.OverlayMasterSourceTexts(candidate, masterSources);
+            var snapshot = VanillaLocalizationDictionaryFactory.Freeze(candidate);
+
+            Assert.IsFalse(candidate[Localize.SourcePseudoLocale].ContainsKey("content.empty.english"));
+            Assert.IsFalse(candidate[Localize.SourcePseudoLocale].ContainsKey("content.empty.marker"));
+            Assert.IsFalse(candidate[Localize.SourcePseudoLocale].ContainsKey("content.empty.target"));
+            Assert.AreEqual("English", LocalizationTextResolver.Resolve(snapshot, "japanese", "content.empty.english"));
+            Assert.AreEqual("[!content.empty.marker]", LocalizationTextResolver.Resolve(snapshot, "japanese", "content.empty.marker"));
+            Assert.AreEqual("対象", LocalizationTextResolver.Resolve(snapshot, "japanese", "content.empty.target"));
+            Assert.AreEqual("English", candidate["english"]["content.empty.target"]);
+        }
+
+        [Test]
         public void SetLanguagePublishesExactlyOneEventAndPersistsSelection()
         {
             PlayerPrefs.SetString(Localize.LanguagePreferenceKey, Localize.DefaultLanguageCode);

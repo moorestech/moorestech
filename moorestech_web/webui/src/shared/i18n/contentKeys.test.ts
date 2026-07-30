@@ -3,6 +3,7 @@ import {
   blockNameKey,
   buildMenuCategoryNameKey,
   buildMenuSubCategoryNameKey,
+  challengeCategoryDescriptionKey,
   challengeCategoryNameKey,
   challengeSummaryKey,
   challengeTitleKey,
@@ -12,6 +13,7 @@ import {
   researchNodeNameKey,
   type ContentLocalizationKey,
 } from "./contentKeys";
+import { challengeCategoryDescriptionKey as barrelChallengeCategoryDescriptionKey } from "./index";
 import type { TranslationKey } from "./i18nStore";
 
 describe("content localization keys", () => {
@@ -35,6 +37,15 @@ describe("content localization keys", () => {
     const translationKey: TranslationKey = contentKey;
 
     expect(translationKey).toBe("challengeCategory.category-guid.name");
+  });
+
+  it("builds the challenge category description key with exact lowercase casing", () => {
+    expect(challengeCategoryDescriptionKey("01234567-89AB-CDEF-0123-456789ABCDEF"))
+      .toBe("challengeCategory.01234567-89ab-cdef-0123-456789abcdef.description");
+    expect(barrelChallengeCategoryDescriptionKey("CATEGORY-GUID"))
+      .toBe("challengeCategory.category-guid.description");
+    const descriptionKey: ContentLocalizationKey = "challengeCategory.category-guid.description";
+    expect(descriptionKey).toBe("challengeCategory.category-guid.description");
   });
 
   it("rejects strings outside the content key grammar", () => {

@@ -40,6 +40,11 @@ namespace Client.Localization
             return $"challengeCategory.{challengeCategoryGuid:D}.name";
         }
 
+        public static string ChallengeCategoryDescription(Guid challengeCategoryGuid)
+        {
+            return $"challengeCategory.{challengeCategoryGuid:D}.description";
+        }
+
         public static string CharacterName(Guid characterGuid)
         {
             return $"character.{characterGuid:D}.name";

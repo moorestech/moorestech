@@ -40,6 +40,8 @@ namespace Client.Localization
             {
                 sourceTexts[ContentLocalizationKeys.ChallengeCategoryName(categoryMaster.CategoryGuid)] =
                     categoryMaster.CategoryName;
+                sourceTexts[ContentLocalizationKeys.ChallengeCategoryDescription(categoryMaster.CategoryGuid)] =
+                    categoryMaster.CategoryDescription;
                 foreach (var challengeMaster in categoryMaster.Challenges)
                 {
                     sourceTexts[ContentLocalizationKeys.ChallengeTitle(challengeMaster.ChallengeGuid)] =

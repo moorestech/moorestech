@@ -4,6 +4,7 @@ export {
   blockNameKey,
   buildMenuCategoryNameKey,
   buildMenuSubCategoryNameKey,
+  challengeCategoryDescriptionKey,
   challengeCategoryNameKey,
   challengeSummaryKey,
   challengeTitleKey,
