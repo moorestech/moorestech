@@ -17,8 +17,8 @@ public class LocalizationCodeGeneratorTest
         var code = LocalizationCodeGenerator.Generate(LocalizationCsvParser.Parse(csvText));
         var tableType = CompileTable(code);
 
-        // 生成物の公開キー構造と値を実アセンブリから検証する
-        // Verify the generated public key structure and value from a real assembly
+        // 公開キーを実assemblyで検証
+        // Verify public keys from a real assembly
         Assert.Contains("public static class Ui", code);
         Assert.Contains("public static class BuildMenu", code);
         Assert.Contains("public static readonly LocalizationKey Close = new LocalizationKey(\"ui.buildMenu.close\");", code);
@@ -40,8 +40,6 @@ public class LocalizationCodeGeneratorTest
         var languageCodes = (string[])tableType.GetField("LanguageCodes")!.GetValue(null)!;
         var sourceTexts = (IReadOnlyDictionary<string, string>)tableType.GetField("SourceTexts")!.GetValue(null)!;
 
-        // 公開APIから言語順・全行・空文字の保持を観測する
-        // Observe language order, every row, and empty text through the public API
         Assert.Equal(new[] { "english", "japanese" }, languageCodes);
         Assert.Equal("Close", sourceTexts["ui.menu.close"]);
         Assert.Equal("", sourceTexts["ui.menu.empty"]);
@@ -85,8 +83,6 @@ public class LocalizationCodeGeneratorTest
 
         var tableType = CompileTable(LocalizationCodeGenerator.Generate(csv));
 
-        // C#リテラルを壊さず全エスケープ対象を往復させる
-        // Round-trip every escaped character without breaking the C# literal
         AssertLanguage(tableType, "english", "ui.message.body", escapedText);
         var sourceTexts = (IReadOnlyDictionary<string, string>)tableType.GetField("SourceTexts")!.GetValue(null)!;
         Assert.Equal(escapedText, sourceTexts["ui.message.body"]);

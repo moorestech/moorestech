@@ -136,8 +136,8 @@ public class LocalizationSourceGeneratorTest
         var parseOptions = new CSharpParseOptions(preprocessorSymbols: symbols);
         var compilation = CSharpCompilation.Create("LocalizationSourceGeneratorTest");
 
-        // 実Roslyn Driverでdefine・AdditionalFile・生成結果を一体検証する
-        // Exercise defines, additional files, and output together through the real Roslyn driver
+        // 実Roslynで生成経路を一体検証
+        // Verify the generation path with Roslyn
         var driver = CSharpGeneratorDriver.Create(
             new ISourceGenerator[] { new MooresmasterSourceGenerator().AsSourceGenerator() },
             additionalTexts,
@@ -170,8 +170,6 @@ public class LocalizationSourceGeneratorTest
             sourceText = text == null ? null : SourceText.From(text, Encoding.UTF8);
         }
 
-        // Roslynの抽象AdditionalText契約をテスト入力として実装する
-        // Implement Roslyn's abstract AdditionalText contract as a test input
         public override string Path => path;
 
         public override SourceText? GetText(CancellationToken cancellationToken)

@@ -14,8 +14,8 @@ internal static class LocalizationLanguageContract
         var englishCount = 0;
         var languageCodes = new HashSet<string>(StringComparer.Ordinal);
 
-        // 実CSVの言語コードを順に検証し重複を拒否する
-        // Validate real CSV language codes in order and reject duplicates
+        // 言語コードの重複を拒否
+        // Reject duplicate language codes
         foreach (var languageCode in csv.LanguageCodes)
         {
             if (string.IsNullOrEmpty(languageCode))

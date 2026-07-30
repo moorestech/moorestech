@@ -26,8 +26,8 @@ namespace Client.Tests.Localization
         [TearDown]
         public void TearDown()
         {
-            // 保存値の有無も含めて復元し静的状態を再初期化する
-            // Restore both value and presence, then reset static state
+            // 保存値と有無を復元後、状態初期化
+            // Restore value and presence, then reset state
             if (hadSavedLanguageCode)
             {
                 PlayerPrefs.SetString(Localize.LanguagePreferenceKey, savedLanguageCode);

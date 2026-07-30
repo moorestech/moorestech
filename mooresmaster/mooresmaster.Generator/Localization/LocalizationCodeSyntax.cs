@@ -7,8 +7,8 @@ internal static class LocalizationCodeSyntax
 {
     public static void ValidateKeys(LocalizationCsv csv)
     {
-        // 生成可能な識別子だけをキーsegmentとして受け入れる
-        // Accept only key segments that can become generated identifiers
+        // 生成可能なキーsegmentだけ許可
+        // Allow only generatable key segments
         foreach (var row in csv.Rows)
         {
             var segments = row.Key.Split('.');
@@ -38,8 +38,8 @@ internal static class LocalizationCodeSyntax
     public static string Escape(string text)
     {
         var builder = new StringBuilder();
-        // 許可済みの制御文字だけをC#エスケープへ変換する
-        // Convert only approved control characters into C# escapes
+        // 許可制御文字だけC#用にescape
+        // Escape only approved control characters for C#
         foreach (var character in text)
         {
             if (character == '\\') builder.Append("\\\\");
@@ -63,8 +63,8 @@ internal static class LocalizationCodeSyntax
 
     private static bool IsLowerCamelSegment(string segment)
     {
-        // 先頭小文字と後続ASCII英数字の契約を境界で検査する
-        // Enforce the leading lowercase and trailing ASCII alphanumeric contract
+        // lowerCamel契約を境界検査
+        // Validate the lower-camel contract at the boundary
         if (segment.Length == 0 || segment[0] < 'a' || 'z' < segment[0])
         {
             return false;

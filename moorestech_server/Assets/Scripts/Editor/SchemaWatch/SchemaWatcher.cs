@@ -28,8 +28,8 @@ public static class SchemaWatcher
                 "_CompileRequester.cs",
                 "LocalizationCompileRequester",
                 "Client.Localization",
-                "ローカライズCSV",
-                "localization csv"),
+                "CSV",
+                "CSV"),
         };
 
         // 全対象の状態を復元する。

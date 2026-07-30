@@ -25,8 +25,8 @@ namespace Mooresmaster.LocalizationCsv
                 throw new LocalizationCsvException("localization.csv header must contain key and Source columns");
             }
 
-            // ヘッダの3列目以降を翻訳言語として保持する
-            // Preserve columns after Source as translation languages
+            // 3列目以降を翻訳言語として保持
+            // Preserve columns after Source as languages
             var languageCodes = new string[header.Count - LanguageStartColumn];
             for (var i = LanguageStartColumn; i < header.Count; i++)
             {

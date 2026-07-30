@@ -25,8 +25,8 @@ internal static class LocalizationGeneratedCodeCompiler
             references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-        // 実際のアセンブリ生成で型・API・初期化式の整合性を検査する
-        // Verify types, APIs, and initializers by emitting a real assembly
+        // 実assemblyで型と初期化を検証
+        // Verify types and initialization in a real assembly
         using var stream = new MemoryStream();
         var emitResult = compilation.Emit(stream);
         Assert.True(emitResult.Success, FormatDiagnostics(emitResult.Diagnostics));
@@ -38,8 +38,6 @@ internal static class LocalizationGeneratedCodeCompiler
     {
         var references = new List<MetadataReference>();
         var platformAssemblies = (string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!;
-        // 実行hostの標準参照を動的コンパイルへ渡す
-        // Supply the current host's platform references to dynamic compilation
         foreach (var assemblyPath in platformAssemblies.Split(Path.PathSeparator))
         {
             references.Add(MetadataReference.CreateFromFile(assemblyPath));

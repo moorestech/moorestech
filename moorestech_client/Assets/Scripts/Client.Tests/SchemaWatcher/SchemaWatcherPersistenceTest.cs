@@ -96,6 +96,29 @@ public class SchemaWatcherPersistenceTest
     }
 
     [Test]
+    public void requester更新後も日英説明とcommit意図を保持する()
+    {
+        var target = CreateTarget(
+            CreateWatchDirectory("watch", "initial"),
+            CreateDirectory("requester"),
+            "CompileRequester");
+        var orchestrator = new SchemaWatchOrchestrator(
+            new[] { target },
+            new SchemaWatchCache(Path.Combine(temporaryRoot, "cache.txt")),
+            new RecordingSchemaCompilationRequester());
+
+        orchestrator.CheckForChanges();
+
+        var requesterContent = File.ReadAllText(
+            Path.Combine(target.RequesterFolder, target.RequesterFile));
+        var commentPrefix = new string('/', 2) + " ";
+        StringAssert.Contains(commentPrefix + "SchemaWatcher更新用の再compile印", requesterContent);
+        StringAssert.Contains(commentPrefix + "Recompile marker updated by SchemaWatcher", requesterContent);
+        StringAssert.Contains(commentPrefix + "入力更新時はこの印もcommit", requesterContent);
+        StringAssert.Contains(commentPrefix + "Commit this marker with input changes", requesterContent);
+    }
+
+    [Test]
     public void cache保存読込は空targetとescaped文字を欠落させない()
     {
         var cachePath = Path.Combine(temporaryRoot, "cache.txt");

@@ -73,9 +73,18 @@ public sealed class SchemaWatchOrchestrator
         // Detect rapid updates with a content-derived token.
         var requesterPath = Path.Combine(target.RequesterFolder, target.RequesterFile);
         var requesterToken = ComputeRequesterToken(currentHashes);
+        var commentPrefix = new string('/', 2) + " ";
+        var japaneseDescriptionComment =
+            commentPrefix + target.WatchDescriptionJa + "更新時はこの印もcommit";
+        var englishDescriptionComment =
+            commentPrefix + "Commit this marker with " + target.WatchDescriptionEn + " changes";
         var requesterContent = $@"
+// SchemaWatcher更新用の再compile印
+// Recompile marker updated by SchemaWatcher
 public class {target.ClassName}
 {{
+{japaneseDescriptionComment}
+{englishDescriptionComment}
     private const string dummyText = ""{requesterToken}"";
 }}";
 

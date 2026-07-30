@@ -57,8 +57,8 @@ public class LocalizationLanguageContractSourceGeneratorTest
             new TestAdditionalText("/content/localization.csv", csvText),
         };
 
-        // 実Roslyn Driverで実CSV専用契約の診断を検証する
-        // Verify real-CSV-only contract diagnostics through the Roslyn driver
+        // 実RoslynでCSV契約診断を検証
+        // Verify CSV contract diagnostics with Roslyn
         var driver = CSharpGeneratorDriver.Create(
             new ISourceGenerator[] { new MooresmasterSourceGenerator().AsSourceGenerator() },
             additionalTexts,
@@ -96,8 +96,6 @@ public class LocalizationLanguageContractSourceGeneratorTest
             sourceText = SourceText.From(text, Encoding.UTF8);
         }
 
-        // Roslynの抽象AdditionalText契約を実入力として実装する
-        // Implement Roslyn's AdditionalText contract as real input
         public override string Path => path;
 
         public override SourceText GetText(CancellationToken cancellationToken)

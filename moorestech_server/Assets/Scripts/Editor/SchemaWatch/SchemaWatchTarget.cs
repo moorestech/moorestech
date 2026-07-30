@@ -40,8 +40,8 @@ public sealed class SchemaWatchTarget
             return false;
         }
 
-        // 相対パスと内容ハッシュを記録し、追加・変更・削除を比較可能にする。
-        // Record relative paths and content hashes so additions, edits, and deletions are comparable.
+        // 相対pathとhashで差分検出
+        // Detect changes by relative path and hash
         var files = Directory.GetFiles(WatchPath, "*.*", SearchOption.AllDirectories);
         foreach (var file in files)
         {

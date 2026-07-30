@@ -23,8 +23,8 @@ namespace Client.Localization
         {
             mergedDictionary.Clear();
 
-            // 埋め込みテーブルから空文字を除いた言語辞書を構築する
-            // Build language dictionaries from non-empty embedded table entries
+            // 空訳を除き埋め込み辞書を構築
+            // Build embedded dictionaries without empty translations
             foreach (var languageCode in VanillaLocalizationTable.LanguageCodes)
             {
                 VanillaLocalizationTable.TryGetLanguage(languageCode, out var table);
@@ -40,8 +40,8 @@ namespace Client.Localization
                     new ReadOnlyDictionary<string, string>(languageDictionary));
             }
 
-            // Source列も同じ配信用辞書へ擬似ロケールとして追加する
-            // Add the Source column to the shared delivery map as a pseudo-locale
+            // Sourceも擬似localeとして配信
+            // Deliver Source as a pseudo-locale
             var sourceDictionary = new Dictionary<string, string>();
             foreach (var entry in VanillaLocalizationTable.SourceTexts)
             {
@@ -74,8 +74,8 @@ namespace Client.Localization
 
         public static void SetLanguage(string languageCode)
         {
-            // Source擬似ロケールを除く生成済み言語だけを選択可能にする
-            // Allow selection of generated languages except the Source pseudo-locale
+            // Source以外を選択言語に限定
+            // Allow selecting only non-Source locales
             if (languageCode != SourcePseudoLocale && mergedDictionary.ContainsKey(languageCode))
             {
                 currentLanguageCode = languageCode;
