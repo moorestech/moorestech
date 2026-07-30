@@ -3,12 +3,13 @@ import {
   VanillaLocalizationKeys,
   type VanillaLocalizationKey,
 } from "./generated/localizationKeys";
+import type { ContentLocalizationKey } from "./contentKeys";
 
 export const FALLBACK_LOCALE = "english";
 
 export type TranslationDictionary = Readonly<Record<string, string>>;
 export type InterpolationValues = Readonly<Record<string, string | number>>;
-export type TranslationKey = VanillaLocalizationKey;
+export type TranslationKey = VanillaLocalizationKey | ContentLocalizationKey;
 export type I18nStatus = "loading" | "ready" | "error";
 
 export type I18nSnapshot = {
