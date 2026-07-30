@@ -39,6 +39,12 @@ export default defineConfig({
         ws: true,
         changeOrigin: false,
       },
+      // E2Eのテスト制御要求もモックホストへ中継する
+      // Forward E2E test-control requests to the mock host too
+      "/__": {
+        target: `http://127.0.0.1:${backendPort}`,
+        changeOrigin: false,
+      },
     },
   },
 });
