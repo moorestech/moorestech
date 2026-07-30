@@ -4,13 +4,18 @@
   "references": [
     "Unity.TextMeshPro",
     "UniRx",
-    "Core.Const"
+    "Core.Const",
+    "Core.Master",
+    "Game.Context",
+    "Mod.Loader"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
   "overrideReferences": false,
-  "precompiledReferences": [],
+  "precompiledReferences": [
+    "mooresmaster.LocalizationCsv.dll"
+  ],
   "autoReferenced": true,
   "defineConstraints": [],
   "versionDefines": [

@@ -35,7 +35,8 @@
         "Client.WebUiHost",
         "Client.Skit",
         "Game.UnlockState",
-        "Common.Debug"
+        "Common.Debug",
+        "Mod.Loader"
     ],
     "includePlatforms": [
         "Editor"
@@ -49,7 +50,8 @@
         "MessagePack.Annotations.dll",
         "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "Microsoft.Extensions.DependencyInjection.dll",
-        "Newtonsoft.Json.dll"
+        "Newtonsoft.Json.dll",
+        "mooresmaster.LocalizationCsv.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [

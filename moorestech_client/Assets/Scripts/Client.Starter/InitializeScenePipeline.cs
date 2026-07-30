@@ -7,6 +7,7 @@ using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Modal;
+using Client.Localization;
 using Client.Network.API;
 using Client.Network.Settings;
 using Client.Starter.Initialization;
@@ -107,6 +108,10 @@ namespace Client.Starter
                 var options = new MoorestechServerDIContainerOptions(serverDirectory);
                 new MoorestechServerDIContainerGenerator().Create(options);
             }
+
+            // マスタロード後に同一mod順でゲーム辞書を合成する
+            // Merge game dictionaries in the same mod order after master loading
+            Localize.MergeGameDictionaries(ServerContext.GetService<global::Mod.Loader.ModsResource>());
 
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
             var modalManager = new ModalManager();

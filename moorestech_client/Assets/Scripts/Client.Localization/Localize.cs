@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Core.Master;
+using Game.Context;
+using Mod.Loader;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine;
@@ -13,6 +16,7 @@ namespace Client.Localization
         internal const string LanguagePreferenceKey = "LanguageCode";
         public const string SourcePseudoLocale = "source";
 
+        private static readonly Dictionary<string, Dictionary<string, string>> mutableDictionaries = new();
         private static readonly Dictionary<string, IReadOnlyDictionary<string, string>> mergedDictionary = new();
         private static readonly Subject<Unit> onLanguageChangedSubject = new();
         public static readonly IObservable<Unit> OnLanguageChanged = onLanguageChangedSubject;
@@ -21,6 +25,7 @@ namespace Client.Localization
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
         {
+            mutableDictionaries.Clear();
             mergedDictionary.Clear();
 
             // 空訳を除き埋め込み辞書を構築
@@ -35,9 +40,8 @@ namespace Client.Localization
                     languageDictionary.Add(entry.Key, entry.Value);
                 }
 
-                mergedDictionary.Add(
-                    languageCode,
-                    new ReadOnlyDictionary<string, string>(languageDictionary));
+                mutableDictionaries.Add(languageCode, languageDictionary);
+                mergedDictionary.Add(languageCode, new ReadOnlyDictionary<string, string>(languageDictionary));
             }
 
             // Sourceも擬似localeとして配信
@@ -49,9 +53,8 @@ namespace Client.Localization
                 sourceDictionary.Add(entry.Key, entry.Value);
             }
 
-            mergedDictionary.Add(
-                SourcePseudoLocale,
-                new ReadOnlyDictionary<string, string>(sourceDictionary));
+            mutableDictionaries.Add(SourcePseudoLocale, sourceDictionary);
+            mergedDictionary.Add(SourcePseudoLocale, new ReadOnlyDictionary<string, string>(sourceDictionary));
 
             // 選択不能な保存値は生成済み英語辞書へ戻す
             // Fall back to the generated English dictionary for unselectable persisted values
@@ -70,6 +73,36 @@ namespace Client.Localization
         public static string GetLegacy(string rawKey)
         {
             return LocalizationTextResolver.Resolve(mergedDictionary, currentLanguageCode, rawKey);
+        }
+
+        public static string GetContent(string derivedKey)
+        {
+            return LocalizationTextResolver.Resolve(mergedDictionary, currentLanguageCode, derivedKey);
+        }
+
+        public static void MergeGameDictionaries(ModsResource modsResource)
+        {
+            // DI登録済みコンテナからマスタと同じmod順を受け取る
+            // Read the exact master mod order from the registered DI container
+            var masterContainer = ServerContext.GetService<MasterJsonFileContainer>();
+            MergeGameDictionaries(modsResource, masterContainer.SortedModIds);
+        }
+
+        internal static void MergeGameDictionaries(
+            ModsResource modsResource,
+            IReadOnlyList<ModId> orderedModIds)
+        {
+            ModLocalizationMerger.Merge(modsResource, orderedModIds, mutableDictionaries);
+
+            // マスタ原文はmod CSVのSourceより後に正本として重ねる
+            // Overlay master source text as the source of truth after mod CSV Source values
+            foreach (var sourceText in MasterSourceTextCollector.Collect())
+            {
+                if (string.IsNullOrEmpty(sourceText.Value)) continue;
+                mutableDictionaries[SourcePseudoLocale][sourceText.Key] = sourceText.Value;
+            }
+
+            onLanguageChangedSubject.OnNext(Unit.Default);
         }
 
         public static void SetLanguage(string languageCode)
