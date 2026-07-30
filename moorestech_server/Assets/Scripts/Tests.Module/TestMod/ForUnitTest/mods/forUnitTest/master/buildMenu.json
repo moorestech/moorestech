@@ -5,168 +5,209 @@
       "subCategories": [
         {
           "name": "ElectricMachine",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000001"
         },
         {
           "name": "Block",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000002"
         },
         {
           "name": "BeltConveyor",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000003"
         },
         {
           "name": "ElectricPole",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000004"
         },
         {
           "name": "ElectricGenerator",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000005"
         },
         {
           "name": "ElectricMiner",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000006"
         },
         {
           "name": "Chest",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000007"
         },
         {
           "name": "Gear",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000008"
         },
         {
           "name": "Shaft",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000009"
         },
         {
           "name": "GearChainPole",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000010"
         },
         {
           "name": "GearMachine",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000011"
         },
         {
           "name": "SimpleGearGenerator",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000012"
         },
         {
           "name": "GearBeltConveyor",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000013"
         },
         {
           "name": "GearMiner",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000014"
         },
         {
           "name": "TrainRail",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000015"
         },
         {
           "name": "TrainStation",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000016"
         },
         {
           "name": "TrainItemPlatform",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000017"
         },
         {
           "name": "GearMapObjectMiner",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000018"
         },
         {
           "name": "FluidPipe",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000019"
         },
         {
           "name": "FuelGearGenerator",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000020"
         },
         {
           "name": "BaseCamp",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000021"
         },
         {
           "name": "GearPump",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000022"
         },
         {
           "name": "ElectricPump",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000023"
         },
         {
           "name": "GearToElectricGenerator",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000024"
         },
         {
           "name": "TrainFluidPlatform",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000025"
         },
         {
           "name": "FilterSplitter",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000026"
         },
         {
           "name": "ElectricToGearGenerator",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000027"
         },
         {
           "name": "CleanRoomWall",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000028"
         },
         {
           "name": "CleanRoomDoor",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000029"
         },
         {
           "name": "CleanRoomItemHatch",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000030"
         },
         {
           "name": "CleanRoomPipeHatch",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000031"
         },
         {
           "name": "CleanRoomAirFilter",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000032"
         },
         {
           "name": "CleanRoomMachine",
-          "entrySource": "blocks"
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000033"
         }
-      ]
+      ],
+      "categoryGuid": "a1000000-0000-4000-8000-000000000001"
     },
     {
       "name": "輸送",
       "subCategories": [
         {
           "name": "車両",
-          "entrySource": "trainCars"
+          "entrySource": "trainCars",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000200000001"
         }
-      ]
+      ],
+      "categoryGuid": "a1000000-0000-4000-8000-000000000002"
     },
     {
       "name": "ツール",
       "subCategories": [
         {
           "name": "接続",
-          "entrySource": "connectTools"
+          "entrySource": "connectTools",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000300000001"
         },
         {
           "name": "ブループリント",
-          "entrySource": "blueprintCopyTool"
+          "entrySource": "blueprintCopyTool",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000300000002"
         }
-      ]
+      ],
+      "categoryGuid": "a1000000-0000-4000-8000-000000000003"
     },
     {
       "name": "ブループリント",
       "subCategories": [
         {
           "name": "保存済み",
-          "entrySource": "savedBlueprints"
+          "entrySource": "savedBlueprints",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000400000001"
         }
-      ]
+      ],
+      "categoryGuid": "a1000000-0000-4000-8000-000000000004"
     }
   ],
   "connectTools": [

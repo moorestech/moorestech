@@ -3,8 +3,14 @@ import { ScrollArea } from "@mantine/core";
 import { useTopic, dispatchAction, Topics, UiStateNames } from "@/bridge";
 import { GamePanel, IconButton } from "@/shared/ui";
 import { L, useI18n } from "@/shared/i18n";
-import type { BuildMenuEntryData } from "@/bridge";
-import { resolveSelectedCategory, searchSections, sectionsForCategory, visibleCategories } from "./buildMenuGrouping";
+import {
+  localizeBuildMenuEntries,
+  resolveSelectedCategory,
+  searchSections,
+  sectionsForCategory,
+  visibleCategories,
+  type BuildMenuDisplayEntry,
+} from "./buildMenuGrouping";
 import { BuildMenuCategoryGrid } from "./BuildMenuCategoryGrid";
 import { BuildMenuDetailPreview } from "./BuildMenuDetailPreview";
 import { BuildMenuSearchInput } from "./BuildMenuSearchInput";
@@ -18,29 +24,30 @@ export function BuildMenuPanel() {
   const data = useTopic(Topics.buildMenu);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [hovered, setHovered] = useState<BuildMenuEntryData | null>(null);
+  const [hovered, setHovered] = useState<BuildMenuDisplayEntry | null>(null);
   if (!data) return null;
 
-  // 検索中は全カテゴリ横断、通常時は選択カテゴリ（消滅時は先頭へフォールバック）
-  // While searching, span all categories; otherwise the selected one (falls back to the first if gone)
-  const visible = visibleCategories(data.categories, data.entries);
+  // 識別子から表示名を一度解決し、検索・スロット・プレビューで共有する
+  // Resolve display names once from identifiers and share them across search, slots, and preview
+  const displayEntries = localizeBuildMenuEntries(data.entries, t);
+  const visible = visibleCategories(data.categories, displayEntries);
   const searching = query !== "";
   const currentCategory = resolveSelectedCategory(selectedCategory, visible);
   const sections = searching
-    ? searchSections(query, data.categories, data.entries)
+    ? searchSections(query, data.categories, displayEntries)
     : currentCategory !== null
-      ? sectionsForCategory(currentCategory, data.categories, data.entries)
+      ? sectionsForCategory(currentCategory, data.categories, displayEntries)
       : [];
 
   // topic再配信で hovered が消えたエントリを指し続けても、描画時に現データ側の実在エントリへ引き直す
   // If a topic rebroadcast leaves hovered pointing at a removed entry, re-resolve to the live entry at render time
   const previewEntry = hovered
-    ? data.entries.find((e) => e.entryType === hovered.entryType && e.entryKey === hovered.entryKey) ?? null
+    ? displayEntries.find((entry) => entry.entryType === hovered.entryType && entry.entryKey === hovered.entryKey) ?? null
     : null;
 
-  const select = (entry: BuildMenuEntryData) =>
+  const select = (entry: BuildMenuDisplayEntry) =>
     void dispatchAction("build_menu.select", { entryType: entry.entryType, entryKey: entry.entryKey });
-  const remove = (entry: BuildMenuEntryData) => void dispatchAction("blueprint.delete", { name: entry.entryKey });
+  const remove = (entry: BuildMenuDisplayEntry) => void dispatchAction("blueprint.delete", { name: entry.entryKey });
   // 閉じるはGameScreen遷移要求
   // Close requests a GameScreen transition
   const close = () => void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });

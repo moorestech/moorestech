@@ -1,4 +1,6 @@
+using System;
 using Core.Master;
+using Mooresmaster.Loader;
 using Mooresmaster.Model.BuildMenuModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -22,7 +24,9 @@ namespace Tests.UnitTest.Core.Block
 
         private static JToken CreateJson(string categoriesJson)
         {
-            return JToken.Parse($@"{{""categories"":[{categoriesJson},{NonBlockCategories}],""connectTools"":[]}}");
+            var json = JToken.Parse($@"{{""categories"":[{categoriesJson},{NonBlockCategories}],""connectTools"":[]}}");
+            AddRequiredGuids(json);
+            return json;
         }
 
         [Test]
@@ -63,6 +67,7 @@ namespace Tests.UnitTest.Core.Block
         {
             var json = JToken.Parse(@"{""categories"":[
                 {""name"":""採掘"",""subCategories"":[{""name"":""採掘機"",""entrySource"":""blocks""}]}],""connectTools"":[]}");
+            AddRequiredGuids(json);
             var master = new BuildMenuCategoryMaster(json);
             Assert.IsFalse(master.Validate(out var logs));
             Assert.IsTrue(logs.Contains("entrySource"));
@@ -76,9 +81,66 @@ namespace Tests.UnitTest.Core.Block
             var master = new BuildMenuCategoryMaster(json);
             Assert.IsTrue(master.Validate(out _));
             master.Initialize();
-            var (category, subCategory) = master.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.trainCars);
-            Assert.AreEqual("輸送", category);
-            Assert.AreEqual("車両", subCategory);
+            var expectedCategoryGuid = Guid.Parse(json["categories"]![1]!["categoryGuid"]!.Value<string>());
+            var expectedSubCategoryGuid = Guid.Parse(
+                json["categories"]![1]!["subCategories"]![0]!["subCategoryGuid"]!.Value<string>());
+            var (categoryGuid, subCategoryGuid) = master.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.trainCars);
+            Assert.AreEqual(expectedCategoryGuid, categoryGuid);
+            Assert.AreEqual(expectedSubCategoryGuid, subCategoryGuid);
+        }
+
+        [Test]
+        public void 定義名ペアからGuidペアを逆引きできる()
+        {
+            var json = CreateJson(@"
+                {""name"":""採掘"",""subCategories"":[{""name"":""採掘機"",""entrySource"":""blocks""}]}");
+            var master = new BuildMenuCategoryMaster(json);
+            master.Initialize();
+
+            var expectedCategoryGuid = Guid.Parse(json["categories"]![0]!["categoryGuid"]!.Value<string>());
+            var expectedSubCategoryGuid = Guid.Parse(
+                json["categories"]![0]!["subCategories"]![0]!["subCategoryGuid"]!.Value<string>());
+            var actual = master.GetGuidPair("採掘", "採掘機");
+            Assert.AreEqual((expectedCategoryGuid, expectedSubCategoryGuid), actual);
+        }
+
+        [Test]
+        public void categoryGuid欠落はローダーで拒否する()
+        {
+            var json = JToken.Parse(@"{""categories"":[
+                {""name"":""採掘"",""subCategories"":[
+                    {""subCategoryGuid"":""20000000-0000-4000-8000-000000000001"",""name"":""採掘機"",""entrySource"":""blocks""}]}],
+                ""connectTools"":[]}");
+            Assert.Throws<MooresmasterLoaderException>(() => new BuildMenuCategoryMaster(json));
+        }
+
+        [Test]
+        public void カテゴリとサブカテゴリを跨ぐGuid重複は拒否する()
+        {
+            var json = CreateJson(@"
+                {""name"":""採掘"",""subCategories"":[{""name"":""採掘機"",""entrySource"":""blocks""}]}");
+            json["categories"]![0]!["subCategories"]![0]!["subCategoryGuid"] =
+                json["categories"]![0]!["categoryGuid"];
+
+            var master = new BuildMenuCategoryMaster(json);
+            Assert.IsFalse(master.Validate(out var logs));
+            StringAssert.Contains("duplicate", logs);
+        }
+
+        private static void AddRequiredGuids(JToken json)
+        {
+            var categoryIndex = 0;
+            foreach (var category in json["categories"]!)
+            {
+                categoryIndex++;
+                category["categoryGuid"] = $"10000000-0000-4000-8000-{categoryIndex:D12}";
+                var subCategoryIndex = 0;
+                foreach (var subCategory in category["subCategories"]!)
+                {
+                    subCategoryIndex++;
+                    subCategory["subCategoryGuid"] = $"20000000-0000-4000-{categoryIndex:D4}-{subCategoryIndex:D12}";
+                }
+            }
         }
     }
 }

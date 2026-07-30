@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Core.Master;
@@ -12,16 +13,21 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     {
         public readonly IPlacementTarget Target;
         public readonly string Label;
-        public readonly string Category;
-        public readonly string SubCategory;
+        public readonly Guid CategoryGuid;
+        public readonly Guid SubCategoryGuid;
         public readonly IReadOnlyList<RequiredItem> RequiredItems;
 
-        public WebBuildMenuEntry(IPlacementTarget target, string label, string category, string subCategory, IReadOnlyList<RequiredItem> requiredItems)
+        public WebBuildMenuEntry(
+            IPlacementTarget target,
+            string label,
+            Guid categoryGuid,
+            Guid subCategoryGuid,
+            IReadOnlyList<RequiredItem> requiredItems)
         {
             Target = target;
             Label = label;
-            Category = category;
-            SubCategory = subCategory;
+            CategoryGuid = categoryGuid;
+            SubCategoryGuid = subCategoryGuid;
             RequiredItems = requiredItems;
         }
 

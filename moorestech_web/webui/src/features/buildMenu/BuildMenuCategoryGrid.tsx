@@ -1,6 +1,6 @@
 import { FadeRule, SlotGrid } from "@/shared/ui";
-import type { BuildMenuEntryData } from "@/bridge";
-import type { BuildMenuSection } from "./buildMenuGrouping";
+import { buildMenuCategoryNameKey, buildMenuSubCategoryNameKey, useI18n } from "@/shared/i18n";
+import type { BuildMenuDisplayEntry, BuildMenuSection } from "./buildMenuGrouping";
 import { BuildMenuSlot } from "./BuildMenuSlot";
 import styles from "./style.module.css";
 
@@ -9,24 +9,29 @@ type Props = {
   // 検索中はカテゴリ名/サブカテゴリ名の複合見出し
   // While searching, headings combine category and sub-category names
   compositeHeading: boolean;
-  onSelect: (entry: BuildMenuEntryData) => void;
-  onDelete: (entry: BuildMenuEntryData) => void;
-  onHoverChange: (entry: BuildMenuEntryData | null) => void;
+  onSelect: (entry: BuildMenuDisplayEntry) => void;
+  onDelete: (entry: BuildMenuDisplayEntry) => void;
+  onHoverChange: (entry: BuildMenuDisplayEntry | null) => void;
 };
 
 // サブカテゴリ見出し+SlotGridでエントリを列挙する
 // Lists entries as sub-category headings plus a SlotGrid
 export function BuildMenuCategoryGrid({ sections, compositeHeading, onSelect, onDelete, onHoverChange }: Props) {
-  // マスタ由来文字列のためt()不要。複合見出しはJSX外で組み立てて可視リテラルlintを避ける
-  // Master-derived strings need no t(); build the composite heading outside JSX to dodge the visible-literal lint
-  const sectionHeading = (section: BuildMenuSection) => (compositeHeading ? `${section.category} / ${section.subCategory}` : section.subCategory);
+  const { t } = useI18n();
+  // 複合見出しもカテゴリGuidとサブカテゴリGuidから同じ辞書を解決する
+  // Resolve composite headings from the same category and sub-category GUID dictionaries
+  const sectionHeading = (section: BuildMenuSection) => {
+    const subCategoryName = t(buildMenuSubCategoryNameKey(section.subCategoryGuid));
+    if (!compositeHeading) return subCategoryName;
+    return `${t(buildMenuCategoryNameKey(section.categoryGuid))} / ${subCategoryName}`;
+  };
   return (
     <div className={styles.gridArea}>
       {sections.map((section) => (
         <section
-          key={`${section.category}/${section.subCategory}`}
+          key={`${section.categoryGuid}/${section.subCategoryGuid}`}
           className={styles.section}
-          data-testid={`build-menu-section-${section.category}-${section.subCategory}`}
+          data-testid={`build-menu-section-${section.categoryGuid}-${section.subCategoryGuid}`}
         >
           <h3 className={styles.sectionHeading}>{sectionHeading(section)}</h3>
           <FadeRule />

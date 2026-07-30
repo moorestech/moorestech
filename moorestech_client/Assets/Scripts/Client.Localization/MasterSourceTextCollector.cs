@@ -24,6 +24,19 @@ namespace Client.Localization
                 sourceTexts[ContentLocalizationKeys.BlockName(blockMaster.BlockGuid)] = blockMaster.Name;
             }
 
+            // ビルドメニューの分類名を必須Guidから収集する
+            // Collect build-menu classification names from required GUIDs
+            foreach (var categoryMaster in MasterHolder.BuildMenuCategoryMaster.Categories)
+            {
+                sourceTexts[ContentLocalizationKeys.BuildMenuCategoryName(categoryMaster.CategoryGuid)] =
+                    categoryMaster.Name;
+                foreach (var subCategoryMaster in categoryMaster.SubCategories)
+                {
+                    sourceTexts[ContentLocalizationKeys.BuildMenuSubCategoryName(
+                        subCategoryMaster.SubCategoryGuid)] = subCategoryMaster.Name;
+                }
+            }
+
             // 必須Guidから全キャラクターの話者名原文を収集する
             // Collect every character speaker source from its required GUID
             foreach (var characterMaster in MasterHolder.CharacterMaster.Characters.Data)

@@ -128,20 +128,20 @@ export const uiState = { state: "PlayerInventory" } satisfies UiStateData;
 // Category x sub-category layout; searching "鉄" hits both 物流/チェスト and 輸送/鉄道 across categories
 export const buildMenu = {
   categories: [
-    { name: "物流", subCategories: ["チェスト", "電気コンベア"] },
-    { name: "輸送", subCategories: ["鉄道", "車両"] },
-    { name: "ブループリント", subCategories: ["保存済み"] },
+    { categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuids: ["52000000-0000-4000-8000-000000000001", "52000000-0000-4000-8000-000000000002"] },
+    { categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuids: ["52000000-0000-4000-8000-000000000003", "52000000-0000-4000-8000-000000000004"] },
+    { categoryGuid: "51000000-0000-4000-8000-000000000003", subCategoryGuids: ["52000000-0000-4000-8000-000000000005"] },
     // エントリを持たない空カテゴリ。サイドバーの除外分岐を検証するためのもの
     // An empty category with no entries, to exercise the sidebar's exclusion branch
-    { name: "建材", subCategories: ["土台"] },
+    { categoryGuid: "51000000-0000-4000-8000-000000000004", subCategoryGuids: ["52000000-0000-4000-8000-000000000006"] },
   ],
   entries: [
-    { entryType: "block", entryKey: "wood-chest", label: "木のチェスト", category: "物流", subCategory: "チェスト", requiredItems: [{ itemId: 1, count: 4 }], iconUrl: "/icons/wood-chest.png" },
-    { entryType: "block", entryKey: "iron-chest", label: "鉄のチェスト", category: "物流", subCategory: "チェスト", requiredItems: [], iconUrl: "/icons/iron-chest.png" },
-    { entryType: "block", entryKey: "belt-conveyor", label: "ベルトコンベア", category: "物流", subCategory: "電気コンベア", requiredItems: [], iconUrl: "/icons/belt-conveyor.png" },
-    { entryType: "block", entryKey: "rail", label: "鉄道レール", category: "輸送", subCategory: "鉄道", requiredItems: [], iconUrl: "/icons/rail.png" },
-    { entryType: "trainCar", entryKey: "cargo-car", label: "貨物車両", category: "輸送", subCategory: "車両", requiredItems: [], iconUrl: "/icons/cargo-car.png" },
-    { entryType: "blueprint", entryKey: "starter-base", label: "starter-base", category: "ブループリント", subCategory: "保存済み", requiredItems: [] },
+    { entryType: "block", entryKey: "53000000-0000-4000-8000-000000000001", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [{ itemId: 1, count: 4 }], iconUrl: "/icons/wood-chest.png" },
+    { entryType: "block", entryKey: "53000000-0000-4000-8000-000000000002", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [], iconUrl: "/icons/iron-chest.png" },
+    { entryType: "block", entryKey: "53000000-0000-4000-8000-000000000003", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000002", requiredItems: [], iconUrl: "/icons/belt-conveyor.png" },
+    { entryType: "block", entryKey: "53000000-0000-4000-8000-000000000004", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: "/icons/rail.png" },
+    { entryType: "trainCar", entryKey: "54000000-0000-4000-8000-000000000001", label: "貨物車両", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000004", requiredItems: [], iconUrl: "/icons/cargo-car.png" },
+    { entryType: "blueprint", entryKey: "starter-base", label: "starter-base", categoryGuid: "51000000-0000-4000-8000-000000000003", subCategoryGuid: "52000000-0000-4000-8000-000000000005", requiredItems: [] },
   ],
 } satisfies BuildMenuData;
 

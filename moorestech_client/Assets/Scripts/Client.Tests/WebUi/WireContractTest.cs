@@ -165,18 +165,18 @@ namespace Client.Tests.WebUi
             {
                 Categories = new List<BuildMenuCategoryDto>
                 {
-                    new() { Name = "物流", SubCategories = new List<string> { "チェスト" } },
-                    new() { Name = "輸送", SubCategories = new List<string> { "鉄道", "車両" } },
-                    new() { Name = "ツール", SubCategories = new List<string> { "接続", "ブループリント" } },
-                    new() { Name = "ブループリント", SubCategories = new List<string> { "保存済み" } },
+                    new() { CategoryGuid = "10000000-0000-4000-8000-000000000001", SubCategoryGuids = new List<string> { "20000000-0000-4000-8000-000000000001" } },
+                    new() { CategoryGuid = "10000000-0000-4000-8000-000000000002", SubCategoryGuids = new List<string> { "20000000-0000-4000-8000-000000000002", "20000000-0000-4000-8000-000000000003" } },
+                    new() { CategoryGuid = "10000000-0000-4000-8000-000000000003", SubCategoryGuids = new List<string> { "20000000-0000-4000-8000-000000000004", "20000000-0000-4000-8000-000000000005" } },
+                    new() { CategoryGuid = "10000000-0000-4000-8000-000000000004", SubCategoryGuids = new List<string> { "20000000-0000-4000-8000-000000000006" } },
                 },
                 Entries = new List<BuildMenuEntryDto>
                 {
-                    new() { EntryType = "block", EntryKey = "1", Label = "鉄の機械", Category = "物流", SubCategory = "チェスト", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 3, Count = 5 } }, IconUrl = "/api/block-icons/1.png" },
-                    new() { EntryType = "trainCar", EntryKey = "8f9c2a51-0000-0000-0000-000000000001", Label = "貨物車両", Category = "輸送", SubCategory = "車両", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 7, Count = 2 } }, IconUrl = "/api/train-car-icons/8f9c2a51-0000-0000-0000-000000000001.png" },
-                    new() { EntryType = "connectTool", EntryKey = "BeltConveyor", Label = "接続ツール", Category = "ツール", SubCategory = "接続", RequiredItems = new List<BuildMenuRequiredItemDto>(), IconUrl = "/api/connect-tool-icons/3.png" },
-                    new() { EntryType = "blueprintCopy", EntryKey = "", Label = "ブループリントコピー", Category = "ツール", SubCategory = "ブループリント", RequiredItems = new List<BuildMenuRequiredItemDto>() },
-                    new() { EntryType = "blueprint", EntryKey = "starter-base", Label = "starter-base", Category = "ブループリント", SubCategory = "保存済み", RequiredItems = new List<BuildMenuRequiredItemDto>() },
+                    new() { EntryType = "block", EntryKey = "30000000-0000-4000-8000-000000000001", CategoryGuid = "10000000-0000-4000-8000-000000000001", SubCategoryGuid = "20000000-0000-4000-8000-000000000001", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 3, Count = 5 } }, IconUrl = "/api/block-icons/1.png" },
+                    new() { EntryType = "trainCar", EntryKey = "8f9c2a51-0000-4000-8000-000000000001", Label = "貨物車両", CategoryGuid = "10000000-0000-4000-8000-000000000002", SubCategoryGuid = "20000000-0000-4000-8000-000000000003", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 7, Count = 2 } }, IconUrl = "/api/train-car-icons/8f9c2a51-0000-4000-8000-000000000001.png" },
+                    new() { EntryType = "connectTool", EntryKey = "40000000-0000-4000-8000-000000000001", Label = "接続ツール", CategoryGuid = "10000000-0000-4000-8000-000000000003", SubCategoryGuid = "20000000-0000-4000-8000-000000000004", RequiredItems = new List<BuildMenuRequiredItemDto>(), IconUrl = "/api/connect-tool-icons/40000000-0000-4000-8000-000000000001.png" },
+                    new() { EntryType = "blueprintCopy", EntryKey = "", Label = "ブループリントコピー", CategoryGuid = "10000000-0000-4000-8000-000000000003", SubCategoryGuid = "20000000-0000-4000-8000-000000000005", RequiredItems = new List<BuildMenuRequiredItemDto>() },
+                    new() { EntryType = "blueprint", EntryKey = "starter-base", Label = "starter-base", CategoryGuid = "10000000-0000-4000-8000-000000000004", SubCategoryGuid = "20000000-0000-4000-8000-000000000006", RequiredItems = new List<BuildMenuRequiredItemDto>() },
                 },
             };
             AssertMatchesFixture(dto, "build_menu_snapshot.json");

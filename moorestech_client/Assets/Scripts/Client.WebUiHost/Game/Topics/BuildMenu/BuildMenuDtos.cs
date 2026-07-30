@@ -14,8 +14,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
     public class BuildMenuCategoryDto
     {
-        public string Name;
-        public List<string> SubCategories;
+        public string CategoryGuid;
+        public List<string> SubCategoryGuids;
     }
 
     public class BuildMenuEntryDto
@@ -23,8 +23,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         public string EntryType;
         public string EntryKey;
         public string Label;
-        public string Category;
-        public string SubCategory;
+        public string CategoryGuid;
+        public string SubCategoryGuid;
         public List<BuildMenuRequiredItemDto> RequiredItems;
 
         // アイコン無し（BP・BPコピー）は null でキー省略される

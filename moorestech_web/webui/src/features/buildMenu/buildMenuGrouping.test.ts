@@ -1,62 +1,109 @@
 import { describe, expect, it } from "vitest";
 import type { BuildMenuCategory, BuildMenuEntryData } from "../../bridge/contract/payloadTypes";
-import { resolveSelectedCategory, searchSections, sectionsForCategory, visibleCategories } from "./buildMenuGrouping";
+import {
+  localizeBuildMenuEntries,
+  resolveSelectedCategory,
+  searchSections,
+  sectionsForCategory,
+  visibleCategories,
+} from "./buildMenuGrouping";
 
-const entry = (label: string, category: string, subCategory: string): BuildMenuEntryData => ({
-  entryType: "block", entryKey: label, label, category, subCategory, requiredItems: [],
+const miningCategoryGuid = "10000000-0000-4000-8000-000000000001";
+const logisticsCategoryGuid = "10000000-0000-4000-8000-000000000002";
+const buildingCategoryGuid = "10000000-0000-4000-8000-000000000003";
+const minerSubCategoryGuid = "20000000-0000-4000-8000-000000000001";
+const liquidSubCategoryGuid = "20000000-0000-4000-8000-000000000002";
+const chestSubCategoryGuid = "20000000-0000-4000-8000-000000000003";
+const conveyorSubCategoryGuid = "20000000-0000-4000-8000-000000000004";
+const foundationSubCategoryGuid = "20000000-0000-4000-8000-000000000005";
+
+const blockEntry = (entryKey: string, categoryGuid: string, subCategoryGuid: string): BuildMenuEntryData => ({
+  entryType: "block", entryKey, categoryGuid, subCategoryGuid, requiredItems: [],
 });
 
 const categories: BuildMenuCategory[] = [
-  { name: "採掘", subCategories: ["採掘機", "液体採取"] },
-  { name: "物流", subCategories: ["チェスト", "電気コンベア"] },
-  { name: "建材", subCategories: ["土台"] },
+  { categoryGuid: miningCategoryGuid, subCategoryGuids: [minerSubCategoryGuid, liquidSubCategoryGuid] },
+  { categoryGuid: logisticsCategoryGuid, subCategoryGuids: [chestSubCategoryGuid, conveyorSubCategoryGuid] },
+  { categoryGuid: buildingCategoryGuid, subCategoryGuids: [foundationSubCategoryGuid] },
 ];
 
-const entries = [
-  entry("木のチェスト", "物流", "チェスト"),
-  entry("鉄の採掘機", "採掘", "採掘機"),
-  entry("ベルトコンベア", "物流", "電気コンベア"),
-];
+const rawEntries = [
+  blockEntry("30000000-0000-4000-8000-000000000001", logisticsCategoryGuid, chestSubCategoryGuid),
+  blockEntry("30000000-0000-4000-8000-000000000002", miningCategoryGuid, minerSubCategoryGuid),
+  blockEntry("30000000-0000-4000-8000-000000000003", logisticsCategoryGuid, conveyorSubCategoryGuid),
+] satisfies BuildMenuEntryData[];
+const translations: Record<string, string> = {
+  "block.30000000-0000-4000-8000-000000000001.name": "木のチェスト",
+  "block.30000000-0000-4000-8000-000000000002.name": "鉄の採掘機",
+  "block.30000000-0000-4000-8000-000000000003.name": "ベルトコンベア",
+};
+const entries = localizeBuildMenuEntries(rawEntries, (key) => translations[key]);
 
 describe("visibleCategories", () => {
   it("エントリの無いカテゴリを除外し定義順を維持する", () => {
-    expect(visibleCategories(categories, entries).map((c) => c.name)).toEqual(["採掘", "物流"]);
+    expect(visibleCategories(categories, entries).map((c) => c.categoryGuid)).toEqual([
+      miningCategoryGuid,
+      logisticsCategoryGuid,
+    ]);
   });
 });
 
 describe("resolveSelectedCategory", () => {
   it("nullなら先頭カテゴリへフォールバックする", () => {
-    expect(resolveSelectedCategory(null, visibleCategories(categories, entries))).toBe("採掘");
+    expect(resolveSelectedCategory(null, visibleCategories(categories, entries))).toBe(miningCategoryGuid);
   });
   it("表示対象外のカテゴリ名なら先頭へフォールバックする", () => {
-    expect(resolveSelectedCategory("建材", visibleCategories(categories, entries))).toBe("採掘");
+    expect(resolveSelectedCategory(buildingCategoryGuid, visibleCategories(categories, entries))).toBe(miningCategoryGuid);
   });
   it("表示中のカテゴリ名は維持する", () => {
-    expect(resolveSelectedCategory("物流", visibleCategories(categories, entries))).toBe("物流");
+    expect(resolveSelectedCategory(logisticsCategoryGuid, visibleCategories(categories, entries))).toBe(logisticsCategoryGuid);
   });
   it("表示カテゴリが無ければnull", () => {
-    expect(resolveSelectedCategory("物流", [])).toBeNull();
+    expect(resolveSelectedCategory(logisticsCategoryGuid, [])).toBeNull();
   });
 });
 
 describe("sectionsForCategory", () => {
   it("サブカテゴリ定義順で空サブカテゴリを除外する", () => {
-    const sections = sectionsForCategory("物流", categories, entries);
-    expect(sections.map((s) => s.subCategory)).toEqual(["チェスト", "電気コンベア"]);
-    expect(sections[0].entries.map((e) => e.label)).toEqual(["木のチェスト"]);
+    const sections = sectionsForCategory(logisticsCategoryGuid, categories, entries);
+    expect(sections.map((s) => s.subCategoryGuid)).toEqual([chestSubCategoryGuid, conveyorSubCategoryGuid]);
+    expect(sections[0].entries.map((e) => e.displayLabel)).toEqual(["木のチェスト"]);
   });
 });
 
 describe("searchSections", () => {
   it("横断部分一致でカテゴリ定義順にグループ化する", () => {
     const sections = searchSections("鉄", categories, entries);
-    expect(sections.map((s) => `${s.category}/${s.subCategory}`)).toEqual(["採掘/採掘機"]);
+    expect(sections.map((s) => `${s.categoryGuid}/${s.subCategoryGuid}`)).toEqual([
+      `${miningCategoryGuid}/${minerSubCategoryGuid}`,
+    ]);
   });
   it("大文字小文字を無視する", () => {
-    const en = [entry("Iron Chest", "物流", "チェスト")];
+    const en = localizeBuildMenuEntries(
+      [blockEntry("30000000-0000-4000-8000-000000000004", logisticsCategoryGuid, chestSubCategoryGuid)],
+      () => "Iron Chest",
+    );
     expect(searchSections("iron", categories, en)).toHaveLength(1);
   });
   it("0件なら空配列", () => {
     expect(searchSections("存在しない", categories, entries)).toEqual([]);
+  });
+});
+
+describe("localizeBuildMenuEntries", () => {
+  it("blockはGuid導出キーで表示名を解決しraw labelを要求しない", () => {
+    expect(entries[0].displayLabel).toBe("木のチェスト");
+  });
+
+  it("ユーザー命名blueprintはlabelをそのまま維持する", () => {
+    const blueprint: BuildMenuEntryData = {
+      entryType: "blueprint",
+      entryKey: "starter-base",
+      label: "starter-base",
+      categoryGuid: logisticsCategoryGuid,
+      subCategoryGuid: chestSubCategoryGuid,
+      requiredItems: [],
+    };
+    expect(localizeBuildMenuEntries([blueprint], () => "unused")[0].displayLabel).toBe("starter-base");
   });
 });

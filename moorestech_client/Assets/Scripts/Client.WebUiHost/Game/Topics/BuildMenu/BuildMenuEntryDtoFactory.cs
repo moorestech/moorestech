@@ -25,8 +25,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     EntryType = GetEntryTypeName(entry.Target),
                     EntryKey = GetEntryKey(entry.Target),
                     Label = entry.Label,
-                    Category = entry.Category,
-                    SubCategory = entry.SubCategory,
+                    CategoryGuid = entry.CategoryGuid.ToString(),
+                    SubCategoryGuid = entry.SubCategoryGuid.ToString(),
                     RequiredItems = entry.RequiredItems.Select(r => new BuildMenuRequiredItemDto { ItemId = r.ItemId.AsPrimitive(), Count = r.Count }).ToList(),
                     IconUrl = CreateIconUrl(entry.Target),
                 });
@@ -41,8 +41,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             return MasterHolder.BuildMenuCategoryMaster.Categories
                 .Select(c => new BuildMenuCategoryDto
                 {
-                    Name = c.Name,
-                    SubCategories = c.SubCategories.Select(s => s.Name).ToList(),
+                    CategoryGuid = c.CategoryGuid.ToString(),
+                    SubCategoryGuids = c.SubCategories.Select(s => s.SubCategoryGuid.ToString()).ToList(),
                 }).ToList();
         }
 
@@ -67,7 +67,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         {
             return target switch
             {
-                BlockPlacementTarget block => block.BlockId.AsPrimitive().ToString(),
+                BlockPlacementTarget block => MasterHolder.BlockMaster
+                    .GetBlockMaster(block.BlockId).BlockGuid.ToString(),
                 TrainCarPlacementTarget trainCar => trainCar.TrainCarGuid.ToString(),
                 ConnectToolPlacementTarget connectTool => connectTool.ConnectToolGuid.ToString(),
                 BlueprintPlacementTarget blueprint => blueprint.BlueprintName,

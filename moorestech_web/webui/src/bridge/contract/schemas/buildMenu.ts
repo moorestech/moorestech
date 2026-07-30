@@ -7,19 +7,51 @@ export const BuildMenuRequiredItemSchema = z.object({
   count: z.number().int(),
 });
 
-export const BuildMenuEntryDataSchema = z.object({
-  entryType: BuildMenuEntryTypeSchema,
-  entryKey: z.string(),
-  label: z.string(),
-  category: z.string(),
-  subCategory: z.string(),
+const BuildMenuEntryCommonFields = {
+  categoryGuid: z.string().uuid(),
+  subCategoryGuid: z.string().uuid(),
   requiredItems: z.array(BuildMenuRequiredItemSchema),
   iconUrl: z.string().optional(),
+};
+
+const BuildMenuBlockEntryDataSchema = z.object({
+  entryType: z.literal("block"),
+  entryKey: z.string().uuid(),
+  ...BuildMenuEntryCommonFields,
+  label: z.never().optional(),
 });
 
+const BuildMenuGuidLabeledEntryDataSchema = z.object({
+  entryType: z.enum(["trainCar", "connectTool"]),
+  entryKey: z.string().uuid(),
+  ...BuildMenuEntryCommonFields,
+  label: z.string(),
+});
+
+const BuildMenuBlueprintCopyEntryDataSchema = z.object({
+  entryType: z.literal("blueprintCopy"),
+  entryKey: z.literal(""),
+  ...BuildMenuEntryCommonFields,
+  label: z.string(),
+});
+
+const BuildMenuBlueprintEntryDataSchema = z.object({
+  entryType: z.literal("blueprint"),
+  entryKey: z.string().min(1),
+  ...BuildMenuEntryCommonFields,
+  label: z.string(),
+});
+
+export const BuildMenuEntryDataSchema = z.discriminatedUnion("entryType", [
+  BuildMenuBlockEntryDataSchema,
+  BuildMenuGuidLabeledEntryDataSchema,
+  BuildMenuBlueprintCopyEntryDataSchema,
+  BuildMenuBlueprintEntryDataSchema,
+]);
+
 export const BuildMenuCategorySchema = z.object({
-  name: z.string(),
-  subCategories: z.array(z.string()),
+  categoryGuid: z.string().uuid(),
+  subCategoryGuids: z.array(z.string().uuid()),
 });
 
 export const BuildMenuDataSchema = z.object({

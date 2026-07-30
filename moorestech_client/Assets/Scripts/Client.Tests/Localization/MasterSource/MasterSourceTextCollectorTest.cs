@@ -74,6 +74,19 @@ namespace Client.Tests.Localization.MasterSource
                 expected.Add($"block.{block.BlockGuid:D}.name", block.Name);
             }
 
+            // 全ビルドメニューカテゴリとサブカテゴリを必須Guidから列挙する
+            // Enumerate every build-menu category and sub-category from required GUIDs
+            foreach (var category in MasterHolder.BuildMenuCategoryMaster.Categories)
+            {
+                expected.Add($"buildMenuCategory.{category.CategoryGuid:D}.name", category.Name);
+                foreach (var subCategory in category.SubCategories)
+                {
+                    expected.Add(
+                        $"buildMenuSubCategory.{subCategory.SubCategoryGuid:D}.name",
+                        subCategory.Name);
+                }
+            }
+
             // 全キャラクターの話者名も必須Guidから列挙する
             // Enumerate every character speaker name from its required GUID
             foreach (var character in MasterHolder.CharacterMaster.Characters.Data)

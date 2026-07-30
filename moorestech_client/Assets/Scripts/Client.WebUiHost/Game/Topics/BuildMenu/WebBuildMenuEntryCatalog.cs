@@ -40,7 +40,14 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             {
                 var blockId = MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);
                 var requiredItems = ToRequiredItems(blockMaster.RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
-                entries.Add(new WebBuildMenuEntry(new BlockPlacementTarget(blockId, null), blockMaster.Name, blockMaster.Category, blockMaster.SubCategory, requiredItems));
+                var (categoryGuid, subCategoryGuid) =
+                    categoryMaster.GetGuidPair(blockMaster.Category, blockMaster.SubCategory);
+                entries.Add(new WebBuildMenuEntry(
+                    new BlockPlacementTarget(blockId, null),
+                    null,
+                    categoryGuid,
+                    subCategoryGuid,
+                    requiredItems));
             }
 
             // 解放済み車両を列挙する。行き先はentrySource:trainCarsのサブカテゴリ

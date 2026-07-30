@@ -151,17 +151,72 @@ describe("validCraftRecipes", () => {
 });
 
 describe("validBuildMenu", () => {
-  const categories = [{ name: "物流", subCategories: ["チェスト"] }];
+  const categoryGuid = "10000000-0000-4000-8000-000000000001";
+  const subCategoryGuid = "20000000-0000-4000-8000-000000000001";
+  const blockGuid = "30000000-0000-4000-8000-000000000001";
+  const categories = [{ categoryGuid, subCategoryGuids: [subCategoryGuid] }];
   const entry = {
-    entryType: "block", entryKey: "1", label: "鉄の機械", category: "物流", subCategory: "チェスト",
+    entryType: "block", entryKey: blockGuid, categoryGuid, subCategoryGuid,
     requiredItems: [{ itemId: 3, count: 5 }], iconUrl: "/api/block-icons/1.png",
   };
   it("accepts icon and text entries", () => {
     const d = {
       categories,
-      entries: [entry, { entryType: "blueprint", entryKey: "家", label: "家", category: "物流", subCategory: "チェスト", requiredItems: [] }],
+      entries: [entry, { entryType: "blueprint", entryKey: "家", label: "家", categoryGuid, subCategoryGuid, requiredItems: [] }],
     };
     expect(validateTopicPayload(Topics.buildMenu, d)).toBe(true);
+  });
+  it("rejects a raw label on block master entries", () => {
+    const d = { categories, entries: [{ ...entry, label: "鉄の機械" }] };
+    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
+  });
+  it("rejects a non-Guid category identity", () => {
+    const d = { categories: [{ categoryGuid: "物流", subCategoryGuids: [subCategoryGuid] }], entries: [entry] };
+    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
+  });
+  it("rejects a non-Guid block entry identity", () => {
+    const d = { categories, entries: [{ ...entry, entryKey: "1" }] };
+    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
+  });
+  it.each(["trainCar", "connectTool"] as const)("rejects a non-Guid %s master entry identity", (entryType) => {
+    const masterEntry = {
+      entryType,
+      entryKey: "master-name",
+      label: "表示名",
+      categoryGuid,
+      subCategoryGuid,
+      requiredItems: [],
+    };
+    expect(validateTopicPayload(Topics.buildMenu, { categories, entries: [masterEntry] })).toBe(false);
+  });
+  it("rejects a blueprint entry without its user-authored label", () => {
+    const d = {
+      categories,
+      entries: [{ entryType: "blueprint", entryKey: "家", categoryGuid, subCategoryGuid, requiredItems: [] }],
+    };
+    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
+  });
+  it("rejects a non-empty blueprintCopy entry identity", () => {
+    const copyEntry = {
+      entryType: "blueprintCopy",
+      entryKey: "copy",
+      label: "ブループリントコピー",
+      categoryGuid,
+      subCategoryGuid,
+      requiredItems: [],
+    };
+    expect(validateTopicPayload(Topics.buildMenu, { categories, entries: [copyEntry] })).toBe(false);
+  });
+  it("rejects an empty user-authored blueprint identity", () => {
+    const blueprintEntry = {
+      entryType: "blueprint",
+      entryKey: "",
+      label: "",
+      categoryGuid,
+      subCategoryGuid,
+      requiredItems: [],
+    };
+    expect(validateTopicPayload(Topics.buildMenu, { categories, entries: [blueprintEntry] })).toBe(false);
   });
   it("rejects a non-string entryKey", () => {
     const d = { categories, entries: [{ ...entry, entryKey: 1 }] };
@@ -170,8 +225,8 @@ describe("validBuildMenu", () => {
   it("rejects a missing entries array", () => {
     expect(validateTopicPayload(Topics.buildMenu, { categories })).toBe(false);
   });
-  it("rejects an entry with a missing category", () => {
-    const { category: _, ...missingCategory } = entry;
+  it("rejects an entry with a missing categoryGuid", () => {
+    const { categoryGuid: _, ...missingCategory } = entry;
     expect(validateTopicPayload(Topics.buildMenu, { categories, entries: [missingCategory] })).toBe(false);
   });
   it("rejects an entry with a non-array requiredItems", () => {
