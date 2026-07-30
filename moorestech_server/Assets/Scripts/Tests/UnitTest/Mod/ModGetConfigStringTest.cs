@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using Core.Master;
 using Mod.Config;
@@ -15,6 +16,59 @@ namespace Tests.UnitTest.Mod
     /// </summary>
     public class ModGetConfigStringTest
     {
+        private string temporaryModDirectory;
+
+        [SetUp]
+        public void SetUp()
+        {
+            temporaryModDirectory = Path.Combine(
+                Path.GetTempPath(),
+                "moorestech-mod-meta-test-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(temporaryModDirectory);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (Directory.Exists(temporaryModDirectory)) Directory.Delete(temporaryModDirectory, true);
+        }
+
+        [Test]
+        public void 空のModIdはロード境界で拒否する()
+        {
+            var masterDirectory = Path.Combine(temporaryModDirectory, "broken-mod", "master");
+            Directory.CreateDirectory(masterDirectory);
+
+            // 外部modの空idを実ロード境界へ入力する
+            // Feed an empty ID from an external mod into the actual load boundary
+            File.WriteAllText(
+                Path.Combine(masterDirectory, "modMeta.json"),
+                "{\"id\":\"\",\"name\":\"Broken\",\"version\":\"1.0.0\",\"author\":\"Author\"}");
+
+            var exception = Assert.Throws<InvalidDataException>(
+                () => new ModsResource(temporaryModDirectory));
+            StringAssert.Contains("id", exception.Message);
+        }
+
+        [Test]
+        public void 空のModIdを持つZipもロード境界で拒否する()
+        {
+            var zipPath = Path.Combine(temporaryModDirectory, "broken-mod.zip");
+
+            // folder経路と同じ不正メタをzip境界へ入力する
+            // Feed the same invalid metadata into the zip boundary
+            using (var archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+            {
+                var entry = archive.CreateEntry("master/modMeta.json");
+                using var writer = new StreamWriter(entry.Open());
+                writer.Write("{\"id\":\"\",\"name\":\"Broken\",\"version\":\"1.0.0\",\"author\":\"Author\"}");
+            }
+
+            var exception = Assert.Throws<InvalidDataException>(
+                () => new ModsResource(temporaryModDirectory));
+            StringAssert.Contains("id", exception.Message);
+        }
+
         [Test]
         public void LoadConfigTest()
         {
