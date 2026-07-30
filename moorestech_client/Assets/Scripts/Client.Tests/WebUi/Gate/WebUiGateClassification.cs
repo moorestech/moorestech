@@ -93,6 +93,8 @@ namespace Client.Tests.WebUi.Gate
 
             // --- 基盤 / Infra
             new Rule("Client.Game/InGame/UI/UIState", Category.Infra, "状態機械・ゲート本体・トグル"),
+            new Rule("Client.Game/Skit/Lifecycle", Category.Infra, "通常スキットの後始末を一度だけ行うライフサイクル基盤（画面表示なし）"),
+            new Rule("Client.Game/Skit/Localization", Category.Infra, "通常スキットの辞書読込・合成・解決基盤（画面表示なし）"),
 
             // --- Phase待ち / Pending migration
             new Rule("Client.Game/InGame/UI/Inventory/Train", Category.CoveredByRoot, "TrainInventoryView配下 (C3)"),
