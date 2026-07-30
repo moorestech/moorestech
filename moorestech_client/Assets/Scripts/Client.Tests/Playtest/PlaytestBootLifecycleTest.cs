@@ -1,4 +1,7 @@
+using System;
+using System.IO;
 using System.Reflection;
+using Client.Game;
 using Client.Playtest;
 using Client.Playtest.Core;
 using Client.Starter;
@@ -15,6 +18,7 @@ namespace Client.Tests.Playtest
     {
         private const string DebugEnvironmentTypeKey = "DebugEnvironmentTypeKey";
         private string _previousDebugCacheOverride;
+        private string _temporaryDebugCacheDirectory;
 
         [SetUp]
         public void SetUp()
@@ -29,6 +33,8 @@ namespace Client.Tests.Playtest
         {
             PlaytestBootLifecycle.HandlePlayModeStateChanged(PlayModeStateChange.EnteredEditMode);
             DebugParametersCacheDirectory.SetOverride(_previousDebugCacheOverride);
+            if (!string.IsNullOrEmpty(_temporaryDebugCacheDirectory) && Directory.Exists(_temporaryDebugCacheDirectory))
+                Directory.Delete(_temporaryDebugCacheDirectory, true);
         }
 
         [TestCase(0)]
@@ -47,6 +53,7 @@ namespace Client.Tests.Playtest
             Assert.That(SessionState.GetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, true), Is.False);
             Assert.That(DebugParametersCacheDirectory.GetOverride(), Is.EqualTo(PlaytestPaths.DebugCacheDirectory));
             Assert.That(DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, -1), Is.EqualTo(1));
+            Assert.That(DebugParameters.GetValueOrDefaultBool(DebugConst.SkitPlaySettingsKey), Is.True);
             Assert.That(restored, Is.True);
             Assert.That(settings.ServerDataDirectory, Is.EqualTo("/master/server_v8"));
             Assert.That(settings.WorldDirectory, Is.EqualTo("/tmp/fixed-world"));
@@ -119,6 +126,20 @@ namespace Client.Tests.Playtest
         }
 
         [Test]
+        public void ConfigureFixedWorldDebugSettings_自然環境とSkit抑止を設定する()
+        {
+            // 空の隔離cacheで固定world専用設定の値を直接検証する
+            // Verify fixed-world-only values directly in an empty isolated cache
+            _temporaryDebugCacheDirectory = Path.Combine(Path.GetTempPath(), $"moorestech_fixed_world_debug_{Guid.NewGuid():N}");
+            DebugParametersCacheDirectory.SetOverride(_temporaryDebugCacheDirectory);
+
+            PlaytestBootLifecycle.ConfigureFixedWorldDebugSettings();
+
+            Assert.That(DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, -1), Is.EqualTo(1));
+            Assert.That(DebugParameters.GetValueOrDefaultBool(DebugConst.SkitPlaySettingsKey), Is.True);
+        }
+
+        [Test]
         public void PublicEntrypoints_中央準備処理へ委譲する()
         {
             // 公開入口から中央準備処理への橋を削る退行をIL呼び出しで検出する
@@ -127,9 +148,12 @@ namespace Client.Tests.Playtest
             var worldEntry = typeof(PlaytestBoot).GetMethod(nameof(PlaytestBoot.PrepareWorldAndEnterPlayMode));
             var legacyPreparation = typeof(PlaytestBootLifecycle).GetMethod("PrepareLegacyBootSession", BindingFlags.Static | BindingFlags.NonPublic);
             var worldPreparation = typeof(PlaytestBootLifecycle).GetMethod("PrepareWorldBootSession", BindingFlags.Static | BindingFlags.NonPublic);
+            var fixedWorldDebugSettings = typeof(PlaytestBootLifecycle).GetMethod("ConfigureFixedWorldDebugSettings", BindingFlags.Static | BindingFlags.NonPublic);
 
             Assert.That(MethodCallInspector.ContainsCall(legacyEntry, legacyPreparation), Is.True);
             Assert.That(MethodCallInspector.ContainsCall(worldEntry, worldPreparation), Is.True);
+            Assert.That(MethodCallInspector.ContainsCall(worldPreparation, fixedWorldDebugSettings), Is.True);
+            Assert.That(MethodCallInspector.ContainsCall(legacyPreparation, fixedWorldDebugSettings), Is.False);
         }
 
         [Test]

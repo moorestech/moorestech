@@ -1,3 +1,4 @@
+using Client.Game;
 using Client.Playtest.Core;
 using Client.Starter;
 using Common.Debug;
@@ -32,7 +33,15 @@ namespace Client.Playtest
             SessionState.SetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, false);
             PlaytestWorldBootSession.Save(serverDirectory, worldDirectory, mapMode, seed);
             PrepareCommonBootSession(serverDirectory);
+            ConfigureFixedWorldDebugSettings();
+        }
+
+        internal static void ConfigureFixedWorldDebugSettings()
+        {
+            // 固定QAでは自然環境を選び、初回challengeの自動Skitを抑止する
+            // Fixed QA selects pure nature and suppresses the initial challenge's automatic skit
             DebugParameters.SaveInt(DebugEnvironmentTypeKey, PureNatureEnvironmentType);
+            DebugParameters.SaveBool(DebugConst.SkitPlaySettingsKey, true);
         }
 
         internal static bool RestoreAfterDomainReload(bool isPlayingOrWillChangePlaymode)
