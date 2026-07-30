@@ -52,22 +52,21 @@ namespace Client.Tests.EditModeInPlayingTest
                 Assert.Less(0, mapLayout.TerrainTileCount, "地形タイルが1枚も無い");
                 var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(mapLayout.WorldId));
 
-                // 起動処理は地形構築の完了を待たずに戻る。既存Terrainは数えず、今回の全キャッシュファイルを待つ
-                // The boot returns before terrain construction; wait for this build's cache files, never count pre-existing Terrains
+                // 起動処理は地形構築の完了を待たずに戻る。全ファイルを待ってから、このテスト固有worldIdのvisualだけを空にする
+                // The boot returns before terrain construction; wait for every file, then empty only this test worldId's visual cache
                 await UniTask.WaitUntil(AreAllVisualCacheFilesWritten).Timeout(TimeSpan.FromSeconds(60));
+                Directory.Delete(cacheWorldDirectory.TerrainVisualDirectory, true);
+                Assert.IsFalse(Directory.Exists(cacheWorldDirectory.TerrainVisualDirectory), "テスト用visualキャッシュが空でない");
 
-                // ① 起動時の構築で全タイルぶんの見た目キャッシュが書き出されている
-                // (1) The boot-time build wrote a visual cache file for every tile
+                // ① 空のtest固有cacheで第1構築を完了させ、取り逃し数0を正確なRuntimeBuilderログで確認する
+                // (1) Build first against the empty test-specific cache and verify the exact zero-hit RuntimeBuilder log
+                await BuildWithExpectedCacheHits(0, "TerrainVisualCacheFirstBuild");
                 foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(mapLayout.TerrainTileCount))
                     FileAssert.Exists(cacheWorldDirectory.TerrainVisualCacheFilePath(tile.TileX, tile.TileZ));
 
-                // ② 2回目の構築ログで全タイルがヒットしたことを確認する。ヒット数が全数ならsplatmapもdetailも再生成していない
-                // (2) The second build log must show every tile hit; a full hit count means neither splatmaps nor details regenerated
-                var secondBuildRoot = new GameObject("TerrainVisualCacheSecondBuild");
-                LogAssert.Expect(LogType.Log, new Regex(
-                    $@"\[TerrainRuntimeBuilder\] Generated terrain built: tiles={mapLayout.TerrainTileCount} visualCacheHits={mapLayout.TerrainTileCount} elapsedMs=\d+"));
-                await TerrainRuntimeBuilder.BuildAsync(mapLayout, secondBuildRoot.transform);
-                UnityEngine.Object.DestroyImmediate(secondBuildRoot);
+                // ② 第2構築では全タイルがhitする。全数hitならsplatmap/detailの再生成を一切通らない
+                // (2) The second build must hit every tile; a full hit count means it never regenerates splatmaps or details
+                await BuildWithExpectedCacheHits(mapLayout.TerrainTileCount, "TerrainVisualCacheSecondBuild");
 
                 // ③ 対照: キャッシュファイルを消せば取り逃す。②が常にtrueを返すだけの検査でないことを示す
                 // (3) Control: deleting the file misses, showing (2) is not merely an assertion that always holds
@@ -88,6 +87,15 @@ namespace Client.Tests.EditModeInPlayingTest
                             return false;
 
                     return true;
+                }
+
+                async UniTask BuildWithExpectedCacheHits(int expectedCacheHits, string rootName)
+                {
+                    var buildRoot = new GameObject(rootName);
+                    LogAssert.Expect(LogType.Log, new Regex(
+                        $@"\[TerrainRuntimeBuilder\] Generated terrain built: tiles={mapLayout.TerrainTileCount} visualCacheHits={expectedCacheHits} elapsedMs=\d+"));
+                    await TerrainRuntimeBuilder.BuildAsync(mapLayout, buildRoot.transform);
+                    UnityEngine.Object.DestroyImmediate(buildRoot);
                 }
             }
 

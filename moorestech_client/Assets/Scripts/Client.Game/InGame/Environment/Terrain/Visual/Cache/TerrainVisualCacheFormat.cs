@@ -9,12 +9,21 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
         // "MTVC" = Moorestech Terrain Visual Cache。別形式のファイルを誤読しないための識別子
         // "MTVC" = Moorestech Terrain Visual Cache; the identifier keeping a foreign file from being misread
         public const int MagicNumber = 0x4D545643;
-        public const int FormatVersion = 1;
+        public const int FormatVersion = 2;
 
         // キーはSHA256の16進64文字固定。可変長にすると壊れたファイルで読み出し長が暴れる
         // The key is a fixed 64-char SHA256 hex; a variable length would let a broken file dictate how much is read
         public const int CacheKeyByteLength = 64;
-        public const int HeaderByteLength = 4 + 4 + CacheKeyByteLength + 4 * 4;
+        public const int PayloadChecksumByteLength = 32;
+        public const int HeaderByteLength = 4 + 4 + CacheKeyByteLength + 4 * 4 + PayloadChecksumByteLength;
+
+        // 読み手が破損headerで巨大な配列を確保しないための形式上限。実データの最大値ではない
+        // The format bounds stop a corrupt header from allocating enormous arrays; they are not gameplay data limits
+        public const int MaximumAlphamapResolution = 4096;
+        public const int MaximumLayerCount = 64;
+        public const int MaximumDetailResolution = 4096;
+        public const int MaximumDetailMapCount = 64;
+        public const int MaximumPayloadByteLength = 256 * 1024 * 1024;
 
         // splatmapの重みは1画素1バイトに量子化する。Unityがalphamapを8bitテクスチャへ焼くため精度は落ちない
         // Splat weights are quantized to one byte per pixel: Unity bakes alphamaps into 8-bit textures, so no precision is lost
@@ -28,6 +37,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
         public const int LayerCountOffset = AlphamapResolutionOffset + 4;
         public const int DetailResolutionOffset = LayerCountOffset + 4;
         public const int DetailMapCountOffset = DetailResolutionOffset + 4;
+        public const int PayloadChecksumOffset = DetailMapCountOffset + 4;
 
         public static void WriteInt(byte[] bytes, int offset, int value)
         {

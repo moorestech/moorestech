@@ -1,81 +1,120 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using static Client.Game.InGame.Environment.Terrain.Visual.Cache.TerrainVisualCacheFormat;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
 {
     /// <summary>
-    ///     書き出した見た目を読み戻す。全長が宣言された寸法と一致する場合だけ中身を信じる
-    ///     Reads the written visuals back, trusting the content only when the total length matches the declared dimensions
+    ///     書き出した見た目を、固定headerとpayloadチェックサムを検証してから読み戻す
+    ///     Reads written visuals back only after verifying the fixed header and payload checksum
     /// </summary>
     public static class TerrainVisualCacheReader
     {
-        // キー不一致・未作成は素の取り逃し。キーが合うのに中身が寸法と食い違う場合だけbrokenReasonを返す
-        // A missing file or a stale key is an ordinary miss; brokenReason is filled only when a matching key carries content that disagrees with its dimensions
         public static bool TryRead(
             string filePath, string expectedCacheKey, int expectedAlphamapResolution, int expectedLayerCount,
-            int expectedDetailResolution, out TerrainTileVisual tileVisual, out string brokenReason)
+            int expectedDetailResolution, int expectedDetailMapCount, out TerrainTileVisual tileVisual, out string brokenReason)
         {
             tileVisual = null;
             brokenReason = null;
 
-            if (!File.Exists(filePath)) return false;
-
-            // キャッシュファイルは外部データ。ヘッダを信じる前に全長・魔法数・版・キーを確かめる
-            // The cache file is external data: length, magic, version, and key are checked before the header is trusted
-            var bytes = File.ReadAllBytes(filePath);
-            if (bytes.Length < HeaderByteLength)
+            // cacheファイルはロック・削除・権限変更が起こり得る外部I/O境界なので、限定例外を取り逃しへ隔離する
+            // Cache files form an external I/O boundary where locking, deletion, and permission changes can occur, so limited exceptions become misses
+            try
             {
-                brokenReason = $"file length {bytes.Length} is shorter than the {HeaderByteLength}-byte header";
+                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                return TryReadOpenedStream(stream, expectedCacheKey, expectedAlphamapResolution, expectedLayerCount,
+                    expectedDetailResolution, expectedDetailMapCount, out tileVisual, out brokenReason);
+            }
+            catch (FileNotFoundException)
+            {
+                return false;
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return false;
+            }
+            catch (IOException exception)
+            {
+                brokenReason = $"cache I/O failed: {exception.Message}";
+                return false;
+            }
+            catch (UnauthorizedAccessException exception)
+            {
+                brokenReason = $"cache access was denied: {exception.Message}";
+                return false;
+            }
+        }
+
+        private static bool TryReadOpenedStream(
+            FileStream stream, string expectedCacheKey, int expectedAlphamapResolution, int expectedLayerCount,
+            int expectedDetailResolution, int expectedDetailMapCount, out TerrainTileVisual tileVisual, out string brokenReason)
+        {
+            tileVisual = null;
+            brokenReason = null;
+            if (stream.Length < HeaderByteLength)
+            {
+                brokenReason = $"file length {stream.Length} is shorter than the {HeaderByteLength}-byte header";
                 return false;
             }
 
-            if (ReadInt(bytes, 0) != MagicNumber || ReadInt(bytes, 4) != FormatVersion)
+            var headerBytes = new byte[HeaderByteLength];
+            if (!ReadExactly(stream, headerBytes))
+            {
+                brokenReason = "header ended before its declared fixed length";
+                return false;
+            }
+
+            // 固定部分だけで形式・キー・宣言寸法を確認し、任意サイズのpayloadを読む前に信頼境界を作る
+            // Validate format, key, and declared dimensions from fixed bytes before reading an arbitrarily sized payload
+            if (ReadInt(headerBytes, 0) != MagicNumber || ReadInt(headerBytes, 4) != FormatVersion)
             {
                 brokenReason = "magic number or format version is unsupported";
                 return false;
             }
-            if (Encoding.ASCII.GetString(bytes, 8, CacheKeyByteLength) != expectedCacheKey) return false;
+            if (Encoding.ASCII.GetString(headerBytes, 8, CacheKeyByteLength) != expectedCacheKey) return false;
 
-            var alphamapResolution = ReadInt(bytes, AlphamapResolutionOffset);
-            var layerCount = ReadInt(bytes, LayerCountOffset);
-            var detailResolution = ReadInt(bytes, DetailResolutionOffset);
-            var detailMapCount = ReadInt(bytes, DetailMapCountOffset);
-
-            // 寸法は書き換えられ得る値。負や桁あふれを先に弾いてから長さ計算に使う
-            // The dimensions are rewritable values, so negatives and overflow are rejected before any length is derived from them
-            if (alphamapResolution <= 0 || layerCount <= 0 || detailResolution < 0 || detailMapCount < 0) return false;
-
-            var alphamapByteLength = (long)alphamapResolution * alphamapResolution * layerCount;
-            var detailByteLength = (long)detailMapCount * detailResolution * detailResolution * DetailBytesPerCell;
-            if (bytes.Length != HeaderByteLength + alphamapByteLength + detailByteLength)
+            var alphamapResolution = ReadInt(headerBytes, AlphamapResolutionOffset);
+            var layerCount = ReadInt(headerBytes, LayerCountOffset);
+            var detailResolution = ReadInt(headerBytes, DetailResolutionOffset);
+            var detailMapCount = ReadInt(headerBytes, DetailMapCountOffset);
+            if (!HasSaneDimensions(alphamapResolution, layerCount, detailResolution, detailMapCount))
             {
-                brokenReason = $"byte length {bytes.Length} disagrees with the declared dimensions";
+                brokenReason = "declared dimensions exceed the visual cache format bounds";
+                return false;
+            }
+            if (alphamapResolution != expectedAlphamapResolution || layerCount != expectedLayerCount ||
+                detailMapCount != expectedDetailMapCount || (0 < detailMapCount && detailResolution != expectedDetailResolution))
+            {
+                brokenReason = "declared dimensions disagree with the expected terrain visual layout";
                 return false;
             }
 
-            if (alphamapResolution != expectedAlphamapResolution)
+            var payloadByteLength = (long)alphamapResolution * alphamapResolution * layerCount +
+                                    (long)detailMapCount * detailResolution * detailResolution * DetailBytesPerCell;
+            if (MaximumPayloadByteLength < payloadByteLength || stream.Length != HeaderByteLength + payloadByteLength)
             {
-                brokenReason = $"alphamap resolution {alphamapResolution} disagrees with the expected {expectedAlphamapResolution}";
+                brokenReason = "stream length disagrees with the bounded declared payload length";
                 return false;
             }
 
-            // 層数はTerrainDataのterrainLayersと1対1。食い違ったままSetAlphamapsへ流すと全画素のテクスチャが入れ替わる
-            // The layer count pairs one-to-one with TerrainData.terrainLayers; a mismatch reaching SetAlphamaps swaps every pixel's texture
-            if (layerCount != expectedLayerCount)
+            // サイズ検査済みpayloadだけを読み、復元より先に書き込み時のSHA-256と照合する
+            // Read only the size-validated payload and compare its write-time SHA-256 before reconstruction
+            var payloadBytes = new byte[(int)payloadByteLength];
+            if (!ReadExactly(stream, payloadBytes))
             {
-                brokenReason = $"layer count {layerCount} disagrees with the expected {expectedLayerCount}";
+                brokenReason = "payload ended before its validated length";
+                return false;
+            }
+            if (!MatchesPayloadChecksum(headerBytes, payloadBytes))
+            {
+                brokenReason = "payload checksum disagrees with the header";
                 return false;
             }
 
-            if (0 < detailMapCount && detailResolution != expectedDetailResolution)
-            {
-                brokenReason = $"detail resolution {detailResolution} disagrees with the expected {expectedDetailResolution}";
-                return false;
-            }
-
-            var readOffset = HeaderByteLength;
+            var readOffset = 0;
             tileVisual = new TerrainTileVisual(ReadAlphamap(), ReadDetailMaps());
             return true;
 
@@ -87,7 +126,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
                 for (var z = 0; z < alphamapResolution; z++)
                 for (var x = 0; x < alphamapResolution; x++)
                 for (var layer = 0; layer < layerCount; layer++)
-                    alphamap[z, x, layer] = bytes[readOffset++] / WeightQuantizeScale;
+                    alphamap[z, x, layer] = payloadBytes[readOffset++] / WeightQuantizeScale;
 
                 return alphamap;
             }
@@ -101,7 +140,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
                     for (var z = 0; z < detailResolution; z++)
                     for (var x = 0; x < detailResolution; x++)
                     {
-                        detailMap[z, x] = bytes[readOffset] | (bytes[readOffset + 1] << 8);
+                        detailMap[z, x] = payloadBytes[readOffset] | (payloadBytes[readOffset + 1] << 8);
                         readOffset += DetailBytesPerCell;
                     }
 
@@ -112,6 +151,38 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
             }
 
             #endregion
+        }
+
+        private static bool HasSaneDimensions(int alphamapResolution, int layerCount, int detailResolution, int detailMapCount)
+        {
+            return 0 < alphamapResolution && alphamapResolution <= MaximumAlphamapResolution &&
+                   0 < layerCount && layerCount <= MaximumLayerCount &&
+                   0 <= detailResolution && detailResolution <= MaximumDetailResolution &&
+                   0 <= detailMapCount && detailMapCount <= MaximumDetailMapCount &&
+                   (detailMapCount == 0 || 0 < detailResolution);
+        }
+
+        private static bool ReadExactly(FileStream stream, byte[] bytes)
+        {
+            var offset = 0;
+            while (offset < bytes.Length)
+            {
+                var bytesRead = stream.Read(bytes, offset, bytes.Length - offset);
+                if (bytesRead == 0) return false;
+                offset += bytesRead;
+            }
+
+            return true;
+        }
+
+        private static bool MatchesPayloadChecksum(byte[] headerBytes, byte[] payloadBytes)
+        {
+            using var sha256 = SHA256.Create();
+            var checksum = sha256.ComputeHash(payloadBytes);
+            for (var index = 0; index < PayloadChecksumByteLength; index++)
+                if (headerBytes[PayloadChecksumOffset + index] != checksum[index]) return false;
+
+            return true;
         }
     }
 }

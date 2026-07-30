@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
 using static Client.Game.InGame.Environment.Terrain.Visual.Cache.TerrainVisualCacheFormat;
@@ -31,6 +32,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
             var writeOffset = HeaderByteLength;
             WriteAlphamap();
             WriteDetailMaps();
+            WritePayloadChecksum();
 
             WriteAtomically();
 
@@ -45,6 +47,15 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
                 WriteInt(bytes, LayerCountOffset, layerCount);
                 WriteInt(bytes, DetailResolutionOffset, detailResolution);
                 WriteInt(bytes, DetailMapCountOffset, detailMapCount);
+            }
+
+            // payloadを丸ごと検算する。ヘッダだけでは同じ長さの1bit破損を見逃す
+            // Check the entire payload: a header alone cannot catch a one-bit corruption of the same length
+            void WritePayloadChecksum()
+            {
+                using var sha256 = SHA256.Create();
+                var checksum = sha256.ComputeHash(bytes, HeaderByteLength, bytes.Length - HeaderByteLength);
+                Array.Copy(checksum, 0, bytes, PayloadChecksumOffset, PayloadChecksumByteLength);
             }
 
             void WriteAlphamap()

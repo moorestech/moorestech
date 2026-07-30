@@ -21,6 +21,7 @@ namespace Client.Tests.UnitTest.Terrain
         private const int AlphamapResolution = 4;
         private const int LayerCount = 3;
         private const int DetailResolution = 3;
+        private const int DetailMapCount = 2;
         private const int TileX = 1;
         private const int TileZ = 2;
 
@@ -49,7 +50,7 @@ namespace Client.Tests.UnitTest.Terrain
             var cache = CreateCache(CacheKey);
             cache.Save(TileX, TileZ, CreateTileVisual());
 
-            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, out var loaded), Is.True);
+            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount, out var loaded), Is.True);
 
             var saved = CreateTileVisual();
             for (var z = 0; z < AlphamapResolution; z++)
@@ -75,7 +76,7 @@ namespace Client.Tests.UnitTest.Terrain
 
             // マスタや地形が動けばキーが変わる。同じファイルでも別物として取り逃す
             // A moved master or terrain changes the key, so the same file is missed as a different thing
-            Assert.That(CreateCache(OtherCacheKey).TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, out _), Is.False);
+            Assert.That(CreateCache(OtherCacheKey).TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount, out _), Is.False);
         }
 
         [Test]
@@ -83,7 +84,7 @@ namespace Client.Tests.UnitTest.Terrain
         {
             CreateCache(CacheKey).Save(TileX, TileZ, CreateTileVisual());
 
-            Assert.That(CreateCache(CacheKey).TryLoad(TileX, TileZ + 1, AlphamapResolution, LayerCount, DetailResolution, out _), Is.False);
+            Assert.That(CreateCache(CacheKey).TryLoad(TileX, TileZ + 1, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount, out _), Is.False);
         }
 
         [Test]
@@ -100,7 +101,7 @@ namespace Client.Tests.UnitTest.Terrain
             // 切り詰めは以降の全画素を1バイトずらす。黙って読むと草も地面も別物になる
             // A truncation shifts every later pixel by a byte; reading it silently would draw different ground and grass
             LogAssert.Expect(LogType.Warning, new Regex("Discarding"));
-            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, out _), Is.False);
+            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount, out _), Is.False);
         }
 
         [Test]
@@ -115,7 +116,7 @@ namespace Client.Tests.UnitTest.Terrain
             // ヘッダ途中のファイルも完成済みとして扱うと、次の起動で壊れた見た目を再利用してしまう
             // Treating a partial header as complete would reuse broken visuals on the next boot
             LogAssert.Expect(LogType.Warning, new Regex("Discarding"));
-            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, out _), Is.False);
+            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount, out _), Is.False);
         }
 
         [Test]
@@ -125,7 +126,7 @@ namespace Client.Tests.UnitTest.Terrain
             cache.Save(TileX, TileZ, CreateTileVisual());
 
             LogAssert.Expect(LogType.Warning, new Regex("Discarding"));
-            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution + 1, LayerCount, DetailResolution, out _), Is.False);
+            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution + 1, LayerCount, DetailResolution, DetailMapCount, out _), Is.False);
         }
 
         [Test]
@@ -137,7 +138,19 @@ namespace Client.Tests.UnitTest.Terrain
             // 層数がTerrainDataのterrainLayersと違うまま流すと、全画素が別のテクスチャで描かれる
             // Letting a layer count differ from TerrainData.terrainLayers would draw every pixel with a different texture
             LogAssert.Expect(LogType.Warning, new Regex("Discarding"));
-            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount + 1, DetailResolution, out _), Is.False);
+            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount + 1, DetailResolution, DetailMapCount, out _), Is.False);
+        }
+
+        [Test]
+        public void MissesWithAWarningWhenTheDetailMapCountDisagrees()
+        {
+            var cache = CreateCache(CacheKey);
+            cache.Save(TileX, TileZ, CreateTileVisual());
+
+            // detail mapはprototypeと同じ順番で結び付く。数が違うキャッシュをhitにすると草種がずれる
+            // Detail maps pair with prototypes in order; hitting a count-mismatched cache shifts vegetation types
+            LogAssert.Expect(LogType.Warning, new Regex("Discarding"));
+            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount + 1, out _), Is.False);
         }
 
         private TerrainVisualCache CreateCache(string cacheKey)
@@ -156,7 +169,7 @@ namespace Client.Tests.UnitTest.Terrain
                 alphamap[z, x, layer] = ((z * AlphamapResolution + x) * LayerCount + layer) / 63f;
 
             var detailMaps = new List<int[,]>();
-            for (var mapIndex = 0; mapIndex < 2; mapIndex++)
+            for (var mapIndex = 0; mapIndex < DetailMapCount; mapIndex++)
             {
                 var detailMap = new int[DetailResolution, DetailResolution];
                 for (var z = 0; z < DetailResolution; z++)

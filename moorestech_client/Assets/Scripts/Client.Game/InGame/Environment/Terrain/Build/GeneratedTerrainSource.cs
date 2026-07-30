@@ -110,16 +110,17 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             var resolution = _config.Resolution;
             var heights = TerrainFileLoader.LoadHeights(_worldCacheDirectory, tileX, tileZ, resolution);
             var transferredBiomeIndices = TerrainFileLoader.LoadBiomeIndices(_worldCacheDirectory, tileX, tileZ, resolution);
+            var detailPrototypes = TerrainDetailPrototypeList.Build(_biomeTypes, _visualSections);
 
-            // detailの解像度は高さ解像度-1。DetailRuntimeGeneratorが敷く格子と同じ規則をキャッシュ照合にも使う
-            // The detail resolution is the heightmap resolution minus one, the same rule DetailRuntimeGenerator lays out, reused for the cache check
+            // detailの解像度とプロトタイプ数を先に固定する。ヒット後に数違いで落とさず、Readerで壊れた取り逃しにする
+            // Fix detail resolution and prototype count before loading so a mismatch becomes a broken miss in the Reader, never a post-hit failure
             visualCacheHit = _visualCache.TryLoad(
-                tileX, tileZ, _config.AlphamapResolution, _terrainLayers.Length, resolution - 1, out var tileVisual);
+                tileX, tileZ, _config.AlphamapResolution, _terrainLayers.Length, resolution - 1, detailPrototypes.Count,
+                out var tileVisual);
             if (!visualCacheHit) tileVisual = RebuildAndCacheVisual();
 
             var alphamap = tileVisual.Alphamap;
             var detailMaps = tileVisual.DetailMaps;
-            var detailPrototypes = TerrainDetailPrototypeList.Build(_biomeTypes, _visualSections);
 
             // 密度マップはプロトタイプと1対1。数が食い違ったまま流すとSetDetailLayerが別の草を描く
             // Density maps pair one-to-one with prototypes; letting a mismatched count through would make SetDetailLayer draw the wrong plant

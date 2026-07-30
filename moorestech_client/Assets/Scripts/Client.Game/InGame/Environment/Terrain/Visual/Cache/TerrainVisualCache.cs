@@ -23,11 +23,13 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
         // 期待寸法を渡して食い違いを検出する。キーが一致するのに寸法が合わないファイルは中身が信用できない
         // The expected dimensions are passed in to catch disagreement: a matching key over mismatched dimensions is untrustworthy content
         public bool TryLoad(
-            int tileX, int tileZ, int alphamapResolution, int layerCount, int detailResolution, out TerrainTileVisual tileVisual)
+            int tileX, int tileZ, int alphamapResolution, int layerCount, int detailResolution, int detailMapCount,
+            out TerrainTileVisual tileVisual)
         {
             var filePath = _worldCacheDirectory.TerrainVisualCacheFilePath(tileX, tileZ);
             var loaded = TerrainVisualCacheReader.TryRead(
-                filePath, _cacheKey, alphamapResolution, layerCount, detailResolution, out tileVisual, out var brokenReason);
+                filePath, _cacheKey, alphamapResolution, layerCount, detailResolution, detailMapCount,
+                out tileVisual, out var brokenReason);
 
             // 壊れたキャッシュは黙って使わず、黙って捨てもしない。取り逃しとして作り直したうえで痕跡を残す
             // A broken cache is neither used nor discarded in silence: it becomes a miss that regenerates, and leaves a trace

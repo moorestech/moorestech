@@ -11,7 +11,7 @@ namespace Game.Paths
         public string MapJsonFilePath { get; }
         public string SaveJsonFilePath { get; }
         public string TerrainDirectory { get; }
-        public string TerrainVisualDirectory { get; }
+        public readonly string TerrainVisualDirectory;
         public string CacheDirectory { get; }
         public string CacheReadmeFilePath { get; }
         public string ProvisioningTempDirectory { get; }
