@@ -615,6 +615,8 @@ git add -A && git commit -m "feat: ビルドメニューカテゴリをGuid化�
 - Create: `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/localization/localization.csv`
 - Modify: `moorestech_client/Assets/AddressableResources/Skit/i18n/english.json`
 - Modify: `moorestech_client/Assets/AddressableResources/Skit/i18n/japanese.json`
+- Modify: `moorestech_client/Assets/AddressableResources/Skit/skits/sample_short.json`
+- Modify: `.moorestech-external-revisions.json`
 
 - [ ] **Step 1: サンプル辞書を作る**
 
@@ -622,13 +624,13 @@ git add -A && git commit -m "feat: ビルドメニューカテゴリをGuid化�
 
 ```csv
 key,Source,english,japanese
-item.<小石の実Guid>.name,Pebble,Pebble,小石
-item.<原木の実Guid>.name,Log,Log,原木
-block.<風力掘削機の実Guid>.name,Wind Drill,Wind Drill,風力掘削機
-skit.100_start_game.1.body,...Report log started,MOD ENGLISH,MOD JAPANESE
-skit.100_start_game.2.body,Position report,MOD ENGLISH 2,
-skit.100_start_game.3.body,Crew report,MOD ENGLISH 3,
-skit.100_start_game.4.body,Warp report,,
+item.<小石の実Guid>.name,小石,Pebble,小石
+item.<原木の実Guid>.name,原木,Log,原木
+block.<風力掘削機の実Guid>.name,風力掘削機,Wind Drill,風力掘削機
+skit.100_start_game.1.body,...レポート記録開始,MOD ENGLISH,MOD JAPANESE
+skit.100_start_game.2.body,"現在位置、惑星セレスタル上空750km\n電力残り78%、ワームホールエネルギー残り98%\nスラスター燃料残り35%",MOD ENGLISH 2,
+skit.100_start_game.3.body,"搭乗員一名、ヨリ、睡眠薬による昏睡を確認",MOD ENGLISH 3,
+skit.100_start_game.4.body,"ワープシーケンスを開始。\n現在地、惑星セレスタル、目標、惑星アルカディア\n5..4..3..2..1....",,
 ```
 
 既存 `Skit/i18n/*.json` の `command.*` / `master.*` は一切削除・改名せず、`translations` へ次を追加する:
@@ -638,10 +640,10 @@ skit.100_start_game.4.body,Warp report,,
 "skit.100_start_game.2.body": "SKIT VALUE 2",
 "skit.100_start_game.3.body": "",
 "skit.100_start_game.4.body": "SKIT VALUE 4",
-"skit.100_start_game.1.overrideCharacterName": "SKIT SPEAKER VALUE"
+"skit.100_start_game.31.overrideCharacterName": "SKIT SPEAKER VALUE"
 ```
 
-english/japaneseで値を変える。japaneseはcommand 2だけSkit値を持ち、command 3/4は空、englishはcommand 3/4のSkit値を持つfixtureにして5段の境界を作る。Task 6のselection command test fixtureには `Option1Tag`〜`Option3Tag`、背景skitには `skit.200_star_background.1.body` も追加して各field経路を通す。
+english/japaneseで値を変える。japaneseはcommand 2だけSkit値を持ち、command 3/4は空、englishはcommand 3/4のSkit値を持つfixtureにして5段の境界を作る。通常ストーリーから参照されない既存開発用Addressable `sample_short.json` へ3択selectionと終了先commandを追加し、対応する `Option1Tag`〜`Option3Tag` を両言語辞書へ追加する。背景skitには `skit.200_star_background.1.body`、既存の話者上書き行には `skit.100_start_game.31.overrideCharacterName` を追加して各field経路を通す。CSVのSourceはMasterまたはSkit JSONの実原文へ完全一致させ、複数行は共通CSV parserが改行へ復元するliteral `\n` で記述する。
 
 - [ ] **Step 2: PlayModeで結合確認する**
 
@@ -653,12 +655,13 @@ unity-playmode-recorded-playtestスキルの手順でPlayMode起動:
 5. command 6: mod CSV/Skit専用辞書の4段すべてに未登録の実在text commandなのでskit JSON原文
 6. どのケースも空文字を表示せず、background本文、selection表示選択肢、overrideCharacterNameも同じ規則で翻訳される
 7. `command.*` / `master.*` がゲーム辞書へ漏れず、他画面でも対象言語→english→source→`[!key]` が維持される
+8. master側の最終commitを `.moorestech-external-revisions.json` へpinし、録画も同じデータrevisionを参照する
 
 - [ ] **Step 3: コミット（moorestech_master側も）**
 
 ```bash
 cd /Users/katsumi/moorestech_master && git add server_v8/mods/moorestechAlphaMod_8/localization/ && git commit -m "feat: v8 modサンプルローカライズ辞書"
-cd /Users/katsumi/moorestech && git add moorestech_client/Assets/AddressableResources/Skit/i18n/ && git commit -m "feat: CommandForge辞書へゲーム台詞キーを追加"
+cd /Users/katsumi/moorestech && git add .moorestech-external-revisions.json docs/superpowers/plans/2026-07-29-localization-mod-dictionary.md moorestech_client/Assets/AddressableResources/Skit/i18n/ moorestech_client/Assets/AddressableResources/Skit/skits/sample_short.json && git commit -m "feat: CommandForge辞書へゲーム台詞キーを追加"
 ```
 
 ---
