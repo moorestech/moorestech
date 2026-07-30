@@ -1,4 +1,5 @@
 using Client.Game;
+using Client.DebugSystem.Environment;
 using Client.Playtest.Core;
 using Client.Starter;
 using Common.Debug;
@@ -15,9 +16,8 @@ namespace Client.Playtest
     {
         private const string PendingBootKey = "Playtest_PendingBoot";
         private const string DebugEnvironmentTypeKey = "DebugEnvironmentTypeKey";
-        private const int PureNatureEnvironmentType = 1;
-        private const int OtherEnvironmentType = 2;
         private static bool _worldBootSceneHookRegistered;
+        private static bool _environmentSceneHookRegistered;
 
         internal static void PrepareLegacyBootSession(string serverDirectory, bool noSave)
         {
@@ -48,16 +48,16 @@ namespace Client.Playtest
 
         internal static void ConfigureFixedWorldDebugSettings(string mapMode)
         {
-            // generatedは重複地形を除外し、templateは外周mapobjectを含む既存地形を維持する
-            // Generated excludes overlapping terrain, while template preserves existing terrain with outer map objects
+            // generatedはオーサリング済み地形を全て除外し、templateは外周mapobjectを含む既存地形を維持する
+            // Generated excludes every authored terrain, while template preserves existing terrain with outer map objects
             var environmentType = mapMode switch
             {
-                WorldProvisioner.GeneratedMapMode => PureNatureEnvironmentType,
-                WorldProvisioner.TemplateMapMode => OtherEnvironmentType,
+                WorldProvisioner.GeneratedMapMode => DebugEnvironmentType.Runtime,
+                WorldProvisioner.TemplateMapMode => DebugEnvironmentType.Other,
                 _ => throw new System.ArgumentException($"Unknown map mode: '{mapMode}'", nameof(mapMode)),
             };
 
-            DebugParameters.SaveInt(DebugEnvironmentTypeKey, environmentType);
+            DebugParameters.SaveInt(DebugEnvironmentTypeKey, (int)environmentType);
             DebugParameters.SaveBool(DebugConst.SkitPlaySettingsKey, true);
         }
 
@@ -66,6 +66,7 @@ namespace Client.Playtest
             EditorApplication.playModeStateChanged -= HandlePlayModeStateChanged;
             EditorApplication.playModeStateChanged += HandlePlayModeStateChanged;
             UnsubscribeWorldBootScene();
+            UnsubscribeEnvironmentScene();
 
             // pending中のPlayModeだけを復元し、固定worldの場合に限ってsceneLoadedを購読する
             // Restore only a pending PlayMode boot and subscribe to sceneLoaded solely for fixed worlds
@@ -75,12 +76,28 @@ namespace Client.Playtest
 
             SceneManager.sceneLoaded += HandleWorldBootSceneLoaded;
             _worldBootSceneHookRegistered = true;
+            SceneManager.sceneLoaded += HandleEnvironmentSceneLoaded;
+            _environmentSceneHookRegistered = true;
             return true;
         }
 
         internal static bool IsWorldBootSceneHookRegistered()
         {
             return _worldBootSceneHookRegistered;
+        }
+
+        internal static bool IsEnvironmentSceneHookRegistered()
+        {
+            return _environmentSceneHookRegistered;
+        }
+
+        internal static bool ApplyFixedWorldEnvironment()
+        {
+            // MainGameのsceneLoadedで保存済み環境を適用し、地形構築より先にauthored地形を除外する
+            // Apply the saved environment on MainGame sceneLoaded, excluding authored terrain before terrain building
+            var savedValue = DebugParameters.GetValueOrDefaultInt(
+                DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Debug);
+            return DebugEnvironmentController.TrySetEnvironment((DebugEnvironmentType)savedValue);
         }
 
         internal static bool InjectWorldBootSettings(InitializeScenePipeline pipeline)
@@ -105,6 +122,7 @@ namespace Client.Playtest
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
             PlaytestWorldBootSession.Clear();
             UnsubscribeWorldBootScene();
+            UnsubscribeEnvironmentScene();
             EditorSceneManager.playModeStartScene = null;
 
             var sessionDebugCache = PlaytestPaths.DebugCacheDirectory;
@@ -138,10 +156,24 @@ namespace Client.Playtest
             InjectWorldBootSettings(pipeline);
         }
 
+        private static void HandleEnvironmentSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            // 環境ルートを含まない起動シーンでは購読を維持し、MainGameロード時にだけ解除する
+            // Keep listening through the boot scene and unsubscribe only when MainGame roots become available
+            if (!ApplyFixedWorldEnvironment()) return;
+            UnsubscribeEnvironmentScene();
+        }
+
         private static void UnsubscribeWorldBootScene()
         {
             SceneManager.sceneLoaded -= HandleWorldBootSceneLoaded;
             _worldBootSceneHookRegistered = false;
+        }
+
+        private static void UnsubscribeEnvironmentScene()
+        {
+            SceneManager.sceneLoaded -= HandleEnvironmentSceneLoaded;
+            _environmentSceneHookRegistered = false;
         }
     }
 }

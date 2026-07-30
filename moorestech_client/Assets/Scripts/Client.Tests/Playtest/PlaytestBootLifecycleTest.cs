@@ -34,7 +34,7 @@ namespace Client.Tests.Playtest
             DebugParametersCacheDirectory.SetOverride(_previousDebugCacheOverride);
         }
 
-        [TestCase(WorldProvisioner.GeneratedMapMode, 1, 0)]
+        [TestCase(WorldProvisioner.GeneratedMapMode, 3, 0)]
         [TestCase(WorldProvisioner.TemplateMapMode, 2, 12345)]
         public void PrepareWorldBootSession_mapMode別の隔離環境を構成する(string mapMode, int expectedEnvironmentType, int seed)
         {
@@ -88,6 +88,7 @@ namespace Client.Tests.Playtest
             var restoredHook = PlaytestBootLifecycle.RestoreAfterDomainReload(true);
             Assert.That(restoredHook, Is.True);
             Assert.That(PlaytestBootLifecycle.IsWorldBootSceneHookRegistered(), Is.True);
+            Assert.That(PlaytestBootLifecycle.IsEnvironmentSceneHookRegistered(), Is.True);
 
             // 非アクティブobjectへ注入し、Startが走る前のproperty値を直接読む
             // Inject into an inactive object and inspect its property before Start can run
@@ -101,6 +102,7 @@ namespace Client.Tests.Playtest
 
             Assert.That(injected, Is.True);
             Assert.That(PlaytestBootLifecycle.IsWorldBootSceneHookRegistered(), Is.False);
+            Assert.That(PlaytestBootLifecycle.IsEnvironmentSceneHookRegistered(), Is.True);
             Assert.That(settings.WorldDirectory, Is.EqualTo("/tmp/fixed-world"));
             Assert.That(settings.MapMode, Is.EqualTo("generated"));
             Assert.That(settings.Seed, Is.EqualTo(67890));
@@ -122,6 +124,7 @@ namespace Client.Tests.Playtest
             Assert.That(restoredBoot, Is.True);
             Assert.That(restoredWorld, Is.False);
             Assert.That(PlaytestBootLifecycle.IsWorldBootSceneHookRegistered(), Is.False);
+            Assert.That(PlaytestBootLifecycle.IsEnvironmentSceneHookRegistered(), Is.False);
         }
 
         [Test]
@@ -137,6 +140,7 @@ namespace Client.Tests.Playtest
 
             Assert.That(restoredWorld, Is.False);
             Assert.That(PlaytestBootLifecycle.IsWorldBootSceneHookRegistered(), Is.False);
+            Assert.That(PlaytestBootLifecycle.IsEnvironmentSceneHookRegistered(), Is.False);
             Assert.That(DebugParametersCacheDirectory.GetOverride(), Is.Null);
             Assert.That(SessionState.GetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, true), Is.False);
             Assert.That(SessionState.GetBool("DebugObjectsBootstrap_Disabled", true), Is.False);
