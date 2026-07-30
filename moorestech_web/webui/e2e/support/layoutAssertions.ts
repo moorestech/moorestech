@@ -40,3 +40,21 @@ export async function expectWithinViewport(locator: Locator) {
   expect(layout.right).toBeLessThanOrEqual(layout.width);
   expect(layout.bottom).toBeLessThanOrEqual(layout.height);
 }
+
+export async function expectAtViewportTopCorner(
+  locator: Locator,
+  horizontalEdge: "left" | "right",
+  maximumGap: number,
+) {
+  const layout = await locator.evaluate((element, edge) => {
+    const box = element.getBoundingClientRect();
+    return {
+      horizontalGap: edge === "left" ? box.left : window.innerWidth - box.right,
+      topGap: box.top,
+    };
+  }, horizontalEdge);
+  expect(layout.horizontalGap).toBeGreaterThanOrEqual(0);
+  expect(layout.horizontalGap).toBeLessThan(maximumGap);
+  expect(layout.topGap).toBeGreaterThanOrEqual(0);
+  expect(layout.topGap).toBeLessThan(maximumGap);
+}

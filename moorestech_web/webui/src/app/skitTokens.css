@@ -1,6 +1,6 @@
 :root {
-  /* スキットの層序。会話窓はstage内、暗転はPortalで会話窓より上に置く */
-  /* Skit stacking: the window lives inside the stage while the blackout sits above it in the portal */
+  /* スキットの層序。会話窓は論理viewport内、暗転はPortalで会話窓より上に置く */
+  /* Skit stacking: the window lives in the logical viewport while the blackout sits above it in the portal */
   --z-skit: 100;
   --z-skit-transition: 210;
   /* 会話窓の面・上端フェード・帯の高さ・内容インデント（1920設計px×2/3の1280 stage基準の固定長） */
@@ -55,8 +55,9 @@
   --skit-tool-gap: 5.3px;
   --skit-toolbar-inset-right: 31.3px;
   --skit-toolbar-inset-top: 8.7px;
-  --skit-tool-icon-opacity: 0.66;
+  --skit-tool-icon-opacity: 1;
   --skit-tool-icon-stroke-width: 1.2;
+  --skit-tool-icon-shadow: 0 1px 1px var(--skit-window-face);
   /* 背景スキット1行の文字サイズと下端距離 */
   /* Background skit single-line font size and distance from the bottom edge */
   --skit-background-font-size: 24px;

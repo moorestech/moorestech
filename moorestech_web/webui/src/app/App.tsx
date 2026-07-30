@@ -34,6 +34,10 @@ function useUiScale(enabled: boolean) {
       if (!stage) return;
       const scale = Math.min(window.innerWidth / stage.offsetWidth, window.innerHeight / stage.offsetHeight);
       document.documentElement.style.setProperty("--ui-scale", String(scale));
+      // 実画面寸法をstage座標へ戻す
+      // Convert the physical viewport back into stage coordinates for screen-edge HUDs
+      document.documentElement.style.setProperty("--ui-viewport-width", `${window.innerWidth / scale}px`);
+      document.documentElement.style.setProperty("--ui-viewport-height", `${window.innerHeight / scale}px`);
     };
 
     if (enabled) updateScale();
@@ -94,17 +98,17 @@ export default function App() {
         {screen === "pauseMenu" && <PauseMenuPanel />}
         {screen === "trainPause" && <PauseMenuPanel />}
         {(screen === "trainHud" || screen === "trainPause") && <TrainRidingHud />}
-        {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
-        {uiState === UiStateNames.deleteBar && <DeleteModeWarningBands />}
-        {/* チャレンジHUDは画面状態と切り離し、stage内で同じ文字組を常時保つ */}
-        {/* Keep the challenge HUD screen-state-independent with identical typography inside the stage */}
-        <CurrentChallengeHud />
         <Crosshair />
         <CursorTooltip />
         <BlockInventoryPanel />
-        {/* スキット会話窓は1280基準の固定長で組むためstage内に置く（暗転だけPortalへ分離） */}
-        {/* The skit window lives in the stage so its fixed lengths stay on the 1280 baseline (only the blackout splits into the portal) */}
-        <SkitPresentation />
+        {/* 実画面端に属するHUDは論理viewportへ広げ、内容寸法だけstage拡縮へ追従させる */}
+        {/* Expand screen-edge HUDs to the logical viewport while their content dimensions retain stage scaling */}
+        <div className={styles.viewportOverlay} data-web-ui-transparent>
+          {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
+          {uiState === UiStateNames.deleteBar && <DeleteModeWarningBands />}
+          <CurrentChallengeHud />
+          <SkitPresentation />
+        </div>
         <ModalHost />
         <ProgressBar />
         <BlockInventoryKeyHandler />
