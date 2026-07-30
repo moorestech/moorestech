@@ -6,17 +6,6 @@
     "command": "node .claude/statusline.jsc"
   },
   "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Agent|Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR}/.dev-hooks/guard-subagent-model.py\""
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit|NotebookEdit",
