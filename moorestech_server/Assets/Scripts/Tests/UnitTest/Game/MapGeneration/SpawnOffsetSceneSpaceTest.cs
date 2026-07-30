@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Biomes;
+using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Runtime;
 using Game.MapGeneration.Pipeline.Spawn;
 using Game.MapGeneration.Pipeline.Stages;
@@ -12,10 +13,8 @@ using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration
 {
-    // 中央化オフセット G をノイズ座標にだけ効かせ、出力(スポーン・配置物・鉱脈)は -G でシーン座標へ戻ることを検証する。
-    // 探索成功時も失敗時も、生成された単一タイル [0,terrainWidth]x[0,terrainLength] の内側に収まらねばならない。
-    // Verifies the centering offset G applies only to noise coordinates while outputs (spawn, placements, veins)
-    // come back to scene space via -G, landing inside the single generated tile in both success and fallback cases.
+    // 中央化オフセット G をノイズ座標にだけ効かせ、出力を単一タイルのシーン座標へ戻すことを検証する。
+    // Verifies G affects only noise coordinates and all outputs return to scene space inside the single generated tile.
     public class SpawnOffsetSceneSpaceTest
     {
         private const int Seed = 12345;
@@ -158,11 +157,31 @@ namespace Tests.UnitTest.Game.MapGeneration
             {
                 Assert.That(mapObject.Position.x, Is.InRange(minX, maxX));
                 Assert.That(mapObject.Position.z, Is.InRange(minZ, maxZ));
+
+                // 初期カメラとプレイヤーを塞がないよう、全mapObjectの中心をスポーンから15m以上離す
+                // Keep every map-object center at least 15m from spawn so it cannot block the player or initial camera
+                var distance = new Vector2(mapObject.Position.x - output.SpawnPoint.x, mapObject.Position.z - output.SpawnPoint.z);
+                Assert.That(distance.sqrMagnitude, Is.GreaterThanOrEqualTo(15f * 15f));
             }
 
             AssertVeinsInsideTile(output.ItemVeins, minX, maxX, minZ, maxZ);
             AssertVeinsInsideTile(output.FluidVeins, minX, maxX, minZ, maxZ);
             return output;
+        }
+        [Test]
+        public void スポーン安全域内のMapObjectだけを除外する()
+        {
+            // 近距離配置だけを除き、境界外の配置順序と座標を維持する
+            // Remove only the near placement while preserving the order and position outside the boundary
+            var entries = new List<PlacementEntry>
+            {
+                new PlacementEntry { WorldPosition = new Vector3(3f, 0f, 4f) },
+                new PlacementEntry { WorldPosition = new Vector3(20f, 0f, 0f) },
+            };
+            SpawnPlacementExclusionStage.RemoveInsideSpawnClearance(entries, Vector3.zero);
+
+            Assert.That(entries.Count, Is.EqualTo(1));
+            Assert.That(entries[0].WorldPosition, Is.EqualTo(new Vector3(20f, 0f, 0f)));
         }
 
         private static void AssertVeinsInsideTile(

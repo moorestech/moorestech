@@ -96,18 +96,18 @@ namespace Game.MapGeneration.Pipeline
             var objectEntries = new List<PlacementEntry>();
             PlaceObjectsAndVeinsInNoiseSpace();
 
-            // 全配置確定後に木周辺の生成ハイトマップを摂動する（output.Heights と同一配列を書き換える）。
-            // オブジェクト/鉱脈は摂動前の高さで配置済みのため、元パイプラインと同じく最終ハイトマップにのみ効く。
-            // Perturb the generated heightmap around trees after all placement (mutates the same array as
-            // output.Heights). Objects/veins were placed on pre-perturbation heights, matching the reference order.
-            var heightModMap = TreeHeightModifier.BuildGuidModMap(helper, biomeTypes);
-            TreeHeightModifier.Apply(heights, res, config, treeEntries, heightModMap);
-
             // オブジェクト/鉱脈はノイズ座標で算出されるため -G でシーン座標へ揃える（木は既にタイルローカル）。
             // Objects/veins are computed in noise space, so -G realigns them to scene space (trees already are).
             PlacementSceneOffset.ToSceneSpace(objectEntries, spawnOffset);
             PlacementSceneOffset.ToSceneSpace(output.ItemVeins, spawnOffset);
             PlacementSceneOffset.ToSceneSpace(output.FluidVeins, spawnOffset);
+
+            // スポーン安全域を確保してから、残った木だけで最終ハイトマップを摂動する
+            // Reserve spawn clearance before perturbing the final heightmap with only the remaining trees
+            SpawnPlacementExclusionStage.RemoveInsideSpawnClearance(treeEntries, output.SpawnPoint);
+            SpawnPlacementExclusionStage.RemoveInsideSpawnClearance(objectEntries, output.SpawnPoint);
+            var heightModMap = TreeHeightModifier.BuildGuidModMap(helper, biomeTypes);
+            TreeHeightModifier.Apply(heights, res, config, treeEntries, heightModMap);
 
             AppendMapObjects(output.MapObjects, treeEntries);
             AppendMapObjects(output.MapObjects, objectEntries);
