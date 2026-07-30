@@ -56,6 +56,38 @@ namespace Client.Tests.Block
             Assert.That(cameraCountAfter, Is.EqualTo(cameraCountBefore));
         }
 
+        [UnityTest]
+        public IEnumerator TakeIconImages_撮影Cameraを一台ずつ生成する()
+        {
+            var photographerObject = new GameObject($"{TestObjectPrefix}SequentialPhotographer");
+            var photographer = photographerObject.AddComponent<BlockIconImagePhotographer>();
+            var cameraPrefabObject = new GameObject($"{TestObjectPrefix}SequentialCamera");
+            var cameraPrefab = cameraPrefabObject.AddComponent<Camera>();
+            var targetPrefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            targetPrefab.name = $"{TestObjectPrefix}SequentialTarget";
+
+            // 複数対象の呼び出し直後に、生存する撮影Cameraの上限を検証する
+            // Verify the capture Camera limit immediately after starting multiple subjects
+            var cameraField = typeof(BlockIconImagePhotographer).GetField("cameraPrefab", BindingFlags.Instance | BindingFlags.NonPublic);
+            cameraField.SetValue(photographer, cameraPrefab);
+            var cameraCountBefore = CountCameras();
+            for (var i = 0; i < 4; i++)
+                LogAssert.Expect(LogType.Error, new Regex("^Destroy may not be called from edit mode!"));
+            var captureTask = photographer.TakeIconImages(new List<(GameObject prefab, string debugName)>
+            {
+                (targetPrefab, "sequential-test-a"),
+                (targetPrefab, "sequential-test-b"),
+            });
+            var cameraCountImmediatelyAfterStart = CountCameras();
+
+            while (captureTask.Status == UniTaskStatus.Pending) yield return null;
+            var textures = captureTask.GetAwaiter().GetResult();
+            yield return null;
+
+            foreach (var texture in textures) Object.DestroyImmediate(texture);
+            Assert.That(cameraCountImmediatelyAfterStart, Is.LessThanOrEqualTo(cameraCountBefore + 1));
+        }
+
         private static int CountCameras()
         {
             return Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;

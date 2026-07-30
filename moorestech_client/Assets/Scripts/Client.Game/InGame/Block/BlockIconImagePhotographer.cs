@@ -19,37 +19,21 @@ namespace Client.Game.InGame.Block
 
         public async UniTask<List<Texture2D>> TakeIconImages(List<(GameObject prefab, string debugName)> targets)
         {
-            var createdObjects = new List<(GameObject instance, string debugName)>();
+            var result = new List<Texture2D>();
 
+            // 撮影資源を一件ずつ破棄し、対象数に依存する瞬間メモリ増加を防ぐ
+            // Release capture resources one subject at a time to bound peak memory regardless of subject count
             foreach (var target in targets)
             {
                 var instance = Instantiate(target.prefab, transform);
-                createdObjects.Add((instance, target.debugName));
+                instance.transform.position = Vector3.zero;
+                instance.transform.rotation = Quaternion.identity;
+                instance.transform.localScale = Vector3.one;
+                result.Add(await GetIcon(instance, target.debugName));
+                await UniTask.Yield(PlayerLoopTiming.Update);
             }
 
-            // 撮影対象を一直線に並べる
-            // Line up the subjects in a row
-            var maxSize = GetMaxObjectSize(createdObjects);
-            var spacing = maxSize * 2f;
-            for (int i = 0; i < createdObjects.Count; i++)
-            {
-                var createdObject = createdObjects[i];
-                createdObject.instance.transform.position = new Vector3(i * spacing, 0f, 0f);
-                createdObject.instance.transform.rotation = Quaternion.identity;
-                createdObject.instance.transform.localScale = Vector3.one;
-            }
-
-            // 全ての対象でアイコンを取得
-            // Capture the icon for every subject
-            var tasks = new List<UniTask<Texture2D>>();
-            foreach (var createdObject in createdObjects)
-            {
-                tasks.Add(GetIcon(createdObject.instance, createdObject.debugName));
-            }
-
-            var result = await UniTask.WhenAll(tasks);
-
-            return result.ToList();
+            return result;
         }
 
         private async UniTask<Texture2D> GetIcon(GameObject target, string debugName)
@@ -114,24 +98,5 @@ namespace Client.Game.InGame.Block
             return texture;
         }
 
-        private float GetMaxObjectSize(List<(GameObject instance, string debugName)> createdObjects)
-        {
-            float maxSize = 0f;
-            foreach (var createdObject in createdObjects)
-            {
-                var renderers = createdObject.instance.GetComponentsInChildren<MeshRenderer>();
-                if (renderers.Length == 0) continue;
-
-                var boundsList = renderers.Select(r => r.bounds).ToList();
-                var minPos = boundsList.Select(b => b.min).Aggregate(Vector3.Min);
-                var maxPos = boundsList.Select(b => b.max).Aggregate(Vector3.Max);
-                var size = Vector3.Distance(minPos, maxPos);
-
-                if (size > maxSize)
-                    maxSize = size;
-            }
-
-            return maxSize;
-        }
     }
 }
