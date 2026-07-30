@@ -15,10 +15,10 @@ namespace Server.Boot.Loop
         // Default port when unspecified; passing 0 makes the OS assign a free port
         private const int DefaultPort = 11564;
 
-        public static Socket CreateBoundListener(int? port)
+        public static Socket CreateBoundListener(int? argPort)
         {
-            port ??= DefaultPort;
-            
+            var port = argPort ?? DefaultPort;
+
             //ソケットの作成と受け入れ準備。port 0ならOSが空きポートへバインドする
             //Create the socket and start listening; port 0 binds to an OS-assigned free port
             var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
