@@ -10,11 +10,12 @@ test("localization.current切替でlocale別辞書を再取得し表示を更新
   await setTopicScenario(page, "japanese");
   await setUiState(page, "PauseMenu");
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "ポーズメニュー" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pause Menu" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "ゲームをセーブする" })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("data-locale", "japanese");
 
   await setTopicScenario(page, "english");
   await expect(page.getByRole("heading", { name: "Pause Menu" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Save Game" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save this game" })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("data-locale", "english");
 });

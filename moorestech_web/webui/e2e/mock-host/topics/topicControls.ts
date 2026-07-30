@@ -14,13 +14,6 @@ import { clone, send, setTopicRevision } from "../wire";
 
 const dictionaries = createDictionaries();
 
-// locale切替E2Eが辞書再取得を識別できる値を維持する
-// Preserve distinct values that let the locale-switch E2E identify dictionary reloads
-requireDictionary("japanese")[L.ui.pauseMenu.title] = "ポーズメニュー";
-requireDictionary("japanese")[L.ui.game.saveGame] = "セーブする";
-requireDictionary("english")[L.ui.pauseMenu.title] = "Pause Menu";
-requireDictionary("english")[L.ui.game.saveGame] = "Save Game";
-
 export function serveDictionary(url: string, response: ServerResponse): void {
   const locale = url.split("/api/i18n/")[1]?.split("?")[0] ?? "japanese";
   response.writeHead(200, { "Content-Type": "application/json" });
@@ -111,10 +104,4 @@ function createDictionaries(): Map<string, Record<string, string>> {
     );
   }
   return result;
-}
-
-function requireDictionary(locale: string): Record<string, string> {
-  const dictionary = dictionaries.get(locale);
-  if (dictionary === undefined) throw new Error(`Missing E2E localization dictionary: ${locale}`);
-  return dictionary;
 }
