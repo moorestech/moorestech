@@ -43,6 +43,7 @@ RESULT_TIMEOUT=420
 
 extract_json() { sed -n '/^{/,$p'; }
 json_get() { python3 -c "import sys,json; print(json.load(sys.stdin).get('$1',''))" 2>/dev/null; }
+csharp_quote() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$1"; }
 
 edc() {
     # ドメインリロード直後はEDCが失敗するため、成功するまで最大8回リトライする
@@ -76,7 +77,21 @@ if [[ "$IS_PLAYING" == "True" ]]; then
     uloop control-play-mode --project-path "$PROJECT_PATH" --action stop >/dev/null 2>&1
     sleep 3
 fi
-BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareAndEnterPlayMode(\"$MASTER_DIR\", true);"
+# 固定world用の3環境変数が揃った場合だけ新APIを使い、既存の3引数呼び出しを維持する
+# Use the fixed-world API only when all three environment variables are present, preserving existing 3-argument calls
+if [[ -n "${PLAYTEST_WORLD_DIRECTORY:-}" && -n "${PLAYTEST_MAP_MODE:-}" && -n "${PLAYTEST_SEED:-}" ]]; then
+    if [[ ! "$PLAYTEST_SEED" =~ ^-?[0-9]+$ ]]; then
+        echo "NG: PLAYTEST_SEED must be an integer: $PLAYTEST_SEED"
+        exit 1
+    fi
+    MASTER_LITERAL=$(csharp_quote "$MASTER_DIR")
+    WORLD_LITERAL=$(csharp_quote "$PLAYTEST_WORLD_DIRECTORY")
+    MAP_MODE_LITERAL=$(csharp_quote "$PLAYTEST_MAP_MODE")
+    BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareWorldAndEnterPlayMode($MASTER_LITERAL, $WORLD_LITERAL, $MAP_MODE_LITERAL, $PLAYTEST_SEED);"
+else
+    MASTER_LITERAL=$(csharp_quote "$MASTER_DIR")
+    BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareAndEnterPlayMode($MASTER_LITERAL, true);"
+fi
 SESSION_DIR=$(edc "$BOOT_CODE" | json_get Result)
 if [[ "$SESSION_DIR" != /* ]]; then
     echo "NG: boot failed: $SESSION_DIR"
