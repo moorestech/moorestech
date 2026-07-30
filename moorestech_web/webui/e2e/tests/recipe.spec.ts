@@ -43,14 +43,19 @@ test("正本のヘッダ装飾、常時スクロールバー、主要構造を�
   await expect(craftTab.locator("path")).toHaveCount(5);
   const tabStyle = await craftTab.evaluate((element) => {
     const style = getComputedStyle(element);
+    const renderedBounds = element.getBoundingClientRect();
     return {
-      width: Number.parseFloat(style.width),
-      height: Number.parseFloat(style.height),
+      authoredWidth: style.getPropertyValue("--craft-tab-width"),
+      authoredHeight: style.getPropertyValue("--craft-tab-height"),
+      renderedWidth: renderedBounds.width,
+      renderedHeight: renderedBounds.height,
       backgroundImage: style.backgroundImage,
     };
   });
-  expect(tabStyle.width).toBeCloseTo(64.978, 1);
-  expect(tabStyle.height).toBeCloseTo(27.397, 1);
+  expect(tabStyle.authoredWidth).toBe("64.978px");
+  expect(tabStyle.authoredHeight).toBe("27.397px");
+  expect(tabStyle.renderedWidth).toBeCloseTo(64.96875, 5);
+  expect(tabStyle.renderedHeight).toBeCloseTo(27.390625, 5);
   expect(tabStyle.backgroundImage).toBe("none");
   await expect(page.getByRole("button", { name: "Craft" })).toBeVisible();
 
