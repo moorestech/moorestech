@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Localization
@@ -35,6 +36,28 @@ namespace Client.Localization
 
             dictionaries.Add(Localize.SourcePseudoLocale, sourceDictionary);
             return dictionaries;
+        }
+
+        public static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> CreateSnapshot()
+        {
+            return Freeze(Create());
+        }
+
+        public static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Freeze(
+            Dictionary<string, Dictionary<string, string>> candidate)
+        {
+            var frozenLanguages = new Dictionary<string, IReadOnlyDictionary<string, string>>();
+
+            // 非公開candidateだけをread-only viewで包みimmutable snapshot化する
+            // Freeze the private candidate into immutable published read-only views
+            foreach (var language in candidate)
+            {
+                frozenLanguages.Add(
+                    language.Key,
+                    new ReadOnlyDictionary<string, string>(language.Value));
+            }
+
+            return new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(frozenLanguages);
         }
     }
 }

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Threading;
 using Core.Master;
 using Game.Context;
 using Mod.Loader;
@@ -16,33 +16,21 @@ namespace Client.Localization
         internal const string LanguagePreferenceKey = "LanguageCode";
         public const string SourcePseudoLocale = "source";
 
-        private static readonly Dictionary<string, Dictionary<string, string>> mutableDictionaries = new();
-        private static readonly Dictionary<string, IReadOnlyDictionary<string, string>> mergedDictionary = new();
         private static readonly Subject<Unit> onLanguageChangedSubject = new();
         public static readonly IObservable<Unit> OnLanguageChanged = onLanguageChangedSubject;
+        private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> publishedSnapshot;
         private static string currentLanguageCode;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
         {
-            var vanillaDictionaries = VanillaLocalizationDictionaryFactory.Create();
-            mutableDictionaries.Clear();
-            mergedDictionary.Clear();
-
-            // 可変正本と外部向けread-only viewを同じinner辞書へ結び付ける
-            // Bind the mutable source of truth and public read-only views to the same inner dictionaries
-            foreach (var languageDictionary in vanillaDictionaries)
-            {
-                mutableDictionaries.Add(languageDictionary.Key, languageDictionary.Value);
-                mergedDictionary.Add(
-                    languageDictionary.Key,
-                    new ReadOnlyDictionary<string, string>(languageDictionary.Value));
-            }
+            var snapshot = VanillaLocalizationDictionaryFactory.CreateSnapshot();
+            Volatile.Write(ref publishedSnapshot, snapshot);
 
             // 選択不能な保存値は生成済み英語辞書へ戻す
             // Fall back to the generated English dictionary for unselectable persisted values
             var savedLanguageCode = PlayerPrefs.GetString(LanguagePreferenceKey, DefaultLanguageCode);
-            currentLanguageCode = mergedDictionary.ContainsKey(savedLanguageCode) &&
+            currentLanguageCode = snapshot.ContainsKey(savedLanguageCode) &&
                                   savedLanguageCode != SourcePseudoLocale
                 ? savedLanguageCode
                 : DefaultLanguageCode;
@@ -50,17 +38,20 @@ namespace Client.Localization
 
         public static string Get(LocalizationKey key)
         {
-            return GetLegacy(key.Key);
+            var snapshot = Volatile.Read(ref publishedSnapshot);
+            return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
         public static string GetLegacy(string rawKey)
         {
-            return LocalizationTextResolver.Resolve(mergedDictionary, currentLanguageCode, rawKey);
+            var snapshot = Volatile.Read(ref publishedSnapshot);
+            return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, rawKey);
         }
 
         public static string GetContent(string derivedKey)
         {
-            return LocalizationTextResolver.Resolve(mergedDictionary, currentLanguageCode, derivedKey);
+            var snapshot = Volatile.Read(ref publishedSnapshot);
+            return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, derivedKey);
         }
 
         public static void MergeGameDictionaries(ModsResource modsResource)
@@ -86,26 +77,20 @@ namespace Client.Localization
                 candidate[SourcePseudoLocale][sourceText.Key] = sourceText.Value;
             }
 
-            // 全合成成功後に既存viewのinner辞書へ一括反映する
-            // Commit into existing view-backed dictionaries only after composition fully succeeds
-            foreach (var candidateLanguage in candidate)
-            {
-                var destination = mutableDictionaries[candidateLanguage.Key];
-                destination.Clear();
-                foreach (var text in candidateLanguage.Value)
-                {
-                    destination.Add(text.Key, text.Value);
-                }
-            }
-
+            // 全合成成功後にfreeze済みsnapshot参照を一度だけ公開する
+            // Publish the frozen snapshot reference once only after composition fully succeeds
+            var snapshot = VanillaLocalizationDictionaryFactory.Freeze(candidate);
+            Volatile.Write(ref publishedSnapshot, snapshot);
             onLanguageChangedSubject.OnNext(Unit.Default);
         }
 
         public static void SetLanguage(string languageCode)
         {
+            var snapshot = Volatile.Read(ref publishedSnapshot);
+
             // Source以外を選択言語に限定
             // Allow selecting only non-Source locales
-            if (languageCode != SourcePseudoLocale && mergedDictionary.ContainsKey(languageCode))
+            if (languageCode != SourcePseudoLocale && snapshot.ContainsKey(languageCode))
             {
                 currentLanguageCode = languageCode;
                 PlayerPrefs.SetString(LanguagePreferenceKey, languageCode);
@@ -137,9 +122,11 @@ namespace Client.Localization
             string languageCode,
             out IReadOnlyDictionary<string, string> dictionary)
         {
-            // 内部更新を反映し続けるread-only viewをWeb配信にも公開する
-            // Expose a live read-only view that reflects internal dictionary updates to Web delivery
-            if (mergedDictionary.TryGetValue(languageCode, out var values))
+            var snapshot = Volatile.Read(ref publishedSnapshot);
+
+            // request中に変化しないsnapshotのread-only辞書をWeb配信へ公開する
+            // Expose a read-only snapshot dictionary that stays stable throughout the request
+            if (snapshot.TryGetValue(languageCode, out var values))
             {
                 dictionary = values;
                 return true;

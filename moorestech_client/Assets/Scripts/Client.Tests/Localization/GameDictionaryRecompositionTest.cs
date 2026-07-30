@@ -47,7 +47,7 @@ namespace Client.Tests.Localization
         }
 
         [Test]
-        public void RecompositionRemovesStaleTranslationAndKeepsLiveReadOnlyView()
+        public void RecompositionPublishesNewSnapshotAndKeepsOldSnapshotStable()
         {
             var first = CreateResource(
                 "first-set",
@@ -56,7 +56,12 @@ namespace Client.Tests.Localization
             Localize.MergeGameDictionaries(first, new[] { new ModId("author:first") });
             Localize.TryGetDictionary("japanese", out var viewBefore);
             var eventCount = 0;
-            using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
+            string notifiedValue = null;
+            using var subscription = Localize.OnLanguageChanged.Subscribe(_ =>
+            {
+                eventCount++;
+                notifiedValue = Localize.GetContent("content.recompose.name");
+            });
 
             var second = CreateResource(
                 "second-set",
@@ -65,11 +70,13 @@ namespace Client.Tests.Localization
             Localize.MergeGameDictionaries(second, new[] { new ModId("author:second") });
             Localize.TryGetDictionary("japanese", out var viewAfter);
 
+            Assert.AreEqual("最初", viewBefore["content.recompose.name"]);
             Assert.IsFalse(viewAfter.ContainsKey("content.recompose.name"));
             Assert.AreEqual("Second English", Localize.GetContent("content.recompose.name"));
-            Assert.AreSame(viewBefore, viewAfter);
+            Assert.AreNotSame(viewBefore, viewAfter);
             Assert.AreEqual("japanese", Localize.GetCurrentLanguageCode());
             Assert.AreEqual(1, eventCount);
+            Assert.AreEqual("Second English", notifiedValue);
         }
 
         [Test]
@@ -80,7 +87,7 @@ namespace Client.Tests.Localization
                 "author:valid",
                 "key,Source,english,japanese\ncontent.atomic.name,Source,English,既存\n");
             Localize.MergeGameDictionaries(valid, new[] { new ModId("author:valid") });
-            Localize.TryGetDictionary("japanese", out var liveView);
+            Localize.TryGetDictionary("japanese", out var oldSnapshot);
             var eventCount = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
 
@@ -100,7 +107,7 @@ namespace Client.Tests.Localization
                 Localize.MergeGameDictionaries(
                     invalid,
                     new[] { new ModId("author:partial"), new ModId("author:invalid") }));
-            Assert.AreEqual("既存", liveView["content.atomic.name"]);
+            Assert.AreEqual("既存", oldSnapshot["content.atomic.name"]);
             Assert.AreEqual(0, eventCount);
         }
 
