@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../support/actions";
+import { expectCraftGrip } from "../support/craftChromeAssertions";
 import { resetResearch, setUiState } from "../support/mockControl";
 
 // 各テスト後に研究ツリーと ui_state を既定へ戻し、状態漏れを防ぐ
@@ -24,6 +25,7 @@ test("研究報酬itemの個数をtopic payloadどおり詳細ペインで表示
   await page.getByTestId("research-node-11111111-1111-1111-1111-111111111111").click();
   const pane = page.getByTestId("research-detail-pane");
   await expect(pane.getByText("4", { exact: true })).toBeVisible();
+  await expectCraftGrip(pane.locator(':scope > [data-variant="craft"]'));
 });
 
 test("research button sends research.complete and node becomes completed", async ({ page }) => {

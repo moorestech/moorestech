@@ -16,6 +16,11 @@
   /* 面の左右フェード幅。%指定はパネル幅で伸びるため固定長で統一 */
   /* Horizontal face-fade span; fixed length so it never scales with panel width */
   --panel-edge-fade: 12px;
+  /* クラフト枠の右下グリップを正本の固定寸法と単色面へ揃える */
+  /* Match the craft-frame grip to the reference's fixed size and single-color face */
+  --craft-grip-size: 9px;
+  --craft-grip-inset: 7px;
+  --craft-grip-face: rgb(146 148 167 / 98%);
   --font-ui: "MooresUI", "MooresUI JP", sans-serif;
   /* 画面レイヤーの層序を一元化し、各オーバーレイの前後関係を固定する */
   /* Centralize the screen layer order to keep every overlay's stacking relationship fixed */

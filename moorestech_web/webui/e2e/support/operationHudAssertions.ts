@@ -1,4 +1,5 @@
 import { expect, type Locator } from "@playwright/test";
+import { expectCraftGrip } from "./craftChromeAssertions";
 
 export async function expectCraftFramedPlacementHud(hud: Locator) {
   // 外側配置と内側共通枠を分けて検証する
@@ -78,22 +79,18 @@ export async function expectCraftFramedPlacementHud(hud: Locator) {
     expect(ratios.detail).toBeGreaterThanOrEqual(4.5);
   }
 
+  await expectCraftGrip(frame);
   const visualContract = await frame.evaluate((element) => {
     const frameStyle = getComputedStyle(element);
-    const afterStyle = getComputedStyle(element, "::after");
     const detailStyle = getComputedStyle(element.querySelector('[data-testid="operation-mode-detail"]')!);
     return {
       animationName: frameStyle.animationName,
-      afterContent: afterStyle.content,
-      afterImage: afterStyle.backgroundImage,
       detailFontWeight: detailStyle.fontWeight,
       detailLineHeight: detailStyle.lineHeight,
     };
   });
   expect(visualContract).toEqual({
     animationName: "none",
-    afterContent: "\"\"",
-    afterImage: expect.stringContaining("linear-gradient"),
     detailFontWeight: "400",
     detailLineHeight: "25px",
   });

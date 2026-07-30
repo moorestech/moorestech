@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../support/actions";
+import { expectCraftGrip } from "../support/craftChromeAssertions";
 
 test("正本どおりクラフト時間を選択枠内に置き、中央プレビューを表示しない", async ({ page }) => {
   await page.goto("/");
@@ -31,8 +32,9 @@ test("正本のヘッダ装飾、常時スクロールバー、主要構造を�
   // 選択枠DOMを画像測定用に保つ
   // Keep the selection-frame DOM available for image measurement
   const recipeBox = page.getByTestId("craft-recipe-box");
-  const craftPanel = recipeBox.locator("xpath=ancestor::div[contains(@class, '_panel_')][1]");
+  const craftPanel = recipeBox.locator('xpath=ancestor::*[@data-variant="craft"][1]');
   await expect(craftPanel).toBeVisible();
+  await expectCraftGrip(craftPanel);
   await expect(page.getByRole("button", { name: "Craft" })).toBeVisible();
 
   // 短いfixtureでも縦バーを保つ

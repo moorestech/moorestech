@@ -79,17 +79,10 @@
   z-index: 1;
 }
 
-/* 中央だけ外枠と内周線を持つ二層クローム。面はuGUI原画像(craft_bg_base_slice #070912, α0.8)の半透明ネイビー。
-   D6: 正本の画素実測では外周に太い帯は無く(bg→面へ1px弱の硬い遷移)、内側にごく細い青灰の差し色線が
-   1本あるのみ。旧来のinset4px+5pxの厚い帯を1px+2pxへ薄くし「太い均一帯」を解消する */
-/* D6: the reference's pixel cross-section shows no thick outer band (a near-hard bg→face transition <1px);
-   only a very thin blue-gray accent line sits just inside. Thin the old inset 4px+5px band down to 1px+2px to
-   remove the "thick uniform band" the criteria flags */
-/* D5-2: 3層(外枠+暗inset+明灰inset)を外1px暗色/内1px明灰の2層へ整理し、輪郭の色分離を明確にする */
-/* D5-2: collapse the 3 layers (outer border + dark inset + light-gray inset) into a clean outer-1px-dark /
-   inner-1px-light-gray pair so the outline's color separation reads clearly */
+/* 中央枠は硬い外縁と細い内周線だけの二層クロームにする */
+/* The central frame keeps a hard outer edge and one thin inner accent line */
 .craft {
-  padding: 8px 10px 6px;
+  padding: 8px 15px 15px 10px;
   /* 透明borderで外寸を維持し、背景のハードエッジと8px内側の灰線だけを見せる */
   /* Preserve geometry with a transparent border while showing only the hard background edge and gray line eight pixels inward */
   border: 1px solid transparent;
@@ -97,22 +90,18 @@
   box-shadow: inset 0 0 0 3.132px rgb(40 42 53), inset 0 0 0 3.524px rgb(146 148 167 / 55%);
 }
 
-/* 右下の三角グリップは正本実測(2000,1350)-(2061,1395)相当まで縮小し、パネル縁から離して内側へ配置する。
-   iter3ではパネル縁に接する肥大三角になっていた(幅130px超)ため、正本の画素実測(約22x23screenshot=
-   8.6x9CSS)に合わせ、right/bottomのオフセットも広げて縁から浮かせる */
-/* Shrink the bottom-right triangular grip to the reference's measured footprint (~22x23 screenshot =
-   8.6x9 CSS) and pull it off the panel edges. iter3 left it oversized and flush against the edges
-   (130px+ wide); this restores the reference's small, inset ribbon */
+/* 右下グリップは固定寸法の単色三角形として枠内に収める */
+/* Keep the bottom-right grip as one fixed-size, single-color triangle inside the frame */
 .craft::after {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
-  width: 24px;
-  height: 18px;
+  right: var(--craft-grip-inset);
+  bottom: var(--craft-grip-inset);
+  width: var(--craft-grip-size);
+  height: var(--craft-grip-size);
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  background: linear-gradient(135deg, rgb(206 210 220 / 18%) 0 32%, rgb(146 148 167 / 55%) 33% 66%, rgb(64 66 82 / 72%) 67% 100%);
-  box-shadow: inset -1px -1px 2px rgb(0 0 0 / 55%), inset 1px 1px 1px rgb(255 255 255 / 18%);
+  background: var(--craft-grip-face);
   content: "";
+  pointer-events: none;
 }
 
 /* heightを固定し、タイトルの拡大が上下罫線の位置(y316/382)を押し流さないようにする */
