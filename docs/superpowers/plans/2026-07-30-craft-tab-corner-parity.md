@@ -30,6 +30,7 @@ spec: docs/superpowers/specs/2026-07-30-craft-tab-corner-parity-design.md
 
 新規:
 
+- `moorestech_web/webui/e2e/craft-chrome/requirements.txt` — 画像比較器の固定Python依存
 - `moorestech_web/webui/e2e/craft-chrome/compare.py` — パネル原点正規化、対象bbox/色判定、crop・blend・diff生成
 - `moorestech_web/webui/e2e/support/craftChromeAssertions.ts` — 共有craftグリップの計算済みCSSと内容非重複を検証
 - `moorestech_web/webui/src/features/inventory/__tests__/InventoryScreenChrome.test.ts` — 開発用ボタンのソース契約
@@ -57,6 +58,7 @@ spec: docs/superpowers/specs/2026-07-30-craft-tab-corner-parity-design.md
 
 **Files:**
 
+- Create: `moorestech_web/webui/e2e/craft-chrome/requirements.txt`
 - Create: `moorestech_web/webui/e2e/craft-chrome/compare.py`
 - Read: `moorestech_web/webui/e2e/parity-check.py`
 - Read: `moorestech_web/webui/e2e/parity_targets.py`
@@ -64,7 +66,27 @@ spec: docs/superpowers/specs/2026-07-30-craft-tab-corner-parity-design.md
 - Test input: `docs/webui-parity/reference-player-inventory-3270x1844.png`
 - Test input: `/tmp/webui-craft-current.png`
 
-- [ ] **Step 1: 正規化比較器を実装する**
+- [ ] **Step 1: Python依存を固定して専用venvへ導入する**
+
+`requirements.txt`:
+
+```text
+numpy==2.5.1
+Pillow==12.3.0
+```
+
+Run:
+
+```bash
+cd moorestech_web/webui
+python3 -m venv /tmp/webui-craft-qa-venv
+/tmp/webui-craft-qa-venv/bin/pip install -r e2e/craft-chrome/requirements.txt
+/tmp/webui-craft-qa-venv/bin/python -c "import numpy, PIL; print(numpy.__version__, PIL.__version__)"
+```
+
+Expected: `2.5.1 12.3.0`。以後の画像比較コマンドは必ずこのvenvのPythonを使う。
+
+- [ ] **Step 2: 正規化比較器を実装する**
 
 `compare.py` は次の定数と判定を持たせる。
 
@@ -100,7 +122,7 @@ def detect_panel(image: np.ndarray) -> tuple[int, int, int, int]:
     )
 ```
 
-タブはパネル左端から `x=-8..190`、上端から `y=-100..-1` の `max(R,G,B)<120` を、グリップはパネル右下80px四方の「各チャンネル差35未満・明度70〜190」の連結成分を測る。グリップではパネル枠に接する成分を除外し、幅・高さが5px以上の最大成分を選ぶ。ハンマーはタブ領域内の低彩度かつ明度68〜100の成分から、タブ左端+35〜110pxに中心を持つ最大成分を選ぶ。
+タブはパネル左端から `x=-8..190`、上端から `y=-100..-1` の `max(R,G,B)<120` を、グリップはパネル右下80px四方の「各チャンネル差35未満・明度70〜190」の連結成分を測る。グリップではパネル枠に接する成分を除外し、幅・高さが5px以上の最大成分を選ぶ。ハンマーはタブ領域内の低彩度かつ明度68〜100の成分から、タブ左端+35〜110pxに中心を持つ最大成分を選ぶ。検出、判定、成果物生成の主要セクションには日本語・英語の2行コメントを置く。
 
 bbox寸法は包含端点として `max-min+1`、パネル内側の隙間は `panel_edge-decoration_edge-1` で算出する。色はタブ前面 `(panelLeft+105,panelTop-45)`、背面 `(panelLeft+8,panelTop-60)`、右斜面 `(panelLeft+140,panelTop-20)`、ハンマー `(panelLeft+70,panelTop-30)`、グリップ `(panelRight-27,panelBottom-27)` の5×5px中央値を正本と比較する。
 
@@ -111,13 +133,13 @@ bbox寸法は包含端点として `max-min+1`、パネル内側の隙間は `pa
 
 cropはパネル相対でタブ `(-20,-110,210,30)`、グリップ `(right-120,bottom-120,right+20,bottom+20)` とし、正本・現状を同寸にする。ファイル全体を200行以下に収める。
 
-- [ ] **Step 2: 自己比較で比較器の健全性を確認する**
+- [ ] **Step 3: 自己比較で比較器の健全性を確認する**
 
 Run:
 
 ```bash
 cd moorestech_web/webui
-python3 e2e/craft-chrome/compare.py \
+/tmp/webui-craft-qa-venv/bin/python e2e/craft-chrome/compare.py \
   --ref ../../docs/webui-parity/reference-player-inventory-3270x1844.png \
   --cur ../../docs/webui-parity/reference-player-inventory-3270x1844.png \
   --out /tmp/webui-craft-chrome-self
@@ -125,13 +147,27 @@ python3 e2e/craft-chrome/compare.py \
 
 Expected: exit 0、全判定PASS、blendが正本と同一、diffが全黒。
 
-- [ ] **Step 3: 現状キャプチャに対して不一致を確認する**
+- [ ] **Step 4: 変更前の現状キャプチャをclean環境でも再生成する**
+
+Run:
+
+```bash
+pnpm build
+CAPTURE_VIEWPORT_W=1635 \
+CAPTURE_VIEWPORT_H=922 \
+CAPTURE_OUT=/tmp/webui-craft-current.png \
+pnpm exec tsx e2e/capture-eval.ts
+```
+
+Expected: `/tmp/webui-craft-current.png` が3270×1844pxで生成される。
+
+- [ ] **Step 5: 現状キャプチャに対して不一致を確認する**
 
 Run:
 
 ```bash
 cd moorestech_web/webui
-python3 e2e/craft-chrome/compare.py \
+/tmp/webui-craft-qa-venv/bin/python e2e/craft-chrome/compare.py \
   --ref ../../docs/webui-parity/reference-player-inventory-3270x1844.png \
   --cur /tmp/webui-craft-current.png \
   --out /tmp/webui-craft-chrome-baseline
@@ -139,10 +175,11 @@ python3 e2e/craft-chrome/compare.py \
 
 Expected: exit 1。少なくともハンマー形状とグリップ22×22px判定がFAILし、8枚の比較画像が生成される。
 
-- [ ] **Step 4: 比較器だけをコミットする**
+- [ ] **Step 6: 比較器と依存定義をコミットする**
 
 ```bash
-git add moorestech_web/webui/e2e/craft-chrome/compare.py
+git add moorestech_web/webui/e2e/craft-chrome/compare.py \
+  moorestech_web/webui/e2e/craft-chrome/requirements.txt
 git commit -m "test: add normalized craft chrome visual comparator"
 ```
 
@@ -290,13 +327,34 @@ export async function expectCraftGrip(frame: Locator) {
     backgroundImage: "none",
     boxShadow: "none",
     overlaps: false,
-  });
+});
 }
 ```
 
 ブラウザの `clipPath` 文字列表現が実測と異なる場合は、意味を緩めず `toContain("polygon")` と3頂点の数値個別検証へ変更する。
+helperの計算済みstyle抽出と内容矩形判定には、日本語・英語の2行コメントを置く。
 
 `recipe.spec.ts` では選択後の中央 `[data-variant="craft"]`、`operationHudAssertions.ts` では配置HUDのframe、`research.spec.ts` ではノード選択後の詳細ペイン直下frameに `expectCraftGrip` を適用する。
+
+`operationHudAssertions.ts` では `craftChromeAssertions.ts` からhelperをimportし、既存の `afterImage: expect.stringContaining("linear-gradient")` と `afterContent` の重複検証を削除する。残す視覚契約は次の形にする。
+
+```ts
+await expectCraftGrip(frame);
+const visualContract = await frame.evaluate((element) => {
+  const frameStyle = getComputedStyle(element);
+  const detailStyle = getComputedStyle(element.querySelector('[data-testid="operation-mode-detail"]')!);
+  return {
+    animationName: frameStyle.animationName,
+    detailFontWeight: detailStyle.fontWeight,
+    detailLineHeight: detailStyle.lineHeight,
+  };
+});
+expect(visualContract).toEqual({
+  animationName: "none",
+  detailFontWeight: "400",
+  detailLineHeight: "25px",
+});
+```
 
 Run:
 
@@ -321,6 +379,8 @@ Expected: FAIL。現状は24×18px、3帯gradient、box-shadowあり。
   --craft-grip-inset: 7px;
   --craft-grip-face: rgb(146 148 167 / 98%);
 ```
+
+比較撮影ではdeviceScaleFactor 2に加えて1280基準stageが1635 CSS pxへ拡大されるため、総倍率は `3270/1280=2.5546875`。9 CSS pxは約23 screenshot pxとなり、22px目標へTask 5で1変数ずつ収束させる。
 
 - [ ] **Step 3: 疑似要素を単一三角形へ置換する**
 
@@ -518,7 +578,7 @@ Expected: `/tmp/webui-craft-current.png` が3270×1844pxで生成される。
 - [ ] **Step 2: 機械比較と比較素材生成を行う**
 
 ```bash
-python3 e2e/craft-chrome/compare.py \
+/tmp/webui-craft-qa-venv/bin/python e2e/craft-chrome/compare.py \
   --ref ../../docs/webui-parity/reference-player-inventory-3270x1844.png \
   --cur /tmp/webui-craft-current.png \
   --out /tmp/webui-craft-chrome
@@ -609,6 +669,8 @@ wc -l \
 ```
 
 Expected: 先頭2つの `rg` は0件でexit 1。全ファイル200行以下。
+
+新規 `compare.py` と `craftChromeAssertions.ts` を目視し、主要処理セクションの日英2行コメントが欠けていないことも確認する。
 
 - [ ] **Step 4: 最終画像判定をもう一度実行する**
 
