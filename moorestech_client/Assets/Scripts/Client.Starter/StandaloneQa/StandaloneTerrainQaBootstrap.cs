@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Client.Common;
 using Client.DebugSystem.Environment;
+using Client.Game;
 using Client.Game.Common;
 using Common.Debug;
 using Cysharp.Threading.Tasks;
@@ -15,7 +16,6 @@ namespace Client.Starter.StandaloneQa
 {
     public static class StandaloneTerrainQaBootstrap
     {
-        private const string ResultFileName = "result.json";
         private const string ScreenshotFileName = "generated-terrain-player.png";
         private const string DebugEnvironmentTypeKey = "DebugEnvironmentTypeKey";
         private static readonly Stopwatch LoadingStopwatch = new();
@@ -36,12 +36,13 @@ namespace Client.Starter.StandaloneQa
                 Application.Quit(2);
                 return;
             }
-            // Player QA専用cacheへ環境設定を隔離し、初期化完了時の再適用もRuntimeへ固定する
-            // Isolate environment settings in a Player-QA cache and keep post-initialization reapplication on Runtime
+            // Player QA専用cacheへgenerated用環境とSkit抑止を隔離し、Terrainを表示したまま検証する
+            // Isolate generated environment and skit suppression in the Player-QA cache, keeping Terrain visible for validation
             var debugCacheDirectory = Path.Combine(_settings.ResultDirectory, "debug-cache");
             Directory.CreateDirectory(debugCacheDirectory);
             DebugParametersCacheDirectory.SetOverride(debugCacheDirectory);
-            DebugParameters.SaveInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Runtime);
+            DebugParameters.SaveInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.PureNature);
+            DebugParameters.SaveBool(DebugConst.SkitPlaySettingsKey, true);
 
             // 専用引数が揃ったPlayerだけでシーン注入と完了検査を有効にする
             // Enable scene injection and completion checks only for a Player with complete dedicated arguments
@@ -73,7 +74,7 @@ namespace Client.Starter.StandaloneQa
 
             if (scene.name == SceneConstant.MainGameSceneName)
             {
-                if (!_hasInjectedSettings || !DebugEnvironmentController.TrySetEnvironment(DebugEnvironmentType.Runtime))
+                if (!_hasInjectedSettings || !DebugEnvironmentController.TrySetEnvironment(DebugEnvironmentType.PureNature))
                 {
                     ExitWithFailure("runtime environment could not be selected before MainGame initialization");
                     return;
@@ -98,34 +99,52 @@ namespace Client.Starter.StandaloneQa
 
         private static async UniTask ValidateAndExitAsync()
         {
-            // MainGame後の地形出現と初期化完了に期限を設け、Player固有停止でも証跡を残す
-            // Bound terrain appearance and initialization after MainGame so Player-only stalls still leave evidence
-            var terrainDeadline = Time.realtimeSinceStartup + 120f;
-            while (Terrain.activeTerrains.Length == 0 && Time.realtimeSinceStartup < terrainDeadline)
-            {
-                await UniTask.Yield();
-            }
-            if (Terrain.activeTerrains.Length == 0)
-            {
-                ExitWithFailure("runtime terrain did not appear within 120 seconds");
-                return;
-            }
-
-            var initializationDeadline = Time.realtimeSinceStartup + 30f;
+            // 地形構築後に発火する初期化完了を先に待ち、差し替え前のオーサリングTerrainを成功条件にしない
+            // Wait first for initialization fired after terrain construction, excluding authored Terrain before replacement from success
+            var initializationDeadline = Time.realtimeSinceStartup + 120f;
             while (!_gameInitialized && Time.realtimeSinceStartup < initializationDeadline)
             {
                 await UniTask.Yield();
             }
+            if (!_gameInitialized)
+            {
+                ExitWithFailure("game initialization did not complete within 120 seconds");
+                return;
+            }
+
+            // 初期化完了後に有効なTerrainを待ち、Player固有のHierarchy反映遅延にも期限を設ける
+            // Wait for active Terrain after initialization, bounding Player-specific hierarchy propagation delays
+            var terrainDeadline = Time.realtimeSinceStartup + 30f;
+            while (StandaloneTerrainQaViewPreparer.GetGeneratedTerrains().Length == 0 &&
+                   Time.realtimeSinceStartup < terrainDeadline)
+            {
+                await UniTask.Yield();
+            }
+            if (StandaloneTerrainQaViewPreparer.GetGeneratedTerrains().Length == 0)
+            {
+                ExitWithFailure("runtime terrain did not become active within 30 seconds after initialization");
+                return;
+            }
+
             await UniTask.Delay(TimeSpan.FromSeconds(3), DelayType.Realtime);
             Directory.CreateDirectory(_settings.ResultDirectory);
 
             // Player実体が生成した全Terrainのマテリアルとshader対応状態を検査する
             // Inspect material and shader support on every Terrain created by the actual Player
-            var terrains = Terrain.activeTerrains;
+            var terrains = StandaloneTerrainQaViewPreparer.GetGeneratedTerrains();
             var invalidTerrains = terrains.Where(IsInvalidTerrain).Select(terrain => terrain.name).ToArray();
             var shaderNames = terrains.Select(GetShaderName).Distinct().OrderBy(name => name).ToArray();
             var screenshotPath = Path.Combine(_settings.ResultDirectory, ScreenshotFileName);
-            await CaptureScreenshotAsync(screenshotPath);
+            // 初期化完了後の撮影だけauthored環境を隠し、runtime Terrainの原点と見た目を単独で証跡化する
+            // Hide authored environments only for the post-initialization capture, isolating runtime Terrain origin and visuals
+            if (!DebugEnvironmentController.TrySetEnvironment(DebugEnvironmentType.Runtime))
+            {
+                ExitWithFailure("authored environments could not be hidden for runtime terrain capture");
+                return;
+            }
+            StandaloneTerrainQaViewPreparer.Prepare(terrains[0]);
+            await UniTask.Delay(TimeSpan.FromSeconds(1), DelayType.Realtime);
+            await StandaloneTerrainQaEvidenceWriter.CaptureScreenshotAsync(screenshotPath);
 
             var screenshotExists = File.Exists(screenshotPath);
             var success = 0 < terrains.Length && invalidTerrains.Length == 0 && screenshotExists && _gameInitialized;
@@ -143,7 +162,7 @@ namespace Client.Starter.StandaloneQa
                     : $"runtime terrain validation failed; screenshotExists={screenshotExists}; gameInitialized={_gameInitialized}",
             };
 
-            WriteResult(result);
+            StandaloneTerrainQaEvidenceWriter.WriteResult(_settings.ResultDirectory, result);
             SceneManager.sceneLoaded -= OnSceneLoaded;
             Application.Quit(success ? 0 : 1);
 
@@ -166,35 +185,16 @@ namespace Client.Starter.StandaloneQa
             #endregion
         }
 
-        private static async UniTask CaptureScreenshotAsync(string path)
-        {
-            if (File.Exists(path)) File.Delete(path);
-            ScreenCapture.CaptureScreenshot(path);
-
-            // ScreenCaptureの非同期書き出し完了を期限付きで待つ
-            // Wait with a deadline for the asynchronous ScreenCapture write
-            var deadline = Time.realtimeSinceStartup + 10f;
-            while (!File.Exists(path) && Time.realtimeSinceStartup < deadline)
-            {
-                await UniTask.Yield();
-            }
-        }
-
         private static void ExitWithFailure(string message)
         {
             Debug.LogError($"[StandaloneTerrainQa] {message}");
             if (_settings != null)
             {
                 Directory.CreateDirectory(_settings.ResultDirectory);
-                WriteResult(new StandaloneTerrainQaResult { success = false, message = message });
+                StandaloneTerrainQaEvidenceWriter.WriteResult(
+                    _settings.ResultDirectory, new StandaloneTerrainQaResult { success = false, message = message });
             }
             Application.Quit(1);
-        }
-
-        private static void WriteResult(StandaloneTerrainQaResult result)
-        {
-            var path = Path.Combine(_settings.ResultDirectory, ResultFileName);
-            File.WriteAllText(path, JsonUtility.ToJson(result, true));
         }
     }
 }
