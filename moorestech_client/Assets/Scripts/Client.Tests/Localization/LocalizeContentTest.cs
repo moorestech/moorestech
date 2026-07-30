@@ -81,8 +81,12 @@ namespace Client.Tests.Localization
             var eventCount = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
 
-            // 起動口がitem/block双方の原文と更新通知を公開する
-            // Verify the startup entry exposes both item/block sources and one update event
+            var firstResearch = MasterHolder.ResearchMaster.GetAllResearches()[0];
+            var firstCategory = MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements[0];
+            var firstChallenge = firstCategory.Challenges[0];
+
+            // 起動口が全コンテンツ原文と更新通知を公開する
+            // Verify the startup entry exposes every content source and one update event
             Assert.DoesNotThrow(() => Localize.MergeGameDictionaries(modsResource));
             Assert.AreEqual(
                 firstBlock.Name,
@@ -90,6 +94,21 @@ namespace Client.Tests.Localization
             Assert.AreEqual(
                 firstItem.Name,
                 Localize.GetContent(ContentLocalizationKeys.ItemName(firstItem.ItemGuid)));
+            Assert.AreEqual(
+                firstResearch.ResearchNodeName,
+                Localize.GetContent(ContentLocalizationKeys.ResearchNodeName(firstResearch.ResearchNodeGuid)));
+            Assert.AreEqual(
+                firstResearch.ResearchNodeDescription,
+                Localize.GetContent(ContentLocalizationKeys.ResearchNodeDescription(firstResearch.ResearchNodeGuid)));
+            Assert.AreEqual(
+                firstCategory.CategoryName,
+                Localize.GetContent(ContentLocalizationKeys.ChallengeCategoryName(firstCategory.CategoryGuid)));
+            Assert.AreEqual(
+                firstChallenge.Title,
+                Localize.GetContent(ContentLocalizationKeys.ChallengeTitle(firstChallenge.ChallengeGuid)));
+            Assert.AreEqual(
+                firstChallenge.Summary,
+                Localize.GetContent(ContentLocalizationKeys.ChallengeSummary(firstChallenge.ChallengeGuid)));
             Assert.AreEqual(1, eventCount);
         }
 

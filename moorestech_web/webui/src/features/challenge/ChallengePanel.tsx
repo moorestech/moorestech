@@ -3,7 +3,7 @@ import { Button, Group, Title } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import { TreeView } from "@/shared/treeView";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
-import { L, useI18n } from "@/shared/i18n";
+import { challengeCategoryNameKey, L, useI18n } from "@/shared/i18n";
 import ChallengeNodeCard from "./ChallengeNodeCard";
 import styles from "./style.module.css";
 
@@ -25,7 +25,7 @@ export default function ChallengePanel() {
         {categories.map((category) => (
           <Button key={category.guid} variant={category.guid === selected?.guid ? "filled" : "subtle"}
             onClick={() => setSelectedGuid(category.guid)} data-testid={`challenge-category-${category.guid}`}>
-            {category.name}
+            {t(challengeCategoryNameKey(category.guid))}
           </Button>
         ))}
       </Group>

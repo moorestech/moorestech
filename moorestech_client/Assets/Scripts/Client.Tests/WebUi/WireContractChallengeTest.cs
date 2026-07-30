@@ -18,8 +18,6 @@ namespace Client.Tests.WebUi
             var node = new ChallengeNodeDto
             {
                 Guid = nodeGuid,
-                Title = "First challenge",
-                Summary = "Build a machine",
                 IconItemId = 2,
                 State = "current",
                 Position = new ChallengeVectorDto { X = 0, Y = 100 },
@@ -30,14 +28,14 @@ namespace Client.Tests.WebUi
             {
                 Categories = new List<ChallengeCategoryDto>
                 {
-                    new() { Guid = categoryGuid, Name = "Basics", IconItemId = 1, Nodes = new List<ChallengeNodeDto> { node } },
+                    new() { Guid = categoryGuid, IconItemId = 1, Nodes = new List<ChallengeNodeDto> { node } },
                 },
             };
             var current = new ChallengeCurrentDto
             {
                 Challenges = new List<CurrentChallengeDto>
                 {
-                    new() { Guid = nodeGuid, Title = "First challenge", CategoryGuid = categoryGuid },
+                    new() { Guid = nodeGuid, CategoryGuid = categoryGuid },
                 },
                 CompletedChallengeGuid = null,
             };

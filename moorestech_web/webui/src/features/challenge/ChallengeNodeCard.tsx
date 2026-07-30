@@ -1,6 +1,12 @@
 import { Paper, Text } from "@mantine/core";
 import type { ChallengeNodeData } from "@/bridge";
-import { L, useI18n, type TranslationKey } from "@/shared/i18n";
+import {
+  challengeSummaryKey,
+  challengeTitleKey,
+  L,
+  useI18n,
+  type TranslationKey,
+} from "@/shared/i18n";
 import styles from "./style.module.css";
 import { tutorialAnchor, challengeNodeAnchorId } from "@/shared/tutorialAnchor";
 
@@ -14,8 +20,8 @@ export default function ChallengeNodeCard({ node, left, top }: { node: Challenge
       data-testid={`challenge-node-${node.guid}`}
       {...tutorialAnchor(challengeNodeAnchorId(node.guid))}
       style={{ left, top, transform: `translate(-50%, -50%) scale(${node.scale.x}, ${node.scale.y})` }}>
-      <Text fw={700}>{node.title}</Text>
-      <Text size="sm">{node.summary}</Text>
+      <Text fw={700}>{t(challengeTitleKey(node.guid))}</Text>
+      <Text size="sm">{t(challengeSummaryKey(node.guid))}</Text>
       <Text size="xs">{t(resolveChallengeStateKey(node.state))}</Text>
     </Paper>
   );

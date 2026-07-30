@@ -24,6 +24,31 @@ namespace Client.Localization
                 sourceTexts[ContentLocalizationKeys.BlockName(blockMaster.BlockGuid)] = blockMaster.Name;
             }
 
+            // 研究ノードの名前と説明を同じGuidから収集する
+            // Collect research names and descriptions from the same GUID
+            foreach (var researchMaster in MasterHolder.ResearchMaster.GetAllResearches())
+            {
+                sourceTexts[ContentLocalizationKeys.ResearchNodeName(researchMaster.ResearchNodeGuid)] =
+                    researchMaster.ResearchNodeName;
+                sourceTexts[ContentLocalizationKeys.ResearchNodeDescription(researchMaster.ResearchNodeGuid)] =
+                    researchMaster.ResearchNodeDescription;
+            }
+
+            // 全カテゴリと配下チャレンジの原文を正本として収集する
+            // Collect every category and nested challenge as canonical source text
+            foreach (var categoryMaster in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
+            {
+                sourceTexts[ContentLocalizationKeys.ChallengeCategoryName(categoryMaster.CategoryGuid)] =
+                    categoryMaster.CategoryName;
+                foreach (var challengeMaster in categoryMaster.Challenges)
+                {
+                    sourceTexts[ContentLocalizationKeys.ChallengeTitle(challengeMaster.ChallengeGuid)] =
+                        challengeMaster.Title;
+                    sourceTexts[ContentLocalizationKeys.ChallengeSummary(challengeMaster.ChallengeGuid)] =
+                        challengeMaster.Summary;
+                }
+            }
+
             return sourceTexts;
         }
     }

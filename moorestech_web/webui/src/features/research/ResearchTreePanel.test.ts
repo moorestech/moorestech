@@ -45,8 +45,6 @@ type TreeViewInstance = ReactTestInstance & {
 
 const node: ResearchNodeData = {
   guid: "research-a",
-  name: "Research A",
-  description: "Description",
   state: "researchable",
   iconItemId: 1,
   position: { x: 10, y: 20 },

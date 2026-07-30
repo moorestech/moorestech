@@ -105,8 +105,7 @@ describe("validBlockInventory capability details", () => {
 
 describe("validResearchTree", () => {
   const node = {
-    guid: "abc", name: "研究1", description: "説明",
-    state: "researchable", iconItemId: 1, position: { x: 100, y: -50 },
+    guid: "abc", state: "researchable", iconItemId: 1, position: { x: 100, y: -50 },
     prevGuids: [], consumeItems: [{ itemId: 1, count: 3 }],
     rewardItems: [{ itemId: 2, count: 4 }], unlockItemIds: [],
   };

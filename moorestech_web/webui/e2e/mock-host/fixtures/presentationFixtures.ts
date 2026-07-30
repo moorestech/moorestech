@@ -3,39 +3,37 @@ import type { ChallengeCurrentData, ChallengeTreeData, GameStateData, SkitPresen
 export const challengeTree = {
   categories: [{
     guid: "cat-1",
-    name: "Basics",
     iconItemId: 1,
     nodes: [
-      { guid: "ch-1", title: "First Craft", summary: "craft something", iconItemId: 1, state: "completed", position: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: [] },
-      { guid: "ch-2", title: "Second Step", summary: "keep going", iconItemId: 2, state: "current", position: { x: 220, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: ["ch-1"] },
+      { guid: "ch-1", iconItemId: 1, state: "completed", position: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: [] },
+      { guid: "ch-2", iconItemId: 2, state: "current", position: { x: 220, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: ["ch-1"] },
     ],
   }],
 } satisfies ChallengeTreeData;
-export const challengeCurrent = { challenges: [{ guid: "ch-2", title: "Second Step", categoryGuid: "cat-1" }] } satisfies ChallengeCurrentData;
+export const challengeCurrent = { challenges: [{ guid: "ch-2", categoryGuid: "cat-1" }] } satisfies ChallengeCurrentData;
 export const challengeJapanese = {
-  challenges: [{ guid: "ch-jp", title: "石を採掘する", categoryGuid: "cat-1" }],
-};
+  challenges: [{ guid: "ch-jp", categoryGuid: "cat-1" }],
+} satisfies ChallengeCurrentData;
 export const challengeMultiple = {
   challenges: [
-    { guid: "ch-a", title: "石を採掘する", categoryGuid: "cat-1" },
-    { guid: "ch-b", title: "石器をクラフトする", categoryGuid: "cat-1" },
-    { guid: "ch-c", title: "木を伐採して拠点へ運ぶ", categoryGuid: "cat-2" },
+    { guid: "ch-a", categoryGuid: "cat-1" },
+    { guid: "ch-b", categoryGuid: "cat-1" },
+    { guid: "ch-c", categoryGuid: "cat-2" },
   ],
-};
+} satisfies ChallengeCurrentData;
 export const challengeLong = {
   challenges: [{
     guid: "ch-long",
-    title: "VeryLongUnbrokenChallengeObjectiveTextThatMustWrapInsideTheHudWithoutOverflowing",
     categoryGuid: "cat-1",
   }],
-};
+} satisfies ChallengeCurrentData;
 export const challengeMultipleLong = {
   challenges: [
-    { guid: "ch-ml-a", title: "地下深くにある非常に長い名前の鉱床を見つけて必要な石を採掘する", categoryGuid: "cat-1" },
-    { guid: "ch-ml-b", title: "遠方の森林から建築に必要な木材を伐採して拠点まで運搬する", categoryGuid: "cat-2" },
-    { guid: "ch-ml-c", title: "VeryLongUnbrokenSecondaryObjectiveTextThatMustAlsoWrapInsideTheHud", categoryGuid: "cat-3" },
+    { guid: "ch-ml-a", categoryGuid: "cat-1" },
+    { guid: "ch-ml-b", categoryGuid: "cat-2" },
+    { guid: "ch-ml-c", categoryGuid: "cat-3" },
   ],
-};
+} satisfies ChallengeCurrentData;
 export const gameState = { state: "InGame" } satisfies GameStateData;
 export const tutorialPresentation = {
   tutorialSessionId: "", revision: 0, challengeId: "", highlights: [],

@@ -2,7 +2,12 @@ import type { ResearchNodeData } from "@/bridge";
 import { dispatchAction } from "@/bridge";
 import { GamePanel, ItemSlot } from "@/shared/ui";
 import { deriveResearchButton, isItemSufficient } from "./researchLogic";
-import { L, useI18n } from "@/shared/i18n";
+import {
+  L,
+  researchNodeDescriptionKey,
+  researchNodeNameKey,
+  useI18n,
+} from "@/shared/i18n";
 import styles from "./style.module.css";
 
 type Props = {
@@ -21,12 +26,12 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
       <GamePanel variant="craft">
         <div className={styles.detailBody}>
           <div className={styles.detailHeader}>
-            <span className={styles.detailName}>{node.name}</span>
+            <span className={styles.detailName}>{t(researchNodeNameKey(node.guid))}</span>
             <button type="button" className={styles.detailClose} data-testid="research-detail-close" onClick={onClose}>
               {t(L.ui.research.closeSymbol)}
             </button>
           </div>
-          <p className={styles.detailDescription}>{node.description}</p>
+          <p className={styles.detailDescription}>{t(researchNodeDescriptionKey(node.guid))}</p>
           {node.consumeItems.length > 0 && (
             <div className={styles.detailSlots}>
               {node.consumeItems.map((c, i) => (

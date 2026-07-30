@@ -22,6 +22,7 @@ export * from "./fixtures/presentationFixtures";
 export * from "./fixtures/recipeFixtures";
 export * from "./fixtures/itemMasterFixtures";
 export * from "./fixtures/blockLocalizationFixtures";
+export * from "./fixtures/contentLocalizationFixtures";
 
 const empty = () => ({ itemId: 0, count: 0 });
 

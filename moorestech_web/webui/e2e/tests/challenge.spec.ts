@@ -5,6 +5,7 @@ test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "challengeActive");
   await setSkitStage(page, "none");
   await setUiState(page, "PlayerInventory");
+  await setTopicScenario(page, "japanese");
 });
 
 test("challenge.current完了eventで進行HUDを更新する", async ({ page }) => {
@@ -118,6 +119,18 @@ test("進行中チャレンジを内部キーやカード面なしで表示す�
     labelLetterSpacing: "1px",
     objectiveLineHeight: "25px",
   });
+});
+
+test("言語辞書世代の更新だけで進行中チャレンジを再解決する", async ({ page }) => {
+  await setTopicScenario(page, "challengeJapanese");
+  await setTopicScenario(page, "japanese");
+  await setUiState(page, "GameScreen");
+  await page.goto("/");
+  const objective = page.getByTestId("challenge-objective");
+  await expect(objective).toHaveText("石を採掘する");
+
+  await setTopicScenario(page, "english");
+  await expect(objective).toHaveText("Mine stone");
 });
 
 test("複数目標を受信順で表示し長文をHUD幅内へ折り返す", async ({ page }) => {

@@ -15,7 +15,6 @@ namespace Client.WebUiHost.Game.Topics
                 var category = new ChallengeCategoryDto
                 {
                     Guid = response.Category.CategoryGuid.ToString(),
-                    Name = response.Category.CategoryName,
                     IconItemId = MasterHolder.ItemMaster.GetItemId(response.Category.IconItem).AsPrimitive(),
                     Nodes = new List<ChallengeNodeDto>(),
                 };
@@ -27,8 +26,6 @@ namespace Client.WebUiHost.Game.Topics
                     var node = new ChallengeNodeDto
                     {
                         Guid = challenge.ChallengeGuid.ToString(),
-                        Title = challenge.Title,
-                        Summary = challenge.Summary,
                         IconItemId = MasterHolder.ItemMaster.GetItemId(challenge.DisplayListParam.IconItem).AsPrimitive(),
                         State = state,
                         Position = new ChallengeVectorDto
@@ -65,7 +62,6 @@ namespace Client.WebUiHost.Game.Topics
                     result.Challenges.Add(new CurrentChallengeDto
                     {
                         Guid = challenge.ChallengeGuid.ToString(),
-                        Title = challenge.Title,
                         CategoryGuid = response.Category.CategoryGuid.ToString(),
                     });
                 }

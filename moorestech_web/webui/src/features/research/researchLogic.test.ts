@@ -12,7 +12,7 @@ import { hasEnoughItems } from "@/shared/ownedCounts";
 import { L } from "@/shared/i18n";
 
 const node = (guid: string, x: number, y: number, extra?: Partial<ResearchNodeData>): ResearchNodeData => ({
-  guid, name: guid, description: "", state: "researchable", iconItemId: 1,
+  guid, state: "researchable", iconItemId: 1,
   position: { x, y }, prevGuids: [], consumeItems: [], rewardItems: [], unlockItemIds: [], ...extra,
 });
 

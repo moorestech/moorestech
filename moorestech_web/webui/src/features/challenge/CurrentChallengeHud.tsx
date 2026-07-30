@@ -1,6 +1,6 @@
 import { Topics, useTopic, useTopicSelector } from "@/bridge";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
-import { L, useI18n } from "@/shared/i18n";
+import { challengeTitleKey, L, useI18n } from "@/shared/i18n";
 import { FadeRule } from "@/shared/ui";
 import styles from "./CurrentChallengeHud.module.css";
 
@@ -28,7 +28,7 @@ export default function CurrentChallengeHud() {
       <div className={styles.objectives}>
         {current.challenges.map((challenge) => (
           <div key={challenge.guid} className={styles.objective} data-testid="challenge-objective">
-            {challenge.title}
+            {t(challengeTitleKey(challenge.guid))}
           </div>
         ))}
       </div>

@@ -14,8 +14,6 @@ namespace Client.WebUiHost.Game.Topics
     public class ResearchNodeDto
     {
         public string Guid;
-        public string Name;
-        public string Description;
         public string State;
         public int IconItemId;
         public ResearchPositionDto Position;

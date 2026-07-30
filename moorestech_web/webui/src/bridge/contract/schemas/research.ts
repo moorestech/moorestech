@@ -9,8 +9,6 @@ export const ResearchNodeStateSchema = z.enum([
 ]);
 export const ResearchNodeDataSchema = z.object({
   guid: z.string(),
-  name: z.string(),
-  description: z.string(),
   state: ResearchNodeStateSchema,
   iconItemId: z.number(),
   position: z.object({ x: z.number(), y: z.number() }),
@@ -18,5 +16,5 @@ export const ResearchNodeDataSchema = z.object({
   consumeItems: z.array(z.object({ itemId: z.number(), count: z.number() })),
   rewardItems: z.array(z.object({ itemId: z.number(), count: z.number() })),
   unlockItemIds: z.array(z.number()),
-});
+}).strict();
 export const ResearchTreeDataSchema = z.object({ nodes: z.array(ResearchNodeDataSchema) });

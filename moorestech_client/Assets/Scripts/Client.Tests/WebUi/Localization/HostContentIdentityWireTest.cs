@@ -46,10 +46,30 @@ namespace Client.Tests.WebUi.Localization
             }));
         }
 
+        [Test]
+        public void ResearchAndChallengeDtosExposeIdentityWithoutDisplayText()
+        {
+            AssertPublicFields<ResearchNodeDto>(
+                "Guid", "State", "IconItemId", "Position", "PrevGuids",
+                "ConsumeItems", "RewardItems", "UnlockItemIds");
+            AssertPublicFields<ChallengeCategoryDto>("Guid", "IconItemId", "Nodes");
+            AssertPublicFields<ChallengeNodeDto>(
+                "Guid", "IconItemId", "State", "Position", "Scale", "PrevGuids");
+            AssertPublicFields<CurrentChallengeDto>("Guid", "CategoryGuid");
+        }
+
         private static void SetLegacyNameWhenPresent(object dto, string sourceName)
         {
             dto.GetType().GetField("BlockName", BindingFlags.Public | BindingFlags.Instance)
                 ?.SetValue(dto, sourceName);
+        }
+
+        private static void AssertPublicFields<T>(params string[] expectedNames)
+        {
+            var actualNames = typeof(T)
+                .GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .Select(field => field.Name);
+            Assert.That(actualNames, Is.EquivalentTo(expectedNames));
         }
     }
 }

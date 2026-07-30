@@ -23,7 +23,7 @@ vi.mock("@/shared/ui", () => ({
 import ResearchDetailPane from "./ResearchDetailPane";
 
 const node: ResearchNodeData = {
-  guid: "research-a", name: "Research A", description: "Desc", state: "researchable", iconItemId: 1,
+  guid: "research-a", state: "researchable", iconItemId: 1,
   position: { x: 0, y: 0 }, prevGuids: [], consumeItems: [{ itemId: 1, count: 2 }], rewardItems: [], unlockItemIds: [],
 };
 
@@ -36,6 +36,9 @@ describe("ResearchDetailPane", () => {
     expect(button.props.disabled).toBe(false);
     act(() => button.props.onClick());
     expect(dispatchMock).toHaveBeenCalledWith("research.complete", { researchGuid: "research-a" });
+    const rendered = JSON.stringify(renderer.toJSON());
+    expect(rendered).toContain("research.research-a.name");
+    expect(rendered).toContain("research.research-a.description");
   });
 
   it("不足時はボタン非活性で理由を表示し、閉じるでonCloseが呼ばれる", () => {
