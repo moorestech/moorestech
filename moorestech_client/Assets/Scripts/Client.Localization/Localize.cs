@@ -25,36 +25,19 @@ namespace Client.Localization
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
         {
+            var vanillaDictionaries = VanillaLocalizationDictionaryFactory.Create();
             mutableDictionaries.Clear();
             mergedDictionary.Clear();
 
-            // 空訳を除き埋め込み辞書を構築
-            // Build embedded dictionaries without empty translations
-            foreach (var languageCode in VanillaLocalizationTable.LanguageCodes)
+            // 可変正本と外部向けread-only viewを同じinner辞書へ結び付ける
+            // Bind the mutable source of truth and public read-only views to the same inner dictionaries
+            foreach (var languageDictionary in vanillaDictionaries)
             {
-                VanillaLocalizationTable.TryGetLanguage(languageCode, out var table);
-                var languageDictionary = new Dictionary<string, string>();
-                foreach (var entry in table)
-                {
-                    if (string.IsNullOrEmpty(entry.Value)) continue;
-                    languageDictionary.Add(entry.Key, entry.Value);
-                }
-
-                mutableDictionaries.Add(languageCode, languageDictionary);
-                mergedDictionary.Add(languageCode, new ReadOnlyDictionary<string, string>(languageDictionary));
+                mutableDictionaries.Add(languageDictionary.Key, languageDictionary.Value);
+                mergedDictionary.Add(
+                    languageDictionary.Key,
+                    new ReadOnlyDictionary<string, string>(languageDictionary.Value));
             }
-
-            // Sourceも擬似localeとして配信
-            // Deliver Source as a pseudo-locale
-            var sourceDictionary = new Dictionary<string, string>();
-            foreach (var entry in VanillaLocalizationTable.SourceTexts)
-            {
-                if (string.IsNullOrEmpty(entry.Value)) continue;
-                sourceDictionary.Add(entry.Key, entry.Value);
-            }
-
-            mutableDictionaries.Add(SourcePseudoLocale, sourceDictionary);
-            mergedDictionary.Add(SourcePseudoLocale, new ReadOnlyDictionary<string, string>(sourceDictionary));
 
             // 選択不能な保存値は生成済み英語辞書へ戻す
             // Fall back to the generated English dictionary for unselectable persisted values
@@ -92,14 +75,27 @@ namespace Client.Localization
             ModsResource modsResource,
             IReadOnlyList<ModId> orderedModIds)
         {
-            ModLocalizationMerger.Merge(modsResource, orderedModIds, mutableDictionaries);
+            var candidate = VanillaLocalizationDictionaryFactory.Create();
+            ModLocalizationMerger.Merge(modsResource, orderedModIds, candidate);
 
             // マスタ原文はmod CSVのSourceより後に正本として重ねる
             // Overlay master source text as the source of truth after mod CSV Source values
             foreach (var sourceText in MasterSourceTextCollector.Collect())
             {
                 if (string.IsNullOrEmpty(sourceText.Value)) continue;
-                mutableDictionaries[SourcePseudoLocale][sourceText.Key] = sourceText.Value;
+                candidate[SourcePseudoLocale][sourceText.Key] = sourceText.Value;
+            }
+
+            // 全合成成功後に既存viewのinner辞書へ一括反映する
+            // Commit into existing view-backed dictionaries only after composition fully succeeds
+            foreach (var candidateLanguage in candidate)
+            {
+                var destination = mutableDictionaries[candidateLanguage.Key];
+                destination.Clear();
+                foreach (var text in candidateLanguage.Value)
+                {
+                    destination.Add(text.Key, text.Value);
+                }
             }
 
             onLanguageChangedSubject.OnNext(Unit.Default);
@@ -141,8 +137,8 @@ namespace Client.Localization
             string languageCode,
             out IReadOnlyDictionary<string, string> dictionary)
         {
-            // 初期化後は不変の正本をWeb配信にも公開する
-            // Expose the immutable post-initialization source of truth to Web delivery
+            // 内部更新を反映し続けるread-only viewをWeb配信にも公開する
+            // Expose a live read-only view that reflects internal dictionary updates to Web delivery
             if (mergedDictionary.TryGetValue(languageCode, out var values))
             {
                 dictionary = values;

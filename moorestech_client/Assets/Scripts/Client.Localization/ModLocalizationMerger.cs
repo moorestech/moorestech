@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Core.Master;
@@ -15,12 +16,14 @@ namespace Client.Localization
             IReadOnlyList<ModId> orderedModIds,
             Dictionary<string, Dictionary<string, string>> dictionaries)
         {
+            ValidateModOrder(modsResource, orderedModIds);
+
             // マスタと同一順序を明示的に辿り、後のmodを優先する
             // Traverse the explicit master order so later mods take precedence
             foreach (var modId in orderedModIds)
             {
                 var rawModId = modId.AsPrimitive();
-                if (!modsResource.Mods.TryGetValue(rawModId, out var mod)) continue;
+                var mod = modsResource.Mods[rawModId];
 
                 var csvPath = Path.Combine(mod.ExtractedPath, LocalizationCsvRelativePath);
                 if (!File.Exists(csvPath)) continue;
@@ -34,10 +37,15 @@ namespace Client.Localization
         {
             var csv = LocalizationCsvParser.Parse(csvText);
 
-            // 選択不能な未知言語は入力境界で明示的に拒否する
-            // Reject unknown unselectable languages explicitly at the input boundary
+            // 予約名・重複・未知言語をmutation前に検証する
+            // Validate reserved, duplicate, and unknown languages before mutation
+            var seenLanguages = new HashSet<string>(StringComparer.Ordinal);
             foreach (var languageCode in csv.LanguageCodes)
             {
+                if (languageCode == Localize.SourcePseudoLocale)
+                    throw new LocalizationCsvException($"Reserved localization language: {languageCode}");
+                if (!seenLanguages.Add(languageCode))
+                    throw new LocalizationCsvException($"Duplicated localization language: {languageCode}");
                 if (dictionaries.ContainsKey(languageCode)) continue;
                 throw new LocalizationCsvException($"Unsupported localization language: {languageCode}");
             }
@@ -57,6 +65,29 @@ namespace Client.Localization
                     if (string.IsNullOrEmpty(text)) continue;
                     dictionaries[csv.LanguageCodes[languageIndex]][row.Key] = text;
                 }
+            }
+        }
+
+        private static void ValidateModOrder(
+            ModsResource modsResource,
+            IReadOnlyList<ModId> orderedModIds)
+        {
+            var orderedIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var modId in orderedModIds)
+            {
+                var rawModId = modId.AsPrimitive();
+                if (!orderedIds.Add(rawModId))
+                    throw new InvalidOperationException($"Duplicated mod id in master order: {rawModId}");
+                if (!modsResource.Mods.ContainsKey(rawModId))
+                    throw new InvalidOperationException($"Master order contains an unloaded mod id: {rawModId}");
+            }
+
+            // 双方向照合で順序側に欠けたresourceも拒否する
+            // Reject resource IDs missing from the order through a reverse membership check
+            foreach (var resourceModId in modsResource.Mods.Keys)
+            {
+                if (orderedIds.Contains(resourceModId)) continue;
+                throw new InvalidOperationException($"Loaded mod id is missing from master order: {resourceModId}");
             }
         }
     }
