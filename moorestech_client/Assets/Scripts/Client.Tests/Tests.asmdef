@@ -35,6 +35,7 @@
         "Core.Inventory",
         "Client.WebUiHost",
         "Client.Skit",
+        "Unity.Addressables.Editor",
         "Game.UnlockState",
         "Common.Debug",
         "Mod.Loader"

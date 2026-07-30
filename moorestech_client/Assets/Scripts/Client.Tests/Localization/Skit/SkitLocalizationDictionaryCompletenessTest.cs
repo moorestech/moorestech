@@ -20,11 +20,11 @@ namespace Client.Tests.Localization.Skit
             "skit.sample_short.9.Option3Tag",
             "skit.200_star_background.1.body",
         };
-        // count/hashはTask 8直前commit 7ac9a2decのソート済みCommandForgeキーを正本とする
-        // Use sorted CommandForge keys from pre-Task-8 commit 7ac9a2dec as the count/hash baseline
-        [TestCase("english", 139, "c0f4c030c88d688a105e0e6b14caf509c9ddb0afa988f519d139e10bc507ffbe")]
-        [TestCase("japanese", 204, "b8d2f443d6878c3d9a4e736dee47741a8a93394164cdf73f2f37cd234987a751")]
-        public void CommandForgeDictionaryKeepsRootFlatTranslationsAndBaselineKeys(
+        // count/hashはTask 8直前commit 7ac9a2decのroot値とソート済みCommandForge key/valueを正本とする
+        // Use root values and sorted CommandForge key/value pairs from pre-Task-8 commit 7ac9a2dec as the baseline
+        [TestCase("english", 139, "2d400074bdfc5ecc60a205d5d6a16e8133216a24ddc2daae313fbe5691baaef7")]
+        [TestCase("japanese", 204, "9fc582efef2d6709710b5d3767f4ef80863897da8bf1c9342a3d81ea0835dd7d")]
+        public void CommandForgeDictionaryKeepsRootFlatTranslationsAndBaselineValues(
             string languageCode,
             int expectedBaselineCount,
             string expectedBaselineHash)
@@ -32,25 +32,24 @@ namespace Client.Tests.Localization.Skit
             var root = LoadI18nRoot(languageCode);
             var rootNames = new List<string>();
             foreach (var property in root.Properties()) rootNames.Add(property.Name);
-            // Task 8直前の辞書形状とキー集合を固定する
-            // Freeze the dictionary shape and key set from immediately before Task 8
+            // Task 8直前の辞書形状とroot値を固定する
+            // Freeze the dictionary shape and root values from immediately before Task 8
             CollectionAssert.AreEquivalent(new[] { "locale", "name", "translations" }, rootNames);
             Assert.IsNotEmpty((string)root["locale"]);
             Assert.IsNotEmpty((string)root["name"]);
             var translations = (JObject)root["translations"];
-            var baselineKeys = new List<string>();
+            var baselineValues = new SortedDictionary<string, string>(StringComparer.Ordinal);
             foreach (var property in translations.Properties())
             {
                 Assert.AreEqual(JTokenType.String, property.Value.Type, property.Name);
                 if (property.Name.StartsWith("command.", StringComparison.Ordinal) ||
                     property.Name.StartsWith("master.", StringComparison.Ordinal))
                 {
-                    baselineKeys.Add(property.Name);
+                    baselineValues.Add(property.Name, (string)property.Value);
                 }
             }
-            baselineKeys.Sort(StringComparer.Ordinal);
-            Assert.AreEqual(expectedBaselineCount, baselineKeys.Count);
-            Assert.AreEqual(expectedBaselineHash, CalculateKeyHash(baselineKeys));
+            Assert.AreEqual(expectedBaselineCount, baselineValues.Count);
+            Assert.AreEqual(expectedBaselineHash, CalculateBaselineHash(root, baselineValues));
         }
 
         [Test]
@@ -130,12 +129,27 @@ namespace Client.Tests.Localization.Skit
                 "i18n",
                 languageCode + ".json");
         }
-        private static string CalculateKeyHash(List<string> sortedKeys)
+        private static string CalculateBaselineHash(
+            JObject root,
+            SortedDictionary<string, string> sortedValues)
         {
-            var source = string.Join("\n", sortedKeys) + "\n";
+            var canonical = new StringBuilder();
+            AppendPair("locale", (string)root["locale"]);
+            AppendPair("name", (string)root["name"]);
+            foreach (var pair in sortedValues) AppendPair(pair.Key, pair.Value);
             using var sha256 = SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(source));
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(canonical.ToString()));
             return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
+
+            #region Internal
+
+            void AppendPair(string key, string value)
+            {
+                canonical.Append(key.Length).Append(':').Append(key);
+                canonical.Append(value.Length).Append(':').Append(value);
+            }
+
+            #endregion
         }
     }
 }

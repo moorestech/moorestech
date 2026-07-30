@@ -6,6 +6,7 @@ using Client.Game.Skit.Localization;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
 
 namespace Client.Tests.Localization.Skit
@@ -14,34 +15,40 @@ namespace Client.Tests.Localization.Skit
     {
         private const string EnglishAddress = "Vanilla/Skit/i18n/english";
         private const string JapaneseAddress = "Vanilla/Skit/i18n/japanese";
+        private const string EnglishAssetPath =
+            "Assets/AddressableResources/Skit/i18n/english.json";
+        private const string JapaneseAssetPath =
+            "Assets/AddressableResources/Skit/i18n/japanese.json";
 
         [Test]
         public void AddressableSettingsContainOnlySupportedSkitDictionaryAddresses()
         {
             var addresses = new List<string>();
+            var assetPaths = new Dictionary<string, string>(StringComparer.Ordinal);
             var groupGuids = AssetDatabase.FindAssets(
                 "t:AddressableAssetGroup",
                 new[] { "Assets/AddressableAssetsData/AssetGroups" });
 
-            // Editor APIから実登録entryを列挙する
-            // Enumerate actual registered entries through the Editor API
+            // public Addressables APIからaddressと参照GUIDを対で列挙する
+            // Enumerate paired addresses and referenced GUIDs through the public Addressables API
             foreach (var groupGuid in groupGuids)
             {
-                var group = AssetDatabase.LoadMainAssetAtPath(
+                var group = AssetDatabase.LoadAssetAtPath<AddressableAssetGroup>(
                     AssetDatabase.GUIDToAssetPath(groupGuid));
-                var entries = new SerializedObject(group).FindProperty("m_SerializeEntries");
-                for (var index = 0; index < entries.arraySize; index++)
+                foreach (var entry in group.entries)
                 {
-                    var address = entries.GetArrayElementAtIndex(index)
-                        .FindPropertyRelative("m_Address").stringValue;
-                    if (address.StartsWith("Vanilla/Skit/i18n/", StringComparison.Ordinal))
-                        addresses.Add(address);
+                    if (!entry.address.StartsWith("Vanilla/Skit/i18n/", StringComparison.Ordinal))
+                        continue;
+                    addresses.Add(entry.address);
+                    assetPaths.Add(entry.address, AssetDatabase.GUIDToAssetPath(entry.guid));
                 }
             }
 
-            // 言語JSONとmetaをAddressable登録と一体で保持する
-            // Keep language JSON files and metadata together with their Addressable entries
+            // addressと実JSONの対応を固定しGUID差し替えも拒否する
+            // Fix each address to its real JSON and reject swapped GUID references
             CollectionAssert.AreEquivalent(new[] { EnglishAddress, JapaneseAddress }, addresses);
+            Assert.AreEqual(EnglishAssetPath, assetPaths[EnglishAddress]);
+            Assert.AreEqual(JapaneseAssetPath, assetPaths[JapaneseAddress]);
             Assert.IsTrue(File.Exists(GetI18nPath("english")));
             Assert.IsTrue(File.Exists(GetI18nPath("english") + ".meta"));
             Assert.IsTrue(File.Exists(GetI18nPath("japanese")));
