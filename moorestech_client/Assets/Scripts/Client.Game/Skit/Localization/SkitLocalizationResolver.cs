@@ -99,7 +99,12 @@ namespace Client.Game.Skit.Localization
         {
             var targetLanguageCode = _source.GetCurrentLanguageCode();
             var targetSkit = await _loader.LoadAsync(targetLanguageCode);
-            var englishSkit = await _loader.LoadAsync(Localize.DefaultLanguageCode);
+
+            // 英語選択時は同じAddressableを再ロードせず最初の結果を共有する
+            // Reuse the first result when English is selected instead of loading the same Addressable twice
+            var englishSkit = targetLanguageCode == Localize.DefaultLanguageCode
+                ? targetSkit
+                : await _loader.LoadAsync(Localize.DefaultLanguageCode);
             var target = CopyModDictionary(targetLanguageCode);
             var english = CopyModDictionary(Localize.DefaultLanguageCode);
 
