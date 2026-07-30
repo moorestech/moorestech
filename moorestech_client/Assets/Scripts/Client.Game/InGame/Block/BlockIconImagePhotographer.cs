@@ -102,9 +102,14 @@ namespace Client.Game.InGame.Block
             texture.Apply();
             RenderTexture.active = null;
 
-            // 不要なオブジェクトを破棄
+            // 撮影対象・一時描画資源・撮影Cameraを同じ寿命で破棄する
+            // Destroy the subject, temporary render resource, and capture Camera within the same lifetime
             Destroy(target);
             Destroy(renderTexture);
+            if (Application.isPlaying)
+                Destroy(blockImageCamera.gameObject);
+            else
+                DestroyImmediate(blockImageCamera.gameObject);
 
             return texture;
         }
