@@ -1,4 +1,6 @@
 using System.Reflection;
+using UnityEditor;
+using UnityEditor.Build.Reporting;
 
 namespace Client.Editor.StandaloneQa
 {
@@ -13,6 +15,22 @@ namespace Client.Editor.StandaloneQa
                 "MacOsBuildFromGithubAction",
                 BindingFlags.Public | BindingFlags.Static);
             buildMethod.Invoke(null, null);
+        }
+
+        public static void RebuildMacOsPlayer()
+        {
+            // Addressables成功後のコード修正だけを既存bundleへ重ね、Player検証の反復時間を短縮する
+            // Rebuild code changes over the successful Addressables bundles to shorten Player QA iterations
+            var buildOptions = new BuildPlayerOptions
+            {
+                target = BuildTarget.StandaloneOSX,
+                locationPathName = "Output_StandaloneOSX/moorestech",
+                scenes = EditorBuildSettingsScene.GetActiveSceneList(EditorBuildSettings.scenes),
+                options = BuildOptions.Development,
+            };
+
+            var report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);
+            EditorApplication.Exit(report.summary.result == BuildResult.Succeeded ? 0 : 1);
         }
     }
 }

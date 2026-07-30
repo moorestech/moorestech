@@ -11,7 +11,6 @@ using UniRx;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
-
 namespace Client.Starter.StandaloneQa
 {
     public static class StandaloneTerrainQaBootstrap
@@ -20,16 +19,15 @@ namespace Client.Starter.StandaloneQa
         private const string ScreenshotFileName = "generated-terrain-player.png";
         private const string DebugEnvironmentTypeKey = "DebugEnvironmentTypeKey";
         private static readonly Stopwatch LoadingStopwatch = new();
-
         private static StandaloneTerrainQaSettings _settings;
         private static bool _isActive;
         private static bool _hasInjectedSettings;
-
+        private static bool _validationStarted;
+        private static bool _gameInitialized;
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
         {
             if (Application.isEditor) return;
-
             var args = System.Environment.GetCommandLineArgs();
             if (!StandaloneTerrainQaSettings.HasMarker(args)) return;
             if (!StandaloneTerrainQaSettings.TryParse(args, out _settings, out var error))
@@ -38,7 +36,6 @@ namespace Client.Starter.StandaloneQa
                 Application.Quit(2);
                 return;
             }
-
             // Player QA専用cacheへ環境設定を隔離し、初期化完了時の再適用もRuntimeへ固定する
             // Isolate environment settings in a Player-QA cache and keep post-initialization reapplication on Runtime
             var debugCacheDirectory = Path.Combine(_settings.ResultDirectory, "debug-cache");
@@ -51,7 +48,7 @@ namespace Client.Starter.StandaloneQa
             _isActive = true;
             LoadingStopwatch.Restart();
             SceneManager.sceneLoaded += OnSceneLoaded;
-            GameInitializedEvent.OnGameInitialized.Take(1).Subscribe(_ => ValidateAndExitAsync().Forget());
+            GameInitializedEvent.OnGameInitialized.Take(1).Subscribe(_ => _gameInitialized = true);
         }
 
         private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -79,7 +76,12 @@ namespace Client.Starter.StandaloneQa
                 if (!_hasInjectedSettings || !DebugEnvironmentController.TrySetEnvironment(DebugEnvironmentType.Runtime))
                 {
                     ExitWithFailure("runtime environment could not be selected before MainGame initialization");
+                    return;
                 }
+
+                if (_validationStarted) return;
+                _validationStarted = true;
+                ValidateAndExitAsync().Forget();
                 return;
             }
 
@@ -96,6 +98,24 @@ namespace Client.Starter.StandaloneQa
 
         private static async UniTask ValidateAndExitAsync()
         {
+            // MainGame後の地形出現と初期化完了に期限を設け、Player固有停止でも証跡を残す
+            // Bound terrain appearance and initialization after MainGame so Player-only stalls still leave evidence
+            var terrainDeadline = Time.realtimeSinceStartup + 120f;
+            while (Terrain.activeTerrains.Length == 0 && Time.realtimeSinceStartup < terrainDeadline)
+            {
+                await UniTask.Yield();
+            }
+            if (Terrain.activeTerrains.Length == 0)
+            {
+                ExitWithFailure("runtime terrain did not appear within 120 seconds");
+                return;
+            }
+
+            var initializationDeadline = Time.realtimeSinceStartup + 30f;
+            while (!_gameInitialized && Time.realtimeSinceStartup < initializationDeadline)
+            {
+                await UniTask.Yield();
+            }
             await UniTask.Delay(TimeSpan.FromSeconds(3), DelayType.Realtime);
             Directory.CreateDirectory(_settings.ResultDirectory);
 
@@ -108,10 +128,11 @@ namespace Client.Starter.StandaloneQa
             await CaptureScreenshotAsync(screenshotPath);
 
             var screenshotExists = File.Exists(screenshotPath);
-            var success = 0 < terrains.Length && invalidTerrains.Length == 0 && screenshotExists;
+            var success = 0 < terrains.Length && invalidTerrains.Length == 0 && screenshotExists && _gameInitialized;
             var result = new StandaloneTerrainQaResult
             {
                 success = success,
+                gameInitialized = _gameInitialized,
                 terrainCount = terrains.Length,
                 invalidTerrainNames = invalidTerrains,
                 shaderNames = shaderNames,
@@ -119,7 +140,7 @@ namespace Client.Starter.StandaloneQa
                 elapsedMilliseconds = LoadingStopwatch.ElapsedMilliseconds,
                 message = success
                     ? "all runtime terrain shaders are supported"
-                    : $"runtime terrain validation failed; screenshotExists={screenshotExists}",
+                    : $"runtime terrain validation failed; screenshotExists={screenshotExists}; gameInitialized={_gameInitialized}",
             };
 
             WriteResult(result);
@@ -174,18 +195,6 @@ namespace Client.Starter.StandaloneQa
         {
             var path = Path.Combine(_settings.ResultDirectory, ResultFileName);
             File.WriteAllText(path, JsonUtility.ToJson(result, true));
-        }
-
-        [Serializable]
-        private sealed class StandaloneTerrainQaResult
-        {
-            public bool success;
-            public int terrainCount;
-            public string[] invalidTerrainNames;
-            public string[] shaderNames;
-            public string screenshotPath;
-            public long elapsedMilliseconds;
-            public string message;
         }
     }
 }
