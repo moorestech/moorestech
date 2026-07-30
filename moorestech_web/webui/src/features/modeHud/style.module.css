@@ -1,5 +1,5 @@
-/* 配置情報を右上へ重ね、上中央のチャレンジとゲーム入力を維持する */
-/* Overlay placement information at the top-right while preserving upper-center challenges and game input */
+/* 配置情報を実画面右上へ重ね、左上のチャレンジと分離する */
+/* Overlay placement information at the real top-right, separate from top-left challenges */
 .placementHud {
   position: absolute;
   top: var(--operation-hud-top);
@@ -49,8 +49,8 @@
   color: var(--text-insufficient);
 }
 
-/* 警告帯の描画領域をstage全面へ固定し、削除操作を素通しする */
-/* Pin the warning-band canvas to the full stage while passing deletion input through */
+/* 警告帯を実viewport全面へ固定し、削除操作を素通しする */
+/* Pin the warning-band canvas to the real viewport while passing deletion input through */
 .deleteModeWarning {
   position: absolute;
   inset: 0;

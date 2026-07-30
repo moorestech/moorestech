@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { setTopicScenario, setUiState } from "../../support/mockControl";
+import { expectAtViewportTopCorner } from "../../support/layoutAssertions";
 import { expectCraftFramedPlacementHud } from "../../support/operationHudAssertions";
 
 // 共有UI状態を各テスト後に戻す
@@ -26,6 +27,21 @@ test("配置モードHUDを右上のクラフト枠で表示する", async ({ pa
   await setTopicScenario(page, "placementUnavailable");
   await expect(hud.getByTestId("operation-mode-warning")).toHaveText("Blocked by terrain");
   await expect(hud.getByTestId("operation-mode-warning")).toHaveCSS("color", "rgb(255, 120, 120)");
+});
+
+test("横長画面でも配置モードHUDを実画面右上へ固定する", async ({ page }) => {
+  await page.setViewportSize({ width: 2432, height: 786 });
+  await setTopicScenario(page, "placement");
+  await setUiState(page, "PlaceBlock");
+  await page.goto("/");
+
+  // stage端への後退を端距離で検出する
+  // Catch regressions to the stage edge through the real viewport gap
+  const hud = page.getByTestId("placement-mode-hud");
+  await expectAtViewportTopCorner(hud, "right", 40);
+  const hudBox = await hud.boundingBox();
+  expect(hudBox).not.toBeNull();
+  expect(hudBox!.width).toBeCloseTo(288 * 786 / 720, 1);
 });
 
 test("削除モードをuGUI準拠の上下警告帯だけで表示する", async ({ page }) => {

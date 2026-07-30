@@ -9,6 +9,15 @@
   --ui-stage-height: 720px;
   --ui-viewport-width: var(--ui-stage-width);
   --ui-viewport-height: var(--ui-stage-height);
+  /* 実viewportの縦横比へ追従するヴィネット幾何と既存色 */
+  /* Vignette geometry and colors that follow the real viewport aspect ratio */
+  --screen-vignette-width: 82%;
+  --screen-vignette-height: 86%;
+  --screen-vignette-center-x: 50%;
+  --screen-vignette-center-y: 46%;
+  --screen-vignette-clear-stop: 66%;
+  --screen-vignette-clear: rgb(4 5 8 / 0%);
+  --screen-vignette-edge: rgb(4 5 8 / 16%);
   --slot-size: 3rem;
   /* ホットバーと採掘ゲージが共有する固定寸法と配置基準 */
   /* Fixed dimensions and placement references shared by the hotbar and mining gauge */
@@ -45,12 +54,12 @@
   /* Keep menu content between the resident HUD and the hotbar */
   --menu-upper-safe-area: 128px;
   --menu-content-height: 525px;
-  /* 常駐チャレンジHUDは全画面で右上の安全帯へ固定し、文字組を変えない */
-  /* Keep the resident challenge HUD in one top-right safe area with unchanged typography on every screen */
-  --screen-edge-hud-gap: 24px;
-  --challenge-hud-right: 24px;
+  /* 常駐チャレンジHUDは左上へ固定し、本文と罫線の幅を分離する */
+  /* Keep the resident challenge HUD top-left with independent content and rule widths */
+  --challenge-hud-left: 24px;
   --challenge-hud-top: 24px;
   --challenge-hud-width: 520px;
+  --challenge-hud-rule-width: 176px;
   --challenge-hud-label-font-size: 12px;
   --challenge-hud-objective-font-size: 14px;
   --challenge-hud-label-rule-gap: 5px;
@@ -61,7 +70,7 @@
   --challenge-hud-text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
   /* 配置モード情報を右上のクラフト枠へ固定長で配置する */
   /* Place placement-mode information in the top-right craft frame with fixed lengths */
-  --operation-hud-right: calc(var(--challenge-hud-right) + var(--challenge-hud-width) + var(--screen-edge-hud-gap));
+  --operation-hud-right: 24px;
   --operation-hud-top: 24px;
   --operation-hud-width: 288px;
   --operation-hud-label-font-size: 12px;

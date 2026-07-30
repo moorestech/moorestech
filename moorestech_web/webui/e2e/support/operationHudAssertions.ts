@@ -6,7 +6,7 @@ export async function expectCraftFramedPlacementHud(hud: Locator) {
   await expect(hud).toBeVisible();
   await expect(hud).toHaveCSS("pointer-events", "none");
   await expect(hud).toHaveCSS("top", "24px");
-  await expect(hud).toHaveCSS("right", "568px");
+  await expect(hud).toHaveCSS("right", "24px");
   await expect(hud).toHaveCSS("width", "288px");
   await expect(hud.locator('[aria-hidden="true"]')).toHaveCount(1);
 
