@@ -32,7 +32,7 @@
 
 ### 生成系
 
-- mooresmaster DLL 内に**第2の `[Generator]` クラス**を追加（既存YAML generatorと同居、`.csv` の AdditionalFile を処理）。キー定数＋バニラ辞書本体をC#へ埋め込み、`config/localization.csv` の実行時読み込みは廃止。
+- mooresmaster DLL の単一 `[Generator]` である `MooresmasterSourceGenerator` から `LocalizationSourceEmitter` を呼び、`.csv` AdditionalFileを処理する。独立generatorは共通CSV DLLのanalyzer依存解決がCSVを持たない全assemblyでも先に走ってコンパイルを壊したため統合した。キー定数＋バニラ辞書本体をC#へ埋め込み、`config/localization.csv` の実行時読み込みは廃止。
 - CSVパーサー・行モデル・例外は runtime 参照可能な独立共通DLLへ置き、generatorとUnity runtimeの双方が同じ実装を参照する。generator/runtimeへの実装コピーは禁止し、共通DLLのテスト・ビルド・client/server両方へのデプロイを同一手順に含める。
 - `Core.Master/csc.rsp`（または対象asmdefの新設csc.rsp）に `/additionalfile:` を追加。`SchemaWatcher` の監視対象に新ディレクトリを追加。
 - webui はビルド/コード生成ステップで同一CSVからTS定数を生成。`t()` への生文字列リテラルを lint で禁止（既存 `no-jsx-visible-literal` に追加）。
@@ -68,7 +68,7 @@ skitはGuidを持たないため、Skit titleの唯一の正本をAddressable as
 | 項目 | 配置先 | 依存方向・前例 |
 |---|---|---|
 | CSV parser・行モデル・例外 | `mooresmaster.LocalizationCsv` 共通DLL | generator/runtime双方が参照する純粋な下流ライブラリ。実装コピーは禁止。Unity自身がruntime plugin metaを生成 |
-| SourceGenerator orchestration | `mooresmaster.Generator` | 既存 `MooresmasterSourceGenerator` と同じ第2generator。共通CSV DLLを参照 |
+| SourceGenerator orchestration | `mooresmaster.Generator` | 単一 `MooresmasterSourceGenerator` → `LocalizationSourceEmitter`。CSVを持つassemblyだけが共通CSV DLLを使う |
 | mod辞書合成・Guidキー | `Client.Localization` | 合成辞書の既存正本 `Localize` の責務内。MasterHolderは生データ保持だけで変更しない |
 | Skit resolver interface/context | `Client.Skit` | 汎用StoryContext serviceだけを定義し、`Localize` / Addressables / MasterHolderを持ち込まない |
 | Skit loader/resolver具体実装 | `Client.Game/Skit/Localization` | `SkitManager` / `BackgroundSkitManager` のVContainer登録点から下流interfaceへ注入 |

@@ -13,7 +13,11 @@ export function parseLocalizationCsv(text) {
   }
 
   const header = records[0];
-  if (header.length < LANGUAGE_START_COLUMN) {
+  if (
+    header.length < LANGUAGE_START_COLUMN ||
+    header[0] !== "key" ||
+    header[1] !== "Source"
+  ) {
     throw new Error("localization.csv header must contain key and Source columns");
   }
 

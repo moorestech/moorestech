@@ -20,6 +20,7 @@
         "Unity.InputSystem.TestFramework",
         "Client.Common",
         "Client.Localization",
+        "Server.SchemaWatch.Editor",
         "Server.Boot",
         "Client.Network",
         "Game.Context",

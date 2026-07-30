@@ -12,6 +12,7 @@ ui.common.blockFallback,Block {blockId},Block {blockId},block {blockId}
 ui.common.iconIdFallback,#{id},#{id},#{id}
 ui.common.rightArrow,→,→,→
 ui.tooltip.worldTarget,World Target,World Target,世界の対象
+ui.tooltip.holdToGet,Press and hold left-click to get,Press and hold left-click to get,左クリック長押しで取得する
 ui.error.reconnecting,Reconnecting...,Reconnecting...,再接続中...
 ui.error.uiErrorOccurred,A UI error occurred,A UI error occurred,UIエラーが発生しました
 ui.error.renderFailed,There was a problem rendering the screen. Please reload.,There was a problem rendering the screen. Please reload.,画面の描画中に問題が発生しました。再読み込みしてください。

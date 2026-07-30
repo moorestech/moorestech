@@ -35,7 +35,11 @@ export function fuelRatio(remainingFuelTime: number, currentFuelTime: number): n
 // uGUI GearEnergyTransformerUIView.GetStopReasonText と同文言
 // Same wording as uGUI GearEnergyTransformerUIView.GetStopReasonText
 export function stopReasonTranslationKey(reason: GearNetworkStopReason): TranslationKey | null {
-  if (reason === "rocked") return L.ui.blockInventory.stopReasonLocked;
-  if (reason === "overRequirePower") return L.ui.blockInventory.stopReasonInsufficientPower;
-  return null;
+  return GearStopReasonKeys[reason];
 }
+
+const GearStopReasonKeys: Record<GearNetworkStopReason, TranslationKey | null> = {
+  none: null,
+  rocked: L.ui.blockInventory.stopReasonLocked,
+  overRequirePower: L.ui.blockInventory.stopReasonInsufficientPower,
+};

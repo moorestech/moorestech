@@ -47,7 +47,7 @@ public static class LocalizationKeyTree
 
             // 子を持つ既存ノードは新たな葉として受け入れない
             // Reject an existing branch when the same node is declared as a leaf
-            if (node.Children.Count > 0)
+        if (0 < node.Children.Count)
             {
                 throw new LocalizationCsvException($"Key '{node.FullKey}' is both a leaf and a branch");
             }

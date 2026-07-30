@@ -123,6 +123,19 @@ public class LocalizationCsvParserTest
         Assert.Throws<LocalizationCsvException>(() => LocalizationCsvParser.Parse(""));
     }
 
+    [Theory]
+    [InlineData("Source,key,english")]
+    [InlineData("id,Source,english")]
+    [InlineData("key,source,english")]
+    public void key列とSource列の名前または順序が不正なら例外(string header)
+    {
+        var csv = $"{header}\nui.a,Source,English\n";
+
+        var exception = Assert.Throws<LocalizationCsvException>(() => LocalizationCsvParser.Parse(csv));
+
+        Assert.Contains("key and Source columns", exception.Message);
+    }
+
     [Fact]
     public void 閉じていないダブルクォートは例外()
     {

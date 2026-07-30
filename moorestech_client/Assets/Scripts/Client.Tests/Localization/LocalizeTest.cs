@@ -11,7 +11,6 @@ namespace Client.Tests.Localization
 {
     public class LocalizeTest
     {
-        private const string LanguageCodePreferenceKey = "LanguageCode";
         private bool hadSavedLanguageCode;
         private string savedLanguageCode;
 
@@ -20,8 +19,8 @@ namespace Client.Tests.Localization
         {
             // 各テスト前の保存値を正確に退避する
             // Preserve the exact persisted value before every test
-            hadSavedLanguageCode = PlayerPrefs.HasKey(LanguageCodePreferenceKey);
-            savedLanguageCode = PlayerPrefs.GetString(LanguageCodePreferenceKey);
+            hadSavedLanguageCode = PlayerPrefs.HasKey(Localize.LanguagePreferenceKey);
+            savedLanguageCode = PlayerPrefs.GetString(Localize.LanguagePreferenceKey);
         }
 
         [TearDown]
@@ -31,11 +30,11 @@ namespace Client.Tests.Localization
             // Restore both value and presence, then reset static state
             if (hadSavedLanguageCode)
             {
-                PlayerPrefs.SetString(LanguageCodePreferenceKey, savedLanguageCode);
+                PlayerPrefs.SetString(Localize.LanguagePreferenceKey, savedLanguageCode);
             }
             else
             {
-                PlayerPrefs.DeleteKey(LanguageCodePreferenceKey);
+                PlayerPrefs.DeleteKey(Localize.LanguagePreferenceKey);
             }
 
             PlayerPrefs.Save();
@@ -46,10 +45,10 @@ namespace Client.Tests.Localization
         [TestCase(Localize.SourcePseudoLocale)]
         public void InitializeFallsBackToEnglishWhenSavedLanguageCannotBeSelected(string persistedLanguageCode)
         {
-            PlayerPrefs.SetString(LanguageCodePreferenceKey, persistedLanguageCode);
+            PlayerPrefs.SetString(Localize.LanguagePreferenceKey, persistedLanguageCode);
             Localize.Initialize();
 
-            Assert.AreEqual("english", Localize.GetCurrentLanguageCode());
+            Assert.AreEqual(Localize.DefaultLanguageCode, Localize.GetCurrentLanguageCode());
         }
 
         [Test]
@@ -69,7 +68,7 @@ namespace Client.Tests.Localization
         [Test]
         public void InitializeCanRunTwiceWithoutChangingResolvedText()
         {
-            PlayerPrefs.SetString(LanguageCodePreferenceKey, "english");
+            PlayerPrefs.SetString(Localize.LanguagePreferenceKey, Localize.DefaultLanguageCode);
             Localize.Initialize();
             Localize.Initialize();
 
@@ -122,7 +121,7 @@ namespace Client.Tests.Localization
         [Test]
         public void SetLanguagePublishesExactlyOneEventAndPersistsSelection()
         {
-            PlayerPrefs.SetString(LanguageCodePreferenceKey, "english");
+            PlayerPrefs.SetString(Localize.LanguagePreferenceKey, Localize.DefaultLanguageCode);
             Localize.Initialize();
             var eventCount = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
@@ -131,14 +130,14 @@ namespace Client.Tests.Localization
 
             Assert.AreEqual(1, eventCount);
             Assert.AreEqual("japanese", Localize.GetCurrentLanguageCode());
-            Assert.AreEqual("japanese", PlayerPrefs.GetString(LanguageCodePreferenceKey));
+            Assert.AreEqual("japanese", PlayerPrefs.GetString(Localize.LanguagePreferenceKey));
         }
 
         [TestCase(Localize.SourcePseudoLocale)]
         [TestCase("unknown")]
         public void SetLanguageRejectsInvalidCodeWithoutChangingState(string invalidLanguageCode)
         {
-            PlayerPrefs.SetString(LanguageCodePreferenceKey, "english");
+            PlayerPrefs.SetString(Localize.LanguagePreferenceKey, Localize.DefaultLanguageCode);
             Localize.Initialize();
             var eventCount = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
@@ -147,8 +146,8 @@ namespace Client.Tests.Localization
             Localize.SetLanguage(invalidLanguageCode);
 
             Assert.AreEqual(0, eventCount);
-            Assert.AreEqual("english", Localize.GetCurrentLanguageCode());
-            Assert.AreEqual("english", PlayerPrefs.GetString(LanguageCodePreferenceKey));
+            Assert.AreEqual(Localize.DefaultLanguageCode, Localize.GetCurrentLanguageCode());
+            Assert.AreEqual(Localize.DefaultLanguageCode, PlayerPrefs.GetString(Localize.LanguagePreferenceKey));
         }
     }
 }

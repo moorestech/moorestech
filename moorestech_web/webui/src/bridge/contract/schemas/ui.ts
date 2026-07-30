@@ -34,7 +34,12 @@ export const PlacementModeDataSchema = z.object({
 export const DeleteModeDataSchema = z.object({ unavailableReason: z.string() });
 export const CrosshairDataSchema = z.object({ visible: z.boolean() });
 export const UiVisibilityDataSchema = z.object({ visible: z.boolean() });
-export const TooltipDataSchema = z.object({ visible: z.boolean(), textKey: z.string(), fontSize: z.number().positive() });
+export const TooltipDataSchema = z.object({
+  visible: z.boolean(),
+  textKey: z.string(),
+  fontSize: z.number().positive(),
+  isLocalize: z.boolean(),
+});
 
 // snapshotを持たない一時イベントのため、接続直後は{}が届く。全フィールドoptionalにしそれを許容する
 // Transient event without a snapshot: {} arrives right after connect, so every field is optional to accept it

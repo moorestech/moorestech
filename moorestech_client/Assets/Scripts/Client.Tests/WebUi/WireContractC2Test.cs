@@ -30,7 +30,15 @@ namespace Client.Tests.WebUi
         [Test]
         public void TooltipMatchesFixture()
         {
-            AssertMatches(new TooltipDto { Visible = true, TextKey = "Cannot remove", FontSize = 36 }, "tooltip.json");
+            AssertMatches(
+                new TooltipDto
+                {
+                    Visible = true,
+                    TextKey = "Cannot remove",
+                    FontSize = 36,
+                    IsLocalize = false,
+                },
+                "tooltip.json");
         }
 
         private static void AssertMatches(object dto, string fixtureName)

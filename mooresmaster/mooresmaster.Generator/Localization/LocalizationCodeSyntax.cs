@@ -65,7 +65,7 @@ internal static class LocalizationCodeSyntax
     {
         // 先頭小文字と後続ASCII英数字の契約を境界で検査する
         // Enforce the leading lowercase and trailing ASCII alphanumeric contract
-        if (segment.Length == 0 || segment[0] < 'a' || segment[0] > 'z')
+        if (segment.Length == 0 || segment[0] < 'a' || 'z' < segment[0])
         {
             return false;
         }
@@ -73,8 +73,8 @@ internal static class LocalizationCodeSyntax
         for (var index = 1; index < segment.Length; index++)
         {
             var character = segment[index];
-            var isLetter = character >= 'a' && character <= 'z' || character >= 'A' && character <= 'Z';
-            if (!isLetter && (character < '0' || character > '9'))
+            var isLetter = 'a' <= character && character <= 'z' || 'A' <= character && character <= 'Z';
+            if (!isLetter && (character < '0' || '9' < character))
             {
                 return false;
             }

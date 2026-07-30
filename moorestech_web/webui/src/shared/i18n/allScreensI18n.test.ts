@@ -128,6 +128,27 @@ describe("all-screen i18n propagation", () => {
     expect(document.documentElement.lang).toBe("japanese");
   });
 
+  it("marks a failed requested locale without replacing the previous ready dictionary", async () => {
+    vi.stubGlobal("document", { documentElement: { lang: "", dataset: {} } });
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url.endsWith("/japanese")) return { ok: false, status: 500 };
+      return {
+        ok: true,
+        json: async () => ({ [L.ui.mainMenu.playLocally]: "English title" }),
+      };
+    }));
+
+    I18nProvider({ children: null });
+    await vi.waitFor(() => expect(useI18n().status).toBe("ready"));
+    currentLocale = "japanese";
+    I18nProvider({ children: null });
+    await vi.waitFor(() => expect(useI18n().status).toBe("error"));
+
+    expect(useI18n().locale).toBe("english");
+    expect(useI18n().t(L.ui.mainMenu.playLocally)).toBe("English title");
+  });
+
   it("requires non-empty Source and every language cell for every generated key", () => {
     const csvPath = new URL("../../../../../Localization/localization.csv", import.meta.url);
     const csv = parseLocalizationCsv(readFileSync(csvPath, "utf8"));

@@ -1,13 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Paper, Portal } from "@mantine/core";
-import { Topics, useTopic } from "@/bridge";
-import { isTranslationKey, useI18n } from "@/shared/i18n";
+import { Topics, useTopic, type TooltipData } from "@/bridge";
+import { translateExternalKey, useI18n, type TranslationKey } from "@/shared/i18n";
 import { clampTooltipPosition } from "./tooltipPosition";
 import styles from "./style.module.css";
 
 export function CursorTooltip() {
   const data = useTopic(Topics.tooltip);
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const elementRef = useRef<HTMLDivElement>(null);
   const [pointer, setPointer] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState({ x: 12, y: 12 });
@@ -18,16 +18,15 @@ export function CursorTooltip() {
     return () => window.removeEventListener("pointermove", move);
   }, []);
 
+  const text = data?.visible ? resolveTooltipText(data, t) : "";
+
   useLayoutEffect(() => {
     const element = elementRef.current;
     if (!element) return;
     setPosition(clampTooltipPosition(pointer.x, pointer.y, element.offsetWidth, element.offsetHeight, window.innerWidth, window.innerHeight));
-  }, [pointer, data]);
+  }, [pointer, data, text, locale]);
 
   if (!data?.visible) return null;
-  // 外部producerが送る生文言は維持し、型付きキーと確認できた値だけ辞書へ渡す
-  // Preserve raw producer text and pass only runtime-validated typed keys to the dictionary
-  const text = isTranslationKey(data.textKey) ? t(data.textKey) : data.textKey;
   return (
     <Portal>
       <Paper ref={elementRef} className={styles.tooltip} style={{ left: position.x, top: position.y, fontSize: data.fontSize }}>
@@ -35,4 +34,12 @@ export function CursorTooltip() {
       </Paper>
     </Portal>
   );
+}
+
+export function resolveTooltipText(
+  data: TooltipData,
+  translate: (key: TranslationKey) => string,
+): string {
+  if (!data.isLocalize) return data.textKey;
+  return translateExternalKey(data.textKey, translate);
 }

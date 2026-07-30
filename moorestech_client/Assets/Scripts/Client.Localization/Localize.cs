@@ -9,7 +9,8 @@ namespace Client.Localization
 {
     public static class Localize
     {
-        private const string DefaultLanguageCode = "english";
+        internal const string DefaultLanguageCode = "english";
+        internal const string LanguagePreferenceKey = "LanguageCode";
         public const string SourcePseudoLocale = "source";
 
         private static readonly Dictionary<string, IReadOnlyDictionary<string, string>> mergedDictionary = new();
@@ -54,7 +55,7 @@ namespace Client.Localization
 
             // 選択不能な保存値は生成済み英語辞書へ戻す
             // Fall back to the generated English dictionary for unselectable persisted values
-            var savedLanguageCode = PlayerPrefs.GetString("LanguageCode", DefaultLanguageCode);
+            var savedLanguageCode = PlayerPrefs.GetString(LanguagePreferenceKey, DefaultLanguageCode);
             currentLanguageCode = mergedDictionary.ContainsKey(savedLanguageCode) &&
                                   savedLanguageCode != SourcePseudoLocale
                 ? savedLanguageCode
@@ -78,7 +79,7 @@ namespace Client.Localization
             if (languageCode != SourcePseudoLocale && mergedDictionary.ContainsKey(languageCode))
             {
                 currentLanguageCode = languageCode;
-                PlayerPrefs.SetString("LanguageCode", languageCode);
+                PlayerPrefs.SetString(LanguagePreferenceKey, languageCode);
                 PlayerPrefs.Save();
                 onLanguageChangedSubject.OnNext(Unit.Default);
                 return;

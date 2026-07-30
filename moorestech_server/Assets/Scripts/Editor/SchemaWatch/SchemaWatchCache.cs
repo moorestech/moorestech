@@ -77,7 +77,7 @@ public sealed class SchemaWatchCache
         }
 
         var lines = File.ReadAllLines(cacheFilePath);
-        if (lines.Length > 0 && lines[0] == "V|2")
+        if (0 < lines.Length && lines[0] == "V|2")
         {
             // version 2は空対象と区切り文字を含むパスを明示的に復元する。
             // Version 2 restores empty targets and paths containing delimiters explicitly.

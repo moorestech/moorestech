@@ -1,8 +1,63 @@
 import { describe, expect, it, vi } from "vitest";
 import { isTranslationKey, L } from "./index";
-import { createTranslator, setDictionaries } from "./i18nStore";
+import {
+  createTranslator,
+  getI18nSnapshot,
+  setDictionaries,
+  setDictionaryLoadError,
+  setDictionaryLoading,
+  translateExternalKey,
+} from "./i18nStore";
+
+const readySnapshotState = {
+  status: "ready" as const,
+  requestedLocale: "english",
+  generation: 1,
+};
 
 describe("useI18n translation behavior", () => {
+  it("does not warn or show a missing marker before the first dictionary generation is ready", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    setDictionaryLoading("english");
+
+    expect(createTranslator(getI18nSnapshot())(L.ui.mainMenu.playLocally)).toBe("");
+    expect(getI18nSnapshot().status).toBe("loading");
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it("keeps the last ready generation while exposing a later load failure", () => {
+    setDictionaries(
+      "english",
+      { [L.ui.mainMenu.playLocally]: "Ready title" },
+      { [L.ui.mainMenu.playLocally]: "Ready title" },
+      { [L.ui.mainMenu.playLocally]: "Source title" },
+    );
+    setDictionaryLoading("japanese");
+    setDictionaryLoadError("japanese");
+
+    expect(getI18nSnapshot()).toMatchObject({
+      status: "error",
+      locale: "english",
+      requestedLocale: "japanese",
+    });
+    expect(createTranslator(getI18nSnapshot())(L.ui.mainMenu.playLocally)).toBe("Ready title");
+  });
+
+  it("warns once per generation for an unknown external localized key", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const translate = vi.fn(() => "unused");
+
+    translateExternalKey("ui.external.unknown", translate);
+    translateExternalKey("ui.external.unknown", translate);
+    expect(warn).toHaveBeenCalledOnce();
+
+    setDictionaries("english", {}, {}, {});
+    translateExternalKey("ui.external.unknown", translate);
+    expect(warn).toHaveBeenCalledTimes(2);
+    warn.mockRestore();
+  });
+
   it("narrows only generated keys at an external string boundary", () => {
     expect(isTranslationKey(L.ui.inventory.title)).toBe(true);
     expect(isTranslationKey("持ち物")).toBe(false);
@@ -11,6 +66,7 @@ describe("useI18n translation behavior", () => {
 
   it("current locale wins and interpolates named values", () => {
     const t = createTranslator({
+      ...readySnapshotState,
       locale: "japanese",
       dictionary: { [L.ui.mainMenu.playLocally]: "こんにちは、{name}。残り{count}個" },
       fallbackDictionary: { [L.ui.mainMenu.playLocally]: "Hello, {name}" },
@@ -21,6 +77,7 @@ describe("useI18n translation behavior", () => {
 
   it("uses the fallback locale when the current dictionary lacks a key", () => {
     const t = createTranslator({
+      ...readySnapshotState,
       locale: "japanese",
       dictionary: {},
       fallbackDictionary: { [L.ui.mainMenu.playLocally]: "Play locally" },
@@ -31,6 +88,7 @@ describe("useI18n translation behavior", () => {
 
   it("uses the source text when the current and fallback dictionaries lack a key", () => {
     const t = createTranslator({
+      ...readySnapshotState,
       locale: "japanese",
       dictionary: {},
       fallbackDictionary: {},
@@ -42,6 +100,7 @@ describe("useI18n translation behavior", () => {
 
   it("treats an empty current translation as missing and uses fallback", () => {
     const t = createTranslator({
+      ...readySnapshotState,
       locale: "japanese",
       dictionary: { [L.ui.mainMenu.playLocally]: "" },
       fallbackDictionary: { [L.ui.mainMenu.playLocally]: "Play locally" },
@@ -53,6 +112,7 @@ describe("useI18n translation behavior", () => {
 
   it("treats empty current and fallback translations as missing and uses source", () => {
     const t = createTranslator({
+      ...readySnapshotState,
       locale: "japanese",
       dictionary: { [L.ui.mainMenu.playLocally]: "" },
       fallbackDictionary: { [L.ui.mainMenu.playLocally]: "" },
@@ -65,6 +125,7 @@ describe("useI18n translation behavior", () => {
   it("shows a loud marker and warns when all three translation layers are empty", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const t = createTranslator({
+      ...readySnapshotState,
       locale: "japanese",
       dictionary: { [L.ui.mainMenu.playLocally]: "" },
       fallbackDictionary: { [L.ui.mainMenu.playLocally]: "" },
@@ -78,6 +139,7 @@ describe("useI18n translation behavior", () => {
 
   it("leaves unknown interpolation variables visible for diagnosis", () => {
     const t = createTranslator({
+      ...readySnapshotState,
       locale: "english",
       dictionary: { [L.ui.mainMenu.playLocally]: "Hello {name}, {count}" },
       fallbackDictionary: {},
@@ -88,7 +150,13 @@ describe("useI18n translation behavior", () => {
 
   it("warns once per missing key until dictionaries change", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    const current = { locale: "japanese", dictionary: {}, fallbackDictionary: {}, sourceDictionary: {} };
+    const current = {
+      ...readySnapshotState,
+      locale: "japanese",
+      dictionary: {},
+      fallbackDictionary: {},
+      sourceDictionary: {},
+    };
     setDictionaries(current.locale, current.dictionary, current.fallbackDictionary, current.sourceDictionary);
     const first = createTranslator(current);
     const second = createTranslator(current);
@@ -100,7 +168,13 @@ describe("useI18n translation behavior", () => {
     // 辞書更新後に警告を再許可する
     // Allow the warning again after dictionary updates
     setDictionaries("english", {}, {}, {});
-    createTranslator({ locale: "english", dictionary: {}, fallbackDictionary: {}, sourceDictionary: {} })(
+    createTranslator({
+      ...readySnapshotState,
+      locale: "english",
+      dictionary: {},
+      fallbackDictionary: {},
+      sourceDictionary: {},
+    })(
       L.ui.mainMenu.playLocally,
     );
     expect(warn).toHaveBeenCalledTimes(2);
@@ -111,6 +185,7 @@ describe("useI18n translation behavior", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     setDictionaries("japanese", {}, {}, {});
     const oldTranslator = createTranslator({
+      ...readySnapshotState,
       locale: "japanese",
       dictionary: {},
       fallbackDictionary: {},
@@ -121,6 +196,7 @@ describe("useI18n translation behavior", () => {
     // Keep old translators isolated from current warnings
     setDictionaries("english", {}, {}, {});
     const currentTranslator = createTranslator({
+      ...readySnapshotState,
       locale: "english",
       dictionary: {},
       fallbackDictionary: {},

@@ -1,4 +1,10 @@
-import { useTopic, Topics, UiStateNames, dispatchAction } from "@/bridge";
+import {
+  useTopic,
+  Topics,
+  UiStateNames,
+  dispatchAction,
+  type BlockInventoryData,
+} from "@/bridge";
 import { GamePanel, IconButton } from "@/shared/ui";
 import { resolveBlockComponent } from "./registry/blockComponentRegistry";
 import styles from "./style.module.css";
@@ -67,8 +73,14 @@ export default function BlockInventoryPanel() {
   );
 }
 
-function resolveTrainErrorKey(error: "containerMissing" | "trainCarMissing" | "openFailed"): TranslationKey {
-  if (error === "containerMissing") return L.ui.blockInventory.trainNoItemContainer;
-  if (error === "trainCarMissing") return L.ui.blockInventory.trainNotFound;
-  return L.ui.blockInventory.trainOpenFailed;
+type TrainError = NonNullable<Extract<BlockInventoryData, { source: "train" }>["error"]>;
+
+const TrainErrorKeys: Record<TrainError, TranslationKey> = {
+  containerMissing: L.ui.blockInventory.trainNoItemContainer,
+  trainCarMissing: L.ui.blockInventory.trainNotFound,
+  openFailed: L.ui.blockInventory.trainOpenFailed,
+};
+
+function resolveTrainErrorKey(error: TrainError): TranslationKey {
+  return TrainErrorKeys[error];
 }

@@ -5,5 +5,5 @@ public class CompileRequester
 {
 // スキーマを更新したら、こちらの更新もコミットしてください。
 // If you update the schema, please also commit this update.
-    private const string dummyText = "2026/07/27 14:06:08";
+    private const string dummyText = "45-51-EC-21-E9-CB-76-7C-CA-1B-17-AE-DD-0E-BA-3C";
 }

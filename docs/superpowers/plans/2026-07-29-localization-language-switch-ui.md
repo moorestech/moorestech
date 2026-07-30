@@ -27,7 +27,7 @@ spec: docs/superpowers/specs/2026-07-29-localization-foundation-design.md
 Localization/localization_settings.csv                       ← 移設・2言語へ縮小
 mooresmaster/mooresmaster.Generator/Localization/
 └── LocalizationCodeGenerator.cs                             ← LanguageCatalog生成を追加
-mooresmaster/mooresmaster.Generator/LocalizationSourceGenerator.cs ← settings AdditionalFile対応
+mooresmaster/mooresmaster.Generator/LocalizationSourceEmitter.cs   ← settings AdditionalFile対応
 moorestech_client/Assets/Scripts/Client.Localization/csc.rsp ← settings行を追加
 moorestech_client/Assets/Scripts/Client.WebUiHost/Game/
 ├── LocalizationLanguagesEndpoint.cs                         ← 新設 GET /api/i18n-languages
@@ -45,7 +45,7 @@ moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/c
 **Files:**
 - Create: `Localization/localization_settings.csv`
 - Modify: `mooresmaster/mooresmaster.Generator/Localization/LocalizationCodeGenerator.cs`
-- Modify: `mooresmaster/mooresmaster.Generator/LocalizationSourceGenerator.cs`
+- Modify: `mooresmaster/mooresmaster.Generator/LocalizationSourceEmitter.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Localization/csc.rsp`
 - Test: `mooresmaster/mooresmaster.Tests/LocalizationTests/LanguageCatalogTest.cs`
 
@@ -108,7 +108,7 @@ Expected: FAIL
 
 - `LocalizationSettingsParser`（新規・`Localization/` 配下）: `Mooresmaster.LocalizationCsv.LocalizationCsvParser.ParseRecords` のquote-aware record分割を使って3列CSV→`LanguageSetting[]`（`record LanguageSetting(string Code, string DisplayName, string SteamApiLangCode)`）へ写像する。別のCSV field parserを実装しない
 - `LocalizationCodeGenerator.Generate(LocalizationCsv csv, LanguageSetting[] settings)` へシグネチャ変更（settingsは必須引数。デフォルト引数禁止・呼び出し側を全updateする — AGENTS.md）。settings行集合と `csv.LanguageCodes` の集合一致を検査し、`LanguageCatalog` を追加emit
-- `LocalizationSourceGenerator`: AdditionalFilesから `localization_settings.csv` も取得。**settingsが無い場合もコンパイルエラー**（片方だけの配線ミスを無言で通さない）
+- `LocalizationSourceEmitter`: `MooresmasterSourceGenerator` が収集したAdditionalFilesから `localization_settings.csv` も取得。**settingsが無い場合もコンパイルエラー**（片方だけの配線ミスを無言で通さない）。独立した第2 `[Generator]` へ戻すと共通DLLのanalyzer依存解決が全assemblyを壊すため、単一generator統合を維持する
 - `csc.rsp` へ追記: `/additionalfile:Assets/../../Localization/localization_settings.csv`
 
 Run: `cd mooresmaster && dotnet test && ./build.sh && uloop compile --project-path ./moorestech_client`

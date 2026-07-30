@@ -33,6 +33,7 @@ namespace Client.WebUiHost.Game.Topics
                 Visible = presentation.Visible,
                 TextKey = presentation.TextKey,
                 FontSize = presentation.FontSize,
+                IsLocalize = presentation.IsLocalize,
             });
         }
     }
@@ -42,5 +43,6 @@ namespace Client.WebUiHost.Game.Topics
         public bool Visible;
         public string TextKey;
         public int FontSize;
+        public bool IsLocalize;
     }
 }

@@ -21,8 +21,12 @@ export default function ChallengeNodeCard({ node, left, top }: { node: Challenge
   );
 }
 
+const ChallengeStateKeys: Record<ChallengeNodeData["state"], TranslationKey> = {
+  locked: L.ui.challenge.stateLocked,
+  current: L.ui.challenge.stateCurrent,
+  completed: L.ui.challenge.stateCompleted,
+};
+
 function resolveChallengeStateKey(state: ChallengeNodeData["state"]): TranslationKey {
-  if (state === "locked") return L.ui.challenge.stateLocked;
-  if (state === "current") return L.ui.challenge.stateCurrent;
-  return L.ui.challenge.stateCompleted;
+  return ChallengeStateKeys[state];
 }

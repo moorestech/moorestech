@@ -35,7 +35,7 @@ public static class LocalizationSourceEmitter
 
         // 重複入力を順序固定の単一診断として報告する
         // Report duplicate inputs as one deterministically ordered diagnostic
-        if (localizationFiles.Count > 1)
+        if (1 < localizationFiles.Count)
         {
             ReportError(context, CreateDuplicateFilesMessage(localizationFiles));
             return;
@@ -99,8 +99,8 @@ public static class LocalizationSourceEmitter
         {
             var currentPath = paths[index];
             var insertionIndex = index - 1;
-            while (insertionIndex >= 0 &&
-                   string.CompareOrdinal(paths[insertionIndex], currentPath) > 0)
+            while (0 <= insertionIndex &&
+                   0 < string.CompareOrdinal(paths[insertionIndex], currentPath))
             {
                 paths[insertionIndex + 1] = paths[insertionIndex];
                 insertionIndex--;

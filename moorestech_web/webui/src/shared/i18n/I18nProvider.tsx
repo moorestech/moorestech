@@ -1,6 +1,12 @@
 import { useEffect, type ReactNode } from "react";
 import { localizationDictionaryUrl, Topics, useTopic } from "@/bridge";
-import { FALLBACK_LOCALE, setDictionaries, type TranslationDictionary } from "./i18nStore";
+import {
+  FALLBACK_LOCALE,
+  setDictionaries,
+  setDictionaryLoadError,
+  setDictionaryLoading,
+  type TranslationDictionary,
+} from "./i18nStore";
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const localization = useTopic(Topics.localization);
@@ -8,10 +14,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const abort = new AbortController();
+    setDictionaryLoading(locale);
     void loadDictionaries(locale, abort.signal).catch((error: unknown) => {
       // HTTP/JSONは外部境界のため、切替失敗を画面全体の未処理rejectionへ波及させない
       // HTTP/JSON is an external boundary; do not turn a switch failure into an unhandled rejection
-      if (!abort.signal.aborted) console.error(`[i18n] Failed to switch locale to '${locale}'`, error);
+      if (!abort.signal.aborted) {
+        setDictionaryLoadError(locale);
+        console.error(`[i18n] Failed to switch locale to '${locale}'`, error);
+      }
     });
     return () => abort.abort();
   }, [locale]);

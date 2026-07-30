@@ -27,7 +27,8 @@ namespace Client.Game.InGame.UI.Tooltip
         
         
         public static MouseCursorTooltip Instance { get; private set; }
-        private readonly ReactiveProperty<TooltipPresentation> _presentation = new(new TooltipPresentation(false, "", IMouseCursorTooltip.DefaultFontSize));
+        private readonly ReactiveProperty<TooltipPresentation> _presentation =
+            new(new TooltipPresentation(false, "", IMouseCursorTooltip.DefaultFontSize, false));
 
         public IObservable<TooltipPresentation> OnPresentationChanged => _presentation;
         public TooltipPresentation GetPresentation() => _presentation.Value;
@@ -42,13 +43,13 @@ namespace Client.Game.InGame.UI.Tooltip
             canvasGroup.alpha = WebUiScreenGate.IsWebUiMode ? 0 : 1;
             itemName.text = isLocalize ? Localize.GetLegacy(key) : key;
             itemName.fontSize = fontSize;
-            _presentation.Value = new TooltipPresentation(true, key, fontSize);
+            _presentation.Value = new TooltipPresentation(true, key, fontSize, isLocalize);
         }
         
         public void Hide()
         {
             canvasGroup.alpha = 0;
-            _presentation.Value = new TooltipPresentation(false, "", IMouseCursorTooltip.DefaultFontSize);
+            _presentation.Value = new TooltipPresentation(false, "", IMouseCursorTooltip.DefaultFontSize, false);
         }
     }
 
@@ -57,12 +58,14 @@ namespace Client.Game.InGame.UI.Tooltip
         public readonly bool Visible;
         public readonly string TextKey;
         public readonly int FontSize;
+        public readonly bool IsLocalize;
 
-        public TooltipPresentation(bool visible, string textKey, int fontSize)
+        public TooltipPresentation(bool visible, string textKey, int fontSize, bool isLocalize)
         {
             Visible = visible;
             TextKey = textKey;
             FontSize = fontSize;
+            IsLocalize = isLocalize;
         }
     }
 }

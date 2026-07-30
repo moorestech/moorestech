@@ -18,7 +18,9 @@ namespace Mooresmaster.LocalizationCsv
             }
 
             var header = records[0];
-            if (header.Count < LanguageStartColumn)
+            if (header.Count < LanguageStartColumn ||
+                header[0] != "key" ||
+                header[1] != "Source")
             {
                 throw new LocalizationCsvException("localization.csv header must contain key and Source columns");
             }
@@ -151,7 +153,7 @@ namespace Mooresmaster.LocalizationCsv
 
             // 終端改行後の空レコードを除き、末尾の空fieldは保持する
             // Preserve a trailing empty field while excluding an empty record after a final newline
-            if (closedQuote || field.Length > 0 || fields.Count > 0)
+            if (closedQuote || 0 < field.Length || 0 < fields.Count)
             {
                 AddRecord();
             }
@@ -178,7 +180,7 @@ namespace Mooresmaster.LocalizationCsv
             void AddRecord()
             {
                 AddField();
-                if (fields.Count > 1 || fields[0].Length > 0 || recordHasSyntax)
+                if (1 < fields.Count || 0 < fields[0].Length || recordHasSyntax)
                 {
                     records.Add(fields);
                 }

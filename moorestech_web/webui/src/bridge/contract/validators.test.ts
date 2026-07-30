@@ -33,8 +33,12 @@ describe("common HUD schemas", () => {
 
 describe("tooltip schema", () => {
   it("requires a complete cursor-tooltip snapshot", () => {
-    expect(validateTopicPayload(Topics.tooltip, { visible: true, textKey: "Cannot remove", fontSize: 36 })).toBe(true);
-    expect(validateTopicPayload(Topics.tooltip, { visible: true })).toBe(false);
+    expect(validateTopicPayload(Topics.tooltip, {
+      visible: true, textKey: "Cannot remove", fontSize: 36, isLocalize: false,
+    })).toBe(true);
+    expect(validateTopicPayload(Topics.tooltip, {
+      visible: true, textKey: "Cannot remove", fontSize: 36,
+    })).toBe(false);
   });
 });
 

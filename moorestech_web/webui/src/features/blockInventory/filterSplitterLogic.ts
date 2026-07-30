@@ -12,7 +12,11 @@ export function filterSlotClickAction(grabCount: number, clear: boolean): Filter
 }
 
 export function filterModeTranslationKey(mode: FilterSplitterMode): TranslationKey {
-  if (mode === "default") return L.ui.blockInventory.filterDefault;
-  if (mode === "whitelist") return L.ui.blockInventory.filterWhitelist;
-  return L.ui.blockInventory.filterBlacklist;
+  return FilterModeKeys[mode];
 }
+
+const FilterModeKeys: Record<FilterSplitterMode, TranslationKey> = {
+  default: L.ui.blockInventory.filterDefault,
+  whitelist: L.ui.blockInventory.filterWhitelist,
+  blacklist: L.ui.blockInventory.filterBlacklist,
+};

@@ -58,6 +58,15 @@ describe("parseLocalizationCsv", () => {
   });
 
   it.each([
+    ["swapped headers", "Source,key,english"],
+    ["misspelled key header", "id,Source,english"],
+    ["misspelled Source header", "key,source,english"],
+  ])("rejects %s", (_name, header) => {
+    expect(() => parseLocalizationCsv(`${header}\nui.a,Source,English\n`))
+      .toThrow(/key and Source columns/);
+  });
+
+  it.each([
     ["duplicate keys", "key,Source,english\nui.a,A,A\nui.a,B,B\n", /Duplicated key: ui\.a/],
     ["too few columns", "key,Source,english\nui.a,A\n", /expected 3, got 2/],
     ["too many columns", "key,Source,english\nui.a,A,A,extra\n", /expected 3, got 4/],

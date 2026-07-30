@@ -105,7 +105,7 @@ public static class LocalizationCodeGenerator
         builder.Append("        public static readonly string[] LanguageCodes = new string[] { ");
         for (var index = 0; index < languageCodes.Length; index++)
         {
-            if (index > 0)
+            if (0 < index)
             {
                 builder.Append(", ");
             }
