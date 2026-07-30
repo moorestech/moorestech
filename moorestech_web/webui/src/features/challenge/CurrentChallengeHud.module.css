@@ -3,7 +3,7 @@
 .hud {
   position: absolute;
   top: var(--challenge-hud-top);
-  left: var(--challenge-hud-left);
+  right: var(--challenge-hud-right);
   z-index: var(--z-overlay-panel);
   width: var(--challenge-hud-width);
   color: var(--text-high-contrast);

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { setSkitStage, setTopicScenario, setUiState } from "../support/mockControl";
-import { expectAbove, expectCenteredHorizontally, expectNoHorizontalOverflow, expectSeparatedHorizontally, expectWithinViewport } from "../support/layoutAssertions";
+import { expectAbove, expectNoHorizontalOverflow, expectSeparatedHorizontally, expectWithinViewport } from "../support/layoutAssertions";
 import { expectChallengeHudPresentation, expectWrappedObjectives, readChallengeHudPresentation } from "../support/challengeHudAssertions";
 test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "challengeActive");
@@ -30,7 +30,6 @@ test("チャレンジ画面が開きツリーだけを翻訳済み表示する",
   await expect(page.getByText("進行中", { exact: true })).toBeVisible();
   await expect(page.locator("body")).not.toContainText("challenge.");
   await expect(page.getByTestId("challenge-hud")).toBeVisible();
-  await expectCenteredHorizontally(page.getByTestId("challenge-hud"), page.locator("body"));
 });
 test("常駐HUDをインベントリ・メニュー・操作モードで維持する", async ({ page }) => {
   await setTopicScenario(page, "challengeJapanese");
@@ -53,7 +52,7 @@ test("常駐HUDをインベントリ・メニュー・操作モードで維持�
   const challengeHud = page.getByTestId("challenge-hud");
   await expect(placementHud).toBeVisible();
   await expectChallengeHudPresentation(page, initialWorldPresentation);
-  await expectSeparatedHorizontally(challengeHud, placementHud);
+  await expectSeparatedHorizontally(placementHud, challengeHud);
   await setTopicScenario(page, "delete");
   await setUiState(page, "DeleteBar");
   const deleteWarning = page.getByTestId("delete-mode-warning");
@@ -97,7 +96,7 @@ test("常駐HUDをインベントリ・メニュー・操作モードで維持�
   // Follow stage scaling and remain within a smaller viewport
   await page.setViewportSize({ width: 1024, height: 576 });
   await setUiState(page, "GameScreen");
-  await expect.poll(async () => (await challengeHud.boundingBox())?.width).toBe(512);
+  await expect.poll(async () => (await challengeHud.boundingBox())?.width).toBe(416);
   const scaledWorldPresentation = await readChallengeHudPresentation(page);
   await setUiState(page, "PlayerInventory");
   await expect(page.getByTestId("main-grid")).toBeVisible();
@@ -117,11 +116,11 @@ test("進行中チャレンジを内部キーやカード面なしで表示す�
   await expect(hud).toHaveCSS("pointer-events", "none");
   await expect(hud).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 
-  // 固定配置と影をピクセル検証する
-  // Verify fixed placement and shadow in pixels
+  // 右上固定の寸法と影をピクセル検証する
+  // Verify top-right fixed dimensions and shadow in pixels
   await expect(hud).toHaveCSS("top", "24px");
-  await expect(hud).toHaveCSS("left", "320px");
-  await expect(hud).toHaveCSS("width", "640px");
+  await expect(hud).toHaveCSS("right", "24px");
+  await expect(hud).toHaveCSS("width", "520px");
   await expect(hud).toHaveCSS("text-shadow", "rgba(0, 0, 0, 0.85) 0px 1px 2px");
   await expect(hud.locator('[aria-hidden="true"]')).toHaveCount(1);
 
@@ -150,6 +149,27 @@ test("進行中チャレンジを内部キーやカード面なしで表示す�
     labelLetterSpacing: "1px",
     objectiveLineHeight: "20px",
   });
+});
+
+test("横長画面でも進行HUDを短い罫線のまま実画面右上へ固定する", async ({ page }) => {
+  await page.setViewportSize({ width: 2432, height: 786 });
+  await setTopicScenario(page, "challengeJapanese");
+  await setUiState(page, "GameScreen");
+  await page.goto("/");
+
+  const layout = await page.getByTestId("challenge-hud").evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      rightGap: window.innerWidth - rect.right,
+      top: rect.top,
+      width: rect.width,
+    };
+  });
+  expect(layout.rightGap).toBeGreaterThanOrEqual(0);
+  expect(layout.rightGap).toBeLessThan(40);
+  expect(layout.top).toBeGreaterThanOrEqual(0);
+  expect(layout.top).toBeLessThan(40);
+  expect(layout.width).toBeLessThan(580);
 });
 
 test("複数目標を受信順で表示し長文をHUD幅内へ折り返す", async ({ page }) => {

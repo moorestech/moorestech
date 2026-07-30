@@ -3,6 +3,12 @@
 /* Mantine のグローバル body 背景（--mantine-color-body）を import 順で上書きする */
 /* Overrides Mantine's global body background (--mantine-color-body) via import order */
 :root {
+  /* stage基準寸法と、初回layout effect前に使う論理viewport既定値 */
+  /* Stage baseline dimensions and logical viewport defaults used before the first layout effect */
+  --ui-stage-width: 1280px;
+  --ui-stage-height: 720px;
+  --ui-viewport-width: var(--ui-stage-width);
+  --ui-viewport-height: var(--ui-stage-height);
   --slot-size: 3rem;
   /* ホットバーと採掘ゲージが共有する固定寸法と配置基準 */
   /* Fixed dimensions and placement references shared by the hotbar and mining gauge */
@@ -39,11 +45,12 @@
   /* Keep menu content between the resident HUD and the hotbar */
   --menu-upper-safe-area: 128px;
   --menu-content-height: 525px;
-  /* 常駐チャレンジHUDは全画面で上中央の安全帯へ固定し、文字組を変えない */
-  /* Keep the resident challenge HUD in one upper-center safe area with unchanged typography on every screen */
-  --challenge-hud-left: 320px;
+  /* 常駐チャレンジHUDは全画面で右上の安全帯へ固定し、文字組を変えない */
+  /* Keep the resident challenge HUD in one top-right safe area with unchanged typography on every screen */
+  --screen-edge-hud-gap: 24px;
+  --challenge-hud-right: 24px;
   --challenge-hud-top: 24px;
-  --challenge-hud-width: 640px;
+  --challenge-hud-width: 520px;
   --challenge-hud-label-font-size: 12px;
   --challenge-hud-objective-font-size: 14px;
   --challenge-hud-label-rule-gap: 5px;
@@ -54,7 +61,7 @@
   --challenge-hud-text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
   /* 配置モード情報を右上のクラフト枠へ固定長で配置する */
   /* Place placement-mode information in the top-right craft frame with fixed lengths */
-  --operation-hud-right: 24px;
+  --operation-hud-right: calc(var(--challenge-hud-right) + var(--challenge-hud-width) + var(--screen-edge-hud-gap));
   --operation-hud-top: 24px;
   --operation-hud-width: 288px;
   --operation-hud-label-font-size: 12px;

@@ -13,11 +13,11 @@ test("乗車HUDと分岐選択を表示し、入れ子Pauseへ遷移する", asy
   await setUiState(page, "TrainHUDScreen", "GameScreen");
   await page.goto("/");
 
-  // 通常の乗車HUD中もチャレンジHUDを同じ上中央配置で維持する
-  // Retain the challenge HUD at the same upper-center placement during normal train riding
+  // 乗車中もチャレンジHUDを右上に保つ
+  // Keep the challenge HUD at the top right while riding
   await expect(page.getByTestId("challenge-hud")).toBeVisible();
-  await expect(page.getByTestId("challenge-hud")).toHaveCSS("left", "320px");
-  await expect(page.getByTestId("challenge-hud")).toHaveCSS("width", "640px");
+  await expect(page.getByTestId("challenge-hud")).toHaveCSS("right", "24px");
+  await expect(page.getByTestId("challenge-hud")).toHaveCSS("width", "520px");
   await expect(page.getByTestId("train-riding-hud")).toBeVisible();
   await expect(page.getByTestId("train-branch-selection")).toContainText("2/3");
 

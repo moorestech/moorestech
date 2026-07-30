@@ -177,10 +177,10 @@ description: |
 
 - **見た目の正はUnityのスキットUI**（`SkitUI.uxml`/`SkitUI.uss` と `MainGameUI.prefab` の `BackgroundText`）。
   Web はそれをCSS/DOM/インラインSVGで再現する。PNGアセットの移植は §6 のとおり禁止。
-- **配置は `.stage` 内の絶対配置**（前例: HotbarPanel）。UnityのPanelSettingsは画面幅比例拡縮のため、
-  Portal直下の固定pxでは解像度で崩れる。stage内なら1280基準の固定長トークンがそのまま設計単位になる。
-  1920設計px から stage px への換算は一律 2/3。`position: fixed` は stage の transform で包含ブロックが
-  変わり混乱するため使わず、`position: absolute` で統一する。
+- **配置は `.stage` 内の `.viewportOverlay` に置く。** UnityのPanelSettings同様に1280基準の固定長トークンを
+  `.stage` の一様拡縮へ追従させつつ、overlayの論理外寸だけを実viewport相当へ広げる。これにより横長画面でも
+  全幅の面と画面端HUDがstage幅で途中切れしない。Portal直下の固定pxや`position: fixed`は使わず、
+  1920設計pxからstage pxへの換算は一律2/3、子要素は`position: absolute`で統一する。
 
 ### 通常スキット（blocking）
 
@@ -213,7 +213,8 @@ description: |
   ただし図像はviewBox内余白の分だけ内側（実効約0.8）に留める。viewBoxを外接まで詰めると現行の
   `--skit-tool-gap` でSkip終端バーと隣接アイコンが接触するため、詰めるならギャップ再実測とセットで裁定する。
   Auto の on/off は同一SVGの `data-enabled` による色切替で表し、アイコン自体を差し替えない。
-  テキストラベルのボタンにはしない。
+  テキストラベルのボタンにはしない。明るい世界背景でも線が消えないよう、既存の世界分離用暗色トークンによる
+  最小限の固定長ドロップシャドウをアイコンへ付け、通常時も不透明で描く。
 - **会話窓が非表示の演出中（`textAreaVisible=false`）もツールバーは右上に残す。**
   正本でも TextArea とツールは兄弟で、消えるのは TextArea だけであるため。
 - Unity にある Log ボタンは本体機能が未配線（`SkitUITools.cs`）のため Web では出さない。
@@ -267,17 +268,17 @@ description: |
 
 ## 8.14 チャレンジHUD
 
-- 常時表示HUD族として、面・枠・角丸を持たず、上中央の安全帯に浮かせる。
+- 常時表示HUD族として、面・枠・角丸を持たず、`.viewportOverlay` の右上安全帯に浮かせる。
 - 構成は「`--text-muted` の従属見出し → `FadeRule` → `--text-high-contrast` の目標一覧」だけとする。
-- `.stage` 内の絶対配置とし、解像度に応じた一様拡縮へ追従させる。位置・幅・間隔・文字サイズ・文字影は `--challenge-hud-*` 固定長トークンで管理する。
+- 幅は右上の情報群として読みやすい固定長に抑え、`FadeRule`もその幅を越えて伸ばさない。位置・幅・間隔・文字サイズ・文字影は `--challenge-hud-*` 固定長トークンで管理する。
 - 複数目標は受信順で縦積みし、長文・長語を固定幅内で折り返す。
 - アイコン、ゲージ、箇条書き装飾、光彩、アニメーションは追加しない。
-- インベントリ・研究・建築・チャレンジ一覧・ポーズ等のメニュー中も表示を維持し、**HUD自身は画面状態を参照して位置・幅・間隔・文字サイズ・DOMを切り替えない**。全画面で同じ上中央レイアウトを使い、`--menu-upper-safe-area` はその単一HUDが収まる高さを確保する。メニュー本体の高さは `--menu-content-height` を使う。
+- インベントリ・研究・建築・チャレンジ一覧・ポーズ等のメニュー中も表示を維持し、**HUD自身は画面状態を参照して位置・幅・間隔・文字サイズ・DOMを切り替えない**。全画面で同じ右上レイアウトを使い、`--menu-upper-safe-area` はその単一HUDが収まる高さを確保する。メニュー本体の高さは `--menu-content-height` を使う。
 - `pointer-events: none` を維持し、blockingスキット中は表示しない。
 
 ## 8.15 操作モードHUD
 
-- 配置モードの状態表示は、stage右上で `GamePanel variant="craft"` に収める。クラフトレシピ詳細と同じ半透明ネイビー面・1px枠・内周線・右下グリップをそのまま再利用し、上中央のチャレンジHUDと併記する。
+- 配置モードの状態表示は、`.viewportOverlay` 右上のチャレンジHUD左隣で `GamePanel variant="craft"` に収める。クラフトレシピ詳細と同じ半透明ネイビー面・1px枠・内周線・右下グリップをそのまま再利用する。
 - 配置HUDは「`--text-muted` の従属見出し → `FadeRule` → `--text-high-contrast` の詳細一覧」とし、警告だけ `--text-insufficient` を使う。Mantineの `Paper` / `Stack` / `Title` / `Text` は使わない。
 - 削除モードでは説明パネルを出さず、uGUI正本の `delete bar.png` と同じ黄黒斜線帯をstage上下端へ表示する。正本の1920設計・高さ60px・端中央配置で画面内に見える半幅を1280基準へ換算し、帯高は20pxとする。
 - 削除警告帯はCSSの `repeating-linear-gradient` で再現し、色・帯高・斜線周期・角度は `--delete-mode-warning-*` 固定長トークンへ集約する。画像アセットはWebへ移植しない。
@@ -311,3 +312,4 @@ description: |
 4. **重なり**: 対象画面のuiStateを正しく設定したか（別パネルの透け重なりを問題と誤認しない・実際の重なりを見逃さない）
 
 %指定や幅依存の値を触った場合は、基準幅（持ち物378px）と大型幅（機械/研究759px）の両方で確認する。
+画面端HUD・全幅帯を触った場合は、1280×720に加えて2432×786等の高さ制約型横長viewportでも、左右端・右上アンカー・固定長の内容幅を確認する。
