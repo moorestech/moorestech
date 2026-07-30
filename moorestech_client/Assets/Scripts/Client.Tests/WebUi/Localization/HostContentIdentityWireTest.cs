@@ -15,7 +15,7 @@ namespace Client.Tests.WebUi.Localization
             var dto = new BlockInventoryDto { Open = true };
             var blockGuidField = typeof(BlockInventoryDto).GetField("BlockGuid");
             Assert.That(blockGuidField, Is.Not.Null);
-            blockGuidField.SetValue(dto, "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+            blockGuidField.SetValue(dto, "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee");
 
             SetLegacyNameWhenPresent(dto, "Source chest");
             var actual = JObject.Parse(WebUiJson.Serialize(dto));
@@ -23,7 +23,7 @@ namespace Client.Tests.WebUi.Localization
             Assert.That(actual.Properties().Select(property => property.Name),
                 Is.EquivalentTo(new[] { "open", "blockGuid" }));
             Assert.That(actual["blockGuid"]?.Value<string>(),
-                Is.EqualTo("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"));
+                Is.EqualTo("aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"));
         }
 
         [Test]
@@ -31,8 +31,8 @@ namespace Client.Tests.WebUi.Localization
         {
             var dto = new MachineRecipeDto
             {
-                RecipeGuid = "11111111-2222-3333-4444-555555555555",
-                BlockGuid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                RecipeGuid = "11111111-2222-4333-8444-555555555555",
+                BlockGuid = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
                 BlockId = 7,
                 Time = 2.5,
             };

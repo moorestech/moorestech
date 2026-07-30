@@ -29,6 +29,33 @@ namespace Client.Localization
                 if (!File.Exists(csvPath)) continue;
                 MergeCsv(File.ReadAllText(csvPath), dictionaries);
             }
+
+            #region Internal
+
+            void ValidateModOrder(
+                ModsResource resource,
+                IReadOnlyList<ModId> modIds)
+            {
+                var orderedIds = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var modId in modIds)
+                {
+                    var rawModId = modId.AsPrimitive();
+                    if (!orderedIds.Add(rawModId))
+                        throw new InvalidOperationException($"Duplicated mod id in master order: {rawModId}");
+                    if (!resource.Mods.ContainsKey(rawModId))
+                        throw new InvalidOperationException($"Master order contains an unloaded mod id: {rawModId}");
+                }
+
+                // 双方向照合で順序側に欠けたresourceも拒否する
+                // Reject resource IDs missing from the order through a reverse membership check
+                foreach (var resourceModId in resource.Mods.Keys)
+                {
+                    if (orderedIds.Contains(resourceModId)) continue;
+                    throw new InvalidOperationException($"Loaded mod id is missing from master order: {resourceModId}");
+                }
+            }
+
+            #endregion
         }
 
         public static void MergeCsv(
@@ -68,27 +95,5 @@ namespace Client.Localization
             }
         }
 
-        private static void ValidateModOrder(
-            ModsResource modsResource,
-            IReadOnlyList<ModId> orderedModIds)
-        {
-            var orderedIds = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var modId in orderedModIds)
-            {
-                var rawModId = modId.AsPrimitive();
-                if (!orderedIds.Add(rawModId))
-                    throw new InvalidOperationException($"Duplicated mod id in master order: {rawModId}");
-                if (!modsResource.Mods.ContainsKey(rawModId))
-                    throw new InvalidOperationException($"Master order contains an unloaded mod id: {rawModId}");
-            }
-
-            // 双方向照合で順序側に欠けたresourceも拒否する
-            // Reject resource IDs missing from the order through a reverse membership check
-            foreach (var resourceModId in modsResource.Mods.Keys)
-            {
-                if (orderedIds.Contains(resourceModId)) continue;
-                throw new InvalidOperationException($"Loaded mod id is missing from master order: {resourceModId}");
-            }
-        }
     }
 }

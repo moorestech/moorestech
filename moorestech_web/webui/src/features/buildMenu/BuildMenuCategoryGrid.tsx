@@ -18,8 +18,8 @@ type Props = {
 // Lists entries as sub-category headings plus a SlotGrid
 export function BuildMenuCategoryGrid({ sections, compositeHeading, onSelect, onDelete, onHoverChange }: Props) {
   const { t } = useI18n();
-  // 複合見出しもカテゴリGuidとサブカテゴリGuidから同じ辞書を解決する
-  // Resolve composite headings from the same category and sub-category GUID dictionaries
+  // 複合見出しを両分類Guidから解決
+  // Resolve composite headings from both classification GUIDs
   const sectionHeading = (section: BuildMenuSection) => {
     const subCategoryName = t(buildMenuSubCategoryNameKey(section.subCategoryGuid));
     if (!compositeHeading) return subCategoryName;

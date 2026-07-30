@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SlotDataSchema } from "./common";
+import { GuidSchema, SlotDataSchema } from "./common";
 
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
@@ -16,9 +16,9 @@ export const FluidSlotDataSchema = z.object({
 });
 
 export const MachineDetailDataSchema = z.object({
-  recipeGuid: z.string(),
-  selectedRecipeGuid: z.string(),
-  blockGuid: z.string(),
+  recipeGuid: GuidSchema,
+  selectedRecipeGuid: GuidSchema,
+  blockGuid: GuidSchema,
   recipeTime: z.number(),
   outputItems: z.array(z.object({ itemId: z.number(), count: z.number() })),
   currentState: z.string(),
@@ -87,7 +87,7 @@ export const BlockInventoryOpenSchema = z.object({
   source: z.literal("block"),
   blockType: z.string(),
   identifier: z.string(),
-  blockGuid: z.string(),
+  blockGuid: GuidSchema,
   itemSlots: z.array(SlotDataSchema),
   fluidSlots: z.array(FluidSlotDataSchema),
   progress: z.number().optional(),

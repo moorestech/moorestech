@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Mooresmaster.Model.CharactersModule;
 
 namespace Core.Master.Validator
@@ -6,10 +8,17 @@ namespace Core.Master.Validator
     {
         public static bool Validate(Characters characters, out string errorLogs)
         {
-            // CharacterMasterは外部キー依存がないため、バリデーション成功を返す
-            // CharacterMaster has no external key dependencies, so return success
-            errorLogs = "";
-            return true;
+            // CharacterGuid空値・重複拒否
+            // Reject empty or duplicate CharacterGuids
+            errorLogs = string.Empty;
+            var assignedGuids = new HashSet<Guid>();
+            foreach (var character in characters.Data)
+            {
+                if (character.CharacterGuid == Guid.Empty || !assignedGuids.Add(character.CharacterGuid))
+                    errorLogs += $"[CharacterMaster] invalid or duplicate CharacterGuid:{character.CharacterGuid}\n";
+            }
+
+            return errorLogs == string.Empty;
         }
 
         public static void Initialize(Characters characters)

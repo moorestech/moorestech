@@ -9,8 +9,8 @@ namespace Client.Localization
         {
             var sourceTexts = new Dictionary<string, string>();
 
-            // アイテムの安定Guidから原文フォールバックを構築する
-            // Build source fallbacks from stable item GUIDs
+            // 安定Guidで原文fallback構築
+            // Build source fallbacks from stable GUIDs
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
                 var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
@@ -24,8 +24,8 @@ namespace Client.Localization
                 sourceTexts[ContentLocalizationKeys.BlockName(blockMaster.BlockGuid)] = blockMaster.Name;
             }
 
-            // ビルドメニューの分類名を必須Guidから収集する
-            // Collect build-menu classification names from required GUIDs
+            // 分類名を必須Guidから収集
+            // Collect classification names from required GUIDs
             foreach (var categoryMaster in MasterHolder.BuildMenuCategoryMaster.Categories)
             {
                 sourceTexts[ContentLocalizationKeys.BuildMenuCategoryName(categoryMaster.CategoryGuid)] =
@@ -37,16 +37,16 @@ namespace Client.Localization
                 }
             }
 
-            // 必須Guidから全キャラクターの話者名原文を収集する
-            // Collect every character speaker source from its required GUID
+            // 話者名原文を必須Guidから収集
+            // Collect speaker sources from required GUIDs
             foreach (var characterMaster in MasterHolder.CharacterMaster.Characters.Data)
             {
                 sourceTexts[ContentLocalizationKeys.CharacterName(characterMaster.CharacterGuid)] =
                     characterMaster.DisplayName;
             }
 
-            // 研究ノードの名前と説明を同じGuidから収集する
-            // Collect research names and descriptions from the same GUID
+            // 研究名と説明を同じGuidから収集
+            // Collect research names and descriptions from one GUID
             foreach (var researchMaster in MasterHolder.ResearchMaster.GetAllResearches())
             {
                 sourceTexts[ContentLocalizationKeys.ResearchNodeName(researchMaster.ResearchNodeGuid)] =
@@ -55,8 +55,8 @@ namespace Client.Localization
                     researchMaster.ResearchNodeDescription;
             }
 
-            // 全カテゴリと配下チャレンジの原文を正本として収集する
-            // Collect every category and nested challenge as canonical source text
+            // 全カテゴリ配下を正本として収集
+            // Collect every category subtree as canonical source
             foreach (var categoryMaster in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
             {
                 sourceTexts[ContentLocalizationKeys.ChallengeCategoryName(categoryMaster.CategoryGuid)] =

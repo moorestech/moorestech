@@ -1,11 +1,11 @@
 import type { ItemMasterData } from "../../../src/bridge/contract/payloadTypes";
 import { itemNameKey } from "../../../src/shared/i18n/contentKeys";
 
-export const WOOD_ITEM_GUID = "00000000-0000-0000-0000-000000000001";
-export const STONE_ITEM_GUID = "00000000-0000-0000-0000-000000000002";
-export const TIMBER_ITEM_GUID = "00000000-0000-0000-0000-000000000003";
-export const PLANK_ITEM_GUID = "00000000-0000-0000-0000-000000000100";
-export const IMPOSSIBLE_PLANK_ITEM_GUID = "00000000-0000-0000-0000-000000000101";
+export const WOOD_ITEM_GUID = "00000000-0000-4000-8000-000000000001";
+export const STONE_ITEM_GUID = "00000000-0000-4000-8000-000000000002";
+export const TIMBER_ITEM_GUID = "00000000-0000-4000-8000-000000000003";
+export const PLANK_ITEM_GUID = "00000000-0000-4000-8000-000000000100";
+export const IMPOSSIBLE_PLANK_ITEM_GUID = "00000000-0000-4000-8000-000000000101";
 
 export const itemMaster = {
   items: [
@@ -47,5 +47,5 @@ function createItemNameDictionaries(): Record<string, Record<string, string>> {
 }
 
 function demoItemGuid(itemId: number): string {
-  return `10000000-0000-0000-0000-${itemId.toString().padStart(12, "0")}`;
+  return `10000000-0000-4000-8000-${itemId.toString().padStart(12, "0")}`;
 }

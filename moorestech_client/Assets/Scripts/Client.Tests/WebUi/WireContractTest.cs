@@ -54,7 +54,7 @@ namespace Client.Tests.WebUi
                 Source = "block",
                 BlockType = "Chest",
                 Identifier = "block:1",
-                BlockGuid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                BlockGuid = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
                 ItemSlots = new List<BlockItemSlotDto> { new BlockItemSlotDto { ItemId = 1, Count = 7 }, new BlockItemSlotDto { ItemId = 2, Count = 4 } },
                 FluidSlots = new List<BlockFluidSlotDto> { new BlockFluidSlotDto { FluidId = 10, Amount = 500, Capacity = 1000, Name = "Water" } },
                 Progress = 0.5,

@@ -37,8 +37,6 @@ namespace Client.Game.InGame.BackgroundSkit
                 SkitPresentationStateStore.Instance.BeginBackground();
                 presentationStarted = true;
 
-                // UIステートがGameScreenになるまで待機
-                // Wait until the UI state reaches GameScreen
                 await UniTask.WaitUntil(() => uiStateControl.CurrentState == UIStateEnum.GameScreen);
 
                 var textAsset = await AddressableLoader.LoadAsyncDefault<TextAsset>(skitAddressablePath);
@@ -48,8 +46,6 @@ namespace Client.Game.InGame.BackgroundSkit
                     return;
                 }
 
-                // 辞書を準備してから背景スキットの実行contextを組み立てる
-                // Prepare dictionaries before constructing the background skit execution context
                 var skitTitle = SkitTitle.FromAssetName(textAsset.name);
                 localizationResolver = new SkitLocalizationResolver();
                 await localizationResolver.PrepareAsync(skitTitle);
@@ -62,8 +58,8 @@ namespace Client.Game.InGame.BackgroundSkit
                 // In web mode suppress only the uGUI text; keep the root active because Unity owns voice playback (SetActive(false) would kill audio)
                 backgroundSkitUI.SetTextVisible(!WebUiScreenGate.IsWebUiMode);
 
-                // BackgroundSkitは簡易実装なので、Textコマンドのみを実行
-                // BackgroundSkit is intentionally limited to text commands
+                // 背景スキットは簡易Text実装
+                // Background skits use the minimal text-only implementation
                 foreach (var command in commands)
                 {
                     await command.ExecuteAsync(context);

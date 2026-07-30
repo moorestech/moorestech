@@ -13,6 +13,6 @@ export function blockIconUrl(blockId: number): string {
   return `${BLOCK_ICON_PREFIX}${blockId}.png`;
 }
 
-export function localizationDictionaryUrl(locale: string): string {
-  return `/api/i18n/${encodeURIComponent(locale)}`;
+export function localizationDictionaryUrl(locale: string, revision: number): string {
+  return `/api/i18n/${encodeURIComponent(locale)}?revision=${revision}`;
 }

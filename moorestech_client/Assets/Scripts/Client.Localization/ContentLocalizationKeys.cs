@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 
 namespace Client.Localization
 {
@@ -60,39 +59,5 @@ namespace Client.Localization
             return $"buildMenuSubCategory.{subCategoryGuid:D}.name";
         }
 
-        public static string SkitTextBody(string skitTitle, int commandId)
-        {
-            return SkitField(skitTitle, commandId, "body");
-        }
-
-        public static string SkitBackgroundBody(string skitTitle, int commandId)
-        {
-            return SkitField(skitTitle, commandId, "body");
-        }
-
-        public static string SkitSelectionOption1Tag(string skitTitle, int commandId)
-        {
-            return SkitField(skitTitle, commandId, "Option1Tag");
-        }
-
-        public static string SkitSelectionOption2Tag(string skitTitle, int commandId)
-        {
-            return SkitField(skitTitle, commandId, "Option2Tag");
-        }
-
-        public static string SkitSelectionOption3Tag(string skitTitle, int commandId)
-        {
-            return SkitField(skitTitle, commandId, "Option3Tag");
-        }
-
-        public static string SkitOverrideCharacterName(string skitTitle, int commandId)
-        {
-            return SkitField(skitTitle, commandId, "overrideCharacterName");
-        }
-
-        public static string SkitField(string skitTitle, int commandId, string field)
-        {
-            return $"skit.{skitTitle}.{commandId.ToString(CultureInfo.InvariantCulture)}.{field}";
-        }
     }
 }

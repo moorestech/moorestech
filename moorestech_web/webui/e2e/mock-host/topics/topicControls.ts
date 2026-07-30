@@ -22,9 +22,15 @@ export function serveDictionary(url: string, response: ServerResponse): void {
 
 const control = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]) => ({ topic, data });
 const controls = {
-  placement: () => control(Topics.placementMode, { selectedName: "Assembler", height: 3, unavailableReason: "" }),
-  placementUnavailable: () => control(Topics.placementMode, { selectedName: "Assembler", height: 3, unavailableReason: "Blocked by terrain" }),
-  placementEmpty: () => control(Topics.placementMode, { selectedName: "", height: 0, unavailableReason: "" }),
+  placement: () => control(Topics.placementMode, {
+    selectedTargetType: "raw", selectedName: "Assembler", height: 3, unavailableReason: "",
+  }),
+  placementUnavailable: () => control(Topics.placementMode, {
+    selectedTargetType: "raw", selectedName: "Assembler", height: 3, unavailableReason: "Blocked by terrain",
+  }),
+  placementEmpty: () => control(Topics.placementMode, {
+    selectedTargetType: "raw", selectedName: "", height: 0, unavailableReason: "",
+  }),
   delete: () => control(Topics.deleteMode, { unavailableReason: "Protected area" }),
   deleteEmpty: () => control(Topics.deleteMode, { unavailableReason: "" }),
   crosshairHidden: () => control(Topics.crosshair, { visible: false }),
@@ -51,14 +57,14 @@ const controls = {
   }),
   pauseConnected: () => control(Topics.pauseMenu, { disconnected: false }),
   pauseDisconnected: () => control(Topics.pauseMenu, { disconnected: true }),
-  japanese: () => control(Topics.localization, { locale: "japanese" }),
-  english: () => control(Topics.localization, { locale: "english" }),
+  japanese: () => control(Topics.localization, { locale: "japanese", revision: 1 }),
+  english: () => control(Topics.localization, { locale: "english", revision: 1 }),
   challengeActive: () => control(Topics.challengeCurrent, clone(fx.challengeCurrent)),
   challengeJapanese: () => control(Topics.challengeCurrent, clone(fx.challengeJapanese)),
   challengeMultiple: () => control(Topics.challengeCurrent, clone(fx.challengeMultiple)),
   challengeLong: () => control(Topics.challengeCurrent, clone(fx.challengeLong)),
   challengeMultipleLong: () => control(Topics.challengeCurrent, clone(fx.challengeMultipleLong)),
-  challengeCompleted: () => control(Topics.challengeCurrent, { challenges: [], completedChallengeGuid: "ch-2" }),
+  challengeCompleted: () => control(Topics.challengeCurrent, { challenges: [], completedChallengeGuid: "82000000-0000-4000-8000-000000000002" }),
   notificationAchievement: () => control(Topics.notification, { seq: 1, category: "achievement", messageId: "achievement.researchCompleted", messageParams: ["原始研究1"], itemId: 1 }),
   notificationItemUnlocked: () => control(Topics.notification, { seq: 2, category: "achievement", messageId: "achievement.unlockedItem", messageParams: [], itemId: 2 }),
   notificationDenied: () => control(Topics.notification, { seq: 3, category: "operationDenied", messageId: "denied.researchNotCompletable", messageParams: [], itemId: null }),

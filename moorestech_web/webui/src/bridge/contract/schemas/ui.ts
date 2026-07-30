@@ -24,13 +24,31 @@ export const TrainRidingDataSchema = z.object({
   branchCandidateCount: z.number().int().nonnegative(),
   selectedBranchIndex: z.number().int().nonnegative(),
 });
-export const LocalizationDataSchema = z.object({ locale: z.string().min(1) });
+export const LocalizationDataSchema = z.object({
+  locale: z.string().min(1),
+  revision: z.number().int().nonnegative(),
+});
 export const PauseMenuDataSchema = z.object({ disconnected: z.boolean() });
-export const PlacementModeDataSchema = z.object({
-  selectedName: z.string(),
+const PlacementModeCommonFields = {
   height: z.number().int(),
   unavailableReason: z.string(),
-});
+};
+export const PlacementModeDataSchema = z.discriminatedUnion("selectedTargetType", [
+  z.object({
+    selectedTargetType: z.literal("block"),
+    selectedBlockGuid: z.string().uuid(),
+    ...PlacementModeCommonFields,
+  }).strict(),
+  z.object({
+    selectedTargetType: z.literal("blueprintCopy"),
+    ...PlacementModeCommonFields,
+  }).strict(),
+  z.object({
+    selectedTargetType: z.literal("raw"),
+    selectedName: z.string(),
+    ...PlacementModeCommonFields,
+  }).strict(),
+]);
 export const DeleteModeDataSchema = z.object({ unavailableReason: z.string() });
 export const CrosshairDataSchema = z.object({ visible: z.boolean() });
 export const UiVisibilityDataSchema = z.object({ visible: z.boolean() });

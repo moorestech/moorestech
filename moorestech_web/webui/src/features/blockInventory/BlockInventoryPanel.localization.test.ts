@@ -10,7 +10,7 @@ const topicState = vi.hoisted(() => ({
     source: "block",
     blockType: "Chest",
     identifier: "block:1",
-    blockGuid: "ABCDEFAB-CDEF-ABCD-EFAB-CDEFABCDEFAB",
+    blockGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefab",
     itemSlots: [],
     fluidSlots: [],
   },
@@ -55,8 +55,8 @@ describe("BlockInventoryPanel localization", () => {
 
     expect(renderer!.root.findByType("mock-game-panel" as never).props.title).toBe("Fallback Machine");
 
-    // 同じpayloadのまま辞書更新通知だけで表示言語へ追従する
-    // Follow the display language from dictionary notifications without replacing the payload
+    // payload固定で辞書通知へ追従
+    // Follow dictionary notifications without replacing the payload
     act(() => setDictionaries("japanese", {
       [key]: "対象言語の機械",
       [L.ui.common.close]: "閉じる",

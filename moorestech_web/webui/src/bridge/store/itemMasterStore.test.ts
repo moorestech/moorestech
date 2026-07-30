@@ -12,8 +12,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const WOOD_GUID = "00000000-0000-0000-1234-000000000001";
-const FRESH_WOOD_GUID = "00000000-0000-0000-1234-000000000002";
+const WOOD_GUID = "00000000-0000-4000-8000-000000000001";
+const FRESH_WOOD_GUID = "00000000-0000-4000-8000-000000000002";
 const masterJson = { items: [{ itemId: 1, itemGuid: WOOD_GUID, maxStack: 100 }] };
 
 describe("ensureItemMasterLoaded", () => {

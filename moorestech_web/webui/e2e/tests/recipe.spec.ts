@@ -71,7 +71,7 @@ test("アイテム選択でレシピ表示、長押しで素材が尽きるま�
   const payloads = await payloadsOf(page, "craft.execute");
   expect(payloads.length).toBeGreaterThanOrEqual(2);
   for (const payload of payloads) {
-    expect((payload as { recipeGuid?: string }).recipeGuid).toBe("g-craft-1");
+    expect((payload as { recipeGuid?: string }).recipeGuid).toBe("83000000-0000-4000-8000-000000000001");
   }
 });
 

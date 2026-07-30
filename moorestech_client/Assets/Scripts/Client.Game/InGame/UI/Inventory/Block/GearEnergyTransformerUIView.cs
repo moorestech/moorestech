@@ -33,18 +33,22 @@ namespace Client.Game.InGame.UI.Inventory.Block
             // UIオープン時に1度だけサーバーへ問い合わせ、ネットワーク集約値を取得
             // Fetch gear network aggregate info once when the UI opens
             FetchNetworkInfo().Forget();
+
+            #region Internal
+
+            void RefreshBlockName()
+            {
+                blockNameText.text = Localize.GetContent(
+                    ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid));
+            }
+
+            #endregion
         }
 
         private async UniTask FetchNetworkInfo()
         {
             var ct = this.GetCancellationTokenOnDestroy();
             _cachedNetworkInfo = await ClientContext.VanillaApi.Response.GetGearNetworkInfo(_blockGameObject.BlockInstanceId, ct);
-        }
-
-        private void RefreshBlockName()
-        {
-            blockNameText.text = Localize.GetContent(
-                ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid));
         }
 
         private void Update()

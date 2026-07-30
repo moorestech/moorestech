@@ -7,7 +7,7 @@ import type { ResearchTreeData } from "../../src/bridge/contract/payloadTypes";
 export const researchTree = {
   nodes: [
     {
-      guid: "11111111-1111-1111-1111-111111111111",
+      guid: "11111111-1111-4111-8111-111111111111",
       state: "completed",
       iconItemId: 2,
       position: { x: 0.0, y: 0.0 },
@@ -17,21 +17,21 @@ export const researchTree = {
       unlockItemIds: [],
     },
     {
-      guid: "22222222-2222-2222-2222-222222222222",
+      guid: "22222222-2222-4222-8222-222222222222",
       state: "unresearchableNotEnoughPreNode",
       iconItemId: 3,
       position: { x: 300.0, y: -120.0 },
-      prevGuids: ["11111111-1111-1111-1111-111111111111"],
+      prevGuids: ["11111111-1111-4111-8111-111111111111"],
       consumeItems: [],
       rewardItems: [],
       unlockItemIds: [3],
     },
     {
-      guid: "33333333-3333-3333-3333-333333333333",
+      guid: "33333333-3333-4333-8333-333333333333",
       state: "researchable",
       iconItemId: 100,
       position: { x: 600.0, y: 0.0 },
-      prevGuids: ["11111111-1111-1111-1111-111111111111"],
+      prevGuids: ["11111111-1111-4111-8111-111111111111"],
       consumeItems: [{ itemId: 1, count: 5 }],
       rewardItems: [{ itemId: 100, count: 2 }],
       unlockItemIds: [],

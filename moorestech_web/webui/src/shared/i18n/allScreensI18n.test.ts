@@ -4,14 +4,22 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { parseLocalizationCsv } from "../../../scripts/generate-localization-keys.mjs";
 import { L } from "./index";
 
-let currentLocale = "english";
+let currentLocale: string | null = "english";
+let currentDictionaryRevision = 1;
 let effectCleanup: (() => void) | undefined;
+let effectDependencies: readonly unknown[] | undefined;
 let rerender: (() => void) | undefined;
 let unsubscribe: (() => void) | undefined;
 
 vi.mock("react", () => ({
-  useEffect(effect: () => void | (() => void)) {
+  useEffect(effect: () => void | (() => void), dependencies: readonly unknown[]) {
+    // React依存比較で世代欠落を検出
+    // Use React dependency comparison to detect missing generations
+    if (effectDependencies?.length === dependencies.length &&
+        effectDependencies.every((value, index) => Object.is(value, dependencies[index]))) return;
+
     effectCleanup?.();
+    effectDependencies = dependencies;
     effectCleanup = effect() ?? undefined;
   },
   useSyncExternalStore(subscribe: (listener: () => void) => () => void, getSnapshot: () => unknown) {
@@ -24,9 +32,12 @@ vi.mock("react", () => ({
 }));
 
 vi.mock("@/bridge", () => ({
-  localizationDictionaryUrl: (locale: string) => `/api/i18n/${locale}`,
+  localizationDictionaryUrl: (locale: string, revision: number) =>
+    `/api/i18n/${locale}?revision=${revision}`,
   Topics: { localization: "localization.current" },
-  useTopic: () => ({ locale: currentLocale }),
+  useTopic: () => currentLocale === null
+    ? null
+    : { locale: currentLocale, revision: currentDictionaryRevision },
 }));
 
 import { I18nProvider, useI18n } from "./index";
@@ -35,10 +46,12 @@ describe("all-screen i18n propagation", () => {
   afterEach(() => {
     effectCleanup?.();
     effectCleanup = undefined;
+    effectDependencies = undefined;
     unsubscribe?.();
     unsubscribe = undefined;
     rerender = undefined;
     currentLocale = "english";
+    currentDictionaryRevision = 1;
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
@@ -48,7 +61,7 @@ describe("all-screen i18n propagation", () => {
     vi.stubGlobal("document", { documentElement: { lang: "", dataset: {} } });
     vi.stubGlobal("fetch", vi.fn(async (url: string) => ({
       ok: true,
-      json: async () => url.endsWith("/japanese")
+      json: async () => url.startsWith("/api/i18n/japanese?")
         ? { [L.ui.mainMenu.playLocally]: "日本語タイトル" }
         : { [L.ui.mainMenu.playLocally]: "English title" },
     })));
@@ -84,8 +97,29 @@ describe("all-screen i18n propagation", () => {
     await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
 
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-      "/api/i18n/english",
-      "/api/i18n/source",
+      "/api/i18n/english?revision=1",
+      "/api/i18n/source?revision=1",
+    ]);
+  });
+
+  it("waits for the localization topic before the first dictionary fetch", async () => {
+    vi.stubGlobal("document", { documentElement: { lang: "", dataset: {} } });
+    const fetchMock = vi.fn(async (_url: string, _init: { signal: AbortSignal }) =>
+      ({ ok: true, json: async () => ({}) }));
+    vi.stubGlobal("fetch", fetchMock);
+    currentLocale = null;
+
+    I18nProvider({ children: null });
+    await Promise.resolve();
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    currentLocale = "japanese";
+    I18nProvider({ children: null });
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "/api/i18n/english?revision=1",
+      "/api/i18n/source?revision=1",
+      "/api/i18n/japanese?revision=1",
     ]);
   });
 
@@ -114,9 +148,9 @@ describe("all-screen i18n propagation", () => {
     expect(requests.slice(0, 2).every(({ signal }) => signal.aborted)).toBe(true);
 
     for (const request of requests.slice(2)) {
-      const text = request.url.endsWith("/japanese")
+      const text = request.url.startsWith("/api/i18n/japanese?")
         ? "日本語タイトル"
-        : request.url.endsWith("/english") ? "English title" : "Source title";
+        : request.url.startsWith("/api/i18n/english?") ? "English title" : "Source title";
       request.resolve({ ok: true, json: async () => ({ [L.ui.mainMenu.playLocally]: text }) });
     }
     await vi.waitFor(() => expect(renderedCopy).toBe("日本語タイトル"));
@@ -135,7 +169,7 @@ describe("all-screen i18n propagation", () => {
     vi.stubGlobal("document", { documentElement: { lang: "", dataset: {} } });
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     vi.stubGlobal("fetch", vi.fn(async (url: string) => {
-      if (url.endsWith("/japanese")) return { ok: false, status: 500 };
+      if (url.startsWith("/api/i18n/japanese?")) return { ok: false, status: 500 };
       return {
         ok: true,
         json: async () => ({ [L.ui.mainMenu.playLocally]: "English title" }),

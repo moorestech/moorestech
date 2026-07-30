@@ -1,5 +1,6 @@
 using System.IO;
 using System.Collections.Generic;
+using System.Globalization;
 using Client.Skit.Context;
 using Client.Skit.Localization;
 using NUnit.Framework;
@@ -9,6 +10,24 @@ namespace Client.Tests.Localization.Skit
 {
     public class SkitCommandLocalizationTest
     {
+        [Test]
+        [SetCulture("en-US")]
+        public void KeyBuilderPreservesCommandForgeFieldCasingAndInvariantCommandId()
+        {
+            var customCulture = (CultureInfo)CultureInfo.CurrentCulture.Clone();
+            customCulture.NumberFormat.NegativeSign = "~";
+            CultureInfo.CurrentCulture = customCulture;
+
+            // field表記と不変IDを正本固定
+            // Pin field casing and invariant IDs at the canonical source
+            Assert.AreEqual(
+                "skit.導入.-123.Option1Tag",
+                SkitCommandLocalization.CreateKey(
+                    "導入",
+                    -123,
+                    SkitCommandLocalization.Option1Field));
+        }
+
         [Test]
         public void LineUsesResolvedDisplayValuesAndPreservesVoiceSourceBody()
         {
@@ -116,7 +135,7 @@ namespace Client.Tests.Localization.Skit
         {
             var count = 0;
             var offset = 0;
-            while ((offset = source.IndexOf(value, offset, System.StringComparison.Ordinal)) >= 0)
+            while (-1 < (offset = source.IndexOf(value, offset, System.StringComparison.Ordinal)))
             {
                 count++;
                 offset += value.Length;

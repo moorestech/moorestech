@@ -10,8 +10,8 @@ namespace Client.Localization
         {
             var dictionaries = new Dictionary<string, Dictionary<string, string>>();
 
-            // 空訳を除くバニラ言語辞書を毎回新規構築する
-            // Build fresh vanilla language dictionaries without empty translations
+            // 空訳を除き毎回新規構築
+            // Build fresh dictionaries without empty translations
             foreach (var languageCode in VanillaLocalizationTable.LanguageCodes)
             {
                 VanillaLocalizationTable.TryGetLanguage(languageCode, out var table);

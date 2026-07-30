@@ -1,9 +1,21 @@
+using System.Globalization;
 using Client.Skit.Context;
 
 namespace Client.Skit.Localization
 {
     public static class SkitCommandLocalization
     {
+        public const string BodyField = "body";
+        public const string Option1Field = "Option1Tag";
+        public const string Option2Field = "Option2Tag";
+        public const string Option3Field = "Option3Tag";
+        public const string OverrideCharacterNameField = "overrideCharacterName";
+
+        public static string CreateKey(string skitTitle, int commandId, string field)
+        {
+            return $"skit.{skitTitle}.{commandId.ToString(CultureInfo.InvariantCulture)}.{field}";
+        }
+
         public static ResolvedSkitLine ResolveLine(
             ISkitLocalizationResolver resolver,
             SkitExecutionIdentity identity,
@@ -18,7 +30,7 @@ namespace Client.Skit.Localization
             var displayBody = resolver.ResolveCommandField(
                 identity.SkitTitle,
                 commandId,
-                "body",
+                BodyField,
                 bodySource);
             var speakerName = resolver.ResolveCharacterName(
                 characterId,
@@ -35,7 +47,7 @@ namespace Client.Skit.Localization
             int commandId,
             string sourceText)
         {
-            return ResolveOption(resolver, identity, commandId, "Option1Tag", sourceText);
+            return ResolveOption(resolver, identity, commandId, Option1Field, sourceText);
         }
 
         public static string ResolveOption2(
@@ -44,7 +56,7 @@ namespace Client.Skit.Localization
             int commandId,
             string sourceText)
         {
-            return ResolveOption(resolver, identity, commandId, "Option2Tag", sourceText);
+            return ResolveOption(resolver, identity, commandId, Option2Field, sourceText);
         }
 
         public static string ResolveOption3(
@@ -53,7 +65,7 @@ namespace Client.Skit.Localization
             int commandId,
             string sourceText)
         {
-            return ResolveOption(resolver, identity, commandId, "Option3Tag", sourceText);
+            return ResolveOption(resolver, identity, commandId, Option3Field, sourceText);
         }
 
         private static string ResolveOption(

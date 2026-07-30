@@ -21,8 +21,8 @@ vi.mock("./RecipePager", () => ({
 import MachineRecipeView from "./MachineRecipeView";
 
 const recipe: MachineRecipe = {
-  recipeGuid: "recipe-a",
-  blockGuid: "ABCDEFAB-CDEF-ABCD-EFAB-CDEFABCDEFAB",
+  recipeGuid: "84000000-0000-4000-8000-000000000001",
+  blockGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefab",
   blockId: 10,
   time: 1,
   inputItems: [],
@@ -49,8 +49,8 @@ describe("MachineRecipeView localization", () => {
     expect(renderer!.root.findByType("mock-block-slot" as never).props.name).toBe("Fallback Machine");
     expect(renderer!.root.findAllByType("mock-text" as never).some((node) => node.props.children === "Fallback Machine")).toBe(true);
 
-    // 辞書変更はtopicを再配信せずに機械名を更新する
-    // Dictionary changes update the machine name without republishing the topic
+    // topic再配信なしで機械名更新
+    // Update the machine name without topic republication
     act(() => setDictionaries("japanese", {
       [key]: "対象言語の機械",
       [L.ui.common.rightArrow]: "→",

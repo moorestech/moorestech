@@ -22,8 +22,9 @@ vi.mock("@/shared/ui", () => ({
 
 import ResearchDetailPane from "./ResearchDetailPane";
 
+const researchGuid = "86000000-0000-4000-8000-000000000001";
 const node: ResearchNodeData = {
-  guid: "research-a", state: "researchable", iconItemId: 1,
+  guid: researchGuid, state: "researchable", iconItemId: 1,
   position: { x: 0, y: 0 }, prevGuids: [], consumeItems: [{ itemId: 1, count: 2 }], rewardItems: [], unlockItemIds: [],
 };
 
@@ -32,13 +33,13 @@ describe("ResearchDetailPane", () => {
     const renderer = create(createElement(ResearchDetailPane, {
       node, owned: new Map([[1, 5]]), onClose: () => {},
     }));
-    const button = renderer.root.findByProps({ "data-testid": "research-button-research-a" });
+    const button = renderer.root.findByProps({ "data-testid": `research-button-${researchGuid}` });
     expect(button.props.disabled).toBe(false);
     act(() => button.props.onClick());
-    expect(dispatchMock).toHaveBeenCalledWith("research.complete", { researchGuid: "research-a" });
+    expect(dispatchMock).toHaveBeenCalledWith("research.complete", { researchGuid });
     const rendered = JSON.stringify(renderer.toJSON());
-    expect(rendered).toContain("research.research-a.name");
-    expect(rendered).toContain("research.research-a.description");
+    expect(rendered).toContain(`research.${researchGuid}.name`);
+    expect(rendered).toContain(`research.${researchGuid}.description`);
   });
 
   it("不足時はボタン非活性で理由を表示し、閉じるでonCloseが呼ばれる", () => {
@@ -46,7 +47,7 @@ describe("ResearchDetailPane", () => {
     const renderer = create(createElement(ResearchDetailPane, {
       node, owned: new Map(), onClose,
     }));
-    expect(renderer.root.findByProps({ "data-testid": "research-button-research-a" }).props.disabled).toBe(true);
+    expect(renderer.root.findByProps({ "data-testid": `research-button-${researchGuid}` }).props.disabled).toBe(true);
     expect(renderer.root.findByProps({ "data-testid": "research-detail-reason" })).toBeTruthy();
     act(() => renderer.root.findByProps({ "data-testid": "research-detail-close" }).props.onClick());
     expect(onClose).toHaveBeenCalled();

@@ -2,36 +2,36 @@ import type { ChallengeCurrentData, ChallengeTreeData, GameStateData, SkitPresen
 
 export const challengeTree = {
   categories: [{
-    guid: "cat-1",
+    guid: "81000000-0000-4000-8000-000000000001",
     iconItemId: 1,
     nodes: [
-      { guid: "ch-1", iconItemId: 1, state: "completed", position: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: [] },
-      { guid: "ch-2", iconItemId: 2, state: "current", position: { x: 220, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: ["ch-1"] },
+      { guid: "82000000-0000-4000-8000-000000000001", iconItemId: 1, state: "completed", position: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: [] },
+      { guid: "82000000-0000-4000-8000-000000000002", iconItemId: 2, state: "current", position: { x: 220, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: ["82000000-0000-4000-8000-000000000001"] },
     ],
   }],
 } satisfies ChallengeTreeData;
-export const challengeCurrent = { challenges: [{ guid: "ch-2", categoryGuid: "cat-1" }] } satisfies ChallengeCurrentData;
+export const challengeCurrent = { challenges: [{ guid: "82000000-0000-4000-8000-000000000002", categoryGuid: "81000000-0000-4000-8000-000000000001" }] } satisfies ChallengeCurrentData;
 export const challengeJapanese = {
-  challenges: [{ guid: "ch-jp", categoryGuid: "cat-1" }],
+  challenges: [{ guid: "82000000-0000-4000-8000-000000000003", categoryGuid: "81000000-0000-4000-8000-000000000001" }],
 } satisfies ChallengeCurrentData;
 export const challengeMultiple = {
   challenges: [
-    { guid: "ch-a", categoryGuid: "cat-1" },
-    { guid: "ch-b", categoryGuid: "cat-1" },
-    { guid: "ch-c", categoryGuid: "cat-2" },
+    { guid: "82000000-0000-4000-8000-000000000004", categoryGuid: "81000000-0000-4000-8000-000000000001" },
+    { guid: "82000000-0000-4000-8000-000000000005", categoryGuid: "81000000-0000-4000-8000-000000000001" },
+    { guid: "82000000-0000-4000-8000-000000000006", categoryGuid: "81000000-0000-4000-8000-000000000002" },
   ],
 } satisfies ChallengeCurrentData;
 export const challengeLong = {
   challenges: [{
-    guid: "ch-long",
-    categoryGuid: "cat-1",
+    guid: "82000000-0000-4000-8000-000000000007",
+    categoryGuid: "81000000-0000-4000-8000-000000000001",
   }],
 } satisfies ChallengeCurrentData;
 export const challengeMultipleLong = {
   challenges: [
-    { guid: "ch-ml-a", categoryGuid: "cat-1" },
-    { guid: "ch-ml-b", categoryGuid: "cat-2" },
-    { guid: "ch-ml-c", categoryGuid: "cat-3" },
+    { guid: "82000000-0000-4000-8000-000000000008", categoryGuid: "81000000-0000-4000-8000-000000000001" },
+    { guid: "82000000-0000-4000-8000-000000000009", categoryGuid: "81000000-0000-4000-8000-000000000002" },
+    { guid: "82000000-0000-4000-8000-00000000000a", categoryGuid: "81000000-0000-4000-8000-000000000003" },
   ],
 } satisfies ChallengeCurrentData;
 export const gameState = { state: "InGame" } satisfies GameStateData;

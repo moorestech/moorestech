@@ -48,12 +48,16 @@ namespace Client.Game.InGame.UI.Inventory.Block
             // 燃料スロットは維持したまま、ネットワーク情報部分を電柱UIと共通化
             // Keep the fuel slots while sharing the network-info portion with the electric pole UI
             electricNetworkInfoView.Initialize(blockGameObject.BlockInstanceId);
-        }
 
-        private void RefreshBlockName()
-        {
-            blockName.text = Localize.GetContent(
-                ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid));
+            #region Internal
+
+            void RefreshBlockName()
+            {
+                blockName.text = Localize.GetContent(
+                    ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid));
+            }
+
+            #endregion
         }
 
         private void Update()

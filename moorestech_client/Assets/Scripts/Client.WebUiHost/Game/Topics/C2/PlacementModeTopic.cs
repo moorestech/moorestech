@@ -38,35 +38,64 @@ namespace Client.WebUiHost.Game.Topics
 
         private string BuildJson()
         {
-            var selectedName = GetSelectedName();
-            return WebUiJson.Serialize(new PlacementModeDto
-            {
-                SelectedName = selectedName,
-                Height = _state.GetPlacementHeight(),
-                UnavailableReason = "",
-            });
-
-            #region Internal
-
-            string GetSelectedName()
-            {
-                var target = _controller.CurrentTarget;
-                if (target is BlockPlacementTarget block) return MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).Name;
-                if (target is BlueprintPlacementTarget blueprint) return blueprint.BlueprintName;
-                if (target is ConnectToolPlacementTarget tool) return MasterHolder.ConnectToolMaster.GetElementOrNull(tool.ConnectToolGuid)?.Name ?? "";
-                if (target is TrainCarPlacementTarget) return "Train Car";
-                if (target is BlueprintCopyToolPlacementTarget) return "Blueprint Copy";
-                return "";
-            }
-
-            #endregion
+            var dto = PlacementModeDtoFactory.Create(
+                _controller.CurrentTarget,
+                _state.GetPlacementHeight(),
+                "");
+            return WebUiJson.Serialize(dto);
         }
     }
 
     public class PlacementModeDto
     {
+        public string SelectedTargetType;
+        public string SelectedBlockGuid;
         public string SelectedName;
         public int Height;
         public string UnavailableReason;
+    }
+
+    public static class PlacementModeDtoFactory
+    {
+        public static PlacementModeDto Create(
+            IPlacementTarget target,
+            int height,
+            string unavailableReason)
+        {
+            var dto = new PlacementModeDto
+            {
+                Height = height,
+                UnavailableReason = unavailableReason,
+            };
+
+            // ブロックとBPコピーはWeb側解決用identityだけを配信する
+            // Deliver only Web-resolvable identity for blocks and the blueprint copy tool
+            switch (target)
+            {
+                case BlockPlacementTarget block:
+                    dto.SelectedTargetType = "block";
+                    dto.SelectedBlockGuid = MasterHolder.BlockMaster
+                        .GetBlockMaster(block.BlockId).BlockGuid.ToString("D");
+                    return dto;
+                case BlueprintCopyToolPlacementTarget:
+                    dto.SelectedTargetType = "blueprintCopy";
+                    return dto;
+            }
+
+            // ユーザー命名BPとstable key未定の対象は既存raw表示を維持する
+            // Preserve existing raw labels for user blueprints and targets without stable keys
+            dto.SelectedTargetType = "raw";
+            dto.SelectedName = target switch
+            {
+                null => "",
+                BlueprintPlacementTarget blueprint => blueprint.BlueprintName,
+                ConnectToolPlacementTarget tool => MasterHolder.ConnectToolMaster
+                    .GetElementOrNull(tool.ConnectToolGuid).Name,
+                TrainCarPlacementTarget => "Train Car",
+                _ => throw new InvalidOperationException(
+                    $"Unsupported placement target type: {target.GetType().FullName}"),
+            };
+            return dto;
+        }
     }
 }

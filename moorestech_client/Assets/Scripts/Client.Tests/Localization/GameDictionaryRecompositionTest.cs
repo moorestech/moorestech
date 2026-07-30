@@ -34,8 +34,8 @@ namespace Client.Tests.Localization
         [TearDown]
         public void TearDown()
         {
-            // 保存言語と一時modを復元してテスト状態を隔離する
-            // Restore the saved language and temporary mods to isolate test state
+            // 言語と一時modを復元し隔離
+            // Restore language and temporary mods to isolate state
             if (hadSavedLanguageCode)
                 PlayerPrefs.SetString(Localize.LanguagePreferenceKey, savedLanguageCode);
             else
@@ -48,12 +48,11 @@ namespace Client.Tests.Localization
         [Test]
         public void RecompositionPublishesNewSnapshotAndKeepsOldSnapshotStable()
         {
-            var first = CreateResource(
-                "first-set",
-                "author:first",
+            var first = CreateResource("first-set", "author:first",
                 "key,Source,english,japanese\ncontent.recompose.name,First Source,First English,最初\n");
             Localize.MergeGameDictionaries(first, new[] { new ModId("author:first") });
-            Localize.TryGetDictionary("japanese", out var viewBefore);
+            var firstRevision = Localize.GetDictionaryRevision();
+            Localize.TryGetDictionary("japanese", firstRevision, out var viewBefore);
             var eventCount = 0;
             string notifiedValue = null;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ =>
@@ -61,12 +60,11 @@ namespace Client.Tests.Localization
                 eventCount++;
                 notifiedValue = Localize.GetContent("content.recompose.name");
             });
-            var second = CreateResource(
-                "second-set",
-                "author:second",
+            var second = CreateResource("second-set", "author:second",
                 "key,Source,english,japanese\ncontent.recompose.name,Second Source,Second English,\n");
             Localize.MergeGameDictionaries(second, new[] { new ModId("author:second") });
-            Localize.TryGetDictionary("japanese", out var viewAfter);
+            var secondRevision = Localize.GetDictionaryRevision();
+            Localize.TryGetDictionary("japanese", secondRevision, out var viewAfter);
             Assert.AreEqual("最初", viewBefore["content.recompose.name"]);
             Assert.IsFalse(viewAfter.ContainsKey("content.recompose.name"));
             Assert.AreEqual("Second English", Localize.GetContent("content.recompose.name"));
@@ -74,29 +72,24 @@ namespace Client.Tests.Localization
             Assert.AreEqual("japanese", Localize.GetCurrentLanguageCode());
             Assert.AreEqual(1, eventCount);
             Assert.AreEqual("Second English", notifiedValue);
+            Assert.Greater(secondRevision, firstRevision);
+            Assert.IsFalse(Localize.TryGetDictionary("japanese", firstRevision, out _));
         }
 
         [Test]
         public void FailedRecompositionKeepsPreviousDictionaryAndDoesNotNotify()
         {
-            var valid = CreateResource(
-                "valid-set",
-                "author:valid",
+            var valid = CreateResource("valid-set", "author:valid",
                 "key,Source,english,japanese\ncontent.atomic.name,Source,English,既存\n");
             Localize.MergeGameDictionaries(valid, new[] { new ModId("author:valid") });
-            Localize.TryGetDictionary("japanese", out var oldSnapshot);
+            var publishedRevision = Localize.GetDictionaryRevision();
+            Localize.TryGetDictionary("japanese", publishedRevision, out var oldSnapshot);
             var eventCount = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
 
-            CreateMod(
-                "invalid-set",
-                "partial-mod",
-                "author:partial",
+            CreateMod("invalid-set", "partial-mod", "author:partial",
                 "key,Source,english,japanese\ncontent.atomic.name,Partial Source,Partial English,途中\n");
-            CreateMod(
-                "invalid-set",
-                "invalid-mod",
-                "author:invalid",
+            CreateMod("invalid-set", "invalid-mod", "author:invalid",
                 "key,Source,klingon\ncontent.atomic.name,Invalid,Qapla\n");
             var invalid = new ModsResource(Path.Combine(temporaryRoot, "invalid-set"));
 
@@ -106,6 +99,7 @@ namespace Client.Tests.Localization
                     new[] { new ModId("author:partial"), new ModId("author:invalid") }));
             Assert.AreEqual("既存", oldSnapshot["content.atomic.name"]);
             Assert.AreEqual(0, eventCount);
+            Assert.AreEqual(publishedRevision, Localize.GetDictionaryRevision());
         }
 
         [Test]
@@ -137,7 +131,10 @@ namespace Client.Tests.Localization
             var modsResource = CreateResource("collision-set", "author:collision", csv);
 
             Localize.MergeGameDictionaries(modsResource, new[] { new ModId("author:collision") });
-            Assert.IsTrue(Localize.TryGetDictionary(Localize.SourcePseudoLocale, out var sourceDictionary));
+            Assert.IsTrue(Localize.TryGetDictionary(
+                Localize.SourcePseudoLocale,
+                Localize.GetDictionaryRevision(),
+                out var sourceDictionary));
 
             // SourceはMaster正本、選択言語はmod翻訳を優先する
             // Source stays canonical to Master while selected locales prefer mod translations
@@ -189,8 +186,8 @@ namespace Client.Tests.Localization
             var author = fullModId.Substring(0, separator);
             var id = fullModId.Substring(separator + 1);
 
-            // 実ModsResourceを通すため最小mod境界fixtureを作る
-            // Create a minimal mod-boundary fixture consumed by the real ModsResource
+            // ModsResource用mod境界作成
+            // Create a minimal mod boundary for ModsResource
             File.WriteAllText(
                 Path.Combine(masterDirectory, "modMeta.json"),
                 $"{{\"id\":\"{id}\",\"name\":\"{id}\",\"version\":\"1.0\",\"author\":\"{author}\",\"description\":\"test\"}}");

@@ -3,16 +3,43 @@ import { validateTopicPayload } from "./validators";
 import { Topics } from "../transport/protocol";
 
 const openBase = {
-  open: true, source: "block", blockType: "ElectricMachine", identifier: "(0, 0, 0)", blockGuid: "block-guid",
+  open: true, source: "block", blockType: "ElectricMachine", identifier: "(0, 0, 0)", blockGuid: "40000000-0000-4000-8000-000000000001",
   itemSlots: [{ itemId: 1, count: 2 }], fluidSlots: [],
 };
 
 describe("placement mode schema", () => {
-  it("requires every HUD field", () => {
+  it("accepts block Guid without a raw display name", () => {
     expect(validateTopicPayload(Topics.placementMode, {
-      selectedName: "Conveyor Belt", height: 2, unavailableReason: "",
+      selectedTargetType: "block",
+      selectedBlockGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefab",
+      height: 2,
+      unavailableReason: "",
     })).toBe(true);
-    expect(validateTopicPayload(Topics.placementMode, { selectedName: "Conveyor Belt" })).toBe(false);
+  });
+
+  it("accepts a raw display name only for non-block targets", () => {
+    expect(validateTopicPayload(Topics.placementMode, {
+      selectedTargetType: "raw",
+      selectedName: "My Blueprint", height: 2, unavailableReason: "",
+    })).toBe(true);
+    expect(validateTopicPayload(Topics.placementMode, {
+      selectedTargetType: "block",
+      selectedBlockGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefab",
+      selectedName: "Conveyor Belt",
+      height: 2,
+      unavailableReason: "",
+    })).toBe(false);
+    expect(validateTopicPayload(Topics.placementMode, {
+      selectedTargetType: "raw", selectedName: "Conveyor Belt",
+    })).toBe(false);
+  });
+
+  it("accepts Blueprint Copy without a raw display name", () => {
+    expect(validateTopicPayload(Topics.placementMode, {
+      selectedTargetType: "blueprintCopy",
+      height: 2,
+      unavailableReason: "",
+    })).toBe(true);
   });
 });
 
@@ -43,9 +70,18 @@ describe("tooltip schema", () => {
 });
 
 describe("localization.current schema", () => {
-  it("requires a non-empty locale", () => {
-    expect(validateTopicPayload(Topics.localization, { locale: "japanese" })).toBe(true);
+  it("requires a non-empty locale and a non-negative integer dictionary revision", () => {
+    expect(validateTopicPayload(Topics.localization, {
+      locale: "japanese", revision: 42,
+    })).toBe(true);
+    expect(validateTopicPayload(Topics.localization, { locale: "japanese" })).toBe(false);
     expect(validateTopicPayload(Topics.localization, { locale: "" })).toBe(false);
+    expect(validateTopicPayload(Topics.localization, {
+      locale: "japanese", revision: -1,
+    })).toBe(false);
+    expect(validateTopicPayload(Topics.localization, {
+      locale: "japanese", revision: 1.5,
+    })).toBe(false);
   });
 });
 
@@ -54,7 +90,7 @@ describe("validBlockInventory capability details", () => {
     const d = {
       ...openBase,
       progress: 0.5,
-      machine: { recipeGuid: "g", selectedRecipeGuid: "selected", blockGuid: "block-guid", recipeTime: 15, outputItems: [{ itemId: 2, count: 3 }], currentState: "processing", currentPower: 10, requestPower: 20, slotLayout: { input: 2, output: 1, module: 1 } },
+      machine: { recipeGuid: "50000000-0000-4000-8000-000000000001", selectedRecipeGuid: "50000000-0000-4000-8000-000000000002", blockGuid: "40000000-0000-4000-8000-000000000001", recipeTime: 15, outputItems: [{ itemId: 2, count: 3 }], currentState: "processing", currentPower: 10, requestPower: 20, slotLayout: { input: 2, output: 1, module: 1 } },
       electricNetwork: { totalGeneratePower: 100, totalRequiredPower: 50, consumerCount: 3, powerRate: 1 },
     };
     expect(validateTopicPayload(Topics.blockInventory, d)).toBe(true);
@@ -105,7 +141,7 @@ describe("validBlockInventory capability details", () => {
 
 describe("validResearchTree", () => {
   const node = {
-    guid: "abc", state: "researchable", iconItemId: 1, position: { x: 100, y: -50 },
+    guid: "60000000-0000-4000-8000-000000000001", state: "researchable", iconItemId: 1, position: { x: 100, y: -50 },
     prevGuids: [], consumeItems: [{ itemId: 1, count: 3 }],
     rewardItems: [{ itemId: 2, count: 4 }], unlockItemIds: [],
   };
@@ -121,7 +157,7 @@ describe("validResearchTree", () => {
 
 describe("validCraftRecipes", () => {
   const recipe = {
-    recipeGuid: "recipe-guid", resultItemId: 2, resultCount: 1, craftTime: 0.5,
+    recipeGuid: "50000000-0000-4000-8000-000000000001", resultItemId: 2, resultCount: 1, craftTime: 0.5,
     requiredItems: [{ itemId: 1, count: 3 }],
   };
 

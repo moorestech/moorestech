@@ -18,14 +18,15 @@ namespace Client.Localization
 
         private static readonly Subject<Unit> onLanguageChangedSubject = new();
         public static readonly IObservable<Unit> OnLanguageChanged = onLanguageChangedSubject;
-        private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> publishedSnapshot;
+        private static PublishedLocalizationDictionarySnapshot publishedSnapshot;
+        private static long dictionaryRevision;
         private static string currentLanguageCode;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
         {
             var snapshot = VanillaLocalizationDictionaryFactory.CreateSnapshot();
-            Volatile.Write(ref publishedSnapshot, snapshot);
+            PublishSnapshot(snapshot);
 
             // 選択不能な保存値は生成済み英語辞書へ戻す
             // Fall back to the generated English dictionary for unselectable persisted values
@@ -38,19 +39,19 @@ namespace Client.Localization
 
         public static string Get(LocalizationKey key)
         {
-            var snapshot = Volatile.Read(ref publishedSnapshot);
+            var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
         public static string GetLegacy(string rawKey)
         {
-            var snapshot = Volatile.Read(ref publishedSnapshot);
+            var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, rawKey);
         }
 
         public static string GetContent(string derivedKey)
         {
-            var snapshot = Volatile.Read(ref publishedSnapshot);
+            var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, derivedKey);
         }
 
@@ -76,7 +77,7 @@ namespace Client.Localization
             // 全合成成功後にfreeze済みsnapshot参照を一度だけ公開する
             // Publish the frozen snapshot reference once only after composition fully succeeds
             var snapshot = VanillaLocalizationDictionaryFactory.Freeze(candidate);
-            Volatile.Write(ref publishedSnapshot, snapshot);
+            PublishSnapshot(snapshot);
             onLanguageChangedSubject.OnNext(Unit.Default);
         }
 
@@ -101,7 +102,7 @@ namespace Client.Localization
 
         public static void SetLanguage(string languageCode)
         {
-            var snapshot = Volatile.Read(ref publishedSnapshot);
+            var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;
 
             // Source以外を選択言語に限定
             // Allow selecting only non-Source locales
@@ -133,15 +134,30 @@ namespace Client.Localization
             return languageCodes;
         }
 
+        public static long GetDictionaryRevision()
+        {
+            return Volatile.Read(ref publishedSnapshot).Revision;
+        }
+
         public static bool TryGetDictionary(
             string languageCode,
             out IReadOnlyDictionary<string, string> dictionary)
         {
             var snapshot = Volatile.Read(ref publishedSnapshot);
+            return snapshot.Dictionaries.TryGetValue(languageCode, out dictionary);
+        }
 
-            // request中に変化しないsnapshotのread-only辞書をWeb配信へ公開する
-            // Expose a read-only snapshot dictionary that stays stable throughout the request
-            if (snapshot.TryGetValue(languageCode, out var values))
+        public static bool TryGetDictionary(
+            string languageCode,
+            long expectedRevision,
+            out IReadOnlyDictionary<string, string> dictionary)
+        {
+            var snapshot = Volatile.Read(ref publishedSnapshot);
+
+            // revisionと辞書を同じsnapshotから検証し、HTTP応答の異世代混在を防ぐ
+            // Validate revision and dictionary from one snapshot to prevent mixed HTTP generations
+            if (snapshot.Revision == expectedRevision &&
+                snapshot.Dictionaries.TryGetValue(languageCode, out var values))
             {
                 dictionary = values;
                 return true;
@@ -153,7 +169,7 @@ namespace Client.Localization
 
         public static bool TryGetContentWithoutSource(string key, out string text)
         {
-            var snapshot = Volatile.Read(ref publishedSnapshot);
+            var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;
             if (snapshot[currentLanguageCode].TryGetValue(key, out text) &&
                 !string.IsNullOrEmpty(text))
             {
@@ -168,6 +184,15 @@ namespace Client.Localization
 
             text = null;
             return false;
+        }
+
+        private static void PublishSnapshot(
+            IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> dictionaries)
+        {
+            var revision = Interlocked.Increment(ref dictionaryRevision);
+            Volatile.Write(
+                ref publishedSnapshot,
+                new PublishedLocalizationDictionarySnapshot(revision, dictionaries));
         }
     }
 }

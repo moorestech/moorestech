@@ -27,8 +27,8 @@ export function BuildMenuPanel() {
   const [hovered, setHovered] = useState<BuildMenuDisplayEntry | null>(null);
   if (!data) return null;
 
-  // 識別子から表示名を一度解決し、検索・スロット・プレビューで共有する
-  // Resolve display names once from identifiers and share them across search, slots, and preview
+  // 表示名を一度解決し全表示へ共有
+  // Resolve display names once and share them across views
   const displayEntries = localizeBuildMenuEntries(data.entries, t);
   const visible = visibleCategories(data.categories, displayEntries);
   const searching = query !== "";

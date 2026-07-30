@@ -16,7 +16,7 @@ export const blockMachine = {
   progress: 0.42,
   machine: {
     recipeGuid: "00000000-0000-0000-0000-000000000000",
-    selectedRecipeGuid: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    selectedRecipeGuid: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
     blockGuid: BlockGuids.ELECTRIC_MACHINE_BLOCK_GUID,
     recipeTime: 15,
     outputItems: [{ itemId: 7, count: 3 }],

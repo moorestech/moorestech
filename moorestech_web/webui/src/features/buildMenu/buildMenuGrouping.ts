@@ -9,8 +9,8 @@ export type BuildMenuSection = {
 
 export type BuildMenuDisplayEntry = BuildMenuEntryData & { displayLabel: string };
 
-// blockとBPコピーツールを辞書解決し、ユーザー入力等のlabelは保持する
-// Resolve blocks and the blueprint copy tool through dictionaries while preserving user-authored labels
+// blockとBPコピーを辞書解決し、入力labelは保持
+// Resolve blocks and blueprint copies while preserving input labels
 export function localizeBuildMenuEntries(
   entries: BuildMenuEntryData[],
   translate: (key: TranslationKey) => string,
@@ -31,7 +31,7 @@ export function visibleCategories(categories: BuildMenuCategory[], entries: Buil
   return categories.filter((category) => entries.some((entry) => entry.categoryGuid === category.categoryGuid));
 }
 
-// 選択カテゴリGuidを解決し、null・表示対象外なら表示中の先頭へフォールバックする
+// 選択Guidを解決し、無効なら表示中の先頭へfallback
 // Resolve the selected category GUID and fall back to the first visible category
 export function resolveSelectedCategory(selected: string | null, visible: BuildMenuCategory[]): string | null {
   if (visible.length === 0) return null;

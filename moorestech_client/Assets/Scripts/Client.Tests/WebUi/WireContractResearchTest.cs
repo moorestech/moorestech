@@ -25,7 +25,7 @@ namespace Client.Tests.WebUi
                 {
                     new()
                     {
-                        Guid = "11111111-1111-1111-1111-111111111111",
+                        Guid = "11111111-1111-4111-8111-111111111111",
                         State = "completed",
                         IconItemId = 2,
                         Position = new ResearchPositionDto { X = 0, Y = 0 },
@@ -36,11 +36,11 @@ namespace Client.Tests.WebUi
                     },
                     new()
                     {
-                        Guid = "22222222-2222-2222-2222-222222222222",
+                        Guid = "22222222-2222-4222-8222-222222222222",
                         State = "unresearchableNotEnoughPreNode",
                         IconItemId = 3,
                         Position = new ResearchPositionDto { X = 300, Y = -120 },
-                        PrevGuids = new List<string> { "11111111-1111-1111-1111-111111111111" },
+                        PrevGuids = new List<string> { "11111111-1111-4111-8111-111111111111" },
                         ConsumeItems = new List<ResearchConsumeItemDto>(),
                         RewardItems = new List<ResearchRewardItemDto>(),
                         UnlockItemIds = new List<int> { 3 },

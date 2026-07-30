@@ -6,13 +6,16 @@ import type { ActionPayloads } from "../../src/bridge/transport/protocol";
 import { applyMachineRecipeSelect } from "./detailActions";
 
 const emptyGuid = "00000000-0000-0000-0000-000000000000";
+const recipeA = "84000000-0000-4000-8000-000000000001";
+const recipeB = "84000000-0000-4000-8000-000000000002";
+const blockGuid = "85000000-0000-4000-8000-000000000001";
 
 describe("applyMachineRecipeSelect", () => {
   it("setはrecipeGuidを選択状態へ反映する", () => {
     const block = machineBlock();
 
-    expect(applyMachineRecipeSelect(block, { operation: "set", recipeGuid: "recipe-b" })).toBe(true);
-    expect(selectedRecipeGuid(block)).toBe("recipe-b");
+    expect(applyMachineRecipeSelect(block, { operation: "set", recipeGuid: recipeB })).toBe(true);
+    expect(selectedRecipeGuid(block)).toBe(recipeB);
   });
 
   it("recipeGuidなしsetとclearは空GUIDへ戻す", () => {
@@ -20,7 +23,7 @@ describe("applyMachineRecipeSelect", () => {
 
     expect(applyMachineRecipeSelect(block, { operation: "set" })).toBe(true);
     expect(selectedRecipeGuid(block)).toBe(emptyGuid);
-    expect(applyMachineRecipeSelect(block, { operation: "set", recipeGuid: "recipe-a" })).toBe(true);
+    expect(applyMachineRecipeSelect(block, { operation: "set", recipeGuid: recipeA })).toBe(true);
     expect(applyMachineRecipeSelect(block, { operation: "clear" })).toBe(true);
     expect(selectedRecipeGuid(block)).toBe(emptyGuid);
   });
@@ -38,13 +41,13 @@ function machineBlock(): BlockInventoryData {
     source: "block",
     blockType: "ElectricMachine",
     identifier: "block:3",
-    blockGuid: "11111111-1111-1111-1111-111111111111",
+    blockGuid,
     itemSlots: [],
     fluidSlots: [],
     machine: {
       recipeGuid: emptyGuid,
-      selectedRecipeGuid: "recipe-a",
-      blockGuid: "11111111-1111-1111-1111-111111111111",
+      selectedRecipeGuid: recipeA,
+      blockGuid,
       recipeTime: 1,
       outputItems: [],
       currentState: "idle",

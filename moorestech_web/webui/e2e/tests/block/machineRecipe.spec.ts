@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { setBlock } from "../../support/mockControl";
 
-const firstRecipeTestId = "machine-recipe-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
-const selectedRecipeTestId = "machine-recipe-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+const firstRecipeTestId = "machine-recipe-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const selectedRecipeTestId = "machine-recipe-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 
 test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");

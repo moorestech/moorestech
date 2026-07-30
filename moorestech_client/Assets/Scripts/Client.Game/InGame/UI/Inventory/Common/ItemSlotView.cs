@@ -28,6 +28,16 @@ namespace Client.Game.InGame.UI.Inventory.Common
             Localize.OnLanguageChanged
                 .Subscribe(_ => RefreshDefaultToolTip())
                 .AddTo(this);
+
+            #region Internal
+
+            void RefreshDefaultToolTip()
+            {
+                if (!_usesDefaultToolTip || ItemViewData == null || ItemViewData.IsEmpty) return;
+                SetItem(ItemViewData, Count);
+            }
+
+            #endregion
         }
 
         public void SetItem(ItemViewData itemView, int count)
@@ -111,12 +121,6 @@ namespace Client.Game.InGame.UI.Inventory.Common
             // Do not expose names without a master-backed dictionary key through the default tooltip
             if (itemView.ItemMasterElement == null) return string.Empty;
             return Localize.GetContent(ContentLocalizationKeys.ItemName(itemView.ItemMasterElement.ItemGuid));
-        }
-
-        private void RefreshDefaultToolTip()
-        {
-            if (!_usesDefaultToolTip || ItemViewData == null || ItemViewData.IsEmpty) return;
-            SetItem(ItemViewData, Count);
         }
 
         public static async UniTask LoadItemSlotViewPrefab()

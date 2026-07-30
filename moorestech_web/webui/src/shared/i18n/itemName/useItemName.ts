@@ -3,8 +3,8 @@ import { useItemMaster } from "@/bridge";
 import { itemNameKey } from "../contentKeys";
 import { useI18n } from "../i18nStore";
 
-// itemIdからGuidを引き、描画時点の辞書で名前を解決する
-// Resolve itemId through its Guid against the dictionary active for this render
+// itemIdからGuidを引き、現辞書で名前解決
+// Resolve itemId through its GUID in the current dictionary
 export function useItemNameResolver(): (itemId: number) => string | null {
   const { t } = useI18n();
   const itemMaster = useItemMaster();

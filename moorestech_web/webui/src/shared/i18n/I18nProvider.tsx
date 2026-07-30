@@ -10,12 +10,17 @@ import {
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const localization = useTopic(Topics.localization);
-  const locale = localization?.locale ?? FALLBACK_LOCALE;
+  const locale = localization?.locale;
+  const revision = localization?.revision;
 
   useEffect(() => {
+    // 辞書準備topicまで初回取得待機
+    // Wait for the dictionary-ready topic before initial loading
+    if (locale === undefined || revision === undefined) return;
+
     const abort = new AbortController();
     setDictionaryLoading(locale);
-    void loadDictionaries(locale, abort.signal).catch((error: unknown) => {
+    void loadDictionaries(locale, revision, abort.signal).catch((error: unknown) => {
       // HTTP/JSONは外部境界のため、切替失敗を画面全体の未処理rejectionへ波及させない
       // HTTP/JSON is an external boundary; do not turn a switch failure into an unhandled rejection
       if (!abort.signal.aborted) {
@@ -24,15 +29,17 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       }
     });
     return () => abort.abort();
-  }, [locale]);
+  }, [locale, revision]);
 
   return children;
 }
 
-async function loadDictionaries(locale: string, signal: AbortSignal): Promise<void> {
-  const fallbackPromise = fetchDictionary(FALLBACK_LOCALE, signal);
-  const sourcePromise = fetchDictionary("source", signal);
-  const dictionaryPromise = locale === FALLBACK_LOCALE ? fallbackPromise : fetchDictionary(locale, signal);
+async function loadDictionaries(locale: string, revision: number, signal: AbortSignal): Promise<void> {
+  const fallbackPromise = fetchDictionary(FALLBACK_LOCALE, revision, signal);
+  const sourcePromise = fetchDictionary("source", revision, signal);
+  const dictionaryPromise = locale === FALLBACK_LOCALE
+    ? fallbackPromise
+    : fetchDictionary(locale, revision, signal);
   const [dictionary, fallbackDictionary, sourceDictionary] =
     await Promise.all([dictionaryPromise, fallbackPromise, sourcePromise]);
   if (signal.aborted) return;
@@ -42,8 +49,12 @@ async function loadDictionaries(locale: string, signal: AbortSignal): Promise<vo
   setDictionaries(locale, dictionary, fallbackDictionary, sourceDictionary);
 }
 
-async function fetchDictionary(locale: string, signal: AbortSignal): Promise<TranslationDictionary> {
-  const response = await fetch(localizationDictionaryUrl(locale), { signal });
+async function fetchDictionary(
+  locale: string,
+  revision: number,
+  signal: AbortSignal,
+): Promise<TranslationDictionary> {
+  const response = await fetch(localizationDictionaryUrl(locale, revision), { signal });
   if (!response.ok) throw new Error(`Failed to load locale '${locale}': HTTP ${response.status}`);
   return response.json() as Promise<TranslationDictionary>;
 }

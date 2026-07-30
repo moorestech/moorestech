@@ -32,8 +32,8 @@ namespace Client.Tests.Localization.Skit
             var root = LoadI18nRoot(languageCode);
             var rootNames = new List<string>();
             foreach (var property in root.Properties()) rootNames.Add(property.Name);
-            // Task 8直前の辞書形状とroot値を固定する
-            // Freeze the dictionary shape and root values from immediately before Task 8
+            // 直前辞書の形状・root値を固定
+            // Pin the preceding dictionary shape and root values
             CollectionAssert.AreEquivalent(new[] { "locale", "name", "translations" }, rootNames);
             Assert.IsNotEmpty((string)root["locale"]);
             Assert.IsNotEmpty((string)root["name"]);
@@ -67,8 +67,8 @@ namespace Client.Tests.Localization.Skit
                     AddCommandKeys(validKeys, runtimeTitle, (JObject)command);
                 }
             }
-            // 両言語のサンプルを同じ実在command集合へ照合する
-            // Match both language samples against the same real command set
+            // 両言語を同じ実commandへ照合
+            // Match both languages against the same real commands
             var english = (JObject)LoadI18nRoot("english")["translations"];
             var japanese = (JObject)LoadI18nRoot("japanese")["translations"];
             foreach (var requiredKey in RequiredSampleKeys)

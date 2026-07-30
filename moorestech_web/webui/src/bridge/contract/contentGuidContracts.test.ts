@@ -3,8 +3,8 @@ import { Topics } from "../transport/protocol";
 import { validateTopicPayload } from "./validators";
 
 const machineRecipe = {
-  recipeGuid: "recipe-guid",
-  blockGuid: "block-guid",
+  recipeGuid: "50000000-0000-4000-8000-000000000001",
+  blockGuid: "40000000-0000-4000-8000-000000000001",
   blockId: 12,
   time: 1,
   inputItems: [{ itemId: 1, count: 2 }],
@@ -22,7 +22,7 @@ describe("content Guid contracts", () => {
       fluidSlots: [],
     };
 
-    const guidPayload = { ...payload, blockGuid: "block-guid" };
+    const guidPayload = { ...payload, blockGuid: "40000000-0000-4000-8000-000000000001" };
     expect(validateTopicPayload(Topics.blockInventory, guidPayload)).toBe(true);
     expect(validateTopicPayload(Topics.blockInventory, { ...guidPayload, blockName: "炉" })).toBe(false);
   });

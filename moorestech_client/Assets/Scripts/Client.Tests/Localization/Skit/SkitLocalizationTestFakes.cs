@@ -40,7 +40,7 @@ namespace Client.Tests.Localization.Skit
         public UniTask<IReadOnlyDictionary<string, string>> LoadAsync(string languageCode)
         {
             _loadCounts[languageCode] = GetLoadCount(languageCode) + 1;
-            if (_gates.TryGetValue(languageCode, out var queue) && queue.Count > 0)
+            if (_gates.TryGetValue(languageCode, out var queue) && 0 < queue.Count)
             {
                 return queue.Dequeue().Task;
             }
@@ -54,6 +54,7 @@ namespace Client.Tests.Localization.Skit
         private readonly Subject<Unit> _languageChanged = new();
         private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _values = new();
         private string _currentLanguageCode = "japanese";
+        private Exception _nextSubscriptionFailure;
 
         public string GetCurrentLanguageCode()
         {
@@ -62,6 +63,12 @@ namespace Client.Tests.Localization.Skit
 
         public IObservable<Unit> GetLanguageChanged()
         {
+            if (_nextSubscriptionFailure != null)
+            {
+                var failure = _nextSubscriptionFailure;
+                _nextSubscriptionFailure = null;
+                return new FailingSubscriptionObservable(failure);
+            }
             return _languageChanged;
         }
 
@@ -92,11 +99,31 @@ namespace Client.Tests.Localization.Skit
             _languageChanged.OnNext(Unit.Default);
         }
 
+        public void FailNextLanguageChangedSubscription(Exception failure)
+        {
+            _nextSubscriptionFailure = failure;
+        }
+
         public SkitCharacterLocalizationIdentity GetCharacterIdentity(string characterId)
         {
             return new SkitCharacterLocalizationIdentity(
                 "character.01234567-89ab-cdef-0123-456789abcdef.name",
                 "Source Character");
+        }
+
+        private sealed class FailingSubscriptionObservable : IObservable<Unit>
+        {
+            private readonly Exception _failure;
+
+            public FailingSubscriptionObservable(Exception failure)
+            {
+                _failure = failure;
+            }
+
+            public IDisposable Subscribe(IObserver<Unit> observer)
+            {
+                throw _failure;
+            }
         }
     }
 }

@@ -11,7 +11,6 @@ namespace Core.Master
     {
         public readonly BuildMenuCategoryElement[] Categories;
 
-        private HashSet<(string category, string subCategory)> _definedPairs;
         private Dictionary<(string category, string subCategory), (Guid categoryGuid, Guid subCategoryGuid)> _guidPairByName;
         private Dictionary<string, (Guid categoryGuid, Guid subCategoryGuid)> _guidPairByEntrySource;
 
@@ -33,8 +32,8 @@ namespace Core.Master
             foreach (var duplicated in category.SubCategories.Select(s => s.Name).GroupBy(n => n).Where(g => 1 < g.Count()))
                 errorLogs += $"[BuildMenuCategoryMaster] duplicate subCategory:{duplicated.Key} in category:{category.Name}\n";
 
-            // カテゴリとサブカテゴリを跨いでGuidの空値・重複を拒否する
-            // Reject empty or duplicate GUIDs across categories and sub-categories
+            // 全分類間のGuid空値・重複を拒否
+            // Reject empty or duplicate GUIDs across classifications
             var assignedGuids = new HashSet<Guid>();
             foreach (var category in Categories)
             {
@@ -70,13 +69,11 @@ namespace Core.Master
         {
             // 参照整合チェックとentrySource逆引き用の索引を構築
             // Build lookups for reference validation and entrySource resolution
-            _definedPairs = new HashSet<(string, string)>();
             _guidPairByName = new Dictionary<(string, string), (Guid, Guid)>();
             _guidPairByEntrySource = new Dictionary<string, (Guid, Guid)>();
             foreach (var category in Categories)
             foreach (var subCategory in category.SubCategories)
             {
-                _definedPairs.Add((category.Name, subCategory.Name));
                 _guidPairByName.Add(
                     (category.Name, subCategory.Name),
                     (category.CategoryGuid, subCategory.SubCategoryGuid));
@@ -88,7 +85,7 @@ namespace Core.Master
 
         public bool Contains(string category, string subCategory)
         {
-            return _definedPairs.Contains((category, subCategory));
+            return _guidPairByName.ContainsKey((category, subCategory));
         }
 
         public (Guid categoryGuid, Guid subCategoryGuid) GetGuidPair(string category, string subCategory)

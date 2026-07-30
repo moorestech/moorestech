@@ -24,9 +24,9 @@ test("チャレンジ画面が開きツリーだけを翻訳済み表示する",
   await setUiState(page, "ChallengeList");
   await page.goto("/");
   await expect(page.getByTestId("challenge-panel")).toBeVisible();
-  await expect(page.getByTestId("challenge-category-cat-1")).toHaveText("Basics");
-  await expect(page.getByTestId("challenge-node-ch-1")).toBeVisible();
-  await expect(page.getByTestId("challenge-node-ch-2")).toBeVisible();
+  await expect(page.getByTestId("challenge-category-81000000-0000-4000-8000-000000000001")).toHaveText("Basics");
+  await expect(page.getByTestId("challenge-node-82000000-0000-4000-8000-000000000001")).toBeVisible();
+  await expect(page.getByTestId("challenge-node-82000000-0000-4000-8000-000000000002")).toBeVisible();
   await expect(page.getByRole("heading", { name: "チャレンジ" })).toBeVisible();
   await expect(page.getByText("First Craft")).toBeVisible();
   await expect(page.getByText("完了", { exact: true })).toBeVisible();

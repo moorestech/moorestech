@@ -20,8 +20,8 @@ namespace CommandForgeGenerator.Command
                 OverrideCharacterName,
                 Body);
             
-            // WebとuGUIへ同じ解決済み文字列を渡す
-            // Pass the same resolved display strings to Web and uGUI
+            // 解決文をWeb・uGUIへ共有
+            // Share resolved text with Web and uGUI
             var skitUi = storyContext.GetBackgroundSkitUI();
             SkitPresentationStateStore.Instance.SetBackgroundText(
                 line.SpeakerName,

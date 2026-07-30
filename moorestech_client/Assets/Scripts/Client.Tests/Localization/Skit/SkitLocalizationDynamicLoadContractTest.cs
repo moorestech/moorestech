@@ -29,8 +29,8 @@ namespace Client.Tests.Localization.Skit
                 "t:AddressableAssetGroup",
                 new[] { "Assets/AddressableAssetsData/AssetGroups" });
 
-            // public Addressables APIからaddressと参照GUIDを対で列挙する
-            // Enumerate paired addresses and referenced GUIDs through the public Addressables API
+            // 公開APIでaddressとGUID列挙
+            // Enumerate addresses and GUIDs through the public API
             foreach (var groupGuid in groupGuids)
             {
                 var group = AssetDatabase.LoadAssetAtPath<AddressableAssetGroup>(
@@ -44,8 +44,8 @@ namespace Client.Tests.Localization.Skit
                 }
             }
 
-            // addressと実JSONの対応を固定しGUID差し替えも拒否する
-            // Fix each address to its real JSON and reject swapped GUID references
+            // address対応とGUID差替え拒否
+            // Pin address mappings and reject GUID replacement
             CollectionAssert.AreEquivalent(new[] { EnglishAddress, JapaneseAddress }, addresses);
             Assert.AreEqual(EnglishAssetPath, assetPaths[EnglishAddress]);
             Assert.AreEqual(JapaneseAssetPath, assetPaths[JapaneseAddress]);

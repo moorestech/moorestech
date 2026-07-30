@@ -41,8 +41,8 @@ namespace Client.Tests.WebUi
                 new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var stackLevelLookup = serviceProvider.GetRequiredService<IItemStackLevelLookup>();
 
-            // 実シリアライザを通した公開契約から原文名を排除する
-            // Exclude the source name from the public contract produced by the real serializer
+            // 公開契約から原文名を除外
+            // Exclude source names from the public contract
             var response = ItemMasterEndpoint.BuildResponse(stackLevelLookup);
             var wire = JToken.Parse(WebUiJson.Serialize(response));
             var item = wire["items"]!.Single(entry => (int)entry["itemId"]! == 1);
@@ -53,8 +53,8 @@ namespace Client.Tests.WebUi
             Assert.AreEqual("00000000-0000-0000-1234-000000000001", (string)item["itemGuid"]!);
             Assert.AreEqual(100, (int)item["maxStack"]!);
 
-            // 英大文字を含む入力も小文字D形式へ正準化する
-            // Canonicalize source values containing uppercase hex to lowercase D format
+            // 英大文字も小文字D形式へ正準化
+            // Canonicalize uppercase input to lowercase D format
             var uppercaseSourceGuid = Guid.Parse("7868F6D6-6874-4DAD-96A5-EA6BD35F57CF");
             var uppercaseSourceItemId = MasterHolder.ItemMaster.GetItemId(uppercaseSourceGuid).AsPrimitive();
             var canonicalizedItem = wire["items"]!.Single(entry => (int)entry["itemId"]! == uppercaseSourceItemId);

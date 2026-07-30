@@ -24,7 +24,7 @@ namespace Client.Tests.WebUi
                 Source = "block",
                 BlockType = "TrainItemPlatform",
                 Identifier = "(6, 0, 4)",
-                BlockGuid = "66666666-6666-6666-6666-666666666666",
+                BlockGuid = "66666666-6666-4666-8666-666666666666",
                 ItemSlots = new List<BlockItemSlotDto>
                 {
                     new() { ItemId = 3, Count = 12 },
@@ -50,7 +50,7 @@ namespace Client.Tests.WebUi
                 Source = "block",
                 BlockType = "ElectricPole",
                 Identifier = "(7, 0, 4)",
-                BlockGuid = "77777777-7777-7777-7777-777777777777",
+                BlockGuid = "77777777-7777-4777-8777-777777777777",
                 ItemSlots = new List<BlockItemSlotDto>(),
                 FluidSlots = new List<BlockFluidSlotDto>(),
                 ElectricNetwork = new ElectricNetworkDto
@@ -74,7 +74,7 @@ namespace Client.Tests.WebUi
                 Source = "block",
                 BlockType = "TrainFluidPlatform",
                 Identifier = "(8, 0, 4)",
-                BlockGuid = "88888888-8888-8888-8888-888888888888",
+                BlockGuid = "88888888-8888-4888-8888-888888888888",
                 ItemSlots = new List<BlockItemSlotDto>(),
                 FluidSlots = new List<BlockFluidSlotDto>(),
                 TrainPlatform = new TrainPlatformDetailDto

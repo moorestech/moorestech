@@ -15,8 +15,8 @@ namespace Client.Starter.Editor
         {
             if (!SessionState.GetBool(SessionStateKey, false)) return;
 
-            // 専用の一時ワールドと自動保存無効化でテスト再生を隔離する
-            // Isolate test play with a dedicated temporary world and disabled auto-save
+            // 存在しない一時worldと保存無効化で既存セーブの読み書きを防ぐ
+            // Prevent existing save reads and writes with a missing temporary world and disabled saving
             var settings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);
             settings.WorldDirectory = Path.Combine(Path.GetTempPath(), $"no_save_play_mode_{Guid.NewGuid()}");
             settings.AutoSave = false;

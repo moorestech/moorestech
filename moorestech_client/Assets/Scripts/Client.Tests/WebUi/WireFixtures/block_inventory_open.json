@@ -3,7 +3,7 @@
   "source": "block",
   "blockType": "Chest",
   "identifier": "block:1",
-  "blockGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  "blockGuid": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
   "itemSlots": [
     { "itemId": 1, "count": 7 },
     { "itemId": 2, "count": 4 }

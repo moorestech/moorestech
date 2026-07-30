@@ -38,8 +38,8 @@ namespace Client.Tests.Localization
         [TearDown]
         public void TearDown()
         {
-            // 保存言語を正確に復元してテスト間の状態漏れを防ぐ
-            // Restore the exact saved language to prevent state leakage between tests
+            // 保存言語を復元し状態漏れを防止
+            // Restore the saved language to prevent state leakage
             if (hadSavedLanguageCode)
             {
                 PlayerPrefs.SetString(Localize.LanguagePreferenceKey, savedLanguageCode);
@@ -85,8 +85,8 @@ namespace Client.Tests.Localization
             var firstCategory = MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements[0];
             var firstChallenge = firstCategory.Challenges[0];
 
-            // 起動口が全コンテンツ原文と更新通知を公開する
-            // Verify the startup entry exposes every content source and one update event
+            // 起動口の原文と更新通知を検証
+            // Verify startup sources and update notifications
             Assert.DoesNotThrow(() => Localize.MergeGameDictionaries(modsResource));
             Assert.AreEqual(
                 firstBlock.Name,
@@ -139,8 +139,8 @@ namespace Client.Tests.Localization
             Directory.CreateDirectory(masterDirectory);
             Directory.CreateDirectory(localizationDirectory);
 
-            // 空セルを含むfixtureで解決チェーンの各段を分離する
-            // Separate every resolver stage with a fixture containing empty cells
+            // 空セルで解決チェーン各段を分離
+            // Separate resolver stages with empty cells
             File.WriteAllText(
                 Path.Combine(masterDirectory, "modMeta.json"),
                 "{\"id\":\"fallback\",\"name\":\"fallback\",\"version\":\"1.0\",\"author\":\"author\",\"description\":\"test\"}");

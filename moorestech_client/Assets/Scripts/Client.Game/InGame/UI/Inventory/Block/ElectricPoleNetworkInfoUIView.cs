@@ -29,12 +29,16 @@ namespace Client.Game.InGame.UI.Inventory.Block
             RefreshBlockName();
             Localize.OnLanguageChanged.Subscribe(_ => RefreshBlockName()).AddTo(this);
             electricNetworkInfoView.Initialize(blockGameObject.BlockInstanceId);
-        }
 
-        private void RefreshBlockName()
-        {
-            blockNameText.text = Localize.GetContent(
-                ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid));
+            #region Internal
+
+            void RefreshBlockName()
+            {
+                blockNameText.text = Localize.GetContent(
+                    ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid));
+            }
+
+            #endregion
         }
 
         public IReadOnlyList<ItemSlotView> SubInventorySlotObjects { get; } = new List<ItemSlotView>();

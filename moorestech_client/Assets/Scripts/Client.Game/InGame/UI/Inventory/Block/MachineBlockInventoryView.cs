@@ -56,6 +56,12 @@ namespace Client.Game.InGame.UI.Inventory.Block
 
             #region Internal
 
+            void RefreshBlockName()
+            {
+                machineBlockNameText.text = Localize.GetContent(
+                    ContentLocalizationKeys.BlockName(BlockGameObject.BlockMasterElement.BlockGuid));
+            }
+
             void SetItemList()
             {
                 for (var i = 0; i < param.InputSlotCount; i++)
@@ -173,12 +179,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
 
             #endregion
-        }
-
-        private void RefreshBlockName()
-        {
-            machineBlockNameText.text = Localize.GetContent(
-                ContentLocalizationKeys.BlockName(BlockGameObject.BlockMasterElement.BlockGuid));
         }
     }
 }

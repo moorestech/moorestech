@@ -13,8 +13,8 @@ namespace Client.Tests.WebUi
         [Test]
         public void ChallengeFixturesMatchDtos()
         {
-            var nodeGuid = "22222222-2222-2222-2222-222222222222";
-            var categoryGuid = "11111111-1111-1111-1111-111111111111";
+            var nodeGuid = "22222222-2222-4222-8222-222222222222";
+            var categoryGuid = "11111111-1111-4111-8111-111111111111";
             var node = new ChallengeNodeDto
             {
                 Guid = nodeGuid,

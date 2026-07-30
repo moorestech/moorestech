@@ -25,8 +25,8 @@ namespace Client.Tests.Localization.MasterSource
             var expected = BuildExpectedContentSources();
             var actual = MasterSourceTextCollector.Collect();
 
-            // 件数・キー集合・値を別々に照合して欠落と上書きを検出する
-            // Compare counts, key sets, and values separately to catch omissions and overwrites
+            // 件数・キー・値で欠落と上書きを検出
+            // Use counts, keys, and values to detect omissions and overwrites
             Assert.AreEqual(expected.Count, actual.Count);
             CollectionAssert.AreEquivalent(expected.Keys, actual.Keys);
             foreach (var pair in expected)
@@ -74,8 +74,8 @@ namespace Client.Tests.Localization.MasterSource
                 expected.Add($"block.{block.BlockGuid:D}.name", block.Name);
             }
 
-            // 全ビルドメニューカテゴリとサブカテゴリを必須Guidから列挙する
-            // Enumerate every build-menu category and sub-category from required GUIDs
+            // 全分類を必須Guidから列挙
+            // Enumerate every classification from required GUIDs
             foreach (var category in MasterHolder.BuildMenuCategoryMaster.Categories)
             {
                 expected.Add($"buildMenuCategory.{category.CategoryGuid:D}.name", category.Name);
@@ -87,8 +87,8 @@ namespace Client.Tests.Localization.MasterSource
                 }
             }
 
-            // 全キャラクターの話者名も必須Guidから列挙する
-            // Enumerate every character speaker name from its required GUID
+            // 全話者名を必須Guidから列挙
+            // Enumerate every speaker name from required GUIDs
             foreach (var character in MasterHolder.CharacterMaster.Characters.Data)
             {
                 expected.Add($"character.{character.CharacterGuid:D}.name", character.DisplayName);

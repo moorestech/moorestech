@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
 using Client.Common.Asset;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
@@ -14,14 +15,18 @@ namespace Client.Game.Skit.Localization
         public async UniTask<IReadOnlyDictionary<string, string>> LoadAsync(string languageCode)
         {
             var address = $"Vanilla/Skit/i18n/{languageCode}";
-            var textAsset = await AddressableLoader.LoadAsyncDefault<TextAsset>(address);
-            if (textAsset == null)
+            using var loadedAsset = await AddressableLoader.LoadAsync<TextAsset>(
+                address,
+                CancellationToken.None);
+            if (loadedAsset?.Asset == null)
             {
                 throw new InvalidOperationException(
                     $"Skit localization asset could not be loaded: {address}");
             }
 
-            return Parse(address, textAsset.text);
+            // Addressableを解放する前に外部JSONを辞書へコピーする
+            // Copy the external JSON into a dictionary before releasing the Addressable
+            return Parse(address, loadedAsset.Asset.text);
         }
 
         public static IReadOnlyDictionary<string, string> Parse(string address, string json)
@@ -51,7 +56,7 @@ namespace Client.Game.Skit.Localization
                     $"Skit localization translations are missing: {address}");
             }
 
-            // runtime用skitキーだけを非空値で公開する
+            // 非空runtime skitキーのみ公開
             // Publish only non-empty runtime skit keys
             var result = new Dictionary<string, string>();
             foreach (var property in translations.Properties())

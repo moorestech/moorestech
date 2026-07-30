@@ -1,5 +1,5 @@
 import { Topics, useTopic } from "@/bridge";
-import { L, useI18n } from "@/shared/i18n";
+import { blockNameKey, L, useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { FadeRule, GamePanel } from "@/shared/ui";
 import styles from "./style.module.css";
@@ -11,7 +11,12 @@ export function PlacementModeHud() {
 
   const headingId = "placement-mode-hud-heading";
   const title = t(L.ui.modeHud.placementModeTitle);
-  const selected = t(L.ui.modeHud.selectedBlock, { name: data.selectedName });
+  const selectedName = data.selectedTargetType === "block"
+    ? t(blockNameKey(data.selectedBlockGuid))
+    : data.selectedTargetType === "blueprintCopy"
+      ? t(L.ui.buildMenu.blueprintCopy)
+      : data.selectedName;
+  const selected = t(L.ui.modeHud.selectedBlock, { name: selectedName });
   const height = t(L.ui.modeHud.placementHeight, { height: data.height });
 
   // 配置情報をクラフト枠で表示する

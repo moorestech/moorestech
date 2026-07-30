@@ -62,6 +62,18 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             Localize.OnLanguageChanged
                 .Subscribe(_ => RefreshLocalizedTexts())
                 .AddTo(this);
+
+            #region Internal
+
+            void RefreshLocalizedTexts()
+            {
+                if (_currentItemRecipes == null ||
+                    !_currentUnlockedMachineRecipes.ContainsKey(_currentBlockId)) return;
+                RefreshItemName();
+                RefreshMachineSlot();
+            }
+
+            #endregion
         }
         
         public void SetRecipes(RecipeViewerItemRecipes recipeViewerItemRecipes, Dictionary<BlockId, List<MachineRecipeMasterElement>> unlockedMachineRecipes)
@@ -151,14 +163,6 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             }
             
             #endregion
-        }
-
-        private void RefreshLocalizedTexts()
-        {
-            if (_currentItemRecipes == null ||
-                !_currentUnlockedMachineRecipes.ContainsKey(_currentBlockId)) return;
-            RefreshItemName();
-            RefreshMachineSlot();
         }
 
         private void RefreshItemName()

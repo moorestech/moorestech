@@ -23,8 +23,8 @@ namespace Client.Tests.WebUi
         [Test]
         public void ProductionEntriesPreserveIdentityAndOnlyRequiredLabels()
         {
-            // 実master識別子から型別production entryを組み立てる
-            // Build typed production entries from real master identities
+            // 実masterから型別entryを構築
+            // Build typed entries from real master identities
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BlockId);
             var trainCarGuid = Guid.Parse("ABCDEF03-2345-4678-9ABC-DEF012345678");
             var connectToolGuid = Guid.Parse("ABCDEF04-2345-4678-9ABC-DEF012345678");
@@ -37,8 +37,8 @@ namespace Client.Tests.WebUi
                 WebBuildMenuEntry.CreateBlueprint("starter-base", EmptyItems()),
             };
 
-            // 実DTO変換と本番JSON設定を通してwire形状を得る
-            // Produce the wire shape through the real DTO converter and production JSON settings
+            // 本番変換でwire形状を取得
+            // Obtain the wire shape through production conversion
             var serialized = JArray.Parse(WebUiJson.Serialize(Array.ConvertAll(
                 entries,
                 BuildMenuEntryDtoFactory.CreateDto)));
@@ -48,8 +48,8 @@ namespace Client.Tests.WebUi
             var copyCategory = MasterHolder.BuildMenuCategoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.blueprintCopyTool);
             var blueprintCategory = MasterHolder.BuildMenuCategoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.savedBlueprints);
 
-            // master Guidと種別別label省略規則を同時に固定する
-            // Lock down master GUID identity and per-type label omission together
+            // Guidと種別別label省略を固定
+            // Pin GUIDs and per-type label omission
             Assert.AreEqual(blockMaster.BlockGuid.ToString("D"), serialized[0]!["entryKey"]!.Value<string>());
             Assert.IsNull(serialized[0]!["label"]);
             Assert.AreEqual("Cargo Car", serialized[1]!["label"]!.Value<string>());
@@ -62,8 +62,8 @@ namespace Client.Tests.WebUi
             AssertCategory(serialized[3]!, copyCategory);
             AssertCategory(serialized[4]!, blueprintCategory);
 
-            // 配信identityがselect照合でも同じproduction matcherを通ることを保証する
-            // Ensure delivered identity passes the same production matcher used by selection
+            // 配信identityも選択照合を通す
+            // Pass delivered identities through the selection matcher
             for (var index = 0; index < entries.Length; index++)
             {
                 var dto = BuildMenuEntryDtoFactory.CreateDto(entries[index]);
@@ -75,8 +75,8 @@ namespace Client.Tests.WebUi
         [Test]
         public void ProductionCategoryDtosPreserveMasterGuidOrder()
         {
-            // 配信順とGuidを実master配列へ直接対応付ける
-            // Match delivery order and GUIDs directly against the real master array
+            // 配信順とGuidを実masterへ対応
+            // Match delivery order and GUIDs to the real master
             var actual = BuildMenuEntryDtoFactory.CreateCategoryDtos();
             var expected = MasterHolder.BuildMenuCategoryMaster.Categories;
 
