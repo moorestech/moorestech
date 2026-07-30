@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Skit.Context;
+using Client.Skit.Localization;
 using Client.Skit.UI;
 using Cysharp.Threading.Tasks;
 
@@ -16,26 +17,35 @@ namespace CommandForgeGenerator.Command
             var jumpTarget = new List<CommandId>();
             var labels = new List<string>();
             var choices = new List<SkitChoice>();
+            var resolver = storyContext.GetLocalizationResolver();
+            var skitTitle = storyContext.GetExecutionIdentity().SkitTitle;
+            var commandId = (int)CommandId;
 
             // optional optionを表示順どおりjumpとopaque IDへ同時展開する
             // Expand optional options into jumps and opaque IDs in the same display order
             if (!string.IsNullOrEmpty(Option1Tag))
             {
+                var label = resolver.ResolveCommandField(
+                    skitTitle, commandId, "Option1Tag", Option1Tag);
                 jumpTarget.Add(Option1JumpTarget);
-                labels.Add(Option1Tag);
-                choices.Add(CreateChoice(Option1Tag));
+                labels.Add(label);
+                choices.Add(CreateChoice(label));
             }
             if (!string.IsNullOrEmpty(Option2Tag) && Option2JumpTarget.HasValue)
             {
+                var label = resolver.ResolveCommandField(
+                    skitTitle, commandId, "Option2Tag", Option2Tag);
                 jumpTarget.Add(Option2JumpTarget.Value);
-                labels.Add(Option2Tag);
-                choices.Add(CreateChoice(Option2Tag));
+                labels.Add(label);
+                choices.Add(CreateChoice(label));
             }
             if (!string.IsNullOrEmpty(Option3Tag) && Option3JumpTarget.HasValue)
             {
+                var label = resolver.ResolveCommandField(
+                    skitTitle, commandId, "Option3Tag", Option3Tag);
                 jumpTarget.Add(Option3JumpTarget.Value);
-                labels.Add(Option3Tag);
-                choices.Add(CreateChoice(Option3Tag));
+                labels.Add(label);
+                choices.Add(CreateChoice(label));
             }
 
             // WebはchoiceIdだけを返し、Unity側で同じindexのjumpを確定する

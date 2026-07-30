@@ -103,8 +103,8 @@ export function SkitPresentation() {
       <GamePanel variant="skit">
         <section className={styles.window} data-testid="blocking-skit" tabIndex={0}
           onClick={handleTextIntent} onKeyDown={handleKeyDown}>
-          {/* 話者名・本文はUnity所有の表示データのためt()を通さない */}
-          {/* Speaker and body are Unity-owned display data and bypass t() */}
+          {/* Unity側resolverで解決済みの表示文字列をpushするためt()を通さない */}
+          {/* Unity pushes resolver-completed display strings, so they bypass t() */}
           <div className={styles.speaker}>{state.speakerName}</div>
           <div className={styles.rule}><FadeRule /></div>
           <div className={styles.body}>{visibleBody}</div>

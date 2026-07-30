@@ -12,7 +12,7 @@ namespace Client.Localization
 {
     public static class Localize
     {
-        internal const string DefaultLanguageCode = "english";
+        public const string DefaultLanguageCode = "english";
         internal const string LanguagePreferenceKey = "LanguageCode";
         public const string SourcePseudoLocale = "source";
 
@@ -148,6 +148,25 @@ namespace Client.Localization
             }
 
             dictionary = null;
+            return false;
+        }
+
+        public static bool TryGetContentWithoutSource(string key, out string text)
+        {
+            var snapshot = Volatile.Read(ref publishedSnapshot);
+            if (snapshot[currentLanguageCode].TryGetValue(key, out text) &&
+                !string.IsNullOrEmpty(text))
+            {
+                return true;
+            }
+
+            if (snapshot[DefaultLanguageCode].TryGetValue(key, out text) &&
+                !string.IsNullOrEmpty(text))
+            {
+                return true;
+            }
+
+            text = null;
             return false;
         }
     }

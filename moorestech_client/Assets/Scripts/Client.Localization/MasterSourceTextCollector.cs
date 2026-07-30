@@ -24,6 +24,14 @@ namespace Client.Localization
                 sourceTexts[ContentLocalizationKeys.BlockName(blockMaster.BlockGuid)] = blockMaster.Name;
             }
 
+            // 必須Guidから全キャラクターの話者名原文を収集する
+            // Collect every character speaker source from its required GUID
+            foreach (var characterMaster in MasterHolder.CharacterMaster.Characters.Data)
+            {
+                sourceTexts[ContentLocalizationKeys.CharacterName(characterMaster.CharacterGuid)] =
+                    characterMaster.DisplayName;
+            }
+
             // 研究ノードの名前と説明を同じGuidから収集する
             // Collect research names and descriptions from the same GUID
             foreach (var researchMaster in MasterHolder.ResearchMaster.GetAllResearches())

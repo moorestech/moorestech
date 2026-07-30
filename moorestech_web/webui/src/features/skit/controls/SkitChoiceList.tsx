@@ -18,8 +18,8 @@ export function SkitChoiceList({ choices, base }: Props) {
         <button className={styles.choice} type="button" key={choice.choiceId}
           onClick={() => void dispatchAction("skit.select", { ...base, choiceId: choice.choiceId })}>
           <ChoiceMarkerIcon className={`${styles.marker} ${styles.markerStart}`} />
-          {/* 選択肢はPlan 2でC#側が表示直前に解決し、Webは解決済みlabelだけを描画する */}
-          {/* Plan 2 resolves choices in C# immediately before display; Web renders only the resolved label */}
+          {/* Unity側resolverで解決済みの表示文字列をpushするためt()を通さない */}
+          {/* Unity pushes resolver-completed display strings, so they bypass t() */}
           <span className={styles.choiceLabel}>{choice.label}</span>
           <ChoiceMarkerIcon className={`${styles.marker} ${styles.markerEnd}`} />
         </button>

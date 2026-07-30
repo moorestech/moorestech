@@ -7,8 +7,10 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.UIState;
+using Client.Game.Skit.Localization;
 using Client.Skit.Context;
 using Client.Skit.Define;
+using Client.Skit.Localization;
 using Client.Skit.Skit;
 using Client.Skit.UI;
 using CommandForgeGenerator.Command;
@@ -65,6 +67,9 @@ namespace Client.Game.Skit
         {
             IsPlayingSkit = true;
             _isSkip = false;
+            var skitTitle = SkitTitle.FromAssetName(skitJson.name);
+            using var localizationResolver = new SkitLocalizationResolver();
+            await localizationResolver.PrepareAsync(skitTitle);
             var commandsToken = (JToken)JsonConvert.DeserializeObject(skitJson.text);
             var commands = CommandForgeLoader.LoadCommands(commandsToken);
             var webUiMode = WebUiScreenGate.IsWebUiMode;
@@ -128,6 +133,8 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
                 builder.RegisterInstance<ISkitActionContext>(_skitActionController);
                 builder.RegisterInstance(new SkitPresentationMode(webUiMode));
+                builder.RegisterInstance<ISkitLocalizationResolver>(localizationResolver);
+                builder.RegisterInstance(new SkitExecutionIdentity(skitTitle));
                 
                 return new StoryContext(builder.Build());
             }

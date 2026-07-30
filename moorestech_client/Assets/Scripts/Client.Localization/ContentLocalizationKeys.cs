@@ -90,7 +90,7 @@ namespace Client.Localization
             return SkitField(skitTitle, commandId, "overrideCharacterName");
         }
 
-        private static string SkitField(string skitTitle, int commandId, string field)
+        public static string SkitField(string skitTitle, int commandId, string field)
         {
             return $"skit.{skitTitle}.{commandId.ToString(CultureInfo.InvariantCulture)}.{field}";
         }

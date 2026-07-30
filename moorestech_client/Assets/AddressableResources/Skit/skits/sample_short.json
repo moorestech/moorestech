@@ -20,7 +20,7 @@
       "characterId": "chr_002",
       "body": "こんにちは",
       "id": 2,
-      "overideCharacterName": "？？？",
+      "overrideCharacterName": "？？？",
       "isOverrideCharacterName": false
     }
   ]

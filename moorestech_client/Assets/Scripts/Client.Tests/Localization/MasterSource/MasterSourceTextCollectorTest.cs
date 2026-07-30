@@ -74,6 +74,13 @@ namespace Client.Tests.Localization.MasterSource
                 expected.Add($"block.{block.BlockGuid:D}.name", block.Name);
             }
 
+            // 全キャラクターの話者名も必須Guidから列挙する
+            // Enumerate every character speaker name from its required GUID
+            foreach (var character in MasterHolder.CharacterMaster.Characters.Data)
+            {
+                expected.Add($"character.{character.CharacterGuid:D}.name", character.DisplayName);
+            }
+
             // 辞書化前の正本配列を使い、研究Guid重複による欠落も検出する
             // Use the canonical pre-dictionary array to catch loss from duplicate research GUIDs
             foreach (var research in MasterHolder.ResearchMaster.Research.Data)

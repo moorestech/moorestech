@@ -1,7 +1,9 @@
 using Client.Common.Asset;
+using Client.Game.Skit.Localization;
 using Client.Game.InGame.UI.UIState;
 using Client.Skit.Context;
 using Client.Skit.Define;
+using Client.Skit.Localization;
 using Client.Skit.UI;
 using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
@@ -30,9 +32,20 @@ namespace Client.Game.InGame.BackgroundSkit
             await UniTask.WaitUntil(() => uiStateControl.CurrentState == UIStateEnum.GameScreen);
             
             var textAsset = await AddressableLoader.LoadAsyncDefault<TextAsset>(skitAddressablePath);
+            if (textAsset == null)
+            {
+                Debug.LogError($"背景スキットJSONが見つかりません : {skitAddressablePath}");
+                IsPlayingSkit = false;
+                SkitPresentationStateStore.Instance.End();
+                return;
+            }
+
+            var skitTitle = SkitTitle.FromAssetName(textAsset.name);
+            using var localizationResolver = new SkitLocalizationResolver();
+            await localizationResolver.PrepareAsync(skitTitle);
             var commandsToken = (JToken)JsonConvert.DeserializeObject(textAsset.text);
             var commands = CommandForgeLoader.LoadCommands(commandsToken);
-            var context = GetStoryContext();
+            using var context = GetStoryContext();
             
             backgroundSkitUI.SetActive(true);
             // webモード中はuGUI文字表示のみ抑止する（音声はUnity再生のためルートは維持。SetActive(false)は音声を殺すため禁止）
@@ -56,6 +69,8 @@ namespace Client.Game.InGame.BackgroundSkit
                 var builder = new ContainerBuilder();
                 builder.RegisterInstance(backgroundSkitUI);
                 builder.RegisterInstance(voiceDefine);
+                builder.RegisterInstance<ISkitLocalizationResolver>(localizationResolver);
+                builder.RegisterInstance(new SkitExecutionIdentity(skitTitle));
                 
                 return new StoryContext(builder.Build());
             }
