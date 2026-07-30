@@ -1,0 +1,421 @@
+diff --git a/cef-unity-rust/crates/server/src/event_loop/macos.rs b/cef-unity-rust/crates/server/src/event_loop/macos.rs
+index 3941707..b852c9d 100644
+--- a/cef-unity-rust/crates/server/src/event_loop/macos.rs
++++ b/cef-unity-rust/crates/server/src/event_loop/macos.rs
+@@ -2,9 +2,27 @@
+ 
+ use std::sync::atomic::{AtomicPtr, Ordering};
+ use std::sync::mpsc;
++use std::time::Instant;
+ 
+ use super::ServerState;
+ 
++// ---------------------------------------------------------------------------
++// STATS FFI: iosurface_pool.m / mach_iosurface.c の fetch-and-reset getter
++// ---------------------------------------------------------------------------
++
++unsafe extern "C" {
++    fn iosurface_pool_fetch_reset_stats(
++        out_copy_count: *mut u64,
++        out_wait_ns_total: *mut u64,
++        out_wait_ns_max: *mut u64,
++    );
++    fn mach_iosurface_fetch_reset_stats(
++        out_ns_total: *mut u64,
++        out_ns_max: *mut u64,
++        out_timeout_count: *mut u64,
++    );
++}
++
+ // ---------------------------------------------------------------------------
+ // CoreFoundation FFI
+ // ---------------------------------------------------------------------------
+@@ -116,7 +134,7 @@ fn timer_callback_inner() {
+     }
+ 
+     // IPC コマンドを先に処理 → マウスイベント等が同じ pump サイクルで CEF に反映される
+-    drain_commands(state);
++    let drain_count = drain_commands(state);
+ 
+     if !state.running {
+         unsafe {
+@@ -129,15 +147,21 @@ fn timer_callback_inner() {
+     // do_message_loop_work の前に行い、同じ pump サイクルで compositor が draw する。
+     state.cef_server.process_pending_flushes();
+ 
++    let pump_start = Instant::now();
+     cef::do_message_loop_work();
++    let pump_ns = pump_start.elapsed().as_nanos() as u64;
+     state.pump_count += 1;
++
++    record_tick_stats(drain_count, pump_ns);
+ }
+ 
+-/// mpsc チャネルからコマンドを全て取り出して処理する。
+-fn drain_commands(state: &mut ServerState) {
++/// mpsc チャネルからコマンドを全て取り出して処理する。処理した件数を返す (STATS 用)。
++fn drain_commands(state: &mut ServerState) -> u64 {
++    let mut processed: u64 = 0;
+     loop {
+         match state.cmd_rx.try_recv() {
+             Ok(env) => {
++                processed += 1;
+                 let is_shutdown = matches!(env.command, cef_unity_ipc::Command::Shutdown);
+                 if env.expects_response {
+                     log(&format!("received command: {:?}", env.command));
+@@ -162,6 +186,104 @@ fn drain_commands(state: &mut ServerState) {
+             }
+         }
+     }
++    processed
++}
++
++// ---------------------------------------------------------------------------
++// STATS: 毎秒集計ログ ("STATS ...")。timer_callback は CFRunLoop のメインスレッドから
++// のみ呼ばれるため、SERVER_STATE / TIMER と同じ前提で static mut を排他制御なしに使う。
++// ---------------------------------------------------------------------------
++
++struct TickStats {
++    window_start: Instant,
++    ticks: u64,
++    drain_total: u64,
++    drain_max: u64,
++    pump_ns_total: u64,
++    pump_ns_max: u64,
++}
++
++static mut TICK_STATS: Option<TickStats> = None;
++
++/// 1 tick 分の drain 件数・pump 時間を積算し、1 秒経過していれば STATS 行を出力してリセットする。
++fn record_tick_stats(drain_count: u64, pump_ns: u64) {
++    let slot: &mut Option<TickStats> = unsafe { &mut *(&raw mut TICK_STATS) };
++    let stats = slot.get_or_insert_with(|| TickStats {
++        window_start: Instant::now(),
++        ticks: 0,
++        drain_total: 0,
++        drain_max: 0,
++        pump_ns_total: 0,
++        pump_ns_max: 0,
++    });
++    stats.ticks += 1;
++    stats.drain_total += drain_count;
++    stats.drain_max = stats.drain_max.max(drain_count);
++    stats.pump_ns_total += pump_ns;
++    stats.pump_ns_max = stats.pump_ns_max.max(pump_ns);
++
++    if stats.window_start.elapsed().as_secs_f64() < 1.0 {
++        return;
++    }
++
++    let ticks = stats.ticks;
++    let drain_total = stats.drain_total;
++    let drain_max = stats.drain_max;
++    let pump_ns_total = stats.pump_ns_total;
++    let pump_ns_max = stats.pump_ns_max;
++    *stats = TickStats {
++        window_start: Instant::now(),
++        ticks: 0,
++        drain_total: 0,
++        drain_max: 0,
++        pump_ns_total: 0,
++        pump_ns_max: 0,
++    };
++
++    emit_stats_line(ticks, drain_total, drain_max, pump_ns_total, pump_ns_max);
++}
++
++/// 他モジュール (server.rs / iosurface_pool.m / mach_iosurface.c) の STATS カウンタも
++/// まとめて fetch-and-reset し、1 行にまとめてログ出力する。
++fn emit_stats_line(ticks: u64, drain_total: u64, drain_max: u64, pump_ns_total: u64, pump_ns_max: u64) {
++    let s = crate::server::fetch_reset_stats();
++
++    let (copy_count, copy_wait_ns_total, copy_wait_ns_max) = unsafe {
++        let mut copy_count = 0u64;
++        let mut wait_ns_total = 0u64;
++        let mut wait_ns_max = 0u64;
++        iosurface_pool_fetch_reset_stats(&mut copy_count, &mut wait_ns_total, &mut wait_ns_max);
++        (copy_count, wait_ns_total, wait_ns_max)
++    };
++    let (msend_ns_total, msend_ns_max, msend_timeout) = unsafe {
++        let mut ns_total = 0u64;
++        let mut ns_max = 0u64;
++        let mut timeout_count = 0u64;
++        mach_iosurface_fetch_reset_stats(&mut ns_total, &mut ns_max, &mut timeout_count);
++        (ns_total, ns_max, timeout_count)
++    };
++
++    log(&format!(
++        "STATS ticks={} drain={} maxdrain={} pump_ms={:.1} pump_max={:.1} bf_unity={} bf_f3={} bf_f6={} flush_ovw={} paint={} dirty_px={} full_px={} copy={} copy_wait_ms={:.1} copy_wait_max={:.1} msend_ms={:.1} msend_max={:.1} msend_to={}",
++        ticks,
++        drain_total,
++        drain_max,
++        pump_ns_total as f64 / 1_000_000.0,
++        pump_ns_max as f64 / 1_000_000.0,
++        s.bf_unity,
++        s.bf_f3,
++        s.bf_f6,
++        s.flush_overwrite,
++        s.paint,
++        s.dirty_px,
++        s.full_px,
++        copy_count,
++        copy_wait_ns_total as f64 / 1_000_000.0,
++        copy_wait_ns_max as f64 / 1_000_000.0,
++        msend_ns_total as f64 / 1_000_000.0,
++        msend_ns_max as f64 / 1_000_000.0,
++        msend_timeout,
++    ));
+ }
+ 
+ pub fn run_event_loop(state: ServerState) -> ServerState {
+diff --git a/cef-unity-rust/crates/server/src/iosurface_pool.m b/cef-unity-rust/crates/server/src/iosurface_pool.m
+index 68a7970..bf9cf61 100644
+--- a/cef-unity-rust/crates/server/src/iosurface_pool.m
++++ b/cef-unity-rust/crates/server/src/iosurface_pool.m
+@@ -11,10 +11,44 @@
+ #import <IOSurface/IOSurface.h>
+ #include <stdint.h>
+ #include <stdio.h>
++#include <stdatomic.h>
++#include <mach/mach_time.h>
+ 
+ #define POOL_SIZE 5
+ #define SRC_CACHE_SIZE 4
+ 
++// ---------------------------------------------------------------------------
++// STATS: copy 回数・waitUntilCompleted 時間の計測 (fetch-and-reset で Rust 側が毎秒読む)
++// ---------------------------------------------------------------------------
++
++static _Atomic uint64_t g_stats_copy_count = 0;
++static _Atomic uint64_t g_stats_wait_ns_total = 0;
++static _Atomic uint64_t g_stats_wait_ns_max = 0;
++static mach_timebase_info_data_t g_stats_timebase = {0, 0};
++
++/// mach_absolute_time の tick 差分をナノ秒に変換する。
++static uint64_t stats_ticks_to_ns(uint64_t ticks) {
++    if (g_stats_timebase.denom == 0) {
++        mach_timebase_info(&g_stats_timebase);
++    }
++    return ticks * g_stats_timebase.numer / g_stats_timebase.denom;
++}
++
++/// cell を v で更新する (v がより大きい場合のみ)。診断値なので memory_order_relaxed で十分。
++static void stats_store_max_u64(_Atomic uint64_t *cell, uint64_t v) {
++    uint64_t cur = atomic_load_explicit(cell, memory_order_relaxed);
++    while (v > cur &&
++           !atomic_compare_exchange_weak_explicit(cell, &cur, v, memory_order_relaxed, memory_order_relaxed)) {
++    }
++}
++
++/// STATS 用: 累積値を取得しカウンタをリセットする (fetch-and-reset)。
++void iosurface_pool_fetch_reset_stats(uint64_t* out_copy_count, uint64_t* out_wait_ns_total, uint64_t* out_wait_ns_max) {
++    *out_copy_count = atomic_exchange_explicit(&g_stats_copy_count, 0, memory_order_relaxed);
++    *out_wait_ns_total = atomic_exchange_explicit(&g_stats_wait_ns_total, 0, memory_order_relaxed);
++    *out_wait_ns_max = atomic_exchange_explicit(&g_stats_wait_ns_max, 0, memory_order_relaxed);
++}
++
+ static id<MTLDevice> g_device = nil;
+ static id<MTLCommandQueue> g_queue = nil;
+ static IOSurfaceRef g_pool[POOL_SIZE] = {NULL};
+@@ -173,7 +207,12 @@ void* iosurface_pool_copy_and_get(void* src_ref, uint32_t w, uint32_t h, uint32_
+         [blit endEncoding];
+ 
+         [cmdBuf commit];
++        uint64_t stats_t0 = mach_absolute_time();
+         [cmdBuf waitUntilCompleted];
++        uint64_t stats_wait_ns = stats_ticks_to_ns(mach_absolute_time() - stats_t0);
++        atomic_fetch_add_explicit(&g_stats_copy_count, 1, memory_order_relaxed);
++        atomic_fetch_add_explicit(&g_stats_wait_ns_total, stats_wait_ns, memory_order_relaxed);
++        stats_store_max_u64(&g_stats_wait_ns_max, stats_wait_ns);
+     }
+ 
+     return (void*)dst;
+diff --git a/cef-unity-rust/crates/server/src/mach_iosurface.c b/cef-unity-rust/crates/server/src/mach_iosurface.c
+index d49dd2b..daf755e 100644
+--- a/cef-unity-rust/crates/server/src/mach_iosurface.c
++++ b/cef-unity-rust/crates/server/src/mach_iosurface.c
+@@ -8,10 +8,44 @@
+ //      and sends it + metadata to the client via mach_msg
+ 
+ #include <mach/mach.h>
++#include <mach/mach_time.h>
+ #include <servers/bootstrap.h>
+ #include <IOSurface/IOSurface.h>
+ #include <stdint.h>
+ #include <stdio.h>
++#include <stdatomic.h>
++
++// ---------------------------------------------------------------------------
++// STATS: mach_msg 送信時間・タイムアウト回数の計測 (fetch-and-reset で Rust 側が毎秒読む)
++// ---------------------------------------------------------------------------
++
++static _Atomic uint64_t g_stats_msend_ns_total = 0;
++static _Atomic uint64_t g_stats_msend_ns_max = 0;
++static _Atomic uint64_t g_stats_msend_timeout_count = 0;
++static mach_timebase_info_data_t g_stats_timebase = {0, 0};
++
++/// mach_absolute_time の tick 差分をナノ秒に変換する。
++static uint64_t stats_ticks_to_ns(uint64_t ticks) {
++    if (g_stats_timebase.denom == 0) {
++        mach_timebase_info(&g_stats_timebase);
++    }
++    return ticks * g_stats_timebase.numer / g_stats_timebase.denom;
++}
++
++/// cell を v で更新する (v がより大きい場合のみ)。診断値なので memory_order_relaxed で十分。
++static void stats_store_max_u64(_Atomic uint64_t *cell, uint64_t v) {
++    uint64_t cur = atomic_load_explicit(cell, memory_order_relaxed);
++    while (v > cur &&
++           !atomic_compare_exchange_weak_explicit(cell, &cur, v, memory_order_relaxed, memory_order_relaxed)) {
++    }
++}
++
++/// STATS 用: 累積値を取得しカウンタをリセットする (fetch-and-reset)。
++void mach_iosurface_fetch_reset_stats(uint64_t* out_ns_total, uint64_t* out_ns_max, uint64_t* out_timeout_count) {
++    *out_ns_total = atomic_exchange_explicit(&g_stats_msend_ns_total, 0, memory_order_relaxed);
++    *out_ns_max = atomic_exchange_explicit(&g_stats_msend_ns_max, 0, memory_order_relaxed);
++    *out_timeout_count = atomic_exchange_explicit(&g_stats_msend_timeout_count, 0, memory_order_relaxed);
++}
+ 
+ // ---- Message types ----
+ 
+@@ -138,6 +172,7 @@ int mach_iosurface_server_send(void* io_surface_ref, uint32_t width, uint32_t he
+     msg.height = height;
+     msg.format = format;
+ 
++    uint64_t stats_t0 = mach_absolute_time();
+     kern_return_t kr = mach_msg(
+         &msg.header,
+         MACH_SEND_MSG | MACH_SEND_TIMEOUT,
+@@ -147,6 +182,12 @@ int mach_iosurface_server_send(void* io_surface_ref, uint32_t width, uint32_t he
+         10,                 // 10ms timeout (don't block on_accelerated_paint)
+         MACH_PORT_NULL
+     );
++    uint64_t stats_elapsed_ns = stats_ticks_to_ns(mach_absolute_time() - stats_t0);
++    atomic_fetch_add_explicit(&g_stats_msend_ns_total, stats_elapsed_ns, memory_order_relaxed);
++    stats_store_max_u64(&g_stats_msend_ns_max, stats_elapsed_ns);
++    if (kr == MACH_SEND_TIMED_OUT) {
++        atomic_fetch_add_explicit(&g_stats_msend_timeout_count, 1, memory_order_relaxed);
++    }
+ 
+     if (kr != KERN_SUCCESS) {
+         // Failed to send — deallocate the surface port we created
+diff --git a/cef-unity-rust/crates/server/src/server.rs b/cef-unity-rust/crates/server/src/server.rs
+index bd46746..33f048c 100644
+--- a/cef-unity-rust/crates/server/src/server.rs
++++ b/cef-unity-rust/crates/server/src/server.rs
+@@ -137,6 +137,49 @@ struct BrowserState {
+ 
+ static PAINT_COUNT: AtomicU64 = AtomicU64::new(0);
+ 
++// ---------------------------------------------------------------------------
++// STATS: 毎秒集計ログ用カウンタ (macos.rs のタイマーから fetch-and-reset で読まれる)
++// ---------------------------------------------------------------------------
++
++/// Unity 起因 (send_external_begin_frame) で発行した BeginFrame 数。
++static STATS_BF_UNITY: AtomicU64 = AtomicU64::new(0);
++/// +3ms flush (FLUSH_THRESHOLDS_MS[0]) で発行した BeginFrame 数。
++static STATS_BF_F3: AtomicU64 = AtomicU64::new(0);
++/// +6ms flush (FLUSH_THRESHOLDS_MS[1]) で発行した BeginFrame 数。
++static STATS_BF_F6: AtomicU64 = AtomicU64::new(0);
++/// 未消化の pending_flush が新しい BF#1 で上書きされた回数。
++static STATS_FLUSH_OVERWRITE: AtomicU64 = AtomicU64::new(0);
++/// on_accelerated_paint 呼び出し回数。
++static STATS_PAINT: AtomicU64 = AtomicU64::new(0);
++/// dirty rect 面積の合計 (px)。
++static STATS_DIRTY_PX: AtomicU64 = AtomicU64::new(0);
++/// 全 surface 面積の合計 (px, width*height を paint 毎に加算)。
++static STATS_FULL_PX: AtomicU64 = AtomicU64::new(0);
++
++/// STATS カウンタの 1 秒分のスナップショット。
++pub(crate) struct StatsSnapshot {
++    pub bf_unity: u64,
++    pub bf_f3: u64,
++    pub bf_f6: u64,
++    pub flush_overwrite: u64,
++    pub paint: u64,
++    pub dirty_px: u64,
++    pub full_px: u64,
++}
++
++/// STATS カウンタを fetch-and-reset で読み出す。macos.rs のタイマーから毎秒呼ばれる。
++pub(crate) fn fetch_reset_stats() -> StatsSnapshot {
++    StatsSnapshot {
++        bf_unity: STATS_BF_UNITY.swap(0, Ordering::Relaxed),
++        bf_f3: STATS_BF_F3.swap(0, Ordering::Relaxed),
++        bf_f6: STATS_BF_F6.swap(0, Ordering::Relaxed),
++        flush_overwrite: STATS_FLUSH_OVERWRITE.swap(0, Ordering::Relaxed),
++        paint: STATS_PAINT.swap(0, Ordering::Relaxed),
++        dirty_px: STATS_DIRTY_PX.swap(0, Ordering::Relaxed),
++        full_px: STATS_FULL_PX.swap(0, Ordering::Relaxed),
++    }
++}
++
+ // ---------------------------------------------------------------------------
+ // BeginFrame → on_accelerated_paint レイテンシ計測
+ // ---------------------------------------------------------------------------
+@@ -263,7 +306,7 @@ wrap_render_handler! {
+             &self,
+             _browser: Option<&mut Browser>,
+             type_: PaintElementType,
+-            _dirty_rects: Option<&[Rect]>,
++            dirty_rects: Option<&[Rect]>,
+             info: Option<&AcceleratedPaintInfo>,
+         ) {
+             if type_.get_raw() != PaintElementType::VIEW.get_raw() {
+@@ -283,6 +326,17 @@ wrap_render_handler! {
+                     0u32
+                 };
+ 
++                // STATS: paint 回数・dirty rect 面積・全 surface 面積を積算
++                STATS_PAINT.fetch_add(1, Ordering::Relaxed);
++                STATS_FULL_PX.fetch_add((w as u64) * (h as u64), Ordering::Relaxed);
++                if let Some(rects) = dirty_rects {
++                    let dirty_area: u64 = rects
++                        .iter()
++                        .map(|r| (r.width as u64) * (r.height as u64))
++                        .sum();
++                    STATS_DIRTY_PX.fetch_add(dirty_area, Ordering::Relaxed);
++                }
++
+                 // BeginFrame → paint レイテンシを記録 (外的 BeginFrame モードでのみ意味あり)
+                 record_paint_latency();
+ 
+@@ -1597,10 +1651,20 @@ impl CefServer {
+             0
+         };
+ 
+-        if self.issue_begin_frame(browser_id, unity_frame)
+-            && server_flush_enabled()
+-            && self.damage_streak < DAMAGE_STREAK_SUPPRESS_FLUSH
+-        {
++        // STATS: issue_begin_frame は元の && チェーンでも常に (副作用込みで) 評価される
++        // 先頭項なので、ここで束縛しても分岐挙動は変わらない。
++        let issued = self.issue_begin_frame(browser_id, unity_frame);
++        if issued {
++            STATS_BF_UNITY.fetch_add(1, Ordering::Relaxed);
++        }
++
++        if issued && server_flush_enabled() && self.damage_streak < DAMAGE_STREAK_SUPPRESS_FLUSH {
++            // STATS: 前回の pending_flush がまだ全 flush を消化しきっていなければ上書きとして数える。
++            if let Some(ref old) = self.pending_flush
++                && (old.flushes_done as usize) < FLUSH_THRESHOLDS_MS.len()
++            {
++                STATS_FLUSH_OVERWRITE.fetch_add(1, Ordering::Relaxed);
++            }
+             // flush を予約 (tick で +3ms, +6ms に発行)。
+             self.pending_flush = Some(PendingFlush {
+                 browser_id,
+@@ -1651,6 +1715,12 @@ impl CefServer {
+         match action {
+             Some((bid, uf, done)) => {
+                 self.issue_begin_frame(bid, uf);
++                // STATS: done==1 は +3ms 段、done==2 は +6ms 段 (FLUSH_THRESHOLDS_MS の順序と対応)。
++                if done == 1 {
++                    STATS_BF_F3.fetch_add(1, Ordering::Relaxed);
++                } else if done == 2 {
++                    STATS_BF_F6.fetch_add(1, Ordering::Relaxed);
++                }
+                 if done as usize >= FLUSH_THRESHOLDS_MS.len() {
+                     self.pending_flush = None;
+                 }
