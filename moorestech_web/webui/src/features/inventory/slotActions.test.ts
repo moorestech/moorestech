@@ -34,7 +34,7 @@ describe("slotActions", () => {
       selectedHotbar: 0,
     };
     bridge.blockInventory = null;
-    bridge.itemMaster = new Map([[1, { itemId: 1, name: "item", maxStack: 100 }]]);
+    bridge.itemMaster = new Map([[1, { itemId: 1, itemGuid: "item-guid", maxStack: 100 }]]);
   });
 
   it("クリック時の inventory・block slots・maxStack で移動を計画する", () => {
@@ -55,7 +55,7 @@ describe("slotActions", () => {
       itemSlots: [slot(1, 8), slot(0, 0)],
       fluidSlots: [],
     };
-    bridge.itemMaster = new Map([[1, { itemId: 1, name: "latest", maxStack: 10 }]]);
+    bridge.itemMaster = new Map([[1, { itemId: 1, itemGuid: "latest-guid", maxStack: 10 }]]);
 
     slotActions.onLeftDown({ area: "main", slot: 0 }, true);
 

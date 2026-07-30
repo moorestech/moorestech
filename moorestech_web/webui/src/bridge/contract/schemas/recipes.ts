@@ -25,5 +25,5 @@ export const MachineRecipeSchema = z.object({
 });
 export const MachineRecipesDataSchema = z.object({ recipes: z.array(MachineRecipeSchema) });
 export const RecipeViewerItemListDataSchema = z.object({ itemIds: z.array(z.number()) });
-export const ItemMasterEntrySchema = z.object({ itemId: z.number(), name: z.string(), maxStack: z.number() });
+export const ItemMasterEntrySchema = z.object({ itemId: z.number(), itemGuid: z.string(), maxStack: z.number() });
 export const ItemMasterDataSchema = z.object({ items: z.array(ItemMasterEntrySchema) });

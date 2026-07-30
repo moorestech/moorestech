@@ -105,12 +105,18 @@ function createDictionaries(): Map<string, Record<string, string>> {
 
   // Sourceと各言語を本番CSVの同じ行集合から組み立てる
   // Build Source and every locale from the same production CSV rows
-  result.set("source", Object.fromEntries(csv.rows.map((row: { key: string; source: string }) => [row.key, row.source])));
+  result.set("source", {
+    ...Object.fromEntries(csv.rows.map((row: { key: string; source: string }) => [row.key, row.source])),
+    ...fx.itemNameDictionaries.source,
+  });
   for (let languageIndex = 0; languageIndex < csv.languageCodes.length; languageIndex += 1) {
     const languageCode = csv.languageCodes[languageIndex];
     result.set(
       languageCode,
-      Object.fromEntries(csv.rows.map((row: { key: string; texts: string[] }) => [row.key, row.texts[languageIndex]])),
+      {
+        ...Object.fromEntries(csv.rows.map((row: { key: string; texts: string[] }) => [row.key, row.texts[languageIndex]])),
+        ...fx.itemNameDictionaries[languageCode],
+      },
     );
   }
   return result;

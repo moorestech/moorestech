@@ -30,7 +30,7 @@ const node: ResearchNodeData = {
 describe("ResearchDetailPane", () => {
   it("研究可能ノードでボタン活性・クリックでresearch.completeを送る", () => {
     const renderer = create(createElement(ResearchDetailPane, {
-      node, owned: new Map([[1, 5]]), resolveName: () => "Iron", onClose: () => {},
+      node, owned: new Map([[1, 5]]), onClose: () => {},
     }));
     const button = renderer.root.findByProps({ "data-testid": "research-button-research-a" });
     expect(button.props.disabled).toBe(false);
@@ -41,7 +41,7 @@ describe("ResearchDetailPane", () => {
   it("不足時はボタン非活性で理由を表示し、閉じるでonCloseが呼ばれる", () => {
     const onClose = vi.fn();
     const renderer = create(createElement(ResearchDetailPane, {
-      node, owned: new Map(), resolveName: () => "Iron", onClose,
+      node, owned: new Map(), onClose,
     }));
     expect(renderer.root.findByProps({ "data-testid": "research-button-research-a" }).props.disabled).toBe(true);
     expect(renderer.root.findByProps({ "data-testid": "research-detail-reason" })).toBeTruthy();

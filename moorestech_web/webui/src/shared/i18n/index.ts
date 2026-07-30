@@ -14,5 +14,6 @@ export {
 } from "./contentKeys";
 export { L } from "./generated/localizationKeys";
 export { isTranslationKey, translateExternalKey, useI18n } from "./i18nStore";
+export { useItemNameResolver } from "./itemName/useItemName";
 export type { ContentLocalizationKey } from "./contentKeys";
 export type { InterpolationValues, TranslationDictionary, TranslationKey } from "./i18nStore";

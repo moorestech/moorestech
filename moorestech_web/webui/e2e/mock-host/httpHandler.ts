@@ -55,9 +55,9 @@ export function createMockHttpServer(): Server {
       return;
     }
     if (url.startsWith("/__item-master")) {
-      const name = new URL(url, "http://x").searchParams.get("woodName") ?? "Wood";
+      const itemGuid = new URL(url, "http://x").searchParams.get("woodGuid") ?? fx.WOOD_ITEM_GUID;
       state.itemMaster = clone(fx.itemMaster);
-      state.itemMaster.items[0].name = name;
+      state.itemMaster.items[0].itemGuid = itemGuid;
       res.end(JSON.stringify({ ok: true }));
       return;
     }

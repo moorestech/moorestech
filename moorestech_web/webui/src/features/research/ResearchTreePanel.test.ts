@@ -1,11 +1,10 @@
 import { createElement, type ReactElement, type ReactNode } from "react";
 import { act, create, type ReactTestInstance } from "react-test-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ItemMasterEntry, PlayerInventoryData, ResearchNodeData, ResearchTreeData } from "@/bridge";
+import type { PlayerInventoryData, ResearchNodeData, ResearchTreeData } from "@/bridge";
 
 const mockState = vi.hoisted(() => ({
   inventory: null as PlayerInventoryData | null,
-  itemMaster: null as Map<number, ItemMasterEntry> | null,
   tree: null as ResearchTreeData | null,
 }));
 
@@ -13,7 +12,6 @@ vi.mock("@/bridge", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/bridge")>();
   return {
     ...actual,
-    useItemMaster: () => mockState.itemMaster,
     useTopic: (topic: string) => topic === actual.Topics.researchTree ? mockState.tree : mockState.inventory,
   };
 });
@@ -67,7 +65,6 @@ describe("ResearchTreePanel selection toggle", () => {
       grab: { itemId: 0, count: 0 },
       selectedHotbar: 0,
     };
-    mockState.itemMaster = new Map([[1, { itemId: 1, name: "Iron", maxStack: 100 }]]);
   });
 
   it("選択トグルで詳細ペインが開閉しrenderNodeが更新される", () => {

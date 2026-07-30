@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Box, Button, Group, Stack, Text } from "@mantine/core";
-import { dispatchAction, useItemMaster } from "@/bridge";
+import { dispatchAction } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
 import type { CraftRecipe } from "@/bridge";
 import { clampIndex } from "@/shared/clampIndex";
@@ -10,7 +10,7 @@ import styles from "./RecipeBox.module.css";
 import RecipePager from "./RecipePager";
 import CraftProgressArrow from "./CraftProgressArrow";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
-import { L, useI18n } from "@/shared/i18n";
+import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
 
 type Props = {
   recipes: CraftRecipe[];
@@ -24,7 +24,7 @@ type Props = {
 // Craft tab: material row → progress arrow → result; hold the bottom button to continuously craft every craftTime (mirrors uGUI CraftButton)
 export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, counts, onSelect }: Props) {
   const { t } = useI18n();
-  const itemMaster = useItemMaster();
+  const resolveItemName = useItemNameResolver();
   // topic 更新でレシピ数が減った場合に備えて index をクランプ
   // Clamp the index in case a topic update shrank the recipe list
   const index = clampIndex(recipeIndex, recipes.length);
@@ -58,7 +58,7 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
                   itemId={r.itemId}
                   insufficient={(counts.get(r.itemId) ?? 0) < r.count}
                   tooltip={<span style={{ whiteSpace: "pre-line" }}>{t(L.ui.recipe.materialTooltip, {
-                    itemName: itemMaster?.get(r.itemId)?.name ?? t(L.ui.common.itemFallback, { itemId: r.itemId }),
+                    itemName: resolveItemName(r.itemId) ?? t(L.ui.common.itemFallback, { itemId: r.itemId }),
                     ownedCount: counts.get(r.itemId) ?? 0,
                     requiredCount: r.count,
                   })}</span>}

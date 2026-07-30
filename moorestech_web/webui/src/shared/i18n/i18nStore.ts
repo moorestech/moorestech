@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import {
   VanillaLocalizationKeys,
   type VanillaLocalizationKey,
@@ -113,11 +113,12 @@ export function translateExternalKey(
 
 export function useI18n() {
   const current = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const t = useMemo(() => createTranslator(current), [current]);
   return {
     status: current.status,
     locale: current.locale,
     requestedLocale: current.requestedLocale,
-    t: createTranslator(current),
+    t,
   };
 }
 

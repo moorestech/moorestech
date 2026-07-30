@@ -18,6 +18,9 @@ vi.mock("react", () => ({
     unsubscribe ??= subscribe(() => rerender?.());
     return getSnapshot();
   },
+  useMemo<T>(createValue: () => T) {
+    return createValue();
+  },
 }));
 
 vi.mock("@/bridge", () => ({

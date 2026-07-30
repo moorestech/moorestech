@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { useTopic, Topics, useItemMaster } from "@/bridge";
+import { useTopic, Topics } from "@/bridge";
 import type { ResearchNodeData } from "@/bridge";
 import { buildOwnedCounts } from "@/shared/ownedCounts";
 import { GamePanel } from "@/shared/ui";
@@ -23,14 +23,12 @@ export default function ResearchTreePanel() {
   const { t } = useI18n();
   const tree = useTopic(Topics.researchTree);
   const inventory = useTopic(Topics.inventory);
-  const itemMaster = useItemMaster();
   const nodes = tree?.nodes ?? EMPTY_NODES;
   const [selectedGuid, setSelectedGuid] = useState<string | null>(null);
   const owned = useMemo(
     () => buildOwnedCounts([...(inventory?.mainSlots ?? []), ...(inventory?.hotbarSlots ?? [])]),
     [inventory],
   );
-  const resolveName = useCallback((itemId: number) => itemMaster?.get(itemId)?.name, [itemMaster]);
   // 同ノード再クリックで閉じるトグル選択
   // Toggle selection: clicking the same node again closes the pane
   const toggleSelect = useCallback((guid: string) => {
@@ -52,8 +50,7 @@ export default function ResearchTreePanel() {
         </div>
       </GamePanel>
       {selectedNode && (
-        <ResearchDetailPane node={selectedNode} owned={owned} resolveName={resolveName}
-          onClose={() => setSelectedGuid(null)} />
+        <ResearchDetailPane node={selectedNode} owned={owned} onClose={() => setSelectedGuid(null)} />
       )}
     </div>
   );

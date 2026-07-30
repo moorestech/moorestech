@@ -8,13 +8,12 @@ import styles from "./style.module.css";
 type Props = {
   node: ResearchNodeData;
   owned: Map<number, number>;
-  resolveName: (itemId: number) => string | undefined;
   onClose: () => void;
 };
 
 // 選択ノードの詳細と研究実行を担うフロートペイン（パン・ズーム非追従）
 // Floating pane for selected-node details and research execution (not affected by pan/zoom)
-export default function ResearchDetailPane({ node, owned, resolveName, onClose }: Props) {
+export default function ResearchDetailPane({ node, owned, onClose }: Props) {
   const { t } = useI18n();
   const button = deriveResearchButton(node, owned);
   return (
@@ -31,7 +30,7 @@ export default function ResearchDetailPane({ node, owned, resolveName, onClose }
           {node.consumeItems.length > 0 && (
             <div className={styles.detailSlots}>
               {node.consumeItems.map((c, i) => (
-                <ItemSlot key={`consume-${c.itemId}-${i}`} itemId={c.itemId} count={c.count} name={resolveName(c.itemId)}
+                <ItemSlot key={`consume-${c.itemId}-${i}`} itemId={c.itemId} count={c.count}
                   insufficient={!isItemSufficient(node, c.itemId, c.count, owned) && node.state !== "completed"} />
               ))}
             </div>
@@ -39,10 +38,10 @@ export default function ResearchDetailPane({ node, owned, resolveName, onClose }
           {node.rewardItems.length + node.unlockItemIds.length > 0 && (
             <div className={styles.detailSlots}>
               {node.rewardItems.map((reward, i) => (
-                <ItemSlot key={`reward-${reward.itemId}-${i}`} itemId={reward.itemId} count={reward.count} name={resolveName(reward.itemId)} />
+                <ItemSlot key={`reward-${reward.itemId}-${i}`} itemId={reward.itemId} count={reward.count} />
               ))}
               {node.unlockItemIds.map((id, i) => (
-                <ItemSlot key={`unlock-${id}-${i}`} itemId={id} name={resolveName(id)} />
+                <ItemSlot key={`unlock-${id}-${i}`} itemId={id} />
               ))}
             </div>
           )}

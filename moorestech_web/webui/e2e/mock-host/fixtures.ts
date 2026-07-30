@@ -2,7 +2,6 @@ import type {
   PlayerInventoryData,
   SkitPresentationData,
   RecipeViewerItemListData,
-  ItemMasterData,
   BlockInventoryData,
   ModalRequest,
   ProgressData,
@@ -17,6 +16,7 @@ export * from "./blockDetailFixtures";
 export * from "./researchFixtures";
 export * from "./fixtures/presentationFixtures";
 export * from "./fixtures/recipeFixtures";
+export * from "./fixtures/itemMasterFixtures";
 
 const empty = () => ({ itemId: 0, count: 0 });
 
@@ -120,15 +120,6 @@ export const progressSample = {
 // INFRA-6: default to the inventory screen (keeps the visibility existing e2e tests assume)
 export const uiState = { state: "PlayerInventory" } satisfies UiStateData;
 
-export const itemMaster = {
-  items: [
-    { itemId: 1, name: "Wood", maxStack: 100 },
-    { itemId: 2, name: "Stone", maxStack: 100 },
-    { itemId: 100, name: "Plank", maxStack: 100 },
-    { itemId: 101, name: "Impossible Plank", maxStack: 100 },
-  ],
-} satisfies ItemMasterData;
-
 // カテゴリ×サブカテゴリ構成。「鉄」検索で 物流/チェスト と 輸送/鉄道 が複数カテゴリ跨ぎでヒットする
 // Category x sub-category layout; searching "鉄" hits both 物流/チェスト and 輸送/鉄道 across categories
 export const buildMenu = {
@@ -175,10 +166,6 @@ export const demoInventory = {
   grab: empty(),
   selectedHotbar: 0,
 } satisfies PlayerInventoryData;
-
-export const demoItemMaster = {
-  items: Array.from({ length: 120 }, (_, i) => ({ itemId: i + 1, name: `Item ${i + 1}`, maxStack: 100 })),
-} satisfies ItemMasterData;
 
 // DEMO: 進捗バー非表示でホットバーをすっきり見せる
 // DEMO: hide the progress bar to keep the hotbar clean
