@@ -19,7 +19,7 @@ import { useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
-import { screenForUiState } from "@/shared/uiState";
+import { screenAllowsGrab, screenForUiState } from "@/shared/uiState";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
 
@@ -80,7 +80,7 @@ export default function App() {
       <div ref={stageRef} className={styles.stage} data-web-ui-transparent>
         {inventoryScreen && <InventoryScreenChrome />}
         {researchScreen && <ResearchScreenChrome />}
-        {(inventoryScreen || researchScreen) && <InventoryPanel />}
+        {screenAllowsGrab(screen) && <InventoryPanel />}
         {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}
         {/* The hotbar is an always-on HUD mirroring uGUI GameStateController (shown during GameScreen too) */}
         <HotbarPanel />

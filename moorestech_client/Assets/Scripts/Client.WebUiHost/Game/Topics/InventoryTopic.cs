@@ -106,6 +106,7 @@ namespace Client.WebUiHost.Game.Topics
                 // The equipment slot count comes from the master; bare hands ships as -1 and the web side reads -1 the same way
                 Equipment = new List<SlotDto>(_equipment.Slots.Count),
                 SelectedEquipment = _equipment.SelectedIndex,
+                EquipmentSelectionConfirmationRevision = _equipment.SelectionConfirmationRevision,
             };
             for (var i = 0; i < mainAreaSize; i++) dto.MainSlots.Add(ToDto(inv[i]));
             for (var i = mainAreaSize; i < mainSlotCount; i++) dto.HotbarSlots.Add(ToDto(inv[i]));
@@ -135,6 +136,7 @@ namespace Client.WebUiHost.Game.Topics
         public int SelectedHotbar;
         public List<SlotDto> Equipment;
         public int SelectedEquipment;
+        public int EquipmentSelectionConfirmationRevision;
     }
 
     public class SlotDto

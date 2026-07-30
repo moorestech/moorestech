@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { useTopic, readTopic, dispatchAction, Topics } from "@/bridge";
+import { useEffect, useRef } from "react";
+import { useTopic, readTopic, dispatchAction, Topics, useConnectionStatus } from "@/bridge";
 import { isPointerOverWebUi, isWheelPassthrough, useGameLayerWheel, useGrabInteractive } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
@@ -11,13 +11,40 @@ import styles from "./style.module.css";
 // Always-on equipment HUD; the topic's equipment array length is authoritative for the slot count
 export default function EquipmentPanel() {
   const wheelRemainder = useRef(0);
+  const pendingSelections = useRef<{ index: number }[]>([]);
+  const lastConfirmationRevision = useRef<number | null>(null);
   const inventory = useTopic(Topics.inventory);
+  const connectionStatus = useConnectionStatus();
   // 掴んだ絵が出ない画面ではクリックを受けず、選択操作はホイールだけになる
   // Where the held item cannot be seen, clicks are refused and the wheel is the only selection input
   const grabInteractive = useGrabInteractive();
 
-  // ホイールで素手を含む装備選択を循環。変化時のみ送信し、オーバーレイ表示中は共有フックが抑止する
-  // Cycle the equipment selection (bare hands included) on wheel; dispatch only on change, with the shared hook suppressing overlays
+  // サーバー適用だけが進めるrevisionの差分だけ、送信順FIFOから確認済み要求を除く
+  // Remove only the FIFO requests confirmed by server-only revision advances
+  useEffect(() => {
+    const revision = inventory?.equipmentSelectionConfirmationRevision;
+    if (revision === undefined) return;
+
+    const previousRevision = lastConfirmationRevision.current;
+    lastConfirmationRevision.current = revision;
+    if (previousRevision === null) return;
+    if (revision < previousRevision) {
+      pendingSelections.current = [];
+      return;
+    }
+
+    const confirmedCount = revision - previousRevision;
+    pendingSelections.current.splice(0, confirmedCount);
+  }, [inventory?.equipmentSelectionConfirmationRevision]);
+
+  // 切断後のsnapshotを権威状態として受け直すため、未確認要求は接続断で破棄する
+  // Drop unconfirmed requests on disconnect so the restored snapshot becomes authoritative
+  useEffect(() => {
+    if (connectionStatus !== "open") pendingSelections.current = [];
+  }, [connectionStatus]);
+
+  // 装備を循環しオーバーレイ中は抑止
+  // Cycle equipment; suppress during overlays
   useGameLayerWheel((e) => {
     // Web UI の上のホイールは一覧スクロール等その画面の操作であり、装備切替へ二重発火させない
     // A wheel over Web UI is that screen's own gesture (list scrolling etc.), so it must not also switch equipment
@@ -29,9 +56,18 @@ export default function EquipmentPanel() {
     const accumulated = accumulateWheelSteps(wheelRemainder.current, e.deltaY);
     wheelRemainder.current = accumulated.remainder;
     if (accumulated.steps === 0) return;
-    const index = cycleEquipment(latest.selectedEquipment, accumulated.steps, latest.equipment.length);
-    if (index === latest.selectedEquipment) return;
-    void dispatchAction("inventory.select_equipment", { index });
+    // 未反映の送信値を起点にし、高速な連続ノッチが古いtopicへ巻き戻されないようにする
+    // Start from the unacknowledged value so rapid notches never rewind to a stale topic
+    const pending = pendingSelections.current;
+    const currentIndex = pending.length === 0 ? latest.selectedEquipment : pending[pending.length - 1].index;
+    const index = cycleEquipment(currentIndex, accumulated.steps, latest.equipment.length);
+    const request = { index };
+    pending.push(request);
+    void dispatchAction("inventory.select_equipment", { index }).then((accepted) => {
+      if (accepted) return;
+      const requestIndex = pendingSelections.current.indexOf(request);
+      if (requestIndex >= 0) pendingSelections.current.splice(requestIndex, 1);
+    });
   });
 
   // snapshot 未受信の間は HUD ごと出さない（HotbarPanel と同じ判断）

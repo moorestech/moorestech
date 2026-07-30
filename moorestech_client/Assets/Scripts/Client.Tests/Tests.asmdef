@@ -38,7 +38,8 @@
         "Game.UnlockState",
         "Common.Debug",
         "Game.PlacementTarget",
-        "Game.Research"
+        "Game.Research",
+        "VContainer"
     ],
     "includePlatforms": [
         "Editor"

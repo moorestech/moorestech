@@ -51,12 +51,27 @@ namespace Client.WebUiHost.Game.Topics
             string GetSelectedName()
             {
                 var target = _controller.CurrentTarget;
-                if (target is BlockPlacementTarget block) return MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).Name;
-                if (target is BlueprintPlacementTarget blueprint) return blueprint.DisplayName;
-                if (target is ConnectToolPlacementTarget tool) return MasterHolder.ConnectToolMaster.GetElementOrNull(tool.ConnectToolGuid)?.Name ?? "";
-                if (target is TrainCarPlacementTarget) return "Train Car";
-                if (target is BuildToolPlacementTarget buildTool) return MasterHolder.BuildToolMaster.GetBuildTool(buildTool.Id).Name;
-                return "";
+                if (target == null) return "";
+                return target.Kind switch
+                {
+                    global::Game.PlacementTarget.PlacementTargetKind.Block =>
+                        MasterHolder.BlockMaster.GetBlockMaster(((BlockPlacementTarget)target).BlockId).Name,
+                    global::Game.PlacementTarget.PlacementTargetKind.Blueprint =>
+                        ((BlueprintPlacementTarget)target).DisplayName,
+                    global::Game.PlacementTarget.PlacementTargetKind.ConnectTool =>
+                        MasterHolder.ConnectToolMaster.GetElementOrNull(((ConnectToolPlacementTarget)target).ConnectToolGuid).Name,
+                    global::Game.PlacementTarget.PlacementTargetKind.TrainCar =>
+                        GetTrainCarMasterName((TrainCarPlacementTarget)target),
+                    global::Game.PlacementTarget.PlacementTargetKind.BuildTool =>
+                        MasterHolder.BuildToolMaster.GetBuildTool(target.Id).Name,
+                    _ => throw new ArgumentOutOfRangeException(nameof(target.Kind), target.Kind, null),
+                };
+            }
+
+            string GetTrainCarMasterName(TrainCarPlacementTarget target)
+            {
+                MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(target.TrainCarGuid, out var trainCar);
+                return trainCar.Name;
             }
 
             #endregion

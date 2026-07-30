@@ -167,8 +167,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var datastore = serviceProvider.GetService<IBlueprintDatastore>();
 
-            var guid1 = datastore.Register(new BlueprintJsonObject("同じ名前", new List<BlueprintBlockJsonObject>()));
-            var guid2 = datastore.Register(new BlueprintJsonObject("同じ名前", new List<BlueprintBlockJsonObject>()));
+            var guid1 = datastore.Register(new BlueprintJsonObject("同じ名前", new List<BlueprintBlockJsonObject>(), Guid.NewGuid()));
+            var guid2 = datastore.Register(new BlueprintJsonObject("同じ名前", new List<BlueprintBlockJsonObject>(), Guid.NewGuid()));
 
             // 名前は加工されず同名2件が共存し、Guidは異なる
             // Names are untouched; two same-name entries coexist with distinct GUIDs
@@ -182,17 +182,17 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void Guid無しの旧セーブはロード時にGuidが発行される()
+        public void Guid欠損をロードしてもローダー内で補完しない()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var datastore = serviceProvider.GetService<IBlueprintDatastore>();
 
-            // Guid未設定（旧セーブ相当）のオブジェクトをロードする
-            // Load an object without a GUID (legacy save)
-            var legacy = new BlueprintJsonObject("旧BP", new List<BlueprintBlockJsonObject>());
-            datastore.LoadBlueprints(new List<BlueprintJsonObject> { legacy });
+            // Guid欠損は正規マイグレーションの責務であり、通常ロードは入力を加工しない
+            // Missing GUIDs belong to the migration path; normal loading must not mutate the input
+            var missingGuid = new BlueprintJsonObject("Guid欠損BP", new List<BlueprintBlockJsonObject>(), Guid.Empty);
+            datastore.LoadBlueprints(new List<BlueprintJsonObject> { missingGuid });
 
-            Assert.AreNotEqual(Guid.Empty, datastore.Blueprints[0].BlueprintGuid);
+            Assert.AreEqual(Guid.Empty, datastore.Blueprints[0].BlueprintGuid);
         }
     }
 }

@@ -4,6 +4,7 @@ using Client.Game.InGame.Context;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
+using Game.PlayerInventory.Interface;
 using UniRx;
 using UnityEngine;
 
@@ -15,12 +16,9 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
     /// </summary>
     public class LocalPlayerEquipment
     {
-        // 素手を表す選択インデックス。サーバーのEquipmentInventoryDataと同じ特別値
-        // Selection index meaning bare hands; the same special value the server's EquipmentInventoryData uses
-        public const int BareHandsIndex = -1;
-
         public IReadOnlyList<IItemStack> Slots => _slots;
         public int SelectedIndex { get; private set; }
+        public int SelectionConfirmationRevision => _selectionConfirmationRevision;
 
         /// <summary>
         ///     選択中スロットの中身。選択中スロットの中身が変わってもselectedイベントは飛ばないため、
@@ -28,12 +26,15 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
         ///     The item currently held. A selected event is not dispatched when the selected slot's content changes,
         ///     so this is derived from the slot list and the selected index every time instead of being cached.
         /// </summary>
-        public IItemStack SelectedItem => SelectedIndex < 0 ? ServerContext.ItemStackFactory.CreatEmpty() : _slots[SelectedIndex];
+        public IItemStack SelectedItem => SelectedIndex == IEquipmentInventory.BareHandsIndex
+            ? ServerContext.ItemStackFactory.CreatEmpty()
+            : _slots[SelectedIndex];
 
         public IObservable<Unit> OnChanged => _onChanged;
         private readonly Subject<Unit> _onChanged = new();
 
         private readonly List<IItemStack> _slots = new();
+        private int _selectionConfirmationRevision;
 
         public LocalPlayerEquipment()
         {
@@ -44,19 +45,19 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
 
             // 初期データ到着までは素手。実値はApplyInitialが上書きする
             // Bare hands until the initial data arrives; ApplyInitial overwrites it with the real value
-            SelectedIndex = BareHandsIndex;
+            SelectedIndex = IEquipmentInventory.BareHandsIndex;
         }
 
         /// <summary>
-        ///     選択スロットを変更する。サーバーは変化時のみイベントを返すため応答は待たずローカルへ即時反映する。
-        ///     Changes the selected slot. The server notifies only on change, so this applies locally at once without awaiting anything.
+        ///     装備選択を即時反映し、サーバー確定値へ収束させる。
+        ///     Optimistically selects equipment, then converges on the server value.
         /// </summary>
         public void SetSelectedIndex(int index)
         {
             var clamped = ClampIndex(index);
 
-            // 同値でも必ず送る。サーバーは変化時のみ返すため、一度ズレると同値送信の握り潰しでズレが恒久化する
-            // Always send, even for an unchanged value: the server replies only on change, so swallowing same-value sends makes a desync permanent
+            // 同値でも必ず送り、サーバーの無条件エコーで確定させる
+            // Always send equal values too, letting the server's unconditional echo confirm them
             SelectedIndex = clamped;
             _onChanged.OnNext(Unit.Default);
             ClientContext.VanillaApi.SendOnly.SetSelectedEquipment(clamped);
@@ -80,6 +81,7 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
         public void ApplySelected(int index)
         {
             SelectedIndex = ClampIndex(index);
+            _selectionConfirmationRevision++;
             _onChanged.OnNext(Unit.Default);
         }
 
@@ -94,6 +96,7 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
             }
 
             SelectedIndex = ClampIndex(selectedIndex);
+            _selectionConfirmationRevision++;
             _onChanged.OnNext(Unit.Default);
         }
 
@@ -101,7 +104,7 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
         {
             // 素手(-1)から末尾スロットまでに丸める。サーバーのクランプ範囲と一致させる
             // Clamp between bare hands (-1) and the last slot, matching the server's clamp range
-            return Math.Clamp(index, BareHandsIndex, _slots.Count - 1);
+            return Math.Clamp(index, IEquipmentInventory.BareHandsIndex, _slots.Count - 1);
         }
     }
 }

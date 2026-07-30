@@ -1,4 +1,3 @@
-using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
@@ -50,13 +49,11 @@ namespace Client.WebUiHost.Game.Actions
 
         private readonly LocalPlayerInventoryController _controller;
         private readonly SubInventoryState _subInventoryState;
-        private readonly LocalPlayerEquipment _equipment;
 
-        public BlockMoveItemActionHandler(LocalPlayerInventoryController controller, SubInventoryState subInventoryState, LocalPlayerEquipment equipment)
+        public BlockMoveItemActionHandler(LocalPlayerInventoryController controller, SubInventoryState subInventoryState)
         {
             _controller = controller;
             _subInventoryState = subInventoryState;
-            _equipment = equipment;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -95,7 +92,7 @@ namespace Client.WebUiHost.Game.Actions
                 // block 以外は area/slot の共通パースに委譲する
                 // Delegate non-block areas to the shared area/slot parser
                 var mainSlotCount = _controller.LocalPlayerInventory.MainSlotCount;
-                if (area != "block") return InventoryAreaMapper.TryParseSlotRef(token, mainSlotCount, _equipment.Slots.Count, out type, out localSlot);
+                if (area != "block") return InventoryAreaMapper.TryParseSlotRef(token, mainSlotCount, out type, out localSlot);
 
                 if (!BlockAreaSlotParser.TryParseBlockSlot(token, _subInventoryState, mainSlotCount, out var combinedSlot)) return false;
                 type = LocalMoveInventoryType.MainOrSub;

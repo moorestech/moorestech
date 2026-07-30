@@ -34,6 +34,7 @@ describe("slotActions", () => {
       selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
     };
     bridge.blockInventory = null;
     bridge.itemMaster = new Map([[1, { itemId: 1, name: "item", maxStack: 100 }]]);
@@ -49,6 +50,7 @@ describe("slotActions", () => {
       selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
     };
     bridge.blockInventory = {
       open: true,
@@ -83,6 +85,7 @@ describe("slotActions", () => {
       selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
     };
 
     slotActions.onRightDown({ area: "main", slot: 0 });
@@ -105,6 +108,7 @@ describe("slotActions", () => {
       selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
     };
     slotActions.onRightEnter({ area: "main", slot: 0 });
 
@@ -126,6 +130,7 @@ describe("slotActions", () => {
         selectedHotbar: 0,
         equipment: [],
         selectedEquipment: -1,
+        equipmentSelectionConfirmationRevision: 0,
       };
     });
 
@@ -151,6 +156,7 @@ describe("slotActions", () => {
         selectedHotbar: 0,
         equipment: [],
         selectedEquipment: -1,
+        equipmentSelectionConfirmationRevision: 0,
       };
       const ref = { area: "equipment", slot: 0 } as const;
 

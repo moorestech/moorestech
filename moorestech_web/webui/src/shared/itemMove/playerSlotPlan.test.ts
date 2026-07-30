@@ -11,6 +11,7 @@ const inv = (grabCount: number): PlayerInventoryData => ({
   selectedHotbar: 0,
   equipment: [],
   selectedEquipment: -1,
+  equipmentSelectionConfirmationRevision: 0,
 });
 const ctx = (grabCount: number, blockItemSlots: { itemId: number; count: number }[] | null): PlayerSlotContext => ({
   inventory: inv(grabCount),

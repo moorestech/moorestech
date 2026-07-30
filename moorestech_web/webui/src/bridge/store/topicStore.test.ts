@@ -15,6 +15,7 @@ const validInventory = {
   selectedHotbar: 0,
   equipment: [],
   selectedEquipment: -1,
+  equipmentSelectionConfirmationRevision: 0,
 };
 
 describe("deliverTopicPayload の validator 連携", () => {

@@ -45,12 +45,9 @@ namespace Game.PlayerInventory.ItemManaged
 
         public void SetSelectedEquipmentIndex(int index)
         {
-            // クランプ後の値が変化した時だけ通知する
-            // Notify only when the clamped value actually changes
-            var previousIndex = SelectedEquipmentIndex;
+            // サーバー確定値は同値要求にも毎回応答し、クライアントの推測値を収束させる
+            // Echo the authoritative value for every request, including equal values, so client speculation converges
             ApplySelectedEquipmentIndexWithoutEvent(index);
-            if (previousIndex == SelectedEquipmentIndex) return;
-
             _equipmentInventoryUpdateEvent.OnSelectedEquipmentIndexUpdateInvoke(
                 new EquipmentSelectedIndexUpdateEventProperties(_playerId, SelectedEquipmentIndex));
         }
@@ -59,14 +56,16 @@ namespace Game.PlayerInventory.ItemManaged
         {
             // -1(素手)からスロット末尾までにクランプする
             // Clamp between -1 (bare hands) and the last slot
-            SelectedEquipmentIndex = Math.Clamp(index, -1, GetSlotSize() - 1);
+            SelectedEquipmentIndex = Math.Clamp(index, IEquipmentInventory.BareHandsIndex, GetSlotSize() - 1);
         }
 
         public IItemStack GetSelectedItem()
         {
             // 素手のときは空スタックを返す
             // Return an empty stack when bare hands are selected
-            return SelectedEquipmentIndex < 0 ? ServerContext.ItemStackFactory.CreatEmpty() : GetItem(SelectedEquipmentIndex);
+            return SelectedEquipmentIndex == IEquipmentInventory.BareHandsIndex
+                ? ServerContext.ItemStackFactory.CreatEmpty()
+                : GetItem(SelectedEquipmentIndex);
         }
 
         /// <summary>

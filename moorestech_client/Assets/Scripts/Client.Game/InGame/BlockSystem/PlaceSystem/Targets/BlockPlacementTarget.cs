@@ -1,6 +1,7 @@
 using System;
 using Core.Master;
 using Game.Block.Interface;
+using Game.PlacementTarget;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -15,6 +16,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         // 設置対象IDは揮発BlockIdではなくマスタのBlockGuid
         // The placement target id is the master's BlockGuid, not the volatile BlockId
         public Guid Id => MasterHolder.BlockMaster.GetBlockMaster(BlockId).BlockGuid;
+        public PlacementTargetKind Kind => PlacementTargetKind.Block;
 
         public BlockPlacementTarget(BlockId blockId, BlockDirection? pickedDirection)
         {

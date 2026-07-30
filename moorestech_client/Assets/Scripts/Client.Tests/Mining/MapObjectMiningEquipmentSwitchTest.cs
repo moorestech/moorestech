@@ -10,6 +10,7 @@ using Client.Input;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
+using Game.PlayerInventory.Interface;
 using Mooresmaster.Model.MapModule;
 using NUnit.Framework;
 using Server.Boot;
@@ -109,7 +110,7 @@ namespace Client.Tests.Mining
 
             // サーバーは現在の装備でGUID照合するため、素手へ持ち替えた時点で進捗を進めてはいけない
             // The server matches the GUID of the current equipment, so progress must stop the moment bare hands are selected
-            context.LocalPlayerEquipment.ApplySelected(LocalPlayerEquipment.BareHandsIndex);
+            context.LocalPlayerEquipment.ApplySelected(IEquipmentInventory.BareHandsIndex);
             Assert.IsInstanceOf<MapObjectMiningFocusState>(miningState.GetNextUpdate(context, 0.01f));
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Map.Interface.MapObject;
@@ -7,6 +8,15 @@ using Mooresmaster.Model.MapModule;
 
 namespace Game.Map
 {
+    public enum MiningAttackResult
+    {
+        Success,
+        AlreadyDestroyed,
+        NoTool,
+        ToolMismatch,
+        CooldownNotElapsed,
+    }
+
     /// <summary>
     ///     採掘のダメージ算出とクールダウン検証をサーバ側で行う
     ///     Resolves mining damage and validates the cooldown on the server side
@@ -17,9 +27,9 @@ namespace Game.Map
         // Cooldown tolerance; clients send at exactly attackSpeed intervals, so allow jitter
         private const double CooldownMarginRate = 0.9;
 
-        // プレイヤー×mapObjectごとの最終打撃時刻。クールダウン検証に使う
-        // Last hit time per (player, mapObject) for cooldown validation
-        private readonly Dictionary<(int playerId, int instanceId), DateTime> _lastAttackTimes = new();
+        // 1プレイヤー1振りを保証する最終打撃時刻
+        // Last-hit timestamps enforcing one swing at a time per player
+        private readonly Dictionary<int, long> _lastAttackTimestamps = new();
 
         /// <summary>
         ///     ツール照合もクールダウンも介さず一撃で破壊する
@@ -37,54 +47,71 @@ namespace Game.Map
             return true;
         }
 
-        public bool TryAttack(int playerId, IMapObject mapObject, IItemStack equippedItem, out List<IItemStack> earnedItems)
+        public MiningAttackResult TryAttack(int playerId, IMapObject mapObject, IItemStack equippedItem, out List<IItemStack> earnedItems)
         {
             earnedItems = null;
 
             // 破壊済みへの打撃は何も起こさない
             // A hit on an already destroyed object does nothing
-            if (mapObject.IsDestroyed) return false;
+            if (mapObject.IsDestroyed) return MiningAttackResult.AlreadyDestroyed;
 
             var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObject.MapObjectGuid);
 
             // PickUpはツール不要の一撃取得
             // PickUp requires no tool and destroys in one hit
-            if (mapObjectElement.MiningType == MapObjectMasterElement.MiningTypeConst.PickUp) return ForceDestroy(mapObject, out earnedItems);
+            if (mapObjectElement.MiningType == MapObjectMasterElement.MiningTypeConst.PickUp)
+                return ForceDestroy(mapObject, out earnedItems) ? MiningAttackResult.Success : MiningAttackResult.AlreadyDestroyed;
 
             // 素手ではどのminingToolsにも一致しないので早期に弾く（空IDはItemMaster参照で例外になる）
             // Bare hands match no miningTools, so reject early; the empty id would throw in ItemMaster
-            if (equippedItem.Id == ItemMaster.EmptyItemId) return false;
+            if (equippedItem.Id == ItemMaster.EmptyItemId) return MiningAttackResult.NoTool;
 
             // 装備中ツールとminingToolsを照合しダメージを解決する
             // Resolve damage by matching the equipped tool against miningTools
-            var equippedItemGuid = MasterHolder.ItemMaster.GetItemMaster(equippedItem.Id).ItemGuid;
             var miningTools = ((MiningMiningParam)mapObjectElement.MiningParam).MiningTools;
-            foreach (var miningTool in miningTools)
-            {
-                if (miningTool.ToolItemGuid != equippedItemGuid) continue;
-                return TryAttackWithTool(miningTool, out earnedItems);
-            }
+            if (!TryResolveUsableTool(equippedItem.Id, miningTools, out var usableTool))
+                return MiningAttackResult.ToolMismatch;
 
-            return false;
+            return TryAttackWithTool(usableTool, out earnedItems);
 
             #region Internal
 
-            bool TryAttackWithTool(MiningToolsElement miningTool, out List<IItemStack> toolEarnedItems)
+            MiningAttackResult TryAttackWithTool(MiningToolsElement miningTool, out List<IItemStack> toolEarnedItems)
             {
                 toolEarnedItems = null;
 
                 // 前回打撃からattackSpeed×許容率秒未満の連打は捨てる
                 // Drop repeat hits that arrive within attackSpeed * tolerance seconds of the previous one
-                var key = (playerId, mapObject.InstanceId);
-                var now = DateTime.UtcNow;
-                if (_lastAttackTimes.TryGetValue(key, out var lastAttackTime) && (now - lastAttackTime).TotalSeconds < miningTool.AttackSpeed * CooldownMarginRate) return false;
-                _lastAttackTimes[key] = now;
+                var now = Stopwatch.GetTimestamp();
+                if (_lastAttackTimestamps.TryGetValue(playerId, out var lastAttackTimestamp))
+                {
+                    var elapsedSeconds = (now - lastAttackTimestamp) / (double)Stopwatch.Frequency;
+                    if (elapsedSeconds < miningTool.AttackSpeed * CooldownMarginRate)
+                        return MiningAttackResult.CooldownNotElapsed;
+                }
+                _lastAttackTimestamps[playerId] = now;
 
                 toolEarnedItems = mapObject.Attack(miningTool.Damage);
-                return true;
+                return MiningAttackResult.Success;
             }
 
             #endregion
+        }
+
+        public static bool TryResolveUsableTool(ItemId equippedItemId, MiningToolsElement[] miningTools, out MiningToolsElement usableTool)
+        {
+            usableTool = null;
+            if (equippedItemId == ItemMaster.EmptyItemId) return false;
+
+            var equippedItemGuid = MasterHolder.ItemMaster.GetItemMaster(equippedItemId).ItemGuid;
+            foreach (var miningTool in miningTools)
+            {
+                if (miningTool.ToolItemGuid != equippedItemGuid) continue;
+                usableTool = miningTool;
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.Block.Interface.Extension;
-using Game.Blueprint;
 using Game.PlacementTarget;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -31,27 +29,16 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void マスタ由来の設置対象がGuidで解決できる()
+        public void マスタ由来の設置対象がGuidで列挙される()
         {
             var catalog = new PlacementTargetCatalog(new ConfigurableBlueprintSource());
+            var entries = catalog.CreateEntries();
 
             // ブロック・車両・接続ツール・ビルドツールが全部エントリに入っている
             // Blocks, train cars, connect tools, and build tools are all present
-            Assert.IsTrue(catalog.Entries.Any(e => e.Kind == PlacementTargetKind.Block));
-            Assert.IsTrue(catalog.Entries.Any(e => e.Kind == PlacementTargetKind.ConnectTool));
-            Assert.IsTrue(catalog.Entries.Any(e => e.Kind == PlacementTargetKind.BuildTool));
-
-            // 任意のエントリはTryGetEntryで往復できる
-            // Every entry round-trips through TryGetEntry
-            foreach (var entry in catalog.Entries)
-            {
-                Assert.IsTrue(catalog.TryGetEntry(entry.Id, out var resolved));
-                Assert.AreEqual(entry.Kind, resolved.Kind);
-            }
-
-            // 未知のGuidは解決できない
-            // Unknown GUIDs do not resolve
-            Assert.IsFalse(catalog.TryGetEntry(Guid.NewGuid(), out _));
+            Assert.IsTrue(entries.Any(e => e.Kind == PlacementTargetKind.Block));
+            Assert.IsTrue(entries.Any(e => e.Kind == PlacementTargetKind.ConnectTool));
+            Assert.IsTrue(entries.Any(e => e.Kind == PlacementTargetKind.BuildTool));
         }
 
         [Test]
@@ -61,7 +48,7 @@ namespace Tests.UnitTest.Game
 
             // Kind群はBlock→TrainCar→ConnectTool→BuildTool→Blueprintの順で連続していること
             // Kind groups appear contiguously in Block→TrainCar→ConnectTool→BuildTool→Blueprint order
-            AssertKindGroupsContiguousAndOrdered(catalog.Entries);
+            AssertKindGroupsContiguousAndOrdered(catalog.CreateEntries());
         }
 
         [Test]
@@ -78,7 +65,7 @@ namespace Tests.UnitTest.Game
                 .Select(block => block.BlockGuid)
                 .ToList();
 
-            var actual = catalog.Entries
+            var actual = catalog.CreateEntries()
                 .Where(e => e.Kind == PlacementTargetKind.Block)
                 .Select(e => e.Id)
                 .ToList();
@@ -100,7 +87,7 @@ namespace Tests.UnitTest.Game
                 .Select(connectTool => connectTool.ConnectToolGuid)
                 .ToList();
 
-            var actual = catalog.Entries
+            var actual = catalog.CreateEntries()
                 .Where(e => e.Kind == PlacementTargetKind.ConnectTool)
                 .Select(e => e.Id)
                 .ToList();
@@ -113,7 +100,7 @@ namespace Tests.UnitTest.Game
         {
             var blueprintSource = new ConfigurableBlueprintSource((Guid.NewGuid(), "スタブBP1"), (Guid.NewGuid(), "スタブBP2"));
             var catalog = new PlacementTargetCatalog(blueprintSource);
-            var entries = catalog.Entries;
+            var entries = catalog.CreateEntries();
 
             // BPを2件持つ供給元でも群の登場順（BuildToolの後）が保たれること
             // Group order (Blueprint after BuildTool) holds even with real blueprint entries present
@@ -124,19 +111,6 @@ namespace Tests.UnitTest.Game
             var tail = entries.Skip(entries.Count - blueprintSource.BlueprintEntries.Count).ToList();
             CollectionAssert.AreEqual(blueprintSource.BlueprintEntries.Select(b => b.id).ToList(), tail.Select(e => e.Id).ToList());
             Assert.IsTrue(tail.All(e => e.Kind == PlacementTargetKind.Blueprint));
-        }
-
-        [Test]
-        public void サーバDIのカタログはBlueprintDatastoreのBPを含む()
-        {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var datastore = serviceProvider.GetService<IBlueprintDatastore>();
-            var catalog = serviceProvider.GetService<PlacementTargetCatalog>();
-
-            var guid = datastore.Register(new BlueprintJsonObject("カタログ確認用", new List<BlueprintBlockJsonObject>()));
-
-            Assert.IsTrue(catalog.TryGetEntry(guid, out var entry));
-            Assert.AreEqual(PlacementTargetKind.Blueprint, entry.Kind);
         }
 
         [Test]
@@ -166,7 +140,7 @@ namespace Tests.UnitTest.Game
         private static void AssertEntriesThrowContaining(IBlueprintCatalogSource blueprintSource, string expectedInMessage)
         {
             var catalog = new PlacementTargetCatalog(blueprintSource);
-            var exception = Assert.Throws<InvalidOperationException>(() => _ = catalog.Entries);
+            var exception = Assert.Throws<InvalidOperationException>(() => catalog.CreateEntries());
             Assert.That(exception.Message, Does.Contain(expectedInMessage));
         }
 

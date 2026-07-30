@@ -4,6 +4,7 @@ using System.Threading;
 using Common.Debug;
 using Core.Master;
 using Game.Context;
+using Game.Map;
 using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
 using MessagePack;
@@ -36,6 +37,14 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private const int ExpectedToolDamage = 7;
         private const double ExpectedAttackSpeed = 0.2;
+
+        [SetUp]
+        public void SetUp()
+        {
+            // 高速採掘フラグを各テスト開始前にも除去し、前回異常終了の残置を隔離する
+            // Remove the super-mine flag before each test too, isolating residue from an aborted prior test
+            DebugParameters.RemoveBool(DebugParameterKeys.MapObjectSuperMine);
+        }
 
         [TearDown]
         public void TearDown()
@@ -137,6 +146,29 @@ namespace Tests.CombinedTest.Server.PacketTest
             Thread.Sleep((int)(ExpectedAttackSpeed * 1000) + 100);
             SendAttack(packet, mapObject.InstanceId);
             Assert.AreEqual(initialHp - ExpectedToolDamage * 2, mapObject.CurrentHp);
+        }
+
+        [Test]
+        public void 同じプレイヤーは別mapObjectへ切り替えてもクールダウンを共有する()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var miningService = serviceProvider.GetService<MapObjectMiningService>();
+            EquipTool(playerInventory, ToolItemGuid);
+
+            var first = GetMapObject(MiningMapObjectGuid);
+            var second = new VanillaStaticMapObject(
+                999, MiningMapObjectGuid, false, first.CurrentHp, first.Position + UnityEngine.Vector3.right);
+            var secondInitialHp = second.CurrentHp;
+
+            // 対象変更後もプレイヤー単位で待機
+            // Cooldown remains player-wide after changing targets
+            Assert.AreEqual(MiningAttackResult.Success,
+                miningService.TryAttack(PlayerId, first, playerInventory.EquipmentInventory.GetSelectedItem(), out _));
+            Assert.AreEqual(MiningAttackResult.CooldownNotElapsed,
+                miningService.TryAttack(PlayerId, second, playerInventory.EquipmentInventory.GetSelectedItem(), out _));
+            Assert.AreEqual(secondInitialHp, second.CurrentHp);
         }
 
         [Test]

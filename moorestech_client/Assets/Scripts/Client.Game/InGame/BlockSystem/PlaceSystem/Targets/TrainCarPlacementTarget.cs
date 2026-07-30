@@ -1,4 +1,5 @@
 using System;
+using Game.PlacementTarget;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -7,6 +8,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         public readonly Guid TrainCarGuid;
 
         public Guid Id => TrainCarGuid;
+        public PlacementTargetKind Kind => PlacementTargetKind.TrainCar;
 
         public TrainCarPlacementTarget(Guid trainCarGuid)
         {

@@ -143,15 +143,3 @@ properties:
       type: integer
 - key: equipmentSlotCount
   type: integer
-- key: tools
-  type: array
-  overrideCodeGeneratePropertyName: ToolMasterElement
-  items:
-    type: object
-    properties:
-    - key: toolItemGuid
-      type: uuid
-      foreignKey:
-        schemaId: items
-        foreignKeyIdPath: /data/[*]/itemGuid
-        displayElementPath: /data/[*]/name

@@ -9,6 +9,8 @@ const host = vi.hoisted(() => ({
   uiState: null as { state: string } | null,
   inventory: null as PlayerInventoryData | null,
   dispatchAction: vi.fn(),
+  wheelHandler: null as ((event: WheelEvent) => void) | null,
+  connectionStatus: "open" as "connecting" | "restoring" | "open" | "reconnecting",
 }));
 
 vi.mock("@/bridge", async (importOriginal) => {
@@ -20,6 +22,7 @@ vi.mock("@/bridge", async (importOriginal) => {
       selector(topic === actual.Topics.uiState ? host.uiState : null),
     readTopic: (topic: string) => (topic === actual.Topics.inventory ? host.inventory : null),
     dispatchAction: host.dispatchAction,
+    useConnectionStatus: () => host.connectionStatus,
   };
 });
 
@@ -27,7 +30,9 @@ vi.mock("@/bridge", async (importOriginal) => {
 // Stub only the window-bound global wheel; the grab predicate still runs for real
 vi.mock("@/shared/uiState", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/uiState")>()),
-  useGameLayerWheel: () => {},
+  useGameLayerWheel: (handler: (event: WheelEvent) => void) => {
+    host.wheelHandler = handler;
+  },
 }));
 
 // スロットは props だけ観測したいので、Mantine 依存を避けた印付きの素の要素へ置き換える
@@ -48,6 +53,9 @@ function renderSlots() {
 describe("EquipmentPanel のクリック受付", () => {
   beforeEach(() => {
     host.dispatchAction.mockReset();
+    host.dispatchAction.mockResolvedValue(true);
+    host.wheelHandler = null;
+    host.connectionStatus = "open";
     host.inventory = {
       mainSlots: [slot(0, 0)],
       hotbarSlots: [slot(0, 0)],
@@ -55,6 +63,7 @@ describe("EquipmentPanel のクリック受付", () => {
       selectedHotbar: 0,
       equipment: [slot(1, 3)],
       selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
     };
   });
 
@@ -87,5 +96,99 @@ describe("EquipmentPanel のクリック受付", () => {
       to: { area: "grab", slot: 0 },
       count: 3,
     });
+  });
+
+  it("topic反映前の高速2ノッチはpending値から0→1へ進む", () => {
+    host.uiState = { state: "GameScreen" };
+    host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
+    renderSlots();
+    const wheel = host.wheelHandler;
+    expect(wheel).not.toBeNull();
+
+    // topic据置きで2入力を先行
+    // Run two inputs ahead of the unchanged topic
+    act(() => {
+      wheel!({ deltaY: 100, target: null } as WheelEvent);
+      wheel!({ deltaY: 100, target: null } as WheelEvent);
+    });
+
+    expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });
+    expect(host.dispatchAction).toHaveBeenNthCalledWith(2, "inventory.select_equipment", { index: 1 });
+  });
+
+  it("楽観topicと古いechoが来ても未確認の末尾から次ノッチを計算する", () => {
+    host.uiState = { state: "GameScreen" };
+    host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
+    let renderer: ReturnType<typeof create>;
+    act(() => {
+      renderer = create(createElement(EquipmentPanel));
+    });
+    const wheel = host.wheelHandler!;
+
+    // 0→1先行後、topic値1だけ更新
+    // After 0→1, update only the topic value
+    act(() => {
+      wheel({ deltaY: 100, target: null } as WheelEvent);
+      wheel({ deltaY: 100, target: null } as WheelEvent);
+      host.inventory = { ...host.inventory!, selectedEquipment: 1 };
+      renderer!.update(createElement(EquipmentPanel));
+    });
+
+    // echo 0後も未確認1から2へ
+    // After echo 0, advance from pending 1 to 2
+    act(() => {
+      host.inventory = {
+        ...host.inventory!,
+        selectedEquipment: 0,
+        equipmentSelectionConfirmationRevision: 1,
+      };
+      renderer!.update(createElement(EquipmentPanel));
+      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+    });
+
+    expect(host.dispatchAction).toHaveBeenNthCalledWith(3, "inventory.select_equipment", { index: 2 });
+  });
+
+  it("action失敗時はその要求をpendingから除く", async () => {
+    host.uiState = { state: "GameScreen" };
+    host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
+    host.dispatchAction.mockResolvedValueOnce(false).mockResolvedValue(true);
+    renderSlots();
+
+    await act(async () => {
+      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+      await Promise.resolve();
+      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+    });
+
+    expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });
+    expect(host.dispatchAction).toHaveBeenNthCalledWith(2, "inventory.select_equipment", { index: 0 });
+  });
+
+  it("再接続開始時にpendingを破棄して復元snapshotを起点にする", () => {
+    host.uiState = { state: "GameScreen" };
+    host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
+    let renderer: ReturnType<typeof create>;
+    act(() => {
+      renderer = create(createElement(EquipmentPanel));
+    });
+    act(() => {
+      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+    });
+
+    // 切断で0を捨て復元値2から素手へ
+    // Drop 0 on disconnect and advance from restored 2
+    act(() => {
+      host.connectionStatus = "reconnecting";
+      renderer!.update(createElement(EquipmentPanel));
+    });
+    act(() => {
+      host.inventory = { ...host.inventory!, selectedEquipment: 2 };
+      host.connectionStatus = "open";
+      renderer!.update(createElement(EquipmentPanel));
+      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+    });
+
+    expect(host.dispatchAction).toHaveBeenNthCalledWith(2, "inventory.select_equipment", { index: -1 });
   });
 });

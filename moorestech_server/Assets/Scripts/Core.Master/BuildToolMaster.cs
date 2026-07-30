@@ -11,7 +11,7 @@ namespace Core.Master
     // Master for build tools (blueprint copy, etc.); holds only raw load and a Guid index
     public class BuildToolMaster : IMasterValidator
     {
-        public readonly BuildToolMasterElement[] BuildTools;
+        private readonly BuildToolMasterElement[] _buildTools;
 
         // buildToolGuid→要素の索引
         // buildToolGuid → element index
@@ -19,24 +19,24 @@ namespace Core.Master
 
         public BuildToolMaster(JToken buildMenuJToken)
         {
-            BuildTools = BuildMenuLoader.Load(buildMenuJToken).BuildTools;
+            _buildTools = BuildMenuLoader.Load(buildMenuJToken).BuildTools;
         }
 
         public bool Validate(out string errorLogs)
         {
-            return BuildToolMasterUtil.Validate(BuildTools, out errorLogs);
+            return BuildToolMasterUtil.Validate(_buildTools, out errorLogs);
         }
 
         public void Initialize()
         {
             _elementByGuid = new Dictionary<Guid, BuildToolMasterElement>();
-            foreach (var element in BuildTools)
+            foreach (var element in _buildTools)
             {
                 _elementByGuid.Add(element.BuildToolGuid, element);
             }
         }
 
-        public IReadOnlyList<BuildToolMasterElement> All => BuildTools;
+        public IReadOnlyList<BuildToolMasterElement> All => _buildTools;
 
         public BuildToolMasterElement GetBuildTool(Guid buildToolGuid)
         {

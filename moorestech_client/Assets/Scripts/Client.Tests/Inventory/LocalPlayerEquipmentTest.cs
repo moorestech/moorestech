@@ -29,6 +29,7 @@ namespace Client.Tests.Inventory
     public class LocalPlayerEquipmentTest
     {
         private const int PlayerId = 0;
+        private static readonly System.Guid ToolItemGuid = System.Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         [Test]
         public void 装備と素手の選択インデックスがインベントリ応答から復元される()
@@ -36,7 +37,7 @@ namespace Client.Tests.Inventory
             var (packet, serviceProvider) = CreateServer();
             var equipmentInventory = GetEquipmentInventory(serviceProvider);
             equipmentInventory.SetItem(0, ToolItemId(), 1);
-            equipmentInventory.SetSelectedEquipmentIndex(LocalPlayerEquipment.BareHandsIndex);
+            equipmentInventory.SetSelectedEquipmentIndex(IEquipmentInventory.BareHandsIndex);
 
             // 応答messagepack→クライアントDTOの変換で装備が落ちないことを確かめる
             // Ensures equipment survives the response messagepack to client DTO conversion
@@ -45,7 +46,7 @@ namespace Client.Tests.Inventory
             equipment.ApplyInitial(clientResponse.Equipment, clientResponse.SelectedEquipmentIndex);
 
             Assert.AreEqual(ToolItemId(), equipment.Slots[0].Id);
-            Assert.AreEqual(LocalPlayerEquipment.BareHandsIndex, equipment.SelectedIndex);
+            Assert.AreEqual(IEquipmentInventory.BareHandsIndex, equipment.SelectedIndex);
             Assert.AreEqual(ItemMaster.EmptyItemId, equipment.SelectedItem.Id);
         }
 
@@ -60,17 +61,30 @@ namespace Client.Tests.Inventory
 
             // 素手(-1)は装備選択の特別値なので、送信→サーバー→イベント→適用まで通す
             // Bare hands (-1) is the special value of this design, so it is driven through send, server, event and apply
-            var request = MessagePackSerializer.Serialize(EquipmentProtocolMessagePack.CreateSetSelectedIndexRequest(PlayerId, LocalPlayerEquipment.BareHandsIndex));
+            var request = MessagePackSerializer.Serialize(EquipmentProtocolMessagePack.CreateSetSelectedIndexRequest(PlayerId, IEquipmentInventory.BareHandsIndex));
             packet.GetPacketResponse(request, new PacketResponseContext(null));
-            updater.ApplyEquipmentUpdateEvent(TakeEquipmentPayload(sink));
+            updater.OnEquipmentSelectedIndexUpdateEvent(TakeSelectedIndexPayload(sink));
 
-            Assert.AreEqual(LocalPlayerEquipment.BareHandsIndex, GetEquipmentInventory(serviceProvider).SelectedEquipmentIndex);
-            Assert.AreEqual(LocalPlayerEquipment.BareHandsIndex, equipment.SelectedIndex);
+            Assert.AreEqual(IEquipmentInventory.BareHandsIndex, GetEquipmentInventory(serviceProvider).SelectedEquipmentIndex);
+            Assert.AreEqual(IEquipmentInventory.BareHandsIndex, equipment.SelectedIndex);
             Assert.AreEqual(ItemMaster.EmptyItemId, equipment.SelectedItem.Id);
 
-            // 選択変更イベントのSlotは番兵なので、スロットは書き換わらない
-            // The selected event's Slot is a sentinel, so no slot may be overwritten
+            // 選択イベントはスロットを変えない
+            // Selection events do not alter slots
             Assert.AreEqual(ToolItemId(), equipment.Slots[0].Id);
+
+            #region Internal
+
+            byte[] TakeSelectedIndexPayload(CapturedEventSink eventSink)
+            {
+                var equipmentEvents = eventSink.TakeAll()
+                    .Where(capturedEvent => capturedEvent.Tag == EquipmentSelectedIndexUpdateEventPacket.EventTag)
+                    .ToList();
+                Assert.AreEqual(1, equipmentEvents.Count);
+                return equipmentEvents[0].Payload;
+            }
+
+            #endregion
         }
 
         [Test]
@@ -80,16 +94,29 @@ namespace Client.Tests.Inventory
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             var equipment = new LocalPlayerEquipment();
             var updater = CreateUpdater(equipment);
-            equipment.ApplySelected(LocalPlayerEquipment.BareHandsIndex);
+            equipment.ApplySelected(IEquipmentInventory.BareHandsIndex);
 
             GetEquipmentInventory(serviceProvider).SetItem(1, ToolItemId(), 1);
-            updater.ApplyEquipmentUpdateEvent(TakeEquipmentPayload(sink));
+            updater.OnEquipmentSlotUpdateEvent(TakeSlotPayload(sink));
 
-            // スロットイベントのSelectedIndexを読んでいると素手が0へ化ける
-            // Reading the slot event's SelectedIndex would silently turn bare hands into slot 0
+            // スロットイベントは選択位置を変えない
+            // Slot events do not alter the selection
             Assert.AreEqual(ToolItemId(), equipment.Slots[1].Id);
-            Assert.AreEqual(LocalPlayerEquipment.BareHandsIndex, equipment.SelectedIndex);
+            Assert.AreEqual(IEquipmentInventory.BareHandsIndex, equipment.SelectedIndex);
             Assert.AreEqual(ItemMaster.EmptyItemId, equipment.SelectedItem.Id);
+
+            #region Internal
+
+            byte[] TakeSlotPayload(CapturedEventSink eventSink)
+            {
+                var equipmentEvents = eventSink.TakeAll()
+                    .Where(capturedEvent => capturedEvent.Tag == EquipmentSlotUpdateEventPacket.EventTag)
+                    .ToList();
+                Assert.AreEqual(1, equipmentEvents.Count);
+                return equipmentEvents[0].Payload;
+            }
+
+            #endregion
         }
 
         [Test]
@@ -115,10 +142,13 @@ namespace Client.Tests.Inventory
             var changedCount = 0;
             equipment.OnChanged.Subscribe(_ => changedCount++);
 
+            Assert.AreEqual(0, equipment.SelectionConfirmationRevision);
             equipment.ApplySlotUpdate(0, ServerContext.ItemStackFactory.Create(ToolItemId(), 1));
+            Assert.AreEqual(0, equipment.SelectionConfirmationRevision);
             equipment.ApplySelected(0);
 
             Assert.AreEqual(2, changedCount);
+            Assert.AreEqual(1, equipment.SelectionConfirmationRevision);
         }
 
         private (PacketResponseCreator packet, ServiceProvider serviceProvider) CreateServer()
@@ -144,14 +174,8 @@ namespace Client.Tests.Inventory
 
         private ItemId ToolItemId()
         {
-            return MasterHolder.ItemMaster.GetItemId(MasterHolder.ToolMaster.All[0].ToolItemGuid);
+            return MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
         }
 
-        private byte[] TakeEquipmentPayload(CapturedEventSink sink)
-        {
-            var equipmentEvents = sink.TakeAll().Where(capturedEvent => capturedEvent.Tag == EquipmentUpdateEventPacket.EventTag).ToList();
-            Assert.AreEqual(1, equipmentEvents.Count);
-            return equipmentEvents[0].Payload;
-        }
     }
 }

@@ -4,7 +4,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 
-namespace Tests.UnitTest.Core
+namespace Tests.UnitTest.Core.Block
 {
     public class BuildToolMasterTest
     {

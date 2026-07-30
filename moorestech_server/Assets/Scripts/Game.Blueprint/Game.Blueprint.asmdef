@@ -5,8 +5,7 @@
         "Core.Master",
         "Game.Block.Interface",
         "Game.World.Interface",
-        "Game.Context",
-        "Game.PlacementTarget"
+        "Game.Context"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

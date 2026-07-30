@@ -50,7 +50,12 @@ namespace Client.Game.InGame.UI.Inventory.Main
             };
         }
 
-        public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count, bool isMoveSendData = true)
+        public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count)
+        {
+            MoveItem(from, fromSlot, to, toSlot, count, true);
+        }
+
+        public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count, bool isMoveSendData)
         {
             var fromInvItem = GetItem(from, fromSlot);
 

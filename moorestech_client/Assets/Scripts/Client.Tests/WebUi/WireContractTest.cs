@@ -44,6 +44,7 @@ namespace Client.Tests.WebUi
                 // 素手(-1)を正準形に含め、負値がそのまま配信されることを固定する
                 // Include bare hands (-1) in the canonical form, pinning that the negative value ships as-is
                 SelectedEquipment = -1,
+                EquipmentSelectionConfirmationRevision = 7,
             };
             AssertMatchesFixture(dto, "inventory_snapshot.json");
         }

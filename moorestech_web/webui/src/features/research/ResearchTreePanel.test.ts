@@ -65,6 +65,7 @@ describe("ResearchTreePanel selection toggle", () => {
       selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
     };
     mockState.itemMaster = new Map([[1, { itemId: 1, name: "Iron", maxStack: 100 }]]);
   });

@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
@@ -16,6 +17,7 @@ namespace Client.Tests.Inventory
     {
         private const int MainSlot = 5;
         private const int EquipmentSlot = 1;
+        private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         [Test]
         public void メインから装備へ移動すると装備に入りメインが減る()
@@ -74,7 +76,7 @@ namespace Client.Tests.Inventory
 
         private ItemId ToolItemId()
         {
-            return MasterHolder.ItemMaster.GetItemId(MasterHolder.ToolMaster.All[0].ToolItemGuid);
+            return MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
         }
     }
 }

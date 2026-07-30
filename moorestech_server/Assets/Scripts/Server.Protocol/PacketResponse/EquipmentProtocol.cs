@@ -7,8 +7,8 @@ namespace Server.Protocol.PacketResponse
 {
     /// <summary>
     ///     装備インベントリを操作するプロトコル
-    ///     操作結果はEquipmentUpdateEventPacketのイベントで返るため応答は返さない。
-    ///     Protocol that mutates the equipment inventory; results come back through the equipment update event instead of a response.
+    ///     操作結果は選択イベントで返し、直接応答しない。
+    ///     Results arrive via the selected-index event; no direct response.
     /// </summary>
     public class EquipmentProtocol : IPacketResponse
     {

@@ -3,6 +3,8 @@ using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Game.Actions;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
 
 namespace Client.Tests.WebUi
 {
@@ -11,7 +13,13 @@ namespace Client.Tests.WebUi
         // 研究拡張後の54スロットで検証し、固定45スロット仮定が残っていないことを確認する
         // Verify against 54 slots (post research-expansion) to confirm no fixed 45-slot assumption remains
         private const int MainSlotCount = 54;
-        private const int EquipmentSlotCount = 3;
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+        }
 
         [Test]
         public void SplitDragCountUsesHostGrabAndDestinationCount()
@@ -66,7 +74,7 @@ namespace Client.Tests.WebUi
         [TestCase(@"{""area"":""equipment"",""slot"":2}", LocalMoveInventoryType.Equipment, 2)]
         public void TryParseClickableSlotRefAcceptsClickableSlots(string json, LocalMoveInventoryType expectedType, int expectedSlot)
         {
-            var ok = InventoryAreaMapper.TryParseClickableSlotRef(JToken.Parse(json), MainSlotCount, EquipmentSlotCount, out var type, out var slot);
+            var ok = InventoryAreaMapper.TryParseClickableSlotRef(JToken.Parse(json), MainSlotCount, out var type, out var slot);
             Assert.IsTrue(ok);
             Assert.AreEqual(expectedType, type);
             Assert.AreEqual(expectedSlot, slot);
@@ -82,7 +90,7 @@ namespace Client.Tests.WebUi
         [TestCase(@"null")]
         public void TryParseClickableSlotRefRejectsNonClickable(string json)
         {
-            var ok = InventoryAreaMapper.TryParseClickableSlotRef(JToken.Parse(json), MainSlotCount, EquipmentSlotCount, out _, out _);
+            var ok = InventoryAreaMapper.TryParseClickableSlotRef(JToken.Parse(json), MainSlotCount, out _, out _);
             Assert.IsFalse(ok);
         }
     }

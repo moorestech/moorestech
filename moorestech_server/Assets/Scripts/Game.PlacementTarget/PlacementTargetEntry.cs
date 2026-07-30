@@ -6,13 +6,13 @@ namespace Game.PlacementTarget
     {
         public readonly Guid Id;
         public readonly PlacementTargetKind Kind;
-        public readonly string DisplayName;
+        public readonly string MasterDisplayName;
 
-        public PlacementTargetEntry(Guid id, PlacementTargetKind kind, string displayName)
+        public PlacementTargetEntry(Guid id, PlacementTargetKind kind, string masterDisplayName)
         {
             Id = id;
             Kind = kind;
-            DisplayName = displayName;
+            MasterDisplayName = masterDisplayName;
         }
     }
 }

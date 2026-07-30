@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
@@ -17,6 +18,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
     public class EquipmentUpdateEventTest
     {
         private const int PlayerId = 0;
+        private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         [Test]
         public void 装備変更と選択変更がイベントで飛ぶ()
@@ -25,27 +27,45 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             var equipmentInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).EquipmentInventory;
 
-            // 装備スロットへの書き込みはslot種別のイベントとして飛ぶ
-            // Writing into an equipment slot dispatches a slot-typed event
+            // 装備書込みはスロット専用イベント
+            // Equipment writes use the slot event
             equipmentInventory.SetItem(1, ToolItemId(), 1);
 
-            var slotEvents = TakeEquipmentEvents(sink);
+            var slotEvents = TakeSlotEvents(sink);
             Assert.AreEqual(1, slotEvents.Count);
-            Assert.AreEqual(EquipmentUpdateEventMessagePack.SlotEventType, slotEvents[0].EventType);
             Assert.AreEqual(1, slotEvents[0].Slot);
             Assert.AreEqual(ToolItemId(), slotEvents[0].Item.Id);
             Assert.AreEqual(1, slotEvents[0].Item.Count);
 
-            // プロトコル経由の選択変更はサーバ状態とselected種別のイベントに反映される
-            // Selecting through the protocol updates server state and dispatches a selected-typed event
+            // 選択変更はサーバーと専用イベントへ反映
+            // Selection updates server state and its dedicated event
             var request = MessagePackSerializer.Serialize(EquipmentProtocolMessagePack.CreateSetSelectedIndexRequest(PlayerId, 2));
             packet.GetPacketResponse(request, new PacketResponseContext(null));
 
             Assert.AreEqual(2, equipmentInventory.SelectedEquipmentIndex);
-            var selectedEvents = TakeEquipmentEvents(sink);
+            var selectedEvents = TakeSelectedIndexEvents(sink);
             Assert.AreEqual(1, selectedEvents.Count);
-            Assert.AreEqual(EquipmentUpdateEventMessagePack.SelectedEventType, selectedEvents[0].EventType);
             Assert.AreEqual(2, selectedEvents[0].SelectedIndex);
+
+            #region Internal
+
+            List<EquipmentSlotUpdateEventMessagePack> TakeSlotEvents(CapturedEventSink eventSink)
+            {
+                return eventSink.TakeAll()
+                    .Where(capturedEvent => capturedEvent.Tag == EquipmentSlotUpdateEventPacket.EventTag)
+                    .Select(capturedEvent => MessagePackSerializer.Deserialize<EquipmentSlotUpdateEventMessagePack>(capturedEvent.Payload))
+                    .ToList();
+            }
+
+            List<EquipmentSelectedIndexUpdateEventMessagePack> TakeSelectedIndexEvents(CapturedEventSink eventSink)
+            {
+                return eventSink.TakeAll()
+                    .Where(capturedEvent => capturedEvent.Tag == EquipmentSelectedIndexUpdateEventPacket.EventTag)
+                    .Select(capturedEvent => MessagePackSerializer.Deserialize<EquipmentSelectedIndexUpdateEventMessagePack>(capturedEvent.Payload))
+                    .ToList();
+            }
+
+            #endregion
         }
 
         [Test]
@@ -69,17 +89,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(1, response.SelectedEquipmentIndex);
         }
 
-        private List<EquipmentUpdateEventMessagePack> TakeEquipmentEvents(CapturedEventSink sink)
-        {
-            return sink.TakeAll()
-                .Where(capturedEvent => capturedEvent.Tag == EquipmentUpdateEventPacket.EventTag)
-                .Select(capturedEvent => MessagePackSerializer.Deserialize<EquipmentUpdateEventMessagePack>(capturedEvent.Payload))
-                .ToList();
-        }
-
         private ItemId ToolItemId()
         {
-            return MasterHolder.ItemMaster.GetItemId(MasterHolder.ToolMaster.All[0].ToolItemGuid);
+            return MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
         }
     }
 }

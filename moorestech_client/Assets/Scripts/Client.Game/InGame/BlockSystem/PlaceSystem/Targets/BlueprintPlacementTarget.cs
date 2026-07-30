@@ -1,4 +1,5 @@
 using System;
+using Game.PlacementTarget;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -10,6 +11,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         public readonly string DisplayName;
 
         public Guid Id => BlueprintGuid;
+        public PlacementTargetKind Kind => PlacementTargetKind.Blueprint;
 
         public BlueprintPlacementTarget(Guid blueprintGuid, string displayName)
         {

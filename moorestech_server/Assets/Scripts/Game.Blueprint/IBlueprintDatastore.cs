@@ -7,8 +7,8 @@ namespace Game.Blueprint
     {
         IReadOnlyList<BlueprintJsonObject> Blueprints { get; }
 
-        // 名前は加工せず登録し、発行したGuidを返す
-        // Registers without renaming and returns the issued GUID
+        // 名前と生成済みGuidを加工せず登録する
+        // Registers without changing the name or the pre-generated GUID
         Guid Register(BlueprintJsonObject blueprint);
         bool Delete(Guid blueprintGuid);
         bool TryGet(Guid blueprintGuid, out BlueprintJsonObject blueprint);

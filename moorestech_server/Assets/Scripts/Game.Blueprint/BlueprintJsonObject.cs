@@ -20,15 +20,11 @@ namespace Game.Blueprint
             Blocks = new List<BlueprintBlockJsonObject>();
         }
 
-        public BlueprintJsonObject(string name, List<BlueprintBlockJsonObject> blocks)
+        public BlueprintJsonObject(string name, List<BlueprintBlockJsonObject> blocks, Guid blueprintGuid)
         {
             Name = name;
             Blocks = blocks;
-        }
-
-        public void SetBlueprintGuid(Guid guid)
-        {
-            BlueprintGuidStr = guid.ToString();
+            BlueprintGuidStr = blueprintGuid.ToString();
         }
     }
 

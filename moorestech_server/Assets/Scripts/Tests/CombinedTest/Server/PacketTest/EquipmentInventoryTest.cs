@@ -21,8 +21,9 @@ namespace Tests.CombinedTest.Server.PacketTest
     {
         private const int PlayerId = 0;
 
-        // toolsに登録されていない通常アイテム(Test2)
-        // A plain item (Test2) that is not registered in tools
+        private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+        // 受入制限が無いことを検証する通常アイテム
+        // Plain item used to verify that no acceptance restriction exists
         private static readonly Guid NonToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000002");
 
         [Test]
@@ -104,7 +105,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             equipmentInventory.SetSelectedEquipmentIndex(99);
             Assert.AreEqual(equipmentInventory.GetSlotSize() - 1, equipmentInventory.SelectedEquipmentIndex);
             equipmentInventory.SetSelectedEquipmentIndex(-5);
-            Assert.AreEqual(-1, equipmentInventory.SelectedEquipmentIndex);
+            Assert.AreEqual(IEquipmentInventory.BareHandsIndex, equipmentInventory.SelectedEquipmentIndex);
 
             // 素手のときは空スタック、装備スロット選択時はそのアイテムを返す
             // Bare hands returns an empty stack while a selected slot returns its item
@@ -129,7 +130,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private ItemId ToolItemId()
         {
-            return MasterHolder.ItemMaster.GetItemId(MasterHolder.ToolMaster.All[0].ToolItemGuid);
+            return MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
         }
 
         private ItemId NonToolItemId()

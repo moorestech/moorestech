@@ -1,6 +1,6 @@
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.Inventory.Equipment;
-using Core.Master;
+using Game.Map;
 using Mooresmaster.Model.MapModule;
 
 namespace Client.Game.InGame.Mining
@@ -27,15 +27,9 @@ namespace Client.Game.InGame.Mining
         public MiningToolsElement ResolveUsableTool(MiningToolsElement[] miningTools)
         {
             var equippedItemId = LocalPlayerEquipment.SelectedItem.Id;
-            if (equippedItemId == ItemMaster.EmptyItemId) return null;
-
-            var equippedItemGuid = MasterHolder.ItemMaster.GetItemMaster(equippedItemId).ItemGuid;
-            foreach (var miningTool in miningTools)
-            {
-                if (miningTool.ToolItemGuid == equippedItemGuid) return miningTool;
-            }
-
-            return null;
+            return MapObjectMiningService.TryResolveUsableTool(equippedItemId, miningTools, out var usableTool)
+                ? usableTool
+                : null;
         }
 
         public void SetFocusMapObjectGameObject(MapObjectGameObject mapObjectGameObject)

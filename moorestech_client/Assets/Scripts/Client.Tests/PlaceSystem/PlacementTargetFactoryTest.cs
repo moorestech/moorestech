@@ -18,7 +18,7 @@ namespace Client.Tests.PlaceSystem
         }
 
         [Test]
-        public void TryCreateはKindごとに対応する型とIdを持つターゲットを生成する()
+        public void CreateはKindごとに対応する型とIdを持つターゲットを生成する()
         {
             // Block以外はEntry.Idを直接ターゲットのIdへ引き継ぐ想定の型・値を検証する
             // For non-Block kinds, assert the type produced and that entry.Id passes through unchanged
@@ -34,9 +34,10 @@ namespace Client.Tests.PlaceSystem
             void AssertCreated(PlacementTargetKind kind, Guid id, Type expectedTargetType)
             {
                 var entry = new PlacementTargetEntry(id, kind, "placement-target-factory-test");
-                Assert.IsTrue(PlacementTargetFactory.TryCreate(entry, out var target), $"{kind} should resolve to a target");
+                var target = PlacementTargetFactory.Create(entry);
                 Assert.IsInstanceOf(expectedTargetType, target, $"{kind} should resolve to {expectedTargetType.Name}");
                 Assert.AreEqual(id, target.Id, $"{kind} target id should round-trip from entry.Id");
+                Assert.AreEqual(kind, target.Kind, $"{kind} target should carry its catalog kind");
             }
 
             #endregion

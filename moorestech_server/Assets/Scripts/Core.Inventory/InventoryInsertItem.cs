@@ -18,7 +18,12 @@ namespace Core.Inventory
         /// <param name="option">挿入時のオプション</param>
         /// <param name="onSlotUpdate">挿入後発火したいイベント</param>
         /// <returns>余ったアイテム</returns>
-        internal static List<IItemStack> InsertItem(List<IItemStack> insertItemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, OpenableInventoryItemDataStoreServiceOption option, Action<int> onSlotUpdate = null)
+        internal static List<IItemStack> InsertItem(List<IItemStack> insertItemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, OpenableInventoryItemDataStoreServiceOption option)
+        {
+            return InsertItem(insertItemStack, inventoryItems, itemStackFactory, option, null);
+        }
+
+        internal static List<IItemStack> InsertItem(List<IItemStack> insertItemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, OpenableInventoryItemDataStoreServiceOption option, Action<int> onSlotUpdate)
         {
             var reminderItemStacks = new List<IItemStack>();
 
@@ -43,7 +48,12 @@ namespace Core.Inventory
         /// <param name="option">挿入時のオプション</param>
         /// <param name="onSlotUpdate">挿入後発火したいイベント</param>
         /// <returns>余ったアイテム</returns>
-        internal static IItemStack InsertItem(IItemStack insertItemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, OpenableInventoryItemDataStoreServiceOption option, Action<int> onSlotUpdate = null)
+        internal static IItemStack InsertItem(IItemStack insertItemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, OpenableInventoryItemDataStoreServiceOption option)
+        {
+            return InsertItem(insertItemStack, inventoryItems, itemStackFactory, option, null);
+        }
+
+        internal static IItemStack InsertItem(IItemStack insertItemStack, List<IItemStack> inventoryItems, IItemStackFactory itemStackFactory, OpenableInventoryItemDataStoreServiceOption option, Action<int> onSlotUpdate)
         {
             // AllowMultipleStacksPerItemOnInsert = trueの場合は通常通り挿入
             if (option.AllowMultipleStacksPerItemOnInsert)

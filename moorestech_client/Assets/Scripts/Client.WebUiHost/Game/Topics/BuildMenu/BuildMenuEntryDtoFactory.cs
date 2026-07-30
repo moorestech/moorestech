@@ -24,7 +24,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 dtos.Add(new BuildMenuEntryDto
                 {
                     Id = GetId(entry.Target),
-                    Kind = GetKind(entry.Kind),
+                    Kind = GetKind(entry.Target.Kind),
                     Label = entry.Label,
                     Category = entry.Category,
                     SubCategory = entry.SubCategory,
@@ -60,20 +60,32 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
             string CreateIconUrl(IPlacementTarget target)
             {
-                switch (target)
+                switch (target.Kind)
                 {
-                    case BlockPlacementTarget block:
+                    case PlacementTargetKind.Block:
+                    {
+                        var block = (BlockPlacementTarget)target;
                         // block-icons はblock inventoryトピックのBlockIconと共有するため揮発BlockIdのまま（Guid化はplan Aのスコープ外）
                         // block-icons is shared with the block inventory topic's BlockIcon, so it stays volatile BlockId (GUID conversion is out of plan A's scope)
                         return $"{BlockIconEndpoint.PathPrefix}{block.BlockId.AsPrimitive()}{BlockIconEndpoint.PathSuffix}";
-                    case TrainCarPlacementTarget trainCar:
+                    }
+                    case PlacementTargetKind.TrainCar:
+                    {
+                        var trainCar = (TrainCarPlacementTarget)target;
                         return $"{TrainCarIconEndpoint.PathPrefix}{trainCar.TrainCarGuid}{TrainCarIconEndpoint.PathSuffix}";
-                    case ConnectToolPlacementTarget connectTool:
+                    }
+                    case PlacementTargetKind.ConnectTool:
+                    {
+                        var connectTool = (ConnectToolPlacementTarget)target;
                         // 接続ツールのアイコンはconnectToolのimagePathから配信する
                         // The connect tool icon is served from the connectTool's imagePath
                         return $"{ConnectToolIconEndpoint.PathPrefix}{connectTool.ConnectToolGuid}{ConnectToolIconEndpoint.PathSuffix}";
-                    default:
+                    }
+                    case PlacementTargetKind.BuildTool:
+                    case PlacementTargetKind.Blueprint:
                         return null;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(target.Kind), target.Kind, null);
                 }
             }
 

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Core.Master;
-using Game.PlacementTarget;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
 {
@@ -12,16 +11,14 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     public readonly struct WebBuildMenuEntry
     {
         public readonly IPlacementTarget Target;
-        public readonly PlacementTargetKind Kind;
         public readonly string Label;
         public readonly string Category;
         public readonly string SubCategory;
         public readonly IReadOnlyList<RequiredItem> RequiredItems;
 
-        public WebBuildMenuEntry(IPlacementTarget target, PlacementTargetKind kind, string label, string category, string subCategory, IReadOnlyList<RequiredItem> requiredItems)
+        public WebBuildMenuEntry(IPlacementTarget target, string label, string category, string subCategory, IReadOnlyList<RequiredItem> requiredItems)
         {
             Target = target;
-            Kind = kind;
             Label = label;
             Category = category;
             SubCategory = subCategory;

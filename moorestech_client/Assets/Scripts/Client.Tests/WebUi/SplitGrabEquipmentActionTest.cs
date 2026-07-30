@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.WebUiHost.Game.Actions;
@@ -17,6 +18,7 @@ namespace Client.Tests.WebUi
     public class SplitGrabEquipmentActionTest
     {
         private const int EquipmentSlot = 1;
+        private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         [Test]
         public void 装備枠の空スロットはinvalid_slotではなくempty_slotになる()
@@ -73,12 +75,12 @@ namespace Client.Tests.WebUi
 
             var equipment = new LocalPlayerEquipment();
             var controller = new LocalPlayerInventoryController(new LocalPlayerInventory(), equipment);
-            return (new SplitGrabActionHandler(controller, equipment), controller, equipment);
+            return (new SplitGrabActionHandler(controller), controller, equipment);
         }
 
         private ItemId ToolItemId()
         {
-            return MasterHolder.ItemMaster.GetItemId(MasterHolder.ToolMaster.All[0].ToolItemGuid);
+            return MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
         }
     }
 }

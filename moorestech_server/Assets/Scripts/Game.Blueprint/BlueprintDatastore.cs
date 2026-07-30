@@ -1,29 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.PlacementTarget;
 
 namespace Game.Blueprint
 {
-    public class BlueprintDatastore : IBlueprintDatastore, IBlueprintCatalogSource
+    public class BlueprintDatastore : IBlueprintDatastore
     {
         private readonly List<BlueprintJsonObject> _blueprints = new();
 
         public IReadOnlyList<BlueprintJsonObject> Blueprints => _blueprints;
 
-        // PlacementTargetCatalogへブループリントを供給する
-        // Supplies blueprints to PlacementTargetCatalog
-        public IReadOnlyList<(Guid id, string name)> BlueprintEntries =>
-            _blueprints.Select(b => (b.BlueprintGuid, b.Name)).ToList();
-
         public Guid Register(BlueprintJsonObject blueprint)
         {
-            // 名前は加工せずGuidを発行して登録する
-            // Register without renaming; issue a GUID as the identity
-            var guid = Guid.NewGuid();
-            blueprint.SetBlueprintGuid(guid);
+            // 識別子は生成時に確定済みのため、登録では加工しない
+            // The identity is fixed at creation time, so registration does not mutate it
             _blueprints.Add(blueprint);
-            return guid;
+            return blueprint.BlueprintGuid;
         }
 
         public bool Delete(Guid blueprintGuid)
@@ -49,13 +41,6 @@ namespace Game.Blueprint
         {
             _blueprints.Clear();
             _blueprints.AddRange(blueprints);
-
-            // 旧セーブ（Guid未発行）を読み込み時に補完する。ユーザー生成データの欠損補完である
-            // Backfill legacy saves lacking a GUID at load time; this is user-data completion
-            foreach (var blueprint in _blueprints)
-            {
-                if (blueprint.BlueprintGuid == Guid.Empty) blueprint.SetBlueprintGuid(Guid.NewGuid());
-            }
         }
     }
 }

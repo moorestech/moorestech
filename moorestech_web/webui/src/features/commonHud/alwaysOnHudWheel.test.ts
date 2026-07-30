@@ -12,6 +12,8 @@ const passiveHuds: [string, string, string][] = [
   ["削除モード警告", "../modeHud/style.module.css", ".deleteModeWarning"],
   ["列車搭乗", "../trainHud/style.module.css", ".hud"],
   ["ホットバー帯", "../inventory/HotbarPanel/style.module.css", ".hotbarArea"],
+  ["進捗バー", "../progress/style.module.css", ".wrapper"],
+  ["カーソルツールチップ", "../../shared/tooltip/style.module.css", ".tooltip"],
 ];
 
 describe("always-on HUD wheel contract", () => {

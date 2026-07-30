@@ -7,7 +7,6 @@ using Game.Context;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -18,8 +17,9 @@ namespace Tests.CombinedTest.Game
     {
         private const int PlayerId = 0;
 
-        // toolsに登録されていない通常アイテム(Test2)
-        // A plain item (Test2) that is not registered in tools
+        private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+        // 受入制限が無いことを検証する通常アイテム
+        // Plain item used to verify that no acceptance restriction exists
         private static readonly Guid NonToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000002");
 
         [Test]
@@ -40,33 +40,6 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(ToolItemId(), loadedEquipment.GetItem(1).Id);
             Assert.AreEqual(1, loadedEquipment.GetItem(1).Count);
             Assert.AreEqual(2, loadedEquipment.SelectedEquipmentIndex);
-        }
-
-        [Test]
-        public void 装備フィールドの無い旧セーブは空装備で開始する()
-        {
-            var saveStore = CreateInventoryDataStore();
-            saveStore.GetInventoryData(PlayerId).EquipmentInventory.SetItem(0, ToolItemId(), 1);
-
-            // 装備フィールドを取り除いて旧セーブを再現する
-            // Reproduce a legacy save by stripping the equipment fields
-            var savedJson = JArray.FromObject(saveStore.GetSaveJsonObject());
-            foreach (var playerSave in savedJson.Children<JObject>())
-            {
-                playerSave.Remove("EquipmentInventoryItems");
-                playerSave.Remove("SelectedEquipmentIndex");
-            }
-
-            var loadStore = CreateInventoryDataStore();
-            loadStore.LoadPlayerInventory(savedJson.ToObject<List<PlayerInventorySaveJsonObject>>());
-
-            var loadedEquipment = loadStore.GetInventoryData(PlayerId).EquipmentInventory;
-            Assert.AreEqual(MasterHolder.ToolMaster.EquipmentSlotCount, loadedEquipment.GetSlotSize());
-            for (var slot = 0; slot < loadedEquipment.GetSlotSize(); slot++)
-            {
-                Assert.AreEqual(0, loadedEquipment.GetItem(slot).Count);
-            }
-            Assert.AreEqual(0, loadedEquipment.SelectedEquipmentIndex);
         }
 
         [Test]
@@ -194,7 +167,7 @@ namespace Tests.CombinedTest.Game
 
         private ItemId ToolItemId()
         {
-            return MasterHolder.ItemMaster.GetItemId(MasterHolder.ToolMaster.All[0].ToolItemGuid);
+            return MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
         }
 
         private ItemId NonToolItemId()

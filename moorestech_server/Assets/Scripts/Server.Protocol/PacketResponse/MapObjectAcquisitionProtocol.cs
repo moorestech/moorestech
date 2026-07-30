@@ -8,6 +8,7 @@ using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event.EventReceive;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -52,7 +53,20 @@ namespace Server.Protocol.PacketResponse
             }
             else
             {
-                if (!_mapObjectMiningService.TryAttack(data.PlayerId, mapObject, equippedItem, out earnedItems)) return null;
+                var result = _mapObjectMiningService.TryAttack(data.PlayerId, mapObject, equippedItem, out earnedItems);
+                switch (result)
+                {
+                    case MiningAttackResult.Success:
+                        break;
+                    case MiningAttackResult.AlreadyDestroyed:
+                    case MiningAttackResult.NoTool:
+                    case MiningAttackResult.ToolMismatch:
+                    case MiningAttackResult.CooldownNotElapsed:
+                        Debug.Log($"Mining attack rejected. playerId:{data.PlayerId} instanceId:{data.InstanceId} result:{result}");
+                        return null;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(result), result, null);
+                }
             }
 
             // HP更新イベントを送信（破壊されていない場合のみ）

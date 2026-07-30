@@ -30,12 +30,12 @@ export default function GrabOverlay() {
   // 掴んでいる間だけ mousemove 追従。掴んだ瞬間は描画前に mousedown 座標へ同期する（stale座標の一瞬表示を防ぐ）
   // Follow mousemove only while held; sync to the mousedown position before paint when a grab starts
   useLayoutEffect(() => {
-    if (!grab || grab.count === 0) return;
+    if (!grabInteractive || !grab || grab.count === 0) return;
     setMousePos(lastPointerDown);
     const onMove = (e: globalThis.MouseEvent) => setMousePos({ x: e.clientX, y: e.clientY });
     window.addEventListener("mousemove", onMove);
     return () => window.removeEventListener("mousemove", onMove);
-  }, [grab?.count]);
+  }, [grab?.count, grabInteractive]);
 
   if (!grabInteractive || !grab || grab.count === 0) return null;
 

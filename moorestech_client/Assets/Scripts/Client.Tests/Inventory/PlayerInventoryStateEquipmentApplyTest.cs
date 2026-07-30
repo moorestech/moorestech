@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Client.Game.InGame.UI.Inventory.Equipment;
@@ -27,6 +28,7 @@ namespace Client.Tests.Inventory
         // 装備モデルの初期値は素手(-1)なので、それと区別できるスロットを選んでおく
         // The equipment model starts at bare hands (-1), so pick a slot that is distinguishable from it
         private const int SelectedSlot = 1;
+        private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         private readonly List<GameObject> _createdObjects = new();
 
@@ -42,7 +44,7 @@ namespace Client.Tests.Inventory
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            var toolItemId = MasterHolder.ItemMaster.GetItemId(MasterHolder.ToolMaster.All[0].ToolItemGuid);
+            var toolItemId = MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
             var equipment = new LocalPlayerEquipment();
 
             // 装備スロット0に工具、選択はスロット1という初期値と異なる状態を応答に載せる
@@ -52,56 +54,62 @@ namespace Client.Tests.Inventory
 
             Assert.AreEqual(toolItemId, equipment.Slots[0].Id);
             Assert.AreEqual(SelectedSlot, equipment.SelectedIndex);
-        }
 
-        private InitialHandshakeResponse CreateHandshakeResponse(ItemId toolItemId)
-        {
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            var equipmentSlots = new List<IItemStack> { itemStackFactory.Create(toolItemId, 1), itemStackFactory.CreatEmpty() };
-            var inventory = new PlayerInventoryResponse(new List<IItemStack>(), itemStackFactory.CreatEmpty(), equipmentSlots, SelectedSlot);
+            #region Internal
 
-            // InitialHandshakeResponseが読むのはPlayerPos/RidingTarget/RidingSeatIndexだけなので、座標以外は既定値のまま渡す
-            // InitialHandshakeResponse only reads PlayerPos, RidingTarget and RidingSeatIndex, so everything but the position stays default
-#pragma warning disable CS0618
-            var initialHandshake = new global::Server.Protocol.PacketResponse.InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack
+            InitialHandshakeResponse CreateHandshakeResponse(ItemId itemId)
             {
-                PlayerPos = new Vector3MessagePack(Vector3.zero),
-            };
+                var itemStackFactory = ServerContext.ItemStackFactory;
+                var equipmentSlots = new List<IItemStack> { itemStackFactory.Create(itemId, 1), itemStackFactory.CreatEmpty() };
+                var inventory = new PlayerInventoryResponse(new List<IItemStack>(), itemStackFactory.CreatEmpty(), equipmentSlots, SelectedSlot);
+
+                // Handshake使用項目だけを設定
+                // Set only fields consumed by the handshake
+#pragma warning disable CS0618
+                var initialHandshake = new global::Server.Protocol.PacketResponse.InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack
+                {
+                    PlayerPos = new Vector3MessagePack(Vector3.zero),
+                };
 #pragma warning restore CS0618
 
-            return new InitialHandshakeResponse(initialHandshake, (null, null, inventory, null, null, null, null, null));
-        }
+                return new InitialHandshakeResponse(initialHandshake, (null, null, inventory, null, null, null, null, null));
+            }
 
-        private void CreatePlayerInventoryState(LocalPlayerEquipment equipment, InitialHandshakeResponse handshake)
-        {
-            // uGUIビューはSetActiveしか呼ばれないため、参照先だけ埋めた最小の実体を渡す
-            // The uGUI views only receive SetActive, so pass minimal instances with just their references filled
-            var recipeViewerView = CreateComponent<RecipeViewerView>("RecipeViewer");
-            var viewController = CreateComponent<PlayerInventoryViewController>("PlayerInventoryView");
-            SetPrivateField(viewController, "mainInventoryObject", CreateObject("MainInventory"));
-            SetPrivateField(viewController, "subInventoryParent", CreateObject("SubInventoryParent").transform);
+            void CreatePlayerInventoryState(LocalPlayerEquipment playerEquipment, InitialHandshakeResponse initialHandshake)
+            {
+                // uGUIビューはSetActiveしか呼ばれないため最小の実体を渡す
+                // The uGUI views only receive SetActive, so pass minimal instances
+                var recipeViewerView = CreateComponent<RecipeViewerView>("RecipeViewer");
+                var viewController = CreateComponent<PlayerInventoryViewController>("PlayerInventoryView");
+                SetPrivateField(viewController, "mainInventoryObject", CreateObject("MainInventory"));
+                SetPrivateField(viewController, "subInventoryParent", CreateObject("SubInventoryParent").transform);
 
-            new PlayerInventoryState(recipeViewerView, viewController, new LocalPlayerInventoryController(new LocalPlayerInventory(), equipment), equipment, handshake);
-        }
+                new PlayerInventoryState(recipeViewerView, viewController,
+                    new LocalPlayerInventoryController(new LocalPlayerInventory(), playerEquipment),
+                    playerEquipment, initialHandshake);
+            }
 
-        private T CreateComponent<T>(string name) where T : Component
-        {
-            return CreateObject(name).AddComponent<T>();
-        }
+            T CreateComponent<T>(string name) where T : Component
+            {
+                return CreateObject(name).AddComponent<T>();
+            }
 
-        private GameObject CreateObject(string name)
-        {
-            var gameObject = new GameObject(name);
-            gameObject.SetActive(false);
-            _createdObjects.Add(gameObject);
-            return gameObject;
-        }
+            GameObject CreateObject(string name)
+            {
+                var gameObject = new GameObject(name);
+                gameObject.SetActive(false);
+                _createdObjects.Add(gameObject);
+                return gameObject;
+            }
 
-        private static void SetPrivateField(object target, string fieldName, object value)
-        {
-            var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.NotNull(field, $"field not found: {fieldName}");
-            field.SetValue(target, value);
+            void SetPrivateField(object target, string fieldName, object value)
+            {
+                var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.NotNull(field, $"field not found: {fieldName}");
+                field.SetValue(target, value);
+            }
+
+            #endregion
         }
     }
 }

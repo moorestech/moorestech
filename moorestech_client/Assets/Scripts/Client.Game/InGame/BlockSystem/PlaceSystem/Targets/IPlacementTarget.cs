@@ -1,4 +1,5 @@
 using System;
+using Game.PlacementTarget;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -11,5 +12,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         // 設置対象ID。種別を問わずGuid1本で識別する
         // Placement target id: a single GUID regardless of kind
         Guid Id { get; }
+        PlacementTargetKind Kind { get; }
     }
 }

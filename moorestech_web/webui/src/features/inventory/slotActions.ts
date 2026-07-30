@@ -12,8 +12,8 @@ import { SplitDragSession } from "./splitDrag";
 const splitDrag = new SplitDragSession((slots) => void dispatchAction("inventory.split_drag", { slots }));
 if (typeof window !== "undefined") window.addEventListener("mouseup", () => splitDrag.end());
 
-// プレイヤースロット共通のクリック操作。InventoryPanel と HotbarPanel が共用する
-// Player-slot click interactions shared by InventoryPanel and HotbarPanel
+// 3パネル共通のスロット操作
+// Slot actions shared by all three panels
 export type SlotActions = {
   onLeftDown: (ref: SlotRef, shiftKey: boolean) => void;
   onRightDown: (ref: SlotRef) => void;

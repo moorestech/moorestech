@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.PlayerInventory.Interface;
@@ -12,6 +13,7 @@ namespace Tests.CombinedTest.Game
     public class EquipmentInventoryEventTest
     {
         private const int PlayerId = 0;
+        private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         [Test]
         public void スロット更新でインベントリ更新イベントが発火する()
@@ -39,7 +41,7 @@ namespace Tests.CombinedTest.Game
 
             var equipmentInventory = inventoryDataStore.GetInventoryData(PlayerId).EquipmentInventory;
             equipmentInventory.SetSelectedEquipmentIndex(1);
-            equipmentInventory.SetSelectedEquipmentIndex(-1);
+            equipmentInventory.SetSelectedEquipmentIndex(IEquipmentInventory.BareHandsIndex);
 
             Assert.AreEqual(2, updatedProperties.Count);
             Assert.AreEqual(PlayerId, updatedProperties[0].PlayerId);
@@ -47,11 +49,11 @@ namespace Tests.CombinedTest.Game
 
             // 素手やクランプ後の値もそのまま通知される
             // Bare hands and clamped values are notified as they are
-            Assert.AreEqual(-1, updatedProperties[1].SelectedEquipmentIndex);
+            Assert.AreEqual(IEquipmentInventory.BareHandsIndex, updatedProperties[1].SelectedEquipmentIndex);
         }
 
         [Test]
-        public void 同じ選択インデックスを再設定しても発火しない()
+        public void 同じ選択インデックスもサーバー確定値として毎回発火する()
         {
             var (inventoryDataStore, updateEvent) = CreateInventoryDataStoreWithEvent();
             var updateCount = 0;
@@ -60,13 +62,13 @@ namespace Tests.CombinedTest.Game
             var equipmentInventory = inventoryDataStore.GetInventoryData(PlayerId).EquipmentInventory;
             equipmentInventory.SetSelectedEquipmentIndex(1);
             equipmentInventory.SetSelectedEquipmentIndex(1);
-            Assert.AreEqual(1, updateCount);
+            Assert.AreEqual(2, updateCount);
 
-            // クランプ後に同値となる指定も変化なしとして扱う
-            // Indexes that become the same value after clamping also count as no change
+            // クランプ後に同値となる要求にも、確定値を毎回エコーする
+            // Requests clamped to the same value still receive the authoritative echo
             equipmentInventory.SetSelectedEquipmentIndex(99);
             equipmentInventory.SetSelectedEquipmentIndex(MasterHolder.ToolMaster.EquipmentSlotCount + 5);
-            Assert.AreEqual(2, updateCount);
+            Assert.AreEqual(4, updateCount);
         }
 
         [Test]
@@ -103,7 +105,7 @@ namespace Tests.CombinedTest.Game
 
         private ItemId ToolItemId()
         {
-            return MasterHolder.ItemMaster.GetItemId(MasterHolder.ToolMaster.All[0].ToolItemGuid);
+            return MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
         }
     }
 }

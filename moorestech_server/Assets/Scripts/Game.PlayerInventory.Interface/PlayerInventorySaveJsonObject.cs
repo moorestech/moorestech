@@ -57,15 +57,10 @@ namespace Game.PlayerInventory.Interface
             }
             var grabItem = GrabInventoryItem.ToItemStack();
 
-            // 装備フィールドの無い旧セーブは空装備として扱う
-            // Legacy saves without the equipment fields start with empty equipment
             var equipmentItems = new List<IItemStack>();
-            if (EquipmentInventoryItems != null)
+            foreach (var items in EquipmentInventoryItems)
             {
-                foreach (var items in EquipmentInventoryItems)
-                {
-                    equipmentItems.Add(items.ToItemStack());
-                }
+                equipmentItems.Add(items.ToItemStack());
             }
 
             return (mainItemStack, grabItem, equipmentItems, SelectedEquipmentIndex);

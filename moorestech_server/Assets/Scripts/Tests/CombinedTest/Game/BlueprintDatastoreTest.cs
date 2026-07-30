@@ -13,7 +13,7 @@ namespace Tests.CombinedTest.Game
     public class BlueprintDatastoreTest
     {
         [Test]
-        public void RegisterIssuesDistinctGuidsWithoutRenamingTest()
+        public void RegisterKeepsPreGeneratedGuidsWithoutRenamingTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Game
             BlueprintJsonObject CreateBlueprint(string name)
             {
                 var block = new BlueprintBlockJsonObject(Vector3Int.zero, Guid.NewGuid().ToString(), 0, new Dictionary<string, string>());
-                return new BlueprintJsonObject(name, new List<BlueprintBlockJsonObject> { block });
+                return new BlueprintJsonObject(name, new List<BlueprintBlockJsonObject> { block }, Guid.NewGuid());
             }
 
             #endregion
@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Game
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var datastore = serviceProvider.GetService<IBlueprintDatastore>();
 
-            var guid = datastore.Register(new BlueprintJsonObject("target", new List<BlueprintBlockJsonObject>()));
+            var guid = datastore.Register(new BlueprintJsonObject("target", new List<BlueprintBlockJsonObject>(), Guid.NewGuid()));
 
             Assert.IsTrue(datastore.Delete(guid));
             Assert.AreEqual(0, datastore.Blueprints.Count);
@@ -67,7 +67,7 @@ namespace Tests.CombinedTest.Game
 
             var settings = new Dictionary<string, string> { { "TestKey", "{\"a\":1}" } };
             var block = new BlueprintBlockJsonObject(new Vector3Int(1, 0, -2), System.Guid.NewGuid().ToString(), 3, settings);
-            datastore.Register(new BlueprintJsonObject("roundtrip", new List<BlueprintBlockJsonObject> { block }));
+            datastore.Register(new BlueprintJsonObject("roundtrip", new List<BlueprintBlockJsonObject> { block }, Guid.NewGuid()));
 
             // セーブJSONを別Datastoreへ復元し一致確認
             // Extract save JSON and restore into a fresh datastore
@@ -87,8 +87,7 @@ namespace Tests.CombinedTest.Game
         {
             // private setterのBlueprintGuidStrがNewtonsoft経由でも復元されるか検証する
             // Verify BlueprintGuidStr (a private setter) round-trips through Newtonsoft
-            var original = new BlueprintJsonObject("json-roundtrip", new List<BlueprintBlockJsonObject>());
-            original.SetBlueprintGuid(Guid.NewGuid());
+            var original = new BlueprintJsonObject("json-roundtrip", new List<BlueprintBlockJsonObject>(), Guid.NewGuid());
 
             var json = JsonConvert.SerializeObject(original);
             var restored = JsonConvert.DeserializeObject<BlueprintJsonObject>(json);

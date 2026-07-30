@@ -103,9 +103,7 @@ namespace Server.Protocol.PacketResponse
         // Converts back to the domain model used by paste calculation, preserving the GUID
         public BlueprintJsonObject ToJsonObject()
         {
-            var jsonObject = new BlueprintJsonObject(Name, Blocks.Select(b => b.ToJsonObject()).ToList());
-            jsonObject.SetBlueprintGuid(BlueprintGuid);
-            return jsonObject;
+            return new BlueprintJsonObject(Name, Blocks.Select(b => b.ToJsonObject()).ToList(), BlueprintGuid);
         }
     }
 

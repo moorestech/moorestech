@@ -1,4 +1,5 @@
 using System;
+using Game.PlacementTarget;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -9,6 +10,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         public readonly Guid ConnectToolGuid;
 
         public Guid Id => ConnectToolGuid;
+        public PlacementTargetKind Kind => PlacementTargetKind.ConnectTool;
 
         public ConnectToolPlacementTarget(Guid connectToolGuid)
         {

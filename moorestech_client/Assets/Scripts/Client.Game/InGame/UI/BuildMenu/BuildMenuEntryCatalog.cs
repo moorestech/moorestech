@@ -32,10 +32,9 @@ namespace Client.Game.InGame.UI.BuildMenu
 
             // 共有カタログの列挙順（ブロック→車両→接続ツール→ビルドツール→BP）がそのまま表示順
             // The shared catalog's order (blocks, train cars, connect tools, build tools, blueprints) is the display order
-            foreach (var entry in placementTargetCatalog.Entries)
+            foreach (var entry in placementTargetCatalog.UnlockedEntries(unlockState, showAllPlaceable))
             {
-                if (!PlacementTargetUnlockFilter.IsUnlocked(entry, unlockState, showAllPlaceable)) continue;
-                if (!PlacementTargetFactory.TryCreate(entry, out var target)) continue;
+                var target = PlacementTargetFactory.Create(entry);
                 entries.Add(CreateEntry(entry, target));
             }
 
@@ -66,13 +65,13 @@ namespace Client.Game.InGame.UI.BuildMenu
                         // 接続ツールのアイコンはconnectToolのimagePath由来
                         // The connect tool icon comes from the connectTool's imagePath
                         var iconView = ClientContext.ConnectToolImageContainer.GetConnectToolView(entry.Id);
-                        return new BuildMenuEntry(target, iconView, entry.DisplayName);
+                        return new BuildMenuEntry(target, iconView, entry.MasterDisplayName);
                     }
                     case PlacementTargetKind.BuildTool:
                     case PlacementTargetKind.Blueprint:
                         // ビルドツールとBPはアイコン無し（テキスト表示スロット）
                         // Build tools and blueprints have no icon and render as text-only slots
-                        return new BuildMenuEntry(target, null, entry.DisplayName);
+                        return new BuildMenuEntry(target, null, entry.MasterDisplayName);
                     default:
                         // 未知のKindは型で排除する到達不能ケース
                         // Unreachable: unknown Kind is excluded by the type

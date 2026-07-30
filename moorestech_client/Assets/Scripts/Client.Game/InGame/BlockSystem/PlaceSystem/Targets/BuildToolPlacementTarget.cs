@@ -1,4 +1,5 @@
 using System;
+using Game.PlacementTarget;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -7,6 +8,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         // 選択されたbuildToolのGuid。種別・表示名はマスタから解決する
         // Guid of the selected buildTool; type and display name are resolved from the master
         public Guid Id { get; }
+        public PlacementTargetKind Kind => PlacementTargetKind.BuildTool;
 
         public BuildToolPlacementTarget(Guid buildToolGuid)
         {

@@ -63,7 +63,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // プロトコル層を経由せず直接叩いてもサービス側のガードが両経路を弾く
             // Even called directly without the protocol layer, the service guard rejects both paths
             Assert.IsFalse(miningService.ForceDestroy(mapObject, out _));
-            Assert.IsFalse(miningService.TryAttack(PlayerId, mapObject, equippedItem, out _));
+            Assert.AreEqual(MiningAttackResult.AlreadyDestroyed,
+                miningService.TryAttack(PlayerId, mapObject, equippedItem, out _));
 
             // 破壊イベントは初回の1件だけ
             // Only the first destroy event exists

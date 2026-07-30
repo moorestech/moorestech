@@ -1,8 +1,8 @@
 // 装備選択の純粋ロジック。素手(-1)を含む循環移動とホイール量の累積を担う
 // Pure equipment-selection logic: circular cycling that includes bare hands (-1), plus wheel accumulation
 
-// 素手を表す選択インデックス。C# LocalPlayerEquipment.BareHandsIndex と同値
-// The selection index meaning bare hands; matches C# LocalPlayerEquipment.BareHandsIndex
+// C#の素手定数と同値
+// Matches the C# bare-hands constant
 export const BARE_HANDS_INDEX = -1;
 
 // -1..slotCount-1 を周期 slotCount+1 で循環させる（負の delta でも同じ環を逆走する）
