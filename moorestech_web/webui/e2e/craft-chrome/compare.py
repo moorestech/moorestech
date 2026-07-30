@@ -19,6 +19,7 @@ GRIP_BOTTOM_GAP = 19
 GEOMETRY_TOLERANCE = 1
 HAMMER_TOLERANCE = 2
 COLOR_TOLERANCE = 15
+FRAME_DARK_THRESHOLD = 70
 
 
 def detect_panel(image: np.ndarray) -> tuple[int, int, int, int]:
@@ -60,14 +61,38 @@ def detect_tab(image: np.ndarray, panel: tuple[int, int, int, int]) -> tuple[int
     return max(candidates, key=lambda item: item[4])[:4]
 
 
+def detect_frame(dark: np.ndarray) -> np.ndarray:
+    frame = np.zeros(dark.shape, dtype=bool)
+    edge = np.zeros(dark.shape, dtype=bool)
+    edge[-1, :], edge[:, -1] = True, True
+    stack = [(int(y), int(x)) for y, x in np.argwhere(dark & edge)]
+    while stack:
+        y, x = stack.pop()
+        if frame[y, x]:
+            continue
+        frame[y, x] = True
+        for ny, nx in ((y - 1, x), (y + 1, x), (y, x - 1), (y, x + 1)):
+            if 0 <= ny < dark.shape[0] and 0 <= nx < dark.shape[1] and dark[ny, nx] and not frame[ny, nx]:
+                stack.append((ny, nx))
+    return frame
+
+
+def touches_frame(mask: np.ndarray, frame: np.ndarray, left: int, top: int, right: int, bottom: int, x0: int, y0: int) -> bool:
+    candidate = mask[top - y0:bottom - y0 + 1, left - x0:right - x0 + 1]
+    expanded = np.pad(frame, 1)[top - y0:bottom - y0 + 3, left - x0:right - x0 + 3]
+    nearby = expanded[:-2, :-2] | expanded[:-2, 1:-1] | expanded[:-2, 2:] | expanded[1:-1, :-2] | expanded[1:-1, 2:] | expanded[2:, :-2] | expanded[2:, 1:-1] | expanded[2:, 2:]
+    return bool((candidate & nearby).any())
+
+
 def detect_grip(image: np.ndarray, panel: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
     _, _, right, bottom = panel
     x0, y0, x1, y1 = right - 80, bottom - 80, right + 1, bottom + 1
     zone = image[y0:y1, x0:x1]
     mask = (zone.max(axis=2) - zone.min(axis=2) < 35) & (zone.mean(axis=2) >= 70) & (zone.mean(axis=2) <= 190)
+    frame = detect_frame(zone.max(axis=2) < FRAME_DARK_THRESHOLD)
     candidates = []
     for left, top, edge_right, edge_bottom, count in components(mask, x0, y0):
-        if edge_right >= right - 10 or edge_bottom >= bottom - 10:
+        if touches_frame(mask, frame, left, top, edge_right, edge_bottom, x0, y0):
             continue
         if edge_right - left + 1 >= 5 and edge_bottom - top + 1 >= 5:
             candidates.append((left, top, edge_right, edge_bottom, count))
@@ -153,8 +178,9 @@ def main() -> int:
     check("grip-size", max(abs(a - b) for a, b in zip(grip_size, GRIP_SIZE)) <= GEOMETRY_TOLERANCE, f"bbox={cur_grip} size={grip_size} maxΔ={max(abs(a - b) for a, b in zip(grip_size, GRIP_SIZE))}")
     for name, got, target in (("grip-right-gap", cur_panel[2] - cur_grip[2] - 1, GRIP_RIGHT_GAP), ("grip-bottom-gap", cur_panel[3] - cur_grip[3] - 1, GRIP_BOTTOM_GAP)):
         check(name, abs(got - target) <= GEOMETRY_TOLERANCE, f"bbox={cur_grip} got={got} maxΔ={abs(got - target)}")
-    for name, dx, dy in (("tab-front", 105, -45), ("tab-back", 8, -60), ("tab-right-slope", 140, -20), ("hammer", 70, -30), ("grip", -27, -27)):
-        ref_color, cur_color = median_color(ref, ref_panel[0] + dx, ref_panel[1] + dy), median_color(cur, cur_panel[0] + dx, cur_panel[1] + dy)
+    for name, dx, dy, from_right in (("tab-front", 105, -45, False), ("tab-back", 8, -60, False), ("tab-right-slope", 140, -20, False), ("hammer", 70, -30, False), ("grip", -27, -27, True)):
+        ref_anchor, cur_anchor = (ref_panel[2], ref_panel[3]) if from_right else (ref_panel[0], ref_panel[1]), (cur_panel[2], cur_panel[3]) if from_right else (cur_panel[0], cur_panel[1])
+        ref_color, cur_color = median_color(ref, ref_anchor[0] + dx, ref_anchor[1] + dy), median_color(cur, cur_anchor[0] + dx, cur_anchor[1] + dy)
         color_delta = max(abs(a - b) for a, b in zip(ref_color, cur_color))
         check(f"color:{name}", color_delta <= COLOR_TOLERANCE, f"ref={ref_color} cur={cur_color} maxΔ={color_delta}")
     if args.out:
