@@ -1,3 +1,5 @@
+using System;
+
 namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
 {
     /// <summary>
@@ -23,7 +25,6 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
         public const int MaximumLayerCount = 64;
         public const int MaximumDetailResolution = 4096;
         public const int MaximumDetailMapCount = 64;
-        public const int MaximumPayloadByteLength = 256 * 1024 * 1024;
 
         // splatmapの重みは1画素1バイトに量子化する。Unityがalphamapを8bitテクスチャへ焼くため精度は落ちない
         // Splat weights are quantized to one byte per pixel: Unity bakes alphamaps into 8-bit textures, so no precision is lost
@@ -50,6 +51,21 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
         public static int ReadInt(byte[] bytes, int offset)
         {
             return bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24);
+        }
+
+        public static bool TryCalculatePayloadByteLength(
+            int alphamapResolution, int layerCount, int detailResolution, int detailMapCount, out long payloadByteLength)
+        {
+            payloadByteLength = 0;
+            if (alphamapResolution <= 0 || MaximumAlphamapResolution < alphamapResolution ||
+                layerCount <= 0 || MaximumLayerCount < layerCount ||
+                detailResolution < 0 || MaximumDetailResolution < detailResolution ||
+                detailMapCount < 0 || MaximumDetailMapCount < detailMapCount) return false;
+
+            payloadByteLength = checked(
+                (long)alphamapResolution * alphamapResolution * layerCount +
+                (long)detailMapCount * detailResolution * detailResolution * DetailBytesPerCell);
+            return payloadByteLength <= int.MaxValue;
         }
     }
 }

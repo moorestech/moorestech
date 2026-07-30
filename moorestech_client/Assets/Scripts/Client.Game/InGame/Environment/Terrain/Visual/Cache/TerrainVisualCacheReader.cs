@@ -92,11 +92,10 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
                 return false;
             }
 
-            var payloadByteLength = (long)alphamapResolution * alphamapResolution * layerCount +
-                                    (long)detailMapCount * detailResolution * detailResolution * DetailBytesPerCell;
-            if (MaximumPayloadByteLength < payloadByteLength || stream.Length != HeaderByteLength + payloadByteLength)
+            if (!TryCalculatePayloadByteLength(alphamapResolution, layerCount, detailResolution, detailMapCount, out var payloadByteLength) ||
+                stream.Length != HeaderByteLength + payloadByteLength)
             {
-                brokenReason = "stream length disagrees with the bounded declared payload length";
+                brokenReason = "stream length disagrees with the checked declared payload length";
                 return false;
             }
 
