@@ -105,9 +105,9 @@ namespace Server.Boot
             var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             var tickEndPacketQueue = serviceProvider.GetRequiredService<TickEndPacketQueue>();
 
-            // 起動設定のポートで待ち受けソケットをバインドする（未指定は既定ポート、0はOSが空きポートを採番）
-            // Bind the listen socket with the configured port (default when unspecified, OS assigns a free port for 0)
-            var listener = ServerListenAcceptor.CreateBoundListener(settings.Port ?? ServerListenAcceptor.DefaultPort);
+            // 起動設定のポートで待ち受けソケットをバインドする
+            // Bind the listen socket with the configured port
+            var listener = ServerListenAcceptor.CreateBoundListener(settings.Port);
 
             // パケットキュープロセッサを作成してメインスレッドで処理を開始
             var connectionUpdateThread = new Thread(() =>
