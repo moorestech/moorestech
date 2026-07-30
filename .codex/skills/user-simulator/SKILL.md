@@ -9,6 +9,7 @@ description: |
   3. ユーザーにしか決められない設計質問（AskUserQuestion）を出す直前（preanswerモード・毎回）
   4. 「/user-simulator improve <id>」で起動された時、またはシミュレーターの外し（追加指摘・誤検知）が起きた時（improveモード）
   5. 「シミュレーターにかけて」「予測レビューして」「spec-plan-reviewで」と言われた時
+  6. 「シャドー採点して」「シミュレーターを裏で採点」と言われた時、または設計セッション終了後に育成データを取りたい時（shadowモード）
 ---
 
 # user-simulator
@@ -23,6 +24,7 @@ description: |
 | ユーザーへの設計質問を出す直前 | `modes/preanswer/protocol.md` |
 | `improve <id>` 引数つき起動 | `modes/improve/protocol.md` |
 | review/preanswerで外しが発生 | `modes/improve/protocol.md`（発行手順） |
+| 設計セッション終了後の盲検採点（体感遅延ゼロの育成データ回収）。grill終了時はshadow-gateが自動発動 | `modes/shadow/protocol.md` |
 
 ## 判事の起動（review/preanswer共通）
 

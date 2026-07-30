@@ -109,12 +109,11 @@ export const modalSample = {
   variant: "confirm",
 } satisfies ModalRequest;
 
-// COM-3 進捗: クラフト中を表す可視バー
-// COM-3 progress: a visible bar representing an in-progress craft
+// 進捗HUDは用途別scenarioで明示表示し、テスト間の状態漏れを防ぐ
+// Show progress HUDs through explicit scenarios so their state cannot leak between tests
 export const progressSample = {
-  visible: true,
-  progress: 0.4,
-  label: "Crafting",
+  visible: false,
+  progress: 0,
 } satisfies ProgressData;
 
 // INFRA-6: 既定はインベントリ画面（既存 e2e が前提とする表示状態を保つ）

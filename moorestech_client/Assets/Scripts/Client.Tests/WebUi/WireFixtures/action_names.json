@@ -1,0 +1,36 @@
+{
+  "actions": [
+    "inventory.move_item",
+    "inventory.split",
+    "inventory.collect",
+    "inventory.split_drag",
+    "inventory.sort",
+    "inventory.select_hotbar",
+    "craft.execute",
+    "ui.modal.respond",
+    "build_menu.select",
+    "blueprint.delete",
+    "block_inventory.move_item",
+    "block_inventory.split",
+    "block_inventory.collect",
+    "ui_state.request",
+    "pause_menu.save",
+    "pause_menu.back_to_main_menu",
+    "research.complete",
+    "machine_recipe.select",
+    "filter_splitter.set_mode",
+    "filter_splitter.set_filter_item",
+    "electric_to_gear.set_output_mode",
+    "train_platform.set_transfer_mode",
+    "debug.echo",
+    "tutorial.anchor_ack",
+    "skit.advance",
+    "skit.select",
+    "skit.set_auto",
+    "skit.skip",
+    "skit.set_ui_hidden"
+  ],
+  "excludedFromWebContract": [
+    "playtest.dom_query_result"
+  ]
+}

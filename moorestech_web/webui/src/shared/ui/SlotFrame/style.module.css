@@ -83,6 +83,6 @@
   /* 選択シアンはframe_select.png原色(コア#00ddff・グロー#05c5f5)から採る */
   /* Selection cyan is eyedropped from frame_select.png (core #00ddff, glow #05c5f5) */
   --bevel-c1: var(--sel-c1, rgb(5 197 245));
-  --bevel-c2: var(--sel-c2, rgb(0 221 255));
+  --bevel-c2: var(--sel-c2, var(--select-cyan));
   --bevel-c3: var(--sel-c3, rgb(28 219 255));
 }

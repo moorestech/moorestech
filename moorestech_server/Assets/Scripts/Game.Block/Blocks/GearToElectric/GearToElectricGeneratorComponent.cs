@@ -77,7 +77,13 @@ namespace Game.Block.Blocks.GearToElectric
 
             void DischargeByUtilization()
             {
-                if (statistics.TotalGeneratePower <= 0f) return;
+                // 放電なしのtickは前tickの放電量を表示に残さない
+                // Clear the last discharge so a no-discharge tick does not keep showing the previous amount
+                if (statistics.TotalGeneratePower <= 0f)
+                {
+                    _lastDischargedPower = 0f;
+                    return;
+                }
                 var deliveredPower = statistics.TotalRequiredPower * statistics.PowerRate;
                 var utilization = Mathf.Clamp01(deliveredPower / statistics.TotalGeneratePower);
                 _lastDischargedPower = _batteryRemaining * utilization;

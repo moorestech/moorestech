@@ -8,17 +8,17 @@ test.afterEach(async ({ page }) => {
 });
 
 test("切断後は全topic snapshotをrestoring中に復元し旧世代snapshotを破棄する", async ({ page }) => {
-  await setTopicScenarioRevision(page, "mining", 10, "BASE_HINT");
+  await setTopicScenarioRevision(page, "mining", 10, 0.1);
   await page.goto("/");
-  const hints = page.locator('[data-tutorial-anchor="mining.hud"]');
-  await expect(hints).toContainText("BASE_HINT");
-  await setTopicScenarioRevision(page, "mining", 11, "HUD_HINT");
-  await expect(hints).toContainText("HUD_HINT");
+  const progress = page.locator('[data-tutorial-anchor="mining.hud"] [role="progressbar"]');
+  await expect(progress).toHaveAttribute("aria-valuenow", "0.1");
+  await setTopicScenarioRevision(page, "mining", 11, 0.65);
+  await expect(progress).toHaveAttribute("aria-valuenow", "0.65");
 
   const firstSlot = page.getByTestId("main-grid").locator("> div").first();
   await firstSlot.click();
   await expect(page.getByTestId("grab-overlay")).toContainText("10");
-  await setSnapshotDelay(page, 800, "ui.mining_hud");
+  await setSnapshotDelay(page, 800, "ui.progress");
   await disconnectWebSockets(page, 200);
   await setWoodItemName(page, "Timber");
   const overlay = page.getByTestId("reconnect-overlay");
@@ -27,16 +27,15 @@ test("切断後は全topic snapshotをrestoring中に復元し旧世代snapshot�
   // 全snapshot後だけopenへ戻る
   // Return open only after every snapshot
   await expect(overlay).toBeHidden({ timeout: 5000 });
-  await expect(hints).toContainText("HUD_HINT");
+  await expect(progress).toHaveAttribute("aria-valuenow", "0.65");
   await expect(page.getByTestId("grab-overlay")).toContainText("10");
   await page.getByTestId("main-grid").locator("> div").nth(2).hover();
   await expect(page.getByRole("tooltip")).toContainText("Timber");
 
   // 旧snapshotの上書きを防ぐ
   // Prevent an old snapshot from rolling back the UI
-  await injectTopicSnapshot(page, "mining", 10, "STALE_HINT");
-  await expect(hints).toContainText("HUD_HINT");
-  await expect(hints).not.toContainText("STALE_HINT");
+  await injectTopicSnapshot(page, "mining", 10, 0.2);
+  await expect(progress).toHaveAttribute("aria-valuenow", "0.65");
 });
 
 test("inventory未受信中はconnecting placeholderを表示する", async ({ page }) => {

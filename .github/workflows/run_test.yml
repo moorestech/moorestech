@@ -16,6 +16,37 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Web UI の契約ガード(vitest・レジストリ型検査)をCIで強制する。ローカル実行任せだとdrift再発を検知できない
+  # Enforce the Web UI contract guards (vitest, registry typecheck) in CI; local-only runs cannot catch drift regressions
+  webui-test:
+    name: Web UI Test (vitest + typecheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # node/pnpm本体と webui/node_modules は gitignore されているため build.yml と同じ手順で用意する
+      # node/pnpm and webui/node_modules are gitignored, so provision them the same way as build.yml
+      - name: Setup Web UI toolchain and run checks
+        shell: bash
+        working-directory: moorestech_web
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: |
+          bash setup.sh
+          # setup.sh はランナーのarchに応じたディレクトリへ配置するのでglobで解決する
+          # setup.sh installs into an arch-dependent directory, so resolve it by glob
+          shopt -s nullglob
+          candidates=(node/*/pnpm)
+          pnpm_binary="$PWD/${candidates[0]}"
+          if [ ! -f "$pnpm_binary" ]; then
+            echo "pnpm not found after setup: $pnpm_binary" >&2
+            exit 1
+          fi
+          "$pnpm_binary" --dir webui install --frozen-lockfile
+          "$pnpm_binary" --dir webui exec tsc -b --force
+          "$pnpm_binary" --dir webui exec tsc -p e2e/tsconfig.json --noEmit
+          "$pnpm_binary" --dir webui exec vitest run
+
   test:
     name: EditMode Test (Client + Server)
     runs-on: ubuntu-latest

@@ -59,12 +59,12 @@ namespace Client.Starter
             // ---- Web UI server bootstrap (earliest phase) ----
             // The GameShutdownEvent subscription is installed once inside WebUiHost itself
             //
-            // WebUI は非必須。起動失敗（ポート衝突・node 欠如による Win32Exception 等）でゲーム本体を止めないよう全例外を隔離する（2-A）
-            // WebUI is non-essential; isolate ALL startup failures (port collision, missing node → Win32Exception, etc.) so game boot is never blocked (2-A)
+            // WebUI起動失敗でもゲーム本体を止めないが、uGUI廃止Phase1ではUIは表示されない
+            // Web UI startup failure does not block gameplay, but Phase 1 retirement leaves the UI unavailable
             try
             {
-                // 起動成否を uGUI/Web 表示ゲートへ伝える。失敗（例外/false）なら uGUI を出すため無効化する
-                // Propagate startup success to the uGUI/Web gate; on failure (exception/false) disable it so uGUI shows
+                // 起動成否をWeb UIホスト状態へ伝え、失敗時はWeb UIを利用不可にする
+                // Propagate startup success to the Web UI host state and leave Web UI unavailable on failure
                 var hostStarted = await Client.WebUiHost.Boot.WebUiHost.StartAsync();
                 Client.Game.InGame.UI.UIState.WebUiScreenGate.SetHostAvailable(hostStarted);
             }

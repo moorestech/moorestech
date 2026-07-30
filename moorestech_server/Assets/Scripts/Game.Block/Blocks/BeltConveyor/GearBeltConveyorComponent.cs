@@ -10,7 +10,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
-    public class GearBeltConveyorComponent : GearEnergyTransformer, IUpdatableBlockComponent
+    public class GearBeltConveyorComponent : GearEnergyTransformer, ISelfDrivenUpdatableBlockComponent
     {
         private readonly VanillaBeltConveyorComponent _beltConveyorComponent;
         private readonly double _timeOfItemEnterToExit;

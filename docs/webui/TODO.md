@@ -66,7 +66,7 @@
 - [x] 設置モード HUD（選択ブロック・高さ・キー表示。3D プレビューは Unity 残置）（ui.placement_mode。2026-07-18）
 - [x] 削除モード HUD + 不可理由ツールチップ（ui.delete_mode。不可理由は既存実装が意味的理由を持たないため契約のみ用意し現状空文字。2026-07-18）
 - [x] 給電範囲オーバーレイの表示連携（3D は Unity 残置）（placement_mode topicに統合。2026-07-18）
-- [x] 直接採掘 HUD（フォーカス・進捗）（ui.mining_hud・100msサンプリング。2026-07-18）
+- [x] 直接採掘 HUD（進捗はui.progressへ統合し対象名表示を撤去。2026-07-27）
 - [x] ツールチップ基盤（カーソル追従。3D オブジェクト由来の表示も key を Topic 連携で吸収 = WORLD-1 の表示側）（shared/tooltip + ui.tooltip。2026-07-18）
 - [x] コンテキストメニュー / キー操作ヒント / クロスヘア / 全 UI 一括非表示（Ctrl+U）/ カーソル追従オーバーレイ（棚卸しのうえ処遇を記録）（ui.context_menu(ID照合Action)/ui.key_hints/ui.crosshair/ui.visibility。UICursorFollowControlは個別移植不要と判定 — grab/ContextMenuはWeb側で吸収済み・uGUIフォールバック用に残置。2026-07-18）
 
@@ -85,7 +85,7 @@
 
 ## Phase D: カットオーバー完了（`plans/phase-d-cutover.md`）
 
-- [x] クラフトツリー機能の削除確認（設計書 `docs/superpowers/specs/2026-07-18-craft-tree-removal-design.md` が正・先行可）（2026-07-18 `db2b3f5ba` tree3統合。CraftTreeRemovalTest 2/2合格・製品コード残存参照0）
+- [x] クラフトツリー機能の削除確認（設計書 `docs/superpowers/specs/2026-07-18-craft-tree-removal-design.md` が正・先行可）（2026-07-18 `db2b3f5ba` tree3統合。2026-07-30 Unityアセット・製品コード残存参照0、Unityコンパイル・Web E2E合格）
 - [x] 既存画面の i18n 変換（基盤は A5。ハードコード文字列を全て `t(key)` 化し言語切替を全画面確認）（2026-07-18 `ce18c097b`。26コンポーネント変換・lint allowlist空化・新規eslint-disable 0件・言語切替再描画vitest追加）
 - [x] 全 uGUI ビューのゲート化監査（`ui-completeness-reaudit-plan.md`〔archive〕の手順 + 状態外オーバーレイ一覧の別軸確認）（2026-07-18 `gate-audit-2026-07-18.md`。機械監査3テスト+状態外8系統の別軸確認。ProgressBar二重表示漏れを検出・修正）
 - [x] `disposition.md` 全59項目のクローズ確認（2026-07-18。未分類0・実機検証残4件は最終検証1項目へ集約。同書末尾にクローズ記録）

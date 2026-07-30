@@ -11,13 +11,12 @@ import { ResearchTreePanel, ResearchScreenChrome } from "@/features/research";
 import { BuildMenuPanel } from "@/features/buildMenu";
 import { ChallengePanel, CurrentChallengeHud } from "@/features/challenge";
 import { PauseMenuPanel } from "@/features/pauseMenu";
-import { DeleteModeHud, PlacementModeHud } from "@/features/modeHud";
+import { DeleteModeWarningBands, PlacementModeHud } from "@/features/modeHud";
 import { Crosshair } from "@/features/commonHud";
-import { MiningHud } from "@/features/miningHud";
 import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
 import { useI18n } from "@/shared/i18n";
-import { SkitPresentation } from "@/features/skit";
+import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenForUiState } from "@/shared/uiState";
@@ -35,6 +34,10 @@ function useUiScale(enabled: boolean) {
       if (!stage) return;
       const scale = Math.min(window.innerWidth / stage.offsetWidth, window.innerHeight / stage.offsetHeight);
       document.documentElement.style.setProperty("--ui-scale", String(scale));
+      // 実画面寸法をstage座標へ戻す
+      // Convert the physical viewport back into stage coordinates for screen-edge HUDs
+      document.documentElement.style.setProperty("--ui-viewport-width", `${window.innerWidth / scale}px`);
+      document.documentElement.style.setProperty("--ui-viewport-height", `${window.innerHeight / scale}px`);
     };
 
     if (enabled) updateScale();
@@ -95,12 +98,17 @@ export default function App() {
         {screen === "pauseMenu" && <PauseMenuPanel />}
         {screen === "trainPause" && <PauseMenuPanel />}
         {(screen === "trainHud" || screen === "trainPause") && <TrainRidingHud />}
-        {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
-        {uiState === UiStateNames.deleteBar && <DeleteModeHud />}
         <Crosshair />
-        <MiningHud />
         <CursorTooltip />
         <BlockInventoryPanel />
+        {/* 実画面端に属するHUDは論理viewportへ広げ、内容寸法だけstage拡縮へ追従させる */}
+        {/* Expand screen-edge HUDs to the logical viewport while their content dimensions retain stage scaling */}
+        <div className={styles.viewportOverlay} data-web-ui-transparent>
+          {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
+          {uiState === UiStateNames.deleteBar && <DeleteModeWarningBands />}
+          <CurrentChallengeHud />
+          <SkitPresentation />
+        </div>
         <ModalHost />
         <ProgressBar />
         <BlockInventoryKeyHandler />
@@ -110,8 +118,7 @@ export default function App() {
       <Portal>
         <ToastHost />
         <NotificationHost />
-        <CurrentChallengeHud />
-        <SkitPresentation />
+        <SkitTransition />
         <TutorialOverlay />
         <WorldPinOverlay />
       </Portal>

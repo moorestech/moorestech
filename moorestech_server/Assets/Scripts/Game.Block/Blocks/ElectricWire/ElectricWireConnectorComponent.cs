@@ -46,7 +46,7 @@ namespace Game.Block.Blocks.ElectricWire
             EnergyRole = energyRole;
 
             _componentStates = componentStates;
-            ServerContext.GetService<IElectricWireNetworkDatastore>().AddConnector(this);
+            ServerContext.GetService<IElectricWireNetworkMutation>().AddConnector(this);
         }
 
         public bool ContainsWireConnection(BlockInstanceId partnerId)
@@ -67,7 +67,7 @@ namespace Game.Block.Blocks.ElectricWire
             _wireConnections.Add(partnerId, (connector, connectionCost));
             // 接続集合の変更点自身でdirty化し、呼び出し元の再構築漏れを構造的に防ぐ
             // Mark dirty at the mutation itself so no caller can ever forget the rebuild
-            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
+            ServerContext.GetService<IElectricWireNetworkMutation>().MarkTopologyDirty();
             // 状態変更を通知する
             // Notify state change
             _onChangeBlockState.OnNext(Unit.Default);
@@ -82,7 +82,7 @@ namespace Game.Block.Blocks.ElectricWire
                 return false;
             }
             cost = connection.Cost;
-            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
+            ServerContext.GetService<IElectricWireNetworkMutation>().MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
             return true;
         }
@@ -147,7 +147,7 @@ namespace Game.Block.Blocks.ElectricWire
 
             // 復元接続をエネルギー網へ反映
             // Reflect restored wire connections into the energy network
-            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
+            ServerContext.GetService<IElectricWireNetworkMutation>().MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
         }
 
@@ -167,7 +167,7 @@ namespace Game.Block.Blocks.ElectricWire
 
             // エネルギーネットワークから除去する
             // Remove from the energy network
-            ServerContext.GetService<IElectricWireNetworkDatastore>().RemoveConnector(this);
+            ServerContext.GetService<IElectricWireNetworkMutation>().RemoveConnector(this);
 
             _wireConnections.Clear();
             _onChangeBlockState.Dispose();

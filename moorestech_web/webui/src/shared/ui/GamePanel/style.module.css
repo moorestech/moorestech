@@ -18,7 +18,7 @@
 /* Side panels use the uGUI source (invebtory_bg_base #0a0e1b at α0.8) translucent navy. The old brown gradient
    was the baked-in blend of the orange world through the reference screenshot; the real alpha lets the world
    show through and recreate that vertical gradient naturally */
-.panel:not(.craft)::before {
+.panel:not(.craft):not(.skit)::before {
   position: absolute;
   z-index: 0;
   /* 実測で10物理px遅かったフェード全体を上へ送り、開始267・完了297付近へ合わせる */
@@ -45,7 +45,36 @@
    (このルールがposition:relativeで上書きすると38px分フローを占有し、パネル下端へ張り付かなくなる) */
 /* Keep panel content in front of the shading layer, but leave bottomDeco absolutely positioned out of
    flow (this rule overriding it to position:relative used to eat 38px of flow and detach it from the panel's bottom edge) */
-.panel:not(.craft) > *:not(.bottomDeco) {
+.panel:not(.craft):not(.skit) > *:not(.bottomDeco) {
+  position: relative;
+  z-index: 1;
+}
+
+/* スキット会話窓は画面下部・全幅ブリードの帯。角丸・外枠・タイトル罫線・三角・グリップは持たない */
+/* The skit dialogue window is a full-bleed bottom band with no radius, outer frame, title rules, triangles, or grip */
+.skit {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: var(--skit-window-height);
+  padding: 0;
+}
+
+/* 面は上端だけを縦フェードさせて世界へ溶かす。左右・下端は画面外へ抜けるためフェードしない */
+/* The face fades into the world only along its top edge; the sides and bottom run off-screen and stay hard */
+.skit::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--skit-window-face);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 var(--skit-window-top-fade));
+  mask-image: linear-gradient(180deg, transparent 0, #000 var(--skit-window-top-fade));
+  content: "";
+  pointer-events: none;
+}
+
+.skit > * {
   position: relative;
   z-index: 1;
 }

@@ -11,11 +11,6 @@ namespace Client.Game.InGame.Mining
         private readonly MiningToolsElement _miningToolsElement;
         
         private float _currentMiningProgressTime;
-
-        public float GetProgress()
-        {
-            return UnityEngine.Mathf.Clamp01(_currentMiningProgressTime / _miningToolsElement.AttackSpeed);
-        }
         
         public MapObjectMiningMiningState(MiningToolsElement miningToolsElement)
         {

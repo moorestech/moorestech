@@ -1,36 +1,59 @@
 import { Topics } from "../../../src/bridge/transport/protocol";
+import type { TopicPayloads } from "../../../src/bridge/transport/protocol";
 import type { PlayerInventoryData } from "../../../src/bridge/contract/payloadTypes";
 import * as fx from "../fixtures";
 import { state } from "../state";
 
 export const demoMode = process.env.MOCK_DEMO === "1";
 
+// snapshot 生成に必要な接続ローカル状態。inventory は接続ごとに分離されている
+// Connection-local state needed to build a snapshot; inventory is isolated per connection
+type SnapshotContext = { inventory: PlayerInventoryData; demo: boolean };
+
+// topic → snapshot 生成の型付きレジストリ。mock fixture の形状ずれをコンパイル時に検出する
+// Typed topic → snapshot registry; makes mock fixture shape drift a compile error
+type TopicFixtureRegistry = {
+  [K in keyof TopicPayloads]: (context: SnapshotContext) => TopicPayloads[K];
+};
+
+const topicFixtures: TopicFixtureRegistry = {
+  [Topics.inventory]: ({ inventory }) => inventory,
+  [Topics.craftRecipes]: () => fx.craftRecipes,
+  [Topics.machineRecipes]: () => fx.machineRecipes,
+  [Topics.itemList]: ({ demo }) => (demo ? fx.demoItemList : fx.itemList),
+  [Topics.blockInventory]: () => state.currentBlock,
+  // ModalData.modal は optional（null 不可）のため型適合で undefined 化。ワイヤ上の null 除去は wire.ts の stripNulls が担う
+  // Coerce to undefined to satisfy the optional (non-nullable) ModalData.modal; wire.ts stripNulls owns null removal on the wire
+  [Topics.modal]: () => ({ modal: state.currentModal ?? undefined }),
+  // 実ホストの NotificationTopic と同じ空snapshot。返さないと restoring のままで操作が塞がる
+  // Same empty snapshot as the real NotificationTopic; without it the client stays restoring and input is blocked
+  [Topics.notification]: () => ({}),
+  [Topics.progress]: ({ demo }) => (demo ? fx.demoProgress : fx.progressSample),
+  [Topics.uiState]: () => state.currentUiState,
+  [Topics.researchTree]: () => state.researchTree,
+  [Topics.buildMenu]: () => fx.buildMenu,
+  [Topics.localization]: () => ({ locale: "japanese" }),
+  [Topics.challengeTree]: () => fx.challengeTree,
+  [Topics.challengeCurrent]: () => fx.challengeCurrent,
+  [Topics.pauseMenu]: () => ({ disconnected: false }),
+  [Topics.placementMode]: () => ({ selectedName: "", height: 0, unavailableReason: "" }),
+  [Topics.deleteMode]: () => ({ unavailableReason: "" }),
+  [Topics.crosshair]: () => ({ visible: true }),
+  [Topics.uiVisibility]: () => ({ visible: true }),
+  [Topics.tooltip]: () => ({ visible: false, textKey: "", fontSize: 14 }),
+  [Topics.gameState]: () => state.gameState,
+  [Topics.tutorialPresentation]: () => fx.tutorialPresentation,
+  [Topics.worldPins]: () => state.worldPins,
+  [Topics.skitPresentation]: () => state.skitPresentation,
+  [Topics.trainRiding]: () => state.trainRiding,
+};
+
+// override 優先。snapshot を持たない topic（playtest.dom_query 等）はレジストリに無く undefined を返す
+// Overrides win; topics without a snapshot (e.g. playtest.dom_query) are absent from the registry and yield undefined
 export function topicData(topic: string, inventory: PlayerInventoryData, demo: boolean): unknown {
   if (state.topicOverrides.has(topic)) return state.topicOverrides.get(topic);
-  if (topic === Topics.inventory) return inventory;
-  if (topic === Topics.craftRecipes) return fx.craftRecipes;
-  if (topic === Topics.machineRecipes) return fx.machineRecipes;
-  if (topic === Topics.itemList) return demo ? fx.demoItemList : fx.itemList;
-  if (topic === Topics.blockInventory) return state.currentBlock;
-  if (topic === Topics.modal) return { modal: state.currentModal };
-  if (topic === Topics.progress) return demo ? fx.demoProgress : fx.progressSample;
-  if (topic === Topics.uiState) return state.currentUiState;
-  if (topic === Topics.researchTree) return state.researchTree;
-  if (topic === Topics.buildMenu) return fx.buildMenu;
-  if (topic === Topics.localization) return { locale: "japanese" };
-  if (topic === Topics.challengeTree) return fx.challengeTree;
-  if (topic === Topics.challengeCurrent) return fx.challengeCurrent;
-  if (topic === Topics.pauseMenu) return { disconnected: false };
-  if (topic === Topics.placementMode) return { selectedName: "", height: 0, unavailableReason: "" };
-  if (topic === Topics.deleteMode) return { unavailableReason: "" };
-  if (topic === Topics.crosshair) return { visible: true };
-  if (topic === Topics.uiVisibility) return { visible: true };
-  if (topic === Topics.miningHud) return { visible: false, targetName: "", mining: false, progress: 0 };
-  if (topic === Topics.tooltip) return { visible: false, textKey: "", fontSize: 14 };
-  if (topic === Topics.gameState) return state.gameState;
-  if (topic === Topics.tutorialPresentation) return fx.tutorialPresentation;
-  if (topic === Topics.worldPins) return state.worldPins;
-  if (topic === Topics.skitPresentation) return state.skitPresentation;
-  if (topic === Topics.trainRiding) return state.trainRiding;
-  return undefined;
+  // prototype キー（toString 等）を既知 topic と誤認しないよう own property のみ引く
+  // Look up own properties only so prototype keys (toString etc.) are not mistaken for known topics
+  if (!Object.hasOwn(topicFixtures, topic)) return undefined;
+  return topicFixtures[topic as keyof TopicPayloads]({ inventory, demo });
 }

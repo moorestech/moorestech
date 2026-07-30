@@ -29,6 +29,7 @@ description: |
   - Web UIは3D世界の上に載る透明オーバーレイ（CEF）であり、世界が透けて見えることが前提。
   - 画面全体を不透明な面で塗り潰すレイアウトは、いかなる画面でも禁止。
 - **背景ディムは App の screen backdrop 1枚だけが担う。** 各パネルが独自に画面を暗くしない。
+- **常時の縁ヴィネットは App の実viewport全面が担う。** 1280基準stageへ置くと横長画面の途中で切れるため、stage背景へ戻さない。ヴィネットの楕円寸法・中心・停止位置だけは、縦横比が異なる実viewportの四辺へ同じ比率で沿わせる必要があるため、固定長原則の例外としてviewport比例の`%`トークンを使う。
 - **重なり順は `index.css` の `--z-*` トークンのみで制御する。** 数値のz-index直書き禁止。
 - 常時表示HUD（ホットバー・クロスヘア・キーヒント等）は例外的にパネル外だが、これも「浮いている」表現であること。面で塗らない。
 
@@ -51,7 +52,7 @@ description: |
 - App の stage グリッドにある `viewer` 領域へ置き、持ち物パネルの右隣で上端を揃える。機能側の固定配置・独自z-index・パネル面・下端フェードは禁止し、配置は stage、面表現は GamePanel が一元供給する。
 - GamePanel の下向き三角と内容が重ならないよう、ブロックパネルだけ `--block-panel-bottom-safe-area` の下部安全帯を確保する。共通 GamePanel の余白は変更しない。
 - 内容量で幅が決まる小型ブロックパネル（チェスト等）は、GamePanel共通の右余白10pxがフェード帯に食われて面が途切れて見えるため、`--block-panel-right-safe-area`（左インデント28pxと対称）の右余白を追加する。大型機械パネルは固定幅・中央揃えのため対象外。
-- 閉じる操作はパネル右上の `shared/ui/PanelCloseButton` を使う。面を持たない浮遊の×とし、Mantine CloseButton は使わない。
+- 閉じる操作はパネル右上の `shared/ui/IconButton`（children省略で既定の×）を使う。面を持たない浮遊の×とし、Mantine CloseButton は使わない。
 - **レシピ選択を持つ機械ブロックのみ大型レイアウト**: 研究パネル同様 `viewer-start / items-end` の2列を占有し、上端は持ち物パネルと揃え、下端はホットバー手前で止める。中身は `ModeSwitch` を横向きタブバーとした「インベントリ / レシピ選択」の2タブ切替（§8.7）。レシピ0件のブロックは従来の小型パネルのまま。
 
 ## 3. モーダル
@@ -79,15 +80,19 @@ description: |
 - アクセントの青グラデ（`--recipe-action-background`）は**主要アクションボタン限定**。装飾や面には使わない。
 - 面は必ず半透明。不透明100%の面は作らない（世界が透けるのが前提のため）。
 - `index.css` の `--text-muted` は従属テキスト、`--text-insufficient` は不足/警告、`--gauge-track` はゲージの溝、`--gauge-fill` はゲージの充填に使う。
+- **選択・強調のシアンは `--select-cyan`（`rgb(0 221 255)`、uGUI `frame_select.png` / `nav_arrow.png` 由来）。** 用途はスロット選択枠とスキットの送り待ちマーカー・選択肢ホバー/押下・ツールボタンON状態の点灯に限る。青グラデ（`--recipe-action-background`）とは別語彙であり、面の常時装飾には使わない。
 - 機能側への色ハードコードは引き続き禁止し、これらの色も必ずトークン経由で参照する。
 
 ## 6. 装飾
 
 - **UI装飾の画像アセット化は禁止。** 枠・罫線・文字・グリップ等はCSS/DOM/インラインSVGで再現する。（例外はテスト用モックの世界背景のみ）
-- 装飾語彙は既存の3つに限る:
+- 装飾語彙は以下の6つに限る:
   1. 両端フェードする水平罫線（タイトル上下の2本線）
   2. 下向き三角の底面テクスチャ（default パネル下部）
   3. 右下三角グリップ（craft パネル）
+  4. 両端の菱形マーカー（uGUI `btn__select_*.png` 由来。**スキット選択肢限定**・§8.12）
+  5. シアンの下向きシェブロン=送り待ちマーカー（uGUI `nav_arrow.png` 由来。**スキット会話窓限定**・§8.12。光彩は付けない）
+  6. 黄黒の斜線警告帯（uGUI `delete bar.png` 由来。**削除モードの画面上下端限定**・§8.15。画像は移植せずCSS反復グラデーションで再現する）
 - 新しい装飾モチーフ（光彩、パーティクル、角丸カード、ドロップシャドウの多用等）を増やさない。
 - 装飾アニメーションは基本入れない。トランジションを入れる場合もe2eが同期検証できること（モーダルは duration 0）。
 
@@ -103,7 +108,7 @@ description: |
 - 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・5秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
 - **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。最大幅は`--notification-max-width`（画面幅20%・ユーザー裁定の画面比例値）で超過分は折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
 - 接続前のプレースホルダは `ConnectingPlaceholder`。
-- 進捗矢印は `ProgressArrow`。
+- 進捗矢印は `ProgressArrow`（機械・採掘機・流体行の帯状ゲージ）。クラフト画面の矢印グリフ進捗だけは §8.13 の様式に従う。
 
 ## 8.5 グラフビュー（研究ツリー等のノードグラフ）
 
@@ -119,10 +124,12 @@ description: |
 ## 8.6 shared/ui の汎用表示部品
 
 - **GaugeBar**: 読み取り専用の水平ゲージ。溝は `--gauge-track`（半透明ネイビー）と `--bevel-c1` の薄い内周輪郭、充填は `--gauge-fill`（寒色グレー）を使い、青グラデは禁止。`value`（0..1）を描くだけでドメイン語彙を持たない。
+  - **ゲージの溝は常に `--gauge-track`。** 帯でも矢印でも器の形が変わるだけで、溝のトーンは変えない。
+  - **充填は `--gauge-fill` が既定。** 逸脱してよいのは「器そのものが既に確立した見た目を持ち、その見た目＝満了状態である」場合に限り、逸脱先も既存トークンから取る（唯一の前例: クラフト進捗矢印の `--color-content-primary`・§8.13）。緑など新しい色相をゲージへ持ち込むのは、溝・充填のどちらでも禁止。
 - **ModeSwitch**: `option.value` / `option.label` / `onChange` の汎用I/Fを持つ択一モード切替。選択中は `data-selected`（`--text-high-contrast` + 寒色面）、非選択は `--text-muted` とし、各選択肢は間隔を空けて独立したボタンとして示す。青グラデは禁止。
   - **縦利用（`orientation="vertical"`）はサイドバーナビとして使ってよい。** カテゴリ切替のような縦積み択一に、新規コンポーネントを作らずこれを転用する。
   - **`disabled?: boolean`**: root に `data-disabled` を付与し全ボタンを `disabled` にする汎用減衰。選択肢は `--text-muted` 系へさらに減衰しクリック不可（`pointer-events: none`）。判断（いつdisabledにするか）は利用側が持ち、ModeSwitch自体はドメイン語彙を持たない。
-- **PanelCloseButton**: パネル右上の面を持たない×。インラインSVGまたはCSSで描画する。
+- **IconButton**: 面を持たない浮遊アイコンボタン。`children` 省略時は既定の×（従来の PanelCloseButton）で、閉じる以外の用途は呼び出し側がインラインSVGを渡す。寸法は `--icon-button-size` / `--icon-button-icon-size` の局所上書きで変え、共有側にドメイン語彙は持たせない。
 - **FadeRule**: 両端フェードする水平罫線（装飾語彙1）の単体部品。パネル内のセクション区切りに使う。GamePanel のタイトル罫線と同族の青灰グラデで、新しい色相は持たない。
 
 ## 8.7 機械レシピ選択タブ
@@ -143,7 +150,7 @@ description: |
 - **座標の正はUnity。** Unityがワールド座標を正規化ビューポート座標（0..1、左上原点）と画面中心からの方向ベクトルへ毎フレーム射影し、`tutorial.world_pins` トピックで配信する。Web側は受信値を描くだけで、3D射影・カメラ知識を一切持たない。
 - 表示は常時表示HUD族（§1の例外）。パネル面を持たず「浮いている」表現とし、`pointer-events: none` で入力を素通しする。
 - **画面内ピン**: 指定座標にインラインSVGの下向きマーカー + 直上のテキストラベル。ラベル面は `--world-pin-face`（半透明ネイビー族）、文字は `--text-high-contrast`。マーカー先端が指定座標に一致するよう配置する。
-- **画面外矢印**: 方向ベクトルを画面端（マージン `--world-pin-edge-margin` の固定長）へクランプした位置に、方向へ回転したインラインSVGシェブロンを置く。テキストラベルは付けない（uGUI版HudArrowと同じ責務分担）。
+- **画面外矢印**: 方向ベクトルを画面端（マージン `--world-pin-edge-margin` の固定長）へクランプした位置に、方向へ回転したインラインSVGの軸付き塗りつぶし矢印を置く。`--text-high-contrast` の塗りと `--world-pin-face` の輪郭を使い、世界背景から分離する最小限の影を許可する。テキストラベルは付けない（uGUI版HudArrowと同じ責務分担）。
 - 色相・光彩・アニメーションは追加しない。z層は `--z-world-pin` トークンのみで制御する。
 
 ## 8.9 検索入力
@@ -167,9 +174,123 @@ description: |
 - **サブカテゴリ見出し**: グリッド内のサブカテゴリ区切りは `--text-muted` のラベル + `FadeRule`（§8.6と同一部品）。無札の並置は禁止（§4のスロット群区別ルールに従う）。
 - グリッド本体は `SlotGrid` を使い独自gridを作らない。端の安全余白は `--build-menu-edge-safe-area`。
 
+## 8.12 スキット会話UI
+
+- **見た目の正はUnityのスキットUI**（`SkitUI.uxml`/`SkitUI.uss` と `MainGameUI.prefab` の `BackgroundText`）。
+  Web はそれをCSS/DOM/インラインSVGで再現する。PNGアセットの移植は §6 のとおり禁止。
+- **配置は `.stage` 内の `.viewportOverlay` に置く。** UnityのPanelSettings同様に1280基準の固定長トークンを
+  `.stage` の一様拡縮へ追従させつつ、overlayの論理外寸だけを実viewport相当へ広げる。これにより横長画面でも
+  全幅の面と画面端HUDがstage幅で途中切れしない。Portal直下の固定pxや`position: fixed`は使わず、
+  1920設計pxからstage pxへの換算は一律2/3、子要素は`position: absolute`で統一する。
+
+### 通常スキット（blocking）
+
+- **会話窓は `GamePanel variant="skit"`**。画面下部・**全幅ブリード**の帯（高さ `--skit-window-height`）で、
+  面は `--skit-window-face`、**上端のみ** `--skit-window-top-fade`（固定長）で世界へ縦フェードする。
+  左右・下端はフェードせず、タイトル罫線・下向き三角・右下グリップは持たない。角丸・外枠は付けない。
+- 中身は縦に「話者名 → `FadeRule` → 本文 → 送り待ちマーカー」。話者名・本文とも `--text-high-contrast`。
+  階層は合成boldでなく**フォントサイズ差**（話者名 `--skit-speaker-font-size` > 本文 `--skit-body-font-size`）で作る（§7）。
+- 文字が上端フェード帯に載らないよう、窓の縁に `--skit-window-edge-safe-area` の安全余白を確保する（§2の安全帯前例と同族）。
+- 区切り罫線は §6 装飾語彙1 そのもの。専用CSSを書かず `FadeRule` を使い、幅だけ `--skit-rule-inset` で絞る。
+  上下余白は正本実測どおり**上詰まり・下空き**（`--skit-rule-margin-top` < `--skit-rule-margin-bottom`）。
+- 送り待ちマーカーは本文右下のインラインSVG下向きシェブロン（§6 装飾語彙5）。色は `--select-cyan`。光彩・点滅は付けない。
+  寸法・右マージンは正本 `nav_arrow.png` 実測の `--skit-advance-marker-size` / `--skit-advance-marker-right` で、
+  本文の罫線インセット（`--skit-rule-inset`）とは別値。
+- **選択肢は会話窓の上・右寄せで下から積み上げる。** 各行は固定寸法（`--skit-choice-width` × `--skit-choice-height`）の
+  板で、面は `--gauge-track`、左右 `--skit-choice-edge-fade` の水平フェードマスク（原画の水平αランプ実測＝片側27%）。
+  上下線（`--bevel-c1`・太さ `--skit-choice-rule-thickness`）と両端の `--bevel-c2` 菱形マーカー
+  （§6 装飾語彙4・インラインSVG・`aria-hidden`・寸法 `--skit-choice-marker-size`＝板高の38%）は
+  **板端でなく原画どおり内側**（左右 `--skit-choice-rule-inset` / 上下 `--skit-choice-rule-vertical-inset`）に置く。
+  これらはフェード帯に載るため、面（`::before`）とは別要素（`::after`・SVG）として全不透明で描く。
+  板と会話窓の間隔は `--skit-choices-window-gap`（正本 SelectButton の margin-bottom 実測）で、板同士の `--skit-choice-gap` とは別値。
+  ホバーは線と菱形を `--select-cyan` へ、押下は面を `--gauge-track` と `--select-cyan` の混色
+  （混色比 `--skit-choice-active-mix`、ModeSwitch の selected-mix 前例に倣う）へ切り替える。新しい色相は足さない。
+  ラベルは板の中央、板に収まるよう本文より一段小さい `--skit-choice-font-size`。
+  （Unity実機は板とラベルの位置が未整合の未完成状態のため、「固定寸法の板＋中央ラベル」という意図を正とする）
+- **ツールボタン（Auto / Skip / UI非表示）は画面右上に横並びの、面を持たないアイコンボタン**とする
+  （共通 `IconButton` に各アイコンを children で渡す。面・枠・focus表現は共通側、スキット固有の減衰と点灯だけを機能側が足す）。
+  アイコンはインラインSVG、既定不透明度は `--skit-tool-icon-opacity`。正本アイコンは枠に対し**bbox比1.00**のため、
+  `--icon-button-*` を `--skit-tool-button-size` と同寸へ局所上書きして枠いっぱいに描く（縮小率のマジックナンバーを置かない）。
+  ただし図像はviewBox内余白の分だけ内側（実効約0.8）に留める。viewBoxを外接まで詰めると現行の
+  `--skit-tool-gap` でSkip終端バーと隣接アイコンが接触するため、詰めるならギャップ再実測とセットで裁定する。
+  Auto の on/off は同一SVGの `data-enabled` による色切替で表し、アイコン自体を差し替えない。
+  テキストラベルのボタンにはしない。明るい世界背景でも線が消えないよう、既存の世界分離用暗色トークンによる
+  最小限の固定長ドロップシャドウをアイコンへ付け、通常時も不透明で描く。
+- **会話窓が非表示の演出中（`textAreaVisible=false`）もツールバーは右上に残す。**
+  正本でも TextArea とツールは兄弟で、消えるのは TextArea だけであるため。
+- Unity にある Log ボタンは本体機能が未配線（`SkitUITools.cs`）のため Web では出さない。
+- **UI非表示からの復帰ボタンは Web 専用に置いてよい。** Unity は Escape キーで復帰するが、CEF は
+  スキット中にキー入力主権を持たないため。面を持たない浮遊アイコンとし、ツールボタンと同じ右上に置く。
+
+### 背景スキット（background）
+
+- **面も枠も持たない。** 画面下部中央に「話者名 : 本文」の1行を中央揃えで置くだけ
+  （正本 `BackgroundText` と同じ）。文字色は `--text-high-contrast`、サイズ（`--skit-background-font-size`）と
+  下端距離（`--skit-background-bottom`）は固定長トークン。
+- 会話ボックス・カード・角丸は作らない。
+- **`pointer-events: none` を必ず維持する。** 背景スキットはゲームプレイ中に出るため、
+  面が入力を捕まえると採掘・設置が死ぬ（`isPointerOverWebUi` の判定対象になるため）。
+
+### トランジション（暗転）
+
+- **§1「画面全体を不透明な面で塗り潰す禁止」の唯一の例外とする。** web モード中は Unity が
+  自前のスキットUIを丸ごと無効化する（`SkitManager` の `skitUI.SetActive(!webUiMode)`）ため、
+  Web が描かないと暗転演出が消えるため。
+- 全画面の不透明黒（`--skit-transition-face`）・`pointer-events: none`・**会話窓より上**（正本 uxml でも Transition は Root の後）に置く。
+  レターボックス帯も覆うため stage ではなく Portal に置き、z層は `--z-skit-transition`。
+- フェード時間は契約に無いので即時切替とする（duration を契約へ足す場合は別裁定）。
+
+### 共通
+
+- 色・寸法・z層はすべて `index.css` のトークン経由。`--z-skit`（stage内の層序）と `--z-skit-transition` を定義し、
+  フォールバック付きの未定義トークン参照（`var(--z-skit, 500)` 等）はしない。
+- stage は独自スタッキングコンテキストのため、Portal側の `ModalHost` / `ToastHost`(`--z-toast`=300) は
+  常に**会話窓**（stage内 `--z-skit`）より上に来る。スキット中にモーダルは出ない想定であり、これを許容する。
+- ただし暗転（`--z-skit-transition`=210）はPortal直下のためモーダルより上・トーストより下に載る。
+  モーダルの実効zはMantine既定の200で、`--z-modal` は定義のみの未配線トークンである点に注意する。
+- **blockingスキット中はワールドピンHUD（§8.8）とチャレンジHUDを出さない。** Unityでもスキットは画面演出を
+  専有するため。判断は各featureが `skit.presentation` の
+  `mode` を購読して自前で行い、共有層やHUD基盤にスキット語彙を持ち込まない。
+
+## 8.13 クラフト進捗矢印（矢印グリフ自体がゲージ）
+
+- **クラフト画面（`CraftRecipeView`）の素材→結果の矢印は、矢印グリフそのものが進捗ゲージ**。矢印の下に独立した細いバーを敷くのは禁止（旧 `.craftArrowTrack` / `.craftArrowFill` の緑バーは廃止した）。器＝矢印であり、ゲージを別の要素として増やさない。
+- **構造はインラインSVGの3層**（`CraftProgressArrow`）。同じ矢印 path を3回描く:
+  1. 溝レイヤー: `--gauge-track` で塗った矢印全体
+  2. 充填レイヤー: `--color-content-primary` で塗った矢印を `clipPath` の矩形で左から `value`（0..1）分だけ切り出す
+  3. 輪郭レイヤー: 塗り無し・`--craft-arrow-outline` のストロークのみ。**最上層に置いて clip を通さない**（輪郭が充填境界で途切れると矢印の形が壊れるため）
+- **溝は `--gauge-track`、充填は `--color-content-primary`（白）。** 充填が §8.6 既定の `--gauge-fill` でない理由は、uGUI正本の白矢印がクラフト完了状態の見た目そのものであり、`value=1` で正本と一致させる必要があるため（ユーザー裁定）。この逸脱はクラフト矢印限りで、他のゲージへ白充填を広げない。輪郭色はトークン `--craft-arrow-outline`（従来の白矢印から引き継いだシアン）。
+- **`value=1` の一致は「塗りの内部が一致」の意味。** 輪郭のアンチエイリアス画素だけは、旧実装が白を背景へ、本実装が白を溝へブレンドするため最大31/255（実測1221px）暗くなる。縁1pxに閉じた差なので視覚的には判別できない。画素完全一致を要求する検査を足さないこと。
+- **`value=1` は基準状態であって、連続クラフト中には現れない。** `advanceHoldCraft` は完了フレームで `elapsed` を 0 へ戻すため、長押し中の進捗は `0→1未満` を周回して完了時に 0 へスナップする。`value=1` に到達するのは `craftTime<=0` の即時レシピのみ。完了の演出を足したくなったらここを読むこと（1フレームの満杯表示は §8.13 の transition 禁止と併せてほぼ視認できない）。
+- **待機（`value=0`）では矢印が暗い溝＋シアン輪郭になる。** 形はシアン輪郭が担保する。待機時を明るく戻すために溝を明色化するのは禁止（進捗の読み取りが成立しなくなる）。
+- **clipPath の id は `useId()` 由来で一意化する。** 同一ページに矢印が複数並ぶと固定 id は衝突して全部が同じ進捗になるため、固定文字列の id は禁止。
+- `value` は `clamp01` を通す（NaN は 0）。クリップ矩形は矢印 path の水平範囲（viewBox 座標系）に合わせ、`value=0` で完全に空、`value=1` で完全に充填になること。
+- 進捗はアニメーション（transition）を付けない。`useHoldCraft` の rAF が毎フレーム値を更新するため、補間は二重になる。
+
+## 8.14 チャレンジHUD
+
+- 常時表示HUD族として、面・枠・角丸を持たず、`.viewportOverlay` の左上安全帯に浮かせる。
+- 構成は「`--text-muted` の従属見出し → `FadeRule` → `--text-high-contrast` の目標一覧」だけとする。
+- HUDの本文幅は長文の可読性を保つ固定長とし、`FadeRule`だけを本文幅の約3分の1へ短縮する。位置・本文幅・罫線幅・間隔・文字サイズ・文字影は `--challenge-hud-*` 固定長トークンで管理する。
+- 複数目標は受信順で縦積みし、長文・長語を固定幅内で折り返す。
+- アイコン、ゲージ、箇条書き装飾、光彩、アニメーションは追加しない。
+- インベントリ・研究・建築・チャレンジ一覧・ポーズ等のメニュー中も表示を維持し、**HUD自身は画面状態を参照して位置・幅・間隔・文字サイズ・DOMを切り替えない**。全画面で同じ左上レイアウトを使い、`--menu-upper-safe-area` はその単一HUDが収まる高さを確保する。メニュー本体の高さは `--menu-content-height` を使う。
+- `pointer-events: none` を維持し、blockingスキット中は表示しない。
+
+## 8.15 操作モードHUD
+
+- 配置モードの状態表示は、`.viewportOverlay` の実画面右上へ独立して固定し、`GamePanel variant="craft"` に収める。クラフトレシピ詳細と同じ半透明ネイビー面・1px枠・内周線・右下グリップをそのまま再利用する。
+- 配置HUDは「`--text-muted` の従属見出し → `FadeRule` → `--text-high-contrast` の詳細一覧」とし、警告だけ `--text-insufficient` を使う。Mantineの `Paper` / `Stack` / `Title` / `Text` は使わない。
+- 削除モードでは説明パネルを出さず、uGUI正本の `delete bar.png` と同じ黄黒斜線帯を実viewport上下端へ表示する。正本の1920設計・高さ60px・端中央配置で画面内に見える半幅を1280基準へ換算し、帯高は20pxとする。
+- 削除警告帯はCSSの `repeating-linear-gradient` で再現し、色・帯高・斜線周期・角度は `--delete-mode-warning-*` 固定長トークンへ集約する。画像アセットはWebへ移植しない。
+- `delete.hud` のチュートリアルアンカーはstage全面の親ではなく下側警告帯へ付け、吹き出しを画面内へ保つ。
+- 位置・幅・間隔・文字サイズは `--operation-hud-*` 固定長トークンで管理する。
+- 配置HUD・削除警告帯とも光彩、アニメーション、合成boldを追加せず、`pointer-events: none` でゲーム入力を素通しする。
+- PlaceBlock / DeleteBar中もチャレンジHUDを表示する。チャレンジHUDは左上、配置HUDは右上、削除警告帯は上下端へ責務ごとに分離する。
+
 ## 9. やらないことリスト（再掲・明示）
 
-- 全画面UI・不透明な面での塗り潰し
+- 全画面UI・不透明な面での塗り潰し（唯一の例外は §8.12 のスキット暗転）
 - Mantine標準テーマ剥き出しの見た目
 - UI装飾のための画像アセット追加
 - GamePanel 以外のパネル背景 / shared/ui 以外のスロット表現
@@ -177,6 +298,7 @@ description: |
 - 新しい装飾モチーフ・装飾アニメーションの無断追加
 - 面フェード・余白の%指定（固定長トークンを使う。理由なき%は破綻源）
 - 用途の異なるスロット群の無札並置（ラベルか区切りで区別する）
+- ゲージ本体とは別に進捗表示用のバーを併設すること（器そのものを充填する・§8.13）
 - **このドキュメントに書かれていないパターンの使用**（必要なら先にここを更新する）
 
 ## 10. 実装後の目視QA（必須）
@@ -191,3 +313,4 @@ description: |
 4. **重なり**: 対象画面のuiStateを正しく設定したか（別パネルの透け重なりを問題と誤認しない・実際の重なりを見逃さない）
 
 %指定や幅依存の値を触った場合は、基準幅（持ち物378px）と大型幅（機械/研究759px）の両方で確認する。
+画面端HUD・全幅帯を触った場合は、1280×720に加えて2432×786等の高さ制約型横長viewportでも、左右端・右上アンカー・固定長の内容幅を確認する。

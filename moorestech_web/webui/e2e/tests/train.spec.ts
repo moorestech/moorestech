@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { setBlock, setTrainRiding, setUiState } from "../support/mockControl";
+import { setBlock, setTopicScenario, setTrainRiding, setUiState } from "../support/mockControl";
 
 test.afterEach(async ({ page }) => {
   await setTrainRiding(page, false, 0, 0);
@@ -8,10 +8,16 @@ test.afterEach(async ({ page }) => {
 });
 
 test("乗車HUDと分岐選択を表示し、入れ子Pauseへ遷移する", async ({ page }) => {
+  await setTopicScenario(page, "challengeActive");
   await setTrainRiding(page, true, 3, 1);
   await setUiState(page, "TrainHUDScreen", "GameScreen");
   await page.goto("/");
 
+  // 乗車中もチャレンジHUDを左上に保つ
+  // Keep the challenge HUD at the top left while riding
+  await expect(page.getByTestId("challenge-hud")).toBeVisible();
+  await expect(page.getByTestId("challenge-hud")).toHaveCSS("left", "24px");
+  await expect(page.getByTestId("challenge-hud")).toHaveCSS("width", "520px");
   await expect(page.getByTestId("train-riding-hud")).toBeVisible();
   await expect(page.getByTestId("train-branch-selection")).toContainText("2/3");
 

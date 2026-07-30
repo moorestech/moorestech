@@ -1,0 +1,55 @@
+/* ツールボタンは画面右上に並ぶ面を持たない浮遊アイコン（共通IconButton） */
+/* Tool buttons are faceless floating icons in the screen's top-right, built on the shared IconButton */
+/* 正本アイコンはボタン枠いっぱい(bbox比1.00)のため、IconButtonの寸法を枠と同寸へ局所上書きする */
+/* The reference icons fill their button frame (bbox ratio 1.00), so override IconButton's size to match the frame */
+.toolbar {
+  --icon-button-size: var(--skit-tool-button-size);
+  --icon-button-icon-size: var(--skit-tool-button-size);
+
+  position: absolute;
+  top: var(--skit-toolbar-inset-top);
+  right: var(--skit-toolbar-inset-right);
+  display: flex;
+  gap: var(--skit-tool-gap);
+  pointer-events: auto;
+}
+
+/* 面・枠・focus表現は共通IconButtonが供給する。ここはスキット固有の減衰と点灯だけを足す */
+/* The shared IconButton supplies the face, border, and focus treatment; only skit-specific dimming and lighting live here */
+/* 共通側の単一クラス規則へ確実に勝たせるため .toolbar 配下で限定する */
+/* Scoped under .toolbar so these reliably beat the shared component's single-class rules */
+.toolbar .toolButton {
+  color: var(--text-high-contrast);
+  filter: drop-shadow(var(--skit-tool-icon-shadow));
+  opacity: var(--skit-tool-icon-opacity);
+}
+
+.toolbar .toolButton svg {
+  width: var(--skit-tool-button-size);
+  height: var(--skit-tool-button-size);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: var(--skit-tool-icon-stroke-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.toolbar .toolButton:not(:disabled):hover,
+.toolbar .toolButton:not(:disabled):focus-visible {
+  color: var(--text-high-contrast);
+  opacity: 1;
+}
+
+/* 自動送りONだけシアンで灯す。アイコン自体は差し替えない */
+/* Only auto-advance ON lights up cyan; the icon itself is never swapped */
+.toolbar .toolButton[data-enabled="true"] {
+  color: var(--select-cyan);
+  opacity: 1;
+}
+
+/* 無効時は従属テキストへ減衰させ、ホバーの持ち上げも打ち消す */
+/* Disabled buttons fade to secondary text and cancel the hover lift */
+.toolbar .toolButton:disabled {
+  color: var(--text-muted);
+  cursor: default;
+}

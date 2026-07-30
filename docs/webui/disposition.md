@@ -41,7 +41,7 @@
 | CRAFT-1 | クラフト長押し・連続クラフト | **B3**（既実装確認済み 2026-07-18） |
 | CRAFT-2 | 機械レシピビューア | **済** |
 | CRAFT-3 | レシピ対象アイテムリスト | **済**。可能数バッジもB3済（2026-07-18） |
-| CRAFT-4 | クラフトツリー | **除外（機能削除・実施済み）**: 削除設計書 `docs/superpowers/specs/2026-07-18-craft-tree-removal-design.md`。削除実装を web-ui へ統合済み（2026-07-18 `db2b3f5ba`。回帰テスト CraftTreeRemovalTest/AssembleSaveJsonTextTest 合格） |
+| CRAFT-4 | クラフトツリー | **除外（機能削除・実施済み）**: 削除設計書 `docs/superpowers/specs/2026-07-18-craft-tree-removal-design.md`。削除実装を web-ui へ統合済み（2026-07-18 `db2b3f5ba`。2026-07-30 Unityアセット・製品コード残存参照0、Unityコンパイル・Web E2E合格） |
 | CHAL-1 | チャレンジリスト/ツリー | **C1**（2026-07-18 完了。treeView共通基盤+challenge.tree） |
 | CHAL-2 | 進行中チャレンジ HUD | **C1**（2026-07-18 完了。challenge.current常駐HUD） |
 | RES-1 | 研究ツリー | **済**（報酬個数表示もB3-8で完了 2026-07-18。treeView共通基盤へ載せ替え済み） |
@@ -49,7 +49,7 @@
 | MODE-2 | 削除モード HUD | **C2**（2026-07-18 完了。不可理由は契約のみ・既存実装に意味的理由なし） |
 | MODE-3 | デバッグ系 UI | **除外**: 非出荷（2026-07-18 方針） |
 | MODE-4 | 給電範囲オーバーレイ連携 | **C2**（2026-07-18 完了。placement_mode topicへ統合） |
-| MODE-5 | 直接採掘 HUD | **C2**（2026-07-18 完了。ui.mining_hud） |
+| MODE-5 | 直接採掘 HUD | **C2**（2026-07-27 ui.progressへ統合・対象名表示を撤去） |
 | TRAIN-1 | 列車乗車 HUD | **C3**（2026-07-18 完了。train.riding+入れ子Pause subState・実機一巡はD） |
 | COM-1 | コンテキストメニュー | **C2**（2026-07-18 完了。ID照合Action） |
 | COM-2 | モーダル | **済**（基盤+確認ダイアログ）。RequestModal 実プロデューサ配線は品質バックログ（実ユースケース決定待ち） |

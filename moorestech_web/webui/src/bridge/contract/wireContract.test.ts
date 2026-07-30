@@ -1,23 +1,16 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 
 import { validateTopicPayload } from "./validators";
+import { loadFixture } from "./wireFixtures.test-helper";
 import { BENIGN_ERRORS } from "../transport/actions";
 import { TopicEnvelopeSchema, Topics } from "../transport/protocol";
 import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData, BuildMenuData, ChallengeTreeData, ChallengeCurrentData, PauseMenuData } from "./payloadTypes";
 
-// C# NUnit(WireContractTest) と同一のフィクスチャを参照する単一ソース。TS 側は validators と型消費で契約を確認する
-// Single source shared with the C# NUnit (WireContractTest); the TS side checks the contract via validators + type consumption
-const fixturesDir = fileURLToPath(
-  new URL("../../../../../moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/", import.meta.url),
-);
-
-function loadFixture(name: string): unknown {
-  return JSON.parse(readFileSync(fixturesDir + name, "utf8"));
-}
-
 describe("wire contract fixtures (shared with C#)", () => {
+  it("削除した重複採掘HUD topicを公開しない", () => {
+    expect(Object.values(Topics)).not.toContain("ui.mining_hud");
+  });
+
   it("accepts Phase C4 presentation fixtures", () => {
     expect(validateTopicPayload(Topics.gameState, loadFixture("game_state.json"))).toBe(true);
     expect(validateTopicPayload(Topics.tutorialPresentation, loadFixture("tutorial_presentation.json"))).toBe(true);
@@ -115,7 +108,7 @@ describe("wire contract fixtures (shared with C#)", () => {
     const cases = [
       [Topics.placementMode, "placement_mode.json"], [Topics.deleteMode, "delete_mode.json"],
       [Topics.crosshair, "visibility.json"],
-      [Topics.uiVisibility, "visibility.json"], [Topics.miningHud, "mining_hud.json"],
+      [Topics.uiVisibility, "visibility.json"],
       [Topics.tooltip, "tooltip.json"],
     ] as const;
     for (const [topic, fixture] of cases) expect(validateTopicPayload(topic, loadFixture(fixture))).toBe(true);

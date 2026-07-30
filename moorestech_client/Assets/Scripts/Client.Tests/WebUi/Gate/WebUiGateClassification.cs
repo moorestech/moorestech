@@ -103,7 +103,7 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/ProgressBar/ProgressBarView.cs", Category.GatedRoot, "スクリーン進捗バー（D監査で二重表示ゲート漏れを検出し修正。論理状態はProgressTopicのデータ源として維持）"),
             new Rule("Client.Game/InGame/Presenter/PauseMenu", Category.CoveredByRoot, "PauseMenuStateService/NetworkDisconnectPresenterで抑止 (C2)"),
             new Rule("Client.Game/InGame/BackgroundSkit", Category.CoveredByRoot, "BackgroundSkitManagerでWeb文字表示を抑止（音声はUnity維持） (C4/S1)"),
-            new Rule("Client.Game/InGame/Mining", Category.Excluded, "ワールド空間表示のためUnity残置。画面固定HUDはWeb側ui.mining_hudで新設 (C2)"),
+            new Rule("Client.Game/InGame/Mining", Category.Excluded, "ワールド空間表示のためUnity残置。画面固定進捗は既存ui.progressへ統合 (C2)"),
             new Rule("Client.Game/InGame/Tutorial/UIHighlight", Category.Infra, "uGUIフォールバック撤去済み・DOMハイライト一本化 (C4/T3)"),
             new Rule("Client.Game/InGame/Tutorial/MapObjectPin.cs", Category.Excluded, "ワールド座標ピンのためUnity残置"),
             new Rule("Client.Game/InGame/Tutorial/BlockPlacePreviewTutorialManager.cs", Category.Excluded, "3D配置previewのためUnity残置"),
