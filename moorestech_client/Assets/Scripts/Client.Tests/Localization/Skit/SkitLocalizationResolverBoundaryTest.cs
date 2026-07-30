@@ -118,7 +118,8 @@ namespace Client.Tests.Localization.Skit
             foreach (var path in Directory.GetFiles(skitRoot, "*.json"))
             {
                 var metadataTitle = (string)JObject.Parse(File.ReadAllText(path))["meta"]?["title"];
-                Assert.AreEqual(Path.GetFileNameWithoutExtension(path), metadataTitle, path);
+                var runtimeTitle = SkitTitle.FromAssetName(Path.GetFileNameWithoutExtension(path));
+                Assert.AreEqual(runtimeTitle, metadataTitle, path);
             }
         }
 
