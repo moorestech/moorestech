@@ -50,6 +50,7 @@ namespace Client.Starter.Initialization
             // Root cause is suspected to be Addressables' internal bundle scheduling/locking, but unidentified.
             await AddressableLoader.LoadAsync<GameObject>("Vanilla/UI/Block/ChestBlockInventory");
             await UniTask.WhenAll(ItemSlotView.LoadItemSlotViewPrefab(), FluidSlotView.LoadItemSlotViewPrefab());
+            Debug.Log("[InitializeScenePipeline] critical Addressables preload completed");
         }
 
         public async UniTask<ModAssetLoadResult> RunAsync()
@@ -57,11 +58,13 @@ namespace Client.Starter.Initialization
             // ブロックとアイテムのアセットをロード
             // Load block and item assets.
             await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets(), LoadConnectToolAssets(), LoadFluidAssets());
+            Debug.Log("[InitializeScenePipeline] parallel mod asset load completed");
 
             // ブロック・列車画像を生成
             // Generate block and train icons
             var iconLoader = new ModAssetIconLoader(_blockContainer, _blockIconImagePhotographer, _loadingLog, _loadingStopwatch);
             var iconResult = await iconLoader.RunAsync();
+            Debug.Log("[InitializeScenePipeline] mod icon capture completed");
 
             return new ModAssetLoadResult
             {

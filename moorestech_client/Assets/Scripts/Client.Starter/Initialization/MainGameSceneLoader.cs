@@ -25,6 +25,7 @@ namespace Client.Starter.Initialization
 
         public async UniTask<AsyncOperation> RunAsync()
         {
+            Debug.Log("[InitializeScenePipeline] MainGame scene preload started");
             var sceneLoadTask = SceneManager.LoadSceneAsync(SceneConstant.MainGameSceneName, LoadSceneMode.Single);
             sceneLoadTask.allowSceneActivation = false;
 
@@ -48,6 +49,7 @@ namespace Client.Starter.Initialization
                 // Scene load complete.
             }
 
+            Debug.Log("[InitializeScenePipeline] MainGame scene preload reached activation boundary");
             _loadingLog.text += $"\nシーンロード完了  {_loadingStopwatch.Elapsed}";
 
             return sceneLoadTask;

@@ -54,7 +54,7 @@ namespace Client.Starter.StandaloneQa
         private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             if (!_isActive) return;
-
+            Debug.Log($"[StandaloneTerrainQa] sceneLoaded={scene.name}");
             if (scene.name == SceneConstant.GameInitializerSceneName)
             {
                 var pipeline = UnityEngine.Object.FindFirstObjectByType<InitializeScenePipeline>(FindObjectsInactive.Include);
