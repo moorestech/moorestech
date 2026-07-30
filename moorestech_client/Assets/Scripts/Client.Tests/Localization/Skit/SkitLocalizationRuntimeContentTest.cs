@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using Mooresmaster.LocalizationCsv;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -30,7 +31,7 @@ namespace Client.Tests.Localization.Skit
                 languageCode + ".json");
             var translations = (JObject)JObject.Parse(File.ReadAllText(path))["translations"];
 
-            // 実行時に解決されるskit値だけをQA用識別子から保護する
+            // 実行時skit値からQA識別子を排除
             // Protect only runtime-resolved skit values from QA identifiers
             foreach (var property in translations.Properties())
             {
@@ -49,7 +50,7 @@ namespace Client.Tests.Localization.Skit
                 "show HEAD:.moorestech-external-revisions.json");
             var masterRevision = FindMasterRevision(JObject.Parse(revisionJson));
 
-            // 共通gitディレクトリから本体repoを特定し、コミット済みpinを直接読む
+            // 共通gitから本体repoとpinを特定
             // Locate the primary repo via the common git directory and read the committed pin directly
             var commonGitDirectory = RunGit(
                 repositoryRoot,
@@ -62,7 +63,7 @@ namespace Client.Tests.Localization.Skit
                 Directory.Exists(masterRepositoryRoot),
                 $"Pinned master repository not found: {masterRepositoryRoot}");
 
-            // pin先commitの本番CSVを本番parserへ通して全runtime列を検査する
+            // pin先CSVを本番parserで検査
             // Parse the production CSV at the pinned commit and inspect every runtime column
             var csvText = RunGit(
                 masterRepositoryRoot,
@@ -112,15 +113,22 @@ namespace Client.Tests.Localization.Skit
                 CreateNoWindow = true,
             };
 
-            // 外部git境界の終了コードと標準エラーをテスト失敗へ変換する
-            // Convert the external git boundary's exit code and stderr into a test failure
+            // 外部gitを有界時間で検証
+            // Validate the external git process within bounded time
             using var process = Process.Start(startInfo);
             Assert.IsNotNull(process, $"Failed to start git in {workingDirectory}");
-            var standardOutput = process.StandardOutput.ReadToEnd();
-            var standardError = process.StandardError.ReadToEnd();
-            process.WaitForExit();
-            Assert.AreEqual(0, process.ExitCode, standardError);
-            return standardOutput;
+            var standardOutputTask = process.StandardOutput.ReadToEndAsync();
+            var standardErrorTask = process.StandardError.ReadToEndAsync();
+            if (!process.WaitForExit(5000))
+            {
+                process.Kill();
+                Assert.Fail($"git timed out in {workingDirectory}");
+            }
+
+            var outputTasks = new Task[] { standardOutputTask, standardErrorTask };
+            Assert.IsTrue(Task.WaitAll(outputTasks, 2000), "git output streams did not close");
+            Assert.AreEqual(0, process.ExitCode, standardErrorTask.Result);
+            return standardOutputTask.Result;
         }
     }
 }

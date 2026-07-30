@@ -643,7 +643,7 @@ skit.100_start_game.4.body,"ワープシーケンスを開始。\n現在地、�
 "skit.100_start_game.31.overrideCharacterName": "　"
 ```
 
-english/japaneseで値を変える。japaneseはcommand 2だけSkit値を持ち、command 3/4は空、englishはcommand 3/4のSkit値を持つfixtureにして5段の境界を作る。通常ストーリーから参照されない既存開発用Addressable `sample_short.json` へ3択selectionと終了先commandを追加し、対応する `Option1Tag`〜`Option3Tag` を両言語辞書へ追加する。背景skitには `skit.200_star_background.1.body`、既存の話者上書き行には `skit.100_start_game.31.overrideCharacterName` を追加して各field経路を通す。CSVのSourceはMasterまたはSkit JSONの実原文へ完全一致させ、複数行は共通CSV parserが改行へ復元するliteral `\n` で記述する。
+english/japaneseで値を変える。japaneseはcommand 1/2にSkit値を持ち、command 3/4は空、englishはcommand 3/4のSkit値を持つfixtureにして5段の境界を作る。通常ストーリーから参照されない既存開発用Addressable `sample_short.json` へ3択selectionと終了先commandを追加し、対応する `Option1Tag`〜`Option3Tag` を両言語辞書へ追加する。背景skitには `skit.200_star_background.1.body`、既存の話者上書き行には `skit.100_start_game.31.overrideCharacterName` を追加して各field経路を通す。CSVのSourceはMasterまたはSkit JSONの実原文へ完全一致させ、複数行は共通CSV parserが改行へ復元するliteral `\n` で記述する。
 
 - [ ] **Step 2: PlayModeで結合確認する**
 

@@ -48,6 +48,18 @@ public class LanguageCatalogTest
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
+    public void 言語コードが空または空白なら例外(string languageCode)
+    {
+        var settingsCsv =
+            $"lang_name,display_name,steam_api_lang_code\n{languageCode},English,en\n";
+
+        Assert.Throws<LocalizationCsvException>(() =>
+            LocalizationSettingsParser.Parse(settingsCsv));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
     public void 表示名が空または空白なら例外(string displayName)
     {
         var settingsCsv =

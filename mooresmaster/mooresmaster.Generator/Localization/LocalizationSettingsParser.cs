@@ -48,12 +48,12 @@ public static class LocalizationSettingsParser
             }
 
             var code = fields[0];
-            if (string.IsNullOrEmpty(code))
+            if (string.IsNullOrWhiteSpace(code))
             {
                 throw new LocalizationCsvException("Language setting code must not be empty");
             }
 
-            // UIとSteam連携に必要な設定値を入力境界で保証
+            // 設定値を入力境界で検証
             // Require UI and Steam integration values at the input boundary
             var displayName = fields[1];
             if (string.IsNullOrWhiteSpace(displayName))
