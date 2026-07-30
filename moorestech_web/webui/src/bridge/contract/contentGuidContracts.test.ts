@@ -12,7 +12,7 @@ const machineRecipe = {
 };
 
 describe("content Guid contracts", () => {
-  it("block inventoryはblockNameでなくblockGuidを必須にする", () => {
+  it("block inventoryはblockGuidを必須にし、旧blockNameの同居を拒否する", () => {
     const payload = {
       open: true,
       source: "block",
@@ -22,17 +22,18 @@ describe("content Guid contracts", () => {
       fluidSlots: [],
     };
 
-    expect(validateTopicPayload(Topics.blockInventory, { ...payload, blockGuid: "block-guid" })).toBe(true);
-    expect(validateTopicPayload(Topics.blockInventory, { ...payload, blockName: "炉" })).toBe(false);
+    const guidPayload = { ...payload, blockGuid: "block-guid" };
+    expect(validateTopicPayload(Topics.blockInventory, guidPayload)).toBe(true);
+    expect(validateTopicPayload(Topics.blockInventory, { ...guidPayload, blockName: "炉" })).toBe(false);
   });
 
-  it("machine recipeはblockGuidを保持し、削除済みの名前では代替できない", () => {
+  it("machine recipeはblockGuidを保持し、旧blockNameの同居を拒否する", () => {
     expect(validateTopicPayload(Topics.machineRecipes, { recipes: [machineRecipe] })).toBe(true);
     expect(validateTopicPayload(Topics.machineRecipes, {
       recipes: [{ ...machineRecipe, blockId: undefined, blockItemId: 12 }],
     })).toBe(false);
     expect(validateTopicPayload(Topics.machineRecipes, {
-      recipes: [{ ...machineRecipe, blockGuid: undefined, blockName: "炉" }],
+      recipes: [{ ...machineRecipe, blockName: "炉" }],
     })).toBe(false);
   });
 });

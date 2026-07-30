@@ -100,7 +100,7 @@ export const BlockInventoryOpenSchema = z.object({
   filterSplitter: FilterSplitterDataSchema.optional(),
   electricToGear: ElectricToGearDataSchema.optional(),
   trainPlatform: TrainPlatformDataSchema.optional(),
-});
+}).strict();
 export const TrainInventoryOpenSchema = z.object({
   open: z.literal(true),
   source: z.literal("train"),
