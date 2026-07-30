@@ -39,7 +39,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
         {
             ItemViewData = itemView;
             Count = count;
-            _usesDefaultToolTip = string.IsNullOrEmpty(toolTipText);
+            _usesDefaultToolTip = toolTipText == null;
 
             if (itemView == null || itemView.IsEmpty)
             {
@@ -47,9 +47,15 @@ namespace Client.Game.InGame.UI.Inventory.Common
             }
             else
             {
-                if (string.IsNullOrEmpty(toolTipText))
+                if (_usesDefaultToolTip)
                 {
                     toolTipText = GetToolTipText(itemView);
+                    if (string.IsNullOrEmpty(toolTipText))
+                    {
+                        commonSlotView.SetView(itemView.ItemImage, GetCountText(count), string.Empty);
+                        commonSlotView.SetShowToolTip(false);
+                        return;
+                    }
                 }
                 
                 commonSlotView.SetView(itemView.ItemImage, GetCountText(count), toolTipText);
@@ -101,9 +107,9 @@ namespace Client.Game.InGame.UI.Inventory.Common
         
         public static string GetToolTipText(ItemViewData itemView)
         {
-            // マスタに紐づかないブロック・車両等は呼び出し側の専用表示かアセット名を維持する
-            // Preserve caller-owned presentation or asset names for blocks and vehicles without an item master
-            if (itemView.ItemMasterElement == null) return itemView.ItemName;
+            // マスタに紐づかない表示名は辞書キーを持たないため既定Tooltipへ公開しない
+            // Do not expose names without a master-backed dictionary key through the default tooltip
+            if (itemView.ItemMasterElement == null) return string.Empty;
             return Localize.GetContent(ContentLocalizationKeys.ItemName(itemView.ItemMasterElement.ItemGuid));
         }
 
