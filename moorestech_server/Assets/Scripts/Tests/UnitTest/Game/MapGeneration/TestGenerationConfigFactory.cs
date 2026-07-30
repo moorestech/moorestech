@@ -47,6 +47,21 @@ namespace Tests.UnitTest.Game.MapGeneration
         // Builds with arbitrary algorithmParam fields replaced, for tests varying a single coordinate-system condition.
         public static Generation CreateWithAlgorithmParamOverrides(SpawnSearchSetup spawnSearchSetup, JObject algorithmParamOverrides)
         {
+            return CreateWithMapObjectGuid(spawnSearchSetup, algorithmParamOverrides, TestMapObjectGuid);
+        }
+
+        // 任意のMapObject GUIDを1件だけ持つ生成設定を作り、変換境界の検査に使う。
+        // Build generation config with one arbitrary MapObject GUID for conversion-boundary validation.
+        public static Generation CreateWithMapObjectGuid(string mapObjectGuid)
+        {
+            return CreateWithMapObjectGuid(SpawnSearchSetup.Enabled, new JObject(), mapObjectGuid);
+        }
+
+        private static Generation CreateWithMapObjectGuid(
+            SpawnSearchSetup spawnSearchSetup,
+            JObject algorithmParamOverrides,
+            string mapObjectGuid)
+        {
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
                 "mods", "forUnitTest", "master", "generation.json");
             var root = JObject.Parse(File.ReadAllText(path));
@@ -82,7 +97,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             ConfigureVeinEntry((JObject)((JArray)ore["entries"])[0], TestVeinGuid);
             ConfigureVeinEntry((JObject)((JArray)ore["fluidEntries"])[0], TestFluidVeinGuid);
 
-            ConfigureForSpawnSearch(ap, spawnSearchSetup);
+            ConfigureForSpawnSearch(ap, spawnSearchSetup, mapObjectGuid);
 
             // 差し替えは最後に当てる。setup 側の既定を上書きしたいテストが必ず勝つようにするため。
             // Overrides land last so a test that wants to replace a setup default always wins.
@@ -108,7 +123,7 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             // 探索経路だけに要る調整。Disabled を使う既存テストの地形・配置物を動かさないよう分岐の内側に置く。
             // Tuning needed only by the search path; kept inside the branch so Disabled tests keep their terrain and placements.
-            static void ConfigureForSpawnSearch(JObject ap, SpawnSearchSetup setup)
+            static void ConfigureForSpawnSearch(JObject ap, SpawnSearchSetup setup, string mapObjectGuid)
             {
                 if (setup == SpawnSearchSetup.Disabled) return;
 
@@ -118,16 +133,16 @@ namespace Tests.UnitTest.Game.MapGeneration
 
                 // 独立散布オブジェクトを Grassland に1種置き、MapObjects が空にならないようにする。
                 // Place one independently scattered object in Grassland so MapObjects is never empty.
-                ((JArray)((JObject)((JObject)ap["grassland"])["objectConfig"])["entries"]).Add(BuildObjectEntry());
+                ((JArray)((JObject)((JObject)ap["grassland"])["objectConfig"])["entries"]).Add(BuildObjectEntry(mapObjectGuid));
             }
 
             // ノイズ・傘フィルタを全て無効にした素の散布エントリ。スキーマ既定値と同値でも明示的に埋める。
             // A bare scatter entry with every noise/slope filter off; fields are written out even when equal to the schema defaults.
-            static JObject BuildObjectEntry()
+            static JObject BuildObjectEntry(string mapObjectGuid)
             {
                 return new JObject
                 {
-                    ["prefabs"] = new JArray(new JObject { ["mapObjectGuid"] = TestMapObjectGuid }),
+                    ["prefabs"] = new JArray(new JObject { ["mapObjectGuid"] = mapObjectGuid }),
                     ["density"] = 1.0,
                     ["scaleRange"] = new JArray(1.0, 1.0),
                     ["slopeAlignment"] = 0.0,

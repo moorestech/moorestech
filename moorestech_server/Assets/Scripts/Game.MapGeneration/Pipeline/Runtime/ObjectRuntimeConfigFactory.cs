@@ -18,9 +18,17 @@ namespace Game.MapGeneration.Pipeline.Runtime
             if (gen.ClusterEntries != null)
             foreach (var ce in gen.ClusterEntries)
             {
+                // 主配置候補を順序どおり写し、空GUIDを生成処理へ渡さない。
+                // Copy primary candidates in order and keep empty GUIDs out of generation.
+                var primaryGuids = new string[ce.Primary.Length];
+                for (var i = 0; i < ce.Primary.Length; i++)
+                    primaryGuids[i] = RuntimeConvert.ToRequiredGuidString(
+                        ce.Primary[i].MapObjectGuid,
+                        "objectConfig.clusterEntries.primary.mapObjectGuid");
+
                 var cluster = new ObjectClusterEntry
                 {
-                    primary = RuntimeConvert.ToGuidStrings(ce.Primary, x => x.MapObjectGuid),
+                    primary = primaryGuids,
                     density = ce.Density,
                     scaleRange = ce.ScaleRange,
                     slopeAlignment = ce.SlopeAlignment,
@@ -39,10 +47,18 @@ namespace Game.MapGeneration.Pipeline.Runtime
                 if (ce.Secondaries != null)
                 foreach (var s in ce.Secondaries)
                 {
+                    // 従属配置候補も同じ必須GUID規約で変換する。
+                    // Convert secondary candidates under the same required-GUID contract.
+                    var secondaryGuids = new string[s.Prefabs.Length];
+                    for (var i = 0; i < s.Prefabs.Length; i++)
+                        secondaryGuids[i] = RuntimeConvert.ToRequiredGuidString(
+                            s.Prefabs[i].MapObjectGuid,
+                            "objectConfig.clusterEntries.secondaries.prefabs.mapObjectGuid");
+
                     secondaries.Add(new ObjectClusterSecondary
                     {
                         mode = RuntimeConvert.ToSecondaryMode(s.Mode),
-                        mapObjectGuids = RuntimeConvert.ToGuidStrings(s.Prefabs, x => x.MapObjectGuid),
+                        mapObjectGuids = secondaryGuids,
                         scaleRange = s.ScaleRange,
                         slopeAlignment = s.SlopeAlignment,
                         sinkRange = s.SinkRange,
@@ -63,9 +79,17 @@ namespace Game.MapGeneration.Pipeline.Runtime
             if (gen.Entries != null)
             foreach (var e in gen.Entries)
             {
+                // 独立散布候補も空GUIDを拒否してから実行時設定へ渡す。
+                // Reject empty independent-scatter GUIDs before placing them in runtime config.
+                var entryGuids = new string[e.Prefabs.Length];
+                for (var i = 0; i < e.Prefabs.Length; i++)
+                    entryGuids[i] = RuntimeConvert.ToRequiredGuidString(
+                        e.Prefabs[i].MapObjectGuid,
+                        "objectConfig.entries.prefabs.mapObjectGuid");
+
                 entries.Add(new BiomeObjectConfig.ObjectEntry
                 {
-                    mapObjectGuids = RuntimeConvert.ToGuidStrings(e.Prefabs, x => x.MapObjectGuid),
+                    mapObjectGuids = entryGuids,
                     density = e.Density,
                     scaleRange = e.ScaleRange,
                     slopeAlignment = e.SlopeAlignment,

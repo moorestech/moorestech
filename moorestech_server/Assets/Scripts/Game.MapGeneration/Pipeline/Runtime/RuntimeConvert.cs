@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 
@@ -30,15 +28,14 @@ namespace Game.MapGeneration.Pipeline.Runtime
                 $"[GenerationRuntimeConfig] '{fieldName}' has an unrecognized enum value: '{name}' (expected a {typeof(T).Name} option name).");
         }
 
-        // uuid(Guid) 配列 → mapObjectGuid 文字列配列（空要素はそのまま保持）。
-        // uuid(Guid) array to mapObjectGuid string array (preserving element order).
-        public static string[] ToGuidStrings<T>(T[] elements, Func<T, Guid> selector)
+        // 空GUIDを実行時配置へ流さず、マスタ変換境界で不備として拒否する。
+        // Reject an empty GUID as a master-data gap before it reaches runtime placement.
+        public static string ToRequiredGuidString(Guid guid, string fieldName)
         {
-            if (elements == null) return new string[0];
-            var result = new string[elements.Length];
-            for (int i = 0; i < elements.Length; i++)
-                result[i] = selector(elements[i]).ToString();
-            return result;
+            if (guid == Guid.Empty)
+                throw new InvalidOperationException(
+                    $"[GenerationRuntimeConfig] '{fieldName}' must not contain an empty GUID.");
+            return guid.ToString();
         }
 
         // biomes 列挙配列（None/Grassland.../Woods、宣言順 0..8）を BiomeFlags ビットマスクへ合成する。
@@ -73,18 +70,5 @@ namespace Game.MapGeneration.Pipeline.Runtime
         public static TerrainResolutionPreset ToResolutionPreset(string name) =>
             ParseEnum<TerrainResolutionPreset>(name, "resolutionPreset");
 
-        // keyframe 配列 → UnityEngine.AnimationCurve（空配列は null＝線形）。
-        // keyframe array to UnityEngine.AnimationCurve (empty array yields null = linear).
-        public static AnimationCurve ToAnimationCurve<T>(
-            T[] keyframes,
-            Func<T, float> time, Func<T, float> value,
-            Func<T, float> inTangent, Func<T, float> outTangent)
-        {
-            if (keyframes == null || keyframes.Length == 0) return null;
-            var keys = new List<Keyframe>(keyframes.Length);
-            foreach (var k in keyframes)
-                keys.Add(new Keyframe(time(k), value(k), inTangent(k), outTangent(k)));
-            return new AnimationCurve(keys.ToArray());
-        }
     }
 }
