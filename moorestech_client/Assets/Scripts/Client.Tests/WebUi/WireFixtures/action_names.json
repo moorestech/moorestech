@@ -22,6 +22,7 @@
     "filter_splitter.set_filter_item",
     "electric_to_gear.set_output_mode",
     "train_platform.set_transfer_mode",
+    "localization.setLocale",
     "debug.echo",
     "tutorial.anchor_ack",
     "skit.advance",

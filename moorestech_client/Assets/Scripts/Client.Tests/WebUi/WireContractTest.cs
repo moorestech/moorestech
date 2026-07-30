@@ -131,7 +131,7 @@ namespace Client.Tests.WebUi
                 "invalid_id", "invalid_result", "no_pending_modal",
                 "invalid_state", "unsupported_state",
                 "invalid_guid", "research_failed", "block_not_open",
-                "invalid_direction", "filter_request_failed", "unknown_entry",
+                "invalid_direction", "filter_request_failed", "unknown_entry", "unknown_locale",
                 "stale_session", "stale_revision", "intent_not_allowed", "unknown_choice",
             };
 

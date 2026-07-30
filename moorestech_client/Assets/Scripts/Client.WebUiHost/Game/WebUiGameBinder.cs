@@ -162,6 +162,7 @@ namespace Client.WebUiHost.Game
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             hub.RegisterAction(new EchoActionHandler());
 #endif
+            LocalizationActions.Register(hub);
             hub.RegisterAction(new MoveItemActionHandler(controller));
             hub.RegisterAction(new SplitGrabActionHandler(controller));
             hub.RegisterAction(new SplitDragActionHandler(controller));
