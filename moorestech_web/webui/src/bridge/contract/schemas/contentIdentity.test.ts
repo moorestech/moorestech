@@ -58,4 +58,27 @@ describe("research/challenge content identity contracts", () => {
   ])("rejects a removed display-text field", ({ schema, payload }) => {
     expect(schema.safeParse(payload).success).toBe(false);
   });
+
+  it.each([
+    {
+      schema: ResearchTreeDataSchema,
+      payload: { nodes: [researchNode], legacyDisplayText: "research" },
+    },
+    {
+      schema: ChallengeTreeDataSchema,
+      payload: {
+        categories: [{ guid: "category-a", iconItemId: 1, nodes: [challengeNode] }],
+        legacyDisplayText: "challenge tree",
+      },
+    },
+    {
+      schema: ChallengeCurrentDataSchema,
+      payload: {
+        challenges: [{ guid: "challenge-a", categoryGuid: "category-a" }],
+        legacyDisplayText: "challenge current",
+      },
+    },
+  ])("rejects an unknown top-level field beside a valid payload", ({ schema, payload }) => {
+    expect(schema.safeParse(payload).success).toBe(false);
+  });
 });

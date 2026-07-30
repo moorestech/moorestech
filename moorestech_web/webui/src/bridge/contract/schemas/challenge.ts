@@ -14,7 +14,7 @@ export const ChallengeCategoryDataSchema = z.object({
   iconItemId: z.number(),
   nodes: z.array(ChallengeNodeDataSchema),
 }).strict();
-export const ChallengeTreeDataSchema = z.object({ categories: z.array(ChallengeCategoryDataSchema) });
+export const ChallengeTreeDataSchema = z.object({ categories: z.array(ChallengeCategoryDataSchema) }).strict();
 export const CurrentChallengeDataSchema = z.object({
   guid: z.string(),
   categoryGuid: z.string(),
@@ -22,4 +22,4 @@ export const CurrentChallengeDataSchema = z.object({
 export const ChallengeCurrentDataSchema = z.object({
   challenges: z.array(CurrentChallengeDataSchema),
   completedChallengeGuid: z.string().optional(),
-});
+}).strict();
