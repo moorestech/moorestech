@@ -15,7 +15,9 @@ namespace Client.Game.Skit.Localization
         private SkitLocalizationScope _publishedScope = SkitLocalizationScope.Empty;
         private IDisposable _languageSubscription;
         private string _skitTitle;
-        private int _reloadVersion;
+        private int _observedRevision;
+        private int _publishedRevision = -1;
+        private int _disposed;
 
         public SkitLocalizationResolver()
             : this(
@@ -35,13 +37,25 @@ namespace Client.Game.Skit.Localization
         public async UniTask PrepareAsync(string skitTitle)
         {
             _skitTitle = skitTitle;
-            var version = Interlocked.Increment(ref _reloadVersion);
-            await BuildAndPublishScopeAsync(version);
-
-            // 実行scopeの準備後だけ言語変更を購読する
-            // Subscribe to language changes only after the execution scope is ready
             _languageSubscription ??= _source.GetLanguageChanged()
-                .Subscribe(_ => ReloadForLanguageChangeAsync().Forget());
+                .Subscribe(_ => RequestReload());
+
+            // Prepare中の通知も含む最新revisionが公開されるまで収束させる
+            // Converge until the latest revision, including changes during Prepare, is published
+            while (true)
+            {
+                var revision = Volatile.Read(ref _observedRevision);
+                if (Volatile.Read(ref _publishedRevision) != revision)
+                {
+                    await BuildAndPublishScopeAsync(revision);
+                }
+
+                if (revision == Volatile.Read(ref _observedRevision) &&
+                    revision == Volatile.Read(ref _publishedRevision))
+                {
+                    return;
+                }
+            }
         }
 
         public string ResolveCommandField(
@@ -76,11 +90,12 @@ namespace Client.Game.Skit.Localization
 
         public void Dispose()
         {
-            Interlocked.Increment(ref _reloadVersion);
+            Interlocked.Exchange(ref _disposed, 1);
+            Interlocked.Increment(ref _observedRevision);
             _languageSubscription?.Dispose();
         }
 
-        private async UniTask BuildAndPublishScopeAsync(int version)
+        private async UniTask BuildAndPublishScopeAsync(int revision)
         {
             var targetLanguageCode = _source.GetCurrentLanguageCode();
             var targetSkit = await _loader.LoadAsync(targetLanguageCode);
@@ -93,18 +108,25 @@ namespace Client.Game.Skit.Localization
             AddMissingNonEmpty(target, targetSkit);
             AddMissingNonEmpty(english, englishSkit);
             var candidate = new SkitLocalizationScope(target, english);
-            if (version == Volatile.Read(ref _reloadVersion))
+            if (Volatile.Read(ref _disposed) == 0 &&
+                revision == Volatile.Read(ref _observedRevision))
             {
                 Volatile.Write(ref _publishedScope, candidate);
+                Volatile.Write(ref _publishedRevision, revision);
             }
         }
 
-        private async UniTaskVoid ReloadForLanguageChangeAsync()
+        private void RequestReload()
         {
-            if (string.IsNullOrEmpty(_skitTitle)) return;
+            if (string.IsNullOrEmpty(_skitTitle) || Volatile.Read(ref _disposed) != 0) return;
 
-            var version = Interlocked.Increment(ref _reloadVersion);
-            await BuildAndPublishScopeAsync(version);
+            var revision = Interlocked.Increment(ref _observedRevision);
+            ReloadRevisionAsync(revision).Forget();
+        }
+
+        private async UniTaskVoid ReloadRevisionAsync(int revision)
+        {
+            await BuildAndPublishScopeAsync(revision);
         }
 
         private Dictionary<string, string> CopyModDictionary(string languageCode)

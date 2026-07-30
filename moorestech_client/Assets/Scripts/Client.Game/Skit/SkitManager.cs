@@ -7,6 +7,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.UIState;
+using Client.Game.Skit.Lifecycle;
 using Client.Game.Skit.Localization;
 using Client.Skit.Context;
 using Client.Skit.Define;
@@ -67,36 +68,49 @@ namespace Client.Game.Skit
         {
             IsPlayingSkit = true;
             _isSkip = false;
-            var skitTitle = SkitTitle.FromAssetName(skitJson.name);
-            using var localizationResolver = new SkitLocalizationResolver();
-            await localizationResolver.PrepareAsync(skitTitle);
-            var commandsToken = (JToken)JsonConvert.DeserializeObject(skitJson.text);
-            var commands = CommandForgeLoader.LoadCommands(commandsToken);
+            var cleanupOnce = new SkitCleanupOnce();
             var webUiMode = WebUiScreenGate.IsWebUiMode;
-            if (webUiMode) SkitPresentationStateStore.Instance.BeginBlocking(_skitActionController);
-            
-            //前処理 Pre process
-            using var storyContext = await PreProcess();
-            CameraManager.RegisterCamera(skitCamera);
-            
-            await SkitCommandExecutor.ExecuteAsync(commands, storyContext);
-            
-            //後処理 Post process
-            skitUI.SetActive(false);
-            if (webUiMode) SkitPresentationStateStore.Instance.End();
-            mapObjectPin.SetActive(true);
-            var characterContainer = storyContext.GetService<CharacterObjectContainer>();
-            characterContainer.DestroyAllCharacters();
-            IsPlayingSkit = false;
-            _isSkip = false;
-            CameraManager.UnRegisterCamera(skitCamera);
+            var presentationStarted = false;
+            var cameraRegistered = false;
+            SkitLocalizationResolver localizationResolver = null;
+            StoryContext storyContext = null;
+            CharacterObjectContainer characterContainer = null;
+
+            try
+            {
+                // 解決器の準備後にコマンドを読み込み、同じ実行identityへ束縛する
+                // Prepare localization before loading commands and bind them to one execution identity
+                var skitTitle = SkitTitle.FromAssetName(skitJson.name);
+                localizationResolver = new SkitLocalizationResolver();
+                await localizationResolver.PrepareAsync(skitTitle);
+                var commandsToken = (JToken)JsonConvert.DeserializeObject(skitJson.text);
+                var commands = CommandForgeLoader.LoadCommands(commandsToken);
+
+                if (webUiMode)
+                {
+                    SkitPresentationStateStore.Instance.BeginBlocking(_skitActionController);
+                    presentationStarted = true;
+                }
+
+                // 前処理で生成物を捕捉し、途中失敗でもfinallyから破棄できるようにする
+                // Capture pre-process resources so finally can dispose them after partial failure
+                storyContext = await PreProcess(skitTitle);
+                CameraManager.RegisterCamera(skitCamera);
+                cameraRegistered = true;
+                await SkitCommandExecutor.ExecuteAsync(commands, storyContext);
+            }
+            finally
+            {
+                Cleanup();
+            }
             
             #region Internal
             
-            async UniTask<StoryContext> PreProcess()
+            async UniTask<StoryContext> PreProcess(string skitTitle)
             {
                 //キャラクターを生成
                 var characters = new Dictionary<string, SkitCharacter>();
+                characterContainer = new CharacterObjectContainer(characters);
                 
                 // CharacterMasterから全キャラクター情報を取得
                 var characterMaster = MasterHolder.CharacterMaster;
@@ -127,7 +141,7 @@ namespace Client.Game.Skit
                 builder.RegisterInstance(skitUI);
                 builder.RegisterInstance<ISkitCamera>(skitCamera);
                 builder.RegisterInstance(voiceDefine);
-                builder.RegisterInstance(new CharacterObjectContainer(characters));
+                builder.RegisterInstance(characterContainer);
                 builder.RegisterInstance<ISkitEnvironmentRoot>(environmentRoot);
                 builder.RegisterInstance<ISkitBlockObjectControl>(blockGameObjectDataStore);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
@@ -137,6 +151,23 @@ namespace Client.Game.Skit
                 builder.RegisterInstance(new SkitExecutionIdentity(skitTitle));
                 
                 return new StoryContext(builder.Build());
+            }
+
+            void Cleanup()
+            {
+                if (!cleanupOnce.TryBegin()) return;
+
+                // 外側finallyから全ての再生状態を一度だけ通常状態へ戻す
+                // Restore every playback state exactly once from the outer finally
+                skitUI.SetActive(false);
+                if (presentationStarted) SkitPresentationStateStore.Instance.End();
+                mapObjectPin.SetActive(true);
+                characterContainer?.DestroyAllCharacters();
+                if (cameraRegistered) CameraManager.UnRegisterCamera(skitCamera);
+                storyContext?.Dispose();
+                localizationResolver?.Dispose();
+                IsPlayingSkit = false;
+                _isSkip = false;
             }
             
             #endregion

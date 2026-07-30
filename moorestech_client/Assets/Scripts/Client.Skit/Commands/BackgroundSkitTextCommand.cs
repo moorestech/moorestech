@@ -10,23 +10,26 @@ namespace CommandForgeGenerator.Command
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             var resolver = storyContext.GetLocalizationResolver();
-            var skitTitle = storyContext.GetExecutionIdentity().SkitTitle;
             var commandId = (int)CommandId;
-            var localizedBody = resolver.ResolveCommandField(skitTitle, commandId, "body", Body);
-            var characterName = resolver.ResolveCharacterName(
-                CharacterId,
-                skitTitle,
+            var line = SkitCommandLocalization.ResolveLine(
+                resolver,
+                storyContext.GetExecutionIdentity(),
                 commandId,
+                CharacterId,
                 IsOverrideCharacterName,
-                OverrideCharacterName);
+                OverrideCharacterName,
+                Body);
             
             // WebとuGUIへ同じ解決済み文字列を渡す
             // Pass the same resolved display strings to Web and uGUI
             var skitUi = storyContext.GetBackgroundSkitUI();
-            SkitPresentationStateStore.Instance.SetBackgroundText(characterName, localizedBody);
-            skitUi.SetText(characterName, localizedBody);
+            SkitPresentationStateStore.Instance.SetBackgroundText(
+                line.SpeakerName,
+                line.DisplayBody);
+            skitUi.SetText(line.SpeakerName, line.DisplayBody);
             
-            var voiceClip = storyContext.GetVoiceDefine().GetVoiceClip(CharacterId, Body);
+            var voiceClip = storyContext.GetVoiceDefine()
+                .GetVoiceClip(CharacterId, line.VoiceSourceBody);
             await skitUi.PlayVoiceAndWait(voiceClip);
             
             return null;

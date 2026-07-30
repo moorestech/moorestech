@@ -18,16 +18,16 @@ namespace CommandForgeGenerator.Command
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             var resolver = storyContext.GetLocalizationResolver();
-            var skitTitle = storyContext.GetExecutionIdentity().SkitTitle;
             var commandId = (int)CommandId;
-            var localizedBody = resolver.ResolveCommandField(skitTitle, commandId, "body", Body);
             var useOverride = IsOverrideCharacterName.HasValue && IsOverrideCharacterName.Value;
-            var characterName = resolver.ResolveCharacterName(
-                CharacterId,
-                skitTitle,
+            var line = SkitCommandLocalization.ResolveLine(
+                resolver,
+                storyContext.GetExecutionIdentity(),
                 commandId,
+                CharacterId,
                 useOverride,
-                OverrideCharacterName);
+                OverrideCharacterName,
+                Body);
 
             // 表示文字列だけを解決し、音声照合はJSON原文を維持する
             // Resolve display text only while voice lookup keeps the JSON source body
@@ -40,14 +40,14 @@ namespace CommandForgeGenerator.Command
             if (presentationMode.WebUiEnabled)
             {
                 return await ExecuteWebPresentationAsync(
-                    characterName,
-                    localizedBody,
+                    line.SpeakerName,
+                    line.DisplayBody,
                     skitActionContext);
             }
             
             if (skitActionContext.IsSkip)
             {
-                skitUi.SetText(characterName, localizedBody);
+                skitUi.SetText(line.SpeakerName, line.DisplayBody);
                 await UniTask.Delay(TimeSpan.FromSeconds(SkipDuration));
                 return null;
             }
@@ -55,17 +55,18 @@ namespace CommandForgeGenerator.Command
             var setTextTaskCancellationTokenSource = new CancellationTokenSource();
             UniTask<bool> setTextTask = UniTask.Create(factory: async () =>
             {
-                skitUi.SetText(characterName, "");
+                skitUi.SetText(line.SpeakerName, "");
                 
-                for (var i = 0; i < localizedBody.Length; i++)
+                for (var i = 0; i < line.DisplayBody.Length; i++)
                 {
-                    var bodySlice = localizedBody.Substring(0, i + 1);
-                    skitUi.SetText(characterName, bodySlice);
+                    var bodySlice = line.DisplayBody.Substring(0, i + 1);
+                    skitUi.SetText(line.SpeakerName, bodySlice);
                     await UniTask.Delay(TimeSpan.FromSeconds(TextDuration), cancellationToken: setTextTaskCancellationTokenSource.Token);
                 }
             }).SuppressCancellationThrow();
             
-            var voiceClip = storyContext.GetVoiceDefine().GetVoiceClip(CharacterId, Body);
+            var voiceClip = storyContext.GetVoiceDefine()
+                .GetVoiceClip(CharacterId, line.VoiceSourceBody);
             var character = storyContext.GetCharacter(CharacterId);
             
             if (voiceClip != null) character.PlayVoice(voiceClip);
@@ -77,7 +78,7 @@ namespace CommandForgeGenerator.Command
                 {
                     setTextTaskCancellationTokenSource.Cancel();
                     await UniTask.Yield();
-                    skitUi.SetText(characterName, localizedBody);
+                    skitUi.SetText(line.SpeakerName, line.DisplayBody);
                     character.StopVoice();
                     break;
                 }
@@ -110,7 +111,8 @@ namespace CommandForgeGenerator.Command
 
                 // ボイスは従来どおりUnity AudioSourceで再生する
                 // Keep voice playback on the existing Unity AudioSource path
-                var clip = storyContext.GetVoiceDefine().GetVoiceClip(CharacterId, Body);
+                var clip = storyContext.GetVoiceDefine()
+                    .GetVoiceClip(CharacterId, line.VoiceSourceBody);
                 var skitCharacter = storyContext.GetCharacter(CharacterId);
                 if (clip != null) skitCharacter.PlayVoice(clip);
 

@@ -31,7 +31,12 @@ namespace Client.Game.Skit.Localization
             {
                 // 外部入力JSONの構文エラーをaddress付きエラーへ隔離する
                 // Isolate external JSON syntax errors and surface the source address
-                root = JObject.Parse(json);
+                root = JObject.Parse(
+                    json,
+                    new JsonLoadSettings
+                    {
+                        DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error,
+                    });
             }
             catch (JsonException exception)
             {

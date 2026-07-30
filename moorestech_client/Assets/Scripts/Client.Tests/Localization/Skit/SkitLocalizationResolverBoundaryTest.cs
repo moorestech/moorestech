@@ -47,11 +47,33 @@ namespace Client.Tests.Localization.Skit
             StringAssert.Contains("Vanilla/Skit/i18n/japanese", exception.Message);
         }
 
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase(" ")]
+        [TestCase("opening.json")]
+        [TestCase("folder/opening")]
+        [TestCase("folder\\opening")]
+        public void SkitTitleRejectsValuesThatAreNotAssetBasenames(string invalidName)
+        {
+            Assert.Throws<ArgumentException>(() => SkitTitle.FromAssetName(invalidName));
+        }
+
         [Test]
-        public void SkitTitleAcceptsOnlyExtensionlessAssetBasename()
+        public void SkitTitleReturnsValidAssetBasename()
         {
             Assert.AreEqual("100_start_game", SkitTitle.FromAssetName("100_start_game"));
-            Assert.Throws<ArgumentException>(() => SkitTitle.FromAssetName("100_start_game.json"));
+        }
+
+        [TestCase(@"{ ""translations"": { ""skit.opening.1.body"": ""first"", ""skit.opening.1.body"": ""second"" } }")]
+        [TestCase(@"{ ""translations"": {}, ""translations"": { ""skit.opening.1.body"": ""second"" } }")]
+        public void LoaderParserRejectsDuplicatePropertiesWithAddress(string json)
+        {
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+                SkitLocalizationDictionaryLoader.Parse(
+                    "Vanilla/Skit/i18n/japanese",
+                    json));
+
+            StringAssert.Contains("Vanilla/Skit/i18n/japanese", exception.Message);
         }
 
         [Test]

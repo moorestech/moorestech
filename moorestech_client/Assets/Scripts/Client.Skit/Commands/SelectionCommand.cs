@@ -18,31 +18,31 @@ namespace CommandForgeGenerator.Command
             var labels = new List<string>();
             var choices = new List<SkitChoice>();
             var resolver = storyContext.GetLocalizationResolver();
-            var skitTitle = storyContext.GetExecutionIdentity().SkitTitle;
+            var identity = storyContext.GetExecutionIdentity();
             var commandId = (int)CommandId;
 
             // optional optionを表示順どおりjumpとopaque IDへ同時展開する
             // Expand optional options into jumps and opaque IDs in the same display order
             if (!string.IsNullOrEmpty(Option1Tag))
             {
-                var label = resolver.ResolveCommandField(
-                    skitTitle, commandId, "Option1Tag", Option1Tag);
+                var label = SkitCommandLocalization.ResolveOption1(
+                    resolver, identity, commandId, Option1Tag);
                 jumpTarget.Add(Option1JumpTarget);
                 labels.Add(label);
                 choices.Add(CreateChoice(label));
             }
             if (!string.IsNullOrEmpty(Option2Tag) && Option2JumpTarget.HasValue)
             {
-                var label = resolver.ResolveCommandField(
-                    skitTitle, commandId, "Option2Tag", Option2Tag);
+                var label = SkitCommandLocalization.ResolveOption2(
+                    resolver, identity, commandId, Option2Tag);
                 jumpTarget.Add(Option2JumpTarget.Value);
                 labels.Add(label);
                 choices.Add(CreateChoice(label));
             }
             if (!string.IsNullOrEmpty(Option3Tag) && Option3JumpTarget.HasValue)
             {
-                var label = resolver.ResolveCommandField(
-                    skitTitle, commandId, "Option3Tag", Option3Tag);
+                var label = SkitCommandLocalization.ResolveOption3(
+                    resolver, identity, commandId, Option3Tag);
                 jumpTarget.Add(Option3JumpTarget.Value);
                 labels.Add(label);
                 choices.Add(CreateChoice(label));

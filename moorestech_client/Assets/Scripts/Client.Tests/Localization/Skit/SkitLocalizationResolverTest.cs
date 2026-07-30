@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Client.Game.Skit.Localization;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
-using UniRx;
 
 namespace Client.Tests.Localization.Skit
 {
@@ -24,8 +22,8 @@ namespace Client.Tests.Localization.Skit
             string skitEnglish,
             string expected)
         {
-            var loader = new FakeDictionaryLoader(skitTarget, skitEnglish);
-            var source = new FakeLocalizationSource(modTarget, modEnglish);
+            var loader = CreateLoader(skitTarget, skitEnglish);
+            var source = CreateSource(modTarget, modEnglish);
             using var resolver = new SkitLocalizationResolver(loader, source);
             await resolver.PrepareAsync("opening");
 
@@ -38,9 +36,9 @@ namespace Client.Tests.Localization.Skit
         [Test]
         public async Task LanguageChangePublishesNewScopeForNextResolve()
         {
-            var loader = new FakeDictionaryLoader("Skit Japanese", "Skit English");
+            var loader = CreateLoader("Skit Japanese", "Skit English");
             loader.Set("french", SkitKey, "Skit French");
-            var source = new FakeLocalizationSource("", "");
+            var source = CreateSource("", "");
             using var resolver = new SkitLocalizationResolver(loader, source);
             await resolver.PrepareAsync("opening");
 
@@ -56,8 +54,8 @@ namespace Client.Tests.Localization.Skit
         [Test]
         public async Task CharacterNameUsesGuidKeyUnlessCommandOverridesSpeaker()
         {
-            var loader = new FakeDictionaryLoader("", "");
-            var source = new FakeLocalizationSource("", "");
+            var loader = CreateLoader("", "");
+            var source = CreateSource("", "");
             source.Set("japanese", "character.01234567-89ab-cdef-0123-456789abcdef.name", "話者");
             source.Set("japanese", "skit.opening.7.overrideCharacterName", "謎の声");
             using var resolver = new SkitLocalizationResolver(loader, source);
@@ -72,79 +70,80 @@ namespace Client.Tests.Localization.Skit
             Assert.AreEqual("謎の声", overridden);
         }
 
-        private sealed class FakeDictionaryLoader : ISkitLocalizationDictionaryLoader
+        [Test]
+        public async Task PrepareWaitsForLanguageChangeObservedDuringInitialLoad()
         {
-            private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _values = new();
+            var loader = CreateLoader("Initial Japanese", "English");
+            loader.Set("french", SkitKey, "French");
+            var initialGate = loader.GateNext("japanese");
+            var source = CreateSource("", "");
+            using var resolver = new SkitLocalizationResolver(loader, source);
 
-            public FakeDictionaryLoader(string target, string english)
-            {
-                Set("japanese", SkitKey, target);
-                Set("english", SkitKey, english);
-            }
+            var prepare = resolver.PrepareAsync("opening");
+            await UniTask.WaitUntil(() => loader.GetLoadCount("japanese") == 1);
+            source.SetLanguage("french");
+            initialGate.TrySetResult(new Dictionary<string, string>
+                { { SkitKey, "Stale Japanese" } });
+            await prepare;
 
-            public void Set(string languageCode, string key, string value)
-            {
-                _values[languageCode] = new Dictionary<string, string> { { key, value } };
-            }
-
-            public UniTask<IReadOnlyDictionary<string, string>> LoadAsync(string languageCode)
-            {
-                return UniTask.FromResult(_values[languageCode]);
-            }
+            Assert.AreEqual("French", Resolve(resolver));
         }
 
-        private sealed class FakeLocalizationSource : ISkitLocalizationSource
+        [Test]
+        public async Task SameLanguageDictionaryChangeReloadsScope()
         {
-            private readonly Subject<Unit> _languageChanged = new();
-            private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _values = new();
+            var loader = CreateLoader("", "English");
+            var source = CreateSource("Before", "");
+            using var resolver = new SkitLocalizationResolver(loader, source);
+            await resolver.PrepareAsync("opening");
 
-            private string _currentLanguageCode = "japanese";
+            source.Set("japanese", SkitKey, "After");
+            source.PublishDictionaryChange();
+            await UniTask.WaitUntil(() => Resolve(resolver) == "After");
 
-            public FakeLocalizationSource(string target, string english)
-            {
-                _values["japanese"] = new Dictionary<string, string> { { SkitKey, target } };
-                _values["english"] = new Dictionary<string, string> { { SkitKey, english } };
-                _values["french"] = new Dictionary<string, string>();
-            }
+            Assert.AreEqual("After", Resolve(resolver));
+        }
 
-            public string GetCurrentLanguageCode()
-            {
-                return _currentLanguageCode;
-            }
+        [Test]
+        public async Task StaleDelayedReloadCannotOverwriteNewerLanguage()
+        {
+            var loader = CreateLoader("Japanese", "English");
+            loader.Set("french", SkitKey, "French");
+            loader.Set("german", SkitKey, "German");
+            var source = CreateSource("", "");
+            using var resolver = new SkitLocalizationResolver(loader, source);
+            await resolver.PrepareAsync("opening");
+            var frenchGate = loader.GateNext("french");
 
-            public IObservable<Unit> GetLanguageChanged()
-            {
-                return _languageChanged;
-            }
+            source.SetLanguage("french");
+            await UniTask.WaitUntil(() => loader.GetLoadCount("french") == 1);
+            source.SetLanguage("german");
+            await UniTask.WaitUntil(() => Resolve(resolver) == "German");
+            frenchGate.TrySetResult(new Dictionary<string, string> { { SkitKey, "Stale French" } });
+            await UniTask.Yield();
 
-            public bool TryGetDictionary(
-                string languageCode,
-                out IReadOnlyDictionary<string, string> dictionary)
-            {
-                return _values.TryGetValue(languageCode, out dictionary);
-            }
+            Assert.AreEqual("German", Resolve(resolver));
+        }
 
-            public void Set(string languageCode, string key, string value)
-            {
-                var values = new Dictionary<string, string>(_values[languageCode])
-                {
-                    [key] = value,
-                };
-                _values[languageCode] = values;
-            }
+        private static FakeSkitDictionaryLoader CreateLoader(string target, string english)
+        {
+            var loader = new FakeSkitDictionaryLoader();
+            loader.Set("japanese", SkitKey, target);
+            loader.Set("english", SkitKey, english);
+            return loader;
+        }
 
-            public SkitCharacterLocalizationIdentity GetCharacterIdentity(string characterId)
-            {
-                return new SkitCharacterLocalizationIdentity(
-                    "character.01234567-89ab-cdef-0123-456789abcdef.name",
-                    "Source Character");
-            }
+        private static FakeSkitLocalizationSource CreateSource(string target, string english)
+        {
+            var source = new FakeSkitLocalizationSource();
+            source.Set("japanese", SkitKey, target);
+            source.Set("english", SkitKey, english);
+            return source;
+        }
 
-            public void SetLanguage(string languageCode)
-            {
-                _currentLanguageCode = languageCode;
-                _languageChanged.OnNext(Unit.Default);
-            }
+        private static string Resolve(SkitLocalizationResolver resolver)
+        {
+            return resolver.ResolveCommandField("opening", 7, "body", "Source");
         }
     }
 }

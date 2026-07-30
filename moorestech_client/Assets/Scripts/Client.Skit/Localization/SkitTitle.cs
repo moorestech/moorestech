@@ -6,7 +6,10 @@ namespace Client.Skit.Localization
     {
         public static string FromAssetName(string assetName)
         {
-            if (string.IsNullOrEmpty(assetName) || assetName.Contains("."))
+            if (string.IsNullOrWhiteSpace(assetName) ||
+                assetName.Contains(".") ||
+                assetName.Contains("/") ||
+                assetName.Contains("\\"))
             {
                 throw new ArgumentException("Skit asset name must be an extensionless basename");
             }
