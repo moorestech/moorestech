@@ -35,6 +35,23 @@ test("正本のヘッダ装飾、常時スクロールバー、主要構造を�
   const craftPanel = recipeBox.locator('xpath=ancestor::*[@data-variant="craft"][1]');
   await expect(craftPanel).toBeVisible();
   await expectCraftGrip(craftPanel);
+  // クラフトタブを正本どおりのSVG構造と固定寸法で描画する
+  // Render the craft tab with the reference SVG structure and fixed dimensions
+  const craftTab = page.getByTestId("craft-tab");
+  await expect(craftTab).toHaveAttribute("viewBox", "0 0 166 70");
+  await expect(craftTab).toHaveAttribute("aria-hidden", "true");
+  await expect(craftTab.locator("path")).toHaveCount(5);
+  const tabStyle = await craftTab.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      width: Number.parseFloat(style.width),
+      height: Number.parseFloat(style.height),
+      backgroundImage: style.backgroundImage,
+    };
+  });
+  expect(tabStyle.width).toBeCloseTo(64.978, 1);
+  expect(tabStyle.height).toBeCloseTo(27.397, 1);
+  expect(tabStyle.backgroundImage).toBe("none");
   await expect(page.getByRole("button", { name: "Craft" })).toBeVisible();
 
   // 短いfixtureでも縦バーを保つ

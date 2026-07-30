@@ -21,6 +21,18 @@
   --craft-grip-size: 9px;
   --craft-grip-inset: 7px;
   --craft-grip-face: rgb(146 148 167 / 98%);
+  /* クラフトタブの正本寸法、パネル原点からの位置、各層色を一元化する */
+  /* Centralize the craft tab's reference size, panel-relative placement, and layer colors */
+  --craft-tab-width: 64.978px;
+  --craft-tab-height: 27.397px;
+  --craft-tab-margin-top: -37.18px;
+  --craft-tab-margin-left: -11px;
+  --craft-tab-margin-bottom: 6.46px;
+  --craft-tab-back: rgb(7 9 18 / 90%);
+  --craft-tab-side: rgb(24 22 25 / 92%);
+  --craft-tab-face: rgb(58 60 75 / 94%);
+  --craft-tab-edge: rgb(87 89 107 / 96%);
+  --craft-tab-hammer: rgb(75 75 75);
   --font-ui: "MooresUI", "MooresUI JP", sans-serif;
   /* 画面レイヤーの層序を一元化し、各オーバーレイの前後関係を固定する */
   /* Centralize the screen layer order to keep every overlay's stacking relationship fixed */
