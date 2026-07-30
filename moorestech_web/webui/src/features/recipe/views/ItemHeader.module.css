@@ -91,21 +91,6 @@
   text-align: center;
   white-space: nowrap;
 }
-/* 正本は縦グラデ+中央白帯でなく、青→シアンの横方向グラデーション */
-/* The reference uses a horizontal blue-to-cyan gradient, not a vertical one with a center white band */
-.recipeTreeButton {
-  composes: recipeActionButton from "./RecipeActionButton.module.css";
-  align-self: center;
-  margin-top: 0.54rem;
-  margin-left: -2px;
-  width: 106.78px;
-  padding: 0 6px;
-  font-size: 10px;
-  /* フロー高を変えず拡大タイトル分だけボタンを上へ戻す */
-  /* Lift the button by the enlarged title delta without changing flow height */
-  transform: translateY(-1.565749px);
-}
-
 /* 中央境界へ左右ダガーと輪郭ダイヤを一体で描く。正本は全長707screenshot-px相当まで連続させる */
 /* Draw paired daggers and an outlined diamond into the center divider; the reference runs it out to ~707 screenshot px */
 /* iter6: 正本実測は減衰込みの全長がx≈1288-1995(707px)、明部だけでもx≈1370-1911(541px)とパネル
@@ -120,8 +105,8 @@
   align-self: center;
   width: 276.743px;
   height: 9px;
-  /* itemName拡大分を相殺し、後続ボタン列を正本y422-469へ固定する */
-  /* Offset the enlarged itemName to keep the following button row fixed at the reference y422-469 */
+  /* 拡大した品名から区切り線までの間隔を一定に保つ */
+  /* Keep the divider spacing stable after enlarging the item name */
   margin-top: 0.17rem;
   /* D12: 中央装飾の手前(ダガー位置38%/62%の直前)まで線を伸ばし、旧来の42%地点での硬い断ち切りでなく
      徐々にフェードさせて連続感を出す */

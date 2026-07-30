@@ -41,7 +41,7 @@
 | CRAFT-1 | クラフト長押し・連続クラフト | **B3**（既実装確認済み 2026-07-18） |
 | CRAFT-2 | 機械レシピビューア | **済** |
 | CRAFT-3 | レシピ対象アイテムリスト | **済**。可能数バッジもB3済（2026-07-18） |
-| CRAFT-4 | クラフトツリー | **除外（機能削除・実施済み）**: 削除設計書 `docs/superpowers/specs/2026-07-18-craft-tree-removal-design.md`。削除実装を web-ui へ統合済み（2026-07-18 `db2b3f5ba`。回帰テスト CraftTreeRemovalTest/AssembleSaveJsonTextTest 合格） |
+| CRAFT-4 | クラフトツリー | **除外（機能削除・実施済み）**: 削除設計書 `docs/superpowers/specs/2026-07-18-craft-tree-removal-design.md`。削除実装を web-ui へ統合済み（2026-07-18 `db2b3f5ba`。2026-07-30 Unityアセット・製品コード残存参照0、Unityコンパイル・Web E2E合格） |
 | CHAL-1 | チャレンジリスト/ツリー | **C1**（2026-07-18 完了。treeView共通基盤+challenge.tree） |
 | CHAL-2 | 進行中チャレンジ HUD | **C1**（2026-07-18 完了。challenge.current常駐HUD） |
 | RES-1 | 研究ツリー | **済**（報酬個数表示もB3-8で完了 2026-07-18。treeView共通基盤へ載せ替え済み） |
