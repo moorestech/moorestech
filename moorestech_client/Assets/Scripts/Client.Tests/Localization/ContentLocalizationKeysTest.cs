@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Client.Localization;
 using NUnit.Framework;
 
@@ -39,12 +40,16 @@ namespace Client.Tests.Localization
         }
 
         [Test]
-        [SetCulture("ar-SA")]
+        [SetCulture("en-US")]
         public void SkitCommandIdUsesInvariantFormatting()
         {
-            // 現在カルチャに関係なくASCII数字のキーを生成する
-            // Generate keys with ASCII digits regardless of the current culture
-            Assert.AreEqual("skit.導入.123.body", ContentLocalizationKeys.SkitTextBody("導入", 123));
+            var customCulture = (CultureInfo)CultureInfo.CurrentCulture.Clone();
+            customCulture.NumberFormat.NegativeSign = "~";
+            CultureInfo.CurrentCulture = customCulture;
+
+            // 負号を変えたカルチャでも不変形式のマイナス記号を維持する
+            // Preserve the invariant minus sign under a culture with a mutated negative sign
+            Assert.AreEqual("skit.導入.-123.body", ContentLocalizationKeys.SkitTextBody("導入", -123));
         }
     }
 }
