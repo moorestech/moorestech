@@ -583,6 +583,13 @@
 - GREEN recovers y100's right endpoint and raises the right component to `428px`, bbox `(138,48)-(161,109)`, within the `414–458px` acceptance area; left remains `496px`, bbox exact, endpoint max `0px`. y89, y95, y101, and y107 retain 2px left-endpoint differences, so strict row acceptance remains unmet.
 - Evidence of path-insensitive residual: the four corresponding Side intervals were extended an additional 3 viewBox pixels left (`x123→120`, `x125→122`, `x127→124`, `x129→126`). Capture output was unchanged: left `496px`; right `428px`, same bbox and the same four 2px rows; comparator stayed **13/13 PASS**. The larger candidate was reverted, leaving the minimal y100 improvement.
 
+### Task 6 review fix round 3 — user-approved layer order
+
+- User-approved order is now Back → Face → Edge → Side → Hammer; all five existing paths, classes, tokens, and CSS remain. The order-only RED kept `compare.py` at **13/13 PASS** but Side covered its own previous left rim (`868px`, `(36,48)-(49,109)`) and reduced Face to `4551px`, so it was not retained unchanged.
+- GREEN changes only Side `d`: left rectangle `H30→H24` restores left to exact `496px`, `(36,48)-(43,109)`, all row endpoints exact. Four affected right starts are moved one viewBox unit left (`129→128`, `131→130`, `133→132`, `135→134`) after the 69/70 raster scale was measured.
+- Final exact Side components: right `451px`, bbox `(138,48)-(161,109)` versus reference `436px` (within 414–458px); all row endpoint deltas are ≤1px. Face exact component is `4851px`, bbox `(46,50)-(147,109)`, versus reference `4856px` and within ±1%. Equal-scale crop inspection retains a visible left Edge rim and right stepped Edge silhouette; Hammer comparator bbox/color remains PASS.
+- Final build/capture/comparator completed with **13/13 PASS**; `recipe.spec.ts` completed **5/5 PASS**. A two-unit Side shift was rejected: it produced right `463px` (above the 458px ceiling) and adjacent 2px endpoint errors.
+
 ### Task 5 visual iteration round 4
 
 - Changed exactly `toolTabSide`: `M125 0H143L166 70H145Z` -> `M125 0H126L143 70Z`; its `rgb(16 15 21)` token, every other path/token/CSS rule, and grip remained unchanged.
