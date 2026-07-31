@@ -187,9 +187,17 @@
 
 - RED fresh production build/capture at `--craft-grip-size: 9.2px` and `--craft-grip-inset: 7px` reproduced the specified mismatch: detector bbox `23x22`, right/bottom gaps `20/20`, while the face median remained exact `rgb(132,133,149)`.
 - Size-only 0.01px boundary search at fixed inset `7px`: `8.70` through `8.79px` each produced `22x21`; `8.80px`, `9.10px`, `9.19px`, and `9.20px` each produced `23x22`. All candidates retained comparator `13/13`; no 0.01px candidate produced `22x22`.
-- Inset-only search at the closest-height size `8.80px` did not move the detected right/bottom edges: `7.00`, `6.99`, `6.90`, and `6.80px` produced gaps `20/20`; `6.69px` produced `21x21` with gaps `20/20`; `6.68` through `6.50px` produced `12/13` and were rejected. Thus exact `19/19` is unavailable without changing a forbidden geometry rule.
+- Inset-only search at the closest-height size `8.80px` did not move the detected right/bottom edges: `7.00`, `6.99`, `6.90`, and `6.80px` produced gaps `20/20`; `6.69px` produced `21x21` with gaps `20/20`; `6.68` through `6.50px` produced `12/13` and were rejected. This was only a bounded observation, not an availability proof.
 - Restored the best accepted token pair `9.2px` / `7px`; its authored and Chromium computed values already match the E2E contract (`9.2px`, `9.1875px`, `right: 7`, `bottom: 7`). The contract also confirms one pseudo-element, `backgroundImage: none`, `boxShadow: none`, and the exact single-color face.
 - Final fresh capture/comparator is `13/13 PASS`; face median is `rgb(132,133,149)` with maxΔ `0`. Focused central, PlacementModeHud, and ResearchDetailPane suites are `12/12 PASS`; `tsc -p e2e/tsconfig.json --noEmit` passes.
+
+### Task 6 grip geometry review fix round 1 — renderer-stage blocker
+
+- Corrected the prior unqualified unavailable claim. Before any source-token change, raw grip-mask components, `touches_frame`, post-filter candidates, and DOM pseudo-element boxes were measured for the reference, current, and inset trials.
+- The reference raw grip is `(2030,1364)-(2051,1385)`, `22x22`, count `304`, `touches_frame=false`. Current `9.2px/7px` is already raw `(2028,1397)-(2050,1418)`, `23x22`, count `274`, and is selected unchanged. Inset `6.99/6.90/6.80/6.69/6.68px` transitions raw and selected bboxes through `22x21`, `21x21`, and `21x20`; every grip remains `touches_frame=false`. The comparator does not discard the correct grip.
+- The DOM pseudo-element likewise moves from a `9.1875px` square at right/bottom `7px` to the same `8.79688px` square at `6.99`, `6.69`, and `6.68px` offsets. The raw bbox changes before filtering, establishing renderer antialiasing/color-threshold behavior rather than a `detect_grip` filter defect.
+- Filled the formerly unmeasured size ranges. Chromium's 1/64px computed widths reduce `8.81–9.09` and `9.11–9.18` to 21 additional unique widths; each was captured and compared. Every such width is raw/post-filter `23x22`, gaps `20/20`, and comparator `13/13`. Token aliases with the same computed width were not recaptured because their DOM computed style is identical.
+- Bounded result: `8.70–8.79px` renders `22x21`; `8.80–9.20px`, including every distinct computed width, renders `23x22`. This does not claim an exhaustive CSS-domain proof, but it blocks the plan's required single-token search interval. No token, assertion, or comparator change is retained; width/height separation remains out of scope.
 
 ### Task 5 visual iteration round 5
 
@@ -338,7 +346,7 @@
 ### Task 5 visual iteration round 9
 
 - Changed only `--craft-grip-size`, with rasterization trials `9px` -> `8.6px` -> `8.7px` -> `8.8px` -> settled `8.7px`; no inset/color/tab/path/CSS/other-token change.
-- Exact results: 8.6/8.7px rasterize to `22x21`, anchored right/bottom gaps 20/20; 8.8px quantizes back to `23x22`. Thus exact `22x22` is unavailable through this token alone. Settled 8.7px removes 1px from visible left/top, meets comparator ±1 tolerance, and keeps 13/13 PASS.
+- Exact results: 8.6/8.7px rasterize to `22x21`, anchored right/bottom gaps 20/20; 8.8px quantizes back to `23x22`. Those three values contain no exact `22x22`; the later Task 6 review-fix search records the broader bounded result. Settled 8.7px removes 1px from visible left/top, meets comparator ±1 tolerance, and keeps 13/13 PASS.
 - Final capture/grids/crops regenerated; fresh review required and no commit.
 
 ```text
