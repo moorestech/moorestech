@@ -36,7 +36,22 @@ namespace Client.WebUiHost.Editor
             SanitizedProcessEnvironment.Sanitize(startInfo);
             if (!string.IsNullOrEmpty(prependPathDirectory))
             {
-                startInfo.Environment["PATH"] = $"{prependPathDirectory}{Path.PathSeparator}{Environment.GetEnvironmentVariable("PATH")}";
+                // Windowsでは継承キーが"Path"のため、大小無視で既存キーを特定しないと重複キーになり子に無視される
+                // On Windows the inherited key is "Path"; resolve it case-insensitively or a duplicate key gets ignored by children
+                var pathKey = "PATH";
+                foreach (var key in startInfo.Environment.Keys)
+                {
+                    if (string.Equals(key, "PATH", StringComparison.OrdinalIgnoreCase))
+                    {
+                        pathKey = key;
+                        break;
+                    }
+                }
+
+                startInfo.Environment.TryGetValue(pathKey, out var currentPath);
+                startInfo.Environment[pathKey] = string.IsNullOrEmpty(currentPath)
+                    ? prependPathDirectory
+                    : $"{prependPathDirectory}{Path.PathSeparator}{currentPath}";
             }
 
             // 外部プロセス起動は例外を返す境界のため、ここに限りcatchして終了コードへ変換する
