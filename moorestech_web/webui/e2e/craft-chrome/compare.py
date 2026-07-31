@@ -32,7 +32,7 @@ def detect_panel(image: np.ndarray) -> tuple[int, int, int, int]:
     return (int(columns[0] + 1150), int(rows[0] + 250), int(columns[-1] + 1150), int(rows[-1] + 250))
 
 
-def components(mask: np.ndarray, x0: int, y0: int, radius: int = 1) -> list[tuple[int, int, int, int, int]]:
+def components(mask: np.ndarray, x0: int, y0: int, radius: int) -> list[tuple[int, int, int, int, int]]:
     seen = np.zeros(mask.shape, dtype=bool)
     found = []
     for y, x in np.argwhere(mask):
@@ -57,7 +57,7 @@ def detect_tab(image: np.ndarray, panel: tuple[int, int, int, int]) -> tuple[int
     left, top, _, _ = panel
     x0, y0, x1, y1 = left - 8, top - 100, left + 191, top - 2
     mask = image[y0:y1, x0:x1].max(axis=2) < 120
-    candidates = components(mask, x0, y0)
+    candidates = components(mask, x0, y0, radius=1)
     return max(candidates, key=lambda item: item[4])[:4]
 
 
@@ -91,7 +91,7 @@ def detect_grip(image: np.ndarray, panel: tuple[int, int, int, int]) -> tuple[in
     mask = (zone.max(axis=2) - zone.min(axis=2) < 35) & (zone.mean(axis=2) >= 70) & (zone.mean(axis=2) <= 190)
     frame = detect_frame(zone.max(axis=2) < FRAME_DARK_THRESHOLD)
     candidates = []
-    for left, top, edge_right, edge_bottom, count in components(mask, x0, y0):
+    for left, top, edge_right, edge_bottom, count in components(mask, x0, y0, radius=1):
         if touches_frame(mask, frame, left, top, edge_right, edge_bottom, x0, y0):
             continue
         if edge_right - left + 1 >= 5 and edge_bottom - top + 1 >= 5:
@@ -106,7 +106,7 @@ def detect_hammer(image: np.ndarray, panel: tuple[int, int, int, int]) -> tuple[
     x0, y0, x1, y1 = left - 8, top - 100, left + 191, top
     zone = image[y0:y1, x0:x1]
     mask = (zone.max(axis=2) - zone.min(axis=2) < 15) & (zone.mean(axis=2) >= 68) & (zone.mean(axis=2) <= 100)
-    candidates = [item for item in components(mask, x0, y0, 3) if left + 35 <= (item[0] + item[2]) / 2 <= left + 110]
+    candidates = [item for item in components(mask, x0, y0, radius=3) if left + 35 <= (item[0] + item[2]) / 2 <= left + 110]
     if not candidates:
         raise ValueError("tab hammer was not detected")
     return max(candidates, key=lambda item: item[4])[:4]
@@ -171,7 +171,8 @@ def main() -> int:
     tab_size, tab_left, tab_bottom_gap = dimensions(cur_tab), cur_tab[0] - cur_panel[0], cur_panel[1] - cur_tab[3] - 1
     check("tab-size", max(abs(a - b) for a, b in zip(tab_size, TAB_SIZE)) <= GEOMETRY_TOLERANCE, f"bbox={cur_tab} size={tab_size} maxΔ={max(abs(a - b) for a, b in zip(tab_size, TAB_SIZE))}")
     check("tab-left", abs(tab_left - TAB_LEFT_DELTA) <= GEOMETRY_TOLERANCE, f"bbox={cur_tab} got={tab_left} maxΔ={abs(tab_left - TAB_LEFT_DELTA)}")
-    check("tab-bottom-gap", TAB_BOTTOM_GAP[0] <= tab_bottom_gap <= TAB_BOTTOM_GAP[1], f"bbox={cur_tab} got={tab_bottom_gap} range={TAB_BOTTOM_GAP}")
+    tab_bottom_gap_delta = max(TAB_BOTTOM_GAP[0] - tab_bottom_gap, tab_bottom_gap - TAB_BOTTOM_GAP[1], 0)
+    check("tab-bottom-gap", TAB_BOTTOM_GAP[0] <= tab_bottom_gap <= TAB_BOTTOM_GAP[1], f"bbox={cur_tab} got={tab_bottom_gap} range={TAB_BOTTOM_GAP} maxΔ={tab_bottom_gap_delta}")
     hammer_delta = delta(relative(cur_hammer, cur_panel), HAMMER_BOX)
     check("hammer-box", hammer_delta <= HAMMER_TOLERANCE, f"bbox={cur_hammer} relative={relative(cur_hammer, cur_panel)} maxΔ={hammer_delta}")
     grip_size = dimensions(cur_grip)
