@@ -36,9 +36,16 @@ async function main() {
   // Lock post-render DOM values and the image hash into the same row
   for (const size of sizes) {
     for (const inset of insets) {
-      const dom = await page.locator('[data-variant="craft"]').evaluateAll((elements, values) => {
+      // 各組み合わせのtokenを先に反映して描画完了を待つ
+      // Apply each pair's tokens first, then wait for rendering to settle
+      await page.evaluate((values) => {
         document.documentElement.style.setProperty("--craft-grip-size", `${values[0]}px`);
         document.documentElement.style.setProperty("--craft-grip-inset", `${values[1]}px`);
+      }, [size, inset]);
+      await page.waitForTimeout(400);
+      // 待機後に実DOM値を読み取り、その直後の画面を撮影する
+      // Read live DOM values after the wait and capture that same rendered state
+      const dom = await page.locator('[data-variant="craft"]').evaluateAll((elements) => {
         const frame = elements.map((element) => ({ element, box: element.getBoundingClientRect() })).sort((a, b) => b.box.width * b.box.height - a.box.width * a.box.height)[0].element;
         const panel = frame.getBoundingClientRect();
         const style = getComputedStyle(frame, "::after");
@@ -47,8 +54,8 @@ async function main() {
         const right = Number.parseFloat(style.right);
         const bottom = Number.parseFloat(style.bottom);
         return [style.width, style.height, style.right, style.bottom, JSON.stringify([panel.left, panel.top, panel.right, panel.bottom]), JSON.stringify([panel.right - right - width, panel.bottom - bottom - height, panel.right - right, panel.bottom - bottom])];
-      }, [size, inset]);
-      const capture = `/tmp/webui-craft-round3-s${size}-i${inset}.png`;
+      });
+      const capture = `/tmp/webui-craft-round4-s${size}-i${inset}.png`;
       await page.screenshot({ path: capture });
       const digest = createHash("sha256").update(readFileSync(capture)).digest("hex");
       rows.push([size, inset, ...dom, capture, digest].join("\t"));

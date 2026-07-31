@@ -57,7 +57,7 @@ def main() -> None:
     fields = list(rows[0]) + ["raw_components", "post_bbox", "gaps"]
     mode = "a" if arguments.append else "w"
     with arguments.output.open(mode, newline="") as target:
-        writer = csv.DictWriter(target, fieldnames=fields, delimiter="\t")
+        writer = csv.DictWriter(target, fieldnames=fields, delimiter="\t", lineterminator="\n")
         if not arguments.append:
             writer.writeheader()
         for row in rows:

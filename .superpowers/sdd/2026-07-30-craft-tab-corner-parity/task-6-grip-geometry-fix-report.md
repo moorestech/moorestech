@@ -2,7 +2,7 @@
 
 ## Status
 
-DONE_WITH_CONCERNS. Round 3 completes the stated target-facing frontier: 29 distinct size buckets times 18 inset transition buckets contains no exact target. This remains a bounded result, not an arbitrary CSS-domain claim. The best accepted state remains unchanged: `--craft-grip-size: 9.2px` and `--craft-grip-inset: 7px`.
+DONE_WITH_CONCERNS. Round 4 completes the stated target-facing frontier: 29 distinct size buckets times 18 inset transition buckets contains no exact target. Every pair now waits 400ms after its token mutation before DOM read and screenshot. This remains a bounded result, not an arbitrary CSS-domain claim. The best accepted state remains unchanged: `--craft-grip-size: 9.2px` and `--craft-grip-inset: 7px`.
 
 ## RED
 
@@ -84,7 +84,7 @@ No source token or E2E assertion change is retained because the measured best ca
 
 ## Concern
 
-The strict exact bbox and gap target is blocked in the measured two-token frontier by Chromium rasterization under the allowed model. The tolerated visual comparator and all shared-consumer contracts remain green; resolving exact geometry needs a user-approved expansion of the geometry model.
+The strict exact bbox and gap target has no match in the measured two-token frontier under Chromium rasterization. The tolerated visual comparator and all shared-consumer contracts remain green. For the sampled frontier, a single shared pseudo-element translate/offset is the smallest candidate extra degree of freedom to evaluate with approval; this is not a claim that it succeeds for every inset value or for the full CSS domain.
 
 ## Review fix round 1 — detector investigation
 
@@ -187,3 +187,14 @@ Round 2 commit: `docs: record grip two-token frontier blocker`.
 - `measure/task-6-grip-frontier-manifest.tsv` is the durable audit artifact. Every row has exact token pair; browser-read width/height/right/bottom; browser-read panel/pseudo rect; capture filename/SHA256; raw all-component inventory; selected bbox; and gaps. The capture script writes the raw browser data, and the analyzer reads that manifest through a repository-relative comparator import.
 - Audit result: all 522 image hashes revalidated; all DOM columns are populated; exact `22x22` with gaps `19/19` is **0/522**. No token candidate exists in this stated frontier, so no CSS/assertion/comparator change is retained.
 - This establishes the blocker only over the 29×18 target-facing bucket set; it does not call the entire CSS decimal domain exhaustive. Round 3 commit: `docs: record grip captured-dom manifest`.
+
+## Review fix round 4 — per-pair settled reproduction
+
+- Corrected the capture timing: token mutation, then a 400ms wait, then browser DOM read and screenshot now occur for **every** size/inset pair. The initial page-level wait remains setup-only and is not used as pair settlement evidence.
+- The committed `measure/rebuild_grip_frontier_audit.sh` is the one-command regeneration path. It builds the Web UI, writes its raw browser manifest to `/tmp/task6-grip-frontier-raw.tsv`, captures all 522 PNGs, and re-analyses those files into the committed TSV. It recreates every temporary capture artifact when prior `/tmp/task6-grip*` files are absent; PNGs remain intentionally uncommitted. Its `WEBUI_CRAFT_PYTHON` override selects the normal NumPy/Pillow QA interpreter (default: `/tmp/webui-craft-qa-venv/bin/python`).
+
+```text
+sh .superpowers/sdd/2026-07-30-craft-tab-corner-parity/measure/rebuild_grip_frontier_audit.sh
+```
+- Re-run result: 522/522 rows contain captured browser dimensions and rects; SHA256 revalidation has 0 mismatches; exact selected `22x22` plus `19/19` gaps remains **0/522**. The manifest is LF-delimited so `git diff --check` passes.
+- This is bounded evidence only for the sampled 29×18 target-facing frontier. In this sample, a single shared pseudo-element translate/offset is the smallest extra geometry candidate to evaluate if approved; it is not a universal inset-space or CSS-domain assertion.

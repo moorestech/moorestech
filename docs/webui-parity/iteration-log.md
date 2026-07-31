@@ -213,6 +213,12 @@
 - The manifest records each exact token pair, browser-read width/height/right/bottom, panel and pseudo-element rectangles, capture filename, SHA256, every raw component with `touches_frame`/minimum/selection flags, selected bbox, and gaps. All 522 SHA256 values revalidated.
 - Exact `22x22` plus gaps `19/19` occurs 0 times. This is the final blocker only for the stated 29×18 target-facing frontier; it does not claim arbitrary CSS-domain exhaustiveness. Tokens, assertions, and comparator remain unchanged.
 
+### Task 6 grip geometry review fix round 4 — per-pair settled audit
+
+- Corrected the harness timing: each of the 522 size/inset token mutations now has its own 400ms wait before both browser DOM read and screenshot. The preceding page-load wait is setup only, not the evidence for a pair.
+- Added `measure/rebuild_grip_frontier_audit.sh`, the full regeneration command: it builds, creates `/tmp/task6-grip-frontier-raw.tsv`, captures the 522 PNGs, and reanalyses them into the committed manifest. It recreates all temporary capture files when prior `/tmp/task6-grip*` artifacts are absent; its `WEBUI_CRAFT_PYTHON` override selects the normal NumPy/Pillow QA interpreter. PNGs remain uncommitted.
+- The regenerated captured-DOM manifest again has 0 exact `22x22`/`19,19` results and 0 SHA256 mismatches. This only bounds the sampled 29×18 target-facing frontier. Within that sample, a single shared pseudo-element translate/offset is the smallest candidate to evaluate with approval; no universal inset-space claim is made.
+
 ### Task 5 visual iteration round 5
 
 - Changed exactly `--craft-grip-face`: `rgb(146 148 167 / 98%)` -> `rgb(134 136 152 / 98%)`; no size/inset/tab/path/CSS/other-token change.
