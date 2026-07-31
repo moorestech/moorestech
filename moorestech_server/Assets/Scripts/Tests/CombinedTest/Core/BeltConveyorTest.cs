@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Core
                 while (DateTime.Now < endTime.AddSeconds(0.1))
                 {
                     item = beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
-                    GameUpdater.UpdateOneTick();
+                    beltConveyor.TickUpdate();
                 }
                 
                 Assert.AreEqual(item.Count, 1);
@@ -59,7 +59,7 @@ namespace Tests.CombinedTest.Core
                 
                 var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
                 connectInventory.Add(dummy, new ConnectedInfo());
-                GameUpdater.UpdateOneTick();
+                beltConveyor.TickUpdate();
                 
                 Assert.AreEqual(itemStackFactory.Create(id, 1).ToString(), dummy.InsertedItems[0].ToString());
             }
@@ -99,7 +99,7 @@ namespace Tests.CombinedTest.Core
             var maxTicks = expectedTicks + 10; // 余裕を持たせる
             while (!dummy.IsItemExists && elapsedTicks < maxTicks)
             {
-                GameUpdater.RunFrames(1);
+                beltConveyor.TickUpdate();
                 elapsedTicks++;
             }
 
@@ -140,7 +140,7 @@ namespace Tests.CombinedTest.Core
             while (!dummy.IsItemExists)
             {
                 item = beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
-                GameUpdater.UpdateOneTick();
+                beltConveyor.TickUpdate();
             }
             
             Assert.True(item.Equals(itemStackFactory.Create(id, 0)));

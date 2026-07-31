@@ -1,2 +1,2 @@
 export { PlacementModeHud } from "./PlacementModeHud";
-export { DeleteModeHud } from "./DeleteModeHud";
+export { DeleteModeWarningBands } from "./DeleteModeWarningBands";

@@ -16,24 +16,23 @@ test("正本どおりクラフト時間を選択枠内に置き、中央プレ�
   await expect(page.locator('[class*="_craftPreview_"]')).toHaveCount(0);
 });
 
-test("正本のヘッダ順序、常時スクロールバー、主要構造を保つ", async ({ page }) => {
+test("正本のヘッダ装飾、常時スクロールバー、主要構造を保つ", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
-  // 品名の直後を装飾線、その次をレシピツリーボタンに固定する
-  // Keep the divider immediately after the name and the recipe-tree button after it
+  // 品名直後の装飾線をヘッダ末尾に固定する
+  // Keep the divider immediately after the name as the last header element
   const itemName = page.getByText("Plank", { exact: true });
   const divider = itemName.locator("xpath=following-sibling::*[1]");
   await expect(divider).toHaveAttribute("aria-hidden", "true");
-  await expect(divider.locator("xpath=following-sibling::*[1]")).toHaveRole("button");
+  await expect(divider.locator("xpath=following-sibling::*")).toHaveCount(0);
 
   // 選択枠DOMを画像測定用に保つ
   // Keep the selection-frame DOM available for image measurement
   const recipeBox = page.getByTestId("craft-recipe-box");
   const craftPanel = recipeBox.locator("xpath=ancestor::div[contains(@class, '_panel_')][1]");
   await expect(craftPanel).toBeVisible();
-  await expect(page.getByRole("button", { name: "レシピツリーで表示" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Craft" })).toBeVisible();
 
   // 短いfixtureでも縦バーを保つ

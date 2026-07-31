@@ -11,7 +11,7 @@ import { ResearchTreePanel, ResearchScreenChrome } from "@/features/research";
 import { BuildMenuPanel } from "@/features/buildMenu";
 import { ChallengePanel, CurrentChallengeHud } from "@/features/challenge";
 import { PauseMenuPanel } from "@/features/pauseMenu";
-import { DeleteModeHud, PlacementModeHud } from "@/features/modeHud";
+import { DeleteModeWarningBands, PlacementModeHud } from "@/features/modeHud";
 import { Crosshair } from "@/features/commonHud";
 import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
@@ -34,6 +34,10 @@ function useUiScale(enabled: boolean) {
       if (!stage) return;
       const scale = Math.min(window.innerWidth / stage.offsetWidth, window.innerHeight / stage.offsetHeight);
       document.documentElement.style.setProperty("--ui-scale", String(scale));
+      // 実画面寸法をstage座標へ戻す
+      // Convert the physical viewport back into stage coordinates for screen-edge HUDs
+      document.documentElement.style.setProperty("--ui-viewport-width", `${window.innerWidth / scale}px`);
+      document.documentElement.style.setProperty("--ui-viewport-height", `${window.innerHeight / scale}px`);
     };
 
     if (enabled) updateScale();
@@ -69,11 +73,6 @@ export default function App() {
   // ビルドメニュー等の独立メニューも背景ディムは共有するが、インベントリは重畳しない
   // Standalone menus (build menu, etc.) share the dim backdrop but do not overlay the inventory
   const modalScreen = inventoryScreen || screen === "researchTree" || screen === "buildMenu" || screen === "challengeList" || screen === "pauseMenu" || screen === "trainPause";
-  // 常駐チャレンジHUDはゲームプレイを専有しない画面だけへ出す
-  // Show the resident challenge HUD only on screens that do not own gameplay interaction
-  const challengeHudVisible = !modalScreen
-    && uiState !== UiStateNames.placeBlock
-    && uiState !== UiStateNames.deleteBar;
 
   // Ctrl+U中はPortalを含む全Web UIをunmountする
   // Unmount the entire Web UI, including portals, while Ctrl+U is active
@@ -99,14 +98,17 @@ export default function App() {
         {screen === "pauseMenu" && <PauseMenuPanel />}
         {screen === "trainPause" && <PauseMenuPanel />}
         {(screen === "trainHud" || screen === "trainPause") && <TrainRidingHud />}
-        {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
-        {uiState === UiStateNames.deleteBar && <DeleteModeHud />}
         <Crosshair />
         <CursorTooltip />
         <BlockInventoryPanel />
-        {/* スキット会話窓は1280基準の固定長で組むためstage内に置く（暗転だけPortalへ分離） */}
-        {/* The skit window lives in the stage so its fixed lengths stay on the 1280 baseline (only the blackout splits into the portal) */}
-        <SkitPresentation />
+        {/* 実画面端に属するHUDは論理viewportへ広げ、内容寸法だけstage拡縮へ追従させる */}
+        {/* Expand screen-edge HUDs to the logical viewport while their content dimensions retain stage scaling */}
+        <div className={styles.viewportOverlay} data-web-ui-transparent>
+          {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
+          {uiState === UiStateNames.deleteBar && <DeleteModeWarningBands />}
+          <CurrentChallengeHud />
+          <SkitPresentation />
+        </div>
         <ModalHost />
         <ProgressBar />
         <BlockInventoryKeyHandler />
@@ -116,9 +118,6 @@ export default function App() {
       <Portal>
         <ToastHost />
         <NotificationHost />
-        {/* モーダル画面と操作モードでは各画面へ情報を集約し、常駐HUDとの衝突を避ける */}
-        {/* Modal screens and interaction modes own their information without colliding with the resident HUD */}
-        {challengeHudVisible && <CurrentChallengeHud />}
         <SkitTransition />
         <TutorialOverlay />
         <WorldPinOverlay />

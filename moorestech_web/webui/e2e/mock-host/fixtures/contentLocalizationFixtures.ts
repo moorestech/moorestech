@@ -29,7 +29,7 @@ const source = {
   "challenge.82000000-0000-4000-8000-000000000004.title": "石を採掘する",
   "challenge.82000000-0000-4000-8000-000000000005.title": "石器をクラフトする",
   "challenge.82000000-0000-4000-8000-000000000006.title": "木を伐採して拠点へ運ぶ",
-  "challenge.82000000-0000-4000-8000-000000000007.title": "VeryLongUnbrokenChallengeObjectiveTextThatMustWrapInsideTheHudWithoutOverflowing",
+  "challenge.82000000-0000-4000-8000-000000000007.title": "VeryLongUnbrokenChallengeObjectiveTextThatMustWrapInsideTheHudWithoutOverflowingAndStillRemainReadableAcrossEveryMenuScreenWithoutChangingTheChallengeHudLayout",
   "challenge.82000000-0000-4000-8000-000000000008.title": "地下深くにある非常に長い名前の鉱床を見つけて必要な石を採掘する",
   "challenge.82000000-0000-4000-8000-000000000009.title": "遠方の森林から建築に必要な木材を伐採して拠点まで運搬する",
   "challenge.82000000-0000-4000-8000-00000000000a.title": "VeryLongUnbrokenSecondaryObjectiveTextThatMustAlsoWrapInsideTheHud",

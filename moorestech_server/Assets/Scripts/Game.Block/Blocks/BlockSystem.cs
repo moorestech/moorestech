@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Core.Master;
-using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
@@ -26,11 +24,6 @@ namespace Game.Block.Blocks
         public BlockPositionInfo BlockPositionInfo { get; }
         public IObservable<BlockState> BlockStateChange => _onBlockStateChange;
         private readonly Subject<BlockState> _onBlockStateChange = new();
-        
-        
-        
-        private readonly IDisposable _blockUpdateDisposable;
-        
         private readonly List<IUpdatableBlockComponent> _updatableComponents;
         private readonly List<IBlockStateDetail> _blockStateDetails;
         
@@ -54,8 +47,6 @@ namespace Game.Block.Blocks
             // NOTE 他の場所からコンポーネントを追加するようになったら、このリストに追加するようにする
             _updatableComponents = _blockComponentManager.GetComponents<IUpdatableBlockComponent>();
             _blockStateDetails = _blockComponentManager.GetComponents<IBlockStateDetail>();
-            
-            _blockUpdateDisposable = GameUpdater.UpdateObservable.Subscribe(_ => Update());
             
             OneBlockUpdateMarker = CreateUpdateMarker(BlockMasterElement);
         }
@@ -93,27 +84,30 @@ namespace Game.Block.Blocks
             return result;
         }
         
-        private void Update()
+        public void TickUpdate()
+        {
+            UpdateComponents(_updatableComponents);
+        }
+
+        private void UpdateComponents(List<IUpdatableBlockComponent> components)
         {
             BlockUpdateMarker.Begin();
             OneBlockUpdateMarker.Begin();
-            
-            foreach (var component in _updatableComponents)
+
+            foreach (var component in components)
             {
                 var componentUpdateMarker = CreateComponentUpdateMarker(BlockMasterElement, component);
                 componentUpdateMarker.Begin();
                 component.Update();
                 componentUpdateMarker.End();
             }
-            
+
             OneBlockUpdateMarker.End();
             BlockUpdateMarker.End();
         }
         
         public void Destroy()
         {
-            _blockUpdateDisposable.Dispose();
-            
             try
             {
                 _blockComponentManager.Destroy();

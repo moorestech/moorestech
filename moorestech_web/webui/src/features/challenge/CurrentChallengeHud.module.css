@@ -1,7 +1,7 @@
 /* 世界上へ文字だけを重ね、操作やカード面を持たない常駐HUDにする */
 /* Overlay text directly on the world as a resident HUD without interaction or a card face */
 .hud {
-  position: fixed;
+  position: absolute;
   top: var(--challenge-hud-top);
   left: var(--challenge-hud-left);
   z-index: var(--z-overlay-panel);
@@ -9,6 +9,12 @@
   color: var(--text-high-contrast);
   pointer-events: none;
   text-shadow: var(--challenge-hud-text-shadow);
+}
+
+/* 本文幅を保ったまま区切り線だけを短くする */
+/* Shorten only the rule while retaining the readable content width */
+.rule {
+  width: var(--challenge-hud-rule-width);
 }
 
 /* 控えめな見出しから共有罫線へ固定間隔でつなぐ */

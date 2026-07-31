@@ -23,7 +23,7 @@ export function PlacementModeHud() {
   // Show placement information in the craft frame
   return (
     <section
-      className={styles.modeHud}
+      className={styles.placementHud}
       aria-labelledby={headingId}
       data-testid="placement-mode-hud"
       {...tutorialAnchor(TutorialAnchorIds.placementHud)}

@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { setSkitStage, setTopicScenario, setUiState } from "../../support/mockControl";
+import { expectAbove, expectAtViewportTopCorner, expectNoHorizontalOverflow } from "../../support/layoutAssertions";
+import { expectChallengeHudPresentation, expectWrappedObjectives, readChallengeHudPresentation } from "../../support/challengeHudAssertions";
 
 test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "challengeActive");
@@ -19,13 +21,15 @@ test("進行中チャレンジを内部キーやカード面なしで表示す�
   await expect(hud).toHaveCSS("pointer-events", "none");
   await expect(hud).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 
-  // 固定配置と影をピクセル検証する
-  // Verify fixed placement and shadow in pixels
+  // 左上固定の寸法と短い罫線を検証する
+  // Verify top-left fixed dimensions and the shortened rule
   await expect(hud).toHaveCSS("top", "24px");
   await expect(hud).toHaveCSS("left", "24px");
-  await expect(hud).toHaveCSS("width", "288px");
+  await expect(hud).toHaveCSS("width", "520px");
   await expect(hud).toHaveCSS("text-shadow", "rgba(0, 0, 0, 0.85) 0px 1px 2px");
-  await expect(hud.locator('[aria-hidden="true"]')).toHaveCount(1);
+  const rule = hud.locator('[aria-hidden="true"]');
+  await expect(rule).toHaveCount(1);
+  await expect(rule).toHaveCSS("width", "176px");
 
   // 面装飾と文字階層をスタイル検証する
   // Verify surface decoration and type hierarchy through styles
@@ -50,8 +54,24 @@ test("進行中チャレンジを内部キーやカード面なしで表示す�
     boxShadow: "none",
     fontWeight: "400",
     labelLetterSpacing: "1px",
-    objectiveLineHeight: "25px",
+    objectiveLineHeight: "20px",
   });
+});
+
+test("横長画面で進行HUDを実画面左上へ置き罫線を約3分の1へ縮める", async ({ page }) => {
+  await page.setViewportSize({ width: 2432, height: 786 });
+  await setTopicScenario(page, "challengeJapanese");
+  await setUiState(page, "GameScreen");
+  await page.goto("/");
+
+  const hud = page.getByTestId("challenge-hud");
+  await expectAtViewportTopCorner(hud, "left", 40);
+  const hudBox = await hud.boundingBox();
+  const ruleBox = await hud.locator('[aria-hidden="true"]').boundingBox();
+  expect(hudBox).not.toBeNull();
+  expect(ruleBox).not.toBeNull();
+  expect(hudBox!.width).toBeCloseTo(520 * 786 / 720, 1);
+  expect(ruleBox!.width).toBeCloseTo(176 * 786 / 720, 1);
 });
 
 test("複数目標を受信順で表示し長文をHUD幅内へ折り返す", async ({ page }) => {
@@ -70,17 +90,7 @@ test("複数目標を受信順で表示し長文をHUD幅内へ折り返す", as
 
   // 長語の複数行折返しを寸法検証する
   // Verify multiline wrapping of unbroken text through geometry
-  const layout = await objective.evaluate((element) => {
-    const style = getComputedStyle(element);
-    return {
-      clientWidth: element.clientWidth,
-      scrollWidth: element.scrollWidth,
-      clientHeight: element.clientHeight,
-      lineHeight: Number.parseFloat(style.lineHeight),
-    };
-  });
-  expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
-  expect(layout.clientHeight / layout.lineHeight).toBeGreaterThan(1.5);
+  await expectWrappedObjectives(objective, 1);
 });
 
 test("複数の長文目標を受信順かつHUD幅内で表示する", async ({ page }) => {
@@ -94,20 +104,10 @@ test("複数の長文目標を受信順かつHUD幅内で表示する", async ({
     "VeryLongUnbrokenSecondaryObjectiveTextThatMustAlsoWrapInsideTheHud",
   ]);
 
-  // 各目標の折返しと横溢れを検証する
-  // Verify each objective's wrapping and horizontal overflow
-  const multipleLongLayouts = await multipleLongObjectives.evaluateAll((elements) => elements.map((element) => {
-    const style = getComputedStyle(element);
-    return {
-      clientWidth: element.clientWidth,
-      scrollWidth: element.scrollWidth,
-      clientHeight: element.clientHeight,
-      lineHeight: Number.parseFloat(style.lineHeight),
-    };
-  }));
-  expect(multipleLongLayouts).toHaveLength(3);
-  for (const multipleLongLayout of multipleLongLayouts) {
-    expect(multipleLongLayout.scrollWidth).toBeLessThanOrEqual(multipleLongLayout.clientWidth);
-    expect(multipleLongLayout.clientHeight / multipleLongLayout.lineHeight).toBeGreaterThan(1.5);
-  }
+  await expectNoHorizontalOverflow(multipleLongObjectives);
+  const gamePresentation = await readChallengeHudPresentation(page);
+  await setUiState(page, "PlayerInventory");
+  const inventoryHud = page.getByTestId("challenge-hud");
+  await expectChallengeHudPresentation(page, gamePresentation);
+  await expectAbove(inventoryHud, page.getByRole("heading", { name: "持ち物" }));
 });

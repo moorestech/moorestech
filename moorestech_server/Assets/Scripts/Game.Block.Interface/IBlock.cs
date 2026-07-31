@@ -23,7 +23,13 @@ namespace Game.Block.Interface
         public IObservable<BlockState> BlockStateChange { get; }
         
         public BlockState GetBlockState();
-        
+
+        /// <summary>
+        ///     MasterTickUpdaterのブロック更新フェーズから呼ばれ、保持する更新対象コンポーネントを更新する
+        ///     Called from MasterTickUpdater's block phase to update the block's updatable components
+        /// </summary>
+        public void TickUpdate();
+
         public Dictionary<string,string> GetSaveState();
         
         public void Destroy();

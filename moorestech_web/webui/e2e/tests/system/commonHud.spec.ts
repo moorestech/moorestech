@@ -9,7 +9,7 @@ test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "tooltipHidden");
 });
 
-test("設置・削除モードtopicをHUDへ反映する", async ({ page }) => {
+test("設置情報と削除警告帯を操作モードへ反映する", async ({ page }) => {
   await setTopicScenario(page, "placement");
   await setUiState(page, "PlaceBlock");
   await page.goto("/");
@@ -19,9 +19,38 @@ test("設置・削除モードtopicをHUDへ反映する", async ({ page }) => {
 
   await setTopicScenario(page, "delete");
   await setUiState(page, "DeleteBar");
-  const deletion = page.locator('[data-tutorial-anchor="delete.hud"]');
-  await expect(deletion).toContainText("Delete Mode");
-  await expect(deletion).toContainText("Protected area");
+  const deletion = page.getByTestId("delete-mode-warning");
+  await expect(deletion).toHaveAttribute("aria-label", "Delete Mode");
+  await expect(deletion.getByTestId("delete-mode-warning-band")).toHaveCount(2);
+  await expect(page.locator('[data-tutorial-anchor="delete.hud"]')).toHaveCSS("bottom", "0px");
+  await expect(page.getByText("Protected area", { exact: true })).toHaveCount(0);
+});
+
+test("横長画面でビネットを実viewportの四辺へ沿わせる", async ({ page }) => {
+  await page.setViewportSize({ width: 2432, height: 786 });
+  await setUiState(page, "GameScreen");
+  await page.goto("/");
+
+  // ビネットを実viewportで描く
+  // Keep the vignette owner on the real viewport instead of the stage
+  const layout = await page.locator("#root > div").evaluate((viewport) => {
+    const stage = viewport.firstElementChild!;
+    const rect = viewport.getBoundingClientRect();
+    return {
+      rect: { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left },
+      viewportBackground: getComputedStyle(viewport).backgroundImage,
+      stageBackground: getComputedStyle(stage).backgroundImage,
+      screen: { width: window.innerWidth, height: window.innerHeight },
+    };
+  });
+  expect(layout.rect).toEqual({
+    top: 0,
+    right: layout.screen.width,
+    bottom: layout.screen.height,
+    left: 0,
+  });
+  expect(layout.viewportBackground).toContain("radial-gradient");
+  expect(layout.stageBackground).toBe("none");
 });
 
 test("採掘進捗・クロスヘア・tooltipのtopic eventを表示する", async ({ page }) => {
