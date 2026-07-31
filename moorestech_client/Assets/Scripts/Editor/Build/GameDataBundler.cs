@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using UnityEditor.Build;
 using UnityEngine;
 
@@ -47,14 +48,18 @@ public static class GameDataBundler
     {
         if (!Directory.Exists(sourceDirectory)) return sourceDirectory;
 
-        var localizationCsv = Path.Combine(sourceDirectory, "config", "localization.csv");
-        if (!File.Exists(localizationCsv)) return localizationCsv;
-
         var mapJson = Path.Combine(sourceDirectory, "map", "map.json");
         if (!File.Exists(mapJson)) return mapJson;
 
         var modsDirectory = Path.Combine(sourceDirectory, "mods");
         if (!Directory.Exists(modsDirectory)) return modsDirectory;
+
+        // ローカライズはmod直下のlocalization/localization.csvが正（旧config/は廃止済み）
+        // Localization lives at localization/localization.csv inside each mod (legacy config/ is gone)
+        var hasModLocalization = Directory
+            .GetDirectories(modsDirectory)
+            .Any(modDirectory => File.Exists(Path.Combine(modDirectory, "localization", "localization.csv")));
+        if (!hasModLocalization) return Path.Combine(modsDirectory, "*", "localization", "localization.csv");
 
         return string.Empty;
     }
