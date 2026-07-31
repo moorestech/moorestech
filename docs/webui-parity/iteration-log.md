@@ -183,6 +183,14 @@
 == 13/13 checks passed ==
 ```
 
+### Task 6 grip geometry — DONE_WITH_CONCERNS
+
+- RED fresh production build/capture at `--craft-grip-size: 9.2px` and `--craft-grip-inset: 7px` reproduced the specified mismatch: detector bbox `23x22`, right/bottom gaps `20/20`, while the face median remained exact `rgb(132,133,149)`.
+- Size-only 0.01px boundary search at fixed inset `7px`: `8.70` through `8.79px` each produced `22x21`; `8.80px`, `9.10px`, `9.19px`, and `9.20px` each produced `23x22`. All candidates retained comparator `13/13`; no 0.01px candidate produced `22x22`.
+- Inset-only search at the closest-height size `8.80px` did not move the detected right/bottom edges: `7.00`, `6.99`, `6.90`, and `6.80px` produced gaps `20/20`; `6.69px` produced `21x21` with gaps `20/20`; `6.68` through `6.50px` produced `12/13` and were rejected. Thus exact `19/19` is unavailable without changing a forbidden geometry rule.
+- Restored the best accepted token pair `9.2px` / `7px`; its authored and Chromium computed values already match the E2E contract (`9.2px`, `9.1875px`, `right: 7`, `bottom: 7`). The contract also confirms one pseudo-element, `backgroundImage: none`, `boxShadow: none`, and the exact single-color face.
+- Final fresh capture/comparator is `13/13 PASS`; face median is `rgb(132,133,149)` with maxΔ `0`. Focused central, PlacementModeHud, and ResearchDetailPane suites are `12/12 PASS`; `tsc -p e2e/tsconfig.json --noEmit` passes.
+
 ### Task 5 visual iteration round 5
 
 - Changed exactly `--craft-grip-face`: `rgb(146 148 167 / 98%)` -> `rgb(134 136 152 / 98%)`; no size/inset/tab/path/CSS/other-token change.
