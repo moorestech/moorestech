@@ -26,15 +26,16 @@ cef-unityのWindows専用スクロールモニタ（`cef-unity-rust/crates/clien
 
 ## やるべきこと
 
-### 1. winbuild実機検証（最優先・応急処置の効果確認）
+### 1. winbuild実機検証 — 完了（2026-07-31 20:30頃）
 
-- [ ] gamescom-review-demo（`d4e4a8778`以降）をWindowsビルドしてwinbuildで起動
-- [ ] Player.logで以下2行を確認
-  - `[WindowsMouseRawInputReclaimer] Unityのマウスraw input登録を記録 target=0x... flags=0x...`
-  - CEF起動後に `[WindowsMouseRawInputReclaimer] マウスraw input配送を取り返した stolenTarget=0x... -> unityTarget=0x...`
-- [ ] マウスでカメラ回転が動くことを確認
+- [x] gamescom-review-demo（`d4e4a8778`以降）をWindowsビルドしてwinbuildで起動
+- [x] Player.logで以下2行を確認（実ログ）
+  - `[WindowsMouseRawInputReclaimer] Unityのマウスraw input登録を記録 target=0xF0972 flags=0x0`
+  - `[WindowsMouseRawInputReclaimer] マウスraw input配送を取り返した stolenTarget=0x180E9C -> unityTarget=0xF0972`
+- [x] マウスでカメラ回転が動くことを確認
 - [ ] WebUIのクリック操作が引き続き動くことを確認（ホイールスクロールは死んでいて正常）
-- 取り返しログが出ないのに回転が死んでいる場合は真因が別にある可能性 → 再調査（対抗仮説はほぼ潰し済みだが、旧Windowsビルドでの回転動作ベースラインは未確認）
+- 検証メモ: 取り返しは1回で安定（cefと登録を奪い合うループにはならない）。Unity本来の登録フラグは0（フォアグラウンド配送のみ）だった。
+  最初の検証（20:25）は応急処置コミットより古い13:20ビルドのexeを起動していたため失敗に見えた——**検証時はexeのタイムスタンプがコミットより新しいことを必ず確認する**
 
 ### 2. cef-unity側の恒久対応
 
