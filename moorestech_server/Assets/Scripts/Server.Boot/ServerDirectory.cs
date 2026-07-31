@@ -13,8 +13,14 @@ namespace Server.Boot
 #if UNITY_EDITOR
             var debugServerDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../../moorestech_master/server_v8/"));
             var serverDirectory = DebugParameters.GetValueOrDefaultString(DebugServerDirectorySettingKey ,debugServerDirectory);
+#elif UNITY_STANDALONE_OSX
+            // dataPathは<app>.app/Contents/Resources/Dataのため、4階層上（.appの隣）のgame/を参照
+            // dataPath is <app>.app/Contents/Resources/Data, so game/ sits four levels up beside the .app
+            var serverDirectory = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "..", "..", "..", "..", "game"));
 #else
-            var serverDirectory = Path.Combine(UnityEngine.Application.dataPath, "../","../", "game");
+            // dataPathは<root>/moorestech_Dataのため、1階層上（実行ファイルの隣）のgame/を参照
+            // dataPath is <root>/moorestech_Data, so game/ sits one level up beside the executable
+            var serverDirectory = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "..", "game"));
 #endif
             
             return serverDirectory;

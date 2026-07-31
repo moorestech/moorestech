@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
 using Debug = UnityEngine.Debug;
 
@@ -29,6 +30,9 @@ namespace Client.WebUiHost.Vite
                 RedirectStandardError = true,
                 CreateNoWindow = true,
             };
+            // 不正UTF-8のenvを除外してからPATHを整える
+            // Sanitize corrupted env entries before adjusting PATH
+            SanitizedProcessEnvironment.Sanitize(psi);
             var nodeBinDir = Path.GetDirectoryName(nodePath);
             psi.Environment["PATH"] = $"{nodeBinDir}{Path.PathSeparator}{Environment.GetEnvironmentVariable("PATH")}";
             using var p = Process.Start(psi);

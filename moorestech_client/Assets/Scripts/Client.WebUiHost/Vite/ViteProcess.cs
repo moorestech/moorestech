@@ -121,6 +121,9 @@ namespace Client.WebUiHost.Vite
                     RedirectStandardError = true,
                     CreateNoWindow = true,
                 };
+                // 不正UTF-8のenvを除外してからPATHを整える
+                // Sanitize corrupted env entries before adjusting PATH
+                SanitizedProcessEnvironment.Sanitize(psi);
                 var nodeBinDir = Path.GetDirectoryName(nodePath);
                 psi.Environment["PATH"] = $"{nodeBinDir}{Path.PathSeparator}{Environment.GetEnvironmentVariable("PATH")}";
                 // 実ポートをvite proxy先へ注入
