@@ -570,6 +570,13 @@
 - The right path uses contiguous stepped subpaths to reproduce the reference's two-row profile while retaining the fixed brown right-slope sample. `pnpm build`, the 1635×922 capture, and `compare.py` completed with **13/13 PASS**; `recipe.spec.ts` completed with **5/5 PASS**.
 - Remaining scoped limitation: the left exact-color area remains `435px` because later `toolTabFace`/`toolTabEdge` paint produces `(23,22,33)` at x43 on y49–109; the right's five 2px rows likewise have later-layer composite samples such as `(70,71,114)` or `(18,16,22)` where the reference is exact side color. Altering those later paths would violate this task's path-only scope, so no such change was made.
 
+### Task 6 review fix round 1 — stepped edge
+
+- RED after the Task 6 commit: left exact side component `435px`, bbox `(36,48)-(43,109)`, versus reference `496px`; right `416px`, bbox `(138,48)-(161,109)`, with five rows at 2px endpoint difference.
+- The first Edge-only trial moved the left edge to x25 and lower-right endpoint to x136. It restored left to `496px`, bbox `(36,48)-(43,109)`, and all endpoints exact, proving the left deficit was Edge stroke overpaint; its right `400px` was below the `414px` area floor.
+- With the Task 6 Side restored, the accepted Edge-only candidate keeps x25 and uses a stepped right polyline: left remains `496px`, bbox exact, endpoint difference `0px`; right is `424px`, bbox `(138,48)-(161,109)`, within `436px ±5%`, with remaining 2px endpoint differences at y89, y95, y100–101, and y107.
+- Edge one-pixel notches at source y50/y56/y62/y68 and a separately tested Face stepped edge did not change those five side rows. The Face trial additionally regressed its exact-color bbox to `(46,50)-(146,109)` and area to `4801px` versus reference `4856px`, so it was reverted. `compare.py` remained **13/13 PASS** in every retained and rejected trial.
+
 ### Task 5 visual iteration round 4
 
 - Changed exactly `toolTabSide`: `M125 0H143L166 70H145Z` -> `M125 0H126L143 70Z`; its `rgb(16 15 21)` token, every other path/token/CSS rule, and grip remained unchanged.
