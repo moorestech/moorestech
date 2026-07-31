@@ -562,6 +562,14 @@
 == 13/13 checks passed ==
 ```
 
+### Task 6 — tab dark-side profile
+
+- Scope: changed only the `toolTabSide` `d` attribute in `ItemHeader.tsx`; CSS, tokens, the other four SVG paths, grip, and panel colors are unchanged.
+- RED exact `rgb(16,15,21)` 4-neighbor components: left `435px`, bbox `(36,48)-(43,109)`; right main `454px`, bbox `(139,47)-(161,109)`, plus a lower-left `42px` fragment. The right row-endpoint maximum difference was `6px` (at y108–109, current reached x150–151 while the reference starts x156).
+- GREEN exact components: left `435px`, bbox `(36,48)-(43,109)`, maximum endpoint difference `1px`; right `416px`, bbox `(138,48)-(161,109)`, maximum endpoint difference `2px`. Right area is within the reference `436px` ±5% range (`414–458px`) and its bbox matches exactly.
+- The right path uses contiguous stepped subpaths to reproduce the reference's two-row profile while retaining the fixed brown right-slope sample. `pnpm build`, the 1635×922 capture, and `compare.py` completed with **13/13 PASS**; `recipe.spec.ts` completed with **5/5 PASS**.
+- Remaining scoped limitation: the left exact-color area remains `435px` because later `toolTabFace`/`toolTabEdge` paint produces `(23,22,33)` at x43 on y49–109; the right's five 2px rows likewise have later-layer composite samples such as `(70,71,114)` or `(18,16,22)` where the reference is exact side color. Altering those later paths would violate this task's path-only scope, so no such change was made.
+
 ### Task 5 visual iteration round 4
 
 - Changed exactly `toolTabSide`: `M125 0H143L166 70H145Z` -> `M125 0H126L143 70Z`; its `rgb(16 15 21)` token, every other path/token/CSS rule, and grip remained unchanged.
