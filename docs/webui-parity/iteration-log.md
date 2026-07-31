@@ -140,6 +140,13 @@
 - Block 1総括（スコア推移 37.5→42.5→45.0→50.0→45.5→49.5）: 幾何・色・ピッチ・フェードは収束。残る失点はcraft一点物装飾・スロット枠断面・タイポの床に集中。Block 2はアプローチ変更判断待ち（ユーザー制約: UI装飾の画像アセット化は禁止、CSS/DOM/インラインSVG限定）
 # Craft chrome parity — Task 5 (2026-07-30)
 
+### Task 6 hammer profile fix (2026-07-31)
+
+- RED reproduction: the prior single-contour `toolTabHammer` measured 823px, with a 29px maximum row width and a 53px-high mask; the reference is 780px with a 22px maximum row width.
+- Changed exactly the `toolTabHammer` `d` attribute. The replacement encodes the authoritative two-row raster profile as a compound SVG path; panel colors, grip, the other four SVG paths, CSS, and tokens are unchanged.
+- Final fresh build/capture measurement: bbox `(1254, 282)-(1309, 332)`, relative `(44, -51)-(99, -1)`, area **769px**. It matches the specified `x` endpoints for y20–70 exactly; the SVG viewport clips the final y71 row, leaving its endpoint 1px inside the accepted ±1px tolerance.
+- Final verification: `compare.py` **13/13 PASS** (hammer-box maxΔ=1; hammer color maxΔ=0) and `pnpm exec playwright test --config e2e/playwright.config.ts e2e/tests/recipe.spec.ts` **5/5 passed**.
+
 - Scope: 3270x1844 craft tab and right-bottom grip only. Iterated one variable (or one SVG path) per capture, rebuilding before each capture because the mock-host captures `dist/`.
 - Mechanical result: **13/13 PASS**. Final tab: `166x69`, left delta `0`, bottom gap `2`; hammer relative bbox `(44,-53,99,-1)`, max delta `1`; grip `23x22`, gaps `20/20`. Representative color deltas: front/back/right-slope `0/0/0`, hammer `3`, grip `15`.
 - Changes: opaque reference composite tokens for tab back/front/side; edge chroma adjusted to prevent its antialiasing from merging with the comparator's hammer component; one hammer SVG path adjusted for bbox extrema, then its lower handle contour was restored to retain the hammer-color probe's reference negative space.
