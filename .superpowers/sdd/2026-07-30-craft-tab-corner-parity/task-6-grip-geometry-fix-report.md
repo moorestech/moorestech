@@ -2,7 +2,7 @@
 
 ## Status
 
-DONE_WITH_CONCERNS. Round 1 corrects the original unqualified unavailable claim: the measured plan interval cannot emit the authoritative detector geometry, but this is not asserted as an exhaustive proof over every possible CSS size. The best accepted state remains unchanged: `--craft-grip-size: 9.2px` and `--craft-grip-inset: 7px`.
+DONE_WITH_CONCERNS. Round 3 completes the stated target-facing frontier: 29 distinct size buckets times 18 inset transition buckets contains no exact target. This remains a bounded result, not an arbitrary CSS-domain claim. The best accepted state remains unchanged: `--craft-grip-size: 9.2px` and `--craft-grip-inset: 7px`.
 
 ## RED
 
@@ -150,7 +150,7 @@ Round 1's one-dimensional blocker was insufficient because inset changes the raw
 - Size representatives: `8.70`, `8.71`, `8.72`, `8.74`, `8.75`, `8.77`, `8.79`, `8.80`. They are the eight distinct Chromium 1/64px widths spanning the 22-pixel transition: `8.68750`, `8.70312`, `8.71875`, `8.73438`, `8.75000`, `8.76562`, `8.78125`, and `8.79688px`.
 - Inset representatives: `7.00`, `6.99`, `6.69`, `6.68`, `6.62`, and `6.50px`, the observed transition buckets from the initial 7.00→6.50 direction. The 48 combinations were all recaptured at 3270x1844 after the harness' 400ms settling delay.
 - The 48-row frontier had no `22x22`/`19,19` result. 22x22 appeared in adjacent inset bands, so 18 such pairs (`8.74–8.80px` with the measured `6.98..6.82px` bands) were independently recaptured under the same settling condition. All 18 were exactly `22x22` but had gaps `20/20`.
-- Therefore the target-facing evidence is 0 exact candidates across 66 settled captures. This is a bounded frontier conclusion, not a claim that every CSS decimal value has been exhaustively evaluated.
+- The 0/66 evidence is superseded by the captured-DOM 0/522 manifest in review fix round 3.
 
 ### Reproducible component inventory
 
@@ -180,3 +180,10 @@ pnpm build
 ```
 
 Round 2 commit: `docs: record grip two-token frontier blocker`.
+
+## Review fix round 3 — captured-DOM manifest
+
+- Audited all remaining distinct widths `8.8125px` through `9.1875px` together with the prior width frontier, giving 29 browser-measured size buckets × 18 target-facing inset buckets = **522** settled 3270x1844 captures.
+- `measure/task-6-grip-frontier-manifest.tsv` is the durable audit artifact. Every row has exact token pair; browser-read width/height/right/bottom; browser-read panel/pseudo rect; capture filename/SHA256; raw all-component inventory; selected bbox; and gaps. The capture script writes the raw browser data, and the analyzer reads that manifest through a repository-relative comparator import.
+- Audit result: all 522 image hashes revalidated; all DOM columns are populated; exact `22x22` with gaps `19/19` is **0/522**. No token candidate exists in this stated frontier, so no CSS/assertion/comparator change is retained.
+- This establishes the blocker only over the 29×18 target-facing bucket set; it does not call the entire CSS decimal domain exhaustive. Round 3 commit: `docs: record grip captured-dom manifest`.

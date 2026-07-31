@@ -207,6 +207,12 @@
 - Each TSV row records representative token, exact Chromium 1/64px computed width, DOM pseudo-element box, every raw component's bbox/count/touches-frame/min-size/selected flags, post-filter bbox, and gaps. The true grip is always `touch=0`, eligible, and selected; the other component is not selected. Thus the blocker remains raw renderer geometry, not comparator selection.
 - No source token, assertion, or comparator change is retained. The CSS model must not gain separate width/height or x/y tokens without a new approval.
 
+### Task 6 grip geometry review fix round 3 — remaining-bucket audit
+
+- Replaced the partial 0/66 evidence with a single captured-DOM manifest: 29 distinct Chromium size buckets (`8.6875px` through `9.1875px`) × 18 target-facing inset transition buckets = 522 settled 3270x1844 captures.
+- The manifest records each exact token pair, browser-read width/height/right/bottom, panel and pseudo-element rectangles, capture filename, SHA256, every raw component with `touches_frame`/minimum/selection flags, selected bbox, and gaps. All 522 SHA256 values revalidated.
+- Exact `22x22` plus gaps `19/19` occurs 0 times. This is the final blocker only for the stated 29×18 target-facing frontier; it does not claim arbitrary CSS-domain exhaustiveness. Tokens, assertions, and comparator remain unchanged.
+
 ### Task 5 visual iteration round 5
 
 - Changed exactly `--craft-grip-face`: `rgb(146 148 167 / 98%)` -> `rgb(134 136 152 / 98%)`; no size/inset/tab/path/CSS/other-token change.
