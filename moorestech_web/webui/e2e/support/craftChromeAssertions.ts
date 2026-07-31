@@ -1,6 +1,6 @@
 import { expect, type Locator } from "@playwright/test";
 
-export async function expectCraftGrip(frame: Locator) {
+export async function expectCraftGrip(frame: Locator, expectedOverlaps: boolean) {
   const contract = await frame.evaluate((element) => {
     // 疑似要素の計算済みスタイルからグリップ契約を抽出する
     // Extract the grip contract from the pseudo-element's computed style
@@ -17,19 +17,42 @@ export async function expectCraftGrip(frame: Locator) {
       right: frameBox.right - right,
       bottom: frameBox.bottom - bottom,
     };
-    // 表示中の内容矩形とグリップが重ならないことを確認する
-    // Check that the grip does not overlap any visible content rectangle
-    // 可視テキストの行矩形だけを取り、余白だけの要素ボックスを除外する
-    // Use visible text-line rects so margin-only element boxes do not cause false overlap
-    const contentBoxes = Array.from(element.querySelectorAll("button,h1,h2,h3,p,img"))
-      .filter((child) => getComputedStyle(child).display !== "none")
-      .flatMap((child) => {
-        if (child instanceof HTMLButtonElement || child instanceof HTMLImageElement) return [child.getBoundingClientRect()];
-        const range = document.createRange();
-        range.selectNodeContents(child);
-        return Array.from(range.getClientRects());
-      });
-    const overlaps = contentBoxes.some((box) =>
+    // 要素自身または祖先が不可視ならその配下も不可視として扱う
+    // Treat descendants as invisible whenever the element itself or an ancestor is hidden
+    function isHiddenOrInsideHidden(node: Element): boolean {
+      let current: Element | null = node;
+      while (current !== null) {
+        const style = getComputedStyle(current);
+        if (style.display === "none" || style.visibility === "hidden" || style.opacity === "0") return true;
+        current = current.parentElement;
+      }
+      return false;
+    }
+
+    // タグ列挙をやめ、実際に描画される矩形を漏れなく集めてグリップとの重なりを判定する
+    // Drop the tag whitelist and collect every actually-painted rect to test grip overlap
+    // テキストノードは行矩形を、テキストを持たない描画要素は要素矩形を採る
+    // Text nodes contribute line rects; non-text visual elements contribute their own bounding rect
+    const contentBoxes: DOMRect[] = [];
+    const textWalker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    for (let textNode = textWalker.nextNode(); textNode !== null; textNode = textWalker.nextNode()) {
+      const parent = textNode.parentElement;
+      if (parent === null || isHiddenOrInsideHidden(parent)) continue;
+      // 空白のみのテキストノードは余白要素と同じ誤検出源のため除外する
+      // Skip whitespace-only text nodes; they are the same false-overlap source as margin-only boxes
+      if ((textNode.textContent ?? "").trim() === "") continue;
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      contentBoxes.push(...Array.from(range.getClientRects()));
+    }
+    const visualElements = element.querySelectorAll("img,svg,canvas,input,select,textarea,button");
+    for (const visual of Array.from(visualElements)) {
+      if (!isHiddenOrInsideHidden(visual)) contentBoxes.push(visual.getBoundingClientRect());
+    }
+    // 幅か高さが0の矩形は実際には描画されていないため対象から外す
+    // Rects with zero width or height are not actually painted, so exclude them
+    const visibleContentBoxes = contentBoxes.filter((box) => box.width > 0 && box.height > 0);
+    const overlaps = visibleContentBoxes.some((box) =>
       box.left < gripBox.right && box.right > gripBox.left &&
       box.top < gripBox.bottom && box.bottom > gripBox.top);
     return {
@@ -56,6 +79,6 @@ export async function expectCraftGrip(frame: Locator) {
     backgroundColor: "rgba(134, 136, 152, 0.98)",
     backgroundImage: "none",
     boxShadow: "none",
-    overlaps: false,
+    overlaps: expectedOverlaps,
   });
 }

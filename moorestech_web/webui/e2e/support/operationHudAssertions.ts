@@ -79,7 +79,7 @@ export async function expectCraftFramedPlacementHud(hud: Locator) {
     expect(ratios.detail).toBeGreaterThanOrEqual(4.5);
   }
 
-  await expectCraftGrip(frame);
+  await expectCraftGrip(frame, false);
   const visualContract = await frame.evaluate((element) => {
     const frameStyle = getComputedStyle(element);
     const detailStyle = getComputedStyle(element.querySelector('[data-testid="operation-mode-detail"]')!);

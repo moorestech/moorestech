@@ -34,7 +34,7 @@ test("正本のヘッダ装飾、常時スクロールバー、主要構造を�
   const recipeBox = page.getByTestId("craft-recipe-box");
   const craftPanel = recipeBox.locator('xpath=ancestor::*[@data-variant="craft"][1]');
   await expect(craftPanel).toBeVisible();
-  await expectCraftGrip(craftPanel);
+  await expectCraftGrip(craftPanel, false);
   // クラフトタブを正本どおりのSVG構造と固定寸法で描画する
   // Render the craft tab with the reference SVG structure and fixed dimensions
   const craftTab = page.getByTestId("craft-tab");
