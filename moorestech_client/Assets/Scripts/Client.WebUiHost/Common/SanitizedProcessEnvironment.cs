@@ -17,6 +17,29 @@ namespace Client.WebUiHost.Common
     /// </summary>
     public static class SanitizedProcessEnvironment
     {
+        // CEFヘルパー等のネイティブspawnはProcessStartInfoを通らないため、Unity自身のenvも起動時に浄化する
+        // Native spawns such as the CEF helper bypass ProcessStartInfo, so Unity's own env is scrubbed at startup
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+        public static void SanitizeCurrentProcess()
+        {
+            var corruptedNames = new List<string>();
+            foreach (System.Collections.DictionaryEntry entry in System.Environment.GetEnvironmentVariables())
+            {
+                if (ContainsUndecodableMarker((string)entry.Key) || ContainsUndecodableMarker((string)entry.Value))
+                {
+                    corruptedNames.Add((string)entry.Key);
+                }
+            }
+
+            foreach (var name in corruptedNames)
+            {
+                // unsetenv相当でネイティブenvironからも除去される（名前自体が不正な場合のみ実バイト列と一致せず残る）
+                // Removed from the native environ via unsetenv (only a corrupt name itself cannot match the raw bytes)
+                System.Environment.SetEnvironmentVariable(name, null);
+                Debug.LogWarning($"[SanitizedProcessEnvironment] 不正なUTF-8バイト列を含む環境変数を自プロセスから除去しました: '{EscapeForLog(name)}' / Scrubbed env var containing invalid UTF-8 bytes from this process");
+            }
+        }
+
         public static void Sanitize(ProcessStartInfo startInfo)
         {
             // 破損エントリを列挙してから削除する（走査中の辞書変更を避ける）
