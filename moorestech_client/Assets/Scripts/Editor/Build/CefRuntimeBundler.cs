@@ -26,7 +26,7 @@ public static class CefRuntimeBundler
             Fail("CEF package 'jp.juha.cefunity' is not resolved", isStrict);
             return;
         }
-        var pluginsSourceRoot = Path.Combine(packageInfo.resolvedPath, "Interop", "Plugins");
+        var pluginsSourceRoot = Path.Combine(packageInfo.resolvedPath, "Plugins");
 
         switch (buildTarget)
         {
@@ -71,12 +71,12 @@ public static class CefRuntimeBundler
 
     private static void BundleWindows(string sourceDirectory, string exePath, bool isStrict)
     {
-        // 現行パッケージのwin-x64はhelper未同梱のため、揃うまで明示的に失敗させる
-        // The current package's win-x64 lacks the helper; fail explicitly until it ships complete
+        // helperの実体（LFS未解決の殻でないこと）を検証する
+        // Verify the helper is real, not an unresolved LFS husk
         var helperSource = Path.Combine(sourceDirectory, "cef-unity-server.exe");
-        if (!File.Exists(helperSource))
+        if (!File.Exists(helperSource) || new FileInfo(helperSource).Length < 1024)
         {
-            Fail($"CEF Windows runtime is incomplete in the package (missing {helperSource})", isStrict);
+            Fail($"CEF Windows helper is missing or an LFS pointer: {helperSource}", isStrict);
             return;
         }
 
