@@ -39,7 +39,7 @@ Only `--craft-grip-inset` changed during inset trials, with the closest-height s
 | 6.68–6.63px, each 0.01px | 21x20 | 20/20 | 12/13, rejected |
 | 6.62–6.50px | 20x20 | 20/20 | 12/13, rejected |
 
-The observed size interval has no exact target: the size raster jumps from 22x21 to 23x22, while lower inset values shrink the component and the detector's right/bottom edges remain at 20px gaps. Adding independent width/height or x/y tokens would violate the settled scope, so no such token was added. Round 1 below verifies that this is raw renderer behavior, not a comparator false exclusion.
+The one-dimensional size interval has no exact target. Round 2 below corrects this further: two-token combinations can produce 22x22, but no measured target-facing pair produces both 19px gaps. Adding independent width/height or x/y tokens would violate the settled scope, so no such token was added.
 
 ## GREEN and contracts
 
@@ -84,7 +84,7 @@ No source token or E2E assertion change is retained because the measured best ca
 
 ## Concern
 
-The strict exact bbox and gap target is blocked in the measured single-size interval by Chromium rasterization under the allowed two-token model. The tolerated visual comparator and all shared-consumer contracts remain green; resolving exact geometry needs a user-approved expansion of the geometry model.
+The strict exact bbox and gap target is blocked in the measured two-token frontier by Chromium rasterization under the allowed model. The tolerated visual comparator and all shared-consumer contracts remain green; resolving exact geometry needs a user-approved expansion of the geometry model.
 
 ## Review fix round 1 — detector investigation
 
@@ -140,3 +140,43 @@ pnpm build
 ```
 
 Round 1 retained no source modification: raw renderer evidence, not `compare.py`, is the blocker. The commit for this documentation correction is `docs: record grip renderer-stage blocker`.
+
+## Review fix round 2 — two-token frontier
+
+Round 1's one-dimensional blocker was insufficient because inset changes the raw bbox. This round therefore paired the target-relevant size and inset quantization frontiers before making a conclusion.
+
+### Measured frontier and candidate result
+
+- Size representatives: `8.70`, `8.71`, `8.72`, `8.74`, `8.75`, `8.77`, `8.79`, `8.80`. They are the eight distinct Chromium 1/64px widths spanning the 22-pixel transition: `8.68750`, `8.70312`, `8.71875`, `8.73438`, `8.75000`, `8.76562`, `8.78125`, and `8.79688px`.
+- Inset representatives: `7.00`, `6.99`, `6.69`, `6.68`, `6.62`, and `6.50px`, the observed transition buckets from the initial 7.00→6.50 direction. The 48 combinations were all recaptured at 3270x1844 after the harness' 400ms settling delay.
+- The 48-row frontier had no `22x22`/`19,19` result. 22x22 appeared in adjacent inset bands, so 18 such pairs (`8.74–8.80px` with the measured `6.98..6.82px` bands) were independently recaptured under the same settling condition. All 18 were exactly `22x22` but had gaps `20/20`.
+- Therefore the target-facing evidence is 0 exact candidates across 66 settled captures. This is a bounded frontier conclusion, not a claim that every CSS decimal value has been exhaustively evaluated.
+
+### Reproducible component inventory
+
+`measure/measure_grip_frontier.py --captures /tmp` emits 49 TSV lines: header plus every settled frontier capture. Each row records the representative size token, exact computed width, inset token, calculated DOM pseudo-element rect, every raw color-mask component, `touches_frame`, min-size eligibility, selected component, post-filter bbox, and gaps.
+
+Representative rows demonstrate the complete component pattern:
+
+| token pair | computed width | selected raw/post-filter | gaps | nonselected raw component |
+| --- | ---: | --- | --- | --- |
+| 8.70 / 7.00 | 8.68750px | `(2029,1398)-(2050,1418)`, 248px, 22x21 | 20/20 | `(1991,1359)-(2060,1428)`, 139px |
+| 8.74 / 6.98 | 8.73438px | `(2029,1397)-(2050,1418)`, 253px, 22x22 | 20/20 | `(1991,1359)-(2060,1428)`, 139px |
+| 8.80 / 7.00 | 8.79688px | `(2028,1397)-(2050,1418)`, 255px, 23x22 | 20/20 | `(1991,1359)-(2060,1428)`, 139px |
+| 8.80 / 6.50 | 8.79688px | `(2031,1399)-(2050,1418)`, 210px, 20x20 | 20/20 | `(1991,1359)-(2060,1428)`, 139px |
+
+Every true grip is `touch=0`, meets the 5px minimum, and is selected. Every nonselected component is retained in the TSV with the same flags, making the detector decision independently auditable. The DOM box is calculated from Playwright's measured stable central panel rect `[604.2839,166.7115,1034.9882,719.7614]`; the 6.68px inset row is included rather than inferred or omitted.
+
+### Round 2 command and commit
+
+```text
+# Fresh build, then 48 settled runtime captures for the 8x6 frontier.
+pnpm build
+
+/tmp/webui-craft-qa-venv/bin/python \
+  .superpowers/sdd/2026-07-30-craft-tab-corner-parity/measure/measure_grip_frontier.py \
+  --captures /tmp > /tmp/task6-grip-frontier.tsv
+# 49 lines; exact 22x22/19,19 candidates: 0
+```
+
+Round 2 commit: `docs: record grip two-token frontier blocker`.

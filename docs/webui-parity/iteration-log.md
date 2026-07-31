@@ -199,6 +199,14 @@
 - Filled the formerly unmeasured size ranges. Chromium's 1/64px computed widths reduce `8.81–9.09` and `9.11–9.18` to 21 additional unique widths; each was captured and compared. Every such width is raw/post-filter `23x22`, gaps `20/20`, and comparator `13/13`. Token aliases with the same computed width were not recaptured because their DOM computed style is identical.
 - Bounded result: `8.70–8.79px` renders `22x21`; `8.80–9.20px`, including every distinct computed width, renders `23x22`. This does not claim an exhaustive CSS-domain proof, but it blocks the plan's required single-token search interval. No token, assertion, or comparator change is retained; width/height separation remains out of scope.
 
+### Task 6 grip geometry review fix round 2 — two-token frontier blocker
+
+- Corrected the round-1 one-dimensional conclusion. A single size/inset pair can render `22x22`: with the capture harness' 400ms settling delay, the 1/64px size buckets `8.73438px` through `8.79688px` contain 22x22 states near inset `6.98px` and `6.87px`.
+- The necessary target-facing frontier used eight distinct size buckets (`8.70`, `8.71`, `8.72`, `8.74`, `8.75`, `8.77`, `8.79`, `8.80`) and the six inset transition buckets `7.00`, `6.99`, `6.69`, `6.68`, `6.62`, `6.50`. All 48 3270x1844 captures have two raw components; the selected grip and the nonselected 70x70 component are recorded by `measure/measure_grip_frontier.py` as reproducible TSV rows.
+- Frontier result: every selected grip keeps right/bottom gaps `20/20`. The 18 independently settled 22x22 candidates from the adjacent `6.98..6.82px` transition bands also all retain `20/20`; exact `22x22` plus `19/19` is 0/66 under the measured two-token frontier.
+- Each TSV row records representative token, exact Chromium 1/64px computed width, DOM pseudo-element box, every raw component's bbox/count/touches-frame/min-size/selected flags, post-filter bbox, and gaps. The true grip is always `touch=0`, eligible, and selected; the other component is not selected. Thus the blocker remains raw renderer geometry, not comparator selection.
+- No source token, assertion, or comparator change is retained. The CSS model must not gain separate width/height or x/y tokens without a new approval.
+
 ### Task 5 visual iteration round 5
 
 - Changed exactly `--craft-grip-face`: `rgb(146 148 167 / 98%)` -> `rgb(134 136 152 / 98%)`; no size/inset/tab/path/CSS/other-token change.
