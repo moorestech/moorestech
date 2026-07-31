@@ -577,6 +577,12 @@
 - With the Task 6 Side restored, the accepted Edge-only candidate keeps x25 and uses a stepped right polyline: left remains `496px`, bbox exact, endpoint difference `0px`; right is `424px`, bbox `(138,48)-(161,109)`, within `436px ±5%`, with remaining 2px endpoint differences at y89, y95, y100–101, and y107.
 - Edge one-pixel notches at source y50/y56/y62/y68 and a separately tested Face stepped edge did not change those five side rows. The Face trial additionally regressed its exact-color bbox to `(46,50)-(146,109)` and area to `4801px` versus reference `4856px`, so it was reverted. `compare.py` remained **13/13 PASS** in every retained and rejected trial.
 
+### Task 6 review fix round 2 — targeted side compensation
+
+- With the round-1 stepped Edge and original Face fixed, changed only the Side subpaths for y89/y95/y100–101/y107. RED was left `496px`, bbox exact, endpoint max `0px`; right `424px`, bbox exact, endpoint max `2px` at the five specified rows.
+- GREEN recovers y100's right endpoint and raises the right component to `428px`, bbox `(138,48)-(161,109)`, within the `414–458px` acceptance area; left remains `496px`, bbox exact, endpoint max `0px`. y89, y95, y101, and y107 retain 2px left-endpoint differences, so strict row acceptance remains unmet.
+- Evidence of path-insensitive residual: the four corresponding Side intervals were extended an additional 3 viewBox pixels left (`x123→120`, `x125→122`, `x127→124`, `x129→126`). Capture output was unchanged: left `496px`; right `428px`, same bbox and the same four 2px rows; comparator stayed **13/13 PASS**. The larger candidate was reverted, leaving the minimal y100 improvement.
+
 ### Task 5 visual iteration round 4
 
 - Changed exactly `toolTabSide`: `M125 0H143L166 70H145Z` -> `M125 0H126L143 70Z`; its `rgb(16 15 21)` token, every other path/token/CSS rule, and grip remained unchanged.
