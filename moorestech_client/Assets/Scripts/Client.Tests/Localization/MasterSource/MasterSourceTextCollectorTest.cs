@@ -3,6 +3,7 @@ using Client.Localization;
 using Core.Master;
 using Game.Context;
 using Mod.Loader;
+using Mooresmaster.Model.ChallengesModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -112,10 +113,38 @@ namespace Client.Tests.Localization.MasterSource
                 {
                     expected.Add($"challenge.{challenge.ChallengeGuid:D}.title", challenge.Title);
                     expected.Add($"challenge.{challenge.ChallengeGuid:D}.summary", challenge.Summary);
+                    foreach (var tutorial in challenge.Tutorials)
+                    {
+                        expected.Add(
+                            $"challengeTutorial.{tutorial.TutorialGuid:D}.text",
+                            GetExpectedTutorialText(tutorial));
+                    }
                 }
             }
 
+            // 全接続ツール名を必須Guidから列挙
+            // Enumerate every connect tool name from required GUIDs
+            foreach (var connectTool in MasterHolder.ConnectToolMaster.All)
+            {
+                expected.Add($"connectTool.{connectTool.ConnectToolGuid:D}.name", connectTool.Name);
+            }
+
             return expected;
+        }
+
+        private static string GetExpectedTutorialText(TutorialsElement tutorial)
+        {
+            // 実装と独立に期待値側でも型ごとの表示フィールドを定義する
+            // Define the per-type display field independently from the implementation
+            return tutorial.TutorialParam switch
+            {
+                MapObjectPinTutorialParam mapObjectPin => mapObjectPin.PinText,
+                KeyControlTutorialParam keyControl => keyControl.ControlText,
+                UiHighLightTutorialParam uiHighLight => uiHighLight.HighLightText,
+                ItemViewHighLightTutorialParam itemViewHighLight => itemViewHighLight.HighLightText,
+                BlockPlacePreviewTutorialParam blockPlacePreview => blockPlacePreview.Message,
+                _ => throw new System.InvalidOperationException($"Unknown tutorial type: {tutorial.TutorialType}"),
+            };
         }
     }
 }

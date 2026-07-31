@@ -5,7 +5,7 @@ namespace Client.DebugSystem.Skit
 {
     public class MapObjectTest : IMapObjectPin
     {
-        public ITutorialView ApplyTutorial(ITutorialParam param)
+        public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
             return this;
         }

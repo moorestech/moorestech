@@ -265,6 +265,7 @@ GameObject:
   - component: {fileID: 37386832}
   - component: {fileID: 37386834}
   - component: {fileID: 37386833}
+  - component: {fileID: 37386835}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -391,6 +392,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 37386831}
   m_CullTransparentMesh: 1
+--- !u!114 &37386835
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 37386831}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.mainMenu.connectServer
 --- !u!1 &40887043
 GameObject:
   m_ObjectHideFlags: 0
@@ -2683,6 +2697,7 @@ GameObject:
   - component: {fileID: 1003243089}
   - component: {fileID: 1003243088}
   - component: {fileID: 1003243087}
+  - component: {fileID: 1003243090}
   m_Layer: 5
   m_Name: Placeholder
   m_TagString: Untagged
@@ -2829,6 +2844,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1003243085}
   m_CullTransparentMesh: 1
+--- !u!114 &1003243090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1003243085}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.mainMenu.serverIpPlaceholder
 --- !u!1 &1012255850
 GameObject:
   m_ObjectHideFlags: 0
@@ -2961,6 +2989,7 @@ GameObject:
   - component: {fileID: 1032111586}
   - component: {fileID: 1032111589}
   - component: {fileID: 1032111588}
+  - component: {fileID: 1032111590}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -3087,6 +3116,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1032111585}
   m_CullTransparentMesh: 1
+--- !u!114 &1032111590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1032111585}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.mainMenu.resetAllData
 --- !u!1 &1079856802
 GameObject:
   m_ObjectHideFlags: 0
@@ -3719,6 +3761,7 @@ GameObject:
   - component: {fileID: 1394296963}
   - component: {fileID: 1394296965}
   - component: {fileID: 1394296964}
+  - component: {fileID: 1394296966}
   m_Layer: 5
   m_Name: Message
   m_TagString: Untagged
@@ -3845,6 +3888,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1394296962}
   m_CullTransparentMesh: 1
+--- !u!114 &1394296966
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1394296962}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.mainMenu.resetConfirmMessage
 --- !u!1 &1413093373
 GameObject:
   m_ObjectHideFlags: 0
@@ -4812,6 +4868,7 @@ GameObject:
   - component: {fileID: 1846893587}
   - component: {fileID: 1846893589}
   - component: {fileID: 1846893588}
+  - component: {fileID: 1846893590}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -4938,6 +4995,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1846893586}
   m_CullTransparentMesh: 1
+--- !u!114 &1846893590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1846893586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.mainMenu.resetConfirmButton
 --- !u!1 &1879782837
 GameObject:
   m_ObjectHideFlags: 0
@@ -5039,6 +5109,7 @@ GameObject:
   - component: {fileID: 1886059139}
   - component: {fileID: 1886059141}
   - component: {fileID: 1886059140}
+  - component: {fileID: 1886059142}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -5165,6 +5236,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1886059138}
   m_CullTransparentMesh: 1
+--- !u!114 &1886059142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1886059138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.common.cancel
 --- !u!1 &1946292842
 GameObject:
   m_ObjectHideFlags: 0
@@ -5372,6 +5456,7 @@ GameObject:
   - component: {fileID: 2025833090}
   - component: {fileID: 2025833092}
   - component: {fileID: 2025833091}
+  - component: {fileID: 2025833093}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -5498,6 +5583,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2025833089}
   m_CullTransparentMesh: 1
+--- !u!114 &2025833093
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2025833089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.common.close
 --- !u!1 &2027543677
 GameObject:
   m_ObjectHideFlags: 0
@@ -5554,6 +5652,7 @@ GameObject:
   - component: {fileID: 2115171384}
   - component: {fileID: 2115171383}
   - component: {fileID: 2115171382}
+  - component: {fileID: 2115171385}
   m_Layer: 5
   m_Name: Placeholder
   m_TagString: Untagged
@@ -5700,6 +5799,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2115171380}
   m_CullTransparentMesh: 1
+--- !u!114 &2115171385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2115171380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.mainMenu.serverPortPlaceholder
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

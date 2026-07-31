@@ -5,6 +5,7 @@ using Client.Input;
 using Client.Localization;
 using Core.Master;
 using Game.PlayerInventory.Interface;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.MapModule;
 
 namespace Client.Game.InGame.Mining
@@ -51,7 +52,7 @@ namespace Client.Game.InGame.Mining
             
             // 左クリックがされていなければ現状を維持
             // If left click is not pressed, maintain the current state
-            MouseCursorTooltip.Instance.Show("左クリックで取得", isLocalize: false);
+            MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.PickUpLeftClick.Key);
             return this;
         }
         
@@ -97,7 +98,7 @@ namespace Client.Game.InGame.Mining
             // If not clicked, maintain focus
             if (!InputManager.Playable.ScreenLeftClick.GetKey)
             {
-                MouseCursorTooltip.Instance.Show("左クリック長押しで取得", isLocalize: false);
+                MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.HoldToGet.Key);
                 return this;
             }
             
@@ -117,8 +118,10 @@ namespace Client.Game.InGame.Mining
                 result.Add(Localize.GetContent(ContentLocalizationKeys.ItemName(tool.ToolItemGuid)));
             }
             
-            var text = "このアイテムが必要です:" + string.Join(", ",result);
-            
+            // プレフィックスのみ辞書解決し、アイテム名は解決済み文字列を連結する
+            // Resolve only the prefix from the dictionary and append pre-resolved item names
+            var text = Localize.Get(LocalizationKeys.Ui.Tooltip.RequiredItemsPrefix) + string.Join(", ", result);
+
             MouseCursorTooltip.Instance.Show(text, isLocalize: false);
         }
     }

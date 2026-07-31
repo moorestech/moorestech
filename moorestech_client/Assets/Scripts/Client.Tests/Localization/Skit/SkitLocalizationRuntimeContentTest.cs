@@ -102,10 +102,12 @@ namespace Client.Tests.Localization.Skit
 
         private static string RunGit(string workingDirectory, string arguments)
         {
+            // CIコンテナはworkspace所有者が異なりdubious ownershipでexit 128になるため、プロセス限定で信頼する
+            // CI containers own the workspace as another user and git exits 128 with dubious ownership, so trust it per process only
             var startInfo = new ProcessStartInfo
             {
                 FileName = "git",
-                Arguments = arguments,
+                Arguments = $"-c safe.directory=* {arguments}",
                 WorkingDirectory = workingDirectory,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,

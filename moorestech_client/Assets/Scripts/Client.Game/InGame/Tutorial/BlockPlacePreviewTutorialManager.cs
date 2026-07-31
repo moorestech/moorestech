@@ -4,6 +4,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Tutorial.TutorialBlock;
 using Client.Game.InGame.UI.UIState;
+using Client.Localization;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -23,6 +24,7 @@ namespace Client.Game.InGame.Tutorial
 
         private BlockGameObjectDataStore _blockGameObjectDataStore;
         private TutorialBlockPreviewObject _previewObject;
+        private TutorialsElement _currentTutorial;
         private BlockPlacePreviewTutorialParam _currentParam;
         private BlockId _currentBlockId;
         private IDisposable _blockPlacedDisposable;
@@ -43,18 +45,25 @@ namespace Client.Game.InGame.Tutorial
             if (!camera) return;
 
             var projection = WorldPinScreenProjection.Project(camera, _previewObject.transform.position);
-            WorldPinStateStore.Instance.SetPin(WebPinId, _currentParam.Message, projection);
+
+            // 毎フレーム解決するため言語切替へ自動追従する
+            // Per-frame resolution keeps the pin text in sync with language switches
+            var message = Localize.GetContent(
+                ContentLocalizationKeys.ChallengeTutorialText(_currentTutorial.TutorialGuid));
+            WorldPinStateStore.Instance.SetPin(WebPinId, message, projection);
         }
 
-        public ITutorialView ApplyTutorial(ITutorialParam param)
+        public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
-            _currentParam = (BlockPlacePreviewTutorialParam)param;
+            _currentTutorial = tutorial;
+            _currentParam = (BlockPlacePreviewTutorialParam)tutorial.TutorialParam;
             _currentBlockId = MasterHolder.BlockMaster.GetBlockId(_currentParam.BlockGuid);
 
             // 既に目標ブロックが配置済みなら早期終了
             // Exit early when the target block already exists
             if (IsTargetBlockPlaced())
             {
+                _currentTutorial = null;
                 _currentParam = null;
                 return null;
             }
@@ -130,6 +139,7 @@ namespace Client.Game.InGame.Tutorial
             // Removing the web pin is idempotent, safe even when never published
             WorldPinStateStore.Instance.RemovePin(WebPinId);
 
+            _currentTutorial = null;
             _currentParam = null;
         }
 

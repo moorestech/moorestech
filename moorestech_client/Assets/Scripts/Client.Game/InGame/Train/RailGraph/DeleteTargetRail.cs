@@ -2,7 +2,9 @@ using System;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Localization;
 using Game.Train.RailGraph;
+using Mooresmaster.Localization.Generated;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.RailGraph
@@ -47,9 +49,9 @@ namespace Client.Game.InGame.Train.RailGraph
             reason = canDelete switch
             {
                 DeleteDeniedReason.None => null,
-                DeleteDeniedReason.StationInternalEdge => "駅内部のレールは削除できません。",
-                DeleteDeniedReason.NodeInUseByTrain => "レール上に車両があります。",
-                DeleteDeniedReason.UnknownError => "不明なエラー",
+                DeleteDeniedReason.StationInternalEdge => Localize.Get(LocalizationKeys.Ui.Delete.StationInternalRail),
+                DeleteDeniedReason.NodeInUseByTrain => Localize.Get(LocalizationKeys.Ui.Delete.RailHasVehicle),
+                DeleteDeniedReason.UnknownError => Localize.Get(LocalizationKeys.Ui.Delete.UnknownError),
                 DeleteDeniedReason.Removed => null,
                 _ => throw new ArgumentOutOfRangeException(),
             };

@@ -59,5 +59,15 @@ namespace Client.Localization
             return $"buildMenuSubCategory.{subCategoryGuid:D}.name";
         }
 
+        public static string ChallengeTutorialText(Guid tutorialGuid)
+        {
+            return $"challengeTutorial.{tutorialGuid:D}.text";
+        }
+
+        public static string ConnectToolName(Guid connectToolGuid)
+        {
+            return $"connectTool.{connectToolGuid:D}.name";
+        }
+
     }
 }

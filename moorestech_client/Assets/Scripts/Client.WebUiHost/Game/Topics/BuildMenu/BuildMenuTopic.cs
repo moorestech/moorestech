@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.UI.UIState;
+using Client.Localization;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
@@ -23,6 +24,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         private readonly IGameUnlockStateData _unlockState;
         private readonly ClientBlueprintLibrary _blueprintLibrary;
         private readonly IDisposable _librarySubscription;
+        private readonly IDisposable _languageSubscription;
         private bool _publishScheduled;
         private bool _disposed;
 
@@ -37,6 +39,10 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             // Republish on BuildMenu entry and on blueprint-library updates
             _uiStateControl.OnStateChanged += OnStateChanged;
             _librarySubscription = _blueprintLibrary.OnChanged.Subscribe(_ => SchedulePublish());
+
+            // 言語切替でconnectToolラベル等を再解決して再配信する
+            // Republish on language switch to re-resolve connect-tool labels
+            _languageSubscription = Localize.OnLanguageChanged.Subscribe(_ => SchedulePublish());
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -49,6 +55,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             _disposed = true;
             _uiStateControl.OnStateChanged -= OnStateChanged;
             _librarySubscription.Dispose();
+            _languageSubscription.Dispose();
         }
 
         private void OnStateChanged(UIStateEnum state)

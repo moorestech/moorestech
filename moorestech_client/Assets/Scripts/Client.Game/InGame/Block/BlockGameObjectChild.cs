@@ -1,7 +1,9 @@
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Localization;
 using Cysharp.Threading.Tasks;
+using Mooresmaster.Localization.Generated;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
@@ -95,8 +97,8 @@ namespace Client.Game.InGame.Block
         {
             return failureReason switch
             {
-                RemoveBlockProtocol.RemoveBlockFailureReason.NodeInUseByTrain => "レール上に車両があります。",
-                RemoveBlockProtocol.RemoveBlockFailureReason.Unknown => "ブロックを削除できませんでした。",
+                RemoveBlockProtocol.RemoveBlockFailureReason.NodeInUseByTrain => Localize.Get(LocalizationKeys.Ui.Delete.RailHasVehicle),
+                RemoveBlockProtocol.RemoveBlockFailureReason.Unknown => Localize.Get(LocalizationKeys.Ui.Delete.BlockDeleteFailed),
                 _ => null,
             };
         }

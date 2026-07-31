@@ -1,7 +1,9 @@
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState;
+using Client.Localization;
 using Mooresmaster.Model.ChallengesModule;
 using TMPro;
+using UniRx;
 using UnityEngine;
 using VContainer;
 
@@ -11,12 +13,17 @@ namespace Client.Game.InGame.Tutorial
     {
         [SerializeField] private GameObject keyControlUIObject;
         [SerializeField] private TMP_Text keyControlTutorialText;
+        private TutorialsElement _currentTutorial;
         private KeyControlTutorialParam _keyControlTutorialParam;
         [Inject] private UIStateControl _uiStateControl;
 
         private void Start()
         {
             _uiStateControl.OnStateChanged += HandleStateChanged;
+
+            // 言語切替時に表示中の文言を再解決する
+            // Re-resolve the visible text when the language changes
+            Localize.OnLanguageChanged.Subscribe(_ => RefreshPresentation()).AddTo(this);
             RefreshPresentation();
         }
 
@@ -27,10 +34,10 @@ namespace Client.Game.InGame.Tutorial
             if (_uiStateControl != null) _uiStateControl.OnStateChanged -= HandleStateChanged;
         }
 
-        public ITutorialView ApplyTutorial(ITutorialParam param)
+        public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
-            _keyControlTutorialParam = (KeyControlTutorialParam)param;
-            keyControlTutorialText.text = _keyControlTutorialParam.ControlText;
+            _currentTutorial = tutorial;
+            _keyControlTutorialParam = (KeyControlTutorialParam)tutorial.TutorialParam;
             RefreshPresentation();
             return this;
         }
@@ -42,6 +49,7 @@ namespace Client.Game.InGame.Tutorial
 
         public void ClearPresentation()
         {
+            _currentTutorial = null;
             _keyControlTutorialParam = null;
             keyControlUIObject.SetActive(false);
             if (WebUiScreenGate.IsWebUiMode) KeyControlDescription.Instance.ClearOverrideText();
@@ -57,12 +65,19 @@ namespace Client.Game.InGame.Tutorial
             var active = _keyControlTutorialParam != null &&
                          _uiStateControl.CurrentState.ToString() == _keyControlTutorialParam.UiState;
 
+            // 表示文言はtutorialGuidから都度解決する
+            // Resolve the display text from the tutorial GUID on each refresh
+            var controlText = _currentTutorial == null
+                ? ""
+                : Localize.GetContent(ContentLocalizationKeys.ChallengeTutorialText(_currentTutorial.TutorialGuid));
+            keyControlTutorialText.text = controlText;
+
             // TMP表示は残しつつWebモードだけ共通key-hint sourceへ上書きする
             // Retain the TMP view while overriding the shared key-hint source only in Web mode
             keyControlUIObject.SetActive(active && !WebUiScreenGate.IsWebUiMode);
             if (!WebUiScreenGate.IsWebUiMode) return;
             if (active)
-                KeyControlDescription.Instance.SetOverrideText(_keyControlTutorialParam.ControlText);
+                KeyControlDescription.Instance.SetOverrideText(controlText);
             else
                 KeyControlDescription.Instance.ClearOverrideText();
         }

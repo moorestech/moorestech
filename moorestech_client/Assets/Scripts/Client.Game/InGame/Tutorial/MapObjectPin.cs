@@ -3,6 +3,7 @@ using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Map.MapObject;
+using Client.Localization;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
 using Mooresmaster.Model.ChallengesModule;
@@ -26,6 +27,7 @@ namespace Client.Game.InGame.Tutorial
         private InGameCameraController _inGameCameraController;
         private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
 
+        private TutorialsElement _currentTutorial;
         private MapObjectPinTutorialParam _currentTutorialParam;
 
         [Inject]
@@ -58,7 +60,12 @@ namespace Client.Game.InGame.Tutorial
                 if (!camera) return;
 
                 var projection = WorldPinScreenProjection.Project(camera, transform.position);
-                WorldPinStateStore.Instance.SetPin(WebPinId, _currentTutorialParam.PinText, projection);
+
+                // 毎フレーム解決するため言語切替へ自動追従する
+                // Per-frame resolution keeps the pin text in sync with language switches
+                var pinText = Localize.GetContent(
+                    ContentLocalizationKeys.ChallengeTutorialText(_currentTutorial.TutorialGuid));
+                WorldPinStateStore.Instance.SetPin(WebPinId, pinText, projection);
             }
 
             void NearestPinMapObject()
@@ -79,9 +86,10 @@ namespace Client.Game.InGame.Tutorial
             #endregion
         }
         
-        public ITutorialView ApplyTutorial(ITutorialParam param)
+        public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
-            _currentTutorialParam = (MapObjectPinTutorialParam)param;
+            _currentTutorial = tutorial;
+            _currentTutorialParam = (MapObjectPinTutorialParam)tutorial.TutorialParam;
 
             // 追跡と射影配信のみ行う（表示はWebオーバーレイが担う）
             // Only tracking and projection publishing happen here; display lives on the web overlay
@@ -93,6 +101,7 @@ namespace Client.Game.InGame.Tutorial
         public void CompleteTutorial()
         {
             SetActive(false);
+            _currentTutorial = null;
             _currentTutorialParam = null;
             WorldPinStateStore.Instance.RemovePin(WebPinId);
         }

@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.Context;
+using Client.Localization;
 using Common.Debug;
 using Core.Master;
 using Game.Block.Interface.Extension;
@@ -60,7 +61,10 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 .OrderBy(element => element.SortPriority);
             foreach (var connectTool in unlockedConnectTools)
             {
-                entries.Add(WebBuildMenuEntry.CreateConnectTool(connectTool.ConnectToolGuid, connectTool.Name, new List<WebBuildMenuEntry.RequiredItem>()));
+                // 表示名はローカライズ辞書経由で解決する（欠落時はMaster原文へフォールバック）
+                // Resolve the display name via the localization dictionary, falling back to the Master source text
+                var connectToolLabel = Localize.GetContent(ContentLocalizationKeys.ConnectToolName(connectTool.ConnectToolGuid));
+                entries.Add(WebBuildMenuEntry.CreateConnectTool(connectTool.ConnectToolGuid, connectToolLabel, new List<WebBuildMenuEntry.RequiredItem>()));
             }
 
             // BPコピーツールと保存済みBPもentrySource定義のサブカテゴリへ入れる

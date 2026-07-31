@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.Master;
+using Mooresmaster.Model.ChallengesModule;
 
 namespace Client.Localization
 {
@@ -69,10 +70,42 @@ namespace Client.Localization
                         challengeMaster.Title;
                     sourceTexts[ContentLocalizationKeys.ChallengeSummary(challengeMaster.ChallengeGuid)] =
                         challengeMaster.Summary;
+
+                    // チュートリアル表示文言もtutorialGuidで収集
+                    // Collect tutorial display texts by tutorial GUID
+                    foreach (var tutorial in challengeMaster.Tutorials)
+                    {
+                        sourceTexts[ContentLocalizationKeys.ChallengeTutorialText(tutorial.TutorialGuid)] =
+                            GetTutorialDisplayText(tutorial);
+                    }
                 }
             }
 
+            // 接続ツール名を必須Guidから収集
+            // Collect connect tool names from required GUIDs
+            foreach (var connectToolMaster in MasterHolder.ConnectToolMaster.All)
+            {
+                sourceTexts[ContentLocalizationKeys.ConnectToolName(connectToolMaster.ConnectToolGuid)] =
+                    connectToolMaster.Name;
+            }
+
             return sourceTexts;
+        }
+
+        public static string GetTutorialDisplayText(TutorialsElement tutorial)
+        {
+            // tutorialTypeごとの表示文言フィールドを一元定義
+            // Define the display-text field per tutorial type in one place
+            return tutorial.TutorialParam switch
+            {
+                MapObjectPinTutorialParam mapObjectPin => mapObjectPin.PinText,
+                KeyControlTutorialParam keyControl => keyControl.ControlText,
+                UiHighLightTutorialParam uiHighLight => uiHighLight.HighLightText,
+                ItemViewHighLightTutorialParam itemViewHighLight => itemViewHighLight.HighLightText,
+                BlockPlacePreviewTutorialParam blockPlacePreview => blockPlacePreview.Message,
+                _ => throw new System.InvalidOperationException(
+                    $"Unknown tutorial type: {tutorial.TutorialType}"),
+            };
         }
     }
 }

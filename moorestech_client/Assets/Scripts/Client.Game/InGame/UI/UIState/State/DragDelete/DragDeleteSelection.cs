@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
+using Client.Localization;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
@@ -20,9 +22,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Fix the first selected block's destruction category as the session category (null while empty)
         private string _sessionCategory;
 
-        // 別カテゴリー混在時の拒否理由。IsRemovableのreasonと同様に生文字列で表示する
-        // Deny reason shown when mixing categories; a raw string like IsRemovable's reason
-        public const string DifferentCategoryDenyReason = "別カテゴリーのブロックは同時に選択できません。";
+        // 別カテゴリー混在時の拒否理由。参照の度に辞書解決し言語切替へ追従する
+        // Deny reason shown when mixing categories; resolved per access to follow language switches
+        public static string DifferentCategoryDenyReason =>
+            Localize.Get(LocalizationKeys.Ui.Delete.DifferentCategorySelection);
 
         public DragDeleteSelection(BuildOperationHistory buildOperationHistory)
         {
