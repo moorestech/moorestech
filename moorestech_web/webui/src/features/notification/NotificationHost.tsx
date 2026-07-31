@@ -3,7 +3,7 @@ import { useTopic, Topics } from "@/bridge";
 import { useI18n } from "@/shared/i18n";
 import ItemIcon from "@/shared/ui/ItemIcon";
 import { useNotificationStore } from "./notificationStore";
-import { resolveNotificationKey, buildInterpolationValues } from "./notificationMessages";
+import { resolveNotificationKey, resolveNotificationParams, buildInterpolationValues } from "./notificationMessages";
 import styles from "./style.module.css";
 
 // 通知ホスト。左端縦中央に浮遊テキストで表示
@@ -37,7 +37,7 @@ export default function NotificationHost() {
           {n.itemId != null && <ItemIcon itemId={n.itemId} className={styles.icon} />}
           {t(
             resolveNotificationKey(n.messageId),
-            buildInterpolationValues(n.messageId, n.messageParams),
+            buildInterpolationValues(n.messageId, resolveNotificationParams(n.messageId, n.messageParams, t)),
           )}
         </div>
       ))}

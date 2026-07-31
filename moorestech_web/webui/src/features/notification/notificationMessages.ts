@@ -1,6 +1,6 @@
 // messageId→表示テンプレートの対応表。文言はWeb側が所有しサーバーは構造化IDのみ送る
 // Maps messageId to display templates; the web owns wording, the server sends structured ids only
-import { L, type TranslationKey } from "@/shared/i18n";
+import { L, challengeTitleKey, researchNodeNameKey, type TranslationKey } from "@/shared/i18n";
 
 const notificationKeys = new Map<string, TranslationKey>([
   ["achievement.researchCompleted", L.ui.notification.researchCompleted],
@@ -33,6 +33,23 @@ const notificationKeys = new Map<string, TranslationKey>([
 // Close external ids into finite typed keys and surface unknown ids through a dedicated key
 export function resolveNotificationKey(messageId: string): TranslationKey {
   return notificationKeys.get(messageId) ?? L.ui.notification.unknownMessage;
+}
+
+// Guidパラメータを持つ通知のcontentキー組み立て表。サーバーは表示名でなくGuidを送る
+// Content-key builders for GUID-bearing notifications; the server sends GUIDs, not display names
+const contentParamKeyBuilders = new Map<string, (guid: string) => TranslationKey>([
+  ["achievement.researchCompleted", researchNodeNameKey],
+  ["achievement.challengeCompleted", challengeTitleKey],
+]);
+
+export function resolveNotificationParams(
+  messageId: string,
+  messageParams: string[],
+  translate: (key: TranslationKey) => string,
+): string[] {
+  const buildContentKey = contentParamKeyBuilders.get(messageId);
+  if (!buildContentKey) return messageParams;
+  return messageParams.map((guid) => translate(buildContentKey(guid)));
 }
 
 export function buildInterpolationValues(messageId: string, messageParams: string[]): Record<string, string> {
