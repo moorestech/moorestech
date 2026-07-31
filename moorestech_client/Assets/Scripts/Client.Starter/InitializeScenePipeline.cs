@@ -111,18 +111,16 @@ namespace Client.Starter
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
             var modalManager = new ModalManager();
 
-            // サーバー接続・アセットロード・シーンロードを並列実行し結果を受け取る
-            // Run server connection, asset load, and scene load in parallel and collect results
+            // サーバー接続とアセットロードを並列実行し結果を受け取る
+            // Run server connection and asset load in parallel and collect results
             var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingLog, loadingStopwatch, playerConnectionSetting);
             var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, loadingLog, loadingStopwatch);
-            var sceneLoader = new MainGameSceneLoader(loadingLog, loadingStopwatch);
 
             ServerConnectionResult serverResult;
             ModAssetLoadResult assetResult;
-            AsyncOperation sceneLoadTask;
             try
             {
-                (serverResult, assetResult, sceneLoadTask) = await UniTask.WhenAll(serverInitializer.RunAsync(), modAssetLoader.RunAsync(), sceneLoader.RunAsync());
+                (serverResult, assetResult) = await UniTask.WhenAll(serverInitializer.RunAsync(), modAssetLoader.RunAsync());
             }
             catch (Exception e)
             {
@@ -136,8 +134,12 @@ namespace Client.Starter
             MessagePackInitializer.Initialize();
             new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi, modalManager);
 
+            // シーンロードは全アセットロード完了後に直列実行する。allowSceneActivation=falseで0.9保持中は
+            // 後続のAddressablesロードがAsyncOperationキューでブロックされ永久に完了しないため、並列プリロードは禁止
+            // Load the scene serially after all asset loads finish. While a scene is held at 0.9 with
+            // allowSceneActivation=false, later Addressables loads stall forever in the AsyncOperation queue, so never preload in parallel
             SceneManager.sceneLoaded += MainGameSceneLoaded;
-            sceneLoadTask.allowSceneActivation = true;
+            SceneManager.LoadSceneAsync(SceneConstant.MainGameSceneName, LoadSceneMode.Single);
 
             #region Internal
 
