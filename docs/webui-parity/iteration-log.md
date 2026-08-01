@@ -140,7 +140,7 @@
 - Block 1総括（スコア推移 37.5→42.5→45.0→50.0→45.5→49.5）: 幾何・色・ピッチ・フェードは収束。残る失点はcraft一点物装飾・スロット枠断面・タイポの床に集中。Block 2はアプローチ変更判断待ち（ユーザー制約: UI装飾の画像アセット化は禁止、CSS/DOM/インラインSVG限定）
 # Craft chrome parity — Task 5 (2026-07-30)
 
-### Task 6 hammer profile fix (2026-07-31)
+# Craft chrome parity — Task 6 hammer profile fix (2026-07-31)
 
 - RED reproduction: the prior single-contour `toolTabHammer` measured 823px, with a 29px maximum row width and a 53px-high mask; the reference is 780px with a 22px maximum row width.
 - Changed exactly the `toolTabHammer` `d` attribute. The replacement encodes the authoritative two-row raster profile as a compound SVG path; panel colors, grip, the other four SVG paths, CSS, and tokens are unchanged.
@@ -152,6 +152,8 @@
 - Changes: opaque reference composite tokens for tab back/front/side; edge chroma adjusted to prevent its antialiasing from merging with the comparator's hammer component; one hammer SVG path adjusted for bbox extrema, then its lower handle contour was restored to retain the hammer-color probe's reference negative space.
 - Artifacts: `/tmp/webui-craft-current.png`, `/tmp/webui-craft-reference-grid.png`, `/tmp/webui-craft-current-grid.png`, `/tmp/webui-craft-chrome/{tab,grip}-{ref,cur,blend,diff}.png`.
 - Status: mechanical convergence only; **do not commit** until a fresh independent visual reviewer explicitly returns `両要素とも区別できる差なし`. Full per-iteration evidence: `.superpowers/sdd/2026-07-30-craft-tab-corner-parity/task-5-report.md`.
+
+# Craft chrome parity — Task 5 visual iterations
 
 ### Task 5 visual iteration round 1
 
@@ -182,6 +184,8 @@
 
 == 13/13 checks passed ==
 ```
+
+# Craft chrome parity — Task 6 grip convergence
 
 ### Task 6 grip geometry — DONE_WITH_CONCERNS
 
@@ -246,6 +250,8 @@
 
 - Full dev failures were serialization-only: prod minified the authored offset to `.4px`, dev retained `0.4px`, while geometry and transform matched. RED reproduced this exact mismatch.
 - `expectCraftGrip` now parses the custom property to numeric `0.4`; stable size/inset strings and matrix transform remain asserted. Prod and dev shared suites both pass **13/13**, with build and E2E TypeScript compile green; CSS source is unchanged.
+
+# Craft chrome parity — Task 5 visual iterations (continued)
 
 ### Task 5 visual iteration round 5
 
@@ -626,6 +632,8 @@
 == 13/13 checks passed ==
 ```
 
+# Craft chrome parity — Task 6 tab-side convergence
+
 ### Task 6 — tab dark-side profile
 
 - Scope: changed only the `toolTabSide` `d` attribute in `ItemHeader.tsx`; CSS, tokens, the other four SVG paths, grip, and panel colors are unchanged.
@@ -653,6 +661,8 @@
 - GREEN changes only Side `d`: left rectangle `H30→H24` restores left to exact `496px`, `(36,48)-(43,109)`, all row endpoints exact. Four affected right starts are moved one viewBox unit left (`129→128`, `131→130`, `133→132`, `135→134`) after the 69/70 raster scale was measured.
 - Final exact Side components: right `451px`, bbox `(138,48)-(161,109)` versus reference `436px` (within 414–458px); all row endpoint deltas are ≤1px. Face exact component is `4851px`, bbox `(46,50)-(147,109)`, versus reference `4856px` and within ±1%. Equal-scale crop inspection retains a visible left Edge rim and right stepped Edge silhouette; Hammer comparator bbox/color remains PASS.
 - Final build/capture/comparator completed with **13/13 PASS**; `recipe.spec.ts` completed **5/5 PASS**. A two-unit Side shift was rejected: it produced right `463px` (above the 458px ceiling) and adjacent 2px endpoint errors.
+
+# Craft chrome parity — Task 5 visual iterations (continued)
 
 ### Task 5 visual iteration round 4
 
