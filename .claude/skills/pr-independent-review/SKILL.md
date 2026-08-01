@@ -8,6 +8,7 @@ description: |
   Use When:
   1. 「/pr-independent-review <PR URL|番号>」で起動された時
   2. 「このPRを独立レビューして」「シャドーレビューして」と言われた時
+  3. 「/pr-independent-review reconcile <番号>」で起動された時（人間レビューとの突き合わせ・見逃し検知・改善発火）
 ---
 
 # pr-independent-review — 独立セッションPRレビュー（シャドー運用v1）
@@ -39,6 +40,23 @@ description: |
 のいずれか）。独立レビューの値打ちは「実装の意図を知らない目で見る」ことにあり、関与済みセッションが走ると
 見逃し率の実測値がそのぶん楽観側へ歪む。中止時はユーザーへ「このセッションは対象PRに関与済みのため独立性を満たさない。
 新規セッションで起動されたい」と報告して終わる。判定は自己申告でよいが、迷ったら中止側に倒す。
+
+## Step 0.5: reconcile負債ゲート（新規レビューの前に必ず通る）
+
+シャドー台帳（`$CANON/.claude/skills/pr-independent-review/records/shadow-ledger.md`）を読み、
+`reconcile` 列が空欄の行それぞれについて人間レビューの有無を確認する:
+
+    gh api repos/moorestech/moorestech/pulls/<番号>/comments --paginate --jq 'length'
+
+- **1件以上 → そのPRのreconcile（下記「reconcileモード」）を新規レビューより先に実行する（ブロック型）**。
+  未reconcileの見逃しを放置したまま同じ測定器で次のPRを測っても、同じ見逃しを再生産するだけだからである。
+  reconcileは1コマンドで走るため、実質は順序の強制であって作業の追加ではない
+- 0件 → 人間がまだレビューしていないだけなので保留のまま進んでよい（`reconcile` 列は空欄のまま）
+- スタブ行（verdict=未測定（スタブ））は見逃し率の測定外なのでreconcile対象外。`reconcile` 列に
+  `対象外（スタブ）` と記入して負債から外す
+- **健全性1行を必ず表示する**（新規レビュー・reconcileどちらの起動でも冒頭に出す。滞留を無言にしない）:
+  `未reconcile: N PR / 改善キューopen: M件 / 直近見逃し率: X%（missed A / human-confirmed B）`
+  （キューは `records/improvement-queue.md` の `open` 行数。見逃し率は最新の `## 突き合わせ内訳` から。未計測なら「未計測」）
 
 ## Step 1: PR取得
 
@@ -402,36 +420,77 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   台帳にも再レビュー分を別行として追記する
 
 - シャドー台帳 `$CANON/.claude/skills/pr-independent-review/records/shadow-ledger.md` に1行追記:
-  `| 日付 | PR番号 | head | verdict | 新形数 | suppressed数 | 縮退 | あなたの実判断（空欄） | 一致（空欄） |`
+  `| 日付 | PR番号 | head | verdict | 新形数 | suppressed数 | 縮退 | あなたの実判断（空欄） | 一致（空欄） | reconcile（空欄） |`
   - `head` 列は records の `- head:` を**short SHA（先頭7桁）**にしたもの。同じPRを別headで再レビューした行を
     区別するため空欄にしない
   - `縮退` 列は records の `- 縮退:` と同じ値（`なし（5系統フル実行）` / 縮退内容 / `スタブ`）。
     verdictを額面どおり見逃し率へ数えてよいかがこの列だけで判別できるようにするため、空欄にしない
+  - `reconcile` 列はreconcileモードだけが記入する（実施日 / `対象外（スタブ）`）。空欄＝突き合わせ未実施であり、
+    Step 0.5の負債ゲートはこの列だけを見る
 
-- **見逃しの記録粒度（ユーザー裁定 2026-07-27）**: 台帳は**verdict比較（`一致` 列）のまま**とし、欠陥単位の内訳は
-  台帳の列にしない。**`一致` 列が不一致になったPRのみ**、その突き合わせを行うセッションが対象の
+- **見逃しの記録粒度（ユーザー裁定 2026-07-27 → 2026-08-02改訂）**: 台帳は**verdict比較（`一致` 列）のまま**とし、
+  欠陥単位の内訳は台帳の列にしない。内訳は**reconcileモードが、人間コメントが1件以上存在するPR全件について**、対象の
   `$CANON/.claude/skills/pr-independent-review/records/pr-<番号>.md`（再レビュー分は該当する `-rN` ファイル）の末尾へ
-  次のセクションを**追記する**。記入はセッション側の作業であり、人間は確認のみ行う（人間に内訳を書かせない）:
+  次のセクションとして**追記する**。記入はセッション側の作業であり、人間は確認のみ行う（人間に内訳を書かせない）。
+  （旧トリガー「`一致` 列が不一致のPRのみ」は廃止 — PR #1095でverdict一致のままmissed 17件が出た実測により、
+  verdict一致は見逃しゼロを意味しないことが確定したため。ユーザー裁定 2026-08-01「これの再発防止が一番大事」→
+  機構承認 2026-08-02）:
 
-      ## 突き合わせ内訳
+      ## 突き合わせ内訳（reconcile YYYY-MM-DD）
 
       ### caught
       <独立レビューが挙げ、人間も欠陥と認めたもの。1件1行（ファイル:行・要点）>
 
       ### missed
-      <人間が欠陥と認めたが、独立レビューが挙げなかったもの。1件1行>
+      <人間が欠陥と認めたが、独立レビューが挙げなかったもの。1件1行＋分類タグ＋コメントURL>
 
       ### false-positive
       <独立レビューが挙げたが、人間は欠陥と認めなかったもの。1件1行>
 
   - 3小節とも見出しは省略せず、空なら「該当なし（0件）」の1行を置く（0件と収集し忘れを区別するため）
-  - **`一致` 列が一致の行にはこのセクションを作らない**。不一致の解剖にだけ労力を割く運用であり、
-    一致行に空セクションを量産しない
   - **見逃し率の集計は `missed / human-confirmed`**（`human-confirmed` ＝ `caught` ＋ `missed` ＝ 人間が欠陥と
     認めた総数）で行う。`false-positive` はこの分母に入れない（別途の誤検知率として数える）
-  - 本セクションは上の固定書式への**追補**であり、不一致が起きるまで当該ファイルに存在しないのが正
+  - 本セクションは上の固定書式への**追補**であり、reconcile実施まで当該ファイルに存在しないのが正
     （固定書式の「0件のセクションも省略せず」は本セクションには適用しない）
 - 正典treeでの記録類のコミットはユーザーに委ねる（独立セッションは正典treeへ書き込むが勝手にcommitしない）
+
+## reconcileモード（人間レビューとの突き合わせ・改善発火）
+
+`/pr-independent-review reconcile <番号>` で単独起動、またはStep 0.5の負債ゲートから強制実行される。
+**ここは改善機構の発火装置であり、改善の手法・検証・回帰コーパスは moores-code-review 側
+（`references/skill-improvement.md`・`eval/`）が単一の正である。手順・fixture・検証規則をこちらへ複製しない。**
+
+1. **入力は人間のGitHubコメントのみ**（人間に台帳記入・ラベル付け・分類を求めない。人間の自然なレビュー行為の
+   排気だけを信号源にする）:
+
+       gh api repos/moorestech/moorestech/pulls/<番号>/comments --paginate \
+         --jq '.[] | {path, line, body, html_url}' > /tmp/pr-reconcile-<番号>-comments.json
+
+   レビューbody（`gh api repos/moorestech/moorestech/pulls/<番号>/reviews --paginate`）と通常コメント
+   （`gh pr view <番号> --comments`）も読む。全部0件なら「人間レビュー未実施」として `reconcile` 列は
+   空欄のまま終了する
+2. **突き合わせ**: `records/pr-<番号>.md`（最新の `-rN`）の裁定・suppressed・Warning（折りたたみ参考含む）と
+   各コメントを照合し、caught / missed / 対象外（質問・運用連絡・レビュー対象外の雑談）に分類する。
+   **迷ったらmissedに倒す**（見逃し率を楽観側へ歪めない。Step 0の独立性ガードと同じ倒し方）
+3. **内訳をrecordsへ追記**（Step 8の `## 突き合わせ内訳` 書式）。missedの各行に**分類タグとコメントURL**を付ける:
+   - `[レンズ盲点]` `[reviewer盲点]` `[決定論較正]` — ハーネス既存観点の欠落・較正ミス
+   - `[L1語彙]` `[配管]` — 本スキル固有部品（novelty gate・patch生成・context再構成・digest）の欠陥
+   - `[規範初出]` — 既存のAGENTS.md・レンズ・reviewerのどこにも成文化されていない規範を人間が初めて示したもの。
+     ハーネスの欠陥ではなく**成文化の入力**であり、人間にしか出せない類として分計する
+     （この割合の推移が自動マージ移行可否の実測境界になる）
+4. **ルーティング（改善の実施はここから先、全部あちらの規則で行う）**:
+   - `[レンズ盲点]` `[reviewer盲点]` `[決定論較正]` → `$CANON/.claude/skills/moores-code-review/references/skill-improvement.md`
+     の手順にそのまま流す（フォレンジック・リプレイ診断 → 対策先決定 → 実例追記 → **3段階検証** →
+     `eval/fixtures.tsv`・`eval/expected-findings.md` へ追記）。この手順を完了しない改修は改善と認めない
+   - `[規範初出]` → まずAGENTS.mdまたは決定論チェックへ成文化し、その改修を同じ3段階検証に通す
+   - `[L1語彙]` `[配管]` → 本スキルの `scripts/` を修正し、`tests/test_novelty_gate.py` に**赤→緑**のケースを追加する
+5. **改善キューへ起票**: `$CANON/.claude/skills/pr-independent-review/records/improvement-queue.md` に1行/件で追記する。
+   状態を `closed` にできるのは**手順4の検証完了根拠（3段階検証の記録またはpytest緑）を `closed根拠` 列に書けた時だけ**。
+   観点ファイルへの追記だけでは絶対にclosedにしない（作文はclosedの根拠にならない）
+6. **前向きログの記入**: moores-code-review の `eval/log.md` に1行追記する（PR番号・人間指摘数・分類内訳・
+   ハーネス事前検出数・却下数・recordsへの相対リンク）。同ファイル「前向きログ」枠の書き手はこのreconcileである
+7. **台帳更新**: `reconcile` 列に実施日を記入する。`あなたの実判断`・`一致` 列が空欄なら、観測可能な事実
+   （差し戻しコメント・approve・マージ状態）から記入する（人間は確認のみ・Q2裁定の記入分担どおり）
 
 ## verdict判定規則
 
