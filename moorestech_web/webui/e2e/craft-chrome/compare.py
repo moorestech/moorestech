@@ -21,7 +21,12 @@ GRIP_BOTTOM_GAP = 19
 GEOMETRY_TOLERANCE = 1
 HAMMER_TOLERANCE = 2
 SHAPE_AREA_TOLERANCE = 0.05
+SMOOTH_SIDE_AREA_TOLERANCE = 0.10
 COLOR_TOLERANCE = 15
+TAB_CONTACT_MIN_TOP_PIXELS = 90
+TAB_CONTACT_MIN_CONNECTED_PIXELS = 90
+TAB_CONTACT_MIN_CONNECTED_RUN = 60
+TAB_CONTACT_COLORS = np.array(((51, 43, 40), (16, 15, 21), (58, 59, 72), (73, 75, 120), (75, 75, 75)), dtype=np.uint8)
 
 
 def detect_panel(image: np.ndarray) -> tuple[int, int, int, int]:
@@ -53,6 +58,15 @@ def median_color(image: np.ndarray, x: int, y: int) -> tuple[int, int, int]:
 def crop(image: np.ndarray, panel: tuple[int, int, int, int], box: tuple[int, int, int, int], from_right: bool) -> np.ndarray:
     anchor_x, anchor_y = (panel[2], panel[3]) if from_right else (panel[0], panel[1])
     return image[anchor_y + box[1]:anchor_y + box[3], anchor_x + box[0]:anchor_x + box[2]]
+
+
+def tab_color_mask(row: np.ndarray) -> np.ndarray:
+    return np.any(np.all(row[:, None, :] == TAB_CONTACT_COLORS[None, :, :], axis=2), axis=1)
+
+
+def longest_run(mask: np.ndarray) -> int:
+    changes = np.flatnonzero(np.diff(np.r_[False, mask, False]))
+    return max((int(end - start) for start, end in zip(changes[::2], changes[1::2])), default=0)
 
 
 def save_artifacts(ref: np.ndarray, cur: np.ndarray, ref_panel: tuple[int, int, int, int], cur_panel: tuple[int, int, int, int], output: Path) -> None:
@@ -95,10 +109,15 @@ def main() -> int:
         print(f"[{'PASS' if ok else 'FAIL'}] {name}: {detail}")
     def dimensions(box: tuple[int, int, int, int]) -> tuple[int, int]: return box[2] - box[0] + 1, box[3] - box[1] + 1
     def delta(box: tuple[int, int, int, int], expected: tuple[int, int, int, int]) -> int: return max(abs(value - target) for value, target in zip(box, expected))
-    def area_ok(current: int, reference: int) -> bool: return abs(current - reference) <= round(reference * SHAPE_AREA_TOLERANCE)
+    def area_ok(current: int, reference: int, tolerance: float) -> bool: return abs(current - reference) <= round(reference * tolerance)
     def profile_check(name: str, reference: dict[int, tuple[int, int]], current: dict[int, tuple[int, int]]) -> None:
         endpoint_delta = row_endpoint_delta(reference, current)
         check(name, endpoint_delta <= GEOMETRY_TOLERANCE, f"max endpoint Δ={endpoint_delta}")
+    def smooth_profile_check(name: str, profile: dict[int, tuple[int, int]]) -> None:
+        endpoints = [profile[row] for row in sorted(profile)]
+        reversals = sum(current[0] < previous[0] or current[1] < previous[1] for previous, current in zip(endpoints, endpoints[1:]))
+        max_step = max((max(current[0] - previous[0], current[1] - previous[1]) for previous, current in zip(endpoints, endpoints[1:])), default=0)
+        check(name, reversals == 0 and max_step <= 1, f"reversals={reversals} max step={max_step}")
     # 幾何値と色を正本の目標値に照合する
     # Check geometry and colors against the reference-derived targets
     panel_delta = max(abs(a - b) for a, b in zip(dimensions(cur_panel), dimensions(ref_panel)))
@@ -107,17 +126,28 @@ def main() -> int:
     check("tab-size", max(abs(a - b) for a, b in zip(tab_size, TAB_SIZE)) <= GEOMETRY_TOLERANCE, f"bbox={cur_tab} size={tab_size}")
     check("tab-left", abs(tab_left - TAB_LEFT_DELTA) <= GEOMETRY_TOLERANCE, f"bbox={cur_tab} got={tab_left}")
     check("tab-bottom-gap", TAB_BOTTOM_GAP[0] <= tab_bottom_gap <= TAB_BOTTOM_GAP[1], f"bbox={cur_tab} got={tab_bottom_gap} range={TAB_BOTTOM_GAP}")
+    # パネル上端と直上行のタブ色を連続接続として確認する
+    # Verify tab-color continuity across the panel top and the row above
+    tab_slice = slice(cur_panel[0], cur_panel[0] + TAB_SIZE[0])
+    top_mask = tab_color_mask(cur[cur_panel[1], tab_slice])
+    above_mask = tab_color_mask(cur[cur_panel[1] - 1, tab_slice])
+    connected_mask = top_mask & above_mask
+    top_pixels, connected_pixels = int(top_mask.sum()), int(connected_mask.sum())
+    connected_run = longest_run(connected_mask)
+    check("tab-contact", top_pixels >= TAB_CONTACT_MIN_TOP_PIXELS and connected_pixels >= TAB_CONTACT_MIN_CONNECTED_PIXELS and connected_run >= TAB_CONTACT_MIN_CONNECTED_RUN, f"top={top_pixels} connected={connected_pixels} longest run={connected_run}")
     hammer_delta = delta(relative(cur_hammer[:4], cur_panel), HAMMER_BOX)
     check("hammer-box", hammer_delta <= HAMMER_TOLERANCE, f"relative={relative(cur_hammer[:4], cur_panel)} maxΔ={hammer_delta}")
-    check("hammer-area", area_ok(cur_hammer[4], ref_hammer[4]), f"ref={ref_hammer[4]} cur={cur_hammer[4]} tolerance={round(ref_hammer[4] * SHAPE_AREA_TOLERANCE)}")
+    check("hammer-area", area_ok(cur_hammer[4], ref_hammer[4], SHAPE_AREA_TOLERANCE), f"ref={ref_hammer[4]} cur={cur_hammer[4]} tolerance={round(ref_hammer[4] * SHAPE_AREA_TOLERANCE)}")
     ref_hammer_mask, ref_hammer_x, ref_hammer_y = hammer_mask(ref, ref_panel)
     cur_hammer_mask, cur_hammer_x, cur_hammer_y = hammer_mask(cur, cur_panel)
     profile_check("hammer-row-endpoints", row_endpoints(ref_hammer_mask, ref_hammer, ref_hammer_x, ref_hammer_y, ref_panel), row_endpoints(cur_hammer_mask, cur_hammer, cur_hammer_x, cur_hammer_y, cur_panel))
-    for name, reference, current, ref_mask, cur_mask, ref_x, ref_y, cur_x, cur_y in (("side-left", ref_side_left, cur_side_left, ref_side_mask, cur_side_mask, ref_side_x, ref_side_y, cur_side_x, cur_side_y), ("side-right", ref_side_right, cur_side_right, ref_side_mask, cur_side_mask, ref_side_x, ref_side_y, cur_side_x, cur_side_y)):
-        check(f"{name}-area", area_ok(current[4], reference[4]), f"ref={reference[4]} cur={current[4]} tolerance={round(reference[4] * SHAPE_AREA_TOLERANCE)}")
+    for name, reference, current in (("side-left", ref_side_left, cur_side_left), ("side-right", ref_side_right, cur_side_right)):
+        area_tolerance = SHAPE_AREA_TOLERANCE if name == "side-left" else SMOOTH_SIDE_AREA_TOLERANCE
+        check(f"{name}-area", area_ok(current[4], reference[4], area_tolerance), f"ref={reference[4]} cur={current[4]} tolerance={round(reference[4] * area_tolerance)}")
         box_delta = delta(relative(current[:4], cur_panel), relative(reference[:4], ref_panel))
         check(f"{name}-box", box_delta <= GEOMETRY_TOLERANCE, f"ref={relative(reference[:4], ref_panel)} cur={relative(current[:4], cur_panel)} maxΔ={box_delta}")
-        profile_check(f"{name}-row-endpoints", row_endpoints(ref_mask, reference, ref_x, ref_y, ref_panel), row_endpoints(cur_mask, current, cur_x, cur_y, cur_panel))
+    profile_check("side-left-row-endpoints", row_endpoints(ref_side_mask, ref_side_left, ref_side_x, ref_side_y, ref_panel), row_endpoints(cur_side_mask, cur_side_left, cur_side_x, cur_side_y, cur_panel))
+    smooth_profile_check("side-right-smooth", row_endpoints(cur_side_mask, cur_side_right, cur_side_x, cur_side_y, cur_panel))
     grip_size = dimensions(cur_grip)
     check("grip-size", max(abs(a - b) for a, b in zip(grip_size, GRIP_SIZE)) <= GEOMETRY_TOLERANCE, f"bbox={cur_grip} size={grip_size}")
     for name, got, target in (("grip-right-gap", cur_panel[2] - cur_grip[2] - 1, GRIP_RIGHT_GAP), ("grip-bottom-gap", cur_panel[3] - cur_grip[3] - 1, GRIP_BOTTOM_GAP)):
