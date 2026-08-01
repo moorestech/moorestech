@@ -5,6 +5,7 @@ using Client.Common.Asset;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Network.API;
+using CommandForgeGenerator.Command;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using MessagePack;
@@ -18,7 +19,7 @@ namespace Client.Game.InGame.Map.MapObject
     ///     mapObjectをLayout応答から実行時Instantiateし、破壊/HPの状態同期を担うデータストア
     ///     Instantiates map objects at runtime from the layout response and keeps their destroy/HP state synced
     /// </summary>
-    public class MapObjectGameObjectDatastore : MonoBehaviour, IInitialEventApplyWaitTarget
+    public class MapObjectGameObjectDatastore : MonoBehaviour, IInitialEventApplyWaitTarget, ISkitMapObjectControl
     {
         // 2011個規模の起動スパイクを避けるためこの個数ごとにフレームを跨ぐ
         // Cross a frame every this many objects to avoid a startup spike at the ~2011-object scale
@@ -157,6 +158,11 @@ namespace Client.Game.InGame.Map.MapObject
                 default:
                     throw new Exception("MapObjectUpdateEventProtocol: EventTypeが不正か実装されていません");
             }
+        }
+
+        public void SetActive(bool enable)
+        {
+            gameObject.SetActive(enable);
         }
 
         public MapObjectGameObject SearchNearestMapObject(Guid mapObjectGuid, Vector3 position)

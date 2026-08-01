@@ -1,5 +1,5 @@
-/* スキットUIはstage内の絶対配置レイヤーに乗せる。入力を受けるのは会話窓・選択肢・ツールだけ */
-/* The skit UI rides an absolutely positioned layer inside the stage; only the window, choices, and tools take input */
+/* スキットUIは実画面寸法へ広げた論理viewportに乗せる。入力を受けるのは会話窓・選択肢・ツールだけ */
+/* The skit UI rides the logical viewport expanded to the real screen; only the window, choices, and tools take input */
 .root {
   position: absolute;
   inset: 0;

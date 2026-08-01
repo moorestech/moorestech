@@ -7,6 +7,7 @@ using Client.Network.API;
 using Client.Network.Settings;
 using Cysharp.Threading.Tasks;
 using Server.Boot;
+using Server.Boot.Args;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -79,15 +80,20 @@ namespace Client.Starter.Initialization
                     {
                         var serverInstanceGameObject = new GameObject("ServerInstance");
                         var serverStarter = serverInstanceGameObject.AddComponent<ServerStarter>();
-                        if (_proprieties.CreateLocalServerArgs != null)
-                        {
-                            serverStarter.SetArgs(_proprieties.CreateLocalServerArgs);
-                        }
+
+                        // ポート未指定なら0(OS自動採番)を渡し、実行時に空きポートへバインドさせる
+                        // Pass 0 (OS auto-assign) when no port is specified, so the server binds a free port at runtime
+                        var localServerSettings = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs ?? Array.Empty<string>());
+                        localServerSettings.Port ??= 0;
+                        serverStarter.SetArgs(CliConvert.Serialize(localServerSettings));
                         UnityEngine.Object.DontDestroyOnLoad(serverInstanceGameObject);
 
-                        await UniTask.Delay(1000);
+                        // バインド完了を待ち、実際に割り当てられたポートへ接続する
+                        // Wait for binding to complete, then connect to the actually assigned port
+                        await UniTask.WaitUntil(() => serverStarter.BoundPort != 0).Timeout(TimeSpan.FromSeconds(60));
+                        var localServerProperties = new ConnectionServerProperties(_proprieties.ServerIp, serverStarter.BoundPort);
 
-                        var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
+                        var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(localServerProperties).Timeout(timeOut);
                         return serverCommunicator;
                     }
                     catch (Exception e)

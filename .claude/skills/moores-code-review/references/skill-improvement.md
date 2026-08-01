@@ -10,6 +10,10 @@ fable（precedent-alignment・Fable全般）とCodexは高コストな最後の�
 
 ## 観点の更新は指摘駆動で行う
 
+**見逃しの発覚経路**: 人間指摘とハーネス出力の突き合わせは pr-independent-review の **reconcileモード**が担う
+（人間のGitHubコメントを取り込み caught/missed を分類し、missedを本手順へ起票する。債務追跡は同スキルの
+`records/improvement-queue.md`）。本ファイルは発覚後の改善手法・検証・コーパスの単一の正であり、検知側の手順は持たない。
+
 新しい人間レビュー指摘（PRレビュー・セッション内指摘とも）が出たら:
 
 1. **先に診断** — `eval/README.md` の「検知可否のフォレンジック・リプレイ」で、当時diff×全系統の検知マトリクスを取る（当時コミットへピンしたworktree＋忠実context。診断なしの対策は禁止）。
@@ -28,3 +32,4 @@ fable（precedent-alignment・Fable全般）とCodexは高コストな最後の�
 
 - **リプレイ評価**: `eval/fixtures.tsv` + `eval/make-fixture.sh` でレビュー当時のdiffを再生成し `eval/expected-findings.md` の期待検出と突合する。レンズ・reviewer・スクリプトを変更したら必ず1回流す。手順は `eval/README.md`。
 - **前向きログ**: マージ済みPRごとに `eval/log.md` へ「人間指摘数・分類・ハーネス事前検出の有無・却下数」を記録する。
+  **書き手は pr-independent-review の reconcileモード**（突き合わせの実施主体がそのまま記入する。人間には書かせない）。
