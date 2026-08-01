@@ -24,6 +24,6 @@ export default defineConfig({
     port: PORT,
     reuseExistingServer: false,
     timeout: 120_000,
-    env: { MOCK_PORT: String(PORT) },
+    env: { MOCK_PORT: String(PORT), MOORESTECH_E2E: "true" },
   },
 });

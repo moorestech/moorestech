@@ -2,6 +2,14 @@ import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../support/actions";
 import { expectCraftGrip } from "../support/craftChromeAssertions";
 
+const CRAFT_TAB_PATHS = [
+  "M15 0H125L166 70H0V10H15Z",
+  "M25 10H115L129 73H25Z",
+  "M25 10H115V16H117V22H119V28H121V34H123V40H125V46H127V50H125V51H127V52H129V56H127V57H129V58H131V62H129V63H131V64H133V68H131V69H133V70H135V72H25Z",
+  "M117 9H126V15H117ZM119 15H128V21H119ZM121 21H128V25H121ZM121 25H130V27H121ZM123 27H130V33H123ZM125 33H132V37H125ZM125 37H134V41H125ZM127 41H134V45H127ZM127 45H136V48H127ZM126 48H136V50H126ZM123 50H136V51H123ZM128 51H138V54H128ZM128 54H138V56H128ZM125 56H138V57H125ZM130 57H138V60H130ZM130 60H138V61H130ZM130 61H140V62H130ZM127 62H140V63H127ZM132 63H140V66H132ZM132 66H140V68H132ZM129 68H140V69H129ZM134 69H142V72H134ZM15 9H24V72H15Z",
+  "M78 20H80V22H78ZM76 22H82V24H76ZM74 24H84V26H74ZM72 26H84V28H72ZM74 28H88V30H74ZM76 30H90V32H76ZM80 32H92V34H80ZM80 34H94V36H80ZM78 36H96V38H78ZM76 38H98V42H76ZM78 42H100V44H78ZM72 44H76V46H72ZM80 44H86V46H80ZM90 44H100V46H90ZM70 46H78V48H70ZM82 46H84V48H82ZM92 46H100V48H92ZM68 48H80V50H68ZM92 48H100V50H92ZM66 50H78V52H66ZM94 50H100V52H94ZM66 52H76V54H66ZM96 52H100V54H96ZM60 54H64V56H60ZM68 54H74V56H68ZM96 54H100V56H96ZM58 56H66V58H58ZM70 56H72V58H70ZM56 58H68V60H56ZM54 60H70V62H54ZM52 62H68V64H52ZM50 64H66V66H50ZM48 66H64V68H48ZM46 68H62V70H46ZM44 70H60V72H44Z",
+];
+
 test("正本どおりクラフト時間を選択枠内に置き、中央プレビューを表示しない", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
@@ -50,6 +58,9 @@ test("正本のヘッダ装飾、常時スクロールバー、主要構造を�
       renderedWidth: renderedBounds.width,
       renderedHeight: renderedBounds.height,
       backgroundImage: style.backgroundImage,
+      marginTop: style.marginTop,
+      marginLeft: style.marginLeft,
+      marginBottom: style.marginBottom,
     };
   });
   expect(tabStyle.authoredWidth).toBe("64.978px");
@@ -57,6 +68,23 @@ test("正本のヘッダ装飾、常時スクロールバー、主要構造を�
   expect(tabStyle.renderedWidth).toBeCloseTo(64.96875, 5);
   expect(tabStyle.renderedHeight).toBeCloseTo(27.390625, 5);
   expect(tabStyle.backgroundImage).toBe("none");
+  expect(tabStyle.marginTop).toBe("-37.18px");
+  expect(tabStyle.marginLeft).toBe("-11px");
+  expect(tabStyle.marginBottom).toBe("6.46px");
+  // 実ブラウザで全レイヤーの形状と描画色を固定する
+  // Lock every layer's geometry and rendered color in the real browser
+  const tabLayers = await craftTab.locator("path").evaluateAll((paths) => paths.map((path) => {
+    const style = getComputedStyle(path);
+    return { d: path.getAttribute("d"), fill: style.fill, stroke: style.stroke, strokeWidth: style.strokeWidth };
+  }));
+  expect(tabLayers.map((layer) => layer.d)).toEqual(CRAFT_TAB_PATHS);
+  expect(tabLayers).toMatchObject([
+    { fill: "rgb(51, 43, 40)", stroke: "none", strokeWidth: "1px" },
+    { fill: "rgb(58, 59, 72)", stroke: "none", strokeWidth: "1px" },
+    { fill: "none", stroke: "rgb(73, 75, 120)", strokeWidth: "1px" },
+    { fill: "rgb(16, 15, 21)", stroke: "none", strokeWidth: "1px" },
+    { fill: "rgb(75, 75, 75)", stroke: "none", strokeWidth: "1px" },
+  ]);
   await expect(page.getByRole("button", { name: "Craft" })).toBeVisible();
 
   // 短いfixtureでも縦バーを保つ

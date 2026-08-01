@@ -14,13 +14,14 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
 # 比較器はworktree位置から解決して環境固有パスを排除する
 # Resolve the comparator from the worktree to avoid machine-specific paths
 sys.path.insert(0, str(REPOSITORY_ROOT / "moorestech_web/webui/e2e/craft-chrome"))
-from compare import components, detect_frame, detect_panel, touches_frame
+from compare import detect_panel
+from shape_profiles import GRIP_MIN_DIMENSION, PIXEL_CONNECTIVITY_RADIUS, components, grip_zone, touches_frame
 
 
 def component_detail(mask: np.ndarray, frame: np.ndarray, component: tuple[int, int, int, int, int], x0: int, y0: int) -> tuple[str, bool, int]:
     left, top, right, bottom, count = component
     touches = touches_frame(mask, frame, left, top, right, bottom, x0, y0)
-    minimum = right - left + 1 >= 5 and bottom - top + 1 >= 5
+    minimum = right - left + 1 >= GRIP_MIN_DIMENSION and bottom - top + 1 >= GRIP_MIN_DIMENSION
     detail = f"({left},{top})-({right},{bottom})/{count}/touch={int(touches)}/min={int(minimum)}"
     return detail, not touches and minimum, count
 
@@ -30,11 +31,8 @@ def analyze_capture(capture_file: Path) -> tuple[str, str, str]:
     # Recompute every color-mask component and the selected result from the capture itself
     image = np.asarray(Image.open(capture_file).convert("RGB"))
     _, _, panel_right, panel_bottom = detect_panel(image)
-    x0, y0 = panel_right - 80, panel_bottom - 80
-    zone = image[y0:panel_bottom + 1, x0:panel_right + 1]
-    mask = (zone.max(axis=2) - zone.min(axis=2) < 35) & (zone.mean(axis=2) >= 70) & (zone.mean(axis=2) <= 190)
-    frame = detect_frame(zone.max(axis=2) < 70)
-    raw_components = components(mask, x0, y0, radius=1)
+    _, mask, frame, x0, y0 = grip_zone(image, (0, 0, panel_right, panel_bottom))
+    raw_components = components(mask, x0, y0, radius=PIXEL_CONNECTIVITY_RADIUS)
     details = [component_detail(mask, frame, component, x0, y0) for component in raw_components]
     selected_index = max((index for index, (_, eligible, _) in enumerate(details) if eligible), key=lambda index: details[index][2])
     left, top, right, bottom = raw_components[selected_index][:4]
@@ -68,7 +66,10 @@ def main() -> None:
     # Validate every input capture before writing analysis output
     for row in rows:
         verify_capture_hash(row)
-    fields = list(rows[0]) + ["raw_components", "post_bbox", "gaps"]
+    fields = list(rows[0])
+    for field in ("raw_components", "post_bbox", "gaps"):
+        if field not in fields:
+            fields.append(field)
     mode = "a" if arguments.append else "w"
     with arguments.output.open(mode, newline="") as target:
         writer = csv.DictWriter(target, fieldnames=fields, delimiter="\t", lineterminator="\n")

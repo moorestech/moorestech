@@ -18,7 +18,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: `sh -c 'MOCK_PORT=${MOCK_PORT} node --import tsx e2e/mock-host/server.ts & mock_pid=$!; trap "kill $mock_pid" EXIT INT TERM; MOORESTECH_VITE_PORT=${VITE_PORT} MOORESTECH_BACKEND_PORT=${MOCK_PORT} pnpm dev'`,
+    command: `sh -c 'MOCK_PORT=${MOCK_PORT} node --import tsx e2e/mock-host/server.ts & mock_pid=$!; trap "kill $mock_pid" EXIT INT TERM; MOORESTECH_E2E=true MOORESTECH_VITE_PORT=${VITE_PORT} MOORESTECH_BACKEND_PORT=${MOCK_PORT} pnpm dev'`,
     cwd: "../..",
     port: VITE_PORT,
     reuseExistingServer: false,
