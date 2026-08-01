@@ -41,8 +41,8 @@ test("translate後のグリップ矩形だけに重なる境界buttonをexpectCr
     const button = document.createElement("button");
     button.setAttribute("aria-label", "grip-overlap-probe");
     button.style.position = "absolute";
-    button.style.right = "5.7px";
-    button.style.bottom = "5.7px";
+    button.style.right = "6.7px";
+    button.style.bottom = "6.7px";
     button.style.width = "0.25px";
     button.style.height = "0.25px";
     button.style.padding = "0";
@@ -52,6 +52,29 @@ test("translate後のグリップ矩形だけに重なる境界buttonをexpectCr
   });
 
   await expectCraftGrip(craftPanel, true);
+});
+
+test("padding box外の境界buttonをexpectCraftGripが重なりなしと判定する", async ({ page }) => {
+  await setUiState(page, "ResearchTree");
+  await page.goto("/");
+  await page.getByTestId("research-node-11111111-1111-1111-1111-111111111111").click();
+  const craftPanel = page.getByTestId("research-detail-pane").locator(':scope > [data-variant="craft"]');
+
+  // padding box基準の実矩形より右下へ外れる境界buttonを置く
+  // Place a boundary button beyond the actual padding-box-based rectangle
+  await craftPanel.evaluate((element) => {
+    const button = document.createElement("button");
+    button.style.position = "absolute";
+    button.style.right = "5.7px";
+    button.style.bottom = "5.7px";
+    button.style.width = "0.25px";
+    button.style.height = "0.25px";
+    button.style.padding = "0";
+    button.style.border = "0";
+    element.appendChild(button);
+  });
+
+  await expectCraftGrip(craftPanel, false);
 });
 
 test("research button sends research.complete and node becomes completed", async ({ page }) => {

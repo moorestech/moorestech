@@ -236,6 +236,12 @@
 - GREEN parses the computed pseudo-element transform via `DOMMatrixReadOnly` and adds matrix `e`/`f` to all four grip-box edges before evaluating content overlap. The transform-sensitive boundary probe now passes, so central, PlacementModeHud, and ResearchDetailPane contracts remain **12/12**.
 - Fresh build/capture/comparator retains exact grip geometry: `22x22`, right/bottom `19/19`, median delta `0`, and **13/13 PASS**. E2E TypeScript compile passes; `GamePanel/style.module.css` remains exactly 200 lines.
 
+### Task 6 shared grip offset review fix round 2 — padding-box origin
+
+- RED exposed the remaining 1px origin error: the helper used the frame border edge although absolute pseudo-elements are positioned from the padding box. A 0.25px button at `right/bottom: 5.7px` falsely overlapped before the correction.
+- GREEN subtracts computed right/bottom border widths before applying transform matrix `e`/`f` to every grip-box edge. The 5.7px probe is now correctly non-overlapping, while the transform-sensitive actual interval at `6.7px` / `0.25px` remains overlapping.
+- Shared suites are **13/13** after the added boundary regression. Fresh geometry remains `22x22`, `19/19`, delta `0`, comparator **13/13**; production build and E2E TypeScript compile pass.
+
 ### Task 5 visual iteration round 5
 
 - Changed exactly `--craft-grip-face`: `rgb(146 148 167 / 98%)` -> `rgb(134 136 152 / 98%)`; no size/inset/tab/path/CSS/other-token change.

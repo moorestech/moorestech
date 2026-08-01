@@ -11,14 +11,16 @@ export async function expectCraftGrip(frame: Locator, expectedOverlaps: boolean)
     const height = Number.parseFloat(grip.height);
     const right = Number.parseFloat(grip.right);
     const bottom = Number.parseFloat(grip.bottom);
+    const paddingRight = frameBox.right - Number.parseFloat(frameStyle.borderRightWidth);
+    const paddingBottom = frameBox.bottom - Number.parseFloat(frameStyle.borderBottomWidth);
     // 計算済みtransformの平行移動を疑似要素の全辺へ適用する
     // Apply the computed transform translation to every pseudo-element edge
     const transform = new DOMMatrixReadOnly(grip.transform);
     const gripBox = {
-      left: frameBox.right - right - width + transform.e,
-      top: frameBox.bottom - bottom - height + transform.f,
-      right: frameBox.right - right + transform.e,
-      bottom: frameBox.bottom - bottom + transform.f,
+      left: paddingRight - right - width + transform.e,
+      top: paddingBottom - bottom - height + transform.f,
+      right: paddingRight - right + transform.e,
+      bottom: paddingBottom - bottom + transform.f,
     };
     // 要素自身または祖先が不可視ならその配下も不可視として扱う
     // Treat descendants as invisible whenever the element itself or an ancestor is hidden

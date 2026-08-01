@@ -86,3 +86,7 @@ The offset implementation exposed a test-helper defect: `expectCraftGrip` used c
 - GREEN parses `getComputedStyle(element, "::after").transform` through `DOMMatrixReadOnly` and adds the matrix `e`/`f` translation to all four grip-box coordinates. The boundary test then passes, proving detection uses the painted position rather than the pre-transform position.
 
 The source style geometry did not change. Fresh production capture still reports `22x22`, gaps `19/19`, grip face delta `0`, and comparator **13/13 PASS**. Shared central, PlacementModeHud, and ResearchDetailPane tests pass **12/12**; E2E TypeScript compile passes. `craftChromeAssertions.ts` remains 93 lines and `GamePanel/style.module.css` remains 200 lines.
+
+## Review fix round 2 — padding-box origin
+
+The absolute pseudo-element is positioned from the frame padding box, not its border edge. The helper now subtracts computed `borderRightWidth` and `borderBottomWidth` before composing the untransformed box, then applies `DOMMatrixReadOnly` `e`/`f` to all four edges. RED used a 0.25px button at `right/bottom: 5.7px`, which the border-edge helper falsely overlapped; GREEN correctly returns no overlap. The transform-sensitive probe remains at `6.7px` / `0.25px` and correctly overlaps the painted grip. Final shared suites: **13/13**; fresh comparator **13/13**; build and E2E TypeScript compile pass.
