@@ -36,6 +36,7 @@ export const inventory = {
   // Three equipment slots as in the v8 master; bare hands (-1) initially, so wheel cycling starts from an empty selection
   equipment: [{ itemId: 1, count: 1 }, ...Array.from({ length: 2 }, empty)],
   selectedEquipment: -1,
+  equipmentSelectionConfirmationRevision: 0,
 } satisfies PlayerInventoryData;
 
 // BLK-1 チェスト: 9 スロット(uGUI IChestParam.ItemSlotCount 相当)、一部にアイテム
@@ -161,6 +162,7 @@ export const demoInventory = {
   // Fill with the same non-cyan ids as the hotbar so the equipment HUD shows at the right edge in scoring screenshots
   equipment: [{ itemId: 23, count: 100 }, { itemId: 24, count: 100 }, empty()],
   selectedEquipment: 0,
+  equipmentSelectionConfirmationRevision: 0,
 } satisfies PlayerInventoryData;
 
 export const demoItemMaster = {
