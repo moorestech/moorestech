@@ -79,8 +79,8 @@
   z-index: 1;
 }
 
-/* 中央枠は硬い外縁と細い内周線だけの二層クロームにする */
-/* The central frame keeps a hard outer edge and one thin inner accent line */
+/* 正本は太い外周帯でなく硬い遷移と細い内周線だけのため、二層クロームを維持する */
+/* Preserve two-layer chrome because the reference uses a hard transition and thin inner line instead of a thick outer band */
 .craft {
   padding: 8px 15px 15px 10px;
   /* 透明borderで外寸を維持し、背景のハードエッジと8px内側の灰線だけを見せる */

@@ -2,8 +2,8 @@ import { expect, type Locator } from "@playwright/test";
 
 export async function expectCraftGrip(frame: Locator, expectedOverlaps: boolean) {
   const contract = await frame.evaluate((element) => {
-    // 疑似要素の計算済みスタイルからグリップ契約を抽出する
-    // Extract the grip contract from the pseudo-element's computed style
+    // 疑似要素からグリップ契約を読む
+    // Read grip contract from pseudo-element
     const frameBox = element.getBoundingClientRect();
     const frameStyle = getComputedStyle(element);
     const grip = getComputedStyle(element, "::after");
@@ -13,8 +13,8 @@ export async function expectCraftGrip(frame: Locator, expectedOverlaps: boolean)
     const bottom = Number.parseFloat(grip.bottom);
     const paddingRight = frameBox.right - Number.parseFloat(frameStyle.borderRightWidth);
     const paddingBottom = frameBox.bottom - Number.parseFloat(frameStyle.borderBottomWidth);
-    // 計算済みtransformの平行移動を疑似要素の全辺へ適用する
-    // Apply the computed transform translation to every pseudo-element edge
+    // 平行移動をグリップ矩形に反映する
+    // Apply translation to grip box
     const transform = new DOMMatrixReadOnly(grip.transform);
     const gripBox = {
       left: paddingRight - right - width + transform.e,
@@ -34,10 +34,10 @@ export async function expectCraftGrip(frame: Locator, expectedOverlaps: boolean)
       return false;
     }
 
-    // タグ列挙をやめ、実際に描画される矩形を漏れなく集めてグリップとの重なりを判定する
-    // Drop the tag whitelist and collect every actually-painted rect to test grip overlap
-    // テキストノードは行矩形を、テキストを持たない描画要素は要素矩形を採る
-    // Text nodes contribute line rects; non-text visual elements contribute their own bounding rect
+    // 全描画矩形でグリップ重なりを判定する
+    // Test grip overlap against painted rects
+    // テキストは行矩形、要素は要素矩形
+    // Use line rects for text, element rects otherwise
     const contentBoxes: DOMRect[] = [];
     const textWalker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
     for (let textNode = textWalker.nextNode(); textNode !== null; textNode = textWalker.nextNode()) {

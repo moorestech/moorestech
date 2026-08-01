@@ -43,8 +43,8 @@ test("正本のヘッダ装飾、常時スクロールバー、主要構造を�
   const craftPanel = recipeBox.locator('xpath=ancestor::*[@data-variant="craft"][1]');
   await expect(craftPanel).toBeVisible();
   await expectCraftGrip(craftPanel, false);
-  // クラフトタブを正本どおりのSVG構造と固定寸法で描画する
-  // Render the craft tab with the reference SVG structure and fixed dimensions
+  // クラフトタブのSVG構造と寸法を固定する
+  // Lock craft-tab SVG structure and dimensions
   const craftTab = page.getByTestId("craft-tab");
   await expect(craftTab).toHaveAttribute("viewBox", "0 0 166 70");
   await expect(craftTab).toHaveAttribute("aria-hidden", "true");
@@ -71,8 +71,8 @@ test("正本のヘッダ装飾、常時スクロールバー、主要構造を�
   expect(tabStyle.marginTop).toBe("-37.18px");
   expect(tabStyle.marginLeft).toBe("-11px");
   expect(tabStyle.marginBottom).toBe("6.46px");
-  // 実ブラウザで全レイヤーの形状と描画色を固定する
-  // Lock every layer's geometry and rendered color in the real browser
+  // 全レイヤーの形状と色を固定する
+  // Lock every layer's geometry and color
   const tabLayers = await craftTab.locator("path").evaluateAll((paths) => paths.map((path) => {
     const style = getComputedStyle(path);
     return { d: path.getAttribute("d"), fill: style.fill, stroke: style.stroke, strokeWidth: style.strokeWidth };

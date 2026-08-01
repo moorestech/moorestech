@@ -22,8 +22,8 @@ async function main() {
   await new Promise<void>((resolve) => server.listen(5417, resolve));
   const browser = await chromium.launch();
   const page = await (await browser.newContext({ viewport: { width: 1635, height: 922 }, deviceScaleFactor: 2 })).newPage();
-  // 正式captureと同じ画面状態と安定待機へ揃える
-  // Match the production capture state and settling delay
+  // 正本条件で描画を安定待機する
+  // Use reference state and settle rendering
   await page.goto("http://127.0.0.1:5417/");
   await page.getByRole("heading", { name: "CRAFT RECIPE" }).waitFor();
   await page.getByTestId("item-list-grid").locator("> div").first().click();
