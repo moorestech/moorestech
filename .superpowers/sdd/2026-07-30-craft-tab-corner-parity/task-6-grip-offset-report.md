@@ -90,3 +90,7 @@ The source style geometry did not change. Fresh production capture still reports
 ## Review fix round 2 — padding-box origin
 
 The absolute pseudo-element is positioned from the frame padding box, not its border edge. The helper now subtracts computed `borderRightWidth` and `borderBottomWidth` before composing the untransformed box, then applies `DOMMatrixReadOnly` `e`/`f` to all four edges. RED used a 0.25px button at `right/bottom: 5.7px`, which the border-edge helper falsely overlapped; GREEN correctly returns no overlap. The transform-sensitive probe remains at `6.7px` / `0.25px` and correctly overlaps the painted grip. Final shared suites: **13/13**; fresh comparator **13/13**; build and E2E TypeScript compile pass.
+
+## Debug fix round 3 — numeric custom-property contract
+
+Dev preserved the authored offset as `0.4px`, while the production minifier serialized it as `.4px`; all geometry fields already matched. The shared assertion now parses the custom property with `Number.parseFloat` and asserts numeric `0.4`, while retaining stable size/inset strings and the computed transform assertion. The dev RED reproduces the string-only mismatch; prod and dev shared suites both pass **13/13** after the minimal helper-only fix. CSS source is unchanged.

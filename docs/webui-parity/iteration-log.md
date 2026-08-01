@@ -242,6 +242,11 @@
 - GREEN subtracts computed right/bottom border widths before applying transform matrix `e`/`f` to every grip-box edge. The 5.7px probe is now correctly non-overlapping, while the transform-sensitive actual interval at `6.7px` / `0.25px` remains overlapping.
 - Shared suites are **13/13** after the added boundary regression. Fresh geometry remains `22x22`, `19/19`, delta `0`, comparator **13/13**; production build and E2E TypeScript compile pass.
 
+### Task 6 shared grip offset debug fix round 3 — numeric offset
+
+- Full dev failures were serialization-only: prod minified the authored offset to `.4px`, dev retained `0.4px`, while geometry and transform matched. RED reproduced this exact mismatch.
+- `expectCraftGrip` now parses the custom property to numeric `0.4`; stable size/inset strings and matrix transform remain asserted. Prod and dev shared suites both pass **13/13**, with build and E2E TypeScript compile green; CSS source is unchanged.
+
 ### Task 5 visual iteration round 5
 
 - Changed exactly `--craft-grip-face`: `rgb(146 148 167 / 98%)` -> `rgb(134 136 152 / 98%)`; no size/inset/tab/path/CSS/other-token change.
