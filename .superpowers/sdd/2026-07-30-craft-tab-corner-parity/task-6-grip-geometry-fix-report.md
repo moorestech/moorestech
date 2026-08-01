@@ -196,5 +196,5 @@ Round 2 commit: `docs: record grip two-token frontier blocker`.
 ```text
 sh .superpowers/sdd/2026-07-30-craft-tab-corner-parity/measure/rebuild_grip_frontier_audit.sh
 ```
-- Re-run result: 522/522 rows contain captured browser dimensions and rects; SHA256 revalidation has 0 mismatches; exact selected `22x22` plus `19/19` gaps remains **0/522**. The manifest is LF-delimited so `git diff --check` passes.
+- Round 5 re-run result: before any image analysis, the analyzer recomputes each PNG SHA256 and fails on a raw-manifest mismatch. All 522 rows passed that enforced check and contain captured browser dimensions and rects; exact selected `22x22` plus `19/19` gaps remains **0/522**. The manifest is LF-delimited so `git diff --check` passes.
 - This is bounded evidence only for the sampled 29×18 target-facing frontier. In this sample, a single shared pseudo-element translate/offset is the smallest extra geometry candidate to evaluate if approved; it is not a universal inset-space or CSS-domain assertion.

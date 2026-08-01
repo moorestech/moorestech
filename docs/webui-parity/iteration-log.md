@@ -219,6 +219,11 @@
 - Added `measure/rebuild_grip_frontier_audit.sh`, the full regeneration command: it builds, creates `/tmp/task6-grip-frontier-raw.tsv`, captures the 522 PNGs, and reanalyses them into the committed manifest. It recreates all temporary capture files when prior `/tmp/task6-grip*` artifacts are absent; its `WEBUI_CRAFT_PYTHON` override selects the normal NumPy/Pillow QA interpreter. PNGs remain uncommitted.
 - The regenerated captured-DOM manifest again has 0 exact `22x22`/`19,19` results and 0 SHA256 mismatches. This only bounds the sampled 29×18 target-facing frontier. Within that sample, a single shared pseudo-element translate/offset is the smallest candidate to evaluate with approval; no universal inset-space claim is made.
 
+### Task 6 grip geometry review fix round 5 — enforced hash verification
+
+- Corrected the analyzer evidence path: it now recomputes every input PNG SHA256 before image analysis and raises an error when it differs from the raw browser manifest. A deliberately altered raw-manifest hash fails as expected.
+- The one-command regeneration path now invokes this enforced check. The existing 522 capture artifacts were reanalyzed successfully: all hashes matched, every DOM/analysis field remained populated, and exact `22x22` plus `19/19` gaps remains 0/522. This remains a bounded 29×18 sample result, not a universal inset-space claim.
+
 ### Task 5 visual iteration round 5
 
 - Changed exactly `--craft-grip-face`: `rgb(146 148 167 / 98%)` -> `rgb(134 136 152 / 98%)`; no size/inset/tab/path/CSS/other-token change.

@@ -3,6 +3,7 @@
 
 import argparse
 import csv
+import hashlib
 import sys
 from pathlib import Path
 
@@ -41,6 +42,15 @@ def analyze_capture(capture_file: Path) -> tuple[str, str, str]:
     return inventory, f"({left},{top})-({right},{bottom})", f"{panel_right - right - 1},{panel_bottom - bottom - 1}"
 
 
+def verify_capture_hash(row: dict[str, str]) -> None:
+    capture_file = Path(row["capture_file"])
+    # raw manifestと画像実体のSHA256を先に照合する
+    # Verify the raw manifest SHA256 against the capture before analysis
+    actual = hashlib.sha256(capture_file.read_bytes()).hexdigest()
+    if actual != row["sha256"]:
+        raise ValueError(f"SHA256 mismatch for {capture_file}: manifest={row['sha256']} actual={actual}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, required=True)
@@ -54,6 +64,10 @@ def main() -> None:
     # 長い監査をchunk出力できるよう入力範囲を限定する
     # Limit the input range so long audits can be emitted in chunks
     rows = rows[arguments.offset:None if arguments.limit is None else arguments.offset + arguments.limit]
+    # 解析出力より先に入力画像の完全性を検証する
+    # Validate every input capture before writing analysis output
+    for row in rows:
+        verify_capture_hash(row)
     fields = list(rows[0]) + ["raw_components", "post_bbox", "gaps"]
     mode = "a" if arguments.append else "w"
     with arguments.output.open(mode, newline="") as target:
