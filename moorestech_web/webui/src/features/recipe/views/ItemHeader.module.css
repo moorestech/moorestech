@@ -6,68 +6,30 @@
   align-items: stretch;
   text-align: center;
 }
-/* 台形風フラップ。正本の外接(約64.6×27design-px)に合わせ固定寸法+中央寄せにする */
-/* Trapezoid-flavored flap sized to the reference footprint (~64.6x27 design px), centered content */
-/* 前面台形+背後の暗い縁取り(::before)の2層構造。外接は元の矩形版と同じ範囲に収める */
-/* 2-layer structure: front trapezoid + dark backing edge (::before), kept within the original rectangle's footprint */
-/* borderは正本相当だと1pxまで薄めたいが、craft-tab bbox(dark<120マスク)の右端検出が縁の下地色に
-   敏感で1pxにすると許容±4pxを割る(実測+6px)。47/47維持を優先し2pxのまま据え置く */
-/* The reference reads closer to a 1px border, but the craft-tab bbox (dark<120 mask) is sensitive to the
-   edge's underlying fill and overshoots the ±4px tolerance by +6px at 1px. Keeping 47/47 intact wins, so
-   this stays at 2px */
-/* iter6: craft-tab bbox実測の右端(1379)を正本(1375)へ4screenshot-px(≈1.57CSSpx)縮める。上線は
-   明るすぎたため個別にアルファを下げ、前面台形/暗背面/右斜面の3層分離を保つ */
-/* iter6: shrink the measured craft-tab bbox's right edge (1379) toward the reference (1375) by 4
-   screenshot px (≈1.57 CSS px). The top edge ran too bright, so its alpha eases separately while the
-   front trapezoid / dark backing / right-slope 3-layer separation stays intact */
+/* 5層SVGを正本の固定寸法とパネル相対位置で描画する */
+/* Render the five SVG layers at the reference's fixed size and panel-relative position */
 .toolTab {
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   align-self: flex-start;
-  width: 67.256px;
-  height: 31px;
-  margin-top: -2.47rem;
-  margin-left: -0.8rem;
-  margin-bottom: 0.2rem;
-  clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
-  border: 2px solid rgb(167 169 179 / 90%);
-  border-top-color: rgb(70 74 88 / 65%);
-  border-bottom: 0;
-  background: linear-gradient(155deg, #3c4152 0%, #262b38 100%);
-  font-size: 18px;
-  line-height: 1;
-  /* 後続フローを動かさずタブだけ2物理px下げる */
-  /* Lower only the tab two device pixels without moving downstream flow */
-  transform: translateY(0.782875px);
+  width: var(--craft-tab-width);
+  height: var(--craft-tab-height);
+  margin-top: var(--craft-tab-margin-top);
+  margin-left: var(--craft-tab-margin-left);
+  margin-bottom: var(--craft-tab-margin-bottom);
+  overflow: visible;
 }
 
-/* 背後にひと回り小さい暗色タブを覗かせ、二重フラップの奥行きを出す。正本は右側へ非対称に
-   張り出すため、bboxの許容内(-1px)で右だけわずかに広げる */
-/* A slightly smaller dark tab peeking out behind adds the reference's double-flap depth; the reference's
-   exposure skews asymmetrically to the right, so the right inset widens slightly, within what the bbox tolerates */
-.toolTab::before {
-  position: absolute;
-  z-index: -1;
-  inset: 3px -2.35px -4.17px 3px;
-  clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
-  background: rgb(20 23 31 / 85%);
-  content: "";
+/* 各パスを正本の背面、斜面、前面、縁、ハンマー色へ対応付ける */
+/* Map each path to the reference back, side, face, edge, and hammer colors */
+.toolTabBack { fill: var(--craft-tab-back); }
+.toolTabSide { fill: var(--craft-tab-side); }
+.toolTabFace { fill: var(--craft-tab-face); }
+.toolTabEdge {
+  fill: none;
+  stroke: var(--craft-tab-edge);
+  stroke-width: 1;
 }
-
-/* 右斜面にハイライトを足し、台形の立体感を出す */
-/* A highlight on the right slope reads as the trapezoid's beveled edge */
-.toolTab::after {
-  position: absolute;
-  top: 0;
-  right: -2.35px;
-  width: 15px;
-  height: 100%;
-  background: linear-gradient(100deg, transparent, rgb(255 255 255 / 22%) 55%, transparent);
-  content: "";
-}
+.toolTabHammer { fill: var(--craft-tab-hammer); }
 /* 正本は約150x51screenshot-px相当(実測(1565,337)-(1715,388))。iter3でフォント未導入のまま拡大され
    幅188px超まで肥大していたため、実フォント導入(iter4)に合わせて正本相当のサイズへ戻す */
 /* The reference runs ~150x51 screenshot px (measured (1565,337)-(1715,388)). iter3 enlarged this before the
