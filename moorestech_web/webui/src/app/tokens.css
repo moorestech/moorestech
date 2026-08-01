@@ -18,8 +18,9 @@
   --panel-edge-fade: 12px;
   /* クラフト枠の右下グリップを正本の固定寸法と単色面へ揃える */
   /* Match the craft-frame grip to the reference's fixed size and single-color face */
-  --craft-grip-size: 9.2px;
-  --craft-grip-inset: 7px;
+  --craft-grip-size: 8.74px;
+  --craft-grip-inset: 6.98px;
+  --craft-grip-offset: 0.4px;
   --craft-grip-face: rgb(134 136 152 / 98%);
   /* クラフトタブの正本寸法、パネル原点からの位置、各層色を一元化する */
   /* Centralize the craft tab's reference size, panel-relative placement, and layer colors */

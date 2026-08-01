@@ -98,6 +98,7 @@
   bottom: var(--craft-grip-inset);
   width: var(--craft-grip-size);
   height: var(--craft-grip-size);
+  transform: translate(var(--craft-grip-offset), var(--craft-grip-offset));
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
   background: var(--craft-grip-face);
   content: "";
@@ -129,7 +130,6 @@
   transform-origin: left center;
   white-space: nowrap;
 }
-
 
 /* 上下罫線は中央を保ちつつ両端を世界背景へフェードさせる */
 /* Keep the middle of both rules while fading their ends into the world */

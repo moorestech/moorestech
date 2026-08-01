@@ -224,6 +224,12 @@
 - Corrected the analyzer evidence path: it now recomputes every input PNG SHA256 before image analysis and raises an error when it differs from the raw browser manifest. A deliberately altered raw-manifest hash fails as expected.
 - The one-command regeneration path now invokes this enforced check. The existing 522 capture artifacts were reanalyzed successfully: all hashes matched, every DOM/analysis field remained populated, and exact `22x22` plus `19/19` gaps remains 0/522. This remains a bounded 29×18 sample result, not a universal inset-space claim.
 
+### Task 6 shared grip offset — DONE
+
+- TDD RED: the shared E2E grip contract first required `--craft-grip-offset` and a shared diagonal transform. It failed against the prior CSS with empty offset and `transform: none`; the focused recipe test passed only after the allowed source implementation.
+- Fresh 3270x1844 iteration 1 changed only the new shared offset: `9.2px / 7px / 0.4px` reached gaps `19/19` but remained `23x22`, so it was rejected. The retained `8.74px / 6.98px / 0.4px` state selects the already-measured frontier pair (`22x22`, `20/20` before offset) and holds the offset fixed; the new capture is exactly `22x22`, gaps `19/19`, median delta `0`, and comparator **13/13 PASS**.
+- Implementation scope is one root token plus `.craft::after` `translate(offset, offset)`. Shared contract checks authored size/inset/offset, computed dimensions/right/bottom, and one matrix transform; all central, PlacementModeHud, and ResearchDetailPane tests pass **12/12**, as do production build and E2E TypeScript compile. No split axes/sizes, visual effects, extra pseudo-element, clip, panel, tab, or consumer override changed.
+
 ### Task 5 visual iteration round 5
 
 - Changed exactly `--craft-grip-face`: `rgb(146 148 167 / 98%)` -> `rgb(134 136 152 / 98%)`; no size/inset/tab/path/CSS/other-token change.
