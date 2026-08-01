@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Core.Master;
-using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
@@ -26,13 +24,7 @@ namespace Game.Block.Blocks
         public BlockPositionInfo BlockPositionInfo { get; }
         public IObservable<BlockState> BlockStateChange => _onBlockStateChange;
         private readonly Subject<BlockState> _onBlockStateChange = new();
-        
-        
-        
-        private readonly IDisposable _blockUpdateDisposable;
-
-        private readonly List<IUpdatableBlockComponent> _centralDrivenComponents;
-        private readonly List<IUpdatableBlockComponent> _selfDrivenComponents;
+        private readonly List<IUpdatableBlockComponent> _updatableComponents;
         private readonly List<IBlockStateDetail> _blockStateDetails;
         
         
@@ -53,16 +45,8 @@ namespace Game.Block.Blocks
             }
             
             // NOTE 他の場所からコンポーネントを追加するようになったら、このリストに追加するようにする
-            var updatableComponents = _blockComponentManager.GetComponents<IUpdatableBlockComponent>();
-            _centralDrivenComponents = updatableComponents.Where(c => c is not ISelfDrivenUpdatableBlockComponent).ToList();
-            _selfDrivenComponents = updatableComponents.Where(c => c is ISelfDrivenUpdatableBlockComponent).ToList();
+            _updatableComponents = _blockComponentManager.GetComponents<IUpdatableBlockComponent>();
             _blockStateDetails = _blockComponentManager.GetComponents<IBlockStateDetail>();
-
-            // 自走宣言コンポーネントを持つブロックだけ購読を維持する（他はMasterTickUpdaterの中央ループが駆動）
-            // Only blocks holding self-driven components keep the subscription; the rest are driven by MasterTickUpdater's central loop
-            _blockUpdateDisposable = _selfDrivenComponents.Count == 0
-                ? Disposable.Empty
-                : GameUpdater.UpdateObservable.Subscribe(_ => UpdateComponents(_selfDrivenComponents));
             
             OneBlockUpdateMarker = CreateUpdateMarker(BlockMasterElement);
         }
@@ -102,7 +86,7 @@ namespace Game.Block.Blocks
         
         public void TickUpdate()
         {
-            UpdateComponents(_centralDrivenComponents);
+            UpdateComponents(_updatableComponents);
         }
 
         private void UpdateComponents(List<IUpdatableBlockComponent> components)
@@ -124,8 +108,6 @@ namespace Game.Block.Blocks
         
         public void Destroy()
         {
-            _blockUpdateDisposable.Dispose();
-            
             try
             {
                 _blockComponentManager.Destroy();

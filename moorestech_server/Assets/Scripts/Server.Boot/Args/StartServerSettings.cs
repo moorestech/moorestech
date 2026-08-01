@@ -22,6 +22,11 @@ namespace Server.Boot
         [Option(isFlag: false, "--seed")]
         public int? Seed { get; set; } = null;
 
+        // 待ち受けポート。未指定(null)なら既定ポート、0ならOSが空きポートを採番する
+        // Listen port; default port when unspecified (null), OS assigns a free port when 0
+        [Option(isFlag: false, "--port", "-p")]
+        public int? Port { get; set; } = null;
+
         [Option(isFlag: false, "--autoSave", "-a")]
         public bool AutoSave { get; set; } = true;
 

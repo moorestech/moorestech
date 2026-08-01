@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Entity.Factory;
 using Client.Network.API;
+using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
 using Client.Game.InGame.Train.Unit;
 using UnityEngine;
@@ -9,7 +10,7 @@ using VContainer;
 
 namespace Client.Game.InGame.Entity
 {
-    public class EntityObjectDatastore : MonoBehaviour
+    public class EntityObjectDatastore : MonoBehaviour, ISkitEntityObjectControl
     {
         private EntityObjectFactory _entityObjectFactory;
         private readonly Dictionary<long, (DateTime lastUpdate, IEntityObject objectEntity)> _entities = new();
@@ -39,6 +40,13 @@ namespace Client.Game.InGame.Entity
                 _entities[removeEntity].objectEntity.Destroy();
                 _entities.Remove(removeEntity);
             }
+        }
+
+        // 非表示中はUpdateが止まり期限切れ破棄も止まるが、再表示直後のUpdateがまとめて回収する
+        // While hidden, Update and its expiry sweep halt, but the first Update after re-showing collects them all
+        public void SetActive(bool enable)
+        {
+            gameObject.SetActive(enable);
         }
 
         /// <summary>

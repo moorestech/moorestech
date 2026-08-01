@@ -35,3 +35,43 @@ test("blocking skit reveals, advances, and selects by choiceId", async ({ page }
     return values[values.length - 1];
   }).toEqual({ sessionId: "blocking-1", sceneRevision: 2, choiceId: "route-b" });
 });
+
+test("横長画面で会話帯を全幅に広げツールを実画面右上へ固定する", async ({ page }) => {
+  await page.setViewportSize({ width: 2432, height: 786 });
+  await page.goto("/");
+  await setSkitStage(page, "text");
+
+  const skit = page.getByTestId("blocking-skit");
+  const hideUiButton = page.getByRole("button", { name: "Hide UI" });
+  await expect(skit).toBeVisible();
+  await expect(hideUiButton).toBeVisible();
+
+  // 横長帯と操作視認性を実寸確認する
+  // Catch regressions that collapse back to stage width or lose tool contrast over a bright world
+  const layout = await page.evaluate(() => {
+    const skitRect = document.querySelector<HTMLElement>('[data-testid="blocking-skit"]')!.getBoundingClientRect();
+    const tool = document.querySelector<HTMLElement>('button[aria-label="Hide UI"]')!;
+    const toolRect = tool.getBoundingClientRect();
+    const toolStyle = getComputedStyle(tool);
+    return {
+      skitLeft: skitRect.left,
+      skitRight: skitRect.right,
+      skitBottom: skitRect.bottom,
+      toolRightGap: window.innerWidth - toolRect.right,
+      toolTop: toolRect.top,
+      toolFilter: toolStyle.filter,
+      toolOpacity: toolStyle.opacity,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+    };
+  });
+  expect(layout.skitLeft).toBeCloseTo(0, 1);
+  expect(layout.skitRight).toBeCloseTo(layout.viewportWidth, 1);
+  expect(layout.skitBottom).toBeCloseTo(layout.viewportHeight, 1);
+  expect(layout.toolRightGap).toBeGreaterThanOrEqual(0);
+  expect(layout.toolRightGap).toBeLessThan(40);
+  expect(layout.toolTop).toBeGreaterThanOrEqual(0);
+  expect(layout.toolTop).toBeLessThan(20);
+  expect(layout.toolFilter).not.toBe("none");
+  expect(layout.toolOpacity).toBe("1");
+});
