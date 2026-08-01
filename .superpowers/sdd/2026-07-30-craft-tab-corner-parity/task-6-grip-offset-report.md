@@ -74,4 +74,15 @@ pnpm exec tsc -p e2e/tsconfig.json --noEmit
 # PASS
 ```
 
-`GamePanel/style.module.css` remains exactly 200 lines; `craftChromeAssertions.ts` is 90 lines. The final diff contains only the allowed shared token, diagonal transform, selected measured frontier pair, shared contract, and durable evidence.
+At offset implementation completion, `GamePanel/style.module.css` remained exactly 200 lines and `craftChromeAssertions.ts` was 90 lines. The implementation diff contained only the allowed shared token, diagonal transform, selected measured frontier pair, shared contract, and durable evidence.
+
+## Review fix round 1 — transform-aware overlap contract
+
+The offset implementation exposed a test-helper defect: `expectCraftGrip` used computed `right`, `bottom`, `width`, and `height`, but ignored the pseudo-element's computed transform. Its overlap rectangle was therefore 0.4px up-left of the painted grip.
+
+### RED → GREEN
+
+- RED replaced the broad overlap span with a 0.25px visible boundary button. Its `right` and `bottom` positions put it outside the helper's old rectangle but inside only after the shared `0.4px` diagonal translate. Before the fix, the contract correctly failed with `overlaps: false` while expecting `true`.
+- GREEN parses `getComputedStyle(element, "::after").transform` through `DOMMatrixReadOnly` and adds the matrix `e`/`f` translation to all four grip-box coordinates. The boundary test then passes, proving detection uses the painted position rather than the pre-transform position.
+
+The source style geometry did not change. Fresh production capture still reports `22x22`, gaps `19/19`, grip face delta `0`, and comparator **13/13 PASS**. Shared central, PlacementModeHud, and ResearchDetailPane tests pass **12/12**; E2E TypeScript compile passes. `craftChromeAssertions.ts` remains 93 lines and `GamePanel/style.module.css` remains 200 lines.

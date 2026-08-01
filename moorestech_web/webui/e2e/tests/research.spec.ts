@@ -28,24 +28,27 @@ test("研究報酬itemの個数をtopic payloadどおり詳細ペインで表示
   await expectCraftGrip(pane.locator(':scope > [data-variant="craft"]'), false);
 });
 
-test("グリップ矩形に重なる可視spanをexpectCraftGripが検出する", async ({ page }) => {
+test("translate後のグリップ矩形だけに重なる境界buttonをexpectCraftGripが検出する", async ({ page }) => {
   await setUiState(page, "ResearchTree");
   await page.goto("/");
   await page.getByTestId("research-node-11111111-1111-1111-1111-111111111111").click();
   const pane = page.getByTestId("research-detail-pane");
   const craftPanel = pane.locator(':scope > [data-variant="craft"]');
 
-  // グリップと同じright/bottom基準で、グリップより一回り大きい可視spanを注入する
-  // Inject a visible span anchored at the same right/bottom origin as the grip, sized to fully cover it
+  // 旧矩形の外かつ0.4px対角translate後だけに入る可視buttonを注入する
+  // Inject a visible button outside the old box but inside only after the 0.4px diagonal translate
   await craftPanel.evaluate((element) => {
-    const span = document.createElement("span");
-    span.textContent = "overlap-probe";
-    span.style.position = "absolute";
-    span.style.right = "7px";
-    span.style.bottom = "7px";
-    span.style.width = "12px";
-    span.style.height = "12px";
-    element.appendChild(span);
+    const button = document.createElement("button");
+    button.setAttribute("aria-label", "grip-overlap-probe");
+    button.style.position = "absolute";
+    button.style.right = "5.7px";
+    button.style.bottom = "5.7px";
+    button.style.width = "0.25px";
+    button.style.height = "0.25px";
+    button.style.padding = "0";
+    button.style.border = "0";
+    button.style.background = "rgb(255 0 0)";
+    element.appendChild(button);
   });
 
   await expectCraftGrip(craftPanel, true);

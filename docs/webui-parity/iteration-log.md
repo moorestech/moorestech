@@ -230,6 +230,12 @@
 - Fresh 3270x1844 iteration 1 changed only the new shared offset: `9.2px / 7px / 0.4px` reached gaps `19/19` but remained `23x22`, so it was rejected. The retained `8.74px / 6.98px / 0.4px` state selects the already-measured frontier pair (`22x22`, `20/20` before offset) and holds the offset fixed; the new capture is exactly `22x22`, gaps `19/19`, median delta `0`, and comparator **13/13 PASS**.
 - Implementation scope is one root token plus `.craft::after` `translate(offset, offset)`. Shared contract checks authored size/inset/offset, computed dimensions/right/bottom, and one matrix transform; all central, PlacementModeHud, and ResearchDetailPane tests pass **12/12**, as do production build and E2E TypeScript compile. No split axes/sizes, visual effects, extra pseudo-element, clip, panel, tab, or consumer override changed.
 
+### Task 6 shared grip offset review fix round 1 — painted overlap box
+
+- TDD RED replaced the broad overlap probe with a 0.25px visible button located outside the pre-transform grip box but inside the `0.4px` shared diagonal translate. The old helper failed correctly with `overlaps: false` because it derived only the untransformed rectangle.
+- GREEN parses the computed pseudo-element transform via `DOMMatrixReadOnly` and adds matrix `e`/`f` to all four grip-box edges before evaluating content overlap. The transform-sensitive boundary probe now passes, so central, PlacementModeHud, and ResearchDetailPane contracts remain **12/12**.
+- Fresh build/capture/comparator retains exact grip geometry: `22x22`, right/bottom `19/19`, median delta `0`, and **13/13 PASS**. E2E TypeScript compile passes; `GamePanel/style.module.css` remains exactly 200 lines.
+
 ### Task 5 visual iteration round 5
 
 - Changed exactly `--craft-grip-face`: `rgb(146 148 167 / 98%)` -> `rgb(134 136 152 / 98%)`; no size/inset/tab/path/CSS/other-token change.
