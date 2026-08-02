@@ -1,0 +1,72 @@
+diff --git a/moorestech_client/Assets/Scripts/Client.Toast/ToastPresenter.cs b/moorestech_client/Assets/Scripts/Client.Toast/ToastPresenter.cs
+new file mode 100644
+index 000000000..b1c2d3e4f
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Toast/ToastPresenter.cs
+@@ -0,0 +1,32 @@
++using System.Collections.Generic;
++using UnityEngine;
++
++namespace Client.Toast
++{
++    // 画面右下にトーストを積んで一定時間後に消す表示役
++    // Stacks toasts at the bottom-right and hides them after a duration
++    public class ToastPresenter : MonoBehaviour
++    {
++        // 表示時間未指定時の既定値（秒）
++        // Default display duration in seconds when unspecified
++        public const float DefaultDurationSeconds = 3f;
++
++        [SerializeField] private ToastView toastViewPrefab;
++
++        private readonly List<ToastView> _activeToasts = new();
++
++        public void Show(string message, float durationSeconds)
++        {
++            // トーストを生成し、指定秒数後の自動クローズを予約する
++            // Spawn a toast and schedule auto-close after the duration
++            var toastView = Instantiate(toastViewPrefab, transform);
++            toastView.SetMessage(message);
++            toastView.ScheduleClose(durationSeconds);
++            _activeToasts.Add(toastView);
++        }
++
++        public void SetVisible(bool visible)
++        {
++            gameObject.SetActive(visible);
++        }
++    }
++}
+diff --git a/moorestech_client/Assets/Scripts/Client.Toast/NotificationRouter.cs b/moorestech_client/Assets/Scripts/Client.Toast/NotificationRouter.cs
+new file mode 100644
+index 000000000..c2d3e4f5a
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Toast/NotificationRouter.cs
+@@ -0,0 +1,28 @@
++using UniRx;
++
++namespace Client.Toast
++{
++    // 通知イベントを購読してトースト表示へ振り分ける
++    // Subscribes to notification events and routes them to toasts
++    public class NotificationRouter
++    {
++        private readonly ToastPresenter _toastPresenter;
++
++        public NotificationRouter(ToastPresenter toastPresenter, IObservable<NotificationRequest> onNotification)
++        {
++            _toastPresenter = toastPresenter;
++            onNotification.Subscribe(HandleNotification);
++        }
++
++        private void HandleNotification(NotificationRequest request)
++        {
++            // 表示時間未指定なら既定値で補完してから表示役へ渡す
++            // Fill the default duration when unspecified, then hand off to the presenter
++            var durationSeconds = request.DurationSeconds ?? ToastPresenter.DefaultDurationSeconds;
++            _toastPresenter.Show(request.Message, durationSeconds);
++        }
++    }
++
++    public record NotificationRequest(string Message, float? DurationSeconds);
++}

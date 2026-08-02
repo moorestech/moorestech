@@ -4,13 +4,17 @@ using UnityEngine.InputSystem;
 namespace Client.Input
 {
     /// <summary>
-    ///     InputSystemを優先しlegacy Inputへフォールバックするハイブリッド入力読み取り
-    ///     Hybrid input reader that prefers the Input System and falls back to legacy Input
+    ///     InputSystemが使えるならInputSystemのみを読み、不在時だけlegacy Inputへフォールバックする入力読み取り
+    ///     Input reader that reads only the Input System when available, falling back to legacy Input only when absent
     ///
     ///     QueueStateEvent注入（プレイテスト）と実機の物理入力を同一経路で扱うための移行層。
     ///     legacy UnityEngine.Input直読みはInputSystemイベント注入で駆動できないため、ここを経由する。
+    ///     両系統のOR読みは禁止: Windows実機では同一押下がWM_INPUTとWM_KEYDOWNで別フレームに帰属し、
+    ///     Down判定が2回発火してトグルUIが開いた直後に閉じる実害があった（2026-07-31）。
     ///     Migration layer letting QueueStateEvent injection (playtests) and real hardware share one path.
     ///     Direct legacy UnityEngine.Input reads cannot be driven by Input System event injection, so go through here.
+    ///     Never OR-read both backends: on Windows one physical press lands on different frames via WM_INPUT vs
+    ///     WM_KEYDOWN, firing Down twice and instantly closing toggle UIs (observed 2026-07-31).
     /// </summary>
     public static class HybridInput
     {
@@ -24,33 +28,37 @@ namespace Client.Input
         public static bool GetKeyDown(KeyCode keyCode)
         {
             var key = ToInputSystemKey(keyCode);
-            var inputSystemPressed = key.HasValue && Keyboard.current != null && Keyboard.current[key.Value].wasPressedThisFrame;
-            return Suppress(inputSystemPressed || UnityEngine.Input.GetKeyDown(keyCode), InputSuppressionScope.Keyboard);
+            var pressed = key.HasValue && Keyboard.current != null
+                ? Keyboard.current[key.Value].wasPressedThisFrame
+                : UnityEngine.Input.GetKeyDown(keyCode);
+            return Suppress(pressed, InputSuppressionScope.Keyboard);
         }
 
         public static bool GetKey(KeyCode keyCode)
         {
             var key = ToInputSystemKey(keyCode);
-            var inputSystemHeld = key.HasValue && Keyboard.current != null && Keyboard.current[key.Value].isPressed;
-            return Suppress(inputSystemHeld || UnityEngine.Input.GetKey(keyCode), InputSuppressionScope.Keyboard);
+            var held = key.HasValue && Keyboard.current != null
+                ? Keyboard.current[key.Value].isPressed
+                : UnityEngine.Input.GetKey(keyCode);
+            return Suppress(held, InputSuppressionScope.Keyboard);
         }
 
         public static bool GetMouseButtonDown(int button)
         {
             var control = GetMouseButtonControl(button);
-            return (control != null && control.wasPressedThisFrame) || UnityEngine.Input.GetMouseButtonDown(button);
+            return control != null ? control.wasPressedThisFrame : UnityEngine.Input.GetMouseButtonDown(button);
         }
 
         public static bool GetMouseButtonUp(int button)
         {
             var control = GetMouseButtonControl(button);
-            return (control != null && control.wasReleasedThisFrame) || UnityEngine.Input.GetMouseButtonUp(button);
+            return control != null ? control.wasReleasedThisFrame : UnityEngine.Input.GetMouseButtonUp(button);
         }
 
         public static bool GetMouseButton(int button)
         {
             var control = GetMouseButtonControl(button);
-            return (control != null && control.isPressed) || UnityEngine.Input.GetMouseButton(button);
+            return control != null ? control.isPressed : UnityEngine.Input.GetMouseButton(button);
         }
 
         private static bool Suppress(bool value, InputSuppressionScope scope)

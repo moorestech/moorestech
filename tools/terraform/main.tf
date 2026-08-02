@@ -139,7 +139,7 @@ resource "null_resource" "deploy" {
   provisioner "remote-exec" {
     inline = [
       "mkdir -p ~/moorestech_server",
-      "mkdir -p ~/game",
+      "mkdir -p ~/moorestech_server/game",
     ]
   }
 

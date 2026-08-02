@@ -129,6 +129,8 @@
       "backgroundColor": "#ffffff",
       "backgroundEnable": false,
       "blockEnable": false,
+      "mapObjectEnable": false,
+      "entityEnable": false,
       "id": 70
     },
     {
@@ -324,6 +326,8 @@
       "backgroundColor": "#ffffff",
       "backgroundEnable": true,
       "blockEnable": true,
+      "mapObjectEnable": true,
+      "entityEnable": true,
       "id": 71
     },
     {

@@ -4,7 +4,9 @@ using System.Threading;
 using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
+using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.Skit.Lifecycle;
@@ -35,6 +37,8 @@ namespace Client.Game.Skit
         [Inject] private ISkitActionController _skitActionController;
         [Inject] private EnvironmentRoot environmentRoot;
         [Inject] private BlockGameObjectDataStore blockGameObjectDataStore;
+        [Inject] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
+        [Inject] private EntityObjectDatastore entityObjectDatastore;
         [Inject] private IMapObjectPin mapObjectPin;
         
         public bool IsPlayingSkit { get; private set; }
@@ -145,6 +149,8 @@ namespace Client.Game.Skit
                 builder.RegisterInstance(characterContainer);
                 builder.RegisterInstance<ISkitEnvironmentRoot>(environmentRoot);
                 builder.RegisterInstance<ISkitBlockObjectControl>(blockGameObjectDataStore);
+                builder.RegisterInstance<ISkitMapObjectControl>(mapObjectGameObjectDatastore);
+                builder.RegisterInstance<ISkitEntityObjectControl>(entityObjectDatastore);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
                 builder.RegisterInstance<ISkitActionContext>(_skitActionController);
                 builder.RegisterInstance(new SkitPresentationMode(webUiMode));

@@ -1,5 +1,50 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(shell|local_shell|exec|exec_command|Bash)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".dev-hooks/beads-guard.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Guarding destructive bd commands"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".dev-hooks/decisions-index.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Loading decision ledger"
+          },
+          {
+            "type": "command",
+            "command": "node \".dev-hooks/beads-prime.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Loading beads context"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "matcher": "manual|auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".dev-hooks/beads-prime.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Refreshing beads context"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "^(Edit|Write|MultiEdit|NotebookEdit|apply_patch|str_replace_editor|str_replace_based_edit_tool)$",
@@ -9,6 +54,35 @@
             "command": "node \".dev-hooks/check-diff.mjs\"",
             "timeout": 15,
             "statusMessage": "Checking diff against project review rules"
+          },
+          {
+            "type": "command",
+            "command": "node \".dev-hooks/decisions-format-check.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Validating .decisions/ record format"
+          }
+        ]
+      },
+      {
+        "matcher": "^(shell|local_shell|exec|exec_command|Bash)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".dev-hooks/commit-map.mjs\" codex",
+            "timeout": 15,
+            "statusMessage": "Mapping commits to session"
+          },
+          {
+            "type": "command",
+            "command": "node \".dev-hooks/beads-sync-watch.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Watching beads sync health"
+          },
+          {
+            "type": "command",
+            "command": "node \".dev-hooks/logs-sync.mjs\"",
+            "timeout": 120,
+            "statusMessage": "Archiving session logs"
           }
         ]
       }

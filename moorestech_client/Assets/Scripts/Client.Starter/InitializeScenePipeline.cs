@@ -108,15 +108,13 @@ namespace Client.Starter
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
             var modalManager = new ModalManager();
 
-            // サーバー接続・アセットロード・シーンロードを並列実行し結果を受け取る
-            // Run server connection, asset load, and scene load in parallel and collect results
+            // サーバー接続とアセットロードを並列実行し結果を受け取る
+            // Run server connection and asset load in parallel and collect results
             var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingLog, loadingStopwatch, playerConnectionSetting);
             var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, loadingLog, loadingStopwatch);
-            var sceneLoader = new MainGameSceneLoader(loadingLog, loadingStopwatch);
 
             ServerConnectionResult serverResult;
             ModAssetLoadResult assetResult;
-            AsyncOperation sceneLoadTask;
             // mod CSV・サーバー通信・アセットロードという外部境界の失敗をまとめて隔離する
             // Isolate failures from the external boundaries: mod CSV, server communication, and asset loading
             try
@@ -125,7 +123,7 @@ namespace Client.Starter
                 // Merge game dictionaries in the same mod order after master loading
                 Localize.MergeGameDictionaries(ServerContext.GetService<global::Mod.Loader.ModsResource>());
 
-                (serverResult, assetResult, sceneLoadTask) = await UniTask.WhenAll(serverInitializer.RunAsync(), modAssetLoader.RunAsync(), sceneLoader.RunAsync());
+                (serverResult, assetResult) = await UniTask.WhenAll(serverInitializer.RunAsync(), modAssetLoader.RunAsync());
             }
             catch (Exception e)
             {
@@ -139,8 +137,12 @@ namespace Client.Starter
             MessagePackInitializer.Initialize();
             new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi, modalManager);
 
+            // シーンロードは全アセットロード完了後に直列実行する
+            // Load the scene serially, after every asset load has finished
+            // 0.9保持中は後続Addressablesロードが永久に待つため並列プリロード禁止
+            // Never preload in parallel: holding at 0.9 stalls later Addressables loads forever
             SceneManager.sceneLoaded += MainGameSceneLoaded;
-            sceneLoadTask.allowSceneActivation = true;
+            SceneManager.LoadSceneAsync(SceneConstant.MainGameSceneName, LoadSceneMode.Single);
 
             #region Internal
 

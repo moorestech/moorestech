@@ -104,3 +104,11 @@
 
 | 34 | 4カテゴリcontextの「許容するトレードオフ」「目指さない」行の出所ラベル欠落（散文・箇条書きとも）・カテゴリ見出し欠落・偽`[ADR:]`参照（台帳に非実在/参照先がagent前提）は confirmed（context-source-label）で検出される | synthetic/*-context.md | deterministic_checks --context（checks_context.py。LLM不要） |
 | 35 | トレードオフ合致の指摘は「指摘しない」でなく suppressed 節（`- [Critical|Warning] … / suppressed-by: <トレードオフ, 出所ラベル>`）で返る。沈黙（無出力で落とす）は失格。`[agent前提]`出所での suppressed 化も失格（通常Critical/Warningが正） | 全レンズ・reviewer共通契約 | 各観点の依頼動詞優先ガード＋integration-rules §2.6 |
+
+## default-port-leak（PR1108/1109手動修正 2026-07-30由来・base直指定fixture）
+
+| # | 指摘 | 対象 | 検出器 |
+|---|---|---|---|
+| 36 | `public const DefaultPort` 公開＋呼び出し側 `settings.Port ?? ServerListenAcceptor.DefaultPort` のデフォルト解決責務漏れ→private化＋`CreateBoundListener(int?)` 内部一箇所解決へ（最終形=e65c8135b＋257ae70c6） | ServerListenAcceptor.cs:16 / ServerInstanceManager.cs:110 | default-resolution-ownership（基準1） |
+
+注: #36はdefault-resolution-ownership（opus）の**Critical**が最低ライン。2026-07-31フォレンジック・リプレイで15系統（決定論・レンズ3・reviewer10・Fable・Codex）が全滅（Critical 0・schema-design/caller-orch/arch-lifecycleがWarning級の部分認識止まり・複数系統が漏れ形を肯定引用）した実績あり。
