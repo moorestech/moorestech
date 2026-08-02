@@ -129,8 +129,6 @@ namespace Client.Starter
             }
             catch (Exception e)
             {
-                // 失敗時はローディングを打ち切りメインメニューへ戻す
-                // On failure, abort loading and fall back to the main menu
                 Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 return;
