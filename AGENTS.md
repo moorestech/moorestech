@@ -139,7 +139,11 @@ partialは禁止。如何なる条件でもpartialを絶対に使ってはいけ
 - **汎用基盤にドメイン語彙を持ち込まない。** 基底コンポーネント・共通サービス・Master・Templateは上位の業務概念（アイドル・採掘中等）や`Func<bool>`述語を知らない。判断は具体側で行い、基盤には`SetHoge(値)`でプッシュする
 - **状態変化の検知は購読で。** `Update()`内で毎tickの同値判定をしない。UniRxの変化通知をSubscribeするか、変化を起こす操作の直後にプッシュする。`Update()`は物理進行（搬送・採掘進捗）専用
 - **着手前に前例を探す。** 同形の問題を解いている既存実装を検索し、そのパターンに従う。前例は機構でなく役割で選び、逸脱するなら理由を明記して裁定に出す。サーバー可変状態のクライアント同期は「イベントパケット＋初期データ＋購読」の3点セットが標準
-- 実装前チェックリスト: `.claude/skills/moores-code-review/references/lens-digest.md`／PR前レビュー: moores-code-review スキル
+- 実装前チェックリスト: `.agents/skills/moores-code-review/references/lens-digest.md`／PR前レビュー: moores-code-review スキル
+
+# スキル配置と実行記録
+- スキルのgit正本は `.agents/skills/` のみ。`.claude/skills` と `.codex/skills` はそこへのsymlink（tracked）。ミラー実体の複製・CI同期は禁止（マージ衝突が3倍になるため廃止済み）
+- レビュー実行記録（moores-code-reviewのrecords/eval-log、pr-independent-reviewのrecords/シャドー台帳）はコードrepoに置かず `/Users/katsumi/moorestech_logs/harness/` へ書く。featureブランチで記録ファイルをコミットしない
 
 # コーディングにおける重要な原則
 - 長くてもいいから適切な名前のクラス名、変数名をつける

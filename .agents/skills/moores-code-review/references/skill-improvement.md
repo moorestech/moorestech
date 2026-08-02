@@ -27,4 +27,4 @@ fable（precedent-alignment・Fable全般）とCodexは高コストな最後の�
 ## 有効性の測定（eval/）
 
 - **リプレイ評価**: `eval/fixtures.tsv` + `eval/make-fixture.sh` でレビュー当時のdiffを再生成し `eval/expected-findings.md` の期待検出と突合する。レンズ・reviewer・スクリプトを変更したら必ず1回流す。手順は `eval/README.md`。
-- **前向きログ**: マージ済みPRごとに `eval/log.md` へ「人間指摘数・分類・ハーネス事前検出の有無・却下数」を記録する。
+- **前向きログ**: マージ済みPRごとに `/Users/katsumi/moorestech_logs/harness/moores-code-review/eval-log.md` へ「人間指摘数・分類・ハーネス事前検出の有無・却下数」を記録する。

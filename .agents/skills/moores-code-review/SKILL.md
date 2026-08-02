@@ -146,7 +146,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 2. **保留した設計判断だけ**をAskUserQuestionで選択肢付き一括提示（0件ならスキップ）。回答に従い適用（§5の安全規則・検証を再適用）。
    - **載せてよいのは本質的な設計判断のみ**: アーキテクチャ・パターン選択（多態化/型分割/移動先クラス）・スコープ影響・両立不能な指摘、およびサブエージェントの `設計判断: あり` 項目。
    - **載せるの禁止**: コメントの短縮・文体（convention-guardが自己完結）、200行超過・ファイル分割（努力目標・報告のみ）。この2種は選択肢に混ぜた時点で規約違反。
-3. **レビュー記録を生成する** — `records/TEMPLATE.md` に従い `records/YYYY-MM-DD-<topic>.md` を書く（対象SHA2つ・系統別1行判定表・適用修正・AskUserQuestion裁定・破棄指摘・セッションID）。diff本体は保存せずbase/head SHAのみ（dirty込みなら注記＋`--stat`要約）。同ブランチの再レビューは`-r2`付き新ファイル。`eval/log.md` に集計1行＋記録への相対リンクを足す。
+3. **レビュー記録を生成する** — 記録はコードrepoでなく記録repo `$LOGS`（`/Users/katsumi/moorestech_logs`）へ書く（featureブランチが記録に触れてマージ衝突する構造を断つため。コードrepo側へ書き戻さない）。`$LOGS/harness/moores-code-review/records/TEMPLATE.md` に従い `$LOGS/harness/moores-code-review/records/YYYY-MM-DD-<topic>.md` を書く（対象SHA2つ・系統別1行判定表・適用修正・AskUserQuestion裁定・破棄指摘・セッションID）。diff本体は保存せずbase/head SHAのみ（dirty込みなら注記＋`--stat`要約）。同ブランチの再レビューは`-r2`付き新ファイル。`$LOGS/harness/moores-code-review/eval-log.md` に集計1行＋記録への相対リンクを足す。
 4. `/tmp` の一時ファイル（patch/context/audit/detchecks×2/最終diff）を削除する（記録生成の**後**に行う）。
 
 ## モデル割り当て
@@ -167,7 +167,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **レンズ** — `select_lenses.py` の2列目（各レンズ先頭YAMLの `model`）をそのまま渡す。
 - **reviewer** — `select_reviewers.py` の2列目（正は `scripts/model_map.json`。未記載reviewerはopus、`sonnet` 記載のみsonnet）。
 - **Fable全般** — `model: "fable"` 固定。**比較演算子verifier・comment-convention-guard** — `sonnet`。**comment-rationale-guard** — `opus`（WHY判定は高ステークス）。
-- **investigator（分割深掘り調査）** — 各 `investigators/*.md` 先頭YAMLの `model` が正（2026-08-03精度調査で決定。経緯は `eval/log.md`）。
+- **investigator（分割深掘り調査）** — 各 `investigators/*.md` 先頭YAMLの `model` が正（2026-08-03精度調査で決定。経緯は `$LOGS/harness/moores-code-review/eval-log.md`）。
 - Codex監査は別CLIなので対象外。
 
 ## スキル自体の改善
