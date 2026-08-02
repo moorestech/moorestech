@@ -52,20 +52,32 @@ public class BuildPipeline
 
         // ローカル配布用: 同梱失敗は即失敗・ゲームデータ必須
         // Local distribution: bundling problems fail the build and game data is mandatory
-        Execute(new PlayerBuildRequest
+        var outcome = Execute(new PlayerBuildRequest
         {
             Target = buildTarget,
             OutputDirectory = outputDirectory,
             IsDevelopmentBuild = isDevelopmentBuild,
             IsStrictBundling = true,
             BundleLocalGameData = true,
-            ExitOnFinish = false,
         });
 
-        EditorUtility.RevealInFinder(outputDirectory);
+        // 失敗した成果物をFinderで開いて成功に見せない
+        // Never reveal a failed artifact as if the build had succeeded
+        switch (outcome)
+        {
+            case PlayerBuildOutcome.Succeeded:
+                EditorUtility.RevealInFinder(outputDirectory);
+                break;
+            case PlayerBuildOutcome.AddressablesBuildFailed:
+                EditorUtility.DisplayDialog("Build Failed", "Addressablesのビルドに失敗しました。Consoleのエラーを確認してください。", "OK");
+                break;
+            case PlayerBuildOutcome.PlayerBuildFailed:
+                EditorUtility.DisplayDialog("Build Failed", "Playerのビルドに失敗しました。Consoleのエラーを確認してください。", "OK");
+                break;
+        }
     }
 
-    private static void Execute(PlayerBuildRequest request)
+    private static PlayerBuildOutcome Execute(PlayerBuildRequest request)
     {
         Debug.Log("Build Start Time : " + DateTime.Now);
         var buildStartTime = DateTime.Now;
@@ -89,8 +101,7 @@ public class BuildPipeline
         if (!string.IsNullOrEmpty(addressablesResult.Error))
         {
             Debug.LogError("Addressables Build Failed: " + addressablesResult.Error);
-            if (request.ExitOnFinish) EditorApplication.Exit(1);
-            return;
+            return PlayerBuildOutcome.AddressablesBuildFailed;
         }
         Debug.Log("Addressables Build Succeeded: " + addressablesResult.OutputPath);
 
@@ -110,19 +121,25 @@ public class BuildPipeline
         Debug.Log("Build Finish Time : " + DateTime.Now);
         Debug.Log("Build Time : " + (DateTime.Now - buildStartTime).ToString(@"hh\:mm\:ss"));
 
-        if (request.ExitOnFinish) EditorApplication.Exit(report.summary.result == BuildResult.Succeeded ? 0 : 1);
-    }
+        return report.summary.result == BuildResult.Succeeded
+            ? PlayerBuildOutcome.Succeeded
+            : PlayerBuildOutcome.PlayerBuildFailed;
 
-    private static string PlayerExecutableName(BuildTarget buildTarget)
-    {
-        // OSごとの配布実行ファイル名を明示する
-        // Explicit per-OS distributable executable name
-        switch (buildTarget)
+        #region Internal
+
+        string PlayerExecutableName(BuildTarget target)
         {
-            case BuildTarget.StandaloneWindows64: return "moorestech.exe";
-            case BuildTarget.StandaloneOSX: return "moorestech.app";
-            default: return "moorestech";
+            // OSごとの配布実行ファイル名を明示する
+            // Explicit per-OS distributable executable name
+            switch (target)
+            {
+                case BuildTarget.StandaloneWindows64: return "moorestech.exe";
+                case BuildTarget.StandaloneOSX: return "moorestech.app";
+                default: return "moorestech";
+            }
         }
+
+        #endregion
     }
 
     #region from Github Action
@@ -146,15 +163,16 @@ public class BuildPipeline
     {
         // CI入口: 現行契約を維持（Output_<target>固定・警告のみの同梱・ゲームデータ無し）
         // CI entry keeps the current contract: fixed Output_<target>, warn-only bundling, no game data
-        Execute(new PlayerBuildRequest
+        var outcome = Execute(new PlayerBuildRequest
         {
             Target = buildTarget,
             OutputDirectory = "Output_" + buildTarget,
             IsDevelopmentBuild = true,
             IsStrictBundling = false,
             BundleLocalGameData = false,
-            ExitOnFinish = true,
         });
+
+        EditorApplication.Exit(outcome == PlayerBuildOutcome.Succeeded ? 0 : 1);
     }
 
     #endregion

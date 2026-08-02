@@ -121,11 +121,10 @@ namespace Client.WebUiHost.Vite
                     RedirectStandardError = true,
                     CreateNoWindow = true,
                 };
-                // 不正UTF-8のenvを除外してからPATHを整える
-                // Sanitize corrupted env entries before adjusting PATH
+                // 不正UTF-8のenvを除外してから node bin を PATH 先頭へ足す
+                // Sanitize corrupted env entries, then prepend the node bin dir to PATH
                 SanitizedProcessEnvironment.Sanitize(psi);
-                var nodeBinDir = Path.GetDirectoryName(nodePath);
-                psi.Environment["PATH"] = $"{nodeBinDir}{Path.PathSeparator}{Environment.GetEnvironmentVariable("PATH")}";
+                SanitizedProcessEnvironment.PrependPath(psi, Path.GetDirectoryName(nodePath));
                 // 実ポートをvite proxy先へ注入
                 // Inject the actual Kestrel port into the vite.config.ts proxy target
                 psi.Environment["MOORESTECH_BACKEND_PORT"] = kestrelPort.ToString();

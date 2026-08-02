@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEditor.Build;
 using UnityEngine;
 
@@ -9,6 +9,10 @@ using UnityEngine;
 /// </summary>
 public static class GameDataBundler
 {
+    // OS由来のゴミはサーバーが読まないので同梱しない
+    // OS junk files are never read by the server, so they do not ship
+    private static readonly IReadOnlyList<string> ExcludedFileNames = new[] { ".DS_Store" };
+
     public static void Bundle(string outputDirectory, bool isStrict)
     {
         // 正本は隣接リポジトリの ../moorestech_master/server_v8
@@ -17,7 +21,7 @@ public static class GameDataBundler
 
         // 必須構成（config/map/mods）が欠けた成果物を出さない
         // Never ship an artifact missing the required config/map/mods layout
-        var missingPath = FindMissingRequiredPath(sourceDirectory);
+        var missingPath = FindMissingRequiredPath();
         if (missingPath != string.Empty)
         {
             if (isStrict) throw new BuildFailedException($"[GameDataBundler] required game data is missing: {missingPath}");
@@ -26,41 +30,29 @@ public static class GameDataBundler
         }
 
         var destinationDirectory = Path.Combine(outputDirectory, "game");
-        if (Directory.Exists(destinationDirectory)) Directory.Delete(destinationDirectory, true);
+        var copiedFileCount = DirectoryProcessor.CopyAndReplace(sourceDirectory, destinationDirectory, ExcludedFileNames);
+        Debug.Log($"[GameDataBundler] bundled game data: {copiedFileCount} files at {destinationDirectory}");
 
-        // OS由来のゴミを除いて全体をコピーする
-        // Copy the whole tree, excluding OS junk files
-        var copiedFileCount = 0;
-        foreach (var sourceFile in Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories))
+        #region Internal
+
+        string FindMissingRequiredPath()
         {
-            if (Path.GetFileName(sourceFile) == ".DS_Store") continue;
-            var relativePath = sourceFile.Substring(sourceDirectory.Length + 1);
-            var destinationFile = Path.Combine(destinationDirectory, relativePath);
-            Directory.CreateDirectory(Path.GetDirectoryName(destinationFile));
-            File.Copy(sourceFile, destinationFile, true);
-            copiedFileCount++;
+            if (!Directory.Exists(sourceDirectory)) return sourceDirectory;
+
+            var mapJson = Path.Combine(sourceDirectory, "map", "map.json");
+            if (!File.Exists(mapJson)) return mapJson;
+
+            var modsDirectory = Path.Combine(sourceDirectory, "mods");
+            if (!Directory.Exists(modsDirectory)) return modsDirectory;
+
+            // ランタイムのLocalize.csが読むのはconfig/localization.csvの1点だけ
+            // Localize.cs at runtime reads exactly one file: config/localization.csv
+            var localizationCsv = Path.Combine(sourceDirectory, "config", "localization.csv");
+            if (!File.Exists(localizationCsv)) return localizationCsv;
+
+            return string.Empty;
         }
 
-        Debug.Log($"[GameDataBundler] bundled game data: {copiedFileCount} files at {destinationDirectory}");
-    }
-
-    private static string FindMissingRequiredPath(string sourceDirectory)
-    {
-        if (!Directory.Exists(sourceDirectory)) return sourceDirectory;
-
-        var mapJson = Path.Combine(sourceDirectory, "map", "map.json");
-        if (!File.Exists(mapJson)) return mapJson;
-
-        var modsDirectory = Path.Combine(sourceDirectory, "mods");
-        if (!Directory.Exists(modsDirectory)) return modsDirectory;
-
-        // ローカライズはmod直下のlocalization/localization.csvが正（旧config/は廃止済み）
-        // Localization lives at localization/localization.csv inside each mod (legacy config/ is gone)
-        var hasModLocalization = Directory
-            .GetDirectories(modsDirectory)
-            .Any(modDirectory => File.Exists(Path.Combine(modDirectory, "localization", "localization.csv")));
-        if (!hasModLocalization) return Path.Combine(modsDirectory, "*", "localization", "localization.csv");
-
-        return string.Empty;
+        #endregion
     }
 }

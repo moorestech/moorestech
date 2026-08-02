@@ -134,10 +134,10 @@ namespace Client.Starter
             MessagePackInitializer.Initialize();
             new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi, modalManager);
 
-            // シーンロードは全アセットロード完了後に直列実行する。allowSceneActivation=falseで0.9保持中は
-            // 後続のAddressablesロードがAsyncOperationキューでブロックされ永久に完了しないため、並列プリロードは禁止
-            // Load the scene serially after all asset loads finish. While a scene is held at 0.9 with
-            // allowSceneActivation=false, later Addressables loads stall forever in the AsyncOperation queue, so never preload in parallel
+            // シーンロードは全アセットロード完了後に直列実行する
+            // Load the scene serially, after every asset load has finished
+            // 0.9保持中は後続Addressablesロードが永久に待つため並列プリロード禁止
+            // Never preload in parallel: holding at 0.9 stalls later Addressables loads forever
             SceneManager.sceneLoaded += MainGameSceneLoaded;
             SceneManager.LoadSceneAsync(SceneConstant.MainGameSceneName, LoadSceneMode.Single);
 

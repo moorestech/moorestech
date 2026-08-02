@@ -34,25 +34,7 @@ namespace Client.WebUiHost.Editor
             // 不正UTF-8のenvを除外してから、必要なPATH先頭追加を行う
             // Sanitize corrupted env entries first, then prepend the required PATH directory
             SanitizedProcessEnvironment.Sanitize(startInfo);
-            if (!string.IsNullOrEmpty(prependPathDirectory))
-            {
-                // Windowsでは継承キーが"Path"のため、大小無視で既存キーを特定しないと重複キーになり子に無視される
-                // On Windows the inherited key is "Path"; resolve it case-insensitively or a duplicate key gets ignored by children
-                var pathKey = "PATH";
-                foreach (var key in startInfo.Environment.Keys)
-                {
-                    if (string.Equals(key, "PATH", StringComparison.OrdinalIgnoreCase))
-                    {
-                        pathKey = key;
-                        break;
-                    }
-                }
-
-                startInfo.Environment.TryGetValue(pathKey, out var currentPath);
-                startInfo.Environment[pathKey] = string.IsNullOrEmpty(currentPath)
-                    ? prependPathDirectory
-                    : $"{prependPathDirectory}{Path.PathSeparator}{currentPath}";
-            }
+            SanitizedProcessEnvironment.PrependPath(startInfo, prependPathDirectory);
 
             // 外部プロセス起動は例外を返す境界のため、ここに限りcatchして終了コードへ変換する
             // Process spawning is an external boundary; only here we catch and convert failures into an exit code
@@ -84,7 +66,7 @@ namespace Client.WebUiHost.Editor
                 process.BeginErrorReadLine();
                 process.WaitForExit();
 
-                if (process.ExitCode != 0 && errorText.Length > 0)
+                if (process.ExitCode != 0 && 0 < errorText.Length)
                 {
                     Debug.LogError($"[EditorProcessRunner] '{fileName} {arguments}' exited with {process.ExitCode}\n{errorText}");
                 }

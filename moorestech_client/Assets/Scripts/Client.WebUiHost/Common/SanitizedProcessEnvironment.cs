@@ -6,8 +6,8 @@ using Debug = UnityEngine.Debug;
 namespace Client.WebUiHost.Common
 {
     /// <summary>
-    /// 子プロセスへ渡す環境変数から不正UTF-8由来のエントリだけを除外する
-    /// Drops only the env entries corrupted by invalid UTF-8 before they reach child processes
+    /// 子プロセスへ渡す環境変数を組み立てる（不正UTF-8エントリの除外とPATH先頭追加）
+    /// Builds the env handed to child processes: drops invalid-UTF-8 entries and prepends PATH directories
     /// エージェントハーネス等が注入した環境変数（例: HERMES_SESSION_CHAT_NAME）がマルチバイト境界で
     /// 切り詰められると不正なバイト列になり、node等の子プロセスがenvパースで死ぬことがある。
     /// 正常な変数はすべて素通しし、除外時は必ず変数名を警告ログに出す。
@@ -60,6 +60,30 @@ namespace Client.WebUiHost.Common
             }
         }
 
+        public static void PrependPath(ProcessStartInfo startInfo, string directory)
+        {
+            if (string.IsNullOrEmpty(directory)) return;
+
+            // Windowsでは継承キーが"Path"のため、大小無視で既存キーを特定しないと重複キーになり子に無視される
+            // On Windows the inherited key is "Path"; resolve it case-insensitively or a duplicate key gets ignored by children
+            var pathKey = "PATH";
+            foreach (var key in startInfo.Environment.Keys)
+            {
+                if (string.Equals(key, "PATH", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    pathKey = key;
+                    break;
+                }
+            }
+
+            // 浄化済みの辞書側から既存値を取る（親プロセスの生envを読み直すとSanitizeを迂回する）
+            // Read the existing value from the sanitized dictionary; re-reading the raw parent env would bypass Sanitize
+            startInfo.Environment.TryGetValue(pathKey, out var currentPath);
+            startInfo.Environment[pathKey] = string.IsNullOrEmpty(currentPath)
+                ? directory
+                : $"{directory}{System.IO.Path.PathSeparator}{currentPath}";
+        }
+
         // デコード不能バイトの痕跡（置換文字U+FFFD・孤立サロゲート）を検出する
         // Detects undecodable-byte markers: replacement char U+FFFD and lone surrogates
         private static bool ContainsUndecodableMarker(string text)
@@ -75,7 +99,7 @@ namespace Client.WebUiHost.Common
                 // A high surrogate is lone unless immediately followed by a low surrogate
                 if (char.IsHighSurrogate(character))
                 {
-                    if (i + 1 >= text.Length || !char.IsLowSurrogate(text[i + 1])) return true;
+                    if (text.Length <= i + 1 || !char.IsLowSurrogate(text[i + 1])) return true;
                     i++;
                     continue;
                 }

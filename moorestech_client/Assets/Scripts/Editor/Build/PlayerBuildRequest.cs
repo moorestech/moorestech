@@ -21,8 +21,15 @@ public class PlayerBuildRequest
     // ../moorestech_master/server_v8 を game/ として同梱するか（CI入口では行わない）
     // Whether to bundle ../moorestech_master/server_v8 as game/ (skipped for CI entries)
     public bool BundleLocalGameData;
+}
 
-    // バッチ実行入口では終了コードでUnityを終了させる
-    // Batch entries terminate Unity with an exit code
-    public bool ExitOnFinish;
+/// <summary>
+/// Playerビルド1回分の結果（入口はこれを見て成果物の扱いを決める）
+/// Result of one Player build; entries decide what to do with the artifact from this
+/// </summary>
+public enum PlayerBuildOutcome
+{
+    Succeeded,
+    AddressablesBuildFailed,
+    PlayerBuildFailed,
 }
