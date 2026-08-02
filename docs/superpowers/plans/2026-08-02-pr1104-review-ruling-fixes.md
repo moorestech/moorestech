@@ -35,10 +35,10 @@ spec: docs/plans/map-autogen-world-design.md
 
 **Files:**
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/MapData/TerrainTransferMetaMessagePack.cs`
-- Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/GetMapDataProtocol.cs:113-160`（ResponseMapDataMessagePack）
-- Modify: `moorestech_client/Assets/Scripts/Client.Starter/Initialization/TerrainDataFetcher.cs:31-72`
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Environment/Terrain/Build/GeneratedTerrainSource.cs:56-96`
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Environment/Terrain/TerrainRuntimeBuilder.cs:44-95`
+- Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/GetMapDataProtocol.cs`（ResponseMapDataMessagePack・113-160行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Starter/Initialization/TerrainDataFetcher.cs`（RunAsync・31-72行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Environment/Terrain/Build/GeneratedTerrainSource.cs`（CreateAsync・56-96行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Environment/Terrain/TerrainRuntimeBuilder.cs`（BuildAsync・44-95行）
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/GetMapDataTerrainMetaTest.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/GetMapDataProtocolTest.cs:91-99`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/GetMapDataTerrainChunkTest.cs:44-85`
@@ -239,8 +239,8 @@ git commit -m "refactor: Layout応答の地形メタ11フィールドをTerrainT
 
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapVein/IMapVeinRangeView.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapVein/MapVeinRangeViewService.cs:75-77`
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlaceBlockState.cs:44-78,99,138`
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapVein/MapVeinRangeViewService.cs`（ManualUpdate・75-77行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlaceBlockState.cs`（OnEnter/GetNextUpdate 99行/OnExit 138行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/FakeMapVeinRangeView.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/Map/MapVeinRangeViewMaterialReuseTest.cs:66,79-80`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/MapVeinOutcropAndRangeViewTest.cs:143-152`
@@ -385,7 +385,7 @@ git commit -m "refactor: 鉱脈範囲表示をShow(bool)の変化時プッシュ
 ### Task 3: スポーン探索結果のログ可視化（ADR#13・D6「設定ゼロでも世界は作られるべき」）
 
 **Files:**
-- Modify: `moorestech_server/Assets/Scripts/Game.MapGeneration/Pipeline/VanillaGenerator.cs:150-163`（`ResolveSpawnOffset`）
+- Modify: `moorestech_server/Assets/Scripts/Game.MapGeneration/Pipeline/VanillaGenerator.cs`（`ResolveSpawnOffset`・150-163行）
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/SpawnOffsetSceneSpaceTest.cs:22-40`
 
 **Interfaces:**
@@ -439,8 +439,8 @@ git commit -m "feat: スポーン探索の成否と診断を生成ログへ必�
 ### Task 4: 地表高さ探査を SlopeBlockPlaceSystem へ集約（ADR#14・「集約」）
 
 **Files:**
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/SlopeBlockPlaceSystem.cs:58-70`（`GetGroundPoint` 周辺）
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapVein/MapVeinObjectDatastore.cs:116-131`（`TryResolveGroundHeight`）＋関連定数・using
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/SlopeBlockPlaceSystem.cs`（`GetGroundPoint` 周辺・58-70行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapVein/MapVeinObjectDatastore.cs`（`TryResolveGroundHeight`・116-131行）＋関連定数・using
 - Test: 既存 `MapVeinOutcropAndRangeViewTest`（露頭のY座標=地表高さ検証が回帰テストになる。新規テスト不要）
 
 **Interfaces:**
@@ -530,11 +530,11 @@ git commit -m "refactor: 地表高さ探査をSlopeBlockPlaceSystem.TryGetGround
 
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/Common/IInitialEventApplyWaitTarget.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectGameObjectDatastore.cs:30-41,103-106`
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainFullSnapshotEventNetworkHandler.cs:31,79`
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapVein/MapVeinObjectDatastore.cs:42-52,137-140`
-- Modify: `moorestech_client/Assets/Scripts/Client.Starter/MainGameStarter.cs:279`
-- Modify: `moorestech_client/Assets/Scripts/Client.Starter/Initialization/MainGameInitializationFinalizer.cs:32-71`
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectGameObjectDatastore.cs`（該当: 32行のbool宣言・Construct・ループ末尾105行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Network/TrainFullSnapshotEventNetworkHandler.cs`（該当: 31行のbool宣言・79行のtrue代入）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapVein/MapVeinObjectDatastore.cs`（該当: Construct 42行〜・WaitForInitializationAsync 137行〜）
+- Modify: `moorestech_client/Assets/Scripts/Client.Starter/MainGameStarter.cs`（該当: 279行のDI登録）
+- Modify: `moorestech_client/Assets/Scripts/Client.Starter/Initialization/MainGameInitializationFinalizer.cs`（該当: FinalizeAsync/WaitAllInitialEventApplyAsync 全体）
 - Test: 既存 `MapVeinOutcropAndRangeViewTest` / `TerrainCacheFetchTest` / `TerrainVisualCacheReuseTest` / `PlaytestBootEnvironmentTest`（フルブート経路の回帰）
 
 **Interfaces:**
@@ -643,7 +643,7 @@ namespace Client.Game.Common
 
 - [ ] **Step 5: DI登録へ待機interfaceを追加する**
 
-`MainGameStarter.cs:279`: `builder.RegisterComponent(mapVeinObjectDatastore);` → `builder.RegisterComponent(mapVeinObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();`（直上278行のMapObject登録と同形）
+`MainGameStarter.cs`（該当: 279行のDI登録）: `builder.RegisterComponent(mapVeinObjectDatastore);` → `builder.RegisterComponent(mapVeinObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();`（直上278行のMapObject登録と同形）
 
 - [ ] **Step 6: Finalizerの順序を入れ替え、待機をWhenAll一本化する**
 
