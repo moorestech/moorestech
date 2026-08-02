@@ -67,7 +67,7 @@ namespace Tests.CombinedTest.Game
             // クランプ後に同値となる要求にも、確定値を毎回エコーする
             // Requests clamped to the same value still receive the authoritative echo
             equipmentInventory.SetSelectedEquipmentIndex(99);
-            equipmentInventory.SetSelectedEquipmentIndex(MasterHolder.ToolMaster.EquipmentSlotCount + 5);
+            equipmentInventory.SetSelectedEquipmentIndex(MasterHolder.ItemMaster.Items.EquipmentSlotCount + 5);
             Assert.AreEqual(4, updateCount);
         }
 

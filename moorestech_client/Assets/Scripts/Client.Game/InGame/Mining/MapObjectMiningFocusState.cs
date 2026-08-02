@@ -79,22 +79,21 @@ namespace Client.Game.InGame.Mining
             // Transition to mining state
             MouseCursorTooltip.Instance.Hide();
             return new MapObjectMiningMiningState(usableMiningTool, context.LocalPlayerEquipment.SelectedItem.Id);
-        }
-        
-        
-        private void ShowRecommendMiningTools(MiningToolsElement[] miningTools)
-        {
-            var result = new List<string>();
-            
-            foreach (var tool in miningTools)
+
+            #region Internal
+
+            void ShowRecommendMiningTools(MiningToolsElement[] tools)
             {
-                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(tool.ToolItemGuid);
-                result.Add(itemMaster.Name);
+                var toolNames = new List<string>();
+                foreach (var tool in tools)
+                {
+                    toolNames.Add(MasterHolder.ItemMaster.GetItemMaster(tool.ToolItemGuid).Name);
+                }
+
+                MouseCursorTooltip.Instance.Show("このアイテムが必要です:" + string.Join(", ", toolNames), isLocalize: false);
             }
-            
-            var text = "このアイテムが必要です:" + string.Join(", ",result);
-            
-            MouseCursorTooltip.Instance.Show(text, isLocalize: false);
+
+            #endregion
         }
     }
 }

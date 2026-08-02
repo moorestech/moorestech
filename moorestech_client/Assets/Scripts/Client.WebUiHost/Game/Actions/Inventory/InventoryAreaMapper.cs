@@ -28,7 +28,7 @@ namespace Client.WebUiHost.Game.Actions
                     return true;
                 // 装備は結合スロットではないため、枠数はマスタ由来の装備枠数で判定する
                 // Equipment is not part of the combined slots, so the bound is the master-derived equipment slot count
-                case "equipment" when 0 <= slot && slot < MasterHolder.ToolMaster.EquipmentSlotCount:
+                case "equipment" when 0 <= slot && slot < MasterHolder.ItemMaster.Items.EquipmentSlotCount:
                     type = LocalMoveInventoryType.Equipment;
                     localSlot = slot;
                     return true;

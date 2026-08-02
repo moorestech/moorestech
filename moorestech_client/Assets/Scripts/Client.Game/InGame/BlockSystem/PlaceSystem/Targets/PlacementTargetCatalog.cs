@@ -5,18 +5,16 @@ using Core.Master;
 using Game.Block.Interface.Extension;
 using Game.UnlockState;
 
-namespace Game.PlacementTarget
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
-    // ビルドメニューに並ぶ全設置対象（ブロック・車両・接続ツール・ビルドツール・ブループリント）をGuidで解決するカタログ
-    // Catalog resolving every build-menu placement target (block/train car/connect tool/build tool/blueprint) by Guid
+    // ビルドメニューに並ぶ全設置対象（ブロック・車両・接続ツール・BPコピー・ブループリント）をGuidで解決するカタログ
+    // Catalog resolving every build-menu placement target (block/train car/connect tool/blueprint copy/blueprint) by Guid
     public class PlacementTargetCatalog
     {
-        private readonly IBlueprintCatalogSource _blueprintSource;
         private readonly IReadOnlyList<PlacementTargetEntry> _masterEntries;
 
-        public PlacementTargetCatalog(IBlueprintCatalogSource blueprintSource)
+        public PlacementTargetCatalog()
         {
-            _blueprintSource = blueprintSource;
             _masterEntries = CreateMasterEntries();
 
             // Guid単体解決の誤配線を防ぐため、全種別で衝突を拒否する
@@ -42,7 +40,7 @@ namespace Game.PlacementTarget
                 foreach (var connectTool in MasterHolder.ConnectToolMaster.All.OrderBy(connectTool => connectTool.SortPriority))
                     entries.Add(new PlacementTargetEntry(connectTool.ConnectToolGuid, PlacementTargetKind.ConnectTool, connectTool.Name));
                 foreach (var buildTool in MasterHolder.BuildToolMaster.All)
-                    entries.Add(new PlacementTargetEntry(buildTool.BuildToolGuid, PlacementTargetKind.BuildTool, buildTool.Name));
+                    entries.Add(new PlacementTargetEntry(buildTool.BuildToolGuid, PlacementTargetKind.BlueprintCopy, buildTool.Name));
                 return entries;
             }
 
@@ -62,13 +60,13 @@ namespace Game.PlacementTarget
             #endregion
         }
 
-        public IReadOnlyList<PlacementTargetEntry> CreateEntries()
+        public IReadOnlyList<PlacementTargetEntry> CreateEntries(IReadOnlyList<(Guid id, string name)> blueprintEntries)
         {
             // 検証済みマスタへ現行BPを追加
             // Append current blueprints to validated master entries
             var entries = new List<PlacementTargetEntry>(_masterEntries);
             var seenById = _masterEntries.ToDictionary(entry => entry.Id);
-            foreach (var (id, name) in _blueprintSource.BlueprintEntries)
+            foreach (var (id, name) in blueprintEntries)
             {
                 var entry = new PlacementTargetEntry(id, PlacementTargetKind.Blueprint, name);
                 ValidateBlueprintIdentity(entry, seenById);
@@ -93,10 +91,10 @@ namespace Game.PlacementTarget
 
         // uGUIとWebの判定ずれによる未解放対象の露出を防ぐ
         // Centralize this to prevent locked-target exposure from UI drift
-        public IReadOnlyList<PlacementTargetEntry> UnlockedEntries(IGameUnlockStateData unlockState, bool showAllPlaceable)
+        public IReadOnlyList<PlacementTargetEntry> UnlockedEntries(IGameUnlockStateData unlockState, bool showAllPlaceable, IReadOnlyList<(Guid id, string name)> blueprintEntries)
         {
             var entries = new List<PlacementTargetEntry>();
-            foreach (var entry in CreateEntries())
+            foreach (var entry in CreateEntries(blueprintEntries))
             {
                 if (IsUnlocked(entry)) entries.Add(entry);
             }
@@ -117,7 +115,7 @@ namespace Game.PlacementTarget
                         // 接続ツールは無料設置対象外
                         // Connect tools are excluded from free placement
                         return unlockState.ConnectToolUnlockStateInfos.TryGetValue(entry.Id, out var connectToolInfo) && connectToolInfo.IsUnlocked;
-                    case PlacementTargetKind.BuildTool:
+                    case PlacementTargetKind.BlueprintCopy:
                     case PlacementTargetKind.Blueprint:
                         return true;
                     default:

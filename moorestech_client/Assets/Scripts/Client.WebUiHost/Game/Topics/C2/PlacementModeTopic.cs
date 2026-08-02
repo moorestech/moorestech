@@ -1,10 +1,8 @@
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.UIState.State;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using UniRx;
 
@@ -38,43 +36,12 @@ namespace Client.WebUiHost.Game.Topics
 
         private string BuildJson()
         {
-            var selectedName = GetSelectedName();
             return WebUiJson.Serialize(new PlacementModeDto
             {
-                SelectedName = selectedName,
+                SelectedName = _controller.CurrentTarget?.DisplayName ?? "",
                 Height = _state.GetPlacementHeight(),
                 UnavailableReason = "",
             });
-
-            #region Internal
-
-            string GetSelectedName()
-            {
-                var target = _controller.CurrentTarget;
-                if (target == null) return "";
-                return target.Kind switch
-                {
-                    global::Game.PlacementTarget.PlacementTargetKind.Block =>
-                        MasterHolder.BlockMaster.GetBlockMaster(((BlockPlacementTarget)target).BlockId).Name,
-                    global::Game.PlacementTarget.PlacementTargetKind.Blueprint =>
-                        ((BlueprintPlacementTarget)target).DisplayName,
-                    global::Game.PlacementTarget.PlacementTargetKind.ConnectTool =>
-                        MasterHolder.ConnectToolMaster.GetElementOrNull(((ConnectToolPlacementTarget)target).ConnectToolGuid).Name,
-                    global::Game.PlacementTarget.PlacementTargetKind.TrainCar =>
-                        GetTrainCarMasterName((TrainCarPlacementTarget)target),
-                    global::Game.PlacementTarget.PlacementTargetKind.BuildTool =>
-                        MasterHolder.BuildToolMaster.GetBuildTool(target.Id).Name,
-                    _ => throw new ArgumentOutOfRangeException(nameof(target.Kind), target.Kind, null),
-                };
-            }
-
-            string GetTrainCarMasterName(TrainCarPlacementTarget target)
-            {
-                MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(target.TrainCarGuid, out var trainCar);
-                return trainCar.Name;
-            }
-
-            #endregion
         }
     }
 

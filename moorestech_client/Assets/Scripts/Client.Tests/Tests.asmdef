@@ -37,7 +37,6 @@
         "Client.Skit",
         "Game.UnlockState",
         "Common.Debug",
-        "Game.PlacementTarget",
         "Game.Research",
         "VContainer"
     ],

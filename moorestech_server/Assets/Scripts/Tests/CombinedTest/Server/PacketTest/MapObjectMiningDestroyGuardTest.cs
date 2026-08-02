@@ -48,7 +48,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void 破壊済みへの採掘サービス呼び出しはForceDestroyもTryAttackも弾かれる()
+        public void 破壊済みへの採掘サービス呼び出しは弾かれる()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
@@ -56,13 +56,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             var equippedItem = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).EquipmentInventory.GetSelectedItem();
             var mapObject = GetMapObject();
 
-            // 破壊前の1回だけが成功する
-            // Only the single call before destruction succeeds
-            Assert.IsTrue(miningService.ForceDestroy(mapObject, out _));
+            // PickUpなので素手の1打で破壊される
+            // Being PickUp, a single bare-handed hit destroys it
+            Assert.AreEqual(MiningAttackResult.Success,
+                miningService.TryAttack(PlayerId, mapObject, equippedItem, out _));
 
-            // プロトコル層を経由せず直接叩いてもサービス側のガードが両経路を弾く
-            // Even called directly without the protocol layer, the service guard rejects both paths
-            Assert.IsFalse(miningService.ForceDestroy(mapObject, out _));
+            // プロトコル層を経由せず直接叩いてもサービス側のガードが弾く
+            // Even called directly without the protocol layer, the service guard rejects it
             Assert.AreEqual(MiningAttackResult.AlreadyDestroyed,
                 miningService.TryAttack(PlayerId, mapObject, equippedItem, out _));
 

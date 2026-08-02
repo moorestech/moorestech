@@ -1,12 +1,11 @@
 using System;
-using System.Linq;
 using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
-using Client.WebUiHost.Game.Topics.BuildMenu;
+using Common.Debug;
 using Cysharp.Threading.Tasks;
-using Game.PlacementTarget;
 using Game.UnlockState;
 using Newtonsoft.Json.Linq;
 
@@ -22,13 +21,15 @@ namespace Client.WebUiHost.Game.Actions
 
         private readonly UIStateControl _uiStateControl;
         private readonly IGameUnlockStateData _unlockState;
+        private readonly ClientBlueprintLibrary _blueprintLibrary;
         private readonly PlacementTargetCatalog _placementTargetCatalog;
         private readonly BuildMenuView _buildMenuView;
 
-        public BuildMenuSelectActionHandler(UIStateControl uiStateControl, IGameUnlockStateData unlockState, PlacementTargetCatalog placementTargetCatalog, BuildMenuView buildMenuView)
+        public BuildMenuSelectActionHandler(UIStateControl uiStateControl, IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary, PlacementTargetCatalog placementTargetCatalog, BuildMenuView buildMenuView)
         {
             _uiStateControl = uiStateControl;
             _unlockState = unlockState;
+            _blueprintLibrary = blueprintLibrary;
             _placementTargetCatalog = placementTargetCatalog;
             _buildMenuView = buildMenuView;
         }
@@ -45,15 +46,21 @@ namespace Client.WebUiHost.Game.Actions
 
             // 現在のカタログ（未解放を除外済み）とIdで照合し、削除済みBP等へのstaleクリックを弾く
             // Match by id against the current catalog (locked entries already excluded), rejecting stale clicks such as deleted blueprints
-            // Idはカタログ内で一意のためFirstOrDefaultで足りる（複数一致はそもそも起こり得ない）
-            // Id is unique within the catalog, so FirstOrDefault suffices (multiple matches can never occur)
-            var entries = WebBuildMenuEntryCatalog.CreateEntries(_unlockState, _placementTargetCatalog);
-            var matched = entries.FirstOrDefault(e => e.Target.Id == targetId);
-            if (matched.Target == null) return UniTask.FromResult(ActionResult.Fail("unknown_entry"));
+            // Idはカタログ内で一意のため最初の一致で足りる（複数一致はそもそも起こり得ない）
+            // Id is unique within the catalog, so the first match suffices (multiple matches can never occur)
+            var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
+            IPlacementTarget target = null;
+            foreach (var entry in _placementTargetCatalog.UnlockedEntries(_unlockState, showAllPlaceable, _blueprintLibrary.BlueprintEntries))
+            {
+                if (entry.Id != targetId) continue;
+                target = PlacementTargetFactory.Create(entry);
+                break;
+            }
+            if (target == null) return UniTask.FromResult(ActionResult.Fail("unknown_entry"));
 
-            // uGUIの消費キューへはターゲットとラベルのみ渡す（uGUI表示は使われない）
-            // Feed only the target and label into the uGUI consume queue (its visual display is unused)
-            _buildMenuView.SetSelectedEntry(new BuildMenuEntry(matched.Target, null, matched.Label));
+            // uGUIの消費キューへはターゲットのみ渡す（uGUI表示は使われない）
+            // Feed only the target into the uGUI consume queue (its visual display is unused)
+            _buildMenuView.SetSelectedEntry(new BuildMenuEntry(target, null, target.DisplayName));
             return UniTask.FromResult(ActionResult.Success());
         }
     }

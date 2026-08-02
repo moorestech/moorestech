@@ -40,7 +40,7 @@ namespace Client.WebUiHost.Game.Topics
             _subscription = new CompositeDisposable(
                 _controller.LocalPlayerInventory.OnItemChange.Subscribe(_ => SchedulePublish()),
                 _controller.OnInventoryRefreshed.Subscribe(_ => SchedulePublish()),
-                _equipment.OnChanged.Subscribe(_ => SchedulePublish()));
+                _equipment.OnSlotsOrSelectionChanged.Subscribe(_ => SchedulePublish()));
 
             // ホットバー選択が変わったら snapshot に含めて再配信する
             // Republish when the hotbar selection changes so the snapshot reflects it

@@ -34,13 +34,13 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 装備スロット数より多い個数でも、スタック上限までは1スロットに収まる
             // Even more than the slot count fits into a single slot up to the stack limit
-            var insertCount = MasterHolder.ToolMaster.EquipmentSlotCount + 2;
+            var insertCount = MasterHolder.ItemMaster.Items.EquipmentSlotCount + 2;
             playerInventory.MainOpenableInventory.SetItem(0, toolItemId, insertCount);
 
             packet.GetPacketResponse(MoveItemPacket(insertCount, 0, 0, ItemMoveType.InsertSlot), new PacketResponseContext(null));
 
             var equipmentInventory = playerInventory.EquipmentInventory;
-            Assert.AreEqual(MasterHolder.ToolMaster.EquipmentSlotCount, equipmentInventory.GetSlotSize());
+            Assert.AreEqual(MasterHolder.ItemMaster.Items.EquipmentSlotCount, equipmentInventory.GetSlotSize());
             Assert.AreEqual(toolItemId, equipmentInventory.GetItem(0).Id);
             Assert.AreEqual(insertCount, equipmentInventory.GetItem(0).Count);
             Assert.AreEqual(0, playerInventory.MainOpenableInventory.GetItem(0).Count);

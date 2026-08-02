@@ -24,8 +24,7 @@
         "UniRx",
         "Game.Train",
         "Game.PlayerRiding.Interface",
-        "Core.Item.Interface",
-        "Game.PlacementTarget"
+        "Core.Item.Interface"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

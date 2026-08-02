@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using Common.Debug;
-using Core.Item.Interface;
 using Game.Context;
 using Game.Map;
 using Game.PlayerInventory.Interface;
@@ -36,37 +33,24 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<GetMapObjectProtocolProtocolMessagePack>(payload);
 
             var mapObject = ServerContext.MapObjectDatastore.Get(data.InstanceId);
-
-            // 破壊済みへの打撃は何も起こさない。デバッグフラグ読みのファイルIOもここで打ち切る
-            // A hit on a destroyed object does nothing; this also cuts off the debug flag file IO
-            if (mapObject.IsDestroyed) return null;
-
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
             var equippedItem = playerInventory.EquipmentInventory.GetSelectedItem();
 
-            // ダメージ算出とクールダウン検証はサーバが握り、デバッグ高速採掘のときだけそれを飛ばす
-            // The server owns damage and cooldown resolution; only the debug super-mine flag skips it
-            List<IItemStack> earnedItems;
-            if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.MapObjectSuperMine))
+            // ダメージ算出もクールダウン検証もデバッグバイパスもサーバのサービス側が握る
+            // The server-side service owns damage resolution, cooldown validation, and the debug bypass
+            var result = _mapObjectMiningService.TryAttack(data.PlayerId, mapObject, equippedItem, out var earnedItems);
+            switch (result)
             {
-                if (!_mapObjectMiningService.ForceDestroy(mapObject, out earnedItems)) return null;
-            }
-            else
-            {
-                var result = _mapObjectMiningService.TryAttack(data.PlayerId, mapObject, equippedItem, out earnedItems);
-                switch (result)
-                {
-                    case MiningAttackResult.Success:
-                        break;
-                    case MiningAttackResult.AlreadyDestroyed:
-                    case MiningAttackResult.NoTool:
-                    case MiningAttackResult.ToolMismatch:
-                    case MiningAttackResult.CooldownNotElapsed:
-                        Debug.Log($"Mining attack rejected. playerId:{data.PlayerId} instanceId:{data.InstanceId} result:{result}");
-                        return null;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(result), result, null);
-                }
+                case MiningAttackResult.Success:
+                    break;
+                case MiningAttackResult.AlreadyDestroyed:
+                case MiningAttackResult.NoTool:
+                case MiningAttackResult.ToolMismatch:
+                case MiningAttackResult.CooldownNotElapsed:
+                    Debug.Log($"Mining attack rejected. playerId:{data.PlayerId} instanceId:{data.InstanceId} result:{result}");
+                    return null;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(result), result, null);
             }
 
             // HP更新イベントを送信（破壊されていない場合のみ）

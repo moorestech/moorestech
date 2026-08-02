@@ -1,22 +1,19 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Game.Context;
-using Game.PlacementTarget;
 using Game.UnlockState;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 
-namespace Tests.UnitTest.Game
+namespace Client.Tests.PlaceSystem
 {
     public class PlacementTargetCatalogUnlockTest
     {
-        private class EmptyBlueprintSource : IBlueprintCatalogSource
-        {
-            public IReadOnlyList<(Guid id, string name)> BlueprintEntries { get; } =
-                Array.Empty<(Guid id, string name)>();
-        }
+        // BPを1件も持たない状態
+        // The state with no blueprints at all
+        private static readonly (Guid id, string name)[] NoBlueprints = Array.Empty<(Guid, string)>();
 
         [SetUp]
         public void SetUp()
@@ -28,11 +25,11 @@ namespace Tests.UnitTest.Game
         [Test]
         public void showAllPlaceableはBlockとTrainCarだけを解放しConnectToolには影響しない()
         {
-            var catalog = new PlacementTargetCatalog(new EmptyBlueprintSource());
+            var catalog = new PlacementTargetCatalog();
             var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
-            var catalogEntries = catalog.CreateEntries();
-            var normalIds = catalog.UnlockedEntries(unlockState, false).Select(entry => entry.Id).ToHashSet();
-            var showAllIds = catalog.UnlockedEntries(unlockState, true).Select(entry => entry.Id).ToHashSet();
+            var catalogEntries = catalog.CreateEntries(NoBlueprints);
+            var normalIds = catalog.UnlockedEntries(unlockState, false, NoBlueprints).Select(entry => entry.Id).ToHashSet();
+            var showAllIds = catalog.UnlockedEntries(unlockState, true, NoBlueprints).Select(entry => entry.Id).ToHashSet();
             var catalogBlockIds = catalogEntries.Where(entry => entry.Kind == PlacementTargetKind.Block).Select(entry => entry.Id).ToHashSet();
             var catalogTrainCarIds = catalogEntries.Where(entry => entry.Kind == PlacementTargetKind.TrainCar).Select(entry => entry.Id).ToHashSet();
             var lockedBlocks = unlockState.BlockUnlockStateInfos.Where(pair => !pair.Value.IsUnlocked && catalogBlockIds.Contains(pair.Key)).ToList();

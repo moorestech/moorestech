@@ -1,6 +1,5 @@
 using System;
 using Core.Master;
-using Game.PlacementTarget;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -20,8 +19,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
                     return new TrainCarPlacementTarget(entry.Id);
                 case PlacementTargetKind.ConnectTool:
                     return new ConnectToolPlacementTarget(entry.Id);
-                case PlacementTargetKind.BuildTool:
-                    return new BuildToolPlacementTarget(entry.Id);
+                case PlacementTargetKind.BlueprintCopy:
+                    return new BlueprintCopyPlacementTarget(entry.Id);
                 case PlacementTargetKind.Blueprint:
                     return new BlueprintPlacementTarget(entry.Id, entry.MasterDisplayName);
                 default:

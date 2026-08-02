@@ -5,7 +5,7 @@ describe("BuildMenuEntryDataSchema", () => {
   it("id+kind契約をパースできる", () => {
     const entry = BuildMenuEntryDataSchema.parse({
       id: "3f8f6de0-0000-4000-8000-000000000001",
-      kind: "buildTool",
+      kind: "blueprintCopy",
       label: "ブループリントコピー",
       category: "ツール",
       subCategory: "ツール",

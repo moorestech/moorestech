@@ -6,13 +6,10 @@ using System.Linq;
 using System.Text;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
-using Common.Debug;
 using Client.Mod.Texture;
+using Common.Debug;
 using Core.Master;
-using Game.PlacementTarget;
 using Game.UnlockState;
-using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.TrainModule;
 
 namespace Client.Game.InGame.UI.BuildMenu
 {
@@ -22,7 +19,7 @@ namespace Client.Game.InGame.UI.BuildMenu
     /// </summary>
     public static class BuildMenuEntryCatalog
     {
-        public static List<BuildMenuEntry> CreateEntries(IGameUnlockStateData unlockState, PlacementTargetCatalog placementTargetCatalog)
+        public static List<BuildMenuEntry> CreateEntries(IGameUnlockStateData unlockState, PlacementTargetCatalog placementTargetCatalog, IReadOnlyList<(Guid id, string name)> blueprintEntries)
         {
             var entries = new List<BuildMenuEntry>();
 
@@ -30,83 +27,59 @@ namespace Client.Game.InGame.UI.BuildMenu
             // In free-placement debug mode, show every placeable block/train car including locked ones
             var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
 
-            // 共有カタログの列挙順（ブロック→車両→接続ツール→ビルドツール→BP）がそのまま表示順
-            // The shared catalog's order (blocks, train cars, connect tools, build tools, blueprints) is the display order
-            foreach (var entry in placementTargetCatalog.UnlockedEntries(unlockState, showAllPlaceable))
+            // 共有カタログの列挙順（ブロック→車両→接続ツール→BPコピー→BP）がそのまま表示順
+            // The shared catalog's order (blocks, train cars, connect tools, blueprint copy, blueprints) is the display order
+            foreach (var entry in placementTargetCatalog.UnlockedEntries(unlockState, showAllPlaceable, blueprintEntries))
             {
                 var target = PlacementTargetFactory.Create(entry);
-                entries.Add(CreateEntry(entry, target));
+                entries.Add(new BuildMenuEntry(target, ResolveIconView(target), CreateToolTip(target)));
             }
 
             return entries;
 
             #region Internal
 
-            BuildMenuEntry CreateEntry(PlacementTargetEntry entry, IPlacementTarget target)
+            // アイコンを持つのはブロック・車両・接続ツールだけで、BPとBPコピーはテキスト表示スロット
+            // Only blocks, train cars, and connect tools have icons; blueprints and the copy tool render as text-only slots
+            ItemViewData ResolveIconView(IPlacementTarget target)
             {
-                switch (entry.Kind)
+                switch (target)
                 {
-                    case PlacementTargetKind.Block:
-                    {
-                        var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(entry.Id);
-                        var iconView = ClientContext.BlockImageContainer.GetBlockView(MasterHolder.BlockMaster.GetBlockId(entry.Id));
-                        return new BuildMenuEntry(target, iconView, CreateBlockToolTip(blockMaster));
-                    }
-                    case PlacementTargetKind.TrainCar:
-                    {
-                        // カタログのGuidは車両マスタ由来のため必ず引ける
-                        // The catalog's guid always originates from the train car master, so this lookup always succeeds
-                        MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(entry.Id, out var trainCar);
-                        var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(entry.Id);
-                        return new BuildMenuEntry(target, iconView, CreateTrainCarToolTip(trainCar, iconView));
-                    }
-                    case PlacementTargetKind.ConnectTool:
-                    {
-                        // 接続ツールのアイコンはconnectToolのimagePath由来
-                        // The connect tool icon comes from the connectTool's imagePath
-                        var iconView = ClientContext.ConnectToolImageContainer.GetConnectToolView(entry.Id);
-                        return new BuildMenuEntry(target, iconView, entry.MasterDisplayName);
-                    }
-                    case PlacementTargetKind.BuildTool:
-                    case PlacementTargetKind.Blueprint:
-                        // ビルドツールとBPはアイコン無し（テキスト表示スロット）
-                        // Build tools and blueprints have no icon and render as text-only slots
-                        return new BuildMenuEntry(target, null, entry.MasterDisplayName);
+                    case BlockPlacementTarget block:
+                        return ClientContext.BlockImageContainer.GetBlockView(block.BlockId);
+                    case TrainCarPlacementTarget trainCar:
+                        return ClientContext.TrainCarImageContainer.GetTrainCarView(trainCar.TrainCarGuid);
+                    case ConnectToolPlacementTarget connectTool:
+                        return ClientContext.ConnectToolImageContainer.GetConnectToolView(connectTool.ConnectToolGuid);
                     default:
-                        // 未知のKindは型で排除する到達不能ケース
-                        // Unreachable: unknown Kind is excluded by the type
-                        throw new ArgumentOutOfRangeException();
+                        return null;
                 }
             }
 
-            string CreateBlockToolTip(BlockMasterElement blockMaster)
+            // ツールチップは表示名に建設コストを続けたもの。コストを持つのはブロックと車両だけ
+            // The tooltip is the display name followed by construction costs, which only blocks and train cars have
+            string CreateToolTip(IPlacementTarget target)
             {
-                var builder = new StringBuilder(blockMaster.Name);
-                AppendRequiredItems(builder, ConstructionCostTexts(blockMaster.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));
+                var builder = new StringBuilder(target.DisplayName);
+                switch (target)
+                {
+                    case BlockPlacementTarget block:
+                        AppendRequiredItems(builder, MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
+                        break;
+                    case TrainCarPlacementTarget trainCar:
+                        AppendRequiredItems(builder, MasterHolder.TrainUnitMaster.GetTrainCarMaster(trainCar.TrainCarGuid).RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
+                        break;
+                }
                 return builder.ToString();
             }
 
-            string CreateTrainCarToolTip(TrainCarMasterElement trainCar, ItemViewData iconView)
+            void AppendRequiredItems(StringBuilder builder, IEnumerable<(Guid itemGuid, int count)> requiredItems)
             {
-                // アイコン撮影時にModAssetIconLoaderが確定させた表示名をそのまま使う（trainCar.Nameとは別管理）
-                // Reuse the display name ModAssetIconLoader fixed at icon-capture time (tracked separately from trainCar.Name)
-                var builder = new StringBuilder(iconView.ItemName);
-                AppendRequiredItems(builder, ConstructionCostTexts(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));
-                return builder.ToString();
-            }
-
-            IEnumerable<string> ConstructionCostTexts(IEnumerable<(Guid itemGuid, int count)> requiredItems)
-            {
-                if (requiredItems == null) yield break;
+                if (requiredItems == null) return;
                 foreach (var (itemGuid, count) in requiredItems)
                 {
-                    yield return $"{MasterHolder.ItemMaster.GetItemMaster(itemGuid).Name} x{count}";
+                    builder.Append('\n').Append($"{MasterHolder.ItemMaster.GetItemMaster(itemGuid).Name} x{count}");
                 }
-            }
-
-            void AppendRequiredItems(StringBuilder builder, IEnumerable<string> costTexts)
-            {
-                foreach (var text in costTexts) builder.Append('\n').Append(text);
             }
 
             #endregion

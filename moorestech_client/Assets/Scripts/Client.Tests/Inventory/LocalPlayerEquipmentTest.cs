@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.UI.Inventory.Equipment;
@@ -17,7 +18,7 @@ using Server.Protocol;
 using Tests.CombinedTest.Server.PacketTest.Event;
 using Tests.Module.TestMod;
 using UniRx;
-using static Server.Protocol.PacketResponse.EquipmentProtocol;
+using static Server.Protocol.PacketResponse.SetSelectedEquipmentIndexProtocol;
 using static Server.Protocol.PacketResponse.PlayerInventoryResponseProtocol;
 
 namespace Client.Tests.Inventory
@@ -43,7 +44,7 @@ namespace Client.Tests.Inventory
             // Ensures equipment survives the response messagepack to client DTO conversion
             var clientResponse = new PlayerInventoryResponse(RequestInventoryResponse(packet));
             var equipment = new LocalPlayerEquipment();
-            equipment.ApplyInitial(clientResponse.Equipment, clientResponse.SelectedEquipmentIndex);
+            equipment.Initialize(clientResponse.Equipment, clientResponse.SelectedEquipmentIndex);
 
             Assert.AreEqual(ToolItemId(), equipment.Slots[0].Id);
             Assert.AreEqual(IEquipmentInventory.BareHandsIndex, equipment.SelectedIndex);
@@ -56,14 +57,14 @@ namespace Client.Tests.Inventory
             var (packet, serviceProvider) = CreateServer();
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             var equipment = new LocalPlayerEquipment();
-            var updater = CreateUpdater(equipment);
-            equipment.ApplyInitial(new List<IItemStack> { ServerContext.ItemStackFactory.Create(ToolItemId(), 1) }, 0);
+            var apiEvent = CreateSubscribedApiEvent(equipment);
+            equipment.Initialize(new List<IItemStack> { ServerContext.ItemStackFactory.Create(ToolItemId(), 1) }, 0);
 
             // 素手(-1)は装備選択の特別値なので、送信→サーバー→イベント→適用まで通す
             // Bare hands (-1) is the special value of this design, so it is driven through send, server, event and apply
-            var request = MessagePackSerializer.Serialize(EquipmentProtocolMessagePack.CreateSetSelectedIndexRequest(PlayerId, IEquipmentInventory.BareHandsIndex));
+            var request = MessagePackSerializer.Serialize(new SetSelectedEquipmentIndexMessagePack(PlayerId, IEquipmentInventory.BareHandsIndex));
             packet.GetPacketResponse(request, new PacketResponseContext(null));
-            updater.OnEquipmentSelectedIndexUpdateEvent(TakeSelectedIndexPayload(sink));
+            apiEvent.Dispatch(EquipmentSelectedIndexUpdateEventPacket.EventTag, TakeSelectedIndexPayload(sink));
 
             Assert.AreEqual(IEquipmentInventory.BareHandsIndex, GetEquipmentInventory(serviceProvider).SelectedEquipmentIndex);
             Assert.AreEqual(IEquipmentInventory.BareHandsIndex, equipment.SelectedIndex);
@@ -93,11 +94,11 @@ namespace Client.Tests.Inventory
             var (_, serviceProvider) = CreateServer();
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             var equipment = new LocalPlayerEquipment();
-            var updater = CreateUpdater(equipment);
+            var apiEvent = CreateSubscribedApiEvent(equipment);
             equipment.ApplySelected(IEquipmentInventory.BareHandsIndex);
 
             GetEquipmentInventory(serviceProvider).SetItem(1, ToolItemId(), 1);
-            updater.OnEquipmentSlotUpdateEvent(TakeSlotPayload(sink));
+            apiEvent.Dispatch(EquipmentSlotUpdateEventPacket.EventTag, TakeSlotPayload(sink));
 
             // スロットイベントは選択位置を変えない
             // Slot events do not alter the selection
@@ -125,7 +126,7 @@ namespace Client.Tests.Inventory
             CreateServer();
             var itemStackFactory = ServerContext.ItemStackFactory;
             var equipment = new LocalPlayerEquipment();
-            equipment.ApplyInitial(new List<IItemStack> { itemStackFactory.Create(ToolItemId(), 1) }, 0);
+            equipment.Initialize(new List<IItemStack> { itemStackFactory.Create(ToolItemId(), 1) }, 0);
             Assert.AreEqual(ToolItemId(), equipment.SelectedItem.Id);
 
             // 選択中スロットが空になってもselectedイベントは飛ばないため、都度導出でなければ追従できない
@@ -135,12 +136,12 @@ namespace Client.Tests.Inventory
         }
 
         [Test]
-        public void スロット更新と選択変更のどちらもOnChangedで通知される()
+        public void スロット更新と選択変更のどちらも変更通知が飛ぶ()
         {
             CreateServer();
             var equipment = new LocalPlayerEquipment();
             var changedCount = 0;
-            equipment.OnChanged.Subscribe(_ => changedCount++);
+            equipment.OnSlotsOrSelectionChanged.Subscribe(_ => changedCount++);
 
             Assert.AreEqual(0, equipment.SelectionConfirmationRevision);
             equipment.ApplySlotUpdate(0, ServerContext.ItemStackFactory.Create(ToolItemId(), 1));
@@ -156,9 +157,13 @@ namespace Client.Tests.Inventory
             return new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
         }
 
-        private NetworkEventInventoryUpdater CreateUpdater(LocalPlayerEquipment equipment)
+        // 実イベント経路（購読登録→タグ配信）を通すため、更新器を購読済みにしたイベント口を返す
+        // Returns an event port with the updater already subscribed, so payloads travel the real path (subscribe then dispatch by tag)
+        private CapturingVanillaApiEvent CreateSubscribedApiEvent(LocalPlayerEquipment equipment)
         {
-            return new NetworkEventInventoryUpdater(new LocalPlayerInventoryController(new LocalPlayerInventory(), equipment), equipment);
+            var apiEvent = new CapturingVanillaApiEvent();
+            new NetworkEventInventoryUpdater(apiEvent, new LocalPlayerInventoryController(new LocalPlayerInventory(), equipment), equipment).Initialize();
+            return apiEvent;
         }
 
         private IEquipmentInventory GetEquipmentInventory(ServiceProvider serviceProvider)
@@ -177,5 +182,25 @@ namespace Client.Tests.Inventory
             return MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
         }
 
+        /// <summary>
+        ///     購読されたタグとハンドラを保持し、テストからタグ指定で配信できるイベント口
+        ///     Event port that keeps subscribed tags and handlers so a test can dispatch by tag
+        /// </summary>
+        private class CapturingVanillaApiEvent : IVanillaApiEvent
+        {
+            private readonly Dictionary<string, Action<byte[]>> _handlers = new();
+
+            public IDisposable SubscribeEventResponse(string tag, Action<byte[]> responseAction)
+            {
+                _handlers.Add(tag, responseAction);
+                return Disposable.Empty;
+            }
+
+            public void Dispatch(string tag, byte[] payload)
+            {
+                Assert.IsTrue(_handlers.ContainsKey(tag), $"no handler subscribed for {tag}");
+                _handlers[tag](payload);
+            }
+        }
     }
 }

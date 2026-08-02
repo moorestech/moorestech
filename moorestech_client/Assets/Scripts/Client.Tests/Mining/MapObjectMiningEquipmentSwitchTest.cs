@@ -132,7 +132,7 @@ namespace Client.Tests.Mining
         {
             var toolItemId = MasterHolder.ItemMaster.GetItemId(MiningToolItemGuid);
             var equipment = new LocalPlayerEquipment();
-            equipment.ApplyInitial(new List<IItemStack> { ServerContext.ItemStackFactory.Create(toolItemId, 1) }, 0);
+            equipment.Initialize(new List<IItemStack> { ServerContext.ItemStackFactory.Create(toolItemId, 1) }, 0);
             return equipment;
         }
 

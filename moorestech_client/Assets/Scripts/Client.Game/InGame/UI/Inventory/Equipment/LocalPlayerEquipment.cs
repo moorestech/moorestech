@@ -18,7 +18,10 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
     {
         public IReadOnlyList<IItemStack> Slots => _slots;
         public int SelectedIndex { get; private set; }
-        public int SelectionConfirmationRevision => _selectionConfirmationRevision;
+
+        // サーバー確定値が届くたびに進む世代番号。WebUIが楽観選択を確定へ収束させる判定に使う
+        // Revision that advances on every server-confirmed value; the web UI converges optimistic selection with it
+        public int SelectionConfirmationRevision { get; private set; }
 
         /// <summary>
         ///     選択中スロットの中身。選択中スロットの中身が変わってもselectedイベントは飛ばないため、
@@ -30,22 +33,38 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
             ? ServerContext.ItemStackFactory.CreatEmpty()
             : _slots[SelectedIndex];
 
-        public IObservable<Unit> OnChanged => _onChanged;
-        private readonly Subject<Unit> _onChanged = new();
+        // スロット内容の更新と選択スロットの変更のどちらでも発火する
+        // Fires both on slot content updates and on selected-slot changes
+        public IObservable<Unit> OnSlotsOrSelectionChanged => _onSlotsOrSelectionChanged;
+        private readonly Subject<Unit> _onSlotsOrSelectionChanged = new();
 
         private readonly List<IItemStack> _slots = new();
-        private int _selectionConfirmationRevision;
 
         public LocalPlayerEquipment()
         {
             // スロット数はサーバーと同じマスタ由来のため固定長で確保する
             // The slot count comes from the same master as the server, so the list is allocated at a fixed length
             var itemStackFactory = ServerContext.ItemStackFactory;
-            for (var slot = 0; slot < MasterHolder.ToolMaster.EquipmentSlotCount; slot++) _slots.Add(itemStackFactory.CreatEmpty());
+            for (var slot = 0; slot < MasterHolder.ItemMaster.Items.EquipmentSlotCount; slot++) _slots.Add(itemStackFactory.CreatEmpty());
 
-            // 初期データ到着までは素手。実値はApplyInitialが上書きする
-            // Bare hands until the initial data arrives; ApplyInitial overwrites it with the real value
+            // 初期データ到着までは素手。実値はInitializeが上書きする
+            // Bare hands until the initial data arrives; Initialize overwrites it with the real value
             SelectedIndex = IEquipmentInventory.BareHandsIndex;
+        }
+
+        public void Initialize(IReadOnlyList<IItemStack> equipmentSlots, int selectedIndex)
+        {
+            // マスタが示すスロット数を正とし、応答が足りない分は空で埋める
+            // The master slot count wins; slots the response does not cover are filled with empty stacks
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            for (var slot = 0; slot < _slots.Count; slot++)
+            {
+                _slots[slot] = slot < equipmentSlots.Count ? equipmentSlots[slot] : itemStackFactory.CreatEmpty();
+            }
+
+            SelectedIndex = ClampIndex(selectedIndex);
+            SelectionConfirmationRevision++;
+            _onSlotsOrSelectionChanged.OnNext(Unit.Default);
         }
 
         /// <summary>
@@ -59,12 +78,12 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
             // 同値でも必ず送り、サーバーの無条件エコーで確定させる
             // Always send equal values too, letting the server's unconditional echo confirm them
             SelectedIndex = clamped;
-            _onChanged.OnNext(Unit.Default);
+            _onSlotsOrSelectionChanged.OnNext(Unit.Default);
             ClientContext.VanillaApi.SendOnly.SetSelectedEquipment(clamped);
         }
 
-        // 以下のApply系はサーバー購読・初期データ適用の入口で、スロット更新は移動の楽観更新にも使う
-        // The Apply methods below are the entry points for server subscriptions and initial data; the slot update also serves optimistic move writes
+        // 以下のApply系はサーバー購読の入口で、スロット更新は移動の楽観更新にも使う
+        // The Apply methods below are the entry points for server subscriptions; the slot update also serves optimistic move writes
 
         public void ApplySlotUpdate(int slot, IItemStack itemStack)
         {
@@ -75,29 +94,14 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
             }
 
             _slots[slot] = itemStack;
-            _onChanged.OnNext(Unit.Default);
+            _onSlotsOrSelectionChanged.OnNext(Unit.Default);
         }
 
         public void ApplySelected(int index)
         {
             SelectedIndex = ClampIndex(index);
-            _selectionConfirmationRevision++;
-            _onChanged.OnNext(Unit.Default);
-        }
-
-        public void ApplyInitial(IReadOnlyList<IItemStack> equipmentSlots, int selectedIndex)
-        {
-            // マスタが示すスロット数を正とし、応答が足りない分は空で埋める
-            // The master slot count wins; slots the response does not cover are filled with empty stacks
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            for (var slot = 0; slot < _slots.Count; slot++)
-            {
-                _slots[slot] = slot < equipmentSlots.Count ? equipmentSlots[slot] : itemStackFactory.CreatEmpty();
-            }
-
-            SelectedIndex = ClampIndex(selectedIndex);
-            _selectionConfirmationRevision++;
-            _onChanged.OnNext(Unit.Default);
+            SelectionConfirmationRevision++;
+            _onSlotsOrSelectionChanged.OnNext(Unit.Default);
         }
 
         private int ClampIndex(int index)

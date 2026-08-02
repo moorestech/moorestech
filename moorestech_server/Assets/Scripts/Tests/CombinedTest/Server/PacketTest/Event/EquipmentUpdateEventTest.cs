@@ -10,7 +10,7 @@ using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol;
 using Tests.Module.TestMod;
-using static Server.Protocol.PacketResponse.EquipmentProtocol;
+using static Server.Protocol.PacketResponse.SetSelectedEquipmentIndexProtocol;
 using static Server.Protocol.PacketResponse.PlayerInventoryResponseProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 選択変更はサーバーと専用イベントへ反映
             // Selection updates server state and its dedicated event
-            var request = MessagePackSerializer.Serialize(EquipmentProtocolMessagePack.CreateSetSelectedIndexRequest(PlayerId, 2));
+            var request = MessagePackSerializer.Serialize(new SetSelectedEquipmentIndexMessagePack(PlayerId, 2));
             packet.GetPacketResponse(request, new PacketResponseContext(null));
 
             Assert.AreEqual(2, equipmentInventory.SelectedEquipmentIndex);
@@ -81,7 +81,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack(PlayerId));
             var response = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload, new PacketResponseContext(null))[0]);
 
-            Assert.AreEqual(MasterHolder.ToolMaster.EquipmentSlotCount, response.Equipment.Length);
+            Assert.AreEqual(MasterHolder.ItemMaster.Items.EquipmentSlotCount, response.Equipment.Length);
             Assert.AreEqual(ToolItemId(), response.Equipment[0].Id);
             Assert.AreEqual(1, response.Equipment[0].Count);
             Assert.AreEqual(ItemMaster.EmptyItemId, response.Equipment[1].Id);

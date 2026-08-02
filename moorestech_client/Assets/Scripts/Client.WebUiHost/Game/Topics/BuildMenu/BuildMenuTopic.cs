@@ -1,11 +1,11 @@
 using System;
 using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
-using Game.PlacementTarget;
 using Game.UnlockState;
 using UniRx;
 
@@ -90,7 +90,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             var dto = new BuildMenuTopicDto
             {
                 Categories = BuildMenuEntryDtoFactory.CreateCategoryDtos(),
-                Entries = BuildMenuEntryDtoFactory.CreateDtos(_unlockState, _placementTargetCatalog),
+                Entries = BuildMenuEntryDtoFactory.CreateDtos(_unlockState, _placementTargetCatalog, _blueprintLibrary.BlueprintEntries),
             };
             return WebUiJson.Serialize(dto);
         }

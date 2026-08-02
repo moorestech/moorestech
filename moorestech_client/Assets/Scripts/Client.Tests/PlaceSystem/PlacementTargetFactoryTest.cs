@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Core.Master;
-using Game.PlacementTarget;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -26,7 +25,7 @@ namespace Client.Tests.PlaceSystem
             AssertCreated(PlacementTargetKind.Block, blockGuid, typeof(BlockPlacementTarget));
             AssertCreated(PlacementTargetKind.TrainCar, Guid.NewGuid(), typeof(TrainCarPlacementTarget));
             AssertCreated(PlacementTargetKind.ConnectTool, Guid.NewGuid(), typeof(ConnectToolPlacementTarget));
-            AssertCreated(PlacementTargetKind.BuildTool, Guid.NewGuid(), typeof(BuildToolPlacementTarget));
+            AssertCreated(PlacementTargetKind.BlueprintCopy, Guid.NewGuid(), typeof(BlueprintCopyPlacementTarget));
             AssertCreated(PlacementTargetKind.Blueprint, Guid.NewGuid(), typeof(BlueprintPlacementTarget));
 
             #region Internal

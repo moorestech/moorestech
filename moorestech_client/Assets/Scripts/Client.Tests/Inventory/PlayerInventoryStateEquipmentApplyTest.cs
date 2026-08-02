@@ -14,6 +14,7 @@ using Server.Boot;
 using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.PlayerInventoryResponseProtocol;
 
 namespace Client.Tests.Inventory
 {
@@ -59,9 +60,9 @@ namespace Client.Tests.Inventory
 
             InitialHandshakeResponse CreateHandshakeResponse(ItemId itemId)
             {
-                var itemStackFactory = ServerContext.ItemStackFactory;
-                var equipmentSlots = new List<IItemStack> { itemStackFactory.Create(itemId, 1), itemStackFactory.CreatEmpty() };
-                var inventory = new PlayerInventoryResponse(new List<IItemStack>(), itemStackFactory.CreatEmpty(), equipmentSlots, SelectedSlot);
+                var equipmentSlots = new[] { new ItemMessagePack(itemId, 1), new ItemMessagePack(ItemMaster.EmptyItemId, 0) };
+                var inventory = new PlayerInventoryResponse(new PlayerInventoryResponseProtocolMessagePack(
+                    0, Array.Empty<ItemMessagePack>(), new ItemMessagePack(ItemMaster.EmptyItemId, 0), equipmentSlots, SelectedSlot));
 
                 // Handshake使用項目だけを設定
                 // Set only fields consumed by the handshake

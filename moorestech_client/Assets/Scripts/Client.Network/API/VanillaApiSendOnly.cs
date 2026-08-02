@@ -78,7 +78,7 @@ namespace Client.Network.API
         /// </summary>
         public void SetSelectedEquipment(int selectedIndex)
         {
-            var request = EquipmentProtocol.EquipmentProtocolMessagePack.CreateSetSelectedIndexRequest(_playerId, selectedIndex);
+            var request = new SetSelectedEquipmentIndexProtocol.SetSelectedEquipmentIndexMessagePack(_playerId, selectedIndex);
             _packetSender.Send(request);
         }
 

@@ -58,7 +58,7 @@ namespace Client.Game.InGame.Mining
             // 採掘中に対象が採掘対象でなくなったらフォーカス状態でやり直す
             // If the focused object stops being a mining target mid-mining, restart from the focus state
             var masterElement = context.CurrentFocusMapObjectGameObject.MapObjectMasterElement;
-            if (masterElement == null || masterElement.MiningType != MapObjectMasterElement.MiningTypeConst.Mining)
+            if (masterElement.MiningType != MapObjectMasterElement.MiningTypeConst.Mining)
             {
                 return new MapObjectMiningFocusState();
             }

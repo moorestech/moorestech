@@ -88,7 +88,7 @@ namespace Tests.CombinedTest.Game
             // マスタのスロット数を超える装備を持つセーブを作り、スロット縮小と同じ状況を再現する
             // Build a save holding more equipment than master's slot count, reproducing a shrunk slot count
             var itemStackFactory = ServerContext.ItemStackFactory;
-            var slotCount = MasterHolder.ToolMaster.EquipmentSlotCount;
+            var slotCount = MasterHolder.ItemMaster.Items.EquipmentSlotCount;
             var savedEquipmentItems = new List<ItemStackSaveJsonObject>();
             for (var slot = 0; slot < slotCount; slot++)
                 savedEquipmentItems.Add(new ItemStackSaveJsonObject(itemStackFactory.Create(ToolItemId(), 1)));
@@ -129,7 +129,7 @@ namespace Tests.CombinedTest.Game
             var saveJsonObjects = saveStore.GetSaveJsonObject();
             var itemStackFactory = ServerContext.ItemStackFactory;
             var savedEquipmentItems = new List<ItemStackSaveJsonObject>();
-            for (var slot = 0; slot < MasterHolder.ToolMaster.EquipmentSlotCount; slot++)
+            for (var slot = 0; slot < MasterHolder.ItemMaster.Items.EquipmentSlotCount; slot++)
                 savedEquipmentItems.Add(new ItemStackSaveJsonObject(itemStackFactory.Create(ToolItemId(), 1)));
             const int OverflowCount = 2;
             for (var overflow = 0; overflow < OverflowCount; overflow++)

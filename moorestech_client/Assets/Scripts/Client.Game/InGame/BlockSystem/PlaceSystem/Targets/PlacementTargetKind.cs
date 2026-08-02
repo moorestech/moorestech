@@ -1,11 +1,11 @@
-namespace Game.PlacementTarget
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
     public enum PlacementTargetKind
     {
         Block,
         TrainCar,
         ConnectTool,
-        BuildTool,
+        BlueprintCopy,
         Blueprint,
     }
 }

@@ -1,6 +1,6 @@
 using System;
 
-namespace Game.PlacementTarget
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
     public readonly struct PlacementTargetEntry
     {

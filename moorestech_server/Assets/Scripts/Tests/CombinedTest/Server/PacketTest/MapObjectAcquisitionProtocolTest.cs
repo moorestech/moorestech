@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
-using System.Threading;
 using Common.Debug;
 using Core.Master;
+using Core.Update;
 using Game.Context;
 using Game.Map;
 using Game.Map.Interface.MapObject;
@@ -141,9 +141,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             SendAttack(packet, mapObject.InstanceId);
             Assert.AreEqual(initialHp - ExpectedToolDamage, mapObject.CurrentHp);
 
-            // attackSpeed分待てば次の打撃は再び通る
-            // After waiting attackSpeed the next hit lands again
-            Thread.Sleep((int)(ExpectedAttackSpeed * 1000) + 100);
+            // attackSpeed分のtickを進めれば次の打撃は再び通る
+            // After advancing attackSpeed worth of ticks the next hit lands again
+            AdvanceCooldown();
             SendAttack(packet, mapObject.InstanceId);
             Assert.AreEqual(initialHp - ExpectedToolDamage * 2, mapObject.CurrentHp);
         }
@@ -226,8 +226,15 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private void SendAttackAfterCooldown(PacketResponseCreator packet, int instanceId)
         {
-            Thread.Sleep((int)(ExpectedAttackSpeed * 1000) + 100);
+            AdvanceCooldown();
             SendAttack(packet, instanceId);
+        }
+
+        // サーバの経過時間はGameUpdaterのtickでしか進まないのでtickを直接進める
+        // Server-side elapsed time only advances by GameUpdater ticks, so advance ticks directly
+        private void AdvanceCooldown()
+        {
+            GameUpdater.RunFrames(GameUpdater.SecondsToTicks(ExpectedAttackSpeed) + 1);
         }
 
         private ItemId GetEarnItemId(Guid mapObjectGuid)

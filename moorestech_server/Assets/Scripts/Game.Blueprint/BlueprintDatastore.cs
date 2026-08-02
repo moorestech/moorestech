@@ -26,12 +26,6 @@ namespace Game.Blueprint
             return true;
         }
 
-        public bool TryGet(Guid blueprintGuid, out BlueprintJsonObject blueprint)
-        {
-            blueprint = _blueprints.FirstOrDefault(b => b.BlueprintGuid == blueprintGuid);
-            return blueprint != null;
-        }
-
         public List<BlueprintJsonObject> GetSaveJsonObject()
         {
             return new List<BlueprintJsonObject>(_blueprints);

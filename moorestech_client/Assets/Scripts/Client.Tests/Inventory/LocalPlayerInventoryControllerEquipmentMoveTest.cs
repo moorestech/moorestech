@@ -68,7 +68,7 @@ namespace Client.Tests.Inventory
 
             // 装備枠が2枠未満のマスタではこのテストの前提が崩れる
             // The test premise breaks on a master with fewer than two equipment slots
-            Assert.Less(EquipmentSlot, MasterHolder.ToolMaster.EquipmentSlotCount);
+            Assert.Less(EquipmentSlot, MasterHolder.ItemMaster.Items.EquipmentSlotCount);
 
             var equipment = new LocalPlayerEquipment();
             return (new LocalPlayerInventoryController(new LocalPlayerInventory(), equipment), equipment);

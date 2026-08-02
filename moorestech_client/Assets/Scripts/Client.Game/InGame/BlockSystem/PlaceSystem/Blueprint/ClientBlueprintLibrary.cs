@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
-using Game.PlacementTarget;
 using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEngine;
@@ -23,7 +22,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
     ///     サーバーのBPライブラリのクライアント側キャッシュ
     ///     Client-side cache of the server blueprint library
     /// </summary>
-    public class ClientBlueprintLibrary : IBlueprintCatalogSource
+    public class ClientBlueprintLibrary
     {
         // キャッシュが最新全件に置き換わったら発火する（BuildMenuTopic の再配信トリガ）
         // Fires when the cache is replaced with a fresh full list (republish trigger for BuildMenuTopic)

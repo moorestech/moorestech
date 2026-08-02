@@ -1,5 +1,5 @@
 using System;
-using Game.PlacementTarget;
+using Core.Master;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -11,6 +11,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 
         public Guid Id => ConnectToolGuid;
         public PlacementTargetKind Kind => PlacementTargetKind.ConnectTool;
+        public string DisplayName => MasterHolder.ConnectToolMaster.GetElementOrNull(ConnectToolGuid).Name;
 
         public ConnectToolPlacementTarget(Guid connectToolGuid)
         {

@@ -16,7 +16,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
     ///     ・名前入力後にCreate送信
     ///     Selects the blueprint box via XZ drag plus scroll height, then sends Create after name input
     /// </summary>
-    public class BlueprintCopySystem : PlaceSystemBase<BuildToolPlacementTarget>
+    public class BlueprintCopySystem : PlaceSystemBase<BlueprintCopyPlacementTarget>
     {
         private readonly ClientBlueprintLibrary _library;
         private readonly BlueprintNameInputView _nameInputView;
@@ -73,7 +73,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             _visualizer ??= new BlueprintAreaVisualizer();
         }
 
-        protected override void ManualUpdate(BuildToolPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(BlueprintCopyPlacementTarget target, bool isSelectionChanged)
         {
             // 名前入力中はドラッグを停止
             // Freeze drag interaction while the name dialog is open

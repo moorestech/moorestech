@@ -84,7 +84,7 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _localPlayerInventoryController.SetMainInventory(response.MainInventory);
             _localPlayerInventoryController.SetGrabItem(response.GrabItem);
-            _localPlayerEquipment.ApplyInitial(response.Equipment, response.SelectedEquipmentIndex);
+            _localPlayerEquipment.Initialize(response.Equipment, response.SelectedEquipmentIndex);
         }
     }
 }

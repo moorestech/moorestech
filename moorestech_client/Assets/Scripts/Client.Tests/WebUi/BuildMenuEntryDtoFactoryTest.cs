@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.WebUiHost.Game.Topics.BuildMenu;
 using Core.Master;
-using Game.PlacementTarget;
 using Game.UnlockState;
 using Game.UnlockState.States;
 using NUnit.Framework;
@@ -21,7 +20,7 @@ namespace Client.Tests.WebUi
     {
         // Web契約が許すkind文字列5値（buildMenu.tsのBuildMenuEntryKindSchemaと同一集合）
         // The 5 kind strings the web contract allows (same set as buildMenu.ts's BuildMenuEntryKindSchema)
-        private static readonly HashSet<string> AllowedKinds = new() { "block", "trainCar", "connectTool", "buildTool", "blueprint" };
+        private static readonly HashSet<string> AllowedKinds = new() { "block", "trainCar", "connectTool", "blueprintCopy", "blueprint" };
 
         [Test]
         public void CreateDtosは全件がGuid形状のidと契約5値のkindをユニークに持つ()
@@ -29,7 +28,7 @@ namespace Client.Tests.WebUi
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var unlockState = new AllBlockAndConnectToolUnlockedStateData();
 
-            var dtos = BuildMenuEntryDtoFactory.CreateDtos(unlockState, new PlacementTargetCatalog(new ClientBlueprintLibrary()));
+            var dtos = BuildMenuEntryDtoFactory.CreateDtos(unlockState, new PlacementTargetCatalog(), Array.Empty<(Guid, string)>());
 
             // 実マスタ規模で複数エントリが返ること（空リストでは以降の検証が無意味）
             // Multiple entries must come back at real-master scale (an empty list would make the rest of this test meaningless)

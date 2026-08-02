@@ -57,8 +57,7 @@
         "Game.PlayerConnection",
         "Game.CleanRoom",
         "Game.Blueprint",
-        "Common.Debug",
-        "Game.PlacementTarget"
+        "Common.Debug"
     ],
     "includePlatforms": [
         "Editor"

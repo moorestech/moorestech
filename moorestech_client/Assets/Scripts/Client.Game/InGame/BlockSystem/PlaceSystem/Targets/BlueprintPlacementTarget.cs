@@ -1,5 +1,4 @@
 using System;
-using Game.PlacementTarget;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -8,10 +7,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         // 識別はGuid、表示は名前（同名複数を区別するためGuidを一意キーとする）
         // Identity is the GUID; the name is display-only (a GUID uniquely distinguishes same-name entries)
         public readonly Guid BlueprintGuid;
-        public readonly string DisplayName;
 
         public Guid Id => BlueprintGuid;
         public PlacementTargetKind Kind => PlacementTargetKind.Blueprint;
+
+        // BPだけはマスタを持たずサーバー保存名がそのまま表示名になる
+        // Blueprints have no master, so the server-stored name is the display name as-is
+        public string DisplayName { get; }
 
         public BlueprintPlacementTarget(Guid blueprintGuid, string displayName)
         {

@@ -36,7 +36,7 @@ namespace Game.PlayerInventory.ItemManaged
             // The slot count follows the equipment slot count from master
             _openableInventoryService = new OpenableInventoryItemDataStoreService(
                 InvokeEvent, ServerContext.ItemStackFactory,
-                MasterHolder.ToolMaster.EquipmentSlotCount);
+                MasterHolder.ItemMaster.Items.EquipmentSlotCount);
 
             // 初期選択は先頭スロットだが、装備スロットが無いマスタでは素手へ丸める
             // The initial selection is the first slot, clamped to bare hands when master has no equipment slot

@@ -9,6 +9,7 @@ using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
@@ -18,6 +19,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Entity;
@@ -62,7 +64,6 @@ using Client.Skit.Skit;
 using Client.Skit.UI;
 using Core.Item.Interface;
 using Game.Context;
-using Game.PlacementTarget;
 using Game.PlayerRiding.Interface;
 using Game.Train.Unit;
 using Game.UnlockState;
@@ -163,6 +164,7 @@ namespace Client.Starter
             
             //インベントリのUIコントロール
             // register inventory UI control
+            builder.RegisterInstance(ClientContext.VanillaApi.Event);
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
@@ -203,7 +205,7 @@ namespace Client.Starter
             builder.Register<ElectricWireConnectSystem>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
-            builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton).AsSelf().As<IBlueprintCatalogSource>();
+            builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
             builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);

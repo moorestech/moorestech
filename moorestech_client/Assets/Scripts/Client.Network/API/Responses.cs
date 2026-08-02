@@ -16,14 +16,6 @@ namespace Client.Network.API
 {
     public class PlayerInventoryResponse
     {
-        public PlayerInventoryResponse(List<IItemStack> mainInventory, IItemStack grabItem, List<IItemStack> equipment, int selectedEquipmentIndex)
-        {
-            MainInventory = mainInventory;
-            GrabItem = grabItem;
-            Equipment = equipment;
-            SelectedEquipmentIndex = selectedEquipmentIndex;
-        }
-
         /// <summary>
         ///     応答messagepackからの変換はDTO側に置く（前例は同ファイルの <see cref="BlockInfo" />）。
         ///     装備は専用の取得プロトコルを持たずこの応答に同梱されるため、ここで必ず読み出す。

@@ -11,7 +11,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.BuildMenuModule;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
@@ -73,17 +72,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     return _trainCarPlaceSystem;
                 case BlueprintPlacementTarget:
                     return _blueprintPasteSystem;
-                case BuildToolPlacementTarget buildTool:
-                {
-                    // マスタからtoolTypeを解決して対応するビルドツールへ振り分ける
-                    // Resolve toolType from the master and route to the matching build tool
-                    var buildToolMaster = MasterHolder.BuildToolMaster.GetBuildTool(buildTool.Id);
-                    return buildToolMaster.ToolType switch
-                    {
-                        BuildToolMasterElement.ToolTypeConst.blueprintCopy => _blueprintCopySystem,
-                        _ => EmptyPlaceSystem,
-                    };
-                }
+                case BlueprintCopyPlacementTarget:
+                    return _blueprintCopySystem;
                 case ConnectToolPlacementTarget connectTool:
                 {
                     // マスタからtoolTypeを解決して3系統へ振り分ける

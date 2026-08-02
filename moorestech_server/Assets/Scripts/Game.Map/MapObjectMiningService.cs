@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using Common.Debug;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Map.Interface.MapObject;
 using Mooresmaster.Model.MapModule;
 
@@ -27,40 +27,27 @@ namespace Game.Map
         // Cooldown tolerance; clients send at exactly attackSpeed intervals, so allow jitter
         private const double CooldownMarginRate = 0.9;
 
-        // 1プレイヤー1振りを保証する最終打撃時刻
-        // Last-hit timestamps enforcing one swing at a time per player
-        private readonly Dictionary<int, long> _lastAttackTimestamps = new();
-
-        /// <summary>
-        ///     ツール照合もクールダウンも介さず一撃で破壊する
-        ///     Destroys in a single hit without tool matching or cooldown
-        /// </summary>
-        public bool ForceDestroy(IMapObject mapObject, out List<IItemStack> earnedItems)
-        {
-            earnedItems = null;
-
-            // 破壊済みへの打撃は何も起こさない
-            // A hit on an already destroyed object does nothing
-            if (mapObject.IsDestroyed) return false;
-
-            earnedItems = mapObject.Attack(int.MaxValue);
-            return true;
-        }
+        // 1プレイヤー1振りを保証する最終打撃tick
+        // Last-hit ticks enforcing one swing at a time per player
+        private readonly Dictionary<int, ulong> _lastAttackTicks = new();
 
         public MiningAttackResult TryAttack(int playerId, IMapObject mapObject, IItemStack equippedItem, out List<IItemStack> earnedItems)
         {
             earnedItems = null;
 
-            // 破壊済みへの打撃は何も起こさない
-            // A hit on an already destroyed object does nothing
+            // 破壊済みへの打撃は何も起こさない。デバッグフラグ読みのファイルIOもここで打ち切る
+            // A hit on an already destroyed object does nothing; this also cuts off the debug flag file IO
             if (mapObject.IsDestroyed) return MiningAttackResult.AlreadyDestroyed;
 
+            // PickUpと高速採掘デバッグはツール照合もクールダウンも介さず一撃で破壊する
+            // PickUp and the debug super-mine destroy in one hit without tool matching or cooldown
             var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObject.MapObjectGuid);
-
-            // PickUpはツール不要の一撃取得
-            // PickUp requires no tool and destroys in one hit
-            if (mapObjectElement.MiningType == MapObjectMasterElement.MiningTypeConst.PickUp)
-                return ForceDestroy(mapObject, out earnedItems) ? MiningAttackResult.Success : MiningAttackResult.AlreadyDestroyed;
+            if (mapObjectElement.MiningType == MapObjectMasterElement.MiningTypeConst.PickUp ||
+                DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.MapObjectSuperMine))
+            {
+                earnedItems = mapObject.Attack(int.MaxValue);
+                return MiningAttackResult.Success;
+            }
 
             // 素手ではどのminingToolsにも一致しないので早期に弾く（空IDはItemMaster参照で例外になる）
             // Bare hands match no miningTools, so reject early; the empty id would throw in ItemMaster
@@ -72,27 +59,20 @@ namespace Game.Map
             if (!TryResolveUsableTool(equippedItem.Id, miningTools, out var usableTool))
                 return MiningAttackResult.ToolMismatch;
 
-            return TryAttackWithTool(usableTool, out earnedItems);
+            // 前回打撃からattackSpeed×許容率tick未満の連打は捨てる
+            // Drop repeat hits that arrive within attackSpeed * tolerance ticks of the previous one
+            if (IsInCooldown(usableTool)) return MiningAttackResult.CooldownNotElapsed;
+
+            _lastAttackTicks[playerId] = GameUpdater.CurrentTick;
+            earnedItems = mapObject.Attack(usableTool.Damage);
+            return MiningAttackResult.Success;
 
             #region Internal
 
-            MiningAttackResult TryAttackWithTool(MiningToolsElement miningTool, out List<IItemStack> toolEarnedItems)
+            bool IsInCooldown(MiningToolsElement miningTool)
             {
-                toolEarnedItems = null;
-
-                // 前回打撃からattackSpeed×許容率秒未満の連打は捨てる
-                // Drop repeat hits that arrive within attackSpeed * tolerance seconds of the previous one
-                var now = Stopwatch.GetTimestamp();
-                if (_lastAttackTimestamps.TryGetValue(playerId, out var lastAttackTimestamp))
-                {
-                    var elapsedSeconds = (now - lastAttackTimestamp) / (double)Stopwatch.Frequency;
-                    if (elapsedSeconds < miningTool.AttackSpeed * CooldownMarginRate)
-                        return MiningAttackResult.CooldownNotElapsed;
-                }
-                _lastAttackTimestamps[playerId] = now;
-
-                toolEarnedItems = mapObject.Attack(miningTool.Damage);
-                return MiningAttackResult.Success;
+                if (!_lastAttackTicks.TryGetValue(playerId, out var lastAttackTick)) return false;
+                return GameUpdater.CurrentTick - lastAttackTick < GameUpdater.SecondsToTicks(miningTool.AttackSpeed * CooldownMarginRate);
             }
 
             #endregion

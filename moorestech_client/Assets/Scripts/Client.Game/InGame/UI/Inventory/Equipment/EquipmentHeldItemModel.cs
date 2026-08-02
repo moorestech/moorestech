@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using Client.Common.Asset;
 using Client.Game.InGame.Player;
@@ -14,14 +13,13 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
     ///     選択中の装備に応じて手持ち3Dモデルをロード/破棄する
     ///     Loads and disposes the held 3D model according to the selected equipment
     /// </summary>
-    public class EquipmentHeldItemModel : IInitializable, IDisposable
+    public class EquipmentHeldItemModel : IInitializable
     {
         private readonly LocalPlayerEquipment _localPlayerEquipment;
 
         private GameObject _currentGrabItem;
         private CancellationTokenSource _loadCancellationTokenSource;
         private LoadedAsset<GameObject> _currentLoadedAsset;
-        private IDisposable _changedSubscription;
         private ItemId _currentItemId = ItemMaster.EmptyItemId;
 
         public EquipmentHeldItemModel(LocalPlayerEquipment localPlayerEquipment)
@@ -33,7 +31,7 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
         {
             // 購読前に適用済みの初期データにも追従するため、購読直後に一度反映する
             // Reflect once right after subscribing so initial data applied before this still gets followed
-            _changedSubscription = _localPlayerEquipment.OnChanged.Subscribe(_ => ApplySelectedItem());
+            _localPlayerEquipment.OnSlotsOrSelectionChanged.Subscribe(_ => ApplySelectedItem());
             ApplySelectedItem();
         }
 
@@ -72,57 +70,32 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
 
                 if (itemId == ItemMaster.EmptyItemId) return;
 
-                // Addressableロードは外部境界のため、失敗をここで隔離する
-                // The Addressable load is an external boundary, so its failure is isolated here
-                try
+                // handGrabModelが未設定のアイテムは手に何も持たない
+                // Items without a handGrabModel hold nothing in hand
+                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                if (string.IsNullOrEmpty(itemMaster.AddressablePaths?.HandGrabModel)) return;
+
+                var token = _loadCancellationTokenSource.Token;
+                var loadedAsset = await AddressableLoader.LoadAsync<GameObject>(itemMaster.AddressablePaths.HandGrabModel, token);
+
+                // 待機中に持ち替えられていたら、新しいロードの結果を上書きしないようここで解放して降りる
+                // If the equipment changed while awaiting, release here and bail so a newer load's result is not clobbered
+                if (token.IsCancellationRequested)
                 {
-                    var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                    var token = _loadCancellationTokenSource.Token;
-
-                    // handGrabModelが設定されているかチェック
-                    // Check if handGrabModel is set
-                    if (!string.IsNullOrEmpty(itemMaster.AddressablePaths?.HandGrabModel))
-                    {
-                        // Addressableからロード
-                        // Load from Addressable
-                        _currentLoadedAsset = await AddressableLoader.LoadAsync<GameObject>(itemMaster.AddressablePaths.HandGrabModel);
-
-                        if (token.IsCancellationRequested) return;
-
-                        if (_currentLoadedAsset?.Asset != null)
-                        {
-                            _currentGrabItem = UnityEngine.Object.Instantiate(_currentLoadedAsset.Asset);
-                            PlayerSystemContainer.Instance.PlayerGrabItemManager.SetItem(_currentGrabItem, false, Vector3.zero, Quaternion.identity);
-                        }
-                    }
+                    loadedAsset?.Dispose();
+                    return;
                 }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Failed to load hand grab model for item {itemId}: {e.Message}");
-                }
+
+                // ロード失敗はAddressableLoaderがログ済みでnullを返す
+                // A failed load is already logged by AddressableLoader, which returns null
+                if (loadedAsset?.Asset == null) return;
+
+                _currentLoadedAsset = loadedAsset;
+                _currentGrabItem = UnityEngine.Object.Instantiate(loadedAsset.Asset);
+                PlayerSystemContainer.Instance.PlayerGrabItemManager.SetItem(_currentGrabItem, false, Vector3.zero, Quaternion.identity);
             }
 
             #endregion
-        }
-
-        public void Dispose()
-        {
-            // 購読とキャンセルトークンソースをクリーンアップ
-            // Clean up the subscription and the cancellation token source
-            _changedSubscription?.Dispose();
-            _loadCancellationTokenSource?.Cancel();
-            _loadCancellationTokenSource?.Dispose();
-
-            // Addressableリソースを解放
-            // Release the Addressable resource
-            _currentLoadedAsset?.Dispose();
-
-            // ゲームオブジェクトを破棄
-            // Destroy the game object
-            if (_currentGrabItem != null)
-            {
-                UnityEngine.Object.Destroy(_currentGrabItem);
-            }
         }
     }
 }
