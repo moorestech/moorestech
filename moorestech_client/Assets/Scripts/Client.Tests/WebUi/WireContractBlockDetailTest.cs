@@ -73,7 +73,7 @@ namespace Client.Tests.WebUi
                 },
                 FluidSlots = new List<BlockFluidSlotDto>
                 {
-                    new() { FluidId = 1, Amount = 25.5, Capacity = 100, Name = "水" },
+                    new() { FluidId = 1, Amount = 25.5, Capacity = 100, FluidGuid = "cccccccc-dddd-4eee-8fff-aaaaaaaaaaaa" },
                 },
                 Progress = 0.42,
                 Machine = new MachineDetailDto

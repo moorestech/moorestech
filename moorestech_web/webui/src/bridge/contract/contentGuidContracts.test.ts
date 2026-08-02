@@ -27,6 +27,42 @@ describe("content Guid contracts", () => {
     expect(validateTopicPayload(Topics.blockInventory, { ...guidPayload, blockName: "炉" })).toBe(false);
   });
 
+  it("fluid slotはfluidGuidを必須にし、旧nameの同居を拒否する", () => {
+    const fluidSlot = { fluidId: 10, amount: 500, capacity: 1000 };
+    const payload = {
+      open: true,
+      source: "block",
+      blockType: "Tank",
+      identifier: "(0, 0, 0)",
+      blockGuid: "40000000-0000-4000-8000-000000000001",
+      itemSlots: [],
+    };
+
+    expect(validateTopicPayload(Topics.blockInventory, {
+      ...payload,
+      fluidSlots: [{ ...fluidSlot, fluidGuid: "60000000-0000-4000-8000-000000000001" }],
+    })).toBe(true);
+    expect(validateTopicPayload(Topics.blockInventory, {
+      ...payload,
+      fluidSlots: [{ ...fluidSlot, fluidGuid: "60000000-0000-4000-8000-000000000001", name: "水" }],
+    })).toBe(false);
+    expect(validateTopicPayload(Topics.blockInventory, {
+      ...payload,
+      fluidSlots: [{ ...fluidSlot, name: "水" }],
+    })).toBe(false);
+
+    // 空流体だけがGuid空文字を許される
+    // Only the empty fluid may carry an empty GUID string
+    expect(validateTopicPayload(Topics.blockInventory, {
+      ...payload,
+      fluidSlots: [{ fluidId: 0, amount: 0, capacity: 1000, fluidGuid: "" }],
+    })).toBe(true);
+    expect(validateTopicPayload(Topics.blockInventory, {
+      ...payload,
+      fluidSlots: [{ ...fluidSlot, fluidGuid: "not-a-guid" }],
+    })).toBe(false);
+  });
+
   it("machine recipeはblockGuidを保持し、旧blockNameの同居を拒否する", () => {
     expect(validateTopicPayload(Topics.machineRecipes, { recipes: [machineRecipe] })).toBe(true);
     expect(validateTopicPayload(Topics.machineRecipes, {

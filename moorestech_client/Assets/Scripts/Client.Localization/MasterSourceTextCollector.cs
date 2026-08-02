@@ -90,6 +90,13 @@ namespace Client.Localization
                     connectToolMaster.Name;
             }
 
+            // 流体名も同じ導出規約で原文を収集する
+            // Collect fluid sources with the same derived-key convention
+            foreach (var fluidMaster in MasterHolder.FluidMaster.Fluids.Data)
+            {
+                sourceTexts[ContentLocalizationKeys.FluidName(fluidMaster.FluidGuid).Key] = fluidMaster.Name;
+            }
+
             return sourceTexts;
         }
 

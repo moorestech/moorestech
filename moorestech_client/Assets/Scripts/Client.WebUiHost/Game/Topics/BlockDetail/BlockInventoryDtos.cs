@@ -42,6 +42,8 @@ namespace Client.WebUiHost.Game.Topics
         public int FluidId;
         public double Amount;
         public double Capacity;
-        public string Name;
+        // 表示名はWeb側が辞書解決するためGuidのみ送る（空流体は空文字）
+        // Send only the GUID so the Web side resolves the display name (empty fluid is an empty string)
+        public string FluidGuid;
     }
 }

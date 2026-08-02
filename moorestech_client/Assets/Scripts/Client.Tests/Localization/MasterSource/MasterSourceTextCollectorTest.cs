@@ -129,6 +129,13 @@ namespace Client.Tests.Localization.MasterSource
                 expected.Add($"connectTool.{connectTool.ConnectToolGuid:D}.name", connectTool.Name);
             }
 
+            // 全流体名を必須Guidから列挙
+            // Enumerate every fluid name from required GUIDs
+            foreach (var fluid in MasterHolder.FluidMaster.Fluids.Data)
+            {
+                expected.Add($"fluid.{fluid.FluidGuid:D}.name", fluid.Name);
+            }
+
             return expected;
         }
 

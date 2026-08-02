@@ -9,7 +9,7 @@
     { "itemId": 2, "count": 4 }
   ],
   "fluidSlots": [
-    { "fluidId": 10, "amount": 500.0, "capacity": 1000.0, "name": "Water" }
+    { "fluidId": 10, "amount": 500.0, "capacity": 1000.0, "fluidGuid": "bbbbbbbb-cccc-4ddd-8eee-ffffffffffff" }
   ],
   "progress": 0.5
 }

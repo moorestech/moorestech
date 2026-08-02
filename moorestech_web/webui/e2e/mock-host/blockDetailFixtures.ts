@@ -1,5 +1,6 @@
 import type { BlockInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as BlockGuids from "./fixtures/blockLocalizationFixtures";
+import { WATER_FLUID_GUID } from "./fixtures/contentLocalizationFixtures";
 
 const empty = () => ({ itemId: 0, count: 0 });
 
@@ -12,7 +13,7 @@ export const blockMachine = {
   identifier: "block:3",
   blockGuid: BlockGuids.ELECTRIC_MACHINE_BLOCK_GUID,
   itemSlots: [{ itemId: 3, count: 5 }, empty(), { itemId: 7, count: 1 }, empty()],
-  fluidSlots: [{ fluidId: 1, amount: 25.5, capacity: 100.0, name: "水" }],
+  fluidSlots: [{ fluidId: 1, amount: 25.5, capacity: 100.0, fluidGuid: WATER_FLUID_GUID }],
   progress: 0.42,
   machine: {
     recipeGuid: "00000000-0000-0000-0000-000000000000",
@@ -108,7 +109,7 @@ export const blockGeneric = {
   identifier: "block:9",
   blockGuid: BlockGuids.GENERIC_BLOCK_GUID,
   itemSlots: [{ itemId: 1, count: 1 }],
-  fluidSlots: [{ fluidId: 1, amount: 10, capacity: 20, name: "水" }],
+  fluidSlots: [{ fluidId: 1, amount: 10, capacity: 20, fluidGuid: WATER_FLUID_GUID }],
   progress: 0.5,
 } satisfies BlockInventoryData;
 

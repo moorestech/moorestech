@@ -1,5 +1,6 @@
 import { Tooltip } from "@mantine/core";
 import type { FluidSlotData } from "@/bridge";
+import { fluidNameKey, useI18n } from "@/shared/i18n";
 import { formatAmount, fillRatio } from "./fluidLogic";
 import styles from "./style.module.css";
 
@@ -13,10 +14,14 @@ function fluidColor(fluidId: number): string {
 // 色ボックス/量/ホバー名を持つ汎用流体スロット。uGUI FluidSlotView 相当
 // Generic fluid slot (color box, amount, hover name); mirrors uGUI FluidSlotView
 export default function FluidSlot({ fluid }: { fluid: FluidSlotData }) {
+  const { t } = useI18n();
   const hasFluid = fluid.fluidId > 0 && fluid.amount > 0;
+  // 空流体はguidが空文字なので辞書解決せずラベルも出さない
+  // The empty fluid carries an empty guid, so skip dictionary lookup and show no label
+  const name = fluid.fluidGuid ? t(fluidNameKey(fluid.fluidGuid)) : "";
 
   return (
-    <Tooltip label={fluid.name} disabled={!hasFluid || !fluid.name}>
+    <Tooltip label={name} disabled={!hasFluid || !name}>
       <div data-testid="fluid-slot" className={styles.slot}>
         {hasFluid ? (
           <>

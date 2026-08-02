@@ -108,10 +108,10 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 // List items first and then fluids on both sides
                 var inputs = new List<string>();
                 foreach (var input in recipe.InputItems) inputs.Add($"{Localize.GetContent(ContentLocalizationKeys.ItemName(input.ItemGuid))}×{input.Count}");
-                foreach (var input in recipe.InputFluids) inputs.Add($"{MasterHolder.FluidMaster.GetFluidMaster(input.FluidGuid).Name}×{input.Amount}");
+                foreach (var input in recipe.InputFluids) inputs.Add($"{Localize.GetContent(ContentLocalizationKeys.FluidName(input.FluidGuid))}×{input.Amount}");
                 var outputs = new List<string>();
                 foreach (var output in recipe.OutputItems) outputs.Add($"{Localize.GetContent(ContentLocalizationKeys.ItemName(output.ItemGuid))}×{output.Count}");
-                foreach (var output in recipe.OutputFluids) outputs.Add($"{MasterHolder.FluidMaster.GetFluidMaster(output.FluidGuid).Name}×{output.Amount}");
+                foreach (var output in recipe.OutputFluids) outputs.Add($"{Localize.GetContent(ContentLocalizationKeys.FluidName(output.FluidGuid))}×{output.Amount}");
                 return $"{string.Join(" + ", inputs)} → {string.Join(" + ", outputs)} ({recipe.Time}秒)";
             }
 

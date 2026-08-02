@@ -12,8 +12,10 @@ export const FluidSlotDataSchema = z.object({
   fluidId: z.number(),
   amount: z.number(),
   capacity: z.number(),
-  name: z.string(),
-});
+  // 表示名はguid導出キーで辞書解決する。空流体だけが空文字
+  // The display name resolves from the guid-derived key; only the empty fluid carries an empty string
+  fluidGuid: GuidSchema.or(z.literal("")),
+}).strict();
 
 export const MachineDetailDataSchema = z.object({
   recipeGuid: GuidSchema,

@@ -1,4 +1,9 @@
+import { fluidNameKey } from "../../../src/shared/i18n/contentKeys";
+
+export const WATER_FLUID_GUID = "54000000-0000-4000-8000-000000000001";
+
 const source = {
+  [fluidNameKey(WATER_FLUID_GUID)]: "Water",
   "research.11111111-1111-4111-8111-111111111111.name": "最初の研究",
   "research.11111111-1111-4111-8111-111111111111.description": "説明テキスト",
   "research.22222222-2222-4222-8222-222222222222.name": "次の研究",

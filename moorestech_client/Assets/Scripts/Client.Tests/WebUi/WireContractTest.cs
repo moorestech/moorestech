@@ -56,7 +56,7 @@ namespace Client.Tests.WebUi
                 Identifier = "block:1",
                 BlockGuid = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
                 ItemSlots = new List<BlockItemSlotDto> { new BlockItemSlotDto { ItemId = 1, Count = 7 }, new BlockItemSlotDto { ItemId = 2, Count = 4 } },
-                FluidSlots = new List<BlockFluidSlotDto> { new BlockFluidSlotDto { FluidId = 10, Amount = 500, Capacity = 1000, Name = "Water" } },
+                FluidSlots = new List<BlockFluidSlotDto> { new BlockFluidSlotDto { FluidId = 10, Amount = 500, Capacity = 1000, FluidGuid = "bbbbbbbb-cccc-4ddd-8eee-ffffffffffff" } },
                 Progress = 0.5,
             };
             AssertMatchesFixture(dto, "block_inventory_open.json");

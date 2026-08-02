@@ -13,6 +13,7 @@ import {
   CHEST_BLOCK_GUID,
   TANK_BLOCK_GUID,
 } from "./fixtures/blockLocalizationFixtures";
+import { WATER_FLUID_GUID } from "./fixtures/contentLocalizationFixtures";
 
 // BLK-2〜5/8 詳細ブロックと FEAT-RES-1 研究ツリーは別ファイルへ分割し再エクスポートする（200行制約）
 // Split the BLK-2..5/8 detail blocks and the FEAT-RES-1 research tree into separate files and re-export (200-line limit)
@@ -64,8 +65,8 @@ export const blockTank = {
   blockGuid: TANK_BLOCK_GUID,
   itemSlots: [],
   fluidSlots: [
-    { fluidId: 10, amount: 500, capacity: 1000, name: "Water" },
-    { fluidId: 0, amount: 0, capacity: 1000, name: "" },
+    { fluidId: 10, amount: 500, capacity: 1000, fluidGuid: WATER_FLUID_GUID },
+    { fluidId: 0, amount: 0, capacity: 1000, fluidGuid: "" },
   ],
   progress: 0.5,
 } satisfies BlockInventoryData;
