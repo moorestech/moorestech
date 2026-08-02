@@ -99,7 +99,10 @@ def parse_diff(repo, base_ref):
                 raise RuntimeError(f"unparsable hunk header: {raw!r}")
             line_no = int(m.group(1))
         elif in_hunk and raw.startswith("+"):
-            added.append((cur, line_no, raw[1:]))
+            # cur=Noneは削除ファイル（+++ /dev/null）側。バイナリ化け行が+で始まるケースを弾く
+            # cur=None means a deleted file (+++ /dev/null); guard against binary garbage lines starting with +
+            if cur is not None:
+                added.append((cur, line_no, raw[1:]))
             line_no += 1
     return added, new_files
 

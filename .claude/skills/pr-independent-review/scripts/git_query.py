@@ -15,7 +15,9 @@ DIFF_SAFE_FLAGS = ["--no-color", "--no-ext-diff", "--no-textconv", "--text", "--
 
 def git(repo, *args):
     cmd = ["git", "-C", repo, *GIT_SAFE_CONFIG, *args]
-    return subprocess.run(cmd, check=True, capture_output=True, text=True).stdout
+    # --text指定でバイナリ差分も生で流れてくるため、非UTF-8バイトはデコード置換で受ける（クラッシュさせない）
+    # --text dumps binary hunks verbatim, so replace non-UTF-8 bytes instead of crashing on decode
+    return subprocess.run(cmd, check=True, capture_output=True, text=True, errors="replace").stdout
 
 
 def changed_asmdef_paths(repo, base_ref):
