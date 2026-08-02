@@ -7,6 +7,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Localization;
 using Core.Master;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.MachineRecipesModule;
 using TMPro;
 using UniRx;

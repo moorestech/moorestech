@@ -169,7 +169,7 @@ public class LocalizationCodeGeneratorTest
             settings[index] = new LanguageSetting(code, code, code);
         }
 
-        return LocalizationCodeGenerator.Generate(csv, settings);
+        return LocalizationCodeGenerator.Generate(csv, settings, Array.Empty<ContentKeyDefinition>());
     }
 
 }

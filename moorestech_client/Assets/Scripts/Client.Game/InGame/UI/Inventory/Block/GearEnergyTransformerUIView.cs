@@ -9,6 +9,7 @@ using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.Gear.Common;
 using Game.PlayerInventory.Interface.Subscription;
+using Mooresmaster.Localization.Generated;
 using Server.Protocol.PacketResponse;
 using TMPro;
 using UniRx;

@@ -147,11 +147,16 @@ public class LocalizationSourceGeneratorTest
 
     private static AdditionalText[] WithSettings(params AdditionalText[] files)
     {
+        // 生成にはAdditionalFiles三点セットが揃っている必要がある
+        // Generation requires the complete AdditionalFiles triplet
         var result = new List<AdditionalText>(files)
         {
             new TestAdditionalText(
                 "/content/localization_settings.csv",
                 "lang_name,display_name,steam_api_lang_code\nenglish,English,en\n"),
+            new TestAdditionalText(
+                "/content/content_keys.csv",
+                "namespace,field,sourceMaster\nitem,name,ItemMaster\n"),
         };
         return result.ToArray();
     }

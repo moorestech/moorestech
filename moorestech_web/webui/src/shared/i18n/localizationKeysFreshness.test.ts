@@ -5,6 +5,10 @@ import { describe, expect, it } from "vitest";
 // The Node build module exposes generation logic directly to tests
 // @ts-expect-error -- The build script is intentionally a plain ESM module.
 import { generateLocalizationKeysSource, parseLocalizationCsv } from "../../../scripts/generate-localization-keys.mjs";
+// @ts-expect-error -- The build script is intentionally a plain ESM module.
+import { generateContentKeysSource, parseContentKeyCatalog } from "../../../scripts/generate-content-keys.mjs";
+
+const CONTENT_KEY_HEADER = "namespace,field,sourceMaster\n";
 
 describe("localizationKeys freshness", () => {
   it("generated file matches the CSV source of truth", () => {
@@ -13,6 +17,60 @@ describe("localizationKeys freshness", () => {
     const expected = generateLocalizationKeysSource(parseLocalizationCsv(readFileSync(csvPath, "utf8")));
 
     expect(readFileSync(generatedPath, "utf8")).toBe(expected);
+  });
+});
+
+describe("contentKeys freshness", () => {
+  it("generated file matches the declaration table source of truth", () => {
+    const csvPath = new URL("../../../../../Localization/content_keys.csv", import.meta.url);
+    const generatedPath = new URL("./generated/contentKeys.ts", import.meta.url);
+    const expected = generateContentKeysSource(parseContentKeyCatalog(readFileSync(csvPath, "utf8")));
+
+    expect(readFileSync(generatedPath, "utf8")).toBe(expected);
+  });
+});
+
+describe("parseContentKeyCatalog", () => {
+  it("maps declaration rows to namespace, field, and supplying Master", () => {
+    const catalog = parseContentKeyCatalog(`${CONTENT_KEY_HEADER}item,name,ItemMaster\nresearch,description,ResearchMaster\n`);
+
+    expect(catalog).toEqual([
+      { namespace: "item", field: "name", sourceMaster: "ItemMaster" },
+      { namespace: "research", field: "description", sourceMaster: "ResearchMaster" },
+    ]);
+  });
+
+  it.each([
+    ["swapped headers", "field,namespace,sourceMaster\n", /namespace, field, and sourceMaster/],
+    ["missing column", "namespace,field\n", /namespace, field, and sourceMaster/],
+    ["empty table", "", /content_keys\.csv is empty/],
+  ])("rejects %s", (_name, csv, expected) => {
+    expect(() => parseContentKeyCatalog(csv)).toThrow(expected);
+  });
+
+  it.each([
+    ["too few columns", "item,name\n", /expected 3, got 2/],
+    ["too many columns", "item,name,ItemMaster,extra\n", /expected 3, got 4/],
+    ["missing source master", "item,name,\n", /must declare the Master/],
+    ["upper camel namespace", "Item,name,ItemMaster\n", /must match \[a-z\]\[A-Za-z0-9\]\*/],
+    ["hyphenated namespace", "build-menu,name,ItemMaster\n", /must match \[a-z\]\[A-Za-z0-9\]\*/],
+    ["upper camel field", "item,Name,ItemMaster\n", /must match \[a-z\]\[A-Za-z0-9\]\*/],
+    ["duplicated row", "item,name,ItemMaster\nitem,name,BlockMaster\n", /Duplicated content key: item\.name/],
+  ])("rejects %s", (_name, row, expected) => {
+    expect(() => parseContentKeyCatalog(CONTENT_KEY_HEADER + row)).toThrow(expected);
+  });
+});
+
+describe("generateContentKeysSource", () => {
+  it("emits a template literal union and typed builders in declaration order", () => {
+    const source = generateContentKeysSource(
+      parseContentKeyCatalog(`${CONTENT_KEY_HEADER}fluid,name,FluidMaster\nconnectTool,name,ConnectToolMaster\n`),
+    );
+
+    expect(source).toContain("  | `fluid.${string}.name`");
+    expect(source).toContain("export const fluidNameKey = (guid: string): ContentLocalizationKey =>");
+    expect(source).toContain("  `connectTool.${canonicalGuidSegment(guid)}.name`;");
+    expect(source.indexOf("fluidNameKey")).toBeLessThan(source.indexOf("connectToolNameKey"));
   });
 });
 

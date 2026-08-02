@@ -1,37 +1,41 @@
 using System;
-using Client.Localization;
+using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 
 namespace Client.Tests.Localization
 {
     public class ContentLocalizationKeysTest
     {
-        private static readonly Guid ContentGuid = Guid.Parse("01234567-89ab-cdef-0123-456789abcdef");
+        private const string GuidSegment = "01234567-89ab-cdef-0123-456789abcdef";
+        private static readonly Guid ContentGuid = Guid.Parse(GuidSegment);
 
         [Test]
-        public void GuidBuildersUseCanonicalLowercaseSegments()
+        public void 宣言表の全行が小文字D形式Guidの導出キーを生成する()
         {
-            // 導出キーの名前空間とfield固定
-            // Pin derived-key namespaces and fields
-            Assert.AreEqual("item.01234567-89ab-cdef-0123-456789abcdef.name", ContentLocalizationKeys.ItemName(ContentGuid));
-            Assert.AreEqual("block.01234567-89ab-cdef-0123-456789abcdef.name", ContentLocalizationKeys.BlockName(ContentGuid));
-            Assert.AreEqual("research.01234567-89ab-cdef-0123-456789abcdef.name", ContentLocalizationKeys.ResearchNodeName(ContentGuid));
-            Assert.AreEqual("research.01234567-89ab-cdef-0123-456789abcdef.description", ContentLocalizationKeys.ResearchNodeDescription(ContentGuid));
-            Assert.AreEqual("challenge.01234567-89ab-cdef-0123-456789abcdef.title", ContentLocalizationKeys.ChallengeTitle(ContentGuid));
-            Assert.AreEqual("challenge.01234567-89ab-cdef-0123-456789abcdef.summary", ContentLocalizationKeys.ChallengeSummary(ContentGuid));
-            Assert.AreEqual("challengeCategory.01234567-89ab-cdef-0123-456789abcdef.name", ContentLocalizationKeys.ChallengeCategoryName(ContentGuid));
-            Assert.AreEqual("character.01234567-89ab-cdef-0123-456789abcdef.name", ContentLocalizationKeys.CharacterName(ContentGuid));
-            Assert.AreEqual("buildMenuCategory.01234567-89ab-cdef-0123-456789abcdef.name", ContentLocalizationKeys.BuildMenuCategoryName(ContentGuid));
-            Assert.AreEqual("buildMenuSubCategory.01234567-89ab-cdef-0123-456789abcdef.name", ContentLocalizationKeys.BuildMenuSubCategoryName(ContentGuid));
+            // 宣言表 Localization/content_keys.csv の全行を固定
+            // Pin every row of the Localization/content_keys.csv declaration table
+            Assert.AreEqual($"item.{GuidSegment}.name", ContentLocalizationKeys.ItemName(ContentGuid).Key);
+            Assert.AreEqual($"block.{GuidSegment}.name", ContentLocalizationKeys.BlockName(ContentGuid).Key);
+            Assert.AreEqual($"research.{GuidSegment}.name", ContentLocalizationKeys.ResearchName(ContentGuid).Key);
+            Assert.AreEqual($"research.{GuidSegment}.description", ContentLocalizationKeys.ResearchDescription(ContentGuid).Key);
+            Assert.AreEqual($"challenge.{GuidSegment}.title", ContentLocalizationKeys.ChallengeTitle(ContentGuid).Key);
+            Assert.AreEqual($"challenge.{GuidSegment}.summary", ContentLocalizationKeys.ChallengeSummary(ContentGuid).Key);
+            Assert.AreEqual($"challengeCategory.{GuidSegment}.name", ContentLocalizationKeys.ChallengeCategoryName(ContentGuid).Key);
+            Assert.AreEqual($"challengeCategory.{GuidSegment}.description", ContentLocalizationKeys.ChallengeCategoryDescription(ContentGuid).Key);
+            Assert.AreEqual($"character.{GuidSegment}.name", ContentLocalizationKeys.CharacterName(ContentGuid).Key);
+            Assert.AreEqual($"buildMenuCategory.{GuidSegment}.name", ContentLocalizationKeys.BuildMenuCategoryName(ContentGuid).Key);
+            Assert.AreEqual($"buildMenuSubCategory.{GuidSegment}.name", ContentLocalizationKeys.BuildMenuSubCategoryName(ContentGuid).Key);
+            Assert.AreEqual($"challengeTutorial.{GuidSegment}.text", ContentLocalizationKeys.ChallengeTutorialText(ContentGuid).Key);
+            Assert.AreEqual($"connectTool.{GuidSegment}.name", ContentLocalizationKeys.ConnectToolName(ContentGuid).Key);
+            Assert.AreEqual($"fluid.{GuidSegment}.name", ContentLocalizationKeys.FluidName(ContentGuid).Key);
         }
 
         [Test]
-        public void ChallengeCategoryDescriptionBuilderUsesCanonicalLowercaseSegment()
+        public void 大文字Guid入力でも小文字segmentへ正準化する()
         {
-            Assert.AreEqual(
-                "challengeCategory.01234567-89ab-cdef-0123-456789abcdef.description",
-                ContentLocalizationKeys.ChallengeCategoryDescription(ContentGuid));
-        }
+            var upperCaseGuid = Guid.Parse("01234567-89AB-CDEF-0123-456789ABCDEF");
 
+            Assert.AreEqual($"item.{GuidSegment}.name", ContentLocalizationKeys.ItemName(upperCaseGuid).Key);
+        }
     }
 }

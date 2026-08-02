@@ -12,7 +12,7 @@ internal static class LanguageCatalogCodeEmitter
         string[] languageCodes,
         LanguageSetting[] settings)
     {
-        ValidateLanguageSet(languageCodes, settings);
+        ValidateLanguageSet();
 
         // readonly値型と固定配列として言語表示メタを埋め込む
         // Embed language display metadata as a readonly value type and fixed array
@@ -43,31 +43,33 @@ internal static class LanguageCatalogCodeEmitter
         builder.AppendLine("        };");
         builder.AppendLine("    }");
         builder.AppendLine();
-    }
 
-    private static void ValidateLanguageSet(
-        string[] languageCodes,
-        LanguageSetting[] settings)
-    {
-        var dictionaryLanguages = new HashSet<string>(languageCodes, StringComparer.Ordinal);
-        if (dictionaryLanguages.Count != languageCodes.Length ||
-            settings.Length != languageCodes.Length)
-        {
-            throw new LocalizationCsvException(
-                "localization_settings.csv languages must exactly match localization.csv language columns");
-        }
+        #region Internal
 
-        // 設定側の重複と辞書側にない言語を同時に拒否
-        // Reject both duplicate settings and languages absent from the dictionary
-        var settingLanguages = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var setting in settings)
+        void ValidateLanguageSet()
         {
-            if (!settingLanguages.Add(setting.Code) ||
-                !dictionaryLanguages.Contains(setting.Code))
+            var dictionaryLanguages = new HashSet<string>(languageCodes, StringComparer.Ordinal);
+            if (dictionaryLanguages.Count != languageCodes.Length ||
+                settings.Length != languageCodes.Length)
             {
                 throw new LocalizationCsvException(
                     "localization_settings.csv languages must exactly match localization.csv language columns");
             }
+
+            // 設定側の重複と辞書側にない言語を同時に拒否
+            // Reject both duplicate settings and languages absent from the dictionary
+            var settingLanguages = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var setting in settings)
+            {
+                if (!settingLanguages.Add(setting.Code) ||
+                    !dictionaryLanguages.Contains(setting.Code))
+                {
+                    throw new LocalizationCsvException(
+                        "localization_settings.csv languages must exactly match localization.csv language columns");
+                }
+            }
         }
+
+        #endregion
     }
 }

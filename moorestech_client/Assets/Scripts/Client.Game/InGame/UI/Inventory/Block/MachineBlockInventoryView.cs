@@ -10,6 +10,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface.State;
 using Game.Context;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MachineRecipesModule;
 using TMPro;

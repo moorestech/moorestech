@@ -9,6 +9,7 @@ using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Localization;
 using Client.Mod.Texture;
 using Core.Master;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.CraftRecipesModule;
 using TMPro;
 using UniRx;

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.Master;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.ChallengesModule;
 
 namespace Client.Localization
@@ -15,26 +16,26 @@ namespace Client.Localization
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
                 var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                sourceTexts[ContentLocalizationKeys.ItemName(itemMaster.ItemGuid)] = itemMaster.Name;
+                sourceTexts[ContentLocalizationKeys.ItemName(itemMaster.ItemGuid).Key] = itemMaster.Name;
             }
 
             // ブロックも同じ導出規約で原文を収集する
             // Collect block sources with the same derived-key convention
             foreach (var blockMaster in MasterHolder.BlockMaster.Blocks.Data)
             {
-                sourceTexts[ContentLocalizationKeys.BlockName(blockMaster.BlockGuid)] = blockMaster.Name;
+                sourceTexts[ContentLocalizationKeys.BlockName(blockMaster.BlockGuid).Key] = blockMaster.Name;
             }
 
             // 分類名を必須Guidから収集
             // Collect classification names from required GUIDs
             foreach (var categoryMaster in MasterHolder.BuildMenuCategoryMaster.Categories)
             {
-                sourceTexts[ContentLocalizationKeys.BuildMenuCategoryName(categoryMaster.CategoryGuid)] =
+                sourceTexts[ContentLocalizationKeys.BuildMenuCategoryName(categoryMaster.CategoryGuid).Key] =
                     categoryMaster.Name;
                 foreach (var subCategoryMaster in categoryMaster.SubCategories)
                 {
                     sourceTexts[ContentLocalizationKeys.BuildMenuSubCategoryName(
-                        subCategoryMaster.SubCategoryGuid)] = subCategoryMaster.Name;
+                        subCategoryMaster.SubCategoryGuid).Key] = subCategoryMaster.Name;
                 }
             }
 
@@ -42,7 +43,7 @@ namespace Client.Localization
             // Collect speaker sources from required GUIDs
             foreach (var characterMaster in MasterHolder.CharacterMaster.Characters.Data)
             {
-                sourceTexts[ContentLocalizationKeys.CharacterName(characterMaster.CharacterGuid)] =
+                sourceTexts[ContentLocalizationKeys.CharacterName(characterMaster.CharacterGuid).Key] =
                     characterMaster.DisplayName;
             }
 
@@ -50,9 +51,9 @@ namespace Client.Localization
             // Collect research names and descriptions from one GUID
             foreach (var researchMaster in MasterHolder.ResearchMaster.GetAllResearches())
             {
-                sourceTexts[ContentLocalizationKeys.ResearchNodeName(researchMaster.ResearchNodeGuid)] =
+                sourceTexts[ContentLocalizationKeys.ResearchName(researchMaster.ResearchNodeGuid).Key] =
                     researchMaster.ResearchNodeName;
-                sourceTexts[ContentLocalizationKeys.ResearchNodeDescription(researchMaster.ResearchNodeGuid)] =
+                sourceTexts[ContentLocalizationKeys.ResearchDescription(researchMaster.ResearchNodeGuid).Key] =
                     researchMaster.ResearchNodeDescription;
             }
 
@@ -60,22 +61,22 @@ namespace Client.Localization
             // Collect every category subtree as canonical source
             foreach (var categoryMaster in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
             {
-                sourceTexts[ContentLocalizationKeys.ChallengeCategoryName(categoryMaster.CategoryGuid)] =
+                sourceTexts[ContentLocalizationKeys.ChallengeCategoryName(categoryMaster.CategoryGuid).Key] =
                     categoryMaster.CategoryName;
-                sourceTexts[ContentLocalizationKeys.ChallengeCategoryDescription(categoryMaster.CategoryGuid)] =
+                sourceTexts[ContentLocalizationKeys.ChallengeCategoryDescription(categoryMaster.CategoryGuid).Key] =
                     categoryMaster.CategoryDescription;
                 foreach (var challengeMaster in categoryMaster.Challenges)
                 {
-                    sourceTexts[ContentLocalizationKeys.ChallengeTitle(challengeMaster.ChallengeGuid)] =
+                    sourceTexts[ContentLocalizationKeys.ChallengeTitle(challengeMaster.ChallengeGuid).Key] =
                         challengeMaster.Title;
-                    sourceTexts[ContentLocalizationKeys.ChallengeSummary(challengeMaster.ChallengeGuid)] =
+                    sourceTexts[ContentLocalizationKeys.ChallengeSummary(challengeMaster.ChallengeGuid).Key] =
                         challengeMaster.Summary;
 
                     // チュートリアル表示文言もtutorialGuidで収集
                     // Collect tutorial display texts by tutorial GUID
                     foreach (var tutorial in challengeMaster.Tutorials)
                     {
-                        sourceTexts[ContentLocalizationKeys.ChallengeTutorialText(tutorial.TutorialGuid)] =
+                        sourceTexts[ContentLocalizationKeys.ChallengeTutorialText(tutorial.TutorialGuid).Key] =
                             GetTutorialDisplayText(tutorial);
                     }
                 }
@@ -85,7 +86,7 @@ namespace Client.Localization
             // Collect connect tool names from required GUIDs
             foreach (var connectToolMaster in MasterHolder.ConnectToolMaster.All)
             {
-                sourceTexts[ContentLocalizationKeys.ConnectToolName(connectToolMaster.ConnectToolGuid)] =
+                sourceTexts[ContentLocalizationKeys.ConnectToolName(connectToolMaster.ConnectToolGuid).Key] =
                     connectToolMaster.Name;
             }
 

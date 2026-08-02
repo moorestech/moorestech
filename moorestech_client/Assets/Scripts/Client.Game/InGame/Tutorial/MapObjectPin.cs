@@ -6,6 +6,7 @@ using Client.Game.InGame.Map.MapObject;
 using Client.Localization;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.ChallengesModule;
 using UniRx;
 using UnityEngine;

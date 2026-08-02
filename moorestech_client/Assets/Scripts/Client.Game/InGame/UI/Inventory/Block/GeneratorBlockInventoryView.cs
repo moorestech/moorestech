@@ -7,6 +7,7 @@ using Client.Localization;
 using Core.Item.Interface;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Context;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.BlocksModule;
 using TMPro;
 using UniRx;

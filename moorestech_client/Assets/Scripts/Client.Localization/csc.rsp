@@ -1,3 +1,4 @@
 /additionalfile:Assets/../../Localization/localization.csv
 /additionalfile:Assets/../../Localization/localization_settings.csv
+/additionalfile:Assets/../../Localization/content_keys.csv
 /analyzer:Assets/Plugins/mooresmaster.LocalizationCsv.dll

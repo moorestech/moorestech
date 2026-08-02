@@ -61,7 +61,7 @@ internal static class LocalizationCodeSyntax
         return char.ToUpperInvariant(segment[0]) + segment.Substring(1);
     }
 
-    private static bool IsLowerCamelSegment(string segment)
+    public static bool IsLowerCamelSegment(string segment)
     {
         // lowerCamel契約を境界検査
         // Validate the lower-camel contract at the boundary

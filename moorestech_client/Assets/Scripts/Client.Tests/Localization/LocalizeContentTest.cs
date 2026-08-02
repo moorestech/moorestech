@@ -6,6 +6,7 @@ using Client.Mod.Texture;
 using Core.Master;
 using Game.Context;
 using Mod.Loader;
+using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -64,10 +65,10 @@ namespace Client.Tests.Localization
                 modsResource,
                 new[] { new ModId("author:fallback") });
 
-            Assert.AreEqual("対象", Localize.GetContent("content.target.name"));
-            Assert.AreEqual("English", Localize.GetContent("content.english.name"));
-            Assert.AreEqual("Source", Localize.GetContent("content.source.name"));
-            Assert.AreEqual("[!content.missing.name]", Localize.GetContent("content.missing.name"));
+            Assert.AreEqual("対象", Localize.GetContent(new ContentLocalizationKey("content.target.name")));
+            Assert.AreEqual("English", Localize.GetContent(new ContentLocalizationKey("content.english.name")));
+            Assert.AreEqual("Source", Localize.GetContent(new ContentLocalizationKey("content.source.name")));
+            Assert.AreEqual("[!content.missing.name]", Localize.GetContent(new ContentLocalizationKey("content.missing.name")));
         }
 
         [Test]
@@ -96,10 +97,10 @@ namespace Client.Tests.Localization
                 Localize.GetContent(ContentLocalizationKeys.ItemName(firstItem.ItemGuid)));
             Assert.AreEqual(
                 firstResearch.ResearchNodeName,
-                Localize.GetContent(ContentLocalizationKeys.ResearchNodeName(firstResearch.ResearchNodeGuid)));
+                Localize.GetContent(ContentLocalizationKeys.ResearchName(firstResearch.ResearchNodeGuid)));
             Assert.AreEqual(
                 firstResearch.ResearchNodeDescription,
-                Localize.GetContent(ContentLocalizationKeys.ResearchNodeDescription(firstResearch.ResearchNodeGuid)));
+                Localize.GetContent(ContentLocalizationKeys.ResearchDescription(firstResearch.ResearchNodeGuid)));
             Assert.AreEqual(
                 firstCategory.CategoryName,
                 Localize.GetContent(ContentLocalizationKeys.ChallengeCategoryName(firstCategory.CategoryGuid)));

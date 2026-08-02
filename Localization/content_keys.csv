@@ -1,0 +1,15 @@
+namespace,field,sourceMaster
+item,name,ItemMaster
+block,name,BlockMaster
+research,name,ResearchMaster
+research,description,ResearchMaster
+challenge,title,ChallengeMaster
+challenge,summary,ChallengeMaster
+challengeCategory,name,ChallengeMaster
+challengeCategory,description,ChallengeMaster
+character,name,CharacterMaster
+buildMenuCategory,name,BuildMenuCategoryMaster
+buildMenuSubCategory,name,BuildMenuCategoryMaster
+challengeTutorial,text,ChallengeMaster
+connectTool,name,ConnectToolMaster
+fluid,name,FluidMaster

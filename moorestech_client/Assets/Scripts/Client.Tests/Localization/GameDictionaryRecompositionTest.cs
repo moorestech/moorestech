@@ -3,6 +3,7 @@ using System.IO;
 using Client.Localization;
 using Core.Master;
 using Mod.Loader;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.LocalizationCsv;
 using NUnit.Framework;
 using Server.Boot;
@@ -58,7 +59,7 @@ namespace Client.Tests.Localization
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ =>
             {
                 eventCount++;
-                notifiedValue = Localize.GetContent("content.recompose.name");
+                notifiedValue = Localize.GetContent(new ContentLocalizationKey("content.recompose.name"));
             });
             var second = CreateResource("second-set", "author:second",
                 "key,Source,english,japanese\ncontent.recompose.name,Second Source,Second English,\n");
@@ -67,7 +68,7 @@ namespace Client.Tests.Localization
             Localize.TryGetDictionary("japanese", secondRevision, out var viewAfter);
             Assert.AreEqual("最初", viewBefore["content.recompose.name"]);
             Assert.IsFalse(viewAfter.ContainsKey("content.recompose.name"));
-            Assert.AreEqual("Second English", Localize.GetContent("content.recompose.name"));
+            Assert.AreEqual("Second English", Localize.GetContent(new ContentLocalizationKey("content.recompose.name")));
             Assert.AreNotSame(viewBefore, viewAfter);
             Assert.AreEqual("japanese", Localize.GetCurrentLanguageCode());
             Assert.AreEqual(1, eventCount);
@@ -114,20 +115,20 @@ namespace Client.Tests.Localization
             var research = MasterHolder.ResearchMaster.GetAllResearches()[0];
             var category = MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements[0];
             var challenge = category.Challenges[0];
-            var researchNameKey = ContentLocalizationKeys.ResearchNodeName(research.ResearchNodeGuid);
-            var researchDescriptionKey = ContentLocalizationKeys.ResearchNodeDescription(research.ResearchNodeGuid);
+            var researchNameKey = ContentLocalizationKeys.ResearchName(research.ResearchNodeGuid);
+            var researchDescriptionKey = ContentLocalizationKeys.ResearchDescription(research.ResearchNodeGuid);
             var categoryNameKey = ContentLocalizationKeys.ChallengeCategoryName(category.CategoryGuid);
             var challengeTitleKey = ContentLocalizationKeys.ChallengeTitle(challenge.ChallengeGuid);
             var challengeSummaryKey = ContentLocalizationKeys.ChallengeSummary(challenge.ChallengeGuid);
             var csv =
                 "key,Source,english,japanese\n" +
-                $"{itemKey},Wrong Item,,\n" +
-                $"{blockKey},Wrong Block,,\n" +
-                $"{researchNameKey},Wrong Research Name,English Research Name,研究名\n" +
-                $"{researchDescriptionKey},Wrong Research Description,,\n" +
-                $"{categoryNameKey},Wrong Category,,\n" +
-                $"{challengeTitleKey},Wrong Challenge Title,English Challenge Title,チャレンジ名\n" +
-                $"{challengeSummaryKey},Wrong Challenge Summary,,\n";
+                $"{itemKey.Key},Wrong Item,,\n" +
+                $"{blockKey.Key},Wrong Block,,\n" +
+                $"{researchNameKey.Key},Wrong Research Name,English Research Name,研究名\n" +
+                $"{researchDescriptionKey.Key},Wrong Research Description,,\n" +
+                $"{categoryNameKey.Key},Wrong Category,,\n" +
+                $"{challengeTitleKey.Key},Wrong Challenge Title,English Challenge Title,チャレンジ名\n" +
+                $"{challengeSummaryKey.Key},Wrong Challenge Summary,,\n";
             var modsResource = CreateResource("collision-set", "author:collision", csv);
 
             Localize.MergeGameDictionaries(modsResource, new[] { new ModId("author:collision") });
@@ -145,8 +146,8 @@ namespace Client.Tests.Localization
             Assert.AreEqual(category.CategoryName, Localize.GetContent(categoryNameKey));
             Assert.AreEqual("チャレンジ名", Localize.GetContent(challengeTitleKey));
             Assert.AreEqual(challenge.Summary, Localize.GetContent(challengeSummaryKey));
-            Assert.AreEqual(research.ResearchNodeName, sourceDictionary[researchNameKey]);
-            Assert.AreEqual(challenge.Title, sourceDictionary[challengeTitleKey]);
+            Assert.AreEqual(research.ResearchNodeName, sourceDictionary[researchNameKey.Key]);
+            Assert.AreEqual(challenge.Title, sourceDictionary[challengeTitleKey.Key]);
 
             Localize.TrySetLanguage("english");
             Assert.AreEqual("English Research Name", Localize.GetContent(researchNameKey));

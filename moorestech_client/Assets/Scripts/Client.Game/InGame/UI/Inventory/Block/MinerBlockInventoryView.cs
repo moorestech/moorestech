@@ -13,6 +13,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface.State;
 using Game.Context;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.BlocksModule;
 using TMPro;
 using UniRx;

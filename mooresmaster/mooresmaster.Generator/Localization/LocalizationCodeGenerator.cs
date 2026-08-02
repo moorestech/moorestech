@@ -5,7 +5,10 @@ namespace mooresmaster.Generator.Localization;
 
 public static class LocalizationCodeGenerator
 {
-    public static string Generate(LocalizationCsv csv, LanguageSetting[] settings)
+    public static string Generate(
+        LocalizationCsv csv,
+        LanguageSetting[] settings,
+        ContentKeyDefinition[] contentKeys)
     {
         LocalizationCodeSyntax.ValidateKeys(csv);
         var builder = new StringBuilder();
@@ -17,144 +20,152 @@ public static class LocalizationCodeGenerator
         builder.AppendLine();
         builder.AppendLine("namespace Mooresmaster.Localization.Generated");
         builder.AppendLine("{");
-        EmitKeyType(builder);
+        EmitKeyType();
         LanguageCatalogCodeEmitter.Emit(builder, csv.LanguageCodes, settings);
-        EmitKeys(builder, LocalizationKeyTree.Build(csv.Rows));
-        EmitTable(builder, csv);
+        EmitKeys(LocalizationKeyTree.Build(csv.Rows));
+        ContentKeyCodeEmitter.Emit(builder, contentKeys);
+        EmitTable();
         builder.AppendLine("}");
         return builder.ToString();
-    }
-
-    private static void EmitKeyType(StringBuilder builder)
-    {
-        builder.AppendLine("    public readonly struct LocalizationKey");
-        builder.AppendLine("    {");
-        builder.AppendLine("        public readonly string Key;");
-        builder.AppendLine("        public LocalizationKey(string key) { Key = key; }");
-        builder.AppendLine("    }");
-        builder.AppendLine();
-    }
-
-    private static void EmitKeys(StringBuilder builder, LocalizationKeyNode root)
-    {
-        builder.AppendLine("    public static class LocalizationKeys");
-        builder.AppendLine("    {");
-        foreach (var child in root.Children)
-        {
-            EmitNode(child, 2);
-        }
-
-        builder.AppendLine("    }");
-        builder.AppendLine();
 
         #region Internal
 
-        void EmitNode(LocalizationKeyNode node, int depth)
+        void EmitKeyType()
         {
-            var indent = new string(' ', depth * 4);
-            if (node.IsLeaf)
+            builder.AppendLine("    public readonly struct LocalizationKey");
+            builder.AppendLine("    {");
+            builder.AppendLine("        public readonly string Key;");
+            builder.AppendLine("        public LocalizationKey(string key) { Key = key; }");
+            builder.AppendLine("    }");
+            builder.AppendLine();
+        }
+
+        void EmitKeys(LocalizationKeyNode root)
+        {
+            builder.AppendLine("    public static class LocalizationKeys");
+            builder.AppendLine("    {");
+            foreach (var child in root.Children)
             {
-                builder.AppendLine(
-                    $"{indent}public static readonly LocalizationKey {LocalizationCodeSyntax.ToPascalCase(node.Segment)} = new LocalizationKey(\"{LocalizationCodeSyntax.Escape(node.FullKey)}\");");
-                return;
+                EmitNode(child, 2);
             }
 
-            // 枝を静的クラスへ深さ優先展開
-            // Expand branches depth-first as static classes
-            builder.AppendLine($"{indent}public static class {LocalizationCodeSyntax.ToPascalCase(node.Segment)}");
-            builder.AppendLine($"{indent}{{");
-            foreach (var child in node.Children)
+            builder.AppendLine("    }");
+            builder.AppendLine();
+
+            #region Internal
+
+            void EmitNode(LocalizationKeyNode node, int depth)
             {
-                EmitNode(child, depth + 1);
+                var indent = new string(' ', depth * 4);
+                if (node.IsLeaf)
+                {
+                    builder.AppendLine(
+                        $"{indent}public static readonly LocalizationKey {LocalizationCodeSyntax.ToPascalCase(node.Segment)} = new LocalizationKey(\"{LocalizationCodeSyntax.Escape(node.FullKey)}\");");
+                    return;
+                }
+
+                // 枝を静的クラスへ深さ優先展開
+                // Expand branches depth-first as static classes
+                builder.AppendLine($"{indent}public static class {LocalizationCodeSyntax.ToPascalCase(node.Segment)}");
+                builder.AppendLine($"{indent}{{");
+                foreach (var child in node.Children)
+                {
+                    EmitNode(child, depth + 1);
+                }
+
+                builder.AppendLine($"{indent}}}");
             }
 
-            builder.AppendLine($"{indent}}}");
+            #endregion
+        }
+
+        void EmitTable()
+        {
+            builder.AppendLine("    public static class VanillaLocalizationTable");
+            builder.AppendLine("    {");
+            EmitLanguageCodes();
+            builder.AppendLine("        private static readonly Dictionary<string, IReadOnlyDictionary<string, string>> Languages = BuildLanguages();");
+            builder.AppendLine("        public static readonly IReadOnlyDictionary<string, string> SourceTexts = BuildSourceTexts();");
+            builder.AppendLine();
+
+            // 未検出時はnullを返す
+            // Return null when no language matches
+            builder.AppendLine("        public static bool TryGetLanguage(string code, out IReadOnlyDictionary<string, string> dictionary)");
+            builder.AppendLine("        {");
+            builder.AppendLine("            if (Languages.TryGetValue(code, out dictionary))");
+            builder.AppendLine("            {");
+            builder.AppendLine("                return true;");
+            builder.AppendLine("            }");
+            builder.AppendLine();
+            builder.AppendLine("            dictionary = null;");
+            builder.AppendLine("            return false;");
+            builder.AppendLine("        }");
+            builder.AppendLine();
+            EmitBuildLanguages();
+            EmitBuildSourceTexts();
+            builder.AppendLine("    }");
+
+            #region Internal
+
+            void EmitLanguageCodes()
+            {
+                builder.Append("        public static readonly string[] LanguageCodes = new string[] { ");
+                for (var index = 0; index < csv.LanguageCodes.Length; index++)
+                {
+                    if (0 < index)
+                    {
+                        builder.Append(", ");
+                    }
+
+                    builder.Append($"\"{LocalizationCodeSyntax.Escape(csv.LanguageCodes[index])}\"");
+                }
+
+                builder.AppendLine(" };");
+            }
+
+            void EmitBuildLanguages()
+            {
+                builder.AppendLine("        private static Dictionary<string, IReadOnlyDictionary<string, string>> BuildLanguages()");
+                builder.AppendLine("        {");
+                builder.AppendLine("            var languages = new Dictionary<string, IReadOnlyDictionary<string, string>>();");
+                for (var languageIndex = 0; languageIndex < csv.LanguageCodes.Length; languageIndex++)
+                {
+                    // 言語辞書を個別スコープ化
+                    // Scope each language dictionary separately
+                    builder.AppendLine("            {");
+                    builder.AppendLine("                var texts = new Dictionary<string, string>();");
+                    foreach (var row in csv.Rows)
+                    {
+                        builder.AppendLine(
+                            $"                texts[\"{LocalizationCodeSyntax.Escape(row.Key)}\"] = \"{LocalizationCodeSyntax.Escape(row.Texts[languageIndex])}\";");
+                    }
+
+                    builder.AppendLine($"                languages[\"{LocalizationCodeSyntax.Escape(csv.LanguageCodes[languageIndex])}\"] = texts;");
+                    builder.AppendLine("            }");
+                }
+
+                builder.AppendLine("            return languages;");
+                builder.AppendLine("        }");
+                builder.AppendLine();
+            }
+
+            void EmitBuildSourceTexts()
+            {
+                builder.AppendLine("        private static IReadOnlyDictionary<string, string> BuildSourceTexts()");
+                builder.AppendLine("        {");
+                builder.AppendLine("            var sourceTexts = new Dictionary<string, string>();");
+                foreach (var row in csv.Rows)
+                {
+                    builder.AppendLine($"            sourceTexts[\"{LocalizationCodeSyntax.Escape(row.Key)}\"] = \"{LocalizationCodeSyntax.Escape(row.Source)}\";");
+                }
+
+                builder.AppendLine("            return sourceTexts;");
+                builder.AppendLine("        }");
+            }
+
+            #endregion
         }
 
         #endregion
     }
-
-    private static void EmitTable(StringBuilder builder, LocalizationCsv csv)
-    {
-        builder.AppendLine("    public static class VanillaLocalizationTable");
-        builder.AppendLine("    {");
-        EmitLanguageCodes(builder, csv.LanguageCodes);
-        builder.AppendLine("        private static readonly Dictionary<string, IReadOnlyDictionary<string, string>> Languages = BuildLanguages();");
-        builder.AppendLine("        public static readonly IReadOnlyDictionary<string, string> SourceTexts = BuildSourceTexts();");
-        builder.AppendLine();
-
-        // 未検出時はnullを返す
-        // Return null when no language matches
-        builder.AppendLine("        public static bool TryGetLanguage(string code, out IReadOnlyDictionary<string, string> dictionary)");
-        builder.AppendLine("        {");
-        builder.AppendLine("            if (Languages.TryGetValue(code, out dictionary))");
-        builder.AppendLine("            {");
-        builder.AppendLine("                return true;");
-        builder.AppendLine("            }");
-        builder.AppendLine();
-        builder.AppendLine("            dictionary = null;");
-        builder.AppendLine("            return false;");
-        builder.AppendLine("        }");
-        builder.AppendLine();
-        EmitBuildLanguages(builder, csv);
-        EmitBuildSourceTexts(builder, csv.Rows);
-        builder.AppendLine("    }");
-    }
-
-    private static void EmitLanguageCodes(StringBuilder builder, string[] languageCodes)
-    {
-        builder.Append("        public static readonly string[] LanguageCodes = new string[] { ");
-        for (var index = 0; index < languageCodes.Length; index++)
-        {
-            if (0 < index)
-            {
-                builder.Append(", ");
-            }
-
-            builder.Append($"\"{LocalizationCodeSyntax.Escape(languageCodes[index])}\"");
-        }
-
-        builder.AppendLine(" };");
-    }
-
-    private static void EmitBuildLanguages(StringBuilder builder, LocalizationCsv csv)
-    {
-        builder.AppendLine("        private static Dictionary<string, IReadOnlyDictionary<string, string>> BuildLanguages()");
-        builder.AppendLine("        {");
-        builder.AppendLine("            var languages = new Dictionary<string, IReadOnlyDictionary<string, string>>();");
-        for (var languageIndex = 0; languageIndex < csv.LanguageCodes.Length; languageIndex++)
-        {
-            // 言語辞書を個別スコープ化
-            // Scope each language dictionary separately
-            builder.AppendLine("            {");
-            builder.AppendLine("                var texts = new Dictionary<string, string>();");
-            foreach (var row in csv.Rows)
-            {
-                builder.AppendLine(
-                    $"                texts[\"{LocalizationCodeSyntax.Escape(row.Key)}\"] = \"{LocalizationCodeSyntax.Escape(row.Texts[languageIndex])}\";");
-            }
-
-            builder.AppendLine($"                languages[\"{LocalizationCodeSyntax.Escape(csv.LanguageCodes[languageIndex])}\"] = texts;");
-            builder.AppendLine("            }");
-        }
-
-        builder.AppendLine("            return languages;");
-        builder.AppendLine("        }");
-        builder.AppendLine();
-    }
-
-    private static void EmitBuildSourceTexts(StringBuilder builder, LocalizationRow[] rows)
-    {
-        builder.AppendLine("        private static IReadOnlyDictionary<string, string> BuildSourceTexts()");
-        builder.AppendLine("        {");
-        builder.AppendLine("            var sourceTexts = new Dictionary<string, string>();");
-        foreach (var row in rows)
-        {
-            builder.AppendLine($"            sourceTexts[\"{LocalizationCodeSyntax.Escape(row.Key)}\"] = \"{LocalizationCodeSyntax.Escape(row.Source)}\";");
-        }
-
-        builder.AppendLine("            return sourceTexts;");
-        builder.AppendLine("        }");
-    }
-
 }

@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.Inventory.Common;
 using Client.Localization;
 using Core.Item.Interface;
 using Game.PlayerInventory.Interface.Subscription;
+using Mooresmaster.Localization.Generated;
 using TMPro;
 using UniRx;
 using UnityEngine;

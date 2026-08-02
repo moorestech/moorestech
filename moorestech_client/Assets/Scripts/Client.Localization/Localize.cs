@@ -43,16 +43,18 @@ namespace Client.Localization
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
+        // Inspector入力の生キーだけを解決するレガシー経路（導出キーはGetContent）
+        // Legacy path resolving only Inspector-authored raw keys; derived keys use GetContent
         public static string GetLegacy(string rawKey)
         {
             var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, rawKey);
         }
 
-        public static string GetContent(string derivedKey)
+        public static string GetContent(ContentLocalizationKey key)
         {
             var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;
-            return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, derivedKey);
+            return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
         public static void MergeGameDictionaries(ModsResource modsResource)

@@ -14,7 +14,8 @@ public class LanguageCatalogTest
     {
         var code = LocalizationCodeGenerator.Generate(
             LocalizationCsvParser.Parse(DictionaryCsv),
-            LocalizationSettingsParser.Parse(SettingsCsv));
+            LocalizationSettingsParser.Parse(SettingsCsv),
+            System.Array.Empty<ContentKeyDefinition>());
 
         Assert.Contains("LanguageCatalog", code);
         Assert.Contains("日本語", code);
@@ -29,7 +30,8 @@ public class LanguageCatalogTest
 
         Assert.Throws<LocalizationCsvException>(() => LocalizationCodeGenerator.Generate(
             LocalizationCsvParser.Parse(DictionaryCsv),
-            LocalizationSettingsParser.Parse(settingsMissingJapanese)));
+            LocalizationSettingsParser.Parse(settingsMissingJapanese),
+            System.Array.Empty<ContentKeyDefinition>()));
     }
 
     [Fact]

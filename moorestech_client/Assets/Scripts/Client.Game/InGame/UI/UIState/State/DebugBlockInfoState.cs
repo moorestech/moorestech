@@ -3,6 +3,7 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
 using Client.Localization;
+using Mooresmaster.Localization.Generated;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State

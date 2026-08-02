@@ -12,17 +12,11 @@ namespace mooresmaster.Tests.LocalizationTests;
 public class LocalizationSourcePairContractTest
 {
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void 辞書と設定の片方だけならMOORES003を報告する(bool includeDictionary)
+    [InlineData("/content/localization.csv", "key,Source,english\nui.menu.close,Close,Close\n")]
+    [InlineData("/content/localization_settings.csv", "lang_name,display_name,steam_api_lang_code\nenglish,English,en\n")]
+    [InlineData("/content/content_keys.csv", "namespace,field,sourceMaster\nitem,name,ItemMaster\n")]
+    public void 辞書と設定と宣言表の一部だけならMOORES003を報告する(string path, string text)
     {
-        var path = includeDictionary
-            ? "/content/localization.csv"
-            : "/content/localization_settings.csv";
-        var text = includeDictionary
-            ? "key,Source,english\nui.menu.close,Close,Close\n"
-            : "lang_name,display_name,steam_api_lang_code\nenglish,English,en\n";
-
         var result = RunGenerator(new TestAdditionalText(path, text));
 
         Assert.Equal("MOORES003", Assert.Single(result.Diagnostics).Id);

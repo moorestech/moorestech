@@ -3,7 +3,7 @@ import { ItemSlot } from "@/shared/ui";
 import { deriveNodeCardState } from "./researchLogic";
 import styles from "./style.module.css";
 import { tutorialAnchor, researchNodeAnchorId } from "@/shared/tutorialAnchor";
-import { researchNodeNameKey, useI18n } from "@/shared/i18n";
+import { researchNameKey, useI18n } from "@/shared/i18n";
 
 type Props = {
   node: ResearchNodeData;
@@ -31,7 +31,7 @@ export default function ResearchNodeCard({ node, left, top, selected, onSelect }
       onClick={() => onSelect(node.guid)}
       {...tutorialAnchor(researchNodeAnchorId(node.guid))}
     >
-      <span className={styles.nodeName}>{t(researchNodeNameKey(node.guid))}</span>
+      <span className={styles.nodeName}>{t(researchNameKey(node.guid))}</span>
       <ItemSlot itemId={node.iconItemId} />
     </div>
   );

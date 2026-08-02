@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Localization;
 using Core.Master;
+using Mooresmaster.Localization.Generated;
 using UniRx;
 
 namespace Client.Game.Skit.Localization
@@ -29,7 +30,7 @@ namespace Client.Game.Skit.Localization
         {
             var character = MasterHolder.CharacterMaster.GetCharacterMaster(characterId);
             return new SkitCharacterLocalizationIdentity(
-                ContentLocalizationKeys.CharacterName(character.CharacterGuid),
+                ContentLocalizationKeys.CharacterName(character.CharacterGuid).Key,
                 character.DisplayName);
         }
     }

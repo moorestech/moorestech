@@ -9,6 +9,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.ChallengesModule;
 using UniRx;
 using UnityEngine;

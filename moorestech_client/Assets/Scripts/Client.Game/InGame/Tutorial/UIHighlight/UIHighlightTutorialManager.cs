@@ -1,4 +1,5 @@
 using Client.Localization;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
 using Client.Game.InGame.UI.UIState;

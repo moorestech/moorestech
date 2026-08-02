@@ -6,6 +6,7 @@ using Client.Localization;
 using Client.Mod.Texture;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine;
 

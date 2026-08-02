@@ -1,6 +1,6 @@
 // messageId→表示テンプレートの対応表。文言はWeb側が所有しサーバーは構造化IDのみ送る
 // Maps messageId to display templates; the web owns wording, the server sends structured ids only
-import { L, challengeTitleKey, researchNodeNameKey, type TranslationKey } from "@/shared/i18n";
+import { L, challengeTitleKey, researchNameKey, type TranslationKey } from "@/shared/i18n";
 
 const notificationKeys = new Map<string, TranslationKey>([
   ["achievement.researchCompleted", L.ui.notification.researchCompleted],
@@ -38,7 +38,7 @@ export function resolveNotificationKey(messageId: string): TranslationKey {
 // Guidパラメータを持つ通知のcontentキー組み立て表。サーバーは表示名でなくGuidを送る
 // Content-key builders for GUID-bearing notifications; the server sends GUIDs, not display names
 const contentParamKeyBuilders = new Map<string, (guid: string) => TranslationKey>([
-  ["achievement.researchCompleted", researchNodeNameKey],
+  ["achievement.researchCompleted", researchNameKey],
   ["achievement.challengeCompleted", challengeTitleKey],
 ]);
 

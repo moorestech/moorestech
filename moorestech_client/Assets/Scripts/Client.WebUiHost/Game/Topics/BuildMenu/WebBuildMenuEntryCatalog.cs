@@ -9,6 +9,7 @@ using Common.Debug;
 using Core.Master;
 using Game.Block.Interface.Extension;
 using Game.UnlockState;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu

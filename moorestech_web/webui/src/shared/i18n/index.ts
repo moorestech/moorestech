@@ -10,8 +10,8 @@ export {
   challengeTitleKey,
   characterNameKey,
   itemNameKey,
-  researchNodeDescriptionKey,
-  researchNodeNameKey,
+  researchDescriptionKey,
+  researchNameKey,
 } from "./contentKeys";
 export { L } from "./generated/localizationKeys";
 export { isTranslationKey, translateExternalKey, useI18n } from "./i18nStore";

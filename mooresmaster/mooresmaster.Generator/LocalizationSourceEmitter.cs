@@ -13,6 +13,7 @@ public static class LocalizationSourceEmitter
 {
     private const string LocalizationFileName = "localization.csv";
     private const string LocalizationSettingsFileName = "localization_settings.csv";
+    private const string ContentKeyCatalogFileName = "content_keys.csv";
     private const string GeneratedSourceHintName = "mooresmaster.localization.g.cs";
 
     private static readonly DiagnosticDescriptor ErrorDescriptor = new(
@@ -30,7 +31,8 @@ public static class LocalizationSourceEmitter
     {
         var localizationFiles = FindFiles(additionalTexts, LocalizationFileName);
         var settingsFiles = FindFiles(additionalTexts, LocalizationSettingsFileName);
-        if (localizationFiles.Count == 0 && settingsFiles.Count == 0)
+        var contentKeyFiles = FindFiles(additionalTexts, ContentKeyCatalogFileName);
+        if (localizationFiles.Count == 0 && settingsFiles.Count == 0 && contentKeyFiles.Count == 0)
         {
             return;
         }
@@ -53,17 +55,70 @@ public static class LocalizationSourceEmitter
             return;
         }
 
-        // 片方だけのAdditionalFiles配線をコンパイルエラーにする
-        // Turn one-sided AdditionalFiles wiring into a compilation error
-        if (localizationFiles.Count == 0 || settingsFiles.Count == 0)
+        if (1 < contentKeyFiles.Count)
         {
             ReportError(
                 context,
-                "localization.csv and localization_settings.csv must both be provided");
+                CreateDuplicateFilesMessage(ContentKeyCatalogFileName, contentKeyFiles));
             return;
         }
 
-        EmitLocalization(context, localizationFiles[0], settingsFiles[0]);
+        // 一部だけのAdditionalFiles配線をコンパイルエラーにする
+        // Turn partial AdditionalFiles wiring into a compilation error
+        if (localizationFiles.Count == 0 || settingsFiles.Count == 0 || contentKeyFiles.Count == 0)
+        {
+            ReportError(
+                context,
+                "localization.csv, localization_settings.csv, and content_keys.csv must all be provided");
+            return;
+        }
+
+        EmitLocalization();
+        return;
+
+        #region Internal
+
+        void EmitLocalization()
+        {
+            var sourceText = localizationFiles[0].GetText(context.CancellationToken);
+            if (sourceText == null)
+            {
+                ReportError(context, $"Could not read '{localizationFiles[0].Path}'");
+                return;
+            }
+
+            var settingsText = settingsFiles[0].GetText(context.CancellationToken);
+            if (settingsText == null)
+            {
+                ReportError(context, $"Could not read '{settingsFiles[0].Path}'");
+                return;
+            }
+
+            var contentKeyText = contentKeyFiles[0].GetText(context.CancellationToken);
+            if (contentKeyText == null)
+            {
+                ReportError(context, $"Could not read '{contentKeyFiles[0].Path}'");
+                return;
+            }
+
+            // 外部CSV入力の不正だけをRoslyn診断へ変換する
+            // Convert only invalid external CSV input into a Roslyn diagnostic
+            try
+            {
+                var csv = LocalizationCsvParser.Parse(sourceText.ToString());
+                var settings = LocalizationSettingsParser.Parse(settingsText.ToString());
+                var contentKeys = ContentKeyCatalogParser.Parse(contentKeyText.ToString());
+                LocalizationLanguageContract.Validate(csv);
+                var generatedCode = LocalizationCodeGenerator.Generate(csv, settings, contentKeys);
+                context.AddSource(GeneratedSourceHintName, SourceText.From(generatedCode, Encoding.UTF8));
+            }
+            catch (LocalizationCsvException exception)
+            {
+                ReportError(context, exception.Message);
+            }
+        }
+
+        #endregion
     }
 
     private static List<AdditionalText> FindFiles(
@@ -80,41 +135,6 @@ public static class LocalizationSourceEmitter
         }
 
         return files;
-    }
-
-    private static void EmitLocalization(
-        SourceProductionContext context,
-        AdditionalText localizationFile,
-        AdditionalText settingsFile)
-    {
-        var sourceText = localizationFile.GetText(context.CancellationToken);
-        if (sourceText == null)
-        {
-            ReportError(context, $"Could not read '{localizationFile.Path}'");
-            return;
-        }
-
-        var settingsText = settingsFile.GetText(context.CancellationToken);
-        if (settingsText == null)
-        {
-            ReportError(context, $"Could not read '{settingsFile.Path}'");
-            return;
-        }
-
-        // 外部CSV入力の不正だけをRoslyn診断へ変換する
-        // Convert only invalid external CSV input into a Roslyn diagnostic
-        try
-        {
-            var csv = LocalizationCsvParser.Parse(sourceText.ToString());
-            var settings = LocalizationSettingsParser.Parse(settingsText.ToString());
-            LocalizationLanguageContract.Validate(csv);
-            var generatedCode = LocalizationCodeGenerator.Generate(csv, settings);
-            context.AddSource(GeneratedSourceHintName, SourceText.From(generatedCode, Encoding.UTF8));
-        }
-        catch (LocalizationCsvException exception)
-        {
-            ReportError(context, exception.Message);
-        }
     }
 
     private static string CreateDuplicateFilesMessage(

@@ -1,6 +1,7 @@
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState;
 using Client.Localization;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.ChallengesModule;
 using TMPro;
 using UniRx;

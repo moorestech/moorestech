@@ -7,6 +7,7 @@ using Client.Localization;
 using Client.Skit.Localization;
 using Client.Skit.UI;
 using Mooresmaster.Loader.CharactersModule;
+using Mooresmaster.Localization.Generated;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -94,7 +95,7 @@ namespace Client.Tests.Localization.Skit
                 new Dictionary<string, string>(english));
             var current = scope.Resolve("ui.mainMenu.playLocally", "JSON Source");
             var missing = scope.Resolve("content.missing.name", "JSON Source");
-            var missingWithSourceStage = Localize.GetContent("content.missing.name");
+            var missingWithSourceStage = Localize.GetContent(new ContentLocalizationKey("content.missing.name"));
             Localize.TrySetLanguage(previousLanguageCode);
 
             Assert.AreEqual("ローカルでプレイ", current);

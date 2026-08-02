@@ -10,6 +10,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface.State;
 using Game.UnlockState;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.MachineRecipesModule;
 using Server.Protocol.PacketResponse;
 using UniRx;
