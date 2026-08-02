@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+# =====================================================================
+# ⚠ このscripts/配下を1行でも変更・追加したら、必ず回帰テストを実行すること:
+#     python3 -m unittest discover -s .claude/skills/moores-code-review/tests
+#   全緑になるまで変更は完成扱いにしない。新規スクリプトはSKILL.mdへの配線と
+#   tests/test_skill_wiring.py への不変条件追加まで済ませて初めて完成（配線なき
+#   検出器は未実装と同じ・2026-08-03ユーザー裁定）。このバナー自体も必須
+#   （tests/test_skill_wiring.py が全スクリプトのバナー実在を機械検証する）。
+# ⚠ Run the regression suite after ANY change under scripts/; wiring into
+#   SKILL.md and a wiring-test invariant are part of "done" for new scripts.
+# =====================================================================
 """dead_member_gate.py — DeadMemberAudit(IL解析)の結果をpatchスコープへ絞る配線層。
 
 moores-code-review Step 2.5 から呼ばれる。tools/DeadMemberAudit を実行し、

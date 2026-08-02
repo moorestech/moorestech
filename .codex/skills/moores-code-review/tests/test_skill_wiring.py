@@ -66,6 +66,14 @@ class SkillWiringTest(unittest.TestCase):
                 any(("verifier" in l or "レンズ" in l or "Step" in l) for l in lines),
                 f"candidates.{kind} の消費先（verifier/レンズ/Step）がSKILL.mdに書かれていない")
 
+    def test_every_script_has_regression_banner(self):
+        # 全スクリプトが「変更時は回帰テスト必須」バナーを持つこと（新規追加時の掲示漏れ防止）
+        # Every script must carry the regression-suite banner (so new scripts inherit the rule)
+        for s in (SKILL_DIR / "scripts").glob("*.py"):
+            head = s.read_text(encoding="utf-8")[:1200]
+            self.assertIn("必ず回帰テストを実行", head,
+                          f"scripts/{s.name} に回帰テスト必須バナーが無い")
+
     def test_every_reviewer_and_lens_has_frontmatter(self):
         # selector発見可能性: reviewers/lensesはfrontmatter（extensions等）を持つこと
         # Selector discoverability: reviewers/lenses must carry frontmatter
