@@ -26,10 +26,13 @@ const cwd = input.cwd || process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const sessionId = input.session_id || "unknown";
 if (!existsSync(join(cwd, ".beads"))) bail();
 
-// 最終assistantメッセージからLEARN行を抽出（無ければ即終了）
-// Extract LEARN lines from the last assistant message; exit fast when absent.
-const lastText = readLastAssistantText(input.transcript_path);
-const learns = [...lastText.matchAll(/^(?:[-*\s>]*)(?:📌\s*)?(?:LEARN|学び)[:：]\s*(.+)$/gm)].map((m) => m[1].trim());
+// 最終assistantメッセージからLEARN行を抽出。Stop直後はtranscript未フラッシュのことがあるため1秒待って再読する
+// Extract LEARN lines from the last assistant message; retry once after 1s since the transcript may not be flushed yet at Stop.
+let learns = extractLearns();
+if (learns.length === 0) {
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  learns = extractLearns();
+}
 if (learns.length === 0) bail();
 
 // セッション内の重複保存をハッシュで防ぐ
@@ -78,6 +81,13 @@ function resolveTargetIssue() {
   } catch {
     return null;
   }
+}
+
+// 最終assistantメッセージのテキストからLEARN行を抜き出す
+// Pull LEARN lines out of the final assistant message's text.
+function extractLearns() {
+  const lastText = readLastAssistantText(input.transcript_path);
+  return [...lastText.matchAll(/^(?:[-*\s>]*)(?:📌\s*)?(?:LEARN|学び)[:：]\s*(.+)$/gm)].map((m) => m[1].trim());
 }
 
 // transcript末尾2MBを読み、最後のassistantメッセージのtext結合を返す
