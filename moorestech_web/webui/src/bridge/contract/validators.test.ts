@@ -182,7 +182,7 @@ describe("validBuildMenu", () => {
     expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
   });
   it("rejects an unknown kind", () => {
-    const d = { categories, entries: [{ ...entry, kind: "blueprintCopy" }] };
+    const d = { categories, entries: [{ ...entry, kind: "unknownKind" }] };
     expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
   });
   it("rejects a missing entries array", () => {

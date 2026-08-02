@@ -12,9 +12,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
             switch (entry.Kind)
             {
                 case PlacementTargetKind.Block:
-                    // ブロックだけは設置処理が揮発BlockIdを要求するため、ここでGuidから解決する
-                    // Only blocks need the volatile BlockId for placement, so resolve it from the Guid here
-                    return new BlockPlacementTarget(MasterHolder.BlockMaster.GetBlockId(entry.Id), null);
+                    return new BlockPlacementTarget(entry.Id, null);
                 case PlacementTargetKind.TrainCar:
                     return new TrainCarPlacementTarget(entry.Id);
                 case PlacementTargetKind.ConnectTool:

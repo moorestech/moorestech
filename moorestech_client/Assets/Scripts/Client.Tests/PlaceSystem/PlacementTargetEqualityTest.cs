@@ -9,13 +9,18 @@ namespace Client.Tests.PlaceSystem
 {
     public class PlacementTargetEqualityTest
     {
+        // 同一性の比較だけが目的なのでマスタに実在しない固定Guidで足りる
+        // Fixed guids suffice since only identity comparison is exercised here
+        private static readonly Guid BlockGuidA = Guid.Parse("00000000-0000-4000-8000-0000000000a1");
+        private static readonly Guid BlockGuidB = Guid.Parse("00000000-0000-4000-8000-0000000000b2");
+
         [Test]
         public void BlockTargetIsEqualOnlyWhenIdAndDirectionMatch()
         {
-            var a = new BlockPlacementTarget(new BlockId(1), BlockDirection.North);
-            var b = new BlockPlacementTarget(new BlockId(1), BlockDirection.North);
-            var differentDirection = new BlockPlacementTarget(new BlockId(1), null);
-            var differentId = new BlockPlacementTarget(new BlockId(2), BlockDirection.North);
+            var a = new BlockPlacementTarget(BlockGuidA, BlockDirection.North);
+            var b = new BlockPlacementTarget(BlockGuidA, BlockDirection.North);
+            var differentDirection = new BlockPlacementTarget(BlockGuidA, null);
+            var differentId = new BlockPlacementTarget(BlockGuidB, BlockDirection.North);
 
             Assert.IsTrue(a.Equals(b));
             Assert.AreEqual(a.GetHashCode(), b.GetHashCode());
@@ -47,7 +52,7 @@ namespace Client.Tests.PlaceSystem
             Assert.IsTrue(new BlueprintCopyPlacementTarget(buildToolGuid).Equals(new BlueprintCopyPlacementTarget(buildToolGuid)));
             Assert.IsFalse(new BlueprintCopyPlacementTarget(buildToolGuid).Equals(new BlueprintCopyPlacementTarget(Guid.NewGuid())));
             var guid = Guid.NewGuid();
-            Assert.IsFalse(new BlockPlacementTarget(new BlockId(1), null).Equals(new TrainCarPlacementTarget(guid)));
+            Assert.IsFalse(new BlockPlacementTarget(BlockGuidA, null).Equals(new TrainCarPlacementTarget(guid)));
             Assert.IsFalse(new BlueprintPlacementTarget(Guid.NewGuid(), "x").Equals(new ConnectToolPlacementTarget(Guid.NewGuid())));
         }
     }
