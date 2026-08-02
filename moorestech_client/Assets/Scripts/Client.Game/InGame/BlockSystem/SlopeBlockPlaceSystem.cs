@@ -55,17 +55,30 @@ namespace Client.Game.InGame.BlockSystem
             return (resultBlockPos, blockRotation, blockScale);
         }
         
-        public static Vector3? GetGroundPoint(Vector3 pos, Color debugRayColor = default)
+        // 地表探査の単一エントリポイント。露頭など大量プローブ用にログ無しで成否をboolで返す
+        // Single entry point of ground probing; bulk probes such as outcrops get the outcome as a bool without logging
+        public static bool TryGetGroundPoint(Vector3 pos, out Vector3 groundPoint)
         {
             var checkRay = new Ray(new Vector3(pos.x, 1000, pos.z), Vector3.down);
-            Debug.DrawRay(checkRay.origin, checkRay.direction * 1000, debugRayColor, 3);
-            
-            if (!Physics.Raycast(checkRay, out var checkHit, 1500, GroundLayerMask))
+            if (Physics.Raycast(checkRay, out var checkHit, 1500, GroundLayerMask))
+            {
+                groundPoint = checkHit.point;
+                return true;
+            }
+            groundPoint = default;
+            return false;
+        }
+
+        public static Vector3? GetGroundPoint(Vector3 pos, Color debugRayColor = default)
+        {
+            Debug.DrawRay(new Vector3(pos.x, 1000, pos.z), Vector3.down * 1000, debugRayColor, 3);
+
+            if (!TryGetGroundPoint(pos, out var groundPoint))
             {
                 Debug.LogError("地面が見つかりませんでした pos:" + pos + " layer:" + GroundLayerMask);
                 return null;
             }
-            return checkHit.point;
+            return groundPoint;
         }
         
         public static float GetBlockFourCornerMaxHeight(Vector3Int blockPos, BlockDirection blockDirection, Vector3Int blockSize)

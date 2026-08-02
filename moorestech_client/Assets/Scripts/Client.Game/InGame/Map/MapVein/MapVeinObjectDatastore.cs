@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.BlockSystem;
 using Client.Network.API;
@@ -24,11 +23,6 @@ namespace Client.Game.InGame.Map.MapVein
         // v8ワールドは1772本規模。1体がmapObjectより重いのでmapObject側の100より短い間隔でフレームを跨ぐ
         // The v8 world holds ~1772 veins; each outcrop is heavier than a map object, so cross frames more often than that path's 100
         private const int FrameYieldObjectInterval = 50;
-
-        // 地表探査レイの開始高度と最大長。地形の全高度域を上下に跨げる値
-        // Start altitude and max length of the ground probe ray, spanning the whole terrain height range
-        private const float GroundProbeStartHeight = 1000f;
-        private const float GroundProbeDistance = 2000f;
 
         // 例外メッセージに載せる不正veinの上限。1772本全部を並べるとログが埋まって原因が読めない
         // Cap of bad veins listed in the exception message; all 1772 would bury the log and hide the cause
@@ -115,19 +109,16 @@ namespace Client.Game.InGame.Map.MapVein
 
             bool TryResolveGroundHeight(float x, float z, out float groundHeight)
             {
-                // 地面判定は設置系と同じGroundGameObjectで行う。手前の非地面コライダーに遮られないよう全ヒットから選ぶ
-                // Identify ground by GroundGameObject as the placement systems do; scan every hit so a nearer non-ground collider cannot mask it
-                var origin = new Vector3(x, GroundProbeStartHeight, z);
-                var hits = Physics.RaycastAll(origin, Vector3.down, GroundProbeDistance, LayerConst.Without_Player_MapObject_Block_LayerMask);
-
-                groundHeight = float.NegativeInfinity;
-                foreach (var hit in hits)
+                // 地表判定は設置系と同じ単一エントリポイントへ委譲する（ADR#14: 集約）
+                // Ground probing delegates to the placement systems' single entry point (ADR#14)
+                if (SlopeBlockPlaceSystem.TryGetGroundPoint(new Vector3(x, 0f, z), out var groundPoint))
                 {
-                    if (!hit.transform.TryGetComponent<GroundGameObject>(out _)) continue;
-                    if (groundHeight < hit.point.y) groundHeight = hit.point.y;
+                    groundHeight = groundPoint.y;
+                    return true;
                 }
 
-                return !float.IsNegativeInfinity(groundHeight);
+                groundHeight = 0f;
+                return false;
             }
 
             #endregion
