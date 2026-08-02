@@ -17,6 +17,14 @@ namespace Client.WebUiHost.Common
     /// </summary>
     public static class SanitizedProcessEnvironment
     {
+        // 中身が壊れて見えても消してはならない変数（PATHやHOMEを失うとプロセス自体が動かなくなる）
+        // Vars that must survive even when their content looks corrupt: losing PATH or HOME breaks the process itself
+        private static readonly string[] NeverScrubbedNames =
+        {
+            "PATH", "HOME", "TMPDIR", "TEMP", "TMP", "USERPROFILE",
+            "SystemRoot", "windir", "APPDATA", "LOCALAPPDATA", "COMSPEC", "PATHEXT",
+        };
+
         // CEFヘルパー等のネイティブspawnはProcessStartInfoを通らないため、Unity自身のenvも起動時に浄化する
         // Native spawns such as the CEF helper bypass ProcessStartInfo, so Unity's own env is scrubbed at startup
         [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -25,10 +33,7 @@ namespace Client.WebUiHost.Common
             var corruptedNames = new List<string>();
             foreach (System.Collections.DictionaryEntry entry in System.Environment.GetEnvironmentVariables())
             {
-                if (ContainsUndecodableMarker((string)entry.Key) || ContainsUndecodableMarker((string)entry.Value))
-                {
-                    corruptedNames.Add((string)entry.Key);
-                }
+                if (IsCorrupted((string)entry.Key, (string)entry.Value)) corruptedNames.Add((string)entry.Key);
             }
 
             foreach (var name in corruptedNames)
@@ -36,7 +41,15 @@ namespace Client.WebUiHost.Common
                 // unsetenv相当でネイティブenvironからも除去される（名前自体が不正な場合のみ実バイト列と一致せず残る）
                 // Removed from the native environ via unsetenv (only a corrupt name itself cannot match the raw bytes)
                 System.Environment.SetEnvironmentVariable(name, null);
-                Debug.LogWarning($"[SanitizedProcessEnvironment] 不正なUTF-8バイト列を含む環境変数を自プロセスから除去しました: '{EscapeForLog(name)}' / Scrubbed env var containing invalid UTF-8 bytes from this process");
+                Debug.LogWarning($"[SanitizedProcessEnvironment] 不正なUTF-8バイト列を含む環境変数を自プロセスから除去します: '{EscapeForLog(name)}' / Scrubbing env var containing invalid UTF-8 bytes from this process");
+            }
+
+            // 除去できたかは再走査でしか分からない（名前が不正だとunsetenvが実バイト列と一致せず黙って残る）
+            // Only a re-scan tells whether the removal worked: a corrupt name silently survives unsetenv
+            foreach (System.Collections.DictionaryEntry entry in System.Environment.GetEnvironmentVariables())
+            {
+                if (!IsCorrupted((string)entry.Key, (string)entry.Value)) continue;
+                Debug.LogError($"[SanitizedProcessEnvironment] 不正なUTF-8バイト列を含む環境変数を除去できず残っています: '{EscapeForLog((string)entry.Key)}' / Failed to scrub env var containing invalid UTF-8 bytes; it survived");
             }
         }
 
@@ -47,10 +60,7 @@ namespace Client.WebUiHost.Common
             var corruptedNames = new List<string>();
             foreach (var pair in startInfo.Environment)
             {
-                if (ContainsUndecodableMarker(pair.Key) || ContainsUndecodableMarker(pair.Value))
-                {
-                    corruptedNames.Add(pair.Key);
-                }
+                if (IsCorrupted(pair.Key, pair.Value)) corruptedNames.Add(pair.Key);
             }
 
             foreach (var name in corruptedNames)
@@ -82,6 +92,18 @@ namespace Client.WebUiHost.Common
             startInfo.Environment[pathKey] = string.IsNullOrEmpty(currentPath)
                 ? directory
                 : $"{directory}{System.IO.Path.PathSeparator}{currentPath}";
+        }
+
+        // 除去対象かを判定する（必須変数は壊れて見えても残す・失うと復旧できないため）
+        // Decides whether an entry may be dropped; required vars stay even when they look corrupt, since losing them is unrecoverable
+        private static bool IsCorrupted(string name, string value)
+        {
+            foreach (var neverScrubbedName in NeverScrubbedNames)
+            {
+                if (string.Equals(name, neverScrubbedName, System.StringComparison.OrdinalIgnoreCase)) return false;
+            }
+
+            return ContainsUndecodableMarker(name) || ContainsUndecodableMarker(value);
         }
 
         // デコード不能バイトの痕跡（置換文字U+FFFD・孤立サロゲート）を検出する
