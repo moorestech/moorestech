@@ -34,7 +34,7 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             // 生成ログに探索の成否と診断が残ることを固定する（ADR#13: フォールバックを無言にしない）
             // Pin that generation logs the search outcome and diagnostics (ADR#13: fallbacks are never silent)
-            LogAssert.Expect(LogType.Log, new Regex(@"\[SpawnSearch\] 成功"));
+            LogAssert.Expect(LogType.Log, new Regex(@"\[SpawnSearch\] 成功\n.+"));
 
             var output = AssertOutputIsInsideTile(generation);
 
@@ -56,6 +56,10 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             var searchResult = FindSpawnRegion(generation);
             Assert.That(searchResult.Success, Is.False);
+
+            // フォールバックでも診断がログに残ることを固定する（ADR#13: 無言で海にスポーンさせない）
+            // Pin that the fallback outcome is logged too (ADR#13: never strand the spawn silently)
+            LogAssert.Expect(LogType.Log, new Regex(@"\[SpawnSearch\] フォールバック\n.+"));
 
             // フォールバックは G=0 なのでシーン原点もタイルの0。絶対値で固定しないとスポーンと原点が同量ずれても通る
             // The fallback has G=0, so the scene origin is the tile's 0; without pinning it absolutely, spawn and origin could drift together unnoticed
