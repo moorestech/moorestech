@@ -48,8 +48,8 @@ namespace Client.Game.InGame.UI.UIState.State
             // Take the placement target from the transition payload and hand it to the owner (falls back to Empty when absent)
             if (context.TryGetContext<IPlacementTarget>(out var target)) _placeSystemStateController.SetTarget(target);
 
-            // 設置ステート滞在中は範囲表示を出す。対象の有無はステート自体が保証する（ADR#12）
-            // The range view shows for the whole placement state; the state itself guarantees a target exists (ADR#12)
+            // 対象未選択でも滞在中は範囲表示を出す。遷移元(BuildMenuState/GameScreenState)が必ずtargetを載せる
+            // Show the range view for the whole stay even without a target; both entries (BuildMenuState/GameScreenState) always carry one
             _mapVeinRangeView.Show(true);
 
             // 設置中は右ドラッグまで回転停止

@@ -10,7 +10,7 @@ namespace Client.Tests.UIState
     public class FakeMapVeinRangeView : IMapVeinRangeView
     {
         public readonly List<bool> ShowPushes = new();
-        public int ManualUpdateCount { get; private set; }
+        public int ManualUpdateCount;
 
         public void Show(bool isVisible)
         {

@@ -6,7 +6,6 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Player;
-using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.KeyControl;
@@ -63,7 +62,7 @@ namespace Client.Tests.UIState
         public void PlaceBlockHandlesEnterRightDragAndExitNormally()
         {
             var applier = new FakePlayerCameraInteractionApplier();
-            var state = CreatePlaceBlockState(applier);
+            var state = CreatePlaceBlockState(applier, new FakeMapVeinRangeView());
             state.OnEnter(new UITransitContext(UIStateEnum.PlaceBlock));
             CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
 
@@ -80,6 +79,25 @@ namespace Client.Tests.UIState
             applier.Calls.Clear();
             state.OnExit();
             CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+        }
+
+        [Test]
+        public void PlaceBlockPushesVeinRangeVisibilityOnlyOnEnterAndExit()
+        {
+            var mapVeinRangeView = new FakeMapVeinRangeView();
+            var state = CreatePlaceBlockState(new FakePlayerCameraInteractionApplier(), mapVeinRangeView);
+
+            state.OnEnter(new UITransitContext(UIStateEnum.PlaceBlock));
+            CollectionAssert.AreEqual(new[] { true }, mapVeinRangeView.ShowPushes);
+
+            // 表示ON/OFFは変化時だけプッシュし、毎フレームはカメラ距離カリングのManualUpdateだけを回す
+            // Visibility is pushed only on change; each frame drives just ManualUpdate for the camera distance culling
+            for (var frame = 0; frame < 3; frame++) state.GetNextUpdate();
+            CollectionAssert.AreEqual(new[] { true }, mapVeinRangeView.ShowPushes);
+            Assert.AreEqual(3, mapVeinRangeView.ManualUpdateCount);
+
+            state.OnExit();
+            CollectionAssert.AreEqual(new[] { true, false }, mapVeinRangeView.ShowPushes);
         }
 
         [Test]
@@ -110,14 +128,14 @@ namespace Client.Tests.UIState
             CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
         }
 
-        private PlaceBlockState CreatePlaceBlockState(FakePlayerCameraInteractionApplier applier)
+        private PlaceBlockState CreatePlaceBlockState(FakePlayerCameraInteractionApplier applier, FakeMapVeinRangeView mapVeinRangeView)
         {
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
             var dataStore = CreateComponent<BlockGameObjectDataStore>("BlockDataStore");
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
             var placeStateController = new PlaceSystemStateController(selector);
             var pickService = new PlacementTargetPickService(null);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, applier, new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView());
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, applier, new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView);
         }
 
         private void SetUpMouseCursorTooltip()
@@ -175,22 +193,6 @@ namespace Client.Tests.UIState
         private static void InvokeAwake(object target)
         {
             target.GetType().GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target, null);
-        }
-
-        private class FakeBuildMenuView : IBuildMenuView
-        {
-            public bool IsActive { get; private set; }
-
-            public void SetActive(bool active)
-            {
-                IsActive = active;
-            }
-
-            public bool TryConsumeSelectedEntry(out BuildMenuEntry entry)
-            {
-                entry = default;
-                return false;
-            }
         }
     }
 }
