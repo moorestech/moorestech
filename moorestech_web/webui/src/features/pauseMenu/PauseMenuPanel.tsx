@@ -2,7 +2,7 @@ import { Button, Stack, Text, Title } from "@mantine/core";
 import { dispatchAction, Topics, useTopic } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
-import { LanguageSelect } from "@/features/settings/LanguageSelect";
+import { LanguageSelect } from "@/features/settings";
 import styles from "./style.module.css";
 
 export function PauseMenuPanel() {

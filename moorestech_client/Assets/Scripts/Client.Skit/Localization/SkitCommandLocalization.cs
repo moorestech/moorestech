@@ -5,6 +5,10 @@ namespace Client.Skit.Localization
 {
     public static class SkitCommandLocalization
     {
+        // skitキー名前空間の唯一の定義。loaderのフィルタと必ず同一値を共有する
+        // Single definition of the skit key namespace, shared with the loader filter
+        public const string KeyPrefix = "skit.";
+
         public const string BodyField = "body";
         public const string Option1Field = "Option1Tag";
         public const string Option2Field = "Option2Tag";
@@ -13,7 +17,7 @@ namespace Client.Skit.Localization
 
         public static string CreateKey(string skitTitle, int commandId, string field)
         {
-            return $"skit.{skitTitle}.{commandId.ToString(CultureInfo.InvariantCulture)}.{field}";
+            return $"{KeyPrefix}{skitTitle}.{commandId.ToString(CultureInfo.InvariantCulture)}.{field}";
         }
 
         public static ResolvedSkitLine ResolveLine(

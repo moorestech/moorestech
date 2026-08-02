@@ -1,6 +1,7 @@
 import type { ServerResponse } from "node:http";
 import { WebSocket } from "ws";
 import { Topics } from "../../../src/bridge/transport/protocol";
+import { localizationLanguagesUrl } from "../../../src/bridge/transport/httpEndpoints";
 import { send } from "../wire";
 import { state, subscribersOf } from "../state";
 
@@ -10,7 +11,7 @@ const languages = [
 ];
 
 export function serveLanguageCatalog(url: string, response: ServerResponse): boolean {
-  if (url !== "/api/i18n-languages") return false;
+  if (url !== localizationLanguagesUrl) return false;
   // 本番DTOと同じcode/displayNameだけをJSONで返す
   // Return only code/displayName in JSON, matching the production DTO
   response.setHeader("content-type", "application/json");

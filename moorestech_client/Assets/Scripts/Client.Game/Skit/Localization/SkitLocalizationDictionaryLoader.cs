@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
 using Client.Common.Asset;
+using Client.Skit.Localization;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -64,7 +65,7 @@ namespace Client.Game.Skit.Localization
                 var value = property.Value.Type == JTokenType.String
                     ? property.Value.Value<string>()
                     : null;
-                if (property.Name.StartsWith("skit.", StringComparison.Ordinal) &&
+                if (property.Name.StartsWith(SkitCommandLocalization.KeyPrefix, StringComparison.Ordinal) &&
                     !string.IsNullOrEmpty(value))
                 {
                     result.Add(property.Name, value);

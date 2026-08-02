@@ -18,8 +18,8 @@ type Props = {
 // Lists entries as sub-category headings plus a SlotGrid
 export function BuildMenuCategoryGrid({ sections, compositeHeading, onSelect, onDelete, onHoverChange }: Props) {
   const { t } = useI18n();
-  // 複合見出しを両分類Guidから解決
-  // Resolve composite headings from both classification GUIDs
+  // 複合見出しはJSX外で組み立てて可視リテラルlintを避ける（Guidからの解決は下の式）
+  // Build the composite heading outside JSX to avoid the visible-literal lint; GUIDs resolve below
   const sectionHeading = (section: BuildMenuSection) => {
     const subCategoryName = t(buildMenuSubCategoryNameKey(section.subCategoryGuid));
     if (!compositeHeading) return subCategoryName;

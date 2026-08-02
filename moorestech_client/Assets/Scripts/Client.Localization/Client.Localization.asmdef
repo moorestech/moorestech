@@ -12,9 +12,10 @@
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
-  "overrideReferences": false,
+  "overrideReferences": true,
   "precompiledReferences": [
-    "mooresmaster.LocalizationCsv.dll"
+    "mooresmaster.LocalizationCsv.dll",
+    "Newtonsoft.Json.dll"
   ],
   "autoReferenced": true,
   "defineConstraints": [],
