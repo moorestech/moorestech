@@ -15,6 +15,15 @@
             "command": "python3 \"${CLAUDE_PROJECT_DIR}/.dev-hooks/guard-subagent-model.py\""
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/beads-guard.mjs\""
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -39,6 +48,19 @@
             "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/decisions-ruling-reminder.mjs\""
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/commit-map.mjs\" claude"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/beads-sync-watch.mjs\""
+          }
+        ]
       }
     ],
     "SessionStart": [
@@ -47,6 +69,36 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/decisions-index.mjs\""
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/beads-prime.mjs\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/beads-learn-capture.mjs\""
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/logs-sync.mjs\"",
+            "timeout": 120
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/logs-sync.mjs\"",
+            "timeout": 120
           }
         ]
       }
