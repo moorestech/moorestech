@@ -153,6 +153,10 @@ namespace Game.MapGeneration.Pipeline
 
             var result = SpawnRegionFinder.Find(config, biomeTypes);
 
+            // 成否と診断を必ず残す。候補ゼロや設定不備でも生成は止めない（ADR#13）
+            // Always record the outcome and diagnostics; zero candidates or bad settings never abort generation (ADR#13)
+            Debug.Log($"[SpawnSearch] {(result.Success ? "成功" : "フォールバック")}\n{result.Diagnostics}");
+
             // 成功/失敗いずれも offset と spawn を必ず同期させる（片方だけ残ると鉱脈帯とスポーンがズレる）。
             // Always sync offset and spawn for both outcomes; a stale pair skews the vein bands against the spawn.
             // 探索は master の worldOffsetX を読まず絶対ノイズ空間で S を決めるため、G は加算ではなく上書き。

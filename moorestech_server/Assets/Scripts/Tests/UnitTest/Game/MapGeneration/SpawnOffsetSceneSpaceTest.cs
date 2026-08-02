@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
@@ -9,6 +10,7 @@ using Mooresmaster.Model.GenerationModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.UnitTest.Game.MapGeneration
 {
@@ -29,6 +31,10 @@ namespace Tests.UnitTest.Game.MapGeneration
             var searchResult = FindSpawnRegion(generation);
             Assert.That(searchResult.Success, Is.True, searchResult.Diagnostics);
             Assert.That(searchResult.WorldOffset.magnitude, Is.GreaterThan(1f));
+
+            // 生成ログに探索の成否と診断が残ることを固定する（ADR#13: フォールバックを無言にしない）
+            // Pin that generation logs the search outcome and diagnostics (ADR#13: fallbacks are never silent)
+            LogAssert.Expect(LogType.Log, new Regex(@"\[SpawnSearch\] 成功"));
 
             var output = AssertOutputIsInsideTile(generation);
 
