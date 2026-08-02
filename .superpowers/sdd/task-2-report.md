@@ -1,127 +1,66 @@
-# Task 2: ダイジェストHTMLテンプレート — 実施報告
+# Task 2 レポート: 鉱脈範囲表示を Show(bool)＋ManualUpdate() へ分離（ADR#12・D3）
 
-- ステータス: DONE_WITH_CONCERNS
-- コミット: `d74d2d2da9062a5d4da7d4217112813284112568` — `feat: pr-independent-review ダイジェストHTMLテンプレート`
-- 成果物: `.claude/skills/pr-independent-review/assets/digest-template.html`（1個・新規）
+**ステータス:** DONE_WITH_CONCERNS
+**コミット:** `83c79c238` refactor: 鉱脈範囲表示をShow(bool)の変化時プッシュとManualUpdate()のフレーム駆動へ分離する (ADR#12)
 
-## 実施内容
+> 注: このファイルは 7/30 の別SDDラン（pr-independent-review ダイジェストHTMLテンプレート）のレポートを上書きしている。
+> 旧内容はコミット `d096b83f8` に残っており復元可能。親が指定したパスであり、同ランの `task-1-report.md` と同じ再利用スロットのため上書きした。
 
-### Step 1: vendorコピー
-`.claude/skills/create-infographic-light/assets/template.html` → `assets/digest-template.html` を `cp`。
-コピー直後に `shasum` 一致（`bb364a91…`）を確認済み。
+## 実装したもの
 
-### Step 2: `<main>`差し替え + CSS追記
-- `<main>` 内の汎用サンプル（lead段落 / compare / code / callout / table / references）を、
-  ブリーフ記載の verdictヘッダ・裁定カード・suppressedカードへ差し替え。
-- ブリーフ記載の追加CSSを既存 `<style>` 末尾（`@media (max-width:640px)` ブロックの後・`</style>` の直前）へ追記。
-- CSS本体・コメント機能JS・`<head>` の使い方コメント・hero/footer・CONFIG（`STORAGE_KEY` / `COPY_TITLE`）は無変更。
-  `REPLACE_WITH_UNIQUE_STORAGE_KEY` / `REPLACE_WITH_COPY_HEADING` のプレースホルダのまま（Task 3のSKILL.mdが生成時に固有化する設計）。
+ブリーフのStep 1〜6を全て実装した。値・シグネチャ・コメント文言はブリーフの逐語指定どおり。
 
-差分は3ハンク（`diff` で `454a455,469` / `469,495c484,487` / `498,505c490,504` / `507,549c506,515`）＝
-CSS末尾への追記と `<main>` 内のみ。`<script>` ブロックはコピー元と**バイト単位で同一**であることを `diff` で検証済み。
+### Step 1: interfaceの2メソッド分離
+`IMapVeinRangeView` を `void Show(bool isVisible)`（表示状態の変化時プッシュ）と `void ManualUpdate()`（カメラ距離カリングのフレーム駆動）へ分離。XMLサマリもブリーフ文言へ差し替えた。
 
-### Step 3: 構文チェック
-ブリーフのnodeワンライナーを実行 → `SYNTAX_OK`。
-追加でタグ balance チェック（scriptv/style/コメント除去後のタグスタック検証）も実施 → unclosed 0 / mismatch 0。
+### Step 2: サービス側の状態保持
+`MapVeinRangeViewService` に `private bool _isVisible;` を追加。旧 `ManualUpdate(bool isPlacementPreviewing)` を `Show(bool)` ＋ `ManualUpdate()` の2本へ分割し、内部スイープの判定を `isPlacementPreviewing` → `_isVisible` へ置換。`Show` は `_isVisible` 更新の直後に `ManualUpdate()` を呼び、非表示遷移を次フレームへ持ち越さない。`#region Internal` のローカル関数群（`IsWithinVisibleRadius`/`ShowEntry`/`HideEntry`/`RentBox`/`CreateBox`）は `ManualUpdate()` 内にそのまま維持（クラス直下へ出していない）。
 
-### Step 4: ブラウザ表示確認
-- `open` で既定ブラウザに表示（Step 4指定どおり実行済み）。
-- ただし `open` 単体では目視確認できないため、**headless Chrome で実レンダリングを取得して検証**した:
-  - `Google Chrome --headless=new --screenshot`（1000x1400）で PNG を生成し、画像として確認。
-    verdictヘッダ・バッジ（新形/suppressed）・フルパス・行番号付きコード抜粋・33/35行目の全幅ハイライト・
-    `<ins>` の緑背景・左下コメントパネル（「コメント 0」）がすべて意図どおり描画されることを確認。
-  - コメント機能の配線は、テンプレートのコピーへ probe スクリプトを注入した一時ファイル
-    （scratchpad の `probe.html`・成果物は無改変）を `--dump-dom` で実行して検証:
-    `buttons=2 composerHidden=false quote=図「PlaceSystem/CommonからGame.Ele… figkeys=2`
-    → 図コメントボタン2個が `data-figure-key` 登録され、クリックでコンポーザが開き
-    `data-label` が引用として入ることを実測確認。
+### Step 3: PlaceBlockState
+- `OnEnter`: `SetTarget` 直後に `_mapVeinRangeView.Show(true);` を追加（ADR#12の根拠コメント付き）
+- `GetNextUpdate`: `ManualUpdate(_placeSystemStateController.CurrentTarget != null)` → 引数なし `ManualUpdate()`。同メソッド内の `_placeSystemStateController.ManualUpdate()` / `_buildUndoService.ManualUpdate()` と同形になった
+- `OnExit`: `ManualUpdate(false)` → `Show(false)`（直前の2行コメントは不変）
 
-### Step 5: コミット
-`git add` → `git commit`。コミット後 `git status` clean。
+### Step 4: テストダブルと既存テスト
+- `FakeMapVeinRangeView`: `PreviewingPushes` → `ShowPushes` へ改名し `ManualUpdateCount` を追加。**改名前に `grep -rn "PreviewingPushes" --include="*.cs" moorestech_client moorestech_server` を実行し、宣言・代入以外の参照が1件も無いことを確認済み**（`UIStateCameraInteractionTest.cs:120` と `UIStateFocusRestorationTest.cs:100` はコンストラクタ注入のみで、ブリーフの記載どおりだった）
+- `MapVeinRangeViewMaterialReuseTest`: 66行・80行の `ManualUpdate(true)` → `Show(true)`、79行の `ManualUpdate(false)` → `Show(false)`
+- `MapVeinOutcropAndRangeViewTest.DriveRangeViewFrames`: ループ**前**の `rangeView.Show(isPreviewing);` 1回＋ループ内の `rangeView.ManualUpdate();` へ分離。実運用（OnEnter/OnExitで1回プッシュ、毎フレームtick）と同じ呼び分けを通すようになった
 
-## ブリーフからの意図的な逸脱（3点・すべて欠陥修正）
+## テスト結果
 
-QA観点でブリーフ記載のHTML/CSSをそのまま入れると壊れる箇所が3つあったため、最小限で修正した。
+**コンパイル:** `uloop compile --project-path ./moorestech_client` → `Success: true, ErrorCount: 0`
 
-1. **`.code-card` に `color: #24292f;` を追加（必須）**
-   テンプレートの既存 `pre { background:#0F172A; color:#E2E8F0; }` は暗背景前提。
-   ブリーフの `.code-card` は `background` を明色（`#f6f8fa`）へ上書きするが `color` を指定していないため、
-   継承した `#E2E8F0`（ほぼ白）の文字が明背景に乗り、**コード抜粋が全文ほぼ判読不能**になる。
-   `<ins>`（緑背景 `#dafbe1`）も同様。ダイジェストの中核が読めなくなるため色を追加した。
+**テスト:** `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MapVeinOutcropAndRangeView|MapVeinRangeViewMaterialReuse|UIStateCameraInteraction|UIStateFocusRestoration"`
+→ `TestCount: 8, PassedCount: 8, FailedCount: 0`（`Test execution completed with status: Passed`）
 
-2. **ハイライトのクラス配置を `<span class="ln hl">N</span>` → `<span class="hl"><span class="ln">N</span>…</span>` へ変更**
-   ブリーフのCSSは `.code-card .ln { width:3em }` と `.code-card .hl { width:100% }` が同一詳細度（0,2,0）で、
-   後勝ちにより `.ln.hl` は `width:100%` になる。結果、**行番号スパンだけが全幅に伸び、コード本文が次行へ折り返す**。
-   CSSはブリーフ記載のまま維持し、マークアップ側で `.hl` を行全体のラッパーにすることで
-   「行全体を黄色ハイライト・行番号は3em」という本来の意図を満たした（headlessスクショで確認済み）。
+8件が期待どおりの内訳であることも確認した（`[Test]`/`[UnityTest]` 属性の実数: UIStateCameraInteraction 3 + UIStateFocusRestoration 3 + MapVeinRangeViewMaterialReuse 1 + MapVeinOutcropAndRangeView 1 = 8）。つまりPlayMode遷移する `MapVeinOutcropAndRangeViewTest` も空振りせず実走している。
 
-3. **`.figure > .verdict-card, .figure > .suppressed-card { margin-top: 0; }` を追加**
-   カードが `<section>` のためテンプレートの `section { margin-top:52px }` を受け、
-   `.figure` 内でカードが52px下がり、`.figure-comment-btn`（`top:-14px` 絶対配置）がカードから大きく浮いて
-   別要素のボタンに見える。カードとボタンの対応が壊れるため打ち消した。
+環境メモ: `run-tests` は「Unity is reloading (Domain Reload in progress)」で3回連続弾かれた。ただし同時刻に `compile` と `get-logs` は正常応答し、`UnityMcpSettings.json` の `customPort: 8714` も `lsof` の実LISTENポート（Unity PID 37709）と一致していたため、MCP不通ではなくテストランナー側のゲートと判断。50〜90秒待機のリトライループで通した。
 
-また、ブリーフのサンプルHTMLには `.figure` 内の
-`<button class="figure-comment-btn" data-comment-ui>コメント</button>` が抜けていた。
-テンプレートのJSは `var btn = fig.querySelector('.figure-comment-btn'); if (!btn) return;` のため、
-これが無いと**図コメントが一切機能せず**、Step 4の期待「図の右上コメントボタンが機能する」を満たせない。
-両カードにボタンを追加した（テンプレート本来の使い方どおり）。
+## 自己レビュー
 
-## 懸念・Task 3への申し送り
+### 完全性
+ブリーフのStep 1〜6を全て実施。旧シグネチャの残存を
+`grep -rn "ManualUpdate(true)\|ManualUpdate(false)\|ManualUpdate(_placeSystem\|ManualUpdate(isPreviewing\|ManualUpdate(isPlacementPreviewing\|PreviewingPushes" --include="*.cs" moorestech_client moorestech_server`
+で確認 → **0件**。
 
-- **`.verdict-card` / `.suppressed-card` に枠線・背景が無い**。ブリーフの追加CSSは `h2` のフォントサイズしか
-  指定しておらず、現状は「カード」と言いつつ地の文と同じ白背景で、カード間の境界が視覚的に曖昧
-  （headlessスクショで確認）。仕様どおりなので追加装飾はしていないが、複数件並べたときの可読性は要検討。
-- **`<h1>` が1ページに2つある**（hero の `{{TITLE}}` と `.verdict-header` の「独立レビュー: PR #0000 …」）。
-  ブリーフ記載どおりだが、SKILL.md 側で hero を使わない／verdict-header を `h2` に落とすなどの整理余地あり。
-- `<head>` 冒頭の使い方コメントは create-infographic-light 由来のまま（「`<main>` 内の各サンプルセクションを
-  複製・改変して…」等）。ダイジェスト固有の使い方はTask 3のSKILL.md側で規定される前提で、
-  「CSS/JSはverbatim維持」の指示に従い無変更とした。必要ならTask 3でヘッダコメントを差し替えるとよい。
+### 設計レンズ照合
+- **ポーリング排除（レンズ3）**: `GetNextUpdate()` から毎tickの `CurrentTarget != null` 同値判定が消え、フレーム駆動は距離カリングという物理的進行だけになった。表示ON/OFFは状態遷移点でのプッシュに移った。裁定の趣旨どおり
+- **依存方向（レンズ2）**: サービスは「表示状態」だけを受け取り、`CurrentTarget` や「プレビュー中」という上位ドメイン語彙を知らなくなった。判断（設置ステート滞在中は常に表示）は具体側の `PlaceBlockState` に移った
+- **前例一致（レンズ1）**: 引数なし `ManualUpdate()` は同一メソッド内の `_placeSystemStateController.ManualUpdate()` / `_buildUndoService.ManualUpdate()` と同形になり、3者が揃った
+- **配置規約（レンズ9）**: 全ファイル200行以内（`MapVeinRangeViewService` 168行 / `PlaceBlockState` 159行 / `FakeMapVeinRangeView` 25行）。partial・try-catch・`Func<>`・デフォルト引数の新規混入なし
 
----
+### QA観点で潰した疑い
+- **`Show(false)` の残存ボックス持ち越し**: `Show` が `_isVisible` 更新の直後に `ManualUpdate()` を呼ぶため、`OnExit` 時点で全エントリが即座に `HideEntry` されプールへ戻る。次フレームへ持ち越さない（ブリーフStep 2の設計意図どおり）。`MapVeinOutcropAndRangeViewTest` の「③プレビュー終了で表示が消える」「④3周しても溜まらない」がこれを実挙動で押さえており、両方PASS
+- **OnEnter再入での二重表示**: `ShowEntry` が `entry.ViewObject != null` で早期returnするため、`Show(true)` を続けて呼んでもボックスは重複しない。同テストの④サイクルで実証済み
+- **`CurrentTarget` が死にコードにならないか**: `PlaceSystemStateController` 内部（`ManualUpdate` の選択変更判定）と `Client.WebUiHost/Game/Topics/C2/PlacementModeTopic.cs:53` が引き続き使用しており参照が残る。削除対象ではない
+- **`DriveRangeViewFrames` の `Show` がカメラ設置より前にある点**: 遠方ケース（`DriveRangeViewFrames(rangeView, farAway, true)`）では `Show(true)` が旧カメラ位置でスイープしボックスが一瞬出るが、続くループが `farAway` で `ManualUpdate()` を3フレーム回して全消しするため最終状態は正しい。本番の `OnEnter` も「その時点のカメラ位置」でスイープするので挙動として忠実。テストの「カメラが遠いと消える」アサートはPASS
 
-## レビュー指摘対応（Minor 3件・追記）
+### 規律（YAGNI）
+コミットは指定6ファイルのみ。`git status --porcelain` で確認し、他エージェント由来の `.moorestech-external-revisions.json` と `docs/superpowers/plans/2026-08-02-pr1104-review-ruling-fixes.md` の未コミット変更は巻き込んでいない（コミット後も working tree に残存）。
 
-`digest-template.html` の追加CSSのみを変更。`<script>` ブロックとvendor由来CSSは無変更。
+## 懸念（DONE_WITH_CONCERNS の理由）
 
-### 1. `.code-card .hl` が長行で切れる → `min-width:100%; width:max-content;`
+1. **`FakeMapVeinRangeView.ManualUpdateCount` を読むテストが存在しない。** ブリーフの逐語指定なのでそのまま実装したが、現時点では誰も参照しない記録用メンバーである（`ShowPushes` も同様に未参照だが、こちらは改名前の `PreviewingPushes` から引き継いだ既存状態）。レビューで「使われないなら消せ」と指摘されうる。逆に言えば `Show`/`ManualUpdate` の呼び分けを `UIState` 側テストでアサートする余地が空いたままなので、後続で「OnEnterでShow(true)が1回・GetNextUpdateではShowが増えない」を押さえるか、メンバーごと削るかの判断が要る。
 
-`width:100%` は「pre のコンテンツボックス幅」に固定されるため、横スクロールする長行では
-帯が初期表示幅で途切れていた。headless Chrome（900x800）で新旧を実測:
-
-| | pre のコンテンツ幅 | 表示幅 | `.hl` 実測幅 |
-|---|---|---|---|
-| 旧 `width:100%` | 1977px | 814px | **814px（切れる）** |
-| 新 `max-content` | 1989px | 814px | **1989px（全幅到達）** |
-
-短行（suppressedカード）は新旧とも814px = 表示幅いっぱいで、`min-width:100%` により
-従来の「行全体に帯」挙動は維持されている（リグレッション無し）。
-
-### 2. `.figure > .verdict-card, .figure > .suppressed-card { margin-top: 0 }` を削除
-
-前回レポートに書いた「カードが52px下がってコメントボタンが浮く」という根拠は誤りだった。
-`.figure` は枠線・パディングを持たないため section の上マージンは**親を貫通して相殺**され、
-カードは `.figure` に対して下がらない。ルール有無で実測:
-
-- ルール無し: `cardMarginTop=52px` だが `figTop=379 === cardTop=379`（相殺）
-- ボタン⇔カードの位置関係は**新旧とも `gapBtnToCard=-15px` で同一**（ボタンはカード上端に重なったまま）
-
-浮かないことが実証されたためルールを削除し、ブリーフどおりに戻した。
-
-### 3. `.badge` を `.verdict-card .badge, .suppressed-card .badge` にスコープ
-
-無スコープの `.badge` がvendorの `.lead-item .badge`（26px円形バッジ）を汚染していた。実測:
-
-| | `.lead-item .badge` | `.verdict-card .badge` |
-|---|---|---|
-| 旧（無スコープ） | **padding 8px / margin-right 8px が混入** | 意図どおり |
-| 新（スコープ済） | padding 0 / margin-right 0（vendor本来） | 意図どおり（inline-block/8px/10px/8px） |
-
-`badge-new` / `badge-sup` はカード内文脈でのみ使う前提のためスコープ不要と判断し据え置き。
-
-### 検証
-
-- `<script>` 抽出 → `new Function()` 構文チェック: **SYNTAX_OK**（1ブロック）
-- headless Chrome（`--dump-dom` + 計測プローブ）:
-  - (a) 長行 `.hl` が `pre.scrollWidth` 相当まで到達 — **PASS**（旧版は切れることも対照実験で確認）
-  - (b) 両figureのコメントボタン: クリックでcomposerが開き、引用が `data-label` と一致、
-    キャンセルで閉じる — **両方PASS**（ルール削除後も機能する）
+2. **`ManualUpdateCount` が `{ get; private set; }` の自動プロパティである点。** AGENTS.md の「単純なgetter/setterプロパティは使用禁止」に文言上は触れうる（実態は外部setterを持たないカウンタで、当該規約が禁じる public set とは異なる）。ブリーフの逐語指定を優先した。テストダブル限定なので実害は無いと判断したが、機械チェックに引っかかるなら public フィールドへ落とすのが最小修正。
