@@ -1,0 +1,64 @@
+diff --git a/moorestech_client/Assets/Scripts/Client.Game/Observatory/TelescopeState.cs b/moorestech_client/Assets/Scripts/Client.Game/Observatory/TelescopeState.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Game/Observatory/TelescopeState.cs
+@@ -0,0 +1,33 @@
++using System;
++using UniRx;
++
++namespace Client.Game.Observatory
++{
++    public class TelescopeState
++    {
++        public int TrackingTargetId { get; private set; }
++        public float FocusDistance { get; private set; }
++
++        public IObservable<Unit> OnChanged => _onChanged;
++        private readonly Subject<Unit> _onChanged = new();
++
++        public void SetTrackingTarget(int targetId)
++        {
++            TrackingTargetId = targetId;
++            _onChanged.OnNext(Unit.Default);
++        }
++
++        public void SetFocusDistance(float distance)
++        {
++            FocusDistance = distance;
++            _onChanged.OnNext(Unit.Default);
++        }
++
++        public void ResetToHomePosition()
++        {
++            TrackingTargetId = -1;
++            FocusDistance = 0f;
++            _onChanged.OnNext(Unit.Default);
++        }
++    }
++}
+diff --git a/moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/ObservatoryProtocol.cs b/moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/ObservatoryProtocol.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/ObservatoryProtocol.cs
+@@ -0,0 +1,21 @@
++using MessagePack;
++
++namespace Server.Protocol.PacketResponse
++{
++    // 望遠鏡の操作プロトコル
++    // Protocol for telescope operations
++    public class ObservatoryProtocol : IPacketResponse
++    {
++        public const string ProtocolTag = "va:observatory";
++
++        public ProtocolMessagePackBase GetResponse(MemoryStream payload)
++        {
++            var data = MessagePackSerializer.Deserialize<ObservatoryProtocolMessagePack>(payload.ToArray());
++
++            // 実処理は焦点距離の変更のみ
++            // The only actual operation is changing the focus distance
++            _telescopeService.SetFocusDistance(data.PlayerId, data.FocusDistance);
++            return null;
++        }
++    }
++}

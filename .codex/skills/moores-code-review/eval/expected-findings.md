@@ -104,3 +104,28 @@
 
 | 34 | 4カテゴリcontextの「許容するトレードオフ」「目指さない」行の出所ラベル欠落（散文・箇条書きとも）・カテゴリ見出し欠落・偽`[ADR:]`参照（台帳に非実在/参照先がagent前提）は confirmed（context-source-label）で検出される | synthetic/*-context.md | deterministic_checks --context（checks_context.py。LLM不要） |
 | 35 | トレードオフ合致の指摘は「指摘しない」でなく suppressed 節（`- [Critical|Warning] … / suppressed-by: <トレードオフ, 出所ラベル>`）で返る。沈黙（無出力で落とす）は失格。`[agent前提]`出所での suppressed 化も失格（通常Critical/Warningが正） | 全レンズ・reviewer共通契約 | 各観点の依頼動詞優先ガード＋integration-rules §2.6 |
+
+## PR1095 reconcile由来（人間レビュー 4829833297・2026-08-01「Cluadeの検知漏れ」）
+
+見逃し17件から起票した改善（`pr-independent-review/records/improvement-queue.md` Q1〜Q12）の期待検出。
+由来PRのdiffは巨大なためfixture化せず、**ブラインド合成fixture（下記synthetic 3ペア）を一次の検証コーパスとする**。
+
+| # | 指摘 | 対象 | 検出器 |
+|---|---|---|---|
+| 36 | 実装が1つしかない新設interface・固有の中身を持たない汎用ラッパー・空Disposeの`IDisposable`・存在意義のない新設public メンバー・不要な新設型（5件を束ねた「受益者なき抽象」） | IBlueprintCatalogSource.cs / BuildToolPlacementTarget.cs / EquipmentHeldItemModel.cs / LocalPlayerEquipment.cs / EquipmentProtocol.cs | speculative-abstraction（opus・新設）。synthetic: `speculative-abstraction-positive/negative` |
+| 37 | 新設publicメンバーの公開範囲過剰（参照元が自ファイルだけ／デバッグ専用呼び出し元だけ） | MapObjectMiningService.cs（経過ティック）/ MapObjectAcquisitionProtocol.cs（デバッグ用破棄API） | core-cs-dead-code-and-scope §5（sonnet）。synthetic: `sweep-and-scope-positive/negative` |
+| 38 | 到達不能な失敗経路（不能フォールバック）と受け側のsilent skip。1件だけ挙げて同型を落とさないこと | PlacementTargetFactory.TryCreate（検出済）/ MapObjectMiningMiningState（同型・見逃し） | core-cs-result-state-propagation §5＋全数掃引。synthetic: `sweep-and-scope-positive/negative` |
+| 39 | 重複集約後に素通しになる中継メソッドまで掃引すること（カスケードの端まで） | BuildMenuEntryCatalog/WebBuildMenuEntryCatalog（検出済）/ PlacementTargetFactory.CreateEntry直返し（見逃し） | core-cs-centralization-duplication §6。synthetic: `sweep-and-scope-positive/negative` |
+| 40 | 受け取れる`CancellationToken`を渡していない・CTSの作りっぱなし・`async void` | EquipmentHeldItemModel.cs（AddressableLoader.LoadAsyncへ未伝搬） | core-cs-async-cancellation（opus・新設）。synthetic: `async-cancellation-positive/negative` |
+| 41 | 根拠コメントの実在をtry-catch免除にしない。許可された境界3種を主張しないtry-catchは`confirmed`のまま | EquipmentHeldItemModel.cs:99（「Addressableロードは外部境界」＝3種のどれでもない） | 決定論 try-catch-forbidden（較正後）＋`candidates.try_catch_boundary` → try-catch-boundary-verifier |
+| 42 | サーバのゲームロジックで実時間API（`Time.deltaTime`/`Stopwatch`/`Environment.TickCount`）を使わない | MapObjectMiningService.cs:85,88（Stopwatch.GetTimestamp・head 74ba6e8） | 決定論 server-realtime-api（confirmed） |
+| 42b | サーバGame配下の`DateTime.Now/UtcNow`＋経過計測痕跡（TimeSpan/Total*/DateTime辞書）は候補化し、用途（ゲート=Critical／セーブ用実世界時刻記録=正当）をverifierが裁定 | MapObjectMiningService.cs:79-80（DateTimeクールダウン・head 463a56d時点の形） | 決定論 `candidates.server_elapsed_time` → server-elapsed-time-verifier（sonnet） |
+| 43 | 初期化メソッドの命名（厳密名の揺れ Init/Setup/Construct/Initialise・override除外・テスト除外） | 合成（PR1095実diffは厳密名0件＝誤爆なしを確認） | 決定論 init-method-naming（confirmed）。`tests/test_init_method_naming.py` 10件が回帰を守る |
+| 44 | 初期化役メソッドの意味的な別名（`ApplyInitial`等）とctor→Initialize記述順・ガード節の一箇所集約 | LocalPlayerEquipment.cs:88（ApplyInitial・下部配置）/ MapObjectMiningService.cs:90（クールダウンガードのローカル関数埋没） | core-cs-region-internal §6/§7（sonnet）。synthetic: `init-structure-positive/negative` |
+| 45 | 無内容なイベント名（OnChanged）と実処理と乖離した総称名（プロトコル） | LocalPlayerEquipment.cs:33（OnChanged 3種混流）/ EquipmentProtocol.cs:13,36 | core-cs-centralization-duplication §1命名（opus）。synthetic: `event-naming-positive/negative` |
+| 46 | オーバーロード置換（新ctor追加で旧ctorの生存者がテスト/デバッグのみ化）。テスト参照は§1の免除にならない | Responses.cs:17（PlayerInventoryResponse生引数ctor） | core-cs-dead-code-and-scope §1（sonnet）。synthetic: `overload-replacement-positive/negative` |
+
+注: #36〜#40 の最低ラインは各観点の **Critical**。#41/#42/#42b は決定論チェックなのでLLM不要（`tests/test_try_catch_boundary.py` が回帰を守る。#42bのverifier裁定のみsonnet）。
+注: 段階4実diffバックテスト実測（2026-08-02・head 74ba6e8）: #40/#41/#42/#42b は完全検出。#36 は由来surfaceの3件が観点自身のガード（asmdef反転・兄弟規約・解放対象実在）で抑止され**不合格**、#37 は担当reviewerの4分割subagent委任で希釈され**全滅**、#38 は由来surfaceを到達性裁定で対象外化（同§5の別3件は検出）、#39 は部分。合成fixture緑（段階3）が段階4を保証しない実証例＝ガード較正・委任禁止が残タスク（改善キューQ1/Q2/Q3/Q4/Q11）。
+注: DateTimeを`server-realtime-api`のconfirmedに含めてはならない — セーブメタデータ（`WorldSettingsDatastore`等）で正当使用が実在し、confirmed化すると誤検知する（2026-08-02実測・AGENTS.md例外に成文化済み）。
+#38/#39 は「1件検出」では不合格 — 同型の全インスタンスが修正方針に列挙されていることまでが合格条件（integration-rules §2.7）。

@@ -9,6 +9,7 @@ Usage:
       "confirmed": [...],   # 検出正確・裏取り不要。Criticalとして統合に載せる
       "candidates": {
         "comparison_operator":  [...],  # verifiers/comparison-operator-verifier.md(sonnet)で裁定
+        "try_catch_boundary":   [...],  # verifiers/try-catch-boundary-verifier.md(opus)で裁定
         "comment_length":       [...],  # post-checks/comment-convention-guard.md(sonnet)で裁定
         "region_internal":      [...],  # core-cs-region-internal reviewer の裏付けデータ
         "schema_optional_true": [...],  # master-data-defense レンズの裏付けデータ
@@ -55,6 +56,8 @@ def main(argv: list[str]) -> int:
         "confirmed": checks_static.run(files, repo_root) + checks_moores.run_confirmed(files) + context_findings,
         "candidates": {
             "comparison_operator": checks_comparison.run(files),
+            "try_catch_boundary": checks_static.try_catch_boundary(files),
+            "server_elapsed_time": checks_moores.server_elapsed_time(files),
             "comment_length": checks_comment_length.run(files),
             "region_internal": checks_region.run(files, repo_root),
             "schema_optional_true": checks_moores.schema_optional_true(files),
