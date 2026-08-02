@@ -27,6 +27,12 @@ for f in /tmp/moores-review-fixtures/*.diff; do
   echo "=== $f ==="
   python3 .claude/skills/moores-code-review/scripts/select_lenses.py "$f"
 done
+
+# 4. チャンク分割の確認（第6系統。閾値・テスト完全除外・10-15サイズ・seam束ねの検証）
+for f in /tmp/moores-review-fixtures/*.diff; do
+  echo "=== $f ==="
+  python3 .claude/skills/moores-code-review/scripts/split_chunks.py "$f"
+done
 ```
 
 フルリプレイ（レンズをサブエージェントとして各fixtureに当てる）はトークンを消費するため、
@@ -57,6 +63,8 @@ Q7/Q9/Q10/Q11検出器由来（2026-08-02 追加・全ペア合格済み）:
 `init-structure-positive/negative.diff`（温室灌漑ドメイン・core-cs-region-internal §6/§7。陽性=初期化役メソッドの別名`ApplyFirstLayout`＋条件のスコープ割れ（直下2本・ローカル関数に1本）、陰性=Initialize適正配置＋条件が一貫配置の2形（全て直下／全てローカル関数内）＋毎イベント購読ハンドラは非該当）/
 `event-naming-positive/negative.diff`（天文台ドメイン・core-cs-centralization-duplication §1命名。陽性=3種混流の`OnChanged`＋1操作の総称名プロトコル、陰性=対象を含む2本のイベント＋実処理一致名）/
 `overload-replacement-positive/negative.diff`（養蜂ドメイン・core-cs-dead-code-and-scope §1。陽性=新snapshot版ctorへ移行し旧生引数版の生存者がデバッグ+テストのみ、陰性=旧版にproduction現役呼び出し元が残存）。
+`default-resolution-positive.diff`（トースト表示時間のpublic Default定数＋呼び出し側??解決→Criticalありが正）/
+`default-resolution-negative.diff`（カットシーン速度のprivate Default＋nullable API内部解決＋呼び出し側の自ポリシー明示値→Criticalなしが正）。
 
 ### spec段階のリプレイ
 PR988の誤設計は `docs/superpowers/specs/2026-07-05-item-stack-upgrade-design.md`（「新規プロトコル・

@@ -129,3 +129,11 @@
 注: 段階4実diffバックテスト実測（2026-08-02・head 74ba6e8）: #40/#41/#42/#42b は完全検出。#36 は由来surfaceの3件が観点自身のガード（asmdef反転・兄弟規約・解放対象実在）で抑止され**不合格**、#37 は担当reviewerの4分割subagent委任で希釈され**全滅**、#38 は由来surfaceを到達性裁定で対象外化（同§5の別3件は検出）、#39 は部分。合成fixture緑（段階3）が段階4を保証しない実証例＝ガード較正・委任禁止が残タスク（改善キューQ1/Q2/Q3/Q4/Q11）。
 注: DateTimeを`server-realtime-api`のconfirmedに含めてはならない — セーブメタデータ（`WorldSettingsDatastore`等）で正当使用が実在し、confirmed化すると誤検知する（2026-08-02実測・AGENTS.md例外に成文化済み）。
 #38/#39 は「1件検出」では不合格 — 同型の全インスタンスが修正方針に列挙されていることまでが合格条件（integration-rules §2.7）。
+
+## default-port-leak（PR1108/1109手動修正 2026-07-30由来・base直指定fixture）
+
+| # | 指摘 | 対象 | 検出器 |
+|---|---|---|---|
+| 47 | `public const DefaultPort` 公開＋呼び出し側 `settings.Port ?? ServerListenAcceptor.DefaultPort` のデフォルト解決責務漏れ→private化＋`CreateBoundListener(int?)` 内部一箇所解決へ（最終形=e65c8135b＋257ae70c6） | ServerListenAcceptor.cs:16 / ServerInstanceManager.cs:110 | default-resolution-ownership（基準1） |
+
+注: #47（旧#36・PR1095系と衝突のため改番）はdefault-resolution-ownership（opus）の**Critical**が最低ライン。2026-07-31フォレンジック・リプレイで15系統（決定論・レンズ3・reviewer10・Fable・Codex）が全滅（Critical 0・schema-design/caller-orch/arch-lifecycleがWarning級の部分認識止まり・複数系統が漏れ形を肯定引用）した実績あり。

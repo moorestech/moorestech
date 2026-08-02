@@ -1,0 +1,73 @@
+diff --git a/moorestech_client/Assets/Scripts/Client.Cutscene/CutscenePlayer.cs b/moorestech_client/Assets/Scripts/Client.Cutscene/CutscenePlayer.cs
+new file mode 100644
+index 000000000..d4e5f6a7b
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Cutscene/CutscenePlayer.cs
+@@ -0,0 +1,30 @@
++using UnityEngine;
++using UnityEngine.Playables;
++
++namespace Client.Cutscene
++{
++    // カットシーンの再生と再生速度の適用を担当する
++    // Plays cutscenes and applies the playback scale
++    public class CutscenePlayer : MonoBehaviour
++    {
++        // 再生速度未指定時の既定値
++        // Default playback scale when unspecified
++        private const float DefaultPlaybackScale = 1f;
++
++        [SerializeField] private PlayableDirector playableDirector;
++
++        public void Play(PlayableAsset cutsceneAsset, float? argPlaybackScale)
++        {
++            // 未指定なら既定速度で再生する
++            // Resolve to the default scale when unspecified
++            var playbackScale = argPlaybackScale ?? DefaultPlaybackScale;
++
++            // タイムラインへ速度を適用して再生を開始する
++            // Apply the scale to the timeline and start playback
++            playableDirector.playableAsset = cutsceneAsset;
++            playableDirector.playableGraph.GetRootPlayable(0).SetSpeed(playbackScale);
++            playableDirector.Play();
++        }
++    }
++}
+diff --git a/moorestech_client/Assets/Scripts/Client.Cutscene/SkitLauncher.cs b/moorestech_client/Assets/Scripts/Client.Cutscene/SkitLauncher.cs
+new file mode 100644
+index 000000000..e5f6a7b8c
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Cutscene/SkitLauncher.cs
+@@ -0,0 +1,29 @@
++using UnityEngine.Playables;
++
++namespace Client.Cutscene
++{
++    // スキット設定を読み、カットシーン再生役へ引き渡す
++    // Reads skit configs and hands them to the cutscene player
++    public class SkitLauncher
++    {
++        private readonly CutscenePlayer _cutscenePlayer;
++
++        public SkitLauncher(CutscenePlayer cutscenePlayer)
++        {
++            _cutscenePlayer = cutscenePlayer;
++        }
++
++        public void LaunchSkit(SkitConfig skitConfig)
++        {
++            // 設定の速度指定は解決せずそのまま再生役へ渡す
++            // Pass the configured scale through without resolving it here
++            _cutscenePlayer.Play(skitConfig.CutsceneAsset, skitConfig.PlaybackScale);
++        }
++
++        public void LaunchDebugPreview(PlayableAsset cutsceneAsset)
++        {
++            // デバッグプレビューは倍速再生を明示指定する（この層の意図的な決定）
++            // Debug preview deliberately requests double speed (this layer's own policy)
++            _cutscenePlayer.Play(cutsceneAsset, 2f);
++        }
++    }
++
++    public record SkitConfig(PlayableAsset CutsceneAsset, float? PlaybackScale);
++}

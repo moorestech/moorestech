@@ -1,5 +1,4 @@
 using System.IO;
-using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,9 +8,7 @@ namespace Client.Editor
     public static class CefPackageLfsValidator
     {
         private const string PackageDirectoryPattern = "jp.juha.cefunity@*";
-        private const string LfsPointerHeader = "version https://git-lfs";
         private const string ReportedSessionKey = "Moorestech.CefPackageLfsValidator.Reported";
-        private const int MaximumPointerFileSize = 1024;
 
         static CefPackageLfsValidator()
         {
@@ -44,16 +41,7 @@ namespace Client.Editor
             {
                 foreach (var filePath in Directory.EnumerateFiles(packageDirectory, "*", SearchOption.AllDirectories))
                 {
-                    var fileInfo = new FileInfo(filePath);
-                    if (MaximumPointerFileSize < fileInfo.Length) continue;
-
-                    // 小さいファイルの先頭だけ読みます。
-                    // Read only the prefix of small files.
-                    using var stream = File.OpenRead(filePath);
-                    var prefixLength = (int)System.Math.Min(stream.Length, LfsPointerHeader.Length);
-                    var prefix = new byte[prefixLength];
-                    var bytesRead = stream.Read(prefix, 0, prefix.Length);
-                    if (Encoding.ASCII.GetString(prefix, 0, bytesRead) != LfsPointerHeader) continue;
+                    if (!CefLfsPointer.IsPointerFile(filePath)) continue;
 
                     pointerPath = filePath;
                     return true;

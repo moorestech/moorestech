@@ -127,3 +127,12 @@ moorestech_client/PlaytestResults/
 # WebUI本番成果物ステージング（ビルド時にWebUiProductionArtifactBuilderが再生成） / WebUI prod artifact staging (regenerated at build time)
 moorestech_client/Assets/StreamingAssets/WebUi/
 moorestech_client/Assets/StreamingAssets/WebUi.meta
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+.beads/proxieddb/
+.beads/issues.jsonl
+.beads/interactions.jsonl
+.beads/hooks/
