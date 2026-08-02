@@ -68,3 +68,5 @@
 # sync.remote: "git@github.com:moorestech/moorestech_logs.git"
 export:
     auto: true
+sync:
+    remote: "git+ssh://git@github.com/moorestech/moorestech_logs.git"
