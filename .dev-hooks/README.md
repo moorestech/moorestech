@@ -10,11 +10,14 @@
 
 ```
 .dev-hooks/
-  check-diff.mjs   # 共通フック本体（node。mac/windows・claude/codex 共通）
-  rules.json       # ルール定義（ここだけ編集すれば拡張できる）
+  check-diff.mjs                 # 差分観点リマインダ本体（node。mac/windows・claude/codex 共通）
+  rules.json                     # ルール定義（ここだけ編集すれば拡張できる）
+  decisions-index.mjs            # 意思決定台帳(.decisions/)の目次と運用ルールをSessionStartで注入
+  decisions-ruling-reminder.mjs  # AskUserQuestion完了時に台帳への記録をリマインド（Claude Codeのみ）
+  decisions-format-check.mjs     # .decisions/レコードの書式検査（違反はexit 2で差し戻し）
   README.md
-.claude/settings.json  # PostToolUse から check-diff.mjs を呼ぶ
-.codex/hooks.json      # 同上（Codex 用）
+.claude/settings.json  # 各フックの呼び出し登録（Claude Code 用）
+.codex/hooks.json      # 同上（Codex 用。check-diff と decisions-format-check のみ）
 ```
 
 - 発火タイミング: ファイル編集ツール（Edit/Write/MultiEdit/NotebookEdit/apply_patch 等）の **実行後**（PostToolUse）。

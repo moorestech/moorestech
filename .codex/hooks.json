@@ -9,6 +9,12 @@
             "command": "node \".dev-hooks/check-diff.mjs\"",
             "timeout": 15,
             "statusMessage": "Checking diff against project review rules"
+          },
+          {
+            "type": "command",
+            "command": "node \".dev-hooks/decisions-format-check.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Validating .decisions/ record format"
           }
         ]
       }

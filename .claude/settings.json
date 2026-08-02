@@ -24,6 +24,29 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/check-diff.mjs\""
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/decisions-format-check.mjs\""
+          }
+        ]
+      },
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/decisions-ruling-reminder.mjs\""
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/decisions-index.mjs\""
           }
         ]
       }
