@@ -100,22 +100,22 @@ namespace Client.Localization
             }
         }
 
-        public static void SetLanguage(string languageCode)
+        public static bool TrySetLanguage(string languageCode)
         {
+            // 可否は戻り値だけで表す（外部入力ハンドラがActionResultへ変換する）
+            // Success/failure is expressed only via the return value; handlers map it to ActionResult
+            if (string.IsNullOrEmpty(languageCode)) return false;
+
+            // 公開snapshotを唯一の判定基準とし、Source擬似localeは選択させない
+            // Judge only against the published snapshot and never allow the Source pseudo-locale
             var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;
+            if (languageCode == SourcePseudoLocale || !snapshot.ContainsKey(languageCode)) return false;
 
-            // Source以外を選択言語に限定
-            // Allow selecting only non-Source locales
-            if (languageCode != SourcePseudoLocale && snapshot.ContainsKey(languageCode))
-            {
-                currentLanguageCode = languageCode;
-                PlayerPrefs.SetString(LanguagePreferenceKey, languageCode);
-                PlayerPrefs.Save();
-                onLanguageChangedSubject.OnNext(Unit.Default);
-                return;
-            }
-
-            Debug.LogError($"[Localize] Language Code : {languageCode} is not found");
+            currentLanguageCode = languageCode;
+            PlayerPrefs.SetString(LanguagePreferenceKey, languageCode);
+            PlayerPrefs.Save();
+            onLanguageChangedSubject.OnNext(Unit.Default);
+            return true;
         }
 
         public static string GetCurrentLanguageCode()
@@ -164,25 +164,6 @@ namespace Client.Localization
             }
 
             dictionary = null;
-            return false;
-        }
-
-        public static bool TryGetContentWithoutSource(string key, out string text)
-        {
-            var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;
-            if (snapshot[currentLanguageCode].TryGetValue(key, out text) &&
-                !string.IsNullOrEmpty(text))
-            {
-                return true;
-            }
-
-            if (snapshot[DefaultLanguageCode].TryGetValue(key, out text) &&
-                !string.IsNullOrEmpty(text))
-            {
-                return true;
-            }
-
-            text = null;
             return false;
         }
 

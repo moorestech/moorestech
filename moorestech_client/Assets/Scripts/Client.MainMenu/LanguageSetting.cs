@@ -19,7 +19,9 @@ namespace Client.MainMenu
         
         private void OnValueChanged(int index)
         {
-            Localize.SetLanguage(Localize.GetLanguageCodes()[index]);
+            // 選択肢は選択可能な言語だけなので可否の戻り値は捨ててよい
+            // Options contain only selectable languages, so the result can be discarded
+            Localize.TrySetLanguage(Localize.GetLanguageCodes()[index]);
         }
     }
 }

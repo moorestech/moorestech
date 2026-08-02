@@ -1,7 +1,6 @@
 using Client.Localization;
 using Client.WebUiHost.Boot;
 using Cysharp.Threading.Tasks;
-using Mooresmaster.Localization.Generated;
 using Newtonsoft.Json.Linq;
 
 namespace Client.WebUiHost.Game.Actions
@@ -30,25 +29,11 @@ namespace Client.WebUiHost.Game.Actions
         {
             var locale = payload?["locale"]?.ToString();
 
-            // 外部入力を埋め込み言語カタログへ照合してから状態を変更する
-            // Validate external input against the embedded catalog before mutating state
-            if (!IsSelectableLocale(locale))
-                return UniTask.FromResult(ActionResult.Fail("unknown_locale"));
-
-            Localize.SetLanguage(locale);
-            return UniTask.FromResult(ActionResult.Success());
-        }
-
-        private static bool IsSelectableLocale(string locale)
-        {
-            if (string.IsNullOrEmpty(locale)) return false;
-
-            foreach (var language in LanguageCatalog.Languages)
-            {
-                if (language.Code == locale) return true;
-            }
-
-            return false;
+            // 選択可否の判定はLocalize側に集約し、結果を失敗契約へ写す
+            // Delegate the selectability judgement to Localize and map the result to the failure contract
+            return UniTask.FromResult(Localize.TrySetLanguage(locale)
+                ? ActionResult.Success()
+                : ActionResult.Fail("unknown_locale"));
         }
     }
 }

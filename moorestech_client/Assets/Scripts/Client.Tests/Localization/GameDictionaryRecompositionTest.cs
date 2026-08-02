@@ -148,7 +148,7 @@ namespace Client.Tests.Localization
             Assert.AreEqual(research.ResearchNodeName, sourceDictionary[researchNameKey]);
             Assert.AreEqual(challenge.Title, sourceDictionary[challengeTitleKey]);
 
-            Localize.SetLanguage("english");
+            Localize.TrySetLanguage("english");
             Assert.AreEqual("English Research Name", Localize.GetContent(researchNameKey));
             Assert.AreEqual("English Challenge Title", Localize.GetContent(challengeTitleKey));
         }

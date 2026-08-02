@@ -5,7 +5,6 @@ using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UniRx;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Client.Tests.Localization
 {
@@ -55,10 +54,10 @@ namespace Client.Tests.Localization
         public void TypedKeyReturnsTextForSelectedEnglishAndJapaneseLanguages()
         {
             Localize.Initialize();
-            Localize.SetLanguage("english");
+            Localize.TrySetLanguage("english");
             var english = Localize.Get(LocalizationKeys.Ui.MainMenu.PlayLocally);
 
-            Localize.SetLanguage("japanese");
+            Localize.TrySetLanguage("japanese");
             var japanese = Localize.Get(LocalizationKeys.Ui.MainMenu.PlayLocally);
 
             Assert.AreEqual("Play locally", english);
@@ -69,10 +68,10 @@ namespace Client.Tests.Localization
         public void BlueprintCopyTypedKeyReturnsTextForSelectedEnglishAndJapaneseLanguages()
         {
             Localize.Initialize();
-            Localize.SetLanguage("english");
+            Localize.TrySetLanguage("english");
             var english = Localize.Get(LocalizationKeys.Ui.BuildMenu.BlueprintCopy);
 
-            Localize.SetLanguage("japanese");
+            Localize.TrySetLanguage("japanese");
             var japanese = Localize.Get(LocalizationKeys.Ui.BuildMenu.BlueprintCopy);
 
             Assert.AreEqual("Blueprint Copy", english);
@@ -162,32 +161,35 @@ namespace Client.Tests.Localization
         }
 
         [Test]
-        public void SetLanguagePublishesExactlyOneEventAndPersistsSelection()
+        public void TrySetLanguagePublishesExactlyOneEventAndPersistsSelection()
         {
             PlayerPrefs.SetString(Localize.LanguagePreferenceKey, Localize.DefaultLanguageCode);
             Localize.Initialize();
             var eventCount = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
 
-            Localize.SetLanguage("japanese");
+            var applied = Localize.TrySetLanguage("japanese");
 
+            Assert.IsTrue(applied);
             Assert.AreEqual(1, eventCount);
             Assert.AreEqual("japanese", Localize.GetCurrentLanguageCode());
             Assert.AreEqual("japanese", PlayerPrefs.GetString(Localize.LanguagePreferenceKey));
         }
 
+        [TestCase(null)]
+        [TestCase("")]
         [TestCase(Localize.SourcePseudoLocale)]
-        [TestCase("unknown")]
-        public void SetLanguageRejectsInvalidCodeWithoutChangingState(string invalidLanguageCode)
+        [TestCase("klingon")]
+        public void TrySetLanguageRejectsInvalidCodeWithoutChangingState(string invalidLanguageCode)
         {
             PlayerPrefs.SetString(Localize.LanguagePreferenceKey, Localize.DefaultLanguageCode);
             Localize.Initialize();
             var eventCount = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
-            LogAssert.Expect(LogType.Error, $"[Localize] Language Code : {invalidLanguageCode} is not found");
 
-            Localize.SetLanguage(invalidLanguageCode);
+            var applied = Localize.TrySetLanguage(invalidLanguageCode);
 
+            Assert.IsFalse(applied);
             Assert.AreEqual(0, eventCount);
             Assert.AreEqual(Localize.DefaultLanguageCode, Localize.GetCurrentLanguageCode());
             Assert.AreEqual(Localize.DefaultLanguageCode, PlayerPrefs.GetString(Localize.LanguagePreferenceKey));

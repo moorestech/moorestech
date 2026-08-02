@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Client.Game.Skit.Localization;
 using Client.Localization;
 using Client.Skit.Localization;
@@ -77,24 +79,52 @@ namespace Client.Tests.Localization.Skit
         }
 
         [Test]
-        public void TryGetContentWithoutSourceReturnsCurrentValueAndRejectsMissingKey()
+        public void SkitScopeResolvesCurrentLanguageAndNeverReachesSourceStage()
         {
             Localize.Initialize();
             var previousLanguageCode = Localize.GetCurrentLanguageCode();
-            Localize.SetLanguage("japanese");
+            Localize.TrySetLanguage("japanese");
 
-            var foundCurrent = Localize.TryGetContentWithoutSource(
-                "ui.mainMenu.playLocally",
-                out var current);
-            var foundMissing = Localize.TryGetContentWithoutSource(
-                "content.missing.name",
-                out var missing);
-            Localize.SetLanguage(previousLanguageCode);
+            // Skit解決が読む2段だけを実辞書から取り、source段を持つGetContentと突き合わせる
+            // Build the two stages skit resolution reads and compare them against GetContent, which has the Source stage
+            Localize.TryGetDictionary("japanese", out var japanese);
+            Localize.TryGetDictionary(Localize.DefaultLanguageCode, out var english);
+            var scope = new SkitLocalizationScope(
+                new Dictionary<string, string>(japanese),
+                new Dictionary<string, string>(english));
+            var current = scope.Resolve("ui.mainMenu.playLocally", "JSON Source");
+            var missing = scope.Resolve("content.missing.name", "JSON Source");
+            var missingWithSourceStage = Localize.GetContent("content.missing.name");
+            Localize.TrySetLanguage(previousLanguageCode);
 
-            Assert.IsTrue(foundCurrent);
             Assert.AreEqual("ローカルでプレイ", current);
-            Assert.IsFalse(foundMissing);
-            Assert.IsNull(missing);
+            Assert.AreEqual("JSON Source", missing);
+            Assert.AreEqual("[!content.missing.name]", missingWithSourceStage);
+        }
+
+        [TestCase("English Body", "English Body")]
+        [TestCase("", "JSON Source")]
+        public async Task SkitResolutionStopsAtEnglishWithoutReadingSourcePseudoLocale(
+            string englishBody,
+            string expected)
+        {
+            const string skitKey = "skit.opening.7.body";
+            var loader = new FakeSkitDictionaryLoader();
+            loader.Set("japanese", skitKey, "");
+            loader.Set("english", skitKey, "");
+            var source = new FakeSkitLocalizationSource();
+            source.Set("japanese", skitKey, "");
+            source.Set("english", skitKey, englishBody);
+
+            // source擬似localeへ値があっても解決段に現れないことを示す
+            // Prove the Source pseudo-locale never appears in the resolution stages even when it holds a value
+            source.Set(Localize.SourcePseudoLocale, skitKey, "Source Pseudo Body");
+            using var resolver = new SkitLocalizationResolver(loader, source);
+            await resolver.PrepareAsync("opening");
+
+            Assert.AreEqual(
+                expected,
+                resolver.ResolveCommandField("opening", 7, "body", "JSON Source"));
         }
 
         [Test]
