@@ -38,6 +38,8 @@ namespace Client.Game.InGame.Map.MapVein
         private readonly Mesh _boxMesh;
         private readonly Transform _root;
 
+        private bool _isVisible;
+
         public MapVeinRangeViewService(InitialHandshakeResponse handshakeResponse, Camera mainCamera)
         {
             _mainCamera = mainCamera;
@@ -69,18 +71,26 @@ namespace Client.Game.InGame.Map.MapVein
         }
 
         /// <summary>
-        ///     設置プレビュー中かだけを受け取り、対象veinの絞り込みと描画はこのクラス内で完結させる
-        ///     Takes only whether a placement preview is active; vein filtering and rendering stay inside this class
+        ///     表示状態を受け取り、対象veinの絞り込みと描画はこのクラス内で完結させる
+        ///     Takes the visibility state; vein filtering and rendering stay inside this class
         /// </summary>
-        public void ManualUpdate(bool isPlacementPreviewing)
+        public void Show(bool isVisible)
+        {
+            _isVisible = isVisible;
+            // 非表示への遷移を次フレームまで残さない。離脱時の残存ボックスを即座に畳む
+            // Never carry a hide transition into the next frame; stray boxes fold immediately on exit
+            ManualUpdate();
+        }
+
+        public void ManualUpdate()
         {
             var cameraPosition = _mainCamera.transform.position;
 
             foreach (var entry in _entries)
             {
-                // プレビュー外は距離を問わず全消し。範囲内だけボックスを持たせ、外れたものはプールへ返す
-                // Outside a preview everything goes, regardless of distance; only in-range veins keep a box and the rest return to the pool
-                var isVisible = isPlacementPreviewing && IsWithinVisibleRadius(entry.Bounds, cameraPosition);
+                // 非表示中は距離を問わず全消し。範囲内だけボックスを持たせ、外れたものはプールへ返す
+                // While hidden everything goes, regardless of distance; only in-range veins keep a box and the rest return to the pool
+                var isVisible = _isVisible && IsWithinVisibleRadius(entry.Bounds, cameraPosition);
                 if (isVisible) ShowEntry(entry);
                 else HideEntry(entry);
             }

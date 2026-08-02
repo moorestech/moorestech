@@ -63,7 +63,7 @@ namespace Client.Tests.Map
 
             // 3本全部が表示されていること。1本でも欠けると次の枚数比較が空振りする
             // Every one of the three must be showing; a missing box would make the next count comparison vacuous
-            service.ManualUpdate(true);
+            service.Show(true);
             Assert.AreEqual(VeinCount, root.childCount, "not every vein got a range view box");
 
             // ボックス3個に対し材質は2枚だけ。ボックス毎に作っていれば3枚になり、数で分岐して落ちる
@@ -76,8 +76,8 @@ namespace Client.Tests.Map
 
             for (var cycle = 0; cycle < ShowHideCycleCount; cycle++)
             {
-                service.ManualUpdate(false);
-                service.ManualUpdate(true);
+                service.Show(false);
+                service.Show(true);
 
                 // 同じMaterialインスタンスが戻ってくること。表示毎の作り直しは命名にも破棄挙動にも依らずここで落ちる
                 // The very same Material instances must come back; per-show rebuilding fails here without relying on naming or destroy behaviour

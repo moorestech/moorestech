@@ -142,6 +142,10 @@ namespace Client.Tests.EditModeInPlayingTest
 
             async UniTask DriveRangeViewFrames(IMapVeinRangeView rangeView, Vector3 cameraPosition, bool isPreviewing)
             {
+                // 表示状態は本番同様、遷移時に1回だけプッシュする
+                // Push the visibility once on transition, exactly as production does
+                rangeView.Show(isPreviewing);
+
                 // 本番はPlaceBlockStateが毎フレーム駆動する。1フレームだけ叩くと毎フレーム再生成の欠陥を見逃す
                 // Production drives this every frame from PlaceBlockState; a single call would hide a per-frame regeneration defect
                 for (var frame = 0; frame < DrivenFrameCount; frame++)
@@ -149,7 +153,7 @@ namespace Client.Tests.EditModeInPlayingTest
                     // カメラ追従に上書きされる前に、同フレーム内で位置を置いてから駆動する
                     // Place the camera and drive within the same frame, before the camera follower overwrites it
                     Camera.main.transform.position = cameraPosition;
-                    rangeView.ManualUpdate(isPreviewing);
+                    rangeView.ManualUpdate();
                     await UniTask.Yield();
                 }
             }

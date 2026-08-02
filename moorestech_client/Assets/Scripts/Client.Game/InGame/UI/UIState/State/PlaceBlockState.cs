@@ -48,6 +48,10 @@ namespace Client.Game.InGame.UI.UIState.State
             // Take the placement target from the transition payload and hand it to the owner (falls back to Empty when absent)
             if (context.TryGetContext<IPlacementTarget>(out var target)) _placeSystemStateController.SetTarget(target);
 
+            // 設置ステート滞在中は範囲表示を出す。対象の有無はステート自体が保証する（ADR#12）
+            // The range view shows for the whole placement state; the state itself guarantees a target exists (ADR#12)
+            _mapVeinRangeView.Show(true);
+
             // 設置中は右ドラッグまで回転停止
             // Stop rotation until right-drag while placing
             _cameraInteractionApplier.SetCursorVisible(true);
@@ -94,9 +98,9 @@ namespace Client.Game.InGame.UI.UIState.State
 
             _placeSystemStateController.ManualUpdate();
 
-            // 設置プレビュー中かだけを渡す。veinの解決・絞り込み・描画はサービス内部
-            // Pass only whether a placement preview is active; vein resolution, filtering and rendering live inside the service
-            _mapVeinRangeView.ManualUpdate(_placeSystemStateController.CurrentTarget != null);
+            // カメラ追従の距離カリングだけを駆動する。表示のON/OFFはOnEnter/OnExitがプッシュ済み
+            // Drive only the camera-following distance culling; visibility was already pushed by OnEnter/OnExit
+            _mapVeinRangeView.ManualUpdate();
 
             // Ctrl+Z判定はサービス内部
             // Ctrl+Z detection lives inside the service
@@ -135,7 +139,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // 配置モード離脱で範囲表示も畳む。破棄漏れがそのまま残存ボックスになる
             // Leaving placement mode folds the range view too; a missed destroy would linger as a stray box
-            _mapVeinRangeView.ManualUpdate(false);
+            _mapVeinRangeView.Show(false);
 
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {

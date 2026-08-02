@@ -9,11 +9,17 @@ namespace Client.Tests.UIState
     /// </summary>
     public class FakeMapVeinRangeView : IMapVeinRangeView
     {
-        public readonly List<bool> PreviewingPushes = new();
+        public readonly List<bool> ShowPushes = new();
+        public int ManualUpdateCount { get; private set; }
 
-        public void ManualUpdate(bool isPlacementPreviewing)
+        public void Show(bool isVisible)
         {
-            PreviewingPushes.Add(isPlacementPreviewing);
+            ShowPushes.Add(isVisible);
+        }
+
+        public void ManualUpdate()
+        {
+            ManualUpdateCount++;
         }
     }
 }
