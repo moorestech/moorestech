@@ -27,17 +27,22 @@ namespace Client.Game.InGame.Map.MapObject
         private readonly Dictionary<int, MapObjectGameObject> _allMapObjects = new();
         private readonly Dictionary<Guid, GameObject> _prefabCacheByMapObjectGuid = new();
 
-        // 生成ループ完走で初期化ゲートを解除する。InitializeScenePipelineがtrueを無限ポーリング待機するため必ず立てる
-        // Loop completion releases the init gate; InitializeScenePipeline polls this in an unbounded wait so it must be set
-        public bool IsInitialEventApplied { get; private set; }
+        // 生成ループの完了と例外を初期化パイプラインがawaitできる形で保持する
+        // Retain the instantiation loop's completion and exceptions for the initialization pipeline to await
+        private UniTask _initialApplyTask;
+
+        public UniTask WaitForInitialApplyAsync()
+        {
+            return _initialApplyTask;
+        }
 
         [Inject]
         public void Construct(InitialHandshakeResponse handshakeResponse)
         {
-            // イベント購読は同期で確定させ、生成本体はフレーム分散のfire-and-forgetへ委譲する
-            // Subscribe synchronously, then delegate the instantiation itself to a frame-distributed fire-and-forget
+            // イベント購読は同期で確定させ、生成本体はフレーム分散の保持タスクへ委譲する
+            // Subscribe synchronously, then delegate the instantiation itself to a frame-distributed retained task
             ClientContext.VanillaApi.Event.SubscribeEventResponse(MapObjectUpdateEventPacket.EventTag, OnUpdateMapObject);
-            InstantiateMapObjectsFromLayoutAsync().Forget();
+            _initialApplyTask = InstantiateMapObjectsFromLayoutAsync().Preserve();
 
             #region Internal
 
@@ -99,10 +104,6 @@ namespace Client.Game.InGame.Map.MapObject
                     processedCount++;
                     if (processedCount % FrameYieldObjectInterval == 0) await UniTask.Yield(cancellationToken);
                 }
-
-                // 全個体を処理しきった（失敗はskip済み）→初期化ゲートを解除し起動待機を進める
-                // Every object processed (failures skipped) → release the init gate to advance startup
-                IsInitialEventApplied = true;
             }
 
             GameObject ResolvePrefabOrNull(Guid mapObjectGuid)

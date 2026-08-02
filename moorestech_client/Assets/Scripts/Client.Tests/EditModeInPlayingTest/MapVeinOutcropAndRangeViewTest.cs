@@ -75,7 +75,7 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 // 初期化と同じawait経路を通し、生成例外がfire-and-forgetへ逃げないことも固定する
                 // Use the same await path as startup, also pinning that generation exceptions cannot escape into fire-and-forget
-                await datastore.WaitForInitializationAsync();
+                await datastore.WaitForInitialApplyAsync();
                 Assert.AreEqual(veinLayouts.Count, datastore.transform.childCount, "outcrop count does not match the vein count");
 
                 foreach (var layout in veinLayouts)

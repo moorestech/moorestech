@@ -276,7 +276,7 @@ namespace Client.Starter
             builder.RegisterComponent(gameStateController);
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
-            builder.RegisterComponent(mapVeinObjectDatastore);
+            builder.RegisterComponent(mapVeinObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
             builder.RegisterComponent(environmentRoot);
             
             builder.RegisterComponent(mainCamera);

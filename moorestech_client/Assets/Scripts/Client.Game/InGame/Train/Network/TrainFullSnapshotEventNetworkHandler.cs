@@ -5,6 +5,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View;
 using Client.Network.API;
+using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
 using MessagePack;
 using Server.Event.EventReceive;
@@ -28,7 +29,14 @@ namespace Client.Game.InGame.Train.Network
         // Notifies full-snapshot application completion (used to release the resync gate)
         public IObservable<ulong> OnFullSnapshotApplied => _onFullSnapshotApplied;
 
-        public bool IsInitialEventApplied { get; private set; }
+        // スナップショット適用完了の通知口。イベント駆動でタスクを所有しないため完了ソースで表現する
+        // Completion source signalling snapshot application; event-driven code owns no task of its own
+        private readonly UniTaskCompletionSource _initialApplyCompletion = new();
+
+        public UniTask WaitForInitialApplyAsync()
+        {
+            return _initialApplyCompletion.Task;
+        }
 
         public TrainFullSnapshotEventNetworkHandler(
             RailGraphSnapshotApplier railGraphSnapshotApplier,
@@ -76,7 +84,7 @@ namespace Client.Game.InGame.Train.Network
                 _futureMessageBuffer.DiscardHashesOlderThan(watermarkId);
 
                 _onFullSnapshotApplied.OnNext(watermarkId);
-                IsInitialEventApplied = true;
+                _initialApplyCompletion.TrySetResult();
             }
 
             #endregion

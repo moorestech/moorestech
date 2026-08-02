@@ -25,9 +25,9 @@ return PlaytestRunner.Run("map-object-runtime-instantiate", options, async p =>
     var clientDatastore = UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>();
     p.Assert(clientDatastore != null, "クライアントのMapObjectGameObjectDatastoreがシーンに存在する");
 
-    // 生成ループ完走で立つ初期化ゲート。skip+continue化後は失敗個体があっても必ず完走する
-    // The init gate set on loop completion; after skip+continue it always completes even with failing items
-    await p.Until(() => clientDatastore.IsInitialEventApplied, 180f, "mapObject生成ループが完走する");
+    // 生成ループ完走で完了する保持タスク。skip+continue化後は失敗個体があっても必ず完走する
+    // The retained task completed on loop completion; after skip+continue it always completes even with failing items
+    await p.Until(() => clientDatastore.WaitForInitialApplyAsync().Status.IsCompletedSuccessfully(), 180f, "mapObject生成ループが完走する");
 
     p.Note("サーバーのmapObject件数とクライアント生成数を突き合わせる");
 

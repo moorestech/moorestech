@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Common.Asset;
+using Client.Game.Common;
 using Client.Game.InGame.BlockSystem;
 using Client.Network.API;
 using Core.Master;
@@ -14,7 +15,7 @@ namespace Client.Game.InGame.Map.MapVein
     ///     鉱脈の露頭をLayout応答から実行時Instantiateする。純ビジュアルで状態同期も破壊処理も持たない
     ///     Instantiates vein outcrops at runtime from the layout response; purely visual, with no state sync or destruction
     /// </summary>
-    public class MapVeinObjectDatastore : MonoBehaviour
+    public class MapVeinObjectDatastore : MonoBehaviour, IInitialEventApplyWaitTarget
     {
         // 露頭名にveinGuidを付与
         // Append the vein GUID to outcrop names
@@ -31,13 +32,21 @@ namespace Client.Game.InGame.Map.MapVein
         // 同一アドレスを複数のveinが共有するため、guidではなくアドレスでキャッシュする
         // Several veins share one address, so cache by address rather than by guid
         private readonly Dictionary<string, GameObject> _prefabCacheByAddress = new();
-        private UniTask _initializationTask;
+        private InitialHandshakeResponse _handshakeResponse;
+        private UniTask? _initializationTask;
 
         [Inject]
         public void Construct(InitialHandshakeResponse handshakeResponse)
         {
-            // 生成本体は直ちに開始し、完了と例外を初期化パイプラインがawaitできる形で保持する
-            // Start instantiation immediately while retaining completion and exceptions for the initialization pipeline to await
+            // 生成はTerrain構築後にFinalizerが明示開始する。DI解決の副作用で地表Raycastを走らせない（ADR#15）
+            // Instantiation starts explicitly from the finalizer after terrain build; DI resolution must not fire ground raycasts (ADR#15)
+            _handshakeResponse = handshakeResponse;
+        }
+
+        public void StartOutcropInstantiation()
+        {
+            // 完了と例外を待機機構がawaitできる形で保持する
+            // Retain completion and exceptions in an awaitable form for the wait mechanism
             _initializationTask = InstantiateOutcropsFromLayoutAsync().Preserve();
 
             #region Internal
@@ -51,7 +60,7 @@ namespace Client.Game.InGame.Map.MapVein
                 var unresolvedGroundVeins = new List<string>();
 
                 var processedCount = 0;
-                foreach (var layout in handshakeResponse.MapLayout.MapVeins)
+                foreach (var layout in _handshakeResponse.MapLayout.MapVeins)
                 {
                     var veinGuid = new Guid(layout.VeinGuid);
                     var prefab = ResolveOutcropPrefab(veinGuid);
@@ -124,9 +133,13 @@ namespace Client.Game.InGame.Map.MapVein
             #endregion
         }
 
-        public UniTask WaitForInitializationAsync()
+        public UniTask WaitForInitialApplyAsync()
         {
-            return _initializationTask;
+            // 開始前の待機要求は順序バグ。既定値タスク（完了扱い）で素通りさせず失敗させる
+            // Waiting before the start is an ordering bug; never let the default (completed) task slip through
+            if (_initializationTask == null)
+                throw new InvalidOperationException("[MapVeinObjectDatastore] StartOutcropInstantiation前に待機が要求されました");
+            return _initializationTask.Value;
         }
     }
 }
