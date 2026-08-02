@@ -1,10 +1,11 @@
 ---
 name: moores-code-review
 description: |
-  moorestechのPR作成前・マージ前レビューを単体で完結させる統合スキル。5系統を並列実行する:
+  moorestechのPR作成前・マージ前レビューを単体で完結させる統合スキル。6系統を並列実行する:
   ①決定論チェック（汎用+moorestech固有の機械判定）②moores設計レンズ群（ドメイン境界・サーバー状態同期3点セット・
   DataStore分離・マスタデータ防御・型構造・前例一致）③汎用reviewer群（汎用コード品質の採用実績ある23観点）
-  ④Codex外部監査 ⑤Fable全般レビュー。指摘を実コード照合・重複排除のうえ統合し、機械的修正を自動適用、
+  ④Codex外部監査 ⑤Fable全般レビュー ⑥分割深掘り調査（大規模PR時のみ・10-15ファイル/チャンクで全文精読）。
+  指摘を実コード照合・重複排除のうえ統合し、機械的修正を自動適用、
   設計判断だけ末尾でAskUserQuestion。設計レンズと汎用レビュー機構を1本に束ね、これ単体でレビューが完結する。
   Use when:
   1. moorestechでPR作成前・マージ前のレビューを行う時（pr-create前に必ず1パス）
@@ -14,19 +15,20 @@ description: |
 
 # moores-code-review
 
-moorestechのコードレビューを **決定論チェック → 5系統の並列レビュー → 実コード照合・重複排除 → 自動適用 → 報告** の順で単体完結させる。汎用コードレビュー機構（reviewer群・Codex監査・Fable全般・post-checksコメント監査）を設計レンズと同居させ、これ1本で完結する（外部スキルへの依存なし）。
+moorestechのコードレビューを **決定論チェック → 6系統の並列レビュー → 実コード照合・重複排除 → 自動適用 → 報告** の順で単体完結させる。汎用コードレビュー機構（reviewer群・Codex監査・Fable全般・post-checksコメント監査）を設計レンズと同居させ、これ1本で完結する（外部スキルへの依存なし）。
 
-## 5系統の構成
+## 6系統の構成
 
 1. **決定論チェック**（`scripts/deterministic_checks.py`）— AGENTS.md・moorestech規約の機械判定分（partial・try-catch・Func・200行・10ファイル・デフォルト引数・SerializeField命名・比較演算子・コメント長・region・master_default_fallback・packet_response_root・schema_optional_true・event_tag_sync）。0トークン。
 2. **moores設計レンズ群**（`lenses/`・11本）— moorestech固有の設計規約。実PRレビュー指摘（PR978/987/988/996/997/1000/1108）由来。
 3. **汎用reviewer群**（`reviewers/`・23本）— 言語横断のコード品質。全数調査（63セッション/1029起動）で採用実績のある観点のみ採録（採用0/冗長の20本と決定論代替1本は除外。根拠は `scripts/model_map.json` の `_excluded_from_port`）。
 4. **Codex外部監査**（`scripts/codex-audit-template.md`）— 別モデルCLIの独立第三者視点。
 5. **Fable全般レビュー**（`generalists/fable-holistic-review.md`）— チェックリスト非依存の俯瞰監査。自己裏取り契約。
+6. **分割深掘り調査**（`investigators/`・3観点）— 変更ファイル（テスト・非コード除外後）が16以上の大規模PRのみ発火。`scripts/split_chunks.py` がドメイン単位で10-15ファイルのチャンクに分割し、チャンクごとに深読みバグ狩り・縫い目統合・チャンク内一貫性の3エージェントが**変更後ファイル全文**をagenticにReadする（全体diff一括の系統では希釈される注意を担保）。テストは完全隔離＝チャンク割当もReadも禁止（ユーザー裁定 2026-08-03）。
 
 ## 実行順序（厳守）
 
-> **① 決定論チェック → ② Codex監査をバックグラウンド起動 → ③ レンズ群＋reviewer群＋Fable全般＋（候補があれば）比較演算子verifierを1メッセージで並列起動 → ④ 全系統を回収・実コード照合・重複排除 → ⑤ 機械的修正を自動適用＋コンパイル → ⑤.5 最終diffで決定論再チェック＋コメント保全post-checks 2本 → ⑥ 報告＋設計判断のみAskUserQuestion（末尾集約）**
+> **① 決定論チェック → ② Codex監査をバックグラウンド起動 → ③ レンズ群＋reviewer群＋Fable全般＋（閾値超なら）分割深掘り調査＋（候補があれば）比較演算子verifierを1メッセージで並列起動 → ④ 全系統を回収・実コード照合・重複排除 → ⑤ 機械的修正を自動適用＋コンパイル → ⑤.5 最終diffで決定論再チェック＋コメント保全post-checks 2本 → ⑥ 報告＋設計判断のみAskUserQuestion（末尾集約）**
 
 AskUserQuestionは**最後の報告フェーズに集約**する。修正適用の途中で割り込まない。
 
@@ -63,12 +65,15 @@ Bashの `run_in_background: true` で起動しシェルIDを控える。観点�
 
 ## Step 4: レンズ群＋reviewer群＋Fable全般＋verifierを並列発火する ③
 
-2つのセレクタにPATCHの絶対パスを渡し、発火対象とモデルを得る（出力は `パス<TAB>モデル` のTSV）:
+2つのセレクタにPATCHの絶対パスを渡し、発火対象とモデルを得る（出力は `パス<TAB>モデル` のTSV）。あわせてチャンク分割を実行する:
 
 ```bash
 python3 .claude/skills/moores-code-review/scripts/select_lenses.py "<PATCH_PATH>"
 python3 .claude/skills/moores-code-review/scripts/select_reviewers.py "<PATCH_PATH>"
+python3 .claude/skills/moores-code-review/scripts/split_chunks.py "<PATCH_PATH>" > /tmp/moores-review-chunks-<ts>.tsv
 ```
+
+split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘り調査は発火しない（0トークン）。非空なら**CHUNKS_TSV**として保持する。
 
 **1メッセージ内で並列に** 次を全部Agent起動する（順次起動は禁止）:
 
@@ -88,7 +93,16 @@ python3 .claude/skills/moores-code-review/scripts/select_reviewers.py "<PATCH_PA
    `precedent-alignment.md`（always発火）は発火レンズが0件でも必ず起動する。
 2. **各reviewer**（select_reviewersのTSVどおりの `model`）— 同じ3行契約＋共通出力契約。
 3. **Fable全般レビュー**（常時・`model: "fable"`）— 同じ3行契約＋共通出力契約で `generalists/fable-holistic-review.md` を渡す。
-4. **比較演算子verifier**（Step 2の `candidates.comparison_operator` が1件以上のときだけ・`model: "sonnet"`）— 4行契約:
+4. **分割深掘り調査**（CHUNKS_TSVが非空のときだけ）— チャンクごとに `investigators/` の3観点（chunk-deep-correctness / chunk-seam-integration / chunk-context-consistency）を起動する（起動数 = チャンク数×3）。モデルは各investigator先頭YAMLの `model` を**必ずそのまま**渡す。5行契約＋共通出力契約:
+   ```
+   Read this : <investigatorの絶対パス>
+   Chunk files : <そのチャンクのカンマ区切りファイルリスト（TSV3列目）>
+   Chunks TSV : <CHUNKS_TSVの絶対パス>
+   Patch path : <PATCH_PATH>
+   User prompt : <USER_PROMPT_PATH>
+   ```
+   テストファイルはチャンクに含まれず、investigatorはReadもしない（完全隔離・ユーザー裁定 2026-08-03）。
+5. **比較演算子verifier**（Step 2の `candidates.comparison_operator` が1件以上のときだけ・`model: "sonnet"`）— 4行契約:
    ```
    Read this : .claude/skills/moores-code-review/verifiers/comparison-operator-verifier.md
    Candidates : /tmp/moores-review-detchecks-<ts>.json
@@ -100,7 +114,7 @@ python3 .claude/skills/moores-code-review/scripts/select_reviewers.py "<PATCH_PA
 
 ## Step 5: 回収・実コード照合・重複排除 ④
 
-- Step 4の全サブエージェント（レンズ・reviewer・Fable・verifier）の返却を受け取る。
+- Step 4の全サブエージェント（レンズ・reviewer・Fable・investigator・verifier）の返却を受け取る。
 - Step 3のバックグラウンドCodexの出力を回収する（未完了なら完了を待つ）。
 - 全部揃うまでStep 6へ進まない。`references/integration-rules.md` §0〜§2 に従い、実コード照合・重複排除する（決定論confirmedは裏取り不要、Codex/Fable/レンズ/reviewerのCriticalはReadで裏取り、複数系統一致は「N系統一致（高確度）」に統合）。
 - **Warning/Infoの扱い**（§2.5）: Warningは破棄せず統合報告に必ず載せる（軽い照合のみ。複数系統が同一箇所をWarningした場合と、照合で事実が確定した場合はCriticalへ昇格）。Infoは照合不要で報告末尾に圧縮列挙する。どちらもAskUserQuestionには載せない。
@@ -153,6 +167,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **レンズ** — `select_lenses.py` の2列目（各レンズ先頭YAMLの `model`）をそのまま渡す。
 - **reviewer** — `select_reviewers.py` の2列目（正は `scripts/model_map.json`。未記載reviewerはopus、`sonnet` 記載のみsonnet）。
 - **Fable全般** — `model: "fable"` 固定。**比較演算子verifier・comment-convention-guard** — `sonnet`。**comment-rationale-guard** — `opus`（WHY判定は高ステークス）。
+- **investigator（分割深掘り調査）** — 各 `investigators/*.md` 先頭YAMLの `model` が正（2026-08-03精度調査で決定。経緯は `eval/log.md`）。
 - Codex監査は別CLIなので対象外。
 
 ## スキル自体の改善
@@ -165,6 +180,8 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **「並列」の実体はバックグラウンド起動** — Codexを `run_in_background` で先に投げ、完了を待たずにレンズ・reviewer・Fableを起動する。
 - **`codex exec` のフラグ順序** — `--sandbox` `--skip-git-repo-check` はサブコマンドより**前**に置く。監査プロンプトは/tmpに置く（リポジトリ内は誤コミットの恐れ）。
 - **verifierは候補ゼロなら起動しない** — `candidates.comparison_operator` が空なら比較演算子verifierは不要（0トークン）。
+- **分割深掘り調査は閾値未満なら起動しない** — split_chunksが `below-threshold` を返したら第6系統は丸ごと不発火（0トークン）。閾値を無視してinvestigatorを手動起動しない（小PRでは既存系統と重複するだけ）。
+- **investigatorにテストを絶対に見せない** — チャンク割当除外だけでなくRead自体が禁止（ユーザー裁定 2026-08-03 完全隔離）。テスト不足の検知はtest系reviewerの担当のまま。
 - **文字数はスクリプトの値が正** — LLMに日本語の文字数を数え直させない。convention-guardは `count` を信頼し例外判定と短縮案だけ行う。
 - **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。
 - **Agent起動時に必ずmodel列を渡す（モデル継承事故の防止）** — Agentツールは `model` を省略すると**親（＝あなた＝オーケストレータ）のモデルを継承**する。あなた自身がfableで走っていると、model未指定のサブエージェントが誤ってfableで起動しうる。両セレクタはTSV2列目に**常に具体値**を出す（`select_lenses.py` はmodel未記載lensを `opus` に、`select_reviewers.py` は未記載reviewerを `default:opus` に具体化。空欄は絶対に出さない）。この2列目を**必ずそのまま** Agentの `model` に渡すこと。fableが正になるのは `precedent-alignment` レンズ（YAMLに `model: fable`）とFable全般（prose指定）だけで、それ以外にfableは現れない。
