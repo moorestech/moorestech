@@ -2,7 +2,7 @@ diff --git a/moorestech_client/Assets/Scripts/Client.Game/Greenhouse/IrrigationS
 new file mode 100644
 --- /dev/null
 +++ b/moorestech_client/Assets/Scripts/Client.Game/Greenhouse/IrrigationSchedule.cs
-@@ -0,0 +1,55 @@
+@@ -0,0 +1,78 @@
 +using System;
 +using System.Collections.Generic;
 +
@@ -55,6 +55,29 @@ new file mode 100644
 +            // A per-event subscription handler, not initialization
 +            if (valveIndex < 0 || _plans.Count <= valveIndex) return;
 +            _plans[valveIndex].SetAccumulated(accumulated);
++        }
++
++        public bool TryDrainAll(float minimumReserve)
++        {
++            var drained = DrainAllCore();
++            return drained;
++
++            #region Internal
++
++            bool DrainAllCore()
++            {
++                // 条件はすべてこのローカル関数側に一貫して集めている（割れていなければ配置は自由）
++                // All conditions live consistently inside this local function; placement is free as long as it is not split
++                if (_plans.Count == 0) return false;
++                if (minimumReserve < 0f) return false;
++                if (_activeValveCount == 0) return false;
++
++                foreach (var plan in _plans) plan.SetAccumulated(minimumReserve);
++                _activeValveCount = 0;
++                return true;
++            }
++
++            #endregion
 +        }
 +    }
 +}

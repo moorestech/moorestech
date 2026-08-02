@@ -121,7 +121,7 @@
 | 42 | サーバのゲームロジックで実時間API（`Time.deltaTime`/`Stopwatch`/`Environment.TickCount`）を使わない | MapObjectMiningService.cs:85,88（Stopwatch.GetTimestamp・head 74ba6e8） | 決定論 server-realtime-api（confirmed） |
 | 42b | サーバGame配下の`DateTime.Now/UtcNow`＋経過計測痕跡（TimeSpan/Total*/DateTime辞書）は候補化し、用途（ゲート=Critical／セーブ用実世界時刻記録=正当）をverifierが裁定 | MapObjectMiningService.cs:79-80（DateTimeクールダウン・head 463a56d時点の形） | 決定論 `candidates.server_elapsed_time` → server-elapsed-time-verifier（sonnet） |
 | 43 | 初期化メソッドの命名（厳密名の揺れ Init/Setup/Construct/Initialise・override除外・テスト除外） | 合成（PR1095実diffは厳密名0件＝誤爆なしを確認） | 決定論 init-method-naming（confirmed）。`tests/test_init_method_naming.py` 10件が回帰を守る |
-| 44 | 初期化役メソッドの意味的な別名（`ApplyInitial`等）とctor→Initialize記述順・ガード節の一箇所集約 | LocalPlayerEquipment.cs:88（ApplyInitial・下部配置）/ MapObjectMiningService.cs:90（クールダウンガードのローカル関数埋没） | core-cs-region-internal §6/§7（sonnet）。synthetic: `init-structure-positive/negative` |
+| 44 | 初期化役メソッドの意味的な別名（`ApplyInitial`等）とctor→Initialize記述順・同種条件分岐のスコープ割れ（一貫していれば直下でもローカル関数でも可） | LocalPlayerEquipment.cs:88（ApplyInitial・下部配置）/ MapObjectMiningService.cs:90（クールダウンガードのローカル関数埋没） | core-cs-region-internal §6/§7（sonnet）。synthetic: `init-structure-positive/negative` |
 | 45 | 無内容なイベント名（OnChanged）と実処理と乖離した総称名（プロトコル） | LocalPlayerEquipment.cs:33（OnChanged 3種混流）/ EquipmentProtocol.cs:13,36 | core-cs-centralization-duplication §1命名（opus）。synthetic: `event-naming-positive/negative` |
 | 46 | オーバーロード置換（新ctor追加で旧ctorの生存者がテスト/デバッグのみ化）。テスト参照は§1の免除にならない | Responses.cs:17（PlayerInventoryResponse生引数ctor） | core-cs-dead-code-and-scope §1（sonnet）。synthetic: `overload-replacement-positive/negative` |
 

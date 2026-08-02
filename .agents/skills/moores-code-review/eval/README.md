@@ -54,7 +54,7 @@ PR1095 reconcile由来（2026-08-02 追加・全ペア合格済み）:
 `sweep-and-scope-positive/negative.diff`（鳥小屋ドメイン・3観点共用。陽性=不能フォールバック＋カスケード重複＋過剰public、陰性=到達可能な失敗＋集約済み＋クロスアセンブリ参照ありのpublic）。
 `sweep-and-scope-*` は `core-cs-dead-code-and-scope` / `core-cs-centralization-duplication` / `core-cs-result-state-propagation` の3本に**同じペアを当てる**（各reviewerは自分の形だけを報告するのが正）。
 Q7/Q9/Q10/Q11検出器由来（2026-08-02 追加・全ペア合格済み）:
-`init-structure-positive/negative.diff`（温室灌漑ドメイン・core-cs-region-internal §6/§7。陽性=初期化役メソッドの別名`ApplyFirstLayout`＋ローカル関数に埋没したガード、陰性=Initialize適正配置＋全ガード直下＋毎イベント購読ハンドラは非該当）/
+`init-structure-positive/negative.diff`（温室灌漑ドメイン・core-cs-region-internal §6/§7。陽性=初期化役メソッドの別名`ApplyFirstLayout`＋条件のスコープ割れ（直下2本・ローカル関数に1本）、陰性=Initialize適正配置＋条件が一貫配置の2形（全て直下／全てローカル関数内）＋毎イベント購読ハンドラは非該当）/
 `event-naming-positive/negative.diff`（天文台ドメイン・core-cs-centralization-duplication §1命名。陽性=3種混流の`OnChanged`＋1操作の総称名プロトコル、陰性=対象を含む2本のイベント＋実処理一致名）/
 `overload-replacement-positive/negative.diff`（養蜂ドメイン・core-cs-dead-code-and-scope §1。陽性=新snapshot版ctorへ移行し旧生引数版の生存者がデバッグ+テストのみ、陰性=旧版にproduction現役呼び出し元が残存）。
 
