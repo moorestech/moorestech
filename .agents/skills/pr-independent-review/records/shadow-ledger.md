@@ -11,3 +11,5 @@ verdictを額面どおり見逃し率へ数えてよいかの判別に使うた�
 | 日付 | PR | head | verdict | 新形 | suppressed | 縮退 | あなたの実判断 | 一致 |
 |---|---|---|---|---|---|---|---|---|
 | 2026-07-27 | #1041 | 未記録 | 未測定（スタブ） | 3 | 0（未収集） | スタブ（Step 6未実行・配管スモークテスト） |  |  |
+| 2026-08-02 | #1116 | 2bf849b | Critical差し戻し | 0 | 6 | fable指定不可でprecedent-alignment/Fable全般をopus実行 |  |  |
+| 2026-08-02 | #1111 | 80935cb | Critical差し戻し | 20 | 6 | fable指定不可でprecedent-alignment/Fable全般をopus実行・novelty gate測定器修正2件 |  |  |

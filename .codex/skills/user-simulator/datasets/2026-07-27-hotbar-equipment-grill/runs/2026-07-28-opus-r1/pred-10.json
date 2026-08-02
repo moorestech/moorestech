@@ -1,1 +1,0 @@
-{"idx":10,"predictions":[{"header":"装備可否","predicted_label":"items.ymlにツール定義を追加（推奨）","rationale":"裁定傾向「新yaml禁止・既存ドメインスキーマのトップレベルへ統合」に合致し、逆引きは『導出はやらない・明示フィールド化』(ssot-data-placement 観点2/依存方向の逆転)で却下される。直前も『スロット数はマスタ』とマスタ明示を選好。","confidence":"高"}]}

@@ -27,6 +27,12 @@ for f in /tmp/moores-review-fixtures/*.diff; do
   echo "=== $f ==="
   python3 .claude/skills/moores-code-review/scripts/select_lenses.py "$f"
 done
+
+# 4. チャンク分割の確認（第6系統。閾値・テスト完全除外・10-15サイズ・seam束ねの検証）
+for f in /tmp/moores-review-fixtures/*.diff; do
+  echo "=== $f ==="
+  python3 .claude/skills/moores-code-review/scripts/split_chunks.py "$f"
+done
 ```
 
 フルリプレイ（レンズをサブエージェントとして各fixtureに当てる）はトークンを消費するため、

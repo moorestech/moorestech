@@ -1,1 +1,0 @@
-{"idx":2,"predictions":[{"header":"選択時の挙動","predicted_label":"即建築モード、同キーで解除（推奨）","rationale":"docs/plans/hotbar-build-shortcut-and-equipment-slot-design.md L38に既存設計として一言一句同内容（空枠押下で抜ける挙動含む）が記載済み・前問のIPlacementTarget参照のみ回答も同文書L37と一致しており、ユーザーはこの既存設計書に沿って回答する裁定パターン","confidence":"高"}]}
