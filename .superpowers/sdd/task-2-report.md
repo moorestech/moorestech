@@ -64,3 +64,83 @@
 1. **`FakeMapVeinRangeView.ManualUpdateCount` を読むテストが存在しない。** ブリーフの逐語指定なのでそのまま実装したが、現時点では誰も参照しない記録用メンバーである（`ShowPushes` も同様に未参照だが、こちらは改名前の `PreviewingPushes` から引き継いだ既存状態）。レビューで「使われないなら消せ」と指摘されうる。逆に言えば `Show`/`ManualUpdate` の呼び分けを `UIState` 側テストでアサートする余地が空いたままなので、後続で「OnEnterでShow(true)が1回・GetNextUpdateではShowが増えない」を押さえるか、メンバーごと削るかの判断が要る。
 
 2. **`ManualUpdateCount` が `{ get; private set; }` の自動プロパティである点。** AGENTS.md の「単純なgetter/setterプロパティは使用禁止」に文言上は触れうる（実態は外部setterを持たないカウンタで、当該規約が禁じる public set とは異なる）。ブリーフの逐語指定を優先した。テストダブル限定なので実害は無いと判断したが、機械チェックに引っかかるなら public フィールドへ落とすのが最小修正。
+
+---
+
+# Fix追記: レビュー所見対応（コミット `e940c6c26`）
+
+上記「懸念」1・2はレビュー所見と一致したため、3件目（コメントの事実誤り）と合わせて対応した。
+
+## 修正内容
+
+### 修正1（Important）: 呼び分けを固定するテストを追加
+`moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateCameraInteractionTest.cs` に
+`PlaceBlockPushesVeinRangeVisibilityOnlyOnEnterAndExit` を追加。OnEnter後に `ShowPushes == [true]`、
+`GetNextUpdate()` を3周しても `ShowPushes` が伸びず `ManualUpdateCount` だけが3になること、
+OnExit後に `ShowPushes == [true, false]` になることを押さえた。
+
+配置先の選定: 同ファイルの既存3本は「各ステートがenter/update/exitで何をプッシュするか」を並べた
+テーマであり、本テストはその一員。`UIStateFocusRestorationTest` は `RestoreAfterApplicationFocus`
+専用テーマなので選ばなかった。fakeへ到達するため `CreatePlaceBlockState` に
+`FakeMapVeinRangeView` 引数を追加（デフォルト引数は使わず既存呼び出し側1箇所を書き換え）。
+
+**200行制限の副次対応**: 追加でファイルが215行になったため、ネストしていた `FakeBuildMenuView` を
+同ディレクトリの他テストダブル（`FakeDeleteTarget.cs` / `FakeMapVeinRangeView.cs` /
+`FakePlayerCameraInteractionApplier.cs`）と同じく単独ファイル `FakeBuildMenuView.cs` へ切り出した。
+結果198行。ディレクトリ内 .cs は9本（上限10本以内）。.meta はUnityが自動生成したものをコミット。
+
+### 修正2（Minor）: `FakeMapVeinRangeView.ManualUpdateCount` をpublicフィールドへ
+`public int ManualUpdateCount { get; private set; }` → `public int ManualUpdateCount;`。
+兄弟メンバー `ShowPushes` （フィールド）と揃い、AGENTS.mdの文言にも触れなくなった。
+インクリメント側（`ManualUpdateCount++;`）は無変更で成立。
+
+### 修正3（Minor）: `PlaceBlockState.cs` の根拠コメントを事実へ是正
+「対象の有無はステート自体が保証する（ADR#12）」は誤り。実コードは
+`if (context.TryGetContext<IPlacementTarget>(out var target))` の条件付きで、payload無しで入れば
+`CurrentTarget` はnullのまま。実際に保証しているのは遷移元である。
+`grep -rn "UIStateEnum.PlaceBlock"` で本番の遷移経路が `BuildMenuState.cs:35` と
+`GameScreenState.cs:51` の2本のみであること、両方が
+`UITransitContextContainer.Create<IPlacementTarget>(...)` を載せていることを確認したうえで、
+「対象未選択でも滞在中は範囲表示を出す。遷移元(BuildMenuState/GameScreenState)が必ずtargetを載せる」
+へ書き換えた。
+
+## RED/GREENの証拠
+
+**GREEN（修正後）**
+```
+uloop run-tests --project-path ./moorestech_client --filter-type regex \
+  --filter-value "UIStateCameraInteraction|UIStateFocusRestoration|MapVeinRangeViewMaterialReuse"
+→ "Success": true, TestCount: 8, PassedCount: 8, FailedCount: 0
+```
+追加前は7本（CameraInteraction 3 + FocusRestoration 3 + MaterialReuse 1）。8本になったことで
+追加テストが実際に実行されていることを確認。
+
+**RED（変異注入時）**
+`PlaceBlockState.GetNextUpdate` の `_mapVeinRangeView.ManualUpdate();` を
+`_mapVeinRangeView.Show(true);` へ一時的に差し替えて実行:
+```
+→ "Success": false, TestCount: 8, PassedCount: 7, FailedCount: 1
+Client.Tests.UIState.UIStateCameraInteractionTest.PlaceBlockPushesVeinRangeVisibilityOnlyOnEnterAndExit -> Failed
+  Expected is <System.Boolean[1]>, actual is <System.Collections.Generic.List`1[System.Boolean]> with 4 elements
+  Values differ at index [1]
+  Extra:    < True, True, True >
+```
+落ちたのは追加テストのみ（残り7本はGREEN）＝この壊れ方を押さえていたテストが他に無かったことの裏付け。
+変異は撤去済みで、`git diff` により `PlaceBlockState.cs` の差分がコメント2行のみであることを確認した。
+
+## コンパイル
+`uloop compile --project-path ./moorestech_client` → `"Success": true, "ErrorCount": 0`（変異撤去後の最終状態）
+
+## QAで潰した疑い（本fix分）
+- **追加コメントの事実性**: 初稿で「Showを回すとマテリアル再構築が毎tick走る」と書いたが、
+  `MapVeinRangeViewService` を実読すると材質は構築時に `_boxMaterials` へ確定し、`Show` は
+  `_isVisible` 更新と `ManualUpdate()` 委譲のみ。修正3と同種の誤りを自分で作りかけたため、
+  「表示ON/OFFは変化時だけプッシュし、毎フレームはカメラ距離カリングのManualUpdateだけを回す」へ
+  書き換えてから確定させた。
+- **他テストへの波及**: `CreatePlaceBlockState` のシグネチャ変更は当該ファイル内のprivateヘルパーのみ。
+  `UIStateFocusRestorationTest` は同名の独立したヘルパーを持つため無影響（実行結果3本PASSで確認）。
+
+## 環境メモ
+テスト実行中に `moorestech_client/UserSettings/UnityMcpSettings.json` が `.bak` 化して
+`uloop` が「Unity CLI Loop is not installed」で不通になった。`lsof` でUnityが `.bak` 記載の
+`customPort: 8714` をLISTEN中であることを確認のうえ `cp` で復元して復旧。既知事象。
