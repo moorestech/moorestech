@@ -50,14 +50,15 @@ namespace Client.Game.InGame.Environment.Terrain
                 throw new InvalidOperationException(
                     $"[TerrainRuntimeBuilder] Terrain material '{TerrainMaterialAddress}' could not be loaded from Addressables.");
 
-            if (mapLayout.MapMode == WorldProvisioner.TemplateMapMode)
+            var wireMeta = mapLayout.TerrainMeta;
+            if (wireMeta.MapMode == WorldProvisioner.TemplateMapMode)
                 await BuildTemplateTerrainAsync(environmentRoot, terrainMaterial);
-            else if (mapLayout.MapMode == WorldProvisioner.GeneratedMapMode)
-                await BuildGeneratedTerrainAsync(mapLayout, environmentRoot, terrainMaterial);
+            else if (wireMeta.MapMode == WorldProvisioner.GeneratedMapMode)
+                await BuildGeneratedTerrainAsync(wireMeta.ToTerrainTransferMeta(), wireMeta.TerrainHash, environmentRoot, terrainMaterial);
             else
                 // 未知のモードをgenerated扱いすると、地形の無いワールドでキャッシュ読み出しが不可解に落ちる
                 // Treating an unknown mode as generated would fail obscurely in the cache read of a terrain-less world
-                throw new InvalidOperationException($"[TerrainRuntimeBuilder] Unknown map mode '{mapLayout.MapMode}'.");
+                throw new InvalidOperationException($"[TerrainRuntimeBuilder] Unknown map mode '{wireMeta.MapMode}'.");
 
             // 露頭生成はこの直後に地表へレイキャストを飛ばす。新しいコライダーを物理シーンへ確実に反映させる
             // Outcrop instantiation raycasts the ground right after this, so the new colliders are pushed into the physics scene
@@ -79,16 +80,16 @@ namespace Client.Game.InGame.Environment.Terrain
         }
 
         private static async UniTask BuildGeneratedTerrainAsync(
-            GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot, Material terrainMaterial)
+            TerrainTransferMeta terrainMeta, string terrainHash, Transform environmentRoot, Material terrainMaterial)
         {
             var buildStopwatch = Stopwatch.StartNew();
-            var terrainSource = await GeneratedTerrainSource.CreateAsync(mapLayout);
+            var terrainSource = await GeneratedTerrainSource.CreateAsync(terrainMeta, terrainHash);
             var terrainsByTileCoordinate = new Dictionary<Vector2Int, UnityEngine.Terrain>();
             var visualCacheHitCount = 0;
 
             // タイルの並びは転送ストリームの定義（正方格子・z行→x列）をそのまま使う
             // The tile order reuses the transfer stream's own definition: a square grid scanned row (z) then column (x)
-            foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(mapLayout.TerrainTileCount))
+            foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount))
             {
                 var (terrainData, visualCacheHit) = await terrainSource.CreateTerrainDataAsync(tile.TileX, tile.TileZ);
                 if (visualCacheHit) visualCacheHitCount++;

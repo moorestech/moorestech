@@ -12,7 +12,6 @@ using Game.Paths;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.TestTools;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
@@ -49,22 +48,18 @@ namespace Client.Tests.EditModeInPlayingTest
                 await LoadMainGameWithMapMode(null, worldDirectory, WorldProvisioner.GeneratedMapMode);
 
                 var mapLayout = await ClientContext.VanillaApi.Response.GetMapData(default);
-                Assert.AreEqual(WorldProvisioner.GeneratedMapMode, mapLayout.MapMode, "generatedモードで起動していない");
-                Assert.Less(0, mapLayout.TerrainChunkTotal, "地形チャンクが1本も無い");
+                Assert.AreEqual(WorldProvisioner.GeneratedMapMode, mapLayout.TerrainMeta.MapMode, "generatedモードで起動していない");
+                Assert.Less(0, mapLayout.TerrainMeta.TerrainChunkTotal, "地形チャンクが1本も無い");
 
-                var terrainMeta = TerrainTransferMeta.CreateGenerated(mapLayout.WorldId,
-                    mapLayout.TerrainResolution, mapLayout.TerrainTileCount, mapLayout.TerrainChunkTotal, mapLayout.WorldSeed,
-                    new TerrainOrigins(
-                        noiseOrigin: new Vector2(mapLayout.TerrainNoiseOriginX, mapLayout.TerrainNoiseOriginZ),
-                        sceneOrigin: new Vector2(mapLayout.TerrainSceneOriginX, mapLayout.TerrainSceneOriginZ)));
-                var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(mapLayout.WorldId));
+                var terrainMeta = mapLayout.TerrainMeta.ToTerrainTransferMeta();
+                var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(terrainMeta.WorldId));
                 var segments = TerrainTransferMeta
-                    .EnumerateStreamSegments(cacheWorldDirectory, mapLayout.TerrainTileCount, mapLayout.TerrainResolution).ToList();
+                    .EnumerateStreamSegments(cacheWorldDirectory, terrainMeta.TerrainTileCount, terrainMeta.TerrainResolution).ToList();
 
                 // ① 起動時のフェッチでキャッシュに元のファイル名・想定バイト長・同一内容で復元されている
                 // (1) The boot-time fetch restored the cache with the original file names, expected byte lengths, and identical content
                 AssertAllSegmentsRestored(segments);
-                Assert.AreEqual(mapLayout.TerrainHash, TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta), "復元内容がサーバーの地形と一致しない");
+                Assert.AreEqual(mapLayout.TerrainMeta.TerrainHash, TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta), "復元内容がサーバーの地形と一致しない");
 
                 // ② 最新キャッシュでは取得しない
                 // (2) Fetch nothing for a fresh cache
@@ -76,15 +71,15 @@ namespace Client.Tests.EditModeInPlayingTest
                 // (3) Corrupting one cached file forces a full re-fetch that restores even the broken byte
                 var originalFirstByte = CorruptFile(segments[0].FilePath);
                 var refetchedCount = await terrainDataFetcher.RunAsync(mapLayout);
-                Assert.AreEqual(mapLayout.TerrainChunkTotal, refetchedCount, "破損検知後に全チャンクを取り直していない");
+                Assert.AreEqual(terrainMeta.TerrainChunkTotal, refetchedCount, "破損検知後に全チャンクを取り直していない");
                 AssertAllSegmentsRestored(segments);
                 Assert.AreEqual(originalFirstByte, File.ReadAllBytes(segments[0].FilePath)[0], "破損させたバイトが復元されていない");
-                Assert.AreEqual(mapLayout.TerrainHash, TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta), "再取得後の内容がサーバーの地形と一致しない");
+                Assert.AreEqual(mapLayout.TerrainMeta.TerrainHash, TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta), "再取得後の内容がサーバーの地形と一致しない");
 
                 // ④ 届いたバイトがサーバー申告のハッシュと食い違えば例外にする。転送破損をキャッシュヒットとして持ち越さない
                 // (4) Bytes disagreeing with the hash the server declared must throw, never carry transfer corruption forward as a cache hit
                 var tamperedLayout = new GetMapDataProtocol.ResponseMapDataMessagePack(
-                    mapLayout.Spawn, mapLayout.MapObjects, mapLayout.MapVeins, terrainMeta, new string('0', mapLayout.TerrainHash.Length));
+                    mapLayout.Spawn, mapLayout.MapObjects, mapLayout.MapVeins, terrainMeta, new string('0', mapLayout.TerrainMeta.TerrainHash.Length));
                 var tamperedFetchException = await CaptureFetchException(terrainDataFetcher, tamperedLayout);
                 Assert.IsNotNull(tamperedFetchException, "申告ハッシュと不一致なのに取得が成功扱いになった");
                 StringAssert.Contains("does not match the server hash", tamperedFetchException.Message);

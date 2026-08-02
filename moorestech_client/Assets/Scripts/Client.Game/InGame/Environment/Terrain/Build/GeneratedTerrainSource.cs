@@ -8,8 +8,8 @@ using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Runtime;
 using Game.MapGeneration.Pipeline.Stages;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
-using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Build
@@ -53,25 +53,25 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             _worldCacheDirectory = worldCacheDirectory;
         }
 
-        public static async UniTask<GeneratedTerrainSource> CreateAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout)
+        public static async UniTask<GeneratedTerrainSource> CreateAsync(TerrainTransferMeta terrainMeta, string terrainHash)
         {
             // 生成時と同じ手順でConfigを組み直す。seedとノイズ窓原点はworld.json由来の値をワイヤで受け取っている
             // Rebuild the config exactly as generation did; the seed and noise window origin arrive over the wire from world.json
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = GenerationRuntimeConfigFactory.Build(selectedGeneration);
-            config.seed = mapLayout.WorldSeed;
+            config.seed = terrainMeta.WorldSeed;
 
             // マスタのworldOffsetはスポーン探索の中央化オフセットを含まない。そのまま使うと約2km離れた別の窓を分類することになる
             // The master worldOffset lacks the spawn-search centering offset; using it would classify a different window ~2km away
-            config.worldOffsetX = mapLayout.TerrainNoiseOriginX;
-            config.worldOffsetZ = mapLayout.TerrainNoiseOriginZ;
-            var sceneOrigin = new Vector2(mapLayout.TerrainSceneOriginX, mapLayout.TerrainSceneOriginZ);
+            config.worldOffsetX = terrainMeta.Origins.NoiseOrigin.x;
+            config.worldOffsetZ = terrainMeta.Origins.NoiseOrigin.y;
+            var sceneOrigin = terrainMeta.Origins.SceneOrigin;
 
             // マスタを差し替えると解像度が動く。読み出し長がずれて全画素が1列ずつ流れるので黙って通さない
             // Swapping the master moves the resolution; the read length would shift every pixel by a column, so it never passes silently
-            if (config.Resolution != mapLayout.TerrainResolution)
+            if (config.Resolution != terrainMeta.TerrainResolution)
                 throw new InvalidOperationException(
-                    $"[GeneratedTerrainSource] Generation master resolution {config.Resolution} disagrees with the transferred terrain resolution {mapLayout.TerrainResolution}.");
+                    $"[GeneratedTerrainSource] Generation master resolution {config.Resolution} disagrees with the transferred terrain resolution {terrainMeta.TerrainResolution}.");
 
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);
             var visualSections = BiomeVisualSectionTable.Resolve(selectedGeneration, biomeTypes);
@@ -82,12 +82,12 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             var terrainLayers = await TerrainLayerAssetLoader.LoadAsync(layerTable.OrderedLayerAddresses);
             await DetailAssetResolver.ResolveAsync(visualSections.DetailConfigs);
 
-            var worldCacheDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(mapLayout.WorldId));
+            var worldCacheDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(terrainMeta.WorldId));
 
             // 見た目はマスタ・地形バイナリ・ノイズ窓原点・seedの派生物。その4つを畳んだキーで前回の結果を引き当てる
             // The visuals derive from the master, the terrain binaries, the noise window origin, and the seed; a key folding those four finds the previous result
             var visualCache = new TerrainVisualCache(worldCacheDirectory, TerrainVisualCacheKey.Compute(
-                MasterHolder.GenerationMaster.SourceJsonText, mapLayout.TerrainHash,
+                MasterHolder.GenerationMaster.SourceJsonText, terrainHash,
                 new Vector2(config.worldOffsetX, config.worldOffsetZ), config.seed));
 
             return new GeneratedTerrainSource(

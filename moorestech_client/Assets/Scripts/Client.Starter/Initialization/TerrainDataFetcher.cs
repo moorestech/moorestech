@@ -29,18 +29,16 @@ namespace Client.Starter.Initialization
         // Returns how many chunks were actually fetched; 0 means a cache hit or a terrain-less world
         public async UniTask<int> RunAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout)
         {
+            var wireMeta = mapLayout.TerrainMeta;
+
             // templateモードのワールドは地形バイナリを持たないので取得対象が無い
             // A template-mode world owns no terrain binary, so there is nothing to fetch
-            if (mapLayout.MapMode == WorldProvisioner.TemplateMapMode) return 0;
-            if (mapLayout.MapMode != WorldProvisioner.GeneratedMapMode)
-                throw new InvalidOperationException($"[TerrainDataFetcher] Unknown map mode '{mapLayout.MapMode}'.");
+            if (wireMeta.MapMode == WorldProvisioner.TemplateMapMode) return 0;
 
-            var terrainMeta = TerrainTransferMeta.CreateGenerated(
-                mapLayout.WorldId, mapLayout.TerrainResolution, mapLayout.TerrainTileCount, mapLayout.TerrainChunkTotal, mapLayout.WorldSeed,
-                new TerrainOrigins(
-                    noiseOrigin: new Vector2(mapLayout.TerrainNoiseOriginX, mapLayout.TerrainNoiseOriginZ),
-                    sceneOrigin: new Vector2(mapLayout.TerrainSceneOriginX, mapLayout.TerrainSceneOriginZ)));
-            var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(mapLayout.WorldId));
+            // 未知モードはToTerrainTransferMeta内で例外になる。ここで独自分岐を持たない
+            // Unknown modes throw inside ToTerrainTransferMeta; no local branching here
+            var terrainMeta = wireMeta.ToTerrainTransferMeta();
+            var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(terrainMeta.WorldId));
             var segments = TerrainTransferMeta.EnumerateStreamSegments(cacheWorldDirectory, terrainMeta.TerrainTileCount, terrainMeta.TerrainResolution).ToList();
             var totalStreamByteLength = segments.Sum(segment => segment.ByteLength);
 
@@ -48,19 +46,19 @@ namespace Client.Starter.Initialization
             // Missing and mismatching are not distinguished: anything but a hash match triggers a full re-fetch
             if (IsCacheMatchingServer())
             {
-                Debug.Log($"[TerrainDataFetcher] 地形キャッシュを再利用します worldId={mapLayout.WorldId}");
+                Debug.Log($"[TerrainDataFetcher] 地形キャッシュを再利用します worldId={terrainMeta.WorldId}");
                 return 0;
             }
 
-            Debug.Log($"[TerrainDataFetcher] 地形チャンク取得開始 worldId={mapLayout.WorldId} total={terrainMeta.TerrainChunkTotal}");
+            Debug.Log($"[TerrainDataFetcher] 地形チャンク取得開始 worldId={terrainMeta.WorldId} total={terrainMeta.TerrainChunkTotal}");
             await DownloadAllChunks();
 
             // 書き込み後に再ハッシュして転送破損を検出する。壊れた地形をキャッシュヒット扱いで持ち越さない
             // Re-hash after writing to catch transfer corruption instead of carrying broken terrain forward as a cache hit
             var restoredHash = TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta);
-            if (restoredHash != mapLayout.TerrainHash)
+            if (restoredHash != wireMeta.TerrainHash)
                 throw new InvalidOperationException(
-                    $"Restored terrain hash '{restoredHash}' does not match the server hash '{mapLayout.TerrainHash}'.");
+                    $"Restored terrain hash '{restoredHash}' does not match the server hash '{wireMeta.TerrainHash}'.");
 
             return terrainMeta.TerrainChunkTotal;
 
@@ -69,7 +67,7 @@ namespace Client.Starter.Initialization
             bool IsCacheMatchingServer()
             {
                 if (segments.Any(segment => !File.Exists(segment.FilePath))) return false;
-                return TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta) == mapLayout.TerrainHash;
+                return TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta) == wireMeta.TerrainHash;
             }
 
             async UniTask DownloadAllChunks()

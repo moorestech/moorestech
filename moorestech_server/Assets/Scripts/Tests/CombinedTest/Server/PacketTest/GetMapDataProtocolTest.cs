@@ -88,15 +88,15 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // ワールドディレクトリを持たない構成では地形を持たずWorldIdも定まらない
             // A config without a world directory owns no terrain and has no world identity
-            Assert.AreEqual(WorldProvisioner.TemplateMapMode, response.MapMode);
-            Assert.AreEqual(string.Empty, response.WorldId);
-            Assert.AreEqual(0, response.TerrainResolution);
-            Assert.AreEqual(0, response.TerrainTileCount);
-            Assert.AreEqual(0, response.TerrainChunkTotal);
+            Assert.AreEqual(WorldProvisioner.TemplateMapMode, response.TerrainMeta.MapMode);
+            Assert.AreEqual(string.Empty, response.TerrainMeta.WorldId);
+            Assert.AreEqual(0, response.TerrainMeta.TerrainResolution);
+            Assert.AreEqual(0, response.TerrainMeta.TerrainTileCount);
+            Assert.AreEqual(0, response.TerrainMeta.TerrainChunkTotal);
 
             // world.jsonが無い構成にはseedという概念自体が無いため0を載せる（地形なしの合図はTerrainResolution=0が担う）
             // A config without world.json has no seed at all, so 0 is carried (TerrainResolution=0 remains the terrain-less signal)
-            Assert.AreEqual(0, response.WorldSeed);
+            Assert.AreEqual(0, response.TerrainMeta.WorldSeed);
         }
     }
 }

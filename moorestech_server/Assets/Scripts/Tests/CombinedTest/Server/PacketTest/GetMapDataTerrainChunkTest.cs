@@ -41,13 +41,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             var packetResponseCreator = CreatePacketResponseCreator(worldDataDirectory);
 
             var layoutResponse = RequestLayout(packetResponseCreator);
-            Assert.AreEqual(1, layoutResponse.TerrainTileCount);
-            Assert.Greater(layoutResponse.TerrainChunkTotal, 0);
+            Assert.AreEqual(1, layoutResponse.TerrainMeta.TerrainTileCount);
+            Assert.Greater(layoutResponse.TerrainMeta.TerrainChunkTotal, 0);
 
             // ChunkIndexは応答にも載る。要求と応答がずれていないことを1件ずつ確かめる
             // ChunkIndex is echoed in the response, so check request/response alignment chunk by chunk
             var restoredStreamBytes = new List<byte>();
-            for (var chunkIndex = 0; chunkIndex < layoutResponse.TerrainChunkTotal; chunkIndex++)
+            for (var chunkIndex = 0; chunkIndex < layoutResponse.TerrainMeta.TerrainChunkTotal; chunkIndex++)
             {
                 var chunkResponse = RequestTerrainChunk(packetResponseCreator, chunkIndex);
                 Assert.AreEqual(chunkIndex, chunkResponse.ChunkIndex);
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // TerrainHashは同じ論理ストリームのSHA256。テスト側で実ファイルから独立に再計算して突き合わせる
             // TerrainHash is the SHA256 of the same logical stream, recomputed here independently from the real files
-            Assert.AreEqual(ComputeSha256Hex(expectedStreamBytes), layoutResponse.TerrainHash);
+            Assert.AreEqual(ComputeSha256Hex(expectedStreamBytes), layoutResponse.TerrainMeta.TerrainHash);
         }
 
         [Test]
@@ -73,8 +73,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var layoutResponse = RequestLayout(CreatePacketResponseCreator(worldDataDirectory));
 
-            Assert.AreEqual(0, layoutResponse.TerrainChunkTotal);
-            Assert.AreEqual(string.Empty, layoutResponse.TerrainHash);
+            Assert.AreEqual(0, layoutResponse.TerrainMeta.TerrainChunkTotal);
+            Assert.AreEqual(string.Empty, layoutResponse.TerrainMeta.TerrainHash);
         }
 
         [Test]
@@ -82,7 +82,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
             var packetResponseCreator = CreatePacketResponseCreator(worldDataDirectory);
-            var chunkTotal = RequestLayout(packetResponseCreator).TerrainChunkTotal;
+            var chunkTotal = RequestLayout(packetResponseCreator).TerrainMeta.TerrainChunkTotal;
 
             // 範囲外要求はプロトコルが例外にし、パケット層はエラーログを出して応答を返さない
             // An out-of-range request throws in the protocol; the packet layer logs the error and returns no response

@@ -115,31 +115,9 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public List<MapObjectLayoutMessagePack> MapObjects { get; set; }
             [Key(4)] public List<VeinLayoutMessagePack> MapVeins { get; set; }
 
-            // 地形メタ。TerrainResolution=0はterrainを持たないワールド（template）を意味する
-            // Terrain meta; TerrainResolution=0 means the world owns no terrain (template)
-            [Key(5)] public string MapMode { get; set; }
-            [Key(6)] public string WorldId { get; set; }
-            [Key(7)] public int TerrainResolution { get; set; }
-            [Key(8)] public int TerrainTileCount { get; set; }
-            [Key(9)] public int TerrainChunkTotal { get; set; }
-
-            // 論理ストリーム全体のSHA256。クライアントのキャッシュ鮮度判定用で、地形なしワールドは空文字
-            // SHA256 of the whole logical stream for client cache validation; empty for terrain-less worlds
-            [Key(10)] public string TerrainHash { get; set; }
-
-            // world.jsonのseed。クライアントは転送地形と整合する分類段をこのseedで再現する（WorldIdはハッシュなので復元できない）
-            // The world.json seed; clients reproduce the classification stage consistent with the transferred terrain from it (WorldId is a hash and cannot be inverted)
-            [Key(11)] public int WorldSeed { get; set; }
-
-            // 生成時のノイズ窓原点。スポーン探索の中央化オフセットを含むためマスタからは組み直せない
-            // The generation-time noise window origin; it embeds the spawn-search centering offset and cannot be rebuilt from the master
-            [Key(12)] public float TerrainNoiseOriginX { get; set; }
-            [Key(13)] public float TerrainNoiseOriginZ { get; set; }
-
-            // 生成タイルのシーン原点。地形をこの位置に置くとMapObjects/MapVeinsの座標と揃う
-            // Scene origin of the generated tile; placing the terrain there aligns it with the MapObjects/MapVeins coordinates
-            [Key(14)] public float TerrainSceneOriginX { get; set; }
-            [Key(15)] public float TerrainSceneOriginZ { get; set; }
+            // 地形メタとハッシュの束。地形なしワールドはTerrainResolution=0・TerrainHash=""で表明される
+            // Terrain meta and hash bundle; a terrain-less world shows TerrainResolution=0 and an empty TerrainHash
+            [Key(5)] public TerrainTransferMetaMessagePack TerrainMeta { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseMapDataMessagePack() { }
@@ -151,17 +129,7 @@ namespace Server.Protocol.PacketResponse
                 Spawn = spawn;
                 MapObjects = mapObjects;
                 MapVeins = mapVeins;
-                MapMode = terrainMeta.MapMode;
-                WorldId = terrainMeta.WorldId;
-                TerrainResolution = terrainMeta.TerrainResolution;
-                TerrainTileCount = terrainMeta.TerrainTileCount;
-                TerrainChunkTotal = terrainMeta.TerrainChunkTotal;
-                TerrainHash = terrainHash;
-                WorldSeed = terrainMeta.WorldSeed;
-                TerrainNoiseOriginX = terrainMeta.Origins.NoiseOrigin.x;
-                TerrainNoiseOriginZ = terrainMeta.Origins.NoiseOrigin.y;
-                TerrainSceneOriginX = terrainMeta.Origins.SceneOrigin.x;
-                TerrainSceneOriginZ = terrainMeta.Origins.SceneOrigin.y;
+                TerrainMeta = new TerrainTransferMetaMessagePack(terrainMeta, terrainHash);
             }
         }
     }

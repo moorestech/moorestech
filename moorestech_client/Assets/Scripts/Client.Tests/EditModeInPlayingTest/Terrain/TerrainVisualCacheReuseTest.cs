@@ -48,9 +48,9 @@ namespace Client.Tests.EditModeInPlayingTest
                 await LoadMainGameWithMapMode(null, worldDirectory, WorldProvisioner.GeneratedMapMode);
 
                 var mapLayout = await ClientContext.VanillaApi.Response.GetMapData(default);
-                Assert.AreEqual(WorldProvisioner.GeneratedMapMode, mapLayout.MapMode, "generatedモードで起動していない");
-                Assert.Less(0, mapLayout.TerrainTileCount, "地形タイルが1枚も無い");
-                var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(mapLayout.WorldId));
+                Assert.AreEqual(WorldProvisioner.GeneratedMapMode, mapLayout.TerrainMeta.MapMode, "generatedモードで起動していない");
+                Assert.Less(0, mapLayout.TerrainMeta.TerrainTileCount, "地形タイルが1枚も無い");
+                var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(mapLayout.TerrainMeta.WorldId));
 
                 // 起動処理は地形構築の完了を待たずに戻る。全ファイルを待ってから、このテスト固有worldIdのvisualだけを空にする
                 // The boot returns before terrain construction; wait for every file, then empty only this test worldId's visual cache
@@ -61,12 +61,12 @@ namespace Client.Tests.EditModeInPlayingTest
                 // ① 空のtest固有cacheで第1構築を完了させ、取り逃し数0を正確なRuntimeBuilderログで確認する
                 // (1) Build first against the empty test-specific cache and verify the exact zero-hit RuntimeBuilder log
                 await BuildWithExpectedCacheHits(0, "TerrainVisualCacheFirstBuild");
-                foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(mapLayout.TerrainTileCount))
+                foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(mapLayout.TerrainMeta.TerrainTileCount))
                     FileAssert.Exists(cacheWorldDirectory.TerrainVisualCacheFilePath(tile.TileX, tile.TileZ));
 
                 // ② 第2構築では全タイルがhitする。全数hitならsplatmap/detailの再生成を一切通らない
                 // (2) The second build must hit every tile; a full hit count means it never regenerates splatmaps or details
-                await BuildWithExpectedCacheHits(mapLayout.TerrainTileCount, "TerrainVisualCacheSecondBuild");
+                await BuildWithExpectedCacheHits(mapLayout.TerrainMeta.TerrainTileCount, "TerrainVisualCacheSecondBuild");
 
                 // ③ 対照: キャッシュファイルを消せば取り逃す。②が常にtrueを返すだけの検査でないことを示す
                 // (3) Control: deleting the file misses, showing (2) is not merely an assertion that always holds
@@ -80,7 +80,7 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 bool AreAllVisualCacheFilesWritten()
                 {
-                    foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(mapLayout.TerrainTileCount))
+                    foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(mapLayout.TerrainMeta.TerrainTileCount))
                         if (!File.Exists(cacheWorldDirectory.TerrainVisualCacheFilePath(tile.TileX, tile.TileZ)))
                             return false;
 
@@ -91,7 +91,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 {
                     var buildRoot = new GameObject(rootName);
                     LogAssert.Expect(LogType.Log, new Regex(
-                        $@"\[TerrainRuntimeBuilder\] Generated terrain built: tiles={mapLayout.TerrainTileCount} visualCacheHits={expectedCacheHits} elapsedMs=\d+"));
+                        $@"\[TerrainRuntimeBuilder\] Generated terrain built: tiles={mapLayout.TerrainMeta.TerrainTileCount} visualCacheHits={expectedCacheHits} elapsedMs=\d+"));
                     await TerrainRuntimeBuilder.BuildAsync(mapLayout, buildRoot.transform);
                     UnityEngine.Object.DestroyImmediate(buildRoot);
                 }
@@ -101,8 +101,8 @@ namespace Client.Tests.EditModeInPlayingTest
             // Builds one tile through the same entry point the boot uses and reports whether the visuals were reused
             async UniTask<bool> CreateTileAndReportCacheHit(int tileX, int tileZ)
             {
-                var mapLayout = await ClientContext.VanillaApi.Response.GetMapData(default);
-                var terrainSource = await GeneratedTerrainSource.CreateAsync(mapLayout);
+                var wireMeta = (await ClientContext.VanillaApi.Response.GetMapData(default)).TerrainMeta;
+                var terrainSource = await GeneratedTerrainSource.CreateAsync(wireMeta.ToTerrainTransferMeta(), wireMeta.TerrainHash);
                 var (terrainData, visualCacheHit) = await terrainSource.CreateTerrainDataAsync(tileX, tileZ);
 
                 UnityEngine.Object.DestroyImmediate(terrainData);
