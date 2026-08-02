@@ -26,7 +26,7 @@ moorestechのコードレビューを **決定論チェック → 5系統の並�
 
 ## 実行順序（厳守）
 
-> **① 決定論チェック → ①.5 死にメンバーゲート（ScriptAssembliesがあるときのみ・無ければ縮退記録） → ② Codex監査をバックグラウンド起動 → ③ レンズ群＋reviewer群＋Fable全般＋（候補があれば）各verifierを1メッセージで並列起動 → ④ 全系統を回収・実コード照合・重複排除 → ⑤ 機械的修正を自動適用＋コンパイル → ⑤.5 最終diffで決定論再チェック＋コメント保全post-checks 2本 → ⑥ 報告＋設計判断のみAskUserQuestion（末尾集約）**
+> **① 機械チェック統一窓口 `check_all.py`（決定論＋死にメンバーゲート＋セレクタを1コマンドで同時実行） → ② Codex監査をバックグラウンド起動 → ③ レンズ群＋reviewer群＋Fable全般＋（`verifiers_to_launch`にあるverifier）を1メッセージで並列起動 → ④ 全系統を回収・実コード照合・重複排除 → ⑤ 機械的修正を自動適用＋コンパイル → ⑤.5 最終diffで決定論再チェック＋コメント保全post-checks 2本 → ⑥ 報告＋設計判断のみAskUserQuestion（末尾集約）**
 
 AskUserQuestionは**最後の報告フェーズに集約**する。修正適用の途中で割り込まない。
 
@@ -38,11 +38,17 @@ AskUserQuestionは**最後の報告フェーズに集約**する。修正適用�
    - **4カテゴリは必ず `##` 見出しで書く**（太字箇条書き形式は出所ラベル検査の対象外になり沈黙故障する。見出しゼロはfail-closedでconfirmedになる）。
    - **「許容するトレードオフ」「非目標」の各行に出所ラベル必須**: `[ユーザー裁定: "発言引用" または AskUserQuestion結果 YYYY-MM-DD]` / `[ADR: <spec名>#<台帳項目>]` / `[agent前提]`。ラベル無し・引用不能な行は自動的に `[agent前提]` 扱いで免責力を持たない（`references/integration-rules.md` §6）。ユーザー裁定の出所はspec/planの判断台帳（ADRセクション）から引く（台帳がSSOT）。
 
-## Step 2: 決定論チェック ①
+## Step 2: 機械チェック統一窓口 ①（check_all.py）
+
+**1コマンドで機械層の全観点を同時実行する。** 内部で `deterministic_checks.py`（規約の機械判定）・`dead_member_gate.py`（IL解析）・`select_lenses.py`/`select_reviewers.py`（発火観点とモデル）を全部呼び、単一JSONに束ねる。個別スクリプトを別々に叩かない（呼び忘れ・結果の取りこぼしの温床）:
 
 ```bash
-python3 .claude/skills/moores-code-review/scripts/deterministic_checks.py "<PATCH_PATH>" --repo-root "$(pwd)" --context "<USER_PROMPT_PATH>" > /tmp/moores-review-detchecks-<ts>.json
+python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --repo-root "$(pwd)" --context "<USER_PROMPT_PATH>" > /tmp/moores-review-detchecks-<ts>.json
 ```
+
+出力JSONの読み方: `deterministic`（confirmed/candidates）・`dead_member`（Step 2.5の節を参照）・`lenses`/`reviewers`（Step 4で使うTSV相当の`{path, model}`一覧）・**`verifiers_to_launch`（候補件数から計算済みの起動すべきverifier一覧 — Step 4はこれに従うだけ）**・`summary`（全体集計と`errors`。errorsが空でないまま先へ進むのは禁止）。
+
+`deterministic` 節の解釈:
 
 - **`confirmed`**（partial・try-catch・Func・デフォルト引数・SerializeField命名・10ファイル・master_default_fallback・packet_response_root・server_realtime_api・init_method_naming・context_source_label）— 検出正確・裏取り不要。Criticalとして統合に直接載せる（修正の適用可否は §3/§4）。`context_source_label`（出所ラベル欠落）はcontextファイルを修正して再実行する。
 - **`confirmed` のうち200行超過（file-too-long）は努力目標** — Criticalにせず報告のWarning備考に1行載せるだけ。分割を強制せず、AskUserQuestionにも**絶対に**載せない（ユーザー裁定 2026-07-23）。
@@ -55,11 +61,7 @@ python3 .claude/skills/moores-code-review/scripts/deterministic_checks.py "<PATC
 
 ## Step 2.5: 死にメンバーゲート（IL解析） ①.5
 
-```bash
-python3 .claude/skills/moores-code-review/scripts/dead_member_gate.py "<PATCH_PATH>" --repo-root "$(pwd)" > /tmp/moores-review-deadmember-<ts>.json
-```
-
-`tools/DeadMemberAudit`（Mono CecilによるScriptAssembliesのIL解析）を実行し、「参照0」「テスト/デバッグ/エディタ/デフォルト参照のみ」のpublicメンバーのうち**patchが触ったファイルのもの**を `candidates.dead_member` として出す。名前grepと違いオーバーロード単位で参照を厳密に数える（AGENTS.md「デバッグ/テスト専用publicを残さない」のanalyzer化・2026-08-03）。
+**check_all.py が同時実行済み**（出力JSONの `dead_member` 節。単体で再実行したい時だけ `scripts/dead_member_gate.py "<PATCH_PATH>" --repo-root "$(pwd)"`）。実体は `tools/DeadMemberAudit`（Mono CecilによるScriptAssembliesのIL解析）で、「参照0」「テスト/デバッグ/エディタ/デフォルト参照のみ」のpublicメンバーのうち**patchが触ったファイルのもの**を `candidates.dead_member` として出す。名前grepと違いオーバーロード単位で参照を厳密に数える（AGENTS.md「デバッグ/テスト専用publicを残さない」のanalyzer化・2026-08-03）。
 - **`status: ok`** — candidatesが1件以上あればStep 4で死にメンバーverifier（sonnet・`verifiers/dead-member-verifier.md`）を並列起動。0件なら起動しない。
 - **`status: stale`** — 変更.csがDLLより新しい。`uloop compile` を先に実行してからゲートを再実行する（コンパイルはどのみちStep 5で必須）。
 - **`status: skipped`** — ScriptAssemblies不在（素のレビューworktree等）。縮退として報告に1行明記し、dead-scope reviewer（LLM）の参照勘定が唯一の担保になる旨を記録する。
@@ -76,12 +78,7 @@ Bashの `run_in_background: true` で起動しシェルIDを控える。観点�
 
 ## Step 4: レンズ群＋reviewer群＋Fable全般＋verifierを並列発火する ③
 
-2つのセレクタにPATCHの絶対パスを渡し、発火対象とモデルを得る（出力は `パス<TAB>モデル` のTSV）:
-
-```bash
-python3 .claude/skills/moores-code-review/scripts/select_lenses.py "<PATCH_PATH>"
-python3 .claude/skills/moores-code-review/scripts/select_reviewers.py "<PATCH_PATH>"
-```
+発火対象とモデルは **Step 2のcheck_all.py出力の `lenses` / `reviewers` 節**（`{path, model}` の一覧）をそのまま使う。起動すべきverifierも同出力の `verifiers_to_launch` に計算済み（候補0件の種は載らない＝起動しない）。セレクタを単体で再実行したい時だけ `select_lenses.py` / `select_reviewers.py` にPATCHを渡す（TSV出力）。
 
 **1メッセージ内で並列に** 次を全部Agent起動する（順次起動は禁止）:
 

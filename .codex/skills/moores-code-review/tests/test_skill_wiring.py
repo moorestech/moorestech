@@ -20,6 +20,19 @@ class SkillWiringTest(unittest.TestCase):
         for v in (SKILL_DIR / "verifiers").glob("*.md"):
             self.assertIn(v.name, SKILL_MD, f"{v.name} がSKILL.mdに配線されていない")
 
+    def test_unified_gateway_is_wired_and_complete(self):
+        # 統一窓口check_all.pyがSKILL.mdに配線され、そのVERIFIER_MAPの参照先が実在すること
+        # The unified gateway must be wired in SKILL.md and its verifier map must point to real files
+        self.assertIn("check_all.py", SKILL_MD, "check_all.py がSKILL.mdに配線されていない")
+        import sys
+        sys.path.insert(0, str(SKILL_DIR / "scripts"))
+        import check_all
+        for kind, (path, model) in check_all.VERIFIER_MAP.items():
+            self.assertTrue((SKILL_DIR / path).is_file(),
+                            f"VERIFIER_MAP[{kind}] の {path} が実在しない")
+            self.assertIn(f"candidates.{kind}", SKILL_MD,
+                          f"candidates.{kind} がSKILL.mdに記載されていない")
+
     def test_every_gate_script_is_wired_in_some_skill(self):
         # scripts/の実行系（deterministic_checks・select_*・*_gate）が、どこかのスキルの
         # 実行経路（いずれかのSKILL.md。hooks経由含む）から呼ばれていること
