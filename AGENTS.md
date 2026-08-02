@@ -83,7 +83,7 @@ public class BadExample
 ### サーバーの時間計測はGameUpdaterのティック加算のみ
 サーバーのゲームロジックで経過時間を測るときは、`Core.Update.GameUpdater`のティック加算だけを使う。`Time.deltaTime`・`Stopwatch`・`Environment.TickCount`といった実時間APIは使わない（ティックが唯一の時間軸でないと、進行がフレームレート・実時間に依存して再現しなくなる）。秒との換算が要る場合は`GameUpdater.SecondsToTicks` / `TicksToSeconds`を通す。
 `DateTime`は「実世界の日時そのものを記録する」用途（セーブの世界作成日時・セッション開始時刻・累計プレイ時間）に限り使ってよい。ゲーム進行の経過時間をこれで測るのは禁止。
-現在の累積ティックは`GameUpdater.CurrentTick`（実装済み）。
+現在の累積ティックは`GameUpdater.CurrentTick`。
 
 # マスタデータについて
 全マスタデータ（ブロック、アイテム、液体、レシピ等）は以下の4段階で管理
