@@ -80,6 +80,31 @@ namespace Client.Tests.Localization.Skit
             AssertSkitKeysAreValid(japanese, validKeys, "japanese");
         }
 
+        [Test]
+        public void AllTranslationValuesAreNonEmpty()
+        {
+            var i18nRoot = Path.Combine(
+                Application.dataPath,
+                "AddressableResources",
+                "Skit",
+                "i18n");
+            var dictionaryPaths = Directory.GetFiles(i18nRoot, "*.json");
+            Assert.IsNotEmpty(dictionaryPaths);
+
+            // 空文字は欠落扱いで英語へ落ちるため翻訳漏れとして弾く
+            // Empty values fall through to English, so reject them as missed translations
+            foreach (var path in dictionaryPaths)
+            {
+                var translations = (JObject)JObject.Parse(File.ReadAllText(path))["translations"];
+                foreach (var property in translations.Properties())
+                {
+                    Assert.IsFalse(
+                        string.IsNullOrEmpty((string)property.Value),
+                        $"{Path.GetFileName(path)}: {property.Name} が空文字");
+                }
+            }
+        }
+
         private static void AddCommandKeys(
             HashSet<string> keys,
             string title,

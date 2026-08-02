@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Client.Game.Skit.Localization;
 using Cysharp.Threading.Tasks;
+using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.AddressableAssets.Settings;
@@ -44,9 +46,15 @@ namespace Client.Tests.Localization.Skit
                 }
             }
 
+            // 対応言語が増えた際に辞書アセット未整備を検出させる
+            // Detect missing dictionary assets whenever a supported language is added
+            var expectedAddresses = LanguageCatalog.Languages
+                .Select(language => "Vanilla/Skit/i18n/" + language.Code)
+                .ToArray();
+
             // address対応とGUID差替え拒否
             // Pin address mappings and reject GUID replacement
-            CollectionAssert.AreEquivalent(new[] { EnglishAddress, JapaneseAddress }, addresses);
+            CollectionAssert.AreEquivalent(expectedAddresses, addresses);
             Assert.AreEqual(EnglishAssetPath, assetPaths[EnglishAddress]);
             Assert.AreEqual(JapaneseAssetPath, assetPaths[JapaneseAddress]);
             Assert.IsTrue(File.Exists(GetI18nPath("english")));
