@@ -1,5 +1,18 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(shell|local_shell|exec|exec_command|Bash)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".dev-hooks/beads-guard.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Guarding destructive bd commands"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "matcher": "startup|resume|clear",

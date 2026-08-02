@@ -20,7 +20,9 @@ try {
   input = JSON.parse(readFileSync(0, "utf8"));
 } catch {}
 
-const command = input?.tool_input?.command;
+// Claudeはtool_input.command、Codexのexecツールはtool_input.cmdにコマンドが載る
+// Claude carries the command in tool_input.command; Codex's exec tool uses tool_input.cmd.
+const command = input?.tool_input?.command ?? input?.tool_input?.cmd;
 if (typeof command !== "string" || !/\b(bd|dolt)\b/.test(command)) bail();
 
 const cwd = input.cwd || process.env.CLAUDE_PROJECT_DIR || process.cwd();

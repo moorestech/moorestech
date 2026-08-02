@@ -19,7 +19,9 @@ try {
   input = JSON.parse(readFileSync(0, "utf8"));
 } catch {}
 
-const command = input?.tool_input?.command;
+// Claudeはtool_input.command、Codexのexecツールはtool_input.cmdにコマンドが載る
+// Claude carries the command in tool_input.command; Codex's exec tool uses tool_input.cmd.
+const command = input?.tool_input?.command ?? input?.tool_input?.cmd;
 if (typeof command !== "string" || !/\b(bd|dolt)\b/.test(command)) bail();
 
 // 明示的な上書き。ユーザー承認済みの復旧作業だけがここを通る想定
