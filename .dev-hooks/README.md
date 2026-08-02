@@ -1,7 +1,7 @@
-# .dev-hooks — 差分観点リマインダ（共通フック）
+# .dev-hooks — エージェント共通フック（観点リマインダ・意思決定台帳・考古学基盤）
 
-編集差分を正規表現ルールに照合し、一致したら「この観点で再チェックして」という文言を
-コーディングエージェント（Claude Code / Codex）へ自動で流す仕組み。
+編集差分の観点注入、意思決定台帳(.decisions/)の運用、Beadsタスク台帳の運用、
+生セッションログの退避を、Claude Code / Codex 共通のフックとして担う。
 
 参考: 構文・差分解析でエージェントに観点を注入するアイデア
 (https://zenn.dev/manalink_dev/articles/coding-agent-with-syntax-tree-analyze)
@@ -10,12 +10,28 @@
 
 ```
 .dev-hooks/
-  check-diff.mjs   # 共通フック本体（node。mac/windows・claude/codex 共通）
-  rules.json       # ルール定義（ここだけ編集すれば拡張できる）
+  check-diff.mjs                 # 差分観点リマインダ本体（node。mac/windows・claude/codex 共通）
+  rules.json                     # ルール定義（ここだけ編集すれば拡張できる）
+  decisions-index.mjs            # 意思決定台帳(.decisions/)の目次と運用ルールをSessionStartで注入
+  decisions-ruling-reminder.mjs  # AskUserQuestion完了時に台帳への記録をリマインド（Claude Codeのみ）
+  decisions-format-check.mjs     # .decisions/レコードの書式検査（違反はexit 2で差し戻し）
+  beads-prime.mjs                # Beads台帳(bd)の概況と役割分担ルールをSessionStartで注入
+  beads-guard.mjs                # 破壊的bd/doltコマンドの物理拒否とpublic誤送信ガード（PreToolUse）
+  beads-sync-watch.mjs           # Dolt同期障害の復旧誘導＋claim/createへのセッション出自刻印（PostToolUse）
+  beads-learn-capture.mjs        # 応答末尾の「LEARN: 一行」をbd noteへ自動保存（Claude Stop）
+  logs-sync.mjs                  # Claude/Codex生JSONLをprivateの../moorestech_logsへ退避（Stop/SessionEnd等）
+  commit-map.mjs                 # コミットsha↔セッションIDの対応表をmoorestech_logsへ追記（PostToolUse Bash）
+  guard-subagent-model.py        # サブエージェントのモデル明示を強制（PreToolUse Agent|Task）
   README.md
-.claude/settings.json  # PostToolUse から check-diff.mjs を呼ぶ
-.codex/hooks.json      # 同上（Codex 用）
+.claude/settings.json  # 各フックの呼び出し登録（Claude Code 用）
+.codex/hooks.json      # 同上（Codex 用。SessionStart/PostCompact/PostToolUseに対応分を登録）
 ```
+
+## 考古学基盤（moorestech_logs 連携）
+
+- `logs-sync.mjs` / `commit-map.mjs` / beads系は、兄弟ディレクトリに private repo `moorestech_logs` がある時だけ動く（無ければ全て沈黙）。
+- Beadsのデータ同期先も moorestech_logs（`refs/dolt/data`）。public本体repoへは同期しない（beads-guardが誤送信を物理拒否する）。
+- 新しいマシンでは `../moorestech_logs` を clone し、`bd bootstrap` でDoltデータを復元すれば全hookが有効になる。
 
 - 発火タイミング: ファイル編集ツール（Edit/Write/MultiEdit/NotebookEdit/apply_patch 等）の **実行後**（PostToolUse）。
 - 判定対象: `tool_input` 全体（編集後の内容・file_path・patch を含む）。

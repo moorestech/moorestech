@@ -31,6 +31,24 @@
   /* 面の左右フェード幅。%指定はパネル幅で伸びるため固定長で統一 */
   /* Horizontal face-fade span; fixed length so it never scales with panel width */
   --panel-edge-fade: 12px;
+  /* クラフト枠の右下グリップを正本の固定寸法と単色面へ揃える */
+  /* Match the craft-frame grip to the reference's fixed size and single-color face */
+  --craft-grip-size: 8.74px;
+  --craft-grip-inset: 6.98px;
+  --craft-grip-offset: 0.4px;
+  --craft-grip-face: rgb(134 136 152 / 98%);
+  /* クラフトタブの正本寸法、パネル原点からの位置、各層色を一元化する */
+  /* Centralize the craft tab's reference size, panel-relative placement, and layer colors */
+  --craft-tab-width: 64.978px;
+  --craft-tab-height: 27.397px;
+  --craft-tab-margin-top: -37.18px;
+  --craft-tab-margin-left: -11px;
+  --craft-tab-margin-bottom: 6.46px;
+  --craft-tab-back: rgb(51 43 40);
+  --craft-tab-side: rgb(16 15 21);
+  --craft-tab-face: rgb(58 59 72);
+  --craft-tab-edge: rgb(73 75 120);
+  --craft-tab-hammer: rgb(75 75 75);
   --font-ui: "MooresUI", "MooresUI JP", sans-serif;
   /* 画面レイヤーの層序を一元化し、各オーバーレイの前後関係を固定する */
   /* Centralize the screen layer order to keep every overlay's stacking relationship fixed */

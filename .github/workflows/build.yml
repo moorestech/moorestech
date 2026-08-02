@@ -141,10 +141,10 @@ jobs:
           # Linux はランナーの容量が足りないためクライアントビルドは除外
           # ==========================================
           - name: StandaloneWindows64
-            buildMethod: BuildPipeline.WindowsBuildFromGithubAction
+            buildMethod: Client.Editor.Build.BuildPipeline.WindowsBuildFromGithubAction
             runner: windows-latest
           - name: StandaloneOSX
-            buildMethod: BuildPipeline.MacOsBuildFromGithubAction
+            buildMethod: Client.Editor.Build.BuildPipeline.MacOsBuildFromGithubAction
             runner: macos-latest
 
     steps:

@@ -1,6 +1,5 @@
 #if UNITY_EDITOR
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -22,40 +21,18 @@ namespace Client.WebUiHost.Editor
 
         public void OnPreprocessBuild(BuildReport report)
         {
+            // ツールチェーン不足はここで自動導入し、ビルドを自己完結させる
+            // Auto-provision a missing toolchain here so the build is self-contained
+            WebUiToolchainBootstrap.EnsureReady();
             RunPnpmBuild();
             StageArtifact();
         }
 
         private static void RunPnpmBuild()
         {
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = WebUiPaths.PnpmBinary,
-                Arguments = "build",
-                WorkingDirectory = WebUiPaths.WebuiRoot,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
             var nodeDirectory = Path.GetDirectoryName(WebUiPaths.NodeBinary);
-            startInfo.Environment["PATH"] = $"{nodeDirectory}{Path.PathSeparator}{Environment.GetEnvironmentVariable("PATH")}";
-
-            // 外部ビルド失敗を隔離する
-            // pnpm is an external-process boundary, so convert launch failures into build failures
-            Process process;
-            try
-            {
-                process = Process.Start(startInfo);
-            }
-            catch (Exception e)
-            {
-                throw new BuildFailedException($"Web UI pnpm build could not start: {e.GetBaseException().Message}");
-            }
-            if (process == null) throw new BuildFailedException("Web UI pnpm build returned no process");
-            using (process)
-            {
-                process.WaitForExit();
-                if (process.ExitCode != 0) throw new BuildFailedException($"Web UI pnpm build failed with exit code {process.ExitCode}");
-            }
+            var exitCode = EditorProcessRunner.Run(WebUiPaths.PnpmBinary, "build", WebUiPaths.WebuiRoot, nodeDirectory);
+            if (exitCode != 0) throw new BuildFailedException($"Web UI pnpm build failed with exit code {exitCode}");
         }
 
         private static void StageArtifact()
