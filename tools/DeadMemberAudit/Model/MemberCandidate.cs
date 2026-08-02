@@ -43,6 +43,15 @@ public sealed class MemberCandidate
 
     public ExclusionReason Exclusion { get; private set; } = ExclusionReason.None;
 
+    // 参照が実在する場合のみ意味を持つ、縮小可能な公開範囲
+    // The narrower accessibility this member could take, meaningful only when references exist
+    public OverPublicScope OverPublic { get; private set; } = OverPublicScope.None;
+
+    public void SetOverPublic(OverPublicScope scope)
+    {
+        OverPublic = scope;
+    }
+
     // PDB由来の宣言位置（相対パス:行）。シンボルが無ければ空文字
     // Declaration site from the PDB as relative path:line, or empty when symbols are unavailable
     public string SourceLocation { get; private set; } = string.Empty;

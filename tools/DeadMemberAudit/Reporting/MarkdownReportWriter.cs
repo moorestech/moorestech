@@ -1,6 +1,7 @@
-using DeadMemberAudit.Analysis;
+using DeadMemberAudit.Cancellation;
 using DeadMemberAudit.Loading;
 using DeadMemberAudit.Model;
+using DeadMemberAudit.Placement;
 using System.Text;
 
 namespace DeadMemberAudit.Reporting;
@@ -28,6 +29,9 @@ public sealed class MarkdownReportWriter
         AppendSummary(builder, result);
         AppendNeverReferenced(builder, result);
         AppendNonProductionOnly(builder, result);
+        new OverPublicSection(_classifier).Append(builder, result);
+        PlacementSection.Append(builder, result);
+        CancellationSection.Append(builder, result);
         AppendCaveats(builder);
         return builder.ToString();
     }
@@ -44,6 +48,13 @@ public sealed class MarkdownReportWriter
         builder.AppendLine($"| production参照あり（生存） | {result.LiveCount} |");
         builder.AppendLine($"| リスト1: 参照0 | {result.NeverReferenced.Count} |");
         builder.AppendLine($"| リスト2: 非production参照のみ | {result.NonProductionOnly.Count} |");
+        builder.AppendLine($"| リスト3-A: 公開範囲過剰（private候補） | {result.PrivateCandidates.Count} |");
+        builder.AppendLine($"| リスト3-B: 公開範囲過剰（internal候補） | {result.InternalCandidates.Count} |");
+        builder.AppendLine($"| リスト4-A: サーバー配置ミス | {CountPlacement(result, PlacementIssue.ClientOnlyUsage)} |");
+        builder.AppendLine($"| リスト4-B: DI登録のみ・解決者なし | {CountPlacement(result, PlacementIssue.RegistrationWithoutResolver)} |");
+        builder.AppendLine($"| リスト5-A: CancellationToken未伝搬 | {CountCancellation(result, CancellationIssue.TokenNotPassed)} |");
+        builder.AppendLine($"| リスト5-B: async void | {CountCancellation(result, CancellationIssue.AsyncVoid)} |");
+        builder.AppendLine($"| リスト5-C: CTS作りっぱなし | {CountCancellation(result, CancellationIssue.CancellationTokenSourceNotReleased)} |");
         builder.AppendLine($"| シンボル無しで読んだアセンブリ | {result.SymbolLessAssemblyCount} |");
         builder.AppendLine($"| 読み込めなかったDLL | {result.SkippedFileCount} |");
         builder.AppendLine();
@@ -57,6 +68,20 @@ public sealed class MarkdownReportWriter
         foreach (var entry in result.AssemblyCountsByCategory.OrderBy(entry => entry.Key.ToString(), StringComparer.Ordinal))
         {
             builder.AppendLine($"| {entry.Key} | {entry.Value} |");
+        }
+
+        builder.AppendLine();
+
+        // 配置サイドはasmdefの所在から導く。名前にServer/Clientが入らないアセンブリがあるため
+        // The placement side comes from the asmdef location, because not every assembly name carries Server or Client
+        builder.AppendLine("### server/client分類（asmdefの所在由来）");
+        builder.AppendLine();
+        builder.AppendLine("| サイド | アセンブリ |");
+        builder.AppendLine("| --- | --- |");
+        foreach (var side in new[] { AssemblySide.Server, AssemblySide.Client })
+        {
+            var names = result.SideTable.Where(entry => entry.Value == side).Select(entry => entry.Key).OrderBy(name => name, StringComparer.Ordinal);
+            builder.AppendLine($"| {side.Label()} | {string.Join(", ", names)} |");
         }
 
         builder.AppendLine();
@@ -103,11 +128,19 @@ public sealed class MarkdownReportWriter
         builder.AppendLine();
     }
 
-    // シンボルが無いメンバーは位置が空になる。表が崩れないようハイフンで埋める
-    // Members without symbols have no location, so a hyphen keeps the table intact
     private static string FormatLocation(MemberCandidate candidate)
     {
-        return candidate.SourceLocation.Length > 0 ? $"`{candidate.SourceLocation}`" : "-";
+        return ReportCells.Location(candidate.SourceLocation);
+    }
+
+    private static int CountPlacement(AuditResult result, PlacementIssue issue)
+    {
+        return result.PlacementFindings.Count(finding => finding.Issue == issue);
+    }
+
+    private static int CountCancellation(AuditResult result, CancellationIssue issue)
+    {
+        return result.CancellationFindings.Count(finding => finding.Issue == issue);
     }
 
     // 自動削除を禁じる注意書き。ILに現れない呼び出し経路が実在する

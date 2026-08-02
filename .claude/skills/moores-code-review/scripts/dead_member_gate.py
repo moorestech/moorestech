@@ -12,8 +12,9 @@
 """dead_member_gate.py — DeadMemberAudit(IL解析)の結果をpatchスコープへ絞る配線層。
 
 moores-code-review Step 2.5 から呼ばれる。tools/DeadMemberAudit を実行し、
-「参照0」「非production参照のみ」のメンバーのうち宣言場所がpatchの変更ファイルに
-含まれるものだけを candidates.dead_member として出力する（裁定はdead-member-verifier）。
+リスト1〜5（参照0・非production参照のみ・公開範囲過剰・サーバー配置ミス・CT未伝搬）の
+うち宣言場所がpatchの変更ファイルに含まれるものだけを candidates.dead_member として
+出力する（裁定はdead-member-verifier）。
 
 ScriptAssemblies が無い環境（素のレビューworktree等）では status: skipped を返す。
 変更.csがDLLより新しい場合は status: stale を返す（先に uloop compile が必要）。
@@ -34,6 +35,20 @@ ASSEMBLIES_REL = "moorestech_client/Library/ScriptAssemblies"
 TOOL_REL = "tools/DeadMemberAudit"
 # 宣言場所セル `path:line` を取り出す / Extract the `path:line` declaration cell
 LOCATION_RE = re.compile(r"`([^`]+\.cs):(\d+)`")
+
+# report.mdの見出し → rule名。前方一致で最初に当たったものを採る
+# Report heading -> rule name, taking the first prefix that matches
+SECTION_RULES = (
+    ("## リスト1", "dead-member-unused"),
+    ("## リスト2", "dead-member-nonproduction"),
+    ("## リスト3-A", "dead-member-overpublic-private"),
+    ("## リスト3-B", "dead-member-overpublic-internal"),
+    ("## リスト4-A", "placement-mismatch"),
+    ("## リスト4-B", "placement-registration-only"),
+    ("## リスト5-A", "ct-not-passed"),
+    ("## リスト5-B", "ct-async-void"),
+    ("## リスト5-C", "cts-not-released"),
+)
 
 
 def main() -> int:
@@ -77,29 +92,31 @@ def main() -> int:
 
 
 def collect_candidates(report: str, changed: set) -> list:
-    # リスト1/2のテーブル行のうち宣言場所がpatch変更ファイルのものを拾う
-    # Keep list-1/2 rows whose declaration file is in the patch
+    # 全リストのテーブル行のうち宣言場所がpatch変更ファイルのものを拾う
+    # Keep rows from every list whose declaration file is in the patch
     candidates = []
-    section = None
+    rule = None
     for line in report.splitlines():
-        if line.startswith("## リスト1"):
-            section = "dead-member-unused"
-        elif line.startswith("## リスト2"):
-            section = "dead-member-nonproduction"
-        elif line.startswith("## "):
-            section = None
-        if section is None or not line.startswith("|"):
+        if line.startswith("## "):
+            rule = next((name for prefix, name in SECTION_RULES if line.startswith(prefix)), None)
+            continue
+        if rule is None or not line.startswith("|"):
             continue
         m = LOCATION_RE.search(line)
         if not m or m.group(1) not in changed:
             continue
+        # 対象は常に2列目、裁定に要る文脈（参照元・形）は常に最終列に置いてある
+        # The subject is always the second cell and the adjudication context always the last
         cells = [c.strip() for c in line.strip("|").split("|")]
+        last = cells[-1] if len(cells) > 2 else ""
         candidates.append({
-            "rule": section,
+            "rule": rule,
             "file": m.group(1),
             "line": int(m.group(2)),
             "member": cells[1].strip("`") if len(cells) > 1 else "",
-            "referencers": cells[4] if section == "dead-member-nonproduction" and len(cells) > 4 else "",
+            # 最終列が宣言場所そのもの（リスト1）なら追加の文脈は無い / List 1 ends at the location, so there is no extra context
+            "detail": "" if LOCATION_RE.fullmatch(last) else last,
+            "referencers": cells[4] if rule == "dead-member-nonproduction" and len(cells) > 4 else "",
         })
     return candidates
 

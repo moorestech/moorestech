@@ -6,14 +6,16 @@ public static class AuditConstants
 {
     public const string DefaultAssembliesRelativePath = "moorestech_client/Library/ScriptAssemblies";
 
-    // asmdefを探す既定のソースルート。ここに無いアセンブリは外部扱い
-    // Default source roots scanned for asmdefs; assemblies outside them are external
-    public static readonly string[] SourceRoots =
+    // asmdefを探す既定のソースルート。ここに無いアセンブリは外部扱い。配置サイドもこの所在から導く
+    // Default source roots scanned for asmdefs; assemblies outside them are external, and the side comes from this location
+    public static readonly (string Path, AssemblySide Side)[] SourceRoots =
     {
-        "moorestech_server/Assets/Scripts",
-        "moorestech_client/Assets/Scripts",
+        ("moorestech_server/Assets/Scripts", AssemblySide.Server),
+        ("moorestech_client/Assets/Scripts", AssemblySide.Client),
     };
 
+    // 解析対象はクライアントプロジェクトのScriptAssembliesなので、既定アセンブリはclient側
+    // The analysed ScriptAssemblies belong to the client project, so the default assemblies are client-side
     public static readonly string[] DefaultAssemblyNames = { "Assembly-CSharp", "Assembly-CSharp-Editor" };
 
     // アセンブリ名の部分一致で分類する。判定順は Default→Test→Debug→Editor
@@ -113,4 +115,24 @@ public static class AuditConstants
         "Deserialize", "DeserializeObject", "Serialize", "SerializeObject", "FromJson", "ToJson",
         "FromJsonOverwrite", "ConvertTo", "GetUninitializedObject",
     };
+
+    public const string CancellationTokenFullName = "System.Threading.CancellationToken";
+    public const string CancellationTokenSourceFullName = "System.Threading.CancellationTokenSource";
+    public const string VoidFullName = "System.Void";
+
+    // 待てる戻り値の型。トークン伝搬が寿命の話になるのはこの形の呼び先だけ
+    // Awaitable return types; token propagation is a lifetime question only for callees shaped like these
+    public static readonly string[] AwaitableReturnPrefixes =
+    {
+        "System.Threading.Tasks.Task", "System.Threading.Tasks.ValueTask",
+        "Cysharp.Threading.Tasks.UniTask", "System.Collections.Generic.IAsyncEnumerable",
+    };
+
+    // CTSの後始末とみなす呼び出し。どれか1本でも通れば作りっぱなしではない
+    // Calls that count as releasing a CTS; any one of them means it is not left dangling
+    public static readonly string[] CancellationTokenSourceReleaseMethods = { "Cancel", "CancelAsync", "Dispose" };
+
+    // 非同期メソッドの実体がどの生成型に移されたかを示す属性
+    // Attributes pointing at the generated type that holds an async method's real body
+    public static readonly string[] StateMachineAttributes = { "AsyncStateMachineAttribute", "IteratorStateMachineAttribute" };
 }

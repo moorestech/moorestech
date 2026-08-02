@@ -1,3 +1,6 @@
+using DeadMemberAudit.Cancellation;
+using DeadMemberAudit.Placement;
+
 namespace DeadMemberAudit.Model;
 
 // 監査の最終結果。レポート生成はこれだけを見る
@@ -6,8 +9,25 @@ public sealed class AuditResult
 {
     public readonly List<MemberCandidate> NeverReferenced = new();
     public readonly List<MemberCandidate> NonProductionOnly = new();
+
+    // 参照は実在するが公開範囲が広すぎるメンバー（リスト3）
+    // Members that are referenced yet exposed too widely (list 3)
+    public readonly List<MemberCandidate> PrivateCandidates = new();
+    public readonly List<MemberCandidate> InternalCandidates = new();
+
+    public readonly List<PlacementFinding> PlacementFindings = new();
+    public readonly List<CancellationFinding> CancellationFindings = new();
     public readonly Dictionary<ExclusionReason, int> ExclusionCounts = new();
     public readonly Dictionary<AssemblyCategory, int> AssemblyCountsByCategory = new();
+
+    // アセンブリ名 -> server/client。asmdefの所在から導いた分類表をレポートに出すために持つ
+    // Assembly name -> server or client, kept so the asmdef-derived table can be printed in the report
+    public IReadOnlyDictionary<string, AssemblySide> SideTable { get; private set; } = new Dictionary<string, AssemblySide>();
+
+    public void SetSideTable(IReadOnlyDictionary<string, AssemblySide> sideTable)
+    {
+        SideTable = sideTable;
+    }
 
     public int PopulationCount { get; private set; }
     public int ScannedMethodCount { get; private set; }

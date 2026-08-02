@@ -1,9 +1,11 @@
 # DeadMemberAudit
 
-コンパイル済みDLLのIL解析で「死にpublicメンバー」を検出する監査ツール。Mono.Cecilでシグネチャを厳密に照合するため、
-`Initialize`のようなありふれた名前でも参照過剰カウントで見逃すことがない（名前ベースgrepに対する優位点）。
+コンパイル済みDLLのIL解析で「死にpublicメンバー」「公開範囲過剰」「サーバー配置ミス」「キャンセル未伝搬」を
+検出する監査ツール。Mono.Cecilでシグネチャを厳密に照合するため、`Initialize`のようなありふれた名前でも
+参照過剰カウントで見逃すことがない（名前ベースgrepに対する優位点）。
 
-AGENTS.md規範「デバッグ/テスト専用publicをプロダクションに残さない」の機械検出が目的。
+AGENTS.md規範「デバッグ/テスト専用publicをプロダクションに残さない」「受益者なき抽象の禁止」と、
+`reviewers/core-cs-async-cancellation.md` の機械検出が目的。
 
 ## 使い方
 
@@ -19,11 +21,21 @@ markdownレポートを標準出力と `tools/DeadMemberAudit/report.md` の両�
 
 ## 出力
 
-- **リスト1「参照0」**: どのアセンブリからも呼ばれていないpublicメンバー
-- **リスト2「非production参照のみ」**: テスト/デバッグ/エディタ/デフォルトアセンブリからしか呼ばれていないpublicメンバー
+| リスト | 検出内容 | 対応rule（ゲート） |
+| --- | --- | --- |
+| 1「参照0」 | どのアセンブリからも呼ばれていないpublicメンバー | `dead-member-unused` |
+| 2「非production参照のみ」 | テスト/デバッグ/エディタ/デフォルトからしか呼ばれていないpublicメンバー | `dead-member-nonproduction` |
+| 3-A「private候補」 | 参照は実在するが、全参照が宣言型の中だけ | `dead-member-overpublic-private` |
+| 3-B「internal候補」 | 参照は実在するが、全参照が宣言アセンブリの中だけ | `dead-member-overpublic-internal` |
+| 4-A「サーバー配置ミス」 | server側で宣言されたのにclient側からしか使われていない型 | `placement-mismatch` |
+| 4-B「登録のみ・解決者なし」 | server側の接点がDI登録だけの型 | `placement-registration-only` |
+| 5-A「CT未伝搬」 | トークンを持つ呼び出し元がCTを渡していない呼び出しサイト | `ct-not-passed` |
+| 5-B「async void」 | `[AsyncStateMachine]`付きでvoid返しのメソッド | `ct-async-void` |
+| 5-C「CTS作りっぱなし」 | CTSフィールドにCancel/Disposeがどこにも無い | `cts-not-released` |
 
-両リストとも `アセンブリ | メンバー(シグネチャ) | 宣言型 | 宣言場所(PDB由来のファイル:行)` を出す。
-リスト2はさらに `参照元アセンブリ(分類):回数` を出す。
+全リストとも **2列目が対象・最終列が裁定用の文脈** で、`宣言場所` に `` `path:line` `` を持つ
+（`.claude/skills/moores-code-review/scripts/dead_member_gate.py` がこの2つの位置に依存している）。
+リスト3-Bは件数が多いので、宣言型ごとの集約表を先に出し、全件は`<details>`に畳んで出す（ゲートは畳んだ表も読む）。
 
 ## アセンブリ分類
 
@@ -41,6 +53,19 @@ markdownレポートを標準出力と `tools/DeadMemberAudit/report.md` の両�
 
 判定順はDefault→Test→Debug→Editor。定数は`Model/AuditConstants.cs`に集約。
 
+### server / client の配置サイド
+
+役割分類とは別に、**asmdefが実際に置かれているディレクトリ**から配置サイドを決める（名前パターンは使わない。
+`ClassLibrary`のようにServer/Clientを名前に含まないアセンブリがあるため）。
+
+| asmdefの所在 | サイド |
+| --- | --- |
+| `moorestech_server/Assets/Scripts` 配下 | server |
+| `moorestech_client/Assets/Scripts` 配下 | client |
+| `Assembly-CSharp` / `Assembly-CSharp-Editor` | client（解析対象がクライアントプロジェクトのため） |
+
+分類表はレポートのサマリに全件出る。リスト4の判定はこの表だけを見る。
+
 サーバーのスクリプト群はUPMパッケージ`tech.moores.server`としてクライアントプロジェクトにも取り込まれるため、
 `moorestech_client/Library/ScriptAssemblies`ひとつでサーバー・クライアント両方の参照が揃う。
 別途サーバー単体プロジェクトを解析する必要はない。
@@ -53,6 +78,66 @@ markdownレポートを標準出力と `tools/DeadMemberAudit/report.md` の両�
   `Call`/`Callvirt`/`Newobj`/`Ldftn`/`Ldvirtftn`/`Ldtoken`のMethodReferenceをResolveして宣言定義に紐付ける
 - プロパティはgetter/setterへの参照を合算する。**片側だけ未参照なら死にメンバーではない**（両方0のときだけ候補）
 - 自己参照（自分自身を呼ぶだけの再帰）は生存の根拠にしない
+
+## リスト3（公開範囲過剰）の数え方
+
+参照を記録するとき、同時に**参照が宣言型の外へ出たか・宣言アセンブリの外へ出たか**の2フラグを立てる。
+ネスト型とラムダのクロージャは**最も外側の型**へ畳んでから比較する（C#は入れ子スコープ間でprivateが見えるため、
+`Foo/Bar`から`Foo`のprivateを呼ぶのは合法で、これを「型の外からの参照」と数えると縮小提案が出せなくなる）。
+
+母集団はリスト1/2と同じ（機械除外は全部適用済み）で、そのうち**production参照がある生存メンバー**だけが対象。
+以下は縮小するとコンパイルが通らないので候補にしない（除外理由には数えない）:
+
+- interfaceのメンバー（常にpublic）
+- `virtual` / `abstract` メンバー（派生側が上書きする）
+- 静的コンストラクタ・operator（アクセシビリティを選べない）
+- internal型のpublicメンバー → internal候補にはしない（実効的に既にinternal）。private候補にはなる
+
+## リスト4（サーバー配置ミス）の数え方
+
+母集団は**server側production アセンブリのトップレベル型**（ネスト型は親と一緒に動くので単独では扱わない）。
+型の使われ方を性質ごとに3種類数える:
+
+| 種別 | 数える対象 |
+| --- | --- |
+| 解決者（resolver） | フィールド型・プロパティ型・引数型・戻り値型・ローカル変数型・メンバー呼び出し・`typeof`・DI登録**以外**のジェネリック実引数（`GetService<T>()`等）・フィールドの持ち主（`X.EventTag`の`X`） |
+| DI登録 | `AddSingleton`/`Register`系のジェネリック実引数 |
+| 実装 | 基底型・実装interface（供給側なので解決者に数えない） |
+
+判定は **server側の解決者が0** であることが起点。そのうえで、
+
+- server側にDI登録がある → **4-B「登録のみ・解決者なし」**（PR1095 `IBlueprintCatalogSource` と同型）
+- そうでなくclient側の解決者がある → **4-A「配置ミス」**
+
+`AddSingleton<IFoo, Foo>()` のように1回の登録に複数の型が並ぶ場合、実装型は自分の名前ではなく
+サービス型の名前で解決されるため、**同じ登録に並んだ型どうしを結んで解決者数を合算する**
+（これをやらないと`WorldBlockDatastore`等の具象型が全部4-Bに載る）。
+
+## リスト5（キャンセル）の数え方
+
+このリポジトリで実際に使われているCTの受け渡し形をgrepで調べた結果、`AttachExternalCancellation` /
+`WithCancellation` は**0件**で、`CancellationToken`引数の明示的な貫通・`CancellationToken.None`・
+省略可能引数`CancellationToken ct = default`・`this.GetCancellationTokenOnDestroy()`・`.Forget()` だけが使われている。
+対応範囲はこの実態に合わせてある。
+
+- **CT未伝搬**: `async`の本体は生成された状態機械へ移るため、`[AsyncStateMachine]`から状態機械型を引いて
+  そちらのILを走査し、指摘は元のメソッドへ帰属させる。呼び出し元が「トークンを持っている」根拠は3つあり、
+  どれが効いたかはレポートの`形`列に出る:
+  1. `CT引数あり` — メソッドが`CancellationToken`引数を持つ
+  2. `CTSフィールド参照あり` — 本体が`CancellationTokenSource`型フィールドを読んでいる
+  3. `Unityオブジェクト` — `UnityEngine.Object`派生型の非staticメソッド（`GetCancellationTokenOnDestroy()`で作れる）
+  
+  呼び先は**待てる戻り値**（`Task`/`ValueTask`/`UniTask`系/`IAsyncEnumerable`）に限る。
+  同期APIのCT引数（MessagePackの`Deserialize`等）は寿命の話ではないため対象外
+- **CT無し版の呼び出し**: 呼び先の宣言型に「同名・引数1本多い・末尾が`CancellationToken`」のメソッドがあるのに
+  CT無し版を呼んでいる形。宣言型の解決が要るのでmoorestechアセンブリの呼び先に限る
+- **`CancellationToken.None`/`default`の受け渡し**: 呼び出し命令の直前が`CancellationToken::get_None()`、
+  または`initobj CancellationToken`＋ローカル読み出しの形を見る（省略可能引数の省略も同じ命令列になる）
+- **async void**: `[AsyncStateMachine]`付きでvoid返し。Unityイベント関数（`MonoBehaviour`派生の`Start`等）だけ機械除外。
+  デリゲート制約による正当な`async void`はverifierの裁定に回す
+- **CTS作りっぱなし**: productionの手書き型が持つ`CancellationTokenSource`フィールドのうち、
+  そのフィールドを読むメソッドの**どれもが**`Cancel`/`CancelAsync`/`Dispose`を呼んでいないもの。
+  `using`は`IDisposable.Dispose`経由で呼ばれるのでそれも後始末として認める
 
 ## 機械除外の規則
 
@@ -178,4 +263,29 @@ VContainerのライフサイクル（`IInitializable.Initialize`・`IStartable.S
 - `typeof(X)`が出てくるだけでその型のコンストラクタを除外する。比較目的の`typeof`でも除外側に倒れる
 - `Register`という一般的な名前をDI登録メソッドとして扱うため、DI以外の`Register<T>()`の
   ジェネリック引数型もコンストラクタ除外に倒れる
-- internalメンバーは未対応（第1版はpublicのみ）
+- 母集団はpublicメンバーのみ（internal宣言のメンバーは対象外。リスト3-Bは「publicをinternalへ」の提案であって
+  既存internalの棚卸しではない）
+
+### リスト4の限界
+
+- **`const`はILに残らない**。`public const string EventTag = "..."` を他アセンブリが読んでも参照は0件に見える
+  （コンパイル時に値がインライン化されるため）。`*EventPacket`のclient参照元が`-`なのはこれが理由で、
+  「client側で本当に使われていない」ことの証明にはならない
+- 型の使用箇所は**IL・メタデータに現れるものだけ**。属性のblob・`.prefab`のシリアライズ参照は数えない
+- コンストラクタで購読を張るだけの「配線用シングルトン」は、設計として正しくても4-Bに載る（解決者が原理的に居ないため）。
+  意図の裁定はverifierに任せている
+
+### リスト5の限界
+
+- `AttachExternalCancellation` / `WithCancellation` / `SuppressCancellationThrow` 経由でトークンを繋ぐ形は
+  **未対応**（リポジトリに実例が0件のため実装していない。使い始めたら対応を足すこと）
+- `CancellationToken.None`/`default`の検出は**CTが最後の引数である前提**で直前の命令列だけを見る。
+  `Foo(CancellationToken.None, other)` のように前方に置かれた場合は検出できない
+- 呼び出し元の「トークンを持っている」判定にラムダのクロージャが絡む場合、指摘は
+  `<>c__DisplayClass…` の名前で出る。宣言場所（PDB由来の`path:line`）は正しいのでそちらで追うこと
+- CTSの後始末判定は**メソッド単位**。同じメソッド内でフィールドを読みかつCancel/Disposeを呼んでいれば
+  後始末済みとみなすので、別々のCTSフィールドを扱うメソッドでは取りこぼす方向に倒れる
+- 自動実装プロパティのCTS（バッキングフィールドが`<X>k__BackingField`）は母集団に入らない
+- **外部アセンブリの`Resolve()`は禁止**。ScriptAssembliesとPackageCacheには型フォワードの輪があり、
+  Cecilの`ExportedType.Resolve()`が無限再帰してスタックオーバーフローする（`catch`できない）。
+  引数・戻り値は`MethodReference`から直接読み、解決が要る判定はmoorestechアセンブリに限ること

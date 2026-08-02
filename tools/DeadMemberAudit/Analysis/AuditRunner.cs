@@ -1,6 +1,8 @@
+using DeadMemberAudit.Cancellation;
 using DeadMemberAudit.Loading;
 using DeadMemberAudit.Metadata;
 using DeadMemberAudit.Model;
+using DeadMemberAudit.Placement;
 
 namespace DeadMemberAudit.Analysis;
 
@@ -28,10 +30,12 @@ public sealed class AuditRunner
         var scan = new ReferenceCollector(assemblies).Scan(assemblies);
         var candidates = CandidateCollector.Collect(assemblies);
         var sourceLocator = new SourceLocator(_repositoryRoot);
+        var typeSourceLocator = new TypeSourceLocator(_repositoryRoot, sourceLocator);
         var rules = new ExclusionRules(scan, sourceLocator);
 
         var result = new AuditResult();
         foreach (var assembly in assemblies) result.CountAssembly(assembly.Category);
+        result.SetSideTable(classifier.SideTable());
 
         var liveCount = 0;
         foreach (var candidate in candidates)
@@ -46,15 +50,49 @@ public sealed class AuditRunner
 
             AttachReferences(candidate, scan);
             candidate.SetSourceLocation(FirstSourceLocation(candidate, sourceLocator));
-            if (HasProductionReference(candidate, classifier)) liveCount++;
+            if (HasProductionReference(candidate, classifier))
+            {
+                liveCount++;
+                ClassifyOverPublic(candidate, scan, result);
+            }
             else if (candidate.TotalReferenceCount() == 0) result.NeverReferenced.Add(candidate);
             else result.NonProductionOnly.Add(candidate);
         }
+
+        // 配置ミスとキャンセルは母集団がメンバーではなく型・呼び出しサイトなので、独立に走査する
+        // Placement and cancellation are populated by types and call sites rather than members, so they scan independently
+        result.PlacementFindings.AddRange(new PlacementAnalyzer(classifier, typeSourceLocator).Analyze(assemblies));
+        result.CancellationFindings.AddRange(new CancellationScanner(classifier, sourceLocator, typeSourceLocator).Scan(assemblies));
 
         result.SetCounts(candidates.Count, scan.ScannedMethodCount, liveCount);
         result.SetLoadDiagnostics(loader.SymbolLessAssemblyCount, loader.SkippedFileCount);
         SortResults(result);
         return result;
+    }
+
+    // 縮小候補は生存メンバーの部分集合。参照が宣言型・宣言アセンブリの外へ出たかだけで決まる
+    // Narrowing candidates are a subset of live members, decided purely by how far the references escaped
+    private static void ClassifyOverPublic(MemberCandidate candidate, IlScanResult scan, AuditResult result)
+    {
+        var verdict = OverPublicRules.Evaluate(candidate, MergeScopes(candidate, scan));
+        candidate.SetOverPublic(verdict);
+        if (verdict == OverPublicScope.Private) result.PrivateCandidates.Add(candidate);
+        else if (verdict == OverPublicScope.Internal) result.InternalCandidates.Add(candidate);
+    }
+
+    // プロパティはget/setで別々にスコープが記録されるため、両方を合わせて広いほうを採る
+    // A property records scope per accessor, so both are merged and the wider reach wins
+    private static ReferenceScope? MergeScopes(MemberCandidate candidate, IlScanResult scan)
+    {
+        ReferenceScope? merged = null;
+        foreach (var method in candidate.Methods)
+        {
+            if (!scan.ScopeByMember.TryGetValue(MemberKey.For(method), out var scope)) continue;
+            merged ??= new ReferenceScope();
+            merged.Observe(!scope.HasOutsideDeclaringType, !scope.HasOutsideDeclaringAssembly);
+        }
+
+        return merged;
     }
 
     // プロパティはget/set両方の参照を合算する。片側だけ生きている場合は死にメンバーではない
@@ -89,6 +127,8 @@ public sealed class AuditRunner
     {
         result.NeverReferenced.Sort(CompareByLocation);
         result.NonProductionOnly.Sort(CompareByLocation);
+        result.PrivateCandidates.Sort(CompareByLocation);
+        result.InternalCandidates.Sort(CompareByLocation);
 
         #region Internal
 

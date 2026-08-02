@@ -8,6 +8,7 @@ namespace DeadMemberAudit.Loading;
 public sealed class AssemblyClassifier
 {
     private readonly HashSet<string> _moorestechAssemblyNames = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, AssemblySide> _sideByAssemblyName = new(StringComparer.Ordinal);
     private readonly Dictionary<string, AssemblyCategory> _cache = new(StringComparer.Ordinal);
 
     public AssemblyClassifier(string repositoryRoot)
@@ -16,16 +17,22 @@ public sealed class AssemblyClassifier
         // The asmdef filename can differ from the assembly name, so read the name field
         foreach (var sourceRoot in AuditConstants.SourceRoots)
         {
-            var rootPath = Path.Combine(repositoryRoot, sourceRoot);
+            var rootPath = Path.Combine(repositoryRoot, sourceRoot.Path);
             if (!Directory.Exists(rootPath)) continue;
             foreach (var asmdefPath in Directory.EnumerateFiles(rootPath, "*.asmdef", SearchOption.AllDirectories))
             {
                 var name = ReadAssemblyName(asmdefPath);
-                if (name != null) _moorestechAssemblyNames.Add(name);
+                if (name == null) continue;
+                _moorestechAssemblyNames.Add(name);
+                _sideByAssemblyName[name] = sourceRoot.Side;
             }
         }
 
-        foreach (var defaultName in AuditConstants.DefaultAssemblyNames) _moorestechAssemblyNames.Add(defaultName);
+        foreach (var defaultName in AuditConstants.DefaultAssemblyNames)
+        {
+            _moorestechAssemblyNames.Add(defaultName);
+            _sideByAssemblyName[defaultName] = AssemblySide.Client;
+        }
 
         #region Internal
 
@@ -50,6 +57,18 @@ public sealed class AssemblyClassifier
     public int MoorestechAssemblyCount()
     {
         return _moorestechAssemblyNames.Count;
+    }
+
+    // 名前パターンではなくasmdefの実所在で決める。名前にServer/Clientが入らないアセンブリがあるため
+    // Decided by the asmdef's actual location rather than the name, because not every assembly name carries Server/Client
+    public AssemblySide SideOf(string assemblyName)
+    {
+        return _sideByAssemblyName.TryGetValue(assemblyName, out var side) ? side : AssemblySide.Unknown;
+    }
+
+    public IReadOnlyDictionary<string, AssemblySide> SideTable()
+    {
+        return _sideByAssemblyName;
     }
 
     public AssemblyCategory Classify(string assemblyName)

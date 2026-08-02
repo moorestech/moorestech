@@ -152,4 +152,16 @@ public sealed class AssemblyLoader
             return null;
         }
     }
+
+    public static FieldDefinition? TryResolve(FieldReference reference)
+    {
+        try
+        {
+            return reference.Resolve();
+        }
+        catch (AssemblyResolutionException)
+        {
+            return null;
+        }
+    }
 }

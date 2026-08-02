@@ -59,10 +59,18 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 - **`candidates.comment_length` / `region_internal`** — この時点では保持のみ（commentはStep 5.5で最終diffに再計測、regionはregion-internal reviewerの裏付け）。
 - **`candidates.schema_optional_true`** は master-data-defense レンズ、**`candidates.event_tag_sync`** は server-state-sync レンズの裏付けデータとして渡す（正当な例外がありうるためレンズが裁定）。
 
-## Step 2.5: 死にメンバーゲート（IL解析） ①.5
+## Step 2.5: 死にメンバー・公開範囲・配置・キャンセルゲート（IL解析） ①.5
 
-**check_all.py が同時実行済み**（出力JSONの `dead_member` 節。単体で再実行したい時だけ `scripts/dead_member_gate.py "<PATCH_PATH>" --repo-root "$(pwd)"`）。実体は `tools/DeadMemberAudit`（Mono CecilによるScriptAssembliesのIL解析）で、「参照0」「テスト/デバッグ/エディタ/デフォルト参照のみ」のpublicメンバーのうち**patchが触ったファイルのもの**を `candidates.dead_member` として出す。名前grepと違いオーバーロード単位で参照を厳密に数える（AGENTS.md「デバッグ/テスト専用publicを残さない」のanalyzer化・2026-08-03）。
-- **`status: ok`** — candidatesが1件以上あればStep 4で死にメンバーverifier（sonnet・`verifiers/dead-member-verifier.md`）を並列起動。0件なら起動しない。
+**check_all.py が同時実行済み**（出力JSONの `dead_member` 節。単体で再実行したい時だけ `scripts/dead_member_gate.py "<PATCH_PATH>" --repo-root "$(pwd)"`）。実体は `tools/DeadMemberAudit`（Mono CecilによるScriptAssembliesのIL解析）で、**patchが触ったファイルのもの**を `candidates.dead_member` として出す。名前grepと違いオーバーロード単位で参照を厳密に数える（AGENTS.md「デバッグ/テスト専用publicを残さない」のanalyzer化・2026-08-03）。各候補は `rule` で種別が分かれる:
+
+| rule | 検出内容 |
+| --- | --- |
+| `dead-member-unused` / `dead-member-nonproduction` | 参照0 / テスト・デバッグ・エディタ参照のみ |
+| `dead-member-overpublic-private` / `-internal` | 参照は実在するが公開範囲が過剰（宣言型内のみ / 宣言アセンブリ内のみ） |
+| `placement-mismatch` / `placement-registration-only` | server宣言でserver側に利用者なし（client参照のみ / DI登録のみ・解決者なし） |
+| `ct-not-passed` / `ct-async-void` / `cts-not-released` | CancellationToken未伝搬 / `async void` / CTS作りっぱなし |
+
+- **`status: ok`** — candidatesが1件以上あればStep 4で死にメンバーverifier（sonnet・`verifiers/dead-member-verifier.md`）を並列起動。0件なら起動しない。rule別の裁定手順はverifier側に書いてある。
 - **`status: stale`** — 変更.csがDLLより新しい。`uloop compile` を先に実行してからゲートを再実行する（コンパイルはどのみちStep 5で必須）。
 - **`status: skipped`** — ScriptAssemblies不在（素のレビューworktree等）。縮退として報告に1行明記し、dead-scope reviewer（LLM）の参照勘定が唯一の担保になる旨を記録する。
 

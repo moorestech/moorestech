@@ -40,6 +40,23 @@ public sealed class SourceLocator
         return $"{relative}:{point.StartLine}";
     }
 
+    // 特定の命令の位置。async本体は生成メソッドへ移るが、シーケンスポイントは元のソース行を指したまま
+    // Location of one instruction; an async body moves into a generated method yet its sequence points still point at the original source
+    public string LocationOf(MethodDefinition method, Mono.Cecil.Cil.Instruction instruction)
+    {
+        if (!method.HasBody || method.DebugInformation == null || !method.DebugInformation.HasSequencePoints) return string.Empty;
+
+        Mono.Cecil.Cil.SequencePoint? nearest = null;
+        foreach (var point in method.DebugInformation.SequencePoints)
+        {
+            if (point.IsHidden || point.Offset > instruction.Offset) continue;
+            if (nearest == null || point.Offset > nearest.Offset) nearest = point;
+        }
+
+        if (nearest == null || !File.Exists(nearest.Document.Url)) return string.Empty;
+        return $"{Path.GetRelativePath(_repositoryRoot, nearest.Document.Url)}:{nearest.StartLine}";
+    }
+
     private static string? DocumentPath(MethodDefinition method)
     {
         return FirstSequencePoint(method)?.Document.Url;

@@ -46,6 +46,7 @@ public sealed class ReferenceCollector
         if (!method.HasBody) return;
         result.CountScannedMethod();
         var enclosingKey = MemberKey.For(method);
+        var enclosingOutermost = TypeTraits.OutermostFullName(method.DeclaringType);
 
         foreach (var instruction in method.Body.Instructions)
         {
@@ -68,7 +69,12 @@ public sealed class ReferenceCollector
 
             var targetKey = MemberKey.For(definition);
             if (targetKey == enclosingKey) return;
-            result.AddReference(targetKey, fromAssembly);
+
+            // 縮小提案のため、参照が宣言型・宣言アセンブリの外へ出たかを同時に記録する
+            // Record whether the reference escaped the declaring type or assembly, which drives the narrowing proposal
+            var sameOutermostType = TypeTraits.OutermostFullName(definition.DeclaringType) == enclosingOutermost;
+            var sameAssembly = string.Equals(definition.Module.Assembly.Name.Name, fromAssembly, StringComparison.Ordinal);
+            result.AddReference(targetKey, fromAssembly, sameOutermostType, sameAssembly);
         }
 
         // DI登録とシリアライズAPIのジェネリック引数は、コンテナ/シリアライザが反射的に触る型

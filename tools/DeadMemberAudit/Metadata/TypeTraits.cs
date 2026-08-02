@@ -59,6 +59,43 @@ public static class TypeTraits
         return AuditConstants.GeneratedNamespacePrefixes.Any(prefix => fullName.StartsWith(prefix, StringComparison.Ordinal));
     }
 
+    // ラムダのクロージャやネスト型は外側の型の一部として扱う。C#では入れ子間でprivateが見えるため
+    // Closures and nested types belong to their outer type, because C# lets nested scopes see each other's private members
+    public static TypeDefinition OutermostType(TypeDefinition type)
+    {
+        var current = type;
+        while (current.DeclaringType != null) current = current.DeclaringType;
+        return current;
+    }
+
+    public static string OutermostFullName(TypeDefinition type)
+    {
+        return OutermostType(type).FullName;
+    }
+
+    // アセンブリ外から見える型か。internal型のpublicメンバーは既にinternal相当なので縮小提案の対象外
+    // Whether the type is visible outside the assembly; a public member of an internal type is already internal in effect
+    public static bool IsEffectivelyPublic(TypeDefinition type)
+    {
+        for (var current = type; current != null; current = current.DeclaringType)
+        {
+            if (current.DeclaringType == null) return current.IsPublic;
+            if (!current.IsNestedPublic) return false;
+        }
+
+        return false;
+    }
+
+    // async/iteratorの本体は生成された状態機械へ移るので、走査対象をそちらへ差し替える
+    // An async or iterator body moves into a generated state machine, so scanning must follow it there
+    public static TypeDefinition? StateMachineType(MethodDefinition method)
+    {
+        if (!method.HasCustomAttributes) return null;
+        var attribute = method.CustomAttributes.FirstOrDefault(candidate => AuditConstants.StateMachineAttributes.Contains(candidate.AttributeType.Name));
+        if (attribute == null || attribute.ConstructorArguments.Count == 0) return null;
+        return attribute.ConstructorArguments[0].Value is TypeReference stateMachine ? AssemblyLoader.TryResolve(stateMachine) : null;
+    }
+
     // シリアライザが反射的にメンバーを読み書きする型か
     // Whether a serializer reflectively reads and writes this type's members
     public static bool IsSerializedType(TypeDefinition type)
