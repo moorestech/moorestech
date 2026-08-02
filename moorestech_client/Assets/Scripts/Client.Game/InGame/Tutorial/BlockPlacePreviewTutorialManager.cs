@@ -28,11 +28,19 @@ namespace Client.Game.InGame.Tutorial
         private BlockPlacePreviewTutorialParam _currentParam;
         private BlockId _currentBlockId;
         private IDisposable _blockPlacedDisposable;
+        private string _message = "";
 
         [Inject]
         public void Construct(BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
+        }
+
+        private void Start()
+        {
+            // 言語切替時に表示中のピン文言を再解決する
+            // Re-resolve the visible pin text when the language changes
+            Localize.OnLanguageChanged.Subscribe(_ => RefreshMessage()).AddTo(this);
         }
 
         private void Update()
@@ -45,12 +53,7 @@ namespace Client.Game.InGame.Tutorial
             if (!camera) return;
 
             var projection = WorldPinScreenProjection.Project(camera, _previewObject.transform.position);
-
-            // 毎フレーム解決するため言語切替へ自動追従する
-            // Per-frame resolution keeps the pin text in sync with language switches
-            var message = Localize.GetContent(
-                ContentLocalizationKeys.ChallengeTutorialText(_currentTutorial.TutorialGuid));
-            WorldPinStateStore.Instance.SetPin(WebPinId, message, projection);
+            WorldPinStateStore.Instance.SetPin(WebPinId, _message, projection);
         }
 
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
@@ -68,6 +71,7 @@ namespace Client.Game.InGame.Tutorial
                 return null;
             }
 
+            RefreshMessage();
             CreateOrUpdatePreviewAsync().Forget();
             SubscribePlacementEvent();
 
@@ -141,6 +145,14 @@ namespace Client.Game.InGame.Tutorial
 
             _currentTutorial = null;
             _currentParam = null;
+        }
+
+        // 対象切替と言語切替の時だけピン文言を再解決する（Update()は射影専用）
+        // Re-resolve the pin text only on target/language change; Update() does projection only
+        private void RefreshMessage()
+        {
+            if (_currentTutorial == null) return;
+            _message = Localize.GetContent(ContentLocalizationKeys.ChallengeTutorialText(_currentTutorial.TutorialGuid));
         }
 
         private void OnDestroy()
