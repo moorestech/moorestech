@@ -105,10 +105,6 @@ namespace Client.Starter
                 new MoorestechServerDIContainerGenerator().Create(options);
             }
 
-            // マスタロード後に同一mod順でゲーム辞書を合成する
-            // Merge game dictionaries in the same mod order after master loading
-            Localize.MergeGameDictionaries(ServerContext.GetService<global::Mod.Loader.ModsResource>());
-
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
             var modalManager = new ModalManager();
 
@@ -121,12 +117,20 @@ namespace Client.Starter
             ServerConnectionResult serverResult;
             ModAssetLoadResult assetResult;
             AsyncOperation sceneLoadTask;
+            // mod CSV・サーバー通信・アセットロードという外部境界の失敗をまとめて隔離する
+            // Isolate failures from the external boundaries: mod CSV, server communication, and asset loading
             try
             {
+                // マスタロード後に同一mod順でゲーム辞書を合成する
+                // Merge game dictionaries in the same mod order after master loading
+                Localize.MergeGameDictionaries(ServerContext.GetService<global::Mod.Loader.ModsResource>());
+
                 (serverResult, assetResult, sceneLoadTask) = await UniTask.WhenAll(serverInitializer.RunAsync(), modAssetLoader.RunAsync(), sceneLoader.RunAsync());
             }
             catch (Exception e)
             {
+                // 失敗時はローディングを打ち切りメインメニューへ戻す
+                // On failure, abort loading and fall back to the main menu
                 Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 return;
