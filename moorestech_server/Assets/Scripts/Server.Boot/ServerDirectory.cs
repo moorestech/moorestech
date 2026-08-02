@@ -14,9 +14,9 @@ namespace Server.Boot
             var debugServerDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../../moorestech_master/server_v8/"));
             var serverDirectory = DebugParameters.GetValueOrDefaultString(DebugServerDirectorySettingKey ,debugServerDirectory);
 #elif UNITY_STANDALONE_OSX
-            // dataPathは<app>.app/Contents/Resources/Dataのため、4階層上（.appの隣）のgame/を参照
-            // dataPath is <app>.app/Contents/Resources/Data, so game/ sits four levels up beside the .app
-            var serverDirectory = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "..", "..", "..", "..", "game"));
+            // dataPathは<app>.app/Contentsのため、2階層上（.appの隣）のgame/を参照
+            // dataPath is <app>.app/Contents, so game/ sits two levels up beside the .app
+            var serverDirectory = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "..", "..", "game"));
 #else
             // dataPathは<root>/moorestech_Dataのため、1階層上（実行ファイルの隣）のgame/を参照
             // dataPath is <root>/moorestech_Data, so game/ sits one level up beside the executable

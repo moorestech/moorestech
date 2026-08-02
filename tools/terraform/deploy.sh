@@ -33,11 +33,12 @@ done
 echo "Transferring server build..."
 $SCP_CMD -r "$BUILD_DIR/." "ubuntu@$HOST:~/moorestech_server/"
 
-# ゲームデータの転送（mods, map, config）
-# Transfer game data (mods, map, config)
+# ゲームデータの転送（mods, map, config）配置は実行ファイルの隣のgame/で配布ビルドと共通
+# Transfer game data (mods, map, config) into game/ beside the executable, same layout as distribution builds
 if [ -d "$GAME_DATA_DIR" ]; then
     echo "Transferring game data..."
-    $SCP_CMD -r "$GAME_DATA_DIR/." "ubuntu@$HOST:~/game/"
+    $SSH_CMD "mkdir -p ~/moorestech_server/game"
+    $SCP_CMD -r "$GAME_DATA_DIR/." "ubuntu@$HOST:~/moorestech_server/game/"
 else
     echo "WARNING: Game data directory not found at $GAME_DATA_DIR, skipping."
 fi
@@ -54,8 +55,8 @@ $SSH_CMD << 'REMOTE_SCRIPT'
     # Grant execute permission
     chmod +x ~/moorestech_server/moorestech_server
 
-    # バックグラウンドでサーバー起動（デフォルトで ../../game を参照）
-    # Start server in background (defaults to ../../game relative to dataPath)
+    # バックグラウンドでサーバー起動（デフォルトで dataPath の1階層上の game/ を参照）
+    # Start server in background (defaults to game/ one level above dataPath)
     cd ~/moorestech_server
     nohup ./moorestech_server \
         > ~/moorestech_server.log 2>&1 &
