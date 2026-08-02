@@ -4,6 +4,9 @@ import { payloadsOf } from "../support/actions";
 test("接続後にインベントリが描画される", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
+  const removedDevelopmentLabel = ["Ping", "Action"].join(" ");
+  await expect(page.getByRole("button", { name: "整理" })).toBeVisible();
+  await expect(page.getByRole("button", { name: removedDevelopmentLabel })).toHaveCount(0);
   // Wood(itemId=1,count=10) の count バッジが出る
   // The count badge for Wood (itemId=1, count=10) appears
   await expect(page.getByText("10").first()).toBeVisible();

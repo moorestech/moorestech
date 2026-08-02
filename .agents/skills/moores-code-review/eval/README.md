@@ -48,6 +48,8 @@ done
 `set-once-setter-negative.diff`（可変値SetHoge＋MonoBehaviour→なしが正）。2026-07-18 opusで両方合格。
 `hardcoded-content-enum-positive.diff`（オーディオトラック3種のKindConst列挙membership util→Criticalありが正）/
 `hardcoded-content-enum-negative.diff`（同ドメインの種別→プレイヤー実装ディスパッチswitch→Criticalなしが正）。
+`default-resolution-positive.diff`（トースト表示時間のpublic Default定数＋呼び出し側??解決→Criticalありが正）/
+`default-resolution-negative.diff`（カットシーン速度のprivate Default＋nullable API内部解決＋呼び出し側の自ポリシー明示値→Criticalなしが正）。
 
 ### spec段階のリプレイ
 PR988の誤設計は `docs/superpowers/specs/2026-07-05-item-stack-upgrade-design.md`（「新規プロトコル・

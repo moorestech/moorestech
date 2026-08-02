@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, type ProxyOptions } from "vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "node:url";
 
@@ -6,6 +6,11 @@ import { fileURLToPath, URL } from "node:url";
 // Unity injects the actual backend port via env; the vite port here is a standalone `pnpm dev` fallback (Unity passes CLI --port, which wins)
 const vitePort = Number(process.env.MOORESTECH_VITE_PORT ?? 25173);
 const backendPort = Number(process.env.MOORESTECH_BACKEND_PORT ?? 25050);
+// E2E制御の中継は明示したテスト起動だけへ限定する
+// Restrict E2E-control forwarding to explicitly marked test launches
+const e2eProxy: Record<string, ProxyOptions> = process.env.MOORESTECH_E2E === "true" ? {
+  "/__": { target: `http://127.0.0.1:${backendPort}`, changeOrigin: false },
+} : {};
 
 // Vite dev server の設定
 // Vite dev server configuration
@@ -39,6 +44,7 @@ export default defineConfig({
         ws: true,
         changeOrigin: false,
       },
+      ...e2eProxy,
     },
   },
 });
