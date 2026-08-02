@@ -24,7 +24,9 @@ export default function CurrentChallengeHud() {
       {...tutorialAnchor(TutorialAnchorIds.challengeCurrentHud)}
     >
       <div className={styles.label}>{label}</div>
-      <FadeRule />
+      <div className={styles.rule}>
+        <FadeRule />
+      </div>
       <div className={styles.objectives}>
         {current.challenges.map((challenge) => (
           <div key={challenge.guid} className={styles.objective} data-testid="challenge-objective">

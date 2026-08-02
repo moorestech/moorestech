@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { setSkitStage, setTopicScenario, setUiState } from "../support/mockControl";
-import { expectAbove, expectCenteredHorizontally, expectNoHorizontalOverflow, expectSeparatedHorizontally, expectWithinViewport } from "../support/layoutAssertions";
+import { expectAbove, expectAtViewportTopCorner, expectNoHorizontalOverflow, expectSeparatedHorizontally, expectWithinViewport } from "../support/layoutAssertions";
 import { expectChallengeHudPresentation, expectWrappedObjectives, readChallengeHudPresentation } from "../support/challengeHudAssertions";
 test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "challengeActive");
@@ -30,7 +30,6 @@ test("チャレンジ画面が開きツリーだけを翻訳済み表示する",
   await expect(page.getByText("進行中", { exact: true })).toBeVisible();
   await expect(page.locator("body")).not.toContainText("challenge.");
   await expect(page.getByTestId("challenge-hud")).toBeVisible();
-  await expectCenteredHorizontally(page.getByTestId("challenge-hud"), page.locator("body"));
 });
 test("常駐HUDをインベントリ・メニュー・操作モードで維持する", async ({ page }) => {
   await setTopicScenario(page, "challengeJapanese");
@@ -87,17 +86,17 @@ test("常駐HUDをインベントリ・メニュー・操作モードで維持�
     await expectAbove(challengeHud, menuContent);
   }
 
-  // 一覧の左操作群とHUDを横分離する
-  // Keep the fullscreen challenge list clear through horizontal separation from its left controls
+  // 左配置のHUDを一覧より上へ分離する
+  // Keep the left-aligned HUD above the fullscreen challenge controls
   await setUiState(page, "ChallengeList");
   await expectChallengeHudPresentation(page, worldPresentation);
-  await expectSeparatedHorizontally(page.getByTestId("challenge-category-cat-1"), challengeHud);
+  await expectAbove(challengeHud, page.getByTestId("challenge-category-cat-1"));
 
   // 縮小画面でもHUDを画面内へ収める
   // Follow stage scaling and remain within a smaller viewport
   await page.setViewportSize({ width: 1024, height: 576 });
   await setUiState(page, "GameScreen");
-  await expect.poll(async () => (await challengeHud.boundingBox())?.width).toBe(512);
+  await expect.poll(async () => (await challengeHud.boundingBox())?.width).toBeCloseTo(416, 1);
   const scaledWorldPresentation = await readChallengeHudPresentation(page);
   await setUiState(page, "PlayerInventory");
   await expect(page.getByTestId("main-grid")).toBeVisible();
@@ -117,13 +116,15 @@ test("進行中チャレンジを内部キーやカード面なしで表示す�
   await expect(hud).toHaveCSS("pointer-events", "none");
   await expect(hud).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 
-  // 固定配置と影をピクセル検証する
-  // Verify fixed placement and shadow in pixels
+  // 左上固定の寸法と短い罫線を検証する
+  // Verify top-left fixed dimensions and the shortened rule
   await expect(hud).toHaveCSS("top", "24px");
-  await expect(hud).toHaveCSS("left", "320px");
-  await expect(hud).toHaveCSS("width", "640px");
+  await expect(hud).toHaveCSS("left", "24px");
+  await expect(hud).toHaveCSS("width", "520px");
   await expect(hud).toHaveCSS("text-shadow", "rgba(0, 0, 0, 0.85) 0px 1px 2px");
-  await expect(hud.locator('[aria-hidden="true"]')).toHaveCount(1);
+  const rule = hud.locator('[aria-hidden="true"]');
+  await expect(rule).toHaveCount(1);
+  await expect(rule).toHaveCSS("width", "176px");
 
   // 面装飾と文字階層をスタイル検証する
   // Verify surface decoration and type hierarchy through styles
@@ -150,6 +151,22 @@ test("進行中チャレンジを内部キーやカード面なしで表示す�
     labelLetterSpacing: "1px",
     objectiveLineHeight: "20px",
   });
+});
+
+test("横長画面で進行HUDを実画面左上へ置き罫線を約3分の1へ縮める", async ({ page }) => {
+  await page.setViewportSize({ width: 2432, height: 786 });
+  await setTopicScenario(page, "challengeJapanese");
+  await setUiState(page, "GameScreen");
+  await page.goto("/");
+
+  const hud = page.getByTestId("challenge-hud");
+  await expectAtViewportTopCorner(hud, "left", 40);
+  const hudBox = await hud.boundingBox();
+  const ruleBox = await hud.locator('[aria-hidden="true"]').boundingBox();
+  expect(hudBox).not.toBeNull();
+  expect(ruleBox).not.toBeNull();
+  expect(hudBox!.width).toBeCloseTo(520 * 786 / 720, 1);
+  expect(ruleBox!.width).toBeCloseTo(176 * 786 / 720, 1);
 });
 
 test("複数目標を受信順で表示し長文をHUD幅内へ折り返す", async ({ page }) => {

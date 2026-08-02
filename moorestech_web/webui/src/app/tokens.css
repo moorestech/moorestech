@@ -3,6 +3,21 @@
 /* Mantine のグローバル body 背景（--mantine-color-body）を import 順で上書きする */
 /* Overrides Mantine's global body background (--mantine-color-body) via import order */
 :root {
+  /* stage基準寸法と、初回layout effect前に使う論理viewport既定値 */
+  /* Stage baseline dimensions and logical viewport defaults used before the first layout effect */
+  --ui-stage-width: 1280px;
+  --ui-stage-height: 720px;
+  --ui-viewport-width: var(--ui-stage-width);
+  --ui-viewport-height: var(--ui-stage-height);
+  /* 実viewportの縦横比へ追従するヴィネット幾何と既存色 */
+  /* Vignette geometry and colors that follow the real viewport aspect ratio */
+  --screen-vignette-width: 82%;
+  --screen-vignette-height: 86%;
+  --screen-vignette-center-x: 50%;
+  --screen-vignette-center-y: 46%;
+  --screen-vignette-clear-stop: 66%;
+  --screen-vignette-clear: rgb(4 5 8 / 0%);
+  --screen-vignette-edge: rgb(4 5 8 / 16%);
   --slot-size: 3rem;
   /* ホットバーと採掘ゲージが共有する固定寸法と配置基準 */
   /* Fixed dimensions and placement references shared by the hotbar and mining gauge */
@@ -26,6 +41,24 @@
   /* 面の左右フェード幅。%指定はパネル幅で伸びるため固定長で統一 */
   /* Horizontal face-fade span; fixed length so it never scales with panel width */
   --panel-edge-fade: 12px;
+  /* クラフト枠の右下グリップを正本の固定寸法と単色面へ揃える */
+  /* Match the craft-frame grip to the reference's fixed size and single-color face */
+  --craft-grip-size: 8.74px;
+  --craft-grip-inset: 6.98px;
+  --craft-grip-offset: 0.4px;
+  --craft-grip-face: rgb(134 136 152 / 98%);
+  /* クラフトタブの正本寸法、パネル原点からの位置、各層色を一元化する */
+  /* Centralize the craft tab's reference size, panel-relative placement, and layer colors */
+  --craft-tab-width: 64.978px;
+  --craft-tab-height: 27.397px;
+  --craft-tab-margin-top: -37.18px;
+  --craft-tab-margin-left: -11px;
+  --craft-tab-margin-bottom: 6.46px;
+  --craft-tab-back: rgb(51 43 40);
+  --craft-tab-side: rgb(16 15 21);
+  --craft-tab-face: rgb(58 59 72);
+  --craft-tab-edge: rgb(73 75 120);
+  --craft-tab-hammer: rgb(75 75 75);
   --font-ui: "MooresUI", "MooresUI JP", sans-serif;
   /* 画面レイヤーの層序を一元化し、各オーバーレイの前後関係を固定する */
   /* Centralize the screen layer order to keep every overlay's stacking relationship fixed */
@@ -49,11 +82,12 @@
   /* Keep menu content between the resident HUD and the hotbar */
   --menu-upper-safe-area: 128px;
   --menu-content-height: 525px;
-  /* 常駐チャレンジHUDは全画面で上中央の安全帯へ固定し、文字組を変えない */
-  /* Keep the resident challenge HUD in one upper-center safe area with unchanged typography on every screen */
-  --challenge-hud-left: 320px;
+  /* 常駐チャレンジHUDは左上へ固定し、本文と罫線の幅を分離する */
+  /* Keep the resident challenge HUD top-left with independent content and rule widths */
+  --challenge-hud-left: 24px;
   --challenge-hud-top: 24px;
-  --challenge-hud-width: 640px;
+  --challenge-hud-width: 520px;
+  --challenge-hud-rule-width: 176px;
   --challenge-hud-label-font-size: 12px;
   --challenge-hud-objective-font-size: 14px;
   --challenge-hud-label-rule-gap: 5px;

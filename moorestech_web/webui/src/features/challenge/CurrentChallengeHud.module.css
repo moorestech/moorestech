@@ -11,6 +11,12 @@
   text-shadow: var(--challenge-hud-text-shadow);
 }
 
+/* 本文幅を保ったまま区切り線だけを短くする */
+/* Shorten only the rule while retaining the readable content width */
+.rule {
+  width: var(--challenge-hud-rule-width);
+}
+
 /* 控えめな見出しから共有罫線へ固定間隔でつなぐ */
 /* Connect the subdued label to the shared rule with a fixed gap */
 .label {

@@ -19,7 +19,8 @@
 /* 共通側の単一クラス規則へ確実に勝たせるため .toolbar 配下で限定する */
 /* Scoped under .toolbar so these reliably beat the shared component's single-class rules */
 .toolbar .toolButton {
-  color: var(--text-default);
+  color: var(--text-high-contrast);
+  filter: drop-shadow(var(--skit-tool-icon-shadow));
   opacity: var(--skit-tool-icon-opacity);
 }
 
