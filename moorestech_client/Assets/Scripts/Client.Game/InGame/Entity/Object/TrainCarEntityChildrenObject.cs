@@ -36,9 +36,9 @@ namespace Client.Game.InGame.Entity.Object
             _materialController.SetMaterialMode(TrainCarVisualMaterialMode.Normal);
         }
 
-        public bool IsRemovable(out LocalizationKey reason)
+        public bool IsRemovable(out LocalizationKey? deniedReason)
         {
-            reason = default;
+            deniedReason = null;
             return true;
         }
 

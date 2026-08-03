@@ -14,6 +14,10 @@ namespace Client.Tests.UIState
         public int ResetCount;
         public int DeleteCount;
         public bool Removable;
+
+        // 拒否時に返す理由キー（未設定なら「拒否だが表示すべき理由が無い」を表す）
+        // Reason key returned on denial; unset means "denied without a displayable reason"
+        public LocalizationKey? DenyReason;
         public object Key;
         public string Category = BlockMasterElementExtension.DefaultDestructionCategory;
 
@@ -27,9 +31,9 @@ namespace Client.Tests.UIState
             ResetCount++;
         }
 
-        public bool IsRemovable(out LocalizationKey reason)
+        public bool IsRemovable(out LocalizationKey? deniedReason)
         {
-            reason = default;
+            deniedReason = Removable ? null : DenyReason;
             return Removable;
         }
 

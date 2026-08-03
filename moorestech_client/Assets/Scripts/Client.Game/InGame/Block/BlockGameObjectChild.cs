@@ -32,15 +32,15 @@ namespace Client.Game.InGame.Block
             BlockGameObject.ResetMaterial();
         }
         
-        public bool IsRemovable(out LocalizationKey reason)
+        public bool IsRemovable(out LocalizationKey? deniedReason)
         {
             if (_removeDeniedReason.HasValue && Time.time < _removeDeniedReasonUntil)
             {
-                reason = _removeDeniedReason.Value;
+                deniedReason = _removeDeniedReason;
                 return false;
             }
 
-            reason = default;
+            deniedReason = null;
             return true;
         }
         

@@ -125,12 +125,14 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 _isDragging = false;
             }
 
-            // ツールチップへはキーを、HUD向け理由文字列へは解決済み文言を渡す
-            // Push the key to the tooltip and the resolved wording to the HUD reason string
-            void ShowDenyReason(LocalizationKey denyReasonKey)
+            // ツールチップへはキーを、HUD向け理由文字列へは解決済み文言を渡す（理由なし拒否は何も出さない）
+            // Push the key to the tooltip and the resolved wording to the HUD reason string (a reasonless denial shows nothing)
+            void ShowDenyReason(LocalizationKey? denyReasonKey)
             {
-                MouseCursorTooltip.Instance.Show(denyReasonKey);
-                _unavailableReason.Value = Localize.Get(denyReasonKey);
+                if (!denyReasonKey.HasValue) return;
+
+                MouseCursorTooltip.Instance.Show(denyReasonKey.Value);
+                _unavailableReason.Value = Localize.Get(denyReasonKey.Value);
                 _isRemoveDeniedReasonShown = true;
             }
 

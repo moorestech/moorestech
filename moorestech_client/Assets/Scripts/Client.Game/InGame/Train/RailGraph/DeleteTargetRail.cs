@@ -42,16 +42,18 @@ namespace Client.Game.InGame.Train.RailGraph
             RailChain.ResetMaterial();
         }
         
-        public bool IsRemovable(out LocalizationKey reason)
+        public bool IsRemovable(out LocalizationKey? deniedReason)
         {
+            // 削除済みは表示すべき理由が無い拒否なのでnullを返す（default(LocalizationKey)は辞書引きで落ちる）
+            // A removed rail is a denial without a displayable reason, so return null (default(LocalizationKey) breaks the lookup)
             var canDelete = CanDelete();
-            reason = canDelete switch
+            deniedReason = canDelete switch
             {
-                DeleteDeniedReason.None => default,
+                DeleteDeniedReason.None => null,
                 DeleteDeniedReason.StationInternalEdge => LocalizationKeys.Ui.Delete.StationInternalRail,
                 DeleteDeniedReason.NodeInUseByTrain => LocalizationKeys.Ui.Delete.RailHasVehicle,
                 DeleteDeniedReason.UnknownError => LocalizationKeys.Ui.Delete.UnknownError,
-                DeleteDeniedReason.Removed => default,
+                DeleteDeniedReason.Removed => null,
                 _ => throw new ArgumentOutOfRangeException(),
             };
             return canDelete == DeleteDeniedReason.None;

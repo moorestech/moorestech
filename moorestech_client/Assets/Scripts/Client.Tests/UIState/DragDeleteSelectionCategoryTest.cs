@@ -41,7 +41,8 @@ namespace Client.Tests.UIState
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(start, out _));
             Assert.IsFalse(selection.TryAddTarget(foundation, out var denyReason));
-            Assert.AreEqual(LocalizationKeys.Ui.Delete.DifferentCategorySelection, denyReason);
+            Assert.IsTrue(denyReason.HasValue);
+            Assert.AreEqual(LocalizationKeys.Ui.Delete.DifferentCategorySelection, denyReason.Value);
             selection.CommitDelete();
 
             Assert.AreEqual(1, start.DeleteCount);

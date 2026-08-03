@@ -35,11 +35,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _sessionCategory = null;
         }
 
-        // 対象を選択へ追加する。削除可否・カテゴリー整合をまとめて判定し、追加不可なら拒否理由を返す
-        // Add a target to the selection; judges removability and category together, returning a deny reason when rejected
-        public bool TryAddTarget(IDeleteTarget target, out LocalizationKey denyReason)
+        // 対象を選択へ追加する。削除可否・カテゴリー整合をまとめて判定し、追加不可なら拒否理由を返す（理由なし拒否はnull）
+        // Add a target to the selection; judges removability and category together, returning a deny reason when rejected (null when there is none)
+        public bool TryAddTarget(IDeleteTarget target, out LocalizationKey? denyReason)
         {
-            denyReason = default;
+            denyReason = null;
             if (_canceled) return false;
 
             // 削除不可なら対象由来の理由をそのまま返す
