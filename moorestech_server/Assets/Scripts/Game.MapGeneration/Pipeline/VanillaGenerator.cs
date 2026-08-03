@@ -149,12 +149,18 @@ namespace Game.MapGeneration.Pipeline
         // Run the spawn search, push the centering offset G into the config's noise coordinates, and return it.
         static Vector2 ResolveSpawnOffset(TerrainGenerationConfig config, BiomeType[] biomeTypes)
         {
-            if (!config.useSpawnOffsetSearch) return Vector2.zero;
+            // 探索無効も1行残す。無効とフォールバックはどちらもオフセット0で、ログが無いと後から区別できない（ADR#13）
+            // Log the disabled path too: disabled and fallback both yield a zero offset and become indistinguishable without it (ADR#13)
+            if (!config.useSpawnOffsetSearch)
+            {
+                Debug.Log("[SpawnSearch] 探索無効（useSpawnOffsetSearch=false）");
+                return Vector2.zero;
+            }
 
             var result = SpawnRegionFinder.Find(config, biomeTypes);
 
-            // 成否と診断を必ず残す。候補ゼロや設定不備でも生成は止めない（ADR#13）
-            // Always record the outcome and diagnostics; zero candidates or bad settings never abort generation (ADR#13)
+            // 成否と診断を必ず残す。候補ゼロならフォールバックして生成は続ける（設定不備によるSpawnRegionFinderのthrowは別途裁定・ADR#13）
+            // Always record the outcome and diagnostics: zero candidates fall back and generation continues (SpawnRegionFinder still throws on bad settings, pending a separate ruling; ADR#13)
             Debug.Log($"[SpawnSearch] {(result.Success ? "成功" : "フォールバック")}\n{result.Diagnostics}");
 
             // 成功/失敗いずれも offset と spawn を必ず同期させる（片方だけ残ると鉱脈帯とスポーンがズレる）。
