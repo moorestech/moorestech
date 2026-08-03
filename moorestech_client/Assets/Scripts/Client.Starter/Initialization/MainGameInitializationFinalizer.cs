@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
@@ -13,7 +11,6 @@ using Cysharp.Threading.Tasks;
 using Game.Context;
 using UnityEngine;
 using VContainer;
-using Debug = UnityEngine.Debug;
 
 namespace Client.Starter.Initialization
 {
@@ -48,8 +45,8 @@ namespace Client.Starter.Initialization
             // Build Terrain before outcrop surface raycasts and synchronize it into the physics scene
             await TerrainRuntimeBuilder.BuildAsync(_serverResult.HandshakeResponse.MapLayout, starter.EnvironmentRoot.transform);
 
-            // 露頭生成はTerrain完成後に明示開始する。完了待ちは下のWhenAllが一括で担う（ADR#15）
-            // Outcrop instantiation starts explicitly after the terrain is ready; the WhenAll below waits for it with the rest (ADR#15)
+            // 露頭生成はTerrain完成後に明示開始する。完了待ちは下の待機境界が一括で担う（ADR#15）
+            // Outcrop instantiation starts explicitly after the terrain is ready; the wait boundary below waits for it with the rest (ADR#15)
             resolver.Resolve<MapVeinObjectDatastore>().StartOutcropInstantiation();
 
             // 地形コライダーが揃ってから自機を保存座標へ置き、重力と座標送信を解禁する（落下と座標汚染の窓を作らない・ADR#16）
@@ -57,37 +54,8 @@ namespace Client.Starter.Initialization
             resolver.Resolve<PlayerSystemContainer>().StartPlayerRuntime();
             resolver.Resolve<PlayerPositionSender>().StartSending();
 
-            await WaitAllInitialApplyAsync(resolver);
+            await InitialEventApplyWaiter.WaitAllAsync(resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>());
             starter.RestoreLoginState(_serverResult.HandshakeResponse);
-        }
-
-        private static async UniTask WaitAllInitialApplyAsync(IObjectResolver resolver)
-        {
-            var targets = resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>();
-            var waits = targets.Select(target => (target, task: target.WaitForInitialApplyAsync().Preserve())).ToList();
-            var allApplied = UniTask.WhenAll(waits.Select(wait => wait.task));
-
-            // 対象タスクはWhenAllで一度だけawaitする。警告側でも待つとUniTaskの二重await例外になる
-            // Await the targets once through WhenAll; awaiting them again in the warning path throws UniTask's double-await error
-            WarnStuckTargetsAsync().Forget();
-            await allApplied;
-
-            #region Internal
-
-            // 5秒未完了で詰まっている対象を顕在化し、適用待機自体は継続する
-            // Surface targets stuck past five seconds while continuing to wait for their application
-            async UniTaskVoid WarnStuckTargetsAsync()
-            {
-                await UniTask.Delay(TimeSpan.FromSeconds(5));
-
-                // 未完了(Pending)だけを並べる。faultedは例外として上がるので警告に載せない
-                // List only Pending targets; faulted ones surface as exceptions instead
-                var pending = string.Join(", ", waits.Where(wait => wait.task.Status == UniTaskStatus.Pending).Select(wait => wait.target.GetType().Name));
-                if (pending.Length == 0) return;
-                Debug.LogWarning($"[MainGameInitializationFinalizer] 初期イベント適用が未完了のまま待機中: {pending}");
-            }
-
-            #endregion
         }
     }
 }
