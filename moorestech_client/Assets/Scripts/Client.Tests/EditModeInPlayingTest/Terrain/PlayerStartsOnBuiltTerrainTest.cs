@@ -11,6 +11,7 @@ using Client.Game.InGame.Player;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Provisioning;
+using Game.Paths;
 using NUnit.Framework;
 using UniRx;
 using UnityEditor;
@@ -29,9 +30,9 @@ namespace Client.Tests.EditModeInPlayingTest
     /// </summary>
     public class PlayerStartsOnBuiltTerrainTest
     {
-        // 自機は入力が無い限り水平には1mmも動かない
-        // The player does not move a millimeter horizontally without input
-        private const float HorizontalTolerance = 0.01f;
+        // 地表下に埋まった自機はCharacterControllerの押し出しでXZが数cm動く。Warpが抜ければ数百mずれるので1mで切れる
+        // A player buried under the surface drifts a few centimeters in XZ from CharacterController depenetration, while a missing warp lands hundreds of meters away, so one meter separates them
+        private const float HorizontalTolerance = 1f;
 
         // 新規ワールドのスポーンYは0で地表下にあり、自機は起動直後からそこで2m/sで沈み続ける。落下復帰は逆に地表まで数十m跳ね上げるので、その手前で切る
         // A new world spawns at Y=0 below the surface and the player sinks there at 2 m/s from the start, while a fall recovery instead snaps it tens of meters up to the surface, so the bound sits below that
@@ -77,8 +78,8 @@ namespace Client.Tests.EditModeInPlayingTest
                 var isInitialized = false;
                 using var initializedSubscription = GameInitializedEvent.OnGameInitialized.Subscribe(_ => isInitialized = true);
 
-                // 起動後の座標だけでは落下と復帰を事後に見分けられない。スポーンXZへ復帰すると最終座標が正常時と一致してしまう
-                // The final position alone cannot tell a fall-and-recovery apart, since recovering onto the spawn XZ lands exactly where a healthy startup ends
+                // 地形構築より前に解放されていないことを見る。健全時は解放後を1フレームも観測せず、守備範囲は解放前区間に限られる
+                // Watches that nothing is released before the terrain is built; a healthy run observes no post-release frame, so its coverage is the pre-release interval only
                 var tracing = TraceLowestPlayerYUntilInitialized();
 
                 var worldDirectory = Path.Combine(Path.GetTempPath(), $"moorestech_player_start_terrain_test_{Guid.NewGuid()}");
@@ -87,6 +88,12 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 AssertPlayerStandsOnTerrain(await tracing);
                 AssertEveryProductionWaitTargetIsResolved();
+
+                // runごとに新しいworldIdのワールドと地形キャッシュが増え続けるので、検証を終えた分をその場で消す
+                // Every run leaves behind another worldId's world and terrain cache, so the finished ones are deleted right here
+                var worldId = ClientDIContext.DIContainer.DIContainerResolver.Resolve<InitialHandshakeResponse>().MapLayout.TerrainMeta.WorldId;
+                Directory.Delete(GameSystemPaths.GetWorldCacheDirectory(worldId), true);
+                Directory.Delete(worldDirectory, true);
 
                 async UniTask<float> TraceLowestPlayerYUntilInitialized()
                 {
@@ -120,9 +127,9 @@ namespace Client.Tests.EditModeInPlayingTest
                 Assert.AreEqual(handshakePosition.z, playerPosition.z, HorizontalTolerance, $"自機Zがハンドシェイク座標と違う actual:{playerPosition}");
                 Assert.AreEqual(handshakePosition.y, playerPosition.y, HandshakePositionToleranceY, $"自機Yがハンドシェイク座標から離れている actual:{playerPosition}");
 
-                // 真下に地表があること。地形が未構築のまま起動が終わっていればここで落ちる
-                // Ground exists right below; a startup that finished with no terrain fails here
-                Assert.IsTrue(hasGround, $"自機の真下に地表が無い pos:{playerPosition}");
+                // そのXZに地形が構築済みであること。レイは上空から落とすので接地ではなく地形の有無を見ている
+                // Terrain is built at that XZ; the ray falls from high above, so this checks terrain existence rather than ground contact
+                Assert.IsTrue(hasGround, $"自機のXZに地形が構築されていない pos:{playerPosition}");
             }
 
             // Finalizerが実際に使うコンテナから解決する。別に組んだコンテナでassertしても登録漏れは検出できない
