@@ -7,10 +7,12 @@ using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Modal;
+using Client.Game.Localization;
 using Client.Localization;
 using Client.Network.API;
 using Client.Network.Settings;
 using Client.Starter.Initialization;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Server.Boot;
@@ -119,9 +121,10 @@ namespace Client.Starter
             // Isolate failures from the external boundaries: mod CSV, server communication, and asset loading
             try
             {
-                // マスタロード後に同一mod順でゲーム辞書を合成する
-                // Merge game dictionaries in the same mod order after master loading
-                Localize.MergeGameDictionaries(ServerContext.GetService<global::Mod.Loader.ModsResource>());
+                // マスタロード後に同一mod順とMaster原文で辞書を合成
+                // Merge dictionaries in the same mod order with Master sources after master loading
+                var masterContainer = ServerContext.GetService<MasterJsonFileContainer>();
+                Localize.MergeGameDictionaries(ServerContext.GetService<global::Mod.Loader.ModsResource>(), masterContainer.SortedModIds, MasterSourceTextCollector.Collect());
 
                 (serverResult, assetResult) = await UniTask.WhenAll(serverInitializer.RunAsync(), modAssetLoader.RunAsync());
             }

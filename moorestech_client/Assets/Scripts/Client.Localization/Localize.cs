@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Core.Master;
-using Game.Context;
 using Mod.Loader;
 using Mooresmaster.Localization.Generated;
 using UniRx;
@@ -59,24 +58,19 @@ namespace Client.Localization
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
-        public static void MergeGameDictionaries(ModsResource modsResource)
-        {
-            // DI登録済みコンテナからマスタと同じmod順を受け取る
-            // Read the exact master mod order from the registered DI container
-            var masterContainer = ServerContext.GetService<MasterJsonFileContainer>();
-            MergeGameDictionaries(modsResource, masterContainer.SortedModIds);
-        }
-
-        internal static void MergeGameDictionaries(
+        // mod順とMaster原文は呼び出し側が決め、基盤は辞書だけを合成する
+        // Callers decide mod order and Master sources; the foundation only composes dictionaries
+        public static void MergeGameDictionaries(
             ModsResource modsResource,
-            IReadOnlyList<ModId> orderedModIds)
+            IReadOnlyList<ModId> orderedModIds,
+            IReadOnlyDictionary<string, string> masterSourceTexts)
         {
             var candidate = VanillaLocalizationDictionaryFactory.Create();
             ModLocalizationMerger.Merge(modsResource, orderedModIds, candidate);
 
             // mod Sourceの後へMaster正本を重ね、空原文も欠落として確定する
             // Overlay canonical Master after mod Source and finalize empty sources as omissions
-            OverlayMasterSourceTexts(candidate, MasterSourceTextCollector.Collect());
+            OverlayMasterSourceTexts(candidate, masterSourceTexts);
 
             // 全合成成功後にfreeze済みsnapshot参照を一度だけ公開する
             // Publish the frozen snapshot reference once only after composition fully succeeds

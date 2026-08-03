@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Game.Localization;
 using Client.Localization;
 using Client.Mod.Texture;
 using Core.Master;
@@ -63,7 +64,8 @@ namespace Client.Tests.Localization
 
             Localize.MergeGameDictionaries(
                 modsResource,
-                new[] { new ModId("author:fallback") });
+                new[] { new ModId("author:fallback") },
+                MasterSourceTextCollector.Collect());
 
             Assert.AreEqual("対象", Localize.GetContent(new ContentLocalizationKey("content.target.name")));
             Assert.AreEqual("English", Localize.GetContent(new ContentLocalizationKey("content.english.name")));
@@ -75,6 +77,7 @@ namespace Client.Tests.Localization
         public void StartupEntryPointUsesRegisteredModOrderAfterMasterLoad()
         {
             var modsResource = ServerContext.GetService<ModsResource>();
+            var masterContainer = ServerContext.GetService<MasterJsonFileContainer>();
             var firstBlock = MasterHolder.BlockMaster.Blocks.Data[0];
             using var itemIds = MasterHolder.ItemMaster.GetItemAllIds().GetEnumerator();
             Assert.IsTrue(itemIds.MoveNext());
@@ -88,7 +91,10 @@ namespace Client.Tests.Localization
 
             // 起動口の原文と更新通知を検証
             // Verify startup sources and update notifications
-            Assert.DoesNotThrow(() => Localize.MergeGameDictionaries(modsResource));
+            Assert.DoesNotThrow(() => Localize.MergeGameDictionaries(
+                modsResource,
+                masterContainer.SortedModIds,
+                MasterSourceTextCollector.Collect()));
             Assert.AreEqual(
                 firstBlock.Name,
                 Localize.GetContent(ContentLocalizationKeys.BlockName(firstBlock.BlockGuid)));
@@ -122,7 +128,8 @@ namespace Client.Tests.Localization
             CreateItemLocalizationMod(itemMaster.ItemGuid);
             Localize.MergeGameDictionaries(
                 new ModsResource(temporaryDirectory),
-                new[] { new ModId("author:item-tooltip") });
+                new[] { new ModId("author:item-tooltip") },
+                MasterSourceTextCollector.Collect());
 
             var texture = new Texture2D(1, 1);
             var itemView = new ItemViewData(texture, itemMaster);

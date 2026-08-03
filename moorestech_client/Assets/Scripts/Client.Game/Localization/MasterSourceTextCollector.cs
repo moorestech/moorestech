@@ -1,10 +1,15 @@
+using System;
 using System.Collections.Generic;
 using Core.Master;
 using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.ChallengesModule;
 
-namespace Client.Localization
+namespace Client.Game.Localization
 {
+    /// <summary>
+    ///     Master正本からローカライズ原文を集めてローカライズ基盤へプッシュするためのGame層収集器
+    ///     Game-layer collector that gathers canonical Master sources for pushing into the localization foundation
+    /// </summary>
     public static class MasterSourceTextCollector
     {
         public static Dictionary<string, string> Collect()
@@ -98,22 +103,26 @@ namespace Client.Localization
             }
 
             return sourceTexts;
-        }
 
-        public static string GetTutorialDisplayText(TutorialsElement tutorial)
-        {
-            // tutorialTypeごとの表示文言フィールドを一元定義
-            // Define the display-text field per tutorial type in one place
-            return tutorial.TutorialParam switch
+            #region Internal
+
+            string GetTutorialDisplayText(TutorialsElement tutorial)
             {
-                MapObjectPinTutorialParam mapObjectPin => mapObjectPin.PinText,
-                KeyControlTutorialParam keyControl => keyControl.ControlText,
-                UiHighLightTutorialParam uiHighLight => uiHighLight.HighLightText,
-                ItemViewHighLightTutorialParam itemViewHighLight => itemViewHighLight.HighLightText,
-                BlockPlacePreviewTutorialParam blockPlacePreview => blockPlacePreview.Message,
-                _ => throw new System.InvalidOperationException(
-                    $"Unknown tutorial type: {tutorial.TutorialType}"),
-            };
+                // tutorialTypeごとの表示文言フィールドを一元定義
+                // Define the display-text field per tutorial type in one place
+                return tutorial.TutorialParam switch
+                {
+                    MapObjectPinTutorialParam mapObjectPin => mapObjectPin.PinText,
+                    KeyControlTutorialParam keyControl => keyControl.ControlText,
+                    UiHighLightTutorialParam uiHighLight => uiHighLight.HighLightText,
+                    ItemViewHighLightTutorialParam itemViewHighLight => itemViewHighLight.HighLightText,
+                    BlockPlacePreviewTutorialParam blockPlacePreview => blockPlacePreview.Message,
+                    _ => throw new InvalidOperationException(
+                        $"Unknown tutorial type: {tutorial.TutorialType}"),
+                };
+            }
+
+            #endregion
         }
     }
 }

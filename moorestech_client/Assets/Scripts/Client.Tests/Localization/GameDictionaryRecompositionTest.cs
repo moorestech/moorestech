@@ -1,7 +1,9 @@
 using System;
 using System.IO;
+using Client.Game.Localization;
 using Client.Localization;
 using Core.Master;
+using Game.Context;
 using Mod.Loader;
 using Mooresmaster.Localization.Generated;
 using Mooresmaster.LocalizationCsv;
@@ -51,7 +53,10 @@ namespace Client.Tests.Localization
         {
             var first = CreateResource("first-set", "author:first",
                 "key,Source,english,japanese\ncontent.recompose.name,First Source,First English,最初\n");
-            Localize.MergeGameDictionaries(first, new[] { new ModId("author:first") });
+            Localize.MergeGameDictionaries(
+                first,
+                new[] { new ModId("author:first") },
+                MasterSourceTextCollector.Collect());
             var firstRevision = Localize.GetDictionaryRevision();
             Localize.TryGetDictionary("japanese", firstRevision, out var viewBefore);
             var eventCount = 0;
@@ -63,7 +68,10 @@ namespace Client.Tests.Localization
             });
             var second = CreateResource("second-set", "author:second",
                 "key,Source,english,japanese\ncontent.recompose.name,Second Source,Second English,\n");
-            Localize.MergeGameDictionaries(second, new[] { new ModId("author:second") });
+            Localize.MergeGameDictionaries(
+                second,
+                new[] { new ModId("author:second") },
+                MasterSourceTextCollector.Collect());
             var secondRevision = Localize.GetDictionaryRevision();
             Localize.TryGetDictionary("japanese", secondRevision, out var viewAfter);
             Assert.AreEqual("最初", viewBefore["content.recompose.name"]);
@@ -82,7 +90,10 @@ namespace Client.Tests.Localization
         {
             var valid = CreateResource("valid-set", "author:valid",
                 "key,Source,english,japanese\ncontent.atomic.name,Source,English,既存\n");
-            Localize.MergeGameDictionaries(valid, new[] { new ModId("author:valid") });
+            Localize.MergeGameDictionaries(
+                valid,
+                new[] { new ModId("author:valid") },
+                MasterSourceTextCollector.Collect());
             var publishedRevision = Localize.GetDictionaryRevision();
             Localize.TryGetDictionary("japanese", publishedRevision, out var oldSnapshot);
             var eventCount = 0;
@@ -97,7 +108,8 @@ namespace Client.Tests.Localization
             Assert.Throws<LocalizationCsvException>(() =>
                 Localize.MergeGameDictionaries(
                     invalid,
-                    new[] { new ModId("author:partial"), new ModId("author:invalid") }));
+                    new[] { new ModId("author:partial"), new ModId("author:invalid") },
+                    MasterSourceTextCollector.Collect()));
             Assert.AreEqual("既存", oldSnapshot["content.atomic.name"]);
             Assert.AreEqual(0, eventCount);
             Assert.AreEqual(publishedRevision, Localize.GetDictionaryRevision());
@@ -131,7 +143,10 @@ namespace Client.Tests.Localization
                 $"{challengeSummaryKey.Key},Wrong Challenge Summary,,\n";
             var modsResource = CreateResource("collision-set", "author:collision", csv);
 
-            Localize.MergeGameDictionaries(modsResource, new[] { new ModId("author:collision") });
+            Localize.MergeGameDictionaries(
+                modsResource,
+                new[] { new ModId("author:collision") },
+                MasterSourceTextCollector.Collect());
             Assert.IsTrue(Localize.TryGetSourceTexts(
                 Localize.GetDictionaryRevision(),
                 out var sourceDictionary));
@@ -159,11 +174,15 @@ namespace Client.Tests.Localization
             var emptySet = Path.Combine(temporaryRoot, "empty-set");
             Directory.CreateDirectory(emptySet);
             var mismatchedResource = new ModsResource(emptySet);
+            var masterContainer = ServerContext.GetService<MasterJsonFileContainer>();
             var eventCount = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
 
             Assert.Throws<InvalidOperationException>(() =>
-                Localize.MergeGameDictionaries(mismatchedResource));
+                Localize.MergeGameDictionaries(
+                    mismatchedResource,
+                    masterContainer.SortedModIds,
+                    MasterSourceTextCollector.Collect()));
             Assert.AreEqual(0, eventCount);
         }
 

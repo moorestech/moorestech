@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Client.Localization;
+using Client.Game.Localization;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using Server.Boot;

@@ -6,7 +6,6 @@
     "UniRx",
     "Core.Const",
     "Core.Master",
-    "Game.Context",
     "Mod.Loader"
   ],
   "includePlatforms": [],

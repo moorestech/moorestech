@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.Localization;
 using Client.Localization;
 using Core.Master;
 using Game.Context;
@@ -41,8 +42,12 @@ namespace Client.Tests.Localization.MasterSource
         {
             var expected = BuildExpectedContentSources();
             var modsResource = ServerContext.GetService<ModsResource>();
+            var masterContainer = ServerContext.GetService<MasterJsonFileContainer>();
 
-            Localize.MergeGameDictionaries(modsResource);
+            Localize.MergeGameDictionaries(
+                modsResource,
+                masterContainer.SortedModIds,
+                MasterSourceTextCollector.Collect());
             Assert.IsTrue(Localize.TryGetSourceTexts(Localize.GetDictionaryRevision(), out var source));
 
             // 空原文はcanonical欠落、それ以外はMaster原文との完全一致を要求する
