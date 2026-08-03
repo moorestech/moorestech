@@ -30,7 +30,9 @@ namespace Client.Game.InGame.Train.Network
         public IObservable<ulong> OnFullSnapshotApplied => _onFullSnapshotApplied;
 
         // スナップショット適用完了の通知口。イベント駆動でタスクを所有しないため完了ソースで表現する
+        // trainUnitの適用完了で満了し、rail/trainどちらの適用失敗でも失格になる
         // Completion source signalling snapshot application; event-driven code owns no task of its own
+        // It is fulfilled by the trainUnit apply and failed by an apply failure on either the rail or the train side
         private readonly UniTaskCompletionSource _initialApplyCompletion = new();
 
         public UniTask WaitForInitialApplyAsync()
@@ -68,9 +70,10 @@ namespace Client.Game.InGame.Train.Network
             }
             catch (Exception applyException)
             {
-                // 再送出しないのはイベントディスパッチのループを巻き添えで止めないため。失敗は完了ソース経由で待機境界へ届く
-                // Not rethrown so one bad payload cannot halt the event dispatch loop; the failure reaches the wait boundary through the completion source
+                // 完了ソースへ畳んで待機境界へ届けたうえで再送出する。ディスパッチループはPacketExchangeManagerが隔離済みで、再送出しないとログが1行も残らない
+                // Fold into the completion source to reach the wait boundary, then rethrow: PacketExchangeManager already isolates the dispatch loop and logs it, and swallowing here would leave no trace at all
                 _initialApplyCompletion.TrySetException(applyException);
+                throw;
             }
         }
 
@@ -99,14 +102,17 @@ namespace Client.Game.InGame.Train.Network
                 _futureMessageBuffer.DiscardEventsAtOrBelow(watermarkId);
                 _futureMessageBuffer.DiscardHashesOlderThan(watermarkId);
 
-                _onFullSnapshotApplied.OnNext(watermarkId);
+                // 適用完了を先に確定させる。OnNextは購読者を同期実行するため、購読者の例外で起動が失敗扱いになるのを防ぐ
+                // Settle the apply first: OnNext runs subscribers synchronously, so a subscriber throwing must not mark startup as failed
                 _initialApplyCompletion.TrySetResult();
+                _onFullSnapshotApplied.OnNext(watermarkId);
             }
             catch (Exception applyException)
             {
-                // 再送出しない理由はレール側と同じ
-                // Not rethrown for the same reason as the rail side
+                // 畳んでから再送出する理由はレール側と同じ
+                // Folded then rethrown for the same reason as the rail side
                 _initialApplyCompletion.TrySetException(applyException);
+                throw;
             }
         }
 
