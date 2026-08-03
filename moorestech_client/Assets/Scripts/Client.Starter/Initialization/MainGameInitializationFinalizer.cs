@@ -6,6 +6,8 @@ using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Environment.Terrain;
 using Client.Game.InGame.Map.MapVein;
+using Client.Game.InGame.Player;
+using Client.Game.InGame.Presenter.Player;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.Context;
@@ -49,6 +51,11 @@ namespace Client.Starter.Initialization
             // 露頭生成はTerrain完成後に明示開始する。完了待ちは下のWhenAllが一括で担う（ADR#15）
             // Outcrop instantiation starts explicitly after the terrain is ready; the WhenAll below waits for it with the rest (ADR#15)
             resolver.Resolve<MapVeinObjectDatastore>().StartOutcropInstantiation();
+
+            // 地形コライダーが揃ってから自機を保存座標へ置き、重力と座標送信を解禁する（落下と座標汚染の窓を作らない・ADR#16）
+            // Release the player onto the finished terrain before gravity and position reporting start, leaving no fall or coordinate-pollution window (ADR#16)
+            resolver.Resolve<PlayerSystemContainer>().StartPlayerRuntime();
+            resolver.Resolve<PlayerPositionSender>().StartSending();
 
             await WaitAllInitialApplyAsync(resolver);
             starter.RestoreLoginState(_serverResult.HandshakeResponse);

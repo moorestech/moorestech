@@ -1,5 +1,4 @@
 ﻿using Client.Game.InGame.BlockSystem;
-using Client.Network.API;
 using StarterAssets;
 using UnityEngine;
 
@@ -32,26 +31,42 @@ namespace Client.Game.InGame.Player
         private bool rideFollowStoredControllerEnabled;
         private bool rideFollowDisabledController;
         private Vector3 worldSpawnPosition;
-        private bool isInitialized;
+        private Vector3 initialPlayerPosition;
+        private bool isRuntimeStarted;
 
-        public void Initialize(InitialHandshakeResponse initialHandshakeResponse)
+        // 参照解決と復帰先の確定まで。地形コライダーがまだ無いのでWarpも重力も始めない
+        // Resolve references and settle the recovery target only; terrain colliders do not exist yet, so no warp and no gravity
+        public void Initialize(Vector3 initialPlayerPosition, Vector3 worldSpawnPosition)
         {
             controller.Initialize();
             characterController = GetComponent<CharacterController>();
 
             // 落下復帰先はワールドのスポーン地点。地形はランタイム構築なのでシーン配置のマーカーは当てにできない
             // Fall recovery targets the world spawn; terrain is built at runtime so a scene-authored marker cannot be trusted
-            worldSpawnPosition = initialHandshakeResponse.MapLayout.Spawn;
+            this.worldSpawnPosition = worldSpawnPosition;
+            this.initialPlayerPosition = initialPlayerPosition;
 
-            SetPlayerPosition(initialHandshakeResponse.PlayerPos);
-            isInitialized = true;
+            // 地形の無い空間で落下させない。重力はStartPlayerRuntimeで解禁する
+            // Never let the player fall through a terrain-less space; gravity is released in StartPlayerRuntime
+            controller.enabled = false;
         }
-        
+
+        // 地形構築の完了後にFinalizerが呼ぶ。保存座標へ置いてから重力と落下復帰を解禁する
+        // Called by the finalizer once terrain is built: place at the saved position, then release gravity and fall recovery
+        public void StartPlayerRuntime()
+        {
+            if (isRuntimeStarted) return;
+
+            SetPlayerPosition(initialPlayerPosition);
+            controller.enabled = true;
+            isRuntimeStarted = true;
+        }
+
         private void LateUpdate()
         {
-            // handshake前は復帰先が未確定なので、既定値の原点へwarpさせない
-            // Before the handshake the recovery target is unknown, so never warp to the default origin
-            if (!isInitialized) return;
+            // 地形構築前は復帰先の地表が無く、復帰させると保存座標を捨ててしまう
+            // Before the terrain is built there is no ground to recover onto, and recovering would discard the saved position
+            if (!isRuntimeStarted) return;
 
             // 乗車中は補間済み車両poseを最後に反映する
             // Apply the interpolated train-car pose last while riding

@@ -42,7 +42,9 @@
         "Game.MapGeneration",
         "Game.PlayerRiding.Interface",
         "Game.Research",
-        "VContainer"
+        "VContainer",
+        "StarterAssetsInputs",
+        "ThirdPersonController"
     ],
     "includePlatforms": [
         "Editor"

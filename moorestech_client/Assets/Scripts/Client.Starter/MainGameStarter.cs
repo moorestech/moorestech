@@ -94,8 +94,8 @@ namespace Client.Starter
         [SerializeField] private MapVeinObjectDatastore mapVeinObjectDatastore;
         [SerializeField] private EnvironmentRoot environmentRoot;
 
-        // 地形の実行時構築が StartGame より前にマウント先を要るため、DI登録とは別に読み取りだけ公開する
-        // Runtime terrain construction needs the mount point before StartGame, so expose read-only access alongside the DI registration
+        // 地形の実行時構築はDIの外（Finalizer）で走るため、マウント先だけを読み取り専用で公開する
+        // Runtime terrain construction runs outside DI in the finalizer, so only read access to the mount point is exposed
         public EnvironmentRoot EnvironmentRoot => environmentRoot;
         
         [SerializeField] private HotBarView hotBarView;
@@ -191,7 +191,7 @@ namespace Client.Starter
             // Collider distance culling (generic manager + block register service)
             builder.Register<ColliderDistanceCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<BlockColliderCullingRegisterService>();
-            builder.RegisterEntryPoint<PlayerPositionSender>();
+            builder.RegisterEntryPoint<PlayerPositionSender>().AsSelf();
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
