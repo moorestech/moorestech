@@ -57,7 +57,6 @@ ui.challenge.stateCurrent,In Progress,In Progress,進行中
 ui.challenge.stateCompleted,Completed,Completed,完了
 ui.challenge.title,Challenges,Challenges,チャレンジ
 ui.challenge.currentTitle,Current Challenges,Current Challenges,現在のチャレンジ
-ui.inventory.debugPing,Ping Action,Ping Action,Pingアクション
 ui.inventory.title,Inventory,Inventory,持ち物
 ui.inventory.sort,Sort,Sort,整理
 ui.inventory.closeHint,{shortcut}: Close Inventory,{shortcut}: Close Inventory,{shortcut}: インベントリを閉じる
@@ -101,7 +100,6 @@ ui.recipe.itemCountSummary,{ownedCount}/{requiredCount},{ownedCount}/{requiredCo
 ui.recipe.duration,{seconds} seconds,{seconds} seconds,{seconds}秒
 ui.recipe.holdToCraft,Hold to craft (keep holding to craft continuously),Hold to craft (keep holding to craft continuously),長押しでクラフト（押し続けで連続クラフト）
 ui.recipe.craft,Craft,Craft,クラフト
-ui.recipe.hammerIcon,🔨,🔨,🔨
 ui.recipe.noRecipes,There are no recipes for this item,There are no recipes for this item,このアイテムのレシピはありません
 ui.recipe.previousRecipe,Previous recipe,Previous recipe,前のレシピ
 ui.recipe.previousSymbol,<,<,<

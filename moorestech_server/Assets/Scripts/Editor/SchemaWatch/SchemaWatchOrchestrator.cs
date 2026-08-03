@@ -58,8 +58,6 @@ public sealed class SchemaWatchOrchestrator
         cache.Save();
         compilationRequester.RequestCompilation();
 
-        #region Internal
-
         bool UpdateRequesterScript(
             SchemaWatchTarget watchTarget,
             Dictionary<string, string> watchHashes)
@@ -112,7 +110,5 @@ public class {watchTarget.ClassName}
 
             #endregion
         }
-
-        #endregion
     }
 }

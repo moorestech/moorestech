@@ -12,9 +12,9 @@ namespace Client.Starter.Initialization
     /// Startup composer that gathers the master mod order and Master sources, then pushes them into the localization foundation
     /// Invalid mod CSV and mod-order mismatches surface as exceptions here, so callers must invoke it inside the startup try block
     /// </summary>
-    public static class GameDictionaryComposer
+    internal static class GameDictionaryComposer
     {
-        public static void Run()
+        internal static void Run()
         {
             // DI登録済みコンテナからマスタと同じmod順を受け取る
             // Read the exact master mod order from the registered DI container

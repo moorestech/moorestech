@@ -4,6 +4,7 @@ import { parseRecords } from "./localizationCsvRecords.mjs";
 
 const COLUMN_COUNT = 3;
 const KEY_SEGMENT_PATTERN = /^[a-z][A-Za-z0-9]*$/;
+const SOURCE_MASTER_PATTERN = /^[A-Z][A-Za-z0-9]*$/;
 
 export function parseContentKeyCatalog(text) {
   // C#共通parserと同じレコード境界と列契約を適用する
@@ -44,9 +45,11 @@ export function parseContentKeyCatalog(text) {
       );
     }
 
-    if (sourceMaster.trim().length === 0) {
+    // sourceMasterは生成コードの行コメントへそのまま載るためMaster型名の形に限定する
+    // Restrict sourceMaster to a Master type-name shape because it is emitted verbatim into a line comment
+    if (!SOURCE_MASTER_PATTERN.test(sourceMaster)) {
       throw new Error(
-        `Content key '${contentNamespace}.${field}' must declare the Master that supplies its source text`,
+        `Content key '${contentNamespace}.${field}' must declare the Master that supplies its source text as [A-Z][A-Za-z0-9]*`,
       );
     }
 

@@ -28,8 +28,6 @@ public static class LocalizationCodeGenerator
         builder.AppendLine("}");
         return builder.ToString();
 
-        #region Internal
-
         void EmitKeyType()
         {
             builder.AppendLine("    public readonly struct LocalizationKey");
@@ -165,7 +163,5 @@ public static class LocalizationCodeGenerator
 
             #endregion
         }
-
-        #endregion
     }
 }

@@ -102,13 +102,13 @@ describe("localizeBuildMenuEntries", () => {
     ["english", "Blueprint Copy"],
     ["japanese", "ブループリントコピー"],
   ])("blueprintCopyはraw labelなしで%s辞書から表示名を解決する", (_languageCode, expected) => {
-    const blueprintCopy = {
+    const blueprintCopy: BuildMenuEntryData = {
       entryType: "blueprintCopy",
       entryKey: "",
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
-    } as unknown as BuildMenuEntryData;
+    };
 
     expect(localizeBuildMenuEntries([blueprintCopy], () => expected)[0].displayLabel).toBe(expected);
   });
@@ -126,13 +126,13 @@ describe("localizeBuildMenuEntries", () => {
   });
 
   it("connectToolはraw labelなしでGuid導出キーから表示名を解決する", () => {
-    const connectTool = {
+    const connectTool: BuildMenuEntryData = {
       entryType: "connectTool",
       entryKey: connectToolGuid,
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
-    } as unknown as BuildMenuEntryData;
+    };
 
     const displayLabel = localizeBuildMenuEntries(
       [connectTool],

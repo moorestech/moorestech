@@ -70,6 +70,23 @@ internal static class LocalizationCodeSyntax
             return false;
         }
 
+        return HasAlphanumericTail(segment);
+    }
+
+    public static bool IsUpperCamelSegment(string segment)
+    {
+        // Master型名契約を境界検査し、改行混入でコメント生成が壊れるのを防ぐ
+        // Validate the Master type-name contract so embedded newlines cannot break generated comments
+        if (segment.Length == 0 || segment[0] < 'A' || 'Z' < segment[0])
+        {
+            return false;
+        }
+
+        return HasAlphanumericTail(segment);
+    }
+
+    private static bool HasAlphanumericTail(string segment)
+    {
         for (var index = 1; index < segment.Length; index++)
         {
             var character = segment[index];

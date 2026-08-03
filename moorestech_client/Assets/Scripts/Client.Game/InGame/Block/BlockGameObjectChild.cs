@@ -79,27 +79,31 @@ namespace Client.Game.InGame.Block
             // Pass the denial reason to the existing delete UI tooltip flow.
             if (response == null || response.Success) return;
             SetRemoveDeniedReason(response.FailureReason);
-        }
 
-        private void SetRemoveDeniedReason(RemoveBlockProtocol.RemoveBlockFailureReason failureReason)
-        {
-            var reasonKey = GetRemoveDeniedReasonKey(failureReason);
-            if (!reasonKey.HasValue) return;
+            #region Internal
 
-            // 一定時間だけIsRemovableから理由を返して表示する
-            // Return the reason from IsRemovable for a short display window.
-            _removeDeniedReason = reasonKey;
-            _removeDeniedReasonUntil = Time.time + RemoveDeniedReasonDisplaySeconds;
-        }
-
-        private static LocalizationKey? GetRemoveDeniedReasonKey(RemoveBlockProtocol.RemoveBlockFailureReason failureReason)
-        {
-            return failureReason switch
+            void SetRemoveDeniedReason(RemoveBlockProtocol.RemoveBlockFailureReason failureReason)
             {
-                RemoveBlockProtocol.RemoveBlockFailureReason.NodeInUseByTrain => LocalizationKeys.Ui.Delete.RailHasVehicle,
-                RemoveBlockProtocol.RemoveBlockFailureReason.Unknown => LocalizationKeys.Ui.Delete.BlockDeleteFailed,
-                _ => null,
-            };
+                var reasonKey = GetRemoveDeniedReasonKey(failureReason);
+                if (!reasonKey.HasValue) return;
+
+                // 一定時間だけIsRemovableから理由を返して表示する
+                // Return the reason from IsRemovable for a short display window.
+                _removeDeniedReason = reasonKey;
+                _removeDeniedReasonUntil = Time.time + RemoveDeniedReasonDisplaySeconds;
+            }
+
+            static LocalizationKey? GetRemoveDeniedReasonKey(RemoveBlockProtocol.RemoveBlockFailureReason failureReason)
+            {
+                return failureReason switch
+                {
+                    RemoveBlockProtocol.RemoveBlockFailureReason.NodeInUseByTrain => LocalizationKeys.Ui.Delete.RailHasVehicle,
+                    RemoveBlockProtocol.RemoveBlockFailureReason.Unknown => LocalizationKeys.Ui.Delete.BlockDeleteFailed,
+                    _ => null,
+                };
+            }
+
+            #endregion
         }
     }
 }

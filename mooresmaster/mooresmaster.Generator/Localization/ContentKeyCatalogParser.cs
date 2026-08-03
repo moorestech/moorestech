@@ -58,11 +58,13 @@ public static class ContentKeyCatalogParser
                     $"Content key segments '{contentNamespace}' and '{field}' must match [a-z][A-Za-z0-9]*");
             }
 
+            // sourceMasterは生成コードの行コメントへそのまま載るためMaster型名の形に限定する
+            // Restrict sourceMaster to a Master type-name shape because it is emitted verbatim into a line comment
             var sourceMaster = fields[2];
-            if (string.IsNullOrWhiteSpace(sourceMaster))
+            if (!LocalizationCodeSyntax.IsUpperCamelSegment(sourceMaster))
             {
                 throw new LocalizationCsvException(
-                    $"Content key '{contentNamespace}.{field}' must declare the Master that supplies its source text");
+                    $"Content key '{contentNamespace}.{field}' must declare the Master that supplies its source text as [A-Z][A-Za-z0-9]*");
             }
 
             if (!seenKeys.Add($"{contentNamespace}.{field}"))

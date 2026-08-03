@@ -13,8 +13,6 @@ public sealed class SchemaWatchCache
         this.cacheFilePath = cacheFilePath;
         Load();
 
-        #region Internal
-
         void Load()
         {
             if (!File.Exists(cacheFilePath))
@@ -78,8 +76,6 @@ public sealed class SchemaWatchCache
 
             #endregion
         }
-
-        #endregion
     }
 
     public bool HasFolderChanged(
