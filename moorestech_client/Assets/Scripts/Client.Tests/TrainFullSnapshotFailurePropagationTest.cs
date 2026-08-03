@@ -1,10 +1,13 @@
 using System;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Client.Game.InGame.Train.Network;
 using Cysharp.Threading.Tasks;
 using MessagePack;
 using NUnit.Framework;
 using Server.Event.EventReceive;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests
 {
@@ -47,8 +50,8 @@ namespace Client.Tests
             AssertFailureReachesWaitingTask<NullReferenceException>(TrainUnitHandlerName, payload);
         }
 
-        // 購読コールバックを外部境界として直接叩き、失敗が待機タスクとディスパッチ側の両方へ出ることを見る
-        // Invoke the subscription callback directly as the external boundary and check the failure surfaces to both the waiting task and the dispatcher
+        // 購読コールバックを外部境界として直接叩き、失敗が呼び出し元へ抜けずに待機タスクだけへ出ることを見る
+        // Invoke the subscription callback directly as the external boundary and check the failure reaches only the waiting task, never the caller
         private void AssertFailureReachesWaitingTask<TException>(string handlerName, byte[] payload) where TException : Exception
         {
             // 失敗payloadはapplierへ到達しないか到達即NREなので、applierは組み立てない
@@ -60,10 +63,13 @@ namespace Client.Tests
                 handlerName, BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.That(method, Is.Not.Null, $"{handlerName} がprivateメソッドとして存在しない");
 
-            // 再送出された例外はリフレクション越しにTargetInvocationExceptionへ包まれる
-            // A rethrown exception arrives wrapped in TargetInvocationException when invoked through reflection
-            var invocationFailure = Assert.Throws<TargetInvocationException>(() => method.Invoke(handler, new object[] { payload }));
-            Assert.That(invocationFailure.InnerException, Is.InstanceOf<TException>(), "適用失敗が呼び出し元へ再送出されていない");
+            // 再送出しない代わりに適用失敗をLogErrorで残す。期待しないとNUnitがLogErrorで落とす
+            // The failure is logged instead of rethrown, and an unexpected LogError would fail the test
+            LogAssert.Expect(LogType.Error, new Regex("^\\[TrainFullSnapshot\\]"));
+
+            // 初期snapshotはInitializeDispatchの同期replayを通るため、再送出すると起動ごと中断する（ADR#19）
+            // The initial snapshot arrives through InitializeDispatch's synchronous replay, so a rethrow would abort startup (ADR#19)
+            Assert.DoesNotThrow(() => method.Invoke(handler, new object[] { payload }), "適用失敗が呼び出し元へ再送出されている");
 
             Assert.AreEqual(UniTaskStatus.Faulted, waiting.Status, "適用失敗がPendingのまま残っている");
             Assert.Catch<TException>(() => waiting.GetAwaiter().GetResult());

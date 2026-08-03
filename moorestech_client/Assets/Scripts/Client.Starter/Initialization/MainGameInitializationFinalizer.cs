@@ -49,12 +49,13 @@ namespace Client.Starter.Initialization
             // Outcrop instantiation starts explicitly after the terrain is ready; the wait boundary below waits for it with the rest (ADR#15)
             resolver.Resolve<MapVeinObjectDatastore>().StartOutcropInstantiation();
 
-            // 地形コライダーが揃ってから自機を保存座標へ置き、重力と座標送信を解禁する（落下と座標汚染の窓を作らない・ADR#16）
-            // Release the player onto the finished terrain before gravity and position reporting start, leaving no fall or coordinate-pollution window (ADR#16)
+            await InitialEventApplyWaiter.WaitAllAsync(resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>());
+
+            // 車両の生成まで終えてから自機を保存座標へ置く。乗車セーブの復帰先が未生成だと支えが無く落下する（ADR#16）
+            // Place the player only after the train cars exist, since a riding save would otherwise land on nothing and fall (ADR#16)
             resolver.Resolve<PlayerSystemContainer>().StartPlayerRuntime();
             resolver.Resolve<PlayerPositionSender>().StartSending();
 
-            await InitialEventApplyWaiter.WaitAllAsync(resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>());
             starter.RestoreLoginState(_serverResult.HandshakeResponse);
         }
     }

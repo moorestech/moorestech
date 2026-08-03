@@ -11,6 +11,7 @@ using MessagePack;
 using Server.Event.EventReceive;
 using UniRx;
 using VContainer.Unity;
+using Debug = UnityEngine.Debug;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -29,10 +30,8 @@ namespace Client.Game.InGame.Train.Network
         // Notifies full-snapshot application completion (used to release the resync gate)
         public IObservable<ulong> OnFullSnapshotApplied => _onFullSnapshotApplied;
 
-        // スナップショット適用完了の通知口。イベント駆動でタスクを所有しないため完了ソースで表現する
-        // trainUnitの適用完了で満了し、rail/trainどちらの適用失敗でも失格になる
-        // Completion source signalling snapshot application; event-driven code owns no task of its own
-        // It is fulfilled by the trainUnit apply and failed by an apply failure on either the rail or the train side
+        // 適用完了の通知口。タスクを所有しないため完了ソースで表し、trainUnit適用で満了・rail/train片方の失敗で失格になる
+        // Completion source for the apply: owning no task, it is fulfilled by the trainUnit apply and failed by either side
         private readonly UniTaskCompletionSource _initialApplyCompletion = new();
 
         public UniTask WaitForInitialApplyAsync()
@@ -57,10 +56,8 @@ namespace Client.Game.InGame.Train.Network
             _trainSubscription = vanillaApiEvent.SubscribeEventResponse(TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag, HandleTrainUnitFullSnapshot);
         }
 
-        // ネットワーク受信payloadのデシリアライズと適用を隔離する外部境界。ここで畳まないと失敗が
-        // 完了ソースをPendingのまま残し、初期化のWhenAllが無期限待機に化ける
-        // External boundary isolating deserialization and application of a received network payload; without folding
-        // failures here the completion source stays Pending and the startup WhenAll hangs forever
+        // ネットワーク受信payloadのデシリアライズと適用を隔離する外部境界。畳まないと完了ソースがPendingで残りWhenAllが無期限待機に化ける
+        // External boundary isolating deserialization and apply of a received network payload; without folding, the source stays Pending and WhenAll hangs
         private void HandleRailGraphFullSnapshot(byte[] payload)
         {
             try
@@ -70,10 +67,10 @@ namespace Client.Game.InGame.Train.Network
             }
             catch (Exception applyException)
             {
-                // 完了ソースへ畳んで待機境界へ届けたうえで再送出する。ディスパッチループはPacketExchangeManagerが隔離済みで、再送出しないとログが1行も残らない
-                // Fold into the completion source to reach the wait boundary, then rethrow: PacketExchangeManager already isolates the dispatch loop and logs it, and swallowing here would leave no trace at all
+                // 完了ソースへ畳んで待機境界へ届け、ここで止める。初期snapshotはInitializeDispatchの同期replayを通るため、再送出すると起動ごと中断し残りのbufferedイベントが永久に配信されない
+                // Fold into the completion source and stop here: the initial snapshot arrives through InitializeDispatch's synchronous replay, so rethrowing would abort startup and strand every remaining buffered event
                 _initialApplyCompletion.TrySetException(applyException);
-                throw;
+                Debug.LogError($"[TrainFullSnapshot] railGraphの適用に失敗しました: {applyException}");
             }
         }
 
@@ -109,10 +106,10 @@ namespace Client.Game.InGame.Train.Network
             }
             catch (Exception applyException)
             {
-                // 畳んでから再送出する理由はレール側と同じ
-                // Folded then rethrown for the same reason as the rail side
+                // 畳んでここで止める理由はレール側と同じ
+                // Folded and stopped here for the same reason as the rail side
                 _initialApplyCompletion.TrySetException(applyException);
-                throw;
+                Debug.LogError($"[TrainFullSnapshot] trainUnitの適用に失敗しました: {applyException}");
             }
         }
 

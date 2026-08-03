@@ -29,6 +29,10 @@ namespace Client.DebugSystem
             // Generate initial debug data for testing
             var initialHandshakeResponse = CreateInitialHandshakeResponse();
             _playerSystemContainer.Construct(initialHandshakeResponse);
+
+            // デバッグシーンの地形はシーン配置済みなので、Finalizerと同じ明示プッシュをその場で行う
+            // The debug scene authors its terrain in the scene, so the finalizer's explicit push happens right here
+            _playerSystemContainer.StartPlayerRuntime();
             _cameraController.SetControllable(true);
             
             #region Internal

@@ -27,8 +27,8 @@ namespace Client.Tests.PlaceSystem
             // Put the corners on asymmetric XZ so that swapping X and Z probes where no ground exists
             var blockPos = new Vector3Int(10, 0, 20);
 
-            // 四隅(10,20)(10,21)(11,20)(11,21)をすべて覆う低い段
-            // The low slab covering all four corners (10,20)(10,21)(11,20)(11,21)
+            // 四隅を覆う低い段
+            // The low slab covering all four corners
             _ground = CreateGroundSlab(new Vector3(10.5f, 30f, 20.5f), new Vector3(6f, 1f, 6f));
 
             // (11,21)の1点だけが乗る高い段。最大を取らなければこの高さは返らない

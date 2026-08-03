@@ -16,6 +16,10 @@ namespace Client.Game.InGame.BlockSystem
         private const float GroundProbeStartHeight = 1000f;
         private const float GroundProbeDistance = 1500f;
 
+        // 探査レイの描画色。呼び出し側から渡すと消費者不在の引数が残るため所有者側に固定する
+        // Probe ray color, fixed on the owner because passing it in leaves a parameter with no consumer
+        private static readonly Color GroundProbeRayColor = Color.red;
+
         /// <summary>
         ///     TODO ここの定義の場所を変える
         /// </summary>
@@ -75,16 +79,11 @@ namespace Client.Game.InGame.BlockSystem
             return false;
         }
 
-        public static Vector3? GetGroundPoint(float worldX, float worldZ)
-        {
-            return GetGroundPoint(worldX, worldZ, default);
-        }
-
         // 探査失敗をログで知らせる入口。XZ明示なのはVector3を取るとVector2の暗黙変換でz=0を探査できてしまうため
         // Entry point that logs a failed probe; it takes XZ because a Vector3 parameter would let the Vector2 conversion probe z=0
-        public static Vector3? GetGroundPoint(float worldX, float worldZ, Color debugRayColor)
+        internal static Vector3? GetGroundPoint(float worldX, float worldZ)
         {
-            Debug.DrawRay(new Vector3(worldX, GroundProbeStartHeight, worldZ), Vector3.down * GroundProbeDistance, debugRayColor, 3);
+            Debug.DrawRay(new Vector3(worldX, GroundProbeStartHeight, worldZ), Vector3.down * GroundProbeDistance, GroundProbeRayColor, 3);
 
             if (!TryGetGroundPoint(worldX, worldZ, out var groundPoint))
             {

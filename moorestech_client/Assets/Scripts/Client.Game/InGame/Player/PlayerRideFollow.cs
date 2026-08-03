@@ -5,7 +5,7 @@ namespace Client.Game.InGame.Player
 {
     // 乗車中のプレイヤー追従と、そのために必要なThirdPersonControllerの停止・復元を担う
     // Owns the player follow while riding and the ThirdPersonController disable/restore it requires
-    public class PlayerRideFollow
+    internal class PlayerRideFollow
     {
         private readonly Transform _playerTransform;
         private readonly CharacterController _characterController;
@@ -31,8 +31,8 @@ namespace Client.Game.InGame.Player
 
         public void SetTarget(Transform target, Vector3 localPosition, Quaternion localRotation)
         {
-            // 乗車中はThirdPersonController側の重力・Move・足場追従を止める
-            // Stop ThirdPersonController gravity, Move, and platform follow while riding
+            // 重力・Move・足場追従を停止
+            // Stop gravity, Move, and platform follow
             DisableControllerIfNeeded();
 
             // 乗車追従のローカル基準を保存する
@@ -44,16 +44,16 @@ namespace Client.Game.InGame.Player
 
         public void ClearTarget()
         {
-            // 乗車追従で止めたThirdPersonControllerの実行状態を戻す
-            // Restore the ThirdPersonController execution state disabled for riding follow
+            // 停止していた実行状態を復元
+            // Restore the disabled execution state
             RestoreControllerIfNeeded();
             _followTarget = null;
         }
 
         public void ApplyPose()
         {
-            // 車両の補間済みposeからプレイヤーのworld poseを作る
-            // Build the player world pose from the interpolated train-car pose
+            // 車両poseからworld pose生成
+            // Build the world pose from the car pose
             var worldPosition = _followTarget.TransformPoint(_localPosition);
             var worldRotation = _followTarget.rotation * _localRotation;
 
