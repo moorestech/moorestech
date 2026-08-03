@@ -178,3 +178,76 @@ Collectorのキー種にも触れていない（Collectorの中身は移設の�
 テスト実行中に一度 `uloop` が `UserSettings/UnityMcpSettings.json not found` で全コマンド不通になった
 （`UnityMcpSettings.json` が `.bak` へリネームされる既知現象）。`cp UnityMcpSettings.json.bak UnityMcpSettings.json`
 で復旧し、以降のコンパイル・テストは正常。`UserSettings/` は追跡対象外なのでコミットには含まれていない。
+
+---
+
+## タスクレビュー是正（Important 1件 / コミット `63c1d7f40`）
+
+**指摘**: `InitializeScenePipeline.cs` が205行で200行規約を再違反（Task 5で丁度200行へ戻した経緯があり同基準を適用）。
+
+### 何を切り出したか
+
+`moorestech_client/Assets/Scripts/Client.Starter/Initialization/GameDictionaryComposer.cs`（新規・28行）を追加し、
+起動時の辞書合成の組み立て（`MasterJsonFileContainer` からのmod順取得・`ModsResource` 取得・`MasterSourceTextCollector.Collect()`・
+`Localize.MergeGameDictionaries` 呼び出し）を丸ごと移した。配置先は既に `ServerConnectionInitializer` /
+`ModAssetLoader` / `ModAssetIconLoader` が居る `Client.Starter/Initialization/`（4ファイル・10ファイル制約内）で、
+「起動処理の一部品」という役割の前例に一致させた。依存が無い組み立て役なので `static` とし、呼び出し側は1行になる。
+
+`InitializeScenePipeline` 側は呼び出し1行だけになり、不要になった3つのusing
+（`Client.Game.Localization` / `Client.Localization` / `Core.Master`）も削除した。
+`global::Mod.Loader.ModsResource` の完全修飾も、新クラスではusingがnamespace宣言の外にあるため
+`using Mod.Loader;` + `ModsResource` の素の形に戻っている。
+
+`.cs` のみ作成し `.meta` はUnity生成物をコミット（手動作成なし）。asmdefの変更は不要
+（`Client.Starter` は `Mod.Loader` / `Core.Master` / `Game.Context` / `Client.Localization` / `Client.Game` を参照済み）。
+
+### try内側が保たれている根拠（Task 5成果の不変条件）
+
+切り出し後の該当箇所（`InitializeScenePipeline.cs` L117-127）:
+
+```csharp
+            // mod CSV・サーバー通信・アセットロードという外部境界の失敗をまとめて隔離する
+            // Isolate failures from the external boundaries: mod CSV, server communication, and asset loading
+            try
+            {
+                GameDictionaryComposer.Run();
+                (serverResult, assetResult) = await UniTask.WhenAll(serverInitializer.RunAsync(), modAssetLoader.RunAsync());
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
+                SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+                return;
+            }
+```
+
+- `GameDictionaryComposer.Run()` は既存 `try {` の**直後・第1文**であり、位置は移動前と同一（従来 `Localize.MergeGameDictionaries(...)`
+  があった場所そのもの）。mod CSV不正（`LocalizationCsvException`）・mod順不整合（`InvalidOperationException`）は
+  従来どおり同じ `catch (Exception e)` で捕まり、`SceneManager.LoadScene(MainMenuSceneName)` → `return` で
+  MainMenuへ戻る（無限ローディング解消）経路が維持されている。
+- **新規のtry-catchは一切追加していない**。`GameDictionaryComposer` 内にtry-catchは無く、例外はそのまま呼び出し側へ透過する
+  （`grep -c "try" GameDictionaryComposer.cs` → 0）。
+- 呼び出し側でtry外へ動かされないよう、`GameDictionaryComposer` のXML docに
+  「mod CSV不正やmod順不整合は例外として上がるため、呼び出しは起動処理のtryブロック内側に置く」と明記した。
+- 従来この位置にあった2行コメントは削除したが、tryの直上にある既存コメント
+  「mod CSV・サーバー通信・アセットロードという外部境界の失敗をまとめて隔離する」が、
+  まさに辞書合成（mod CSV）の失敗隔離を宣言しており、不変条件の文書化は失われていない。
+
+### 行数
+
+| ファイル | before | after |
+|---|---|---|
+| `InitializeScenePipeline.cs` | 205 | **198**（200行制約を充足。base `2e208ff20` の202行よりも短い） |
+| `Initialization/GameDictionaryComposer.cs` | — | 28（新規） |
+
+### 検証
+
+```
+$ uloop compile --project-path ./moorestech_client
+ErrorCount: 0
+
+$ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value ".*(MasterSource|GameDictionary|LocalizeContent|LocalizeTest).*"
+TestCount: 28 / PassedCount: 28 / FailedCount: 0  (Passed)
+```
+
+既知のbranch-red 2件（`SkitLocalizationDictionaryCompletenessTest`）は引き続き未修正・未接触。
