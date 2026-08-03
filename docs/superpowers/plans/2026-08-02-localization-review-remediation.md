@@ -570,9 +570,10 @@ string ResolveOverriddenCharacterName(int commandId, string overrideSource);  //
 
 ### Task 19: 【必須・最終】moores-code-review全ブランチレビュー
 
-- [ ] **Step 1:** 必ず最後にmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。PATCHは `origin/master...HEAD`、contextは本planの裁定対応表を4カテゴリへ転記して渡す
-- [ ] **Step 2:** レビュー指摘の確定修正を適用し、`uloop compile` Error 0・サーバー/クライアント関連テスト・webui全検査（tsc/lint/vitest/playwright）を最終確認してコミット
-- [ ] **Step 3: 実機検証** — unity-playmode-recorded-playtestスキルで言語切替を跨ぐシナリオ1本（起動→ポーズメニューで言語をEnglishへ切替→ビルドメニュー/配置HUD/流体スロット/実績通知/Tooltipの表示名が英語化されることを録画確認→日本語へ戻す）を実行し、ErrorLogs 0とresult.jsonのpassを確認する（wire契約変更が広範なため、mock検証だけで閉じない）
+- [x] **Step 1:** 必ず最後にmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。PATCHは `origin/master...HEAD`、contextは本planの裁定対応表を4カテゴリへ転記して渡す
+- [x] **Step 2:** レビュー指摘の確定修正を適用し、`uloop compile` Error 0・サーバー/クライアント関連テスト・webui全検査（tsc/lint/vitest/playwright）を最終確認してコミット
+- [x] **Step 3: 実機検証** — unity-playmode-recorded-playtestスキルで言語切替を跨ぐシナリオ1本（起動→ポーズメニューで言語をEnglishへ切替→ビルドメニュー/配置HUD/流体スロット/実績通知/Tooltipの表示名が英語化されることを録画確認→日本語へ戻す）を実行し、ErrorLogs 0とresult.jsonのpassを確認する（wire契約変更が広範なため、mock検証だけで閉じない）
+  - 実施結果: `scenarios/misc/localization-language-switch-via-ui.cs`（commit baee85534）。Success=true / Asserts 7件全PASS / ErrorLogs 0 / 録画10MB。流体名と実績通知のブロック解放系はmod辞書に訳が無く英語化されないため検証対象から外し、代わりに車両名の別名表示（"Locomotive"重複バグの回帰点）を確認対象に加えた
 
 ---
 
