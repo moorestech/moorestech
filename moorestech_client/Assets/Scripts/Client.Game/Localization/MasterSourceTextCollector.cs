@@ -77,8 +77,8 @@ namespace Client.Game.Localization
                     sourceTexts[ContentLocalizationKeys.ChallengeSummary(challengeMaster.ChallengeGuid).Key] =
                         challengeMaster.Summary;
 
-                    // チュートリアル表示文言もtutorialGuidで収集
-                    // Collect tutorial display texts by tutorial GUID
+                    // tutorial文言もGuidで収集
+                    // Collect tutorial texts by GUID
                     foreach (var tutorial in challengeMaster.Tutorials)
                     {
                         sourceTexts[ContentLocalizationKeys.ChallengeTutorialText(tutorial.TutorialGuid).Key] =

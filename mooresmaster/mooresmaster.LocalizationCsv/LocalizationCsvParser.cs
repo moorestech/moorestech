@@ -8,8 +8,8 @@ namespace Mooresmaster.LocalizationCsv
 
         public static LocalizationCsv Parse(string csvText)
         {
-            // クォートを考慮してCSV全体をレコードへ分割する
-            // Split the entire CSV into quote-aware records
+            // クォート考慮でCSVをレコード分割
+            // Split the CSV into quote-aware records
             var records = LocalizationCsvRecordReader.ParseRecords(csvText);
             if (records.Count == 0)
             {
