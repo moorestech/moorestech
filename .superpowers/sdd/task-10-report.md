@@ -1,100 +1,118 @@
-# Task 10 レポート: webuiコンポーネント実装（様式準拠の全面書き換え）
+# Task 10 レポート: connectTool表示名のWeb解決統一＋placement表示名集約（D1案A・C17・C10・D10案A）
 
-## ステータス
-完了。コミット `617c650cd`。
+コミット: `51a5b41ff feat: connectTool表示名をWeb側Guid辞書解決へ統一しBuildMenu再pushと表示名分岐複製を撤去`
 
-## 実装ファイル（全て `moorestech_web/webui/src/features/buildMenu/`）
-- `BuildMenuSlot.tsx`（36→34行, rewrite）: SlotFrameベース。64px直書き・生onClick・Mantine Tooltip全廃。testid `build-menu-entry-${entryType}-${entryKey}` と tutorialAnchor（`build-menu.entry-...`.toLowerCase()）維持。`export default`→named export へ変更。
-- `BuildMenuSearchInput.tsx`（20行, new）: §8.9様式。素input+`--gauge-track`背景。`data-testid=build-menu-search`。
-- `BuildMenuDetailPreview.tsx`（34行, new）: §8.7固定高。ホバー中エントリ→無ければ案内テキスト（2段フォールバック無し）。requiredItemsをItemSlot（itemId+count）で表示。下端FadeRule。`data-testid=build-menu-preview`。
-- `BuildMenuCategoryGrid.tsx`（44行, new）: サブカテゴリ見出し+`SlotGrid cols={8}`。検索中は複合見出し。`data-testid=build-menu-section-${category}-${subCategory}`。
-- `CategorySidebar.tsx`（26行, new）: 縦ModeSwitch。`testId=build-menu-sidebar`、各選択肢 `build-menu-category-${name}`、disabled=検索中。
-- `BuildMenuPanel.tsx`（74行, rewrite）: GamePanel化・状態束ね（selectedCategory/query/hovered）。純関数4つで導出。`build_menu.select`/`blueprint.delete`/`ui_state.request` 契約不変。
-- `style.module.css`（126行, rewrite）: %指定・ハードコード色ゼロ。`.panel`=viewer-start/items-end・759.3px/525px（.panelLarge前例）、§8.10ネイビースクロールバー、§8.9フォーカスoutline。
+注記: 本ファイルはplan 1（craft-tab系）のtask-10レポートを上書きしている（旧内容はgit履歴 `d97cd4d9d:.superpowers/sdd/task-10-report.md` から復元可能）。
 
-## テスト結果
-lint 0 errors（残警告1件はSkitPresentation.tsxの既存unused-disable、非当該）／vitest 359 passed（61ファイル）／build（tsc -b && vite build）成功。
+## 何を実装したか
 
-## マウント位置
-App.tsx変更不要。BuildMenuPanelは既に `App.tsx:92` の stage グリッド内（ResearchTreePanel:91と同一階層）にマウント済み。旧CSSの`position:fixed`をやめ`.panel`に`grid-column: viewer-start / items-end`を付与したことでグリッド参加が有効化される。
+1. **ホスト側のconnectTool表示名解決を撤去（D1=案A）**
+   - `WebBuildMenuEntryCatalog`: `Localize.GetContent(ContentLocalizationKeys.ConnectToolName(...))` を削除しGuidのみ渡す（`using Client.Localization` / `Mooresmaster.Localization.Generated` も除去）
+   - `WebBuildMenuEntry.CreateConnectTool(Guid, IReadOnlyList<RequiredItem>)`: label引数を削除しblockと同形（Label=null）へ
+   - `BuildMenuTopic`: `_languageSubscription` フィールド・`Localize.OnLanguageChanged` 購読・disposeを削除（言語切替の再pushを撤去）
+   - `PlacementModeDtoFactory`: `ConnectToolPlacementTarget` を `SelectedTargetType="connectTool"` + 新フィールド `SelectedConnectToolGuid`（D形式）へ。`MasterHolder.ConnectToolMaster.GetElementOrNull(...).Name` 参照が消滅（C3の表示面も根絶）。`"raw"` はユーザー命名blueprintとtrainCarだけへ縮退
+2. **表示名解決の集約（D10=案A）**
+   - `buildMenuGrouping.ts` に `SelectableTarget` 型と `localizeSelectableTargetName(target, translate)` を新設（**新規ファイルは作らず**同ファイル内）
+   - `localizeBuildMenuEntries` は entryType→target 写像（`entryTarget`）を経て集約関数へ委譲。三項連鎖を排除
+   - `PlacementModeHud.tsx`: 三項連鎖を廃し `localizeSelectableTargetName(selectedTarget(data), t)` の1呼び出しへ。`selectedTarget` はwire identity→target のswitch写像のみ（表示名解決の分岐複製は無し）
+3. **契約（zod）追従**
+   - `buildMenu.ts`: connectToolをblock同形の `BuildMenuDictionaryResolvedEntryDataSchema`（`entryType: z.enum(["block","connectTool"])` / `label: z.never().optional()`）へ移動。残りは `BuildMenuTrainCarEntryDataSchema`（label必須）
+   - `ui.ts`: `PlacementModeDataSchema` に `connectTool` variant（`selectedConnectToolGuid: z.string().uuid()`）を追加。`raw` にblueprint/trainCar限定のコメントを付与
+4. **fixture / 契約テスト追従**
+   - 共有wire fixture `build_menu_snapshot.json` のconnectTool entryから `label` を除去（C# `WireContractTest` のDTOも同時更新）
+   - 新規共有fixture `placement_mode_connect_tool.json`（C# `WireContractC2Test` とwebui `wireContract.test.ts` の双方が参照）
+   - mock-host: buildMenu fixtureへconnectTool entry（label無し・Guidのみ）、`contentLocalizationFixtures` へ `connectToolNameKey(WIRE_CONNECT_TOOL_GUID) = "電線接続ツール"`、topicControlsへ `placementConnectTool` シナリオ
+   - `BuildMenuProductionContractTest`: connectToolのlabel期待をentryKey(Guid)+label無しへ
+   - `validators.test.ts`: connectToolの「Guidのみ受理」「非Guid拒否」「ホスト解決label拒否」へ差し替え（trainCarは従来通りlabel付き）
+5. **ADR 0006追記**: 決定5に「D1=案AでconnectToolをWeb解決へ昇格」を追記し、帰結節の「trainCar/connectToolはLabel維持」をtrainCarのみへ修正
 
-## 制約充足
-全ファイル200行以下。buildMenuディレクトリ=10ファイル（上限ちょうど）。Mantine残存はScrollAreaのみ（§8.10許可、CloseButton/Tooltip/Title/Groupゼロをgrep確認）。表示リテラルはt()経由（検索/カーソル案内/ビルドメニュー/閉じる/該当なし）、カテゴリ・サブカテゴリ・entry.labelはraw。
+## TDDの証拠
 
-## 懸念
-1. **サブカテゴリ区切りのFadeRule省略**: §8.11は「サブカテゴリ見出し=--text-mutedラベル + FadeRule」と記すが、briefが「FadeRuleはPreview内に含めた」と明示的に指示したため、セクション間はラベル付き見出し + `.gridArea`の`gap:12px`で区別している（§4の無札並置禁止は各群が見出しを持つため充足）。briefに従ったが、厳密な§8.11文言との差分として記録。
-2. **複合見出しのlint回避**: `${category} / ${subCategory}` の " / " が no-jsx-visible-literal に該当したため、見出し文字列をJSX外のローカル関数 `sectionHeading()` で組み立てた（マスタ由来のためt()不要）。
-3. **既存e2e** `e2e/tests/regression/buildMenu.spec.ts` は旧UI前提で未修整（Task 11で再構成予定、本タスクscope外）。
-4. **目視QA未実施**: SKILL §10のmockホストスクショ確認は未実行。端のフェード帯干渉・中央対称・グリッドはみ出しは実画面での確認が望ましい。
+### RED（Step 1→2）
 
-## Fix: 見出しFadeRuleの追加（レビュー指摘対応）
-懸念1で記録した省略はレビューでImportant指摘として差し戻された。webui-design SKILL §8.11・design spec §4.1の通り、サブカテゴリ見出しの様式は「--text-mutedラベル + FadeRule」であり、Preview内のFadeRuleとは別に各見出し直下にも必要と判断し追加した。
-
-- `BuildMenuCategoryGrid.tsx`: `FadeRule`を`@/shared/ui`からimportし、`<h3 className={styles.sectionHeading}>`直後に`<FadeRule />`を追加。`section`要素に`className={styles.section}`を付与（縦flexでheading/rule/gridを束ねる）。
-- `style.module.css`: `.sectionHeading`の`margin: 0 0 4px`を`margin: 0`に変更（gapで間隔管理へ移行）。新規`.section`（`display:flex; flex-direction:column; gap:6px`、固定px・%指定なし）を追加し、見出し→罫線→グリッドの間隔を統一。
-
-### 実行コマンドと結果
-- `npm run lint` → 0 errors（既存の無関係な警告1件のみ、SkitPresentation.tsx）
-- `npm run test -- --run src/features/buildMenu` → 9 tests passed（1 file）
-- `npm run build` → tsc -b && vite build 成功
-
----
-
-# [別タスク] moorestech_web の契約更新と dist 反映（energizedRangeVisible削除）
-
-上記は本ファイルに既存だった別タスク（webuiコンポーネント実装）のレポート。以下は今回のタスク「moorestech_web の契約更新と dist 反映」の報告。ファイル名衝突のため追記した（team-leadへ確認要）。
-
-## 重要な訂正（brief の前提を上書き）
-
-`moorestech_web` は独立リポジトリではなく、`/Users/katsumi/moorestech` と `tree1` ワークツリーが**同一 git リポジトリ内で共有するトラック済みディレクトリ**。各ワークツリー（メインチェックアウトの `master` と `tree1` ブランチ）はそれぞれ独立した `moorestech_web/webui` の作業コピーを持つため、片方での編集はもう片方に自動反映されない。
-
-さらに `moorestech_client/Assets/StreamingAssets/WebUi/dist` は **完全に gitignore 対象**（`.gitignore:127`）で、Unity の `WebUiProductionArtifactBuilder.cs`（`IPreprocessBuildWithReport`）が Player ビルド直前に `pnpm build` を自動実行し再生成する仕組み。tree1 には `dist` ディレクトリ自体が存在しなかった（未ビルド）。したがって「dist をビルドしてコピー・コミット」という手順は不要と判断し、**両ワークツリーそれぞれの `moorestech_web/webui` ソースに同一の編集を直接適用してコミット**する方式に変更した。
-
-## grep 列挙（全ヒット、5箇所）
+`npx vitest run src/features/buildMenu`
 
 ```
-webui/src/bridge/contract/validators.test.ts:13
-webui/src/bridge/contract/schemas/ui.ts:33
-webui/src/features/modeHud/PlacementModeHud.tsx:24
-webui/e2e/mock-host/topics/topicFixtures.ts:24
-webui/e2e/mock-host/topics/topicControls.ts:22
+ ❯ src/features/buildMenu/buildMenuGrouping.test.ts (18 tests | 5 failed) 5ms
+   × localizeBuildMenuEntries > connectToolはraw labelなしでGuid導出キーから表示名を解決する
+     → expected undefined to be '電線ツール' // Object.is equality
+   × localizeSelectableTargetName > blockはblockNameKeyで解決する
+     → localizeSelectableTargetName is not a function
+   × localizeSelectableTargetName > connectToolはconnectToolNameKeyで解決する
+     → localizeSelectableTargetName is not a function
+   × localizeSelectableTargetName > blueprintCopyはtyped UI keyで解決する
+     → localizeSelectableTargetName is not a function
+   × localizeSelectableTargetName > rawはユーザー命名文字列をそのまま返す
+     → localizeSelectableTargetName is not a function
+ Test Files  1 failed (1)
+      Tests  5 failed | 13 passed (18)
 ```
 
-上記5箇所を両ワークツリー（main repo / tree1）で同一に削除。5箇所とも1行の機械的削除だったため codex への委譲は行わず直接編集した。
+想定通りの理由: 集約関数が未実装のため `is not a function`。connectTool entryは旧実装が `entry.label`（未配信）を読むため `undefined`。
 
-### 触れなかった箇所（意図的）
-`/Users/katsumi/moorestech/moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/placement_mode.json` および対応する C# 側（`WireContractC2Test.cs` / `PlacementModeTopic.cs`）は **master ブランチでは未移行**（C#側の `EnergizedRangeVisible` 撤去は tree1 ブランチでのみ実施済み）。master 側のテストはこのフィクスチャに `energizedRangeVisible: true` を明示的に期待しているため、変更すると master 自身のテストを壊す。zod スキーマはデフォルトで未知キーを無視するため、フィールド削除後も `npm test` は master 側フィクスチャに対して問題なく PASS した（実測済み、下記）。
+HUD側 `npx vitest run src/features/modeHud`
 
-## テスト結果
-
-### moorestech_web (main repo, `feature/remove-energized-range-webui` ブランチ)
-`npm test` (vitest run): **Test Files 65 passed / Tests 367 passed**（wireContract.test.ts 26件、validators.test.ts 29件含む）
-
-### moorestech_web (tree1 ワークツリー)
-同一編集を適用後 `npm test`: **Test Files 65 passed / Tests 367 passed**（同上、tree1側の C# 撤去済みフィクスチャに対しても一致）
-
-### ビルド確認（main repo側で実施、コミットはせず動作確認のみ）
-`npm run build` (`tsc -b && vite build`) 成功。`dist/index.html`, `dist/assets/index-*.css`, `dist/assets/index-*.js` 生成。gitignore対象のためこの成果物は破棄（tree1側はUnity Playerビルド時に自動再生成される）。
-
-### C#側契約テスト（tree1, uloop）
-`uloop compile --project-path ./moorestech_client` → `ErrorCount: 0, WarningCount: 0`
-`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "WireContract"` → **TestCount 32, PassedCount 32, FailedCount 0**（初回はドメインリロード中で失敗、45秒後リトライで成功）
-
-## コミット
-
-- 主リポジトリ (`/Users/katsumi/moorestech`, ブランチ `feature/remove-energized-range-webui` を master から新規作成): `6160bd1e7` "feat: placement_mode契約からenergizedRangeVisibleを削除"（moorestech_web/webui 配下5ファイルのみステージ、事前に汚れていた `.claude/skills/*`・`.moorestech-external-revisions.json`・`_CompileRequester.cs`・未追跡 `spec-plan-review/` は一切触れず）。作業後 `master` へチェックアウトして復帰済み。
-- tree1 (`moorestech-worktrees/tree1`, ブランチ `tree1`): `686bbb7a4` "feat: placement_mode契約からenergizedRangeVisibleを削除"（同じく moorestech_web/webui 配下5ファイルのみステージ。他エージェントの作業中ファイル `.moorestech-external-revisions.json`・`.superpowers/sdd/task-1-report.md`・`task-4-report.md` には触れず）。dist反映コミットは不要と判断し実施していない（上記理由）。
-
-## メインチェックアウトのクリーンさ確認
-
-作業前後で main repo (`/Users/katsumi/moorestech`) の `git status --porcelain` は以下2ファイルの変更のみで不変（無関係な既存汚れ、私は触れていない）:
 ```
-M .moorestech-external-revisions.json
-M moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs
+ ❯ src/features/modeHud/PlacementModeHud.localization.test.ts (4 tests | 1 failed)
+   × PlacementModeHud localization > connectTool GuidをGuid導出キーの表示名へ解決する
+     → expected 'Selected: undefined' to be 'Selected: Wire Tool'
 ```
 
-## 懸念事項
+想定通りの理由: 旧三項連鎖はconnectToolを `data.selectedName`（未配信）へ落とすため `undefined`。
 
-1. **master ブランチの C# 側は未移行**。`feature/remove-energized-range-webui` は master から分岐しているが、`EnergizedRangeVisible` の C# 撤去自体は tree1 側の別タスクで完了しており、master にはまだマージされていない。将来 master 側で同フィールドを撤去する際は、上記フィクスチャ・`WireContractC2Test.cs`・`PlacementModeTopic.cs` も合わせて更新する必要がある（今回スコープ外）。
-2. `feature/remove-energized-range-webui` ブランチは main repo に作成したのみで、PRやマージは行っていない（指示になかったため）。
-3. **task-10-report.md のファイル名衝突**: 本ファイルには既に別タスク（webuiコンポーネント実装、コミット `617c650cd`）のレポートが存在していたため上書きせず追記した。team-leadでの整理を推奨。
+### GREEN
+
+- `npx vitest run src/features` → `Test Files 30 passed (30) / Tests 185 passed (185)`
+- `npm test`（全体） → `Test Files 80 passed (80) / Tests 529 passed (529)`
+- `npx tsc -b` → exit 0 / `npm run lint` → 0 problems / `npx tsc -p e2e/tsconfig.json --noEmit` → exit 0
+- `uloop compile --project-path ./moorestech_client` → `Success: true / ErrorCount: 0`
+- `uloop run-tests --filter-type regex --filter-value ".*(BuildMenu|PlacementMode|WireContract).*"` → `TestCount 48 / PassedCount 48 / FailedCount 0`
+- `npx playwright test --config e2e/playwright.config.ts --grep "buildMenu|i18n"` → `10 passed`
+- `npx playwright test --config e2e/playwright.config.ts e2e/tests/modeHud` → `2 passed / 2 failed`（新規「配置対象connectToolをGuidだけの配信から辞書表示名へ解決する」はpass。失敗2件はベースライン既存）
+
+### ベースライン比較（既存赤の切り分け）
+
+フルe2e（`npx playwright test`）は変更後 `11 failed / 118 passed`。自分の変更を `git stash push -- <パス明示>` した状態で同じフルe2eを実行しても **同一の11件が失敗・118 passed**。内訳はmodeHud×2 / recipe×3 / connection / research×2 / skit / commonHud / train で、いずれも英語文言期待（mock既定localeがjapanese）や視覚パリティ系のベースライン赤。本タスクによる回帰は0件。
+
+この既存赤のため、当初 `operation-mode-hud.spec.ts` の既存テスト内に足したconnectTool検証は「line 20の英語期待で先に落ちて到達しない」死んだアサーションになっていた。ロケール非依存の独立テストへ移し、実際に実行されてpassすることを確認済み。
+
+## 変更したファイル
+
+ホスト（C#）
+- `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BuildMenu/WebBuildMenuEntryCatalog.cs`
+- `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BuildMenu/WebBuildMenuEntry.cs`
+- `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BuildMenu/BuildMenuTopic.cs`
+- `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/C2/PlacementModeTopic.cs`
+
+C#テスト・共有fixture
+- `Client.Tests/WebUi/BuildMenuProductionContractTest.cs`
+- `Client.Tests/WebUi/WireContractC2Test.cs`
+- `Client.Tests/WebUi/WireContractTest.cs`
+- `Client.Tests/WebUi/WireFixtures/build_menu_snapshot.json`
+- `Client.Tests/WebUi/WireFixtures/placement_mode_connect_tool.json`（+ Unity生成 `.meta`）
+
+Web
+- `src/bridge/contract/schemas/buildMenu.ts` / `schemas/ui.ts`
+- `src/bridge/contract/validators.test.ts` / `wireContract.test.ts`
+- `src/features/buildMenu/buildMenuGrouping.ts` / `buildMenuGrouping.test.ts` / `index.ts`
+- `src/features/modeHud/PlacementModeHud.tsx` / `PlacementModeHud.localization.test.ts`
+- `e2e/mock-host/fixtures.ts` / `fixtures/contentLocalizationFixtures.ts` / `topics/topicControls.ts`
+- `e2e/tests/regression/buildMenu.spec.ts` / `e2e/tests/modeHud/operation-mode-hud.spec.ts`
+
+ドキュメント
+- `docs/adr/0006-mod-localization-guid-derived-keys-web-side-resolution.md`
+
+## 自己レビューの所見
+
+- **ホスト側にconnectTool表示名解決が残っていない**: `grep -rn "ConnectToolName" moorestech_client/Assets/Scripts` の非テストヒットは `MasterSourceTextCollector`（原文＝フォールバック元の収集。決定5・6どおり残すのが正）のみ。`Client.WebUiHost` 配下の `Localize.` 参照はLocalizationTopic / 辞書エンドポイント / BP名モーダルだけで表示名解決は0。`ConnectToolMaster` 参照も解放判定の `All` 列挙のみ
+- **HUDの三項連鎖の消滅**: `PlacementModeHud.tsx` は集約関数の1呼び出し。残る `selectedTarget` はwireフィールド名（selectedBlockGuid / selectedConnectToolGuid / selectedName）→ target型の写像であり、キー導出・辞書引きの複製は無い
+- **言語切替の追従経路**: BuildMenuTopicの再pushは削除。`LocalizationTopic`（locale+revision）→ Web辞書再取得 → 再描画という既存経路にBuildMenu/配置HUDが乗る形（block/item/researchと同一）。`i18n.spec` がこの経路の生存を確認
+- **前例一致**: BlockGuid移行・Task 9のfluid移行と同じ「zod variant追加 → 表示側の辞書解決 → 共有fixture更新 → C#契約テスト更新」の手順を踏襲
+- **ファイル規模**: 全ファイル200行以下（最大 `WebBuildMenuEntry.cs` 119行、`buildMenuGrouping.ts` 92行）。新規ファイルは共有fixture JSON 1件のみ
+- **契約の型強度**: connectToolは `label: z.never().optional()` によりホストがlabelを再送し始めたらpayloadごと弾かれる（回帰の再侵入を型で防止）。負テストも追加
+
+## 問題や懸念事項
+
+1. **フルe2eのベースライン赤11件**（modeHud×2 / recipe×3 / research×2 / connection / skit / commonHud / train）は本タスク前から存在し、stash比較で同一集合であることを確認済み。多くは「mock既定localeがjapaneseなのにspecが英語文言を期待」で、単体・全体どちらでも落ちる既存負債（plan外Warning群と同様に別対応が妥当）
+2. **mock-hostのbuildMenu fixtureにconnectTool entryを追加した**ため、`e2e/capture-buildmenu.ts` 等の手動パリティ撮影で輸送カテゴリのスロットが1つ増える（既定表示は物流カテゴリなので既定キャプチャには出ない）。基準を再撮影する場合はこの差分を意図として扱うこと
+3. trainCarは正準source未定のためLabel維持のまま（ADR決定5の追記で範囲を明記）。将来 `trainCar.<guid>.name` を定めれば `raw` はユーザー命名blueprintのみへ縮退できる
