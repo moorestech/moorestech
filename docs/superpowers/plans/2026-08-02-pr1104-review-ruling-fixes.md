@@ -535,6 +535,7 @@ git commit -m "refactor: 地表高さ探査をSlopeBlockPlaceSystem.TryGetGround
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapVein/MapVeinObjectDatastore.cs`（該当: Construct 42行〜・WaitForInitializationAsync 137行〜）
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/MainGameStarter.cs`（該当: 279行のDI登録）
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Initialization/MainGameInitializationFinalizer.cs`（該当: FinalizeAsync/WaitAllInitialEventApplyAsync 全体）
+- Modify: `.claude/skills/unity-playmode-recorded-playtest/scenarios/misc/map-object-runtime-instantiate.cs`（`.agents` / `.codex` の同名コピー2本も同様。`IsInitialEventApplied` の読み手）
 - Test: 既存 `MapVeinOutcropAndRangeViewTest` / `TerrainCacheFetchTest` / `TerrainVisualCacheReuseTest` / `PlaytestBootEnvironmentTest`（フルブート経路の回帰）
 
 **Interfaces:**
@@ -682,13 +683,25 @@ namespace Client.Game.Common
 
             // 5秒未完了で詰まっている対象を顕在化し、適用待機自体は継続する
             // Surface targets stuck past five seconds while continuing to wait for their application
-            var finishedIndex = await UniTask.WhenAny(allApplied, UniTask.Delay(TimeSpan.FromSeconds(5)));
-            if (finishedIndex == 1)
+            // 対象タスクはWhenAllで一度だけawaitする。警告側でも待つとUniTaskの二重await例外になる
+            // Await the targets once through WhenAll; awaiting them again in the warning path throws UniTask's double-await error
+            WarnStuckTargetsAsync().Forget();
+            await allApplied;
+
+            #region Internal
+
+            async UniTaskVoid WarnStuckTargetsAsync()
             {
+                await UniTask.Delay(TimeSpan.FromSeconds(5));
+
+                // 未完了(Pending)だけを並べる。faultedは例外として上がるので警告に載せない
+                // List only Pending targets; faulted ones surface as exceptions instead
                 var pending = string.Join(", ", waits.Where(wait => wait.task.Status == UniTaskStatus.Pending).Select(wait => wait.target.GetType().Name));
+                if (pending.Length == 0) return;
                 Debug.LogWarning($"[MainGameInitializationFinalizer] 初期イベント適用が未完了のまま待機中: {pending}");
             }
-            await allApplied;
+
+            #endregion
         }
 ```
 
