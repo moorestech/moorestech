@@ -60,8 +60,6 @@ namespace Client.Starter.Initialization
             var waits = targets.Select(target => (target, task: target.WaitForInitialApplyAsync().Preserve())).ToList();
             var allApplied = UniTask.WhenAll(waits.Select(wait => wait.task));
 
-            // 5秒未完了で詰まっている対象を顕在化し、適用待機自体は継続する
-            // Surface targets stuck past five seconds while continuing to wait for their application
             // 対象タスクはWhenAllで一度だけawaitする。警告側でも待つとUniTaskの二重await例外になる
             // Await the targets once through WhenAll; awaiting them again in the warning path throws UniTask's double-await error
             WarnStuckTargetsAsync().Forget();
@@ -69,6 +67,8 @@ namespace Client.Starter.Initialization
 
             #region Internal
 
+            // 5秒未完了で詰まっている対象を顕在化し、適用待機自体は継続する
+            // Surface targets stuck past five seconds while continuing to wait for their application
             async UniTaskVoid WarnStuckTargetsAsync()
             {
                 await UniTask.Delay(TimeSpan.FromSeconds(5));

@@ -45,6 +45,11 @@ namespace Client.Game.InGame.Map.MapVein
 
         public void StartOutcropInstantiation()
         {
+            // 二重開始は露頭を全数重複させ、1本目のタスクを待機不能にする順序バグ
+            // A second start duplicates every outcrop and orphans the first task, so it is an ordering bug
+            if (_initializationTask != null)
+                throw new InvalidOperationException("[MapVeinObjectDatastore] StartOutcropInstantiationが二重に呼ばれました");
+
             // 完了と例外を待機機構がawaitできる形で保持する
             // Retain completion and exceptions in an awaitable form for the wait mechanism
             _initializationTask = InstantiateOutcropsFromLayoutAsync().Preserve();

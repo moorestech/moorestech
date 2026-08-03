@@ -30,11 +30,15 @@ namespace Client.Game.InGame.Map.MapObject
 
         // 生成ループの完了と例外を初期化パイプラインがawaitできる形で保持する
         // Retain the instantiation loop's completion and exceptions for the initialization pipeline to await
-        private UniTask _initialApplyTask;
+        private UniTask? _initialApplyTask;
 
         public UniTask WaitForInitialApplyAsync()
         {
-            return _initialApplyTask;
+            // 開始前の待機要求は順序バグ。既定値タスク（完了扱い）で素通りさせず失敗させる
+            // Waiting before the start is an ordering bug; never let the default (completed) task slip through
+            if (_initialApplyTask == null)
+                throw new InvalidOperationException("[MapObjectGameObjectDatastore] Construct前に待機が要求されました");
+            return _initialApplyTask.Value;
         }
 
         [Inject]
