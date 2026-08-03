@@ -2,7 +2,7 @@ using System;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 
-namespace Client.Tests.Localization
+namespace Client.Tests.Localization.Resolution
 {
     public class ContentLocalizationKeysTest
     {

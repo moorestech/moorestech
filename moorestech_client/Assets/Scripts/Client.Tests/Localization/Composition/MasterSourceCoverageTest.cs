@@ -8,7 +8,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 
-namespace Client.Tests.Localization.MasterSource
+namespace Client.Tests.Localization.Composition
 {
     /// <summary>
     /// 宣言表から生成された導出キー種が1つ残らず原文収集に届いているかを検証する再発防止テスト

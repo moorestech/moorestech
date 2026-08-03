@@ -14,7 +14,7 @@ using Tests.Module.TestMod;
 using UniRx;
 using UnityEngine;
 
-namespace Client.Tests.Localization
+namespace Client.Tests.Localization.Resolution
 {
     public class LocalizeContentTest
     {

@@ -9,7 +9,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 
-namespace Client.Tests.Localization.MasterSource
+namespace Client.Tests.Localization.Composition
 {
     public class MasterSourceTextCollectorTest
     {

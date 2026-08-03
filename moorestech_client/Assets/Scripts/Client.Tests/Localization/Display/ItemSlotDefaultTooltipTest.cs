@@ -6,7 +6,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 
-namespace Client.Tests.Localization
+namespace Client.Tests.Localization.Display
 {
     public class ItemSlotDefaultTooltipTest
     {

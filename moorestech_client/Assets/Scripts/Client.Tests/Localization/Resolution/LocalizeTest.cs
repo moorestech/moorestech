@@ -6,7 +6,7 @@ using NUnit.Framework;
 using UniRx;
 using UnityEngine;
 
-namespace Client.Tests.Localization
+namespace Client.Tests.Localization.Resolution
 {
     public class LocalizeTest
     {

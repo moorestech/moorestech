@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Client.Localization;
 using NUnit.Framework;
 
-namespace Client.Tests.Localization
+namespace Client.Tests.Localization.Resolution
 {
     public class LocalizationTextResolverTest
     {

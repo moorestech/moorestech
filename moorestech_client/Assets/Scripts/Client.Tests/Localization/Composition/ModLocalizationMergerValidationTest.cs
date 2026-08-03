@@ -7,7 +7,7 @@ using Mod.Loader;
 using Mooresmaster.LocalizationCsv;
 using NUnit.Framework;
 
-namespace Client.Tests.Localization
+namespace Client.Tests.Localization.Composition
 {
     public class ModLocalizationMergerValidationTest
     {

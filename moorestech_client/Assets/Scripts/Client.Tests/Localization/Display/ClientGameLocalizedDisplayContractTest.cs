@@ -2,7 +2,7 @@ using System;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using NUnit.Framework;
 
-namespace Client.Tests.Localization
+namespace Client.Tests.Localization.Display
 {
     public class ClientGameLocalizedDisplayContractTest
     {
