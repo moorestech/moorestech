@@ -1,8 +1,10 @@
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.ProgressBar;
@@ -47,10 +49,11 @@ namespace Client.WebUiHost.Game
             var uiStateControl = resolver.Resolve<UIStateControl>();
             var subInventoryState = resolver.Resolve<SubInventoryState>();
             var trainHudState = resolver.Resolve<TrainHUDScreenState>();
+            var localPlayerEquipment = resolver.Resolve<LocalPlayerEquipment>();
 
-            // インベントリトピックを生成して Hub に登録（selectedHotbar 用に HotBarView を渡す）
-            // Create inventory topic and register it (HotBarView is passed for selectedHotbar)
-            var inventoryTopic = new InventoryTopic(hub, controller, hotBarView);
+            // インベントリトピックを生成して Hub に登録（選択状態用に HotBarView と装備モデルを渡す）
+            // Create inventory topic and register it (HotBarView and the equipment model supply the selection state)
+            var inventoryTopic = new InventoryTopic(hub, controller, hotBarView, localPlayerEquipment);
             hub.RegisterTopic(InventoryTopic.TopicName, inventoryTopic);
 
             // モーダルブリッジサービスを生成（topic と action で共有）
@@ -149,9 +152,10 @@ namespace Client.WebUiHost.Game
             // ビルドメニュートピックを登録（BP名入力ブリッジも同時に張る）
             // Register the build-menu topic (also wires the blueprint-name input bridge)
             var blueprintLibrary = resolver.Resolve<ClientBlueprintLibrary>();
+            var placementTargetCatalog = resolver.Resolve<PlacementTargetCatalog>();
             var buildMenuView = resolver.Resolve<BuildMenuView>();
             var blueprintNameInputView = resolver.Resolve<BlueprintNameInputView>();
-            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, unlockStateData, blueprintLibrary);
+            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, unlockStateData, blueprintLibrary, placementTargetCatalog);
             hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
             new BlueprintNameInputWebBridge(blueprintNameInputView, modalService);
 
@@ -169,6 +173,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new SortInventoryActionHandler(controller));
             hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));
             hub.RegisterAction(new SelectHotbarActionHandler(hotBarView));
+            hub.RegisterAction(new SelectEquipmentActionHandler(localPlayerEquipment));
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
             hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));
             hub.RegisterAction(new BlockSplitGrabActionHandler(controller, subInventoryState));
@@ -180,7 +185,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));
             hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));
             hub.RegisterAction(new TrainPlatformSetTransferModeActionHandler(subInventoryState));
-            hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, unlockStateData, blueprintLibrary, buildMenuView));
+            hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, unlockStateData, blueprintLibrary, placementTargetCatalog, buildMenuView));
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<SaveButton>()));
             hub.RegisterAction(new PauseMenuBackToMainMenuActionHandler(resolver.Resolve<BackToMainMenu>()));

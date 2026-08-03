@@ -171,7 +171,7 @@ namespace Client.WebUiHost.Game.Actions
             // 収集先決定は inventory.collect と同一（host 自身の grab 状態で決める）。空手×空スロットは no-op
             // Target choice matches inventory.collect (decided by the host's own grab); empty-handed on empty is a no-op
             var grabHeld = _controller.GrabInventory.Id != ItemMaster.EmptyItemId;
-            var (targetType, targetSlot) = CollectActionHandler.ResolveCollectTarget(grabHeld, combinedSlot);
+            var (targetType, targetSlot) = CollectActionHandler.ResolveCollectTarget(grabHeld, LocalMoveInventoryType.MainOrSub, combinedSlot);
             _controller.CollectItems(targetType, targetSlot);
             return UniTask.FromResult(ActionResult.Success());
         }

@@ -10,15 +10,21 @@ namespace Game.Blueprint
         [JsonProperty("name")] public string Name;
         [JsonProperty("blocks")] public List<BlueprintBlockJsonObject> Blocks;
 
+        // BlockGuidStr/BlockGuidと同形式。識別子はGuidに一本化し、名前は表示専用
+        // Same shape as BlockGuidStr/BlockGuid; the identity is unified to a GUID and the name is display-only
+        [JsonProperty("guid")] public string BlueprintGuidStr { get; private set; }
+        [JsonIgnore] public Guid BlueprintGuid => string.IsNullOrEmpty(BlueprintGuidStr) ? Guid.Empty : Guid.Parse(BlueprintGuidStr);
+
         public BlueprintJsonObject()
         {
             Blocks = new List<BlueprintBlockJsonObject>();
         }
 
-        public BlueprintJsonObject(string name, List<BlueprintBlockJsonObject> blocks)
+        public BlueprintJsonObject(string name, List<BlueprintBlockJsonObject> blocks, Guid blueprintGuid)
         {
             Name = name;
             Blocks = blocks;
+            BlueprintGuidStr = blueprintGuid.ToString();
         }
     }
 

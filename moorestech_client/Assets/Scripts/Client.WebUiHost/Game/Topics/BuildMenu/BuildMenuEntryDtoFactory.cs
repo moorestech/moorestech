@@ -1,37 +1,140 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Common.Debug;
 using Core.Master;
 using Game.UnlockState;
+using Mooresmaster.Model.BuildMenuModule;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
 {
     /// <summary>
-    /// WebBuildMenuEntryCatalog の合成結果を web 配信用 DTO へ変換する
-    /// Converts the WebBuildMenuEntryCatalog composition into web-delivery DTOs
+    /// 解放済み設置対象を web 配信用 DTO へ変換する
+    /// Converts the unlocked placement targets into web-delivery DTOs
     /// </summary>
     public static class BuildMenuEntryDtoFactory
     {
-        public static List<BuildMenuEntryDto> CreateDtos(IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary)
+        public static List<BuildMenuEntryDto> CreateDtos(IGameUnlockStateData unlockState, PlacementTargetCatalog placementTargetCatalog, IReadOnlyList<(Guid id, string name)> blueprintEntries)
         {
             var dtos = new List<BuildMenuEntryDto>();
+            var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
+
+            // 無料設置デバッグ時は未解放も含め設置可能な全ブロック/車両を表示する
+            // In free-placement debug mode, show every placeable block/train car including locked ones
+            var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
+
+            // 共有カタログの列挙順（ブロック→車両→接続ツール→BPコピー→BP）がそのまま表示順
+            // The shared catalog's order (blocks, train cars, connect tools, blueprint copy, blueprints) is the display order
             // カテゴリ整合はマスタロード時に検証済み（block参照はBlockMasterUtil・非ブロックはentrySource必須定義）
             // Category consistency is validated at master load (block refs by BlockMasterUtil, non-blocks by required entrySource)
-            foreach (var entry in WebBuildMenuEntryCatalog.CreateEntries(unlockState, blueprintLibrary))
+            foreach (var entry in placementTargetCatalog.UnlockedEntries(unlockState, showAllPlaceable, blueprintEntries))
             {
+                var target = PlacementTargetFactory.Create(entry);
+                var (category, subCategory) = ResolveCategoryPair(target);
                 dtos.Add(new BuildMenuEntryDto
                 {
-                    EntryType = GetEntryTypeName(entry.Target),
-                    EntryKey = GetEntryKey(entry.Target),
-                    Label = entry.Label,
-                    Category = entry.Category,
-                    SubCategory = entry.SubCategory,
-                    RequiredItems = entry.RequiredItems.Select(r => new BuildMenuRequiredItemDto { ItemId = r.ItemId.AsPrimitive(), Count = r.Count }).ToList(),
-                    IconUrl = CreateIconUrl(entry.Target),
+                    // 設置対象IDはGuid文字列1本。kindは表示・振る舞い用で識別子ではない
+                    // The id is a single GUID string; kind is for display/behavior, not identity
+                    Id = target.Id.ToString(),
+                    Kind = GetKind(target.Kind),
+                    Label = target.DisplayName,
+                    Category = category,
+                    SubCategory = subCategory,
+                    RequiredItems = CreateRequiredItemDtos(target),
+                    IconUrl = CreateIconUrl(target),
                 });
             }
             return dtos;
+
+            #region Internal
+
+            // PlacementTargetCatalogが既に確定させたKind enumを網羅switchで文字列化する（型switchの二重分類・未知値文字列漏れを禁止）
+            // Stringify the Kind enum the PlacementTargetCatalog already determined via an exhaustive switch (no duplicate type-pattern classification, no unknown-value string leak)
+            string GetKind(PlacementTargetKind kind)
+            {
+                return kind switch
+                {
+                    PlacementTargetKind.Block => "block",
+                    PlacementTargetKind.TrainCar => "trainCar",
+                    PlacementTargetKind.ConnectTool => "connectTool",
+                    PlacementTargetKind.BlueprintCopy => "blueprintCopy",
+                    PlacementTargetKind.Blueprint => "blueprint",
+                    _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+                };
+            }
+
+            // ブロックだけカテゴリをブロックマスタ自身が持ち、他はentrySource定義のサブカテゴリへ入る
+            // Only blocks carry their category on the block master; the rest go to their entrySource-defined sub category
+            (string category, string subCategory) ResolveCategoryPair(IPlacementTarget target)
+            {
+                if (target is BlockPlacementTarget block)
+                {
+                    var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
+                    return (blockMaster.Category, blockMaster.SubCategory);
+                }
+
+                return categoryMaster.GetPairByEntrySource(target.Kind switch
+                {
+                    PlacementTargetKind.TrainCar => BuildMenuSubCategoryElement.EntrySourceConst.trainCars,
+                    PlacementTargetKind.ConnectTool => BuildMenuSubCategoryElement.EntrySourceConst.connectTools,
+                    PlacementTargetKind.BlueprintCopy => BuildMenuSubCategoryElement.EntrySourceConst.blueprintCopyTool,
+                    PlacementTargetKind.Blueprint => BuildMenuSubCategoryElement.EntrySourceConst.savedBlueprints,
+                    _ => throw new ArgumentOutOfRangeException(nameof(target.Kind), target.Kind, null),
+                });
+            }
+
+            // 建設コストを持つのはブロックと車両だけ。ItemGuidは揮発ItemIdへ解決する
+            // Only blocks and train cars have construction costs; ItemGuid resolves to a volatile ItemId
+            List<BuildMenuRequiredItemDto> CreateRequiredItemDtos(IPlacementTarget target)
+            {
+                IEnumerable<(Guid itemGuid, int count)> requiredItems = null;
+                if (target is BlockPlacementTarget block)
+                    requiredItems = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).RequiredItems?.Select(r => (r.ItemGuid, r.Count));
+                if (target is TrainCarPlacementTarget trainCar)
+                    requiredItems = MasterHolder.TrainUnitMaster.GetTrainCarMaster(trainCar.TrainCarGuid).RequiredItems?.Select(r => (r.ItemGuid, r.Count));
+
+                var itemDtos = new List<BuildMenuRequiredItemDto>();
+                if (requiredItems == null) return itemDtos;
+                foreach (var (itemGuid, count) in requiredItems)
+                {
+                    itemDtos.Add(new BuildMenuRequiredItemDto { ItemId = MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive(), Count = count });
+                }
+                return itemDtos;
+            }
+
+            string CreateIconUrl(IPlacementTarget target)
+            {
+                switch (target.Kind)
+                {
+                    case PlacementTargetKind.Block:
+                    {
+                        var block = (BlockPlacementTarget)target;
+                        // block-icons はblock inventoryトピックのBlockIconと共有するため揮発BlockIdのまま（Guid化はplan Aのスコープ外）
+                        // block-icons is shared with the block inventory topic's BlockIcon, so it stays volatile BlockId (GUID conversion is out of plan A's scope)
+                        return $"{BlockIconEndpoint.PathPrefix}{block.BlockId.AsPrimitive()}{BlockIconEndpoint.PathSuffix}";
+                    }
+                    case PlacementTargetKind.TrainCar:
+                    {
+                        var trainCar = (TrainCarPlacementTarget)target;
+                        return $"{TrainCarIconEndpoint.PathPrefix}{trainCar.TrainCarGuid}{TrainCarIconEndpoint.PathSuffix}";
+                    }
+                    case PlacementTargetKind.ConnectTool:
+                    {
+                        var connectTool = (ConnectToolPlacementTarget)target;
+                        // 接続ツールのアイコンはconnectToolのimagePathから配信する
+                        // The connect tool icon is served from the connectTool's imagePath
+                        return $"{ConnectToolIconEndpoint.PathPrefix}{connectTool.ConnectToolGuid}{ConnectToolIconEndpoint.PathSuffix}";
+                    }
+                    case PlacementTargetKind.BlueprintCopy:
+                    case PlacementTargetKind.Blueprint:
+                        return null;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(target.Kind), target.Kind, null);
+                }
+            }
+
+            #endregion
         }
 
         public static List<BuildMenuCategoryDto> CreateCategoryDtos()
@@ -44,52 +147,6 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     Name = c.Name,
                     SubCategories = c.SubCategories.Select(s => s.Name).ToList(),
                 }).ToList();
-        }
-
-        // web契約の entryType 文字列（select アクションの照合と共有する）
-        // The web-contract entryType string (shared with the select action's matching)
-        public static string GetEntryTypeName(IPlacementTarget target)
-        {
-            return target switch
-            {
-                BlockPlacementTarget => "block",
-                TrainCarPlacementTarget => "trainCar",
-                ConnectToolPlacementTarget => "connectTool",
-                BlueprintCopyToolPlacementTarget => "blueprintCopy",
-                BlueprintPlacementTarget => "blueprint",
-                _ => target.GetType().Name,
-            };
-        }
-
-        // 種別ごとの安定キー（配列indexは再配信でずれるため使わない）
-        // Stable key per type (array indices shift across republishes, so they are never used)
-        public static string GetEntryKey(IPlacementTarget target)
-        {
-            return target switch
-            {
-                BlockPlacementTarget block => block.BlockId.AsPrimitive().ToString(),
-                TrainCarPlacementTarget trainCar => trainCar.TrainCarGuid.ToString(),
-                ConnectToolPlacementTarget connectTool => connectTool.ConnectToolGuid.ToString(),
-                BlueprintPlacementTarget blueprint => blueprint.BlueprintName,
-                _ => string.Empty,
-            };
-        }
-
-        private static string CreateIconUrl(IPlacementTarget target)
-        {
-            switch (target)
-            {
-                case BlockPlacementTarget block:
-                    return $"{BlockIconEndpoint.PathPrefix}{block.BlockId.AsPrimitive()}{BlockIconEndpoint.PathSuffix}";
-                case TrainCarPlacementTarget trainCar:
-                    return $"{TrainCarIconEndpoint.PathPrefix}{trainCar.TrainCarGuid}{TrainCarIconEndpoint.PathSuffix}";
-                case ConnectToolPlacementTarget connectTool:
-                    // 接続ツールのアイコンはconnectToolのimagePathから配信する
-                    // The connect tool icon is served from the connectTool's imagePath
-                    return $"{ConnectToolIconEndpoint.PathPrefix}{connectTool.ConnectToolGuid}{ConnectToolIconEndpoint.PathSuffix}";
-                default:
-                    return null;
-            }
         }
     }
 }

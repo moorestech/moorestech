@@ -6,6 +6,11 @@ export const PlayerInventoryDataSchema = z.object({
   hotbarSlots: z.array(SlotDataSchema),
   grab: SlotDataSchema,
   selectedHotbar: z.number(),
+  // 装備枠は可変長、-1は素手
+  // Equipment is variable-length; -1 means bare hands
+  equipment: z.array(SlotDataSchema),
+  selectedEquipment: z.number(),
+  equipmentSelectionConfirmationRevision: z.number().int().nonnegative(),
 });
 
 export const FluidSlotDataSchema = z.object({

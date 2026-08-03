@@ -72,7 +72,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     return _trainCarPlaceSystem;
                 case BlueprintPlacementTarget:
                     return _blueprintPasteSystem;
-                case BlueprintCopyToolPlacementTarget:
+                case BlueprintCopyPlacementTarget:
                     return _blueprintCopySystem;
                 case ConnectToolPlacementTarget connectTool:
                 {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,29 +10,19 @@ namespace Game.Blueprint
 
         public IReadOnlyList<BlueprintJsonObject> Blueprints => _blueprints;
 
-        public string Register(BlueprintJsonObject blueprint)
+        public Guid Register(BlueprintJsonObject blueprint)
         {
-            // 重複名には " (2)" 形式の連番を付与して常に登録成功させる
-            // Suffix duplicates with " (2)" style numbering so register always succeeds
-            var name = blueprint.Name;
-            var suffix = 2;
-            while (_blueprints.Any(b => b.Name == name))
-            {
-                name = $"{blueprint.Name} ({suffix})";
-                suffix++;
-            }
-
-            blueprint.Name = name;
+            // 識別子は生成時に確定済みのため、登録では加工しない
+            // The identity is fixed at creation time, so registration does not mutate it
             _blueprints.Add(blueprint);
-            return name;
+            return blueprint.BlueprintGuid;
         }
 
-        public bool Delete(string name)
+        public bool Delete(Guid blueprintGuid)
         {
-            var target = _blueprints.FirstOrDefault(b => b.Name == name);
-            if (target == null) return false;
-
-            _blueprints.Remove(target);
+            var index = _blueprints.FindIndex(b => b.BlueprintGuid == blueprintGuid);
+            if (index < 0) return false;
+            _blueprints.RemoveAt(index);
             return true;
         }
 

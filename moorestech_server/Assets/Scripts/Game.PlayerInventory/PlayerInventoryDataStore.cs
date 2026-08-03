@@ -4,6 +4,7 @@ using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.PlayerInventory.ItemManaged;
 using UniRx;
+using UnityEngine;
 
 namespace Game.PlayerInventory
 {
@@ -13,6 +14,7 @@ namespace Game.PlayerInventory
     /// </summary>
     public class PlayerInventoryDataStore : IPlayerInventoryDataStore
     {
+        private readonly EquipmentInventoryUpdateEvent _equipmentInventoryUpdateEvent;
         private readonly GrabInventoryUpdateEvent _grabInventoryUpdateEvent;
 
 
@@ -20,11 +22,12 @@ namespace Game.PlayerInventory
         private readonly Dictionary<int, PlayerInventoryData> _playerInventoryData = new();
         private readonly IPlayerInventorySlotLevelDataStore _slotLevelDataStore;
 
-        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent, IGrabInventoryUpdateEvent grabInventoryUpdateEvent, IPlayerInventorySlotLevelDataStore slotLevelDataStore)
+        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent, IGrabInventoryUpdateEvent grabInventoryUpdateEvent, IEquipmentInventoryUpdateEvent equipmentInventoryUpdateEvent, IPlayerInventorySlotLevelDataStore slotLevelDataStore)
         {
             //イベントの呼び出しをアセンブリに隠蔽するため、インターフェースをキャストします。
             _mainInventoryUpdateEvent = (MainInventoryUpdateEvent)mainInventoryUpdateEvent;
             _grabInventoryUpdateEvent = (GrabInventoryUpdateEvent)grabInventoryUpdateEvent;
+            _equipmentInventoryUpdateEvent = (EquipmentInventoryUpdateEvent)equipmentInventoryUpdateEvent;
             _slotLevelDataStore = slotLevelDataStore;
 
             // レベル上昇で全プレイヤー拡張
@@ -47,8 +50,9 @@ namespace Game.PlayerInventory
             {
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _slotLevelDataStore.CurrentSlotCount);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent);
-                
-                _playerInventoryData.Add(playerId, new PlayerInventoryData(main, grab));
+                var equipment = new EquipmentInventoryData(playerId, _equipmentInventoryUpdateEvent);
+
+                _playerInventoryData.Add(playerId, new PlayerInventoryData(main, grab, equipment));
             }
             
             return _playerInventoryData[playerId];
@@ -75,16 +79,31 @@ namespace Game.PlayerInventory
             foreach (var saveInventory in saveInventoryDataList)
             {
                 var playerId = saveInventory.PlayerId;
-                (var mainItems, var grabItem) = saveInventory.GetPlayerInventoryData();
+                (var mainItems, var grabItem, var equipmentItems, var selectedEquipmentIndex) = saveInventory.GetPlayerInventoryData();
                 
                 //アイテムを復元
-                // セーブ済みアイテム数が現レベルのスロット数を超える場合はアイテム数まで拡張する
-                // Expand to the saved item count when it exceeds the current level's slot count
-                var slotCount = System.Math.Max(_slotLevelDataStore.CurrentSlotCount, mainItems.Count);
+                // 装備を先に復元し、マスタのスロット数が縮んであふれた分を受け取る
+                // Restore equipment first and take the overflow caused by a shrunk master slot count
+                var equipment = new EquipmentInventoryData(playerId, _equipmentInventoryUpdateEvent);
+                var overflowEquipmentItems = equipment.RestoreFromSave(equipmentItems, selectedEquipmentIndex);
+
+                // セーブ済みアイテム数と装備あふれ分が収まるまでスロットを拡張し、アイテムを絶対に消さない
+                // Expand slots until both the saved items and the equipment overflow fit so no item is ever lost
+                var slotCount = System.Math.Max(_slotLevelDataStore.CurrentSlotCount, mainItems.Count + overflowEquipmentItems.Count);
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, slotCount, mainItems);
+                var notInsertedItems = main.InsertItem(overflowEquipmentItems);
+
+                // 枠は算術上必ず足りるため、入り切らない分が出た時点でスロット数計算のバグを意味する
+                // The slot math always leaves room, so any leftover means the slot count calculation is broken
+                foreach (var notInserted in notInsertedItems)
+                {
+                    if (notInserted.Count == 0) continue;
+                    Debug.LogError($"装備あふれ分をメインインベントリへ退避できませんでした playerId:{playerId} itemId:{notInserted.Id} count:{notInserted.Count}");
+                }
+
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, grabItem);
-                
-                var playerInventory = new PlayerInventoryData(main, grab);
+
+                var playerInventory = new PlayerInventoryData(main, grab, equipment);
                 
                 //インベントリの追加を行う　既にあるなら置き換える
                 _playerInventoryData[playerId] = playerInventory;

@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Inventory;
 using Core.Master;
@@ -74,6 +75,56 @@ namespace Client.Playtest.Operations
             // HotBarView.CurrentItemはクライアント側インベントリを読むため、反映を待つ
             // HotBarView.CurrentItem reads the client-side inventory, so wait for the sync
             await WaitClientItemCount(itemId, clientCountBefore + count, timeoutSeconds);
+        }
+
+        public static async UniTask EquipItem(string itemName, int equipmentSlot, float timeoutSeconds)
+        {
+            // 持ち物から装備枠へ移して選択する。採掘はサーバー権威で選択中装備を見るため、両方揃って初めて成立する
+            // Move the stack from the inventory into an equipment slot and select it; server-authoritative mining reads the selected equipment, so both steps are required
+            var itemId = ResolveItemId(itemName);
+            var resolver = ClientDIContext.DIContainer.DIContainerResolver;
+            var localInventory = resolver.Resolve<ILocalPlayerInventory>();
+            var startTime = Time.realtimeSinceStartup;
+
+            // クラフト直後などはクライアントミラーへの反映が遅れるため、移動元が現れるまで待つ
+            // The client mirror lags right after a craft, so wait until the source stack shows up
+            while (FindClientSlot() < 0)
+            {
+                ThrowIfTimeout($"'{itemName}' never appeared in the client inventory");
+                await UniTask.Yield();
+            }
+
+            var sourceSlot = FindClientSlot();
+            resolver.Resolve<LocalPlayerInventoryController>().MoveItem(LocalMoveInventoryType.MainOrSub, sourceSlot, LocalMoveInventoryType.Equipment, equipmentSlot, localInventory[sourceSlot].Count);
+            resolver.Resolve<LocalPlayerEquipment>().SetSelectedIndex(equipmentSlot);
+
+            // サーバーの装備インベントリへ反映されるまで待つ（採掘判定が読むのはこちらのため）
+            // Wait until the server equipment inventory reflects it, since the mining check reads that side
+            var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
+            var equipmentInventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).EquipmentInventory;
+            while (equipmentInventory.GetSelectedItem().Id != itemId)
+            {
+                ThrowIfTimeout($"equip '{itemName}' into slot {equipmentSlot} did not reach the server");
+                await UniTask.Yield();
+            }
+
+            #region Internal
+
+            int FindClientSlot()
+            {
+                for (var slot = 0; slot < localInventory.Count; slot++)
+                {
+                    if (localInventory[slot].Id == itemId && 0 < localInventory[slot].Count) return slot;
+                }
+                return -1;
+            }
+
+            void ThrowIfTimeout(string message)
+            {
+                if (timeoutSeconds < Time.realtimeSinceStartup - startTime) throw new TimeoutException($"{message} within {timeoutSeconds}s");
+            }
+
+            #endregion
         }
 
         public static async UniTask GiveConstructionCost(string blockName, int blockCount, float timeoutSeconds)

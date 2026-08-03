@@ -4,27 +4,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
-using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
-using Common.Debug;
-using Game.Block.Interface.Extension;
 using Client.Mod.Texture;
+using Common.Debug;
 using Core.Master;
 using Game.UnlockState;
-using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.TrainModule;
 
 namespace Client.Game.InGame.UI.BuildMenu
 {
     /// <summary>
-    /// ビルドメニューの表示エントリ一覧を組み立てる（ブロック→車両→接続ツール→BPの順）
-    /// Builds the list of build-menu entries: blocks, train cars, connect tools, then blueprints
+    /// ビルドメニューの表示エントリ一覧を組み立てる（共有カタログの列挙順にアイコンとツールチップを付ける）
+    /// Builds the list of build-menu entries by decorating the shared catalog's enumeration with icons and tooltips
     /// </summary>
     public static class BuildMenuEntryCatalog
     {
-        public static List<BuildMenuEntry> CreateEntries(IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary)
+        public static List<BuildMenuEntry> CreateEntries(IGameUnlockStateData unlockState, PlacementTargetCatalog placementTargetCatalog, IReadOnlyList<(Guid id, string name)> blueprintEntries)
         {
             var entries = new List<BuildMenuEntry>();
 
@@ -32,88 +27,59 @@ namespace Client.Game.InGame.UI.BuildMenu
             // In free-placement debug mode, show every placeable block/train car including locked ones
             var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
 
-            // 解放済み（無料設置時は全）ブロックをソート順に列挙し、ベルトの坂は除外する
-            // Enumerate unlocked (all in free mode) blocks in sort order while excluding belt slopes
-            var unlockedBlocks = MasterHolder.BlockMaster.Blocks.Data
-                .Where(b => showAllPlaceable || IsBlockUnlocked(unlockState, b))
-                .Where(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid))
-                .OrderBy(b => b.SortPriority ?? 0)
-                .ThenBy(b => b.Name);
-            foreach (var blockMaster in unlockedBlocks)
+            // 共有カタログの列挙順（ブロック→車両→接続ツール→BPコピー→BP）がそのまま表示順
+            // The shared catalog's order (blocks, train cars, connect tools, blueprint copy, blueprints) is the display order
+            foreach (var entry in placementTargetCatalog.UnlockedEntries(unlockState, showAllPlaceable, blueprintEntries))
             {
-                var blockId = MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);
-                var iconView = ClientContext.BlockImageContainer.GetBlockView(blockId);
-                entries.Add(new BuildMenuEntry(new BlockPlacementTarget(blockId, null), iconView, CreateBlockToolTip(blockMaster)));
-            }
-
-            // 解放済み車両を列挙する
-            // Enumerate unlocked train cars
-            foreach (var trainCar in MasterHolder.TrainUnitMaster.Train.TrainCars)
-            {
-                if (!showAllPlaceable && (!unlockState.TrainCarUnlockStateInfos.TryGetValue(trainCar.TrainCarGuid, out var state) || !state.IsUnlocked)) continue;
-                var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(trainCar.TrainCarGuid);
-                entries.Add(new BuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView, CreateTrainCarToolTip(trainCar, iconView)));
-            }
-
-            // 解放済みconnectToolをSortPriority順に1エントリずつ表示（アイコンはimagePath由来）
-            // Show one entry per unlocked connectTool in SortPriority order (icon comes from imagePath)
-            var unlockedConnectTools = MasterHolder.ConnectToolMaster.All
-                .Where(element => unlockState.ConnectToolUnlockStateInfos.TryGetValue(element.ConnectToolGuid, out var info) && info.IsUnlocked)
-                .OrderBy(element => element.SortPriority);
-            foreach (var connectTool in unlockedConnectTools)
-            {
-                var iconView = ClientContext.ConnectToolImageContainer.GetConnectToolView(connectTool.ConnectToolGuid);
-                entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(connectTool.ConnectToolGuid), iconView, connectTool.Name));
-            }
-
-            // 接続ツール群にBPコピーツール追加（テキスト表示）
-            // Append the blueprint copy tool alongside the connect tools (icon-less text slot)
-            entries.Add(new BuildMenuEntry(new BlueprintCopyToolPlacementTarget(), null, "ブループリントコピー"));
-
-            // 保存済みBPのエントリを追加
-            // Append entries for saved blueprints
-            foreach (var blueprint in blueprintLibrary.Blueprints)
-            {
-                entries.Add(new BuildMenuEntry(new BlueprintPlacementTarget(blueprint.Name), null, blueprint.Name));
+                var target = PlacementTargetFactory.Create(entry);
+                entries.Add(new BuildMenuEntry(target, ResolveIconView(target), CreateToolTip(target)));
             }
 
             return entries;
 
             #region Internal
 
-            bool IsBlockUnlocked(IGameUnlockStateData state, BlockMasterElement blockMaster)
+            // アイコンを持つのはブロック・車両・接続ツールだけで、BPとBPコピーはテキスト表示スロット
+            // Only blocks, train cars, and connect tools have icons; blueprints and the copy tool render as text-only slots
+            ItemViewData ResolveIconView(IPlacementTarget target)
             {
-                return state.BlockUnlockStateInfos.TryGetValue(blockMaster.BlockGuid, out var info) && info.IsUnlocked;
-            }
-
-            string CreateBlockToolTip(BlockMasterElement blockMaster)
-            {
-                var builder = new StringBuilder(blockMaster.Name);
-                AppendRequiredItems(builder, ConstructionCostTexts(blockMaster.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));
-                return builder.ToString();
-            }
-
-            string CreateTrainCarToolTip(TrainCarMasterElement trainCar, ItemViewData iconView)
-            {
-                // 車両マスタにnameが無いため、アイコンビューの表示名（addressablePath末尾）を使う
-                // Train car masters have no name, so use the icon view's display name (addressablePath tail)
-                var builder = new StringBuilder(iconView.ItemName);
-                AppendRequiredItems(builder, ConstructionCostTexts(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));
-                return builder.ToString();
-            }
-
-            IEnumerable<string> ConstructionCostTexts(IEnumerable<(Guid itemGuid, int count)> requiredItems)
-            {
-                if (requiredItems == null) yield break;
-                foreach (var (itemGuid, count) in requiredItems)
+                switch (target)
                 {
-                    yield return $"{MasterHolder.ItemMaster.GetItemMaster(itemGuid).Name} x{count}";
+                    case BlockPlacementTarget block:
+                        return ClientContext.BlockImageContainer.GetBlockView(block.BlockId);
+                    case TrainCarPlacementTarget trainCar:
+                        return ClientContext.TrainCarImageContainer.GetTrainCarView(trainCar.TrainCarGuid);
+                    case ConnectToolPlacementTarget connectTool:
+                        return ClientContext.ConnectToolImageContainer.GetConnectToolView(connectTool.ConnectToolGuid);
+                    default:
+                        return null;
                 }
             }
 
-            void AppendRequiredItems(StringBuilder builder, IEnumerable<string> costTexts)
+            // ツールチップは表示名に建設コストを続けたもの。コストを持つのはブロックと車両だけ
+            // The tooltip is the display name followed by construction costs, which only blocks and train cars have
+            string CreateToolTip(IPlacementTarget target)
             {
-                foreach (var text in costTexts) builder.Append('\n').Append(text);
+                var builder = new StringBuilder(target.DisplayName);
+                switch (target)
+                {
+                    case BlockPlacementTarget block:
+                        AppendRequiredItems(builder, MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
+                        break;
+                    case TrainCarPlacementTarget trainCar:
+                        AppendRequiredItems(builder, MasterHolder.TrainUnitMaster.GetTrainCarMaster(trainCar.TrainCarGuid).RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
+                        break;
+                }
+                return builder.ToString();
+            }
+
+            void AppendRequiredItems(StringBuilder builder, IEnumerable<(Guid itemGuid, int count)> requiredItems)
+            {
+                if (requiredItems == null) return;
+                foreach (var (itemGuid, count) in requiredItems)
+                {
+                    builder.Append('\n').Append($"{MasterHolder.ItemMaster.GetItemMaster(itemGuid).Name} x{count}");
+                }
             }
 
             #endregion

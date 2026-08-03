@@ -21,6 +21,7 @@ namespace Core.Master
         public static TrainUnitMaster TrainUnitMaster { get; private set; }
         public static CleanRoomMaster CleanRoomMaster { get; private set; }
         public static ConnectToolMaster ConnectToolMaster { get; private set; }
+        public static BuildToolMaster BuildToolMaster { get; private set; }
         public static BuildMenuCategoryMaster BuildMenuCategoryMaster { get; private set; }
 
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
@@ -56,6 +57,9 @@ namespace Core.Master
             // Depends on ItemMaster (validates requiredItems.itemGuid)
             ConnectToolMaster = new ConnectToolMaster(GetJson(masterJsonFileContainer, new JsonFileName("buildMenu")));
             InitializeMaster(ConnectToolMaster);
+
+            BuildToolMaster = new BuildToolMaster(GetJson(masterJsonFileContainer, new JsonFileName("buildMenu")));
+            InitializeMaster(BuildToolMaster);
 
             MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("map")));
             InitializeMaster(MapObjectMaster);

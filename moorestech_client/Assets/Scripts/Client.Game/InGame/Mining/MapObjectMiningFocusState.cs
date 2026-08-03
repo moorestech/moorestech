@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Core.Master;
-using Game.PlayerInventory.Interface;
 using Mooresmaster.Model.MapModule;
 
 namespace Client.Game.InGame.Mining
@@ -45,7 +43,7 @@ namespace Client.Game.InGame.Mining
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
             {
                 MouseCursorTooltip.Instance.Hide();
-                return new MapObjectMiningMiningCompleteState(context.CurrentFocusMapObjectGameObject, int.MaxValue);
+                return new MapObjectMiningMiningCompleteState(context.CurrentFocusMapObjectGameObject);
             }
             
             // 左クリックがされていなければ現状を維持
@@ -56,36 +54,13 @@ namespace Client.Game.InGame.Mining
         
         private IMapObjectMiningState MiningProcess(MapObjectMasterElement masterElement,MapObjectMiningControllerContext context)
         {
-            // 今持っているアイテムがマイニングツールとして登録されているかどうかをチェック
-            // Check if the item you are currently holding is registered as a mining tool
-            var hotBarInventoryIndex = context.LocalPlayerInventory.GetHotBarInventorySlot(context.HotBarView.SelectIndex);
-            var inventoryItem = context.LocalPlayerInventory[hotBarInventoryIndex];
-                
-            
-            // 何も選択していない場合はフォーカスを維持
-            // If nothing is selected, maintain focus
+            // 今装備しているアイテムがマイニングツールとして登録されているかどうかをチェック
+            // Check if the item you are currently equipping is registered as a mining tool
             var miningTools = ((MiningMiningParam)masterElement.MiningParam).MiningTools;
-            if (inventoryItem.Id == ItemMaster.EmptyItemId)
-            {
-                ShowRecommendMiningTools(miningTools);
-                return this;
-            }
-            
-            
-            // マイニングツールとして登録されているかどうかをチェック
-            // Check if it is registered as a mining tool
-            MiningToolsElement usableMiningTool = null; 
-            var currentItemGuid = MasterHolder.ItemMaster.GetItemMaster(inventoryItem.Id).ItemGuid;
-            foreach (var miningTool in miningTools)
-            {
-                if (miningTool.ToolItemGuid != currentItemGuid) continue;
-                
-                usableMiningTool = miningTool;
-                break;
-            }
-            
-            // マイニングツールとして登録されていない場合はフォーカスを維持
-            // If it is not registered as a mining tool, maintain focus
+            var usableMiningTool = context.ResolveUsableTool(miningTools);
+
+            // 未選択、またはマイニングツールとして登録されていない場合はフォーカスを維持
+            // If nothing is selected, or it is not registered as a mining tool, maintain focus
             if (usableMiningTool == null)
             {
                 ShowRecommendMiningTools(miningTools);
@@ -103,23 +78,22 @@ namespace Client.Game.InGame.Mining
             // マイニング状態に遷移
             // Transition to mining state
             MouseCursorTooltip.Instance.Hide();
-            return new MapObjectMiningMiningState(usableMiningTool);
-        }
-        
-        
-        private void ShowRecommendMiningTools(MiningToolsElement[] miningTools)
-        {
-            var result = new List<string>();
-            
-            foreach (var tool in miningTools)
+            return new MapObjectMiningMiningState(usableMiningTool, context.LocalPlayerEquipment.SelectedItem.Id);
+
+            #region Internal
+
+            void ShowRecommendMiningTools(MiningToolsElement[] tools)
             {
-                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(tool.ToolItemGuid);
-                result.Add(itemMaster.Name);
+                var toolNames = new List<string>();
+                foreach (var tool in tools)
+                {
+                    toolNames.Add(MasterHolder.ItemMaster.GetItemMaster(tool.ToolItemGuid).Name);
+                }
+
+                MouseCursorTooltip.Instance.Show("このアイテムが必要です:" + string.Join(", ", toolNames), isLocalize: false);
             }
-            
-            var text = "このアイテムが必要です:" + string.Join(", ",result);
-            
-            MouseCursorTooltip.Instance.Show(text, isLocalize: false);
+
+            #endregion
         }
     }
 }

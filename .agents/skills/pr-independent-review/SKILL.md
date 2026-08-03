@@ -494,7 +494,12 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
    排気だけを信号源にする）:
 
        gh api repos/moorestech/moorestech/pulls/<番号>/comments --paginate \
-         --jq '.[] | {path, line, body, html_url}' > /tmp/pr-reconcile-<番号>-comments.json
+         --jq '.[] | {path, line, body, html_url, commit_id}' > /tmp/pr-reconcile-<番号>-comments.json
+
+   **`commit_id` は必ず一緒に取る** — 改善時のフォレンジック・リプレイのピン先はこの `commit_id` であり、
+   `$LOGS/harness/pr-independent-review/records/pr-<番号>.md` に記録された自動レビュー当時のheadではない（人間指摘の行番号・コード実体は
+   `commit_id` 側に紐づく。PR1095で両者が食い違い実装形まで別物だった実測あり。詳細は
+   moores-code-review `eval/README.md` のフォレンジック・リプレイ手順1）
 
    レビューbody（`gh api repos/moorestech/moorestech/pulls/<番号>/reviews --paginate`）と通常コメント
    （`gh pr view <番号> --comments`）も読む。全部0件なら「人間レビュー未実施」として `reconcile` 列は
@@ -510,12 +515,19 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
      （この割合の推移が自動マージ移行可否の実測境界になる）
 4. **ルーティング（改善の実施はここから先、全部あちらの規則で行う）**:
    - `[レンズ盲点]` `[reviewer盲点]` `[決定論較正]` → `$CANON/.claude/skills/moores-code-review/references/skill-improvement.md`
-     の手順にそのまま流す（フォレンジック・リプレイ診断 → 対策先決定 → 実例追記 → **3段階検証** →
-     `eval/fixtures.tsv`・`eval/expected-findings.md` へ追記）。この手順を完了しない改修は改善と認めない
-   - `[規範初出]` → まずAGENTS.mdまたは決定論チェックへ成文化し、その改修を同じ3段階検証に通す
+     の手順にそのまま流す（フォレンジック・リプレイ診断 → 対策先決定 → 実例追記 → **4段階検証**
+     （発火・由来サニティ・ブラインド陽陰・**実diffバックテスト**）→
+     `eval/fixtures.tsv`・`eval/expected-findings.md` へ追記）。この手順を完了しない改修は改善と認めない。
+     診断をrecordsのテキスト照合で代用するのも禁止（あちらの手順1に明記）
+   - `[規範初出]` → まずAGENTS.mdまたは決定論チェックへ成文化し、その改修を同じ4段階検証に通す
    - `[L1語彙]` `[配管]` → 本スキルの `scripts/` を修正し、`tests/test_novelty_gate.py` に**赤→緑**のケースを追加する
 5. **改善キューへ起票**: `$LOGS/harness/pr-independent-review/records/improvement-queue.md` に1行/件で追記する。
-   状態を `closed` にできるのは**手順4の検証完了根拠（3段階検証の記録またはpytest緑）を `closed根拠` 列に書けた時だけ**。
+   状態を `closed` にできるのは**手順4の検証完了根拠を `closed根拠` 列に書けた時だけ**。根拠の要件は分類で異なる:
+   - レンズ/reviewer/決定論較正/規範成文化 → **4段階検証の完了記録**。特に段階4（実diffバックテスト）の
+     「見逃しsurface×検出元マトリクス＋過検知数」が必須。**合成fixture緑（段階3まで）だけではclosedにしない** —
+     合成陽性は観点本文と同じ見逃しリストから書かれるため実ノイズ下の再現率を証明しない
+     （2026-08-02 PR1095改善で合成緑のみをclosed根拠にした前科があり、この行はその再発防止）
+   - `[L1語彙]` `[配管]`（スクリプト改修）→ 赤→緑を実証したテストの緑
    観点ファイルへの追記だけでは絶対にclosedにしない（作文はclosedの根拠にならない）
 6. **前向きログの記入**: `$LOGS/harness/moores-code-review/eval-log.md` に1行追記する（PR番号・人間指摘数・分類内訳・
    ハーネス事前検出数・却下数・recordsへの相対リンク）。同ファイル「前向きログ」枠の書き手はこのreconcileである

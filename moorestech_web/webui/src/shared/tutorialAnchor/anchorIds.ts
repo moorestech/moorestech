@@ -39,8 +39,8 @@ export function recipeItemAnchorId(itemId: number): DynamicTutorialAnchorId {
   return `${TutorialAnchorDynamicPrefixes.recipeItem}${itemId}` as DynamicTutorialAnchorId;
 }
 
-export function buildMenuEntryAnchorId(entryType: string, entryKey: string): DynamicTutorialAnchorId {
-  return `${TutorialAnchorDynamicPrefixes.buildMenuEntry}${entryType}-${entryKey}`.toLowerCase() as DynamicTutorialAnchorId;
+export function buildMenuEntryAnchorId(kind: string, id: string): DynamicTutorialAnchorId {
+  return `${TutorialAnchorDynamicPrefixes.buildMenuEntry}${kind}-${id}`.toLowerCase() as DynamicTutorialAnchorId;
 }
 
 export function challengeNodeAnchorId(guid: string): DynamicTutorialAnchorId {

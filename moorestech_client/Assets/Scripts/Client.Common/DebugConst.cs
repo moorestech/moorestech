@@ -8,8 +8,9 @@ namespace Client.Game
         public const string SkitPlaySettingsLabel = "Skit play setting";
         public const string SkitPlaySettingsKey = "SkitPlaySettings";
 
+        // キーはサーバーからも参照するためCommon.Debug.DebugParameterKeysに定義
+        // Key lives in Common.Debug.DebugParameterKeys because the server reads it too
         public const string MapObjectSuperMineLabel = "Map object super mine";
-        public const string MapObjectSuperMineKey = "MapObjectSuperMine";
 
         public const string FixCraftTimeLabel = "Fix fast craft time";
         public const string FixCraftTimeKey = "FixCraftTime";

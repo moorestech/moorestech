@@ -1,10 +1,8 @@
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.UIState.State;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using UniRx;
 
@@ -38,28 +36,12 @@ namespace Client.WebUiHost.Game.Topics
 
         private string BuildJson()
         {
-            var selectedName = GetSelectedName();
             return WebUiJson.Serialize(new PlacementModeDto
             {
-                SelectedName = selectedName,
+                SelectedName = _controller.CurrentTarget?.DisplayName ?? "",
                 Height = _state.GetPlacementHeight(),
                 UnavailableReason = "",
             });
-
-            #region Internal
-
-            string GetSelectedName()
-            {
-                var target = _controller.CurrentTarget;
-                if (target is BlockPlacementTarget block) return MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).Name;
-                if (target is BlueprintPlacementTarget blueprint) return blueprint.BlueprintName;
-                if (target is ConnectToolPlacementTarget tool) return MasterHolder.ConnectToolMaster.GetElementOrNull(tool.ConnectToolGuid)?.Name ?? "";
-                if (target is TrainCarPlacementTarget) return "Train Car";
-                if (target is BlueprintCopyToolPlacementTarget) return "Blueprint Copy";
-                return "";
-            }
-
-            #endregion
         }
     }
 

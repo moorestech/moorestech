@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.KeyControl;
@@ -15,23 +16,23 @@ namespace Client.Game.InGame.UI.UIState.State
     {
         private readonly RecipeViewerView _recipeViewerView;
         private readonly LocalPlayerInventoryController _localPlayerInventoryController;
+        private readonly LocalPlayerEquipment _localPlayerEquipment;
         private readonly PlayerInventoryViewController _playerInventoryViewController;
-        
+
         private CancellationTokenSource _cancellationTokenSource;
-        
-        public PlayerInventoryState(RecipeViewerView recipeViewerView, PlayerInventoryViewController playerInventoryViewController, LocalPlayerInventoryController localPlayerInventoryController, InitialHandshakeResponse handshakeResponse)
+
+        public PlayerInventoryState(RecipeViewerView recipeViewerView, PlayerInventoryViewController playerInventoryViewController, LocalPlayerInventoryController localPlayerInventoryController, LocalPlayerEquipment localPlayerEquipment, InitialHandshakeResponse handshakeResponse)
         {
             _recipeViewerView = recipeViewerView;
             _playerInventoryViewController = playerInventoryViewController;
             _localPlayerInventoryController = localPlayerInventoryController;
-            
+            _localPlayerEquipment = localPlayerEquipment;
+
             _playerInventoryViewController.SetActive(false); //TODO この辺のオンオフをまとめたい
             _recipeViewerView.SetActive(false);
-            
+
             //インベントリの初期設定
-            _localPlayerInventoryController.SetMainInventory(handshakeResponse.Inventory.MainInventory);
-            
-            _localPlayerInventoryController.SetGrabItem(handshakeResponse.Inventory.GrabItem);
+            ApplyInventoryResponse(handshakeResponse.Inventory);
         }
         
         public UITransitContext GetNextUpdate()
@@ -73,10 +74,17 @@ namespace Client.Game.InGame.UI.UIState.State
         private async UniTask UpdatePlayerInventory(CancellationToken ct)
         {
             var invResponse = await ClientContext.VanillaApi.Response.GetMyPlayerInventory(ct);
-            
-            _localPlayerInventoryController.SetMainInventory(invResponse.MainInventory);
-            
-            _localPlayerInventoryController.SetGrabItem(invResponse.GrabItem);
+
+            ApplyInventoryResponse(invResponse);
+        }
+
+        // 装備も同じ応答に同梱されるため、初期適用とバックアップ更新の両方で一緒に反映する
+        // Equipment rides on the same response, so it is applied together on both the initial and the backup update
+        private void ApplyInventoryResponse(PlayerInventoryResponse response)
+        {
+            _localPlayerInventoryController.SetMainInventory(response.MainInventory);
+            _localPlayerInventoryController.SetGrabItem(response.GrabItem);
+            _localPlayerEquipment.Initialize(response.Equipment, response.SelectedEquipmentIndex);
         }
     }
 }

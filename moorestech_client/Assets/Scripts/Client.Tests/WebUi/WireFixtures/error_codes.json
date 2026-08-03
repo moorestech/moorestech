@@ -27,6 +27,8 @@
     "stale_session",
     "stale_revision",
     "intent_not_allowed",
-    "unknown_choice"
+    "unknown_choice",
+    "blueprint_delete_not_found",
+    "blueprint_delete_request_failed"
   ]
 }

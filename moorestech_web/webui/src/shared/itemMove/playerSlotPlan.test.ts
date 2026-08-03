@@ -9,6 +9,9 @@ const inv = (grabCount: number): PlayerInventoryData => ({
   hotbarSlots: [slot(0, 0)],
   grab: grabCount > 0 ? slot(9, grabCount) : slot(0, 0),
   selectedHotbar: 0,
+  equipment: [],
+  selectedEquipment: -1,
+  equipmentSelectionConfirmationRevision: 0,
 });
 const ctx = (grabCount: number, blockItemSlots: { itemId: number; count: number }[] | null): PlayerSlotContext => ({
   inventory: inv(grabCount),
@@ -46,6 +49,19 @@ describe("planPlayerLeftClick", () => {
     expect(planPlayerLeftClick({ area: "hotbar", slot: 0 }, slot(1, 1), true, ctx(0, null))).toEqual([
       { type: "inventory.move_item", payload: { from: { area: "hotbar", slot: 0 }, to: { area: "main", slot: 0 }, count: 1 } },
     ]);
+  });
+  it("equipment からの Shift は持ち物本体(main)へ戻す", () => {
+    expect(planPlayerLeftClick({ area: "equipment", slot: 0 }, slot(1, 1), true, ctx(0, null))).toEqual([
+      { type: "inventory.move_item", payload: { from: { area: "equipment", slot: 0 }, to: { area: "main", slot: 0 }, count: 1 } },
+    ]);
+  });
+  // grab 起点は Shift 分岐へ到達しない。grab 保持中は全量置きが先に返り、空手なら中身が無く無操作になる
+  // A grab origin never reaches the Shift branch: holding a grab returns place-all first, and empty-handed means an empty slot
+  it("grab 起点の Shift は配分先を持たず、掴み状態に応じて全量置きか無操作になる", () => {
+    expect(planPlayerLeftClick(GRAB, slot(9, 4), true, ctx(4, null))).toEqual([
+      { type: "inventory.move_item", payload: { from: GRAB, to: GRAB, count: 4 } },
+    ]);
+    expect(planPlayerLeftClick(GRAB, slot(0, 0), true, ctx(0, null))).toEqual([]);
   });
 });
 
