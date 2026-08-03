@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.IO.Compression;
-using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 
@@ -17,7 +16,7 @@ namespace Server.Protocol.PacketResponse.MapData
 
             // 地形を持たないワールドへのチャンク要求は空応答で誤魔化さず例外にする
             // A chunk request against a terrain-less world throws instead of being masked by an empty response
-            if (terrainMeta.MapMode == WorldProvisioner.TemplateMapMode)
+            if (terrainMeta.IsTemplate)
                 throw new InvalidOperationException($"World in '{terrainMeta.MapMode}' mode owns no terrain chunk to read.");
 
             terrainMeta.ThrowIfGeneratedWorldOwnsNoChunk();

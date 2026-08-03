@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
-using Game.MapGeneration.Provisioning;
 using Game.Paths;
 
 namespace Game.MapGeneration.Transfer
@@ -18,7 +17,7 @@ namespace Game.MapGeneration.Transfer
         {
             // 地形が無いワールドはハッシュ対象が存在しない。空文字が「地形なし」の表明になる
             // A terrain-less world has nothing to hash; the empty string states "no terrain"
-            if (terrainMeta.MapMode == WorldProvisioner.TemplateMapMode) return string.Empty;
+            if (terrainMeta.IsTemplate) return string.Empty;
 
             terrainMeta.ThrowIfGeneratedWorldOwnsNoChunk();
 
