@@ -58,7 +58,6 @@ test("常駐HUDをインベントリ・メニュー・操作モードで維持�
   await expect(placementHud).toBeVisible();
   await expectChallengeHudPresentation(page, initialWorldPresentation);
   await expectSeparatedHorizontally(challengeHud, placementHud);
-  await setTopicScenario(page, "delete");
   await setUiState(page, "DeleteBar");
   const deleteWarning = page.getByTestId("delete-mode-warning");
   await expect(deleteWarning).toBeVisible();
