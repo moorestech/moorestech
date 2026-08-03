@@ -90,12 +90,12 @@ namespace Client.Game.InGame.Player
         {
             // 真下に地表があれば同じXZへ戻す
             // Return to the same XZ when ground remains below
-            var fallenGround = SlopeBlockPlaceSystem.GetGroundPoint(fallenPosition);
+            var fallenGround = SlopeBlockPlaceSystem.GetGroundPoint(fallenPosition.x, fallenPosition.z);
             if (fallenGround.HasValue) return new Vector3(fallenPosition.x, fallenGround.Value.y, fallenPosition.z);
 
             // LayoutのSpawn Yではなく、そのXZにある実地表へ復帰する
             // Recover on the actual ground at the Spawn XZ instead of trusting the Layout Spawn Y
-            var spawnGround = SlopeBlockPlaceSystem.GetGroundPoint(spawnPosition);
+            var spawnGround = SlopeBlockPlaceSystem.GetGroundPoint(spawnPosition.x, spawnPosition.z);
             return spawnGround.HasValue
                 ? new Vector3(spawnPosition.x, spawnGround.Value.y, spawnPosition.z)
                 : spawnPosition;

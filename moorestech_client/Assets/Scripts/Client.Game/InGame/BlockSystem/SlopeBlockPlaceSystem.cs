@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Client.Common;
 using Core.Master;
 using Game.Block.Interface;
@@ -35,8 +34,10 @@ namespace Client.Game.InGame.BlockSystem
             //実際のブロックのモデルは+0.5した値が中心になる
             var blockObjectPos = blockPosition.AddBlockPlaceOffset(); //TODo ←システムが変わったのでおそらくこの行は不要
             
-            var frontPoint = GetGroundPoint(GetBlockFrontRayOffset(blockDirection) + blockObjectPos).Value; //TODO null check
-            var backPoint = GetGroundPoint(-GetBlockFrontRayOffset(blockDirection) + blockObjectPos).Value;
+            var frontRayPos = GetBlockFrontRayOffset(blockDirection) + blockObjectPos;
+            var backRayPos = -GetBlockFrontRayOffset(blockDirection) + blockObjectPos;
+            var frontPoint = GetGroundPoint(frontRayPos.x, frontRayPos.z).Value; //TODO null check
+            var backPoint = GetGroundPoint(backRayPos.x, backRayPos.z).Value;
             
             //斜辺の長さを求める
             var hypotenuse = Vector3.Distance(frontPoint, backPoint);
@@ -47,7 +48,7 @@ namespace Client.Game.InGame.BlockSystem
             var blockAngle = Mathf.Asin(height / hypotenuse) * Mathf.Rad2Deg;
             
             
-            var resultBlockPos = new Vector3(blockObjectPos.x, blockY + 0.3f, blockObjectPos.y);
+            var resultBlockPos = new Vector3(blockObjectPos.x, blockY + 0.3f, blockObjectPos.z);
             var blockRotation = GetRotation(blockDirection, blockAngle, frontPoint.y > backPoint.y);
             var blockScale = new Vector3(1, 1, hypotenuse);
             
@@ -74,18 +75,20 @@ namespace Client.Game.InGame.BlockSystem
             return false;
         }
 
-        public static Vector3? GetGroundPoint(Vector3 pos)
+        public static Vector3? GetGroundPoint(float worldX, float worldZ)
         {
-            return GetGroundPoint(pos, default);
+            return GetGroundPoint(worldX, worldZ, default);
         }
 
-        public static Vector3? GetGroundPoint(Vector3 pos, Color debugRayColor)
+        // 探査失敗をログで知らせる入口。XZ明示なのはVector3を取るとVector2の暗黙変換でz=0を探査できてしまうため
+        // Entry point that logs a failed probe; it takes XZ because a Vector3 parameter would let the Vector2 conversion probe z=0
+        public static Vector3? GetGroundPoint(float worldX, float worldZ, Color debugRayColor)
         {
-            Debug.DrawRay(new Vector3(pos.x, GroundProbeStartHeight, pos.z), Vector3.down * GroundProbeDistance, debugRayColor, 3);
+            Debug.DrawRay(new Vector3(worldX, GroundProbeStartHeight, worldZ), Vector3.down * GroundProbeDistance, debugRayColor, 3);
 
-            if (!TryGetGroundPoint(pos.x, pos.z, out var groundPoint))
+            if (!TryGetGroundPoint(worldX, worldZ, out var groundPoint))
             {
-                Debug.LogError("地面が見つかりませんでした pos:" + pos + " layer:" + GroundLayerMask);
+                Debug.LogError($"地面が見つかりませんでした x:{worldX} z:{worldZ} layer:{GroundLayerMask}");
                 return null;
             }
             return groundPoint;
@@ -97,15 +100,12 @@ namespace Client.Game.InGame.BlockSystem
 
             // boundingBoxは3次元なので水平の四隅はXとZで組む。Vector2の暗黙変換に任せると鉛直Yを渡してz=0を探査してしまう
             // The bounding box is 3D, so the horizontal corners pair X with Z; the Vector2 conversion would pass the vertical Y and probe z=0
-            var heights = new List<float>
-            {
-                ProbeCornerHeight(minPos.x, minPos.z),
-                ProbeCornerHeight(minPos.x, maxPos.z),
-                ProbeCornerHeight(maxPos.x, minPos.z),
-                ProbeCornerHeight(maxPos.x, maxPos.z),
-            };
+            var minXMinZ = ProbeCornerHeight(minPos.x, minPos.z);
+            var minXMaxZ = ProbeCornerHeight(minPos.x, maxPos.z);
+            var maxXMinZ = ProbeCornerHeight(maxPos.x, minPos.z);
+            var maxXMaxZ = ProbeCornerHeight(maxPos.x, maxPos.z);
 
-            return Mathf.Max(heights.ToArray());
+            return Mathf.Max(Mathf.Max(minXMinZ, minXMaxZ), Mathf.Max(maxXMinZ, maxXMaxZ));
 
             #region Internal
 
