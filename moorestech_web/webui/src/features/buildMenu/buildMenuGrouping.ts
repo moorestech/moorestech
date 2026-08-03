@@ -1,5 +1,5 @@
 import type { BuildMenuCategory, BuildMenuEntryData } from "../../bridge/contract/payloadTypes";
-import { L, blockNameKey, type TranslationKey } from "../../shared/i18n";
+import { L, blockNameKey, connectToolNameKey, type TranslationKey } from "../../shared/i18n";
 
 export type BuildMenuSection = {
   categoryGuid: string;
@@ -9,20 +9,49 @@ export type BuildMenuSection = {
 
 export type BuildMenuDisplayEntry = BuildMenuEntryData & { displayLabel: string };
 
-// blockとBPコピーを辞書解決し、入力labelは保持
-// Resolve blocks and blueprint copies while preserving input labels
+// 配置対象の種別。rawはユーザー命名など辞書キーを持たないものだけ
+// Selectable target kinds; raw covers only user-authored names without a dictionary key
+export type SelectableTarget =
+  | { type: "block"; guid: string }
+  | { type: "connectTool"; guid: string }
+  | { type: "blueprintCopy" }
+  | { type: "raw"; label: string };
+
+// 配置対象の表示名解決はこの1本に集約する（BuildMenu/配置HUD共用・分岐の複製禁止）
+// All selectable-target display names resolve here, shared by BuildMenu and the placement HUD
+export function localizeSelectableTargetName(
+  target: SelectableTarget,
+  translate: (key: TranslationKey) => string,
+): string {
+  switch (target.type) {
+    case "block": return translate(blockNameKey(target.guid));
+    case "connectTool": return translate(connectToolNameKey(target.guid));
+    case "blueprintCopy": return translate(L.ui.buildMenu.blueprintCopy);
+    case "raw": return target.label;
+  }
+}
+
+// 各エントリを表示名解決へ回す
+// Route every entry through the shared display-name resolution
 export function localizeBuildMenuEntries(
   entries: BuildMenuEntryData[],
   translate: (key: TranslationKey) => string,
 ): BuildMenuDisplayEntry[] {
   return entries.map((entry) => ({
     ...entry,
-    displayLabel: entry.entryType === "block"
-      ? translate(blockNameKey(entry.entryKey))
-      : entry.entryType === "blueprintCopy"
-        ? translate(L.ui.buildMenu.blueprintCopy)
-        : entry.label,
+    displayLabel: localizeSelectableTargetName(entryTarget(entry), translate),
   }));
+}
+
+// entryTypeを表示名解決の種別へ写す。trainCarと保存BPは原文labelのまま
+// Map entryType onto the resolution kind; train cars and saved blueprints keep their raw labels
+function entryTarget(entry: BuildMenuEntryData): SelectableTarget {
+  switch (entry.entryType) {
+    case "block": return { type: "block", guid: entry.entryKey };
+    case "connectTool": return { type: "connectTool", guid: entry.entryKey };
+    case "blueprintCopy": return { type: "blueprintCopy" };
+    default: return { type: "raw", label: entry.label };
+  }
 }
 
 // エントリが1件以上あるカテゴリのみを定義順で返す（unlock進行で自然に増える）

@@ -66,14 +66,13 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
         public static WebBuildMenuEntry CreateConnectTool(
             Guid connectToolGuid,
-            string label,
             IReadOnlyList<RequiredItem> requiredItems)
         {
             var (categoryGuid, subCategoryGuid) =
                 MasterHolder.BuildMenuCategoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.connectTools);
             return new WebBuildMenuEntry(
                 new ConnectToolPlacementTarget(connectToolGuid),
-                label,
+                null,
                 categoryGuid,
                 subCategoryGuid,
                 requiredItems);

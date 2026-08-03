@@ -10,6 +10,7 @@ const railSubCategoryGuid = "52000000-0000-4000-8000-000000000003";
 const woodChestBlockGuid = "53000000-0000-4000-8000-000000000001";
 const railBlockGuid = "53000000-0000-4000-8000-000000000004";
 const cargoCarGuid = "54000000-0000-4000-8000-000000000001";
+const wireConnectToolGuid = "55000000-0000-4000-8000-000000000001";
 
 test.afterEach(async ({ page }) => {
   await setUiState(page, "PlayerInventory");
@@ -65,6 +66,11 @@ test("カテゴリ切替でセクションが入れ替わる", async ({ page }) 
   await page.getByTestId(`build-menu-category-${transportCategoryGuid}`).click();
   await expect(page.getByTestId(`build-menu-entry-block-${railBlockGuid}`)).toBeVisible();
   await expect(page.getByTestId(`build-menu-entry-block-${woodChestBlockGuid}`)).toBeHidden();
+
+  // connectToolはlabel無配信でもGuid導出キーの辞書名で表示される
+  // connectTool is presented with its Guid-derived dictionary name even though no label is delivered
+  await page.getByTestId(`build-menu-entry-connectTool-${wireConnectToolGuid}`).hover();
+  await expect(page.getByTestId("build-menu-preview")).toContainText("電線接続ツール");
 });
 
 test("横断検索は複合見出しで区切りサイドバーを無効化する", async ({ page }) => {

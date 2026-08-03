@@ -214,9 +214,9 @@ describe("validBuildMenu", () => {
     const d = { categories, entries: [{ ...entry, entryKey: "1" }] };
     expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
   });
-  it.each(["trainCar", "connectTool"] as const)("rejects a non-Guid %s master entry identity", (entryType) => {
+  it("rejects a non-Guid trainCar master entry identity", () => {
     const masterEntry = {
-      entryType,
+      entryType: "trainCar",
       entryKey: "master-name",
       label: "表示名",
       categoryGuid,
@@ -224,6 +224,30 @@ describe("validBuildMenu", () => {
       requiredItems: [],
     };
     expect(validateTopicPayload(Topics.buildMenu, { categories, entries: [masterEntry] })).toBe(false);
+  });
+  it("accepts a connectTool entry carrying only its Guid identity", () => {
+    const connectToolEntry = {
+      entryType: "connectTool",
+      entryKey: "40000000-0000-4000-8000-000000000001",
+      categoryGuid,
+      subCategoryGuid,
+      requiredItems: [],
+    };
+    expect(validateTopicPayload(Topics.buildMenu, { categories, entries: [connectToolEntry] })).toBe(true);
+  });
+  it.each([
+    ["非Guid identity", { entryKey: "master-name" }],
+    ["ホスト解決label", { label: "表示名" }],
+  ])("rejects a connectTool entry with %s", (_label, override) => {
+    const connectToolEntry = {
+      entryType: "connectTool",
+      entryKey: "40000000-0000-4000-8000-000000000001",
+      categoryGuid,
+      subCategoryGuid,
+      requiredItems: [],
+      ...override,
+    };
+    expect(validateTopicPayload(Topics.buildMenu, { categories, entries: [connectToolEntry] })).toBe(false);
   });
   it("rejects a blueprint entry without its user-authored label", () => {
     const d = {

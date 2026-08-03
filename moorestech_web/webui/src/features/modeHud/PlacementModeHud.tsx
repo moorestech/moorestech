@@ -1,5 +1,6 @@
-import { Topics, useTopic } from "@/bridge";
-import { blockNameKey, L, useI18n } from "@/shared/i18n";
+import { Topics, useTopic, type PlacementModeData } from "@/bridge";
+import { localizeSelectableTargetName, type SelectableTarget } from "@/features/buildMenu";
+import { L, useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { FadeRule, GamePanel } from "@/shared/ui";
 import styles from "./style.module.css";
@@ -11,12 +12,7 @@ export function PlacementModeHud() {
 
   const headingId = "placement-mode-hud-heading";
   const title = t(L.ui.modeHud.placementModeTitle);
-  const selectedName = data.selectedTargetType === "block"
-    ? t(blockNameKey(data.selectedBlockGuid))
-    : data.selectedTargetType === "blueprintCopy"
-      ? t(L.ui.buildMenu.blueprintCopy)
-      : data.selectedName;
-  const selected = t(L.ui.modeHud.selectedBlock, { name: selectedName });
+  const selected = t(L.ui.modeHud.selectedBlock, { name: localizeSelectableTargetName(selectedTarget(data), t) });
   const height = t(L.ui.modeHud.placementHeight, { height: data.height });
 
   // 配置情報をクラフト枠で表示する
@@ -41,4 +37,15 @@ export function PlacementModeHud() {
       </GamePanel>
     </section>
   );
+}
+
+// wireのidentityを共有の表示名解決用targetへ写す
+// Map the wire identity onto the shared display-name resolution target
+function selectedTarget(data: PlacementModeData): SelectableTarget {
+  switch (data.selectedTargetType) {
+    case "block": return { type: "block", guid: data.selectedBlockGuid };
+    case "connectTool": return { type: "connectTool", guid: data.selectedConnectToolGuid };
+    case "blueprintCopy": return { type: "blueprintCopy" };
+    case "raw": return { type: "raw", label: data.selectedName };
+  }
 }

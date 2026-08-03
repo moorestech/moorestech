@@ -29,6 +29,16 @@ test("配置モードHUDを右上のクラフト枠で表示する", async ({ pa
   await expect(hud.getByTestId("operation-mode-warning")).toHaveCSS("color", "rgb(255, 120, 120)");
 });
 
+test("配置対象connectToolをGuidだけの配信から辞書表示名へ解決する", async ({ page }) => {
+  await setTopicScenario(page, "placementConnectTool");
+  await setUiState(page, "PlaceBlock");
+  await page.goto("/");
+
+  // ホストはlabelを運ばずGuidのみ配信する（表示名の正はWeb辞書）
+  // The host ships no label and delivers only the GUID; the web dictionary owns the display name
+  await expect(page.getByTestId("placement-mode-hud")).toContainText("電線接続ツール");
+});
+
 test("横長画面でも配置モードHUDを実画面右上へ固定する", async ({ page }) => {
   await page.setViewportSize({ width: 2432, height: 786 });
   await setTopicScenario(page, "placement");

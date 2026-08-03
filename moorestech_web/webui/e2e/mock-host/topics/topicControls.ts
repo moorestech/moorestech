@@ -31,6 +31,11 @@ const controls = {
   placementEmpty: () => control(Topics.placementMode, {
     selectedTargetType: "raw", selectedName: "", height: 0, unavailableReason: "",
   }),
+  // connectToolはGuidのみ配信し表示名解決はWeb辞書に任せる
+  // connectTool ships only its GUID and leaves display-name resolution to the web dictionary
+  placementConnectTool: () => control(Topics.placementMode, {
+    selectedTargetType: "connectTool", selectedConnectToolGuid: fx.WIRE_CONNECT_TOOL_GUID, height: 3, unavailableReason: "",
+  }),
   delete: () => control(Topics.deleteMode, { unavailableReason: "Protected area" }),
   deleteEmpty: () => control(Topics.deleteMode, { unavailableReason: "" }),
   crosshairHidden: () => control(Topics.crosshair, { visible: false }),

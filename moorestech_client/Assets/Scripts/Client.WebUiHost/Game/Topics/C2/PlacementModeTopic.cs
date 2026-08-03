@@ -50,6 +50,7 @@ namespace Client.WebUiHost.Game.Topics
     {
         public string SelectedTargetType;
         public string SelectedBlockGuid;
+        public string SelectedConnectToolGuid;
         public string SelectedName;
         public int Height;
         public string UnavailableReason;
@@ -68,14 +69,18 @@ namespace Client.WebUiHost.Game.Topics
                 UnavailableReason = unavailableReason,
             };
 
-            // ブロックとBPコピーはWeb側解決用identityだけを配信する
-            // Deliver only Web-resolvable identity for blocks and the blueprint copy tool
+            // 安定Guidを持つ対象はWeb側解決用identityだけを配信する
+            // Deliver only Web-resolvable identity for targets that own a stable GUID
             switch (target)
             {
                 case BlockPlacementTarget block:
                     dto.SelectedTargetType = "block";
                     dto.SelectedBlockGuid = MasterHolder.BlockMaster
                         .GetBlockMaster(block.BlockId).BlockGuid.ToString("D");
+                    return dto;
+                case ConnectToolPlacementTarget connectTool:
+                    dto.SelectedTargetType = "connectTool";
+                    dto.SelectedConnectToolGuid = connectTool.ConnectToolGuid.ToString("D");
                     return dto;
                 case BlueprintCopyToolPlacementTarget:
                     dto.SelectedTargetType = "blueprintCopy";
@@ -89,8 +94,6 @@ namespace Client.WebUiHost.Game.Topics
             {
                 null => "",
                 BlueprintPlacementTarget blueprint => blueprint.BlueprintName,
-                ConnectToolPlacementTarget tool => MasterHolder.ConnectToolMaster
-                    .GetElementOrNull(tool.ConnectToolGuid).Name,
                 TrainCarPlacementTarget => "Train Car",
                 _ => throw new InvalidOperationException(
                     $"Unsupported placement target type: {target.GetType().FullName}"),

@@ -1,10 +1,11 @@
 import { createElement } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
-import { blockNameKey, L } from "@/shared/i18n";
+import { blockNameKey, connectToolNameKey, L } from "@/shared/i18n";
 import { setDictionaries } from "@/shared/i18n/i18nStore";
 
 const blockGuid = "abcdefab-cdef-4bcd-8fab-cdefabcdefab";
+const connectToolGuid = "abcdefab-cdef-4bcd-8fab-cdefabcdefac";
 const topicState = vi.hoisted(() => ({
   placement: {
     selectedTargetType: "block",
@@ -13,6 +14,7 @@ const topicState = vi.hoisted(() => ({
     unavailableReason: "",
   } as
     | { selectedTargetType: "block"; selectedBlockGuid: string; height: number; unavailableReason: string }
+    | { selectedTargetType: "connectTool"; selectedConnectToolGuid: string; height: number; unavailableReason: string }
     | { selectedTargetType: "blueprintCopy"; height: number; unavailableReason: string }
     | { selectedTargetType: "raw"; selectedName: string; height: number; unavailableReason: string },
 }));
@@ -61,6 +63,24 @@ describe("PlacementModeHud localization", () => {
     });
 
     expect(detailTexts(renderer!)[0]).toBe("Selected: My Blueprint");
+    act(() => renderer!.unmount());
+  });
+
+  it("connectTool GuidをGuid導出キーの表示名へ解決する", () => {
+    topicState.placement = {
+      selectedTargetType: "connectTool",
+      selectedConnectToolGuid: connectToolGuid,
+      height: 2,
+      unavailableReason: "",
+    };
+    setDictionary({ [connectToolNameKey(connectToolGuid)]: "Wire Tool" });
+
+    let renderer: ReactTestRenderer;
+    act(() => {
+      renderer = create(createElement(PlacementModeHud));
+    });
+
+    expect(detailTexts(renderer!)[0]).toBe("Selected: Wire Tool");
     act(() => renderer!.unmount());
   });
 

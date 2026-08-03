@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { BuildMenuCategory, BuildMenuEntryData } from "../../bridge/contract/payloadTypes";
+import { blockNameKey, connectToolNameKey, L } from "@/shared/i18n";
 import {
   localizeBuildMenuEntries,
+  localizeSelectableTargetName,
   resolveSelectedCategory,
   searchSections,
   sectionsForCategory,
@@ -16,6 +18,7 @@ const liquidSubCategoryGuid = "20000000-0000-4000-8000-000000000002";
 const chestSubCategoryGuid = "20000000-0000-4000-8000-000000000003";
 const conveyorSubCategoryGuid = "20000000-0000-4000-8000-000000000004";
 const foundationSubCategoryGuid = "20000000-0000-4000-8000-000000000005";
+const connectToolGuid = "40000000-0000-4000-8000-000000000001";
 
 const blockEntry = (entryKey: string, categoryGuid: string, subCategoryGuid: string): BuildMenuEntryData => ({
   entryType: "block", entryKey, categoryGuid, subCategoryGuid, requiredItems: [],
@@ -120,5 +123,50 @@ describe("localizeBuildMenuEntries", () => {
       requiredItems: [],
     };
     expect(localizeBuildMenuEntries([blueprint], () => "unused")[0].displayLabel).toBe("starter-base");
+  });
+
+  it("connectToolはraw labelなしでGuid導出キーから表示名を解決する", () => {
+    const connectTool = {
+      entryType: "connectTool",
+      entryKey: connectToolGuid,
+      categoryGuid: logisticsCategoryGuid,
+      subCategoryGuid: chestSubCategoryGuid,
+      requiredItems: [],
+    } as unknown as BuildMenuEntryData;
+
+    const displayLabel = localizeBuildMenuEntries(
+      [connectTool],
+      (key) => (key === connectToolNameKey(connectToolGuid) ? "電線ツール" : "unused"),
+    )[0].displayLabel;
+    expect(displayLabel).toBe("電線ツール");
+  });
+});
+
+describe("localizeSelectableTargetName", () => {
+  it("blockはblockNameKeyで解決する", () => {
+    const blockGuid = "30000000-0000-4000-8000-000000000001";
+    expect(localizeSelectableTargetName(
+      { type: "block", guid: blockGuid },
+      (key) => (key === blockNameKey(blockGuid) ? "木のチェスト" : "unused"),
+    )).toBe("木のチェスト");
+  });
+
+  it("connectToolはconnectToolNameKeyで解決する", () => {
+    expect(localizeSelectableTargetName(
+      { type: "connectTool", guid: connectToolGuid },
+      (key) => (key === connectToolNameKey(connectToolGuid) ? "電線ツール" : "unused"),
+    )).toBe("電線ツール");
+  });
+
+  it("blueprintCopyはtyped UI keyで解決する", () => {
+    expect(localizeSelectableTargetName(
+      { type: "blueprintCopy" },
+      (key) => (key === L.ui.buildMenu.blueprintCopy ? "ブループリントコピー" : "unused"),
+    )).toBe("ブループリントコピー");
+  });
+
+  it("rawはユーザー命名文字列をそのまま返す", () => {
+    expect(localizeSelectableTargetName({ type: "raw", label: "starter-base" }, () => "unused"))
+      .toBe("starter-base");
   });
 });

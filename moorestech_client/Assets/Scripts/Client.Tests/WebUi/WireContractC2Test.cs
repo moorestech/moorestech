@@ -52,6 +52,36 @@ namespace Client.Tests.WebUi
         }
 
         [Test]
+        public void PlacementModeConnectToolMatchesFixture()
+        {
+            AssertMatches(
+                new PlacementModeDto
+                {
+                    SelectedTargetType = "connectTool",
+                    SelectedConnectToolGuid = "abcdefab-cdef-4bcd-8fab-cdefabcdefac",
+                    Height = 2,
+                    UnavailableReason = "",
+                },
+                "placement_mode_connect_tool.json");
+        }
+
+        [Test]
+        public void PlacementModeFactoryPublishesConnectToolGuidWithoutMasterName()
+        {
+            var connectToolGuid = Guid.Parse("abcdefab-cdef-4bcd-8fab-cdefabcdefac");
+            var dto = PlacementModeDtoFactory.Create(
+                new ConnectToolPlacementTarget(connectToolGuid),
+                2,
+                "");
+
+            // masterのNameを引かずGuidだけを配信する
+            // Publish only the GUID without reading the master name
+            Assert.AreEqual("connectTool", dto.SelectedTargetType);
+            Assert.AreEqual(connectToolGuid.ToString("D"), dto.SelectedConnectToolGuid);
+            Assert.IsNull(dto.SelectedName);
+        }
+
+        [Test]
         public void PlacementModeFactorySeparatesTypedCopyToolFromRawBlueprintName()
         {
             var copyTool = PlacementModeDtoFactory.Create(
