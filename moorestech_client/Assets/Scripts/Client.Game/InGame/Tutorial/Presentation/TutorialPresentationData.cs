@@ -13,8 +13,6 @@ namespace Client.Game.InGame.Tutorial
         public string HighlightId;
         public string AnchorId;
         public string Kind;
-        public string MessageKey;
-        public string Message;
         public int PaddingPx;
         public bool BlocksPointerInput;
     }

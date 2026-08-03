@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BuildMenuCategory, BuildMenuEntryData } from "../../bridge/contract/payloadTypes";
-import { blockNameKey, connectToolNameKey, L } from "@/shared/i18n";
+import { blockNameKey, connectToolNameKey, trainCarNameKey, L } from "@/shared/i18n";
 import {
   localizeBuildMenuEntries,
   localizeSelectableTargetName,
@@ -19,6 +19,7 @@ const chestSubCategoryGuid = "20000000-0000-4000-8000-000000000003";
 const conveyorSubCategoryGuid = "20000000-0000-4000-8000-000000000004";
 const foundationSubCategoryGuid = "20000000-0000-4000-8000-000000000005";
 const connectToolGuid = "40000000-0000-4000-8000-000000000001";
+const trainCarGuid = "8f9c2a51-0000-4000-8000-000000000001";
 
 const blockEntry = (entryKey: string, categoryGuid: string, subCategoryGuid: string): BuildMenuEntryData => ({
   entryType: "block", entryKey, categoryGuid, subCategoryGuid, requiredItems: [],
@@ -140,6 +141,22 @@ describe("localizeBuildMenuEntries", () => {
     )[0].displayLabel;
     expect(displayLabel).toBe("電線ツール");
   });
+
+  it("trainCarはraw labelなしでGuid導出キーから表示名を解決する", () => {
+    const trainCar: BuildMenuEntryData = {
+      entryType: "trainCar",
+      entryKey: trainCarGuid,
+      categoryGuid: logisticsCategoryGuid,
+      subCategoryGuid: chestSubCategoryGuid,
+      requiredItems: [],
+    };
+
+    const displayLabel = localizeBuildMenuEntries(
+      [trainCar],
+      (key) => (key === trainCarNameKey(trainCarGuid) ? "蒸気機関車" : "unused"),
+    )[0].displayLabel;
+    expect(displayLabel).toBe("蒸気機関車");
+  });
 });
 
 describe("localizeSelectableTargetName", () => {
@@ -156,6 +173,13 @@ describe("localizeSelectableTargetName", () => {
       { type: "connectTool", guid: connectToolGuid },
       (key) => (key === connectToolNameKey(connectToolGuid) ? "電線ツール" : "unused"),
     )).toBe("電線ツール");
+  });
+
+  it("trainCarはtrainCarNameKeyで解決する", () => {
+    expect(localizeSelectableTargetName(
+      { type: "trainCar", guid: trainCarGuid },
+      (key) => (key === trainCarNameKey(trainCarGuid) ? "蒸気機関車" : "unused"),
+    )).toBe("蒸気機関車");
   });
 
   it("blueprintCopyはtyped UI keyで解決する", () => {

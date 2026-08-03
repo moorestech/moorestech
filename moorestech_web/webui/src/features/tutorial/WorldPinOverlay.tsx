@@ -1,5 +1,6 @@
 import { useViewportSize } from "@mantine/hooks";
 import { Topics, useTopic, useTopicSelector, type WorldPinPresentationData } from "@/bridge";
+import { challengeTutorialTextKey, useI18n } from "@/shared/i18n";
 import styles from "./worldPin.module.css";
 
 type WorldPin = WorldPinPresentationData["pins"][number];
@@ -24,10 +25,11 @@ export function WorldPinOverlay() {
 }
 
 function OnScreenPin({ pin }: { pin: WorldPin }) {
+  const { t } = useI18n();
   return (
     <div className={styles.pin} data-testid={`world-pin-${pin.pinId}`}
       style={{ left: `${pin.screenX * 100}%`, top: `${pin.screenY * 100}%` }}>
-      <div className={styles.label}>{pin.text}</div>
+      <div className={styles.label}>{t(challengeTutorialTextKey(pin.tutorialGuid))}</div>
       <svg className={styles.marker} viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 22 L5 10 A8 8 0 1 1 19 10 Z" />
       </svg>

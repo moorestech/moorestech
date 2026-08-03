@@ -1,7 +1,9 @@
-import { connectToolNameKey, fluidNameKey } from "../../../src/shared/i18n/contentKeys";
+import { challengeTutorialTextKey, connectToolNameKey, fluidNameKey, trainCarNameKey } from "../../../src/shared/i18n/contentKeys";
 
 export const WATER_FLUID_GUID = "54000000-0000-4000-8000-000000000001";
 export const WIRE_CONNECT_TOOL_GUID = "55000000-0000-4000-8000-000000000001";
+export const CARGO_TRAIN_CAR_GUID = "56000000-0000-4000-8000-000000000001";
+export const WORLD_PIN_TUTORIAL_GUID = "57000000-0000-4000-8000-000000000001";
 
 const source = {
   [fluidNameKey(WATER_FLUID_GUID)]: "Water",
@@ -26,6 +28,8 @@ const source = {
   "block.53000000-0000-4000-8000-000000000003.name": "ベルトコンベア",
   "block.53000000-0000-4000-8000-000000000004.name": "鉄道レール",
   [connectToolNameKey(WIRE_CONNECT_TOOL_GUID)]: "電線接続ツール",
+  [trainCarNameKey(CARGO_TRAIN_CAR_GUID)]: "貨物車両",
+  [challengeTutorialTextKey(WORLD_PIN_TUTORIAL_GUID)]: "小石を拾う",
   "ui.buildMenu.blueprintCopy": "ブループリントコピー",
   "challengeCategory.81000000-0000-4000-8000-000000000001.name": "Basics",
   "challenge.82000000-0000-4000-8000-000000000001.title": "First Craft",

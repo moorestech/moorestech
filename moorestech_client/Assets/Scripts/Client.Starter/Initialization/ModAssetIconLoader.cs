@@ -77,7 +77,7 @@ namespace Client.Starter.Initialization
             {
                 var prefab = await AddressableLoader.LoadAsyncDefault<GameObject>(trainCar.AddressablePath);
                 trainCarGuids.Add(trainCar.TrainCarGuid);
-                targets.Add((prefab, CreateDisplayName(trainCar.AddressablePath)));
+                targets.Add((prefab, trainCar.Name));
             }
 
             // 撮影順を維持してTrainCarGuidへ画像を登録する
@@ -89,14 +89,6 @@ namespace Client.Starter.Initialization
 
             _loadingLog.text += $"\n車両スクリーンショット完了  {_loadingStopwatch.Elapsed}";
             return trainCarImageContainer;
-        }
-
-        private static string CreateDisplayName(string addressablePath)
-        {
-            // 車両マスタにnameがないためAddressableパス末尾を表示名に使う
-            // Use the Addressable path tail because train-car masters have no name
-            var separatorIndex = addressablePath.LastIndexOf('/');
-            return separatorIndex < 0 ? addressablePath : addressablePath[(separatorIndex + 1)..];
         }
     }
 

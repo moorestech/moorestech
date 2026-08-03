@@ -1,5 +1,5 @@
 import type { BuildMenuCategory, BuildMenuEntryData } from "../../bridge/contract/payloadTypes";
-import { L, blockNameKey, connectToolNameKey, type TranslationKey } from "../../shared/i18n";
+import { L, blockNameKey, connectToolNameKey, trainCarNameKey, type TranslationKey } from "../../shared/i18n";
 
 export type BuildMenuSection = {
   categoryGuid: string;
@@ -14,6 +14,7 @@ export type BuildMenuDisplayEntry = BuildMenuEntryData & { displayLabel: string 
 export type SelectableTarget =
   | { type: "block"; guid: string }
   | { type: "connectTool"; guid: string }
+  | { type: "trainCar"; guid: string }
   | { type: "blueprintCopy" }
   | { type: "raw"; label: string };
 
@@ -26,6 +27,7 @@ export function localizeSelectableTargetName(
   switch (target.type) {
     case "block": return translate(blockNameKey(target.guid));
     case "connectTool": return translate(connectToolNameKey(target.guid));
+    case "trainCar": return translate(trainCarNameKey(target.guid));
     case "blueprintCopy": return translate(L.ui.buildMenu.blueprintCopy);
     case "raw": return target.label;
   }
@@ -43,12 +45,13 @@ export function localizeBuildMenuEntries(
   }));
 }
 
-// entryTypeを表示名解決の種別へ写す。trainCarと保存BPは原文labelのまま
-// Map entryType onto the resolution kind; train cars and saved blueprints keep their raw labels
+// entryTypeを表示名解決の種別へ写す。保存BPだけが原文labelのまま
+// Map entryType onto the resolution kind; only saved blueprints keep their raw label
 function entryTarget(entry: BuildMenuEntryData): SelectableTarget {
   switch (entry.entryType) {
     case "block": return { type: "block", guid: entry.entryKey };
     case "connectTool": return { type: "connectTool", guid: entry.entryKey };
+    case "trainCar": return { type: "trainCar", guid: entry.entryKey };
     case "blueprintCopy": return { type: "blueprintCopy" };
     default: return { type: "raw", label: entry.label };
   }

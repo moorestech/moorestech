@@ -13,7 +13,8 @@ export type ContentLocalizationKey =
   | `buildMenuSubCategory.${string}.name`
   | `challengeTutorial.${string}.text`
   | `connectTool.${string}.name`
-  | `fluid.${string}.name`;
+  | `fluid.${string}.name`
+  | `trainCar.${string}.name`;
 
 // source text: ItemMaster
 export const itemNameKey = (guid: string): ContentLocalizationKey =>
@@ -57,6 +58,9 @@ export const connectToolNameKey = (guid: string): ContentLocalizationKey =>
 // source text: FluidMaster
 export const fluidNameKey = (guid: string): ContentLocalizationKey =>
   `fluid.${canonicalGuidSegment(guid)}.name`;
+// source text: TrainUnitMaster
+export const trainCarNameKey = (guid: string): ContentLocalizationKey =>
+  `trainCar.${canonicalGuidSegment(guid)}.name`;
 
 function canonicalGuidSegment(guid: string): string {
   return guid.toLowerCase();

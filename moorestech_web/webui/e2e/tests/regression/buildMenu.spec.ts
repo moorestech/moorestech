@@ -9,7 +9,7 @@ const chestSubCategoryGuid = "52000000-0000-4000-8000-000000000001";
 const railSubCategoryGuid = "52000000-0000-4000-8000-000000000003";
 const woodChestBlockGuid = "53000000-0000-4000-8000-000000000001";
 const railBlockGuid = "53000000-0000-4000-8000-000000000004";
-const cargoCarGuid = "54000000-0000-4000-8000-000000000001";
+const cargoCarGuid = "56000000-0000-4000-8000-000000000001";
 const wireConnectToolGuid = "55000000-0000-4000-8000-000000000001";
 
 test.afterEach(async ({ page }) => {

@@ -1,5 +1,3 @@
-using Client.Localization;
-using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
 using Client.Game.InGame.UI.UIState;
@@ -15,9 +13,7 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
             // UIHighlightはWebオーバーレイのDOMハイライトのみで表示する
             // UI highlighting is rendered exclusively via the web overlay's DOM highlight
             var anchorId = TutorialAnchorIdMapper.FromUiObjectId(highlightParam.HighLightUIObjectId);
-            var highlightText = Localize.GetContent(
-                ContentLocalizationKeys.ChallengeTutorialText(tutorial.TutorialGuid));
-            return TutorialPresentationStateStore.Instance.AddOutlineHighlight(anchorId, highlightText);
+            return TutorialPresentationStateStore.Instance.AddOutlineHighlight(anchorId);
         }
     }
 }

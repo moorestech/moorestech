@@ -34,6 +34,22 @@ describe("placement mode schema", () => {
     })).toBe(false);
   });
 
+  it("accepts trainCar Guid without a raw display name", () => {
+    expect(validateTopicPayload(Topics.placementMode, {
+      selectedTargetType: "trainCar",
+      selectedTrainCarGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefad",
+      height: 2,
+      unavailableReason: "",
+    })).toBe(true);
+    expect(validateTopicPayload(Topics.placementMode, {
+      selectedTargetType: "trainCar",
+      selectedTrainCarGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefad",
+      selectedName: "Train Car",
+      height: 2,
+      unavailableReason: "",
+    })).toBe(false);
+  });
+
   it("accepts Blueprint Copy without a raw display name", () => {
     expect(validateTopicPayload(Topics.placementMode, {
       selectedTargetType: "blueprintCopy",
@@ -207,16 +223,21 @@ describe("validBuildMenu", () => {
     const d = { categories, entries: [{ ...entry, entryKey: "1" }] };
     expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
   });
-  it("rejects a non-Guid trainCar master entry identity", () => {
-    const masterEntry = {
+  it("accepts a trainCar entry carrying only its Guid identity", () => {
+    const trainCarEntry = {
       entryType: "trainCar",
-      entryKey: "master-name",
-      label: "表示名",
+      entryKey: "8f9c2a51-0000-4000-8000-000000000001",
       categoryGuid,
       subCategoryGuid,
       requiredItems: [],
     };
-    expect(validateTopicPayload(Topics.buildMenu, { categories, entries: [masterEntry] })).toBe(false);
+    expect(validateTopicPayload(Topics.buildMenu, { categories, entries: [trainCarEntry] })).toBe(true);
+    expect(validateTopicPayload(Topics.buildMenu, {
+      categories, entries: [{ ...trainCarEntry, entryKey: "master-name" }],
+    })).toBe(false);
+    expect(validateTopicPayload(Topics.buildMenu, {
+      categories, entries: [{ ...trainCarEntry, label: "表示名" }],
+    })).toBe(false);
   });
   it("accepts a connectTool entry carrying only its Guid identity", () => {
     const connectToolEntry = {

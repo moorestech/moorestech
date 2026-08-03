@@ -17,19 +17,10 @@ const BuildMenuEntryCommonFields = {
 // Guid導出キーで辞書解決する種別。ホストは表示名を運ばない
 // Kinds resolved from Guid-derived dictionary keys; the host never carries display names
 const BuildMenuDictionaryResolvedEntryDataSchema = z.object({
-  entryType: z.enum(["block", "connectTool"]),
+  entryType: z.enum(["block", "trainCar", "connectTool"]),
   entryKey: z.string().uuid(),
   ...BuildMenuEntryCommonFields,
   label: z.never().optional(),
-});
-
-// 正準sourceが未定のためホストのLabelを維持する種別
-// Kind that still carries a host label because its canonical source text is undecided
-const BuildMenuTrainCarEntryDataSchema = z.object({
-  entryType: z.literal("trainCar"),
-  entryKey: z.string().uuid(),
-  ...BuildMenuEntryCommonFields,
-  label: z.string(),
 });
 
 const BuildMenuBlueprintCopyEntryDataSchema = z.object({
@@ -48,7 +39,6 @@ const BuildMenuBlueprintEntryDataSchema = z.object({
 
 export const BuildMenuEntryDataSchema = z.discriminatedUnion("entryType", [
   BuildMenuDictionaryResolvedEntryDataSchema,
-  BuildMenuTrainCarEntryDataSchema,
   BuildMenuBlueprintCopyEntryDataSchema,
   BuildMenuBlueprintEntryDataSchema,
 ]);

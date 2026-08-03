@@ -141,6 +141,13 @@ namespace Client.Tests.Localization.Composition
                 expected.Add($"fluid.{fluid.FluidGuid:D}.name", fluid.Name);
             }
 
+            // 全車両名を必須Guidから列挙
+            // Enumerate every train car name from required GUIDs
+            foreach (var trainCar in MasterHolder.TrainUnitMaster.Train.TrainCars)
+            {
+                expected.Add($"trainCar.{trainCar.TrainCarGuid:D}.name", trainCar.Name);
+            }
+
             return expected;
         }
 

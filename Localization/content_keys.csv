@@ -13,3 +13,4 @@ buildMenuSubCategory,name,BuildMenuCategoryMaster
 challengeTutorial,text,ChallengeMaster
 connectTool,name,ConnectToolMaster
 fluid,name,FluidMaster
+trainCar,name,TrainUnitMaster

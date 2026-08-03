@@ -15,6 +15,8 @@
 4. **合成済み辞書の正本はクライアント側 Localize（後継）が持つ。** 起動時にバニラ埋め込み辞書＋全mod CSVを単一辞書へ合成する。マスタJSONと同じ「同一ディレクトリ直読み」前提でサーバーは非関与。Webへは既存 `/api/i18n` 配信を維持。
 5. **安定Guidと正準sourceを持つマスタ由来表示名は、ホスト側の Name 解決・payload 同梱を廃止し、Web の Guid 辞書解決へ統一する。** ユーザー命名blueprintは原文Labelを維持する。正準sourceが未定のtrainCar/connectToolは暫定的にLabelを維持するが、ホスト側でロケール依存翻訳は行わない。辞書解決対象の言語切替はトピック再push不要でWeb側の再描画だけで完結する。
    - **追記（2026-08-02・ユーザー裁定D1=案A）: connectToolは暫定Label維持から外し、Web解決へ昇格する。** connectToolはマスタに安定Guidと正準source（`connectTool.<guid>.name`・`MasterSourceTextCollector`収集済み）を持つため、ホストは `build_menu.entries` / `ui.placement_mode` ともGuidのみを配信し、表示名はWebの辞書解決に統一する。これに伴い `BuildMenuTopic` の言語切替購読による再pushを削除し、`ui.placement_mode` の `"raw"` はユーザー命名blueprintとtrainCarだけの縮退形とする。暫定Label維持が残るのはtrainCar（正準source未定）とユーザー命名blueprintのみ。
+   - **追記（2026-08-03・ユーザー裁定Q4=案B）: trainCarも暫定Label維持から外し、Web解決へ昇格する。** 「正準source未定」は事実誤認であり、`VanillaSchema/train.yml` の `trainCars[].name` は必須フィールドとして既に存在しv8実データも記入済みだった。宣言表 `Localization/content_keys.csv` へ `trainCar,name` を追加してGuid導出キーを14種→15種とし、`build_menu.entries` / `ui.placement_mode` ともGuidのみ配信へ揃える。これにより、アイコン撮影用の `addressablePath` 末尾を表示名に流用していた経路（蒸気機関車とディーゼル機関車が同一パスのため双方"Locomotive"と表示される実バグ）も解消する。**原文Labelを維持するのはユーザー命名blueprintだけになった。**
+   - **追記（2026-08-03・ユーザー裁定Q1=案A＋実装時の範囲確定）: チュートリアル文言もホスト解決を廃止する。** ワールドピン（`tutorial.world_pins`）は `text`（ホストで解決済みの文字列）をやめ `tutorialGuid` を配信し、Webが `challengeTutorialTextKey(guid)` で解決する。これにより `MapObjectPin` / `BlockPlacePreviewTutorialManager` の言語切替購読は不要になり削除した。一方 `tutorial.presentation` のハイライト文言（`message` / 予約フィールド `messageKey`）は、文言を描画する `callout` kindがC#側で廃止済みで生産者が存在せず一度も表示されていなかったため、Guid化せずフィールドごと削除した。uGUI専用の `KeyControlTutorialManager`（TMP_Text表示）はWeb配信経路を持たないためホスト解決を維持する。
 6. **modキーの未翻訳フォールバックは 対象言語 → english → master の name 原文 →（それも無ければ）`[!key]`。** mod制作者が辞書を書かないのは正常状態として扱う。
 7. **master の `name` フィールドは原文（フォールバック表示元）として維持する。** スキーマに言語マップは入れない。
 8. **character masterへ必須 `characterGuid` を追加する。** 全characters JSONを一括更新し、既存 `characterId` はスキット実行時の操作IDとして維持する。表示名の導出キーだけを `character.<characterGuid>.name` とし、optional・欠損フォールバックは設けない。
@@ -34,7 +36,7 @@
 
 ## 帰結
 
-- ItemMasterEndpoint の DTO から Name が消え、BlockInventoryTopic / MachineRecipesTopic / BuildMenuEntryDtoFactory の安定Guidを持つentryからインライン名前解決を削除する（波及は一括更新で受ける）。原文Labelを維持するのはユーザー命名blueprintと正準source未定のtrainCarだけである（connectToolは決定5の追記どおりWeb解決へ移行済み）。
+- ItemMasterEndpoint の DTO から Name が消え、BlockInventoryTopic / MachineRecipesTopic / BuildMenuEntryDtoFactory の安定Guidを持つentryからインライン名前解決を削除する（波及は一括更新で受ける）。原文Labelを維持するのはユーザー命名blueprintだけである（connectTool・trainCarは決定5の追記どおりWeb解決へ移行済み）。
 - 初回スコープ: item/block の name、研究・チャレンジ等の文言、skit台詞。レガシーuGUI文言（KeyControlDescription 等）は対象外。出所: ユーザー裁定 2026-07-29（AskUserQuestion「初回スコープ」）
 - skit本文・背景本文・選択肢・上書き話者名はCommandForge command schemaの正確なプロパティ名をfieldに使い、同じcommandIdからキーを導出する。Webは従来どおりUnityからpush済み表示文字列を受け取る。
 - `Client.Skit` へ `Localize` を直接依存させない。汎用層にresolver interfaceを置き、`Client.Game`側のAddressables loader/具体resolverをStoryContextへ登録する。

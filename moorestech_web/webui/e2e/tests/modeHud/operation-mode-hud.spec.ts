@@ -38,6 +38,16 @@ test("配置対象connectToolをGuidだけの配信から辞書表示名へ解�
   await expect(page.getByTestId("placement-mode-hud")).toContainText("電線接続ツール");
 });
 
+test("配置対象trainCarをGuidだけの配信から辞書表示名へ解決する", async ({ page }) => {
+  await setTopicScenario(page, "placementTrainCar");
+  await setUiState(page, "PlaceBlock");
+  await page.goto("/");
+
+  // 車両もaddressablePath末尾ではなくマスタnameの辞書解決で表示する
+  // Train cars display via the master name dictionary, not the addressablePath tail
+  await expect(page.getByTestId("placement-mode-hud")).toContainText("貨物車両");
+});
+
 test("横長画面でも配置モードHUDを実画面右上へ固定する", async ({ page }) => {
   await page.setViewportSize({ width: 2432, height: 786 });
   await setTopicScenario(page, "placement");

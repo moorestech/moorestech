@@ -82,6 +82,36 @@ namespace Client.Tests.WebUi
         }
 
         [Test]
+        public void PlacementModeTrainCarMatchesFixture()
+        {
+            AssertMatches(
+                new PlacementModeDto
+                {
+                    SelectedTargetType = "trainCar",
+                    SelectedTrainCarGuid = "abcdefab-cdef-4bcd-8fab-cdefabcdefad",
+                    Height = 2,
+                    UnavailableReason = "",
+                },
+                "placement_mode_train_car.json");
+        }
+
+        [Test]
+        public void PlacementModeFactoryPublishesTrainCarGuidWithoutMasterName()
+        {
+            var trainCarGuid = Guid.Parse("abcdefab-cdef-4bcd-8fab-cdefabcdefad");
+            var dto = PlacementModeDtoFactory.Create(
+                new TrainCarPlacementTarget(trainCarGuid),
+                2,
+                "");
+
+            // masterのNameを引かずGuidだけを配信する
+            // Publish only the GUID without reading the master name
+            Assert.AreEqual("trainCar", dto.SelectedTargetType);
+            Assert.AreEqual(trainCarGuid.ToString("D"), dto.SelectedTrainCarGuid);
+            Assert.IsNull(dto.SelectedName);
+        }
+
+        [Test]
         public void PlacementModeFactorySeparatesTypedCopyToolFromRawBlueprintName()
         {
             var copyTool = PlacementModeDtoFactory.Create(

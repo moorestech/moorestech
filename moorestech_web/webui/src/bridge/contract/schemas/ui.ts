@@ -45,11 +45,16 @@ export const PlacementModeDataSchema = z.discriminatedUnion("selectedTargetType"
     ...PlacementModeCommonFields,
   }).strict(),
   z.object({
+    selectedTargetType: z.literal("trainCar"),
+    selectedTrainCarGuid: z.string().uuid(),
+    ...PlacementModeCommonFields,
+  }).strict(),
+  z.object({
     selectedTargetType: z.literal("blueprintCopy"),
     ...PlacementModeCommonFields,
   }).strict(),
-  // rawは辞書キーを持たないユーザー命名BPと車両のみ
-  // raw covers only user-authored blueprints and train cars without dictionary keys
+  // rawは辞書キーを持たないユーザー命名BPのみ
+  // raw covers only user-authored blueprints without dictionary keys
   z.object({
     selectedTargetType: z.literal("raw"),
     selectedName: z.string(),

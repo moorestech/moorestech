@@ -45,6 +45,7 @@ function selectedTarget(data: PlacementModeData): SelectableTarget {
   switch (data.selectedTargetType) {
     case "block": return { type: "block", guid: data.selectedBlockGuid };
     case "connectTool": return { type: "connectTool", guid: data.selectedConnectToolGuid };
+    case "trainCar": return { type: "trainCar", guid: data.selectedTrainCarGuid };
     case "blueprintCopy": return { type: "blueprintCopy" };
     case "raw": return { type: "raw", label: data.selectedName };
   }

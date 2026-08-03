@@ -4,12 +4,10 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Tutorial.TutorialBlock;
 using Client.Game.InGame.UI.UIState;
-using Client.Localization;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
-using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.ChallengesModule;
 using UniRx;
 using UnityEngine;
@@ -25,23 +23,15 @@ namespace Client.Game.InGame.Tutorial
 
         private BlockGameObjectDataStore _blockGameObjectDataStore;
         private TutorialBlockPreviewObject _previewObject;
-        private TutorialsElement _currentTutorial;
         private BlockPlacePreviewTutorialParam _currentParam;
         private BlockId _currentBlockId;
         private IDisposable _blockPlacedDisposable;
-        private string _message = "";
+        private string _pinTutorialGuid = "";
 
         [Inject]
         public void Construct(BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
-        }
-
-        private void Start()
-        {
-            // 言語切替時に表示中のピン文言を再解決する
-            // Re-resolve the visible pin text when the language changes
-            Localize.OnLanguageChanged.Subscribe(_ => RefreshMessage()).AddTo(this);
         }
 
         private void Update()
@@ -54,25 +44,23 @@ namespace Client.Game.InGame.Tutorial
             if (!camera) return;
 
             var projection = WorldPinScreenProjection.Project(camera, _previewObject.transform.position);
-            WorldPinStateStore.Instance.SetPin(WebPinId, _message, projection);
+            WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
         }
 
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
-            _currentTutorial = tutorial;
             _currentParam = (BlockPlacePreviewTutorialParam)tutorial.TutorialParam;
+            _pinTutorialGuid = tutorial.TutorialGuid.ToString("D");
             _currentBlockId = MasterHolder.BlockMaster.GetBlockId(_currentParam.BlockGuid);
 
             // 既に目標ブロックが配置済みなら早期終了
             // Exit early when the target block already exists
             if (IsTargetBlockPlaced())
             {
-                _currentTutorial = null;
                 _currentParam = null;
                 return null;
             }
 
-            RefreshMessage();
             CreateOrUpdatePreviewAsync().Forget();
             SubscribePlacementEvent();
 
@@ -144,16 +132,7 @@ namespace Client.Game.InGame.Tutorial
             // Removing the web pin is idempotent, safe even when never published
             WorldPinStateStore.Instance.RemovePin(WebPinId);
 
-            _currentTutorial = null;
             _currentParam = null;
-        }
-
-        // 対象切替と言語切替の時だけピン文言を再解決する（Update()は射影専用）
-        // Re-resolve the pin text only on target/language change; Update() does projection only
-        private void RefreshMessage()
-        {
-            if (_currentTutorial == null) return;
-            _message = Localize.GetContent(ContentLocalizationKeys.ChallengeTutorialText(_currentTutorial.TutorialGuid));
         }
 
         private void OnDestroy()

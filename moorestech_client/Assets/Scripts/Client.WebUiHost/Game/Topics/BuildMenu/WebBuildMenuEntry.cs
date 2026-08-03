@@ -51,14 +51,13 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
         public static WebBuildMenuEntry CreateTrainCar(
             Guid trainCarGuid,
-            string label,
             IReadOnlyList<RequiredItem> requiredItems)
         {
             var (categoryGuid, subCategoryGuid) =
                 MasterHolder.BuildMenuCategoryMaster.GetPairByEntrySource(BuildMenuSubCategoryElement.EntrySourceConst.trainCars);
             return new WebBuildMenuEntry(
                 new TrainCarPlacementTarget(trainCarGuid),
-                label,
+                null,
                 categoryGuid,
                 subCategoryGuid,
                 requiredItems);

@@ -102,6 +102,14 @@ namespace Client.Game.Localization
                 sourceTexts[ContentLocalizationKeys.FluidName(fluidMaster.FluidGuid).Key] = fluidMaster.Name;
             }
 
+            // 車両名を必須Guidから収集
+            // Collect train car names from required GUIDs
+            foreach (var trainCarMaster in MasterHolder.TrainUnitMaster.Train.TrainCars)
+            {
+                sourceTexts[ContentLocalizationKeys.TrainCarName(trainCarMaster.TrainCarGuid).Key] =
+                    trainCarMaster.Name;
+            }
+
             return sourceTexts;
 
             #region Internal

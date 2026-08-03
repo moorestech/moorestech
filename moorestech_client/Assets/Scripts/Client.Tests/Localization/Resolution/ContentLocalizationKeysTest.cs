@@ -28,6 +28,7 @@ namespace Client.Tests.Localization.Resolution
             Assert.AreEqual($"challengeTutorial.{GuidSegment}.text", ContentLocalizationKeys.ChallengeTutorialText(ContentGuid).Key);
             Assert.AreEqual($"connectTool.{GuidSegment}.name", ContentLocalizationKeys.ConnectToolName(ContentGuid).Key);
             Assert.AreEqual($"fluid.{GuidSegment}.name", ContentLocalizationKeys.FluidName(ContentGuid).Key);
+            Assert.AreEqual($"trainCar.{GuidSegment}.name", ContentLocalizationKeys.TrainCarName(ContentGuid).Key);
         }
 
         [Test]

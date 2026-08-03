@@ -31,7 +31,7 @@ namespace Client.Tests.WebUi
             var entries = new[]
             {
                 WebBuildMenuEntry.CreateBlock(ForUnitTestModBlockId.BlockId, blockMaster, EmptyItems()),
-                WebBuildMenuEntry.CreateTrainCar(trainCarGuid, "Cargo Car", EmptyItems()),
+                WebBuildMenuEntry.CreateTrainCar(trainCarGuid, EmptyItems()),
                 WebBuildMenuEntry.CreateConnectTool(connectToolGuid, EmptyItems()),
                 WebBuildMenuEntry.CreateBlueprintCopy(EmptyItems()),
                 WebBuildMenuEntry.CreateBlueprint("starter-base", EmptyItems()),
@@ -52,7 +52,8 @@ namespace Client.Tests.WebUi
             // Pin GUIDs and per-type label omission
             Assert.AreEqual(blockMaster.BlockGuid.ToString("D"), serialized[0]!["entryKey"]!.Value<string>());
             Assert.IsNull(serialized[0]!["label"]);
-            Assert.AreEqual("Cargo Car", serialized[1]!["label"]!.Value<string>());
+            Assert.AreEqual(trainCarGuid.ToString("D"), serialized[1]!["entryKey"]!.Value<string>());
+            Assert.IsNull(serialized[1]!["label"]);
             Assert.AreEqual(connectToolGuid.ToString("D"), serialized[2]!["entryKey"]!.Value<string>());
             Assert.IsNull(serialized[2]!["label"]);
             Assert.IsNull(serialized[3]!["label"]);

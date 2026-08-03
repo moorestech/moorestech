@@ -54,7 +54,7 @@ namespace Client.Game.InGame.UI.BuildMenu
             {
                 if (!showAllPlaceable && (!unlockState.TrainCarUnlockStateInfos.TryGetValue(trainCar.TrainCarGuid, out var state) || !state.IsUnlocked)) continue;
                 var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(trainCar.TrainCarGuid);
-                entries.Add(new BuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView, CreateTrainCarToolTip(trainCar, iconView)));
+                entries.Add(new BuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView, CreateTrainCarToolTip(trainCar)));
             }
 
             // 解放済みconnectToolをSortPriority順に1エントリずつ表示（アイコンはimagePath由来）
@@ -99,11 +99,10 @@ namespace Client.Game.InGame.UI.BuildMenu
                 return builder.ToString();
             }
 
-            string CreateTrainCarToolTip(TrainCarMasterElement trainCar, ItemViewData iconView)
+            string CreateTrainCarToolTip(TrainCarMasterElement trainCar)
             {
-                // 車両マスタにnameが無いため、アイコンビューの表示名（addressablePath末尾）を使う
-                // Train car masters have no name, so use the icon view's display name (addressablePath tail)
-                var builder = new StringBuilder(iconView.ItemName);
+                var builder = new StringBuilder(
+                    Localize.GetContent(ContentLocalizationKeys.TrainCarName(trainCar.TrainCarGuid)));
                 AppendRequiredItems(builder, ConstructionCostTexts(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));
                 return builder.ToString();
             }

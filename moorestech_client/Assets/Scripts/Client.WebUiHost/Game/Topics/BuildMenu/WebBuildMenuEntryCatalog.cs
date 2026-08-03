@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
-using Client.Game.InGame.Context;
 using Common.Debug;
 using Core.Master;
 using Game.Block.Interface.Extension;
@@ -46,11 +45,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             {
                 if (!showAllPlaceable && (!unlockState.TrainCarUnlockStateInfos.TryGetValue(trainCar.TrainCarGuid, out var state) || !state.IsUnlocked)) continue;
 
-                // 車両マスタにnameが無いため、アイコンビューの表示名（addressablePath末尾）を使う
-                // Train car masters have no name, so use the icon view's display name (addressablePath tail)
-                var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(trainCar.TrainCarGuid);
                 var requiredItems = ToRequiredItems(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
-                entries.Add(WebBuildMenuEntry.CreateTrainCar(trainCar.TrainCarGuid, iconView.ItemName, requiredItems));
+                entries.Add(WebBuildMenuEntry.CreateTrainCar(trainCar.TrainCarGuid, requiredItems));
             }
 
             // 解放済みconnectToolをSortPriority順に列挙。行き先はentrySource:connectToolsのサブカテゴリ

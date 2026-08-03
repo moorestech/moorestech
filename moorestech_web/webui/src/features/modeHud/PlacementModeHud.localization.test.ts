@@ -1,11 +1,12 @@
 import { createElement } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
-import { blockNameKey, connectToolNameKey, L } from "@/shared/i18n";
+import { blockNameKey, connectToolNameKey, trainCarNameKey, L } from "@/shared/i18n";
 import { setDictionaries } from "@/shared/i18n/i18nStore";
 
 const blockGuid = "abcdefab-cdef-4bcd-8fab-cdefabcdefab";
 const connectToolGuid = "abcdefab-cdef-4bcd-8fab-cdefabcdefac";
+const trainCarGuid = "abcdefab-cdef-4bcd-8fab-cdefabcdefad";
 const topicState = vi.hoisted(() => ({
   placement: {
     selectedTargetType: "block",
@@ -15,6 +16,7 @@ const topicState = vi.hoisted(() => ({
   } as
     | { selectedTargetType: "block"; selectedBlockGuid: string; height: number; unavailableReason: string }
     | { selectedTargetType: "connectTool"; selectedConnectToolGuid: string; height: number; unavailableReason: string }
+    | { selectedTargetType: "trainCar"; selectedTrainCarGuid: string; height: number; unavailableReason: string }
     | { selectedTargetType: "blueprintCopy"; height: number; unavailableReason: string }
     | { selectedTargetType: "raw"; selectedName: string; height: number; unavailableReason: string },
 }));
@@ -81,6 +83,24 @@ describe("PlacementModeHud localization", () => {
     });
 
     expect(detailTexts(renderer!)[0]).toBe("Selected: Wire Tool");
+    act(() => renderer!.unmount());
+  });
+
+  it("trainCar GuidをGuid導出キーの表示名へ解決する", () => {
+    topicState.placement = {
+      selectedTargetType: "trainCar",
+      selectedTrainCarGuid: trainCarGuid,
+      height: 2,
+      unavailableReason: "",
+    };
+    setDictionary({ [trainCarNameKey(trainCarGuid)]: "Steam Locomotive" });
+
+    let renderer: ReactTestRenderer;
+    act(() => {
+      renderer = create(createElement(PlacementModeHud));
+    });
+
+    expect(detailTexts(renderer!)[0]).toBe("Selected: Steam Locomotive");
     act(() => renderer!.unmount());
   });
 

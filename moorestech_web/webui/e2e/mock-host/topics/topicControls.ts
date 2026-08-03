@@ -36,6 +36,11 @@ const controls = {
   placementConnectTool: () => control(Topics.placementMode, {
     selectedTargetType: "connectTool", selectedConnectToolGuid: fx.WIRE_CONNECT_TOOL_GUID, height: 3, unavailableReason: "",
   }),
+  // trainCarもGuidのみ配信し表示名解決はWeb辞書に任せる
+  // Train cars also ship only their GUID and leave display-name resolution to the web dictionary
+  placementTrainCar: () => control(Topics.placementMode, {
+    selectedTargetType: "trainCar", selectedTrainCarGuid: fx.CARGO_TRAIN_CAR_GUID, height: 3, unavailableReason: "",
+  }),
   crosshairHidden: () => control(Topics.crosshair, { visible: false }),
   crosshairVisible: () => control(Topics.crosshair, { visible: true }),
   uiHidden: () => control(Topics.uiVisibility, { visible: false }),
@@ -79,7 +84,7 @@ const controls = {
       highlightId: "tutorial-highlight-1",
       anchorId: "game.crosshair",
       kind: "outline" as const,
-      message: "", paddingPx: 8, blocksPointerInput: false,
+      paddingPx: 8, blocksPointerInput: false,
     }],
   }),
   tutorialEmpty: () => control(Topics.tutorialPresentation, {

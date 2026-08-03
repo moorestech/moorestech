@@ -1,4 +1,3 @@
-/* eslint-disable local/no-jsx-visible-literal -- Tutorial message is server-owned display data; messageKey migration is handled by the tutorial producer. */
 import { useEffect, useRef, useState } from "react";
 import { dispatchAction, Topics, useTopic } from "@/bridge";
 import { TutorialAnchorRegistry, type ResolvedAnchor } from "@/shared/tutorialAnchor";
@@ -43,9 +42,7 @@ export function TutorialOverlay() {
       const padding = highlight.paddingPx;
       return <div key={highlight.highlightId} className={styles.highlight} data-kind={highlight.kind}
         style={{ left: value.rect.left - padding, top: value.rect.top - padding,
-          width: value.rect.width + padding * 2, height: value.rect.height + padding * 2 }}>
-        {highlight.kind === "callout" && highlight.message && <div className={styles.callout}>{highlight.message}</div>}
-      </div>;
+          width: value.rect.width + padding * 2, height: value.rect.height + padding * 2 }} />;
     })}
   </div>;
 }

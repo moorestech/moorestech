@@ -13,16 +13,3 @@
   box-shadow: 0 0 0 4px rgb(255 221 87 / 24%);
   pointer-events: none;
 }
-
-.callout {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 8px);
-  max-width: 280px;
-  padding: 8px 12px;
-  color: white;
-  background: #1d2330;
-  border-radius: 6px;
-  transform: translateX(-50%);
-  white-space: nowrap;
-}

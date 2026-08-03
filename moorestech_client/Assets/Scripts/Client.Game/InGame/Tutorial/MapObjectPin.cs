@@ -3,12 +3,9 @@ using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Map.MapObject;
-using Client.Localization;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
-using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.ChallengesModule;
-using UniRx;
 using UnityEngine;
 using VContainer;
 
@@ -28,22 +25,14 @@ namespace Client.Game.InGame.Tutorial
         private InGameCameraController _inGameCameraController;
         private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
 
-        private TutorialsElement _currentTutorial;
         private MapObjectPinTutorialParam _currentTutorialParam;
-        private string _pinText = "";
+        private string _pinTutorialGuid = "";
 
         [Inject]
         public void Construct(InGameCameraController inGameCameraController, MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
         {
             _inGameCameraController = inGameCameraController;
             _mapObjectGameObjectDatastore = mapObjectGameObjectDatastore;
-        }
-
-        private void Start()
-        {
-            // 言語切替時に表示中のピン文言を再解決する
-            // Re-resolve the visible pin text when the language changes
-            Localize.OnLanguageChanged.Subscribe(_ => RefreshPinText()).AddTo(this);
         }
 
         private void Update()
@@ -69,7 +58,7 @@ namespace Client.Game.InGame.Tutorial
                 if (!camera) return;
 
                 var projection = WorldPinScreenProjection.Project(camera, transform.position);
-                WorldPinStateStore.Instance.SetPin(WebPinId, _pinText, projection);
+                WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
             }
 
             void NearestPinMapObject()
@@ -92,9 +81,8 @@ namespace Client.Game.InGame.Tutorial
         
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
-            _currentTutorial = tutorial;
             _currentTutorialParam = (MapObjectPinTutorialParam)tutorial.TutorialParam;
-            RefreshPinText();
+            _pinTutorialGuid = tutorial.TutorialGuid.ToString("D");
 
             // 追跡と射影配信のみ行う（表示はWebオーバーレイが担う）
             // Only tracking and projection publishing happen here; display lives on the web overlay
@@ -106,7 +94,6 @@ namespace Client.Game.InGame.Tutorial
         public void CompleteTutorial()
         {
             SetActive(false);
-            _currentTutorial = null;
             _currentTutorialParam = null;
             WorldPinStateStore.Instance.RemovePin(WebPinId);
         }
@@ -114,14 +101,6 @@ namespace Client.Game.InGame.Tutorial
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
-        }
-
-        // 対象切替と言語切替の時だけピン文言を再解決する（Update()は射影専用）
-        // Re-resolve the pin text only on target/language change; Update() does projection only
-        private void RefreshPinText()
-        {
-            if (_currentTutorial == null) return;
-            _pinText = Localize.GetContent(ContentLocalizationKeys.ChallengeTutorialText(_currentTutorial.TutorialGuid));
         }
 
         // SkitManager等の外部SetActive(false)でもWebピンを確実に消す（RemovePinは冪等）

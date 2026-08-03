@@ -141,7 +141,7 @@ export const buildMenu = {
     { entryType: "block", entryKey: "53000000-0000-4000-8000-000000000002", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [], iconUrl: "/icons/iron-chest.png" },
     { entryType: "block", entryKey: "53000000-0000-4000-8000-000000000003", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000002", requiredItems: [], iconUrl: "/icons/belt-conveyor.png" },
     { entryType: "block", entryKey: "53000000-0000-4000-8000-000000000004", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: "/icons/rail.png" },
-    { entryType: "trainCar", entryKey: "54000000-0000-4000-8000-000000000001", label: "貨物車両", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000004", requiredItems: [], iconUrl: "/icons/cargo-car.png" },
+    { entryType: "trainCar", entryKey: "56000000-0000-4000-8000-000000000001", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000004", requiredItems: [], iconUrl: "/icons/cargo-car.png" },
     // connectToolはGuidだけを配信しWeb側が辞書で表示名を解決する
     // connectTool ships only its GUID; the web side resolves the display name from the dictionary
     { entryType: "connectTool", entryKey: "55000000-0000-4000-8000-000000000001", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: "/icons/wire-tool.png" },

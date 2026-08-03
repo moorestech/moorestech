@@ -51,6 +51,7 @@ namespace Client.WebUiHost.Game.Topics
         public string SelectedTargetType;
         public string SelectedBlockGuid;
         public string SelectedConnectToolGuid;
+        public string SelectedTrainCarGuid;
         public string SelectedName;
         public int Height;
         public string UnavailableReason;
@@ -82,19 +83,22 @@ namespace Client.WebUiHost.Game.Topics
                     dto.SelectedTargetType = "connectTool";
                     dto.SelectedConnectToolGuid = connectTool.ConnectToolGuid.ToString("D");
                     return dto;
+                case TrainCarPlacementTarget trainCar:
+                    dto.SelectedTargetType = "trainCar";
+                    dto.SelectedTrainCarGuid = trainCar.TrainCarGuid.ToString("D");
+                    return dto;
                 case BlueprintCopyToolPlacementTarget:
                     dto.SelectedTargetType = "blueprintCopy";
                     return dto;
             }
 
-            // ユーザー命名BPとstable key未定の対象は既存raw表示を維持する
-            // Preserve existing raw labels for user blueprints and targets without stable keys
+            // ユーザー命名BPだけが辞書キーを持たないためraw表示を維持する
+            // Only user-named blueprints lack a dictionary key, so they keep the raw label
             dto.SelectedTargetType = "raw";
             dto.SelectedName = target switch
             {
                 null => "",
                 BlueprintPlacementTarget blueprint => blueprint.BlueprintName,
-                TrainCarPlacementTarget => "Train Car",
                 _ => throw new InvalidOperationException(
                     $"Unsupported placement target type: {target.GetType().FullName}"),
             };
