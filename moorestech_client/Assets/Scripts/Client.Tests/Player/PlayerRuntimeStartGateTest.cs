@@ -11,6 +11,7 @@ namespace Client.Tests.Player
     {
         private GameObject _playerRoot;
         private GameObject _ground;
+        private ThirdPersonController _thirdPersonController;
 
         [TearDown]
         public void TearDown()
@@ -29,6 +30,10 @@ namespace Client.Tests.Player
             controller.Initialize(new Vector3(30f, 70f, 40f), new Vector3(5f, 15f, 5f));
             Assert.That(controller.Position.x, Is.Not.EqualTo(30f).Within(0.001f), "Initializeの時点でWarpされている");
 
+            // 重力が止まっていないと地形構築中に落下速度が終端まで蓄積し、Warp直後の1フレームで地形へめり込む
+            // Leaving gravity on accumulates terminal fall speed during terrain build and sinks the player on the frame after the warp
+            Assert.IsFalse(_thirdPersonController.enabled, "Initializeで重力が止まっていない");
+
             // 落下復帰が武装していないこと。武装していればGetGroundPointのLogErrorでテストが落ちる
             // Fall recovery must be disarmed; if armed, GetGroundPoint's LogError fails this test
             controller.transform.position = new Vector3(0f, -100f, 0f);
@@ -43,6 +48,11 @@ namespace Client.Tests.Player
             controller.Initialize(new Vector3(30f, 70f, 40f), new Vector3(5f, 15f, 5f));
 
             controller.StartPlayerRuntime();
+
+            // 重力を戻し損ねるとプレイヤーが永久に操作不能になる
+            // Failing to restore gravity leaves the player permanently unable to move
+            Assert.IsTrue(_thirdPersonController.enabled, "開始後も重力が止まったまま");
+
             Assert.AreEqual(30f, controller.Position.x, 0.001f, "保存座標Xへ復帰していない");
             Assert.AreEqual(70f, controller.Position.y, 0.001f, "保存座標Yへ復帰していない");
             Assert.AreEqual(40f, controller.Position.z, 0.001f, "保存座標Zへ復帰していない");
@@ -77,9 +87,9 @@ namespace Client.Tests.Player
             _playerRoot = new GameObject("PlayerRuntimeStartGateTestPlayer");
             _playerRoot.AddComponent<CharacterController>();
             _playerRoot.AddComponent<StarterAssetsInputs>();
-            var thirdPersonController = _playerRoot.AddComponent<ThirdPersonController>();
+            _thirdPersonController = _playerRoot.AddComponent<ThirdPersonController>();
             var playerObjectController = _playerRoot.AddComponent<PlayerObjectController>();
-            SetField(playerObjectController, "controller", thirdPersonController);
+            SetField(playerObjectController, "controller", _thirdPersonController);
             return playerObjectController;
         }
 
