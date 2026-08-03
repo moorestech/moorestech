@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Player;
+using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Network.API;
 using Core.Item.Interface;
 using Core.Master;
 using Game.MapGeneration.Transfer;
+using Game.PlayerInventory.Interface;
 using Game.Research;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
@@ -38,7 +40,9 @@ namespace Client.DebugSystem
                 var playerPos = _playerSystemContainer.transform.position;
                 var handshake = new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(new Vector3MessagePack(playerPos), null, -1, Array.Empty<ItemStackLevelUnlockEventPacket.ItemStackLevelMessagePack>());
                 var worldData = new WorldDataResponse(new List<BlockInfo>(), new List<EntityResponse>());
-                var inventory = new PlayerInventoryResponse(new List<IItemStack>(), null);
+                var emptyItem = new ItemMessagePack(ItemMaster.EmptyItemId, 0);
+                var inventory = new PlayerInventoryResponse(new PlayerInventoryResponseProtocol.PlayerInventoryResponseProtocolMessagePack(
+                    0, Array.Empty<ItemMessagePack>(), emptyItem, Array.Empty<ItemMessagePack>(), IEquipmentInventory.BareHandsIndex));
                 var unlockState = new UnlockStateResponse(new List<Guid>(), new List<Guid>(), new List<ItemId>(), new List<ItemId>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>());
                 
                 // テストプレイ用の空レスポンスを構築

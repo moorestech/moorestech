@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;

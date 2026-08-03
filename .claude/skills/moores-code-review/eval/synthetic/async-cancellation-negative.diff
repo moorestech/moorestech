@@ -1,0 +1,87 @@
+diff --git a/moorestech_client/Assets/Scripts/Client.Common/Asset/AmbienceClipLoader.cs b/moorestech_client/Assets/Scripts/Client.Common/Asset/AmbienceClipLoader.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Common/Asset/AmbienceClipLoader.cs
+@@ -0,0 +1,26 @@
++using System.Threading;
++using Cysharp.Threading.Tasks;
++using UnityEngine;
++using UnityEngine.AddressableAssets;
++
++namespace Client.Common.Asset
++{
++    public static class AmbienceClipLoader
++    {
++        public static async UniTask<AudioClip> LoadClipAsync(string address, CancellationToken ct)
++        {
++            var handle = Addressables.LoadAssetAsync<AudioClip>(address);
++            await handle.ToUniTask(cancellationToken: ct);
++            return handle.Result;
++        }
++
++        // 起動時に1度だけ読む既定クリップ。プロセス寿命と一致するので中断手段を持たない
++        // Default clip read once at boot; its lifetime equals the process, so it takes no cancellation
++        public static AudioClip LoadDefaultClip(string address)
++        {
++            return Addressables.LoadAssetAsync<AudioClip>(address).WaitForCompletion();
++        }
++    }
++}
+diff --git a/moorestech_client/Assets/Scripts/Client.Game/Ambience/AmbienceClipPlayer.cs b/moorestech_client/Assets/Scripts/Client.Game/Ambience/AmbienceClipPlayer.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Game/Ambience/AmbienceClipPlayer.cs
+@@ -0,0 +1,60 @@
++using System.Threading;
++using Client.Common.Asset;
++using Cysharp.Threading.Tasks;
++using UnityEngine;
++
++namespace Client.Game.Ambience
++{
++    public class AmbienceClipPlayer : MonoBehaviour
++    {
++        [SerializeField] private AudioSource audioSource;
++        [SerializeField] private string defaultClipAddress;
++
++        private CancellationTokenSource _loadCancellationTokenSource;
++        private AudioClip _currentClip;
++
++        private void Awake()
++        {
++            _currentClip = AmbienceClipLoader.LoadDefaultClip(defaultClipAddress);
++            audioSource.clip = _currentClip;
++        }
++
++        public void SwitchBiome(string clipAddress)
++        {
++            // 前回のロードを打ち切ってから新しいトークンを作る
++            // Cancel the previous load before creating a new token
++            _loadCancellationTokenSource?.Cancel();
++            _loadCancellationTokenSource?.Dispose();
++            _loadCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
++                this.GetCancellationTokenOnDestroy());
++
++            SwitchBiomeInternal(clipAddress, _loadCancellationTokenSource.Token).Forget();
++
++            #region Internal
++
++            async UniTaskVoid SwitchBiomeInternal(string address, CancellationToken token)
++            {
++                _currentClip = await AmbienceClipLoader.LoadClipAsync(address, token);
++
++                audioSource.clip = _currentClip;
++                audioSource.Play();
++            }
++
++            #endregion
++        }
++
++        private void OnDestroy()
++        {
++            _loadCancellationTokenSource?.Cancel();
++            _loadCancellationTokenSource?.Dispose();
++            audioSource.Stop();
++        }
++    }
++}

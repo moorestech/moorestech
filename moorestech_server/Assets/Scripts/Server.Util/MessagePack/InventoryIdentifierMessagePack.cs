@@ -51,6 +51,15 @@ namespace Server.Util.MessagePack
             };
         }
         
+        public static InventoryIdentifierMessagePack CreateEquipmentMessage(int playerId)
+        {
+            return new InventoryIdentifierMessagePack
+            {
+                InventoryType = InventoryType.Equipment,
+                PlayerId = playerId,
+            };
+        }
+
         public static InventoryIdentifierMessagePack CreateBlockMessage(Vector3Int position)
         {
             return new InventoryIdentifierMessagePack

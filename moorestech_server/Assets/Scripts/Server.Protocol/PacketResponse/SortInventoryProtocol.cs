@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.Block.Interface.Component;
+using Core.Inventory;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;

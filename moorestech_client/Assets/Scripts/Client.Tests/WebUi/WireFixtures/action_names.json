@@ -6,6 +6,7 @@
     "inventory.split_drag",
     "inventory.sort",
     "inventory.select_hotbar",
+    "inventory.select_equipment",
     "craft.execute",
     "ui.modal.respond",
     "build_menu.select",

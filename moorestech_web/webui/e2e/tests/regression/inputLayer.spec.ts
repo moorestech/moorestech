@@ -19,14 +19,15 @@ test("block inventory上のEscapeはGameScreen遷移を要求する", async ({ p
   await expect(page.getByTestId("block-inventory")).toBeHidden();
 });
 
-test("GameScreenのホイールは最新hotbar値から次スロットを選ぶ", async ({ page }) => {
+test("GameScreenのホイールは最新equipment値から次スロットを選ぶ", async ({ page }) => {
   await setUiState(page, "GameScreen");
   await page.goto("/");
-  const hotbar = page.getByTestId("hotbar-grid");
-  await expect(hotbar).toBeVisible();
-  await hotbar.hover();
+  const equipment = page.getByTestId("equipment-slots");
+  await expect(equipment).toBeVisible();
   await page.mouse.wheel(0, 100);
 
-  await expect.poll(() => payloadsOf(page, "inventory.select_hotbar")).toContainEqual({ index: 1 });
-  await expect(hotbar.locator("> div > div").nth(1)).toHaveAttribute("data-selected", "true");
+  // fixture の selectedEquipment:-1（素手）から1段進むと先頭スロットが選ばれる
+  // Stepping once from the fixture's selectedEquipment:-1 (bare hands) selects the first slot
+  await expect.poll(() => payloadsOf(page, "inventory.select_equipment")).toContainEqual({ index: 0 });
+  await expect(equipment.locator("> div").nth(0)).toHaveAttribute("data-selected", "true");
 });

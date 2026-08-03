@@ -1,4 +1,5 @@
 using System;
+using Core.Master;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -7,6 +8,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         // 選択されたconnectToolのGuid。種別・アイコン・素材はマスタから解決する
         // Guid of the selected connectTool; type, icon and materials are resolved from the master
         public readonly Guid ConnectToolGuid;
+
+        public Guid Id => ConnectToolGuid;
+        public PlacementTargetKind Kind => PlacementTargetKind.ConnectTool;
+        public string DisplayName => MasterHolder.ConnectToolMaster.GetElementOrNull(ConnectToolGuid).Name;
 
         public ConnectToolPlacementTarget(Guid connectToolGuid)
         {

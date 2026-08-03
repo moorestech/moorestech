@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { setUiState } from "../../support/mockControl";
+import { buildMenuEntryIds } from "../../mock-host/fixtures";
 
 test.afterEach(async ({ page }) => {
   await setUiState(page, "PlayerInventory");
@@ -11,8 +12,8 @@ test("ui_stateでビルドメニューを開閉し既定カテゴリのエント
   await page.goto("/");
 
   await expect(page.getByTestId("build-menu-panel")).toBeVisible();
-  await expect(page.getByTestId("build-menu-entry-block-wood-chest")).toBeVisible();
-  await expect(page.getByTestId("build-menu-entry-trainCar-cargo-car")).toBeHidden();
+  await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`)).toBeVisible();
+  await expect(page.getByTestId(`build-menu-entry-trainCar-${buildMenuEntryIds.cargoCar}`)).toBeHidden();
 
   await setUiState(page, "GameScreen");
   await expect(page.getByTestId("build-menu-panel")).toBeHidden();
@@ -22,12 +23,12 @@ test("エントリ選択とBP右クリック削除のアクション契約", asy
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
-  await page.getByTestId("build-menu-entry-block-wood-chest").click();
-  await expect.poll(() => payloadsOf(page, "build_menu.select")).toContainEqual({ entryType: "block", entryKey: "wood-chest" });
+  await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`).click();
+  await expect.poll(() => payloadsOf(page, "build_menu.select")).toContainEqual({ id: buildMenuEntryIds.woodChest });
 
   await page.getByTestId("build-menu-category-ブループリント").click();
-  await page.getByTestId("build-menu-entry-blueprint-starter-base").click({ button: "right" });
-  await expect.poll(() => payloadsOf(page, "blueprint.delete")).toContainEqual({ name: "starter-base" });
+  await page.getByTestId(`build-menu-entry-blueprint-${buildMenuEntryIds.starterBaseBlueprint}`).click({ button: "right" });
+  await expect.poll(() => payloadsOf(page, "blueprint.delete")).toContainEqual({ id: buildMenuEntryIds.starterBaseBlueprint });
 });
 
 test("閉じるボタンはGameScreen遷移を要求する", async ({ page }) => {
@@ -44,11 +45,11 @@ test("カテゴリ切替でセクションが入れ替わる", async ({ page }) 
   await page.goto("/");
 
   await expect(page.getByTestId("build-menu-section-物流-チェスト")).toBeVisible();
-  await expect(page.getByTestId("build-menu-entry-block-rail")).toBeHidden();
+  await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`)).toBeHidden();
 
   await page.getByTestId("build-menu-category-輸送").click();
-  await expect(page.getByTestId("build-menu-entry-block-rail")).toBeVisible();
-  await expect(page.getByTestId("build-menu-entry-block-wood-chest")).toBeHidden();
+  await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`)).toBeVisible();
+  await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`)).toBeHidden();
 });
 
 test("横断検索は複合見出しで区切りサイドバーを無効化する", async ({ page }) => {
@@ -77,7 +78,7 @@ test("ホバーでプレビューが更新される", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
-  await page.getByTestId("build-menu-entry-block-wood-chest").hover();
+  await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`).hover();
   await expect(page.getByTestId("build-menu-preview")).toContainText("木のチェスト");
 });
 

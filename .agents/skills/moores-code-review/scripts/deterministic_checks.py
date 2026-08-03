@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+# =====================================================================
+# ⚠ このscripts/配下を1行でも変更・追加したら、必ず回帰テストを実行すること:
+#     python3 -m unittest discover -s .claude/skills/moores-code-review/tests
+#   全緑になるまで変更は完成扱いにしない。新規スクリプトはSKILL.mdへの配線と
+#   tests/test_skill_wiring.py への不変条件追加まで済ませて初めて完成（配線なき
+#   検出器は未実装と同じ・2026-08-03ユーザー裁定）。このバナー自体も必須
+#   （tests/test_skill_wiring.py が全スクリプトのバナー実在を機械検証する）。
+# ⚠ Run the regression suite after ANY change under scripts/; wiring into
+#   SKILL.md and a wiring-test invariant are part of "done" for new scripts.
+# =====================================================================
 """moores-code-review 決定論チェック（汎用 + moorestech固有の統合版）。
 
 Usage:
@@ -9,6 +19,7 @@ Usage:
       "confirmed": [...],   # 検出正確・裏取り不要。Criticalとして統合に載せる
       "candidates": {
         "comparison_operator":  [...],  # verifiers/comparison-operator-verifier.md(sonnet)で裁定
+        "try_catch_boundary":   [...],  # verifiers/try-catch-boundary-verifier.md(opus)で裁定
         "comment_length":       [...],  # post-checks/comment-convention-guard.md(sonnet)で裁定
         "region_internal":      [...],  # core-cs-region-internal reviewer の裏付けデータ
         "schema_optional_true": [...],  # master-data-defense レンズの裏付けデータ
@@ -55,6 +66,8 @@ def main(argv: list[str]) -> int:
         "confirmed": checks_static.run(files, repo_root) + checks_moores.run_confirmed(files) + context_findings,
         "candidates": {
             "comparison_operator": checks_comparison.run(files),
+            "try_catch_boundary": checks_static.try_catch_boundary(files),
+            "server_elapsed_time": checks_moores.server_elapsed_time(files),
             "comment_length": checks_comment_length.run(files),
             "region_internal": checks_region.run(files, repo_root),
             "schema_optional_true": checks_moores.schema_optional_true(files),

@@ -30,9 +30,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(15.7f, response.Spawn.Y);
             Assert.AreEqual(-37.401f, response.Spawn.Z);
 
-            // mapObjects全5件がmap.jsonの内容と一致することを検証
-            // Verify all 5 mapObjects match map.json's content
-            Assert.AreEqual(5, response.MapObjects.Count);
+            // mapObjects全6件がmap.jsonの内容と一致することを検証
+            // Verify all 6 mapObjects match map.json's content
+            Assert.AreEqual(6, response.MapObjects.Count);
 
             var object0 = response.MapObjects[0];
             Assert.AreEqual(0, object0.InstanceId);
@@ -54,6 +54,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(5.5f, object4.X);
             Assert.AreEqual(0.5f, object4.Y);
             Assert.AreEqual(1.5f, object4.Z);
+
+            var object5 = response.MapObjects[5];
+            Assert.AreEqual(5, object5.InstanceId);
+            Assert.AreEqual("00000000-0000-2222-0000-000000000001", object5.MapObjectGuid);
+            Assert.AreEqual(100.0f, object5.X);
+            Assert.AreEqual(0.0f, object5.Y);
+            Assert.AreEqual(100.0f, object5.Z);
 
             // mapVeins全3件のAABBがmap.jsonの内容と一致することを検証
             // Verify all 3 mapVeins' AABBs match map.json's content

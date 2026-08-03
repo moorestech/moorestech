@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Game.Blueprint
@@ -6,10 +7,10 @@ namespace Game.Blueprint
     {
         IReadOnlyList<BlueprintJsonObject> Blueprints { get; }
 
-        // 重複名は連番付与するため、確定した登録名を返す
-        // Returns the final registered name after duplicate-suffixing
-        string Register(BlueprintJsonObject blueprint);
-        bool Delete(string name);
+        // 名前と生成済みGuidを加工せず登録する
+        // Registers without changing the name or the pre-generated GUID
+        Guid Register(BlueprintJsonObject blueprint);
+        bool Delete(Guid blueprintGuid);
 
         List<BlueprintJsonObject> GetSaveJsonObject();
         void LoadBlueprints(List<BlueprintJsonObject> blueprints);

@@ -58,11 +58,11 @@ namespace Client.Playtest.Operations
             }
             if (CurrentUiState() != UIStateEnum.BuildMenu) throw new TimeoutException($"Build menu did not open (current: {CurrentUiState()})");
 
-            // CEFではパネル表示を待ち、BlockId由来の安定testidで対象エントリを選択する
-            // Under CEF, wait for the panel and select the entry by its stable BlockId-derived testid
+            // CEFではパネル表示を待ち、BlockGuid由来の安定testidで対象エントリを選択する
+            // Under CEF, wait for the panel and select the entry by its stable BlockGuid-derived testid
             var useWebUi = CefScreenMapper.IsWebUiAvailable();
             var blockId = PlaytestBlockOps.ResolveBlockId(blockName);
-            var webUiTestid = $"build-menu-entry-block-{blockId.AsPrimitive()}";
+            var webUiTestid = PlaytestWebUiOps.BuildMenuBlockTestId(blockName);
             if (useWebUi)
             {
                 await PlaytestWebUiOps.WaitWebUiElement("build-menu-panel", 15f);

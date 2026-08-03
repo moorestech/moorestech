@@ -19,7 +19,7 @@ namespace Tests.CombinedTest.Game
 
             var chestGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId).BlockGuid.ToString();
             var block = new BlueprintBlockJsonObject(new Vector3Int(2, 0, 3), chestGuid, (int)BlockDirection.North, new Dictionary<string, string>());
-            var blueprint = new BlueprintJsonObject("rot", new List<BlueprintBlockJsonObject> { block });
+            var blueprint = new BlueprintJsonObject("rot", new List<BlueprintBlockJsonObject> { block }, System.Guid.NewGuid());
 
             // 90度回転: (2,0,3)→(3,0,-2)
             // One clockwise step: offset (2,0,3) -> (3,0,-2), North -> East
@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Game
             var guid = master.BlockGuid.ToString();
 
             var block = new BlueprintBlockJsonObject(Vector3Int.zero, guid, (int)BlockDirection.North, new Dictionary<string, string>());
-            var blueprint = new BlueprintJsonObject("multi", new List<BlueprintBlockJsonObject> { block });
+            var blueprint = new BlueprintJsonObject("multi", new List<BlueprintBlockJsonObject> { block }, System.Guid.NewGuid());
 
             var placed = BlueprintPasteCalculator.CalculatePlacements(blueprint, Vector3Int.zero, 1)[0];
 
@@ -72,7 +72,7 @@ namespace Tests.CombinedTest.Game
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var block = new BlueprintBlockJsonObject(Vector3Int.zero, System.Guid.NewGuid().ToString(), 0, new Dictionary<string, string>());
-            var blueprint = new BlueprintJsonObject("unknown", new List<BlueprintBlockJsonObject> { block });
+            var blueprint = new BlueprintJsonObject("unknown", new List<BlueprintBlockJsonObject> { block }, System.Guid.NewGuid());
 
             var result = BlueprintPasteCalculator.CalculatePlacements(blueprint, Vector3Int.zero, 0);
             Assert.AreEqual(0, result.Count);

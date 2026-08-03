@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -49,7 +50,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
         {
             // 選択変更時にBP実データを解決する
             // Resolve blueprint data when the selection changes
-            if (isSelectionChanged) ResolveBlueprint(target.BlueprintName);
+            if (isSelectionChanged) ResolveBlueprint(target.BlueprintGuid);
             if (_currentBlueprint == null)
             {
                 // 未解決BP（キャッシュに無い等）は前回のゴーストを残さない
@@ -82,9 +83,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
             #region Internal
 
-            void ResolveBlueprint(string blueprintName)
+            void ResolveBlueprint(Guid blueprintGuid)
             {
-                var pack = _library.Blueprints.FirstOrDefault(b => b.Name == blueprintName);
+                var pack = _library.Blueprints.FirstOrDefault(b => b.BlueprintGuid == blueprintGuid);
                 _currentBlueprint = pack?.ToJsonObject();
             }
 

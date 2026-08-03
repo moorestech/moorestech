@@ -145,17 +145,9 @@ namespace Client.Network.API
 
             var response = await _packetExchangeManager.GetPacketResponse<PlayerInventoryResponseProtocol.PlayerInventoryResponseProtocolMessagePack>(request, ct);
 
-            var mainItems = new List<IItemStack>(response.Main.Length);
-            foreach (var item in response.Main)
-            {
-                var id = item.Id;
-                var count = item.Count;
-                mainItems.Add(_itemStackFactory.Create(id, count));
-            }
-
-            var grabItem = _itemStackFactory.Create(response.Grab.Id, response.Grab.Count);
-
-            return new PlayerInventoryResponse(mainItems, grabItem);
+            // メイン・Grabだけでなく装備と選択インデックスも落とさず変換する
+            // Converts equipment and the selected index as well, not just main and grab
+            return new PlayerInventoryResponse(response);
         }
 
         public async UniTask<WorldDataResponse> GetWorldData(CancellationToken ct)

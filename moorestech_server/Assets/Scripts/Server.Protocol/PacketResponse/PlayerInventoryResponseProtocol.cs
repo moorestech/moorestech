@@ -39,8 +39,17 @@ namespace Server.Protocol.PacketResponse
                 playerInventory.GrabInventory.GetItem(0).Id,
                 playerInventory.GrabInventory.GetItem(0).Count);
             
-            
-            return new PlayerInventoryResponseProtocolMessagePack(data.PlayerId, mainItems.ToArray(), grabItem);
+
+            //装備インベントリは専用の取得プロトコルを持たないため、初期データをここに同梱する
+            //Equipment has no dedicated fetch protocol, so its initial data rides on this response
+            var equipmentInventory = playerInventory.EquipmentInventory;
+            var equipmentItems = new List<ItemMessagePack>();
+            for (var i = 0; i < equipmentInventory.GetSlotSize(); i++)
+            {
+                equipmentItems.Add(new ItemMessagePack(equipmentInventory.GetItem(i)));
+            }
+
+            return new PlayerInventoryResponseProtocolMessagePack(data.PlayerId, mainItems.ToArray(), grabItem, equipmentItems.ToArray(), equipmentInventory.SelectedEquipmentIndex);
         }
         
         [MessagePackObject]
@@ -64,17 +73,21 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public int PlayerId { get; set; }
             [Key(3)] public ItemMessagePack[] Main { get; set; }
             [Key(4)] public ItemMessagePack Grab { get; set; }
-            
-            
+            [Key(5)] public ItemMessagePack[] Equipment { get; set; }
+            [Key(6)] public int SelectedEquipmentIndex { get; set; }
+
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public PlayerInventoryResponseProtocolMessagePack() { }
-            
-            public PlayerInventoryResponseProtocolMessagePack(int playerId, ItemMessagePack[] main, ItemMessagePack grab)
+
+            public PlayerInventoryResponseProtocolMessagePack(int playerId, ItemMessagePack[] main, ItemMessagePack grab, ItemMessagePack[] equipment, int selectedEquipmentIndex)
             {
                 Tag = ProtocolTag;
                 PlayerId = playerId;
                 Main = main;
                 Grab = grab;
+                Equipment = equipment;
+                SelectedEquipmentIndex = selectedEquipmentIndex;
             }
         }
     }

@@ -152,6 +152,7 @@ namespace Server.Boot
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();
+            services.AddSingleton<MapObjectMiningService>();
             // 具象はMasterTickUpdaterの再構築用、Lookup/Mutationは読み書きの契約別。全て同一インスタンスを共有する
             // The concrete type serves MasterTickUpdater's rebuild; Lookup/Mutation split read and write contracts. All share one instance
             services.AddSingleton<ElectricWireNetworkDatastore>();
@@ -186,6 +187,7 @@ namespace Server.Boot
             services.AddSingleton<IItemStackLevelUnlocker>(itemStackLevelDataStore);
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
+
             services.AddSingleton<ResearchEvent>();
 
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
@@ -234,6 +236,7 @@ namespace Server.Boot
             // Register events.
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
             services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
+            services.AddSingleton<IEquipmentInventoryUpdateEvent, EquipmentInventoryUpdateEvent>();
             services.AddSingleton<CraftEvent, CraftEvent>();
 
             //イベントレシーバーを登録
@@ -242,6 +245,8 @@ namespace Server.Boot
             services.AddSingleton<MainInventoryUpdateEventPacket>();
             services.AddSingleton<UnifiedInventoryEventPacket>();
             services.AddSingleton<GrabInventoryUpdateEventPacket>();
+            services.AddSingleton<EquipmentSlotUpdateEventPacket>();
+            services.AddSingleton<EquipmentSelectedIndexUpdateEventPacket>();
             services.AddSingleton<PlaceBlockEventPacket>();
             services.AddSingleton<RemoveBlockToSetEventPacket>();
             services.AddSingleton<CompletedChallengeEventPacket>();

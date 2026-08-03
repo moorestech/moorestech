@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { deriveActiveLayer, isPointerOverWebUi, isTextInputElement, reduceWebInputState } from "./activeLayer";
+import { deriveActiveLayer, isPointerOverWebUi, isTextInputElement, isWheelPassthrough, reduceWebInputState } from "./activeLayer";
 
 describe("deriveActiveLayer", () => {
   it("modal があれば block が開いていても modal", () => {
@@ -25,6 +25,15 @@ describe("web input exclusivity", () => {
 
     expect(isPointerOverWebUi(surface)).toBe(false);
     expect(isPointerOverWebUi(panel)).toBe(true);
+  });
+
+  it("印の付いたHUDの子孫だけがホイール素通しになる", () => {
+    const marked = { closest: (selector: string) => (selector === "[data-wheel-passthrough]" ? {} : null) } as unknown as EventTarget;
+    const plain = { closest: () => null } as unknown as EventTarget;
+
+    expect(isWheelPassthrough(marked)).toBe(true);
+    expect(isWheelPassthrough(plain)).toBe(false);
+    expect(isWheelPassthrough(null)).toBe(false);
   });
 
   it("recognizes editable text controls but not ordinary buttons", () => {

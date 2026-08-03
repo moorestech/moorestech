@@ -29,6 +29,10 @@ describe("wire contract fixtures (shared with C#)", () => {
     expect(inv.mainSlots.length).toBe(2);
     expect(inv.grab.count).toBe(0);
     expect(inv.selectedHotbar).toBe(2);
+    // 素手は負値の -1 が正準形。C#側と対称に、負値が型消費側まで素通しで届くことを固定する
+    // Bare hands is canonically the negative -1; mirror the C# side by pinning that the negative value reaches the typed consumer untouched
+    expect(inv.selectedEquipment).toBe(-1);
+    expect(inv.equipmentSelectionConfirmationRevision).toBe(7);
   });
 
   it("block_inventory は open(presence)/closed(omission) の両方が受理される", () => {
@@ -79,7 +83,8 @@ describe("wire contract fixtures (shared with C#)", () => {
     const d = loadFixture("build_menu_snapshot.json");
     expect(validateTopicPayload(Topics.buildMenu, d)).toBe(true);
     const typed = d as BuildMenuData;
-    expect(typed.entries[0].entryType).toBe("block");
+    expect(typed.entries[0].kind).toBe("block");
+    expect(typed.entries[0].id).toBe("b10c0000-0000-4000-8000-000000000001");
     expect(typed.entries[0].category).toBe("物流");
     expect(typed.categories[0].name).toBe("物流");
     expect(typed.entries[3].iconUrl).toBeUndefined();

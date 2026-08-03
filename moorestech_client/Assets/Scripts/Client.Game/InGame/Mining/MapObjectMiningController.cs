@@ -3,8 +3,7 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
-using Client.Game.InGame.UI.Inventory;
-using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.Inventory.Equipment;
 using UnityEngine;
 using VContainer;
 
@@ -21,10 +20,10 @@ namespace Client.Game.InGame.Mining
         private MapObjectMiningControllerContext _context;
         
         [Inject]
-        public void Constructor(ILocalPlayerInventory localPlayerInventory, HotBarView hotBarView)
+        public void Constructor(LocalPlayerEquipment localPlayerEquipment)
         {
             _currentState = new MapObjectMiningIdleState();
-            _context = new MapObjectMiningControllerContext(hotBarView, localPlayerInventory);
+            _context = new MapObjectMiningControllerContext(localPlayerEquipment);
         }
         
         

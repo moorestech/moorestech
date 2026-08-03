@@ -1,0 +1,92 @@
+diff --git a/moorestech_client/Assets/Scripts/Client.Network/Api/HiveInspectionReport.cs b/moorestech_client/Assets/Scripts/Client.Network/Api/HiveInspectionReport.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Network/Api/HiveInspectionReport.cs
+@@ -0,0 +1,26 @@
++using System;
++using System.Collections.Generic;
++using System.Linq;
++
++namespace Client.Network.Api
++{
++    public class HiveInspectionReport
++    {
++        public List<HoneyCell> Cells { get; }
++        public int QueenAgeDays { get; }
++
++        public HiveInspectionReport(List<HoneyCell> cells, int queenAgeDays)
++        {
++            Cells = cells;
++            QueenAgeDays = queenAgeDays;
++        }
++
++        public HiveInspectionReport(HiveSnapshotMessagePack snapshot)
++        {
++            // wire応答からの変換はDTO側に置く
++            // Conversion from the wire response lives in the DTO
++            Cells = snapshot.Cells.Select(c => new HoneyCell(c.Id, c.FillRatio)).ToList();
++            QueenAgeDays = snapshot.QueenAgeDays;
++        }
++    }
++}
+diff --git a/moorestech_client/Assets/Scripts/Client.Network/Api/ApiaryApiClient.cs b/moorestech_client/Assets/Scripts/Client.Network/Api/ApiaryApiClient.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Network/Api/ApiaryApiClient.cs
+@@ -0,0 +1,15 @@
++using System;
++
++namespace Client.Network.Api
++{
++    public class ApiaryApiClient
++    {
++        public HiveInspectionReport RequestInspection(int hiveId)
++        {
++            var snapshot = SendInspectionRequest(hiveId);
++            // production経路は必ずsnapshot版コンストラクタを使う
++            // The production path always uses the snapshot constructor
++            return new HiveInspectionReport(snapshot);
++        }
++    }
++}
+diff --git a/moorestech_client/Assets/Scripts/Client.DebugSystem/ApiaryDebugSpawner.cs b/moorestech_client/Assets/Scripts/Client.DebugSystem/ApiaryDebugSpawner.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.DebugSystem/ApiaryDebugSpawner.cs
+@@ -0,0 +1,15 @@
++using System.Collections.Generic;
++using Client.Network.Api;
++
++namespace Client.DebugSystem
++{
++    public class ApiaryDebugSpawner
++    {
++        public HiveInspectionReport CreateEmptyReport()
++        {
++            // デバッグ用に空の報告を生成する
++            // Create an empty report for debugging
++            return new HiveInspectionReport(new List<HoneyCell>(), 0);
++        }
++    }
++}
+diff --git a/moorestech_client/Assets/Scripts/Client.Tests/Apiary/HiveInspectionReportTest.cs b/moorestech_client/Assets/Scripts/Client.Tests/Apiary/HiveInspectionReportTest.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Tests/Apiary/HiveInspectionReportTest.cs
+@@ -0,0 +1,16 @@
++using System.Collections.Generic;
++using Client.Network.Api;
++using NUnit.Framework;
++
++namespace Client.Tests.Apiary
++{
++    public class HiveInspectionReportTest
++    {
++        [Test]
++        public void QueenAgeIsKept()
++        {
++            var report = new HiveInspectionReport(new List<HoneyCell>(), 42);
++            Assert.AreEqual(42, report.QueenAgeDays);
++        }
++    }
++}

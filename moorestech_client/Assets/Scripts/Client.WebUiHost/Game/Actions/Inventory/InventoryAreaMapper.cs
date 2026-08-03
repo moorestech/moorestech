@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.Inventory.Main;
+using Core.Master;
 using Game.PlayerInventory.Interface;
 using Newtonsoft.Json.Linq;
 
@@ -25,6 +26,12 @@ namespace Client.WebUiHost.Game.Actions
                     type = LocalMoveInventoryType.MainOrSub;
                     localSlot = mainAreaSize + slot;
                     return true;
+                // 装備は結合スロットではないため、枠数はマスタ由来の装備枠数で判定する
+                // Equipment is not part of the combined slots, so the bound is the master-derived equipment slot count
+                case "equipment" when 0 <= slot && slot < MasterHolder.ItemMaster.Items.EquipmentSlotCount:
+                    type = LocalMoveInventoryType.Equipment;
+                    localSlot = slot;
+                    return true;
                 case "grab":
                     type = LocalMoveInventoryType.Grab;
                     localSlot = 0;
@@ -36,15 +43,16 @@ namespace Client.WebUiHost.Game.Actions
             }
         }
 
-        // クリック可能スロット（main/hotbar）のみ許可。grab は collect 入力として不正
-        // Accept only clickable slots (main/hotbar); grab is invalid as a collect input
-        public static bool TryParseClickableSlotRef(JToken token, int mainSlotCount, out int localSlot)
+        // クリック可能スロット（main/hotbar/equipment）のみ許可。grab は collect 入力として不正
+        // Accept only clickable slots (main/hotbar/equipment); grab is invalid as a collect input
+        public static bool TryParseClickableSlotRef(JToken token, int mainSlotCount, out LocalMoveInventoryType type, out int localSlot)
         {
+            if (!TryParseSlotRef(token, mainSlotCount, out type, out localSlot)) return false;
+            if (type != LocalMoveInventoryType.Grab) return true;
+
+            type = LocalMoveInventoryType.MainOrSub;
             localSlot = -1;
-            if (!TryParseSlotRef(token, mainSlotCount, out var type, out var slot)) return false;
-            if (type != LocalMoveInventoryType.MainOrSub) return false;
-            localSlot = slot;
-            return true;
+            return false;
         }
 
         // area/slot 形式の JToken を変換

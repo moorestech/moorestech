@@ -1,5 +1,6 @@
 // [uGUI廃止Phase1] uGUI描画は恒久停止・ビューは未メンテ。ただし本クラスは外部（Web UIブリッジ等）から参照中のため削除前に整理が必要（docs/webui/ugui-retirement-plan.md）
 // [uGUI retirement Phase1] uGUI rendering is permanently disabled and the view is unmaintained, but this class is still referenced externally (e.g. Web UI bridge); untangle before deletion (docs/webui/ugui-retirement-plan.md)
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
@@ -24,9 +25,10 @@ namespace Client.Game.InGame.UI.BuildMenu
 
         [Inject] private IGameUnlockStateData _gameUnlockStateData;
         [Inject] private ClientBlueprintLibrary _blueprintLibrary;
+        [Inject] private PlacementTargetCatalog _placementTargetCatalog;
 
         private readonly List<ItemSlotView> _slotViews = new();
-        private readonly List<string> _displayedBlueprintNames = new();
+        private readonly List<Guid> _displayedBlueprintGuids = new();
         private BuildMenuEntry? _clickedEntry;
 
         public void SetActive(bool active)
@@ -62,7 +64,7 @@ namespace Client.Game.InGame.UI.BuildMenu
 
                 // BP一覧が表示中と同一なら再構築せず、RTT中のクリックを握り潰さない
                 // Skip the destructive rebuild when the BP list is unchanged so clicks in the RTT window survive
-                if (_blueprintLibrary.Blueprints.Select(b => b.Name).SequenceEqual(_displayedBlueprintNames)) return;
+                if (_blueprintLibrary.Blueprints.Select(b => b.BlueprintGuid).SequenceEqual(_displayedBlueprintGuids)) return;
 
                 RebuildEntryList();
             }
@@ -96,11 +98,11 @@ namespace Client.Game.InGame.UI.BuildMenu
         {
             foreach (var slotView in _slotViews) Destroy(slotView.gameObject);
             _slotViews.Clear();
-            _displayedBlueprintNames.Clear();
+            _displayedBlueprintGuids.Clear();
 
             // カタログが組み立てたエントリ一覧からスロットを生成する
             // Create slots from the entries assembled by the catalog
-            var entries = BuildMenuEntryCatalog.CreateEntries(_gameUnlockStateData, _blueprintLibrary);
+            var entries = BuildMenuEntryCatalog.CreateEntries(_gameUnlockStateData, _placementTargetCatalog, _blueprintLibrary.BlueprintEntries);
             foreach (var entry in entries)
             {
                 var slotView = Instantiate(ItemSlotView.Prefab, blockListContainer);
@@ -116,8 +118,8 @@ namespace Client.Game.InGame.UI.BuildMenu
                 // Only blueprint entries are deletable: right-click deletes immediately (no confirm dialog in v1)
                 if (entry.Target is BlueprintPlacementTarget blueprintTarget)
                 {
-                    _displayedBlueprintNames.Add(blueprintTarget.BlueprintName);
-                    slotView.OnRightClickUp.Subscribe(_ => DeleteBlueprintAndRebuild(blueprintTarget.BlueprintName).Forget()).AddTo(slotView);
+                    _displayedBlueprintGuids.Add(blueprintTarget.BlueprintGuid);
+                    slotView.OnRightClickUp.Subscribe(_ => DeleteBlueprintAndRebuild(blueprintTarget.BlueprintGuid).Forget()).AddTo(slotView);
                 }
 
                 _slotViews.Add(slotView);
@@ -129,9 +131,15 @@ namespace Client.Game.InGame.UI.BuildMenu
 
             #region Internal
 
-            async UniTask DeleteBlueprintAndRebuild(string blueprintName)
+            async UniTask DeleteBlueprintAndRebuild(Guid blueprintGuid)
             {
-                await _blueprintLibrary.DeleteBlueprint(blueprintName, this.GetCancellationTokenOnDestroy());
+                // uGUIはWeb移行済みの残置のためユーザー向けの失敗表示は持たない。webui側のBlueprintDeleteActionHandlerがフィードバックを担う
+                // uGUI is a leftover pending removal after the web migration and has no user-facing failure display; webui's BlueprintDeleteActionHandler owns that feedback
+                var result = await _blueprintLibrary.DeleteBlueprint(blueprintGuid, this.GetCancellationTokenOnDestroy());
+
+                // 失敗時はキャッシュが古いままなので再構築しない（削除できたブロックが消えたままになるのを防ぐ）
+                // Skip the rebuild on failure since the cache stays stale, preventing a still-server-side BP from vanishing from view
+                if (result != BlueprintDeleteResult.Success) return;
 
                 // 成功時はキャッシュが最新全件に置き換わるため、そこから再構築する
                 // On success the cache holds the refreshed full list, so rebuild from it

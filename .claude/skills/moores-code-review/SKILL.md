@@ -19,16 +19,16 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 
 ## 6系統の構成
 
-1. **決定論チェック**（`scripts/deterministic_checks.py`）— AGENTS.md・moorestech規約の機械判定分（partial・try-catch・Func・200行・10ファイル・デフォルト引数・SerializeField命名・比較演算子・コメント長・region・master_default_fallback・packet_response_root・schema_optional_true・event_tag_sync）。0トークン。
-2. **moores設計レンズ群**（`lenses/`・11本）— moorestech固有の設計規約。実PRレビュー指摘（PR978/987/988/996/997/1000/1108）由来。
-3. **汎用reviewer群**（`reviewers/`・23本）— 言語横断のコード品質。全数調査（63セッション/1029起動）で採用実績のある観点のみ採録（採用0/冗長の20本と決定論代替1本は除外。根拠は `scripts/model_map.json` の `_excluded_from_port`）。
+1. **決定論チェック**（`scripts/deterministic_checks.py`）— AGENTS.md・moorestech規約の機械判定分（partial・try-catch・Func・200行・10ファイル・デフォルト引数・SerializeField命名・比較演算子・コメント長・region・master_default_fallback・packet_response_root・server_realtime_api・server_elapsed_time・init_method_naming・schema_optional_true・event_tag_sync・try_catch_boundary）。0トークン。
+2. **moores設計レンズ群**（`lenses/`・11本）— moorestech固有の設計規約。実PRレビュー指摘（PR978/987/988/996/997/1000/1095/1108）由来。
+3. **汎用reviewer群**（`reviewers/`・24本）— 言語横断のコード品質。全数調査（63セッション/1029起動）で採用実績のある観点のみ採録（採用0/冗長の20本と決定論代替1本は除外。根拠は `scripts/model_map.json` の `_excluded_from_port`）。
 4. **Codex外部監査**（`scripts/codex-audit-template.md`）— 別モデルCLIの独立第三者視点。
 5. **Fable全般レビュー**（`generalists/fable-holistic-review.md`）— チェックリスト非依存の俯瞰監査。自己裏取り契約。
 6. **分割深掘り調査**（`investigators/`・3観点）— 変更ファイル（テスト・非コード除外後）が16以上の大規模PRのみ発火。`scripts/split_chunks.py` がドメイン単位で10-15ファイルのチャンクに分割し、チャンクごとに深読みバグ狩り・縫い目統合・チャンク内一貫性の3エージェントが**変更後ファイル全文**をagenticにReadする（全体diff一括の系統では希釈される注意を担保）。テストは完全隔離＝チャンク割当もReadも禁止（ユーザー裁定 2026-08-03）。
 
 ## 実行順序（厳守）
 
-> **① 決定論チェック → ② Codex監査をバックグラウンド起動 → ③ レンズ群＋reviewer群＋Fable全般＋（閾値超なら）分割深掘り調査＋（候補があれば）比較演算子verifierを1メッセージで並列起動 → ④ 全系統を回収・実コード照合・重複排除 → ⑤ 機械的修正を自動適用＋コンパイル → ⑤.5 最終diffで決定論再チェック＋コメント保全post-checks 2本 → ⑥ 報告＋設計判断のみAskUserQuestion（末尾集約）**
+> **① 機械チェック統一窓口 `check_all.py`（決定論＋死にメンバーゲート＋セレクタを1コマンドで同時実行） → ② Codex監査をバックグラウンド起動 → ③ レンズ群＋reviewer群＋Fable全般＋（閾値超なら）分割深掘り調査＋（`verifiers_to_launch`にあるverifier）を1メッセージで並列起動 → ④ 全系統を回収・実コード照合・重複排除 → ⑤ 機械的修正を自動適用＋コンパイル → ⑤.5 最終diffで決定論再チェック＋コメント保全post-checks 2本 → ⑥ 報告＋設計判断のみAskUserQuestion（末尾集約）**
 
 AskUserQuestionは**最後の報告フェーズに集約**する。修正適用の途中で割り込まない。
 
@@ -40,18 +40,41 @@ AskUserQuestionは**最後の報告フェーズに集約**する。修正適用�
    - **4カテゴリは必ず `##` 見出しで書く**（太字箇条書き形式は出所ラベル検査の対象外になり沈黙故障する。見出しゼロはfail-closedでconfirmedになる）。
    - **「許容するトレードオフ」「非目標」の各行に出所ラベル必須**: `[ユーザー裁定: "発言引用" または AskUserQuestion結果 YYYY-MM-DD]` / `[ADR: <spec名>#<台帳項目>]` / `[agent前提]`。ラベル無し・引用不能な行は自動的に `[agent前提]` 扱いで免責力を持たない（`references/integration-rules.md` §6）。ユーザー裁定の出所はspec/planの判断台帳（ADRセクション）から引く（台帳がSSOT）。
 
-## Step 2: 決定論チェック ①
+## Step 2: 機械チェック統一窓口 ①（check_all.py）
+
+**1コマンドで機械層の全観点を同時実行する。** 内部で `deterministic_checks.py`（規約の機械判定）・`dead_member_gate.py`（IL解析）・`select_lenses.py`/`select_reviewers.py`（発火観点とモデル）を全部呼び、単一JSONに束ねる。個別スクリプトを別々に叩かない（呼び忘れ・結果の取りこぼしの温床）:
 
 ```bash
-python3 .claude/skills/moores-code-review/scripts/deterministic_checks.py "<PATCH_PATH>" --repo-root "$(pwd)" --context "<USER_PROMPT_PATH>" > /tmp/moores-review-detchecks-<ts>.json
+python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --repo-root "$(pwd)" --context "<USER_PROMPT_PATH>" > /tmp/moores-review-detchecks-<ts>.json
 ```
 
-- **`confirmed`**（partial・try-catch・Func・デフォルト引数・SerializeField命名・10ファイル・master_default_fallback・packet_response_root・context_source_label）— 検出正確・裏取り不要。Criticalとして統合に直接載せる（修正の適用可否は §3/§4）。`context_source_label`（出所ラベル欠落）はcontextファイルを修正して再実行する。
+出力JSONの読み方: `deterministic`（confirmed/candidates）・`dead_member`（Step 2.5の節を参照）・`lenses`/`reviewers`（Step 4で使うTSV相当の`{path, model}`一覧）・**`verifiers_to_launch`（候補件数から計算済みの起動すべきverifier一覧 — Step 4はこれに従うだけ）**・`summary`（全体集計と`errors`。errorsが空でないまま先へ進むのは禁止）。
+
+`deterministic` 節の解釈:
+
+- **`confirmed`**（partial・try-catch・Func・デフォルト引数・SerializeField命名・10ファイル・master_default_fallback・packet_response_root・server_realtime_api・init_method_naming・context_source_label）— 検出正確・裏取り不要。Criticalとして統合に直接載せる（修正の適用可否は §3/§4）。`context_source_label`（出所ラベル欠落）はcontextファイルを修正して再実行する。
 - **`confirmed` のうち200行超過（file-too-long）は努力目標** — Criticalにせず報告のWarning備考に1行載せるだけ。分割を強制せず、AskUserQuestionにも**絶対に**載せない（ユーザー裁定 2026-07-23）。
 - **テストコードは200行/10ファイル規約の適用外** — `*Test(s).cs`・`*.test.ts(x)`・`*.spec.ts`・`Tests`系/`e2e`/`tests`ディレクトリ配下は `file-too-long`/`dir-file-limit` の対象外（スクリプトが除外済み。ユーザー裁定 2026-07-28）。
 - **`candidates.comparison_operator`** — 1件以上あればStep 3で比較演算子verifier（sonnet）を並列起動。0件なら起動しない。
+- **`candidates.try_catch_boundary`** — 1件以上あればStep 4でtry-catch境界verifier（opus）を並列起動。0件なら起動しない。**根拠コメントの実在を免除として扱ってはならない**（コメントがあるだけの try-catch は `confirmed` のまま。許可された境界3種を主張しているものだけがこの候補に降り、verifierが実コードで裁定する。ユーザー指摘由来の較正 2026-08-02・PR1095）。
+- **`candidates.server_elapsed_time`** — 1件以上あればStep 4でサーバDateTime用途verifier（sonnet）を並列起動。0件なら起動しない。サーバ`Game.*`の`DateTime.Now/UtcNow`は「セーブへの実世界時刻記録（正当）」と「ゲーム進行の経過時間ゲート（違反）」が同じ実装形になるため、確定検出にせずverifierが用途を裁定する（PR1095 `MapObjectMiningService` のDateTimeクールダウン由来・2026-08-02）。
 - **`candidates.comment_length` / `region_internal`** — この時点では保持のみ（commentはStep 5.5で最終diffに再計測、regionはregion-internal reviewerの裏付け）。
 - **`candidates.schema_optional_true`** は master-data-defense レンズ、**`candidates.event_tag_sync`** は server-state-sync レンズの裏付けデータとして渡す（正当な例外がありうるためレンズが裁定）。
+
+## Step 2.5: 死にメンバー・公開範囲・配置・キャンセルゲート（IL解析） ①.5
+
+**check_all.py が同時実行済み**（出力JSONの `dead_member` 節。単体で再実行したい時だけ `scripts/dead_member_gate.py "<PATCH_PATH>" --repo-root "$(pwd)"`）。実体は `tools/DeadMemberAudit`（Mono CecilによるScriptAssembliesのIL解析）で、**patchが触ったファイルのもの**を `candidates.dead_member` として出す。名前grepと違いオーバーロード単位で参照を厳密に数える（AGENTS.md「デバッグ/テスト専用publicを残さない」のanalyzer化・2026-08-03）。各候補は `rule` で種別が分かれる:
+
+| rule | 検出内容 |
+| --- | --- |
+| `dead-member-unused` / `dead-member-nonproduction` | 参照0 / テスト・デバッグ・エディタ参照のみ |
+| `dead-member-overpublic-private` / `-internal` | 参照は実在するが公開範囲が過剰（宣言型内のみ / 宣言アセンブリ内のみ） |
+| `placement-mismatch` / `placement-registration-only` | server宣言でserver側に利用者なし（client参照のみ / DI登録のみ・解決者なし） |
+| `ct-not-passed` / `ct-async-void` / `cts-not-released` | CancellationToken未伝搬 / `async void` / CTS作りっぱなし |
+
+- **`status: ok`** — candidatesが1件以上あればStep 4で死にメンバーverifier（sonnet・`verifiers/dead-member-verifier.md`）を並列起動。0件なら起動しない。rule別の裁定手順はverifier側に書いてある。
+- **`status: stale`** — 変更.csがDLLより新しい。`uloop compile` を先に実行してからゲートを再実行する（コンパイルはどのみちStep 5で必須）。
+- **`status: skipped`** — ScriptAssemblies不在（素のレビューworktree等）。縮退として報告に1行明記し、dead-scope reviewer（LLM）の参照勘定が唯一の担保になる旨を記録する。
 
 ## Step 3: Codex外部監査をバックグラウンド起動する ②
 
@@ -65,11 +88,11 @@ Bashの `run_in_background: true` で起動しシェルIDを控える。観点�
 
 ## Step 4: レンズ群＋reviewer群＋Fable全般＋verifierを並列発火する ③
 
-2つのセレクタにPATCHの絶対パスを渡し、発火対象とモデルを得る（出力は `パス<TAB>モデル` のTSV）。あわせてチャンク分割を実行する:
+発火対象とモデルは **Step 2のcheck_all.py出力の `lenses` / `reviewers` 節**（`{path, model}` の一覧）をそのまま使う。起動すべきverifierも同出力の `verifiers_to_launch` に計算済み（候補0件の種は載らない＝起動しない）。セレクタを単体で再実行したい時だけ `select_lenses.py` / `select_reviewers.py` にPATCHを渡す（TSV出力）。
+
+チャンク分割（第6系統・分割深掘り調査用）はcheck_all.py出力に含まれないため別途実行する:
 
 ```bash
-python3 .claude/skills/moores-code-review/scripts/select_lenses.py "<PATCH_PATH>"
-python3 .claude/skills/moores-code-review/scripts/select_reviewers.py "<PATCH_PATH>"
 python3 .claude/skills/moores-code-review/scripts/split_chunks.py "<PATCH_PATH>" > /tmp/moores-review-chunks-<ts>.tsv
 ```
 
@@ -85,6 +108,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 
    出力契約（観点本文の出力フォーマットが二値でもこちらが優先）: 重大度3段階で返す。
    Critical: あり/なし — 確信をもって修正すべき違反。ありなら `修正方針: - <ファイル:行>: <直し方>` を列挙
+   ※Criticalを1件出すと決めたら、**その形を patch 全体で数え上げてから**出力する（同型全数掃引・`references/integration-rules.md` §2.7）。1件だけ挙げて同型の残りを黙って落とすのは禁止
    Warning: 0行以上 — 観点に該当しそうだが確信・裏取りが一段弱い指摘、重大だが裁量余地のある懸念。`- <ファイル:行>: <懸念と根拠>`
    Info: 0行以上 — 対応不要の観察・過検知ガードで落としたが記録価値のある事実。1行ずつ
    suppressed: 0行以上 — トレードオフ免責で降格した指摘。`- [Critical|Warning] <ファイル:行>: <指摘要約> / suppressed-by: <トレードオフ1行, 出所ラベル>`。Critical/Warning節には入れない（重大度は行頭表記で保持）
@@ -109,6 +133,9 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
    Patch path : <PATCH_PATH>
    User prompt : <USER_PROMPT_PATH>
    ```
+5. **try-catch境界verifier**（Step 2の `candidates.try_catch_boundary` が1件以上のときだけ・`model: "opus"`）— 同じ4行契約で `verifiers/try-catch-boundary-verifier.md` を渡す。
+6. **サーバDateTime用途verifier**（Step 2の `candidates.server_elapsed_time` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/server-elapsed-time-verifier.md` を渡す。
+7. **死にメンバーverifier**（Step 2.5の `candidates.dead_member` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/dead-member-verifier.md` を渡す（候補JSONのパスをpromptに含める）。ILに現れない経路（UnityEvent配線・プレイテストDSL・文字列リフレクション）の実在だけをrgで裁く。
 
 各サブエージェントは上記の共通出力契約（Critical/Warning/Info＋設計判断）で返す。**二値（あり/なし）に潰さず3段階で出させる理由**: Warning/Infoは「とりあえず統合報告のコンテキストに乗る」ことが目的の保険であり、二値だと確信の一段弱い実指摘が `なし` に丸められて消失する（ユーザー裁定 2026-07-23。実例: リプレースファミリーのハードコードを複数レンズが視認しながら二値契約のため無出力で落とした）。`設計判断: あり` はCriticalでも備考でもない第3の出口で、Step 7のAskUserQuestionへ**必ず**載せる（備考落ちで黙殺しない）。reviewer発火が0件でもレンズ群とFableは起動する。
 
@@ -162,11 +189,12 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 | implicit-cardinality-assumption | マスタ/ドメイン集合の単一要素決め打ち（`[0]`/`First`）で暗黙に単数を仮定（1017） | MasterHolderを読む.cs |
 | set-once-dependency-injection | 生成時に確定するset-once依存の可変setter注入（コンストラクタ注入漏れ）（1027） | `public void Set`追加を含む.cs |
 | hardcoded-content-enumeration | コンテンツ集合のコード内列挙→マスタ駆動化（2026-07-23リプレースファミリー指摘） | TypeConst/KindConst/GUIDリテラルを含む.cs |
+| speculative-abstraction | 受益者なき抽象の排除（単一実装interface・意味なしラッパー/IDisposable・存在意義なしメンバー・不要な新設型）（1095） | 型/interface/Dispose宣言を含む.cs |
 | default-resolution-ownership | デフォルト値解決の責務漏れ（public Default公開＋呼び出し側??解決・省略可能性の早期潰し）（1108/1109） | `Default`を含む.cs |
 | precedent-alignment | 前例一致（全PR横断・役割で前例を選ぶ） | 常時 |
 - **レンズ** — `select_lenses.py` の2列目（各レンズ先頭YAMLの `model`）をそのまま渡す。
 - **reviewer** — `select_reviewers.py` の2列目（正は `scripts/model_map.json`。未記載reviewerはopus、`sonnet` 記載のみsonnet）。
-- **Fable全般** — `model: "fable"` 固定。**比較演算子verifier・comment-convention-guard** — `sonnet`。**comment-rationale-guard** — `opus`（WHY判定は高ステークス）。
+- **Fable全般** — `model: "fable"` 固定。**比較演算子verifier・サーバDateTime用途verifier・死にメンバーverifier・comment-convention-guard** — `sonnet`。**comment-rationale-guard・try-catch境界verifier** — `opus`（WHY判定・境界の真偽判定は高ステークス）。
 - **investigator（分割深掘り調査）** — 各 `investigators/*.md` 先頭YAMLの `model` が正（2026-08-03精度調査で決定。経緯は `eval/log.md`）。
 - Codex監査は別CLIなので対象外。
 
@@ -179,11 +207,12 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **4カテゴリcontextを埋めないとレンズ/reviewerが誤検知する** — 空contextは「合意なし」と解釈され既定Criticalが出る。
 - **「並列」の実体はバックグラウンド起動** — Codexを `run_in_background` で先に投げ、完了を待たずにレンズ・reviewer・Fableを起動する。
 - **`codex exec` のフラグ順序** — `--sandbox` `--skip-git-repo-check` はサブコマンドより**前**に置く。監査プロンプトは/tmpに置く（リポジトリ内は誤コミットの恐れ）。
-- **verifierは候補ゼロなら起動しない** — `candidates.comparison_operator` が空なら比較演算子verifierは不要（0トークン）。
+- **verifierは候補ゼロなら起動しない** — `candidates.comparison_operator` / `candidates.try_catch_boundary` / `candidates.server_elapsed_time` / `candidates.dead_member` が空なら対応verifierは不要（0トークン）。
+- **try-catchの免除はverifierだけが出せる** — オーケストレータが「根拠コメントがあるからAGENTS.md例外を充足」と判断してCritical計上から外すのは禁止（PR1095の較正ミスそのもの）。コメントは検証対象であって証拠ではない。
 - **分割深掘り調査は閾値未満なら起動しない** — split_chunksが `below-threshold` を返したら第6系統は丸ごと不発火（0トークン）。閾値を無視してinvestigatorを手動起動しない（小PRでは既存系統と重複するだけ）。
 - **investigatorにテストを絶対に見せない** — チャンク割当除外だけでなくRead自体が禁止（ユーザー裁定 2026-08-03 完全隔離）。テスト不足の検知はtest系reviewerの担当のまま。
 - **文字数はスクリプトの値が正** — LLMに日本語の文字数を数え直させない。convention-guardは `count` を信頼し例外判定と短縮案だけ行う。
 - **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。
 - **Agent起動時に必ずmodel列を渡す（モデル継承事故の防止）** — Agentツールは `model` を省略すると**親（＝あなた＝オーケストレータ）のモデルを継承**する。あなた自身がfableで走っていると、model未指定のサブエージェントが誤ってfableで起動しうる。両セレクタはTSV2列目に**常に具体値**を出す（`select_lenses.py` はmodel未記載lensを `opus` に、`select_reviewers.py` は未記載reviewerを `default:opus` に具体化。空欄は絶対に出さない）。この2列目を**必ずそのまま** Agentの `model` に渡すこと。fableが正になるのは `precedent-alignment` レンズ（YAMLに `model: fable`）とFable全般（prose指定）だけで、それ以外にfableは現れない。
 - **AskUserQuestionは末尾だけ** — 確定修正の途中で割り込まない。
-- **人間指摘の見逃しが出たら** — その場で観点をいじらず `references/skill-improvement.md` の手順（フォレンジック・リプレイ診断→対策→3段階検証）に従う。
+- **人間指摘の見逃しが出たら** — その場で観点をいじらず `references/skill-improvement.md` の手順（フォレンジック・リプレイ診断→対策→4段階検証）に従う。

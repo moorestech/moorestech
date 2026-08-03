@@ -1,20 +1,18 @@
-import { useRef } from "react";
-import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics } from "@/bridge";
-import { readActiveLayer, screenForUiState, useGameLayerKeydown } from "@/shared/uiState";
+import { useTopic, readTopic, dispatchAction, Topics } from "@/bridge";
+import { useGameLayerKeydown, useGrabInteractive } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
-import { keyToHotbarIndex, cycleHotbar, accumulateHotbarWheel } from "../hotbarLogic";
+import { keyToHotbarIndex } from "./hotbarLogic";
 import { slotActions } from "../slotActions";
 import styles from "./style.module.css";
 
 // uGUI GameStateController 準拠の常時表示ホットバーHUD（UIState には依存しない）
 // Always-on hotbar HUD mirroring uGUI GameStateController (independent of the UIState)
 export default function HotbarPanel() {
-  const wheelRemainder = useRef(0);
   const inventory = useTopic(Topics.inventory);
-  // GameScreen 中は表示+キー/ホイール選択のみ（uGUI はカーソルロックでクリック不能）
-  // Display + key/wheel selection only during GameScreen (uGUI locks the cursor, so no clicks)
-  const interactive = useTopicSelector(Topics.uiState, (d) => screenForUiState(d?.state ?? null) !== "none");
+  // 掴んだ絵が出ない画面では表示+キー選択のみ。クリックを許すのは grab が成立する画面だけ
+  // Display + key selection where the held item cannot be seen; clicks are allowed only where a grab holds
+  const grabInteractive = useGrabInteractive();
 
   // 1-9 キーでホットバー選択。ゲートは共有フックが担い、最新値は readTopic で読む
   // Keys 1-9 select a hotbar slot; the shared hook gates it and the latest value comes via readTopic
@@ -29,26 +27,15 @@ export default function HotbarPanel() {
     void dispatchAction("inventory.select_hotbar", { index });
   });
 
-  // ホイールでホットバー選択を循環。変化時のみ送信し、オーバーレイ表示中は無効化する
-  // Cycle the hotbar selection on wheel; dispatch only on change and suppress while an overlay is up
-  const onHotbarWheel = (e: { deltaY: number }) => {
-    if (readActiveLayer() !== "game") return;
-    if (!inventory || inventory.hotbarSlots.length === 0) return;
-    const accumulated = accumulateHotbarWheel(wheelRemainder.current, e.deltaY);
-    wheelRemainder.current = accumulated.remainder;
-    if (accumulated.steps === 0) return;
-    const index = cycleHotbar(inventory.selectedHotbar, accumulated.steps, inventory.hotbarSlots.length);
-    if (index === inventory.selectedHotbar) return;
-    void dispatchAction("inventory.select_hotbar", { index });
-  };
-
   // snapshot 未受信の間は HUD ごと出さない（connecting... 表示は InventoryPanel が担う）
   // Hide the whole HUD until the first snapshot (InventoryPanel owns the connecting... text)
   if (!inventory) return null;
 
+  // 装備切替のホイールはスロット列の上でも生かす（列はスクロールを持たずゲーム操作の場のため）
+  // Keep the equipment wheel alive over the slot row too: the row has no scrolling and belongs to the game
   return (
     <div className={styles.hotbarArea}>
-      <div className={styles.hotbarFrame} data-testid="hotbar-grid" onWheel={onHotbarWheel}>
+      <div className={styles.hotbarFrame} data-testid="hotbar-grid" data-wheel-passthrough>
         {inventory.hotbarSlots.map((slot, i) => {
           const ref: SlotRef = { area: "hotbar", slot: i };
           return (
@@ -58,11 +45,11 @@ export default function HotbarPanel() {
                 itemId={slot.itemId}
                 count={slot.count}
                 selected={i === inventory.selectedHotbar}
-                onLeftDown={interactive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
-                onRightDown={interactive ? () => slotActions.onRightDown(ref) : undefined}
-                onRightEnter={interactive ? () => slotActions.onRightEnter(ref) : undefined}
-                onLeftEnter={interactive ? () => slotActions.onLeftEnter(ref) : undefined}
-                onDoubleClick={interactive ? () => slotActions.onDoubleClick(ref) : undefined}
+                onLeftDown={grabInteractive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
+                onRightDown={grabInteractive ? () => slotActions.onRightDown(ref) : undefined}
+                onRightEnter={grabInteractive ? () => slotActions.onRightEnter(ref) : undefined}
+                onLeftEnter={grabInteractive ? () => slotActions.onLeftEnter(ref) : undefined}
+                onDoubleClick={grabInteractive ? () => slotActions.onDoubleClick(ref) : undefined}
               />
             </div>
           );

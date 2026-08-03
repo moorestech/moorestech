@@ -9,6 +9,7 @@ using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
@@ -18,6 +19,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Entity;
@@ -37,6 +39,7 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Block.Research;
+using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.Blueprint;
@@ -167,9 +170,14 @@ namespace Client.Starter
             
             //インベントリのUIコントロール
             // register inventory UI control
+            builder.RegisterInstance(ClientContext.VanillaApi.Event);
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
+            // 装備モデルと、その選択に追従する手持ち3Dモデル
+            // Equipment model and the held 3D model that follows its selection
+            builder.Register<LocalPlayerEquipment>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<EquipmentHeldItemModel>();
             // スタックレベルの変更系はDI注入のみで公開する
             // Expose stack level mutation only through DI injection
             builder.RegisterInstance(ServerContext.GetService<IItemStackLevelUnlocker>());
@@ -207,6 +215,7 @@ namespace Client.Starter
             // 設置プレビュー中の鉱脈範囲表示。設置側はIMapVeinRangeView越しにプッシュするだけ
             // Vein range view during placement preview; the placement side only pushes through IMapVeinRangeView
             builder.Register<MapVeinRangeViewService>(Lifetime.Singleton).As<IMapVeinRangeView>();
+            builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
 

@@ -5,13 +5,6 @@
       "hp": 30,
       "mapObjectName": "vanilla:Tree",
       "addressablePath": "Vanilla/Environment/Tree",
-      "miningTools": [
-        {
-          "attackSpeed": 1.6,
-          "damage": 1,
-          "toolItemGuid": "00000000-0000-0000-1234-000000000001"
-        }
-      ],
       "earnItems": [
         {
           "maxCount": 5,
@@ -39,8 +32,32 @@
         }
       ],
       "mapObjectGuid": "00000000-0000-1111-0000-000000000001",
-      "miningParam": {},
-      "miningTools": []
+      "miningParam": {}
+    },
+    {
+      "earnItemHpInterval": 10,
+      "hp": 30,
+      "mapObjectName": "vanilla:TestMiningRock",
+      "addressablePath": "Vanilla/Environment/Tree",
+      "soundEffectType": "stone",
+      "miningType": "Mining",
+      "earnItems": [
+        {
+          "maxCount": 1,
+          "minCount": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000002"
+        }
+      ],
+      "mapObjectGuid": "00000000-0000-2222-0000-000000000001",
+      "miningParam": {
+        "miningTools": [
+          {
+            "toolItemGuid": "00000000-0000-0000-1234-000000000001",
+            "damage": 7,
+            "attackSpeed": 0.2
+          }
+        ]
+      }
     }
   ],
   "mapVeins": [

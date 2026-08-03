@@ -8,7 +8,7 @@ import type {
   BuildMenuCategorySchema,
   BuildMenuDataSchema,
   BuildMenuEntryDataSchema,
-  BuildMenuEntryTypeSchema,
+  BuildMenuEntryKindSchema,
   BuildMenuRequiredItemSchema,
   CraftRecipeSchema,
   CraftRecipesDataSchema,
@@ -123,7 +123,7 @@ export type ItemMasterData = z.infer<typeof ItemMasterDataSchema>;
 export type ResearchNodeState = z.infer<typeof ResearchNodeStateSchema>;
 export type ResearchNodeData = z.infer<typeof ResearchNodeDataSchema>;
 export type ResearchTreeData = z.infer<typeof ResearchTreeDataSchema>;
-export type BuildMenuEntryType = z.infer<typeof BuildMenuEntryTypeSchema>;
+export type BuildMenuEntryKind = z.infer<typeof BuildMenuEntryKindSchema>;
 export type BuildMenuRequiredItem = z.infer<typeof BuildMenuRequiredItemSchema>;
 export type BuildMenuCategory = z.infer<typeof BuildMenuCategorySchema>;
 export type BuildMenuEntryData = z.infer<typeof BuildMenuEntryDataSchema>;

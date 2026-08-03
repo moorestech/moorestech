@@ -1,3 +1,4 @@
+using System.Linq;
 using Mooresmaster.Model.MapModule;
 
 namespace Core.Master.Validator
@@ -8,6 +9,7 @@ namespace Core.Master.Validator
         {
             errorLogs = "";
             errorLogs += ItemGuidValidation();
+            errorLogs += MiningToolValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -37,6 +39,29 @@ namespace Core.Master.Validator
                                 logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has invalid ToolItemGuid:{miningTool.ToolItemGuid}\n";
                             }
                         }
+                    }
+                }
+
+                return logs;
+            }
+
+            string MiningToolValidation()
+            {
+                var logs = "";
+                foreach (var mapObjectElement in map.MapObjects)
+                {
+                    if (mapObjectElement.MiningParam is not MiningMiningParam miningParam) continue;
+
+                    foreach (var duplicated in miningParam.MiningTools.GroupBy(tool => tool.ToolItemGuid).Where(group => 1 < group.Count()))
+                    {
+                        logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has duplicate ToolItemGuid:{duplicated.Key}\n";
+                    }
+                    foreach (var miningTool in miningParam.MiningTools)
+                    {
+                        if (miningTool.Damage <= 0)
+                            logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has non-positive Damage:{miningTool.Damage}\n";
+                        if (miningTool.AttackSpeed <= 0)
+                            logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has non-positive AttackSpeed:{miningTool.AttackSpeed}\n";
                     }
                 }
 
