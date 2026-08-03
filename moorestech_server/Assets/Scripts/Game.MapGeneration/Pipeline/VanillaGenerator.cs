@@ -159,8 +159,8 @@ namespace Game.MapGeneration.Pipeline
 
             var result = SpawnRegionFinder.Find(config, biomeTypes);
 
-            // 成否と診断を必ず残す。候補ゼロならフォールバックして生成は続ける（設定不備によるSpawnRegionFinderのthrowは別途裁定・ADR#13）
-            // Always record the outcome and diagnostics: zero candidates fall back and generation continues (SpawnRegionFinder still throws on bad settings, pending a separate ruling; ADR#13)
+            // 成否と診断を必ず残す。候補ゼロならフォールバックして生成は続ける（spawn targetがタイル外だと SpawnRegionFinder / ComputeSpawn が落とす・別途裁定・ADR#13）
+            // Always record the outcome and diagnostics: zero candidates fall back and generation continues (an off-tile spawn target still aborts in SpawnRegionFinder and ComputeSpawn, pending a separate ruling; ADR#13)
             Debug.Log($"[SpawnSearch] {(result.Success ? "成功" : "フォールバック")}\n{result.Diagnostics}");
 
             // 成功/失敗いずれも offset と spawn を必ず同期させる（片方だけ残ると鉱脈帯とスポーンがズレる）。

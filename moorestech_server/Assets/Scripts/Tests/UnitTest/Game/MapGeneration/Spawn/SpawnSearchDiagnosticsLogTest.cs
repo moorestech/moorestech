@@ -20,7 +20,7 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             // 既定値 false の主要経路。ここが無言だとフォールバックと同一に見える（ADR#13）
             // This is the default-false main path; staying silent here makes it look identical to the fallback (ADR#13)
-            LogAssert.Expect(LogType.Log, new Regex(@"^\[SpawnSearch\] 探索無効"));
+            LogAssert.Expect(LogType.Log, new Regex(@"^\[SpawnSearch\] 探索無効（useSpawnOffsetSearch=false）$"));
 
             MapGenerationPipeline.Generate(generation, Seed);
         }
