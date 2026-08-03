@@ -43,8 +43,8 @@ namespace Client.Tests.Localization
             Object.DestroyImmediate(texture);
         }
 
-        // 合成tooltipは{p0}補間キー＋パラメータで表現されるため、表示文字列はパラメータ側を検証する
-        // Composed tooltips are expressed as a {p0} key plus params, so the display text is asserted on the param
+        // 退役uGUIスロットのtooltipは通しキー＋パラメータ形なので、表示文字列はパラメータ側を検証する
+        // Retired uGUI slot tooltips use a pass-through key plus params, so the display text is asserted on the param
         private static void AssertTooltipState(
             UGuiTooltipTarget tooltipTarget,
             bool expectedDisplay,
@@ -56,7 +56,7 @@ namespace Client.Tests.Localization
                 Is.EqualTo(expectedDisplay));
             Assert.That(
                 serializedTarget.FindProperty("textKey").stringValue,
-                Is.EqualTo(LocalizationKeys.Ui.Tooltip.ComposedText.Key));
+                Is.EqualTo(LocalizationKeys.Ui.Tooltip.RetiredUguiSlotText.Key));
 
             var textParams = serializedTarget.FindProperty("textParams");
             Assert.That(textParams.arraySize, Is.EqualTo(1));

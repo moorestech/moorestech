@@ -17,6 +17,8 @@ namespace Client.Game.InGame.UI.Tooltip
         
         // TODO hotbarから毎フレーム呼び出されると常にfalseになってしまうので、何か実装方法を考えたいな、、
         public void Hide();
+        public void Show(LocalizationKey key);
+        public void Show(LocalizationKey key, IReadOnlyList<string> textParams);
         public void Show(LocalizationKey key, int fontSize);
         public void Show(LocalizationKey key, IReadOnlyList<string> textParams, int fontSize);
     }
@@ -41,6 +43,18 @@ namespace Client.Game.InGame.UI.Tooltip
         private void Awake()
         {
             Instance = this;
+        }
+        
+        // フォントサイズ未指定の呼び出しは既定値を所有者側で解決する
+        // Calls without a font size resolve the default here, inside the owner
+        public void Show(LocalizationKey key)
+        {
+            Show(key, Array.Empty<string>(), IMouseCursorTooltip.DefaultFontSize);
+        }
+        
+        public void Show(LocalizationKey key, IReadOnlyList<string> textParams)
+        {
+            Show(key, textParams, IMouseCursorTooltip.DefaultFontSize);
         }
         
         public void Show(LocalizationKey key, int fontSize)

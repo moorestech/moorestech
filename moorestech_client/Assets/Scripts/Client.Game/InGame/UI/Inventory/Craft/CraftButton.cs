@@ -121,7 +121,7 @@ namespace Client.Game.InGame.UI.Inventory.Craft
         {
             if (!_isInteractable)
             {
-                MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.CraftCannotByItemShortage, IMouseCursorTooltip.DefaultFontSize);
+                MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.CraftCannotByItemShortage);
             }
             
             if (restartElapsedTimeUpdateOnPointerEnter) _isCursorStay = true;

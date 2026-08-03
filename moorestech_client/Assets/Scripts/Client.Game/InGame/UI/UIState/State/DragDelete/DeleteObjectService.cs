@@ -129,7 +129,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             // Push the key to the tooltip and the resolved wording to the HUD reason string
             void ShowDenyReason(LocalizationKey denyReasonKey)
             {
-                MouseCursorTooltip.Instance.Show(denyReasonKey, IMouseCursorTooltip.DefaultFontSize);
+                MouseCursorTooltip.Instance.Show(denyReasonKey);
                 _unavailableReason.Value = Localize.Get(denyReasonKey);
                 _isRemoveDeniedReasonShown = true;
             }

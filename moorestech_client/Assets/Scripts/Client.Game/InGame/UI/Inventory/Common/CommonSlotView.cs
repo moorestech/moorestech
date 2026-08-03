@@ -68,7 +68,9 @@ namespace Client.Game.InGame.UI.Inventory.Common
             
             if (toolTipText != null)
             {
-                uGuiTooltipTarget.SetText(LocalizationKeys.Ui.Tooltip.ComposedText, new[] { toolTipText });
+                // 退役uGUIスロット専用の通しキー。呼び出し側が実行時合成した表示文字列をそのまま出す（Phase2の削除と同時に廃止）
+                // Pass-through key for retired uGUI slots only; shows the caller's runtime-composed text as is (dies with Phase2)
+                uGuiTooltipTarget.SetText(LocalizationKeys.Ui.Tooltip.RetiredUguiSlotText, new[] { toolTipText });
                 uGuiTooltipTarget.DisplayEnable(true);
             }
         }
@@ -84,7 +86,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
             // Hide the icon image and reuse the count text field as a label
             countText.text = text;
             itemImage.gameObject.SetActive(false);
-            uGuiTooltipTarget.SetText(LocalizationKeys.Ui.Tooltip.ComposedText, new[] { toolTipText });
+            uGuiTooltipTarget.SetText(LocalizationKeys.Ui.Tooltip.RetiredUguiSlotText, new[] { toolTipText });
             uGuiTooltipTarget.DisplayEnable(true);
         }
 

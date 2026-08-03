@@ -52,7 +52,7 @@ namespace Client.Game.InGame.Mining
             
             // 左クリックがされていなければ現状を維持
             // If left click is not pressed, maintain the current state
-            MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.PickUpLeftClick, IMouseCursorTooltip.DefaultFontSize);
+            MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.PickUpLeftClick);
             return this;
         }
         
@@ -98,7 +98,7 @@ namespace Client.Game.InGame.Mining
             // If not clicked, maintain focus
             if (!InputManager.Playable.ScreenLeftClick.GetKey)
             {
-                MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.HoldToGet, IMouseCursorTooltip.DefaultFontSize);
+                MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.HoldToGet);
                 return this;
             }
             
@@ -122,10 +122,7 @@ namespace Client.Game.InGame.Mining
             // Pass the joined item names as the {p0} parameter and leave the whole wording to the display side
             var joinedItemNames = string.Join(", ", result);
 
-            MouseCursorTooltip.Instance.Show(
-                LocalizationKeys.Ui.Tooltip.RequiredItems,
-                new[] { joinedItemNames },
-                IMouseCursorTooltip.DefaultFontSize);
+            MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.RequiredItems, new[] { joinedItemNames });
         }
     }
 }
