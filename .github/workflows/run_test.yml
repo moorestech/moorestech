@@ -66,6 +66,27 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+          path: moorestech
+
+      # pin先SHAを本体repoの追跡ファイルから取得する
+      # Read the pinned SHA from the tracked file in the main repository
+      - name: Read pinned master repository revision.
+        id: master_revision
+        shell: bash
+        working-directory: moorestech
+        run: |
+          commit_hash=$(jq -er '.repositories[] | select(.key == "moorestech_master") | .commitHash' .moorestech-external-revisions.json)
+          echo "commit_hash=$commit_hash" >> "$GITHUB_OUTPUT"
+
+      # pin先の本番辞書を既存の相対パス契約どおり本体repoと横並びに配置する
+      # Place the pinned production dictionary beside the main repo to preserve the existing relative-path contract
+      - name: Check out pinned master repository.
+        uses: actions/checkout@v4
+        with:
+          repository: moorestech/moorestech_master
+          token: ${{ steps.generate_token.outputs.token }}
+          ref: ${{ steps.master_revision.outputs.commit_hash }}
+          path: moorestech_master
 
       # 年月日を取得　キャッシュのkeyに利用
       - name: Set current datetime as env variable
@@ -76,7 +97,7 @@ jobs:
       # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
       - uses: actions/cache@v3
         with:
-          path: moorestech_client/Library
+          path: moorestech/moorestech_client/Library
           key: "Library_Test_${{ env.CURRENT_DATETIME }}"
 
       # GameCI の Test runner を利用して
@@ -88,7 +109,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          projectPath: moorestech_client/
+          projectPath: moorestech/moorestech_client/
           githubToken: ${{ steps.generate_token.outputs.token }}
           unityVersion: 6000.3.8f1
           testMode: editmode
