@@ -1,1 +1,0 @@
-{"idx": 21, "predictions": [{"header": "設置対象ID", "predicted_label": "全てGuid 1本に統一（推奨）", "rationale": "直前の枠破り自体がSSOT基盤の先行策定要求であり、このユーザーは1ドメイン1本化・後方互換不要・冗長併記の矛盾リスク回避を一貫して選ぶ（knowledge/deviation-cases.md 4節も、この枠破りが『設置対象ID Guid統一』へ発展したと記録）。型付きIDは不揃いを残すため蹴られ、Guid＋種別併記は齟齬を作れる冗長案として却下される見込み。", "confidence": "高"}]}

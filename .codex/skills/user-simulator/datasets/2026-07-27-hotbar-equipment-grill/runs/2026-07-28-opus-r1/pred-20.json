@@ -1,1 +1,0 @@
-{"idx":20,"predictions":[{"header":"ドキュメント","predicted_label":"ADR3本＋設計ドキュメント（推奨）","rationale":"20問すべてに即断で答え未解決論点を残していない上、本PJTはdocs/adr（0001-placement-target-id-as-single-guid等）＋docs/plansに設計決定を記録する既存運用が定着しており（MapVein/電線specでもADR記録が前例）、前例準拠を重んじるユーザーは推奨案をそのまま通す","confidence":"高"}]}
