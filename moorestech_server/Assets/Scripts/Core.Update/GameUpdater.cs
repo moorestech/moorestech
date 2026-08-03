@@ -12,6 +12,10 @@ namespace Core.Update
         public const int TicksPerSecond = 20;
         public const double SecondsPerTick = 1d / TicksPerSecond;
 
+        // 起動からの累積tick数。サーバ側の経過時間はすべてこの値の差分で測る
+        // Cumulative tick count since startup; all server-side elapsed time is measured as a difference of this
+        public static ulong CurrentTick { get; private set; }
+
         public static IObservable<Unit> UpdateObservable => _updateSubject;
         private static Subject<Unit> _updateSubject = new();
 
@@ -27,6 +31,8 @@ namespace Core.Update
 
         public static void Update()
         {
+            CurrentTick++;
+
             // AdditionalUpdatesのやつ。テストでも呼ぶので関数化
             // Run additional tick updates first.
             ExecuteAdditionalUpdates();
@@ -56,6 +62,8 @@ namespace Core.Update
             #endregion
         }
 
+        // CurrentTickはここでも巻き戻さない。巻き戻すと計測中の差分が負に回り込むため
+        // CurrentTick is never rewound here; rewinding would wrap in-flight elapsed differences
         public static void ResetUpdate()
         {
             _updateSubject = new Subject<Unit>();
@@ -140,6 +148,7 @@ namespace Core.Update
         {
             for (var i = 0u; i < frameCount; i++)
             {
+                CurrentTick++;
                 ExecuteAdditionalUpdates();
                 _updateSubject.OnNext(Unit.Default);
                 ExecuteTickEndUpdates();

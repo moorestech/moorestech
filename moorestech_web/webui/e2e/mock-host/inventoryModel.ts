@@ -10,7 +10,7 @@ import type {
 
 export function slotOf(inv: PlayerInventoryData, ref: SlotRef): SlotData {
   if (ref.area === "grab") return inv.grab;
-  const list = ref.area === "main" ? inv.mainSlots : inv.hotbarSlots;
+  const list = ref.area === "main" ? inv.mainSlots : ref.area === "hotbar" ? inv.hotbarSlots : inv.equipment;
   return list[ref.slot];
 }
 

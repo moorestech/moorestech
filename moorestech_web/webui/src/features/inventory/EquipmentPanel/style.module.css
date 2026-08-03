@@ -1,0 +1,11 @@
+/* ホットバー同様に面を持たない浮遊HUD。stage右端へ絶対配置し、枠数が増えても上へ伸びる */
+/* A faceless floating HUD like the hotbar; anchored absolutely to the stage's right edge and growing upward as slots increase */
+.equipmentArea {
+  position: absolute;
+  right: var(--equipment-right);
+  bottom: var(--equipment-bottom);
+  display: flex;
+  flex-direction: column;
+  gap: var(--equipment-slot-gap);
+  --slot-size: var(--equipment-slot-size);
+}

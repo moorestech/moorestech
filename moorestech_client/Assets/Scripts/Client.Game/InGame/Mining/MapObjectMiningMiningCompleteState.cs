@@ -1,7 +1,6 @@
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.SoundEffect;
-using Common.Debug;
 using Mooresmaster.Model.MapModule;
 using UnityEngine;
 
@@ -10,32 +9,23 @@ namespace Client.Game.InGame.Mining
     public class MapObjectMiningMiningCompleteState : IMapObjectMiningState
     {
         private readonly MapObjectGameObject _completedMapObjectGameObject;
-        private readonly int _attackDamage;
-        
-        public MapObjectMiningMiningCompleteState(MapObjectGameObject completedMapObjectGameObject, int attackDamage)
+
+        public MapObjectMiningMiningCompleteState(MapObjectGameObject completedMapObjectGameObject)
         {
             _completedMapObjectGameObject = completedMapObjectGameObject;
-            _attackDamage = attackDamage;
         }
-        
+
         public IMapObjectMiningState GetNextUpdate(MapObjectMiningControllerContext context, float dt)
         {
             var masterElement = _completedMapObjectGameObject.MapObjectMasterElement;
-            
+
             PlaySoundEffect(masterElement);
-            
-            var attackDamage = _attackDamage;
-            
-            // デバッグ用で高速マイニングする
-            // For debugging, mine super fast
-            if (DebugParameters.GetValueOrDefaultBool(DebugConst.MapObjectSuperMineKey))
-            {
-                attackDamage = int.MaxValue;
-            }
-            
+
+            // ダメージ算出はサーバ権威のため打撃対象だけを送る
+            // Damage resolution is server-authoritative, so only the target is sent
             var instanceId = _completedMapObjectGameObject.InstanceId;
-            ClientContext.VanillaApi.SendOnly.AttackMapObject(instanceId, attackDamage);
-            
+            ClientContext.VanillaApi.SendOnly.AttackMapObject(instanceId);
+
             return context.CurrentFocusMapObjectGameObject == null
                 ? new MapObjectMiningIdleState()
                 : new MapObjectMiningFocusState();

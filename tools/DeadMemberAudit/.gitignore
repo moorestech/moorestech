@@ -1,0 +1,7 @@
+bin/
+obj/
+report.md
+
+# ルート.gitignoreの*.csproj（Unityが再生成するため除外）から、このツールのcsprojだけ復帰させる
+# Re-include this tool's csproj, which the root .gitignore excludes via *.csproj for Unity-regenerated projects
+!DeadMemberAudit.csproj

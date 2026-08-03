@@ -54,6 +54,15 @@ done
 `set-once-setter-negative.diff`（可変値SetHoge＋MonoBehaviour→なしが正）。2026-07-18 opusで両方合格。
 `hardcoded-content-enum-positive.diff`（オーディオトラック3種のKindConst列挙membership util→Criticalありが正）/
 `hardcoded-content-enum-negative.diff`（同ドメインの種別→プレイヤー実装ディスパッチswitch→Criticalなしが正）。
+PR1095 reconcile由来（2026-08-02 追加・全ペア合格済み）:
+`speculative-abstraction-positive/negative.diff`（環境音演出ドメイン。陽性=1実装interface＋空Dispose＋自クラス専用public、陰性=2実装の多態消費＋実解放するDispose）/
+`async-cancellation-positive/negative.diff`（同ドメイン。陽性=トークン未伝搬＋CTS作りっぱなし＋`async void`、陰性=リンクCTS＋`.Forget()`＋起動時1回ロード）/
+`sweep-and-scope-positive/negative.diff`（鳥小屋ドメイン・3観点共用。陽性=不能フォールバック＋カスケード重複＋過剰public、陰性=到達可能な失敗＋集約済み＋クロスアセンブリ参照ありのpublic）。
+`sweep-and-scope-*` は `core-cs-dead-code-and-scope` / `core-cs-centralization-duplication` / `core-cs-result-state-propagation` の3本に**同じペアを当てる**（各reviewerは自分の形だけを報告するのが正）。
+Q7/Q9/Q10/Q11検出器由来（2026-08-02 追加・全ペア合格済み）:
+`init-structure-positive/negative.diff`（温室灌漑ドメイン・core-cs-region-internal §6/§7。陽性=初期化役メソッドの別名`ApplyFirstLayout`＋条件のスコープ割れ（直下2本・ローカル関数に1本）、陰性=Initialize適正配置＋条件が一貫配置の2形（全て直下／全てローカル関数内）＋毎イベント購読ハンドラは非該当）/
+`event-naming-positive/negative.diff`（天文台ドメイン・core-cs-centralization-duplication §1命名。陽性=3種混流の`OnChanged`＋1操作の総称名プロトコル、陰性=対象を含む2本のイベント＋実処理一致名）/
+`overload-replacement-positive/negative.diff`（養蜂ドメイン・core-cs-dead-code-and-scope §1。陽性=新snapshot版ctorへ移行し旧生引数版の生存者がデバッグ+テストのみ、陰性=旧版にproduction現役呼び出し元が残存）。
 `default-resolution-positive.diff`（トースト表示時間のpublic Default定数＋呼び出し側??解決→Criticalありが正）/
 `default-resolution-negative.diff`（カットシーン速度のprivate Default＋nullable API内部解決＋呼び出し側の自ポリシー明示値→Criticalなしが正）。
 
@@ -67,10 +76,15 @@ PR988の誤設計は `docs/superpowers/specs/2026-07-05-item-stack-upgrade-desig
 人間指摘（PRレビュー・セッション内指摘とも）を受けたら、**観点を直す前に**「当時のdiffで現行ハーネスの何系統が検知できたか」を測る。診断なしの対策は、既に検知できていた観点の重複強化や、真の欠落系統の見逃しを生む。
 
 1. **当時のdiffを再現** — 指摘対象の修正コミットの**親**をheadに、`git merge-base origin/master <head>` をbaseにして `git diff -U10 <base> <head>` をfixture化。fixtures.tsvにも行を足す（セッション内指摘はPR番号の代わりにラベル＋base/head SHA直指定）。
+   **PRレビュー指摘のピン先は人間コメントの `commit_id` で確定する（records記載のheadを信用しない）** —
+   `gh api repos/moorestech/moorestech/pulls/<番号>/comments --paginate --jq '[.[].commit_id] | unique'` で取り、
+   records/に記録された自動レビュー当時のheadと食い違ったら**人間コメント側のcommitを正**とする（指摘の行番号・コード実体がそこに紐づくため）。
+   実例: PR1095では独立レビューhead 463a56d と人間コメントの 74ba6e8 が食い違い、当該箇所の実装形（DateTime→Stopwatch）まで別物だった。
+   食い違い自体もlog.mdに注記する（違反の形が変わっていれば両headで決定論チェックを取る価値がある）。
 2. **当時コミットへピンしたworktreeを作る** — `git worktree add --detach <scratch>/replay-tree <head>`。レンズ・Codexはcwdの実コードを読むため、修正済みの現在ツリーを読ませると**正解が既に存在する状態**でのテストになり結果が汚染される。起動promptに「実コード照合はこのworktree内で行い、本体ツリーは読まない」を明記する。
 3. **忠実な4カテゴリcontextを再構築** — 当時のspec/planから書く。指摘の答え（正解形）をcontextに書いたら測定にならない。実装判断は「許容するトレードオフ／目指さない」欄に `[agent前提]` ラベル付きで書き、ユーザー合意と偽装しない（integration-rules §6の出所ラベル3種）。
 4. **全系統を当てて検知マトリクスを作る** — select_lensesの発火レンズ全部＋Fable全般＋（可能なら）Codexを3行契約＋共通出力契約で並列起動し、系統×検知の表を作る。ここで初めて欠落が確定する: 全滅→新観点が必要／fable・Codexのみ検知→opus/sonnetへ降ろす（SKILL.md Gotcha「検知の主担保」）／opus/sonnet検知済み→配管・実行スキップ側の問題。
-5. **対策後に同じfixtureで再実行**し、期待検出をexpected-findings.mdへ、経緯をlog.mdへ1行記録する。新設・改稿観点は3段階検証（発火・サニティ・ブラインド陽陰）も完了させる。
+5. **対策後に同じfixtureで再実行**し、期待検出をexpected-findings.mdへ、経緯をlog.mdへ1行記録する。この再実行が4段階検証の段階4（実diffバックテスト）に当たる: 期待値を伏せたブラインド起動・見逃しsurface×検出元マトリクス・過検知数の3点を記録する。新設・改稿観点は段階1〜3（発火・サニティ・ブラインド陽陰）も完了させる（`references/skill-improvement.md`）。
 
 実例: 2026-07-23 replace-family指摘（リプレイでopus/sonnet 9系統+Codex素通し・fableのみ検知と診断→3段階セベリティ化＋hardcoded-content-enumeration(opus)新設）。
 

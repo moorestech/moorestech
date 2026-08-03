@@ -45,7 +45,9 @@ function planShiftMove(from: SlotRef, slot: SlotData, ctx: PlayerSlotContext): P
       payload: { from, to: { area: "block", slot: m.slot }, count: m.count },
     }));
   }
-  const targetArea: InventoryArea = from.area === "hotbar" ? "main" : "hotbar";
+  // 装備からの Shift は持ち物本体へ戻す。main/hotbar 同士は従来どおり反対エリアへ振る
+  // Shift from equipment returns the stack to the main area; main/hotbar still swap into each other
+  const targetArea: InventoryArea = from.area === "main" ? "hotbar" : "main";
   const targetSlots = targetArea === "main" ? ctx.inventory.mainSlots : ctx.inventory.hotbarSlots;
   return planDirectMoves(slot.count, slot.itemId, ctx.maxStack, targetSlots).map((m) => ({
     type: "inventory.move_item",

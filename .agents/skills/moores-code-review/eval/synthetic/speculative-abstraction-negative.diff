@@ -1,0 +1,119 @@
+diff --git a/moorestech_client/Assets/Scripts/Client.Game/Ambience/IAmbienceLayer.cs b/moorestech_client/Assets/Scripts/Client.Game/Ambience/IAmbienceLayer.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Game/Ambience/IAmbienceLayer.cs
+@@ -0,0 +1,9 @@
++namespace Client.Game.Ambience
++{
++    public interface IAmbienceLayer
++    {
++
++        float Evaluate(float seconds);
++    }
++}
+diff --git a/moorestech_client/Assets/Scripts/Client.Game/Ambience/RainAmbienceLayer.cs b/moorestech_client/Assets/Scripts/Client.Game/Ambience/RainAmbienceLayer.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Game/Ambience/RainAmbienceLayer.cs
+@@ -0,0 +1,15 @@
++using UnityEngine;
++
++namespace Client.Game.Ambience
++{
++    public class RainAmbienceLayer : IAmbienceLayer
++    {
++        private readonly AnimationCurve _curve;
++
++        public RainAmbienceLayer(AnimationCurve curve)
++        {
++            _curve = curve;
++        }
++
++
++        public float Evaluate(float seconds) => _curve.Evaluate(seconds);
++    }
++}
+diff --git a/moorestech_client/Assets/Scripts/Client.Game/Ambience/WindAmbienceLayer.cs b/moorestech_client/Assets/Scripts/Client.Game/Ambience/WindAmbienceLayer.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Game/Ambience/WindAmbienceLayer.cs
+@@ -0,0 +1,15 @@
++using UnityEngine;
++
++namespace Client.Game.Ambience
++{
++    public class WindAmbienceLayer : IAmbienceLayer
++    {
++        private readonly float _baseStrength;
++
++        public WindAmbienceLayer(float baseStrength)
++        {
++            _baseStrength = baseStrength;
++        }
++
++
++        public float Evaluate(float seconds) => _baseStrength * Mathf.Sin(seconds);
++    }
++}
+diff --git a/moorestech_client/Assets/Scripts/Client.Game/Ambience/AmbienceMixer.cs b/moorestech_client/Assets/Scripts/Client.Game/Ambience/AmbienceMixer.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Game/Ambience/AmbienceMixer.cs
+@@ -0,0 +1,42 @@
++using System;
++using System.Collections.Generic;
++using UniRx;
++using UnityEngine;
++
++namespace Client.Game.Ambience
++{
++    public class AmbienceMixer : MonoBehaviour
++    {
++        [SerializeField] private AnimationCurve rainCurve;
++
++        private readonly List<IAmbienceLayer> _layers = new();
++        private IDisposable _weatherSubscription;
++
++        public float MixedLevel { get; private set; }
++
++        private void Awake()
++        {
++            _layers.Add(new RainAmbienceLayer(rainCurve));
++            _layers.Add(new WindAmbienceLayer(0.4f));
++            _weatherSubscription = WeatherChannel.OnWeatherChanged.Subscribe(_ => Rebuild());
++        }
++
++        private void OnDestroy()
++        {
++            _weatherSubscription.Dispose();
++        }
++
++        private void Rebuild()
++        {
++            var total = 0f;
++            foreach (var layer in _layers) total += layer.Evaluate(Time.time);
++            MixedLevel = total / _layers.Count;
++        }
++    }
++}
+diff --git a/moorestech_client/Assets/Scripts/Client.Game/Ambience/AmbienceHud.cs b/moorestech_client/Assets/Scripts/Client.Game/Ambience/AmbienceHud.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Game/Ambience/AmbienceHud.cs
+@@ -0,0 +1,18 @@
++using TMPro;
++using UnityEngine;
++
++namespace Client.Game.Ambience
++{
++    public class AmbienceHud : MonoBehaviour
++    {
++        [SerializeField] private TMP_Text levelText;
++        [SerializeField] private AmbienceMixer mixer;
++
++        private void Update()
++        {
++            levelText.text = mixer.MixedLevel.ToString("0.00");
++        }
++    }
++}

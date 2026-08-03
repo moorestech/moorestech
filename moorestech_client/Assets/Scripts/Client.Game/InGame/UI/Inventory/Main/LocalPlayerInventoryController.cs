@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Equipment;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
@@ -26,23 +27,38 @@ namespace Client.Game.InGame.UI.Inventory.Main
         private readonly Subject<Unit> _onInventoryRefreshed = new();
 
         private readonly LocalPlayerInventory _localPlayerInventory;
+        private readonly LocalPlayerEquipment _localPlayerEquipment;
         private ISubInventory _subInventory;
-        
-        public LocalPlayerInventoryController(ILocalPlayerInventory localPlayerInventoryMainAndSubCombine)
+
+        public LocalPlayerInventoryController(ILocalPlayerInventory localPlayerInventoryMainAndSubCombine, LocalPlayerEquipment localPlayerEquipment)
         {
             _localPlayerInventory = (LocalPlayerInventory)localPlayerInventoryMainAndSubCombine;
+            _localPlayerEquipment = localPlayerEquipment;
             GrabInventory = ServerContext.ItemStackFactory.Create(new ItemId(0), 0);
         }
-        
-        public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count, bool isMoveSendData = true)
+
+        // ローカル座標系（結合スロット / grab / 装備スロット）から現在のアイテムを読む
+        // Reads the current stack for a local coordinate (combined slot / grab / equipment slot)
+        public IItemStack GetItem(LocalMoveInventoryType type, int slot)
         {
-            var fromInvItem = from switch
+            return type switch
             {
-                LocalMoveInventoryType.MainOrSub => LocalPlayerInventory[fromSlot],
+                LocalMoveInventoryType.MainOrSub => LocalPlayerInventory[slot],
                 LocalMoveInventoryType.Grab => GrabInventory,
-                _ => throw new ArgumentOutOfRangeException(nameof(from), from, null),
+                LocalMoveInventoryType.Equipment => _localPlayerEquipment.Slots[slot],
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
             };
-            
+        }
+
+        public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count)
+        {
+            MoveItem(from, fromSlot, to, toSlot, count, true);
+        }
+
+        public void MoveItem(LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count, bool isMoveSendData)
+        {
+            var fromInvItem = GetItem(from, fromSlot);
+
             if (fromInvItem.Count < count) return;
 
             SetInventory();
@@ -56,48 +72,44 @@ namespace Client.Game.InGame.UI.Inventory.Main
             void SetInventory()
             {
                 var itemStackFactory = ServerContext.ItemStackFactory;
-                
-                var toInvItem = to switch
-                {
-                    LocalMoveInventoryType.MainOrSub => LocalPlayerInventory[toSlot],
-                    LocalMoveInventoryType.Grab => GrabInventory,
-                    _ => throw new ArgumentOutOfRangeException(nameof(to), to, null),
-                };
+
+                var toInvItem = GetItem(to, toSlot);
                 var moveItem = itemStackFactory.Create(fromInvItem.Id, count);
-                
+
                 var add = toInvItem.AddItem(moveItem);
-                switch (to)
+                SetItem(to, toSlot, add.ProcessResultItemStack);
+
+                var fromItemCount = fromInvItem.Count - count + add.RemainderItemStack.Count;
+                SetItem(from, fromSlot, itemStackFactory.Create(fromInvItem.Id, fromItemCount));
+            }
+
+            // 装備もサーバー応答を待たずローカルへ先に書く。サーバーのスロット更新イベントが後から正へ揃える
+            // Equipment is also written locally before any server response; the server's slot update event reconciles it later
+            void SetItem(LocalMoveInventoryType type, int slot, IItemStack itemStack)
+            {
+                switch (type)
                 {
                     case LocalMoveInventoryType.MainOrSub:
-                        _localPlayerInventory[toSlot] = add.ProcessResultItemStack;
+                        _localPlayerInventory[slot] = itemStack;
                         break;
                     case LocalMoveInventoryType.Grab:
-                        GrabInventory = add.ProcessResultItemStack;
+                        GrabInventory = itemStack;
+                        break;
+                    case LocalMoveInventoryType.Equipment:
+                        _localPlayerEquipment.ApplySlotUpdate(slot, itemStack);
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(to), to, null);
-                }
-                
-                var fromItemCount = fromInvItem.Count - count + add.RemainderItemStack.Count;
-                var fromItem = itemStackFactory.Create(fromInvItem.Id, fromItemCount);
-                switch (from)
-                {
-                    case LocalMoveInventoryType.Grab:
-                        GrabInventory = fromItem;
-                        break;
-                    default:
-                        _localPlayerInventory[fromSlot] = fromItem;
-                        break;
+                        throw new ArgumentOutOfRangeException(nameof(type), type, null);
                 }
             }
             #endregion
         }
-        
+
         public bool TryMoveItem(LocalMoveInventoryType fromType, int fromSlot, LocalMoveInventoryType toType, int toSlot, int count, out string denyReason)
         {
             // 移動元の実在・数量を検証してから MoveItem を呼ぶ（Web/uGUI 共通の検証口）
             // Validate the source stack's presence and count before calling MoveItem (shared web/uGUI guard)
-            var fromItem = fromType == LocalMoveInventoryType.Grab ? GrabInventory : LocalPlayerInventory[fromSlot];
+            var fromItem = GetItem(fromType, fromSlot);
             if (fromItem.Id == ItemMaster.EmptyItemId)
             {
                 denyReason = "empty_slot";
@@ -118,16 +130,16 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             // 同種アイテムを所持数の少ない順に集積先へ移す（uGUI ダブルクリックと Web collect の共通実装）
             // Gather same-type stacks smallest-first into the target; shared by uGUI double-click and web collect
-            var isGrabTarget = targetType == LocalMoveInventoryType.Grab;
-            var collectTarget = isGrabTarget ? GrabInventory : LocalPlayerInventory[targetSlot];
+            var collectTarget = GetItem(targetType, targetSlot);
             if (collectTarget.Id == ItemMaster.EmptyItemId) return;
 
-            // 集積先自身は移動元から除外する
-            // Exclude the target slot itself from the sources
+            // 集積先が結合スロットのときだけ、同じ index を移動元から除外する
+            // Exclude the same index from the sources only when the target is a combined slot
+            var isCombinedTarget = targetType == LocalMoveInventoryType.MainOrSub;
             var sourceSlots = LocalPlayerInventory
                 .Select((item, index) => (item, index))
                 .Where(x => x.item.Id == collectTarget.Id)
-                .Where(x => isGrabTarget || x.index != targetSlot)
+                .Where(x => !isCombinedTarget || x.index != targetSlot)
                 .OrderBy(x => x.item.Count)
                 .Select(x => x.index)
                 .ToList();
@@ -192,5 +204,6 @@ namespace Client.Game.InGame.UI.Inventory.Main
     {
         MainOrSub, //メインインベントリとサブインベントリの両方（ドラッグアンドドロップなどでは統一して扱うから
         Grab, //持ち手のインベントリ
+        Equipment, //装備インベントリ（slotはそのまま装備スロット番号）
     }
 }

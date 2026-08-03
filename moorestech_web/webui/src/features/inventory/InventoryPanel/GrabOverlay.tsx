@@ -1,5 +1,6 @@
 import { useLayoutEffect, useState } from "react";
 import { useTopic, Topics } from "@/bridge";
+import { useGrabInteractive } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
 import styles from "./GrabOverlay.module.css";
 
@@ -20,20 +21,23 @@ if (typeof window !== "undefined") {
 // Cursor-following grab overlay; keeps mousemove re-renders contained to this component
 export default function GrabOverlay() {
   const inventory = useTopic(Topics.inventory);
+  // 掴める画面かの判定はスロットのクリック可否と同じ述語を読む（画面名リテラルを持たない）
+  // Read the same predicate the slots use for clickability, so this file holds no screen-name literal
+  const grabInteractive = useGrabInteractive();
   const grab = inventory?.grab;
   const [mousePos, setMousePos] = useState(lastPointerDown);
 
   // 掴んでいる間だけ mousemove 追従。掴んだ瞬間は描画前に mousedown 座標へ同期する（stale座標の一瞬表示を防ぐ）
   // Follow mousemove only while held; sync to the mousedown position before paint when a grab starts
   useLayoutEffect(() => {
-    if (!grab || grab.count === 0) return;
+    if (!grabInteractive || !grab || grab.count === 0) return;
     setMousePos(lastPointerDown);
     const onMove = (e: globalThis.MouseEvent) => setMousePos({ x: e.clientX, y: e.clientY });
     window.addEventListener("mousemove", onMove);
     return () => window.removeEventListener("mousemove", onMove);
-  }, [grab?.count]);
+  }, [grab?.count, grabInteractive]);
 
-  if (!grab || grab.count === 0) return null;
+  if (!grabInteractive || !grab || grab.count === 0) return null;
 
   // 追従位置はカーソル座標の動的値なので inline style（module 化対象外）
   // Follow position is a dynamic cursor value, so inline style (not module-ized)

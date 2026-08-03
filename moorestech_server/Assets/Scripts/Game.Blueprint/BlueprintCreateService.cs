@@ -39,7 +39,7 @@ namespace Game.Blueprint
                 blocks.Add(CreateBlockJson(data, anchor));
             }
 
-            blueprint = new BlueprintJsonObject(name, blocks);
+            blueprint = new BlueprintJsonObject(name, blocks, System.Guid.NewGuid());
             return true;
 
             #region Internal

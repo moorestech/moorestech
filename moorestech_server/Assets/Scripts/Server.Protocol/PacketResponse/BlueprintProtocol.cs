@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Blueprint;
@@ -33,9 +34,7 @@ namespace Server.Protocol.PacketResponse
                 case BlueprintOperation.GetAll:
                     return SuccessResponse(null);
                 case BlueprintOperation.Delete:
-                    return _blueprintDatastore.Delete(request.Name)
-                        ? SuccessResponse(null)
-                        : FailResponse(BlueprintFailureReason.NotFound);
+                    return HandleDelete(request);
                 default:
                     return FailResponse(BlueprintFailureReason.UnknownOperation);
             }
@@ -52,14 +51,25 @@ namespace Server.Protocol.PacketResponse
                 var created = BlueprintCreateService.TryCreateFromArea(req.Name, req.Min.Vector3Int, req.Max.Vector3Int, out var blueprint);
                 if (!created) return FailResponse(BlueprintFailureReason.EmptyArea);
 
-                var registeredName = _blueprintDatastore.Register(blueprint);
-                return SuccessResponse(registeredName);
+                // 発行されたGuidを返す（名前は加工しないため返す意味が無い）
+                // Returns the issued GUID; the name is untouched so there is nothing to report back
+                var registeredGuid = _blueprintDatastore.Register(blueprint);
+                return SuccessResponse(registeredGuid.ToString());
             }
 
-            BlueprintResponse SuccessResponse(string registeredName)
+            ProtocolMessagePackBase HandleDelete(BlueprintRequest req)
+            {
+                if (!Guid.TryParse(req.BlueprintGuidStr, out var blueprintGuid)) return FailResponse(BlueprintFailureReason.InvalidRequest);
+
+                return _blueprintDatastore.Delete(blueprintGuid)
+                    ? SuccessResponse(null)
+                    : FailResponse(BlueprintFailureReason.NotFound);
+            }
+
+            BlueprintResponse SuccessResponse(string registeredGuidStr)
             {
                 var blueprints = _blueprintDatastore.Blueprints.Select(b => new BlueprintMessagePack(b)).ToList();
-                return new BlueprintResponse(true, BlueprintFailureReason.None, registeredName, blueprints);
+                return new BlueprintResponse(true, BlueprintFailureReason.None, registeredGuidStr, blueprints);
             }
 
             BlueprintResponse FailResponse(BlueprintFailureReason reason)

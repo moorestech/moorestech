@@ -1,6 +1,7 @@
 // [uGUI廃止Phase1] uGUI描画は恒久停止・ビューは未メンテ。ただし本クラスは外部（Web UIブリッジ等）から参照中のため削除前に整理が必要（docs/webui/ugui-retirement-plan.md）
 // [uGUI retirement Phase1] uGUI rendering is permanently disabled and the view is unmaintained, but this class is still referenced externally (e.g. Web UI bridge); untangle before deletion (docs/webui/ugui-retirement-plan.md)
-using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Equipment;
+using Client.Network.API;
 using Game.Context;
 using MessagePack;
 using Server.Event.EventReceive;
@@ -10,19 +11,25 @@ namespace Client.Game.InGame.UI.Inventory.Main
 {
     public class NetworkEventInventoryUpdater : IInitializable
     {
+        private readonly IVanillaApiEvent _vanillaApiEvent;
         private readonly LocalPlayerInventoryController _localPlayerInventoryController;
-        
-        public NetworkEventInventoryUpdater(LocalPlayerInventoryController localPlayerInventoryController)
+        private readonly LocalPlayerEquipment _localPlayerEquipment;
+
+        public NetworkEventInventoryUpdater(IVanillaApiEvent vanillaApiEvent, LocalPlayerInventoryController localPlayerInventoryController, LocalPlayerEquipment localPlayerEquipment)
         {
+            _vanillaApiEvent = vanillaApiEvent;
             _localPlayerInventoryController = localPlayerInventoryController;
+            _localPlayerEquipment = localPlayerEquipment;
         }
-        
+
         public void Initialize()
         {
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(GrabInventoryUpdateEventPacket.EventTag, OnGrabInventoryUpdateEvent);
-            ClientContext.VanillaApi.Event.SubscribeEventResponse(MainInventoryUpdateEventPacket.EventTag, OnMainInventoryUpdateEvent);
+            _vanillaApiEvent.SubscribeEventResponse(GrabInventoryUpdateEventPacket.EventTag, OnGrabInventoryUpdateEvent);
+            _vanillaApiEvent.SubscribeEventResponse(MainInventoryUpdateEventPacket.EventTag, OnMainInventoryUpdateEvent);
+            _vanillaApiEvent.SubscribeEventResponse(EquipmentSlotUpdateEventPacket.EventTag, OnEquipmentSlotUpdateEvent);
+            _vanillaApiEvent.SubscribeEventResponse(EquipmentSelectedIndexUpdateEventPacket.EventTag, OnEquipmentSelectedIndexUpdateEvent);
         }
-        
+
         /// <summary>
         ///     Grabインベントリの更新イベント
         /// </summary>
@@ -32,7 +39,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
             _localPlayerInventoryController.SetGrabItem(item);
         }
-        
+
         /// <summary>
         ///     メインインベントリの更新イベント
         /// </summary>
@@ -41,6 +48,25 @@ namespace Client.Game.InGame.UI.Inventory.Main
             var packet = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(payload);
             var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
             _localPlayerInventoryController.SetMainItem(packet.Slot, item);
+        }
+
+        /// <summary>
+        ///     装備スロットの更新イベント
+        /// </summary>
+        private void OnEquipmentSlotUpdateEvent(byte[] payload)
+        {
+            var packet = MessagePackSerializer.Deserialize<EquipmentSlotUpdateEventMessagePack>(payload);
+            var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
+            _localPlayerEquipment.ApplySlotUpdate(packet.Slot, item);
+        }
+
+        /// <summary>
+        ///     装備の選択インデックス更新イベント
+        /// </summary>
+        private void OnEquipmentSelectedIndexUpdateEvent(byte[] payload)
+        {
+            var packet = MessagePackSerializer.Deserialize<EquipmentSelectedIndexUpdateEventMessagePack>(payload);
+            _localPlayerEquipment.ApplySelected(packet.SelectedIndex);
         }
     }
 }

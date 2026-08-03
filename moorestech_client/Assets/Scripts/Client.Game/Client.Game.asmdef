@@ -46,6 +46,7 @@
         "ThirdPersonController",
         "MessagePack",
         "Game.Map.Interface",
+        "Game.Map",
         "Game.Context",
         "Core.Item.Interface",
         "Client.Skit",

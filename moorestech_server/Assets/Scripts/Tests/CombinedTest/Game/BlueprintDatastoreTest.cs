@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Game.Blueprint;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -11,29 +13,32 @@ namespace Tests.CombinedTest.Game
     public class BlueprintDatastoreTest
     {
         [Test]
-        public void RegisterAndDuplicateNameTest()
+        public void RegisterKeepsPreGeneratedGuidsWithoutRenamingTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var datastore = serviceProvider.GetService<IBlueprintDatastore>();
 
-            // 同名登録で連番が付与されることを確認
-            // Duplicate names get numbered suffixes
-            var name1 = datastore.Register(CreateBlueprint("factory"));
-            var name2 = datastore.Register(CreateBlueprint("factory"));
-            var name3 = datastore.Register(CreateBlueprint("factory"));
+            // 同名登録でも名前は加工されず、Guidで区別される
+            // Duplicate names are left untouched; GUIDs distinguish the entries
+            var blueprint1 = CreateBlueprint("factory");
+            var blueprint2 = CreateBlueprint("factory");
+            var guid1 = datastore.Register(blueprint1);
+            var guid2 = datastore.Register(blueprint2);
 
-            Assert.AreEqual("factory", name1);
-            Assert.AreEqual("factory (2)", name2);
-            Assert.AreEqual("factory (3)", name3);
-            Assert.AreEqual(3, datastore.Blueprints.Count);
+            Assert.AreEqual("factory", blueprint1.Name);
+            Assert.AreEqual("factory", blueprint2.Name);
+            Assert.AreNotEqual(guid1, guid2);
+            Assert.AreEqual(guid1, blueprint1.BlueprintGuid);
+            Assert.AreEqual(guid2, blueprint2.BlueprintGuid);
+            Assert.AreEqual(2, datastore.Blueprints.Count);
 
             #region Internal
 
             BlueprintJsonObject CreateBlueprint(string name)
             {
-                var block = new BlueprintBlockJsonObject(Vector3Int.zero, System.Guid.NewGuid().ToString(), 0, new Dictionary<string, string>());
-                return new BlueprintJsonObject(name, new List<BlueprintBlockJsonObject> { block });
+                var block = new BlueprintBlockJsonObject(Vector3Int.zero, Guid.NewGuid().ToString(), 0, new Dictionary<string, string>());
+                return new BlueprintJsonObject(name, new List<BlueprintBlockJsonObject> { block }, Guid.NewGuid());
             }
 
             #endregion
@@ -46,11 +51,11 @@ namespace Tests.CombinedTest.Game
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var datastore = serviceProvider.GetService<IBlueprintDatastore>();
 
-            datastore.Register(new BlueprintJsonObject("target", new List<BlueprintBlockJsonObject>()));
+            var guid = datastore.Register(new BlueprintJsonObject("target", new List<BlueprintBlockJsonObject>(), Guid.NewGuid()));
 
-            Assert.IsTrue(datastore.Delete("target"));
+            Assert.IsTrue(datastore.Delete(guid));
             Assert.AreEqual(0, datastore.Blueprints.Count);
-            Assert.IsFalse(datastore.Delete("missing"));
+            Assert.IsFalse(datastore.Delete(Guid.NewGuid()));
         }
 
         [Test]
@@ -62,7 +67,7 @@ namespace Tests.CombinedTest.Game
 
             var settings = new Dictionary<string, string> { { "TestKey", "{\"a\":1}" } };
             var block = new BlueprintBlockJsonObject(new Vector3Int(1, 0, -2), System.Guid.NewGuid().ToString(), 3, settings);
-            datastore.Register(new BlueprintJsonObject("roundtrip", new List<BlueprintBlockJsonObject> { block }));
+            datastore.Register(new BlueprintJsonObject("roundtrip", new List<BlueprintBlockJsonObject> { block }, Guid.NewGuid()));
 
             // セーブJSONを別Datastoreへ復元し一致確認
             // Extract save JSON and restore into a fresh datastore
@@ -75,6 +80,20 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(new Vector3Int(1, 0, -2), restoredBlock.Offset);
             Assert.AreEqual(3, restoredBlock.Direction);
             Assert.AreEqual("{\"a\":1}", restoredBlock.Settings["TestKey"]);
+        }
+
+        [Test]
+        public void BlueprintGuidはJsonシリアライズを経由しても保持される()
+        {
+            // private setterのBlueprintGuidStrがNewtonsoft経由でも復元されるか検証する
+            // Verify BlueprintGuidStr (a private setter) round-trips through Newtonsoft
+            var original = new BlueprintJsonObject("json-roundtrip", new List<BlueprintBlockJsonObject>(), Guid.NewGuid());
+
+            var json = JsonConvert.SerializeObject(original);
+            var restored = JsonConvert.DeserializeObject<BlueprintJsonObject>(json);
+
+            Assert.AreEqual(original.BlueprintGuid, restored.BlueprintGuid);
+            Assert.AreEqual(original.Name, restored.Name);
         }
     }
 }

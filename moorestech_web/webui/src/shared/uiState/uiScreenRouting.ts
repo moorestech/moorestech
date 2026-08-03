@@ -16,3 +16,9 @@ export function screenForUiState(state: string | null, subState?: string): UiScr
   // GameScreen, unsupported states and pre-snapshot are panel-less (forward-compat: unknown names fail safe)
   return "none";
 }
+
+// grab は掴んだ絵が見える画面でしか成立しない。クリック可否と GrabOverlay 描画の単一の正
+// A grab only holds where the held item is visible; single source for clickability and GrabOverlay
+export function screenAllowsGrab(screen: UiScreen): boolean {
+  return screen === "playerInventory" || screen === "subInventory" || screen === "researchTree";
+}

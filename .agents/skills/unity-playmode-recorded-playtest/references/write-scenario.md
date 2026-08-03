@@ -67,12 +67,12 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | `ClickWebUi(testid)` | `data-testid`の要素中心へ注入マウスを滑走→クリック。矩形2回一致(React安定)+`elementFromPoint`被覆チェック込み。要素出現まで内部リトライ(15s) |
 | `HoverWebUi(testid)` | 同解決でポインタ移動のみ（ツールチップ検証等） |
 | `UntilWebUiElement(testid, timeout)` | 要素が可視かつクリック可能（遮蔽なし）になるまで待つ |
-| `ClickBuildMenuBlock(blockName)` | ビルドメニューのブロックスロットを1行でクリック（testid `build-menu-entry-block-{BlockId}` を自動解決） |
+| `ClickBuildMenuBlock(blockName)` | ビルドメニューのブロックスロットを1行でクリック（testid `build-menu-entry-block-{BlockGuid}` を自動解決） |
 | `CloseWebUiPanel()` | 共通閉じるボタン（`build-menu-close`）をクリック |
 
 testidは `moorestech_web/webui/src/features/**` をgrepして実在確認する。ビルドメニューのエントリは
-`build-menu-entry-{entryType}-{entryKey}`（entryType: block/trainCar/connectTool/blueprintCopy/blueprint、
-blockのentryKeyはBlockIdのint値）。PlaceBlock遷移直後のカメラtweenは`AimAtWorldPosition`内蔵の
+`build-menu-entry-{kind}-{id}`（kind: block/trainCar/connectTool/buildTool/blueprint、
+idは種別を問わず設置対象のGuid文字列）。PlaceBlock遷移直後のカメラtweenは`AimAtWorldPosition`内蔵の
 カメラ静定待ちが吸収するため、シナリオ側での追加待ちは不要。
 仕組み: DOM矩形をWS往復(`playtest.dom_query`)で取得→CEFブラウザ座標→Unityスクリーン座標へ逆変換→
 `SemanticInput`で注入→プレイテスト専用`CefInputForwarder`がInputSystemマウスをCEFへ転送（パッケージのlegacy Input転送は注入不感のため）。
