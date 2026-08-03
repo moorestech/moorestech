@@ -14,6 +14,9 @@ namespace Client.Localization
     {
         public const string DefaultLanguageCode = "english";
         internal const string LanguagePreferenceKey = "LanguageCode";
+
+        // 原文は言語辞書ではないため、mod CSVの予約列名とHTTP経路名としてだけ使う
+        // Source is not a language dictionary, so this name only serves the reserved mod CSV column and HTTP route
         public const string SourcePseudoLocale = "source";
 
         private static readonly Subject<Unit> onLanguageChangedSubject = new();
@@ -25,21 +28,20 @@ namespace Client.Localization
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
         {
-            var snapshot = VanillaLocalizationDictionaryFactory.CreateSnapshot();
-            PublishSnapshot(snapshot);
+            PublishSnapshot(VanillaLocalizationDictionaryFactory.Create());
 
             // 選択不能な保存値は生成済み英語辞書へ戻す
             // Fall back to the generated English dictionary for unselectable persisted values
             var savedLanguageCode = PlayerPrefs.GetString(LanguagePreferenceKey, DefaultLanguageCode);
-            currentLanguageCode = snapshot.ContainsKey(savedLanguageCode) &&
-                                  savedLanguageCode != SourcePseudoLocale
+            var languages = Volatile.Read(ref publishedSnapshot).Languages;
+            currentLanguageCode = languages.ContainsKey(savedLanguageCode)
                 ? savedLanguageCode
                 : DefaultLanguageCode;
         }
 
         public static string Get(LocalizationKey key)
         {
-            var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;
+            var snapshot = Volatile.Read(ref publishedSnapshot);
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
@@ -47,13 +49,13 @@ namespace Client.Localization
         // Legacy path used only by TextMeshProLocalize's Inspector keys; typed keys use Get/GetContent
         public static string GetLegacy(string rawKey)
         {
-            var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;
+            var snapshot = Volatile.Read(ref publishedSnapshot);
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, rawKey);
         }
 
         public static string GetContent(ContentLocalizationKey key)
         {
-            var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;
+            var snapshot = Volatile.Read(ref publishedSnapshot);
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
@@ -78,27 +80,25 @@ namespace Client.Localization
 
             // 全合成成功後にfreeze済みsnapshot参照を一度だけ公開する
             // Publish the frozen snapshot reference once only after composition fully succeeds
-            var snapshot = VanillaLocalizationDictionaryFactory.Freeze(candidate);
-            PublishSnapshot(snapshot);
+            PublishSnapshot(candidate);
             onLanguageChangedSubject.OnNext(Unit.Default);
         }
 
         internal static void OverlayMasterSourceTexts(
-            Dictionary<string, Dictionary<string, string>> dictionaries,
+            LocalizationDictionaryCandidate candidate,
             IReadOnlyDictionary<string, string> masterSourceTexts)
         {
-            var sourceDictionary = dictionaries[SourcePseudoLocale];
             foreach (var sourceText in masterSourceTexts)
             {
                 // 空Masterはmod由来Sourceを残さずcanonical欠落にする
                 // Empty Master removes mod Source so the canonical value remains missing
                 if (string.IsNullOrEmpty(sourceText.Value))
                 {
-                    sourceDictionary.Remove(sourceText.Key);
+                    candidate.SourceTexts.Remove(sourceText.Key);
                     continue;
                 }
 
-                sourceDictionary[sourceText.Key] = sourceText.Value;
+                candidate.SourceTexts[sourceText.Key] = sourceText.Value;
             }
         }
 
@@ -108,10 +108,10 @@ namespace Client.Localization
             // Success/failure is expressed only via the return value; handlers map it to ActionResult
             if (string.IsNullOrEmpty(languageCode)) return false;
 
-            // 公開snapshotを唯一の判定基準とし、Source擬似localeは選択させない
-            // Judge only against the published snapshot and never allow the Source pseudo-locale
-            var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;
-            if (languageCode == SourcePseudoLocale || !snapshot.ContainsKey(languageCode)) return false;
+            // 公開snapshotの実言語だけを判定基準にする
+            // Judge only against the real languages carried by the published snapshot
+            var languages = Volatile.Read(ref publishedSnapshot).Languages;
+            if (!languages.ContainsKey(languageCode)) return false;
 
             currentLanguageCode = languageCode;
             PlayerPrefs.SetString(LanguagePreferenceKey, languageCode);
@@ -146,7 +146,7 @@ namespace Client.Localization
             out IReadOnlyDictionary<string, string> dictionary)
         {
             var snapshot = Volatile.Read(ref publishedSnapshot);
-            return snapshot.Dictionaries.TryGetValue(languageCode, out dictionary);
+            return snapshot.Languages.TryGetValue(languageCode, out dictionary);
         }
 
         public static bool TryGetDictionary(
@@ -159,7 +159,7 @@ namespace Client.Localization
             // revisionと辞書を同じsnapshotから検証し、HTTP応答の異世代混在を防ぐ
             // Validate revision and dictionary from one snapshot to prevent mixed HTTP generations
             if (snapshot.Revision == expectedRevision &&
-                snapshot.Dictionaries.TryGetValue(languageCode, out var values))
+                snapshot.Languages.TryGetValue(languageCode, out var values))
             {
                 dictionary = values;
                 return true;
@@ -169,13 +169,30 @@ namespace Client.Localization
             return false;
         }
 
-        private static void PublishSnapshot(
-            IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> dictionaries)
+        public static bool TryGetSourceTexts(
+            long expectedRevision,
+            out IReadOnlyDictionary<string, string> sourceTexts)
+        {
+            var snapshot = Volatile.Read(ref publishedSnapshot);
+
+            // 原文も同じsnapshotでrevisionを検証し、実言語と同じ世代保証で配信する
+            // Source texts validate the revision on the same snapshot for the same generation guarantee
+            if (snapshot.Revision == expectedRevision)
+            {
+                sourceTexts = snapshot.SourceTexts;
+                return true;
+            }
+
+            sourceTexts = null;
+            return false;
+        }
+
+        private static void PublishSnapshot(LocalizationDictionaryCandidate candidate)
         {
             var revision = Interlocked.Increment(ref dictionaryRevision);
             Volatile.Write(
                 ref publishedSnapshot,
-                new PublishedLocalizationDictionarySnapshot(revision, dictionaries));
+                VanillaLocalizationDictionaryFactory.Freeze(candidate, revision));
         }
     }
 }

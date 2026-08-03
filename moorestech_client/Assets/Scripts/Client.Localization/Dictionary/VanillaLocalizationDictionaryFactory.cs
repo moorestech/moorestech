@@ -6,9 +6,9 @@ namespace Client.Localization
 {
     internal static class VanillaLocalizationDictionaryFactory
     {
-        public static Dictionary<string, Dictionary<string, string>> Create()
+        public static LocalizationDictionaryCandidate Create()
         {
-            var dictionaries = new Dictionary<string, Dictionary<string, string>>();
+            var languages = new Dictionary<string, Dictionary<string, string>>();
 
             // 空訳を除き毎回新規構築
             // Build fresh dictionaries without empty translations
@@ -22,42 +22,40 @@ namespace Client.Localization
                     languageDictionary.Add(entry.Key, entry.Value);
                 }
 
-                dictionaries.Add(languageCode, languageDictionary);
+                languages.Add(languageCode, languageDictionary);
             }
 
-            // Sourceも同じfresh candidateの擬似localeへ格納する
-            // Store Source as a pseudo-locale in the same fresh candidate
-            var sourceDictionary = new Dictionary<string, string>();
+            // 原文は実言語と別の辞書として同じcandidateへ載せる
+            // Source texts ride on the same candidate as a dictionary distinct from the languages
+            var sourceTexts = new Dictionary<string, string>();
             foreach (var entry in VanillaLocalizationTable.SourceTexts)
             {
                 if (string.IsNullOrEmpty(entry.Value)) continue;
-                sourceDictionary.Add(entry.Key, entry.Value);
+                sourceTexts.Add(entry.Key, entry.Value);
             }
 
-            dictionaries.Add(Localize.SourcePseudoLocale, sourceDictionary);
-            return dictionaries;
+            return new LocalizationDictionaryCandidate(languages, sourceTexts);
         }
 
-        public static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> CreateSnapshot()
-        {
-            return Freeze(Create());
-        }
-
-        public static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Freeze(
-            Dictionary<string, Dictionary<string, string>> candidate)
+        public static PublishedLocalizationDictionarySnapshot Freeze(
+            LocalizationDictionaryCandidate candidate,
+            long revision)
         {
             var frozenLanguages = new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
             // 非公開candidateだけをread-only viewで包みimmutable snapshot化する
             // Freeze the private candidate into immutable published read-only views
-            foreach (var language in candidate)
+            foreach (var language in candidate.Languages)
             {
                 frozenLanguages.Add(
                     language.Key,
                     new ReadOnlyDictionary<string, string>(language.Value));
             }
 
-            return new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(frozenLanguages);
+            return new PublishedLocalizationDictionarySnapshot(
+                revision,
+                new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(frozenLanguages),
+                new ReadOnlyDictionary<string, string>(candidate.SourceTexts));
         }
     }
 }

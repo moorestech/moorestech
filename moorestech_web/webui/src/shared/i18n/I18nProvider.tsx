@@ -5,6 +5,7 @@ import {
   setDictionaries,
   setDictionaryLoadError,
   setDictionaryLoading,
+  SOURCE_LOCALE,
   type TranslationDictionary,
 } from "./i18nStore";
 
@@ -71,7 +72,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
 async function loadDictionaries(locale: string, revision: number, signal: AbortSignal): Promise<void> {
   const fallbackPromise = fetchDictionary(FALLBACK_LOCALE, revision, signal);
-  const sourcePromise = fetchDictionary("source", revision, signal);
+  const sourcePromise = fetchDictionary(SOURCE_LOCALE, revision, signal);
   const dictionaryPromise = locale === FALLBACK_LOCALE
     ? fallbackPromise
     : fetchDictionary(locale, revision, signal);

@@ -7,14 +7,14 @@ using Mooresmaster.LocalizationCsv;
 
 namespace Client.Localization
 {
-    public static class ModLocalizationMerger
+    internal static class ModLocalizationMerger
     {
         private const string LocalizationCsvRelativePath = "localization/localization.csv";
 
         public static void Merge(
             ModsResource modsResource,
             IReadOnlyList<ModId> orderedModIds,
-            Dictionary<string, Dictionary<string, string>> dictionaries)
+            LocalizationDictionaryCandidate candidate)
         {
             ValidateModOrder(modsResource, orderedModIds);
 
@@ -27,7 +27,7 @@ namespace Client.Localization
 
                 var csvPath = Path.Combine(mod.ExtractedPath, LocalizationCsvRelativePath);
                 if (!File.Exists(csvPath)) continue;
-                MergeCsv(File.ReadAllText(csvPath), dictionaries);
+                MergeCsv(File.ReadAllText(csvPath), candidate);
             }
 
             #region Internal
@@ -60,12 +60,12 @@ namespace Client.Localization
 
         public static void MergeCsv(
             string csvText,
-            Dictionary<string, Dictionary<string, string>> dictionaries)
+            LocalizationDictionaryCandidate candidate)
         {
             var csv = LocalizationCsvParser.Parse(csvText);
 
-            // 予約名・重複・未知言語をmutation前に検証する
-            // Validate reserved, duplicate, and unknown languages before mutation
+            // mod CSVは外部入力のため、予約名・重複・未知言語をmutation前に検証する
+            // Mod CSV is external input, so validate reserved, duplicate, and unknown languages before mutation
             var seenLanguages = new HashSet<string>(StringComparer.Ordinal);
             foreach (var languageCode in csv.LanguageCodes)
             {
@@ -73,7 +73,7 @@ namespace Client.Localization
                     throw new LocalizationCsvException($"Reserved localization language: {languageCode}");
                 if (!seenLanguages.Add(languageCode))
                     throw new LocalizationCsvException($"Duplicated localization language: {languageCode}");
-                if (dictionaries.ContainsKey(languageCode)) continue;
+                if (candidate.Languages.ContainsKey(languageCode)) continue;
                 throw new LocalizationCsvException($"Unsupported localization language: {languageCode}");
             }
 
@@ -83,14 +83,14 @@ namespace Client.Localization
             {
                 if (!string.IsNullOrEmpty(row.Source))
                 {
-                    dictionaries[Localize.SourcePseudoLocale][row.Key] = row.Source;
+                    candidate.SourceTexts[row.Key] = row.Source;
                 }
 
                 for (var languageIndex = 0; languageIndex < csv.LanguageCodes.Length; languageIndex++)
                 {
                     var text = row.Texts[languageIndex];
                     if (string.IsNullOrEmpty(text)) continue;
-                    dictionaries[csv.LanguageCodes[languageIndex]][row.Key] = text;
+                    candidate.Languages[csv.LanguageCodes[languageIndex]][row.Key] = text;
                 }
             }
         }

@@ -45,53 +45,53 @@ namespace Client.Tests.Localization
         [Test]
         public void CsvWithoutEnglishMergesKnownLanguageSubset()
         {
-            var dictionaries = CreateDictionaries();
+            var candidate = CreateCandidate();
             var csv = "key,Source,japanese\ncontent.subset.name,Subset Source,部分訳\n";
 
-            ModLocalizationMerger.MergeCsv(csv, dictionaries);
+            ModLocalizationMerger.MergeCsv(csv, candidate);
 
-            Assert.AreEqual("部分訳", dictionaries["japanese"]["content.subset.name"]);
-            Assert.AreEqual("Subset Source", dictionaries["source"]["content.subset.name"]);
-            Assert.IsFalse(dictionaries["english"].ContainsKey("content.subset.name"));
+            Assert.AreEqual("部分訳", candidate.Languages["japanese"]["content.subset.name"]);
+            Assert.AreEqual("Subset Source", candidate.SourceTexts["content.subset.name"]);
+            Assert.IsFalse(candidate.Languages["english"].ContainsKey("content.subset.name"));
         }
 
         [Test]
         public void DuplicateOrderedModIdIsRejectedBeforeDictionaryMutation()
         {
             var modsResource = CreateResource();
-            var dictionaries = CreateDictionaries();
+            var candidate = CreateCandidate();
 
             Assert.Throws<InvalidOperationException>(() => ModLocalizationMerger.Merge(
                 modsResource,
                 new[] { new ModId("author:single"), new ModId("author:single") },
-                dictionaries));
-            Assert.AreEqual("Existing", dictionaries["english"]["content.test.name"]);
+                candidate));
+            Assert.AreEqual("Existing", candidate.Languages["english"]["content.test.name"]);
         }
 
         [Test]
         public void LoadedModMissingFromOrderIsRejectedBeforeDictionaryMutation()
         {
             var modsResource = CreateResource();
-            var dictionaries = CreateDictionaries();
+            var candidate = CreateCandidate();
 
             Assert.Throws<InvalidOperationException>(() => ModLocalizationMerger.Merge(
                 modsResource,
                 Array.Empty<ModId>(),
-                dictionaries));
-            Assert.AreEqual("Existing", dictionaries["english"]["content.test.name"]);
+                candidate));
+            Assert.AreEqual("Existing", candidate.Languages["english"]["content.test.name"]);
         }
 
         private void AssertCsvRejectedWithoutMutation(string csv, string expectedMessagePart)
         {
-            var dictionaries = CreateDictionaries();
+            var candidate = CreateCandidate();
 
             var exception = Assert.Throws<LocalizationCsvException>(
-                () => ModLocalizationMerger.MergeCsv(csv, dictionaries));
+                () => ModLocalizationMerger.MergeCsv(csv, candidate));
 
             StringAssert.Contains(expectedMessagePart, exception.Message);
-            Assert.AreEqual("Existing", dictionaries["english"]["content.test.name"]);
-            Assert.AreEqual("既存", dictionaries["japanese"]["content.test.name"]);
-            Assert.AreEqual("Original", dictionaries["source"]["content.test.name"]);
+            Assert.AreEqual("Existing", candidate.Languages["english"]["content.test.name"]);
+            Assert.AreEqual("既存", candidate.Languages["japanese"]["content.test.name"]);
+            Assert.AreEqual("Original", candidate.SourceTexts["content.test.name"]);
         }
 
         private ModsResource CreateResource()
@@ -105,14 +105,15 @@ namespace Client.Tests.Localization
             return new ModsResource(temporaryRoot);
         }
 
-        private static Dictionary<string, Dictionary<string, string>> CreateDictionaries()
+        private static LocalizationDictionaryCandidate CreateCandidate()
         {
-            return new Dictionary<string, Dictionary<string, string>>
-            {
-                { "english", new Dictionary<string, string> { { "content.test.name", "Existing" } } },
-                { "japanese", new Dictionary<string, string> { { "content.test.name", "既存" } } },
-                { "source", new Dictionary<string, string> { { "content.test.name", "Original" } } },
-            };
+            return new LocalizationDictionaryCandidate(
+                new Dictionary<string, Dictionary<string, string>>
+                {
+                    { "english", new Dictionary<string, string> { { "content.test.name", "Existing" } } },
+                    { "japanese", new Dictionary<string, string> { { "content.test.name", "既存" } } },
+                },
+                new Dictionary<string, string> { { "content.test.name", "Original" } });
         }
     }
 }

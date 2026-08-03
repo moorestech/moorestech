@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,7 +45,13 @@ namespace Client.WebUiHost.Game
                 return;
             }
 
-            if (!Localize.TryGetDictionary(locale, expectedRevision, out var dictionary))
+            // 原文は実言語と別型のため、同一URLのままここで明示分岐して取り出す
+            // Source texts are a separate type, so branch explicitly here while keeping one URL
+            IReadOnlyDictionary<string, string> dictionary;
+            var resolved = locale == Localize.SourcePseudoLocale
+                ? Localize.TryGetSourceTexts(expectedRevision, out dictionary)
+                : Localize.TryGetDictionary(locale, expectedRevision, out dictionary);
+            if (!resolved)
             {
                 var revisionChanged = expectedRevision != Localize.GetDictionaryRevision();
                 context.Response.StatusCode = revisionChanged

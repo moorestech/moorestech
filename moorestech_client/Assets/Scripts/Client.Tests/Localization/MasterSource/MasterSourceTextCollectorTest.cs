@@ -43,7 +43,7 @@ namespace Client.Tests.Localization.MasterSource
             var modsResource = ServerContext.GetService<ModsResource>();
 
             Localize.MergeGameDictionaries(modsResource);
-            Assert.IsTrue(Localize.TryGetDictionary(Localize.SourcePseudoLocale, out var source));
+            Assert.IsTrue(Localize.TryGetSourceTexts(Localize.GetDictionaryRevision(), out var source));
 
             // 空原文はcanonical欠落、それ以外はMaster原文との完全一致を要求する
             // Empty sources are canonical omissions; every other value must exactly match Master

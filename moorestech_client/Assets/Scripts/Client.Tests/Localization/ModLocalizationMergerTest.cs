@@ -34,18 +34,18 @@ namespace Client.Tests.Localization
             CreateMod("first-folder", "author:first", "item.test.name,First Source,First English,最初");
             CreateMod("second-folder", "author:second", "item.test.name,Second Source,Second English,後");
             var modsResource = new ModsResource(temporaryDirectory);
-            var dictionaries = CreateDictionaries();
+            var candidate = CreateCandidate();
 
             // リソース列挙と逆の明示順で後勝ちを検証する
             // Verify later-wins behavior with an explicit order opposite resource enumeration
             ModLocalizationMerger.Merge(
                 modsResource,
                 new[] { new ModId("author:second"), new ModId("author:first") },
-                dictionaries);
+                candidate);
 
-            Assert.AreEqual("First Source", dictionaries["source"]["item.test.name"]);
-            Assert.AreEqual("First English", dictionaries["english"]["item.test.name"]);
-            Assert.AreEqual("最初", dictionaries["japanese"]["item.test.name"]);
+            Assert.AreEqual("First Source", candidate.SourceTexts["item.test.name"]);
+            Assert.AreEqual("First English", candidate.Languages["english"]["item.test.name"]);
+            Assert.AreEqual("最初", candidate.Languages["japanese"]["item.test.name"]);
         }
 
         [Test]
@@ -53,39 +53,39 @@ namespace Client.Tests.Localization
         {
             CreateMod("without-csv", "author:without", null);
             var modsResource = new ModsResource(temporaryDirectory);
-            var dictionaries = CreateDictionaries();
+            var candidate = CreateCandidate();
 
             Assert.DoesNotThrow(() => ModLocalizationMerger.Merge(
                 modsResource,
                 new[] { new ModId("author:without") },
-                dictionaries));
-            Assert.That(dictionaries["english"], Is.Empty);
+                candidate));
+            Assert.That(candidate.Languages["english"], Is.Empty);
         }
 
         [Test]
         public void EmptySourceAndTranslationDoNotOverwriteExistingValues()
         {
-            var dictionaries = CreateDictionaries();
-            dictionaries["english"]["item.test.name"] = "Vanilla English";
-            dictionaries["japanese"]["item.test.name"] = "既存日本語";
-            dictionaries["source"]["item.test.name"] = "既存原文";
+            var candidate = CreateCandidate();
+            candidate.Languages["english"]["item.test.name"] = "Vanilla English";
+            candidate.Languages["japanese"]["item.test.name"] = "既存日本語";
+            candidate.SourceTexts["item.test.name"] = "既存原文";
             var csv = "key,Source,english,japanese\nitem.test.name,,Mod English,\n";
 
-            ModLocalizationMerger.MergeCsv(csv, dictionaries);
+            ModLocalizationMerger.MergeCsv(csv, candidate);
 
-            Assert.AreEqual("既存日本語", dictionaries["japanese"]["item.test.name"]);
-            Assert.AreEqual("Mod English", dictionaries["english"]["item.test.name"]);
-            Assert.AreEqual("既存原文", dictionaries["source"]["item.test.name"]);
+            Assert.AreEqual("既存日本語", candidate.Languages["japanese"]["item.test.name"]);
+            Assert.AreEqual("Mod English", candidate.Languages["english"]["item.test.name"]);
+            Assert.AreEqual("既存原文", candidate.SourceTexts["item.test.name"]);
         }
 
         [Test]
         public void UnknownLanguageColumnIsRejectedWithLocalizationCsvError()
         {
-            var dictionaries = CreateDictionaries();
+            var candidate = CreateCandidate();
             var csv = "key,Source,klingon\nitem.test.name,Source,Qapla\n";
 
             var exception = Assert.Throws<LocalizationCsvException>(
-                () => ModLocalizationMerger.MergeCsv(csv, dictionaries));
+                () => ModLocalizationMerger.MergeCsv(csv, candidate));
 
             StringAssert.Contains("klingon", exception.Message);
         }
@@ -110,14 +110,15 @@ namespace Client.Tests.Localization
                 $"key,Source,english,japanese\n{localizationRow}\n");
         }
 
-        private static Dictionary<string, Dictionary<string, string>> CreateDictionaries()
+        private static LocalizationDictionaryCandidate CreateCandidate()
         {
-            return new Dictionary<string, Dictionary<string, string>>
-            {
-                { "english", new Dictionary<string, string>() },
-                { "japanese", new Dictionary<string, string>() },
-                { "source", new Dictionary<string, string>() },
-            };
+            return new LocalizationDictionaryCandidate(
+                new Dictionary<string, Dictionary<string, string>>
+                {
+                    { "english", new Dictionary<string, string>() },
+                    { "japanese", new Dictionary<string, string>() },
+                },
+                new Dictionary<string, string>());
         }
     }
 }

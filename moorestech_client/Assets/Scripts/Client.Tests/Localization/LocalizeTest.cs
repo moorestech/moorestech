@@ -106,17 +106,49 @@ namespace Client.Tests.Localization
         }
 
         [Test]
-        public void TryGetDictionaryReturnsSourceTextsAndRejectsUnknownLanguage()
+        public void TryGetDictionaryRejectsUnknownLanguage()
         {
             Localize.Initialize();
 
-            var foundSource = Localize.TryGetDictionary(Localize.SourcePseudoLocale, out var source);
             var foundUnknown = Localize.TryGetDictionary("unknown", out var unknown);
 
-            Assert.IsTrue(foundSource);
-            Assert.AreEqual("Play locally", source["ui.mainMenu.playLocally"]);
             Assert.IsFalse(foundUnknown);
             Assert.IsNull(unknown);
+        }
+
+        [Test]
+        public void SourcePseudoLocaleIsNotReachableThroughLanguageDictionaries()
+        {
+            Localize.Initialize();
+
+            // 実言語辞書は除外条件ではなく型でSourceを持たない
+            // Language dictionaries exclude Source by type, not by a runtime condition
+            var foundSource = Localize.TryGetDictionary(Localize.SourcePseudoLocale, out var source);
+
+            Assert.IsFalse(foundSource);
+            Assert.IsNull(source);
+        }
+
+        [Test]
+        public void TryGetSourceTextsReturnsSourceTextsForTheCurrentRevision()
+        {
+            Localize.Initialize();
+
+            var found = Localize.TryGetSourceTexts(Localize.GetDictionaryRevision(), out var sourceTexts);
+
+            Assert.IsTrue(found);
+            Assert.AreEqual("Play locally", sourceTexts["ui.mainMenu.playLocally"]);
+        }
+
+        [Test]
+        public void TryGetSourceTextsRejectsStaleRevision()
+        {
+            Localize.Initialize();
+            var staleRevision = Localize.GetDictionaryRevision();
+            Localize.Initialize();
+
+            Assert.IsFalse(Localize.TryGetSourceTexts(staleRevision, out var sourceTexts));
+            Assert.IsNull(sourceTexts);
         }
 
         [Test]
@@ -149,15 +181,15 @@ namespace Client.Tests.Localization
             };
 
             Localize.OverlayMasterSourceTexts(candidate, masterSources);
-            var snapshot = VanillaLocalizationDictionaryFactory.Freeze(candidate);
+            var snapshot = VanillaLocalizationDictionaryFactory.Freeze(candidate, 1);
 
-            Assert.IsFalse(candidate[Localize.SourcePseudoLocale].ContainsKey("content.empty.english"));
-            Assert.IsFalse(candidate[Localize.SourcePseudoLocale].ContainsKey("content.empty.marker"));
-            Assert.IsFalse(candidate[Localize.SourcePseudoLocale].ContainsKey("content.empty.target"));
+            Assert.IsFalse(candidate.SourceTexts.ContainsKey("content.empty.english"));
+            Assert.IsFalse(candidate.SourceTexts.ContainsKey("content.empty.marker"));
+            Assert.IsFalse(candidate.SourceTexts.ContainsKey("content.empty.target"));
             Assert.AreEqual("English", LocalizationTextResolver.Resolve(snapshot, "japanese", "content.empty.english"));
             Assert.AreEqual("[!content.empty.marker]", LocalizationTextResolver.Resolve(snapshot, "japanese", "content.empty.marker"));
             Assert.AreEqual("対象", LocalizationTextResolver.Resolve(snapshot, "japanese", "content.empty.target"));
-            Assert.AreEqual("English", candidate["english"]["content.empty.target"]);
+            Assert.AreEqual("English", candidate.Languages["english"]["content.empty.target"]);
         }
 
         [Test]

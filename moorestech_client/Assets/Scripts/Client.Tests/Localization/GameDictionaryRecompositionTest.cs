@@ -132,8 +132,7 @@ namespace Client.Tests.Localization
             var modsResource = CreateResource("collision-set", "author:collision", csv);
 
             Localize.MergeGameDictionaries(modsResource, new[] { new ModId("author:collision") });
-            Assert.IsTrue(Localize.TryGetDictionary(
-                Localize.SourcePseudoLocale,
+            Assert.IsTrue(Localize.TryGetSourceTexts(
                 Localize.GetDictionaryRevision(),
                 out var sourceDictionary));
 

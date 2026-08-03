@@ -7,6 +7,10 @@ import type { ContentLocalizationKey } from "./contentKeys";
 
 export const FALLBACK_LOCALE = "english";
 
+// 原文はlocaleではなくClient側の予約名。同じ辞書URLで取得する
+// Source is a reserved Client-side name rather than a locale, fetched from the same dictionary URL
+export const SOURCE_LOCALE = "source";
+
 export type TranslationDictionary = Readonly<Record<string, string>>;
 export type InterpolationValues = Readonly<Record<string, string | number>>;
 export type TranslationKey = VanillaLocalizationKey | ContentLocalizationKey;
