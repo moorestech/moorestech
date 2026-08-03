@@ -168,8 +168,10 @@ describe("all-screen i18n propagation", () => {
   it("marks a failed requested locale without replacing the previous ready dictionary", async () => {
     vi.stubGlobal("document", { documentElement: { lang: "", dataset: {} } });
     vi.spyOn(console, "error").mockImplementation(() => undefined);
+    // 404は再試行対象外で即errorになる（再試行経路はprovider/dictionaryRetry.test.tsが持つ）
+    // 404 is non-retryable and errors immediately; the retry path lives in provider/dictionaryRetry.test.ts
     vi.stubGlobal("fetch", vi.fn(async (url: string) => {
-      if (url.startsWith("/api/i18n/japanese?")) return { ok: false, status: 500 };
+      if (url.startsWith("/api/i18n/japanese?")) return { ok: false, status: 404 };
       return {
         ok: true,
         json: async () => ({ [L.ui.mainMenu.playLocally]: "English title" }),

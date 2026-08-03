@@ -15,7 +15,7 @@ import { DeleteModeWarningBands, PlacementModeHud } from "@/features/modeHud";
 import { Crosshair } from "@/features/commonHud";
 import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
-import { L, useI18n } from "@/shared/i18n";
+import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
@@ -52,7 +52,7 @@ function useUiScale(enabled: boolean) {
 // Three-column layout with a bottom hotbar row, matching the uGUI inventory screen
 export default function App() {
   useWebInputExclusivity();
-  const { t } = useI18n();
+  const { status, t } = useI18n();
 
   // 一度接続した後の切断中のみオーバーレイを出す（初回接続前は各 panel の connecting... 表示に任せる）
   // Show the overlay only when disconnected after a prior connect (before first connect, panels show connecting...)
@@ -130,6 +130,17 @@ export default function App() {
             <Stack align="center" gap="sm">
               <Loader color="gray" />
               <Text c="white" fw={500}>{t(L.ui.error.reconnecting)}</Text>
+            </Stack>
+          </Overlay>
+        </Portal>
+      )}
+      {/* 辞書ロード失敗は再接続と同型の全面オーバーレイで知らせる（文言は辞書非依存リテラル） */}
+      {/* Surface a dictionary load failure with the same full-screen overlay as reconnecting (literal copy) */}
+      {status === "error" && (
+        <Portal>
+          <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-reconnect)" data-testid="dictionary-error-overlay">
+            <Stack align="center" gap="sm">
+              <Text c="white" fw={500}>{DictionaryIndependentText.dictionaryLoadFailed}</Text>
             </Stack>
           </Overlay>
         </Portal>

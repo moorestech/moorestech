@@ -15,15 +15,28 @@ const readySnapshotState = {
   generation: 1,
 };
 
+// storeはモジュール状態のため、uninitializedを見る3件は辞書投入より前に置く
+// The store keeps module state, so the three uninitialized cases must run before any dictionary is set
 describe("useI18n translation behavior", () => {
+  it("starts uninitialized before any dictionary request", () => {
+    expect(getI18nSnapshot().status).toBe("uninitialized");
+    expect(createTranslator(getI18nSnapshot())(L.ui.mainMenu.playLocally)).toBe("");
+  });
+
   it("does not warn or show a missing marker before the first dictionary generation is ready", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     setDictionaryLoading("english");
 
     expect(createTranslator(getI18nSnapshot())(L.ui.mainMenu.playLocally)).toBe("");
-    expect(getI18nSnapshot().status).toBe("loading");
+    expect(getI18nSnapshot().status).toBe("uninitialized");
     expect(warn).not.toHaveBeenCalled();
     warn.mockRestore();
+  });
+
+  it("exposes an error status when the very first dictionary load fails", () => {
+    setDictionaryLoadError("english");
+
+    expect(getI18nSnapshot()).toMatchObject({ status: "error", requestedLocale: "english" });
   });
 
   it("keeps the last ready generation while exposing a later load failure", () => {

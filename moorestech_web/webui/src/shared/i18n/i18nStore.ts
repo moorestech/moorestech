@@ -10,7 +10,9 @@ export const FALLBACK_LOCALE = "english";
 export type TranslationDictionary = Readonly<Record<string, string>>;
 export type InterpolationValues = Readonly<Record<string, string | number>>;
 export type TranslationKey = VanillaLocalizationKey | ContentLocalizationKey;
-export type I18nStatus = "loading" | "ready" | "error";
+// uninitializedは「辞書が一度も届いていない」ことを表し、初回取得中もこの状態にとどまる
+// uninitialized means no dictionary has ever arrived, and the first fetch stays in this state
+export type I18nStatus = "uninitialized" | "loading" | "ready" | "error";
 
 export type I18nSnapshot = {
   status: I18nStatus;
@@ -23,7 +25,7 @@ export type I18nSnapshot = {
 };
 
 let snapshot: I18nSnapshot = {
-  status: "loading",
+  status: "uninitialized",
   locale: FALLBACK_LOCALE,
   requestedLocale: FALLBACK_LOCALE,
   generation: 0,
@@ -71,7 +73,10 @@ export function setDictionaries(
 }
 
 export function setDictionaryLoading(requestedLocale: string): void {
-  snapshot = { ...snapshot, status: "loading", requestedLocale };
+  // 初回辞書が届く前はuninitializedのままにし、表示できる辞書がある再取得だけloadingにする
+  // Stay uninitialized before the first dictionary; only refetches with a displayable dictionary become loading
+  const status: I18nStatus = snapshot.status === "uninitialized" ? "uninitialized" : "loading";
+  snapshot = { ...snapshot, status, requestedLocale };
   notifyListeners();
 }
 
@@ -88,7 +93,7 @@ export function getI18nSnapshot(): I18nSnapshot {
 export function createTranslator(current: I18nSnapshot) {
   const warnedKeysForGeneration = warnedMissingTranslationKeys;
   return (key: TranslationKey, values: InterpolationValues = {}): string => {
-    if (current.generation === 0) return "";
+    if (current.status === "uninitialized") return "";
 
     const template =
       nonEmptyTranslation(current.dictionary[key]) ??
