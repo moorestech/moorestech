@@ -41,7 +41,7 @@ class SkillWiringTest(unittest.TestCase):
             self.assertIn(pattern, SKILL_MD, f"{pattern} がSKILL.mdに配線されていない")
         all_skill_mds = "\n".join(
             p.read_text(encoding="utf-8")
-            for p in (REPO_ROOT / ".claude/skills").glob("*/SKILL.md"))
+            for p in (REPO_ROOT / ".agents/skills").glob("*/SKILL.md"))
         for g in (SKILL_DIR / "scripts").glob("*_gate.py"):
             self.assertIn(g.name, all_skill_mds,
                           f"{g.name} がどのスキルのSKILL.mdにも配線されていない")

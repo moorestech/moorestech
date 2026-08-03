@@ -12,7 +12,7 @@ fable（precedent-alignment・Fable全般）とCodexは高コストな最後の�
 
 **見逃しの発覚経路**: 人間指摘とハーネス出力の突き合わせは pr-independent-review の **reconcileモード**が担う
 （人間のGitHubコメントを取り込み caught/missed を分類し、missedを本手順へ起票する。債務追跡は同スキルの
-`records/improvement-queue.md`）。本ファイルは発覚後の改善手法・検証・コーパスの単一の正であり、検知側の手順は持たない。
+`/Users/katsumi/moorestech_logs/harness/pr-independent-review/records/improvement-queue.md`）。本ファイルは発覚後の改善手法・検証・コーパスの単一の正であり、検知側の手順は持たない。
 
 新しい人間レビュー指摘（PRレビュー・セッション内指摘とも）が出たら:
 
