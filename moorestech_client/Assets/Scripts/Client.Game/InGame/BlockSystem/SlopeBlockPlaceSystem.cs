@@ -11,7 +11,12 @@ namespace Client.Game.InGame.BlockSystem
     public class SlopeBlockPlaceSystem
     {
         public static readonly int GroundLayerMask = LayerMask.GetMask("Ground");
-        
+
+        // 地表探査のレイ始点高さと探査距離。地形の最高点より十分上から、最低点より下まで貫く
+        // Ray start height and probe length of ground probing: from well above the highest terrain to below the lowest
+        private const float GroundProbeStartHeight = 1000f;
+        private const float GroundProbeDistance = 1500f;
+
         /// <summary>
         ///     TODO ここの定義の場所を変える
         /// </summary>
@@ -55,12 +60,12 @@ namespace Client.Game.InGame.BlockSystem
             return (resultBlockPos, blockRotation, blockScale);
         }
         
-        // 地表探査の単一エントリポイント。露頭など大量プローブ用にログ無しで成否をboolで返す
-        // Single entry point of ground probing; bulk probes such as outcrops get the outcome as a bool without logging
-        public static bool TryGetGroundPoint(Vector3 pos, out Vector3 groundPoint)
+        // 地表探査の単一エントリポイント。XZだけを取りY成分の取り違えを署名で封じる。露頭など大量プローブ用にログ無しで成否を返す
+        // Single entry point of ground probing; taking only XZ makes a mistaken Y impossible, and bulk probes such as outcrops get the outcome without logging
+        public static bool TryGetGroundPoint(float worldX, float worldZ, out Vector3 groundPoint)
         {
-            var checkRay = new Ray(new Vector3(pos.x, 1000, pos.z), Vector3.down);
-            if (Physics.Raycast(checkRay, out var checkHit, 1500, GroundLayerMask))
+            var checkRay = new Ray(new Vector3(worldX, GroundProbeStartHeight, worldZ), Vector3.down);
+            if (Physics.Raycast(checkRay, out var checkHit, GroundProbeDistance, GroundLayerMask))
             {
                 groundPoint = checkHit.point;
                 return true;
@@ -69,30 +74,48 @@ namespace Client.Game.InGame.BlockSystem
             return false;
         }
 
-        public static Vector3? GetGroundPoint(Vector3 pos, Color debugRayColor = default)
+        public static Vector3? GetGroundPoint(Vector3 pos)
         {
-            Debug.DrawRay(new Vector3(pos.x, 1000, pos.z), Vector3.down * 1000, debugRayColor, 3);
+            return GetGroundPoint(pos, default);
+        }
 
-            if (!TryGetGroundPoint(pos, out var groundPoint))
+        public static Vector3? GetGroundPoint(Vector3 pos, Color debugRayColor)
+        {
+            Debug.DrawRay(new Vector3(pos.x, GroundProbeStartHeight, pos.z), Vector3.down * GroundProbeDistance, debugRayColor, 3);
+
+            if (!TryGetGroundPoint(pos.x, pos.z, out var groundPoint))
             {
                 Debug.LogError("地面が見つかりませんでした pos:" + pos + " layer:" + GroundLayerMask);
                 return null;
             }
             return groundPoint;
         }
-        
+
         public static float GetBlockFourCornerMaxHeight(Vector3Int blockPos, BlockDirection blockDirection, Vector3Int blockSize)
         {
             var (minPos, maxPos) = blockPos.GetWorldBlockBoundingBox(blockDirection, blockSize);
+
+            // boundingBoxは3次元なので水平の四隅はXとZで組む。Vector2の暗黙変換に任せると鉛直Yを渡してz=0を探査してしまう
+            // The bounding box is 3D, so the horizontal corners pair X with Z; the Vector2 conversion would pass the vertical Y and probe z=0
             var heights = new List<float>
             {
-                GetGroundPoint(new Vector2(minPos.x, minPos.y), Color.red).Value.y, // todo null check
-                GetGroundPoint(new Vector2(minPos.x, maxPos.y), Color.magenta).Value.y,
-                GetGroundPoint(new Vector2(maxPos.x, minPos.y), Color.cyan).Value.y,
-                GetGroundPoint(new Vector2(maxPos.x, maxPos.y), Color.blue).Value.y,
+                ProbeCornerHeight(minPos.x, minPos.z),
+                ProbeCornerHeight(minPos.x, maxPos.z),
+                ProbeCornerHeight(maxPos.x, minPos.z),
+                ProbeCornerHeight(maxPos.x, maxPos.z),
             };
-            
+
             return Mathf.Max(heights.ToArray());
+
+            #region Internal
+
+            float ProbeCornerHeight(float worldX, float worldZ)
+            {
+                if (TryGetGroundPoint(worldX, worldZ, out var groundPoint)) return groundPoint.y;
+                throw new InvalidOperationException($"四隅の地表が見つかりませんでした x:{worldX} z:{worldZ}");
+            }
+
+            #endregion
         }
         
         private static Vector3 GetBlockFrontRayOffset(BlockDirection blockDirection)

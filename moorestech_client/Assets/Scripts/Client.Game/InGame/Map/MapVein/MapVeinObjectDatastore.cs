@@ -125,7 +125,7 @@ namespace Client.Game.InGame.Map.MapVein
             {
                 // 地表判定は設置系と同じ単一エントリポイントへ委譲する（ADR#14: 集約）
                 // Ground probing delegates to the placement systems' single entry point (ADR#14)
-                if (SlopeBlockPlaceSystem.TryGetGroundPoint(new Vector3(x, 0f, z), out var groundPoint))
+                if (SlopeBlockPlaceSystem.TryGetGroundPoint(x, z, out var groundPoint))
                 {
                     groundHeight = groundPoint.y;
                     return true;
