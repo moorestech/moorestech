@@ -1,6 +1,7 @@
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Mod.Texture;
+using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -37,10 +38,13 @@ namespace Client.Tests.Localization
             slot.SetItem(itemView, 0);
 
             AssertTooltipState(tooltipTarget, false, string.Empty);
+
             Object.DestroyImmediate(instance);
             Object.DestroyImmediate(texture);
         }
 
+        // 合成tooltipは{p0}補間キー＋パラメータで表現されるため、表示文字列はパラメータ側を検証する
+        // Composed tooltips are expressed as a {p0} key plus params, so the display text is asserted on the param
         private static void AssertTooltipState(
             UGuiTooltipTarget tooltipTarget,
             bool expectedDisplay,
@@ -52,6 +56,12 @@ namespace Client.Tests.Localization
                 Is.EqualTo(expectedDisplay));
             Assert.That(
                 serializedTarget.FindProperty("textKey").stringValue,
+                Is.EqualTo(LocalizationKeys.Ui.Tooltip.ComposedText.Key));
+
+            var textParams = serializedTarget.FindProperty("textParams");
+            Assert.That(textParams.arraySize, Is.EqualTo(1));
+            Assert.That(
+                textParams.GetArrayElementAtIndex(0).stringValue,
                 Is.EqualTo(expectedText));
         }
     }

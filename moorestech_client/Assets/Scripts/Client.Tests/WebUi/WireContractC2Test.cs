@@ -127,9 +127,9 @@ namespace Client.Tests.WebUi
                 new TooltipDto
                 {
                     Visible = true,
-                    TextKey = "Cannot remove",
+                    TextKey = "ui.tooltip.requiredItems",
+                    TextParams = new[] { "Iron Pickaxe" },
                     FontSize = 36,
-                    IsLocalize = false,
                 },
                 "tooltip.json");
         }

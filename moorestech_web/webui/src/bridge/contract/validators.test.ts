@@ -61,7 +61,7 @@ describe("common HUD schemas", () => {
 describe("tooltip schema", () => {
   it("requires a complete cursor-tooltip snapshot", () => {
     expect(validateTopicPayload(Topics.tooltip, {
-      visible: true, textKey: "Cannot remove", fontSize: 36, isLocalize: false,
+      visible: true, textKey: "ui.tooltip.requiredItems", textParams: ["Iron Pickaxe"], fontSize: 36,
     })).toBe(true);
     expect(validateTopicPayload(Topics.tooltip, {
       visible: true, textKey: "Cannot remove", fontSize: 36,

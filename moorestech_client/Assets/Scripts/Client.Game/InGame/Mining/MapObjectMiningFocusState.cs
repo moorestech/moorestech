@@ -52,7 +52,7 @@ namespace Client.Game.InGame.Mining
             
             // 左クリックがされていなければ現状を維持
             // If left click is not pressed, maintain the current state
-            MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.PickUpLeftClick.Key);
+            MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.PickUpLeftClick, IMouseCursorTooltip.DefaultFontSize);
             return this;
         }
         
@@ -98,7 +98,7 @@ namespace Client.Game.InGame.Mining
             // If not clicked, maintain focus
             if (!InputManager.Playable.ScreenLeftClick.GetKey)
             {
-                MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.HoldToGet.Key);
+                MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.HoldToGet, IMouseCursorTooltip.DefaultFontSize);
                 return this;
             }
             
@@ -118,11 +118,14 @@ namespace Client.Game.InGame.Mining
                 result.Add(Localize.GetContent(ContentLocalizationKeys.ItemName(tool.ToolItemGuid)));
             }
             
-            // プレフィックスのみ辞書解決し、アイテム名は解決済み文字列を連結する
-            // Resolve only the prefix from the dictionary and append pre-resolved item names
-            var text = Localize.Get(LocalizationKeys.Ui.Tooltip.RequiredItemsPrefix) + string.Join(", ", result);
+            // 連結済みアイテム名は{p0}パラメータとして渡し、文言全体の解決は表示側へ委ねる
+            // Pass the joined item names as the {p0} parameter and leave the whole wording to the display side
+            var joinedItemNames = string.Join(", ", result);
 
-            MouseCursorTooltip.Instance.Show(text, isLocalize: false);
+            MouseCursorTooltip.Instance.Show(
+                LocalizationKeys.Ui.Tooltip.RequiredItems,
+                new[] { joinedItemNames },
+                IMouseCursorTooltip.DefaultFontSize);
         }
     }
 }

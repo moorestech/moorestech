@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Paper, Portal } from "@mantine/core";
 import { Topics, useTopic, type TooltipData } from "@/bridge";
-import { translateExternalKey, useI18n, type TranslationKey } from "@/shared/i18n";
+import { buildPositionalInterpolationValues, translateExternalKey, useI18n, type InterpolationValues, type TranslationKey } from "@/shared/i18n";
 import { clampTooltipPosition } from "./tooltipPosition";
 import styles from "./style.module.css";
 
@@ -36,10 +36,15 @@ export function CursorTooltip() {
   );
 }
 
+// ホストはキーと位置パラメータだけを送るため、常に辞書解決＋{p0}補間で表示文字列を作る
+// The host sends only a key and positional params, so the display text is always dictionary-resolved and interpolated
 export function resolveTooltipText(
   data: TooltipData,
-  translate: (key: TranslationKey) => string,
+  translate: (key: TranslationKey, values: InterpolationValues) => string,
 ): string {
-  if (!data.isLocalize) return data.textKey;
-  return translateExternalKey(data.textKey, translate);
+  return translateExternalKey(
+    data.textKey,
+    translate,
+    buildPositionalInterpolationValues(data.textParams),
+  );
 }

@@ -39,7 +39,6 @@ namespace Client.Tests.Localization
             foreach (var target in root.GetComponentsInChildren<UGuiTooltipTarget>(true))
             {
                 var serializedTarget = new SerializedObject(target);
-                if (!serializedTarget.FindProperty("localize").boolValue) continue;
                 AssertKnownNonEmptyKey(serializedTarget.FindProperty("textKey").stringValue, assetPath);
             }
         }

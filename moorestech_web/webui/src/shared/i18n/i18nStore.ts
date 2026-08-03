@@ -36,8 +36,18 @@ let warnedMissingTranslationKeys = new Set<TranslationKey>();
 let warnedUnknownExternalKeys = new Set<string>();
 const translationKeys = new Set<string>(VanillaLocalizationKeys);
 
+// 導出キーは宣言表から生成される`<ns>.<uuid>.<field>`書式で、有限の生成済み一覧には載らない
+// Derived keys follow the generated `<ns>.<uuid>.<field>` shape and never appear in the finite generated list
+const CONTENT_KEY_RE = /^[a-z][a-zA-Z]*\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-zA-Z]+$/;
+
 export function isTranslationKey(value: string): value is TranslationKey {
-  return translationKeys.has(value);
+  return translationKeys.has(value) || CONTENT_KEY_RE.test(value);
+}
+
+// ホスト側の位置パラメータを{p0}補間値へ変換する（通知・tooltip共通の規約）
+// Convert host-side positional params into {p0} interpolation values (shared by notifications and tooltips)
+export function buildPositionalInterpolationValues(values: readonly string[]): InterpolationValues {
+  return Object.fromEntries(values.map((value, index) => [`p${index}`, value]));
 }
 
 export function setDictionaries(
@@ -101,9 +111,10 @@ export function createTranslator(current: I18nSnapshot) {
 
 export function translateExternalKey(
   key: string,
-  translate: (key: TranslationKey) => string,
+  translate: (key: TranslationKey, values: InterpolationValues) => string,
+  values: InterpolationValues,
 ): string {
-  if (isTranslationKey(key)) return translate(key);
+  if (isTranslationKey(key)) return translate(key, values);
   if (!warnedUnknownExternalKeys.has(key)) {
     warnedUnknownExternalKeys.add(key);
     console.warn(`[i18n] Unknown localized external key: ${key}`);

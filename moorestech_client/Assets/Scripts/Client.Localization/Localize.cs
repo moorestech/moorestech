@@ -43,8 +43,8 @@ namespace Client.Localization
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
-        // Inspector入力の生キーだけを解決するレガシー経路（導出キーはGetContent）
-        // Legacy path resolving only Inspector-authored raw keys; derived keys use GetContent
+        // TextMeshProLocalizeのInspector入力キー専用のレガシー経路（型付きキーはGet/GetContent）
+        // Legacy path used only by TextMeshProLocalize's Inspector keys; typed keys use Get/GetContent
         public static string GetLegacy(string rawKey)
         {
             var snapshot = Volatile.Read(ref publishedSnapshot).Dictionaries;

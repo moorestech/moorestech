@@ -3,6 +3,7 @@
 using System;
 using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
+using Mooresmaster.Localization.Generated;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -67,7 +68,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
             
             if (toolTipText != null)
             {
-                uGuiTooltipTarget.SetText(toolTipText, false);
+                uGuiTooltipTarget.SetText(LocalizationKeys.Ui.Tooltip.ComposedText, new[] { toolTipText });
                 uGuiTooltipTarget.DisplayEnable(true);
             }
         }
@@ -83,7 +84,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
             // Hide the icon image and reuse the count text field as a label
             countText.text = text;
             itemImage.gameObject.SetActive(false);
-            uGuiTooltipTarget.SetText(toolTipText, false);
+            uGuiTooltipTarget.SetText(LocalizationKeys.Ui.Tooltip.ComposedText, new[] { toolTipText });
             uGuiTooltipTarget.DisplayEnable(true);
         }
 

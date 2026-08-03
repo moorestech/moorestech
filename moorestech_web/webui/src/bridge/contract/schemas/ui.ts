@@ -59,11 +59,13 @@ export const PlacementModeDataSchema = z.discriminatedUnion("selectedTargetType"
 export const DeleteModeDataSchema = z.object({ unavailableReason: z.string() });
 export const CrosshairDataSchema = z.object({ visible: z.boolean() });
 export const UiVisibilityDataSchema = z.object({ visible: z.boolean() });
+// tooltipは辞書キーと{p0}補間パラメータのみを受け取り、生の表示文字列は受け付けない
+// Tooltips accept only a dictionary key and {p0} interpolation params, never raw display text
 export const TooltipDataSchema = z.object({
   visible: z.boolean(),
   textKey: z.string(),
+  textParams: z.array(z.string()),
   fontSize: z.number().positive(),
-  isLocalize: z.boolean(),
 });
 
 // snapshotを持たない一時イベントのため、接続直後は{}が届く。全フィールドoptionalにしそれを許容する

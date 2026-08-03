@@ -2,7 +2,6 @@ using System;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
-using Client.Localization;
 using Game.Train.RailGraph;
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
@@ -43,16 +42,16 @@ namespace Client.Game.InGame.Train.RailGraph
             RailChain.ResetMaterial();
         }
         
-        public bool IsRemovable(out string reason)
+        public bool IsRemovable(out LocalizationKey reason)
         {
             var canDelete = CanDelete();
             reason = canDelete switch
             {
-                DeleteDeniedReason.None => null,
-                DeleteDeniedReason.StationInternalEdge => Localize.Get(LocalizationKeys.Ui.Delete.StationInternalRail),
-                DeleteDeniedReason.NodeInUseByTrain => Localize.Get(LocalizationKeys.Ui.Delete.RailHasVehicle),
-                DeleteDeniedReason.UnknownError => Localize.Get(LocalizationKeys.Ui.Delete.UnknownError),
-                DeleteDeniedReason.Removed => null,
+                DeleteDeniedReason.None => default,
+                DeleteDeniedReason.StationInternalEdge => LocalizationKeys.Ui.Delete.StationInternalRail,
+                DeleteDeniedReason.NodeInUseByTrain => LocalizationKeys.Ui.Delete.RailHasVehicle,
+                DeleteDeniedReason.UnknownError => LocalizationKeys.Ui.Delete.UnknownError,
+                DeleteDeniedReason.Removed => default,
                 _ => throw new ArgumentOutOfRangeException(),
             };
             return canDelete == DeleteDeniedReason.None;

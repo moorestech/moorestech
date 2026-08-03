@@ -2,6 +2,8 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
+using Client.Localization;
+using Mooresmaster.Localization.Generated;
 using System;
 using UniRx;
 
@@ -84,9 +86,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 // Delegate the removable/category judgement and the add to the service; just receive and show the deny reason
                 if (!_selection.TryAddTarget(hovered, out var denyReason))
                 {
-                    MouseCursorTooltip.Instance.Show(denyReason, isLocalize: false);
-                    _unavailableReason.Value = denyReason;
-                    _isRemoveDeniedReasonShown = true;
+                    ShowDenyReason(denyReason);
                 }
             }
 
@@ -113,9 +113,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 // For a non-removable target only show the denial tooltip
                 if (_deleteTargetObject != null && !_deleteTargetObject.IsRemovable(out var reason))
                 {
-                    MouseCursorTooltip.Instance.Show(reason, isLocalize: false);
-                    _unavailableReason.Value = reason;
-                    _isRemoveDeniedReasonShown = true;
+                    ShowDenyReason(reason);
                 }
             }
 
@@ -125,6 +123,15 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
                 if (_isDragging && _selection.CanCommit()) _selection.CommitDelete();
                 _isDragging = false;
+            }
+
+            // ツールチップへはキーを、HUD向け理由文字列へは解決済み文言を渡す
+            // Push the key to the tooltip and the resolved wording to the HUD reason string
+            void ShowDenyReason(LocalizationKey denyReasonKey)
+            {
+                MouseCursorTooltip.Instance.Show(denyReasonKey, IMouseCursorTooltip.DefaultFontSize);
+                _unavailableReason.Value = Localize.Get(denyReasonKey);
+                _isRemoveDeniedReasonShown = true;
             }
 
             #endregion

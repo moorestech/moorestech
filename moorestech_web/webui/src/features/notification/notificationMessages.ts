@@ -1,6 +1,6 @@
 // messageId→表示テンプレートの対応表。文言はWeb側が所有しサーバーは構造化IDのみ送る
 // Maps messageId to display templates; the web owns wording, the server sends structured ids only
-import { L, challengeTitleKey, researchNameKey, type TranslationKey } from "@/shared/i18n";
+import { L, buildPositionalInterpolationValues, challengeTitleKey, researchNameKey, type TranslationKey } from "@/shared/i18n";
 
 const notificationKeys = new Map<string, TranslationKey>([
   ["achievement.researchCompleted", L.ui.notification.researchCompleted],
@@ -52,9 +52,9 @@ export function resolveNotificationParams(
   return messageParams.map((guid) => translate(buildContentKey(guid)));
 }
 
-export function buildInterpolationValues(messageId: string, messageParams: string[]): Record<string, string> {
+export function buildInterpolationValues(messageId: string, messageParams: string[]) {
   return {
     messageId,
-    ...Object.fromEntries(messageParams.map((value, index) => [`p${index}`, value])),
+    ...buildPositionalInterpolationValues(messageParams),
   };
 }

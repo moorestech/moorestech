@@ -4,7 +4,9 @@ using Client.Localization;
 using TMPro;
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 using Client.Game.InGame.UI.UIState;
+using Mooresmaster.Localization.Generated;
 using UniRx;
 
 namespace Client.Game.InGame.UI.Tooltip
@@ -15,7 +17,8 @@ namespace Client.Game.InGame.UI.Tooltip
         
         // TODO hotbarから毎フレーム呼び出されると常にfalseになってしまうので、何か実装方法を考えたいな、、
         public void Hide();
-        public void Show(string key, int fontSize = DefaultFontSize, bool isLocalize = true);
+        public void Show(LocalizationKey key, int fontSize);
+        public void Show(LocalizationKey key, IReadOnlyList<string> textParams, int fontSize);
     }
     
     /// <summary>
@@ -30,7 +33,7 @@ namespace Client.Game.InGame.UI.Tooltip
         
         public static MouseCursorTooltip Instance { get; private set; }
         private readonly ReactiveProperty<TooltipPresentation> _presentation =
-            new(new TooltipPresentation(false, "", IMouseCursorTooltip.DefaultFontSize, false));
+            new(TooltipPresentation.Hidden);
 
         public IObservable<TooltipPresentation> OnPresentationChanged => _presentation;
         public TooltipPresentation GetPresentation() => _presentation.Value;
@@ -40,34 +43,55 @@ namespace Client.Game.InGame.UI.Tooltip
             Instance = this;
         }
         
-        public void Show(string key, int fontSize = IMouseCursorTooltip.DefaultFontSize, bool isLocalize = true)
+        public void Show(LocalizationKey key, int fontSize)
+        {
+            Show(key, Array.Empty<string>(), fontSize);
+        }
+        
+        public void Show(LocalizationKey key, IReadOnlyList<string> textParams, int fontSize)
         {
             canvasGroup.alpha = WebUiScreenGate.IsWebUiMode ? 0 : 1;
-            itemName.text = isLocalize ? Localize.GetLegacy(key) : key;
+            itemName.text = InterpolateTextParams(Localize.Get(key), textParams);
             itemName.fontSize = fontSize;
-            _presentation.Value = new TooltipPresentation(true, key, fontSize, isLocalize);
+            _presentation.Value = new TooltipPresentation(true, key.Key, textParams, fontSize);
         }
         
         public void Hide()
         {
             canvasGroup.alpha = 0;
-            _presentation.Value = new TooltipPresentation(false, "", IMouseCursorTooltip.DefaultFontSize, false);
+            _presentation.Value = TooltipPresentation.Hidden;
+        }
+        
+        // 辞書テンプレートの{p0}プレースホルダを埋める（Web側translatorと同じ規約）
+        // Fill the {p0} placeholders of the dictionary template, matching the web translator convention
+        private static string InterpolateTextParams(string template, IReadOnlyList<string> textParams)
+        {
+            var text = template;
+            for (var index = 0; index < textParams.Count; index++)
+            {
+                text = text.Replace($"{{p{index}}}", textParams[index]);
+            }
+            
+            return text;
         }
     }
 
-    public class TooltipPresentation
+    public readonly struct TooltipPresentation
     {
+        public static readonly TooltipPresentation Hidden =
+            new(false, "", Array.Empty<string>(), IMouseCursorTooltip.DefaultFontSize);
+
         public readonly bool Visible;
         public readonly string TextKey;
+        public readonly IReadOnlyList<string> TextParams;
         public readonly int FontSize;
-        public readonly bool IsLocalize;
 
-        public TooltipPresentation(bool visible, string textKey, int fontSize, bool isLocalize)
+        public TooltipPresentation(bool visible, string textKey, IReadOnlyList<string> textParams, int fontSize)
         {
             Visible = visible;
             TextKey = textKey;
+            TextParams = textParams;
             FontSize = fontSize;
-            IsLocalize = isLocalize;
         }
     }
 }

@@ -1,5 +1,7 @@
 // [uGUI廃止Phase1] Web UI移行済みのため未メンテ・描画恒久停止。Phase2で削除予定（docs/webui/ugui-retirement-plan.md）
 // [uGUI retirement Phase1] Unmaintained; rendering permanently disabled after the Web UI migration. Slated for deletion in Phase2 (docs/webui/ugui-retirement-plan.md)
+using System;
+using Mooresmaster.Localization.Generated;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -11,9 +13,14 @@ namespace Client.Game.InGame.UI.Tooltip
     public class UGuiTooltipTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
     {
         /// <summary>
-        ///     カーソルに表示するテキスト
+        ///     カーソルに表示するテキストの辞書キー
         /// </summary>
         [SerializeField,Multiline] private string textKey;
+        
+        /// <summary>
+        ///     辞書テンプレートの{p0}へ差し込む値
+        /// </summary>
+        [SerializeField] private string[] textParams = Array.Empty<string>();
         
         /// <summary>
         ///     表示するかどうか
@@ -21,7 +28,6 @@ namespace Client.Game.InGame.UI.Tooltip
         [SerializeField] private bool displayEnable;
         
         [SerializeField] private int fontSize = IMouseCursorTooltip.DefaultFontSize;
-        [SerializeField] private bool localize = true;
         
         private bool _pointerStay;
         
@@ -32,10 +38,10 @@ namespace Client.Game.InGame.UI.Tooltip
         }
         
         
-        public void SetText(string text, bool isLocalize = true)
+        public void SetText(LocalizationKey key, string[] tooltipTextParams)
         {
-            localize = isLocalize;
-            textKey = text;
+            textKey = key.Key;
+            textParams = tooltipTextParams;
         }
         
         /// <summary>
@@ -50,7 +56,7 @@ namespace Client.Game.InGame.UI.Tooltip
             //表示する設定で、ポインターが乗ったので表示
             if (_pointerStay && displayEnable)
             {
-                MouseCursorTooltip.Instance.Show(textKey, fontSize, localize);
+                MouseCursorTooltip.Instance.Show(new LocalizationKey(textKey), textParams, fontSize);
                 return;
             }
             

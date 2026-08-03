@@ -1,7 +1,6 @@
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
-using Client.Localization;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
 using Server.Protocol.PacketResponse;
@@ -15,7 +14,7 @@ namespace Client.Game.InGame.Block
 
         public BlockGameObject BlockGameObject { get; private set; }
         private bool _isDeleteRequesting;
-        private string _removeDeniedReason;
+        private LocalizationKey? _removeDeniedReason;
         private float _removeDeniedReasonUntil;
         
         public void Init(BlockGameObject blockGameObject)
@@ -33,15 +32,15 @@ namespace Client.Game.InGame.Block
             BlockGameObject.ResetMaterial();
         }
         
-        public bool IsRemovable(out string reason)
+        public bool IsRemovable(out LocalizationKey reason)
         {
-            if (!string.IsNullOrEmpty(_removeDeniedReason) && Time.time < _removeDeniedReasonUntil)
+            if (_removeDeniedReason.HasValue && Time.time < _removeDeniedReasonUntil)
             {
-                reason = _removeDeniedReason;
+                reason = _removeDeniedReason.Value;
                 return false;
             }
 
-            reason = null;
+            reason = default;
             return true;
         }
         
@@ -84,21 +83,21 @@ namespace Client.Game.InGame.Block
 
         private void SetRemoveDeniedReason(RemoveBlockProtocol.RemoveBlockFailureReason failureReason)
         {
-            var message = GetRemoveDeniedReasonMessage(failureReason);
-            if (message == null) return;
+            var reasonKey = GetRemoveDeniedReasonKey(failureReason);
+            if (!reasonKey.HasValue) return;
 
             // 一定時間だけIsRemovableから理由を返して表示する
             // Return the reason from IsRemovable for a short display window.
-            _removeDeniedReason = message;
+            _removeDeniedReason = reasonKey;
             _removeDeniedReasonUntil = Time.time + RemoveDeniedReasonDisplaySeconds;
         }
 
-        private static string GetRemoveDeniedReasonMessage(RemoveBlockProtocol.RemoveBlockFailureReason failureReason)
+        private static LocalizationKey? GetRemoveDeniedReasonKey(RemoveBlockProtocol.RemoveBlockFailureReason failureReason)
         {
             return failureReason switch
             {
-                RemoveBlockProtocol.RemoveBlockFailureReason.NodeInUseByTrain => Localize.Get(LocalizationKeys.Ui.Delete.RailHasVehicle),
-                RemoveBlockProtocol.RemoveBlockFailureReason.Unknown => Localize.Get(LocalizationKeys.Ui.Delete.BlockDeleteFailed),
+                RemoveBlockProtocol.RemoveBlockFailureReason.NodeInUseByTrain => LocalizationKeys.Ui.Delete.RailHasVehicle,
+                RemoveBlockProtocol.RemoveBlockFailureReason.Unknown => LocalizationKeys.Ui.Delete.BlockDeleteFailed,
                 _ => null,
             };
         }

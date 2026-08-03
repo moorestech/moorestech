@@ -10,6 +10,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
 using Game.Research;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.GameActionModule;
 using TMPro;
 using UniRx;
@@ -103,7 +104,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                     ResearchNodeState.Completed => "研究済み",
                     _ => ""
                 };
-                researchButtonTooltipTarget.SetText(text, false);
+                researchButtonTooltipTarget.SetText(LocalizationKeys.Ui.Tooltip.ComposedText, new[] { text });
             }
             
             void CreateUnlockItemIcons()
@@ -207,7 +208,7 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
                 (false, true) => "前提研究が完了していません。",
                 (false, false) => "研究アイテムが足りません。\n前提研究が完了していません。",
             };
-            researchButtonTooltipTarget.SetText(text, false);
+            researchButtonTooltipTarget.SetText(LocalizationKeys.Ui.Tooltip.ComposedText, new[] { text });
         }
 
         public void CreateConnect(Transform lineParent, Dictionary<Guid, ResearchTreeElement> nodeElements)

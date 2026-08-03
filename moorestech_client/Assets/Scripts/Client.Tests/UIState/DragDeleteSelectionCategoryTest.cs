@@ -1,5 +1,6 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
+using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 
 namespace Client.Tests.UIState
@@ -40,7 +41,7 @@ namespace Client.Tests.UIState
             selection.BeginDrag();
             Assert.IsTrue(selection.TryAddTarget(start, out _));
             Assert.IsFalse(selection.TryAddTarget(foundation, out var denyReason));
-            Assert.AreEqual(DragDeleteSelection.DifferentCategoryDenyReason, denyReason);
+            Assert.AreEqual(LocalizationKeys.Ui.Delete.DifferentCategorySelection, denyReason);
             selection.CommitDelete();
 
             Assert.AreEqual(1, start.DeleteCount);

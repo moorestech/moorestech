@@ -48,12 +48,12 @@ describe("useI18n translation behavior", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const translate = vi.fn(() => "unused");
 
-    translateExternalKey("ui.external.unknown", translate);
-    translateExternalKey("ui.external.unknown", translate);
+    translateExternalKey("ui.external.unknown", translate, {});
+    translateExternalKey("ui.external.unknown", translate, {});
     expect(warn).toHaveBeenCalledOnce();
 
     setDictionaries("english", {}, {}, {});
-    translateExternalKey("ui.external.unknown", translate);
+    translateExternalKey("ui.external.unknown", translate, {});
     expect(warn).toHaveBeenCalledTimes(2);
     warn.mockRestore();
   });

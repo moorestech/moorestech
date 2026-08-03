@@ -140,7 +140,9 @@ ui.blueprint.webModalTitle,Blueprint Name,Blueprint Name,ブループリント�
 ui.blueprint.webModalMessage,Enter a name for the blueprint you want to save,Enter a name for the blueprint you want to save,保存するブループリントの名前を入力してください
 ui.blueprint.webModalConfirm,Save,Save,保存
 ui.tooltip.pickUpLeftClick,Left-click to pick up,Left-click to pick up,左クリックで取得
-ui.tooltip.requiredItemsPrefix,Requires:,Requires:,このアイテムが必要です:
+ui.tooltip.requiredItems,Requires: {p0},Requires: {p0},このアイテムが必要です: {p0}
+ui.tooltip.craftCannotByItemShortage,Not enough items to craft,Not enough items to craft,アイテムが足りないためクラフトできません
+ui.tooltip.composedText,{p0},{p0},{p0}
 ui.delete.differentCategorySelection,Blocks from different categories cannot be selected at the same time.,Blocks from different categories cannot be selected at the same time.,別カテゴリーのブロックは同時に選択できません。
 ui.delete.railHasVehicle,A vehicle is on this rail.,A vehicle is on this rail.,レール上に車両があります。
 ui.delete.blockDeleteFailed,Failed to delete the block.,Failed to delete the block.,ブロックを削除できませんでした。

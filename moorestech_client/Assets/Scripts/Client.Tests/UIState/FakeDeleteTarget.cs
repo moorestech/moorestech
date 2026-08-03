@@ -1,5 +1,6 @@
 using Client.Game.Common;
 using Client.Game.InGame.UI.UIState.State;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Tests.UIState
 {
@@ -26,9 +27,9 @@ namespace Client.Tests.UIState
             ResetCount++;
         }
 
-        public bool IsRemovable(out string reason)
+        public bool IsRemovable(out LocalizationKey reason)
         {
-            reason = null;
+            reason = default;
             return Removable;
         }
 
