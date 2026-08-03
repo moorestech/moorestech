@@ -10,18 +10,25 @@ export const FALLBACK_LOCALE = "english";
 export type TranslationDictionary = Readonly<Record<string, string>>;
 export type InterpolationValues = Readonly<Record<string, string | number>>;
 export type TranslationKey = VanillaLocalizationKey | ContentLocalizationKey;
-// uninitializedは「辞書が一度も届いていない」ことを表し、初回取得中もこの状態にとどまる
-// uninitialized means no dictionary has ever arrived, and the first fetch stays in this state
+// statusは取得ライフサイクルだけを表す。表示できる辞書の有無はdictionariesが持つ
+// status expresses only the fetch lifecycle; whether a displayable dictionary exists lives in dictionaries
 export type I18nStatus = "uninitialized" | "loading" | "ready" | "error";
+
+export type DictionaryContent =
+  | { kind: "none" }
+  | {
+    kind: "loaded";
+    dictionary: TranslationDictionary;
+    fallbackDictionary: TranslationDictionary;
+    sourceDictionary: TranslationDictionary;
+  };
 
 export type I18nSnapshot = {
   status: I18nStatus;
   locale: string;
   requestedLocale: string;
   generation: number;
-  dictionary: TranslationDictionary;
-  fallbackDictionary: TranslationDictionary;
-  sourceDictionary: TranslationDictionary;
+  dictionaries: DictionaryContent;
 };
 
 let snapshot: I18nSnapshot = {
@@ -29,9 +36,7 @@ let snapshot: I18nSnapshot = {
   locale: FALLBACK_LOCALE,
   requestedLocale: FALLBACK_LOCALE,
   generation: 0,
-  dictionary: {},
-  fallbackDictionary: {},
-  sourceDictionary: {},
+  dictionaries: { kind: "none" },
 };
 const listeners = new Set<() => void>();
 let warnedMissingTranslationKeys = new Set<TranslationKey>();
@@ -63,9 +68,7 @@ export function setDictionaries(
     locale,
     requestedLocale: locale,
     generation: snapshot.generation + 1,
-    dictionary,
-    fallbackDictionary,
-    sourceDictionary,
+    dictionaries: { kind: "loaded", dictionary, fallbackDictionary, sourceDictionary },
   };
   warnedMissingTranslationKeys = new Set<TranslationKey>();
   warnedUnknownExternalKeys = new Set<string>();
@@ -73,10 +76,7 @@ export function setDictionaries(
 }
 
 export function setDictionaryLoading(requestedLocale: string): void {
-  // 初回辞書が届く前はuninitializedのままにし、表示できる辞書がある再取得だけloadingにする
-  // Stay uninitialized before the first dictionary; only refetches with a displayable dictionary become loading
-  const status: I18nStatus = snapshot.status === "uninitialized" ? "uninitialized" : "loading";
-  snapshot = { ...snapshot, status, requestedLocale };
+  snapshot = { ...snapshot, status: "loading", requestedLocale };
   notifyListeners();
 }
 
@@ -92,13 +92,16 @@ export function getI18nSnapshot(): I18nSnapshot {
 
 export function createTranslator(current: I18nSnapshot) {
   const warnedKeysForGeneration = warnedMissingTranslationKeys;
+  const dictionaries = current.dictionaries;
   return (key: TranslationKey, values: InterpolationValues = {}): string => {
-    if (current.status === "uninitialized") return "";
+    // 表示できる辞書が無い間は空文字。取得中でも失敗後でも欠落マーカーで画面を埋めない
+    // Without a displayable dictionary return empty text, both while loading and after a failure
+    if (dictionaries.kind === "none") return "";
 
     const template =
-      nonEmptyTranslation(current.dictionary[key]) ??
-      nonEmptyTranslation(current.fallbackDictionary[key]) ??
-      nonEmptyTranslation(current.sourceDictionary[key]);
+      nonEmptyTranslation(dictionaries.dictionary[key]) ??
+      nonEmptyTranslation(dictionaries.fallbackDictionary[key]) ??
+      nonEmptyTranslation(dictionaries.sourceDictionary[key]);
 
     // 同じ辞書世代では欠落キーごとの警告を一度に抑える
     // Warn only once per missing key within the same dictionary generation

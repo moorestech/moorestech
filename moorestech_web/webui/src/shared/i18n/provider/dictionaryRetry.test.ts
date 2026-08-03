@@ -17,9 +17,11 @@ vi.mock("@/bridge", () => ({
 }));
 
 import { I18nProvider } from "../I18nProvider";
-import { getI18nSnapshot, setDictionaries } from "../i18nStore";
+import { createTranslator, getI18nSnapshot, setDictionaries } from "../i18nStore";
+import { L } from "../generated/localizationKeys";
 
 const RETRY_DELAY_MS = 5000;
+const readyKey = L.ui.mainMenu.playLocally;
 
 describe("dictionary load retry", () => {
   beforeEach(() => {
@@ -56,6 +58,26 @@ describe("dictionary load retry", () => {
     await vi.advanceTimersByTimeAsync(RETRY_DELAY_MS * 4);
     await flushPendingWork();
     expect(fetchMock).toHaveBeenCalledTimes(6);
+  });
+
+  it("retries a 5xx once and keeps the previously ready dictionary while failing", async () => {
+    setDictionaries("english", { [readyKey]: "Ready title" }, {}, {});
+    const fetchMock = vi.fn(() => Promise.resolve({ ok: false, status: 500 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    I18nProvider({ children: null });
+    await flushPendingWork();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(getI18nSnapshot().status).toBe("loading");
+
+    await vi.advanceTimersByTimeAsync(RETRY_DELAY_MS);
+    await flushPendingWork();
+    expect(fetchMock).toHaveBeenCalledTimes(6);
+
+    // 失敗中も直前のready辞書とlocaleは置き換えない
+    // A failure must not replace the previously ready dictionary or locale
+    expect(getI18nSnapshot()).toMatchObject({ status: "error", locale: "english" });
+    expect(createTranslator(getI18nSnapshot())(readyKey)).toBe("Ready title");
   });
 
   it("reports 404 immediately without retrying", async () => {

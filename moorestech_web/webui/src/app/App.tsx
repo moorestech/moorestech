@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from "react";
-import { Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
+import { Button, Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
 import { InventoryPanel, HotbarPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel, RecipeSelectionKeyHandler } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
@@ -141,6 +141,11 @@ export default function App() {
           <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-reconnect)" data-testid="dictionary-error-overlay">
             <Stack align="center" gap="sm">
               <Text c="white" fw={500}>{DictionaryIndependentText.dictionaryLoadFailed}</Text>
+              {/* 再接続と違い自動復帰しないため、操作を取り戻す手段を必ず添える */}
+              {/* Unlike reconnecting this never self-heals, so always offer a way back to an operable UI */}
+              <Button color="red" onClick={() => location.reload()} data-testid="dictionary-error-reload">
+                {DictionaryIndependentText.reload}
+              </Button>
             </Stack>
           </Overlay>
         </Portal>

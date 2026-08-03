@@ -66,14 +66,21 @@ describe("dictionary generation loading", () => {
     requests.slice(3).forEach((request) =>
       request.resolve({ ok: true, json: async () => ({ [L.ui.mainMenu.playLocally]: "Revision 8" }) }));
     await vi.waitFor(() =>
-      expect(getI18nSnapshot().dictionary[L.ui.mainMenu.playLocally]).toBe("Revision 8"));
+      expect(currentTranslation(L.ui.mainMenu.playLocally)).toBe("Revision 8"));
 
     requests.slice(0, 3).forEach((request) =>
       request.resolve({ ok: true, json: async () => ({ [L.ui.mainMenu.playLocally]: "Revision 7" }) }));
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(getI18nSnapshot().dictionary[L.ui.mainMenu.playLocally]).toBe("Revision 8");
+    expect(currentTranslation(L.ui.mainMenu.playLocally)).toBe("Revision 8");
     expect(getI18nSnapshot().generation).toBe(initialGeneration + 1);
   });
 });
+
+// 現在辞書はloaded判別の内側にあるため、テスト側で1箇所だけ取り出す
+// The current dictionary lives inside the loaded variant, so unwrap it in one place for the tests
+function currentTranslation(key: string): string | undefined {
+  const { dictionaries } = getI18nSnapshot();
+  return dictionaries.kind === "loaded" ? dictionaries.dictionary[key] : undefined;
+}

@@ -7,6 +7,8 @@ import {
   setDictionaryLoadError,
   setDictionaryLoading,
   translateExternalKey,
+  type DictionaryContent,
+  type TranslationDictionary,
 } from "./i18nStore";
 
 const readySnapshotState = {
@@ -15,11 +17,19 @@ const readySnapshotState = {
   generation: 1,
 };
 
-// storeはモジュール状態のため、uninitializedを見る3件は辞書投入より前に置く
-// The store keeps module state, so the three uninitialized cases must run before any dictionary is set
+function loadedDictionaries(
+  dictionary: TranslationDictionary,
+  fallbackDictionary: TranslationDictionary,
+  sourceDictionary: TranslationDictionary,
+): DictionaryContent {
+  return { kind: "loaded", dictionary, fallbackDictionary, sourceDictionary };
+}
+
+// storeはモジュール状態のため、辞書ゼロを見る4件は辞書投入より前に置く
+// The store keeps module state, so the four dictionary-less cases must run before any dictionary is set
 describe("useI18n translation behavior", () => {
-  it("starts uninitialized before any dictionary request", () => {
-    expect(getI18nSnapshot().status).toBe("uninitialized");
+  it("starts uninitialized with no dictionary content", () => {
+    expect(getI18nSnapshot()).toMatchObject({ status: "uninitialized", dictionaries: { kind: "none" } });
     expect(createTranslator(getI18nSnapshot())(L.ui.mainMenu.playLocally)).toBe("");
   });
 
@@ -28,7 +38,7 @@ describe("useI18n translation behavior", () => {
     setDictionaryLoading("english");
 
     expect(createTranslator(getI18nSnapshot())(L.ui.mainMenu.playLocally)).toBe("");
-    expect(getI18nSnapshot().status).toBe("uninitialized");
+    expect(getI18nSnapshot().status).toBe("loading");
     expect(warn).not.toHaveBeenCalled();
     warn.mockRestore();
   });
@@ -37,6 +47,18 @@ describe("useI18n translation behavior", () => {
     setDictionaryLoadError("english");
 
     expect(getI18nSnapshot()).toMatchObject({ status: "error", requestedLocale: "english" });
+  });
+
+  it("keeps translations empty and silent after the very first load failed", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    // 辞書ゼロのままerrorへ落ちても、全画面が[!key]で埋まらないこと
+    // Even when the failure lands with no dictionary, the screen must not fill up with [!key] markers
+    expect(getI18nSnapshot().dictionaries.kind).toBe("none");
+    expect(createTranslator(getI18nSnapshot())(L.ui.mainMenu.playLocally)).toBe("");
+    expect(createTranslator(getI18nSnapshot())(L.ui.settings.language)).toBe("");
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it("keeps the last ready generation while exposing a later load failure", () => {
@@ -81,9 +103,11 @@ describe("useI18n translation behavior", () => {
     const t = createTranslator({
       ...readySnapshotState,
       locale: "japanese",
-      dictionary: { [L.ui.mainMenu.playLocally]: "こんにちは、{name}。残り{count}個" },
-      fallbackDictionary: { [L.ui.mainMenu.playLocally]: "Hello, {name}" },
-      sourceDictionary: { [L.ui.mainMenu.playLocally]: "Source {name}" },
+      dictionaries: loadedDictionaries(
+        { [L.ui.mainMenu.playLocally]: "こんにちは、{name}。残り{count}個" },
+        { [L.ui.mainMenu.playLocally]: "Hello, {name}" },
+        { [L.ui.mainMenu.playLocally]: "Source {name}" },
+      ),
     });
     expect(t(L.ui.mainMenu.playLocally, { name: "Moore", count: 3 })).toBe("こんにちは、Moore。残り3個");
   });
@@ -92,9 +116,11 @@ describe("useI18n translation behavior", () => {
     const t = createTranslator({
       ...readySnapshotState,
       locale: "japanese",
-      dictionary: {},
-      fallbackDictionary: { [L.ui.mainMenu.playLocally]: "Play locally" },
-      sourceDictionary: { [L.ui.mainMenu.playLocally]: "Source play" },
+      dictionaries: loadedDictionaries(
+        {},
+        { [L.ui.mainMenu.playLocally]: "Play locally" },
+        { [L.ui.mainMenu.playLocally]: "Source play" },
+      ),
     });
     expect(t(L.ui.mainMenu.playLocally)).toBe("Play locally");
   });
@@ -103,9 +129,7 @@ describe("useI18n translation behavior", () => {
     const t = createTranslator({
       ...readySnapshotState,
       locale: "japanese",
-      dictionary: {},
-      fallbackDictionary: {},
-      sourceDictionary: { [L.ui.mainMenu.playLocally]: "Play locally source" },
+      dictionaries: loadedDictionaries({}, {}, { [L.ui.mainMenu.playLocally]: "Play locally source" }),
     });
 
     expect(t(L.ui.mainMenu.playLocally)).toBe("Play locally source");
@@ -115,9 +139,11 @@ describe("useI18n translation behavior", () => {
     const t = createTranslator({
       ...readySnapshotState,
       locale: "japanese",
-      dictionary: { [L.ui.mainMenu.playLocally]: "" },
-      fallbackDictionary: { [L.ui.mainMenu.playLocally]: "Play locally" },
-      sourceDictionary: { [L.ui.mainMenu.playLocally]: "Play locally source" },
+      dictionaries: loadedDictionaries(
+        { [L.ui.mainMenu.playLocally]: "" },
+        { [L.ui.mainMenu.playLocally]: "Play locally" },
+        { [L.ui.mainMenu.playLocally]: "Play locally source" },
+      ),
     });
 
     expect(t(L.ui.mainMenu.playLocally)).toBe("Play locally");
@@ -127,9 +153,11 @@ describe("useI18n translation behavior", () => {
     const t = createTranslator({
       ...readySnapshotState,
       locale: "japanese",
-      dictionary: { [L.ui.mainMenu.playLocally]: "" },
-      fallbackDictionary: { [L.ui.mainMenu.playLocally]: "" },
-      sourceDictionary: { [L.ui.mainMenu.playLocally]: "Play locally source" },
+      dictionaries: loadedDictionaries(
+        { [L.ui.mainMenu.playLocally]: "" },
+        { [L.ui.mainMenu.playLocally]: "" },
+        { [L.ui.mainMenu.playLocally]: "Play locally source" },
+      ),
     });
 
     expect(t(L.ui.mainMenu.playLocally)).toBe("Play locally source");
@@ -140,9 +168,11 @@ describe("useI18n translation behavior", () => {
     const t = createTranslator({
       ...readySnapshotState,
       locale: "japanese",
-      dictionary: { [L.ui.mainMenu.playLocally]: "" },
-      fallbackDictionary: { [L.ui.mainMenu.playLocally]: "" },
-      sourceDictionary: { [L.ui.mainMenu.playLocally]: "" },
+      dictionaries: loadedDictionaries(
+        { [L.ui.mainMenu.playLocally]: "" },
+        { [L.ui.mainMenu.playLocally]: "" },
+        { [L.ui.mainMenu.playLocally]: "" },
+      ),
     });
 
     expect(t(L.ui.mainMenu.playLocally)).toBe(`[!${L.ui.mainMenu.playLocally}]`);
@@ -154,9 +184,7 @@ describe("useI18n translation behavior", () => {
     const t = createTranslator({
       ...readySnapshotState,
       locale: "english",
-      dictionary: { [L.ui.mainMenu.playLocally]: "Hello {name}, {count}" },
-      fallbackDictionary: {},
-      sourceDictionary: {},
+      dictionaries: loadedDictionaries({ [L.ui.mainMenu.playLocally]: "Hello {name}, {count}" }, {}, {}),
     });
     expect(t(L.ui.mainMenu.playLocally, { name: "Moore" })).toBe("Hello Moore, {count}");
   });
@@ -166,11 +194,9 @@ describe("useI18n translation behavior", () => {
     const current = {
       ...readySnapshotState,
       locale: "japanese",
-      dictionary: {},
-      fallbackDictionary: {},
-      sourceDictionary: {},
+      dictionaries: loadedDictionaries({}, {}, {}),
     };
-    setDictionaries(current.locale, current.dictionary, current.fallbackDictionary, current.sourceDictionary);
+    setDictionaries(current.locale, {}, {}, {});
     const first = createTranslator(current);
     const second = createTranslator(current);
 
@@ -184,9 +210,7 @@ describe("useI18n translation behavior", () => {
     createTranslator({
       ...readySnapshotState,
       locale: "english",
-      dictionary: {},
-      fallbackDictionary: {},
-      sourceDictionary: {},
+      dictionaries: loadedDictionaries({}, {}, {}),
     })(
       L.ui.mainMenu.playLocally,
     );
@@ -200,9 +224,7 @@ describe("useI18n translation behavior", () => {
     const oldTranslator = createTranslator({
       ...readySnapshotState,
       locale: "japanese",
-      dictionary: {},
-      fallbackDictionary: {},
-      sourceDictionary: {},
+      dictionaries: loadedDictionaries({}, {}, {}),
     });
 
     // 旧翻訳器と現行警告を分離する
@@ -211,9 +233,7 @@ describe("useI18n translation behavior", () => {
     const currentTranslator = createTranslator({
       ...readySnapshotState,
       locale: "english",
-      dictionary: {},
-      fallbackDictionary: {},
-      sourceDictionary: {},
+      dictionaries: loadedDictionaries({}, {}, {}),
     });
     oldTranslator(L.ui.mainMenu.playLocally);
     currentTranslator(L.ui.mainMenu.playLocally);

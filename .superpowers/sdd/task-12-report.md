@@ -129,3 +129,41 @@ $ npx playwright test --config e2e/playwright.config.ts --grep "i18n"
 3. **`409` は `loading` のまま留まる**: 再試行も失敗表示もしないため、新revisionのpushが来なければ status は `loading` のまま（表示は直前の辞書が継続）。ブリーフの「409は既存のrevision再push経路が回す」という前提に依存している。
 4. **`allScreensI18n.test.ts` の既存ケースを 500→404 に変更**した。500は今回から「5秒後に1回再試行」になり、`vi.waitFor`（既定1秒）では `error` に到達しなくなるため。再試行経路のカバレッジは新規 `provider/dictionaryRetry.test.ts` が持つ。
 5. **e2e全体は既存11件が赤**（modeHud/recipe/research/skit/train/connection/commonHud）。ベースライン比較で本タスク由来でないことは確認済みだが、ブランチ全体としては Task 19 のレビューで扱う必要がある。
+
+> **[レビュー後追記による訂正]** 上記 1〜4 のうち 1・2・4 はレビュー指摘（Important 1〜3）として第2コミットで解消済み。**3 の記述は誤り**だった。辞書未取得のまま 409 を受けた場合、当時の実装では `setDictionaryLoading` が `uninitialized` を維持するためオーバーレイも出ず、全 `t()` が空文字＝**無表示のまま停止**する（「表示は直前の辞書が継続」ではない）。現在は status が取得ライフサイクル専任になったため、409 後の status は `loading`、表示内容は `dictionaries` の有無で決まる（辞書があれば直前の辞書が継続、無ければ空文字）。詳細は §6。
+
+---
+
+## 6. レビュー指摘対応（追記・2026-08-03）
+
+コミット: `fix: 辞書の有無をstatusから分離し失敗時の表示保護とリロード手段を回復`
+
+### Important 1: `status` の2軸兼務を型で分離（採用: 判別共用体版）
+「最小対応の `hasEverLoaded: boolean`」ではなく、レビュー第1案の**判別共用体**を採用した。
+
+- `I18nSnapshot` の `dictionary` / `fallbackDictionary` / `sourceDictionary` の3フィールドを
+  `dictionaries: { kind: "none" } | { kind: "loaded"; dictionary; fallbackDictionary; sourceDictionary }` の1フィールドへ置換。
+- `createTranslator` の空文字ガードを `dictionaries.kind === "none"` へ。これで **uninitialized / loading / error のいずれでも「辞書ゼロなら空文字」**となり、旧 `generation === 0` の被覆範囲が完全に回復した（ガードの意味的縮小＝デグレを解消）。
+- 副産物として `setDictionaryLoading` の分岐（`uninitialized` を維持するか否か）が不要になり、常に `loading` へ移す素直な実装に戻った。`status` は取得ライフサイクル専任、辞書の有無は `dictionaries` が持つ、と責務が1軸ずつになった。
+- テスト追加: `useI18n.test.ts` に「初回ロード失敗後も `t()` は空文字・`console.warn` も出ない」を追加（`ui.mainMenu.playLocally` と `ui.settings.language` の2キーで検証）。既存の「初回取得中」ケースは status が `loading` になった点だけ更新し、検証内容（空文字・警告なし）は不変。
+- 逆転検証: ガードを `current.status === "uninitialized"` に戻すと当該2件が落ちることを実測（`× keeps translations empty and silent after the very first load failed` / `× does not warn or show a missing marker...`）。
+- 影響範囲の追随: `provider/dictionaryGeneration.test.ts` は `getI18nSnapshot().dictionary[...]` を `currentTranslation()` ヘルパ（`kind === "loaded"` を1箇所で剥がす）経由へ。`useI18n.test.ts` の各snapshot構築は `loadedDictionaries(...)` ヘルパへ機械的に置換し、入力値・アサーションは変更していない。
+
+### Important 2: オーバーレイにリロード手段を追加
+- `App.tsx` の辞書エラーオーバーレイに `AppErrorFallback` と同型の `location.reload()` ボタン（文言 `DictionaryIndependentText.reload`・`data-testid="dictionary-error-reload"`）を追加。ポインタを捕捉したまま解除手段が無い恒久ロックを解消した。
+- 任意項目だった「辞書がある場合は非ブロッキング通知にする」は今回は入れていない（`dictionaries.kind` で判別可能になったので、必要なら次段で低コストに実施できる）。
+- テスト追加: `App.architecture.test.ts` に「`dictionary-error-overlay` 以降のソースに `location.reload()` と `DictionaryIndependentText.reload` が含まれる」ガードを追加（同ファイル既存のソース検査様式に合わせた）。
+
+### Important 3: 5xx を通るテストを回復
+- `provider/dictionaryRetry.test.ts` に「500 → 5秒後に1回リトライ → `error`、かつ直前の ready 辞書と locale を保持」を追加。`classifyResponseStatus` の既定分岐（5xx→transient）と「失敗時に前回辞書を置き換えない」の両方を1ケースで押さえる。
+- 逆転検証: `classifyResponseStatus` を `status >= 500` も `unavailable` にすると当該ケースが落ちることを実測。
+- `allScreensI18n.test.ts` の 404 化はそのまま（理由コメント付き）。5xx経路は上記の新ケースが担保する。
+
+### 再検証（Important 1〜3適用後）
+```
+$ npx tsc -b        → exit 0
+$ npm run lint      → exit 0
+$ npm test          → Test Files 82 passed (82) / Tests 543 passed (543)
+$ npx playwright test --config e2e/playwright.config.ts --grep "i18n" → 2 passed
+```
+`i18nStore.ts` 159行 / `App.tsx` 155行で200行制限内。
