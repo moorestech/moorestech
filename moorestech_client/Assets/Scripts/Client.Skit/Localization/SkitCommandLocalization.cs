@@ -1,5 +1,4 @@
 using System.Globalization;
-using Client.Skit.Context;
 
 namespace Client.Skit.Localization
 {
@@ -22,7 +21,6 @@ namespace Client.Skit.Localization
 
         public static ResolvedSkitLine ResolveLine(
             ISkitLocalizationResolver resolver,
-            SkitExecutionIdentity identity,
             int commandId,
             string characterId,
             bool useOverride,
@@ -31,55 +29,35 @@ namespace Client.Skit.Localization
         {
             // 表示文だけを解決し、音声照合用原文を独立して保持する
             // Resolve display text while preserving an independent source for voice lookup
-            var displayBody = resolver.ResolveCommandField(
-                identity.SkitTitle,
-                commandId,
-                BodyField,
-                bodySource);
-            var speakerName = resolver.ResolveCharacterName(
-                characterId,
-                identity.SkitTitle,
-                commandId,
-                useOverride,
-                overrideSource);
+            var displayBody = resolver.ResolveCommandField(commandId, BodyField, bodySource);
+            var speakerName = useOverride
+                ? resolver.ResolveOverriddenCharacterName(commandId, overrideSource)
+                : resolver.ResolveCharacterName(characterId);
             return new ResolvedSkitLine(speakerName, displayBody, bodySource);
         }
 
         public static string ResolveOption1(
             ISkitLocalizationResolver resolver,
-            SkitExecutionIdentity identity,
             int commandId,
             string sourceText)
         {
-            return ResolveOption(resolver, identity, commandId, Option1Field, sourceText);
+            return resolver.ResolveCommandField(commandId, Option1Field, sourceText);
         }
 
         public static string ResolveOption2(
             ISkitLocalizationResolver resolver,
-            SkitExecutionIdentity identity,
             int commandId,
             string sourceText)
         {
-            return ResolveOption(resolver, identity, commandId, Option2Field, sourceText);
+            return resolver.ResolveCommandField(commandId, Option2Field, sourceText);
         }
 
         public static string ResolveOption3(
             ISkitLocalizationResolver resolver,
-            SkitExecutionIdentity identity,
             int commandId,
             string sourceText)
         {
-            return ResolveOption(resolver, identity, commandId, Option3Field, sourceText);
-        }
-
-        private static string ResolveOption(
-            ISkitLocalizationResolver resolver,
-            SkitExecutionIdentity identity,
-            int commandId,
-            string field,
-            string sourceText)
-        {
-            return resolver.ResolveCommandField(identity.SkitTitle, commandId, field, sourceText);
+            return resolver.ResolveCommandField(commandId, Option3Field, sourceText);
         }
     }
 }

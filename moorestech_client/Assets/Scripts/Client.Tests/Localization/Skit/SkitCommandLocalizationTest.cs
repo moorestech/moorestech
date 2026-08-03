@@ -1,7 +1,6 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Globalization;
-using Client.Skit.Context;
 using Client.Skit.Localization;
 using NUnit.Framework;
 using UnityEngine;
@@ -32,11 +31,9 @@ namespace Client.Tests.Localization.Skit
         public void LineUsesResolvedDisplayValuesAndPreservesVoiceSourceBody()
         {
             var resolver = new RecordingResolver();
-            var identity = new SkitExecutionIdentity("opening");
 
             var line = SkitCommandLocalization.ResolveLine(
                 resolver,
-                identity,
                 7,
                 "chr_001",
                 true,
@@ -49,17 +46,32 @@ namespace Client.Tests.Localization.Skit
         }
 
         [Test]
+        public void LineWithoutOverrideResolvesSpeakerFromCharacterIdAlone()
+        {
+            var resolver = new RecordingResolver();
+
+            // override無しはcommandIdを持たないキャラクター解決だけを使う
+            // Without an override the speaker comes solely from character resolution, which has no commandId
+            var line = SkitCommandLocalization.ResolveLine(
+                resolver,
+                7,
+                "chr_001",
+                false,
+                "???",
+                "Raw Body");
+
+            Assert.AreEqual("character:chr_001", line.SpeakerName);
+            CollectionAssert.AreEqual(new[] { "body" }, resolver.Fields);
+        }
+
+        [Test]
         public void SelectionUsesExactSchemaFieldNamesForAllOptions()
         {
             var resolver = new RecordingResolver();
-            var identity = new SkitExecutionIdentity("opening");
 
-            var option1 = SkitCommandLocalization.ResolveOption1(
-                resolver, identity, 9, "One");
-            var option2 = SkitCommandLocalization.ResolveOption2(
-                resolver, identity, 9, "Two");
-            var option3 = SkitCommandLocalization.ResolveOption3(
-                resolver, identity, 9, "Three");
+            var option1 = SkitCommandLocalization.ResolveOption1(resolver, 9, "One");
+            var option2 = SkitCommandLocalization.ResolveOption2(resolver, 9, "Two");
+            var option3 = SkitCommandLocalization.ResolveOption3(resolver, 9, "Three");
 
             CollectionAssert.AreEqual(
                 new[] { "Option1Tag", "Option2Tag", "Option3Tag" },
@@ -147,22 +159,18 @@ namespace Client.Tests.Localization.Skit
         {
             public readonly List<string> Fields = new();
 
-            public string ResolveCommandField(
-                string skitTitle,
-                int commandId,
-                string field,
-                string sourceText)
+            public string ResolveCommandField(int commandId, string field, string sourceText)
             {
                 Fields.Add(field);
                 return $"{field}:{sourceText}";
             }
 
-            public string ResolveCharacterName(
-                string characterId,
-                string skitTitle,
-                int commandId,
-                bool useOverride,
-                string overrideSource)
+            public string ResolveCharacterName(string characterId)
+            {
+                return $"character:{characterId}";
+            }
+
+            public string ResolveOverriddenCharacterName(int commandId, string overrideSource)
             {
                 return $"speaker:{overrideSource}";
             }

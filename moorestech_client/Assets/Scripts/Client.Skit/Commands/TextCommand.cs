@@ -22,7 +22,6 @@ namespace CommandForgeGenerator.Command
             var useOverride = IsOverrideCharacterName.HasValue && IsOverrideCharacterName.Value;
             var line = SkitCommandLocalization.ResolveLine(
                 resolver,
-                storyContext.GetExecutionIdentity(),
                 commandId,
                 CharacterId,
                 useOverride,

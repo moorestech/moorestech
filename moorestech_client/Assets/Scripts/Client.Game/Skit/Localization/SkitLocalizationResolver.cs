@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using Client.Localization;
 using Client.Skit.Localization;
 using Cysharp.Threading.Tasks;
@@ -8,6 +7,10 @@ using UnityEngine;
 
 namespace Client.Game.Skit.Localization
 {
+    /// <summary>
+    /// 生成から破棄まで全入口がメインスレッド専用のため、同期はboolとintの素の読み書きだけで足りる。
+    /// Every entry point from construction to disposal is main-thread only, so plain bool and int access suffices.
+    /// </summary>
     public sealed class SkitLocalizationResolver : ISkitLocalizationResolver, IDisposable
     {
         private readonly ISkitLocalizationDictionaryLoader _loader;
@@ -15,11 +18,12 @@ namespace Client.Game.Skit.Localization
         private readonly SkitLocalizationDictionaryComposer _dictionaryComposer;
         private SkitLocalizationScope _publishedScope = SkitLocalizationScope.Empty;
         private IDisposable _languageSubscription;
+        private string _skitTitle;
         private int _observedRevision;
         private int _publishedRevision = -1;
-        private int _highestScheduledRevision = -1;
-        private int _prepareRunning;
-        private int _disposed;
+        private bool _preparing;
+        private bool _reloadScheduled;
+        private bool _disposed;
 
         public SkitLocalizationResolver()
             : this(
@@ -39,13 +43,14 @@ namespace Client.Game.Skit.Localization
 
         public async UniTask PrepareAsync(string skitTitle)
         {
-            if (Interlocked.CompareExchange(ref _prepareRunning, 1, 0) != 0)
+            if (_preparing)
             {
                 throw new InvalidOperationException(
                     "Skit localization preparation is already running.");
             }
+            _skitTitle = skitTitle;
+            _preparing = true;
             var attemptedRevision = -1;
-            var converged = false;
             try
             {
                 _languageSubscription ??= _source.GetLanguageChanged()
@@ -54,133 +59,104 @@ namespace Client.Game.Skit.Localization
                 // Converge until the latest revision, including changes during Prepare, is published
                 while (true)
                 {
-                    if (Volatile.Read(ref _disposed) != 0) return;
-                    var revision = Volatile.Read(ref _observedRevision);
-                    if (Volatile.Read(ref _publishedRevision) != revision)
+                    if (_disposed) return;
+                    var revision = _observedRevision;
+                    if (_publishedRevision != revision)
                     {
                         attemptedRevision = revision;
                         await BuildAndPublishScopeAsync(revision);
-                        if (Volatile.Read(ref _disposed) != 0) return;
+                        if (_disposed) return;
                     }
-                    if (revision == Volatile.Read(ref _observedRevision) &&
-                        revision == Volatile.Read(ref _publishedRevision))
-                    {
-                        converged = true;
-                        return;
-                    }
+                    if (revision == _observedRevision && revision == _publishedRevision) return;
                 }
             }
             finally
             {
-                Volatile.Write(ref _prepareRunning, 0);
-                if (converged ||
-                    0 <= attemptedRevision &&
-                    attemptedRevision < Volatile.Read(ref _observedRevision))
+                // 失敗したrevisionは即再試行せず、Prepare中に観測した新しいrevisionだけ再開する
+                // Do not retry the failed revision immediately; resume only revisions observed during Prepare
+                _preparing = false;
+                if (0 <= attemptedRevision && attemptedRevision < _observedRevision)
                 {
                     SchedulePendingReload();
                 }
             }
+        }
+
+        public string ResolveCommandField(int commandId, string field, string sourceText)
+        {
+            var key = SkitCommandLocalization.CreateKey(_skitTitle, commandId, field);
+            return _publishedScope.Resolve(key, sourceText);
+        }
+
+        public string ResolveCharacterName(string characterId)
+        {
+            var identity = _source.GetCharacterIdentity(characterId);
+            return _publishedScope.Resolve(identity.Key, identity.SourceText);
+        }
+
+        public string ResolveOverriddenCharacterName(int commandId, string overrideSource)
+        {
+            return ResolveCommandField(
+                commandId,
+                SkitCommandLocalization.OverrideCharacterNameField,
+                overrideSource);
+        }
+
+        public void Dispose()
+        {
+            _disposed = true;
+            _languageSubscription?.Dispose();
+        }
+
+        private void RequestReload()
+        {
+            if (_disposed) return;
+            _observedRevision++;
+            SchedulePendingReload();
+        }
+
+        private void SchedulePendingReload()
+        {
+            if (_preparing || _disposed || _reloadScheduled) return;
+            if (_observedRevision == _publishedRevision) return;
+            _reloadScheduled = true;
+            ReloadAtEndOfFrameAsync().Forget(Debug.LogException);
 
             #region Internal
 
-            void RequestReload()
+            // 同フレーム多発を畳み込みつつ、ロード失敗後も次の言語変更が再試行できるよう先にフラグを戻す
+            // Fold same-frame bursts, and clear the flag first so the next language change can retry after a failed load
+            async UniTask ReloadAtEndOfFrameAsync()
             {
-                if (Volatile.Read(ref _disposed) != 0) return;
-                Interlocked.Increment(ref _observedRevision);
-                SchedulePendingReload();
-            }
-
-            void SchedulePendingReload()
-            {
-                if (Volatile.Read(ref _prepareRunning) != 0 ||
-                    Volatile.Read(ref _disposed) != 0)
-                {
-                    return;
-                }
-                var revision = Volatile.Read(ref _observedRevision);
-                while (true)
-                {
-                    var scheduledRevision = Volatile.Read(ref _highestScheduledRevision);
-                    if (revision <= scheduledRevision ||
-                        revision == Volatile.Read(ref _publishedRevision))
-                    {
-                        return;
-                    }
-
-                    if (Interlocked.CompareExchange(
-                            ref _highestScheduledRevision,
-                            revision,
-                            scheduledRevision) == scheduledRevision)
-                    {
-                        BuildAndPublishScopeAsync(revision).Forget(Debug.LogException);
-                        return;
-                    }
-                }
-            }
-
-            async UniTask BuildAndPublishScopeAsync(int revision)
-            {
-                var targetLanguageCode = _source.GetCurrentLanguageCode();
-                var targetSkit = await _loader.LoadAsync(targetLanguageCode);
-                if (Volatile.Read(ref _disposed) != 0) return;
-                // 英語選択時は同じAddressableを再ロードせず最初の結果を共有する
-                // Reuse the first result when English is selected instead of loading the same Addressable twice
-                var englishSkit = targetLanguageCode == Localize.DefaultLanguageCode
-                    ? targetSkit
-                    : await _loader.LoadAsync(Localize.DefaultLanguageCode);
-                if (Volatile.Read(ref _disposed) != 0) return;
-                // 空mod値を欠落として扱い、Skit値は未定義keyだけへ追加する
-                // Treat empty mod values as missing and add Skit values only to absent keys
-                var candidate = _dictionaryComposer.Compose(
-                    targetLanguageCode,
-                    targetSkit,
-                    englishSkit);
-                if (Volatile.Read(ref _disposed) == 0 &&
-                    revision == Volatile.Read(ref _observedRevision))
-                {
-                    Volatile.Write(ref _publishedScope, candidate);
-                    Volatile.Write(ref _publishedRevision, revision);
-                }
+                await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
+                _reloadScheduled = false;
+                if (_disposed) return;
+                await BuildAndPublishScopeAsync(_observedRevision);
             }
 
             #endregion
         }
 
-        public string ResolveCommandField(
-            string skitTitle,
-            int commandId,
-            string field,
-            string sourceText)
+        private async UniTask BuildAndPublishScopeAsync(int revision)
         {
-            var key = SkitCommandLocalization.CreateKey(skitTitle, commandId, field);
-            return Volatile.Read(ref _publishedScope).Resolve(key, sourceText);
-        }
-
-        public string ResolveCharacterName(
-            string characterId,
-            string skitTitle,
-            int commandId,
-            bool useOverride,
-            string overrideSource)
-        {
-            if (useOverride)
-            {
-                return ResolveCommandField(
-                    skitTitle,
-                    commandId,
-                    SkitCommandLocalization.OverrideCharacterNameField,
-                    overrideSource);
-            }
-
-            var identity = _source.GetCharacterIdentity(characterId);
-            return Volatile.Read(ref _publishedScope).Resolve(identity.Key, identity.SourceText);
-        }
-
-        public void Dispose()
-        {
-            Interlocked.Exchange(ref _disposed, 1);
-            Interlocked.Increment(ref _observedRevision);
-            _languageSubscription?.Dispose();
+            var targetLanguageCode = _source.GetCurrentLanguageCode();
+            var targetSkit = await _loader.LoadAsync(targetLanguageCode);
+            if (_disposed) return;
+            // 英語選択時は同じAddressableを再ロードせず最初の結果を共有する
+            // Reuse the first result when English is selected instead of loading the same Addressable twice
+            var englishSkit = targetLanguageCode == Localize.DefaultLanguageCode
+                ? targetSkit
+                : await _loader.LoadAsync(Localize.DefaultLanguageCode);
+            if (_disposed) return;
+            // 空mod値を欠落として扱い、Skit値は未定義keyだけへ追加する
+            // Treat empty mod values as missing and add Skit values only to absent keys
+            var candidate = _dictionaryComposer.Compose(
+                targetLanguageCode,
+                targetSkit,
+                englishSkit);
+            if (_disposed || revision != _observedRevision) return;
+            _publishedScope = candidate;
+            _publishedRevision = revision;
         }
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Block;
@@ -9,7 +8,6 @@ using Client.Game.InGame.Environment;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.UIState;
-using Client.Game.Skit.Lifecycle;
 using Client.Game.Skit.Localization;
 using Client.Skit.Context;
 using Client.Skit.Define;
@@ -72,18 +70,18 @@ namespace Client.Game.Skit
         {
             IsPlayingSkit = true;
             _isSkip = false;
-            var cleanupOnce = new SkitCleanupOnce();
             var webUiMode = WebUiScreenGate.IsWebUiMode;
             var presentationStarted = false;
             var cameraRegistered = false;
+            var mapPinHidden = false;
             SkitLocalizationResolver localizationResolver = null;
             StoryContext storyContext = null;
             CharacterObjectContainer characterContainer = null;
 
             try
             {
-                // 解決器の準備後にコマンドを読み込み、同じ実行identityへ束縛する
-                // Prepare localization before loading commands and bind them to one execution identity
+                // 解決器へskitTitleを渡して準備してからコマンドを読み込む
+                // Prepare the resolver with the skit title before loading commands
                 var skitTitle = SkitTitle.FromAssetName(skitJson.name);
                 localizationResolver = new SkitLocalizationResolver();
                 await localizationResolver.PrepareAsync(skitTitle);
@@ -98,7 +96,7 @@ namespace Client.Game.Skit
 
                 // 前処理で生成物を捕捉し、途中失敗でもfinallyから破棄できるようにする
                 // Capture pre-process resources so finally can dispose them after partial failure
-                storyContext = await PreProcess(skitTitle);
+                storyContext = await PreProcess();
                 CameraManager.RegisterCamera(skitCamera);
                 cameraRegistered = true;
                 await SkitCommandExecutor.ExecuteAsync(commands, storyContext);
@@ -110,7 +108,7 @@ namespace Client.Game.Skit
             
             #region Internal
             
-            async UniTask<StoryContext> PreProcess(string skitTitle)
+            async UniTask<StoryContext> PreProcess()
             {
                 //キャラクターを生成
                 var characters = new Dictionary<string, SkitCharacter>();
@@ -139,7 +137,7 @@ namespace Client.Game.Skit
                 // 表示の設定
                 skitUI.SetActive(!webUiMode);
                 mapObjectPin.SetActive(false);
-                cleanupOnce.MarkMapPinHidden();
+                mapPinHidden = true;
 
                 // DIコンテナをセットアップ
                 var builder = new ContainerBuilder();
@@ -155,20 +153,17 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitActionContext>(_skitActionController);
                 builder.RegisterInstance(new SkitPresentationMode(webUiMode));
                 builder.RegisterInstance<ISkitLocalizationResolver>(localizationResolver);
-                builder.RegisterInstance(new SkitExecutionIdentity(skitTitle));
-                
+
                 return new StoryContext(builder.Build());
             }
 
             void Cleanup()
             {
-                if (!cleanupOnce.TryBegin()) return;
-
-                // 外側finallyから全ての再生状態を一度だけ通常状態へ戻す
-                // Restore every playback state exactly once from the outer finally
+                // 唯一のfinallyから、実際に変更した再生状態だけを通常状態へ戻す
+                // Restore only the playback state actually changed, from the single finally
                 skitUI.SetActive(false);
                 if (presentationStarted) SkitPresentationStateStore.Instance.End();
-                if (cleanupOnce.TryTakeMapPinRestore()) mapObjectPin.SetActive(true);
+                if (mapPinHidden) mapObjectPin.SetActive(true);
                 characterContainer?.DestroyAllCharacters();
                 if (cameraRegistered) CameraManager.UnRegisterCamera(skitCamera);
                 storyContext?.Dispose();

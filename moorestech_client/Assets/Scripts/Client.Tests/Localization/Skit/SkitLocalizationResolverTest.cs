@@ -28,7 +28,7 @@ namespace Client.Tests.Localization.Skit
             using var resolver = new SkitLocalizationResolver(loader, source);
             await resolver.PrepareAsync("opening");
 
-            var actual = resolver.ResolveCommandField("opening", 7, "body", "JSON Source");
+            var actual = resolver.ResolveCommandField(7, "body", "JSON Source");
 
             Assert.AreEqual(expected, actual);
             Assert.IsNotEmpty(actual);
@@ -45,12 +45,12 @@ namespace Client.Tests.Localization.Skit
 
             source.SetLanguage("french");
             await UniTask.WaitUntil(() =>
-                    resolver.ResolveCommandField("opening", 7, "body", "Source") == "Skit French")
+                    resolver.ResolveCommandField(7, "body", "Source") == "Skit French")
                 .Timeout(TimeSpan.FromSeconds(2));
 
             Assert.AreEqual(
                 "Skit French",
-                resolver.ResolveCommandField("opening", 7, "body", "Source"));
+                resolver.ResolveCommandField(7, "body", "Source"));
         }
 
         [Test]
@@ -63,10 +63,8 @@ namespace Client.Tests.Localization.Skit
             using var resolver = new SkitLocalizationResolver(loader, source);
             await resolver.PrepareAsync("opening");
 
-            var normal = resolver.ResolveCharacterName(
-                "chr_001", "opening", 7, false, "Source Character");
-            var overridden = resolver.ResolveCharacterName(
-                "chr_001", "opening", 7, true, "???");
+            var normal = resolver.ResolveCharacterName("chr_001");
+            var overridden = resolver.ResolveOverriddenCharacterName(7, "???");
 
             Assert.AreEqual("話者", normal);
             Assert.AreEqual("謎の声", overridden);
@@ -149,7 +147,7 @@ namespace Client.Tests.Localization.Skit
 
         private static string Resolve(SkitLocalizationResolver resolver)
         {
-            return resolver.ResolveCommandField("opening", 7, "body", "Source");
+            return resolver.ResolveCommandField(7, "body", "Source");
         }
     }
 }

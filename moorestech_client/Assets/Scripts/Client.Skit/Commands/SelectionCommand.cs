@@ -18,7 +18,6 @@ namespace CommandForgeGenerator.Command
             var labels = new List<string>();
             var choices = new List<SkitChoice>();
             var resolver = storyContext.GetLocalizationResolver();
-            var identity = storyContext.GetExecutionIdentity();
             var commandId = (int)CommandId;
 
             // optional optionを表示順どおりjumpとopaque IDへ同時展開する
@@ -26,7 +25,7 @@ namespace CommandForgeGenerator.Command
             if (!string.IsNullOrEmpty(Option1Tag))
             {
                 var label = SkitCommandLocalization.ResolveOption1(
-                    resolver, identity, commandId, Option1Tag);
+                    resolver, commandId, Option1Tag);
                 jumpTarget.Add(Option1JumpTarget);
                 labels.Add(label);
                 choices.Add(CreateChoice(label));
@@ -34,7 +33,7 @@ namespace CommandForgeGenerator.Command
             if (!string.IsNullOrEmpty(Option2Tag) && Option2JumpTarget.HasValue)
             {
                 var label = SkitCommandLocalization.ResolveOption2(
-                    resolver, identity, commandId, Option2Tag);
+                    resolver, commandId, Option2Tag);
                 jumpTarget.Add(Option2JumpTarget.Value);
                 labels.Add(label);
                 choices.Add(CreateChoice(label));
@@ -42,7 +41,7 @@ namespace CommandForgeGenerator.Command
             if (!string.IsNullOrEmpty(Option3Tag) && Option3JumpTarget.HasValue)
             {
                 var label = SkitCommandLocalization.ResolveOption3(
-                    resolver, identity, commandId, Option3Tag);
+                    resolver, commandId, Option3Tag);
                 jumpTarget.Add(Option3JumpTarget.Value);
                 labels.Add(label);
                 choices.Add(CreateChoice(label));

@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Client.Game.Skit.Localization;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Localization.Skit
 {
@@ -128,6 +131,34 @@ namespace Client.Tests.Localization.Skit
             Assert.AreEqual("Japanese", Resolve(resolver));
         }
 
+        [Test]
+        public async Task FailedReloadKeepsPublishedScopeAndRecoversOnNextLanguageChange()
+        {
+            var loader = CreateLoader();
+            loader.Set("french", SkitKey, "French");
+            loader.Set("german", SkitKey, "German");
+            var source = new FakeSkitLocalizationSource();
+            using var resolver = new SkitLocalizationResolver(loader, source);
+            await resolver.PrepareAsync("opening");
+            var frenchGate = loader.GateNext("french");
+
+            // 再ロード失敗は公開済みscopeを壊さず、次の言語変更で再試行できる
+            // A failed reload leaves the published scope intact and retries on the next language change
+            LogAssert.Expect(LogType.Exception, new Regex(".*reload failed.*"));
+            source.SetLanguage("french");
+            await UniTask.WaitUntil(() => loader.GetLoadCount("french") == 1)
+                .Timeout(TimeSpan.FromSeconds(2));
+            frenchGate.TrySetException(new InvalidOperationException("reload failed"));
+            await UniTask.DelayFrame(5);
+            Assert.AreEqual("Japanese", Resolve(resolver));
+
+            source.SetLanguage("german");
+            await UniTask.WaitUntil(() => Resolve(resolver) == "German")
+                .Timeout(TimeSpan.FromSeconds(2));
+
+            Assert.AreEqual("German", Resolve(resolver));
+        }
+
         private static FakeSkitDictionaryLoader CreateLoader()
         {
             var loader = new FakeSkitDictionaryLoader();
@@ -138,7 +169,7 @@ namespace Client.Tests.Localization.Skit
 
         private static string Resolve(SkitLocalizationResolver resolver)
         {
-            return resolver.ResolveCommandField("opening", 7, "body", "Source");
+            return resolver.ResolveCommandField(7, "body", "Source");
         }
     }
 }

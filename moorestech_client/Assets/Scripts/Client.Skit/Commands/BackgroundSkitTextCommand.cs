@@ -13,7 +13,6 @@ namespace CommandForgeGenerator.Command
             var commandId = (int)CommandId;
             var line = SkitCommandLocalization.ResolveLine(
                 resolver,
-                storyContext.GetExecutionIdentity(),
                 commandId,
                 CharacterId,
                 IsOverrideCharacterName,

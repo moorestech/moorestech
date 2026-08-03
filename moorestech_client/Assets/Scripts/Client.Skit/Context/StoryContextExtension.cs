@@ -20,9 +20,7 @@ namespace Client.Skit.Context
         public static ISkitLocalizationResolver GetLocalizationResolver(this StoryContext storyContext)
             => storyContext.GetService<ISkitLocalizationResolver>();
 
-        public static SkitExecutionIdentity GetExecutionIdentity(this StoryContext storyContext)
-            => storyContext.GetService<SkitExecutionIdentity>();
-        
+
         public static SkitCharacter GetCharacter(this StoryContext storyContext, string characterId)
         {
             try

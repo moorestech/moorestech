@@ -125,7 +125,7 @@ namespace Client.Tests.Localization.Skit
 
             Assert.AreEqual(
                 expected,
-                resolver.ResolveCommandField("opening", 7, "body", "JSON Source"));
+                resolver.ResolveCommandField(7, "body", "JSON Source"));
         }
 
         [Test]
