@@ -22,14 +22,9 @@ namespace Client.Game.InGame.Player
         
         [SerializeField] private ThirdPersonController controller;
         [SerializeField] private Animator animator;
-        private CharacterController characterController;
-        private Transform rideFollowTarget;
         private readonly PlayerModelVisibility _modelVisibility = new();
+        private PlayerRideFollow _rideFollow;
         private bool _isModelVisible = true;
-        private Vector3 rideFollowLocalPosition;
-        private Quaternion rideFollowLocalRotation;
-        private bool rideFollowStoredControllerEnabled;
-        private bool rideFollowDisabledController;
         private Vector3 worldSpawnPosition;
         private Vector3 initialPlayerPosition;
         private bool isRuntimeStarted;
@@ -39,7 +34,7 @@ namespace Client.Game.InGame.Player
         public void Initialize(Vector3 initialPlayerPosition, Vector3 worldSpawnPosition)
         {
             controller.Initialize();
-            characterController = GetComponent<CharacterController>();
+            _rideFollow = new PlayerRideFollow(transform, GetComponent<CharacterController>(), controller);
 
             // 落下復帰先はワールドのスポーン地点。地形はランタイム構築なのでシーン配置のマーカーは当てにできない
             // Fall recovery targets the world spawn; terrain is built at runtime so a scene-authored marker cannot be trusted
@@ -70,9 +65,9 @@ namespace Client.Game.InGame.Player
 
             // 乗車中は補間済み車両poseを最後に反映する
             // Apply the interpolated train-car pose last while riding
-            if (rideFollowTarget != null)
+            if (_rideFollow.IsFollowing())
             {
-                ApplyRideFollowPose();
+                _rideFollow.ApplyPose();
                 return;
             }
 
@@ -148,67 +143,14 @@ namespace Client.Game.InGame.Player
 
         public void SetRideFollowTarget(Transform target, Vector3 localPosition, Quaternion localRotation)
         {
-            // 乗車中はThirdPersonController側の重力・Move・足場追従を止める
-            // Stop ThirdPersonController gravity, Move, and platform follow while riding
-            DisableControllerForRideFollowIfNeeded();
-
-            // 乗車追従のローカル基準を保存する
-            // Store the local basis used for riding follow
-            rideFollowTarget = target;
-            rideFollowLocalPosition = localPosition;
-            rideFollowLocalRotation = localRotation;
-            
+            _rideFollow.SetTarget(target, localPosition, localRotation);
             SetControllable(false);
         }
 
         public void ClearRideFollowTarget()
         {
-            // 乗車追従で止めたThirdPersonControllerの実行状態を戻す
-            // Restore the ThirdPersonController execution state disabled for riding follow
-            RestoreControllerAfterRideFollowIfNeeded();
-            rideFollowTarget = null;
+            _rideFollow.ClearTarget();
             SetControllable(true);
-        }
-
-        private void ApplyRideFollowPose()
-        {
-            // 車両の補間済みposeからプレイヤーのworld poseを作る
-            // Build the player world pose from the interpolated train-car pose
-            var worldPosition = rideFollowTarget.TransformPoint(rideFollowLocalPosition);
-            var worldRotation = rideFollowTarget.rotation * rideFollowLocalRotation;
-
-            // CharacterControllerの補正を避けて直接同期する
-            // Bypass CharacterController correction while applying the pose directly
-            characterController.enabled = false;
-            transform.SetPositionAndRotation(worldPosition, worldRotation);
-            characterController.enabled = true;
-        }
-
-        private void DisableControllerForRideFollowIfNeeded()
-        {
-            if (rideFollowTarget != null || rideFollowDisabledController)
-            {
-                return;
-            }
-
-            // 解除時に元の有効状態へ戻せるよう、乗車開始時だけ保存する
-            // Store the original enabled state only when riding starts so dismount can restore it
-            rideFollowStoredControllerEnabled = controller.enabled;
-            controller.enabled = false;
-            rideFollowDisabledController = true;
-        }
-
-        private void RestoreControllerAfterRideFollowIfNeeded()
-        {
-            if (!rideFollowDisabledController)
-            {
-                return;
-            }
-
-            // UI等で元々無効だった場合は、その無効状態を維持する
-            // Preserve an originally disabled controller state such as UI control locks
-            controller.enabled = rideFollowStoredControllerEnabled;
-            rideFollowDisabledController = false;
         }
     }
 }
