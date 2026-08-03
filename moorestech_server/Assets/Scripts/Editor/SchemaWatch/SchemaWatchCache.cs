@@ -12,6 +12,74 @@ public sealed class SchemaWatchCache
     {
         this.cacheFilePath = cacheFilePath;
         Load();
+
+        #region Internal
+
+        void Load()
+        {
+            if (!File.Exists(cacheFilePath))
+            {
+                return;
+            }
+
+            var lines = File.ReadAllLines(cacheFilePath);
+            if (0 < lines.Length && lines[0] == "V|2")
+            {
+                // version 2は空対象と区切り文字を含むパスを明示的に復元する。
+                // Version 2 restores empty targets and paths containing delimiters explicitly.
+                for (var index = 1; index < lines.Length; index++)
+                {
+                    LoadVersionTwoLine(lines[index]);
+                }
+
+                return;
+            }
+
+            // 既存3列形式だけを移行し、旧2列形式は初回同期へ委ねる。
+            // Migrate only the existing three-column format and leave legacy two-column data to initial sync.
+            foreach (var legacyLine in lines)
+            {
+                var legacyParts = legacyLine.Split('|');
+                if (legacyParts.Length == 3)
+                {
+                    EnsureTargetHashes(legacyParts[0])[legacyParts[1]] = legacyParts[2];
+                }
+            }
+
+            #region Internal
+
+            void LoadVersionTwoLine(string line)
+            {
+                var parts = line.Split('|');
+                if (parts.Length == 2 && parts[0] == "T")
+                {
+                    EnsureTargetHashes(Uri.UnescapeDataString(parts[1]));
+                    return;
+                }
+
+                if (parts.Length == 4 && parts[0] == "F")
+                {
+                    var watchPath = Uri.UnescapeDataString(parts[1]);
+                    var relativePath = Uri.UnescapeDataString(parts[2]);
+                    EnsureTargetHashes(watchPath)[relativePath] = parts[3];
+                }
+            }
+
+            Dictionary<string, string> EnsureTargetHashes(string watchPath)
+            {
+                if (!hashesByWatchPath.TryGetValue(watchPath, out var targetHashes))
+                {
+                    targetHashes = new Dictionary<string, string>();
+                    hashesByWatchPath[watchPath] = targetHashes;
+                }
+
+                return targetHashes;
+            }
+
+            #endregion
+        }
+
+        #endregion
     }
 
     public bool HasFolderChanged(
@@ -67,70 +135,14 @@ public sealed class SchemaWatchCache
         lines.Sort();
         lines.Insert(0, "V|2");
         File.WriteAllLines(cacheFilePath, lines.ToArray());
-    }
 
-    private void Load()
-    {
-        if (!File.Exists(cacheFilePath))
+        #region Internal
+
+        string Escape(string value)
         {
-            return;
+            return Uri.EscapeDataString(value);
         }
 
-        var lines = File.ReadAllLines(cacheFilePath);
-        if (0 < lines.Length && lines[0] == "V|2")
-        {
-            // version 2は空対象と区切り文字を含むパスを明示的に復元する。
-            // Version 2 restores empty targets and paths containing delimiters explicitly.
-            for (var index = 1; index < lines.Length; index++)
-            {
-                LoadVersionTwoLine(lines[index]);
-            }
-
-            return;
-        }
-
-        // 既存3列形式だけを移行し、旧2列形式は初回同期へ委ねる。
-        // Migrate only the existing three-column format and leave legacy two-column data to initial sync.
-        foreach (var line in lines)
-        {
-            var parts = line.Split('|');
-            if (parts.Length == 3)
-            {
-                EnsureTargetHashes(parts[0])[parts[1]] = parts[2];
-            }
-        }
-    }
-
-    private void LoadVersionTwoLine(string line)
-    {
-        var parts = line.Split('|');
-        if (parts.Length == 2 && parts[0] == "T")
-        {
-            EnsureTargetHashes(Uri.UnescapeDataString(parts[1]));
-            return;
-        }
-
-        if (parts.Length == 4 && parts[0] == "F")
-        {
-            var watchPath = Uri.UnescapeDataString(parts[1]);
-            var relativePath = Uri.UnescapeDataString(parts[2]);
-            EnsureTargetHashes(watchPath)[relativePath] = parts[3];
-        }
-    }
-
-    private Dictionary<string, string> EnsureTargetHashes(string watchPath)
-    {
-        if (!hashesByWatchPath.TryGetValue(watchPath, out var targetHashes))
-        {
-            targetHashes = new Dictionary<string, string>();
-            hashesByWatchPath[watchPath] = targetHashes;
-        }
-
-        return targetHashes;
-    }
-
-    private static string Escape(string value)
-    {
-        return Uri.EscapeDataString(value);
+        #endregion
     }
 }

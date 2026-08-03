@@ -50,13 +50,17 @@ public sealed class SchemaWatchTarget
         }
 
         return true;
-    }
 
-    private static string ComputeHash(string filePath)
-    {
-        using var md5 = MD5.Create();
-        var content = File.ReadAllBytes(filePath);
-        var hash = md5.ComputeHash(content);
-        return System.BitConverter.ToString(hash);
+        #region Internal
+
+        string ComputeHash(string filePath)
+        {
+            using var md5 = MD5.Create();
+            var content = File.ReadAllBytes(filePath);
+            var hash = md5.ComputeHash(content);
+            return System.BitConverter.ToString(hash);
+        }
+
+        #endregion
     }
 }

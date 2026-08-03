@@ -57,54 +57,62 @@ public sealed class SchemaWatchOrchestrator
         if (!cacheChanged) return;
         cache.Save();
         compilationRequester.RequestCompilation();
-    }
 
-    private static bool UpdateRequesterScript(
-        SchemaWatchTarget target,
-        Dictionary<string, string> currentHashes)
-    {
-        if (!Directory.Exists(target.RequesterFolder))
+        #region Internal
+
+        bool UpdateRequesterScript(
+            SchemaWatchTarget watchTarget,
+            Dictionary<string, string> watchHashes)
         {
-            Debug.LogError($"CompileRequesterフォルダが見つかりません: {target.RequesterFolder}");
-            return false;
-        }
+            if (!Directory.Exists(watchTarget.RequesterFolder))
+            {
+                Debug.LogError($"CompileRequesterフォルダが見つかりません: {watchTarget.RequesterFolder}");
+                return false;
+            }
 
-        // 内容由来tokenで即時更新を検出する。
-        // Detect rapid updates with a content-derived token.
-        var requesterPath = Path.Combine(target.RequesterFolder, target.RequesterFile);
-        var requesterToken = ComputeRequesterToken(currentHashes);
-        var commentPrefix = new string('/', 2) + " ";
-        var japaneseDescriptionComment =
-            commentPrefix + target.WatchDescriptionJa + "更新時はこの印もcommit";
-        var englishDescriptionComment =
-            commentPrefix + "Commit this marker with " + target.WatchDescriptionEn + " changes";
-        var requesterContent = $@"
+            // 内容由来tokenで即時更新を検出する。
+            // Detect rapid updates with a content-derived token.
+            var requesterPath = Path.Combine(watchTarget.RequesterFolder, watchTarget.RequesterFile);
+            var requesterToken = ComputeRequesterToken();
+            var commentPrefix = new string('/', 2) + " ";
+            var japaneseDescriptionComment =
+                commentPrefix + watchTarget.WatchDescriptionJa + "更新時はこの印もcommit";
+            var englishDescriptionComment =
+                commentPrefix + "Commit this marker with " + watchTarget.WatchDescriptionEn + " changes";
+            var requesterContent = $@"
 // SchemaWatcher更新用の再compile印
 // Recompile marker updated by SchemaWatcher
-public class {target.ClassName}
+public class {watchTarget.ClassName}
 {{
 {japaneseDescriptionComment}
 {englishDescriptionComment}
     private const string dummyText = ""{requesterToken}"";
 }}";
 
-        File.WriteAllText(requesterPath, requesterContent);
-        return true;
-    }
+            File.WriteAllText(requesterPath, requesterContent);
+            return true;
 
-    private static string ComputeRequesterToken(Dictionary<string, string> currentHashes)
-    {
-        var tokenSource = new StringBuilder();
-        foreach (var fileHash in currentHashes.OrderBy(entry => entry.Key))
-        {
-            tokenSource.Append(fileHash.Key);
-            tokenSource.Append('\0');
-            tokenSource.Append(fileHash.Value);
-            tokenSource.Append('\0');
+            #region Internal
+
+            string ComputeRequesterToken()
+            {
+                var tokenSource = new StringBuilder();
+                foreach (var fileHash in watchHashes.OrderBy(entry => entry.Key))
+                {
+                    tokenSource.Append(fileHash.Key);
+                    tokenSource.Append('\0');
+                    tokenSource.Append(fileHash.Value);
+                    tokenSource.Append('\0');
+                }
+
+                using var md5 = MD5.Create();
+                var digest = md5.ComputeHash(Encoding.UTF8.GetBytes(tokenSource.ToString()));
+                return System.BitConverter.ToString(digest);
+            }
+
+            #endregion
         }
 
-        using var md5 = MD5.Create();
-        var digest = md5.ComputeHash(Encoding.UTF8.GetBytes(tokenSource.ToString()));
-        return System.BitConverter.ToString(digest);
+        #endregion
     }
 }

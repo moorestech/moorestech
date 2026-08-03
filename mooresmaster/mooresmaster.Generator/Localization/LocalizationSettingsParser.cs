@@ -18,7 +18,7 @@ public static class LocalizationSettingsParser
     {
         // 共通Parserでクォートを考慮したレコードへ分割
         // Split into quote-aware records with the shared parser
-        var records = LocalizationCsvParser.ParseRecords(csvText);
+        var records = LocalizationCsvRecordReader.ParseRecords(csvText);
         if (records.Count == 0)
         {
             throw new LocalizationCsvException("localization_settings.csv is empty");

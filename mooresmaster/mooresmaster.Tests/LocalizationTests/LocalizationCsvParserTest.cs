@@ -155,7 +155,7 @@ public class LocalizationCsvParserTest
     [Fact]
     public void ParseRecordsはクォートと空fieldを保持する()
     {
-        var records = LocalizationCsvParser.ParseRecords("a,\"b,b\",\n");
+        var records = LocalizationCsvRecordReader.ParseRecords("a,\"b,b\",\n");
 
         var record = Assert.Single(records);
         Assert.Equal(new[] { "a", "b,b", "" }, record);
@@ -164,7 +164,7 @@ public class LocalizationCsvParserTest
     [Fact]
     public void ParseRecordsは空の物理行を無視する()
     {
-        var records = LocalizationCsvParser.ParseRecords("\n");
+        var records = LocalizationCsvRecordReader.ParseRecords("\n");
 
         Assert.Empty(records);
     }
@@ -172,7 +172,7 @@ public class LocalizationCsvParserTest
     [Fact]
     public void ParseRecordsは明示的なquotedEmptyRecordを保持する()
     {
-        var records = LocalizationCsvParser.ParseRecords("\"\"\n");
+        var records = LocalizationCsvRecordReader.ParseRecords("\"\"\n");
 
         var record = Assert.Single(records);
         Assert.Equal(new[] { "" }, record);
