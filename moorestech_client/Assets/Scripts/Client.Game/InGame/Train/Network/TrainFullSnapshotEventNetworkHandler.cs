@@ -51,18 +51,34 @@ namespace Client.Game.InGame.Train.Network
         public void Initialize()
         {
             var vanillaApiEvent = ClientContext.VanillaApi.Event;
-            _railSubscription = vanillaApiEvent.SubscribeEventResponse(TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag, OnRailGraphFullSnapshot);
-            _trainSubscription = vanillaApiEvent.SubscribeEventResponse(TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag, OnTrainUnitFullSnapshot);
+            _railSubscription = vanillaApiEvent.SubscribeEventResponse(TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag, HandleRailGraphFullSnapshot);
+            _trainSubscription = vanillaApiEvent.SubscribeEventResponse(TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag, HandleTrainUnitFullSnapshot);
+        }
 
-            #region Internal
-
-            void OnRailGraphFullSnapshot(byte[] payload)
+        // ネットワーク受信payloadのデシリアライズと適用を隔離する外部境界。ここで畳まないと失敗が
+        // 完了ソースをPendingのまま残し、初期化のWhenAllが無期限待機に化ける
+        // External boundary isolating deserialization and application of a received network payload; without folding
+        // failures here the completion source stays Pending and the startup WhenAll hangs forever
+        private void HandleRailGraphFullSnapshot(byte[] payload)
+        {
+            try
             {
                 var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventMessagePack>(payload);
                 _railGraphSnapshotApplier.ApplySnapshot(message.Snapshot);
             }
+            catch (Exception applyException)
+            {
+                // 再送出しないのはイベントディスパッチのループを巻き添えで止めないため。失敗は完了ソース経由で待機境界へ届く
+                // Not rethrown so one bad payload cannot halt the event dispatch loop; the failure reaches the wait boundary through the completion source
+                _initialApplyCompletion.TrySetException(applyException);
+            }
+        }
 
-            void OnTrainUnitFullSnapshot(byte[] payload)
+        // レール側と同じくネットワークpayloadを隔離する外部境界
+        // The same external boundary as the rail side, isolating a received network payload
+        private void HandleTrainUnitFullSnapshot(byte[] payload)
+        {
+            try
             {
                 var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventMessagePack>(payload);
 
@@ -86,8 +102,12 @@ namespace Client.Game.InGame.Train.Network
                 _onFullSnapshotApplied.OnNext(watermarkId);
                 _initialApplyCompletion.TrySetResult();
             }
-
-            #endregion
+            catch (Exception applyException)
+            {
+                // 再送出しない理由はレール側と同じ
+                // Not rethrown for the same reason as the rail side
+                _initialApplyCompletion.TrySetException(applyException);
+            }
         }
 
         public void Dispose()
