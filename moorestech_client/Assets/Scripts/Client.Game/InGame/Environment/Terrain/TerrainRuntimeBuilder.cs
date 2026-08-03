@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Client.Common.Asset;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
-using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -50,15 +49,14 @@ namespace Client.Game.InGame.Environment.Terrain
                 throw new InvalidOperationException(
                     $"[TerrainRuntimeBuilder] Terrain material '{TerrainMaterialAddress}' could not be loaded from Addressables.");
 
+            // モード解釈はToTerrainTransferMeta1本。未知モードもそこで例外になる
+            // ToTerrainTransferMeta is the only mode interpreter, and it is also where unknown modes throw
             var wireMeta = mapLayout.TerrainMeta;
-            if (wireMeta.MapMode == WorldProvisioner.TemplateMapMode)
+            var terrainMeta = wireMeta.ToTerrainTransferMeta();
+            if (terrainMeta.IsTemplate)
                 await BuildTemplateTerrainAsync(environmentRoot, terrainMaterial);
-            else if (wireMeta.MapMode == WorldProvisioner.GeneratedMapMode)
-                await BuildGeneratedTerrainAsync(wireMeta.ToTerrainTransferMeta(), wireMeta.TerrainHash, environmentRoot, terrainMaterial);
             else
-                // 未知のモードをgenerated扱いすると、地形の無いワールドでキャッシュ読み出しが不可解に落ちる
-                // Treating an unknown mode as generated would fail obscurely in the cache read of a terrain-less world
-                throw new InvalidOperationException($"[TerrainRuntimeBuilder] Unknown map mode '{wireMeta.MapMode}'.");
+                await BuildGeneratedTerrainAsync(terrainMeta, wireMeta.TerrainHash, environmentRoot, terrainMaterial);
 
             // 露頭生成はこの直後に地表へレイキャストを飛ばす。新しいコライダーを物理シーンへ確実に反映させる
             // Outcrop instantiation raycasts the ground right after this, so the new colliders are pushed into the physics scene

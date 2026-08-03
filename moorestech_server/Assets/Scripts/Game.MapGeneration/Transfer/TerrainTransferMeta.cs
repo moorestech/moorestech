@@ -14,6 +14,11 @@ namespace Game.MapGeneration.Transfer
         public const int ChunkByteSize = 256 * 1024;
 
         public readonly string MapMode;
+
+        // モード文字列の解釈はこの型の中だけで終わらせる。消費側は文字列比較を持たない
+        // Mode-string interpretation ends inside this type; consumers never compare the string themselves
+        public readonly bool IsTemplate;
+
         public readonly string WorldId;
         public readonly int TerrainResolution;
         public readonly int TerrainTileCount;
@@ -31,6 +36,7 @@ namespace Game.MapGeneration.Transfer
             TerrainOrigins origins)
         {
             MapMode = mapMode;
+            IsTemplate = mapMode == WorldProvisioner.TemplateMapMode;
             WorldId = worldId;
             TerrainResolution = terrainResolution;
             TerrainTileCount = terrainTileCount;

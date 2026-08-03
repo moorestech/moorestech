@@ -4,7 +4,6 @@ using System.IO.Compression;
 using System.Linq;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
-using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Server.Protocol.PacketResponse;
@@ -29,15 +28,15 @@ namespace Client.Starter.Initialization
         // Returns how many chunks were actually fetched; 0 means a cache hit or a terrain-less world
         public async UniTask<int> RunAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout)
         {
+            // モード解釈はToTerrainTransferMeta1本。未知モードもそこで例外になる
+            // ToTerrainTransferMeta is the only mode interpreter, and it is also where unknown modes throw
             var wireMeta = mapLayout.TerrainMeta;
+            var terrainMeta = wireMeta.ToTerrainTransferMeta();
 
             // templateモードのワールドは地形バイナリを持たないので取得対象が無い
             // A template-mode world owns no terrain binary, so there is nothing to fetch
-            if (wireMeta.MapMode == WorldProvisioner.TemplateMapMode) return 0;
+            if (terrainMeta.IsTemplate) return 0;
 
-            // 未知モードはToTerrainTransferMeta内で例外になる。ここで独自分岐を持たない
-            // Unknown modes throw inside ToTerrainTransferMeta; no local branching here
-            var terrainMeta = wireMeta.ToTerrainTransferMeta();
             var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(terrainMeta.WorldId));
             var segments = TerrainTransferMeta.EnumerateStreamSegments(cacheWorldDirectory, terrainMeta.TerrainTileCount, terrainMeta.TerrainResolution).ToList();
             var totalStreamByteLength = segments.Sum(segment => segment.ByteLength);
