@@ -5,7 +5,7 @@ using Client.Starter.Initialization;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 
-namespace Client.Tests.UnitTest
+namespace Client.Tests.UnitTest.Initialization
 {
     public class InitialEventApplyWaiterTest
     {
@@ -30,7 +30,8 @@ namespace Client.Tests.UnitTest
             var waiting = InitialEventApplyWaiter.WaitAllAsync(new List<IInitialEventApplyWaitTarget> { target }).Preserve();
 
             target.Fail(new InvalidOperationException("apply failed"));
-            Assert.AreEqual(UniTaskStatus.Faulted, waiting.Status);
+            var thrown = Assert.Throws<InvalidOperationException>(() => waiting.GetAwaiter().GetResult());
+            Assert.AreEqual("apply failed", thrown.Message);
         }
 
         private class FakeWaitTarget : IInitialEventApplyWaitTarget

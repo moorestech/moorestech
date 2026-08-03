@@ -16,11 +16,11 @@ namespace Client.Starter.Initialization
 
         public static async UniTask WaitAllAsync(IReadOnlyList<IInitialEventApplyWaitTarget> targets)
         {
+            // WhenAllがpromiseを消費した後も警告側がStatusを読めるようPreserveする
+            // Preserve each task so the warning path can still read its Status after WhenAll consumes the promise
             var waits = targets.Select(target => (target, task: target.WaitForInitialApplyAsync().Preserve())).ToList();
             var allApplied = UniTask.WhenAll(waits.Select(wait => wait.task));
 
-            // 対象タスクはWhenAllで一度だけawaitする。警告側でも待つとUniTaskの二重await例外になる
-            // Await the targets once through WhenAll; awaiting them again in the warning path throws UniTask's double-await error
             using var warningCancellation = new CancellationTokenSource();
             WarnStuckTargetsAsync(warningCancellation.Token).Forget();
 
