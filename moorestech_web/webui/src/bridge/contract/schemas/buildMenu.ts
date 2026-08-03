@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-export const BuildMenuEntryTypeSchema = z.enum(["block", "trainCar", "connectTool", "blueprintCopy", "blueprint"]);
+// kind は表示・振る舞いの分類で識別子ではない。設置対象の同一性は id(Guid) だけが持つ
+// kind classifies display/behavior only; identity of a placement target lives solely in id (a GUID)
+export const BuildMenuEntryKindSchema = z.enum(["block", "trainCar", "connectTool", "blueprintCopy", "blueprint"]);
 
 export const BuildMenuRequiredItemSchema = z.object({
   itemId: z.number().int(),
@@ -8,36 +10,34 @@ export const BuildMenuRequiredItemSchema = z.object({
 });
 
 const BuildMenuEntryCommonFields = {
+  id: z.string().uuid(),
   categoryGuid: z.string().uuid(),
   subCategoryGuid: z.string().uuid(),
   requiredItems: z.array(BuildMenuRequiredItemSchema),
   iconUrl: z.string().optional(),
 };
 
-// Guid導出キーで辞書解決する種別。ホストは表示名を運ばない
-// Kinds resolved from Guid-derived dictionary keys; the host never carries display names
+// マスタ由来名はGuid導出キーで解決し、ホストから表示名を運ばない
+// Resolve master-derived names through GUID-derived keys without host-provided labels
 const BuildMenuDictionaryResolvedEntryDataSchema = z.object({
-  entryType: z.enum(["block", "trainCar", "connectTool"]),
-  entryKey: z.string().uuid(),
+  kind: z.enum(["block", "trainCar", "connectTool"]),
   ...BuildMenuEntryCommonFields,
   label: z.never().optional(),
-});
+}).strict();
 
 const BuildMenuBlueprintCopyEntryDataSchema = z.object({
-  entryType: z.literal("blueprintCopy"),
-  entryKey: z.literal(""),
+  kind: z.literal("blueprintCopy"),
   ...BuildMenuEntryCommonFields,
   label: z.never().optional(),
-});
+}).strict();
 
 const BuildMenuBlueprintEntryDataSchema = z.object({
-  entryType: z.literal("blueprint"),
-  entryKey: z.string().min(1),
+  kind: z.literal("blueprint"),
   ...BuildMenuEntryCommonFields,
-  label: z.string(),
-});
+  label: z.string().min(1),
+}).strict();
 
-export const BuildMenuEntryDataSchema = z.discriminatedUnion("entryType", [
+export const BuildMenuEntryDataSchema = z.discriminatedUnion("kind", [
   BuildMenuDictionaryResolvedEntryDataSchema,
   BuildMenuBlueprintCopyEntryDataSchema,
   BuildMenuBlueprintEntryDataSchema,

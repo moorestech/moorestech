@@ -1,1 +1,0 @@
-{"idx": 13, "predictions": [{"header": "無効な割当", "predicted_label": "ロード時に無効割当を削除", "rationale": "knowledge/deviation-cases.md 3節「壊れた参照・無効データは消す」およびadjudications「グレーアウト保持等の防御的残置はしない（後方互換不要の文化）」が本設問と同型のシグナル。AGENTS.mdの後方互換不要・PR978のフォールバック全排除文化とも整合し、推奨のグレーアウト保持は選ばれないと見る。", "confidence": "高"}]}

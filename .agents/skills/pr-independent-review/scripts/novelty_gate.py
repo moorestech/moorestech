@@ -79,7 +79,9 @@ def parse_diff(repo, base_ref):
     out = git(repo, "diff", *DIFF_SAFE_FLAGS, f"{base_ref}...HEAD", "--unified=0")
     added, new_files, cur, line_no = [], set(), None, 0
     in_hunk, is_new = False, False
-    for raw in out.splitlines():
+    # splitlines()はU+2028等でも割れ、バイナリ強制テキスト差分で接頭辞なしの偽行を生むため\n限定で割る
+    # splitlines() also breaks on U+2028 etc., forging prefix-less lines in forced-text binary diffs
+    for raw in out.split("\n"):
         # ヘッダ領域とハンク内を明確に分けないと、`++ x`のような追加行がヘッダに化ける
         # Separate header region from hunk body; otherwise an added line like `++ x` looks like a header
         if raw.startswith("diff --git "):

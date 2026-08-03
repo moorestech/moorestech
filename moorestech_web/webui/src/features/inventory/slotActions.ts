@@ -12,8 +12,8 @@ import { SplitDragSession } from "./splitDrag";
 const splitDrag = new SplitDragSession((slots) => void dispatchAction("inventory.split_drag", { slots }));
 if (typeof window !== "undefined") window.addEventListener("mouseup", () => splitDrag.end());
 
-// プレイヤースロット共通のクリック操作。InventoryPanel と HotbarPanel が共用する
-// Player-slot click interactions shared by InventoryPanel and HotbarPanel
+// 3パネル共通のスロット操作
+// Slot actions shared by all three panels
 export type SlotActions = {
   onLeftDown: (ref: SlotRef, shiftKey: boolean) => void;
   onRightDown: (ref: SlotRef) => void;
@@ -30,9 +30,10 @@ export const slotActions: SlotActions = {
     // Read every planner input at event time to avoid mixing render-time snapshots
     const inventory = readTopic(Topics.inventory);
     if (!inventory) return;
+    const slot = resolveSlot(inventory, ref);
+    if (!slot) return;
     if (!shiftKey && inventory.grab.count > 0) { splitDrag.begin(ref, true); return; }
     const block = readTopic(Topics.blockInventory);
-    const slot = resolveSlot(inventory, ref);
     const ctx: PlayerSlotContext = {
       inventory,
       maxStack: readItemMaster()?.get(slot.itemId)?.maxStack,
@@ -45,6 +46,7 @@ export const slotActions: SlotActions = {
     const inventory = readTopic(Topics.inventory);
     if (!inventory) return;
     const slot = resolveSlot(inventory, ref);
+    if (!slot) return;
     dispatchPlanned(planPlayerRightClick(ref, slot, inventory.grab.count));
   },
 
@@ -54,16 +56,27 @@ export const slotActions: SlotActions = {
     const inventory = readTopic(Topics.inventory);
     if (!inventory || inventory.grab.count <= 0) return;
     const slot = resolveSlot(inventory, ref);
+    if (!slot) return;
     dispatchPlanned(planPlayerRightClick(ref, slot, inventory.grab.count));
   },
 
-  onLeftEnter: (ref) => splitDrag.enter(ref),
+  onLeftEnter: (ref) => {
+    const inventory = readTopic(Topics.inventory);
+    if (!inventory || !resolveSlot(inventory, ref)) return;
+    splitDrag.enter(ref);
+  },
 
   onDoubleClick: (ref) => {
+    const inventory = readTopic(Topics.inventory);
+    if (!inventory || !resolveSlot(inventory, ref)) return;
     dispatchPlanned(planPlayerDoubleClick(ref));
   },
 };
 
-function resolveSlot(inventory: PlayerInventoryData, ref: SlotRef): SlotData {
+// 枠数が縮んだ直後の stale クリックは対象が存在しないため undefined を返し、呼び出し側が無操作で降りる
+// A stale click right after the slot count shrinks has no target, so return undefined and let callers bail out
+function resolveSlot(inventory: PlayerInventoryData, ref: SlotRef): SlotData | undefined {
+  if (ref.area === "grab") return inventory.grab;
+  if (ref.area === "equipment") return inventory.equipment[ref.slot];
   return ref.area === "main" ? inventory.mainSlots[ref.slot] : inventory.hotbarSlots[ref.slot];
 }

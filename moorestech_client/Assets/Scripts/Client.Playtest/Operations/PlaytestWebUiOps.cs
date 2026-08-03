@@ -1,6 +1,7 @@
 using System;
 using Client.Playtest.Input;
 using Client.Playtest.WebUi;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -15,6 +16,14 @@ namespace Client.Playtest.Operations
         private const float ActionTimeoutSeconds = 15f;
         private const float QueryTimeoutSeconds = 1f;
         private const float MouseGlideSeconds = 0.3f;
+
+        // PlaytestUiOps・Driver・シナリオでBlockGuid由来testid生成を共有し、wire契約変更時の二重定義を防ぐ
+        // Share BlockGuid-derived testid generation across PlaytestUiOps, the driver, and scenarios to prevent wire-contract drift
+        public static string BuildMenuBlockTestId(string blockName)
+        {
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId(blockName)).BlockGuid;
+            return $"build-menu-entry-block-{blockGuid}";
+        }
 
         public static async UniTask ClickWebUi(string testid)
         {
@@ -52,6 +61,20 @@ namespace Client.Playtest.Operations
                 await UniTask.DelayFrame(2);
             }
             throw new TimeoutException($"Web UI element did not become available: {testid}");
+        }
+
+        public static async UniTask WaitWebUiTextContains(string testid, string expected, float timeoutSeconds)
+        {
+            // 辞書更新後のReact再描画を待ち、対象要素の実表示文字列を検証する
+            // Wait for the React re-render after dictionary updates and verify the element's rendered text
+            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            while (Time.realtimeSinceStartup <= deadline)
+            {
+                var result = await QueryWithinDeadline(testid, deadline);
+                if (IsUsable(result) && result.Text.Contains(expected)) return;
+                await UniTask.DelayFrame(2);
+            }
+            throw new TimeoutException($"Web UI text did not contain '{expected}': {testid}");
         }
 
         private static async UniTask<ScreenPointResolution> ResolveScreenPointUntil(string testid, float timeoutSeconds)

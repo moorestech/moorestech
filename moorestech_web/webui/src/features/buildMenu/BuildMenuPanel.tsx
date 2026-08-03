@@ -42,12 +42,15 @@ export function BuildMenuPanel() {
   // topic再配信で hovered が消えたエントリを指し続けても、描画時に現データ側の実在エントリへ引き直す
   // If a topic rebroadcast leaves hovered pointing at a removed entry, re-resolve to the live entry at render time
   const previewEntry = hovered
-    ? displayEntries.find((entry) => entry.entryType === hovered.entryType && entry.entryKey === hovered.entryKey) ?? null
+    ? displayEntries.find((entry) => entry.id === hovered.id) ?? null
     : null;
 
   const select = (entry: BuildMenuDisplayEntry) =>
-    void dispatchAction("build_menu.select", { entryType: entry.entryType, entryKey: entry.entryKey });
-  const remove = (entry: BuildMenuDisplayEntry) => void dispatchAction("blueprint.delete", { name: entry.entryKey });
+    void dispatchAction("build_menu.select", { id: entry.id });
+  // BPのGuidを設置対象と削除対象の共通identityとして使う
+  // Use the blueprint GUID as the shared identity for placement and deletion
+  const remove = (entry: BuildMenuDisplayEntry) =>
+    void dispatchAction("blueprint.delete", { id: entry.id });
   // 閉じるはGameScreen遷移要求
   // Close requests a GameScreen transition
   const close = () => void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });

@@ -212,6 +212,21 @@
   ],
   "connectTools": [
     {
+      "connectToolGuid": "c0000000-0000-0000-0000-000000000003",
+      "name": "TestGearChain",
+      "toolType": "gearChain",
+      "imagePath": "TestGearChain",
+      "sortPriority": 120,
+      "initialUnlocked": false,
+      "lengthPerUnit": 4,
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 10
+        }
+      ]
+    },
+    {
       "connectToolGuid": "c0000000-0000-0000-0000-000000000001",
       "name": "TestElectricWire",
       "toolType": "electricWire",
@@ -244,21 +259,13 @@
           "count": 5
         }
       ]
-    },
+    }
+  ],
+  "buildTools": [
     {
-      "connectToolGuid": "c0000000-0000-0000-0000-000000000003",
-      "name": "TestGearChain",
-      "toolType": "gearChain",
-      "imagePath": "TestGearChain",
-      "sortPriority": 120,
-      "initialUnlocked": false,
-      "lengthPerUnit": 4,
-      "requiredItems": [
-        {
-          "itemGuid": "00000000-0000-0000-1234-000000000004",
-          "count": 10
-        }
-      ]
+      "buildToolGuid": "3f8f6de0-0000-4000-8000-000000000001",
+      "name": "ブループリントコピー",
+      "toolType": "blueprintCopy"
     }
   ]
 }

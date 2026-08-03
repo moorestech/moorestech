@@ -141,3 +141,5 @@ properties:
     properties:
     - key: slotCount
       type: integer
+- key: equipmentSlotCount
+  type: integer

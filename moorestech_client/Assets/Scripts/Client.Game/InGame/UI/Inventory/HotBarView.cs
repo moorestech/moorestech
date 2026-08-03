@@ -3,12 +3,10 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Core.Item.Interface;
-using Cysharp.Threading.Tasks;
 using Game.PlayerInventory.Interface;
 using UniRx;
 using UnityEngine;
@@ -22,10 +20,6 @@ namespace Client.Game.InGame.UI.Inventory
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         public event Action<int> OnSelectHotBar;
 
-        // 手持ち3Dモデルのロード/破棄を担う非MonoBehaviourヘルパー
-        // Non-MonoBehaviour helper that loads/disposes the held 3D model
-        private HotBarHeldItemModel _heldItemModel;
-
         public IItemStack CurrentItem => _localPlayerInventory[_localPlayerInventory.GetHotBarInventorySlot(SelectIndex)];
         
         /// <summary>
@@ -35,12 +29,9 @@ namespace Client.Game.InGame.UI.Inventory
         public int SelectIndex { get; private set; }
         private bool _isInitialized;
         private bool _isGameStateVisible = true;
-        private float _switchHotBarDeltaTotal;
 
         private void Start()
         {
-            _heldItemModel = new HotBarHeldItemModel(_localPlayerInventory);
-
             SelectIndex = 0;
             UpdateSelectedView(0, 0);
             for (var i = 0; i < hotBarItems.Count; i++)
@@ -59,8 +50,8 @@ namespace Client.Game.InGame.UI.Inventory
             var nextSelectIndex = SelectedHotBar();
             if (nextSelectIndex != -1 && nextSelectIndex != SelectIndex)
             {
-                // キーボード/スクロール経路。外部経路と同じ選択変更処理へ集約する
-                // Keyboard/scroll path; routed through the same selection-change handling as the external path
+                // キーボード経路。外部経路と同じ選択変更処理へ集約する
+                // Keyboard path; routed through the same selection-change handling as the external path
                 ApplySelection(nextSelectIndex);
             }
             
@@ -86,38 +77,12 @@ namespace Client.Game.InGame.UI.Inventory
             
             int SelectedHotBar()
             {
-                // スクロールで変化
-                if (!UiPointerHitTest.IsPointerOverAnyUi())
-                {
-                    _switchHotBarDeltaTotal += InputManager.UI.SwitchHotBar.ReadValue<float>() / 100f;
-                }
-                
-                if (_switchHotBarDeltaTotal > 1)
-                {
-                    var s = Mathf.FloorToInt(_switchHotBarDeltaTotal);
-                    _switchHotBarDeltaTotal -= s;
-                    var selected = SelectIndex + s;
-                    selected = (selected + hotBarItems.Count) % hotBarItems.Count;
-                    return selected;
-                }
-                if (_switchHotBarDeltaTotal < -1)
-                {
-                    var s = Mathf.CeilToInt(_switchHotBarDeltaTotal);
-                    _switchHotBarDeltaTotal -= s;
-                    var selected = SelectIndex + s;
-                    selected = (selected + hotBarItems.Count) % hotBarItems.Count;
-                    return selected;
-                }
-
-
-                //キーボード入力で選択
+                //数字キーのみで選択する。ホイール切替は装備の選択が持つためここからは撤去済み
+                //Number keys only; wheel switching now belongs to equipment selection and was removed from here
                 if (InputManager.UI.HotBar.ReadValue<int>() == 0) return -1;
 
-                {
-                    //キー入力で得られる値は1〜9なので-1する
-                    var selected = InputManager.UI.HotBar.ReadValue<int>() - 1;
-                    return selected;
-                }
+                //キー入力で得られる値は1〜9なので-1する
+                return InputManager.UI.HotBar.ReadValue<int>() - 1;
             }
             #endregion
         }
@@ -129,12 +94,11 @@ namespace Client.Game.InGame.UI.Inventory
             hotBarItems[nextIndex].SetSelect(true);
         }
 
-        // 選択変更の共通処理。ハイライト/手持ち3Dモデル/event/SelectIndex を同時更新する
-        // Shared selection-change handling; updates highlight, held 3D model, event, and SelectIndex together
+        // 選択変更の共通処理。ハイライト/event/SelectIndex を同時更新する
+        // Shared selection-change handling; updates highlight, event, and SelectIndex together
         private void ApplySelection(int nextIndex)
         {
             UpdateSelectedView(SelectIndex, nextIndex);
-            _heldItemModel.UpdateAsync(nextIndex).Forget(); //アイテムの再生成があるので変化を検知して変更する
             OnSelectHotBar?.Invoke(nextIndex);
             SelectIndex = nextIndex;
         }
@@ -163,13 +127,6 @@ namespace Client.Game.InGame.UI.Inventory
             // Combine the visibility request with Web UI after initialization
             if (!_isInitialized) return;
             gameObject.SetActive(_isGameStateVisible && !WebUiScreenGate.IsWebUiMode);
-        }
-        
-        private void OnDestroy()
-        {
-            // 手持ちモデルのロード/リソースをまとめて破棄する
-            // Dispose the held-model load and resources together
-            _heldItemModel?.Dispose();
         }
     }
 }

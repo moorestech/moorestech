@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { Button, Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
-import { InventoryPanel, HotbarPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
+import { InventoryPanel, HotbarPanel, EquipmentPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel, RecipeSelectionKeyHandler } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
 import { NotificationHost } from "@/features/notification";
@@ -19,7 +19,7 @@ import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
-import { screenForUiState } from "@/shared/uiState";
+import { screenAllowsGrab, screenForUiState } from "@/shared/uiState";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
 
@@ -84,10 +84,13 @@ export default function App() {
       <div ref={stageRef} className={styles.stage} data-web-ui-transparent>
         {inventoryScreen && <InventoryScreenChrome />}
         {researchScreen && <ResearchScreenChrome />}
-        {(inventoryScreen || researchScreen) && <InventoryPanel />}
+        {screenAllowsGrab(screen) && <InventoryPanel />}
         {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}
         {/* The hotbar is an always-on HUD mirroring uGUI GameStateController (shown during GameScreen too) */}
         <HotbarPanel />
+        {/* 装備HUDもホットバーと同じ常時表示族で、ホイールの持ち替え先を画面右端に見せる */}
+        {/* The equipment HUD belongs to the same always-on family, showing the wheel's switch target at the screen's right edge */}
+        <EquipmentPanel />
         {screen === "playerInventory" && <RecipeViewer />}
         {screen === "playerInventory" && <ItemListPanel />}
         {/* stage内オーバーレイを一様拡縮し、ModalはPortalでviewportへ描画する */}
@@ -114,7 +117,9 @@ export default function App() {
         <BlockInventoryKeyHandler />
         <RecipeSelectionKeyHandler />
       </div>
-      {(inventoryScreen || researchScreen) && <GrabOverlay />}
+      {/* 掴める画面かは GrabOverlay 自身が共通述語で判断する（App は画面名を持たない） */}
+      {/* GrabOverlay decides for itself via the shared predicate, keeping screen names out of App */}
+      <GrabOverlay />
       <Portal>
         <ToastHost />
         <NotificationHost />
@@ -134,15 +139,13 @@ export default function App() {
           </Overlay>
         </Portal>
       )}
-      {/* 辞書ロード失敗は再接続と同型の全面オーバーレイで知らせる（文言は辞書非依存リテラル） */}
-      {/* Surface a dictionary load failure with the same full-screen overlay as reconnecting (literal copy) */}
+      {/* 辞書ロード失敗を全面表示し、再読み込みで操作を回復できるようにする */}
+      {/* Surface dictionary load failures and offer reload to recover interaction */}
       {status === "error" && (
         <Portal>
           <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-reconnect)" data-testid="dictionary-error-overlay">
             <Stack align="center" gap="sm">
               <Text c="white" fw={500}>{DictionaryIndependentText.dictionaryLoadFailed}</Text>
-              {/* 再接続と違い自動復帰しないため、操作を取り戻す手段を必ず添える */}
-              {/* Unlike reconnecting this never self-heals, so always offer a way back to an operable UI */}
               <Button color="red" onClick={() => location.reload()} data-testid="dictionary-error-reload">
                 {DictionaryIndependentText.reload}
               </Button>

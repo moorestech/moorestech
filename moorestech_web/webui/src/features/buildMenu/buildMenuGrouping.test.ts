@@ -21,8 +21,8 @@ const foundationSubCategoryGuid = "20000000-0000-4000-8000-000000000005";
 const connectToolGuid = "40000000-0000-4000-8000-000000000001";
 const trainCarGuid = "8f9c2a51-0000-4000-8000-000000000001";
 
-const blockEntry = (entryKey: string, categoryGuid: string, subCategoryGuid: string): BuildMenuEntryData => ({
-  entryType: "block", entryKey, categoryGuid, subCategoryGuid, requiredItems: [],
+const blockEntry = (id: string, categoryGuid: string, subCategoryGuid: string): BuildMenuEntryData => ({
+  kind: "block", id, categoryGuid, subCategoryGuid, requiredItems: [],
 });
 
 const categories: BuildMenuCategory[] = [
@@ -104,8 +104,8 @@ describe("localizeBuildMenuEntries", () => {
     ["japanese", "ブループリントコピー"],
   ])("blueprintCopyはraw labelなしで%s辞書から表示名を解決する", (_languageCode, expected) => {
     const blueprintCopy: BuildMenuEntryData = {
-      entryType: "blueprintCopy",
-      entryKey: "",
+      kind: "blueprintCopy",
+      id: "50000000-0000-4000-8000-000000000001",
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
@@ -116,8 +116,8 @@ describe("localizeBuildMenuEntries", () => {
 
   it("ユーザー命名blueprintはlabelをそのまま維持する", () => {
     const blueprint: BuildMenuEntryData = {
-      entryType: "blueprint",
-      entryKey: "starter-base",
+      kind: "blueprint",
+      id: "60000000-0000-4000-8000-000000000001",
       label: "starter-base",
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
@@ -128,8 +128,8 @@ describe("localizeBuildMenuEntries", () => {
 
   it("connectToolはraw labelなしでGuid導出キーから表示名を解決する", () => {
     const connectTool: BuildMenuEntryData = {
-      entryType: "connectTool",
-      entryKey: connectToolGuid,
+      kind: "connectTool",
+      id: connectToolGuid,
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
@@ -144,8 +144,8 @@ describe("localizeBuildMenuEntries", () => {
 
   it("trainCarはraw labelなしでGuid導出キーから表示名を解決する", () => {
     const trainCar: BuildMenuEntryData = {
-      entryType: "trainCar",
-      entryKey: trainCarGuid,
+      kind: "trainCar",
+      id: trainCarGuid,
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],

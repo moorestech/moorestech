@@ -4,7 +4,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.UIState.State;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using UniRx;
 
@@ -70,39 +69,40 @@ namespace Client.WebUiHost.Game.Topics
                 UnavailableReason = unavailableReason,
             };
 
-            // 安定Guidを持つ対象はWeb側解決用identityだけを配信する
-            // Deliver only Web-resolvable identity for targets that own a stable GUID
-            switch (target)
+            // マスタ由来対象はWeb側辞書解決用の種別とGuidだけを配信する
+            // Deliver only kind and GUID for master-derived targets resolved by the Web dictionary
+            if (target == null)
             {
-                case BlockPlacementTarget block:
-                    dto.SelectedTargetType = "block";
-                    dto.SelectedBlockGuid = MasterHolder.BlockMaster
-                        .GetBlockMaster(block.BlockId).BlockGuid.ToString("D");
-                    return dto;
-                case ConnectToolPlacementTarget connectTool:
-                    dto.SelectedTargetType = "connectTool";
-                    dto.SelectedConnectToolGuid = connectTool.ConnectToolGuid.ToString("D");
-                    return dto;
-                case TrainCarPlacementTarget trainCar:
-                    dto.SelectedTargetType = "trainCar";
-                    dto.SelectedTrainCarGuid = trainCar.TrainCarGuid.ToString("D");
-                    return dto;
-                case BlueprintCopyToolPlacementTarget:
-                    dto.SelectedTargetType = "blueprintCopy";
-                    return dto;
+                dto.SelectedTargetType = "raw";
+                dto.SelectedName = "";
+                return dto;
             }
 
-            // ユーザー命名BPだけが辞書キーを持たないためraw表示を維持する
-            // Only user-named blueprints lack a dictionary key, so they keep the raw label
-            dto.SelectedTargetType = "raw";
-            dto.SelectedName = target switch
+            switch (target.Kind)
             {
-                null => "",
-                BlueprintPlacementTarget blueprint => blueprint.BlueprintName,
-                _ => throw new InvalidOperationException(
-                    $"Unsupported placement target type: {target.GetType().FullName}"),
-            };
-            return dto;
+                case PlacementTargetKind.Block:
+                    dto.SelectedTargetType = "block";
+                    dto.SelectedBlockGuid = target.Id.ToString("D");
+                    return dto;
+                case PlacementTargetKind.ConnectTool:
+                    dto.SelectedTargetType = "connectTool";
+                    dto.SelectedConnectToolGuid = target.Id.ToString("D");
+                    return dto;
+                case PlacementTargetKind.TrainCar:
+                    dto.SelectedTargetType = "trainCar";
+                    dto.SelectedTrainCarGuid = target.Id.ToString("D");
+                    return dto;
+                case PlacementTargetKind.BlueprintCopy:
+                    dto.SelectedTargetType = "blueprintCopy";
+                    return dto;
+                case PlacementTargetKind.Blueprint:
+                    dto.SelectedTargetType = "raw";
+                    dto.SelectedName = target.DisplayName;
+                    return dto;
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        nameof(target.Kind), target.Kind, null);
+            }
         }
     }
 }

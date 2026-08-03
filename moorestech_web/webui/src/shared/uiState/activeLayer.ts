@@ -14,6 +14,12 @@ export function isPointerOverWebUi(target: EventTarget | null): boolean {
   return target != null && "hasAttribute" in target && !(target as Element).hasAttribute("data-web-ui-transparent");
 }
 
+// ゲーム操作を担うHUDは実UIだがホイールだけは素通しさせるため、印の付いた祖先を持つかで判定する
+// HUDs that own game gestures are real UI yet must let the wheel through, so a marked ancestor decides it
+export function isWheelPassthrough(target: EventTarget | null): boolean {
+  return target != null && "closest" in target && (target as Element).closest("[data-wheel-passthrough]") != null;
+}
+
 export function isTextInputElement(target: EventTarget | null): boolean {
   return target != null && "matches" in target && (target as Element).matches(textInputSelector);
 }

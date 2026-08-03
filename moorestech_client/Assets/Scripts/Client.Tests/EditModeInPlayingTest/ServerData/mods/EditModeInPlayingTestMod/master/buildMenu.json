@@ -155,5 +155,12 @@
         }
       ]
     }
+  ],
+  "buildTools": [
+    {
+      "buildToolGuid": "3f8f6de0-0000-4000-8000-000000000002",
+      "name": "ブループリントコピー",
+      "toolType": "blueprintCopy"
+    }
   ]
 }

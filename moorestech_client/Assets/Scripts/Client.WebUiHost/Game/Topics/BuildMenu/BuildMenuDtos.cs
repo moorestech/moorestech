@@ -20,8 +20,13 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
     public class BuildMenuEntryDto
     {
-        public string EntryType;
-        public string EntryKey;
+        // 設置対象の同一性はGuid文字列のId1本が持ち、Kindは表示・振る舞いの分類にすぎない
+        // Identity lives solely in Id (a GUID string); Kind only classifies display and behavior
+        public string Id;
+        public string Kind;
+
+        // マスタ由来名はWeb辞書で解決し、ユーザー命名BPだけLabelを配信する
+        // Master-derived names resolve through the Web dictionary; only user-named blueprints carry Label
         public string Label;
         public string CategoryGuid;
         public string SubCategoryGuid;

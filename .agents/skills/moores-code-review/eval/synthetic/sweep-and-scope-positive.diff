@@ -1,0 +1,151 @@
+diff --git a/moorestech_server/Assets/Scripts/Game.Aviary/AviaryFeedFactory.cs b/moorestech_server/Assets/Scripts/Game.Aviary/AviaryFeedFactory.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Game.Aviary/AviaryFeedFactory.cs
+@@ -0,0 +1,30 @@
++using Core.Master;
++using Mooresmaster.Model.AviaryModule;
++
++namespace Game.Aviary
++{
++    public static class AviaryFeedFactory
++    {
++        public static bool TryCreate(AviaryFeedMasterElement element, out AviaryFeed feed)
++        {
++            feed = new AviaryFeed(element.FeedGuid, element.Nutrition, element.DisplayName);
++            return true;
++        }
++
++        public static AviaryFeedEntry CreateEntry(AviaryFeedMasterElement element)
++        {
++            TryCreate(element, out var feed);
++            return new AviaryFeedEntry(feed.FeedGuid, feed.DisplayName, feed.Nutrition);
++        }
++    }
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Aviary/AviaryFeedCatalog.cs b/moorestech_server/Assets/Scripts/Game.Aviary/AviaryFeedCatalog.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Game.Aviary/AviaryFeedCatalog.cs
+@@ -0,0 +1,34 @@
++using System.Collections.Generic;
++using Core.Master;
++
++namespace Game.Aviary
++{
++    public class AviaryFeedCatalog
++    {
++        public IReadOnlyList<AviaryFeedEntry> Entries()
++        {
++            var entries = new List<AviaryFeedEntry>();
++            foreach (var element in MasterHolder.AviaryMaster.Feeds)
++            {
++                if (!AviaryFeedFactory.TryCreate(element, out var feed)) continue;
++                entries.Add(CreateEntry(feed));
++            }
++
++            return entries;
++        }
++
++        private AviaryFeedEntry CreateEntry(AviaryFeed feed)
++        {
++            return new AviaryFeedEntry(feed.FeedGuid, feed.DisplayName, feed.Nutrition);
++        }
++    }
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Aviary/WebAviaryFeedCatalog.cs b/moorestech_server/Assets/Scripts/Game.Aviary/WebAviaryFeedCatalog.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Game.Aviary/WebAviaryFeedCatalog.cs
+@@ -0,0 +1,34 @@
++using System.Collections.Generic;
++using Core.Master;
++
++namespace Game.Aviary
++{
++    public class WebAviaryFeedCatalog
++    {
++        public IReadOnlyList<AviaryFeedEntry> Entries()
++        {
++            var entries = new List<AviaryFeedEntry>();
++            foreach (var element in MasterHolder.AviaryMaster.Feeds)
++            {
++                if (!AviaryFeedFactory.TryCreate(element, out var feed)) continue;
++                entries.Add(CreateEntry(feed));
++            }
++
++            return entries;
++        }
++
++        private AviaryFeedEntry CreateEntry(AviaryFeed feed)
++        {
++            return new AviaryFeedEntry(feed.FeedGuid, feed.DisplayName, feed.Nutrition);
++        }
++    }
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Aviary/AviaryHatchService.cs b/moorestech_server/Assets/Scripts/Game.Aviary/AviaryHatchService.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Game.Aviary/AviaryHatchService.cs
+@@ -0,0 +1,40 @@
++using System.Collections.Generic;
++
++namespace Game.Aviary
++{
++    public class AviaryHatchService
++    {
++        private readonly Dictionary<int, uint> _incubationTicks = new();
++
++        public uint ElapsedTicks { get; private set; }
++
++        public void Update()
++        {
++            ElapsedTicks++;
++            AdvanceIncubation();
++        }
++
++        public bool ForceHatch(int nestId, out AviaryChick chick)
++        {
++            chick = new AviaryChick(nestId);
++            _incubationTicks.Remove(nestId);
++            return true;
++        }
++
++        private void AdvanceIncubation()
++        {
++            foreach (var nestId in new List<int>(_incubationTicks.Keys))
++            {
++                _incubationTicks[nestId] = ElapsedTicks;
++            }
++        }
++    }
++}
+diff --git a/moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/AviaryDebugProtocol.cs b/moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/AviaryDebugProtocol.cs
+new file mode 100644
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/AviaryDebugProtocol.cs
+@@ -0,0 +1,26 @@
++using Game.Aviary;
++using Server.Util.MessagePack;
++
++namespace Server.Protocol.PacketResponse
++{
++    public class AviaryDebugProtocol : IPacketResponse
++    {
++        public const string Tag = "va:aviaryDebug";
++
++        private readonly AviaryHatchService _hatchService;
++
++        public AviaryDebugProtocol(AviaryHatchService hatchService)
++        {
++            _hatchService = hatchService;
++        }
++
++        public ProtocolMessagePackBase GetResponse(List<byte> payload)
++        {
++            var request = MessagePackSerializer.Deserialize<AviaryDebugMessagePack>(payload.ToArray());
++            _hatchService.ForceHatch(request.NestId, out var chick);
++            return new AviaryDebugResponseMessagePack(chick.NestId);
++        }
++    }
++}

@@ -108,7 +108,9 @@ namespace Client.Tests.Mining
             var expectedMapObject = CreateTarget(camera.ScreenPointToRay(mousePoint));
             _playerObject.transform.position = expectedMapObject.GetPosition();
             var controller = CreateMiningController();
-            var context = new MapObjectMiningControllerContext(null, null);
+            // このテストは照準/フォーカス判定のみを検証し装備は参照しないためnullで良い
+            // This test only verifies aim/focus logic and never touches equipment, so null is fine here
+            var context = new MapObjectMiningControllerContext(null);
             SetField(controller, "_context", context);
             SetField(controller, "_currentState", new StableMiningState());
 

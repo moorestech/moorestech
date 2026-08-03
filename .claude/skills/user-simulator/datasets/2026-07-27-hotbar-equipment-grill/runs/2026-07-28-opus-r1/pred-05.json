@@ -1,1 +1,0 @@
-{"idx":5,"predictions":[{"header":"旧ホットバー","predicted_label":"完全撤廃（推奨）","rationale":"AGENTS.md設計原則(波及を恐れない・optionalフォールバックは敗北)とssot-data-placement観点(重複置き場撤廃)に合致、かつ本セッション内の全既出回答が一貫して推奨ラベルを選択している","confidence":"高"}]}

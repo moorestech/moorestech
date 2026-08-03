@@ -15,7 +15,6 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "inventory.move_item";
 
         private readonly LocalPlayerInventoryController _controller;
-
         public MoveItemActionHandler(LocalPlayerInventoryController controller)
         {
             _controller = controller;
@@ -53,7 +52,6 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "inventory.split";
 
         private readonly LocalPlayerInventoryController _controller;
-
         public SplitGrabActionHandler(LocalPlayerInventoryController controller)
         {
             _controller = controller;
@@ -63,17 +61,16 @@ namespace Client.WebUiHost.Game.Actions
         {
             if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
 
-            if (!InventoryAreaMapper.TryParseSlotRef(payload["from"], _controller.LocalPlayerInventory.MainSlotCount, out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
-            if (fromType != LocalMoveInventoryType.MainOrSub) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            if (!InventoryAreaMapper.TryParseClickableSlotRef(payload["from"], _controller.LocalPlayerInventory.MainSlotCount, out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
             if (_controller.GrabInventory.Id != ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("grab_not_empty"));
 
-            var item = _controller.LocalPlayerInventory[fromSlot];
+            var item = _controller.GetItem(fromType, fromSlot);
             if (item.Id == ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("empty_slot"));
 
             // 1個以下なら半分は0なので何もしない（成功扱い）
             // A stack of 1 has no half; treat as a successful no-op
             var half = item.Count / 2;
-            if (0 < half) _controller.MoveItem(LocalMoveInventoryType.MainOrSub, fromSlot, LocalMoveInventoryType.Grab, 0, half);
+            if (0 < half) _controller.MoveItem(fromType, fromSlot, LocalMoveInventoryType.Grab, 0, half);
             return UniTask.FromResult(ActionResult.Success());
         }
     }
@@ -87,7 +84,10 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "inventory.split_drag";
         private readonly LocalPlayerInventoryController _controller;
 
-        public SplitDragActionHandler(LocalPlayerInventoryController controller) { _controller = controller; }
+        public SplitDragActionHandler(LocalPlayerInventoryController controller)
+        {
+            _controller = controller;
+        }
 
         public static int CalculateCountPerSlot(int grabCount, int destinationCount)
         {
@@ -97,13 +97,13 @@ namespace Client.WebUiHost.Game.Actions
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (payload?["slots"] is not JArray slots || slots.Count == 0) return UniTask.FromResult(ActionResult.Fail("invalid_slots"));
-            var destinations = new List<int>();
+            var destinations = new List<(LocalMoveInventoryType type, int slot)>();
             foreach (var token in slots)
             {
-                if (!InventoryAreaMapper.TryParseClickableSlotRef(token, _controller.LocalPlayerInventory.MainSlotCount, out var slot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
-                if (destinations.Contains(slot)) continue;
-                if (!_controller.LocalPlayerInventory[slot].IsAllowedToAddWithRemain(_controller.GrabInventory)) continue;
-                destinations.Add(slot);
+                if (!InventoryAreaMapper.TryParseClickableSlotRef(token, _controller.LocalPlayerInventory.MainSlotCount, out var type, out var slot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+                if (destinations.Contains((type, slot))) continue;
+                if (!_controller.GetItem(type, slot).IsAllowedToAddWithRemain(_controller.GrabInventory)) continue;
+                destinations.Add((type, slot));
             }
 
             // 配分量はホストの現在 grab と一意な行先数だけから決める
@@ -111,8 +111,8 @@ namespace Client.WebUiHost.Game.Actions
             if (destinations.Count == 0) return UniTask.FromResult(ActionResult.Fail("no_valid_slots"));
             var count = CalculateCountPerSlot(_controller.GrabInventory.Count, destinations.Count);
             if (count <= 0) return UniTask.FromResult(ActionResult.Success());
-            foreach (var slot in destinations)
-                _controller.TryMoveItem(LocalMoveInventoryType.Grab, 0, LocalMoveInventoryType.MainOrSub, slot, count, out _);
+            foreach (var (type, slot) in destinations)
+                _controller.TryMoveItem(LocalMoveInventoryType.Grab, 0, type, slot, count, out _);
             return UniTask.FromResult(ActionResult.Success());
         }
     }
@@ -126,7 +126,6 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "inventory.collect";
 
         private readonly LocalPlayerInventoryController _controller;
-
         public CollectActionHandler(LocalPlayerInventoryController controller)
         {
             _controller = controller;
@@ -134,23 +133,23 @@ namespace Client.WebUiHost.Game.Actions
 
         // 収集先は host 自身の現在 grab 状態で決める。Web 側の grab 表示は dblclick 時点で必ず古いため
         // The host picks the target from its own current grab; the web's grab view is always stale at dblclick
-        public static (LocalMoveInventoryType type, int slot) ResolveCollectTarget(bool grabHeld, int clickedSlot)
+        public static (LocalMoveInventoryType type, int slot) ResolveCollectTarget(bool grabHeld, LocalMoveInventoryType clickedType, int clickedSlot)
         {
-            return grabHeld ? (LocalMoveInventoryType.Grab, 0) : (LocalMoveInventoryType.MainOrSub, clickedSlot);
+            return grabHeld ? (LocalMoveInventoryType.Grab, 0) : (clickedType, clickedSlot);
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
 
-            // 入力はクリック可能スロット（main/hotbar）のみ。grab はクライアントから来ない
-            // Input is a clickable slot only (main/hotbar); grab never arrives from the client
-            if (!InventoryAreaMapper.TryParseClickableSlotRef(payload["slot"], _controller.LocalPlayerInventory.MainSlotCount, out var clickedSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            // 入力はクリック可能スロット（main/hotbar/equipment）のみ。grab はクライアントから来ない
+            // Input is a clickable slot only (main/hotbar/equipment); grab never arrives from the client
+            if (!InventoryAreaMapper.TryParseClickableSlotRef(payload["slot"], _controller.LocalPlayerInventory.MainSlotCount, out var clickedType, out var clickedSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
             // 収集先決定は uGUI の DoubleClick と同一。空手×空スロットは CollectItems が no-op（成功扱い）
             // Target choice mirrors uGUI DoubleClick; empty-handed on an empty slot is a CollectItems no-op (success)
             var grabHeld = _controller.GrabInventory.Id != ItemMaster.EmptyItemId;
-            var (targetType, targetSlot) = ResolveCollectTarget(grabHeld, clickedSlot);
+            var (targetType, targetSlot) = ResolveCollectTarget(grabHeld, clickedType, clickedSlot);
             _controller.CollectItems(targetType, targetSlot);
             return UniTask.FromResult(ActionResult.Success());
         }

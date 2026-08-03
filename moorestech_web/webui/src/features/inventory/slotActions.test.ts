@@ -32,6 +32,9 @@ describe("slotActions", () => {
       hotbarSlots: [slot(0, 0)],
       grab: slot(0, 0),
       selectedHotbar: 0,
+      equipment: [],
+      selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
     };
     bridge.blockInventory = null;
     bridge.itemMaster = new Map([[1, { itemId: 1, itemGuid: "87000000-0000-4000-8000-000000000001", maxStack: 100 }]]);
@@ -45,6 +48,9 @@ describe("slotActions", () => {
       hotbarSlots: [slot(0, 0)],
       grab: slot(0, 0),
       selectedHotbar: 0,
+      equipment: [],
+      selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
     };
     bridge.blockInventory = {
       open: true,
@@ -77,6 +83,9 @@ describe("slotActions", () => {
       hotbarSlots: [],
       grab: slot(9, 3),
       selectedHotbar: 0,
+      equipment: [],
+      selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
     };
 
     slotActions.onRightDown({ area: "main", slot: 0 });
@@ -97,6 +106,9 @@ describe("slotActions", () => {
       hotbarSlots: [],
       grab: slot(9, 3),
       selectedHotbar: 0,
+      equipment: [],
+      selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
     };
     slotActions.onRightEnter({ area: "main", slot: 0 });
 
@@ -104,6 +116,54 @@ describe("slotActions", () => {
       from: { area: "grab", slot: 0 },
       to: { area: "main", slot: 0 },
       count: 1,
+    });
+  });
+
+  // 枠数が縮んだ直後のクリックは描画済みの ref だけが残り、最新 snapshot には対象が無い
+  // Right after the slot count shrinks, only the rendered ref survives while the latest snapshot has no such slot
+  describe("範囲外スロットへの操作", () => {
+    beforeEach(() => {
+      bridge.inventory = {
+        mainSlots: [slot(1, 5)],
+        hotbarSlots: [slot(1, 5)],
+        grab: slot(0, 0),
+        selectedHotbar: 0,
+        equipment: [],
+        selectedEquipment: -1,
+        equipmentSelectionConfirmationRevision: 0,
+      };
+    });
+
+    it.each([
+      ["equipment", { area: "equipment", slot: 0 } as const],
+      ["main", { area: "main", slot: 9 } as const],
+      ["hotbar", { area: "hotbar", slot: 9 } as const],
+    ])("%s の範囲外 ref は例外を投げず何も送らない", (_, ref) => {
+      expect(() => slotActions.onLeftDown(ref, false)).not.toThrow();
+      expect(() => slotActions.onLeftDown(ref, true)).not.toThrow();
+      expect(() => slotActions.onRightDown(ref)).not.toThrow();
+      expect(() => slotActions.onDoubleClick(ref)).not.toThrow();
+      expect(() => slotActions.onLeftEnter(ref)).not.toThrow();
+      expect(() => slotActions.onRightEnter(ref)).not.toThrow();
+      expect(bridge.dispatchAction).not.toHaveBeenCalled();
+    });
+
+    it("grab 保持中でも範囲外スロットへは何も送らない", () => {
+      bridge.inventory = {
+        mainSlots: [slot(0, 0)],
+        hotbarSlots: [slot(0, 0)],
+        grab: slot(9, 4),
+        selectedHotbar: 0,
+        equipment: [],
+        selectedEquipment: -1,
+        equipmentSelectionConfirmationRevision: 0,
+      };
+      const ref = { area: "equipment", slot: 0 } as const;
+
+      expect(() => slotActions.onLeftDown(ref, false)).not.toThrow();
+      expect(() => slotActions.onRightDown(ref)).not.toThrow();
+      expect(() => slotActions.onRightEnter(ref)).not.toThrow();
+      expect(bridge.dispatchAction).not.toHaveBeenCalled();
     });
   });
 });

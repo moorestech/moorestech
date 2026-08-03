@@ -14,7 +14,13 @@ namespace Game.PlayerInventory.Interface
         [JsonProperty("MainInventoryItems")] public List<ItemStackSaveJsonObject> MainInventoryItems;
         
         [JsonProperty("GrabInventoryItems")] public ItemStackSaveJsonObject GrabInventoryItem;
-        
+
+        // 装備スロット数はマスタ定義なので保存せず、中身と選択位置だけを保存する
+        // The equipment slot count is master data, so only the contents and the selection are saved
+        [JsonProperty("EquipmentInventoryItems")] public List<ItemStackSaveJsonObject> EquipmentInventoryItems;
+
+        [JsonProperty("SelectedEquipmentIndex")] public int SelectedEquipmentIndex;
+
         public PlayerInventorySaveJsonObject()
         {
         }
@@ -30,11 +36,19 @@ namespace Game.PlayerInventory.Interface
             
             var grabItemStack = playerInventoryData.GrabInventory.GetItem(0);
             GrabInventoryItem = new ItemStackSaveJsonObject(grabItemStack);
-            
+
+            EquipmentInventoryItems = new List<ItemStackSaveJsonObject>();
+            for (var i = 0; i < playerInventoryData.EquipmentInventory.GetSlotSize(); i++)
+            {
+                var item = playerInventoryData.EquipmentInventory.GetItem(i);
+                EquipmentInventoryItems.Add(new ItemStackSaveJsonObject(item));
+            }
+            SelectedEquipmentIndex = playerInventoryData.EquipmentInventory.SelectedEquipmentIndex;
+
             PlayerId = playerId;
         }
-        
-        public (List<IItemStack> mainInventory, IItemStack grabItem) GetPlayerInventoryData()
+
+        public (List<IItemStack> mainInventory, IItemStack grabItem, List<IItemStack> equipmentItems, int selectedEquipmentIndex) GetPlayerInventoryData()
         {
             var mainItemStack = new List<IItemStack>();
             foreach (var items in MainInventoryItems)
@@ -42,8 +56,14 @@ namespace Game.PlayerInventory.Interface
                 mainItemStack.Add(items.ToItemStack());
             }
             var grabItem = GrabInventoryItem.ToItemStack();
-            
-            return (mainItemStack, grabItem);
+
+            var equipmentItems = new List<IItemStack>();
+            foreach (var items in EquipmentInventoryItems)
+            {
+                equipmentItems.Add(items.ToItemStack());
+            }
+
+            return (mainItemStack, grabItem, equipmentItems, SelectedEquipmentIndex);
         }
     }
 }

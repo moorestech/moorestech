@@ -17,6 +17,7 @@
     "Game.Block",
     "Server.Event",
     "Game.Map.Interface",
+    "Game.Map",
     "Game.SaveLoad.Interface",
     "Game.Crafting.Interface",
     "Game.Context",

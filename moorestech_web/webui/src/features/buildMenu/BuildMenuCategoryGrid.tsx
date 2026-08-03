@@ -38,10 +38,10 @@ export function BuildMenuCategoryGrid({ sections, compositeHeading, onSelect, on
           <SlotGrid cols={8}>
             {section.entries.map((entry) => (
               <BuildMenuSlot
-                key={`${entry.entryType}-${entry.entryKey}`}
+                key={entry.id}
                 entry={entry}
                 onLeftClick={() => onSelect(entry)}
-                onRightClick={entry.entryType === "blueprint" ? () => onDelete(entry) : undefined}
+                onRightClick={entry.kind === "blueprint" ? () => onDelete(entry) : undefined}
                 onHoverChange={(hovering) => onHoverChange(hovering ? entry : null)}
               />
             ))}

@@ -24,6 +24,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             // Delegate every inventory type to a dedicated resolver.
             AddResolver(new MainInventoryIdentifierResolver(playerInventoryDataStore));
             AddResolver(new GrabInventoryIdentifierResolver(playerInventoryDataStore));
+            AddResolver(new EquipmentInventoryIdentifierResolver(playerInventoryDataStore));
             AddResolver(new BlockInventoryIdentifierResolver(ServerContext.WorldBlockDatastore));
             AddResolver(new TrainInventoryIdentifierResolver(trainUnitLookupDatastore));
 

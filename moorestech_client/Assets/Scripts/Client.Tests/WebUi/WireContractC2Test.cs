@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.WebUiHost.Common;
@@ -40,7 +41,7 @@ namespace Client.Tests.WebUi
         {
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BlockId);
             var dto = PlacementModeDtoFactory.Create(
-                new BlockPlacementTarget(ForUnitTestModBlockId.BlockId, null),
+                new BlockPlacementTarget(blockMaster.BlockGuid, null),
                 2,
                 "");
 
@@ -115,11 +116,14 @@ namespace Client.Tests.WebUi
         public void PlacementModeFactorySeparatesTypedCopyToolFromRawBlueprintName()
         {
             var copyTool = PlacementModeDtoFactory.Create(
-                new BlueprintCopyToolPlacementTarget(),
+                new BlueprintCopyPlacementTarget(
+                    MasterHolder.BuildToolMaster.All[0].BuildToolGuid),
                 2,
                 "");
             var blueprint = PlacementModeDtoFactory.Create(
-                new BlueprintPlacementTarget("My Blueprint"),
+                new BlueprintPlacementTarget(
+                    Guid.Parse("60000000-0000-4000-8000-000000000001"),
+                    "My Blueprint"),
                 2,
                 "");
 
@@ -134,7 +138,7 @@ namespace Client.Tests.WebUi
         [Test]
         public void PlacementModeFactoryRejectsUnknownTargetType()
         {
-            Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
                 PlacementModeDtoFactory.Create(new UnknownPlacementTarget(), 2, ""));
         }
 
@@ -168,6 +172,11 @@ namespace Client.Tests.WebUi
 
         private sealed class UnknownPlacementTarget : IPlacementTarget
         {
+            public Guid Id => Guid.Parse("70000000-0000-4000-8000-000000000001");
+            public PlacementTargetKind Kind => (PlacementTargetKind)999;
+            public string DisplayName => "unknown";
+            public IReadOnlyList<(Guid itemGuid, int count)> CreateRequiredItems() => Array.Empty<(Guid, int)>();
+
             public bool Equals(IPlacementTarget other)
             {
                 return ReferenceEquals(this, other);

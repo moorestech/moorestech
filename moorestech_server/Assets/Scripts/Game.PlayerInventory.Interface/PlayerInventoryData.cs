@@ -6,11 +6,13 @@ namespace Game.PlayerInventory.Interface
     {
         public readonly IOpenableInventory GrabInventory;
         public readonly IOpenableInventory MainOpenableInventory;
-        
-        public PlayerInventoryData(IOpenableInventory mainOpenableInventory, IOpenableInventory grabInventory)
+        public readonly IEquipmentInventory EquipmentInventory;
+
+        public PlayerInventoryData(IOpenableInventory mainOpenableInventory, IOpenableInventory grabInventory, IEquipmentInventory equipmentInventory)
         {
             MainOpenableInventory = mainOpenableInventory;
             GrabInventory = grabInventory;
+            EquipmentInventory = equipmentInventory;
         }
 
         // 現在のサイズでホットバー番号解決

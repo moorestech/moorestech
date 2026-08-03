@@ -45,13 +45,13 @@ export function localizeBuildMenuEntries(
   }));
 }
 
-// entryTypeを表示名解決の種別へ写す。保存BPだけが原文labelのまま
-// Map entryType onto the resolution kind; only saved blueprints keep their raw label
+// kindを表示名解決の種別へ写す。保存BPだけが原文labelのまま
+// Map kind onto the resolution type; only saved blueprints keep their raw label
 function entryTarget(entry: BuildMenuEntryData): SelectableTarget {
-  switch (entry.entryType) {
-    case "block": return { type: "block", guid: entry.entryKey };
-    case "connectTool": return { type: "connectTool", guid: entry.entryKey };
-    case "trainCar": return { type: "trainCar", guid: entry.entryKey };
+  switch (entry.kind) {
+    case "block": return { type: "block", guid: entry.id };
+    case "connectTool": return { type: "connectTool", guid: entry.id };
+    case "trainCar": return { type: "trainCar", guid: entry.id };
     case "blueprintCopy": return { type: "blueprintCopy" };
     default: return { type: "raw", label: entry.label };
   }

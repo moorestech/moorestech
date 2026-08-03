@@ -18,11 +18,11 @@ export function BuildMenuSlot({ entry, onLeftClick, onRightClick, onHoverChange 
   return (
     <SlotFrame
       filled
-      testId={`build-menu-entry-${entry.entryType}-${entry.entryKey}`}
+      testId={`build-menu-entry-${entry.kind}-${entry.id}`}
       onLeftDown={onLeftClick}
       onRightDown={onRightClick}
       onHoverChange={onHoverChange}
-      {...tutorialAnchor(buildMenuEntryAnchorId(entry.entryType, entry.entryKey))}
+      {...tutorialAnchor(buildMenuEntryAnchorId(entry.kind, entry.id))}
     >
       {entry.iconUrl ? (
         <img className={styles.slotIcon} src={entry.iconUrl} alt={entry.displayLabel} draggable={false} />

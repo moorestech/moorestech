@@ -1,4 +1,7 @@
+/* 画面中央の点は他の常時表示HUDと同じく入力を一切奪わない（ホイールのtargetにもならない） */
+/* The center dot never steals input like every other always-on HUD, so it cannot become a wheel target */
 .crosshair {
+  pointer-events: none;
   position: fixed;
   top: 50%;
   left: 50%;

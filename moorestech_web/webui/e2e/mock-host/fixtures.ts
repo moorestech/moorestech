@@ -6,17 +6,13 @@ import type {
   ModalRequest,
   ProgressData,
   UiStateData,
-  BuildMenuData,
   TrainRidingData,
 } from "../../src/bridge/contract/payloadTypes";
-import {
-  CHEST_BLOCK_GUID,
-  TANK_BLOCK_GUID,
-} from "./fixtures/blockLocalizationFixtures";
+import { CHEST_BLOCK_GUID, TANK_BLOCK_GUID } from "./fixtures/blockLocalizationFixtures";
 import { WATER_FLUID_GUID } from "./fixtures/contentLocalizationFixtures";
 
-// BLK-2〜5/8 詳細ブロックと FEAT-RES-1 研究ツリーは別ファイルへ分割し再エクスポートする（200行制約）
-// Split the BLK-2..5/8 detail blocks and the FEAT-RES-1 research tree into separate files and re-export (200-line limit)
+// BLK-2〜5/8 詳細ブロックと FEAT-RES-1 研究ツリー、ビルドメニューは別ファイルへ分割し再エクスポートする（200行制約）
+// Split the BLK-2..5/8 detail blocks, the FEAT-RES-1 research tree, and the build menu into separate files and re-export (200-line limit)
 export * from "./blockDetailFixtures";
 export * from "./researchFixtures";
 export * from "./fixtures/presentationFixtures";
@@ -24,6 +20,7 @@ export * from "./fixtures/recipeFixtures";
 export * from "./fixtures/itemMasterFixtures";
 export * from "./fixtures/blockLocalizationFixtures";
 export * from "./fixtures/contentLocalizationFixtures";
+export * from "./fixtures/buildMenuFixtures";
 
 const empty = () => ({ itemId: 0, count: 0 });
 
@@ -39,6 +36,11 @@ export const inventory = {
   hotbarSlots: [{ itemId: 2, count: 3 }, ...Array.from({ length: 8 }, empty)],
   grab: empty(),
   selectedHotbar: 0,
+  // 3装備枠、初期選択は素手
+  // Three slots, bare hands selected
+  equipment: [{ itemId: 1, count: 1 }, ...Array.from({ length: 2 }, empty)],
+  selectedEquipment: -1,
+  equipmentSelectionConfirmationRevision: 0,
 } satisfies PlayerInventoryData;
 
 // BLK-1 チェスト: 9 スロット(uGUI IChestParam.ItemSlotCount 相当)、一部にアイテム
@@ -125,31 +127,6 @@ export const progressSample = {
 // INFRA-6: default to the inventory screen (keeps the visibility existing e2e tests assume)
 export const uiState = { state: "PlayerInventory" } satisfies UiStateData;
 
-// カテゴリ×サブカテゴリ構成。「鉄」検索で 物流/チェスト と 輸送/鉄道 が複数カテゴリ跨ぎでヒットする
-// Category x sub-category layout; searching "鉄" hits both 物流/チェスト and 輸送/鉄道 across categories
-export const buildMenu = {
-  categories: [
-    { categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuids: ["52000000-0000-4000-8000-000000000001", "52000000-0000-4000-8000-000000000002"] },
-    { categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuids: ["52000000-0000-4000-8000-000000000003", "52000000-0000-4000-8000-000000000004"] },
-    { categoryGuid: "51000000-0000-4000-8000-000000000003", subCategoryGuids: ["52000000-0000-4000-8000-000000000005"] },
-    // エントリを持たない空カテゴリ。サイドバーの除外分岐を検証するためのもの
-    // An empty category with no entries, to exercise the sidebar's exclusion branch
-    { categoryGuid: "51000000-0000-4000-8000-000000000004", subCategoryGuids: ["52000000-0000-4000-8000-000000000006"] },
-  ],
-  entries: [
-    { entryType: "block", entryKey: "53000000-0000-4000-8000-000000000001", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [{ itemId: 1, count: 4 }], iconUrl: "/icons/wood-chest.png" },
-    { entryType: "block", entryKey: "53000000-0000-4000-8000-000000000002", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [], iconUrl: "/icons/iron-chest.png" },
-    { entryType: "block", entryKey: "53000000-0000-4000-8000-000000000003", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000002", requiredItems: [], iconUrl: "/icons/belt-conveyor.png" },
-    { entryType: "block", entryKey: "53000000-0000-4000-8000-000000000004", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: "/icons/rail.png" },
-    { entryType: "trainCar", entryKey: "56000000-0000-4000-8000-000000000001", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000004", requiredItems: [], iconUrl: "/icons/cargo-car.png" },
-    // connectToolはGuidだけを配信しWeb側が辞書で表示名を解決する
-    // connectTool ships only its GUID; the web side resolves the display name from the dictionary
-    { entryType: "connectTool", entryKey: "55000000-0000-4000-8000-000000000001", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: "/icons/wire-tool.png" },
-    { entryType: "blueprintCopy", entryKey: "", categoryGuid: "51000000-0000-4000-8000-000000000003", subCategoryGuid: "52000000-0000-4000-8000-000000000005", requiredItems: [] },
-    { entryType: "blueprint", entryKey: "starter-base", label: "starter-base", categoryGuid: "51000000-0000-4000-8000-000000000003", subCategoryGuid: "52000000-0000-4000-8000-000000000005", requiredItems: [] },
-  ],
-} satisfies BuildMenuData;
-
 // DEMO(採点用): 60件=10段分。可視7段+スクロール余剰でノブ比が正本(≈70%)と揃う
 // DEMO (scoring): 60 items = 10 rows; 7 visible + overflow puts the thumb ratio at the reference's ~70%
 export const demoItemList = { itemIds: [100, ...Array.from({ length: 59 }, (_, i) => i + 1)] } satisfies RecipeViewerItemListData;
@@ -174,6 +151,11 @@ export const demoInventory = {
   ],
   grab: empty(),
   selectedHotbar: 0,
+  // 採点用スクショでも装備HUDが右端に写るよう、ホットバーと同じ非シアン系IDで埋める
+  // Fill with the same non-cyan ids as the hotbar so the equipment HUD shows at the right edge in scoring screenshots
+  equipment: [{ itemId: 23, count: 100 }, { itemId: 24, count: 100 }, empty()],
+  selectedEquipment: 0,
+  equipmentSelectionConfirmationRevision: 0,
 } satisfies PlayerInventoryData;
 
 // DEMO: 進捗バー非表示でホットバーをすっきり見せる

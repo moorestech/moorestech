@@ -17,6 +17,7 @@ type DomQueryResult = {
   height: number;
   devicePixelRatio: number;
   hitTestPassed: boolean;
+  text: string;
 };
 
 type TopicState = ReturnType<typeof useTopicStore.getState>;
@@ -102,6 +103,7 @@ function queryElement(request: DomQueryRequest): DomQueryResult {
       height: 0,
       devicePixelRatio,
       hitTestPassed: false,
+      text: "",
     };
   }
 
@@ -125,6 +127,7 @@ function queryElement(request: DomQueryRequest): DomQueryResult {
     height: rect.height,
     devicePixelRatio,
     hitTestPassed,
+    text: element.innerText,
   };
 }
 

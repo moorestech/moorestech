@@ -62,14 +62,14 @@ namespace Client.Playtest.Operations
             // Under CEF, wait for the panel and select the entry by its stable BlockGuid-derived testid
             var useWebUi = CefScreenMapper.IsWebUiAvailable();
             var blockId = PlaytestBlockOps.ResolveBlockId(blockName);
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            var webUiTestid = BuildMenuBlockTestId(blockName);
+            var webUiTestid = PlaytestWebUiOps.BuildMenuBlockTestId(blockName);
             if (useWebUi)
             {
                 await PlaytestWebUiOps.WaitWebUiElement("build-menu-panel", 15f);
 
                 // 新ビルドメニューは選択中カテゴリのセクションしか描画しないため、対象ブロックのカテゴリへ切り替える
                 // The new build menu only renders the selected category's sections, so switch to the target block's category first
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
                 var (categoryGuid, _) = MasterHolder.BuildMenuCategoryMaster
                     .GetGuidPair(blockMaster.Category, blockMaster.SubCategory);
                 await PlaytestWebUiOps.ClickWebUi($"build-menu-category-{categoryGuid:D}", 15f);
@@ -142,15 +142,6 @@ namespace Client.Playtest.Operations
                 lastPosition = cameraTransform.position;
                 lastRotation = cameraTransform.rotation;
             }
-        }
-
-        // ビルドメニューのブロックentryKeyはBlockGuid。testid生成をシナリオと共有し二重定義を防ぐ
-        // Build-menu block entries key on the BlockGuid; share the testid builder with scenarios to avoid divergence
-        public static string BuildMenuBlockTestId(string blockName)
-        {
-            var blockGuid = MasterHolder.BlockMaster
-                .GetBlockMaster(PlaytestBlockOps.ResolveBlockId(blockName)).BlockGuid;
-            return $"build-menu-entry-block-{blockGuid:D}";
         }
 
         public static Vector3 PlaceAimPoint(string blockName, Vector3Int origin, BlockDirection direction)

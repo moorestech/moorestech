@@ -19,6 +19,7 @@
         "Unity.InputSystem",
         "Unity.InputSystem.TestFramework",
         "Client.Common",
+        "Client.Input",
         "Client.Mod",
         "Client.Localization",
         "Server.SchemaWatch.Editor",
@@ -33,11 +34,15 @@
         "Game.Train",
         "Core.Update",
         "Core.Inventory",
+        "Server.Event",
+        "Game.PlayerInventory.Interface",
         "Client.WebUiHost",
         "Client.Skit",
         "Unity.Addressables.Editor",
         "Game.UnlockState",
         "Common.Debug",
+        "Game.Research",
+        "VContainer",
         "Mod.Loader"
     ],
     "includePlatforms": [

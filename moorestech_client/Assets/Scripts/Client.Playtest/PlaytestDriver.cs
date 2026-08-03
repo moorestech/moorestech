@@ -60,6 +60,9 @@ namespace Client.Playtest
         }
         public async UniTask GiveItem(string itemName, int count) => await _reporter.Act($"give: {itemName} x{count}", () => PlaytestItemOps.GiveItemViaCommand(itemName, count, 10f));
         public int CountItem(string itemName) => PlaytestItemOps.CountItem(ClientContext.PlayerConnectionSetting.PlayerId, PlaytestItemOps.ResolveItemId(itemName));
+        // slotは0始まりの装備枠番号。入れると同時にその枠を選択する（採掘はサーバー権威で選択中装備を見るため）
+        // slot is the zero-based equipment slot; equipping also selects it (server-authoritative mining reads the selected equipment)
+        public async UniTask EquipItem(string itemName, int equipmentSlot) => await _reporter.Act($"装備{equipmentSlot + 1}へ装着: {itemName}", () => PlaytestItemOps.EquipItem(itemName, equipmentSlot, 15f));
         // ---- ブロック / Blocks ----
         public IBlock PlaceBlockDirect(string blockName, Vector3Int position, BlockDirection direction)
         {
@@ -106,7 +109,7 @@ namespace Client.Playtest
             _reporter.EndWait(waitEntry);
             await UniTask.Delay(TimeSpan.FromSeconds(PlaytestReporter.ActionIntervalSeconds), ignoreTimeScale: true);
         }
-        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickWebUi(PlaytestUiOps.BuildMenuBlockTestId(blockName));
+        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickWebUi(PlaytestWebUiOps.BuildMenuBlockTestId(blockName));
         public async UniTask CloseWebUiPanel() => await ClickWebUi("build-menu-close");
         // slotは0始まり（HotBarView.SelectIndexと同じ）。0→キー1、8→キー9
         // slot is zero-based (same as HotBarView.SelectIndex): 0 -> key "1", 8 -> key "9"
@@ -149,7 +152,6 @@ namespace Client.Playtest
             await PlaytestUiOps.DragPlace(fromAim, toAim);
             await Until(() => PlaytestBlockOps.GetBlock(fromOrigin) != null && PlaytestBlockOps.GetBlock(toOrigin) != null, 15f, $"UIドラッグ設置反映: {blockName} {fromOrigin}->{toOrigin}");
         }
-        // ---- 低レベルアクセス / Low-level access ----
         public void SendCommand(string command)
         {
             _reporter.Step($"コマンド送信: {command}");

@@ -107,6 +107,16 @@ export function attachWsHandlers(wss: WebSocketServer) {
           } else {
             error = "invalid_index";
           }
+        } else if (msg.type === "inventory.select_equipment") {
+          // 装備は素手(-1)も正当な選択のため下限を -1 とする
+          // Bare hands (-1) is a legitimate selection for equipment, so the lower bound is -1
+          const index = (msg.payload as ActionPayloads["inventory.select_equipment"]).index;
+          if (typeof index === "number" && index >= -1 && index < inv.equipment.length) {
+            inv.selectedEquipment = index;
+            setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
+          } else {
+            error = "invalid_index";
+          }
         } else if (msg.type === "ui.modal.respond") {
           // どの結果でもモーダルを閉じ、全 modal 購読者へ modal:null を push
           // Any result closes the modal and pushes modal:null to all modal subscribers

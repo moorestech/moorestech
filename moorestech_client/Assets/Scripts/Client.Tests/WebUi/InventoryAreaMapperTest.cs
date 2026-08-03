@@ -2,6 +2,8 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.WebUiHost.Game.Actions;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
 
 namespace Client.Tests.WebUi
 {
@@ -9,11 +11,20 @@ namespace Client.Tests.WebUi
     {
         private const int MainSlotCount = 54;
 
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+        }
+
         [TestCase("main", 0, LocalMoveInventoryType.MainOrSub, 0)]
         [TestCase("main", 44, LocalMoveInventoryType.MainOrSub, 44)]
         [TestCase("hotbar", 0, LocalMoveInventoryType.MainOrSub, 45)]
         [TestCase("hotbar", 8, LocalMoveInventoryType.MainOrSub, 53)]
         [TestCase("grab", 0, LocalMoveInventoryType.Grab, 0)]
+        [TestCase("equipment", 0, LocalMoveInventoryType.Equipment, 0)]
+        [TestCase("equipment", 2, LocalMoveInventoryType.Equipment, 2)]
         public void ValidAreaSlotMapsToLocalSlot(string area, int slot, LocalMoveInventoryType expectedType, int expectedSlot)
         {
             var ok = InventoryAreaMapper.TryGetLocalSlot(area, slot, MainSlotCount, out var type, out var localSlot);
@@ -26,6 +37,8 @@ namespace Client.Tests.WebUi
         [TestCase("main", 45)]
         [TestCase("hotbar", -1)]
         [TestCase("hotbar", 9)]
+        [TestCase("equipment", -1)]
+        [TestCase("equipment", 3)]
         [TestCase("sub", 0)]
         [TestCase(null, 0)]
         public void InvalidAreaSlotReturnsFalse(string area, int slot)
@@ -37,6 +50,7 @@ namespace Client.Tests.WebUi
         [TestCase(@"{""area"":""main"",""slot"":44}", LocalMoveInventoryType.MainOrSub, 44)]
         [TestCase(@"{""area"":""hotbar"",""slot"":8}", LocalMoveInventoryType.MainOrSub, 53)]
         [TestCase(@"{""area"":""grab""}", LocalMoveInventoryType.Grab, 0)]
+        [TestCase(@"{""area"":""equipment"",""slot"":2}", LocalMoveInventoryType.Equipment, 2)]
         public void ValidSlotRefTokenParses(string json, LocalMoveInventoryType expectedType, int expectedSlot)
         {
             var ok = InventoryAreaMapper.TryParseSlotRef(JToken.Parse(json), MainSlotCount, out var type, out var localSlot);
@@ -52,6 +66,8 @@ namespace Client.Tests.WebUi
         [TestCase(@"{""area"":""main"",""slot"":""abc""}")]
         [TestCase(@"{""area"":""main"",""slot"":1.5}")]
         [TestCase(@"{""area"":""main"",""slot"":45}")]
+        [TestCase(@"{""area"":""equipment"",""slot"":3}")]
+        [TestCase(@"{""area"":""equipment""}")]
         public void InvalidSlotRefTokenReturnsFalse(string json)
         {
             var ok = InventoryAreaMapper.TryParseSlotRef(JToken.Parse(json), MainSlotCount, out _, out _);

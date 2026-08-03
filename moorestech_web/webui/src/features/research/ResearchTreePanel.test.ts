@@ -62,6 +62,9 @@ describe("ResearchTreePanel selection toggle", () => {
       hotbarSlots: [],
       grab: { itemId: 0, count: 0 },
       selectedHotbar: 0,
+      equipment: [],
+      selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
     };
   });
 

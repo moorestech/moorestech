@@ -4,6 +4,7 @@ using Client.Game.InGame.Train.View.Object.Core;
 using Client.Input;
 using Game.UnlockState;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
+using Core.Master;
 
 namespace Client.Game.InGame.UI.UIState.State.PlacementPick
 {
@@ -68,7 +69,7 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
                 if (!BlockClickDetectUtil.TryGetCursorOnBlock(out var blockObject)) return false;
                 if (!BlockPickResolver.TryResolvePickTarget(blockObject.BlockId, _gameUnlockStateData, out var resolvedBlockId)) return false;
 
-                target = new BlockPlacementTarget(resolvedBlockId, blockObject.BlockPosInfo.BlockDirection);
+                target = new BlockPlacementTarget(MasterHolder.BlockMaster.GetBlockMaster(resolvedBlockId).BlockGuid, blockObject.BlockPosInfo.BlockDirection);
                 return true;
             }
 
