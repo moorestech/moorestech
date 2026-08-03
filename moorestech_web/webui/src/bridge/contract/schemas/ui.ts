@@ -56,7 +56,6 @@ export const PlacementModeDataSchema = z.discriminatedUnion("selectedTargetType"
     ...PlacementModeCommonFields,
   }).strict(),
 ]);
-export const DeleteModeDataSchema = z.object({ unavailableReason: z.string() });
 export const CrosshairDataSchema = z.object({ visible: z.boolean() });
 export const UiVisibilityDataSchema = z.object({ visible: z.boolean() });
 // tooltipは辞書キーと{p0}補間パラメータのみを受け取り、生の表示文字列は受け付けない

@@ -2,10 +2,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
-using Client.Localization;
 using Mooresmaster.Localization.Generated;
-using System;
-using UniRx;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
@@ -17,10 +14,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private IDeleteTarget _deleteTargetObject;
         private bool _isRemoveDeniedReasonShown;
         private bool _isDragging;
-        private readonly ReactiveProperty<string> _unavailableReason = new("");
-
-        public IObservable<string> OnUnavailableReasonChanged => _unavailableReason;
-        public string GetUnavailableReason() => _unavailableReason.Value;
 
         public DeleteObjectService(BuildOperationHistory buildOperationHistory)
         {
@@ -35,7 +28,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             {
                 MouseCursorTooltip.Instance.Hide();
                 _isRemoveDeniedReasonShown = false;
-                _unavailableReason.Value = "";
             }
 
             // カーソル下の削除対象を取得（無ければnull）
@@ -125,14 +117,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 _isDragging = false;
             }
 
-            // ツールチップへはキーを、HUD向け理由文字列へは解決済み文言を渡す（理由なし拒否は何も出さない）
-            // Push the key to the tooltip and the resolved wording to the HUD reason string (a reasonless denial shows nothing)
+            // ツールチップへキーを渡す（理由なし拒否は何も出さない）
+            // Push the key to the tooltip (a reasonless denial shows nothing)
             void ShowDenyReason(LocalizationKey? denyReasonKey)
             {
                 if (!denyReasonKey.HasValue) return;
 
                 MouseCursorTooltip.Instance.Show(denyReasonKey.Value);
-                _unavailableReason.Value = Localize.Get(denyReasonKey.Value);
                 _isRemoveDeniedReasonShown = true;
             }
 
@@ -166,7 +157,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             MouseCursorTooltip.Instance.Hide();
             _isRemoveDeniedReasonShown = false;
             _isDragging = false;
-            _unavailableReason.Value = "";
         }
     }
 }

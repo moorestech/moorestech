@@ -7,7 +7,6 @@ import { expectCraftFramedPlacementHud } from "../../support/operationHudAsserti
 // Reset shared UI state after every test
 test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "placementEmpty");
-  await setTopicScenario(page, "deleteEmpty");
   await setUiState(page, "PlayerInventory");
 });
 
@@ -55,7 +54,6 @@ test("横長画面でも配置モードHUDを実画面右上へ固定する", as
 });
 
 test("削除モードをuGUI準拠の上下警告帯だけで表示する", async ({ page }) => {
-  await setTopicScenario(page, "delete");
   await setUiState(page, "DeleteBar");
   await page.goto("/");
 
@@ -65,7 +63,6 @@ test("削除モードをuGUI準拠の上下警告帯だけで表示する", asyn
   await expect(warning).toHaveAttribute("aria-label", "Delete Mode");
   await expect(warning).toHaveCSS("pointer-events", "none");
   await expect(page.getByTestId("delete-mode-hud")).toHaveCount(0);
-  await expect(page.getByText("Protected area", { exact: true })).toHaveCount(0);
 
   const bands = warning.getByTestId("delete-mode-warning-band");
   await expect(bands).toHaveCount(2);

@@ -36,8 +36,6 @@ const controls = {
   placementConnectTool: () => control(Topics.placementMode, {
     selectedTargetType: "connectTool", selectedConnectToolGuid: fx.WIRE_CONNECT_TOOL_GUID, height: 3, unavailableReason: "",
   }),
-  delete: () => control(Topics.deleteMode, { unavailableReason: "Protected area" }),
-  deleteEmpty: () => control(Topics.deleteMode, { unavailableReason: "" }),
   crosshairHidden: () => control(Topics.crosshair, { visible: false }),
   crosshairVisible: () => control(Topics.crosshair, { visible: true }),
   uiHidden: () => control(Topics.uiVisibility, { visible: false }),

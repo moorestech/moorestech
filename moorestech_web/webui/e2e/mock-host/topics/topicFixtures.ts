@@ -39,7 +39,6 @@ const topicFixtures: TopicFixtureRegistry = {
   [Topics.placementMode]: () => ({
     selectedTargetType: "raw", selectedName: "", height: 0, unavailableReason: "",
   }),
-  [Topics.deleteMode]: () => ({ unavailableReason: "" }),
   [Topics.crosshair]: () => ({ visible: true }),
   [Topics.uiVisibility]: () => ({ visible: true }),
   [Topics.tooltip]: () => ({ visible: false, textKey: "", textParams: [], fontSize: 14 }),

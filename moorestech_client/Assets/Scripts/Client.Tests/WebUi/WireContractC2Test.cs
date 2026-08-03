@@ -109,12 +109,6 @@ namespace Client.Tests.WebUi
         }
 
         [Test]
-        public void DeleteModeMatchesFixture()
-        {
-            AssertMatches(new DeleteModeDto { UnavailableReason = "Cannot remove" }, "delete_mode.json");
-        }
-
-        [Test]
         public void CommonHudMatchesFixtures()
         {
             AssertMatches(new VisibilityDto { Visible = true }, "visibility.json");

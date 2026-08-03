@@ -43,13 +43,6 @@ describe("placement mode schema", () => {
   });
 });
 
-describe("delete mode schema", () => {
-  it("requires the hover denial reason", () => {
-    expect(validateTopicPayload(Topics.deleteMode, { unavailableReason: "Cannot remove" })).toBe(true);
-    expect(validateTopicPayload(Topics.deleteMode, {})).toBe(false);
-  });
-});
-
 describe("common HUD schemas", () => {
   it("accepts crosshair and visibility state", () => {
     expect(validateTopicPayload(Topics.crosshair, { visible: true })).toBe(true);

@@ -7,8 +7,9 @@ import { TopicEnvelopeSchema, Topics } from "../transport/protocol";
 import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData, BuildMenuData, ChallengeTreeData, ChallengeCurrentData, PauseMenuData } from "./payloadTypes";
 
 describe("wire contract fixtures (shared with C#)", () => {
-  it("削除した重複採掘HUD topicを公開しない", () => {
+  it("削除した重複採掘HUD topicと読み手のない削除モードtopicを公開しない", () => {
     expect(Object.values(Topics)).not.toContain("ui.mining_hud");
+    expect(Object.values(Topics)).not.toContain("ui.delete_mode");
   });
 
   it("accepts Phase C4 presentation fixtures", () => {
@@ -109,7 +110,6 @@ describe("wire contract fixtures (shared with C#)", () => {
     const cases = [
       [Topics.placementMode, "placement_mode.json"],
       [Topics.placementMode, "placement_mode_connect_tool.json"],
-      [Topics.deleteMode, "delete_mode.json"],
       [Topics.crosshair, "visibility.json"],
       [Topics.uiVisibility, "visibility.json"],
       [Topics.tooltip, "tooltip.json"],
