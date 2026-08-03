@@ -43,6 +43,14 @@ FAIL=0
 extract_json() { sed -n '/^{/,$p'; }
 json_get() { python3 -c "import sys,json; print(json.load(sys.stdin).get('$1',''))" 2>/dev/null; }
 
+# compile中断やdomain reloadで退避されたCLI Loop設定を、次のEDCより前に復元する
+# Restore CLI Loop settings left backed up by compile interruption or domain reload before the next EDC
+restore_cli_loop_settings() {
+    local settings="$PROJECT_PATH/UserSettings/UnityMcpSettings.json"
+    local backup="${settings}.bak"
+    [[ -f "$settings" || ! -f "$backup" ]] || mv "$backup" "$settings"
+}
+
 # GNU timeoutが無い環境（素のmacOS）では秒数指定を無視して直接実行するフォールバックを使う
 # Fall back to direct execution on systems without GNU timeout (stock macOS); uloop has its own internal timeouts
 if ! command -v timeout >/dev/null 2>&1; then
@@ -90,6 +98,7 @@ else
     echo "$COMPILE" | python3 -c "import sys,json; [print('  '+e['Message']) for e in json.load(sys.stdin).get('Errors',[])]" 2>/dev/null
     FAIL=1
 fi
+restore_cli_loop_settings
 
 echo "== [3/5] masterデータ =="
 if [[ -d "$MASTER_DIR/mods" && -n "$(ls -A "$MASTER_DIR/mods" 2>/dev/null)" && -f "$MASTER_DIR/map/map.json" ]]; then

@@ -11,6 +11,20 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_PATH="${1:?usage: run-scenario.sh <unity-project-path> <scenario.cs> [master-server-dir]}"
 SCENARIO_FILE="${2:?scenario .cs file required}"
+source "$SCRIPT_DIR/fixed-world-environment.sh"
+
+# 固定worldの入力契約をmaster解決やpreflightより前に確定する
+# Resolve the fixed-world input contract before master resolution or preflight
+validate_fixed_world_environment
+FIXED_WORLD_ENVIRONMENT_STATUS=$?
+if [[ "$FIXED_WORLD_ENVIRONMENT_STATUS" -eq 2 ]]; then
+    exit 1
+fi
+if [[ "$FIXED_WORLD_ENVIRONMENT_STATUS" -eq 0 ]]; then
+    FIXED_WORLD_BOOT=true
+else
+    FIXED_WORLD_BOOT=false
+fi
 
 # masterピンworktreeを作業中プロジェクトの互換コミットから自動解決する（固定パスを持たない）
 # Resolve the pinned master worktree from the working project's own compat commit (no hardcoded path)
@@ -43,12 +57,22 @@ RESULT_TIMEOUT=420
 
 extract_json() { sed -n '/^{/,$p'; }
 json_get() { python3 -c "import sys,json; print(json.load(sys.stdin).get('$1',''))" 2>/dev/null; }
+csharp_quote() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$1"; }
+
+# domain reloadが残したCLI Loop設定の退避を、boot後を含む全EDC試行前に復元する
+# Restore CLI Loop settings left backed up by domain reload before every EDC attempt, including post-boot calls
+restore_cli_loop_settings() {
+    local settings="$PROJECT_PATH/UserSettings/UnityMcpSettings.json"
+    local backup="${settings}.bak"
+    [[ -f "$settings" || ! -f "$backup" ]] || mv "$backup" "$settings"
+}
 
 edc() {
     # ドメインリロード直後はEDCが失敗するため、成功するまで最大8回リトライする
     # EDC fails right after a domain reload, so retry up to 8 times until it succeeds
     local attempt response success
     for attempt in $(seq 1 8); do
+        restore_cli_loop_settings
         response=$(uloop execute-dynamic-code --project-path "$PROJECT_PATH" --code "$1" 2>/dev/null | extract_json)
         success=$(echo "$response" | json_get Success)
         if [[ "$success" == "True" ]]; then
@@ -76,7 +100,17 @@ if [[ "$IS_PLAYING" == "True" ]]; then
     uloop control-play-mode --project-path "$PROJECT_PATH" --action stop >/dev/null 2>&1
     sleep 3
 fi
-BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareAndEnterPlayMode(\"$MASTER_DIR\", true);"
+# 検証済みの分類だけで固定worldと従来起動を切り替える
+# Switch between fixed-world and legacy boot using only the validated classification
+if [[ "$FIXED_WORLD_BOOT" == true ]]; then
+    MASTER_LITERAL=$(csharp_quote "$MASTER_DIR")
+    WORLD_LITERAL=$(csharp_quote "$PLAYTEST_WORLD_DIRECTORY")
+    MAP_MODE_LITERAL=$(csharp_quote "$PLAYTEST_MAP_MODE")
+    BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareWorldAndEnterPlayMode($MASTER_LITERAL, $WORLD_LITERAL, $MAP_MODE_LITERAL, $PLAYTEST_SEED);"
+else
+    MASTER_LITERAL=$(csharp_quote "$MASTER_DIR")
+    BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareAndEnterPlayMode($MASTER_LITERAL, true);"
+fi
 SESSION_DIR=$(edc "$BOOT_CODE" | json_get Result)
 if [[ "$SESSION_DIR" != /* ]]; then
     echo "NG: boot failed: $SESSION_DIR"

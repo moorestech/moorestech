@@ -1,1 +1,0 @@
-{"idx": 23, "predictions": [{"header": "ツールの定義", "predicted_label": "buildMenu.yml に buildTools 配列を新設（推奨）", "rationale": "推奨案が「新yamlを作らず既存ドメインyamlのトップレベル配列へ統合」というこのユーザーの成文化済み流儀（blockCategories→buildMenu統合の前例）と、概念・定数のマスタ一級市民化の原則の両方にそのまま一致する。コード内定数はハードコード忌避、connectTools同居は無意味な属性を背負う点で却下されるはず。逸脱シグナル（プレイヤーUX幅・無効データ・承認求め型）はこの質問に無い。", "confidence": "中"}]}

@@ -1,1 +1,0 @@
-{"idx":14,"predictions":[{"header":"選択状態の所有","predicted_label":"非MonoBehaviourのモデルに移しuGUIは削除（推奨）","rationale":"auto-memory「UIはWeb移行完了」(uGUIは残置のみ・今後UI修正は全てWeb側)＋AGENTS.md設計原則「変更の波及を恐れない」で、レガシーuGUI温存(選択肢2)は設計の敗北として却下される。選択肢3はこれまでの「サーバ権威」志向に沿うが、建築モード出入りは純クライアントUI状態でありYAGNI先送り傾向(adjudications「将来拡張/過剰は最小構成へ畳む」)から外れる。ここまで13問中ほぼ全て推奨を選択している傾向も一致。","confidence":"高"}]}

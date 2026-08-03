@@ -1,1 +1,0 @@
-{"idx": 28, "predictions": [{"header": "plan分割", "predicted_label": "3本に分けて全部今書く", "rationale": "knowledge/deviation-cases.md 5節および adjudications.md「決定済み内容の文書化は一括で今やる」が、このユーザーの先送り傾向は機能スコープ限定であり、裁定済み内容の書き下ろしには適用されない（分割はするが着手は全部今）と明記している。ADR＋設計ドキュメントを書く裁定が直前に出ており、A完了待ちで再セッションを挟む案は選ばれない。", "confidence": "高"}]}

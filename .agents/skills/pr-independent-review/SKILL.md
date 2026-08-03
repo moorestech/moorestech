@@ -21,12 +21,17 @@ description: |
 
 **$CANONの決定手順（最初に必ず1回やる）**:
 
-1. このSKILL.mdをReadしたときの絶対パスを取る（例: `/Users/katsumi/moorestech/.claude/worktrees/pr-independent-review/.claude/skills/pr-independent-review/SKILL.md`）
-2. その末尾から `/.claude/skills/pr-independent-review/SKILL.md` を**文字列として取り除いた**残りが `$CANON`
-   （上例なら `/Users/katsumi/moorestech/.claude/worktrees/pr-independent-review`）
-3. 手順2の実値を展開した `ls <実値>/.claude/skills/pr-independent-review/scripts/novelty_gate.py` で実在確認する。
+1. このSKILL.mdをReadしたときの絶対パスを取る（例: `/Users/katsumi/moorestech/.agents/skills/pr-independent-review/SKILL.md`）
+2. その末尾から `/<dir>/skills/pr-independent-review/SKILL.md`（`<dir>` は `.agents`/`.claude`/`.codex` のいずれか。
+   skills実体は `.agents/skills` で他2つはsymlink）を**文字列として取り除いた**残りが `$CANON`
+   （上例なら `/Users/katsumi/moorestech`）
+3. 手順2の実値を展開した `ls <実値>/.agents/skills/pr-independent-review/scripts/novelty_gate.py` で実在確認する。
    失敗したら即エラー終了（$CANON誤決定のまま走らせない）。**確認先はこのファイルでなければならない** —
    `moores-code-review/SKILL.md` はレビューworktree側にも存在しうるため、誤決定した$CANONでも通ってしまい弁別にならない
+
+**記録repo `$LOGS`**: レビュー実行記録（`records/pr-*.md`・シャドー台帳・改善キュー・前向きログ）は
+コードrepoではなく `/Users/katsumi/moorestech_logs`（以下 `$LOGS`、privateログrepo）の `harness/` 配下に置く。
+featureブランチが記録ファイルに触れてマージ衝突する構造を断つための分離であり、コードrepo側へ記録を書き戻さない。
 
 - **`$CANON` は本ドキュメント上のプレースホルダであり、シェル変数ではない**。Bashコマンド・subagentのprompt・
   ファイルパスに渡すときは**必ず手順2で得た実値の絶対パスへ展開して書く**。`$CANON` をリテラルのまま渡すと
@@ -46,7 +51,7 @@ description: |
 
 ## Step 0.5: reconcile負債ゲート（新規レビューの前に必ず通る）
 
-シャドー台帳（`$CANON/.claude/skills/pr-independent-review/records/shadow-ledger.md`）を読み、
+シャドー台帳（`$LOGS/harness/pr-independent-review/records/shadow-ledger.md`）を読み、
 `reconcile` 列が空欄の行それぞれについて人間レビューの有無を確認する:
 
     gh api repos/moorestech/moorestech/pulls/<番号>/comments --paginate --jq 'length'
@@ -59,7 +64,7 @@ description: |
   `対象外（スタブ）` と記入して負債から外す
 - **健全性1行を必ず表示する**（新規レビュー・reconcileどちらの起動でも冒頭に出す。滞留を無言にしない）:
   `未reconcile: N PR / 改善キューopen: M件 / 直近見逃し率: X%（missed A / human-confirmed B）`
-  （キューは `records/improvement-queue.md` の `open` 行数。見逃し率は最新の `## 突き合わせ内訳` から。未計測なら「未計測」）
+  （キューは `$LOGS/harness/pr-independent-review/records/improvement-queue.md` の `open` 行数。見逃し率は最新の `## 突き合わせ内訳` から。未計測なら「未計測」）
 
 ## Step 1: PR取得
 
@@ -135,7 +140,7 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
     「Step 1で取ったタイトル・base・差分規模」と「実際に読むコード」がずれた記録を残す。
     ユーザーへ理由を報告し、**Step 1のメタデータ再取得からやり直す**（`headRefOid` を取り直して再実行）
   - **第3フォールバック（`<mergeCommit>` 自体をcheckoutした経路）で不一致**: これは設計どおりなので先へ進んでよい。
-    ただし **`records/pr-<番号>.md` の `- checkout:` 行に「headRefOid不一致・mergeCommit検査」と明記する**
+    ただし **`$LOGS/harness/pr-independent-review/records/pr-<番号>.md` の `- checkout:` 行に「headRefOid不一致・mergeCommit検査」と明記する**
     （マージ結果ツリーを見ているのであってhead実体ではない、と後から分かるようにするため）
 
 ## Step 3: patch生成（exclude方式）
@@ -261,7 +266,7 @@ python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "
   PR側の木のファイル実体を見る必要があるため。スクリプト本体だけが `$CANON` 側という非対称は意図的
 - `--context` は本体Step 2どおり必須（Step 4の出所ラベル・`##` 見出し検査はこの指定が無いと一切走らない）
 - **report-only**: 確定修正の自動適用（本体Step 6）・uloop compile・本体Step 6.5の適用後diff再生成・
-  本体Step 7の項目3（`records/YYYY-MM-DD-*.md` と `eval/log.md` への記録）は行わない。指摘は全部ダイジェストへ
+  本体Step 7の項目3（`$LOGS/harness/moores-code-review/records/YYYY-MM-DD-*.md` と `$LOGS/harness/moores-code-review/eval-log.md` への記録）は行わない。指摘は全部ダイジェストへ
 - 本体Step 6.5のガード2本（comment-rationale-guard / comment-convention-guard）は**実行する**。
   適用がない以上最終diff＝Step 3のpatchなので、それをそのまま渡す。convention-guardの「機械的は自動適用」も
   report-onlyでは適用せず指摘として出す
@@ -404,7 +409,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 
 ## Step 8: 記録
 
-- md版サマリを `$CANON/.claude/skills/pr-independent-review/records/pr-<番号>.md` に保存
+- md版サマリを `$LOGS/harness/pr-independent-review/records/pr-<番号>.md` に保存
   （verdict・裁定/suppressed/新形の各明細のテキスト縮約。grep用）。
   **書式は下記で固定する**（grepで横断集計するため、見出し文言を生成ごとに変えない。0件のセクションも省略せず
   「該当なし（0件）」の1行を置く）:
@@ -444,7 +449,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   上書きは「前回何を見て何を見落としたか」を消す＝見逃し率の実測そのものを壊す。
   台帳にも再レビュー分を別行として追記する
 
-- シャドー台帳 `$CANON/.claude/skills/pr-independent-review/records/shadow-ledger.md` に1行追記:
+- シャドー台帳 `$LOGS/harness/pr-independent-review/records/shadow-ledger.md` に1行追記:
   `| 日付 | PR番号 | head | verdict | 新形数 | suppressed数 | 縮退 | あなたの実判断（空欄） | 一致（空欄） | reconcile（空欄） |`
   - `head` 列は records の `- head:` を**short SHA（先頭7桁）**にしたもの。同じPRを別headで再レビューした行を
     区別するため空欄にしない
@@ -455,7 +460,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 
 - **見逃しの記録粒度（ユーザー裁定 2026-07-27 → 2026-08-02改訂）**: 台帳は**verdict比較（`一致` 列）のまま**とし、
   欠陥単位の内訳は台帳の列にしない。内訳は**reconcileモードが、人間コメントが1件以上存在するPR全件について**、対象の
-  `$CANON/.claude/skills/pr-independent-review/records/pr-<番号>.md`（再レビュー分は該当する `-rN` ファイル）の末尾へ
+  `$LOGS/harness/pr-independent-review/records/pr-<番号>.md`（再レビュー分は該当する `-rN` ファイル）の末尾へ
   次のセクションとして**追記する**。記入はセッション側の作業であり、人間は確認のみ行う（人間に内訳を書かせない）。
   （旧トリガー「`一致` 列が不一致のPRのみ」は廃止 — PR #1095でverdict一致のままmissed 17件が出た実測により、
   verdict一致は見逃しゼロを意味しないことが確定したため。ユーザー裁定 2026-08-01「これの再発防止が一番大事」→
@@ -492,14 +497,14 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
          --jq '.[] | {path, line, body, html_url, commit_id}' > /tmp/pr-reconcile-<番号>-comments.json
 
    **`commit_id` は必ず一緒に取る** — 改善時のフォレンジック・リプレイのピン先はこの `commit_id` であり、
-   `records/pr-<番号>.md` に記録された自動レビュー当時のheadではない（人間指摘の行番号・コード実体は
+   `$LOGS/harness/pr-independent-review/records/pr-<番号>.md` に記録された自動レビュー当時のheadではない（人間指摘の行番号・コード実体は
    `commit_id` 側に紐づく。PR1095で両者が食い違い実装形まで別物だった実測あり。詳細は
    moores-code-review `eval/README.md` のフォレンジック・リプレイ手順1）
 
    レビューbody（`gh api repos/moorestech/moorestech/pulls/<番号>/reviews --paginate`）と通常コメント
    （`gh pr view <番号> --comments`）も読む。全部0件なら「人間レビュー未実施」として `reconcile` 列は
    空欄のまま終了する
-2. **突き合わせ**: `records/pr-<番号>.md`（最新の `-rN`）の裁定・suppressed・Warning（折りたたみ参考含む）と
+2. **突き合わせ**: `$LOGS/harness/pr-independent-review/records/pr-<番号>.md`（最新の `-rN`）の裁定・suppressed・Warning（折りたたみ参考含む）と
    各コメントを照合し、caught / missed / 対象外（質問・運用連絡・レビュー対象外の雑談）に分類する。
    **迷ったらmissedに倒す**（見逃し率を楽観側へ歪めない。Step 0の独立性ガードと同じ倒し方）
 3. **内訳をrecordsへ追記**（Step 8の `## 突き合わせ内訳` 書式）。missedの各行に**分類タグとコメントURL**を付ける:
@@ -516,7 +521,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
      診断をrecordsのテキスト照合で代用するのも禁止（あちらの手順1に明記）
    - `[規範初出]` → まずAGENTS.mdまたは決定論チェックへ成文化し、その改修を同じ4段階検証に通す
    - `[L1語彙]` `[配管]` → 本スキルの `scripts/` を修正し、`tests/test_novelty_gate.py` に**赤→緑**のケースを追加する
-5. **改善キューへ起票**: `$CANON/.claude/skills/pr-independent-review/records/improvement-queue.md` に1行/件で追記する。
+5. **改善キューへ起票**: `$LOGS/harness/pr-independent-review/records/improvement-queue.md` に1行/件で追記する。
    状態を `closed` にできるのは**手順4の検証完了根拠を `closed根拠` 列に書けた時だけ**。根拠の要件は分類で異なる:
    - レンズ/reviewer/決定論較正/規範成文化 → **4段階検証の完了記録**。特に段階4（実diffバックテスト）の
      「見逃しsurface×検出元マトリクス＋過検知数」が必須。**合成fixture緑（段階3まで）だけではclosedにしない** —
@@ -524,7 +529,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
      （2026-08-02 PR1095改善で合成緑のみをclosed根拠にした前科があり、この行はその再発防止）
    - `[L1語彙]` `[配管]`（スクリプト改修）→ 赤→緑を実証したテストの緑
    観点ファイルへの追記だけでは絶対にclosedにしない（作文はclosedの根拠にならない）
-6. **前向きログの記入**: moores-code-review の `eval/log.md` に1行追記する（PR番号・人間指摘数・分類内訳・
+6. **前向きログの記入**: `$LOGS/harness/moores-code-review/eval-log.md` に1行追記する（PR番号・人間指摘数・分類内訳・
    ハーネス事前検出数・却下数・recordsへの相対リンク）。同ファイル「前向きログ」枠の書き手はこのreconcileである
 7. **台帳更新**: `reconcile` 列に実施日を記入する。`あなたの実判断`・`一致` 列が空欄なら、観測可能な事実
    （差し戻しコメント・approve・マージ状態）から記入する（人間は確認のみ・Q2裁定の記入分担どおり）
