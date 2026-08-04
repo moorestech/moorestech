@@ -2,6 +2,7 @@
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Map.MapObject;
+using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using UnityEngine;
@@ -46,13 +47,23 @@ namespace Client.Game.InGame.Mining
                 var ray = Camera.main.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
                 if (!Physics.Raycast(ray, out var hit, 10, LayerConst.MapObjectOnlyLayerMask)) return null;
                 if (UiPointerHitTest.IsPointerOverAnyUi()) return null;
-                if (!hit.collider.gameObject.TryGetComponent(out MapObjectRayTarget mapObjectRayTarget)) return null;
-
-                var target = (IMiningTargetObject)mapObjectRayTarget.MapObjectGameObject;
+                var target = ResolveMiningTarget(hit.collider.gameObject);
+                if (target == null) return null;
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
                 if (miningDistance < Vector3.Distance(playerPos, target.GameObject.transform.position)) return null;
 
                 return target;
+            }
+
+            IMiningTargetObject ResolveMiningTarget(GameObject hitObject)
+            {
+                // 既存mapObjectを優先し、該当しなければ露頭マーカーを解決する
+                // Prefer an existing map object, then resolve an outcrop marker when absent
+                if (hitObject.TryGetComponent(out MapObjectRayTarget mapObjectRayTarget))
+                    return mapObjectRayTarget.MapObjectGameObject;
+                if (hitObject.TryGetComponent(out OutcropRayTarget outcropRayTarget))
+                    return outcropRayTarget.OutcropGameObject;
+                return null;
             }
 
             #endregion

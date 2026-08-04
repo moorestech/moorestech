@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using Client.Game.InGame.Map.MapVein;
+using Client.Game.InGame.Map.Outcrop;
 using Client.Localization;
 using Client.Starter;
 using Client.Tests.Playtest;
@@ -129,7 +129,7 @@ namespace Client.Tests
                     actualKeys.Add(serializedText.FindProperty("key").stringValue);
                 }
 
-                var veinDatastores = UnityEngine.Object.FindObjectsByType<MapVeinObjectDatastore>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                var veinDatastores = UnityEngine.Object.FindObjectsByType<OutcropGameObjectDatastore>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 var sceneHasVeinDatastore = false;
                 foreach (var veinDatastore in veinDatastores)
                 {

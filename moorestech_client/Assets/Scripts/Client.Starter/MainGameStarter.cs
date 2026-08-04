@@ -26,6 +26,7 @@ using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Map.MapVein;
+using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Player.StateController;
@@ -91,7 +92,7 @@ namespace Client.Starter
         [SerializeField] private GameStateController gameStateController;
         [SerializeField] private BlockGameObjectDataStore blockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
-        [SerializeField] private MapVeinObjectDatastore mapVeinObjectDatastore;
+        [SerializeField] private OutcropGameObjectDatastore outcropGameObjectDatastore;
         [SerializeField] private EnvironmentRoot environmentRoot;
 
         // 地形の実行時構築はDIの外（Finalizer）で走るため、マウント先だけを読み取り専用で公開する
@@ -285,7 +286,7 @@ namespace Client.Starter
             builder.RegisterComponent(gameStateController);
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
-            builder.RegisterComponent(mapVeinObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
+            builder.RegisterComponent(outcropGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
             builder.RegisterComponent(environmentRoot);
             
             builder.RegisterComponent(mainCamera);
@@ -337,7 +338,7 @@ namespace Client.Starter
             // resolve dependency
             _resolver = builder.Build();
             _resolver.Resolve<BlockGameObjectDataStore>();
-            _resolver.Resolve<MapVeinObjectDatastore>();
+            _resolver.Resolve<OutcropGameObjectDatastore>();
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<TrainCarObjectDatastore>();

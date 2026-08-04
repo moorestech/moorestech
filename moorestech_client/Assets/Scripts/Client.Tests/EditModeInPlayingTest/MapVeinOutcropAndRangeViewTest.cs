@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapVein;
+using Client.Game.InGame.Map.Outcrop;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse.MapData;
@@ -70,8 +71,8 @@ namespace Client.Tests.EditModeInPlayingTest
 
             async UniTask AssertOutcropsStandOnSurface(IReadOnlyList<VeinLayoutMessagePack> veinLayouts)
             {
-                var datastore = Object.FindFirstObjectByType<MapVeinObjectDatastore>(FindObjectsInactive.Include);
-                Assert.IsNotNull(datastore, "MapVeinObjectDatastore was not found in scene");
+                var datastore = Object.FindFirstObjectByType<OutcropGameObjectDatastore>(FindObjectsInactive.Include);
+                Assert.IsNotNull(datastore, "OutcropGameObjectDatastore was not found in scene");
 
                 // 初期化と同じawait経路を通し、生成例外がfire-and-forgetへ逃げないことも固定する
                 // Use the same await path as startup, also pinning that generation exceptions cannot escape into fire-and-forget
@@ -82,7 +83,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 {
                     // veinGuid名でひもづけ、どのveinの露頭がどこに立ったかを個別に突き合わせる
                     // Match by the veinGuid-based name so each vein's outcrop is checked against its own vein
-                    var outcrop = datastore.transform.Find($"{MapVeinObjectDatastore.OutcropObjectNamePrefix}{layout.VeinGuid}");
+                    var outcrop = datastore.transform.Find($"{OutcropGameObjectDatastore.OutcropObjectNamePrefix}{layout.VeinGuid}");
                     Assert.IsNotNull(outcrop, $"outcrop for veinGuid {layout.VeinGuid} was not instantiated");
 
                     // ①AABB中心XZに立っていること。min/maxの取り違えやvein同士の取り違えはここで落ちる

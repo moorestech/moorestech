@@ -14762,7 +14762,7 @@ GameObject:
   - component: {fileID: 1388031229}
   - component: {fileID: 1388031228}
   m_Layer: 0
-  m_Name: MapVein
+  m_Name: OutcropGameObjectDatastore
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -35263,6 +35263,10 @@ PrefabInstance:
       objectReference: {fileID: 1891355431}
     - target: {fileID: 6110538852407209855, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
       propertyPath: mapVeinObjectDatastore
+      value: 
+      objectReference: {fileID: 1388031228}
+    - target: {fileID: 6110538852407209855, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
+      propertyPath: outcropGameObjectDatastore
       value: 
       objectReference: {fileID: 1388031228}
     - target: {fileID: 6110538852407209855, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
