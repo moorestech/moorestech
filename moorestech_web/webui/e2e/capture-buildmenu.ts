@@ -5,7 +5,11 @@ import { chromium } from "@playwright/test";
 import { WebSocketServer } from "ws";
 // fixtures は型と定数のみでMOCK_DEMOを読まないため、静的importしてよい
 // fixtures holds only types and constants and never reads MOCK_DEMO, so a static import is safe
-import { buildMenuEntryIds } from "./mock-host/fixtures";
+import {
+  buildMenuCategoryIds,
+  buildMenuEntryIds,
+  buildMenuSubCategoryIds,
+} from "./mock-host/fixtures";
 
 const PORT = Number(process.env.CAPTURE_PORT ?? 5401);
 const OUT_DIR = process.env.CAPTURE_OUT_DIR ?? ".";
@@ -44,7 +48,9 @@ async function main() {
   // 2.検索中(複合見出し)
   // 2. Searching (composite headings)
   await page.getByTestId("build-menu-search").fill("鉄");
-  await page.getByTestId("build-menu-section-輸送-鉄道").waitFor();
+  await page.getByTestId(
+    `build-menu-section-${buildMenuCategoryIds.transport}-${buildMenuSubCategoryIds.rail}`,
+  ).waitFor();
   await page.mouse.move(2, 2);
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT_DIR}/buildmenu-2-search.png` });

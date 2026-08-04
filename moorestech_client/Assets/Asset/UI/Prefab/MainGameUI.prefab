@@ -455,6 +455,7 @@ MonoBehaviour:
   _resolutionScale: 1
   _enableLog: 0
   _enableAudio: 1
+  _audioRenderer: 0
   _audioDspBufferSize: 256
   _zeroFrameWaitMs: 10
 --- !u!114 &2515843366969340831
@@ -1974,7 +1975,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: How To Controll
+  key: ui.game.howToControl
 --- !u!1 &4995867247606230421
 GameObject:
   m_ObjectHideFlags: 0
@@ -2373,7 +2374,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: Save this game
+  key: ui.game.saveGame
 --- !u!1 &6181448123592339888
 GameObject:
   m_ObjectHideFlags: 0
@@ -3705,7 +3706,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  key: Save and Back to MainMenu
+  key: ui.game.saveAndBackToMainMenu
 --- !u!1 &8674790006515608839
 GameObject:
   m_ObjectHideFlags: 0

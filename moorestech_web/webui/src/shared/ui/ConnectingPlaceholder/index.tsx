@@ -1,6 +1,6 @@
 import { Text } from "@mantine/core";
 import type { TextProps } from "@mantine/core";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 
 type Props = Omit<TextProps, "children">;
 
@@ -8,5 +8,5 @@ type Props = Omit<TextProps, "children">;
 // Shared placeholder shown while initial data is pending
 export default function ConnectingPlaceholder(props: Props) {
   const { t } = useI18n();
-  return <Text size="sm" c="dimmed" {...props}>{t("connecting...")}</Text>;
+  return <Text size="sm" c="dimmed" {...props}>{t(L.ui.common.connecting)}</Text>;
 }

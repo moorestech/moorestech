@@ -2,12 +2,17 @@ import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MantineProvider } from "@mantine/core";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { itemNameKey } from "@/shared/i18n/contentKeys";
+import { L } from "@/shared/i18n/generated/localizationKeys";
+import { setDictionaries } from "@/shared/i18n/i18nStore";
 import ItemSlot from "./index";
+
+const ITEM_GUID = "01234567-89ab-cdef-0123-456789abcdef";
 
 vi.mock("@/bridge", async (importOriginal) => ({
   ...await importOriginal<typeof import("@/bridge")>(),
-  useItemMaster: () => new Map([[1, { itemId: 1, name: "Master Item", maxStack: 100 }]]),
+  useItemMaster: () => new Map([[1, { itemId: 1, itemGuid: ITEM_GUID, maxStack: 100 }]]),
 }));
 
 function renderItemSlot(insufficient?: boolean) {
@@ -20,20 +25,20 @@ function renderItemSlot(insufficient?: boolean) {
 }
 
 describe("ItemSlot", () => {
-  it("name 省略時は item master の名前を表示に使う", () => {
-    expect(renderItemSlot(undefined)).toContain("Master Item");
+  beforeEach(() => {
+    const key = itemNameKey(ITEM_GUID);
+    setDictionaries(
+      "japanese",
+      { [key]: "辞書アイテム", [L.ui.common.itemFallback]: "アイテム {itemId}" },
+      { [key]: "Dictionary item", [L.ui.common.itemFallback]: "Item {itemId}" },
+      { [key]: "Source item", [L.ui.common.itemFallback]: "Item {itemId}" },
+    );
   });
 
-  it("name 指定時は item master より優先する", () => {
-    const markup = renderToStaticMarkup(
-      createElement(MantineProvider, null, createElement(ItemSlot, {
-        itemId: 1,
-        name: "Override Item",
-      })),
-    );
-
-    expect(markup).toContain("Override Item");
-    expect(markup).not.toContain("Master Item");
+  it("item master のGuidから辞書名をtooltipと代替テキストへ使う", () => {
+    const markup = renderItemSlot(undefined);
+    expect(markup).toContain("辞書アイテム");
+    expect(markup).not.toContain("Source item");
   });
 
   it("不足状態をスロット枠のdata属性へ伝える", () => {

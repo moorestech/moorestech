@@ -20,6 +20,9 @@
         "Unity.InputSystem.TestFramework",
         "Client.Common",
         "Client.Input",
+        "Client.Mod",
+        "Client.Localization",
+        "Server.SchemaWatch.Editor",
         "Server.Boot",
         "Client.Network",
         "Game.Context",
@@ -35,10 +38,12 @@
         "Game.PlayerInventory.Interface",
         "Client.WebUiHost",
         "Client.Skit",
+        "Unity.Addressables.Editor",
         "Game.UnlockState",
         "Common.Debug",
         "Game.Research",
-        "VContainer"
+        "VContainer",
+        "Mod.Loader"
     ],
     "includePlatforms": [
         "Editor"
@@ -52,7 +57,11 @@
         "MessagePack.Annotations.dll",
         "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "Microsoft.Extensions.DependencyInjection.dll",
-        "Newtonsoft.Json.dll"
+        "Microsoft.AspNetCore.Http.dll",
+        "Microsoft.AspNetCore.Http.Abstractions.dll",
+        "Microsoft.AspNetCore.Http.Features.dll",
+        "Newtonsoft.Json.dll",
+        "mooresmaster.LocalizationCsv.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [

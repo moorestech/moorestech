@@ -1,10 +1,16 @@
-import { useTopic, Topics, UiStateNames, dispatchAction } from "@/bridge";
+import {
+  useTopic,
+  Topics,
+  UiStateNames,
+  dispatchAction,
+  type BlockInventoryData,
+} from "@/bridge";
 import { GamePanel, IconButton } from "@/shared/ui";
 import { resolveBlockComponent } from "./registry/blockComponentRegistry";
 import styles from "./style.module.css";
 import BlockItemGrid from "./BlockItemGrid";
 import { buildMachineRecipeSelectionRows } from "./details/machine/machineRecipeSelectionLogic";
-import { useI18n } from "@/shared/i18n";
+import { blockNameKey, L, useI18n, type TranslationKey } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 
 // ブロック UI のオーバーレイ。uGUI の SubInventoryState 相当で、blockType から中身を静的解決する
@@ -21,13 +27,11 @@ export default function BlockInventoryPanel() {
   // Resolve the component for blockType (unregistered falls back to GenericBlockInventory)
   const Body = data.source === "block" ? resolveBlockComponent(data.blockType) : null;
   const trainError = data.source === "train" && data.error
-    ? t({
-        containerMissing: "This train has no item container",
-        trainCarMissing: "Train not found",
-        openFailed: "Could not open train inventory",
-      }[data.error])
+    ? t(resolveTrainErrorKey(data.error))
     : null;
-  const title = data.source === "train" ? t("Train Inventory") : data.blockName;
+  const title = data.source === "train"
+    ? t(L.ui.blockInventory.trainInventory)
+    : t(blockNameKey(data.blockGuid));
 
   // レシピ選択を持つ機械だけ研究パネル同等のviewer〜items占有大型パネルへ広げる
   // Only recipe-capable machines expand to the research-sized panel spanning viewer..items
@@ -63,10 +67,22 @@ export default function BlockInventoryPanel() {
         onClick={() => {
           void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });
         }}
-        ariaLabel={t("Close")}
+        ariaLabel={t(L.ui.common.close)}
         testId="block-inventory-close"
         {...tutorialAnchor(TutorialAnchorIds.inventoryCloseButton)}
       />
     </div>
   );
+}
+
+type TrainError = NonNullable<Extract<BlockInventoryData, { source: "train" }>["error"]>;
+
+const TrainErrorKeys: Record<TrainError, TranslationKey> = {
+  containerMissing: L.ui.blockInventory.trainNoItemContainer,
+  trainCarMissing: L.ui.blockInventory.trainNotFound,
+  openFailed: L.ui.blockInventory.trainOpenFailed,
+};
+
+function resolveTrainErrorKey(error: TrainError): TranslationKey {
+  return TrainErrorKeys[error];
 }

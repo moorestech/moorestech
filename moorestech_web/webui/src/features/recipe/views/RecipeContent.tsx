@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Stack, Tabs, Text } from "@mantine/core";
-import { useItemMaster } from "@/bridge";
 import { BlockIcon } from "@/shared/ui";
 import { buildOwnedCounts } from "@/shared/ownedCounts";
 import styles from "../panels/RecipeViewer.module.css";
@@ -17,7 +16,7 @@ import {
 import ItemHeader from "./ItemHeader";
 import CraftRecipeView from "./CraftRecipeView";
 import MachineRecipeView from "./MachineRecipeView";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
 
 type Props = {
   itemId: number;
@@ -31,7 +30,7 @@ type Props = {
 // Recipe body for the selected item; remounted via key={itemId} so tab/page state resets
 export default function RecipeContent({ itemId, recipes, machineRecipes, inventory, onSelect }: Props) {
   const { t } = useI18n();
-  const itemMaster = useItemMaster();
+  const resolveItemName = useItemNameResolver();
   // 導出は純関数＋useMemo。入力 topic が変わらない限り再計算しない
   // Derivations are pure functions + useMemo; no recompute unless the input topics change
   const craftRecipes = useMemo(() => selectCraftRecipes(recipes, itemId), [recipes, itemId]);
@@ -57,13 +56,13 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   // Fall back to the first tab if a topic update changed the tab set
   const activeTab = tabs.find((t) => t.key === tabKey) ?? tabs[0] ?? null;
 
-  const itemName = itemMaster?.get(itemId)?.name ?? t("item {itemId}", { itemId });
+  const itemName = resolveItemName(itemId) ?? t(L.ui.common.itemFallback, { itemId });
 
   if (activeTab === null) {
     return (
       <Stack gap="sm">
         <ItemHeader name={itemName} />
-        <Text size="sm" c="dimmed">{t("このアイテムのレシピはありません")}</Text>
+        <Text size="sm" c="dimmed">{t(L.ui.recipe.noRecipes)}</Text>
       </Stack>
     );
   }
@@ -88,7 +87,7 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
                 value={tab.key}
                 leftSection={tab.blockId !== null ? <BlockIcon blockId={tab.blockId} className={styles.tabIcon} /> : undefined}
               >
-                {tab.blockId === null ? t(tab.label) : tab.label}
+                {t(tab.labelKey)}
               </Tabs.Tab>
             ))}
           </Tabs.List>

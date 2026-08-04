@@ -1,4 +1,5 @@
 import type { FilterSplitterMode } from "@/bridge";
+import { L, type TranslationKey } from "@/shared/i18n";
 
 export type FilterSlotClickAction = "set" | "clear" | "noop";
 
@@ -10,8 +11,12 @@ export function filterSlotClickAction(grabCount: number, clear: boolean): Filter
   return "noop";
 }
 
-export const modeLabel: Record<FilterSplitterMode, string> = {
-  default: "デフォルト",
-  whitelist: "ホワイトリスト",
-  blacklist: "ブラックリスト",
+export function filterModeTranslationKey(mode: FilterSplitterMode): TranslationKey {
+  return FilterModeKeys[mode];
+}
+
+const FilterModeKeys: Record<FilterSplitterMode, TranslationKey> = {
+  default: L.ui.blockInventory.filterDefault,
+  whitelist: L.ui.blockInventory.filterWhitelist,
+  blacklist: L.ui.blockInventory.filterBlacklist,
 };

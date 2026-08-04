@@ -19,8 +19,6 @@ namespace Client.Tests.PlaceSystem
         [Test]
         public void CreateはKindごとに対応する型とIdを持つターゲットを生成する()
         {
-            // Block以外はEntry.Idを直接ターゲットのIdへ引き継ぐ想定の型・値を検証する
-            // For non-Block kinds, assert the type produced and that entry.Id passes through unchanged
             var blockGuid = MasterHolder.BlockMaster.Blocks.Data.First().BlockGuid;
             AssertCreated(PlacementTargetKind.Block, blockGuid, typeof(BlockPlacementTarget));
             AssertCreated(PlacementTargetKind.TrainCar, Guid.NewGuid(), typeof(TrainCarPlacementTarget));

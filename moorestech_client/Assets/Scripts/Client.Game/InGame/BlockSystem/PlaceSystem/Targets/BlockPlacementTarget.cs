@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Client.Localization;
 using Core.Master;
 using Game.Block.Interface;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -18,7 +22,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 
         public Guid Id => BlockGuid;
         public PlacementTargetKind Kind => PlacementTargetKind.Block;
-        public string DisplayName => MasterHolder.BlockMaster.GetBlockMaster(BlockGuid).Name;
+        public string DisplayName => Localize.GetContent(ContentLocalizationKeys.BlockName(BlockGuid));
+
+        public IReadOnlyList<(Guid itemGuid, int count)> CreateRequiredItems()
+        {
+            var requiredItems = MasterHolder.BlockMaster.GetBlockMaster(BlockGuid).RequiredItems;
+            if (requiredItems == null) return Array.Empty<(Guid, int)>();
+            return requiredItems.Select(item => (item.ItemGuid, item.Count)).ToList();
+        }
 
         public BlockPlacementTarget(Guid blockGuid, BlockDirection? pickedDirection)
         {

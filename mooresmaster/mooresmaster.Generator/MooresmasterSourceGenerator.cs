@@ -118,6 +118,8 @@ public class MooresmasterSourceGenerator : IIncrementalGenerator
     
     private void Emit(SourceProductionContext context, (Compilation compilation, ImmutableArray<AdditionalText> additionalTexts) input)
     {
+        LocalizationSourceEmitter.Emit(context, input.additionalTexts);
+
         var analyzer = new Analyzer()
             .AddAllAnalyzer();
         var analysis = new Analysis();

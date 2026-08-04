@@ -9,15 +9,22 @@ import {
 } from "./researchLogic";
 import type { ResearchNodeData } from "@/bridge";
 import { hasEnoughItems } from "@/shared/ownedCounts";
+import { L } from "@/shared/i18n";
+
+const researchA = "86000000-0000-4000-8000-000000000001";
+const researchB = "86000000-0000-4000-8000-000000000002";
+const researchC = "86000000-0000-4000-8000-000000000003";
+const researchD = "86000000-0000-4000-8000-000000000004";
+const researchE = "86000000-0000-4000-8000-000000000005";
 
 const node = (guid: string, x: number, y: number, extra?: Partial<ResearchNodeData>): ResearchNodeData => ({
-  guid, name: guid, description: "", state: "researchable", iconItemId: 1,
+  guid, state: "researchable", iconItemId: 1,
   position: { x, y }, prevGuids: [], consumeItems: [], rewardItems: [], unlockItemIds: [], ...extra,
 });
 
 describe("computeCanvasBounds", () => {
   it("flips node Y into CSS top via offsetY (uGUI Y-up to CSS Y-down)", () => {
-    const b = computeCanvasBounds([node("a", 0, 0), node("b", 300, -120)]);
+    const b = computeCanvasBounds([node(researchA, 0, 0), node(researchB, 300, -120)]);
     expect(b).toEqual({ width: 700, height: 520, offsetX: 200, offsetY: 200 });
   });
   it("handles empty nodes", () => {
@@ -57,7 +64,7 @@ describe("zoomViewportAt", () => {
 
 describe("hasEnoughItems", () => {
   it("checks owned counts against consume items", () => {
-    const n = node("a", 0, 0, { consumeItems: [{ itemId: 1, count: 3 }] });
+    const n = node(researchA, 0, 0, { consumeItems: [{ itemId: 1, count: 3 }] });
     expect(hasEnoughItems(n.consumeItems, new Map([[1, 3]]))).toBe(true);
     expect(hasEnoughItems(n.consumeItems, new Map([[1, 2]]))).toBe(false);
   });
@@ -65,47 +72,51 @@ describe("hasEnoughItems", () => {
 
 describe("deriveResearchButton", () => {
   it("disables completed nodes and never highlights completed consume items", () => {
-    const n = node("done", 0, 0, { state: "completed", consumeItems: [{ itemId: 1, count: 1 }] });
+    const n = node(researchA, 0, 0, { state: "completed", consumeItems: [{ itemId: 1, count: 1 }] });
     const owned = new Map([[1, 1]]);
-    expect(deriveResearchButton(n, owned)).toEqual({ completed: true, interactable: false, tooltip: "研究済み" });
+    expect(deriveResearchButton(n, owned)).toEqual({
+      completed: true,
+      interactable: false,
+      tooltipKey: L.ui.research.completed,
+    });
     expect(isItemSufficient(n, 1, 1, owned)).toBe(false);
   });
   it("enables researchable nodes when all consume items are owned", () => {
-    const n = node("ready", 0, 0, { consumeItems: [{ itemId: 1, count: 1 }] });
+    const n = node(researchB, 0, 0, { consumeItems: [{ itemId: 1, count: 1 }] });
     expect(deriveResearchButton(n, new Map([[1, 1]]))).toEqual({
       completed: false,
       interactable: true,
-      tooltip: "クリックして研究",
+      tooltipKey: L.ui.research.clickToResearch,
     });
   });
   it("reports missing items when prerequisites are met but consume items are short", () => {
-    const n = node("short", 0, 0, { consumeItems: [{ itemId: 1, count: 2 }] });
+    const n = node(researchC, 0, 0, { consumeItems: [{ itemId: 1, count: 2 }] });
     expect(deriveResearchButton(n, new Map([[1, 1]]))).toEqual({
       completed: false,
       interactable: false,
-      tooltip: "研究アイテムが足りません。",
+      tooltipKey: L.ui.research.missingItems,
     });
   });
   it("reports missing prerequisites when items are sufficient", () => {
-    const n = node("locked", 0, 0, {
+    const n = node(researchD, 0, 0, {
       state: "unresearchableNotEnoughPreNode",
       consumeItems: [{ itemId: 1, count: 1 }],
     });
     expect(deriveResearchButton(n, new Map([[1, 1]]))).toEqual({
       completed: false,
       interactable: false,
-      tooltip: "前提研究が完了していません。",
+      tooltipKey: L.ui.research.missingPrerequisites,
     });
   });
   it("reports both missing items and prerequisites", () => {
-    const n = node("blocked", 0, 0, {
+    const n = node(researchE, 0, 0, {
       state: "unresearchableAllReasons",
       consumeItems: [{ itemId: 1, count: 2 }],
     });
     expect(deriveResearchButton(n, new Map([[1, 1]]))).toEqual({
       completed: false,
       interactable: false,
-      tooltip: "研究アイテムが足りません。\n前提研究が完了していません。",
+      tooltipKey: L.ui.research.missingItemsAndPrerequisites,
     });
   });
 });

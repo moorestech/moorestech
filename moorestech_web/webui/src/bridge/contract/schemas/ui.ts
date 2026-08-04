@@ -24,17 +24,53 @@ export const TrainRidingDataSchema = z.object({
   branchCandidateCount: z.number().int().nonnegative(),
   selectedBranchIndex: z.number().int().nonnegative(),
 });
-export const LocalizationDataSchema = z.object({ locale: z.string().min(1) });
+export const LocalizationDataSchema = z.object({
+  locale: z.string().min(1),
+  revision: z.number().int().nonnegative(),
+});
 export const PauseMenuDataSchema = z.object({ disconnected: z.boolean() });
-export const PlacementModeDataSchema = z.object({
-  selectedName: z.string(),
+const PlacementModeCommonFields = {
   height: z.number().int(),
   unavailableReason: z.string(),
-});
-export const DeleteModeDataSchema = z.object({ unavailableReason: z.string() });
+};
+export const PlacementModeDataSchema = z.discriminatedUnion("selectedTargetType", [
+  z.object({
+    selectedTargetType: z.literal("block"),
+    selectedBlockGuid: z.string().uuid(),
+    ...PlacementModeCommonFields,
+  }).strict(),
+  z.object({
+    selectedTargetType: z.literal("connectTool"),
+    selectedConnectToolGuid: z.string().uuid(),
+    ...PlacementModeCommonFields,
+  }).strict(),
+  z.object({
+    selectedTargetType: z.literal("trainCar"),
+    selectedTrainCarGuid: z.string().uuid(),
+    ...PlacementModeCommonFields,
+  }).strict(),
+  z.object({
+    selectedTargetType: z.literal("blueprintCopy"),
+    ...PlacementModeCommonFields,
+  }).strict(),
+  // rawは辞書キーを持たないユーザー命名BPのみ
+  // raw covers only user-authored blueprints without dictionary keys
+  z.object({
+    selectedTargetType: z.literal("raw"),
+    selectedName: z.string(),
+    ...PlacementModeCommonFields,
+  }).strict(),
+]);
 export const CrosshairDataSchema = z.object({ visible: z.boolean() });
 export const UiVisibilityDataSchema = z.object({ visible: z.boolean() });
-export const TooltipDataSchema = z.object({ visible: z.boolean(), textKey: z.string(), fontSize: z.number().positive() });
+// tooltipは辞書キーと{p0}補間パラメータのみを受け取り、生の表示文字列は受け付けない
+// Tooltips accept only a dictionary key and {p0} interpolation params, never raw display text
+export const TooltipDataSchema = z.object({
+  visible: z.boolean(),
+  textKey: z.string(),
+  textParams: z.array(z.string()),
+  fontSize: z.number().positive(),
+});
 
 // snapshotを持たない一時イベントのため、接続直後は{}が届く。全フィールドoptionalにしそれを許容する
 // Transient event without a snapshot: {} arrives right after connect, so every field is optional to accept it

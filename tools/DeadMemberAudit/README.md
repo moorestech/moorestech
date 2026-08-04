@@ -126,7 +126,7 @@ markdownレポートを標準出力と `tools/DeadMemberAudit/report.md` の両�
   1. `CT引数あり` — メソッドが`CancellationToken`引数を持つ
   2. `CTSフィールド参照あり` — 本体が`CancellationTokenSource`型フィールドを読んでいる
   3. `Unityオブジェクト` — `UnityEngine.Object`派生型の非staticメソッド（`GetCancellationTokenOnDestroy()`で作れる）
-  
+
   呼び先は**待てる戻り値**（`Task`/`ValueTask`/`UniTask`系/`IAsyncEnumerable`）に限る。
   同期APIのCT引数（MessagePackの`Deserialize`等）は寿命の話ではないため対象外
 - **CT無し版の呼び出し**: 呼び先の宣言型に「同名・引数1本多い・末尾が`CancellationToken`」のメソッドがあるのに

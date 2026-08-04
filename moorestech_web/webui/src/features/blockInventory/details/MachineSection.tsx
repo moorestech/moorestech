@@ -3,7 +3,7 @@ import { Group, Stack } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import type { BlockInventoryOpen } from "@/bridge";
 import { ItemSlot, ModeSwitch } from "@/shared/ui";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import PowerRateText from "./PowerRateText";
 import MachineInventoryBody from "./machine/MachineInventoryBody";
 import MachineRecipeSelectionTab from "./machine/MachineRecipeSelectionTab";
@@ -50,8 +50,8 @@ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
         value={tab}
         onChange={setTab}
         options={[
-          { value: "inventory", label: t("インベントリ"), testId: "machine-tab-inventory" },
-          { value: "recipes", label: t("レシピ選択"), testId: "machine-tab-recipes" },
+          { value: "inventory", label: t(L.ui.blockInventory.inventoryTab), testId: "machine-tab-inventory" },
+          { value: "recipes", label: t(L.ui.blockInventory.recipeSelectionTab), testId: "machine-tab-recipes" },
         ]}
         testId="machine-tab-switch"
       />

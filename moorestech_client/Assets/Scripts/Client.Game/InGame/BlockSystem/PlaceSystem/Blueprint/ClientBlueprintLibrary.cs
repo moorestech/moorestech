@@ -9,8 +9,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 {
-    // DeleteBlueprintの結果種別。呼び出し側がNotFound（サーバー応答あり）と通信失敗を区別するために使う
-    // Result kind for DeleteBlueprint; lets callers distinguish a server-side NotFound from a communication failure
+    // 削除結果でNotFoundと通信失敗を区別
+    // Distinguishes NotFound from request failures
     public enum BlueprintDeleteResult
     {
         Success,
@@ -18,11 +18,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
         RequestFailed,
     }
 
+    public interface IBlueprintDeleteService
+    {
+        UniTask<BlueprintDeleteResult> DeleteBlueprint(Guid blueprintGuid, CancellationToken ct);
+    }
+
     /// <summary>
     ///     サーバーのBPライブラリのクライアント側キャッシュ
     ///     Client-side cache of the server blueprint library
     /// </summary>
-    public class ClientBlueprintLibrary
+    public class ClientBlueprintLibrary : IBlueprintDeleteService
     {
         // キャッシュが最新全件に置き換わったら発火する（BuildMenuTopic の再配信トリガ）
         // Fires when the cache is replaced with a fresh full list (republish trigger for BuildMenuTopic)
@@ -33,8 +38,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
         public IReadOnlyList<BlueprintMessagePack> Blueprints => _blueprints;
 
-        // 設置対象カタログへBPを供給する（キャッシュの現在値をGuidと表示名の組で渡す）
-        // Supplies blueprints to the placement target catalog as (guid, display name) pairs from the current cache
+        // 現行BPをGuid・名前で供給
+        // Supplies current blueprints by GUID and name
         public IReadOnlyList<(Guid id, string name)> BlueprintEntries
         {
             get
@@ -69,8 +74,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(BlueprintRequest.CreateDeleteRequest(blueprintGuid), ct);
             ApplyResponse(response);
 
-            // null応答（タイムアウト等）は通信失敗、FailureReasonでNotFoundとそれ以外の失敗を区別する
-            // A null response (timeout etc.) is a communication failure; use FailureReason to distinguish NotFound from other failures
+            // nullは通信失敗、理由で未発見判別
+            // Null means request failure; the reason identifies NotFound
             if (response == null) return BlueprintDeleteResult.RequestFailed;
             if (response.Success) return BlueprintDeleteResult.Success;
             return response.FailureReason == BlueprintFailureReason.NotFound

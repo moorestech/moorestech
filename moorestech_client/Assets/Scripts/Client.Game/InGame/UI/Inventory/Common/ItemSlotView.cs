@@ -2,9 +2,11 @@
 // [uGUI retirement Phase1] uGUI rendering is permanently disabled and the view is unmaintained, but this class is still referenced externally (e.g. Web UI bridge); untangle before deletion (docs/webui/ugui-retirement-plan.md)
 using System;
 using Client.Common.Asset;
+using Client.Localization;
 using Client.Mod.Texture;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine;
 
@@ -21,22 +23,52 @@ namespace Client.Game.InGame.UI.Inventory.Common
         public int Count { get; private set; }
         
         [SerializeField] private CommonSlotView commonSlotView;
-        
-        
-        public void SetItem(ItemViewData itemView, int count, string toolTipText = null)
+
+        private bool _usesDefaultToolTip;
+
+        private void Awake()
+        {
+            Localize.OnLanguageChanged
+                .Subscribe(_ => RefreshDefaultToolTip())
+                .AddTo(this);
+
+            #region Internal
+
+            void RefreshDefaultToolTip()
+            {
+                if (!_usesDefaultToolTip || ItemViewData == null || ItemViewData.IsEmpty) return;
+                SetItem(ItemViewData, Count);
+            }
+
+            #endregion
+        }
+
+        public void SetItem(ItemViewData itemView, int count)
+        {
+            SetItem(itemView, count, null);
+        }
+
+        public void SetItem(ItemViewData itemView, int count, string toolTipText)
         {
             ItemViewData = itemView;
             Count = count;
-            
+            _usesDefaultToolTip = toolTipText == null;
+
             if (itemView == null || itemView.IsEmpty)
             {
                 commonSlotView.SetViewClear();
             }
             else
             {
-                if (string.IsNullOrEmpty(toolTipText))
+                if (_usesDefaultToolTip)
                 {
                     toolTipText = GetToolTipText(itemView);
+                    if (string.IsNullOrEmpty(toolTipText))
+                    {
+                        commonSlotView.SetView(itemView.ItemImage, GetCountText(count), string.Empty);
+                        commonSlotView.SetShowToolTip(false);
+                        return;
+                    }
                 }
                 
                 commonSlotView.SetView(itemView.ItemImage, GetCountText(count), toolTipText);
@@ -88,9 +120,12 @@ namespace Client.Game.InGame.UI.Inventory.Common
         
         public static string GetToolTipText(ItemViewData itemView)
         {
-            return $"{itemView.ItemName}";
+            // マスタに紐づかない表示名は辞書キーを持たないため既定Tooltipへ公開しない
+            // Do not expose names without a master-backed dictionary key through the default tooltip
+            if (itemView.ItemMasterElement == null) return string.Empty;
+            return Localize.GetContent(ContentLocalizationKeys.ItemName(itemView.ItemMasterElement.ItemGuid));
         }
-        
+
         public static async UniTask LoadItemSlotViewPrefab()
         {
             const string itemSlotViewPath = "Vanilla/UI/ItemSlotView";

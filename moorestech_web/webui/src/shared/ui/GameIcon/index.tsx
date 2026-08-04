@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import styles from "./style.module.css";
 
 type Props = {
@@ -16,7 +16,9 @@ export default function GameIcon({ id, src, alt, className }: Props) {
   const [erroredId, setErroredId] = useState<number | null>(null);
 
   if (erroredId === id) {
-    return <span className={`${styles.fallback} ${className ?? ""}`}>{t("#{id}", { id })}</span>;
+    return <span className={`${styles.fallback} ${className ?? ""}`}>
+      {t(L.ui.common.iconIdFallback, { id })}
+    </span>;
   }
 
   return <img src={src} alt={alt} className={className} draggable={false} onError={() => setErroredId(id)} />;

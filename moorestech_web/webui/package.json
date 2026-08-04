@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "gen:i18n": "node scripts/generate-localization-keys.mjs && node scripts/generate-content-keys.mjs",
     "preview": "vite preview",
     "lint": "eslint src",
     "test": "vitest run",

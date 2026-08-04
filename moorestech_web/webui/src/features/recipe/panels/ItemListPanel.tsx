@@ -6,7 +6,7 @@ import { ConnectingPlaceholder, ItemSlot, SlotGrid, GamePanel } from "@/shared/u
 import { buildOwnedCounts } from "@/shared/ownedCounts";
 import { useItemSelectionStore } from "../logic/selectionStore";
 import { craftableResultCounts } from "../logic/craftLogic";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import styles from "./ItemListPanel.module.css";
 import { tutorialAnchor, recipeItemAnchorId } from "@/shared/tutorialAnchor";
 import { useDragScroll } from "./useDragScroll";
@@ -49,7 +49,7 @@ export default function ItemListPanel() {
   return (
     <GamePanel
       gridArea="items"
-      title={t("CRAFT RECIPE")}
+      title={t(L.ui.recipe.catalogTitle)}
       style={{ justifySelf: "end", alignSelf: "start", width: 378, minHeight: 452, "--panel-top": "-6.821px", "--panel-bottom": "-9.17px", "--panel-left": "-1.04px", "--title-shift-x": "1.57px", "--title-scale-x": 0.963, "--title-scale-y": 0.861 } as CSSProperties}
     >
       {itemList ? (

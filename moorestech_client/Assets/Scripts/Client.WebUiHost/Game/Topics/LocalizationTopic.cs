@@ -42,13 +42,15 @@ namespace Client.WebUiHost.Game.Topics
         {
             return WebUiJson.Serialize(new LocalizationData
             {
-                Locale = Localize.CurrentLanguageCode,
+                Locale = Localize.GetCurrentLanguageCode(),
+                Revision = Localize.GetDictionaryRevision(),
             });
         }
 
         private class LocalizationData
         {
             public string Locale;
+            public long Revision;
         }
     }
 }

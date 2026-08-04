@@ -1,10 +1,10 @@
 import { SlotFrame } from "@/shared/ui";
-import type { BuildMenuEntryData } from "@/bridge";
 import { tutorialAnchor, buildMenuEntryAnchorId } from "@/shared/tutorialAnchor";
+import type { BuildMenuDisplayEntry } from "./buildMenuGrouping";
 import styles from "./style.module.css";
 
 type Props = {
-  entry: BuildMenuEntryData;
+  entry: BuildMenuDisplayEntry;
   onLeftClick: () => void;
   // BPエントリのみ右クリック削除を受け付ける
   // Only blueprint entries accept right-click deletion
@@ -25,9 +25,9 @@ export function BuildMenuSlot({ entry, onLeftClick, onRightClick, onHoverChange 
       {...tutorialAnchor(buildMenuEntryAnchorId(entry.kind, entry.id))}
     >
       {entry.iconUrl ? (
-        <img className={styles.slotIcon} src={entry.iconUrl} alt={entry.label} draggable={false} />
+        <img className={styles.slotIcon} src={entry.iconUrl} alt={entry.displayLabel} draggable={false} />
       ) : (
-        <span className={styles.slotLabel}>{entry.label}</span>
+        <span className={styles.slotLabel}>{entry.displayLabel}</span>
       )}
     </SlotFrame>
   );

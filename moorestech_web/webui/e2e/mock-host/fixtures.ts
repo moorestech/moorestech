@@ -2,13 +2,14 @@ import type {
   PlayerInventoryData,
   SkitPresentationData,
   RecipeViewerItemListData,
-  ItemMasterData,
   BlockInventoryData,
   ModalRequest,
   ProgressData,
   UiStateData,
   TrainRidingData,
 } from "../../src/bridge/contract/payloadTypes";
+import { CHEST_BLOCK_GUID, TANK_BLOCK_GUID } from "./fixtures/blockLocalizationFixtures";
+import { WATER_FLUID_GUID } from "./fixtures/contentLocalizationFixtures";
 
 // BLK-2〜5/8 詳細ブロックと FEAT-RES-1 研究ツリー、ビルドメニューは別ファイルへ分割し再エクスポートする（200行制約）
 // Split the BLK-2..5/8 detail blocks, the FEAT-RES-1 research tree, and the build menu into separate files and re-export (200-line limit)
@@ -16,6 +17,9 @@ export * from "./blockDetailFixtures";
 export * from "./researchFixtures";
 export * from "./fixtures/presentationFixtures";
 export * from "./fixtures/recipeFixtures";
+export * from "./fixtures/itemMasterFixtures";
+export * from "./fixtures/blockLocalizationFixtures";
+export * from "./fixtures/contentLocalizationFixtures";
 export * from "./fixtures/buildMenuFixtures";
 
 const empty = () => ({ itemId: 0, count: 0 });
@@ -32,8 +36,8 @@ export const inventory = {
   hotbarSlots: [{ itemId: 2, count: 3 }, ...Array.from({ length: 8 }, empty)],
   grab: empty(),
   selectedHotbar: 0,
-  // 装備は v8 マスタの3枠。初期は素手(-1)でホイール循環の起点を空選択に置く
-  // Three equipment slots as in the v8 master; bare hands (-1) initially, so wheel cycling starts from an empty selection
+  // 3装備枠、初期選択は素手
+  // Three slots, bare hands selected
   equipment: [{ itemId: 1, count: 1 }, ...Array.from({ length: 2 }, empty)],
   selectedEquipment: -1,
   equipmentSelectionConfirmationRevision: 0,
@@ -48,7 +52,7 @@ export const blockChest = {
   // blockType matches the real master value (PascalCase); the web registry resolves "Chest"
   blockType: "Chest",
   identifier: "block:1",
-  blockName: "Chest",
+  blockGuid: CHEST_BLOCK_GUID,
   itemSlots: [{ itemId: 1, count: 7 }, { itemId: 2, count: 4 }, ...Array.from({ length: 7 }, empty)],
   fluidSlots: [],
 } satisfies BlockInventoryData;
@@ -60,11 +64,11 @@ export const blockTank = {
   source: "block",
   blockType: "tank",
   identifier: "block:2",
-  blockName: "Fluid Tank",
+  blockGuid: TANK_BLOCK_GUID,
   itemSlots: [],
   fluidSlots: [
-    { fluidId: 10, amount: 500, capacity: 1000, name: "Water" },
-    { fluidId: 0, amount: 0, capacity: 1000, name: "" },
+    { fluidId: 10, amount: 500, capacity: 1000, fluidGuid: WATER_FLUID_GUID },
+    { fluidId: 0, amount: 0, capacity: 1000, fluidGuid: "" },
   ],
   progress: 0.5,
 } satisfies BlockInventoryData;
@@ -80,7 +84,6 @@ export const trainCargo = {
   source: "train",
   blockType: "Train",
   identifier: "train:101",
-  blockName: "Train Inventory",
   itemSlots: [{ itemId: 1, count: 24 }, { itemId: 2, count: 8 }, ...Array.from({ length: 7 }, empty)],
   fluidSlots: [],
 } satisfies BlockInventoryData;
@@ -90,7 +93,6 @@ export const trainContainerMissing = {
   source: "train",
   blockType: "Train",
   identifier: "train:102",
-  blockName: "Train Inventory",
   itemSlots: [],
   fluidSlots: [],
   error: "containerMissing",
@@ -125,15 +127,6 @@ export const progressSample = {
 // INFRA-6: default to the inventory screen (keeps the visibility existing e2e tests assume)
 export const uiState = { state: "PlayerInventory" } satisfies UiStateData;
 
-export const itemMaster = {
-  items: [
-    { itemId: 1, name: "Wood", maxStack: 100 },
-    { itemId: 2, name: "Stone", maxStack: 100 },
-    { itemId: 100, name: "Plank", maxStack: 100 },
-    { itemId: 101, name: "Impossible Plank", maxStack: 100 },
-  ],
-} satisfies ItemMasterData;
-
 // DEMO(採点用): 60件=10段分。可視7段+スクロール余剰でノブ比が正本(≈70%)と揃う
 // DEMO (scoring): 60 items = 10 rows; 7 visible + overflow puts the thumb ratio at the reference's ~70%
 export const demoItemList = { itemIds: [100, ...Array.from({ length: 59 }, (_, i) => i + 1)] } satisfies RecipeViewerItemListData;
@@ -164,10 +157,6 @@ export const demoInventory = {
   selectedEquipment: 0,
   equipmentSelectionConfirmationRevision: 0,
 } satisfies PlayerInventoryData;
-
-export const demoItemMaster = {
-  items: Array.from({ length: 120 }, (_, i) => ({ itemId: i + 1, name: `Item ${i + 1}`, maxStack: 100 })),
-} satisfies ItemMasterData;
 
 // DEMO: 進捗バー非表示でホットバーをすっきり見せる
 // DEMO: hide the progress bar to keep the hotbar clean

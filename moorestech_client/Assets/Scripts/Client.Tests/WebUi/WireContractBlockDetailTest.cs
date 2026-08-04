@@ -26,7 +26,7 @@ namespace Client.Tests.WebUi
                 Source = "block",
                 BlockType = "GearMachine",
                 Identifier = "(0, 0, 0)",
-                BlockName = "ギア機械",
+                BlockGuid = "22222222-2222-4222-8222-222222222222",
                 ItemSlots = new List<BlockItemSlotDto>
                 {
                     new() { ItemId = 3, Count = 2 },
@@ -38,7 +38,7 @@ namespace Client.Tests.WebUi
                 {
                     RecipeGuid = "00000000-0000-0000-0000-000000000000",
                     SelectedRecipeGuid = "00000000-0000-0000-0000-000000000000",
-                    BlockGuid = "22222222-2222-2222-2222-222222222222",
+                    BlockGuid = "22222222-2222-4222-8222-222222222222",
                     RecipeTime = 15,
                     OutputItems = new List<MachineOutputItemDto> { new() { ItemId = 7, Count = 3 } },
                     CurrentState = "idle",
@@ -63,7 +63,7 @@ namespace Client.Tests.WebUi
                 Source = "block",
                 BlockType = "ElectricMachine",
                 Identifier = "(1, 0, 2)",
-                BlockName = "電気機械",
+                BlockGuid = "11111111-1111-4111-8111-111111111111",
                 ItemSlots = new List<BlockItemSlotDto>
                 {
                     new() { ItemId = 3, Count = 5 },
@@ -73,14 +73,14 @@ namespace Client.Tests.WebUi
                 },
                 FluidSlots = new List<BlockFluidSlotDto>
                 {
-                    new() { FluidId = 1, Amount = 25.5, Capacity = 100, Name = "水" },
+                    new() { FluidId = 1, Amount = 25.5, Capacity = 100, FluidGuid = "cccccccc-dddd-4eee-8fff-aaaaaaaaaaaa" },
                 },
                 Progress = 0.42,
                 Machine = new MachineDetailDto
                 {
                     RecipeGuid = "00000000-0000-0000-0000-000000000000",
                     SelectedRecipeGuid = "00000000-0000-0000-0000-000000000000",
-                    BlockGuid = "11111111-1111-1111-1111-111111111111",
+                    BlockGuid = "11111111-1111-4111-8111-111111111111",
                     RecipeTime = 15,
                     OutputItems = new List<MachineOutputItemDto> { new() { ItemId = 7, Count = 3 } },
                     CurrentState = "processing",
@@ -104,7 +104,7 @@ namespace Client.Tests.WebUi
                 Source = "block",
                 BlockType = "ElectricGenerator",
                 Identifier = "(5, 0, 5)",
-                BlockName = "発電機",
+                BlockGuid = "33333333-3333-4333-8333-333333333333",
                 ItemSlots = new List<BlockItemSlotDto> { new() { ItemId = 9, Count = 30 } },
                 FluidSlots = new List<BlockFluidSlotDto>(),
                 Progress = null,
@@ -125,7 +125,7 @@ namespace Client.Tests.WebUi
                 Source = "block",
                 BlockType = "ElectricMiner",
                 Identifier = "(3, 0, 8)",
-                BlockName = "電動採掘機",
+                BlockGuid = "44444444-4444-4444-8444-444444444444",
                 ItemSlots = new List<BlockItemSlotDto>
                 {
                     new() { ItemId = 11, Count = 42 },
@@ -155,7 +155,7 @@ namespace Client.Tests.WebUi
                 Source = "block",
                 BlockType = "FilterSplitter",
                 Identifier = "(2, 0, 2)",
-                BlockName = "フィルタ分岐器",
+                BlockGuid = "55555555-5555-4555-8555-555555555555",
                 ItemSlots = new List<BlockItemSlotDto>(),
                 FluidSlots = new List<BlockFluidSlotDto>(),
                 FilterSplitter = new FilterSplitterDto

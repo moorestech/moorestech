@@ -30,9 +30,10 @@ namespace Client.Tests.PlaceSystem
             var catalog = new PlacementTargetCatalog();
             var entries = catalog.CreateEntries(NoBlueprints);
 
-            // ブロック・車両・接続ツール・BPコピーが全部エントリに入っている
-            // Blocks, train cars, connect tools, and the blueprint copy tool are all present
+            // 主要設置種を検証
+            // Verify the main target kinds
             Assert.IsTrue(entries.Any(e => e.Kind == PlacementTargetKind.Block));
+            Assert.IsTrue(entries.Any(e => e.Kind == PlacementTargetKind.TrainCar));
             Assert.IsTrue(entries.Any(e => e.Kind == PlacementTargetKind.ConnectTool));
             Assert.IsTrue(entries.Any(e => e.Kind == PlacementTargetKind.BlueprintCopy));
         }

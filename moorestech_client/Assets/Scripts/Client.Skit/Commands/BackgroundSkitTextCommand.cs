@@ -1,6 +1,6 @@
 using Client.Skit.Context;
+using Client.Skit.Localization;
 using Client.Skit.UI;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 
 namespace CommandForgeGenerator.Command
@@ -9,16 +9,26 @@ namespace CommandForgeGenerator.Command
     {
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
-            var characterName = MasterHolder.CharacterMaster.GetCharacterMaster(CharacterId).DisplayName;
-            if (IsOverrideCharacterName)
-            {
-                characterName = OverrideCharacterName;
-            }
+            var resolver = storyContext.GetLocalizationResolver();
+            var commandId = (int)CommandId;
+            var line = SkitCommandLocalization.ResolveLine(
+                resolver,
+                commandId,
+                CharacterId,
+                IsOverrideCharacterName,
+                OverrideCharacterName,
+                Body);
             
+            // 解決文をWeb・uGUIへ共有
+            // Share resolved text with Web and uGUI
             var skitUi = storyContext.GetBackgroundSkitUI();
-            SkitPresentationStateStore.Instance.SetBackgroundText(characterName, Body);
+            SkitPresentationStateStore.Instance.SetBackgroundText(
+                line.SpeakerName,
+                line.DisplayBody);
+            skitUi.SetText(line.SpeakerName, line.DisplayBody);
             
-            var voiceClip = storyContext.GetVoiceDefine().GetVoiceClip(CharacterId, Body);
+            var voiceClip = storyContext.GetVoiceDefine()
+                .GetVoiceClip(CharacterId, line.VoiceSourceBody);
             await skitUi.PlayVoiceAndWait(voiceClip);
             
             return null;

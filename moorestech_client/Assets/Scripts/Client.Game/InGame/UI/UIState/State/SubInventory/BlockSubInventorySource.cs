@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory;
@@ -15,9 +16,9 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         public InventoryIdentifierMessagePack InventoryIdentifier { get; }
         public string UIPrefabAddressablePath => _blockGameObject.BlockMasterElement.BlockUIAddressablesPath;
 
-        // ブロック種別/表示名/座標の公開口
-        // Read access to block type, name, position
-        public string BlockName => _blockGameObject.BlockMasterElement.Name;
+        // 表示名を運ばず、表示側が辞書解決できる識別子を公開する
+        // Expose identity instead of a source name so the presentation resolves its dictionary
+        public Guid BlockGuid => _blockGameObject.BlockMasterElement.BlockGuid;
         public string BlockTypeName => _blockGameObject.BlockMasterElement.BlockType;
         public Vector3Int BlockPosition => _blockGameObject.BlockPosInfo.OriginalPos;
 

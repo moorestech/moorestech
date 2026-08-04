@@ -17,13 +17,11 @@ test("設置情報と削除警告帯を操作モードへ反映する", async ({
   await expect(placement).toContainText("Assembler");
   await expect(placement).toContainText("3");
 
-  await setTopicScenario(page, "delete");
   await setUiState(page, "DeleteBar");
   const deletion = page.getByTestId("delete-mode-warning");
   await expect(deletion).toHaveAttribute("aria-label", "Delete Mode");
   await expect(deletion.getByTestId("delete-mode-warning-band")).toHaveCount(2);
   await expect(page.locator('[data-tutorial-anchor="delete.hud"]')).toHaveCSS("bottom", "0px");
-  await expect(page.getByText("Protected area", { exact: true })).toHaveCount(0);
 });
 
 test("横長画面でビネットを実viewportの四辺へ沿わせる", async ({ page }) => {

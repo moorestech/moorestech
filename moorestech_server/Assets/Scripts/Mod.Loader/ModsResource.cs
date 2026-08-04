@@ -36,18 +36,24 @@ namespace Mod.Loader
             // zipファイルのmodをロードする
             foreach (var zipFile in Directory.GetFiles(modDirectory, "*.zip").ToList())
             {
-                var zip = ZipFile.Open(zipFile, ZipArchiveMode.Read);
-                var modMeta = JsonConvert.DeserializeObject<ModMetaJson>(LoadConfigFromZip(zip, ModMetaFilePath));
+                ModMetaJson modMeta;
+                using (var zip = ZipFile.Open(zipFile, ZipArchiveMode.Read))
+                {
+                    modMeta = JsonConvert.DeserializeObject<ModMetaJson>(
+                        LoadConfigFromZip(zip, ModMetaFilePath));
+                }
                 
                 if (modMeta == null)
                 {
                     Debug.Log("Mod meta file not found in " + zipFile);
                     continue;
                 }
-                
+
+                // 手書きローダー境界でスキーマのrequired値制約を保証する
+                // Enforce the schema's required value constraint at the hand-written loader boundary
+                ValidateModMetaId(modMeta, zipFile);
                 //extract zip
                 var extractedDir = ExtractModZip(zipFile, modMeta);
-                zip.Dispose();
                 
                 loadedMods.Add(modMeta.ModId, new Mod(modMeta, extractedDir));
             }
@@ -74,11 +80,20 @@ namespace Mod.Loader
                 }
                 
                 var modMeta = JsonConvert.DeserializeObject<ModMetaJson>(File.ReadAllText(modMetaFile));
-                
+
+                // 手書きローダー境界でスキーマのrequired値制約を保証する
+                // Enforce the schema's required value constraint at the hand-written loader boundary
+                ValidateModMetaId(modMeta, modMetaFile);
                 loadedMods.Add(modMeta.ModId, new Mod(modMeta, modDir));
             }
             
             return loadedMods;
+        }
+
+        private static void ValidateModMetaId(ModMetaJson modMeta, string sourcePath)
+        {
+            if (modMeta == null || !modMeta.HasId())
+                throw new InvalidDataException("Mod meta id must not be empty: " + sourcePath);
         }
         
         /// <summary>

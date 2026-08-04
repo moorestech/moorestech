@@ -7,13 +7,16 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Localization;
 using Core.Item.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface.State;
 using Game.Context;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.BlocksModule;
 using TMPro;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.Inventory.Block
@@ -30,6 +33,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         protected BlockGameObject BlockGameObject;
         private CancellationToken _gameObjectCancellationToken;
+        private readonly List<(System.Guid itemGuid, float perMinute)> _visibleMiningItems = new();
         
         public override void Initialize(BlockGameObject blockGameObject)
         {
@@ -48,6 +52,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             
             // 採掘アイテムスロットを更新
             SetMiningItem().Forget();
+            Localize.OnLanguageChanged.Subscribe(_ => RefreshMiningItemCount()).AddTo(this);
             
             #region Internal
             
@@ -126,7 +131,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
             
             var mineSettings = ((IMinerParam) BlockGameObject.BlockMasterElement.BlockParam).MineSettings;
-            var mineItemCount = string.Empty;
+            _visibleMiningItems.Clear();
             foreach (var settings in mineSettings.items)
             {
                 // 現在表示されている分間採掘数を表示
@@ -136,10 +141,20 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 if (settings.Time <= 0f) continue;
                 
                 var perMinute = 60f / settings.Time;
-                var itemName = MasterHolder.ItemMaster.GetItemMaster(settings.ItemGuid).Name;
-                mineItemCount += $"{itemName} : {perMinute:F1}/分 ";
+                _visibleMiningItems.Add((settings.ItemGuid, perMinute));
             }
-            miningItemCount.text = mineItemCount;
-        } 
+            RefreshMiningItemCount();
+        }
+
+        private void RefreshMiningItemCount()
+        {
+            var text = string.Empty;
+            foreach (var (itemGuid, perMinute) in _visibleMiningItems)
+            {
+                var itemName = Localize.GetContent(ContentLocalizationKeys.ItemName(itemGuid));
+                text += $"{itemName} : {perMinute:F1}/分 ";
+            }
+            miningItemCount.text = text;
+        }
     }
 }

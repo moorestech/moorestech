@@ -41,6 +41,7 @@ export type ActionPayloads = {
   "ui_state.request": { state: typeof UiStateNames.gameScreen | typeof UiStateNames.playerInventory };
   "pause_menu.save": Record<string, never>;
   "pause_menu.back_to_main_menu": Record<string, never>;
+  "localization.setLocale": { locale: string };
   "research.complete": { researchGuid: string };
   "machine_recipe.select": { operation: "set" | "clear"; recipeGuid?: string };
   "filter_splitter.set_mode": { directionIndex: number; mode: "default" | "whitelist" | "blacklist" };
@@ -82,6 +83,7 @@ export const ACTION_TYPES = [
   "ui_state.request",
   "pause_menu.save",
   "pause_menu.back_to_main_menu",
+  "localization.setLocale",
   "research.complete",
   "machine_recipe.select",
   "filter_splitter.set_mode",

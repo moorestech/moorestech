@@ -16,7 +16,6 @@ namespace Client.WebUiHost.Game.Topics
                 Open = true,
                 Source = "train",
                 Identifier = source.TrainCarInstanceId.ToString(),
-                BlockName = "Train Inventory",
                 BlockType = "Train",
                 ItemSlots = new List<BlockItemSlotDto>(inventory.Count),
                 FluidSlots = new List<BlockFluidSlotDto>(),

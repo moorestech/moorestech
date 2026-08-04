@@ -22,5 +22,10 @@ namespace Mod.Loader
         public string ModVersion => _modVersion;
         public string ModAuthor => _modAuthor;
         public string ModDescription => _modDescription;
+
+        public bool HasId()
+        {
+            return !string.IsNullOrWhiteSpace(_modId);
+        }
     }
 }

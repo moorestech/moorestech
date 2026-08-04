@@ -1,4 +1,4 @@
-using JetBrains.Annotations;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
@@ -21,10 +21,10 @@ namespace Client.Game.InGame.UI.UIState.State
         void ResetMaterial();
         
         /// <summary>
-        ///     Remove可能かどうか
-        ///     Whether this rail can be removed
+        ///     Remove可能かどうか（削除不可かつ表示すべき理由があるときだけ理由キーが埋まり、無いときはnull）
+        ///     Whether this can be removed; the reason key is filled only when it cannot and a reason is displayable, null otherwise
         /// </summary>
-        bool IsRemovable([CanBeNull] out string reason);
+        bool IsRemovable(out LocalizationKey? deniedReason);
         
         /// <summary>
         ///     実際に対象を削除する

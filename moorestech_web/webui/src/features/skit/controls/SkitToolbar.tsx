@@ -1,5 +1,5 @@
 import { dispatchAction, type ActionPayloads, type SkitIntent } from "@/bridge";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import { IconButton } from "@/shared/ui";
 import { AutoIcon, HideUiIcon, ShowUiIcon, SkipIcon } from "../icons";
 import styles from "./SkitToolbar.module.css";
@@ -20,17 +20,17 @@ export function SkitToolbar({ base, allowedIntents, autoEnabled, skipActive }: P
     <div className={styles.toolbar}>
       {/* 自動送りのon/offは同一SVGの色替えで示し、アイコン自体は差し替えない */}
       {/* Auto-advance on/off is a color swap on one SVG; the icon itself is never replaced */}
-      <IconButton className={styles.toolButton} ariaLabel={t("Auto")}
+      <IconButton className={styles.toolButton} ariaLabel={t(L.ui.skit.auto)}
         aria-pressed={autoEnabled} data-enabled={autoEnabled} disabled={!allowedIntents.has("set-auto")}
         onClick={() => void dispatchAction("skit.set_auto", { ...base, enabled: !autoEnabled })}>
         <AutoIcon />
       </IconButton>
-      <IconButton className={styles.toolButton} ariaLabel={t("Skip")}
+      <IconButton className={styles.toolButton} ariaLabel={t(L.ui.skit.skip)}
         disabled={!allowedIntents.has("skip") || skipActive}
         onClick={() => void dispatchAction("skit.skip", base)}>
         <SkipIcon />
       </IconButton>
-      <IconButton className={styles.toolButton} ariaLabel={t("Hide UI")}
+      <IconButton className={styles.toolButton} ariaLabel={t(L.ui.skit.hideUi)}
         disabled={!allowedIntents.has("set-ui-hidden")}
         onClick={() => void dispatchAction("skit.set_ui_hidden", { ...base, hidden: true })}>
         <HideUiIcon />
@@ -46,7 +46,7 @@ export function SkitRestoreButton({ base }: { base: ActionPayloads["skit.advance
 
   return (
     <div className={styles.toolbar}>
-      <IconButton className={styles.toolButton} ariaLabel={t("Show UI")} testId="skit-show-ui"
+      <IconButton className={styles.toolButton} ariaLabel={t(L.ui.skit.showUi)} testId="skit-show-ui"
         onClick={() => void dispatchAction("skit.set_ui_hidden", { ...base, hidden: false })}>
         <ShowUiIcon />
       </IconButton>

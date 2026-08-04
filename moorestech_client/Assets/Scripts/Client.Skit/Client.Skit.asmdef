@@ -9,8 +9,7 @@
         "DOTween.Modules",
         "Client.Common", 
         "VContainer", 
-        "Game.Context", 
-        "Core.Master"
+        "Game.Context"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

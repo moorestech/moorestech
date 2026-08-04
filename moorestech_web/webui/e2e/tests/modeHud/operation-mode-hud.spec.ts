@@ -7,7 +7,6 @@ import { expectCraftFramedPlacementHud } from "../../support/operationHudAsserti
 // Reset shared UI state after every test
 test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "placementEmpty");
-  await setTopicScenario(page, "deleteEmpty");
   await setUiState(page, "PlayerInventory");
 });
 
@@ -29,6 +28,26 @@ test("配置モードHUDを右上のクラフト枠で表示する", async ({ pa
   await expect(hud.getByTestId("operation-mode-warning")).toHaveCSS("color", "rgb(255, 120, 120)");
 });
 
+test("配置対象connectToolをGuidだけの配信から辞書表示名へ解決する", async ({ page }) => {
+  await setTopicScenario(page, "placementConnectTool");
+  await setUiState(page, "PlaceBlock");
+  await page.goto("/");
+
+  // ホストはlabelを運ばずGuidのみ配信する（表示名の正はWeb辞書）
+  // The host ships no label and delivers only the GUID; the web dictionary owns the display name
+  await expect(page.getByTestId("placement-mode-hud")).toContainText("電線接続ツール");
+});
+
+test("配置対象trainCarをGuidだけの配信から辞書表示名へ解決する", async ({ page }) => {
+  await setTopicScenario(page, "placementTrainCar");
+  await setUiState(page, "PlaceBlock");
+  await page.goto("/");
+
+  // 車両もaddressablePath末尾ではなくマスタnameの辞書解決で表示する
+  // Train cars display via the master name dictionary, not the addressablePath tail
+  await expect(page.getByTestId("placement-mode-hud")).toContainText("貨物車両");
+});
+
 test("横長画面でも配置モードHUDを実画面右上へ固定する", async ({ page }) => {
   await page.setViewportSize({ width: 2432, height: 786 });
   await setTopicScenario(page, "placement");
@@ -45,7 +64,6 @@ test("横長画面でも配置モードHUDを実画面右上へ固定する", as
 });
 
 test("削除モードをuGUI準拠の上下警告帯だけで表示する", async ({ page }) => {
-  await setTopicScenario(page, "delete");
   await setUiState(page, "DeleteBar");
   await page.goto("/");
 
@@ -55,7 +73,6 @@ test("削除モードをuGUI準拠の上下警告帯だけで表示する", asyn
   await expect(warning).toHaveAttribute("aria-label", "Delete Mode");
   await expect(warning).toHaveCSS("pointer-events", "none");
   await expect(page.getByTestId("delete-mode-hud")).toHaveCount(0);
-  await expect(page.getByText("Protected area", { exact: true })).toHaveCount(0);
 
   const bands = warning.getByTestId("delete-mode-warning-band");
   await expect(bands).toHaveCount(2);

@@ -74,6 +74,6 @@ export async function setTopicScenarioRevision(page: Page, scenario: TopicScenar
   return requestMockControl(page, "", path);
 }
 
-export async function setWoodItemName(page: Page, name: string) {
-  return requestMockControl(page, "", `/__item-master?woodName=${encodeURIComponent(name)}`);
+export async function setWoodItemGuid(page: Page, itemGuid: string) {
+  return requestMockControl(page, "", `/__item-master?woodGuid=${encodeURIComponent(itemGuid)}`);
 }

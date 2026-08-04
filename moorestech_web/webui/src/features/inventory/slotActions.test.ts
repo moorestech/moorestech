@@ -37,7 +37,7 @@ describe("slotActions", () => {
       equipmentSelectionConfirmationRevision: 0,
     };
     bridge.blockInventory = null;
-    bridge.itemMaster = new Map([[1, { itemId: 1, name: "item", maxStack: 100 }]]);
+    bridge.itemMaster = new Map([[1, { itemId: 1, itemGuid: "87000000-0000-4000-8000-000000000001", maxStack: 100 }]]);
   });
 
   it("クリック時の inventory・block slots・maxStack で移動を計画する", () => {
@@ -57,11 +57,11 @@ describe("slotActions", () => {
       source: "block",
       blockType: "chest",
       identifier: "block-1",
-      blockName: "Chest",
+      blockGuid: "85000000-0000-4000-8000-000000000001",
       itemSlots: [slot(1, 8), slot(0, 0)],
       fluidSlots: [],
     };
-    bridge.itemMaster = new Map([[1, { itemId: 1, name: "latest", maxStack: 10 }]]);
+    bridge.itemMaster = new Map([[1, { itemId: 1, itemGuid: "87000000-0000-4000-8000-000000000002", maxStack: 10 }]]);
 
     slotActions.onLeftDown({ area: "main", slot: 0 }, true);
 

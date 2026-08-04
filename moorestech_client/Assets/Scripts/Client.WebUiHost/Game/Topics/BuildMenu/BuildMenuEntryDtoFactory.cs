@@ -20,8 +20,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             var dtos = new List<BuildMenuEntryDto>();
             var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
 
-            // 無料設置デバッグ時は未解放も含め設置可能な全ブロック/車両を表示する
-            // In free-placement debug mode, show every placeable block/train car including locked ones
+            // 無料設置では未解放も表示
+            // Show locked targets in free mode
             var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
 
             // 共有カタログの列挙順（ブロック→車両→接続ツール→BPコピー→BP）がそのまま表示順
@@ -31,16 +31,16 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             foreach (var entry in placementTargetCatalog.UnlockedEntries(unlockState, showAllPlaceable, blueprintEntries))
             {
                 var target = PlacementTargetFactory.Create(entry);
-                var (category, subCategory) = ResolveCategoryPair(target);
+                var (categoryGuid, subCategoryGuid) = ResolveCategoryPair(target);
                 dtos.Add(new BuildMenuEntryDto
                 {
                     // 設置対象IDはGuid文字列1本。kindは表示・振る舞い用で識別子ではない
                     // The id is a single GUID string; kind is for display/behavior, not identity
-                    Id = target.Id.ToString(),
+                    Id = target.Id.ToString("D"),
                     Kind = GetKind(target.Kind),
-                    Label = target.DisplayName,
-                    Category = category,
-                    SubCategory = subCategory,
+                    Label = target.Kind == PlacementTargetKind.Blueprint ? target.DisplayName : null,
+                    CategoryGuid = categoryGuid.ToString("D"),
+                    SubCategoryGuid = subCategoryGuid.ToString("D"),
                     RequiredItems = CreateRequiredItemDtos(target),
                     IconUrl = CreateIconUrl(target),
                 });
@@ -66,12 +66,12 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
             // ブロックだけカテゴリをブロックマスタ自身が持ち、他はentrySource定義のサブカテゴリへ入る
             // Only blocks carry their category on the block master; the rest go to their entrySource-defined sub category
-            (string category, string subCategory) ResolveCategoryPair(IPlacementTarget target)
+            (Guid categoryGuid, Guid subCategoryGuid) ResolveCategoryPair(IPlacementTarget target)
             {
                 if (target is BlockPlacementTarget block)
                 {
                     var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
-                    return (blockMaster.Category, blockMaster.SubCategory);
+                    return categoryMaster.GetGuidPair(blockMaster.Category, blockMaster.SubCategory);
                 }
 
                 return categoryMaster.GetPairByEntrySource(target.Kind switch
@@ -84,19 +84,12 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 });
             }
 
-            // 建設コストを持つのはブロックと車両だけ。ItemGuidは揮発ItemIdへ解決する
-            // Only blocks and train cars have construction costs; ItemGuid resolves to a volatile ItemId
+            // 建設費をItemIdへ変換
+            // Convert costs to ItemIds
             List<BuildMenuRequiredItemDto> CreateRequiredItemDtos(IPlacementTarget target)
             {
-                IEnumerable<(Guid itemGuid, int count)> requiredItems = null;
-                if (target is BlockPlacementTarget block)
-                    requiredItems = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).RequiredItems?.Select(r => (r.ItemGuid, r.Count));
-                if (target is TrainCarPlacementTarget trainCar)
-                    requiredItems = MasterHolder.TrainUnitMaster.GetTrainCarMaster(trainCar.TrainCarGuid).RequiredItems?.Select(r => (r.ItemGuid, r.Count));
-
                 var itemDtos = new List<BuildMenuRequiredItemDto>();
-                if (requiredItems == null) return itemDtos;
-                foreach (var (itemGuid, count) in requiredItems)
+                foreach (var (itemGuid, count) in target.CreateRequiredItems())
                 {
                     itemDtos.Add(new BuildMenuRequiredItemDto { ItemId = MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive(), Count = count });
                 }
@@ -122,8 +115,6 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     case PlacementTargetKind.ConnectTool:
                     {
                         var connectTool = (ConnectToolPlacementTarget)target;
-                        // 接続ツールのアイコンはconnectToolのimagePathから配信する
-                        // The connect tool icon is served from the connectTool's imagePath
                         return $"{ConnectToolIconEndpoint.PathPrefix}{connectTool.ConnectToolGuid}{ConnectToolIconEndpoint.PathSuffix}";
                     }
                     case PlacementTargetKind.BlueprintCopy:
@@ -144,8 +135,9 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             return MasterHolder.BuildMenuCategoryMaster.Categories
                 .Select(c => new BuildMenuCategoryDto
                 {
-                    Name = c.Name,
-                    SubCategories = c.SubCategories.Select(s => s.Name).ToList(),
+                    CategoryGuid = c.CategoryGuid.ToString("D"),
+                    SubCategoryGuids = c.SubCategories
+                        .Select(s => s.SubCategoryGuid.ToString("D")).ToList(),
                 }).ToList();
         }
     }

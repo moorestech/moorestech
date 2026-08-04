@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Client.Game.InGame.UI.Tooltip;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
@@ -32,6 +33,7 @@ namespace Client.WebUiHost.Game.Topics
             {
                 Visible = presentation.Visible,
                 TextKey = presentation.TextKey,
+                TextParams = presentation.TextParams,
                 FontSize = presentation.FontSize,
             });
         }
@@ -41,6 +43,7 @@ namespace Client.WebUiHost.Game.Topics
     {
         public bool Visible;
         public string TextKey;
+        public IReadOnlyList<string> TextParams;
         public int FontSize;
     }
 }

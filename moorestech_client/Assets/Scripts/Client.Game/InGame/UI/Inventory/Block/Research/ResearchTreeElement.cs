@@ -10,6 +10,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
 using Game.Research;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.GameActionModule;
 using TMPro;
 using UniRx;
@@ -94,16 +95,16 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
             
             void SetButtonToolTipText()
             {
-                var text = node.State switch
+                var textKey = node.State switch
                 {
-                    ResearchNodeState.UnresearchableAllReasons => "研究アイテムが足りません。\n前提研究が完了していません。",
-                    ResearchNodeState.UnresearchableNotEnoughItem => "研究アイテムが足りません。",
-                    ResearchNodeState.UnresearchableNotEnoughPreNode => "前提研究が完了していません。",
-                    ResearchNodeState.Researchable => "クリックして研究",
-                    ResearchNodeState.Completed => "研究済み",
-                    _ => ""
+                    ResearchNodeState.UnresearchableAllReasons => LocalizationKeys.Ui.Research.MissingItemsAndPrerequisites,
+                    ResearchNodeState.UnresearchableNotEnoughItem => LocalizationKeys.Ui.Research.MissingItems,
+                    ResearchNodeState.UnresearchableNotEnoughPreNode => LocalizationKeys.Ui.Research.MissingPrerequisites,
+                    ResearchNodeState.Researchable => LocalizationKeys.Ui.Research.ClickToResearch,
+                    ResearchNodeState.Completed => LocalizationKeys.Ui.Research.Completed,
+                    _ => throw new ArgumentOutOfRangeException(nameof(node.State), node.State, null),
                 };
-                researchButtonTooltipTarget.SetText(text, false);
+                researchButtonTooltipTarget.SetText(textKey, Array.Empty<string>());
             }
             
             void CreateUnlockItemIcons()
@@ -200,14 +201,14 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
 
             // ツールチップテキストを更新
             // Update tooltip text
-            var text = (preNodeMet, allItemsSufficient) switch
+            var textKey = (preNodeMet, allItemsSufficient) switch
             {
-                (true, true) => "クリックして研究",
-                (true, false) => "研究アイテムが足りません。",
-                (false, true) => "前提研究が完了していません。",
-                (false, false) => "研究アイテムが足りません。\n前提研究が完了していません。",
+                (true, true) => LocalizationKeys.Ui.Research.ClickToResearch,
+                (true, false) => LocalizationKeys.Ui.Research.MissingItems,
+                (false, true) => LocalizationKeys.Ui.Research.MissingPrerequisites,
+                (false, false) => LocalizationKeys.Ui.Research.MissingItemsAndPrerequisites,
             };
-            researchButtonTooltipTarget.SetText(text, false);
+            researchButtonTooltipTarget.SetText(textKey, Array.Empty<string>());
         }
 
         public void CreateConnect(Transform lineParent, Dictionary<Guid, ResearchTreeElement> nodeElements)

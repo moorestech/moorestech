@@ -152,7 +152,6 @@ namespace Client.Playtest
             await PlaytestUiOps.DragPlace(fromAim, toAim);
             await Until(() => PlaytestBlockOps.GetBlock(fromOrigin) != null && PlaytestBlockOps.GetBlock(toOrigin) != null, 15f, $"UIドラッグ設置反映: {blockName} {fromOrigin}->{toOrigin}");
         }
-        // ---- 低レベルアクセス / Low-level access ----
         public void SendCommand(string command)
         {
             _reporter.Step($"コマンド送信: {command}");

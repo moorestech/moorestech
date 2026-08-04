@@ -12,8 +12,8 @@ using Tests.Module.TestMod;
 namespace Client.Tests.WebUi
 {
     /// <summary>
-    ///     inventory.split のハンドラ本体が装備枠を起点として受理し、装備枠数で境界を切ることを検証する
-    ///     Verifies the inventory.split handler body accepts an equipment slot as origin and bounds it by the equipment slot count
+    /// 装備枠起点と境界を検証
+    /// Tests equipment origin and bounds
     /// </summary>
     public class SplitGrabEquipmentActionTest
     {

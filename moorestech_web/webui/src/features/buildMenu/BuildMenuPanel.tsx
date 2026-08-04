@@ -2,9 +2,15 @@ import { useState } from "react";
 import { ScrollArea } from "@mantine/core";
 import { useTopic, dispatchAction, Topics, UiStateNames } from "@/bridge";
 import { GamePanel, IconButton } from "@/shared/ui";
-import { useI18n } from "@/shared/i18n";
-import type { BuildMenuEntryData } from "@/bridge";
-import { resolveSelectedCategory, searchSections, sectionsForCategory, visibleCategories } from "./buildMenuGrouping";
+import { L, useI18n } from "@/shared/i18n";
+import {
+  localizeBuildMenuEntries,
+  resolveSelectedCategory,
+  searchSections,
+  sectionsForCategory,
+  visibleCategories,
+  type BuildMenuDisplayEntry,
+} from "./buildMenuGrouping";
 import { BuildMenuCategoryGrid } from "./BuildMenuCategoryGrid";
 import { BuildMenuDetailPreview } from "./BuildMenuDetailPreview";
 import { BuildMenuSearchInput } from "./BuildMenuSearchInput";
@@ -18,36 +24,41 @@ export function BuildMenuPanel() {
   const data = useTopic(Topics.buildMenu);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [hovered, setHovered] = useState<BuildMenuEntryData | null>(null);
+  const [hovered, setHovered] = useState<BuildMenuDisplayEntry | null>(null);
   if (!data) return null;
 
-  // 検索中は全カテゴリ横断、通常時は選択カテゴリ（消滅時は先頭へフォールバック）
-  // While searching, span all categories; otherwise the selected one (falls back to the first if gone)
-  const visible = visibleCategories(data.categories, data.entries);
+  // 表示名を一度解決し全表示へ共有
+  // Resolve display names once and share them across views
+  const displayEntries = localizeBuildMenuEntries(data.entries, t);
+  const visible = visibleCategories(data.categories, displayEntries);
   const searching = query !== "";
   const currentCategory = resolveSelectedCategory(selectedCategory, visible);
   const sections = searching
-    ? searchSections(query, data.categories, data.entries)
+    ? searchSections(query, data.categories, displayEntries)
     : currentCategory !== null
-      ? sectionsForCategory(currentCategory, data.categories, data.entries)
+      ? sectionsForCategory(currentCategory, data.categories, displayEntries)
       : [];
 
   // topic再配信で hovered が消えたエントリを指し続けても、描画時に現データ側の実在エントリへ引き直す
   // If a topic rebroadcast leaves hovered pointing at a removed entry, re-resolve to the live entry at render time
-  const previewEntry = hovered ? data.entries.find((e) => e.id === hovered.id) ?? null : null;
+  const previewEntry = hovered
+    ? displayEntries.find((entry) => entry.id === hovered.id) ?? null
+    : null;
 
-  const select = (entry: BuildMenuEntryData) => void dispatchAction("build_menu.select", { id: entry.id });
-  // BPのidはBPのGuid。設置対象と削除対象で同じidを使う
-  // A blueprint's id is its GUID; placement and deletion address it with the same id
-  const remove = (entry: BuildMenuEntryData) => void dispatchAction("blueprint.delete", { id: entry.id });
+  const select = (entry: BuildMenuDisplayEntry) =>
+    void dispatchAction("build_menu.select", { id: entry.id });
+  // BPのGuidを設置対象と削除対象の共通identityとして使う
+  // Use the blueprint GUID as the shared identity for placement and deletion
+  const remove = (entry: BuildMenuDisplayEntry) =>
+    void dispatchAction("blueprint.delete", { id: entry.id });
   // 閉じるはGameScreen遷移要求
   // Close requests a GameScreen transition
   const close = () => void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });
 
   return (
     <div className={styles.panel} data-testid="build-menu-panel">
-      <GamePanel title={t("ビルドメニュー")} variant="default">
-        <IconButton onClick={close} ariaLabel={t("閉じる")} className={styles.close} testId="build-menu-close" />
+      <GamePanel title={t(L.ui.buildMenu.title)} variant="default">
+        <IconButton onClick={close} ariaLabel={t(L.ui.common.close)} className={styles.close} testId="build-menu-close" />
         <div className={styles.columns}>
           <CategorySidebar
             categories={visible}
@@ -60,7 +71,7 @@ export function BuildMenuPanel() {
             <BuildMenuDetailPreview entry={previewEntry} />
             <ScrollArea className={styles.scroll} type="auto">
               {sections.length === 0 && searching ? (
-                <span className={styles.noHit}>{t("該当なし")}</span>
+                <span className={styles.noHit}>{t(L.ui.buildMenu.noResults)}</span>
               ) : (
                 <BuildMenuCategoryGrid
                   sections={sections}

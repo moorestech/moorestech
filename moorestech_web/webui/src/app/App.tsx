@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from "react";
-import { Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
+import { Button, Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
 import { InventoryPanel, HotbarPanel, EquipmentPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel, RecipeSelectionKeyHandler } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
@@ -15,7 +15,7 @@ import { DeleteModeWarningBands, PlacementModeHud } from "@/features/modeHud";
 import { Crosshair } from "@/features/commonHud";
 import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
-import { useI18n } from "@/shared/i18n";
+import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
@@ -52,7 +52,7 @@ function useUiScale(enabled: boolean) {
 // Three-column layout with a bottom hotbar row, matching the uGUI inventory screen
 export default function App() {
   useWebInputExclusivity();
-  const { t } = useI18n();
+  const { status, t } = useI18n();
 
   // 一度接続した後の切断中のみオーバーレイを出す（初回接続前は各 panel の connecting... 表示に任せる）
   // Show the overlay only when disconnected after a prior connect (before first connect, panels show connecting...)
@@ -134,7 +134,21 @@ export default function App() {
           <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-reconnect)" data-testid="reconnect-overlay">
             <Stack align="center" gap="sm">
               <Loader color="gray" />
-              <Text c="white" fw={500}>{t("再接続中...")}</Text>
+              <Text c="white" fw={500}>{t(L.ui.error.reconnecting)}</Text>
+            </Stack>
+          </Overlay>
+        </Portal>
+      )}
+      {/* 辞書ロード失敗を全面表示し、再読み込みで操作を回復できるようにする */}
+      {/* Surface dictionary load failures and offer reload to recover interaction */}
+      {status === "error" && (
+        <Portal>
+          <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-reconnect)" data-testid="dictionary-error-overlay">
+            <Stack align="center" gap="sm">
+              <Text c="white" fw={500}>{DictionaryIndependentText.dictionaryLoadFailed}</Text>
+              <Button color="red" onClick={() => location.reload()} data-testid="dictionary-error-reload">
+                {DictionaryIndependentText.reload}
+              </Button>
             </Stack>
           </Overlay>
         </Portal>

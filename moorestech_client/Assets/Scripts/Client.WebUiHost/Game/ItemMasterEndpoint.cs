@@ -10,8 +10,8 @@ using Microsoft.AspNetCore.Http;
 namespace Client.WebUiHost.Game
 {
     /// <summary>
-    /// GET /api/master/items でアイテムマスタ（名前・スタック上限）を配信する
-    /// Serves item master data (name, max stack) at GET /api/master/items
+    /// GET /api/master/items でアイテムマスタ（Guid・スタック上限）を配信する
+    /// Serves item master data (Guid, max stack) at GET /api/master/items
     /// </summary>
     public static class ItemMasterEndpoint
     {
@@ -48,7 +48,7 @@ namespace Client.WebUiHost.Game
                 dto.Items.Add(new ItemMasterDto
                 {
                     ItemId = itemId.AsPrimitive(),
-                    Name = master.Name,
+                    ItemGuid = master.ItemGuid.ToString("D"),
                     MaxStack = stackLevelLookup.GetMaxStack(itemId),
                 });
             }
@@ -68,7 +68,7 @@ namespace Client.WebUiHost.Game
     public class ItemMasterDto
     {
         public int ItemId;
-        public string Name;
+        public string ItemGuid;
         public int MaxStack;
     }
 }

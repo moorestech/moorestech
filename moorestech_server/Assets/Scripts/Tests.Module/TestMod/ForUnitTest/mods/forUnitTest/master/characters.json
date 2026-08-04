@@ -1,3 +1,11 @@
 {
-  "data": []
+  "data": [
+    {
+      "characterGuid": "57462bbc-3fde-4aed-9f5a-741cfd439b11",
+      "characterId": "test_character",
+      "displayName": "Test Character",
+      "modelAddresablePath": "Test/Character/Model",
+      "skitModelAddresablePath": "Test/Character/SkitModel"
+    }
+  ]
 }

@@ -2,20 +2,20 @@
 // [uGUI retirement Phase1] Unmaintained; rendering permanently disabled after the Web UI migration. Slated for deletion in Phase2 (docs/webui/ugui-retirement-plan.md)
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
+using Client.Localization;
 using Client.Mod.Texture;
 using Common.Debug;
-using Core.Master;
 using Game.UnlockState;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.UI.BuildMenu
 {
     /// <summary>
-    /// ビルドメニューの表示エントリ一覧を組み立てる（共有カタログの列挙順にアイコンとツールチップを付ける）
-    /// Builds the list of build-menu entries by decorating the shared catalog's enumeration with icons and tooltips
+    /// 表示エントリへ装飾を付与
+    /// Decorates display entries
     /// </summary>
     public static class BuildMenuEntryCatalog
     {
@@ -39,8 +39,8 @@ namespace Client.Game.InGame.UI.BuildMenu
 
             #region Internal
 
-            // アイコンを持つのはブロック・車両・接続ツールだけで、BPとBPコピーはテキスト表示スロット
-            // Only blocks, train cars, and connect tools have icons; blueprints and the copy tool render as text-only slots
+            // 3種だけアイコン表示
+            // Icons for three target kinds
             ItemViewData ResolveIconView(IPlacementTarget target)
             {
                 switch (target)
@@ -56,29 +56,21 @@ namespace Client.Game.InGame.UI.BuildMenu
                 }
             }
 
-            // ツールチップは表示名に建設コストを続けたもの。コストを持つのはブロックと車両だけ
-            // The tooltip is the display name followed by construction costs, which only blocks and train cars have
+            // ブロック・車両の建設費を追記
+            // Appends block/train costs
             string CreateToolTip(IPlacementTarget target)
             {
                 var builder = new StringBuilder(target.DisplayName);
-                switch (target)
-                {
-                    case BlockPlacementTarget block:
-                        AppendRequiredItems(builder, MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
-                        break;
-                    case TrainCarPlacementTarget trainCar:
-                        AppendRequiredItems(builder, MasterHolder.TrainUnitMaster.GetTrainCarMaster(trainCar.TrainCarGuid).RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
-                        break;
-                }
+                AppendRequiredItems(builder, target.CreateRequiredItems());
                 return builder.ToString();
             }
 
             void AppendRequiredItems(StringBuilder builder, IEnumerable<(Guid itemGuid, int count)> requiredItems)
             {
-                if (requiredItems == null) return;
                 foreach (var (itemGuid, count) in requiredItems)
                 {
-                    builder.Append('\n').Append($"{MasterHolder.ItemMaster.GetItemMaster(itemGuid).Name} x{count}");
+                    builder.Append('\n').Append(
+                        $"{Localize.GetContent(ContentLocalizationKeys.ItemName(itemGuid))} x{count}");
                 }
             }
 

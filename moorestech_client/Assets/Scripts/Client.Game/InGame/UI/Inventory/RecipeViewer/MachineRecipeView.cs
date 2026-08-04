@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Localization;
 using Core.Master;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.MachineRecipesModule;
 using TMPro;
 using UniRx;
@@ -59,6 +61,22 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 if (_currentIndex < 0) _currentIndex = MachineRecipeCount - 1;
                 DisplayRecipe(_currentIndex);
             });
+
+            Localize.OnLanguageChanged
+                .Subscribe(_ => RefreshLocalizedTexts())
+                .AddTo(this);
+
+            #region Internal
+
+            void RefreshLocalizedTexts()
+            {
+                if (_currentItemRecipes == null ||
+                    !_currentUnlockedMachineRecipes.ContainsKey(_currentBlockId)) return;
+                RefreshItemName();
+                RefreshMachineSlot();
+            }
+
+            #endregion
         }
         
         public void SetRecipes(RecipeViewerItemRecipes recipeViewerItemRecipes, Dictionary<BlockId, List<MachineRecipeMasterElement>> unlockedMachineRecipes)
@@ -135,8 +153,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             
             void SetMachineSlot()
             {
-                var itemViewData = ClientContext.BlockImageContainer.GetBlockView(_currentBlockId);
-                machineView.SetItem(itemViewData, 0);
+                RefreshMachineSlot();
             }
             
             void UpdateButtonAndText()
@@ -145,11 +162,25 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 nextRecipeButton.interactable = MachineRecipeCount != 1;
                 recipeCountText.text = $"{_currentIndex + 1} / {MachineRecipeCount}";
                 
-                var itemName = MasterHolder.ItemMaster.GetItemMaster(_currentItemRecipes.ResultItemId).Name;
-                itemNameText.text = itemName;
+                RefreshItemName();
             }
             
             #endregion
+        }
+
+        private void RefreshItemName()
+        {
+            var itemMaster = MasterHolder.ItemMaster.GetItemMaster(_currentItemRecipes.ResultItemId);
+            itemNameText.text = Localize.GetContent(
+                ContentLocalizationKeys.ItemName(itemMaster.ItemGuid));
+        }
+
+        private void RefreshMachineSlot()
+        {
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(_currentBlockId);
+            var itemViewData = ClientContext.BlockImageContainer.GetBlockView(_currentBlockId);
+            var toolTip = Localize.GetContent(ContentLocalizationKeys.BlockName(blockMaster.BlockGuid));
+            machineView.SetItem(itemViewData, 0, toolTip);
         }
         
         private void OnClickMaterialItem(ItemSlotView itemSlotView)

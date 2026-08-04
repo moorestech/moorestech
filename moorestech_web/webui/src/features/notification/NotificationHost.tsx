@@ -3,7 +3,7 @@ import { useTopic, Topics } from "@/bridge";
 import { useI18n } from "@/shared/i18n";
 import ItemIcon from "@/shared/ui/ItemIcon";
 import { useNotificationStore } from "./notificationStore";
-import { resolveNotificationTemplate, buildInterpolationValues } from "./notificationMessages";
+import { resolveNotificationKey, resolveNotificationParams, buildInterpolationValues } from "./notificationMessages";
 import styles from "./style.module.css";
 
 // 通知ホスト。左端縦中央に浮遊テキストで表示
@@ -35,7 +35,10 @@ export default function NotificationHost() {
         // Category goes into a data attribute; token-based CSS handles the coloring
         <div key={n.id} className={styles.notification} data-category={n.category}>
           {n.itemId != null && <ItemIcon itemId={n.itemId} className={styles.icon} />}
-          {t(resolveNotificationTemplate(n.messageId), buildInterpolationValues(n.messageParams))}
+          {t(
+            resolveNotificationKey(n.messageId),
+            buildInterpolationValues(n.messageId, resolveNotificationParams(n.messageId, n.messageParams, t)),
+          )}
         </div>
       ))}
     </div>

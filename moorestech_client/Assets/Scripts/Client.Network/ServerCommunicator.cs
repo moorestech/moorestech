@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Client.Network.API;
 using Client.Network.Settings;
@@ -22,6 +23,7 @@ namespace Client.Network
         private readonly Subject<Unit> _onDisconnect = new();
         
         private readonly Socket _socket;
+        private int _closeRequested;
         
         private ServerCommunicator(Socket connectedSocket)
         {
@@ -72,6 +74,14 @@ namespace Client.Network
                     foreach (var packet in packets) packetExchangeManager.EnqueueReceivedPacket(packet);
                 }
             }
+            // 外部Socket受信は明示Closeで実装依存の例外を送出するため、その2種だけを正常終了へ変換する
+            // External socket Receive throws implementation-dependent exceptions on explicit Close, so normalize only those two kinds
+            catch (ObjectDisposedException) when (Volatile.Read(ref _closeRequested) != 0)
+            {
+            }
+            catch (SocketException) when (Volatile.Read(ref _closeRequested) != 0)
+            {
+            }
             catch (Exception e)
             {
                 Debug.LogError("エラーによりサーバーから切断されました");
@@ -83,7 +93,7 @@ namespace Client.Network
                     var json = MessagePackSerializer.ConvertToJson(buffer);
                     Debug.LogError("受信パケット内容 JSON:" + json);
                 }
-                catch (Exception exception)
+                catch (Exception)
                 {
                     Debug.LogError("受信パケット内容 JSON:解析に失敗");
                 }
@@ -107,6 +117,10 @@ namespace Client.Network
         
         public void Send(byte[] data)
         {
+            // 明示Close公開後の残存frameだけを破棄し、それ以前のSocket障害は例外のまま伝播させる
+            // Discard only remaining-frame sends after explicit Close; socket failures before it still propagate
+            if (Volatile.Read(ref _closeRequested) != 0) return;
+
             //先頭にパケット長を設定して送信
             var header = ToByteArray.Convert(data.Length);
             var newData = new byte[header.Length + data.Length];
@@ -119,6 +133,9 @@ namespace Client.Network
         
         public void Close()
         {
+            // 受信スレッドへ終了意図を先に公開し、CloseによるReceive中断だけを正常終了と判定させる
+            // Publish shutdown intent before Close so only the resulting Receive interruption is treated as normal
+            if (Interlocked.Exchange(ref _closeRequested, 1) != 0) return;
             _socket.Close();
         }
     }

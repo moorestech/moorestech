@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -13,8 +14,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         Guid Id { get; }
         PlacementTargetKind Kind { get; }
 
-        // 表示名の正はここ1箇所。消費側で種別switchして名前を導出することを禁じる
-        // The single source of truth for the display name; consumers must never re-derive it by switching on kind
+        // C#側の表示名はここを正とし、C#消費側でkind switchして再導出しない（WebはGuid辞書契約で別解決）
+        // This is the C# display-name source of truth; C# consumers must not re-derive it by kind (Web resolves its GUID dictionary contract separately)
         string DisplayName { get; }
+
+        IReadOnlyList<(Guid itemGuid, int count)> CreateRequiredItems();
     }
 }

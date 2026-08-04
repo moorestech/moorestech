@@ -1,7 +1,11 @@
 import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { setUiState } from "../../support/mockControl";
-import { buildMenuEntryIds } from "../../mock-host/fixtures";
+import {
+  buildMenuCategoryIds,
+  buildMenuEntryIds,
+  buildMenuSubCategoryIds,
+} from "../../mock-host/fixtures";
 
 test.afterEach(async ({ page }) => {
   await setUiState(page, "PlayerInventory");
@@ -26,7 +30,7 @@ test("エントリ選択とBP右クリック削除のアクション契約", asy
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`).click();
   await expect.poll(() => payloadsOf(page, "build_menu.select")).toContainEqual({ id: buildMenuEntryIds.woodChest });
 
-  await page.getByTestId("build-menu-category-ブループリント").click();
+  await page.getByTestId(`build-menu-category-${buildMenuCategoryIds.blueprint}`).click();
   await page.getByTestId(`build-menu-entry-blueprint-${buildMenuEntryIds.starterBaseBlueprint}`).click({ button: "right" });
   await expect.poll(() => payloadsOf(page, "blueprint.delete")).toContainEqual({ id: buildMenuEntryIds.starterBaseBlueprint });
 });
@@ -44,10 +48,12 @@ test("カテゴリ切替でセクションが入れ替わる", async ({ page }) 
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
-  await expect(page.getByTestId("build-menu-section-物流-チェスト")).toBeVisible();
+  await expect(page.getByTestId(
+    `build-menu-section-${buildMenuCategoryIds.logistics}-${buildMenuSubCategoryIds.chest}`,
+  )).toBeVisible();
   await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`)).toBeHidden();
 
-  await page.getByTestId("build-menu-category-輸送").click();
+  await page.getByTestId(`build-menu-category-${buildMenuCategoryIds.transport}`).click();
   await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`)).toBeVisible();
   await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`)).toBeHidden();
 });
@@ -57,13 +63,19 @@ test("横断検索は複合見出しで区切りサイドバーを無効化す�
   await page.goto("/");
 
   await page.getByTestId("build-menu-search").fill("鉄");
-  await expect(page.getByTestId("build-menu-section-物流-チェスト")).toBeVisible();
-  await expect(page.getByTestId("build-menu-section-輸送-鉄道")).toBeVisible();
+  await expect(page.getByTestId(
+    `build-menu-section-${buildMenuCategoryIds.logistics}-${buildMenuSubCategoryIds.chest}`,
+  )).toBeVisible();
+  await expect(page.getByTestId(
+    `build-menu-section-${buildMenuCategoryIds.transport}-${buildMenuSubCategoryIds.rail}`,
+  )).toBeVisible();
   await expect(page.getByTestId("build-menu-sidebar")).toHaveAttribute("data-disabled", "true");
 
   await page.getByTestId("build-menu-search").fill("");
   await expect(page.getByTestId("build-menu-sidebar")).not.toHaveAttribute("data-disabled", "true");
-  await expect(page.getByTestId("build-menu-section-物流-チェスト")).toBeVisible();
+  await expect(page.getByTestId(
+    `build-menu-section-${buildMenuCategoryIds.logistics}-${buildMenuSubCategoryIds.chest}`,
+  )).toBeVisible();
 });
 
 test("検索0件は該当なし表示", async ({ page }) => {

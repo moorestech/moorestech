@@ -24,7 +24,7 @@ namespace Client.Tests.WebUi
                 Source = "block",
                 BlockType = "ElectricToGearGenerator",
                 Identifier = "(4, 0, 2)",
-                BlockName = "回転生成機",
+                BlockGuid = "99999999-9999-4999-8999-999999999999",
                 ItemSlots = new List<BlockItemSlotDto>(),
                 FluidSlots = new List<BlockFluidSlotDto>(),
                 ElectricToGear = new ElectricToGearDetailDto

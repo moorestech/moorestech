@@ -1,29 +1,46 @@
 import type { ServerResponse } from "node:http";
+import { readFileSync } from "node:fs";
 import { WebSocket } from "ws";
 import { Topics } from "../../../src/bridge/transport/protocol";
 import type { TopicPayloads } from "../../../src/bridge/transport/protocol";
+import { L } from "../../../src/shared/i18n/generated/localizationKeys";
+// JavaScriptのcodegen parserには型宣言がない
+// The JavaScript codegen parser has no type declarations
+// @ts-expect-error Importing the plain ESM parser is intentional
+import { parseLocalizationCsv } from "../../../scripts/generate-localization-keys.mjs";
 import * as fx from "../fixtures";
 import { state, topicSubscribers } from "../state";
 import { clone, send, setTopicRevision } from "../wire";
 
-const dictionaries: Record<string, Record<string, string>> = {
-  japanese: { "Pause Menu": "ポーズメニュー", "Save this game": "セーブする", CONTEXT_INSPECT: "調べる", TOOLTIP_WORLD: "世界の対象" },
-  english: { "Pause Menu": "Pause Menu", "Save this game": "Save Game", CONTEXT_INSPECT: "Inspect", TOOLTIP_WORLD: "World Target" },
-};
+const dictionaries = createDictionaries();
 
 export function serveDictionary(url: string, response: ServerResponse): void {
   const locale = url.split("/api/i18n/")[1]?.split("?")[0] ?? "japanese";
   response.writeHead(200, { "Content-Type": "application/json" });
-  response.end(JSON.stringify(dictionaries[locale] ?? {}));
+  response.end(JSON.stringify(dictionaries.get(locale) ?? {}));
 }
 
 const control = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]) => ({ topic, data });
 const controls = {
-  placement: () => control(Topics.placementMode, { selectedName: "Assembler", height: 3, unavailableReason: "" }),
-  placementUnavailable: () => control(Topics.placementMode, { selectedName: "Assembler", height: 3, unavailableReason: "Blocked by terrain" }),
-  placementEmpty: () => control(Topics.placementMode, { selectedName: "", height: 0, unavailableReason: "" }),
-  delete: () => control(Topics.deleteMode, { unavailableReason: "Protected area" }),
-  deleteEmpty: () => control(Topics.deleteMode, { unavailableReason: "" }),
+  placement: () => control(Topics.placementMode, {
+    selectedTargetType: "raw", selectedName: "Assembler", height: 3, unavailableReason: "",
+  }),
+  placementUnavailable: () => control(Topics.placementMode, {
+    selectedTargetType: "raw", selectedName: "Assembler", height: 3, unavailableReason: "Blocked by terrain",
+  }),
+  placementEmpty: () => control(Topics.placementMode, {
+    selectedTargetType: "raw", selectedName: "", height: 0, unavailableReason: "",
+  }),
+  // connectToolはGuidのみ配信し表示名解決はWeb辞書に任せる
+  // connectTool ships only its GUID and leaves display-name resolution to the web dictionary
+  placementConnectTool: () => control(Topics.placementMode, {
+    selectedTargetType: "connectTool", selectedConnectToolGuid: fx.WIRE_CONNECT_TOOL_GUID, height: 3, unavailableReason: "",
+  }),
+  // trainCarもGuidのみ配信し表示名解決はWeb辞書に任せる
+  // Train cars also ship only their GUID and leave display-name resolution to the web dictionary
+  placementTrainCar: () => control(Topics.placementMode, {
+    selectedTargetType: "trainCar", selectedTrainCarGuid: fx.CARGO_TRAIN_CAR_GUID, height: 3, unavailableReason: "",
+  }),
   crosshairHidden: () => control(Topics.crosshair, { visible: false }),
   crosshairVisible: () => control(Topics.crosshair, { visible: true }),
   uiHidden: () => control(Topics.uiVisibility, { visible: false }),
@@ -34,19 +51,31 @@ const controls = {
     progress: Number(params.get("progress") ?? "0.65"),
   }),
   miningHidden: () => control(Topics.progress, { visible: false, progress: 0 }),
-  tooltip: () => control(Topics.tooltip, { visible: true, textKey: "TOOLTIP_WORLD", fontSize: 18 }),
-  tooltipHidden: () => control(Topics.tooltip, { visible: false, textKey: "", fontSize: 14 }),
+  tooltip: () => control(Topics.tooltip, {
+    visible: true,
+    textKey: L.ui.tooltip.worldTarget,
+    textParams: [],
+    fontSize: 18,
+  }),
+  tooltipHidden: () => control(Topics.tooltip, {
+    visible: false,
+    textKey: "",
+    textParams: [],
+    fontSize: 14,
+  }),
   pauseConnected: () => control(Topics.pauseMenu, { disconnected: false }),
   pauseDisconnected: () => control(Topics.pauseMenu, { disconnected: true }),
-  japanese: () => control(Topics.localization, { locale: "japanese" }),
-  english: () => control(Topics.localization, { locale: "english" }),
+  japanese: () => control(Topics.localization, { locale: "japanese", revision: 1 }),
+  english: () => control(Topics.localization, { locale: "english", revision: 1 }),
   challengeActive: () => control(Topics.challengeCurrent, clone(fx.challengeCurrent)),
   challengeJapanese: () => control(Topics.challengeCurrent, clone(fx.challengeJapanese)),
   challengeMultiple: () => control(Topics.challengeCurrent, clone(fx.challengeMultiple)),
   challengeLong: () => control(Topics.challengeCurrent, clone(fx.challengeLong)),
   challengeMultipleLong: () => control(Topics.challengeCurrent, clone(fx.challengeMultipleLong)),
-  challengeCompleted: () => control(Topics.challengeCurrent, { challenges: [], completedChallengeGuid: "ch-2" }),
-  notificationAchievement: () => control(Topics.notification, { seq: 1, category: "achievement", messageId: "achievement.researchCompleted", messageParams: ["原始研究1"], itemId: 1 }),
+  challengeCompleted: () => control(Topics.challengeCurrent, { challenges: [], completedChallengeGuid: "82000000-0000-4000-8000-000000000002" }),
+  // サーバーはGuidを送りWebが辞書で名前解決するため、fixtureも研究Guidを渡す
+  // The server sends GUIDs and the web resolves names via the dictionary, so the fixture passes a research GUID
+  notificationAchievement: () => control(Topics.notification, { seq: 1, category: "achievement", messageId: "achievement.researchCompleted", messageParams: ["11111111-1111-4111-8111-111111111111"], itemId: 1 }),
   notificationItemUnlocked: () => control(Topics.notification, { seq: 2, category: "achievement", messageId: "achievement.unlockedItem", messageParams: [], itemId: 2 }),
   notificationDenied: () => control(Topics.notification, { seq: 3, category: "operationDenied", messageId: "denied.researchNotCompletable", messageParams: [], itemId: null }),
   tutorialOutline: () => control(Topics.tutorialPresentation, {
@@ -55,7 +84,7 @@ const controls = {
       highlightId: "tutorial-highlight-1",
       anchorId: "game.crosshair",
       kind: "outline" as const,
-      message: "", paddingPx: 8, blocksPointerInput: false,
+      paddingPx: 8, blocksPointerInput: false,
     }],
   }),
   tutorialEmpty: () => control(Topics.tutorialPresentation, {
@@ -83,4 +112,32 @@ export function applyTopicControl(url: string, response: ServerResponse): void {
     send(ws, { op: params.get("snapshot") === "1" ? "snapshot" : "event", topic: controlValue.topic, revision, data: controlValue.data });
   }
   response.end(JSON.stringify({ ok: true }));
+}
+
+function createDictionaries(): Map<string, Record<string, string>> {
+  const csvUrl = new URL("../../../../../Localization/localization.csv", import.meta.url);
+  const csv = parseLocalizationCsv(readFileSync(csvUrl, "utf8"));
+  const result = new Map<string, Record<string, string>>();
+
+  // Sourceと各言語を本番CSVの同じ行集合から組み立てる
+  // Build Source and every locale from the same production CSV rows
+  result.set("source", {
+    ...Object.fromEntries(csv.rows.map((row: { key: string; source: string }) => [row.key, row.source])),
+    ...fx.itemNameDictionaries.source,
+    ...fx.blockNameDictionaries.source,
+    ...fx.contentLocalizationDictionaries.source,
+  });
+  for (let languageIndex = 0; languageIndex < csv.languageCodes.length; languageIndex += 1) {
+    const languageCode = csv.languageCodes[languageIndex];
+    result.set(
+      languageCode,
+      {
+        ...Object.fromEntries(csv.rows.map((row: { key: string; texts: string[] }) => [row.key, row.texts[languageIndex]])),
+        ...fx.itemNameDictionaries[languageCode],
+        ...fx.blockNameDictionaries[languageCode],
+        ...fx.contentLocalizationDictionaries[languageCode],
+      },
+    );
+  }
+  return result;
 }

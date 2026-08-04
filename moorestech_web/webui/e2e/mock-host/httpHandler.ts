@@ -11,6 +11,7 @@ import { received, state, connections, subscribersOf } from "./state";
 import { applyTopicControl, serveDictionary } from "./topics/topicControls";
 import { applyPresentationControl } from "./topics/presentationControls";
 import { contentType, injectDemoBackground, placeholderIcon, realIconFor } from "./assets/demoAssets";
+import { serveLanguageCatalog } from "./localization/transport";
 export { injectDemoBackground } from "./assets/demoAssets";
 
 // /__block?type=X で差し替える種別マップ。既定は chest（open な panel を確実に出す）
@@ -40,6 +41,7 @@ const DEMO = process.env.MOCK_DEMO === "1";
 export function createMockHttpServer(): Server {
   return createServer(async (req, res) => {
     const url = req.url ?? "/";
+    if (serveLanguageCatalog(url, res)) return;
     if (url.startsWith("/api/i18n/")) {
       serveDictionary(url, res);
       return;
@@ -55,9 +57,9 @@ export function createMockHttpServer(): Server {
       return;
     }
     if (url.startsWith("/__item-master")) {
-      const name = new URL(url, "http://x").searchParams.get("woodName") ?? "Wood";
+      const itemGuid = new URL(url, "http://x").searchParams.get("woodGuid") ?? fx.WOOD_ITEM_GUID;
       state.itemMaster = clone(fx.itemMaster);
-      state.itemMaster.items[0].name = name;
+      state.itemMaster.items[0].itemGuid = itemGuid;
       res.end(JSON.stringify({ ok: true }));
       return;
     }

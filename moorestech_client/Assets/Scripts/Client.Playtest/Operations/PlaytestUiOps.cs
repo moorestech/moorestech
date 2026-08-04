@@ -69,8 +69,10 @@ namespace Client.Playtest.Operations
 
                 // 新ビルドメニューは選択中カテゴリのセクションしか描画しないため、対象ブロックのカテゴリへ切り替える
                 // The new build menu only renders the selected category's sections, so switch to the target block's category first
-                var category = MasterHolder.BlockMaster.GetBlockMaster(blockId).Category;
-                await PlaytestWebUiOps.ClickWebUi($"build-menu-category-{category}", 15f);
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                var (categoryGuid, _) = MasterHolder.BuildMenuCategoryMaster
+                    .GetGuidPair(blockMaster.Category, blockMaster.SubCategory);
+                await PlaytestWebUiOps.ClickWebUi($"build-menu-category-{categoryGuid:D}", 15f);
             }
 
             // 非同期BPライブラリ更新が選択を破棄するレースに備え、PlaceBlock遷移までクリックを繰り返す

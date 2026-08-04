@@ -41,7 +41,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool
 
         // ブロック設置延長など、ツール未選択の経路で使う解放済みconnectToolを種別からSortPriority最小で解決する
         // Resolve the unlocked connectTool for block-placement extend paths (no tool selected) by type, smallest SortPriority
-        public static Guid ResolveDefaultConnectToolGuid(ConnectToolType toolType, IGameUnlockStateData unlockState)
+        // 未解放時はfalseを返し、呼び出し側に操作自体を不成立にさせる（Guid.Emptyを下流へ流さない）
+        // When nothing is unlocked it returns false so callers abort the operation; Guid.Empty never flows downstream
+        public static bool TryResolveDefaultConnectToolGuid(ConnectToolType toolType, IGameUnlockStateData unlockState, out Guid connectToolGuid)
         {
             var masterToolType = ToMasterToolType(toolType);
             var element = MasterHolder.ConnectToolMaster.All
@@ -49,7 +51,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool
                 .Where(e => unlockState.ConnectToolUnlockStateInfos.TryGetValue(e.ConnectToolGuid, out var info) && info.IsUnlocked)
                 .OrderBy(e => e.SortPriority)
                 .FirstOrDefault();
-            return element?.ConnectToolGuid ?? Guid.Empty;
+            if (element == null)
+            {
+                connectToolGuid = Guid.Empty;
+                return false;
+            }
+
+            connectToolGuid = element.ConnectToolGuid;
+            return true;
         }
 
         // 空きスペース延長時の自動設置ブロックを解決する
@@ -83,7 +92,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool
                 var blockMaster = MasterHolder.BlockMaster.Blocks.Data
                     .Where(block => block.BlockType == blockType)
                     .OrderBy(block => block.SortPriority ?? 0)
-                    .ThenBy(block => block.Name)
+                    .ThenBy(block => block.BlockGuid)
                     .FirstOrDefault();
 
                 return blockMaster == null ? null : MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);

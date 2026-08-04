@@ -44,7 +44,7 @@ namespace Client.Game.InGame.Tutorial
             // Apply the tutorial to the actual Manager
             foreach (var tutorial in challenge.Tutorials)
             {
-                var tutorialView = _tutorialViewManagers[tutorial.TutorialType].ApplyTutorial(tutorial.TutorialParam);
+                var tutorialView = _tutorialViewManagers[tutorial.TutorialType].ApplyTutorial(tutorial);
                 
                 if (tutorialView != null) tutorialViews.Add(tutorialView);
             }

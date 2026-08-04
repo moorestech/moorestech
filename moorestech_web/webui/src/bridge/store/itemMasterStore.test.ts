@@ -12,7 +12,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const masterJson = { items: [{ itemId: 1, name: "Wood", maxStack: 100 }] };
+const WOOD_GUID = "00000000-0000-4000-8000-000000000001";
+const FRESH_WOOD_GUID = "00000000-0000-4000-8000-000000000002";
+const masterJson = { items: [{ itemId: 1, itemGuid: WOOD_GUID, maxStack: 100 }] };
 
 describe("ensureItemMasterLoaded", () => {
   it("初回成功で master がストアへ反映される", async () => {
@@ -52,7 +54,7 @@ describe("ensureItemMasterLoaded", () => {
     // リトライ間隔(3秒)経過で2回目のfetchが成功する
     // After the 3s retry interval the second fetch succeeds
     await vi.advanceTimersByTimeAsync(3000);
-    expect(useItemMasterStore.getState().master?.get(1)?.name).toBe("Wood");
+    expect(useItemMasterStore.getState().master?.get(1)?.itemGuid).toBe(WOOD_GUID);
   });
 
   it("ネットワーク例外でも再試行する", async () => {
@@ -64,7 +66,7 @@ describe("ensureItemMasterLoaded", () => {
     const { ensureItemMasterLoaded, useItemMasterStore } = await import("./itemMasterStore");
     ensureItemMasterLoaded();
     await vi.advanceTimersByTimeAsync(3000);
-    expect(useItemMasterStore.getState().master?.get(1)?.name).toBe("Wood");
+    expect(useItemMasterStore.getState().master?.get(1)?.itemGuid).toBe(WOOD_GUID);
   });
 
   it("JSON 解析失敗の後も自動再試行して反映される", async () => {
@@ -81,7 +83,7 @@ describe("ensureItemMasterLoaded", () => {
 
     await vi.advanceTimersByTimeAsync(3000);
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(useItemMasterStore.getState().master?.get(1)?.name).toBe("Wood");
+    expect(useItemMasterStore.getState().master?.get(1)?.itemGuid).toBe(WOOD_GUID);
   });
 
   // HTTP 応答の形状不正は取り込まず、次の取得機会を保つ
@@ -89,9 +91,10 @@ describe("ensureItemMasterLoaded", () => {
   it.each([
     ["items キー欠落", {}],
     ["items が配列でない", { items: "invalid" }],
-    ["itemId が number でない", { items: [{ itemId: "1", name: "Wood", maxStack: 100 }] }],
-    ["name が string でない", { items: [{ itemId: 1, name: null, maxStack: 100 }] }],
-    ["maxStack が number でない", { items: [{ itemId: 1, name: "Wood", maxStack: "100" }] }],
+    ["itemId が number でない", { items: [{ itemId: "1", itemGuid: WOOD_GUID, maxStack: 100 }] }],
+    ["旧nameだけでitemGuidが欠落", { items: [{ itemId: 1, name: "Wood", maxStack: 100 }] }],
+    ["itemGuid が string でない", { items: [{ itemId: 1, itemGuid: null, maxStack: 100 }] }],
+    ["maxStack が number でない", { items: [{ itemId: 1, itemGuid: WOOD_GUID, maxStack: "100" }] }],
   ])("不正 shape（%s）の後も自動再試行して反映される", async (_label, invalidData) => {
     const fetchMock = vi
       .fn()
@@ -106,7 +109,7 @@ describe("ensureItemMasterLoaded", () => {
 
     await vi.advanceTimersByTimeAsync(3000);
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(useItemMasterStore.getState().master?.get(1)?.name).toBe("Wood");
+    expect(useItemMasterStore.getState().master?.get(1)?.itemGuid).toBe(WOOD_GUID);
   });
 
   it("多重呼び出しでも fetch は1系列しか走らない", async () => {
@@ -120,7 +123,7 @@ describe("ensureItemMasterLoaded", () => {
   });
 
   it("WS 再接続開始時に成功済み master を再取得する", async () => {
-    const refreshedJson = { items: [{ itemId: 1, name: "Fresh Wood", maxStack: 200 }] };
+    const refreshedJson = { items: [{ itemId: 1, itemGuid: FRESH_WOOD_GUID, maxStack: 200 }] };
     const fetchMock = vi.fn()
       .mockResolvedValueOnce({ ok: true, json: async () => masterJson })
       .mockResolvedValueOnce({ ok: true, json: async () => refreshedJson });
@@ -135,6 +138,6 @@ describe("ensureItemMasterLoaded", () => {
     await vi.advanceTimersByTimeAsync(0);
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(useItemMasterStore.getState().master?.get(1)?.name).toBe("Fresh Wood");
+    expect(useItemMasterStore.getState().master?.get(1)?.itemGuid).toBe(FRESH_WOOD_GUID);
   });
 });

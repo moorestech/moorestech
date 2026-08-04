@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Core.Master;
 using Mod.Loader;
 
@@ -12,8 +14,9 @@ namespace Mod.Config
             // TODO 上が不要になったら下のコードを使うようにする
             var configs = new List<MasterJsonContents>();
             
-            //展開済みzipファイルの中身のjsonファイルを読み込む
-            foreach (var mod in modResource.Mods)
+            // Masterとローカライズが共有するmod上書き順をModIdで確定する
+            // Fix the shared master/localization mod override order by ModId
+            foreach (var mod in modResource.Mods.OrderBy(pair => pair.Key, StringComparer.Ordinal))
             {
                 var modId = new ModId(mod.Value.ModMetaJson.ModId);
                 var extractedPath = mod.Value.ExtractedPath;

@@ -13,13 +13,11 @@ namespace Client.Tests.WebUi
         [Test]
         public void ChallengeFixturesMatchDtos()
         {
-            var nodeGuid = "22222222-2222-2222-2222-222222222222";
-            var categoryGuid = "11111111-1111-1111-1111-111111111111";
+            var nodeGuid = "22222222-2222-4222-8222-222222222222";
+            var categoryGuid = "11111111-1111-4111-8111-111111111111";
             var node = new ChallengeNodeDto
             {
                 Guid = nodeGuid,
-                Title = "First challenge",
-                Summary = "Build a machine",
                 IconItemId = 2,
                 State = "current",
                 Position = new ChallengeVectorDto { X = 0, Y = 100 },
@@ -30,14 +28,14 @@ namespace Client.Tests.WebUi
             {
                 Categories = new List<ChallengeCategoryDto>
                 {
-                    new() { Guid = categoryGuid, Name = "Basics", IconItemId = 1, Nodes = new List<ChallengeNodeDto> { node } },
+                    new() { Guid = categoryGuid, IconItemId = 1, Nodes = new List<ChallengeNodeDto> { node } },
                 },
             };
             var current = new ChallengeCurrentDto
             {
                 Challenges = new List<CurrentChallengeDto>
                 {
-                    new() { Guid = nodeGuid, Title = "First challenge", CategoryGuid = categoryGuid },
+                    new() { Guid = nodeGuid, CategoryGuid = categoryGuid },
                 },
                 CompletedChallengeGuid = null,
             };

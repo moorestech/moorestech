@@ -54,15 +54,11 @@ namespace Client.WebUiHost.Game.Topics
                 if (!unlockInfos.TryGetValue(recipe.MachineRecipeGuid, out var unlockInfo)) continue;
                 if (!unlockInfo.IsUnlocked) continue;
 
-                var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
-                var blockName = MasterHolder.BlockMaster.GetBlockMaster(blockId).Name;
-
                 dto.Recipes.Add(new MachineRecipeDto
                 {
-                    RecipeGuid = recipe.MachineRecipeGuid.ToString(),
-                    BlockGuid = recipe.BlockGuid.ToString(),
-                    BlockId = blockId.AsPrimitive(),
-                    BlockName = blockName,
+                    RecipeGuid = recipe.MachineRecipeGuid.ToString("D"),
+                    BlockGuid = recipe.BlockGuid.ToString("D"),
+                    BlockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid).AsPrimitive(),
                     Time = recipe.Time,
                     InputItems = BuildInputItems(recipe),
                     OutputItems = BuildOutputItems(recipe),
@@ -118,7 +114,6 @@ namespace Client.WebUiHost.Game.Topics
         public string RecipeGuid;
         public string BlockGuid;
         public int BlockId;
-        public string BlockName;
         public double Time;
         public List<RecipeItemDto> InputItems;
         public List<RecipeItemDto> OutputItems;

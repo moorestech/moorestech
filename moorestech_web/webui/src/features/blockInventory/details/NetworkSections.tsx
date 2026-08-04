@@ -1,8 +1,8 @@
 import { Stack, Text } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
-import { stopReasonText } from "./detailLogic";
+import { stopReasonTranslationKey } from "./detailLogic";
 import LackHighlightText from "./LackHighlightText";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 
 // 電力ネットワーク集約（uGUI ElectricNetworkInfoView 準拠。消費者0は需要なし表示）
 // Electric network aggregate (mirrors uGUI ElectricNetworkInfoView; zero consumers shows a no-demand note)
@@ -13,20 +13,19 @@ export function ElectricNetworkSection({ data }: { data: BlockInventoryOpen }) {
   return (
     <Stack gap={2} data-testid="electric-network-section">
       {n.consumerCount === 0 ? (
-        <Text size="xs" c="var(--text-muted)">{t("需要なし")}</Text>
+        <Text size="xs" c="var(--text-muted)">{t(L.ui.blockInventory.noDemand)}</Text>
       ) : (
         <LackHighlightText
-          label={t("発電 ")}
-          current={n.totalGeneratePower.toFixed(0)}
-          separator={t(" / 需要 ")}
-          required={n.totalRequiredPower.toFixed(0)}
-          suffix={t("（消費 {count}件, 供給率 {rate}%）", {
+          insufficient={false}
+          size="xs"
+        >
+          {t(L.ui.blockInventory.electricNetworkSummary, {
+            generated: n.totalGeneratePower.toFixed(0),
+            required: n.totalRequiredPower.toFixed(0),
             count: n.consumerCount,
             rate: Math.round(n.powerRate * 100),
           })}
-          insufficient={false}
-          size="xs"
-        />
+        </LackHighlightText>
       )}
     </Stack>
   );
@@ -38,11 +37,20 @@ export function GearNetworkSection({ data }: { data: BlockInventoryOpen }) {
   const { t } = useI18n();
   if (!data.gearNetwork) return null;
   const n = data.gearNetwork;
-  const reason = stopReasonText(n.stopReason);
+  const reasonKey = stopReasonTranslationKey(n.stopReason);
   return (
     <Stack gap={2} data-testid="gear-network-section">
-      <LackHighlightText label={t("供給 ")} current={n.totalGenerateGearPower.toFixed(0)} separator={t(" / 要求 ")} required={n.totalRequiredGearPower.toFixed(0)} insufficient={false} size="xs" />
-      {reason !== "" && <Text size="xs" c="var(--text-insufficient)" data-testid="gear-stop-reason">{t(reason)}</Text>}
+      <LackHighlightText insufficient={false} size="xs">
+        {t(L.ui.blockInventory.gearNetworkSummary, {
+          generated: n.totalGenerateGearPower.toFixed(0),
+          required: n.totalRequiredGearPower.toFixed(0),
+        })}
+      </LackHighlightText>
+      {reasonKey !== null && (
+        <Text size="xs" c="var(--text-insufficient)" data-testid="gear-stop-reason">
+          {t(reasonKey)}
+        </Text>
+      )}
     </Stack>
   );
 }

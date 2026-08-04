@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
+using Client.Localization;
 using Core.Master;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.MapModule;
 
 namespace Client.Game.InGame.Mining
@@ -48,19 +50,17 @@ namespace Client.Game.InGame.Mining
             
             // 左クリックがされていなければ現状を維持
             // If left click is not pressed, maintain the current state
-            MouseCursorTooltip.Instance.Show("左クリックで取得", isLocalize: false);
+            MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.PickUpLeftClick);
             return this;
         }
         
         private IMapObjectMiningState MiningProcess(MapObjectMasterElement masterElement,MapObjectMiningControllerContext context)
         {
-            // 今装備しているアイテムがマイニングツールとして登録されているかどうかをチェック
-            // Check if the item you are currently equipping is registered as a mining tool
             var miningTools = ((MiningMiningParam)masterElement.MiningParam).MiningTools;
             var usableMiningTool = context.ResolveUsableTool(miningTools);
 
-            // 未選択、またはマイニングツールとして登録されていない場合はフォーカスを維持
-            // If nothing is selected, or it is not registered as a mining tool, maintain focus
+            // 無効装備ならフォーカス維持
+            // Keep focus for invalid equipment
             if (usableMiningTool == null)
             {
                 ShowRecommendMiningTools(miningTools);
@@ -71,7 +71,7 @@ namespace Client.Game.InGame.Mining
             // If not clicked, maintain focus
             if (!InputManager.Playable.ScreenLeftClick.GetKey)
             {
-                MouseCursorTooltip.Instance.Show("左クリック長押しで取得", isLocalize: false);
+                MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.HoldToGet);
                 return this;
             }
             
@@ -84,13 +84,18 @@ namespace Client.Game.InGame.Mining
 
             void ShowRecommendMiningTools(MiningToolsElement[] tools)
             {
-                var toolNames = new List<string>();
+                var localizedToolNames = new List<string>();
                 foreach (var tool in tools)
                 {
-                    toolNames.Add(MasterHolder.ItemMaster.GetItemMaster(tool.ToolItemGuid).Name);
+                    localizedToolNames.Add(Localize.GetContent(
+                        ContentLocalizationKeys.ItemName(tool.ToolItemGuid)));
                 }
 
-                MouseCursorTooltip.Instance.Show("このアイテムが必要です:" + string.Join(", ", toolNames), isLocalize: false);
+                // 必要アイテム名をパラメータにまとめ、文言全体は表示側で解決する
+                // Join required item names as a parameter and let the presentation resolve the full sentence
+                MouseCursorTooltip.Instance.Show(
+                    LocalizationKeys.Ui.Tooltip.RequiredItems,
+                    new[] { string.Join(", ", localizedToolNames) });
             }
 
             #endregion

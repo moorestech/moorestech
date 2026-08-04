@@ -2,8 +2,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
-using System;
-using UniRx;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
@@ -15,10 +14,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private IDeleteTarget _deleteTargetObject;
         private bool _isRemoveDeniedReasonShown;
         private bool _isDragging;
-        private readonly ReactiveProperty<string> _unavailableReason = new("");
-
-        public IObservable<string> OnUnavailableReasonChanged => _unavailableReason;
-        public string GetUnavailableReason() => _unavailableReason.Value;
 
         public DeleteObjectService(BuildOperationHistory buildOperationHistory)
         {
@@ -33,7 +28,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             {
                 MouseCursorTooltip.Instance.Hide();
                 _isRemoveDeniedReasonShown = false;
-                _unavailableReason.Value = "";
             }
 
             // カーソル下の削除対象を取得（無ければnull）
@@ -84,9 +78,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 // Delegate the removable/category judgement and the add to the service; just receive and show the deny reason
                 if (!_selection.TryAddTarget(hovered, out var denyReason))
                 {
-                    MouseCursorTooltip.Instance.Show(denyReason, isLocalize: false);
-                    _unavailableReason.Value = denyReason;
-                    _isRemoveDeniedReasonShown = true;
+                    ShowDenyReason(denyReason);
                 }
             }
 
@@ -113,9 +105,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 // For a non-removable target only show the denial tooltip
                 if (_deleteTargetObject != null && !_deleteTargetObject.IsRemovable(out var reason))
                 {
-                    MouseCursorTooltip.Instance.Show(reason, isLocalize: false);
-                    _unavailableReason.Value = reason;
-                    _isRemoveDeniedReasonShown = true;
+                    ShowDenyReason(reason);
                 }
             }
 
@@ -125,6 +115,16 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
                 if (_isDragging && _selection.CanCommit()) _selection.CommitDelete();
                 _isDragging = false;
+            }
+
+            // ツールチップへキーを渡す（理由なし拒否は何も出さない）
+            // Push the key to the tooltip (a reasonless denial shows nothing)
+            void ShowDenyReason(LocalizationKey? denyReasonKey)
+            {
+                if (!denyReasonKey.HasValue) return;
+
+                MouseCursorTooltip.Instance.Show(denyReasonKey.Value);
+                _isRemoveDeniedReasonShown = true;
             }
 
             #endregion
@@ -157,7 +157,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             MouseCursorTooltip.Instance.Hide();
             _isRemoveDeniedReasonShown = false;
             _isDragging = false;
-            _unavailableReason.Value = "";
         }
     }
 }

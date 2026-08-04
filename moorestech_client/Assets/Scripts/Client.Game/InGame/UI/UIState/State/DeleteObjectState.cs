@@ -6,7 +6,6 @@ using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Input;
 using UnityEngine;
-using System;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
@@ -17,9 +16,6 @@ namespace Client.Game.InGame.UI.UIState.State
 
         private readonly DeleteObjectService _deleteObjectService;
         private readonly BuildUndoService _buildUndoService;
-
-        public IObservable<string> OnUnavailableReasonChanged => _deleteObjectService.OnUnavailableReasonChanged;
-        public string GetUnavailableReason() => _deleteObjectService.GetUnavailableReason();
 
         public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, IPlayerCameraInteractionApplier cameraInteractionApplier, BuildOperationHistory buildOperationHistory, BuildUndoService buildUndoService)
         {

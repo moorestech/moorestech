@@ -33,7 +33,7 @@ namespace Client.Tests.WebUi
                     new TutorialHighlightData
                     {
                         HighlightId = "craft", AnchorId = "recipe.craft-button", Kind = "outline",
-                        Message = "Craft", PaddingPx = 4, BlocksPointerInput = false,
+                        PaddingPx = 4, BlocksPointerInput = false,
                     },
                 },
             };
@@ -51,7 +51,7 @@ namespace Client.Tests.WebUi
                 {
                     new WorldPinData
                     {
-                        PinId = "map-object-pin", Text = "Pick Pebbles",
+                        PinId = "map-object-pin", TutorialGuid = "abcdefab-cdef-4bcd-8fab-cdefabcdefae",
                         ScreenX = 0.25f, ScreenY = 0.75f, OnScreen = true,
                         DirectionX = 0.5f, DirectionY = -0.5f,
                     },

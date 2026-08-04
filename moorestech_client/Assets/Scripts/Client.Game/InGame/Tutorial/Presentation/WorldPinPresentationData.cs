@@ -9,7 +9,10 @@ namespace Client.Game.InGame.Tutorial
     public class WorldPinData
     {
         public string PinId;
-        public string Text;
+
+        // 表示文言はWeb側がchallengeTutorialTextKeyで引くためGuidだけを配信する
+        // Ship only the GUID; the web resolves the text via challengeTutorialTextKey
+        public string TutorialGuid;
 
         // 正規化ビューポート座標（0..1、左上原点）。OnScreen時のみ有効
         // Normalized viewport position (0..1, top-left origin); valid only while OnScreen

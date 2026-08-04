@@ -30,11 +30,13 @@ namespace Server.Event.Notification
         {
             // 研究完了は完了プレイヤー宛て、チャレンジ・アンロックは全員宛て
             // Research completion targets the completing player; challenge/unlock broadcast to all
+            // 表示名でなくGuidを送り、表示言語での名前解決はWeb側の辞書に委ねる
+            // Send GUIDs instead of display names so the web resolves names in the active language
             _researchEvent.OnResearchCompleted.Subscribe(data => _notificationService.Notify(data.playerId,
-                NotificationMessagePack.CreateAchievement("achievement.researchCompleted", new[] { data.researchNode.ResearchNodeName })));
+                NotificationMessagePack.CreateAchievement("achievement.researchCompleted", new[] { data.researchNode.ResearchNodeGuid.ToString() })));
 
             _challengeEvent.OnCompleteChallenge.Subscribe(property => _notificationService.NotifyAll(
-                NotificationMessagePack.CreateAchievement("achievement.challengeCompleted", new[] { property.ChallengeTask.ChallengeMasterElement.Title })));
+                NotificationMessagePack.CreateAchievement("achievement.challengeCompleted", new[] { property.ChallengeTask.ChallengeMasterElement.ChallengeGuid.ToString() })));
 
             // ChallengeCategoryのアンロックはチャレンジ達成通知と重複するため配線しない（v1判断）
             // Challenge category unlock is skipped to avoid duplicating the challenge-completed notification (v1 decision)
