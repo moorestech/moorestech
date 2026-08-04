@@ -8,15 +8,6 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Agent|Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR}/.dev-hooks/guard-subagent-model.py\""
-          }
-        ]
-      },
-      {
         "matcher": "Bash",
         "hooks": [
           {
