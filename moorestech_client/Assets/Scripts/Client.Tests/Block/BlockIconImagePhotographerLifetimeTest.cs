@@ -40,6 +40,8 @@ namespace Client.Tests.Block
             var cameraField = typeof(BlockIconImagePhotographer).GetField("cameraPrefab", BindingFlags.Instance | BindingFlags.NonPublic);
             cameraField.SetValue(photographer, cameraPrefab);
             var cameraCountBefore = CountCameras();
+            var targetInstanceCountBefore = CountTargetInstances(targetPrefab.name);
+            var renderTextureCountBefore = CountRenderTextures();
             var captureTask = photographer.TakeIconImages(new List<(GameObject prefab, string debugName)>
             {
                 (targetPrefab, "lifetime-test"),
@@ -50,8 +52,12 @@ namespace Client.Tests.Block
             yield return null;
 
             var cameraCountAfter = CountCameras();
+            var targetInstanceCountAfter = CountTargetInstances(targetPrefab.name);
+            var renderTextureCountAfter = CountRenderTextures();
             foreach (var texture in textures) Object.DestroyImmediate(texture);
             Assert.That(cameraCountAfter, Is.EqualTo(cameraCountBefore));
+            Assert.That(targetInstanceCountAfter, Is.EqualTo(targetInstanceCountBefore));
+            Assert.That(renderTextureCountAfter, Is.EqualTo(renderTextureCountBefore));
         }
 
         [UnityTest]
@@ -74,19 +80,44 @@ namespace Client.Tests.Block
                 (targetPrefab, "sequential-test-a"),
                 (targetPrefab, "sequential-test-b"),
             });
-            var cameraCountImmediatelyAfterStart = CountCameras();
+            var peakCameraCount = CountCameras();
 
-            yield return WaitForCompletion(captureTask);
+            for (var frame = 0; frame < CaptureCompletionFrameLimit && captureTask.Status == UniTaskStatus.Pending; frame++)
+            {
+                peakCameraCount = Mathf.Max(peakCameraCount, CountCameras());
+                yield return null;
+            }
+            peakCameraCount = Mathf.Max(peakCameraCount, CountCameras());
+            Assert.That(captureTask.Status, Is.Not.EqualTo(UniTaskStatus.Pending),
+                $"Icon capture did not complete within {CaptureCompletionFrameLimit} frames.");
             var textures = captureTask.GetAwaiter().GetResult();
             yield return null;
 
             foreach (var texture in textures) Object.DestroyImmediate(texture);
-            Assert.That(cameraCountImmediatelyAfterStart, Is.LessThanOrEqualTo(cameraCountBefore + 1));
+            Assert.That(peakCameraCount, Is.LessThanOrEqualTo(cameraCountBefore + 1));
         }
 
         private static int CountCameras()
         {
             return Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+        }
+
+        private static int CountTargetInstances(string prefabName)
+        {
+            var count = 0;
+            var expectedName = $"{prefabName}(Clone)";
+            var objects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (var target in objects)
+            {
+                if (target.name == expectedName) count++;
+            }
+
+            return count;
+        }
+
+        private static int CountRenderTextures()
+        {
+            return Resources.FindObjectsOfTypeAll<RenderTexture>().Length;
         }
 
         private static IEnumerator WaitForCompletion(UniTask<List<Texture2D>> captureTask)

@@ -42,7 +42,6 @@ namespace Client.Game.InGame.Block
 
             async UniTask<Texture2D> GetIcon(GameObject captureTarget, string captureDebugName)
             {
-                // 対象の重心とバウンディングを取得
                 var bounds = captureTarget.GetComponentsInChildren<Renderer>().Select(b => b.bounds).ToList();
                 if (bounds.Count == 0)
                 {
@@ -50,16 +49,17 @@ namespace Client.Game.InGame.Block
                 }
                 var center = bounds.Select(b => b.center).Aggregate((b1, b2) => b1 + b2) / bounds.Count;
 
-                // カメラ角度設定(例：上から30度、Y軸に対して45度傾ける)
+                // カメラを上30度・Y45度に設定
+                // Aim the Camera 30 degrees down and 45 degrees around the Y axis
                 var blockImageCamera = Instantiate(cameraPrefab);
                 blockImageCamera.transform.rotation = Quaternion.Euler(30f, 45f, 0f);
 
-                // バウンディングボックスの最大寸法を取得
                 var minPos = bounds.Select(b => b.min).Aggregate(Vector3.Min);
                 var maxPos = bounds.Select(b => b.max).Aggregate(Vector3.Max);
                 var maxSize = Vector3.Distance(minPos, maxPos);
 
-                // カメラの視野角(FOV)と最大サイズから距離を計算
+                // 視野角と最大寸法から距離算出
+                // Derive the distance from the field of view and maximum extent
                 float fovRad = blockImageCamera.fieldOfView * Mathf.Deg2Rad;
                 float distance = (maxSize * 0.5f) / Mathf.Tan(fovRad * 0.5f);
 
@@ -67,12 +67,14 @@ namespace Client.Game.InGame.Block
                 blockImageCamera.transform.LookAt(center);
 
                 // カメラ背景をアルファ付き透明に設定
+                // Configure a transparent Camera background
                 blockImageCamera.clearFlags = CameraClearFlags.SolidColor;
                 blockImageCamera.backgroundColor = Color.white;
 
                 await UniTask.Yield(PlayerLoopTiming.Update);
 
-                // アルファ付きのRenderTextureを使用
+                // ARGB32で透明度を保持
+                // Preserve alpha with an ARGB32 RenderTexture
                 var renderTexture = new RenderTexture(iconSize, iconSize, 24, RenderTextureFormat.ARGB32)
                 {
                     useMipMap = false,
@@ -83,7 +85,8 @@ namespace Client.Game.InGame.Block
                 blockImageCamera.Render();
                 blockImageCamera.targetTexture = null;
 
-                // アルファ付きのTexture2Dに読み込み
+                // RGBA32へ画素を読み込む
+                // Read pixels into an RGBA32 Texture2D
                 var texture = new Texture2D(iconSize, iconSize, TextureFormat.RGBA32, false);
                 RenderTexture.active = renderTexture;
                 texture.ReadPixels(new Rect(0, 0, iconSize, iconSize), 0, 0);
