@@ -1,7 +1,9 @@
 using System;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.UIState;
+using Client.Localization;
 using Cysharp.Threading.Tasks;
+using Mooresmaster.Localization.Generated;
 using UniRx;
 
 namespace Client.WebUiHost.Game
@@ -49,7 +51,12 @@ namespace Client.WebUiHost.Game
 
             async UniTaskVoid RequestAndRespond()
             {
-                var (result, text) = await _modalService.RequestInputModal("ブループリント名", "保存するブループリントの名前を入力してください", "保存");
+                // モーダル文言は要求時点の言語で辞書解決してpushする
+                // Resolve modal texts from the dictionary at request time before pushing
+                var (result, text) = await _modalService.RequestInputModal(
+                    Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalTitle),
+                    Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalMessage),
+                    Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalConfirm));
 
                 // 確定は空白のみを弾いてビューへ書き戻す（web側でも確定無効化済みの二重防御）
                 // Confirm rejects whitespace-only before writing back (double guard; the web disables confirm too)

@@ -1,10 +1,10 @@
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import styles from "./style.module.css";
 
 export function DeleteModeWarningBands() {
   const { t } = useI18n();
-  const label = t("Delete Mode");
+  const label = t(L.ui.modeHud.deleteModeTitle);
 
   // 警告帯だけで削除モードを示す
   // Signal deletion mode only with the warning bands

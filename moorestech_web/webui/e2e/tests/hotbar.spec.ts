@@ -16,6 +16,11 @@ test.afterEach(async ({ page }) => {
 test("ホットバー slot 0 が初期選択（data-selected）", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
+  // 録画E2Eで全ホットバー枠を直接hoverできる識別子を保証する
+  // Guarantee stable identifiers for directly hovering every hotbar slot in recorded E2E
+  for (let i = 0; i < 9; i += 1) {
+    await expect(page.getByTestId(`hotbar-slot-${i}`)).toBeVisible();
+  }
   // fixture の selectedHotbar:0 により slot 0 が選択状態
   // The fixture's selectedHotbar:0 marks slot 0 as selected
   await expect(hotbarSlots(page).nth(0)).toHaveAttribute("data-selected", "true");

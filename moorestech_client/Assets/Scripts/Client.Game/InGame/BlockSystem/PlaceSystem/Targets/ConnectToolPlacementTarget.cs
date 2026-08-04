@@ -1,5 +1,7 @@
 using System;
-using Core.Master;
+using System.Collections.Generic;
+using Client.Localization;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -11,7 +13,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 
         public Guid Id => ConnectToolGuid;
         public PlacementTargetKind Kind => PlacementTargetKind.ConnectTool;
-        public string DisplayName => MasterHolder.ConnectToolMaster.GetElementOrNull(ConnectToolGuid).Name;
+        public string DisplayName => Localize.GetContent(ContentLocalizationKeys.ConnectToolName(ConnectToolGuid));
+
+        public IReadOnlyList<(Guid itemGuid, int count)> CreateRequiredItems() => Array.Empty<(Guid, int)>();
 
         public ConnectToolPlacementTarget(Guid connectToolGuid)
         {

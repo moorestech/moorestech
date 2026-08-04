@@ -13,7 +13,7 @@ namespace Client.Tests.WebUi
             var challengeId = Guid.NewGuid();
             store.BeginSession(challengeId);
 
-            store.AddOutlineHighlight("recipe.craft-button", "Hold to craft");
+            store.AddOutlineHighlight("recipe.craft-button");
 
             var current = store.GetCurrent();
             Assert.AreEqual(challengeId.ToString(), current.ChallengeId);
@@ -30,7 +30,7 @@ namespace Client.Tests.WebUi
             var challengeId = Guid.NewGuid();
             store.BeginSession(challengeId);
             var sessionId = store.GetCurrent().TutorialSessionId;
-            store.AddOutlineHighlight("recipe.craft-button", "Craft");
+            store.AddOutlineHighlight("recipe.craft-button");
 
             store.EndSession(challengeId);
 
@@ -45,7 +45,7 @@ namespace Client.Tests.WebUi
         {
             var store = new TutorialPresentationStateStore();
             store.BeginSession(Guid.NewGuid());
-            store.AddOutlineHighlight("recipe.craft-button", "Craft");
+            store.AddOutlineHighlight("recipe.craft-button");
             var current = store.GetCurrent();
 
             store.EndSession(Guid.NewGuid());

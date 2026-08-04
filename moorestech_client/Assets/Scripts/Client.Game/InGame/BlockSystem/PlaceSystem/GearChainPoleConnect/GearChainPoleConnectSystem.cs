@@ -60,7 +60,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
                 // ブロック選択時は種別からgearChainのconnectToolを解決して延長接続に使う
                 // With a block selected, resolve the gearChain connectTool by type for the extension connection
                 var poleBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockTarget.BlockId);
-                var connectToolGuid = ConnectToolCatalog.ResolveDefaultConnectToolGuid(ConnectToolType.GearChainPoleConnect, _gameUnlockStateData);
+
+                // gearChainのconnectToolが未解放ならチェーン接続自体を不成立にする
+                // If the gearChain connectTool is locked, the chain connection itself does not hold
+                if (!ConnectToolCatalog.TryResolveDefaultConnectToolGuid(ConnectToolType.GearChainPoleConnect, _gameUnlockStateData, out var connectToolGuid)) return;
+
                 var input = _inputCollector.CollectPlaceExtend(_sourcePole, poleBlockMaster, _requestSender.IsAwaitingResponse, connectToolGuid);
                 result = GearChainPolePlaceExtendMode.Decide(input);
             }

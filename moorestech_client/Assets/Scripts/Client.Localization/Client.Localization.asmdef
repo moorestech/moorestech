@@ -5,16 +5,25 @@
     "Unity.TextMeshPro",
     "UniRx",
     "Core.Const",
-    "Client.Common",
-    "Server.Boot"
+    "Core.Master",
+    "Mod.Loader"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "mooresmaster.LocalizationCsv.dll",
+    "Newtonsoft.Json.dll"
+  ],
   "autoReferenced": true,
   "defineConstraints": [],
-  "versionDefines": [],
+  "versionDefines": [
+    {
+      "name": "Unity",
+      "expression": "",
+      "define": "ENABLE_MOORESMASTER_GENERATOR"
+    }
+  ],
   "noEngineReferences": false
 }

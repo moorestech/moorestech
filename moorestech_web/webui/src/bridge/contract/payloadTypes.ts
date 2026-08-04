@@ -52,7 +52,6 @@ import type {
   ChallengeCurrentDataSchema,
   PauseMenuDataSchema,
   PlacementModeDataSchema,
-  DeleteModeDataSchema,
   CrosshairDataSchema,
   UiVisibilityDataSchema,
   TooltipDataSchema,
@@ -81,7 +80,6 @@ export type UiStateData = z.infer<typeof UiStateDataSchema>;
 export type LocalizationData = z.infer<typeof LocalizationDataSchema>;
 export type PauseMenuData = z.infer<typeof PauseMenuDataSchema>;
 export type PlacementModeData = z.infer<typeof PlacementModeDataSchema>;
-export type DeleteModeData = z.infer<typeof DeleteModeDataSchema>;
 export type CrosshairData = z.infer<typeof CrosshairDataSchema>;
 export type UiVisibilityData = z.infer<typeof UiVisibilityDataSchema>;
 export type TooltipData = z.infer<typeof TooltipDataSchema>;

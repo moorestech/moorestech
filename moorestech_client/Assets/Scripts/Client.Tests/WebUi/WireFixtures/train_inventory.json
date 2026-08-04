@@ -3,7 +3,6 @@
   "source": "train",
   "blockType": "Train",
   "identifier": "101",
-  "blockName": "Train Inventory",
   "itemSlots": [
     { "itemId": 1, "count": 24 },
     { "itemId": 2, "count": 8 }

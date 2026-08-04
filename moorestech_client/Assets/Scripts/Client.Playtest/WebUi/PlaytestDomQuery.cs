@@ -18,6 +18,7 @@ namespace Client.Playtest.WebUi
         public float Height;
         public float DevicePixelRatio;
         public bool HitTestPassed;
+        public string Text;
     }
 
     /// <summary>
@@ -129,7 +130,8 @@ namespace Client.Playtest.WebUi
                     !TryReadFloat("width", out var width) ||
                     !TryReadFloat("height", out var height) ||
                     !TryReadFloat("devicePixelRatio", out var devicePixelRatio) ||
-                    !TryReadBool("hitTestPassed", out var hitTestPassed))
+                    !TryReadBool("hitTestPassed", out var hitTestPassed) ||
+                    payload?["text"] is not JValue { Type: JTokenType.String } textToken)
                 {
                     return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
                 }
@@ -145,6 +147,7 @@ namespace Client.Playtest.WebUi
                     Height = height,
                     DevicePixelRatio = devicePixelRatio,
                     HitTestPassed = hitTestPassed,
+                    Text = (string)textToken,
                 };
                 if (!IsValidResult(result)) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
 

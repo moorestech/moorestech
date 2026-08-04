@@ -44,6 +44,7 @@ export default function HotbarPanel() {
               <ItemSlot
                 itemId={slot.itemId}
                 count={slot.count}
+                testId={`hotbar-slot-${i}`}
                 selected={i === inventory.selectedHotbar}
                 onLeftDown={grabInteractive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
                 onRightDown={grabInteractive ? () => slotActions.onRightDown(ref) : undefined}

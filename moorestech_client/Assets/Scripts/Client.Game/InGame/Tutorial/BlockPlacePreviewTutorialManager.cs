@@ -26,6 +26,7 @@ namespace Client.Game.InGame.Tutorial
         private BlockPlacePreviewTutorialParam _currentParam;
         private BlockId _currentBlockId;
         private IDisposable _blockPlacedDisposable;
+        private string _pinTutorialGuid = "";
 
         [Inject]
         public void Construct(BlockGameObjectDataStore blockGameObjectDataStore)
@@ -43,12 +44,13 @@ namespace Client.Game.InGame.Tutorial
             if (!camera) return;
 
             var projection = WorldPinScreenProjection.Project(camera, _previewObject.transform.position);
-            WorldPinStateStore.Instance.SetPin(WebPinId, _currentParam.Message, projection);
+            WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
         }
 
-        public ITutorialView ApplyTutorial(ITutorialParam param)
+        public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
-            _currentParam = (BlockPlacePreviewTutorialParam)param;
+            _currentParam = (BlockPlacePreviewTutorialParam)tutorial.TutorialParam;
+            _pinTutorialGuid = tutorial.TutorialGuid.ToString("D");
             _currentBlockId = MasterHolder.BlockMaster.GetBlockId(_currentParam.BlockGuid);
 
             // 既に目標ブロックが配置済みなら早期終了

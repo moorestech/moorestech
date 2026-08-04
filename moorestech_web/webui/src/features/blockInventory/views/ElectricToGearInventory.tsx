@@ -1,24 +1,21 @@
 import { Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import type { BlockInventoryOpen } from "@/bridge";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import { GaugeBar, ModeSwitch } from "@/shared/ui";
 
-const FULFILLMENT_KEY = "充足率";
-const CONSUMED_POWER_KEY = "消費電力: {power} W";
-const OUTPUT_MODE_KEY = "{rpm} rpm / {torque} trq / {power} W";
 const OUTPUT_MODE_TEST_ID_PREFIX = "electric-to-gear-mode-";
 
 export default function ElectricToGearInventory({ data }: { data: BlockInventoryOpen }) {
   const { t } = useI18n();
   const detail = data.electricToGear;
   if (!detail) return null;
-  const fulfillmentLabel = t(FULFILLMENT_KEY);
-  const consumedPowerLabel = t(CONSUMED_POWER_KEY, {
+  const fulfillmentLabel = t(L.ui.blockInventory.electricToGearFulfillment);
+  const consumedPowerLabel = t(L.ui.blockInventory.electricToGearConsumedPower, {
     power: detail.consumedElectricPower.toFixed(0),
   });
   const modeOptions = detail.outputModes.map((mode, index) => {
-    const modeLabel = t(OUTPUT_MODE_KEY, {
+    const modeLabel = t(L.ui.blockInventory.electricToGearOutputMode, {
       rpm: mode.rpm,
       torque: mode.torque,
       power: mode.requiredPower,

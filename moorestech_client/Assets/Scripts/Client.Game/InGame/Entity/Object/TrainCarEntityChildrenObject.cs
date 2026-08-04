@@ -3,6 +3,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.Train.View.Object.Material;
 using Client.Game.InGame.UI.UIState.State;
+using Mooresmaster.Localization.Generated;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Object
@@ -35,9 +36,9 @@ namespace Client.Game.InGame.Entity.Object
             _materialController.SetMaterialMode(TrainCarVisualMaterialMode.Normal);
         }
 
-        public bool IsRemovable(out string reason)
+        public bool IsRemovable(out LocalizationKey? deniedReason)
         {
-            reason = null;
+            deniedReason = null;
             return true;
         }
 

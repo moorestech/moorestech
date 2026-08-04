@@ -6,7 +6,6 @@ using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
 using Mooresmaster.Model.ChallengesModule;
-using UniRx;
 using UnityEngine;
 using VContainer;
 
@@ -27,6 +26,7 @@ namespace Client.Game.InGame.Tutorial
         private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
 
         private MapObjectPinTutorialParam _currentTutorialParam;
+        private string _pinTutorialGuid = "";
 
         [Inject]
         public void Construct(InGameCameraController inGameCameraController, MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
@@ -58,7 +58,7 @@ namespace Client.Game.InGame.Tutorial
                 if (!camera) return;
 
                 var projection = WorldPinScreenProjection.Project(camera, transform.position);
-                WorldPinStateStore.Instance.SetPin(WebPinId, _currentTutorialParam.PinText, projection);
+                WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
             }
 
             void NearestPinMapObject()
@@ -79,9 +79,10 @@ namespace Client.Game.InGame.Tutorial
             #endregion
         }
         
-        public ITutorialView ApplyTutorial(ITutorialParam param)
+        public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
-            _currentTutorialParam = (MapObjectPinTutorialParam)param;
+            _currentTutorialParam = (MapObjectPinTutorialParam)tutorial.TutorialParam;
+            _pinTutorialGuid = tutorial.TutorialGuid.ToString("D");
 
             // 追跡と射影配信のみ行う（表示はWebオーバーレイが担う）
             // Only tracking and projection publishing happen here; display lives on the web overlay

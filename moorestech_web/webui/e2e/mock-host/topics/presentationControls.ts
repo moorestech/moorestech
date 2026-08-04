@@ -13,7 +13,7 @@ export function applyPresentationControl(url: string, res: ServerResponse): bool
     const params = new URL(url, "http://x").searchParams;
     const pins = params.get("clear") === "1" ? [] : [{
       pinId: params.get("id") ?? "map-object-pin",
-      text: params.get("text") ?? "Pin",
+      tutorialGuid: params.get("guid") ?? fx.WORLD_PIN_TUTORIAL_GUID,
       screenX: Number(params.get("x") ?? 0.5),
       screenY: Number(params.get("y") ?? 0.5),
       onScreen: params.get("on") !== "0",

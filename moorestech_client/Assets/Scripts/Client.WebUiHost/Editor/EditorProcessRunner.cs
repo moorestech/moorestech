@@ -16,7 +16,7 @@ namespace Client.WebUiHost.Editor
     {
         // 起動失敗（プロセスが生成できなかった）を表す終了コード
         // Exit code representing spawn failure (process could not be created)
-        public const int SpawnFailureExitCode = -1;
+        private const int SpawnFailureExitCode = -1;
 
         public static int Run(string fileName, string arguments, string workingDirectory, string prependPathDirectory)
         {

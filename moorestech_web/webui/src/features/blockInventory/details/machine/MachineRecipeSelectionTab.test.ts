@@ -4,15 +4,22 @@ import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MachineRecipe } from "@/bridge";
+import { L } from "@/shared/i18n";
 import { buildMachineRecipeSelectionRows } from "./machineRecipeSelectionLogic";
 
 const dispatchMock = vi.hoisted(() => vi.fn());
+const recipeA = "84000000-0000-4000-8000-000000000001";
+const recipeB = "84000000-0000-4000-8000-000000000002";
+const blockGuid = "85000000-0000-4000-8000-000000000001";
 
 vi.mock("@/bridge", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/bridge")>()),
   dispatchAction: dispatchMock,
 }));
-vi.mock("@/shared/i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("@/shared/i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/i18n")>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 vi.mock("@mantine/core", () => ({
   Group: ({ children, ...props }: { children: unknown }) => createElement("mock-group", props, children as never),
   Stack: ({ children, ...props }: { children: unknown }) => createElement("mock-stack", props, children as never),
@@ -28,7 +35,7 @@ import MachineRecipeSelectionTab from "./MachineRecipeSelectionTab";
 
 function recipe(recipeGuid: string, itemId: number, time: number): MachineRecipe {
   return {
-    recipeGuid, blockGuid: "block-a", blockId: 10, blockName: "Machine", time,
+    recipeGuid, blockGuid, blockId: 10, time,
     inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId, count: 1 }],
   };
 }
@@ -39,36 +46,36 @@ describe("MachineRecipeSelectionTab", () => {
   });
 
   it("代表出力を並べ、左選択でActionとタブ遷移通知、選択中のみ右解除を送る", () => {
-    const recipes = [recipe("recipe-a", 2, 7), recipe("recipe-b", 3, 9)];
-    const rows = buildMachineRecipeSelectionRows(recipes, "block-a", "recipe-a");
+    const recipes = [recipe(recipeA, 2, 7), recipe(recipeB, 3, 9)];
+    const rows = buildMachineRecipeSelectionRows(recipes, blockGuid, recipeA);
     const onSelected = vi.fn();
     const renderer = create(createElement(MachineRecipeSelectionTab, { rows, recipes, onSelected }));
     const slots = renderer.root.findAll((node) => node.type === ("mock-item-slot" as never) && node.props.testId !== undefined);
 
     expect(renderer.root.findByProps({ "data-testid": "machine-recipe-selection" })).toBeTruthy();
     expect(slots).toHaveLength(2);
-    expect(slots[0].props).toMatchObject({ itemId: 2, count: 1, selected: true, testId: "machine-recipe-recipe-a" });
+    expect(slots[0].props).toMatchObject({ itemId: 2, count: 1, selected: true, testId: `machine-recipe-${recipeA}` });
 
     act(() => slots[1].props.onLeftDown());
     act(() => slots[1].props.onRightDown());
     act(() => slots[0].props.onRightDown());
 
-    expect(dispatchMock).toHaveBeenNthCalledWith(1, "machine_recipe.select", { operation: "set", recipeGuid: "recipe-b" });
+    expect(dispatchMock).toHaveBeenNthCalledWith(1, "machine_recipe.select", { operation: "set", recipeGuid: recipeB });
     expect(dispatchMock).toHaveBeenNthCalledWith(2, "machine_recipe.select", { operation: "clear" });
     expect(dispatchMock).toHaveBeenCalledTimes(2);
     expect(onSelected).toHaveBeenCalledTimes(1);
   });
 
   it("詳細プレビューはホバー優先・選択中フォールバック・どちらも無ければ案内文", () => {
-    const recipes = [recipe("recipe-a", 2, 7), recipe("recipe-b", 3, 9)];
-    const rows = buildMachineRecipeSelectionRows(recipes, "block-a", "recipe-a");
+    const recipes = [recipe(recipeA, 2, 7), recipe(recipeB, 3, 9)];
+    const rows = buildMachineRecipeSelectionRows(recipes, blockGuid, recipeA);
     const renderer = create(createElement(MachineRecipeSelectionTab, { rows, recipes, onSelected: vi.fn() }));
 
     // 選択中レシピが既定の詳細として表示される
     // The selected recipe shows as the default detail
     const timeOf = () => renderer.root.findByProps({ "data-testid": "machine-recipe-detail-time" }).props.children;
     expect(renderer.root.findByProps({ "data-testid": "machine-recipe-detail" })).toBeTruthy();
-    expect(timeOf()).toBe("{time}秒");
+    expect(timeOf()).toBe(L.ui.blockInventory.recipeDuration);
 
     // ホバー中は選択より優先し、ホバー解除で選択中へ戻る
     // Hover overrides the selection and leaving hover falls back to it
@@ -85,7 +92,7 @@ describe("MachineRecipeSelectionTab", () => {
 
     // 未選択・非ホバーでは詳細を出さず案内文を表示する
     // With no selection and no hover, the guidance text replaces the detail
-    const unselectedRows = buildMachineRecipeSelectionRows(recipes, "block-a", null);
+    const unselectedRows = buildMachineRecipeSelectionRows(recipes, blockGuid, null);
     const unselected = create(createElement(MachineRecipeSelectionTab, { rows: unselectedRows, recipes, onSelected: vi.fn() }));
     expect(unselected.root.findAllByProps({ "data-testid": "machine-recipe-detail" })).toHaveLength(0);
     expect(unselected.root.findByProps({ "data-testid": "machine-recipe-detail-empty" })).toBeTruthy();

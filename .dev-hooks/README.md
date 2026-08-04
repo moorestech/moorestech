@@ -21,7 +21,6 @@
   beads-learn-capture.mjs        # 応答末尾の「LEARN: 一行」をbd noteへ自動保存（Claude Stop）
   logs-sync.mjs                  # Claude/Codex生JSONLをprivateの../moorestech_logsへ退避（Stop/SessionEnd等）
   commit-map.mjs                 # コミットsha↔セッションIDの対応表をmoorestech_logsへ追記（PostToolUse Bash）
-  guard-subagent-model.py        # サブエージェントのモデル明示を強制（PreToolUse Agent|Task）
   README.md
 .claude/settings.json  # 各フックの呼び出し登録（Claude Code 用）
 .codex/hooks.json      # 同上（Codex 用。SessionStart/PostCompact/PostToolUseに対応分を登録）

@@ -38,14 +38,13 @@ namespace Client.Game.InGame.Tutorial
 
         // outline用途だけを公開し、廃止済みkindの再流入を防ぐ
         // Expose only the outline use case to prevent removed kinds from returning
-        public ITutorialView AddOutlineHighlight(string anchorId, string message)
+        public ITutorialView AddOutlineHighlight(string anchorId)
         {
             var highlight = new TutorialHighlightData
             {
                 HighlightId = Guid.NewGuid().ToString(),
                 AnchorId = anchorId,
                 Kind = "outline",
-                Message = message,
                 PaddingPx = 8,
                 BlocksPointerInput = false,
             };

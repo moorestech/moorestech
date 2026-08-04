@@ -60,7 +60,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // uGUIの消費キューへはターゲットのみ渡す（uGUI表示は使われない）
             // Feed only the target into the uGUI consume queue (its visual display is unused)
-            _buildMenuView.SetSelectedEntry(new BuildMenuEntry(target, null, target.DisplayName));
+            _buildMenuView.SetSelectedEntry(new BuildMenuEntry(target, null, string.Empty));
             return UniTask.FromResult(ActionResult.Success());
         }
     }
@@ -73,11 +73,11 @@ namespace Client.WebUiHost.Game.Actions
     {
         public string ActionType => "blueprint.delete";
 
-        private readonly ClientBlueprintLibrary _blueprintLibrary;
+        private readonly IBlueprintDeleteService _blueprintDeleteService;
 
-        public BlueprintDeleteActionHandler(ClientBlueprintLibrary blueprintLibrary)
+        public BlueprintDeleteActionHandler(IBlueprintDeleteService blueprintDeleteService)
         {
-            _blueprintLibrary = blueprintLibrary;
+            _blueprintDeleteService = blueprintDeleteService;
         }
 
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -88,7 +88,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // NotFound（二重右クリック等のstale削除）と通信失敗はコードを分け、前者のみwebui側でトースト抑止する
             // Split NotFound (stale deletes e.g. double right-click) from communication failure so only the former is toast-suppressed on the webui side
-            var result = await _blueprintLibrary.DeleteBlueprint(blueprintGuid, CancellationToken.None);
+            var result = await _blueprintDeleteService.DeleteBlueprint(blueprintGuid, CancellationToken.None);
             return result switch
             {
                 BlueprintDeleteResult.Success => ActionResult.Success(),

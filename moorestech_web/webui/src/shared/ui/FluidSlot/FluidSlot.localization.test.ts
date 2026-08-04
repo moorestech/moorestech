@@ -1,0 +1,53 @@
+import { createElement } from "react";
+import { act, create, type ReactTestRenderer } from "react-test-renderer";
+import { describe, expect, it, vi } from "vitest";
+import { fluidNameKey } from "@/shared/i18n";
+import { setDictionaries } from "@/shared/i18n/i18nStore";
+
+vi.mock("@mantine/core", () => ({
+  Tooltip: (props: object) => createElement("mock-tooltip", props),
+}));
+
+import FluidSlot from "./index";
+
+const FLUID_GUID = "60000000-0000-4000-8000-000000000001";
+const filled = { fluidId: 10, amount: 500, capacity: 1000, fluidGuid: FLUID_GUID };
+
+function tooltipProps(renderer: ReactTestRenderer) {
+  return renderer.root.findByType("mock-tooltip" as never).props as { label: string; disabled: boolean };
+}
+
+describe("FluidSlot localization", () => {
+  it("fluidGuidの導出キーを辞書解決し、言語切替でラベルが追従する", () => {
+    const key = fluidNameKey(FLUID_GUID);
+    act(() => setDictionaries("japanese", {}, { [key]: "Fallback Water" }, { [key]: "Source Water" }));
+    let renderer: ReactTestRenderer;
+    act(() => {
+      renderer = create(createElement(FluidSlot, { fluid: filled }));
+    });
+
+    expect(tooltipProps(renderer!).label).toBe("Fallback Water");
+
+    // payload固定のまま辞書通知だけでラベルが切り替わる
+    // The label switches on the dictionary notification alone, with the payload unchanged
+    act(() => setDictionaries("japanese", { [key]: "水" }, {}, { [key]: "Source Water" }));
+    expect(tooltipProps(renderer!).label).toBe("水");
+
+    // 辞書ストア購読が残ると次ケースの辞書差し替えで再描画されるため破棄する
+    // Unmount so the store subscription does not re-render on the next case's dictionary swap
+    act(() => renderer.unmount());
+  });
+
+  it("空流体はGuid空文字なのでラベルを出さずTooltipを無効化する", () => {
+    act(() => setDictionaries("japanese", {}, {}, {}));
+    let renderer: ReactTestRenderer;
+    act(() => {
+      renderer = create(createElement(FluidSlot, {
+        fluid: { fluidId: 0, amount: 0, capacity: 1000, fluidGuid: "" },
+      }));
+    });
+
+    expect(tooltipProps(renderer!).label).toBe("");
+    expect(tooltipProps(renderer!).disabled).toBe(true);
+  });
+});

@@ -14,8 +14,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
     public class BuildMenuCategoryDto
     {
-        public string Name;
-        public List<string> SubCategories;
+        public string CategoryGuid;
+        public List<string> SubCategoryGuids;
     }
 
     public class BuildMenuEntryDto
@@ -24,9 +24,12 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         // Identity lives solely in Id (a GUID string); Kind only classifies display and behavior
         public string Id;
         public string Kind;
+
+        // マスタ由来名はWeb辞書で解決し、ユーザー命名BPだけLabelを配信する
+        // Master-derived names resolve through the Web dictionary; only user-named blueprints carry Label
         public string Label;
-        public string Category;
-        public string SubCategory;
+        public string CategoryGuid;
+        public string SubCategoryGuid;
         public List<BuildMenuRequiredItemDto> RequiredItems;
 
         // アイコン無し（BP・BPコピー）は null でキー省略される

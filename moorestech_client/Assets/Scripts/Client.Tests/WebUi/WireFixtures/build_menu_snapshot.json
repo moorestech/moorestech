@@ -1,15 +1,15 @@
 {
   "categories": [
-    { "name": "物流", "subCategories": ["チェスト"] },
-    { "name": "輸送", "subCategories": ["鉄道", "車両"] },
-    { "name": "ツール", "subCategories": ["接続", "ブループリント"] },
-    { "name": "ブループリント", "subCategories": ["保存済み"] }
+    { "categoryGuid": "10000000-0000-4000-8000-000000000001", "subCategoryGuids": ["20000000-0000-4000-8000-000000000001"] },
+    { "categoryGuid": "10000000-0000-4000-8000-000000000002", "subCategoryGuids": ["20000000-0000-4000-8000-000000000002", "20000000-0000-4000-8000-000000000003"] },
+    { "categoryGuid": "10000000-0000-4000-8000-000000000003", "subCategoryGuids": ["20000000-0000-4000-8000-000000000004", "20000000-0000-4000-8000-000000000005"] },
+    { "categoryGuid": "10000000-0000-4000-8000-000000000004", "subCategoryGuids": ["20000000-0000-4000-8000-000000000006"] }
   ],
   "entries": [
-    { "id": "b10c0000-0000-4000-8000-000000000001", "kind": "block", "label": "鉄の機械", "category": "物流", "subCategory": "チェスト", "requiredItems": [{ "itemId": 3, "count": 5 }], "iconUrl": "/api/block-icons/1.png" },
-    { "id": "8f9c2a51-0000-0000-0000-000000000001", "kind": "trainCar", "label": "貨物車両", "category": "輸送", "subCategory": "車両", "requiredItems": [{ "itemId": 7, "count": 2 }], "iconUrl": "/api/train-car-icons/8f9c2a51-0000-0000-0000-000000000001.png" },
-    { "id": "c07e0000-0000-4000-8000-000000000001", "kind": "connectTool", "label": "接続ツール", "category": "ツール", "subCategory": "接続", "requiredItems": [], "iconUrl": "/api/connect-tool-icons/c07e0000-0000-4000-8000-000000000001.png" },
-    { "id": "3f8f6de0-0000-4000-8000-000000000001", "kind": "blueprintCopy", "label": "ブループリントコピー", "category": "ツール", "subCategory": "ブループリント", "requiredItems": [] },
-    { "id": "bb1e0000-0000-4000-8000-000000000001", "kind": "blueprint", "label": "starter-base", "category": "ブループリント", "subCategory": "保存済み", "requiredItems": [] }
+    { "id": "30000000-0000-4000-8000-000000000001", "kind": "block", "categoryGuid": "10000000-0000-4000-8000-000000000001", "subCategoryGuid": "20000000-0000-4000-8000-000000000001", "requiredItems": [{ "itemId": 3, "count": 5 }], "iconUrl": "/api/block-icons/1.png" },
+    { "id": "8f9c2a51-0000-4000-8000-000000000001", "kind": "trainCar", "categoryGuid": "10000000-0000-4000-8000-000000000002", "subCategoryGuid": "20000000-0000-4000-8000-000000000003", "requiredItems": [{ "itemId": 7, "count": 2 }], "iconUrl": "/api/train-car-icons/8f9c2a51-0000-4000-8000-000000000001.png" },
+    { "id": "40000000-0000-4000-8000-000000000001", "kind": "connectTool", "categoryGuid": "10000000-0000-4000-8000-000000000003", "subCategoryGuid": "20000000-0000-4000-8000-000000000004", "requiredItems": [], "iconUrl": "/api/connect-tool-icons/40000000-0000-4000-8000-000000000001.png" },
+    { "id": "50000000-0000-4000-8000-000000000001", "kind": "blueprintCopy", "categoryGuid": "10000000-0000-4000-8000-000000000003", "subCategoryGuid": "20000000-0000-4000-8000-000000000005", "requiredItems": [] },
+    { "id": "60000000-0000-4000-8000-000000000001", "kind": "blueprint", "label": "starter-base", "categoryGuid": "10000000-0000-4000-8000-000000000004", "subCategoryGuid": "20000000-0000-4000-8000-000000000006", "requiredItems": [] }
   ]
 }

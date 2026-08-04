@@ -1,10 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { disconnectWebSockets, injectTopicSnapshot, setSnapshotDelay, setTopicScenario, setTopicScenarioRevision, setWoodItemName } from "../../support/mockControl";
+import { TIMBER_ITEM_GUID, WOOD_ITEM_GUID } from "../../mock-host/fixtures";
+import { disconnectWebSockets, injectTopicSnapshot, setSnapshotDelay, setTopicScenario, setTopicScenarioRevision, setWoodItemGuid } from "../../support/mockControl";
 
 test.afterEach(async ({ page }) => {
   await setSnapshotDelay(page, 0, null);
   await setTopicScenario(page, "miningHidden");
-  await setWoodItemName(page, "Wood");
+  await setWoodItemGuid(page, WOOD_ITEM_GUID);
 });
 
 test("切断後は全topic snapshotをrestoring中に復元し旧世代snapshotを破棄する", async ({ page }) => {
@@ -20,7 +21,7 @@ test("切断後は全topic snapshotをrestoring中に復元し旧世代snapshot�
   await expect(page.getByTestId("grab-overlay")).toContainText("10");
   await setSnapshotDelay(page, 800, "ui.progress");
   await disconnectWebSockets(page, 200);
-  await setWoodItemName(page, "Timber");
+  await setWoodItemGuid(page, TIMBER_ITEM_GUID);
   const overlay = page.getByTestId("reconnect-overlay");
   await expect(overlay).toBeVisible();
 

@@ -1,15 +1,17 @@
 using System;
-using Core.Master;
+using System.Collections.Generic;
+using Client.Localization;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
     public sealed class BlueprintCopyPlacementTarget : IPlacementTarget
     {
-        // BPコピーツールのGuid。表示名はマスタから解決する
-        // Guid of the blueprint copy tool; the display name is resolved from the master
         public Guid Id { get; }
         public PlacementTargetKind Kind => PlacementTargetKind.BlueprintCopy;
-        public string DisplayName => MasterHolder.BuildToolMaster.GetBuildTool(Id).Name;
+        public string DisplayName => Localize.Get(LocalizationKeys.Ui.BuildMenu.BlueprintCopy);
+
+        public IReadOnlyList<(Guid itemGuid, int count)> CreateRequiredItems() => Array.Empty<(Guid, int)>();
 
         public BlueprintCopyPlacementTarget(Guid blueprintCopyToolGuid)
         {

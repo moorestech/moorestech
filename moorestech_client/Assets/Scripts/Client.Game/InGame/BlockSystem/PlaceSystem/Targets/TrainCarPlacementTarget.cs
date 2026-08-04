@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Client.Localization;
 using Core.Master;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -10,9 +14,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         public Guid Id => TrainCarGuid;
         public PlacementTargetKind Kind => PlacementTargetKind.TrainCar;
 
-        // 車両名の正はマスタ名。アイコン撮影時の表示名とは食い違い得るのでマスタ側に寄せる
-        // The train car's canonical name is the master name; the icon-capture display name can drift from it
-        public string DisplayName => MasterHolder.TrainUnitMaster.GetTrainCarMaster(TrainCarGuid).Name;
+        public string DisplayName => Localize.GetContent(ContentLocalizationKeys.TrainCarName(TrainCarGuid));
+
+        public IReadOnlyList<(Guid itemGuid, int count)> CreateRequiredItems()
+        {
+            var requiredItems = MasterHolder.TrainUnitMaster.GetTrainCarMaster(TrainCarGuid).RequiredItems;
+            if (requiredItems == null) return Array.Empty<(Guid, int)>();
+            return requiredItems.Select(item => (item.ItemGuid, item.Count)).ToList();
+        }
 
         public TrainCarPlacementTarget(Guid trainCarGuid)
         {

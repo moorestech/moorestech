@@ -1,7 +1,9 @@
 using Client.Common.Asset;
+using Client.Game.Skit.Localization;
 using Client.Game.InGame.UI.UIState;
 using Client.Skit.Context;
 using Client.Skit.Define;
+using Client.Skit.Localization;
 using Client.Skit.UI;
 using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
@@ -24,30 +26,47 @@ namespace Client.Game.InGame.BackgroundSkit
         public async UniTask StartBackgroundSkit(string skitAddressablePath)
         {
             IsPlayingSkit = true;
-            SkitPresentationStateStore.Instance.BeginBackground();
-            
-            // UIステートがGameScreenになるまで待機
-            await UniTask.WaitUntil(() => uiStateControl.CurrentState == UIStateEnum.GameScreen);
-            
-            var textAsset = await AddressableLoader.LoadAsyncDefault<TextAsset>(skitAddressablePath);
-            var commandsToken = (JToken)JsonConvert.DeserializeObject(textAsset.text);
-            var commands = CommandForgeLoader.LoadCommands(commandsToken);
-            var context = GetStoryContext();
-            
-            backgroundSkitUI.SetActive(true);
-            // webモード中はuGUI文字表示のみ抑止する（音声はUnity再生のためルートは維持。SetActive(false)は音声を殺すため禁止）
-            // In web mode suppress only the uGUI text; keep the root active because Unity owns voice playback (SetActive(false) would kill audio)
-            backgroundSkitUI.SetTextVisible(!WebUiScreenGate.IsWebUiMode);
+            var presentationStarted = false;
+            SkitLocalizationResolver localizationResolver = null;
+            StoryContext context = null;
 
-            // BackgroundSkitは簡易実装なので、Textコマンドのみを実行
-            foreach (var command in commands)
+            try
             {
-                await command.ExecuteAsync(context);
+                SkitPresentationStateStore.Instance.BeginBackground();
+                presentationStarted = true;
+
+                await UniTask.WaitUntil(() => uiStateControl.CurrentState == UIStateEnum.GameScreen);
+
+                var textAsset = await AddressableLoader.LoadAsyncDefault<TextAsset>(skitAddressablePath);
+                if (textAsset == null)
+                {
+                    Debug.LogError($"背景スキットJSONが見つかりません : {skitAddressablePath}");
+                    return;
+                }
+
+                var skitTitle = SkitTitle.FromAssetName(textAsset.name);
+                localizationResolver = new SkitLocalizationResolver();
+                await localizationResolver.PrepareAsync(skitTitle);
+                var commandsToken = (JToken)JsonConvert.DeserializeObject(textAsset.text);
+                var commands = CommandForgeLoader.LoadCommands(commandsToken);
+                context = GetStoryContext();
+
+                backgroundSkitUI.SetActive(true);
+                // webモード中はuGUI文字表示のみ抑止する（音声はUnity再生のためルートは維持。SetActive(false)は音声を殺すため禁止）
+                // In web mode suppress only the uGUI text; keep the root active because Unity owns voice playback (SetActive(false) would kill audio)
+                backgroundSkitUI.SetTextVisible(!WebUiScreenGate.IsWebUiMode);
+
+                // 背景スキットは簡易Text実装
+                // Background skits use the minimal text-only implementation
+                foreach (var command in commands)
+                {
+                    await command.ExecuteAsync(context);
+                }
             }
-            
-            backgroundSkitUI.SetActive(false);
-            SkitPresentationStateStore.Instance.End();
-            IsPlayingSkit = false;
+            finally
+            {
+                Cleanup();
+            }
             
             #region Internal
             
@@ -56,11 +75,23 @@ namespace Client.Game.InGame.BackgroundSkit
                 var builder = new ContainerBuilder();
                 builder.RegisterInstance(backgroundSkitUI);
                 builder.RegisterInstance(voiceDefine);
-                
+                builder.RegisterInstance<ISkitLocalizationResolver>(localizationResolver);
+
                 return new StoryContext(builder.Build());
             }
-            
-  #endregion
+
+            void Cleanup()
+            {
+                // 唯一のfinallyから表示・session・DI資源を解放する
+                // Release UI, session, and DI resources from the single finally
+                backgroundSkitUI.SetActive(false);
+                if (presentationStarted) SkitPresentationStateStore.Instance.End();
+                context?.Dispose();
+                localizationResolver?.Dispose();
+                IsPlayingSkit = false;
+            }
+
+            #endregion
         }
         
         public void SetActive(bool isActive)

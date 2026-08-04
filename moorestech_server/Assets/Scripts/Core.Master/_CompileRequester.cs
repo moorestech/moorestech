@@ -1,9 +1,9 @@
 
-// このコードはCore.Masterアセンブリを再コンパイルするためのスクリプトです。SchemaWatcherによって更新されます。
-// This code is a script to recompile the Core.Master assembly. It is updated by SchemaWatcher.
+// SchemaWatcher再コンパイル印
+// SchemaWatcher recompile marker
 public class CompileRequester
 {
-// スキーマを更新したら、こちらの更新もコミットしてください。
-// If you update the schema, please also commit this update.
-    private const string dummyText = "2026/07/30 19:15:05";
+// スキーマ更新時もコミット
+// Commit with schema updates
+    private const string dummyText = "2026/08/03 22:35:00";
 }

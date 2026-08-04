@@ -30,8 +30,8 @@ function isItemMasterEntry(item: unknown): item is ItemMasterEntry {
     item !== null &&
     "itemId" in item &&
     typeof item.itemId === "number" &&
-    "name" in item &&
-    typeof item.name === "string" &&
+    "itemGuid" in item &&
+    typeof item.itemGuid === "string" &&
     "maxStack" in item &&
     typeof item.maxStack === "number"
   );

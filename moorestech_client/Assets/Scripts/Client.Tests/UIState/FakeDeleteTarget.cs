@@ -1,5 +1,6 @@
 using Client.Game.Common;
 using Client.Game.InGame.UI.UIState.State;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Tests.UIState
 {
@@ -13,6 +14,10 @@ namespace Client.Tests.UIState
         public int ResetCount;
         public int DeleteCount;
         public bool Removable;
+
+        // 拒否時に返す理由キー（未設定なら「拒否だが表示すべき理由が無い」を表す）
+        // Reason key returned on denial; unset means "denied without a displayable reason"
+        public LocalizationKey? DenyReason;
         public object Key;
         public string Category = BlockMasterElementExtension.DefaultDestructionCategory;
 
@@ -26,9 +31,9 @@ namespace Client.Tests.UIState
             ResetCount++;
         }
 
-        public bool IsRemovable(out string reason)
+        public bool IsRemovable(out LocalizationKey? deniedReason)
         {
-            reason = null;
+            deniedReason = Removable ? null : DenyReason;
             return Removable;
         }
 

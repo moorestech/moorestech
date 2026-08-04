@@ -7,8 +7,9 @@ import { TopicEnvelopeSchema, Topics } from "../transport/protocol";
 import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData, BuildMenuData, ChallengeTreeData, ChallengeCurrentData, PauseMenuData } from "./payloadTypes";
 
 describe("wire contract fixtures (shared with C#)", () => {
-  it("削除した重複採掘HUD topicを公開しない", () => {
+  it("削除した重複採掘HUD topicと読み手のない削除モードtopicを公開しない", () => {
     expect(Object.values(Topics)).not.toContain("ui.mining_hud");
+    expect(Object.values(Topics)).not.toContain("ui.delete_mode");
   });
 
   it("accepts Phase C4 presentation fixtures", () => {
@@ -84,9 +85,10 @@ describe("wire contract fixtures (shared with C#)", () => {
     expect(validateTopicPayload(Topics.buildMenu, d)).toBe(true);
     const typed = d as BuildMenuData;
     expect(typed.entries[0].kind).toBe("block");
-    expect(typed.entries[0].id).toBe("b10c0000-0000-4000-8000-000000000001");
-    expect(typed.entries[0].category).toBe("物流");
-    expect(typed.categories[0].name).toBe("物流");
+    expect(typed.entries[0].id).toBe("30000000-0000-4000-8000-000000000001");
+    expect(typed.entries[0].categoryGuid).toBe("10000000-0000-4000-8000-000000000001");
+    expect(typed.categories[0].categoryGuid).toBe("10000000-0000-4000-8000-000000000001");
+    expect(typed.entries[0].label).toBeUndefined();
     expect(typed.entries[3].iconUrl).toBeUndefined();
   });
 
@@ -111,7 +113,9 @@ describe("wire contract fixtures (shared with C#)", () => {
 
   it("C2 HUD/common fixtures are accepted", () => {
     const cases = [
-      [Topics.placementMode, "placement_mode.json"], [Topics.deleteMode, "delete_mode.json"],
+      [Topics.placementMode, "placement_mode.json"],
+      [Topics.placementMode, "placement_mode_connect_tool.json"],
+      [Topics.placementMode, "placement_mode_train_car.json"],
       [Topics.crosshair, "visibility.json"],
       [Topics.uiVisibility, "visibility.json"],
       [Topics.tooltip, "tooltip.json"],
@@ -153,11 +157,11 @@ describe("block detail fixtures", () => {
     if (!machine.open || machine.source !== "block" || !machine.machine) throw new Error("machine fixture shape");
     expect(machine.machine.slotLayout.input + machine.machine.slotLayout.output + machine.machine.slotLayout.module).toBe(machine.itemSlots.length);
     expect(machine.machine.selectedRecipeGuid).toBe("00000000-0000-0000-0000-000000000000");
-    expect(machine.machine.blockGuid).toBe("11111111-1111-1111-1111-111111111111");
+    expect(machine.machine.blockGuid).toBe("11111111-1111-4111-8111-111111111111");
     const gear = loadFixture("block_inventory_gear_machine.json") as BlockInventoryData;
     if (!gear.open || gear.source !== "block" || !gear.machine || !gear.gearNetwork) throw new Error("gear fixture shape");
     expect(gear.machine.selectedRecipeGuid).toBe("00000000-0000-0000-0000-000000000000");
-    expect(gear.machine.blockGuid).toBe("22222222-2222-2222-2222-222222222222");
+    expect(gear.machine.blockGuid).toBe("22222222-2222-4222-8222-222222222222");
     expect(["none", "rocked", "overRequirePower"]).toContain(gear.gearNetwork.stopReason);
   });
 });

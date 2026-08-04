@@ -21,8 +21,6 @@ namespace Client.WebUiHost.Game.Topics
             var dto = new ResearchNodeDto
             {
                 Guid = master.ResearchNodeGuid.ToString(),
-                Name = master.ResearchNodeName,
-                Description = master.ResearchNodeDescription,
                 State = ToStateString(state),
                 IconItemId = MasterHolder.ItemMaster.GetItemId(master.GraphViewSettings.IconItem).AsPrimitive(),
                 Position = new ResearchPositionDto { X = master.GraphViewSettings.UIPosition.x, Y = master.GraphViewSettings.UIPosition.y },

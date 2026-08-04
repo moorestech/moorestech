@@ -1,5 +1,6 @@
 using System;
 using Client.Skit.Define;
+using Client.Skit.Localization;
 using Client.Skit.Skit;
 using Client.Skit.UI;
 using UnityEngine;
@@ -15,7 +16,11 @@ namespace Client.Skit.Context
         public static VoiceDefine GetVoiceDefine(this StoryContext storyContext) => storyContext.GetService<VoiceDefine>();
         
         public static ISkitCamera GetSkitCamera(this StoryContext storyContext) => storyContext.GetService<ISkitCamera>();
-        
+
+        public static ISkitLocalizationResolver GetLocalizationResolver(this StoryContext storyContext)
+            => storyContext.GetService<ISkitLocalizationResolver>();
+
+
         public static SkitCharacter GetCharacter(this StoryContext storyContext, string characterId)
         {
             try

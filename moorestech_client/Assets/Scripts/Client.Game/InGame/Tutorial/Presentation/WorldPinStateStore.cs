@@ -32,7 +32,7 @@ namespace Client.Game.InGame.Tutorial
             return CreateData();
         }
 
-        public void SetPin(string pinId, string text, WorldPinProjection projection)
+        public void SetPin(string pinId, string tutorialGuid, WorldPinProjection projection)
         {
             var existing = _pins.FirstOrDefault(pin => pin.PinId == pinId);
             if (existing != null && IsSame(existing)) return;
@@ -43,7 +43,7 @@ namespace Client.Game.InGame.Tutorial
                 _pins.Add(existing);
             }
 
-            existing.Text = text;
+            existing.TutorialGuid = tutorialGuid;
             existing.ScreenX = projection.ScreenX;
             existing.ScreenY = projection.ScreenY;
             existing.OnScreen = projection.OnScreen;
@@ -55,7 +55,7 @@ namespace Client.Game.InGame.Tutorial
 
             bool IsSame(WorldPinData pin)
             {
-                return pin.Text == text &&
+                return pin.TutorialGuid == tutorialGuid &&
                        pin.OnScreen == projection.OnScreen &&
                        Mathf.Abs(pin.ScreenX - projection.ScreenX) < PositionEpsilon &&
                        Mathf.Abs(pin.ScreenY - projection.ScreenY) < PositionEpsilon &&
@@ -86,7 +86,7 @@ namespace Client.Game.InGame.Tutorial
                 Pins = _pins.Select(pin => new WorldPinData
                 {
                     PinId = pin.PinId,
-                    Text = pin.Text,
+                    TutorialGuid = pin.TutorialGuid,
                     ScreenX = pin.ScreenX,
                     ScreenY = pin.ScreenY,
                     OnScreen = pin.OnScreen,

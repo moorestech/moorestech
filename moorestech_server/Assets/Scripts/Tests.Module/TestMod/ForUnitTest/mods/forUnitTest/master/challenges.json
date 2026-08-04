@@ -16,7 +16,16 @@
             "itemGuid": "00000000-0000-0000-1234-000000000003"
           },
           "challengeGuid": "00000000-0000-0000-4567-000000000001",
-          "tutorials": [],
+          "tutorials": [
+            {
+              "tutorialGuid": "00000000-0000-0000-8901-000000000001",
+              "tutorialType": "uiHighLight",
+              "tutorialParam": {
+                "highLightUIObjectId": "testHighLightUIObject",
+                "highLightText": "テストチュートリアル1"
+              }
+            }
+          ],
           "clearedActions": [],
           "displayListParam": {
             "UIPosition": [

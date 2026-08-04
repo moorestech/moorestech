@@ -3,7 +3,7 @@
   "source": "block",
   "blockType": "ElectricPole",
   "identifier": "(7, 0, 4)",
-  "blockName": "電柱",
+  "blockGuid": "77777777-7777-4777-8777-777777777777",
   "itemSlots": [],
   "fluidSlots": [],
   "electricNetwork": {

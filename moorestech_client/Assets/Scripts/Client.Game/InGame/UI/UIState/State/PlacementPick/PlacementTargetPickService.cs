@@ -40,9 +40,11 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
                 target = null;
                 if (!BlockClickDetectUtil.TryGetCursorOnElectricWire(out _)) return false;
 
-                // カーソル下の電線に対応するelectricWire connectToolを解決する
-                // Resolve the electricWire connectTool corresponding to the wire under the cursor
-                target = new ConnectToolPlacementTarget(ConnectToolCatalog.ResolveDefaultConnectToolGuid(ConnectToolType.ElectricWireConnect, _gameUnlockStateData));
+                // カーソル下の電線に対応するelectricWire connectToolを解決し、未解放ならスポイト自体を不成立にする
+                // Resolve the electricWire connectTool under the cursor; if locked the eyedropper itself fails
+                if (!ConnectToolCatalog.TryResolveDefaultConnectToolGuid(ConnectToolType.ElectricWireConnect, _gameUnlockStateData, out var wireToolGuid)) return false;
+
+                target = new ConnectToolPlacementTarget(wireToolGuid);
                 return true;
             }
 

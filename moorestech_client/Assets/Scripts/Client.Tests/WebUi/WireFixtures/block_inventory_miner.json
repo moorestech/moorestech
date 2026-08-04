@@ -3,7 +3,7 @@
   "source": "block",
   "blockType": "ElectricMiner",
   "identifier": "(3, 0, 8)",
-  "blockName": "電動採掘機",
+  "blockGuid": "44444444-4444-4444-8444-444444444444",
   "itemSlots": [ { "itemId": 11, "count": 42 }, { "itemId": 0, "count": 0 } ],
   "fluidSlots": [],
   "progress": 0.66,

@@ -5,17 +5,24 @@ import {
 } from "./presentation";
 
 describe("Phase C4 presentation contracts", () => {
-  it.each(["outline", "callout"] as const)("accepts the %s tutorial highlight kind", (kind) => {
+  it("accepts the outline tutorial highlight kind", () => {
     expect(TutorialHighlightSchema.safeParse({
-      highlightId: "highlight-1", anchorId: "game.crosshair", kind,
-      message: "", paddingPx: 8, blocksPointerInput: false,
+      highlightId: "highlight-1", anchorId: "game.crosshair", kind: "outline",
+      paddingPx: 8, blocksPointerInput: false,
     }).success).toBe(true);
   });
 
-  it("rejects the removed spotlight tutorial highlight kind", () => {
+  it.each(["spotlight", "callout"] as const)("rejects the removed %s tutorial highlight kind", (kind) => {
     expect(TutorialHighlightSchema.safeParse({
-      highlightId: "highlight-1", anchorId: "game.crosshair", kind: "spotlight",
-      message: "", paddingPx: 8, blocksPointerInput: false,
+      highlightId: "highlight-1", anchorId: "game.crosshair", kind,
+      paddingPx: 8, blocksPointerInput: false,
+    }).success).toBe(false);
+  });
+
+  it("rejects a host-resolved highlight message", () => {
+    expect(TutorialHighlightSchema.safeParse({
+      highlightId: "highlight-1", anchorId: "game.crosshair", kind: "outline",
+      message: "Craft", paddingPx: 8, blocksPointerInput: false,
     }).success).toBe(false);
   });
 

@@ -50,6 +50,12 @@ namespace Client.Game.InGame.UI.Inventory.Craft
             recipeSelectButton.onClick.AddListener(() => {
                 _onSelectedSubject.OnNext(this);
             });
+            Client.Localization.Localize.OnLanguageChanged
+                .Subscribe(_ =>
+                {
+                    if (CraftRecipe != null) UpdateCraftableState(IsCraftable);
+                })
+                .AddTo(this);
         }
         
         public void Initialize(CraftRecipeMasterElement craftRecipe, bool isCraftable, ILocalPlayerInventory localPlayerInventory)
@@ -138,7 +144,10 @@ namespace Client.Game.InGame.UI.Inventory.Craft
         private void UpdateMaterialSlotDisplay(ItemSlotView slot, ItemViewData itemViewData, int ownedCount, int requiredCount)
         {
             var countText = CreateCountText(ownedCount, requiredCount);
-            var toolTipText = CreateToolTipText(itemViewData.ItemName, ownedCount, requiredCount);
+            var toolTipText = CreateToolTipText(
+                ItemSlotView.GetToolTipText(itemViewData),
+                ownedCount,
+                requiredCount);
             
             slot.SetItem(itemViewData, 0, toolTipText);
             slot.SetCountTextFontSize(17);

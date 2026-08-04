@@ -10,7 +10,6 @@ namespace Client.WebUiHost.Game.Topics
     public class ChallengeCategoryDto
     {
         public string Guid;
-        public string Name;
         public int IconItemId;
         public List<ChallengeNodeDto> Nodes;
     }
@@ -18,8 +17,6 @@ namespace Client.WebUiHost.Game.Topics
     public class ChallengeNodeDto
     {
         public string Guid;
-        public string Title;
-        public string Summary;
         public int IconItemId;
         public string State;
         public ChallengeVectorDto Position;
@@ -42,7 +39,6 @@ namespace Client.WebUiHost.Game.Topics
     public class CurrentChallengeDto
     {
         public string Guid;
-        public string Title;
         public string CategoryGuid;
     }
 }

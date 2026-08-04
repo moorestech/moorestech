@@ -9,7 +9,7 @@ test("素材不足スロットはdata-insufficientと40% opacityを持つ", asyn
   await expect(insufficient).toHaveCSS("opacity", "0.4");
 });
 
-test("name propなしのインベントリスロットがマスタ名をtooltip表示する", async ({ page }) => {
+test("インベントリスロットがマスタGuidの辞書名をtooltip表示する", async ({ page }) => {
   await page.goto("/");
   await page.getByTestId("main-grid").locator("> div").first().hover();
 

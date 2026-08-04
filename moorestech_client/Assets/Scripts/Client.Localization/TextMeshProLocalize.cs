@@ -1,4 +1,3 @@
-using System;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -15,30 +14,16 @@ namespace Client.Localization
         private void Awake()
         {
             _text = GetComponent<TextMeshProUGUI>();
-            _text.text = Localize.Get(key);
+            _text.text = Localize.GetLegacy(key);
             
-            Localize.OnLanguageChanged.Subscribe(_ => GetComponent<TextMeshProUGUI>().text = Localize.Get(key))
+            Localize.OnLanguageChanged.Subscribe(_ => GetComponent<TextMeshProUGUI>().text = Localize.GetLegacy(key))
                 .AddTo(this);
         }
         
         public void SetKey(string key, params string[] addContents)
         {
             this.key = key;
-            
-            var text = string.Empty;
-            try
-            {
-                text = string.Format(Localize.Get(key), addContents);
-            }
-            catch (FormatException e)
-            {
-                text = "[Localize] Format Error : " + key;
-            }
-            catch (Exception e)
-            {
-                text = $"[Localize] Other Error : {key} : {e.Message}";
-            }
-            
+            var text = string.Format(Localize.GetLegacy(key), addContents);
             if (_text == null) _text = GetComponent<TextMeshProUGUI>();
             _text.text = text;
             _text.ForceMeshUpdate();

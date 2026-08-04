@@ -169,11 +169,11 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         {
             foreach (var tank in tanks)
             {
-                // 空流体は名前空文字（uGUI MachineBlockInventoryView の EmptyFluidId 分岐と同じ扱い）
-                // Empty fluids get an empty name (same handling as the EmptyFluidId branch in uGUI MachineBlockInventoryView)
+                // 空流体はGuid空文字（uGUI MachineBlockInventoryView の EmptyFluidId 分岐と同じ扱い）
+                // Empty fluids get an empty GUID (same handling as the EmptyFluidId branch in uGUI MachineBlockInventoryView)
                 var isEmpty = new FluidId(tank.FluidId) == FluidMaster.EmptyFluidId;
-                var name = isEmpty ? "" : MasterHolder.FluidMaster.GetFluidMaster(new FluidId(tank.FluidId)).Name;
-                slots.Add(new BlockFluidSlotDto { FluidId = tank.FluidId, Amount = tank.Amount, Capacity = tank.MaxCapacity, Name = name });
+                var fluidGuid = isEmpty ? "" : MasterHolder.FluidMaster.GetFluidMaster(new FluidId(tank.FluidId)).FluidGuid.ToString("D");
+                slots.Add(new BlockFluidSlotDto { FluidId = tank.FluidId, Amount = tank.Amount, Capacity = tank.MaxCapacity, FluidGuid = fluidGuid });
             }
         }
 

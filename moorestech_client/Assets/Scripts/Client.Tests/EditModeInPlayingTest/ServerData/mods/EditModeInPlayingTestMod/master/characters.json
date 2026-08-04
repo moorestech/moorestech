@@ -1,18 +1,21 @@
 {
   "data": [
     {
+      "characterGuid": "f998ac3b-2cf4-4b2f-85d3-b95c8c55c648",
       "characterId": "chr_001",
       "modelAddresablePath": "Vanilla/Character/Chr001",
       "skitModelAddresablePath": "Vanilla/Character/SkitChr001",
       "displayName": "ヨリ"
     },
     {
+      "characterGuid": "ba5d3b8a-b137-4f04-aaf1-1a4f4c57748b",
       "characterId": "chr_002",
       "modelAddresablePath": "Vanilla/Character/Chr002",
       "skitModelAddresablePath": "Vanilla/Character/SkitChr002",
       "displayName": "エレノ"
     },
     {
+      "characterGuid": "fe49f03a-63ae-4232-b31b-a6d0bc1e771e",
       "characterId": "chr_003",
       "modelAddresablePath": "Vanilla/Character/Chr003",
       "skitModelAddresablePath": "Vanilla/Character/SkitChr003",

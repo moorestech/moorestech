@@ -1,11 +1,10 @@
 import { createElement, type ReactElement, type ReactNode } from "react";
 import { act, create, type ReactTestInstance } from "react-test-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ItemMasterEntry, PlayerInventoryData, ResearchNodeData, ResearchTreeData } from "@/bridge";
+import type { PlayerInventoryData, ResearchNodeData, ResearchTreeData } from "@/bridge";
 
 const mockState = vi.hoisted(() => ({
   inventory: null as PlayerInventoryData | null,
-  itemMaster: null as Map<number, ItemMasterEntry> | null,
   tree: null as ResearchTreeData | null,
 }));
 
@@ -13,11 +12,13 @@ vi.mock("@/bridge", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/bridge")>();
   return {
     ...actual,
-    useItemMaster: () => mockState.itemMaster,
     useTopic: (topic: string) => topic === actual.Topics.researchTree ? mockState.tree : mockState.inventory,
   };
 });
-vi.mock("@/shared/i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("@/shared/i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/i18n")>()),
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 vi.mock("@/shared/treeView", () => ({
   TreeView: (props: object) => createElement("div", { ...props, "data-testid": "mock-tree-view" }),
 }));
@@ -43,9 +44,7 @@ type TreeViewInstance = ReactTestInstance & {
 };
 
 const node: ResearchNodeData = {
-  guid: "research-a",
-  name: "Research A",
-  description: "Description",
+  guid: "86000000-0000-4000-8000-000000000001",
   state: "researchable",
   iconItemId: 1,
   position: { x: 10, y: 20 },
@@ -67,7 +66,6 @@ describe("ResearchTreePanel selection toggle", () => {
       selectedEquipment: -1,
       equipmentSelectionConfirmationRevision: 0,
     };
-    mockState.itemMaster = new Map([[1, { itemId: 1, name: "Iron", maxStack: 100 }]]);
   });
 
   it("選択トグルで詳細ペインが開閉しrenderNodeが更新される", () => {

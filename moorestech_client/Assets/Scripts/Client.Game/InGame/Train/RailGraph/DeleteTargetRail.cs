@@ -3,6 +3,7 @@ using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
 using Game.Train.RailGraph;
+using Mooresmaster.Localization.Generated;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.RailGraph
@@ -41,15 +42,17 @@ namespace Client.Game.InGame.Train.RailGraph
             RailChain.ResetMaterial();
         }
         
-        public bool IsRemovable(out string reason)
+        public bool IsRemovable(out LocalizationKey? deniedReason)
         {
+            // 削除済みは表示すべき理由が無い拒否なのでnullを返す（default(LocalizationKey)は辞書引きで落ちる）
+            // A removed rail is a denial without a displayable reason, so return null (default(LocalizationKey) breaks the lookup)
             var canDelete = CanDelete();
-            reason = canDelete switch
+            deniedReason = canDelete switch
             {
                 DeleteDeniedReason.None => null,
-                DeleteDeniedReason.StationInternalEdge => "駅内部のレールは削除できません。",
-                DeleteDeniedReason.NodeInUseByTrain => "レール上に車両があります。",
-                DeleteDeniedReason.UnknownError => "不明なエラー",
+                DeleteDeniedReason.StationInternalEdge => LocalizationKeys.Ui.Delete.StationInternalRail,
+                DeleteDeniedReason.NodeInUseByTrain => LocalizationKeys.Ui.Delete.RailHasVehicle,
+                DeleteDeniedReason.UnknownError => LocalizationKeys.Ui.Delete.UnknownError,
                 DeleteDeniedReason.Removed => null,
                 _ => throw new ArgumentOutOfRangeException(),
             };

@@ -5,10 +5,12 @@ using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Localization;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface.State;
 using Game.UnlockState;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.MachineRecipesModule;
 using Server.Protocol.PacketResponse;
 using UniRx;
@@ -48,6 +50,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 if (recipe.BlockGuid == blockGuid) _blockRecipes.Add(recipe);
             }
             BuildRecipeSlots();
+            Localize.OnLanguageChanged.Subscribe(_ => BuildRecipeSlots()).AddTo(this);
         }
 
         private void OnDestroy()
@@ -104,11 +107,11 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 // 入出力ともアイテム→液体の順で列挙する
                 // List items first and then fluids on both sides
                 var inputs = new List<string>();
-                foreach (var input in recipe.InputItems) inputs.Add($"{MasterHolder.ItemMaster.GetItemMaster(input.ItemGuid).Name}×{input.Count}");
-                foreach (var input in recipe.InputFluids) inputs.Add($"{MasterHolder.FluidMaster.GetFluidMaster(input.FluidGuid).Name}×{input.Amount}");
+                foreach (var input in recipe.InputItems) inputs.Add($"{Localize.GetContent(ContentLocalizationKeys.ItemName(input.ItemGuid))}×{input.Count}");
+                foreach (var input in recipe.InputFluids) inputs.Add($"{Localize.GetContent(ContentLocalizationKeys.FluidName(input.FluidGuid))}×{input.Amount}");
                 var outputs = new List<string>();
-                foreach (var output in recipe.OutputItems) outputs.Add($"{MasterHolder.ItemMaster.GetItemMaster(output.ItemGuid).Name}×{output.Count}");
-                foreach (var output in recipe.OutputFluids) outputs.Add($"{MasterHolder.FluidMaster.GetFluidMaster(output.FluidGuid).Name}×{output.Amount}");
+                foreach (var output in recipe.OutputItems) outputs.Add($"{Localize.GetContent(ContentLocalizationKeys.ItemName(output.ItemGuid))}×{output.Count}");
+                foreach (var output in recipe.OutputFluids) outputs.Add($"{Localize.GetContent(ContentLocalizationKeys.FluidName(output.FluidGuid))}×{output.Amount}");
                 return $"{string.Join(" + ", inputs)} → {string.Join(" + ", outputs)} ({recipe.Time}秒)";
             }
 

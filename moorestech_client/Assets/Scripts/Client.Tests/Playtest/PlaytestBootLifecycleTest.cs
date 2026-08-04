@@ -4,6 +4,7 @@ using Client.Game;
 using Client.Playtest;
 using Client.Playtest.Core;
 using Client.Starter;
+using Client.Starter.Editor;
 using Common.Debug;
 using Game.MapGeneration.Provisioning;
 using NUnit.Framework;
@@ -45,7 +46,7 @@ namespace Client.Tests.Playtest
 
             // NoSave上書き停止、隔離cache、mode別環境、正式CLI値を一括で固定する
             // Pin disabled NoSave override, isolated cache, mode-specific environment, and official CLI values together
-            Assert.That(SessionState.GetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, true), Is.False);
+            Assert.That(SessionState.GetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, true), Is.False);
             Assert.That(SessionState.GetBool("DebugObjectsBootstrap_Disabled", true), Is.False);
             Assert.That(DebugParametersCacheDirectory.GetOverride(), Is.EqualTo(PlaytestPaths.DebugCacheDirectory));
             Assert.That(DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, -1), Is.EqualTo(expectedEnvironmentType));
@@ -61,7 +62,7 @@ namespace Client.Tests.Playtest
         [Test]
         public void PrepareWorldBootSession_未知のmapModeをPlayMode前に拒否する()
         {
-            SessionState.SetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, true);
+            SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, true);
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
 
             Assert.Throws<ArgumentException>(() =>
@@ -69,7 +70,7 @@ namespace Client.Tests.Playtest
 
             // 不正入力は共通準備より前に拒否し、次の起動へ状態を残さない
             // Reject invalid input before common setup and leave no state for the next boot
-            Assert.That(SessionState.GetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, false), Is.True);
+            Assert.That(SessionState.GetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, false), Is.True);
             Assert.That(SessionState.GetBool("DebugObjectsBootstrap_Disabled", true), Is.False);
             Assert.That(DebugParametersCacheDirectory.GetOverride(), Is.Null);
             Assert.That(PlaytestWorldBootSession.TryCreateInitializeProprieties(out _), Is.False);
@@ -117,7 +118,7 @@ namespace Client.Tests.Playtest
             var restoredBoot = PlaytestBootLifecycle.RestoreAfterDomainReload(true);
             var restoredWorld = PlaytestWorldBootSession.TryCreateInitializeProprieties(out _);
 
-            Assert.That(SessionState.GetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, !noSave), Is.EqualTo(noSave));
+            Assert.That(SessionState.GetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, !noSave), Is.EqualTo(noSave));
             Assert.That(SessionState.GetBool("DebugObjectsBootstrap_Disabled", false), Is.True);
             Assert.That(restoredBoot, Is.True);
             Assert.That(restoredWorld, Is.False);
@@ -138,7 +139,7 @@ namespace Client.Tests.Playtest
             Assert.That(PlaytestBootLifecycle.IsWorldBootSceneHookRegistered(), Is.False);
             Assert.That(PlaytestBootLifecycle.IsEnvironmentSceneHookRegistered(), Is.False);
             Assert.That(DebugParametersCacheDirectory.GetOverride(), Is.Null);
-            Assert.That(SessionState.GetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, true), Is.False);
+            Assert.That(SessionState.GetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, true), Is.False);
             Assert.That(SessionState.GetBool("DebugObjectsBootstrap_Disabled", true), Is.False);
         }
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SlotDataSchema } from "./common";
+import { GuidSchema, SlotDataSchema } from "./common";
 
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
@@ -17,13 +17,15 @@ export const FluidSlotDataSchema = z.object({
   fluidId: z.number(),
   amount: z.number(),
   capacity: z.number(),
-  name: z.string(),
-});
+  // 表示名はguid導出キーで辞書解決する。空流体だけが空文字
+  // The display name resolves from the guid-derived key; only the empty fluid carries an empty string
+  fluidGuid: GuidSchema.or(z.literal("")),
+}).strict();
 
 export const MachineDetailDataSchema = z.object({
-  recipeGuid: z.string(),
-  selectedRecipeGuid: z.string(),
-  blockGuid: z.string(),
+  recipeGuid: GuidSchema,
+  selectedRecipeGuid: GuidSchema,
+  blockGuid: GuidSchema,
   recipeTime: z.number(),
   outputItems: z.array(z.object({ itemId: z.number(), count: z.number() })),
   currentState: z.string(),
@@ -92,7 +94,7 @@ export const BlockInventoryOpenSchema = z.object({
   source: z.literal("block"),
   blockType: z.string(),
   identifier: z.string(),
-  blockName: z.string(),
+  blockGuid: GuidSchema,
   itemSlots: z.array(SlotDataSchema),
   fluidSlots: z.array(FluidSlotDataSchema),
   progress: z.number().optional(),
@@ -105,13 +107,12 @@ export const BlockInventoryOpenSchema = z.object({
   filterSplitter: FilterSplitterDataSchema.optional(),
   electricToGear: ElectricToGearDataSchema.optional(),
   trainPlatform: TrainPlatformDataSchema.optional(),
-});
+}).strict();
 export const TrainInventoryOpenSchema = z.object({
   open: z.literal(true),
   source: z.literal("train"),
   blockType: z.literal("Train"),
   identifier: z.string(),
-  blockName: z.string(),
   itemSlots: z.array(SlotDataSchema),
   fluidSlots: z.array(FluidSlotDataSchema),
   error: z.enum(["containerMissing", "trainCarMissing", "openFailed"]).optional(),

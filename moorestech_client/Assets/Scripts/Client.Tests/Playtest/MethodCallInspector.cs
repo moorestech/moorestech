@@ -81,6 +81,7 @@ namespace Client.Tests.Playtest
                 case OperandType.InlineSig:
                 case OperandType.InlineString:
                 case OperandType.InlineTok:
+                case OperandType.InlineType:
                 case OperandType.ShortInlineR:
                     return 4;
                 case OperandType.InlineI8:

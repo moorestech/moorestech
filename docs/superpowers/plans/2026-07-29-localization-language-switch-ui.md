@@ -15,6 +15,7 @@ spec: docs/superpowers/specs/2026-07-29-localization-foundation-design.md
 ## Global Constraints
 
 - Plan1・Plan2完了が前提
+- LanguageCatalog埋め込みと言語セットの辞書CSVヘッダ一本化はユーザー採択済み。別定義・optional settings・欠損補完を追加しない
 - webuiの見た目・構造は webui-design スキルのホワイトリスト厳守。着手前に `.claude/skills/webui-design/SKILL.md` を必ず読む
 - partial禁止・Func禁止・try-catch原則禁止・UniRx・200行/ファイル・日英2行コメント（AGENTS.md）
 - レガシーuGUIの `LanguageSetting.cs` は触らない（uGUI残置方針・動き続ける）
@@ -26,7 +27,7 @@ spec: docs/superpowers/specs/2026-07-29-localization-foundation-design.md
 Localization/localization_settings.csv                       ← 移設・2言語へ縮小
 mooresmaster/mooresmaster.Generator/Localization/
 └── LocalizationCodeGenerator.cs                             ← LanguageCatalog生成を追加
-mooresmaster/mooresmaster.Generator/LocalizationSourceGenerator.cs ← settings AdditionalFile対応
+mooresmaster/mooresmaster.Generator/LocalizationSourceEmitter.cs   ← settings AdditionalFile対応
 moorestech_client/Assets/Scripts/Client.Localization/csc.rsp ← settings行を追加
 moorestech_client/Assets/Scripts/Client.WebUiHost/Game/
 ├── LocalizationLanguagesEndpoint.cs                         ← 新設 GET /api/i18n-languages
@@ -44,7 +45,7 @@ moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/c
 **Files:**
 - Create: `Localization/localization_settings.csv`
 - Modify: `mooresmaster/mooresmaster.Generator/Localization/LocalizationCodeGenerator.cs`
-- Modify: `mooresmaster/mooresmaster.Generator/LocalizationSourceGenerator.cs`
+- Modify: `mooresmaster/mooresmaster.Generator/LocalizationSourceEmitter.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Localization/csc.rsp`
 - Test: `mooresmaster/mooresmaster.Tests/LocalizationTests/LanguageCatalogTest.cs`
 
@@ -67,6 +68,7 @@ japanese,日本語,ja
 `LanguageCatalogTest.cs`:
 
 ```csharp
+using Mooresmaster.LocalizationCsv;
 using mooresmaster.Generator.Localization;
 using Xunit;
 
@@ -104,9 +106,9 @@ Expected: FAIL
 
 - [ ] **Step 3: 実装する**
 
-- `LocalizationSettingsParser`（新規・`Localization/` 配下）: 3列CSV→`LanguageSetting[]`（`record LanguageSetting(string Code, string DisplayName, string SteamApiLangCode)`）。Task 2（Plan1）の `SplitRecords` を共有
+- `LocalizationSettingsParser`（新規・`Localization/` 配下）: `Mooresmaster.LocalizationCsv.LocalizationCsvParser.ParseRecords` のquote-aware record分割を使って3列CSV→`LanguageSetting[]`（`record LanguageSetting(string Code, string DisplayName, string SteamApiLangCode)`）へ写像する。別のCSV field parserを実装しない
 - `LocalizationCodeGenerator.Generate(LocalizationCsv csv, LanguageSetting[] settings)` へシグネチャ変更（settingsは必須引数。デフォルト引数禁止・呼び出し側を全updateする — AGENTS.md）。settings行集合と `csv.LanguageCodes` の集合一致を検査し、`LanguageCatalog` を追加emit
-- `LocalizationSourceGenerator`: AdditionalFilesから `localization_settings.csv` も取得。**settingsが無い場合もコンパイルエラー**（片方だけの配線ミスを無言で通さない）
+- `LocalizationSourceEmitter`: `MooresmasterSourceGenerator` が収集したAdditionalFilesから `localization_settings.csv` も取得。**settingsが無い場合もコンパイルエラー**（片方だけの配線ミスを無言で通さない）。独立した第2 `[Generator]` へ戻すと共通DLLのanalyzer依存解決が全assemblyを壊すため、単一generator統合を維持する
 - `csc.rsp` へ追記: `/additionalfile:Assets/../../Localization/localization_settings.csv`
 
 Run: `cd mooresmaster && dotnet test && ./build.sh && uloop compile --project-path ./moorestech_client`
@@ -356,7 +358,7 @@ git add -A && git commit -m "chore: 言語切替UI結合確認の調整" || true
 ## 判断記録（ADR）
 
 - 対応spec: [docs/superpowers/specs/2026-07-29-localization-foundation-design.md](../specs/2026-07-29-localization-foundation-design.md)
-- **言語表示名も埋め込み（LanguageCatalog）** — 辞書CSVと同じライフサイクルで管理し、言語セット不一致をコンパイルエラー化（specのシミュレーター指摘C1の適用結果）。出所: シミュレーター予測→spec適用済み（ユーザー承認待ち）
+- **言語表示名も埋め込み（LanguageCatalog）** — 辞書CSVと同じライフサイクルで管理し、言語セットの唯一の定義を辞書CSVヘッダとしてsettings不一致をコンパイルエラー化する。出所: シミュレーター予測→ユーザー承認 2026-07-29
 - **set localeはWS action機構（`localization.setLocale`）** — Web→ホストの状態変更は `IActionHandler` が既存標準（POST新設よりこちら）。出所: agent前提（`DebugActions.cs` / `WebSocketMessageDispatcher.cs:52-53` の前例一致）
 - **言語一覧はHTTP GET** — 静的な埋め込みデータの配信は辞書と同じHTTP側（`/api/i18n/` 前例）。現在値だけがトピック。出所: agent前提（辞書=HTTP/現在値=トピックの既存2チャネル分離の踏襲）
 - **旧CSVはテストデータ側も削除** — 実行時読み込み廃止後の残骸を残すと「読まれているように見える」誤解を生む。出所: agent前提

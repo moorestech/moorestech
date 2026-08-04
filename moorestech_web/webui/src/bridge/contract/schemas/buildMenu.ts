@@ -9,19 +9,43 @@ export const BuildMenuRequiredItemSchema = z.object({
   count: z.number().int(),
 });
 
-export const BuildMenuEntryDataSchema = z.object({
-  id: z.string(),
-  kind: BuildMenuEntryKindSchema,
-  label: z.string(),
-  category: z.string(),
-  subCategory: z.string(),
+const BuildMenuEntryCommonFields = {
+  id: z.string().uuid(),
+  categoryGuid: z.string().uuid(),
+  subCategoryGuid: z.string().uuid(),
   requiredItems: z.array(BuildMenuRequiredItemSchema),
   iconUrl: z.string().optional(),
-});
+};
+
+// マスタ由来名はGuid導出キーで解決し、ホストから表示名を運ばない
+// Resolve master-derived names through GUID-derived keys without host-provided labels
+const BuildMenuDictionaryResolvedEntryDataSchema = z.object({
+  kind: z.enum(["block", "trainCar", "connectTool"]),
+  ...BuildMenuEntryCommonFields,
+  label: z.never().optional(),
+}).strict();
+
+const BuildMenuBlueprintCopyEntryDataSchema = z.object({
+  kind: z.literal("blueprintCopy"),
+  ...BuildMenuEntryCommonFields,
+  label: z.never().optional(),
+}).strict();
+
+const BuildMenuBlueprintEntryDataSchema = z.object({
+  kind: z.literal("blueprint"),
+  ...BuildMenuEntryCommonFields,
+  label: z.string().min(1),
+}).strict();
+
+export const BuildMenuEntryDataSchema = z.discriminatedUnion("kind", [
+  BuildMenuDictionaryResolvedEntryDataSchema,
+  BuildMenuBlueprintCopyEntryDataSchema,
+  BuildMenuBlueprintEntryDataSchema,
+]);
 
 export const BuildMenuCategorySchema = z.object({
-  name: z.string(),
-  subCategories: z.array(z.string()),
+  categoryGuid: z.string().uuid(),
+  subCategoryGuids: z.array(z.string().uuid()),
 });
 
 export const BuildMenuDataSchema = z.object({

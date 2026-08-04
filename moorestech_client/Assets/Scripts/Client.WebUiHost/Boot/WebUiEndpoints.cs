@@ -94,6 +94,14 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
+                if (path == Game.LocalizationLanguagesEndpoint.Path)
+                {
+                    // 選択可能な言語コードと表示名を配信
+                    // Serve selectable locale codes and display names
+                    await Game.LocalizationLanguagesEndpoint.HandleAsync(context);
+                    return;
+                }
+
                 if (path.StartsWith(Game.LocalizationDictionaryEndpoint.PathPrefix, StringComparison.Ordinal))
                 {
                     // uGUIと同じローカライズ辞書のJSON配信

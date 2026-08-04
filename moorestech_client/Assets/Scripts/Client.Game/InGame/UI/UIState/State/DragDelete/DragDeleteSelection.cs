@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
@@ -20,10 +21,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Fix the first selected block's destruction category as the session category (null while empty)
         private string _sessionCategory;
 
-        // 別カテゴリー混在時の拒否理由。IsRemovableのreasonと同様に生文字列で表示する
-        // Deny reason shown when mixing categories; a raw string like IsRemovable's reason
-        public const string DifferentCategoryDenyReason = "別カテゴリーのブロックは同時に選択できません。";
-
         public DragDeleteSelection(BuildOperationHistory buildOperationHistory)
         {
             _buildOperationHistory = buildOperationHistory;
@@ -38,9 +35,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _sessionCategory = null;
         }
 
-        // 対象を選択へ追加する。削除可否・カテゴリー整合をまとめて判定し、追加不可なら拒否理由を返す
-        // Add a target to the selection; judges removability and category together, returning a deny reason when rejected
-        public bool TryAddTarget(IDeleteTarget target, out string denyReason)
+        // 対象を選択へ追加する。削除可否・カテゴリー整合をまとめて判定し、追加不可なら拒否理由を返す（理由なし拒否はnull）
+        // Add a target to the selection; judges removability and category together, returning a deny reason when rejected (null when there is none)
+        public bool TryAddTarget(IDeleteTarget target, out LocalizationKey? denyReason)
         {
             denyReason = null;
             if (_canceled) return false;
@@ -53,7 +50,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             // Reject a target whose category differs from the session category (prevents mixing)
             if (!IsCategoryCompatible(target))
             {
-                denyReason = DifferentCategoryDenyReason;
+                denyReason = LocalizationKeys.Ui.Delete.DifferentCategorySelection;
                 return false;
             }
 

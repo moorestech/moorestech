@@ -521,6 +521,7 @@ GameObject:
   - component: {fileID: 523816435}
   - component: {fileID: 523816437}
   - component: {fileID: 523816436}
+  - component: {fileID: 523816438}
   m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -647,6 +648,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 523816434}
   m_CullTransparentMesh: 1
+--- !u!114 &523816438
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 523816434}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.blueprint.nameInputConfirm
 --- !u!4 &1061182519 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8466354111555762101, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
@@ -879,6 +893,7 @@ GameObject:
   - component: {fileID: 1199068962}
   - component: {fileID: 1199068961}
   - component: {fileID: 1199068960}
+  - component: {fileID: 1199068963}
   m_Layer: 0
   m_Name: Placeholder
   m_TagString: Untagged
@@ -1025,6 +1040,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1199068958}
   m_CullTransparentMesh: 1
+--- !u!114 &1199068963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1199068958}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.blueprint.nameInputPlaceholder
 --- !u!1 &1225534609
 GameObject:
   m_ObjectHideFlags: 0
@@ -14583,6 +14611,7 @@ GameObject:
   - component: {fileID: 1374190761}
   - component: {fileID: 1374190763}
   - component: {fileID: 1374190762}
+  - component: {fileID: 1374190764}
   m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -14709,6 +14738,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1374190760}
   m_CullTransparentMesh: 1
+--- !u!114 &1374190764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1374190760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.common.cancel
 --- !u!1 &1388031227
 GameObject:
   m_ObjectHideFlags: 0
@@ -15303,6 +15345,7 @@ GameObject:
   - component: {fileID: 1971237430}
   - component: {fileID: 1971237432}
   - component: {fileID: 1971237431}
+  - component: {fileID: 1971237433}
   m_Layer: 0
   m_Name: TitleLabel
   m_TagString: Untagged
@@ -15429,6 +15472,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1971237429}
   m_CullTransparentMesh: 1
+--- !u!114 &1971237433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1971237429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.blueprint.nameInputTitle
 --- !u!1001 &5103828206815401739
 PrefabInstance:
   m_ObjectHideFlags: 0

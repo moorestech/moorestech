@@ -165,7 +165,7 @@
       "characterId": "chr_002",
       "body": "...レポート記録開始",
       "id": 1,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "text",
@@ -173,7 +173,7 @@
       "characterId": "chr_002",
       "body": "現在位置、惑星セレスタル上空750km\n電力残り78%、ワームホールエネルギー残り98%\nスラスター燃料残り35%",
       "id": 2,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "cameraWarp",
@@ -197,7 +197,7 @@
       "characterId": "chr_002",
       "body": "搭乗員一名、ヨリ、睡眠薬による昏睡を確認",
       "id": 3,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "cameraWarp",
@@ -221,7 +221,7 @@
       "characterId": "chr_002",
       "body": "ワープシーケンスを開始。\n現在地、惑星セレスタル、目標、惑星アルカディア\n5..4..3..2..1....",
       "id": 4,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "transition",
@@ -281,7 +281,7 @@
       "characterId": "chr_002",
       "body": "ワープの正常終了を確認",
       "id": 6,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "text",
@@ -289,7 +289,7 @@
       "characterId": "chr_002",
       "body": "惑星アルカディアへの大気圏突入を開始",
       "id": 94,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "id": 88,
@@ -429,7 +429,7 @@
       "characterId": "chr_002",
       "body": "地表への到達を確認",
       "id": 10,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "text",
@@ -437,7 +437,7 @@
       "characterId": "chr_002",
       "body": "睡眠薬の供給停止と覚醒薬を注入",
       "id": 11,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "cameraWarp",
@@ -500,7 +500,7 @@
       "characterId": "chr_002",
       "body": "おはようございます。姫さま。\nここは惑星アルカディアです。\nこれはその着陸ポッドです。",
       "id": 14,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "cameraWarp",
@@ -547,7 +547,7 @@
       "characterId": "chr_002",
       "body": "困惑されるのも当然でしょう。\nひとまず、外に出ましょう。",
       "id": 45,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "transition",
@@ -674,7 +674,7 @@
       "characterId": "chr_002",
       "body": "姫さまに冗談なんて言いません\nぼくは約束と冗談が大っ嫌いなんです",
       "id": 17,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "text",
@@ -682,7 +682,7 @@
       "characterId": "chr_002",
       "body": "惑星アルカディアは貴方が住んでいる、\n惑星セレスタルの隣の隣の隣の……\nとにかく遠くです",
       "id": 18,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "emote",
@@ -747,7 +747,7 @@
       "characterId": "chr_002",
       "body": "何を言っているのですか？\nあなたは追放されたのです。",
       "id": 20,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "text",
@@ -755,7 +755,7 @@
       "characterId": "chr_002",
       "body": "国王陛下……つまり、あなたのお父様の命令により、\n姫さまは惑星セレスタルから永久追放処分となりました。",
       "id": 21,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "emote",
@@ -820,7 +820,7 @@
       "characterId": "chr_002",
       "body": "私はあなたをここまで連れてくるのが任務です。\nあなたが連れて来られた事由は把握していません",
       "id": 23,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "text",
@@ -851,7 +851,7 @@
       "characterId": "chr_002",
       "body": "何も知りません。\n私は貴方をサポートするために、\nプログラムされたAIシステムです。",
       "id": 25,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "emote",
@@ -891,7 +891,7 @@
       "characterId": "chr_002",
       "body": "戻る手段なんて...存在しませんよ。\nこれは着陸専用の片道切符の宇宙船です。",
       "id": 27,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "cameraWarp",
@@ -947,7 +947,7 @@
       "characterId": "chr_002",
       "body": "姫様...ご無礼をお許しください",
       "id": 29,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "text",
@@ -1051,7 +1051,7 @@
       "characterId": "chr_002",
       "body": "いい加減目を冷ましてください！\nあなたは追放されたのです！ここに宇宙船はありません！\nあなたはここで生きていくしかないんです！",
       "id": 33,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "cameraWarp",
@@ -1098,7 +1098,7 @@
       "characterId": "chr_002",
       "body": "大変申し訳ありません。ですがこれも貴方のためを..",
       "id": 35,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "cameraWarp",
@@ -1152,7 +1152,7 @@
       "characterId": "chr_002",
       "body": "...勝手にしてください。",
       "id": 38,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "text",
@@ -1167,7 +1167,7 @@
       "characterId": "chr_002",
       "body": "大丈夫です。ぼくがしっかりサポートするので\n姫さまは何も心配いりません。さあ、行きますよ",
       "id": 40,
-      "overideCharacterName": "？？？"
+      "overrideCharacterName": "？？？"
     }
   ]
 }

@@ -2,6 +2,7 @@ using Client.Game;
 using Client.DebugSystem.Environment;
 using Client.Playtest.Core;
 using Client.Starter;
+using Client.Starter.Editor;
 using Common.Debug;
 using Game.MapGeneration.Provisioning;
 using Server.Boot;
@@ -23,7 +24,7 @@ namespace Client.Playtest
         {
             // 従来入口はNoSave指定を保ち、前回の固定world設定だけを破棄する
             // Preserve the legacy NoSave choice while discarding only stale fixed-world settings
-            SessionState.SetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, noSave);
+            SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, noSave);
             PlaytestWorldBootSession.Clear();
             PrepareCommonBootSession(serverDirectory);
         }
@@ -36,7 +37,7 @@ namespace Client.Playtest
 
             // 固定worldはGuid一時パスへの上書きを止め、正式な起動設定をdomain reload越しに渡す
             // Fixed-world boot disables the GUID temp-path override and carries official settings across domain reload
-            SessionState.SetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, false);
+            SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, false);
             PlaytestWorldBootSession.Save(serverDirectory, worldDirectory, mapMode, seed);
             PrepareCommonBootSession(serverDirectory);
 
@@ -117,7 +118,7 @@ namespace Client.Playtest
 
             // 通常再生へ設定を漏らさないよう起動状態と購読を一括解除する
             // Clear boot state and subscriptions together so nothing leaks into normal play
-            SessionState.SetBool(InitializeScenePipeline.SkipSaveLoadSessionKey, false);
+            SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, false);
             SessionState.SetBool(PendingBootKey, false);
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
             PlaytestWorldBootSession.Clear();

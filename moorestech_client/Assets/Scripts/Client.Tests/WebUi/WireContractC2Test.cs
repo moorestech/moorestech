@@ -1,24 +1,145 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
+using Core.Master;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Client.Tests.WebUi
 {
     public class WireContractC2Test
     {
-        [Test]
-        public void PlacementModeMatchesFixture()
+        [SetUp]
+        public void SetUp()
         {
-            AssertMatches(new PlacementModeDto { SelectedName = "Conveyor Belt", Height = 2, UnavailableReason = "" }, "placement_mode.json");
+            new MoorestechServerDIContainerGenerator().Create(
+                new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
         }
 
         [Test]
-        public void DeleteModeMatchesFixture()
+        public void PlacementModeMatchesFixture()
         {
-            AssertMatches(new DeleteModeDto { UnavailableReason = "Cannot remove" }, "delete_mode.json");
+            AssertMatches(
+                new PlacementModeDto
+                {
+                    SelectedTargetType = "block",
+                    SelectedBlockGuid = "abcdefab-cdef-4bcd-8fab-cdefabcdefab",
+                    Height = 2,
+                    UnavailableReason = "",
+                },
+                "placement_mode.json");
+        }
+
+        [Test]
+        public void PlacementModeFactoryPublishesOnlyResolvableBlockIdentity()
+        {
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BlockId);
+            var dto = PlacementModeDtoFactory.Create(
+                new BlockPlacementTarget(blockMaster.BlockGuid, null),
+                2,
+                "");
+
+            // 原文を運ばずWeb用Guidを固定
+            // Pin Web GUIDs without carrying source names
+            Assert.AreEqual("block", dto.SelectedTargetType);
+            Assert.AreEqual(blockMaster.BlockGuid.ToString("D"), dto.SelectedBlockGuid);
+            Assert.IsNull(dto.SelectedName);
+        }
+
+        [Test]
+        public void PlacementModeConnectToolMatchesFixture()
+        {
+            AssertMatches(
+                new PlacementModeDto
+                {
+                    SelectedTargetType = "connectTool",
+                    SelectedConnectToolGuid = "abcdefab-cdef-4bcd-8fab-cdefabcdefac",
+                    Height = 2,
+                    UnavailableReason = "",
+                },
+                "placement_mode_connect_tool.json");
+        }
+
+        [Test]
+        public void PlacementModeFactoryPublishesConnectToolGuidWithoutMasterName()
+        {
+            var connectToolGuid = Guid.Parse("abcdefab-cdef-4bcd-8fab-cdefabcdefac");
+            var dto = PlacementModeDtoFactory.Create(
+                new ConnectToolPlacementTarget(connectToolGuid),
+                2,
+                "");
+
+            // masterのNameを引かずGuidだけを配信する
+            // Publish only the GUID without reading the master name
+            Assert.AreEqual("connectTool", dto.SelectedTargetType);
+            Assert.AreEqual(connectToolGuid.ToString("D"), dto.SelectedConnectToolGuid);
+            Assert.IsNull(dto.SelectedName);
+        }
+
+        [Test]
+        public void PlacementModeTrainCarMatchesFixture()
+        {
+            AssertMatches(
+                new PlacementModeDto
+                {
+                    SelectedTargetType = "trainCar",
+                    SelectedTrainCarGuid = "abcdefab-cdef-4bcd-8fab-cdefabcdefad",
+                    Height = 2,
+                    UnavailableReason = "",
+                },
+                "placement_mode_train_car.json");
+        }
+
+        [Test]
+        public void PlacementModeFactoryPublishesTrainCarGuidWithoutMasterName()
+        {
+            var trainCarGuid = Guid.Parse("abcdefab-cdef-4bcd-8fab-cdefabcdefad");
+            var dto = PlacementModeDtoFactory.Create(
+                new TrainCarPlacementTarget(trainCarGuid),
+                2,
+                "");
+
+            // masterのNameを引かずGuidだけを配信する
+            // Publish only the GUID without reading the master name
+            Assert.AreEqual("trainCar", dto.SelectedTargetType);
+            Assert.AreEqual(trainCarGuid.ToString("D"), dto.SelectedTrainCarGuid);
+            Assert.IsNull(dto.SelectedName);
+        }
+
+        [Test]
+        public void PlacementModeFactorySeparatesTypedCopyToolFromRawBlueprintName()
+        {
+            var copyTool = PlacementModeDtoFactory.Create(
+                new BlueprintCopyPlacementTarget(
+                    MasterHolder.BuildToolMaster.All[0].BuildToolGuid),
+                2,
+                "");
+            var blueprint = PlacementModeDtoFactory.Create(
+                new BlueprintPlacementTarget(
+                    Guid.Parse("60000000-0000-4000-8000-000000000001"),
+                    "My Blueprint"),
+                2,
+                "");
+
+            // BPコピーはtyped、命名BPはraw
+            // Type blueprint copies while preserving authored blueprint names
+            Assert.AreEqual("blueprintCopy", copyTool.SelectedTargetType);
+            Assert.IsNull(copyTool.SelectedName);
+            Assert.AreEqual("raw", blueprint.SelectedTargetType);
+            Assert.AreEqual("My Blueprint", blueprint.SelectedName);
+        }
+
+        [Test]
+        public void PlacementModeFactoryRejectsUnknownTargetType()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                PlacementModeDtoFactory.Create(new UnknownPlacementTarget(), 2, ""));
         }
 
         [Test]
@@ -30,7 +151,15 @@ namespace Client.Tests.WebUi
         [Test]
         public void TooltipMatchesFixture()
         {
-            AssertMatches(new TooltipDto { Visible = true, TextKey = "Cannot remove", FontSize = 36 }, "tooltip.json");
+            AssertMatches(
+                new TooltipDto
+                {
+                    Visible = true,
+                    TextKey = "ui.tooltip.requiredItems",
+                    TextParams = new[] { "Iron Pickaxe" },
+                    FontSize = 36,
+                },
+                "tooltip.json");
         }
 
         private static void AssertMatches(object dto, string fixtureName)
@@ -39,6 +168,19 @@ namespace Client.Tests.WebUi
             var path = Path.Combine(Application.dataPath, "Scripts/Client.Tests/WebUi/WireFixtures", fixtureName);
             var expected = JToken.Parse(File.ReadAllText(path));
             Assert.IsTrue(JToken.DeepEquals(expected, actual), $"{fixtureName} mismatch");
+        }
+
+        private sealed class UnknownPlacementTarget : IPlacementTarget
+        {
+            public Guid Id => Guid.Parse("70000000-0000-4000-8000-000000000001");
+            public PlacementTargetKind Kind => (PlacementTargetKind)999;
+            public string DisplayName => "unknown";
+            public IReadOnlyList<(Guid itemGuid, int count)> CreateRequiredItems() => Array.Empty<(Guid, int)>();
+
+            public bool Equals(IPlacementTarget other)
+            {
+                return ReferenceEquals(this, other);
+            }
         }
     }
 }

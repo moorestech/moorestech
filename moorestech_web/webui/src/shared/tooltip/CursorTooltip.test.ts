@@ -1,0 +1,114 @@
+import { createElement, forwardRef } from "react";
+import { act, create } from "react-test-renderer";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { itemNameKey, L } from "@/shared/i18n";
+import { createTranslator, getI18nSnapshot, setDictionaries } from "@/shared/i18n/i18nStore";
+
+const testState = vi.hoisted(() => ({
+  locale: "english",
+  data: {
+    visible: true,
+    textKey: "ui.mainMenu.playLocally",
+    textParams: [] as string[],
+    fontSize: 36,
+  },
+  clamp: vi.fn(() => ({ x: 12, y: 12 })),
+}));
+
+vi.mock("@mantine/core", () => ({
+  Paper: forwardRef((props: Record<string, unknown>, ref) => createElement("div", { ...props, ref })),
+  Portal: ({ children }: { children: unknown }) => children,
+}));
+vi.mock("@/bridge", () => ({
+  Topics: { tooltip: "ui.tooltip" },
+  useTopic: () => testState.data,
+}));
+vi.mock("@/shared/i18n", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/shared/i18n")>();
+  return {
+    ...actual,
+    useI18n: () => ({
+      locale: testState.locale,
+      t: () => testState.locale === "japanese" ? "日本語の長い文言" : "English",
+    }),
+  };
+});
+vi.mock("./tooltipPosition", () => ({ clampTooltipPosition: testState.clamp }));
+
+import { CursorTooltip, resolveTooltipText } from "./CursorTooltip";
+
+const ironIngotGuid = "5c2e4d9a-1b3f-4a7c-8d6e-0f1a2b3c4d5e";
+
+describe("CursorTooltip", () => {
+  afterEach(() => {
+    testState.locale = "english";
+    testState.data = {
+      visible: true,
+      textKey: "ui.mainMenu.playLocally",
+      textParams: [],
+      fontSize: 36,
+    };
+    testState.clamp.mockClear();
+    vi.restoreAllMocks();
+  });
+
+  it("interpolates textParams into the localized template", () => {
+    setDictionaries("english", { [L.ui.tooltip.requiredItems]: "Requires: {p0}" }, {}, {});
+
+    expect(resolveTooltipText({
+      visible: true,
+      textKey: L.ui.tooltip.requiredItems,
+      textParams: ["Iron Pickaxe, Stone Pickaxe"],
+      fontSize: 36,
+    }, createTranslator(getI18nSnapshot()))).toBe("Requires: Iron Pickaxe, Stone Pickaxe");
+  });
+
+  it("resolves a content key from the dictionary without a raw-text fallback", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    setDictionaries("english", { [itemNameKey(ironIngotGuid)]: "Iron Ingot" }, {}, {});
+
+    expect(resolveTooltipText({
+      visible: true,
+      textKey: itemNameKey(ironIngotGuid),
+      textParams: [],
+      fontSize: 36,
+    }, createTranslator(getI18nSnapshot()))).toBe("Iron Ingot");
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("shows a loud marker for an unknown localized key", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    setDictionaries("english", {}, {}, {});
+    const data = {
+      visible: true,
+      textKey: "ui.tooltip.unknown",
+      textParams: [],
+      fontSize: 36,
+    };
+
+    expect(resolveTooltipText(data, vi.fn())).toBe("[!ui.tooltip.unknown]");
+    expect(resolveTooltipText(data, vi.fn())).toBe("[!ui.tooltip.unknown]");
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn).toHaveBeenCalledWith("[i18n] Unknown localized external key: ui.tooltip.unknown");
+  });
+
+  it("recalculates position when locale changes the resolved text", () => {
+    vi.stubGlobal("window", {
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      innerWidth: 1280,
+      innerHeight: 720,
+    });
+    const renderer = create(createElement(CursorTooltip), {
+      createNodeMock: () => ({ offsetWidth: 120, offsetHeight: 40 }),
+    });
+    const initialCalls = testState.clamp.mock.calls.length;
+
+    act(() => {
+      testState.locale = "japanese";
+      renderer.update(createElement(CursorTooltip));
+    });
+
+    expect(testState.clamp.mock.calls.length).toBeGreaterThan(initialCalls);
+  });
+});

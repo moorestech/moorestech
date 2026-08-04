@@ -1,40 +1,60 @@
 // messageId→表示テンプレートの対応表。文言はWeb側が所有しサーバーは構造化IDのみ送る
 // Maps messageId to display templates; the web owns wording, the server sends structured ids only
-// keyはi18n辞書キーも兼ねる（{p0}等はparamsで補間）
-// The key also doubles as the i18n dictionary key; {p0} etc. are filled from params
-const templates: Record<string, string> = {
-  "achievement.researchCompleted": "Research completed: {p0}",
-  "achievement.challengeCompleted": "Challenge completed: {p0}",
-  "achievement.unlockedItem": "New item unlocked",
-  "achievement.unlockedCraftRecipe": "New crafting recipe unlocked",
-  "achievement.unlockedMachineRecipe": "New machine recipe unlocked",
-  "achievement.unlockedBlock": "New block unlocked",
-  "achievement.unlockedTrainCar": "New train car unlocked",
-  "achievement.unlockedConnectTool": "New connect tool unlocked",
-  "denied.researchNotCompletable": "Cannot complete research (prerequisites or materials missing)",
-  "denied.craftResultFull": "Cannot craft: inventory is full",
-  "denied.craftMaterialShortage": "Cannot craft: not enough materials",
-  "denied.removeTrainCarInventoryFull": "Cannot remove train car: inventory is full",
-  "denied.placeBlockNotUnlocked": "Some blocks were not placed: not unlocked yet",
-  "denied.placeBlockCostShortage": "Some blocks were not placed: not enough materials",
-  "denied.placeBlockWireShortage": "Some blocks were not placed: not enough wires",
-  "denied.railEdit.InvalidNode": "Rail edit failed: invalid rail node",
-  "denied.railEdit.NodeInUseByTrain": "Rail edit failed: a train is using this rail",
-  "denied.railEdit.StationInternalEdge": "Rail edit failed: cannot edit station internal rail",
-  "denied.railEdit.InvalidMode": "Rail edit failed",
-  "denied.railEdit.NotEnoughRailItem": "Rail edit failed: not enough rail materials",
-  "denied.railEdit.NotEnoughInventorySpace": "Rail edit failed: inventory is full",
-  "denied.railEdit.RailLengthExceeded": "Rail edit failed: rail is too long",
-  "denied.railEdit.NotUnlocked": "Rail edit failed: connect tool not unlocked",
-  "denied.railEdit.UnknownError": "Rail edit failed",
-};
+import { L, buildPositionalInterpolationValues, challengeTitleKey, researchNameKey, type TranslationKey } from "@/shared/i18n";
 
-// 未知IDはそのまま表示し欠落可視化
-// Unknown ids are shown as-is to surface gaps
-export function resolveNotificationTemplate(messageId: string): string {
-  return templates[messageId] ?? messageId;
+const notificationKeys = new Map<string, TranslationKey>([
+  ["achievement.researchCompleted", L.ui.notification.researchCompleted],
+  ["achievement.challengeCompleted", L.ui.notification.challengeCompleted],
+  ["achievement.unlockedItem", L.ui.notification.unlockedItem],
+  ["achievement.unlockedCraftRecipe", L.ui.notification.unlockedCraftRecipe],
+  ["achievement.unlockedMachineRecipe", L.ui.notification.unlockedMachineRecipe],
+  ["achievement.unlockedBlock", L.ui.notification.unlockedBlock],
+  ["achievement.unlockedTrainCar", L.ui.notification.unlockedTrainCar],
+  ["achievement.unlockedConnectTool", L.ui.notification.unlockedConnectTool],
+  ["denied.researchNotCompletable", L.ui.notification.researchNotCompletable],
+  ["denied.craftResultFull", L.ui.notification.craftResultFull],
+  ["denied.craftMaterialShortage", L.ui.notification.craftMaterialShortage],
+  ["denied.removeTrainCarInventoryFull", L.ui.notification.removeTrainCarInventoryFull],
+  ["denied.placeBlockNotUnlocked", L.ui.notification.placeBlockNotUnlocked],
+  ["denied.placeBlockCostShortage", L.ui.notification.placeBlockCostShortage],
+  ["denied.placeBlockWireShortage", L.ui.notification.placeBlockWireShortage],
+  ["denied.railEdit.InvalidNode", L.ui.notification.railEditInvalidNode],
+  ["denied.railEdit.NodeInUseByTrain", L.ui.notification.railEditNodeInUseByTrain],
+  ["denied.railEdit.StationInternalEdge", L.ui.notification.railEditStationInternalEdge],
+  ["denied.railEdit.InvalidMode", L.ui.notification.railEditInvalidMode],
+  ["denied.railEdit.NotEnoughRailItem", L.ui.notification.railEditNotEnoughRailItem],
+  ["denied.railEdit.NotEnoughInventorySpace", L.ui.notification.railEditNotEnoughInventorySpace],
+  ["denied.railEdit.RailLengthExceeded", L.ui.notification.railEditRailLengthExceeded],
+  ["denied.railEdit.NotUnlocked", L.ui.notification.railEditNotUnlocked],
+  ["denied.railEdit.UnknownError", L.ui.notification.railEditUnknownError],
+]);
+
+// 外部IDを有限の型付きキーへ閉じ、未知IDも専用キーで可視化する
+// Close external ids into finite typed keys and surface unknown ids through a dedicated key
+export function resolveNotificationKey(messageId: string): TranslationKey {
+  return notificationKeys.get(messageId) ?? L.ui.notification.unknownMessage;
 }
 
-export function buildInterpolationValues(messageParams: string[]): Record<string, string> {
-  return Object.fromEntries(messageParams.map((value, index) => [`p${index}`, value]));
+// Guidパラメータを持つ通知のcontentキー組み立て表。サーバーは表示名でなくGuidを送る
+// Content-key builders for GUID-bearing notifications; the server sends GUIDs, not display names
+const contentParamKeyBuilders = new Map<string, (guid: string) => TranslationKey>([
+  ["achievement.researchCompleted", researchNameKey],
+  ["achievement.challengeCompleted", challengeTitleKey],
+]);
+
+export function resolveNotificationParams(
+  messageId: string,
+  messageParams: string[],
+  translate: (key: TranslationKey) => string,
+): string[] {
+  const buildContentKey = contentParamKeyBuilders.get(messageId);
+  if (!buildContentKey) return messageParams;
+  return messageParams.map((guid) => translate(buildContentKey(guid)));
+}
+
+export function buildInterpolationValues(messageId: string, messageParams: string[]) {
+  return {
+    messageId,
+    ...buildPositionalInterpolationValues(messageParams),
+  };
 }

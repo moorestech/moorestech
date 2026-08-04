@@ -18,7 +18,7 @@ export type CaptureCase = {
   uiState: "GameScreen" | "PlayerInventory" | "SubInventory" | "ResearchTree" | "BuildMenu" | "ChallengeList" | "PauseMenu" | "PlaceBlock" | "DeleteBar";
   skit: "none" | "background" | "text";
   background: "world" | "bright" | "dark";
-  companionScenario: "placement" | "delete" | null;
+  companionScenario: "placement" | null;
 };
 
 // UI衝突ケースを固定順で網羅する
@@ -40,14 +40,14 @@ export const captureCases: CaptureCase[] = [
   // 操作モードとの表示分離を検証する
   // Verify separation from operation-mode cues
   { name: "12-place-block-visible", scenario: "challengeJapanese", uiState: "PlaceBlock", skit: "none", background: "world", companionScenario: "placement" },
-  { name: "13-delete-bar-visible", scenario: "challengeJapanese", uiState: "DeleteBar", skit: "none", background: "world", companionScenario: "delete" },
+  { name: "13-delete-bar-visible", scenario: "challengeJapanese", uiState: "DeleteBar", skit: "none", background: "world", companionScenario: null },
   { name: "14-multiple-long-inventory-visible", scenario: "challengeMultipleLong", uiState: "PlayerInventory", skit: "none", background: "world", companionScenario: null },
   // 操作HUDを明暗背景で検証する
   // Verify operation HUDs on bright and dark backgrounds
   { name: "15-place-block-bright", scenario: "challengeJapanese", uiState: "PlaceBlock", skit: "none", background: "bright", companionScenario: "placement" },
   { name: "16-place-block-dark", scenario: "challengeJapanese", uiState: "PlaceBlock", skit: "none", background: "dark", companionScenario: "placement" },
-  { name: "17-delete-bar-bright", scenario: "challengeJapanese", uiState: "DeleteBar", skit: "none", background: "bright", companionScenario: "delete" },
-  { name: "18-delete-bar-dark", scenario: "challengeJapanese", uiState: "DeleteBar", skit: "none", background: "dark", companionScenario: "delete" },
+  { name: "17-delete-bar-bright", scenario: "challengeJapanese", uiState: "DeleteBar", skit: "none", background: "bright", companionScenario: null },
+  { name: "18-delete-bar-dark", scenario: "challengeJapanese", uiState: "DeleteBar", skit: "none", background: "dark", companionScenario: null },
   // メニュー固有面と常駐HUDを目視する
   // Visually verify the resident HUD against menu-specific surfaces
   { name: "19-sub-inventory-long", scenario: "challengeMultipleLong", uiState: "SubInventory", skit: "none", background: "world", companionScenario: null },

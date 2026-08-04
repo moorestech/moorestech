@@ -1,6 +1,6 @@
 import { Button } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
-import { useI18n } from "@/shared/i18n";
+import { L, LocalizedShortcutHint, useI18n } from "@/shared/i18n";
 import styles from "./InventoryScreenChrome.module.css";
 
 // インベントリ画面固有の操作とキーヒントを所有する
@@ -11,12 +11,16 @@ export default function InventoryScreenChrome() {
     <>
       <div className={styles.topControls}>
         <Button className={styles.sortButton} variant="default" size="compact-sm" onClick={() => void dispatchAction("inventory.sort", {})}>
-          {t("整理")}
+          {t(L.ui.inventory.sort)}
         </Button>
       </div>
       <div className={styles.keyHints} data-testid="key-hints">
-        <div><kbd>{t("Tab/ESC")}</kbd>{t(": インベントリを閉じる")}</div>
-        <div><kbd>{t("R")}</kbd>{t(": リサーチツリー")}</div>
+        <div>
+          <LocalizedShortcutHint shortcut="Tab/ESC" translationKey={L.ui.inventory.closeHint} />
+        </div>
+        <div>
+          <LocalizedShortcutHint shortcut="R" translationKey={L.ui.inventory.researchHint} />
+        </div>
       </div>
     </>
   );

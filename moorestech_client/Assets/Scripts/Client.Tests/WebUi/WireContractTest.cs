@@ -28,7 +28,6 @@ namespace Client.Tests.WebUi
             var expected = JToken.Parse(LoadFixture("topic_envelope.json"));
             Assert.IsTrue(JToken.DeepEquals(expected, actual));
         }
-
         // インベントリ snapshot は全フィールド必須（省略なし）の代表ケース
         // The inventory snapshot represents the all-fields-present (no omission) case
         [Test]
@@ -48,7 +47,6 @@ namespace Client.Tests.WebUi
             };
             AssertMatchesFixture(dto, "inventory_snapshot.json");
         }
-
         // 開状態: blockType/itemSlots/fluidSlots/progress が全て存在する（presence 側）
         // Open state: blockType/itemSlots/fluidSlots/progress are all present (the presence variant)
         [Test]
@@ -60,14 +58,13 @@ namespace Client.Tests.WebUi
                 Source = "block",
                 BlockType = "Chest",
                 Identifier = "block:1",
-                BlockName = "Chest",
+                BlockGuid = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
                 ItemSlots = new List<BlockItemSlotDto> { new BlockItemSlotDto { ItemId = 1, Count = 7 }, new BlockItemSlotDto { ItemId = 2, Count = 4 } },
-                FluidSlots = new List<BlockFluidSlotDto> { new BlockFluidSlotDto { FluidId = 10, Amount = 500, Capacity = 1000, Name = "Water" } },
+                FluidSlots = new List<BlockFluidSlotDto> { new BlockFluidSlotDto { FluidId = 10, Amount = 500, Capacity = 1000, FluidGuid = "bbbbbbbb-cccc-4ddd-8eee-ffffffffffff" } },
                 Progress = 0.5,
             };
             AssertMatchesFixture(dto, "block_inventory_open.json");
         }
-
         // 閉状態: NullValueHandling.Ignore で open 以外の全キーが省略される（omission 側）
         // Closed state: NullValueHandling.Ignore omits every key except open (the omission variant)
         [Test]
@@ -75,7 +72,6 @@ namespace Client.Tests.WebUi
         {
             AssertMatchesFixture(new BlockInventoryDto { Open = false }, "block_inventory_closed.json");
         }
-
         // label あり: progress の label キーが存在する（presence 側）
         // With label: the progress label key is present (the presence variant)
         [Test]
@@ -83,7 +79,6 @@ namespace Client.Tests.WebUi
         {
             AssertMatchesFixture(new ProgressDto { Visible = true, Progress = 0.4f, Label = "Crafting" }, "progress_with_label.json");
         }
-
         // label なし: null の label キーが省略される（omission 側）
         // Without label: the null label key is omitted (the omission variant)
         [Test]
@@ -91,7 +86,6 @@ namespace Client.Tests.WebUi
         {
             AssertMatchesFixture(new ProgressDto { Visible = false, Progress = 0f, Label = null }, "progress_no_label.json");
         }
-
         // modal あり: modal オブジェクトが存在する（presence 側）
         // With modal: the modal object is present (the presence variant)
         [Test]
@@ -103,7 +97,6 @@ namespace Client.Tests.WebUi
             };
             AssertMatchesFixture(dto, "modal_open.json");
         }
-
         // 入力モーダル: input:true が配信される（BP名入力等）
         // Input modal: input:true is delivered (e.g. blueprint naming)
         [Test]
@@ -115,7 +108,6 @@ namespace Client.Tests.WebUi
             };
             AssertMatchesFixture(dto, "modal_input.json");
         }
-
         // modal なし: null の modal キーが省略され {} になる（omission 側）
         // Without modal: the null modal key is omitted, yielding {} (the omission variant)
         [Test]
@@ -123,7 +115,6 @@ namespace Client.Tests.WebUi
         {
             AssertMatchesFixture(new ModalTopicDto { Modal = null }, "modal_none.json");
         }
-
         // 全 Action ハンドラ + dispatcher が返し得るエラーコードを error_codes.json が過不足なく網羅する
         // error_codes.json must exactly cover every error code the Action handlers + dispatcher can return
         [Test]
@@ -140,7 +131,7 @@ namespace Client.Tests.WebUi
                 "invalid_id", "invalid_result", "no_pending_modal",
                 "invalid_state", "unsupported_state",
                 "invalid_guid", "research_failed", "block_not_open",
-                "invalid_direction", "filter_request_failed", "unknown_entry",
+                "invalid_direction", "filter_request_failed", "unknown_entry", "unknown_locale",
                 "stale_session", "stale_revision", "intent_not_allowed", "unknown_choice",
                 "blueprint_delete_not_found", "blueprint_delete_request_failed",
             };
@@ -149,7 +140,6 @@ namespace Client.Tests.WebUi
             Assert.AreEqual(shared.Count, new HashSet<string>(shared).Count, "error_codes.json に重複コードがある / duplicate codes");
             Assert.That(new HashSet<string>(shared), Is.EquivalentTo(expected), "error_codes.json が C# のエラーコード集合と不一致 / mismatch with the C# error-code set");
         }
-
         // ui_state: 列挙名文字列1フィールドの最小契約（INFRA-6）
         // ui_state: the minimal one-field enum-name contract (INFRA-6)
         [Test]
@@ -175,18 +165,18 @@ namespace Client.Tests.WebUi
             {
                 Categories = new List<BuildMenuCategoryDto>
                 {
-                    new() { Name = "物流", SubCategories = new List<string> { "チェスト" } },
-                    new() { Name = "輸送", SubCategories = new List<string> { "鉄道", "車両" } },
-                    new() { Name = "ツール", SubCategories = new List<string> { "接続", "ブループリント" } },
-                    new() { Name = "ブループリント", SubCategories = new List<string> { "保存済み" } },
+                    new() { CategoryGuid = "10000000-0000-4000-8000-000000000001", SubCategoryGuids = new List<string> { "20000000-0000-4000-8000-000000000001" } },
+                    new() { CategoryGuid = "10000000-0000-4000-8000-000000000002", SubCategoryGuids = new List<string> { "20000000-0000-4000-8000-000000000002", "20000000-0000-4000-8000-000000000003" } },
+                    new() { CategoryGuid = "10000000-0000-4000-8000-000000000003", SubCategoryGuids = new List<string> { "20000000-0000-4000-8000-000000000004", "20000000-0000-4000-8000-000000000005" } },
+                    new() { CategoryGuid = "10000000-0000-4000-8000-000000000004", SubCategoryGuids = new List<string> { "20000000-0000-4000-8000-000000000006" } },
                 },
                 Entries = new List<BuildMenuEntryDto>
                 {
-                    new() { Id = "b10c0000-0000-4000-8000-000000000001", Kind = "block", Label = "鉄の機械", Category = "物流", SubCategory = "チェスト", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 3, Count = 5 } }, IconUrl = "/api/block-icons/1.png" },
-                    new() { Id = "8f9c2a51-0000-0000-0000-000000000001", Kind = "trainCar", Label = "貨物車両", Category = "輸送", SubCategory = "車両", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 7, Count = 2 } }, IconUrl = "/api/train-car-icons/8f9c2a51-0000-0000-0000-000000000001.png" },
-                    new() { Id = "c07e0000-0000-4000-8000-000000000001", Kind = "connectTool", Label = "接続ツール", Category = "ツール", SubCategory = "接続", RequiredItems = new List<BuildMenuRequiredItemDto>(), IconUrl = "/api/connect-tool-icons/c07e0000-0000-4000-8000-000000000001.png" },
-                    new() { Id = "3f8f6de0-0000-4000-8000-000000000001", Kind = "blueprintCopy", Label = "ブループリントコピー", Category = "ツール", SubCategory = "ブループリント", RequiredItems = new List<BuildMenuRequiredItemDto>() },
-                    new() { Id = "bb1e0000-0000-4000-8000-000000000001", Kind = "blueprint", Label = "starter-base", Category = "ブループリント", SubCategory = "保存済み", RequiredItems = new List<BuildMenuRequiredItemDto>() },
+                    new() { Id = "30000000-0000-4000-8000-000000000001", Kind = "block", CategoryGuid = "10000000-0000-4000-8000-000000000001", SubCategoryGuid = "20000000-0000-4000-8000-000000000001", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 3, Count = 5 } }, IconUrl = "/api/block-icons/1.png" },
+                    new() { Id = "8f9c2a51-0000-4000-8000-000000000001", Kind = "trainCar", CategoryGuid = "10000000-0000-4000-8000-000000000002", SubCategoryGuid = "20000000-0000-4000-8000-000000000003", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 7, Count = 2 } }, IconUrl = "/api/train-car-icons/8f9c2a51-0000-4000-8000-000000000001.png" },
+                    new() { Id = "40000000-0000-4000-8000-000000000001", Kind = "connectTool", CategoryGuid = "10000000-0000-4000-8000-000000000003", SubCategoryGuid = "20000000-0000-4000-8000-000000000004", RequiredItems = new List<BuildMenuRequiredItemDto>(), IconUrl = "/api/connect-tool-icons/40000000-0000-4000-8000-000000000001.png" },
+                    new() { Id = "50000000-0000-4000-8000-000000000001", Kind = "blueprintCopy", CategoryGuid = "10000000-0000-4000-8000-000000000003", SubCategoryGuid = "20000000-0000-4000-8000-000000000005", RequiredItems = new List<BuildMenuRequiredItemDto>() },
+                    new() { Id = "60000000-0000-4000-8000-000000000001", Kind = "blueprint", Label = "starter-base", CategoryGuid = "10000000-0000-4000-8000-000000000004", SubCategoryGuid = "20000000-0000-4000-8000-000000000006", RequiredItems = new List<BuildMenuRequiredItemDto>() },
                 },
             };
             AssertMatchesFixture(dto, "build_menu_snapshot.json");

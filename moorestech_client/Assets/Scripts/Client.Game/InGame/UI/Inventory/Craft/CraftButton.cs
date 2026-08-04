@@ -4,6 +4,7 @@ using System;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Tooltip;
 using Common.Debug;
+using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -120,7 +121,7 @@ namespace Client.Game.InGame.UI.Inventory.Craft
         {
             if (!_isInteractable)
             {
-                MouseCursorTooltip.Instance.Show("アイテムが足りないためクラフトできません", isLocalize: false);
+                MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.CraftCannotByItemShortage);
             }
             
             if (restartElapsedTimeUpdateOnPointerEnter) _isCursorStay = true;

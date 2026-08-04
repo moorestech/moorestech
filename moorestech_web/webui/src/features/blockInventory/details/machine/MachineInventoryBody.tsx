@@ -3,7 +3,7 @@ import type { BlockInventoryOpen } from "@/bridge";
 import { ItemSlot, SlotGrid, ProgressArrow, FluidSlotRow } from "@/shared/ui";
 import { useBlockSlotGestures } from "../../useBlockSlotGestures";
 import { itemsPerMinute, splitSlotIndices } from "../detailLogic";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import styles from "./machineInventoryBody.module.css";
 
 // 機械インベントリ: 入力→出力→モジュールの分割グリッド + 進捗 + 分間生産数
@@ -46,7 +46,9 @@ export default function MachineInventoryBody({ data }: { data: BlockInventoryOpe
       {/* Drop the module slots one level below the process row and label them to distinguish from input/output */}
       {module.length > 0 && (
         <Stack gap={4} align="center" mt="xs">
-          <Text size="sm" c="dimmed" data-testid="machine-module-label">{t("アップグレードスロット")}</Text>
+          <Text size="sm" c="dimmed" data-testid="machine-module-label">
+            {t(L.ui.blockInventory.upgradeSlots)}
+          </Text>
           <SlotGrid cols={module.length} testId="machine-module-slots">{module.map(slotAt)}</SlotGrid>
         </Stack>
       )}
@@ -55,7 +57,11 @@ export default function MachineInventoryBody({ data }: { data: BlockInventoryOpe
       <FluidSlotRow fluids={data.fluidSlots} testId="machine-fluid-slots" />
       {machine.outputItems.map((output) => {
         const rate = itemsPerMinute(output.count, machine.recipeTime);
-        return rate === null ? null : <div key={output.itemId} data-testid="machine-items-per-minute">{t("分間生産数")} <span>{rate}</span></div>;
+        return rate === null ? null : (
+          <div key={output.itemId} data-testid="machine-items-per-minute">
+            {t(L.ui.blockInventory.productionPerMinute)} <span>{rate}</span>
+          </div>
+        );
       })}
     </Stack>
   );

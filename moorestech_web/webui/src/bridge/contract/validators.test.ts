@@ -3,23 +3,35 @@ import { validateTopicPayload } from "./validators";
 import { Topics } from "../transport/protocol";
 
 const openBase = {
-  open: true, source: "block", blockType: "ElectricMachine", identifier: "(0, 0, 0)", blockName: "電気機械",
+  open: true, source: "block", blockType: "ElectricMachine", identifier: "(0, 0, 0)", blockGuid: "40000000-0000-4000-8000-000000000001",
   itemSlots: [{ itemId: 1, count: 2 }], fluidSlots: [],
 };
 
 describe("placement mode schema", () => {
-  it("requires every HUD field", () => {
+  it("accepts master identities without raw labels", () => {
     expect(validateTopicPayload(Topics.placementMode, {
-      selectedName: "Conveyor Belt", height: 2, unavailableReason: "",
+      selectedTargetType: "block", selectedBlockGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefab",
+      height: 2, unavailableReason: "",
     })).toBe(true);
-    expect(validateTopicPayload(Topics.placementMode, { selectedName: "Conveyor Belt" })).toBe(false);
+    expect(validateTopicPayload(Topics.placementMode, {
+      selectedTargetType: "trainCar", selectedTrainCarGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefad",
+      height: 2, unavailableReason: "",
+    })).toBe(true);
+    expect(validateTopicPayload(Topics.placementMode, {
+      selectedTargetType: "blueprintCopy", height: 2, unavailableReason: "",
+    })).toBe(true);
   });
-});
-
-describe("delete mode schema", () => {
-  it("requires the hover denial reason", () => {
-    expect(validateTopicPayload(Topics.deleteMode, { unavailableReason: "Cannot remove" })).toBe(true);
-    expect(validateTopicPayload(Topics.deleteMode, {})).toBe(false);
+  it("accepts raw labels only for user-authored targets", () => {
+    expect(validateTopicPayload(Topics.placementMode, {
+      selectedTargetType: "raw", selectedName: "My Blueprint", height: 2, unavailableReason: "",
+    })).toBe(true);
+    expect(validateTopicPayload(Topics.placementMode, {
+      selectedTargetType: "block", selectedBlockGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefab",
+      selectedName: "Conveyor Belt", height: 2, unavailableReason: "",
+    })).toBe(false);
+    expect(validateTopicPayload(Topics.placementMode, {
+      selectedTargetType: "raw", selectedName: "Conveyor Belt",
+    })).toBe(false);
   });
 });
 
@@ -33,15 +45,22 @@ describe("common HUD schemas", () => {
 
 describe("tooltip schema", () => {
   it("requires a complete cursor-tooltip snapshot", () => {
-    expect(validateTopicPayload(Topics.tooltip, { visible: true, textKey: "Cannot remove", fontSize: 36 })).toBe(true);
-    expect(validateTopicPayload(Topics.tooltip, { visible: true })).toBe(false);
+    expect(validateTopicPayload(Topics.tooltip, {
+      visible: true, textKey: "ui.tooltip.requiredItems", textParams: ["Iron Pickaxe"], fontSize: 36,
+    })).toBe(true);
+    expect(validateTopicPayload(Topics.tooltip, {
+      visible: true, textKey: "Cannot remove", fontSize: 36,
+    })).toBe(false);
   });
 });
 
 describe("localization.current schema", () => {
-  it("requires a non-empty locale", () => {
-    expect(validateTopicPayload(Topics.localization, { locale: "japanese" })).toBe(true);
+  it("requires locale and dictionary revision", () => {
+    expect(validateTopicPayload(Topics.localization, { locale: "japanese", revision: 42 })).toBe(true);
+    expect(validateTopicPayload(Topics.localization, { locale: "japanese" })).toBe(false);
     expect(validateTopicPayload(Topics.localization, { locale: "" })).toBe(false);
+    expect(validateTopicPayload(Topics.localization, { locale: "japanese", revision: -1 })).toBe(false);
+    expect(validateTopicPayload(Topics.localization, { locale: "japanese", revision: 1.5 })).toBe(false);
   });
 });
 
@@ -50,7 +69,7 @@ describe("validBlockInventory capability details", () => {
     const d = {
       ...openBase,
       progress: 0.5,
-      machine: { recipeGuid: "g", selectedRecipeGuid: "selected", blockGuid: "block-guid", recipeTime: 15, outputItems: [{ itemId: 2, count: 3 }], currentState: "processing", currentPower: 10, requestPower: 20, slotLayout: { input: 2, output: 1, module: 1 } },
+      machine: { recipeGuid: "50000000-0000-4000-8000-000000000001", selectedRecipeGuid: "50000000-0000-4000-8000-000000000002", blockGuid: "40000000-0000-4000-8000-000000000001", recipeTime: 15, outputItems: [{ itemId: 2, count: 3 }], currentState: "processing", currentPower: 10, requestPower: 20, slotLayout: { input: 2, output: 1, module: 1 } },
       electricNetwork: { totalGeneratePower: 100, totalRequiredPower: 50, consumerCount: 3, powerRate: 1 },
     };
     expect(validateTopicPayload(Topics.blockInventory, d)).toBe(true);
@@ -101,8 +120,7 @@ describe("validBlockInventory capability details", () => {
 
 describe("validResearchTree", () => {
   const node = {
-    guid: "abc", name: "研究1", description: "説明",
-    state: "researchable", iconItemId: 1, position: { x: 100, y: -50 },
+    guid: "60000000-0000-4000-8000-000000000001", state: "researchable", iconItemId: 1, position: { x: 100, y: -50 },
     prevGuids: [], consumeItems: [{ itemId: 1, count: 3 }],
     rewardItems: [{ itemId: 2, count: 4 }], unlockItemIds: [],
   };
@@ -118,7 +136,7 @@ describe("validResearchTree", () => {
 
 describe("validMachineRecipes", () => {
   const recipe = {
-    recipeGuid: "recipe-guid", blockGuid: "block-guid", blockId: 12, blockName: "炉", time: 1,
+    recipeGuid: "50000000-0000-4000-8000-000000000001", blockGuid: "40000000-0000-4000-8000-000000000001", blockId: 12, time: 1,
     inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 2, count: 1 }],
   };
 
@@ -135,7 +153,7 @@ describe("validMachineRecipes", () => {
 
 describe("validCraftRecipes", () => {
   const recipe = {
-    recipeGuid: "recipe-guid", resultItemId: 2, resultCount: 1, craftTime: 0.5,
+    recipeGuid: "50000000-0000-4000-8000-000000000001", resultItemId: 2, resultCount: 1, craftTime: 0.5,
     requiredItems: [{ itemId: 1, count: 3 }],
   };
 
@@ -161,40 +179,6 @@ describe("validCraftRecipes", () => {
     ["craftTime が負", { ...recipe, craftTime: -0.1 }],
   ])("React へ危険値を渡さない（%s）", (_label, invalid) => {
     expect(validateTopicPayload(Topics.craftRecipes, { recipes: [invalid] })).toBe(false);
-  });
-});
-
-describe("validBuildMenu", () => {
-  const categories = [{ name: "物流", subCategories: ["チェスト"] }];
-  const entry = {
-    id: "b10c0000-0000-4000-8000-000000000001", kind: "block", label: "鉄の機械", category: "物流", subCategory: "チェスト",
-    requiredItems: [{ itemId: 3, count: 5 }], iconUrl: "/api/block-icons/1.png",
-  };
-  it("accepts icon and text entries", () => {
-    const d = {
-      categories,
-      entries: [entry, { id: "bb1e0000-0000-4000-8000-000000000001", kind: "blueprint", label: "家", category: "物流", subCategory: "チェスト", requiredItems: [] }],
-    };
-    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(true);
-  });
-  it("rejects a non-string id", () => {
-    const d = { categories, entries: [{ ...entry, id: 1 }] };
-    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
-  });
-  it("rejects an unknown kind", () => {
-    const d = { categories, entries: [{ ...entry, kind: "unknownKind" }] };
-    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
-  });
-  it("rejects a missing entries array", () => {
-    expect(validateTopicPayload(Topics.buildMenu, { categories })).toBe(false);
-  });
-  it("rejects an entry with a missing category", () => {
-    const { category: _, ...missingCategory } = entry;
-    expect(validateTopicPayload(Topics.buildMenu, { categories, entries: [missingCategory] })).toBe(false);
-  });
-  it("rejects an entry with a non-array requiredItems", () => {
-    const d = { categories, entries: [{ ...entry, requiredItems: "not-an-array" }] };
-    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
   });
 });
 

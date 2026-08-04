@@ -10,10 +10,10 @@ test("on-screen world pin renders with its marker tip at the projected viewport 
   await page.goto("/");
   await expect(page.getByTestId("hotbar-grid")).toBeVisible();
 
-  await request.get("/__worldpin?x=0.25&y=0.4&text=PickPebbles");
+  await request.get("/__worldpin?x=0.25&y=0.4");
   const pin = page.getByTestId("world-pin-map-object-pin");
   await expect(pin).toBeVisible();
-  await expect(pin).toContainText("PickPebbles");
+  await expect(pin).toContainText("小石を拾う");
 
   // マーカー先端が正規化座標に一致
   // The marker tip lands on the normalized coords
@@ -27,11 +27,11 @@ test("world pin follows updated projections", async ({ page, request }) => {
   await page.goto("/");
   await expect(page.getByTestId("hotbar-grid")).toBeVisible();
 
-  await request.get("/__worldpin?x=0.25&y=0.4&text=Move");
+  await request.get("/__worldpin?x=0.25&y=0.4");
   const pin = page.getByTestId("world-pin-map-object-pin");
   await expect(pin).toBeVisible();
 
-  await request.get("/__worldpin?x=0.75&y=0.6&text=Move");
+  await request.get("/__worldpin?x=0.75&y=0.6");
   const viewport = page.viewportSize()!;
   await expect(async () => {
     const box = (await pin.boundingBox())!;
@@ -44,7 +44,7 @@ test("off-screen world pin renders a 56px filled shaft arrow at the screen edge"
   await page.goto("/");
   await expect(page.getByTestId("hotbar-grid")).toBeVisible();
 
-  await request.get("/__worldpin?on=0&dx=1&dy=0&text=Far");
+  await request.get("/__worldpin?on=0&dx=1&dy=0");
   const arrow = page.getByTestId("world-pin-arrow-map-object-pin");
   await expect(arrow).toBeVisible();
   await expect(page.getByTestId("world-pin-map-object-pin")).toHaveCount(0);
@@ -74,7 +74,7 @@ test("off-screen arrow follows a diagonal direction to the corner region", async
 
   // 左上斜め方向 → 上端マージンへクランプされ、水平位置は方向比で決まる
   // A diagonal up-left direction clamps to the top margin with x set by the direction ratio
-  await request.get("/__worldpin?on=0&dx=-0.4&dy=-0.9&text=Far");
+  await request.get("/__worldpin?on=0&dx=-0.4&dy=-0.9");
   const arrow = page.getByTestId("world-pin-arrow-map-object-pin");
   await expect(arrow).toBeVisible();
 
@@ -107,7 +107,7 @@ test("off-screen arrow remains inside the viewport at all four diagonal corners"
   ];
 
   for (const direction of directions) {
-    await request.get(`/__worldpin?on=0&dx=${direction.x}&dy=${direction.y}&text=Far`);
+    await request.get(`/__worldpin?on=0&dx=${direction.x}&dy=${direction.y}`);
     await expect(arrow).toBeVisible();
     const expectedAngle = (Math.atan2(direction.y, direction.x) * 180) / Math.PI;
     await expect(arrow).toHaveAttribute("style", new RegExp(`rotate\\(${expectedAngle}deg\\)`));
@@ -123,7 +123,7 @@ test("clearing world pins removes the overlay", async ({ page, request }) => {
   await page.goto("/");
   await expect(page.getByTestId("hotbar-grid")).toBeVisible();
 
-  await request.get("/__worldpin?x=0.5&y=0.5&text=Gone");
+  await request.get("/__worldpin?x=0.5&y=0.5");
   await expect(page.getByTestId("world-pin-overlay")).toBeVisible();
 
   await request.get("/__worldpin?clear=1");

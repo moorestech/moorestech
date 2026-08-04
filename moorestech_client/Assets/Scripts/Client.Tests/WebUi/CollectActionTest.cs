@@ -57,8 +57,8 @@ namespace Client.Tests.WebUi
             Assert.AreEqual(7, slot);
         }
 
-        // 装備枠のクリックは装備を集積先にする（結合スロットへ潰さない）
-        // A clicked equipment slot targets equipment, never collapsing onto a combined slot
+        // 装備枠を集積先に保持
+        // Keep equipment as collect target
         [Test]
         public void ResolveCollectTargetEmptyHandedTargetsClickedEquipmentSlot()
         {
@@ -67,8 +67,6 @@ namespace Client.Tests.WebUi
             Assert.AreEqual(2, slot);
         }
 
-        // クリック可能スロット（main/hotbar/equipment）は受理する
-        // Clickable slots (main/hotbar/equipment) are accepted
         [TestCase(@"{""area"":""main"",""slot"":3}", LocalMoveInventoryType.MainOrSub, 3)]
         [TestCase(@"{""area"":""hotbar"",""slot"":2}", LocalMoveInventoryType.MainOrSub, 47)]
         [TestCase(@"{""area"":""equipment"",""slot"":2}", LocalMoveInventoryType.Equipment, 2)]

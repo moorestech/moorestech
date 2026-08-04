@@ -98,11 +98,6 @@ namespace Client.WebUiHost.Game
                 resolver.Resolve<PlaceBlockState>());
             hub.RegisterTopic(PlacementModeTopic.TopicName, placementModeTopic);
 
-            // 削除可否理由を削除HUDへ配信する
-            // Publish delete denial reasons to the delete HUD
-            var deleteModeTopic = new DeleteModeTopic(hub, resolver.Resolve<DeleteObjectState>());
-            hub.RegisterTopic(DeleteModeTopic.TopicName, deleteModeTopic);
-
             // 状態外の共通HUDを各既存ビューの変更通知へ接続する
             // Connect state-independent HUD topics to the existing view notifications
             hub.RegisterTopic(CrosshairTopic.TopicName, new CrosshairTopic(hub, CrosshairView.Instance));
@@ -166,6 +161,7 @@ namespace Client.WebUiHost.Game
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             hub.RegisterAction(new EchoActionHandler());
 #endif
+            LocalizationActions.Register(hub);
             hub.RegisterAction(new MoveItemActionHandler(controller));
             hub.RegisterAction(new SplitGrabActionHandler(controller));
             hub.RegisterAction(new SplitDragActionHandler(controller));

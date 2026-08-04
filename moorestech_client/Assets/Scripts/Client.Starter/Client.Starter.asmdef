@@ -27,7 +27,9 @@
         "Core.Item.Interface",
         "Game.Paths",
         "Game.MapGeneration",
-        "Common.Debug"
+        "Common.Debug",
+        "Client.Localization",
+        "Mod.Loader"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

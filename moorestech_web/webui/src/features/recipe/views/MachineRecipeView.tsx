@@ -3,7 +3,7 @@ import { ItemSlot, BlockSlot } from "@/shared/ui";
 import type { MachineRecipe } from "@/bridge";
 import { clampIndex } from "@/shared/clampIndex";
 import RecipePager from "./RecipePager";
-import { useI18n } from "@/shared/i18n";
+import { blockNameKey, L, useI18n } from "@/shared/i18n";
 
 type Props = {
   recipes: MachineRecipe[];
@@ -20,6 +20,7 @@ export default function MachineRecipeView({ recipes, recipeIndex, setRecipeIndex
   // Clamp the index in case a topic update shrank the recipe list
   const index = clampIndex(recipeIndex, recipes.length);
   const recipe = recipes[index];
+  const localizedBlockName = t(blockNameKey(recipe.blockGuid));
 
   return (
     <Stack gap="xs">
@@ -28,12 +29,12 @@ export default function MachineRecipeView({ recipes, recipeIndex, setRecipeIndex
         {recipe.inputItems.map((r, i) => (
           <ItemSlot key={i} itemId={r.itemId} count={r.count} onLeftDown={() => onSelect(r.itemId)} />
         ))}
-        <Text c="dimmed" mx="xs">{t("→")}</Text>
+        <Text c="dimmed" mx="xs">{t(L.ui.common.rightArrow)}</Text>
         <Stack gap={0} align="center">
-          <BlockSlot blockId={recipe.blockId} name={recipe.blockName} />
-          <Text fz={10} c="dimmed" maw="4rem" truncate="end">{recipe.blockName}</Text>
+          <BlockSlot blockId={recipe.blockId} name={localizedBlockName} />
+          <Text fz={10} c="dimmed" maw="4rem" truncate="end">{localizedBlockName}</Text>
         </Stack>
-        <Text c="dimmed" mx="xs">{t("→")}</Text>
+        <Text c="dimmed" mx="xs">{t(L.ui.common.rightArrow)}</Text>
         {recipe.outputItems.map((r, i) => (
           <ItemSlot key={i} itemId={r.itemId} count={r.count} onLeftDown={() => onSelect(r.itemId)} />
         ))}

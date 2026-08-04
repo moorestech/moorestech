@@ -1,4 +1,4 @@
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import styles from "./style.module.css";
 
 type Props = { value: string; onChange: (value: string) => void };
@@ -12,7 +12,7 @@ export function BuildMenuSearchInput({ value, onChange }: Props) {
       className={styles.searchInput}
       type="text"
       value={value}
-      placeholder={t("検索")}
+      placeholder={t(L.ui.buildMenu.searchPlaceholder)}
       onChange={(e) => onChange(e.currentTarget.value)}
       data-testid="build-menu-search"
     />

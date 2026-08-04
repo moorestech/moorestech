@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mooresmaster.Loader.BuildMenuModule;
@@ -10,8 +11,8 @@ namespace Core.Master
     {
         public readonly BuildMenuCategoryElement[] Categories;
 
-        private HashSet<(string category, string subCategory)> _definedPairs;
-        private Dictionary<string, (string category, string subCategory)> _pairByEntrySource;
+        private Dictionary<(string category, string subCategory), (Guid categoryGuid, Guid subCategoryGuid)> _guidPairByName;
+        private Dictionary<string, (Guid categoryGuid, Guid subCategoryGuid)> _guidPairByEntrySource;
 
         public BuildMenuCategoryMaster(JToken buildMenuJToken)
         {
@@ -30,6 +31,20 @@ namespace Core.Master
             foreach (var category in Categories)
             foreach (var duplicated in category.SubCategories.Select(s => s.Name).GroupBy(n => n).Where(g => 1 < g.Count()))
                 errorLogs += $"[BuildMenuCategoryMaster] duplicate subCategory:{duplicated.Key} in category:{category.Name}\n";
+
+            // 全分類間のGuid空値・重複を拒否
+            // Reject empty or duplicate GUIDs across classifications
+            var assignedGuids = new HashSet<Guid>();
+            foreach (var category in Categories)
+            {
+                if (category.CategoryGuid == Guid.Empty || !assignedGuids.Add(category.CategoryGuid))
+                    errorLogs += $"[BuildMenuCategoryMaster] invalid or duplicate CategoryGuid:{category.CategoryGuid}\n";
+                foreach (var subCategory in category.SubCategories)
+                {
+                    if (subCategory.SubCategoryGuid == Guid.Empty || !assignedGuids.Add(subCategory.SubCategoryGuid))
+                        errorLogs += $"[BuildMenuCategoryMaster] invalid or duplicate SubCategoryGuid:{subCategory.SubCategoryGuid}\n";
+                }
+            }
 
             // blocks以外のentrySourceは行き先が一意になるよう「ちょうど1箇所」の定義を要求する
             // Each non-blocks entrySource must be defined exactly once so its entries have a unique destination
@@ -54,25 +69,33 @@ namespace Core.Master
         {
             // 参照整合チェックとentrySource逆引き用の索引を構築
             // Build lookups for reference validation and entrySource resolution
-            _definedPairs = new HashSet<(string, string)>();
-            _pairByEntrySource = new Dictionary<string, (string, string)>();
+            _guidPairByName = new Dictionary<(string, string), (Guid, Guid)>();
+            _guidPairByEntrySource = new Dictionary<string, (Guid, Guid)>();
             foreach (var category in Categories)
             foreach (var subCategory in category.SubCategories)
             {
-                _definedPairs.Add((category.Name, subCategory.Name));
+                _guidPairByName.Add(
+                    (category.Name, subCategory.Name),
+                    (category.CategoryGuid, subCategory.SubCategoryGuid));
                 if (subCategory.EntrySource != BuildMenuSubCategoryElement.EntrySourceConst.blocks)
-                    _pairByEntrySource[subCategory.EntrySource] = (category.Name, subCategory.Name);
+                    _guidPairByEntrySource[subCategory.EntrySource] =
+                        (category.CategoryGuid, subCategory.SubCategoryGuid);
             }
         }
 
         public bool Contains(string category, string subCategory)
         {
-            return _definedPairs.Contains((category, subCategory));
+            return _guidPairByName.ContainsKey((category, subCategory));
         }
 
-        public (string category, string subCategory) GetPairByEntrySource(string entrySource)
+        public (Guid categoryGuid, Guid subCategoryGuid) GetGuidPair(string category, string subCategory)
         {
-            return _pairByEntrySource[entrySource];
+            return _guidPairByName[(category, subCategory)];
+        }
+
+        public (Guid categoryGuid, Guid subCategoryGuid) GetPairByEntrySource(string entrySource)
+        {
+            return _guidPairByEntrySource[entrySource];
         }
     }
 }

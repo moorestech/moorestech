@@ -7,8 +7,8 @@ using Game.UnlockState;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
-    // ビルドメニューに並ぶ全設置対象（ブロック・車両・接続ツール・BPコピー・ブループリント）をGuidで解決するカタログ
-    // Catalog resolving every build-menu placement target (block/train car/connect tool/blueprint copy/blueprint) by Guid
+    // 設置対象のGuidカタログ
+    // GUID catalog for placement targets
     public class PlacementTargetCatalog
     {
         private readonly IReadOnlyList<PlacementTargetEntry> _masterEntries;

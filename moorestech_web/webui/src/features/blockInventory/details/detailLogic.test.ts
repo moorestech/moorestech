@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { computePowerRate, splitSlotIndices, fuelRatio, itemsPerMinute, stopReasonText } from "./detailLogic";
+import { L } from "@/shared/i18n";
+import {
+  computePowerRate,
+  splitSlotIndices,
+  fuelRatio,
+  itemsPerMinute,
+  stopReasonTranslationKey,
+} from "./detailLogic";
 
 describe("detailLogic", () => {
   it("computes output items per minute from recipe seconds", () => {
@@ -27,9 +34,11 @@ describe("detailLogic", () => {
     expect(fuelRatio(0, 0)).toBe(0);
     expect(fuelRatio(20, 10)).toBe(1);
   });
-  it("stopReasonText maps reasons to uGUI wording", () => {
-    expect(stopReasonText("none")).toBe("");
-    expect(stopReasonText("rocked")).toBe("ロック");
-    expect(stopReasonText("overRequirePower")).toBe("パワー不足");
+  it("stopReasonTranslationKey maps finite reasons to typed localization keys", () => {
+    expect(stopReasonTranslationKey("none")).toBeNull();
+    expect(stopReasonTranslationKey("rocked")).toBe(L.ui.blockInventory.stopReasonLocked);
+    expect(stopReasonTranslationKey("overRequirePower")).toBe(
+      L.ui.blockInventory.stopReasonInsufficientPower,
+    );
   });
 });

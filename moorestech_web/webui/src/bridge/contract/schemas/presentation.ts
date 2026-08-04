@@ -1,22 +1,23 @@
 import { z } from "zod";
 
 export const GameStateDataSchema = z.object({ state: z.enum(["InGame", "Skit", "CutScene"]) });
+// ハイライトは枠線だけを描く。文言を持つkindは廃止済みで生産者が存在しない
+// Highlights draw an outline only; text-carrying kinds were retired and have no producer
 export const TutorialHighlightSchema = z.object({
-  highlightId: z.string(), anchorId: z.string(), kind: z.enum(["outline", "callout"]),
-  messageKey: z.string().optional(), message: z.string(), paddingPx: z.number().nonnegative(),
-  blocksPointerInput: z.boolean(),
-});
+  highlightId: z.string(), anchorId: z.string(), kind: z.literal("outline"),
+  paddingPx: z.number().nonnegative(), blocksPointerInput: z.boolean(),
+}).strict();
 export const TutorialPresentationDataSchema = z.object({
   tutorialSessionId: z.string(), revision: z.number().int().nonnegative(),
   challengeId: z.string(), highlights: z.array(TutorialHighlightSchema),
 });
-// ワールドピン: Unityが射影した正規化スクリーン座標（0..1左上原点）と画面外矢印用の方向ベクトル
-// World pins: Unity-projected normalized screen coords (0..1, top-left origin) plus a direction vector for off-screen arrows
+// ワールドピン: Unity射影の正規化座標と画面外矢印用の方向ベクトル。文言はGuid導出キーでWeb解決する
+// World pins: Unity-projected normalized coords plus an off-screen arrow vector; text resolves web-side from the GUID
 export const WorldPinSchema = z.object({
-  pinId: z.string(), text: z.string(),
+  pinId: z.string(), tutorialGuid: z.string().uuid(),
   screenX: z.number(), screenY: z.number(), onScreen: z.boolean(),
   directionX: z.number(), directionY: z.number(),
-});
+}).strict();
 export const WorldPinPresentationDataSchema = z.object({
   revision: z.number().int().nonnegative(), pins: z.array(WorldPinSchema),
 });

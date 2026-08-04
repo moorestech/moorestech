@@ -3,7 +3,7 @@ import { useTopic, Topics } from "@/bridge";
 import { ConnectingPlaceholder, ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
 import { slotActions } from "../slotActions";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 
 // 固定pxでピッチの端数ドリフトを防ぐ
 // Use fixed-pixel slots and gaps to prevent fractional drift from the 140px screenshot pitch
@@ -21,7 +21,7 @@ export default function InventoryPanel() {
   }
 
   return (
-    <GamePanel gridArea="inv" title={t("持ち物")} style={{ justifySelf: "start", alignSelf: "start", width: 378, minHeight: 452.391, transform: "translate(0.783px, 0.783px)", "--panel-left": "-2.22px", "--panel-right": "-2.22px", "--title-shift-x": "-1.96px", "--title-scale-x": 0.919, "--title-scale-y": 0.924 } as CSSProperties}>
+    <GamePanel gridArea="inv" title={t(L.ui.inventory.title)} style={{ justifySelf: "start", alignSelf: "start", width: 378, minHeight: 452.391, transform: "translate(0.783px, 0.783px)", "--panel-left": "-2.22px", "--panel-right": "-2.22px", "--title-shift-x": "-1.96px", "--title-scale-x": 0.919, "--title-scale-y": 0.924 } as CSSProperties}>
       <SlotGrid testId="main-grid" cols={6} style={GRID_STYLE}>
         {inventory.mainSlots.map((slot, i) => {
           const ref: SlotRef = { area: "main", slot: i };

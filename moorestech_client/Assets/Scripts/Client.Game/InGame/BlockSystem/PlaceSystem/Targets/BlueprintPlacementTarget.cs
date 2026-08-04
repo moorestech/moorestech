@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
@@ -14,6 +15,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         // BPだけはマスタを持たずサーバー保存名がそのまま表示名になる
         // Blueprints have no master, so the server-stored name is the display name as-is
         public string DisplayName { get; }
+
+        public IReadOnlyList<(Guid itemGuid, int count)> CreateRequiredItems() => Array.Empty<(Guid, int)>();
 
         public BlueprintPlacementTarget(Guid blueprintGuid, string displayName)
         {

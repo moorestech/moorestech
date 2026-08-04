@@ -13,10 +13,7 @@ function renderLackHighlightText(props: Parameters<typeof LackHighlightText>[0])
 describe("LackHighlightText", () => {
   it("現在値と要求値を表示し、通常状態をdata属性で公開する", () => {
     const markup = renderLackHighlightText({
-      label: "トルク ",
-      current: "1.0",
-      separator: " / ",
-      required: "2.0",
+      children: "トルク 1.0 / 2.0",
       insufficient: false,
       size: "sm",
       testId: "torque",
@@ -29,10 +26,7 @@ describe("LackHighlightText", () => {
 
   it("不足状態をdata属性で公開する", () => {
     const markup = renderLackHighlightText({
-      label: "RPM ",
-      current: "1.0",
-      separator: " / ",
-      required: "2.0",
+      children: "RPM 1.0 / 2.0",
       insufficient: true,
       size: "sm",
     });

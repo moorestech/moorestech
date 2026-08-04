@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 using Client.Skit.Context;
+using Client.Skit.Localization;
 using Client.Skit.Skit;
 using Client.Skit.UI;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -17,12 +17,19 @@ namespace CommandForgeGenerator.Command
         
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
-            var characterName = MasterHolder.CharacterMaster.GetCharacterMaster(CharacterId).DisplayName;
-            if (IsOverrideCharacterName.HasValue && IsOverrideCharacterName.Value)
-            {
-                characterName = OverrideCharacterName;
-            }
-            
+            var resolver = storyContext.GetLocalizationResolver();
+            var commandId = (int)CommandId;
+            var useOverride = IsOverrideCharacterName.HasValue && IsOverrideCharacterName.Value;
+            var line = SkitCommandLocalization.ResolveLine(
+                resolver,
+                commandId,
+                CharacterId,
+                useOverride,
+                OverrideCharacterName,
+                Body);
+
+            // 表示文字列だけを解決し、音声照合はJSON原文を維持する
+            // Resolve display text only while voice lookup keeps the JSON source body
             var skitUi = storyContext.GetSkitUI();
             var skitActionContext = storyContext.GetService<ISkitActionContext>();
             var presentationMode = storyContext.GetService<SkitPresentationMode>();
@@ -31,12 +38,15 @@ namespace CommandForgeGenerator.Command
             // In Web mode, push the full snapshot and wait only for a Unity-owned intent
             if (presentationMode.WebUiEnabled)
             {
-                return await ExecuteWebPresentationAsync(characterName, skitActionContext);
+                return await ExecuteWebPresentationAsync(
+                    line.SpeakerName,
+                    line.DisplayBody,
+                    skitActionContext);
             }
             
             if (skitActionContext.IsSkip)
             {
-                skitUi.SetText(characterName, Body);
+                skitUi.SetText(line.SpeakerName, line.DisplayBody);
                 await UniTask.Delay(TimeSpan.FromSeconds(SkipDuration));
                 return null;
             }
@@ -44,17 +54,18 @@ namespace CommandForgeGenerator.Command
             var setTextTaskCancellationTokenSource = new CancellationTokenSource();
             UniTask<bool> setTextTask = UniTask.Create(factory: async () =>
             {
-                skitUi.SetText(characterName, "");
+                skitUi.SetText(line.SpeakerName, "");
                 
-                for (var i = 0; i < Body.Length; i++)
+                for (var i = 0; i < line.DisplayBody.Length; i++)
                 {
-                    var bodySlice = Body.Substring(0, i + 1);
-                    skitUi.SetText(characterName, bodySlice);
+                    var bodySlice = line.DisplayBody.Substring(0, i + 1);
+                    skitUi.SetText(line.SpeakerName, bodySlice);
                     await UniTask.Delay(TimeSpan.FromSeconds(TextDuration), cancellationToken: setTextTaskCancellationTokenSource.Token);
                 }
             }).SuppressCancellationThrow();
             
-            var voiceClip = storyContext.GetVoiceDefine().GetVoiceClip(CharacterId, Body);
+            var voiceClip = storyContext.GetVoiceDefine()
+                .GetVoiceClip(CharacterId, line.VoiceSourceBody);
             var character = storyContext.GetCharacter(CharacterId);
             
             if (voiceClip != null) character.PlayVoice(voiceClip);
@@ -66,7 +77,7 @@ namespace CommandForgeGenerator.Command
                 {
                     setTextTaskCancellationTokenSource.Cancel();
                     await UniTask.Yield();
-                    skitUi.SetText(characterName, Body);
+                    skitUi.SetText(line.SpeakerName, line.DisplayBody);
                     character.StopVoice();
                     break;
                 }
@@ -89,15 +100,18 @@ namespace CommandForgeGenerator.Command
             #region Internal
 
             async UniTask<CommandResultContext> ExecuteWebPresentationAsync(
-                string speakerName, ISkitActionContext actionContext)
+                string speakerName,
+                string displayBody,
+                ISkitActionContext actionContext)
             {
                 var store = SkitPresentationStateStore.Instance;
-                store.PresentBlockingText(speakerName, Body);
+                store.PresentBlockingText(speakerName, displayBody);
                 var advanceWait = store.WaitForAdvanceAsync();
 
                 // ボイスは従来どおりUnity AudioSourceで再生する
                 // Keep voice playback on the existing Unity AudioSource path
-                var clip = storyContext.GetVoiceDefine().GetVoiceClip(CharacterId, Body);
+                var clip = storyContext.GetVoiceDefine()
+                    .GetVoiceClip(CharacterId, line.VoiceSourceBody);
                 var skitCharacter = storyContext.GetCharacter(CharacterId);
                 if (clip != null) skitCharacter.PlayVoice(clip);
 

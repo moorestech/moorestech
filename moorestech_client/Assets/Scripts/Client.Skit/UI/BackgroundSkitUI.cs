@@ -21,6 +21,13 @@ namespace Client.Skit.UI
         {
             skitText.gameObject.SetActive(visible);
         }
+
+        public void SetText(string speakerName, string body)
+        {
+            skitText.text = string.IsNullOrEmpty(speakerName)
+                ? body
+                : $"{speakerName} : {body}";
+        }
         
         public async UniTask PlayVoiceAndWait(AudioClip voice)
         {
