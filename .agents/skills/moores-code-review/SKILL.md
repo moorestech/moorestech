@@ -77,15 +77,21 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 - **`status: stale`** — 変更.csがDLLより新しい。`uloop compile` を先に実行してからゲートを再実行する（コンパイルはどのみちStep 5で必須）。
 - **`status: skipped`** — ScriptAssemblies不在（素のレビューworktree等）。縮退として報告に1行明記し、dead-scope reviewer（LLM）の参照勘定が唯一の担保になる旨を記録する。
 
-## Step 3: Codex外部監査をバックグラウンド起動する ②
+## Step 3: Codex外部監査を3本バックグラウンド起動する ②
 
-`scripts/codex-audit-template.md` を埋めて `/tmp/moores-review-audit-<ts>.md` に書き、バックグラウンド起動する:
+3種のテンプレートを埋めて監査プロンプトを/tmpに書き、**3本ともバックグラウンドで並列起動する**:
+
+1. **俯瞰監査** — `scripts/codex-audit-template.md`（3観点同梱・従来どおり。ユーザーが観点を指定したらここに差し替える）→ `/tmp/moores-review-audit-<ts>.md`
+2. **バグ狩り専任** — `scripts/codex-bughunt-template.md`（不具合のみ・設計への言及禁止・修正提案は最小差分）→ `/tmp/moores-review-audit-bug-<ts>.md`
+3. **設計整合専任** — `scripts/codex-design-template.md`（設計のみ・**過剰設計提案の抑制付き**: 新抽象の推奨は既存前例が現にその形の場合に限る）→ `/tmp/moores-review-audit-design-<ts>.md`
 
 ```bash
 codex exec --sandbox read-only --skip-git-repo-check - < /tmp/moores-review-audit-<ts>.md
+codex exec --sandbox read-only --skip-git-repo-check - < /tmp/moores-review-audit-bug-<ts>.md
+codex exec --sandbox read-only --skip-git-repo-check - < /tmp/moores-review-audit-design-<ts>.md
 ```
 
-Bashの `run_in_background: true` で起動しシェルIDを控える。観点デフォルト3つ: (1)アーキテクチャ的不整合・既存パターン乖離 (2)設計妥当性・将来の懸念 (3)致命的不具合・エンバグ・リグレッション。`which codex` が失敗したら本Stepをスキップし、その旨を最終報告に明記する（黙って縮退しない）。
+それぞれBashの `run_in_background: true` で起動しシェルIDを控える。狭域専任2本は単発同梱プロンプトで注意が3分割される問題への対策（recall向上）で、俯瞰が残り全部の受け皿。**同一モデルの3起動は独立系統ではない** — 回収時、codex間で重複した指摘は1件に畳み、出所は「Codex」1系統として扱う（integration-rules §2）。`which codex` が失敗したら本Stepを3本ともスキップし、その旨を最終報告に明記する（黙って縮退しない）。
 
 ## Step 4: レンズ群＋reviewer群＋Fable全般＋verifierを並列発火する ③
 
@@ -143,7 +149,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 ## Step 5: 回収・実コード照合・重複排除 ④
 
 - Step 4の全サブエージェント（レンズ・reviewer・Fable・investigator・verifier）の返却を受け取る。
-- Step 3のバックグラウンドCodexの出力を回収する（未完了なら完了を待つ）。
+- Step 3のバックグラウンドCodex（3本）の出力を回収する（未完了なら完了を待つ）。
 - 全部揃うまでStep 6へ進まない。`references/integration-rules.md` §0〜§2 に従い、実コード照合・重複排除する（決定論confirmedは裏取り不要、Codex/Fable/レンズ/reviewerのCriticalはReadで裏取り、複数系統一致は「N系統一致（高確度）」に統合）。
 - **Warning/Infoの扱い**（§2.5）: Warningは破棄せず統合報告に必ず載せる（軽い照合のみ。複数系統が同一箇所をWarningした場合と、照合で事実が確定した場合はCriticalへ昇格）。Infoは照合不要で報告末尾に圧縮列挙する。どちらもAskUserQuestionには載せない。
 
@@ -181,7 +187,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
      - **症状を1文で書けない指摘は設問にしない** — 報告本文のWarningへ落とす。「将来こう書き換えると壊れる」型は、症状（何が壊れるか）と再現条件を書けるときだけ設問にしてよい。
      - 判定基準: **その設問だけを読んだ人が、コードを開かずに選べるか**。選べないなら書き直す。
 3. **レビュー記録を生成する** — 記録はコードrepoでなく記録repo `$LOGS`（`../moorestech_logs`）へ書く（featureブランチが記録に触れてマージ衝突する構造を断つため。コードrepo側へ書き戻さない）。`$LOGS/harness/moores-code-review/records/TEMPLATE.md` に従い `$LOGS/harness/moores-code-review/records/YYYY-MM-DD-<topic>.md` を書く（対象SHA2つ・系統別1行判定表・適用修正・AskUserQuestion裁定・破棄指摘・セッションID）。diff本体は保存せずbase/head SHAのみ（dirty込みなら注記＋`--stat`要約）。同ブランチの再レビューは`-r2`付き新ファイル。`$LOGS/harness/moores-code-review/eval-log.md` に集計1行＋記録への相対リンクを足す。
-4. `/tmp` の一時ファイル（patch/context/audit/detchecks×2/最終diff）を削除する（記録生成の**後**に行う）。
+4. `/tmp` の一時ファイル（patch/context/audit×3/detchecks×2/最終diff）を削除する（記録生成の**後**に行う）。
 
 ## モデル割り当て
 
