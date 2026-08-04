@@ -6,6 +6,7 @@ using Game.Context;
 using Game.Map;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.MapModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -26,6 +27,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static readonly Vector3Int InsideIronVein = new(0, 5, 0);
         private static readonly Vector3Int OutsideAnyVein = new(500, 500, 500);
         private static readonly Vector3Int InsideFluidVein = new(5, 0, 0);
+        private static readonly Vector3Int InsideNoneItemVein = new(20, 5, 0);
+        private static readonly Guid IronVeinGuid = Guid.Parse("11111111-0000-0000-0000-000000000001");
         private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
         private static readonly Guid UnmatchedToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
         private static readonly Guid MiningMapObjectGuid = Guid.Parse("00000000-0000-2222-0000-000000000001");
@@ -53,11 +56,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             EquipTool(playerInventory, ToolItemGuid);
             Assert.AreEqual(VeinMiningResult.Success, miningService.TryMine(PlayerId, InsideIronVein, playerInventory.EquipmentInventory.GetSelectedItem(), out var earnedItems));
             Assert.AreEqual(1, earnedItems.Sum(item => item.Count));
-            Assert.AreEqual(MasterHolder.ItemMaster.GetItemId(ToolItemGuid), earnedItems[0].Id);
+            var ironVein = MasterHolder.MapVeinMaster.GetElementOrNull(IronVeinGuid);
+            var veinItemGuid = ((ItemVeinParam)ironVein.VeinParam).ItemGuid;
+            Assert.AreEqual(MasterHolder.ItemMaster.GetItemId(veinItemGuid), earnedItems[0].Id);
         }
 
         [Test]
-        public void vein外とfluid_veinでは掘れない()
+        public void vein外とfluid_veinとnone設定のitem_veinでは掘れない()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
@@ -72,6 +77,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             // fluid veinはItemMapVeinDatastoreの対象外なので同じくNoMinableVein
             // Fluid veins are outside ItemMapVeinDatastore, so also NoMinableVein
             Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, InsideFluidVein, equipped, out _));
+
+            // none設定のitem veinはDatastoreには存在するがminable判定で弾かれる
+            // A none-configured item vein exists in the datastore but is rejected by the minable check
+            Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, InsideNoneItemVein, equipped, out _));
         }
 
         [Test]
