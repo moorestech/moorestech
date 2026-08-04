@@ -92,7 +92,7 @@ jobs:
       # Startup tests launch the Vite host, so provision Node/pnpm and dependencies in this job
       - name: Setup Web UI toolchain
         shell: bash
-        working-directory: moorestech_web
+        working-directory: moorestech/moorestech_web
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
         run: |
