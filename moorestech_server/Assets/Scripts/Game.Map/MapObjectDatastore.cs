@@ -79,7 +79,13 @@ namespace Game.Map
         {
             foreach (var savedMapObject in savedMapObjects)
             {
-                if (!_mapObjects.TryGetValue(savedMapObject.instanceId, out var loadedMapObject)) throw new KeyNotFoundException($"セーブデータ内にあるインスタンスID: {savedMapObject.instanceId} のmapObjectが実際のマップに存在しません。");
+                // マップから消えたmapObjectのセーブ状態は警告付きで捨てる
+                // Drop save states of mapObjects removed from the map with a warning
+                if (!_mapObjects.TryGetValue(savedMapObject.instanceId, out var loadedMapObject))
+                {
+                    Debug.LogWarning($"セーブ内のinstanceId:{savedMapObject.instanceId} のmapObjectがマップに存在しないためスキップします。");
+                    continue;
+                }
                 
                 // 破壊状況をロード
                 // Load destruction status
