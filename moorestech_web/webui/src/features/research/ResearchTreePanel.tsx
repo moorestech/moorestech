@@ -39,6 +39,13 @@ export default function ResearchTreePanel() {
       selected={node.guid === selectedGuid} onSelect={toggleSelect} />
   ), [selectedGuid, toggleSelect]);
   const selectedNode = nodes.find((node) => node.guid === selectedGuid);
+  // 初回表示は「今研究できる」ノードを中央に。無ければ素材待ちの最前線ノードへ寄せる
+  // First open centers on the researchable node, falling back to the item-lacking frontier
+  const initialFocus = useMemo(() => {
+    const focusNode = nodes.find((node) => node.state === "researchable")
+      ?? nodes.find((node) => node.state === "unresearchableNotEnoughItem");
+    return focusNode?.position ?? null;
+  }, [nodes]);
 
   return (
     <div className={styles.researchArea} data-testid="research-tree">
@@ -46,7 +53,7 @@ export default function ResearchTreePanel() {
         <div className={styles.treeContainer}>
           <TreeView nodes={nodes} getId={getResearchNodeId} getPosition={getResearchNodePosition}
             getPrevIds={getPreviousResearchNodeIds} nodeTargetSelector="[data-research-node]" testIdPrefix="research"
-            renderNode={renderResearchNode} />
+            renderNode={renderResearchNode} viewportKey="research" initialFocus={initialFocus} />
         </div>
       </GamePanel>
       {selectedNode && (

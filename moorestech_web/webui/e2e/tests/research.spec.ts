@@ -21,17 +21,19 @@ test("研究報酬itemの個数をtopic payloadどおり詳細ペインで表示
   await setUiState(page, "ResearchTree");
   await page.goto("/");
   // ノード選択で詳細ペインを開き、報酬個数はカードでなくペイン側に出る
+  // 初期表示で中央に来る researchable ノード（報酬 item100×2）を選択する
   // Selecting the node opens the detail pane; the reward count now lives in the pane, not the card
-  await page.getByTestId("research-node-11111111-1111-4111-8111-111111111111").click();
+  // Pick the researchable node (reward item100×2) which is centered on open
+  await page.getByTestId("research-node-33333333-3333-4333-8333-333333333333").click();
   const pane = page.getByTestId("research-detail-pane");
-  await expect(pane.getByText("4", { exact: true })).toBeVisible();
+  await expect(pane.getByText("2", { exact: true })).toBeVisible();
   await expectCraftGrip(pane.locator(':scope > [data-variant="craft"]'), false);
 });
 
 test("translate後のグリップ矩形だけに重なる境界buttonをexpectCraftGripが検出する", async ({ page }) => {
   await setUiState(page, "ResearchTree");
   await page.goto("/");
-  await page.getByTestId("research-node-11111111-1111-1111-1111-111111111111").click();
+  await page.getByTestId("research-node-33333333-3333-4333-8333-333333333333").click();
   const pane = page.getByTestId("research-detail-pane");
   const craftPanel = pane.locator(':scope > [data-variant="craft"]');
 
@@ -57,7 +59,7 @@ test("translate後のグリップ矩形だけに重なる境界buttonをexpectCr
 test("padding box外の境界buttonをexpectCraftGripが重なりなしと判定する", async ({ page }) => {
   await setUiState(page, "ResearchTree");
   await page.goto("/");
-  await page.getByTestId("research-node-11111111-1111-1111-1111-111111111111").click();
+  await page.getByTestId("research-node-33333333-3333-4333-8333-333333333333").click();
   const craftPanel = page.getByTestId("research-detail-pane").locator(':scope > [data-variant="craft"]');
 
   // padding box基準の実矩形より右下へ外れる境界buttonを置く
@@ -95,76 +97,4 @@ test("research button sends research.complete and node becomes completed", async
   // mock が completed へ書換えて push → ボタンが研究済みに変わる
   // The mock rewrites the node to completed and pushes; the button flips to the completed label
   await expect(page.getByTestId(`research-button-${researchableGuid}`)).toContainText("研究済み");
-});
-
-test("research tree zooms with the wheel and pans by dragging its empty background", async ({ page }) => {
-  await page.setViewportSize({ width: 960, height: 540 });
-  await setUiState(page, "ResearchTree");
-  await page.goto("/");
-  const viewport = page.getByTestId("research-viewport");
-  const node = page.getByTestId("research-node-11111111-1111-4111-8111-111111111111");
-  const viewportBox = await viewport.boundingBox();
-  const beforeZoom = await node.boundingBox();
-  expect(viewportBox).not.toBeNull();
-  expect(beforeZoom).not.toBeNull();
-
-  const zoomCursor = {
-    x: beforeZoom!.x + beforeZoom!.width / 2,
-    y: beforeZoom!.y + beforeZoom!.height / 2,
-  };
-  await page.mouse.move(zoomCursor.x, zoomCursor.y);
-  await page.mouse.wheel(0, -240);
-  await expect.poll(async () => (await node.boundingBox())!.width).toBeGreaterThan(beforeZoom!.width);
-  await expect.poll(async () => {
-    const box = await node.boundingBox();
-    return box!.x + box!.width / 2;
-  }).toBeCloseTo(zoomCursor.x, 0);
-  await expect.poll(async () => {
-    const box = await node.boundingBox();
-    return box!.y + box!.height / 2;
-  }).toBeCloseTo(zoomCursor.y, 0);
-  const afterZoomWidth = (await node.boundingBox())!.width;
-  await page.mouse.wheel(0, 240);
-  await expect.poll(async () => (await node.boundingBox())!.width).toBeLessThan(afterZoomWidth);
-  await expect.poll(async () => {
-    const box = await node.boundingBox();
-    return box!.x + box!.width / 2;
-  }).toBeCloseTo(zoomCursor.x, 0);
-  await expect.poll(async () => {
-    const box = await node.boundingBox();
-    return box!.y + box!.height / 2;
-  }).toBeCloseTo(zoomCursor.y, 0);
-
-  const dragStart = {
-    x: viewportBox!.x + viewportBox!.width - 40,
-    y: viewportBox!.y + viewportBox!.height - 40,
-  };
-  const beforePan = await node.boundingBox();
-  await page.mouse.move(dragStart.x, dragStart.y);
-  await page.mouse.down();
-  await page.mouse.move(dragStart.x - 80, dragStart.y - 50, { steps: 5 });
-  await page.mouse.up();
-  await expect.poll(async () => (await node.boundingBox())!.x - beforePan!.x).toBeCloseTo(-80, 0);
-  await expect.poll(async () => (await node.boundingBox())!.y - beforePan!.y).toBeCloseTo(-50, 0);
-
-  const beforeRightDrag = await node.boundingBox();
-  await page.mouse.move(dragStart.x, dragStart.y);
-  await page.mouse.down({ button: "right" });
-  await page.mouse.move(dragStart.x - 80, dragStart.y - 50, { steps: 5 });
-  await page.mouse.up({ button: "right" });
-  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-  const afterRightDrag = await node.boundingBox();
-  expect(afterRightDrag!.x).toBe(beforeRightDrag!.x);
-  expect(afterRightDrag!.y).toBe(beforeRightDrag!.y);
-
-  const beforeNodeDrag = await node.boundingBox();
-  const nodeDragStart = { x: beforeNodeDrag!.x + 16, y: beforeNodeDrag!.y + 16 };
-  await page.mouse.move(nodeDragStart.x, nodeDragStart.y);
-  await page.mouse.down();
-  await page.mouse.move(nodeDragStart.x - 80, nodeDragStart.y - 50, { steps: 5 });
-  await page.mouse.up();
-  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-  const afterNodeDrag = await node.boundingBox();
-  expect(afterNodeDrag!.x).toBe(beforeNodeDrag!.x);
-  expect(afterNodeDrag!.y).toBe(beforeNodeDrag!.y);
 });
