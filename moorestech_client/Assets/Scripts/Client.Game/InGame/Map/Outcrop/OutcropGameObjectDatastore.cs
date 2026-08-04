@@ -30,6 +30,7 @@ namespace Client.Game.InGame.Map.Outcrop
         // 同一アドレスを共有する鉱脈では成功したAddressables解決を再利用する
         // Reuse successful Addressables resolutions for veins sharing one address
         private readonly Dictionary<string, GameObject> _prefabCacheByAddress = new();
+        private readonly OutcropGuidIndex _outcropGuidIndex = new();
         private InitialHandshakeResponse _handshakeResponse;
         private UniTask? _initializationTask;
 
@@ -76,7 +77,7 @@ namespace Client.Game.InGame.Map.Outcrop
                     }
                     else
                     {
-                        InstantiateOutcrop(prefab, element, layout, position, center);
+                        InstantiateOutcrop(prefab, veinGuid, element, layout, position, center);
                     }
 
                     processedCount++;
@@ -104,7 +105,7 @@ namespace Client.Game.InGame.Map.Outcrop
                 return loaded;
             }
 
-            void InstantiateOutcrop(GameObject prefab, MapVeinMasterElement element, VeinLayoutMessagePack layout, Vector3 position, Vector3 center)
+            void InstantiateOutcrop(GameObject prefab, Guid veinGuid, MapVeinMasterElement element, VeinLayoutMessagePack layout, Vector3 position, Vector3 center)
             {
                 var instance = Instantiate(prefab, position, Quaternion.identity, transform);
                 instance.name = $"{OutcropObjectNamePrefix}{layout.VeinGuid}";
@@ -116,6 +117,7 @@ namespace Client.Game.InGame.Map.Outcrop
 
                 var outcrop = instance.GetComponent<OutcropGameObject>();
                 if (outcrop == null) outcrop = instance.AddComponent<OutcropGameObject>();
+                _outcropGuidIndex.Add(veinGuid, outcrop);
 
                 // none鉱脈はビジュアルだけ残しコライダマーカーを注入しない
                 // Keep none veins visual-only without injecting collider markers
@@ -169,6 +171,11 @@ namespace Client.Game.InGame.Map.Outcrop
             if (_initializationTask == null)
                 throw new InvalidOperationException("[OutcropGameObjectDatastore] StartOutcropInstantiation前に待機が要求されました");
             return _initializationTask.Value;
+        }
+
+        public OutcropGameObject SearchNearestOutcrop(Guid veinGuid, Vector3 position)
+        {
+            return _outcropGuidIndex.SearchNearest(veinGuid, position);
         }
     }
 }

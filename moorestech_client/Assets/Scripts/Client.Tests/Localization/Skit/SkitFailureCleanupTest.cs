@@ -26,8 +26,10 @@ namespace Client.Tests.Localization.Skit
             var skitUi = skitUiObject.AddComponent<SkitUI>();
             var manager = root.AddComponent<SkitManager>();
             var mapObjectPin = new RecordingMapObjectPin();
+            var veinPin = new RecordingVeinPin();
             SetPrivateField(manager, "skitUI", skitUi);
             SetPrivateField(manager, "mapObjectPin", mapObjectPin);
+            SetPrivateField(manager, "veinPin", veinPin);
 
             // 失敗したskitはfinallyだけで後始末し、まだ隠していないpinには触れない
             // A failed skit cleans up solely in finally and never touches a pin it has not hidden
@@ -44,6 +46,7 @@ namespace Client.Tests.Localization.Skit
             Assert.IsFalse(manager.IsPlayingSkit);
             Assert.IsFalse(skitUiObject.activeSelf);
             Assert.AreEqual(0, mapObjectPin.SetActiveCallCount);
+            Assert.AreEqual(0, veinPin.SetActiveCallCount);
 
             UnityEngine.Object.DestroyImmediate(root);
         }
@@ -78,6 +81,25 @@ namespace Client.Tests.Localization.Skit
         }
 
         private sealed class RecordingMapObjectPin : IMapObjectPin
+        {
+            public int SetActiveCallCount;
+
+            public void SetActive(bool active)
+            {
+                SetActiveCallCount++;
+            }
+
+            public ITutorialView ApplyTutorial(TutorialsElement tutorial)
+            {
+                return this;
+            }
+
+            public void CompleteTutorial()
+            {
+            }
+        }
+
+        private sealed class RecordingVeinPin : IVeinPin
         {
             public int SetActiveCallCount;
 

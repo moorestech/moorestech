@@ -3,7 +3,7 @@ using Mooresmaster.Model.ChallengesModule;
 
 namespace Client.DebugSystem.Skit
 {
-    public class MapObjectTest : IMapObjectPin
+    public class MapObjectTest : IMapObjectPin, IVeinPin
     {
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {

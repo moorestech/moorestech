@@ -121,6 +121,7 @@ namespace Client.Starter
         [SerializeField] private ResearchTreeViewManager researchTreeViewManager;
 
         [SerializeField] private MapObjectPin mapObjectPin;
+        [SerializeField] private VeinPin veinPin;
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
         [SerializeField] private KeyControlTutorialManager keyControlTutorialManager;
         [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
@@ -315,6 +316,7 @@ namespace Client.Starter
             builder.RegisterComponent(researchTreeViewManager);
 
             builder.RegisterComponent<IMapObjectPin>(mapObjectPin);
+            builder.RegisterComponent<IVeinPin>(veinPin);
             builder.RegisterComponent(uiHighlightTutorialManager);
             builder.RegisterComponent(keyControlTutorialManager);
             builder.RegisterComponent(itemViewHighLightTutorialManager);

@@ -97,6 +97,15 @@ namespace Core.Master.Validator
                                     }
                                     break;
                                 }
+                                case VeinPinTutorialParam veinPin:
+                                {
+                                    var vein = MasterHolder.MapVeinMaster.GetElementOrNull(veinPin.VeinGuid);
+                                    if (vein == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.VeinGuid:{veinPin.VeinGuid}\n";
+                                    }
+                                    break;
+                                }
                                 case ItemViewHighLightTutorialParam itemViewHighLight:
                                 {
                                     var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(itemViewHighLight.HighLightItemGuid);

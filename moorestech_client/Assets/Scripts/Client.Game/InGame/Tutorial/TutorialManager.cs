@@ -16,6 +16,7 @@ namespace Client.Game.InGame.Tutorial
         
         public TutorialManager(
             IMapObjectPin mapObjectPin,
+            IVeinPin veinPin,
             UIHighlightTutorialManager uiHighlightTutorialManager,
             KeyControlTutorialManager keyControlTutorialManager,
             ItemViewHighLightTutorialManager itemViewHighLightTutorialManager,
@@ -24,6 +25,7 @@ namespace Client.Game.InGame.Tutorial
         {
             _keyControlTutorialManager = keyControlTutorialManager;
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.mapObjectPin, mapObjectPin);
+            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.veinPin, veinPin);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.uiHighLight, uiHighlightTutorialManager);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.keyControl, keyControlTutorialManager);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.itemViewHighLight, itemViewHighLightTutorialManager);
