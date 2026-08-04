@@ -1,0 +1,11 @@
+{
+  "idx": 7,
+  "predictions": [
+    {
+      "header": "当たり判定",
+      "predicted_label": "露頭ビジュアルのみ（推奨追従）。ただし選択肢文の『クライアント側でveinから実行時生成するビジュアル』という前提は既決の『露頭=サーバー管理mapObject / map.jsonに出力』と矛盾するため、『露頭mapObjectのコライダを叩く＝既存MapObjectMining経路に乗せる』という訂正・但し書きが付く可能性が高い",
+      "rationale": "(1) 前例一致が最強の根拠。クライアントには既に MapObjectRayTarget(moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectRayTarget.cs) + MapObjectMiningController 一式(同 InGame/Mining/)があり、手掘りは『mapObjectのコライダをレイで狙う』方式で既に成立している。露頭をmapObject化することは本セッションで既に確定済み(Q3『はい』/Q5『map.jsonに出力』)なので、露頭を叩く=既存採掘機構にそのまま乗る、が前例準拠の帰結。ユーザーは『着手前に前例を探す/前例に従う』を強く要求する(AGENTS.md 設計原則・adjudications『前例はファイル配置の粒度まで調べてから提案する』)。(2) 『地形も叩ける』は露頭HP経路とvein直接判定経路の二経路併存になり、ユーザーが嫌う二重経路・別途の視覚フィードバック新設を招く。scope-resolutionの観点でも畳まれる側。(3) 逸脱シグナルの検討: deviation-cases#1『プレイヤー操作・UXの幅はYAGNIで削らない』は該当しうるが、あれは入力導線の併存(長押し+D&D、ホイール循環)の話で、主語がプレイヤー操作の\"方法\"だった。今回は狙う対象=当たり判定の権威経路の話で、機構側の最小化に近い。加えて過去裁定に『露頭のインタラクティブ性はそれ今やらなくていいよね』(2026-07-24)があり、露頭まわりを広げる方向の前科はない。(4) ただし直前のQ3で『はい、ただ、〜したい』と条件付き承認で枠を補正した実績があり、今回も推奨選択＋前提訂正のコメントが付く形を見込む。(5) 確信度規律: UI/UX・操作系の予測は根拠があっても『中』以下に降格(deviation-cases#1末尾)。",
+      "confidence": "中"
+    }
+  ]
+}

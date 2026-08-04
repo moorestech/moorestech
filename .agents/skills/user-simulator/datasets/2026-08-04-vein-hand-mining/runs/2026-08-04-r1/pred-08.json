@@ -1,0 +1,11 @@
+{
+  "idx": 8,
+  "predictions": [
+    {
+      "header": "veinスキーマ",
+      "predicted_label": "その他（枠破り）: mapVeins側に手掘り設定を新設しない。叩かれる実体は露頭mapObjectなので、既存の mapObjects.hp / earnItemHpInterval / earnItems / miningType+miningParam(miningTools) をそのまま手掘り設定の正とし、mapVeinsには追加しない（fluidはQ6で確定した露頭参照のNone型で構造的に手掘り不可になるため専用バリデーションも不要）。推奨案に乗る場合のみ「フラット+ダメージ蓄積」",
+      "rationale": "実スキーマ /Users/katsumi/moorestech/VanillaSchema/map.yml を確認すると、推奨案がmapVeinsへ新設しようとしている要素は mapObjects 側にすべて既存: hp(L21)・earnItemHpInterval(L23)・earnItems(minCount/maxCount含む)・miningType enum + miningParam switch(miningTools: toolItemGuid/damage/attackSpeed)。推奨案はこの一式をもう一方のスキーマへ丸ごと複製する形で、ユーザーの一貫した「1ドメイン1本・情報は一箇所に集中・前例準拠」傾向（adjudications「新yaml禁止・統合が流儀」「前例はファイル配置の粒度まで調べてから」）と正面から衝突する。さらに直前3問の確定回答と個別に矛盾する: (a) Q6「全veinがGuid参照+None型」で fluid鉱脈は露頭Noneとなり手掘り不可が構造的に解決済みなのに、推奨案は同じ制約をC#バリデーションで二重に敷いている。(b) Q7「earnItemsが正+検証」でドロップの正はmapObject側と裁定済みなのに、推奨案は「veinParam.itemGuidが唯一の正」と正を逆転させている。(c) Q8「露頭ビジュアルのみを叩く」で被打撃実体がmapObjectと確定しており、HP/ダメージ/ツール照合はmapObjectの責務に落ちるのが自然。ユーザーは本セッションでも既に一度枠を破っており（Q3で「mapobjectに無限採掘の概念を生やしたい」と質問の枠外の要求を出した）、mapObject側の表現力を拡張する方向の思考が現に動いている。deviation-cases #4の「同種概念が別々の持ち方のまま進行しているとき、承認ではなくSSOT側の先行整理を返す」パターンにも合致する。選択肢2は「SourceGeneratorが対応しているか未知」と明記された未検証前提の上に立っており、ユーザーは未裏取りの提案を「調べてから再提案して」と差し戻す前科があるため低い。選択肢3はダメージ概念を捨ててツール進化の価値を消すもので、deviation-cases #1「プレイヤーの体験・操作の幅はYAGNIで削らない」に反するためほぼ除外できる。",
+      "confidence": "中"
+    }
+  ]
+}

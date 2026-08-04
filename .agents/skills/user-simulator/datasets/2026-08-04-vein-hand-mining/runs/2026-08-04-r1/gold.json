@@ -1,0 +1,126 @@
+[
+ {
+  "idx": 0,
+  "headers": [
+   "位置づけ"
+  ],
+  "answers": {
+   "Vein手掘りのゲームプレイ上の位置づけは何ですか？（これが量・速度・対象の全設計を決めます）": "序盤の入手経路 (Recommended)"
+  }
+ },
+ {
+  "idx": 1,
+  "headers": [
+   "掘る対象"
+  ],
+  "answers": {}
+ },
+ {
+  "idx": 2,
+  "headers": [
+   "方針確認"
+  ],
+  "answers": {
+   "露頭＝サーバー管理のmapObjectとして扱う方針で確定してよいですか？": "はい、ただ、mapobjectに無限採掘の概念を更かしたい。いまは100000みたいな大きいhpを設定してるので"
+  }
+ },
+ {
+  "idx": 3,
+  "headers": [
+   "無限の表現"
+  ],
+  "answers": {
+   "mapObjectの「無限採掘」をスキーマ上どう表現しますか？": "hpをswitch化 (Recommended)"
+  }
+ },
+ {
+  "idx": 4,
+  "headers": [
+   "露頭の出所"
+  ],
+  "answers": {
+   "露頭mapObjectのインスタンスはどこから生まれるべきですか？": "map.jsonに出力 (Recommended)"
+  }
+ },
+ {
+  "idx": 5,
+  "headers": [
+   "露頭参照"
+  ],
+  "answers": {
+   "mapVeinsの露頭参照はどうしますか？特にfluid鉱脈（水・原油）の露頭の扱いが論点です": "全veinがGuid参照+None型 (Recommended)"
+  }
+ },
+ {
+  "idx": 6,
+  "headers": [
+   "ドロップの正"
+  ],
+  "answers": {
+   "手掘りドロップの定義場所と、veinのitemGuidとの整合担保はどうしますか？": "earnItemsが正+検証 (Recommended)"
+  }
+ },
+ {
+  "idx": 7,
+  "headers": [
+   "当たり判定"
+  ],
+  "answers": {
+   "veinを手掘りするとき、プレイヤーは何を狙って叩きますか？": "露頭ビジュアルのみ (Recommended)"
+  }
+ },
+ {
+  "idx": 8,
+  "headers": [
+   "veinスキーマ"
+  ],
+  "answers": {
+   "mapVeinsの手掘り設定のスキーマ形状とドロップ機構はどうしますか？": "1振り1ドロップ"
+  }
+ },
+ {
+  "idx": 9,
+  "headers": [
+   "無限の行方"
+  ],
+  "answers": {
+   "mapObjectのdurabilityType(finite/infinite)スキーマ拡張はどうしますか？": "取りやめる (Recommended)"
+  }
+ },
+ {
+  "idx": 10,
+  "headers": [
+   "プロトコル"
+  ],
+  "answers": {
+   "vein手掘りのサーバープロトコルはどう構成しますか？": "採掘1本にMode統合 (Recommended)"
+  }
+ },
+ {
+  "idx": 11,
+  "headers": [
+   "露頭粒度"
+  ],
+  "answers": {
+   "露頭ビジュアルはどの粒度で生成しますか？": "AABBごとに1個"
+  }
+ },
+ {
+  "idx": 12,
+  "headers": [
+   "対象鉱脈"
+  ],
+  "answers": {
+   "手掘り可能にする鉱脈の範囲は？": "序盤資源のみ (Recommended)"
+  }
+ },
+ {
+  "idx": 13,
+  "headers": [
+   "設計確定"
+  ],
+  "answers": {
+   "この設計で確定してよいですか？確定なら次はwriting-plansで実装計画を作ります": "確定、計画作成へ (Recommended)"
+  }
+ }
+]
