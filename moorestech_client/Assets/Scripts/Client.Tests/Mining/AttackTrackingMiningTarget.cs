@@ -56,6 +56,16 @@ namespace Client.Tests.Mining
                 SetField(manager, fieldName, _soundEffectClip);
             InvokePrivate(manager, "Awake");
             _soundEffectObject.SetActive(true);
+
+            #region Internal
+
+            static void InvokePrivate(object target, string methodName)
+            {
+                var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+                method.Invoke(target, null);
+            }
+
+            #endregion
         }
 
         public void Destroy()
@@ -72,10 +82,5 @@ namespace Client.Tests.Mining
             field.SetValue(target, value);
         }
 
-        private static void InvokePrivate(object target, string methodName)
-        {
-            var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
-            method.Invoke(target, null);
-        }
     }
 }

@@ -23,6 +23,8 @@ namespace Client.Tests.Mining
 {
     public class MapObjectMiningEquipmentSwitchTest : InputTestFixture
     {
+        // ForUnitTestの採掘可能mapObjectと許可ツールを識別する
+        // Identify the ForUnitTest minable mapObject and its allowed tool
         private static readonly Guid MiningRockGuid = new("00000000-0000-2222-0000-000000000001");
         private static readonly Guid MiningToolItemGuid = new("00000000-0000-0000-1234-000000000001");
 
@@ -85,7 +87,6 @@ namespace Client.Tests.Mining
             }
             #endregion
         }
-
         [Test]
         public void 採掘中に装備を持ち替えるとフォーカス状態へ戻る()
         {
@@ -101,7 +102,6 @@ namespace Client.Tests.Mining
             context.LocalPlayerEquipment.ApplySelected(IEquipmentInventory.BareHandsIndex);
             Assert.IsInstanceOf<MapObjectMiningFocusState>(miningState.GetNextUpdate(context, 0.01f));
         }
-
         [Test]
         public void 完了後に照準対象が変わっても開始対象だけを攻撃する()
         {
