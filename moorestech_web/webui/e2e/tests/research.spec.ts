@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../support/actions";
 import { expectCraftGrip } from "../support/craftChromeAssertions";
 import { resetResearch, setUiState } from "../support/mockControl";
+import { researchableNodeGuid } from "../mock-host/researchFixtures";
 
 // 各テスト後に研究ツリーと ui_state を既定へ戻し、状態漏れを防ぐ
 // Reset the research tree and ui_state to defaults after each test to prevent state leakage
@@ -24,7 +25,7 @@ test("研究報酬itemの個数をtopic payloadどおり詳細ペインで表示
   // 初期表示で中央に来る researchable ノード（報酬 item100×2）を選択する
   // Selecting the node opens the detail pane; the reward count now lives in the pane, not the card
   // Pick the researchable node (reward item100×2) which is centered on open
-  await page.getByTestId("research-node-33333333-3333-4333-8333-333333333333").click();
+  await page.getByTestId(`research-node-${researchableNodeGuid}`).click();
   const pane = page.getByTestId("research-detail-pane");
   await expect(pane.getByText("2", { exact: true })).toBeVisible();
   await expectCraftGrip(pane.locator(':scope > [data-variant="craft"]'), false);
@@ -33,7 +34,7 @@ test("研究報酬itemの個数をtopic payloadどおり詳細ペインで表示
 test("translate後のグリップ矩形だけに重なる境界buttonをexpectCraftGripが検出する", async ({ page }) => {
   await setUiState(page, "ResearchTree");
   await page.goto("/");
-  await page.getByTestId("research-node-33333333-3333-4333-8333-333333333333").click();
+  await page.getByTestId(`research-node-${researchableNodeGuid}`).click();
   const pane = page.getByTestId("research-detail-pane");
   const craftPanel = pane.locator(':scope > [data-variant="craft"]');
 
@@ -59,7 +60,7 @@ test("translate後のグリップ矩形だけに重なる境界buttonをexpectCr
 test("padding box外の境界buttonをexpectCraftGripが重なりなしと判定する", async ({ page }) => {
   await setUiState(page, "ResearchTree");
   await page.goto("/");
-  await page.getByTestId("research-node-33333333-3333-4333-8333-333333333333").click();
+  await page.getByTestId(`research-node-${researchableNodeGuid}`).click();
   const craftPanel = page.getByTestId("research-detail-pane").locator(':scope > [data-variant="craft"]');
 
   // padding box基準の実矩形より右下へ外れる境界buttonを置く
@@ -83,18 +84,17 @@ test("research button sends research.complete and node becomes completed", async
   await resetResearch(page);
   await setUiState(page, "ResearchTree");
   await page.goto("/");
-  const researchableGuid = "33333333-3333-4333-8333-333333333333";
   // 研究実行ボタンは選択時の詳細ペイン内にあるため、先にノードを選択する
   // The research button lives in the selection detail pane, so select the node first
-  await page.getByTestId(`research-node-${researchableGuid}`).click();
-  await page.getByTestId(`research-button-${researchableGuid}`).click();
+  await page.getByTestId(`research-node-${researchableNodeGuid}`).click();
+  await page.getByTestId(`research-button-${researchableNodeGuid}`).click();
   await expect
     .poll(async () => {
       const payloads = await payloadsOf(page, "research.complete");
       return payloads[0];
     })
-    .toEqual({ researchGuid: researchableGuid });
+    .toEqual({ researchGuid: researchableNodeGuid });
   // mock が completed へ書換えて push → ボタンが研究済みに変わる
   // The mock rewrites the node to completed and pushes; the button flips to the completed label
-  await expect(page.getByTestId(`research-button-${researchableGuid}`)).toContainText("研究済み");
+  await expect(page.getByTestId(`research-button-${researchableNodeGuid}`)).toContainText("研究済み");
 });

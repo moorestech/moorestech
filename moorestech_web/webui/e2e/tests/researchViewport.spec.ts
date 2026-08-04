@@ -1,11 +1,19 @@
 import { test, expect } from "@playwright/test";
 import { resetResearch, setUiState } from "../support/mockControl";
-import { settleBoundingBox } from "../support/panSettle";
+import { settleBoundingBox, waitForFrame } from "../support/panSettle";
+import { researchableNodeGuid } from "../mock-host/researchFixtures";
+import { PAN_FRICTION_TAU_MS, PAN_MAX_FLING_SPEED } from "../../src/shared/treeView/viewport/viewport";
 
-// researchable な中央寄せ対象ノード（fixtureの3ノード目）
-// The researchable centering target (3rd node in the fixture)
-const RESEARCHABLE_NODE = "research-node-33333333-3333-4333-8333-333333333333";
+// 中央寄せ対象ノード(SSOT参照)
+// The centering target node (fixture SSOT)
+const RESEARCHABLE_NODE = `research-node-${researchableNodeGuid}`;
 
+// 滑走距離上限=速度上限×時定数
+// Max glide distance = speed cap × time constant
+const MAX_GLIDE_PX = PAN_MAX_FLING_SPEED * PAN_FRICTION_TAU_MS;
+
+// 各テスト後に研究ツリーと ui_state を既定へ戻し、状態漏れを防ぐ
+// Reset the research tree and ui_state to defaults after each test to prevent state leakage
 test.afterEach(async ({ page }) => {
   await resetResearch(page);
   await setUiState(page, "PlayerInventory");
@@ -37,8 +45,8 @@ test("research tree keeps its pan position across close and reopen", async ({ pa
   await page.mouse.up();
   const settled = await settleBoundingBox(page, node);
 
-  // 画面を閉じて開き直しても、パン位置が復元される（再センタリングしない）
-  // Close and reopen the screen: the pan position is restored, not re-centered
+  // 閉じ直してもパン位置は復元
+  // Reopening restores the pan position, not re-centered
   await setUiState(page, "PlayerInventory");
   await expect(page.getByTestId("research-tree")).toHaveCount(0);
   await setUiState(page, "ResearchTree");
@@ -78,8 +86,8 @@ test("research tree zooms with the wheel and pans by dragging its empty backgrou
   await page.mouse.wheel(0, 240);
   await expect.poll(async () => (await node.boundingBox())!.width).toBeLessThan(afterZoomWidth);
 
-  // ドラッグ距離ぶん以上動く（速い操作は慣性で滑走してから静止する）
-  // Moves at least the drag distance (fast drags glide with inertia before settling)
+  // ドラッグ距離以上、慣性で滑走後停止
+  // Moves at least the drag distance, glides, then stops
   const dragStart = {
     x: viewportBox!.x + viewportBox!.width - 40,
     y: viewportBox!.y + viewportBox!.height - 40,
@@ -92,17 +100,17 @@ test("research tree zooms with the wheel and pans by dragging its empty backgrou
   const afterPan = await settleBoundingBox(page, node);
   expect(afterPan.x - beforePan.x).toBeLessThanOrEqual(-79.5);
   expect(afterPan.y - beforePan.y).toBeLessThanOrEqual(-49.5);
-  // 慣性の滑走距離は速度上限×時定数で有限に収まる
-  // The glide distance is bounded by the speed cap times the time constant
-  expect(afterPan.x - beforePan.x).toBeGreaterThan(-80 - 1100);
-  expect(afterPan.y - beforePan.y).toBeGreaterThan(-50 - 1100);
+  // 滑走距離は速度上限×時定数で有限
+  // Glide distance is bounded by cap × time constant
+  expect(afterPan.x - beforePan.x).toBeGreaterThan(-80 - MAX_GLIDE_PX - 1);
+  expect(afterPan.y - beforePan.y).toBeGreaterThan(-50 - MAX_GLIDE_PX - 1);
 
   const beforeRightDrag = await node.boundingBox();
   await page.mouse.move(dragStart.x, dragStart.y);
   await page.mouse.down({ button: "right" });
   await page.mouse.move(dragStart.x - 80, dragStart.y - 50, { steps: 5 });
   await page.mouse.up({ button: "right" });
-  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await waitForFrame(page);
   const afterRightDrag = await node.boundingBox();
   expect(afterRightDrag!.x).toBe(beforeRightDrag!.x);
   expect(afterRightDrag!.y).toBe(beforeRightDrag!.y);
@@ -113,7 +121,7 @@ test("research tree zooms with the wheel and pans by dragging its empty backgrou
   await page.mouse.down();
   await page.mouse.move(nodeDragStart.x - 80, nodeDragStart.y - 50, { steps: 5 });
   await page.mouse.up();
-  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await waitForFrame(page);
   const afterNodeDrag = await node.boundingBox();
   expect(afterNodeDrag!.x).toBe(beforeNodeDrag!.x);
   expect(afterNodeDrag!.y).toBe(beforeNodeDrag!.y);

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { useTopic, Topics } from "@/bridge";
+import { useTopic, Topics, useItemMaster } from "@/bridge";
 import type { ResearchNodeData } from "@/bridge";
 import { buildOwnedCounts } from "@/shared/ownedCounts";
 import { GamePanel } from "@/shared/ui";
@@ -7,7 +7,8 @@ import { TreeView } from "@/shared/treeView";
 import type { TreePoint } from "@/shared/treeView";
 import ResearchNodeCard from "./ResearchNodeCard";
 import ResearchDetailPane from "./ResearchDetailPane";
-import { L, useI18n } from "@/shared/i18n";
+import { findInitialFocusNode } from "./researchLogic";
+import { useI18n } from "@/shared/i18n";
 import styles from "./style.module.css";
 
 // topic未受信時の空配列を固定参照にしてuseMemoの空振りを防ぐ
@@ -23,12 +24,14 @@ export default function ResearchTreePanel() {
   const { t } = useI18n();
   const tree = useTopic(Topics.researchTree);
   const inventory = useTopic(Topics.inventory);
+  const itemMaster = useItemMaster();
   const nodes = tree?.nodes ?? EMPTY_NODES;
   const [selectedGuid, setSelectedGuid] = useState<string | null>(null);
   const owned = useMemo(
     () => buildOwnedCounts([...(inventory?.mainSlots ?? []), ...(inventory?.hotbarSlots ?? [])]),
     [inventory],
   );
+  const resolveName = useCallback((itemId: number) => itemMaster?.get(itemId)?.name, [itemMaster]);
   // 同ノード再クリックで閉じるトグル選択
   // Toggle selection: clicking the same node again closes the pane
   const toggleSelect = useCallback((guid: string) => {
@@ -39,17 +42,16 @@ export default function ResearchTreePanel() {
       selected={node.guid === selectedGuid} onSelect={toggleSelect} />
   ), [selectedGuid, toggleSelect]);
   const selectedNode = nodes.find((node) => node.guid === selectedGuid);
-  // 初回表示は「今研究できる」ノードを中央に。無ければ素材待ちの最前線ノードへ寄せる
-  // First open centers on the researchable node, falling back to the item-lacking frontier
+  // 中央寄せはresearchLogic準拠
+  // Centering target follows researchLogic
   const initialFocus = useMemo(() => {
-    const focusNode = nodes.find((node) => node.state === "researchable")
-      ?? nodes.find((node) => node.state === "unresearchableNotEnoughItem");
-    return focusNode?.position ?? null;
+    const focusNode = findInitialFocusNode(nodes);
+    return focusNode ? getResearchNodePosition(focusNode) : null;
   }, [nodes]);
 
   return (
     <div className={styles.researchArea} data-testid="research-tree">
-      <GamePanel title={t(L.ui.research.title)} style={{ height: "100%", boxSizing: "border-box" }}>
+      <GamePanel title={t("研究")} style={{ height: "100%", boxSizing: "border-box" }}>
         <div className={styles.treeContainer}>
           <TreeView nodes={nodes} getId={getResearchNodeId} getPosition={getResearchNodePosition}
             getPrevIds={getPreviousResearchNodeIds} nodeTargetSelector="[data-research-node]" testIdPrefix="research"
@@ -57,7 +59,8 @@ export default function ResearchTreePanel() {
         </div>
       </GamePanel>
       {selectedNode && (
-        <ResearchDetailPane node={selectedNode} owned={owned} onClose={() => setSelectedGuid(null)} />
+        <ResearchDetailPane node={selectedNode} owned={owned} resolveName={resolveName}
+          onClose={() => setSelectedGuid(null)} />
       )}
     </div>
   );

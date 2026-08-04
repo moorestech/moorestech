@@ -2,9 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import type { PointerEvent, ReactNode } from "react";
 import { computeTreeCanvasBounds, lineBetween, toTreeCanvasPoint } from "./treeGeometry";
 import type { TreePoint } from "./treeGeometry";
-import { centerViewportOn, zoomViewportAt } from "./viewport";
-import { loadStoredViewport, saveStoredViewport } from "./viewportStore";
-import { usePanInertia } from "./usePanInertia";
+import { centerViewportOn, loadStoredViewport, saveStoredViewport, usePanInertia, zoomViewportAt } from "./viewport";
 import styles from "./TreeView.module.css";
 
 type PanPointer = { pointerId: number; clientX: number; clientY: number };
@@ -16,11 +14,13 @@ type Props<T> = {
   renderNode: (node: T, point: TreePoint) => ReactNode;
   nodeTargetSelector: string;
   testIdPrefix: string;
-  // セッション内でパン・ズームを保持するキー（省略時は保持しない）
-  // Key for in-session viewport persistence (omit to disable)
+  // ビューポート保持キー(省略で無効)
+  // マウント中は不変が契約。切り替える場合は key={viewportKey} で再マウントする
+  // In-session viewport persistence key (omit to disable)
+  // Contract: immutable while mounted; remount via key={viewportKey} to switch
   viewportKey?: string;
-  // 保存が無い初回に中央へ据えるツリー座標（nullで中央寄せなし）
-  // Tree-space point centered on first open without a stored viewport (null = no centering)
+  // 初回の中央寄せ座標(nullで無効)
+  // First-open centering point (null = no centering)
   initialFocus?: TreePoint | null;
 };
 
@@ -33,10 +33,12 @@ export default function TreeView<T>(props: Props<T>) {
   const [isPanning, setIsPanning] = useState(false);
   const panPointer = useRef<PanPointer | null>(null);
   const viewportElement = useRef<HTMLDivElement | null>(null);
-  const applyInertiaPan = useCallback((dx: number, dy: number) => {
+  // パンの平行移動はドラッグ・慣性の両経路がこの1本を通る
+  // Both drag and inertia panning go through this single translator
+  const panBy = useCallback((dx: number, dy: number) => {
     setViewport((current) => ({ ...current, x: current.x + dx, y: current.y + dy }));
   }, []);
-  const inertia = usePanInertia(applyInertiaPan);
+  const inertia = usePanInertia(panBy);
   const bounds = useMemo(
     () => computeTreeCanvasBounds(nodes.map((node) => ({ id: getId(node), ...getPosition(node) })), 200),
     [nodes, getId, getPosition],
@@ -66,12 +68,14 @@ export default function TreeView<T>(props: Props<T>) {
     if (!element || element.offsetWidth === 0) return;
     hasCentered.current = true;
     if (!initialFocus) return;
-    setViewport(centerViewportOn(toTreeCanvasPoint(initialFocus, bounds),
-      { width: element.offsetWidth, height: element.offsetHeight }, 1));
+    // データ到着前にズーム済みの場合もあるため現在のscaleを保つ
+    // Keep the current scale in case the user zoomed before data arrived
+    setViewport((current) => centerViewportOn(toTreeCanvasPoint(initialFocus, bounds),
+      { width: element.offsetWidth, height: element.offsetHeight }, current.scale));
   }, [storedAtMount, initialFocus, bounds, nodes]);
 
-  // 操作で動いた時だけ保存する（マウント時の初期値は保存しない）
-  // Save only when the viewport actually moved (skip the untouched mount value)
+  // 初期値以外(センタリング・操作)を保存
+  // Save all but the untouched mount value
   const lastSaved = useRef(storedAtMount ?? viewport);
   useEffect(() => {
     if (!viewportKey || viewport === lastSaved.current) return;
@@ -96,9 +100,11 @@ export default function TreeView<T>(props: Props<T>) {
   }, [inertia]);
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    // ノード上のプレスでも滑走は止める（パン開始の可否とは独立）
+    // A press on a node also stops the glide (independent of pan eligibility)
+    inertia.cancel();
     const target = event.target;
     if (!event.isPrimary || event.button !== 0 || (target instanceof Element && target.closest(nodeTargetSelector))) return;
-    inertia.cancel();
     event.currentTarget.setPointerCapture(event.pointerId);
     panPointer.current = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY };
     setIsPanning(true);
@@ -110,20 +116,28 @@ export default function TreeView<T>(props: Props<T>) {
     const dx = (event.clientX - pan.clientX) * scale;
     const dy = (event.clientY - pan.clientY) * scale;
     inertia.trackMove(dx, dy);
-    setViewport((current) => ({ ...current, x: current.x + dx, y: current.y + dy }));
+    panBy(dx, dy);
     panPointer.current = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY };
   };
-  const handlePointerEnd = (event: PointerEvent<HTMLDivElement>) => {
-    if (panPointer.current?.pointerId !== event.pointerId) return;
+  const endPan = (event: PointerEvent<HTMLDivElement>) => {
+    if (panPointer.current?.pointerId !== event.pointerId) return false;
     panPointer.current = null;
     setIsPanning(false);
-    inertia.release();
+    return true;
+  };
+  // 正常な離し（pointerup）だけ滑走し、cancel/capture喪失は中断扱いにする
+  // Only a normal pointerup flings; cancel and capture loss abort instead
+  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    if (endPan(event)) inertia.release();
+  };
+  const handlePointerAbort = (event: PointerEvent<HTMLDivElement>) => {
+    if (endPan(event)) inertia.cancel();
   };
 
   return (
     <div ref={viewportElement} className={`${styles.viewport} ${isPanning ? styles.viewportPanning : ""}`}
       data-testid={`${testIdPrefix}-viewport`} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerEnd} onPointerCancel={handlePointerEnd} onLostPointerCapture={handlePointerEnd}>
+      onPointerUp={handlePointerUp} onPointerCancel={handlePointerAbort} onLostPointerCapture={handlePointerAbort}>
       <div className={styles.canvas} data-testid={`${testIdPrefix}-canvas`}
         style={{ width: bounds.width, height: bounds.height, transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.scale})` }}>
         {renderedScene}

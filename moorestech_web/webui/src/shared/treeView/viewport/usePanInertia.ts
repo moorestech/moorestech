@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef } from "react";
 import {
+  PAN_MAX_FRAME_DELTA_MS,
   PAN_MIN_FLING_SPEED,
   PAN_RELEASE_STALL_MS,
   PAN_STOP_SPEED,
+  PAN_VELOCITY_SAMPLE_MAX_GAP_MS,
   blendPanVelocity,
   clampPanVelocity,
   decayPanVelocity,
@@ -16,8 +18,8 @@ export type PanInertia = {
   cancel: () => void;
 };
 
-// ドラッグ速度を追跡し、離した後にrAFで慣性減衰パンを続けるフック
-// Hook that tracks drag velocity and keeps panning with inertial decay via rAF after release
+// ドラッグ速度追跡、離した後rAFで慣性減衰パン継続
+// Tracks drag velocity, keeps inertial panning via rAF after release
 export function usePanInertia(applyPan: ApplyPan): PanInertia {
   const applyRef = useRef(applyPan);
   applyRef.current = applyPan;
@@ -38,9 +40,9 @@ export function usePanInertia(applyPan: ApplyPan): PanInertia {
       const now = performance.now();
       const dt = lastMoveAt.current === null ? null : now - lastMoveAt.current;
       lastMoveAt.current = now;
-      // サンプル間隔が空きすぎ/詰まりすぎの時は速度を作らない
-      // Skip velocity when the sample gap is too large or too small
-      if (dt === null || dt <= 0 || dt > PAN_RELEASE_STALL_MS) {
+      // 間隔が異常な時は速度を作らない
+      // Skip velocity on abnormal sample gaps
+      if (dt === null || dt <= 0 || dt > PAN_VELOCITY_SAMPLE_MAX_GAP_MS) {
         velocity.current = { x: 0, y: 0 };
         return;
       }
@@ -55,9 +57,7 @@ export function usePanInertia(applyPan: ApplyPan): PanInertia {
       if (Math.hypot(flying.x, flying.y) < PAN_MIN_FLING_SPEED) return;
       let lastFrameAt = releasedAt;
       const step = (frameAt: number) => {
-        // タブ非アクティブ等の巨大フレーム間隔で吹き飛ばないよう上限を設ける
-        // Cap the frame delta so a background-tab gap doesn't teleport the view
-        const dt = Math.min(Math.max(frameAt - lastFrameAt, 0), 64);
+        const dt = Math.min(Math.max(frameAt - lastFrameAt, 0), PAN_MAX_FRAME_DELTA_MS);
         lastFrameAt = frameAt;
         applyRef.current(flying.x * dt, flying.y * dt);
         flying = decayPanVelocity(flying, dt);

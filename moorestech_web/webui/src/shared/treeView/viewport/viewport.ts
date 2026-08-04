@@ -1,4 +1,4 @@
-import type { TreePoint } from "./treeGeometry";
+import type { TreePoint } from "../treeGeometry";
 
 export type ViewportTransform = { x: number; y: number; scale: number };
 
@@ -36,14 +36,24 @@ export function centerViewportOn(
   };
 }
 
-// 慣性パンの物理定数（速度はキャンバスpx/ms）
-// Inertial-pan physics constants (velocity in canvas px per ms)
+// 慣性パン定数(速度=px/ms)
+// Inertial-pan constants (velocity in px/ms)
+// τ=325msはiOS系スクロール減衰の標準値。上限3px/msで最大滑走距離は3×325≒975pxに収まる
+// τ=325ms is the standard iOS-style scroll decay; the 3px/ms cap bounds the glide at 3×325≒975px
 export const PAN_FRICTION_TAU_MS = 325;
 export const PAN_MIN_FLING_SPEED = 0.15;
 export const PAN_STOP_SPEED = 0.01;
 export const PAN_MAX_FLING_SPEED = 3;
+// move間隔上限(超えたら再計算)
+// Max move-sample gap (reset beyond this)
+export const PAN_VELOCITY_SAMPLE_MAX_GAP_MS = 80;
+// 離す直前の静止判定しきい値
+// Release stall threshold (no fling beyond this)
 export const PAN_RELEASE_STALL_MS = 80;
 export const PAN_VELOCITY_SMOOTHING_TAU_MS = 50;
+// 滑走1フレームの積分時間上限（タブ非アクティブ等の巨大間隔で吹き飛ばない）
+// Per-frame integration cap for the glide (avoids teleporting after a background-tab gap)
+export const PAN_MAX_FRAME_DELTA_MS = 64;
 
 export type PanVelocity = { x: number; y: number };
 
@@ -54,8 +64,8 @@ export function decayPanVelocity(velocity: PanVelocity, dtMs: number): PanVeloci
   return { x: velocity.x * keep, y: velocity.y * keep };
 }
 
-// 直近の移動サンプルで速度を平滑更新する（急停止直後の外れ値を均す）
-// Smoothly updates velocity with the latest move sample (evens out outliers)
+// 直近サンプルで速度を平滑更新(急停止の外れ値を均す)
+// Smooths velocity with the latest sample (evens out outliers)
 export function blendPanVelocity(velocity: PanVelocity, dx: number, dy: number, dtMs: number): PanVelocity {
   const alpha = 1 - Math.exp(-dtMs / PAN_VELOCITY_SMOOTHING_TAU_MS);
   return {
