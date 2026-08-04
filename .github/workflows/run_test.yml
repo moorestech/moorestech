@@ -67,33 +67,6 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      # GameCIコンテナ内ではUPMのGit LFS資産が取得されないため、
-      # ホスト上でCefUnityを事前取得し、ローカルパッケージに差し替える
-      # GameCI does not fetch UPM Git LFS assets in its container, so pre-fetch
-      # CefUnity on the host and replace the dependency with a local package
-      - name: Pre-fetch CefUnity package
-        shell: bash
-        env:
-          CEF_UNITY_LINUX_REVISION: c641e59a4778d2743cb5559f2bc1c4417c9a0f4a
-        run: |
-          # packages-lockのrevisionにはLinux資産が無いため、Linux対応commitをSHA固定で使う
-          # The packages-lock revision predates Linux assets, so pin the Linux-capable commit by SHA
-          git init _cef_pkg
-          git -C _cef_pkg remote add origin https://github.com/KurisuJuha/cef-unity.git
-          git -C _cef_pkg fetch --depth 1 origin "$CEF_UNITY_LINUX_REVISION"
-          git -C _cef_pkg checkout --detach FETCH_HEAD
-          git -C _cef_pkg lfs pull
-          cp -r _cef_pkg/cef-unity-unityproject/Assets/CefUnity moorestech_client/CefUnityLocal
-          cd moorestech_client/Packages
-          python3 -c "
-          import json
-          with open('manifest.json', 'r') as f:
-              data = json.load(f)
-          data['dependencies']['jp.juha.cefunity'] = 'file:../CefUnityLocal'
-          with open('manifest.json', 'w') as f:
-              json.dump(data, f, indent=2)
-          "
-
       # 起動テストがViteホストを開始するため、Node/pnpmと依存パッケージを同じジョブ内に用意する
       # Startup tests launch the Vite host, so provision Node/pnpm and dependencies in this job
       - name: Setup Web UI toolchain

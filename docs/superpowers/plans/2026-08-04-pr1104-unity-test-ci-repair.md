@@ -58,16 +58,16 @@
 - Reference: `.github/workflows/build.yml`
 
 **Interfaces:**
-- Consumes: CefUnity Git LFS package、`moorestech_web/setup.sh`、`moorestech_web/webui/pnpm-lock.yaml`
-- Produces: Unity TestコンテナからNode/pnpm、webui node_modules、CefUnityネイティブ資産が利用できるジョブ環境
+- Consumes: `moorestech_web/setup.sh`、`moorestech_web/webui/pnpm-lock.yaml`
+- Produces: Unity TestコンテナからNode/pnpmとwebui node_modulesが利用でき、Linux Editorでは非互換なCEF表示層を起動しないジョブ環境
 
 - [ ] **Step 1: REDの環境境界を確認する**
 
   既存Attempt 1/2の`Node binary not found`と`cef_unity_rust`ログ、およびUnity Testジョブに準備ステップが無いことを記録する。
 
-- [ ] **Step 2: CefUnityを準備する**
+- [ ] **Step 2: Linux EditorのCEF表示層を無効化する**
 
-  Linux資産を含むCefUnityのcommitをSHA固定してGit LFS込みで事前取得し、GameCIより前にローカルパッケージとmanifestを用意する。`packages-lock.json`の解決済みリビジョンにはLinux資産が無いため使用しない。
+  上流LinuxバイナリはGameCIのglibcとABI互換がないため、`WebUiCefNavigator.Awake`でLinux EditorのCEF表示コンポーネントだけを無効化する。
 
 - [ ] **Step 3: Web UIツールチェーンを準備する**
 

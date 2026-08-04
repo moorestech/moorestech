@@ -14,7 +14,7 @@ PR #1104で同一SHAに対して再現している3件のUnity EditMode失敗を
 
 `BlockIconImagePhotographer`は、PlayModeでは遅延破棄後に次フレームを待ち、EditModeでは`DestroyImmediate`で同期的に破棄して次の撮影へ進む。テストはエラーログを期待せず、タスクが短いフレーム上限内に完了し、撮影Cameraを残さないことを検証する。
 
-Unity TestジョブはWeb UIテストとは独立して、Linux資産を含むCefUnityのcommitをSHA固定し、Git LFS込みで事前取得してローカルパッケージへ差し替える。`packages-lock.json`の解決済みリビジョンにはLinux資産が存在しないため、CIではLinux対応commitを明示する。続けて`moorestech_web/setup.sh`を実行し、pnpmのfrozen lockfile installまで完了させてからGameCIを起動する。これにより`PlayerStartsOnBuiltTerrainTest`が意図する起動全体のエラー検知を維持する。
+Unity TestジョブはWeb UIテストとは独立して、`moorestech_web/setup.sh`とpnpmのfrozen lockfile installを完了させてからGameCIを起動する。CEFの上流LinuxバイナリはGameCIのglibcとABI互換がなく、プロジェクトもLinux配布を未対応としているため、Linux Editorでは`WebUiCefNavigator`がCEF表示コンポーネントだけを無効化する。Node/Viteを含むWeb UIホストとその他の起動処理は実行し、`PlayerStartsOnBuiltTerrainTest`が意図する起動エラー検知を維持する。
 
 ## Verification
 

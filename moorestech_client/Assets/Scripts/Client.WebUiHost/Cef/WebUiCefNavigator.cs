@@ -14,6 +14,17 @@ namespace Client.WebUiHost.Cef
         // Retry cap and backoff (attempt × 1s intervals; gives up with a warning after ~15s total)
         private const int MaxNavigateAttempts = 5;
 
+        private void Awake()
+        {
+#if UNITY_EDITOR_LINUX
+            // GameCI非互換のCEFを停止
+            // Linux Editor CEF lacks ABI compatibility with GameCI glibc, so disable only the presentation layer
+            var browser = GetComponent<CefUnityBrowserSample>();
+            if (browser != null) browser.enabled = false;
+            enabled = false;
+#endif
+        }
+
         private void Start()
         {
             NavigateWhenReady().Forget();
