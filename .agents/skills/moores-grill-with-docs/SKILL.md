@@ -2,10 +2,10 @@
 name: moores-grill-with-docs
 description: |
   これはブレスト用のskillです。A relentless interview to sharpen a plan or design, which also creates docs (ADRs and glossary) as we go.
-  grill-with-docs（mattpocock/skills）のmoorestechローカルフォーク。上流との同期はせずオリジナル路線で編集する。
   Use when:
-  1. 創作的な作業（機能の作成、コンポーネントの構築、機能追加、挙動の変更）や設計相談 — 壁打ち / 仕様相談 / 「これどうしたらいい？」型の相談 — で発火する
-  2. 「grillして」「grill-with-docsで」「ブレストして」と言われた時
+  1. 「設計を詰めたい」「壁打ちしたい」「〜機能を作りたい」「仕様を相談したい」と設計対話を始める時
+  2. 創作的な作業（機能の作成、コンポーネントの構築、機能追加、挙動の変更）や設計相談 — 壁打ち / 仕様相談 / 「これどうしたらいい？」型の相談 — で発火する
+  3. 「grillして」「grill-with-docsで」「ブレストして」と言われた時
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"
