@@ -14,6 +14,7 @@
 | code-fix commit | `c86a72a4a` |
 | report-correction head | `426466d0f` |
 | re-review fix head | `59eb691b9fa5f352c817e2df1ba8719f575cd1c1` |
+| final small fix head | `da3f13a9c93b3310feab9d8b619e8c9d2062ff3c` |
 
 ## 是正したブロッカー（8群）
 
@@ -40,6 +41,12 @@
 - mutation RED: 完了送信を現在フォーカスへ変えた状態で `MapObjectMiningEquipmentSwitchTest` は2/3 PASS・1 FAIL。開始対象の攻撃回数が `Expected: 1 / But was: 0` となり、追加テストが誤送信を検出した。
 - GREEN compile: Error 0、Warning 124。生成コード・既存コード由来で、変更ファイルの新規警告はない。
 - GREEN focused: `MapObjectMiningEquipmentSwitchTest|MapVeinMasterTest` は14/14 PASS、FAIL 0、SKIP 0。
+
+### 最終小規模是正の検証
+
+- `InvokePrivate` をconstructor末尾の `#region Internal` ローカル関数へ移し、ForUnitTest用GUIDの根拠コメントを復元した。生成済み `.meta` は変更なし。
+- compile: Error 0、Warning 0。
+- focused `MapObjectMiningEquipmentSwitchTest`: 初回はDomain Reloadのため規定どおり45秒待機し、再実行で3/3 PASS、FAIL 0、SKIP 0。
 
 ## 変更領域
 
