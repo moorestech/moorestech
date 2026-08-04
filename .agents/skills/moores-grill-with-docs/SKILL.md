@@ -20,6 +20,8 @@ hooks:
 
 Run a `/grilling` session, using the `/domain-modeling` skill.
 
+設計対話中のB判定（設計原則との照合）には [references/moorestech-principles.md](references/moorestech-principles.md) を参照する（旧brainstormingから移設。user-simulatorの知識indexも同ファイルを参照している）。
+
 ## moorestech追加規約
 
 ### 1. ADR出所欄（必須）

@@ -24,6 +24,6 @@
 
 | 場所 | 開くトリガー |
 |---|---|
-| ../../brainstorming/references/moorestech-principles.md | moorestech固有の設計対話（B判定照合表: 冪等・ドメイン所有・プロトコル1本化・契約一般形・対称interface等） |
+| ../../moores-grill-with-docs/references/moorestech-principles.md | moorestech固有の設計対話（B判定照合表: 冪等・ドメイン所有・プロトコル1本化・契約一般形・対称interface等） |
 | ../../moores-code-review/references/lens-digest.md | 実装前チェックリスト相当の設計原則が要るとき |
 | auto-memory（パスは環境依存のためここに書かない。contextファイルに記載される） | プロジェクト固有の暗黙知（仮置き機構・移行事情等）が関わりそうなとき。メインセッションがreview起動時にcontextへ関連メモリの抜粋かパスを含める |
