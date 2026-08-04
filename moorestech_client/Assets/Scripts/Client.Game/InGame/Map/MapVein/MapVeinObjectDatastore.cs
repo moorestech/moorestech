@@ -25,10 +25,6 @@ namespace Client.Game.InGame.Map.MapVein
         // The v8 world holds ~1772 veins; each outcrop is heavier than a map object, so cross frames more often than that path's 100
         private const int FrameYieldObjectInterval = 50;
 
-        // 例外メッセージに載せる不正veinの上限。1772本全部を並べるとログが埋まって原因が読めない
-        // Cap of bad veins listed in the exception message; all 1772 would bury the log and hide the cause
-        private const int MaxListedUnresolvedVeins = 10;
-
         // 同一アドレスを複数のveinが共有するため、guidではなくアドレスでキャッシュする
         // Several veins share one address, so cache by address rather than by guid
         private readonly Dictionary<string, GameObject> _prefabCacheByAddress = new();
@@ -60,10 +56,7 @@ namespace Client.Game.InGame.Map.MapVein
             {
                 var cancellationToken = this.GetCancellationTokenOnDestroy();
 
-                // 地表を解決できなかったveinは1本目で打ち切らず全件記録する。1本の不正が残り全件を巻き添えにしないため
-                // Record every vein whose surface could not be resolved instead of aborting on the first; one bad vein must not take the rest down
-                var unresolvedGroundVeins = new List<string>();
-
+                var groundFallbackCount = 0;
                 var processedCount = 0;
                 foreach (var layout in _handshakeResponse.MapLayout.MapVeins)
                 {
@@ -78,10 +71,12 @@ namespace Client.Game.InGame.Map.MapVein
                     processedCount++;
                     if (processedCount % FrameYieldObjectInterval == 0) await UniTask.Yield(cancellationToken);
 
+                    // 仮マップは地形範囲外にも鉱脈があるため、地表未解決はベイク済みAABB中心高さへ置く（裁定2026-08-04）
+                    // The interim map keeps veins beyond the terrain, so unresolved ground falls back to the baked AABB center height (ruling 2026-08-04)
                     if (!TryResolveGroundHeight(centerX, centerZ, out var groundHeight))
                     {
-                        unresolvedGroundVeins.Add($"veinGuid:{layout.VeinGuid} X:{centerX} Z:{centerZ}");
-                        continue;
+                        groundHeight = (layout.MinY + layout.MaxY + 1) * 0.5f;
+                        groundFallbackCount++;
                     }
 
                     // veinGuidを名前に残し、どの鉱脈の露頭かをシーン上で辿れるようにする
@@ -90,16 +85,9 @@ namespace Client.Game.InGame.Map.MapVein
                     instance.name = $"{OutcropObjectNamePrefix}{layout.VeinGuid}";
                 }
 
-                // 地表が無いveinはワールドデータ不正。Y=0へ落とさず、全件を評価したうえで列挙して起動時に顕在化させる
-                // Veins with no surface are invalid world data; after evaluating them all, list them and surface it at startup instead of falling back to Y=0
-                if (0 < unresolvedGroundVeins.Count) throw new InvalidOperationException(BuildUnresolvedGroundMessage(unresolvedGroundVeins));
-            }
-
-            string BuildUnresolvedGroundMessage(List<string> unresolvedGroundVeins)
-            {
-                var listedCount = Mathf.Min(unresolvedGroundVeins.Count, MaxListedUnresolvedVeins);
-                var listed = string.Join(" / ", unresolvedGroundVeins.GetRange(0, listedCount));
-                return $"[MapVeinObjectDatastore] 露頭を立てる地表がありません 該当vein数:{unresolvedGroundVeins.Count} 先頭{listedCount}件 {listed}";
+                // フォールバック件数は仮マップ対応の観測用。異常系ではないのでInfoに留める
+                // The fallback count only observes the interim-map workaround; it is not a failure, so Info suffices
+                if (0 < groundFallbackCount) Debug.Log($"[MapVeinObjectDatastore] 地表未解決の露頭をAABB中心高さへ設置 件数:{groundFallbackCount}");
             }
 
             GameObject ResolveOutcropPrefab(Guid veinGuid)
