@@ -19,6 +19,7 @@ namespace Tests.UnitTest.Core.Map
         private static readonly Guid ItemVeinGuid = Guid.Parse("11111111-0000-0000-0000-000000000001");
         private static readonly Guid FluidVeinGuid = Guid.Parse("11111111-0000-0000-0000-000000000002");
         private static readonly Guid VeinItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000002");
+        private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
         private static readonly Guid VeinFluidGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         [SetUp]
@@ -98,7 +99,7 @@ namespace Tests.UnitTest.Core.Map
             var handMiningParam = element.HandMiningParam as MinableHandMiningParam;
             Assert.NotNull(handMiningParam);
             Assert.AreEqual(1, handMiningParam.HandMiningTools.Length);
-            Assert.AreEqual(VeinItemGuid, handMiningParam.HandMiningTools[0].ToolItemGuid);
+            Assert.AreEqual(ToolItemGuid, handMiningParam.HandMiningTools[0].ToolItemGuid);
         }
     }
 }
