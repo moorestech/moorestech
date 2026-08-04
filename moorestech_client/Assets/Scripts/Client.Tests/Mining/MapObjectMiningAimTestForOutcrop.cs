@@ -1,0 +1,176 @@
+using System.Collections.Generic;
+using System.Reflection;
+using Client.Common;
+using Client.Game.InGame.Control.ViewMode;
+using Client.Game.InGame.Map.MapObject;
+using Client.Game.InGame.Map.Outcrop;
+using Client.Game.InGame.Mining;
+using Client.Game.InGame.Player;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
+
+namespace Client.Tests.Mining
+{
+    /// <summary>
+    ///     照準ヒット時の露頭解決と既存MapObject優先順位を検証する
+    ///     Verifies outcrop aim resolution and existing map-object precedence
+    /// </summary>
+    public class MapObjectMiningAimTestForOutcrop : InputTestFixture
+    {
+        private readonly List<GameObject> _previousMainCameraObjects = new();
+        private GameObject _cameraObject;
+        private GameObject _eventSystemObject;
+        private GameObject _playerObject;
+        private GameObject _targetObject;
+        private GameObject _miningObject;
+        private Mouse _mouse;
+
+        public override void Setup()
+        {
+            base.Setup();
+            _mouse = InputSystem.AddDevice<Mouse>();
+
+            // テストカメラだけがCamera.mainになるよう既存タグを一時退避する
+            // Temporarily detach existing tags so the test camera alone becomes Camera.main
+            foreach (var cameraObject in GameObject.FindGameObjectsWithTag("MainCamera"))
+            {
+                _previousMainCameraObjects.Add(cameraObject);
+                cameraObject.tag = "Untagged";
+            }
+            CreateCameraAndEventSystem();
+            CreatePlayerSystem();
+        }
+
+        public override void TearDown()
+        {
+            AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
+            SetStaticProperty(typeof(PlayerSystemContainer), "Instance", null);
+            Object.DestroyImmediate(_miningObject);
+            Object.DestroyImmediate(_targetObject);
+            Object.DestroyImmediate(_playerObject);
+            Object.DestroyImmediate(_eventSystemObject);
+            Object.DestroyImmediate(_cameraObject);
+
+            // 他テストが所有するMainCameraタグを必ず元へ戻す
+            // Restore every MainCamera tag owned by another test
+            foreach (var cameraObject in _previousMainCameraObjects)
+                if (cameraObject != null) cameraObject.tag = "MainCamera";
+            _previousMainCameraObjects.Clear();
+            base.TearDown();
+        }
+
+        [Test]
+        public void OutcropRayTargetだけのヒットは露頭をフォーカスする()
+        {
+            var outcrop = CreateOutcropTarget(false);
+            var context = RunMiningUpdate();
+
+            // MapObjectマーカーが無くても露頭マーカーから採掘対象を解決する
+            // Resolve the mining target from the outcrop marker without a map-object marker
+            Assert.AreSame(outcrop, context.CurrentFocusTarget);
+        }
+
+        [Test]
+        public void 同じヒット対象に両マーカーがある場合はMapObjectを優先する()
+        {
+            var outcrop = CreateOutcropTarget(true);
+            var expectedMapObject = _targetObject.GetComponent<MapObjectRayTarget>().MapObjectGameObject;
+            var context = RunMiningUpdate();
+
+            // 両マーカーが同居する移行期間も既存MapObjectの意味を保つ
+            // Preserve existing map-object semantics while both markers coexist during migration
+            Assert.AreNotSame(outcrop, context.CurrentFocusTarget);
+            Assert.AreSame(expectedMapObject, context.CurrentFocusTarget);
+        }
+
+        private void CreateCameraAndEventSystem()
+        {
+            _cameraObject = new GameObject("MainCamera");
+            _cameraObject.tag = "MainCamera";
+            _cameraObject.AddComponent<Camera>();
+
+            // UI上のポインタ判定も本番Updateと同じ経路で通す
+            // Exercise the same pointer-over-UI path used by production Update
+            _eventSystemObject = new GameObject("EventSystem");
+            var eventSystem = _eventSystemObject.AddComponent<EventSystem>();
+            _eventSystemObject.AddComponent<InputSystemUIInputModule>();
+            InvokePrivate(eventSystem, "OnEnable");
+        }
+
+        private void CreatePlayerSystem()
+        {
+            _playerObject = new GameObject("PlayerSystem");
+            var grabItemManager = _playerObject.AddComponent<PlayerGrabItemManager>();
+            var playerController = _playerObject.AddComponent<PlayerObjectController>();
+            var container = _playerObject.AddComponent<PlayerSystemContainer>();
+            SetField(container, "playerGrabItemManager", grabItemManager);
+            SetField(container, "playerObjectController", playerController);
+            InvokePrivate(container, "Awake");
+        }
+
+        private OutcropGameObject CreateOutcropTarget(bool includeMapObjectMarker)
+        {
+            var center = new Vector2(Screen.width / 2f, Screen.height / 2f);
+            Set(_mouse.position, center);
+            var ray = _cameraObject.GetComponent<Camera>().ScreenPointToRay(center);
+            _targetObject = new GameObject("OutcropTarget");
+            _targetObject.layer = LayerConst.MapObjectLayer;
+            _targetObject.transform.position = ray.GetPoint(1f);
+            _targetObject.AddComponent<SphereCollider>().radius = 0.05f;
+
+            // 同じColliderに各マーカーを載せて解決順そのものを検証する
+            // Put each marker on the same collider to verify resolution order itself
+            var outcrop = _targetObject.AddComponent<OutcropGameObject>();
+            _targetObject.AddComponent<OutcropRayTarget>().Initialize(outcrop);
+            if (includeMapObjectMarker)
+            {
+                var mapObject = _targetObject.AddComponent<MapObjectGameObject>();
+                _targetObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject);
+            }
+            Physics.SyncTransforms();
+            return outcrop;
+        }
+
+        private MapObjectMiningControllerContext RunMiningUpdate()
+        {
+            _playerObject.transform.position = _targetObject.transform.position;
+            _miningObject = new GameObject("MapObjectMiningController");
+            var controller = _miningObject.AddComponent<MapObjectMiningController>();
+            var context = new MapObjectMiningControllerContext(null);
+            SetField(controller, "_context", context);
+            SetField(controller, "_currentState", new StableMiningState());
+
+            // ThirdPersonのマウス照準で実際のprivate Updateを一度進める
+            // Advance the real private Update once using the third-person mouse aim
+            AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
+            InvokePrivate(controller, "Update");
+            return context;
+        }
+
+        private static void InvokePrivate(object target, string methodName)
+        {
+            target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target, null);
+        }
+
+        private static void SetField(object target, string fieldName, object value)
+        {
+            target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
+        }
+
+        private static void SetStaticProperty(System.Type targetType, string propertyName, object value)
+        {
+            targetType.GetField($"<{propertyName}>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, value);
+        }
+
+        private class StableMiningState : IMapObjectMiningState
+        {
+            public IMapObjectMiningState GetNextUpdate(MapObjectMiningControllerContext context, float dt)
+            {
+                return this;
+            }
+        }
+    }
+}
