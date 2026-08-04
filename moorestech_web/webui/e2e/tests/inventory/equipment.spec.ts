@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { payloadsOf } from "../support/actions";
-import { setUiState } from "../support/mockControl";
+import { payloadsOf } from "../../support/actions";
+import { setUiState } from "../../support/mockControl";
 
 // 装備HUDは data-testid="equipment-slots" で特定し、直下の各 div が1枠になる
 // The equipment HUD is identified via data-testid="equipment-slots"; each direct child div is one slot

@@ -7,6 +7,7 @@ import { TreeView } from "@/shared/treeView";
 import type { TreePoint } from "@/shared/treeView";
 import ResearchNodeCard from "./ResearchNodeCard";
 import ResearchDetailPane from "./ResearchDetailPane";
+import { findInitialFocusNode } from "./researchLogic";
 import { L, useI18n } from "@/shared/i18n";
 import styles from "./style.module.css";
 
@@ -39,6 +40,12 @@ export default function ResearchTreePanel() {
       selected={node.guid === selectedGuid} onSelect={toggleSelect} />
   ), [selectedGuid, toggleSelect]);
   const selectedNode = nodes.find((node) => node.guid === selectedGuid);
+  // 中央寄せはresearchLogic準拠
+  // Centering target follows researchLogic
+  const initialFocus = useMemo(() => {
+    const focusNode = findInitialFocusNode(nodes);
+    return focusNode ? getResearchNodePosition(focusNode) : null;
+  }, [nodes]);
 
   return (
     <div className={styles.researchArea} data-testid="research-tree">
@@ -46,11 +53,12 @@ export default function ResearchTreePanel() {
         <div className={styles.treeContainer}>
           <TreeView nodes={nodes} getId={getResearchNodeId} getPosition={getResearchNodePosition}
             getPrevIds={getPreviousResearchNodeIds} nodeTargetSelector="[data-research-node]" testIdPrefix="research"
-            renderNode={renderResearchNode} />
+            renderNode={renderResearchNode} viewportKey="research" initialFocus={initialFocus} />
         </div>
       </GamePanel>
       {selectedNode && (
-        <ResearchDetailPane node={selectedNode} owned={owned} onClose={() => setSelectedGuid(null)} />
+        <ResearchDetailPane node={selectedNode} owned={owned}
+          onClose={() => setSelectedGuid(null)} />
       )}
     </div>
   );

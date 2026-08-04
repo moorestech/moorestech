@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { payloadsOf } from "../support/actions";
-import { expectCraftGrip } from "../support/craftChromeAssertions";
+import { payloadsOf } from "../../support/actions";
+import { expectCraftGrip } from "../../support/craftChromeAssertions";
 
 const CRAFT_TAB_PATHS = [
   "M15 0H125L166 72H0V10H15Z",

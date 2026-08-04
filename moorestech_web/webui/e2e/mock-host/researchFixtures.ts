@@ -1,5 +1,9 @@
 import type { ResearchTreeData } from "../../src/bridge/contract/payloadTypes";
 
+// 研究可能ノードのGUID(共有SSOT)
+// GUID of the researchable node (shared SSOT)
+export const researchableNodeGuid = "33333333-3333-4333-8333-333333333333";
+
 // FEAT-RES-1 研究ツリー: 完了済み/前提不足/研究可能の3状態を含む
 // FEAT-RES-1 research tree: contains completed / pre-node-lacking / researchable states
 // 3ノード目は state:researchable + 所持済みアイテムのみ消費で、研究実行→completed 遷移を e2e で検証できる
@@ -27,7 +31,7 @@ export const researchTree = {
       unlockItemIds: [3],
     },
     {
-      guid: "33333333-3333-4333-8333-333333333333",
+      guid: researchableNodeGuid,
       state: "researchable",
       iconItemId: 100,
       position: { x: 600.0, y: 0.0 },

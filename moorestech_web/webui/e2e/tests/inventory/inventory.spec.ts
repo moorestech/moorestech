@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { payloadsOf } from "../support/actions";
+import { payloadsOf } from "../../support/actions";
 
 test("接続後にインベントリが描画される", async ({ page }) => {
   await page.goto("/");
