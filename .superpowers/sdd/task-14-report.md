@@ -2,16 +2,18 @@
 
 ## ステータス
 
-レビュー確定の8ブロッカー群を是正済み。コミット `c86a72a4a`（`fix: vein手掘り最終レビュー指摘を是正する`）で、最終ゲート前のfocused検証はGREENになった。広域・EditMode・ライブsmoke・最終再レビューは未実行のため、完了ゲートは保留する。
+レビュー確定の8ブロッカー群を `c86a72a4a` で是正し、再レビュー4指摘を `59eb691b9fa5f352c817e2df1ba8719f575cd1c1` で解消した。広域・EditMode・ライブsmoke・最終再レビューは未実行のため、完了ゲートは保留する。
 
 ## レビュー対象
 
 | 項目 | 値 |
 |---|---|
 | branch | `feature/vein-hand-mining` |
-| review base | `f1adc3486`（`origin/feature/vein-hand-mining`） |
+| master merge-base | `a32bd94687d50b3ba4e4c6d084b6276978e96b91` |
 | review head | `003edfd77` |
-| fix head | `c86a72a4a` |
+| code-fix commit | `c86a72a4a` |
+| report-correction head | `426466d0f` |
+| re-review fix head | `59eb691b9fa5f352c817e2df1ba8719f575cd1c1` |
 
 ## 是正したブロッカー（8群）
 
@@ -33,6 +35,12 @@
 | `uloop compile --project-path ./moorestech_client` | Error 0、Warning 8 |
 | `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MapObjectMiningEquipmentSwitchTest|MapVeinMasterTest"` | 14/14 PASS、FAIL 0、SKIP 0 |
 
+### 再レビュー是正の追加検証
+
+- mutation RED: 完了送信を現在フォーカスへ変えた状態で `MapObjectMiningEquipmentSwitchTest` は2/3 PASS・1 FAIL。開始対象の攻撃回数が `Expected: 1 / But was: 0` となり、追加テストが誤送信を検出した。
+- GREEN compile: Error 0、Warning 124。生成コード・既存コード由来で、変更ファイルの新規警告はない。
+- GREEN focused: `MapObjectMiningEquipmentSwitchTest|MapVeinMasterTest` は14/14 PASS、FAIL 0、SKIP 0。
+
 ## 変更領域
 
 - Client mining FSM、mapObject/outcrop採掘対象、tutorial pinのDI・可視性ヘルパー。
@@ -41,7 +49,7 @@
 
 ## 既知の警告・劣化
 
-- コンパイルWarning 8は既存の非網羅switch、obsolete Object検索、未使用fieldであり、この是正の新規警告ではない。
+- 初回是正のコンパイルWarning 8と再レビュー是正時のWarning 124は、既存・生成コード由来であり、この是正の新規警告ではない。
 - `UserSettings/UnityMcpSettings.json` はこのworktreeで実行後に`.bak`へ戻るため、各`uloop`実行前に既存`.bak`から復元した。追跡外でコミット対象外。
 - Task 14レビュー後の必須広域検証はまだ行っていない。focused GREENだけでライブ挙動まで保証しない。
 
