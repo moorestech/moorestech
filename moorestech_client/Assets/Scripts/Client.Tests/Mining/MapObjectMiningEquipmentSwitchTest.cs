@@ -21,22 +21,16 @@ using UnityEngine.UI;
 
 namespace Client.Tests.Mining
 {
-    /// <summary>
-    ///     採掘中の装備切替がクライアント進捗とサーバー判定を乖離させないことを検証する
-    ///     Verifies that switching equipment mid-mining never lets the client progress diverge from the server's check
-    /// </summary>
     public class MapObjectMiningEquipmentSwitchTest : InputTestFixture
     {
-        // ForUnitTest master の Mining 型 mapObject と、そのminingToolsに載っているツールアイテム
-        // The Mining-type mapObject in the ForUnitTest master, plus the tool item listed in its miningTools
         private static readonly Guid MiningRockGuid = new("00000000-0000-2222-0000-000000000001");
         private static readonly Guid MiningToolItemGuid = new("00000000-0000-0000-1234-000000000001");
 
         private GameObject _playerObject;
         private GameObject _progressBarObject;
         private GameObject _mapObjectObject;
+        private MiningCompleteSoundEffectFixture _soundEffectFixture;
         private Mouse _mouse;
-
         public override void Setup()
         {
             base.Setup();
@@ -45,10 +39,9 @@ namespace Client.Tests.Mining
             ResetInputManagerCache();
             CreatePlayerSystem();
             CreateProgressBarView();
+            _soundEffectFixture = new MiningCompleteSoundEffectFixture();
             _mapObjectObject = new GameObject("MiningMapObjects");
-
             #region Internal
-
             void CreatePlayerSystem()
             {
                 _playerObject = new GameObject("PlayerSystem");
@@ -60,7 +53,6 @@ namespace Client.Tests.Mining
                 SetField(container, "playerObjectController", playerController);
                 InvokePrivate(container, "Awake");
             }
-
             void CreateProgressBarView()
             {
                 _progressBarObject = new GameObject("ProgressBarView");
@@ -80,6 +72,7 @@ namespace Client.Tests.Mining
             ProgressBarView.Instance = null;
             SetStaticProperty(typeof(PlayerSystemContainer), "Instance", null);
             UnityEngine.Object.DestroyImmediate(_mapObjectObject);
+            _soundEffectFixture.Destroy();
             UnityEngine.Object.DestroyImmediate(_progressBarObject);
             UnityEngine.Object.DestroyImmediate(_playerObject);
             ResetInputManagerCache();
@@ -110,16 +103,24 @@ namespace Client.Tests.Mining
         }
 
         [Test]
-        public void 装備が採掘ツールのままなら採掘完了まで進む()
+        public void 完了後に照準対象が変わっても開始対象だけを攻撃する()
         {
             var context = new MapObjectMiningControllerContext(CreateEquipmentHoldingTool());
-            context.SetFocusTarget(CreateMiningMapObject());
-            var miningTool = MiningToolOfFocusedMapObject(context);
-            var miningState = new MapObjectMiningMiningState(context.CurrentFocusTarget, miningTool);
+            var startedTarget = new AttackTrackingMiningTarget("StartedTarget", _mapObjectObject.transform);
+            var replacementTarget = new AttackTrackingMiningTarget("ReplacementTarget", _mapObjectObject.transform);
+            context.SetFocusTarget(startedTarget);
+            var miningTool = new MiningToolCandidate(context.LocalPlayerEquipment.SelectedItem.Id, 0.01f);
+            var miningState = new MapObjectMiningMiningState(startedTarget, miningTool);
             PressLeftClick();
-            // 切替検知が誤爆すると完了へ到達できなくなるため、同一装備での完走も固定する
-            // A false positive in the switch check would block completion, so the same-equipment run is pinned too
-            Assert.IsInstanceOf<MapObjectMiningMiningCompleteState>(miningState.GetNextUpdate(context, miningTool.AttackSpeed));
+            var completeState = miningState.GetNextUpdate(context, miningTool.AttackSpeed);
+            Assert.IsInstanceOf<MapObjectMiningMiningCompleteState>(completeState);
+
+            // 完了後の照準変更でも開始対象だけへ送信する
+            // Send only to the started target even if focus changes after completion
+            context.SetFocusTarget(replacementTarget);
+            completeState.GetNextUpdate(context, 0);
+            Assert.AreEqual(1, startedTarget.AttackCallCount);
+            Assert.AreEqual(0, replacementTarget.AttackCallCount);
         }
 
         [Test]

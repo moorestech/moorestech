@@ -66,8 +66,8 @@ namespace Core.Master.Validator
                         logs += $"[MapVeinMaster] Name:{element.VeinName} handMiningToolsが空です\n";
                     }
 
-                    // 全ツールGUIDを検証
-                    // Validate all tool GUIDs
+                    // 全ツールGUIDと採掘速度を検証
+                    // Validate all tool GUIDs and mining speeds
                     var toolItemGuids = new HashSet<Guid>();
                     foreach (var handMiningTool in minableHandMiningParam.HandMiningTools)
                     {

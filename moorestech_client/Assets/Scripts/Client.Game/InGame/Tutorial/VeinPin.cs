@@ -19,8 +19,8 @@ namespace Client.Game.InGame.Tutorial
 
     public class VeinPin : MonoBehaviour, IVeinPin
     {
-        // 独立したWebピンID
-        // Independent web-pin ID
+        // 専用IDでmapObjectピンの掃除との干渉を防ぐ
+        // A separate ID prevents map-object cleanup from removing the vein pin
         private const string WebPinId = "vein-pin";
 
         private InGameCameraController _inGameCameraController;
