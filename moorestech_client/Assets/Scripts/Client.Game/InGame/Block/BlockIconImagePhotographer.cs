@@ -30,7 +30,10 @@ namespace Client.Game.InGame.Block
                 instance.transform.rotation = Quaternion.identity;
                 instance.transform.localScale = Vector3.one;
                 result.Add(await GetIcon(instance, target.debugName));
-                await UniTask.Yield(PlayerLoopTiming.Update);
+                if (Application.isPlaying)
+                {
+                    await UniTask.Yield(PlayerLoopTiming.Update);
+                }
             }
 
             return result;
@@ -88,12 +91,18 @@ namespace Client.Game.InGame.Block
 
             // 撮影対象・一時描画資源・撮影Cameraを同じ寿命で破棄する
             // Destroy the subject, temporary render resource, and capture Camera within the same lifetime
-            Destroy(target);
-            Destroy(renderTexture);
             if (Application.isPlaying)
+            {
+                Destroy(target);
+                Destroy(renderTexture);
                 Destroy(blockImageCamera.gameObject);
+            }
             else
+            {
+                DestroyImmediate(target);
+                DestroyImmediate(renderTexture);
                 DestroyImmediate(blockImageCamera.gameObject);
+            }
 
             return texture;
         }

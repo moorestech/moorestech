@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using Client.Game.InGame.Block;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
@@ -12,6 +11,7 @@ namespace Client.Tests.Block
 {
     public class BlockIconImagePhotographerLifetimeTest
     {
+        private const int CaptureCompletionFrameLimit = 30;
         private const string TestObjectPrefix = "BlockIconLifetimeTest";
 
         [TearDown]
@@ -40,14 +40,12 @@ namespace Client.Tests.Block
             var cameraField = typeof(BlockIconImagePhotographer).GetField("cameraPrefab", BindingFlags.Instance | BindingFlags.NonPublic);
             cameraField.SetValue(photographer, cameraPrefab);
             var cameraCountBefore = CountCameras();
-            LogAssert.Expect(LogType.Error, new Regex("^Destroy may not be called from edit mode!"));
-            LogAssert.Expect(LogType.Error, new Regex("^Destroy may not be called from edit mode!"));
             var captureTask = photographer.TakeIconImages(new List<(GameObject prefab, string debugName)>
             {
                 (targetPrefab, "lifetime-test"),
             });
 
-            while (captureTask.Status == UniTaskStatus.Pending) yield return null;
+            yield return WaitForCompletion(captureTask);
             var textures = captureTask.GetAwaiter().GetResult();
             yield return null;
 
@@ -71,8 +69,6 @@ namespace Client.Tests.Block
             var cameraField = typeof(BlockIconImagePhotographer).GetField("cameraPrefab", BindingFlags.Instance | BindingFlags.NonPublic);
             cameraField.SetValue(photographer, cameraPrefab);
             var cameraCountBefore = CountCameras();
-            for (var i = 0; i < 4; i++)
-                LogAssert.Expect(LogType.Error, new Regex("^Destroy may not be called from edit mode!"));
             var captureTask = photographer.TakeIconImages(new List<(GameObject prefab, string debugName)>
             {
                 (targetPrefab, "sequential-test-a"),
@@ -80,7 +76,7 @@ namespace Client.Tests.Block
             });
             var cameraCountImmediatelyAfterStart = CountCameras();
 
-            while (captureTask.Status == UniTaskStatus.Pending) yield return null;
+            yield return WaitForCompletion(captureTask);
             var textures = captureTask.GetAwaiter().GetResult();
             yield return null;
 
@@ -91,6 +87,15 @@ namespace Client.Tests.Block
         private static int CountCameras()
         {
             return Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+        }
+
+        private static IEnumerator WaitForCompletion(UniTask<List<Texture2D>> captureTask)
+        {
+            for (var frame = 0; frame < CaptureCompletionFrameLimit && captureTask.Status == UniTaskStatus.Pending; frame++)
+                yield return null;
+
+            Assert.That(captureTask.Status, Is.Not.EqualTo(UniTaskStatus.Pending),
+                $"Icon capture did not complete within {CaptureCompletionFrameLimit} frames.");
         }
     }
 }
