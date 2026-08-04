@@ -56,7 +56,3 @@ writing-plans 側の user-simulator による plan review（sim-gate配線）は
   `user-simulator/datasets/` への格納で解除される（ブロックメッセージに自transcriptパスが入る）
 - 予測体は **model: opus必須明示**・1質問1エージェント・バックグラウンド起動可
 - 採点・永続化・misses.md記録まで shadowモード手順のとおり実施してからセッションを終了する
-
-## 上流リファレンス（未配線）
-
-superpowers/brainstorming の全文写しと採否の記録を [references/superpowers-brainstorming-upstream.md](references/superpowers-brainstorming-upstream.md) に置いている。grill の運用に不満が出たときに発掘して移植を検討する。通常セッションでは読まない。
