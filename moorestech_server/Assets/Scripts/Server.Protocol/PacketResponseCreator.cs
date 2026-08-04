@@ -42,7 +42,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetMapObjectInfoProtocol.ProtocolTag, new GetMapObjectInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetMapDataProtocol.ProtocolTag, new GetMapDataProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetGameUnlockStateProtocol.ProtocolTag, new GetGameUnlockStateProtocol(serviceProvider));
-            _packetResponseDictionary.Add(MapObjectAcquisitionProtocol.ProtocolTag, new MapObjectAcquisitionProtocol(serviceProvider));
+            _packetResponseDictionary.Add(MiningProtocol.ProtocolTag, new MiningProtocol(serviceProvider));
             _packetResponseDictionary.Add(OneClickCraft.ProtocolTag, new OneClickCraft(serviceProvider));
             _packetResponseDictionary.Add(GetChallengeInfoProtocol.ProtocolTag, new GetChallengeInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(AllBlockStateProtocol.ProtocolTag, new AllBlockStateProtocol(serviceProvider));

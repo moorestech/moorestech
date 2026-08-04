@@ -13,7 +13,7 @@ using Server.Event.EventReceive;
 using Server.Protocol;
 using Tests.CombinedTest.Server.PacketTest.Event;
 using Tests.Module.TestMod;
-using static Server.Protocol.PacketResponse.MapObjectAcquisitionProtocol;
+using Server.Protocol.PacketResponse;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -78,7 +78,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private void SendAttack(PacketResponseCreator packet, int instanceId)
         {
-            var messagePack = new GetMapObjectProtocolProtocolMessagePack(PlayerId, instanceId);
+            var messagePack = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(PlayerId, instanceId);
             packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext(null));
         }
 

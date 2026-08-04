@@ -5,10 +5,13 @@ using Core.Update;
 using Game.Context;
 using Game.Map;
 using Game.PlayerInventory.Interface;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.MapModule;
 using NUnit.Framework;
 using Server.Boot;
+using Server.Protocol;
+using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -105,11 +108,35 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(VeinMiningResult.Success, veinService.TryMine(PlayerId, InsideIronVein, equipped, out _));
         }
 
+        [Test]
+        public void プロトコル経由でveinを採掘すると対応する鉱石がインベントリに入る()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            EquipTool(playerInventory, ToolItemGuid);
+
+            // Vein種別のリクエストは座標から報酬を解決してインベントリへ入れる
+            // A Vein request resolves its reward from the position and inserts it into inventory
+            var request = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(PlayerId, InsideIronVein);
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
+
+            var expectedItemId = MasterHolder.ItemMaster.GetItemId(((ItemVeinParam)MasterHolder.MapVeinMaster.GetElementOrNull(IronVeinGuid).VeinParam).ItemGuid);
+            Assert.AreEqual(1, CountMainInventoryItem(playerInventory, expectedItemId));
+        }
+
         private void EquipTool(PlayerInventoryData playerInventory, Guid toolItemGuid)
         {
             var toolItemId = MasterHolder.ItemMaster.GetItemId(toolItemGuid);
             playerInventory.EquipmentInventory.SetItem(0, toolItemId, 1);
             playerInventory.EquipmentInventory.SetSelectedEquipmentIndex(0);
+        }
+
+        private int CountMainInventoryItem(PlayerInventoryData playerInventory, ItemId itemId)
+        {
+            var mainInventory = playerInventory.MainOpenableInventory;
+            return Enumerable.Range(0, mainInventory.GetSlotSize()).
+                Where(slot => mainInventory.GetItem(slot).Id == itemId).
+                Sum(slot => mainInventory.GetItem(slot).Count);
         }
     }
 }

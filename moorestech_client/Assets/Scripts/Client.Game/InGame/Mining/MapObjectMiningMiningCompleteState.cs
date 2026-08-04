@@ -2,6 +2,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.SoundEffect;
 using Mooresmaster.Model.MapModule;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.Mining
@@ -21,10 +22,11 @@ namespace Client.Game.InGame.Mining
 
             PlaySoundEffect(masterElement);
 
-            // ダメージ算出はサーバ権威のため打撃対象だけを送る
-            // Damage resolution is server-authoritative, so only the target is sent
+            // 対象種別付きリクエストへ打撃対象を詰め、解決はサーバ権威に委ねる
+            // Send a typed target request and leave resolution to the server authority
             var instanceId = _completedMapObjectGameObject.InstanceId;
-            ClientContext.VanillaApi.SendOnly.AttackMapObject(instanceId);
+            var request = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(ClientContext.PlayerConnectionSetting.PlayerId, instanceId);
+            ClientContext.VanillaApi.SendOnly.SendMiningRequest(request);
 
             return context.CurrentFocusMapObjectGameObject == null
                 ? new MapObjectMiningIdleState()
