@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Common.Debug;
 using Core.Item.Interface;
 using Core.Master;
-using Core.Update;
 using Game.Map.Interface.MapObject;
 using Mooresmaster.Model.MapModule;
 
@@ -23,13 +22,12 @@ namespace Game.Map
     /// </summary>
     public class MapObjectMiningService
     {
-        // クールダウン判定の許容率。クライアントはattackSpeed間隔ちょうどで送るためジッタ余裕を持たせる
-        // Cooldown tolerance; clients send at exactly attackSpeed intervals, so allow jitter
-        private const double CooldownMarginRate = 0.9;
+        private readonly MiningCooldownService _cooldownService;
 
-        // 1プレイヤー1振りを保証する最終打撃tick
-        // Last-hit ticks enforcing one swing at a time per player
-        private readonly Dictionary<int, ulong> _lastAttackTicks = new();
+        public MapObjectMiningService(MiningCooldownService cooldownService)
+        {
+            _cooldownService = cooldownService;
+        }
 
         public MiningAttackResult TryAttack(int playerId, IMapObject mapObject, IItemStack equippedItem, out List<IItemStack> earnedItems)
         {
@@ -61,21 +59,11 @@ namespace Game.Map
 
             // 前回打撃からattackSpeed×許容率tick未満の連打は捨てる
             // Drop repeat hits that arrive within attackSpeed * tolerance ticks of the previous one
-            if (IsInCooldown(usableTool)) return MiningAttackResult.CooldownNotElapsed;
+            if (_cooldownService.IsInCooldown(playerId, usableTool.AttackSpeed)) return MiningAttackResult.CooldownNotElapsed;
 
-            _lastAttackTicks[playerId] = GameUpdater.CurrentTick;
+            _cooldownService.RecordAttack(playerId);
             earnedItems = mapObject.Attack(usableTool.Damage);
             return MiningAttackResult.Success;
-
-            #region Internal
-
-            bool IsInCooldown(MiningToolsElement miningTool)
-            {
-                if (!_lastAttackTicks.TryGetValue(playerId, out var lastAttackTick)) return false;
-                return GameUpdater.CurrentTick - lastAttackTick < GameUpdater.SecondsToTicks(miningTool.AttackSpeed * CooldownMarginRate);
-            }
-
-            #endregion
         }
 
         public static bool TryResolveUsableTool(ItemId equippedItemId, MiningToolsElement[] miningTools, out MiningToolsElement usableTool)
