@@ -71,12 +71,16 @@ namespace Client.Game.InGame.Block
                 blockImageCamera.clearFlags = CameraClearFlags.SolidColor;
                 blockImageCamera.backgroundColor = Color.white;
 
-                await UniTask.Yield(PlayerLoopTiming.Update);
+                if (Application.isPlaying)
+                {
+                    await UniTask.Yield(PlayerLoopTiming.Update);
+                }
 
                 // ARGB32で透明度を保持
                 // Preserve alpha with an ARGB32 RenderTexture
                 var renderTexture = new RenderTexture(iconSize, iconSize, 24, RenderTextureFormat.ARGB32)
                 {
+                    name = $"BlockIconCapture:{captureDebugName}",
                     useMipMap = false,
                     autoGenerateMips = false
                 };

@@ -67,7 +67,7 @@
 
 - [ ] **Step 2: CefUnityを準備する**
 
-  `packages-lock.json`の解決済みリビジョンからCefUnityをGit LFS込みで事前取得し、GameCIより前にローカルパッケージとmanifestを用意する。
+  Linux資産を含むCefUnityのcommitをSHA固定してGit LFS込みで事前取得し、GameCIより前にローカルパッケージとmanifestを用意する。`packages-lock.json`の解決済みリビジョンにはLinux資産が無いため使用しない。
 
 - [ ] **Step 3: Web UIツールチェーンを準備する**
 

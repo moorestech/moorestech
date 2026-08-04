@@ -12,6 +12,7 @@ namespace Client.Tests.Block
     public class BlockIconImagePhotographerLifetimeTest
     {
         private const int CaptureCompletionFrameLimit = 30;
+        private const string CaptureRenderTexturePrefix = "BlockIconCapture:";
         private const string TestObjectPrefix = "BlockIconLifetimeTest";
 
         [TearDown]
@@ -22,6 +23,12 @@ namespace Client.Tests.Block
             {
                 if (target == null) continue;
                 if (target.name.StartsWith(TestObjectPrefix)) Object.DestroyImmediate(target);
+            }
+
+            var renderTextures = Resources.FindObjectsOfTypeAll<RenderTexture>();
+            foreach (var renderTexture in renderTextures)
+            {
+                if (renderTexture.name.StartsWith(CaptureRenderTexturePrefix)) Object.DestroyImmediate(renderTexture);
             }
         }
 
@@ -34,6 +41,7 @@ namespace Client.Tests.Block
             var cameraPrefab = cameraPrefabObject.AddComponent<Camera>();
             var targetPrefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
             targetPrefab.name = $"{TestObjectPrefix}Target";
+            const string captureDebugName = "lifetime-test";
 
             // 実Prefabと同じ参照を注入し、撮影前後のCamera総数を比較する
             // Inject the same reference as the real prefab and compare the total Camera count before and after capture
@@ -41,10 +49,10 @@ namespace Client.Tests.Block
             cameraField.SetValue(photographer, cameraPrefab);
             var cameraCountBefore = CountCameras();
             var targetInstanceCountBefore = CountTargetInstances(targetPrefab.name);
-            var renderTextureCountBefore = CountRenderTextures();
+            var renderTextureCountBefore = CountRenderTextures(captureDebugName);
             var captureTask = photographer.TakeIconImages(new List<(GameObject prefab, string debugName)>
             {
-                (targetPrefab, "lifetime-test"),
+                (targetPrefab, captureDebugName),
             });
 
             yield return WaitForCompletion(captureTask);
@@ -53,7 +61,7 @@ namespace Client.Tests.Block
 
             var cameraCountAfter = CountCameras();
             var targetInstanceCountAfter = CountTargetInstances(targetPrefab.name);
-            var renderTextureCountAfter = CountRenderTextures();
+            var renderTextureCountAfter = CountRenderTextures(captureDebugName);
             foreach (var texture in textures) Object.DestroyImmediate(texture);
             Assert.That(cameraCountAfter, Is.EqualTo(cameraCountBefore));
             Assert.That(targetInstanceCountAfter, Is.EqualTo(targetInstanceCountBefore));
@@ -115,9 +123,17 @@ namespace Client.Tests.Block
             return count;
         }
 
-        private static int CountRenderTextures()
+        private static int CountRenderTextures(string captureDebugName)
         {
-            return Resources.FindObjectsOfTypeAll<RenderTexture>().Length;
+            var count = 0;
+            var expectedName = $"{CaptureRenderTexturePrefix}{captureDebugName}";
+            var renderTextures = Resources.FindObjectsOfTypeAll<RenderTexture>();
+            foreach (var renderTexture in renderTextures)
+            {
+                if (renderTexture.name == expectedName) count++;
+            }
+
+            return count;
         }
 
         private static IEnumerator WaitForCompletion(UniTask<List<Texture2D>> captureTask)
