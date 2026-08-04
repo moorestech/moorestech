@@ -75,6 +75,32 @@ namespace Client.Tests.UnitTest.Tutorial
             Assert.IsFalse(_root.activeSelf);
         }
 
+        [Test]
+        public void Skit非表示中のpin変更は解除後に最新状態を反映する()
+        {
+            var mapObject = new GameObject("MapObjectPin");
+            mapObject.transform.SetParent(_root.transform);
+            var mapObjectPin = mapObject.AddComponent<MapObjectPin>();
+            var veinObject = new GameObject("VeinPin");
+            veinObject.transform.SetParent(_root.transform);
+            var veinPin = veinObject.AddComponent<VeinPin>();
+
+            // 完了済みpinは再表示せず、新規pinは抑止解除後に表示する
+            // Keep completed pins hidden and reveal new pins after suppression ends
+            mapObjectPin.SetActive(true);
+            mapObjectPin.SetSkitSuppressed(true);
+            mapObjectPin.SetActive(false);
+            mapObjectPin.SetSkitSuppressed(false);
+            veinPin.SetActive(false);
+            veinPin.SetSkitSuppressed(true);
+            veinPin.SetActive(true);
+            Assert.IsFalse(veinPin.IsActiveSelf());
+            veinPin.SetSkitSuppressed(false);
+
+            Assert.IsFalse(mapObjectPin.IsActiveSelf());
+            Assert.IsTrue(veinPin.IsActiveSelf());
+        }
+
         private static ChallengeMaster CreateVeinPinChallengeMaster()
         {
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
@@ -111,6 +137,8 @@ namespace Client.Tests.UnitTest.Tutorial
         {
             public void SetActive(bool active) { }
             public bool IsActiveSelf() => false;
+            public void SetSkitSuppressed(bool suppressed) { }
+            public bool IsSkitSuppressed() => false;
             public ITutorialView ApplyTutorial(TutorialsElement tutorial) => this;
             public void CompleteTutorial() { }
         }
@@ -120,6 +148,8 @@ namespace Client.Tests.UnitTest.Tutorial
             public int ApplyCount;
             public void SetActive(bool active) { }
             public bool IsActiveSelf() => false;
+            public void SetSkitSuppressed(bool suppressed) { }
+            public bool IsSkitSuppressed() => false;
             public ITutorialView ApplyTutorial(TutorialsElement tutorial)
             {
                 ApplyCount++;

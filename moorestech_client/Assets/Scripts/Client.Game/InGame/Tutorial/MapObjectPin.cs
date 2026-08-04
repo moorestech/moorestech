@@ -15,6 +15,8 @@ namespace Client.Game.InGame.Tutorial
     {
         public void SetActive(bool active);
         public bool IsActiveSelf();
+        public void SetSkitSuppressed(bool suppressed);
+        public bool IsSkitSuppressed();
     }
     
     public class MapObjectPin : MonoBehaviour, IMapObjectPin
@@ -28,6 +30,9 @@ namespace Client.Game.InGame.Tutorial
 
         private MapObjectPinTutorialParam _currentTutorialParam;
         private string _pinTutorialGuid = "";
+        private bool _desiredActive;
+        private bool _skitSuppressed;
+        private bool _visibilityInitialized;
 
         [Inject]
         public void Construct(InGameCameraController inGameCameraController, MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
@@ -101,7 +106,9 @@ namespace Client.Game.InGame.Tutorial
 
         public void SetActive(bool active)
         {
-            gameObject.SetActive(active);
+            _desiredActive = active;
+            _visibilityInitialized = true;
+            ApplyVisibility();
         }
 
         public bool IsActiveSelf()
@@ -109,8 +116,32 @@ namespace Client.Game.InGame.Tutorial
             return gameObject.activeSelf;
         }
 
-        // SkitManager等の外部SetActive(false)でもWebピンを確実に消す（RemovePinは冪等）
-        // External SetActive(false) (e.g. SkitManager) must also clear the web pin; RemovePin is idempotent
+        public void SetSkitSuppressed(bool suppressed)
+        {
+            EnsureDesiredActiveInitialized();
+            _skitSuppressed = suppressed;
+            ApplyVisibility();
+        }
+
+        public bool IsSkitSuppressed()
+        {
+            return _skitSuppressed;
+        }
+
+        private void EnsureDesiredActiveInitialized()
+        {
+            if (_visibilityInitialized) return;
+            _desiredActive = gameObject.activeSelf;
+            _visibilityInitialized = true;
+        }
+
+        private void ApplyVisibility()
+        {
+            gameObject.SetActive(_desiredActive && !_skitSuppressed);
+        }
+
+        // スキットの一時抑止でもWebピンを確実に消す（RemovePinは冪等）
+        // Temporary skit suppression must also clear the web pin; RemovePin is idempotent
         private void OnDisable()
         {
             WorldPinStateStore.Instance.RemovePin(WebPinId);

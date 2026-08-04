@@ -14,6 +14,8 @@ namespace Client.Game.InGame.Tutorial
     {
         public void SetActive(bool active);
         public bool IsActiveSelf();
+        public void SetSkitSuppressed(bool suppressed);
+        public bool IsSkitSuppressed();
     }
 
     public class VeinPin : MonoBehaviour, IVeinPin
@@ -26,6 +28,9 @@ namespace Client.Game.InGame.Tutorial
         private OutcropGameObjectDatastore _outcropGameObjectDatastore;
         private VeinPinTutorialParam _currentTutorialParam;
         private string _pinTutorialGuid = "";
+        private bool _desiredActive;
+        private bool _skitSuppressed;
+        private bool _visibilityInitialized;
 
         [Inject]
         public void Construct(InGameCameraController inGameCameraController, OutcropGameObjectDatastore outcropGameObjectDatastore)
@@ -92,12 +97,38 @@ namespace Client.Game.InGame.Tutorial
 
         public void SetActive(bool active)
         {
-            gameObject.SetActive(active);
+            _desiredActive = active;
+            _visibilityInitialized = true;
+            ApplyVisibility();
         }
 
         public bool IsActiveSelf()
         {
             return gameObject.activeSelf;
+        }
+
+        public void SetSkitSuppressed(bool suppressed)
+        {
+            EnsureDesiredActiveInitialized();
+            _skitSuppressed = suppressed;
+            ApplyVisibility();
+        }
+
+        public bool IsSkitSuppressed()
+        {
+            return _skitSuppressed;
+        }
+
+        private void EnsureDesiredActiveInitialized()
+        {
+            if (_visibilityInitialized) return;
+            _desiredActive = gameObject.activeSelf;
+            _visibilityInitialized = true;
+        }
+
+        private void ApplyVisibility()
+        {
+            gameObject.SetActive(_desiredActive && !_skitSuppressed);
         }
 
         private void OnDisable()

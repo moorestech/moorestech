@@ -19,5 +19,12 @@ namespace Client.DebugSystem.Skit
         {
             return false;
         }
+        public void SetSkitSuppressed(bool suppressed)
+        {
+        }
+        public bool IsSkitSuppressed()
+        {
+            return false;
+        }
     }
 }

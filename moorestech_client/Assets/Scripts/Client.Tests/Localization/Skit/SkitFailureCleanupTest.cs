@@ -91,6 +91,25 @@ namespace Client.Tests.Localization.Skit
             Assert.IsFalse(veinPin.IsActiveSelf());
         }
 
+        [Test]
+        public void WorldPinsApplyChangesWhileSkitIsHiddenAndRevealLatestState()
+        {
+            var mapObjectPin = new RecordingMapObjectPin(true);
+            var veinPin = new RecordingVeinPin(false);
+            var snapshot = new WorldPinActivationSnapshot(mapObjectPin, veinPin);
+
+            // 非表示中のチュートリアル完了を、開始前状態の復元で上書きしない
+            // Do not overwrite tutorial completion while hidden with the pre-skit state
+            snapshot.Hide();
+            mapObjectPin.SetActive(false);
+            veinPin.SetActive(true);
+            Assert.IsFalse(veinPin.IsActiveSelf());
+            snapshot.Restore();
+
+            Assert.IsFalse(mapObjectPin.IsActiveSelf());
+            Assert.IsTrue(veinPin.IsActiveSelf());
+        }
+
         private static void SetPrivateField(object target, string fieldName, object value)
         {
             typeof(SkitManager)
@@ -101,23 +120,28 @@ namespace Client.Tests.Localization.Skit
         private sealed class RecordingMapObjectPin : IMapObjectPin
         {
             public int SetActiveCallCount;
-            private bool _active;
+            private bool _desiredActive;
+            private bool _skitSuppressed;
 
             public RecordingMapObjectPin(bool active)
             {
-                _active = active;
+                _desiredActive = active;
             }
 
             public void SetActive(bool active)
             {
                 SetActiveCallCount++;
-                _active = active;
+                _desiredActive = active;
             }
 
-            public bool IsActiveSelf()
+            public bool IsActiveSelf() => _desiredActive && !_skitSuppressed;
+
+            public void SetSkitSuppressed(bool suppressed)
             {
-                return _active;
+                _skitSuppressed = suppressed;
             }
+
+            public bool IsSkitSuppressed() => _skitSuppressed;
 
             public ITutorialView ApplyTutorial(TutorialsElement tutorial)
             {
@@ -132,23 +156,28 @@ namespace Client.Tests.Localization.Skit
         private sealed class RecordingVeinPin : IVeinPin
         {
             public int SetActiveCallCount;
-            private bool _active;
+            private bool _desiredActive;
+            private bool _skitSuppressed;
 
             public RecordingVeinPin(bool active)
             {
-                _active = active;
+                _desiredActive = active;
             }
 
             public void SetActive(bool active)
             {
                 SetActiveCallCount++;
-                _active = active;
+                _desiredActive = active;
             }
 
-            public bool IsActiveSelf()
+            public bool IsActiveSelf() => _desiredActive && !_skitSuppressed;
+
+            public void SetSkitSuppressed(bool suppressed)
             {
-                return _active;
+                _skitSuppressed = suppressed;
             }
+
+            public bool IsSkitSuppressed() => _skitSuppressed;
 
             public ITutorialView ApplyTutorial(TutorialsElement tutorial)
             {

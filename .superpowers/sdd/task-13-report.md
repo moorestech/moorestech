@@ -25,6 +25,13 @@ ADR-0007のvein手掘りをライブv8マスタで検証し、必須録画smoke�
 - TDD: `OutcropPositionResolverTest`を先に追加してAPI欠損2件のREDを確認し、地表解決/未解決の2経路をGREEN化した。
 - 実機結果: ready約12秒、1772/1772露頭生成、Info fallback 1746件。
 
+### skit中のチュートリアル更新を古いpin状態が上書き
+
+- 症状: skit中にチュートリアルが完了すると、終了処理が開始前のactive状態を戻し、完了済みpinを再表示してnull param参照へ進み得た。逆にskit中の新規pinは終了時に非表示へ戻され得た。
+- 根因: `WorldPinActivationSnapshot`がpinの論理状態とskit中の一時非表示を同じ`SetActive`で扱っていた。
+- 修正: pinのdesired-activeとskit suppressionを分離し、実表示を`desiredActive && !skitSuppressed`で決める。cleanupはsuppressionだけを戻すため、skit中のApply/Completeを保持する。
+- TDD: 変更前4件中1件FAILを確認し、実`MapObjectPin`/`VeinPin`を含む両方向の回帰テストを追加。修正後7/7 PASS。
+
 ## テスト結果
 
 | 検証 | 結果 |
@@ -34,6 +41,7 @@ ADR-0007のvein手掘りをライブv8マスタで検証し、必須録画smoke�
 | `OutcropPositionResolverTest|OutcropMiningTargetTest|OutcropGuidIndexTest` | 6/6 PASS |
 | `Mining|MapVein|MapObject|CliConvert|GetMapData` | 133/133 PASS |
 | `EditModeInPlayingTest` | 16/16 PASS |
+| `SkitFailureCleanupTest|VeinPinTutorialTest`（独立レビュー修正後） | 7/7 PASS |
 
 EditModeInPlayingTestはworktree固有のNodeランタイム欠損をメインworktreeからgit管理外APFS cloneで補った。
 補完前は`PlayerStartsOnBuiltTerrainTest`のみNode binary missingで失敗、単独1/1 PASSを確認後、Test Frameworkの既知`NewScene during play mode`フレークを1回観測した。Unityを停止・再起動したfresh runで16/16 PASS。

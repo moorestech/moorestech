@@ -6,27 +6,27 @@ namespace Client.Game.Skit
     {
         private readonly IMapObjectPin _mapObjectPin;
         private readonly IVeinPin _veinPin;
-        private readonly bool _mapObjectPinWasActive;
-        private readonly bool _veinPinWasActive;
+        private readonly bool _mapObjectPinWasSuppressed;
+        private readonly bool _veinPinWasSuppressed;
 
         internal WorldPinActivationSnapshot(IMapObjectPin mapObjectPin, IVeinPin veinPin)
         {
             _mapObjectPin = mapObjectPin;
             _veinPin = veinPin;
-            _mapObjectPinWasActive = mapObjectPin.IsActiveSelf();
-            _veinPinWasActive = veinPin.IsActiveSelf();
+            _mapObjectPinWasSuppressed = mapObjectPin.IsSkitSuppressed();
+            _veinPinWasSuppressed = veinPin.IsSkitSuppressed();
         }
 
         internal void Hide()
         {
-            _mapObjectPin.SetActive(false);
-            _veinPin.SetActive(false);
+            _mapObjectPin.SetSkitSuppressed(true);
+            _veinPin.SetSkitSuppressed(true);
         }
 
         internal void Restore()
         {
-            _mapObjectPin.SetActive(_mapObjectPinWasActive);
-            _veinPin.SetActive(_veinPinWasActive);
+            _mapObjectPin.SetSkitSuppressed(_mapObjectPinWasSuppressed);
+            _veinPin.SetSkitSuppressed(_veinPinWasSuppressed);
         }
     }
 }
