@@ -154,6 +154,7 @@ namespace Server.Boot
             services.AddSingleton<OpenableInventoryResolver>();
             services.AddSingleton<MiningCooldownService>();
             services.AddSingleton<MapObjectMiningService>();
+            services.AddSingleton<VeinHandMiningService>();
             // 具象はMasterTickUpdaterの再構築用、Lookup/Mutationは読み書きの契約別。全て同一インスタンスを共有する
             // The concrete type serves MasterTickUpdater's rebuild; Lookup/Mutation split read and write contracts. All share one instance
             services.AddSingleton<ElectricWireNetworkDatastore>();
