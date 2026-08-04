@@ -65,10 +65,40 @@ namespace Tests.UnitTest.Core.Map
             var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000001"",""veinName"":""bad"",""veinType"":""item"",
                  ""veinParam"":{""itemGuid"":""99999999-9999-9999-9999-999999999999""},
-                 ""outcropAddressablePath"":""Vanilla/Environment/Vein/Item/Stone""}]}");
+                 ""outcropAddressablePath"":""Vanilla/Environment/Vein/Item/Stone"",""soundEffectType"":""stone"",
+                 ""handMiningType"":""none"",""handMiningParam"":null}]}");
             var master = new MapVeinMaster(json);
             Assert.IsFalse(master.Validate(out var logs));
             Assert.IsTrue(logs.Contains("invalid ItemGuid"));
+        }
+
+        [Test]
+        public void 実在しないtoolItemGuidの手掘り鉱脈はバリデーションで失敗する()
+        {
+            // handMiningTools内の存在しないtoolItemGuidをValidateが検出することを確認
+            // Confirm Validate detects a non-existent toolItemGuid inside handMiningTools
+            var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
+                {""veinGuid"":""33333333-0000-0000-0000-000000000002"",""veinName"":""badTool"",""veinType"":""item"",
+                 ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},
+                 ""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",
+                 ""handMiningType"":""minable"",
+                 ""handMiningParam"":{""handMiningTools"":[{""toolItemGuid"":""99999999-9999-9999-9999-999999999999"",""attackSpeed"":1}],
+                 ""minCount"":1,""maxCount"":1}}]}");
+            var master = new MapVeinMaster(json);
+            Assert.IsFalse(master.Validate(out var logs));
+            Assert.IsTrue(logs.Contains("invalid ToolItemGuid"));
+        }
+
+        [Test]
+        public void minableな鉱脈はHandMiningParamがMinableHandMiningParamとして解決される()
+        {
+            // ForUnitTest map.jsonのIronVeinはhandMiningType:minableでHandMiningToolsを1件持つ
+            // ForUnitTest map.json's IronVein is handMiningType:minable with one HandMiningTools entry
+            var element = MasterHolder.MapVeinMaster.GetElementOrNull(ItemVeinGuid);
+            var handMiningParam = element.HandMiningParam as MinableHandMiningParam;
+            Assert.NotNull(handMiningParam);
+            Assert.AreEqual(1, handMiningParam.HandMiningTools.Length);
+            Assert.AreEqual(VeinItemGuid, handMiningParam.HandMiningTools[0].ToolItemGuid);
         }
     }
 }

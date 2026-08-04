@@ -8,6 +8,7 @@ namespace Core.Master.Validator
         {
             errorLogs = "";
             errorLogs += VeinParamGuidValidation();
+            errorLogs += HandMiningToolGuidValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -33,6 +34,28 @@ namespace Core.Master.Validator
                         if (fluidId == null)
                         {
                             logs += $"[MapVeinMaster] Name:{element.VeinName} has invalid FluidGuid:{fluidVeinParam.FluidGuid}\n";
+                        }
+                    }
+                }
+
+                return logs;
+            }
+
+            string HandMiningToolGuidValidation()
+            {
+                // handMiningTools内のtoolItemGuidが実在するitemを指しているか検証する
+                // Validate that toolItemGuid in handMiningTools points to an existing item
+                var logs = "";
+                foreach (var element in mapVeins)
+                {
+                    if (element.HandMiningParam is not MinableHandMiningParam minableHandMiningParam) continue;
+
+                    foreach (var handMiningTool in minableHandMiningParam.HandMiningTools)
+                    {
+                        var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(handMiningTool.ToolItemGuid);
+                        if (itemId == null)
+                        {
+                            logs += $"[MapVeinMaster] Name:{element.VeinName} has invalid ToolItemGuid:{handMiningTool.ToolItemGuid}\n";
                         }
                     }
                 }
