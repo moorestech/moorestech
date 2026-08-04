@@ -48,7 +48,7 @@ Expected: `mooreseditor stopped`
 - [ ] **Step 2: detached HEAD をブランチ化し drift をコミット**
 
 ```bash
-cd /Users/katsumi/moorestech_master
+cd ../moorestech_master
 git switch -c plan2-master-migration
 git add server_v8/mods/moorestechAlphaMod_8/master/blocks.json
 git commit -m "chore: mooreseditorによるワイヤー系blockParamデフォルト値の書き戻しをコミット"
@@ -61,7 +61,7 @@ Expected: 新ブランチ `plan2-master-migration`、HEAD に chore コミット
 ### Task 2: 移行スクリプト作成 + dry-run レポート
 
 **Files:**
-- Create: `/Users/katsumi/moorestech_master/tools/plan2_migration/migrate.py`
+- Create: `../moorestech_master/tools/plan2_migration/migrate.py`
 
 **Interfaces:**
 - Produces: `python3 tools/plan2_migration/migrate.py`（dry-run: レポートを stdout、書き込みなし）/ `--apply`（blocks.json / craftRecipes.json / research.json を書き換え + 事後アサーション）。Task 3 はこの CLI を使う
@@ -313,7 +313,7 @@ if __name__ == '__main__':
 - [ ] **Step 2: dry-run を実行して検証**
 
 ```bash
-cd /Users/katsumi/moorestech_master && python3 tools/plan2_migration/migrate.py
+cd ../moorestech_master && python3 tools/plan2_migration/migrate.py
 ```
 
 Expected（すべて満たすこと。満たさない場合は原因を調査して報告）:
@@ -327,7 +327,7 @@ Expected（すべて満たすこと。満たさない場合は原因を調査し
 - [ ] **Step 3: スクリプトのみコミット**
 
 ```bash
-cd /Users/katsumi/moorestech_master && git add tools/plan2_migration/migrate.py && git commit -m "feat: プラン2本番マスタ移行スクリプトを追加"
+cd ../moorestech_master && git add tools/plan2_migration/migrate.py && git commit -m "feat: プラン2本番マスタ移行スクリプトを追加"
 ```
 
 - [ ] **Step 4: dry-run レポート全文をタスク成果物として報告**（レビュアーがコスト表・レシピ削除一覧・research 変更を精査する）
@@ -348,14 +348,14 @@ pgrep -fl mooreseditor && echo "STOP: mooreseditorを終了せよ" || echo OK
 - [ ] **Step 2: 適用**
 
 ```bash
-cd /Users/katsumi/moorestech_master && python3 tools/plan2_migration/migrate.py --apply
+cd ../moorestech_master && python3 tools/plan2_migration/migrate.py --apply
 ```
 Expected: dry-run と同一レポート + `APPLIED`、exit 0
 
 - [ ] **Step 3: diff がノイズなしであることを確認**
 
 ```bash
-cd /Users/katsumi/moorestech_master && git diff --stat
+cd ../moorestech_master && git diff --stat
 git diff server_v8/mods/moorestechAlphaMod_8/master/craftRecipes.json | head -60
 ```
 Expected: 変更3ファイルのみ（blocks/craftRecipes/research）。フォーマット全体の書き換え（全行diff）になっていないこと。craftRecipes の diff がレシピオブジェクト単位の削除であること
@@ -365,7 +365,7 @@ Expected: 変更3ファイルのみ（blocks/craftRecipes/research）。フォ�
 - [ ] **Step 4: コミット**
 
 ```bash
-cd /Users/katsumi/moorestech_master && git add -A && git commit -m "feat: プラン2 本番マスタ正式移行（requiredItems投入・レシピ削除・unlockBlock化）"
+cd ../moorestech_master && git add -A && git commit -m "feat: プラン2 本番マスタ正式移行（requiredItems投入・レシピ削除・unlockBlock化）"
 ```
 
 ---
@@ -378,7 +378,7 @@ cd /Users/katsumi/moorestech_master && git add -A && git commit -m "feat: プラ
 - [ ] **Step 1: コンパイル確認**
 
 ```bash
-cd /Users/katsumi/moorestech && uloop compile --project-path ./moorestech_client
+cd ~/moorestech && uloop compile --project-path ./moorestech_client
 ```
 Expected: Success, ErrorCount 0
 

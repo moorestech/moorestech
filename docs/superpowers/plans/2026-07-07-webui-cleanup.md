@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- 作業ディレクトリ: `/Users/katsumi/moorestech-worktrees/tree2/moorestech_web/webui`（web-ui ブランチ）。**全コマンドはここで実行**
+- 作業ディレクトリ: `~/moorestech-worktrees/tree2/moorestech_web/webui`（web-ui ブランチ）。**全コマンドはここで実行**
 - C#・Unity 側のコードは一切変更しない（webui + e2e mock のみ）
 - 型チェック兼ビルド: `pnpm build` / unit テスト: `pnpm exec vitest run <path>`（全件は `pnpm test`）/ e2e: `pnpm test:e2e`（単発は `pnpm exec playwright test --config e2e/playwright.config.ts <名前部分一致>`）
 - e2e ファイルを変更したら `pnpm exec tsc -p e2e/tsconfig.json --noEmit` で型チェック

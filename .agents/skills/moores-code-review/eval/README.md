@@ -43,7 +43,7 @@ done
 ### 過学習チェック（ブラインドリプレイ）
 22指摘はレンズの出典そのものなので、汎化確認には**レンズ作成に使っていない**マージ済みPR
 （人間レビュー指摘が付いたもの）を1〜2本選び、同じ手順でリプレイして「人間指摘のうち何件を
-ハーネスが先取りできたか」を見る。結果は `/Users/katsumi/moorestech_logs/harness/moores-code-review/eval-log.md` に記録する。
+ハーネスが先取りできたか」を見る。結果は `../moorestech_logs/harness/moores-code-review/eval-log.md` に記録する。
 
 ### synthetic/（ブラインド合成fixture）
 レンズ本文に由来PRの実名が書かれている場合、由来PRへの再発火は名前照合で当たっただけの
@@ -80,17 +80,17 @@ PR988の誤設計は `docs/superpowers/specs/2026-07-05-item-stack-upgrade-desig
    `gh api repos/moorestech/moorestech/pulls/<番号>/comments --paginate --jq '[.[].commit_id] | unique'` で取り、
    records/に記録された自動レビュー当時のheadと食い違ったら**人間コメント側のcommitを正**とする（指摘の行番号・コード実体がそこに紐づくため）。
    実例: PR1095では独立レビューhead 463a56d と人間コメントの 74ba6e8 が食い違い、当該箇所の実装形（DateTime→Stopwatch）まで別物だった。
-   食い違い自体も`/Users/katsumi/moorestech_logs/harness/moores-code-review/eval-log.md`に注記する（違反の形が変わっていれば両headで決定論チェックを取る価値がある）。
+   食い違い自体も`../moorestech_logs/harness/moores-code-review/eval-log.md`に注記する（違反の形が変わっていれば両headで決定論チェックを取る価値がある）。
 2. **当時コミットへピンしたworktreeを作る** — `git worktree add --detach <scratch>/replay-tree <head>`。レンズ・Codexはcwdの実コードを読むため、修正済みの現在ツリーを読ませると**正解が既に存在する状態**でのテストになり結果が汚染される。起動promptに「実コード照合はこのworktree内で行い、本体ツリーは読まない」を明記する。
 3. **忠実な4カテゴリcontextを再構築** — 当時のspec/planから書く。指摘の答え（正解形）をcontextに書いたら測定にならない。実装判断は「許容するトレードオフ／目指さない」欄に `[agent前提]` ラベル付きで書き、ユーザー合意と偽装しない（integration-rules §6の出所ラベル3種）。
 4. **全系統を当てて検知マトリクスを作る** — select_lensesの発火レンズ全部＋Fable全般＋（可能なら）Codexを3行契約＋共通出力契約で並列起動し、系統×検知の表を作る。ここで初めて欠落が確定する: 全滅→新観点が必要／fable・Codexのみ検知→opus/sonnetへ降ろす（SKILL.md Gotcha「検知の主担保」）／opus/sonnet検知済み→配管・実行スキップ側の問題。
-5. **対策後に同じfixtureで再実行**し、期待検出をexpected-findings.mdへ、経緯を`/Users/katsumi/moorestech_logs/harness/moores-code-review/eval-log.md`へ1行記録する。この再実行が4段階検証の段階4（実diffバックテスト）に当たる: 期待値を伏せたブラインド起動・見逃しsurface×検出元マトリクス・過検知数の3点を記録する。新設・改稿観点は段階1〜3（発火・サニティ・ブラインド陽陰）も完了させる（`references/skill-improvement.md`）。
+5. **対策後に同じfixtureで再実行**し、期待検出をexpected-findings.mdへ、経緯を`../moorestech_logs/harness/moores-code-review/eval-log.md`へ1行記録する。この再実行が4段階検証の段階4（実diffバックテスト）に当たる: 期待値を伏せたブラインド起動・見逃しsurface×検出元マトリクス・過検知数の3点を記録する。新設・改稿観点は段階1〜3（発火・サニティ・ブラインド陽陰）も完了させる（`references/skill-improvement.md`）。
 
 実例: 2026-07-23 replace-family指摘（リプレイでopus/sonnet 9系統+Codex素通し・fableのみ検知と診断→3段階セベリティ化＋hardcoded-content-enumeration(opus)新設）。
 
 ## Layer 2: 前向きログ（本命KPI）
 
-マージ済みPRごとに `/Users/katsumi/moorestech_logs/harness/moores-code-review/eval-log.md` へ1行記録する（手動運用）。
+マージ済みPRごとに `../moorestech_logs/harness/moores-code-review/eval-log.md` へ1行記録する（手動運用）。
 主要KPIは **「設計クラス（F0/F1）の人間指摘数/PR」の推移**。5PRごとに定性振り返りを行う。
 
 ### 指摘の反映手順（手動）
@@ -101,15 +101,15 @@ PR988の誤設計は `docs/superpowers/specs/2026-07-05-item-stack-upgrade-desig
    - F0 → writing-plans の spec-architecture-review（Red Flags・実例）と layer-map
    - F1 → 該当レンズへ実例追記（無ければ新レンズ＋selector発火条件＋リプレイ確認）、layer-map「よく引っかかる箇所」
    - F2 → ルール文言を禁止調に強化。機械判定可能なら deterministic_checks.py へ
-4. `/Users/katsumi/moorestech_logs/harness/moores-code-review/eval-log.md` に1行記録。将来のリプレイ対象なら `expected-findings.md` と `fixtures.tsv` にも追加
+4. `../moorestech_logs/harness/moores-code-review/eval-log.md` に1行記録。将来のリプレイ対象なら `expected-findings.md` と `fixtures.tsv` にも追加
 5. レンズ・スクリプトを変えたら Layer 1 のリプレイを回す
 
 ## Layer 3: ノイズ測定
 
-レンズの指摘をユーザーが却下した件数も `/Users/katsumi/moorestech_logs/harness/moores-code-review/eval-log.md` に記録する。却下率の高いレンズはハーネス負債 —
+レンズの指摘をユーザーが却下した件数も `../moorestech_logs/harness/moores-code-review/eval-log.md` に記録する。却下率の高いレンズはハーネス負債 —
 検出率と同じ重みで監視し、過検知ガードの強化 or レンズ廃止を判断する。
 
-## 故障モード分類（`/Users/katsumi/moorestech_logs/harness/moores-code-review/eval-log.md`で使う）
+## 故障モード分類（`../moorestech_logs/harness/moores-code-review/eval-log.md`で使う）
 
 - **F0**: 設計段階で誤りが確定（specに誤方針が明記）→ 対策先: spec-architecture-review / layer-map
 - **F1**: 既存前例を探さず局所発明 → 対策先: precedent-alignment / 各レンズの前例追記

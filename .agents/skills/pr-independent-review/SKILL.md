@@ -21,16 +21,16 @@ description: |
 
 **$CANONの決定手順（最初に必ず1回やる）**:
 
-1. このSKILL.mdをReadしたときの絶対パスを取る（例: `/Users/katsumi/moorestech/.agents/skills/pr-independent-review/SKILL.md`）
+1. このSKILL.mdをReadしたときの絶対パスを取る（例: `~/moorestech/.agents/skills/pr-independent-review/SKILL.md`）
 2. その末尾から `/<dir>/skills/pr-independent-review/SKILL.md`（`<dir>` は `.agents`/`.claude`/`.codex` のいずれか。
    skills実体は `.agents/skills` で他2つはsymlink）を**文字列として取り除いた**残りが `$CANON`
-   （上例なら `/Users/katsumi/moorestech`）
+   （上例なら `~/moorestech`）
 3. 手順2の実値を展開した `ls <実値>/.agents/skills/pr-independent-review/scripts/novelty_gate.py` で実在確認する。
    失敗したら即エラー終了（$CANON誤決定のまま走らせない）。**確認先はこのファイルでなければならない** —
    `moores-code-review/SKILL.md` はレビューworktree側にも存在しうるため、誤決定した$CANONでも通ってしまい弁別にならない
 
 **記録repo `$LOGS`**: レビュー実行記録（`records/pr-*.md`・シャドー台帳・改善キュー・前向きログ）は
-コードrepoではなく `/Users/katsumi/moorestech_logs`（以下 `$LOGS`、privateログrepo）の `harness/` 配下に置く。
+コードrepoではなく `../moorestech_logs`（以下 `$LOGS`、privateログrepo）の `harness/` 配下に置く。
 featureブランチが記録ファイルに触れてマージ衝突する構造を断つための分離であり、コードrepo側へ記録を書き戻さない。
 
 - **`$CANON` は本ドキュメント上のプレースホルダであり、シェル変数ではない**。Bashコマンド・subagentのprompt・

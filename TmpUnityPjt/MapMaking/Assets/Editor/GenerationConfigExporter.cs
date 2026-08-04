@@ -14,8 +14,13 @@ namespace MapGenerator.EditorExport
     public static class GenerationConfigExporter
     {
         private const string ConfigPath = "Assets/MapGenerator/Presets/DefaultConfig.asset";
-        private const string MapJsonPath = "/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/map.json";
-        private const string OutputPath = "/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/generation.json";
+
+        // moorestechリポジトリの隣にあるmasterリポジトリをAssetsから相対解決する
+        // Resolves the master repo, a sibling of the moorestech repo, relative to Assets.
+        private static readonly string MasterModDir =
+            Path.GetFullPath(Path.Combine(Application.dataPath, "../../../../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master"));
+        private static readonly string MapJsonPath = Path.Combine(MasterModDir, "map.json");
+        private static readonly string OutputPath = Path.Combine(MasterModDir, "generation.json");
 
         [MenuItem("Tools/MapGenerator/Export Generation Config")]
         public static void Export()

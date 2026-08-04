@@ -25,7 +25,7 @@
 
 ## Global Constraints
 
-- 作業開始時に必ず`pwd`確認。作業ディレクトリは `/Users/katsumi/moorestech`
+- 作業開始時に必ず`pwd`確認。作業ディレクトリは `~/moorestech`
 - .csファイル変更後は必ず `uloop compile --project-path ./moorestech_client`（エラー0件）
 - テスト: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。Domain Reloadエラーは45秒待ってリトライ。一括180秒超はクラス分割
 - 新規サーバー.csファイルはUnity再起動が必要な場合がある（申し送り「テスト・コンパイルの罠」参照）。.metaは手動作成禁止（サーバー側は2行形式がUnity正規出力）
@@ -690,7 +690,7 @@ git commit -m "feat: 橋脚付きレール接続をBlockId指定と建設コス�
 - Modify: `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs`（dummyText変更でSourceGenerator起動）
 - Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/PlaceSystemMasterUtil.cs`（バリデーション書き換え）
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/placeSystem.json`
-- Modify: `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/placeSystem.json`（別リポジトリ）
+- Modify: `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/placeSystem.json`（別リポジトリ）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/PlaceSystemSelector.cs`（UsePlaceItemsマッチング削除）
 
 **Interfaces:**
@@ -764,7 +764,7 @@ properties:
 
 (b) EditModeInPlayingTestの`placeSystem.json`は`{"data": []}`のまま（変更不要）。
 
-(c) 本番 `/Users/katsumi/moorestech_master/.../placeSystem.json`（mooreseditor停止を`pgrep -fl mooreseditor`で確認してから）:
+(c) 本番 `../moorestech_master/.../placeSystem.json`（mooreseditor停止を`pgrep -fl mooreseditor`で確認してから）:
 
 ```json
 {
@@ -791,8 +791,8 @@ Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --f
 Expected: エラー0件・全PASS
 
 ```bash
-git -C /Users/katsumi/moorestech_master add server_v8/mods/moorestechAlphaMod_8/master/placeSystem.json
-git -C /Users/katsumi/moorestech_master commit -m "feat: placeSystemを接続ツールエントリ定義へ転換"
+git -C ../moorestech_master add server_v8/mods/moorestechAlphaMod_8/master/placeSystem.json
+git -C ../moorestech_master commit -m "feat: placeSystemを接続ツールエントリ定義へ転換"
 # .moorestech-external-revisions.json のピンを新コミットハッシュへ更新してから
 git add VanillaSchema/ moorestech_server/ moorestech_client/ .moorestech-external-revisions.json
 git commit -m "feat: placeSystemスキーマを接続ツールエントリ定義へ転換"
@@ -1369,9 +1369,9 @@ git add moorestech_client/Assets/Scenes/ && git commit -m "feat: ビルドメニ
 ### Task 12: 本番マスタ追補（moorestech_master・プラン4スクリプト）
 
 **Files:**
-- Create: `/Users/katsumi/moorestech_master/tools/plan4_migration/migrate_plan4.py`
-- Modify（スクリプト実行で）: `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json` / `train.json` / `craftRecipes.json` / `research.json`
-- Modify: `/Users/katsumi/moorestech/.moorestech-external-revisions.json`（ピン更新）
+- Create: `../moorestech_master/tools/plan4_migration/migrate_plan4.py`
+- Modify（スクリプト実行で）: `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json` / `train.json` / `craftRecipes.json` / `research.json`
+- Modify: `~/moorestech/.moorestech-external-revisions.json`（ピン更新）
 
 **Interfaces:**
 - Consumes: Task 2-5完了（プロトコルがrequiredItems消費に移行済みであること — 増殖経路防止の順序制約）
@@ -1380,7 +1380,7 @@ git add moorestech_client/Assets/Scenes/ && git commit -m "feat: ビルドメニ
 - [ ] **Step 1: mooreseditor停止確認とブランチ確認**
 
 Run: `pgrep -fl mooreseditor || echo "not running"`
-Run: `git -C /Users/katsumi/moorestech_master status --short && git -C /Users/katsumi/moorestech_master branch --show-current`
+Run: `git -C ../moorestech_master status --short && git -C ../moorestech_master branch --show-current`
 Expected: `not running` / working tree clean / ブランチ`plan2-master-migration`（異なる場合はユーザーへ報告して指示を仰ぐ — moorestech_masterのブランチ整理は別件の残タスク）
 
 - [ ] **Step 2: 追補スクリプトを作成**
@@ -1504,9 +1504,9 @@ else:
 - [ ] **Step 3: dry-run→適用→差分確認**
 
 ```bash
-python3 /Users/katsumi/moorestech_master/tools/plan4_migration/migrate_plan4.py
-python3 /Users/katsumi/moorestech_master/tools/plan4_migration/migrate_plan4.py --apply
-git -C /Users/katsumi/moorestech_master diff --stat
+python3 ../moorestech_master/tools/plan4_migration/migrate_plan4.py
+python3 ../moorestech_master/tools/plan4_migration/migrate_plan4.py --apply
+git -C ../moorestech_master diff --stat
 ```
 
 Expected: dry-runの出力が「9ブロック・3車両・レシピ12件」。差分が4ファイルのみ。
@@ -1518,8 +1518,8 @@ uloopでゲームを起動（v8 mod読み込み）し、マスタバリデーシ
 - [ ] **Step 5: コミットとピン更新**
 
 ```bash
-git -C /Users/katsumi/moorestech_master add tools/plan4_migration/ server_v8/
-git -C /Users/katsumi/moorestech_master commit -m "feat: プラン4追補 特殊ブロック9種と車両3種へ建設コストを投入しレシピを削除"
+git -C ../moorestech_master add tools/plan4_migration/ server_v8/
+git -C ../moorestech_master commit -m "feat: プラン4追補 特殊ブロック9種と車両3種へ建設コストを投入しレシピを削除"
 ```
 
 moorestechリポジトリ側の`.moorestech-external-revisions.json`のピンを新コミットハッシュへ更新し、コミットする（RepositorySyncの巻き戻り対策）:

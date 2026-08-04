@@ -684,9 +684,9 @@
         "[Exception] NullReferenceException: Object reference not set to an instance of an object"
     ],
     "Screenshots": [
-        "/Users/katsumi/moorestech-worktrees/tree1/moorestech_client/PlaytestResults/20260723_231146/electric-wire-mutual-range-via-ui/01-pole-a.png",
-        "/Users/katsumi/moorestech-worktrees/tree1/moorestech_client/PlaytestResults/20260723_231146/electric-wire-mutual-range-via-ui/02-pole-b-connected.png",
-        "/Users/katsumi/moorestech-worktrees/tree1/moorestech_client/PlaytestResults/20260723_231146/electric-wire-mutual-range-via-ui/03-pole-c-rejected.png"
+        "~/moorestech-worktrees/tree1/moorestech_client/PlaytestResults/20260723_231146/electric-wire-mutual-range-via-ui/01-pole-a.png",
+        "~/moorestech-worktrees/tree1/moorestech_client/PlaytestResults/20260723_231146/electric-wire-mutual-range-via-ui/02-pole-b-connected.png",
+        "~/moorestech-worktrees/tree1/moorestech_client/PlaytestResults/20260723_231146/electric-wire-mutual-range-via-ui/03-pole-c-rejected.png"
     ],
-    "RecordingPath": "/Users/katsumi/moorestech-worktrees/tree1/moorestech_client/PlaytestResults/20260723_231146/electric-wire-mutual-range-via-ui/recording.mp4"
+    "RecordingPath": "~/moorestech-worktrees/tree1/moorestech_client/PlaytestResults/20260723_231146/electric-wire-mutual-range-via-ui/recording.mp4"
 }

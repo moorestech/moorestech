@@ -5,7 +5,7 @@
 > #993は一度マージ（94c4c72f8）→ revert（#994）→ master-fable-tmpをforce-pushで762af74b5へ復元済み。
 > 巻き戻しの全記録・関連ハッシュ・復旧手順は `2026-07-07-pr993-rollback-record.md` が正。**本ドキュメントの手順を再実行してはならない。**
 
-作成: 2026-07-07 19:57 / ブランチ: `feature/playtest-stabilization`（worktree: `/Users/katsumi/moorestech-worktrees/playtest`）
+作成: 2026-07-07 19:57 / ブランチ: `feature/playtest-stabilization`（worktree: `~/moorestech-worktrees/playtest`）
 関連: `2026-07-07-playtest-skill-model-eval-results.md`（モデル別評価6/6合格・実バグ2件の結果報告）
 
 ## ゴールと方針（ユーザー決定済み）
@@ -22,7 +22,7 @@ git のマージは祖先ごと入るため、#993 マージで設置システ�
   - moorestech_master リポジトリの `playtest-stabilization-integration` ブランチ = `3b2de6f`（**origin へ push 済み**）
   - 変換規則: 全コネクタの `connectType` 削除 / inventory系（inputConnects/outputConnects）は `connectOption` 削除 / gear・fluid系（gearConnects/inflowConnects/outflowConnects）は `connectOption`→`option` 改名 + **スキーマ既定値を明示補完**（gear: isReverse=true, fluid: flowCapacity=10, connectTankIndex=0）
   - ピン更新コミット: `ebb4788be`（`.moorestech-external-revisions.json` → 3b2de6f）
-  - worktree `/Users/katsumi/moorestech-worktrees/playtest-master` は同ブランチをチェックアウト済み（run-scenario のデフォルト master パスがそのまま機能する）
+  - worktree `~/moorestech-worktrees/playtest-master` は同ブランチをチェックアウト済み（run-scenario のデフォルト master パスがそのまま機能する）
 - **検証状況**: 1回目マージ後 = preflight PASS + belt-line-via-ui 8/8 + train-rail-connect-via-ui 5/5 全PASS。2回目マージ後 = preflight PASS + コンパイルクリーンまで確認済み。**シナリオ2本の再実行は未実施**（ここで中断）
 
 ## ✅ 完了報告（2026-07-07 20:30）
@@ -41,7 +41,7 @@ git のマージは祖先ごと入るため、#993 マージで設置システ�
 ## 残り手順（3ステップ・約15分）※実施済み・記録として保持
 
 ```bash
-cd /Users/katsumi/moorestech-worktrees/playtest   # 必ずpwd確認
+cd ~/moorestech-worktrees/playtest   # 必ずpwd確認
 # 1. 実機再検証（推奨。省略可だがbaseが動いた直後なので流すのが安全）
 ./tools/playtest/run-scenario.sh ./moorestech_client tools/playtest/scenarios/belt-line-via-ui.cs
 ./tools/playtest/run-scenario.sh ./moorestech_client tools/playtest/scenarios/train-rail-connect-via-ui.cs
@@ -69,4 +69,4 @@ gh pr merge 993 --merge
 - **#987（plan4/5 尾部）のマージ**: `TrainRailPlaceService.cs` 衝突は #987 側を採用（PRコメント参照）。plan4/5 は master データも進む（sortPriority / itemGuid撤去 / idlePowerRate）ため、ピンを plan2-master-migration 系列（c940ca4 付近）へ進めて検証
 - **未修正バグのチケット化**: 電気ブロックが建設コスト経路で設置不能（`ElectricWireAutoConnectPreview.TrySelectWire` の在庫ガード、評価L2で両モデルが独立到達・コード検証済み）
 - **PlaceInfo 手組み箇所の BlockId 設定漏れ横断監査**（同型退行3例目のため）
-- スキル本体のメインチェックアウト側（`/Users/katsumi/moorestech/.claude/skills/`）への逆同期（reference改善3件は本worktreeのコミットが正）
+- スキル本体のメインチェックアウト側（`~/moorestech/.claude/skills/`）への逆同期（reference改善3件は本worktreeのコミットが正）

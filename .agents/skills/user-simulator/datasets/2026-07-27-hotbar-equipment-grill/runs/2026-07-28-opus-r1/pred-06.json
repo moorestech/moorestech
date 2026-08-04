@@ -1,1 +1,0 @@
-{"idx":6,"predictions":[{"header":"装備スロット数","predicted_label":"1スロットのみ（推奨）","rationale":"AGENTS.md「将来の拡張性は考慮不要」+adjudications.md「将来拡張の裁定は先送りする傾向・最小構成へ畳む」、かつ元依頼文も「そこにアイテムを置いて」と単数表現・本セッション既存回答も概ね推奨案追従","confidence":"高"}]}

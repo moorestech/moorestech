@@ -1,7 +1,7 @@
 # プラン4 Task 13 進捗申し送り（2026-07-06 23:16時点）
 
 状態: **Task 1〜12完了（レビュー済み）。Task 13はStep 1・Step 2完了、Step 3（最終差分コミット＋申し送り更新）が未実施**
-作業場所: worktree `/Users/katsumi/moorestech-worktrees/plan4`（ブランチ `feature/replace-place-system-plan4` @ 2ba39b77a、作業ツリーclean）
+作業場所: worktree `~/moorestech-worktrees/plan4`（ブランチ `feature/replace-place-system-plan4` @ 2ba39b77a、作業ツリーclean）
 実行方式: ユーザー指示により**実務はcodex CLI（`codex exec --dangerously-bypass-approvals-and-sandbox`、gpt-5.5）に委任**し、Claudeがオーケストレーション（ステップ毎に指示書作成→結果検分）
 
 ## 0. 前提の訂正（重要）
@@ -50,4 +50,4 @@
 - worktree専用Unityは`uloop launch ./moorestech_client`で起動（plan4ディレクトリから）。起動後2〜3分待つ
 - codexへの指示書はscratchpad（セッション毎に消える）に置いたため残っていない。委任時は「対象ステップ限定・修正禁止・コミット可否・既知の罠（Domain Reload 45秒待ち、filter "."禁止、UnityMcpSettings復元、他プロセスkill禁止）」を明記すること
 - tree1 worktree向けの別セッションuloopループ（PID 41014）が観測されたが**plan4とは無関係**（放置でよい）
-- `../moorestech_master`はsymlink→`/Users/katsumi/moorestech-worktrees/moorestech_master`実クローン（plan2-master-migration @ dce2ff9、ピン一致）
+- `../moorestech_master`はsymlink→`~/moorestech-worktrees/moorestech_master`実クローン（plan2-master-migration @ dce2ff9、ピン一致）

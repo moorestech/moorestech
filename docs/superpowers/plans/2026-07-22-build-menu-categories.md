@@ -284,7 +284,7 @@ json.dump(cat_json, open(cat_path, "w", encoding="utf-8"), ensure_ascii=False, i
 print("ok", len(names))
 ```
 
-Run: `python3 <scratchpad>/apply_categories.py /Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json`
+Run: `python3 <scratchpad>/apply_categories.py ../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json`
 Expected: `ok 73`
 
 注意: 既存blocks.jsonのインデント・キー順の大規模差分が出ないよう、実行前に `git -C ../moorestech_master diff --stat` で差分がcategory/subCategory追加とblockCategories.json新規のみであることを確認する。インデントが既存と違う場合はスクリプトのindentを実ファイルに合わせる。
@@ -329,7 +329,7 @@ Run（2回）:
 ```bash
 python3 -c "
 import json
-for p in ['/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json',
+for p in ['../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json',
           'moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json',
           'moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/blocks.json']:
     d = json.load(open(p))
@@ -345,8 +345,8 @@ Expected: 3行とも `missing: []`
 masterリポジトリ（別リポジトリ・個別コミット）:
 
 ```bash
-git -C /Users/katsumi/moorestech_master add server_v8/mods/moorestechAlphaMod_8/master/blocks.json server_v8/mods/moorestechAlphaMod_8/master/blockCategories.json
-git -C /Users/katsumi/moorestech_master commit -m "feat(master): 建設メニューカテゴリをblocksへ付与しblockCategoriesを新設"
+git -C ../moorestech_master add server_v8/mods/moorestechAlphaMod_8/master/blocks.json server_v8/mods/moorestechAlphaMod_8/master/blockCategories.json
+git -C ../moorestech_master commit -m "feat(master): 建設メニューカテゴリをblocksへ付与しblockCategoriesを新設"
 ```
 
 本体リポジトリ（blockCategories.jsonの.metaはUnity起動時に自動生成されるので、生成後に一緒にコミット）:

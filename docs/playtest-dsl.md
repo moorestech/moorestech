@@ -24,7 +24,7 @@ SKILL=.claude/skills/unity-playmode-recorded-playtest
 "$SKILL/scripts/run-scenario.sh" \
     /path/to/moorestech_client \
     "$SKILL/scenarios/sample-chest.cs" \
-    [master-server-dir]   # 省略時: /Users/katsumi/moorestech-worktrees/playtest-master/server_v8
+    [master-server-dir]   # 省略時: ~/moorestech-worktrees/playtest-master/server_v8
 ```
 
 流れ: preflight → `PlaytestBoot.PrepareAndEnterPlayMode`（NoSave・masterパス設定・PlayMode起動）→

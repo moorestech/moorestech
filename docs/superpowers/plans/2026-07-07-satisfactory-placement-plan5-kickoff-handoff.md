@@ -8,7 +8,7 @@
 
 - 本流 `feature/replace-place-system` @ e93d63105（プラン4マージ 9470efb60 込み）。全回帰922/922 PASS
 - moorestech_master: `plan2-master-migration` @ dce2ff9、**originへpush済み**。ピン（`.moorestech-external-revisions.json`）一致
-- `../moorestech_master` はsymlink → `/Users/katsumi/moorestech-worktrees/moorestech_master`（実クローン）
+- `../moorestech_master` はsymlink → `~/moorestech-worktrees/moorestech_master`（実クローン）
 - プラン4の進行台帳・レビューdiff・プレイテスト録画は `.superpowers/sdd-plan4/`（gitignore下）へ退避済み
 - メインチェックアウトは他セッション共用。**プラン5も専用worktree＋専用Unity（`uloop launch ./moorestech_client`）での作業を推奨**
 

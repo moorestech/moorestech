@@ -21,7 +21,7 @@
 
 ## Global Constraints
 
-- 作業開始時に必ず`pwd`確認。作業ディレクトリは `/Users/katsumi/moorestech`
+- 作業開始時に必ず`pwd`確認。作業ディレクトリは `~/moorestech`
 - .csファイル変更後は必ず `uloop compile --project-path ./moorestech_client`（エラー0件）
 - テスト: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。Domain Reloadエラーは45秒待ってリトライ。一括180秒超はクラス分割
 - partial絶対禁止 / 1ファイル200行以下 / 1ディレクトリ10ファイルまで / 単純getter/setter禁止（値のSetは`SetHoge`メソッド） / デフォルト引数禁止（追加引数は全呼び出し側を更新） / try-catch禁止 / イベントはUniRx
@@ -802,7 +802,7 @@ Expected: `not running`（起動中ならユーザーに終了を依頼して待
 ```bash
 python3 - <<'EOF'
 import json
-path = '/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json'
+path = '../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json'
 data = json.load(open(path))
 count = 0
 for block in data['data']:
@@ -816,13 +816,13 @@ print(f'unlocked {count} blocks')
 EOF
 ```
 
-実行前に`head -5`で実ファイルのインデントを確認し、`indent=`を合わせること。書き戻し後に`git -C /Users/katsumi/moorestech_master diff --stat`で差分が「initialUnlocked追加のみ」であることを確認する。
+実行前に`head -5`で実ファイルのインデントを確認し、`indent=`を合わせること。書き戻し後に`git -C ../moorestech_master diff --stat`で差分が「initialUnlocked追加のみ」であることを確認する。
 
 - [ ] **Step 3: moorestech_masterにコミット**
 
 ```bash
-git -C /Users/katsumi/moorestech_master add server_v8/mods/moorestechAlphaMod_8/master/blocks.json
-git -C /Users/katsumi/moorestech_master commit -m "feat: プラン3暫定措置として全ブロックを初期解放（プラン2で正式データに置換）"
+git -C ../moorestech_master add server_v8/mods/moorestechAlphaMod_8/master/blocks.json
+git -C ../moorestech_master commit -m "feat: プラン3暫定措置として全ブロックを初期解放（プラン2で正式データに置換）"
 ```
 
 コミット後、moorestechリポジトリ側の`.moorestech-external-revisions.json`のピン更新が必要か確認する（RepositorySyncがピンで巻き戻すため。ピンファイルが新コミットハッシュを指すよう更新し、moorestech側の変更として報告に含める）。

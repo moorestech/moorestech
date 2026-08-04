@@ -12,7 +12,7 @@ spec: docs/plans/map-autogen-world-design.md
 
 **Tech Stack:** Unity 6 / C# / MessagePack / UniTask / NUnit / uloop CLI
 
-**作業ブランチ:** `feat/map-autogen-p3`（worktree: `/Users/katsumi/moorestech-worktrees/tree1`）
+**作業ブランチ:** `feat/map-autogen-p3`（worktree: `~/moorestech-worktrees/tree1`）
 
 **裁定の出所:** PR #1104 独立レビューダイジェスト（/tmp/pr-review-1104/index.html）へのユーザーコメント 2026-08-02。spec『判断記録（ADR）』#11〜#14 に掲載済み。
 **D1の扱い:** シミュレーター予測・確信高によりA+B併用を前提宣言（拒否権つき）としてTask 5に含める。ユーザーが拒否した場合はTask 5をスキップし裁定に従う（spec ADR#15）。

@@ -73,7 +73,7 @@ TODO.md へ反映する際は種リスト側の項目も統合し、進捗ドキ
 ## 検証に使った主な証拠
 
 - web レジストリ: `moorestech_web/webui/src/features/blockInventory/blockLogic.ts`（blockComponents の9キー）
-- v8 実マスタ blockType 分布: `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json`
+- v8 実マスタ blockType 分布: `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json`
   （BeltConveyor 16 / GearBeltConveyor 12 / ElectricMachine 7 / Shaft 6 / GearMachine 5 / Chest 4 / Gear 3 / FluidPipe 3 /
    ElectricPole 3 / GearMiner 2 / GearChainPole 2 / FuelGearGenerator 2 / ElectricMiner 2 / Block 2 / 残り各1。
    SimpleGearGenerator は登録済みだがマスタ0個、Tank/BaseCamp/GearEnergyTransformer という blockType は不存在）

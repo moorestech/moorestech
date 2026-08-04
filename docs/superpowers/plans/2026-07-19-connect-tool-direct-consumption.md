@@ -12,9 +12,9 @@
 
 ## Global Constraints
 
-- 作業ディレクトリは `/Users/katsumi/moorestech-worktrees/tree1`（必ず最初に`pwd`確認）
-- コンパイル: `uloop compile --project-path /Users/katsumi/moorestech-worktrees/tree1/moorestech_client`（.cs変更後は必ず実行。サーバーコードもクライアントプロジェクトに含まれる）
-- テスト: `uloop run-tests --project-path /Users/katsumi/moorestech-worktrees/tree1/moorestech_client --filter-type regex --filter-value "<正規表現>"`
+- 作業ディレクトリは `~/moorestech-worktrees/tree1`（必ず最初に`pwd`確認）
+- コンパイル: `uloop compile --project-path ~/moorestech-worktrees/tree1/moorestech_client`（.cs変更後は必ず実行。サーバーコードもクライアントプロジェクトに含まれる）
+- テスト: `uloop run-tests --project-path ~/moorestech-worktrees/tree1/moorestech_client --filter-type regex --filter-value "<正規表現>"`
 - **Unityは1インスタンスのみ（ポート11564固定）**。タスクは直列実行し、コンパイル/テストの並行実行禁止
 - スキーマ(yml)編集はedit-schemaスキル（`.claude/skills/edit-schema/`）の手順に従う。Mooresmaster.Model.*は自動生成のため手書き禁止
 - partial禁止・try-catch原則禁止・1ファイル200行以下・イベントはUniRx・デフォルト引数禁止
@@ -22,7 +22,7 @@
 - コメントは日本語→英語の2行セット（約3〜10行ごと）
 - 後方互換のためのoptional/フォールバック禁止。全JSON一括更新が正規手順
 - 各タスク末で必ずコミット（git worktree運用のため作業消失防止）
-- 本番マスタデータは `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/`（別リポジトリ。コミットもそちらで）
+- 本番マスタデータは `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/`（別リポジトリ。コミットもそちらで）
 - テスト用マスタデータ: `moorestech_server/Assets/Scripts/Tests.Module.TestMod/`配下（ForUnitTestのJSON群。実配置はTask 1で確認）
 
 ## 配置と前例（spec-architecture-review済み）
@@ -166,7 +166,7 @@
 
 ### Task 7: 本番マスタデータ変更（moorestech_masterリポジトリ）
 
-**Files:** `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/`
+**Files:** `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/`
 - Create: `connectTools.json`（3エントリ。guidは新規採番。素材guid: 銅のワイヤー/補強棒材・鉄板/鉄のワイヤーはitems.jsonから実guidを引く。値はスペックの表）
 - Modify: `items.json`（電線5b6e76b8-・レール5be3a22c-・歯車チェーン8412fa32-の3件削除）
 - Modify: `craftRecipes.json`（レシピb8a34c15-・019e1f0b-の2件削除）

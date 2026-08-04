@@ -25,7 +25,7 @@ per-gearの変化検知：`SimpleGearService.NotifyStateChanged()`で、クラ�
 - `GearTickUpdater` / `GearNetworkPowerCalculator`のtickフロー自体は変更しない（gateは`SimpleGearService`内部に置く）
 - float比較は`Mathf.Approximately`（前例踏襲）
 - partial禁止 / 1ファイル200行以下 / 主要処理にJP+EN 2行セットコメント / try-catch禁止 / 単純getter/setter禁止（値のSetは`SetHoge`メソッド）/ デフォルト引数禁止
-- .cs変更後は`uloop compile --project-path ./moorestech_client`で0エラー確認（darwin、リポジトリルートは/Users/katsumi/moorestech）
+- .cs変更後は`uloop compile --project-path ./moorestech_client`で0エラー確認（darwin、リポジトリルートは~/moorestech）
 - テストは`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "..."`で対象限定実行。サーバー側テストもこのコマンドで実行される
 - **コミットは今回変更した.csファイルのみ**。作業ツリーに既存のprefab変更（DebugObjects.prefab / PlayerSystem.prefab）があるが絶対にコミットしない
 - uloopで「Unity is reloading (Domain Reload in progress)」エラーが出たら45秒待ってリトライ

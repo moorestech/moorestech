@@ -58,7 +58,7 @@ worktree であることが原因ではないか、という仮説のもとで�
 | 2 | Quality Level の違い（URP Asset 差異） | ランタイムで Low に統一して再試行 | ✗ 変わらず失敗 |
 | 3 | `$TMPDIR` 共有の CEF キャッシュ汚染 | `cef_unity_cache` を完全削除して再試行 | ✗ 変わらず失敗 |
 | 4 | GPU/グラフィックス API の違い | 比較 | 同一（Metal, Apple M5） |
-| 5 | worktree のパス長・ネスト構造 | 短いパス・非ネストの新規 worktree（`/Users/katsumi/cef-path-test`）で再試行 | ✗ 変わらず失敗 |
+| 5 | worktree のパス長・ネスト構造 | 短いパス・非ネストの新規 worktree（`~/cef-path-test`）で再試行 | ✗ 変わらず失敗 |
 | 6 | PluginImporter の `.meta` 設定差異 | メインリポジトリと diff | 完全に同一 |
 | 7 | macOS 画面収録権限（TCC） | システム設定の画面収録一覧を確認 | 該当エントリなし、原因と考えにくい |
 

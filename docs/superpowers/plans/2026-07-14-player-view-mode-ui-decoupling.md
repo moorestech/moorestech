@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- 最初に`pwd`で`/Users/katsumi/moorestech-worktrees/tree3`であることを確認する
+- 最初に`pwd`で`~/moorestech-worktrees/tree3`であることを確認する
 - 1ファイル200行以下、partial禁止、try-catch禁止、デフォルト引数の新規追加禁止
 - 複雑なメソッドのローカル関数はメソッド内の`#region Internal`へ置き、`#endregion`より下にコードを書かない
 - 主要処理には日本語・英語の2行セットコメントを約3〜10行ごとに置く

@@ -75,7 +75,7 @@
 ### Task 2: v8 generation.json への流体鉱脈実データ追加
 
 **Files:**
-- Modify: `/Users/katsumi/moorestech_master/server_v8/mods/<v8 mod>/master/generation.json`
+- Modify: `../moorestech_master/server_v8/mods/<v8 mod>/master/generation.json`
 - Modify: `TmpUnityPjt/MapMaking/Assets/Editor/GenerationConfigExporter.cs`（FluidVeinEntryセクション出力対応・MapMaking側SOにFluidVein設定が無いため初回は手書き追加でも可）
 
 - [ ] **Step 1: 現行v8 map.json（P1移行後）の流体vein 383件からveinGuid種別と分布密度を集計**（`jq '[.mapVeins[].veinGuid] | group_by(.) | map({guid: .[0], count: length})' map.json` の結果を、マスタmap.jsonの mapVeins（veinType=fluid）と突き合わせて流体分のみ抽出）

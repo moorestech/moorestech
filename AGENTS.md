@@ -151,7 +151,7 @@ partialは禁止。如何なる条件でもpartialを絶対に使ってはいけ
 
 # スキル配置と実行記録
 - スキルのgit正本は `.agents/skills/` のみ。`.claude/skills` と `.codex/skills` はそこへのsymlink（tracked）。ミラー実体の複製・CI同期は禁止（マージ衝突が3倍になるため廃止済み）
-- レビュー実行記録（moores-code-reviewのrecords/eval-log、pr-independent-reviewのrecords/シャドー台帳）はコードrepoに置かず `/Users/katsumi/moorestech_logs/harness/` へ書く。featureブランチで記録ファイルをコミットしない
+- レビュー実行記録（moores-code-reviewのrecords/eval-log、pr-independent-reviewのrecords/シャドー台帳）はコードrepoに置かず `../moorestech_logs/harness/` へ書く。featureブランチで記録ファイルをコミットしない
 
 # コーディングにおける重要な原則
 - 長くてもいいから適切な名前のクラス名、変数名をつける

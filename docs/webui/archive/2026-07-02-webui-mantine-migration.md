@@ -57,7 +57,7 @@
 - [ ] **Step 1: パッケージ追加**
 
 ```bash
-cd /Users/katsumi/moorestech-worktrees/tree2/moorestech_web/webui
+cd ~/moorestech-worktrees/tree2/moorestech_web/webui
 pnpm add @mantine/core@^8 @mantine/hooks@^8
 pnpm add -D postcss-preset-mantine postcss-simple-vars
 ```

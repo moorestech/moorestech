@@ -12,7 +12,7 @@
 
 ### Step 1: 失敗するテストを書く（完了）
 
-配置先: `/Users/katsumi/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Transfer/TerrainTransferMetaModeTest.cs`
+配置先: `~/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Transfer/TerrainTransferMetaModeTest.cs`
 
 ブリーフの仮パス `Tests.UnitTest/MapGeneration/` は実在しないため、既存の地形転送テスト（`TerrainChunkReaderTest` / `TerrainTransferMetaReaderTest` / `TerrainFileWriterTest`）が並ぶ `Tests/UnitTest/Game/MapGeneration/` の隣に合わせた。ただし同ディレクトリは既に `.cs` が10ファイルで上限に達していたため、`Transfer/` サブディレクトリを新設してそこへ置いた。
 

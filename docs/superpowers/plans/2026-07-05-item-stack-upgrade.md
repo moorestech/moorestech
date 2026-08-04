@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- 作業前に必ず `pwd` を確認（git worktree: `/Users/katsumi/moorestech-worktrees/tree1`）
+- 作業前に必ず `pwd` を確認（git worktree: `~/moorestech-worktrees/tree1`）
 - `partial` 禁止（如何なる条件でも）。1ファイル200行以下。try-catch 原則禁止
 - 主要処理に日本語・英語2行セットコメント（各1行厳守）。自明コメント禁止
 - `.cs` 変更後は必ず `uloop compile --project-path ./moorestech_client` を実行
@@ -113,10 +113,10 @@ DEFAULT_GUID = "9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa"
 TEST_GUID = "11111111-1111-1111-1111-111111111111"
 
 targets = []
-targets += [(p, DEFAULT_GUID, [100], "Default") for p in glob.glob("/Users/katsumi/moorestech_master/server_v*/mods/*/master/items.json")]
-targets += [(p, DEFAULT_GUID, [100], "Default") for p in glob.glob("/Users/katsumi/moorestech-worktrees/tree1/moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/*/master/items.json")]
-targets += [(p, DEFAULT_GUID, [100], "Default") for p in glob.glob("/Users/katsumi/moorestech-worktrees/tree1/mooresmaster/mooresmaster.SandBox/**/items.json", recursive=True)]
-targets += [(p, TEST_GUID, [100, 200, 300], "TestStackTable") for p in glob.glob("/Users/katsumi/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Tests.Module/TestMod/*/mods/*/master/items.json")]
+targets += [(p, DEFAULT_GUID, [100], "Default") for p in glob.glob("../moorestech_master/server_v*/mods/*/master/items.json")]
+targets += [(p, DEFAULT_GUID, [100], "Default") for p in glob.glob("~/moorestech-worktrees/tree1/moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/*/master/items.json")]
+targets += [(p, DEFAULT_GUID, [100], "Default") for p in glob.glob("~/moorestech-worktrees/tree1/mooresmaster/mooresmaster.SandBox/**/items.json", recursive=True)]
+targets += [(p, TEST_GUID, [100, 200, 300], "TestStackTable") for p in glob.glob("~/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Tests.Module/TestMod/*/mods/*/master/items.json")]
 
 for path, guid, counts, name in targets:
     with open(path) as f:
@@ -498,10 +498,10 @@ var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(itemId);
 python3 << 'EOF'
 import json, glob
 paths = []
-paths += glob.glob("/Users/katsumi/moorestech_master/server_v*/mods/*/master/items.json")
-paths += glob.glob("/Users/katsumi/moorestech-worktrees/tree1/moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/*/master/items.json")
-paths += glob.glob("/Users/katsumi/moorestech-worktrees/tree1/mooresmaster/mooresmaster.SandBox/**/items.json", recursive=True)
-paths += glob.glob("/Users/katsumi/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Tests.Module/TestMod/*/mods/*/master/items.json")
+paths += glob.glob("../moorestech_master/server_v*/mods/*/master/items.json")
+paths += glob.glob("~/moorestech-worktrees/tree1/moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/*/master/items.json")
+paths += glob.glob("~/moorestech-worktrees/tree1/mooresmaster/mooresmaster.SandBox/**/items.json", recursive=True)
+paths += glob.glob("~/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Tests.Module/TestMod/*/mods/*/master/items.json")
 for path in paths:
     with open(path) as f:
         data = json.load(f)
@@ -516,7 +516,7 @@ EOF
 残存確認（items.json 以外の blocks.json 等に残る "maxStack" はスキーマ外の残骸キーでローダーが無視するため対象外）:
 
 ```bash
-grep -rl '"maxStack"' --include='items.json' . /Users/katsumi/moorestech_master/ | grep -v '.claude/worktrees'
+grep -rl '"maxStack"' --include='items.json' . ../moorestech_master/ | grep -v '.claude/worktrees'
 ```
 
 Expected: 出力なし。
@@ -1021,7 +1021,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 **Files:**
 - Verify: 全変更
-- Commit: `/Users/katsumi/moorestech_master`（items.json 移行分）
+- Commit: `../moorestech_master`（items.json 移行分）
 
 **Interfaces:**
 - Consumes: 全タスクの成果物
@@ -1030,7 +1030,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 ```bash
 grep -rn '\.MaxStack' --include='*.cs' moorestech_server moorestech_client | grep -v '/obj/'
-grep -rl '"maxStack"' --include='items.json' . /Users/katsumi/moorestech_master/ | grep -v '.claude/worktrees'
+grep -rl '"maxStack"' --include='items.json' . ../moorestech_master/ | grep -v '.claude/worktrees'
 ```
 
 Expected: どちらも出力なし。
@@ -1048,7 +1048,7 @@ Expected: 全件 PASS。失敗があれば修正してから先へ進む。
 - [ ] **Step 3: moorestech_master をコミット**
 
 ```bash
-cd /Users/katsumi/moorestech_master && git status && git add -A && git commit -m "Migrate items.json to itemStackLevelTables (remove maxStack)
+cd ../moorestech_master && git status && git add -A && git commit -m "Migrate items.json to itemStackLevelTables (remove maxStack)
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
@@ -1058,7 +1058,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - [ ] **Step 4: 本体リポジトリの未コミット分を確認してコミット**
 
 ```bash
-cd /Users/katsumi/moorestech-worktrees/tree1 && git status
+cd ~/moorestech-worktrees/tree1 && git status
 ```
 
 未コミットの変更（mooresmaster.SandBox の items.json 等）があれば追加コミットする。

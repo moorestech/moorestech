@@ -76,7 +76,7 @@ GetMapDataProtocol は MapInfoJson の**読み手が1人増えるだけ**。既�
 
 **Files:**
 - Modify: `VanillaSchema/map.yml`（P1でmapObjects.ymlからリネーム済み）
-- Modify: `/Users/katsumi/moorestech_master/server_v8/mods/<v8 mod>/master/map.json`（mapObjects・mapVeins全エントリ）
+- Modify: `../moorestech_master/server_v8/mods/<v8 mod>/master/map.json`（mapObjects・mapVeins全エントリ）
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/.../map.json`（全エントリ）
 
 **Interfaces:**

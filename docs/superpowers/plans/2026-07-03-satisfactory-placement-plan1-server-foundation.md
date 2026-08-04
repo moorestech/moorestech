@@ -22,7 +22,7 @@
 
 ## Global Constraints
 
-- 作業開始時に必ず`pwd`で現在ディレクトリを確認する（git worktree対策）。本プランは`/Users/katsumi/moorestech`で作業する
+- 作業開始時に必ず`pwd`で現在ディレクトリを確認する（git worktree対策）。本プランは`~/moorestech`で作業する
 - .csファイル変更後は必ずコンパイルを実行する: `uloop compile --project-path ./moorestech_client`
 - **新規サーバー.csファイルはUnity再起動しないとコンパイル対象にならないことがある**（immutable package扱い）。新規ファイル追加後にuloop compileが新ファイルを認識しない・テストが見つからない場合は、uloop-launchスキルでUnityを再起動する
 - テスト実行: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。「Unity is reloading (Domain Reload in progress)」エラーが出たら45秒待ってリトライ

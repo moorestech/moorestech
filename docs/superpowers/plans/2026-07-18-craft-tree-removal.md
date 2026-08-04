@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- 実装場所は `/Users/katsumi/moorestech-worktrees/tree3`、ブランチは `tree3` とする。
+- 実装場所は `~/moorestech-worktrees/tree3`、ブランチは `tree3` とする。
 - `docs/superpowers/specs/2026-07-18-craft-tree-removal-design.md` を正本とし、互換DTO、空実装、無効化フラグ、旧セーブ移行、フォールバックを追加しない。
 - Prefab・Scene・ScriptableObjectのYAMLを直接編集しない。Prefabの変更・削除・再保存は `uloop execute-dynamic-code` とUnity Editor APIだけで行う。
 - `.meta` は手動作成しない。専用コードの削除には `git rm`、Prefabの削除には `AssetDatabase.DeleteAsset` を使う。

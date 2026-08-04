@@ -16,7 +16,7 @@ description: |
 ## 前提
 
 - BiomeHeightmapExporter（`Tools > MapGenerator > Export Biome Heightmap`）で個別バイオームPNG出力可能
-- 参考プロジェクト `/Users/katsumi/WebstormProjects/MapGenerator/` にTS版アルゴリズム実装あり
+- 参考プロジェクト `~/WebstormProjects/MapGenerator/` にTS版アルゴリズム実装あり
 - Unityのシリアライズ値はコードのデフォルト変更では更新されない → `uloop execute-dynamic-code` で直接設定
 
 ## ワークフロー

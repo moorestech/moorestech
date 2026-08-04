@@ -17,7 +17,7 @@
 - .csファイル変更後は必ず `uloop compile --project-path ./moorestech_client` を実行
 - .metaファイルは手動作成禁止（Unityが自動生成したものはコミット可）
 - シーン等Unity固有ファイルの直接編集禁止。変更は `uloop execute-dynamic-code` 経由のみ
-- 各タスク末尾で必ずgit commit（作業ディレクトリは `/Users/katsumi/moorestech`。最初に`pwd`確認）
+- 各タスク末尾で必ずgit commit（作業ディレクトリは `~/moorestech`。最初に`pwd`確認）
 - テスト実行: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。ドメインリロードエラー時は45秒待ってリトライ
 - 新規イベントはUniRx（本計画ではイベント新設・購読なし。コントローラはステートから直接駆動される）
 

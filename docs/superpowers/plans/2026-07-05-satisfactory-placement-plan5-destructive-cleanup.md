@@ -22,7 +22,7 @@
 
 ## Global Constraints
 
-- 作業開始時に必ず`pwd`確認。作業ディレクトリは `/Users/katsumi/moorestech`
+- 作業開始時に必ず`pwd`確認。作業ディレクトリは `~/moorestech`
 - .csファイル変更後は必ず `uloop compile --project-path ./moorestech_client`（エラー0件）
 - テスト: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。Domain Reloadエラーは45秒待ちリトライ。180秒超はクラス分割
 - partial絶対禁止 / 1ファイル200行以下 / 1ディレクトリ10ファイルまで / デフォルト引数禁止 / try-catch禁止 / イベントはUniRx / 日英2行セットコメント
@@ -55,7 +55,7 @@
 
 - [ ] **Step 1: requiredItems未定義ブロックの実在確認**
 
-Run: `python3 -c "import json; d=json.load(open('/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json')); print([b['name'] for b in d['data'] if not b.get('requiredItems')])"`
+Run: `python3 -c "import json; d=json.load(open('../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json')); print([b['name'] for b in d['data'] if not b.get('requiredItems')])"`
 
 Expected: 空リスト（残っていればプラン4の追補漏れ。先に投入してから進む）。ForUnitTest/EditModeInPlayingTestのblocks.jsonも同様に確認し、テストで設置・破壊されるブロックにrequiredItems漏れがないか棚卸しする。
 
@@ -262,7 +262,7 @@ git commit -m "feat: ブロック・車両のitemGuidをスキーマとCore.Mast
 ### Task 6: 本番マスタのブロック/車両アイテム削除（moorestech_master）
 
 **Files:**
-- Create: `/Users/katsumi/moorestech_master/tools/plan5_migration/migrate_plan5.py`
+- Create: `../moorestech_master/tools/plan5_migration/migrate_plan5.py`
 - Modify（スクリプト実行で）: `items.json` / `blocks.json` / `train.json`（v8 mod）
 
 **Interfaces:**
@@ -271,7 +271,7 @@ git commit -m "feat: ブロック・車両のitemGuidをスキーマとCore.Mast
 
 - [ ] **Step 1: mooreseditor停止・ブランチ確認**
 
-Run: `pgrep -fl mooreseditor || echo "not running"` / `git -C /Users/katsumi/moorestech_master status --short`
+Run: `pgrep -fl mooreseditor || echo "not running"` / `git -C ../moorestech_master status --short`
 
 - [ ] **Step 2: 削除スクリプトを作成・dry-run**
 
@@ -348,16 +348,16 @@ else:
 - [ ] **Step 3: 適用→起動確認→コミット→ピン更新**
 
 ```bash
-python3 /Users/katsumi/moorestech_master/tools/plan5_migration/migrate_plan5.py
-python3 /Users/katsumi/moorestech_master/tools/plan5_migration/migrate_plan5.py --apply
-git -C /Users/katsumi/moorestech_master diff --stat
+python3 ../moorestech_master/tools/plan5_migration/migrate_plan5.py
+python3 ../moorestech_master/tools/plan5_migration/migrate_plan5.py --apply
+git -C ../moorestech_master diff --stat
 ```
 
 uloopで本番マスタ起動し、ロードエラー・バリデーションエラーがないことを確認（`uloop get-logs --log-type Error`）。
 
 ```bash
-git -C /Users/katsumi/moorestech_master add tools/plan5_migration/ server_v8/
-git -C /Users/katsumi/moorestech_master commit -m "feat: プラン5 ブロック・車両アイテムを削除しitemGuidキーを撤去"
+git -C ../moorestech_master add tools/plan5_migration/ server_v8/
+git -C ../moorestech_master commit -m "feat: プラン5 ブロック・車両アイテムを削除しitemGuidキーを撤去"
 # moorestech側のピン更新
 git add .moorestech-external-revisions.json
 git commit -m "chore: moorestech_masterのピンをプラン5へ更新"

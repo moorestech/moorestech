@@ -2,7 +2,7 @@
 
 **最終更新**: 2026-07-07 01:30 JST
 **ブランチ**: feature/webui-block-research-ui
-**worktree**: /Users/katsumi/moorestech-worktrees/tree2/.claude/worktrees/webui-blocks
+**worktree**: ~/moorestech-worktrees/tree2/.claude/worktrees/webui-blocks
 **元計画**: docs/superpowers/plans/2026-07-06-webui-block-research-ui.md
 
 ---

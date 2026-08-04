@@ -118,7 +118,7 @@ cmux current-workspace
 workspace を作成、選択、リネームします。
 
 ```bash
-cmux new-workspace --name "作業名" --cwd /Users/katsumi/moorestech
+cmux new-workspace --name "作業名" --cwd ~/moorestech
 cmux select-workspace --workspace workspace:8
 cmux rename-workspace --workspace workspace:8 "新しい名前"
 ```
@@ -140,7 +140,7 @@ cmux browser screenshot --out /tmp/cmux-shot.png
 未ステージ差分、patch、Markdown を cmux 上で表示します。
 
 ```bash
-cmux diff --source unstaged --cwd /Users/katsumi/moorestech
+cmux diff --source unstaged --cwd ~/moorestech
 cmux diff patch.diff
 cmux markdown open README.md
 ```

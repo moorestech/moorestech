@@ -88,7 +88,7 @@ moorestech_web/webui/
 
 - [ ] **Step 1: 旧CSVから生きているキーの日本語訳を確認する**
 
-Run: `grep -E "^(Play locally|Exit Game|How To Controll|Save this game|Save and Back to MainMenu|Disconnected from server)," /Users/katsumi/moorestech_master/server_v8/config/localization.csv | cut -d, -f1,4`
+Run: `grep -E "^(Play locally|Exit Game|How To Controll|Save this game|Save and Back to MainMenu|Disconnected from server)," ../moorestech_master/server_v8/config/localization.csv | cut -d, -f1,4`
 Expected: 各キーの japanese 列の値が表示される（次ステップの訳文に使う）
 
 - [ ] **Step 2: CSVを作成する**

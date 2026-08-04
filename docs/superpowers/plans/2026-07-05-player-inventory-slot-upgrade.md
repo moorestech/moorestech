@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- 作業ディレクトリ: `/Users/katsumi/moorestech-worktrees/tree1`（git worktree。必ず最初に`pwd`確認）
+- 作業ディレクトリ: `~/moorestech-worktrees/tree1`（git worktree。必ず最初に`pwd`確認）
 - ブランチ: `feature/item-stack-upgrade`（作成済み・checkout済み）
 - コンパイル: `uloop compile --project-path ./moorestech_client`（.cs変更後は必ず実行）
 - テスト: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`（サーバーテストもクライアントプロジェクトから実行する）

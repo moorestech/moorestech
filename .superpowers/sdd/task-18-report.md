@@ -74,14 +74,14 @@ Task 16 で `ParseRecords` が `mooresmaster/mooresmaster.LocalizationCsv/Locali
 ## 4. 変更したファイル
 
 コメント（コード変更なし・各1箇所の日英2行）:
-- `/Users/katsumi/moorestech/.worktrees/localization-foundation/mooresmaster/mooresmaster.LocalizationCsv/LocalizationCsvParser.cs`
-- `/Users/katsumi/moorestech/.worktrees/localization-foundation/moorestech_client/Assets/Scripts/Client.Game/Localization/MasterSourceTextCollector.cs`
+- `~/moorestech/.worktrees/localization-foundation/mooresmaster/mooresmaster.LocalizationCsv/LocalizationCsvParser.cs`
+- `~/moorestech/.worktrees/localization-foundation/moorestech_client/Assets/Scripts/Client.Game/Localization/MasterSourceTextCollector.cs`
 
 共通CSV DLL 再ビルド成果物（ADR 0005帰結。`LocalizationCsvParser.cs` を触ったため必須）:
-- `/Users/katsumi/moorestech/.worktrees/localization-foundation/moorestech_client/Assets/Plugins/mooresmaster.LocalizationCsv.dll`
-- `/Users/katsumi/moorestech/.worktrees/localization-foundation/moorestech_server/Assets/Plugins/mooresmaster.LocalizationCsv.dll`
-- `/Users/katsumi/moorestech/.worktrees/localization-foundation/moorestech_client/Assets/Plugins/mooresmaster.Generator.dll`
-- `/Users/katsumi/moorestech/.worktrees/localization-foundation/moorestech_server/Assets/Plugins/mooresmaster.Generator.dll`
+- `~/moorestech/.worktrees/localization-foundation/moorestech_client/Assets/Plugins/mooresmaster.LocalizationCsv.dll`
+- `~/moorestech/.worktrees/localization-foundation/moorestech_server/Assets/Plugins/mooresmaster.LocalizationCsv.dll`
+- `~/moorestech/.worktrees/localization-foundation/moorestech_client/Assets/Plugins/mooresmaster.Generator.dll`
+- `~/moorestech/.worktrees/localization-foundation/moorestech_server/Assets/Plugins/mooresmaster.Generator.dll`
 
 `build.sh` は Generator と LocalizationCsv を同時にビルド・配置するため、Generator の .cs は無変更だが DLL は再生成されて差分が出る。バイナリ差分のみ。
 

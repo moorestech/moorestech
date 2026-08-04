@@ -28,8 +28,8 @@ A/B は自己解決して根拠つき前提として宣言、C だけを質問�
 
 ## 2. 準拠すべきメタスキル（必読）
 
-- `/Users/katsumi/moorestech/.agents/skills/run-skill-iter-improve/SKILL.md` — 改善ループの規律（8 INVARIANTS）
-- `/Users/katsumi/moorestech/.agents/skills/run-skill-live-trial/SKILL.md` — tmux 実セッションでの受け入れ試験
+- `~/moorestech/.agents/skills/run-skill-iter-improve/SKILL.md` — 改善ループの規律（8 INVARIANTS）
+- `~/moorestech/.agents/skills/run-skill-live-trial/SKILL.md` — tmux 実セッションでの受け入れ試験
 
 ### iter 0 GOAL DECLARATION（宣言済み・変更禁止）
 - **goal**: 壁打ち開始時、ユーザーに届く質問が「ユーザーにしか決められない価値判断」だけになり、自明な技術判断は根拠つき前提として宣言される（上記3指摘の同型を出さない）

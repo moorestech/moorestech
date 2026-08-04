@@ -136,3 +136,17 @@ moorestech_client/Assets/StreamingAssets/WebUi.meta
 .beads/issues.jsonl
 .beads/interactions.jsonl
 .beads/hooks/
+
+# ローカル専用データ（実体はprivateログrepo・元位置はsymlink） / Local-only data (lives in the private logs repo; symlinked in place)
+/.mso/
+/.claude/memory/
+/.claude/settings.local.json
+/.agents/skills/user-simulator/datasets
+/.agents/skills/user-simulator/knowledge/adjudications.md
+/.agents/skills/user-simulator/knowledge/deviation-cases.md
+/.agents/skills/user-simulator/modes/improve/misses.md
+/.agents/skills/user-simulator/modes/improve/misses-archive-2026-07.md
+/.agents/skills/user-simulator/modes/improve/applied
+/.agents/skills/user-simulator/modes/improve/pending
+/.agents/skills/moores-code-review/records/
+/TmpUnityPjt/MapMaking/RestoreManifest/

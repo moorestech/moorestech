@@ -1,1 +1,0 @@
-{"idx": 16, "predictions": [{"header": "トピック分割", "predicted_label": "装備はinventory、ホットバーは新トピック（推奨）", "rationale": "ドメイン境界で分ける案であり「1ドメイン1本」の既存裁定傾向と整合し、既に決めた hotbarSlots 撤廃＋装備の独立IOpenableInventory とも噛み合う。deviation-cases の逸脱シグナル（プレイヤー操作の幅・定数のマスタ化・無効データ・ID体系・文書分割）がどれも立たない実装構造の質問なので推奨追従が基本。", "confidence": "中"}]}

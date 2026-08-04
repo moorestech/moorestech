@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- `tree2`ワークツリー `/Users/katsumi/moorestech-worktrees/tree2` で実装する。
+- `tree2`ワークツリー `~/moorestech-worktrees/tree2` で実装する。
 - 後方互換、パフォーマンス最適化、将来拡張性は考慮しない。
 - `Mooresmaster.Model.*`生成物を手動編集しない。
 - Unity固有YAMLとPrefabをテキスト編集せず、Prefab削除はUnity Editor経由で行う。
