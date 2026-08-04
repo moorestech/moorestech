@@ -91,8 +91,8 @@ describe("TreeView viewport state", () => {
   });
 
   it("centers the initial focus point when nothing is stored", () => {
-    // 単一ノード(0,0)はキャンバス(200,200)。400x300要素の中央(200,150)へ寄せる
-    // The single node at (0,0) maps to canvas (200,200); centered in the 400x300 element (200,150)
+    // ノード(0,0)を要素中央へ寄せる
+    // Centers the node (0,0) in the element
     const renderer = mount({ initialFocus: { x: 0, y: 0 } });
     expect(canvasTransform(renderer)).toBe("translate(0px, -50px) scale(1)");
   });
@@ -134,8 +134,8 @@ describe("TreeView viewport state", () => {
     act(() => viewport.props.onPointerUp({ pointerId: 1 }));
     expect(frameQueue.length).toBe(1);
 
-    // rAFを進めると離した位置(64px)を越えて滑走し、減衰しきって停止する
-    // Advancing rAF glides past the release position (64px), decays, and stops
+    // rAFで滑走し減衰しきって停止
+    // rAF glides, decays, then stops
     let frames = 0;
     while (frameQueue.length > 0 && frames < 500) {
       const callback = frameQueue.shift()!;

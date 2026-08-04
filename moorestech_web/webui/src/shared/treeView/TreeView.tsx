@@ -33,8 +33,8 @@ export default function TreeView<T>(props: Props<T>) {
   const [isPanning, setIsPanning] = useState(false);
   const panPointer = useRef<PanPointer | null>(null);
   const viewportElement = useRef<HTMLDivElement | null>(null);
-  // パンの平行移動はドラッグ・慣性の両経路がこの1本を通る
-  // Both drag and inertia panning go through this single translator
+  // パン移動は両経路ともこの1本を通る
+  // Drag and inertia both pan through this
   const panBy = useCallback((dx: number, dy: number) => {
     setViewport((current) => ({ ...current, x: current.x + dx, y: current.y + dy }));
   }, []);
@@ -100,8 +100,8 @@ export default function TreeView<T>(props: Props<T>) {
   }, [inertia]);
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    // ノード上のプレスでも滑走は止める（パン開始の可否とは独立）
-    // A press on a node also stops the glide (independent of pan eligibility)
+    // ノード押下でも滑走停止(パン可否と独立)
+    // A node press also stops the glide
     inertia.cancel();
     const target = event.target;
     if (!event.isPrimary || event.button !== 0 || (target instanceof Element && target.closest(nodeTargetSelector))) return;
@@ -125,8 +125,8 @@ export default function TreeView<T>(props: Props<T>) {
     setIsPanning(false);
     return true;
   };
-  // 正常な離し（pointerup）だけ滑走し、cancel/capture喪失は中断扱いにする
-  // Only a normal pointerup flings; cancel and capture loss abort instead
+  // pointerupのみ滑走、他は中断
+  // Only pointerup flings; the rest abort
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
     if (endPan(event)) inertia.release();
   };

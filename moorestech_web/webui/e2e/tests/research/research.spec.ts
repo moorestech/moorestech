@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
-import { payloadsOf } from "../support/actions";
-import { expectCraftGrip } from "../support/craftChromeAssertions";
-import { resetResearch, setUiState } from "../support/mockControl";
-import { researchableNodeGuid } from "../mock-host/researchFixtures";
+import { payloadsOf } from "../../support/actions";
+import { expectCraftGrip } from "../../support/craftChromeAssertions";
+import { resetResearch, setUiState } from "../../support/mockControl";
+import { researchableNodeGuid } from "../../mock-host/researchFixtures";
 
 // 各テスト後に研究ツリーと ui_state を既定へ戻し、状態漏れを防ぐ
 // Reset the research tree and ui_state to defaults after each test to prevent state leakage
@@ -22,9 +22,9 @@ test("研究報酬itemの個数をtopic payloadどおり詳細ペインで表示
   await setUiState(page, "ResearchTree");
   await page.goto("/");
   // ノード選択で詳細ペインを開き、報酬個数はカードでなくペイン側に出る
-  // 初期表示で中央に来る researchable ノード（報酬 item100×2）を選択する
+  // 中央寄せ対象ノードを選択
   // Selecting the node opens the detail pane; the reward count now lives in the pane, not the card
-  // Pick the researchable node (reward item100×2) which is centered on open
+  // Pick the centered target node
   await page.getByTestId(`research-node-${researchableNodeGuid}`).click();
   const pane = page.getByTestId("research-detail-pane");
   await expect(pane.getByText("2", { exact: true })).toBeVisible();

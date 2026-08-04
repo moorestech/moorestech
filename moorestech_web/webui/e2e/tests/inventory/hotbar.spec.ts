@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { payloadsOf } from "../support/actions";
-import { setUiState } from "../support/mockControl";
+import { payloadsOf } from "../../support/actions";
+import { setUiState } from "../../support/mockControl";
 
 // ホットバーグリッドは data-testid="hotbar-grid" で特定する
 // The hotbar grid is identified via data-testid="hotbar-grid"

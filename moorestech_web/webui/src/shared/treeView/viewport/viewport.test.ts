@@ -30,8 +30,8 @@ describe("centerViewportOn", () => {
 
   it("accounts for scale when centering", () => {
     const result = centerViewportOn({ x: 100, y: 100 }, { width: 400, height: 300 }, 2);
-    // 変換後: canvasPoint*scale + translate = ビューポート中央
-    // After transform: canvasPoint*scale + translate = viewport center
+    // 変換後の点はビューポート中央
+    // The transformed point lands at the center
     expect(result.x + 100 * 2).toBe(200);
     expect(result.y + 100 * 2).toBe(150);
   });

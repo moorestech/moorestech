@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
-import { resetResearch, setUiState } from "../support/mockControl";
-import { settleBoundingBox, waitForFrame } from "../support/panSettle";
-import { researchableNodeGuid } from "../mock-host/researchFixtures";
-import { PAN_FRICTION_TAU_MS, PAN_MAX_FLING_SPEED } from "../../src/shared/treeView/viewport/viewport";
+import { resetResearch, setUiState } from "../../support/mockControl";
+import { settleBoundingBox, waitForFrame } from "../../support/panSettle";
+import { researchableNodeGuid } from "../../mock-host/researchFixtures";
+import { PAN_FRICTION_TAU_MS, PAN_MAX_FLING_SPEED } from "../../../src/shared/treeView/viewport/viewport";
 
 // 中央寄せ対象ノード(SSOT参照)
 // The centering target node (fixture SSOT)
