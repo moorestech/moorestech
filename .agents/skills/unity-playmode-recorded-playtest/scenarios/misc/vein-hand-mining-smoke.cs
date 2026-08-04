@@ -81,19 +81,42 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
     var cameraForward = Vector3.ProjectOnPlane(mainCamera.transform.forward, Vector3.up).normalized;
     if (cameraForward.sqrMagnitude < 0.1f) cameraForward = Vector3.forward;
 
-    p.Note("石鉱脈露頭の正面へワープして照準する");
-    p.WarpPlayer(stoneOutcrop.transform.position - cameraForward * 0.6f + Vector3.up);
+    p.Note("石鉱脈露頭の正面1.4m地点へワープして照準する");
+    p.WarpPlayer(stoneOutcrop.transform.position - cameraForward * 1.4f + Vector3.up * 0.5f);
     await p.WaitSeconds(0.5f);
     await p.AimAt(stoneCollider.bounds.center);
-    await p.Until(() => ReferenceEquals(context.CurrentFocusTarget, stoneOutcrop), 10f, "正面照準で石露頭をフォーカス");
+    await p.Until(() => ReferenceEquals(context.CurrentFocusTarget, stoneOutcrop), 10f, "正面照準で本番focusが石露頭と一致");
+
+    // 本番focus一致後だけ証跡用の輪郭を表示する
+    // Show the evidence outline only after production focus matches
+    var outlineObject = new GameObject("PlaytestStoneOutcropEvidenceOutline");
+    var outline = outlineObject.AddComponent<LineRenderer>();
+    var outlineMaterial = new Material(Shader.Find("Sprites/Default"));
+    outline.material = outlineMaterial;
+    outline.startColor = Color.magenta;
+    outline.endColor = Color.magenta;
+    outline.startWidth = 0.12f;
+    outline.endWidth = 0.12f;
+    outline.positionCount = 5;
+    var bounds = stoneCollider.bounds;
+    var outlineY = bounds.max.y + 0.15f;
+    outline.SetPositions(new[]
+    {
+        new Vector3(bounds.min.x, outlineY, bounds.min.z),
+        new Vector3(bounds.max.x, outlineY, bounds.min.z),
+        new Vector3(bounds.max.x, outlineY, bounds.max.z),
+        new Vector3(bounds.min.x, outlineY, bounds.max.z),
+        new Vector3(bounds.min.x, outlineY, bounds.min.z),
+    });
+    p.Note("本番focus一致済みの石露頭に証跡用マゼンタ輪郭を表示する");
     await p.Screenshot("01-stone-outcrop-front-focus");
 
-    p.Note("石鉱脈露頭の45度方向へワープして再照準する");
+    p.Note("石鉱脈露頭の45度方向1.4m地点へワープして再照準する");
     var angleDirection = Quaternion.Euler(0f, 45f, 0f) * cameraForward;
-    p.WarpPlayer(stoneOutcrop.transform.position - angleDirection * 0.6f + Vector3.up);
+    p.WarpPlayer(stoneOutcrop.transform.position - angleDirection * 1.4f + Vector3.up * 0.5f);
     await p.WaitSeconds(0.5f);
     await p.AimAt(stoneCollider.bounds.center);
-    await p.Until(() => ReferenceEquals(context.CurrentFocusTarget, stoneOutcrop), 10f, "45度照準で石露頭をフォーカス");
+    await p.Until(() => ReferenceEquals(context.CurrentFocusTarget, stoneOutcrop), 10f, "45度照準で本番focusが石露頭と一致");
     await p.Screenshot("02-stone-outcrop-angle-focus");
 
     // 採掘後の石増加を待つ
@@ -107,5 +130,7 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
     await p.Until(() => stoneBefore < p.CountItem("石"), 15f, "va:mining応答で石在庫が増加");
     p.Assert(stoneBefore < p.CountItem("石"), "露頭採掘後に石インベントリが増えた");
     await p.Screenshot("03-stone-mined");
+    UnityEngine.Object.Destroy(outlineObject);
+    UnityEngine.Object.Destroy(outlineMaterial);
     p.Note("ADR-0007 vein手掘りsmoke完了");
 });
