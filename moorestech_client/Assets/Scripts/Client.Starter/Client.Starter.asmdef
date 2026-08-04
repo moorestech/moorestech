@@ -25,6 +25,9 @@
         "Game.Train",
         "Game.PlayerRiding.Interface",
         "Core.Item.Interface",
+        "Game.Paths",
+        "Game.MapGeneration",
+        "Common.Debug",
         "Client.Localization",
         "Mod.Loader"
     ],

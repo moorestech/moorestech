@@ -37,12 +37,18 @@
         "Server.Event",
         "Game.PlayerInventory.Interface",
         "Client.WebUiHost",
+        "Client.Playtest",
         "Client.Skit",
         "Unity.Addressables.Editor",
         "Game.UnlockState",
         "Common.Debug",
+        "Game.Paths",
+        "Game.MapGeneration",
+        "Game.PlayerRiding.Interface",
         "Game.Research",
         "VContainer",
+        "StarterAssetsInputs",
+        "ThirdPersonController",
         "Mod.Loader"
     ],
     "includePlatforms": [

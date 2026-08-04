@@ -88,6 +88,26 @@ jobs:
           ref: ${{ steps.master_revision.outputs.commit_hash }}
           path: moorestech_master
 
+      # 起動テストがViteホストを開始するため、Node/pnpmと依存パッケージを同じジョブ内に用意する
+      # Startup tests launch the Vite host, so provision Node/pnpm and dependencies in this job
+      - name: Setup Web UI toolchain
+        shell: bash
+        working-directory: moorestech/moorestech_web
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: |
+          bash setup.sh
+          # setup.shはランナーのarchに応じたディレクトリへ配置するのでglobで解決する
+          # setup.sh installs into an arch-dependent directory, so resolve it by glob
+          shopt -s nullglob
+          candidates=(node/*/pnpm)
+          pnpm_binary="$PWD/${candidates[0]}"
+          if [ ! -f "$pnpm_binary" ]; then
+            echo "pnpm not found after setup: $pnpm_binary" >&2
+            exit 1
+          fi
+          "$pnpm_binary" --dir webui install --frozen-lockfile
+
       # 年月日を取得　キャッシュのkeyに利用
       - name: Set current datetime as env variable
         env:

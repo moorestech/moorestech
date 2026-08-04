@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.Skit;
@@ -23,12 +24,13 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly PlacementTargetPickService _placementTargetPickService;
         private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
         private readonly BuildUndoService _buildUndoService;
+        private readonly IMapVeinRangeView _mapVeinRangeView;
         private readonly ReactiveProperty<int> _placementHeight = new(0);
 
         public IObservable<int> OnPlacementHeightChanged => _placementHeight;
         public int GetPlacementHeight() => _placementHeight.Value;
 
-        public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, IPlayerCameraInteractionApplier cameraInteractionApplier, BuildUndoService buildUndoService)
+        public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, IPlayerCameraInteractionApplier cameraInteractionApplier, BuildUndoService buildUndoService, IMapVeinRangeView mapVeinRangeView)
         {
             _skitManager = skitManager;
             _blockGameObjectDataStore = blockGameObjectDataStore;
@@ -36,6 +38,7 @@ namespace Client.Game.InGame.UI.UIState.State
             _placementTargetPickService = placementTargetPickService;
             _cameraInteractionApplier = cameraInteractionApplier;
             _buildUndoService = buildUndoService;
+            _mapVeinRangeView = mapVeinRangeView;
         }
 
         public void OnEnter(UITransitContext context)
@@ -44,6 +47,10 @@ namespace Client.Game.InGame.UI.UIState.State
             // 遷移payloadから設置ターゲットを受け取り所有者へ渡す（無ければEmptyに落ちる）
             // Take the placement target from the transition payload and hand it to the owner (falls back to Empty when absent)
             if (context.TryGetContext<IPlacementTarget>(out var target)) _placeSystemStateController.SetTarget(target);
+
+            // 対象未選択でも滞在中は範囲表示を出す。遷移元(BuildMenuState/GameScreenState)が必ずtargetを載せる
+            // Show the range view for the whole stay even without a target; both entries (BuildMenuState/GameScreenState) always carry one
+            _mapVeinRangeView.Show(true);
 
             // 設置中は右ドラッグまで回転停止
             // Stop rotation until right-drag while placing
@@ -91,6 +98,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
             _placeSystemStateController.ManualUpdate();
 
+            // カメラ追従の距離カリングだけを駆動する。表示のON/OFFはOnEnter/OnExitがプッシュ済み
+            // Drive only the camera-following distance culling; visibility was already pushed by OnEnter/OnExit
+            _mapVeinRangeView.ManualUpdate();
+
             // Ctrl+Z判定はサービス内部
             // Ctrl+Z detection lives inside the service
             _buildUndoService.ManualUpdate();
@@ -125,6 +136,10 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraInteractionApplier.SetCursorVisible(true);
             _cameraInteractionApplier.SetCameraRotatable(false);
             _placeSystemStateController.Disable();
+
+            // 配置モード離脱で範囲表示も畳む。破棄漏れがそのまま残存ボックスになる
+            // Leaving placement mode folds the range view too; a missed destroy would linger as a stray box
+            _mapVeinRangeView.Show(false);
 
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {

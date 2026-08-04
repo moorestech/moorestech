@@ -6,10 +6,12 @@ using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Network.API;
 using Core.Item.Interface;
 using Core.Master;
+using Game.MapGeneration.Transfer;
 using Game.PlayerInventory.Interface;
 using Game.Research;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.MapData;
 using Server.Util.MessagePack;
 using static Server.Protocol.PacketResponse.GetMapObjectInfoProtocol;
 using UnityEngine;
@@ -27,6 +29,10 @@ namespace Client.DebugSystem
             // Generate initial debug data for testing
             var initialHandshakeResponse = CreateInitialHandshakeResponse();
             _playerSystemContainer.Construct(initialHandshakeResponse);
+
+            // デバッグシーンの地形はシーン配置済みなので、Finalizerと同じ明示プッシュをその場で行う
+            // The debug scene authors its terrain in the scene, so the finalizer's explicit push happens right here
+            _playerSystemContainer.StartPlayerRuntime();
             _cameraController.SetControllable(true);
             
             #region Internal
@@ -49,7 +55,7 @@ namespace Client.DebugSystem
                 var challenges = new List<ChallengeCategoryResponse>();
                 var playedSkitIds = new List<string>();
                 var researchNodeStates = new Dictionary<Guid, ResearchNodeState>();
-                var mapLayout = new GetMapDataProtocol.ResponseMapDataMessagePack(new Vector3MessagePack(Vector3.zero), new List<GetMapDataProtocol.MapObjectLayoutMessagePack>(), new List<GetMapDataProtocol.VeinLayoutMessagePack>());
+                var mapLayout = new GetMapDataProtocol.ResponseMapDataMessagePack(new Vector3MessagePack(Vector3.zero), new List<MapObjectLayoutMessagePack>(), new List<VeinLayoutMessagePack>(), TerrainTransferMeta.CreateWithoutWorldDirectory(), string.Empty);
 
                 var responses = (
                     mapObjects,

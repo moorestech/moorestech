@@ -25,6 +25,7 @@ using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Map.MapObject;
+using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Player.StateController;
@@ -90,7 +91,12 @@ namespace Client.Starter
         [SerializeField] private GameStateController gameStateController;
         [SerializeField] private BlockGameObjectDataStore blockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
+        [SerializeField] private MapVeinObjectDatastore mapVeinObjectDatastore;
         [SerializeField] private EnvironmentRoot environmentRoot;
+
+        // 地形の実行時構築はDIの外（Finalizer）で走るため、マウント先だけを読み取り専用で公開する
+        // Runtime terrain construction runs outside DI in the finalizer, so only read access to the mount point is exposed
+        public EnvironmentRoot EnvironmentRoot => environmentRoot;
         
         [SerializeField] private HotBarView hotBarView;
         [SerializeField] private MapObjectMiningController mapObjectMiningController;
@@ -185,7 +191,7 @@ namespace Client.Starter
             // Collider distance culling (generic manager + block register service)
             builder.Register<ColliderDistanceCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<BlockColliderCullingRegisterService>();
-            builder.RegisterEntryPoint<PlayerPositionSender>();
+            builder.RegisterEntryPoint<PlayerPositionSender>().AsSelf();
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
@@ -206,6 +212,9 @@ namespace Client.Starter
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
             builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
+            // 設置プレビュー中の鉱脈範囲表示。設置側はIMapVeinRangeView越しにプッシュするだけ
+            // Vein range view during placement preview; the placement side only pushes through IMapVeinRangeView
+            builder.Register<MapVeinRangeViewService>(Lifetime.Singleton).As<IMapVeinRangeView>();
             builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
@@ -276,6 +285,7 @@ namespace Client.Starter
             builder.RegisterComponent(gameStateController);
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(mapObjectGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
+            builder.RegisterComponent(mapVeinObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
             builder.RegisterComponent(environmentRoot);
             
             builder.RegisterComponent(mainCamera);
@@ -327,6 +337,7 @@ namespace Client.Starter
             // resolve dependency
             _resolver = builder.Build();
             _resolver.Resolve<BlockGameObjectDataStore>();
+            _resolver.Resolve<MapVeinObjectDatastore>();
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<TrainCarObjectDatastore>();

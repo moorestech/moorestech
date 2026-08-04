@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -20,6 +21,7 @@ namespace Game.MapGeneration.Pipeline.Spawn
             var ss = config.spawnSearch;
             Vector2 gridCenter = SpawnRegionGeometry.GridCenterWorld(config);
             Vector2 spawnTarget = ss.overrideSpawnScenePosition ? ss.spawnScenePosition : gridCenter;
+            AssertSpawnTargetIsInsideGeneratedTile(config, spawnTarget);
 
             if (ss.scanCellSize <= 0f || ss.topK <= 0)
             {
@@ -99,6 +101,21 @@ namespace Game.MapGeneration.Pipeline.Spawn
 
             sb.AppendLine("no candidate -> zero-offset fallback");
             return new SpawnSearchResult(false, Vector2.zero, spawnTarget, 0f, sb.ToString());
+        }
+
+        // spawnTarget は探索成功時も失敗時もそのままシーン座標のスポーン地点になるため、生成タイルの内側でなければならない。
+        // GridCenterWorld は原点中心の格子の中心なので gridSize が偶数だとタイル角(0,0)に落ちる。角スポーンを黙って通さない。
+        // The spawn target becomes the scene-space spawn verbatim in both success and fallback, so it must sit inside the generated tile.
+        // GridCenterWorld centers an origin-centered lattice, so an even gridSize lands on the tile corner (0,0); never let a corner spawn pass silently.
+        static void AssertSpawnTargetIsInsideGeneratedTile(TerrainGenerationConfig config, Vector2 spawnTarget)
+        {
+            bool insideX = 0f < spawnTarget.x && spawnTarget.x < config.terrainWidth;
+            bool insideZ = 0f < spawnTarget.y && spawnTarget.y < config.terrainLength;
+            if (insideX && insideZ) return;
+
+            throw new InvalidOperationException(
+                $"[SpawnSearch] spawn target ({spawnTarget.x}, {spawnTarget.y}) is not inside the generated tile (0, {config.terrainWidth}) x (0, {config.terrainLength}). " +
+                "gridSizeX/gridSizeZ must be odd for the grid center to be the tile center, or spawnScenePosition must point inside the tile.");
         }
 
         // 段1: CC 抽出 + 隣接ペアスコアリング。

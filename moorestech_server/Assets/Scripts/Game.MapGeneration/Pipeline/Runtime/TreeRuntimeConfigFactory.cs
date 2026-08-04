@@ -18,9 +18,17 @@ namespace Game.MapGeneration.Pipeline.Runtime
             var protos = new List<TreePrototypeEntry>();
             foreach (var p in gen.Prototypes)
             {
+                // 木・岩の各候補GUIDを順序どおり写し、空GUIDは即座に拒否する。
+                // Copy every tree or rock candidate GUID in order and reject an empty GUID immediately.
+                var mapObjectGuids = new string[p.MapObjects.Length];
+                for (var i = 0; i < p.MapObjects.Length; i++)
+                    mapObjectGuids[i] = RuntimeConvert.ToRequiredGuidString(
+                        p.MapObjects[i].MapObjectGuid,
+                        "treePlacement.prototypes.mapObjects.mapObjectGuid");
+
                 var entry = new TreePrototypeEntry
                 {
-                    mapObjectGuids = RuntimeConvert.ToGuidStrings(p.MapObjects, mo => mo.MapObjectGuid),
+                    mapObjectGuids = mapObjectGuids,
                     scaleHeightRange = p.ScaleHeightRange,
                     scaleWidthRange = p.ScaleWidthRange,
                     lockWidthHeight = p.LockWidthHeight,

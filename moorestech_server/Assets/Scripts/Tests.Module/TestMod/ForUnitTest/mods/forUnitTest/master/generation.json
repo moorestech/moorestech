@@ -36,8 +36,8 @@
     "worldOffsetX": 0,
     "worldOffsetZ": 0,
     "spawnWorldPosition": [
-      0,
-      0
+      500,
+      500
     ],
     "chunkPadding": 50,
     "overrideResolution": 0,
@@ -77,9 +77,25 @@
         {
           "veinGuid": "11111111-0000-0000-0000-000000000001",
           "biomes": [
-            "Grassland"
+            "Grassland",
+            "Forest",
+            "Savanna",
+            "Desert",
+            "Mesa",
+            "Alpine",
+            "Jungle",
+            "Woods"
           ],
-          "bands": [],
+          "bands": [
+            {
+              "outerRadiusMeters": -1,
+              "density": 1.0,
+              "maxObjectsPerCluster": 5,
+              "clusterRadius": 6,
+              "minDistanceBetweenOres": 1,
+              "placementRetries": 10
+            }
+          ],
           "useSlopeFilter": true,
           "slopeMax": 30,
           "slopeSmoothness": 5,
@@ -90,9 +106,25 @@
         {
           "veinGuid": "11111111-0000-0000-0000-000000000002",
           "biomes": [
-            "Grassland"
+            "Grassland",
+            "Forest",
+            "Savanna",
+            "Desert",
+            "Mesa",
+            "Alpine",
+            "Jungle",
+            "Woods"
           ],
-          "bands": [],
+          "bands": [
+            {
+              "outerRadiusMeters": -1,
+              "density": 1.0,
+              "maxObjectsPerCluster": 5,
+              "clusterRadius": 6,
+              "minDistanceBetweenOres": 1,
+              "placementRetries": 10
+            }
+          ],
           "useSlopeFilter": true,
           "slopeMax": 30,
           "slopeSmoothness": 5,
@@ -131,9 +163,29 @@
       "detailAmplitude": 0.08,
       "baseHeight": 0.009333,
       "hillAmplitude": 0.12,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "test/terrain-layer/Grassland",
       "textureConfig": {
-        "entries": []
+        "entries": [
+          {
+            "layerAddressablePath": "test/terrain-layer/Grassland/blend",
+            "weight": 2.0,
+            "useSlopeFilter": false,
+            "slopeMin": 0.0,
+            "slopeMax": 90.0,
+            "slopeSmoothness": 0.0,
+            "useHeightFilter": false,
+            "heightMin": 0.0,
+            "heightMax": 1.0,
+            "heightSmoothness": 0.0,
+            "useCurvatureFilter": false,
+            "curvatureMin": -1.0,
+            "curvatureMax": 1.0,
+            "curvatureSmoothness": 0.0,
+            "noiseType": "None",
+            "noiseFrequency": 1.0,
+            "noiseAmplitude": 1.0
+          }
+        ]
       },
       "treePlacement": {
         "prototypes": []
@@ -182,7 +234,7 @@
       "detailConfig": {
         "entries": [],
         "filterRejectThreshold": 0.01,
-        "borderMargin": 0
+        "borderMargin": 2.0
       },
       "shoreConfig": {
         "waterMargin": 0.03,
@@ -225,9 +277,29 @@
       "detailWeight": 0.04,
       "baseHeight": 0.1,
       "amplitude": 0.35,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "test/terrain-layer/Forest",
       "textureConfig": {
-        "entries": []
+        "entries": [
+          {
+            "layerAddressablePath": "test/terrain-layer/Forest/blend",
+            "weight": 3.0,
+            "useSlopeFilter": false,
+            "slopeMin": 0.0,
+            "slopeMax": 90.0,
+            "slopeSmoothness": 0.0,
+            "useHeightFilter": false,
+            "heightMin": 0.0,
+            "heightMax": 1.0,
+            "heightSmoothness": 0.0,
+            "useCurvatureFilter": false,
+            "curvatureMin": -1.0,
+            "curvatureMax": 1.0,
+            "curvatureSmoothness": 0.0,
+            "noiseType": "None",
+            "noiseFrequency": 1.0,
+            "noiseAmplitude": 1.0
+          }
+        ]
       },
       "treePlacement": {
         "prototypes": []
@@ -276,7 +348,7 @@
       "detailConfig": {
         "entries": [],
         "filterRejectThreshold": 0.01,
-        "borderMargin": 0
+        "borderMargin": 3.0
       },
       "shoreConfig": {
         "waterMargin": 0.03,
@@ -311,9 +383,29 @@
       "undulationAmplitude": 0.02,
       "baseHeight": 0.03,
       "amplitude": 0.2,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "test/terrain-layer/Savanna",
       "textureConfig": {
-        "entries": []
+        "entries": [
+          {
+            "layerAddressablePath": "test/terrain-layer/Savanna/blend",
+            "weight": 4.0,
+            "useSlopeFilter": false,
+            "slopeMin": 0.0,
+            "slopeMax": 90.0,
+            "slopeSmoothness": 0.0,
+            "useHeightFilter": false,
+            "heightMin": 0.0,
+            "heightMax": 1.0,
+            "heightSmoothness": 0.0,
+            "useCurvatureFilter": false,
+            "curvatureMin": -1.0,
+            "curvatureMax": 1.0,
+            "curvatureSmoothness": 0.0,
+            "noiseType": "None",
+            "noiseFrequency": 1.0,
+            "noiseAmplitude": 1.0
+          }
+        ]
       },
       "treePlacement": {
         "prototypes": []
@@ -362,7 +454,7 @@
       "detailConfig": {
         "entries": [],
         "filterRejectThreshold": 0.01,
-        "borderMargin": 0
+        "borderMargin": 4.0
       },
       "shoreConfig": {
         "waterMargin": 0.03,
@@ -400,9 +492,29 @@
       "cliffOctaves": 4,
       "absSmoothing": 0.1,
       "baseHeight": 0.03,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "test/terrain-layer/Desert",
       "textureConfig": {
-        "entries": []
+        "entries": [
+          {
+            "layerAddressablePath": "test/terrain-layer/Desert/blend",
+            "weight": 5.0,
+            "useSlopeFilter": false,
+            "slopeMin": 0.0,
+            "slopeMax": 90.0,
+            "slopeSmoothness": 0.0,
+            "useHeightFilter": false,
+            "heightMin": 0.0,
+            "heightMax": 1.0,
+            "heightSmoothness": 0.0,
+            "useCurvatureFilter": false,
+            "curvatureMin": -1.0,
+            "curvatureMax": 1.0,
+            "curvatureSmoothness": 0.0,
+            "noiseType": "None",
+            "noiseFrequency": 1.0,
+            "noiseAmplitude": 1.0
+          }
+        ]
       },
       "treePlacement": {
         "prototypes": []
@@ -451,7 +563,7 @@
       "detailConfig": {
         "entries": [],
         "filterRejectThreshold": 0.01,
-        "borderMargin": 0
+        "borderMargin": 5.0
       },
       "shoreConfig": {
         "waterMargin": 0.03,
@@ -502,9 +614,29 @@
       "topNoiseFreqMult": 5,
       "baseHeight": 0.05,
       "amplitude": 0.1,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "test/terrain-layer/Mesa",
       "textureConfig": {
-        "entries": []
+        "entries": [
+          {
+            "layerAddressablePath": "test/terrain-layer/Mesa/blend",
+            "weight": 6.0,
+            "useSlopeFilter": false,
+            "slopeMin": 0.0,
+            "slopeMax": 90.0,
+            "slopeSmoothness": 0.0,
+            "useHeightFilter": false,
+            "heightMin": 0.0,
+            "heightMax": 1.0,
+            "heightSmoothness": 0.0,
+            "useCurvatureFilter": false,
+            "curvatureMin": -1.0,
+            "curvatureMax": 1.0,
+            "curvatureSmoothness": 0.0,
+            "noiseType": "None",
+            "noiseFrequency": 1.0,
+            "noiseAmplitude": 1.0
+          }
+        ]
       },
       "treePlacement": {
         "prototypes": []
@@ -553,7 +685,7 @@
       "detailConfig": {
         "entries": [],
         "filterRejectThreshold": 0.01,
-        "borderMargin": 0
+        "borderMargin": 6.0
       },
       "shoreConfig": {
         "waterMargin": 0.03,
@@ -615,9 +747,29 @@
       "boundaryRefineIterations": 2,
       "debugPlateauOverlay": true,
       "debugTerrainLayerAddressablePaths": [],
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "test/terrain-layer/Alpine",
       "textureConfig": {
-        "entries": []
+        "entries": [
+          {
+            "layerAddressablePath": "test/terrain-layer/Alpine/blend",
+            "weight": 7.0,
+            "useSlopeFilter": false,
+            "slopeMin": 0.0,
+            "slopeMax": 90.0,
+            "slopeSmoothness": 0.0,
+            "useHeightFilter": false,
+            "heightMin": 0.0,
+            "heightMax": 1.0,
+            "heightSmoothness": 0.0,
+            "useCurvatureFilter": false,
+            "curvatureMin": -1.0,
+            "curvatureMax": 1.0,
+            "curvatureSmoothness": 0.0,
+            "noiseType": "None",
+            "noiseFrequency": 1.0,
+            "noiseAmplitude": 1.0
+          }
+        ]
       },
       "treePlacement": {
         "prototypes": []
@@ -666,7 +818,7 @@
       "detailConfig": {
         "entries": [],
         "filterRejectThreshold": 0.01,
-        "borderMargin": 0
+        "borderMargin": 7.0
       },
       "shoreConfig": {
         "waterMargin": 0.03,
@@ -711,9 +863,29 @@
       "boundaryNoiseSlopeThreshold": 16.2,
       "baseHeight": 0.05,
       "amplitude": 0.2,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "test/terrain-layer/Jungle",
       "textureConfig": {
-        "entries": []
+        "entries": [
+          {
+            "layerAddressablePath": "test/terrain-layer/Jungle/blend",
+            "weight": 8.0,
+            "useSlopeFilter": false,
+            "slopeMin": 0.0,
+            "slopeMax": 90.0,
+            "slopeSmoothness": 0.0,
+            "useHeightFilter": false,
+            "heightMin": 0.0,
+            "heightMax": 1.0,
+            "heightSmoothness": 0.0,
+            "useCurvatureFilter": false,
+            "curvatureMin": -1.0,
+            "curvatureMax": 1.0,
+            "curvatureSmoothness": 0.0,
+            "noiseType": "None",
+            "noiseFrequency": 1.0,
+            "noiseAmplitude": 1.0
+          }
+        ]
       },
       "treePlacement": {
         "prototypes": []
@@ -762,7 +934,7 @@
       "detailConfig": {
         "entries": [],
         "filterRejectThreshold": 0.01,
-        "borderMargin": 0
+        "borderMargin": 8.0
       },
       "shoreConfig": {
         "waterMargin": 0.03,
@@ -796,9 +968,29 @@
       "terraceSharpness": 0.7,
       "baseHeight": 0.05,
       "amplitude": 0.15,
-      "terrainLayerAddressablePath": "",
+      "terrainLayerAddressablePath": "test/terrain-layer/Woods",
       "textureConfig": {
-        "entries": []
+        "entries": [
+          {
+            "layerAddressablePath": "test/terrain-layer/Woods/blend",
+            "weight": 9.0,
+            "useSlopeFilter": false,
+            "slopeMin": 0.0,
+            "slopeMax": 90.0,
+            "slopeSmoothness": 0.0,
+            "useHeightFilter": false,
+            "heightMin": 0.0,
+            "heightMax": 1.0,
+            "heightSmoothness": 0.0,
+            "useCurvatureFilter": false,
+            "curvatureMin": -1.0,
+            "curvatureMax": 1.0,
+            "curvatureSmoothness": 0.0,
+            "noiseType": "None",
+            "noiseFrequency": 1.0,
+            "noiseAmplitude": 1.0
+          }
+        ]
       },
       "treePlacement": {
         "prototypes": []
@@ -847,7 +1039,7 @@
       "detailConfig": {
         "entries": [],
         "filterRejectThreshold": 0.01,
-        "borderMargin": 0
+        "borderMargin": 9.0
       },
       "shoreConfig": {
         "waterMargin": 0.03,

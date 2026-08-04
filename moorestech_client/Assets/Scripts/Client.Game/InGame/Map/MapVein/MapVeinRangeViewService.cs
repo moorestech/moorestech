@@ -1,0 +1,168 @@
+using System;
+using System.Collections.Generic;
+using Client.Network.API;
+using Core.Master;
+using Mooresmaster.Model.MapModule;
+using UnityEngine;
+
+namespace Client.Game.InGame.Map.MapVein
+{
+    /// <summary>
+    ///     設置プレビュー中だけ、カメラ周辺の鉱脈AABBを半透明ボックスで実行時表示する
+    ///     Renders nearby vein AABBs as translucent runtime boxes only while a placement preview is active
+    /// </summary>
+    public class MapVeinRangeViewService : IMapVeinRangeView, IDisposable
+    {
+        // 表示ボックスの親。テストとシーン確認がこの名前で残存数を数える
+        // Parent of the view boxes; tests and scene inspection count survivors by this name
+        public const string RootObjectName = "MapVeinRangeViewRoot";
+
+        // カメラからこの距離内のveinだけ表示する。全vein常時表示では遠景がボックスで埋まる
+        // Show only veins within this distance of the camera; showing them all would fill the distance with boxes
+        private const float VisibleRadius = 96f;
+
+        private const string BoxObjectName = "MapVeinRangeBox";
+
+        // ボックスの見た目は単位立方体。CreatePrimitiveは必ずコライダーを付け、その破棄はフレーム末まで効かないので組み込みメッシュを直接使う
+        // The box is a unit cube; CreatePrimitive always attaches a collider whose destroy only lands at frame end, so take the builtin mesh instead
+        private const string BuiltinCubeMeshName = "Cube.fbx";
+
+        private readonly MapVeinRangeBoxMaterials _boxMaterials = new();
+
+        // 非表示になったボックスは破棄せずここへ戻す。veinは1772本規模なので毎回作り直すと生成破棄が延々続く
+        // Hidden boxes come back here instead of being destroyed; with ~1772 veins, rebuilding them would churn forever
+        private readonly Stack<GameObject> _boxPool = new();
+
+        private readonly List<VeinRangeEntry> _entries = new();
+        private readonly Camera _mainCamera;
+        private readonly Mesh _boxMesh;
+        private readonly Transform _root;
+
+        private bool _isVisible;
+
+        public MapVeinRangeViewService(InitialHandshakeResponse handshakeResponse, Camera mainCamera)
+        {
+            _mainCamera = mainCamera;
+            _root = new GameObject(RootObjectName).transform;
+
+            // メッシュがnullだとMeshFilterが空になり、例外も出ないままボックスが1つも描かれないので起動時に落とす
+            // A null mesh leaves MeshFilter empty and silently draws no box at all, so fail at startup instead
+            _boxMesh = Resources.GetBuiltinResource<Mesh>(BuiltinCubeMeshName);
+            if (_boxMesh == null) throw new InvalidOperationException($"[MapVeinRangeViewService] 組み込みメッシュ{BuiltinCubeMeshName}をロードできません");
+
+            // veinは動かないのでAABBと材質は起動時に確定させ、毎フレームのmaster参照と再計算を無くす
+            // Veins never move, so fix their AABB and material at startup and drop the per-frame master lookup and recomputation
+            foreach (var layout in handshakeResponse.MapLayout.MapVeins)
+            {
+                var veinGuid = new Guid(layout.VeinGuid);
+                var element = MasterHolder.MapVeinMaster.GetElementOrNull(veinGuid);
+                if (element == null) throw new InvalidOperationException($"[MapVeinRangeViewService] mapVeinsマスタにveinGuid:{veinGuid}がありません");
+
+                // min/maxは内包セル座標なのでmax側に1セル分足してワールドAABBにする
+                // min/max are inclusive cell coords, so add one cell on the max side to build the world AABB
+                var min = new Vector3(layout.MinX, layout.MinY, layout.MinZ);
+                var max = new Vector3(layout.MaxX + 1, layout.MaxY + 1, layout.MaxZ + 1);
+                var bounds = new Bounds();
+                bounds.SetMinMax(min, max);
+
+                var material = element.VeinParam is FluidVeinParam ? _boxMaterials.FluidMaterial : _boxMaterials.ItemMaterial;
+                _entries.Add(new VeinRangeEntry(bounds, material));
+            }
+        }
+
+        /// <summary>
+        ///     表示状態を受け取り、対象veinの絞り込みと描画はこのクラス内で完結させる
+        ///     Takes the visibility state; vein filtering and rendering stay inside this class
+        /// </summary>
+        public void Show(bool isVisible)
+        {
+            _isVisible = isVisible;
+            // 非表示への遷移を次フレームまで残さない。離脱時の残存ボックスを即座に畳む
+            // Never carry a hide transition into the next frame; stray boxes fold immediately on exit
+            ManualUpdate();
+        }
+
+        public void ManualUpdate()
+        {
+            var cameraPosition = _mainCamera.transform.position;
+
+            foreach (var entry in _entries)
+            {
+                // 非表示中は距離を問わず全消し。範囲内だけボックスを持たせ、外れたものはプールへ返す
+                // While hidden everything goes, regardless of distance; only in-range veins keep a box and the rest return to the pool
+                var isVisible = _isVisible && IsWithinVisibleRadius(entry.Bounds, cameraPosition);
+                if (isVisible) ShowEntry(entry);
+                else HideEntry(entry);
+            }
+
+            #region Internal
+
+            bool IsWithinVisibleRadius(Bounds bounds, Vector3 position)
+            {
+                // AABB最近点で測る。巨大なveinでも中心が遠いだけで消えないようにする
+                // Measure from the closest point on the AABB so a huge vein does not vanish just because its center is far
+                return (bounds.ClosestPoint(position) - position).sqrMagnitude <= VisibleRadius * VisibleRadius;
+            }
+
+            void ShowEntry(VeinRangeEntry entry)
+            {
+                // veinは動かないので既存ボックスは置き直さない。これが再入時の二重表示を防ぐ
+                // Veins never move, so an existing box is never re-placed; this is what prevents duplicates on re-entry
+                if (entry.ViewObject != null) return;
+                entry.ViewObject = RentBox(entry.Bounds, entry.Material);
+            }
+
+            void HideEntry(VeinRangeEntry entry)
+            {
+                if (entry.ViewObject == null) return;
+                entry.ViewObject.SetActive(false);
+                _boxPool.Push(entry.ViewObject);
+                entry.ViewObject = null;
+            }
+
+            GameObject RentBox(Bounds bounds, Material material)
+            {
+                var box = 0 < _boxPool.Count ? _boxPool.Pop() : CreateBox();
+                box.GetComponent<MeshRenderer>().sharedMaterial = material;
+                box.transform.position = bounds.center;
+                box.transform.localScale = bounds.size;
+                box.SetActive(true);
+                return box;
+            }
+
+            GameObject CreateBox()
+            {
+                // コライダーを一切持たせずに組む。設置レイも採掘レイも1フレームたりとも遮らせない（純表示）
+                // Build it without ever attaching a collider so it blocks neither placement nor mining rays, not even for a frame (display only)
+                var box = new GameObject(BoxObjectName);
+                box.transform.SetParent(_root, false);
+                box.AddComponent<MeshFilter>().sharedMesh = _boxMesh;
+                box.AddComponent<MeshRenderer>();
+                return box;
+            }
+
+            #endregion
+        }
+
+        public void Dispose()
+        {
+            _boxMaterials.Dispose();
+            if (_root != null) UnityEngine.Object.Destroy(_root.gameObject);
+        }
+
+        // vein表示の固定値と状態を束ねる
+        // Bundle fixed vein data and view state
+        private class VeinRangeEntry
+        {
+            public readonly Bounds Bounds;
+            public readonly Material Material;
+            public GameObject ViewObject;
+
+            public VeinRangeEntry(Bounds bounds, Material material)
+            {
+                Bounds = bounds;
+                Material = material;
+            }
+        }
+    }
+}

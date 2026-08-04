@@ -21,10 +21,27 @@ SKILL=.claude/skills/unity-playmode-recorded-playtest
 - 第3引数でmasterデータを差し替え可能。省略時は作業中プロジェクトの`.moorestech-external-revisions.json`の互換コミットにHEADが一致するmoorestech_master worktreeを自動解決する（スキル固定パスは無い）。該当worktree未作成なら自動解決が失敗しエラーになるので、`git -C ../moorestech_master worktree add <path> <互換コミット>`で作るか第3引数で明示する
 - 所要: preflight ~30秒 + ready ~15〜30秒 + シナリオ本体。**バックグラウンド実行してresult.json出現を待つ**（固定sleepの多段待ちをしない）
 
+## 固定world・map mode・seedで起動する
+
+generated mapや同一worldの再起動を検証するときは、次の3環境変数を全て指定する。
+
+```bash
+PLAYTEST_WORLD_DIRECTORY=/tmp/moorestech-task8/seed-12345-world \
+PLAYTEST_MAP_MODE=generated \
+PLAYTEST_SEED=12345 \
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/<カテゴリ>/<シナリオ名>.cs"
+```
+
+- 3変数は「全て未設定」または「全て非空」のどちらかだけを許可する。部分指定・空値・整数でないseedは、preflight前に不足変数名付きで失敗する
+- 新規生成では `PLAYTEST_WORLD_DIRECTORY` に未作成の子パスを渡す。`mktemp -d` の戻り値そのものは既存の空ディレクトリなので使わない
+- cache miss/hit比較では、初回と2回目に同じ `PLAYTEST_WORLD_DIRECTORY` とseedを渡す。2回目は既存 `world.json` とterrain visual cacheを再利用する
+- 別seed比較では別の未作成worldパスを使う。既存worldは保存済みseedを権威とするため、同じworldパスへ別seedを渡しても再生成されない
+- 固定world入口は `AutoSave=false` で起動し、隔離debug cacheの `DebugEnvironmentTypeKey=PureNature(1)` をPlayMode前に設定する
+
 ## ランナー内部の流れ（すべて自動・リトライ内蔵）
 
 1. **preflight** (スキル同梱 `scripts/preflight.sh`): CLI Loop疎通（タイムアウト=モーダル/ビジー検出兼務）→ コンパイル → master実在 → **マスタロードのドライラン**（EditモードでMasterHolder.Loadを試しスキーマ不整合をPlayMode前に検出）→ **サーバーポート11564の空き確認**
-2. **boot**: `PlaytestBoot.PrepareAndEnterPlayMode(masterDir, noSave:true)` をEDC 1回で実行。NoSaveフラグ・`DebugServerDirectory`・`DebugObjectsBootstrap_Disabled` を設定してPlayMode突入
+2. **boot**: 通常は `PlaytestBoot.PrepareAndEnterPlayMode(masterDir, noSave:true)`、固定worldの3変数指定時は `PrepareWorldAndEnterPlayMode(masterDir, worldDir, mapMode, seed)` をEDC 1回で実行してPlayMode突入
 3. **ready待ち**: ゲーム初期化完了イベントで書かれる `ready.marker` をファイルポーリング（EDCを連打しない）
 4. **シナリオ投入**: シナリオ全文をEDC 1回で `PlaytestRunner.Run` に渡す（DSLは事前コンパイル済みなのでAPI推測ミスが構造的に起きない）
 5. **回収**: `result.json` の出現を待って表示。`Success` で exit 0/1

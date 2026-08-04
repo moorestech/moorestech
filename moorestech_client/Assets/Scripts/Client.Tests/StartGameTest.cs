@@ -1,9 +1,17 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
+using Client.Game.InGame.Map.MapVein;
+using Client.Localization;
+using Client.Starter;
+using Client.Tests.Playtest;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
@@ -50,6 +58,7 @@ namespace Client.Tests
 
             async UniTask SetUp()
             {
+                var initialDictionaryRevision = Localize.GetDictionaryRevision();
                 var loadTask = LoadMainGame();
                 var timeOuter = UniTask.Delay(TimeSpan.FromSeconds(30));
 
@@ -58,9 +67,82 @@ namespace Client.Tests
                 {
                    Assert.Fail("LoadMainGame timed out.");
                 }
+
+                // 起動後の辞書世代更新を待つ
+                // Wait until the production boot path composes mod dictionaries and publishes a new revision
+                for (var i = 0; i < 300 && Localize.GetDictionaryRevision() <= initialDictionaryRevision; i++)
+                {
+                    await UniTask.Delay(TimeSpan.FromMilliseconds(100));
+                }
+
+                Assert.That(Localize.GetDictionaryRevision(), Is.GreaterThan(initialDictionaryRevision));
             }
 
             #endregion
+        }
+
+        [Test]
+        public void InitializeScenePipeline_ゲーム辞書合成を起動経路に含む()
+        {
+            Type initializeStateMachine = null;
+            foreach (var nestedType in typeof(InitializeScenePipeline).GetNestedTypes(BindingFlags.NonPublic))
+            {
+                if (nestedType.Name.StartsWith("<Initialize>d__", StringComparison.Ordinal)) initializeStateMachine = nestedType;
+            }
+
+            // 起動本体と辞書合成を直結する
+            // Pin the direct call from the async MoveNext body to game dictionary composition
+            var moveNext = initializeStateMachine?.GetMethod("MoveNext", BindingFlags.Instance | BindingFlags.NonPublic);
+            var composerType = typeof(InitializeScenePipeline).Assembly.GetType("Client.Starter.Initialization.GameDictionaryComposer");
+            var compose = composerType?.GetMethod("Run", BindingFlags.Static | BindingFlags.NonPublic);
+
+            Assert.That(initializeStateMachine, Is.Not.Null);
+            Assert.That(moveNext, Is.Not.Null);
+            Assert.That(compose, Is.Not.Null);
+            Assert.That(MethodCallInspector.ContainsCall(moveNext, compose), Is.True);
+        }
+
+        [Test]
+        public void MainGameScene_ローカライズ配線と鉱脈表示基盤が共存する()
+        {
+            const string scenePath = "Assets/Scenes/Game/MainGame.unity";
+            var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+
+            try
+            {
+                // 両系統のシーン要素を同時検証する
+                // Verify scene elements from both merge parents together because either side is easy to drop
+                var expectedKeys = new HashSet<string>
+                {
+                    "ui.blueprint.nameInputConfirm",
+                    "ui.blueprint.nameInputPlaceholder",
+                    "ui.common.cancel",
+                    "ui.blueprint.nameInputTitle",
+                };
+                var actualKeys = new HashSet<string>();
+                var localizedTexts = UnityEngine.Object.FindObjectsByType<TextMeshProLocalize>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+                foreach (var localizedText in localizedTexts)
+                {
+                    if (localizedText.gameObject.scene != scene) continue;
+                    var serializedText = new SerializedObject(localizedText);
+                    actualKeys.Add(serializedText.FindProperty("key").stringValue);
+                }
+
+                var veinDatastores = UnityEngine.Object.FindObjectsByType<MapVeinObjectDatastore>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                var sceneHasVeinDatastore = false;
+                foreach (var veinDatastore in veinDatastores)
+                {
+                    if (veinDatastore.gameObject.scene == scene) sceneHasVeinDatastore = true;
+                }
+
+                Assert.That(actualKeys.IsSupersetOf(expectedKeys), Is.True);
+                Assert.That(sceneHasVeinDatastore, Is.True);
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Game.MapGeneration.Export;
 using Game.MapGeneration.Pipeline;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
 using NUnit.Framework;
 using UnityEngine;
@@ -35,20 +36,11 @@ namespace Tests.UnitTest.Game.MapGeneration
         {
             var worldDataDirectory = WorldDataDirectory.FromWorldRoot(_tempWorldRoot);
             const int resolution = 4;
-            var output = new MapGenerationOutput
-            {
-                Heights = new float[resolution * resolution],
-                BiomeIndices = new byte[resolution * resolution],
-                Resolution = resolution,
-                SpawnPoint = Vector3.zero,
-                MapObjects = new List<PlacedMapObject>(),
-                ItemVeins = new List<PlacedVein>(),
-            };
 
-            TerrainFileWriter.Write(worldDataDirectory, output);
+            TerrainFileWriter.Write(worldDataDirectory, CreateFlatOutput(resolution));
 
-            var heightFilePath = Path.Combine(worldDataDirectory.TerrainDirectory, "height_0_0.r16");
-            var biomeFilePath = Path.Combine(worldDataDirectory.TerrainDirectory, "biome_0_0.bin");
+            var heightFilePath = worldDataDirectory.TerrainHeightFilePath(0, 0);
+            var biomeFilePath = worldDataDirectory.TerrainBiomeFilePath(0, 0);
 
             Assert.That(File.Exists(heightFilePath), Is.True);
             Assert.That(File.Exists(biomeFilePath), Is.True);
@@ -79,8 +71,7 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             TerrainFileWriter.Write(worldDataDirectory, output);
 
-            var heightFilePath = Path.Combine(worldDataDirectory.TerrainDirectory, "height_0_0.r16");
-            var bytes = File.ReadAllBytes(heightFilePath);
+            var bytes = File.ReadAllBytes(worldDataDirectory.TerrainHeightFilePath(0, 0));
 
             Assert.That(DecodeUshortLittleEndian(bytes, 0), Is.EqualTo(0));
             Assert.That(DecodeUshortLittleEndian(bytes, 1), Is.EqualTo(32768));
@@ -90,10 +81,37 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(DecodeUshortLittleEndian(bytes, 3), Is.EqualTo(65535));
         }
 
+        [Test]
+        public void 書き出したファイル長は転送メタが想定するセグメント長と一致する()
+        {
+            // EnumerateStreamSegmentsのres²×bppは実ファイル長の第2定義。乖離すると受信側の書き戻し境界が全て狂う
+            // EnumerateStreamSegments' res^2 x bpp is a second definition of the real file length; a drift shifts every restore boundary
+            var worldDataDirectory = WorldDataDirectory.FromWorldRoot(_tempWorldRoot);
+            const int resolution = 4;
+
+            TerrainFileWriter.Write(worldDataDirectory, CreateFlatOutput(resolution));
+
+            foreach (var segment in TerrainTransferMeta.EnumerateStreamSegments(worldDataDirectory, 1, resolution))
+                Assert.That(new FileInfo(segment.FilePath).Length, Is.EqualTo(segment.ByteLength), segment.FilePath);
+        }
+
         private static ushort DecodeUshortLittleEndian(byte[] bytes, int index)
         {
             var offset = index * 2;
             return (ushort)(bytes[offset] | (bytes[offset + 1] << 8));
+        }
+
+        private static MapGenerationOutput CreateFlatOutput(int resolution)
+        {
+            return new MapGenerationOutput
+            {
+                Heights = new float[resolution * resolution],
+                BiomeIndices = new byte[resolution * resolution],
+                Resolution = resolution,
+                SpawnPoint = Vector3.zero,
+                MapObjects = new List<PlacedMapObject>(),
+                ItemVeins = new List<PlacedVein>(),
+            };
         }
     }
 }

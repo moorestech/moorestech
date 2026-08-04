@@ -16,6 +16,7 @@ using Game.Gear.Common;
 using Game.PlayerRiding.Interface;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.MapData;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -75,8 +76,16 @@ namespace Client.Network.API
         // Fetch the map layout (spawn/mapObjects/mapVeins) during the handshake
         public async UniTask<GetMapDataProtocol.ResponseMapDataMessagePack> GetMapData(CancellationToken ct)
         {
-            var request = new GetMapDataProtocol.RequestMapDataMessagePack(GetMapDataProtocol.MapDataMode.Layout);
+            var request = GetMapDataProtocol.RequestMapDataMessagePack.CreateLayoutRequest();
             return await _packetExchangeManager.GetPacketResponse<GetMapDataProtocol.ResponseMapDataMessagePack>(request, ct);
+        }
+
+        // 地形バイナリのGZip断片を1チャンク取得する。Layout応答とは別の型が返るため送信口も分ける
+        // Fetch one GZip slice of the terrain binary; it returns a different type than Layout, so it needs its own entry point
+        public async UniTask<ResponseMapDataTerrainChunkMessagePack> GetTerrainChunk(int chunkIndex, CancellationToken ct)
+        {
+            var request = GetMapDataProtocol.RequestMapDataMessagePack.CreateTerrainChunkRequest(chunkIndex);
+            return await _packetExchangeManager.GetPacketResponse<ResponseMapDataTerrainChunkMessagePack>(request, ct);
         }
 
         // train/rail再同期の引き金を送る。snapshot本体はイベント経路で届く

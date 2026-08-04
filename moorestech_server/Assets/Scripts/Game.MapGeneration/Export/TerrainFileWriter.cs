@@ -11,6 +11,11 @@ namespace Game.MapGeneration.Export
     {
         private const string CacheReadmeText = "このディレクトリは削除可能です。削除しても次回起動時に自動で再構築されます。";
 
+        // 現在の生成は単一タイル(0,0)のみ出力する。WorldProvisionerのTerrainTileCount=1と対応する
+        // Generation currently emits only the single tile (0,0), matching WorldProvisioner's TerrainTileCount = 1
+        private const int SingleTileX = 0;
+        private const int SingleTileZ = 0;
+
         public static void Write(WorldDataDirectory worldDataDirectory, MapGenerationOutput output)
         {
             Directory.CreateDirectory(worldDataDirectory.TerrainDirectory);
@@ -28,7 +33,7 @@ namespace Game.MapGeneration.Export
                 // ノイズの浮動小数点誤差で範囲外(例:1.0000003)になり得るためクランプ後に四捨五入する。
                 // Convert normalized 0-1 height to ushort and write little-endian (r16 format).
                 // Clamp before rounding: noise drift can push values slightly out of [0,1].
-                var heightFilePath = Path.Combine(worldDataDirectory.TerrainDirectory, "height_0_0.r16");
+                var heightFilePath = worldDataDirectory.TerrainHeightFilePath(SingleTileX, SingleTileZ);
                 var buffer = new byte[output.Heights.Length * 2];
                 for (var i = 0; i < output.Heights.Length; i++)
                 {
@@ -42,7 +47,7 @@ namespace Game.MapGeneration.Export
 
             static void WriteBiomeFile(WorldDataDirectory worldDataDirectory, MapGenerationOutput output)
             {
-                var biomeFilePath = Path.Combine(worldDataDirectory.TerrainDirectory, "biome_0_0.bin");
+                var biomeFilePath = worldDataDirectory.TerrainBiomeFilePath(SingleTileX, SingleTileZ);
                 File.WriteAllBytes(biomeFilePath, output.BiomeIndices);
             }
 

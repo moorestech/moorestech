@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using MapGenerator.Pipeline;
@@ -32,9 +33,24 @@ namespace MapGenerator.EditorExport
                 ["algorithmParam"] = serializer.SerializeObject(config)
             };
 
-            File.WriteAllText(OutputPath, root.ToString(Formatting.Indented));
             LogWarnings(serializer);
+            WriteValidatedOutput(OutputPath, root);
             Debug.Log($"[GenerationConfigExporter] Wrote {OutputPath}");
+        }
+
+        // 必須GUIDをすべて検証してから書き込み、既存の正常な出力を不正候補から保護する。
+        // Validate every required GUID before writing so an invalid candidate cannot replace existing valid output.
+        public static void WriteValidatedOutput(string outputPath, JObject root)
+        {
+            var invalidPaths = new List<string>();
+            CollectInvalidGuidPaths(root, "$..mapObjectGuid", invalidPaths);
+            CollectInvalidGuidPaths(root, "$..veinGuid", invalidPaths);
+
+            if (0 < invalidPaths.Count)
+                throw new InvalidOperationException(
+                    $"[GenerationConfigExporter] Required GUID is empty or invalid: {string.Join(", ", invalidPaths)}");
+
+            File.WriteAllText(outputPath, root.ToString(Formatting.Indented));
         }
 
         // map.json（mapObjects/mapVeins）から name→guid の解決表を構築する
@@ -50,6 +66,16 @@ namespace MapGenerator.EditorExport
             foreach (var v in map["mapVeins"])
                 veinGuids[(string)v["veinName"]] = (string)v["veinGuid"];
             return (objectGuids, veinGuids);
+        }
+
+        private static void CollectInvalidGuidPaths(JObject root, string jsonPath, List<string> invalidPaths)
+        {
+            foreach (var token in root.SelectTokens(jsonPath))
+            {
+                var value = (string)token;
+                if (!Guid.TryParse(value, out var guid) || guid == Guid.Empty)
+                    invalidPaths.Add(token.Path);
+            }
         }
 
         private static void LogWarnings(GenerationConfigSerializer serializer)

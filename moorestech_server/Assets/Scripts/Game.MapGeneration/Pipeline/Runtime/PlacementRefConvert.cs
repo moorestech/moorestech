@@ -1,4 +1,5 @@
 using Game.MapGeneration.Pipeline.Config;
+using UnityEngine;
 using GenNoise = Mooresmaster.Model.PlacementNoiseModule.PlacementNoise;
 using GenFilter = Mooresmaster.Model.PlacementFilterModule.PlacementFilter;
 
@@ -24,14 +25,27 @@ namespace Game.MapGeneration.Pipeline.Runtime
 
         public static PlacementFilter ToPlacementFilter(GenFilter gen)
         {
+            // 生成済みキーフレームを具体型のまま写し、空配列は線形扱いのnullにする。
+            // Copy concrete generated keyframes directly, keeping an empty array as null for linear behavior.
+            AnimationCurve curve = null;
+            if (gen.Curve != null && 0 < gen.Curve.Length)
+            {
+                var keys = new Keyframe[gen.Curve.Length];
+                for (var i = 0; i < gen.Curve.Length; i++)
+                {
+                    var keyframe = gen.Curve[i];
+                    keys[i] = new Keyframe(keyframe.Time, keyframe.Value, keyframe.InTangent, keyframe.OutTangent);
+                }
+                curve = new AnimationCurve(keys);
+            }
+
             return new PlacementFilter
             {
                 enabled = gen.Enabled,
                 range = gen.Range,
                 smoothness = gen.Smoothness,
                 noise = ToPlacementNoise(gen.Noise),
-                curve = RuntimeConvert.ToAnimationCurve(gen.Curve,
-                    k => k.Time, k => k.Value, k => k.InTangent, k => k.OutTangent)
+                curve = curve
             };
         }
     }

@@ -1,3 +1,4 @@
+using Game.MapGeneration.Provisioning;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
@@ -7,6 +8,8 @@ using static Server.Protocol.PacketResponse.GetMapDataProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
+    // ディレクトリなしのLayoutを検証する
+    // Verify Layout without a world directory
     public class GetMapDataProtocolTest
     {
         [Test]
@@ -17,7 +20,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // va:mapData Layoutをリクエストしてレスポンスを取得
             // Request va:mapData Layout and obtain the response
-            var request = new RequestMapDataMessagePack(MapDataMode.Layout);
+            var request = RequestMapDataMessagePack.CreateLayoutRequest();
             var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null))[0];
             var response = MessagePackSerializer.Deserialize<ResponseMapDataMessagePack>(responseBytes);
 
@@ -89,6 +92,18 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(20, vein2.MaxX);
             Assert.AreEqual(0, vein2.MaxY);
             Assert.AreEqual(0, vein2.MaxZ);
+
+            // ワールドディレクトリを持たない構成では地形を持たずWorldIdも定まらない
+            // A config without a world directory owns no terrain and has no world identity
+            Assert.AreEqual(WorldProvisioner.TemplateMapMode, response.TerrainMeta.MapMode);
+            Assert.AreEqual(string.Empty, response.TerrainMeta.WorldId);
+            Assert.AreEqual(0, response.TerrainMeta.TerrainResolution);
+            Assert.AreEqual(0, response.TerrainMeta.TerrainTileCount);
+            Assert.AreEqual(0, response.TerrainMeta.TerrainChunkTotal);
+
+            // world.jsonが無い構成にはseedという概念自体が無いため0を載せる（地形なしの合図はTerrainResolution=0が担う）
+            // A config without world.json has no seed at all, so 0 is carried (TerrainResolution=0 remains the terrain-less signal)
+            Assert.AreEqual(0, response.TerrainMeta.WorldSeed);
         }
     }
 }

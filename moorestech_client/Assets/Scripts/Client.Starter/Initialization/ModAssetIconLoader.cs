@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Mod.Texture;
@@ -18,13 +17,15 @@ namespace Client.Starter.Initialization
     public class ModAssetIconLoader
     {
         private readonly BlockGameObjectPrefabContainer _blockContainer;
+        private readonly List<TrainCarIconTarget> _trainCarIconTargets;
         private readonly BlockIconImagePhotographer _photographer;
         private readonly TMP_Text _loadingLog;
         private readonly System.Diagnostics.Stopwatch _loadingStopwatch;
 
-        public ModAssetIconLoader(BlockGameObjectPrefabContainer blockContainer, BlockIconImagePhotographer photographer, TMP_Text loadingLog, System.Diagnostics.Stopwatch loadingStopwatch)
+        public ModAssetIconLoader(BlockGameObjectPrefabContainer blockContainer, List<TrainCarIconTarget> trainCarIconTargets, BlockIconImagePhotographer photographer, TMP_Text loadingLog, System.Diagnostics.Stopwatch loadingStopwatch)
         {
             _blockContainer = blockContainer;
+            _trainCarIconTargets = trainCarIconTargets;
             _photographer = photographer;
             _loadingLog = loadingLog;
             _loadingStopwatch = loadingStopwatch;
@@ -69,26 +70,38 @@ namespace Client.Starter.Initialization
 
         private async UniTask<TrainCarImageContainer> TakeTrainCarImagesAsync()
         {
-            // 車両プレハブを直列ロードし、表示名と共に撮影対象へ積む
-            // Load train-car prefabs sequentially and collect targets with display names
-            var trainCarGuids = new List<Guid>();
+            // 事前ロード済み車両を撮影順のまま積む
+            // Collect preloaded train cars in capture order
             var targets = new List<(GameObject prefab, string debugName)>();
-            foreach (var trainCar in MasterHolder.TrainUnitMaster.Train.TrainCars)
-            {
-                var prefab = await AddressableLoader.LoadAsyncDefault<GameObject>(trainCar.AddressablePath);
-                trainCarGuids.Add(trainCar.TrainCarGuid);
-                targets.Add((prefab, trainCar.Name));
-            }
+            foreach (var trainCar in _trainCarIconTargets)
+                targets.Add((trainCar.Prefab, trainCar.DebugName));
 
             // 撮影順を維持してTrainCarGuidへ画像を登録する
             // Preserve capture order while registering images by TrainCarGuid
             var trainCarImageContainer = new TrainCarImageContainer();
             var textures = await _photographer.TakeIconImages(targets);
-            for (var i = 0; i < trainCarGuids.Count; i++)
-                trainCarImageContainer.AddTrainCarView(trainCarGuids[i], new ItemViewData(textures[i], targets[i].debugName));
+            for (var i = 0; i < _trainCarIconTargets.Count; i++)
+                trainCarImageContainer.AddTrainCarView(_trainCarIconTargets[i].TrainCarGuid, new ItemViewData(textures[i], targets[i].debugName));
 
             _loadingLog.text += $"\n車両スクリーンショット完了  {_loadingStopwatch.Elapsed}";
             return trainCarImageContainer;
+        }
+    }
+
+    public class TrainCarIconTarget
+    {
+        public readonly Guid TrainCarGuid;
+        public readonly GameObject Prefab;
+        public readonly string DebugName;
+
+        public TrainCarIconTarget(Guid trainCarGuid, GameObject prefab, string addressablePath)
+        {
+            // 車両マスタにnameがないためAddressableパス末尾を表示名に使う
+            // Use the Addressable path tail because train-car masters have no name
+            var separatorIndex = addressablePath.LastIndexOf('/');
+            TrainCarGuid = trainCarGuid;
+            Prefab = prefab;
+            DebugName = separatorIndex < 0 ? addressablePath : addressablePath[(separatorIndex + 1)..];
         }
     }
 

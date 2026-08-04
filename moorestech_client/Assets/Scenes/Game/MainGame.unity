@@ -661,6 +661,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
   key: ui.blueprint.nameInputConfirm
+--- !u!4 &1061182519 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8466354111555762101, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
+  m_PrefabInstance: {fileID: 5103828206815401739}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1080620658
 GameObject:
   m_ObjectHideFlags: 0
@@ -14746,6 +14751,50 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
   key: ui.common.cancel
+--- !u!1 &1388031227
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1388031229}
+  - component: {fileID: 1388031228}
+  m_Layer: 0
+  m_Name: MapVein
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1388031228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1388031227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a104350879c24e9a9813a75b86e5f00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Map.MapVein.MapVeinObjectDatastore
+--- !u!4 &1388031229
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1388031227}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1061182519}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &1471090366 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3981407778892445589, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
@@ -35213,6 +35262,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1891355431}
     - target: {fileID: 6110538852407209855, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
+      propertyPath: mapVeinObjectDatastore
+      value: 
+      objectReference: {fileID: 1388031228}
+    - target: {fileID: 6110538852407209855, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
       propertyPath: trainEntityObjectDatastore
       value: 
       objectReference: {fileID: 285216840}
@@ -37036,6 +37089,9 @@ PrefabInstance:
     m_RemovedGameObjects:
     - {fileID: 7623927846172718322, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
     m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 8466354111555762101, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
+      insertIndex: 11
+      addedObject: {fileID: 1388031229}
     - targetCorrespondingSourceObject: {fileID: 3981407778892445589, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
       insertIndex: 16
       addedObject: {fileID: 1719206385}

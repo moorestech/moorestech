@@ -1,3 +1,5 @@
+using Cysharp.Threading.Tasks;
+
 namespace Client.Game.Common
 {
     /// <summary>
@@ -6,8 +8,8 @@ namespace Client.Game.Common
     /// </summary>
     public interface IInitialEventApplyWaitTarget
     {
-        // DI登録された全対象がtrueになるまで初期化パイプラインが待機する
-        // The init pipeline waits until every registered target turns true
-        bool IsInitialEventApplied { get; }
+        // DI登録された全対象の完了を初期化パイプラインが待つ。失敗は例外として待機境界へ届く
+        // The init pipeline awaits every registered target; failures reach the waiting boundary as exceptions
+        UniTask WaitForInitialApplyAsync();
     }
 }

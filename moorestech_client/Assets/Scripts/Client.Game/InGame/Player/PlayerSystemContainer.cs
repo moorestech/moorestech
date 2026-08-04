@@ -29,7 +29,14 @@ namespace Client.Game.InGame.Player
         [Inject]
         public void Construct(InitialHandshakeResponse initialHandshakeResponse)
         {
-            playerObjectController.Initialize(initialHandshakeResponse);
+            playerObjectController.Initialize(initialHandshakeResponse.PlayerPos, initialHandshakeResponse.MapLayout.Spawn);
+        }
+
+        // 地形構築の完了をFinalizerから受けて、自機の実行を開始する
+        // Receives terrain-build completion from the finalizer and starts the player runtime
+        public void StartPlayerRuntime()
+        {
+            playerObjectController.StartPlayerRuntime();
         }
     }
 }

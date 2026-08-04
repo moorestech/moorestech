@@ -67,7 +67,8 @@
       "veinType": "item",
       "veinParam": {
         "itemGuid": "00000000-0000-0000-1234-000000000001"
-      }
+      },
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Iron"
     },
     {
       "veinGuid": "11111111-0000-0000-0000-000000000002",
@@ -75,7 +76,8 @@
       "veinType": "fluid",
       "veinParam": {
         "fluidGuid": "00000000-0000-0000-1234-000000000001"
-      }
+      },
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Fluid/Water"
     },
     {
       "veinGuid": "11111111-0000-0000-0000-000000000003",
@@ -83,7 +85,8 @@
       "veinType": "fluid",
       "veinParam": {
         "fluidGuid": "00000000-0000-0000-1234-000000000002"
-      }
+      },
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Fluid/Water"
     }
   ]
 }

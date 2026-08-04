@@ -64,7 +64,8 @@ namespace Tests.UnitTest.Core.Map
             // Build mapVeins referencing a non-existent itemGuid and assert Validate returns false
             var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000001"",""veinName"":""bad"",""veinType"":""item"",
-                 ""veinParam"":{""itemGuid"":""99999999-9999-9999-9999-999999999999""}}]}");
+                 ""veinParam"":{""itemGuid"":""99999999-9999-9999-9999-999999999999""},
+                 ""outcropAddressablePath"":""Vanilla/Environment/Vein/Item/Stone""}]}");
             var master = new MapVeinMaster(json);
             Assert.IsFalse(master.Validate(out var logs));
             Assert.IsTrue(logs.Contains("invalid ItemGuid"));

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Master.Validator;
 using Mooresmaster.Loader.GenerationModule;
 using Mooresmaster.Model.GenerationModule;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Core.Master
@@ -13,6 +14,10 @@ namespace Core.Master
     public class GenerationMaster : IMasterValidator
     {
         public readonly Generation Generation;
+
+        // ロード元JSONの原文。マスタ差し替えを検知したい派生データ(見た目キャッシュ等)がハッシュ源として読む
+        // The source JSON text, read as a hash source by derived data (e.g. the visual cache) that must notice a master swap
+        public readonly string SourceJsonText;
 
         // NOTE: MasterHolder.GetJsonは現状index=0固定で単一modのみロードするため、
         // 選択候補は常に1件。複数mod対応はTask 6で見直す。
@@ -26,12 +31,14 @@ namespace Core.Master
         public GenerationMaster(JToken jToken, string modId)
         {
             Generation = GenerationLoader.Load(jToken);
+            SourceJsonText = jToken.ToString(Formatting.None);
             _modId = modId;
         }
 
         private GenerationMaster()
         {
             Generation = null;
+            SourceJsonText = null;
             _modId = null;
         }
 

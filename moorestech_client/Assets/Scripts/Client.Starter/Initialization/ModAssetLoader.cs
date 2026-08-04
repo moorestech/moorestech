@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -18,6 +20,7 @@ namespace Client.Starter.Initialization
         private readonly string _serverDirectory;
         private readonly BlockGameObject _missingBlockIdObject;
         private readonly BlockIconImagePhotographer _blockIconImagePhotographer;
+        private readonly List<TrainCarIconTarget> _trainCarIconTargets;
         private readonly TMP_Text _loadingLog;
         private readonly System.Diagnostics.Stopwatch _loadingStopwatch;
 
@@ -26,11 +29,12 @@ namespace Client.Starter.Initialization
         private ConnectToolImageContainer _connectToolImageContainer;
         private FluidImageContainer _fluidImageContainer;
 
-        public ModAssetLoader(string serverDirectory, BlockGameObject missingBlockIdObject, BlockIconImagePhotographer blockIconImagePhotographer, TMP_Text loadingLog, System.Diagnostics.Stopwatch loadingStopwatch)
+        public ModAssetLoader(string serverDirectory, BlockGameObject missingBlockIdObject, BlockIconImagePhotographer blockIconImagePhotographer, List<TrainCarIconTarget> trainCarIconTargets, TMP_Text loadingLog, System.Diagnostics.Stopwatch loadingStopwatch)
         {
             _serverDirectory = serverDirectory;
             _missingBlockIdObject = missingBlockIdObject;
             _blockIconImagePhotographer = blockIconImagePhotographer;
+            _trainCarIconTargets = trainCarIconTargets;
             _loadingLog = loadingLog;
             _loadingStopwatch = loadingStopwatch;
         }
@@ -50,6 +54,23 @@ namespace Client.Starter.Initialization
             // Root cause is suspected to be Addressables' internal bundle scheduling/locking, but unidentified.
             await AddressableLoader.LoadAsync<GameObject>("Vanilla/UI/Block/ChestBlockInventory");
             await UniTask.WhenAll(ItemSlotView.LoadItemSlotViewPrefab(), FluidSlotView.LoadItemSlotViewPrefab());
+            Debug.Log("[InitializeScenePipeline] critical Addressables preload completed");
+        }
+
+        public static async UniTask<List<TrainCarIconTarget>> PreloadTrainCarIconTargetsAsync()
+        {
+            var loadedPrefabs = new Dictionary<string, GameObject>();
+            var targets = new List<TrainCarIconTarget>();
+            foreach (var trainCar in MasterHolder.TrainUnitMaster.Train.TrainCars)
+            {
+                if (!loadedPrefabs.TryGetValue(trainCar.AddressablePath, out var prefab))
+                {
+                    prefab = await AddressableLoader.LoadAsyncDefault<GameObject>(trainCar.AddressablePath);
+                    loadedPrefabs.Add(trainCar.AddressablePath, prefab);
+                }
+                targets.Add(new TrainCarIconTarget(trainCar.TrainCarGuid, prefab, trainCar.AddressablePath));
+            }
+            return targets;
         }
 
         public async UniTask<ModAssetLoadResult> RunAsync()
@@ -57,11 +78,13 @@ namespace Client.Starter.Initialization
             // ブロックとアイテムのアセットをロード
             // Load block and item assets.
             await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets(), LoadConnectToolAssets(), LoadFluidAssets());
+            Debug.Log("[InitializeScenePipeline] parallel mod asset load completed");
 
             // ブロック・列車画像を生成
             // Generate block and train icons
-            var iconLoader = new ModAssetIconLoader(_blockContainer, _blockIconImagePhotographer, _loadingLog, _loadingStopwatch);
+            var iconLoader = new ModAssetIconLoader(_blockContainer, _trainCarIconTargets, _blockIconImagePhotographer, _loadingLog, _loadingStopwatch);
             var iconResult = await iconLoader.RunAsync();
+            Debug.Log("[InitializeScenePipeline] mod icon capture completed");
 
             return new ModAssetLoadResult
             {
@@ -82,31 +105,34 @@ namespace Client.Starter.Initialization
                 _loadingLog.text += $"\nブロックアセットロード完了  {_loadingStopwatch.Elapsed}";
             }
 
-            async UniTask LoadItemAssets()
+            UniTask LoadItemAssets()
             {
                 //通常のアイテム画像をロード
                 //TODO 非同期で実行できるようにする
                 var modDirectory = ServerConst.CreateServerModsDirectory(_serverDirectory);
                 _itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(modDirectory);
                 _loadingLog.text += $"\nアイテム画像ロード完了  {_loadingStopwatch.Elapsed}";
+                return UniTask.CompletedTask;
             }
 
-            async UniTask LoadConnectToolAssets()
+            UniTask LoadConnectToolAssets()
             {
                 // 接続ツールアイコンをimagePathからロード
                 // Load connect-tool icons from imagePath
                 var modDirectory = ServerConst.CreateServerModsDirectory(_serverDirectory);
                 _connectToolImageContainer = ConnectToolImageContainer.CreateAndLoadConnectToolImageContainer(modDirectory);
                 _loadingLog.text += $"\n接続ツール画像ロード完了  {_loadingStopwatch.Elapsed}";
+                return UniTask.CompletedTask;
             }
 
-            async UniTask LoadFluidAssets()
+            UniTask LoadFluidAssets()
             {
                 //通常の液体画像をロード
                 //TODO 非同期で実行できるようにする
                 var modDirectory = ServerConst.CreateServerModsDirectory(_serverDirectory);
                 _fluidImageContainer = FluidImageContainer.CreateAndLoadFluidImageContainer(modDirectory);
                 _loadingLog.text += $"\n液体画像ロード完了  {_loadingStopwatch.Elapsed}";
+                return UniTask.CompletedTask;
             }
 
             #endregion
