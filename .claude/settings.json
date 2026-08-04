@@ -13,6 +13,10 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/beads-guard.mjs\""
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/commit-guard.mjs\""
           }
         ]
       }
