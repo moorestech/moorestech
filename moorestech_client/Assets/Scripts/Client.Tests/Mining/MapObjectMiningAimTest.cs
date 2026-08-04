@@ -117,11 +117,11 @@ namespace Client.Tests.Mining
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
             Assert.AreEqual(mousePoint, (Vector2)AimPointProvider.GetAimScreenPoint());
             InvokePrivate(controller, "Update");
-            Assert.AreSame(expectedMapObject, context.CurrentFocusMapObjectGameObject);
+            Assert.AreSame(expectedMapObject, context.CurrentFocusTarget);
 
             AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
             InvokePrivate(controller, "Update");
-            Assert.IsNull(context.CurrentFocusMapObjectGameObject);
+            Assert.IsNull(context.CurrentFocusTarget);
 
             #region Internal
 

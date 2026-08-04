@@ -1,5 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.Mining;
+using Client.Game.InGame.SoundEffect;
 using Core.Master;
+using Game.Map;
 using Mooresmaster.Model.MapModule;
 using Server.Protocol.PacketResponse;
 using UniRx;
@@ -11,7 +16,7 @@ namespace Client.Game.InGame.Map.MapObject
     ///     MapObjectのGameObjectを表すクラス
     ///     TODO 今はUnity上に直接おいているので、今後はちゃんとサーバーからデータを受け取って生成するようにする
     /// </summary>
-    public class MapObjectGameObject : MonoBehaviour
+    public class MapObjectGameObject : MonoBehaviour, IMiningTargetObject
     {
         [SerializeField] private GameObject outlineObject;
         [SerializeField] private MapObjectHpBarView hpBarView;
@@ -24,6 +29,44 @@ namespace Client.Game.InGame.Map.MapObject
         public int InstanceId => instanceId;
         public Guid MapObjectGuid => new(mapObjectGuid);
         public MapObjectMasterElement MapObjectMasterElement { get; private set; }
+        public GameObject GameObject => gameObject;
+        public bool IsAvailable => !IsDestroyed;
+        public bool IsPickUp => MapObjectMasterElement.MiningType == MapObjectMasterElement.MiningTypeConst.PickUp;
+
+        public List<ItemId> UsableToolItemIds
+        {
+            get
+            {
+                var miningTools = ((MiningMiningParam)MapObjectMasterElement.MiningParam).MiningTools;
+                var itemIds = new List<ItemId>(miningTools.Length);
+
+                // 対象マスタのツールGUIDをクライアント共通のItemIdへ変換する
+                // Convert target-master tool GUIDs to the client-wide ItemId representation
+                foreach (var miningTool in miningTools)
+                {
+                    itemIds.Add(MasterHolder.ItemMaster.GetItemId(miningTool.ToolItemGuid));
+                }
+
+                return itemIds;
+            }
+        }
+
+        public SoundEffectType DestroySoundType
+        {
+            get
+            {
+                switch (MapObjectMasterElement.SoundEffectType)
+                {
+                    case MapObjectMasterElement.SoundEffectTypeConst.stone:
+                        return SoundEffectType.DestroyStone;
+                    case MapObjectMasterElement.SoundEffectTypeConst.tree:
+                        return SoundEffectType.DestroyTree;
+                    default:
+                        Debug.LogError("採掘音が設定されていません");
+                        return SoundEffectType.DestroyStone;
+                }
+            }
+        }
         
         public IObservable<Unit> OnDestroyMapObject => _onDestroyMapObject;
         private readonly Subject<Unit> _onDestroyMapObject = new();
@@ -72,6 +115,34 @@ namespace Client.Game.InGame.Map.MapObject
             {
                 hpBarView.SetActive(isFocused);
             }
+        }
+
+        public bool TryResolveUsableTool(ItemId equippedItemId, out MiningToolCandidate tool)
+        {
+            var miningTools = ((MiningMiningParam)MapObjectMasterElement.MiningParam).MiningTools;
+            if (MapObjectMiningService.TryResolveUsableTool(equippedItemId, miningTools, out var usableTool))
+            {
+                tool = new MiningToolCandidate(equippedItemId, (float)usableTool.AttackSpeed);
+                return true;
+            }
+
+            tool = default;
+            return false;
+        }
+
+        public void SetFocused(bool focused)
+        {
+            OnFocus(focused);
+        }
+
+        public void SendAttack()
+        {
+            // mapObject用の対象IDをprotocol factoryへ渡し、サーバー権威の採掘処理へ送る
+            // Pass the mapObject target id to the protocol factory and send it to server-authoritative mining
+            var request = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(
+                ClientContext.PlayerConnectionSetting.PlayerId,
+                InstanceId);
+            ClientContext.VanillaApi.SendOnly.SendMiningRequest(request);
         }
         
         public void DestroyMapObject()

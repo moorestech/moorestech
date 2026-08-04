@@ -29,16 +29,17 @@ namespace Client.Game.InGame.Mining
         
         private void Update()
         {
-            // update focus map object
-            var currentMapObject = GetCurrentMapObject();
-            _context.SetFocusMapObjectGameObject(currentMapObject);
+            // 照準下の採掘対象をコンテキストへ反映する
+            // Apply the mining target under the aim point to the context
+            var currentTarget = GetCurrentTarget();
+            _context.SetFocusTarget(currentTarget);
             
             // update state
             _currentState = _currentState.GetNextUpdate(_context, Time.deltaTime);
 
             #region Internal
 
-            MapObjectGameObject GetCurrentMapObject()
+            IMiningTargetObject GetCurrentTarget()
             {
                 if (Camera.main == null) return null;
 
@@ -47,11 +48,11 @@ namespace Client.Game.InGame.Mining
                 if (UiPointerHitTest.IsPointerOverAnyUi()) return null;
                 if (!hit.collider.gameObject.TryGetComponent(out MapObjectRayTarget mapObjectRayTarget)) return null;
 
+                var target = (IMiningTargetObject)mapObjectRayTarget.MapObjectGameObject;
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                var mapObjectPos = mapObjectRayTarget.MapObjectGameObject.GetPosition();
-                if (miningDistance < Vector3.Distance(playerPos, mapObjectPos)) return null;
+                if (miningDistance < Vector3.Distance(playerPos, target.GameObject.transform.position)) return null;
 
-                return mapObjectRayTarget.MapObjectGameObject;
+                return target;
             }
 
             #endregion

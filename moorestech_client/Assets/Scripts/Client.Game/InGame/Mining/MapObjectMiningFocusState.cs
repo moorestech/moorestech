@@ -4,7 +4,6 @@ using Client.Input;
 using Client.Localization;
 using Core.Master;
 using Mooresmaster.Localization.Generated;
-using Mooresmaster.Model.MapModule;
 
 namespace Client.Game.InGame.Mining
 {
@@ -14,30 +13,18 @@ namespace Client.Game.InGame.Mining
         {
             // フォーカスが外れたのであればIdleに遷移
             // If the focus is lost, transition to Idle
-            if (context.CurrentFocusMapObjectGameObject == null)
+            var currentTarget = context.CurrentFocusTarget;
+            if (currentTarget == null || !currentTarget.IsAvailable)
             {
                 return new MapObjectMiningIdleState();
             }
-            
-            // MapObjectのマスターデータが取得できない場合はIdleに遷移
-            // If the master data of MapObject cannot be obtained, transition to Idle
-            var currentMapObjectMaster = context.CurrentFocusMapObjectGameObject.MapObjectMasterElement;
-            if (currentMapObjectMaster == null)
-            {
-                return new MapObjectMiningIdleState();
-            }
-            var miningType = currentMapObjectMaster.MiningType;
-            
-            if (miningType == MapObjectMasterElement.MiningTypeConst.PickUp)
+
+            if (currentTarget.IsPickUp)
             {
                 return PickUpProcess(context);
             }
-            if (miningType == MapObjectMasterElement.MiningTypeConst.Mining)
-            {
-                return MiningProcess(currentMapObjectMaster, context);
-            }
-            
-            throw new System.Exception("MiningType is not defined");
+
+            return MiningProcess(context);
         }
         
         private IMapObjectMiningState PickUpProcess(MapObjectMiningControllerContext context)
@@ -45,7 +32,7 @@ namespace Client.Game.InGame.Mining
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
             {
                 MouseCursorTooltip.Instance.Hide();
-                return new MapObjectMiningMiningCompleteState(context.CurrentFocusMapObjectGameObject);
+                return new MapObjectMiningMiningCompleteState(context.CurrentFocusTarget);
             }
             
             // 左クリックがされていなければ現状を維持
@@ -54,16 +41,16 @@ namespace Client.Game.InGame.Mining
             return this;
         }
         
-        private IMapObjectMiningState MiningProcess(MapObjectMasterElement masterElement,MapObjectMiningControllerContext context)
+        private IMapObjectMiningState MiningProcess(MapObjectMiningControllerContext context)
         {
-            var miningTools = ((MiningMiningParam)masterElement.MiningParam).MiningTools;
-            var usableMiningTool = context.ResolveUsableTool(miningTools);
+            var currentTarget = context.CurrentFocusTarget;
+            var equippedItemId = context.LocalPlayerEquipment.SelectedItem.Id;
 
             // 無効装備ならフォーカス維持
             // Keep focus for invalid equipment
-            if (usableMiningTool == null)
+            if (!currentTarget.TryResolveUsableTool(equippedItemId, out var usableMiningTool))
             {
-                ShowRecommendMiningTools(miningTools);
+                ShowRecommendMiningTools(currentTarget.UsableToolItemIds);
                 return this;
             }
             
@@ -78,17 +65,18 @@ namespace Client.Game.InGame.Mining
             // マイニング状態に遷移
             // Transition to mining state
             MouseCursorTooltip.Instance.Hide();
-            return new MapObjectMiningMiningState(usableMiningTool, context.LocalPlayerEquipment.SelectedItem.Id);
+            return new MapObjectMiningMiningState(usableMiningTool, equippedItemId);
 
             #region Internal
 
-            void ShowRecommendMiningTools(MiningToolsElement[] tools)
+            void ShowRecommendMiningTools(List<ItemId> toolItemIds)
             {
                 var localizedToolNames = new List<string>();
-                foreach (var tool in tools)
+                foreach (var toolItemId in toolItemIds)
                 {
+                    var toolItemGuid = MasterHolder.ItemMaster.GetItemMaster(toolItemId).ItemGuid;
                     localizedToolNames.Add(Localize.GetContent(
-                        ContentLocalizationKeys.ItemName(tool.ToolItemGuid)));
+                        ContentLocalizationKeys.ItemName(toolItemGuid)));
                 }
 
                 // 必要アイテム名をパラメータにまとめ、文言全体は表示側で解決する

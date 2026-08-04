@@ -13,7 +13,7 @@ namespace Client.Game.InGame.Mining
         public IMapObjectMiningState GetNextUpdate(MapObjectMiningControllerContext context, float dt)
         {
             return
-                context.CurrentFocusMapObjectGameObject != null 
+                context.CurrentFocusTarget != null
                     ? new MapObjectMiningFocusState() 
                     : this;
         }

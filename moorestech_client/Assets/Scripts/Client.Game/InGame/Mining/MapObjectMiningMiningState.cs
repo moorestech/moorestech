@@ -3,13 +3,12 @@ using Client.Game.InGame.UI.ProgressBar;
 using Client.Input;
 using Common.Debug;
 using Core.Master;
-using Mooresmaster.Model.MapModule;
 
 namespace Client.Game.InGame.Mining
 {
     public class MapObjectMiningMiningState : IMapObjectMiningState
     {
-        private readonly MiningToolsElement _miningToolsElement;
+        private readonly MiningToolCandidate _miningToolCandidate;
 
         // 入場時の装備アイテム。毎tickのマスタ走査を避けるため採掘中はこのIDと比較する
         // The item equipped on entry; mining compares against this id to avoid a per-tick master lookup
@@ -17,9 +16,9 @@ namespace Client.Game.InGame.Mining
 
         private float _currentMiningProgressTime;
 
-        public MapObjectMiningMiningState(MiningToolsElement miningToolsElement, ItemId startedEquippedItemId)
+        public MapObjectMiningMiningState(MiningToolCandidate miningToolCandidate, ItemId startedEquippedItemId)
         {
-            _miningToolsElement = miningToolsElement;
+            _miningToolCandidate = miningToolCandidate;
             _startedEquippedItemId = startedEquippedItemId;
             _currentMiningProgressTime = 0;
             
@@ -43,7 +42,7 @@ namespace Client.Game.InGame.Mining
         {
             // フォーカスが外れた場合はidleに遷移
             // if focus is lost, transition to idle
-            if (context.CurrentFocusMapObjectGameObject == null)
+            if (context.CurrentFocusTarget == null)
             {
                 return new MapObjectMiningFocusState();
             }
@@ -57,8 +56,7 @@ namespace Client.Game.InGame.Mining
 
             // 採掘中に対象が採掘対象でなくなったらフォーカス状態でやり直す
             // If the focused object stops being a mining target mid-mining, restart from the focus state
-            var masterElement = context.CurrentFocusMapObjectGameObject.MapObjectMasterElement;
-            if (masterElement.MiningType != MapObjectMasterElement.MiningTypeConst.Mining)
+            if (!context.CurrentFocusTarget.IsAvailable || context.CurrentFocusTarget.IsPickUp)
             {
                 return new MapObjectMiningFocusState();
             }
@@ -78,13 +76,13 @@ namespace Client.Game.InGame.Mining
             }
             
             _currentMiningProgressTime += dt;
-            ProgressBarView.Instance.SetProgress(_currentMiningProgressTime / _miningToolsElement.AttackSpeed);
+            ProgressBarView.Instance.SetProgress(_currentMiningProgressTime / _miningToolCandidate.AttackSpeed);
             
             // マイニングが完了した場合はマイニング完了状態に遷移
             // If mining is complete, transition to mining complete state
-            if (_miningToolsElement.AttackSpeed <= _currentMiningProgressTime)
+            if (_miningToolCandidate.AttackSpeed <= _currentMiningProgressTime)
             {
-                return new MapObjectMiningMiningCompleteState(context.CurrentFocusMapObjectGameObject);
+                return new MapObjectMiningMiningCompleteState(context.CurrentFocusTarget);
             }
             
             return this;

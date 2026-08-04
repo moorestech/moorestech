@@ -1,7 +1,4 @@
-using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.Inventory.Equipment;
-using Game.Map;
-using Mooresmaster.Model.MapModule;
 
 namespace Client.Game.InGame.Mining
 {
@@ -11,7 +8,7 @@ namespace Client.Game.InGame.Mining
     /// </summary>
     public class MapObjectMiningControllerContext
     {
-        public MapObjectGameObject CurrentFocusMapObjectGameObject { get; private set; }
+        public IMiningTargetObject CurrentFocusTarget { get; private set; }
 
         public readonly LocalPlayerEquipment LocalPlayerEquipment;
 
@@ -20,27 +17,20 @@ namespace Client.Game.InGame.Mining
             LocalPlayerEquipment = localPlayerEquipment;
         }
 
-        /// <summary>
-        ///     装備中アイテムに対応する採掘ツールを引く。ステート間で依存させないためコンテキストが持つ
-        ///     Resolves the mining tool matching the equipped item; the context owns it so states never depend on each other
-        /// </summary>
-        public MiningToolsElement ResolveUsableTool(MiningToolsElement[] miningTools)
+        public void SetFocusTarget(IMiningTargetObject target)
         {
-            var equippedItemId = LocalPlayerEquipment.SelectedItem.Id;
-            return MapObjectMiningService.TryResolveUsableTool(equippedItemId, miningTools, out var usableTool)
-                ? usableTool
-                : null;
-        }
+            var currentGameObject = CurrentFocusTarget?.GameObject;
+            var nextGameObject = target?.GameObject;
 
-        public void SetFocusMapObjectGameObject(MapObjectGameObject mapObjectGameObject)
-        {
-            if (mapObjectGameObject != CurrentFocusMapObjectGameObject)
+            // 実体が変わった時だけ旧対象と新対象へフォーカス状態をプッシュする
+            // Push focus state to the old and new targets only when the concrete object changes
+            if (currentGameObject != nextGameObject)
             {
-                CurrentFocusMapObjectGameObject?.OnFocus(false);
-                mapObjectGameObject?.OnFocus(true);
+                CurrentFocusTarget?.SetFocused(false);
+                target?.SetFocused(true);
             }
 
-            CurrentFocusMapObjectGameObject = mapObjectGameObject;
+            CurrentFocusTarget = target;
         }
     }
 }

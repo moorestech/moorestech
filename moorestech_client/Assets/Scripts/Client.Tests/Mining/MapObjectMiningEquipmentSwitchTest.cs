@@ -11,7 +11,6 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
-using Mooresmaster.Model.MapModule;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
@@ -100,7 +99,7 @@ namespace Client.Tests.Mining
         public void 採掘中に装備を持ち替えるとフォーカス状態へ戻る()
         {
             var context = new MapObjectMiningControllerContext(CreateEquipmentHoldingTool());
-            context.SetFocusMapObjectGameObject(CreateMiningMapObject());
+            context.SetFocusTarget(CreateMiningMapObject());
             var miningState = new MapObjectMiningMiningState(MiningToolOfFocusedMapObject(context), context.LocalPlayerEquipment.SelectedItem.Id);
             PressLeftClick();
 
@@ -118,7 +117,7 @@ namespace Client.Tests.Mining
         public void 装備が採掘ツールのままなら採掘完了まで進む()
         {
             var context = new MapObjectMiningControllerContext(CreateEquipmentHoldingTool());
-            context.SetFocusMapObjectGameObject(CreateMiningMapObject());
+            context.SetFocusTarget(CreateMiningMapObject());
             var miningTool = MiningToolOfFocusedMapObject(context);
             var miningState = new MapObjectMiningMiningState(miningTool, context.LocalPlayerEquipment.SelectedItem.Id);
             PressLeftClick();
@@ -145,10 +144,12 @@ namespace Client.Tests.Mining
             return mapObject;
         }
 
-        private MiningToolsElement MiningToolOfFocusedMapObject(MapObjectMiningControllerContext context)
+        private MiningToolCandidate MiningToolOfFocusedMapObject(MapObjectMiningControllerContext context)
         {
-            var miningParam = (MiningMiningParam)context.CurrentFocusMapObjectGameObject.MapObjectMasterElement.MiningParam;
-            return context.ResolveUsableTool(miningParam.MiningTools);
+            var target = context.CurrentFocusTarget;
+            var equippedItemId = context.LocalPlayerEquipment.SelectedItem.Id;
+            Assert.IsTrue(target.TryResolveUsableTool(equippedItemId, out var miningTool));
+            return miningTool;
         }
 
         private void PressLeftClick()
