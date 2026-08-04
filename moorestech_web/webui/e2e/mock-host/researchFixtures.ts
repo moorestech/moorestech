@@ -12,8 +12,6 @@ export const researchTree = {
   nodes: [
     {
       guid: "11111111-1111-4111-8111-111111111111",
-      name: "最初の研究",
-      description: "説明テキスト",
       state: "completed",
       iconItemId: 2,
       position: { x: 0.0, y: 0.0 },
@@ -24,8 +22,6 @@ export const researchTree = {
     },
     {
       guid: "22222222-2222-4222-8222-222222222222",
-      name: "次の研究",
-      description: "前提つき",
       state: "unresearchableNotEnoughPreNode",
       iconItemId: 3,
       position: { x: 300.0, y: -120.0 },
@@ -36,8 +32,6 @@ export const researchTree = {
     },
     {
       guid: researchableNodeGuid,
-      name: "実行可能な研究",
-      description: "所持アイテムで研究できる",
       state: "researchable",
       iconItemId: 100,
       position: { x: 600.0, y: 0.0 },
