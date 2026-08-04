@@ -37,74 +37,78 @@ namespace Client.Game.InGame.Block
             }
 
             return result;
-        }
 
-        private async UniTask<Texture2D> GetIcon(GameObject target, string debugName)
-        {
-            // 対象の重心とバウンディングを取得
-            var bounds = target.GetComponentsInChildren<Renderer>().Select(b => b.bounds).ToList();
-            if (bounds.Count == 0)
+            #region Internal
+
+            async UniTask<Texture2D> GetIcon(GameObject captureTarget, string captureDebugName)
             {
-                throw new System.Exception("撮影対象にメッシュレンダラーがありませんでした:" + target.name + " " + debugName);
+                // 対象の重心とバウンディングを取得
+                var bounds = captureTarget.GetComponentsInChildren<Renderer>().Select(b => b.bounds).ToList();
+                if (bounds.Count == 0)
+                {
+                    throw new System.Exception("撮影対象にメッシュレンダラーがありませんでした:" + captureTarget.name + " " + captureDebugName);
+                }
+                var center = bounds.Select(b => b.center).Aggregate((b1, b2) => b1 + b2) / bounds.Count;
+
+                // カメラ角度設定(例：上から30度、Y軸に対して45度傾ける)
+                var blockImageCamera = Instantiate(cameraPrefab);
+                blockImageCamera.transform.rotation = Quaternion.Euler(30f, 45f, 0f);
+
+                // バウンディングボックスの最大寸法を取得
+                var minPos = bounds.Select(b => b.min).Aggregate(Vector3.Min);
+                var maxPos = bounds.Select(b => b.max).Aggregate(Vector3.Max);
+                var maxSize = Vector3.Distance(minPos, maxPos);
+
+                // カメラの視野角(FOV)と最大サイズから距離を計算
+                float fovRad = blockImageCamera.fieldOfView * Mathf.Deg2Rad;
+                float distance = (maxSize * 0.5f) / Mathf.Tan(fovRad * 0.5f);
+
+                blockImageCamera.transform.position = center - blockImageCamera.transform.forward * (distance * 0.8f);
+                blockImageCamera.transform.LookAt(center);
+
+                // カメラ背景をアルファ付き透明に設定
+                blockImageCamera.clearFlags = CameraClearFlags.SolidColor;
+                blockImageCamera.backgroundColor = Color.white;
+
+                await UniTask.Yield(PlayerLoopTiming.Update);
+
+                // アルファ付きのRenderTextureを使用
+                var renderTexture = new RenderTexture(iconSize, iconSize, 24, RenderTextureFormat.ARGB32)
+                {
+                    useMipMap = false,
+                    autoGenerateMips = false
+                };
+
+                blockImageCamera.targetTexture = renderTexture;
+                blockImageCamera.Render();
+                blockImageCamera.targetTexture = null;
+
+                // アルファ付きのTexture2Dに読み込み
+                var texture = new Texture2D(iconSize, iconSize, TextureFormat.RGBA32, false);
+                RenderTexture.active = renderTexture;
+                texture.ReadPixels(new Rect(0, 0, iconSize, iconSize), 0, 0);
+                texture.Apply();
+                RenderTexture.active = null;
+
+                // 撮影対象・一時描画資源・撮影Cameraを同じ寿命で破棄する
+                // Destroy the subject, temporary render resource, and capture Camera within the same lifetime
+                if (Application.isPlaying)
+                {
+                    Destroy(captureTarget);
+                    Destroy(renderTexture);
+                    Destroy(blockImageCamera.gameObject);
+                }
+                else
+                {
+                    DestroyImmediate(captureTarget);
+                    DestroyImmediate(renderTexture);
+                    DestroyImmediate(blockImageCamera.gameObject);
+                }
+
+                return texture;
             }
-            var center = bounds.Select(b => b.center).Aggregate((b1, b2) => b1 + b2) / bounds.Count;
 
-            // カメラ角度設定(例：上から30度、Y軸に対して45度傾ける)
-            var blockImageCamera = Instantiate(cameraPrefab);
-            blockImageCamera.transform.rotation = Quaternion.Euler(30f, 45f, 0f);
-
-            // バウンディングボックスの最大寸法を取得
-            var minPos = bounds.Select(b => b.min).Aggregate(Vector3.Min);
-            var maxPos = bounds.Select(b => b.max).Aggregate(Vector3.Max);
-            var maxSize = Vector3.Distance(minPos, maxPos);
-
-            // カメラの視野角(FOV)と最大サイズから距離を計算
-            float fovRad = blockImageCamera.fieldOfView * Mathf.Deg2Rad;
-            float distance = (maxSize * 0.5f) / Mathf.Tan(fovRad * 0.5f);
-
-            blockImageCamera.transform.position = center - blockImageCamera.transform.forward * (distance * 0.8f);
-            blockImageCamera.transform.LookAt(center);
-
-            // カメラ背景をアルファ付き透明に設定
-            blockImageCamera.clearFlags = CameraClearFlags.SolidColor;
-            blockImageCamera.backgroundColor = Color.white;
-
-            await UniTask.Yield(PlayerLoopTiming.Update);
-
-            // アルファ付きのRenderTextureを使用
-            var renderTexture = new RenderTexture(iconSize, iconSize, 24, RenderTextureFormat.ARGB32)
-            {
-                useMipMap = false,
-                autoGenerateMips = false
-            };
-
-            blockImageCamera.targetTexture = renderTexture;
-            blockImageCamera.Render();
-            blockImageCamera.targetTexture = null;
-
-            // アルファ付きのTexture2Dに読み込み
-            var texture = new Texture2D(iconSize, iconSize, TextureFormat.RGBA32, false);
-            RenderTexture.active = renderTexture;
-            texture.ReadPixels(new Rect(0, 0, iconSize, iconSize), 0, 0);
-            texture.Apply();
-            RenderTexture.active = null;
-
-            // 撮影対象・一時描画資源・撮影Cameraを同じ寿命で破棄する
-            // Destroy the subject, temporary render resource, and capture Camera within the same lifetime
-            if (Application.isPlaying)
-            {
-                Destroy(target);
-                Destroy(renderTexture);
-                Destroy(blockImageCamera.gameObject);
-            }
-            else
-            {
-                DestroyImmediate(target);
-                DestroyImmediate(renderTexture);
-                DestroyImmediate(blockImageCamera.gameObject);
-            }
-
-            return texture;
+            #endregion
         }
 
     }

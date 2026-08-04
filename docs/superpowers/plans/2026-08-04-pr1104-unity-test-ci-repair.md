@@ -67,7 +67,7 @@
 
 - [ ] **Step 2: CefUnityを準備する**
 
-  既存Buildジョブと同じ手順でCefUnityをGit LFS込みで事前取得し、GameCIより前にローカルパッケージとmanifestを用意する。
+  `packages-lock.json`の解決済みリビジョンからCefUnityをGit LFS込みで事前取得し、GameCIより前にローカルパッケージとmanifestを用意する。
 
 - [ ] **Step 3: Web UIツールチェーンを準備する**
 

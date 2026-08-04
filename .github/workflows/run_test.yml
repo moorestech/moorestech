@@ -74,8 +74,12 @@ jobs:
       - name: Pre-fetch CefUnity package
         shell: bash
         run: |
-          git clone --depth 1 --branch main https://github.com/KurisuJuha/cef-unity.git _cef_pkg
-          cd _cef_pkg && git lfs pull && cd ..
+          cef_revision="$(python3 -c "import json; print(json.load(open('moorestech_client/Packages/packages-lock.json'))['dependencies']['jp.juha.cefunity']['hash'])")"
+          git init _cef_pkg
+          git -C _cef_pkg remote add origin https://github.com/KurisuJuha/cef-unity.git
+          git -C _cef_pkg fetch --depth 1 origin "$cef_revision"
+          git -C _cef_pkg checkout --detach FETCH_HEAD
+          git -C _cef_pkg lfs pull
           cp -r _cef_pkg/cef-unity-unityproject/Assets/CefUnity moorestech_client/CefUnityLocal
           cd moorestech_client/Packages
           python3 -c "
