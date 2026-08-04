@@ -3,7 +3,7 @@ name: moores-code-review
 description: |
   moorestechのPR作成前・マージ前レビューを単体で完結させる統合スキル。6系統を並列実行する:
   ①決定論チェック（汎用+moorestech固有の機械判定）②moores設計レンズ群（ドメイン境界・サーバー状態同期3点セット・
-  DataStore分離・マスタデータ防御・型構造・前例一致）③汎用reviewer群（汎用コード品質の採用実績ある23観点）
+  DataStore分離・マスタデータ防御・型構造・前例一致）③汎用reviewer群（汎用コード品質の採用実績ある観点＋webui向けts/tsx設計観点）
   ④Codex外部監査 ⑤Fable全般レビュー ⑥分割深掘り調査（大規模PR時のみ・10-15ファイル/チャンクで全文精読）。
   指摘を実コード照合・重複排除のうえ統合し、機械的修正を自動適用、
   設計判断だけ末尾でAskUserQuestion。設計レンズと汎用レビュー機構を1本に束ね、これ単体でレビューが完結する。
@@ -21,7 +21,7 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 
 1. **決定論チェック**（`scripts/deterministic_checks.py`）— AGENTS.md・moorestech規約の機械判定分（partial・try-catch・Func・200行・10ファイル・デフォルト引数・SerializeField命名・比較演算子・コメント長・region・master_default_fallback・packet_response_root・server_realtime_api・server_elapsed_time・init_method_naming・schema_optional_true・event_tag_sync・try_catch_boundary）。0トークン。
 2. **moores設計レンズ群**（`lenses/`・11本）— moorestech固有の設計規約。実PRレビュー指摘（PR978/987/988/996/997/1000/1095/1108）由来。
-3. **汎用reviewer群**（`reviewers/`・24本）— 言語横断のコード品質。全数調査（63セッション/1029起動）で採用実績のある観点のみ採録（採用0/冗長の20本と決定論代替1本は除外。根拠は `scripts/model_map.json` の `_excluded_from_port`）。
+3. **汎用reviewer群**（`reviewers/`・29本）— 言語横断のコード品質。全数調査（63セッション/1029起動）で採用実績のある観点のみ採録（採用0/冗長の20本と決定論代替1本は除外。根拠は `scripts/model_map.json` の `_excluded_from_port`）。加えて、`.cs` ゲートの設計レンズ5本（speculative-abstraction・type-driven-structure・hardcoded-content-enumeration・default-resolution-ownership・implicit-cardinality-assumption）の **ts/tsx翻案版**を採録し、webui差分にも同じ意味構造の検査を当てる（`_ts_lens_ports`・2026-08-04逆輸入）。
 4. **Codex外部監査**（`scripts/codex-audit-template.md`）— 別モデルCLIの独立第三者視点。
 5. **Fable全般レビュー**（`generalists/fable-holistic-review.md`）— チェックリスト非依存の俯瞰監査。自己裏取り契約。
 6. **分割深掘り調査**（`investigators/`・3観点）— 変更ファイル（テスト・非コード除外後）が16以上の大規模PRのみ発火。`scripts/split_chunks.py` がドメイン単位で10-15ファイルのチャンクに分割し、チャンクごとに深読みバグ狩り・縫い目統合・チャンク内一貫性の3エージェントが**変更後ファイル全文**をagenticにReadする（全体diff一括の系統では希釈される注意を担保）。テストは完全隔離＝チャンク割当もReadも禁止（ユーザー裁定 2026-08-03）。
@@ -77,15 +77,21 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 - **`status: stale`** — 変更.csがDLLより新しい。`uloop compile` を先に実行してからゲートを再実行する（コンパイルはどのみちStep 5で必須）。
 - **`status: skipped`** — ScriptAssemblies不在（素のレビューworktree等）。縮退として報告に1行明記し、dead-scope reviewer（LLM）の参照勘定が唯一の担保になる旨を記録する。
 
-## Step 3: Codex外部監査をバックグラウンド起動する ②
+## Step 3: Codex外部監査を3本バックグラウンド起動する ②
 
-`scripts/codex-audit-template.md` を埋めて `/tmp/moores-review-audit-<ts>.md` に書き、バックグラウンド起動する:
+3種のテンプレートを埋めて監査プロンプトを/tmpに書き、**3本ともバックグラウンドで並列起動する**:
+
+1. **俯瞰監査** — `scripts/codex-audit-template.md`（3観点同梱・従来どおり。ユーザーが観点を指定したらここに差し替える）→ `/tmp/moores-review-audit-<ts>.md`
+2. **バグ狩り専任** — `scripts/codex-bughunt-template.md`（不具合のみ・設計への言及禁止・修正提案は最小差分）→ `/tmp/moores-review-audit-bug-<ts>.md`
+3. **設計整合専任** — `scripts/codex-design-template.md`（設計のみ・**過剰設計提案の抑制付き**: 新抽象の推奨は既存前例が現にその形の場合に限る）→ `/tmp/moores-review-audit-design-<ts>.md`
 
 ```bash
 codex exec --sandbox read-only --skip-git-repo-check - < /tmp/moores-review-audit-<ts>.md
+codex exec --sandbox read-only --skip-git-repo-check - < /tmp/moores-review-audit-bug-<ts>.md
+codex exec --sandbox read-only --skip-git-repo-check - < /tmp/moores-review-audit-design-<ts>.md
 ```
 
-Bashの `run_in_background: true` で起動しシェルIDを控える。観点デフォルト3つ: (1)アーキテクチャ的不整合・既存パターン乖離 (2)設計妥当性・将来の懸念 (3)致命的不具合・エンバグ・リグレッション。`which codex` が失敗したら本Stepをスキップし、その旨を最終報告に明記する（黙って縮退しない）。
+それぞれBashの `run_in_background: true` で起動しシェルIDを控える。狭域専任2本は単発同梱プロンプトで注意が3分割される問題への対策（recall向上）で、俯瞰が残り全部の受け皿。**同一モデルの3起動は独立系統ではない** — 回収時、codex間で重複した指摘は1件に畳み、出所は「Codex」1系統として扱う（integration-rules §2）。`which codex` が失敗したら本Stepを3本ともスキップし、その旨を最終報告に明記する（黙って縮退しない）。
 
 ## Step 4: レンズ群＋reviewer群＋Fable全般＋verifierを並列発火する ③
 
@@ -118,7 +124,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
    `precedent-alignment.md`（always発火）は発火レンズが0件でも必ず起動する。
 2. **各reviewer**（select_reviewersのTSVどおりの `model`）— 同じ3行契約＋共通出力契約。
 3. **Fable全般レビュー**（常時・`model: "fable"`）— 同じ3行契約＋共通出力契約で `generalists/fable-holistic-review.md` を渡す。
-4. **分割深掘り調査**（CHUNKS_TSVが非空のときだけ）— チャンクごとに `investigators/` の3観点（chunk-deep-correctness / chunk-seam-integration / chunk-context-consistency）を起動する（起動数 = チャンク数×3）。モデルは各investigator先頭YAMLの `model` を**必ずそのまま**渡す。5行契約＋共通出力契約:
+4. **分割深掘り調査**（CHUNKS_TSVが非空のときだけ）— チャンクごとに `investigators/` の3観点（chunk-deep-correctness.md / chunk-seam-integration.md / chunk-context-consistency.md）を起動する（起動数 = チャンク数×3）。モデルは各investigator先頭YAMLの `model` を**必ずそのまま**渡す。5行契約＋共通出力契約:
    ```
    Read this : <investigatorの絶対パス>
    Chunk files : <そのチャンクのカンマ区切りファイルリスト（TSV3列目）>
@@ -143,7 +149,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 ## Step 5: 回収・実コード照合・重複排除 ④
 
 - Step 4の全サブエージェント（レンズ・reviewer・Fable・investigator・verifier）の返却を受け取る。
-- Step 3のバックグラウンドCodexの出力を回収する（未完了なら完了を待つ）。
+- Step 3のバックグラウンドCodex（3本）の出力を回収する（未完了なら完了を待つ）。
 - 全部揃うまでStep 6へ進まない。`references/integration-rules.md` §0〜§2 に従い、実コード照合・重複排除する（決定論confirmedは裏取り不要、Codex/Fable/レンズ/reviewerのCriticalはReadで裏取り、複数系統一致は「N系統一致（高確度）」に統合）。
 - **Warning/Infoの扱い**（§2.5）: Warningは破棄せず統合報告に必ず載せる（軽い照合のみ。複数系統が同一箇所をWarningした場合と、照合で事実が確定した場合はCriticalへ昇格）。Infoは照合不要で報告末尾に圧縮列挙する。どちらもAskUserQuestionには載せない。
 
@@ -162,7 +168,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 2. **決定論チェックを最終diffで再実行** — `deterministic_checks.py` を再度実行し `/tmp/moores-review-detchecks-final-<ts>.json` に書く。自分の修正が新たに生んだ `confirmed`/`comparison_operator` 違反はその場でインライン修正する。**再実行時は `--context` を渡さない**（出所ラベルはStep 2で検査済み。再検出させると/tmpのcontext編集へ誘導され無意味）。
 3. **2本のガードを並列起動**（1メッセージ内）:
    - **comment-rationale-guard**（`model: "opus"`・3行契約）— load-bearingな根拠コメントがコード本体を残したまま削除・希薄化されていないか（削除行 `-` が対象）。`Read this : .claude/skills/moores-code-review/post-checks/comment-rationale-guard.md` + Patch path（最終diff）+ User prompt。
-   - **comment-convention-guard**（`model: "sonnet"`・4行契約）— スクリプト計測の文字数超過候補の例外判定・短縮案 + 名前重複コメント検出。**文字数はスクリプトの値が正**。`Read this` + `Candidates : /tmp/moores-review-detchecks-final-<ts>.json` + Patch path（最終diff）+ User prompt。
+   - **comment-convention-guard**（`model: "sonnet"`・4行契約）— スクリプト計測の文字数超過候補の例外判定・短縮案 + 名前重複コメント検出。**文字数はスクリプトの値が正**。`Read this : .claude/skills/moores-code-review/post-checks/comment-convention-guard.md` + `Candidates : /tmp/moores-review-detchecks-final-<ts>.json` + Patch path（最終diff）+ User prompt。
 4. **rationale-guardのCriticalはescalate**（自動復元しない）— 削除コメント再挿入は設計判断。復元タグ案を添えてStep 7へ。
 5. **convention-guardはラベル分岐（Step 7へは送らない）** — `機械的` は §5 のもと自動適用、`要判断` は**ガード自身の裁定で完結**させる（短縮案が意図を保てるなら適用、例外該当なら残置。結果は報告に1行）。コメント短縮をAskUserQuestionに載せるのは**禁止**（ユーザー裁定 2026-07-23）。同一行で衝突したら**根拠保全を優先**。
    - **webui（`moorestech_web/webui`）では `要判断` も短縮を適用する** — 数値詳細・数式・設計意図が落ちる場合でも文字数規約を優先して短縮する（詳細はコードとテスト本体が担う）。残置してよいのは「なぜ必要か」型の純粋な根拠コメント（定数選定根拠・防止目的）のみ（ユーザー裁定 2026-08-04・[[2026-08-04-コメント文字数規約は根拠情報より優先する]]）。
@@ -181,7 +187,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
      - **症状を1文で書けない指摘は設問にしない** — 報告本文のWarningへ落とす。「将来こう書き換えると壊れる」型は、症状（何が壊れるか）と再現条件を書けるときだけ設問にしてよい。
      - 判定基準: **その設問だけを読んだ人が、コードを開かずに選べるか**。選べないなら書き直す。
 3. **レビュー記録を生成する** — 記録はコードrepoでなく記録repo `$LOGS`（`../moorestech_logs`）へ書く（featureブランチが記録に触れてマージ衝突する構造を断つため。コードrepo側へ書き戻さない）。`$LOGS/harness/moores-code-review/records/TEMPLATE.md` に従い `$LOGS/harness/moores-code-review/records/YYYY-MM-DD-<topic>.md` を書く（対象SHA2つ・系統別1行判定表・適用修正・AskUserQuestion裁定・破棄指摘・セッションID）。diff本体は保存せずbase/head SHAのみ（dirty込みなら注記＋`--stat`要約）。同ブランチの再レビューは`-r2`付き新ファイル。`$LOGS/harness/moores-code-review/eval-log.md` に集計1行＋記録への相対リンクを足す。
-4. `/tmp` の一時ファイル（patch/context/audit/detchecks×2/最終diff）を削除する（記録生成の**後**に行う）。
+4. `/tmp` の一時ファイル（patch/context/audit×3/detchecks×2/最終diff）を削除する（記録生成の**後**に行う）。
 
 ## モデル割り当て
 

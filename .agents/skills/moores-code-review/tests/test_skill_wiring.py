@@ -20,6 +20,27 @@ class SkillWiringTest(unittest.TestCase):
         for v in (SKILL_DIR / "verifiers").glob("*.md"):
             self.assertIn(v.name, SKILL_MD, f"{v.name} がSKILL.mdに配線されていない")
 
+    def test_every_post_check_is_wired_in_skill_md(self):
+        # post-checks/配下の全ファイルがSKILL.md本文からフルネームで参照されていること
+        # （all-code-review移植時にconvention-guardのパス省略を実検出した検査の逆輸入 2026-08-04）
+        # Every post-check file must be referenced from SKILL.md by full name
+        for p in (SKILL_DIR / "post-checks").glob("*.md"):
+            self.assertIn(p.name, SKILL_MD, f"{p.name} がSKILL.mdに配線されていない")
+
+    def test_every_investigator_is_wired_in_skill_md(self):
+        # investigators/配下の全ファイルがSKILL.md本文からフルネームで参照されていること（第6系統の配線）
+        # Every investigator file must be referenced from SKILL.md by full name
+        for i in (SKILL_DIR / "investigators").glob("*.md"):
+            self.assertIn(i.name, SKILL_MD, f"{i.name} がSKILL.mdに配線されていない")
+
+    def test_every_codex_template_is_wired_in_skill_md(self):
+        # scripts/配下の全codexテンプレートがSKILL.md本文から参照されていること（3起動構成の配線）
+        # Every codex template under scripts/ must be referenced from SKILL.md
+        templates = list((SKILL_DIR / "scripts").glob("codex-*.md"))
+        self.assertGreaterEqual(len(templates), 3, "codexテンプレートが3本未満")
+        for t in templates:
+            self.assertIn(t.name, SKILL_MD, f"{t.name} がSKILL.mdに配線されていない")
+
     def test_unified_gateway_is_wired_and_complete(self):
         # 統一窓口check_all.pyがSKILL.mdに配線され、そのVERIFIER_MAPの参照先が実在すること
         # The unified gateway must be wired in SKILL.md and its verifier map must point to real files
