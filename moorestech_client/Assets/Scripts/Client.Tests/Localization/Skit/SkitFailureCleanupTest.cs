@@ -83,12 +83,12 @@ namespace Client.Tests.Localization.Skit
             // skit中は両方を隠し、終了時は各pinの開始前状態へ個別に戻す
             // Hide both pins during skit, then restore each pin's own pre-skit state
             snapshot.Hide();
-            Assert.IsFalse(mapObjectPin.IsActiveSelf());
-            Assert.IsFalse(veinPin.IsActiveSelf());
+            Assert.IsFalse(mapObjectPin.IsActive());
+            Assert.IsFalse(veinPin.IsActive());
 
             snapshot.Restore();
-            Assert.IsTrue(mapObjectPin.IsActiveSelf());
-            Assert.IsFalse(veinPin.IsActiveSelf());
+            Assert.IsTrue(mapObjectPin.IsActive());
+            Assert.IsFalse(veinPin.IsActive());
         }
 
         [Test]
@@ -103,11 +103,11 @@ namespace Client.Tests.Localization.Skit
             snapshot.Hide();
             mapObjectPin.SetActive(false);
             veinPin.SetActive(true);
-            Assert.IsFalse(veinPin.IsActiveSelf());
+            Assert.IsFalse(veinPin.IsActive());
             snapshot.Restore();
 
-            Assert.IsFalse(mapObjectPin.IsActiveSelf());
-            Assert.IsTrue(veinPin.IsActiveSelf());
+            Assert.IsFalse(mapObjectPin.IsActive());
+            Assert.IsTrue(veinPin.IsActive());
         }
 
         private static void SetPrivateField(object target, string fieldName, object value)
@@ -134,7 +134,7 @@ namespace Client.Tests.Localization.Skit
                 _desiredActive = active;
             }
 
-            public bool IsActiveSelf() => _desiredActive && !_skitSuppressed;
+            public bool IsActive() => _desiredActive && !_skitSuppressed;
 
             public void SetSkitSuppressed(bool suppressed)
             {
@@ -170,7 +170,7 @@ namespace Client.Tests.Localization.Skit
                 _desiredActive = active;
             }
 
-            public bool IsActiveSelf() => _desiredActive && !_skitSuppressed;
+            public bool IsActive() => _desiredActive && !_skitSuppressed;
 
             public void SetSkitSuppressed(bool suppressed)
             {

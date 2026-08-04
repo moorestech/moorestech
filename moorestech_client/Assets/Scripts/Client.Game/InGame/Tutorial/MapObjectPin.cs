@@ -14,7 +14,6 @@ namespace Client.Game.InGame.Tutorial
     public interface IMapObjectPin : ITutorialViewManager, ITutorialView
     {
         public void SetActive(bool active);
-        public bool IsActiveSelf();
         public void SetSkitSuppressed(bool suppressed);
         public bool IsSkitSuppressed();
     }
@@ -109,11 +108,6 @@ namespace Client.Game.InGame.Tutorial
             _desiredActive = active;
             _visibilityInitialized = true;
             ApplyVisibility();
-        }
-
-        public bool IsActiveSelf()
-        {
-            return gameObject.activeSelf;
         }
 
         public void SetSkitSuppressed(bool suppressed)

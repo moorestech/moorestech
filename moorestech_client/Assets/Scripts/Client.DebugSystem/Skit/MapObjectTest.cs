@@ -15,10 +15,6 @@ namespace Client.DebugSystem.Skit
         public void SetActive(bool active)
         {
         }
-        public bool IsActiveSelf()
-        {
-            return false;
-        }
         public void SetSkitSuppressed(bool suppressed)
         {
         }
