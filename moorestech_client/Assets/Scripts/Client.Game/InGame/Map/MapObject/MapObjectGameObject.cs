@@ -40,8 +40,8 @@ namespace Client.Game.InGame.Map.MapObject
                 var miningTools = ((MiningMiningParam)MapObjectMasterElement.MiningParam).MiningTools;
                 var itemIds = new List<ItemId>(miningTools.Length);
 
-                // 対象マスタのツールGUIDをクライアント共通のItemIdへ変換する
-                // Convert target-master tool GUIDs to the client-wide ItemId representation
+                // ツールGUIDをItemId化
+                // Convert tool GUIDs to ItemIds
                 foreach (var miningTool in miningTools)
                 {
                     itemIds.Add(MasterHolder.ItemMaster.GetItemId(miningTool.ToolItemGuid));
@@ -105,24 +105,12 @@ namespace Client.Game.InGame.Map.MapObject
             }
         }
         
-        public void OnFocus(bool isFocused)
-        {
-            if (outlineObject)
-            {
-                outlineObject.SetActive(isFocused);
-            }
-            if (hpBarView)
-            {
-                hpBarView.SetActive(isFocused);
-            }
-        }
-
         public bool TryResolveUsableTool(ItemId equippedItemId, out MiningToolCandidate tool)
         {
             var miningTools = ((MiningMiningParam)MapObjectMasterElement.MiningParam).MiningTools;
             if (MapObjectMiningService.TryResolveUsableTool(equippedItemId, miningTools, out var usableTool))
             {
-                tool = new MiningToolCandidate(equippedItemId, (float)usableTool.AttackSpeed);
+                tool = new MiningToolCandidate(equippedItemId, usableTool.AttackSpeed);
                 return true;
             }
 
@@ -132,13 +120,14 @@ namespace Client.Game.InGame.Map.MapObject
 
         public void SetFocused(bool focused)
         {
-            OnFocus(focused);
+            if (outlineObject) outlineObject.SetActive(focused);
+            if (hpBarView) hpBarView.SetActive(focused);
         }
 
         public void SendAttack()
         {
-            // mapObject用の対象IDをprotocol factoryへ渡し、サーバー権威の採掘処理へ送る
-            // Pass the mapObject target id to the protocol factory and send it to server-authoritative mining
+            // mapObject採掘を送信
+            // Send mapObject mining
             var request = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(
                 ClientContext.PlayerConnectionSetting.PlayerId,
                 InstanceId);

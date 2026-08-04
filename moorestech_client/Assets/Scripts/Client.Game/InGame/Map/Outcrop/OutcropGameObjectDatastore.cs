@@ -15,28 +15,28 @@ using VContainer;
 namespace Client.Game.InGame.Map.Outcrop
 {
     /// <summary>
-    ///     Layout応答の全鉱脈から露頭を生成し、手掘り可能な露頭だけを採掘対象化する
-    ///     Instantiates every layout outcrop and makes only hand-minable ones mining targets
+    ///     全鉱脈の露頭を生成
+    ///     Create outcrops for all veins
     /// </summary>
     public class OutcropGameObjectDatastore : MonoBehaviour, IInitialEventApplyWaitTarget
     {
         public const string OutcropObjectNamePrefix = "VeinOutcrop_";
 
-        // 千件規模の生成負荷を分散しつつ起動時間を過度に伸ばさない
-        // Spread the thousand-scale instantiation load without extending startup excessively
+        // 生成負荷をフレーム分散
+        // Spread creation load across frames
         private const int FrameYieldObjectInterval = 100;
-        // 同一アドレスを共有する鉱脈では成功したAddressables解決を再利用する
-        // Reuse successful Addressables resolutions for veins sharing one address
+        // 解決済みPrefabを再利用
+        // Reuse resolved prefabs
         private readonly Dictionary<string, GameObject> _prefabCacheByAddress = new();
         private readonly OutcropGuidIndex _outcropGuidIndex = new();
         private InitialHandshakeResponse _handshakeResponse;
         private UniTask? _initializationTask;
 
         [Inject]
-        public void Construct(InitialHandshakeResponse handshakeResponse)
+        public void Initialize(InitialHandshakeResponse handshakeResponse)
         {
-            // 地表判定はTerrain完成後にFinalizerから開始する
-            // Ground probing starts from the finalizer after Terrain is ready
+            // Terrain完成後に地表判定
+            // Probe ground after Terrain is ready
             _handshakeResponse = handshakeResponse;
         }
 
@@ -106,8 +106,8 @@ namespace Client.Game.InGame.Map.Outcrop
                 var instance = Instantiate(prefab, position, Quaternion.identity, transform);
                 instance.name = $"{OutcropObjectNamePrefix}{layout.VeinGuid}";
 
-                // 採掘レイの対象レイヤーをプレハブ階層全体へ統一する
-                // Apply the mining-ray layer to the complete prefab hierarchy
+                // 全階層を採掘レイヤー化
+                // Apply mining layer to all children
                 foreach (var child in instance.GetComponentsInChildren<Transform>(true))
                     child.gameObject.layer = LayerConst.MapObjectLayer;
 
@@ -115,8 +115,8 @@ namespace Client.Game.InGame.Map.Outcrop
                 if (outcrop == null) outcrop = instance.AddComponent<OutcropGameObject>();
                 _outcropGuidIndex.Add(veinGuid, outcrop);
 
-                // none鉱脈はビジュアルだけ残しコライダマーカーを注入しない
-                // Keep none veins visual-only without injecting collider markers
+                // none鉱脈はマーカーなし
+                // None veins have no marker
                 if (element.HandMiningParam is not MinableHandMiningParam) return;
                 outcrop.Initialize(element, CalculateMinePosition(layout, center));
             }

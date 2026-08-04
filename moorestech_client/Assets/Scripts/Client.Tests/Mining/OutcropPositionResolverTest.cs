@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Tests.Mining
 {
     /// <summary>
-    ///     地形外の鉱脈でもAABB中心高さへ露頭を生成できることを検証する
-    ///     Verifies outcrops outside loaded terrain fall back to the vein AABB center height
+    ///     地形外の露頭位置を検証
+    ///     Verify outcrop position beyond terrain
     /// </summary>
     public class OutcropPositionResolverTest
     {

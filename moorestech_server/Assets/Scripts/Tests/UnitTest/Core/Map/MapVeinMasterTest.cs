@@ -76,8 +76,8 @@ namespace Tests.UnitTest.Core.Map
         [Test]
         public void 実在しないtoolItemGuidの手掘り鉱脈はバリデーションで失敗する()
         {
-            // handMiningTools内の存在しないtoolItemGuidをValidateが検出することを確認
-            // Confirm Validate detects a non-existent toolItemGuid inside handMiningTools
+            // 不正ツールGUIDを検出
+            // Detect invalid tool GUID
             var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000002"",""veinName"":""badTool"",""veinType"":""item"",
                  ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},
@@ -93,8 +93,8 @@ namespace Tests.UnitTest.Core.Map
         [Test]
         public void fluid鉱脈をminableにするとバリデーションで失敗する()
         {
-            // fluid鉱脈へminable設定を与えるとValidateがfalseを返す
-            // Giving a fluid vein minable settings makes Validate return false
+            // fluid minableを拒否
+            // Reject fluid minable
             var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000003"",""veinName"":""badFluid"",""veinType"":""fluid"",
                  ""veinParam"":{""fluidGuid"":""00000000-0000-0000-1234-000000000001""},
@@ -108,8 +108,8 @@ namespace Tests.UnitTest.Core.Map
         [Test]
         public void handMiningToolsが空の鉱脈はバリデーションで失敗する()
         {
-            // ツール配列が空のminable鉱脈はValidateがfalseを返す
-            // A minable vein with an empty tool array makes Validate return false
+            // 空ツール配列を拒否
+            // Reject empty tool array
             var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000004"",""veinName"":""noTools"",""veinType"":""item"",
                  ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},
@@ -119,11 +119,34 @@ namespace Tests.UnitTest.Core.Map
             Assert.IsTrue(logs.Contains("noTools"));
         }
 
+        [TestCase(0)]
+        [TestCase(-1)]
+        public void attackSpeedが正でない手掘り鉱脈はバリデーションで失敗する(float attackSpeed)
+        {
+            var json = JToken.Parse($@"{{""mapObjects"":[],""mapVeins"":[
+                {{""veinGuid"":""33333333-0000-0000-0000-000000000007"",""veinName"":""badSpeed"",""veinType"":""item"",
+                 ""veinParam"":{{""itemGuid"":""00000000-0000-0000-1234-000000000001""}},""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",""handMiningType"":""minable"",
+                 ""handMiningParam"":{{""handMiningTools"":[{{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":{attackSpeed}}}],""minCount"":1,""maxCount"":1}}}}]}}");
+            Assert.IsFalse(new MapVeinMaster(json).Validate(out var logs));
+            Assert.IsTrue(logs.Contains("attackSpeed"));
+        }
+
+        [Test]
+        public void toolItemGuidが重複する手掘り鉱脈はバリデーションで失敗する()
+        {
+            var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
+                {""veinGuid"":""33333333-0000-0000-0000-000000000008"",""veinName"":""duplicateTool"",""veinType"":""item"",
+                 ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",""handMiningType"":""minable"",
+                 ""handMiningParam"":{""handMiningTools"":[{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":1},{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":2}],""minCount"":1,""maxCount"":1}}]}" );
+            Assert.IsFalse(new MapVeinMaster(json).Validate(out var logs));
+            Assert.IsTrue(logs.Contains("duplicate ToolItemGuid"));
+        }
+
         [Test]
         public void minCountが1未満またはmaxCountより大きい鉱脈はバリデーションで失敗する()
         {
-            // minCountが1未満とminCount超過のmaxCountを個別に検証する
-            // Verify minCount below one and maxCount below minCount separately
+            // 個数範囲を個別検証
+            // Verify count range separately
             var zeroMinJson = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000005"",""veinName"":""zeroMin"",""veinType"":""item"",
                  ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},
@@ -144,8 +167,8 @@ namespace Tests.UnitTest.Core.Map
         [Test]
         public void minableな鉱脈はHandMiningParamがMinableHandMiningParamとして解決される()
         {
-            // ForUnitTest map.jsonのIronVeinはhandMiningType:minableでHandMiningToolsを1件持つ
-            // ForUnitTest map.json's IronVein is handMiningType:minable with one HandMiningTools entry
+            // IronVein手掘り設定を検証
+            // Verify IronVein hand-mining settings
             var element = MasterHolder.MapVeinMaster.GetElementOrNull(ItemVeinGuid);
             var handMiningParam = element.HandMiningParam as MinableHandMiningParam;
             Assert.NotNull(handMiningParam);

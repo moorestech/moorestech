@@ -1,5 +1,5 @@
-// シナリオ: ADR-0007の露頭生成・照準・va:mining往復をライブv8マスタで一括検証する
-// Scenario: validates ADR-0007 outcrop creation, aiming, and va:mining round-trip against live v8 master data
+// ライブv8採掘smoke
+// Live v8 mining smoke
 using System;
 using System.Reflection;
 using Client.Common;
@@ -19,12 +19,12 @@ var options = new PlaytestRunOptions { Record = true };
 
 return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
 {
-    // 開幕スキットを本番intentで終了し、ワールド照準を操作可能にする
-    // End the opening skit through its production intent so world aiming becomes interactive
+    // 開幕スキット終了
+    // End opening skit
     p.Note("開幕スキットを終了し、露頭の起動状態を検証する");
     var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
     var skit = skitStore.GetCurrent();
-    if (Array.IndexOf(skit.AllowedIntents, "skip") >= 0)
+    if (0 <= Array.IndexOf(skit.AllowedIntents, "skip"))
     {
         var skipResult = skitStore.TrySkip(skit.SessionId, skit.SceneRevision);
         p.Assert(skipResult.Ok, "開幕スキットのSkipインテントが受理された");
@@ -34,8 +34,8 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
             "開幕スキット終了");
     }
 
-    // マスタ11種の実Addressableと、固定レイアウト1772件の生成完了を検証する
-    // Verify real Addressables for all 11 masters and completion of all 1,772 fixed-layout instances
+    // 11種・1772件を検証
+    // Verify 11 kinds and 1,772 instances
     var datastore = UnityEngine.Object.FindFirstObjectByType<OutcropGameObjectDatastore>();
     p.Assert(datastore != null, "OutcropGameObjectDatastoreがMainGameシーンで起動した");
     p.Assert(MasterHolder.MapVeinMaster.All.Count == expectedMasterVeinCount, "ライブv8マスタに鉱脈11種がある");
@@ -51,8 +51,8 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
     p.Assert(outcrops.Length == expectedLayoutOutcropCount, "固定v8レイアウト1772件の露頭が全て生成された");
     p.Assert(MiningProtocol.ProtocolTag == "va:mining", "手掘りwire tagはva:miningである");
 
-    // 石の斧をホットバー経由で用意し、サーバ権威が読む装備枠へ移して選択する
-    // Prepare a stone axe through the hotbar, then move and select it in the server-authoritative equipment slot
+    // 石斧を装備枠へ設定
+    // Set stone axe to equipment slot
     p.Note("石の斧をホットバー1へ入れ、装備枠1で選択する");
     await p.GiveItemToHotbar(0, "石の斧", 1);
     await p.SelectHotbar(0);
@@ -64,8 +64,8 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
     p.Assert(stoneCollider != null, "石鉱脈露頭に採掘用Colliderがある");
     p.Assert(stoneCollider.GetComponent<OutcropRayTarget>() != null, "石鉱脈露頭ColliderにOutcropRayTargetがある");
 
-    // 正面と45度方向の双方から実照準し、薄いColliderでもフォーカスを維持できることを確かめる
-    // Aim from both front and 45 degrees to prove the thin collider retains focus from practical angles
+    // 2方向の照準を検証
+    // Verify aiming from two directions
     await p.Until(
         () => UnityEngine.Object.FindFirstObjectByType<MapObjectMiningController>() != null && Camera.main != null,
         10f,
@@ -96,16 +96,16 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
     await p.Until(() => ReferenceEquals(context.CurrentFocusTarget, stoneOutcrop), 10f, "45度照準で石露頭をフォーカス");
     await p.Screenshot("02-stone-outcrop-angle-focus");
 
-    // InputSystemの左クリック保持で採掘FSMを完了させ、サーバ応答後の石増加を待つ
-    // Complete the mining FSM with an InputSystem left-button hold and wait for the server-side stone reward
+    // 採掘後の石増加を待つ
+    // Wait for stone increase after mining
     var stoneBefore = p.CountItem("石");
     p.Note("本番入力の左クリックを保持し、va:miningで石露頭を1回掘る");
     SemanticInput.MouseButtonDown(0);
     await p.WaitSeconds(1.2f);
     SemanticInput.MouseButtonUp(0);
     await p.WaitSeconds(0.5f);
-    await p.Until(() => p.CountItem("石") > stoneBefore, 15f, "va:mining応答で石在庫が増加");
-    p.Assert(p.CountItem("石") > stoneBefore, "露頭採掘後に石インベントリが増えた");
+    await p.Until(() => stoneBefore < p.CountItem("石"), 15f, "va:mining応答で石在庫が増加");
+    p.Assert(stoneBefore < p.CountItem("石"), "露頭採掘後に石インベントリが増えた");
     await p.Screenshot("03-stone-mined");
     p.Note("ADR-0007 vein手掘りsmoke完了");
 });

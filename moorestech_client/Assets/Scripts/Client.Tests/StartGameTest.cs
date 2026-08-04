@@ -140,8 +140,8 @@ namespace Client.Tests
                 Assert.That(actualKeys.IsSupersetOf(expectedKeys), Is.True);
                 Assert.That(sceneHasVeinDatastore, Is.True);
 
-                // 両world pinを独立オブジェクトとして保持し、Starter参照とmissing scriptを同時に固定する
-                // Keep both world pins on independent objects and pin their Starter references plus missing-script integrity
+                // 両pin配線と欠損を検証
+                // Verify both pin wiring and absence
                 var mapPins = FindSceneComponents<MapObjectPin>(scene);
                 var veinPins = FindSceneComponents<VeinPin>(scene);
                 var starters = FindSceneComponents<MainGameStarter>(scene);

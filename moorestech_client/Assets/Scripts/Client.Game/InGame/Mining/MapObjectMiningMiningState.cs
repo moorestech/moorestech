@@ -2,24 +2,20 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Input;
 using Common.Debug;
-using Core.Master;
 
 namespace Client.Game.InGame.Mining
 {
     public class MapObjectMiningMiningState : IMapObjectMiningState
     {
+        private readonly IMiningTargetObject _startedMiningTarget;
         private readonly MiningToolCandidate _miningToolCandidate;
-
-        // 入場時の装備アイテム。毎tickのマスタ走査を避けるため採掘中はこのIDと比較する
-        // The item equipped on entry; mining compares against this id to avoid a per-tick master lookup
-        private readonly ItemId _startedEquippedItemId;
 
         private float _currentMiningProgressTime;
 
-        public MapObjectMiningMiningState(MiningToolCandidate miningToolCandidate, ItemId startedEquippedItemId)
+        public MapObjectMiningMiningState(IMiningTargetObject startedMiningTarget, MiningToolCandidate miningToolCandidate)
         {
+            _startedMiningTarget = startedMiningTarget;
             _miningToolCandidate = miningToolCandidate;
-            _startedEquippedItemId = startedEquippedItemId;
             _currentMiningProgressTime = 0;
             
             PlayerSystemContainer.Instance.PlayerObjectController.SetAnimationState(PlayerAnimationState.Axe);
@@ -46,6 +42,13 @@ namespace Client.Game.InGame.Mining
             {
                 return new MapObjectMiningFocusState();
             }
+
+            // 開始対象が変わればフォーカスへ戻す
+            // Return to focus when the started target changes
+            if (!ReferenceEquals(context.CurrentFocusTarget, _startedMiningTarget))
+            {
+                return new MapObjectMiningFocusState();
+            }
             
             // 左クリックされていない場合はフォーカス状態に遷移
             // If left click is not pressed, transition to focus state
@@ -56,14 +59,14 @@ namespace Client.Game.InGame.Mining
 
             // 採掘中に対象が採掘対象でなくなったらフォーカス状態でやり直す
             // If the focused object stops being a mining target mid-mining, restart from the focus state
-            if (!context.CurrentFocusTarget.IsAvailable || context.CurrentFocusTarget.IsPickUp)
+            if (!_startedMiningTarget.IsAvailable || _startedMiningTarget.IsPickUp)
             {
                 return new MapObjectMiningFocusState();
             }
 
             // 採掘はサーバーが装備アイテムでGUID照合するため、装備が変わったら進捗を続けずフォーカスへ戻す
             // The server matches the equipped item's GUID, so an equipment change must drop back to focus instead of advancing
-            if (context.LocalPlayerEquipment.SelectedItem.Id != _startedEquippedItemId)
+            if (context.LocalPlayerEquipment.SelectedItem.Id != _miningToolCandidate.ToolItemId)
             {
                 return new MapObjectMiningFocusState();
             }
@@ -82,7 +85,7 @@ namespace Client.Game.InGame.Mining
             // If mining is complete, transition to mining complete state
             if (_miningToolCandidate.AttackSpeed <= _currentMiningProgressTime)
             {
-                return new MapObjectMiningMiningCompleteState(context.CurrentFocusTarget);
+                return new MapObjectMiningMiningCompleteState(_startedMiningTarget);
             }
             
             return this;

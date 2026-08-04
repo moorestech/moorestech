@@ -4,8 +4,8 @@ using Core.Update;
 namespace Game.Map
 {
     /// <summary>
-    ///     手採採掘のプレイヤー単位クールダウン。mapObject採掘とvein採掘で共有し1振り制限を全採掘共通にする
-    ///     Per-player cooldown for hand mining; shared by mapObject and vein mining to enforce one swing at a time
+    ///     全手採採掘の共有クールダウン
+    ///     Shared cooldown for all hand mining
     /// </summary>
     public class MiningCooldownService
     {

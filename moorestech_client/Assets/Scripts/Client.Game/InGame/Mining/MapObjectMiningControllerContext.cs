@@ -22,8 +22,8 @@ namespace Client.Game.InGame.Mining
             var currentGameObject = CurrentFocusTarget?.GameObject;
             var nextGameObject = target?.GameObject;
 
-            // 実体が変わった時だけ旧対象と新対象へフォーカス状態をプッシュする
-            // Push focus state to the old and new targets only when the concrete object changes
+            // 実体変更時だけ通知
+            // Notify only on concrete change
             if (currentGameObject != nextGameObject)
             {
                 CurrentFocusTarget?.SetFocused(false);

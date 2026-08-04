@@ -15,8 +15,8 @@ namespace Client.Game.InGame.Mining
         {
             SoundEffectManager.Instance.PlaySoundEffect(_completedTarget.DestroySoundType);
 
-            // 対象固有のサーバー攻撃送信は実装側へ委譲する
-            // Delegate target-specific server attack sending to the implementation
+            // 対象実装へ送信委譲
+            // Delegate send to target implementation
             _completedTarget.SendAttack();
 
             return context.CurrentFocusTarget == null

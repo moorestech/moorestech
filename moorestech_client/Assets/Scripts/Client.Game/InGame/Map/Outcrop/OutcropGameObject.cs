@@ -30,19 +30,19 @@ namespace Client.Game.InGame.Map.Outcrop
             _minableParam = (MinableHandMiningParam)element.HandMiningParam;
             _minePosition = minePosition;
 
-            // 音種は露頭の見た目ではなく鉱脈マスタから決定する
-            // Resolve the sound kind from vein master data rather than outcrop visuals
+            // 音種は鉱脈マスタ準拠
+            // Resolve sound from vein master
             _destroySoundType = element.SoundEffectType == MapVeinMasterElement.SoundEffectTypeConst.tree
                 ? SoundEffectType.DestroyTree
                 : SoundEffectType.DestroyStone;
 
-            // 推奨表示と装備照合で共通のItemId表現を保持する
-            // Retain the shared ItemId representation for recommendations and equipment matching
+            // ツールIDを共通化
+            // Share tool IDs
             foreach (var handMiningTool in _minableParam.HandMiningTools)
                 UsableToolItemIds.Add(MasterHolder.ItemMaster.GetItemId(handMiningTool.ToolItemGuid));
 
-            // プレハブ内の全コライダを同じ露頭ターゲットへ結び付ける
-            // Bind every prefab collider to the same outcrop target
+            // 全Colliderを露頭へ紐付け
+            // Bind all colliders to outcrop
             foreach (var childCollider in GetComponentsInChildren<Collider>(true))
             {
                 var rayTarget = childCollider.GetComponent<OutcropRayTarget>();
@@ -56,13 +56,13 @@ namespace Client.Game.InGame.Map.Outcrop
             tool = default;
             if (equippedItemId == ItemMaster.EmptyItemId) return false;
 
-            // 装備GUIDが許可ツールに一致した場合だけ攻撃間隔を返す
-            // Return the attack interval only when the equipped GUID matches an allowed tool
+            // 許可ツールの間隔を返す
+            // Return allowed tool interval
             var equippedItemGuid = MasterHolder.ItemMaster.GetItemMaster(equippedItemId).ItemGuid;
             foreach (var handMiningTool in _minableParam.HandMiningTools)
             {
                 if (handMiningTool.ToolItemGuid != equippedItemGuid) continue;
-                tool = new MiningToolCandidate(equippedItemId, (float)handMiningTool.AttackSpeed);
+                tool = new MiningToolCandidate(equippedItemId, handMiningTool.AttackSpeed);
                 return true;
             }
 
@@ -71,14 +71,14 @@ namespace Client.Game.InGame.Map.Outcrop
 
         public void SetFocused(bool focused)
         {
-            // 露頭のフォーカス演出はアート課題として後続対応する
-            // Outcrop focus visuals remain a follow-up art task
+            // 露頭演出は後続対応
+            // Outcrop visuals follow later
         }
 
         public void SendAttack()
         {
-            // AABB内座標をvein種別リクエストとしてサーバーへ送る
-            // Send the in-AABB coordinate to the server as a vein request
+            // AABB内座標で採掘送信
+            // Send mining with in-AABB position
             var request = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(
                 ClientContext.PlayerConnectionSetting.PlayerId,
                 _minePosition);

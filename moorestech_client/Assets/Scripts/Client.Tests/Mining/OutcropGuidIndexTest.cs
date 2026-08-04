@@ -28,8 +28,8 @@ namespace Client.Tests.Mining
             var nearest = CreateOutcrop("nearest", new Vector3(2, 0, 0));
             var wrongGuidCloser = CreateOutcrop("wrong-guid", new Vector3(1, 0, 0));
 
-            // 距離だけでなくveinGuidの絞り込みも同じ検索で検証する
-            // Verify the vein-GUID filter together with distance ordering in one real lookup
+            // GUID絞込と距離を検証
+            // Verify GUID filter and distance
             index.Add(targetGuid, far);
             index.Add(otherGuid, wrongGuidCloser);
             index.Add(targetGuid, nearest);

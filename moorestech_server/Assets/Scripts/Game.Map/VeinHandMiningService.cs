@@ -20,8 +20,8 @@ namespace Game.Map
     }
 
     /// <summary>
-    ///     vein手掘りのサーバ権威判定。座標→vein解決・ツール照合・1振り1ドロップを担う
-    ///     Server-authoritative vein hand mining: position→vein resolution, tool matching, one drop per swing
+    ///     vein手掘りの権威判定
+    ///     Authority check for vein hand mining
     /// </summary>
     public class VeinHandMiningService
     {
@@ -37,20 +37,20 @@ namespace Game.Map
         {
             earnedItems = null;
 
-            // 座標上のitem veinからminable設定のものを探す
-            // Find a minable-configured item vein over the position
+            // 座標上の採掘可能veinを探す
+            // Find minable vein at position
             if (!TryFindMinableVein(position, out var vein, out var minableParam)) return VeinMiningResult.NoMinableVein;
 
             // 素手はどのツールにも一致しない
             // Bare hands match no tools
             if (equippedItem.Id == ItemMaster.EmptyItemId) return VeinMiningResult.NoTool;
 
-            // 装備中ツールをhandMiningToolsと照合する
-            // Match the equipped tool against handMiningTools
+            // 装備ツールを照合
+            // Match equipped tool
             if (!TryResolveUsableTool(equippedItem.Id, minableParam.HandMiningTools, out var usableTool)) return VeinMiningResult.ToolMismatch;
 
-            // mapObject採掘と共有のクールダウンで1振り制限を守る
-            // The cooldown shared with mapObject mining enforces one swing at a time
+            // 共有クールダウンを検証
+            // Validate shared cooldown
             if (_cooldownService.IsInCooldown(playerId, usableTool.AttackSpeed)) return VeinMiningResult.CooldownNotElapsed;
 
             _cooldownService.RecordAttack(playerId);
@@ -91,8 +91,8 @@ namespace Game.Map
 
             List<IItemStack> CreateEarnedItems(ItemId itemId, MinableHandMiningParam param)
             {
-                // 1振りごとにminCount〜maxCountを一様抽選し、1スタックとして返す
-                // Roll minCount..maxCount uniformly for each swing and return one stack
+                // 個数を一様抽選
+                // Sample count uniformly
                 var count = _random.Next(param.MinCount, param.MaxCount + 1);
                 return new List<IItemStack> { ServerContext.ItemStackFactory.Create(itemId, count) };
             }

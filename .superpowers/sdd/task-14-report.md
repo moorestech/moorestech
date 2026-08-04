@@ -251,3 +251,24 @@ TestCount: 28 / PassedCount: 28 / FailedCount: 0  (Passed)
 ```
 
 既知のbranch-red 2件（`SkitLocalizationDictionaryCompletenessTest`）は引き続き未修正・未接触。
+
+---
+
+## ADR-0007 vein手掘り 最終レビュー是正
+
+### 是正内容
+
+- `MapObjectMiningMiningState` が採掘開始時の対象参照と `MiningToolCandidate` を固定し、フォーカス先が同一参照でなくなった時点で `MapObjectMiningFocusState` へ戻るようにした。完了時の送信先も開始対象へ固定し、装備照合は重複引数を廃止して `MiningToolCandidate.ToolItemId` を使用する。
+- `MapVeinMasterUtil` に `attackSpeed <= 0` と同一鉱脈内の重複 `ToolItemGuid` の拒否を追加した。既存REDテストの2ケースはこの挙動を固定する。
+- `OutcropGameObjectDatastore` と `VeinPin` のDI入口を `Initialize` に改名し、`MapObjectPin` / `VeinPin` の単一呼び出し初期化をメソッド内 `#region Internal` のローカル関数へ移した。
+- 余分なfloatキャストと単一利用の `OnFocus` を除去し、smokeの比較を定数・基準値左辺に統一した。
+- レビュー指定の日本語・英語コメント対を、根拠コメントの例外を保ったまま短縮した。
+
+### 検証結果
+
+| コマンド | 結果 |
+|---|---|
+| `uloop compile --project-path ./moorestech_client` | Error 0、Warning 8 |
+| `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MapObjectMiningEquipmentSwitchTest|MapVeinMasterTest"` | 14/14 PASS、FAIL 0、SKIP 0 |
+
+初回のRED実行はこのworktreeに `UserSettings/UnityMcpSettings.json` が無くCLIが開始前に失敗したため、既存の `UnityMcpSettings.json.bak` を復元して実行した。設定ファイルは追跡外でありコミット対象ではない。引き継ぎ済みのRED根拠は10/14（開始対象変更1件、attackSpeed 2件、重複ToolItemGuid 1件）であり、上記GREEN結果で全て解消した。

@@ -18,15 +18,15 @@ using UnityEngine;
 namespace Tests.CombinedTest.Server.PacketTest
 {
     /// <summary>
-    ///     vein手掘りの権威判定（座標→vein解決・ツール照合・1振り1ドロップ・クールダウン共有）を検証する
-    ///     Verifies vein hand-mining authority: position→vein resolution, tool matching, per-swing drops, shared cooldown
+    ///     vein採掘権威を検証
+    ///     Verify vein mining authority
     /// </summary>
     public class VeinMiningProtocolTest
     {
         private const int PlayerId = 0;
 
-        // ForUnitTestマスタのIronVein(minable, tool=1234-0001, attackSpeed0.2)と対応座標
-        // ForUnitTest master's IronVein (minable, tool 1234-0001, attackSpeed 0.2) and a position inside it
+        // IronVein内の対象座標
+        // Target position inside IronVein
         private static readonly Vector3Int InsideIronVein = new(0, 5, 0);
         private static readonly Vector3Int OutsideAnyVein = new(500, 500, 500);
         private static readonly Vector3Int InsideFluidVein = new(5, 0, 0);
@@ -54,8 +54,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             EquipTool(playerInventory, UnmatchedToolItemGuid);
             Assert.AreEqual(VeinMiningResult.ToolMismatch, miningService.TryMine(PlayerId, InsideIronVein, playerInventory.EquipmentInventory.GetSelectedItem(), out _));
 
-            // 対応ツールでminCount〜maxCount（テストマスタは1〜1固定）個ドロップする
-            // The matching tool drops minCount..maxCount items (fixed 1..1 in the test master)
+            // 設定範囲の個数を取得
+            // Get count from configured range
             EquipTool(playerInventory, ToolItemGuid);
             Assert.AreEqual(VeinMiningResult.Success, miningService.TryMine(PlayerId, InsideIronVein, playerInventory.EquipmentInventory.GetSelectedItem(), out var earnedItems));
             Assert.AreEqual(1, earnedItems.Sum(item => item.Count));
@@ -77,12 +77,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Positions outside every vein AABB are not minable
             Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, OutsideAnyVein, equipped, out _));
 
-            // fluid veinはItemMapVeinDatastoreの対象外なので同じくNoMinableVein
-            // Fluid veins are outside ItemMapVeinDatastore, so also NoMinableVein
+            // fluidは採掘対象外
+            // Fluid is not minable
             Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, InsideFluidVein, equipped, out _));
 
-            // none設定のitem veinはDatastoreには存在するがminable判定で弾かれる
-            // A none-configured item vein exists in the datastore but is rejected by the minable check
+            // noneは採掘不可
+            // None is not minable
             Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, InsideNoneItemVein, equipped, out _));
         }
 
@@ -97,13 +97,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             EquipTool(playerInventory, ToolItemGuid);
             var equipped = playerInventory.EquipmentInventory.GetSelectedItem();
 
-            // mapObjectへの1振り直後にveinを掘ると共有クールダウンで弾かれる
-            // Mining a vein immediately after a mapObject swing is rejected by the shared cooldown
+            // 共有クールダウンを検証
+            // Verify shared cooldown
             Assert.AreEqual(MiningAttackResult.Success, mapObjectMiningService.TryAttack(PlayerId, mapObject, equipped, out _));
             Assert.AreEqual(VeinMiningResult.CooldownNotElapsed, veinService.TryMine(PlayerId, InsideIronVein, equipped, out _));
 
-            // attackSpeed分のtickを進めればvein採掘は再び通る
-            // After advancing attackSpeed worth of ticks, vein mining succeeds again
+            // 経過後は再採掘可能
+            // Mine again after elapsed time
             GameUpdater.RunFrames(GameUpdater.SecondsToTicks(ExpectedAttackSpeed) + 1);
             Assert.AreEqual(VeinMiningResult.Success, veinService.TryMine(PlayerId, InsideIronVein, equipped, out _));
         }
@@ -115,8 +115,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             EquipTool(playerInventory, ToolItemGuid);
 
-            // Vein種別のリクエストは座標から報酬を解決してインベントリへ入れる
-            // A Vein request resolves its reward from the position and inserts it into inventory
+            // 座標から報酬を解決
+            // Resolve reward from position
             var request = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(PlayerId, InsideIronVein);
             packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
 

@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Game.InGame.Map.Outcrop
 {
     /// <summary>
-    ///     生成済み露頭をveinGuid別に保持し、プレイヤー位置から最寄りを解決する
-    ///     Stores instantiated outcrops per vein GUID and resolves the nearest one to a player position
+    ///     鉱脈別の最寄り露頭索引
+    ///     Nearest-outcrop index by vein
     /// </summary>
     internal sealed class OutcropGuidIndex
     {
@@ -27,8 +27,8 @@ namespace Client.Game.InGame.Map.Outcrop
         {
             if (!_outcropsByVeinGuid.TryGetValue(veinGuid, out var outcrops)) return null;
 
-            // 平方距離で同種露頭を一巡し、余分な平方根計算を避ける
-            // Scan same-vein outcrops by squared distance and avoid unnecessary square roots
+            // 平方距離で最寄りを探索
+            // Find nearest by squared distance
             var nearest = outcrops[0];
             var nearestDistance = (nearest.transform.position - position).sqrMagnitude;
             for (var i = 1; i < outcrops.Count; i++)

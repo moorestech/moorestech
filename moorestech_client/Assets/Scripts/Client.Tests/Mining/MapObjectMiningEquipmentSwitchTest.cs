@@ -45,6 +45,7 @@ namespace Client.Tests.Mining
             ResetInputManagerCache();
             CreatePlayerSystem();
             CreateProgressBarView();
+            _mapObjectObject = new GameObject("MiningMapObjects");
 
             #region Internal
 
@@ -83,15 +84,12 @@ namespace Client.Tests.Mining
             UnityEngine.Object.DestroyImmediate(_playerObject);
             ResetInputManagerCache();
             base.TearDown();
-
             #region Internal
-
             static void SetStaticProperty(Type targetType, string propertyName, object value)
             {
                 var field = targetType.GetField($"<{propertyName}>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic);
                 field.SetValue(null, value);
             }
-
             #endregion
         }
 
@@ -100,13 +98,11 @@ namespace Client.Tests.Mining
         {
             var context = new MapObjectMiningControllerContext(CreateEquipmentHoldingTool());
             context.SetFocusTarget(CreateMiningMapObject());
-            var miningState = new MapObjectMiningMiningState(MiningToolOfFocusedMapObject(context), context.LocalPlayerEquipment.SelectedItem.Id);
+            var miningState = new MapObjectMiningMiningState(context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
             PressLeftClick();
-
             // 装備が変わらない限り採掘は継続する（この土台が無いと切替検知の失敗を検出できない）
             // Mining continues while the equipment is unchanged; without this baseline a broken switch check is invisible
             Assert.AreSame(miningState, miningState.GetNextUpdate(context, 0.01f));
-
             // サーバーは現在の装備でGUID照合するため、素手へ持ち替えた時点で進捗を進めてはいけない
             // The server matches the GUID of the current equipment, so progress must stop the moment bare hands are selected
             context.LocalPlayerEquipment.ApplySelected(IEquipmentInventory.BareHandsIndex);
@@ -119,12 +115,24 @@ namespace Client.Tests.Mining
             var context = new MapObjectMiningControllerContext(CreateEquipmentHoldingTool());
             context.SetFocusTarget(CreateMiningMapObject());
             var miningTool = MiningToolOfFocusedMapObject(context);
-            var miningState = new MapObjectMiningMiningState(miningTool, context.LocalPlayerEquipment.SelectedItem.Id);
+            var miningState = new MapObjectMiningMiningState(context.CurrentFocusTarget, miningTool);
             PressLeftClick();
-
             // 切替検知が誤爆すると完了へ到達できなくなるため、同一装備での完走も固定する
             // A false positive in the switch check would block completion, so the same-equipment run is pinned too
             Assert.IsInstanceOf<MapObjectMiningMiningCompleteState>(miningState.GetNextUpdate(context, miningTool.AttackSpeed));
+        }
+
+        [Test]
+        public void 採掘中に照準対象が変わるとフォーカス状態へ戻る()
+        {
+            var context = new MapObjectMiningControllerContext(CreateEquipmentHoldingTool());
+            context.SetFocusTarget(CreateMiningMapObject());
+            var miningState = new MapObjectMiningMiningState(context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
+            PressLeftClick();
+
+            context.SetFocusTarget(CreateMiningMapObject());
+
+            Assert.IsInstanceOf<MapObjectMiningFocusState>(miningState.GetNextUpdate(context, 0.01f));
         }
 
         private LocalPlayerEquipment CreateEquipmentHoldingTool()
@@ -137,8 +145,9 @@ namespace Client.Tests.Mining
 
         private MapObjectGameObject CreateMiningMapObject()
         {
-            _mapObjectObject = new GameObject("MiningMapObject");
-            var mapObject = _mapObjectObject.AddComponent<MapObjectGameObject>();
+            var mapObjectObject = new GameObject("MiningMapObject");
+            mapObjectObject.transform.SetParent(_mapObjectObject.transform);
+            var mapObject = mapObjectObject.AddComponent<MapObjectGameObject>();
             mapObject.SetRuntimeIdentity(1, MiningRockGuid.ToString());
             mapObject.Initialize(new GetMapObjectInfoProtocol.MapObjectsInfoMessagePack(1, false, 30));
             return mapObject;

@@ -19,8 +19,8 @@ namespace Client.Game.InGame.Tutorial
 
     public class VeinPin : MonoBehaviour, IVeinPin
     {
-        // MapObject用ピンと独立して掃除できるWebオーバーレイID
-        // Independent web-overlay ID so cleanup never removes the map-object pin
+        // 独立したWebピンID
+        // Independent web-pin ID
         private const string WebPinId = "vein-pin";
 
         private InGameCameraController _inGameCameraController;
@@ -32,7 +32,7 @@ namespace Client.Game.InGame.Tutorial
         private bool _visibilityInitialized;
 
         [Inject]
-        public void Construct(InGameCameraController inGameCameraController, OutcropGameObjectDatastore outcropGameObjectDatastore)
+        public void Initialize(InGameCameraController inGameCameraController, OutcropGameObjectDatastore outcropGameObjectDatastore)
         {
             _inGameCameraController = inGameCameraController;
             _outcropGameObjectDatastore = outcropGameObjectDatastore;
@@ -42,8 +42,8 @@ namespace Client.Game.InGame.Tutorial
         {
             if (_currentTutorialParam == null) return;
 
-            // Y軸回転だけをカメラへ向け、ワールドピンの姿勢を保つ
-            // Face the camera only around the Y axis to preserve the world-pin pose
+            // Y軸だけカメラへ向ける
+            // Face camera on Y axis only
             transform.LookAt(_inGameCameraController.Position);
             transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
             TrackNearestOutcrop();
@@ -106,18 +106,22 @@ namespace Client.Game.InGame.Tutorial
             EnsureDesiredActiveInitialized();
             _skitSuppressed = suppressed;
             ApplyVisibility();
+
+            #region Internal
+
+            void EnsureDesiredActiveInitialized()
+            {
+                if (_visibilityInitialized) return;
+                _desiredActive = gameObject.activeSelf;
+                _visibilityInitialized = true;
+            }
+
+            #endregion
         }
 
         public bool IsSkitSuppressed()
         {
             return _skitSuppressed;
-        }
-
-        private void EnsureDesiredActiveInitialized()
-        {
-            if (_visibilityInitialized) return;
-            _desiredActive = gameObject.activeSelf;
-            _visibilityInitialized = true;
         }
 
         private void ApplyVisibility()

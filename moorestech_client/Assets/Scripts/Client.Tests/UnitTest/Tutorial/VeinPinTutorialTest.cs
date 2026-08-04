@@ -86,8 +86,8 @@ namespace Client.Tests.UnitTest.Tutorial
             veinObject.SetActive(false);
             var veinPin = veinObject.AddComponent<VeinPin>();
 
-            // 完了済みpinは再表示せず、新規pinは抑止解除後に表示する
-            // Keep completed pins hidden and reveal new pins after suppression ends
+            // 完了pinを再表示しない
+            // Do not redisplay completed pin
             mapObjectPin.SetSkitSuppressed(true);
             mapObjectPin.SetActive(false);
             mapObjectPin.SetSkitSuppressed(false);
@@ -99,8 +99,8 @@ namespace Client.Tests.UnitTest.Tutorial
             Assert.IsFalse(mapObject.activeSelf);
             Assert.IsTrue(veinObject.activeSelf);
 
-            // 逆方向も各実装で確認し、共通契約の片側だけが壊れる退行を防ぐ
-            // Check both reverse directions so one implementation cannot violate the shared contract
+            // 両実装で共通契約を検証
+            // Verify shared contract in both implementations
             mapObjectPin.SetSkitSuppressed(true);
             mapObjectPin.SetActive(true);
             Assert.IsFalse(mapObject.activeSelf);

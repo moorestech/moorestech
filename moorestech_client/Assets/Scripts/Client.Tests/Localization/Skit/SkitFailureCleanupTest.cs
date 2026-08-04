@@ -80,8 +80,8 @@ namespace Client.Tests.Localization.Skit
             var veinPin = new RecordingVeinPin(false);
             var snapshot = new WorldPinActivationSnapshot(mapObjectPin, veinPin);
 
-            // skit中は両方を隠し、終了時は各pinの開始前状態へ個別に戻す
-            // Hide both pins during skit, then restore each pin's own pre-skit state
+            // 両pinを個別復元
+            // Restore both pins separately
             snapshot.Hide();
             Assert.IsFalse(mapObjectPin.IsActive());
             Assert.IsFalse(veinPin.IsActive());
@@ -98,8 +98,8 @@ namespace Client.Tests.Localization.Skit
             var veinPin = new RecordingVeinPin(false);
             var snapshot = new WorldPinActivationSnapshot(mapObjectPin, veinPin);
 
-            // 非表示中のチュートリアル完了を、開始前状態の復元で上書きしない
-            // Do not overwrite tutorial completion while hidden with the pre-skit state
+            // 完了状態を復元で覆さない
+            // Do not overwrite completion on restore
             snapshot.Hide();
             mapObjectPin.SetActive(false);
             veinPin.SetActive(true);

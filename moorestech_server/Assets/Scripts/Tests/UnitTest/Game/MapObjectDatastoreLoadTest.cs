@@ -18,8 +18,8 @@ namespace Tests.UnitTest.Game
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var existingMapObject = ServerContext.MapObjectDatastore.MapObjects[0];
 
-            // 欠損entryの警告と後続entryの破壊復元を同じロードで検証する
-            // Verify the missing-entry warning and subsequent destruction restore in one load
+            // 欠損後も破壊状態を復元
+            // Restore destruction after missing entry
             var savedMapObjects = new List<MapObjectJsonObject>
             {
 #pragma warning disable CS0618

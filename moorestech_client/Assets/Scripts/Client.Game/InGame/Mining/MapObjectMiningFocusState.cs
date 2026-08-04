@@ -65,7 +65,7 @@ namespace Client.Game.InGame.Mining
             // マイニング状態に遷移
             // Transition to mining state
             MouseCursorTooltip.Instance.Hide();
-            return new MapObjectMiningMiningState(usableMiningTool, equippedItemId);
+            return new MapObjectMiningMiningState(currentTarget, usableMiningTool);
 
             #region Internal
 

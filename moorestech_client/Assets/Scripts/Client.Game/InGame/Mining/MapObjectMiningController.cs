@@ -57,8 +57,8 @@ namespace Client.Game.InGame.Mining
 
             IMiningTargetObject ResolveMiningTarget(GameObject hitObject)
             {
-                // 既存mapObjectを優先し、該当しなければ露頭マーカーを解決する
-                // Prefer an existing map object, then resolve an outcrop marker when absent
+                // mapObjectを優先解決
+                // Prefer resolving mapObjects
                 if (hitObject.TryGetComponent(out MapObjectRayTarget mapObjectRayTarget))
                     return mapObjectRayTarget.MapObjectGameObject;
                 if (hitObject.TryGetComponent(out OutcropRayTarget outcropRayTarget))

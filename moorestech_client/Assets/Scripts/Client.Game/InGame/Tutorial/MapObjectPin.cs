@@ -115,18 +115,22 @@ namespace Client.Game.InGame.Tutorial
             EnsureDesiredActiveInitialized();
             _skitSuppressed = suppressed;
             ApplyVisibility();
+
+            #region Internal
+
+            void EnsureDesiredActiveInitialized()
+            {
+                if (_visibilityInitialized) return;
+                _desiredActive = gameObject.activeSelf;
+                _visibilityInitialized = true;
+            }
+
+            #endregion
         }
 
         public bool IsSkitSuppressed()
         {
             return _skitSuppressed;
-        }
-
-        private void EnsureDesiredActiveInitialized()
-        {
-            if (_visibilityInitialized) return;
-            _desiredActive = gameObject.activeSelf;
-            _visibilityInitialized = true;
         }
 
         private void ApplyVisibility()

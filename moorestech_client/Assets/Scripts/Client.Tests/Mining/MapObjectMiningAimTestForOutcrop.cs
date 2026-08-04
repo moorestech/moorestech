@@ -15,8 +15,8 @@ using UnityEngine.InputSystem.UI;
 namespace Client.Tests.Mining
 {
     /// <summary>
-    ///     照準ヒット時の露頭解決と既存MapObject優先順位を検証する
-    ///     Verifies outcrop aim resolution and existing map-object precedence
+    ///     露頭解決と優先順を検証
+    ///     Verify outcrop resolution and priority
     /// </summary>
     public class MapObjectMiningAimTestForOutcrop : InputTestFixture
     {
@@ -68,8 +68,8 @@ namespace Client.Tests.Mining
             var outcrop = CreateOutcropTarget(false);
             var context = RunMiningUpdate();
 
-            // MapObjectマーカーが無くても露頭マーカーから採掘対象を解決する
-            // Resolve the mining target from the outcrop marker without a map-object marker
+            // 露頭マーカーから解決
+            // Resolve from outcrop marker
             Assert.AreSame(outcrop, context.CurrentFocusTarget);
         }
 
@@ -80,8 +80,8 @@ namespace Client.Tests.Mining
             var expectedMapObject = _targetObject.GetComponent<MapObjectRayTarget>().MapObjectGameObject;
             var context = RunMiningUpdate();
 
-            // 両マーカーが同居する移行期間も既存MapObjectの意味を保つ
-            // Preserve existing map-object semantics while both markers coexist during migration
+            // 同居時もmapObject優先
+            // Prefer mapObject when coexisting
             Assert.AreNotSame(outcrop, context.CurrentFocusTarget);
             Assert.AreSame(expectedMapObject, context.CurrentFocusTarget);
         }
@@ -92,8 +92,8 @@ namespace Client.Tests.Mining
             _cameraObject.tag = "MainCamera";
             _cameraObject.AddComponent<Camera>();
 
-            // UI上のポインタ判定も本番Updateと同じ経路で通す
-            // Exercise the same pointer-over-UI path used by production Update
+            // 本番UI判定を通す
+            // Use production UI check
             _eventSystemObject = new GameObject("EventSystem");
             var eventSystem = _eventSystemObject.AddComponent<EventSystem>();
             _eventSystemObject.AddComponent<InputSystemUIInputModule>();
@@ -121,8 +121,8 @@ namespace Client.Tests.Mining
             _targetObject.transform.position = ray.GetPoint(1f);
             _targetObject.AddComponent<SphereCollider>().radius = 0.05f;
 
-            // 同じColliderに各マーカーを載せて解決順そのものを検証する
-            // Put each marker on the same collider to verify resolution order itself
+            // 同一Colliderで優先順検証
+            // Verify priority on same collider
             var outcrop = _targetObject.AddComponent<OutcropGameObject>();
             _targetObject.AddComponent<OutcropRayTarget>().Initialize(outcrop);
             if (includeMapObjectMarker)
@@ -143,8 +143,8 @@ namespace Client.Tests.Mining
             SetField(controller, "_context", context);
             SetField(controller, "_currentState", new StableMiningState());
 
-            // ThirdPersonのマウス照準で実際のprivate Updateを一度進める
-            // Advance the real private Update once using the third-person mouse aim
+            // private Updateで照準
+            // Aim through private Update
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
             InvokePrivate(controller, "Update");
             return context;

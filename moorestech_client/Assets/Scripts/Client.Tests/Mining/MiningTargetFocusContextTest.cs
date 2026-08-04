@@ -20,8 +20,8 @@ namespace Client.Tests.Mining
             var sameObjectWrapper = new FocusTrackingMiningTarget("same-object-wrapper", sharedGameObject, focusEventLog);
             var secondTarget = new FocusTrackingMiningTarget("second", secondGameObject, focusEventLog);
 
-            // 同じ実体の別wrapperへ更新しても通知を増やさず、最新wrapperは保持する
-            // Updating to another wrapper of the same object keeps the latest wrapper without extra notifications
+            // 同一実体は再通知しない
+            // Same object sends no repeat
             context.SetFocusTarget(firstTarget);
             context.SetFocusTarget(firstTarget);
             context.SetFocusTarget(sameObjectWrapper);
@@ -31,8 +31,8 @@ namespace Client.Tests.Mining
             Assert.AreEqual(0, sameObjectWrapper.FocusEnabledCount);
             Assert.AreSame(sameObjectWrapper, context.CurrentFocusTarget);
 
-            // 実体変更時は最新wrapperの解除を新対象の有効化より先に通知する
-            // A concrete-object change defocuses the latest wrapper before focusing the new target
+            // 旧解除後に新規有効化
+            // Defocus old before focusing new
             focusEventLog.Clear();
             context.SetFocusTarget(secondTarget);
             CollectionAssert.AreEqual(
@@ -42,8 +42,8 @@ namespace Client.Tests.Mining
             Assert.AreEqual(1, secondTarget.FocusEnabledCount);
             Assert.AreSame(secondTarget, context.CurrentFocusTarget);
 
-            // 対象が消えた場合も最後の対象へ解除を一度だけ通知する
-            // Losing the target also sends exactly one defocus notification to the last target
+            // 消失時も解除は一度
+            // Loss defocuses exactly once
             focusEventLog.Clear();
             context.SetFocusTarget(null);
             context.SetFocusTarget(null);

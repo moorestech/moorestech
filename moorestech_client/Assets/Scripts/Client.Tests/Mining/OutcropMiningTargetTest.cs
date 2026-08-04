@@ -11,8 +11,8 @@ using UnityEngine;
 namespace Client.Tests.Mining
 {
     /// <summary>
-    ///     露頭の採掘対象契約がマスタ定義と子コライダへ反映されることを検証する
-    ///     Verifies that outcrop mining contracts reflect master data and child colliders
+    ///     露頭の採掘契約を検証
+    ///     Verify outcrop mining contract
     /// </summary>
     public class OutcropMiningTargetTest
     {
@@ -27,8 +27,8 @@ namespace Client.Tests.Mining
         [SetUp]
         public void SetUp()
         {
-            // 実運用と同じローダーでForUnitTestマスタを毎テスト初期化する
-            // Initialize the ForUnitTest master per test through the production loader
+            // 実ローダーでマスタ初期化
+            // Initialize master through real loader
             new MoorestechServerDIContainerGenerator().Create(
                 new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
@@ -49,8 +49,8 @@ namespace Client.Tests.Mining
         [Test]
         public void 初期化時に子コライダへ自身を指す露頭マーカーを注入する()
         {
-            // 子コライダのヒットから同一露頭を引けない退行を検出する
-            // Catch regressions where a child-collider hit cannot resolve its owning outcrop
+            // 子Collider退行を検出
+            // Catch child-collider regression
             var rayTarget = _colliderChild.GetComponent<OutcropRayTarget>();
             Assert.IsNotNull(rayTarget);
             Assert.AreSame(_outcrop, rayTarget.OutcropGameObject);
@@ -62,8 +62,8 @@ namespace Client.Tests.Mining
             var toolItemId = MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
             var unmatchedItemId = MasterHolder.ItemMaster.GetItemId(UnmatchedToolItemGuid);
 
-            // 推奨一覧と実際の解決結果を同じマスタ値へ固定する
-            // Pin both the recommendation list and resolution result to the same master value
+            // 解決値をマスタへ固定
+            // Pin resolution to master
             CollectionAssert.AreEqual(new[] { toolItemId }, _outcrop.UsableToolItemIds);
             Assert.IsTrue(_outcrop.TryResolveUsableTool(toolItemId, out var tool));
             Assert.AreEqual(0.2f, tool.AttackSpeed, 0.0001f);

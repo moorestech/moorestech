@@ -13,8 +13,8 @@ using UnityEngine;
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    ///     mapObject採掘とvein採掘を対象種別で分岐する手掘りプロトコル
-    ///     Hand-mining protocol that dispatches mapObject and vein mining by target type
+    ///     手採採掘を対象別に分岐
+    ///     Dispatch hand mining by target
     /// </summary>
     public class MiningProtocol : IPacketResponse
     {
@@ -39,8 +39,8 @@ namespace Server.Protocol.PacketResponse
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
             var equippedItem = playerInventory.EquipmentInventory.GetSelectedItem();
 
-            // 対象種別ごとに権威サービスへ委譲し、未知値は許可しない
-            // Delegate by target type to the authority service and reject unknown values
+            // 対象別サービスへ委譲
+            // Delegate to target service
             var earnedItems = data.TargetType switch
             {
                 MiningTargetType.MapObject => MineMapObject(),
@@ -50,8 +50,8 @@ namespace Server.Protocol.PacketResponse
 
             if (earnedItems == null) return null;
 
-            // 採掘報酬は成功時だけメインインベントリへ加える
-            // Insert mining rewards into the main inventory only on success
+            // 成功報酬だけ追加
+            // Add only successful rewards
             foreach (var earnItem in earnedItems) playerInventory.MainOpenableInventory.InsertItem(earnItem);
             return null;
 
@@ -67,8 +67,8 @@ namespace Server.Protocol.PacketResponse
                     return null;
                 }
 
-                // HP更新は破壊されていないmapObjectだけに送信する
-                // Send an HP update only for a mapObject that remains intact
+                // 未破壊時だけHP更新
+                // Update HP only when intact
                 if (!mapObject.IsDestroyed) _mapObjectUpdateEventPacket.SendHpUpdateEvent(mapObject);
                 return items;
             }
