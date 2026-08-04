@@ -8,7 +8,7 @@ namespace Core.Master.Validator
         {
             errorLogs = "";
             errorLogs += VeinParamGuidValidation();
-            errorLogs += HandMiningToolGuidValidation();
+            errorLogs += HandMiningValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -41,15 +41,31 @@ namespace Core.Master.Validator
                 return logs;
             }
 
-            string HandMiningToolGuidValidation()
+            string HandMiningValidation()
             {
-                // handMiningTools内のtoolItemGuidが実在するitemを指しているか検証する
-                // Validate that toolItemGuid in handMiningTools points to an existing item
+                // fluid鉱脈のminable禁止とminable設定の内部整合を検証する
+                // Validate fluid veins are not minable and minable settings are internally consistent
                 var logs = "";
                 foreach (var element in mapVeins)
                 {
                     if (element.HandMiningParam is not MinableHandMiningParam minableHandMiningParam) continue;
 
+                    // fluid鉱脈を手掘り可能にする設定を拒否する
+                    // Reject settings that make fluid veins hand-minable
+                    if (element.VeinParam is FluidVeinParam)
+                    {
+                        logs += $"[MapVeinMaster] Name:{element.VeinName} fluid veinはminableにできません\n";
+                    }
+
+                    // minable鉱脈に少なくとも1つのツールを要求する
+                    // Require at least one tool for each minable vein
+                    if (minableHandMiningParam.HandMiningTools.Length == 0)
+                    {
+                        logs += $"[MapVeinMaster] Name:{element.VeinName} handMiningToolsが空です\n";
+                    }
+
+                    // 配列の全toolItemGuidが実在アイテムを参照することを検証する
+                    // Validate every toolItemGuid in the array references an existing item
                     foreach (var handMiningTool in minableHandMiningParam.HandMiningTools)
                     {
                         var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(handMiningTool.ToolItemGuid);
@@ -57,6 +73,13 @@ namespace Core.Master.Validator
                         {
                             logs += $"[MapVeinMaster] Name:{element.VeinName} has invalid ToolItemGuid:{handMiningTool.ToolItemGuid}\n";
                         }
+                    }
+
+                    // 採掘ドロップ数の最小値と範囲順序を検証する
+                    // Validate the minimum drop count and range order
+                    if (minableHandMiningParam.MinCount < 1 || minableHandMiningParam.MaxCount < minableHandMiningParam.MinCount)
+                    {
+                        logs += $"[MapVeinMaster] Name:{element.VeinName} minCount/maxCountが不正です min:{minableHandMiningParam.MinCount} max:{minableHandMiningParam.MaxCount}\n";
                     }
                 }
 

@@ -83,11 +83,62 @@ namespace Tests.UnitTest.Core.Map
                  ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},
                  ""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",
                  ""handMiningType"":""minable"",
-                 ""handMiningParam"":{""handMiningTools"":[{""toolItemGuid"":""99999999-9999-9999-9999-999999999999"",""attackSpeed"":1}],
+                 ""handMiningParam"":{""handMiningTools"":[{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":1},{""toolItemGuid"":""99999999-9999-9999-9999-999999999999"",""attackSpeed"":1}],
                  ""minCount"":1,""maxCount"":1}}]}");
             var master = new MapVeinMaster(json);
             Assert.IsFalse(master.Validate(out var logs));
             Assert.IsTrue(logs.Contains("invalid ToolItemGuid"));
+        }
+
+        [Test]
+        public void fluid鉱脈をminableにするとバリデーションで失敗する()
+        {
+            // fluid鉱脈へminable設定を与えるとValidateがfalseを返す
+            // Giving a fluid vein minable settings makes Validate return false
+            var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
+                {""veinGuid"":""33333333-0000-0000-0000-000000000003"",""veinName"":""badFluid"",""veinType"":""fluid"",
+                 ""veinParam"":{""fluidGuid"":""00000000-0000-0000-1234-000000000001""},
+                 ""outcropAddressablePath"":""Vanilla/Environment/WaterVein"",""soundEffectType"":""stone"",
+                 ""handMiningType"":""minable"",
+                 ""handMiningParam"":{""handMiningTools"":[{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":1}],""minCount"":1,""maxCount"":1}}]}");
+            Assert.IsFalse(new MapVeinMaster(json).Validate(out var logs));
+            Assert.IsTrue(logs.Contains("badFluid"));
+        }
+
+        [Test]
+        public void handMiningToolsが空の鉱脈はバリデーションで失敗する()
+        {
+            // ツール配列が空のminable鉱脈はValidateがfalseを返す
+            // A minable vein with an empty tool array makes Validate return false
+            var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
+                {""veinGuid"":""33333333-0000-0000-0000-000000000004"",""veinName"":""noTools"",""veinType"":""item"",
+                 ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},
+                 ""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",
+                 ""handMiningType"":""minable"",""handMiningParam"":{""handMiningTools"":[],""minCount"":1,""maxCount"":1}}]}");
+            Assert.IsFalse(new MapVeinMaster(json).Validate(out var logs));
+            Assert.IsTrue(logs.Contains("noTools"));
+        }
+
+        [Test]
+        public void minCountが1未満またはmaxCountより大きい鉱脈はバリデーションで失敗する()
+        {
+            // minCountが1未満とminCount超過のmaxCountを個別に検証する
+            // Verify minCount below one and maxCount below minCount separately
+            var zeroMinJson = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
+                {""veinGuid"":""33333333-0000-0000-0000-000000000005"",""veinName"":""zeroMin"",""veinType"":""item"",
+                 ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},
+                 ""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",
+                 ""handMiningType"":""minable"",""handMiningParam"":{""handMiningTools"":[{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":1}],""minCount"":0,""maxCount"":1}}]}");
+            Assert.IsFalse(new MapVeinMaster(zeroMinJson).Validate(out var zeroMinLogs));
+            Assert.IsTrue(zeroMinLogs.Contains("zeroMin"));
+
+            var reversedCountJson = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
+                {""veinGuid"":""33333333-0000-0000-0000-000000000006"",""veinName"":""reversedCount"",""veinType"":""item"",
+                 ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},
+                 ""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",
+                 ""handMiningType"":""minable"",""handMiningParam"":{""handMiningTools"":[{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":1}],""minCount"":3,""maxCount"":1}}]}");
+            Assert.IsFalse(new MapVeinMaster(reversedCountJson).Validate(out var reversedCountLogs));
+            Assert.IsTrue(reversedCountLogs.Contains("reversedCount"));
         }
 
         [Test]
