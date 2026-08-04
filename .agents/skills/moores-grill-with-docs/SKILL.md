@@ -22,6 +22,10 @@ Run a `/grilling` session, using the `/domain-modeling` skill.
 
 設計対話中のB判定（設計原則との照合）には [references/moorestech-principles.md](references/moorestech-principles.md) を参照する（旧brainstormingから移設。user-simulatorの知識indexも同ファイルを参照している）。
 
+## HARD GATE（実装着手の禁止）
+
+設計裁定が出揃いADRを書き終えてwriting-plansへ接続するまで、実装スキルの起動・コードの書き込み・プロジェクトのscaffoldを一切行わない。「シンプルすぎて設計不要」という例外は無い — TODOリスト1個・関数1本・設定変更1行でも通す。真に単純なら対話は数問で終わる。短くてよいが省略しない。
+
 ## moorestech追加規約
 
 ### 1. ADR出所欄（必須）
@@ -36,9 +40,9 @@ Run a `/grilling` session, using the `/domain-modeling` skill.
 
 後日「これは誰が決めたか」を遡れることが目的。出所の偽装（agent判断を裁定済みの顔で書く）は禁止。
 
-### 2. 設計完了後は writing-plans へ接続
+### 2. 出口の一本化（writing-plans へ直行）
 
-設計・ADRが確定したら、実装着手前に writing-plans スキルで実装計画を作成する。
+設計・ADRが確定したら、終端状態は「**同一セッションでの writing-plans スキル起動**」のみ。spec等の中間文書は書かない — 要件は会話コンテキスト経由でplan先頭の `## Requirements` セクションへ流れ込む。他スキル・実装への分岐は禁止。
 writing-plans 側の user-simulator による plan review（sim-gate配線）は既存のまま維持する。
 設計フェーズでは user-simulator を自動起動しない（大きな設計で必要な場合のみユーザーが手動起動する）。
 
@@ -52,3 +56,7 @@ writing-plans 側の user-simulator による plan review（sim-gate配線）は
   `user-simulator/datasets/` への格納で解除される（ブロックメッセージに自transcriptパスが入る）
 - 予測体は **model: opus必須明示**・1質問1エージェント・バックグラウンド起動可
 - 採点・永続化・misses.md記録まで shadowモード手順のとおり実施してからセッションを終了する
+
+## 上流リファレンス（未配線）
+
+superpowers/brainstorming の全文写しと採否の記録を [references/superpowers-brainstorming-upstream.md](references/superpowers-brainstorming-upstream.md) に置いている。grill の運用に不満が出たときに発掘して移植を検討する。通常セッションでは読まない。
