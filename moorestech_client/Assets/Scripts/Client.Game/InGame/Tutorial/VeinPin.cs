@@ -13,6 +13,7 @@ namespace Client.Game.InGame.Tutorial
     public interface IVeinPin : ITutorialViewManager, ITutorialView
     {
         public void SetActive(bool active);
+        public bool IsActiveSelf();
     }
 
     public class VeinPin : MonoBehaviour, IVeinPin
@@ -92,6 +93,11 @@ namespace Client.Game.InGame.Tutorial
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
+        }
+
+        public bool IsActiveSelf()
+        {
+            return gameObject.activeSelf;
         }
 
         private void OnDisable()

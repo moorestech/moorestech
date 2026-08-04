@@ -25,8 +25,8 @@ namespace Client.Tests.Localization.Skit
             skitUiObject.transform.SetParent(root.transform);
             var skitUi = skitUiObject.AddComponent<SkitUI>();
             var manager = root.AddComponent<SkitManager>();
-            var mapObjectPin = new RecordingMapObjectPin();
-            var veinPin = new RecordingVeinPin();
+            var mapObjectPin = new RecordingMapObjectPin(false);
+            var veinPin = new RecordingVeinPin(false);
             SetPrivateField(manager, "skitUI", skitUi);
             SetPrivateField(manager, "mapObjectPin", mapObjectPin);
             SetPrivateField(manager, "veinPin", veinPin);
@@ -73,6 +73,24 @@ namespace Client.Tests.Localization.Skit
             Assert.AreEqual("Japanese", resolver.ResolveCommandField(7, "body", "Source"));
         }
 
+        [Test]
+        public void WorldPinsRestoreTheirIndividualPreSkitActiveStates()
+        {
+            var mapObjectPin = new RecordingMapObjectPin(true);
+            var veinPin = new RecordingVeinPin(false);
+            var snapshot = new WorldPinActivationSnapshot(mapObjectPin, veinPin);
+
+            // skit中は両方を隠し、終了時は各pinの開始前状態へ個別に戻す
+            // Hide both pins during skit, then restore each pin's own pre-skit state
+            snapshot.Hide();
+            Assert.IsFalse(mapObjectPin.IsActiveSelf());
+            Assert.IsFalse(veinPin.IsActiveSelf());
+
+            snapshot.Restore();
+            Assert.IsTrue(mapObjectPin.IsActiveSelf());
+            Assert.IsFalse(veinPin.IsActiveSelf());
+        }
+
         private static void SetPrivateField(object target, string fieldName, object value)
         {
             typeof(SkitManager)
@@ -83,10 +101,22 @@ namespace Client.Tests.Localization.Skit
         private sealed class RecordingMapObjectPin : IMapObjectPin
         {
             public int SetActiveCallCount;
+            private bool _active;
+
+            public RecordingMapObjectPin(bool active)
+            {
+                _active = active;
+            }
 
             public void SetActive(bool active)
             {
                 SetActiveCallCount++;
+                _active = active;
+            }
+
+            public bool IsActiveSelf()
+            {
+                return _active;
             }
 
             public ITutorialView ApplyTutorial(TutorialsElement tutorial)
@@ -102,10 +132,22 @@ namespace Client.Tests.Localization.Skit
         private sealed class RecordingVeinPin : IVeinPin
         {
             public int SetActiveCallCount;
+            private bool _active;
+
+            public RecordingVeinPin(bool active)
+            {
+                _active = active;
+            }
 
             public void SetActive(bool active)
             {
                 SetActiveCallCount++;
+                _active = active;
+            }
+
+            public bool IsActiveSelf()
+            {
+                return _active;
             }
 
             public ITutorialView ApplyTutorial(TutorialsElement tutorial)

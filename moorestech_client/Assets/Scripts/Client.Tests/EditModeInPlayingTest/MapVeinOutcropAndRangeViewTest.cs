@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Client.Common;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapVein;
@@ -94,7 +95,8 @@ namespace Client.Tests.EditModeInPlayingTest
                     // 真上の短いレイで接地を確かめる。Y=0や鉱脈Yへのフォールバックはここで落ちる
                     // A short ray from just above confirms ground contact; a Y=0 or vein-Y fallback fails here
                     var probeOrigin = outcrop.position + Vector3.up;
-                    var isHit = Physics.Raycast(probeOrigin, Vector3.down, out var hit, 2f);
+                    var groundLayerMask = 1 << LayerConst.GroundLayer;
+                    var isHit = Physics.Raycast(probeOrigin, Vector3.down, out var hit, 2f, groundLayerMask);
                     Assert.IsTrue(isHit && hit.transform.TryGetComponent<GroundGameObject>(out _), $"outcrop for {layout.VeinGuid} is not standing on ground");
                     Assert.AreEqual(outcrop.position.y, hit.point.y, GroundContactTolerance, $"outcrop Y for {layout.VeinGuid} is off the surface");
                 }

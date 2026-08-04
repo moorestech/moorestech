@@ -14,6 +14,7 @@ namespace Client.Game.InGame.Tutorial
     public interface IMapObjectPin : ITutorialViewManager, ITutorialView
     {
         public void SetActive(bool active);
+        public bool IsActiveSelf();
     }
     
     public class MapObjectPin : MonoBehaviour, IMapObjectPin
@@ -101,6 +102,11 @@ namespace Client.Game.InGame.Tutorial
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
+        }
+
+        public bool IsActiveSelf()
+        {
+            return gameObject.activeSelf;
         }
 
         // SkitManager等の外部SetActive(false)でもWebピンを確実に消す（RemovePinは冪等）

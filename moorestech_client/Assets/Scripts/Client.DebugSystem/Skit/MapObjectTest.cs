@@ -15,5 +15,9 @@ namespace Client.DebugSystem.Skit
         public void SetActive(bool active)
         {
         }
+        public bool IsActiveSelf()
+        {
+            return false;
+        }
     }
 }

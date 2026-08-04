@@ -110,6 +110,7 @@ namespace Client.Tests.UnitTest.Tutorial
         private sealed class RecordingMapObjectPin : IMapObjectPin
         {
             public void SetActive(bool active) { }
+            public bool IsActiveSelf() => false;
             public ITutorialView ApplyTutorial(TutorialsElement tutorial) => this;
             public void CompleteTutorial() { }
         }
@@ -118,6 +119,7 @@ namespace Client.Tests.UnitTest.Tutorial
         {
             public int ApplyCount;
             public void SetActive(bool active) { }
+            public bool IsActiveSelf() => false;
             public ITutorialView ApplyTutorial(TutorialsElement tutorial)
             {
                 ApplyCount++;

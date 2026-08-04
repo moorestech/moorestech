@@ -25,8 +25,6 @@ namespace Client.Game.InGame.Map.Outcrop
         // 千件規模の生成負荷を分散しつつ起動時間を過度に伸ばさない
         // Spread the thousand-scale instantiation load without extending startup excessively
         private const int FrameYieldObjectInterval = 100;
-        private const int MaxListedUnresolvedVeins = 10;
-
         // 同一アドレスを共有する鉱脈では成功したAddressables解決を再利用する
         // Reuse successful Addressables resolutions for veins sharing one address
         private readonly Dictionary<string, GameObject> _prefabCacheByAddress = new();
@@ -56,7 +54,7 @@ namespace Client.Game.InGame.Map.Outcrop
             async UniTask InstantiateOutcropsFromLayoutAsync()
             {
                 var cancellationToken = this.GetCancellationTokenOnDestroy();
-                var unresolvedGroundVeins = new List<string>();
+                var groundFallbackCount = 0;
                 var processedCount = 0;
 
                 foreach (var layout in _handshakeResponse.MapLayout.MapVeins)
@@ -69,23 +67,21 @@ namespace Client.Game.InGame.Map.Outcrop
                     var prefab = ResolveOutcropPrefab(veinGuid, element);
                     var center = CalculateInclusiveCenter(layout);
 
-                    // 地表未解決は全件調査後にまとめて起動失敗として報告する
-                    // Collect unresolved surfaces and report them together as a startup failure
-                    if (!TryResolveGroundPosition(center, out var position))
-                    {
-                        unresolvedGroundVeins.Add($"veinGuid:{layout.VeinGuid} X:{center.x} Z:{center.z}");
-                    }
-                    else
-                    {
-                        InstantiateOutcrop(prefab, veinGuid, element, layout, position, center);
-                    }
+                    // 遠方の未ロード地形では裁定済みAABB中心高さへ置き、全露頭の生成を継続する
+                    // On distant unloaded terrain, use the ruled AABB-center height and keep creating every outcrop
+                    var groundResolved = TryResolveGroundPosition(center, out var groundPosition);
+                    var position = SelectOutcropPosition(layout, center, groundResolved, groundPosition);
+                    if (!groundResolved) groundFallbackCount++;
+                    InstantiateOutcrop(prefab, veinGuid, element, layout, position, center);
 
                     processedCount++;
                     if (processedCount % FrameYieldObjectInterval == 0) await UniTask.Yield(cancellationToken);
                 }
 
-                if (0 < unresolvedGroundVeins.Count)
-                    throw new InvalidOperationException(BuildUnresolvedGroundMessage(unresolvedGroundVeins));
+                // 仮v8マップの地形外件数は診断用に残すが、既知の正常フォールバックなのでInfoに留める
+                // Keep the interim v8 map's off-terrain count for diagnosis, but log only Info for this known fallback
+                if (0 < groundFallbackCount)
+                    Debug.Log($"[OutcropGameObjectDatastore] 地表未解決の露頭をAABB中心高さへ設置 件数:{groundFallbackCount}");
             }
 
             GameObject ResolveOutcropPrefab(Guid veinGuid, MapVeinMasterElement element)
@@ -156,14 +152,21 @@ namespace Client.Game.InGame.Map.Outcrop
                 return false;
             }
 
-            string BuildUnresolvedGroundMessage(List<string> unresolvedGroundVeins)
-            {
-                var listedCount = Mathf.Min(unresolvedGroundVeins.Count, MaxListedUnresolvedVeins);
-                var listed = string.Join(" / ", unresolvedGroundVeins.GetRange(0, listedCount));
-                return $"[OutcropGameObjectDatastore] 露頭を立てる地表がありません 該当vein数:{unresolvedGroundVeins.Count} 先頭{listedCount}件 {listed}";
-            }
-
             #endregion
+        }
+
+        internal static Vector3 SelectOutcropPosition(
+            VeinLayoutMessagePack layout,
+            Vector3 center,
+            bool groundResolved,
+            Vector3 groundPosition)
+        {
+            if (groundResolved) return groundPosition;
+
+            // 仮マップは地形範囲外にも鉱脈があるため、未解決時はベイク済みAABB中心高さを使う
+            // The interim map has veins beyond terrain bounds, so unresolved surfaces use the baked AABB-center height
+            var fallbackHeight = (layout.MinY + layout.MaxY + 1) * 0.5f;
+            return new Vector3(center.x, fallbackHeight, center.z);
         }
 
         public UniTask WaitForInitialApplyAsync()

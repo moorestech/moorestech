@@ -8,11 +8,11 @@ namespace Client.Game.InGame.Map.Outcrop
     ///     生成済み露頭をveinGuid別に保持し、プレイヤー位置から最寄りを解決する
     ///     Stores instantiated outcrops per vein GUID and resolves the nearest one to a player position
     /// </summary>
-    public class OutcropGuidIndex
+    internal sealed class OutcropGuidIndex
     {
         private readonly Dictionary<Guid, List<OutcropGameObject>> _outcropsByVeinGuid = new();
 
-        public void Add(Guid veinGuid, OutcropGameObject outcrop)
+        internal void Add(Guid veinGuid, OutcropGameObject outcrop)
         {
             if (!_outcropsByVeinGuid.TryGetValue(veinGuid, out var outcrops))
             {
@@ -23,7 +23,7 @@ namespace Client.Game.InGame.Map.Outcrop
             outcrops.Add(outcrop);
         }
 
-        public OutcropGameObject SearchNearest(Guid veinGuid, Vector3 position)
+        internal OutcropGameObject SearchNearest(Guid veinGuid, Vector3 position)
         {
             if (!_outcropsByVeinGuid.TryGetValue(veinGuid, out var outcrops)) return null;
 
