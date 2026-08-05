@@ -192,23 +192,29 @@ Self-Review（内容）と spec-architecture-review（構造）を終えたら�
 
 ## Execution Handoff
 
-planを保存したら、実行方法の選択肢を提示する:
+実装は**新規セッションでのsubagent-driven-development**が既定。このセッションで実行方法の選択肢を提示せず、新規セッション用の開始プロンプトを出力して終える（planning済みセッションはコンパクト対象で、コンパクト要約は非監査・何が落ちるか制御できない。監査済み成果物であるplan・ADR・`.decisions/`だけで開始できる状態を作り、フルコンテキストの新規セッションへ引き継ぐ）。
 
-**「planが完成し`docs/superpowers/plans/<filename>.md`に保存されました。実行方法は2つ:**
+手順:
 
-**1. Subagent-Driven（推奨）** — タスクごとに新規subagentを起動し、タスク間でレビューを行い、高速に反復する
+1. **引き継ぎ完全性チェック**: 「planとADRと`.decisions/`だけ読んで実装できるか？」に Yes と言えるか確認する。会話の中でしか決まっていない裁定・制約が1つでも残っていれば、planの `## 判断記録（ADR）` か `.decisions/` へ書き落としてから次へ進む（新規セッションでは会話コンテキストは完全に消える）。
 
-**2. Inline Execution** — このセッション内でexecuting-plansを使ってタスクを実行し、チェックポイント付きでバッチ実行する
+2. **開始プロンプトを出力する**: 以下のテンプレートを埋め、ユーザーがそのままコピペできるコードブロックで出力する:
 
-**どちらの方法にしますか？」**
+   ````markdown
+   planが完成し`docs/superpowers/plans/<filename>.md`に保存されました。新規セッションを開き、以下を貼り付けて実装を開始してください:
 
-**Subagent-Drivenを選んだ場合:**
-- **REQUIRED SUB-SKILL:** superpowers:subagent-driven-developmentを使う
-- タスクごとに新規subagent＋二段階レビュー
+   ```
+   subagent-driven-development スキルを使って、以下の実装planを実行してください。
 
-**Inline Executionを選んだ場合:**
-- **REQUIRED SUB-SKILL:** superpowers:executing-plansを使う
-- レビュー用チェックポイント付きのバッチ実行
+   - plan: docs/superpowers/plans/<filename>.md
+   - 作業場所: <ブランチ名>（worktreeの場合はそのパスも記載）
+   - まずplan全文を読み、`## Requirements`・`## Global Constraints`・`## 判断記録（ADR）`を全タスク共通の制約として扱ってください
+   - 進捗はplanのチェックボックス更新で管理してください
+   - planの最終タスク（moores-code-reviewによる全ブランチレビュー）は省略不可です
+   ```
+   ````
+
+このセッション内でのInline Execution（タスクを直接順次実行）は、ユーザーが明示的に希望した場合のみ行う。自分から選択肢として提示しない。
 
 # 追加SKILL:spec-architecture-review
 
