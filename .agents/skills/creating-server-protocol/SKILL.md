@@ -235,7 +235,7 @@ MCPツールまたは`unity-test.sh`でコンパイルを確認。
 - タグの一意性を必ず確認する（既存タグと重複しないこと）
 - MessagePackのKey番号: Request/ResponseはKey(2)から、EventデータはKey(0)から
 - `[Obsolete]`付き引数なしコンストラクタは省略不可
-- イベント購読はUniRxの`.Subscribe()`を使用（`/csharp-event-pattern`参照）
+- イベント購読はUniRxの`.Subscribe()`を使用
 - コードのコメントは日本語・英語の2行セット
 
 ## Request/Response メッセージ設計原則
