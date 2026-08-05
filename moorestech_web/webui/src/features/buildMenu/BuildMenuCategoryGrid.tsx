@@ -11,12 +11,14 @@ type Props = {
   compositeHeading: boolean;
   onSelect: (entry: BuildMenuDisplayEntry) => void;
   onDelete: (entry: BuildMenuDisplayEntry) => void;
-  onHoverChange: (entry: BuildMenuDisplayEntry | null) => void;
+  // sticky詳細は入場だけを見るため、離脱は共有スロットのbooleanをここで捨てる
+  // The sticky detail only needs entry, so the shared slot's leave boolean is dropped here
+  onEntryHovered: (entry: BuildMenuDisplayEntry) => void;
 };
 
 // サブカテゴリ見出し+SlotGridでエントリを列挙する
 // Lists entries as sub-category headings plus a SlotGrid
-export function BuildMenuCategoryGrid({ sections, compositeHeading, onSelect, onDelete, onHoverChange }: Props) {
+export function BuildMenuCategoryGrid({ sections, compositeHeading, onSelect, onDelete, onEntryHovered }: Props) {
   const { t } = useI18n();
   // 複合見出しはJSX外で組み立てて可視リテラルlintを避ける（Guidからの解決は下の式）
   // Build the composite heading outside JSX to avoid the visible-literal lint; GUIDs resolve below
@@ -42,7 +44,7 @@ export function BuildMenuCategoryGrid({ sections, compositeHeading, onSelect, on
                 entry={entry}
                 onLeftClick={() => onSelect(entry)}
                 onRightClick={entry.kind === "blueprint" ? () => onDelete(entry) : undefined}
-                onHoverChange={(hovering) => onHoverChange(hovering ? entry : null)}
+                onHoverChange={(hovering) => { if (hovering) onEntryHovered(entry); }}
               />
             ))}
           </SlotGrid>

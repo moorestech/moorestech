@@ -93,6 +93,9 @@ test("詳細サイドバーはホバー後にstickyで残る", async ({ page }) 
   await expect(page.getByTestId("build-menu-detail")).toContainText("カーソルを合わせると詳細を表示します");
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`).hover();
   await expect(page.getByTestId("build-menu-detail")).toContainText("木のチェスト");
+  // 必要素材ブロック（ラベル+3列SlotGrid）が詳細に出ることを固定する
+  // Pins that the required-items block (label plus the 3-column SlotGrid) renders in the detail
+  await expect(page.getByTestId("build-menu-detail")).toContainText("必要素材");
 
   // カーソルを検索欄へ退避してもstickyで表示が残る
   // The detail stays sticky after the cursor moves away to the search box
@@ -117,13 +120,12 @@ test("閉じて開き直すとタブ・検索・スクロール・詳細sticky�
   // Build up tab selection, sticky detail, and scroll, then close
   await page.getByTestId(`build-menu-category-${buildMenuCategoryIds.transport}`).click();
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`).hover();
-  // scrollTop代入だけではChromiumのscrollイベントが非同期発火のため、
-  // 直後のunmountに間に合わずonScrollPositionChangeが空振りすることがある。同一evaluate内で明示発火させ確実に処理させる
-  // Assigning scrollTop alone leaves Chromium's scroll event to fire async, which can race past the imminent unmount and skip onScrollPositionChange; dispatch it explicitly in the same evaluate to guarantee it runs
-  await page.getByTestId("build-menu-panel").locator(".mantine-ScrollArea-viewport").evaluate((el) => {
-    el.scrollTop = 40;
-    el.dispatchEvent(new Event("scroll"));
-  });
+  // scrollイベントの合成発火は使わない。scrollTop代入直後に閉じても保存される実挙動をそのまま検証する
+  // No synthetic scroll event: this exercises the real behavior of closing right after assigning scrollTop
+  await page
+    .getByTestId("build-menu-panel")
+    .locator(".mantine-ScrollArea-viewport")
+    .evaluate((el) => { el.scrollTop = 40; });
   await setUiState(page, "GameScreen");
   await expect(page.getByTestId("build-menu-panel")).toBeHidden();
 

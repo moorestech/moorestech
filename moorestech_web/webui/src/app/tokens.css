@@ -130,7 +130,11 @@
   /* 内容量で幅が決まる小型ブロックパネルの右余白を左インデントと対称にする */
   /* Mirrors the left inset on content-sized block panels so the right edge gets equal padding */
   --block-panel-right-safe-area: 28px;
+  /* カテゴリ列の幅。実マスタ最長7字のカテゴリ名を1行のまま収める */
+  /* Width of the category column, holding the longest real-master category name (7 characters) on one line */
   --build-menu-sidebar-width: 8.5rem;
+  /* 3カラム間のgapとパネル右端の余白を兼ねる安全帯 */
+  /* Safe area serving as both the gap between the three columns and the panel's right inset */
   --build-menu-edge-safe-area: 16px;
   /* 中央3カラムの固定寸法（§8.11・目視QAで確定）。850px=中央列440pxで8列431.6px+スクロールバー、36px×10+gap4px×9=396pxが利用可能高415pxに収まる */
   /* Fixed dimensions of the centered three columns (§8.11, settled by visual QA): 850px gives a 440px center column holding the 431.6px eight columns plus scrollbar, and 36px x 10 + 4px gap x 9 = 396px fits the 415px available height */

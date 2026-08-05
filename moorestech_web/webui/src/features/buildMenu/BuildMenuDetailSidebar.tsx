@@ -5,8 +5,8 @@ import styles from "./style.module.css";
 
 type Props = { entry: BuildMenuDisplayEntry | null };
 
-// §8.11のsticky詳細サイドバー。ホバー済みエントリを縦積みで表示し、未ホバー時のみ案内
-// §8.11 sticky detail sidebar: stacks the hovered entry vertically; shows the hint only before any hover
+// §8.11のsticky詳細サイドバー。エントリを縦積みで表示し、対象が無い間（未ホバー・削除等での消失）は案内
+// §8.11 sticky detail sidebar: stacks the entry vertically and shows the hint whenever there is none (before any hover, or after the entry disappears via deletion)
 export function BuildMenuDetailSidebar({ entry }: Props) {
   const { t } = useI18n();
   return (

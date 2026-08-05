@@ -50,7 +50,7 @@ export const buildMenuSubCategoryIds = {
 
 // 実マスタ(buildMenu.json)の可視10カテゴリを再現する追加分。1カテゴリ=1サブカテゴリ=1エントリで縦積み量だけを実データへ揃える
 // Extra categories that reproduce the real master's 10 visible categories; one sub-category and one entry each, matching only the vertical stack size
-export const buildMenuExtraCategorySpecs = [
+const buildMenuExtraCategorySpecs = [
   { categoryGuid: buildMenuCategoryIds.mining, subCategoryGuid: buildMenuSubCategoryIds.miner, entryId: "53000000-0000-4000-8000-000000000005" },
   { categoryGuid: buildMenuCategoryIds.production, subCategoryGuid: buildMenuSubCategoryIds.primitiveCraft, entryId: "53000000-0000-4000-8000-000000000006" },
   { categoryGuid: buildMenuCategoryIds.mechanicalPower, subCategoryGuid: buildMenuSubCategoryIds.shaft, entryId: "53000000-0000-4000-8000-000000000007" },
@@ -62,7 +62,7 @@ export const buildMenuExtraCategorySpecs = [
 
 // スクロール復元e2eと8列グリッド目視QAのため輸送/車両サブカテゴリを縦に溢れさせる量産エントリ（名前解決は不要）
 // Filler entries that overflow 輸送/車両 vertically for the scroll-restore e2e and the 8-column visual QA (no name resolution needed)
-export const buildMenuScrollFillerEntries = Array.from({ length: 80 }, (_, index) => ({
+const buildMenuScrollFillerEntries = Array.from({ length: 80 }, (_, index) => ({
   id: `53000000-0000-4000-8000-0000000010${String(index).padStart(2, "0")}`,
   kind: "block" as const,
   categoryGuid: buildMenuCategoryIds.transport,

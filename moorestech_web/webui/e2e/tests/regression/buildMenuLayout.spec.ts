@@ -2,7 +2,18 @@
 // Locks the §8.11 dimension contract (centering, fixed-height categories, full category fit, 8-column grid) to the values settled by visual QA
 
 import { test, expect } from "@playwright/test";
+import { expectNoVerticalOverflow } from "../../support/layoutAssertions";
 import { setUiState } from "../../support/mockControl";
+
+// 視覚寸法トークンを実px化する。remは:rootのfont-sizeで解く
+// Resolves a visual dimension token into pixels, converting rem against the :root font size
+async function tokenPixels(page: import("@playwright/test").Page, name: string) {
+  return page.evaluate((tokenName) => {
+    const rootStyle = getComputedStyle(document.documentElement);
+    const raw = rootStyle.getPropertyValue(tokenName).trim();
+    return raw.endsWith("rem") ? parseFloat(raw) * parseFloat(rootStyle.fontSize) : parseFloat(raw);
+  }, name);
+}
 
 test.afterEach(async ({ page }) => {
   await setUiState(page, "PlayerInventory");
@@ -18,24 +29,57 @@ test("パネルは画面水平中央に表示される", async ({ page }) => {
   expect(Math.abs(box.x + box.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(1);
 });
 
+test("パネルは上部安全帯の直下にバンド高いっぱいで立つ", async ({ page }) => {
+  await setUiState(page, "BuildMenu");
+  await page.goto("/");
+
+  // R2「縦位置は現状維持」の契約。期待値はトークンから解き、stage拡大率はパネル実幅÷幅トークンで求める
+  // Contract for R2 "vertical placement unchanged": expectations come from tokens, and the stage scale is the panel's real width over the width token
+  const [panelWidth, upperSafeArea, contentHeight] = await Promise.all([
+    tokenPixels(page, "--build-menu-panel-width"),
+    tokenPixels(page, "--menu-upper-safe-area"),
+    tokenPixels(page, "--menu-content-height"),
+  ]);
+
+  // stageはcenter originで拡縮するため絶対yではなくstage枠からの相対で測る。額縁は高さ注入の消失を映す
+  // The stage scales from its center, so measure relative to the stage box rather than absolute y; the frame height reflects a lost height injection
+  const geometry = await page.getByTestId("build-menu-panel").evaluate((panel: HTMLElement) => {
+    const stage = (panel.offsetParent as HTMLElement).offsetParent as HTMLElement;
+    const panelRect = panel.getBoundingClientRect();
+    const frameRect = panel.querySelector("[data-variant]")!.getBoundingClientRect();
+    return {
+      top: panelRect.top - stage.getBoundingClientRect().top,
+      height: panelRect.height,
+      width: panelRect.width,
+      frameHeight: frameRect.height,
+    };
+  });
+
+  // 整数丸めと拡大率の割り戻しを吸収するため±1pxを許容する
+  // Allow +/-1px to absorb integer rounding and the scale division
+  const scale = geometry.width / panelWidth;
+  expect(Math.abs(geometry.top / scale - upperSafeArea)).toBeLessThanOrEqual(1);
+  expect(Math.abs(geometry.height / scale - contentHeight)).toBeLessThanOrEqual(1);
+  expect(Math.abs(geometry.frameHeight - geometry.height)).toBeLessThanOrEqual(1);
+});
+
 test("カテゴリボタンは全ボタン同一の固定高", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
   // 期待値はトークンから解く。トークン再調整で壊れず、伸縮実装(パネル高÷カテゴリ数)なら一致しない
   // Derive the expectation from the token so retuning it never breaks the test, while a stretching implementation (panel height / category count) still fails
-  const expected = await page.evaluate(() => {
-    const rootStyle = getComputedStyle(document.documentElement);
-    const raw = rootStyle.getPropertyValue("--build-menu-category-height").trim();
-    return raw.endsWith("rem") ? parseFloat(raw) * parseFloat(rootStyle.fontSize) : parseFloat(raw);
-  });
+  const expected = await tokenPixels(page, "--build-menu-category-height");
 
   // offsetHeightはborder込みのボーダーボックス高で、border-box指定の高さトークンと同じ量。stageの拡大縮小も受けない
   // offsetHeight is the border-box height including borders, exactly what the height token sets under border-box sizing, and it ignores the stage scale
   // 整数丸めと小数トークン(2.3rem=36.8px等)を吸収するため±1pxを許容する
   // Allow +/-1px to absorb integer rounding and fractional tokens such as 2.3rem = 36.8px
   const buttons = page.getByTestId("build-menu-sidebar").locator("button");
+  // 0件ならループが素通りして無条件greenになるため、fixturesの10カテゴリを先に固定する
+  // A zero count would skip the loop and pass unconditionally, so pin the fixtures' ten categories first
   const count = await buttons.count();
+  expect(count).toBe(10);
   for (let i = 0; i < count; i += 1) {
     const height = await buttons.nth(i).evaluate((el: HTMLElement) => el.offsetHeight);
     expect(Math.abs(height - expected)).toBeLessThanOrEqual(1);
@@ -48,12 +92,7 @@ test("カテゴリサイドバーは全カテゴリとラベルを固定高の�
 
   // ラベルがボタン高を超えると折り返し分がscrollHeightに出る。§8.11はサイドバー独自スクロールを持たないためはみ出しは即欠陥
   // A label taller than its button shows the wrapped overflow in scrollHeight; §8.11 gives the sidebar no scroller, so any overflow is a defect
-  const buttons = page.getByTestId("build-menu-sidebar").locator("button");
-  const count = await buttons.count();
-  for (let i = 0; i < count; i += 1) {
-    const fit = await buttons.nth(i).evaluate((el) => ({ client: el.clientHeight, scroll: el.scrollHeight }));
-    expect(fit.scroll).toBeLessThanOrEqual(fit.client);
-  }
+  await expectNoVerticalOverflow(page.getByTestId("build-menu-sidebar").locator("button"));
 
   // 最後のボタン下端を3列コンテナのコンテンツボックス下端と直接比べる。scrollHeight比較はpadding-bottomに吸われて実残余約19pxを検出できない
   // Compare the last button's bottom against the three-column container's content-box bottom; a scrollHeight comparison is absorbed by padding-bottom and cannot see the real ~19px of slack

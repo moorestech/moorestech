@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { ScrollArea } from "@mantine/core";
 import { useTopic, dispatchAction, Topics, UiStateNames } from "@/bridge";
 import { GamePanel, IconButton } from "@/shared/ui";
@@ -23,20 +23,34 @@ import styles from "./style.module.css";
 export function BuildMenuPanel() {
   const { t } = useI18n();
   const data = useTopic(Topics.buildMenu);
-  // 初期値をストアから復元（マウント時1回）
-  // Restore initial values from the session store (once per mount)
-  const stored = loadBuildMenuSessionState();
+  // 初期値をストアから復元（lazy初期化子でマウント時1回。前例: shared/treeView/TreeView.tsx）
+  // Restore initial values from the session store once per mount via a lazy initializer (precedent: shared/treeView/TreeView.tsx)
+  const [stored] = useState(() => loadBuildMenuSessionState());
   const [selectedCategory, setSelectedCategory] = useState<string | null>(stored.categoryGuid);
   const [query, setQuery] = useState(stored.query);
   const [hoveredId, setHoveredId] = useState<string | null>(stored.hoveredEntryId);
   // topic未着の初回renderは早期returnで視口が無いため、視口アタッチ時のcallback refで1回だけ復元する
   // The first render has no viewport (topic not yet arrived → early return), so restore once via a callback ref at viewport attach
   const scrollRestoredRef = useRef(false);
+  const scrollViewportRef = useRef<HTMLDivElement | null>(null);
   const attachScrollViewport = (viewport: HTMLDivElement | null) => {
-    if (viewport === null || scrollRestoredRef.current) return;
+    if (viewport === null) return;
+    // 保存先は常に最新の視口を指す。復元だけが初回1回に限られる
+    // The save target always points at the newest viewport; only the restore is limited to the first attach
+    scrollViewportRef.current = viewport;
+    if (scrollRestoredRef.current) return;
     scrollRestoredRef.current = true;
     viewport.scrollTop = loadBuildMenuSessionState().scrollTop;
+    // 内容高が足りない復元値はブラウザにクランプされるため、実効値をストアへ揃え直す
+    // The browser clamps a restored value taller than the content, so realign the store with the effective one
+    updateBuildMenuSessionState({ scrollTop: viewport.scrollTop });
   };
+  // scrollイベントは次フレームまで合体されアンマウントに間に合わないため、DOM除去前の実効値を確定保存する
+  // Scroll events coalesce until the next frame and miss the unmount, so persist the effective value before DOM removal
+  useLayoutEffect(() => () => {
+    if (scrollViewportRef.current === null) return;
+    updateBuildMenuSessionState({ scrollTop: scrollViewportRef.current.scrollTop });
+  }, []);
   if (!data) return null;
 
   // 表示名を一度解決し全表示へ共有
@@ -56,8 +70,7 @@ export function BuildMenuPanel() {
   const detailEntry = hoveredId
     ? displayEntries.find((entry) => entry.id === hoveredId) ?? null
     : null;
-  const hover = (entry: BuildMenuDisplayEntry | null) => {
-    if (entry === null) return;
+  const hover = (entry: BuildMenuDisplayEntry) => {
     setHoveredId(entry.id);
     updateBuildMenuSessionState({ hoveredEntryId: entry.id });
   };
@@ -115,7 +128,7 @@ export function BuildMenuPanel() {
                     compositeHeading={searching}
                     onSelect={select}
                     onDelete={remove}
-                    onHoverChange={hover}
+                    onEntryHovered={hover}
                   />
                 )}
               </ScrollArea>
