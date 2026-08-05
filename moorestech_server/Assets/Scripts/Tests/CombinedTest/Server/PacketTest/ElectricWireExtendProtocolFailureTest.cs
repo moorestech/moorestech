@@ -54,8 +54,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 電線不足の延長は失敗し状態が一切変化しない()
         {
-            // 範囲内座標(起点距離3+機械距離2=必要数5)に対して電線を3本しか持たず、範囲判定を通過した上で電線不足に到達させる
-            // Use in-range coordinates (origin distance 3 + machine distance 2 = required 5) with only 3 wires, so the range check passes and the wire shortage path is reached
+            // 範囲内座標(起点距離3=必要数3)に対して電線を2本しか持たず、範囲判定を通過した上で電線不足に到達させる
+            // Use in-range coordinates (origin distance 3 = required 3) with only 2 wires, so the range check passes and the wire shortage path is reached
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var fromPos = Vector3Int.zero;
             var newPolePos = new Vector3Int(3, 0, 0);
@@ -63,14 +63,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, fromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fromPole);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
 
-            var inventory = SetupInventory(materialCount: 1, wireCount: 3);
+            var inventory = SetupInventory(materialCount: 1, wireCount: 2);
             var response = SendExtend(fromPos, newPolePos, ForUnitTestModBlockId.ElectricPoleId);
 
             Assert.IsFalse(response.IsSuccess);
             Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, response.FailureReason);
             Assert.IsFalse(worldBlockDatastore.Exists(newPolePos));
             Assert.AreEqual(1, CountItem(inventory, _materialItemId));
-            Assert.AreEqual(3, CountItem(inventory, _wireItemId));
+            Assert.AreEqual(2, CountItem(inventory, _wireItemId));
             Assert.AreEqual(0, fromPole.GetComponent<IElectricWireConnector>().WireConnections.Count);
             Assert.AreEqual(0, machine.GetComponent<IElectricWireConnector>().WireConnections.Count);
         }

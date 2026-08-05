@@ -26,7 +26,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.ProtocolTag, new PlayerInventoryResponseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.ProtocolTag, new SetPlayerCoordinateProtocol(serviceProvider));
             _packetResponseDictionary.Add(GearChainConnectionEditProtocol.Tag, new GearChainConnectionEditProtocol(serviceProvider));
-            _packetResponseDictionary.Add(ElectricWireConnectionEditProtocol.Tag, new ElectricWireConnectionEditProtocol(serviceProvider));
+            _packetResponseDictionary.Add(ElectricWireDisconnectProtocol.Tag, new ElectricWireDisconnectProtocol(serviceProvider));
             _packetResponseDictionary.Add(ElectricWireExtendProtocol.Tag, new ElectricWireExtendProtocol(serviceProvider));
             _packetResponseDictionary.Add(GearChainPoleExtendProtocol.Tag, new GearChainPoleExtendProtocol(serviceProvider));
             _packetResponseDictionary.Add(InventoryItemMoveProtocol.ProtocolTag, new InventoryItemMoveProtocol(serviceProvider));

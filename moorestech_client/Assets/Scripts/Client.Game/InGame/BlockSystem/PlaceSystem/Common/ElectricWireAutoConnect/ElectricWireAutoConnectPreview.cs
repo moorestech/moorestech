@@ -1,15 +1,18 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
+using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using Game.Block.Interface;
-using Mooresmaster.Model.BuildMenuModule;
+using Game.UnlockState;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 using UnityEngine;
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
-using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
 {
@@ -21,9 +24,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
     /// </summary>
     public class ElectricWireAutoConnectPreview
     {
-        private static readonly IReadOnlyList<Vector3Int> EmptyTargets = new List<Vector3Int>();
+        private static readonly IReadOnlyList<Vector3> EmptyTargets = new List<Vector3>();
 
         private readonly BlockGameObjectDataStore _blockDataStore;
+        private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
+        private readonly IGameUnlockStateData _gameUnlockStateData;
         private readonly AutoConnectWirePreviewRenderer _renderer;
 
         // セル単位の幾何キャッシュ。向きかブロックが変わったら全破棄する
@@ -33,9 +38,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         private BlockId _cachedBlockId;
         private bool _hasCacheKey;
 
-        public ElectricWireAutoConnectPreview(Camera mainCamera, BlockGameObjectDataStore blockDataStore)
+        public ElectricWireAutoConnectPreview(Camera mainCamera, BlockGameObjectDataStore blockDataStore, IPlacementPreviewBlockGameObjectController previewBlockController, IGameUnlockStateData gameUnlockStateData)
         {
             _blockDataStore = blockDataStore;
+            _previewBlockController = previewBlockController;
+            _gameUnlockStateData = gameUnlockStateData;
             _renderer = new AutoConnectWirePreviewRenderer(mainCamera);
         }
 
@@ -68,11 +75,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             var virtualInventory = new ElectricWireAutoConnectVirtualInventory(inventory, blockMaster.RequiredItems);
             var totalCost = 0;
             var anyPlaceable = false;
-            PlaceInfo cursorInfo = null;
-            foreach (var placeInfo in placeInfos)
+            var cursorIndex = -1;
+            var cursorWirePlaceable = true;
+            var cursorRawTargetCount = 0;
+            for (var i = 0; i < placeInfos.Count; i++)
             {
+                var placeInfo = placeInfos[i];
                 var targets = GetOrCollectCellGeometry(placeInfo.Position);
-                var wirePlaceable = TrySelectConnectTool(targets, out var cellMaterials, out var cellCost);
+                var wirePlaceable = ElectricWireAutoConnectToolSelector.TrySelect(targets, virtualInventory, _gameUnlockStateData, out var cellMaterials, out var cellCost);
                 if (!wirePlaceable) placeInfo.Placeable = false;
 
                 if (placeInfo.Placeable)
@@ -81,20 +91,54 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                     totalCost += cellCost;
                     anyPlaceable = true;
                 }
-                if (placeInfo.Position == cursorCell) cursorInfo = placeInfo;
+                // カーソルセルが確定するまでは毎セル上書きし、一致セルが無い末尾フォールバック時も通知が末尾セルの値になるようにする
+                // Overwrite every cell until the cursor cell is fixed, so the last-cell fallback also carries that cell's values
+                if (cursorIndex < 0 || placeInfo.Position == cursorCell)
+                {
+                    if (placeInfo.Position == cursorCell) cursorIndex = i;
+                    cursorWirePlaceable = wirePlaceable;
+                    // 地形干渉や建設コスト不足によるPlaceable=falseと無関係な、生の接続候補数
+                    // Raw candidate count, independent of Placeable=false caused by ground/build-cost issues
+                    cursorRawTargetCount = targets.Count;
+                }
             }
 
             // ワイヤー線はカーソルセル分のみ描画し（全セル分は過剰）、ラベルは全セル合計を表示する
             // Draw wires only for the cursor cell (all cells would be excessive); the label shows the drag-wide total
-            cursorInfo ??= placeInfos[^1];
-            var cursorTargets = cursorInfo.Placeable ? ResolveTargetPositions(cursorInfo.Position) : EmptyTargets;
-            _renderer.Show(cursorInfo.Position, cursorTargets, totalCost);
+            if (cursorIndex < 0) cursorIndex = placeInfos.Count - 1;
+            var cursorInfo = placeInfos[cursorIndex];
+            var originEndpoint = ResolveOriginEndpoint(cursorIndex, cursorInfo);
+            var cursorTargets = cursorInfo.Placeable ? ResolveTargetEndpoints(cursorInfo.Position) : EmptyTargets;
+            ShowCursorNotice();
 
             // 設置可能なセルが1つでも残っていればクリック許可（不可セルはサーバーが個別に拒否する既存方針に揃える）
             // Allow the click when any cell remains placeable (bad cells are rejected per-cell by the server, matching existing policy)
             return anyPlaceable;
 
             #region Internal
+
+            // カーソルセルの状態に応じてコスト表示・拒否理由・範囲外案内のいずれかを描画する
+            // Renders the cost, the rejection reason, or an out-of-range notice depending on the cursor cell's state
+            void ShowCursorNotice()
+            {
+                // 電線不足は自動接続プレビューが唯一拒否する理由であり、不可色で表示する
+                // Insufficient wire is the only rejection reason for the auto-connect preview, shown in the failure color
+                if (!cursorWirePlaceable)
+                {
+                    _renderer.ShowFailure(originEndpoint, cursorTargets, ElectricWirePlacementFailureText.ToText(ElectricWirePlacementFailureReason.NoWireItem));
+                    return;
+                }
+
+                // 1件も配線されず、かつ範囲判定で落ちた近傍が実在するときだけ、設置許可のまま範囲外を案内する
+                // Only when nothing gets wired and a neighbor actually failed the range check, keep placement allowed and report out-of-range
+                if (cursorRawTargetCount == 0 && ClientElectricWireAutoConnectCollector.ExistsElectricNeighborOutOfConnectionRange(blockId, cursorInfo.Position, direction, _blockDataStore))
+                {
+                    _renderer.ShowNotice(originEndpoint, cursorTargets, "接続範囲外のため配線されません");
+                    return;
+                }
+
+                _renderer.ShowCost(originEndpoint, cursorTargets, totalCost);
+            }
 
             void InvalidateCacheOnKeyChange()
             {
@@ -114,66 +158,26 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 return targets;
             }
 
-            IReadOnlyList<Vector3Int> ResolveTargetPositions(Vector3Int position)
+            // 接続先ブロックの端点を実描画と同じ計算式で解決する
+            // Resolve each target block's endpoint using the same calculation as the actual rendering
+            List<Vector3> ResolveTargetEndpoints(Vector3Int position)
             {
                 var targets = GetOrCollectCellGeometry(position);
-                var positions = new List<Vector3Int>(targets.Count);
-                foreach (var target in targets) positions.Add(target.TargetPos);
-                return positions;
+                var endpoints = new List<Vector3>(targets.Count);
+                foreach (var target in targets)
+                {
+                    if (_blockDataStore.TryGetBlockGameObject(target.TargetPos, out var targetBlock))
+                        endpoints.Add(ElectricWireEndpointResolver.Resolve(targetBlock));
+                }
+                return endpoints;
             }
 
-            // 全ターゲットを賄えるelectricWire connectToolをSortPriority順に仮想在庫から選ぶ（サーバーと同じ選定規則）
-            // Pick the electricWire connectTool covering all targets in SortPriority order against the virtual inventory (same rule as the server)
-            bool TrySelectConnectTool(List<(Vector3Int TargetPos, float Distance)> targets, out IReadOnlyList<ConnectToolMaterialCost> selectedMaterials, out int selectedCost)
+            // 起点（設置予定ブロック自身）のゴースト端点を解決する。ゴースト未取得時のフォールバックはResolver内部に一本化されている
+            // Resolve the origin (the block about to be placed) ghost endpoint; the ghost-unavailable fallback is centralized inside the resolver
+            Vector3 ResolveOriginEndpoint(int originIndex, PlaceInfo originInfo)
             {
-                selectedMaterials = null;
-                selectedCost = 0;
-
-                // 接続先なし・electricWire未設定マスタは自動接続なしで設置可
-                // No targets or no configured electricWire connectTool allows placement without auto-connect
-                if (targets.Count == 0) return true;
-                var electricWireTools = new List<ConnectToolMasterElement>();
-                foreach (var element in MasterHolder.ConnectToolMaster.All)
-                    if (element.ToolType == ConnectToolMasterElement.ToolTypeConst.electricWire) electricWireTools.Add(element);
-                if (electricWireTools.Count == 0) return true;
-                electricWireTools.Sort((a, b) => a.SortPriority.CompareTo(b.SortPriority));
-
-                foreach (var element in electricWireTools)
-                {
-                    if (!TrySumCost(element.ConnectToolGuid, out var materials, out var cost)) continue;
-                    if (!virtualInventory.CanAfford(materials)) continue;
-
-                    selectedMaterials = materials;
-                    selectedCost = cost;
-                    return true;
-                }
-
-                return false;
-
-                bool TrySumCost(System.Guid connectToolGuid, out IReadOnlyList<ConnectToolMaterialCost> materials, out int cost)
-                {
-                    cost = 0;
-                    var accumulator = new Dictionary<ItemId, int>();
-                    foreach (var target in targets)
-                    {
-                        if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, target.Distance, out var targetCost))
-                        {
-                            materials = null;
-                            return false;
-                        }
-                        cost += targetCost.TotalCount;
-                        foreach (var material in targetCost.Materials)
-                        {
-                            accumulator.TryGetValue(material.ItemId, out var current);
-                            accumulator[material.ItemId] = current + material.Count;
-                        }
-                    }
-
-                    var list = new List<ConnectToolMaterialCost>(accumulator.Count);
-                    foreach (var (itemId, count) in accumulator) list.Add(new ConnectToolMaterialCost(itemId, count));
-                    materials = list;
-                    return true;
-                }
+                _previewBlockController.TryGetPreviewBlock(originIndex, out var ghost);
+                return ElectricWireEndpointResolver.ResolveFromGhost(ghost, originInfo, blockMaster);
             }
 
             #endregion

@@ -12,11 +12,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
     /// </summary>
     public class ElectricWireExtendPreviewObject
     {
-        // 描画設定は本描画（Task10）と揃えて見た目を一致させる
-        // Match the actual rendering (Task 10) so the preview looks consistent
-        private const float SagRatio = 0.1f;
+        // 端点はElectricWireEndpointResolver、垂れ量はCatenaryWireMeshBuilder.SagRatioを共有し実描画と同一計算にする
+        // Endpoints share ElectricWireEndpointResolver and sag shares CatenaryWireMeshBuilder.SagRatio, matching the actual rendering
         private const float CostLabelFontSize = 3f;
-        private static readonly Vector3 BlockCenterOffset = new(0.5f, 0.5f, 0.5f);
         private static readonly Vector3 CostLabelOffset = new(0f, 0.5f, 0f);
 
         private readonly Camera _mainCamera;
@@ -66,25 +64,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         }
 
         /// <summary>
-        /// 両端ブロック座標（原点）からワイヤープレビューと消費電線数を表示する
-        /// Show the wire preview and wire cost from both endpoint block positions (origins)
+        /// 解決済みのワールド端点からワイヤープレビューと消費電線数・不可理由を表示する
+        /// Show the wire preview, wire cost and failure reason from resolved world-space endpoints
         /// </summary>
-        public void Show(Vector3Int fromBlockPos, Vector3Int toBlockPos, bool placeable, int wireCostCount)
+        public void Show(Vector3 startWorldPos, Vector3 endWorldPos, bool placeable, int wireCostCount, string failureText)
         {
-            var start = fromBlockPos + BlockCenterOffset;
-            var end = toBlockPos + BlockCenterOffset;
-
             _gameObject.SetActive(true);
             UpdateCostLabel();
 
             // 変化が無ければメッシュは再構築しない
             // Skip mesh rebuild when nothing changed
-            if (_hasCache && _cachedStart == start && _cachedEnd == end && _cachedPlaceable == placeable) return;
+            if (_hasCache && _cachedStart == startWorldPos && _cachedEnd == endWorldPos && _cachedPlaceable == placeable) return;
 
             // メッシュ再生成し可否色を設定
             // Rebuild the catenary mesh and set color by placeability
-            var sag = Vector3.Distance(start, end) * SagRatio;
-            var newMesh = CatenaryWireMeshBuilder.Build(start, end, sag, new List<(Vector3, Vector3, float)>());
+            var sag = Vector3.Distance(startWorldPos, endWorldPos) * CatenaryWireMeshBuilder.SagRatio;
+            var newMesh = CatenaryWireMeshBuilder.Build(startWorldPos, endWorldPos, sag, new List<(Vector3, Vector3, float)>());
             if (_mesh != null) Object.Destroy(_mesh);
             _mesh = newMesh;
             _meshFilter.mesh = _mesh;
@@ -93,29 +88,33 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             _material.SetColor(MaterialConst.PreviewColorPropertyName, color);
             _material.color = color;
 
-            _cachedStart = start;
-            _cachedEnd = end;
+            _cachedStart = startWorldPos;
+            _cachedEnd = endWorldPos;
             _cachedPlaceable = placeable;
             _hasCache = true;
 
             #region Internal
 
-            // 消費電線数ラベルをワイヤー中点に置き、カメラへ向けて可否色と同期させる
-            // Place the wire cost label at the wire midpoint, billboard it to the camera and sync its color
+            // 消費電線数と不可理由をワイヤー中点に置き、カメラへ向けて可否色と同期させる
+            // Place the wire cost / failure reason label at the wire midpoint, billboard it to the camera and sync its color
             void UpdateCostLabel()
             {
-                if (wireCostCount <= 0)
+                if (wireCostCount <= 0 && string.IsNullOrEmpty(failureText))
                 {
                     _costLabel.gameObject.SetActive(false);
                     return;
                 }
 
                 _costLabel.gameObject.SetActive(true);
-                _costLabel.text = $"電線 x{wireCostCount}";
+                // 不可時は理由があればコストの下に併記する。コスト0の不可なら理由のみ表示する
+                // On failure, append the reason below the cost only when present; with zero cost show only the reason
+                _costLabel.text = placeable || string.IsNullOrEmpty(failureText) ? $"電線 x{wireCostCount}"
+                    : wireCostCount <= 0 ? failureText
+                    : $"電線 x{wireCostCount}\n{failureText}";
                 _costLabel.color = placeable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
 
                 var labelTransform = _costLabel.transform;
-                labelTransform.position = (start + end) * 0.5f + CostLabelOffset;
+                labelTransform.position = (startWorldPos + endWorldPos) * 0.5f + CostLabelOffset;
                 labelTransform.rotation = Quaternion.LookRotation(labelTransform.position - _mainCamera.transform.position);
             }
 

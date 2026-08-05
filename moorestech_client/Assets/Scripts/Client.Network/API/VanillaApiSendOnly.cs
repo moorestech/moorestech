@@ -163,22 +163,12 @@ namespace Client.Network.API
         }
 
         /// <summary>
-        /// 電気系ブロック間に電線を接続する
-        /// Connect an electric wire between electric blocks
-        /// </summary>
-        public void ConnectElectricWire(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
-        {
-            var request = ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateConnectRequest(posA, posB, _playerId, connectToolGuid);
-            _packetSender.Send(request);
-        }
-
-        /// <summary>
         /// 電気系ブロック間の電線を切断する
         /// Disconnect an electric wire between electric blocks
         /// </summary>
         public void DisconnectElectricWire(Vector3Int posA, Vector3Int posB)
         {
-            var request = ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateDisconnectRequest(posA, posB, _playerId);
+            var request = ElectricWireDisconnectProtocol.ElectricWireDisconnectRequest.CreateDisconnectRequest(posA, posB, _playerId);
             _packetSender.Send(request);
         }
     }

@@ -71,7 +71,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool
                 // 歯車チェーンは空き場所に設置しない
                 // Gear chains are not placed in empty spaces
                 ConnectToolType.GearChainPoleConnect => null,
-                ConnectToolType.ElectricWireConnect => SelectFirstBlockIdOfType(BlockMasterElement.BlockTypeConst.ElectricPole),
                 _ => throw new ArgumentOutOfRangeException(nameof(toolType), toolType, null),
             };
             if (selectedBlockId == null)
