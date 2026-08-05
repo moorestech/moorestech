@@ -77,6 +77,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             var anyPlaceable = false;
             PlaceInfo cursorInfo = null;
             var cursorWirePlaceable = true;
+            var cursorRawTargetCount = 0;
             foreach (var placeInfo in placeInfos)
             {
                 var targets = GetOrCollectCellGeometry(placeInfo.Position);
@@ -93,6 +94,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 {
                     cursorInfo = placeInfo;
                     cursorWirePlaceable = wirePlaceable;
+                    // 地形干渉や建設コスト不足によるPlaceable=falseと無関係な、生の接続候補数
+                    // Raw candidate count, independent of Placeable=false caused by ground/build-cost issues
+                    cursorRawTargetCount = targets.Count;
                 }
             }
 
@@ -121,9 +125,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                     return;
                 }
 
-                // 範囲外に電気ブロックはあるが1件も配線されないときは、設置許可のまま情報表示する
-                // When electric blocks exist out of range but none are connectable, keep placement allowed and show an info notice
-                if (cursorTargets.Count == 0 && ClientElectricWireAutoConnectCollector.ExistsOutOfRangeElectricNeighbor(cursorInfo.Position, _blockDataStore, cursorTargets.Count))
+                // 範囲外に電気ブロックはあるが1件も配線されないときは、設置許可のまま情報表示する。判定は生の接続候補数で行い、地形/コスト起因のPlaceable=falseに影響されない
+                // When electric blocks exist out of range but none are connectable, keep placement allowed and show an info notice; judged by the raw candidate count, unaffected by ground/cost-driven Placeable=false
+                if (cursorRawTargetCount == 0 && ClientElectricWireAutoConnectCollector.ExistsOutOfRangeElectricNeighbor(cursorInfo.Position, _blockDataStore, cursorRawTargetCount))
                 {
                     _renderer.Show(originEndpoint, cursorTargets, 0, "接続範囲外のため配線されません", false);
                     return;
