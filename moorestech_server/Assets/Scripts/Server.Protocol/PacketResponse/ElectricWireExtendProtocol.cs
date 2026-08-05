@@ -35,13 +35,6 @@ namespace Server.Protocol.PacketResponse
                 : ElectricWireExtendResponse.CreateFailure(result.FailureReason);
         }
 
-        public enum ElectricWireExtendOperation
-        {
-            ConnectToExisting,
-            ExtendToNewPole,
-            PlaceIsolatedPole,
-        }
-
         [MessagePackObject]
         public class ElectricWireExtendRequest : ProtocolMessagePackBase
         {

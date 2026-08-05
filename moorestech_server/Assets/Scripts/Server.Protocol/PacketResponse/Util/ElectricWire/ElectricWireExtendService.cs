@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.Block.Interface;
@@ -27,73 +26,91 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
     /// </summary>
     public static class ElectricWireExtendService
     {
-        public static ExtendResult Execute(ElectricWireExtendProtocol.ElectricWireExtendOperation operation, Vector3Int fromPos, Vector3Int toPos, PlaceInfoMessagePack polePlaceInfo, int playerId, BlockId poleBlockId, Guid connectToolGuid)
+        public static ElectricWireExtendResult Execute(ElectricWireExtendOperation operation, Vector3Int fromPos, Vector3Int toPos, PlaceInfoMessagePack polePlaceInfo, int playerId, BlockId poleBlockId, Guid connectToolGuid)
         {
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
 
-            // 既存ブロック接続は設置系検証を通らず既存utilに委ねる
-            // ConnectToExisting skips placement validations and delegates to the existing util
-            if (operation == ElectricWireExtendProtocol.ElectricWireExtendOperation.ConnectToExisting)
-                return ExecuteConnectToExisting();
+            // 設置系検証が確定させる共有値。TryValidatePolePlacement通過後のみ有効
+            // Shared values settled by the placement validation; valid only after TryValidatePolePlacement passes
+            BlockMasterElement blockMaster = null;
+            ElectricPoleBlockParam poleParam = null;
+            (ItemId itemId, int count)[] costItemCounts = null;
 
-            // 設置先が既に埋まっていないか確認する
-            // Ensure the target position is not already occupied
-            if (ServerContext.WorldBlockDatastore.Exists(polePlaceInfo.Position))
-                return ExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
-
-            // ブロックの解放状態を検証する（解放判定は基底ブロック）
-            // Validate the unlock state (judged on the base block)
-            var baseBlockGuid = MasterHolder.BlockMaster.GetBlockMaster(poleBlockId).BlockGuid;
-            if (!ServerContext.GetService<IGameUnlockStateDataController>().BlockUnlockStateInfos[baseBlockGuid].IsUnlocked)
-                return ExtendResult.Failure(ElectricWirePlacementFailureReason.NotUnlocked);
-
-            // 起点あり延長のみ未解放connectToolでの延長を拒否する
-            // Only extend-with-origin rejects extension using a connectTool that is not unlocked
-            if (operation == ElectricWireExtendProtocol.ElectricWireExtendOperation.ExtendToNewPole && !ElectricWireSystemUtil.IsConnectToolUnlocked(connectToolGuid))
-                return ExtendResult.Failure(ElectricWirePlacementFailureReason.NotUnlocked);
-
-            // 指定BlockIdから電柱パラメータを解決する
-            // Resolve the pole parameter from the requested BlockId
-            var blockId = poleBlockId;
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            if (blockMaster.BlockParam is not ElectricPoleBlockParam poleParam)
-                return ExtendResult.Failure(ElectricWirePlacementFailureReason.InvalidTarget);
-
-            // 建設コストの充足を検証する
-            // Validate the construction cost
-            var costItemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
-            if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems))
-                return ExtendResult.Failure(ElectricWirePlacementFailureReason.InsufficientItems);
-
-            // 起点ありは起点との明示1本のみ、起点なしは接続なしの単体設置
-            // With origin: only the explicit origin wire; without: place the pole alone with no wiring
-            return operation == ElectricWireExtendProtocol.ElectricWireExtendOperation.ExtendToNewPole
-                ? ExecuteExtendWithOrigin()
-                : ExecuteIsolatedPlace();
+            // Operationごとの経路をこの1箇所で振り分ける。外部入力由来の列挙域外は不正Modeとして拒否する
+            // All per-operation branching lives here; out-of-range values from external input are rejected as an invalid mode
+            switch (operation)
+            {
+                case ElectricWireExtendOperation.ConnectToExisting:
+                    return ExecuteConnectToExisting();
+                case ElectricWireExtendOperation.ExtendToNewPole:
+                    return ExecuteExtendWithOrigin();
+                case ElectricWireExtendOperation.PlaceIsolatedPole:
+                    return ExecuteIsolatedPlace();
+                default:
+                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.InvalidMode);
+            }
 
             #region Internal
 
             // 既存ブロック同士を接続し、成功時は接続先を終点として返す
             // Connect two existing blocks; on success return the target as the endpoint
-            ExtendResult ExecuteConnectToExisting()
+            ElectricWireExtendResult ExecuteConnectToExisting()
             {
                 if (!ElectricWireSystemUtil.TryConnect(fromPos, toPos, playerId, connectToolGuid, out var failureReason))
-                    return ExtendResult.Failure(failureReason);
+                    return ElectricWireExtendResult.Failure(failureReason);
 
                 // TryConnect成功直後なので終点コネクタは必ず解決できる
                 // The endpoint connector always resolves right after a successful TryConnect
                 ElectricWireSystemUtil.TryGetWireConnector(toPos, out var toConnector);
-                return ExtendResult.Success(toPos, toConnector.BlockInstanceId.AsPrimitive());
+                return ElectricWireExtendResult.Success(toPos, toConnector.BlockInstanceId.AsPrimitive());
             }
 
-            // 起点との明示接続をアトミックに行う
-            // Atomically wire the origin
-            ExtendResult ExecuteExtendWithOrigin()
+            // 設置系2Operationに共通する事前検証。通過時のみ共有値が確定する
+            // Pre-validation shared by both placement operations; the shared values are settled only on pass
+            bool TryValidatePolePlacement(out ElectricWirePlacementFailureReason failureReason)
             {
+                // 設置先が既に埋まっていないか確認する
+                // Ensure the target position is not already occupied
+                failureReason = ElectricWirePlacementFailureReason.PositionOccupied;
+                if (ServerContext.WorldBlockDatastore.Exists(polePlaceInfo.Position)) return false;
+
+                // ブロックの解放状態を検証する（解放判定は基底ブロック）
+                // Validate the unlock state (judged on the base block)
+                blockMaster = MasterHolder.BlockMaster.GetBlockMaster(poleBlockId);
+                failureReason = ElectricWirePlacementFailureReason.NotUnlocked;
+                if (!ServerContext.GetService<IGameUnlockStateDataController>().BlockUnlockStateInfos[blockMaster.BlockGuid].IsUnlocked) return false;
+
+                // 指定BlockIdから電柱パラメータを解決する
+                // Resolve the pole parameter from the requested BlockId
+                failureReason = ElectricWirePlacementFailureReason.InvalidTarget;
+                if (blockMaster.BlockParam is not ElectricPoleBlockParam requestedPoleParam) return false;
+                poleParam = requestedPoleParam;
+
+                // 建設コストの充足を検証する
+                // Validate the construction cost
+                costItemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
+                failureReason = ElectricWirePlacementFailureReason.InsufficientItems;
+                if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return false;
+
+                failureReason = ElectricWirePlacementFailureReason.None;
+                return true;
+            }
+
+            // 起点との明示接続1本をアトミックに行う
+            // Atomically wire the single explicit connection to the origin
+            ElectricWireExtendResult ExecuteExtendWithOrigin()
+            {
+                if (!TryValidatePolePlacement(out var placementFailure)) return ElectricWireExtendResult.Failure(placementFailure);
+
+                // 起点あり延長のみ未解放connectToolでの延長を拒否する
+                // Only extend-with-origin rejects extension using a connectTool that is not unlocked
+                if (!ElectricWireSystemUtil.IsConnectToolUnlocked(connectToolGuid))
+                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.NotUnlocked);
+
                 // 起点コネクタを解決し、距離・上限・コストを検証する
                 // Resolve the origin connector and validate distance, capacity and cost
                 if (!ElectricWireSystemUtil.TryGetWireConnector(fromPos, out var fromConnector))
-                    return ExtendResult.Failure(ElectricWirePlacementFailureReason.InvalidTarget);
+                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.InvalidTarget);
 
                 var poleGhostInfo = new BlockPositionInfo(polePlaceInfo.Position, polePlaceInfo.Direction, blockMaster.BlockSize);
 
@@ -101,85 +118,67 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 // Mutual range check between origin and the new pole; distance remains for cost only
                 var fromBlock = ServerContext.WorldBlockDatastore.GetBlock(fromConnector.BlockInstanceId);
                 if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(fromBlock.BlockMasterElement.BlockParam, out _, out var fromProfile, out var fromIsPole))
-                    return ExtendResult.Failure(ElectricWirePlacementFailureReason.InvalidTarget);
+                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.InvalidTarget);
                 if (!ElectricConnectionRangeService.IsMutuallyConnectable(fromBlock.BlockPositionInfo, fromProfile, fromIsPole, poleGhostInfo, ConnectionRangeProfile.CreatePole(poleParam), true))
-                    return ExtendResult.Failure(ElectricWirePlacementFailureReason.OutOfRange);
+                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.OutOfRange);
                 var distance = Vector3Int.Distance(fromPos, polePlaceInfo.Position);
                 if (fromConnector.IsWireConnectionFull)
-                    return ExtendResult.Failure(ElectricWirePlacementFailureReason.ConnectionLimit);
+                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.ConnectionLimit);
 
                 // 設置する電柱自身が1本も張れない設定なら失敗させる
                 // Fail when the pole to be placed cannot hold even one wire
                 if (poleParam.MaxWireConnectionCount < 1)
-                    return ExtendResult.Failure(ElectricWirePlacementFailureReason.ConnectionLimit);
-                if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, distance, out var fromCost))
-                    return ExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
-
-                // 素材ごとの必要総数を集計する。まず起点接続分
-                // Aggregate required totals per material; start with the origin connection
-                var targets = new List<(BlockInstanceId TargetId, ElectricWireConnectionCost Cost)> { (fromConnector.BlockInstanceId, fromCost) };
-                var requiredByItem = new Dictionary<ItemId, int>();
-                AddMaterials(requiredByItem, fromCost);
-
-                // 電線素材合計＋建設コスト中の同一アイテム分を合算で判定する
-                // Judge by total wire materials plus the same-item amount reserved by the construction cost
-                foreach (var (itemId, required) in requiredByItem)
-                {
-                    var reserved = 0;
-                    foreach (var (costItemId, count) in costItemCounts)
-                    {
-                        if (costItemId == itemId) reserved += count;
-                    }
-                    if (ElectricWireSystemUtil.CountItem(inventory, itemId) < required + reserved)
-                        return ExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
-                }
+                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.ConnectionLimit);
+                if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, distance, out var wireCost))
+                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
+                if (!HasEnoughWireMaterials(wireCost))
+                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
                 // 検証をすべて通過したのでここから状態を変更する
                 // All validation passed; start mutating state from here
-                if (!TryPlacePole(polePlaceInfo, blockId, out var selfConnector))
-                    return ExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
+                if (!TryPlacePole(polePlaceInfo, poleBlockId, out var selfConnector))
+                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
 
-                // 事前検証済みだが実行時ズレに備え、実際に張れた接続分の素材だけを消費する
-                // Validated ahead, but to survive runtime drift we consume materials only for connections that actually succeeded
-                foreach (var (targetId, cost) in targets)
-                {
-                    var targetConnector = ServerContext.WorldBlockDatastore.GetBlock(targetId)?.GetComponent<IElectricWireConnector>();
-                    if (targetConnector == null) continue;
-                    if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, targetConnector, cost)) continue;
-                    ConnectToolMaterialConsumer.Consume(cost.Materials, inventory);
-                }
+                // 起点1本が張れなければ配線なしの成功で潰さず失敗として返す（素材も建設コストも消費しない）
+                // If the single origin wire cannot be strung, report failure instead of a wireless success; nothing is consumed
+                if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, fromConnector, wireCost))
+                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.ConnectionLimit);
 
-                // 建設コストを消費する（dirty化は接続処理内で行われる）
-                // Consume the construction cost; the connection mutation itself marks the topology dirty
+                // 電線素材と建設コストを消費する（dirty化は接続処理内で行われる）
+                // Consume the wire materials and the construction cost; the connection mutation itself marks the topology dirty
+                ConnectToolMaterialConsumer.Consume(wireCost.Materials, inventory);
                 ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
 
-                return ExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
+                return ElectricWireExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
+            }
 
-                void AddMaterials(Dictionary<ItemId, int> accumulator, ElectricWireConnectionCost cost)
+            // 電線素材が建設コストの予約分と合わせて足りるかを素材ごとに判定する
+            // Check per material whether the wire cost fits alongside the amount reserved by the construction cost
+            bool HasEnoughWireMaterials(ElectricWireConnectionCost wireCost)
+            {
+                if (wireCost.Materials == null) return true;
+                foreach (var material in wireCost.Materials)
                 {
-                    // 接続コストの各素材を必要総数へ加算する
-                    // Add each material of a connection cost to the running required totals
-                    if (cost.Materials == null) return;
-                    foreach (var material in cost.Materials)
-                    {
-                        accumulator.TryGetValue(material.ItemId, out var current);
-                        accumulator[material.ItemId] = current + material.Count;
-                    }
+                    var reserved = costItemCounts.Where(cost => cost.itemId == material.ItemId).Sum(cost => cost.count);
+                    if (ElectricWireSystemUtil.CountItem(inventory, material.ItemId) < material.Count + reserved) return false;
                 }
+                return true;
             }
 
             // 起点なし設置。自動接続は行わず電柱単体のみを設置する
             // Placement without origin; place the pole alone with no auto-connect
-            ExtendResult ExecuteIsolatedPlace()
+            ElectricWireExtendResult ExecuteIsolatedPlace()
             {
-                if (!TryPlacePole(polePlaceInfo, blockId, out var selfConnector))
-                    return ExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
+                if (!TryValidatePolePlacement(out var placementFailure)) return ElectricWireExtendResult.Failure(placementFailure);
+
+                if (!TryPlacePole(polePlaceInfo, poleBlockId, out var selfConnector))
+                    return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
 
                 // 建設コストのみ消費する
                 // Consume only the construction cost
                 ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
 
-                return ExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
+                return ElectricWireExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
             }
 
             #endregion

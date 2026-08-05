@@ -74,6 +74,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(response.IsSuccess, response.FailureReason.ToString());
             var newConnector = worldBlockDatastore.GetBlock(newPolePos).GetComponent<IElectricWireConnector>();
 
+            // 終点は新設電柱そのもので、次の起点として座標とInstanceIdが返る
+            // The endpoint is the newly placed pole itself, returned as the next origin position and InstanceId
+            Assert.AreEqual(newPolePos, (Vector3Int)response.EndpointPos);
+            Assert.AreEqual(newConnector.BlockInstanceId.AsPrimitive(), response.EndpointBlockInstanceId);
+
             // 接続は起点との1本のみで、周辺機械へは配線されない
             // Exactly one edge to the origin; the nearby machine stays unwired
             Assert.AreEqual(1, newConnector.WireConnections.Count);
@@ -98,8 +103,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(worldBlockDatastore.Exists(newPolePos));
             Assert.AreEqual(0, CountItem(inventory, _materialItemId));
 
+            // 終点は孤立設置した電柱そのもので、次の起点として座標とInstanceIdが返る
+            // The endpoint is the isolated pole itself, returned as the next origin position and InstanceId
             var newPole = worldBlockDatastore.GetBlock(newPolePos);
             Assert.AreEqual(0, newPole.GetComponent<IElectricWireConnector>().WireConnections.Count);
+            Assert.AreEqual(newPolePos, (Vector3Int)response.EndpointPos);
+            Assert.AreEqual(newPole.GetComponent<IElectricWireConnector>().BlockInstanceId.AsPrimitive(), response.EndpointBlockInstanceId);
         }
 
         [Test]
@@ -127,7 +136,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void 未接続機械を起点にした延長で二重接続や電線二重消費が起きない()
+        public void 機械を起点にした延長は機械との1本のみ接続し電線を距離分だけ消費する()
         {
             // 新電柱の機械範囲内にいる未接続機械そのものを起点にする（機械を起点にした延長の基本ケース）
             // Use an unconnected machine inside the new pole's machine range as the origin (basic case of extending from a machine)

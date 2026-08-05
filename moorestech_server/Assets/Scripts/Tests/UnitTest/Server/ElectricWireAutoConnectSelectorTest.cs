@@ -117,24 +117,11 @@ namespace Tests.UnitTest.Server
             // X=+2 and X=-2 tie at distance 2; machine 21 is enumerated first but id-order puts 20 first
             var candidates = new List<ElectricWireConnectCandidate> { Machine(21, 2, 0), Machine(20, -2, 0) };
 
-            var result = ElectricWireAutoConnectSelector.SelectPoleMachineTargets(_poleParam, Cell(0, 0, 0), 0, candidates);
+            var result = ElectricWireAutoConnectSelector.SelectPlacementTargets(_poleParam, Cell(0, 0, 0), candidates);
 
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual(new BlockInstanceId(20), result[0].TargetId);
             Assert.AreEqual(new BlockInstanceId(21), result[1].TargetId);
-        }
-
-        [Test]
-        public void usedCountが残容量から差し引かれる()
-        {
-            // 上限8中7本使用済みで機械1台のみ選出
-            // With 7/8 used, only one machine is selected
-            var candidates = new List<ElectricWireConnectCandidate> { Machine(20, 1, 0), Machine(21, 2, 0) };
-
-            var result = ElectricWireAutoConnectSelector.SelectPoleMachineTargets(_poleParam, Cell(0, 0, 0), 7, candidates);
-
-            Assert.AreEqual(1, result.Count);
-            Assert.AreEqual(new BlockInstanceId(20), result[0].TargetId);
         }
 
         [Test]

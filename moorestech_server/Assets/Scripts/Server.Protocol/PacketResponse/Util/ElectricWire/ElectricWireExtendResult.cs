@@ -7,14 +7,14 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
     /// ElectricWireExtendServiceの実行結果。成功時は終点（次の起点）座標とInstanceIdを持つ
     /// Result of ElectricWireExtendService; on success carries the endpoint (next origin) position and InstanceId
     /// </summary>
-    public readonly struct ExtendResult
+    public readonly struct ElectricWireExtendResult
     {
         public readonly bool IsSuccess;
         public readonly ElectricWirePlacementFailureReason FailureReason;
         public readonly Vector3Int EndpointPos;
         public readonly int EndpointBlockInstanceId;
 
-        private ExtendResult(bool isSuccess, ElectricWirePlacementFailureReason failureReason, Vector3Int endpointPos, int endpointBlockInstanceId)
+        private ElectricWireExtendResult(bool isSuccess, ElectricWirePlacementFailureReason failureReason, Vector3Int endpointPos, int endpointBlockInstanceId)
         {
             IsSuccess = isSuccess;
             FailureReason = failureReason;
@@ -22,14 +22,14 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             EndpointBlockInstanceId = endpointBlockInstanceId;
         }
 
-        public static ExtendResult Success(Vector3Int endpointPos, int endpointBlockInstanceId)
+        public static ElectricWireExtendResult Success(Vector3Int endpointPos, int endpointBlockInstanceId)
         {
-            return new ExtendResult(true, ElectricWirePlacementFailureReason.None, endpointPos, endpointBlockInstanceId);
+            return new ElectricWireExtendResult(true, ElectricWirePlacementFailureReason.None, endpointPos, endpointBlockInstanceId);
         }
 
-        public static ExtendResult Failure(ElectricWirePlacementFailureReason failureReason)
+        public static ElectricWireExtendResult Failure(ElectricWirePlacementFailureReason failureReason)
         {
-            return new ExtendResult(false, failureReason, Vector3Int.zero, 0);
+            return new ElectricWireExtendResult(false, failureReason, Vector3Int.zero, 0);
         }
     }
 }
