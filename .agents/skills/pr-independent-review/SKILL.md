@@ -18,7 +18,7 @@ description: |
 
 **正典tree `$CANON`**: 測定器（スクリプト・レンズ・reviewer・統合ルール・テンプレート）の唯一の読み取り元。
 **`origin/master` に固定した専用worktree**とする（ユーザー裁定 2026-08-05）。
-スクリプト・レンズ・統合ルールは必ず `$CANON` の絶対パスで参照する。レビューworktree側の
+スクリプト・レンズ・統合ルールは必ず `$CANON` の絶対パスで参照する。`$PRWT` 側の
 `.claude/` は**絶対に使わない**（PRごとに測定器が変わり見逃し率実測が壊れる・自己弱体化経路）。
 
 `$CANON` を「このSKILL.mdが置かれているtree」にしてはいけない — それはたいてい他セッションが実装作業中の
@@ -31,7 +31,7 @@ description: |
    `/<dir>/skills/pr-independent-review/SKILL.md`（`<dir>` は `.agents`/`.claude`/`.codex` のいずれか。
    skills実体は `.agents/skills` で他2つはsymlink）を**文字列として取り除いた**残り。
    **`$ORIGIN` はworktreeを生やす起点としてのみ使い、読み取り元にも書き込み先にもしない**
-2. **固定worktreeの場所**: レビューworktree（`pr-review`）と**同じ親ディレクトリ**の `skills-canon`。
+2. **固定worktreeの場所**: PR専用worktree `$PRWT`（`pr-<番号>`）と**同じ親ディレクトリ**の `skills-canon`。
    これが `$CANON` の実値。無ければ作る:
 
        git -C <$ORIGINの実値> worktree add <$CANONの実値> --detach origin/master
@@ -44,7 +44,7 @@ description: |
 
 4. 実在確認: `ls <$CANONの実値>/.agents/skills/pr-independent-review/scripts/novelty_gate.py`。
    失敗したら即エラー終了（$CANON誤決定のまま走らせない）。**確認先はこのファイルでなければならない** —
-   `moores-code-review/SKILL.md` はレビューworktree側にも存在しうるため、誤決定した$CANONでも通ってしまい弁別にならない
+   `moores-code-review/SKILL.md` は `$PRWT` 側にも存在しうるため、誤決定した$CANONでも通ってしまい弁別にならない
 5. **SKILL.md同一性ガード（必須・省略禁止）**:
 
        diff <$ORIGINの実値>/.agents/skills/pr-independent-review/SKILL.md \
@@ -65,25 +65,26 @@ featureブランチが記録ファイルに触れてマージ衝突する構造�
   未定義変数で空文字に展開され、`/.claude/skills/...` という不存在パスを叩いて沈黙故障する
 - `$ORIGIN` は `~/moorestech` とは限らない（worktreeから発火する運用が現にある）。`~/moorestech` を決め打ちしない
 
-**書き込み先の規律（3treeとも書き込み禁止）**:
-このスキルが触るtreeは3つあり、**どれも書き込み先ではない**。
+**書き込み先の規律**:
+このスキルが触るtreeは3つある。**書いてよいのは `$PRWT` にPRのコード修正を入れるときだけ**で、他は読み取り専用。
 
 | tree | 中身 | 書けない理由 |
 | --- | --- | --- |
 | `$CANON`（skills-canon） | `origin/master` 固定の測定器 | 毎回 `reset --hard` されるので書いても消える |
 | `$ORIGIN`（起動元・多くはメインworktree） | 他セッションの作業中ブランチ | 他人の作業ツリーを汚し、コミットすれば無関係なブランチへ混入する（**実際に実行中ブランチが切り替わった**） |
-| `pr-review` | PRのhead（detached） | 毎回 `reset --hard && clean -fd` で消え、PRのコードの上にツーリング変更を積む筋も通らない |
+| `$PRWT`（`pr-<番号>`） | PRのheadブランチ | **PRのコード修正だけは書いてよい**（Step 9）。skill改修・`.decisions/` の裁定記録をここに積むのは筋が通らない |
 
 - レビュー成果物の置き先は既に分離済み — ダイジェストは `/tmp/pr-review-<番号>/`、実行記録は `$LOGS`。
-  **通常のレビュー1周では、コードrepoへの書き込みは1バイトも発生しない**
-- 例外はコードrepoの中身そのものを変える依頼だけ（skill改修・`.decisions/` への裁定記録）。
-  その場合は上の3treeのどれでもない**専用worktreeを新たに切ってそこで完結させる**:
+  **レビューだけで終わる1周では、コードrepoへの書き込みは1バイトも発生しない**
+- PRのコード修正を頼まれたときだけ `$PRWT` へ書く（Step 9）
+- skill改修・`.decisions/` への裁定記録は、上の3treeのどれでもない**専用worktreeを新たに切ってそこで完結させる**:
 
       git -C <$ORIGINの実値> worktree add \
         <worktree親ディレクトリ>/skill-<用件> -b chore/<用件> origin/master
 
-  worktree親ディレクトリは `pr-review` / `skills-canon` と同じ場所。`origin/master` 起点にするのは、
-  `$ORIGIN` の現在ブランチ（他人の作業中ブランチ）を巻き込まないため
+  worktree親ディレクトリは `$PRWT` / `skills-canon` と同じ場所。`origin/master` 起点にするのは、
+  `$ORIGIN` の現在ブランチ（他人の作業中ブランチ）を巻き込まないため。
+  **裁定記録を `$PRWT` に積まない** — PRブランチが `.decisions/` を抱えるとレビュー対象と記録が混ざる
 - **撤収確認（必須）**: 作業後に `git -C <$ORIGINの実値> status --porcelain -- <触れたパス>` が**空**であることを
   確かめる。空でなければ `$ORIGIN` に自分の変更が残っている＝ミスの再演
 - **報告義務**: skill改修を専用worktreeのブランチに載せた場合、**その改修はmasterへマージされるまで有効にならない**
@@ -147,20 +148,37 @@ featureブランチが記録ファイルに触れてマージ衝突する構造�
   コマンドに書くときは必ず実値へ展開する（例: `8ce6f4ddae1a0d1c03059d3e3ac6d8acb994de80^1`）
 - 解決可能性の確認はStep 2の末尾で行う（fetch後でないと参照できないため）
 
-## Step 2: レビューworktreeへcheckout
+## Step 2: PR専用worktree `$PRWT` へcheckout
 
 コマンドは `git -C <絶対パス>` 形式か、**`cd` を同一コマンド内に含めた形**で書く。agent実行系ではbash呼び出し間で
 cwdがリセットされるため、単独の `cd` は次のコマンドに効かない。`~` はsubagentのpromptやファイルパスへ渡す時点で
 絶対パスに展開する。
 
-- 場所固定: `skills-canon` と同じ親ディレクトリの `pr-review`。無ければ
-  `git -C <$ORIGINの実値> worktree add <pr-reviewの実値> origin/master --detach` で作成
-  （`$ORIGIN` は冒頭で決めた実値に展開して渡す。`~/moorestech-worktrees` の決め打ちは禁止 —
-  worktree親ディレクトリが `$ORIGIN` の兄弟にあるケースが現に存在する）
-- 毎回リセット: `git -C ~/moorestech-worktrees/pr-review reset --hard && git -C ~/moorestech-worktrees/pr-review clean -fd`
+**worktreeはPRごとに1つ作り、レビューからpushまでそこで完結させる**（ユーザー裁定 2026-08-05）。
+共用の使い回しworktreeにしてはいけない — 並行レビューで奪い合いになり、修正作業中のツリーを次のレビューが
+`reset --hard` で消すためである。
+
+- **場所**: `skills-canon` と同じ親ディレクトリの `pr-<番号>`。以下これを `$PRWT` と呼ぶ
+- **無ければ作る**（`$ORIGIN` は冒頭で決めた実値に展開して渡す。`~/moorestech-worktrees` の決め打ちは禁止 —
+  worktree親ディレクトリが `$ORIGIN` の兄弟にあるケースが現に存在する）:
+
+      git -C <$ORIGINの実値> fetch origin "+refs/heads/<headRefName>:refs/remotes/origin/<headRefName>"
+      git -C <$ORIGINの実値> worktree add <$PRWTの実値> origin/<headRefName>
+
+  **`$ORIGIN` で `gh pr checkout` を実行してはいけない**（2026-08-05に実際にやった事故）。`gh pr checkout` は
+  cwdのworktreeのブランチを切り替えるため、**メインworktreeが他セッションの作業ブランチから引き剥がされる**。
+  PRブランチの取得は上記の `fetch` + `worktree add` で行い、`gh pr checkout` を使う場合は必ず `$PRWT` へ
+  `cd` した状態で叩く
+- **既にあれば作り直さない**。`git -C <$PRWTの実値> status --porcelain` が**非空なら即エラー終了**して報告する
+  （前回の修正作業が残っている可能性がある。`reset --hard` で他人の作業を消さない）。空なら次へ進む
+- **PR headへ追随**: `git -C <$PRWTの実値> fetch origin "+refs/heads/<headRefName>:refs/remotes/origin/<headRefName>"`
+  のうえ `git -C <$PRWTの実値> merge --ff-only origin/<headRefName>`。fast-forwardできない場合は
+  ローカルに独自コミットがある＝前回の修正が未pushなので、即エラー終了して報告する
+- **後片付けはユーザーに委ねる**。PRがマージ・closeされたら `git -C <$ORIGINの実値> worktree remove <$PRWTの実値>`
+  で消せるが、独立セッションが勝手に消さない（未pushの修正が入っていることがある）
 - base最新化（**refspecを明示する**）:
 
-        git -C ~/moorestech-worktrees/pr-review fetch origin \
+        git -C <$PRWTの実値> fetch origin \
           "+refs/heads/<baseRefName>:refs/remotes/origin/<baseRefName>"
 
   引数なしの `fetch origin <baseRefName>` はremote-tracking ref（`refs/remotes/origin/<baseRefName>`）を
@@ -171,22 +189,25 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
   **このfetchの失敗ではエラー終了しない** — マージ後にbaseブランチが削除されているとremote refが無く落ちるが、
   下の「BASE_REF の解決確認」のフォールバック（`fetch origin <mergeCommit>`）で回収できるため、そこまで進んで判定する
 - checkout（`state` で分岐）:
-  - **OPEN**: `cd ~/moorestech-worktrees/pr-review && gh pr checkout <番号> --detach`
-    （--detach必須: PRブランチは実装worktreeが保持していることが多くブランチロックで失敗する。
-    `gh pr checkout` はリポジトリコンテキストを要求し `-C` にできないので、`cd` は必ず同一コマンド内に置く）
+  - **OPEN**: `cd <$PRWTの実値> && gh pr checkout <番号>`（`--detach` を付けない）
+    **後で修正をpushするため、PRブランチをブランチとしてcheckoutする**。detachedだとcommitはできてもpush先が無い。
+    `gh pr checkout` はリポジトリコンテキストを要求し `-C` にできないので、`cd` は必ず同一コマンド内に置く。
+    **`cd` 先が `$PRWT` であることを目視してから実行する**（`$ORIGIN` で叩くとメインworktreeのブランチが変わる）。
+    ブランチロック（`fatal: '<branch>' is already checked out at ...`）で失敗したら、**奪わずに**
+    どのworktreeが保持しているかを報告して指示を仰ぐ。実装セッションが作業中の可能性がある
   - **MERGED**、または OPEN でも headブランチ削除済みで上が `fatal: couldn't find remote ref` / exit 128 になる場合:
 
-        git -C ~/moorestech-worktrees/pr-review fetch origin pull/<番号>/head && \
-          git -C ~/moorestech-worktrees/pr-review checkout --detach FETCH_HEAD
+        git -C <$PRWTの実値> fetch origin pull/<番号>/head && \
+          git -C <$PRWTの実値> checkout --detach FETCH_HEAD
 
-    それも失敗する場合は `<mergeCommit>` 自体をcheckoutする（`git -C ~/moorestech-worktrees/pr-review checkout --detach <mergeCommit>`。
+    それも失敗する場合は `<mergeCommit>` 自体をcheckoutする（`git -C <$PRWTの実値> checkout --detach <mergeCommit>`。
     `<mergeCommit>` はStep 1.5の規約どおり `.mergeCommit.oid` のSHA）。
     差分は `BASE_REF`＝`<mergeCommit>^1` との比較なので、PRの変更集合としては同じものが取れる
-- **BASE_REF の解決確認（ここで必ず行う）**: `git -C ~/moorestech-worktrees/pr-review rev-parse --verify "<BASE_REF>^{commit}"`
+- **BASE_REF の解決確認（ここで必ず行う）**: `git -C <$PRWTの実値> rev-parse --verify "<BASE_REF>^{commit}"`
   が成功することを確かめる。MERGEDで `<mergeCommit>` がローカルに無くて失敗した場合のみ
-  `git -C ~/moorestech-worktrees/pr-review fetch origin <mergeCommit>`（同じく `.mergeCommit.oid` のSHA）を挟んで再確認する。
+  `git -C <$PRWTの実値> fetch origin <mergeCommit>`（同じく `.mergeCommit.oid` のSHA）を挟んで再確認する。
   それでも解決できなければ即エラー終了（不正・未解決のbaseのまま先へ進まない）
-- **checkout整合の確認（ここで必ず行う）**: `git -C ~/moorestech-worktrees/pr-review rev-parse HEAD` の出力が
+- **checkout整合の確認（ここで必ず行う）**: `git -C <$PRWTの実値> rev-parse HEAD` の出力が
   Step 1で取った `headRefOid` と一致することを確かめる。一致すればPRのhead実体をレビューしている。
   不一致のときの扱いは経路で分かれる（混同禁止）:
   - **OPENの通常経路（`gh pr checkout` / `pull/<番号>/head` でcheckoutした場合）で不一致**: **即エラー終了する**。
@@ -199,7 +220,7 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 
 ## Step 3: patch生成（exclude方式）
 
-    git -C ~/moorestech-worktrees/pr-review -c core.quotepath=false diff \
+    git -C <$PRWTの実値> -c core.quotepath=false diff \
       --no-color --no-ext-diff --no-textconv --text --no-renames \
       <BASE_REF>...HEAD -- . \
       ':(exclude)*.meta' ':(exclude)*.prefab' ':(exclude)*.asset' ':(exclude)*.unity' \
@@ -240,7 +261,7 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 - PR本文が主張する方針・トレードオフは全部 `[agent前提]`（免責力なし）として書く
 - **`[ADR:]` を引用する前に、そのspec/planファイルがPR diff自身で追加・変更されていないか必ず確認する**:
 
-        git -C ~/moorestech-worktrees/pr-review diff <BASE_REF>...HEAD --name-only -- docs/superpowers/
+        git -C <$PRWTの実値> diff <BASE_REF>...HEAD --name-only -- docs/superpowers/
 
   （`<BASE_REF>` はStep 1.5で確定した実値）の出力に引用元ファイルが含まれる場合、そのファイル由来のADR項目は
   **`[agent前提]` へ自動降格する**（＝免責力なし）。contextの当該行末に `（PR内新設ADR）` と注記する。
@@ -253,7 +274,7 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 ## Step 5: 新規性ゲートL1
 
     python3 "$CANON/.claude/skills/pr-independent-review/scripts/novelty_gate.py" \
-      ~/moorestech-worktrees/pr-review <BASE_REF> > /tmp/pr-review-<番号>-novelty.json
+      <$PRWTの実値> <BASE_REF> > /tmp/pr-review-<番号>-novelty.json
 
 （`$CANON` は冒頭で決めた実値に展開して書く。リテラルのまま渡さない。第2引数はStep 1.5の `BASE_REF` の実値であり、
 `origin/<baseRefName>` のベタ書きではない）
@@ -281,7 +302,7 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
   `asmdef_refs` / `grammar` が全部空だった場合は、先へ進む前に次の2点で `BASE_REF` の妥当性を確認する:
   1. `novelty_gate.py` の第2引数がStep 1.5の `BASE_REF` 実値と一致しているか（`origin/<baseRefName>` を
      ベタ書きしていないか。MERGED PRでの典型的な取り違え）
-  2. `git -C ~/moorestech-worktrees/pr-review merge-base <BASE_REF> HEAD` が **HEADと一致しないこと**
+  2. `git -C <$PRWTの実値> merge-base <BASE_REF> HEAD` が **HEADと一致しないこと**
      （一致＝HEADがbaseの祖先＝base取り違え。この場合は `BASE_REF` を直してStep 3からやり直す）
 
   両方通って初めて「本当に新形0件」と判断してよい。確認せずに0件として先へ進むのは禁止
@@ -301,22 +322,22 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 
 `$CANON/.claude/skills/moores-code-review/SKILL.md` の手順に従うが、以下を上書きする:
 
-- PATCH_PATH = Step 3の生成物 / USER_PROMPT_PATH = Step 4の生成物 / cwd＝レビューworktree（コード読み取り専用）
+- PATCH_PATH = Step 3の生成物 / USER_PROMPT_PATH = Step 4の生成物 / cwd＝`$PRWT`（この系統ではコード読み取り専用）
 - スクリプト実行・レンズ/reviewer/統合ルールのReadパスは全部 `$CANON` 配下の絶対パス
 
 ### 本体のコマンド例を使わず、次の3行をそのまま使う
 
-本体SKILL.mdのコマンド例は `.claude/skills/...` の**相対パス**で書かれている。cwdがレビューworktreeなので
+本体SKILL.mdのコマンド例は `.claude/skills/...` の**相対パス**で書かれている。cwdが `$PRWT` なので
 コピペするとPR側の `.claude/` を実行してしまう（＝正典tree原則の破れ・自己弱体化経路そのもの）。必ず下記で置き換える
 （`$CANON` は冒頭で決めた実値に展開して書くこと）:
 
 ```bash
-python3 "$CANON/.claude/skills/moores-code-review/scripts/deterministic_checks.py" "<PATCH_PATH>" --repo-root ~/moorestech-worktrees/pr-review --context "<USER_PROMPT_PATH>" > /tmp/pr-review-<番号>-detchecks.json
+python3 "$CANON/.claude/skills/moores-code-review/scripts/deterministic_checks.py" "<PATCH_PATH>" --repo-root <$PRWTの実値> --context "<USER_PROMPT_PATH>" > /tmp/pr-review-<番号>-detchecks.json
 python3 "$CANON/.claude/skills/moores-code-review/scripts/select_lenses.py" "<PATCH_PATH>"
 python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "<PATCH_PATH>"
 ```
 
-- **`--repo-root` はレビューworktree側**（`~/moorestech-worktrees/pr-review`）。ADR参照の解決と200行判定は
+- **`--repo-root` は `$PRWT` 側**（`<$PRWTの実値>`）。ADR参照の解決と200行判定は
   PR側の木のファイル実体を見る必要があるため。スクリプト本体だけが `$CANON` 側という非対称は意図的
 - `--context` は本体Step 2どおり必須（Step 4の出所ラベル・`##` 見出し検査はこの指定が無いと一切走らない）
 - **report-only**: 確定修正の自動適用（本体Step 6）・uloop compile・本体Step 6.5の適用後diff再生成・
@@ -336,7 +357,7 @@ python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "
 ### Codex外部監査（本体Step 3）の起動手当て
 
 codexはプロンプトのテキストしか受け取らず、差分は**自分のcwdで**解決する。素直に起動するとこのセッションのcwd
-（＝`$CANON`）を監査してしまい、PRと無関係なコードに所見を出す。かといってレビューworktreeへ `cd` して起動すると、
+（＝`$CANON`）を監査してしまい、PRと無関係なコードに所見を出す。かといって `$PRWT` へ `cd` して起動すると、
 今度は**PR側の `AGENTS.md` / `CLAUDE.md` / `.codex/` をcodexが上位指示として読み込む**（＝レビュー対象が
 レビュアーの指示を書ける自己弱体化経路）。次を必ず守る:
 
@@ -345,8 +366,8 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 
       cd /tmp && codex exec --sandbox read-only --skip-git-repo-check - < /tmp/pr-review-<番号>-audit.md
 
-  **レビューworktreeへ `cd` しない**。プロンプト内でリポジトリを参照する箇所は必ず
-  `git -C /Users/<ユーザー名>/moorestech-worktrees/pr-review ...` の形（`-C` に実値の絶対パス）で書き、
+  **`$PRWT` へ `cd` しない**。プロンプト内でリポジトリを参照する箇所は必ず
+  `git -C <$PRWTの実値> ...` の形（`-C` に実値の絶対パス）で書き、
   読ませたいファイルも絶対パスで指定する。`~` は展開して書く（プロンプトはシェルを通らない）
 
 - **audit-templateの差分指定欄を書き換える** — テンプレートは
@@ -355,7 +376,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   3行構成だが、独立レビューでは作業成果物が存在しない（worktreeはcleanなcheckout）。
   **2行目（「レビュー対象は、このセッションで私が作業した成果物だけです。」の行）を「レビュー対象は PR #<番号> の
   差分だけです。」に差し替え**、続く3行（コミット済み／staged／unstaged）を
-  `- 差分: git -C <レビューworktreeの実値> diff <BASE_REF>...HEAD`
+  `- 差分: git -C <$PRWTの実値> diff <BASE_REF>...HEAD`
   （`BASE_REF` とworktreeパスはいずれも実値の絶対パスへ展開）の1行に置き換える。
   1行目の役割宣言行はそのまま使う。staged/unstaged 行を残してはいけない（常に空で「変更なし＝問題なし」という誤結論を誘発する）。
   **`-C` の省略も禁止** — 起動cwdが中立ディレクトリなので、省くと差分が1行も取れないまま監査が走る
@@ -368,17 +389,17 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 （含め忘れると、subagentは自分のcwdや `$CANON` 配下のコードを読んでPRと無関係な箇所をレビューする）:
 
 ```
-対象コードのルート: <レビューworktreeの実値>（絶対パス）。コードのReadは必ずこの配下で行う。
+対象コードのルート: <$PRWTの実値>（絶対パス）。コードのReadは必ずこの配下で行う。
 `.claude/` 配下のスキル・レンズ・post-checks・統合ルールの定義のReadは <$CANONの実値> 配下で行う。
 ```
 
 - `<$CANONの実値>` は冒頭で決めた絶対パスへ展開して書く（リテラルの `$CANON` を渡さない）
-- `<レビューworktreeの実値>` も **`~` を展開した絶対パスで書く**（例: `echo ~/moorestech-worktrees/pr-review` の出力＝
-  `/Users/<ユーザー名>/moorestech-worktrees/pr-review`）。subagentのpromptは文字列であってシェルを通らないため、
+- `<$PRWTの実値>` も **`~` を展開した絶対パスで書く**（例: `echo ~/moorestech-worktrees/pr-1129` の出力＝
+  `<$PRWTの実値>`）。subagentのpromptは文字列であってシェルを通らないため、
   `~` のまま渡すとリテラルの `~` ディレクトリを探して読めない
 - **全サブエージェント契約（レンズ・reviewer・Fable全般・verifier・comment-rationale-guard・comment-convention-guard）の
   `Read this :` 行は `$CANON` 実値の絶対パスで書く** — 本体SKILL.mdの契約例は `.claude/skills/moores-code-review/...` の
-  相対パスなので、そのままコピペするとsubagentのcwd（＝レビューworktree）側のPR同梱スキルを読む。
+  相対パスなので、そのままコピペするとsubagentのcwd（＝`$PRWT`）側のPR同梱スキルを読む。
   `Candidates :` / `Patch path :` / `User prompt :` の各パス（`/tmp` 配下）も同様に絶対パスで書く
 
 ## Step 7: ダイジェストHTML生成
@@ -570,7 +591,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 - **測定器メタデータ行（`head` / `base` / `canonical` / `系統` / `session`）は省略禁止**。
   これらは「何を・どの測定器で測ったか」の記録であり、欠けると後からverdictの再現も、
   測定器の版差による見逃し率の比較もできなくなる。`head` と `base` は
-  `git -C ~/moorestech-worktrees/pr-review rev-parse HEAD` / `rev-parse "<BASE_REF>^{commit}"` の実出力、
+  `git -C <$PRWTの実値> rev-parse HEAD` / `rev-parse "<BASE_REF>^{commit}"` の実出力、
   `canonical` は `git -C <$CANONの実値> rev-parse HEAD` の実出力（`origin/master` 固定＋毎回 `reset --hard`
   なので `clean`/`dirty` の別は生じない）。SKILL.md同一性ガードで差分が出たまま続行した場合のみ、
   `git -C <$ORIGINの実値> rev-parse HEAD` も併記して版ズレを残す
@@ -612,6 +633,32 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
     （固定書式の「0件のセクションも省略せず」は本セクションには適用しない）
 - 記録類は `$LOGS` にのみ書き、コミットはユーザーに委ねる。**コードrepoのどのtreeへも書かない**
   （冒頭「書き込み先の規律」参照）
+
+## Step 9: 修正モード（「修正して」と言われたときだけ）
+
+レビューは report-only なので、**指示があるまでPRのコードには触らない**。「修正して」と言われたら本節に入る。
+作業場所は `$PRWT`（Step 2で作ったPR専用worktree）。ここがレビューからpushまで一貫した唯一の作業場所である。
+
+1. **裁定済みであることを確認する** — 直し方に選択肢がある指摘は、ダイジェストの設計判断カードでユーザーが
+   選んだ案が確定していること。未裁定のまま実装しない（AGENTS.mdのgrill-first HARD GATEの趣旨。
+   ダイジェストの設計判断がその裁定の場を兼ねているので、裁定済みなら改めてgrillは起動しない）
+2. **PR headが動いていないか確認する** — レビュー時の `head` SHA（recordsの `- head:`）と
+   `git -C <$PRWTの実値> rev-parse HEAD` を比べる。動いていたら**差分を読み、指摘がまだ成立するか確認してから**直す。
+   成立しなくなった指摘は直さず、その旨を報告する
+3. **修正を適用する**（subagentへ委譲してよい。その場合も作業ディレクトリを `$PRWT` に限定し、
+   `$ORIGIN` / `$CANON` / 他のworktreeを編集しないことをpromptに明記する）
+4. **コンパイル**（`.cs` を触ったら必須・AGENTS.md）:
+   `uloop compile --project-path <$PRWTの実値>/moorestech_client`
+   **`$PRWT` には `Library/` が無いため初回は膨大な再インポートが走る**。AGENTS.mdの指示どおり
+   `$ORIGIN` の `moorestech_client/Library` をコピーして時間を短縮する。コピー元は数十GB規模になりうるので、
+   **所要時間とディスク消費を先にユーザーへ伝えてから実行する**
+5. **テスト**: `uloop run-tests --project-path <$PRWTの実値>/moorestech_client --filter-type regex --filter-value "<対象>"`
+   で、修正した箇所と回帰テストに絞って実行する
+6. **コミット**。レビュー由来の修正であることが後から分かるメッセージにする
+7. **push**: `git -C <$PRWTの実値> push`。PRブランチをブランチとしてcheckoutしてあるので追加設定は要らない。
+   **pushは外向きの操作なので、明示の指示がない限り行わない**（「修正して」だけならcommitで止めて可否を確認する）
+- コンパイル・テストを実行できなかった場合は、**やっていないことを報告に明記する**。
+  「直した」とだけ言って検証状況を伏せるのは禁止
 
 ## reconcileモード（人間レビューとの突き合わせ・改善発火）
 
@@ -684,6 +731,9 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 ## エラー処理
 
 - このセッションが対象PRに関与済み: レビューせず中止・理由報告（Step 0参照）
+- `$PRWT` が既にあり `status --porcelain` が非空 / `merge --ff-only` が失敗: 即エラー終了・理由報告（Step 2参照）。
+  前回の修正作業が残っている可能性があるので `reset --hard` で潰さない
+- `gh pr checkout` がブランチロックで失敗: **奪わずに**保持しているworktreeを報告して指示を仰ぐ（Step 2参照）
 - `$CANON`（skills-canon）の用意に失敗（`worktree add` 失敗・`fetch`/`reset --hard origin/master` 失敗・
   `novelty_gate.py` 不在）: 即エラー終了・理由報告。起動元treeの `.claude/` で代替するのは**禁止**
   （物差しが実行中に動く状態へ戻るだけで、それは今の固定方式が解こうとしている問題そのもの）
@@ -695,7 +745,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 - Step 2のbase最新化fetch（`+refs/heads/<baseRefName>:refs/remotes/origin/<baseRefName>`）の失敗
   （MERGED後にbaseブランチが削除されている等でremote refが無い場合）:
   これ単独ではエラー終了しない。Step 2末尾の **BASE_REF解決確認**まで進み、そこで失敗したら
-  同節のフォールバック `git -C ~/moorestech-worktrees/pr-review fetch origin <mergeCommit>`
+  同節のフォールバック `git -C <$PRWTの実値> fetch origin <mergeCommit>`
   （`.mergeCommit.oid` のSHA）で `BASE_REF`＝`<mergeCommit>^1` を取り寄せて継続する。
   そのフォールバックでも解決できなければ即エラー終了
 - `state=CLOSED`（未マージclose）・`BASE_REF` が解決できない: 即エラー終了・理由報告（Step 1.5 / Step 2参照）
