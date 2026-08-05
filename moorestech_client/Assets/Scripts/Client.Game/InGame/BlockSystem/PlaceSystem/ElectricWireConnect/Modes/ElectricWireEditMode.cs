@@ -23,7 +23,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
         /// 起点未選択の1フレーム更新。選択できた起点ブロックを返す（切断・未選択時はnull）
         /// One-frame update while no origin is selected; returns the newly selected origin block (null on disconnect or none)
         /// </summary>
-        public BlockGameObject Update()
+        public BlockGameObject Update(PlaceSystemUpdateContext ctx)
         {
             // 起点が無い状態では接続線プレビューは表示しない
             // No connection preview while there is no origin

@@ -16,14 +16,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         public readonly ILocalPlayerInventory Inventory;
         public readonly BlockGameObjectDataStore BlockDataStore;
         public readonly ElectricWireExtendPreviewObject WirePreview;
+        public readonly ElectricWireExtendRequestSender RequestSender;
 
-        public ElectricWireToolContext(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory inventory, BlockGameObjectDataStore blockDataStore, ElectricWireExtendPreviewObject wirePreview)
+        public ElectricWireToolContext(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory inventory, BlockGameObjectDataStore blockDataStore, ElectricWireExtendPreviewObject wirePreview, ElectricWireExtendRequestSender requestSender)
         {
             MainCamera = mainCamera;
             PreviewBlockController = previewBlockController;
             Inventory = inventory;
             BlockDataStore = blockDataStore;
             WirePreview = wirePreview;
+            RequestSender = requestSender;
         }
     }
 }
