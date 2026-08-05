@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// モジュール変数(stored)を各テストで初期化するため resetModules + 動的 import を使う
-// Reset module-level state (stored) per test via resetModules + dynamic import
+// 各テストでstoredを初期化
+// Reset stored per test via resetModules
 beforeEach(() => {
   vi.resetModules();
 });
@@ -29,8 +29,8 @@ describe("buildMenuSessionState", () => {
     });
   });
 
-  // 前テストの更新が持ち越されないこと自体を、resetModules後の初期値で確認する
-  // Confirms the previous test's updates do not carry over, by checking the post-resetModules initial value
+  // 前テストの更新が残らないことを確認
+  // Confirms updates don't carry across tests
   it("モジュール再読込で前テストの更新が持ち越されない", async () => {
     const { loadBuildMenuSessionState } = await import("./buildMenuSessionState");
     expect(loadBuildMenuSessionState().categoryGuid).toBeNull();

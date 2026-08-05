@@ -18,31 +18,31 @@ import { CategorySidebar } from "./CategorySidebar";
 import { loadBuildMenuSessionState, updateBuildMenuSessionState } from "./sessionState/buildMenuSessionState";
 import styles from "./style.module.css";
 
-// uGUI BuildMenuView の web 版。stage水平中央の3カラム（§8.11・ADR-0007）
-// Web version of uGUI BuildMenuView: three columns centered horizontally on the stage (§8.11, ADR-0007)
+// BuildMenuViewのweb版・3カラム(§8.11)
+// Web version of BuildMenuView; 3 columns (§8.11)
 export function BuildMenuPanel() {
   const { t } = useI18n();
   const data = useTopic(Topics.buildMenu);
-  // 初期値をストアから復元（lazy初期化子でマウント時1回。前例: shared/treeView/TreeView.tsx）
-  // Restore initial values from the session store once per mount via a lazy initializer (precedent: shared/treeView/TreeView.tsx)
+  // ストアから初期値を復元
+  // Restore initial values from the session store
   const [stored] = useState(() => loadBuildMenuSessionState());
   const [selectedCategory, setSelectedCategory] = useState<string | null>(stored.categoryGuid);
   const [query, setQuery] = useState(stored.query);
   const [hoveredId, setHoveredId] = useState<string | null>(stored.hoveredEntryId);
-  // topic未着の初回renderは早期returnで視口が無いため、視口アタッチ時のcallback refで1回だけ復元する
-  // The first render has no viewport (topic not yet arrived → early return), so restore once via a callback ref at viewport attach
+  // 視口アタッチ時に1回復元
+  // Restore once via the viewport attach callback
   const scrollRestoredRef = useRef(false);
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
   const attachScrollViewport = (viewport: HTMLDivElement | null) => {
     if (viewport === null) return;
-    // 保存先は常に最新の視口を指す。復元だけが初回1回に限られる
-    // The save target always points at the newest viewport; only the restore is limited to the first attach
+    // 保存先は常に最新視口
+    // Save target always tracks the latest viewport
     scrollViewportRef.current = viewport;
     if (scrollRestoredRef.current) return;
     scrollRestoredRef.current = true;
     viewport.scrollTop = loadBuildMenuSessionState().scrollTop;
-    // 内容高が足りない復元値はブラウザにクランプされるため、実効値をストアへ揃え直す
-    // The browser clamps a restored value taller than the content, so realign the store with the effective one
+    // クランプ後の実効値へ揃え直す
+    // Realign the store with the clamped effective value
     updateBuildMenuSessionState({ scrollTop: viewport.scrollTop });
   };
   // scrollイベントは次フレームまで合体されアンマウントに間に合わないため、DOM除去前の実効値を確定保存する
@@ -65,8 +65,8 @@ export function BuildMenuPanel() {
       ? sectionsForCategory(currentCategory, data.categories, displayEntries)
       : [];
 
-  // stickyのため離脱では消さない。topic再配信で消えたエントリは現データ側へ引き直す
-  // Sticky: never clear on leave; if a rebroadcast removed the entry, re-resolve against live data
+  // sticky:離脱で消さず引き直す
+  // Sticky: never clear; re-resolve on rebroadcast
   const detailEntry = hoveredId
     ? displayEntries.find((entry) => entry.id === hoveredId) ?? null
     : null;
@@ -75,8 +75,8 @@ export function BuildMenuPanel() {
     updateBuildMenuSessionState({ hoveredEntryId: entry.id });
   };
 
-  // 変更時にプッシュ保存（§設計原則: 毎tick比較でなく変化点で保存）
-  // Push-save on change (per design principles: save at the change point, not by per-frame comparison)
+  // 変更時にプッシュ保存
+  // Push-save on change
   const selectCategory = (categoryGuid: string) => {
     setSelectedCategory(categoryGuid);
     updateBuildMenuSessionState({ categoryGuid });

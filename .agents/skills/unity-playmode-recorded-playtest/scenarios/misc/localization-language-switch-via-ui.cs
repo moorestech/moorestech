@@ -45,8 +45,8 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
     p.Assert(Localize.GetContent(ContentLocalizationKeys.BlockName(windDrillGuid)) == "風力掘削機",
         "日本語ロケールでブロック名が日本語原文へ解決される");
 
-    // 表示名はスロットではなく詳細サイドバーに出るため、ホバーして絵に残す
-    // Display names live in the detail sidebar rather than the slot, so hover to capture them
+    // 詳細サイドバー表示のためホバーする
+    // Hover to capture it in the detail sidebar
     p.Note("日本語のまま2種の機関車をホバーし、別名で表示されることを確認する");
     await OpenBuildMenu();
     await p.ClickWebUi(transportCategoryTestId);

@@ -93,12 +93,12 @@ test("詳細サイドバーはホバー後にstickyで残る", async ({ page }) 
   await expect(page.getByTestId("build-menu-detail")).toContainText("カーソルを合わせると詳細を表示します");
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`).hover();
   await expect(page.getByTestId("build-menu-detail")).toContainText("木のチェスト");
-  // 必要素材ブロック（ラベル+3列SlotGrid）が詳細に出ることを固定する
-  // Pins that the required-items block (label plus the 3-column SlotGrid) renders in the detail
+  // 必要素材が詳細に出ることを固定
+  // Pins the required-items block in the detail
   await expect(page.getByTestId("build-menu-detail")).toContainText("必要素材");
 
-  // カーソルを検索欄へ退避してもstickyで表示が残る
-  // The detail stays sticky after the cursor moves away to the search box
+  // 検索欄退避でもsticky維持
+  // Stays sticky after moving to search
   await page.getByTestId("build-menu-search").hover();
   await expect(page.getByTestId("build-menu-detail")).toContainText("木のチェスト");
 });
@@ -107,8 +107,8 @@ test("エントリの無いカテゴリはサイドバーに出ない", async ({
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
-  // fixturesは実マスタ相当の11カテゴリ定義だが「建材」はエントリ皆無のため、エントリを持つ10カテゴリのみが並ぶ
-  // fixtures define 11 categories matching the real master but "建材" has no entries, so only the 10 with entries render
+  // 「建材」はエントリ皆無のため除外
+  // Skips empty category
   await expect(page.getByTestId("build-menu-sidebar").locator("button")).toHaveCount(10);
 });
 
@@ -116,12 +116,12 @@ test("閉じて開き直すとタブ・検索・スクロール・詳細sticky�
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
-  // タブ切替+詳細sticky+スクロールを作ってから閉じる
-  // Build up tab selection, sticky detail, and scroll, then close
+  // タブ+sticky+スクロール構築
+  // Build state, then close
   await page.getByTestId(`build-menu-category-${buildMenuCategoryIds.transport}`).click();
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`).hover();
-  // scrollイベントの合成発火は使わない。scrollTop代入直後に閉じても保存される実挙動をそのまま検証する
-  // No synthetic scroll event: this exercises the real behavior of closing right after assigning scrollTop
+  // 合成scrollイベントは使わない
+  // No synthetic scroll event
   await page
     .getByTestId("build-menu-panel")
     .locator(".mantine-ScrollArea-viewport")

@@ -1,5 +1,5 @@
-// ビルドメニューのセッション内状態(リロードで消える)。前例: shared/treeView/viewport/viewportStore.ts
-// In-session build menu state (cleared on reload); precedent: shared/treeView/viewport/viewportStore.ts
+// ビルドメニューのセッション内状態
+// In-session build menu state
 type BuildMenuSessionState = {
   categoryGuid: string | null;
   query: string;

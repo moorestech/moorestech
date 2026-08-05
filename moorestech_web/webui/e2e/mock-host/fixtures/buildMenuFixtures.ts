@@ -48,8 +48,8 @@ export const buildMenuSubCategoryIds = {
   interiorPanel: "52000000-0000-4000-8000-000000000013",
 } as const;
 
-// 実マスタ(buildMenu.json)の可視10カテゴリを再現する追加分。1カテゴリ=1サブカテゴリ=1エントリで縦積み量だけを実データへ揃える
-// Extra categories that reproduce the real master's 10 visible categories; one sub-category and one entry each, matching only the vertical stack size
+// 実マスタの追加10カテゴリ分
+// Extra categories mirroring the real master's 10 visible ones
 const buildMenuExtraCategorySpecs = [
   { categoryGuid: buildMenuCategoryIds.mining, subCategoryGuid: buildMenuSubCategoryIds.miner, entryId: "53000000-0000-4000-8000-000000000005" },
   { categoryGuid: buildMenuCategoryIds.production, subCategoryGuid: buildMenuSubCategoryIds.primitiveCraft, entryId: "53000000-0000-4000-8000-000000000006" },
@@ -60,8 +60,8 @@ const buildMenuExtraCategorySpecs = [
   { categoryGuid: buildMenuCategoryIds.buildingMaterial, subCategoryGuid: buildMenuSubCategoryIds.interiorPanel, entryId: "53000000-0000-4000-8000-000000000011" },
 ] as const;
 
-// スクロール復元e2eと8列グリッド目視QAのため輸送/車両サブカテゴリを縦に溢れさせる量産エントリ（名前解決は不要）
-// Filler entries that overflow 輸送/車両 vertically for the scroll-restore e2e and the 8-column visual QA (no name resolution needed)
+// スクロール/グリッドQA用量産エントリ
+// Filler for grid QA
 const buildMenuScrollFillerEntries = Array.from({ length: 80 }, (_, index) => ({
   id: `53000000-0000-4000-8000-0000000010${String(index).padStart(2, "0")}`,
   kind: "block" as const,
@@ -83,8 +83,8 @@ export const buildMenu = {
     { categoryGuid: buildMenuCategoryIds.building, subCategoryGuids: [buildMenuSubCategoryIds.foundation] },
     ...buildMenuExtraCategorySpecs.map(({ categoryGuid, subCategoryGuid }) => ({ categoryGuid, subCategoryGuids: [subCategoryGuid] })),
   ],
-  // アイコンはmock-hostが配信する本番同形のブロックアイコン経路を使う（撮影時に実スロット表示を再現するため）
-  // Icons use the production-shaped block-icon route served by the mock host so captures show real slot rendering
+  // 本番同形のアイコン経路を使う
+  // Uses the mock host's production-shaped icon route
   entries: [
     { id: buildMenuEntryIds.woodChest, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [{ itemId: 1, count: 4 }], iconUrl: blockIconUrl(1) },
     { id: buildMenuEntryIds.ironChest, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [], iconUrl: blockIconUrl(2) },

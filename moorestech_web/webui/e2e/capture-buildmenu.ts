@@ -1,5 +1,5 @@
-// 目視QA:既定・検索・ホバー・8列グリッド・英語ロケールの5状態を撮影
-// Visual QA: capture BuildMenu in 5 states (default, search, hover, filled 8-column grid, English locale)
+// 目視QA:5状態を撮影
+// Visual QA: capture 5 BuildMenu states
 
 import { chromium } from "@playwright/test";
 import { WebSocketServer } from "ws";
@@ -63,16 +63,16 @@ async function main() {
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT_DIR}/buildmenu-3-hover.png` });
 
-  // 4.8列グリッドが埋まるカテゴリ(輸送/車両)。列数と端の余白を目視で確認するため
-  // 4. A category whose grid fills all 8 columns (輸送/車両), for eyeballing column count and edge margins
+  // 4.8列グリッドが埋まるカテゴリ
+  // 4. Fills all 8 cols
   await page.getByTestId(`build-menu-category-${buildMenuCategoryIds.transport}`).click();
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`).waitFor();
   await page.mouse.move(2, 2);
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT_DIR}/buildmenu-4-grid.png` });
 
-  // 5.英語ロケール。サイドバー幅は最長英訳 Building Materials の1行収まりで決まっている
-  // 5. English locale; the sidebar width is set by fitting the longest English name, Building Materials, on one line
+  // 5.英語ロケール撮影
+  // 5. English locale screenshot
   await page.request.get(`http://127.0.0.1:${PORT}/__topic-control?scenario=english`);
   await page.waitForFunction(() => document.documentElement.dataset.locale === "english");
   await page.evaluate("document.fonts.ready.then(() => undefined)");

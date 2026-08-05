@@ -11,8 +11,8 @@ type Props = {
   compositeHeading: boolean;
   onSelect: (entry: BuildMenuDisplayEntry) => void;
   onDelete: (entry: BuildMenuDisplayEntry) => void;
-  // sticky詳細は入場だけを見るため、離脱は共有スロットのbooleanをここで捨てる
-  // The sticky detail only needs entry, so the shared slot's leave boolean is dropped here
+  // 入場のみ見て離脱は捨てる
+  // Only entry matters; drop the leave boolean here
   onEntryHovered: (entry: BuildMenuDisplayEntry) => void;
 };
 

@@ -23,8 +23,8 @@ const source = {
   "buildMenuCategory.51000000-0000-4000-8000-000000000008.name": "電力",
   "buildMenuCategory.51000000-0000-4000-8000-000000000009.name": "液体",
   "buildMenuCategory.51000000-0000-4000-8000-000000000010.name": "ツール",
-  // 実マスタ最長(ブループリント=7字)と同幅の最長ラベル。サイドバーで1行に収まる上限を固定高QAで押さえる
-  // The longest label (7 CJK chars, matching the real master's longest) pins the one-line ceiling of the sidebar for fixed-height QA
+  // 実マスタ最長ラベルで1行上限を固定
+  // Longest real-master label pins the sidebar's one-line ceiling
   "buildMenuCategory.51000000-0000-4000-8000-000000000011.name": "建築マテリアル",
   "buildMenuSubCategory.52000000-0000-4000-8000-000000000001.name": "チェスト",
   "buildMenuSubCategory.52000000-0000-4000-8000-000000000002.name": "電気コンベア",
@@ -43,8 +43,8 @@ const source = {
   "block.53000000-0000-4000-8000-000000000002.name": "鉄のチェスト",
   "block.53000000-0000-4000-8000-000000000003.name": "ベルトコンベア",
   "block.53000000-0000-4000-8000-000000000004.name": "鉄道レール",
-  // 追加カテゴリのエントリ名。「鉄」検索の期待ヒットを増やさないよう鉄を含めない
-  // Entry names for the extra categories; none contains 鉄 so the 鉄 search keeps its expected hits
+  // 「鉄」検索ヒット数維持のため含めない
+  // Excludes iron-named entries to keep search-hit count stable
   "block.53000000-0000-4000-8000-000000000005.name": "電動採掘機",
   "block.53000000-0000-4000-8000-000000000006.name": "石の加工台",
   "block.53000000-0000-4000-8000-000000000007.name": "動力シャフト",
@@ -71,8 +71,8 @@ const source = {
   "challenge.82000000-0000-4000-8000-00000000000a.title": "VeryLongUnbrokenSecondaryObjectiveTextThatMustAlsoWrapInsideTheHud",
 };
 
-// ビルドメニューの英語表示。実マスタv8 localization.csv の英訳をそのまま引き写す
-// English build-menu strings, transcribed from the real v8 master's localization.csv
+// 実マスタ英訳をそのまま転記
+// Transcribed verbatim from the real v8 master's localization.csv
 const buildMenuEnglish = {
   "buildMenuCategory.51000000-0000-4000-8000-000000000001.name": "Logistics",
   "buildMenuCategory.51000000-0000-4000-8000-000000000002.name": "Transport",
@@ -84,8 +84,8 @@ const buildMenuEnglish = {
   "buildMenuCategory.51000000-0000-4000-8000-000000000008.name": "Electricity",
   "buildMenuCategory.51000000-0000-4000-8000-000000000009.name": "Liquids",
   "buildMenuCategory.51000000-0000-4000-8000-000000000010.name": "Tools",
-  // 建材(空カテゴリ)と同じ実マスタ最長英訳。可視カテゴリ側でも英語1行の上限をe2eに載せる
-  // Reuses the real master's longest English name from the empty 建材 category so a visible button also pins the English one-line ceiling
+  // 建材と同じ実マスタ最長英訳を再利用
+  // Reuses longest name
   "buildMenuCategory.51000000-0000-4000-8000-000000000011.name": "Building Materials",
   "buildMenuSubCategory.52000000-0000-4000-8000-000000000001.name": "Chests",
   "buildMenuSubCategory.52000000-0000-4000-8000-000000000002.name": "Electric Conveyors",
