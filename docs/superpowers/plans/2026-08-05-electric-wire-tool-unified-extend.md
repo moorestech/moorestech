@@ -1292,4 +1292,10 @@ Planning中に新たに生じた判断:
 - **接続ツール/BPコピー使用中はWebUI装備ホイール切替を抑止する** — 電柱種サイクルのスクロールが1ノッチでツール解除される衝突の回避。BPコピーの既存同種衝突も同ゲートで修正。出所: シミュレーター予測→ユーザー承認 2026-08-05（`.decisions/2026-08-05-建築ツールのホイール占有は接続ツールとBPコピー両方で装備切替を抑止する.md`）
 - **通常設置で範囲外により配線されない場合の情報表示を追加する** — クライアント側近傍探索（半径32）で判定し「接続範囲外のため配線されません」を通常色表示。サーバー不変。出所: シミュレーター予測→ユーザー承認 2026-08-05（`.decisions/2026-08-05-通常設置は範囲外で配線されない場合も情報表示する.md`）
 
-**判断台帳掲載義務対象**: 本planの `Modify:`/`Create:` にはサーバープロトコル・PlaceSystem系（moores-code-reviewレンズのpaths発火対象）が含まれる。上記の裁定リンクと判断記録がその掲載にあたる。
+**判断台帳掲載義務対象**（レンズpaths該当ファイルの改修判断・1行ずつ）:
+
+- `ElectricWireExtendProtocol.cs`: Operation 3種への統合・応答Endpoint化・static factory化。出所: ユーザー裁定 2026-08-05（プロトコルごと統合）＋creating-server-protocolのfactory規約
+- `ElectricWireExtendService.cs`: 周辺自動配線の削除・孤立設置の真孤立化・ConnectToExisting追加・ExtendResult別ファイル分離。出所: ユーザー裁定 2026-08-05（明示1本のみ/真に孤立）＋agent前提（200行規則）
+- `PacketResponseCreator.cs`: connectionEdit登録行を`ElectricWireDisconnectProtocol`へ差し替え。出所: agent前提（切断専用化リネームの帰結）
+- `VanillaApiSendOnly.cs`: `ConnectElectricWire`削除・Disconnectを新Request factoryへ追随。出所: ユーザー裁定 2026-08-05（Connect廃止）
+- `VanillaApiWithResponse.cs`: `ExtendElectricWire`を`SendElectricWireExtend(request, ct)`の1メソッドへ集約。出所: agent前提（1プロトコル=1メソッド規約）
