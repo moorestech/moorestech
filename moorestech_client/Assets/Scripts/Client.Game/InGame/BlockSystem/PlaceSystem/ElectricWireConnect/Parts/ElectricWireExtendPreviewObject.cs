@@ -12,11 +12,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
     /// </summary>
     public class ElectricWireExtendPreviewObject
     {
-        // 描画設定は本描画（Task10）と揃えて見た目を一致させる
-        // Match the actual rendering (Task 10) so the preview looks consistent
+        // 端点・カテナリーとも実描画（ElectricWireLineViewElement）と同一計算
+        // Endpoints and catenary match the actual rendering (ElectricWireLineViewElement)
         private const float SagRatio = 0.1f;
         private const float CostLabelFontSize = 3f;
-        private static readonly Vector3 BlockCenterOffset = new(0.5f, 0.5f, 0.5f);
         private static readonly Vector3 CostLabelOffset = new(0f, 0.5f, 0f);
 
         private readonly Camera _mainCamera;
@@ -66,25 +65,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         }
 
         /// <summary>
-        /// 両端ブロック座標（原点）からワイヤープレビューと消費電線数を表示する
-        /// Show the wire preview and wire cost from both endpoint block positions (origins)
+        /// 解決済みのワールド端点からワイヤープレビューと消費電線数を表示する
+        /// Show the wire preview and wire cost from resolved world-space endpoints
         /// </summary>
-        public void Show(Vector3Int fromBlockPos, Vector3Int toBlockPos, bool placeable, int wireCostCount)
+        public void Show(Vector3 startWorldPos, Vector3 endWorldPos, bool placeable, int wireCostCount)
         {
-            var start = fromBlockPos + BlockCenterOffset;
-            var end = toBlockPos + BlockCenterOffset;
-
             _gameObject.SetActive(true);
             UpdateCostLabel();
 
             // 変化が無ければメッシュは再構築しない
             // Skip mesh rebuild when nothing changed
-            if (_hasCache && _cachedStart == start && _cachedEnd == end && _cachedPlaceable == placeable) return;
+            if (_hasCache && _cachedStart == startWorldPos && _cachedEnd == endWorldPos && _cachedPlaceable == placeable) return;
 
             // メッシュ再生成し可否色を設定
             // Rebuild the catenary mesh and set color by placeability
-            var sag = Vector3.Distance(start, end) * SagRatio;
-            var newMesh = CatenaryWireMeshBuilder.Build(start, end, sag, new List<(Vector3, Vector3, float)>());
+            var sag = Vector3.Distance(startWorldPos, endWorldPos) * SagRatio;
+            var newMesh = CatenaryWireMeshBuilder.Build(startWorldPos, endWorldPos, sag, new List<(Vector3, Vector3, float)>());
             if (_mesh != null) Object.Destroy(_mesh);
             _mesh = newMesh;
             _meshFilter.mesh = _mesh;
@@ -93,8 +89,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             _material.SetColor(MaterialConst.PreviewColorPropertyName, color);
             _material.color = color;
 
-            _cachedStart = start;
-            _cachedEnd = end;
+            _cachedStart = startWorldPos;
+            _cachedEnd = endWorldPos;
             _cachedPlaceable = placeable;
             _hasCache = true;
 
@@ -115,7 +111,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
                 _costLabel.color = placeable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
 
                 var labelTransform = _costLabel.transform;
-                labelTransform.position = (start + end) * 0.5f + CostLabelOffset;
+                labelTransform.position = (startWorldPos + endWorldPos) * 0.5f + CostLabelOffset;
                 labelTransform.rotation = Quaternion.LookRotation(labelTransform.position - _mainCamera.transform.position);
             }
 

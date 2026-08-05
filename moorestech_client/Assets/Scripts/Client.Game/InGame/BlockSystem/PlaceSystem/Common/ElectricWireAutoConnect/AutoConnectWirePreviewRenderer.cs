@@ -12,12 +12,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
     /// </summary>
     public class AutoConnectWirePreviewRenderer
     {
-        // 描画設定は本描画（Task10）と揃えて見た目を一致させる
-        // Match the actual rendering (Task 10) so the preview looks consistent
+        // 端点・カテナリーとも実描画（ElectricWireLineViewElement）と同一計算
+        // Endpoints and catenary match the actual rendering (ElectricWireLineViewElement)
         private const float SagRatio = 0.1f;
         private const float WireAlpha = 0.5f;
         private const float CostLabelFontSize = 3f;
-        private static readonly Vector3 BlockCenterOffset = new(0.5f, 0.5f, 0.5f);
         private static readonly Vector3 CostLabelOffset = new(0f, 0.8f, 0f);
 
         private readonly Camera _mainCamera;
@@ -46,27 +45,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         }
 
         /// <summary>
-        /// 起点ブロックから各接続先ブロックへワイヤーを張り、合計消費電線数を表示する
-        /// Draws wires from the origin block to each target block and shows the total wire cost
+        /// 起点端点から各接続先端点へワイヤーを張り、合計消費電線数を表示する
+        /// Draws wires from the origin endpoint to each target endpoint and shows the total wire cost
         /// </summary>
-        public void Show(Vector3Int originBlockPos, IReadOnlyList<Vector3Int> targetBlockPositions, int totalWireCost)
+        public void Show(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, int totalWireCost)
         {
             _root.gameObject.SetActive(true);
-            var origin = originBlockPos + BlockCenterOffset;
 
             // 必要数のワイヤー線を確保し、各ターゲットへカテナリーを張る
             // Ensure enough wire lines and draw a catenary to each target
-            EnsureWireLineCount(targetBlockPositions.Count);
+            EnsureWireLineCount(targetEndpoints.Count);
             for (var i = 0; i < _wireLines.Count; i++)
             {
-                if (targetBlockPositions.Count <= i)
+                if (targetEndpoints.Count <= i)
                 {
                     _wireLines[i].SetActive(false);
                     continue;
                 }
 
-                var end = targetBlockPositions[i] + BlockCenterOffset;
-                _wireLines[i].Draw(origin, end);
+                _wireLines[i].Draw(originEndpoint, targetEndpoints[i]);
             }
 
             UpdateCostLabel();
@@ -88,7 +85,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 _costLabel.color = WithAlpha(MaterialConst.PlaceableColor);
 
                 var labelTransform = _costLabel.transform;
-                labelTransform.position = origin + CostLabelOffset;
+                labelTransform.position = originEndpoint + CostLabelOffset;
                 labelTransform.rotation = Quaternion.LookRotation(labelTransform.position - _mainCamera.transform.position);
             }
 

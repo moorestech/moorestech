@@ -21,5 +21,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         public void UpdatePlaceableColors(List<PlaceInfo> placeInfos);
 
         public void SetActive(bool active);
+
+        /// <summary>
+        /// アクティブなプレビューブロックをインデックスで取り出す（SetPreviewAndGroundDetectの順序と一致）
+        /// Fetch an active preview block by index, matching SetPreviewAndGroundDetect ordering
+        /// </summary>
+        public bool TryGetPreviewBlock(int index, out BlockPreviewObject previewBlock);
     }
 }

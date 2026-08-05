@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using Game.Block.Interface;
-using Mooresmaster.Model.BuildMenuModule;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
-using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
 {
@@ -21,9 +21,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
     /// </summary>
     public class ElectricWireAutoConnectPreview
     {
-        private static readonly IReadOnlyList<Vector3Int> EmptyTargets = new List<Vector3Int>();
+        private static readonly IReadOnlyList<Vector3> EmptyTargets = new List<Vector3>();
 
         private readonly BlockGameObjectDataStore _blockDataStore;
+        private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly AutoConnectWirePreviewRenderer _renderer;
 
         // セル単位の幾何キャッシュ。向きかブロックが変わったら全破棄する
@@ -33,9 +34,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         private BlockId _cachedBlockId;
         private bool _hasCacheKey;
 
-        public ElectricWireAutoConnectPreview(Camera mainCamera, BlockGameObjectDataStore blockDataStore)
+        public ElectricWireAutoConnectPreview(Camera mainCamera, BlockGameObjectDataStore blockDataStore, IPlacementPreviewBlockGameObjectController previewBlockController)
         {
             _blockDataStore = blockDataStore;
+            _previewBlockController = previewBlockController;
             _renderer = new AutoConnectWirePreviewRenderer(mainCamera);
         }
 
@@ -72,7 +74,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             foreach (var placeInfo in placeInfos)
             {
                 var targets = GetOrCollectCellGeometry(placeInfo.Position);
-                var wirePlaceable = TrySelectConnectTool(targets, out var cellMaterials, out var cellCost);
+                var wirePlaceable = ElectricWireAutoConnectToolSelector.TrySelect(targets, virtualInventory, out var cellMaterials, out var cellCost);
                 if (!wirePlaceable) placeInfo.Placeable = false;
 
                 if (placeInfo.Placeable)
@@ -87,8 +89,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // ワイヤー線はカーソルセル分のみ描画し（全セル分は過剰）、ラベルは全セル合計を表示する
             // Draw wires only for the cursor cell (all cells would be excessive); the label shows the drag-wide total
             cursorInfo ??= placeInfos[^1];
-            var cursorTargets = cursorInfo.Placeable ? ResolveTargetPositions(cursorInfo.Position) : EmptyTargets;
-            _renderer.Show(cursorInfo.Position, cursorTargets, totalCost);
+            var originEndpoint = ResolveOriginEndpoint(cursorInfo);
+            var cursorTargets = cursorInfo.Placeable ? ResolveTargetEndpoints(cursorInfo.Position) : EmptyTargets;
+            _renderer.Show(originEndpoint, cursorTargets, totalCost);
 
             // 設置可能なセルが1つでも残っていればクリック許可（不可セルはサーバーが個別に拒否する既存方針に揃える）
             // Allow the click when any cell remains placeable (bad cells are rejected per-cell by the server, matching existing policy)
@@ -114,66 +117,32 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 return targets;
             }
 
-            IReadOnlyList<Vector3Int> ResolveTargetPositions(Vector3Int position)
+            // 接続先ブロックの端点を実描画と同じ計算式で解決する
+            // Resolve each target block's endpoint using the same calculation as the actual rendering
+            List<Vector3> ResolveTargetEndpoints(Vector3Int position)
             {
                 var targets = GetOrCollectCellGeometry(position);
-                var positions = new List<Vector3Int>(targets.Count);
-                foreach (var target in targets) positions.Add(target.TargetPos);
-                return positions;
+                var endpoints = new List<Vector3>(targets.Count);
+                foreach (var target in targets)
+                {
+                    if (_blockDataStore.TryGetBlockGameObject(target.TargetPos, out var targetBlock))
+                        endpoints.Add(ElectricWireEndpointResolver.Resolve(targetBlock));
+                }
+                return endpoints;
             }
 
-            // 全ターゲットを賄えるelectricWire connectToolをSortPriority順に仮想在庫から選ぶ（サーバーと同じ選定規則）
-            // Pick the electricWire connectTool covering all targets in SortPriority order against the virtual inventory (same rule as the server)
-            bool TrySelectConnectTool(List<(Vector3Int TargetPos, float Distance)> targets, out IReadOnlyList<ConnectToolMaterialCost> selectedMaterials, out int selectedCost)
+            // 起点（設置予定ブロック自身）のゴースト端点を解決する。ゴースト未取得時はAABB上面中央にフォールバックする
+            // Resolve the origin (the block about to be placed) ghost endpoint, falling back to the AABB top center when the ghost is unavailable
+            Vector3 ResolveOriginEndpoint(PlaceInfo originInfo)
             {
-                selectedMaterials = null;
-                selectedCost = 0;
+                var index = placeInfos.IndexOf(originInfo);
+                if (_previewBlockController.TryGetPreviewBlock(index, out var ghost))
+                    return ElectricWireEndpointResolver.ResolveFromGhost(ghost, originInfo, blockMaster);
 
-                // 接続先なし・electricWire未設定マスタは自動接続なしで設置可
-                // No targets or no configured electricWire connectTool allows placement without auto-connect
-                if (targets.Count == 0) return true;
-                var electricWireTools = new List<ConnectToolMasterElement>();
-                foreach (var element in MasterHolder.ConnectToolMaster.All)
-                    if (element.ToolType == ConnectToolMasterElement.ToolTypeConst.electricWire) electricWireTools.Add(element);
-                if (electricWireTools.Count == 0) return true;
-                electricWireTools.Sort((a, b) => a.SortPriority.CompareTo(b.SortPriority));
-
-                foreach (var element in electricWireTools)
-                {
-                    if (!TrySumCost(element.ConnectToolGuid, out var materials, out var cost)) continue;
-                    if (!virtualInventory.CanAfford(materials)) continue;
-
-                    selectedMaterials = materials;
-                    selectedCost = cost;
-                    return true;
-                }
-
-                return false;
-
-                bool TrySumCost(System.Guid connectToolGuid, out IReadOnlyList<ConnectToolMaterialCost> materials, out int cost)
-                {
-                    cost = 0;
-                    var accumulator = new Dictionary<ItemId, int>();
-                    foreach (var target in targets)
-                    {
-                        if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, target.Distance, out var targetCost))
-                        {
-                            materials = null;
-                            return false;
-                        }
-                        cost += targetCost.TotalCount;
-                        foreach (var material in targetCost.Materials)
-                        {
-                            accumulator.TryGetValue(material.ItemId, out var current);
-                            accumulator[material.ItemId] = current + material.Count;
-                        }
-                    }
-
-                    var list = new List<ConnectToolMaterialCost>(accumulator.Count);
-                    foreach (var (itemId, count) in accumulator) list.Add(new ConnectToolMaterialCost(itemId, count));
-                    materials = list;
-                    return true;
-                }
+                var ghostInfo = new BlockPositionInfo(originInfo.Position, originInfo.Direction, blockMaster.BlockSize);
+                var min = ghostInfo.MinPos;
+                var max = ghostInfo.MaxPos + Vector3Int.one;
+                return new Vector3((min.x + max.x) * 0.5f, max.y, (min.z + max.z) * 0.5f);
             }
 
             #endregion

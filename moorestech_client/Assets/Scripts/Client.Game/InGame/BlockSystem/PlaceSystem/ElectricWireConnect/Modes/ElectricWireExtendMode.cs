@@ -1,6 +1,7 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.Control;
 using Client.Input;
 using Game.Block.Interface;
@@ -66,7 +67,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 var distance = Vector3Int.Distance(fromPos, toPos);
                 var judgement = ElectricWireExtendPreviewCalculator.Evaluate(source, targetBlock, sourceMaxCount, targetMaxConnectionCount, distance, connectToolGuid, _context.Inventory);
 
-                _context.WirePreview.Show(fromPos, toPos, judgement.IsPlaceable, ResolveCostCount(judgement, distance));
+                _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), ElectricWireEndpointResolver.Resolve(targetBlock), judgement.IsPlaceable, ResolveCostCount(judgement, distance));
 
                 // 可否OK かつクリックで接続する。起点は応答確認後に接続先へ移る
                 // The origin moves to the target after the response confirms
@@ -95,7 +96,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 // Show the ghost and wire line colored by placeability
                 evaluation.PlaceInfo.Placeable = placeable;
                 _context.PreviewBlockController.UpdatePlaceableColors(evaluation.PlaceInfos);
-                _context.WirePreview.Show(fromPos, evaluation.PlaceInfo.Position, placeable, ResolveCostCount(judgement, distance));
+
+                // 新設電柱ゴースト内のマーカー端点を実描画と同じ計算式で解決する
+                // Resolve the new pole ghost's marker endpoint using the same calculation as the actual rendering
+                _context.PreviewBlockController.TryGetPreviewBlock(0, out var poleGhost);
+                var endEndpoint = ElectricWireEndpointResolver.ResolveFromGhost(poleGhost, evaluation.PlaceInfo, evaluation.PoleMaster);
+                _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), endEndpoint, placeable, ResolveCostCount(judgement, distance));
 
                 // 可否OK かつクリックで延長設置する。応答待ち中は多重送信を防ぐため送信しない
                 // Extend on click when placeable; skip sending while a response is pending to avoid duplicate sends

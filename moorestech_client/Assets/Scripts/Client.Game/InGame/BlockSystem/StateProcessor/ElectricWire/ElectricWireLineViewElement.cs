@@ -71,8 +71,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(FromId, out var fromBlock)) return false;
             if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(ToId, out var toBlock)) return false;
 
-            var start = ResolveEndpoint(fromBlock);
-            var end = ResolveEndpoint(toBlock);
+            var start = ElectricWireEndpointResolver.Resolve(fromBlock);
+            var end = ElectricWireEndpointResolver.Resolve(toBlock);
 
             // メッシュはワールド座標で構築するため、自身の姿勢を原点に揃える
             // Reset own pose to origin since the mesh is built in world space
@@ -90,18 +90,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             return true;
 
             #region Internal
-
-            // 専用接続点があればそこへ、無ければブロック上面中央へ接続する
-            // Connect to the dedicated point when present, otherwise to the block top center
-            Vector3 ResolveEndpoint(BlockGameObject block)
-            {
-                var connectionPoint = block.GetComponentInChildren<ElectricWireConnectionPoint>(true);
-                if (connectionPoint != null) return connectionPoint.transform.position;
-
-                var min = block.BlockPosInfo.MinPos;
-                var max = block.BlockPosInfo.MaxPos + Vector3Int.one;
-                return new Vector3((min.x + max.x) * 0.5f, max.y, (min.z + max.z) * 0.5f);
-            }
 
             // セグメント情報に沿ってクリック判定用のCapsuleColliderを配置する
             // Place CapsuleColliders for click detection along the segment info

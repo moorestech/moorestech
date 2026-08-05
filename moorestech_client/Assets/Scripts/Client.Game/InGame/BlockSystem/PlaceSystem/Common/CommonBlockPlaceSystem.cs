@@ -46,7 +46,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
-            _autoConnectPreview = new ElectricWireAutoConnectPreview(mainCamera, blockGameObjectDataStore);
+            _autoConnectPreview = new ElectricWireAutoConnectPreview(mainCamera, blockGameObjectDataStore, previewBlockController);
         }
         
         public override void Enable()
