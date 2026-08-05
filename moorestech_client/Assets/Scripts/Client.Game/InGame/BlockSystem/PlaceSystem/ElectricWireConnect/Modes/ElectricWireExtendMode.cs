@@ -1,12 +1,15 @@
+using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Input;
 using Core.Master;
+using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
@@ -78,7 +81,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 // Connect on click when placeable; keep the origin for continuous connection
                 if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi() && judgement.IsPlaceable)
                 {
-                    ElectricWireExtendRequestSender.Connect(fromPos, toPos, connectToolGuid);
+                    UniTask.Create(async () =>
+                    {
+                        await ClientContext.VanillaApi.Response.ConnectElectricWire(fromPos, toPos, connectToolGuid, CancellationToken.None);
+                    });
                 }
             }
 

@@ -16,11 +16,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
     /// </summary>
     public static class ElectricWireExtendRequestSender
     {
-        public static void Connect(Vector3Int fromPos, Vector3Int toPos, Guid connectToolGuid)
-        {
-            ClientContext.VanillaApi.SendOnly.ConnectElectricWire(fromPos, toPos, connectToolGuid);
-        }
-
         public static void Disconnect(Vector3Int posA, Vector3Int posB)
         {
             ClientContext.VanillaApi.SendOnly.DisconnectElectricWire(posA, posB);

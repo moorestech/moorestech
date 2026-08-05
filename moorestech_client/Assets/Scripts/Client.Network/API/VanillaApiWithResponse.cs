@@ -347,6 +347,18 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<ElectricWireExtendProtocol.ElectricWireExtendResponse>(request, ct);
         }
 
+        public async UniTask<ElectricWireExtendProtocol.ElectricWireExtendResponse> ConnectElectricWire(
+            Vector3Int fromPos,
+            Vector3Int toPos,
+            Guid connectToolGuid,
+            CancellationToken ct)
+        {
+            // 既存ブロックへの接続要求を送る
+            // Send a request to connect to an existing block
+            var request = ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateConnectRequest(_playerConnectionSetting.PlayerId, fromPos, toPos, connectToolGuid);
+            return await _packetExchangeManager.GetPacketResponse<ElectricWireExtendProtocol.ElectricWireExtendResponse>(request, ct);
+        }
+
         // 起点ポールから新規ポールを自動設置しつつチェーン接続する
         // Place a new pole from the source pole and connect the chain
         public async UniTask<GearChainPoleExtendProtocol.GearChainPoleExtendResponse> ExtendGearChainPole(
