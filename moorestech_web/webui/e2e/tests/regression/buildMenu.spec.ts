@@ -137,3 +137,46 @@ test("エントリの無いカテゴリはサイドバーに出ない", async ({
   // fixtures define 4 categories but "建材" has no entries, so only the 3 with entries render
   await expect(page.getByTestId("build-menu-sidebar").locator("button")).toHaveCount(3);
 });
+
+test("閉じて開き直すとタブ・検索・スクロール・詳細stickyが復元される", async ({ page }) => {
+  await setUiState(page, "BuildMenu");
+  await page.goto("/");
+
+  // タブ切替+詳細sticky+スクロールを作ってから閉じる
+  // Build up tab selection, sticky detail, and scroll, then close
+  await page.getByTestId(`build-menu-category-${buildMenuCategoryIds.transport}`).click();
+  await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`).hover();
+  // scrollTop代入だけではChromiumのscrollイベントが非同期発火のため、
+  // 直後のunmountに間に合わずonScrollPositionChangeが空振りすることがある。同一evaluate内で明示発火させ確実に処理させる
+  // Assigning scrollTop alone leaves Chromium's scroll event to fire async, which can race past the imminent unmount and skip onScrollPositionChange; dispatch it explicitly in the same evaluate to guarantee it runs
+  await page.getByTestId("build-menu-panel").locator(".mantine-ScrollArea-viewport").evaluate((el) => {
+    el.scrollTop = 40;
+    el.dispatchEvent(new Event("scroll"));
+  });
+  await setUiState(page, "GameScreen");
+  await expect(page.getByTestId("build-menu-panel")).toBeHidden();
+
+  await setUiState(page, "BuildMenu");
+  await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`)).toBeVisible();
+  await expect(page.getByTestId("build-menu-detail")).toContainText("鉄道レール");
+  await expect
+    .poll(() =>
+      page
+        .getByTestId("build-menu-panel")
+        .locator(".mantine-ScrollArea-viewport")
+        .evaluate((el) => el.scrollTop),
+    )
+    .toBe(40);
+});
+
+test("検索文字列も閉じて開き直すと復元される", async ({ page }) => {
+  await setUiState(page, "BuildMenu");
+  await page.goto("/");
+
+  await page.getByTestId("build-menu-search").fill("鉄");
+  await setUiState(page, "GameScreen");
+  await setUiState(page, "BuildMenu");
+
+  await expect(page.getByTestId("build-menu-search")).toHaveValue("鉄");
+  await expect(page.getByTestId("build-menu-sidebar")).toHaveAttribute("data-disabled", "true");
+});

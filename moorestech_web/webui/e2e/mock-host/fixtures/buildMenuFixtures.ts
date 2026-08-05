@@ -33,6 +33,16 @@ export const buildMenuSubCategoryIds = {
   foundation: "52000000-0000-4000-8000-000000000006",
 } as const;
 
+// スクロール復元e2eのため輸送/車両サブカテゴリを縦に溢れさせる量産エントリ（名前解決は不要）
+// Filler entries that overflow 輸送/車両 vertically for the scroll-restore e2e (no name resolution needed)
+export const buildMenuScrollFillerEntries = Array.from({ length: 80 }, (_, index) => ({
+  id: `53000000-0000-4000-8000-0000000010${String(index).padStart(2, "0")}`,
+  kind: "block" as const,
+  categoryGuid: buildMenuCategoryIds.transport,
+  subCategoryGuid: buildMenuSubCategoryIds.car,
+  requiredItems: [],
+}));
+
 // カテゴリ×サブカテゴリ構成。「鉄」検索で 物流/チェスト と 輸送/鉄道 が複数カテゴリ跨ぎでヒットする
 // Category x sub-category layout; searching "鉄" hits both 物流/チェスト and 輸送/鉄道 across categories
 export const buildMenu = {
@@ -53,5 +63,6 @@ export const buildMenu = {
     { id: buildMenuEntryIds.wireConnectTool, kind: "connectTool", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: "/icons/wire-tool.png" },
     { id: buildMenuEntryIds.blueprintCopy, kind: "blueprintCopy", categoryGuid: "51000000-0000-4000-8000-000000000003", subCategoryGuid: "52000000-0000-4000-8000-000000000005", requiredItems: [] },
     { id: buildMenuEntryIds.starterBaseBlueprint, kind: "blueprint", label: "starter-base", categoryGuid: "51000000-0000-4000-8000-000000000003", subCategoryGuid: "52000000-0000-4000-8000-000000000005", requiredItems: [] },
+    ...buildMenuScrollFillerEntries,
   ],
 } satisfies BuildMenuData;

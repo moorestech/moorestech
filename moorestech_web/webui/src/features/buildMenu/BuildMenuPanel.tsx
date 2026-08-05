@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ScrollArea } from "@mantine/core";
 import { useTopic, dispatchAction, Topics, UiStateNames } from "@/bridge";
 import { GamePanel, IconButton } from "@/shared/ui";
@@ -15,7 +15,7 @@ import { BuildMenuCategoryGrid } from "./BuildMenuCategoryGrid";
 import { BuildMenuDetailSidebar } from "./BuildMenuDetailSidebar";
 import { BuildMenuSearchInput } from "./BuildMenuSearchInput";
 import { CategorySidebar } from "./CategorySidebar";
-import { updateBuildMenuSessionState } from "./sessionState/buildMenuSessionState";
+import { loadBuildMenuSessionState, updateBuildMenuSessionState } from "./sessionState/buildMenuSessionState";
 import styles from "./style.module.css";
 
 // uGUI BuildMenuView の web 版。stage水平中央の3カラム（§8.11・ADR-0007）
@@ -23,9 +23,20 @@ import styles from "./style.module.css";
 export function BuildMenuPanel() {
   const { t } = useI18n();
   const data = useTopic(Topics.buildMenu);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  // 初期値をストアから復元（マウント時1回）
+  // Restore initial values from the session store (once per mount)
+  const stored = loadBuildMenuSessionState();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(stored.categoryGuid);
+  const [query, setQuery] = useState(stored.query);
+  const [hoveredId, setHoveredId] = useState<string | null>(stored.hoveredEntryId);
+  // topic未着の初回renderは早期returnで視口が無いため、視口アタッチ時のcallback refで1回だけ復元する
+  // The first render has no viewport (topic not yet arrived → early return), so restore once via a callback ref at viewport attach
+  const scrollRestoredRef = useRef(false);
+  const attachScrollViewport = (viewport: HTMLDivElement | null) => {
+    if (viewport === null || scrollRestoredRef.current) return;
+    scrollRestoredRef.current = true;
+    viewport.scrollTop = loadBuildMenuSessionState().scrollTop;
+  };
   if (!data) return null;
 
   // 表示名を一度解決し全表示へ共有
@@ -51,6 +62,17 @@ export function BuildMenuPanel() {
     updateBuildMenuSessionState({ hoveredEntryId: entry.id });
   };
 
+  // 変更時にプッシュ保存（§設計原則: 毎tick比較でなく変化点で保存）
+  // Push-save on change (per design principles: save at the change point, not by per-frame comparison)
+  const selectCategory = (categoryGuid: string) => {
+    setSelectedCategory(categoryGuid);
+    updateBuildMenuSessionState({ categoryGuid });
+  };
+  const changeQuery = (next: string) => {
+    setQuery(next);
+    updateBuildMenuSessionState({ query: next });
+  };
+
   const select = (entry: BuildMenuDisplayEntry) =>
     void dispatchAction("build_menu.select", { id: entry.id });
   // BPのGuidを設置対象と削除対象の共通identityとして使う
@@ -72,12 +94,17 @@ export function BuildMenuPanel() {
                 categories={visible}
                 selected={currentCategory ?? ""}
                 disabled={searching}
-                onSelect={setSelectedCategory}
+                onSelect={selectCategory}
               />
             </div>
             <div className={styles.main}>
-              <BuildMenuSearchInput value={query} onChange={setQuery} />
-              <ScrollArea className={styles.scroll} type="auto">
+              <BuildMenuSearchInput value={query} onChange={changeQuery} />
+              <ScrollArea
+                className={styles.scroll}
+                type="auto"
+                viewportRef={attachScrollViewport}
+                onScrollPositionChange={({ y }) => updateBuildMenuSessionState({ scrollTop: y })}
+              >
                 {sections.length === 0 && searching ? (
                   <span className={styles.noHit}>{t(L.ui.buildMenu.noResults)}</span>
                 ) : (
