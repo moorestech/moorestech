@@ -131,18 +131,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 return endpoints;
             }
 
-            // 起点（設置予定ブロック自身）のゴースト端点を解決する。ゴースト未取得時はAABB上面中央にフォールバックする
-            // Resolve the origin (the block about to be placed) ghost endpoint, falling back to the AABB top center when the ghost is unavailable
+            // 起点（設置予定ブロック自身）のゴースト端点を解決する。ゴースト未取得時のフォールバックはResolver内部に一本化されている
+            // Resolve the origin (the block about to be placed) ghost endpoint; the ghost-unavailable fallback is centralized inside the resolver
             Vector3 ResolveOriginEndpoint(PlaceInfo originInfo)
             {
                 var index = placeInfos.IndexOf(originInfo);
-                if (_previewBlockController.TryGetPreviewBlock(index, out var ghost))
-                    return ElectricWireEndpointResolver.ResolveFromGhost(ghost, originInfo, blockMaster);
-
-                var ghostInfo = new BlockPositionInfo(originInfo.Position, originInfo.Direction, blockMaster.BlockSize);
-                var min = ghostInfo.MinPos;
-                var max = ghostInfo.MaxPos + Vector3Int.one;
-                return new Vector3((min.x + max.x) * 0.5f, max.y, (min.z + max.z) * 0.5f);
+                _previewBlockController.TryGetPreviewBlock(index, out var ghost);
+                return ElectricWireEndpointResolver.ResolveFromGhost(ghost, originInfo, blockMaster);
             }
 
             #endregion

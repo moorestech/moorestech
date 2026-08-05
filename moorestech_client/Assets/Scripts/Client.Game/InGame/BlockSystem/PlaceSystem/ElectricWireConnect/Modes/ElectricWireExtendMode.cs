@@ -97,9 +97,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 evaluation.PlaceInfo.Placeable = placeable;
                 _context.PreviewBlockController.UpdatePlaceableColors(evaluation.PlaceInfos);
 
-                // 新設電柱ゴースト内のマーカー端点を実描画と同じ計算式で解決する
-                // Resolve the new pole ghost's marker endpoint using the same calculation as the actual rendering
-                _context.PreviewBlockController.TryGetPreviewBlock(0, out var poleGhost);
+                // 新設電柱ゴースト内のマーカー端点を実描画と同じ計算式で解決する。ゴースト未生成時のフォールバックはResolver側が担う
+                // Resolve the new pole ghost's marker endpoint using the same calculation as the actual rendering; the ghost-unavailable fallback lives in the resolver
+                _ = _context.PreviewBlockController.TryGetPreviewBlock(0, out var poleGhost);
                 var endEndpoint = ElectricWireEndpointResolver.ResolveFromGhost(poleGhost, evaluation.PlaceInfo, evaluation.PoleMaster);
                 _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), endEndpoint, placeable, ResolveCostCount(judgement, distance));
 

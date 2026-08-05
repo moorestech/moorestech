@@ -22,9 +22,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             var connectionPoint = block.GetComponentInChildren<ElectricWireConnectionPoint>(true);
             if (connectionPoint != null) return connectionPoint.transform.position;
 
-            var min = block.BlockPosInfo.MinPos;
-            var max = block.BlockPosInfo.MaxPos + Vector3Int.one;
-            return new Vector3((min.x + max.x) * 0.5f, max.y, (min.z + max.z) * 0.5f);
+            return ResolveAabbTopCenter(block.BlockPosInfo);
         }
 
         /// <summary>
@@ -33,12 +31,23 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
         /// </summary>
         public static Vector3 ResolveFromGhost(BlockPreviewObject ghost, PlaceInfo placeInfo, BlockMasterElement blockMaster)
         {
-            var connectionPoint = ghost.GetComponentInChildren<ElectricWireConnectionPoint>(true);
+            // ghost==nullはTryGetPreviewBlockがfalseを返した正当な「未生成」通知であり、防御的nullチェックではない
+            // ghost==null is the legitimate "not yet spawned" signal from TryGetPreviewBlock returning false, not a defensive guard
+            var connectionPoint = ghost != null ? ghost.GetComponentInChildren<ElectricWireConnectionPoint>(true) : null;
             if (connectionPoint != null) return connectionPoint.transform.position;
 
             var ghostInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, blockMaster.BlockSize);
-            var min = ghostInfo.MinPos;
-            var max = ghostInfo.MaxPos + Vector3Int.one;
+            return ResolveAabbTopCenter(ghostInfo);
+        }
+
+        /// <summary>
+        /// 設置範囲AABBの上面中央座標を求める唯一の式
+        /// The single formula for the placed-range AABB's top center
+        /// </summary>
+        private static Vector3 ResolveAabbTopCenter(BlockPositionInfo positionInfo)
+        {
+            var min = positionInfo.MinPos;
+            var max = positionInfo.MaxPos + Vector3Int.one;
             return new Vector3((min.x + max.x) * 0.5f, max.y, (min.z + max.z) * 0.5f);
         }
     }
