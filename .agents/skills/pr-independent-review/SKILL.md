@@ -16,51 +16,78 @@ description: |
 
 対応spec: `docs/superpowers/specs/2026-07-27-pr-independent-review-design.md`
 
-**正典tree**: このSKILL.md自身が置かれているリポジトリルート（以下 `$CANON`）。
+**正典tree `$CANON`**: 測定器（スクリプト・レンズ・reviewer・統合ルール・テンプレート）の唯一の読み取り元。
+**`origin/master` に固定した専用worktree**とする（ユーザー裁定 2026-08-05）。
 スクリプト・レンズ・統合ルールは必ず `$CANON` の絶対パスで参照する。レビューworktree側の
 `.claude/` は**絶対に使わない**（PRごとに測定器が変わり見逃し率実測が壊れる・自己弱体化経路）。
 
-**$CANONの決定手順（最初に必ず1回やる）**:
+`$CANON` を「このSKILL.mdが置かれているtree」にしてはいけない — それはたいてい他セッションが実装作業中の
+メインworktreeであり、**レビュー実行中にブランチが切り替わって物差しが変わる**（2026-08-05に実測）。
+台帳の `canonical:` は測定器の版を記録する欄なので、版が実行中に動く前提では記録が意味を失う。
 
-1. このSKILL.mdをReadしたときの絶対パスを取る（例: `~/moorestech/.agents/skills/pr-independent-review/SKILL.md`）
-2. その末尾から `/<dir>/skills/pr-independent-review/SKILL.md`（`<dir>` は `.agents`/`.claude`/`.codex` のいずれか。
-   skills実体は `.agents/skills` で他2つはsymlink）を**文字列として取り除いた**残りが `$CANON`
-   （上例なら `~/moorestech`）
-3. 手順2の実値を展開した `ls <実値>/.agents/skills/pr-independent-review/scripts/novelty_gate.py` で実在確認する。
+**$CANONの用意（最初に必ず1回やる）**:
+
+1. **起動元repo `$ORIGIN` を特定する** — このSKILL.mdをReadしたときの絶対パスから
+   `/<dir>/skills/pr-independent-review/SKILL.md`（`<dir>` は `.agents`/`.claude`/`.codex` のいずれか。
+   skills実体は `.agents/skills` で他2つはsymlink）を**文字列として取り除いた**残り。
+   **`$ORIGIN` はworktreeを生やす起点としてのみ使い、読み取り元にも書き込み先にもしない**
+2. **固定worktreeの場所**: レビューworktree（`pr-review`）と**同じ親ディレクトリ**の `skills-canon`。
+   これが `$CANON` の実値。無ければ作る:
+
+       git -C <$ORIGINの実値> worktree add <$CANONの実値> --detach origin/master
+
+3. **毎回 `origin/master` へ固定し直す**（前回実行の残骸・他セッションの巻き込みを断つ）:
+
+       git -C <$CANONの実値> fetch origin "+refs/heads/master:refs/remotes/origin/master"
+       git -C <$CANONの実値> reset --hard origin/master
+       git -C <$CANONの実値> clean -fd
+
+4. 実在確認: `ls <$CANONの実値>/.agents/skills/pr-independent-review/scripts/novelty_gate.py`。
    失敗したら即エラー終了（$CANON誤決定のまま走らせない）。**確認先はこのファイルでなければならない** —
    `moores-code-review/SKILL.md` はレビューworktree側にも存在しうるため、誤決定した$CANONでも通ってしまい弁別にならない
+5. **SKILL.md同一性ガード（必須・省略禁止）**:
+
+       diff <$ORIGINの実値>/.agents/skills/pr-independent-review/SKILL.md \
+            <$CANONの実値>/.agents/skills/pr-independent-review/SKILL.md
+
+   **差分が出たら先へ進まず、ユーザーへ報告して指示を仰ぐ。** 理由: SKILL.md本体はharnessが `$ORIGIN` から
+   読み込むものでskillには選べない。つまり固定できるのは参照ファイル（レンズ・スクリプト・テンプレート）だけで、
+   `$ORIGIN` に未マージのskill改修があると「新しい指示 × 古いレンズ」の版ズレで走る。
+   これは黙って進むと所見の由来が説明不能になる種類の故障なのでfail-closedにする。
+   ユーザーが続行を選んだ場合のみ進み、**recordsの `canonical:` に `skew` と両SHAを明記する**
 
 **記録repo `$LOGS`**: レビュー実行記録（`records/pr-*.md`・シャドー台帳・改善キュー・前向きログ）は
 コードrepoではなく `../moorestech_logs`（以下 `$LOGS`、privateログrepo）の `harness/` 配下に置く。
 featureブランチが記録ファイルに触れてマージ衝突する構造を断つための分離であり、コードrepo側へ記録を書き戻さない。
 
-- **`$CANON` は本ドキュメント上のプレースホルダであり、シェル変数ではない**。Bashコマンド・subagentのprompt・
-  ファイルパスに渡すときは**必ず手順2で得た実値の絶対パスへ展開して書く**。`$CANON` をリテラルのまま渡すと
+- **`$CANON` / `$ORIGIN` は本ドキュメント上のプレースホルダであり、シェル変数ではない**。Bashコマンド・
+  subagentのprompt・ファイルパスに渡すときは**必ず実値の絶対パスへ展開して書く**。リテラルのまま渡すと
   未定義変数で空文字に展開され、`/.claude/skills/...` という不存在パスを叩いて沈黙故障する
-- `$CANON` は `~/moorestech` とは限らない（worktreeから発火する運用が現にある）。`~/moorestech` を決め打ちしない
+- `$ORIGIN` は `~/moorestech` とは限らない（worktreeから発火する運用が現にある）。`~/moorestech` を決め打ちしない
 
-**`$CANON` の作業ツリーは読み取り専用（書き込み禁止・2026-08-05のミス由来）**:
-`$CANON` はskill定義・レンズ・スクリプトを**読む**先であって、書く先ではない。`$CANON` は多くの場合
-他セッションが実装作業中のメインworktreeであり、そこへ書くと他人の作業ツリーを汚し、コミットすれば
-無関係なブランチへツーリング変更が混入する（**実際に`$CANON`のブランチがレビュー実行中に別セッションによって
-切り替わった**。セッション開始時のブランチを前提にコミットしていたら他人のブランチへ載っていた）。
+**書き込み先の規律（3treeとも書き込み禁止・2026-08-05のミス由来）**:
+このスキルが触るtreeは3つあり、**どれも書き込み先ではない**。
+
+| tree | 中身 | 書けない理由 |
+| --- | --- | --- |
+| `$CANON`（skills-canon） | `origin/master` 固定の測定器 | 毎回 `reset --hard` されるので書いても消える |
+| `$ORIGIN`（起動元・多くはメインworktree） | 他セッションの作業中ブランチ | 他人の作業ツリーを汚し、コミットすれば無関係なブランチへ混入する（**実際に実行中ブランチが切り替わった**） |
+| `pr-review` | PRのhead（detached） | 毎回 `reset --hard && clean -fd` で消え、PRのコードの上にツーリング変更を積む筋も通らない |
 
 - レビュー成果物の置き先は既に分離済み — ダイジェストは `/tmp/pr-review-<番号>/`、実行記録は `$LOGS`。
   **通常のレビュー1周では、コードrepoへの書き込みは1バイトも発生しない**
 - 例外はコードrepoの中身そのものを変える依頼だけ（skill改修・`.decisions/` への裁定記録）。
-  その場合も `$CANON` の作業ツリーには書かず、**専用worktreeを切ってそこで完結させる**:
+  その場合は上の3treeのどれでもない**専用worktreeを新たに切ってそこで完結させる**:
 
-      git -C <$CANONの実値> worktree add \
+      git -C <$ORIGINの実値> worktree add \
         <worktree親ディレクトリ>/skill-<用件> -b chore/<用件> origin/master
 
-  worktree親ディレクトリは `$CANON` の兄弟にある既存の `*-worktrees/` を使う（`pr-review` と同じ場所）。
-  `origin/master` 起点にするのは、`$CANON` の現在ブランチ（他人の作業中ブランチ）を巻き込まないため
-- **レビューworktree（`pr-review`）にも書かない** — 毎回冒頭で `reset --hard && clean -fd` されるので次回実行で消え、
-  detached HEADがPRのコードの上なのでツーリング変更を積む場所として筋が通らない
-- **撤収確認（必須）**: 作業後に `git -C <$CANONの実値> status --porcelain -- <触れたパス>` が**空**であることを
-  確かめる。空でなければ `$CANON` に自分の変更が残っている＝ミスの再演
+  worktree親ディレクトリは `pr-review` / `skills-canon` と同じ場所。`origin/master` 起点にするのは、
+  `$ORIGIN` の現在ブランチ（他人の作業中ブランチ）を巻き込まないため
+- **撤収確認（必須）**: 作業後に `git -C <$ORIGINの実値> status --porcelain -- <触れたパス>` が**空**であることを
+  確かめる。空でなければ `$ORIGIN` に自分の変更が残っている＝ミスの再演
 - **報告義務**: skill改修を専用worktreeのブランチに載せた場合、**その改修はmasterへマージされるまで有効にならない**
-  （skillは自分自身が置かれたtreeを `$CANON` として解決するため、メインworktreeから起動すると旧版が読まれる）。
+  （`$CANON` は毎回 `origin/master` に固定されるため）。
   「どのブランチに載せたか」「まだ有効でないこと」を必ず報告に書く
 
 改善と言われたときは0.5を実行する。
@@ -126,8 +153,10 @@ featureブランチが記録ファイルに触れてマージ衝突する構造�
 cwdがリセットされるため、単独の `cd` は次のコマンドに効かない。`~` はsubagentのpromptやファイルパスへ渡す時点で
 絶対パスに展開する。
 
-- 場所固定: `~/moorestech-worktrees/pr-review`。無ければ `git -C "$CANON" worktree add ~/moorestech-worktrees/pr-review origin/master --detach` で作成
-  （`$CANON` は冒頭で決めた実値に展開して渡す。`~/moorestech` 決め打ちは禁止 — `$CANON` が別worktreeのケースが現に存在する）
+- 場所固定: `skills-canon` と同じ親ディレクトリの `pr-review`。無ければ
+  `git -C <$ORIGINの実値> worktree add <pr-reviewの実値> origin/master --detach` で作成
+  （`$ORIGIN` は冒頭で決めた実値に展開して渡す。`~/moorestech-worktrees` の決め打ちは禁止 —
+  worktree親ディレクトリが `$ORIGIN` の兄弟にあるケースが現に存在する）
 - 毎回リセット: `git -C ~/moorestech-worktrees/pr-review reset --hard && git -C ~/moorestech-worktrees/pr-review clean -fd`
 - base最新化（**refspecを明示する**）:
 
@@ -489,7 +518,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
       - 縮退: <なし（5系統フル実行）|<縮退内容。例: codex不在>|スタブ（Step 6未実行）>
       - head: <レビューしたHEADの40桁SHA>
       - base: <BASE_REFを解決した40桁SHA>
-      - canonical: <$CANONのHEAD SHA>（<clean|dirty>）
+      - canonical: <$CANONのHEAD SHA>（origin/master固定）<SKILL.md同一性ガードで差分が出たまま続行した場合のみ ・skew: $ORIGIN=<SHA> を追記>
       - 系統: <発火した系統名と各々の完了/縮退。例: 決定論=完了/レンズ3本=完了/reviewer5本=完了/Codex=縮退（不在）/Fable=完了>
       - session: <このレビューセッションの識別子>
 
@@ -508,8 +537,9 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   これらは「何を・どの測定器で測ったか」の記録であり、欠けると後からverdictの再現も、
   測定器の版差による見逃し率の比較もできなくなる。`head` と `base` は
   `git -C ~/moorestech-worktrees/pr-review rev-parse HEAD` / `rev-parse "<BASE_REF>^{commit}"` の実出力、
-  `canonical` は `git -C <$CANONの実値> rev-parse HEAD` と `git -C <$CANONの実値> status --porcelain`
-  （出力が空なら `clean`・非空なら `dirty`）で取る
+  `canonical` は `git -C <$CANONの実値> rev-parse HEAD` の実出力（`origin/master` 固定＋毎回 `reset --hard`
+  なので `clean`/`dirty` の別は生じない）。SKILL.md同一性ガードで差分が出たまま続行した場合のみ、
+  `git -C <$ORIGINの実値> rev-parse HEAD` も併記して版ズレを残す
 - **同一PRを再レビューしたときは `pr-<番号>.md` を上書きせず `pr-<番号>-r2.md`（以降 `-r3`…）を新規作成する**。
   上書きは「前回何を見て何を見落としたか」を消す＝見逃し率の実測そのものを壊す。
   台帳にも再レビュー分を別行として追記する
@@ -622,6 +652,11 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 ## エラー処理
 
 - このセッションが対象PRに関与済み: レビューせず中止・理由報告（Step 0参照）
+- `$CANON`（skills-canon）の用意に失敗（`worktree add` 失敗・`fetch`/`reset --hard origin/master` 失敗・
+  `novelty_gate.py` 不在）: 即エラー終了・理由報告。起動元treeの `.claude/` で代替するのは**禁止**
+  （物差しが実行中に動く状態へ戻るだけで、それは今の固定方式が解こうとしている問題そのもの）
+- SKILL.md同一性ガードで差分が出た: **先へ進まずユーザーへ報告して指示を仰ぐ**（冒頭「$CANONの用意」手順5）。
+  続行を指示された場合のみ進み、recordsの `canonical:` に `skew` と両SHAを明記する
 - gh未認証・PR不存在・checkout失敗（MERGED分岐のフォールバックも尽きた場合）: 即エラー終了・理由報告
 - OPENの通常経路で `headRefOid` とcheckout結果が不一致: 即エラー終了・理由報告し、Step 1のメタデータ再取得から
   やり直す（Step 2参照）。第3フォールバック経路の不一致は継続可
