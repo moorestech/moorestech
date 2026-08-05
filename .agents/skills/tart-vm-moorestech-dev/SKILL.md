@@ -37,7 +37,7 @@ ls /Applications/Unity/Hub/Editor # → 6000.3.8f1 が存在する
 開発者は基本的に目の前にいない。**Unity Editor の手動操作をユーザーに要求しない。**
 
 - 「Unity でこのボタンを押してください」「Play を押して確認して」「Inspector で値を入れて」は禁止。
-- Unity 操作はすべて CLI 経由（`uloop` / `uloop-*` skill）で自分で行う。手動操作が前提のメニュー/プレハブ配線も `uloop execute-dynamic-code` / `uloop execute-menu-item` で実施する（`uloop-execute-dynamic-code`, `uloop-execute-menu-item` skill）。
+- Unity 操作はすべて CLI 経由（`uloop` / `uloop-*` skill）で自分で行う。手動操作が前提のメニュー/プレハブ配線も `uloop execute-dynamic-code` / `uloop execute-menu-item` で実施する（`uloop-execute-dynamic-code` skill）。
 - どうしても人手でしか進められない箇所に到達したら、勝手に放置せず **final report / 報告に「ここはユーザー操作が必要」と明示** して止める。手動操作をユーザーに丸投げして完了扱いにしない。
 - `.meta` ファイルを手で作らない。Prefab/Scene/ScriptableObject を直接テキスト編集しない（AGENTS.md 準拠。変更は `uloop execute-dynamic-code` 経由）。
 

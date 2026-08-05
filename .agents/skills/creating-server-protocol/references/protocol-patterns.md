@@ -156,7 +156,7 @@ public class PlaceBlockEventPacket
 
 **重要ポイント:**
 - `EventProtocolProvider`をコンストラクタで受け取る
-- UniRxの`.Subscribe()`でゲームイベントを購読（`/csharp-event-pattern`スキル参照）
+- UniRxの`.Subscribe()`でゲームイベントを購読
 - イベントデータは`byte[]`にシリアライズしてからProviderに渡す
 - `AddBroadcastEvent()` = 全プレイヤー、`AddEvent(playerId, ...)` = 特定プレイヤー
 - EventのMessagePackクラスはProtocolMessagePackBaseを継承**しない**（Key(0)から開始）

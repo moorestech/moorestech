@@ -53,7 +53,7 @@
 ## 実装規約（質問不要・AGENTS.md 既定）
 
 - 後方互換・パフォーマンス最適化・将来拡張性は壁打ち段階で考慮しない
-- イベントは C# 標準 event ではなく UniRx（csharp-event-pattern スキル）
+- イベントは C# 標準 event ではなく UniRx
 - partial 禁止、1ファイル200行以下、try-catch 原則禁止
 - クライアント同期の新設は creating-server-protocol スキルの型に従う
 

@@ -67,22 +67,21 @@ public class BadExample
 ## Nullチェックに関する指針
 基本的にnullでない前提でコードを書いてください。nullチェックは外部データ（API・ユーザー入力）や非同期ロード結果（Addressable等）にのみ行い、MasterHolder等のコアコンポーネントやAwake/Start初期化済みオブジェクトなど設計上存在が保証されるものには不要
 
-## Funcの使用禁止
-
-
 ## その他の規約
 単純なgetter/setterプロパティは使用禁止、値のSetはpublic void SetHogeメソッドで行う。`{ get; private set; }`（自クラス内でのみ書き換え）は許容し、バッキングフィールド＋素通しプロパティの二重保持はこの形に畳む
 [SerializeField]は_無しの小文字キャメルケース
 エディタ専用コードは#if UNITY_EDITORで囲みファイル末尾に配置
 よく使うシステム(ワールド、インベントリ等に関連すること)は`ServerContext.cs`や`ClientContext.cs`にあるので適宜参照
 デフォルト引数は基本使用禁止。引数の追加は必ずデフォルト値をつけず、呼び出し側を変更する
+初期化メソッド名は`Initialize`固定（記述順はctor→`Initialize`）
+名前は実処理と一致させる（イベントは変化対象を名前に含める）
+同種の条件分岐は文脈が集まっている側の一箇所へ揃える（直下に集めるなら直下、ローカル関数に集めるならローカル関数）
+デバッグ/テスト専用publicをプロダクションに残さない
 
-## 命名・構造の規約（PR1095由来・詳細判定はmoores-code-reviewの検出器が正）
-初期化メソッドは`Initialize`固定（記述順はctor→`Initialize`）・名前は実処理と一致させる（イベントは変化対象を名前に含める）・同種の条件分岐は文脈が集まっている側の一箇所へ揃える（直下に集めるなら直下、ローカル関数に集めるならローカル関数）・デバッグ/テスト専用publicをプロダクションに残さない。
-
-### サーバーの時間計測はGameUpdaterのティック加算のみ
-サーバーのゲームロジックで経過時間を測るときは、`Core.Update.GameUpdater`のティック加算だけを使う。`Time.deltaTime`・`Stopwatch`・`Environment.TickCount`といった実時間APIは使わない（ティックが唯一の時間軸でないと、進行がフレームレート・実時間に依存して再現しなくなる）。秒との換算が要る場合は`GameUpdater.SecondsToTicks` / `TicksToSeconds`を通す。
-`DateTime`は「実世界の日時そのものを記録する」用途（セーブの世界作成日時・セッション開始時刻・累計プレイ時間）に限り使ってよい。ゲーム進行の経過時間をこれで測るのは禁止。
+### 時間に関して
+サーバーのゲームロジックで経過時間を測るときは`Core.Update.GameUpdater`のティック加算だけを使う。`Time.deltaTime`・`Stopwatch`・`Environment.TickCount`といった実時間APIは使わない
+秒との換算は`GameUpdater.SecondsToTicks``TicksToSeconds`
+`DateTime`は「実世界の日時そのものを記録する」用途（セーブの世界作成日時・セッション開始時刻・累計プレイ時間）に限りOK
 現在の累積ティックは`GameUpdater.CurrentTick`。
 
 # マスタデータについて
