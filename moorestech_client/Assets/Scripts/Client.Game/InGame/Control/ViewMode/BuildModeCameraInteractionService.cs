@@ -5,16 +5,17 @@ using UniRx;
 namespace Client.Game.InGame.Control.ViewMode
 {
     /// <summary>
-    ///     設置・破壊モード滞在中のカーソル表示とカメラ回転を視点モード別に制御する。
-    ///     FPSは通常FPS操作（カーソルロック＋常時回転）、TPSはカーソル表示で右ドラッグ中のみ回転。
-    ///     Controls cursor visibility and camera rotation per view mode while in build/delete modes.
-    ///     FPS keeps normal FPS control (locked cursor + always rotating); TPS shows the cursor and rotates only during right-drag.
+    ///     設置・破壊モードのカーソル/回転を視点別に制御する。
+    ///     FPS:ロック+常時回転／TPS:右ドラッグ中のみ回転。
+    ///     Controls cursor and camera rotation per view mode while in build/delete modes.
+    ///     FPS keeps the cursor locked and always rotating; TPS rotates only during right-drag.
     /// </summary>
     public class BuildModeCameraInteractionService
     {
         private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
         private readonly PlayerViewModeController _viewModeController;
         private IDisposable _viewModeSubscription;
+        private bool _isFirstPerson;
 
         public BuildModeCameraInteractionService(IPlayerCameraInteractionApplier cameraInteractionApplier, PlayerViewModeController viewModeController)
         {
@@ -34,36 +35,39 @@ namespace Client.Game.InGame.Control.ViewMode
         {
             // FPSは常時回転のため右ドラッグ切替はTPS限定
             // FPS always rotates, so right-drag toggling is TPS-only
-            if (_viewModeController.GetCurrentMode() == PlayerViewMode.FirstPerson) return;
+            if (_isFirstPerson) return;
 
-            if (HybridInput.GetMouseButtonDown(1))
-            {
-                _cameraInteractionApplier.SetCursorVisible(false);
-                _cameraInteractionApplier.SetCameraRotatable(true);
-            }
-
-            if (!HybridInput.GetMouseButtonUp(1)) return;
-            _cameraInteractionApplier.SetCursorVisible(true);
-            _cameraInteractionApplier.SetCameraRotatable(false);
+            if (HybridInput.GetMouseButtonDown(1)) SetCameraControl(true);
+            if (HybridInput.GetMouseButtonUp(1)) SetCameraControl(false);
         }
 
         public void OnExit()
         {
+            // 退出時は一律ベースラインへ戻す（次ステートのOnEnterが必ず上書きする前提）
+            // Exit always resets to baseline; the next state's OnEnter is guaranteed to overwrite it
             _viewModeSubscription.Dispose();
-            _cameraInteractionApplier.SetCursorVisible(true);
-            _cameraInteractionApplier.SetCameraRotatable(false);
+            SetCameraControl(false);
         }
 
         public void RestoreAfterApplicationFocus()
         {
+            // フォーカス復帰は進行中の右ドラッグを破棄して現在モードのポリシーへ戻す
+            // Focus restore discards any in-progress right-drag and reapplies the current mode policy
             ApplyPolicy(_viewModeController.GetCurrentMode());
         }
 
         private void ApplyPolicy(PlayerViewMode mode)
         {
-            var isFirstPerson = mode == PlayerViewMode.FirstPerson;
-            _cameraInteractionApplier.SetCursorVisible(!isFirstPerson);
-            _cameraInteractionApplier.SetCameraRotatable(isFirstPerson);
+            _isFirstPerson = mode == PlayerViewMode.FirstPerson;
+            SetCameraControl(_isFirstPerson);
+        }
+
+        private void SetCameraControl(bool rotating)
+        {
+            // カーソル表示と回転可否は常に逆相ペアで適用する
+            // Cursor visibility and rotatability are always applied as an inverse pair
+            _cameraInteractionApplier.SetCursorVisible(!rotating);
+            _cameraInteractionApplier.SetCameraRotatable(rotating);
         }
     }
 }

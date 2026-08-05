@@ -45,8 +45,8 @@ namespace Client.Tests.ViewMode
             _service.OnEnter();
             CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, _applier.Calls);
 
-            // FPSでは右クリックしてもカーソル/回転状態を変えない
-            // Right clicks never change cursor/rotation states in FPS
+            // FPSは右クリックで状態変化なし
+            // Right clicks cause no state change in FPS
             _applier.Calls.Clear();
             Press(_mouse.rightButton);
             _service.UpdateRotationInput();
@@ -83,6 +83,25 @@ namespace Client.Tests.ViewMode
             _applier.Calls.Clear();
             _viewModeController.ToggleViewMode();
             CollectionAssert.IsEmpty(_applier.Calls);
+        }
+
+        [Test]
+        public void ReenterAfterExitFollowsToggleExactlyOnce()
+        {
+            // 再入場で購読が張り直され、退出後は追従しないことを同一インスタンスで検証
+            // Verify on one instance that re-entry resubscribes and exit stops following
+            _service.OnEnter();
+            _service.OnExit();
+            _service.OnEnter();
+
+            _applier.Calls.Clear();
+            _viewModeController.ToggleViewMode();
+            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, _applier.Calls);
+
+            _applier.Calls.Clear();
+            _service.OnExit();
+            _viewModeController.ToggleViewMode();
+            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, _applier.Calls);
         }
 
         [Test]

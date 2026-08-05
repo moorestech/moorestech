@@ -52,8 +52,8 @@ namespace Client.Game.InGame.UI.UIState.State
             // Show the range view for the whole stay even without a target; both entries (BuildMenuState/GameScreenState) always carry one
             _mapVeinRangeView.Show(true);
 
-            // 視点モード別のカーソル/回転ポリシーを適用（FPSは常時回転）
-            // Apply the per-view-mode cursor/rotation policy (FPS always rotates)
+            // 視点別カーソル/回転ポリシーを適用
+            // Apply the per-view-mode cursor/rotation policy
             _cameraInteractionService.OnEnter();
 
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
@@ -90,8 +90,8 @@ namespace Client.Game.InGame.UI.UIState.State
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
 
-            // TPSは右ドラッグ中のみ設置照準回転、FPSは常時回転
-            // TPS rotates the placement aim only during right-drag; FPS always rotates
+            // TPSのみ右ドラッグで設置照準回転
+            // TPS rotates the placement aim only during right-drag
             _cameraInteractionService.UpdateRotationInput();
             if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget);
 

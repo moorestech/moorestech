@@ -28,8 +28,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
-            // 視点モード別のカーソル/回転ポリシーを適用（FPSは常時回転）
-            // Apply the per-view-mode cursor/rotation policy (FPS always rotates)
+            // 視点別カーソル/回転ポリシーを適用
+            // Apply the per-view-mode cursor/rotation policy
             _cameraInteractionService.OnEnter();
 
             _deleteBarObject.gameObject.SetActive(!WebUiScreenGate.IsWebUiMode);
@@ -43,8 +43,8 @@ namespace Client.Game.InGame.UI.UIState.State
             var transit = HandleTransition();
             if (transit != null) return transit;
 
-            // TPSは右ドラッグ中のみ削除照準回転、FPSは常時回転
-            // TPS rotates the deletion aim only during right-drag; FPS always rotates
+            // TPSのみ右ドラッグで削除照準回転
+            // TPS rotates the deletion aim only during right-drag
             _cameraInteractionService.UpdateRotationInput();
 
             // 削除インタラクションはサービスに委譲する

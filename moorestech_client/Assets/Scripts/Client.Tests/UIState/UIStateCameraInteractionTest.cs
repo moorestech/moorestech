@@ -61,7 +61,7 @@ namespace Client.Tests.UIState
         }
 
         [Test]
-        public void PlaceBlockHandlesEnterRightDragAndExitNormally()
+        public void PlaceBlockPushesEnterDragStartAndExitPolicies()
         {
             var applier = new FakePlayerCameraInteractionApplier();
             var state = CreatePlaceBlockState(applier, new FakeMapVeinRangeView());
@@ -100,7 +100,7 @@ namespace Client.Tests.UIState
         }
 
         [Test]
-        public void DeleteObjectHandlesEnterRightDragAndExitNormally()
+        public void DeleteObjectPushesEnterDragStartAndExitPolicies()
         {
             SetUpMouseCursorTooltip();
             var deleteObject = CreateComponent<DeleteBarObject>("DeleteBar");

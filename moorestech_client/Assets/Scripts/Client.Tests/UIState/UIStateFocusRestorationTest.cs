@@ -61,7 +61,7 @@ namespace Client.Tests.UIState
         public void PlaceBlockRestoresBaselineAfterFocusReturnsDuringRightDrag()
         {
             var applier = new FakePlayerCameraInteractionApplier();
-            var state = CreatePlaceBlockState(applier);
+            var state = CreatePlaceBlockState(applier, new PlayerViewModeController(new FakePlayerViewApplier()));
             state.OnEnter(new UITransitContext(UIStateEnum.PlaceBlock));
             Press(_mouse.rightButton);
             state.GetNextUpdate();
@@ -81,7 +81,7 @@ namespace Client.Tests.UIState
             // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
-            var state = new DeleteObjectState(deleteObject, null, CreateCameraInteraction(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
+            var state = new DeleteObjectState(deleteObject, null, CreateCameraInteraction(applier, new PlayerViewModeController(new FakePlayerViewApplier())), buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
             Press(_mouse.rightButton);
             state.GetNextUpdate();
@@ -92,19 +92,51 @@ namespace Client.Tests.UIState
             CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
         }
 
-        private PlaceBlockState CreatePlaceBlockState(FakePlayerCameraInteractionApplier applier)
+        [Test]
+        public void PlaceBlockKeepsFpsControlOnEnterAndFocusRestore()
+        {
+            var applier = new FakePlayerCameraInteractionApplier();
+            var viewModeController = new PlayerViewModeController(new FakePlayerViewApplier());
+            viewModeController.ToggleViewMode();
+            var state = CreatePlaceBlockState(applier, viewModeController);
+            state.OnEnter(new UITransitContext(UIStateEnum.PlaceBlock));
+            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
+
+            applier.Calls.Clear();
+            state.RestoreAfterApplicationFocus();
+            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
+        }
+
+        [Test]
+        public void DeleteObjectKeepsFpsControlOnEnterAndFocusRestore()
+        {
+            var deleteObject = CreateComponent<DeleteBarObject>("DeleteBar");
+            var applier = new FakePlayerCameraInteractionApplier();
+            var viewModeController = new PlayerViewModeController(new FakePlayerViewApplier());
+            viewModeController.ToggleViewMode();
+            var buildOperationHistory = new BuildOperationHistory();
+            var state = new DeleteObjectState(deleteObject, null, CreateCameraInteraction(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
+            state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
+            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
+
+            applier.Calls.Clear();
+            state.RestoreAfterApplicationFocus();
+            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
+        }
+
+        private PlaceBlockState CreatePlaceBlockState(FakePlayerCameraInteractionApplier applier, PlayerViewModeController viewModeController)
         {
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
             var dataStore = CreateComponent<BlockGameObjectDataStore>("BlockDataStore");
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
             var placeStateController = new PlaceSystemStateController(selector);
             var pickService = new PlacementTargetPickService(null);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraInteraction(applier), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView());
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraInteraction(applier, viewModeController), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView());
         }
 
-        private static BuildModeCameraInteractionService CreateCameraInteraction(FakePlayerCameraInteractionApplier applier)
+        private static BuildModeCameraInteractionService CreateCameraInteraction(FakePlayerCameraInteractionApplier applier, PlayerViewModeController viewModeController)
         {
-            return new BuildModeCameraInteractionService(applier, new PlayerViewModeController(new FakePlayerViewApplier()));
+            return new BuildModeCameraInteractionService(applier, viewModeController);
         }
 
         private void SetUpMouseCursorTooltip()
