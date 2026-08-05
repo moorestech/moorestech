@@ -46,6 +46,11 @@ export default function EquipmentPanel() {
   // 装備を循環しオーバーレイ中は抑止
   // Cycle equipment; suppress during overlays
   useGameLayerWheel((e) => {
+    // ホイールを占有する建築ツール（接続ツールの電柱種サイクル・BPコピーの高さ変更）中は装備切替へ流さない
+    // Build tools that own the wheel (connect-tool pole cycling, blueprint-copy height) suppress equipment switching
+    const placementMode = readTopic(Topics.placementMode);
+    if (placementMode?.selectedTargetType === "connectTool" || placementMode?.selectedTargetType === "blueprintCopy") return;
+
     // Web UI の上のホイールは一覧スクロール等その画面の操作であり、装備切替へ二重発火させない
     // A wheel over Web UI is that screen's own gesture (list scrolling etc.), so it must not also switch equipment
     // ただし常時表示HUD自身はスクロールを持たずゲーム操作の場なので、その上のホイールは装備切替へ通す

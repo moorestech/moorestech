@@ -8,6 +8,7 @@ import type { PlayerInventoryData } from "@/bridge";
 const host = vi.hoisted(() => ({
   uiState: null as { state: string } | null,
   inventory: null as PlayerInventoryData | null,
+  placementMode: null as { selectedTargetType: string } | null,
   dispatchAction: vi.fn(),
   wheelHandler: null as ((event: WheelEvent) => void) | null,
   connectionStatus: "open" as "connecting" | "restoring" | "open" | "reconnecting",
@@ -20,7 +21,11 @@ vi.mock("@/bridge", async (importOriginal) => {
     useTopic: (topic: string) => (topic === actual.Topics.inventory ? host.inventory : null),
     useTopicSelector: (topic: string, selector: (data: unknown) => unknown) =>
       selector(topic === actual.Topics.uiState ? host.uiState : null),
-    readTopic: (topic: string) => (topic === actual.Topics.inventory ? host.inventory : null),
+    readTopic: (topic: string) => {
+      if (topic === actual.Topics.inventory) return host.inventory;
+      if (topic === actual.Topics.placementMode) return host.placementMode;
+      return null;
+    },
     dispatchAction: host.dispatchAction,
     useConnectionStatus: () => host.connectionStatus,
   };
@@ -56,6 +61,7 @@ describe("EquipmentPanel のクリック受付", () => {
     host.dispatchAction.mockResolvedValue(true);
     host.wheelHandler = null;
     host.connectionStatus = "open";
+    host.placementMode = null;
     host.inventory = {
       mainSlots: [slot(0, 0)],
       hotbarSlots: [slot(0, 0)],
@@ -190,5 +196,44 @@ describe("EquipmentPanel のクリック受付", () => {
     });
 
     expect(host.dispatchAction).toHaveBeenNthCalledWith(2, "inventory.select_equipment", { index: -1 });
+  });
+
+  it("connectTool選択中はホイールで装備が切り替わらない", () => {
+    host.uiState = { state: "GameScreen" };
+    host.placementMode = { selectedTargetType: "connectTool" };
+    host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
+    renderSlots();
+
+    act(() => {
+      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+    });
+
+    expect(host.dispatchAction).not.toHaveBeenCalled();
+  });
+
+  it("blueprintCopy選択中はホイールで装備が切り替わらない", () => {
+    host.uiState = { state: "GameScreen" };
+    host.placementMode = { selectedTargetType: "blueprintCopy" };
+    host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
+    renderSlots();
+
+    act(() => {
+      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+    });
+
+    expect(host.dispatchAction).not.toHaveBeenCalled();
+  });
+
+  it("block選択中は抑止されずホイールで装備が切り替わる", () => {
+    host.uiState = { state: "GameScreen" };
+    host.placementMode = { selectedTargetType: "block" };
+    host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
+    renderSlots();
+
+    act(() => {
+      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+    });
+
+    expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });
   });
 });
