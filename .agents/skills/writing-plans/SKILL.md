@@ -104,6 +104,13 @@ explicit closing task — 「必ず最後にmoores-code-reviewスキルで全ブ
 これを無条件に実行する。planから省略してもゲートは免除されない
 （subagent-driven-developmentのmandatory-gateセクション参照）。
 
+**PlayModeテストの実行を検討する（moorestech, required check）:** plan作成時、
+ランタイム挙動（ゲームプレイ・入力・カメラ・UI・エンティティ表示等）に触れる変更なら、
+ユニットテストに加えてPlayMode系検証タスクをplanに含めるか必ず検討する。
+選択肢は2つ: EditModeInPlayingTest（editmode-in-playing-testスキル・uloop run-testsで実行）と、
+unityプレイ録画テスト（unity-playmode-recorded-playtestスキル・通しのプレイ検証）。
+含めない場合はその判断理由を `## 判断記録（ADR）` に1行残す（無言の省略は禁止）。
+
 ## Task Structure
 
 ````markdown
