@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Client.Game.InGame.Control;
 using Client.Input;
 using Core.Master;
 using Game.Block.Interface;
@@ -114,6 +115,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
         private static float ReadScroll()
         {
+            if (UiPointerHitTest.IsPointerOverAnyUi()) return 0f;
+
             // InputSystemスクロールを読み、無ければlegacyへフォールバック（BlueprintCopySystemと同一）
             // Read Input System scroll with a legacy fallback, identical to BlueprintCopySystem
             return Mouse.current != null ? Mouse.current.scroll.ReadValue().y / 100f : UnityEngine.Input.mouseScrollDelta.y;
