@@ -8,9 +8,15 @@
   4. {{TITLE}} / {{DATE}} / {{SUBTITLE}} と <title> のプレースホルダを実値に置換する。
   5. script 内の STORAGE_KEY と COPY_TITLE は必ずページごとに固有の値へ変更する（CONFIG 注記箇所）。
      STORAGE_KEY が他ページと同じだと localStorage 上でコメントが混ざる。
-  6. CSS とコメント機能 JS（本文選択コメント/図コメント/左下パネル/すべてコピー/localStorage永続化）は
+  6. 設計判断カードには <div class="choice-bar"> を .figure[data-label] の内側に必ず1つ置く。
+     選択肢は推奨を先頭にし、data-choice-body にはカード本文の選択肢説明と同じ文言を入れる（要約して食い違わせない）。
+     data-choice-label / data-choice-body も属性値なので HTML エスケープ契約の対象。
+  7. 優先度3階層（must/should/optional）の帯 <section class="tier-banner" data-tier="..."> を3つとも出す。
+     tier-count に当該層のカード枚数を埋め、must の末尾に <div class="tier-end"> を置き、
+     optional 配下は <details class="tier-collapse"> で既定 closed にする。各カードの h2 には tier-chip を付ける。
+  8. CSS とコメント機能 JS（本文選択コメント/図コメント/選択肢/左下パネル/すべてコピー/localStorage永続化）は
      動作確認済みのため一切変更しない。
-  7. ビルド・サーバ不要。file:// で直接ブラウザに開いて動作する。
+  9. ビルド・サーバ不要。file:// で直接ブラウザに開いて動作する。
 -->
 <html lang="ja">
 <head>
@@ -436,6 +442,7 @@
   .kind-pill{ display:inline-block; font-size:10px; font-weight:700; border-radius:999px; padding:2px 7px; letter-spacing:.02em; }
   .kind-pill.fig{ background:#EDE9FE; color:#6D28D9; }
   .kind-pill.txt{ background:#DBEAFE; color:#1D4ED8; }
+  .kind-pill.choice{ background:#DCFCE7; color:#166534; }
   .composer-quote .kind-pill{ margin-right:6px; }
 
   @media (hover:none){
@@ -467,6 +474,56 @@
   .verdict-card .badge, .suppressed-card .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-right: 8px; }
   .badge-new { background: #ddf4ff; color: #0969da; }
   .badge-sup { background: #fff1e5; color: #bc4c00; }
+
+  /* ---- 選択肢ワンクリック / one-click choice buttons ---- */
+  .choice-bar{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:14px 0 2px; }
+  .choice-btn{
+    font-family:inherit; font-size:12.5px; font-weight:600;
+    border-radius:8px; padding:7px 14px; cursor:pointer;
+    background:var(--surface); color:var(--text-muted); border:1px solid var(--border);
+  }
+  .choice-btn:hover{ background:#F1F5F9; }
+  .choice-btn.is-selected{ background:var(--engine); color:#fff; border-color:var(--engine); }
+  .choice-btn.is-selected:hover{ background:#1D4ED8; }
+  .choice-clear{ font-size:11.5px; font-weight:500; color:var(--text-subtle); border-style:dashed; padding:6px 11px; }
+  .choice-clear.is-selected{ background:var(--surface); color:var(--text-subtle); border-color:var(--border); }
+
+  /* ---- 優先度3階層の帯 / tier banners ---- */
+  .tier-banner{
+    border:1px solid var(--border); border-left-width:6px; border-radius:12px;
+    background:#F8FAFC; padding:14px 18px;
+  }
+  .tier-banner h2{ border-left:none; padding-left:0; margin:0 0 4px; font-size:19px; }
+  .tier-banner .tier-desc{ margin:0; font-size:13.5px; color:var(--text-muted); }
+  .tier-banner .tier-count{
+    display:inline-block; margin-left:10px; vertical-align:middle;
+    font-size:12px; font-weight:700; border-radius:999px; padding:2px 10px;
+    background:#E2E8F0; color:var(--text-muted);
+  }
+  .tier-banner[data-tier="must"]{ border-color:var(--danger); background:#FEF2F2; }
+  .tier-banner[data-tier="must"] h2{ color:var(--danger); }
+  .tier-banner[data-tier="must"] .tier-count{ background:#FEE2E2; color:#B91C1C; }
+  .tier-banner[data-tier="should"]{ border-color:var(--amber); background:var(--amber-bg); }
+  .tier-banner[data-tier="should"] h2{ color:#92400E; }
+  .tier-banner[data-tier="should"] .tier-count{ background:#FEF3C7; color:#92400E; }
+  .tier-banner[data-tier="optional"]{ border-color:#94A3B8; background:#F8FAFC; }
+  .tier-banner[data-tier="optional"] h2{ color:var(--text-muted); }
+
+  /* 必読層の終端線 / end marker of the must tier */
+  .tier-end{
+    display:flex; align-items:center; gap:12px; margin:30px 0 4px;
+    font-size:12.5px; font-weight:700; color:var(--danger); white-space:nowrap;
+  }
+  .tier-end::before,.tier-end::after{ content:""; flex:1 1 auto; border-top:2px dashed #FCA5A5; }
+
+  .tier-chip{ display:inline-block; padding:2px 8px; border-radius:10px; font-size:12px; font-weight:700; margin-right:8px; }
+  .tier-chip[data-tier="must"]{ background:#FEE2E2; color:#B91C1C; }
+  .tier-chip[data-tier="should"]{ background:#FEF3C7; color:#92400E; }
+  .tier-chip[data-tier="optional"]{ background:#F1F5F9; color:var(--text-muted); }
+
+  .tier-collapse{ border:1px solid var(--border); border-radius:12px; background:#F8FAFC; padding:0 16px; margin-top:16px; }
+  .tier-collapse > summary{ cursor:pointer; padding:12px 0; font-size:14px; font-weight:700; color:var(--text-muted); }
+  .tier-collapse[open]{ padding-bottom:14px; }
 </style>
 </head>
 <body>
@@ -487,11 +544,17 @@
     <p class="verdict-line"><strong>verdict: 新形につき裁定行き</strong> — Critical 0 / 新形 1 / 設計判断 1 / suppressed 1</p>
   </section>
 
+  <!-- tier帯: 必読 / must tier banner -->
+  <section class="tier-banner" data-tier="must">
+    <h2>必読 — ここまでは必ず見る<span class="tier-count">カード 3枚</span></h2>
+    <p class="tier-desc">あなたの裁定が要る。ここを読まないと先へ進めない</p>
+  </section>
+
   <!-- 裁定カード: ファイル名・フルパス・実コード抜粋・主張・代替案 / ruling card -->
   <div class="figure" data-label="PlaceSystem/CommonからGame.ElectricWireへの新規依存エッジの裁定カード（実コード抜粋つき）">
     <button class="figure-comment-btn" data-comment-ui>コメント</button>
     <section class="verdict-card">
-      <h2><span class="badge badge-new">新形</span> CommonBlockPlaceSystem.cs</h2>
+      <h2><span class="tier-chip" data-tier="must">必読</span><span class="badge badge-new">設計判断</span> CommonBlockPlaceSystem.cs</h2>
       <p class="file-path"><code>moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/CommonBlockPlaceSystem.cs:33</code></p>
       <pre class="code-card"><code><span class="ln">31</span>using Client.Game.InGame.BlockSystem.PlaceSystem;
 <span class="ln">32</span>using UnityEngine;
@@ -500,19 +563,56 @@
 <span class="hl"><span class="ln">35</span><ins>private ElectricWireAutoConnectPreview _autoConnectPreview;</ins></span></code></pre>
       <p><strong>PR側の主張:</strong> 設置プレビュー自動接続のためのフック最小化 <code>[agent前提]</code>（免責力なし）</p>
       <p><strong>代替案:</strong> 専用ElectricWirePlaceSystem新設 / プレビュー拡張点 <code>IPlacePreviewHook</code> の導入</p>
+      <!-- 選択肢: 押すと同一カードのchoiceを置換（常に高々1件） / choice buttons: upsert one choice per card -->
+      <div class="choice-bar" role="group" aria-label="この裁定の選択肢">
+        <button type="button" class="choice-btn" data-choice-label="A（推奨）" data-choice-body="A（推奨）: PolicyZone に Neutral を追加し ExitToNeutral でゾーンを更新する最小修正">A（推奨）</button>
+        <button type="button" class="choice-btn" data-choice-label="B" data-choice-body="B: 8ステートの直叩きもサービスへ寄せる全面移行">B</button>
+        <button type="button" class="choice-btn choice-clear" data-choice-clear>選択を取り消す</button>
+      </div>
     </section>
   </div>
+
+  <!-- 必読層の終端 / end of the must tier -->
+  <div class="tier-end">ここまでが必読。以降は任意に読む</div>
+
+  <!-- tier帯: 余裕があれば / should tier banner -->
+  <section class="tier-banner" data-tier="should">
+    <h2>余裕があれば — 見ると判断の質が上がる<span class="tier-count">カード 2枚</span></h2>
+    <p class="tier-desc">読まなくても進行できるが、裁定の背景が分かる</p>
+  </section>
 
   <!-- suppressedカード / suppressed finding card -->
   <div class="figure" data-label="ユーザー裁定ADRにより免責されたWarningの明細カード（実コード抜粋つき）">
     <button class="figure-comment-btn" data-comment-ui>コメント</button>
     <section class="suppressed-card">
-      <h2><span class="badge badge-sup">suppressed</span> blocks.yml</h2>
+      <h2><span class="tier-chip" data-tier="should">余裕があれば</span><span class="badge badge-sup">suppressed</span> blocks.yml</h2>
       <p class="file-path"><code>VanillaSchema/blocks.yml:120</code></p>
       <pre class="code-card"><code><span class="hl"><span class="ln">120</span><ins>wireParam: ...</ins></span></code></pre>
       <p><strong>suppressed-by:</strong> <code>[ADR: 2026-07-25-electric-wire#yaml重複はあるべき姿]</code>（ユーザー裁定 2026-07-25）</p>
     </section>
   </div>
+
+  <!-- tier帯: 任意（既定で畳む） / optional tier banner, collapsed by default -->
+  <section class="tier-banner" data-tier="optional">
+    <h2>任意 — 見なくても進行できる<span class="tier-count">カード 4枚</span></h2>
+    <p class="tier-desc">裁定不要。修正方針が既に一意に決まっているものと、参照用の資料</p>
+  </section>
+
+  <details class="tier-collapse">
+    <summary>任意層を開く（Critical要点 / 判断台帳 / 折りたたみ参考）</summary>
+
+    <!-- Critical要点カード: 修正は必須だが選択の余地がない / criticals are mandatory fixes with no choice to make -->
+    <div class="figure" data-label="Critical要点カード: 絶対に発火しないifガードが2箇所ある（実コード抜粋つき）">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <section class="verdict-card">
+        <h2><span class="tier-chip" data-tier="optional">任意</span> ElectricWireAutoConnectPreview.cs</h2>
+        <p class="file-path"><code>moorestech_client/Assets/Scripts/Client.Game/InGame/ElectricWire/ElectricWireAutoConnectPreview.cs:88</code></p>
+        <pre class="code-card"><code><span class="hl"><span class="ln">88</span>if (_pole == null &amp;&amp; _pole.IsConnected) return;</span></code></pre>
+        <p><strong>修正方針:</strong> 到達不能条件のため <code>_pole != null</code> へ反転する（裁定不要）</p>
+      </section>
+    </div>
+
+  </details>
 
 </main>
 
@@ -609,9 +709,21 @@
     CSS.highlights.set(HIGHLIGHT_NAME, hl);
   }
 
+  // 種別の表示語。choice は「選択」 / display word per kind
+  function kindWord(kind) {
+    if (kind === 'figure') return '図';
+    if (kind === 'choice') return '選択';
+    return '本文';
+  }
+  function kindClass(kind) {
+    if (kind === 'figure') return 'fig';
+    if (kind === 'choice') return 'choice';
+    return 'txt';
+  }
+
   function markFigureComments() {
     var keyed = {};
-    comments.forEach(function (c) { if (c.kind === 'figure') keyed[c.figureKey] = true; });
+    comments.forEach(function (c) { if (c.kind === 'figure' || c.kind === 'choice') keyed[c.figureKey] = true; });
     document.querySelectorAll('[data-figure-key]').forEach(function (el) {
       var key = el.getAttribute('data-figure-key');
       if (keyed[key]) el.setAttribute('data-has-comment', '');
@@ -638,6 +750,59 @@
       };
       hideFab();
       openComposer();
+    });
+  });
+
+  // ===== 選択肢ボタン: 1カード1件のchoiceをupsertする =====
+  // Choice buttons: upsert exactly one choice record per figure card
+  function findChoice(figureKey) {
+    for (var i = 0; i < comments.length; i++) {
+      if (comments[i].kind === 'choice' && comments[i].figureKey === figureKey) return comments[i];
+    }
+    return null;
+  }
+
+  function syncChoiceButtons(fig) {
+    var current = findChoice(fig.getAttribute('data-label'));
+    fig.querySelectorAll('.choice-btn[data-choice-label]').forEach(function (btn) {
+      var on = !!current && current.choiceLabel === btn.getAttribute('data-choice-label');
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.classList.toggle('is-selected', on);
+    });
+  }
+
+  function syncAllChoiceButtons() {
+    document.querySelectorAll('.figure[data-label]').forEach(function (fig) { syncChoiceButtons(fig); });
+  }
+
+  // 既存choiceを必ず落としてから積む＝同一figureKeyで常に高々1件 / drop then push keeps at most one
+  function setChoice(figureKey, label, body) {
+    comments = comments.filter(function (c) { return !(c.kind === 'choice' && c.figureKey === figureKey); });
+    if (label !== null) {
+      comments.push({
+        id: genId(),
+        kind: 'choice',
+        figureKey: figureKey,
+        quote: figureKey,
+        body: body,
+        choiceLabel: label,
+        createdAt: Date.now()
+      });
+    }
+    persist();
+    renderPanel();
+    markFigureComments();
+    syncAllChoiceButtons();
+  }
+
+  document.querySelectorAll('.figure[data-label]').forEach(function (fig) {
+    var key = fig.getAttribute('data-label');
+    fig.querySelectorAll('.choice-bar .choice-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (btn.hasAttribute('data-choice-clear')) setChoice(key, null, null);
+        else setChoice(key, btn.getAttribute('data-choice-label'), btn.getAttribute('data-choice-body'));
+      });
     });
   });
 
@@ -763,6 +928,7 @@
     if (editingId === id) editingId = null;
     renderPanel();
     markFigureComments();
+    syncAllChoiceButtons();
   }
 
   function startEdit(id, body) {
@@ -786,7 +952,7 @@
   }
 
   function jumpTo(c) {
-    if (c.kind === 'figure' && c.figureKey) {
+    if ((c.kind === 'figure' || c.kind === 'choice') && c.figureKey) {
       var target = null;
       document.querySelectorAll('[data-figure-key]').forEach(function (el) {
         if (el.getAttribute('data-figure-key') === c.figureKey) target = el;
@@ -821,8 +987,9 @@
       html += '<li class="comment-item" data-id="' + c.id + '" data-idx="' + i + '">';
       html += '<div class="ci-head">';
       html += '<span class="ci-num">#' + (i + 1) + '</span>';
-      html += '<span class="kind-pill ' + (c.kind === 'figure' ? 'fig' : 'txt') + '">' + (c.kind === 'figure' ? '図' : '本文') + '</span>';
-      if (!isEditing) {
+      html += '<span class="kind-pill ' + kindClass(c.kind) + '">' + kindWord(c.kind) + '</span>';
+      // choice は本文編集の対象外（取り消しはカード側のボタン） / choices are not editable here
+      if (!isEditing && c.kind !== 'choice') {
         html += '<button class="ci-act" data-act="edit" data-id="' + c.id + '">編集</button>';
       }
       html += '<button class="ci-del" data-act="del" data-id="' + c.id + '">&times;</button>';
@@ -916,8 +1083,19 @@
   copyAllBtn.addEventListener('click', function () {
     if (comments.length === 0) return;
     var lines = ['# ' + COPY_TITLE + '（' + comments.length + '件）', ''];
+
+    // 裁定サマリを先頭に置く（choiceが0件なら節ごと省略） / ruling summary first, omitted when empty
+    var choices = comments.filter(function (c) { return c.kind === 'choice'; });
+    if (choices.length > 0) {
+      lines.push('## 裁定サマリ');
+      choices.forEach(function (c) {
+        lines.push('- ' + String(c.quote).replace(/\n+/g, ' ') + ': ' + c.choiceLabel);
+      });
+      lines.push('');
+    }
+
     comments.forEach(function (c, i) {
-      lines.push('## コメント ' + (i + 1) + '（' + (c.kind === 'figure' ? '図' : '本文') + '）');
+      lines.push('## コメント ' + (i + 1) + '（' + kindWord(c.kind) + '）');
       lines.push('> ' + c.quote.replace(/\n+/g, ' '));
       lines.push('');
       lines.push(c.body);
@@ -941,8 +1119,9 @@
     }
   });
 
-  // ---- 初期描画 ----
+  // ---- 初期描画（localStorageから選択状態も復元） ----
   markFigureComments();
+  syncAllChoiceButtons();
   renderPanel();
 })();
 </script>
