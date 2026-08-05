@@ -4,9 +4,9 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
-using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.UI.KeyControl;
+using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.Skit;
 using Client.Input;
@@ -22,7 +22,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly List<IDisposable> _blockPlacedDisposable = new();
         private readonly PlaceSystemStateController _placeSystemStateController;
         private readonly PlacementTargetPickService _placementTargetPickService;
-        private readonly BuildModeCameraInteractionService _cameraInteractionService;
+        private readonly UiStateCameraPolicyService _cameraPolicyService;
         private readonly BuildUndoService _buildUndoService;
         private readonly IMapVeinRangeView _mapVeinRangeView;
         private readonly ReactiveProperty<int> _placementHeight = new(0);
@@ -30,13 +30,13 @@ namespace Client.Game.InGame.UI.UIState.State
         public IObservable<int> OnPlacementHeightChanged => _placementHeight;
         public int GetPlacementHeight() => _placementHeight.Value;
 
-        public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, BuildModeCameraInteractionService cameraInteractionService, BuildUndoService buildUndoService, IMapVeinRangeView mapVeinRangeView)
+        public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, UiStateCameraPolicyService cameraPolicyService, BuildUndoService buildUndoService, IMapVeinRangeView mapVeinRangeView)
         {
             _skitManager = skitManager;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _placeSystemStateController = placeSystemStateController;
             _placementTargetPickService = placementTargetPickService;
-            _cameraInteractionService = cameraInteractionService;
+            _cameraPolicyService = cameraPolicyService;
             _buildUndoService = buildUndoService;
             _mapVeinRangeView = mapVeinRangeView;
         }
@@ -54,7 +54,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // 視点別カーソル/回転ポリシーを適用
             // Apply the per-view-mode cursor/rotation policy
-            _cameraInteractionService.OnEnter();
+            _cameraPolicyService.EnterBuildMode();
 
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
@@ -92,7 +92,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // TPSのみ右ドラッグで設置照準回転
             // TPS rotates the placement aim only during right-drag
-            _cameraInteractionService.UpdateRotationInput();
+            _cameraPolicyService.UpdateRotationInput();
             if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget);
 
             _placeSystemStateController.ManualUpdate();
@@ -115,7 +115,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnExit()
         {
-            _cameraInteractionService.OnExit();
+            _cameraPolicyService.ExitToNeutral();
             _placeSystemStateController.Disable();
 
             // 配置モード離脱で範囲表示も畳む。破棄漏れがそのまま残存ボックスになる
@@ -133,7 +133,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void RestoreAfterApplicationFocus()
         {
-            _cameraInteractionService.RestoreAfterApplicationFocus();
+            _cameraPolicyService.RestoreAfterApplicationFocus();
         }
     }
 }

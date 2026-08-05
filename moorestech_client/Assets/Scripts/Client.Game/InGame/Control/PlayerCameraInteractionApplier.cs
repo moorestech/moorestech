@@ -11,14 +11,11 @@ namespace Client.Game.InGame.Control
             _inGameCameraController = inGameCameraController;
         }
 
-        public void SetCursorVisible(bool visible)
+        public void SetInteractionMode(CameraInteractionMode mode)
         {
-            InputManager.MouseCursorVisible(visible);
-        }
-
-        public void SetCameraRotatable(bool rotatable)
-        {
-            _inGameCameraController.SetControllable(rotatable);
+            var cameraLook = mode == CameraInteractionMode.CameraLook;
+            InputManager.MouseCursorVisible(!cameraLook);
+            _inGameCameraController.SetControllable(cameraLook);
         }
     }
 }

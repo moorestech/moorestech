@@ -13,6 +13,7 @@ using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
@@ -44,17 +45,17 @@ namespace Client.Tests.UIState
         }
 
         [Test]
-        public void GameScreenExitStopsRotationBeforeDirectInventoryTransition()
+        public void GameScreenExitReturnsToNeutralBeforeDirectInventoryTransition()
         {
             SetUpGameStateController();
             var applier = new FakePlayerCameraInteractionApplier();
-            var state = new GameScreenState(null, null, null, null, applier);
+            var state = new GameScreenState(null, null, null, null, CreateCameraPolicy(applier, new PlayerViewModeController(new FakePlayerViewApplier())));
             state.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
 
             applier.Calls.Clear();
             state.OnExit();
 
-            CollectionAssert.AreEqual(new[] { "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
         }
 
         [Test]
@@ -69,7 +70,7 @@ namespace Client.Tests.UIState
             applier.Calls.Clear();
             state.RestoreAfterApplicationFocus();
 
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
         }
 
         [Test]
@@ -81,7 +82,7 @@ namespace Client.Tests.UIState
             // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
-            var state = new DeleteObjectState(deleteObject, null, CreateCameraInteraction(applier, new PlayerViewModeController(new FakePlayerViewApplier())), buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
+            var state = new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier, new PlayerViewModeController(new FakePlayerViewApplier())), buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
             Press(_mouse.rightButton);
             state.GetNextUpdate();
@@ -89,7 +90,7 @@ namespace Client.Tests.UIState
             applier.Calls.Clear();
             state.RestoreAfterApplicationFocus();
 
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
         }
 
         [Test]
@@ -100,11 +101,11 @@ namespace Client.Tests.UIState
             viewModeController.ToggleViewMode();
             var state = CreatePlaceBlockState(applier, viewModeController);
             state.OnEnter(new UITransitContext(UIStateEnum.PlaceBlock));
-            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
 
             applier.Calls.Clear();
             state.RestoreAfterApplicationFocus();
-            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
         }
 
         [Test]
@@ -115,13 +116,13 @@ namespace Client.Tests.UIState
             var viewModeController = new PlayerViewModeController(new FakePlayerViewApplier());
             viewModeController.ToggleViewMode();
             var buildOperationHistory = new BuildOperationHistory();
-            var state = new DeleteObjectState(deleteObject, null, CreateCameraInteraction(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
+            var state = new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
-            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
 
             applier.Calls.Clear();
             state.RestoreAfterApplicationFocus();
-            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
         }
 
         private PlaceBlockState CreatePlaceBlockState(FakePlayerCameraInteractionApplier applier, PlayerViewModeController viewModeController)
@@ -131,12 +132,12 @@ namespace Client.Tests.UIState
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
             var placeStateController = new PlaceSystemStateController(selector);
             var pickService = new PlacementTargetPickService(null);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraInteraction(applier, viewModeController), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView());
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier, viewModeController), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView());
         }
 
-        private static BuildModeCameraInteractionService CreateCameraInteraction(FakePlayerCameraInteractionApplier applier, PlayerViewModeController viewModeController)
+        private static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier, PlayerViewModeController viewModeController)
         {
-            return new BuildModeCameraInteractionService(applier, viewModeController);
+            return new UiStateCameraPolicyService(applier, viewModeController);
         }
 
         private void SetUpMouseCursorTooltip()

@@ -1,8 +1,8 @@
 ﻿using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.Control;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
+using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
@@ -17,20 +17,20 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly GameScreenSubInventoryInteractService _subInventoryInteractService;
         private readonly RideVehicleInputService _rideVehicleInputService;
         private readonly PlacementTargetPickService _placementTargetPickService;
-        private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
+        private readonly UiStateCameraPolicyService _cameraPolicyService;
 
         public GameScreenState(
             SkitManager skitManager,
             GameScreenSubInventoryInteractService subInventoryInteractService,
             RideVehicleInputService rideVehicleInputService,
             PlacementTargetPickService placementTargetPickService,
-            IPlayerCameraInteractionApplier cameraInteractionApplier)
+            UiStateCameraPolicyService cameraPolicyService)
         {
             _skitManager = skitManager;
             _subInventoryInteractService = subInventoryInteractService;
             _rideVehicleInputService = rideVehicleInputService;
             _placementTargetPickService = placementTargetPickService;
-            _cameraInteractionApplier = cameraInteractionApplier;
+            _cameraPolicyService = cameraPolicyService;
         }
 
         public UITransitContext GetNextUpdate()
@@ -66,8 +66,7 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             // 通常時はカーソル固定・回転有効
             // Lock cursor and enable rotation in gameplay
-            _cameraInteractionApplier.SetCursorVisible(false);
-            _cameraInteractionApplier.SetCameraRotatable(true);
+            _cameraPolicyService.EnterGameplay();
 
             // 旧uGUIのHUD表示をGameScreen復帰時に同期する
             // Sync legacy uGUI HUD visibility when returning to GameScreen.
@@ -80,13 +79,12 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             // 次のUIが背後のカメラ回転を継承しないよう停止する
             // Stop look rotation so the next UI does not inherit background camera movement
-            _cameraInteractionApplier.SetCameraRotatable(false);
+            _cameraPolicyService.ExitToNeutral();
         }
 
         public void RestoreAfterApplicationFocus()
         {
-            _cameraInteractionApplier.SetCursorVisible(false);
-            _cameraInteractionApplier.SetCameraRotatable(true);
+            _cameraPolicyService.RestoreAfterApplicationFocus();
         }
     }
 }
