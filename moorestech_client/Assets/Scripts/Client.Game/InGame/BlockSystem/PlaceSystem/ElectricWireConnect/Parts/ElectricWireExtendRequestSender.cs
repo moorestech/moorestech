@@ -104,13 +104,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
         private async UniTask<BlockGameObject> WaitForEndpoint(BlockInstanceId endpointId)
         {
-            // 設置イベントの反映を待ってから終点GameObjectを解決する（既存終点なら即時解決）
-            // Wait for the placement event to apply, then resolve the endpoint (existing endpoints resolve instantly)
-            await UniTask.WhenAny(
-                UniTask.WaitForSeconds(EndpointSpawnWaitSeconds),
-                UniTask.WaitUntil(() => _blockDataStore.TryGetBlockGameObject(endpointId, out _)));
+            // エンティティ生成をタイムアウト付きで毎フレーム確認する（前例: GearChainPoleExtendRequestSender.WaitForPlacedPole）
+            // Poll the entity spawn every frame with a timeout (precedent: GearChainPoleExtendRequestSender.WaitForPlacedPole)
+            var startTime = Time.time;
+            while (Time.time - startTime < EndpointSpawnWaitSeconds)
+            {
+                if (_blockDataStore.TryGetBlockGameObject(endpointId, out var endpointBlock)) return endpointBlock;
+                await UniTask.NextFrame();
+            }
 
-            return _blockDataStore.TryGetBlockGameObject(endpointId, out var endpointBlock) ? endpointBlock : null;
+            return null;
         }
     }
 }

@@ -29,23 +29,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             // No connection preview while there is no origin
             _context.WirePreview.SetActive(false);
 
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
-            {
-                // ワイヤーを優先判定し、ヒットしたら切断する
-                // Prioritize wires; disconnect when one is hit
-                if (BlockClickDetectUtil.TryGetCursorOnElectricWire(out var wire))
-                {
-                    Disconnect(wire);
-                    return null;
-                }
+            var isClicked = InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi();
 
-                // 電気系ブロックにヒットしたら起点として選択する
-                // Select as origin when an electric block is hit
-                if (BlockClickDetectUtil.TryGetCursorOnBlock(out var block) &&
-                    ElectricWireExtendPreviewCalculator.TryResolveWireParam(block, out _, out _, out _))
-                {
-                    return block;
-                }
+            // ワイヤーを優先判定し、クリックでヒットしたら切断する
+            // Prioritize wires; disconnect when one is hit by a click
+            if (isClicked && BlockClickDetectUtil.TryGetCursorOnElectricWire(out var wire))
+            {
+                Disconnect(wire);
+                return null;
+            }
+
+            // 電気系ブロックにホバー中はゴーストを消し、クリックで起点として選択する（ExtendMode.ConnectToTargetと同じ規則）
+            // While hovering an electric block, hide the ghost and select it as origin on click, matching ExtendMode.ConnectToTarget
+            if (BlockClickDetectUtil.TryGetCursorOnBlock(out var block) &&
+                ElectricWireExtendPreviewCalculator.TryResolveWireParam(block, out _, out _, out _))
+            {
+                HideGhost();
+                return isClicked ? block : null;
             }
 
             // 何もない空間なら電柱の孤立設置ゴーストを表示し、クリックで設置する
@@ -60,12 +60,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             evaluation.PlaceInfo.Placeable = placeable;
             _context.PreviewBlockController.UpdatePlaceableColors(evaluation.PlaceInfos);
 
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi() && placeable && !_context.RequestSender.IsAwaitingResponse)
+            // 送信直前にプレビューを消してから孤立設置を送る（ExtendModeの延長送信と同じ手順）
+            // Hide the preview right before sending the isolated placement, mirroring ExtendMode's extend send
+            if (isClicked && placeable && !_context.RequestSender.IsAwaitingResponse)
+            {
+                HideGhost();
                 _context.RequestSender.SendIsolatedPlace(evaluation.PoleBlockId, evaluation.PlaceInfo);
+            }
 
             return null;
 
             #region Internal
+
+            void HideGhost()
+            {
+                _context.PreviewBlockController.SetActive(false);
+                _context.PoleGhostPart.SetNameLabelActive(false);
+            }
 
             void Disconnect(ElectricWireLineViewElement wireElement)
             {

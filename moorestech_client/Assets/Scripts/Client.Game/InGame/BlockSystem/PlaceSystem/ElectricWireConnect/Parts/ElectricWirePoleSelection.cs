@@ -17,12 +17,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
     /// </summary>
     public class ElectricWirePoleSelection
     {
-        // スクロール1ノッチの閾値（ホットバーと同じスケールで読む）
-        // Scroll threshold per notch, read at the hot bar's scale
-        private const float ScrollThreshold = 0.5f;
-
         private IReadOnlyList<BlockId> _unlockedPoles;
         private int _selectedIndex;
+
+        // 微小デルタを整数ステップへ丸めるためのスクロール蓄積（前例: BlueprintCopySystem）
+        // Scroll accumulator turning fractional deltas into whole steps (precedent: BlueprintCopySystem)
+        private float _scrollAccumulator;
 
         public BlockDirection CurrentDirection { get; private set; } = BlockDirection.North;
         public BlockId SelectedBlockId => _unlockedPoles[_selectedIndex];
@@ -43,6 +43,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             _unlockedPoles = ListUnlockedPoles(unlockState);
             var index = previousSelected.HasValue ? IndexOf(previousSelected.Value) : 0;
             _selectedIndex = index < 0 ? 0 : index;
+
+            #region Internal
+
+            int IndexOf(BlockId blockId)
+            {
+                for (var i = 0; i < _unlockedPoles.Count; i++)
+                    if (_unlockedPoles[i] == blockId) return i;
+                return -1;
+            }
+
+            #endregion
         }
 
         /// <summary>
@@ -51,14 +62,37 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         /// </summary>
         public void UpdateInput()
         {
-            var scroll = ReadScroll();
-            if (ScrollThreshold < scroll) CycleNext();
-            else if (scroll < -ScrollThreshold) CyclePrevious();
+            // スクロールを蓄積し整数ステップになった分だけ種をサイクルする（BlueprintCopySystemと同一方式）
+            // Accumulate scroll and cycle the type by whole steps only, identical to BlueprintCopySystem
+            _scrollAccumulator += ReadScroll();
+            var scrollStep = (int)_scrollAccumulator;
+            if (scrollStep != 0)
+            {
+                _scrollAccumulator -= scrollStep;
+                for (var i = 0; i < Mathf.Abs(scrollStep); i++)
+                {
+                    if (0 < scrollStep) CycleNext();
+                    else CyclePrevious();
+                }
+            }
 
             // 通常設置と同じ回転キー（+Shiftで垂直回転）を適用する
             // Apply the same rotate key as normal placement (vertical with Shift)
             if (InputManager.Playable.BlockPlaceRotation.GetKeyDown)
                 CurrentDirection = HybridInput.GetKey(KeyCode.LeftShift) ? CurrentDirection.VerticalRotation() : CurrentDirection.HorizonRotation();
+
+            #region Internal
+
+            float ReadScroll()
+            {
+                if (UiPointerHitTest.IsPointerOverAnyUi()) return 0f;
+
+                // InputSystemスクロールを読み、無ければlegacyへフォールバック（BlueprintCopySystemと同一）
+                // Read Input System scroll with a legacy fallback, identical to BlueprintCopySystem
+                return Mouse.current != null ? Mouse.current.scroll.ReadValue().y / 100f : UnityEngine.Input.mouseScrollDelta.y;
+            }
+
+            #endregion
         }
 
         public void CycleNext()
@@ -106,20 +140,5 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
                 .ToList();
         }
 
-        private int IndexOf(BlockId blockId)
-        {
-            for (var i = 0; i < _unlockedPoles.Count; i++)
-                if (_unlockedPoles[i] == blockId) return i;
-            return -1;
-        }
-
-        private static float ReadScroll()
-        {
-            if (UiPointerHitTest.IsPointerOverAnyUi()) return 0f;
-
-            // InputSystemスクロールを読み、無ければlegacyへフォールバック（BlueprintCopySystemと同一）
-            // Read Input System scroll with a legacy fallback, identical to BlueprintCopySystem
-            return Mouse.current != null ? Mouse.current.scroll.ReadValue().y / 100f : UnityEngine.Input.mouseScrollDelta.y;
-        }
     }
 }
