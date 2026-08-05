@@ -4,7 +4,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
-using Client.Game.InGame.Control;
+using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
@@ -22,7 +22,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly List<IDisposable> _blockPlacedDisposable = new();
         private readonly PlaceSystemStateController _placeSystemStateController;
         private readonly PlacementTargetPickService _placementTargetPickService;
-        private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
+        private readonly BuildModeCameraInteractionService _cameraInteractionService;
         private readonly BuildUndoService _buildUndoService;
         private readonly IMapVeinRangeView _mapVeinRangeView;
         private readonly ReactiveProperty<int> _placementHeight = new(0);
@@ -30,13 +30,13 @@ namespace Client.Game.InGame.UI.UIState.State
         public IObservable<int> OnPlacementHeightChanged => _placementHeight;
         public int GetPlacementHeight() => _placementHeight.Value;
 
-        public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, IPlayerCameraInteractionApplier cameraInteractionApplier, BuildUndoService buildUndoService, IMapVeinRangeView mapVeinRangeView)
+        public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, BuildModeCameraInteractionService cameraInteractionService, BuildUndoService buildUndoService, IMapVeinRangeView mapVeinRangeView)
         {
             _skitManager = skitManager;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _placeSystemStateController = placeSystemStateController;
             _placementTargetPickService = placementTargetPickService;
-            _cameraInteractionApplier = cameraInteractionApplier;
+            _cameraInteractionService = cameraInteractionService;
             _buildUndoService = buildUndoService;
             _mapVeinRangeView = mapVeinRangeView;
         }
@@ -52,10 +52,9 @@ namespace Client.Game.InGame.UI.UIState.State
             // Show the range view for the whole stay even without a target; both entries (BuildMenuState/GameScreenState) always carry one
             _mapVeinRangeView.Show(true);
 
-            // 設置中は右ドラッグまで回転停止
-            // Stop rotation until right-drag while placing
-            _cameraInteractionApplier.SetCursorVisible(true);
-            _cameraInteractionApplier.SetCameraRotatable(false);
+            // 視点モード別のカーソル/回転ポリシーを適用（FPSは常時回転）
+            // Apply the per-view-mode cursor/rotation policy (FPS always rotates)
+            _cameraInteractionService.OnEnter();
 
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
@@ -91,9 +90,9 @@ namespace Client.Game.InGame.UI.UIState.State
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
 
-            // 右ドラッグ中のみ設置照準回転
-            // Rotate placement aim only during right-drag
-            UpdateRightDragRotation();
+            // TPSは右ドラッグ中のみ設置照準回転、FPSは常時回転
+            // TPS rotates the placement aim only during right-drag; FPS always rotates
+            _cameraInteractionService.UpdateRotationInput();
             if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget);
 
             _placeSystemStateController.ManualUpdate();
@@ -112,29 +111,11 @@ namespace Client.Game.InGame.UI.UIState.State
             else if (HybridInput.GetKeyDown(KeyCode.E)) _placementHeight.Value++;
 
             return null;
-
-            #region Internal
-
-            void UpdateRightDragRotation()
-            {
-                if (HybridInput.GetMouseButtonDown(1))
-                {
-                    _cameraInteractionApplier.SetCursorVisible(false);
-                    _cameraInteractionApplier.SetCameraRotatable(true);
-                }
-
-                if (!HybridInput.GetMouseButtonUp(1)) return;
-                _cameraInteractionApplier.SetCursorVisible(true);
-                _cameraInteractionApplier.SetCameraRotatable(false);
-            }
-
-            #endregion
         }
 
         public void OnExit()
         {
-            _cameraInteractionApplier.SetCursorVisible(true);
-            _cameraInteractionApplier.SetCameraRotatable(false);
+            _cameraInteractionService.OnExit();
             _placeSystemStateController.Disable();
 
             // 配置モード離脱で範囲表示も畳む。破棄漏れがそのまま残存ボックスになる
@@ -152,8 +133,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void RestoreAfterApplicationFocus()
         {
-            _cameraInteractionApplier.SetCursorVisible(true);
-            _cameraInteractionApplier.SetCameraRotatable(false);
+            _cameraInteractionService.RestoreAfterApplicationFocus();
         }
     }
 }

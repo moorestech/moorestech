@@ -224,6 +224,7 @@ namespace Client.Starter
             builder.Register<IPlayerViewApplier, PlayerViewApplier>(Lifetime.Singleton);
             builder.Register<IPlayerCameraInteractionApplier, PlayerCameraInteractionApplier>(Lifetime.Singleton);
             builder.Register<PlayerViewModeController>(Lifetime.Singleton).AsSelf().As<IStartable>().As<ITickable>();
+            builder.Register<BuildModeCameraInteractionService>(Lifetime.Singleton);
 
 
             //UIコントロール

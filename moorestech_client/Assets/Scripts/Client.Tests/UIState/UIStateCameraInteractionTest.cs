@@ -5,6 +5,7 @@ using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
+using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
@@ -15,6 +16,7 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
+using Client.Tests.ViewMode;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -66,15 +68,12 @@ namespace Client.Tests.UIState
             state.OnEnter(new UITransitContext(UIStateEnum.PlaceBlock));
             CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
 
+            // ドラッグ全遷移はBuildModeCameraInteractionServiceTest側が担い、ここでは委譲配線のみ確認
+            // Full drag transitions are covered by BuildModeCameraInteractionServiceTest; only the delegation wiring is verified here
             applier.Calls.Clear();
             Press(_mouse.rightButton);
             state.GetNextUpdate();
             CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
-
-            applier.Calls.Clear();
-            Release(_mouse.rightButton);
-            state.GetNextUpdate();
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
 
             applier.Calls.Clear();
             state.OnExit();
@@ -109,7 +108,7 @@ namespace Client.Tests.UIState
             // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
-            var state = new DeleteObjectState(deleteObject, null, applier, buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
+            var state = new DeleteObjectState(deleteObject, null, CreateCameraInteraction(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
             CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
 
@@ -117,11 +116,6 @@ namespace Client.Tests.UIState
             Press(_mouse.rightButton);
             state.GetNextUpdate();
             CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
-
-            applier.Calls.Clear();
-            Release(_mouse.rightButton);
-            state.GetNextUpdate();
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
 
             applier.Calls.Clear();
             state.OnExit();
@@ -135,7 +129,12 @@ namespace Client.Tests.UIState
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
             var placeStateController = new PlaceSystemStateController(selector);
             var pickService = new PlacementTargetPickService(null);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, applier, new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView);
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraInteraction(applier), new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView);
+        }
+
+        private static BuildModeCameraInteractionService CreateCameraInteraction(FakePlayerCameraInteractionApplier applier)
+        {
+            return new BuildModeCameraInteractionService(applier, new PlayerViewModeController(new FakePlayerViewApplier()));
         }
 
         private void SetUpMouseCursorTooltip()
