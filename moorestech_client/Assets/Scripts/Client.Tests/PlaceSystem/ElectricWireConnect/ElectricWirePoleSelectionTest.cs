@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
 using Core.Master;
 using Game.Context;
 using Game.UnlockState;
-using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -65,28 +63,34 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         }
 
         [Test]
-        public void 解放済み電柱はSortPriority昇順でGuidタイブレークして並ぶ()
+        public void 解放済み電柱はSortPriority昇順で同値ならGuid昇順に並ぶ()
         {
             var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
 
-            // 通常はロック済みの電柱も解放し、複数電柱での並び検証を成立させる
-            // Also unlock the normally-locked pole so ordering across multiple poles is exercised
+            // 通常はロック済みの電柱も解放し、SortPriority同値の2件でタイブレークを成立させる
+            // Also unlock the normally-locked pole so the two same-SortPriority entries exercise the tiebreak
             unlockState.UnlockBlock(MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.LockedElectricPoleId).BlockGuid);
-
-            // 実装のOrderBy式を複製して期待値を求め、入力配列を反転して並び順が配列順に依存しないことを確認する
-            // Duplicate the implementation's OrderBy expression for the expectation and reverse the input array to prove order-independence
-            Array.Reverse(MasterHolder.BlockMaster.Blocks.Data);
-            var expected = MasterHolder.BlockMaster.Blocks.Data
-                .Where(block => block.BlockType == BlockMasterElement.BlockTypeConst.ElectricPole)
-                .Where(block => unlockState.BlockUnlockStateInfos.TryGetValue(block.BlockGuid, out var info) && info.IsUnlocked)
-                .OrderBy(block => block.SortPriority ?? 0)
-                .ThenBy(block => block.BlockGuid)
-                .Select(block => MasterHolder.BlockMaster.GetBlockId(block.BlockGuid))
-                .ToList();
 
             var actual = ElectricWirePoleSelection.ListUnlockedPoles(unlockState);
 
-            CollectionAssert.AreEqual(expected, actual);
+            // 比較対象が1件だけの空検証にならないよう、両電柱が含まれることを先に確認する
+            // Confirm both poles are present first so the check below isn't a vacuous single-item comparison
+            Assert.IsTrue(actual.Contains(ForUnitTestModBlockId.ElectricPoleId));
+            Assert.IsTrue(actual.Contains(ForUnitTestModBlockId.LockedElectricPoleId));
+
+            // 各BlockIdからSortPriorityとBlockGuidを引き直し、隣接ペアの並び順という性質そのものを検証する
+            // Look up SortPriority and BlockGuid from each returned BlockId and assert the adjacency-ordering property itself
+            for (var i = 1; i < actual.Count; i++)
+            {
+                var previous = MasterHolder.BlockMaster.GetBlockMaster(actual[i - 1]);
+                var current = MasterHolder.BlockMaster.GetBlockMaster(actual[i]);
+                var previousPriority = previous.SortPriority ?? 0;
+                var currentPriority = current.SortPriority ?? 0;
+
+                Assert.LessOrEqual(previousPriority, currentPriority);
+                if (previousPriority == currentPriority)
+                    Assert.Less(previous.BlockGuid.CompareTo(current.BlockGuid), 0);
+            }
         }
     }
 }
