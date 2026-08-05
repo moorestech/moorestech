@@ -14,6 +14,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
     public class ElectricWirePoleGhostPart
     {
         private const float NameLabelFontSize = 3f;
+
+        // 通常ブロック設置と同等の設置可能距離（前例: GearChainPoleFrameInputCollector）
+        // Placeable distance equivalent to common block placement (precedent: GearChainPoleFrameInputCollector)
+        private const float PlaceableMaxDistance = 100f;
+
         private static readonly Vector3 NameLabelOffset = new(0.5f, 1.2f, 0.5f);
 
         private readonly Camera _mainCamera;
@@ -52,9 +57,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             // Judge from owned materials whether the construction cost is affordable
             var canAffordPole = 1 <= ConstructionCostPreviewCalculator.CalculateAffordableCellCount(poleMaster.RequiredItems, _inventory);
 
-            // 電柱の設置座標を地面レイキャストから求める
-            // Compute the pole placement position from a ground raycast
+            // 電柱の設置座標を地面レイキャストから求め、設置可能距離を超えていたらゴーストを出さない
+            // Compute the pole placement position from a ground raycast and drop the ghost beyond the placeable distance
             if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, 0, selection.CurrentDirection, poleMaster, out var placePoint, out _)) return Fail();
+            if (PlaceableMaxDistance < Vector3.Distance(_mainCamera.transform.position, placePoint)) return Fail();
 
             // 通常設置と同じ計算でPlaceInfo生成
             // Build the pole PlaceInfo using the same calculation as normal placement

@@ -12,9 +12,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
     /// </summary>
     public class AutoConnectWirePreviewRenderer
     {
-        // 端点・カテナリーとも実描画（ElectricWireLineViewElement）と同一計算
-        // Endpoints and catenary match the actual rendering (ElectricWireLineViewElement)
-        private const float SagRatio = 0.1f;
+        // 端点はElectricWireEndpointResolver、垂れ量はCatenaryWireMeshBuilder.SagRatioを共有し実描画と同一計算にする
+        // Endpoints share ElectricWireEndpointResolver and sag shares CatenaryWireMeshBuilder.SagRatio, matching the actual rendering
         private const float WireAlpha = 0.5f;
         private const float CostLabelFontSize = 3f;
         private static readonly Vector3 CostLabelOffset = new(0f, 0.8f, 0f);
@@ -173,7 +172,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 // Skip mesh rebuild when the endpoints are unchanged
                 if (_hasCache && _cachedStart == start && _cachedEnd == end) return;
 
-                var sag = Vector3.Distance(start, end) * SagRatio;
+                var sag = Vector3.Distance(start, end) * CatenaryWireMeshBuilder.SagRatio;
                 var newMesh = CatenaryWireMeshBuilder.Build(start, end, sag, new List<(Vector3, Vector3, float)>());
                 if (_mesh != null) Object.Destroy(_mesh);
                 _mesh = newMesh;

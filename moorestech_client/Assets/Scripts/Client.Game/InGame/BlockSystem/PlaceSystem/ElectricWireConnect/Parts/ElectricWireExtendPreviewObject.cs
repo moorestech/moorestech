@@ -12,9 +12,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
     /// </summary>
     public class ElectricWireExtendPreviewObject
     {
-        // 端点・カテナリーとも実描画（ElectricWireLineViewElement）と同一計算
-        // Endpoints and catenary match the actual rendering (ElectricWireLineViewElement)
-        private const float SagRatio = 0.1f;
+        // 端点はElectricWireEndpointResolver、垂れ量はCatenaryWireMeshBuilder.SagRatioを共有し実描画と同一計算にする
+        // Endpoints share ElectricWireEndpointResolver and sag shares CatenaryWireMeshBuilder.SagRatio, matching the actual rendering
         private const float CostLabelFontSize = 3f;
         private static readonly Vector3 CostLabelOffset = new(0f, 0.5f, 0f);
 
@@ -79,7 +78,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
             // メッシュ再生成し可否色を設定
             // Rebuild the catenary mesh and set color by placeability
-            var sag = Vector3.Distance(startWorldPos, endWorldPos) * SagRatio;
+            var sag = Vector3.Distance(startWorldPos, endWorldPos) * CatenaryWireMeshBuilder.SagRatio;
             var newMesh = CatenaryWireMeshBuilder.Build(startWorldPos, endWorldPos, sag, new List<(Vector3, Vector3, float)>());
             if (_mesh != null) Object.Destroy(_mesh);
             _mesh = newMesh;

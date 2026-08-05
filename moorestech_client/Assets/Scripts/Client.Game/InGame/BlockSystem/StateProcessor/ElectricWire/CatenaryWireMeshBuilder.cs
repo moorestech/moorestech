@@ -15,6 +15,10 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
         public const int SegmentCount = 16;
         public const float WireRadius = 0.03f;
 
+        // 両端距離に対する垂れ量の比。実描画と各プレビューが同じ垂れ方をするための単一の正
+        // Sag-to-span ratio; the single source of truth so the actual rendering and every preview sag identically
+        public const float SagRatio = 0.1f;
+
         // t=0,1で垂れ0に正規化するための端点係数 cosh(1)
         // Endpoint coefficient cosh(1) used to normalize sag to zero at t=0,1
         private static readonly double CoshOne = Math.Cosh(1.0);

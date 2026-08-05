@@ -14,9 +14,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
     /// </summary>
     public class ElectricWireLineViewElement : MonoBehaviour, IConnectionLineViewElement
     {
-        // ワイヤーの垂れ量は両端距離に比例させる
-        // Wire sag is proportional to the distance between endpoints
-        private const float SagRatio = 0.1f;
         // 未解決時の再解決を試みる間隔
         // Interval between resolution retries while unresolved
         private const float RetryIntervalSeconds = 0.5f;
@@ -81,7 +78,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
 
             // メッシュとクリック判定セグメントを生成
             // Generate the catenary mesh and click-detection segments
-            var sag = Vector3.Distance(start, end) * SagRatio;
+            var sag = Vector3.Distance(start, end) * CatenaryWireMeshBuilder.SagRatio;
             var colliderSegments = new List<(Vector3 center, Vector3 up, float length)>();
             _generatedMesh = CatenaryWireMeshBuilder.Build(start, end, sag, colliderSegments);
 

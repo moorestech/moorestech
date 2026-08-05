@@ -91,9 +91,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                     totalCost += cellCost;
                     anyPlaceable = true;
                 }
-                if (placeInfo.Position == cursorCell)
+                // カーソルセルが確定するまでは毎セル上書きし、一致セルが無い末尾フォールバック時も通知が末尾セルの値になるようにする
+                // Overwrite every cell until the cursor cell is fixed, so the last-cell fallback also carries that cell's values
+                if (cursorIndex < 0 || placeInfo.Position == cursorCell)
                 {
-                    cursorIndex = i;
+                    if (placeInfo.Position == cursorCell) cursorIndex = i;
                     cursorWirePlaceable = wirePlaceable;
                     // 地形干渉や建設コスト不足によるPlaceable=falseと無関係な、生の接続候補数
                     // Raw candidate count, independent of Placeable=false caused by ground/build-cost issues

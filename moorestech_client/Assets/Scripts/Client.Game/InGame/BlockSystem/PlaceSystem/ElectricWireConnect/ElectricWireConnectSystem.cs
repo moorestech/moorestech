@@ -69,9 +69,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             // Adopt the endpoint resolved from a response as the next origin (chaining)
             if (_context.RequestSender.TryConsumeEndpoint(out var endpointBlock)) _sourceBlock = endpointBlock;
 
-            // 右クリックで起点を解除し、進行中の応答を無効化する
-            // Release the origin on right click and invalidate any pending response
-            if (_sourceBlock != null && InputManager.Playable.ScreenRightClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
+            // 右クリックで起点を解除し、進行中の応答を無効化する。起点なしの孤立設置の応答待ちも明示キャンセルとして止める
+            // Release the origin on right click and invalidate any pending response, including an originless isolated placement still awaiting one
+            if (InputManager.Playable.ScreenRightClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
             {
                 _sourceBlock = null;
                 _context.RequestSender.Invalidate();
