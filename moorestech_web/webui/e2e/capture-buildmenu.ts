@@ -59,7 +59,7 @@ async function main() {
   // 3. Hover (after clearing search)
   await page.getByTestId("build-menu-search").fill("");
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`).hover();
-  await page.getByTestId("build-menu-preview").waitFor();
+  await page.getByTestId("build-menu-detail").waitFor();
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT_DIR}/buildmenu-3-hover.png` });
 

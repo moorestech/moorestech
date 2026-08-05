@@ -86,12 +86,47 @@ test("検索0件は該当なし表示", async ({ page }) => {
   await expect(page.getByTestId("build-menu-panel")).toContainText("該当なし");
 });
 
-test("ホバーでプレビューが更新される", async ({ page }) => {
+test("パネルは画面水平中央に表示される", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
+  const box = await page.getByTestId("build-menu-panel").boundingBox();
+  const viewport = page.viewportSize();
+  if (!box || !viewport) throw new Error("bounding box unavailable");
+  expect(Math.abs(box.x + box.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(1);
+});
+
+test("カテゴリボタンは全ボタン同一の固定高", async ({ page }) => {
+  await setUiState(page, "BuildMenu");
+  await page.goto("/");
+
+  const buttons = page.getByTestId("build-menu-sidebar").locator("button");
+  const count = await buttons.count();
+  const heights: number[] = [];
+  for (let i = 0; i < count; i += 1) {
+    const box = await buttons.nth(i).boundingBox();
+    if (!box) throw new Error("button box unavailable");
+    heights.push(box.height);
+  }
+  // 全ボタン等高かつ、パネル高÷カテゴリ数(約156px)ではなく固定トークン値(44px)であること
+  // All buttons share one height: the 44px token, not panel-height / category-count (~156px)
+  for (const height of heights) expect(Math.abs(height - heights[0])).toBeLessThanOrEqual(0.5);
+  expect(heights[0]).toBeGreaterThan(36);
+  expect(heights[0]).toBeLessThan(52);
+});
+
+test("詳細サイドバーはホバー後にstickyで残る", async ({ page }) => {
+  await setUiState(page, "BuildMenu");
+  await page.goto("/");
+
+  await expect(page.getByTestId("build-menu-detail")).toContainText("カーソルを合わせると詳細を表示します");
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`).hover();
-  await expect(page.getByTestId("build-menu-preview")).toContainText("木のチェスト");
+  await expect(page.getByTestId("build-menu-detail")).toContainText("木のチェスト");
+
+  // カーソルを検索欄へ退避してもstickyで表示が残る
+  // The detail stays sticky after the cursor moves away to the search box
+  await page.getByTestId("build-menu-search").hover();
+  await expect(page.getByTestId("build-menu-detail")).toContainText("木のチェスト");
 });
 
 test("エントリの無いカテゴリはサイドバーに出ない", async ({ page }) => {
