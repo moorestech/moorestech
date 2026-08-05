@@ -7,16 +7,23 @@ namespace Client.Game.InGame.UI.UIState.State.CameraPolicy
 {
     /// <summary>
     ///     UIステート滞在中のカーソル/回転ポリシーの単一所有者。
-    ///     Gameplay:常時回転／Menu:自由カーソル／Build:視点別。
+    ///     - Gameplay: 常時回転
+    ///     - Menu: 自由カーソル
+    ///     - Build: 視点別
+    ///     - Neutral: 所有者なし（自由カーソル）
     ///     Single owner of the cursor/rotation policy while staying in UI states.
-    ///     Gameplay always rotates; Menu frees the cursor; Build follows the view mode.
+    ///     - Gameplay: always rotates
+    ///     - Menu: frees the cursor
+    ///     - Build: follows the view mode
+    ///     - Neutral: owned by nobody (frees the cursor)
     /// </summary>
     public class UiStateCameraPolicyService
     {
         private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
         private readonly PlayerViewModeController _viewModeController;
-        private PolicyZone _currentZone = PolicyZone.Menu;
-        private bool _isFirstPerson;
+        private PolicyZone _currentZone = PolicyZone.Neutral;
+
+        private bool IsFirstPerson => _viewModeController.GetCurrentMode() == PlayerViewMode.FirstPerson;
 
         public UiStateCameraPolicyService(IPlayerCameraInteractionApplier cameraInteractionApplier, PlayerViewModeController viewModeController)
         {
@@ -48,9 +55,9 @@ namespace Client.Game.InGame.UI.UIState.State.CameraPolicy
 
         public void UpdateRotationInput()
         {
-            // FPSは常時回転のため右ドラッグ切替はTPS限定
+            // FPS常時回転ゆえ右ドラッグはTPS限定
             // FPS always rotates, so right-drag toggling is TPS-only
-            if (_isFirstPerson) return;
+            if (IsFirstPerson) return;
 
             if (HybridInput.GetMouseButtonDown(1)) _cameraInteractionApplier.SetInteractionMode(CameraInteractionMode.CameraLook);
             if (HybridInput.GetMouseButtonUp(1)) _cameraInteractionApplier.SetInteractionMode(CameraInteractionMode.PointerFree);
@@ -58,15 +65,16 @@ namespace Client.Game.InGame.UI.UIState.State.CameraPolicy
 
         public void ExitToNeutral()
         {
-            // 退出時は自由カーソルへ戻し、ポリシーを押さない次のUIが背後の回転を継承しないようにする
-            // Exit returns to a free cursor so UIs that push no policy never inherit background rotation
-            _cameraInteractionApplier.SetInteractionMode(CameraInteractionMode.PointerFree);
+            // 退出時はゾーン所有を手放し自由カーソルへ戻す（退出後のV切替が旧ゾーンを再適用しないため）
+            // Exit releases zone ownership and frees the cursor so a later V toggle never re-applies the old zone
+            _currentZone = PolicyZone.Neutral;
+            ApplyZonePolicy();
         }
 
         public void RestoreAfterApplicationFocus()
         {
-            // フォーカス復帰は進行中の右ドラッグを破棄して現ゾーンのポリシーへ戻す
-            // Focus restore discards any in-progress right-drag and reapplies the current zone policy
+            // 右ドラッグを破棄し現ゾーンへ戻す
+            // Discards any in-progress right-drag and reapplies the current zone policy
             ApplyZonePolicy();
         }
 
@@ -78,13 +86,13 @@ namespace Client.Game.InGame.UI.UIState.State.CameraPolicy
 
         private void ApplyZonePolicy()
         {
-            _isFirstPerson = _viewModeController.GetCurrentMode() == PlayerViewMode.FirstPerson;
-            var cameraLook = _currentZone == PolicyZone.Gameplay || (_currentZone == PolicyZone.Build && _isFirstPerson);
+            var cameraLook = _currentZone == PolicyZone.Gameplay || (_currentZone == PolicyZone.Build && IsFirstPerson);
             _cameraInteractionApplier.SetInteractionMode(cameraLook ? CameraInteractionMode.CameraLook : CameraInteractionMode.PointerFree);
         }
 
         private enum PolicyZone
         {
+            Neutral,
             Gameplay,
             Menu,
             Build,

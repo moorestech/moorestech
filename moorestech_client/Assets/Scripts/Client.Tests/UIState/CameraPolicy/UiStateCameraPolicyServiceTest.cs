@@ -95,7 +95,7 @@ namespace Client.Tests.UIState.CameraPolicy
         }
 
         [Test]
-        public void ExitToNeutralFreesPointerAndRestoreReappliesZone()
+        public void ExitToNeutralFreesPointerAndKeepsItAfterFocusRestore()
         {
             _service.EnterGameplay();
 
@@ -103,11 +103,24 @@ namespace Client.Tests.UIState.CameraPolicy
             _service.ExitToNeutral();
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, _applier.Calls);
 
-            // フォーカス復帰は現ゾーンのポリシーへ戻す
-            // Focus restore reapplies the current zone policy
+            // ゾーン所有が外れ復帰も自由カーソル
+            // Zone ownership is released, so focus restore stays pointer-free
             _applier.Calls.Clear();
             _service.RestoreAfterApplicationFocus();
-            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, _applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, _applier.Calls);
+        }
+
+        [Test]
+        public void BuildZoneStopsFollowingViewToggleAfterExit()
+        {
+            _service.EnterBuildMode();
+            _service.ExitToNeutral();
+
+            // 退出後のV切替は旧ゾーンを再適用しない
+            // A V toggle after exiting never re-applies the old zone
+            _applier.Calls.Clear();
+            _viewModeController.ToggleViewMode();
+            CollectionAssert.IsEmpty(_applier.Calls);
         }
     }
 }
