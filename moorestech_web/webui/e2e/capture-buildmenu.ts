@@ -63,6 +63,14 @@ async function main() {
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT_DIR}/buildmenu-3-hover.png` });
 
+  // 4.8列グリッドが埋まるカテゴリ(輸送/車両)。列数と端の余白を目視で確認するため
+  // 4. A category whose grid fills all 8 columns (輸送/車両), for eyeballing column count and edge margins
+  await page.getByTestId(`build-menu-category-${buildMenuCategoryIds.transport}`).click();
+  await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`).waitFor();
+  await page.mouse.move(2, 2);
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `${OUT_DIR}/buildmenu-4-grid.png` });
+
   await browser.close();
   wss.close();
   await new Promise<void>((resolve) => server.close(() => resolve()));

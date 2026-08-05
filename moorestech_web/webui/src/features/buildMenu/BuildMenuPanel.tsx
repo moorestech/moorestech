@@ -86,7 +86,9 @@ export function BuildMenuPanel() {
   return (
     <div className={styles.panelBand}>
       <div className={styles.panel} data-testid="build-menu-panel">
-        <GamePanel title={t(L.ui.buildMenu.title)} variant="default">
+        {/* GamePanelは内容高で伸びるため、研究パネル前例と同じくバンド高へ明示的に縛る（§8.11の--menu-content-height） */}
+        {/* GamePanel grows with its content, so pin it to the band height like the research-panel precedent (§8.11 --menu-content-height) */}
+        <GamePanel title={t(L.ui.buildMenu.title)} variant="default" style={{ height: "100%", boxSizing: "border-box" }}>
           <IconButton onClick={close} ariaLabel={t(L.ui.common.close)} className={styles.close} testId="build-menu-close" />
           <div className={styles.columns}>
             <div className={styles.sidebar}>

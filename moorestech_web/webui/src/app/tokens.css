@@ -132,11 +132,11 @@
   --block-panel-right-safe-area: 28px;
   --build-menu-sidebar-width: 8.5rem;
   --build-menu-edge-safe-area: 16px;
-  /* 中央3カラムの外寸と各列の固定寸法（§8.11・値は目視QAで確定） */
-  /* Fixed dimensions for the centered three-column layout (§8.11; verify via visual QA) */
+  /* 中央3カラムの固定寸法（§8.11・目視QAで確定）。850px=中央列440pxで8列431.6px+スクロールバー、36px×10+gap4px×9=396pxが利用可能高415pxに収まる */
+  /* Fixed dimensions of the centered three columns (§8.11, settled by visual QA): 850px gives a 440px center column holding the 431.6px eight columns plus scrollbar, and 36px x 10 + 4px gap x 9 = 396px fits the 415px available height */
   --build-menu-panel-width: 850px;
   --build-menu-detail-width: 11.75rem;
-  --build-menu-category-height: 2.75rem;
+  --build-menu-category-height: 2.25rem;
   /* ワールドピンHUDの層。パネル面より下に置き、開いたパネルの背後に隠れる */
   /* World-pin HUD layer; kept below panel faces so open panels cover it */
   --z-world-pin: 10;

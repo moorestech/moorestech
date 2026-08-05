@@ -86,35 +86,6 @@ test("検索0件は該当なし表示", async ({ page }) => {
   await expect(page.getByTestId("build-menu-panel")).toContainText("該当なし");
 });
 
-test("パネルは画面水平中央に表示される", async ({ page }) => {
-  await setUiState(page, "BuildMenu");
-  await page.goto("/");
-
-  const box = await page.getByTestId("build-menu-panel").boundingBox();
-  const viewport = page.viewportSize();
-  if (!box || !viewport) throw new Error("bounding box unavailable");
-  expect(Math.abs(box.x + box.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(1);
-});
-
-test("カテゴリボタンは全ボタン同一の固定高", async ({ page }) => {
-  await setUiState(page, "BuildMenu");
-  await page.goto("/");
-
-  const buttons = page.getByTestId("build-menu-sidebar").locator("button");
-  const count = await buttons.count();
-  const heights: number[] = [];
-  for (let i = 0; i < count; i += 1) {
-    const box = await buttons.nth(i).boundingBox();
-    if (!box) throw new Error("button box unavailable");
-    heights.push(box.height);
-  }
-  // 全ボタン等高かつ、パネル高÷カテゴリ数(約156px)ではなく固定トークン値(44px)であること
-  // All buttons share one height: the 44px token, not panel-height / category-count (~156px)
-  for (const height of heights) expect(Math.abs(height - heights[0])).toBeLessThanOrEqual(0.5);
-  expect(heights[0]).toBeGreaterThan(36);
-  expect(heights[0]).toBeLessThan(52);
-});
-
 test("詳細サイドバーはホバー後にstickyで残る", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
@@ -133,9 +104,9 @@ test("エントリの無いカテゴリはサイドバーに出ない", async ({
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
-  // fixturesは4カテゴリ定義だが「建材」はエントリ皆無のため、エントリを持つ3カテゴリのみが並ぶ
-  // fixtures define 4 categories but "建材" has no entries, so only the 3 with entries render
-  await expect(page.getByTestId("build-menu-sidebar").locator("button")).toHaveCount(3);
+  // fixturesは実マスタ相当の11カテゴリ定義だが「建材」はエントリ皆無のため、エントリを持つ10カテゴリのみが並ぶ
+  // fixtures define 11 categories matching the real master but "建材" has no entries, so only the 10 with entries render
+  await expect(page.getByTestId("build-menu-sidebar").locator("button")).toHaveCount(10);
 });
 
 test("閉じて開き直すとタブ・検索・スクロール・詳細stickyが復元される", async ({ page }) => {

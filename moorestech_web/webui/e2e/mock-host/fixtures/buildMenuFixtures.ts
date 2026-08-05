@@ -1,4 +1,5 @@
 import type { BuildMenuData } from "../../../src/bridge/contract/payloadTypes";
+import { blockIconUrl } from "../../../src/bridge/transport/httpEndpoints";
 import {
   CARGO_TRAIN_CAR_GUID,
   WIRE_CONNECT_TOOL_GUID,
@@ -22,6 +23,13 @@ export const buildMenuCategoryIds = {
   transport: "51000000-0000-4000-8000-000000000002",
   blueprint: "51000000-0000-4000-8000-000000000003",
   building: "51000000-0000-4000-8000-000000000004",
+  mining: "51000000-0000-4000-8000-000000000005",
+  production: "51000000-0000-4000-8000-000000000006",
+  mechanicalPower: "51000000-0000-4000-8000-000000000007",
+  electricity: "51000000-0000-4000-8000-000000000008",
+  fluid: "51000000-0000-4000-8000-000000000009",
+  tool: "51000000-0000-4000-8000-000000000010",
+  buildingMaterial: "51000000-0000-4000-8000-000000000011",
 } as const;
 
 export const buildMenuSubCategoryIds = {
@@ -31,16 +39,36 @@ export const buildMenuSubCategoryIds = {
   car: "52000000-0000-4000-8000-000000000004",
   saved: "52000000-0000-4000-8000-000000000005",
   foundation: "52000000-0000-4000-8000-000000000006",
+  miner: "52000000-0000-4000-8000-000000000007",
+  primitiveCraft: "52000000-0000-4000-8000-000000000008",
+  shaft: "52000000-0000-4000-8000-000000000009",
+  generator: "52000000-0000-4000-8000-000000000010",
+  pipe: "52000000-0000-4000-8000-000000000011",
+  connect: "52000000-0000-4000-8000-000000000012",
+  interiorPanel: "52000000-0000-4000-8000-000000000013",
 } as const;
 
-// スクロール復元e2eのため輸送/車両サブカテゴリを縦に溢れさせる量産エントリ（名前解決は不要）
-// Filler entries that overflow 輸送/車両 vertically for the scroll-restore e2e (no name resolution needed)
+// 実マスタ(buildMenu.json)の可視10カテゴリを再現する追加分。1カテゴリ=1サブカテゴリ=1エントリで縦積み量だけを実データへ揃える
+// Extra categories that reproduce the real master's 10 visible categories; one sub-category and one entry each, matching only the vertical stack size
+export const buildMenuExtraCategorySpecs = [
+  { categoryGuid: buildMenuCategoryIds.mining, subCategoryGuid: buildMenuSubCategoryIds.miner, entryId: "53000000-0000-4000-8000-000000000005" },
+  { categoryGuid: buildMenuCategoryIds.production, subCategoryGuid: buildMenuSubCategoryIds.primitiveCraft, entryId: "53000000-0000-4000-8000-000000000006" },
+  { categoryGuid: buildMenuCategoryIds.mechanicalPower, subCategoryGuid: buildMenuSubCategoryIds.shaft, entryId: "53000000-0000-4000-8000-000000000007" },
+  { categoryGuid: buildMenuCategoryIds.electricity, subCategoryGuid: buildMenuSubCategoryIds.generator, entryId: "53000000-0000-4000-8000-000000000008" },
+  { categoryGuid: buildMenuCategoryIds.fluid, subCategoryGuid: buildMenuSubCategoryIds.pipe, entryId: "53000000-0000-4000-8000-000000000009" },
+  { categoryGuid: buildMenuCategoryIds.tool, subCategoryGuid: buildMenuSubCategoryIds.connect, entryId: "53000000-0000-4000-8000-000000000010" },
+  { categoryGuid: buildMenuCategoryIds.buildingMaterial, subCategoryGuid: buildMenuSubCategoryIds.interiorPanel, entryId: "53000000-0000-4000-8000-000000000011" },
+] as const;
+
+// スクロール復元e2eと8列グリッド目視QAのため輸送/車両サブカテゴリを縦に溢れさせる量産エントリ（名前解決は不要）
+// Filler entries that overflow 輸送/車両 vertically for the scroll-restore e2e and the 8-column visual QA (no name resolution needed)
 export const buildMenuScrollFillerEntries = Array.from({ length: 80 }, (_, index) => ({
   id: `53000000-0000-4000-8000-0000000010${String(index).padStart(2, "0")}`,
   kind: "block" as const,
   categoryGuid: buildMenuCategoryIds.transport,
   subCategoryGuid: buildMenuSubCategoryIds.car,
   requiredItems: [],
+  iconUrl: blockIconUrl(8 + (index % 12)),
 }));
 
 // カテゴリ×サブカテゴリ構成。「鉄」検索で 物流/チェスト と 輸送/鉄道 が複数カテゴリ跨ぎでヒットする
@@ -53,16 +81,27 @@ export const buildMenu = {
     // エントリを持たない空カテゴリ。サイドバーの除外分岐を検証するためのもの
     // An empty category with no entries, to exercise the sidebar's exclusion branch
     { categoryGuid: buildMenuCategoryIds.building, subCategoryGuids: [buildMenuSubCategoryIds.foundation] },
+    ...buildMenuExtraCategorySpecs.map(({ categoryGuid, subCategoryGuid }) => ({ categoryGuid, subCategoryGuids: [subCategoryGuid] })),
   ],
+  // アイコンはmock-hostが配信する本番同形のブロックアイコン経路を使う（撮影時に実スロット表示を再現するため）
+  // Icons use the production-shaped block-icon route served by the mock host so captures show real slot rendering
   entries: [
-    { id: buildMenuEntryIds.woodChest, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [{ itemId: 1, count: 4 }], iconUrl: "/icons/wood-chest.png" },
-    { id: buildMenuEntryIds.ironChest, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [], iconUrl: "/icons/iron-chest.png" },
-    { id: buildMenuEntryIds.beltConveyor, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000002", requiredItems: [], iconUrl: "/icons/belt-conveyor.png" },
-    { id: buildMenuEntryIds.rail, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: "/icons/rail.png" },
-    { id: buildMenuEntryIds.cargoCar, kind: "trainCar", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000004", requiredItems: [], iconUrl: "/icons/cargo-car.png" },
-    { id: buildMenuEntryIds.wireConnectTool, kind: "connectTool", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: "/icons/wire-tool.png" },
+    { id: buildMenuEntryIds.woodChest, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [{ itemId: 1, count: 4 }], iconUrl: blockIconUrl(1) },
+    { id: buildMenuEntryIds.ironChest, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [], iconUrl: blockIconUrl(2) },
+    { id: buildMenuEntryIds.beltConveyor, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000002", requiredItems: [], iconUrl: blockIconUrl(3) },
+    { id: buildMenuEntryIds.rail, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: blockIconUrl(4) },
+    { id: buildMenuEntryIds.cargoCar, kind: "trainCar", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000004", requiredItems: [], iconUrl: blockIconUrl(5) },
+    { id: buildMenuEntryIds.wireConnectTool, kind: "connectTool", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: blockIconUrl(6) },
     { id: buildMenuEntryIds.blueprintCopy, kind: "blueprintCopy", categoryGuid: "51000000-0000-4000-8000-000000000003", subCategoryGuid: "52000000-0000-4000-8000-000000000005", requiredItems: [] },
     { id: buildMenuEntryIds.starterBaseBlueprint, kind: "blueprint", label: "starter-base", categoryGuid: "51000000-0000-4000-8000-000000000003", subCategoryGuid: "52000000-0000-4000-8000-000000000005", requiredItems: [] },
     ...buildMenuScrollFillerEntries,
+    ...buildMenuExtraCategorySpecs.map(({ categoryGuid, subCategoryGuid, entryId }) => ({
+      id: entryId,
+      kind: "block" as const,
+      categoryGuid,
+      subCategoryGuid,
+      requiredItems: [{ itemId: 1, count: 2 }],
+      iconUrl: blockIconUrl(1),
+    })),
   ],
 } satisfies BuildMenuData;
