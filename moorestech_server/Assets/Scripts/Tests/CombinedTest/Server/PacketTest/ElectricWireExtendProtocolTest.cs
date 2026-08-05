@@ -50,12 +50,10 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void 起点あり延長で電柱を設置し起点と機械へ接続して消費する()
+        public void 起点あり延長は起点との1本のみ接続し周辺機械へは配線しない()
         {
-            // 起点電柱と未接続機械を用意する
-            // Prepare an origin pole and an unconnected machine
-            // pole-pole有効範囲は±3なので起点距離は境界の3に、pole-machine有効範囲は±2なので機械距離は境界の2に配置する
-            // Pole-pole effective range is +-3 so the origin distance sits at that boundary (3); pole-machine effective range is +-2 so the machine distance sits at its boundary (2)
+            // 起点電柱と、新電柱の機械範囲内の未接続機械を用意する
+            // Prepare an origin pole and an unconnected machine inside the new pole's machine range
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var fromPos = Vector3Int.zero;
             var newPolePos = new Vector3Int(3, 0, 0);
@@ -67,24 +65,19 @@ namespace Tests.CombinedTest.Server.PacketTest
             var fromConnector = fromPole.GetComponent<IElectricWireConnector>();
             var machineConnector = machine.GetComponent<IElectricWireConnector>();
 
-            // 起点あり延長を実行する（起点距離3＋機械距離2＝電線5）
-            // Run extend with origin (origin distance 3 + machine distance 2 = 5 wires)
+            // 起点あり延長を実行する（起点距離3の電線3本だけが消費される）
+            // Run extend with origin; only 3 wires for the origin distance are consumed
             var response = SendExtend(fromPos, newPolePos);
 
             Assert.IsTrue(response.IsSuccess, response.FailureReason.ToString());
-            Assert.IsTrue(worldBlockDatastore.Exists(newPolePos));
+            var newConnector = worldBlockDatastore.GetBlock(newPolePos).GetComponent<IElectricWireConnector>();
 
-            var newPole = worldBlockDatastore.GetBlock(newPolePos);
-            var newConnector = newPole.GetComponent<IElectricWireConnector>();
-
-            Assert.AreEqual(newPolePos, (Vector3Int)response.PlacedPolePos);
-            Assert.AreEqual(newConnector.BlockInstanceId.AsPrimitive(), response.PlacedBlockInstanceId);
+            // 接続は起点との1本のみで、周辺機械へは配線されない
+            // Exactly one edge to the origin; the nearby machine stays unwired
+            Assert.AreEqual(1, newConnector.WireConnections.Count);
             Assert.IsTrue(fromConnector.ContainsWireConnection(newConnector.BlockInstanceId));
-            Assert.IsTrue(newConnector.ContainsWireConnection(fromConnector.BlockInstanceId));
-            Assert.IsTrue(newConnector.ContainsWireConnection(machineConnector.BlockInstanceId));
-            Assert.IsTrue(machineConnector.ContainsWireConnection(newConnector.BlockInstanceId));
-            Assert.AreEqual(2, newConnector.WireConnections.Count);
-            Assert.AreEqual(5, CountItem(inventory, _wireItemId));
+            Assert.AreEqual(0, machineConnector.WireConnections.Count);
+            Assert.AreEqual(7, CountItem(inventory, _wireItemId));
             Assert.AreEqual(0, CountItem(inventory, _materialItemId));
         }
 
@@ -108,10 +101,10 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void 起点なし設置でも近傍電柱へ通常設置と同様に自動接続される()
+        public void 起点なし孤立設置は近傍に電柱があっても一切接続しない()
         {
-            // 既存電柱の探索範囲内（poleConnectionRange=7は±3）へ起点なしで電柱を設置する
-            // Place a pole without origin inside the existing pole's search range (poleConnectionRange=7 means +-3)
+            // 既存電柱の探索範囲内へ起点なしで電柱を設置する
+            // Place a pole without origin inside the existing pole's search range
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var existingPolePos = Vector3Int.zero;
             var newPolePos = new Vector3Int(3, 0, 0);
@@ -122,21 +115,20 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             Assert.IsTrue(response.IsSuccess, response.FailureReason.ToString());
 
-            // 最寄り電柱1本へ自動接続され、距離3の電線が消費される
-            // Auto-connects to the nearest pole and consumes 3 wires for distance 3
+            // 接続ゼロ・電線消費ゼロで電柱のみ設置される
+            // The pole is placed alone: zero connections and zero wire consumption
             var newConnector = worldBlockDatastore.GetBlock(newPolePos).GetComponent<IElectricWireConnector>();
-            var existingConnector = existingPole.GetComponent<IElectricWireConnector>();
-            Assert.IsTrue(newConnector.ContainsWireConnection(existingConnector.BlockInstanceId));
-            Assert.IsTrue(existingConnector.ContainsWireConnection(newConnector.BlockInstanceId));
-            Assert.AreEqual(7, CountItem(inventory, _wireItemId));
+            Assert.AreEqual(0, newConnector.WireConnections.Count);
+            Assert.AreEqual(0, existingPole.GetComponent<IElectricWireConnector>().WireConnections.Count);
+            Assert.AreEqual(10, CountItem(inventory, _wireItemId));
             Assert.AreEqual(0, CountItem(inventory, _materialItemId));
         }
 
         [Test]
         public void 未接続機械を起点にした延長で二重接続や電線二重消費が起きない()
         {
-            // 新電柱の機械範囲内にいる未接続機械そのものを起点にする（起点が機械収集で再収集される回帰ケース）
-            // Use an unconnected machine inside the new pole's machine range as the origin (regression: origin re-collected as machine)
+            // 新電柱の機械範囲内にいる未接続機械そのものを起点にする（機械を起点にした延長の基本ケース）
+            // Use an unconnected machine inside the new pole's machine range as the origin (basic case of extending from a machine)
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var machinePos = Vector3Int.zero;
             var newPolePos = new Vector3Int(2, 0, 0);

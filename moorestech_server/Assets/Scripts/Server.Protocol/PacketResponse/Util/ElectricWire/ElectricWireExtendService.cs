@@ -60,8 +60,8 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems))
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.InsufficientItems);
 
-            // 起点ありは明示接続＋機械収集、起点なしは通常設置と同じフル自動接続
-            // With origin: explicit wire + machine collection; without: same full auto-connect as normal placement
+            // 起点ありは起点との明示1本のみ、起点なしは接続なしの単体設置
+            // With origin: only the explicit origin wire; without: place the pole alone with no wiring
             return hasFromConnector
                 ? ExecuteExtendWithOrigin()
                 : ExecuteIsolatedPlace();
@@ -102,20 +102,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 var targets = new List<(BlockInstanceId TargetId, ElectricWireConnectionCost Cost)> { (fromConnector.BlockInstanceId, fromCost) };
                 var requiredByItem = new Dictionary<ItemId, int>();
                 AddMaterials(requiredByItem, fromCost);
-
-                // 起点接続で1本使う前提で残り本数まで未接続機械を収集する
-                // Collect unconnected machines up to remaining capacity, accounting for the origin wire slot
-                var machineTargets = ElectricWireAutoConnectTargetCollector.CollectPoleMachineTargets(poleParam, poleGhostInfo, 1);
-                foreach (var machineTarget in machineTargets)
-                {
-                    // 起点自身が未接続機械として再収集された場合は除外する（二重接続・二重計上の防止）
-                    // Skip the origin when re-collected as an unconnected machine, preventing double wiring and counting
-                    if (machineTarget.TargetId == fromConnector.BlockInstanceId) continue;
-                    if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, machineTarget.Distance, out var cost))
-                        return ExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
-                    targets.Add((machineTarget.TargetId, cost));
-                    AddMaterials(requiredByItem, cost);
-                }
 
                 // 電線素材合計＋建設コスト中の同一アイテム分を合算で判定する
                 // Judge by total wire materials plus the same-item amount reserved by the construction cost
@@ -164,23 +150,16 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 }
             }
 
-            // 起点なし設置。通常のブロック設置と同じ自動接続（最寄り電柱1本＋未接続機械）を適用する
-            // Placement without origin; applies the same auto-connect as normal placement (nearest pole + unconnected machines)
+            // 起点なし設置。自動接続は行わず電柱単体のみを設置する
+            // Placement without origin; place the pole alone with no auto-connect
             ExtendResult ExecuteIsolatedPlace()
             {
-                // 設置前に自動接続計画を検証する。建設コストは予約として渡し電線不足なら設置しない
-                // Validate the auto-connect plan before placement; pass the construction cost as reservations and do not place when wires are insufficient
-                var plan = ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, polePlaceInfo.Position, polePlaceInfo.Direction, costItemCounts, inventory.InventoryItems);
-                if (!plan.IsPlaceable)
-                    return ExtendResult.Failure(plan.FailureReason);
-
                 if (!TryPlacePole(polePlaceInfo, blockId, out var selfConnector))
                     return ExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
 
-                // 建設コストを消費し、検証済み計画でワイヤーを張って素材を消費する
-                // Consume the construction cost, then execute the validated plan to add wires and consume materials
+                // 建設コストのみ消費する
+                // Consume only the construction cost
                 ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
-                ElectricWireAutoConnectService.ExecuteAutoConnect(plan, ServerContext.WorldBlockDatastore.GetBlock(selfConnector.BlockInstanceId), inventory);
 
                 return ExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
             }
