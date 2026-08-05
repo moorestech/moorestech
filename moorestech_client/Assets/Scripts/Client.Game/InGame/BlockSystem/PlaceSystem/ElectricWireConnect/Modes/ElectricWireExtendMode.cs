@@ -132,9 +132,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 _context.PreviewBlockController.UpdatePlaceableColors(placeInfos);
                 _context.WirePreview.Show(fromPos, placeInfo.Position, placeable, ResolveCostCount(judgement, distance));
 
-                // 可否OK かつクリックで延長設置する。起点の引き継ぎは応答確認後にシステム側が行う
-                // Extend on click when placeable; origin hand-off happens after the response confirms
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi() && placeable)
+                // 可否OK かつクリックで延長設置する。応答待ち中は多重送信を防ぐため送信しない
+                // Extend on click when placeable; skip sending while a response is pending to avoid duplicate sends
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi() && placeable && !_context.RequestSender.IsAwaitingResponse)
                 {
                     _context.WirePreview.SetActive(false);
                     _context.PreviewBlockController.SetActive(false);

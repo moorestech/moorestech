@@ -61,7 +61,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
                 var fromPos = fromBlock.BlockPosInfo.OriginalPos;
                 var toPos = toBlock.BlockPosInfo.OriginalPos;
-                ElectricWireExtendRequestSender.Disconnect(fromPos, toPos);
+                _context.RequestSender.Disconnect(fromPos, toPos);
             }
 
             #endregion

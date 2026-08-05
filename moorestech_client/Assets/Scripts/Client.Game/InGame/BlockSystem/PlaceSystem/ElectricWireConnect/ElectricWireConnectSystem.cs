@@ -3,6 +3,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using UnityEngine;
@@ -48,7 +49,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
 
             // 右クリックで起点を解除し、進行中の応答を無効化する
             // Release the origin on right click and invalidate any pending response
-            if (_sourceBlock != null && InputManager.Playable.ScreenRightClick.GetKeyDown)
+            if (_sourceBlock != null && InputManager.Playable.ScreenRightClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
             {
                 _sourceBlock = null;
                 _context.RequestSender.Invalidate();
