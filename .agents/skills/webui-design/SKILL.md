@@ -189,10 +189,13 @@ description: |
   幅は `--build-menu-sidebar-width`（固定長）。**各ボタンは `--build-menu-category-height` の固定高・
   上詰め**とし、パネル高さ・カテゴリ数に比例して伸縮させない（縦ModeSwitchの高さは
   `--mode-switch-option-height` 変数で利用側が注入する）。
+  **カテゴリ名は1行に収まる長さ（実マスタ最長7字）を前提とし、折り返しは想定しない。**
+  8字以上が必要になったら `--build-menu-sidebar-width` と `--build-menu-panel-width` をセットで見直す。
 - **検索**: §8.9 の検索入力を中央カラム上部に置く。
 - **sticky詳細サイドバー**: ホバー中エントリを表示し、カーソルが離れても直前エントリを表示し続ける。
   初回ホバー前のみ `--text-muted` の案内テキスト。内容は「アイコン → 名前 → `FadeRule` →
   必要素材ラベル（`--text-muted`）+ `ItemSlot` 群」の縦積み。説明文は出さない（マスタに存在しない）。
+  閉じる✕がこの列の右上に重なるため、上端に `--build-menu-detail-top-safe-area` の安全帯を空ける（§2の安全帯前例と同族）。
 - **サブカテゴリ見出し**: グリッド内のサブカテゴリ区切りは `--text-muted` のラベル + `FadeRule`
   （§8.6と同一部品）。無札の並置は禁止（§4のスロット群区別ルールに従う）。
 - グリッド本体は `SlotGrid` を使い独自gridを作らない。端の安全余白は `--build-menu-edge-safe-area`。

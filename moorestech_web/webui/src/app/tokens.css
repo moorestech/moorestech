@@ -137,6 +137,9 @@
   --build-menu-panel-width: 850px;
   --build-menu-detail-width: 11.75rem;
   --build-menu-category-height: 2.25rem;
+  /* 閉じる✕は詳細列の右上に重なるため、1行目を✕の下端より下へ逃がす安全帯（✕上端 --bevel-3 + ✕実寸 --icon-button-size + 縦積みgap 8px） */
+  /* Safe area dropping the detail column's first line below the close cross that overlaps its top-right (cross top --bevel-3 + cross size --icon-button-size + the 8px stack gap) */
+  --build-menu-detail-top-safe-area: calc(var(--bevel-3) + var(--icon-button-size) + 8px);
   /* ワールドピンHUDの層。パネル面より下に置き、開いたパネルの背後に隠れる */
   /* World-pin HUD layer; kept below panel faces so open panels cover it */
   --z-world-pin: 10;

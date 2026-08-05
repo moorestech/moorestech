@@ -1,5 +1,5 @@
-// 目視QA:3状態を撮影
-// Visual QA: capture BuildMenu in 3 states
+// 目視QA:既定・検索・ホバー・8列グリッドの4状態を撮影
+// Visual QA: capture BuildMenu in 4 states (default, search, hover, filled 8-column grid)
 
 import { chromium } from "@playwright/test";
 import { WebSocketServer } from "ws";

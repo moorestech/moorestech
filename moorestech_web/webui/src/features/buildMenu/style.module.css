@@ -74,13 +74,14 @@
   outline-offset: var(--bevel-1);
 }
 
-/* sticky詳細の縦積み（§8.11） */
-/* Sticky detail stack (§8.11) */
+/* sticky詳細の縦積み（§8.11）。上端は.closeの✕が重なるため安全帯ぶん下げる */
+/* Sticky detail stack (§8.11); its top is inset by the safe area because .close's cross overlaps there */
 .detail {
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-height: 0;
+  padding-top: var(--build-menu-detail-top-safe-area);
 }
 
 .detailIcon {

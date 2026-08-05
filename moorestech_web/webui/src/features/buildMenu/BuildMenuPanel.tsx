@@ -90,7 +90,7 @@ export function BuildMenuPanel() {
         {/* GamePanel grows with its content, so pin it to the band height like the research-panel precedent (§8.11 --menu-content-height) */}
         <GamePanel title={t(L.ui.buildMenu.title)} variant="default" style={{ height: "100%", boxSizing: "border-box" }}>
           <IconButton onClick={close} ariaLabel={t(L.ui.common.close)} className={styles.close} testId="build-menu-close" />
-          <div className={styles.columns}>
+          <div className={styles.columns} data-testid="build-menu-columns">
             <div className={styles.sidebar}>
               <CategorySidebar
                 categories={visible}

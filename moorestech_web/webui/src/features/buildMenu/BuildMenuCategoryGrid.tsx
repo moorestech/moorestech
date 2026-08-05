@@ -35,7 +35,7 @@ export function BuildMenuCategoryGrid({ sections, compositeHeading, onSelect, on
         >
           <h3 className={styles.sectionHeading}>{sectionHeading(section)}</h3>
           <FadeRule />
-          <SlotGrid cols={8}>
+          <SlotGrid cols={8} testId={`build-menu-grid-${section.categoryGuid}-${section.subCategoryGuid}`}>
             {section.entries.map((entry) => (
               <BuildMenuSlot
                 key={entry.id}

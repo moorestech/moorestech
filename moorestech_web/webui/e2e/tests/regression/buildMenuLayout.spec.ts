@@ -1,8 +1,9 @@
+// §8.11の寸法契約（中央寄せ・固定高カテゴリ・全カテゴリ収容・8列グリッド）を目視QAで確定した値のまま守らせる
+// Locks the §8.11 dimension contract (centering, fixed-height categories, full category fit, 8-column grid) to the values settled by visual QA
+
 import { test, expect } from "@playwright/test";
 import { setUiState } from "../../support/mockControl";
 
-// §8.11の寸法契約（中央寄せ・固定高カテゴリ・全カテゴリ収容）を目視QAで確定した値のまま守らせる
-// Locks the §8.11 dimension contract (centering, fixed-height categories, full category fit) to the values settled by visual QA
 test.afterEach(async ({ page }) => {
   await setUiState(page, "PlayerInventory");
 });
@@ -29,12 +30,15 @@ test("カテゴリボタンは全ボタン同一の固定高", async ({ page }) 
     return raw.endsWith("rem") ? parseFloat(raw) * parseFloat(rootStyle.fontSize) : parseFloat(raw);
   });
 
-  // clientHeightはstageの拡大縮小を受けないレイアウト値のため、トークンpxと直接比較できる
-  // clientHeight is a layout value untouched by the stage scale, so it compares directly against the token px
+  // offsetHeightはborder込みのボーダーボックス高で、border-box指定の高さトークンと同じ量。stageの拡大縮小も受けない
+  // offsetHeight is the border-box height including borders, exactly what the height token sets under border-box sizing, and it ignores the stage scale
+  // 整数丸めと小数トークン(2.3rem=36.8px等)を吸収するため±1pxを許容する
+  // Allow +/-1px to absorb integer rounding and fractional tokens such as 2.3rem = 36.8px
   const buttons = page.getByTestId("build-menu-sidebar").locator("button");
   const count = await buttons.count();
   for (let i = 0; i < count; i += 1) {
-    expect(await buttons.nth(i).evaluate((el) => el.clientHeight)).toBe(expected);
+    const height = await buttons.nth(i).evaluate((el: HTMLElement) => el.offsetHeight);
+    expect(Math.abs(height - expected)).toBeLessThanOrEqual(1);
   }
 });
 
@@ -51,25 +55,33 @@ test("カテゴリサイドバーは全カテゴリとラベルを固定高の�
     expect(fit.scroll).toBeLessThanOrEqual(fit.client);
   }
 
-  // 縦積みが利用可能高を超えると3列の親(固定高)の行が伸び、差分がscrollHeightに出る
-  // If the stack exceeds the available height, the fixed-height three-column parent's row grows and the excess shows in scrollHeight
-  const columns = await page.getByTestId("build-menu-detail").evaluate((el) => {
-    const parent = el.parentElement as HTMLElement;
-    return { client: parent.clientHeight, scroll: parent.scrollHeight };
+  // 最後のボタン下端を3列コンテナのコンテンツボックス下端と直接比べる。scrollHeight比較はpadding-bottomに吸われて実残余約19pxを検出できない
+  // Compare the last button's bottom against the three-column container's content-box bottom; a scrollHeight comparison is absorbed by padding-bottom and cannot see the real ~19px of slack
+  const fit = await page.getByTestId("build-menu-columns").evaluate((columns: HTMLElement) => {
+    const buttonList = columns.querySelectorAll('[data-testid="build-menu-sidebar"] button');
+    const columnsRect = columns.getBoundingClientRect();
+    // stageのCSS transform倍率。paddingはレイアウトpxなので同じ倍率で表示pxへ揃える
+    // The stage's CSS transform scale; padding is a layout px value, so scale it into displayed px the same way
+    const scale = columnsRect.height / columns.offsetHeight;
+    const paddingBottom = parseFloat(getComputedStyle(columns).paddingBottom) * scale;
+    const lastBottom = buttonList[buttonList.length - 1].getBoundingClientRect().bottom;
+    return { lastBottom, contentBottom: columnsRect.bottom - paddingBottom };
   });
-  expect(columns.scroll).toBeLessThanOrEqual(columns.client);
+  expect(fit.lastBottom).toBeLessThanOrEqual(fit.contentBottom);
 });
 
-// 8列SlotGridは中央列の実幅に依存するため、パネル幅・サイドバー幅・詳細幅の合計が崩れると列数が変わる
-// The 8-column SlotGrid depends on the center column's real width, so any drift in panel/sidebar/detail widths changes the column count
 test("グリッドは8列を保ち中央列に収まる", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
-  const grid = page.getByTestId("build-menu-panel").locator('[data-testid^="build-menu-section"] > div').nth(1);
+  // 列数はSlotGridへ渡すprop値そのもので、独自gridへの差し替え(§8.11違反)だけを検出する
+  // The column count is exactly the prop handed to SlotGrid, so it only catches a swap to an ad-hoc grid (a §8.11 violation)
+  const grid = page.locator('[data-testid^="build-menu-grid-"]').first();
   const columnCount = await grid.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
   expect(columnCount).toBe(8);
 
+  // 寸法のガードはこちら。8列の実幅が中央列(=検索入力の幅)を超えれば、パネル幅・サイドバー幅・詳細幅のどれが動いても検出できる
+  // This is the dimensional guard: once the eight columns outgrow the center column (the search input's width), drift in the panel, sidebar, or detail width surfaces
   const gridBox = await grid.boundingBox();
   const searchBox = await page.getByTestId("build-menu-search").boundingBox();
   if (!gridBox || !searchBox) throw new Error("bounding box unavailable");
