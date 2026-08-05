@@ -3,7 +3,8 @@
 
 import { test, expect } from "@playwright/test";
 import { expectNoVerticalOverflow } from "../../support/layoutAssertions";
-import { setUiState } from "../../support/mockControl";
+import { setTopicScenario, setUiState } from "../../support/mockControl";
+import { buildMenuCategoryIds } from "../../mock-host/fixtures";
 
 // 視覚寸法トークンを実px化する。remは:rootのfont-sizeで解く
 // Resolves a visual dimension token into pixels, converting rem against the :root font size
@@ -15,7 +16,10 @@ async function tokenPixels(page: import("@playwright/test").Page, name: string) 
   }, name);
 }
 
+// mock-hostのlocaleは接続横断の共有状態なので、英語へ切り替えた回も既定へ戻してから抜ける
+// The mock host's locale is shared across connections, so every run returns it to the default before leaving
 test.afterEach(async ({ page }) => {
+  await setTopicScenario(page, "japanese");
   await setUiState(page, "PlayerInventory");
 });
 
@@ -109,6 +113,23 @@ test("カテゴリサイドバーは全カテゴリとラベルを固定高の�
   expect(fit.lastBottom).toBeLessThanOrEqual(fit.contentBottom);
 });
 
+test("英語ロケールでもカテゴリ名は1行のまま固定高に収まる", async ({ page }) => {
+  await setUiState(page, "BuildMenu");
+  await setTopicScenario(page, "english");
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-locale", "english");
+
+  // 実マスタ最長の英訳が可視カテゴリに載っていることを先に固定する。載らなければ折返し検査が素通りする
+  // Pin that the real master's longest English name is on a visible category first; otherwise the wrap check passes vacuously
+  await expect(page.getByTestId(`build-menu-category-${buildMenuCategoryIds.buildingMaterial}`))
+    .toHaveText("Building Materials");
+
+  // 折返し判定はwebフォントの字幅に依存するため、フォント確定後に測る
+  // Wrapping depends on the web font's advance widths, so measure only after the fonts settle
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  await expectNoVerticalOverflow(page.getByTestId("build-menu-sidebar").locator("button"));
+});
+
 test("グリッドは8列を保ち中央列に収まる", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
@@ -119,10 +140,19 @@ test("グリッドは8列を保ち中央列に収まる", async ({ page }) => {
   const columnCount = await grid.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
   expect(columnCount).toBe(8);
 
-  // 寸法のガードはこちら。8列の実幅が中央列(=検索入力の幅)を超えれば、パネル幅・サイドバー幅・詳細幅のどれが動いても検出できる
-  // This is the dimensional guard: once the eight columns outgrow the center column (the search input's width), drift in the panel, sidebar, or detail width surfaces
-  const gridBox = await grid.boundingBox();
-  const searchBox = await page.getByTestId("build-menu-search").boundingBox();
-  if (!gridBox || !searchBox) throw new Error("bounding box unavailable");
-  expect(gridBox.width).toBeLessThanOrEqual(searchBox.width);
+  // 寸法のガードはこちら。8列の実幅がスクロールバー予約を除いた収容幅を超えれば、パネル幅・サイドバー幅・詳細幅のどれが動いても検出できる
+  // This is the dimensional guard: once the eight columns outgrow the space left by the scrollbar reserve, drift in the panel, sidebar, or detail width surfaces
+  const fit = await page.getByTestId("build-menu-sections").evaluate((area: HTMLElement) => {
+    const style = getComputedStyle(area);
+    const reserve = parseFloat(style.paddingRight);
+    return {
+      reserve,
+      contentWidth: area.clientWidth - parseFloat(style.paddingLeft) - reserve,
+      gridWidth: area.querySelector<HTMLElement>('[data-testid^="build-menu-grid-"]')!.offsetWidth,
+    };
+  });
+  // 予約が消えるとオーバーレイスクロールバーが8列目へ重なる。収容幅の比較だけでは通ってしまうため予約自体も固定する
+  // Losing the reserve lets the overlay scrollbar sit on the eighth column, and the width comparison alone would still pass, so pin the reserve itself
+  expect(fit.reserve).toBeGreaterThan(0);
+  expect(fit.gridWidth).toBeLessThanOrEqual(fit.contentWidth);
 });

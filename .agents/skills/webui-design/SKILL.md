@@ -189,8 +189,9 @@ description: |
   幅は `--build-menu-sidebar-width`（固定長）。**各ボタンは `--build-menu-category-height` の固定高・
   上詰め**とし、パネル高さ・カテゴリ数に比例して伸縮させない（縦ModeSwitchの高さは
   `--mode-switch-option-height` 変数で利用側が注入する）。
-  **カテゴリ名は1行に収まる長さ（実マスタ最長7字）を前提とし、折り返しは想定しない。**
-  8字以上が必要になったら `--build-menu-sidebar-width` と `--build-menu-panel-width` をセットで見直す。
+  **カテゴリ名は全ロケールで1行に収まる長さを前提とし、折り返しは想定しない。**
+  幅は日本語名でなく最長の英訳（実マスタv8の `Building Materials`）を基準に決める。
+  収まらない名前が現れたら `--build-menu-sidebar-width` と `--build-menu-panel-width` をセットで見直す。
 - **検索**: §8.9 の検索入力を中央カラム上部に置く。
 - **sticky詳細サイドバー**: ホバー中エントリを表示し、カーソルが離れても直前エントリを表示し続ける。
   初回ホバー前のみ `--text-muted` の案内テキスト。内容は「アイコン → 名前 → `FadeRule` →
@@ -199,6 +200,8 @@ description: |
 - **サブカテゴリ見出し**: グリッド内のサブカテゴリ区切りは `--text-muted` のラベル + `FadeRule`
   （§8.6と同一部品）。無札の並置は禁止（§4のスロット群区別ルールに従う）。
 - グリッド本体は `SlotGrid` を使い独自gridを作らない。端の安全余白は `--build-menu-edge-safe-area`。
+  グリッド右端はオーバーレイ縦スクロールバー分の `--build-menu-grid-scrollbar-reserve` を予約し、
+  列幅を削らずその分 `--build-menu-panel-width` を広げる。
 - **セッション内状態保持**: 選択カテゴリ・検索文字列・スクロール位置・詳細sticky表示は
   セッション内ストア（§8.5のviewport保持と同族・リロードで消える・永続化なし）で保持し、
   閉じて開き直しても復元する。

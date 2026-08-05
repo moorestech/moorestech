@@ -1,6 +1,6 @@
 // ビルドメニューのセッション内状態(リロードで消える)。前例: shared/treeView/viewport/viewportStore.ts
 // In-session build menu state (cleared on reload); precedent: shared/treeView/viewport/viewportStore.ts
-export type BuildMenuSessionState = {
+type BuildMenuSessionState = {
   categoryGuid: string | null;
   query: string;
   scrollTop: number;
@@ -22,8 +22,4 @@ export function loadBuildMenuSessionState(): BuildMenuSessionState {
 
 export function updateBuildMenuSessionState(patch: Partial<BuildMenuSessionState>): void {
   stored = { ...stored, ...patch };
-}
-
-export function resetBuildMenuSessionState(): void {
-  stored = { ...initialState };
 }

@@ -23,8 +23,8 @@ const source = {
   "buildMenuCategory.51000000-0000-4000-8000-000000000008.name": "電力",
   "buildMenuCategory.51000000-0000-4000-8000-000000000009.name": "液体",
   "buildMenuCategory.51000000-0000-4000-8000-000000000010.name": "ツール",
-  // 実マスタ最長(ブループリント=7字)と同幅の最長ラベル。8.5remサイドバーで1行に収まる上限を固定高QAで押さえる
-  // The longest label (7 CJK chars, matching the real master's longest) pins the one-line ceiling of the 8.5rem sidebar for fixed-height QA
+  // 実マスタ最長(ブループリント=7字)と同幅の最長ラベル。サイドバーで1行に収まる上限を固定高QAで押さえる
+  // The longest label (7 CJK chars, matching the real master's longest) pins the one-line ceiling of the sidebar for fixed-height QA
   "buildMenuCategory.51000000-0000-4000-8000-000000000011.name": "建築マテリアル",
   "buildMenuSubCategory.52000000-0000-4000-8000-000000000001.name": "チェスト",
   "buildMenuSubCategory.52000000-0000-4000-8000-000000000002.name": "電気コンベア",
@@ -71,11 +71,56 @@ const source = {
   "challenge.82000000-0000-4000-8000-00000000000a.title": "VeryLongUnbrokenSecondaryObjectiveTextThatMustAlsoWrapInsideTheHud",
 };
 
+// ビルドメニューの英語表示。実マスタv8 localization.csv の英訳をそのまま引き写す
+// English build-menu strings, transcribed from the real v8 master's localization.csv
+const buildMenuEnglish = {
+  "buildMenuCategory.51000000-0000-4000-8000-000000000001.name": "Logistics",
+  "buildMenuCategory.51000000-0000-4000-8000-000000000002.name": "Transport",
+  "buildMenuCategory.51000000-0000-4000-8000-000000000003.name": "Blueprint",
+  "buildMenuCategory.51000000-0000-4000-8000-000000000004.name": "Building Materials",
+  "buildMenuCategory.51000000-0000-4000-8000-000000000005.name": "Mining",
+  "buildMenuCategory.51000000-0000-4000-8000-000000000006.name": "Production",
+  "buildMenuCategory.51000000-0000-4000-8000-000000000007.name": "Power",
+  "buildMenuCategory.51000000-0000-4000-8000-000000000008.name": "Electricity",
+  "buildMenuCategory.51000000-0000-4000-8000-000000000009.name": "Liquids",
+  "buildMenuCategory.51000000-0000-4000-8000-000000000010.name": "Tools",
+  // 建材(空カテゴリ)と同じ実マスタ最長英訳。可視カテゴリ側でも英語1行の上限をe2eに載せる
+  // Reuses the real master's longest English name from the empty 建材 category so a visible button also pins the English one-line ceiling
+  "buildMenuCategory.51000000-0000-4000-8000-000000000011.name": "Building Materials",
+  "buildMenuSubCategory.52000000-0000-4000-8000-000000000001.name": "Chests",
+  "buildMenuSubCategory.52000000-0000-4000-8000-000000000002.name": "Electric Conveyors",
+  "buildMenuSubCategory.52000000-0000-4000-8000-000000000003.name": "Railways",
+  "buildMenuSubCategory.52000000-0000-4000-8000-000000000004.name": "Vehicles",
+  "buildMenuSubCategory.52000000-0000-4000-8000-000000000005.name": "Saved",
+  "buildMenuSubCategory.52000000-0000-4000-8000-000000000006.name": "Foundations",
+  "buildMenuSubCategory.52000000-0000-4000-8000-000000000007.name": "Miners",
+  "buildMenuSubCategory.52000000-0000-4000-8000-000000000008.name": "Primitive Processing",
+  "buildMenuSubCategory.52000000-0000-4000-8000-000000000009.name": "Shafts",
+  "buildMenuSubCategory.52000000-0000-4000-8000-000000000010.name": "Power Generation",
+  "buildMenuSubCategory.52000000-0000-4000-8000-000000000011.name": "Pipes",
+  "buildMenuSubCategory.52000000-0000-4000-8000-000000000012.name": "Connections",
+  "buildMenuSubCategory.52000000-0000-4000-8000-000000000013.name": "Interior Panels",
+  "block.53000000-0000-4000-8000-000000000001.name": "Wooden Chest",
+  "block.53000000-0000-4000-8000-000000000002.name": "Iron Chest",
+  "block.53000000-0000-4000-8000-000000000003.name": "Belt Conveyor",
+  "block.53000000-0000-4000-8000-000000000004.name": "Railway Rail",
+  "block.53000000-0000-4000-8000-000000000005.name": "Electric Miner",
+  "block.53000000-0000-4000-8000-000000000006.name": "Stone Workbench",
+  "block.53000000-0000-4000-8000-000000000007.name": "Power Shaft",
+  "block.53000000-0000-4000-8000-000000000008.name": "Coal Generator",
+  "block.53000000-0000-4000-8000-000000000009.name": "Copper Pipe",
+  "block.53000000-0000-4000-8000-000000000010.name": "Wire Connector",
+  "block.53000000-0000-4000-8000-000000000011.name": "Decorative Panel",
+  [connectToolNameKey(WIRE_CONNECT_TOOL_GUID)]: "Wire Connect Tool",
+  [trainCarNameKey(CARGO_TRAIN_CAR_GUID)]: "Cargo Car",
+  "ui.buildMenu.blueprintCopy": "Blueprint Copy",
+};
+
 export const contentLocalizationDictionaries: Record<string, Record<string, string>> = {
   source,
   english: {
     ...source,
-    "ui.buildMenu.blueprintCopy": "Blueprint Copy",
+    ...buildMenuEnglish,
     "challenge.82000000-0000-4000-8000-000000000003.title": "Mine stone",
   },
   japanese: source,

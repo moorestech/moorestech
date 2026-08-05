@@ -133,10 +133,13 @@
 
 /* サブカテゴリ区切りごとに間隔を空けて群を独立させる（§8.11 無札並置の禁止） */
 /* Space out each sub-category group so sections read as distinct (§8.11 no unlabeled adjacency) */
+/* 右端はオーバーレイ縦スクロールバーの帯を予約し、8列目と重ならせない */
+/* The right inset reserves the overlay vertical scrollbar's band so it never overlaps the eighth column */
 .gridArea {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding-right: var(--build-menu-grid-scrollbar-reserve);
 }
 
 .scroll {

@@ -28,7 +28,7 @@ export function BuildMenuCategoryGrid({ sections, compositeHeading, onSelect, on
     return `${t(buildMenuCategoryNameKey(section.categoryGuid))} / ${subCategoryName}`;
   };
   return (
-    <div className={styles.gridArea}>
+    <div className={styles.gridArea} data-testid="build-menu-sections">
       {sections.map((section) => (
         <section
           key={`${section.categoryGuid}/${section.subCategoryGuid}`}

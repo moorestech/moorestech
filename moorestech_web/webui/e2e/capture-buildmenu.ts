@@ -1,5 +1,5 @@
-// 目視QA:既定・検索・ホバー・8列グリッドの4状態を撮影
-// Visual QA: capture BuildMenu in 4 states (default, search, hover, filled 8-column grid)
+// 目視QA:既定・検索・ホバー・8列グリッド・英語ロケールの5状態を撮影
+// Visual QA: capture BuildMenu in 5 states (default, search, hover, filled 8-column grid, English locale)
 
 import { chromium } from "@playwright/test";
 import { WebSocketServer } from "ws";
@@ -70,6 +70,14 @@ async function main() {
   await page.mouse.move(2, 2);
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT_DIR}/buildmenu-4-grid.png` });
+
+  // 5.英語ロケール。サイドバー幅は最長英訳 Building Materials の1行収まりで決まっている
+  // 5. English locale; the sidebar width is set by fitting the longest English name, Building Materials, on one line
+  await page.request.get(`http://127.0.0.1:${PORT}/__topic-control?scenario=english`);
+  await page.waitForFunction(() => document.documentElement.dataset.locale === "english");
+  await page.evaluate("document.fonts.ready.then(() => undefined)");
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `${OUT_DIR}/buildmenu-5-english.png` });
 
   await browser.close();
   wss.close();
