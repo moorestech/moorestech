@@ -32,6 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private const int WireSlot = 4;
         private static readonly Guid MaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000005"); // Test5 (電柱の建設コスト×1)
         private static readonly Guid ConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000001");
+        private static readonly Guid LockedConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000002"); // SetUpで解放しない未解放ツール
         private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         private ServiceProvider _serviceProvider;
@@ -165,7 +166,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, toPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var toPole);
 
             var inventory = SetupInventory(materialCount: 0, wireCount: 10);
-            var response = SendConnect(fromPos, toPos);
+            var response = SendConnect(fromPos, toPos, ConnectToolGuid);
 
             // 接続成功し、終点（接続先）のInstanceIdが次の起点として返る
             // Connection succeeds and the endpoint (target) InstanceId is returned as the next origin
@@ -189,11 +190,33 @@ namespace Tests.CombinedTest.Server.PacketTest
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, toPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
             SetupInventory(materialCount: 0, wireCount: 0);
-            var response = SendConnect(fromPos, toPos);
+            var response = SendConnect(fromPos, toPos, ConnectToolGuid);
 
             Assert.IsFalse(response.IsSuccess);
             Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, response.FailureReason);
             Assert.AreEqual(0, fromPole.GetComponent<IElectricWireConnector>().WireConnections.Count);
+        }
+
+        [Test]
+        public void 既存ブロック接続Operationは未解放connectToolでNotUnlockedにより失敗し接続されない()
+        {
+            // 範囲内の電柱2本と十分な電線を用意するが、connectToolは未解放のままにする
+            // Prepare two poles in range with enough wire, but leave the connectTool locked
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var fromPos = Vector3Int.zero;
+            var toPos = new Vector3Int(3, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, fromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fromPole);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, toPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var toPole);
+
+            SetupInventory(materialCount: 0, wireCount: 10);
+            var response = SendConnect(fromPos, toPos, LockedConnectToolGuid);
+
+            // 未解放理由で失敗し、双方とも接続が1本も張られない
+            // Fails with the locked reason and neither side gains a connection
+            Assert.IsFalse(response.IsSuccess);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NotUnlocked, response.FailureReason);
+            Assert.AreEqual(0, fromPole.GetComponent<IElectricWireConnector>().WireConnections.Count);
+            Assert.AreEqual(0, toPole.GetComponent<IElectricWireConnector>().WireConnections.Count);
         }
 
         #region TestUtil
@@ -222,9 +245,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }
 
-        private ElectricWireExtendProtocol.ElectricWireExtendResponse SendConnect(Vector3Int fromPos, Vector3Int toPos)
+        private ElectricWireExtendProtocol.ElectricWireExtendResponse SendConnect(Vector3Int fromPos, Vector3Int toPos, Guid connectToolGuid)
         {
-            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateConnectRequest(PlayerId, fromPos, toPos, ConnectToolGuid));
+            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateConnectRequest(PlayerId, fromPos, toPos, connectToolGuid));
             var responses = _packet.GetPacketResponse(payload, new PacketResponseContext(null));
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }

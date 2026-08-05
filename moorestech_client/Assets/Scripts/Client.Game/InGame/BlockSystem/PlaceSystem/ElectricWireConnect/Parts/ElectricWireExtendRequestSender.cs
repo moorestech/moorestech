@@ -45,7 +45,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         {
             UniTask.Create(async () =>
             {
-                var response = await ClientContext.VanillaApi.Response.ExtendElectricWire(fromPos, poleBlockId, polePlaceInfo, connectToolGuid, CancellationToken.None);
+                var request = ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(ClientContext.PlayerConnectionSetting.PlayerId, fromPos, poleBlockId, polePlaceInfo, connectToolGuid);
+                var response = await ClientContext.VanillaApi.Response.SendElectricWireExtend(request, CancellationToken.None);
                 if (response == null || !response.IsSuccess) return;
 
                 // 設置イベントの反映を待ってから電柱GameObjectを解決する

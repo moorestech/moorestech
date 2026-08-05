@@ -12,6 +12,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
+using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
 
@@ -83,7 +84,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 {
                     UniTask.Create(async () =>
                     {
-                        await ClientContext.VanillaApi.Response.ConnectElectricWire(fromPos, toPos, connectToolGuid, CancellationToken.None);
+                        var request = ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateConnectRequest(ClientContext.PlayerConnectionSetting.PlayerId, fromPos, toPos, connectToolGuid);
+                        await ClientContext.VanillaApi.Response.SendElectricWireExtend(request, CancellationToken.None);
                     });
                 }
             }
