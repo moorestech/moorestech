@@ -55,7 +55,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
                 // 設置イベントの反映を待ってから電柱GameObjectを解決する
                 // Wait for the placement event to apply, then resolve the pole GameObject
-                var placedId = new BlockInstanceId(response.PlacedBlockInstanceId);
+                var placedId = new BlockInstanceId(response.EndpointBlockInstanceId);
                 await UniTask.WhenAny(
                     UniTask.WaitForSeconds(1f),
                     UniTask.WaitUntil(() => blockDataStore.TryGetBlockGameObject(placedId, out _)));

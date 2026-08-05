@@ -15,6 +15,7 @@ using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -152,6 +153,49 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, CountItem(inventory, _materialItemId));
         }
 
+        [Test]
+        public void 既存ブロック接続Operationで接続され終点InstanceIdが返る()
+        {
+            // 範囲内の電柱2本を用意して接続する
+            // Prepare two poles in range and connect them
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var fromPos = Vector3Int.zero;
+            var toPos = new Vector3Int(3, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, fromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fromPole);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, toPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var toPole);
+
+            var inventory = SetupInventory(materialCount: 0, wireCount: 10);
+            var response = SendConnect(fromPos, toPos);
+
+            // 接続成功し、終点（接続先）のInstanceIdが次の起点として返る
+            // Connection succeeds and the endpoint (target) InstanceId is returned as the next origin
+            Assert.IsTrue(response.IsSuccess, response.FailureReason.ToString());
+            var toConnector = toPole.GetComponent<IElectricWireConnector>();
+            Assert.AreEqual(toPos, (Vector3Int)response.EndpointPos);
+            Assert.AreEqual(toConnector.BlockInstanceId.AsPrimitive(), response.EndpointBlockInstanceId);
+            Assert.IsTrue(fromPole.GetComponent<IElectricWireConnector>().ContainsWireConnection(toConnector.BlockInstanceId));
+            Assert.AreEqual(7, CountItem(inventory, _wireItemId));
+        }
+
+        [Test]
+        public void 既存ブロック接続Operationは電線不足で失敗し理由が返る()
+        {
+            // 電線を持たずに接続を要求する
+            // Request a connection while holding no wires
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var fromPos = Vector3Int.zero;
+            var toPos = new Vector3Int(3, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, fromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fromPole);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, toPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            SetupInventory(materialCount: 0, wireCount: 0);
+            var response = SendConnect(fromPos, toPos);
+
+            Assert.IsFalse(response.IsSuccess);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, response.FailureReason);
+            Assert.AreEqual(0, fromPole.GetComponent<IElectricWireConnector>().WireConnections.Count);
+        }
+
         #region TestUtil
 
         private IOpenableInventory SetupInventory(int materialCount, int wireCount)
@@ -173,7 +217,14 @@ namespace Tests.CombinedTest.Server.PacketTest
         private ElectricWireExtendProtocol.ElectricWireExtendResponse SendIsolatedPlace(Vector3Int newPolePos)
         {
             var placeInfo = new PlaceInfo { Position = newPolePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal };
-            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateIsolatedPlaceRequest(PlayerId, ForUnitTestModBlockId.ElectricPoleId, placeInfo, ConnectToolGuid));
+            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateIsolatedPlaceRequest(PlayerId, ForUnitTestModBlockId.ElectricPoleId, placeInfo));
+            var responses = _packet.GetPacketResponse(payload, new PacketResponseContext(null));
+            return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
+        }
+
+        private ElectricWireExtendProtocol.ElectricWireExtendResponse SendConnect(Vector3Int fromPos, Vector3Int toPos)
+        {
+            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateConnectRequest(PlayerId, fromPos, toPos, ConnectToolGuid));
             var responses = _packet.GetPacketResponse(payload, new PacketResponseContext(null));
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }

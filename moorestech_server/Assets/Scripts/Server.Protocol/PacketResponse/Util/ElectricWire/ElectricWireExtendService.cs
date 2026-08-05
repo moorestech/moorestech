@@ -22,14 +22,19 @@ using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 namespace Server.Protocol.PacketResponse.Util.ElectricWire
 {
     /// <summary>
-    /// レール式延長設置を実行。設置前に全検証し通過時のみ状態変更する
-    /// Runs rail-style extend placement; validates before placing, mutates only on pass
+    /// レール式延長設置・既存ブロック接続を実行。設置前に全検証し通過時のみ状態変更する
+    /// Runs rail-style extend placement and existing-block connection; validates before placing, mutates only on pass
     /// </summary>
     public static class ElectricWireExtendService
     {
-        public static ExtendResult Execute(bool hasFromConnector, Vector3Int fromPos, PlaceInfoMessagePack polePlaceInfo, int playerId, BlockId poleBlockId, Guid connectToolGuid)
+        public static ExtendResult Execute(ElectricWireExtendProtocol.ElectricWireExtendOperation operation, Vector3Int fromPos, Vector3Int toPos, PlaceInfoMessagePack polePlaceInfo, int playerId, BlockId poleBlockId, Guid connectToolGuid)
         {
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
+
+            // 既存ブロック接続は設置系検証を通らず既存utilに委ねる
+            // ConnectToExisting skips placement validations and delegates to the existing util
+            if (operation == ElectricWireExtendProtocol.ElectricWireExtendOperation.ConnectToExisting)
+                return ExecuteConnectToExisting();
 
             // 設置先が既に埋まっていないか確認する
             // Ensure the target position is not already occupied
@@ -42,9 +47,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             if (!ServerContext.GetService<IGameUnlockStateDataController>().BlockUnlockStateInfos[baseBlockGuid].IsUnlocked)
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.NotUnlocked);
 
-            // 起点接続ありなら未解放のconnectToolによる延長を拒否する
-            // With an origin connection, reject extension using a connectTool that is not unlocked
-            if (hasFromConnector && !ElectricWireSystemUtil.IsConnectToolUnlocked(connectToolGuid))
+            // 起点あり延長のみ未解放connectToolでの延長を拒否する
+            // Only extend-with-origin rejects extension using a connectTool that is not unlocked
+            if (operation == ElectricWireExtendProtocol.ElectricWireExtendOperation.ExtendToNewPole && !ElectricWireSystemUtil.IsConnectToolUnlocked(connectToolGuid))
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.NotUnlocked);
 
             // 指定BlockIdから電柱パラメータを解決する
@@ -62,14 +67,27 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
             // 起点ありは起点との明示1本のみ、起点なしは接続なしの単体設置
             // With origin: only the explicit origin wire; without: place the pole alone with no wiring
-            return hasFromConnector
+            return operation == ElectricWireExtendProtocol.ElectricWireExtendOperation.ExtendToNewPole
                 ? ExecuteExtendWithOrigin()
                 : ExecuteIsolatedPlace();
 
             #region Internal
 
-            // 起点との明示接続＋設置電柱の未接続機械収集をアトミックに行う
-            // Atomically wire the origin plus collect unconnected machines around the placed pole
+            // 既存ブロック同士を接続し、成功時は接続先を終点として返す
+            // Connect two existing blocks; on success return the target as the endpoint
+            ExtendResult ExecuteConnectToExisting()
+            {
+                if (!ElectricWireSystemUtil.TryConnect(fromPos, toPos, playerId, connectToolGuid, out var failureReason))
+                    return ExtendResult.Failure(failureReason);
+
+                // TryConnect成功直後なので終点コネクタは必ず解決できる
+                // The endpoint connector always resolves right after a successful TryConnect
+                ElectricWireSystemUtil.TryGetWireConnector(toPos, out var toConnector);
+                return ExtendResult.Success(toPos, toConnector.BlockInstanceId.AsPrimitive());
+            }
+
+            // 起点との明示接続をアトミックに行う
+            // Atomically wire the origin
             ExtendResult ExecuteExtendWithOrigin()
             {
                 // 起点コネクタを解決し、距離・上限・コストを検証する
@@ -177,32 +195,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
             selfConnector = placedBlock.GetComponent<IElectricWireConnector>();
             return true;
-        }
-
-        public readonly struct ExtendResult
-        {
-            public readonly bool IsSuccess;
-            public readonly ElectricWirePlacementFailureReason FailureReason;
-            public readonly Vector3Int PlacedPolePos;
-            public readonly int PlacedBlockInstanceId;
-
-            private ExtendResult(bool isSuccess, ElectricWirePlacementFailureReason failureReason, Vector3Int placedPolePos, int placedBlockInstanceId)
-            {
-                IsSuccess = isSuccess;
-                FailureReason = failureReason;
-                PlacedPolePos = placedPolePos;
-                PlacedBlockInstanceId = placedBlockInstanceId;
-            }
-
-            public static ExtendResult Success(Vector3Int placedPolePos, int placedBlockInstanceId)
-            {
-                return new ExtendResult(true, ElectricWirePlacementFailureReason.None, placedPolePos, placedBlockInstanceId);
-            }
-
-            public static ExtendResult Failure(ElectricWirePlacementFailureReason failureReason)
-            {
-                return new ExtendResult(false, failureReason, Vector3Int.zero, 0);
-            }
         }
     }
 }
