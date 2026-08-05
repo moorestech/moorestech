@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useTopic, readTopic, dispatchAction, Topics, useConnectionStatus } from "@/bridge";
+import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics, useConnectionStatus } from "@/bridge";
 import { isPointerOverWebUi, isWheelPassthrough, useGameLayerWheel, useGrabInteractive } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
@@ -18,6 +18,12 @@ export default function EquipmentPanel() {
   // 掴んだ絵が出ない画面ではクリックを受けず、選択操作はホイールだけになる
   // Where the held item cannot be seen, clicks are refused and the wheel is the only selection input
   const grabInteractive = useGrabInteractive();
+  // ホイールを占有する建築ツール（接続ツールの電柱種サイクル・BPコピーの高さ変更）中かを購読で持つ
+  // Subscribe to whether a build tool that owns the wheel is active (connect-tool pole cycling, blueprint-copy height)
+  const wheelOwnedByBuildTool = useTopicSelector(
+    Topics.placementMode,
+    (data) => data?.selectedTargetType === "connectTool" || data?.selectedTargetType === "blueprintCopy",
+  );
 
   // サーバー適用だけが進めるrevisionの差分だけ、送信順FIFOから確認済み要求を除く
   // Remove only the FIFO requests confirmed by server-only revision advances
@@ -46,16 +52,16 @@ export default function EquipmentPanel() {
   // 装備を循環しオーバーレイ中は抑止
   // Cycle equipment; suppress during overlays
   useGameLayerWheel((e) => {
-    // ホイールを占有する建築ツール（接続ツールの電柱種サイクル・BPコピーの高さ変更）中は装備切替へ流さない
-    // Build tools that own the wheel (connect-tool pole cycling, blueprint-copy height) suppress equipment switching
-    const placementMode = readTopic(Topics.placementMode);
-    if (placementMode?.selectedTargetType === "connectTool" || placementMode?.selectedTargetType === "blueprintCopy") return;
-
     // Web UI の上のホイールは一覧スクロール等その画面の操作であり、装備切替へ二重発火させない
     // A wheel over Web UI is that screen's own gesture (list scrolling etc.), so it must not also switch equipment
     // ただし常時表示HUD自身はスクロールを持たずゲーム操作の場なので、その上のホイールは装備切替へ通す
     // Always-on HUDs have no scrolling of their own and belong to the game, so a wheel over them still switches equipment
     if (isPointerOverWebUi(e.target) && !isWheelPassthrough(e.target)) return;
+
+    // ホイールを占有する建築ツール中は装備切替へ流さない（購読値なので購読が無い間もnull扱いにならない）
+    // Build tools that own the wheel suppress equipment switching; the subscribed value never degrades to null
+    if (wheelOwnedByBuildTool) return;
+
     const latest = readTopic(Topics.inventory);
     if (!latest || latest.equipment.length === 0) return;
     const accumulated = accumulateWheelSteps(wheelRemainder.current, e.deltaY);
