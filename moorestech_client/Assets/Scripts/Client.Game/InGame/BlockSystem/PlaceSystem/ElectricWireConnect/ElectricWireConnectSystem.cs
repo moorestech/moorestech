@@ -38,10 +38,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             // 解放済み電柱リストはEnable()で確定するため、構築時は空で始める
             // The unlocked pole list is settled in Enable(), so start empty at construction
             var poleSelection = new ElectricWirePoleSelection(new List<BlockId>());
-            _context = new ElectricWireToolContext(mainCamera, previewBlockController, localPlayerInventory.LocalPlayerInventory, blockGameObjectDataStore, wirePreview, requestSender, poleSelection);
-
             var pointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
-            _context.SetPoleGhostPart(new ElectricWirePoleGhostPart(_context, pointCalculator));
+            var poleGhostPart = new ElectricWirePoleGhostPart(mainCamera, previewBlockController, localPlayerInventory.LocalPlayerInventory, pointCalculator);
+            _context = new ElectricWireToolContext(mainCamera, previewBlockController, localPlayerInventory.LocalPlayerInventory, blockGameObjectDataStore, wirePreview, requestSender, poleSelection, poleGhostPart);
 
             _editMode = new ElectricWireEditMode(_context);
             _extendMode = new ElectricWireExtendMode(_context);
@@ -97,7 +96,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             _context.RequestSender.Invalidate();
             _context.WirePreview.SetActive(false);
             _context.PreviewBlockController.SetActive(false);
-            _context.PoleGhostPart.SetActive(false);
+            _context.PoleGhostPart.SetNameLabelActive(false);
         }
     }
 }

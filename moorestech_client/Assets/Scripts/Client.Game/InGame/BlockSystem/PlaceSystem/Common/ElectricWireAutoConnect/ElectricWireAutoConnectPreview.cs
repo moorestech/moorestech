@@ -75,11 +75,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             var virtualInventory = new ElectricWireAutoConnectVirtualInventory(inventory, blockMaster.RequiredItems);
             var totalCost = 0;
             var anyPlaceable = false;
-            PlaceInfo cursorInfo = null;
+            var cursorIndex = -1;
             var cursorWirePlaceable = true;
             var cursorRawTargetCount = 0;
-            foreach (var placeInfo in placeInfos)
+            for (var i = 0; i < placeInfos.Count; i++)
             {
+                var placeInfo = placeInfos[i];
                 var targets = GetOrCollectCellGeometry(placeInfo.Position);
                 var wirePlaceable = ElectricWireAutoConnectToolSelector.TrySelect(targets, virtualInventory, _gameUnlockStateData, out var cellMaterials, out var cellCost);
                 if (!wirePlaceable) placeInfo.Placeable = false;
@@ -92,7 +93,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 }
                 if (placeInfo.Position == cursorCell)
                 {
-                    cursorInfo = placeInfo;
+                    cursorIndex = i;
                     cursorWirePlaceable = wirePlaceable;
                     // 地形干渉や建設コスト不足によるPlaceable=falseと無関係な、生の接続候補数
                     // Raw candidate count, independent of Placeable=false caused by ground/build-cost issues
@@ -102,8 +103,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
             // ワイヤー線はカーソルセル分のみ描画し（全セル分は過剰）、ラベルは全セル合計を表示する
             // Draw wires only for the cursor cell (all cells would be excessive); the label shows the drag-wide total
-            cursorInfo ??= placeInfos[^1];
-            var originEndpoint = ResolveOriginEndpoint(cursorInfo);
+            if (cursorIndex < 0) cursorIndex = placeInfos.Count - 1;
+            var cursorInfo = placeInfos[cursorIndex];
+            var originEndpoint = ResolveOriginEndpoint(cursorIndex, cursorInfo);
             var cursorTargets = cursorInfo.Placeable ? ResolveTargetEndpoints(cursorInfo.Position) : EmptyTargets;
             ShowCursorNotice();
 
@@ -121,19 +123,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 // Insufficient wire is the only rejection reason for the auto-connect preview, shown in the failure color
                 if (!cursorWirePlaceable)
                 {
-                    _renderer.Show(originEndpoint, cursorTargets, totalCost, ElectricWirePlacementFailureText.ToText(ElectricWirePlacementFailureReason.NoWireItem), true);
+                    _renderer.ShowFailure(originEndpoint, cursorTargets, ElectricWirePlacementFailureText.ToText(ElectricWirePlacementFailureReason.NoWireItem));
                     return;
                 }
 
-                // 範囲外に電気ブロックはあるが1件も配線されないときは、設置許可のまま情報表示する。判定は生の接続候補数で行い、地形/コスト起因のPlaceable=falseに影響されない
-                // When electric blocks exist out of range but none are connectable, keep placement allowed and show an info notice; judged by the raw candidate count, unaffected by ground/cost-driven Placeable=false
-                if (cursorRawTargetCount == 0 && ClientElectricWireAutoConnectCollector.ExistsOutOfRangeElectricNeighbor(cursorInfo.Position, _blockDataStore, cursorRawTargetCount))
+                // 1件も配線されず、かつ範囲判定で落ちた近傍が実在するときだけ、設置許可のまま範囲外を案内する
+                // Only when nothing gets wired and a neighbor actually failed the range check, keep placement allowed and report out-of-range
+                if (cursorRawTargetCount == 0 && ClientElectricWireAutoConnectCollector.ExistsElectricNeighborOutOfConnectionRange(blockId, cursorInfo.Position, direction, _blockDataStore))
                 {
-                    _renderer.Show(originEndpoint, cursorTargets, 0, "接続範囲外のため配線されません", false);
+                    _renderer.ShowNotice(originEndpoint, cursorTargets, "接続範囲外のため配線されません");
                     return;
                 }
 
-                _renderer.Show(originEndpoint, cursorTargets, totalCost, string.Empty, false);
+                _renderer.ShowCost(originEndpoint, cursorTargets, totalCost);
             }
 
             void InvalidateCacheOnKeyChange()
@@ -170,10 +172,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
             // 起点（設置予定ブロック自身）のゴースト端点を解決する。ゴースト未取得時のフォールバックはResolver内部に一本化されている
             // Resolve the origin (the block about to be placed) ghost endpoint; the ghost-unavailable fallback is centralized inside the resolver
-            Vector3 ResolveOriginEndpoint(PlaceInfo originInfo)
+            Vector3 ResolveOriginEndpoint(int originIndex, PlaceInfo originInfo)
             {
-                var index = placeInfos.IndexOf(originInfo);
-                _previewBlockController.TryGetPreviewBlock(index, out var ghost);
+                _previewBlockController.TryGetPreviewBlock(originIndex, out var ghost);
                 return ElectricWireEndpointResolver.ResolveFromGhost(ghost, originInfo, blockMaster);
             }
 

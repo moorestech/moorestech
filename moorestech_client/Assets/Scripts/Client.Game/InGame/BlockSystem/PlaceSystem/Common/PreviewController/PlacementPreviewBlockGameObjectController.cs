@@ -73,7 +73,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         {
             // アクティブなプレビューブロックをインデックスで取り出す（SetPreviewAndGroundDetectの順序と一致）
             // Fetch an active preview block by index, matching SetPreviewAndGroundDetect ordering
-            previewBlock = index < _activePreviewBlocks.Count ? _activePreviewBlocks[index] : null;
+            previewBlock = 0 <= index && index < _activePreviewBlocks.Count ? _activePreviewBlocks[index] : null;
             return previewBlock != null;
         }
     }

@@ -1,7 +1,7 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
-using Mooresmaster.Model.BlocksModule;
-using Server.Protocol.PacketResponse;
+using Client.Game.InGame.UI.Inventory.Main;
 using TMPro;
 using UnityEngine;
 
@@ -16,13 +16,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         private const float NameLabelFontSize = 3f;
         private static readonly Vector3 NameLabelOffset = new(0.5f, 1.2f, 0.5f);
 
-        private readonly ElectricWireToolContext _context;
+        private readonly Camera _mainCamera;
+        private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
+        private readonly ILocalPlayerInventory _inventory;
         private readonly CommonBlockPlacePointCalculator _pointCalculator;
         private readonly TextMeshPro _nameLabel;
 
-        public ElectricWirePoleGhostPart(ElectricWireToolContext context, CommonBlockPlacePointCalculator pointCalculator)
+        public ElectricWirePoleGhostPart(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory inventory, CommonBlockPlacePointCalculator pointCalculator)
         {
-            _context = context;
+            _mainCamera = mainCamera;
+            _previewBlockController = previewBlockController;
+            _inventory = inventory;
             _pointCalculator = pointCalculator;
 
             // 選択中の電柱名を表示するワールド空間ラベル（ExtendPreviewObjectのコストラベルと同じ構成）
@@ -46,31 +50,27 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
             // 建設コストを賄えるかを所持素材から判定する
             // Judge from owned materials whether the construction cost is affordable
-            var canAffordPole = ConstructionCostPreviewCalculator.CalculateAffordableCellCount(poleMaster.RequiredItems, _context.Inventory) >= 1;
+            var canAffordPole = 1 <= ConstructionCostPreviewCalculator.CalculateAffordableCellCount(poleMaster.RequiredItems, _inventory);
 
             // 電柱の設置座標を地面レイキャストから求める
             // Compute the pole placement position from a ground raycast
-            if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_context.MainCamera, 0, selection.CurrentDirection, poleMaster, out var placePoint, out _)) return Fail();
-
-            if (poleMaster.BlockParam is not ElectricPoleBlockParam poleParam) return Fail();
+            if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, 0, selection.CurrentDirection, poleMaster, out var placePoint, out _)) return Fail();
 
             // 通常設置と同じ計算でPlaceInfo生成
             // Build the pole PlaceInfo using the same calculation as normal placement
             var placeInfos = _pointCalculator.CalculatePoint(placePoint, placePoint, selection.CurrentDirection, poleMaster);
-            var placeInfo = placeInfos[0];
 
             // 地面判定はゴーストの物理接触を読むため、判定前に有効化する（前例: GearChainPoleExtendPreviewObject.PositionGhost）
             // Ground detect reads the ghost's physics contact, so activate it before judging (precedent: GearChainPoleExtendPreviewObject.PositionGhost)
-            _context.PreviewBlockController.SetActive(true);
+            _previewBlockController.SetActive(true);
 
             // 設置可否を確定する（既存ブロックとの重なり判定はCalculatePoint内で織り込み済み）
             // Finalize placeability (overlap-with-existing-block judgement is already folded in by CalculatePoint)
-            var groundOverlaps = _context.PreviewBlockController.SetPreviewAndGroundDetect(placeInfos, poleMaster);
-            if (groundOverlaps[0]) placeInfo.Placeable = false;
-            var groundClear = placeInfo.Placeable;
+            var groundOverlaps = _previewBlockController.SetPreviewAndGroundDetect(placeInfos, poleMaster);
+            if (groundOverlaps[0]) placeInfos[0].Placeable = false;
 
-            ShowNameLabel(placeInfo, poleMaster);
-            evaluation = new ElectricWirePoleGhostEvaluation(placeInfos, placeInfo, poleMaster, poleBlockId, poleParam, groundClear, canAffordPole);
+            ShowNameLabel();
+            evaluation = new ElectricWirePoleGhostEvaluation(placeInfos, poleMaster, poleBlockId, placeInfos[0].Placeable, canAffordPole);
             return true;
 
             #region Internal
@@ -81,28 +81,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
                 return false;
             }
 
+            // 選択中の電柱名ラベルをゴースト位置に表示しカメラへ向ける
+            // Show the selected pole's name label at the ghost position, billboarded to the camera
+            void ShowNameLabel()
+            {
+                _nameLabel.gameObject.SetActive(true);
+                _nameLabel.text = poleMaster.Name;
+
+                var labelTransform = _nameLabel.transform;
+                labelTransform.position = placeInfos[0].Position + NameLabelOffset;
+                labelTransform.rotation = Quaternion.LookRotation(labelTransform.position - _mainCamera.transform.position);
+            }
+
             #endregion
         }
 
         /// <summary>
-        /// 名前ラベルの表示状態を切り替える（ゴースト非表示に落とすモードから呼ぶ）
-        /// Toggle the name label's visibility (called when a mode falls back to hiding the ghost)
+        /// 電柱名ラベルの表示状態を切り替える（ゴースト非表示に落とすモードから呼ぶ）
+        /// Toggle the pole name label's visibility (called when a mode falls back to hiding the ghost)
         /// </summary>
-        public void SetActive(bool active)
+        public void SetNameLabelActive(bool active)
         {
             _nameLabel.gameObject.SetActive(active);
-        }
-
-        // 選択中の電柱名ラベルをゴースト位置に表示しカメラへ向ける
-        // Show the selected pole's name label at the ghost position, billboarded to the camera
-        private void ShowNameLabel(PlaceInfo placeInfo, BlockMasterElement poleMaster)
-        {
-            _nameLabel.gameObject.SetActive(true);
-            _nameLabel.text = poleMaster.Name;
-
-            var labelTransform = _nameLabel.transform;
-            labelTransform.position = placeInfo.Position + NameLabelOffset;
-            labelTransform.rotation = Quaternion.LookRotation(labelTransform.position - _context.MainCamera.transform.position);
         }
     }
 }

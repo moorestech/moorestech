@@ -18,12 +18,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         public readonly ElectricWireExtendPreviewObject WirePreview;
         public readonly ElectricWireExtendRequestSender RequestSender;
         public readonly ElectricWirePoleSelection PoleSelection;
+        public readonly ElectricWirePoleGhostPart PoleGhostPart;
 
-        // GhostPartはこのcontext自身を必要とするため、構築完了後にSetPoleGhostPartで注入する
-        // GhostPart needs a reference back to this context, so it is injected via SetPoleGhostPart after construction
-        public ElectricWirePoleGhostPart PoleGhostPart { get; private set; }
-
-        public ElectricWireToolContext(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory inventory, BlockGameObjectDataStore blockDataStore, ElectricWireExtendPreviewObject wirePreview, ElectricWireExtendRequestSender requestSender, ElectricWirePoleSelection poleSelection)
+        public ElectricWireToolContext(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory inventory, BlockGameObjectDataStore blockDataStore, ElectricWireExtendPreviewObject wirePreview, ElectricWireExtendRequestSender requestSender, ElectricWirePoleSelection poleSelection, ElectricWirePoleGhostPart poleGhostPart)
         {
             MainCamera = mainCamera;
             PreviewBlockController = previewBlockController;
@@ -32,10 +29,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             WirePreview = wirePreview;
             RequestSender = requestSender;
             PoleSelection = poleSelection;
-        }
-
-        public void SetPoleGhostPart(ElectricWirePoleGhostPart poleGhostPart)
-        {
             PoleGhostPart = poleGhostPart;
         }
     }

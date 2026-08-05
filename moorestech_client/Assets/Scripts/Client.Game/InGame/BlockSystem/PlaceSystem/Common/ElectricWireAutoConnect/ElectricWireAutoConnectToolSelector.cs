@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Master;
 using Game.UnlockState;
 using Mooresmaster.Model.BuildMenuModule;
@@ -38,11 +39,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // 解放済みが0件なら自動接続なしで設置可（サーバーのunlockedTools.Count == 0分岐と一致）
             // With zero unlocked tools, allow placement without auto-connect (matches the server's unlockedTools.Count == 0 branch)
             if (electricWireTools.Count == 0) return true;
-            electricWireTools.Sort((a, b) => a.SortPriority.CompareTo(b.SortPriority));
 
-            foreach (var element in electricWireTools)
+            // サーバーのConnectToolSelector.UnlockedByToolTypeと同じ安定ソートで、同SortPriorityの並びをマスタ順に揃える
+            // Use the same stable sort as the server's ConnectToolSelector.UnlockedByToolType so SortPriority ties keep master order
+            foreach (var element in electricWireTools.OrderBy(element => element.SortPriority))
             {
-                if (!TrySumCost(element.ConnectToolGuid, targets, out var materials, out var cost)) continue;
+                if (!TrySumCost(element.ConnectToolGuid, out var materials, out var cost)) continue;
                 if (!virtualInventory.CanAfford(materials)) continue;
 
                 selectedMaterials = materials;
@@ -51,33 +53,37 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             }
 
             return false;
-        }
 
-        // 対象connectToolで全ターゲット分のコストを素材ID別に合算する
-        // Sum the cost across all targets per item id for the given connectTool
-        private static bool TrySumCost(Guid connectToolGuid, List<(Vector3Int TargetPos, float Distance)> targets, out IReadOnlyList<ConnectToolMaterialCost> materials, out int cost)
-        {
-            cost = 0;
-            var accumulator = new Dictionary<ItemId, int>();
-            foreach (var target in targets)
+            #region Internal
+
+            // 対象connectToolで全ターゲット分のコストを素材ID別に合算する
+            // Sum the cost across all targets per item id for the given connectTool
+            bool TrySumCost(Guid connectToolGuid, out IReadOnlyList<ConnectToolMaterialCost> materials, out int cost)
             {
-                if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, target.Distance, out var targetCost))
+                cost = 0;
+                var accumulator = new Dictionary<ItemId, int>();
+                foreach (var target in targets)
                 {
-                    materials = null;
-                    return false;
+                    if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, target.Distance, out var targetCost))
+                    {
+                        materials = null;
+                        return false;
+                    }
+                    cost += targetCost.TotalCount;
+                    foreach (var material in targetCost.Materials)
+                    {
+                        accumulator.TryGetValue(material.ItemId, out var current);
+                        accumulator[material.ItemId] = current + material.Count;
+                    }
                 }
-                cost += targetCost.TotalCount;
-                foreach (var material in targetCost.Materials)
-                {
-                    accumulator.TryGetValue(material.ItemId, out var current);
-                    accumulator[material.ItemId] = current + material.Count;
-                }
+
+                var list = new List<ConnectToolMaterialCost>(accumulator.Count);
+                foreach (var (itemId, count) in accumulator) list.Add(new ConnectToolMaterialCost(itemId, count));
+                materials = list;
+                return true;
             }
 
-            var list = new List<ConnectToolMaterialCost>(accumulator.Count);
-            foreach (var (itemId, count) in accumulator) list.Add(new ConnectToolMaterialCost(itemId, count));
-            materials = list;
-            return true;
+            #endregion
         }
     }
 }

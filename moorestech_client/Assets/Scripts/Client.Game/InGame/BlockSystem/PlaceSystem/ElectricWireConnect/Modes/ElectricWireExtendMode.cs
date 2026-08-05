@@ -59,7 +59,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             void ConnectToTarget(BlockGameObject targetBlock, int targetMaxConnectionCount)
             {
                 _context.PreviewBlockController.SetActive(false);
-                _context.PoleGhostPart.SetActive(false);
+                _context.PoleGhostPart.SetNameLabelActive(false);
 
                 // 既接続・接続上限の判定はCalculator内部に委ねる
                 // Already-connected and connection-full judgements are delegated to the calculator
@@ -116,7 +116,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 {
                     _context.WirePreview.SetActive(false);
                     _context.PreviewBlockController.SetActive(false);
-                    _context.PoleGhostPart.SetActive(false);
+                    _context.PoleGhostPart.SetNameLabelActive(false);
                     _context.RequestSender.SendExtend(fromPos, evaluation.PoleBlockId, evaluation.PlaceInfo, connectToolGuid);
                 }
             }
@@ -133,7 +133,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             {
                 _context.PreviewBlockController.SetActive(false);
                 _context.WirePreview.SetActive(false);
-                _context.PoleGhostPart.SetActive(false);
+                _context.PoleGhostPart.SetNameLabelActive(false);
             }
 
             #endregion

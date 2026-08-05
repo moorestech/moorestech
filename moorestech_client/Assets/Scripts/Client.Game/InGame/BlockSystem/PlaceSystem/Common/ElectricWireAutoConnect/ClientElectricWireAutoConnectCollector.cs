@@ -8,6 +8,7 @@ using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
+using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
 {
@@ -19,8 +20,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
     /// </summary>
     public static class ClientElectricWireAutoConnectCollector
     {
-        // 情報表示用の近傍探索半径。これ以内に電気ブロックがあるのに1件も配線されないとき「範囲外」と案内する
-        // Neighbor search radius for the info label; electric blocks within it but none connectable means "out of range"
+        // 情報表示用の近傍探索半径。これ以内で範囲判定に落ちた電気ブロックだけを「範囲外」と案内する
+        // Neighbor search radius for the info label; only blocks within it that fail the range check are reported as out of range
         private const float InfoSearchRadius = 32f;
 
         public static List<(Vector3Int TargetPos, float Distance)> Collect(BlockId blockId, Vector3Int position, BlockDirection direction, BlockGameObjectDataStore blockDataStore)
@@ -57,16 +58,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         }
 
         /// <summary>
-        /// 設置セル近傍に電気ブロックはあるが接続範囲外で1件も配線されない状況かを判定する
-        /// Judge whether electric blocks exist near the cell while none are wire-connectable
+        /// 設置セル近傍に、接続範囲外という理由で候補から落ちた電気ブロックがあるかを判定する
+        /// Judge whether a nearby electric block was dropped from the candidates because it is out of connection range
         /// </summary>
-        public static bool ExistsOutOfRangeElectricNeighbor(Vector3Int position, BlockGameObjectDataStore blockDataStore, int inRangeTargetCount)
+        public static bool ExistsElectricNeighborOutOfConnectionRange(BlockId blockId, Vector3Int position, BlockDirection direction, BlockGameObjectDataStore blockDataStore)
         {
-            if (0 < inRangeTargetCount) return false;
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(blockMaster.BlockParam, out _, out var ownProfile, out var ownIsPole)) return false;
+
+            var ownInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
             foreach (var block in blockDataStore.BlockGameObjectByInstanceIdDictionary.Values)
             {
                 if (!block.TryGetComponent<ElectricWireStateChangeProcessor>(out _)) continue;
-                if (Vector3Int.Distance(block.BlockPosInfo.OriginalPos, position) <= InfoSearchRadius) return true;
+                if (InfoSearchRadius < Vector3Int.Distance(block.BlockPosInfo.OriginalPos, position)) continue;
+                if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(block.BlockMasterElement.BlockParam, out _, out var profile, out var isPole)) continue;
+
+                // 範囲判定はサーバーと共有の相互判定を使い、接続上限や既接続で落ちた近傍は数えない
+                // Use the server-shared mutual range check so neighbors dropped by capacity or existing wiring are not counted
+                if (!ElectricConnectionRangeService.IsMutuallyConnectable(ownInfo, ownProfile, ownIsPole, block.BlockPosInfo, profile, isPole)) return true;
             }
             return false;
         }

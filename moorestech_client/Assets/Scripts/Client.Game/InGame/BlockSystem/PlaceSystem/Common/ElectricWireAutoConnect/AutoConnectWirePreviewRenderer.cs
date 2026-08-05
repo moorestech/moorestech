@@ -45,16 +45,47 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         }
 
         /// <summary>
-        /// 起点端点から各接続先端点へワイヤーを張り、合計消費電線数か通知文言を表示する
-        /// Draws wires from the origin endpoint to each target endpoint, showing either the total wire cost or a notice
+        /// 起点端点から各接続先端点へワイヤーを張り、合計消費電線数を表示する
+        /// Draws wires from the origin endpoint to each target endpoint and shows the total wire cost
         /// </summary>
-        public void Show(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, int totalWireCost, string noticeText, bool isFailure)
+        public void ShowCost(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, int totalWireCost)
+        {
+            DrawWires(originEndpoint, targetEndpoints, false);
+            if (totalWireCost <= 0)
+            {
+                _costLabel.gameObject.SetActive(false);
+                return;
+            }
+            PlaceLabel(originEndpoint, $"電線 x{totalWireCost}", false);
+        }
+
+        /// <summary>
+        /// 設置を拒否した理由を不可色で表示する。線は拒否時も参考として描画する
+        /// Shows the rejection reason in the failure color; the wires stay drawn for reference
+        /// </summary>
+        public void ShowFailure(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, string reasonText)
+        {
+            DrawWires(originEndpoint, targetEndpoints, true);
+            PlaceLabel(originEndpoint, reasonText, true);
+        }
+
+        /// <summary>
+        /// 設置は許可したまま、配線が起きない事情を情報色で案内する
+        /// Keeps placement allowed while explaining in the info color why no wire is drawn
+        /// </summary>
+        public void ShowNotice(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, string noticeText)
+        {
+            DrawWires(originEndpoint, targetEndpoints, false);
+            PlaceLabel(originEndpoint, noticeText, false);
+        }
+
+        // 必要数のワイヤー線を確保し、各ターゲットへ可否色でカテナリーを張る
+        // Ensure enough wire lines and draw a catenary to each target colored by failure state
+        private void DrawWires(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, bool isFailure)
         {
             _root.gameObject.SetActive(true);
 
-            // 必要数のワイヤー線を確保し、各ターゲットへ可否色でカテナリーを張る
-            // Ensure enough wire lines and draw a catenary to each target colored by failure state
-            EnsureWireLineCount(targetEndpoints.Count);
+            while (_wireLines.Count < targetEndpoints.Count) _wireLines.Add(new WireLine(_root));
             for (var i = 0; i < _wireLines.Count; i++)
             {
                 if (targetEndpoints.Count <= i)
@@ -66,37 +97,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 _wireLines[i].SetColor(isFailure);
                 _wireLines[i].Draw(originEndpoint, targetEndpoints[i]);
             }
+        }
 
-            UpdateNoticeLabel();
+        // ラベルを起点上へ配置しカメラへ向ける。可否で色を切り替える
+        // Place the label above the origin, billboarded to the camera, colored by failure state
+        private void PlaceLabel(Vector3 originEndpoint, string text, bool isFailure)
+        {
+            _costLabel.gameObject.SetActive(true);
+            _costLabel.text = text;
+            _costLabel.color = WithAlpha(isFailure ? MaterialConst.NotPlaceableColor : MaterialConst.PlaceableColor);
 
-            #region Internal
-
-            // 通知文言が非空ならコスト表示の代わりに起点上へ表示する。可否で色を切り替える
-            // When a notice is present, show it above the origin instead of the cost; color switches by failure state
-            void UpdateNoticeLabel()
-            {
-                var hasNotice = !string.IsNullOrEmpty(noticeText);
-                if (!hasNotice && totalWireCost <= 0)
-                {
-                    _costLabel.gameObject.SetActive(false);
-                    return;
-                }
-
-                _costLabel.gameObject.SetActive(true);
-                _costLabel.text = hasNotice ? noticeText : $"電線 x{totalWireCost}";
-                _costLabel.color = WithAlpha(isFailure ? MaterialConst.NotPlaceableColor : MaterialConst.PlaceableColor);
-
-                var labelTransform = _costLabel.transform;
-                labelTransform.position = originEndpoint + CostLabelOffset;
-                labelTransform.rotation = Quaternion.LookRotation(labelTransform.position - _mainCamera.transform.position);
-            }
-
-            void EnsureWireLineCount(int count)
-            {
-                while (_wireLines.Count < count) _wireLines.Add(new WireLine(_root));
-            }
-
-            #endregion
+            var labelTransform = _costLabel.transform;
+            labelTransform.position = originEndpoint + CostLabelOffset;
+            labelTransform.rotation = Quaternion.LookRotation(labelTransform.position - _mainCamera.transform.position);
         }
 
         public void Hide()
