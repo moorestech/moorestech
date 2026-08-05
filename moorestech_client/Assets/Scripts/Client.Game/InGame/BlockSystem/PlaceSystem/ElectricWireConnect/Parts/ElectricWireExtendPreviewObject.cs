@@ -65,10 +65,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         }
 
         /// <summary>
-        /// 解決済みのワールド端点からワイヤープレビューと消費電線数を表示する
-        /// Show the wire preview and wire cost from resolved world-space endpoints
+        /// 解決済みのワールド端点からワイヤープレビューと消費電線数・不可理由を表示する
+        /// Show the wire preview, wire cost and failure reason from resolved world-space endpoints
         /// </summary>
-        public void Show(Vector3 startWorldPos, Vector3 endWorldPos, bool placeable, int wireCostCount)
+        public void Show(Vector3 startWorldPos, Vector3 endWorldPos, bool placeable, int wireCostCount, string failureText)
         {
             _gameObject.SetActive(true);
             UpdateCostLabel();
@@ -96,18 +96,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
             #region Internal
 
-            // 消費電線数ラベルをワイヤー中点に置き、カメラへ向けて可否色と同期させる
-            // Place the wire cost label at the wire midpoint, billboard it to the camera and sync its color
+            // 消費電線数と不可理由をワイヤー中点に置き、カメラへ向けて可否色と同期させる
+            // Place the wire cost / failure reason label at the wire midpoint, billboard it to the camera and sync its color
             void UpdateCostLabel()
             {
-                if (wireCostCount <= 0)
+                if (wireCostCount <= 0 && string.IsNullOrEmpty(failureText))
                 {
                     _costLabel.gameObject.SetActive(false);
                     return;
                 }
 
                 _costLabel.gameObject.SetActive(true);
-                _costLabel.text = $"電線 x{wireCostCount}";
+                // 不可時は理由があればコストの下に併記する。コスト0の不可なら理由のみ表示する
+                // On failure, append the reason below the cost only when present; with zero cost show only the reason
+                _costLabel.text = placeable || string.IsNullOrEmpty(failureText) ? $"電線 x{wireCostCount}"
+                    : wireCostCount <= 0 ? failureText
+                    : $"電線 x{wireCostCount}\n{failureText}";
                 _costLabel.color = placeable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
 
                 var labelTransform = _costLabel.transform;

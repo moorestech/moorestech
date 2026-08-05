@@ -67,7 +67,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 var distance = Vector3Int.Distance(fromPos, toPos);
                 var judgement = ElectricWireExtendPreviewCalculator.Evaluate(source, targetBlock, sourceMaxCount, targetMaxConnectionCount, distance, connectToolGuid, _context.Inventory);
 
-                _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), ElectricWireEndpointResolver.Resolve(targetBlock), judgement.IsPlaceable, ResolveCostCount(judgement, distance));
+                var failureText = ElectricWirePlacementFailureText.ToText(judgement.FailureReason);
+                _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), ElectricWireEndpointResolver.Resolve(targetBlock), judgement.IsPlaceable, ResolveCostCount(judgement, distance), failureText);
 
                 // 可否OK かつクリックで接続する。起点は応答確認後に接続先へ移る
                 // The origin moves to the target after the response confirms
@@ -101,7 +102,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 // Resolve the new pole ghost's marker endpoint using the same calculation as the actual rendering; the ghost-unavailable fallback lives in the resolver
                 _ = _context.PreviewBlockController.TryGetPreviewBlock(0, out var poleGhost);
                 var endEndpoint = ElectricWireEndpointResolver.ResolveFromGhost(poleGhost, evaluation.PlaceInfo, evaluation.PoleMaster);
-                _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), endEndpoint, placeable, ResolveCostCount(judgement, distance));
+
+                // judgement失敗時はその理由を、judgement成功だが電柱の建設コスト不足で不可なときは素材不足の理由を表示する
+                // Show the judgement's failure reason, or an insufficient-materials reason when the judgement succeeds but the pole cost is unaffordable
+                var failureText = !judgement.IsPlaceable ? ElectricWirePlacementFailureText.ToText(judgement.FailureReason)
+                    : !evaluation.CanAffordPole ? ElectricWirePlacementFailureText.ToText(ElectricWirePlacementFailureReason.InsufficientItems)
+                    : string.Empty;
+                _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), endEndpoint, placeable, ResolveCostCount(judgement, distance), failureText);
 
                 // 可否OK かつクリックで延長設置する。応答待ち中は多重送信を防ぐため送信しない
                 // Extend on click when placeable; skip sending while a response is pending to avoid duplicate sends

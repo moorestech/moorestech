@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using Game.Block.Interface;
+using Game.UnlockState;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 using UnityEngine;
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
@@ -25,6 +28,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
         private readonly BlockGameObjectDataStore _blockDataStore;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
+        private readonly IGameUnlockStateData _gameUnlockStateData;
         private readonly AutoConnectWirePreviewRenderer _renderer;
 
         // セル単位の幾何キャッシュ。向きかブロックが変わったら全破棄する
@@ -34,10 +38,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         private BlockId _cachedBlockId;
         private bool _hasCacheKey;
 
-        public ElectricWireAutoConnectPreview(Camera mainCamera, BlockGameObjectDataStore blockDataStore, IPlacementPreviewBlockGameObjectController previewBlockController)
+        public ElectricWireAutoConnectPreview(Camera mainCamera, BlockGameObjectDataStore blockDataStore, IPlacementPreviewBlockGameObjectController previewBlockController, IGameUnlockStateData gameUnlockStateData)
         {
             _blockDataStore = blockDataStore;
             _previewBlockController = previewBlockController;
+            _gameUnlockStateData = gameUnlockStateData;
             _renderer = new AutoConnectWirePreviewRenderer(mainCamera);
         }
 
@@ -71,10 +76,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             var totalCost = 0;
             var anyPlaceable = false;
             PlaceInfo cursorInfo = null;
+            var cursorWirePlaceable = true;
             foreach (var placeInfo in placeInfos)
             {
                 var targets = GetOrCollectCellGeometry(placeInfo.Position);
-                var wirePlaceable = ElectricWireAutoConnectToolSelector.TrySelect(targets, virtualInventory, out var cellMaterials, out var cellCost);
+                var wirePlaceable = ElectricWireAutoConnectToolSelector.TrySelect(targets, virtualInventory, _gameUnlockStateData, out var cellMaterials, out var cellCost);
                 if (!wirePlaceable) placeInfo.Placeable = false;
 
                 if (placeInfo.Placeable)
@@ -83,7 +89,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                     totalCost += cellCost;
                     anyPlaceable = true;
                 }
-                if (placeInfo.Position == cursorCell) cursorInfo = placeInfo;
+                if (placeInfo.Position == cursorCell)
+                {
+                    cursorInfo = placeInfo;
+                    cursorWirePlaceable = wirePlaceable;
+                }
             }
 
             // ワイヤー線はカーソルセル分のみ描画し（全セル分は過剰）、ラベルは全セル合計を表示する
@@ -91,13 +101,36 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             cursorInfo ??= placeInfos[^1];
             var originEndpoint = ResolveOriginEndpoint(cursorInfo);
             var cursorTargets = cursorInfo.Placeable ? ResolveTargetEndpoints(cursorInfo.Position) : EmptyTargets;
-            _renderer.Show(originEndpoint, cursorTargets, totalCost);
+            ShowCursorNotice();
 
             // 設置可能なセルが1つでも残っていればクリック許可（不可セルはサーバーが個別に拒否する既存方針に揃える）
             // Allow the click when any cell remains placeable (bad cells are rejected per-cell by the server, matching existing policy)
             return anyPlaceable;
 
             #region Internal
+
+            // カーソルセルの状態に応じてコスト表示・拒否理由・範囲外案内のいずれかを描画する
+            // Renders the cost, the rejection reason, or an out-of-range notice depending on the cursor cell's state
+            void ShowCursorNotice()
+            {
+                // 電線不足は自動接続プレビューが唯一拒否する理由であり、不可色で表示する
+                // Insufficient wire is the only rejection reason for the auto-connect preview, shown in the failure color
+                if (!cursorWirePlaceable)
+                {
+                    _renderer.Show(originEndpoint, cursorTargets, totalCost, ElectricWirePlacementFailureText.ToText(ElectricWirePlacementFailureReason.NoWireItem), true);
+                    return;
+                }
+
+                // 範囲外に電気ブロックはあるが1件も配線されないときは、設置許可のまま情報表示する
+                // When electric blocks exist out of range but none are connectable, keep placement allowed and show an info notice
+                if (cursorTargets.Count == 0 && ClientElectricWireAutoConnectCollector.ExistsOutOfRangeElectricNeighbor(cursorInfo.Position, _blockDataStore, cursorTargets.Count))
+                {
+                    _renderer.Show(originEndpoint, cursorTargets, 0, "接続範囲外のため配線されません", false);
+                    return;
+                }
+
+                _renderer.Show(originEndpoint, cursorTargets, totalCost, string.Empty, false);
+            }
 
             void InvalidateCacheOnKeyChange()
             {

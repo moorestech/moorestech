@@ -19,6 +19,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
     /// </summary>
     public static class ClientElectricWireAutoConnectCollector
     {
+        // 情報表示用の近傍探索半径。これ以内に電気ブロックがあるのに1件も配線されないとき「範囲外」と案内する
+        // Neighbor search radius for the info label; electric blocks within it but none connectable means "out of range"
+        private const float InfoSearchRadius = 32f;
+
         public static List<(Vector3Int TargetPos, float Distance)> Collect(BlockId blockId, Vector3Int position, BlockDirection direction, BlockGameObjectDataStore blockDataStore)
         {
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
@@ -50,6 +54,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             }
 
             #endregion
+        }
+
+        /// <summary>
+        /// 設置セル近傍に電気ブロックはあるが接続範囲外で1件も配線されない状況かを判定する
+        /// Judge whether electric blocks exist near the cell while none are wire-connectable
+        /// </summary>
+        public static bool ExistsOutOfRangeElectricNeighbor(Vector3Int position, BlockGameObjectDataStore blockDataStore, int inRangeTargetCount)
+        {
+            if (0 < inRangeTargetCount) return false;
+            foreach (var block in blockDataStore.BlockGameObjectByInstanceIdDictionary.Values)
+            {
+                if (!block.TryGetComponent<ElectricWireStateChangeProcessor>(out _)) continue;
+                if (Vector3Int.Distance(block.BlockPosInfo.OriginalPos, position) <= InfoSearchRadius) return true;
+            }
+            return false;
         }
     }
 }

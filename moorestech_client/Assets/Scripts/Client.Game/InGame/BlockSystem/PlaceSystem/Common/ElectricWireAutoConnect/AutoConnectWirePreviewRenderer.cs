@@ -45,15 +45,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         }
 
         /// <summary>
-        /// 起点端点から各接続先端点へワイヤーを張り、合計消費電線数を表示する
-        /// Draws wires from the origin endpoint to each target endpoint and shows the total wire cost
+        /// 起点端点から各接続先端点へワイヤーを張り、合計消費電線数か通知文言を表示する
+        /// Draws wires from the origin endpoint to each target endpoint, showing either the total wire cost or a notice
         /// </summary>
-        public void Show(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, int totalWireCost)
+        public void Show(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, int totalWireCost, string noticeText, bool isFailure)
         {
             _root.gameObject.SetActive(true);
 
-            // 必要数のワイヤー線を確保し、各ターゲットへカテナリーを張る
-            // Ensure enough wire lines and draw a catenary to each target
+            // 必要数のワイヤー線を確保し、各ターゲットへ可否色でカテナリーを張る
+            // Ensure enough wire lines and draw a catenary to each target colored by failure state
             EnsureWireLineCount(targetEndpoints.Count);
             for (var i = 0; i < _wireLines.Count; i++)
             {
@@ -63,26 +63,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                     continue;
                 }
 
+                _wireLines[i].SetColor(isFailure);
                 _wireLines[i].Draw(originEndpoint, targetEndpoints[i]);
             }
 
-            UpdateCostLabel();
+            UpdateNoticeLabel();
 
             #region Internal
 
-            // 合計消費電線数ラベルを起点上に置き、カメラへ向ける
-            // Place the total wire cost label above the origin and billboard it to the camera
-            void UpdateCostLabel()
+            // 通知文言が非空ならコスト表示の代わりに起点上へ表示する。可否で色を切り替える
+            // When a notice is present, show it above the origin instead of the cost; color switches by failure state
+            void UpdateNoticeLabel()
             {
-                if (totalWireCost <= 0)
+                var hasNotice = !string.IsNullOrEmpty(noticeText);
+                if (!hasNotice && totalWireCost <= 0)
                 {
                     _costLabel.gameObject.SetActive(false);
                     return;
                 }
 
                 _costLabel.gameObject.SetActive(true);
-                _costLabel.text = $"電線 x{totalWireCost}";
-                _costLabel.color = WithAlpha(MaterialConst.PlaceableColor);
+                _costLabel.text = hasNotice ? noticeText : $"電線 x{totalWireCost}";
+                _costLabel.color = WithAlpha(isFailure ? MaterialConst.NotPlaceableColor : MaterialConst.PlaceableColor);
 
                 var labelTransform = _costLabel.transform;
                 labelTransform.position = originEndpoint + CostLabelOffset;
@@ -113,6 +115,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         {
             private readonly GameObject _gameObject;
             private readonly MeshFilter _meshFilter;
+            private readonly Material _material;
             private Mesh _mesh;
 
             // 直前の端点を保持して不要な再構築を避ける
@@ -128,18 +131,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 _meshFilter = _gameObject.AddComponent<MeshFilter>();
                 var renderer = _gameObject.AddComponent<MeshRenderer>();
 
-                // 材質を複製し半透明接続色で固定
-                // Clone the shared preview material and fix it to the semi-transparent placeable color
-                var material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial());
-                var color = WithAlpha(MaterialConst.PlaceableColor);
-                material.SetColor(MaterialConst.PreviewColorPropertyName, color);
-                material.color = color;
-                renderer.sharedMaterial = material;
+                // 材質を複製し半透明接続色で初期化（可否色はSetColorで都度切り替える）
+                // Clone the shared preview material with the semi-transparent placeable color (SetColor switches it per-call)
+                _material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial());
+                SetColor(false);
+                renderer.sharedMaterial = _material;
             }
 
             public void SetActive(bool active)
             {
                 _gameObject.SetActive(active);
+            }
+
+            // 可否に応じてワイヤー線の色を切り替える
+            // Switch the wire line's color by placeability
+            public void SetColor(bool isFailure)
+            {
+                var color = WithAlpha(isFailure ? MaterialConst.NotPlaceableColor : MaterialConst.PlaceableColor);
+                _material.SetColor(MaterialConst.PreviewColorPropertyName, color);
+                _material.color = color;
             }
 
             public void Draw(Vector3 start, Vector3 end)
