@@ -20,12 +20,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             return ToConnectorResults(ElectricWireAutoConnectSelector.SelectPlacementTargets(blockMaster.BlockParam, ownInfo, candidates), connectors);
         }
 
-        public static List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectPoleMachineTargets(ElectricPoleBlockParam ownParam, BlockPositionInfo ownInfo, int usedCount)
-        {
-            var (candidates, connectors) = BuildWorldCandidates();
-            return ToConnectorResults(ElectricWireAutoConnectSelector.SelectPoleMachineTargets(ownParam, ownInfo, usedCount, candidates), connectors);
-        }
-
         // 全ブロックから候補とConnector逆引き表を構築
         // Build candidates and a connector lookup from world blocks
         private static (List<ElectricWireConnectCandidate> Candidates, Dictionary<BlockInstanceId, IElectricWireConnector> Connectors) BuildWorldCandidates()
