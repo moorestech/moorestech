@@ -59,6 +59,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             var placeInfos = _pointCalculator.CalculatePoint(placePoint, placePoint, selection.CurrentDirection, poleMaster);
             var placeInfo = placeInfos[0];
 
+            // 地面判定はゴーストの物理接触を読むため、判定前に有効化する（前例: GearChainPoleExtendPreviewObject.PositionGhost）
+            // Ground detect reads the ghost's physics contact, so activate it before judging (precedent: GearChainPoleExtendPreviewObject.PositionGhost)
+            _context.PreviewBlockController.SetActive(true);
+
             // 設置可否を確定する（既存ブロックとの重なり判定はCalculatePoint内で織り込み済み）
             // Finalize placeability (overlap-with-existing-block judgement is already folded in by CalculatePoint)
             var groundOverlaps = _context.PreviewBlockController.SetPreviewAndGroundDetect(placeInfos, poleMaster);
