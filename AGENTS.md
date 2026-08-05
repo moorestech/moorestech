@@ -113,6 +113,7 @@ EditModeInPlayingTest等のPlayMode遷移テストはドメインリロードを
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "正規表現"`
 
 サーバー側のテストはクライアントプロジェクトからもインポートされており、上記コマンド（クライアントのproject-path）で同時に実行できる。サーバー単体プロジェクトを別途指定する必要はない。
+unity-playmode-recorded-playtestでPlayModeを通しで動かす検証は「unityプレイ録画テスト」と呼ぶ。「e2e」「E2Eテスト」とは呼ばない。
 
 ## ログ確認
 `uloop get-logs --project-path ./moorestech_client --log-type Error`
