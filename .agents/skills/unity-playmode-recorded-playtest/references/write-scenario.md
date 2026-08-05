@@ -73,7 +73,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 testidは `moorestech_web/webui/src/features/**` をgrepして実在確認する。ビルドメニューのエントリは
 `build-menu-entry-{kind}-{id}`（kind: block/trainCar/connectTool/blueprintCopy/blueprint、
 idは種別を問わず設置対象のGuid文字列。blockのtestidは`PlaytestWebUiOps.BuildMenuBlockTestId(名前)`で組み立てる）。
-表示名はスロットではなく詳細プレビュー(`build-menu-preview`)に出るため、名前を絵に残すには`HoverWebUi`してからScreenshotする。
+表示名はスロットではなく詳細サイドバー(`build-menu-detail`)に出るため、名前を絵に残すには`HoverWebUi`してからScreenshotする。
 カテゴリ切替は`build-menu-category-{categoryGuid}`（カテゴリ名ではなくGuid）。PlaceBlock遷移直後のカメラtweenは`AimAtWorldPosition`内蔵の
 カメラ静定待ちが吸収するため、シナリオ側での追加待ちは不要。
 仕組み: DOM矩形をWS往復(`playtest.dom_query`)で取得→CEFブラウザ座標→Unityスクリーン座標へ逆変換→

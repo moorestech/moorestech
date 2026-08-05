@@ -130,11 +130,23 @@
   /* 内容量で幅が決まる小型ブロックパネルの右余白を左インデントと対称にする */
   /* Mirrors the left inset on content-sized block panels so the right edge gets equal padding */
   --block-panel-right-safe-area: 28px;
-  /* 建設メニュー: サイドバー幅・プレビュー高・フェード帯と内容の安全余白（固定長。%は破綻源） */
-  /* Construction menu: sidebar width, preview height, and edge safe area (fixed length; % is a failure source) */
-  --build-menu-sidebar-width: 8.5rem;
-  --build-menu-preview-height: calc(var(--slot-size) + 8px);
+  /* カテゴリ列の幅。実マスタ最長の英訳 Building Materials(実測136.2px)を左右padding 19.2px込みで1行に収める */
+  /* Width of the category column, fitting the real master's longest English name Building Materials (measured 136.2px) plus its 19.2px inline padding on one line */
+  --build-menu-sidebar-width: 10rem;
+  /* 3カラム間のgapとパネル右端の余白を兼ねる安全帯 */
+  /* Safe area serving as both the gap between the three columns and the panel's right inset */
   --build-menu-edge-safe-area: 16px;
+  /* Mantineのオーバーレイ縦スクロールバー実寸(--scrollarea-scrollbar-size = 0.75rem)をグリッド右へ予約する */
+  /* Reserves the measured width of Mantine's overlay vertical scrollbar (--scrollarea-scrollbar-size = 0.75rem) to the right of the grid */
+  --build-menu-grid-scrollbar-reserve: 12px;
+  /* 中央3カラムの固定寸法（§8.11・目視QAで確定）。886px=中央列452pxで予約12pxを引いた440pxに8列431.6pxが収まり、36px×10+gap4px×9=396pxが利用可能高415pxに収まる */
+  /* Fixed dimensions of the centered three columns (§8.11, settled by visual QA): 886px gives a 452px center column whose 440px remainder after the 12px reserve holds the 431.6px eight columns, and 36px x 10 + 4px gap x 9 = 396px fits the 415px available height */
+  --build-menu-panel-width: 886px;
+  --build-menu-detail-width: 11.75rem;
+  --build-menu-category-height: 2.25rem;
+  /* 閉じる✕は詳細列の右上に重なるため、1行目を✕の下端より下へ逃がす安全帯（✕上端 --bevel-3 + ✕実寸 --icon-button-size + 縦積みgap 8px） */
+  /* Safe area dropping the detail column's first line below the close cross that overlaps its top-right (cross top --bevel-3 + cross size --icon-button-size + the 8px stack gap) */
+  --build-menu-detail-top-safe-area: calc(var(--bevel-3) + var(--icon-button-size) + 8px);
   /* ワールドピンHUDの層。パネル面より下に置き、開いたパネルの背後に隠れる */
   /* World-pin HUD layer; kept below panel faces so open panels cover it */
   --z-world-pin: 10;

@@ -86,19 +86,70 @@ test("検索0件は該当なし表示", async ({ page }) => {
   await expect(page.getByTestId("build-menu-panel")).toContainText("該当なし");
 });
 
-test("ホバーでプレビューが更新される", async ({ page }) => {
+test("詳細サイドバーはホバー後にstickyで残る", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
+  await expect(page.getByTestId("build-menu-detail")).toContainText("カーソルを合わせると詳細を表示します");
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`).hover();
-  await expect(page.getByTestId("build-menu-preview")).toContainText("木のチェスト");
+  await expect(page.getByTestId("build-menu-detail")).toContainText("木のチェスト");
+  // 必要素材が詳細に出ることを固定
+  // Pins the required-items block in the detail
+  await expect(page.getByTestId("build-menu-detail")).toContainText("必要素材");
+
+  // 検索欄退避でもsticky維持
+  // Stays sticky after moving to search
+  await page.getByTestId("build-menu-search").hover();
+  await expect(page.getByTestId("build-menu-detail")).toContainText("木のチェスト");
 });
 
 test("エントリの無いカテゴリはサイドバーに出ない", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
-  // fixturesは4カテゴリ定義だが「建材」はエントリ皆無のため、エントリを持つ3カテゴリのみが並ぶ
-  // fixtures define 4 categories but "建材" has no entries, so only the 3 with entries render
-  await expect(page.getByTestId("build-menu-sidebar").locator("button")).toHaveCount(3);
+  // 「建材」はエントリ皆無のため除外
+  // Skips empty category
+  await expect(page.getByTestId("build-menu-sidebar").locator("button")).toHaveCount(10);
+});
+
+test("閉じて開き直すとタブ・検索・スクロール・詳細stickyが復元される", async ({ page }) => {
+  await setUiState(page, "BuildMenu");
+  await page.goto("/");
+
+  // タブ+sticky+スクロール構築
+  // Build state, then close
+  await page.getByTestId(`build-menu-category-${buildMenuCategoryIds.transport}`).click();
+  await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`).hover();
+  // 合成scrollイベントは使わない
+  // No synthetic scroll event
+  await page
+    .getByTestId("build-menu-panel")
+    .locator(".mantine-ScrollArea-viewport")
+    .evaluate((el) => { el.scrollTop = 40; });
+  await setUiState(page, "GameScreen");
+  await expect(page.getByTestId("build-menu-panel")).toBeHidden();
+
+  await setUiState(page, "BuildMenu");
+  await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`)).toBeVisible();
+  await expect(page.getByTestId("build-menu-detail")).toContainText("鉄道レール");
+  await expect
+    .poll(() =>
+      page
+        .getByTestId("build-menu-panel")
+        .locator(".mantine-ScrollArea-viewport")
+        .evaluate((el) => el.scrollTop),
+    )
+    .toBe(40);
+});
+
+test("検索文字列も閉じて開き直すと復元される", async ({ page }) => {
+  await setUiState(page, "BuildMenu");
+  await page.goto("/");
+
+  await page.getByTestId("build-menu-search").fill("鉄");
+  await setUiState(page, "GameScreen");
+  await setUiState(page, "BuildMenu");
+
+  await expect(page.getByTestId("build-menu-search")).toHaveValue("鉄");
+  await expect(page.getByTestId("build-menu-sidebar")).toHaveAttribute("data-disabled", "true");
 });
