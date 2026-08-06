@@ -5,6 +5,7 @@ using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
+using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
@@ -12,9 +13,11 @@ using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
+using Client.Tests.ViewMode;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -46,39 +49,36 @@ namespace Client.Tests.UIState
         {
             SetUpGameStateController();
             var gameApplier = new FakePlayerCameraInteractionApplier();
-            var gameState = new GameScreenState(null, null, null, null, gameApplier);
+            var gameState = new GameScreenState(null, null, null, null, CreateCameraPolicy(gameApplier));
             gameState.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
-            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, gameApplier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, gameApplier.Calls);
 
             var menuApplier = new FakePlayerCameraInteractionApplier();
             var menuView = new FakeBuildMenuView();
-            var menuState = new BuildMenuState(menuView, menuApplier);
+            var menuState = new BuildMenuState(menuView, CreateCameraPolicy(menuApplier));
             menuState.OnEnter(new UITransitContext(UIStateEnum.BuildMenu));
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, menuApplier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, menuApplier.Calls);
             Assert.IsTrue(menuView.IsActive);
         }
 
         [Test]
-        public void PlaceBlockHandlesEnterRightDragAndExitNormally()
+        public void PlaceBlockPushesEnterDragStartAndExitPolicies()
         {
             var applier = new FakePlayerCameraInteractionApplier();
             var state = CreatePlaceBlockState(applier, new FakeMapVeinRangeView());
             state.OnEnter(new UITransitContext(UIStateEnum.PlaceBlock));
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
 
+            // ドラッグ全遷移はUiStateCameraPolicyServiceTest側が担い、ここでは委譲配線のみ確認
+            // Full drag transitions are covered by UiStateCameraPolicyServiceTest; only the delegation wiring is verified here
             applier.Calls.Clear();
             Press(_mouse.rightButton);
             state.GetNextUpdate();
-            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
-
-            applier.Calls.Clear();
-            Release(_mouse.rightButton);
-            state.GetNextUpdate();
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
 
             applier.Calls.Clear();
             state.OnExit();
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
         }
 
         [Test]
@@ -101,7 +101,7 @@ namespace Client.Tests.UIState
         }
 
         [Test]
-        public void DeleteObjectHandlesEnterRightDragAndExitNormally()
+        public void DeleteObjectPushesEnterDragStartAndExitPolicies()
         {
             SetUpMouseCursorTooltip();
             var deleteObject = CreateComponent<DeleteBarObject>("DeleteBar");
@@ -109,23 +109,18 @@ namespace Client.Tests.UIState
             // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
-            var state = new DeleteObjectState(deleteObject, null, applier, buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
+            var state = new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
 
             applier.Calls.Clear();
             Press(_mouse.rightButton);
             state.GetNextUpdate();
-            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
-
-            applier.Calls.Clear();
-            Release(_mouse.rightButton);
-            state.GetNextUpdate();
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
 
             applier.Calls.Clear();
             state.OnExit();
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
         }
 
         private PlaceBlockState CreatePlaceBlockState(FakePlayerCameraInteractionApplier applier, FakeMapVeinRangeView mapVeinRangeView)
@@ -135,7 +130,12 @@ namespace Client.Tests.UIState
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
             var placeStateController = new PlaceSystemStateController(selector);
             var pickService = new PlacementTargetPickService(null);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, applier, new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView);
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier), new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView);
+        }
+
+        private static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier)
+        {
+            return new UiStateCameraPolicyService(applier, new PlayerViewModeController(new FakePlayerViewApplier()));
         }
 
         private void SetUpMouseCursorTooltip()
