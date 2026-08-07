@@ -18,9 +18,9 @@ namespace Game.Block.Blocks.Fluid
         // connectedInfo is the sender-side connector entry (SelfConnector = sender, TargetConnector = receiver); receivers read their own options (e.g. ConnectTankIndex) from TargetConnector
         public FluidStack AddLiquid(FluidStack fluidStack, ConnectedInfo connectedInfo);
 
-        public static BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> CreateFluidInventoryConnector(FluidInventoryConnects fluidInventoryConnects, BlockPositionInfo blockPositionInfo)
+        public static BlockConnectorComponent<IFluidInventory, DefaultContext> CreateFluidInventoryConnector(FluidInventoryConnects fluidInventoryConnects, BlockPositionInfo blockPositionInfo)
         {
-            return new BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>(
+            return new BlockConnectorComponent<IFluidInventory, DefaultContext>(
                 fluidInventoryConnects.InflowConnects,
                 fluidInventoryConnects.OutflowConnects,
                 blockPositionInfo

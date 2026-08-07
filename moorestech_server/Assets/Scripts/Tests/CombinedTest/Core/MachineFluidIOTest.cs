@@ -72,9 +72,9 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(FluidId3, fluidPipe3.GetFluidId());
             
             // パイプの接続状態を確認
-            Assert.AreEqual(1, fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>().ConnectedTargets.Count);
-            Assert.AreEqual(1, fluidPipeBlock2.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>().ConnectedTargets.Count);
-            Assert.AreEqual(1, fluidPipeBlock3.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>().ConnectedTargets.Count);
+            Assert.AreEqual(1, fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultContext>>().ConnectedTargets.Count);
+            Assert.AreEqual(1, fluidPipeBlock2.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultContext>>().ConnectedTargets.Count);
+            Assert.AreEqual(1, fluidPipeBlock3.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultContext>>().ConnectedTargets.Count);
             
             
             // アップデート（液体が流れるのを待つ）
@@ -132,7 +132,7 @@ namespace Tests.CombinedTest.Core
             fluidContainers[1].AddLiquid(new FluidStack(fluidAmount2, FluidId2));
             
             // 機械の接続状態を確認
-            var fluidMachineConnector = fluidMachineBlock.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
+            var fluidMachineConnector = fluidMachineBlock.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultContext>>();
             Assert.AreEqual(2, fluidMachineConnector.ConnectedTargets.Count);
             
             // アップデート（液体が流れるのを待つ）

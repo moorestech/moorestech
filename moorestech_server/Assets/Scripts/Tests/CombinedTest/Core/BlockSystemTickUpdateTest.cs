@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Core
             // 搬出先を接続して1アイテムをベルトへ投入する
             // Connect an output and insert one item into the belt
             var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)belt
-                .GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>()
+                .GetComponent<BlockConnectorComponent<IBlockInventory, DefaultContext>>()
                 .ConnectedTargets;
             connectedTargets.Add(output, new ConnectedInfo());
             var item = ServerContext.ItemStackFactory.Create(new ItemId(1), 1);

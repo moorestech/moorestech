@@ -39,7 +39,7 @@ namespace Game.Block.Blocks.GearChainPole
         private readonly Subject<Unit> _onChangeBlockState = new();
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
 
-        public GearChainPoleComponent(GearChainPoleBlockParam param, BlockInstanceId blockInstanceId, BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge> connectorComponent, Dictionary<string, string> componentStates)
+        public GearChainPoleComponent(GearChainPoleBlockParam param, BlockInstanceId blockInstanceId, BlockConnectorComponent<IGearEnergyTransformer, GearContext> connectorComponent, Dictionary<string, string> componentStates)
         {
             // 基本状態を初期化する
             // Initialize base state

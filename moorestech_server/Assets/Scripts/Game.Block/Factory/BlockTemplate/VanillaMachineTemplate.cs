@@ -30,7 +30,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var machineParam = blockMasterElement.BlockParam as ElectricMachineBlockParam;
             
-            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
+            BlockConnectorComponent<IBlockInventory, DefaultContext> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
@@ -80,7 +80,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var machineParam = blockMasterElement.BlockParam as ElectricMachineBlockParam;
             
-            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
+            BlockConnectorComponent<IBlockInventory, DefaultContext> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
 

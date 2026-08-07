@@ -16,12 +16,12 @@ namespace Game.Block.Blocks.Service
     /// </summary>
     public class ConnectingInventoryListPriorityInsertItemService : IBlockInventoryInserter
     {
-        private readonly BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> _blockConnectorComponent;
+        private readonly BlockConnectorComponent<IBlockInventory, DefaultContext> _blockConnectorComponent;
         private readonly BlockInstanceId _sourceBlockInstanceId;
 
         private int _index = -1;
 
-        public ConnectingInventoryListPriorityInsertItemService(BlockInstanceId sourceBlockInstanceId, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> blockConnectorComponent)
+        public ConnectingInventoryListPriorityInsertItemService(BlockInstanceId sourceBlockInstanceId, BlockConnectorComponent<IBlockInventory, DefaultContext> blockConnectorComponent)
         {
             _sourceBlockInstanceId = sourceBlockInstanceId;
             _blockConnectorComponent = blockConnectorComponent;

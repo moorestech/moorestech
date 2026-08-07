@@ -23,15 +23,15 @@ namespace Game.Block.Blocks.Pump
         public bool CanAcceptGeneratedFluid => _tank.Amount < _tank.Capacity;
         
         private readonly FluidContainer _tank;
-        private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
+        private readonly BlockConnectorComponent<IFluidInventory, DefaultContext> _fluidConnector;
 
-        public PumpFluidOutputComponent(float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector)
+        public PumpFluidOutputComponent(float capacity, BlockConnectorComponent<IFluidInventory, DefaultContext> fluidConnector)
         {
             _tank = new FluidContainer(capacity);
             _fluidConnector = fluidConnector;
         }
 
-        public PumpFluidOutputComponent(Dictionary<string, string> componentStates, float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector) : this(capacity, fluidConnector)
+        public PumpFluidOutputComponent(Dictionary<string, string> componentStates, float capacity, BlockConnectorComponent<IFluidInventory, DefaultContext> fluidConnector) : this(capacity, fluidConnector)
         {
             if (!componentStates.TryGetValue(SaveKey, out var state) || string.IsNullOrEmpty(state))
             {
