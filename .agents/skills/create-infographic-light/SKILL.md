@@ -5,6 +5,15 @@ description: 技術文書・設計仕様・実装計画・レポートを、ビ�
 
 # create-infographic-light — ペラ1 HTML 図解（コメント機能付き）
 
+> **この SKILL.md は実体が2箇所ある。片方を直したら必ずもう片方へ反映すること。**
+> - `~/.agents/skills/create-infographic-light/`（ユーザーレベル・`~/.claude/skills` から symlink）
+> - `~/moorestech/.agents/skills/create-infographic-light/`（moorestech 同梱・`.claude/skills` から symlink）
+>
+> moorestech で作業中は project 側が user 側を上書きするため、**moorestech 側が古いと改善が黙って効かなくなる**
+> （2026-07-24〜08-08に実際に発生: ファイル表記の「種別バッジ先頭固定」が moorestech 側へ伝播していなかった）。
+> 編集後は `diff ~/.agents/skills/create-infographic-light/SKILL.md ~/moorestech/.agents/skills/create-infographic-light/SKILL.md`
+> が空になることを確認する。
+
 Markdown 等の技術文書を、単一の `index.html`（インライン CSS + vanilla JS、ビルド不要、file:// で開いて動く）に図解する。外部依存は原則なしだが、**ファイル拡張子アイコン等の軽微な装飾に限り CDN 参照可**（オフライン時のフォールバック必須。後述）。create-infographic の 5 フェーズ（原稿レビュー・Mermaid・React/Vite・品質ゲート）を省いた軽量版で、**レビュー用コメント機能だけは本家同等を必ず組み込む**。
 
 ## 本家との使い分け
@@ -23,7 +32,15 @@ Markdown 等の技術文書を、単一の `index.html`（インライン CSS + 
 
 ### 2. 配置先を決める
 
-`/tmp/infographic-{topic}/index.html`。**作業中の git リポジトリの中に作らない**（`git status` を汚すため。本家と同じ規約）。
+**このスキルの実体ディレクトリ配下**の `outputs/infographic-{topic}/index.html` に置く。実体ディレクトリとは
+この SKILL.md が実際に存在するディレクトリ（symlink 経由で読んだ場合は symlink 先の実パス）。上の実体2箇所のうち、
+**いま読んでいる方の配下**へ出す。
+
+- **`/tmp` には置かない** — OS に掃除されて後から一切見返せなくなる（過去の図解が全部消えていた）
+- **作業中の git リポジトリの中に作らない**（`git status` を汚すため。本家と同じ規約）。`outputs/` は
+  スキル側リポジトリの `.gitignore`（`~/.agents/.gitignore` の `skills/*/outputs/`、moorestech の
+  `.gitignore` の `.agents/skills/*/outputs/`）で除外済みなので、実体配下に置いても汚れない
+- 対象文書のあるリポジトリ（レビュー対象の repo）配下には**絶対に作らない**。この規約は従来どおり
 
 ### 3. sonnet サブエージェントへ委譲する
 
@@ -33,7 +50,7 @@ Markdown 等の技術文書を、単一の `index.html`（インライン CSS + 
 2. **テンプレートの絶対パス**: このスキルの `assets/template.html` を Read させ、**CSS とコメント機能 JS は verbatim 維持（リファクタ・省略・セレクタ変更禁止）、コンテンツ部分だけ差し替え**と指示する。コメント機能を自作・再移植させない — テンプレートは動作確認済みの完成品で、README の必須要件（selectionchange デバウンス・hover:none フォールバック・safe-area・16px 入力欄）を全て織り込み済み
 3. **ページ要件**: 縦スクロール単一ページ / 白背景ライトミニマル / 絵文字不使用 / 日本語 / `overflow-wrap: anywhere` / 390px で body 幅 = viewport 幅
 4. **構成の型**（文書に合わせて調整可）: リード 3 行 → Before/After 等の対比 → 変更点・本論 → トレードオフのコールアウト → 一覧テーブル → References（`<code>` でパス列挙）
-5. **実装プラン（Task N 構成の plan doc）の場合**: 各タスクカードに、そのタスクで**追加（Create）/変更（Modify）/削除（Delete）される項目（ファイル・シーン・JSONキー・enum等）をタスクごとに全列挙**させる。「主要ファイルのみ」「〜ほか」「詳細は本文参照」等の要約・省略は禁止。プラン本文の `**Files:**` 節を第一の正とし、Files 節に現れないがステップ本文で触られる対象（シーンオブジェクト・localStorage・別リポジトリのファイル等）も漏れなく拾う。**ファイル1件の表記は3点セット**: ①拡張子アイコン ②ファイル名（大きめ・太字で主役）③フルパス（小さめ・`<code>` か等幅、ファイル名の下または後ろに従属表示）。加えて Create/Modify/Delete の種別バッジで区別する。拡張子アイコンは **material-icon-theme を jsDelivr CDN から `<img>` 参照**する: `https://cdn.jsdelivr.net/npm/material-icon-theme@latest/icons/{name}.svg`（例: `csharp.svg` / `typescript.svg` / `react_ts.svg`(tsx) / `json.svg` / `yaml.svg` / `markdown.svg` / `html.svg`）。**`onerror` で CSS テキストバッジ（角丸バッジに `CS`/`YML` 等の拡張子文字）へフォールバック**させ、オフライン・未収録拡張子・シーン/enum等の非ファイル項目（`SCENE`/`ENUM` 等）はテキストバッジで表示する。絵文字は不可
+5. **実装プラン（Task N 構成の plan doc）の場合**: 各タスクカードに、そのタスクで**追加（Create）/変更（Modify）/削除（Delete）される項目（ファイル・シーン・JSONキー・enum等）をタスクごとに全列挙**させる。「主要ファイルのみ」「〜ほか」「詳細は本文参照」等の要約・省略は禁止。プラン本文の `**Files:**` 節を第一の正とし、Files 節に現れないがステップ本文で触られる対象（シーンオブジェクト・localStorage・別リポジトリのファイル等）も漏れなく拾う。**ファイル1件の表記は4要素・並び順固定**: 左から必ず ①Create/Modify/Delete の種別バッジ → ②拡張子アイコン → ③ファイル名（大きめ・太字で主役）→ ④フルパス（小さめ・`<code>` か等幅、ファイル名の下または後ろに従属表示）。この並び順（種別バッジが常に先頭）を全ファイル行で統一する。拡張子アイコンは **material-icon-theme を jsDelivr CDN から `<img>` 参照**する: `https://cdn.jsdelivr.net/npm/material-icon-theme@latest/icons/{name}.svg`（例: `csharp.svg` / `typescript.svg` / `react_ts.svg`(tsx) / `json.svg` / `yaml.svg` / `markdown.svg` / `html.svg`）。**`onerror` で CSS テキストバッジ（角丸バッジに `CS`/`YML` 等の拡張子文字）へフォールバック**させ、オフライン・未収録拡張子・シーン/enum等の非ファイル項目（`SCENE`/`ENUM` 等）はテキストバッジで表示する。絵文字は不可
 6. **コメント可能ブロックの指定**: 対比・図解・テーブル・重要コールアウトを `.figure[data-label]` で包む。**`data-label` は図の中身を自然言語で書く**（「〜の図」「〜の比較」だけの外枠ラベルは禁止。コピーされた Markdown だけ読む第三者に中身が伝わる文にする）
 7. **CONFIG の固有化**: `STORAGE_KEY` と `COPY_TITLE` をページ固有値に変えさせる（プレースホルダのまま・他ページと同値だと localStorage でコメントが混ざる）
 8. **自己チェック**: タグバランス確認 + `<script>` 本文を抽出して `new Function()` で SyntaxError が無いことを node で確認させる

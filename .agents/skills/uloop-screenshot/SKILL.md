@@ -64,10 +64,10 @@ uloop screenshot --window-name Scene
 uloop screenshot --window-name Project --match-mode prefix
 
 # Save screenshot to a specific directory
-uloop screenshot --output-directory /tmp/screenshots
+uloop screenshot --output-directory "$PWD/moorestech_client/PlaytestResults/screenshots"
 
 # Combine options
-uloop screenshot --window-name Scene --resolution-scale 0.5 --output-directory /tmp/screenshots
+uloop screenshot --window-name Scene --resolution-scale 0.5 --output-directory "$PWD/moorestech_client/PlaytestResults/screenshots"
 
 # PlayMode game-rendering capture (coordinates match simulate-mouse)
 uloop screenshot --capture-mode rendering

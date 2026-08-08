@@ -17,7 +17,7 @@ description: C#(.cs) と TypeScript/React(.ts/.tsx) のブランチ変更をレ�
 
 - `node` / `npm`、`python3`（標準ライブラリのみ）。対象は C# / TypeScript の git リポジトリ。
 - 検証に `playwright-cli`（任意）。
-- **配置先は必ず作業対象リポジトリの外**（既定 `/tmp/review-cockpit-<topic>/`）。repo 内に作ると `node_modules`・生成物が `git status` を汚す。
+- **配置先は必ず作業対象リポジトリの外**。既定はこのスキルの実体配下 `{skill}/outputs/review-cockpit-<topic>/`（`outputs/` は `.gitignore` 除外済み）。対象 repo 内に作ると `node_modules`・生成物が `git status` を汚す。**`/tmp` にも作らない** — OS に掃除されて cockpit が後から開けなくなる。
 - コードハイライトは difit と完全同一構成（`prism-react-renderer` ＋ 動的ロードした `prismjs/components/prism-csharp`・`prism-tsx`(typescript→jsx→tsx) ＋ `vsDark` テーマ背景除去）。拡張子で csharp/tsx を切替。これは `templates/src/lib/prismSetup.ts` に内包済み。
 
 ## 手順
@@ -29,7 +29,7 @@ description: C#(.cs) と TypeScript/React(.ts/.tsx) のブランチ変更をレ�
 埋め込み済みの `references/cleanroom.data.json`（全 50 ファイルのテキスト・構造・依存を含む）を使う。対象 repo を読まないので、元 repo がリファクタされていても完全一致する。
 
 ```bash
-DST=/tmp/review-cockpit-cleanroom
+DST={skill}/outputs/review-cockpit-cleanroom
 mkdir -p "$DST" && cp -R {skill}/templates/. "$DST"/
 cp {skill}/assets/cleanroom.data.json "$DST"/public/data.json
 cd "$DST" && npm ci && npm run dev      # http://localhost:5182/
@@ -40,7 +40,7 @@ cd "$DST" && npm ci && npm run dev      # http://localhost:5182/
 ### 経路 B — 任意の C#/TS ブランチ用に生成
 
 ```bash
-DST=/tmp/review-cockpit-<topic>
+DST={skill}/outputs/review-cockpit-<topic>
 mkdir -p "$DST" && cp -R {skill}/templates/. "$DST"/
 cd "$DST" && npm install
 python3 scripts/extract.py --repo <repo-abs-path> --base <base> --branch <branch> --out public/data.json
