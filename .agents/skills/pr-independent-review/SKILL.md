@@ -30,9 +30,11 @@ description: |
    失敗したら即エラー終了（$CANON誤決定のまま走らせない）。**確認先はこのファイルでなければならない** —
    `moores-code-review/SKILL.md` はレビューworktree側にも存在しうるため、誤決定した$CANONでも通ってしまい弁別にならない
 
-**記録repo `$LOGS`**: レビュー実行記録（`records/pr-*.md`・シャドー台帳・改善キュー・前向きログ）は
-コードrepoではなく `../moorestech_logs`（以下 `$LOGS`、privateログrepo）の `harness/` 配下に置く。
+**記録repo `$LOGS`**: レビュー実行記録（`records/pr-*.md`・シャドー台帳・改善キュー・前向きログ・
+`digests/pr-*.html`）はコードrepoではなく `../moorestech_logs`（以下 `$LOGS`、privateログrepo）の
+`harness/` 配下に置く。
 featureブランチが記録ファイルに触れてマージ衝突する構造を断つための分離であり、コードrepo側へ記録を書き戻さない。
+`$LOGS` への書き込みはStop/SessionEnd hookが自動でcommit・pushする（Step 8末尾。セッション側でcommitしない）。
 
 - **`$CANON` は本ドキュメント上のプレースホルダであり、シェル変数ではない**。Bashコマンド・subagentのprompt・
   ファイルパスに渡すときは**必ず手順2で得た実値の絶対パスへ展開して書く**。`$CANON` をリテラルのまま渡すと
@@ -387,6 +389,22 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   3. `code-card` 内に生の `<` タグが無い — `<pre class="code-card">` ブロックを目視し、
      `<ins>` `</ins>` `<span class="ln">` `<span class="hl">` `</span>` 以外の `<` が残っていないことを確認する
      （残っていればエスケープ漏れ＝抜粋欠落）
+- **生成後検査を通したら `$LOGS` へ保存する（必須・`open` の前）**: `/tmp` はOSに掃除されるため、
+  そこに置いたままではダイジェストが後から一切見返せない（recordsのmd縮約しか残らない）。
+  検査3点が全部通った時点で次を実行し、`$LOGS` 側を保存の正本とする:
+
+      mkdir -p <$LOGSの実値>/harness/pr-independent-review/digests && \
+        cp /tmp/pr-review-<番号>/index.html \
+           <$LOGSの実値>/harness/pr-independent-review/digests/pr-<番号>.html
+
+  - `$LOGS` は `$CANON` の兄弟 `moorestech_logs`（例: `$CANON` が `~/moorestech` なら `~/moorestech_logs`）。
+    `$CANON` と同じくプレースホルダなので、コマンドには実値の絶対パスへ展開して書く
+  - **再レビュー時のファイル名はrecordsと揃える** — `pr-<番号>-r2.html`（以降 `-r3`…）を新規作成し、
+    既存の `pr-<番号>.html` を上書きしない（Step 8の同名規則と1対1で対応させる。上書きは
+    「前回どう見えていたか」を消す）
+  - **この保存物はStop/SessionEnd hook（`.dev-hooks/logs-sync.mjs` の `git add -A`）で
+    logs repoへ自動commit・pushされる**。PRの実コード抜粋を含むが、logs repoはprivateなので出荷先として正しい
+  - `open` は `/tmp` 側・`$LOGS` 側どちらでもよい（同一内容）
 - **プレースホルダ置換**: `{{TITLE}}`（hero・`<footer>`・`<title>` の計3箇所）/ `{{DATE}}` / `{{SUBTITLE}}` を実値へ置換する。
   `{{TITLE}}` = `独立レビュー: PR #<番号> <PRタイトル>`、`{{DATE}}` = レビュー実施日、`{{SUBTITLE}}` = verdict文字列。
   `<title>` の置換漏れはタブ名が `{{TITLE}}` のまま出荷される
@@ -484,7 +502,12 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
     認めた総数）で行う。`false-positive` はこの分母に入れない（別途の誤検知率として数える）
   - 本セクションは上の固定書式への**追補**であり、reconcile実施まで当該ファイルに存在しないのが正
     （固定書式の「0件のセクションも省略せず」は本セクションには適用しない）
-- 正典treeでの記録類のコミットはユーザーに委ねる（独立セッションは正典treeへ書き込むが勝手にcommitしない）
+- **記録類のcommitはセッションが行わない。書き込むだけでよい**（`$LOGS` 配下のrecords・shadow-ledger・
+  improvement-queue・Step 7のdigests のすべて）。Stop/SessionEnd に登録された `.dev-hooks/logs-sync.mjs` が
+  logs repoで `git add -A` → `auto: logs-sync` → `pull --rebase` → `push` まで自動で行うため、
+  セッション側で `git commit` すると同一内容を二重に扱うことになる。**書いたら放置が正**
+  （旧版の「正典treeへ書き込むが勝手にcommitしない」は記録先を `$LOGS` へ分離する前の記述。
+  現在は正典tree＝コードrepoへは記録を一切書かない）
 
 ## Step 9: 対応完了ラベル（レビューと対応が両方終わった時のみ）
 
