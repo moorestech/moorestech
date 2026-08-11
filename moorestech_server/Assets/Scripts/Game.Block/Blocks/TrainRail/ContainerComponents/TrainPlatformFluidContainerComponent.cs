@@ -24,14 +24,14 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
         private readonly TrainPlatformDockingComponent _dockingComponent;
         private readonly TrainPlatformTransferComponent _transferComponent;
-        private readonly BlockConnectorComponent<IFluidInventory, DefaultContext> _fluidConnector;
+        private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
         private readonly double _capacity;
 
         public TrainPlatformFluidContainerComponent(
             TrainPlatformDockingComponent dockingComponent,
             TrainPlatformTransferComponent transferComponent,
             double capacity,
-            BlockConnectorComponent<IFluidInventory, DefaultContext> fluidConnector)
+            BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector)
         {
             _dockingComponent = dockingComponent;
             _transferComponent = transferComponent;
@@ -43,7 +43,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             TrainPlatformDockingComponent dockingComponent,
             TrainPlatformTransferComponent transferComponent,
             double capacity,
-            BlockConnectorComponent<IFluidInventory, DefaultContext> fluidConnector,
+            BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector,
             Dictionary<string, string> componentStates)
         {
             _dockingComponent = dockingComponent;

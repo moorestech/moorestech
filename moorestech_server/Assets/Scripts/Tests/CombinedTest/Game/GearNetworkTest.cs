@@ -473,10 +473,10 @@ namespace Tests.CombinedTest.Game
         
         private static void ForceConnectGear(IBlock gear1, IBlock gear2)
         {
-            BlockConnectorComponent<IGearEnergyTransformer, GearContext> gear1Connector = gear1.GetComponent<BlockConnectorComponent<IGearEnergyTransformer, GearContext>>();
+            BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge> gear1Connector = gear1.GetComponent<BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>>();
             var gear1Transform = gear1.GetComponent<IGearEnergyTransformer>();
             
-            BlockConnectorComponent<IGearEnergyTransformer, GearContext> gear2Connector = gear2.GetComponent<BlockConnectorComponent<IGearEnergyTransformer, GearContext>>();
+            BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge> gear2Connector = gear2.GetComponent<BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>>();
             var gear2Transform = gear2.GetComponent<IGearEnergyTransformer>();
             
             

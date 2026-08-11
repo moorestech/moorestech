@@ -1,30 +1,16 @@
-using System.Collections.Generic;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
 using Game.Block.Interface.Component.ConnectJudge;
-using Game.Context;
-using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.GearModule;
 using UnityEngine;
-using static Mooresmaster.Model.BlocksModule.BlockMasterElement.BlockTypeConst;
 
 namespace Game.Gear.Common
 {
-
-    
-    
-    
     /// <summary>
     ///     歯車ドメインの接続判定。双方の噛み合い軸（meshingAxis）がワールド空間で平行なときのみ接続を許可する
     ///     Gear-domain judge; allows connection only when both meshing axes are parallel in world space
     /// </summary>
-    public class GearContext<TTarget> : IConnectorContext<TTarget> where TTarget : IGearEnergyTransformer 
+    public class GearConnectJudge : IConnectorConnectJudge
     {
-        public void Initialize(IBlockConnectorComponent<TTarget> component, BlockPositionInfo positionInfo)
-        {
-            throw new System.NotImplementedException();
-        }
-        
         public bool CanConnect(ConnectJudgeContext context)
         {
             // コネクタ未特定（方向無制限経路）は制約なしとして通す

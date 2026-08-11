@@ -14,13 +14,13 @@ using UnityEngine;
 namespace Game.Block.Component
 {
     [DisallowMultiple]
-    public class BlockConnectorComponent<TTarget, TConnectContext> : IBlockConnectorComponent<TTarget>
+    public class BlockConnectorComponent<TTarget, TConnectJudge> : IBlockConnectorComponent<TTarget>
         where TTarget : IBlockComponent
-        where TConnectContext : IConnectorContext<TTarget>, new()
+        where TConnectJudge : IConnectorConnectJudge, new()
     {
         // ドメイン固有の追加接続判定（型パラメータで束縛され、両側ブロックで同一が保証される）
         // Domain-specific extra judge (bound by type parameter, guaranteed identical on both sides)
-        private static readonly TConnectContext Context = new TConnectContext();
+        private static readonly TConnectJudge Judge = new TConnectJudge();
 
         public IReadOnlyDictionary<TTarget, ConnectedInfo> ConnectedTargets => _connectedTargets;
         private readonly Dictionary<TTarget, ConnectedInfo> _connectedTargets = new();
@@ -35,34 +35,16 @@ namespace Game.Block.Component
         // key: アウトプット先の位置
         // value: アウトプットコネクターの位置とIBlockConnector
         private readonly Dictionary<Vector3Int, (Vector3Int position, IBlockConnector connector)> _outputTargetToOutputConnector;
-        
-        private readonly bool _isOverrideLogic;
 
         public BlockConnectorComponent(IReadOnlyList<IBlockConnector> inputConnectors, IReadOnlyList<IBlockConnector> outputConnectors, BlockPositionInfo blockPositionInfo)
         {
             var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;
 
             _blockPositionInfo = blockPositionInfo;
-            
-            var overridePositions = Context.InitializeAndGetOverridelSubsrcibePositions(this, blockPositionInfo);
-            var positions = new List<Vector3Int>();
-            
-            if (overridePositions.Count == 0)
-            {
-                // @Claudeさんへ　本当にこのifの中にこの下を入れてもいいか検討してください
-                // オーバーライドするものがなかったら今まで通りの処理を実行
-                _inputConnectPoss = BlockConnectorConnectPositionCalculator.CalculateConnectorToConnectPosList(inputConnectors, blockPositionInfo);
-                _outputTargetToOutputConnector = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(outputConnectors, blockPositionInfo);
-                positions.AddRange(_outputTargetToOutputConnector.Keys);
-            }
-            else
-            {
-                // オーバーライドする場合は専用フラグを立て、購読もオーバーライド側の購読先に従う
-                _isOverrideLogic = true;
-                positions.AddRange(overridePositions);
-            }
-            
-            foreach (var outputPos in positions)
+            _inputConnectPoss = BlockConnectorConnectPositionCalculator.CalculateConnectorToConnectPosList(inputConnectors, blockPositionInfo);
+            _outputTargetToOutputConnector = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(outputConnectors, blockPositionInfo);
+
+            foreach (var outputPos in _outputTargetToOutputConnector.Keys)
             {
                 _blockUpdateEvents.Add(worldBlockUpdateEvent.GetBlockPlaceEvent(outputPos).Subscribe(b => OnPlaceBlock(b.Pos)));
                 _blockUpdateEvents.Add(worldBlockUpdateEvent.GetBlockRemoveEvent(outputPos).Subscribe(OnRemoveBlock));
@@ -93,25 +75,11 @@ namespace Game.Block.Component
             // 接続先に同型のコネクタコンポーネントとターゲットがなければ処理を終了
             // Exit if the target lacks a same-typed connector component and target component
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            if (!worldBlockDatastore.TryGetBlock(outputTargetPos, out BlockConnectorComponent<TTarget, TConnectContext> targetConnector)) return;
+            if (!worldBlockDatastore.TryGetBlock(outputTargetPos, out BlockConnectorComponent<TTarget, TConnectJudge> targetConnector)) return;
             if (!worldBlockDatastore.TryGetBlock<TTarget>(outputTargetPos, out var targetComponent)) return;
-            
 
             var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(outputTargetPos);
-            
-            if (_isOverrideLogic)
-            {
-                var overrideConnectedTargets = Context.GetOverride(_connectedTargets,  targetBlock);
-                
-                _connectedTargets.Clear();
-                foreach (var kvp in overrideConnectedTargets)
-                {
-                    _connectedTargets.Add(kvp.Key, kvp.Value);
-                }
-                
-                return;
-            }
-            
+
             // 位置一致した候補を全て評価し、最初に通る組を採用する
             // Evaluate all position-matched candidates and use the first valid pair
             if (!TryFindConnectableCandidate(out var selfConnector, out var targetElementConnector)) return;
@@ -139,7 +107,7 @@ namespace Game.Block.Component
                     if (!MasterHolder.BlockMaster.CanConnectConnectorShapes(candidate.selfConnector?.ShapeGuid, candidate.targetConnector?.ShapeGuid)) continue;
 
                     var judgeContext = new ConnectJudgeContext(candidate.selfConnector, candidate.targetConnector, _blockPositionInfo, targetBlock.BlockPositionInfo);
-                    if (!Context.CanConnect(judgeContext)) continue;
+                    if (!Judge.CanConnect(judgeContext)) continue;
 
                     validSelfConnector = candidate.selfConnector;
                     validTargetConnector = candidate.targetConnector;

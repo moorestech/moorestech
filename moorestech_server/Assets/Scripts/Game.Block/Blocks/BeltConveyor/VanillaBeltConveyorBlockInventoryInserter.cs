@@ -24,11 +24,11 @@ namespace Game.Block.Blocks.BeltConveyor
     
     public class VanillaBeltConveyorBlockInventoryInserter : IBeltConveyorBlockInventoryInserter
     {
-        private readonly BlockConnectorComponent<IBlockInventory, DefaultContext> _blockConnectorComponent;
+        private readonly BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> _blockConnectorComponent;
         private readonly BlockInstanceId _sourceBlockInstanceId;
         private int _roundRobinIndex = -1;
 
-        public VanillaBeltConveyorBlockInventoryInserter(BlockInstanceId sourceBlockInstanceId, BlockConnectorComponent<IBlockInventory, DefaultContext> blockConnectorComponent)
+        public VanillaBeltConveyorBlockInventoryInserter(BlockInstanceId sourceBlockInstanceId, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> blockConnectorComponent)
         {
             _sourceBlockInstanceId = sourceBlockInstanceId;
             _blockConnectorComponent = blockConnectorComponent;

@@ -40,14 +40,6 @@ defineInterface:
   - key: moduleSlotCount
     type: integer
     default: 0
-- interfaceName: IBeltConveyorParam
-  properties:
-  - key: slopeType
-    type: enum
-    options:
-      - Straight
-      - Up
-      - Down
 - interfaceName: IChestParam
   properties:
   - key: itemSlotCount
@@ -242,7 +234,6 @@ properties:
         type: object
         implementationInterface:
         - IInventoryConnectors
-        - IBeltConveyorParam
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -256,7 +247,6 @@ properties:
           - Straight
           - Up
           - Down
-          - Split
         - key: inventoryConnectors
           ref: inventoryConnects
       - when: Chest
@@ -631,7 +621,6 @@ properties:
         - IInventoryConnectors
         - IGearConnectors
         - IGearOverloadParam
-        - IBeltConveyorParam
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -647,7 +636,6 @@ properties:
           - Straight
           - Up
           - Down
-          - Split
         - key: overloadMaxRpm
           type: number
           default: 0

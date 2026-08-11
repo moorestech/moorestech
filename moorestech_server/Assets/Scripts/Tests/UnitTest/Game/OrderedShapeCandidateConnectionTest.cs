@@ -33,7 +33,7 @@ namespace Tests.UnitTest.Game
             world.TryAddBlock(ForUnitTestModBlockId.TestShapeOrderSourceChest, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var sourceBlock);
             world.TryAddBlock(ForUnitTestModBlockId.TestShapeOrderTargetChest, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
-            var connectedTargets = sourceBlock.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultContext>>().ConnectedTargets;
+            var connectedTargets = sourceBlock.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
 
             // 形状不適合な候補で拒否されず、後続の適合候補で接続が成立していることを確認
             // Confirm connection succeeds via the later compatible candidate, not rejected by the incompatible one
