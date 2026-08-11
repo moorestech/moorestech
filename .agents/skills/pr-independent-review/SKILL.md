@@ -30,9 +30,24 @@ description: |
    失敗したら即エラー終了（$CANON誤決定のまま走らせない）。**確認先はこのファイルでなければならない** —
    `moores-code-review/SKILL.md` はレビューworktree側にも存在しうるため、誤決定した$CANONでも通ってしまい弁別にならない
 
-**記録repo `$LOGS`**: レビュー実行記録（`records/pr-*.md`・シャドー台帳・改善キュー・前向きログ）は
-コードrepoではなく `../moorestech_logs`（以下 `$LOGS`、privateログrepo）の `harness/` 配下に置く。
+**記録repo `$LOGS`**: レビュー実行記録（`records/pr-*.md`・シャドー台帳・改善キュー・前向きログ・
+下記 `$RUNDIR` の中間生成物とダイジェスト）はコードrepoではなく `../moorestech_logs`
+（以下 `$LOGS`、privateログrepo）の `harness/` 配下に置く。
 featureブランチが記録ファイルに触れてマージ衝突する構造を断つための分離であり、コードrepo側へ記録を書き戻さない。
+`$LOGS` への書き込みはStop/SessionEnd hookが自動でcommit・pushする（Step 8末尾。セッション側でcommitしない）。
+
+**実行ディレクトリ `$RUNDIR`**: 1回のレビューが作る中間生成物（patch・context・novelty・detchecks・codex監査プロンプト・
+ダイジェストHTML）は**すべて** `$LOGS/harness/pr-independent-review/runs/pr-<番号>/` 配下に置く。以下これを `$RUNDIR` と呼ぶ
+（`$CANON`・`$LOGS` と同じくプレースホルダであり、シェル変数ではない。コマンドには実値の絶対パスへ展開して書く）。
+
+- **`/tmp` には一切置かない** — OSに掃除されて消える。これらはreconcileのフォレンジック・リプレイの入力そのもの
+  （どのpatchを・どのcontextで・どのdetchecks結果のもとに測ったか）であり、失うと後から見逃しの原因が特定できない
+- 再レビュー時は `runs/pr-<番号>-r2/`（以降 `-r3`…）を新規作成する。records の `pr-<番号>-r2.md` と1対1で対応させ、
+  既存runを上書きしない
+- Step 1の直後に `mkdir -p <$RUNDIRの実値>` を1回だけ実行する
+- ファイル名は固定: `patch.diff` / `context.md` / `novelty.json` / `detchecks.json` / `codex-audit.md` /
+  `digest.html` / `reconcile-comments.json`。PR番号はディレクトリ名が持つのでファイル名に含めない
+- `$RUNDIR` 配下もhookで自動commit・pushされる（PRの実コードを含むが、logs repoはprivateなので出荷先として正しい）
 
 - **`$CANON` は本ドキュメント上のプレースホルダであり、シェル変数ではない**。Bashコマンド・subagentのprompt・
   ファイルパスに渡すときは**必ず手順2で得た実値の絶対パスへ展開して書く**。`$CANON` をリテラルのまま渡すと
@@ -74,6 +89,10 @@ Step 9（対応完了ラベル）の付与条件を確認し、満たしてい�
 で取得。失敗（未認証・不存在）は即エラー終了し理由を報告する。黙って縮退しない。
 `state` と `mergeCommit` は次節の `BASE_REF` 確定に必須なので、必ずこの1回で一緒に取る。
 `headRefOid` はStep 2末尾のcheckout整合確認に使うので同時に取る（後から取り直さない）。
+
+取得できたら `$RUNDIR` を作る（以降の全生成物の置き場。既存 `pr-<番号>/` があれば再レビューなので `-r2` を使う）:
+
+    mkdir -p <$RUNDIRの実値>
 
 ## Step 1.5: BASE_REF の確定（base参照はここで一度だけ決める）
 
@@ -152,7 +171,7 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
       <BASE_REF>...HEAD -- . \
       ':(exclude)*.meta' ':(exclude)*.prefab' ':(exclude)*.asset' ':(exclude)*.unity' \
       ':(exclude)*.png' ':(exclude)*.jpg' ':(exclude)*.controller' ':(exclude)*.mat' ':(exclude)*.fbx' \
-      > /tmp/pr-review-<番号>-patch.diff
+      > <$RUNDIRの実値>/patch.diff
 
 `<BASE_REF>` はStep 1.5で確定した実値。yml/jsonは残す（master-data系レンズの守備範囲のため）。
 
@@ -167,7 +186,7 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 
 **成功条件＝patch非空（必須ガード・省略禁止）**: 生成直後に
 
-    grep -c '^diff' /tmp/pr-review-<番号>-patch.diff
+    grep -c '^diff' <$RUNDIRの実値>/patch.diff
 
 を実行し、**1以上**であることを確認する。**0なら「base指定ミスまたはpatch取得失敗」として即エラー終了する**。
 空patchのまま先へ進むのは禁止 — 空patchは全レンズ・全reviewerを無所見にしverdictを「自動マージ可」へ化けさせるが、
@@ -176,7 +195,7 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 
 ## Step 4: 4カテゴリcontextの独立再構成
 
-`/tmp/pr-review-<番号>-context.md` に書く。**情報源はPR本文とリポジトリ内のspec/planの判断台帳（ADR）のみ**。
+`<$RUNDIRの実値>/context.md` に書く。**情報源はPR本文とリポジトリ内のspec/planの判断台帳（ADR）のみ**。
 実装セッションの申告・PRコメントの合意主張は使わない。
 
 - **4カテゴリは必ず `##` 見出しで書く**（太字箇条書き・箇条書きの見出し代用は不可）。カテゴリ名は本体Step 1と同一の
@@ -201,20 +220,20 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 ## Step 5: 新規性ゲートL1
 
     python3 "$CANON/.claude/skills/pr-independent-review/scripts/novelty_gate.py" \
-      ~/moorestech-worktrees/pr-review <BASE_REF> > /tmp/pr-review-<番号>-novelty.json
+      ~/moorestech-worktrees/pr-review <BASE_REF> > <$RUNDIRの実値>/novelty.json
 
 （`$CANON` は冒頭で決めた実値に展開して書く。リテラルのまま渡さない。第2引数はStep 1.5の `BASE_REF` の実値であり、
 `origin/<baseRefName>` のベタ書きではない）
 
 **出力は必ずこのファイルへ保存し、以降のStep（新形の数え上げ・裁定カード化・Step 8の記録）は
-`/tmp/pr-review-<番号>-novelty.json` を読み直して行う**。stdoutの見た目や記憶から新形を数えない
+`<$RUNDIRの実値>/novelty.json` を読み直して行う**。stdoutの見た目や記憶から新形を数えない
 （件数の写し間違いが台帳の実測値を直接汚す）。
 
 **保存直後の受け取り検査（必須・省略禁止）**: 次の1行で「JSONとしてパースできること」と
 「`new_edges` / `asmdef_refs` / `grammar` の3キーが揃っていること」を確認する。失敗したら即エラー終了する
 （ゲートが途中で壊れた出力を、空＝新形0件として受け取らないため）:
 
-    python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert {"new_edges","asmdef_refs","grammar"} <= d.keys(), d.keys(); print({k: len(d[k]) for k in ("new_edges","asmdef_refs","grammar")})' /tmp/pr-review-<番号>-novelty.json
+    python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert {"new_edges","asmdef_refs","grammar"} <= d.keys(), d.keys(); print({k: len(d[k]) for k in ("new_edges","asmdef_refs","grammar")})' <$RUNDIRの実値>/novelty.json
 
 出力JSONのうち次を**新形フラグ**として数える（3系統で採用基準が違う。混同禁止）:
 
@@ -259,7 +278,7 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 （`$CANON` は冒頭で決めた実値に展開して書くこと）:
 
 ```bash
-python3 "$CANON/.claude/skills/moores-code-review/scripts/deterministic_checks.py" "<PATCH_PATH>" --repo-root ~/moorestech-worktrees/pr-review --context "<USER_PROMPT_PATH>" > /tmp/pr-review-<番号>-detchecks.json
+python3 "$CANON/.claude/skills/moores-code-review/scripts/deterministic_checks.py" "<PATCH_PATH>" --repo-root ~/moorestech-worktrees/pr-review --context "<USER_PROMPT_PATH>" > <$RUNDIRの実値>/detchecks.json
 python3 "$CANON/.claude/skills/moores-code-review/scripts/select_lenses.py" "<PATCH_PATH>"
 python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "<PATCH_PATH>"
 ```
@@ -273,12 +292,12 @@ python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "
   適用がない以上最終diff＝Step 3のpatchなので、それをそのまま渡す。convention-guardの「機械的は自動適用」も
   report-onlyでは適用せず指摘として出す
 - **comment-convention-guardの `Candidates :` は本体Step 2相当（本スキルStep 6冒頭の決定論チェック）で生成したdetchecks JSON**
-  （`/tmp/pr-review-<番号>-detchecks.json`）を渡す。本体は「最終diffで再計測したdetchecks-final」を渡す規定だが、
+  （`<$RUNDIRの実値>/detchecks.json`）を渡す。本体は「最終diffで再計測したdetchecks-final」を渡す規定だが、
   report-onlyでは**修正適用が無いため最終diff＝Step 3のpatchであり、Step 6冒頭のdetchecks出力がそのまま最終値**になる。
   よって `deterministic_checks.py` の再実行はしない。4行契約の残り3行は `Read this : $CANON/.claude/skills/moores-code-review/post-checks/comment-convention-guard.md` /
   `Patch path : <PATCH_PATH>` / `User prompt : <USER_PROMPT_PATH>`（いずれも実値の絶対パスへ展開。下記「subagent起動契約への必須追記」参照）
-- **`/tmp` の一時ファイル削除（本体Step 7の項目4）も行わない** — Step 3のpatchは後段のコード抜粋転記で読むため、
-  ここで消すとダイジェストの実コードが作れなくなる
+- **中間生成物の削除（本体Step 7の項目4）は行わない** — `$RUNDIR` 配下は保存物であって一時ファイルではない。
+  Step 3のpatchは後段のコード抜粋転記で読むうえ、reconcileのフォレンジック・リプレイの入力でもある
 - AskUserQuestionは使わない。設計判断もダイジェストの裁定カードへ
 
 ### Codex外部監査（本体Step 3）の起動手当て
@@ -289,9 +308,10 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 レビュアーの指示を書ける自己弱体化経路）。次を必ず守る:
 
 - **中立ディレクトリ（`/tmp` 等・リポジトリ外）から起動し、対象は全部プロンプト内の絶対パスで渡す**
-  （バックグラウンド起動は本体どおり）:
+  （バックグラウンド起動は本体どおり）。ここの `/tmp` は**codexのcwdとして使うだけ**でありファイル置き場ではない
+  （`$RUNDIR` は `$LOGS` 配下＝git repo内なので、cwdにするとcodexがlogs repoを覗く。cwdは中立のまま保つ）:
 
-      cd /tmp && codex exec --sandbox read-only --skip-git-repo-check - < /tmp/pr-review-<番号>-audit.md
+      cd /tmp && codex exec --sandbox read-only --skip-git-repo-check - < <$RUNDIRの実値>/codex-audit.md
 
   **レビューworktreeへ `cd` しない**。プロンプト内でリポジトリを参照する箇所は必ず
   `git -C /Users/<ユーザー名>/moorestech-worktrees/pr-review ...` の形（`-C` に実値の絶対パス）で書き、
@@ -327,12 +347,12 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 - **全サブエージェント契約（レンズ・reviewer・Fable全般・verifier・comment-rationale-guard・comment-convention-guard）の
   `Read this :` 行は `$CANON` 実値の絶対パスで書く** — 本体SKILL.mdの契約例は `.claude/skills/moores-code-review/...` の
   相対パスなので、そのままコピペするとsubagentのcwd（＝レビューworktree）側のPR同梱スキルを読む。
-  `Candidates :` / `Patch path :` / `User prompt :` の各パス（`/tmp` 配下）も同様に絶対パスで書く
+  `Candidates :` / `Patch path :` / `User prompt :` の各パス（`$RUNDIR` 配下）も同様に絶対パスで書く
 
 ## Step 7: ダイジェストHTML生成
 
 `$CANON/.claude/skills/pr-independent-review/assets/digest-template.html` をReadし、sonnet subagentに
-`/tmp/pr-review-<番号>/index.html` を生成させて `open` する。CSS・コメント機能JSはverbatim維持。
+`<$RUNDIRの実値>/digest.html` を生成させて `open` する。CSS・コメント機能JSはverbatim維持。
 
 - **並び順の原則: ユーザーの裁定が必要なものほど上（ユーザー裁定 2026-07-30）**。Criticalは裁定不要の修正リストなので
   上位に置かない。構成は次の順で固定する:
@@ -381,12 +401,16 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   エスケープされて `&lt;ins&gt;` が画面に出る。エスケープを怠ると `Subject<int>` の `<int>` がタグとして食われ、
   **コード抜粋が黙って一部消える**（レビュー成果物としては致命傷。消えたことが画面から分からない）
 - **生成後検査3点（必須・全部通るまで出荷しない）**:
-  1. 未置換プレースホルダ0件 — `grep -c '{{' /tmp/pr-review-<番号>/index.html` が0
-  2. `<script>` 要素がちょうど1個 — `grep -c '<script' /tmp/pr-review-<番号>/index.html` が1
+  1. 未置換プレースホルダ0件 — `grep -c '{{' <$RUNDIRの実値>/digest.html` が0
+  2. `<script>` 要素がちょうど1個 — `grep -c '<script' <$RUNDIRの実値>/digest.html` が1
      （コメント機能JSはverbatim維持＝増減しないのが正）
   3. `code-card` 内に生の `<` タグが無い — `<pre class="code-card">` ブロックを目視し、
      `<ins>` `</ins>` `<span class="ln">` `<span class="hl">` `</span>` 以外の `<` が残っていないことを確認する
      （残っていればエスケープ漏れ＝抜粋欠落）
+- **保存はこれで完了している**（`$RUNDIR` へ直接生成しているため別途コピーしない）。ダイジェストは
+  Stop/SessionEnd hook（`.dev-hooks/logs-sync.mjs` の `git add -A`）でlogs repoへ自動commit・pushされ、
+  後からいつでも見返せる。**`/tmp` へ書いてはいけない** — 過去に `/tmp` へ出していた分は全て消え、
+  recordsのmd縮約しか残らなかった。`open` の対象も `$RUNDIR` 側のパス
 - **プレースホルダ置換**: `{{TITLE}}`（hero・`<footer>`・`<title>` の計3箇所）/ `{{DATE}}` / `{{SUBTITLE}}` を実値へ置換する。
   `{{TITLE}}` = `独立レビュー: PR #<番号> <PRタイトル>`、`{{DATE}}` = レビュー実施日、`{{SUBTITLE}}` = verdict文字列。
   `<title>` の置換漏れはタブ名が `{{TITLE}}` のまま出荷される
@@ -429,6 +453,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
       - canonical: <$CANONのHEAD SHA>（<clean|dirty>）
       - 系統: <発火した系統名と各々の完了/縮退。例: 決定論=完了/レンズ3本=完了/reviewer5本=完了/Codex=縮退（不在）/Fable=完了>
       - session: <このレビューセッションの識別子>
+      - rundir: <$LOGS/harness/pr-independent-review/ からの相対パス。例: runs/pr-1116/>
 
       ## 新形
       <新形フラグ1件1行（系統名・ファイル:行（lineがnullならファイルのみ）・要点）>
@@ -441,7 +466,9 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
       ## suppressed
       <1件1行（ファイル:行・指摘要点・suppressed-by出所）>
 
-- **測定器メタデータ行（`head` / `base` / `canonical` / `系統` / `session`）は省略禁止**。
+- **測定器メタデータ行（`head` / `base` / `canonical` / `系統` / `session` / `rundir`）は省略禁止**。
+  `rundir` は「このverdictを出したときの実入力（patch・context・detchecks）がどこにあるか」の唯一の口であり、
+  reconcileのフォレンジック・リプレイはここから辿る。
   これらは「何を・どの測定器で測ったか」の記録であり、欠けると後からverdictの再現も、
   測定器の版差による見逃し率の比較もできなくなる。`head` と `base` は
   `git -C ~/moorestech-worktrees/pr-review rev-parse HEAD` / `rev-parse "<BASE_REF>^{commit}"` の実出力、
@@ -484,7 +511,12 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
     認めた総数）で行う。`false-positive` はこの分母に入れない（別途の誤検知率として数える）
   - 本セクションは上の固定書式への**追補**であり、reconcile実施まで当該ファイルに存在しないのが正
     （固定書式の「0件のセクションも省略せず」は本セクションには適用しない）
-- 正典treeでの記録類のコミットはユーザーに委ねる（独立セッションは正典treeへ書き込むが勝手にcommitしない）
+- **記録類のcommitはセッションが行わない。書き込むだけでよい**（`$LOGS` 配下のrecords・shadow-ledger・
+  improvement-queue・`$RUNDIR` 配下の中間生成物とダイジェスト のすべて）。Stop/SessionEnd に登録された `.dev-hooks/logs-sync.mjs` が
+  logs repoで `git add -A` → `auto: logs-sync` → `pull --rebase` → `push` まで自動で行うため、
+  セッション側で `git commit` すると同一内容を二重に扱うことになる。**書いたら放置が正**
+  （旧版の「正典treeへ書き込むが勝手にcommitしない」は記録先を `$LOGS` へ分離する前の記述。
+  現在は正典tree＝コードrepoへは記録を一切書かない）
 
 ## Step 9: 対応完了ラベル（レビューと対応が両方終わった時のみ）
 
@@ -512,11 +544,16 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 **ここは改善機構の発火装置であり、改善の手法・検証・回帰コーパスは moores-code-review 側
 （`references/skill-improvement.md`・`eval/`）が単一の正である。手順・fixture・検証規則をこちらへ複製しない。**
 
+**reconcileでの `$RUNDIR`**: reconcileはレビュー本体とは別セッションで走るので、`$RUNDIR` は自分で決めずに
+`$LOGS/harness/pr-independent-review/records/pr-<番号>.md`（最新の `-rN`）の `- rundir:` 行が指すディレクトリを使う。
+その行が無い古い記録（2026-08-08以前のレビュー）はrun保存前のものなので、中間生成物は存在しない前提で進める
+（人間コメントとrecordsのテキストだけで突き合わせる。無いものを探して止まらない）。
+
 1. **入力は人間のGitHubコメントのみ**（人間に台帳記入・ラベル付け・分類を求めない。人間の自然なレビュー行為の
    排気だけを信号源にする）:
 
        gh api repos/moorestech/moorestech/pulls/<番号>/comments --paginate \
-         --jq '.[] | {path, line, body, html_url, commit_id}' > /tmp/pr-reconcile-<番号>-comments.json
+         --jq '.[] | {path, line, body, html_url, commit_id}' > <$RUNDIRの実値>/reconcile-comments.json
 
    **`commit_id` は必ず一緒に取る** — 改善時のフォレンジック・リプレイのピン先はこの `commit_id` であり、
    `$LOGS/harness/pr-independent-review/records/pr-<番号>.md` に記録された自動レビュー当時のheadではない（人間指摘の行番号・コード実体は
@@ -561,7 +598,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 - **Critical差し戻し**: 統合後Criticalが1件以上（**決定論チェックの `confirmed` を含む**・
   **200行超過（file-too-long）は除外**＝努力目標・**`context_source_label` も除外**）
   - `context_source_label` はStep 4で**自分が書いた**contextファイルの `##` 見出し／出所ラベル欠落の検出であり、
-    PR側の欠陥ではない。検出時はcontextファイル（`/tmp/pr-review-<番号>-context.md`）を書式どおりに修正して
+    PR側の欠陥ではない。検出時はcontextファイル（`<$RUNDIRの実値>/context.md`）を書式どおりに修正して
     `deterministic_checks.py` を再実行し、消えたことを確認してから先へ進む。verdictには一切数えない
     （PRを自分の書式ミスで差し戻すのは誤判定であり、見逃し率実測を壊す）
 - **新形につき裁定行き**: Criticalなし、かつ新形フラグ or `設計判断: あり` が1件以上
