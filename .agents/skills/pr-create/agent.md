@@ -69,6 +69,12 @@ Web変更で画像のコミットやGitHub上での参照確認ができない�
   - `git checkout -b` は使わない。worktreeを別ブランチへ移すとそのworktreeの用途（`treeN`常駐）が壊れるため
   - `treeN` 自体は巻き戻さない。作業ツリーのファイル状態を変えないことを優先する（次タスクでの巻き戻しは利用者の判断）
   - 以降 **PR_BRANCH = feature/xxx**。ステップ4のpush・`gh pr create` は `--head` でこのブランチを明示する
+- **現在のブランチのPRが既にマージ済みの場合**（`git fetch origin <BASE>` 後に `git log origin/<BASE>..HEAD` が空、または `gh pr list --head <現在のブランチ> --state merged` でMERGEDが確認できる場合）: 「PRを作成できない」と報告して終わらず、最新のベースブランチから新ブランチを切って続行する。
+  ```bash
+  git fetch origin <BASE>
+  git checkout -b feature/xxx origin/<BASE>
+  ```
+  未コミットの変更（modified / untracked）はブランチ切り替え後もそのまま残るので、PR対象の変更を新ブランチでコミットする。以降 **PR_BRANCH = feature/xxx**。ただし現在のブランチが `treeN` の場合はcheckoutで切り替えず、上記 `treeN` ルール（`git branch feature/xxx HEAD`）に従う
 - **ベースブランチ（master等）上に未pushのコミットが進行している場合**: それらのコミットをそのままベースブランチに残さず、新しいブランチへ退避する。差分（`git log origin/<BASE>..HEAD` と `git diff origin/<BASE>...HEAD`）を分析し、内容を表す適切なブランチ名で切り出す。
   ```bash
   # 現在のHEAD（未pushコミットを含む）に新しいブランチを作成

@@ -32,6 +32,8 @@ hooks:
 
 **開始時に宣言:** 「writing-plansスキルを使って実装計画を作成します」
 
+**最初に必ず実行（plan記述前）:** `git pull` を実行してプロジェクトを最新の状態にしてからplanを書き始める。古いコードを前提にしたplanは実装時に破綻するため、pullを省略しない。pullがコンフリクト等で失敗した場合は、planを書き始めずにその旨をユーザーに報告して指示を仰ぐ。
+
 **Context:** 独立したworktreeで作業する場合、実行時に`superpowers:using-git-worktrees`スキル経由で作成されているはず。
 
 **plan保存先:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
