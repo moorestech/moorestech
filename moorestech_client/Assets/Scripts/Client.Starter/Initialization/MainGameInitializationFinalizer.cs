@@ -3,6 +3,7 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Environment.Terrain;
+using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Presenter.Player;
@@ -36,6 +37,11 @@ namespace Client.Starter.Initialization
             var resolver = starter.StartGame(_serverResult.HandshakeResponse);
             new ClientDIContext(new DIContainer(resolver));
             WebUiHost.Game.WebUiGameBinder.Bind();
+
+            // ホットバー初期割当を取得し適用する。メインインベントリと同様イベント購読開始前に適用する
+            // Fetch and apply the initial hotbar assignments before event dispatch starts, same as the main inventory
+            var hotbarResponse = await _serverResult.VanillaApi.Response.GetHotbar(default);
+            resolver.Resolve<ClientHotbarDatastore>().ApplyAssignments(hotbarResponse.Assignments);
 
             // イベント適用開始を地形構築より前へ戻し、未生成個体宛イベントが捨てられる窓を地形構築時間分広げない（ADR#15）
             // Start event application before terrain build so the drop window for not-yet-spawned targets never widens by build time (ADR#15)
