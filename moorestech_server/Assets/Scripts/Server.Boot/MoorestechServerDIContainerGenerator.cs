@@ -258,6 +258,7 @@ namespace Server.Boot
             services.AddSingleton<ItemStackLevelUnlockEventPacket>();
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
+            services.AddSingleton<HotbarUpdateEventPacket>();
             services.AddSingleton<UnlockedEventPacket>();
             services.AddSingleton<RailNodeCreatedEventPacket>();
             services.AddSingleton<RailConnectionCreatedEventPacket>();

@@ -34,7 +34,8 @@
     "Game.PlayerRiding.Interface",
     "Game.Blueprint",
     "Game.Paths",
-    "Game.MapGeneration"
+    "Game.MapGeneration",
+    "Game.Hotbar"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

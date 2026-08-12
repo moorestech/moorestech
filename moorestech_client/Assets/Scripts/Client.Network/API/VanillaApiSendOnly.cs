@@ -181,5 +181,14 @@ namespace Client.Network.API
             var request = ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateDisconnectRequest(posA, posB, _playerId);
             _packetSender.Send(request);
         }
+
+        /// <summary>
+        /// ホットバーのAssign/Clear/Swapを送信する（結果はホットバー更新イベントで返る）
+        /// Send an Assign/Clear/Swap for the hotbar; the result comes back through the hotbar update event
+        /// </summary>
+        public void SendHotbarRequest(HotbarProtocol.HotbarProtocolMessagePack request)
+        {
+            _packetSender.Send(request);
+        }
     }
 }
