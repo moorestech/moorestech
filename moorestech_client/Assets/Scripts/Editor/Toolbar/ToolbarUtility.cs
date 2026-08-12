@@ -102,8 +102,8 @@ namespace Client.Editor.Toolbar
             // Place the no-save launch button next to the game speed control
             if (noSavePlay != null) dockAfter?.Invoke(noSavePlay, new object[] { timeScale });
 
-            // セーブ無し起動ボタンの隣に生成ワールド起動ボタンを配置する
-            // Place the generated-world launch button next to the no-save launch button
+            // 生成ワールドボタンを配置
+            // Place the generated-world launch button
             if (generatedPlay != null && noSavePlay != null) dockAfter?.Invoke(generatedPlay, new object[] { noSavePlay });
 
             if (branchName != null)

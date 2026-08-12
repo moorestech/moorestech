@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Client.Editor.Toolbar
 {
     /// <summary>
-    /// 自動生成ワールドでゲームを起動する専用の再生ボタンをツールバーに追加する
+    /// 生成ワールド専用の再生ボタンをツールバーに追加する
     /// Add a dedicated play button that launches the game with a generated world
     /// </summary>
     public static class GeneratedWorldPlayToolbarElement

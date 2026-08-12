@@ -5,8 +5,8 @@ using UnityEditor;
 namespace Client.Starter.Editor
 {
     /// <summary>
-    /// 生成ワールドを削除して次回起動時に新しいseedで再生成させるメニュー項目
-    /// Menu item that deletes the generated world so the next launch regenerates it with a new seed
+    /// 生成ワールドを削除し再生成させるメニュー項目
+    /// Menu item that deletes the generated world so it regenerates on next launch
     /// </summary>
     public static class GeneratedWorldDeleteMenu
     {

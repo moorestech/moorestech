@@ -77,8 +77,8 @@ namespace Client.Starter
             // When launched via the dedicated toolbar play button, override launch args to skip loading/saving save data
             Editor.SkipSaveLoadPlayModeSettings.ApplyIfNeeded(_proprieties);
 
-            // 生成ワールド再生ボタン経由なら、専用ワールド・自動生成モードへ起動引数を上書きする
-            // When launched via the generated-world play button, override launch args to the dedicated world and generated map mode
+            // 生成ワールド起動引数を上書き
+            // Override launch args for the generated-world play button
             Editor.GeneratedWorldPlayModeSettings.ApplyIfNeeded(_proprieties);
 #endif
 
