@@ -11,8 +11,8 @@ import { L, useI18n } from "@/shared/i18n";
 // Tighten inventory padding to 1px for the reference occupancy while preserving the inv-white corner probe
 const GRID_STYLE = { "--slot-size": "45.617px", "--slot-grid-gap": "9.183px", "--filled-face-inset": "1.565749px", "--face-inset-color": "rgb(50 52 67)", "--icon-pad": "1px", "--count-bottom": "-1px", "--count-font-size": "16px", "--count-letter-spacing": "0.12em", marginTop: "12px", marginLeft: "-0.549px" } as CSSProperties;
 
-// メイン4行を操作する。grab追従とホットバーは常時別表示
-// Handle four main rows; grab tracking and the hotbar render separately
+// メインインベントリ全スロットを操作する。grab追従は常時別表示
+// Handle every main-inventory slot; grab tracking renders separately
 export default function InventoryPanel() {
   const { t } = useI18n();
   const inventory = useTopic(Topics.inventory);

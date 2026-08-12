@@ -1,4 +1,4 @@
-import type { InventoryArea, PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
+import type { PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
 import { planDirectMoves } from "./planDirectMoves";
 import type { PlannedAction } from "./plannedAction";
 
@@ -36,8 +36,8 @@ export function planPlayerDoubleClick(ref: SlotRef): PlannedAction[] {
   return [{ type: "inventory.collect", payload: { slot: ref } }];
 }
 
-// Shift+クリック: ブロックUIが開いていれば block へ、閉なら反対エリアへ配分する（uGUI DirectMover 準拠）
-// Shift-click: allocate into the block while its UI is open, else into the opposite area (mirrors uGUI DirectMover)
+// Shift+クリック: ブロックUIが開いていれば block へ配分する。装備からのShiftは持ち物本体へ戻す（旧main⇔hotbar振り分けは廃止済み）
+// Shift-click: allocate into the block while its UI is open; shift from equipment returns the stack to the main area (the old main<->hotbar swap is gone)
 function planShiftMove(from: SlotRef, slot: SlotData, ctx: PlayerSlotContext): PlannedAction[] {
   if (ctx.blockItemSlots) {
     return planDirectMoves(slot.count, slot.itemId, ctx.maxStack, ctx.blockItemSlots).map((m) => ({
@@ -45,12 +45,9 @@ function planShiftMove(from: SlotRef, slot: SlotData, ctx: PlayerSlotContext): P
       payload: { from, to: { area: "block", slot: m.slot }, count: m.count },
     }));
   }
-  // 装備からの Shift は持ち物本体へ戻す。main/hotbar 同士は従来どおり反対エリアへ振る
-  // Shift from equipment returns the stack to the main area; main/hotbar still swap into each other
-  const targetArea: InventoryArea = from.area === "main" ? "hotbar" : "main";
-  const targetSlots = targetArea === "main" ? ctx.inventory.mainSlots : ctx.inventory.hotbarSlots;
-  return planDirectMoves(slot.count, slot.itemId, ctx.maxStack, targetSlots).map((m) => ({
+  if (from.area !== "equipment") return [];
+  return planDirectMoves(slot.count, slot.itemId, ctx.maxStack, ctx.inventory.mainSlots).map((m) => ({
     type: "inventory.move_item",
-    payload: { from, to: { area: targetArea, slot: m.slot }, count: m.count },
+    payload: { from, to: { area: "main", slot: m.slot }, count: m.count },
   }));
 }

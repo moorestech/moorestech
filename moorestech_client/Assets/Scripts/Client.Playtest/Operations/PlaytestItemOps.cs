@@ -60,20 +60,17 @@ namespace Client.Playtest.Operations
             }
         }
 
+        // [Task7で作り替え予定] 新ホットバー(設置対象ID参照)導入によりスロット直挿しの意味が変わったため、コンパイルが通る最小修正に留める
+        // [To be reworked in Task 7] The new hotbar (placement-target-id references) changed what a direct slot insert means, so this is a compile-only minimal fix
         public static async UniTask GiveItemToHotbar(int hotbarSlot, string itemName, int count, float timeoutSeconds)
         {
-            // HoldingItemId駆動の設置システム用に、ホットバーの特定スロットへ直接セットする
-            // Set directly into a specific hotbar slot for HoldingItemId-driven place systems
             var itemId = ResolveItemId(itemName);
             var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
             var mainInventory = GetMainInventory(playerId);
-            var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(hotbarSlot, mainInventory.GetSlotSize());
             var clientCountBefore = CountItemClientSide(itemId);
 
-            mainInventory.SetItem(inventorySlot, ServerContext.ItemStackFactory.Create(itemId, count));
+            mainInventory.SetItem(hotbarSlot, ServerContext.ItemStackFactory.Create(itemId, count));
 
-            // HotBarView.CurrentItemはクライアント側インベントリを読むため、反映を待つ
-            // HotBarView.CurrentItem reads the client-side inventory, so wait for the sync
             await WaitClientItemCount(itemId, clientCountBefore + count, timeoutSeconds);
         }
 

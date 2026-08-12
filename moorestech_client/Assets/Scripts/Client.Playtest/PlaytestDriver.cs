@@ -111,8 +111,8 @@ namespace Client.Playtest
         }
         public async UniTask ClickBuildMenuBlock(string blockName) => await ClickWebUi(PlaytestWebUiOps.BuildMenuBlockTestId(blockName));
         public async UniTask CloseWebUiPanel() => await ClickWebUi("build-menu-close");
-        // slotは0始まり（HotBarView.SelectIndexと同じ）。0→キー1、8→キー9
-        // slot is zero-based (same as HotBarView.SelectIndex): 0 -> key "1", 8 -> key "9"
+        // slotは0始まり。0→キー1、8→キー9
+        // slot is zero-based: 0 -> key "1", 8 -> key "9"
         public async UniTask SelectHotbar(int slot) => await _reporter.Act($"ホットバー{slot + 1}を選択", () => SemanticInput.TapKey(Key.Digit1 + slot));
         public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds)
         {

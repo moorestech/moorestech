@@ -161,11 +161,9 @@ namespace Client.Tests.UIState
             playerRoot.SetActive(true);
             InvokeAwake(playerContainer);
 
-            var hotBar = CreateComponent<HotBarView>("HotBar");
             var challengeHud = CreateComponent<CurrentChallengeHudView>("ChallengeHud");
             var gameState = CreateComponent<GameStateController>("GameState", false);
             SetField(gameState, "currentChallengeHudView", challengeHud);
-            gameState.Construct(hotBar);
             gameState.gameObject.SetActive(true);
             InvokeAwake(gameState);
         }

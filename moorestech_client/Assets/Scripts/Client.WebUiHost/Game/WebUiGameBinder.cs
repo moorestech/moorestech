@@ -46,15 +46,14 @@ namespace Client.WebUiHost.Game
             // Resolve the inventory controller and UI components from DI
             var resolver = ClientDIContext.DIContainer.DIContainerResolver;
             var controller = resolver.Resolve<LocalPlayerInventoryController>();
-            var hotBarView = resolver.Resolve<HotBarView>();
             var uiStateControl = resolver.Resolve<UIStateControl>();
             var subInventoryState = resolver.Resolve<SubInventoryState>();
             var trainHudState = resolver.Resolve<TrainHUDScreenState>();
             var localPlayerEquipment = resolver.Resolve<LocalPlayerEquipment>();
 
-            // インベントリトピックを生成して Hub に登録（選択状態用に HotBarView と装備モデルを渡す）
-            // Create inventory topic and register it (HotBarView and the equipment model supply the selection state)
-            var inventoryTopic = new InventoryTopic(hub, controller, hotBarView, localPlayerEquipment);
+            // インベントリトピックを生成して Hub に登録（選択状態用に装備モデルを渡す）
+            // Create inventory topic and register it (the equipment model supplies the selection state)
+            var inventoryTopic = new InventoryTopic(hub, controller, localPlayerEquipment);
             hub.RegisterTopic(InventoryTopic.TopicName, inventoryTopic);
 
             // モーダルブリッジサービスを生成（topic と action で共有）

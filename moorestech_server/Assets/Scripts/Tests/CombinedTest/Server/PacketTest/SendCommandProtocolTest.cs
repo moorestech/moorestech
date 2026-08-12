@@ -31,19 +31,19 @@ namespace Tests.CombinedTest.Server.PacketTest
             //プレイヤーインベントリを取得
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(10);
             
-            //何もないインベントリに入れたのでホットバースロット0にアイテムが入っているかチェック
-            var id2Slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0, playerInventory.MainOpenableInventory.GetSlotSize());
+            //何もないインベントリに入れたのでスロット0にアイテムが入っているかチェック
+            const int id2Slot = 0;
             Assert.AreEqual(2, playerInventory.MainOpenableInventory.GetItem(id2Slot).Id.AsPrimitive());
             Assert.AreEqual(5, playerInventory.MainOpenableInventory.GetItem(id2Slot).Count);
-            
-            
-            //別のアイテムIDを入れたので、ホットバースロット1にアイテムが入っているかチェック
+
+
+            //別のアイテムIDを入れたので、次のスロット1にアイテムが入っているかチェック
             packet.GetPacketResponse(GetGiveCommandPacket(10, 3, 7), new PacketResponseContext(null));
-            var id3Slot = PlayerInventoryConst.HotBarSlotToInventorySlot(1, playerInventory.MainOpenableInventory.GetSlotSize());
+            const int id3Slot = 1;
             Assert.AreEqual(3, playerInventory.MainOpenableInventory.GetItem(id3Slot).Id.AsPrimitive());
             Assert.AreEqual(7, playerInventory.MainOpenableInventory.GetItem(id3Slot).Count);
-            
-            //アイテムID2を入れたので、ホットバースロット0のアイテムが増えているかチェック
+
+            //アイテムID2を入れたので、スロット0のアイテムが増えているかチェック
             packet.GetPacketResponse(GetGiveCommandPacket(10, 2, 3), new PacketResponseContext(null));
             Assert.AreEqual(2, playerInventory.MainOpenableInventory.GetItem(id2Slot).Id.AsPrimitive());
             Assert.AreEqual(8, playerInventory.MainOpenableInventory.GetItem(id2Slot).Count);

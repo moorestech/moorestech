@@ -101,7 +101,6 @@ namespace Client.Starter
         // Runtime terrain construction runs outside DI in the finalizer, so only read access to the mount point is exposed
         public EnvironmentRoot EnvironmentRoot => environmentRoot;
         
-        [SerializeField] private HotBarView hotBarView;
         [SerializeField] private MapObjectMiningController mapObjectMiningController;
         [SerializeField] private PlayerSystemContainer playerSystemContainer;
         
@@ -301,8 +300,7 @@ namespace Client.Starter
             builder.RegisterComponent(environmentRoot);
             
             builder.RegisterComponent(mainCamera);
-            builder.RegisterComponent(hotBarView);
-            
+
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);

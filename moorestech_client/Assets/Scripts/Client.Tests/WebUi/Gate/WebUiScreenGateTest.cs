@@ -1,7 +1,5 @@
-using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.UIState;
 using NUnit.Framework;
-using UnityEngine;
 
 namespace Client.Tests.WebUi.Gate
 {
@@ -17,20 +15,6 @@ namespace Client.Tests.WebUi.Gate
 
             WebUiScreenGate.SetHostAvailable(true);
             Assert.IsTrue(WebUiScreenGate.IsWebUiMode);
-        }
-
-        [Test]
-        public void HotBarVisibilityIsDeferredUntilStartInitialization()
-        {
-            // Start前は自身を止めず初期化を保つ
-            // Preserve initialization by staying active before Start
-            var hotBarObject = new GameObject("HotBarViewLifecycleTest");
-            var hotBarView = hotBarObject.AddComponent<HotBarView>();
-
-            hotBarView.SetActive(true);
-
-            Assert.IsTrue(hotBarObject.activeSelf);
-            Object.DestroyImmediate(hotBarObject);
         }
     }
 }
