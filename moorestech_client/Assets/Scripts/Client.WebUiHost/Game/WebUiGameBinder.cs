@@ -10,6 +10,7 @@ using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.Hotbar;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
@@ -154,6 +155,12 @@ namespace Client.WebUiHost.Game
             hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
             new BlueprintNameInputWebBridge(blueprintNameInputView, modalService);
 
+            // ホットバーのtopic/actionをまとめて登録（前例 C4WebUiRegistration）
+            // Register the hotbar topic/actions together (precedent: C4WebUiRegistration)
+            var clientHotbarDatastore = resolver.Resolve<ClientHotbarDatastore>();
+            var hotbarPlacementTargetResolver = resolver.Resolve<HotbarPlacementTargetResolver>();
+            HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, hotbarPlacementTargetResolver, blueprintLibrary);
+
             // action ハンドラ登録
             // Register action handlers
             // debug.echo は EchoActionHandler と同じくエディタ/開発ビルド限定で登録する
@@ -168,7 +175,6 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new CollectActionHandler(controller));
             hub.RegisterAction(new SortInventoryActionHandler(controller));
             hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));
-            hub.RegisterAction(new SelectHotbarActionHandler(hotBarView));
             hub.RegisterAction(new SelectEquipmentActionHandler(localPlayerEquipment));
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
             hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));

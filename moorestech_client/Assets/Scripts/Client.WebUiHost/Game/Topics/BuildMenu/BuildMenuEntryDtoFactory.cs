@@ -38,32 +38,17 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     // 設置対象IDはGuid文字列1本。kindは表示・振る舞い用で識別子ではない
                     // The id is a single GUID string; kind is for display/behavior, not identity
                     Id = target.Id.ToString("D"),
-                    Kind = GetKind(target.Kind),
+                    Kind = ResolveKind(target.Kind),
                     Label = target.Kind == PlacementTargetKind.Blueprint ? target.DisplayName : null,
                     CategoryGuid = categoryGuid.ToString("D"),
                     SubCategoryGuid = subCategoryGuid.ToString("D"),
                     RequiredItems = CreateRequiredItemDtos(target),
-                    IconUrl = CreateIconUrl(target),
+                    IconUrl = ResolveIconUrl(target),
                 });
             }
             return dtos;
 
             #region Internal
-
-            // PlacementTargetCatalogが既に確定させたKind enumを網羅switchで文字列化する（型switchの二重分類・未知値文字列漏れを禁止）
-            // Stringify the Kind enum the PlacementTargetCatalog already determined via an exhaustive switch (no duplicate type-pattern classification, no unknown-value string leak)
-            string GetKind(PlacementTargetKind kind)
-            {
-                return kind switch
-                {
-                    PlacementTargetKind.Block => "block",
-                    PlacementTargetKind.TrainCar => "trainCar",
-                    PlacementTargetKind.ConnectTool => "connectTool",
-                    PlacementTargetKind.BlueprintCopy => "blueprintCopy",
-                    PlacementTargetKind.Blueprint => "blueprint",
-                    _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
-                };
-            }
 
             // ブロックだけカテゴリをブロックマスタ自身が持ち、他はentrySource定義のサブカテゴリへ入る
             // Only blocks carry their category on the block master; the rest go to their entrySource-defined sub category
@@ -97,35 +82,6 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 return itemDtos;
             }
 
-            string CreateIconUrl(IPlacementTarget target)
-            {
-                switch (target.Kind)
-                {
-                    case PlacementTargetKind.Block:
-                    {
-                        var block = (BlockPlacementTarget)target;
-                        // block-icons はblock inventoryトピックのBlockIconと共有するため揮発BlockIdのまま（Guid化はplan Aのスコープ外）
-                        // block-icons is shared with the block inventory topic's BlockIcon, so it stays volatile BlockId (GUID conversion is out of plan A's scope)
-                        return $"{BlockIconEndpoint.PathPrefix}{block.BlockId.AsPrimitive()}{BlockIconEndpoint.PathSuffix}";
-                    }
-                    case PlacementTargetKind.TrainCar:
-                    {
-                        var trainCar = (TrainCarPlacementTarget)target;
-                        return $"{TrainCarIconEndpoint.PathPrefix}{trainCar.TrainCarGuid}{TrainCarIconEndpoint.PathSuffix}";
-                    }
-                    case PlacementTargetKind.ConnectTool:
-                    {
-                        var connectTool = (ConnectToolPlacementTarget)target;
-                        return $"{ConnectToolIconEndpoint.PathPrefix}{connectTool.ConnectToolGuid}{ConnectToolIconEndpoint.PathSuffix}";
-                    }
-                    case PlacementTargetKind.BlueprintCopy:
-                    case PlacementTargetKind.Blueprint:
-                        return null;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(target.Kind), target.Kind, null);
-                }
-            }
-
             #endregion
         }
 
@@ -140,6 +96,54 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     SubCategoryGuids = c.SubCategories
                         .Select(s => s.SubCategoryGuid.ToString("D")).ToList(),
                 }).ToList();
+        }
+
+        // PlacementTargetCatalogが既に確定させたKind enumを網羅switchで文字列化する（型switchの二重分類・未知値文字列漏れを禁止）
+        // ホットバートピックも同じKind語彙を配信するため公開する（同じ解決を二重実装しない）
+        // Stringify the Kind enum the PlacementTargetCatalog already determined via an exhaustive switch (no duplicate type-pattern classification, no unknown-value string leak)
+        // Public so the hotbar topic ships the same Kind vocabulary without re-implementing the resolution
+        public static string ResolveKind(PlacementTargetKind kind)
+        {
+            return kind switch
+            {
+                PlacementTargetKind.Block => "block",
+                PlacementTargetKind.TrainCar => "trainCar",
+                PlacementTargetKind.ConnectTool => "connectTool",
+                PlacementTargetKind.BlueprintCopy => "blueprintCopy",
+                PlacementTargetKind.Blueprint => "blueprint",
+                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+            };
+        }
+
+        // アイコンURL解決もホットバートピックと共有する唯一の解決点
+        // The single resolution point for icon URLs, shared with the hotbar topic
+        public static string ResolveIconUrl(IPlacementTarget target)
+        {
+            switch (target.Kind)
+            {
+                case PlacementTargetKind.Block:
+                {
+                    var block = (BlockPlacementTarget)target;
+                    // block-icons はblock inventoryトピックのBlockIconと共有するため揮発BlockIdのまま（Guid化はplan Aのスコープ外）
+                    // block-icons is shared with the block inventory topic's BlockIcon, so it stays volatile BlockId (GUID conversion is out of plan A's scope)
+                    return $"{BlockIconEndpoint.PathPrefix}{block.BlockId.AsPrimitive()}{BlockIconEndpoint.PathSuffix}";
+                }
+                case PlacementTargetKind.TrainCar:
+                {
+                    var trainCar = (TrainCarPlacementTarget)target;
+                    return $"{TrainCarIconEndpoint.PathPrefix}{trainCar.TrainCarGuid}{TrainCarIconEndpoint.PathSuffix}";
+                }
+                case PlacementTargetKind.ConnectTool:
+                {
+                    var connectTool = (ConnectToolPlacementTarget)target;
+                    return $"{ConnectToolIconEndpoint.PathPrefix}{connectTool.ConnectToolGuid}{ConnectToolIconEndpoint.PathSuffix}";
+                }
+                case PlacementTargetKind.BlueprintCopy:
+                case PlacementTargetKind.Blueprint:
+                    return null;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(target.Kind), target.Kind, null);
+            }
         }
     }
 }

@@ -89,3 +89,18 @@
   text-align: center;
   text-shadow: 0.3px 0 0 rgb(0 0 0 / 80%), -0.3px 0 0 rgb(0 0 0 / 80%), 0 0.3px 0 rgb(0 0 0 / 80%), 0 -0.3px 0 rgb(0 0 0 / 80%);
 }
+
+/* アイコン無し(未解決)枠はラベル文字を面中央へ収める。前例 buildMenu/style.module.css */
+/* Icon-less (unresolved) slots center the label text on the face; precedent: buildMenu/style.module.css */
+.slotIcon {
+  width: calc(var(--slot-size) - 8px);
+  height: calc(var(--slot-size) - 8px);
+  object-fit: contain;
+}
+
+.slotLabel {
+  font-size: 10px;
+  color: var(--text-default);
+  word-break: break-all;
+  text-align: center;
+}

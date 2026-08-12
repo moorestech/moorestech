@@ -32,6 +32,7 @@ const topicFixtures: TopicFixtureRegistry = {
   [Topics.uiState]: () => state.currentUiState,
   [Topics.researchTree]: () => state.researchTree,
   [Topics.buildMenu]: () => fx.buildMenu,
+  [Topics.hotbar]: () => fx.hotbar,
   [Topics.localization]: () => ({ locale: "japanese", revision: 1 }),
   [Topics.challengeTree]: () => fx.challengeTree,
   [Topics.challengeCurrent]: () => fx.challengeCurrent,

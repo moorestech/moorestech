@@ -21,6 +21,7 @@ export * from "./fixtures/itemMasterFixtures";
 export * from "./fixtures/blockLocalizationFixtures";
 export * from "./fixtures/contentLocalizationFixtures";
 export * from "./fixtures/buildMenuFixtures";
+export * from "./fixtures/hotbarFixtures";
 
 const empty = () => ({ itemId: 0, count: 0 });
 
