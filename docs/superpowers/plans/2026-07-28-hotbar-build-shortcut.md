@@ -14,6 +14,8 @@ spec: docs/plans/hotbar-build-shortcut-and-equipment-slot-design.md
 
 **前提:** plan A（設置対象ID統一。カタログ・`IPlacementTarget.Id`・`PlacementTargetFactory` を提供）と plan B（装備スロット。採掘ツールがホットバー手持ちに依存しなくなる・ホイールが装備切替へ移行済み）の完了後に着手する。
 
+**2026-08-12改訂:** plan A実装時の裁定（`.decisions/2026-08-02-PlacementTargetCatalogはクライアントへ移設する.md`）でカタログは `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Targets/` に置かれた（当時サーバー側消費者ゼロのため）。本planはサーバー側で割当Guidを検証するため、**Task 0でカタログをサーバーasmdef `Game.PlacementTarget` へ移設する**（裁定: `.decisions/2026-08-12-ホットバー割当はサーバー側でカタログ検証する.md`）。設置実行系（`IPlacementTarget`・`PlacementTargetFactory`・各Target）は真にクライアントの機構なのでクライアント残留。
+
 **確認すべきドキュメント（着手前に必読）:**
 - spec: `docs/plans/hotbar-build-shortcut-and-equipment-slot-design.md`（決定は `docs/adr/0002`）
 - `/creating-server-protocol`・`/creating-server-tests`・`/csharp-event-pattern`・`/webui-design` の各スキル
@@ -32,8 +34,12 @@ spec: docs/plans/hotbar-build-shortcut-and-equipment-slot-design.md
 
 ## File Structure（このplanで触るファイルの全体像）
 
+移動（Task 0。クライアント→サーバー。`.cs`と`.meta`を`git mv`でセット移動しGUID維持、namespaceを`Game.PlacementTarget`へ変更）:
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Targets/PlacementTargetCatalog.cs` / `PlacementTargetEntry.cs` / `PlacementTargetKind.cs` → `moorestech_server/Assets/Scripts/Game.PlacementTarget/`
+
 新規:
-- `moorestech_server/Assets/Scripts/Game.Hotbar/Game.Hotbar.asmdef`（references: `Game.PlacementTarget`, `UniRx`）
+- `moorestech_server/Assets/Scripts/Game.PlacementTarget/Game.PlacementTarget.asmdef`（references: `Core.Master`, `Game.Block.Interface`, `Game.UnlockState` — 実際の参照名は現`Client.Game.asmdef`の該当行に合わせる）
+- `moorestech_server/Assets/Scripts/Game.Hotbar/Game.Hotbar.asmdef`（references: `Game.PlacementTarget`, `Game.Blueprint`, `UniRx`）
 - `moorestech_server/Assets/Scripts/Game.Hotbar/HotbarAssignmentDatastore.cs`
 - `moorestech_server/Assets/Scripts/Game.Hotbar/PlayerHotbarSaveJsonObject.cs`
 - `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/HotbarProtocol.cs`
@@ -65,6 +71,40 @@ spec: docs/plans/hotbar-build-shortcut-and-equipment-slot-design.md
 
 ---
 
+### Task 0: `PlacementTargetCatalog` のサーバー移設（裁定 2026-08-12）
+
+**Files:**
+- Create: `moorestech_server/Assets/Scripts/Game.PlacementTarget/Game.PlacementTarget.asmdef`
+- Move: `PlacementTargetCatalog.cs` / `PlacementTargetEntry.cs` / `PlacementTargetKind.cs` を `moorestech_client/.../PlaceSystem/Targets/` から `moorestech_server/Assets/Scripts/Game.PlacementTarget/` へ（`.meta`ごと`git mv`。namespaceは `Client.Game.InGame.BlockSystem.PlaceSystem.Targets` → `Game.PlacementTarget`）
+- Modify: `PlacementTargetCatalog` に `bool TryGetMasterEntry(Guid id, out PlacementTargetEntry entry)` を追加（マスタ由来エントリのみ解決。BPは含めない — BP有効性はTask 1で `IBlueprintDatastore` 側から判定する）
+- Modify: クライアント参照元のusing修正（実測: `BuildMenuEntryCatalog.cs`・`BuildMenuView.cs`・`WebUiGameBinder.cs`・`BuildMenuActions.cs`・`BuildMenuTopic.cs`・`BuildMenuEntryDtoFactory.cs`・`PlacementModeTopic.cs`・`MainGameStarter.cs`・`Client.Tests`の5ファイル＋Targets配下の残留ファイル。着手時に `grep -rln "PlaceSystem.Targets" moorestech_client/Assets/Scripts` で全量再確認）
+- Modify: クライアント側asmdef（`Client.Game`・`Client.WebUiHost`・`Client.Tests`・`Client.Starter`）に `Game.PlacementTarget` 参照を追加（記法はname/GUIDの既存行に合わせる。不足はコンパイルエラーで検出）
+- Modify: サーバーDI登録 `AddSingleton<PlacementTargetCatalog>()`（`MoorestechServerDIContainerGenerator`。クライアント側の `MainGameStarter.cs:219` の登録は移動後もそのまま生きる）
+
+**注意:** カタログの依存（`Core.Master.MasterHolder`・`Game.Block.Interface.Extension.BeltConveyorPlaceFamilyUtil`・`Game.UnlockState.IGameUnlockStateData`）はすべてサーバー側アセンブリのため、コード本体の変更はnamespace行と`TryGetMasterEntry`追加のみで済むはず。ロジックの書き換えが必要になったら設計の見落としなので立ち止まること。
+
+- [ ] **Step 1: 移設する**
+
+`git mv` で3ファイル（＋`.meta`）を移動し、namespaceを変更。asmdefを新規作成。
+
+- [ ] **Step 2: 参照を直す**
+
+`TryGetMasterEntry` を追加し、クライアント側のusing・asmdef参照・サーバーDI登録を修正。
+
+Run: `uloop compile --project-path ./moorestech_client` → エラー0
+
+- [ ] **Step 3: 既存テストで退行が無いことを確認しコミット**
+
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlacementTargetCatalogTest|PlacementTargetFactoryTest|PlacementTargetCatalogUnlockTest|BuildMenuEntryDtoFactoryTest|WireContractC2Test"`
+Expected: PASS
+
+```bash
+git add -A
+git commit -m "refactor: PlacementTargetCatalogをサーバーasmdefへ移設(ホットバー割当のサーバー検証準備)"
+```
+
+---
+
 ### Task 1: サーバの割当ストア `HotbarAssignmentDatastore`（セーブ・ロード・無効割当削除）
 
 **Files:**
@@ -76,10 +116,10 @@ spec: docs/plans/hotbar-build-shortcut-and-equipment-slot-design.md
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/HotbarAssignmentDatastoreTest.cs`
 
 **Interfaces:**
-- Consumes: plan A の `PlacementTargetCatalog`
+- Consumes: Task 0 でサーバー移設した `PlacementTargetCatalog`（`TryGetMasterEntry`）と `Game.Blueprint` の `IBlueprintDatastore`（現行BPのGuid判定）
 - Produces:
   - `class HotbarAssignmentDatastore`: `const int SlotCount = 9`、`IReadOnlyList<Guid> GetAssignments(int playerId)`（未割当は `Guid.Empty`）、`void SetAssignment(int playerId, int slot, Guid targetId)`、`void ClearAssignment(int playerId, int slot)`、`void SwapAssignments(int playerId, int slotA, int slotB)`、`IObservable<int> OnAssignmentChanged`（playerId を流すUniRx `Subject`）、`List<PlayerHotbarSaveJsonObject> GetSaveJsonObject()`、`void LoadHotbar(List<PlayerHotbarSaveJsonObject> saveData)`
-  - `SetAssignment` はカタログで解決できないGuidを**無視**する（不正クライアント対策）。`LoadHotbar` は解決できない割当を `Guid.Empty` に落とす
+  - `SetAssignment` はマスタカタログでも現行ブループリント（`IBlueprintDatastore.Blueprints`）でも解決できないGuidを**無視**する（不正クライアント対策）。`LoadHotbar` は解決できない割当を `Guid.Empty` に落とす
   - セーブJSON: `PlayerHotbarSaveJsonObject { [JsonProperty("PlayerId")] int; [JsonProperty("Assignments")] List<string> }`（Guid文字列9個。空は `Guid.Empty` の文字列）
 
 - [ ] **Step 1: 失敗するテストを書く**
@@ -93,10 +133,11 @@ public void 割当はカタログ解決できるGuidのみ受け付けセーブ�
     var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
     var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
     var catalog = serviceProvider.GetService<PlacementTargetCatalog>();
+    var blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
 
-    // カタログの実在エントリを割当→保持される
-    // Assigning a real catalog entry is retained
-    var validId = catalog.Entries[0].Id;
+    // マスタの実在ブロックを割当→保持される（坂はカタログ対象外なので除く）
+    // Assigning a real master block is retained (slopes are excluded from the catalog)
+    var validId = MasterHolder.BlockMaster.Blocks.Data.First(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid)).BlockGuid;
     datastore.SetAssignment(playerId: 1, slot: 3, validId);
     Assert.AreEqual(validId, datastore.GetAssignments(1)[3]);
 
@@ -108,7 +149,7 @@ public void 割当はカタログ解決できるGuidのみ受け付けセーブ�
     // セーブ→ロード往復
     // Save and reload round-trips
     var saved = datastore.GetSaveJsonObject();
-    var datastore2 = new HotbarAssignmentDatastore(catalog);
+    var datastore2 = new HotbarAssignmentDatastore(catalog, blueprintDatastore);
     datastore2.LoadHotbar(saved);
     Assert.AreEqual(validId, datastore2.GetAssignments(1)[3]);
 }
@@ -119,6 +160,15 @@ public void ロード時に解決できない割当は削除される()
     // Assignmentsに未知Guidを含むセーブをLoadHotbar→該当枠はGuid.Empty
     // Loading a save containing an unknown GUID clears that slot
 }
+
+[Test]
+public void ブループリントのGuidも割当でき削除後のロードでは消える()
+{
+    // BlueprintDatastore.Registerで登録したGuidをSetAssignment→保持される
+    // A guid registered via BlueprintDatastore.Register is retained
+    // BP削除後にGetSaveJsonObject→LoadHotbar→該当枠はGuid.Empty
+    // After deleting the blueprint, a save/load round-trip clears that slot
+}
 ```
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "HotbarAssignmentDatastoreTest"`
@@ -126,12 +176,13 @@ Expected: FAIL（型不在）
 
 - [ ] **Step 2: 実装する**
 
-asmdefは plan A の `Game.PlacementTarget.asmdef` と同形式（references: `"Game.PlacementTarget"`, `"UniRx"`）。データストア:
+asmdefは Task 0 の `Game.PlacementTarget.asmdef` と同形式（references: `"Game.PlacementTarget"`, `"Game.Blueprint"`, `"UniRx"`）。データストア:
 
 ```csharp
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Blueprint;
 using Game.PlacementTarget;
 using UniRx;
 
@@ -148,10 +199,12 @@ namespace Game.Hotbar
         // 9 slots per player; Guid.Empty means unassigned
         private readonly Dictionary<int, Guid[]> _assignments = new();
         private readonly PlacementTargetCatalog _catalog;
+        private readonly IBlueprintDatastore _blueprintDatastore;
 
-        public HotbarAssignmentDatastore(PlacementTargetCatalog catalog)
+        public HotbarAssignmentDatastore(PlacementTargetCatalog catalog, IBlueprintDatastore blueprintDatastore)
         {
             _catalog = catalog;
+            _blueprintDatastore = blueprintDatastore;
         }
 
         public IReadOnlyList<Guid> GetAssignments(int playerId)
@@ -161,9 +214,9 @@ namespace Game.Hotbar
 
         public void SetAssignment(int playerId, int slot, Guid targetId)
         {
-            // カタログで解決できないIDは受け付けない
-            // Reject ids the catalog cannot resolve
-            if (!_catalog.TryGetEntry(targetId, out _)) return;
+            // マスタでも現行BPでも解決できないIDは受け付けない
+            // Reject ids neither the master catalog nor current blueprints resolve
+            if (!IsResolvable(targetId)) return;
             GetOrCreate(playerId)[slot] = targetId;
             _onAssignmentChanged.OnNext(playerId);
         }
@@ -179,12 +232,19 @@ namespace Game.Hotbar
             // Drop unresolvable assignments at load; unlock state is not consulted
         }
 
+        private bool IsResolvable(Guid id)
+        {
+            // 有効=マスタカタログ or 現行ブループリント
+            // Valid ids come from the master catalog or current blueprints
+            return _catalog.TryGetMasterEntry(id, out _) || _blueprintDatastore.Blueprints.Any(bp => bp.BlueprintGuid == id);
+        }
+
         private Guid[] GetOrCreate(int playerId) { /* 無ければ9枠生成 / create 9 empty slots on demand */ }
     }
 }
 ```
 
-セーブ配線: `WorldSaveAllInfoV1` に `[JsonProperty("hotbarAssignments")] List<PlayerHotbarSaveJsonObject> HotbarAssignments` をコンストラクタ引数ごと追加（`Blueprints` の追加前例に倣う。デフォルト引数禁止なので `AssembleSaveJsonText`・`WorldLoaderFromJson` の呼び出しを同時に直す）。ロード呼び出しは `WorldLoaderFromJson` 内で **`BlueprintDatastore.LoadBlueprints` の後**に置く（カタログがBPを解決できる状態にしてから割当検証するため。この順序を守るコメントを2行セットで残す）。DI登録は `AddSingleton<HotbarAssignmentDatastore>()`。
+セーブ配線: `WorldSaveAllInfoV1` に `[JsonProperty("hotbarAssignments")] List<PlayerHotbarSaveJsonObject> HotbarAssignments` をコンストラクタ引数ごと追加（`Blueprints` の追加前例に倣う。デフォルト引数禁止なので `AssembleSaveJsonText`・`WorldLoaderFromJson` の呼び出しを同時に直す）。ロード呼び出しは `WorldLoaderFromJson` 内で **`BlueprintDatastore.LoadBlueprints` の後**に置く（割当検証が `IBlueprintDatastore.Blueprints` を参照するため、BPが揃ってから検証する。この順序を守るコメントを2行セットで残す）。DI登録は `AddSingleton<HotbarAssignmentDatastore>()`。
 
 - [ ] **Step 3: テスト実行とコミット**
 
@@ -263,7 +323,7 @@ git commit -m "feat: ホットバー同期の3点セット(va:hotbar/va:getHotba
 - Modify: DI登録（`ILocalPlayerInventory` 登録箇所と同じコンテナ）・初期データ取得（`GetHotbar` を初期ハンドシェイク後のインベントリ取得と同じ場所で実行）
 
 **Interfaces:**
-- Consumes: Task 2 のイベント・プロトコル、plan A の `PlacementTargetCatalog`（クライアント側は `ClientBlueprintLibrary` 供給のカタログ）・`PlacementTargetFactory`
+- Consumes: Task 2 のイベント・プロトコル、Task 0 で移設済みの `PlacementTargetCatalog`（クライアント側は `ClientBlueprintLibrary` 供給のBPエントリと組で使う）・`PlacementTargetFactory`
 - Produces:
   - `class ClientHotbarDatastore`（非MonoBehaviour）:
     - `IReadOnlyList<Guid> Assignments`（9個）／`void ApplyAssignments(Guid[] assignments)`（購読・初期データから）
@@ -322,7 +382,9 @@ var selectRequested = HotbarKeyInput.TryGetTappedSlot(out var slot) || _clientHo
 if (selectRequested)
 {
     var targetId = _clientHotbarDatastore.Assignments[slot];
-    if (targetId != Guid.Empty && _placementTargetCatalog.TryGetEntry(targetId, out var entry) && PlacementTargetFactory.TryCreate(entry, out var target))
+    // Guid→エントリ解決はマスタ＋現行BPの両方を見る（BuildMenuEntryCatalog.CreateEntriesと同じ供給源。TryGetMasterEntry単体ではBP割当が解決できない）
+    // Resolve guid via master catalog plus current blueprints, the same sources as BuildMenuEntryCatalog.CreateEntries
+    if (targetId != Guid.Empty && TryResolveEntry(targetId, out var entry) && PlacementTargetFactory.TryCreate(entry, out var target))
     {
         _clientHotbarDatastore.SetSelectedSlot(slot);
         return UIStateEnum.PlaceBlock(UITransitContextContainer.Create<IPlacementTarget>(target)); // 実際の遷移記法はBuildMenuState.cs:32の形に合わせる
@@ -505,6 +567,7 @@ Expected: すべてPASS・エラー0
 
 - 未解放ブロックの割当がロードで消えないこと（アンロック非参照をテストで確認済みだが、実セーブでも確認）
 - ビルドメニューに出ないブロック（ベルトの坂等）のIDを `hotbar.assign` に投げても割当されないこと
+- 削除済みブループリントの割当がロードで消えること（サーバー検証の実セーブ確認）
 - 旧セーブ（`hotbarAssignments` 無し）が空割当で起動すること
 
 - [ ] **Step 3: 未コミット作業が無いことを確認してコミットする**
@@ -533,3 +596,7 @@ planning中に新たに生じた判断:
 - **長押し閾値は0.5秒**（出所: agent前提（拒否権つき））
 - **数字キーはUnity `HotbarKeyInput` に一本化し、WebのHotbarPanelはキーをlistenしない**（出所: シミュレーター予測 2026-07-28 → 適用。二重経路だと1押下で建築モードが往復する。UIStateの他キー遷移がInputManager駆動である前例に整合。Web一本化へ方針を変えたい場合のみ裁定を求める）
 - **`SelectHotbar` DSLはキー入力エミュレートのまま維持・`GiveItemToHotbar` は削除し `AssignHotbar` を新設**（出所: ADR-0002の帰結の具体化）
+
+2026-08-12改訂時に生じた判断:
+- **サーバー検証を維持するため `PlacementTargetCatalog` をサーバーへ移設する（Task 0新設）**（出所: ユーザー裁定 `.decisions/2026-08-12-ホットバー割当はサーバー側でカタログ検証する.md`。8/2の「クライアントへ移設」裁定は根拠（サーバー側消費者ゼロ）が本planで消滅したため前提変化として更新）
+- **ブループリントGuidの有効性は `IBlueprintDatastore.Blueprints` で判定し、カタログはマスタ由来エントリのみ持つ**（出所: agent前提（拒否権つき）。カタログの `CreateEntries(blueprintEntries)` がBPを外部供給で受ける現行構造を維持し、サーバー向けには `TryGetMasterEntry` を追加するだけに留める）
