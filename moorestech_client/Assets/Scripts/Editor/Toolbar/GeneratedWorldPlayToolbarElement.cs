@@ -44,6 +44,10 @@ namespace Client.Editor.Toolbar
             // Set the generated-world launch flag (persists across domain reload)
             SessionState.SetBool(GeneratedWorldPlayModeSettings.SessionStateKey, true);
 
+            // オーサリング地形との重畳を避けるためデバッグ環境をRuntimeへ切替える
+            // Switch the debug environment to Runtime to avoid overlap with authored terrain
+            GeneratedWorldPlayModeSettings.ApplyDebugEnvironmentOverride();
+
             // ゲーム初期化シーンから再生を開始する
             // Start play mode from the game initializer scene
             EditorSceneManager.playModeStartScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(GameInitializerScenePath);
@@ -58,6 +62,10 @@ namespace Client.Editor.Toolbar
 
             SessionState.SetBool(GeneratedWorldPlayModeSettings.SessionStateKey, false);
             EditorSceneManager.playModeStartScene = null;
+
+            // 自分が切り替えていた場合だけデバッグ環境を復元する（通常再生では何もしない）
+            // Restore the debug environment only if this feature switched it (no-op for normal play)
+            GeneratedWorldPlayModeSettings.RestoreDebugEnvironmentIfNeeded();
         }
     }
 }
