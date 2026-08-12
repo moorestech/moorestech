@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
+using Game.Hotbar;
 using Server.Protocol.PacketResponse;
 using UniRx;
 
@@ -12,15 +13,11 @@ namespace Client.Game.InGame.Hotbar
     /// </summary>
     public class ClientHotbarDatastore
     {
-        // サーバー側 Game.Hotbar.HotbarAssignmentDatastore.SlotCount と同値
-        // Matches Game.Hotbar.HotbarAssignmentDatastore.SlotCount on the server
-        private const int SlotCount = 9;
-
         public IReadOnlyList<Guid> Assignments => _assignments;
         public int SelectedSlot { get; private set; } = -1;
         public IObservable<Unit> OnChanged => _onChanged;
 
-        private readonly Guid[] _assignments = new Guid[SlotCount];
+        private readonly Guid[] _assignments = new Guid[HotbarAssignmentDatastore.SlotCount];
         private readonly Subject<Unit> _onChanged = new();
         private int? _pendingSelectRequest;
 
@@ -28,7 +25,7 @@ namespace Client.Game.InGame.Hotbar
         // Applied from the subscription/initial-data response only; never mutated by the send path locally
         public void ApplyAssignments(Guid[] assignments)
         {
-            Array.Copy(assignments, _assignments, SlotCount);
+            Array.Copy(assignments, _assignments, HotbarAssignmentDatastore.SlotCount);
             _onChanged.OnNext(Unit.Default);
         }
 

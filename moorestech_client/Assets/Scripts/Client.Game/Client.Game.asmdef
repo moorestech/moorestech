@@ -67,7 +67,8 @@
         "Unity.Splines",
         "Unity.InputSystem",
         "Game.Blueprint",
-        "Game.PlacementTarget"
+        "Game.PlacementTarget",
+        "Game.Hotbar"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
