@@ -55,12 +55,18 @@ function exceededThreshold(dx: number, dy: number): boolean {
 // 解放点の実DOMから枠/枠外を判定し、純ロジックのresolveDropActionへ橋渡しする
 // Resolve the real DOM under the release point into a slot/outside endpoint, then hand off to the pure resolveDropAction
 function resolveAndDispatchDrop(source: DragEndpoint, clientX: number, clientY: number) {
-  const element = document.elementFromPoint(clientX, clientY);
-  const slotElement = element instanceof Element ? element.closest<HTMLElement>("[data-hotbar-slot-index]") : null;
+  const element = asElement(document.elementFromPoint(clientX, clientY));
+  const slotElement = element?.closest<HTMLElement>("[data-hotbar-slot-index]") ?? null;
   const target: DragEndpoint = slotElement
     ? { kind: "hotbarSlot", index: Number(slotElement.dataset.hotbarSlotIndex) }
     : { kind: "outside" };
 
   const action = resolveDropAction(source, target);
   if (action) void dispatchAction(action.type, action.payload);
+}
+
+// closestを持つかで判定しinstanceofのグローバル依存を避ける（前例 useDragScroll.asElement）
+// Probe for closest to avoid an instanceof-Element global dependency (precedent: useDragScroll.asElement)
+function asElement(target: Element | null): HTMLElement | null {
+  return target && typeof (target as HTMLElement).closest === "function" ? (target as HTMLElement) : null;
 }
