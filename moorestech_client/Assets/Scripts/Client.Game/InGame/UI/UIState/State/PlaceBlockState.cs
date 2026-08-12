@@ -4,9 +4,11 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
+using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
+using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.Skit;
 using Client.Input;
@@ -25,12 +27,23 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly UiStateCameraPolicyService _cameraPolicyService;
         private readonly BuildUndoService _buildUndoService;
         private readonly IMapVeinRangeView _mapVeinRangeView;
+        private readonly ClientHotbarDatastore _clientHotbarDatastore;
+        private readonly PlaceBlockHotbarInputService _hotbarInputService;
         private readonly ReactiveProperty<int> _placementHeight = new(0);
 
         public IObservable<int> OnPlacementHeightChanged => _placementHeight;
         public int GetPlacementHeight() => _placementHeight.Value;
 
-        public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, UiStateCameraPolicyService cameraPolicyService, BuildUndoService buildUndoService, IMapVeinRangeView mapVeinRangeView)
+        public PlaceBlockState(
+            SkitManager skitManager,
+            BlockGameObjectDataStore blockGameObjectDataStore,
+            PlaceSystemStateController placeSystemStateController,
+            PlacementTargetPickService placementTargetPickService,
+            UiStateCameraPolicyService cameraPolicyService,
+            BuildUndoService buildUndoService,
+            IMapVeinRangeView mapVeinRangeView,
+            ClientHotbarDatastore clientHotbarDatastore,
+            PlaceBlockHotbarInputService hotbarInputService)
         {
             _skitManager = skitManager;
             _blockGameObjectDataStore = blockGameObjectDataStore;
@@ -39,6 +52,8 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraPolicyService = cameraPolicyService;
             _buildUndoService = buildUndoService;
             _mapVeinRangeView = mapVeinRangeView;
+            _clientHotbarDatastore = clientHotbarDatastore;
+            _hotbarInputService = hotbarInputService;
         }
 
         public void OnEnter(UITransitContext context)
@@ -90,6 +105,14 @@ namespace Client.Game.InGame.UI.UIState.State
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
 
+            // 数字キー/Web由来選択のタップを共通の3分岐（同一枠/別枠/空枠）へ流す
+            // Route a digit-key or web-originated tap into the shared 3-way branch (same slot / different slot / empty slot)
+            if (_hotbarInputService.TryGetTapTransit(out var hotbarTapTransit)) return hotbarTapTransit;
+
+            // 長押しは現在の設置対象をその枠へ割り当てる
+            // A long press assigns the current placement target to that slot
+            _hotbarInputService.ApplyLongPressAssign();
+
             // TPSのみ右ドラッグで設置照準回転
             // TPS rotates the placement aim only during right-drag
             _cameraPolicyService.UpdateRotationInput();
@@ -117,6 +140,10 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _cameraPolicyService.ExitToNeutral();
             _placeSystemStateController.Disable();
+
+            // 選択枠の寿命はPlaceBlock滞在中のみ。離脱時に非選択(-1)へ戻す
+            // The selected slot lives only while in PlaceBlock; reset it to unselected (-1) on exit
+            _clientHotbarDatastore.SetSelectedSlot(-1);
 
             // 配置モード離脱で範囲表示も畳む。破棄漏れがそのまま残存ボックスになる
             // Leaving placement mode folds the range view too; a missed destroy would linger as a stray box

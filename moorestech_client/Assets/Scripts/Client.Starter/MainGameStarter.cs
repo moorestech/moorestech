@@ -58,6 +58,7 @@ using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Inventory.Craft;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
+using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
@@ -224,6 +225,10 @@ namespace Client.Starter
             builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
+            // ホットバー割当Guidの解決と、建築モード中の数字キー入力振り分け
+            // Resolves hotbar-assignment guids and routes digit-key input during build mode
+            builder.Register<HotbarPlacementTargetResolver>(Lifetime.Singleton);
+            builder.Register<PlaceBlockHotbarInputService>(Lifetime.Singleton);
 
             // UI非依存の視点モード処理
             // UI-independent view-mode processing

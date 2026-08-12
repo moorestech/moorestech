@@ -6,6 +6,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control.ViewMode;
+using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
@@ -14,6 +15,7 @@ using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
+using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
@@ -49,7 +51,7 @@ namespace Client.Tests.UIState
         {
             SetUpGameStateController();
             var applier = new FakePlayerCameraInteractionApplier();
-            var state = new GameScreenState(null, null, null, null, CreateCameraPolicy(applier, new PlayerViewModeController(new FakePlayerViewApplier())));
+            var state = new GameScreenState(null, null, null, null, CreateCameraPolicy(applier, new PlayerViewModeController(new FakePlayerViewApplier())), null, null);
             state.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
 
             applier.Calls.Clear();
@@ -132,7 +134,9 @@ namespace Client.Tests.UIState
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
             var placeStateController = new PlaceSystemStateController(selector);
             var pickService = new PlacementTargetPickService(null);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier, viewModeController), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView());
+            var clientHotbarDatastore = new ClientHotbarDatastore();
+            var hotbarInputService = new PlaceBlockHotbarInputService(clientHotbarDatastore, null, placeStateController);
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier, viewModeController), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView(), clientHotbarDatastore, hotbarInputService);
         }
 
         private static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier, PlayerViewModeController viewModeController)
