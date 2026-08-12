@@ -18,6 +18,7 @@ using Game.EnergySystem;
 using Game.Entity;
 using Game.Entity.Interface;
 using Game.Gear.Common;
+using Game.Hotbar;
 using Game.Map;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
@@ -189,6 +190,7 @@ namespace Server.Boot
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
             services.AddSingleton<PlacementTargetCatalog>();
+            services.AddSingleton<HotbarAssignmentDatastore>();
 
             services.AddSingleton<ResearchEvent>();
 

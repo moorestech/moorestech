@@ -43,6 +43,7 @@
         "Game.PlayerConnection",
         "Game.Blueprint",
         "Game.PlacementTarget",
+        "Game.Hotbar",
         "UniRx"
     ],
     "includePlatforms": [],
