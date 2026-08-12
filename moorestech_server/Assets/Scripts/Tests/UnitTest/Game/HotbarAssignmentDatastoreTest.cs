@@ -84,5 +84,46 @@ namespace Tests.UnitTest.Game
 
             Assert.AreEqual(Guid.Empty, datastore2.GetAssignments(2)[0]);
         }
+
+        [Test]
+        public void 範囲外slotへの操作は無視され例外にならない()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
+            var validId = MasterHolder.BlockMaster.Blocks.Data.First(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid)).BlockGuid;
+
+            // 範囲外slotへのSet/Clear/Swapは例外を投げず無視される（不正クライアント対策はtargetIdと同じ扱い）
+            // Out-of-range slots are ignored without throwing for Set/Clear/Swap, matching the targetId defense
+            Assert.DoesNotThrow(() => datastore.SetAssignment(3, HotbarAssignmentDatastore.SlotCount, validId));
+            Assert.DoesNotThrow(() => datastore.SetAssignment(3, -1, validId));
+            Assert.DoesNotThrow(() => datastore.ClearAssignment(3, HotbarAssignmentDatastore.SlotCount));
+            Assert.DoesNotThrow(() => datastore.SwapAssignments(3, 0, HotbarAssignmentDatastore.SlotCount));
+
+            CollectionAssert.AreEqual(new Guid[HotbarAssignmentDatastore.SlotCount], datastore.GetAssignments(3));
+        }
+
+        [Test]
+        public void 形状不正なセーブをロードしても例外にならず解決不能枠はGuidEmptyになる()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var catalog = serviceProvider.GetService<PlacementTargetCatalog>();
+            var blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
+            var datastore = new HotbarAssignmentDatastore(catalog, blueprintDatastore);
+
+            // 要素数が9でないセーブと、パース不能な文字列を含むセーブをそれぞれLoadHotbar
+            // Load saves whose Assignments count isn't 9, and whose entries aren't parseable GUIDs
+            var shortAssignments = Enumerable.Repeat(Guid.Empty.ToString(), HotbarAssignmentDatastore.SlotCount - 1).ToList();
+            var unparsableAssignments = Enumerable.Repeat("not-a-guid", HotbarAssignmentDatastore.SlotCount).ToList();
+            var saveData = new List<PlayerHotbarSaveJsonObject>
+            {
+                new(1, shortAssignments),
+                new(2, unparsableAssignments),
+            };
+
+            Assert.DoesNotThrow(() => datastore.LoadHotbar(saveData));
+
+            Assert.AreEqual(Guid.Empty, datastore.GetAssignments(1)[0]);
+            Assert.AreEqual(Guid.Empty, datastore.GetAssignments(2)[0]);
+        }
     }
 }

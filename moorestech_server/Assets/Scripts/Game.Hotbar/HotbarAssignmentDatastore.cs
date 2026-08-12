@@ -35,8 +35,9 @@ namespace Game.Hotbar
 
         public void SetAssignment(int playerId, int slot, Guid targetId)
         {
-            // マスタでも現行BPでも解決できないIDは受け付けない
-            // Reject ids neither the master catalog nor current blueprints resolve
+            // 範囲外slot・未知IDはいずれも不正クライアント対策として無視する
+            // Both out-of-range slots and unknown ids are ignored as malicious-client defenses
+            if (!IsValidSlot(slot)) return;
             if (!IsResolvable(targetId)) return;
             GetOrCreate(playerId)[slot] = targetId;
             _onAssignmentChanged.OnNext(playerId);
@@ -44,12 +45,14 @@ namespace Game.Hotbar
 
         public void ClearAssignment(int playerId, int slot)
         {
+            if (!IsValidSlot(slot)) return;
             GetOrCreate(playerId)[slot] = Guid.Empty;
             _onAssignmentChanged.OnNext(playerId);
         }
 
         public void SwapAssignments(int playerId, int slotA, int slotB)
         {
+            if (!IsValidSlot(slotA) || !IsValidSlot(slotB)) return;
             var slots = GetOrCreate(playerId);
             (slots[slotA], slots[slotB]) = (slots[slotB], slots[slotA]);
             _onAssignmentChanged.OnNext(playerId);
@@ -70,12 +73,22 @@ namespace Game.Hotbar
                 var slots = GetOrCreate(playerSave.PlayerId);
                 for (var slot = 0; slot < SlotCount; slot++)
                 {
-                    var id = Guid.Parse(playerSave.Assignments[slot]);
-                    // 解決できない割当はロード時に削除する（アンロック状態は見ない）
-                    // Drop unresolvable assignments at load; unlock state is not consulted
-                    slots[slot] = IsResolvable(id) ? id : Guid.Empty;
+                    slots[slot] = ResolveSavedSlot(playerSave, slot);
                 }
             }
+
+            #region Internal
+
+            Guid ResolveSavedSlot(PlayerHotbarSaveJsonObject playerSave, int slot)
+            {
+                // 件数不足・パース不能・未解決はすべて同じ扱いでGuid.Emptyへ落とす（形状不正で全体を落とさない）
+                // Missing entries, unparsable strings, and unresolved ids all fall back to Guid.Empty so a malformed save never aborts the whole load
+                if (playerSave.Assignments == null || playerSave.Assignments.Count != SlotCount) return Guid.Empty;
+                if (!Guid.TryParse(playerSave.Assignments[slot], out var id)) return Guid.Empty;
+                return IsResolvable(id) ? id : Guid.Empty;
+            }
+
+            #endregion
         }
 
         private bool IsResolvable(Guid id)
@@ -83,6 +96,11 @@ namespace Game.Hotbar
             // 有効=マスタカタログ or 現行ブループリント
             // Valid ids come from the master catalog or current blueprints
             return _catalog.TryGetMasterEntry(id, out _) || _blueprintDatastore.Blueprints.Any(bp => bp.BlueprintGuid == id);
+        }
+
+        private bool IsValidSlot(int slot)
+        {
+            return slot >= 0 && slot < SlotCount;
         }
 
         private Guid[] GetOrCreate(int playerId)
