@@ -56,6 +56,18 @@ namespace Client.Game.InGame.Hotbar
             return false;
         }
 
+        // UIStateを跨いだ保持状態を破棄する。Poll対象外のUIState滞在中は経過時間が進まないため、
+        // 復帰直後に古い押下開始時刻へ基づく誤長押し判定が起きないよう、遷移のたび呼び出し側で明示的にリセットする
+        // Discards held-key state across UIStates. While a non-polling UIState is active elapsed time keeps frozen,
+        // so callers must explicitly reset on every transition to avoid a stale press-start time firing a false long press
+        public static void Reset()
+        {
+            _heldSlot = -1;
+            _longPressFired = false;
+            _tapPending = false;
+            _longPressPending = false;
+        }
+
         // 押下中キーの継続状態を1フレーム分進め、タップ/長押しの成立を検出する
         // Advances the currently-held key's state by one frame and detects a tap or long-press event
         private static void Poll()

@@ -98,6 +98,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
+            // 他UIState滞在中は数字キーがpollされないため、復帰直後の古い押下状態を破棄する
+            // Digit keys aren't polled while another UIState is active, so discard any stale press state on return
+            HotbarKeyInput.Reset();
+
             // 通常時はカーソル固定・回転有効
             // Lock cursor and enable rotation in gameplay
             _cameraPolicyService.EnterGameplay();

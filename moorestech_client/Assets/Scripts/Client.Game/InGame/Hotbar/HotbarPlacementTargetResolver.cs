@@ -1,36 +1,39 @@
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Common.Debug;
 using Game.PlacementTarget;
+using Game.UnlockState;
 
 namespace Client.Game.InGame.Hotbar
 {
     /// <summary>
-    ///     ホットバー割当Guidをマスタ設置対象＋現行BPから解決する
-    ///     Resolves a hotbar assignment guid via the master placement catalog plus current blueprints
+    ///     ホットバー割当Guidをビルドメニューと同一供給源から解決する
+    ///     Resolves a hotbar assignment guid from the same supply source as the build menu
     /// </summary>
     public class HotbarPlacementTargetResolver
     {
         private readonly PlacementTargetCatalog _catalog;
         private readonly ClientBlueprintLibrary _blueprintLibrary;
+        private readonly IGameUnlockStateData _gameUnlockStateData;
 
-        public HotbarPlacementTargetResolver(PlacementTargetCatalog catalog, ClientBlueprintLibrary blueprintLibrary)
+        public HotbarPlacementTargetResolver(PlacementTargetCatalog catalog, ClientBlueprintLibrary blueprintLibrary, IGameUnlockStateData gameUnlockStateData)
         {
             _catalog = catalog;
             _blueprintLibrary = blueprintLibrary;
+            _gameUnlockStateData = gameUnlockStateData;
         }
 
-        // BuildMenuEntryCatalog.CreateEntriesと同じ供給源（マスタカタログ＋現行BP一覧）から解決する
-        // Resolves from the same supply sources as BuildMenuEntryCatalog.CreateEntries (master catalog plus current blueprints)
+        // ビルドメニュー(BuildMenuEntryCatalog.CreateEntries)と同じPlacementTargetCatalog.UnlockedEntriesを経由する
+        // 未解放対象は解決しない（割当自体はセーブに残るが、使用時は建築モードに入れない）
+        // Routes through the same PlacementTargetCatalog.UnlockedEntries the build menu uses (BuildMenuEntryCatalog.CreateEntries)
+        // Locked targets are never resolved (the assignment itself survives in the save, but using it cannot enter build mode)
         public bool TryResolve(Guid id, out PlacementTargetEntry entry)
         {
-            if (_catalog.TryGetMasterEntry(id, out entry)) return true;
-
-            // マスタ未解決分は現行BP一覧から解決する（サーバー側HotbarAssignmentDatastore.IsResolvableと同じ判定源）
-            // Falls back to the current blueprint list, matching server-side HotbarAssignmentDatastore.IsResolvable
-            foreach (var (blueprintId, name) in _blueprintLibrary.BlueprintEntries)
+            var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
+            foreach (var candidate in _catalog.UnlockedEntries(_gameUnlockStateData, showAllPlaceable, _blueprintLibrary.BlueprintEntries))
             {
-                if (blueprintId != id) continue;
-                entry = new PlacementTargetEntry(id, PlacementTargetKind.Blueprint, name);
+                if (candidate.Id != id) continue;
+                entry = candidate;
                 return true;
             }
 

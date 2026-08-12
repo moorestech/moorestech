@@ -58,6 +58,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
+            // 他UIState滞在中は数字キーがpollされないため、復帰直後の古い押下状態を破棄する
+            // Digit keys aren't polled while another UIState is active, so discard any stale press state on return
+            HotbarKeyInput.Reset();
+
             _placementHeight.Value = 0;
             // 遷移payloadから設置ターゲットを受け取り所有者へ渡す（無ければEmptyに落ちる）
             // Take the placement target from the transition payload and hand it to the owner (falls back to Empty when absent)
@@ -144,6 +148,10 @@ namespace Client.Game.InGame.UI.UIState.State
             // 選択枠の寿命はPlaceBlock滞在中のみ。離脱時に非選択(-1)へ戻す
             // The selected slot lives only while in PlaceBlock; reset it to unselected (-1) on exit
             _clientHotbarDatastore.SetSelectedSlot(-1);
+
+            // 離脱時点の押下状態を持ち越さない。復帰後の誤長押し判定を防ぐ
+            // Discard the press state as of this exit so a later re-entry can't misfire a long press
+            HotbarKeyInput.Reset();
 
             // 配置モード離脱で範囲表示も畳む。破棄漏れがそのまま残存ボックスになる
             // Leaving placement mode folds the range view too; a missed destroy would linger as a stray box
