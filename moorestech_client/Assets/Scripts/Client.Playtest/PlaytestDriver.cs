@@ -84,11 +84,7 @@ namespace Client.Playtest
         }
         // ---- UI経路操作 / UI-route operations ----
         public UIStateEnum CurrentUiState => PlaytestUiOps.CurrentUiState();
-        public void UnlockBlock(string blockName)
-        {
-            _reporter.Step($"アンロック: {blockName}");
-            PlaytestBlockOps.UnlockBlockServerSide(blockName);
-        }
+        public void UnlockBlock(string blockName) { _reporter.Step($"アンロック: {blockName}"); PlaytestBlockOps.UnlockBlockServerSide(blockName); }
         public async UniTask GiveConstructionCost(string blockName, int blockCount) => await _reporter.Act($"建設コスト付与: {blockName} x{blockCount}", () => PlaytestItemOps.GiveConstructionCost(blockName, blockCount, 15f));
         public async UniTask PrepareBlockForUiPlacement(string blockName, int blockCount)
         {
@@ -111,9 +107,11 @@ namespace Client.Playtest
         }
         public async UniTask ClickBuildMenuBlock(string blockName) => await ClickWebUi(PlaytestWebUiOps.BuildMenuBlockTestId(blockName));
         public async UniTask CloseWebUiPanel() => await ClickWebUi("build-menu-close");
-        // slotは0始まり。0→キー1、8→キー9
-        // slot is zero-based: 0 -> key "1", 8 -> key "9"
-        public async UniTask SelectHotbar(int slot) => await _reporter.Act($"ホットバー{slot + 1}を選択", () => SemanticInput.TapKey(Key.Digit1 + slot));
+        // ホットバー操作: SelectHotbarは持ち替えでなく建築モードのトグル、AssignHotbarは表示名をビルドメニューと同一供給源で割当て、接続ツールは事前にUnlockConnectToolが必要
+        // Hotbar ops: SelectHotbar toggles build mode (not an item swap), AssignHotbar assigns by display name from the same source as the build menu, and connect tools need UnlockConnectTool first
+        public async UniTask SelectHotbar(int slot) => await _reporter.Act($"ホットバー{slot + 1}をタップ", () => SemanticInput.TapKey(Key.Digit1 + slot));
+        public async UniTask AssignHotbar(int slot, string targetName) => await _reporter.Act($"ホットバー{slot + 1}へ割当: {targetName}", () => PlaytestHotbarOps.AssignHotbar(slot, targetName, 15f));
+        public void UnlockConnectTool(string toolName) { _reporter.Step($"接続ツールをアンロック: {toolName}"); PlaytestHotbarOps.UnlockConnectToolServerSide(toolName); }
         public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds)
         {
             var waitEntry = _reporter.BeginWait($"UI状態待ち: {state}");
@@ -127,7 +125,6 @@ namespace Client.Playtest
         // Aim at the footprint center on the ground so placement lands on the given origin (assumes North)
         public async UniTask AimAtPlaceOrigin(string blockName, Vector3Int origin) => await _reporter.Act($"照準: {blockName} at {origin}", () => PlaytestUiOps.AimAtWorldPosition(PlaytestUiOps.PlaceAimPoint(blockName, origin, BlockDirection.North)));
         public async UniTask ClickPlace() => await _reporter.Act("クリック設置", PlaytestUiOps.ClickPlace);
-        public async UniTask GiveItemToHotbar(int hotbarSlot, string itemName, int count) => await _reporter.Act($"ホットバー{hotbarSlot + 1}へgive: {itemName} x{count}", () => PlaytestItemOps.GiveItemToHotbar(hotbarSlot, itemName, count, 15f));
         public async UniTask PlaceBlockViaUi(string blockName, Vector3Int origin, BlockDirection direction)
         {
             // ビルドメニュー選択→照準→クリック設置→サーバー反映待ちの統合操作（方向はデフォルトNorth前提）

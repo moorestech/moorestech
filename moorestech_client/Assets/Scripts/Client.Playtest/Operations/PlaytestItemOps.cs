@@ -60,20 +60,6 @@ namespace Client.Playtest.Operations
             }
         }
 
-        // [Task7で作り替え予定] 新ホットバー(設置対象ID参照)導入によりスロット直挿しの意味が変わったため、コンパイルが通る最小修正に留める
-        // [To be reworked in Task 7] The new hotbar (placement-target-id references) changed what a direct slot insert means, so this is a compile-only minimal fix
-        public static async UniTask GiveItemToHotbar(int hotbarSlot, string itemName, int count, float timeoutSeconds)
-        {
-            var itemId = ResolveItemId(itemName);
-            var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-            var mainInventory = GetMainInventory(playerId);
-            var clientCountBefore = CountItemClientSide(itemId);
-
-            mainInventory.SetItem(hotbarSlot, ServerContext.ItemStackFactory.Create(itemId, count));
-
-            await WaitClientItemCount(itemId, clientCountBefore + count, timeoutSeconds);
-        }
-
         public static async UniTask EquipItem(string itemName, int equipmentSlot, float timeoutSeconds)
         {
             // 持ち物から装備枠へ移して選択する。採掘はサーバー権威で選択中装備を見るため、両方揃って初めて成立する

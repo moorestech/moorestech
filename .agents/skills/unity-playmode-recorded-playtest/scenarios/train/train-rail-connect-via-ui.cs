@@ -1,14 +1,15 @@
 // レール橋脚（TrainRail型ブロック）のUI経路設置・クリック結線検証。
-// 橋脚2本をビルドメニュー→キーマウ操作で設置し、レールを手に持って橋脚Aクリック→橋脚Bクリックの順で
+// 橋脚2本をホットバー→キーマウ操作で設置し、レール接続ツールをホットバーで保持して橋脚Aクリック→橋脚Bクリックの順で
 // クリック結線し、RailComponentのFront/BackNode同士が接続されることを検証する。
 // 橋脚はデフォルト方向（北向き）のままZ軸沿いに設置し、回転操作なしで直線接続にする。
 // Train rail pier (TrainRail block) UI-route placement + click-connect probe.
-// Place two piers via build menu + key/mouse input, then hold the rail item and click pier A then pier B
+// Place two piers via hotbar + key/mouse input, then hold the rail connect tool via the hotbar and click pier A then pier B
 // to connect them, verifying the RailComponent Front/Back nodes end up linked.
 // Both piers keep the default direction (north) and are placed along the Z axis so no rotation is needed
 // for a straight connection.
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
+using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations;
 using Cysharp.Threading.Tasks;
@@ -21,21 +22,38 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("train-rail-connect-via-ui", options, async p =>
 {
     await p.SetupFlatGround();
-    p.WarpPlayer(new Vector3(11f, 33.5f, 10f));
+    // カメラは北(+Z)を向くためプレイヤーを南に置き、橋脚は前方(高いZ)へ設置する
+    // The camera faces north (+Z), so place the player to the south and the piers ahead (higher Z)
+    p.WarpPlayer(new Vector3(10f, 33.5f, -3f));
 
-    // レール橋脚をアンロックしホットバー0へ、接続用のレールをホットバー1へ用意する
-    // Unlock the rail pier, stock hotbar slot 0 with piers and slot 1 with connecting rails
+    // 開幕スキット(Story)を表示中はホットバー入力が効かないためSkipインテントで飛ばしGameScreenへ抜ける
+    // The opening skit (Story) blocks hotbar input, so skip it via the intent path and reach GameScreen
+    p.Note("開幕スキットをSkipインテントで飛ばす");
+    var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
+    await p.Until(() =>
+    {
+        var s = skitStore.GetCurrent();
+        return s != null && skitStore.TrySkip(s.SessionId, s.SceneRevision).Ok;
+    }, 30f, "開幕スキットのSkipインテントが受理される");
+    await p.WaitUiState(UIStateEnum.GameScreen, 15f);
+
+    // 橋脚の建設コストとレール接続ツールの消費素材（補強棒材・鉄板）を用意し、ホットバー0/1へ割当てる
+    // Stock the pier's construction cost and the rail connect tool's materials (reinforced rod, iron plate), then assign to hotbar 0/1
     p.UnlockBlock("レール橋脚");
-    await p.GiveItemToHotbar(0, "レール橋脚", 5);
-    await p.GiveItemToHotbar(1, "レール", 20);
+    p.UnlockConnectTool("レール");
+    await p.GiveConstructionCost("レール橋脚", 5);
+    await p.GiveItem("補強棒材", 64);
+    await p.GiveItem("鉄板", 32);
+    await p.AssignHotbar(0, "レール橋脚");
+    await p.AssignHotbar(1, "レール");
 
     // 橋脚2本をZ軸沿いに設置する（デフォルト方向=北向きのまま直線接続できる配置）
     // Place two piers along the Z axis (default facing = north keeps the connection straight)
     var pierA = new Vector3Int(10, 32, 6);
     var pierB = new Vector3Int(10, 32, 14);
 
-    await p.OpenBuildMenuAndSelectBlock("レール橋脚");
     await p.SelectHotbar(0);
+    await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
 
     async UniTask PlacePier(Vector3Int origin)
     {
@@ -47,7 +65,8 @@ return PlaytestRunner.Run("train-rail-connect-via-ui", options, async p =>
 
     await PlacePier(pierA);
     await PlacePier(pierB);
-    await p.ExitToGameScreen();
+    await p.SelectHotbar(0);
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     await p.Screenshot("01-piers-placed");
 
     // 接続前提: 2本は独立したRailComponent/ノードとして存在する
@@ -77,10 +96,10 @@ return PlaytestRunner.Run("train-rail-connect-via-ui", options, async p =>
     var aimA = ClosestAreaCenter(pierA, pierB);
     var aimB = ClosestAreaCenter(pierB, pierA);
 
-    // チェーン手持ち結線と同じクリック結線パターン: レールを手に持ち、橋脚A→橋脚Bの順にクリック
-    // Same click-to-connect pattern as the gear chain probe: hold the rail item, click pier A then pier B
-    await p.OpenBuildMenuAndSelectBlock("レール橋脚");
+    // 歯車チェーン結線と同じクリック結線パターン: レール接続ツールをホットバーで保持し、橋脚A→橋脚Bの順にクリック
+    // Same click-to-connect pattern as the gear chain probe: hold the rail connect tool via the hotbar, click pier A then pier B
     await p.SelectHotbar(1);
+    await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
 
     await p.AimAt(aimA);
     await p.ClickPlace();
@@ -89,6 +108,6 @@ return PlaytestRunner.Run("train-rail-connect-via-ui", options, async p =>
     await p.ClickPlace();
 
     await p.Until(AnyConnected, 15f, "クリック結線で2本のレールが接続された");
-    await p.ExitToGameScreen();
+    await p.SelectHotbar(1);
     await p.Screenshot("02-connected");
 });

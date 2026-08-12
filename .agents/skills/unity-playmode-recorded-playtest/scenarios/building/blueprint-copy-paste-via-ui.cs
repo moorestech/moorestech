@@ -13,6 +13,7 @@
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory;
@@ -57,8 +58,8 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     // Select the blueprint copy tool (icon-less text slot)
     await OpenBuildMenuAndClickTextSlot("ブループリントコピー", "02-menu-copy-tool");
 
-    var hotBarView = UnityEngine.Object.FindFirstObjectByType<HotBarView>();
-    var hotbarBefore = hotBarView.SelectIndex;
+    var clientHotbarDatastore = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ClientHotbarDatastore>();
+    var hotbarBefore = clientHotbarDatastore.SelectedSlot;
 
     // XZドラッグ+スクロール+2で範囲選択
     // Build the selection box via XZ drag plus +2 scroll steps
@@ -87,7 +88,7 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
 
     // ウォッチリスト2観察: ドラッグ中スクロールでホットバー選択が同時に動くか（観察のみ・失敗にしない）
     // Watch-list 2 observation: whether the drag scroll also moved the hotbar selection (observe only)
-    var hotbarAfter = hotBarView.SelectIndex;
+    var hotbarAfter = clientHotbarDatastore.SelectedSlot;
     p.Assert(true, $"watchlist2-observe: ドラッグ中スクロールでホットバー選択 {hotbarBefore} -> {hotbarAfter}");
 
     // 名前入力中のB/G/V/Tabキー抑止を検証

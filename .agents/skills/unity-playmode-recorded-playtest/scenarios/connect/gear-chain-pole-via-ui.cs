@@ -1,11 +1,12 @@
 // 歯車チェーンポールのセグメント構築検証（UI経路・複雑シナリオプローブ）:
 // ポール5本をキーマウス操作のみで設置し、2本連結セグメントと3本連結セグメントを作る。
-// ポール設置はHoldingItemId駆動（ホットバーのポールアイテム所持で連続延長＝設置＋チェーン自動接続）。
-// セグメントの分離は「GameScreenへ抜けて起点ポールをリセット」で行う。
+// ポール設置はホットバー割当駆動（設置対象IDを割当てた枠を建築モードで保持＝設置＋チェーン自動接続）。
+// セグメントの分離は「同キーで建築モードを抜けて起点ポールをリセット」で行う。
 // Gear chain pole segment probe (UI route, complex scenario):
 // place 5 poles via key/mouse only, forming one 2-pole and one 3-pole chained segment.
-// Pole placement is HoldingItemId-driven (holding the pole item enables continuous extension = place + auto-chain).
-// Segments are separated by exiting to GameScreen, which resets the extension source pole.
+// Pole placement is hotbar-assignment-driven (holding the assigned placement-target slot in build mode enables continuous extension = place + auto-chain).
+// Segments are separated by exiting build mode with the same key, which resets the extension source pole.
+using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations;
 using Cysharp.Threading.Tasks;
@@ -17,17 +18,31 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("gear-chain-pole-via-ui", options, async p =>
 {
     await p.SetupFlatGround();
-    p.WarpPlayer(new Vector3(7f, 33.5f, 5f));
+    // カメラは北(+Z)を向くためプレイヤーを南に置く。X方向に広い5本編成のため中央かつ十分離れた位置に立つ
+    // The camera faces north (+Z), so place the player to the south; stand centered and far enough back for the wide X spread of 5 poles
+    p.WarpPlayer(new Vector3(12f, 33.5f, -10f));
 
-    // ポールはホットバー1（延長設置でアイテム消費）、チェーンはインベントリ在庫から自動消費される
-    // Poles go to hotbar slot 1 (consumed by extension placement); chains are auto-consumed from inventory stock
+    // 開幕スキット(Story)を表示中はホットバー入力が効かないためSkipインテントで飛ばしGameScreenへ抜ける
+    // The opening skit (Story) blocks hotbar input, so skip it via the intent path and reach GameScreen
+    p.Note("開幕スキットをSkipインテントで飛ばす");
+    var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
+    await p.Until(() =>
+    {
+        var s = skitStore.GetCurrent();
+        return s != null && skitStore.TrySkip(s.SessionId, s.SceneRevision).Ok;
+    }, 30f, "開幕スキットのSkipインテントが受理される");
+    await p.WaitUiState(UIStateEnum.GameScreen, 15f);
+
+    // ポールの建設コストと、延長ごとに消費されるチェーン素材（鉄のワイヤー）の在庫を用意する
+    // Stock the pole's construction cost and the chain material (iron wire) consumed by each extension
     p.UnlockBlock("歯車チェーンポール");
-    await p.GiveItemToHotbar(0, "歯車チェーンポール", 10);
-    await p.GiveItem("歯車チェーン", 100);
+    p.UnlockConnectTool("歯車チェーン");
+    await p.GiveConstructionCost("歯車チェーンポール", 10);
+    await p.GiveItem("鉄のワイヤー", 100);   // give命令は1回=1スタックのため、maxStack(100)以内に収める
 
-    // ビルドメニューからポールを選択して設置モードへ入り、ホットバー1でポールを手持ちにする
-    // Enter placement mode via the build menu, then hold the pole with hotbar key 1
-    await p.OpenBuildMenuAndSelectBlock("歯車チェーンポール");
+    // ポールをホットバー1へ割当て、同キーで建築モードへ入る
+    // Assign the pole to hotbar slot 1, then the same key enters build mode
+    await p.AssignHotbar(0, "歯車チェーンポール");
     await p.SelectHotbar(0);
 
     // ポール1本をクリック設置し、サーバー反映とクライアント出現（＝延長起点の確定）を待つ
@@ -48,35 +63,33 @@ return PlaytestRunner.Run("gear-chain-pole-via-ui", options, async p =>
     await PlacePole(a1);
     await PlacePole(a2);
 
-    // GameScreenへ抜けて延長起点をリセットし、セグメントを分離する
-    // Exit to GameScreen to reset the extension source and separate the segments
-    await p.ExitToGameScreen();
+    // 同キーで建築モードを抜けて延長起点をリセットし、セグメントを分離する（遷移完了を待ってから次を打つ）
+    // Exit build mode with the same key to reset the extension source and separate the segments (wait for the transition before the next tap)
+    await p.SelectHotbar(0);
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
-    // セグメントB: 3本連結
-    // Segment B: 3 poles
-    var b1 = new Vector3Int(2, 32, 8);
-    var b2 = new Vector3Int(6, 32, 8);
-    var b3 = new Vector3Int(10, 32, 8);
-    await p.OpenBuildMenuAndSelectBlock("歯車チェーンポール");
+    // セグメントB: 3本連結（割当は残っているので同キーで再入場できる）。Aと同じZ行でX方向に離す
+    // Segment B: 3 poles (the assignment persists, so the same key re-enters); same Z row as A, offset along X
+    var b1 = new Vector3Int(14, 32, 2);
+    var b2 = new Vector3Int(18, 32, 2);
+    var b3 = new Vector3Int(22, 32, 2);
+    await p.SelectHotbar(0);
+    await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
     await PlacePole(b1);
     await PlacePole(b2);
     await PlacePole(b3);
-    await p.ExitToGameScreen();
+    await p.SelectHotbar(0);
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     await p.Screenshot("01-poles-placed");
 
     // 歯車ネットワーク所属を検証: A1-A2同一 / B1-B2-B3同一 / AとBは別ネットワーク
     // Verify gear network membership: A1-A2 together, B1-B2-B3 together, A and B distinct
-    var gearNetworks = p.ServerService<GearNetworkDatastore>().GearNetworks;
+    var gearNetworkDatastore = p.ServerService<GearNetworkDatastore>();
     System.Func<Vector3Int, GearNetworkId?> networkOf = pos =>
     {
         var block = p.GetBlock(pos);
         if (block == null) return null;
-        foreach (var pair in gearNetworks)
-        foreach (var transformer in pair.Value.GearTransformers)
-        {
-            if (transformer.BlockInstanceId == block.BlockInstanceId) return pair.Key;
-        }
-        return null;
+        return gearNetworkDatastore.TryGetGearNetwork(block.BlockInstanceId, out var network) ? network.NetworkId : (GearNetworkId?)null;
     };
 
     p.Assert(networkOf(a1) != null, "A1がネットワークに所属");

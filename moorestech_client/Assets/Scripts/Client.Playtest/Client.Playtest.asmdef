@@ -19,6 +19,7 @@
         "Game.Context",
         "Game.World.Interface",
         "Game.UnlockState",
+        "Game.PlacementTarget",
         "Game.MapGeneration",
         "Game.Block.Interface",
         "Game.PlayerInventory.Interface",
