@@ -44,9 +44,13 @@ namespace Client.Editor.Toolbar
             // Set the generated-world launch flag (persists across domain reload)
             SessionState.SetBool(GeneratedWorldPlayModeSettings.SessionStateKey, true);
 
+            // NoSave Playの残置フラグはAutoSaveを落として生成ワールドの永続化を壊すので明示解除する
+            // A leftover NoSave Play flag disables AutoSave and breaks persisting the generated world, so clear it explicitly
+            SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, false);
+
             // オーサリング地形との重畳を避けるためデバッグ環境をRuntimeへ切替える
             // Switch the debug environment to Runtime to avoid overlap with authored terrain
-            GeneratedWorldPlayModeSettings.ApplyDebugEnvironmentOverride();
+            GeneratedWorldPlayModeSettings.BeginIsolatedDebugEnvironment();
 
             // ゲーム初期化シーンから再生を開始する
             // Start play mode from the game initializer scene
@@ -63,9 +67,9 @@ namespace Client.Editor.Toolbar
             SessionState.SetBool(GeneratedWorldPlayModeSettings.SessionStateKey, false);
             EditorSceneManager.playModeStartScene = null;
 
-            // 自分が切り替えていた場合だけデバッグ環境を復元する（通常再生では何もしない）
-            // Restore the debug environment only if this feature switched it (no-op for normal play)
-            GeneratedWorldPlayModeSettings.RestoreDebugEnvironmentIfNeeded();
+            // 自分が張った隔離だけを外す（通常再生やテストの隔離では何もしない）
+            // Clear only this feature's isolation (no-op for normal play or test isolation)
+            GeneratedWorldPlayModeSettings.EndIsolatedDebugEnvironment();
         }
     }
 }

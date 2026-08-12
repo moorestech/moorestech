@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.IO;
 using Client.DebugSystem.Environment;
 using Common.Debug;
 using Game.MapGeneration.Provisioning;
@@ -17,12 +18,14 @@ namespace Client.Starter.Editor
         // DebugEnvironmentControllerと重複定義（各所で共有されているprivate constの既存流儀）
         // Duplicated from DebugEnvironmentController (existing convention of a shared private const per file)
         private const string DebugEnvironmentTypeKey = "DebugEnvironmentTypeKey";
-        private const string PreviousDebugEnvironmentTypeSessionKey = "moorestech_GeneratedWorldPlayMode_PreviousDebugEnvironmentType";
-        private const string HasPreviousDebugEnvironmentTypeSessionKey = "moorestech_GeneratedWorldPlayMode_HasPreviousDebugEnvironmentType";
 
         // 起動ボタンと削除メニューが共有する生成ワールドの保存先
         // Generated world save path shared by the play button and the delete menu
         public static string WorldDirectoryPath => GameSystemPaths.GetSaveFilePath(WorldDirectoryName);
+
+        // 開発者の永続デバッグ設定を汚さないための一時cache置き場
+        // Temporary cache location that keeps the developer's persistent debug settings clean
+        public static string DebugCacheDirectory => Path.Combine(Path.GetTempPath(), "moorestech-generated-play-debug-cache");
 
         public static void ApplyIfNeeded(InitializeProprieties proprieties)
         {
@@ -36,31 +39,22 @@ namespace Client.Starter.Editor
             proprieties.CreateLocalServerArgs = CliConvert.Serialize(settings);
         }
 
-        public static void ApplyDebugEnvironmentOverride()
+        public static void BeginIsolatedDebugEnvironment()
         {
-            // 未退避の時だけ現在値を退避する。EnterPlaymode失敗等でRestoreが未実行のまま再クリックされても、既にRuntimeへ汚染された値を「元値」として誤って再退避しない
-            // Save the current value only if not already saved, so a retry after a failed EnterPlaymode (Restore never ran) does not re-save an already-corrupted Runtime value as the "original"
-            if (!SessionState.GetBool(HasPreviousDebugEnvironmentTypeSessionKey, false))
-            {
-                var previousValue = DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Debug);
-                SessionState.SetInt(PreviousDebugEnvironmentTypeSessionKey, previousValue);
-                SessionState.SetBool(HasPreviousDebugEnvironmentTypeSessionKey, true);
-            }
-
-            // Runtimeへの上書き自体は冪等なので毎回実行してよい
-            // Overwriting to Runtime itself is idempotent, so it always runs
+            // 開発者設定を複製した一時cacheへ隔離するので、Runtime指定は通常再生に残らない
+            // Isolate into a temp cache cloned from developer settings, so the Runtime choice never leaks into normal play
+            DebugParametersCacheDirectory.CopyDefaultTo(DebugCacheDirectory);
+            DebugParametersCacheDirectory.SetOverride(DebugCacheDirectory);
             DebugParameters.SaveInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Runtime);
         }
 
-        public static void RestoreDebugEnvironmentIfNeeded()
+        public static void EndIsolatedDebugEnvironment()
         {
-            // 自分が退避した時だけ復元する（通常再生の終了時に手動選択値を上書きしないため）
-            // Restore only when this feature saved a value (avoid overwriting a manual choice on normal play's end)
-            if (!SessionState.GetBool(HasPreviousDebugEnvironmentTypeSessionKey, false)) return;
+            // 自分が張った隔離だけを外し、テストやPlaytestの隔離を巻き添えにしない
+            // Clear only this feature's isolation, leaving test or playtest isolation untouched
+            if (DebugParametersCacheDirectory.GetOverride() != DebugCacheDirectory) return;
 
-            var previousValue = SessionState.GetInt(PreviousDebugEnvironmentTypeSessionKey, (int)DebugEnvironmentType.Debug);
-            DebugParameters.SaveInt(DebugEnvironmentTypeKey, previousValue);
-            SessionState.SetBool(HasPreviousDebugEnvironmentTypeSessionKey, false);
+            DebugParametersCacheDirectory.SetOverride(null);
         }
     }
 }

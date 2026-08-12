@@ -1,8 +1,10 @@
+using System.IO;
 using Client.DebugSystem.Environment;
 using Client.Starter;
 using Client.Starter.Editor;
 using Common.Debug;
 using Game.MapGeneration.Provisioning;
+using Game.Paths;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Args;
@@ -15,14 +17,18 @@ namespace Client.Tests.Starter
         // DebugEnvironmentController等と重複定義（各所で共有されているprivate constの既存流儀）
         // Duplicated from DebugEnvironmentController (existing convention of a shared private const per file)
         private const string DebugEnvironmentTypeKey = "DebugEnvironmentTypeKey";
-        private int _originalDebugEnvironmentTypeValue;
+
+        // アセンブリ全体を隔離しているClientTestsDebugParametersIsolationFixtureのoverride先
+        // The override set by ClientTestsDebugParametersIsolationFixture, which isolates the whole assembly
+        private string _fixtureCacheDirectory;
 
         [SetUp]
         public void SetUp()
         {
-            // 実機環境の設定を壊さないよう元値を退避しておく
-            // Save the original value so the real editor environment is not corrupted
-            _originalDebugEnvironmentTypeValue = DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Debug);
+            // SessionStateはエディタセッション中生存するため、毎テスト明示的に倒して初期状態を固定する
+            // SessionState survives the whole editor session, so reset it per test to pin the starting state
+            SessionState.SetBool(GeneratedWorldPlayModeSettings.SessionStateKey, false);
+            _fixtureCacheDirectory = DebugParametersCacheDirectory.GetOverride();
         }
 
         [TearDown]
@@ -32,10 +38,9 @@ namespace Client.Tests.Starter
             // A leftover flag pollutes launch args of later tests, so always reset it
             SessionState.SetBool(GeneratedWorldPlayModeSettings.SessionStateKey, false);
 
-            // 退避マーカーが残っていれば消化し、値も元へ確実に戻す
-            // Consume any leftover restore marker and make sure the value is put back
-            GeneratedWorldPlayModeSettings.RestoreDebugEnvironmentIfNeeded();
-            DebugParameters.SaveInt(DebugEnvironmentTypeKey, _originalDebugEnvironmentTypeValue);
+            // override残置はアセンブリ全体の隔離を壊すため、fixtureが張った値へ確実に戻す
+            // A leftover override breaks the assembly-wide isolation, so restore the fixture's value for sure
+            DebugParametersCacheDirectory.SetOverride(_fixtureCacheDirectory);
         }
 
         [Test]
@@ -47,7 +52,7 @@ namespace Client.Tests.Starter
             GeneratedWorldPlayModeSettings.ApplyIfNeeded(proprieties);
 
             var settings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);
-            Assert.That(settings.WorldDirectory, Is.EqualTo(GeneratedWorldPlayModeSettings.WorldDirectoryPath));
+            Assert.That(settings.WorldDirectory, Is.EqualTo(GameSystemPaths.GetSaveFilePath("world_generated")));
             Assert.That(settings.MapMode, Is.EqualTo(WorldProvisioner.GeneratedMapMode));
             Assert.That(settings.AutoSave, Is.True);
         }
@@ -61,44 +66,71 @@ namespace Client.Tests.Starter
             GeneratedWorldPlayModeSettings.ApplyIfNeeded(proprieties);
 
             var settings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);
-            Assert.That(settings.MapMode, Is.EqualTo(WorldProvisioner.TemplateMapMode));
-            Assert.That(settings.WorldDirectory, Does.Not.Contain("world_generated"));
+            var defaultSettings = new StartServerSettings();
+            Assert.That(settings.MapMode, Is.EqualTo(defaultSettings.MapMode));
+            Assert.That(settings.WorldDirectory, Is.EqualTo(defaultSettings.WorldDirectory));
         }
 
         [Test]
-        public void デバッグ環境の切替えは旧値退避後にRuntimeへ上書きし復元で元へ戻す()
+        public void フラグ有効でもworldDirectoryとmapMode以外の指定は保持する()
         {
-            DebugParameters.SaveInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Other);
+            SessionState.SetBool(GeneratedWorldPlayModeSettings.SessionStateKey, true);
 
-            GeneratedWorldPlayModeSettings.ApplyDebugEnvironmentOverride();
+            // 既定値と異なる値を渡し、上書き対象が本当に2項目だけかを検出できるようにする
+            // Pass non-default values so an overwrite beyond the intended two fields is detectable
+            var original = new StartServerSettings
+            {
+                WorldDirectory = "/tmp/moorestech-test-world",
+                MapMode = WorldProvisioner.TemplateMapMode,
+                Seed = 4321,
+                Port = 21564,
+                AutoSave = false,
+                ServerDataDirectory = "/tmp/moorestech-test-server-data",
+            };
+            var proprieties = InitializeProprieties.CreateDefault();
+            proprieties.CreateLocalServerArgs = CliConvert.Serialize(original);
+
+            GeneratedWorldPlayModeSettings.ApplyIfNeeded(proprieties);
+
+            var settings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);
+            Assert.That(settings.WorldDirectory, Is.EqualTo(GameSystemPaths.GetSaveFilePath("world_generated")));
+            Assert.That(settings.MapMode, Is.EqualTo(WorldProvisioner.GeneratedMapMode));
+            Assert.That(settings.Seed, Is.EqualTo(4321));
+            Assert.That(settings.Port, Is.EqualTo(21564));
+            Assert.That(settings.AutoSave, Is.False);
+            Assert.That(settings.ServerDataDirectory, Is.EqualTo("/tmp/moorestech-test-server-data"));
+        }
+
+        [Test]
+        public void 隔離開始で一時cacheへ切替えRuntimeを書き込む()
+        {
+            GeneratedWorldPlayModeSettings.BeginIsolatedDebugEnvironment();
+
+            Assert.That(DebugParametersCacheDirectory.GetOverride(), Is.EqualTo(GeneratedWorldPlayModeSettings.DebugCacheDirectory));
             Assert.That(DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Debug), Is.EqualTo((int)DebugEnvironmentType.Runtime));
-
-            GeneratedWorldPlayModeSettings.RestoreDebugEnvironmentIfNeeded();
-            Assert.That(DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Debug), Is.EqualTo((int)DebugEnvironmentType.Other));
         }
 
         [Test]
-        public void 退避していない状態での復元は通常再生の設定を上書きしない()
+        public void 隔離終了でoverrideが解除される()
         {
-            DebugParameters.SaveInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.PureNature);
+            GeneratedWorldPlayModeSettings.BeginIsolatedDebugEnvironment();
 
-            GeneratedWorldPlayModeSettings.RestoreDebugEnvironmentIfNeeded();
+            GeneratedWorldPlayModeSettings.EndIsolatedDebugEnvironment();
 
-            Assert.That(DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Debug), Is.EqualTo((int)DebugEnvironmentType.PureNature));
+            Assert.That(DebugParametersCacheDirectory.GetOverride(), Is.Null);
         }
 
         [Test]
-        public void 連続適用でも最初の退避値だけが復元される()
+        public void 他人のoverrideが張られている時は隔離終了しても外さない()
         {
-            DebugParameters.SaveInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Other);
+            // fixtureやPlaytestが張った隔離を巻き添えで剥がさないことを保証する
+            // Guarantee that isolation set up by a fixture or playtest is not torn down as collateral
+            var otherDirectory = Path.Combine(Path.GetTempPath(), "moorestech-other-owner-debug-cache");
+            DebugParametersCacheDirectory.SetOverride(otherDirectory);
 
-            // EnterPlaymode失敗などでRestore未実行のまま再クリックされる経路を模擬する
-            // Simulate a re-click while Restore never ran, e.g. after a failed EnterPlaymode
-            GeneratedWorldPlayModeSettings.ApplyDebugEnvironmentOverride();
-            GeneratedWorldPlayModeSettings.ApplyDebugEnvironmentOverride();
+            GeneratedWorldPlayModeSettings.EndIsolatedDebugEnvironment();
 
-            GeneratedWorldPlayModeSettings.RestoreDebugEnvironmentIfNeeded();
-            Assert.That(DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Debug), Is.EqualTo((int)DebugEnvironmentType.Other));
+            Assert.That(DebugParametersCacheDirectory.GetOverride(), Is.EqualTo(otherDirectory));
         }
     }
 }
