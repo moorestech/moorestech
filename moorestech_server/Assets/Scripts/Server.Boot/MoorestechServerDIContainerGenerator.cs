@@ -22,6 +22,7 @@ using Game.Map;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
+using Game.PlacementTarget;
 using Game.Paths;
 using Game.PlayerConnection;
 using Game.PlayerInventory;
@@ -187,6 +188,7 @@ namespace Server.Boot
             services.AddSingleton<IItemStackLevelUnlocker>(itemStackLevelDataStore);
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
+            services.AddSingleton<PlacementTargetCatalog>();
 
             services.AddSingleton<ResearchEvent>();
 

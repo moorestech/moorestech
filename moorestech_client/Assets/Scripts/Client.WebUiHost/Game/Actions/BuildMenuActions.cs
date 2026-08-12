@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
 using Common.Debug;
 using Cysharp.Threading.Tasks;
+using Game.PlacementTarget;
 using Game.UnlockState;
 using Newtonsoft.Json.Linq;
 

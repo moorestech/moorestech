@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Common.Debug;
 using Core.Master;
+using Game.PlacementTarget;
 using Game.UnlockState;
 using Mooresmaster.Model.BuildMenuModule;
 

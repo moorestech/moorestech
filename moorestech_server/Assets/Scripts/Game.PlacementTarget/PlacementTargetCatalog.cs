@@ -5,7 +5,7 @@ using Core.Master;
 using Game.Block.Interface.Extension;
 using Game.UnlockState;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
+namespace Game.PlacementTarget
 {
     // 設置対象のGuidカタログ
     // GUID catalog for placement targets
@@ -58,6 +58,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
             }
 
             #endregion
+        }
+
+        // マスタ由来エントリのみ解決（BPはIBlueprintDatastore側で判定する）
+        // Resolves master-derived entries only (BPs are judged via IBlueprintDatastore)
+        public bool TryGetMasterEntry(Guid id, out PlacementTargetEntry entry)
+        {
+            foreach (var masterEntry in _masterEntries)
+            {
+                if (masterEntry.Id != id) continue;
+                entry = masterEntry;
+                return true;
+            }
+
+            entry = default;
+            return false;
         }
 
         public IReadOnlyList<PlacementTargetEntry> CreateEntries(IReadOnlyList<(Guid id, string name)> blueprintEntries)

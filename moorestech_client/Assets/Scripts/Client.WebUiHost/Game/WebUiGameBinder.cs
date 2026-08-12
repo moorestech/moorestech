@@ -1,6 +1,6 @@
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Game.PlacementTarget;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory;

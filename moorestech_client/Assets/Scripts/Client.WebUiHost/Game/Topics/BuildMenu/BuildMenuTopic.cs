@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Game.PlacementTarget;
 using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;

@@ -1,4 +1,4 @@
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
+namespace Game.PlacementTarget
 {
     public enum PlacementTargetKind
     {

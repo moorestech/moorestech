@@ -8,6 +8,7 @@ using Client.Game.InGame.Context;
 using Client.Localization;
 using Client.Mod.Texture;
 using Common.Debug;
+using Game.PlacementTarget;
 using Game.UnlockState;
 using Mooresmaster.Localization.Generated;
 

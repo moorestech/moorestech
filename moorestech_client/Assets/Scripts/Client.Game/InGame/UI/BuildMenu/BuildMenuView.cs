@@ -9,6 +9,7 @@ using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.UIState;
 using Client.Localization;
 using Cysharp.Threading.Tasks;
+using Game.PlacementTarget;
 using Game.UnlockState;
 using UniRx;
 using UnityEngine;

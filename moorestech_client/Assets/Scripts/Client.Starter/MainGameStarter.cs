@@ -9,7 +9,7 @@ using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Game.PlacementTarget;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
