@@ -17,20 +17,20 @@ await p.WaitUiState(Client.Game.InGame.UI.UIState.UIStateEnum.GameScreen, 15f);
 
 // 1. アンロック（ブロックと接続ツールは別枠のアンロック状態を持つ）
 p.UnlockBlock("歯車チェーンポール");
-p.UnlockConnectTool("歯車チェーン");   // 接続ツール(電線/レール/歯車チェーン)を使うときだけ必要
+p.Hotbar.UnlockConnectTool("歯車チェーン");   // 接続ツール(電線/レール/歯車チェーン)を使うときだけ必要
 
 // 2. 在庫を用意する（ブロックは建設コスト、接続ツールは距離×マスタcountの多素材消費）
 await p.GiveConstructionCost("歯車チェーンポール", 10);
 await p.GiveItem("鉄のワイヤー", 100);   // 歯車チェーン接続ツールの消費素材(落とし穴7: maxStack以内に収める)
 
 // 3. ホットバーへ割当てる（表示名一致。GiveItem/GiveItemDirectとは無関係の別経路）
-await p.AssignHotbar(0, "歯車チェーンポール");   // slot0 = キー1
-await p.AssignHotbar(1, "歯車チェーン");         // slot1 = キー2（接続ツール）
+await p.Hotbar.AssignHotbar(0, "歯車チェーンポール");   // slot0 = キー1
+await p.Hotbar.AssignHotbar(1, "歯車チェーン");         // slot1 = キー2（接続ツール）
 
 // 4. 同キーで建築モードへ入る／抜ける（トグル）
-await p.SelectHotbar(0);   // ポール保持 → PlaceExtendモード（設置＋チェーン自動結線）
+await p.Hotbar.SelectHotbar(0);   // ポール保持 → PlaceExtendモード（設置＋チェーン自動結線）
 // ...設置操作...
-await p.SelectHotbar(0);   // 同じ枠を再タップして建築モードを抜ける
+await p.Hotbar.SelectHotbar(0);   // 同じ枠を再タップして建築モードを抜ける
 ```
 
 ## 歯車チェーンポール: 2つの操作モード
@@ -44,9 +44,9 @@ place systemの分岐は`context.Target`の型（`BlockPlacementTarget` / `Conne
 - クリック2回目以降: 新ポール設置＋起点との**チェーン自動結線**（`ExtendGearChainPole`プロトコル1発）。
   ポールの消費はブロックの`RequiredItems`、チェーンの消費は**歯車チェーン接続ツールのマスタ駆動**（distance-based。下記参照）
 - 内部的にも接続ツールのGuidを要求する: `ConnectToolCatalog.TryResolveDefaultConnectToolGuid`が**未解放なら早期returnで設置自体が不成立**になる。
-  ポールのブロックだけでなく`UnlockConnectTool("歯車チェーン")`も忘れない
-- **起点のリセット＝セグメント分離**: `await p.SelectHotbar(slot)`（同キーで抜ける）でplace systemがDisable→ResetStateされ
-  延長起点がnullに戻る。別セグメントを作るときは同キーで再度入り直す（割当は残っているので`AssignHotbar`のやり直し不要）
+  ポールのブロックだけでなく`Hotbar.UnlockConnectTool("歯車チェーン")`も忘れない
+- **起点のリセット＝セグメント分離**: `await p.Hotbar.SelectHotbar(slot)`（同キーで抜ける）でplace systemがDisable→ResetStateされ
+  延長起点がnullに戻る。別セグメントを作るときは同キーで再度入り直す（割当は残っているので`Hotbar.AssignHotbar`のやり直し不要）
 - 設置1回ごとに待つ（応答消費→起点確定に時間がかかる）:
   ```csharp
   await p.AimAtPlaceOrigin("歯車チェーンポール", origin);
@@ -59,7 +59,7 @@ place systemの分岐は`context.Target`の型（`BlockPlacementTarget` / `Conne
 ### B. 接続ツール保持＝既存ポール同士のクリック結線（ChainConnect）
 
 ```csharp
-await p.SelectHotbar(1);              // 歯車チェーン接続ツールを保持（同キーで建築モードへ）
+await p.Hotbar.SelectHotbar(1);              // 歯車チェーン接続ツールを保持（同キーで建築モードへ）
 await p.AimAt(poleClickPoint(c1));    // ポールAクリック → 起点選択
 await p.ClickPlace();
 await p.WaitSeconds(0.3f);
@@ -83,7 +83,7 @@ System.Func<Vector3Int, Vector3> poleClickPoint = pos =>
 電線/レール/歯車チェーンの3接続ツールは**距離に応じた多素材消費**（`ConnectToolCostCalculator`）:
 `units = ceil(距離 / lengthPerUnit)`、各`requiredItems`の消費 = `units × count`。
 `buildMenu.json`の`connectTools`にマスタがあり、`name`（表示名）と`requiredItems`の材料は**別物**なので
-`AssignHotbar`には`name`を、`GiveItem`には`requiredItems`側の実材料名を渡す（例: 歯車チェーン→鉄のワイヤー、
+`Hotbar.AssignHotbar`には`name`を、`GiveItem`には`requiredItems`側の実材料名を渡す（例: 歯車チェーン→鉄のワイヤー、
 レール→補強棒材+鉄板、電線→銅のワイヤー）。距離を跨いだ余裕を持って多めに付与しておくと安全。
 
 ## 検証の定石: 歯車ネットワーク所属
@@ -105,12 +105,12 @@ p.Assert(!networkOf(a1).Equals(networkOf(b1)), "別セグメント");
 
 ## 落とし穴
 
-1. **未割当の枠をタップすると建築モードを抜ける**（旧仕様との最大の違い）。`AssignHotbar`せずに
-   `SelectHotbar`だけ呼ぶと、GameScreenでは何も起きず、PlaceBlock中なら即座に抜けてしまう
+1. **未割当の枠をタップすると建築モードを抜ける**（旧仕様との最大の違い）。`Hotbar.AssignHotbar`せずに
+   `Hotbar.SelectHotbar`だけ呼ぶと、GameScreenでは何も起きず、PlaceBlock中なら即座に抜けてしまう
 2. **接続ツールはブロックと別枠のアンロック状態**（`ConnectToolUnlockStateInfos`）を持つ。ブロックだけ
-   `UnlockBlock`しても、対応する接続ツールを`UnlockConnectTool`しないと延長設置・クリック結線どちらも動かない
+   `UnlockBlock`しても、対応する接続ツールを`Hotbar.UnlockConnectTool`しないと延長設置・クリック結線どちらも動かない
 3. **PlaceBlock状態に入らないとplace systemは動かない**（ManualUpdateはPlaceBlockState内のみ）。
-   ホットバーに割当てるだけではダメで、`SelectHotbar`で実際に建築モードへ入ってから操作する
+   ホットバーに割当てるだけではダメで、`Hotbar.SelectHotbar`で実際に建築モードへ入ってから操作する
 4. **保持中の対象がplace systemの分岐を決める**（ブロック=延長設置、接続ツール=クリック結線）。
    選択が何であれ、対応するplace systemがManualUpdateで動く
 5. クリック判定は`IsPointerOverGameObject`を厳密に見る（UIに被る画素を狙うと無反応）。
@@ -123,8 +123,8 @@ p.Assert(!networkOf(a1).Equals(networkOf(b1)), "別セグメント");
 8. **フレッシュワールドの開幕スキット(Story)がホットバー入力より優先**される（`GameScreenState`の
    スキット遷移チェックがホットバー遷移チェックより後にあり、スキット中は`GameScreen`にすら入れない）。
    `SetupFlatGround`直後に`Client.Skit.UI.SkitPresentationStateStore.Instance`のSkipインテントで
-   飛ばし`GameScreen`到達を待ってから`AssignHotbar`/`SelectHotbar`する（前例: `electric-wire-mutual-range-via-ui.cs`）
-9. **`SelectHotbar`自体はUIState遷移完了を待たない**（キータップ+固定0.5秒インターバルのみ）。
+   飛ばし`GameScreen`到達を待ってから`Hotbar.AssignHotbar`/`Hotbar.SelectHotbar`する（前例: `electric-wire-mutual-range-via-ui.cs`）
+9. **`Hotbar.SelectHotbar`自体はUIState遷移完了を待たない**（キータップ+固定0.5秒インターバルのみ）。
    同キーで抜けてすぐ入り直す・別枠へ持ち替えてすぐ操作するなど連続呼び出しは、各タップの後に
    `p.WaitUiState(UIStateEnum.GameScreen/PlaceBlock, 10f)`を挟まないと、前の遷移未完了のまま次のタップが
    割り込みplace systemの状態リセットと競合しうる

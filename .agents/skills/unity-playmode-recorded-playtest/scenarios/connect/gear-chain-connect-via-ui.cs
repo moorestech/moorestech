@@ -34,11 +34,11 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
     // ホットバー1=ポール、2=チェーン接続ツール。両方ともホットバー割当前にアンロックが要る（ブロックと接続ツールは別枠）
     // Hotbar 1 = pole, 2 = chain connect tool. Both need unlocking before hotbar assignment (blocks and connect tools use separate unlock buckets)
     p.UnlockBlock("歯車チェーンポール");
-    p.UnlockConnectTool("歯車チェーン");
+    p.Hotbar.UnlockConnectTool("歯車チェーン");
     await p.GiveConstructionCost("歯車チェーンポール", 5);
     await p.GiveItem("鉄のワイヤー", 64);
-    await p.AssignHotbar(0, "歯車チェーンポール");
-    await p.AssignHotbar(1, "歯車チェーン");
+    await p.Hotbar.AssignHotbar(0, "歯車チェーンポール");
+    await p.Hotbar.AssignHotbar(1, "歯車チェーン");
 
     // 孤立ポール2本: 1本置くごとに同キーで建築モードを抜けて延長起点をリセットし、自動結線させない
     // Two isolated poles: exit build mode with the same key after each to reset the extension source (no auto-chain)
@@ -47,13 +47,13 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
 
     async UniTask PlaceIsolatedPole(Vector3Int origin)
     {
-        await p.SelectHotbar(0);
+        await p.Hotbar.SelectHotbar(0);
         await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
         await p.AimAtPlaceOrigin("歯車チェーンポール", origin);
         await p.ClickPlace();
         await p.Until(() => p.GetBlock(origin) != null, 15f, $"孤立ポール設置 {origin}");
         await p.WaitBlockGameObject(origin);
-        await p.SelectHotbar(0);
+        await p.Hotbar.SelectHotbar(0);
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }
 
@@ -83,7 +83,7 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
 
     // チェーン接続ツールをホットバーで保持して建築モードへ入る
     // Hold the chain connect tool via the hotbar to enter build mode
-    await p.SelectHotbar(1);
+    await p.Hotbar.SelectHotbar(1);
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
 
     // ポールA→ポールBの順にクリックして結線（A=起点選択、B=接続送信）
@@ -97,6 +97,6 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
     // 結線反映を条件待機し、同一ネットワークになったことを検証
     // Wait for the connection to land, then verify both poles share one network
     await p.Until(() => networkOf(c1) != null && networkOf(c1).Equals(networkOf(c2)), 15f, "クリック結線で同一ネットワーク化");
-    await p.SelectHotbar(1);
+    await p.Hotbar.SelectHotbar(1);
     await p.Screenshot("02-connected");
 });

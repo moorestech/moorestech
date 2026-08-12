@@ -40,19 +40,19 @@ return PlaytestRunner.Run("train-rail-connect-via-ui", options, async p =>
     // 橋脚の建設コストとレール接続ツールの消費素材（補強棒材・鉄板）を用意し、ホットバー0/1へ割当てる
     // Stock the pier's construction cost and the rail connect tool's materials (reinforced rod, iron plate), then assign to hotbar 0/1
     p.UnlockBlock("レール橋脚");
-    p.UnlockConnectTool("レール");
+    p.Hotbar.UnlockConnectTool("レール");
     await p.GiveConstructionCost("レール橋脚", 5);
     await p.GiveItem("補強棒材", 64);
     await p.GiveItem("鉄板", 32);
-    await p.AssignHotbar(0, "レール橋脚");
-    await p.AssignHotbar(1, "レール");
+    await p.Hotbar.AssignHotbar(0, "レール橋脚");
+    await p.Hotbar.AssignHotbar(1, "レール");
 
     // 橋脚2本をZ軸沿いに設置する（デフォルト方向=北向きのまま直線接続できる配置）
     // Place two piers along the Z axis (default facing = north keeps the connection straight)
     var pierA = new Vector3Int(10, 32, 6);
     var pierB = new Vector3Int(10, 32, 14);
 
-    await p.SelectHotbar(0);
+    await p.Hotbar.SelectHotbar(0);
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
 
     async UniTask PlacePier(Vector3Int origin)
@@ -65,7 +65,7 @@ return PlaytestRunner.Run("train-rail-connect-via-ui", options, async p =>
 
     await PlacePier(pierA);
     await PlacePier(pierB);
-    await p.SelectHotbar(0);
+    await p.Hotbar.SelectHotbar(0);
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     await p.Screenshot("01-piers-placed");
 
@@ -98,7 +98,7 @@ return PlaytestRunner.Run("train-rail-connect-via-ui", options, async p =>
 
     // 歯車チェーン結線と同じクリック結線パターン: レール接続ツールをホットバーで保持し、橋脚A→橋脚Bの順にクリック
     // Same click-to-connect pattern as the gear chain probe: hold the rail connect tool via the hotbar, click pier A then pier B
-    await p.SelectHotbar(1);
+    await p.Hotbar.SelectHotbar(1);
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
 
     await p.AimAt(aimA);
@@ -108,6 +108,6 @@ return PlaytestRunner.Run("train-rail-connect-via-ui", options, async p =>
     await p.ClickPlace();
 
     await p.Until(AnyConnected, 15f, "クリック結線で2本のレールが接続された");
-    await p.SelectHotbar(1);
+    await p.Hotbar.SelectHotbar(1);
     await p.Screenshot("02-connected");
 });

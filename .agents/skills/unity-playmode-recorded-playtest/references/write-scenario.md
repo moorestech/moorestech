@@ -42,7 +42,6 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | `GiveItemDirect(name, count)` | サーバーインベントリ直挿入（即時） |
 | `GiveItem(name, count)` | 本番giveコマンド経路＋サーバー在庫反映待ち |
 | `UnlockBlock(name)` | サーバー側アンロック→イベントでクライアント（ビルドメニュー）同期 |
-| `UnlockConnectTool(name)` | 接続ツール(電線/レール/歯車チェーン)のアンロック。ブロックとは別枠の状態で、ホットバー割当前に必要 |
 | `GiveConstructionCost(name, blockCount)` | マスタ`RequiredItems`×個数をgive経路で付与＋クライアント同期待ち |
 | `PrepareBlockForUiPlacement(name, blockCount)` | ↑2つの複合。**UI設置の前提はこれ1行** |
 | `PlaceBlockDirect(name, pos, dir)` | サーバー直設置（インベントリ非消費・アンロック不問） |
@@ -55,8 +54,9 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | `PlaceBlockViaUi(name, origin, dir)` | 単クリック設置の統合操作（**向きはNorth固定**）。設置反映Until込み |
 | `DragPlaceViaUi(name, from, to)` | ドラッグ設置（ベルト等）。**向きは経路から自動解決** |
 | `ExitToGameScreen()` | B注入でGameScreenへ（**place systemの内部状態をリセットする副作用**が重要。歯車ポールの延長起点等） |
-| `SelectHotbar(slot)` | 数字キー注入（slot 0→キー1）。建築モードのトグル: 割当済み対象を持って入り、同じ枠で抜ける |
-| `AssignHotbar(slot, targetName)` | ビルドメニューと同一供給源(`PlacementTargetCatalog.UnlockedEntries`)から表示名でホットバーへ割当てる |
+| `Hotbar.SelectHotbar(slot)` | 数字キー注入（slot 0→キー1）。建築モードのトグル: 割当済み対象を持って入り、同じ枠で抜ける |
+| `Hotbar.AssignHotbar(slot, targetName)` | ビルドメニューと同一供給源(`PlacementTargetCatalog.UnlockedEntries`)から表示名でホットバーへ割当てる |
+| `Hotbar.UnlockConnectTool(name)` | 接続ツール(電線/レール/歯車チェーン)のアンロック。ブロックとは別枠の状態で、`Hotbar.AssignHotbar`前に必要 |
 | `PressKey(key)` | 任意キーのタップ（UnityEngine.InputSystem.Key） |
 | `AimAt(worldPos)` / `AimAtPlaceOrigin(name, origin)` | マウス絶対座標照準（後者は設置原点→フットプリント中心の逆算込み） |
 | `ClickPlace()` | 左クリック（押下→2フレーム→解放。設置はGetKeyUpで確定するため解放必須） |

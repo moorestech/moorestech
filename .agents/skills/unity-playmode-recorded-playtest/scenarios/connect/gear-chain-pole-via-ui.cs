@@ -36,14 +36,14 @@ return PlaytestRunner.Run("gear-chain-pole-via-ui", options, async p =>
     // ポールの建設コストと、延長ごとに消費されるチェーン素材（鉄のワイヤー）の在庫を用意する
     // Stock the pole's construction cost and the chain material (iron wire) consumed by each extension
     p.UnlockBlock("歯車チェーンポール");
-    p.UnlockConnectTool("歯車チェーン");
+    p.Hotbar.UnlockConnectTool("歯車チェーン");
     await p.GiveConstructionCost("歯車チェーンポール", 10);
     await p.GiveItem("鉄のワイヤー", 100);   // give命令は1回=1スタックのため、maxStack(100)以内に収める
 
     // ポールをホットバー1へ割当て、同キーで建築モードへ入る
     // Assign the pole to hotbar slot 1, then the same key enters build mode
-    await p.AssignHotbar(0, "歯車チェーンポール");
-    await p.SelectHotbar(0);
+    await p.Hotbar.AssignHotbar(0, "歯車チェーンポール");
+    await p.Hotbar.SelectHotbar(0);
 
     // ポール1本をクリック設置し、サーバー反映とクライアント出現（＝延長起点の確定）を待つ
     // Click-place one pole, then wait for server placement and client spawn (which fixes the extension source)
@@ -65,7 +65,7 @@ return PlaytestRunner.Run("gear-chain-pole-via-ui", options, async p =>
 
     // 同キーで建築モードを抜けて延長起点をリセットし、セグメントを分離する（遷移完了を待ってから次を打つ）
     // Exit build mode with the same key to reset the extension source and separate the segments (wait for the transition before the next tap)
-    await p.SelectHotbar(0);
+    await p.Hotbar.SelectHotbar(0);
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
     // セグメントB: 3本連結（割当は残っているので同キーで再入場できる）。Aと同じZ行でX方向に離す
@@ -73,12 +73,12 @@ return PlaytestRunner.Run("gear-chain-pole-via-ui", options, async p =>
     var b1 = new Vector3Int(14, 32, 2);
     var b2 = new Vector3Int(18, 32, 2);
     var b3 = new Vector3Int(22, 32, 2);
-    await p.SelectHotbar(0);
+    await p.Hotbar.SelectHotbar(0);
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
     await PlacePole(b1);
     await PlacePole(b2);
     await PlacePole(b3);
-    await p.SelectHotbar(0);
+    await p.Hotbar.SelectHotbar(0);
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     await p.Screenshot("01-poles-placed");
 

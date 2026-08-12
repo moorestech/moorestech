@@ -26,11 +26,15 @@ namespace Client.Playtest
         private readonly PlaytestResult _result;
         private readonly string _runDirectory;
         private readonly PlaytestReporter _reporter;
+        // ホットバー操作(SelectHotbar/AssignHotbar/UnlockConnectTool)のサブファサード
+        // Sub-facade for hotbar operations (SelectHotbar/AssignHotbar/UnlockConnectTool)
+        public PlaytestHotbarDriver Hotbar { get; }
         public PlaytestDriver(PlaytestResult result, string runDirectory)
         {
             _result = result;
             _runDirectory = runDirectory;
             _reporter = new PlaytestReporter(result);
+            Hotbar = new PlaytestHotbarDriver(_reporter);
         }
         // AIナレーション用。今から何をするか・何が起きたかを動画とTimelineに残す
         // For AI narration: records what's about to happen / what happened, into the video and Timeline
@@ -84,7 +88,11 @@ namespace Client.Playtest
         }
         // ---- UI経路操作 / UI-route operations ----
         public UIStateEnum CurrentUiState => PlaytestUiOps.CurrentUiState();
-        public void UnlockBlock(string blockName) { _reporter.Step($"アンロック: {blockName}"); PlaytestBlockOps.UnlockBlockServerSide(blockName); }
+        public void UnlockBlock(string blockName)
+        {
+            _reporter.Step($"アンロック: {blockName}");
+            PlaytestBlockOps.UnlockBlockServerSide(blockName);
+        }
         public async UniTask GiveConstructionCost(string blockName, int blockCount) => await _reporter.Act($"建設コスト付与: {blockName} x{blockCount}", () => PlaytestItemOps.GiveConstructionCost(blockName, blockCount, 15f));
         public async UniTask PrepareBlockForUiPlacement(string blockName, int blockCount)
         {
@@ -107,11 +115,6 @@ namespace Client.Playtest
         }
         public async UniTask ClickBuildMenuBlock(string blockName) => await ClickWebUi(PlaytestWebUiOps.BuildMenuBlockTestId(blockName));
         public async UniTask CloseWebUiPanel() => await ClickWebUi("build-menu-close");
-        // ホットバー操作: SelectHotbarは持ち替えでなく建築モードのトグル、AssignHotbarは表示名をビルドメニューと同一供給源で割当て、接続ツールは事前にUnlockConnectToolが必要
-        // Hotbar ops: SelectHotbar toggles build mode (not an item swap), AssignHotbar assigns by display name from the same source as the build menu, and connect tools need UnlockConnectTool first
-        public async UniTask SelectHotbar(int slot) => await _reporter.Act($"ホットバー{slot + 1}をタップ", () => SemanticInput.TapKey(Key.Digit1 + slot));
-        public async UniTask AssignHotbar(int slot, string targetName) => await _reporter.Act($"ホットバー{slot + 1}へ割当: {targetName}", () => PlaytestHotbarOps.AssignHotbar(slot, targetName, 15f));
-        public void UnlockConnectTool(string toolName) { _reporter.Step($"接続ツールをアンロック: {toolName}"); PlaytestHotbarOps.UnlockConnectToolServerSide(toolName); }
         public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds)
         {
             var waitEntry = _reporter.BeginWait($"UI状態待ち: {state}");
