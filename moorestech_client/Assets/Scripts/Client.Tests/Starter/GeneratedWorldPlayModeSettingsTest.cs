@@ -86,5 +86,19 @@ namespace Client.Tests.Starter
 
             Assert.That(DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Debug), Is.EqualTo((int)DebugEnvironmentType.PureNature));
         }
+
+        [Test]
+        public void 連続適用でも最初の退避値だけが復元される()
+        {
+            DebugParameters.SaveInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Other);
+
+            // EnterPlaymode失敗などでRestore未実行のまま再クリックされる経路を模擬する
+            // Simulate a re-click while Restore never ran, e.g. after a failed EnterPlaymode
+            GeneratedWorldPlayModeSettings.ApplyDebugEnvironmentOverride();
+            GeneratedWorldPlayModeSettings.ApplyDebugEnvironmentOverride();
+
+            GeneratedWorldPlayModeSettings.RestoreDebugEnvironmentIfNeeded();
+            Assert.That(DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Debug), Is.EqualTo((int)DebugEnvironmentType.Other));
+        }
     }
 }

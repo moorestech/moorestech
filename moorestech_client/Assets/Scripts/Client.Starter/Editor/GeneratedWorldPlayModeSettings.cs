@@ -38,11 +38,17 @@ namespace Client.Starter.Editor
 
         public static void ApplyDebugEnvironmentOverride()
         {
-            // 復元用に現在値を退避してからRuntimeへ切り替える
-            // Save the current value for restoration, then switch to Runtime
-            var previousValue = DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Debug);
-            SessionState.SetInt(PreviousDebugEnvironmentTypeSessionKey, previousValue);
-            SessionState.SetBool(HasPreviousDebugEnvironmentTypeSessionKey, true);
+            // 未退避の時だけ現在値を退避する。EnterPlaymode失敗等でRestoreが未実行のまま再クリックされても、既にRuntimeへ汚染された値を「元値」として誤って再退避しない
+            // Save the current value only if not already saved, so a retry after a failed EnterPlaymode (Restore never ran) does not re-save an already-corrupted Runtime value as the "original"
+            if (!SessionState.GetBool(HasPreviousDebugEnvironmentTypeSessionKey, false))
+            {
+                var previousValue = DebugParameters.GetValueOrDefaultInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Debug);
+                SessionState.SetInt(PreviousDebugEnvironmentTypeSessionKey, previousValue);
+                SessionState.SetBool(HasPreviousDebugEnvironmentTypeSessionKey, true);
+            }
+
+            // Runtimeへの上書き自体は冪等なので毎回実行してよい
+            // Overwriting to Runtime itself is idempotent, so it always runs
             DebugParameters.SaveInt(DebugEnvironmentTypeKey, (int)DebugEnvironmentType.Runtime);
         }
 
