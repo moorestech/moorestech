@@ -50,8 +50,8 @@ namespace Client.Starter.Editor
 
         public static void EndIsolatedDebugEnvironment()
         {
-            // 自分が張った隔離だけを外し、テストやPlaytestの隔離を巻き添えにしない
-            // Clear only this feature's isolation, leaving test or playtest isolation untouched
+            // 自分が張った隔離だけを外す。Begin時の他者overrideは退避しないので戻らない
+            // Clear only this feature's isolation; an override present at Begin is not saved and never comes back
             if (DebugParametersCacheDirectory.GetOverride() != DebugCacheDirectory) return;
 
             DebugParametersCacheDirectory.SetOverride(null);
