@@ -7,6 +7,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Player;
+using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.KeyControl;
@@ -15,6 +16,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
+using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
 using Client.Tests.ViewMode;
@@ -28,11 +30,13 @@ namespace Client.Tests.UIState
     {
         private readonly List<GameObject> _objects = new();
         private Mouse _mouse;
+        private Keyboard _keyboard;
 
         public override void Setup()
         {
             base.Setup();
             _mouse = InputSystem.AddDevice<Mouse>();
+            _keyboard = InputSystem.AddDevice<Keyboard>();
             InvokeAwake(CreateComponent<KeyControlDescription>("KeyControl"));
         }
 
@@ -121,6 +125,36 @@ namespace Client.Tests.UIState
             applier.Calls.Clear();
             state.OnExit();
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
+        }
+
+        [Test]
+        public void GameScreenDelegatesLeftAltFreeCursorToPolicyService()
+        {
+            SetUpGameStateController();
+            var applier = new FakePlayerCameraInteractionApplier();
+            var state = CreateGameScreenState(applier);
+            state.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
+
+            // 左Alt押下がGetNextUpdateからサービスへ届いていることだけを確認する
+            // Verify only that the left Alt press reaches the service from GetNextUpdate
+            applier.Calls.Clear();
+            Press(_keyboard.leftAltKey);
+            state.GetNextUpdate();
+            CollectionAssert.AreEqual(new[] { "Warp", "Mode:PointerFree" }, applier.Calls);
+
+            applier.Calls.Clear();
+            Release(_keyboard.leftAltKey);
+            state.GetNextUpdate();
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
+        }
+
+        private GameScreenState CreateGameScreenState(FakePlayerCameraInteractionApplier applier)
+        {
+            var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
+            var subInventoryInteractService = new GameScreenSubInventoryInteractService(null);
+            var rideVehicleInputService = new RideVehicleInputService();
+            var placementTargetPickService = new PlacementTargetPickService(null);
+            return new GameScreenState(skitManager, subInventoryInteractService, rideVehicleInputService, placementTargetPickService, CreateCameraPolicy(applier));
         }
 
         private PlaceBlockState CreatePlaceBlockState(FakePlayerCameraInteractionApplier applier, FakeMapVeinRangeView mapVeinRangeView)
