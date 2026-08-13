@@ -48,6 +48,20 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
         await UniTask.DelayFrame(2);
     }
 
+    // 通常モード中のスポイトを「左Altを押す→狙う→ミドルクリック→離す」の1組で行う（実プレイヤー操作忠実）
+    // Bundle a normal-mode eyedrop into "press left Alt -> aim -> middle-click -> release" (matches real player input)
+    async UniTask PickWithAltHoldAsync(Vector3 worldPosition)
+    {
+        SemanticInput.KeyDown(UnityEngine.InputSystem.Key.LeftAlt);
+        // 押下がGetKeyDownとして拾われワープ+自由カーソルが反映されるまで待つ
+        // Wait for the press to be observed as GetKeyDown and the warp/free-cursor to take effect
+        await UniTask.DelayFrame(3);
+        await p.AimAt(worldPosition);
+        await MiddleClickAsync();
+        SemanticInput.KeyUp(UnityEngine.InputSystem.Key.LeftAlt);
+        await UniTask.DelayFrame(3);
+    }
+
     // ===== 準備: レールを敷いて貨車を出現させる =====
     // ===== Setup: lay rails and spawn the cargo car =====
     p.Note("レール橋脚をUI設置しノードを結線する");
@@ -136,12 +150,10 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     await p.Until(() => WireWithColliders() != null, 15f, "電線ビューとクリック判定コライダーの生成");
     await p.Screenshot("02-wire-connected");
 
-    p.Note("GameScreen中に電線をミドルクリックでスポイトする");
+    p.Note("GameScreen中に電線をAltホールドでミドルクリックしてスポイトする");
     p.Assert(p.CurrentUiState == UIStateEnum.GameScreen, "初期状態はGameScreen");
     var wireColliders = WireWithColliders().GetComponentsInChildren<Collider>(true);
-    await p.AimAt(wireColliders[wireColliders.Length / 2].bounds.center);
-    await MiddleClickAsync();
-    await UniTask.DelayFrame(3);
+    await PickWithAltHoldAsync(wireColliders[wireColliders.Length / 2].bounds.center);
     p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, "項目1: 電線ピックでPlaceBlockへ遷移");
     var wireTarget = placeController.CurrentTarget as ConnectToolPlacementTarget;
     p.Assert(wireTarget != null, "項目1: CurrentTargetがConnectToolPlacementTargetになる");

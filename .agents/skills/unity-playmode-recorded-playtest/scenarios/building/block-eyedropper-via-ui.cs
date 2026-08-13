@@ -48,14 +48,36 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
         await UniTask.DelayFrame(2);
     }
 
+    // 指定座標のBlockGameObjectの"ClickCollider"の中心座標を取得する
+    // Resolve the world-space center of the block's "ClickCollider"
+    async UniTask<Vector3> ClickColliderCenterAsync(Vector3Int blockPos)
+    {
+        var blockGo = await p.WaitBlockGameObject(blockPos);
+        var collider = blockGo.GetComponentsInChildren<Collider>().First(c => c.name == "ClickCollider");
+        return collider.bounds.center;
+    }
+
     // 指定座標のBlockGameObjectの"ClickCollider"を照準し、BlockレイヤーへのRaycastに当てる
     // Aim at the block's "ClickCollider" so the Block-layer raycast hits it
     async UniTask PickBlockAtAsync(Vector3Int blockPos)
     {
-        var blockGo = await p.WaitBlockGameObject(blockPos);
-        var collider = blockGo.GetComponentsInChildren<Collider>().First(c => c.name == "ClickCollider");
-        await p.AimAt(collider.bounds.center);
+        var center = await ClickColliderCenterAsync(blockPos);
+        await p.AimAt(center);
         await MiddleClickAsync();
+        await UniTask.DelayFrame(3);
+    }
+
+    // 通常モード中のスポイトを「左Altを押す→狙う→ミドルクリック→離す」の1組で行う（実プレイヤー操作忠実）
+    // Bundle a normal-mode eyedrop into "press left Alt -> aim -> middle-click -> release" (matches real player input)
+    async UniTask PickWithAltHoldAsync(Vector3 worldPosition)
+    {
+        SemanticInput.KeyDown(UnityEngine.InputSystem.Key.LeftAlt);
+        // 押下がGetKeyDownとして拾われワープ+自由カーソルが反映されるまで待つ
+        // Wait for the press to be observed as GetKeyDown and the warp/free-cursor to take effect
+        await UniTask.DelayFrame(3);
+        await p.AimAt(worldPosition);
+        await MiddleClickAsync();
+        SemanticInput.KeyUp(UnityEngine.InputSystem.Key.LeftAlt);
         await UniTask.DelayFrame(3);
     }
 
@@ -95,8 +117,18 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
     // Check item 1: pick a North-facing chest during GameScreen, then verify PlaceBlock transition and CurrentTarget
     p.Assert(p.CurrentUiState == UIStateEnum.GameScreen, "初期状態はGameScreen");
     p.PlaceBlockDirect("木のチェスト", posA, BlockDirection.North);
-    await PickBlockAtAsync(posA);
-    p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, "項目1: ピック成功でPlaceBlockへ遷移");
+    var chestCenter = await ClickColliderCenterAsync(posA);
+
+    // ネガティブ確認: 左Alt無しでは画面中央外の設置物はスポイトされない
+    // Negative check: without left Alt, an off-center placed object is never picked
+    await p.AimAt(chestCenter);
+    await MiddleClickAsync();
+    await UniTask.DelayFrame(3);
+    p.Assert(p.CurrentUiState == UIStateEnum.GameScreen, "項目1前提: Alt無しではピックされずGameScreenのまま");
+    await p.Screenshot("00-no-pick-without-alt");
+
+    await PickWithAltHoldAsync(chestCenter);
+    p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, "項目1: Altホールドでのピック成功でPlaceBlockへ遷移");
     p.Assert(CurrentBlockTarget() != null, "項目1: CurrentTargetがBlockPlacementTargetになる");
     p.Assert(CurrentBlockTarget()?.BlockId == chestBlockId, "項目1: 選択ブロックがチェストになる");
     await p.Screenshot("01-pick-in-gamescreen");
