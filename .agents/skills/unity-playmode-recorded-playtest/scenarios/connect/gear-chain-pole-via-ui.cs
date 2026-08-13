@@ -44,6 +44,7 @@ return PlaytestRunner.Run("gear-chain-pole-via-ui", options, async p =>
     // Assign the pole to hotbar slot 1, then the same key enters build mode
     await p.Hotbar.AssignHotbar(0, "歯車チェーンポール");
     await p.Hotbar.SelectHotbar(0);
+    await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
 
     // ポール1本をクリック設置し、サーバー反映とクライアント出現（＝延長起点の確定）を待つ
     // Click-place one pole, then wait for server placement and client spawn (which fixes the extension source)

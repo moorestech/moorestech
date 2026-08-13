@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DRAG_THRESHOLD_PX, exceededThreshold, nextScrollTop } from "./dragScrollMath";
+import { DRAG_THRESHOLD_PX, exceededThreshold, nextScrollTop } from "@/shared/pointerGesture/dragThreshold";
 
 describe("exceededThreshold", () => {
   // 閾値未満はタップ扱い、以上でドラッグ確定

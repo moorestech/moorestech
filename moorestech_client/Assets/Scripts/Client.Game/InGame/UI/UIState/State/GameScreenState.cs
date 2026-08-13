@@ -110,7 +110,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // Sync legacy uGUI HUD visibility when returning to GameScreen.
             GameStateController.ChangeState(GameStateType.InGame);
 
-            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nV: 視点切替\nB: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
+            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: 建築ショートカット（同キーで解除）\nV: 視点切替\nB: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
         }
 
         public void OnExit()

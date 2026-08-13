@@ -8,7 +8,7 @@ export type DragEndpoint =
   | { kind: "hotbarSlot"; index: number }
   | { kind: "outside" };
 
-export type HotbarDropAction =
+type HotbarDropAction =
   | { type: "hotbar.assign"; payload: { slot: number; id: string } }
   | { type: "hotbar.swap"; payload: { from: number; to: number } }
   | { type: "hotbar.clear"; payload: { slot: number } };

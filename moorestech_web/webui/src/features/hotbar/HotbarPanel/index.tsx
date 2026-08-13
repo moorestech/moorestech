@@ -18,7 +18,7 @@ export default function HotbarPanel() {
 
   return (
     <div className={styles.hotbarArea}>
-      <div className={styles.hotbarFrame} data-testid="hotbar-grid" data-wheel-passthrough>
+      <div className={styles.hotbarFrame} data-testid="hotbar-grid" data-hotbar-row data-wheel-passthrough>
         {hotbar.slots.map((slot, i) => (
           <HotbarCell key={`hotbar-${i}`} index={i} slot={slot} selected={i === hotbar.selectedSlot} />
         ))}

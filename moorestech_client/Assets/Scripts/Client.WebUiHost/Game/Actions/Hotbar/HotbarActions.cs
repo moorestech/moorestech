@@ -50,10 +50,10 @@ namespace Client.WebUiHost.Game.Actions
             if (!HotbarActionPayload.TryParseSlot(payload, "slot", _clientHotbarDatastore.Assignments.Count, out var slot))
                 return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
-            // idのGuidパース失敗は無視する（要件裁定: D&D元は常に正規カタログidのため、不整合をエラー化しない）
-            // A Guid parse failure on id is ignored (arbitrated: the drag source is always a catalog id, so never error the mismatch)
+            // 姉妹ハンドラと同じく、不正なidは失敗として返す
+            // Like the sibling handlers, an invalid id is reported as a failure
             if (payload["id"] is not JValue { Type: JTokenType.String } idValue || !Guid.TryParse((string)idValue, out var targetId))
-                return UniTask.FromResult(ActionResult.Success());
+                return UniTask.FromResult(ActionResult.Fail("invalid_id"));
 
             _clientHotbarDatastore.RequestAssign(slot, targetId);
             return UniTask.FromResult(ActionResult.Success());

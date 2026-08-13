@@ -109,5 +109,6 @@ return PlaytestRunner.Run("train-rail-connect-via-ui", options, async p =>
 
     await p.Until(AnyConnected, 15f, "クリック結線で2本のレールが接続された");
     await p.Hotbar.SelectHotbar(1);
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     await p.Screenshot("02-connected");
 });

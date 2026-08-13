@@ -156,13 +156,11 @@ namespace Game.SaveLoad.Json
 
             _playerRidingDatastore.LoadSaveData(load.PlayerRidingStates);
 
-            // 旧セーブはblueprints欠落のためnull時は空リスト復元
-            // Old saves lack blueprints, so restore an empty list on null
-            _blueprintDatastore.LoadBlueprints(load.Blueprints ?? new List<BlueprintJsonObject>());
+            _blueprintDatastore.LoadBlueprints(load.Blueprints);
 
             // 割当検証がBP一覧を参照するため、BPロード後にホットバーを復元する
             // Hotbar restore must follow blueprint load since assignment validation reads the BP list
-            _hotbarAssignmentDatastore.LoadHotbar(load.HotbarAssignments ?? new List<PlayerHotbarSaveJsonObject>());
+            _hotbarAssignmentDatastore.LoadHotbar(load.HotbarAssignments);
         }
         
         public void WorldInitialize()

@@ -100,7 +100,7 @@ namespace Game.Hotbar
 
         private bool IsValidSlot(int slot)
         {
-            return slot >= 0 && slot < SlotCount;
+            return 0 <= slot && slot < SlotCount;
         }
 
         private Guid[] GetOrCreate(int playerId)

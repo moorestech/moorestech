@@ -1,18 +1,15 @@
 import { useRef } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { dispatchAction } from "@/bridge";
+import { asElement, exceededThreshold } from "@/shared/pointerGesture/dragThreshold";
 import { resolveDropAction, type DragEndpoint } from "./hotbarDnd";
-
-// タップとドラッグを分ける移動量の閾値。5px未満はタップ(選択)として扱う（前例 useDragScroll）
-// Movement threshold separating a tap from a drag; under 5px stays a tap/selection (precedent: useDragScroll)
-const DRAG_THRESHOLD_PX = 5;
 
 type Gesture = { pointerId: number; startX: number; startY: number; dragging: boolean };
 
 // ビルドメニューエントリ/ホットバー枠、双方のドラッグ元を共通化するポインタ制御。
-// pointerdownでpreventDefaultし、旧mousedown即selectの二重発火(=意図せぬ建築モード突入)を止める
+// pointerdownでpreventDefaultし、ラベル/アイコンのテキスト選択とフォーカス移動を抑止する
 // Shared pointer control for both drag sources (build-menu entry / hotbar slot).
-// preventDefault on pointerdown stops the old immediate-select mousedown path from also firing (an unintended build-mode entry)
+// preventDefault on pointerdown suppresses text selection over the label/icon and focus shift
 export function useHotbarDragSource(source: DragEndpoint | null, onTap: () => void) {
   const gesture = useRef<Gesture | null>(null);
 
@@ -48,25 +45,20 @@ export function useHotbarDragSource(source: DragEndpoint | null, onTap: () => vo
   return { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onLostPointerCapture: onPointerCancel };
 }
 
-function exceededThreshold(dx: number, dy: number): boolean {
-  return Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX;
-}
-
 // 解放点の実DOMから枠/枠外を判定し、純ロジックのresolveDropActionへ橋渡しする
 // Resolve the real DOM under the release point into a slot/outside endpoint, then hand off to the pure resolveDropAction
 function resolveAndDispatchDrop(source: DragEndpoint, clientX: number, clientY: number) {
   const element = asElement(document.elementFromPoint(clientX, clientY));
   const slotElement = element?.closest<HTMLElement>("[data-hotbar-slot-index]") ?? null;
+
+  // 枠間ギャップ(HUD内)で離した場合は割当破棄ではなく無操作にする
+  // Releasing in the gap between slots (still inside the HUD) is a no-op, not a clear
+  if (!slotElement && element?.closest("[data-hotbar-row]")) return;
+
   const target: DragEndpoint = slotElement
     ? { kind: "hotbarSlot", index: Number(slotElement.dataset.hotbarSlotIndex) }
     : { kind: "outside" };
 
   const action = resolveDropAction(source, target);
   if (action) void dispatchAction(action.type, action.payload);
-}
-
-// closestを持つかで判定しinstanceofのグローバル依存を避ける（前例 useDragScroll.asElement）
-// Probe for closest to avoid an instanceof-Element global dependency (precedent: useDragScroll.asElement)
-function asElement(target: Element | null): HTMLElement | null {
-  return target && typeof (target as HTMLElement).closest === "function" ? (target as HTMLElement) : null;
 }

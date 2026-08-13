@@ -98,5 +98,6 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
     // Wait for the connection to land, then verify both poles share one network
     await p.Until(() => networkOf(c1) != null && networkOf(c1).Equals(networkOf(c2)), 15f, "クリック結線で同一ネットワーク化");
     await p.Hotbar.SelectHotbar(1);
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     await p.Screenshot("02-connected");
 });

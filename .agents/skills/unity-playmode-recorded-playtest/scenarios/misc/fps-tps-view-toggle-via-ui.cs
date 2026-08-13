@@ -157,11 +157,13 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     p.Note("FPS中に木のチェストをホットバー2へ割当て、建築モードへ入って手持ちが浮いて見えないことを確認する");
     await p.Hotbar.AssignHotbar(1, "木のチェスト");
     await p.Hotbar.SelectHotbar(1);
+    await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
     await p.WaitSeconds(0.5f);
     var renderersAfterHotbarSwap = UnityEngine.Object.FindFirstObjectByType<PlayerObjectController>().GetComponentsInChildren<Renderer>(true);
     p.Assert(renderersAfterHotbarSwap.All(r => !r.enabled), "持ち替え後も自機Rendererが全て非表示");
     await p.Screenshot("11-fps-hotbar-swap");
     await p.Hotbar.SelectHotbar(1); // 同キーで建築モードを抜けゲーム画面へ戻す
+    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
     // 10: Vで三人称へ戻して終了する
     // 10: Toggle back to third-person to finish
