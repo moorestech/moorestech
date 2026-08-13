@@ -41,6 +41,44 @@ digraph when_to_use {
 - 各タスク後にレビュー（spec準拠＋コード品質）、最後に広範なレビュー
 - 高速なイテレーション（タスク間でhuman-in-loopなし）
 
+## ワークスペース隔離（タスク1派遣前・必須）
+
+**専用worktreeの外でimplementer subagentを派遣してはならない。** 本体ワーキングツリーは他セッション・並行エージェントと共有されており、subagentのコミットが無関係な作業を巻き込む事故が実際に起きている。隔離は「あれば良いもの」ではなくタスク1の前提条件である。
+
+例外は2つだけ:
+
+1. **既にworktree内にいる** — 新規作成せずそのまま再利用する
+2. **人間がこのセッション内で自分の言葉で「本体で実装せよ」と指示した** — 進捗台帳に記録して続行する
+
+本体ワーキングツリーで既にfeatureブランチを切って作業中だった場合も例外にはならない。未コミット変更ごとworktreeへ移してから着手する。
+
+```bash
+# 0. 現在地を判定する（2つの値が異なればworktree内 = 作成不要）
+# 0. Detect the current location; differing values mean we are already in a worktree
+git rev-parse --git-dir; git rev-parse --git-common-dir
+
+# 1. 本体checkoutに触れずorigin/masterを最新化する
+# 1. Refresh origin/master without touching the main checkout
+git fetch origin master
+
+# 2. 計画名から取ったslugでタスクブランチ付きworktreeを作る
+# 2. Create a task-branch worktree named after the plan slug
+MAIN=$(git rev-parse --show-toplevel)
+git worktree add -b <task-slug> ~/moorestech-worktrees/<task-slug> <base>
+
+# 3. Unity LibraryをAPFSクローンで複製する（16GBでも数秒・数十分の再インポートを回避）
+# 3. Clone the Unity Library via APFS copy-on-write (seconds at 16GB, skips a long reimport)
+cp -Rc "$MAIN/moorestech_client/Library" ~/moorestech-worktrees/<task-slug>/moorestech_client/Library
+```
+
+- `<base>`は計画が積み上がる土台。通常は最新の`origin/master`、計画が現ブランチの続きなら`HEAD`
+- Libraryの複製は計画がUnityに触れるかに関わらず常に行う。数秒の投資で、後からコンパイル・テストが必要になった際の再インポート数十分を確実に回避する
+- 本体に未コミット変更が乗っていた場合は`git stash` → worktree側で`git stash pop`で持ち込む。本体に置き去りにしない
+- 以降の編集・`uloop`各コマンド・テスト・コミットは**すべてworktree側の絶対パス**で行う。`--project-path`もworktree側を指す
+- 有料アセット(`PersonalAssets`)は本体にしか存在しない。計画がこれに依存する場合は着手前に人間へエスカレーションする
+- サーバーポート11564は固定のため、他worktreeのPlayModeとは同時実行できない。プレイ録画テストを含む計画では1本ずつ動かす
+- worktreeは完了後も削除しない（作業消失防止。cleanupは人間の指示があった時のみ）
+
 ## プロセス
 
 ```dot
@@ -59,11 +97,13 @@ digraph process {
         "Mark task complete in todo list and progress ledger" [shape=box];
     }
 
+    "Ensure isolated worktree (create, or verify already inside one)" [shape=box];
     "Read plan, note context and global constraints, create todos" [shape=box];
     "More tasks remain?" [shape=diamond];
     "Run final whole-branch review: moores-code-review skill" [shape=box];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
+    "Ensure isolated worktree (create, or verify already inside one)" -> "Read plan, note context and global constraints, create todos";
     "Read plan, note context and global constraints, create todos" -> "Dispatch implementer subagent (./implementer-prompt.md)";
     "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
     "Implementer subagent asks questions?" -> "Answer questions, provide context" [label="yes"];
@@ -288,6 +328,8 @@ Final reviewer: 全要件を満たし、マージ可能
 
 **絶対にしないこと:**
 - 明示的なユーザー同意なしにmain/masterブランチで実装を開始する
+- worktreeを作らずに（あるいは既にworktree内かを確認せずに）タスク1のimplementerを派遣する — 「今回は小さい計画だから」は理由にならない
+- 本体ワーキングツリーで既にfeatureブランチを切っているという理由で隔離を省略する — 共有されているのはブランチではなくディレクトリである
 - タスクレビューをスキップする、または片方の判定（spec準拠とタスク品質の両方が必須）を欠く報告を受け入れる
 - 未修正の問題を抱えたまま進める
 - 複数の実装subagentを並列に派遣する（衝突する）
@@ -321,7 +363,7 @@ Final reviewer: 全要件を満たし、マージ可能
 ## 統合
 
 **必須のワークフロースキル:**
-- **superpowers:using-git-worktrees** - 隔離されたワークスペースを保証する（作成または既存のものを検証する）
+- **ワークスペース隔離** - 上記「ワークスペース隔離（タスク1派遣前・必須）」がこのスキル内で手順を持つ。外部スキルへは委譲しない
 - **superpowers:writing-plans** - このスキルが実行する計画を作成する
 - **superpowers:requesting-code-review** - 最終ブランチ全体レビュー用のコードレビューテンプレート
 - **superpowers:finishing-a-development-branch** - 全タスク完了後の開発を仕上げる
