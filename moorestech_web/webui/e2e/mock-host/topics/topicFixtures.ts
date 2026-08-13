@@ -37,7 +37,7 @@ const topicFixtures: TopicFixtureRegistry = {
   [Topics.challengeCurrent]: () => fx.challengeCurrent,
   [Topics.pauseMenu]: () => ({ disconnected: false }),
   [Topics.placementMode]: () => ({
-    selectedTargetType: "raw", selectedName: "", height: 0, unavailableReason: "",
+    selectedTargetType: "raw", selectedName: "", height: 0, unavailableReason: "", wheelOwnedByTool: false,
   }),
   [Topics.crosshair]: () => ({ visible: true }),
   [Topics.uiVisibility]: () => ({ visible: true }),

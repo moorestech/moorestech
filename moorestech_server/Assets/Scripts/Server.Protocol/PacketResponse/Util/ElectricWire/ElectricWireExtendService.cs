@@ -142,7 +142,12 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 // 起点1本が張れなければ配線なしの成功で潰さず失敗として返す（素材も建設コストも消費しない）
                 // If the single origin wire cannot be strung, report failure instead of a wireless success; nothing is consumed
                 if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, fromConnector, wireCost))
+                {
+                    // 事前検証済みのため通常到達しないが、孤立電柱を残さないよう設置を取り消す（前例: GearChainPoleExtendProtocol）
+                    // Unreachable after pre-validation; remove the block to avoid leaving an orphan pole (precedent: GearChainPoleExtendProtocol)
+                    ServerContext.WorldBlockDatastore.RemoveBlock(polePlaceInfo.Position, BlockRemoveReason.ManualRemove);
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.ConnectionLimit);
+                }
 
                 // 電線素材と建設コストを消費する（dirty化は接続処理内で行われる）
                 // Consume the wire materials and the construction cost; the connection mutation itself marks the topology dirty

@@ -29,6 +29,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
         // The connection origin block; null means no origin selected
         private BlockGameObject _sourceBlock;
 
+        // 電柱種をサイクルできる間だけホイールを消費する。1種以下なら装備切替へ譲る
+        // Consume the wheel only while pole types can be cycled; with one or none it yields to equipment switching
+        public override bool OwnsWheelInput => _context.PoleSelection.CanCyclePoleType;
+
         public ElectricWireConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore, IGameUnlockStateData gameUnlockStateData)
         {
             _gameUnlockStateData = gameUnlockStateData;

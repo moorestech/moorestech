@@ -2,6 +2,7 @@ using System;
 using Core.Master;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Event.Notification;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Server.Util.MessagePack;
 using UnityEngine;
@@ -15,8 +16,11 @@ namespace Server.Protocol.PacketResponse
     {
         public const string Tag = "va:electricWireDisconnect";
 
+        private readonly NotificationService _notificationService;
+
         public ElectricWireDisconnectProtocol(ServiceProvider serviceProvider)
         {
+            _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -25,6 +29,12 @@ namespace Server.Protocol.PacketResponse
             // Deserialize the request and run the disconnect
             var request = MessagePackSerializer.Deserialize<ElectricWireDisconnectRequest>(payload);
             var success = ElectricWireSystemUtil.TryDisconnect(request.PosAVector, request.PosBVector, request.PlayerId, out var failureReason);
+
+            // 送信はSendOnlyで応答を待たないため、切断拒否は通知でプレイヤーへ返す
+            // The client sends this without awaiting a response, so a refused disconnect is surfaced through a notification
+            if (!success)
+                _notificationService.Notify(request.PlayerId, NotificationMessagePack.CreateOperationDenied($"denied.electricWireDisconnect.{failureReason}", Array.Empty<string>()));
+
             return new ElectricWireDisconnectResponse(success, failureReason);
         }
 

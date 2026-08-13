@@ -1,7 +1,7 @@
-// 電線ツールの電柱ゴースト可視性チェック: 選択中の電柱種のゴーストが実際に描画されるかを通常設置と比較する
-// 観測: 電線ツールでは名前ラベルは出るがプレビューGameObjectがSetActive(true)されず不可視。通常設置では可視（対照）
-// Pole-ghost visibility check for the wire tool, compared against normal placement.
-// Observation: under the wire tool the name label shows but the preview GameObject is never activated, so no ghost is drawn; normal placement draws it (control).
+// 電線ツールの電柱ゴースト可視性の回帰チェック: 選択中の電柱種のゴーストが描画されることを通常設置と比較して確認する
+// 名前ラベルだけ出てプレビューGameObjectがSetActive(true)されない不具合の再発を防ぐ
+// Regression check that the wire tool draws the selected pole-type ghost, compared against normal placement.
+// Guards against the defect where only the name label appeared because the preview GameObject was never activated.
 using System;
 using System.Linq;
 using System.Reflection;
@@ -76,13 +76,14 @@ return PlaytestRunner.Run("electric-wire-tool-pole-ghost-visibility-check", opti
     p.Assert(label != null && label.gameObject.activeInHierarchy, "電線ツール: 電柱名ラベルは表示される（ゴースト評価自体は成功している）");
     p.Note($"電線ツールの名前ラベル='{label?.text}'");
 
-    // しかしプレビューGameObjectは非アクティブのまま＝ゴーストが描画されない
-    // But the preview GameObject stays inactive, so no ghost is drawn
+    // プレビューGameObjectも有効化され、電柱ゴーストが実際に描画される
+    // The preview GameObject is activated as well, so the pole ghost is actually drawn
     var wireToolPreviewActive = toolContext.PreviewBlockController.IsActive;
     var hasGhostObject = toolContext.PreviewBlockController.TryGetPreviewBlock(0, out var ghost);
     p.Note($"電線ツール: PreviewBlockController.IsActive={wireToolPreviewActive} / ゴーストオブジェクト取得={hasGhostObject} / ゴーストのactiveInHierarchy={(hasGhostObject ? ghost.gameObject.activeInHierarchy.ToString() : "n/a")}");
-    p.Assert(!wireToolPreviewActive, "【観測された不具合】電線ツールではプレビューGameObjectがSetActive(true)されず電柱ゴーストが描画されない");
-    await p.Screenshot("01-wire-tool-ghost-not-drawn");
+    p.Assert(wireToolPreviewActive, "電線ツールでもプレビューGameObjectが有効になり電柱ゴーストが描画される");
+    p.Assert(hasGhostObject && ghost.gameObject.activeInHierarchy, "電線ツールの電柱ゴーストが実体として存在し可視である");
+    await p.Screenshot("01-wire-tool-ghost-drawn");
 
     // ===== 対照: 通常設置では同じ位置にゴーストが描画される =====
     // ===== Control: normal placement draws the ghost at the same position =====

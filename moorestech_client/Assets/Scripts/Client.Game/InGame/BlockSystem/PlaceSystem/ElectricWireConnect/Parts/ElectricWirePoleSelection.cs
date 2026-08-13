@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.Control;
 using Client.Input;
 using Core.Master;
@@ -22,11 +23,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
         // 微小デルタを整数ステップへ丸めるためのスクロール蓄積（前例: BlueprintCopySystem）
         // Scroll accumulator turning fractional deltas into whole steps (precedent: BlueprintCopySystem)
-        private float _scrollAccumulator;
+        private readonly ScrollStepAccumulator _scrollAccumulator = new();
 
         public BlockDirection CurrentDirection { get; private set; } = BlockDirection.North;
         public BlockId SelectedBlockId => _unlockedPoles[_selectedIndex];
         public bool HasSelectablePole => 0 < _unlockedPoles.Count;
+
+        // 2種以上あるときだけサイクルが意味を持ち、そのときだけホイールを消費する
+        // Cycling is meaningful only with two or more types, and only then is the wheel consumed
+        public bool CanCyclePoleType => 1 < _unlockedPoles.Count;
 
         public ElectricWirePoleSelection(IReadOnlyList<BlockId> unlockedPoles)
         {
@@ -43,6 +48,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             _unlockedPoles = ListUnlockedPoles(unlockState);
             var index = previousSelected.HasValue ? IndexOf(previousSelected.Value) : 0;
             _selectedIndex = index < 0 ? 0 : index;
+
+            // ツール有効化のたびに端数を捨て、前セッションの残りが最初の1ノッチを飛ばさないようにする
+            // Drop the remainder on every tool enable so a leftover from the previous session cannot skip the first notch
+            _scrollAccumulator.Reset();
 
             #region Internal
 
@@ -62,18 +71,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         /// </summary>
         public void UpdateInput()
         {
-            // スクロールを蓄積し整数ステップになった分だけ種をサイクルする（BlueprintCopySystemと同一方式）
-            // Accumulate scroll and cycle the type by whole steps only, identical to BlueprintCopySystem
-            _scrollAccumulator += ReadScroll();
-            var scrollStep = (int)_scrollAccumulator;
-            if (scrollStep != 0)
+            // スクロールを蓄積し整数ステップになった分だけ種をサイクルする
+            // Accumulate scroll and cycle the type by whole steps only
+            var scrollStep = _scrollAccumulator.Accumulate(ReadScroll());
+            for (var i = 0; i < Mathf.Abs(scrollStep); i++)
             {
-                _scrollAccumulator -= scrollStep;
-                for (var i = 0; i < Mathf.Abs(scrollStep); i++)
-                {
-                    if (0 < scrollStep) CycleNext();
-                    else CyclePrevious();
-                }
+                if (0 < scrollStep) CycleNext();
+                else CyclePrevious();
             }
 
             // 通常設置と同じ回転キー（+Shiftで垂直回転）を適用する

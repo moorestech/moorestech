@@ -18,11 +18,11 @@ export default function EquipmentPanel() {
   // 掴んだ絵が出ない画面ではクリックを受けず、選択操作はホイールだけになる
   // Where the held item cannot be seen, clicks are refused and the wheel is the only selection input
   const grabInteractive = useGrabInteractive();
-  // ホイールを占有する建築ツール（接続ツールの電柱種サイクル・BPコピーの高さ変更）中かを購読で持つ
-  // Subscribe to whether a build tool that owns the wheel is active (connect-tool pole cycling, blueprint-copy height)
+  // ホイールを占有中かはC#が判定して配る値をそのまま読む（種別からの再導出はしない）
+  // Read the occupancy flag C# publishes as-is; never re-derive it from the target kind
   const wheelOwnedByBuildTool = useTopicSelector(
     Topics.placementMode,
-    (data) => data?.selectedTargetType === "connectTool" || data?.selectedTargetType === "blueprintCopy",
+    (data) => data?.wheelOwnedByTool === true,
   );
 
   // サーバー適用だけが進めるrevisionの差分だけ、送信順FIFOから確認済み要求を除く

@@ -199,9 +199,9 @@ describe("EquipmentPanel のクリック受付", () => {
     expect(host.dispatchAction).toHaveBeenNthCalledWith(2, "inventory.select_equipment", { index: -1 });
   });
 
-  it("connectTool選択中はホイールで装備が切り替わらない", () => {
+  it("ホイール占有中はホイールで装備が切り替わらない", () => {
     host.uiState = { state: "GameScreen" };
-    host.placementMode = { selectedTargetType: "connectTool", selectedConnectToolGuid: "c0000000-0000-4000-8000-000000000001", height: 0, unavailableReason: "" };
+    host.placementMode = { selectedTargetType: "connectTool", selectedConnectToolGuid: "c0000000-0000-4000-8000-000000000001", height: 0, unavailableReason: "", wheelOwnedByTool: true };
     host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
     renderSlots();
 
@@ -212,9 +212,9 @@ describe("EquipmentPanel のクリック受付", () => {
     expect(host.dispatchAction).not.toHaveBeenCalled();
   });
 
-  it("blueprintCopy選択中はホイールで装備が切り替わらない", () => {
+  it("ホイールを読まない接続ツール中は抑止されず装備が切り替わる", () => {
     host.uiState = { state: "GameScreen" };
-    host.placementMode = { selectedTargetType: "blueprintCopy", height: 0, unavailableReason: "" };
+    host.placementMode = { selectedTargetType: "connectTool", selectedConnectToolGuid: "c0000000-0000-4000-8000-000000000002", height: 0, unavailableReason: "", wheelOwnedByTool: false };
     host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
     renderSlots();
 
@@ -222,12 +222,25 @@ describe("EquipmentPanel のクリック受付", () => {
       host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
     });
 
-    expect(host.dispatchAction).not.toHaveBeenCalled();
+    expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });
+  });
+
+  it("BPコピー選択中でもドラッグしていなければ装備が切り替わる", () => {
+    host.uiState = { state: "GameScreen" };
+    host.placementMode = { selectedTargetType: "blueprintCopy", height: 0, unavailableReason: "", wheelOwnedByTool: false };
+    host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
+    renderSlots();
+
+    act(() => {
+      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+    });
+
+    expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });
   });
 
   it("block選択中は抑止されずホイールで装備が切り替わる", () => {
     host.uiState = { state: "GameScreen" };
-    host.placementMode = { selectedTargetType: "block", selectedBlockGuid: "b0000000-0000-4000-8000-000000000001", height: 0, unavailableReason: "" };
+    host.placementMode = { selectedTargetType: "block", selectedBlockGuid: "b0000000-0000-4000-8000-000000000001", height: 0, unavailableReason: "", wheelOwnedByTool: false };
     host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
     renderSlots();
 
