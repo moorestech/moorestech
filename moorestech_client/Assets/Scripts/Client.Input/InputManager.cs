@@ -37,6 +37,14 @@ namespace Client.Input
             Cursor.visible = isVisible;
             Cursor.lockState = isVisible ? CursorLockMode.None : CursorLockMode.Locked;
         }
+
+        public static void WarpMouseCursorToScreenCenter()
+        {
+            // ロック解除直後のカーソル出現位置はOS任せのため明示的に中央へ寄せる
+            // The cursor's spawn position right after unlock is OS-dependent, so warp it to center explicitly
+            if (Mouse.current == null) return;
+            Mouse.current.WarpCursorPosition(new Vector2(Screen.width / 2f, Screen.height / 2f));
+        }
     }
     
     public class PayerInputManager

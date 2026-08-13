@@ -11,5 +11,10 @@ namespace Client.Tests.UIState
         {
             Calls.Add($"Mode:{mode}");
         }
+
+        public void WarpCursorToScreenCenter()
+        {
+            Calls.Add("Warp");
+        }
     }
 }
