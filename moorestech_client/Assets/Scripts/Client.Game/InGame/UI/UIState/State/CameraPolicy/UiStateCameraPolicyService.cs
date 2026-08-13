@@ -72,20 +72,27 @@ namespace Client.Game.InGame.UI.UIState.State.CameraPolicy
 
         public void UpdateGameplayFreeCursorInput()
         {
+            // Gameplayを所有していない間の呼び出しでゾーンを取り戻さない
+            // A call while this zone is not owned must not reclaim it
+            if (_currentZone != PolicyZone.Gameplay) return;
+
             // 一人称は左Altを受け付けない（クロスヘア＋画面中央照準で一貫させる）
             // First person ignores left Alt to keep the crosshair/screen-center aim consistent
             if (IsFirstPerson) return;
 
             if (HybridInput.GetKeyDown(KeyCode.LeftAlt))
             {
-                // ワープ→モード適用の順（ロック解除直後の跳ねを防ぐ）
-                // Warp before applying the mode to avoid a jump right after unlock
-                _cameraInteractionApplier.WarpCursorToScreenCenter();
                 _isGameplayAltHeld = true;
+
+                // ロック解除してからワープする（ロック中のワープはOSに握り潰される）
+                // Unlock first, then warp: a warp while the cursor is locked is dropped by the OS
                 ApplyZonePolicy();
+                _cameraInteractionApplier.WarpCursorToScreenCenter();
             }
 
-            if (HybridInput.GetKeyUp(KeyCode.LeftAlt))
+            // ホールドしていない状態の解放通知では余計な再適用をしない
+            // A release without an active hold must not push a redundant re-apply
+            if (HybridInput.GetKeyUp(KeyCode.LeftAlt) && _isGameplayAltHeld)
             {
                 _isGameplayAltHeld = false;
                 ApplyZonePolicy();
@@ -126,15 +133,13 @@ namespace Client.Game.InGame.UI.UIState.State.CameraPolicy
 
         private void ApplyZonePolicy()
         {
-            var isGameplayFreeCursor = _currentZone == PolicyZone.Gameplay && _isGameplayAltHeld;
-            var cameraLook = (_currentZone == PolicyZone.Gameplay && !isGameplayFreeCursor) || (_currentZone == PolicyZone.Build && IsFirstPerson);
+            var isGameplayLocked = _currentZone == PolicyZone.Gameplay && !_isGameplayAltHeld;
+            var cameraLook = isGameplayLocked || (_currentZone == PolicyZone.Build && IsFirstPerson);
             _cameraInteractionApplier.SetInteractionMode(cameraLook ? CameraInteractionMode.CameraLook : CameraInteractionMode.PointerFree);
 
-            // Buildは常にカーソル、Gameplayはホールド中のみカーソル、それ以外は画面中央
-            // Build always aims at the cursor; Gameplay only while held; everything else centers on screen
-            var aimSource = _currentZone == PolicyZone.Build || isGameplayFreeCursor
-                ? ThirdPersonAimSource.Cursor
-                : ThirdPersonAimSource.ScreenCenter;
+            // 画面中央照準はカーソルを固定するGameplayだけ。他ゾーンは自由カーソルなのでカーソルを狙う
+            // Only the cursor-locked Gameplay aims at screen center; other zones have a free cursor and aim at it
+            var aimSource = isGameplayLocked ? ThirdPersonAimSource.ScreenCenter : ThirdPersonAimSource.Cursor;
             AimPointProvider.SetThirdPersonAimSource(aimSource);
         }
 

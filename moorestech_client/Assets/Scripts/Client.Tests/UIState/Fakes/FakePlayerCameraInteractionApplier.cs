@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Control;
 
-namespace Client.Tests.UIState
+namespace Client.Tests.UIState.Fakes
 {
     public class FakePlayerCameraInteractionApplier : IPlayerCameraInteractionApplier
     {

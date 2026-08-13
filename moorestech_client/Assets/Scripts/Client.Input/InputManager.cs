@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 
 namespace Client.Input
 {
@@ -43,7 +44,12 @@ namespace Client.Input
             // ロック解除直後のカーソル出現位置はOS任せのため明示的に中央へ寄せる
             // The cursor's spawn position right after unlock is OS-dependent, so warp it to center explicitly
             if (Mouse.current == null) return;
-            Mouse.current.WarpCursorPosition(new Vector2(Screen.width / 2f, Screen.height / 2f));
+            var screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+            Mouse.current.WarpCursorPosition(screenCenter);
+
+            // WarpCursorPositionのpositionは次の入力更新まで古いままなので同フレーム参照用に直接書く
+            // WarpCursorPosition leaves position stale until the next input update, so write it for same-frame reads
+            InputState.Change(Mouse.current.position, screenCenter);
         }
     }
     

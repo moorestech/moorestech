@@ -43,10 +43,8 @@ namespace Client.Input
             return Suppress(held, InputSuppressionScope.Keyboard);
         }
 
-        // GetKeyUpだけ抑止を通さない。離脱通知が抑止されるとホールド系修飾キーが
-        // 押しっぱなし状態で固着し、自由カーソルから抜けられなくなるため
-        // GetKeyUp alone skips suppression: suppressing the release would leave hold-style
-        // modifier keys stuck down, trapping the free cursor state
+        // 解放通知を抑止するとホールド系修飾キーが押しっぱなしで固着するためGetKeyUpは抑止を通さない
+        // GetKeyUp skips suppression: a suppressed release would leave hold-style modifiers stuck down
         public static bool GetKeyUp(KeyCode keyCode)
         {
             var key = ToInputSystemKey(keyCode);
