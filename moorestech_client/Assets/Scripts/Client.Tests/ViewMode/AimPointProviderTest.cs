@@ -10,6 +10,7 @@ namespace Client.Tests.ViewMode
         public void TearDown()
         {
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
+            AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.ScreenCenter);
         }
 
         [Test]
@@ -29,9 +30,26 @@ namespace Client.Tests.ViewMode
         }
 
         [Test]
-        public void ThirdPersonUsesMouseAim()
+        public void FirstPersonIgnoresCursorAimSource()
+        {
+            AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
+            AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.Cursor);
+            Assert.AreEqual(AimPointMode.ScreenCenter, AimPointProvider.GetCurrentMode());
+        }
+
+        [Test]
+        public void ThirdPersonWithScreenCenterSourceUsesScreenCenter()
         {
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
+            AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.ScreenCenter);
+            Assert.AreEqual(AimPointMode.ScreenCenter, AimPointProvider.GetCurrentMode());
+        }
+
+        [Test]
+        public void ThirdPersonWithCursorSourceUsesMouseAim()
+        {
+            AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
+            AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.Cursor);
             Assert.AreEqual(AimPointMode.Mouse, AimPointProvider.GetCurrentMode());
         }
     }
