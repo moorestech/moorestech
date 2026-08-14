@@ -1,33 +1,72 @@
-using Client.Input;
-using UnityEngine;
-
 namespace Client.Game.InGame.Hotbar
 {
     /// <summary>
-    ///     数字キー入力をタップと長押し（0.5秒）に判別する共通ヘルパ
-    ///     Shared helper that classifies digit-key input as a tap or a long press (0.5s)
+    ///     数字キーの押下をタップと長押し（0.5秒）に判別する状態機械。入力読取と時刻は呼び出し側がプッシュする
+    ///     State machine classifying digit-key presses as a tap or a long press (0.5s); the caller pushes the input and the clock
     /// </summary>
-    public static class HotbarKeyInput
+    public class HotbarKeyInput
     {
         private const float LongPressThresholdSeconds = 0.5f;
 
-        // 現在保持中のスロット。何も押されていなければ-1
-        // The slot currently held; -1 when nothing is pressed
-        private static int _heldSlot = -1;
-        private static float _pressStartTime;
-        private static bool _longPressFired;
+        // 現在保持中のスロット。何も押されていなければnull
+        // The slot currently held; null when nothing is pressed
+        private int? _heldSlot;
+        private float _pressStartTime;
+        private bool _longPressFired;
 
-        private static bool _tapPending;
-        private static int _tapSlot;
-        private static bool _longPressPending;
-        private static int _longPressSlot;
+        private bool _tapPending;
+        private int _tapSlot;
+        private bool _longPressPending;
+        private int _longPressSlot;
+
+        // 押下中キーの継続状態を1フレーム分進め、タップ/長押しの成立を検出する
+        // Advances the currently-held key's state by one frame and detects a tap or long-press event
+        public void ManualUpdate(int? heldSlot, float unscaledTime)
+        {
+            if (heldSlot != _heldSlot)
+            {
+                HandleHeldSlotChanged(heldSlot);
+                return;
+            }
+
+            TryFireLongPress();
+
+            #region Internal
+
+            // 保持キーが切り替わった/離された処理。閾値未満での離しだけタップとして確定する
+            // Handles a held-key change/release; only a release before the threshold confirms a tap
+            void HandleHeldSlotChanged(int? nextSlot)
+            {
+                if (_heldSlot.HasValue && !_longPressFired)
+                {
+                    _tapPending = true;
+                    _tapSlot = _heldSlot.Value;
+                }
+
+                _heldSlot = nextSlot;
+                _pressStartTime = unscaledTime;
+                _longPressFired = false;
+            }
+
+            // 保持継続中に閾値へ到達したら長押しを1度だけ成立させる
+            // Fires the long press exactly once when the threshold is reached while still held
+            void TryFireLongPress()
+            {
+                if (!_heldSlot.HasValue || _longPressFired) return;
+                if (unscaledTime - _pressStartTime < LongPressThresholdSeconds) return;
+
+                _longPressFired = true;
+                _longPressPending = true;
+                _longPressSlot = _heldSlot.Value;
+            }
+
+            #endregion
+        }
 
         // タップ確定（閾値未満で離された）を1回だけ消費する
         // Consumes a confirmed tap (released before the threshold) exactly once
-        public static bool TryGetTappedSlot(out int slot)
+        public bool TryGetTappedSlot(out int slot)
         {
-            Poll();
-
             if (_tapPending)
             {
                 slot = _tapSlot;
@@ -41,10 +80,8 @@ namespace Client.Game.InGame.Hotbar
 
         // 長押し成立（保持中に閾値へ到達）を1回だけ消費する
         // Consumes a fired long press (threshold reached while still held) exactly once
-        public static bool TryGetLongPressedSlot(out int slot)
+        public bool TryGetLongPressedSlot(out int slot)
         {
-            Poll();
-
             if (_longPressPending)
             {
                 slot = _longPressSlot;
@@ -56,63 +93,16 @@ namespace Client.Game.InGame.Hotbar
             return false;
         }
 
-        // UIStateを跨いだ保持状態を破棄する。Poll対象外のUIState滞在中は経過時間が進まないため、
-        // 復帰直後に古い押下開始時刻へ基づく誤長押し判定が起きないよう、遷移のたび呼び出し側で明示的にリセットする
-        // Discards held-key state across UIStates. While a non-polling UIState is active elapsed time keeps frozen,
-        // so callers must explicitly reset on every transition to avoid a stale press-start time firing a false long press
-        public static void Reset()
+        // UIStateを跨いだ保持状態を破棄する。ManualUpdateが呼ばれないUIState滞在中は経過時間が進まないため、
+        // 復帰直後に古い押下開始時刻へ基づく誤長押し判定が起きないよう、遷移のたびリセットする
+        // Discards held-key state across UIStates. Elapsed time freezes while a UIState that never calls ManualUpdate is active,
+        // so this is reset on every transition to avoid a stale press-start time firing a false long press
+        public void Reset()
         {
-            _heldSlot = -1;
+            _heldSlot = null;
             _longPressFired = false;
             _tapPending = false;
             _longPressPending = false;
-        }
-
-        // 押下中キーの継続状態を1フレーム分進め、タップ/長押しの成立を検出する
-        // Advances the currently-held key's state by one frame and detects a tap or long-press event
-        private static void Poll()
-        {
-            var rawValue = InputManager.UI.HotBar.ReadValue<int>();
-            var currentSlot = rawValue == 0 ? -1 : rawValue - 1;
-
-            if (currentSlot != _heldSlot)
-            {
-                HandleHeldSlotChanged(currentSlot);
-                return;
-            }
-
-            TryFireLongPress();
-
-            #region Internal
-
-            // 保持キーが切り替わった/離された処理。閾値未満での離しだけタップとして確定する
-            // Handles a held-key change/release; only a release before the threshold confirms a tap
-            void HandleHeldSlotChanged(int nextSlot)
-            {
-                if (_heldSlot != -1 && !_longPressFired)
-                {
-                    _tapPending = true;
-                    _tapSlot = _heldSlot;
-                }
-
-                _heldSlot = nextSlot;
-                _pressStartTime = Time.unscaledTime;
-                _longPressFired = false;
-            }
-
-            // 保持継続中に閾値へ到達したら長押しを1度だけ成立させる
-            // Fires the long press exactly once when the threshold is reached while still held
-            void TryFireLongPress()
-            {
-                if (_heldSlot == -1 || _longPressFired) return;
-                if (Time.unscaledTime - _pressStartTime < LongPressThresholdSeconds) return;
-
-                _longPressFired = true;
-                _longPressPending = true;
-                _longPressSlot = _heldSlot;
-            }
-
-            #endregion
         }
     }
 }

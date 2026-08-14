@@ -17,6 +17,7 @@ using Client.WebUiHost.Game.Topics.BuildMenu;
 using Game.UnlockState;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.Tooltip;
 using VContainer;
@@ -157,8 +158,8 @@ namespace Client.WebUiHost.Game
             // ホットバーのtopic/actionをまとめて登録（前例 C4WebUiRegistration）
             // Register the hotbar topic/actions together (precedent: C4WebUiRegistration)
             var clientHotbarDatastore = resolver.Resolve<ClientHotbarDatastore>();
-            var hotbarPlacementTargetResolver = resolver.Resolve<HotbarPlacementTargetResolver>();
-            HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, hotbarPlacementTargetResolver, blueprintLibrary, resolver.Resolve<PlaceSystemStateController>());
+            var placementTargetResolver = resolver.Resolve<PlacementTargetResolver>();
+            HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, placementTargetResolver, blueprintLibrary, resolver.Resolve<PlaceSystemStateController>());
 
             // action ハンドラ登録
             // Register action handlers
@@ -186,7 +187,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));
             hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));
             hub.RegisterAction(new TrainPlatformSetTransferModeActionHandler(subInventoryState));
-            hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, unlockStateData, blueprintLibrary, placementTargetCatalog, buildMenuView));
+            hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, placementTargetResolver, buildMenuView));
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<SaveButton>()));
             hub.RegisterAction(new PauseMenuBackToMainMenuActionHandler(resolver.Resolve<BackToMainMenu>()));

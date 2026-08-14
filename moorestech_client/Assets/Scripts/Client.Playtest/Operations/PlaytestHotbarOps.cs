@@ -1,12 +1,10 @@
 using System;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Hotbar;
-using Common.Debug;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
-using Game.PlacementTarget;
 using Game.UnlockState;
 using UnityEngine;
 using VContainer;
@@ -21,15 +19,20 @@ namespace Client.Playtest.Operations
     {
         public static async UniTask AssignHotbar(int slot, string targetName, float timeoutSeconds)
         {
-            var datastore = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ClientHotbarDatastore>();
-            var targetId = ResolveTargetId(targetName);
+            var resolver = ClientDIContext.DIContainer.DIContainerResolver;
+            var datastore = resolver.Resolve<ClientHotbarDatastore>();
+
+            // 解決はビルドメニューと同一の PlacementTargetResolver 1本に寄せる。未解放対象は割当できない
+            // Resolution goes through the single PlacementTargetResolver the build menu uses; locked targets cannot be assigned
+            if (!resolver.Resolve<PlacementTargetResolver>().TryResolveByDisplayName(targetName, out var target))
+                throw new ArgumentException($"Placement target not found (locked or nonexistent): {targetName}");
 
             // 楽観更新はせず、va:event:hotbarUpdateのエコーが戻るまで待つ
             // No optimistic update; wait for the va:event:hotbarUpdate echo to land
-            datastore.RequestAssign(slot, targetId);
+            datastore.RequestAssign(slot, target.Id);
 
             var startTime = Time.realtimeSinceStartup;
-            while (datastore.Assignments[slot] != targetId)
+            while (datastore.Assignments[slot] != target.Id)
             {
                 if (timeoutSeconds < Time.realtimeSinceStartup - startTime)
                 {
@@ -43,35 +46,21 @@ namespace Client.Playtest.Operations
         {
             // 接続ツールはBlockUnlockStateInfosと別枠(ConnectToolUnlockStateInfos)のため、ブロックのアンロックとは独立に必要
             // Connect tools live in a separate unlock bucket (ConnectToolUnlockStateInfos), so this is required independently of block unlocks
-            var connectToolGuid = ResolveConnectToolGuid(toolName);
+            var connectToolGuid = ResolveConnectToolGuid();
             ServerContext.GetService<IGameUnlockStateDataController>().UnlockConnectTool(connectToolGuid);
-        }
 
-        private static Guid ResolveTargetId(string targetName)
-        {
-            // ビルドメニューと同一供給源(PlacementTargetCatalog.UnlockedEntries)から表示名で解決する。未解放対象は割当できない
-            // Resolves by display name from the same supply source as the build menu (PlacementTargetCatalog.UnlockedEntries); locked targets cannot be assigned
-            var resolver = ClientDIContext.DIContainer.DIContainerResolver;
-            var catalog = resolver.Resolve<PlacementTargetCatalog>();
-            var blueprintLibrary = resolver.Resolve<ClientBlueprintLibrary>();
-            var unlockState = resolver.Resolve<IGameUnlockStateData>();
-            var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
+            #region Internal
 
-            foreach (var entry in catalog.UnlockedEntries(unlockState, showAllPlaceable, blueprintLibrary.BlueprintEntries))
+            Guid ResolveConnectToolGuid()
             {
-                if (entry.MasterDisplayName == targetName) return entry.Id;
+                foreach (var connectTool in MasterHolder.ConnectToolMaster.All)
+                {
+                    if (connectTool.Name == toolName) return connectTool.ConnectToolGuid;
+                }
+                throw new ArgumentException($"Connect tool not found: {toolName}");
             }
 
-            throw new ArgumentException($"Placement target not found (locked or nonexistent): {targetName}");
-        }
-
-        private static Guid ResolveConnectToolGuid(string toolName)
-        {
-            foreach (var connectTool in MasterHolder.ConnectToolMaster.All)
-            {
-                if (connectTool.Name == toolName) return connectTool.ConnectToolGuid;
-            }
-            throw new ArgumentException($"Connect tool not found: {toolName}");
+            #endregion
         }
     }
 }

@@ -12,6 +12,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Game.PlacementTarget;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
@@ -224,10 +225,11 @@ namespace Client.Starter
             builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
-            // ホットバー割当Guidの解決と、建築モード中の数字キー入力振り分け
-            // Resolves hotbar-assignment guids and routes digit-key input during build mode
-            builder.Register<HotbarPlacementTargetResolver>(Lifetime.Singleton);
-            builder.Register<PlaceBlockHotbarInputService>(Lifetime.Singleton);
+            // 設置対象の解決と、数字キー押下の判別、ホットバータップの振り分け
+            // Placement-target resolution, digit-key press classification, and hotbar tap routing
+            builder.Register<PlacementTargetResolver>(Lifetime.Singleton);
+            builder.Register<HotbarKeyInput>(Lifetime.Singleton);
+            builder.Register<HotbarTapInputService>(Lifetime.Singleton);
 
             // UI非依存の視点モード処理
             // UI-independent view-mode processing

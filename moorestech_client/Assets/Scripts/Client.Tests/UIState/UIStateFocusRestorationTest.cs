@@ -51,7 +51,7 @@ namespace Client.Tests.UIState
         {
             SetUpGameStateController();
             var applier = new FakePlayerCameraInteractionApplier();
-            var state = new GameScreenState(null, null, null, null, CreateCameraPolicy(applier, new PlayerViewModeController(new FakePlayerViewApplier())), null, null);
+            var state = new GameScreenState(null, null, null, null, CreateCameraPolicy(applier, new PlayerViewModeController(new FakePlayerViewApplier())), CreateHotbarTapInputService(null));
             state.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
 
             applier.Calls.Clear();
@@ -134,9 +134,15 @@ namespace Client.Tests.UIState
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
             var placeStateController = new PlaceSystemStateController(selector);
             var pickService = new PlacementTargetPickService(null);
-            var clientHotbarDatastore = new ClientHotbarDatastore();
-            var hotbarInputService = new PlaceBlockHotbarInputService(clientHotbarDatastore, null, placeStateController);
+            var hotbarInputService = CreateHotbarTapInputService(placeStateController);
             return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier, viewModeController), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView(), hotbarInputService);
+        }
+
+        // 数字キー状態はサービス経由でしか触れないため、テストも本番と同じ組み立てで生成する
+        // The digit-key state is reachable only through the service, so tests build it the same way production does
+        private static HotbarTapInputService CreateHotbarTapInputService(PlaceSystemStateController placeStateController)
+        {
+            return new HotbarTapInputService(new ClientHotbarDatastore(), null, placeStateController, new HotbarKeyInput());
         }
 
         private static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier, PlayerViewModeController viewModeController)

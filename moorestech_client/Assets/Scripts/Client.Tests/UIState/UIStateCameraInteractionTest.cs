@@ -51,7 +51,7 @@ namespace Client.Tests.UIState
         {
             SetUpGameStateController();
             var gameApplier = new FakePlayerCameraInteractionApplier();
-            var gameState = new GameScreenState(null, null, null, null, CreateCameraPolicy(gameApplier), null, null);
+            var gameState = new GameScreenState(null, null, null, null, CreateCameraPolicy(gameApplier), CreateHotbarTapInputService(null));
             gameState.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
             CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, gameApplier.Calls);
 
@@ -132,9 +132,15 @@ namespace Client.Tests.UIState
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
             var placeStateController = new PlaceSystemStateController(selector);
             var pickService = new PlacementTargetPickService(null);
-            var clientHotbarDatastore = new ClientHotbarDatastore();
-            var hotbarInputService = new PlaceBlockHotbarInputService(clientHotbarDatastore, null, placeStateController);
+            var hotbarInputService = CreateHotbarTapInputService(placeStateController);
             return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier), new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView, hotbarInputService);
+        }
+
+        // 数字キー状態はサービス経由でしか触れないため、テストも本番と同じ組み立てで生成する
+        // The digit-key state is reachable only through the service, so tests build it the same way production does
+        private static HotbarTapInputService CreateHotbarTapInputService(PlaceSystemStateController placeStateController)
+        {
+            return new HotbarTapInputService(new ClientHotbarDatastore(), null, placeStateController, new HotbarKeyInput());
         }
 
         private static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier)

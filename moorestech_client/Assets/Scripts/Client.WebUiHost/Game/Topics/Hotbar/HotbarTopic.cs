@@ -26,7 +26,7 @@ namespace Client.WebUiHost.Game.Topics.Hotbar
 
         private readonly WebSocketHub _hub;
         private readonly ClientHotbarDatastore _clientHotbarDatastore;
-        private readonly HotbarPlacementTargetResolver _hotbarPlacementTargetResolver;
+        private readonly PlacementTargetResolver _placementTargetResolver;
         private readonly ClientBlueprintLibrary _blueprintLibrary;
         private readonly PlaceSystemStateController _placeSystemStateController;
         private readonly IDisposable _datastoreSubscription;
@@ -35,11 +35,11 @@ namespace Client.WebUiHost.Game.Topics.Hotbar
         private bool _publishScheduled;
         private bool _disposed;
 
-        public HotbarTopic(WebSocketHub hub, ClientHotbarDatastore clientHotbarDatastore, HotbarPlacementTargetResolver hotbarPlacementTargetResolver, ClientBlueprintLibrary blueprintLibrary, PlaceSystemStateController placeSystemStateController)
+        public HotbarTopic(WebSocketHub hub, ClientHotbarDatastore clientHotbarDatastore, PlacementTargetResolver placementTargetResolver, ClientBlueprintLibrary blueprintLibrary, PlaceSystemStateController placeSystemStateController)
         {
             _hub = hub;
             _clientHotbarDatastore = clientHotbarDatastore;
-            _hotbarPlacementTargetResolver = hotbarPlacementTargetResolver;
+            _placementTargetResolver = placementTargetResolver;
             _blueprintLibrary = blueprintLibrary;
             _placeSystemStateController = placeSystemStateController;
 
@@ -108,9 +108,8 @@ namespace Client.WebUiHost.Game.Topics.Hotbar
             HotbarSlotDto ResolveSlotDto(Guid id)
             {
                 if (id == Guid.Empty) return null;
-                if (!_hotbarPlacementTargetResolver.TryResolve(id, out var entry)) return null;
+                if (!_placementTargetResolver.TryResolve(id, out var target)) return null;
 
-                var target = PlacementTargetFactory.Create(entry);
                 return new HotbarSlotDto
                 {
                     Id = target.Id.ToString("D"),

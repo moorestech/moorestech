@@ -1,11 +1,9 @@
-﻿using System;
-using Client.Game.Common;
+﻿using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
+using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
@@ -21,8 +19,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly RideVehicleInputService _rideVehicleInputService;
         private readonly PlacementTargetPickService _placementTargetPickService;
         private readonly UiStateCameraPolicyService _cameraPolicyService;
-        private readonly ClientHotbarDatastore _clientHotbarDatastore;
-        private readonly HotbarPlacementTargetResolver _hotbarPlacementTargetResolver;
+        private readonly HotbarTapInputService _hotbarInputService;
 
         public GameScreenState(
             SkitManager skitManager,
@@ -30,16 +27,14 @@ namespace Client.Game.InGame.UI.UIState.State
             RideVehicleInputService rideVehicleInputService,
             PlacementTargetPickService placementTargetPickService,
             UiStateCameraPolicyService cameraPolicyService,
-            ClientHotbarDatastore clientHotbarDatastore,
-            HotbarPlacementTargetResolver hotbarPlacementTargetResolver)
+            HotbarTapInputService hotbarInputService)
         {
             _skitManager = skitManager;
             _subInventoryInteractService = subInventoryInteractService;
             _rideVehicleInputService = rideVehicleInputService;
             _placementTargetPickService = placementTargetPickService;
             _cameraPolicyService = cameraPolicyService;
-            _clientHotbarDatastore = clientHotbarDatastore;
-            _hotbarPlacementTargetResolver = hotbarPlacementTargetResolver;
+            _hotbarInputService = hotbarInputService;
         }
 
         public UITransitContext GetNextUpdate()
@@ -61,7 +56,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // 数字キー/Web由来の選択で割当済み設置対象を持って建築モードへ入る
             // A digit key or a web-originated selection enters build mode holding the assigned placement target
-            if (TryGetHotbarBuildTransit(out var hotbarTransit)) return hotbarTransit;
+            if (_hotbarInputService.TryGetEnterBuildTransit(out var hotbarTransit)) return hotbarTransit;
 
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
@@ -73,34 +68,13 @@ namespace Client.Game.InGame.UI.UIState.State
             if (HybridInput.GetKeyDown(KeyCode.F3)) return new UITransitContext(UIStateEnum.Debug);
 
             return null;
-
-            #region Internal
-
-            // 割当済みスロットのタップを解決し、成功時のみ建築モードへの遷移を返す
-            // Resolves a tap on an assigned slot, returning a transit to build mode only on success
-            bool TryGetHotbarBuildTransit(out UITransitContext transit)
-            {
-                transit = null;
-                var selectRequested = HotbarKeyInput.TryGetTappedSlot(out var slot) || _clientHotbarDatastore.TryConsumeSelectRequest(out slot);
-                if (!selectRequested) return false;
-
-                var targetId = _clientHotbarDatastore.Assignments[slot];
-                if (targetId == Guid.Empty) return false;
-                if (!_hotbarPlacementTargetResolver.TryResolve(targetId, out var entry)) return false;
-
-                var target = PlacementTargetFactory.Create(entry);
-                transit = new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(target, PlacementOrigin.FromHotbarSlot(slot))));
-                return true;
-            }
-
-            #endregion
         }
 
         public void OnEnter(UITransitContext context)
         {
             // 他UIState滞在中は数字キーがpollされないため、復帰直後の古い押下状態を破棄する
             // Digit keys aren't polled while another UIState is active, so discard any stale press state on return
-            HotbarKeyInput.Reset();
+            _hotbarInputService.ResetKeyState();
 
             // 通常時はカーソル固定・回転有効
             // Lock cursor and enable rotation in gameplay

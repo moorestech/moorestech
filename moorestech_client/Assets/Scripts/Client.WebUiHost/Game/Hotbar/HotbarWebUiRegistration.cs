@@ -1,5 +1,6 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Hotbar;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Actions;
@@ -13,11 +14,11 @@ namespace Client.WebUiHost.Game
     /// </summary>
     public static class HotbarWebUiRegistration
     {
-        public static void Register(WebSocketHub hub, ClientHotbarDatastore clientHotbarDatastore, HotbarPlacementTargetResolver hotbarPlacementTargetResolver, ClientBlueprintLibrary blueprintLibrary, PlaceSystemStateController placeSystemStateController)
+        public static void Register(WebSocketHub hub, ClientHotbarDatastore clientHotbarDatastore, PlacementTargetResolver placementTargetResolver, ClientBlueprintLibrary blueprintLibrary, PlaceSystemStateController placeSystemStateController)
         {
-            // 設置対象解決はビルドメニューと同一供給源(HotbarPlacementTargetResolver)を再利用する
-            // Placement-target resolution reuses the same source as the build menu (HotbarPlacementTargetResolver)
-            var hotbarTopic = new HotbarTopic(hub, clientHotbarDatastore, hotbarPlacementTargetResolver, blueprintLibrary, placeSystemStateController);
+            // 設置対象解決はビルドメニューと同一供給源(PlacementTargetResolver)を再利用する
+            // Placement-target resolution reuses the same source as the build menu (PlacementTargetResolver)
+            var hotbarTopic = new HotbarTopic(hub, clientHotbarDatastore, placementTargetResolver, blueprintLibrary, placeSystemStateController);
             hub.RegisterTopic(HotbarTopic.TopicName, hotbarTopic);
 
             hub.RegisterAction(new HotbarSelectActionHandler(clientHotbarDatastore));

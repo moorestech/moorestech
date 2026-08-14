@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Game.PlacementTarget;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
@@ -105,7 +106,7 @@ namespace Client.Tests.WebUi
             {
                 SetCurrentState(control, UIStateEnum.BuildMenu);
                 var handler = new BuildMenuSelectActionHandler(
-                    control, unlocked, new ClientBlueprintLibrary(), catalog, view);
+                    control, new PlacementTargetResolver(catalog, new ClientBlueprintLibrary(), unlocked), view);
                 var entry = catalog.UnlockedEntries(
                     unlocked, false, Array.Empty<(Guid, string)>()).First();
 

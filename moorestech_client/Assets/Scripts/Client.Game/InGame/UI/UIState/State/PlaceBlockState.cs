@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
-using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
@@ -27,7 +25,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly UiStateCameraPolicyService _cameraPolicyService;
         private readonly BuildUndoService _buildUndoService;
         private readonly IMapVeinRangeView _mapVeinRangeView;
-        private readonly PlaceBlockHotbarInputService _hotbarInputService;
+        private readonly HotbarTapInputService _hotbarInputService;
         private readonly ReactiveProperty<int> _placementHeight = new(0);
 
         public IObservable<int> OnPlacementHeightChanged => _placementHeight;
@@ -41,7 +39,7 @@ namespace Client.Game.InGame.UI.UIState.State
             UiStateCameraPolicyService cameraPolicyService,
             BuildUndoService buildUndoService,
             IMapVeinRangeView mapVeinRangeView,
-            PlaceBlockHotbarInputService hotbarInputService)
+            HotbarTapInputService hotbarInputService)
         {
             _skitManager = skitManager;
             _blockGameObjectDataStore = blockGameObjectDataStore;
@@ -57,7 +55,7 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             // 他UIState滞在中は数字キーがpollされないため、復帰直後の古い押下状態を破棄する
             // Digit keys aren't polled while another UIState is active, so discard any stale press state on return
-            HotbarKeyInput.Reset();
+            _hotbarInputService.ResetKeyState();
 
             _placementHeight.Value = 0;
             // 遷移payloadから設置対象と由来を1組で受け取り所有者へ渡す（無ければEmptyに落ちる）
@@ -147,7 +145,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // 離脱時点の押下状態を持ち越さない。復帰後の誤長押し判定を防ぐ
             // Discard the press state as of this exit so a later re-entry can't misfire a long press
-            HotbarKeyInput.Reset();
+            _hotbarInputService.ResetKeyState();
 
             // 配置モード離脱で範囲表示も畳む。破棄漏れがそのまま残存ボックスになる
             // Leaving placement mode folds the range view too; a missed destroy would linger as a stray box
