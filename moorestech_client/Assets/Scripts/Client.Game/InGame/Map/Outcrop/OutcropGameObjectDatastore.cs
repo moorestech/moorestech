@@ -42,8 +42,8 @@ namespace Client.Game.InGame.Map.Outcrop
 
         public void StartOutcropInstantiation()
         {
-            // 二重開始は生成済み露頭を重ねてしまうため、待機側が拾える例外で止める
-            // A second start would stack duplicate outcrops, so fail with an exception the waiter can catch
+            // 二重開始は露頭を重ねるので落とす
+            // A second start would stack duplicate outcrops
             if (_initializationTask != null)
                 throw new InvalidOperationException("[OutcropGameObjectDatastore] StartOutcropInstantiationが二重に呼ばれました");
 
@@ -91,8 +91,8 @@ namespace Client.Game.InGame.Map.Outcrop
                 var address = element.OutcropAddressablePath;
                 if (_prefabCacheByAddress.TryGetValue(address, out var cachedPrefab)) return cachedPrefab;
 
-                // 1本のロード失敗で残り全鉱脈の生成を巻き添えにしないよう、兄弟実装に揃えてLogError+skipにする
-                // Match the sibling datastore with LogError+skip so one failed load does not take every other vein down
+                // 1本の失敗で全鉱脈を巻き添えにしない
+                // One failed load must not take every vein down
                 var loaded = AddressableLoader.LoadDefault<GameObject>(address);
                 if (loaded == null)
                 {
@@ -118,8 +118,8 @@ namespace Client.Game.InGame.Map.Outcrop
                 if (outcrop == null) outcrop = instance.AddComponent<OutcropGameObject>();
                 _outcropGuidIndex.Add(veinGuid, outcrop);
 
-                // 手掘り不可の鉱脈も「掘れない」と提示する対象なので、可否に関わらず必ず初期化する
-                // An unmineable vein is still a target that must say so, so initialize it regardless of permission
+                // 不可の鉱脈も提示対象なので初期化する
+                // An unmineable vein still has to say so
                 outcrop.Initialize(element, veinGuid, CalculateMinePosition(layout, center));
             }
 
@@ -159,15 +159,15 @@ namespace Client.Game.InGame.Map.Outcrop
 
         internal static Vector3 SelectOutcropPosition(Vector3 center, bool groundResolved, Vector3 groundPosition)
         {
-            // 仮マップは地形範囲外にも鉱脈があるため、未解決時はベイク済みAABB中心をそのまま使う
-            // The interim map has veins beyond terrain bounds, so unresolved surfaces fall back to the baked AABB center
+            // 地形範囲外の鉱脈はAABB中心へ置く
+            // Veins beyond the terrain use the baked AABB center
             return groundResolved ? groundPosition : center;
         }
 
         public UniTask WaitForInitialApplyAsync()
         {
-            // 開始前の待機は生成完了を保証できないので、待てるふりをせず落とす
-            // Waiting before the start cannot guarantee completion, so fail instead of pretending to wait
+            // 開始前の待機は保証できないので落とす
+            // Waiting before the start guarantees nothing
             if (_initializationTask == null)
                 throw new InvalidOperationException("[OutcropGameObjectDatastore] StartOutcropInstantiation前に待機が要求されました");
             return _initializationTask.Value;

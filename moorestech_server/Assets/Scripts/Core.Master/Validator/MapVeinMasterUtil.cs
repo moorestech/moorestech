@@ -18,8 +18,8 @@ namespace Core.Master.Validator
 
             string OutcropAddressablePathValidation()
             {
-                // 手掘り可否に関わらず全鉱脈が露頭を立てるため、ロード先が空ならマスタ側で弾く
-                // Every vein raises an outcrop regardless of hand-mining, so an empty load path is rejected at the master
+                // 全鉱脈が露頭を立てるので空を弾く
+                // Every vein raises an outcrop, so an empty path is rejected
                 var logs = "";
                 foreach (var element in mapVeins)
                 {

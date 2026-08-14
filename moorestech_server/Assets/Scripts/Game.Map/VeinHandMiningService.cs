@@ -60,8 +60,8 @@ namespace Game.Map
                 foundParam = null;
                 foreach (var overVein in ServerContext.ItemMapVeinDatastore.GetOverVeins(pos))
                 {
-                    // 座標だけでは重なった別鉱脈を掘れてしまうので、クライアントが狙った鉱脈と一致することも要求する
-                    // Position alone would let an overlapping vein be mined, so the aimed vein must match too
+                    // 重なった別鉱脈を掘らせない
+                    // An overlapping vein must not be mined
                     if (overVein.VeinGuid != aimedVeinGuid) continue;
 
                     var element = MasterHolder.MapVeinMaster.GetElementOrNull(overVein.VeinGuid);
@@ -105,8 +105,8 @@ namespace Game.Map
         }
 
         /// <summary>
-        ///     装備ツールが手掘り許可ツールに含まれるかを照合する。クライアントの照準判定も同じ答えを使う
-        ///     Match the equipped tool against the allowed hand-mining tools; the client's aim check reuses the same answer
+        ///     装備ツールが手掘り許可に含まれるか照合する
+        ///     Match the equipped tool against the allowed hand-mining tools
         /// </summary>
         public static bool TryResolveUsableTool(ItemId equippedItemId, HandMiningToolsElement[] tools, out HandMiningToolsElement usableTool)
         {

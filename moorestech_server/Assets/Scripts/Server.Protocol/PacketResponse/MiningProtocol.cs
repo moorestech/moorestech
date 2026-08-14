@@ -103,8 +103,8 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public int InstanceId { get; set; }
             [Key(5)] public Vector3IntMessagePack VeinPosition { get; set; }
 
-            // 座標だけでは同一座標に重なる別鉱脈を掘り分けられないため、狙った鉱脈のguidも送る
-            // Position alone cannot separate veins overlapping the same cell, so the aimed vein's guid travels too
+            // 同座標に重なる別鉱脈を掘り分ける
+            // Separates veins overlapping the same cell
             [Key(6)] public byte[] VeinGuid { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

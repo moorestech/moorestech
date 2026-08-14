@@ -15,8 +15,8 @@ namespace Client.Tests.Mining
         {
             var inclusiveCenter = new Vector3(12.5f, 22.5f, 32.5f);
 
-            // 地形コライダが無い遠方でも裁定済みAABB中心をそのまま採用する
-            // Use the ruled AABB center as-is even when distant terrain has no collider
+            // 遠方でもAABB中心を採用する
+            // Use the AABB center even far away
             var position = OutcropGameObjectDatastore.SelectOutcropPosition(
                 inclusiveCenter,
                 false,

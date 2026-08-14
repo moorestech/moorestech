@@ -4,7 +4,7 @@ using Core.Update;
 namespace Game.Map
 {
     /// <summary>
-    ///     全手採採掘の共有クールダウン
+    ///     全手掘りの共有クールダウン
     ///     Shared cooldown for all hand mining
     /// </summary>
     public class MiningCooldownService

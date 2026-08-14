@@ -39,8 +39,8 @@ namespace Client.Game.InGame.UI.Challenge
         }
 
         /// <summary>
-        ///     初期チャレンジのチュートリアルを適用する。ピンが指す露頭やmapObjectの生成完了後に呼ぶこと
-        ///     Apply tutorials for the initial challenges; call it after the outcrops and map objects the pins point at exist
+        ///     初期チャレンジのチュートリアルを適用する
+        ///     Apply the tutorials for the initial challenges
         /// </summary>
         public void ApplyInitialTutorials()
         {

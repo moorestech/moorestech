@@ -52,8 +52,8 @@ namespace Client.Starter.Initialization
 
             await InitialEventApplyWaiter.WaitAllAsync(resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>());
 
-            // ピンは露頭やmapObjectを探して指すため、初期イベント適用が終わるまでチュートリアルを適用しない
-            // A pin searches for its outcrop or map object, so tutorials wait until the initial events have been applied
+            // ピンが探す対象の生成後に適用する
+            // Apply only once the objects a pin searches for exist
             resolver.Resolve<ChallengeManager>().ApplyInitialTutorials();
 
             // 車両の生成まで終えてから自機を保存座標へ置く。乗車セーブの復帰先が未生成だと支えが無く落下する（ADR#16）

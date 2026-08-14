@@ -117,8 +117,8 @@ namespace Client.Tests.Localization.Skit
         {
             var veinPin = new RecordingVeinPin(true);
 
-            // 入れ子の抑止は内側を解除しても表示に戻らない
-            // Nested suppression does not reveal the pin when only the inner one ends
+            // 内側の解除では表示に戻らない
+            // Ending only the inner one reveals nothing
             veinPin.BeginSkitSuppress();
             veinPin.BeginSkitSuppress();
             veinPin.EndSkitSuppress();

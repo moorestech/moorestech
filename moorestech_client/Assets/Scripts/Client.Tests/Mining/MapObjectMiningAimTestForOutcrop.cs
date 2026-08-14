@@ -42,6 +42,35 @@ namespace Client.Tests.Mining
             }
             CreateCameraAndEventSystem();
             CreatePlayerSystem();
+
+            #region Internal
+
+            void CreateCameraAndEventSystem()
+            {
+                _cameraObject = new GameObject("MainCamera");
+                _cameraObject.tag = "MainCamera";
+                _cameraObject.AddComponent<Camera>();
+
+                // 本番UI判定を通す
+                // Use production UI check
+                _eventSystemObject = new GameObject("EventSystem");
+                var eventSystem = _eventSystemObject.AddComponent<EventSystem>();
+                _eventSystemObject.AddComponent<InputSystemUIInputModule>();
+                InvokePrivate(eventSystem, "OnEnable");
+            }
+
+            void CreatePlayerSystem()
+            {
+                _playerObject = new GameObject("PlayerSystem");
+                var grabItemManager = _playerObject.AddComponent<PlayerGrabItemManager>();
+                var playerController = _playerObject.AddComponent<PlayerObjectController>();
+                var container = _playerObject.AddComponent<PlayerSystemContainer>();
+                SetField(container, "playerGrabItemManager", grabItemManager);
+                SetField(container, "playerObjectController", playerController);
+                InvokePrivate(container, "Awake");
+            }
+
+            #endregion
         }
 
         public override void TearDown()
@@ -84,31 +113,6 @@ namespace Client.Tests.Mining
             // Prefer mapObject when coexisting
             Assert.AreNotSame(outcrop, context.CurrentFocusTarget);
             Assert.AreSame(expectedMapObject, context.CurrentFocusTarget);
-        }
-
-        private void CreateCameraAndEventSystem()
-        {
-            _cameraObject = new GameObject("MainCamera");
-            _cameraObject.tag = "MainCamera";
-            _cameraObject.AddComponent<Camera>();
-
-            // 本番UI判定を通す
-            // Use production UI check
-            _eventSystemObject = new GameObject("EventSystem");
-            var eventSystem = _eventSystemObject.AddComponent<EventSystem>();
-            _eventSystemObject.AddComponent<InputSystemUIInputModule>();
-            InvokePrivate(eventSystem, "OnEnable");
-        }
-
-        private void CreatePlayerSystem()
-        {
-            _playerObject = new GameObject("PlayerSystem");
-            var grabItemManager = _playerObject.AddComponent<PlayerGrabItemManager>();
-            var playerController = _playerObject.AddComponent<PlayerObjectController>();
-            var container = _playerObject.AddComponent<PlayerSystemContainer>();
-            SetField(container, "playerGrabItemManager", grabItemManager);
-            SetField(container, "playerObjectController", playerController);
-            InvokePrivate(container, "Awake");
         }
 
         private OutcropGameObject CreateOutcropTarget(bool includeMapObjectMarker)

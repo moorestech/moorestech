@@ -31,6 +31,30 @@ namespace Client.Tests.UnitTest.Tutorial
             SetChallengeMaster(CreateVeinPinChallengeMaster());
             _root = new GameObject("VeinPinTutorialTest");
             ClearWorldPins();
+
+            #region Internal
+
+            ChallengeMaster CreateVeinPinChallengeMaster()
+            {
+                var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
+                    "mods", "forUnitTest", "master", "challenges.json");
+                var json = JObject.Parse(File.ReadAllText(path));
+                var tutorials = (JArray)json["data"][0]["challenges"][0]["tutorials"];
+                var tutorial = (JObject)tutorials[0].DeepClone();
+                tutorials.Clear();
+                tutorials.Add(tutorial);
+                tutorial["tutorialType"] = "veinPin";
+                tutorial["tutorialParam"] = new JObject
+                {
+                    ["veinGuid"] = "11111111-0000-0000-0000-000000000001",
+                    ["pinText"] = "nearest vein",
+                };
+                var master = new ChallengeMaster(json);
+                master.Initialize();
+                return master;
+            }
+
+            #endregion
         }
 
         [TearDown]
@@ -110,26 +134,6 @@ namespace Client.Tests.UnitTest.Tutorial
             veinPin.EndSkitSuppress();
             Assert.IsTrue(mapObject.activeSelf);
             Assert.IsFalse(veinObject.activeSelf);
-        }
-
-        private static ChallengeMaster CreateVeinPinChallengeMaster()
-        {
-            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
-                "mods", "forUnitTest", "master", "challenges.json");
-            var json = JObject.Parse(File.ReadAllText(path));
-            var tutorials = (JArray)json["data"][0]["challenges"][0]["tutorials"];
-            var tutorial = (JObject)tutorials[0].DeepClone();
-            tutorials.Clear();
-            tutorials.Add(tutorial);
-            tutorial["tutorialType"] = "veinPin";
-            tutorial["tutorialParam"] = new JObject
-            {
-                ["veinGuid"] = "11111111-0000-0000-0000-000000000001",
-                ["pinText"] = "nearest vein",
-            };
-            var master = new ChallengeMaster(json);
-            master.Initialize();
-            return master;
         }
 
         private static void SetChallengeMaster(ChallengeMaster challengeMaster)

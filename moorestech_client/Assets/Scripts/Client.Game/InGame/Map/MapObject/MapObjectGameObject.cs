@@ -30,8 +30,8 @@ namespace Client.Game.InGame.Map.MapObject
         public Guid MapObjectGuid => new(mapObjectGuid);
         public MapObjectMasterElement MapObjectMasterElement { get; private set; }
         public GameObject GameObject => gameObject;
-        // マスタ欠損時はInitializeが途中で戻るため、対象として生きていないものとして扱う
-        // Initialize returns early when the master is missing, so treat such an object as not live
+        // マスタ欠損時は対象として扱わない
+        // A master-less object is not a target
         public bool IsAvailable => !IsDestroyed && MapObjectMasterElement != null;
         public bool CanHandMine => true;
         public bool IsPickUp => MapObjectMasterElement.MiningType == MapObjectMasterElement.MiningTypeConst.PickUp;

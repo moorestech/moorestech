@@ -14,8 +14,8 @@ namespace Client.Game.InGame.Mining
         GameObject GameObject { get; }
         bool IsAvailable { get; }
 
-        // 対象として生きていても手掘り自体を受け付けない場合がある（掘削機専用の鉱脈等）
-        // A live target may still refuse hand mining altogether, e.g. a drill-only vein
+        // 生きていても手掘り不可の対象がある
+        // A live target may still refuse hand mining
         bool CanHandMine { get; }
         bool IsPickUp { get; }
         List<ItemId> UsableToolItemIds { get; }

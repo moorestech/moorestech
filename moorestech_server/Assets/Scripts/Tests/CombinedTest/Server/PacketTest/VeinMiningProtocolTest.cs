@@ -97,8 +97,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             EquipTool(playerInventory, ToolItemGuid);
             var equipped = playerInventory.EquipmentInventory.GetSelectedItem();
 
-            // 座標は掘れるがguidが別なので拒否される
-            // The position is minable but the guid names another vein, so it is rejected
+            // guidが別なので拒否される
+            // Another vein's guid is rejected
             Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, NoneItemVeinGuid, InsideIronVein, equipped, out _));
             Assert.AreEqual(VeinMiningResult.Success, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, out _));
         }
@@ -139,6 +139,18 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var expectedItemId = MasterHolder.ItemMaster.GetItemId(((ItemVeinParam)MasterHolder.MapVeinMaster.GetElementOrNull(IronVeinGuid).VeinParam).ItemGuid);
             Assert.AreEqual(1, CountMainInventoryItem(playerInventory, expectedItemId));
+
+            #region Internal
+
+            int CountMainInventoryItem(PlayerInventoryData inventory, ItemId itemId)
+            {
+                var mainInventory = inventory.MainOpenableInventory;
+                return Enumerable.Range(0, mainInventory.GetSlotSize()).
+                    Where(slot => mainInventory.GetItem(slot).Id == itemId).
+                    Sum(slot => mainInventory.GetItem(slot).Count);
+            }
+
+            #endregion
         }
 
         private void EquipTool(PlayerInventoryData playerInventory, Guid toolItemGuid)
@@ -146,14 +158,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             var toolItemId = MasterHolder.ItemMaster.GetItemId(toolItemGuid);
             playerInventory.EquipmentInventory.SetItem(0, toolItemId, 1);
             playerInventory.EquipmentInventory.SetSelectedEquipmentIndex(0);
-        }
-
-        private int CountMainInventoryItem(PlayerInventoryData playerInventory, ItemId itemId)
-        {
-            var mainInventory = playerInventory.MainOpenableInventory;
-            return Enumerable.Range(0, mainInventory.GetSlotSize()).
-                Where(slot => mainInventory.GetItem(slot).Id == itemId).
-                Sum(slot => mainInventory.GetItem(slot).Count);
         }
     }
 }

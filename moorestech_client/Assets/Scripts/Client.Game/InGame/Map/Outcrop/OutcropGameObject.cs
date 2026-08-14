@@ -34,8 +34,8 @@ namespace Client.Game.InGame.Map.Outcrop
             _veinGuid = veinGuid;
             _minePosition = minePosition;
 
-            // 掘削機専用の鉱脈も露頭は立つので、可否だけ落として初期化そのものは最後まで通す
-            // A drill-only vein still gets an outcrop, so only the permission drops while initialization runs to the end
+            // 不可の鉱脈も初期化は最後まで通す
+            // Even an unmineable vein initializes fully
             var minableParam = element.HandMiningParam as MinableHandMiningParam;
             CanHandMine = minableParam != null;
             _handMiningTools = CanHandMine ? minableParam.HandMiningTools : NoHandMiningTools;
@@ -49,8 +49,8 @@ namespace Client.Game.InGame.Map.Outcrop
             foreach (var handMiningTool in _handMiningTools)
                 UsableToolItemIds.Add(MasterHolder.ItemMaster.GetItemId(handMiningTool.ToolItemGuid));
 
-            // 掘れない露頭もレイを吸わせるため、全Colliderを可否に関わらず露頭へ紐付ける
-            // Bind every collider regardless of permission so an unmineable outcrop still absorbs the ray
+            // 掘れない露頭もレイを吸わせる
+            // An unmineable outcrop absorbs the ray too
             foreach (var childCollider in GetComponentsInChildren<Collider>(true))
             {
                 var rayTarget = childCollider.GetComponent<OutcropRayTarget>();
@@ -61,8 +61,8 @@ namespace Client.Game.InGame.Map.Outcrop
 
         public bool TryResolveUsableTool(ItemId equippedItemId, out MiningToolCandidate tool)
         {
-            // 権威判定と同じ照合を使い、クライアントの見た目とサーバーの可否がずれないようにする
-            // Reuse the authority's matching so the client's view never diverges from the server's verdict
+            // 権威判定と同じ照合を使う
+            // Reuse the authority's own matching
             if (VeinHandMiningService.TryResolveUsableTool(equippedItemId, _handMiningTools, out var usableTool))
             {
                 tool = new MiningToolCandidate(equippedItemId, usableTool.AttackSpeed);

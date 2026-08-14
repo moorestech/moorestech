@@ -46,8 +46,8 @@ namespace Client.Game.InGame.Mining
             var currentTarget = context.CurrentFocusTarget;
             var equippedItemId = context.LocalPlayerEquipment.SelectedItem.Id;
 
-            // 手掘り不可の対象はレイを吸うので、掘れない理由を出してフォーカスを維持する
-            // An unmineable target still absorbs the ray, so show why and keep the focus
+            // 掘れない理由を出して維持する
+            // Show why it cannot be mined and keep focus
             if (!currentTarget.CanHandMine)
             {
                 MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.CannotHandMine);

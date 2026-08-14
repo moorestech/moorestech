@@ -36,14 +36,18 @@ namespace Client.Tests.Mining
 
             Assert.AreSame(nearest, index.SearchNearest(targetGuid, Vector3.zero));
             Assert.IsNull(index.SearchNearest(Guid.NewGuid(), Vector3.zero));
-        }
 
-        private OutcropGameObject CreateOutcrop(string name, Vector3 position)
-        {
-            var gameObject = new GameObject(name);
-            gameObject.transform.position = position;
-            _objects.Add(gameObject);
-            return gameObject.AddComponent<OutcropGameObject>();
+            #region Internal
+
+            OutcropGameObject CreateOutcrop(string name, Vector3 position)
+            {
+                var gameObject = new GameObject(name);
+                gameObject.transform.position = position;
+                _objects.Add(gameObject);
+                return gameObject.AddComponent<OutcropGameObject>();
+            }
+
+            #endregion
         }
     }
 }

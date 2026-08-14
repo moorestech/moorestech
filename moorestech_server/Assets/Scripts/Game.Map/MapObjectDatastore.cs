@@ -79,8 +79,8 @@ namespace Game.Map
         {
             foreach (var savedMapObject in savedMapObjects)
             {
-                // マップから消えたmapObjectのセーブ状態は警告付きで捨てる
-                // Drop save states of mapObjects removed from the map with a warning
+                // マップに無いセーブは捨てる
+                // Drop saves absent from the map
                 if (!_mapObjects.TryGetValue(savedMapObject.instanceId, out var loadedMapObject))
                 {
                     Debug.LogWarning($"セーブ内のinstanceId:{savedMapObject.instanceId} のmapObjectがマップに存在しないためスキップします。");
