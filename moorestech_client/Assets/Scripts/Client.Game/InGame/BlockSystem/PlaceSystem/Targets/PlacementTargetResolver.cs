@@ -26,6 +26,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 
         // 未解放対象は解決しない（割当自体はセーブに残るが、使用時は建築モードに入れない）
         // Locked targets are never resolved (the assignment itself survives in the save, but using it cannot enter build mode)
+        // Idはカタログ内で一意のため最初の一致で足りる（重複や全件収集は考慮不要）
+        // Ids are unique within the catalog, so the first match suffices
         public bool TryResolve(Guid id, out IPlacementTarget target)
         {
             foreach (var entry in UnlockedEntries())
