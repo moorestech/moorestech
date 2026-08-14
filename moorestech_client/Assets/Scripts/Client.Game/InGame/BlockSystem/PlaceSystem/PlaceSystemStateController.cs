@@ -15,6 +15,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         // 「今何を設置しようとしているか」の唯一の所有者。書き込みはSetTargetのみ
         // The single owner of "what is being placed now"; writes go through SetTarget only
         public IPlacementTarget CurrentTarget { get; private set; }
+
+        // 設置対象と同じ書き込み点でしか変わらない由来。両者は構造的に乖離しない
+        // The origin changes only at the same write point as the target, so the two cannot drift apart
+        public PlacementOrigin CurrentOrigin { get; private set; }
         public IObservable<IPlacementTarget> OnTargetChanged => _onTargetChanged;
 
         public PlaceSystemStateController(PlaceSystemSelector placeSystemSelector)
@@ -25,10 +29,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             Disable();
         }
 
-        public void SetTarget(IPlacementTarget target)
+        // 同じ対象でも由来が変われば通知する。由来だけの持ち替え（枠→スポイト等）を落とさない
+        // Notifies even for an identical target when the origin differs, so origin-only changes (slot to eyedropper) are not dropped
+        public void SetTarget(IPlacementTarget target, PlacementOrigin origin)
         {
-            if (Equals(CurrentTarget, target)) return;
+            if (Equals(CurrentTarget, target) && CurrentOrigin.Equals(origin)) return;
             CurrentTarget = target;
+            CurrentOrigin = origin;
             _onTargetChanged.OnNext(target);
         }
 
@@ -37,9 +44,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _currentPlaceSystem.Disable();
             _currentPlaceSystem = _placeSystemSelector.EmptyPlaceSystem;
 
-            // 選択の寿命はPlaceBlock滞在中のみ。離脱時にターゲットも破棄する
-            // Selection lives only while in PlaceBlock; drop the target on leave
+            // 選択の寿命はPlaceBlock滞在中のみ。離脱時にターゲットと由来を同時に破棄する
+            // Selection lives only while in PlaceBlock; drop the target and its origin together on leave
             CurrentTarget = null;
+            CurrentOrigin = PlacementOrigin.None;
             _onTargetChanged.OnNext(null);
             _lastTarget = null;
         }

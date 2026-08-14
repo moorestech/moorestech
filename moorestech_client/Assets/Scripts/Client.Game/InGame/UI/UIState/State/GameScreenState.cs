@@ -1,5 +1,6 @@
 ﻿using System;
 using Client.Game.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Train.Unit;
@@ -56,7 +57,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // ミドルクリックで設置物をスポイトし配置モードへ入る
             // Middle-click eyedrops a placed object and enters placement mode
             if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget))
-                return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create<IPlacementTarget>(pickedTarget));
+                return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(pickedTarget, PlacementOrigin.Eyedropper)));
 
             // 数字キー/Web由来の選択で割当済み設置対象を持って建築モードへ入る
             // A digit key or a web-originated selection enters build mode holding the assigned placement target
@@ -88,8 +89,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 if (!_hotbarPlacementTargetResolver.TryResolve(targetId, out var entry)) return false;
 
                 var target = PlacementTargetFactory.Create(entry);
-                _clientHotbarDatastore.SetSelectedSlot(slot);
-                transit = new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create<IPlacementTarget>(target));
+                transit = new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(target, PlacementOrigin.FromHotbarSlot(slot))));
                 return true;
             }
 

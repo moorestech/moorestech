@@ -158,7 +158,7 @@ namespace Client.WebUiHost.Game
             // Register the hotbar topic/actions together (precedent: C4WebUiRegistration)
             var clientHotbarDatastore = resolver.Resolve<ClientHotbarDatastore>();
             var hotbarPlacementTargetResolver = resolver.Resolve<HotbarPlacementTargetResolver>();
-            HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, hotbarPlacementTargetResolver, blueprintLibrary);
+            HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, hotbarPlacementTargetResolver, blueprintLibrary, resolver.Resolve<PlaceSystemStateController>());
 
             // action ハンドラ登録
             // Register action handlers

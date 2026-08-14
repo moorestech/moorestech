@@ -27,7 +27,6 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly UiStateCameraPolicyService _cameraPolicyService;
         private readonly BuildUndoService _buildUndoService;
         private readonly IMapVeinRangeView _mapVeinRangeView;
-        private readonly ClientHotbarDatastore _clientHotbarDatastore;
         private readonly PlaceBlockHotbarInputService _hotbarInputService;
         private readonly ReactiveProperty<int> _placementHeight = new(0);
 
@@ -42,7 +41,6 @@ namespace Client.Game.InGame.UI.UIState.State
             UiStateCameraPolicyService cameraPolicyService,
             BuildUndoService buildUndoService,
             IMapVeinRangeView mapVeinRangeView,
-            ClientHotbarDatastore clientHotbarDatastore,
             PlaceBlockHotbarInputService hotbarInputService)
         {
             _skitManager = skitManager;
@@ -52,7 +50,6 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraPolicyService = cameraPolicyService;
             _buildUndoService = buildUndoService;
             _mapVeinRangeView = mapVeinRangeView;
-            _clientHotbarDatastore = clientHotbarDatastore;
             _hotbarInputService = hotbarInputService;
         }
 
@@ -63,9 +60,9 @@ namespace Client.Game.InGame.UI.UIState.State
             HotbarKeyInput.Reset();
 
             _placementHeight.Value = 0;
-            // 遷移payloadから設置ターゲットを受け取り所有者へ渡す（無ければEmptyに落ちる）
-            // Take the placement target from the transition payload and hand it to the owner (falls back to Empty when absent)
-            if (context.TryGetContext<IPlacementTarget>(out var target)) _placeSystemStateController.SetTarget(target);
+            // 遷移payloadから設置対象と由来を1組で受け取り所有者へ渡す（無ければEmptyに落ちる）
+            // Take the placement target and its origin as one pair from the transition payload and hand them to the owner (falls back to Empty when absent)
+            if (context.TryGetContext<PlacementSelection>(out var selection)) _placeSystemStateController.SetTarget(selection.Target, selection.Origin);
 
             // 対象未選択でも滞在中は範囲表示を出す。遷移元(BuildMenuState/GameScreenState)が必ずtargetを載せる
             // Show the range view for the whole stay even without a target; both entries (BuildMenuState/GameScreenState) always carry one
@@ -120,7 +117,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // TPSのみ右ドラッグで設置照準回転
             // TPS rotates the placement aim only during right-drag
             _cameraPolicyService.UpdateRotationInput();
-            if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget);
+            if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget, PlacementOrigin.Eyedropper);
 
             _placeSystemStateController.ManualUpdate();
 
@@ -143,11 +140,10 @@ namespace Client.Game.InGame.UI.UIState.State
         public void OnExit()
         {
             _cameraPolicyService.ExitToNeutral();
-            _placeSystemStateController.Disable();
 
-            // 選択枠の寿命はPlaceBlock滞在中のみ。離脱時に非選択(-1)へ戻す
-            // The selected slot lives only while in PlaceBlock; reset it to unselected (-1) on exit
-            _clientHotbarDatastore.SetSelectedSlot(-1);
+            // 設置対象と由来枠はここで同時に落ちる。由来枠だけの明示リセットは持たない
+            // The placement target and its origin drop together here; no separate origin reset is needed
+            _placeSystemStateController.Disable();
 
             // 離脱時点の押下状態を持ち越さない。復帰後の誤長押し判定を防ぐ
             // Discard the press state as of this exit so a later re-entry can't misfire a long press

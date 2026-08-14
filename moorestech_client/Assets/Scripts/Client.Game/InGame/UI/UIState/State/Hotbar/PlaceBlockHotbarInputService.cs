@@ -30,9 +30,9 @@ namespace Client.Game.InGame.UI.UIState.State.Hotbar
             var tapRequested = HotbarKeyInput.TryGetTappedSlot(out var slot) || _clientHotbarDatastore.TryConsumeSelectRequest(out slot);
             if (!tapRequested) return false;
 
-            // 同じ枠→建築モードを終了する
-            // The same slot exits build mode
-            if (slot == _clientHotbarDatastore.SelectedSlot)
+            // 同じ枠→建築モードを終了する。由来枠は設置対象の所有者から読む
+            // The same slot exits build mode; the origin slot is read from the placement target's owner
+            if (_placeSystemStateController.CurrentOrigin.TryGetHotbarSlot(out var originSlot) && originSlot == slot)
             {
                 transit = new UITransitContext(UIStateEnum.GameScreen);
                 return true;
@@ -41,10 +41,9 @@ namespace Client.Game.InGame.UI.UIState.State.Hotbar
             var targetId = _clientHotbarDatastore.Assignments[slot];
             if (targetId != Guid.Empty && _hotbarPlacementTargetResolver.TryResolve(targetId, out var entry))
             {
-                // 別の割当枠→画面遷移せず設置対象を持ち替える
-                // A different assigned slot swaps the placement target in place without a screen transition
-                _clientHotbarDatastore.SetSelectedSlot(slot);
-                _placeSystemStateController.SetTarget(PlacementTargetFactory.Create(entry));
+                // 別の割当枠→画面遷移せず設置対象を由来枠ごと持ち替える
+                // A different assigned slot swaps the placement target together with its origin, without a screen transition
+                _placeSystemStateController.SetTarget(PlacementTargetFactory.Create(entry), PlacementOrigin.FromHotbarSlot(slot));
                 return false;
             }
 

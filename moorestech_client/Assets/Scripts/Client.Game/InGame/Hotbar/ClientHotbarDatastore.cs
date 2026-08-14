@@ -8,13 +8,12 @@ using UniRx;
 namespace Client.Game.InGame.Hotbar
 {
     /// <summary>
-    ///     ホットバー9枠の割当参照と選択枠を保持するクライアントモデル（非MonoBehaviour）
-    ///     Client-side model (non-MonoBehaviour) holding the hotbar's 9 assignment slots and the selected slot
+    ///     ホットバー9枠の割当参照を保持するクライアントモデル（非MonoBehaviour）
+    ///     Client-side model (non-MonoBehaviour) holding the hotbar's 9 assignment slots
     /// </summary>
     public class ClientHotbarDatastore
     {
         public IReadOnlyList<Guid> Assignments => _assignments;
-        public int SelectedSlot { get; private set; } = -1;
         public IObservable<Unit> OnChanged => _onChanged;
 
         private readonly Guid[] _assignments = new Guid[HotbarAssignmentDatastore.SlotCount];
@@ -26,12 +25,6 @@ namespace Client.Game.InGame.Hotbar
         public void ApplyAssignments(Guid[] assignments)
         {
             Array.Copy(assignments, _assignments, HotbarAssignmentDatastore.SlotCount);
-            _onChanged.OnNext(Unit.Default);
-        }
-
-        public void SetSelectedSlot(int slot)
-        {
-            SelectedSlot = slot;
             _onChanged.OnNext(Unit.Default);
         }
 

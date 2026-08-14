@@ -134,7 +134,7 @@ namespace Client.Tests.UIState
             var pickService = new PlacementTargetPickService(null);
             var clientHotbarDatastore = new ClientHotbarDatastore();
             var hotbarInputService = new PlaceBlockHotbarInputService(clientHotbarDatastore, null, placeStateController);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier), new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView, clientHotbarDatastore, hotbarInputService);
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier), new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView, hotbarInputService);
         }
 
         private static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier)
