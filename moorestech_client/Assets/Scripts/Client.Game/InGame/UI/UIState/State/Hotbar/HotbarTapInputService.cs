@@ -82,7 +82,20 @@ namespace Client.Game.InGame.UI.UIState.State.Hotbar
         {
             target = null;
             PollKeyInput();
-            if (!_hotbarKeyInput.TryGetTappedSlot(out slot) && !_clientHotbarDatastore.TryConsumeSelectRequest(out slot)) return false;
+
+            // 同フレームに両方来ても双方を消費する。短絡させるとWeb側の要求だけ次フレームへ残り遅れて発火する
+            // Consume both sources even when they arrive on the same frame; short-circuiting leaves the web request queued and fires it late
+            var keyTapped = _hotbarKeyInput.TryGetTappedSlot(out var keySlot);
+            var webTapped = _clientHotbarDatastore.TryConsumeSelectRequest(out var webSlot);
+            if (!keyTapped && !webTapped)
+            {
+                slot = default;
+                return false;
+            }
+
+            // 同フレーム競合は手元の数字キーを優先する
+            // A same-frame conflict resolves in favor of the local digit key
+            slot = keyTapped ? keySlot : webSlot;
 
             var targetId = _clientHotbarDatastore.Assignments[slot];
             if (targetId == Guid.Empty) return true;

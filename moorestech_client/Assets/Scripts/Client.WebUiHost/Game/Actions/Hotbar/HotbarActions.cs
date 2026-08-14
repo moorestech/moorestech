@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Hotbar;
+using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -14,16 +15,23 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "hotbar.select";
 
         private readonly ClientHotbarDatastore _clientHotbarDatastore;
+        private readonly UIStateControl _uiStateControl;
 
-        public HotbarSelectActionHandler(ClientHotbarDatastore clientHotbarDatastore)
+        public HotbarSelectActionHandler(ClientHotbarDatastore clientHotbarDatastore, UIStateControl uiStateControl)
         {
             _clientHotbarDatastore = clientHotbarDatastore;
+            _uiStateControl = uiStateControl;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (!HotbarActionPayload.TryParseSlot(payload, "index", _clientHotbarDatastore.Assignments.Count, out var index))
                 return UniTask.FromResult(ActionResult.Fail("invalid_index"));
+
+            // 消費者を持つ2ステート以外での選択は積まない。積むと画面を閉じた瞬間に暴発する（前例 BuildMenuSelectActionHandler）
+            // Only the two states that consume selections may queue one; queuing elsewhere fires the moment that screen closes (precedent: BuildMenuSelectActionHandler)
+            if (_uiStateControl.CurrentState != UIStateEnum.GameScreen && _uiStateControl.CurrentState != UIStateEnum.PlaceBlock)
+                return UniTask.FromResult(ActionResult.Fail("invalid_state"));
 
             _clientHotbarDatastore.EnqueueSelectRequest(index);
             return UniTask.FromResult(ActionResult.Success());
