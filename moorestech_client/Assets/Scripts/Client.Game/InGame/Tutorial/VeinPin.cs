@@ -13,8 +13,11 @@ namespace Client.Game.InGame.Tutorial
     public interface IVeinPin : ITutorialViewManager, ITutorialView
     {
         public void SetActive(bool active);
-        public void SetSkitSuppressed(bool suppressed);
-        public bool IsSkitSuppressed();
+
+        // 抑止は入れ子で始まり得るので、真偽の代入ではなく深さの増減で表す
+        // Suppression can nest, so it is expressed as depth changes rather than assigning a flag
+        public void BeginSkitSuppress();
+        public void EndSkitSuppress();
     }
 
     public class VeinPin : MonoBehaviour, IVeinPin
@@ -28,7 +31,7 @@ namespace Client.Game.InGame.Tutorial
         private VeinPinTutorialParam _currentTutorialParam;
         private string _pinTutorialGuid = "";
         private bool _desiredActive;
-        private bool _skitSuppressed;
+        private int _skitSuppressDepth;
         private bool _visibilityInitialized;
 
         [Inject]
@@ -101,10 +104,10 @@ namespace Client.Game.InGame.Tutorial
             ApplyVisibility();
         }
 
-        public void SetSkitSuppressed(bool suppressed)
+        public void BeginSkitSuppress()
         {
             EnsureDesiredActiveInitialized();
-            _skitSuppressed = suppressed;
+            _skitSuppressDepth++;
             ApplyVisibility();
 
             #region Internal
@@ -119,14 +122,20 @@ namespace Client.Game.InGame.Tutorial
             #endregion
         }
 
-        public bool IsSkitSuppressed()
+        public void EndSkitSuppress()
         {
-            return _skitSuppressed;
+            // 開始より多い解除は抑止が漏れた合図なので、0で止めず不整合として顕在化させる
+            // More ends than begins signals a leaked suppression, so surface it instead of clamping at zero
+            if (_skitSuppressDepth == 0)
+                throw new InvalidOperationException("[VeinPin] BeginSkitSuppressより多くEndSkitSuppressが呼ばれました");
+
+            _skitSuppressDepth--;
+            ApplyVisibility();
         }
 
         private void ApplyVisibility()
         {
-            gameObject.SetActive(_desiredActive && !_skitSuppressed);
+            gameObject.SetActive(_desiredActive && _skitSuppressDepth == 0);
         }
 
         private void OnDisable()

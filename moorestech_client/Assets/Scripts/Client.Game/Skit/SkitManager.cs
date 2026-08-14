@@ -74,7 +74,7 @@ namespace Client.Game.Skit
             var webUiMode = WebUiScreenGate.IsWebUiMode;
             var presentationStarted = false;
             var cameraRegistered = false;
-            WorldPinActivationSnapshot worldPinActivationSnapshot = null;
+            var worldPinSuppressed = false;
             SkitLocalizationResolver localizationResolver = null;
             StoryContext storyContext = null;
             CharacterObjectContainer characterContainer = null;
@@ -137,8 +137,9 @@ namespace Client.Game.Skit
                 
                 // 表示の設定
                 skitUI.SetActive(!webUiMode);
-                worldPinActivationSnapshot = new WorldPinActivationSnapshot(mapObjectPin, veinPin);
-                worldPinActivationSnapshot.Hide();
+                mapObjectPin.BeginSkitSuppress();
+                veinPin.BeginSkitSuppress();
+                worldPinSuppressed = true;
 
                 // DIコンテナをセットアップ
                 var builder = new ContainerBuilder();
@@ -164,7 +165,11 @@ namespace Client.Game.Skit
                 // Restore only the playback state actually changed, from the single finally
                 skitUI.SetActive(false);
                 if (presentationStarted) SkitPresentationStateStore.Instance.End();
-                worldPinActivationSnapshot?.Restore();
+                if (worldPinSuppressed)
+                {
+                    mapObjectPin.EndSkitSuppress();
+                    veinPin.EndSkitSuppress();
+                }
                 characterContainer?.DestroyAllCharacters();
                 if (cameraRegistered) CameraManager.UnRegisterCamera(skitCamera);
                 storyContext?.Dispose();

@@ -15,12 +15,11 @@ namespace Client.DebugSystem.Skit
         public void SetActive(bool active)
         {
         }
-        public void SetSkitSuppressed(bool suppressed)
+        public void BeginSkitSuppress()
         {
         }
-        public bool IsSkitSuppressed()
+        public void EndSkitSuppress()
         {
-            return false;
         }
     }
 }

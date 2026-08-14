@@ -59,6 +59,7 @@ namespace Client.Tests.Mining
         {
             public GameObject GameObject { get; }
             public bool IsAvailable => true;
+            public bool CanHandMine => true;
             public bool IsPickUp => false;
             public List<ItemId> UsableToolItemIds { get; } = new();
             public SoundEffectType DestroySoundType => SoundEffectType.DestroyStone;

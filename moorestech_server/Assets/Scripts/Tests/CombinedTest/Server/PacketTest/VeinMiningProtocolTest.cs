@@ -32,6 +32,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static readonly Vector3Int InsideFluidVein = new(5, 0, 0);
         private static readonly Vector3Int InsideNoneItemVein = new(20, 5, 0);
         private static readonly Guid IronVeinGuid = Guid.Parse("11111111-0000-0000-0000-000000000001");
+        private static readonly Guid FluidVeinGuid = Guid.Parse("11111111-0000-0000-0000-000000000002");
+        private static readonly Guid NoneItemVeinGuid = Guid.Parse("11111111-0000-0000-0000-000000000004");
         private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
         private static readonly Guid UnmatchedToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
         private static readonly Guid MiningMapObjectGuid = Guid.Parse("00000000-0000-2222-0000-000000000001");
@@ -47,17 +49,17 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 素手はNoTool
             // Bare hands yield NoTool
-            Assert.AreEqual(VeinMiningResult.NoTool, miningService.TryMine(PlayerId, InsideIronVein, equipped, out _));
+            Assert.AreEqual(VeinMiningResult.NoTool, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, out _));
 
             // 非対応ツールはToolMismatch
             // A non-matching tool yields ToolMismatch
             EquipTool(playerInventory, UnmatchedToolItemGuid);
-            Assert.AreEqual(VeinMiningResult.ToolMismatch, miningService.TryMine(PlayerId, InsideIronVein, playerInventory.EquipmentInventory.GetSelectedItem(), out _));
+            Assert.AreEqual(VeinMiningResult.ToolMismatch, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, playerInventory.EquipmentInventory.GetSelectedItem(), out _));
 
             // 設定範囲の個数を取得
             // Get count from configured range
             EquipTool(playerInventory, ToolItemGuid);
-            Assert.AreEqual(VeinMiningResult.Success, miningService.TryMine(PlayerId, InsideIronVein, playerInventory.EquipmentInventory.GetSelectedItem(), out var earnedItems));
+            Assert.AreEqual(VeinMiningResult.Success, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, playerInventory.EquipmentInventory.GetSelectedItem(), out var earnedItems));
             Assert.AreEqual(1, earnedItems.Sum(item => item.Count));
             var ironVein = MasterHolder.MapVeinMaster.GetElementOrNull(IronVeinGuid);
             var veinItemGuid = ((ItemVeinParam)ironVein.VeinParam).ItemGuid;
@@ -75,15 +77,30 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // vein AABBの外は掘れない
             // Positions outside every vein AABB are not minable
-            Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, OutsideAnyVein, equipped, out _));
+            Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, IronVeinGuid, OutsideAnyVein, equipped, out _));
 
             // fluidは採掘対象外
             // Fluid is not minable
-            Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, InsideFluidVein, equipped, out _));
+            Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, FluidVeinGuid, InsideFluidVein, equipped, out _));
 
             // noneは採掘不可
             // None is not minable
-            Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, InsideNoneItemVein, equipped, out _));
+            Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, NoneItemVeinGuid, InsideNoneItemVein, equipped, out _));
+        }
+
+        [Test]
+        public void 掘れる座標でも狙ったvein以外のguidでは掘れない()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var miningService = serviceProvider.GetService<VeinHandMiningService>();
+            EquipTool(playerInventory, ToolItemGuid);
+            var equipped = playerInventory.EquipmentInventory.GetSelectedItem();
+
+            // 座標は掘れるがguidが別なので拒否される
+            // The position is minable but the guid names another vein, so it is rejected
+            Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, NoneItemVeinGuid, InsideIronVein, equipped, out _));
+            Assert.AreEqual(VeinMiningResult.Success, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, out _));
         }
 
         [Test]
@@ -100,12 +117,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 共有クールダウンを検証
             // Verify shared cooldown
             Assert.AreEqual(MiningAttackResult.Success, mapObjectMiningService.TryAttack(PlayerId, mapObject, equipped, out _));
-            Assert.AreEqual(VeinMiningResult.CooldownNotElapsed, veinService.TryMine(PlayerId, InsideIronVein, equipped, out _));
+            Assert.AreEqual(VeinMiningResult.CooldownNotElapsed, veinService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, out _));
 
             // 経過後は再採掘可能
             // Mine again after elapsed time
             GameUpdater.RunFrames(GameUpdater.SecondsToTicks(ExpectedAttackSpeed) + 1);
-            Assert.AreEqual(VeinMiningResult.Success, veinService.TryMine(PlayerId, InsideIronVein, equipped, out _));
+            Assert.AreEqual(VeinMiningResult.Success, veinService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, out _));
         }
 
         [Test]
@@ -117,7 +134,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 座標から報酬を解決
             // Resolve reward from position
-            var request = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(PlayerId, InsideIronVein);
+            var request = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(PlayerId, IronVeinGuid, InsideIronVein);
             packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
 
             var expectedItemId = MasterHolder.ItemMaster.GetItemId(((ItemVeinParam)MasterHolder.MapVeinMaster.GetElementOrNull(IronVeinGuid).VeinParam).ItemGuid);

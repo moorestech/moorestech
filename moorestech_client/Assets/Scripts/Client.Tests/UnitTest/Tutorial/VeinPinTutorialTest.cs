@@ -88,26 +88,26 @@ namespace Client.Tests.UnitTest.Tutorial
 
             // 完了pinを再表示しない
             // Do not redisplay completed pin
-            mapObjectPin.SetSkitSuppressed(true);
+            mapObjectPin.BeginSkitSuppress();
             mapObjectPin.SetActive(false);
-            mapObjectPin.SetSkitSuppressed(false);
-            veinPin.SetSkitSuppressed(true);
+            mapObjectPin.EndSkitSuppress();
+            veinPin.BeginSkitSuppress();
             veinPin.SetActive(true);
             Assert.IsFalse(veinObject.activeSelf);
-            veinPin.SetSkitSuppressed(false);
+            veinPin.EndSkitSuppress();
 
             Assert.IsFalse(mapObject.activeSelf);
             Assert.IsTrue(veinObject.activeSelf);
 
             // 両実装で共通契約を検証
             // Verify shared contract in both implementations
-            mapObjectPin.SetSkitSuppressed(true);
+            mapObjectPin.BeginSkitSuppress();
             mapObjectPin.SetActive(true);
             Assert.IsFalse(mapObject.activeSelf);
-            mapObjectPin.SetSkitSuppressed(false);
-            veinPin.SetSkitSuppressed(true);
+            mapObjectPin.EndSkitSuppress();
+            veinPin.BeginSkitSuppress();
             veinPin.SetActive(false);
-            veinPin.SetSkitSuppressed(false);
+            veinPin.EndSkitSuppress();
             Assert.IsTrue(mapObject.activeSelf);
             Assert.IsFalse(veinObject.activeSelf);
         }
@@ -147,8 +147,8 @@ namespace Client.Tests.UnitTest.Tutorial
         private sealed class RecordingMapObjectPin : IMapObjectPin
         {
             public void SetActive(bool active) { }
-            public void SetSkitSuppressed(bool suppressed) { }
-            public bool IsSkitSuppressed() => false;
+            public void BeginSkitSuppress() { }
+            public void EndSkitSuppress() { }
             public ITutorialView ApplyTutorial(TutorialsElement tutorial) => this;
             public void CompleteTutorial() { }
         }
@@ -157,8 +157,8 @@ namespace Client.Tests.UnitTest.Tutorial
         {
             public int ApplyCount;
             public void SetActive(bool active) { }
-            public void SetSkitSuppressed(bool suppressed) { }
-            public bool IsSkitSuppressed() => false;
+            public void BeginSkitSuppress() { }
+            public void EndSkitSuppress() { }
             public ITutorialView ApplyTutorial(TutorialsElement tutorial)
             {
                 ApplyCount++;

@@ -64,8 +64,15 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void SendMiningRequest(MiningProtocol.MiningProtocolMessagePack request)
+        public void AttackMapObject(int instanceId)
         {
+            var request = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(_playerId, instanceId);
+            _packetSender.Send(request);
+        }
+
+        public void MineVein(Guid veinGuid, Vector3Int position)
+        {
+            var request = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(_playerId, veinGuid, position);
             _packetSender.Send(request);
         }
         

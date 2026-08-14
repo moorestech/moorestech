@@ -37,7 +37,7 @@ namespace Client.Tests.Mining
             _colliderChild.transform.SetParent(_outcropObject.transform);
             _colliderChild.AddComponent<BoxCollider>();
             _outcrop = _outcropObject.AddComponent<OutcropGameObject>();
-            _outcrop.Initialize(MasterHolder.MapVeinMaster.GetElementOrNull(IronVeinGuid), new Vector3Int(0, 5, 0));
+            _outcrop.Initialize(MasterHolder.MapVeinMaster.GetElementOrNull(IronVeinGuid), IronVeinGuid, new Vector3Int(0, 5, 0));
         }
 
         [TearDown]

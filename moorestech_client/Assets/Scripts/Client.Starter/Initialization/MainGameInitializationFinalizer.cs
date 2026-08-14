@@ -6,6 +6,7 @@ using Client.Game.InGame.Environment.Terrain;
 using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Presenter.Player;
+using Client.Game.InGame.UI.Challenge;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.Context;
@@ -50,6 +51,10 @@ namespace Client.Starter.Initialization
             resolver.Resolve<OutcropGameObjectDatastore>().StartOutcropInstantiation();
 
             await InitialEventApplyWaiter.WaitAllAsync(resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>());
+
+            // ピンは露頭やmapObjectを探して指すため、初期イベント適用が終わるまでチュートリアルを適用しない
+            // A pin searches for its outcrop or map object, so tutorials wait until the initial events have been applied
+            resolver.Resolve<ChallengeManager>().ApplyInitialTutorials();
 
             // 車両の生成まで終えてから自機を保存座標へ置く。乗車セーブの復帰先が未生成だと支えが無く落下する（ADR#16）
             // Place the player only after the train cars exist, since a riding save would otherwise land on nothing and fall (ADR#16)

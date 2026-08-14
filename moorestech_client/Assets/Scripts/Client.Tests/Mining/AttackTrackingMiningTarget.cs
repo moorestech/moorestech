@@ -11,6 +11,7 @@ namespace Client.Tests.Mining
     {
         public GameObject GameObject { get; }
         public bool IsAvailable => true;
+        public bool CanHandMine => true;
         public bool IsPickUp => false;
         public List<ItemId> UsableToolItemIds { get; } = new();
         public SoundEffectType DestroySoundType => SoundEffectType.DestroyStone;
@@ -56,16 +57,6 @@ namespace Client.Tests.Mining
                 SetField(manager, fieldName, _soundEffectClip);
             InvokePrivate(manager, "Awake");
             _soundEffectObject.SetActive(true);
-
-            #region Internal
-
-            static void InvokePrivate(object target, string methodName)
-            {
-                var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
-                method.Invoke(target, null);
-            }
-
-            #endregion
         }
 
         public void Destroy()
@@ -82,5 +73,10 @@ namespace Client.Tests.Mining
             field.SetValue(target, value);
         }
 
+        private static void InvokePrivate(object target, string methodName)
+        {
+            var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+            method.Invoke(target, null);
+        }
     }
 }

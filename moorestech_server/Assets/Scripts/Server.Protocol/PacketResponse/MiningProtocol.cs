@@ -13,7 +13,7 @@ using UnityEngine;
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    ///     手採採掘を対象別に分岐
+    ///     手掘りを対象別に分岐
     ///     Dispatch hand mining by target
     /// </summary>
     public class MiningProtocol : IPacketResponse
@@ -39,8 +39,6 @@ namespace Server.Protocol.PacketResponse
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
             var equippedItem = playerInventory.EquipmentInventory.GetSelectedItem();
 
-            // 対象別サービスへ委譲
-            // Delegate to target service
             var earnedItems = data.TargetType switch
             {
                 MiningTargetType.MapObject => MineMapObject(),
@@ -75,10 +73,11 @@ namespace Server.Protocol.PacketResponse
 
             List<IItemStack> MineVein()
             {
-                var result = _veinHandMiningService.TryMine(data.PlayerId, data.VeinPosition.Vector3Int, equippedItem, out var items);
+                var veinGuid = new Guid(data.VeinGuid);
+                var result = _veinHandMiningService.TryMine(data.PlayerId, veinGuid, data.VeinPosition.Vector3Int, equippedItem, out var items);
                 if (result != VeinMiningResult.Success)
                 {
-                    Debug.Log($"Vein mining rejected. playerId:{data.PlayerId} position:{data.VeinPosition.Vector3Int} result:{result}");
+                    Debug.Log($"Vein mining rejected. playerId:{data.PlayerId} veinGuid:{veinGuid} position:{data.VeinPosition.Vector3Int} result:{result}");
                     return null;
                 }
 
@@ -104,26 +103,31 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public int InstanceId { get; set; }
             [Key(5)] public Vector3IntMessagePack VeinPosition { get; set; }
 
+            // 座標だけでは同一座標に重なる別鉱脈を掘り分けられないため、狙った鉱脈のguidも送る
+            // Position alone cannot separate veins overlapping the same cell, so the aimed vein's guid travels too
+            [Key(6)] public byte[] VeinGuid { get; set; }
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public MiningProtocolMessagePack() { }
 
-            private MiningProtocolMessagePack(int playerId, MiningTargetType targetType, int instanceId, Vector3IntMessagePack veinPosition)
+            private MiningProtocolMessagePack(int playerId, MiningTargetType targetType, int instanceId, Vector3IntMessagePack veinPosition, byte[] veinGuid)
             {
                 Tag = ProtocolTag;
                 PlayerId = playerId;
                 TargetType = targetType;
                 InstanceId = instanceId;
                 VeinPosition = veinPosition;
+                VeinGuid = veinGuid;
             }
 
             public static MiningProtocolMessagePack CreateMapObjectRequest(int playerId, int instanceId)
             {
-                return new MiningProtocolMessagePack(playerId, MiningTargetType.MapObject, instanceId, new Vector3IntMessagePack(Vector3Int.zero));
+                return new MiningProtocolMessagePack(playerId, MiningTargetType.MapObject, instanceId, new Vector3IntMessagePack(Vector3Int.zero), Guid.Empty.ToByteArray());
             }
 
-            public static MiningProtocolMessagePack CreateVeinRequest(int playerId, Vector3Int position)
+            public static MiningProtocolMessagePack CreateVeinRequest(int playerId, Guid veinGuid, Vector3Int position)
             {
-                return new MiningProtocolMessagePack(playerId, MiningTargetType.Vein, 0, new Vector3IntMessagePack(position));
+                return new MiningProtocolMessagePack(playerId, MiningTargetType.Vein, 0, new Vector3IntMessagePack(position), veinGuid.ToByteArray());
             }
         }
     }

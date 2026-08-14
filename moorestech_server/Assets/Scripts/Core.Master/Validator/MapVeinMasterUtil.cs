@@ -10,10 +10,27 @@ namespace Core.Master.Validator
         {
             errorLogs = "";
             errorLogs += VeinParamGuidValidation();
+            errorLogs += OutcropAddressablePathValidation();
             errorLogs += HandMiningValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
+
+            string OutcropAddressablePathValidation()
+            {
+                // 手掘り可否に関わらず全鉱脈が露頭を立てるため、ロード先が空ならマスタ側で弾く
+                // Every vein raises an outcrop regardless of hand-mining, so an empty load path is rejected at the master
+                var logs = "";
+                foreach (var element in mapVeins)
+                {
+                    if (string.IsNullOrEmpty(element.OutcropAddressablePath))
+                    {
+                        logs += $"[MapVeinMaster] Name:{element.VeinName} outcropAddressablePathが空です\n";
+                    }
+                }
+
+                return logs;
+            }
 
             string VeinParamGuidValidation()
             {

@@ -78,15 +78,16 @@ namespace Client.Tests.Localization.Skit
         {
             var mapObjectPin = new RecordingMapObjectPin(true);
             var veinPin = new RecordingVeinPin(false);
-            var snapshot = new WorldPinActivationSnapshot(mapObjectPin, veinPin);
 
             // 両pinを個別復元
             // Restore both pins separately
-            snapshot.Hide();
+            mapObjectPin.BeginSkitSuppress();
+            veinPin.BeginSkitSuppress();
             Assert.IsFalse(mapObjectPin.IsActive());
             Assert.IsFalse(veinPin.IsActive());
 
-            snapshot.Restore();
+            mapObjectPin.EndSkitSuppress();
+            veinPin.EndSkitSuppress();
             Assert.IsTrue(mapObjectPin.IsActive());
             Assert.IsFalse(veinPin.IsActive());
         }
@@ -96,17 +97,34 @@ namespace Client.Tests.Localization.Skit
         {
             var mapObjectPin = new RecordingMapObjectPin(true);
             var veinPin = new RecordingVeinPin(false);
-            var snapshot = new WorldPinActivationSnapshot(mapObjectPin, veinPin);
 
-            // 完了状態を復元で覆さない
-            // Do not overwrite completion on restore
-            snapshot.Hide();
+            // 完了状態を解除で覆さない
+            // Do not overwrite completion when the suppression ends
+            mapObjectPin.BeginSkitSuppress();
+            veinPin.BeginSkitSuppress();
             mapObjectPin.SetActive(false);
             veinPin.SetActive(true);
             Assert.IsFalse(veinPin.IsActive());
-            snapshot.Restore();
+            mapObjectPin.EndSkitSuppress();
+            veinPin.EndSkitSuppress();
 
             Assert.IsFalse(mapObjectPin.IsActive());
+            Assert.IsTrue(veinPin.IsActive());
+        }
+
+        [Test]
+        public void WorldPinsStaySuppressedUntilEveryNestedSuppressionEnds()
+        {
+            var veinPin = new RecordingVeinPin(true);
+
+            // 入れ子の抑止は内側を解除しても表示に戻らない
+            // Nested suppression does not reveal the pin when only the inner one ends
+            veinPin.BeginSkitSuppress();
+            veinPin.BeginSkitSuppress();
+            veinPin.EndSkitSuppress();
+            Assert.IsFalse(veinPin.IsActive());
+
+            veinPin.EndSkitSuppress();
             Assert.IsTrue(veinPin.IsActive());
         }
 
@@ -121,7 +139,7 @@ namespace Client.Tests.Localization.Skit
         {
             public int SetActiveCallCount;
             private bool _desiredActive;
-            private bool _skitSuppressed;
+            private int _skitSuppressDepth;
 
             public RecordingMapObjectPin(bool active)
             {
@@ -134,14 +152,17 @@ namespace Client.Tests.Localization.Skit
                 _desiredActive = active;
             }
 
-            public bool IsActive() => _desiredActive && !_skitSuppressed;
+            public bool IsActive() => _desiredActive && _skitSuppressDepth == 0;
 
-            public void SetSkitSuppressed(bool suppressed)
+            public void BeginSkitSuppress()
             {
-                _skitSuppressed = suppressed;
+                _skitSuppressDepth++;
             }
 
-            public bool IsSkitSuppressed() => _skitSuppressed;
+            public void EndSkitSuppress()
+            {
+                _skitSuppressDepth--;
+            }
 
             public ITutorialView ApplyTutorial(TutorialsElement tutorial)
             {
@@ -157,7 +178,7 @@ namespace Client.Tests.Localization.Skit
         {
             public int SetActiveCallCount;
             private bool _desiredActive;
-            private bool _skitSuppressed;
+            private int _skitSuppressDepth;
 
             public RecordingVeinPin(bool active)
             {
@@ -170,14 +191,17 @@ namespace Client.Tests.Localization.Skit
                 _desiredActive = active;
             }
 
-            public bool IsActive() => _desiredActive && !_skitSuppressed;
+            public bool IsActive() => _desiredActive && _skitSuppressDepth == 0;
 
-            public void SetSkitSuppressed(bool suppressed)
+            public void BeginSkitSuppress()
             {
-                _skitSuppressed = suppressed;
+                _skitSuppressDepth++;
             }
 
-            public bool IsSkitSuppressed() => _skitSuppressed;
+            public void EndSkitSuppress()
+            {
+                _skitSuppressDepth--;
+            }
 
             public ITutorialView ApplyTutorial(TutorialsElement tutorial)
             {

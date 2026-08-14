@@ -30,7 +30,10 @@ namespace Client.Game.InGame.Map.MapObject
         public Guid MapObjectGuid => new(mapObjectGuid);
         public MapObjectMasterElement MapObjectMasterElement { get; private set; }
         public GameObject GameObject => gameObject;
-        public bool IsAvailable => !IsDestroyed;
+        // マスタ欠損時はInitializeが途中で戻るため、対象として生きていないものとして扱う
+        // Initialize returns early when the master is missing, so treat such an object as not live
+        public bool IsAvailable => !IsDestroyed && MapObjectMasterElement != null;
+        public bool CanHandMine => true;
         public bool IsPickUp => MapObjectMasterElement.MiningType == MapObjectMasterElement.MiningTypeConst.PickUp;
 
         public List<ItemId> UsableToolItemIds
@@ -126,12 +129,7 @@ namespace Client.Game.InGame.Map.MapObject
 
         public void SendAttack()
         {
-            // mapObject採掘を送信
-            // Send mapObject mining
-            var request = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(
-                ClientContext.PlayerConnectionSetting.PlayerId,
-                InstanceId);
-            ClientContext.VanillaApi.SendOnly.SendMiningRequest(request);
+            ClientContext.VanillaApi.SendOnly.AttackMapObject(InstanceId);
         }
         
         public void DestroyMapObject()

@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
 using Core.Master;
+using Game.Map;
 using Mooresmaster.Model.MapModule;
-using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.Map.Outcrop
@@ -15,34 +16,41 @@ namespace Client.Game.InGame.Map.Outcrop
     /// </summary>
     public class OutcropGameObject : MonoBehaviour, IMiningTargetObject
     {
-        private MinableHandMiningParam _minableParam;
+        private static readonly HandMiningToolsElement[] NoHandMiningTools = Array.Empty<HandMiningToolsElement>();
+
+        private HandMiningToolsElement[] _handMiningTools = NoHandMiningTools;
+        private Guid _veinGuid;
         private Vector3Int _minePosition;
-        private SoundEffectType _destroySoundType;
 
         public GameObject GameObject => gameObject;
         public bool IsAvailable => true;
+        public bool CanHandMine { get; private set; }
         public bool IsPickUp => false;
         public List<ItemId> UsableToolItemIds { get; } = new();
-        public SoundEffectType DestroySoundType => _destroySoundType;
+        public SoundEffectType DestroySoundType { get; private set; }
 
-        public void Initialize(MapVeinMasterElement element, Vector3Int minePosition)
+        public void Initialize(MapVeinMasterElement element, Guid veinGuid, Vector3Int minePosition)
         {
-            _minableParam = (MinableHandMiningParam)element.HandMiningParam;
+            _veinGuid = veinGuid;
             _minePosition = minePosition;
+
+            // 掘削機専用の鉱脈も露頭は立つので、可否だけ落として初期化そのものは最後まで通す
+            // A drill-only vein still gets an outcrop, so only the permission drops while initialization runs to the end
+            var minableParam = element.HandMiningParam as MinableHandMiningParam;
+            CanHandMine = minableParam != null;
+            _handMiningTools = CanHandMine ? minableParam.HandMiningTools : NoHandMiningTools;
 
             // 音種は鉱脈マスタ準拠
             // Resolve sound from vein master
-            _destroySoundType = element.SoundEffectType == MapVeinMasterElement.SoundEffectTypeConst.tree
+            DestroySoundType = element.SoundEffectType == MapVeinMasterElement.SoundEffectTypeConst.tree
                 ? SoundEffectType.DestroyTree
                 : SoundEffectType.DestroyStone;
 
-            // ツールIDを共通化
-            // Share tool IDs
-            foreach (var handMiningTool in _minableParam.HandMiningTools)
+            foreach (var handMiningTool in _handMiningTools)
                 UsableToolItemIds.Add(MasterHolder.ItemMaster.GetItemId(handMiningTool.ToolItemGuid));
 
-            // 全Colliderを露頭へ紐付け
-            // Bind all colliders to outcrop
+            // 掘れない露頭もレイを吸わせるため、全Colliderを可否に関わらず露頭へ紐付ける
+            // Bind every collider regardless of permission so an unmineable outcrop still absorbs the ray
             foreach (var childCollider in GetComponentsInChildren<Collider>(true))
             {
                 var rayTarget = childCollider.GetComponent<OutcropRayTarget>();
@@ -53,19 +61,15 @@ namespace Client.Game.InGame.Map.Outcrop
 
         public bool TryResolveUsableTool(ItemId equippedItemId, out MiningToolCandidate tool)
         {
-            tool = default;
-            if (equippedItemId == ItemMaster.EmptyItemId) return false;
-
-            // 許可ツールの間隔を返す
-            // Return allowed tool interval
-            var equippedItemGuid = MasterHolder.ItemMaster.GetItemMaster(equippedItemId).ItemGuid;
-            foreach (var handMiningTool in _minableParam.HandMiningTools)
+            // 権威判定と同じ照合を使い、クライアントの見た目とサーバーの可否がずれないようにする
+            // Reuse the authority's matching so the client's view never diverges from the server's verdict
+            if (VeinHandMiningService.TryResolveUsableTool(equippedItemId, _handMiningTools, out var usableTool))
             {
-                if (handMiningTool.ToolItemGuid != equippedItemGuid) continue;
-                tool = new MiningToolCandidate(equippedItemId, handMiningTool.AttackSpeed);
+                tool = new MiningToolCandidate(equippedItemId, usableTool.AttackSpeed);
                 return true;
             }
 
+            tool = default;
             return false;
         }
 
@@ -77,12 +81,7 @@ namespace Client.Game.InGame.Map.Outcrop
 
         public void SendAttack()
         {
-            // AABB内座標で採掘送信
-            // Send mining with in-AABB position
-            var request = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(
-                ClientContext.PlayerConnectionSetting.PlayerId,
-                _minePosition);
-            ClientContext.VanillaApi.SendOnly.SendMiningRequest(request);
+            ClientContext.VanillaApi.SendOnly.MineVein(_veinGuid, _minePosition);
         }
     }
 }
