@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- 作業前に必ず `pwd` を実行（git worktree 環境。リポジトリルート: `/Users/katsumi/moorestech-worktrees/tree1` 想定だが必ず確認）
+- 作業前に必ず `pwd` を実行（git worktree 環境。リポジトリルート: `~/moorestech-worktrees/tree1` 想定だが必ず確認）
 - .cs 変更後は必ず `uloop compile --project-path ./moorestech_client` を実行する
 - uloop が「Unity is reloading (Domain Reload in progress)」を返したら 45 秒待ってリトライ
 - `partial` 禁止（如何なる条件でも）。1ファイル200行以下。新規作成時1ディレクトリ10ファイルまで

@@ -63,7 +63,7 @@
 
 - [ ] **Step 1: pwd確認**
 
-Run: `pwd` → `/Users/katsumi/moorestech` であること。
+Run: `pwd` → `~/moorestech` であること。
 
 - [ ] **Step 2: DTOにフィールド追加**
 

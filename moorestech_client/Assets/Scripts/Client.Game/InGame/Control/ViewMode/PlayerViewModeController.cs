@@ -1,4 +1,6 @@
+using System;
 using Client.Input;
+using UniRx;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -7,7 +9,10 @@ namespace Client.Game.InGame.Control.ViewMode
     public class PlayerViewModeController : IStartable, ITickable
     {
         private readonly IPlayerViewApplier _applier;
+        private readonly Subject<PlayerViewMode> _onViewModeChanged = new();
         private PlayerViewMode _currentMode = PlayerViewMode.ThirdPerson;
+
+        public IObservable<PlayerViewMode> OnViewModeChanged => _onViewModeChanged;
 
         public PlayerViewModeController(IPlayerViewApplier applier)
         {
@@ -34,6 +39,7 @@ namespace Client.Game.InGame.Control.ViewMode
                 ? PlayerViewMode.FirstPerson
                 : PlayerViewMode.ThirdPerson;
             _applier.SetViewMode(_currentMode);
+            _onViewModeChanged.OnNext(_currentMode);
         }
 
         public PlayerViewMode GetCurrentMode()

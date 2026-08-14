@@ -116,8 +116,19 @@ function commitAndPush() {
   if (git(logsRepo, ["diff", "--cached", "--name-only"]) !== "") {
     git(logsRepo, ["commit", "-q", "-m", "auto: logs-sync"]);
     writeFileSync(commitMarker, "");
-    git(logsRepo, ["pull", "--rebase", "--autostash", "-q"], 30000);
-    git(logsRepo, ["push", "-q"], 30000);
+    // 前回のrebaseが残っていたら中断状態を解消してから進む
+    // Clear any leftover mid-rebase state before proceeding.
+    if (existsSync(join(logsRepo, ".git", "rebase-merge")) || existsSync(join(logsRepo, ".git", "rebase-apply"))) {
+      git(logsRepo, ["rebase", "--abort"]);
+    }
+    const pulled = git(logsRepo, ["pull", "--rebase", "--autostash", "-q"], 30000);
+    // pull失敗時はmid-rebaseを残さず中断し、push自体をスキップ（次回サイクルで再試行）
+    // On pull failure, abort to avoid leaving a mid-rebase state and skip the push (retried next cycle).
+    if (pulled === null) {
+      git(logsRepo, ["rebase", "--abort"]);
+    } else {
+      git(logsRepo, ["push", "-q"], 30000);
+    }
   }
   // 外部境界: ロック解放失敗は次回のstale判定に任せる
   // External boundary: leave failed unlock to the next stale check.
@@ -133,6 +144,9 @@ function copyIfUpdated(src, dest) {
   // External boundary: swallow stat/copy failures on files owned by other processes.
   try {
     const srcStat = statSync(src);
+    // GitHubの100MB上限を超えるファイルはpushできないため同期しない
+    // Skip files over GitHub's 100MB limit; they can never be pushed.
+    if (srcStat.size > 95 * 1024 * 1024) return;
     if (existsSync(dest)) {
       if (srcStat.mtimeMs <= statSync(dest).mtimeMs) return;
     } else if (Date.now() - srcStat.mtimeMs > 7 * 24 * 3600 * 1000) {

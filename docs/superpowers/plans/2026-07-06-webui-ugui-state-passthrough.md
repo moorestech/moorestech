@@ -16,7 +16,7 @@
 - C# 変更後は必ず `uloop compile --project-path ./moorestech_client`（ErrorCount 0）
 - Domain Reload エラー時は45秒待機してリトライ
 - 各タスク完了時に必ず git commit
-- 作業ディレクトリ: /Users/katsumi/moorestech-worktrees/tree2（タスク冒頭で pwd 確認）
+- 作業ディレクトリ: ~/moorestech-worktrees/tree2（タスク冒頭で pwd 確認）
 
 ## 配置と前例
 

@@ -2,8 +2,8 @@
 
 - 調査日: 2026-07-29
 - 対象症状: Web UI のクラフト進捗バーが約 1 fps まで低下する
-- moorestech 対象: `/Users/katsumi/moorestech-worktrees/tree3`
-- cef-unity 対象: `/Users/katsumi/WebstormProjects/cef-unity`
+- moorestech 対象: `~/moorestech-worktrees/tree3`
+- cef-unity 対象: `~/WebstormProjects/cef-unity`
 - cef-unity upstream: <https://github.com/JuhaKurisu/cef-unity/tree/main>
 - moorestech 固定リビジョン: `64f9a5f3019d660e89a2909a7e1ca9d342aca5b1`
 - cef-unity 調査時 main: `8fc504e221927f4cffb3052bc28b4a8a8624e094`

@@ -10,6 +10,13 @@
   flex-direction: column;
 }
 
+/* 縦利用はサイドバーナビ。パネル高に比例伸縮させず、高さは利用側の変数で固定する（§8.11） */
+/* Vertical use is sidebar nav; options never scale with panel height and take a fixed height via the consumer's variable (§8.11) */
+.root[data-orientation="vertical"] .option {
+  flex: 0 0 auto;
+  height: var(--mode-switch-option-height, auto);
+}
+
 /* 非選択状態は従属テキストと控えめなベベルリングで示す */
 /* Unselected options use secondary text and a restrained bevel ring */
 .option {

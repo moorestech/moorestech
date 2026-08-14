@@ -61,7 +61,7 @@
 - **やってはいけないこと**: `GearEnergyTransformer` というキーをレジストリに追加する（そのblockTypeは
   スキーマにもv8マスタにも存在しない。訂正1）
 - 正しい作業:
-  1. `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json` で
+  1. `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json` で
      `blockUIAddressablesPath: "Vanilla/UI/Block/GearEnergyTransformerUI"` を持つ blockType を**再列挙して確定**
      （申し送り時点の答えは Shaft / Gear / GearChainPole の5ブロックだが、必ず再列挙で裏取りする）
   2. 確定した blockType を web の `blockComponents` レジストリに登録（既存のギアUIビューを共用）

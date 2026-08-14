@@ -33,7 +33,7 @@ done
 対象セーブを Python で読み、各 `world[].state{}` のキー別件数と、`trainUnits` を集計。どの形式が何件あるか把握する（0件なら無視してよい）。旧形式の典型マーカー: 状態値内の `\"fluidId\":` `\"FluidId\":` `\"itemId\":`、base64文字列（`k`等で始まりJSONでない）。
 
 ### Step 3: 揮発 id → GUID マップを「独立マスタ」から取得（Unity）
-**グローバル `MasterHolder` を使うな。** 実行中エディタには別の（テスト用）マスタが載っていることがあり、その場合 `ExistItemId(58)` が false を返し解決できない。`ServerDirectory.GetDirectory()` から v8 マスタを**独立にロード**して引く（グローバルに触れない）。`references/dump_id_maps.cs` を `uloop` で実行し、全 item/fluid の id→GUID と `DefaultContainerTypeConst` 定数を取得して `/tmp/id_maps.json` に保存する。
+**グローバル `MasterHolder` を使うな。** 実行中エディタには別の（テスト用）マスタが載っていることがあり、その場合 `ExistItemId(58)` が false を返し解決できない。`ServerDirectory.GetDirectory()` から v8 マスタを**独立にロード**して引く（グローバルに触れない）。`references/dump_id_maps.cs` を `uloop` で実行し、全 item/fluid の id→GUID と `DefaultContainerTypeConst` 定数を取得して スキル実体配下の `outputs/id_maps.json` に保存する（`/tmp` は消えるので使わない）。
 
 ### Step 4: 各新形式を実クラスから確認
 変換先は**ゲームの実シリアライザ出力を正確に模倣**する。新セーブオブジェクトクラスを Read し、`[JsonProperty]` のキー名を厳密に合わせる（順序は不問、キー名は厳密）。代表例:

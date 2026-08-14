@@ -11,7 +11,7 @@
 ## Global Constraints
 
 AGENTS.md より（全タスクに適用）:
-- 作業開始時に必ず `pwd` を実行し `/Users/katsumi/moorestech-worktrees/tree3` にいることを確認する
+- 作業開始時に必ず `pwd` を実行し `~/moorestech-worktrees/tree3` にいることを確認する
 - .cs ファイルを変更したら必ず `uloop compile --project-path ./moorestech_client` を実行する
 - `.meta` ファイルは絶対に手動作成しない。`uloop compile` 後にUnityが生成した `.meta` をコミットする
 - Prefab をテキストエディタ/Write/Edit で直接編集することは禁止。変更は `uloop execute-dynamic-code` 経由のみ
@@ -900,7 +900,7 @@ Expected: 各プレハブごとに `no change` または `isReverse -> true/fals
 
 - [ ] **Step 2: 変換結果の差分確認**
 
-Run: `git -C /Users/katsumi/moorestech-worktrees/tree3 status --short -- "moorestech_client/Assets/AddressableResources/"`
+Run: `git -C ~/moorestech-worktrees/tree3 status --short -- "moorestech_client/Assets/AddressableResources/"`
 Expected: 変換された `.prefab` のみが変更されている（レポートと一致すること）。差分内容は `git diff` で `isReverse: 0/1` の変化だけであることを確認
 
 - [ ] **Step 3: コミット（変更があった場合のみ）**

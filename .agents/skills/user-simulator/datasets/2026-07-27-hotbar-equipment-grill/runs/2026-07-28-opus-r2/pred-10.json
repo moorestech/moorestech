@@ -1,1 +1,0 @@
-{"idx": 10, "predictions": [{"header": "装備可否", "predicted_label": "items.ymlにツール定義を追加（推奨）", "rationale": "adjudications「定数・概念はマスタへ一級市民化する」＋「新yaml禁止・既存スキーマのトップレベル配列へ統合が流儀」に完全一致し、逆引き案はマップデータからアイテム性質を逆算する依存方向の逆転で却下される見込み。deviation-cases 2節にも「ツールの装備可否は制限なしでなく items.yml の tools 列挙制」と同型の裁定傾向が記録されている。", "confidence": "高"}]}

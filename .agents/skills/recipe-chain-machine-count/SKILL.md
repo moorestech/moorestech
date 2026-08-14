@@ -9,8 +9,8 @@ description: Use when the user wants a moorestech item produced at a target thro
 
 ## 前提条件
 
-- マスタデータの場所: `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/`
-  - 見つからない場合は `ls /Users/katsumi/moorestech_master/` で最新の `server_v*` を確認し、その中の `mods/<mod名>/master/` を使う
+- マスタデータの場所: `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/`
+  - 見つからない場合は `ls ../moorestech_master/` で最新の `server_v*` を確認し、その中の `mods/<mod名>/master/` を使う
   - `items.json` — itemGuid と name の対応
   - `machineRecipes.json` — `time` (秒), `inputItems[]`, `outputItems[]`, `blockGuid`
   - `blocks.json` — blockGuid と name, blockType, gearConsumption.baseRpm 等

@@ -1,7 +1,7 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.KeyControl;
+using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Input;
 using UnityEngine;
 
@@ -10,20 +10,19 @@ namespace Client.Game.InGame.UI.UIState.State
     public class BuildMenuState : IUIState, IApplicationFocusRestorer
     {
         private readonly IBuildMenuView _buildMenuView;
-        private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
+        private readonly UiStateCameraPolicyService _cameraPolicyService;
 
-        public BuildMenuState(IBuildMenuView buildMenuView, IPlayerCameraInteractionApplier cameraInteractionApplier)
+        public BuildMenuState(IBuildMenuView buildMenuView, UiStateCameraPolicyService cameraPolicyService)
         {
             _buildMenuView = buildMenuView;
-            _cameraInteractionApplier = cameraInteractionApplier;
+            _cameraPolicyService = cameraPolicyService;
         }
 
         public void OnEnter(UITransitContext context)
         {
             // メニュー中はカーソル解放・回転停止
             // Release cursor and stop rotation in menus
-            _cameraInteractionApplier.SetCursorVisible(true);
-            _cameraInteractionApplier.SetCameraRotatable(false);
+            _cameraPolicyService.EnterMenu();
 
             _buildMenuView.SetActive(true);
             KeyControlDescription.Instance.SetText("クリック: 設置ブロック選択  B: 閉じる");
@@ -47,8 +46,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void RestoreAfterApplicationFocus()
         {
-            _cameraInteractionApplier.SetCursorVisible(true);
-            _cameraInteractionApplier.SetCameraRotatable(false);
+            _cameraPolicyService.RestoreAfterApplicationFocus();
         }
     }
 }

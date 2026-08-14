@@ -1,6 +1,6 @@
 # 申し送り: プレイテストスキルのモデル別精度評価（Opus/Sonnetで再現できるか）
 
-作成: 2026-07-07 / ブランチ: `feature/playtest-stabilization`（worktree: `/Users/katsumi/moorestech-worktrees/playtest`）
+作成: 2026-07-07 / ブランチ: `feature/playtest-stabilization`（worktree: `~/moorestech-worktrees/playtest`）
 前回申し送り: `2026-07-07-playtest-input-layer-handoff.md`（Phase 3完了により役目を終えた）
 
 > **実施済み（2026-07-07 同日）**: 6トライアル（Opus/Sonnet × L1/L2/L3）を完走し全合格。
@@ -14,7 +14,7 @@
 
 ## 現状（すべてコミット済み・動作確認済み）
 
-- **スキル**: メインチェックアウト側 `/Users/katsumi/moorestech/.claude/skills/unity-playmode-recorded-playtest/`。
+- **スキル**: メインチェックアウト側 `~/moorestech/.claude/skills/unity-playmode-recorded-playtest/`。
   SKILL.md=ルーター（絶対規則10・ユースケース表・Step 0）＋ references/ 7ファイル668行
   （run-scenario / write-scenario=Driver API全表 / place-blocks-via-ui / hotbar-driven-systems /
   input-injection / troubleshooting / legacy-manual-flow）
@@ -65,7 +65,7 @@
 1. playtest worktreeのUnity Editor(6000.3.8f1)が起動していること（`uloop launch ./moorestech_client`）
 2. **他worktree（tree2等）のPlayModeが止まっていること**（ポート11564競合。preflightが検出するが、
    占有時はユーザーへ停止確認が必要。ソケットリーク時は当該Editorへ`RequestScriptReload()`）
-3. ピン留めmaster: `/Users/katsumi/moorestech-worktrees/playtest-master`（584a14e）が存在すること
+3. ピン留めmaster: `~/moorestech-worktrees/playtest-master`（584a14e）が存在すること
 4. `uloop run-tests`と並走させない（UnityMcpSettings.json退避の衝突で全uloopコマンドが死ぬ）
 
 ## スキル改善ループの回し方（評価で穴が見つかったら）
@@ -83,7 +83,7 @@
 
 ## 参照
 
-- スキル本体: `/Users/katsumi/moorestech/.claude/skills/unity-playmode-recorded-playtest/`（SKILL.md + references/）
+- スキル本体: `~/moorestech/.claude/skills/unity-playmode-recorded-playtest/`（SKILL.md + references/）
 - DSL実装: `moorestech_client/Assets/Scripts/Client.Playtest/`、ランナー: `tools/playtest/`
 - 概要doc: `docs/playtest-dsl.md`
 - 今回の主要コミット: a873f4d57(HybridInput移行+Tabバグ修正) / c7dbd5b57(UI経路API) /

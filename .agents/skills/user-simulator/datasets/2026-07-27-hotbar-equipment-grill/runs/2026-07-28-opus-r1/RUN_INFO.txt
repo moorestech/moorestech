@@ -1,4 +1,0 @@
-run: 2026-07-28-opus-r1（初回シャドー採点）
-model: opus（1質問1エージェント・盲検・逐次文脈）
-知識ベースのコミット: eeb967890（deviation-cases.md導入前。adjudications・moorestech-principlesのみ）
-結果: exact 18/26=69%・ベースライン73%未満・逸脱0/7・確信高83%/中37%

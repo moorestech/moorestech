@@ -55,7 +55,7 @@
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json`（歯車ベルト2連/3連テストブロック追加）
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs`（定数追加）
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/placeSystem.json`
-- Modify: `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/placeSystem.json`（既存4エントリへのplaceParam:{}追加のみ。BeltConveyorエントリ追加はTask 7）
+- Modify: `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/placeSystem.json`（既存4エントリへのplaceParam:{}追加のみ。BeltConveyorエントリ追加はTask 7）
 
 **Interfaces:**
 - Produces: `Mooresmaster.Model.PlaceSystemModule` に生成される `PlaceSystemMasterElement.PlaceParam` プロパティと `BeltConveyorPlaceParam` クラス（`UpBlockGuid: Guid`, `DownBlockGuid: Guid`, `StraightBlocks: StraightBlocksElement[]` — 各要素は`Length: int`と`BlockGuid: Guid`）。※生成名はSourceGeneratorの命名規則に従うため、再生成後にStep 4で実名を確認し、以降のタスクで差異があれば読み替えること
@@ -148,7 +148,7 @@ blocks.jsonの`blockParam`と同様、switchプロパティは全エントリ必
 
 1. `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/placeSystem.json`（TrainCar/GearChainPoleConnect/ElectricWireConnectの3エントリ）
 2. `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/placeSystem.json`（全エントリ）
-3. `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/placeSystem.json`（TrainRailConnect/TrainRail/TrainCar/GearChainPoleConnectの4エントリ。**編集前にmooreseditor.appが終了していることを確認**）
+3. `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/placeSystem.json`（TrainRailConnect/TrainRail/TrainCar/GearChainPoleConnectの4エントリ。**編集前にmooreseditor.appが終了していることを確認**）
 
 各エントリの末尾に追加する形:
 ```json
@@ -167,7 +167,7 @@ blocks.jsonの`blockParam`と同様、switchプロパティは全エントリ必
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件。その後、生成された型名を確認する:
 
-Run: `grep -rn "class.*PlaceParam" /Users/katsumi/moorestech/moorestech_client/Library/ --include="*.cs" -l 2>/dev/null | head -3` で生成物を探すか、`uloop execute-dynamic-code` で `typeof(Mooresmaster.Model.PlaceSystemModule.PlaceSystemMasterElement).GetProperty("PlaceParam")` と `BeltConveyorPlaceParam` 型の存在・プロパティ名を確認。
+Run: `grep -rn "class.*PlaceParam" ~/moorestech/moorestech_client/Library/ --include="*.cs" -l 2>/dev/null | head -3` で生成物を探すか、`uloop execute-dynamic-code` で `typeof(Mooresmaster.Model.PlaceSystemModule.PlaceSystemMasterElement).GetProperty("PlaceParam")` と `BeltConveyorPlaceParam` 型の存在・プロパティ名を確認。
 Expected: `PlaceParam`プロパティと`BeltConveyorPlaceParam`型（`UpBlockGuid`/`DownBlockGuid`/`StraightBlocks`。要素に`Length`/`BlockGuid`）。名前が想定と違う場合は以降のタスクで読み替え。
 
 - [ ] **Step 5: テスト用masterに歯車ベルト2連/3連ブロックとBeltConveyorエントリを追加**
@@ -267,7 +267,7 @@ Expected: 全パス（テストmasterのロード自体がバリデーション�
 
 ```bash
 git add -A && git commit -m "feat: placeSystemマスターにBeltConveyorモードとplaceParamスイッチを追加"
-cd /Users/katsumi/moorestech_master && git add -A && git commit -m "chore: placeSystem既存エントリにplaceParam追加" && cd /Users/katsumi/moorestech
+cd ../moorestech_master && git add -A && git commit -m "chore: placeSystem既存エントリにplaceParam追加" && cd ~/moorestech
 ```
 
 ---
@@ -1166,11 +1166,11 @@ git add -A && git commit -m "refactor: 垂直オーバーライド機構とenabl
 ### Task 7: 本番マスタデータ投入（moorestech_master）
 
 **Files:**
-- Create: `/Users/katsumi/moorestech_master/tools/belt_variant_migration/migrate.py`
-- Modify: `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json`
-- Modify: `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/items.json`
-- Modify: `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/placeSystem.json`
-- Modify: `/Users/katsumi/moorestech/.moorestech-external-revisions.json`（ピン更新）
+- Create: `../moorestech_master/tools/belt_variant_migration/migrate.py`
+- Modify: `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json`
+- Modify: `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/items.json`
+- Modify: `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/placeSystem.json`
+- Modify: `~/moorestech/.moorestech-external-revisions.json`（ピン更新）
 
 **Interfaces:**
 - Consumes: 冒頭の対象ファミリー表のGuid群
@@ -1205,7 +1205,7 @@ mooreseditor.appが起動中なら終了（起動中はJSON編集が数秒で書
 
 - [ ] **Step 3: 実行と検証**
 
-Run: `cd /Users/katsumi/moorestech_master && python3 tools/belt_variant_migration/migrate.py`
+Run: `cd ../moorestech_master && python3 tools/belt_variant_migration/migrate.py`
 Expected: 追加12ブロック・12アイテム・7エントリのサマリ出力
 
 検証スクリプト（同ディレクトリに`verify.py`）: blocks.jsonに`overrideVerticalBlock`キーが0件、長尺ブロックのblockSize/コネクタoffset/requiredItemsが仕様どおり、placeSystem.jsonの全Guidがblocks.jsonに実在することをassert。
@@ -1221,9 +1221,9 @@ Expected: マスター関連のエラー0件（プレハブ未作成のためAdd
 - [ ] **Step 5: コミットとピン更新**
 
 ```bash
-cd /Users/katsumi/moorestech_master && git add -A && git commit -m "feat: ベルト長尺バリアント12種とBeltConveyor placeSystemエントリを追加"
+cd ../moorestech_master && git add -A && git commit -m "feat: ベルト長尺バリアント12種とBeltConveyor placeSystemエントリを追加"
 ```
-コミットハッシュを`/Users/katsumi/moorestech/.moorestech-external-revisions.json`のピンに反映し、moorestech_masterのcheckoutが巻き戻っていないことを確認（`git -C /Users/katsumi/moorestech_master log --oneline -1`）。moorestech側もコミット:
+コミットハッシュを`~/moorestech/.moorestech-external-revisions.json`のピンに反映し、moorestech_masterのcheckoutが巻き戻っていないことを確認（`git -C ../moorestech_master log --oneline -1`）。moorestech側もコミット:
 ```bash
 git add -A && git commit -m "chore: moorestech_masterピンをベルト長尺バリアント追加コミットへ更新"
 ```

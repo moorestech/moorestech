@@ -8,7 +8,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TSV="$SCRIPT_DIR/fixtures.tsv"
-OUT_DIR="${2:-/tmp/moores-review-fixtures}"
+# 既定の出力先はスキル実体配下のoutputs/（.gitignore除外済み）。/tmpはOSに掃除されるため使わない
+# Default output lives under the skill's own outputs/ (gitignored); /tmp is swept by the OS.
+OUT_DIR="${2:-$SCRIPT_DIR/../outputs/fixtures}"
 mkdir -p "$OUT_DIR"
 
 gen() {

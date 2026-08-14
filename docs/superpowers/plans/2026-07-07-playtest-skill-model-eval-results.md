@@ -72,7 +72,7 @@
 | place-blocks-via-ui.md | 高さのあるブロックの隣接セルへ後から設置すると天面レイキャストで上に誤設置→背の高いブロックは最後 | Trial 3/4 |
 | place-blocks-via-ui.md | 電気系ブロックの設置不能バグ①と GiveItem workaround | Trial 3/4 |
 
-※メインチェックアウト側 `/Users/katsumi/moorestech/.claude/skills/` への逆同期は未実施（本worktreeのコミットが正。次回メイン側で同期すること）
+※メインチェックアウト側 `~/moorestech/.claude/skills/` への逆同期は未実施（本worktreeのコミットが正。次回メイン側で同期すること）
 
 ## 評価手法のメモ（再現する人向け）
 
@@ -91,5 +91,5 @@
 ## 結果ビューアー
 
 - URL: http://localhost:4983 （対象: `.mso/live-trial/` 全トライアル）
-- 再起動: `node /Users/katsumi/.claude/skills/run-skill-live-trial/templates/result-viewer/server.mjs --dir /Users/katsumi/moorestech-worktrees/playtest/.mso/live-trial --port 4983`
+- 再起動: `node ~/.claude/skills/run-skill-live-trial/templates/result-viewer/server.mjs --dir ~/moorestech-worktrees/playtest/.mso/live-trial --port 4983`
 - 停止: `lsof -i :4983` で PID 確認後 kill

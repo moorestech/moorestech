@@ -88,7 +88,7 @@ WorldProvisioner はワールドディレクトリへの**書き手が1人増え
 
 ## 移植対象と除外（Task 3-5 の共通リファレンス）
 
-移植元: `/Users/katsumi/moorestech/TmpUnityPjt/MapMaking/Assets/MapGenerator/`
+移植元: `~/moorestech/TmpUnityPjt/MapMaking/Assets/MapGenerator/`
 
 **移植する（ゲームプレイに効くデータ生成）:**
 - `Pipeline/Jobs/` 全ファイル（ClassificationJob, HeightSampleJob, BurstNoise 等 — 数値計算のみでシーン非依存）
@@ -129,7 +129,7 @@ WorldProvisioner はワールドディレクトリへの**書き手が1人増え
 - [ ] **Step 1: ブランチ作成**
 
 ```bash
-cd /Users/katsumi/moorestech && git switch -c feat/map-autogen-p1
+cd ~/moorestech && git switch -c feat/map-autogen-p1
 ```
 
 - [ ] **Step 2: manifest.json に Burst 系を明示追加**
@@ -329,7 +329,7 @@ git commit -m "feat: MapGenerator数値基盤(Jobs/Util/Biome列挙)をGame.MapG
 - Create: `moorestech_server/Assets/Scripts/Core.Master/MapVeinMaster.cs`（mapVeins配列のラッパー。`ConnectToolMaster` と同型）＋ `Validator/MapVeinMasterUtil.cs`（foreignKeyのC#バリデーション）
 - Modify: `moorestech_server/Assets/Scripts/Core.Master/MasterHolder.cs`（`GenerationMaster`・`MapVeinMaster` 静的プロパティ追加）、`MapObjectMaster.cs` ほかモジュール名変更（`MapObjectsModule`→`MapModule`）の参照追従（コンパイルエラー駆動で全置換）
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/`（`mapObjects.json`→`map.json` リネーム＋`mapVeins` エントリ＋テスト用 `generation.json` 追加）
-- Modify: `/Users/katsumi/moorestech_master/server_v8/mods/.../mapObjects.json` → `map.json` リネーム＋現行ワールドmap.jsonのvein GUID種別ごとに `mapVeins` エントリを起こす（item鉱脈＋fluid鉱脈全種。`outcropAddressablePath` はP2で追加するためP1では持たない）
+- Modify: `../moorestech_master/server_v8/mods/.../mapObjects.json` → `map.json` リネーム＋現行ワールドmap.jsonのvein GUID種別ごとに `mapVeins` エントリを起こす（item鉱脈＋fluid鉱脈全種。`outcropAddressablePath` はP2で追加するためP1では持たない）
 
 **mapVeins 要素のスキーマ（MapVeinMasterElement）:**
 
@@ -513,7 +513,7 @@ git commit -m "feat: 生成パイプライン本体をステージ分割で移�
 
 **Files:**
 - Create: `TmpUnityPjt/MapMaking/Assets/Editor/GenerationConfigExporter.cs`（MapMakingプロジェクト側・MenuItem）
-- Create: `/Users/katsumi/moorestech_master/server_v8/mods/.../generation.json`（エクスポータ実行の成果物。他マスタJSONと同じmod内配置）
+- Create: `../moorestech_master/server_v8/mods/.../generation.json`（エクスポータ実行の成果物。他マスタJSONと同じmod内配置）
 
 **Interfaces:**
 - Consumes: Task 4 の `generation.yml` スキーマ（エクスポータはスキーマと同一キーのJSONを出力する）

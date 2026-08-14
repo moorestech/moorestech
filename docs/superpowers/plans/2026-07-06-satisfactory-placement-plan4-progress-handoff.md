@@ -6,7 +6,7 @@
 
 ## 0. 最重要サマリ（これだけ読めば再開できる）
 
-1. 作業場所は **worktree `/Users/katsumi/moorestech-worktrees/plan4`**（ブランチ `feature/replace-place-system-plan4`、HEAD `bbc8f3468`）。メインチェックアウト`/Users/katsumi/moorestech`は他セッションと共用のため**使わない**
+1. 作業場所は **worktree `~/moorestech-worktrees/plan4`**（ブランチ `feature/replace-place-system-plan4`、HEAD `bbc8f3468`）。メインチェックアウト`~/moorestech`は他セッションと共用のため**使わない**
 2. 再開条件: **belt-placeセッション（`feature/belt-conveyor-place-system`）が`feature/replace-place-system`へマージされたら**、plan4ブランチをrebase（またはmerge）してTask 6から再開（§5に競合解消の詳細）
 3. プラン本文: `docs/superpowers/plans/2026-07-05-satisfactory-placement-plan4-special-systems.md`（Task 6は§5の再設計事項を反映してから実行）。プラン5も作成済み: `...plan5-destructive-cleanup.md`
 4. 進行台帳: worktreeの`.superpowers/sdd/progress.md`（**gitignored** — 消えていたら本書§2と`git log`が正）
@@ -15,18 +15,18 @@
 ## 1. ブランチ・環境の全体像
 
 ```
-/Users/katsumi/moorestech                     … メインチェックアウト。feature/replace-place-system @ f226731c3
+~/moorestech                     … メインチェックアウト。feature/replace-place-system @ f226731c3
                                                 （他セッション共用。00:06にPlaceBlockProtocol.csの作業ツリー巻き戻り事故あり→worktree移行の契機。
                                                   作業ツリーにMの残骸が残っている可能性あり。触らない）
-/Users/katsumi/moorestech-worktrees/plan4     … 本作業worktree。feature/replace-place-system-plan4 @ bbc8f3468（Task1-5）
-/Users/katsumi/moorestech-worktrees/belt-place… 並行セッション。feature/belt-conveyor-place-system（アクティブ）
-/Users/katsumi/moorestech_master              … 本番マスタ。branch plan2-master-migration @ f67eee8（belt側がplaceParam追加コミット済み）
+~/moorestech-worktrees/plan4     … 本作業worktree。feature/replace-place-system-plan4 @ bbc8f3468（Task1-5）
+~/moorestech-worktrees/belt-place… 並行セッション。feature/belt-conveyor-place-system（アクティブ）
+../moorestech_master              … 本番マスタ。branch plan2-master-migration @ f67eee8（belt側がplaceParam追加コミット済み）
 ```
 
 worktree環境の構築済み事項（再構築不要）:
-- Unity Library: client/serverともメインから`cp -Rc`（APFS clone）済み。**worktree専用Unityを`uloop launch /Users/katsumi/moorestech-worktrees/plan4/moorestech_client`で起動して使う**（uloopはproject-pathで対象Unityを解決。Unityが落ちていたら再launchして数分待つ）
+- Unity Library: client/serverともメインから`cp -Rc`（APFS clone）済み。**worktree専用Unityを`uloop launch ~/moorestech-worktrees/plan4/moorestech_client`で起動して使う**（uloopはproject-pathで対象Unityを解決。Unityが落ちていたら再launchして数分待つ）
 - 私有アセット: `moorestech_client/Assets/PersonalAssets/moorestech-client-private` → メインへのシンボリックリンク
-- `../moorestech_master`解決: `/Users/katsumi/moorestech-worktrees/moorestech_master`シンボリックリンク（既存）
+- `../moorestech_master`解決: `~/moorestech-worktrees/moorestech_master`シンボリックリンク（既存）
 - `.moorestech-external-revisions.json`がUnity起動でピンf67eee88へ書き換わり**未ステージのまま**（意図的。コミットに混ぜない。Task 6/12でmoorestech_masterへコミットする際に整合させる）
 
 コマンド規約: コンパイル`uloop compile --project-path ./moorestech_client`／テスト`uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<regex>"`（worktree相対）。「Domain Reload in progress」は45秒待ちリトライ。
@@ -78,7 +78,7 @@ worktree環境の構築済み事項（再構築不要）:
 
 ## 3. sdd実行の運用資産（worktree内）
 
-- ブリーフ生成: `/Users/katsumi/moorestech/.claude/skills/subagent-driven-development/scripts/task-brief <plan.md> <N>` → `.superpowers/sdd/task-N-brief.md`
+- ブリーフ生成: `~/moorestech/.claude/skills/subagent-driven-development/scripts/task-brief <plan.md> <N>` → `.superpowers/sdd/task-N-brief.md`
 - レビューパッケージ: 同`scripts/review-package <BASE> <HEAD>` → `.superpowers/sdd/review-BASE..HEAD.diff`（BASEは**タスク開始前に記録したコミット**。HEAD~1禁止）
 - レポート: implementerが`.superpowers/sdd/task-N-report.md`へ全文、返信は15行以内のステータスのみ
 - 台帳: `.superpowers/sdd/progress.md`に1タスク1行＋Minor所見を追記（最終レビューでトリアージするため）
@@ -95,7 +95,7 @@ belt-placeセッション（`feature/belt-conveyor-place-system`、**観測時�
 
 ## 5. 再開手順（belt側がfeature/replace-place-systemへマージされた後）
 
-1. `pwd`確認 → worktreeへ。`git -C /Users/katsumi/moorestech fetch`不要（ローカル共有）。plan4ブランチを更新:
+1. `pwd`確認 → worktreeへ。`git -C ~/moorestech fetch`不要（ローカル共有）。plan4ブランチを更新:
    `git rebase feature/replace-place-system`（競合が酷ければ`git merge feature/replace-place-system`でも可 — 履歴の綺麗さよりも確実さ優先）
 2. **予想される競合と解消方針**:
    - `PlaceBlockProtocol.cs`: Task 1の`costItemCounts`化 vs belt側セル毎BlockId+ファミリーunlock。**belt側の新構造を土台に、コスト計算をToItemCounts正準形で組み込む**（セル毎にBlockIdが変わるならセル毎に`ToItemCounts`。EvaluateAutoConnectへの予約渡しを絶対に落とさない）

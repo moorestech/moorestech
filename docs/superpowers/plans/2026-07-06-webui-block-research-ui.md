@@ -19,7 +19,7 @@
 - C# 変更後は必ず `uloop compile --project-path ./moorestech_client`（ErrorCount 0 必須）
 - uGUI凍結: uGUI/ドメイン側への変更は読み取り用 getter/event の additive 追加のみ
 - ワイヤ規約: C# `WebUiJson`（camelCase / NullValueHandling.Ignore = nullキー省略）。enum は camelCase 文字列
-- 作業ディレクトリ: `/Users/katsumi/moorestech-worktrees/tree2`（最初に `pwd` 確認）。web は `moorestech_web/webui`（pnpm）
+- 作業ディレクトリ: `~/moorestech-worktrees/tree2`（最初に `pwd` 確認）。web は `moorestech_web/webui`（pnpm）
 - テストコマンド: `pnpm vitest run`（webui内）/ `pnpm exec playwright test`（webui内）/ `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "WireContract"`
 
 ## 配置と前例（spec-architecture-review 済み）

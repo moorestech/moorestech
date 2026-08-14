@@ -1,0 +1,4 @@
+決定: AimPointProviderは「視点モード」と「TPS時の照準ソース」の2入力を保持して照準座標を導出する。PlayerViewApplierのSetViewMode呼び出しは残し、照準ソースは各カメラ操作サービスがプッシュする。FPSは照準ソースに関わらず常にScreenCenter
+棄却案: PlayerViewApplierからの呼び出しを削除し、最終的な照準モードを各サービスが決めてSetAimPointModeで単一入力としてプッシュする
+理由: 単一入力だとインベントリ・SubInventory・ポーズなど照準をプッシュしないステート滞在中に古いモードが残り、常時Updateする採掘コントローラがそれを読む。2入力なら押し漏れてもFPS/TPSの判定だけは常に正しい
+リンク: 出所=ユーザー裁定 2026-08-05（AskUserQuestion「AimPointProviderのAPI」＝2入力）。関連=[[2026-08-05-照準ソースはUIステート側からプッシュする]]

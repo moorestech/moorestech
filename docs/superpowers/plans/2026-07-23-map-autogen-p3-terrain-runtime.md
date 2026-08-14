@@ -155,7 +155,7 @@ public class ResponseMapDataTerrainChunkMessagePack : ProtocolMessagePackBase
 
 **Files:**
 - Modify: Addressables Environment Asset Group（TerrainLayer群・detailテクスチャ群・既存TerrainData `2a1ae938302ca4d6894c5201638fbba5` を登録）
-- Modify: `/Users/katsumi/moorestech_master/server_v8/mods/<v8 mod>/master/generation.json`（見た目セクションの `addressablePath` 空欄を実アドレスで充填）
+- Modify: `../moorestech_master/server_v8/mods/<v8 mod>/master/generation.json`（見た目セクションの `addressablePath` 空欄を実アドレスで充填）
 
 **Interfaces:**
 - Produces: アドレス規約 `Vanilla/Environment/TerrainLayer/<name>`・`Vanilla/Environment/TemplateTerrainData`

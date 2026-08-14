@@ -23,7 +23,7 @@ spec: docs/superpowers/specs/2026-07-29-localization-foundation-design.md
 - mooresmaster generator/共通CSV DLLを変更したら `mooresmaster/build.sh` でclient/server両方のDLLを再ビルドしコミットする（ADR 0005帰結）
 - .cs変更後は必ず `uloop compile --project-path ./moorestech_client` でエラー0を確認。テストは `--filter-type regex` で限定実行
 - webui変更後は `cd moorestech_web/webui && npx tsc -b && npm run lint && npm test` を通す
-- 作業ブランチ: `feature/localization-foundation`（worktree: `/Users/katsumi/moorestech/.worktrees/localization-foundation`）。タスクごとにコミットする
+- 作業ブランチ: `feature/localization-foundation`（worktree: `~/moorestech/.worktrees/localization-foundation`）。タスクごとにコミットする
 
 **裁定の対応表（2026-08-02ダイジェストコメント→本plan）:**
 | 裁定 | 内容 | 反映タスク |

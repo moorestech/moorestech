@@ -178,12 +178,33 @@ description: |
 
 ## 8.11 建設メニュー
 
-- **大型2列レイアウト**: `viewer-start / items-end` の2列を占有する `.panelLarge` 前例（§2.5・§8.7の機械大型パネルと同一の stage 配置）に従う。独自の固定配置・独自z-indexは禁止。
-- **縦ModeSwitchサイドバー**: カテゴリ切替は §8.6 の縦向き ModeSwitch を左サイドバーとして使う。幅は `--build-menu-sidebar-width`（固定長）。
-- **検索**: §8.9 の検索入力をサイドバー上部またはグリッド上部に置く。
-- **固定高プレビュー**: 選択中ブロックのプレビューは §8.7 の詳細プレビュー同様、高さを固定して内容でホバーが跳ねないようにする（`--build-menu-preview-height`）。
-- **サブカテゴリ見出し**: グリッド内のサブカテゴリ区切りは `--text-muted` のラベル + `FadeRule`（§8.6と同一部品）。無札の並置は禁止（§4のスロット群区別ルールに従う）。
+- **stage水平中央の大型パネル**: stage絶対配置のバンド（ホットバー前例 `HotbarPanel` の
+  `position:absolute; left:0; right:0` + flex中央）で、固定幅 `--build-menu-panel-width` のパネルを
+  水平センターに置く。stageはレターボックスで常に画面中央にあるため全解像度で画面中央に一致する。
+  縦は上端 `--menu-upper-safe-area`・高さ `--menu-content-height`（他メニューの上端揃えを維持）。
+  持ち物画面の左詰めgrid（`inv/viewer/items`列）には参加しない（ADR-0007）。
+- **3カラム構成**: 1枚のGamePanel内で「カテゴリ | 検索+グリッド | 詳細サイドバー」。
+  詳細サイドバー幅は `--build-menu-detail-width`（固定長）。
+- **縦ModeSwitchサイドバー**: カテゴリ切替は §8.6 の縦向き ModeSwitch を左サイドバーとして使う。
+  幅は `--build-menu-sidebar-width`（固定長）。**各ボタンは `--build-menu-category-height` の固定高・
+  上詰め**とし、パネル高さ・カテゴリ数に比例して伸縮させない（縦ModeSwitchの高さは
+  `--mode-switch-option-height` 変数で利用側が注入する）。
+  **カテゴリ名は全ロケールで1行に収まる長さを前提とし、折り返しは想定しない。**
+  幅は日本語名でなく最長の英訳（実マスタv8の `Building Materials`）を基準に決める。
+  収まらない名前が現れたら `--build-menu-sidebar-width` と `--build-menu-panel-width` をセットで見直す。
+- **検索**: §8.9 の検索入力を中央カラム上部に置く。
+- **sticky詳細サイドバー**: ホバー中エントリを表示し、カーソルが離れても直前エントリを表示し続ける。
+  初回ホバー前のみ `--text-muted` の案内テキスト。内容は「アイコン → 名前 → `FadeRule` →
+  必要素材ラベル（`--text-muted`）+ `ItemSlot` 群」の縦積み。説明文は出さない（マスタに存在しない）。
+  閉じる✕がこの列の右上に重なるため、上端に `--build-menu-detail-top-safe-area` の安全帯を空ける（§2の安全帯前例と同族）。
+- **サブカテゴリ見出し**: グリッド内のサブカテゴリ区切りは `--text-muted` のラベル + `FadeRule`
+  （§8.6と同一部品）。無札の並置は禁止（§4のスロット群区別ルールに従う）。
 - グリッド本体は `SlotGrid` を使い独自gridを作らない。端の安全余白は `--build-menu-edge-safe-area`。
+  グリッド右端はオーバーレイ縦スクロールバー分の `--build-menu-grid-scrollbar-reserve` を予約し、
+  列幅を削らずその分 `--build-menu-panel-width` を広げる。
+- **セッション内状態保持**: 選択カテゴリ・検索文字列・スクロール位置・詳細sticky表示は
+  セッション内ストア（§8.5のviewport保持と同族・リロードで消える・永続化なし）で保持し、
+  閉じて開き直しても復元する。
 
 ## 8.12 スキット会話UI
 

@@ -1,6 +1,6 @@
 # キーマウス操作による恒常構築プレイテスト（Phase 3）申し送り
 
-作成: 2026-07-07 / ブランチ: `feature/playtest-stabilization`（worktree: `/Users/katsumi/moorestech-worktrees/playtest`）
+作成: 2026-07-07 / ブランチ: `feature/playtest-stabilization`（worktree: `~/moorestech-worktrees/playtest`）
 
 ## ゴール
 
@@ -14,7 +14,7 @@
   （preflight 4項目 → PlayMode起動 → ready.marker（実測18〜26秒）→ EDC 1回でシナリオ投入 → result.json回収）
 - **実証済みシナリオ**: `belt-line.cs` — S字ベルト9本＋コンベアチェストへ鉄インゴット10個搬送、
   録画mp4・スクショ4枚・assert4件全通過（コミット c6afe8c5f）
-- **masterデータ**: ブランチ互換コミットへピン留めした `/Users/katsumi/moorestech-worktrees/playtest-master`
+- **masterデータ**: ブランチ互換コミットへピン留めした `~/moorestech-worktrees/playtest-master`
   (server_v8, 584a14e)。共有 `moorestech_master` のHEADはplan4スキーマに移行済みで**使うと初期化が無言死する**
 - **ノウハウの正**: `unity-playmode-recorded-playtest` スキル（メインチェックアウト側に未コミット差分が残存、要コミット）
 - Unity Editor(6000.3.8f1)はこのworktreeで起動済み・他worktreeのEditorと並行動作可

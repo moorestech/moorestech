@@ -8,7 +8,7 @@
 
 **Tech Stack:** C# (Unity, moorestech_server), UniRx (`GameUpdater.UpdateObservable`), NUnit (Server.Tests), Newtonsoft.Json, Mooresmaster SourceGenerator（cleanRoom.yml → CleanRoomModule）
 
-**作業ディレクトリ:** `/Users/katsumi/moorestech-worktrees/tree2`（branch `feature/cleanroom-v2`）
+**作業ディレクトリ:** `~/moorestech-worktrees/tree2`（branch `feature/cleanroom-v2`）
 
 ## Global Constraints
 
@@ -958,7 +958,7 @@ find moorestech_server/Assets/Scripts/Game.CleanRoom moorestech_server/Assets/Sc
 
 ### Task 12: AlphaMod 実データ（../moorestech_master）
 
-**Files:**（別リポジトリ `/Users/katsumi/moorestech_master`）
+**Files:**（別リポジトリ `../moorestech_master`）
 - Modify: `server_v8` の Mod（`moorestechAlphaMod_8`）の `blocks.json` / `items.json` / `machineRecipes.json`
 - Create: 同 Mod の `cleanRoom.json`
 
@@ -967,7 +967,7 @@ find moorestech_server/Assets/Scripts/Game.CleanRoom moorestech_server/Assets/Sc
 - [ ] blocks.json にクリーンルーム壁/ドア/アイテムハッチ/パイプハッチ/空気清浄機/EUV露光装置（CleanRoomMachine）を追加。モデルパスは既存の類似ブロック（壁系・機械系）のものを暫定流用し、`name` に (仮モデル) と書かない（表示名は正式名）
 - [ ] machineRecipes.json に EUV露光装置のチップレシピを1件追加、cleanRoom.json に閾値・係数・チップ分布を記述
 - [ ] tree2 のサーバーを AlphaMod でブート（テスト or uloop）してマスタロードエラーが無いことを確認
-- [ ] moorestech_master リポジトリでコミット（`git -C /Users/katsumi/moorestech_master add/commit`。push はユーザー確認後）
+- [ ] moorestech_master リポジトリでコミット（`git -C ../moorestech_master add/commit`。push はユーザー確認後）
 
 ---
 

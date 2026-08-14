@@ -69,7 +69,7 @@
 
 **主変更（クライアント）:** `ClientElectricWireAutoConnectCollector.cs` / `ElectricWireExtendPreviewCalculator.cs` / `ElectricWireExtendMode.cs` / `MainGameStarter.cs` / `WebUiGameBinder.cs` / `PlacementModeTopic.cs`
 
-**スキーマ・マスタ:** `VanillaSchema/blocks.yml` / `Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json` / `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/blocks.json` / `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json`（別リポジトリ）
+**スキーマ・マスタ:** `VanillaSchema/blocks.yml` / `Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json` / `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/blocks.json` / `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json`（別リポジトリ）
 
 **Web（別リポジトリ moorestech_web）:** `webui/src/bridge/contract/schemas/ui.ts` / `webui/src/features/modeHud/PlacementModeHud.tsx` / e2eフィクスチャ / 契約テスト / dist リビルド→`moorestech_client/Assets/StreamingAssets/WebUi/dist`
 
@@ -1301,7 +1301,7 @@ git commit -m "test: 電線系テストを範囲ボックス相互判定の座�
 
 ### Task 10: moorestech_web の契約更新と dist 反映
 
-**Files（リポジトリ /Users/katsumi/moorestech/moorestech_web）:**
+**Files（リポジトリ ~/moorestech/moorestech_web）:**
 - Modify: `webui/src/bridge/contract/schemas/ui.ts`（33行 `energizedRangeVisible: z.boolean(),` を削除）
 - Modify: `webui/src/features/modeHud/PlacementModeHud.tsx`（24行 `{data.energizedRangeVisible && <Text>{energized}</Text>}` と `energized` 文言定義を削除）
 - Modify: `webui/e2e/mock-host/topics/topicFixtures.ts` / `topicControls.ts`（`energizedRangeVisible` フィールド削除）
@@ -1310,7 +1310,7 @@ git commit -m "test: 電線系テストを範囲ボックス相互判定の座�
 
 - [ ] **Step 1: pwd確認と該当箇所の削除**
 
-`cd /Users/katsumi/moorestech/moorestech_web && pwd` を確認後、`grep -rn "energizedRange" webui/src webui/e2e` で全ヒットを列挙し、上記5ファイル+ヒットした残り全てから `energizedRangeVisible` 関連の行を削除する。UI装飾は既存CSS/DOMのまま（webuiパリティ規約: 画像アセット追加禁止）。
+`cd ~/moorestech/moorestech_web && pwd` を確認後、`grep -rn "energizedRange" webui/src webui/e2e` で全ヒットを列挙し、上記5ファイル+ヒットした残り全てから `energizedRangeVisible` 関連の行を削除する。UI装飾は既存CSS/DOMのまま（webuiパリティ規約: 画像アセット追加禁止）。
 
 - [ ] **Step 2: Webテスト実行**
 
@@ -1329,15 +1329,15 @@ Expected: PASS。
 - [ ] **Step 5: 両リポジトリでCommit**
 
 ```bash
-cd /Users/katsumi/moorestech/moorestech_web && git add -A && git commit -m "feat: placement_mode契約からenergizedRangeVisibleを削除"
-cd /Users/katsumi/moorestech && git add moorestech_client/Assets/StreamingAssets && git commit -m "chore: WebUI distを契約変更に追従"
+cd ~/moorestech/moorestech_web && git add -A && git commit -m "feat: placement_mode契約からenergizedRangeVisibleを削除"
+cd ~/moorestech && git add moorestech_client/Assets/StreamingAssets && git commit -m "chore: WebUI distを契約変更に追従"
 ```
 
 ---
 
 ### Task 11: 実マスタ（moorestech_master）の更新と起動確認
 
-**Files（リポジトリ /Users/katsumi/moorestech_master）:**
+**Files（リポジトリ ../moorestech_master）:**
 - Modify: `server_v8/mods/moorestechAlphaMod_8/master/blocks.json`
 
 - [ ] **Step 1: 実マスタJSONを更新**
@@ -1354,7 +1354,7 @@ cd /Users/katsumi/moorestech && git add moorestech_client/Assets/StreamingAssets
 - [ ] **Step 3: Commit（別リポジトリ）**
 
 ```bash
-cd /Users/katsumi/moorestech_master && git add server_v8 && git commit -m "feat: 電線接続の範囲相互判定化に伴いconnectionRangeを追加しmaxWireLengthを削除"
+cd ../moorestech_master && git add server_v8 && git commit -m "feat: 電線接続の範囲相互判定化に伴いconnectionRangeを追加しmaxWireLengthを削除"
 ```
 
 ---
@@ -1363,7 +1363,7 @@ cd /Users/katsumi/moorestech_master && git add server_v8 && git commit -m "feat:
 
 - [ ] **Step 1: 全リポジトリのコミット漏れ確認**
 
-`/Users/katsumi/moorestech`・`/Users/katsumi/moorestech_master`・`/Users/katsumi/moorestech/moorestech_web` それぞれで `git status` を確認し、未コミットの作業をコミットする。
+`~/moorestech`・`../moorestech_master`・`~/moorestech/moorestech_web` それぞれで `git status` を確認し、未コミットの作業をコミットする。
 
 - [ ] **Step 2: moores-code-review スキルで全ブランチレビューを実行**
 

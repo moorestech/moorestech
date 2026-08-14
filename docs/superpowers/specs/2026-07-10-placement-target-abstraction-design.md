@@ -212,6 +212,6 @@ if (_blockPickService.TryPickBlockUnderCursor(out var picked))
 
 ## 実装環境
 
-- worktree: `/Users/katsumi/moorestech-worktrees/place-target`
+- worktree: `~/moorestech-worktrees/place-target`
 - ブランチ: `refactor/placement-target-abstraction`（base: `master-fable-tmp` @ d6c907fd8）
 - 本体working tree（歯車Tick作業中・コンフリクトあり）には触れない

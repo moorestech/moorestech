@@ -19,7 +19,7 @@
 - C# 変更後は必ず `uloop compile --project-path ./moorestech_client` を実行（ErrorCount 0 を確認）
 - 「Unity is reloading (Domain Reload in progress)」エラー時は45秒待機してリトライ
 - 各タスク完了時に必ず `git commit`（作業消失防止）
-- 作業ディレクトリ: `/Users/katsumi/moorestech-worktrees/tree2`（各タスク冒頭で `pwd` 確認）
+- 作業ディレクトリ: `~/moorestech-worktrees/tree2`（各タスク冒頭で `pwd` 確認）
 
 ## 配置と前例（spec-architecture-review 済み）
 

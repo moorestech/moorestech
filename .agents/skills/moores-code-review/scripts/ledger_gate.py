@@ -12,11 +12,12 @@
 """writing-plans の判断台帳関所（sim-gate.sh前例踏襲）。
 
 track: plan（docs/superpowers/plans/*.md）へのWrite/Editを状態ファイルに記録
-stop : 各planの先頭frontmatter `spec:` を解決し、plan本文の Modify:/Create: 対象のうち
-       lenses/*.md の paths（＋extensions）にマッチするファイルが、specの判断台帳
-       （## 判断記録（ADR）/ ## 判断台帳。次の##見出しまで）にbasenameで言及されて
-       いるか検査。未掲載があれば exit 2 でブロック（自前カウンタ上限2）。
-       レンズ該当対象が無いplanは spec: 欠落でもブロックしない（既存plan互換）。
+stop : plan本文の Modify:/Create: 対象のうち lenses/*.md の paths（＋extensions）に
+       マッチするファイルが、plan自身の判断台帳（## 判断記録（ADR）/ ## 判断台帳。
+       次の##見出しまで）にbasenameで言及されているか検査。未掲載があれば exit 2 で
+       ブロック（自前カウンタ上限2）。旧plan互換: frontmatter `spec:` が解決できる
+       場合はspec側の台帳も連結して検査対象に含める（spec廃止・2026-08-05裁定）。
+       レンズ該当対象が無いplanは台帳欠落でもブロックしない（既存plan互換）。
 """
 from __future__ import annotations
 
@@ -101,15 +102,16 @@ def missing_entries(plan_path: Path, rules: list[tuple[list[str], list[str]]]) -
     gated = [t for t in gated if matches_lens(t, rules)]
     if not gated:
         return []
+    # 台帳の正はplan自身の『## 判断記録（ADR）』。spec:があれば旧plan互換で連結する
+    # Plan's own ledger section is canonical; concatenate legacy spec ledger if resolvable
+    ledger = ledger_text(plan_path)
     spec_ref = frontmatter_spec(plan_text)
-    if not spec_ref:
-        return [f"{plan_path.name}: レンズ該当対象があるのに先頭frontmatterに spec: が無い"]
-    spec_path = resolve_spec(plan_path, spec_ref)
-    if spec_path is None:
-        return [f"{plan_path.name}: spec {spec_ref} が存在しない（frontmatterのパスを確認）"]
-    ledger = ledger_text(spec_path)
-    if not ledger:
-        return [f"{plan_path.name}: spec {spec_ref} に判断台帳セクション（## 判断記録（ADR））が無い"]
+    if spec_ref:
+        spec_path = resolve_spec(plan_path, spec_ref)
+        if spec_path is not None:
+            ledger = ledger + "\n" + ledger_text(spec_path)
+    if not ledger.strip():
+        return [f"{plan_path.name}: planに判断台帳セクション（## 判断記録（ADR））が無い"]
     return [f"{Path(t).name}（{t}）" for t in gated if Path(t).name not in ledger]
 
 
@@ -157,9 +159,9 @@ def main() -> int:
         blocks_state.write_text(str(count + 1))
         print(
             "ledger-gate: planのModify/Create対象にレンズpaths該当ファイルがありますが、"
-            "specの判断台帳に未掲載です: " + " / ".join(problems)
-            + " — specの『## 判断記録（ADR）』へ1行追記（対象ファイル名を含める）するか、"
-            "plan frontmatterの spec: パスを修正してください。掲載なき判断は免責力を持ちません。",
+            "planの判断台帳に未掲載です: " + " / ".join(problems)
+            + " — planの『## 判断記録（ADR）』へ1行追記（対象ファイル名を含める）して"
+            "ください。掲載なき判断は免責力を持ちません。",
             file=sys.stderr,
         )
         return 2

@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- 作業ブランチ: `feature/fix-eletric-connect`（worktree `/Users/katsumi/moorestech-worktrees/tree1`。最初に必ず `pwd` で確認）
+- 作業ブランチ: `feature/fix-eletric-connect`（worktree `~/moorestech-worktrees/tree1`。最初に必ず `pwd` で確認）
 - partial禁止・1ファイル200行以下・try-catch原則禁止・デフォルト引数禁止
 - Mooresmaster.Model.* は自動生成のみ。手動作成禁止
 - コメントは日本語・英語の2行セット（各1行）

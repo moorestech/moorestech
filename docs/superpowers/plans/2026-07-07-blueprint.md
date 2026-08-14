@@ -57,7 +57,7 @@
 
 - [ ] **Step 1: pwd確認とasmdef作成**
 
-Run: `pwd`（`/Users/katsumi/moorestech` であること）
+Run: `pwd`（`~/moorestech` であること）
 
 `Game.Blueprint.asmdef`:
 ```json

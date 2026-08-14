@@ -7,14 +7,9 @@ namespace Client.Tests.UIState
     {
         public readonly List<string> Calls = new();
 
-        public void SetCursorVisible(bool visible)
+        public void SetInteractionMode(CameraInteractionMode mode)
         {
-            Calls.Add($"Cursor:{visible}");
-        }
-
-        public void SetCameraRotatable(bool rotatable)
-        {
-            Calls.Add($"Rotatable:{rotatable}");
+            Calls.Add($"Mode:{mode}");
         }
     }
 }

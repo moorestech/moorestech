@@ -1,1 +1,0 @@
-{"idx": 4, "predictions": [{"header": "割当操作", "predicted_label": "両方（長押し＋D&D）", "rationale": "deviation-cases.md 1節が「割当操作は数字キー長押しかD&Dか→実回答は両方」を具体事例として明記しており、adjudications.mdの『YAGNIの適用先は実装構造であってプレイヤー体験ではない。入力導線の併存は削らない』とも一致する。質問の主語がプレイヤー操作なので実装コスト理由の一本化は選ばれない。", "confidence": "高"}]}

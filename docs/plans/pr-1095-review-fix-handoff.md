@@ -3,7 +3,7 @@
 ## 状況
 
 - 対象: PR #1095「設置対象をGUID化し装備スロットとサーバー権威採掘を実装する」
-- ブランチ: `feature/placement-guid-equipment-mining` / worktree `/Users/katsumi/moorestech-worktrees/tree2` / HEAD `3a84588b6`（74ba6e8以降はmasterマージとスキル改修のみ・プロダクトコードの修正対象は不変）
+- ブランチ: `feature/placement-guid-equipment-mining` / worktree `~/moorestech-worktrees/tree2` / HEAD `3a84588b6`（74ba6e8以降はmasterマージとスキル改修のみ・プロダクトコードの修正対象は不変）
 - 人間レビュー 4829833297（18件・コメントanchor `74ba6e8`）＋較正済み独立レビュー再実走の統合結果に基づく**コード修正が未着手**。本書はその実施指示書
 - 参照物:
   - ダイジェストHTML（全指摘のコード抜粋・直し方つき）: `/tmp/pr-review-1095/index.html`

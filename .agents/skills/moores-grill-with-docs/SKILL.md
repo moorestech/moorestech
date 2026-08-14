@@ -1,11 +1,12 @@
 ---
 name: moores-grill-with-docs
 description: |
-  A relentless interview to sharpen a plan or design, which also creates docs (ADRs and glossary) as we go.
-  grill-with-docs（mattpocock/skills）のmoorestechローカルフォーク。上流との同期はせずオリジナル路線で編集する。
+  実装前の設計インタビュー。裁定をADR・用語集に残しwriting-plansへ接続する。
   Use when:
-  1. 「設計を詰めたい」「壁打ちしたい」「〜機能を作りたい」「仕様を相談したい」と設計対話を始める時
-  2. 「grillして」「grill-with-docsで」と言われた時
+  1. 機能追加・挙動の変更・「〜にしたい」「〜作りたい」型の依頼すべて — バグ修正や小修正に見えても、望む挙動を指定する依頼は対象。実装より先に起動する
+  2. 設計相談・壁打ち・仕様相談・「これどうしたらいい？」型の相談
+  3. 「grillして」「grill-with-docsで」「ブレストして」と言われた時
+  対象外: 調査・質問への回答・明示されたクラッシュ/コンパイルエラー修正・レビュー依頼
 hooks:
   PostToolUse:
     - matcher: "Write|Edit"
@@ -19,6 +20,12 @@ hooks:
 ---
 
 Run a `/grilling` session, using the `/domain-modeling` skill.
+
+設計対話中のB判定（設計原則との照合）には [references/moorestech-principles.md](references/moorestech-principles.md) を参照する（旧brainstormingから移設。user-simulatorの知識indexも同ファイルを参照している）。
+
+## HARD GATE（実装着手の禁止）
+
+設計裁定が出揃いADRを書き終えてwriting-plansへ接続するまで、実装スキルの起動・コードの書き込み・プロジェクトのscaffoldを一切行わない。「シンプルすぎて設計不要」という例外は無い — TODOリスト1個・関数1本・設定変更1行でも通す。真に単純なら対話は数問で終わる。短くてよいが省略しない。
 
 ## moorestech追加規約
 
@@ -34,9 +41,9 @@ Run a `/grilling` session, using the `/domain-modeling` skill.
 
 後日「これは誰が決めたか」を遡れることが目的。出所の偽装（agent判断を裁定済みの顔で書く）は禁止。
 
-### 2. 設計完了後は writing-plans へ接続
+### 2. 出口の一本化（writing-plans へ直行）
 
-設計・ADRが確定したら、実装着手前に writing-plans スキルで実装計画を作成する。
+設計・ADRが確定したら、終端状態は「**同一セッションでの writing-plans スキル起動**」のみ。spec等の中間文書は書かない — 要件は会話コンテキスト経由でplan先頭の `## Requirements` セクションへ流れ込む。他スキル・実装への分岐は禁止。
 writing-plans 側の user-simulator による plan review（sim-gate配線）は既存のまま維持する。
 設計フェーズでは user-simulator を自動起動しない（大きな設計で必要な場合のみユーザーが手動起動する）。
 

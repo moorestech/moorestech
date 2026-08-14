@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- 作業場所: `/Users/katsumi/moorestech-worktrees/place-target`（ブランチ `refactor/placement-target-abstraction`）。本体working treeには触れない
+- 作業場所: `~/moorestech-worktrees/place-target`（ブランチ `refactor/placement-target-abstraction`）。本体working treeには触れない
 - 1ファイル200行以下。partial絶対禁止。デフォルト引数禁止（新規追加分）
 - 主要処理に日本語→英語の2行セットコメント（各1行厳守）。自明なコメントは書かない
 - .cs変更後は必ず `uloop compile --project-path ./moorestech_client`（worktreeルートから実行）
@@ -108,7 +108,7 @@ namespace Client.Tests.PlaceSystem
 
 - [ ] **Step 2: コンパイルして失敗を確認**
 
-Run: `cd /Users/katsumi/moorestech-worktrees/place-target && uloop compile --project-path ./moorestech_client`
+Run: `cd ~/moorestech-worktrees/place-target && uloop compile --project-path ./moorestech_client`
 Expected: `Targets` 名前空間が存在せずコンパイルエラー
 
 - [ ] **Step 3: ターゲット型6ファイルを実装**

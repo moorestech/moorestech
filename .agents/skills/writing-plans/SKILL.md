@@ -1,6 +1,6 @@
 ---
 name: writing-plans
-description: マルチステップタスクのspecや要件が揃っていて、コードに着手する前に使う
+description: マルチステップタスクの設計（grillのADR）と要件が揃っていて、コードに着手する前に使う
 hooks:
   PreToolUse:
     - matcher: "AskUserQuestion"
@@ -32,6 +32,8 @@ hooks:
 
 **開始時に宣言:** 「writing-plansスキルを使って実装計画を作成します」
 
+**最初に必ず実行（plan記述前）:** `git pull` を実行してプロジェクトを最新の状態にしてからplanを書き始める。古いコードを前提にしたplanは実装時に破綻するため、pullを省略しない。pullがコンフリクト等で失敗した場合は、planを書き始めずにその旨をユーザーに報告して指示を仰ぐ。
+
 **Context:** 独立したworktreeで作業する場合、実行時に`superpowers:using-git-worktrees`スキル経由で作成されているはず。
 
 **plan保存先:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
@@ -39,7 +41,7 @@ hooks:
 
 ## Scope Check
 
-specが複数の独立したサブシステムにまたがる場合、brainstorming段階でサブプロジェクトごとのspecに分割されているはず。分割されていなければ、サブシステムごとに別々のplanへ分けることを提案する。各planはそれ単体で動作しテスト可能なソフトウェアを生み出すべき。
+要件が複数の独立したサブシステムにまたがる場合、設計セッション（grill）の段階でサブプロジェクトごとに分割されているはず。分割されていなければ、サブシステムごとに別々のplanへ分けることを提案する。各planはそれ単体で動作しテスト可能なソフトウェアを生み出すべき。
 
 ## File Structure
 
@@ -67,15 +69,9 @@ specが複数の独立したサブシステムにまたがる場合、brainstorm
 
 ## Plan Document Header
 
-**すべてのplanはファイル先頭に frontmatter で対応specパスを持つ**（ledger-gateが判断台帳の所在を特定する。必須）:
+**spec文書は作らない。** 設計セッション（moores-grill-with-docs）の成果はADR（`docs/adr/`）と用語集であり、要件は本plan先頭の `## Requirements` セクションに書く。判断台帳はplan末尾の『## 判断記録（ADR）』が正で、ledger-gateもそれを読む（旧planのfrontmatter `spec:` は互換のため、解決できればspec側台帳も連結して検査される）。
 
-```markdown
----
-spec: docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md
----
-```
-
-**続けて必ずこのヘッダーから始める:**
+**必ずこのヘッダーから始める:**
 
 ```markdown
 # [Feature Name] Implementation Plan
@@ -88,11 +84,17 @@ spec: docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md
 
 **Tech Stack:** [主要な技術/ライブラリ]
 
+## Requirements
+
+[設計対話（grill）で確定した要件を列挙する。1行1要件・各行に受け入れ基準を含める。
+「やらないこと」（スコープ境界）も明記する。planning着手時に最初に書き出すこと —
+このセクションがSelf-Reviewのカバレッジ検査の照合表になる]
+
 ## Global Constraints
 
-[specのプロジェクト全体の要件 — バージョン下限、依存関係の制限、
-命名・表記のルール、プラットフォーム要件 — specから正確な値を
-逐語的にコピーし1行ずつ記載する。すべてのタスクの要件は暗黙的に
+[プロジェクト全体の要件 — バージョン下限、依存関係の制限、
+命名・表記のルール、プラットフォーム要件 — Requirementsと設計ADRから
+正確な値を逐語的に記載する。すべてのタスクの要件は暗黙的に
 このセクションを含む]
 
 ---
@@ -103,6 +105,14 @@ explicit closing task — 「必ず最後にmoores-code-reviewスキルで全ブ
 レビューを実行すること（自動実行・ゴール文言による省略不可）」。実行者は
 これを無条件に実行する。planから省略してもゲートは免除されない
 （subagent-driven-developmentのmandatory-gateセクション参照）。
+
+**unityプレイ録画テストの実行を検討する（moorestech, required check）:** plan作成時、
+ランタイム挙動（ゲームプレイ・入力・カメラ・UI・エンティティ表示等）に触れる変更なら、
+ユニットテストに加えて**unityプレイ録画テスト**（`unity-playmode-recorded-playtest`スキル。
+PlayModeを録画付きで通しプレイ検証するもの。「PlayModeテスト」と曖昧に書かず必ずこのスキル名で指す）
+をタスクとしてplanに含めるか必ず検討する。録画付き通し検証まで不要な場合の軽量代替は
+EditModeInPlayingTest（editmode-in-playing-testスキル・uloop run-testsで実行）。
+含めない場合はその判断理由を `## 判断記録（ADR）` に1行残す（無言の省略は禁止）。
 
 ## Task Structure
 
@@ -153,7 +163,7 @@ git commit -m "feat: add specific feature"
 ```
 ````
 
-**判断台帳掲載義務（機械的下限）:** タスクの `Modify:`/`Create:` 対象が `.claude/skills/moores-code-review/lenses/*.md` の `paths` 正規表現にマッチする場合、その改修判断はspecの『## 判断記録（ADR）』への掲載が必須（級の自己判定によらない）。未掲載は ledger-gate（Stop hook）がブロックする。掲載なき判断はレビュー免責力を持たない。カバー範囲はpaths発火型レンズのみ — keywords発火型の観点はレビュー段階のsuppressed規則で捕捉される。**Files節の対象は必ずリポジトリ相対パスで書く**（裸のクラス名だけの表記はゲートの検査対象から漏れる）。
+**判断台帳掲載義務（機械的下限）:** タスクの `Modify:`/`Create:` 対象が `.claude/skills/moores-code-review/lenses/*.md` の `paths` 正規表現にマッチする場合、その改修判断はplanの『## 判断記録（ADR）』への掲載が必須（級の自己判定によらない）。未掲載は ledger-gate（Stop hook）がブロックする。掲載なき判断はレビュー免責力を持たない。カバー範囲はpaths発火型レンズのみ — keywords発火型の観点はレビュー段階のsuppressed規則で捕捉される。**Files節の対象は必ずリポジトリ相対パスで書く**（裸のクラス名だけの表記はゲートの検査対象から漏れる）。
 
 ## No Placeholders
 
@@ -173,42 +183,48 @@ git commit -m "feat: add specific feature"
 
 ## Self-Review
 
-完全なplanを書き終えたら、specを新鮮な目で見直し、planと突き合わせる。これは自分自身で実行するチェックリストであり、subagentへの委譲ではない。
+完全なplanを書き終えたら、`## Requirements` と設計ADRを新鮮な目で見直し、planと突き合わせる。これは自分自身で実行するチェックリストであり、subagentへの委譲ではない。
 
-**1. Spec coverage:** specの各セクション・要件をざっと確認する。それを実装するタスクを指し示せるか？漏れがあれば列挙する。
+**1. Requirements coverage:** `## Requirements` の各行をざっと確認する。それを実装するタスクを指し示せるか？漏れがあれば列挙する。
 
 **2. Placeholder scan:** 上記「No Placeholders」セクションのパターンに該当する危険信号がないか、planを検索する。見つけたら修正する。
 
 **3. Type consistency:** 後段のタスクで使った型・メソッドシグネチャ・プロパティ名は、前段のタスクで定義したものと一致しているか？Task 3では`clearLayers()`、Task 7では`clearFullLayers()`という関数名になっているのはバグである。
 
-問題を見つけたらその場で修正する。再レビューは不要 — 修正して次に進む。specの要件に対応するタスクが見つからなければ、タスクを追加する。
+問題を見つけたらその場で修正する。再レビューは不要 — 修正して次に進む。Requirementsの行に対応するタスクが見つからなければ、タスクを追加する。
 
 ## Simulator Review + 判断記録（ADR）— required, after Self-Review
 
 Self-Review（内容）と spec-architecture-review（構造）を終えたら、Execution Handoff の**前**に必ず:
 
-1. **user-simulator スキルを実行する**（reviewモード）— `user-simulator/modes/review/protocol.md` に従いFable判事を起動し、予測レポート（元々の想定/適用済み指摘/要裁定/見なかった領域）を受けてCriticalをインライン修正、要裁定はpreanswerを通してAskUserQuestionへ。specのADRをcontextに含め、裁定済み事項を蒸し返させない。実行結果の採点を misses.md に記録し、外し（追加指摘/誤検知）は即ハンドオフ発行。
-2. **plan末尾に `## 判断記録（ADR）` を置く** — specのADRへのリンク1行＋planning中に新たに生じた判断（タスク分割・機構比較・シミュレーター裁定）を追記する。シミュレーター予測を承認させた裁定は出所「シミュレーター予測→ユーザー承認」と書く。
+1. **user-simulator スキルを実行する**（reviewモード）— `user-simulator/modes/review/protocol.md` に従いFable判事を起動し、予測レポート（元々の想定/適用済み指摘/要裁定/見なかった領域）を受けてCriticalをインライン修正、要裁定はpreanswerを通してAskUserQuestionへ。設計ADR（`docs/adr/`）とplanの判断記録をcontextに含め、裁定済み事項を蒸し返させない。実行結果の採点を misses.md に記録し、外し（追加指摘/誤検知）は即ハンドオフ発行。
+2. **plan末尾に `## 判断記録（ADR）` を置く** — 設計セッションのADR（`docs/adr/`）へのリンク＋planning中に新たに生じた判断（タスク分割・機構比較・シミュレーター裁定）を追記する。シミュレーター予測を承認させた裁定は出所「シミュレーター予測→ユーザー承認」と書く。
 
 ## Execution Handoff
 
-planを保存したら、実行方法の選択肢を提示する:
+実装は**新規セッションでのsubagent-driven-development**が既定。このセッションで実行方法の選択肢を提示せず、新規セッション用の開始プロンプトを出力して終える（planning済みセッションはコンパクト対象で、コンパクト要約は非監査・何が落ちるか制御できない。監査済み成果物であるplan・ADR・`.decisions/`だけで開始できる状態を作り、フルコンテキストの新規セッションへ引き継ぐ）。
 
-**「planが完成し`docs/superpowers/plans/<filename>.md`に保存されました。実行方法は2つ:**
+手順:
 
-**1. Subagent-Driven（推奨）** — タスクごとに新規subagentを起動し、タスク間でレビューを行い、高速に反復する
+1. **引き継ぎ完全性チェック**: 「planとADRと`.decisions/`だけ読んで実装できるか？」に Yes と言えるか確認する。会話の中でしか決まっていない裁定・制約が1つでも残っていれば、planの `## 判断記録（ADR）` か `.decisions/` へ書き落としてから次へ進む（新規セッションでは会話コンテキストは完全に消える）。
 
-**2. Inline Execution** — このセッション内でexecuting-plansを使ってタスクを実行し、チェックポイント付きでバッチ実行する
+2. **開始プロンプトを出力する**: 以下のテンプレートを埋め、ユーザーがそのままコピペできるコードブロックで出力する:
 
-**どちらの方法にしますか？」**
+   ````markdown
+   planが完成し`docs/superpowers/plans/<filename>.md`に保存されました。新規セッションを開き、以下を貼り付けて実装を開始してください:
 
-**Subagent-Drivenを選んだ場合:**
-- **REQUIRED SUB-SKILL:** superpowers:subagent-driven-developmentを使う
-- タスクごとに新規subagent＋二段階レビュー
+   ```
+   subagent-driven-development スキルを使って、以下の実装planを実行してください。
 
-**Inline Executionを選んだ場合:**
-- **REQUIRED SUB-SKILL:** superpowers:executing-plansを使う
-- レビュー用チェックポイント付きのバッチ実行
+   - plan: docs/superpowers/plans/<filename>.md
+   - 作業場所: <ブランチ名>（worktreeの場合はそのパスも記載）
+   - まずplan全文を読み、`## Requirements`・`## Global Constraints`・`## 判断記録（ADR）`を全タスク共通の制約として扱ってください
+   - 進捗はplanのチェックボックス更新で管理してください
+   - planの最終タスク（moores-code-reviewによる全ブランチレビュー）は省略不可です
+   ```
+   ````
+
+このセッション内でのInline Execution（タスクを直接順次実行）は、ユーザーが明示的に希望した場合のみ行う。自分から選択肢として提示しない。
 
 # 追加SKILL:spec-architecture-review
 
@@ -218,7 +234,7 @@ description: |
   設計書（spec）・実装計画（plan）をユーザーレビューやコミットに出す前に、そこに書かれた「配置決定」（どの型・メンバーをどのアセンブリ/層に置くか、どの機構を使うか）を全件抽出し、層責務・既存前例・プロジェクトイディオムと突合して違反を自己修正するレビュースキル。質問トリアージ（design-question-triage）が「質問前」を守るのに対し、このスキルは「質問にならず設計書へ静かに書き込まれた誤配置」を捕まえる。
   Use when:
   1. 設計書・スペック・実装計画を書き終えて、ユーザーレビュー依頼やコミットに出す直前（毎回必須）
-  2. brainstorming 系スキルの「設計提示」「spec self-review」フェーズに入る時
+  2. grill 系スキルで確定した設計を文書化・plan化するフェーズに入る時
   3. writing-plans 系スキルの「plan self-review」フェーズに入る時
   4. 設計レビューで「その層に置くのはおかしい」「その機構はプロジェクト標準と違う」という指摘を受けた後の再発防止として
 ---
@@ -232,13 +248,13 @@ description: |
 書いた瞬間は合理的に見えるが、コードベースの所有権モデルを壊す。
 この種の誤りは質問の形を取らないため質問トリアージでは捕まらない。**書かれた設計書自体を検査する**必要がある。
 
-内容の正しさ（プレースホルダ・内部整合・スコープ）は既存の spec self-review が見る。
+内容の正しさ（プレースホルダ・内部整合・スコープ）は既存の Self-Review（内容検査）が見る。
 このスキルが見るのは**構造の正しさ**: 「どこに置くか」「何の機構を使うか」がこのコードベースの流儀に合っているか。
 
 ## 発火タイミング
 
 設計書・実装計画を「書き終えた」と思った直後、ユーザーに見せる・コミットする**前**。
-spec と plan の両方に対して実行する（plan は spec に無かった配置詳細が増えるため、spec で済ませたから plan は不要、とはならない）。
+plan に対して毎回実行する（設計文書を別途書いた場合はそれにも実行する。文書側で済ませたから plan は不要、とはならない）。
 
 ## 検査スコープ — 何を見て、何を見ないか
 
@@ -246,7 +262,7 @@ spec と plan の両方に対して実行する（plan は spec に無かった�
 
 見ないもの（findingsに混ぜたら誤り。気づいた場合は findings 外の備考1行に留める）:
 - **実現可能性・実在性**: 参照クラスが実在するか、既存APIで実装が成立するか（実装フェーズとコンパイラの責務）
-- **内容の正しさ・網羅性**: 要件漏れ、テスト不足、曖昧さ（既存の spec self-review の責務）
+- **内容の正しさ・網羅性**: 要件漏れ、テスト不足、曖昧さ（既存の Self-Review（内容検査）の責務）
 - **改善余地**: 前例が肯定している形に対する「より良くできる」提案。前例通りの配置は verdict: ok。
   違反と断定できるのは**規約表・前例と矛盾する場合のみ**であり、判断が割れる配置（例: どのマスタymlに置くか）は
   violation ではなく「新規パターン/判断点」としてユーザー注目点に回す
@@ -370,7 +386,7 @@ No なら、それはドメイン層に置くべきものである。
 | 「データの出所がマスタだからマスタクラスへ」 | データの出所と解釈ロジックの所有者は別物。解釈はドメイン層が持つ |
 | 「新機能だから新しい制御フロー（bool戻り・専用セッター・イベント）を足す」 | 既存パイプライン参加機能の実体は「書き手が1人増える」だけ。Phase 1.5 で矢印列を書き、交差点を足していないか確認せよ |
 | 「C# 標準の event/Action で十分」 | 機構選定の基準は十分性ではなく統一性。プロジェクト標準に合わせる |
-| 「specに書くほどの詳細ではない」 | 配置とイディオムは設計の一部。書かなければ実装時に都合で決まる |
+| 「planに書くほどの詳細ではない」 | 配置とイディオムは設計の一部。書かなければ実装時に都合で決まる |
 | 「後で直せる」 | 設計書に書いた配置はそのまま実装・レビューされ、手戻りが最大化する |
 | 「既存機構を凍結/抑止/許可リストで黙らせるのが手っ取り早い」 | それは機構選択の分岐点。検査4で受動的統合案（無傷で動かし購読・ミラー）と名前付き比較せよ |
 | 「動いている機能が死ぬのは既知の制限と書けばよい」 | 動作中機能の喪失は制限でなく裁定事項。Phase 2.5 の死活表に載せ、実装前に選択肢付きで質問する |
