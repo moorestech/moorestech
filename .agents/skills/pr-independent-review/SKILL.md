@@ -46,7 +46,7 @@ featureブランチが記録ファイルに触れてマージ衝突する構造�
   既存runを上書きしない
 - Step 1の直後に `mkdir -p <$RUNDIRの実値>` を1回だけ実行する
 - ファイル名は固定: `patch.diff` / `context.md` / `novelty.json` / `detchecks.json` / `codex-audit.md` /
-  `digest.html` / `reconcile-comments.json`。PR番号はディレクトリ名が持つのでファイル名に含めない
+  `digest.html` / `findings.json` / `reconcile-comments.json`。PR番号はディレクトリ名が持つのでファイル名に含めない
 - `$RUNDIR` 配下もhookで自動commit・pushされる（PRの実コードを含むが、logs repoはprivateなので出荷先として正しい）
 
 - **`$CANON` は本ドキュメント上のプレースホルダであり、シェル変数ではない**。Bashコマンド・subagentのprompt・
@@ -432,6 +432,53 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   4. 参考扱いのnew_edges（`generic_origin=false` のもの・`dir_is_new=true` のもの。裁定カードにはしない）
   5. 各系統（決定論／レンズ／reviewer／Codex／Fable／post-checksガード）の生所見要約を系統ごとに1ブロック。
      Codex不在等の縮退があればここに明記する
+
+## Step 7.5: findings.json生成
+
+`<$RUNDIRの実値>/findings.json` に、Step 7で確定したdigest.htmlの各カード（Critical要点／設計判断／新形／suppressed）を
+機械可読形式で書き出す。**このJSONは裁定サイトとpr-adjudicated-applyスキルの入力になる**。
+
+- **単一ソース原則**: digest.html・`$LOGS/harness/pr-independent-review/records/pr-<番号>.md` と矛盾しないよう、
+  Step 7で確定したカード内容からそのまま生成する（別セッションのつもりで所見を数え直さない）。
+  digestの各カードとfindings配列の各要素が1対1対応するのが理想
+- スキーマ:
+
+```json
+{
+  "pr": <PR番号>,
+  "head": "<レビューしたheadの40桁SHA（Step 8の `- head:` と同値）>",
+  "verdict": "<verdict判定規則で確定した最終verdict>",
+  "generated_at": "<ISO8601（このステップ実行時刻）>",
+  "findings": [
+    {
+      "id": "F01",
+      "title": "<指摘の一行タイトル>",
+      "severity": "critical|high|medium|low",
+      "category": "critical|design-decision|novelty",
+      "files": ["path/to/file.cs:123"],
+      "excerpt": "<問題箇所のコード抜粋>",
+      "recommendation": "<推奨対応の要約>",
+      "suppressed": false,
+      "suppress_reason": ""
+    }
+  ]
+}
+```
+
+- **severityの対応**: Critical要点カード→`critical` / 折りたたみ参考のWarning→`high` / 設計判断カード→`medium` /
+  新形カード・Info→`low`。suppressedの項目は免責前の分類のseverityをそのまま引き継ぐ（suppressedを理由に格下げしない）
+- **categoryの対応**: どのdigestカード種別由来かを `critical` / `design-decision`（設計判断＝Step 8の「裁定」節と対応） /
+  `novelty`（新形）のいずれかで記す。suppressed由来の項目も免責前のカード種別をそのまま書く
+  （抑制の事実はcategoryではなく `suppressed` フラグ側で表現する）
+- **裁定（採用された指摘）とsuppressed（抑制された指摘）の両方を1つのfindings配列に入れる**。
+  suppressedは配列から除外せず `suppressed: true` ＋ `suppress_reason`（suppressed-by出所を要約）で区別する
+- **files**: `path/to/file.cs:行番号` 形式。Step 5の規約どおり `line` がnullの所見（`schema_change` 等ファイル単位の所見）は
+  ファイルパスのみとし `:行番号` を付けない
+- **excerpt**: Step 3のpatchから機械的に転記する（創作・要約禁止。Step 7のコード抜粋契約と同じ）
+- **id採番**: severity降順（critical→high→medium→low）→ファイルパス昇順で `F01` から連番を振る。
+  同一ファイルパス内はさらに行番号昇順で安定させる
+- **エスケープ不要**: JSON文字列としてそのまま格納する（digest.html用のHTMLエスケープ処理は適用しない）
+- 保存はこれで完了（`$RUNDIR` 直下のため、Stop/SessionEnd hookが自動でcommit・pushする。Step 7の生成物と同じ扱い）
 
 ## Step 8: 記録
 

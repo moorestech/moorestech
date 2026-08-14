@@ -1,0 +1,158 @@
+---
+name: pr-adjudicated-apply
+description: |
+  人間の裁定結果（adjudications.json）に基づき、pr-independent-reviewが出力したfindings.jsonのうち
+  decision:"adopt"の指摘だけをPRブランチへ実装・検証・pushする無人実行スキル。PR番号を受け取り、
+  メインクローンでPRのheadブランチへcheckoutして修正し、コンパイル・関連テストで検証してからpushする。
+  裁定未完了時は即座にfailureとして終了し、却下された指摘・新規発見の問題には一切触れない。
+  Use When:
+  1. 「/pr-adjudicated-apply <PR番号>」で起動された時
+  2. 「裁定結果をPRに適用して」「adoptされた指摘を直してpushして」と言われた時
+  3. pr-independent-reviewの裁定サイトで裁定が完了したPRへ、無人で対応を反映させる時
+---
+
+# pr-adjudicated-apply — 裁定結果のPR適用（無人実行）
+
+**このスキルは無人パイプラインの一部として動く。AskUserQuestionは使わない**（禁止事項参照）。
+ユーザーに確認を求めたくなった判断は、実装せずapply-result.jsonのsummaryへ記載して終える。
+
+**入出力の置き場**: `$LOGS` はメインリポジトリの兄弟にあるprivateログrepo `../moorestech_logs`
+（`git rev-parse --show-toplevel` の親ディレクトリ直下）、
+`$RUNDIR = $LOGS/harness/pr-independent-review/runs/pr-<番号>/`。
+`$LOGS` / `$RUNDIR` は本ドキュメント上のプレースホルダでありシェル変数ではない。
+コマンド・ファイルパスへ渡すときは必ず実値の絶対パスへ展開して書く。
+
+**$REPO（メインクローン）**: このSKILL.mdを実行しているセッションのリポジトリルート
+（`git rev-parse --show-toplevel` の出力）。pr-independent-reviewの専用レビューworktree
+（`~/moorestech-worktrees/pr-review`）は使わない — 本スキルはPRブランチへ実際にcommit・pushするため、
+そのブランチの本来の置き場であるメインクローンで作業する。`$REPO` も実値の絶対パスへ展開して書く。
+
+## Step 1: 入力読み込み・裁定完了ゲート（最初に必ず通る）
+
+1. `<$RUNDIRの実値>/findings.json` と `<$RUNDIRの実値>/adjudications.json` をReadする。
+2. **次のいずれかに該当したら、その時点で即座に失敗として終了する**（後続Stepへ進まない。
+   ブランチ操作はまだ行っていないので後片付けは不要）:
+   - `findings.json` が存在しない（レビュー未実施）
+   - `adjudications.json` が存在しない（裁定未着手）
+   - `adjudications.json` は存在するが、トップレベルの `completed` が `true` でない（裁定作業中）
+   - `adjudications.json` の `items` 配列内に、`findings.json` に存在しないidへの参照がある（データ不整合）
+   - `findings.json` の非suppressed findingのいずれかに対応する `items` エントリが無い（裁定漏れ。
+     `completed:true` の自己申告を信用せず、実データで裏取りする）
+
+   失敗時は `<$RUNDIRの実値>/apply-result.json` に次を書いて終了する:
+
+       {"status": "failure", "pushed_commits": [], "summary": "裁定未完了", "tests": ""}
+
+   （理由が「裁定未完了」以外の不整合の場合は `summary` にその具体理由を書く。書式は「裁定未完了」固定ではなく
+   実際の理由を簡潔に記す）
+
+3. `adjudications.json` の期待スキーマ（裁定サイトの出力契約）:
+
+       {
+         "pr": <PR番号>,
+         "completed": true,
+         "completed_at": "<ISO8601>",
+         "items": [
+           {"id": "F01", "decision": "adopt|reject", "comment": "<人間の補足指示（任意・空文字可）>"}
+         ]
+       }
+
+## Step 2: スコープ確認（adopt以外には絶対に触れない）
+
+- `items` のうち `decision == "adopt"` のものだけを対象findingとして抽出する。`reject` は一切触らない
+- **各対象findingの `comment` は人間からの補足指示として尊重する** — `recommendation` と矛盾する場合は
+  `comment` を優先する（人間が最新の判断を書いているため）
+- 対象findingが0件（全件reject、またはadopt 0件）の場合、Step 3以降（ブランチ操作・修正・push）は一切行わず、
+  Step 7の出力へ進む（`status: "success"`、`pushed_commits: []`、summaryに「採用指摘0件、変更なし」と記載）
+- **実装中に気づいた「reject指摘の再燃」や「新たに見つけた別の問題」は絶対に修正しない**。
+  見つけた場合はapply-result.jsonの `summary` に「見送り: <内容>」として記載するに留める
+  （このスキルの責務は裁定の反映のみ。新たなレビューの実施はpr-independent-reviewの責務）
+
+## Step 3: 作業ブランチ準備
+
+対象findingが1件以上ある場合のみ実行する（Step 2で0件なら本Stepはスキップ）。
+
+1. **dirtyチェックを最初に行う**: `git -C <$REPOの実値> status --porcelain` が非空なら、
+   ブランチ操作を一切せず即座に失敗として終了する（他作業を壊さないため）。
+   apply-result.jsonの `summary` に「working treeがdirtyのため中止」と書く
+2. **元ブランチを記録する**（Step 8の後片付けで使う）:
+   - `git -C <$REPOの実値> symbolic-ref --short -q HEAD` が値を返せばそれが `ORIGINAL_REF`（ブランチ名）
+   - 値が空（detached HEAD）なら `git -C <$REPOの実値> rev-parse HEAD` の出力を `ORIGINAL_REF` とする
+3. PRのheadRefNameを取得する: `gh pr view <番号> --repo moorestech/moorestech --json headRefName,headRefOid`
+4. PRのheadをfetchしてローカルブランチへ反映する（既存の同名ローカルブランチがあってもPRの最新headへ揃える）:
+
+       git -C <$REPOの実値> fetch origin pull/<番号>/head && \
+         git -C <$REPOの実値> checkout -B <headRefName> FETCH_HEAD
+
+5. checkout後、`git -C <$REPOの実値> rev-parse HEAD` が手順3の `headRefOid` と一致することを確認する。
+   不一致なら即座に失敗として終了し（Step 8で元ブランチへ戻ってから）、理由をsummaryに記す
+
+**この時点から先でどのように終了しても、Step 8（後片付け）を必ず実行してからapply-result.jsonを書く。**
+
+## Step 4: 修正実装
+
+対象finding（Step 2で抽出したadopt分）それぞれについて、`recommendation` と `comment`（あれば）に従って
+`files` の指すコードを修正する。AGENTS.mdの規約を遵守する:
+
+- コメントは日本語→英語の2行セット（3〜10行ごと）、`#region Internal` はローカル関数用途限定
+- `partial` 禁止、`Func<>` 禁止、デフォルト引数禁止、単純getter/setterプロパティ禁止
+- 命名は実処理と一致させる、初期化メソッド名は `Initialize` 固定
+- イベント発火に `Action` を使わない（UniRx）
+
+修正がAGENTS.mdの規約と衝突する場合（例: recommendationがpartial化を示唆している等）は、
+規約を優先しrecommendationの意図を保ったまま規約準拠の形で実装する。それでも両立できない場合は
+その finding をStep 7のsummaryに「見送り: 規約と衝突」として記録し、実装しない。
+
+## Step 5: 検証
+
+- **.csファイルを1つでも変更したら** `cd <$REPOの実値> && uloop compile --project-path ./moorestech_client` を必ず実行する
+- 修正箇所に関連するテストを `cd <$REPOの実値> && uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<関連regex>"` で実行する
+  （`<関連regex>` は修正したクラス・機能に対応するテストクラス名から組み立てる）
+- **コンパイルまたはテストが失敗し、かつStep 4の範囲内で直しきれない場合は、pushせず失敗として終了する**
+  （Step 8で元ブランチへ戻ってから、apply-result.jsonの `status` を `"failure"`、`tests` に失敗内容を書く）
+- ドメインリロード中のエラー（「Unity is reloading」）はAGENTS.md記載どおり45秒待ってリトライする
+
+## Step 6: commit & push
+
+- 採用finding単位、または意味的にまとまる単位でcommitする。コミットメッセージ末尾に必ず次を含める:
+
+      Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+
+- 全commit後、PRブランチへpushする: `git -C <$REPOの実値> push origin HEAD:<headRefName>`
+- pushした各commitのSHAとsubjectを控えておく（Step 7の `pushed_commits` に使う）
+
+## Step 7: 出力
+
+`<$RUNDIRの実値>/apply-result.json` を書く（Step 8の後片付けの後に書いても先に書いてもよいが、
+このファイルを書かずに終了することは禁止）:
+
+    {
+      "status": "success|failure",
+      "pushed_commits": ["<sha> <subject>", "..."],
+      "summary": "<何を直したか・何を見送ったか（対象外finding・規約衝突による見送り等）を簡潔に>",
+      "tests": "<実行したコンパイル・テストコマンドと結果>"
+    }
+
+**PRへのコメント投稿・ラベル操作は一切行わない**（poller側の責務）。
+
+## Step 8: 後片付け（成功・失敗を問わず必ず実行）
+
+Step 3でブランチを切り替えた場合（＝対象findingが1件以上あり、dirtyチェックを通過した場合）は、
+Step 3〜7のどこで終了するとしても、apply-result.jsonを書く前に必ず元ブランチへ戻る:
+
+    git -C <$REPOの実値> checkout <ORIGINAL_REFの実値>
+
+失敗終了で未commitの変更が残っている場合は、先に `git -C <$REPOの実値> reset --hard` で破棄してから戻る
+（push済みでない失敗applyの変更は再実行時にゼロから作り直すため、残す価値がない。
+元ブランチ側の作業はStep 3のdirtyチェックで存在しないことを保証済み）。
+
+Step 1・Step 2（対象0件）で終了した場合はブランチ操作自体を行っていないため、本Stepは不要。
+
+## 禁止事項
+
+- **AskUserQuestionの使用禁止**（無人実行前提。判断に迷ったら実装せずapply-result.jsonのsummaryへ記載する）
+- **レビューのやり直し禁止**（findings.jsonの再収集・追加所見の指摘出しはpr-independent-reviewの責務であり、
+  本スキルはStep 2で触れないと決めたものを勝手に洗い直さない）
+- **`decision:"adopt"` 以外の変更禁止**（rejectされた指摘・新規発見の問題を実装で触らない。Step 2参照）
+- **masterへの直接push禁止**（push先は常にPRのheadRefName。`git push origin HEAD:master` 等は行わない）
+- `findings.json` / `adjudications.json` は入力として扱い、書き換えない（出力は `apply-result.json` のみ）
