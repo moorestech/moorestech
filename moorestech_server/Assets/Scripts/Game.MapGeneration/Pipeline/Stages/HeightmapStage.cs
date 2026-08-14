@@ -98,6 +98,8 @@ namespace Game.MapGeneration.Pipeline.Stages
                     slopeBlendStrength = slope.BlendStrength,
                     terrainWidth = config.terrainWidth,
                     terrainLength = config.terrainLength,
+                    worldOffsetX = config.worldOffsetX,
+                    worldOffsetZ = config.worldOffsetZ,
                     blurTemp = buffers.blurTemp,
                     heights = buffers.heights
                 }.Schedule(res, 1).Complete();
@@ -114,6 +116,8 @@ namespace Game.MapGeneration.Pipeline.Stages
                     terrainWidth = config.terrainWidth,
                     terrainLength = config.terrainLength,
                     terrainHeight = config.terrainHeight,
+                    worldOffsetX = config.worldOffsetX,
+                    worldOffsetZ = config.worldOffsetZ,
                     noiseStrength = config.jungle.boundaryNoiseStrength,
                     slopeThreshold = config.jungle.boundaryNoiseSlopeThreshold,
                     noiseFrequency = config.jungle.boundaryNoiseFrequency,
