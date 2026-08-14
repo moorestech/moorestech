@@ -2,7 +2,7 @@
 name: pr-adjudicated-apply
 description: |
   人間の裁定結果（adjudications.json）に基づき、pr-independent-reviewが出力したfindings.jsonのうち
-  decision:"adopt"の指摘だけをPRブランチへ実装・検証・pushする無人実行スキル。PR番号を受け取り、
+  reject以外の裁定（案キーA〜F・other）が付いた指摘だけをPRブランチへ実装・検証・pushする無人実行スキル。PR番号を受け取り、
   メインクローンでPRのheadブランチへcheckoutして修正し、コンパイル・関連テストで検証してからpushする。
   裁定未完了時は即座にfailureとして終了し、却下された指摘・新規発見の問題には一切触れない。
   Use When:
@@ -53,16 +53,21 @@ description: |
          "completed": true,
          "completed_at": "<ISO8601>",
          "items": [
-           {"id": "F01", "decision": "adopt|reject", "comment": "<人間の補足指示（任意・空文字可）>"}
+           {"id": "F01", "decision": "<案キー(A〜F)|other|reject>", "comment": "<人間の補足指示（otherでは必須）>"}
          ]
        }
 
+   decisionの意味: 案キー（`A`〜`F`）＝findings.jsonの `options` またはdigestカード記載の当該案を実装する ／
+   `other`＝commentに書かれた自由指示を実装する ／ `reject`＝一切触らない
+
 ## Step 2: スコープ確認（adopt以外には絶対に触れない）
 
-- `items` のうち `decision == "adopt"` のものだけを対象findingとして抽出する。`reject` は一切触らない
-- **各対象findingの `comment` は人間からの補足指示として尊重する** — `recommendation` と矛盾する場合は
-  `comment` を優先する（人間が最新の判断を書いているため）
-- 対象findingが0件（全件reject、またはadopt 0件）の場合、Step 3以降（ブランチ操作・修正・push）は一切行わず、
+- `items` のうち `decision != "reject"` のものだけを対象findingとして抽出する。`reject` は一切触らない
+- 実装内容の決定順: `decision` が案キーなら **その案**（findings.jsonの `options` の該当summary、
+  無ければdigestカード記載の当該案）を実装する。`other` なら `comment` の自由指示を実装する
+- **各対象findingの `comment` は人間からの補足指示として尊重する** — 選択された案や `recommendation` と
+  矛盾する場合は `comment` を優先する（人間が最新の判断を書いているため）
+- 対象findingが0件（全件reject）の場合、Step 3以降（ブランチ操作・修正・push）は一切行わず、
   Step 7の出力へ進む（`status: "success"`、`pushed_commits: []`、summaryに「採用指摘0件、変更なし」と記載）
 - **実装中に気づいた「reject指摘の再燃」や「新たに見つけた別の問題」は絶対に修正しない**。
   見つけた場合はapply-result.jsonの `summary` に「見送り: <内容>」として記載するに留める
@@ -157,6 +162,6 @@ Step 1・Step 2（対象0件）で終了した場合はブランチ操作自体�
 - **AskUserQuestionの使用禁止**（無人実行前提。判断に迷ったら実装せずapply-result.jsonのsummaryへ記載する）
 - **レビューのやり直し禁止**（findings.jsonの再収集・追加所見の指摘出しはpr-independent-reviewの責務であり、
   本スキルはStep 2で触れないと決めたものを勝手に洗い直さない）
-- **`decision:"adopt"` 以外の変更禁止**（rejectされた指摘・新規発見の問題を実装で触らない。Step 2参照）
+- **`decision:"reject"` の指摘と新規発見の問題への変更禁止**（実装で触らない。Step 2参照）
 - **masterへの直接push禁止**（push先は常にPRのheadRefName。`git push origin HEAD:master` 等は行わない）
 - `findings.json` / `adjudications.json` は入力として扱い、書き換えない（出力は `apply-result.json` のみ）

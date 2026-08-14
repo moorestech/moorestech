@@ -458,12 +458,21 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
       "files": ["path/to/file.cs:123"],
       "excerpt": "<問題箇所のコード抜粋>",
       "recommendation": "<推奨対応の要約>",
+      "options": [
+        {"key": "A", "summary": "<案Aの要約（推奨案）>"},
+        {"key": "B", "summary": "<案Bの要約>"}
+      ],
       "suppressed": false,
       "suppress_reason": ""
     }
   ]
 }
 ```
+
+- **options**: digestカードが対応案を複数提示する場合は全案を `A` から順に列挙する（裁定サイトが案ボタンとして表示する）。
+  案が1つしか無い指摘は `options` を推奨対応1件（key "A"）だけで書く。suppressedの指摘はoptions不要（裁定対象外）
+- **digestカードとの対応付け**: digest.htmlの各裁定カード（`section.verdict-card`）に `data-finding-id="F01"` 属性を
+  必ず付与する（裁定サイトがボタン注入位置を特定するアンカー。Step 7のテンプレ改変時に忘れやすいので明記）
 
 - **severityの対応**: Critical要点カード→`critical` / 折りたたみ参考のWarning→`high` / 設計判断カード→`medium` /
   新形カード・Info→`low`。suppressedの項目は免責前の分類のseverityをそのまま引き継ぐ（suppressedを理由に格下げしない）
