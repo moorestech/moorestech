@@ -57,7 +57,8 @@
         "Game.PlayerConnection",
         "Game.CleanRoom",
         "Game.Blueprint",
-        "Common.Debug"
+        "Common.Debug",
+        "Unity.Mathematics"
     ],
     "includePlatforms": [
         "Editor"
