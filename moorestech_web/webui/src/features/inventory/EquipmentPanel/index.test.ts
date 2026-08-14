@@ -3,11 +3,12 @@
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { PlayerInventoryData } from "@/bridge";
+import type { PlacementModeData, PlayerInventoryData } from "@/bridge";
 
 const host = vi.hoisted(() => ({
   uiState: null as { state: string } | null,
   inventory: null as PlayerInventoryData | null,
+  placementMode: null as PlacementModeData | null,
   dispatchAction: vi.fn(),
   wheelHandler: null as ((event: WheelEvent) => void) | null,
   connectionStatus: "open" as "connecting" | "restoring" | "open" | "reconnecting",
@@ -18,8 +19,13 @@ vi.mock("@/bridge", async (importOriginal) => {
   return {
     ...actual,
     useTopic: (topic: string) => (topic === actual.Topics.inventory ? host.inventory : null),
-    useTopicSelector: (topic: string, selector: (data: unknown) => unknown) =>
-      selector(topic === actual.Topics.uiState ? host.uiState : null),
+    // 購読フックだけが placementMode を配る。readTopic 経由へ戻すと抑止テストが落ちる
+    // Only the subscribing hook serves placementMode; going back through readTopic makes the suppression tests fail
+    useTopicSelector: (topic: string, selector: (data: unknown) => unknown) => {
+      if (topic === actual.Topics.uiState) return selector(host.uiState);
+      if (topic === actual.Topics.placementMode) return selector(host.placementMode);
+      return selector(null);
+    },
     readTopic: (topic: string) => (topic === actual.Topics.inventory ? host.inventory : null),
     dispatchAction: host.dispatchAction,
     useConnectionStatus: () => host.connectionStatus,
@@ -56,6 +62,7 @@ describe("EquipmentPanel のクリック受付", () => {
     host.dispatchAction.mockResolvedValue(true);
     host.wheelHandler = null;
     host.connectionStatus = "open";
+    host.placementMode = null;
     host.inventory = {
       mainSlots: [slot(0, 0)],
       hotbarSlots: [slot(0, 0)],
@@ -190,5 +197,57 @@ describe("EquipmentPanel のクリック受付", () => {
     });
 
     expect(host.dispatchAction).toHaveBeenNthCalledWith(2, "inventory.select_equipment", { index: -1 });
+  });
+
+  it("ホイール占有中はホイールで装備が切り替わらない", () => {
+    host.uiState = { state: "GameScreen" };
+    host.placementMode = { selectedTargetType: "connectTool", selectedConnectToolGuid: "c0000000-0000-4000-8000-000000000001", height: 0, unavailableReason: "", wheelOwnedByTool: true };
+    host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
+    renderSlots();
+
+    act(() => {
+      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+    });
+
+    expect(host.dispatchAction).not.toHaveBeenCalled();
+  });
+
+  it("ホイールを読まない接続ツール中は抑止されず装備が切り替わる", () => {
+    host.uiState = { state: "GameScreen" };
+    host.placementMode = { selectedTargetType: "connectTool", selectedConnectToolGuid: "c0000000-0000-4000-8000-000000000002", height: 0, unavailableReason: "", wheelOwnedByTool: false };
+    host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
+    renderSlots();
+
+    act(() => {
+      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+    });
+
+    expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });
+  });
+
+  it("BPコピー選択中でもドラッグしていなければ装備が切り替わる", () => {
+    host.uiState = { state: "GameScreen" };
+    host.placementMode = { selectedTargetType: "blueprintCopy", height: 0, unavailableReason: "", wheelOwnedByTool: false };
+    host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
+    renderSlots();
+
+    act(() => {
+      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+    });
+
+    expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });
+  });
+
+  it("block選択中は抑止されずホイールで装備が切り替わる", () => {
+    host.uiState = { state: "GameScreen" };
+    host.placementMode = { selectedTargetType: "block", selectedBlockGuid: "b0000000-0000-4000-8000-000000000001", height: 0, unavailableReason: "", wheelOwnedByTool: false };
+    host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
+    renderSlots();
+
+    act(() => {
+      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+    });
+
+    expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });
   });
 });

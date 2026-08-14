@@ -90,6 +90,19 @@ ui.notification.railEditNotEnoughInventorySpace,Rail edit failed: inventory is f
 ui.notification.railEditRailLengthExceeded,Rail edit failed: rail is too long,Rail edit failed: rail is too long,レール編集に失敗しました: レールが長すぎます
 ui.notification.railEditNotUnlocked,Rail edit failed: connect tool not unlocked,Rail edit failed: connect tool not unlocked,レール編集に失敗しました: 接続ツールが未解放です
 ui.notification.railEditUnknownError,Rail edit failed,Rail edit failed,レール編集に失敗しました
+ui.notification.electricWireExtendOutOfRange,Wiring failed: out of connection range,Wiring failed: out of connection range,接続範囲外のため配線できませんでした
+ui.notification.electricWireExtendAlreadyConnected,Wiring failed: already connected,Wiring failed: already connected,すでに接続されています
+ui.notification.electricWireExtendConnectionLimit,Wiring failed: connection limit reached,Wiring failed: connection limit reached,接続上限のため配線できませんでした
+ui.notification.electricWireExtendNoWireItem,Wiring failed: not enough wires,Wiring failed: not enough wires,電線が不足しているため配線できませんでした
+ui.notification.electricWireExtendNoPoleItem,Placement failed: not enough poles,Placement failed: not enough poles,電柱が不足しているため設置できませんでした
+ui.notification.electricWireExtendInvalidTarget,Wiring failed: invalid target,Wiring failed: invalid target,接続できない対象のため配線できませんでした
+ui.notification.electricWireExtendPositionOccupied,Placement failed: position is occupied,Placement failed: position is occupied,設置位置が埋まっているため設置できませんでした
+ui.notification.electricWireExtendNotUnlocked,Wiring failed: connect tool not unlocked,Wiring failed: connect tool not unlocked,接続ツールが未解放のため配線できませんでした
+ui.notification.electricWireExtendInsufficientItems,Placement failed: not enough materials,Placement failed: not enough materials,素材が不足しているため設置できませんでした
+ui.notification.electricWireExtendFailed,Wiring failed,Wiring failed,配線に失敗しました
+ui.notification.electricWireDisconnectNotConnected,Disconnect failed: not connected,Disconnect failed: not connected,接続されていないため切断できませんでした
+ui.notification.electricWireDisconnectInventoryFull,Disconnect failed: inventory is full,Disconnect failed: inventory is full,インベントリが満杯のため切断できませんでした
+ui.notification.electricWireDisconnectFailed,Disconnect failed,Disconnect failed,切断に失敗しました
 ui.notification.unknownMessage,Unknown notification: {messageId},Unknown notification: {messageId},不明な通知: {messageId}
 ui.pauseMenu.title,Pause Menu,Pause Menu,ポーズメニュー
 ui.pauseMenu.disconnected,Disconnected from server,Disconnected from server,サーバーから切断されました

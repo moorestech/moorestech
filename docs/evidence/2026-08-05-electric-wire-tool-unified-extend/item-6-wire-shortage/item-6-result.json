@@ -1,0 +1,94 @@
+{
+    "RunName": "electric-wire-normal-place-wire-shortage-via-ui",
+    "Success": true,
+    "Error": "",
+    "StartedAt": "2026-08-14T18:54:29.9899690+09:00",
+    "FinishedAt": "2026-08-14T18:54:47.9867800+09:00",
+    "Asserts": [
+        {
+            "Label": "開幕スキットのSkipインテントが受理される",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "受け入れ6: 電線不足時に『電線が足りません』が表示される",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "受け入れ6: 電線不足のためクリックしても電柱は設置されない",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "受け入れ6: 拒否されたので素材も消費されていない",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "対照: 補充後はコスト表示（電線 xN）へ変わる",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "対照: 電線が足りていれば同じ操作で設置される",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "対照: 通常設置の自動接続で既存電柱と結線される",
+            "Passed": true,
+            "Message": "ok"
+        }
+    ],
+    "Timeline": [
+        "    0.2s [STEP] 地形を平坦化してプレイヤーをワープ",
+        "    1.0s [STEP] ワープ: (8.00, 34.00, -6.00)",
+        "    1.0s [WAIT] 0.5秒",
+        "    1.5s [NOTE] 開幕スキットをSkipインテントで飛ばす",
+        "    1.5s [WAIT] 開幕スキットのSkipインテントが受理される",
+        "    1.5s [PASS] 開幕スキットのSkipインテントが受理される",
+        "    1.5s [WAIT] UI状態待ち: GameScreen",
+        "    5.6s [STEP] アンロック: 電柱",
+        "    5.6s [STEP] 建設コスト付与: 電柱 x1",
+        "    6.3s [STEP] 設置(direct): 電柱 at (5, 32, 4)",
+        "    6.3s [WAIT] ブロック生成待ち: (5, 32, 4)",
+        "    6.3s [NOTE] 所持している銅のワイヤーは10本（電柱1本の建設コストちょうど＝配線用の余剰なし）",
+        "    6.3s [NOTE] ビルドメニューから電柱を選び、既存電柱の3ブロック隣へ照準する",
+        "    6.3s [STEP] ビルドメニューで選択: 電柱",
+        "    9.3s [STEP] 照準: (8.50, 32.00, 4.50)",
+        "   10.5s [WAIT] 受け入れ6: 電線不足時に『電線が足りません』が表示される",
+        "   10.5s [PASS] 受け入れ6: 電線不足時に『電線が足りません』が表示される",
+        "   10.5s [NOTE] 自動接続プレビューのラベル表示='電線が足りません'",
+        "   10.5s [STEP] スクリーンショット: 01-wire-shortage-label",
+        "   10.6s [NOTE] この状態でクリックしても設置されないことを確認する",
+        "   10.6s [STEP] クリック設置",
+        "   11.2s [WAIT] 2秒",
+        "   13.2s [PASS] 受け入れ6: 電線不足のためクリックしても電柱は設置されない",
+        "   13.2s [PASS] 受け入れ6: 拒否されたので素材も消費されていない",
+        "   13.2s [STEP] スクリーンショット: 02-placement-refused",
+        "   13.3s [NOTE] 対照実験: 銅のワイヤーを補充して同じ位置へ設置し直す",
+        "   13.3s [STEP] give: 銅のワイヤー x20",
+        "   13.9s [STEP] 照準: (8.50, 32.00, 4.50)",
+        "   15.1s [WAIT] 対照: 補充後はコスト表示（電線 xN）へ変わる",
+        "   15.1s [PASS] 対照: 補充後はコスト表示（電線 xN）へ変わる",
+        "   15.1s [NOTE] 補充後のラベル表示='電線 x3'",
+        "   15.1s [STEP] スクリーンショット: 03-after-wire-supplied",
+        "   15.1s [STEP] クリック設置",
+        "   15.8s [WAIT] 対照: 電線が足りていれば同じ操作で設置される",
+        "   15.8s [PASS] 対照: 電線が足りていれば同じ操作で設置される",
+        "   15.8s [WAIT] ブロック生成待ち: (8, 32, 4)",
+        "   15.8s [WAIT] 1秒",
+        "   16.8s [PASS] 対照: 通常設置の自動接続で既存電柱と結線される",
+        "   16.8s [NOTE] 電線を補充したら同じ操作で設置＋自動接続まで通った（拒否理由が電線不足だったことの裏取り）",
+        "   16.8s [STEP] スクリーンショット: 04-placed-with-wire"
+    ],
+    "ErrorLogs": [],
+    "Screenshots": [
+        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_185417/electric-wire-normal-place-wire-shortage-via-ui/01-wire-shortage-label.png",
+        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_185417/electric-wire-normal-place-wire-shortage-via-ui/02-placement-refused.png",
+        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_185417/electric-wire-normal-place-wire-shortage-via-ui/03-after-wire-supplied.png",
+        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_185417/electric-wire-normal-place-wire-shortage-via-ui/04-placed-with-wire.png"
+    ],
+    "RecordingPath": "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_185417/electric-wire-normal-place-wire-shortage-via-ui/recording.mp4"
+}

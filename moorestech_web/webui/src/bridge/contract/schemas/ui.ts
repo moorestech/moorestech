@@ -32,6 +32,9 @@ export const PauseMenuDataSchema = z.object({ disconnected: z.boolean() });
 const PlacementModeCommonFields = {
   height: z.number().int(),
   unavailableReason: z.string(),
+  // ホイールを消費中かはC#が判定して配る。Web側は種別から再導出しない
+  // C# decides whether the wheel is consumed and publishes it; the Web must not re-derive it from the target kind
+  wheelOwnedByTool: z.boolean(),
 };
 export const PlacementModeDataSchema = z.discriminatedUnion("selectedTargetType", [
   z.object({

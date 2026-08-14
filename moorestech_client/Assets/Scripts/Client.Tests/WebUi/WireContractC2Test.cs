@@ -43,7 +43,8 @@ namespace Client.Tests.WebUi
             var dto = PlacementModeDtoFactory.Create(
                 new BlockPlacementTarget(blockMaster.BlockGuid, null),
                 2,
-                "");
+                "",
+                wheelOwnedByTool: false);
 
             // 原文を運ばずWeb用Guidを固定
             // Pin Web GUIDs without carrying source names
@@ -73,7 +74,8 @@ namespace Client.Tests.WebUi
             var dto = PlacementModeDtoFactory.Create(
                 new ConnectToolPlacementTarget(connectToolGuid),
                 2,
-                "");
+                "",
+                wheelOwnedByTool: false);
 
             // masterのNameを引かずGuidだけを配信する
             // Publish only the GUID without reading the master name
@@ -103,7 +105,8 @@ namespace Client.Tests.WebUi
             var dto = PlacementModeDtoFactory.Create(
                 new TrainCarPlacementTarget(trainCarGuid),
                 2,
-                "");
+                "",
+                wheelOwnedByTool: false);
 
             // masterのNameを引かずGuidだけを配信する
             // Publish only the GUID without reading the master name
@@ -119,13 +122,15 @@ namespace Client.Tests.WebUi
                 new BlueprintCopyPlacementTarget(
                     MasterHolder.BuildToolMaster.All[0].BuildToolGuid),
                 2,
-                "");
+                "",
+                wheelOwnedByTool: false);
             var blueprint = PlacementModeDtoFactory.Create(
                 new BlueprintPlacementTarget(
                     Guid.Parse("60000000-0000-4000-8000-000000000001"),
                     "My Blueprint"),
                 2,
-                "");
+                "",
+                wheelOwnedByTool: false);
 
             // BPコピーはtyped、命名BPはraw
             // Type blueprint copies while preserving authored blueprint names
@@ -139,7 +144,7 @@ namespace Client.Tests.WebUi
         public void PlacementModeFactoryRejectsUnknownTargetType()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                PlacementModeDtoFactory.Create(new UnknownPlacementTarget(), 2, ""));
+                PlacementModeDtoFactory.Create(new UnknownPlacementTarget(), 2, "", wheelOwnedByTool: false));
         }
 
         [Test]

@@ -27,6 +27,20 @@ const notificationKeys = new Map<string, TranslationKey>([
   ["denied.railEdit.RailLengthExceeded", L.ui.notification.railEditRailLengthExceeded],
   ["denied.railEdit.NotUnlocked", L.ui.notification.railEditNotUnlocked],
   ["denied.railEdit.UnknownError", L.ui.notification.railEditUnknownError],
+  ["denied.electricWireExtend.OutOfRange", L.ui.notification.electricWireExtendOutOfRange],
+  ["denied.electricWireExtend.AlreadyConnected", L.ui.notification.electricWireExtendAlreadyConnected],
+  ["denied.electricWireExtend.ConnectionLimit", L.ui.notification.electricWireExtendConnectionLimit],
+  ["denied.electricWireExtend.NoWireItem", L.ui.notification.electricWireExtendNoWireItem],
+  ["denied.electricWireExtend.NoPoleItem", L.ui.notification.electricWireExtendNoPoleItem],
+  ["denied.electricWireExtend.InvalidTarget", L.ui.notification.electricWireExtendInvalidTarget],
+  ["denied.electricWireExtend.PositionOccupied", L.ui.notification.electricWireExtendPositionOccupied],
+  ["denied.electricWireExtend.NotUnlocked", L.ui.notification.electricWireExtendNotUnlocked],
+  ["denied.electricWireExtend.InsufficientItems", L.ui.notification.electricWireExtendInsufficientItems],
+  ["denied.electricWireExtend.InvalidMode", L.ui.notification.electricWireExtendFailed],
+  ["denied.electricWireExtend.None", L.ui.notification.electricWireExtendFailed],
+  ["denied.electricWireDisconnect.NotConnected", L.ui.notification.electricWireDisconnectNotConnected],
+  ["denied.electricWireDisconnect.InventoryFull", L.ui.notification.electricWireDisconnectInventoryFull],
+  ["denied.electricWireDisconnect.InvalidTarget", L.ui.notification.electricWireDisconnectFailed],
 ]);
 
 // 外部IDを有限の型付きキーへ閉じ、未知IDも専用キーで可視化する

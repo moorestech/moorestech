@@ -4,6 +4,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     public interface IPlaceSystem
     {
+        // 今このフレームでホイール入力を消費しているか。消費側は設置対象の種別から再導出しない
+        // Whether this system is consuming wheel input this frame; consumers must not re-derive it from the target kind
+        public bool OwnsWheelInput { get; }
+
         public void Enable();
 
         public void ManualUpdate(PlaceSystemUpdateContext context);
