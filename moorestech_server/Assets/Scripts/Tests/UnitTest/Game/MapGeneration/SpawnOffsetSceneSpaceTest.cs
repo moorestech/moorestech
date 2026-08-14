@@ -84,9 +84,9 @@ namespace Tests.UnitTest.Game.MapGeneration
             var actual = MapGenerationPipeline.Generate(shifted, Seed);
 
             Assert.That(actual.SpawnPoint, Is.EqualTo(expected.SpawnPoint));
-            Assert.That(actual.Heights.Length, Is.EqualTo(expected.Heights.Length));
+            Assert.That(actual.Tiles[0].Heights.Length, Is.EqualTo(expected.Tiles[0].Heights.Length));
 
-            int differentIndex = FirstDifferentIndex(expected.Heights, actual.Heights);
+            int differentIndex = FirstDifferentIndex(expected.Tiles[0].Heights, actual.Tiles[0].Heights);
             Assert.That(differentIndex, Is.EqualTo(-1),
                 $"master の worldOffset がハイトマップを動かした: index={differentIndex}");
         }
@@ -115,7 +115,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             int res = output.Resolution;
             int px = Mathf.RoundToInt((output.SpawnPoint.x - output.SceneOrigin.x) / vp.TerrainWidth * (res - 1));
             int pz = Mathf.RoundToInt((output.SpawnPoint.z - output.SceneOrigin.y) / vp.TerrainLength * (res - 1));
-            return (BiomeType)output.BiomeIndices[pz * res + px];
+            return (BiomeType)output.Tiles[0].BiomeIndices[pz * res + px];
         }
 
         private static MapGenerationOutput AssertOutputIsInsideTile(Generation generation)

@@ -88,10 +88,8 @@ namespace Tests.UnitTest.Game.MapGeneration
 
         private static MapGenerationOutput CreateDummyOutput()
         {
-            return new MapGenerationOutput
+            var output = new MapGenerationOutput
             {
-                Heights = new float[4],
-                BiomeIndices = new byte[4],
                 Resolution = 2,
                 SpawnPoint = new Vector3(10, 20, 30),
                 MapObjects = new List<PlacedMapObject>
@@ -116,6 +114,8 @@ namespace Tests.UnitTest.Game.MapGeneration
                     },
                 },
             };
+            output.Tiles.Add(new TerrainTileOutput { TileX = 0, TileZ = 0, Heights = new float[4], BiomeIndices = new byte[4] });
+            return output;
         }
     }
 }

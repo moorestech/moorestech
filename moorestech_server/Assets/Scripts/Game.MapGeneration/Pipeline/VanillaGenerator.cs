@@ -52,18 +52,20 @@ namespace Game.MapGeneration.Pipeline
                 buffers.heights.CopyTo(heights);
 
                 var noiseOrigin = new Vector2(config.worldOffsetX, config.worldOffsetZ);
+                var biomeIndices = PlacementInputBuilder.BuildBiomeIndices(
+                    buffers.winnerBiomeIndex, buffers.landMask, buffers.beachFactor, biomeTypes, pixelCount);
                 var output = new MapGenerationOutput
                 {
-                    Heights = heights,
                     Resolution = res,
-                    BiomeIndices = PlacementInputBuilder.BuildBiomeIndices(
-                        buffers.winnerBiomeIndex, buffers.landMask, buffers.beachFactor, biomeTypes, pixelCount),
 
                     // クライアントは分類段を再実行するのでノイズ窓の原点が要り、地形の設置にはシーン原点が要る。
                     // Clients re-run the classification stage, needing the noise window origin, and place the terrain at the scene origin.
                     NoiseOrigin = noiseOrigin,
                     SceneOrigin = noiseOrigin - spawnOffset,
                 };
+                // 暫定: 単一タイルのみ Tiles へ1件詰める。タイルループ化は Task 3 で行う
+                // Provisional: pack the single tile into Tiles; tile looping lands in Task 3
+                output.Tiles.Add(new TerrainTileOutput { TileX = 0, TileZ = 0, Heights = heights, BiomeIndices = biomeIndices });
                 output.SpawnPoint = ComputeSpawn(config, heights, res, spawnOffset);
 
                 RunPlacement(config, helper, biomeTypes, buffers, heights, res, biomeCount, output, spawnOffset);

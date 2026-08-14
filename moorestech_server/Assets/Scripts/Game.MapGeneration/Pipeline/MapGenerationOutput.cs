@@ -9,8 +9,7 @@ namespace Game.MapGeneration.Pipeline
     // All coordinates are scene-space relative to the generated tile, with the spawn-search offset G already removed.
     public class MapGenerationOutput
     {
-        public float[] Heights;            // [Resolution*Resolution] 0-1 正規化高さ / normalized height
-        public byte[] BiomeIndices;        // [Resolution*Resolution] BiomeType の値 / BiomeType value
+        public List<TerrainTileOutput> Tiles = new();  // 格子出力(1タイル以上) / grid output (one or more tiles)
         public int Resolution;             // 1辺のセル数 / cells per side
         public Vector3 SpawnPoint;         // シーン座標のスポーン地点 / spawn point in scene space
 
