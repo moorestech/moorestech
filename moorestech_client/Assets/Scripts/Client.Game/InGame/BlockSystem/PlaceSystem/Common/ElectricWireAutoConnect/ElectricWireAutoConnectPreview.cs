@@ -125,7 +125,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 // Insufficient wire is the only rejection reason for the auto-connect preview, shown in the failure color
                 if (!cursorWirePlaceable)
                 {
-                    _renderer.ShowFailure(originEndpoint, cursorTargets, ElectricWirePlacementFailureText.ToText(ElectricWirePlacementFailureReason.NoWireItem));
+                    // 電線不足のセルはPlaceable=falseになりcursorTargetsが空になるため、ここで解決し直して
+                    // 「電線が足りていればどこへ張られたか」を不可色の線で見せる
+                    // A wire-short cell has Placeable=false so cursorTargets is empty; resolve them again here
+                    // to show in the failure color where the wires would have run if wire were available
+                    _renderer.ShowFailure(originEndpoint, ResolveTargetEndpoints(cursorInfo.Position), ElectricWirePlacementFailureText.ToText(ElectricWirePlacementFailureReason.NoWireItem));
                     return;
                 }
 

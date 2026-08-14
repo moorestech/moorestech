@@ -20,9 +20,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
     /// </summary>
     public static class ClientElectricWireAutoConnectCollector
     {
-        // 情報表示用の近傍探索半径。これ以内で範囲判定に落ちた電気ブロックだけを「範囲外」と案内する
-        // Neighbor search radius for the info label; only blocks within it that fail the range check are reported as out of range
-        private const float InfoSearchRadius = 32f;
+        // 案内を出す近傍の広さ。自身の接続範囲の何倍までを「惜しくも届かなかった」とみなすか
+        // How wide the advisory neighborhood is: how many times the block's own connection range still counts as "just missed"
+        private const float InfoSearchRangeMultiplier = 2f;
 
         public static List<(Vector3Int TargetPos, float Distance)> Collect(BlockId blockId, Vector3Int position, BlockDirection direction, BlockGameObjectDataStore blockDataStore)
         {
@@ -66,18 +66,49 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(blockMaster.BlockParam, out _, out var ownProfile, out var ownIsPole)) return false;
 
+            // 探索半径はマスタの接続範囲から導く。固定値だと高圧電柱のような長距離電柱で案内が一切出ない
+            // Derive the search radius from the master's connection range; a fixed value silences the advice for long-range poles
             var ownInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
+            var searchRadius = MaxRange(ownProfile) * InfoSearchRangeMultiplier;
+
             foreach (var block in blockDataStore.BlockGameObjectByInstanceIdDictionary.Values)
             {
-                if (!block.TryGetComponent<ElectricWireStateChangeProcessor>(out _)) continue;
-                if (InfoSearchRadius < Vector3Int.Distance(block.BlockPosInfo.OriginalPos, position)) continue;
-                if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(block.BlockMasterElement.BlockParam, out _, out var profile, out var isPole)) continue;
+                if (!block.TryGetComponent<ElectricWireStateChangeProcessor>(out var processor)) continue;
+                if (searchRadius < Vector3Int.Distance(block.BlockPosInfo.OriginalPos, position)) continue;
+                if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(block.BlockMasterElement.BlockParam, out var capacity, out var profile, out var isPole)) continue;
 
-                // 範囲判定はサーバーと共有の相互判定を使い、接続上限や既接続で落ちた近傍は数えない
-                // Use the server-shared mutual range check so neighbors dropped by capacity or existing wiring are not counted
+                // 範囲以外の理由で落ちる相手を「範囲外」と案内しない。接続上限・既接続の機械・機械同士は選定規則が距離によらず除外する
+                // Never report neighbors dropped for other reasons: capacity, already-wired machines and machine-to-machine are excluded by the selection rule regardless of distance
+                var connectionCount = processor.CurrentPartnerIds.Count;
+                if (capacity <= connectionCount) continue;
+                if (!IsSelectableKind(isPole, connectionCount)) continue;
+
+                // 残るのは範囲判定だけで落ちた近傍。サーバーと共有の相互判定を使う
+                // What remains is dropped by the range check alone; use the server-shared mutual judgement
                 if (!ElectricConnectionRangeService.IsMutuallyConnectable(ownInfo, ownProfile, ownIsPole, block.BlockPosInfo, profile, isPole)) return true;
             }
             return false;
+
+            #region Internal
+
+            // 選定規則（ElectricWireAutoConnectSelector）と同じ相手種別の制約。機械は電柱としか繋がらず、電柱は未接続の機械としか繋がらない
+            // The same target-kind constraint as the selection rule: machines only pair with poles, and poles only take unwired machines
+            bool IsSelectableKind(bool targetIsPole, int targetConnectionCount)
+            {
+                if (!ownIsPole) return targetIsPole;
+                return targetIsPole || targetConnectionCount == 0;
+            }
+
+            // 3D距離と比較するため、相手種別ごとの各辺のうち最大を半径の近似に使う
+            // Compare against 3D distance, so approximate the radius with the largest side across both target kinds
+            float MaxRange(ConnectionRangeProfile profile)
+            {
+                return Mathf.Max(
+                    Mathf.Max(profile.HorizontalAgainstPole, profile.HeightAgainstPole),
+                    Mathf.Max(profile.HorizontalAgainstMachine, profile.HeightAgainstMachine));
+            }
+
+            #endregion
         }
     }
 }

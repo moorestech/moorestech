@@ -18,7 +18,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
     /// </summary>
     public class ElectricWirePoleSelection
     {
-        private IReadOnlyList<BlockId> _unlockedPoles;
+        // 解放済みリストはEnable時のRefreshUnlockedPolesで確定するため、空で始める
+        // The unlocked list is settled by RefreshUnlockedPoles on enable, so it starts empty
+        private IReadOnlyList<BlockId> _unlockedPoles = new List<BlockId>();
         private int _selectedIndex;
 
         // 微小デルタを整数ステップへ丸めるためのスクロール蓄積（前例: BlueprintCopySystem）
@@ -26,17 +28,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         private readonly ScrollStepAccumulator _scrollAccumulator = new();
 
         public BlockDirection CurrentDirection { get; private set; } = BlockDirection.North;
-        public BlockId SelectedBlockId => _unlockedPoles[_selectedIndex];
         public bool HasSelectablePole => 0 < _unlockedPoles.Count;
 
         // 2種以上あるときだけサイクルが意味を持ち、そのときだけホイールを消費する
         // Cycling is meaningful only with two or more types, and only then is the wheel consumed
         public bool CanCyclePoleType => 1 < _unlockedPoles.Count;
 
-        public ElectricWirePoleSelection(IReadOnlyList<BlockId> unlockedPoles)
-        {
-            _unlockedPoles = unlockedPoles;
-        }
+        private BlockId SelectedBlockId => _unlockedPoles[_selectedIndex];
 
         /// <summary>
         /// 解放済み電柱リストを更新する。選択中の種が残っていれば選択を維持する
@@ -45,7 +43,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         public void RefreshUnlockedPoles(IGameUnlockStateData unlockState)
         {
             var previousSelected = HasSelectablePole ? SelectedBlockId : (BlockId?)null;
-            _unlockedPoles = ListUnlockedPoles(unlockState);
+            _unlockedPoles = UnlockedElectricPoleLister.List(unlockState);
             var index = previousSelected.HasValue ? IndexOf(previousSelected.Value) : 0;
             _selectedIndex = index < 0 ? 0 : index;
 
@@ -99,13 +97,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             #endregion
         }
 
-        public void CycleNext()
+        private void CycleNext()
         {
             if (!HasSelectablePole) return;
             _selectedIndex = (_selectedIndex + 1) % _unlockedPoles.Count;
         }
 
-        public void CyclePrevious()
+        private void CyclePrevious()
         {
             if (!HasSelectablePole) return;
             _selectedIndex = (_selectedIndex - 1 + _unlockedPoles.Count) % _unlockedPoles.Count;
@@ -127,21 +125,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             blockId = SelectedBlockId;
             blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             return true;
-        }
-
-        /// <summary>
-        /// 解放済みElectricPoleブロックをSortPriority昇順で列挙する
-        /// List unlocked ElectricPole blocks in ascending SortPriority
-        /// </summary>
-        public static IReadOnlyList<BlockId> ListUnlockedPoles(IGameUnlockStateData unlockState)
-        {
-            return MasterHolder.BlockMaster.Blocks.Data
-                .Where(block => block.BlockType == BlockMasterElement.BlockTypeConst.ElectricPole)
-                .Where(block => unlockState.BlockUnlockStateInfos.TryGetValue(block.BlockGuid, out var info) && info.IsUnlocked)
-                .OrderBy(block => block.SortPriority ?? 0)
-                .ThenBy(block => block.BlockGuid)
-                .Select(block => MasterHolder.BlockMaster.GetBlockId(block.BlockGuid))
-                .ToList();
         }
 
     }

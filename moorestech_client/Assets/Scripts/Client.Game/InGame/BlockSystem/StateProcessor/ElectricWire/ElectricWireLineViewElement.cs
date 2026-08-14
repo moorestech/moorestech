@@ -78,9 +78,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
 
             // メッシュとクリック判定セグメントを生成
             // Generate the catenary mesh and click-detection segments
-            var sag = Vector3.Distance(start, end) * CatenaryWireMeshBuilder.SagRatio;
             var colliderSegments = new List<(Vector3 center, Vector3 up, float length)>();
-            _generatedMesh = CatenaryWireMeshBuilder.Build(start, end, sag, colliderSegments);
+            _generatedMesh = CatenaryWireMeshBuilder.Build(start, end, colliderSegments);
 
             meshFilter.mesh = _generatedMesh;
             BuildColliders();

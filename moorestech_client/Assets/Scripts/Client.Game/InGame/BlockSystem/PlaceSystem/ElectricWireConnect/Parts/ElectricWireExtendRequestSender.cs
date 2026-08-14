@@ -11,10 +11,10 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 {
     /// <summary>
-    /// 電線延長プロトコルの送信と、応答で確定した次起点（終点ブロック）の保持。
-    /// コールバックは持たず、結果は上位がTryConsumeEndpointでループ先頭から取り込む一方向構造。
-    /// Sends the electric wire extend protocol and holds the resolved next-origin endpoint from the response.
-    /// No callbacks: the upper layer consumes the result via TryConsumeEndpoint at the top of its loop.
+    /// 電線延長プロトコルの送信と、応答で確定した結果の保持。
+    /// コールバックは持たず、結果は上位がTryConsumeOutcomeでループ先頭から取り込む一方向構造。
+    /// Sends the electric wire extend protocol and holds the settled outcome from the response.
+    /// No callbacks: the upper layer consumes the result via TryConsumeOutcome at the top of its loop.
     /// </summary>
     public class ElectricWireExtendRequestSender
     {
@@ -27,7 +27,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         // 応答待ち中の無効化・再送信で古い応答を捨てるための世代トークン
         // Generation token that discards stale responses across invalidation or re-sending
         private int _generation;
-        private BlockGameObject _resolvedEndpoint;
+        private bool _hasOutcome;
+        private ElectricWireExtendOutcome _outcome;
 
         public bool IsAwaitingResponse { get; private set; }
 
@@ -44,18 +45,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         {
             _generation++;
             IsAwaitingResponse = false;
-            _resolvedEndpoint = null;
+            ClearOutcome();
         }
 
         /// <summary>
-        /// 応答で確定した次起点（終点ブロック）を一度だけ取り出す
-        /// Consume the resolved next-origin endpoint from the response exactly once
+        /// 応答で確定した結果を一度だけ取り出す
+        /// Consume the settled outcome from the response exactly once
         /// </summary>
-        public bool TryConsumeEndpoint(out BlockGameObject endpointBlock)
+        public bool TryConsumeOutcome(out ElectricWireExtendOutcome outcome)
         {
-            endpointBlock = _resolvedEndpoint;
-            _resolvedEndpoint = null;
-            return endpointBlock != null;
+            outcome = _outcome;
+            var hadOutcome = _hasOutcome;
+            ClearOutcome();
+            return hadOutcome;
         }
 
         public void SendConnect(Vector3Int fromPos, Vector3Int toPos, Guid connectToolGuid)
@@ -85,21 +87,41 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         {
             var generation = ++_generation;
             IsAwaitingResponse = true;
-            _resolvedEndpoint = null;
+            ClearOutcome();
 
             UniTask.Create(async () =>
             {
-                // 応答を待ち、成功時のみ終点ブロックの生成を待って次起点を解決する
-                // Await the response, then resolve the next origin only on success
-                var response = await ClientContext.VanillaApi.Response.SendElectricWireExtend(request, CancellationToken.None);
-                var endpoint = response is { IsSuccess: true } ? await WaitForEndpoint(new BlockInstanceId(response.EndpointBlockInstanceId)) : null;
+                var isSuccess = false;
+                BlockGameObject endpoint = null;
 
-                // 世代が進んでいたら破棄済みの結果として捨てる
-                // Discard the result when the generation has advanced
-                if (generation != _generation) return;
-                IsAwaitingResponse = false;
-                _resolvedEndpoint = endpoint;
+                // ネットワーク送受信は外部境界。例外が漏れると応答待ちが解除されず、以降クリックを一切受け付けなくなるため隔離する
+                // Network I/O is an external boundary; an escaping exception would strand the awaiting flag and reject every later click
+                try
+                {
+                    // 応答を待ち、成功時のみ終点ブロックの生成を待って次起点を解決する
+                    // Await the response, then resolve the next origin only on success
+                    var response = await ClientContext.VanillaApi.Response.SendElectricWireExtend(request, CancellationToken.None);
+                    isSuccess = response is { IsSuccess: true };
+                    if (isSuccess) endpoint = await WaitForEndpoint(new BlockInstanceId(response.EndpointBlockInstanceId));
+                }
+                finally
+                {
+                    // 世代が進んでいたら破棄済みの結果として捨てる
+                    // Discard the result when the generation has advanced
+                    if (generation == _generation)
+                    {
+                        IsAwaitingResponse = false;
+                        _hasOutcome = true;
+                        _outcome = new ElectricWireExtendOutcome(isSuccess, endpoint);
+                    }
+                }
             });
+        }
+
+        private void ClearOutcome()
+        {
+            _hasOutcome = false;
+            _outcome = default;
         }
 
         private async UniTask<BlockGameObject> WaitForEndpoint(BlockInstanceId endpointId)

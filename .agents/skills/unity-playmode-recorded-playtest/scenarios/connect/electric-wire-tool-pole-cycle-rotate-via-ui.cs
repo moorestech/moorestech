@@ -67,7 +67,9 @@ return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options
     var serverEquipment = p.ServerService<IPlayerInventoryDataStore>()
         .GetInventoryData(ClientContext.PlayerConnectionSetting.PlayerId).EquipmentInventory;
 
-    string SelectedPoleName() => MasterHolder.BlockMaster.GetBlockMaster(toolContext.PoleSelection.SelectedBlockId).Name;
+    // 選択中の電柱名はプロダクションと同じ公開APIから引く（検証のために内部状態を開けない）
+    // Read the selected pole name through the same public API production uses; never open internals just to observe
+    string SelectedPoleName() => toolContext.PoleSelection.TryGetSelectedPole(out _, out var selectedMaster) ? selectedMaster.Name : null;
     TextMeshPro PoleNameLabel() => UnityEngine.Object
         .FindObjectsByType<TextMeshPro>(FindObjectsInactive.Include, FindObjectsSortMode.None)
         .FirstOrDefault(t => t.gameObject.name == "ElectricWirePoleNameLabel");

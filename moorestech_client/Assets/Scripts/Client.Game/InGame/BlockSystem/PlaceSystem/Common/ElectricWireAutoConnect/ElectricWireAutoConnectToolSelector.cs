@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Master;
 using Game.UnlockState;
 using Mooresmaster.Model.BuildMenuModule;
+using Server.Protocol.PacketResponse.Util.ConnectTool;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 using UnityEngine;
 
@@ -27,22 +28,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // 接続先なし・electricWire未設定マスタは自動接続なしで設置可
             // No targets or no configured electricWire connectTool allows placement without auto-connect
             if (targets.Count == 0) return true;
-            var electricWireTools = new List<ConnectToolMasterElement>();
-            foreach (var element in MasterHolder.ConnectToolMaster.All)
-            {
-                if (element.ToolType != ConnectToolMasterElement.ToolTypeConst.electricWire) continue;
-                // サーバーのConnectToolSelector.UnlockedByToolTypeと同じ解放済みフィルタを適用する
-                // Apply the same unlocked filter as the server's ConnectToolSelector.UnlockedByToolType
-                if (!gameUnlockStateData.ConnectToolUnlockStateInfos.TryGetValue(element.ConnectToolGuid, out var info) || !info.IsUnlocked) continue;
-                electricWireTools.Add(element);
-            }
+
+            // 解放済みフィルタと並び順はサーバーと同一実装を呼んで共有する（手写しすると規則がずれてプレビューと実接続が食い違う）
+            // Share the server's own implementation for the unlocked filter and ordering (a hand-copy drifts and desyncs preview from reality)
+            var electricWireTools = ConnectToolSelector
+                .UnlockedByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, gameUnlockStateData)
+                .ToList();
+
             // 解放済みが0件なら自動接続なしで設置可（サーバーのunlockedTools.Count == 0分岐と一致）
             // With zero unlocked tools, allow placement without auto-connect (matches the server's unlockedTools.Count == 0 branch)
             if (electricWireTools.Count == 0) return true;
 
-            // サーバーのConnectToolSelector.UnlockedByToolTypeと同じ安定ソートで、同SortPriorityの並びをマスタ順に揃える
-            // Use the same stable sort as the server's ConnectToolSelector.UnlockedByToolType so SortPriority ties keep master order
-            foreach (var element in electricWireTools.OrderBy(element => element.SortPriority))
+            foreach (var element in electricWireTools)
             {
                 if (!TrySumCost(element.ConnectToolGuid, out var materials, out var cost)) continue;
                 if (!virtualInventory.CanAfford(materials)) continue;

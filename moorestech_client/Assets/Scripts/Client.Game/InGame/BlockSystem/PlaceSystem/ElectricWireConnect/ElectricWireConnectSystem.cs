@@ -39,9 +39,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
 
             var wirePreview = new ElectricWireExtendPreviewObject(mainCamera);
             var requestSender = new ElectricWireExtendRequestSender(blockGameObjectDataStore);
-            // 解放済み電柱リストはEnable()で確定するため、構築時は空で始める
-            // The unlocked pole list is settled in Enable(), so start empty at construction
-            var poleSelection = new ElectricWirePoleSelection(new List<BlockId>());
+            var poleSelection = new ElectricWirePoleSelection();
             var pointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
             var poleGhostPart = new ElectricWirePoleGhostPart(mainCamera, previewBlockController, localPlayerInventory.LocalPlayerInventory, pointCalculator);
             _context = new ElectricWireToolContext(mainCamera, previewBlockController, localPlayerInventory.LocalPlayerInventory, blockGameObjectDataStore, wirePreview, requestSender, poleSelection, poleGhostPart);
@@ -69,9 +67,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             // Read the pole-type scroll cycle and rotate-key input
             _context.PoleSelection.UpdateInput();
 
-            // 応答で確定した終点を取り込み、次の起点にする（チェーン）
-            // Adopt the endpoint resolved from a response as the next origin (chaining)
-            if (_context.RequestSender.TryConsumeEndpoint(out var endpointBlock)) _sourceBlock = endpointBlock;
+            // 応答で確定した終点を次の起点にする（チェーン）。成功したのに終点を解決できなかった場合は
+            // 終点がnullのまま代入され、起点が解除される。古い起点を残すとサーバーが張った線をもう一度張って電線を二重消費するため
+            // Adopt the resolved endpoint as the next origin (chaining). On success without a resolved endpoint the null
+            // is assigned and the origin is released: keeping the stale one would re-draw the server's wire and consume wire twice
+            if (_context.RequestSender.TryConsumeOutcome(out var outcome) && outcome.IsSuccess) _sourceBlock = outcome.Endpoint;
 
             // 右クリックで起点を解除し、進行中の応答を無効化する。起点なしの孤立設置の応答待ちも明示キャンセルとして止める
             // Release the origin on right click and invalidate any pending response, including an originless isolated placement still awaiting one
@@ -86,6 +86,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             if (_sourceBlock == null)
             {
                 _sourceBlock = _editMode.Update();
+
+                // 明示選択した起点は、応答待ちの孤立設置が後から返す終点に黙って上書きさせない
+                // （上書きされるとプレイヤーが選んだブロックではなく新設電柱から配線され、電線が実消費される）
+                // An explicitly selected origin must not be silently overwritten by a pending isolated placement's endpoint
+                // (the wire would run from the new pole instead of the block the player picked, consuming wire for real)
+                if (_sourceBlock != null) _context.RequestSender.Invalidate();
                 return;
             }
 
