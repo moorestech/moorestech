@@ -9,7 +9,12 @@ import { L, useI18n } from "@/shared/i18n";
 // Use fixed-pixel slots and gaps to prevent fractional drift from the 140px screenshot pitch
 // 正本の占有率へ寄せるため持ち物だけ1pxへ縮め、inv-white面隅プローブの合格を維持する
 // Tighten inventory padding to 1px for the reference occupancy while preserving the inv-white corner probe
-const GRID_STYLE = { "--slot-size": "45.617px", "--slot-grid-gap": "9.183px", "--filled-face-inset": "1.565749px", "--face-inset-color": "rgb(50 52 67)", "--icon-pad": "1px", "--count-bottom": "-1px", "--count-font-size": "16px", "--count-letter-spacing": "0.12em", marginTop: "12px", marginLeft: "-0.549px" } as CSSProperties;
+// メイン45枠=9列(PlayerInventoryConst.MainInventoryColumns)。パネル幅378pxは3カラム構成が使い切っており広げられないため、
+// 6列時のグリッド外寸319.6pxへ9列を収める等比縮小(×0.6603)を実測値へ適用する。枠:間隔の比と左右余白は正本のまま
+// The main inventory is 45 slots in 9 columns (PlayerInventoryConst.MainInventoryColumns). The 378px panel cannot grow — the
+// three-column stage is fully used — so the measured pitch is uniformly scaled (×0.6603) to fit 9 columns into the same
+// 319.6px grid footprint the 6-column layout had, preserving the slot:gap ratio and the reference side margins
+const GRID_STYLE = { "--slot-size": "30.123px", "--slot-grid-gap": "6.064px", "--filled-face-inset": "1.565749px", "--face-inset-color": "rgb(50 52 67)", "--icon-pad": "1px", "--count-bottom": "-1px", "--count-font-size": "10.565px", "--count-letter-spacing": "0.12em", marginTop: "12px", marginLeft: "-0.549px" } as CSSProperties;
 
 // メインインベントリ全スロットを操作する。grab追従は常時別表示
 // Handle every main-inventory slot; grab tracking renders separately
