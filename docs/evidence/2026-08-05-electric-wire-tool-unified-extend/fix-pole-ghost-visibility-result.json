@@ -1,9 +1,9 @@
 {
     "RunName": "electric-wire-tool-pole-ghost-visibility-check",
-    "Success": false,
+    "Success": true,
     "Error": "",
-    "StartedAt": "2026-08-05T22:00:22.1721640+09:00",
-    "FinishedAt": "2026-08-05T22:00:40.4348870+09:00",
+    "StartedAt": "2026-08-14T18:15:49.8958420+09:00",
+    "FinishedAt": "2026-08-14T18:16:08.1606900+09:00",
     "Asserts": [
         {
             "Label": "開幕スキットのSkipインテントが受理される",
@@ -21,9 +21,14 @@
             "Message": "ok"
         },
         {
-            "Label": "【観測された不具合】電線ツールではプレビューGameObjectがSetActive(true)されず電柱ゴーストが描画されない",
-            "Passed": false,
-            "Message": "assertion failed"
+            "Label": "電線ツールでもプレビューGameObjectが有効になり電柱ゴーストが描画される",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "電線ツールの電柱ゴーストが実体として存在し可視である",
+            "Passed": true,
+            "Message": "ok"
         },
         {
             "Label": "対照: 通常設置ではプレビューGameObjectが有効になりゴーストが描画される",
@@ -33,19 +38,19 @@
     ],
     "Timeline": [
         "    0.2s [STEP] 地形を平坦化してプレイヤーをワープ",
-        "    0.9s [STEP] ワープ: (8.00, 34.00, -6.00)",
-        "    0.9s [WAIT] 0.5秒",
-        "    1.4s [NOTE] 開幕スキットをSkipインテントで飛ばす",
-        "    1.4s [WAIT] 開幕スキットのSkipインテントが受理される",
-        "    1.4s [PASS] 開幕スキットのSkipインテントが受理される",
-        "    1.4s [WAIT] UI状態待ち: GameScreen",
-        "    5.5s [STEP] アンロック: 電柱",
-        "    5.5s [STEP] 建設コスト付与: 電柱 x3",
-        "    6.2s [STEP] give: 銅のワイヤー x64",
+        "    1.0s [STEP] ワープ: (8.00, 34.00, -6.00)",
+        "    1.0s [WAIT] 0.5秒",
+        "    1.5s [NOTE] 開幕スキットをSkipインテントで飛ばす",
+        "    1.5s [WAIT] 開幕スキットのSkipインテントが受理される",
+        "    1.5s [PASS] 開幕スキットのSkipインテントが受理される",
+        "    1.5s [WAIT] UI状態待ち: GameScreen",
+        "    5.6s [STEP] アンロック: 電柱",
+        "    5.6s [STEP] 建設コスト付与: 電柱 x3",
+        "    6.3s [STEP] give: 銅のワイヤー x64",
         "    6.8s [NOTE] 電線接続ツールを選び、空間へ照準して電柱ゴーストが出るかを見る",
         "    6.8s [STEP] キー入力: B",
-        "    7.4s [WAIT] Web UI要素待ち: build-menu-panel",
-        "    8.0s [STEP] Web UIクリック: build-menu-category-d1000000-0000-4000-8000-000000000009",
+        "    7.5s [WAIT] Web UI要素待ち: build-menu-panel",
+        "    8.1s [STEP] Web UIクリック: build-menu-category-d1000000-0000-4000-8000-000000000009",
         "    9.3s [STEP] Web UIクリック: build-menu-entry-connectTool-872372d5-2998-4fb7-826c-593ceeafcfb2",
         "   10.5s [WAIT] UI状態待ち: PlaceBlock",
         "   10.5s [PASS] 電線接続ツールが選択される",
@@ -53,20 +58,21 @@
         "   11.9s [PASS] 電線ツール: 電柱名ラベルは表示される（ゴースト評価自体は成功している）",
         "   11.9s [NOTE] 電線ツールの名前ラベル='電柱'",
         "   11.9s [NOTE] 電線ツール: PreviewBlockController.IsActive=True / ゴーストオブジェクト取得=True / ゴーストのactiveInHierarchy=True",
-        "   11.9s [FAIL] 【観測された不具合】電線ツールではプレビューGameObjectがSetActive(true)されず電柱ゴーストが描画されない",
-        "   11.9s [STEP] スクリーンショット: 01-wire-tool-ghost-not-drawn",
-        "   11.9s [NOTE] 対照実験: 通常設置(ビルドメニューで電柱を選択)では同じ位置にゴーストが描画される",
-        "   11.9s [STEP] ゲーム画面へ戻る",
+        "   11.9s [PASS] 電線ツールでもプレビューGameObjectが有効になり電柱ゴーストが描画される",
+        "   11.9s [PASS] 電線ツールの電柱ゴーストが実体として存在し可視である",
+        "   11.9s [STEP] スクリーンショット: 01-wire-tool-ghost-drawn",
+        "   12.0s [NOTE] 対照実験: 通常設置(ビルドメニューで電柱を選択)では同じ位置にゴーストが描画される",
+        "   12.0s [STEP] ゲーム画面へ戻る",
         "   12.6s [STEP] ビルドメニューで選択: 電柱",
-        "   15.6s [STEP] 照準: (8.50, 32.00, 6.50)",
+        "   15.7s [STEP] 照準: (8.50, 32.00, 6.50)",
         "   17.0s [NOTE] 通常設置: PreviewBlockController.IsActive=True",
         "   17.0s [PASS] 対照: 通常設置ではプレビューGameObjectが有効になりゴーストが描画される",
         "   17.0s [STEP] スクリーンショット: 02-normal-place-ghost-drawn"
     ],
     "ErrorLogs": [],
     "Screenshots": [
-        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260805_220004/electric-wire-tool-pole-ghost-visibility-check/01-wire-tool-ghost-not-drawn.png",
-        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260805_220004/electric-wire-tool-pole-ghost-visibility-check/02-normal-place-ghost-drawn.png"
+        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_181537/electric-wire-tool-pole-ghost-visibility-check/01-wire-tool-ghost-drawn.png",
+        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_181537/electric-wire-tool-pole-ghost-visibility-check/02-normal-place-ghost-drawn.png"
     ],
-    "RecordingPath": "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260805_220004/electric-wire-tool-pole-ghost-visibility-check/recording.mp4"
+    "RecordingPath": "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_181537/electric-wire-tool-pole-ghost-visibility-check/recording.mp4"
 }
