@@ -69,7 +69,7 @@ movie.EncoderSettings = new CoreEncoderSettings {
     Codec = CoreEncoderSettings.OutputCodec.MP4,
 };
 movie.ImageInputSettings = new GameViewInputSettings { OutputWidth = 1280, OutputHeight = 720 };
-movie.OutputFile = "/tmp/playtest";   // .mp4自動付与
+movie.OutputFile = "<プロジェクト>/moorestech_client/PlaytestResults/<ラン名>/recording";   // .mp4自動付与・/tmpは消えるので使わない
 settings.AddRecorderSettings(movie);
 var ctrl = new RecorderController(settings);
 ctrl.PrepareRecording();

@@ -150,3 +150,4 @@ moorestech_client/Assets/StreamingAssets/WebUi.meta
 /.agents/skills/user-simulator/modes/improve/pending
 /.agents/skills/moores-code-review/records/
 /TmpUnityPjt/MapMaking/RestoreManifest/
+/.agents/skills/*/outputs/

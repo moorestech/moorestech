@@ -30,6 +30,14 @@ export async function expectNoHorizontalOverflow(locators: Locator) {
   for (const layout of layouts) expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
 }
 
+export async function expectNoVerticalOverflow(locators: Locator) {
+  const layouts = await locators.evaluateAll((elements) => elements.map((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  })));
+  for (const layout of layouts) expect(layout.scrollHeight).toBeLessThanOrEqual(layout.clientHeight);
+}
+
 export async function expectWithinViewport(locator: Locator) {
   const layout = await locator.evaluate((element) => {
     const box = element.getBoundingClientRect();

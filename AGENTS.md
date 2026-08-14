@@ -113,6 +113,7 @@ EditModeInPlayingTest等のPlayMode遷移テストはドメインリロードを
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "正規表現"`
 
 サーバー側のテストはクライアントプロジェクトからもインポートされており、上記コマンド（クライアントのproject-path）で同時に実行できる。サーバー単体プロジェクトを別途指定する必要はない。
+unity-playmode-recorded-playtestでPlayModeを通しで動かす検証は「unityプレイ録画テスト」と呼ぶ。「e2e」「E2Eテスト」とは呼ばない。
 
 ## ログ確認
 `uloop get-logs --project-path ./moorestech_client --log-type Error`
@@ -146,6 +147,7 @@ partialは禁止。如何なる条件でもpartialを絶対に使ってはいけ
 - **汎用基盤にドメイン語彙を持ち込まない。** 基底コンポーネント・共通サービス・Master・Templateは上位の業務概念（アイドル・採掘中等）や`Func<bool>`述語を知らない。判断は具体側で行い、基盤には`SetHoge(値)`でプッシュする
 - **状態変化の検知は購読で。** `Update()`内で毎tickの同値判定をしない。UniRxの変化通知をSubscribeするか、変化を起こす操作の直後にプッシュする。`Update()`は物理進行（搬送・採掘進捗）専用
 - **着手前に前例を探す。** 同形の問題を解いている既存実装を検索し、そのパターンに従う。前例は機構でなく役割で選び、逸脱するなら理由を明記して裁定に出す。サーバー可変状態のクライアント同期は「イベントパケット＋初期データ＋購読」の3点セットが標準
+- **挙動の変更・機能追加はgrill-first。** 「〜にしたい」「〜するようにして」型の依頼は、バグ修正に見えても・仕様が自明に見えても、実装前に moores-grill-with-docs を起動する（HARD GATE: 単純だから省略は禁止・真に単純なら数問で終わる）。直接実装してよいのは調査・質問への回答・明白なクラッシュ/コンパイル修正のみ
 - 実装前チェックリスト: `.agents/skills/moores-code-review/references/lens-digest.md`／PR前レビュー: moores-code-review スキル
 
 # スキル配置と実行記録

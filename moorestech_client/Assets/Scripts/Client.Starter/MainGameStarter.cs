@@ -56,6 +56,7 @@ using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Inventory.Craft;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
@@ -224,6 +225,7 @@ namespace Client.Starter
             builder.Register<IPlayerViewApplier, PlayerViewApplier>(Lifetime.Singleton);
             builder.Register<IPlayerCameraInteractionApplier, PlayerCameraInteractionApplier>(Lifetime.Singleton);
             builder.Register<PlayerViewModeController>(Lifetime.Singleton).AsSelf().As<IStartable>().As<ITickable>();
+            builder.Register<UiStateCameraPolicyService>(Lifetime.Singleton);
 
 
             //UIコントロール

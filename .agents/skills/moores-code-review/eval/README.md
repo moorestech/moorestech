@@ -13,7 +13,7 @@
 
 # 2. 決定論チェック（0トークン・まずこれだけでも回す）
 # 対応する synthetic/*-context.md があるfixtureは --context も付けて出所ラベル検査を通す
-for f in /tmp/moores-review-fixtures/*.diff; do
+for f in .claude/skills/moores-code-review/outputs/fixtures/*.diff; do
   echo "=== $f ==="
   python3 .claude/skills/moores-code-review/scripts/deterministic_checks.py "$f" --repo-root "$(pwd)"
 done
@@ -23,13 +23,13 @@ for c in .claude/skills/moores-code-review/eval/synthetic/*-context.md; do
 done
 
 # 3. selectorの発火確認（期待レンズが発火するか）
-for f in /tmp/moores-review-fixtures/*.diff; do
+for f in .claude/skills/moores-code-review/outputs/fixtures/*.diff; do
   echo "=== $f ==="
   python3 .claude/skills/moores-code-review/scripts/select_lenses.py "$f"
 done
 
 # 4. チャンク分割の確認（第6系統。閾値・テスト完全除外・10-15サイズ・seam束ねの検証）
-for f in /tmp/moores-review-fixtures/*.diff; do
+for f in .claude/skills/moores-code-review/outputs/fixtures/*.diff; do
   echo "=== $f ==="
   python3 .claude/skills/moores-code-review/scripts/split_chunks.py "$f"
 done
