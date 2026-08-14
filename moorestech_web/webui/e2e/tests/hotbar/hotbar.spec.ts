@@ -48,6 +48,26 @@ test("ビルドメニューエントリを空き枠へドラッグするとhotba
   await expect.poll(() => payloadsOf(page, "build_menu.select")).toEqual([]);
 });
 
+test("未解決の割当枠は使用不可表示になり、枠外ドラッグで外せる", async ({ page }) => {
+  await page.goto("/");
+
+  // 割当済みなので空枠ではなく面が埋まり、減光で使用不可を示す
+  // It is assigned, so the face is filled rather than empty, and the dimming marks it unusable
+  await expect(page.locator('[data-hotbar-slot-index="4"]')).toHaveAttribute("data-unresolved", "true");
+  await expect(page.getByTestId("hotbar-slot-4")).toHaveAttribute("data-filled", "true");
+
+  const source = page.getByTestId("hotbar-slot-4");
+  const sourceBox = await source.boundingBox();
+  if (!sourceBox) throw new Error("drag source not measurable");
+
+  await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(sourceBox.x + sourceBox.width / 2, 5, { steps: 10 });
+  await page.mouse.up();
+
+  await expect.poll(() => payloadsOf(page, "hotbar.clear")).toContainEqual({ slot: 4 });
+});
+
 test("枠外へドラッグするとhotbar.clear{slot}を送る", async ({ page }) => {
   await page.goto("/");
 

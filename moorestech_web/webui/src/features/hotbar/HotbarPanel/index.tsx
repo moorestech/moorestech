@@ -1,6 +1,8 @@
 import { useTopic, dispatchAction, Topics } from "@/bridge";
 import type { HotbarSlot } from "@/bridge";
 import { SlotFrame } from "@/shared/ui";
+import { useI18n } from "@/shared/i18n";
+import { localizeSelectableTargetName, placementTargetOf } from "@/shared/placementTarget";
 import { useHotbarDragSource } from "../useHotbarDragSource";
 import type { DragEndpoint } from "../hotbarDnd";
 import styles from "./style.module.css";
@@ -11,7 +13,6 @@ import styles from "./style.module.css";
 // Digit keys are unified into the Unity-side HotbarKeyInput, so this panel never listens for keys
 export default function HotbarPanel() {
   const hotbar = useTopic(Topics.hotbar);
-
   // snapshot未受信の間はHUDごと出さない
   // Hide the whole HUD until the first snapshot
   if (!hotbar) return null;
@@ -30,21 +31,30 @@ export default function HotbarPanel() {
 type CellProps = { index: number; slot: HotbarSlot | null; selected: boolean };
 
 // 1枠: 番号タブ+スロット本体。クリックはselect、割当済みの枠だけがドラッグ元になる
+// 未解決枠(未解放・削除済みBP)も割当済みなので、減光した面で使用不可を示しつつドラッグ元には残す
 // One slot: number tab + slot body. Click selects; only an assigned slot can start a drag
+// An unresolved slot (locked target, deleted blueprint) is still assigned: a dimmed face marks it unusable while it stays a drag source
 function HotbarCell({ index, slot, selected }: CellProps) {
+  const { t } = useI18n();
   const source: DragEndpoint | null = slot ? { kind: "hotbarSlot", index } : null;
   const dragHandlers = useHotbarDragSource(source, () => void dispatchAction("hotbar.select", { index }));
 
   return (
-    <div className={styles.cell} data-hotbar-slot-index={index}>
+    <div className={styles.cell} data-hotbar-slot-index={index} data-unresolved={slot?.kind === "unresolved" ? "true" : undefined}>
       <span className={styles.num}>{index + 1}</span>
       <SlotFrame filled={slot !== null} selected={selected} testId={`hotbar-slot-${index}`} {...dragHandlers}>
-        {slot?.iconUrl ? (
-          <img className={styles.slotIcon} src={slot.iconUrl} alt={slot.label} draggable={false} />
-        ) : slot ? (
-          <span className={styles.slotLabel}>{slot.label}</span>
-        ) : null}
+        {slotBody()}
       </SlotFrame>
     </div>
   );
+
+  // アイコンを持つ種別は画像、持たない種別は名前。未解決枠は解決先が無いので面だけを描く
+  // Kinds with an icon draw the image, the rest draw their name; an unresolved slot has nothing to resolve so only the face shows
+  function slotBody() {
+    if (slot === null || slot.kind === "unresolved") return null;
+
+    const displayName = localizeSelectableTargetName(placementTargetOf(slot), t);
+    if (slot.kind === "blueprint" || slot.kind === "blueprintCopy") return <span className={styles.slotLabel}>{displayName}</span>;
+    return <img className={styles.slotIcon} src={slot.iconUrl} alt={displayName} draggable={false} />;
+  }
 }

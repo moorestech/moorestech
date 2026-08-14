@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Common;
 using Client.Game.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Environment.Terrain;
 using Client.Game.InGame.Hotbar;
@@ -42,6 +43,10 @@ namespace Client.Starter.Initialization
             // Fetch and apply the initial hotbar assignments before event dispatch starts, same as the main inventory
             var hotbarResponse = await _serverResult.VanillaApi.Response.GetHotbar(default);
             resolver.Resolve<ClientHotbarDatastore>().ApplyAssignments(hotbarResponse.Assignments);
+
+            // BP割当の解決元をログイン時に1度満たす。ビルドメニュー入場までBP枠が未解決に見えるのを防ぐ
+            // Fill the blueprint assignments' resolution source once at login so blueprint slots are not unresolved until the build menu is opened
+            await resolver.Resolve<ClientBlueprintLibrary>().Refresh(default);
 
             // イベント適用開始を地形構築より前へ戻し、未生成個体宛イベントが捨てられる窓を地形構築時間分広げない（ADR#15）
             // Start event application before terrain build so the drop window for not-yet-spawned targets never widens by build time (ADR#15)

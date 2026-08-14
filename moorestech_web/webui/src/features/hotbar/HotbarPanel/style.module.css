@@ -90,8 +90,14 @@
   text-shadow: 0.3px 0 0 rgb(0 0 0 / 80%), -0.3px 0 0 rgb(0 0 0 / 80%), 0 0.3px 0 rgb(0 0 0 / 80%), 0 -0.3px 0 rgb(0 0 0 / 80%);
 }
 
-/* アイコン無し(未解決)枠はラベル文字を面中央へ収める。前例 buildMenu/style.module.css */
-/* Icon-less (unresolved) slots center the label text on the face; precedent: buildMenu/style.module.css */
+/* 未解決(未解放・削除済みBP)の割当は使用不可を減光で示す。前例 SlotFrameのdata-insufficient・研究のlocked */
+/* An unresolved assignment (locked target, deleted blueprint) reads as unusable through dimming; precedent: SlotFrame's data-insufficient and the locked research node */
+.cell[data-unresolved="true"] {
+  opacity: 0.4;
+}
+
+/* アイコン無し(BP・BPコピー)枠はラベル文字を面中央へ収める。前例 buildMenu/style.module.css */
+/* Icon-less slots (blueprints and the copy tool) center the label text on the face; precedent: buildMenu/style.module.css */
 .slotIcon {
   width: calc(var(--slot-size) - 8px);
   height: calc(var(--slot-size) - 8px);
