@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
-import { setUiState } from "../../support/mockControl";
+import { setSkitStage, setUiState } from "../../support/mockControl";
 import { buildMenuEntryIds } from "../../mock-host/fixtures";
 
 // 新ホットバーHUD(local_player.hotbar購読)の実ブラウザ回帰。数字キー選択は撤去済みのためここでは検証しない
@@ -66,6 +66,18 @@ test("未解決の割当枠は使用不可表示になり、枠外ドラッグ�
   await page.mouse.up();
 
   await expect.poll(() => payloadsOf(page, "hotbar.clear")).toContainEqual({ slot: 4 });
+});
+
+test("blockingスキット中はホットバーHUDだけが退き、会話窓は残る", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("hotbar-grid")).toBeVisible();
+
+  await setSkitStage(page, "text");
+  await expect(page.getByTestId("blocking-skit")).toBeVisible();
+  await expect(page.getByTestId("hotbar-grid")).toHaveCount(0);
+
+  await setSkitStage(page, "none");
+  await expect(page.getByTestId("hotbar-grid")).toBeVisible();
 });
 
 test("枠外へドラッグするとhotbar.clear{slot}を送る", async ({ page }) => {

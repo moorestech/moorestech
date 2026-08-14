@@ -1,4 +1,4 @@
-import { useTopic, dispatchAction, Topics } from "@/bridge";
+import { useTopic, useTopicSelector, dispatchAction, Topics } from "@/bridge";
 import type { HotbarSlot } from "@/bridge";
 import { SlotFrame } from "@/shared/ui";
 import { useI18n } from "@/shared/i18n";
@@ -13,6 +13,11 @@ import styles from "./style.module.css";
 // Digit keys are unified into the Unity-side HotbarKeyInput, so this panel never listens for keys
 export default function HotbarPanel() {
   const hotbar = useTopic(Topics.hotbar);
+  // 会話中は演出が画面を専有するためHUDを退ける（前例 CurrentChallengeHud）
+  // Withdraw the HUD during blocking skits so the dialogue presentation owns the screen (precedent: CurrentChallengeHud)
+  const skitMode = useTopicSelector(Topics.skitPresentation, (value) => value?.presentationState.mode ?? "none");
+  if (skitMode === "blocking") return null;
+
   // snapshot未受信の間はHUDごと出さない
   // Hide the whole HUD until the first snapshot
   if (!hotbar) return null;
