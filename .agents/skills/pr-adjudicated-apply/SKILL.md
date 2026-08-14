@@ -72,9 +72,13 @@ description: |
 
 対象findingが1件以上ある場合のみ実行する（Step 2で0件なら本Stepはスキップ）。
 
-1. **dirtyチェックを最初に行う**: `git -C <$REPOの実値> status --porcelain` が非空なら、
+1. **dirtyチェックを最初に行う**: `git -C <$REPOの実値> status --porcelain --untracked-files=no` が非空なら、
    ブランチ操作を一切せず即座に失敗として終了する（他作業を壊さないため）。
-   apply-result.jsonの `summary` に「working treeがdirtyのため中止」と書く
+   apply-result.jsonの `summary` に「working treeがdirtyのため中止」と書く。
+   - 未追跡ファイルは対象外（checkoutを妨げないため。パス衝突時はcheckout自体が失敗して止まる）
+   - 例外: 変更が `moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs` のみの場合は
+     uloop compileが書き換えるコンパイルトリガー痕跡なので、`git -C <$REPOの実値> checkout -- <当該ファイル>` で
+     破棄して続行してよい（無人環境ではコンパイルの度に必ず発生するため、失敗扱いにするとapplyが恒常的に不能になる）
 2. **元ブランチを記録する**（Step 8の後片付けで使う）:
    - `git -C <$REPOの実値> symbolic-ref --short -q HEAD` が値を返せばそれが `ORIGINAL_REF`（ブランチ名）
    - 値が空（detached HEAD）なら `git -C <$REPOの実値> rev-parse HEAD` の出力を `ORIGINAL_REF` とする
