@@ -18,7 +18,8 @@ description: |
 
 **入出力の置き場**: `$LOGS` はメインリポジトリの兄弟にあるprivateログrepo `../moorestech_logs`
 （`git rev-parse --show-toplevel` の親ディレクトリ直下）、
-`$RUNDIR = $LOGS/harness/pr-independent-review/runs/pr-<番号>/`。
+`$RUNDIR = $LOGS/harness/pr-independent-review/runs/pr-<番号>/`（再レビューが存在する場合は
+最大のrNを持つ `pr-<番号>-rN/` が最新run。最新runを使う）。
 `$LOGS` / `$RUNDIR` は本ドキュメント上のプレースホルダでありシェル変数ではない。
 コマンド・ファイルパスへ渡すときは必ず実値の絶対パスへ展開して書く。
 
