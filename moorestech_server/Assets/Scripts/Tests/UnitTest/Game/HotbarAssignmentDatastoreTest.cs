@@ -50,7 +50,7 @@ namespace Tests.UnitTest.Game
             var blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
             var datastore = new HotbarAssignmentDatastore(catalog, blueprintDatastore);
 
-            // Assignmentsに未知Guidを含むセーブをLoadHotbar→該当枠はGuid.Empty
+            // 未知Guid含むセーブはEmpty化
             // Loading a save containing an unknown GUID clears that slot
             var assignments = Enumerable.Repeat(Guid.Empty.ToString(), HotbarAssignmentDatastore.SlotCount).ToList();
             assignments[2] = Guid.NewGuid().ToString();
@@ -69,13 +69,13 @@ namespace Tests.UnitTest.Game
             var catalog = serviceProvider.GetService<PlacementTargetCatalog>();
             var blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
 
-            // BlueprintDatastore.Registerで登録したGuidをSetAssignment→保持される
+            // 登録Guidを割当→保持確認
             // A guid registered via BlueprintDatastore.Register is retained
             var blueprintGuid = blueprintDatastore.Register(new BlueprintJsonObject("hotbar-bp", new List<BlueprintBlockJsonObject>(), Guid.NewGuid()));
             datastore.SetAssignment(2, 0, blueprintGuid);
             Assert.AreEqual(blueprintGuid, datastore.GetAssignments(2)[0]);
 
-            // BP削除後にGetSaveJsonObject→LoadHotbar→該当枠はGuid.Empty
+            // BP削除後の再読込でEmpty化
             // After deleting the blueprint, a save/load round-trip clears that slot
             blueprintDatastore.Delete(blueprintGuid);
             var saved = datastore.GetSaveJsonObject();
@@ -110,7 +110,7 @@ namespace Tests.UnitTest.Game
             var blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
             var datastore = new HotbarAssignmentDatastore(catalog, blueprintDatastore);
 
-            // 要素数が9でないセーブと、パース不能な文字列を含むセーブをそれぞれLoadHotbar
+            // 件数不足/パース不能セーブを検証
             // Load saves whose Assignments count isn't 9, and whose entries aren't parseable GUIDs
             var shortAssignments = Enumerable.Repeat(Guid.Empty.ToString(), HotbarAssignmentDatastore.SlotCount - 1).ToList();
             var unparsableAssignments = Enumerable.Repeat("not-a-guid", HotbarAssignmentDatastore.SlotCount).ToList();

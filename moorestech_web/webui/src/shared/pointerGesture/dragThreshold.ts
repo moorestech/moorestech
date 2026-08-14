@@ -1,7 +1,7 @@
-// ポインタジェスチャ共通の純粋計算とDOM判定。DOMに触れない部分はvitestで直接検証できる
+// ポインタジェスチャの純粋計算
 // Shared pointer-gesture math and DOM probing; the math touches no DOM so it is directly unit-testable in vitest
 
-// タップとドラッグを分ける移動量の閾値。5px未満はタップ(選択)として扱う
+// タップとドラッグを分ける閾値
 // Movement threshold separating tap from drag; under 5px stays a tap/selection
 export const DRAG_THRESHOLD_PX = 5;
 

@@ -11,7 +11,7 @@ using UniRx;
 namespace Client.WebUiHost.Game.Topics
 {
     /// <summary>
-    /// local_player.inventory トピック: main/grab/equipment の全量を push
+    /// local_player.inventory: 全量push
     /// local_player.inventory topic: pushes the full main/grab/equipment state
     /// </summary>
     public class InventoryTopic : ITopicHandler, IDisposable

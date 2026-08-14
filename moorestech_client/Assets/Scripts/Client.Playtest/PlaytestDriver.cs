@@ -26,7 +26,7 @@ namespace Client.Playtest
         private readonly PlaytestResult _result;
         private readonly string _runDirectory;
         private readonly PlaytestReporter _reporter;
-        // ホットバー操作(SelectHotbar/AssignHotbar/UnlockConnectTool)のサブファサード
+        // ホットバー操作のサブファサード
         // Sub-facade for hotbar operations (SelectHotbar/AssignHotbar/UnlockConnectTool)
         public PlaytestHotbarDriver Hotbar { get; }
         public PlaytestDriver(PlaytestResult result, string runDirectory)

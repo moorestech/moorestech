@@ -52,7 +52,7 @@ namespace Client.WebUiHost.Game
             var trainHudState = resolver.Resolve<TrainHUDScreenState>();
             var localPlayerEquipment = resolver.Resolve<LocalPlayerEquipment>();
 
-            // インベントリトピックを生成して Hub に登録（選択状態用に装備モデルを渡す）
+            // インベントリトピックを生成・登録
             // Create inventory topic and register it (the equipment model supplies the selection state)
             var inventoryTopic = new InventoryTopic(hub, controller, localPlayerEquipment);
             hub.RegisterTopic(InventoryTopic.TopicName, inventoryTopic);

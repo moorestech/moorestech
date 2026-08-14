@@ -1,6 +1,6 @@
 import { L, blockNameKey, connectToolNameKey, trainCarNameKey, type TranslationKey } from "../i18n";
 
-// 配置対象の種別。rawはユーザー命名など辞書キーを持たないものだけ
+// 配置対象の種別
 // Selectable target kinds; raw covers only user-authored names without a dictionary key
 export type SelectableTarget =
   | { type: "block"; guid: string }
@@ -9,7 +9,7 @@ export type SelectableTarget =
   | { type: "blueprintCopy" }
   | { type: "raw"; label: string };
 
-// 表示名解決に必要な最小フィールド。build_menu.entries と local_player.hotbar の解決済み枠が共に満たす
+// 表示名解決に必要な最小フィールド
 // The minimal fields display-name resolution needs; both build_menu.entries and resolved local_player.hotbar slots satisfy it
 export type NamedPlacementTarget =
   | { kind: "block" | "connectTool" | "trainCar"; id: string }
@@ -31,7 +31,7 @@ export function localizeSelectableTargetName(
   }
 }
 
-// 配信kindを表示名解決の種別へ写す。保存BPだけが原文labelのまま
+// 配信kindを表示種別へ写す
 // Map the wire kind onto the resolution type; only saved blueprints keep their raw label
 export function placementTargetOf(entry: NamedPlacementTarget): SelectableTarget {
   switch (entry.kind) {

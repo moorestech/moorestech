@@ -40,7 +40,7 @@ return PlaytestRunner.Run("gear-chain-pole-via-ui", options, async p =>
     await p.GiveConstructionCost("歯車チェーンポール", 10);
     await p.GiveItem("鉄のワイヤー", 100);   // give命令は1回=1スタックのため、maxStack(100)以内に収める
 
-    // ポールをホットバー1へ割当て、同キーで建築モードへ入る
+    // ポール割当後同キーで建築モードへ
     // Assign the pole to hotbar slot 1, then the same key enters build mode
     await p.Hotbar.AssignHotbar(0, "歯車チェーンポール");
     await p.Hotbar.SelectHotbar(0);

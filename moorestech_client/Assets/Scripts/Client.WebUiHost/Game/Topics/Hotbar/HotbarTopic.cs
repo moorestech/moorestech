@@ -16,14 +16,14 @@ using UniRx;
 namespace Client.WebUiHost.Game.Topics.Hotbar
 {
     /// <summary>
-    /// local_player.hotbar トピック: ホットバー9枠の割当表示情報とselectedSlotをpush
+    /// local_player.hotbar: 9枠情報をpush
     /// local_player.hotbar topic: pushes the hotbar's 9 assignment slots' display info and selectedSlot
     /// </summary>
     public class HotbarTopic : ITopicHandler, IDisposable
     {
         public const string TopicName = "local_player.hotbar";
 
-        // 由来枠がホットバー以外（メニュー/スポイト/未選択）のときに配信する未選択値
+        // 由来がホットバー以外の未選択値
         // The unselected value published when the origin is not a hotbar slot (menu, eyedropper, or nothing)
         private const int UnselectedSlot = -1;
 

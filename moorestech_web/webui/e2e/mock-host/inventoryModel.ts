@@ -85,9 +85,9 @@ export function applySplitDrag(inv: PlayerInventoryData, p: ActionPayloads["inve
   return null;
 }
 
-// クラフト1回分: main から必要素材を消費し結果を追加する。素材不足なら false で no-op
+// クラフト1回分。素材不足ならno-op
 // One craft: consume required materials from main and add the result; returns false (no-op) if short
-// 実 host の OneClickCraft は main のみ参照するため grab は対象外
+// 実hostと同じくgrabは対象外
 // The real host's OneClickCraft only consults main, so grab is excluded
 export function applyCraft(inv: PlayerInventoryData, recipe: CraftRecipe): boolean {
   const pool = inv.mainSlots;
@@ -137,7 +137,7 @@ export function applyCollect(inv: PlayerInventoryData, p: ActionPayloads["invent
   }
 }
 
-// host の CollectItems と同様に grab 状態で集積先を決め、main/block を跨いで同種を集約する
+// grab状態で集積先を決め同種を集約
 // Like the host's CollectItems, pick the target from grab state and consolidate across main/block
 export function applyBlockCollect(
   inv: PlayerInventoryData,

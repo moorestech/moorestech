@@ -24,8 +24,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
             _gameUnlockStateData = gameUnlockStateData;
         }
 
-        // 未解放対象は解決しない（割当自体はセーブに残るが、使用時は建築モードに入れない）
-        // Locked targets are never resolved (the assignment itself survives in the save, but using it cannot enter build mode)
+        // 未解放対象は解決せず建築不可のまま残す
+        // Locked targets stay unresolved and unusable, though the assignment persists
         // Idはカタログ内で一意のため最初の一致で足りる（重複や全件収集は考慮不要）
         // Ids are unique within the catalog, so the first match suffices
         public bool TryResolve(Guid id, out IPlacementTarget target)
@@ -41,8 +41,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
             return false;
         }
 
-        // 表示名一致はプレイテストDSL専用の入口。ロケール非依存のマスタ表示名で引く
-        // Display-name lookup is the playtest DSL's entry point, matching the locale-independent master display name
+        // 表示名一致はテストDSL専用の入口
+        // Display-name lookup is the playtest DSL's entry point (locale-independent)
         public bool TryResolveByDisplayName(string masterDisplayName, out IPlacementTarget target)
         {
             foreach (var entry in UnlockedEntries())

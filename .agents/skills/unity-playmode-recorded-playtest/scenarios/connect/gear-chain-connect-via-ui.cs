@@ -81,8 +81,8 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
         return areaCollider.GetComponent<Collider>().bounds.center;
     };
 
-    // チェーン接続ツールをホットバーで保持して建築モードへ入る
-    // Hold the chain connect tool via the hotbar to enter build mode
+    // 接続ツールを保持し建築モードへ
+    // Hold the connect tool to enter build mode
     await p.Hotbar.SelectHotbar(1);
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
 

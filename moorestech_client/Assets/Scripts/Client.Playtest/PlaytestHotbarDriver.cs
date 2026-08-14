@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 namespace Client.Playtest
 {
     /// <summary>
-    ///     ホットバー操作のサブファサード。PlaytestDriver.Hotbar経由でシナリオから呼ぶ
+    ///     ホットバー操作のサブファサード
     ///     Hotbar operation sub-facade, called from scenarios via PlaytestDriver.Hotbar
     /// </summary>
     public class PlaytestHotbarDriver

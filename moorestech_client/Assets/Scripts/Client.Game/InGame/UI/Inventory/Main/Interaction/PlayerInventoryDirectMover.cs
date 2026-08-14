@@ -7,7 +7,7 @@ using Core.Item;
 namespace Client.Game.InGame.UI.Inventory.Main
 {
     /// <summary>
-    /// Shift+クリックのアイテム直接移動（メイン/サブ間）を担う
+    /// Shift+クリックで直接移動(メイン/サブ間)を担う
     /// Handles Shift+click direct item moves across main/sub inventories
     /// </summary>
     public class PlayerInventoryDirectMover
@@ -58,7 +58,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                         return hasSub ? (mainSlotCount, mainSlotCount + subInventory.Count) : (0, 0);
 
                     case InventoryType.SubInventory:
-                        // サブインベントリから：メインインベントリ全域へ
+                        // サブから：メイン全域へ
                         return (0, mainSlotCount);
 
                     default:

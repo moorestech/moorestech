@@ -29,8 +29,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             Disable();
         }
 
-        // 同じ対象でも由来が変われば通知する。由来だけの持ち替え（枠→スポイト等）を落とさない
-        // Notifies even for an identical target when the origin differs, so origin-only changes (slot to eyedropper) are not dropped
+        // 対象同一でも由来変化で通知する
+        // Notifies even for an identical target when only the origin differs
         public void SetTarget(IPlacementTarget target, PlacementOrigin origin)
         {
             if (Equals(CurrentTarget, target) && CurrentOrigin.Equals(origin)) return;

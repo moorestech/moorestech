@@ -34,7 +34,7 @@ namespace Server.Protocol.PacketResponse
             var inventory = _openableInventoryResolver.Resolve(data.Target);
             if (inventory == null) return null;
 
-            // インベントリ自身が除外スロットを宣言している場合（機械のモジュールスロット等）は除外する
+            // 除外スロット宣言時は除外
             // Exclude slots declared by the inventory itself (e.g. machine module slots).
             IEnumerable<int> excludeSlots = inventory is ISortExcludedSlots sortExcluded
                 ? sortExcluded.SortExcludedSlots

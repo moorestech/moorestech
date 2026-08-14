@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Client.Tests.Hotbar
 {
     /// <summary>
-    ///     数字キーのタップ/長押し判別とUIState遷移時のReset契約の回帰試験
+    ///     タップ/長押し判別とReset契約の回帰試験
     ///     Regression tests for tap/long-press classification and the Reset contract used on UIState transitions
     /// </summary>
     public class HotbarKeyInputTest
@@ -38,7 +38,7 @@ namespace Client.Tests.Hotbar
             Assert.IsTrue(keyInput.TryGetLongPressedSlot(out var longPressedSlot));
             Assert.AreEqual(PressedSlot, longPressedSlot);
 
-            // 保持継続でも再発火せず、成立後の離しはタップにならない
+            // 保持継続で再発火なし
             // Holding further never re-fires, and the release after a fired long press is not a tap
             keyInput.ManualUpdate(PressedSlot, LongPressThresholdSeconds + 1f);
             keyInput.ManualUpdate(null, LongPressThresholdSeconds + 1f);
@@ -52,7 +52,7 @@ namespace Client.Tests.Hotbar
         {
             var keyInput = new HotbarKeyInput();
 
-            // 押して離した直後（タップ保留中）にUIStateが遷移した状況
+            // タップ保留中にUIState遷移
             // A UIState transition right after a press-release, while a tap is still pending
             keyInput.ManualUpdate(PressedSlot, 0f);
             keyInput.ManualUpdate(null, 0.1f);
@@ -60,7 +60,7 @@ namespace Client.Tests.Hotbar
 
             Assert.IsFalse(keyInput.TryGetTappedSlot(out _), "遷移前のタップは持ち越さない");
 
-            // 他UIState滞在中に時間だけ進み、復帰直後も押しっぱなしだった場合
+            // 他UIState中に時間経過、押下継続
             // Time advances while another UIState is active and the key is still held on return
             keyInput.ManualUpdate(PressedSlot, 10f);
             keyInput.ManualUpdate(PressedSlot, 10.1f);

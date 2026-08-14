@@ -1,4 +1,4 @@
-// pointerイベントのタップ/ドラッグ判定としきい値・ドロップ解決を固定する（前例 useDragScroll.test.ts）
+// タップ/ドラッグ判定を固定する試験
 // Pins the pointer-event tap/drag classification, threshold, and drop resolution (precedent: useDragScroll.test.ts)
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
@@ -14,7 +14,7 @@ vi.mock("@/bridge", async (importOriginal) => {
 
 import { useHotbarDragSource } from "./useHotbarDragSource";
 
-// フックの返す5ハンドラを data-testid 付き div へ配線するテスト用ハーネス
+// 5ハンドラをdivへ配線するハーネス
 // Test harness wiring the hook's 5 handlers onto a div carrying a data-testid
 function Harness({ source, onTap }: { source: DragEndpoint | null; onTap: () => void }) {
   const handlers = useHotbarDragSource(source, onTap);
@@ -25,7 +25,7 @@ function fakeCurrentTarget() {
   return { setPointerCapture: vi.fn() };
 }
 
-// closestを持つだけの疑似要素。elementFromPointの戻り値として使う
+// closestのみ持つ疑似要素
 // A fake element that only carries closest; used as elementFromPoint's return value
 function fakeElementFromPoint(closestResult: unknown) {
   return { closest: () => closestResult };

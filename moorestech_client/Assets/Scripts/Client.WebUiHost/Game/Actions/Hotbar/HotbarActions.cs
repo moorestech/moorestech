@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 namespace Client.WebUiHost.Game.Actions
 {
     /// <summary>
-    /// hotbar.select: クリック選択をUIStateの消費待ちキューへ積む
+    /// hotbar.select: 選択待ちキューへ積む
     /// hotbar.select: queue a click selection for UIState to consume
     /// </summary>
     public class HotbarSelectActionHandler : IActionHandler
@@ -58,7 +58,7 @@ namespace Client.WebUiHost.Game.Actions
             if (!HotbarActionPayload.TryParseSlot(payload, "slot", _clientHotbarDatastore.Assignments.Count, out var slot))
                 return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
-            // 姉妹ハンドラと同じく、不正なidは失敗として返す
+            // 姉妹ハンドラ同様、不正idは失敗
             // Like the sibling handlers, an invalid id is reported as a failure
             if (payload["id"] is not JValue { Type: JTokenType.String } idValue || !Guid.TryParse((string)idValue, out var targetId))
                 return UniTask.FromResult(ActionResult.Fail("invalid_id"));

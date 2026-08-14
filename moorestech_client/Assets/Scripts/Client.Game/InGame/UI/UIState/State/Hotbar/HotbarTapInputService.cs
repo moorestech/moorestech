@@ -26,7 +26,7 @@ namespace Client.Game.InGame.UI.UIState.State.Hotbar
             _hotbarKeyInput = hotbarKeyInput;
         }
 
-        // ゲーム画面のタップ。解決できた枠だけが建築モードへの遷移になり、空枠・未解決枠は無視される
+        // ゲーム画面のタップ。解決枠のみ建築モードへ
         // A tap on the game screen: only a resolved slot transits into build mode, empty and unresolved slots are ignored
         public bool TryGetEnterBuildTransit(out UITransitContext transit)
         {
@@ -38,14 +38,14 @@ namespace Client.Game.InGame.UI.UIState.State.Hotbar
             return true;
         }
 
-        // 建築モード中のタップを同一枠/別枠/空枠(・未解決枠)の3通りへ振り分ける
+        // 建築モード中タップを同一/別/空枠へ振り分け
         // Routes a tap during build mode into same-slot / different-slot / empty-or-unresolved-slot handling
         public bool TryGetTapTransit(out UITransitContext transit)
         {
             transit = null;
             if (!TryConsumeTappedTarget(out var slot, out var target)) return false;
 
-            // 同じ枠・空枠・未解決枠→建築モードを終了する。由来枠は設置対象の所有者から読む
+            // 同一/空/未解決枠→建築モード終了
             // The same slot, an empty slot, or an unresolved slot exits build mode; the origin slot is read from the placement target's owner
             var isOriginSlot = _placeSystemStateController.CurrentOrigin.TryGetHotbarSlot(out var originSlot) && originSlot == slot;
             if (isOriginSlot || target == null)
@@ -54,13 +54,13 @@ namespace Client.Game.InGame.UI.UIState.State.Hotbar
                 return true;
             }
 
-            // 別の割当枠→画面遷移せず設置対象を由来枠ごと持ち替える
+            // 別枠→遷移せず由来ごと持ち替え
             // A different assigned slot swaps the placement target together with its origin, without a screen transition
             _placeSystemStateController.SetTarget(target, PlacementOrigin.FromHotbarSlot(slot));
             return false;
         }
 
-        // 長押しは現在の設置対象をその枠へ割り当てる
+        // 長押しで設置対象を枠へ割当
         // A long press assigns the current placement target to that slot
         public void ApplyLongPressAssign()
         {

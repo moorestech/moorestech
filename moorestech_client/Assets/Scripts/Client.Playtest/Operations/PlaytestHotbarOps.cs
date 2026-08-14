@@ -12,7 +12,7 @@ using VContainer;
 namespace Client.Playtest.Operations
 {
     /// <summary>
-    ///     ホットバー割当・接続ツールアンロックの操作群。設置対象IDへの参照割当とサーバーエコー待ちを提供
+    ///     ホットバー割当・接続ツール解放の操作群
     ///     Hotbar-assignment and connect-tool-unlock helpers: assigns a placement-target-id reference and waits for the server echo
     /// </summary>
     public static class PlaytestHotbarOps

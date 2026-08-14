@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
-            // バラけた・分割されたアイテムを末尾スロットも含めて配置する
+            // 分割アイテムを末尾込みで配置
             // Place scattered and split items, including the trailing slots.
             mainInventory.SetItem(0, new ItemId(2), 7);
             mainInventory.SetItem(2, new ItemId(3), 5);
@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Sort the main inventory.
             packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage(PlayerId)), new PacketResponseContext(null));
 
-            // 同種が結合され、ItemId 昇順に詰め直されている（末尾スロットも対象）
+            // 同種結合しId昇順に再配置
             // Same items are merged and re-packed in ItemId ascending order (trailing slots included too).
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 10), mainInventory.GetItem(0));
             Assert.AreEqual(itemStackFactory.Create(new ItemId(2), 7), mainInventory.GetItem(1));

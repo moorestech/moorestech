@@ -14,7 +14,7 @@ using Tests.Module.TestMod;
 namespace Tests.CombinedTest.Server.PacketTest
 {
     /// <summary>
-    /// Assign/Clear/SwapとGetHotbar、イベントパケットの3点セットを検証
+    /// Assign/Clear/Swapと3点セットを検証
     /// Verifies the Assign/Clear/Swap operations, GetHotbar, and the event packet.
     /// </summary>
     public class HotbarProtocolTest
@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Use a real, catalog-resolvable block GUID as the assignment target (slopes are excluded from the catalog)
             var validId = MasterHolder.BlockMaster.Blocks.Data.First(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid)).BlockGuid;
 
-            // Assign(slot3, 実在ID) → GetHotbar応答[3]が一致
+            // Assign後GetHotbarが一致
             // Assign then read back via GetHotbar
             SendHotbar(HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(PlayerId, 3, validId));
             var afterAssign = GetHotbar();
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var validId = MasterHolder.BlockMaster.Blocks.Data.First(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid)).BlockGuid;
 
-            // Assign後、EventProtocolProviderに"va:event:hotbarUpdate"が積まれ全量9個が入っている
+            // Assignで全9枠がイベントに
             // Assign enqueues a hotbar update event carrying all 9 slots
             var request = HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(PlayerId, 2, validId);
             var payload = MessagePackSerializer.Serialize(request);

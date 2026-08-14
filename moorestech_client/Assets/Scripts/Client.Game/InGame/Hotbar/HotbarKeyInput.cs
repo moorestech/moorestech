@@ -8,7 +8,7 @@ namespace Client.Game.InGame.Hotbar
     {
         private const float LongPressThresholdSeconds = 0.5f;
 
-        // 現在保持中のスロット。何も押されていなければnull
+        // 保持中スロット(未押下ならnull)
         // The slot currently held; null when nothing is pressed
         private int? _heldSlot;
         private float _pressStartTime;
@@ -19,7 +19,7 @@ namespace Client.Game.InGame.Hotbar
         private bool _longPressPending;
         private int _longPressSlot;
 
-        // 押下中キーの継続状態を1フレーム分進め、タップ/長押しの成立を検出する
+        // 押下継続を1フレーム進めタップ/長押しを検出
         // Advances the currently-held key's state by one frame and detects a tap or long-press event
         public void ManualUpdate(int? heldSlot, float unscaledTime)
         {
@@ -33,7 +33,7 @@ namespace Client.Game.InGame.Hotbar
 
             #region Internal
 
-            // 保持キーが切り替わった/離された処理。閾値未満での離しだけタップとして確定する
+            // 保持キー変更/離脱の処理。閾値未満の離しでタップ確定
             // Handles a held-key change/release; only a release before the threshold confirms a tap
             void HandleHeldSlotChanged(int? nextSlot)
             {

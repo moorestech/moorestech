@@ -3,7 +3,7 @@ import { payloadsOf } from "../../support/actions";
 import { setSkitStage, setUiState } from "../../support/mockControl";
 import { buildMenuEntryIds } from "../../mock-host/fixtures";
 
-// 新ホットバーHUD(local_player.hotbar購読)の実ブラウザ回帰。数字キー選択は撤去済みのためここでは検証しない
+// 新ホットバーHUDの実ブラウザ回帰
 // Real-browser regression for the new hotbar HUD (subscribes to local_player.hotbar); digit-key selection was removed, so it is not covered here
 test.afterEach(async ({ page }) => {
   await setUiState(page, "PlayerInventory");
@@ -37,13 +37,13 @@ test("ビルドメニューエントリを空き枠へドラッグするとhotba
 
   await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2);
   await page.mouse.down();
-  // 5pxしきい値を確実に超えるステップ移動でドラッグとして確定させる
+  // しきい値超で確実にドラッグ確定
   // Move in steps well past the 5px threshold so the gesture commits to a drag
   await page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + targetBox.height / 2, { steps: 10 });
   await page.mouse.up();
 
   await expect.poll(() => payloadsOf(page, "hotbar.assign")).toContainEqual({ slot: 1, id: buildMenuEntryIds.ironChest });
-  // ドラッグ確定なので、押下起点のbuild_menu.select(即時建築モード遷移)は飛んでいない
+  // ドラッグ確定でselectは飛ばない
   // Since the gesture committed to a drag, the press-origin build_menu.select (immediate build-mode entry) must not fire
   await expect.poll(() => payloadsOf(page, "build_menu.select")).toEqual([]);
 });
@@ -51,7 +51,7 @@ test("ビルドメニューエントリを空き枠へドラッグするとhotba
 test("未解決の割当枠は使用不可表示になり、枠外ドラッグで外せる", async ({ page }) => {
   await page.goto("/");
 
-  // 割当済みなので空枠ではなく面が埋まり、減光で使用不可を示す
+  // 割当済みは面が埋まり減光表示
   // It is assigned, so the face is filled rather than empty, and the dimming marks it unusable
   await expect(page.locator('[data-hotbar-slot-index="4"]')).toHaveAttribute("data-unresolved", "true");
   await expect(page.getByTestId("hotbar-slot-4")).toHaveAttribute("data-filled", "true");
@@ -89,7 +89,7 @@ test("枠外へドラッグするとhotbar.clear{slot}を送る", async ({ page 
 
   await page.mouse.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2);
   await page.mouse.down();
-  // 画面上端(パネル・ホットバーの外)へ十分離してドロップする
+  // 画面上端の外へドロップする
   // Drop far up near the screen top, outside any panel/hotbar element
   await page.mouse.move(sourceBox.x + sourceBox.width / 2, 5, { steps: 10 });
   await page.mouse.up();

@@ -36,7 +36,7 @@ export function planPlayerDoubleClick(ref: SlotRef): PlannedAction[] {
   return [{ type: "inventory.collect", payload: { slot: ref } }];
 }
 
-// Shift+クリック: ブロックUIが開いていれば block へ配分する。装備からのShiftは持ち物本体へ戻す（旧main⇔hotbar振り分けは廃止済み）
+// Shift+クリックでblockへ配分
 // Shift-click: allocate into the block while its UI is open; shift from equipment returns the stack to the main area (the old main<->hotbar swap is gone)
 function planShiftMove(from: SlotRef, slot: SlotData, ctx: PlayerSlotContext): PlannedAction[] {
   if (ctx.blockItemSlots) {

@@ -25,7 +25,7 @@ export * from "./fixtures/hotbarFixtures";
 
 const empty = () => ({ itemId: 0, count: 0 });
 
-// 9列×5行のメインインベントリ（旧ホットバー行込み）。Wood を2スロットに分けて collect の集約を観測可能にする
+// 9x5メインインベントリ(旧行込み)
 // 9x5 main inventory (the former hotbar row is now part of it); Wood is split across two slots so collect's consolidation is observable
 export const inventory = {
   mainSlots: [
@@ -132,7 +132,7 @@ export const uiState = { state: "PlayerInventory" } satisfies UiStateData;
 // DEMO (scoring): 60 items = 10 rows; 7 visible + overflow puts the thumb ratio at the reference's ~70%
 export const demoItemList = { itemIds: [100, ...Array.from({ length: 59 }, (_, i) => i + 1)] } satisfies RecipeViewerItemListData;
 
-// 正本スクショと同じ充填パターン（1段目6・2段目3・3段目空・4段目末尾のみ・5-6段目12・旧ホットバー行9）
+// 正本スクショと同じ充填パターン
 // Mirror the reference screenshot fill pattern (row1 x6, row2 x3, row3 empty, row4 last only, rows5-6 x12, former hotbar row x9)
 export const demoInventory = {
   mainSlots: [
@@ -149,7 +149,7 @@ export const demoInventory = {
     ...[100, 100, 92, 100, 100, 32, 100, 8].map((count, i) => ({ itemId: [23, 24, 16, 22, 15, 17, 18, 14][i], count })),
   ],
   grab: empty(),
-  // 採点用スクショでも装備HUDが右端に写るよう、旧ホットバー行と同じ非シアン系IDで埋める
+  // 装備HUDが写るIDで充填
   // Fill with the same non-cyan ids as the former hotbar row so the equipment HUD shows at the right edge in scoring screenshots
   equipment: [{ itemId: 23, count: 100 }, { itemId: 24, count: 100 }, empty()],
   selectedEquipment: 0,

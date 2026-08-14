@@ -8,7 +8,7 @@ using UniRx;
 namespace Client.Game.InGame.Hotbar
 {
     /// <summary>
-    ///     ホットバー9枠の割当参照を保持するクライアントモデル（非MonoBehaviour）
+    ///     ホットバー割当参照モデル(非MonoBehaviour)
     ///     Client-side model (non-MonoBehaviour) holding the hotbar's 9 assignment slots
     /// </summary>
     public class ClientHotbarDatastore

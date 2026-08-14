@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { GuidSchema } from "./common";
 
-// build_menu.entries と同じ判別共用体。マスタ由来名はGuid導出キーで解決し、ホストから表示名を運ばない
+// build_menuと同じ判別共用体
 // The same discriminated union as build_menu.entries: master-derived names resolve through GUID-derived keys without host-provided labels
 const HotbarDictionaryResolvedSlotSchema = z.object({
   kind: z.enum(["block", "trainCar", "connectTool"]),
@@ -17,7 +17,7 @@ const HotbarBlueprintCopySlotSchema = z.object({
   label: z.never().optional(),
 }).strict();
 
-// ユーザー命名のBPだけが辞書キーを持たないため原文labelを運ぶ
+// ユーザー命名BPのみ原文labelを運ぶ
 // Only user-named blueprints lack a dictionary key, so they carry their raw label
 const HotbarBlueprintSlotSchema = z.object({
   kind: z.literal("blueprint"),
@@ -26,7 +26,7 @@ const HotbarBlueprintSlotSchema = z.object({
   label: z.string().min(1),
 }).strict();
 
-// 割当はあるが解決できない枠（未解放・削除済みBP）。表示は使用不可だがドラッグ元にはなる
+// 解決不能枠。表示不可だがドラッグ元
 // An assigned slot that cannot be resolved (locked target, deleted blueprint): shown as unusable but still a drag source
 const HotbarUnresolvedSlotSchema = z.object({
   kind: z.literal("unresolved"),

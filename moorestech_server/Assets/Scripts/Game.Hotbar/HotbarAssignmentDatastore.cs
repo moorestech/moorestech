@@ -93,7 +93,7 @@ namespace Game.Hotbar
 
         private bool IsResolvable(Guid id)
         {
-            // 有効=マスタカタログ or 現行ブループリント
+            // 有効=マスタ or 現行BP
             // Valid ids come from the master catalog or current blueprints
             return _catalog.TryGetMasterEntry(id, out _) || _blueprintDatastore.Blueprints.Any(bp => bp.BlueprintGuid == id);
         }

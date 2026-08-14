@@ -104,11 +104,11 @@ namespace Client.Game.InGame.UI.UIState.State
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
 
-            // 数字キー/Web由来選択のタップを共通の3分岐（同一枠/別枠/空枠）へ流す
+            // キー/Web選択を共通3分岐へ
             // Route a digit-key or web-originated tap into the shared 3-way branch (same slot / different slot / empty slot)
             if (_hotbarInputService.TryGetTapTransit(out var hotbarTapTransit)) return hotbarTapTransit;
 
-            // 長押しは現在の設置対象をその枠へ割り当てる
+            // 長押しで設置対象を枠へ割当
             // A long press assigns the current placement target to that slot
             _hotbarInputService.ApplyLongPressAssign();
 

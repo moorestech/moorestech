@@ -54,7 +54,7 @@ namespace Client.Game.InGame.UI.UIState.State
             if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget))
                 return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(pickedTarget, PlacementOrigin.Eyedropper)));
 
-            // 数字キー/Web由来の選択で割当済み設置対象を持って建築モードへ入る
+            // キー/Web選択で建築モードへ遷移
             // A digit key or a web-originated selection enters build mode holding the assigned placement target
             if (_hotbarInputService.TryGetEnterBuildTransit(out var hotbarTransit)) return hotbarTransit;
 

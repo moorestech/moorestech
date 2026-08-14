@@ -13,8 +13,8 @@ type Props = {
   onHoverChange: (hovering: boolean) => void;
 };
 
-// アイコン有無で画像/テキストを出し分けるビルドメニュー1スロット。
-// 左押下はホットバーD&Dの共通ポインタ制御を通す(タップ=選択、閾値超えのドラッグ=ホットバー割当のドラッグ元)
+// アイコン有無で画像/テキストを出し分け
+// 左押下はホットバーD&D共通制御を通す
 // One build-menu slot, rendering an image or a text label depending on icon presence.
 // The left press routes through the shared hotbar-D&D pointer control (tap = select, past-threshold drag = a hotbar-assign drag source)
 export function BuildMenuSlot({ entry, onLeftClick, onRightClick, onHoverChange }: Props) {

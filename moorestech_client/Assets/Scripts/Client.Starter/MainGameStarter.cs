@@ -177,7 +177,7 @@ namespace Client.Starter
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
-            // ホットバー9枠の割当参照モデルと、その更新イベント購読
+            // ホットバー割当モデルと更新購読
             // Hotbar's 9-slot assignment-reference model and its update-event subscription
             builder.Register<ClientHotbarDatastore>(Lifetime.Singleton);
             builder.RegisterEntryPoint<HotbarNetworkEventHandler>();
@@ -225,7 +225,7 @@ namespace Client.Starter
             builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
-            // 設置対象の解決と、数字キー押下の判別、ホットバータップの振り分け
+            // 設置対象解決・キー判別・タップ振り分け
             // Placement-target resolution, digit-key press classification, and hotbar tap routing
             builder.Register<PlacementTargetResolver>(Lifetime.Singleton);
             builder.Register<HotbarKeyInput>(Lifetime.Singleton);
