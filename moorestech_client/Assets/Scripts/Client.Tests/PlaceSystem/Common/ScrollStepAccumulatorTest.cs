@@ -39,7 +39,7 @@ namespace Client.Tests.PlaceSystem.Common
         }
 
         [Test]
-        public void 1ノッチ未満の微小デルタは蓄積されてから1段になる()
+        public void ノッチ未満の微小デルタは蓄積されてから1段になる()
         {
             // トラックパッドの細かいデルタを取りこぼさないことを確認する
             // Verify fine trackpad deltas are not dropped
