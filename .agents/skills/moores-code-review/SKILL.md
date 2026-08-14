@@ -70,6 +70,7 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 
 - **`confirmed`**（partial・try-catch・Func・デフォルト引数・SerializeField命名・10ファイル・master_default_fallback・packet_response_root・server_realtime_api・init_method_naming・context_source_label）— 検出正確・裏取り不要。Criticalとして統合に直接載せる（修正の適用可否は §3/§4）。`context_source_label`（出所ラベル欠落）はcontextファイルを修正して再実行する。
 - **`confirmed` のうち200行超過（file-too-long）は努力目標** — Criticalにせず報告のWarning備考に1行載せるだけ。分割を強制せず、AskUserQuestionにも**絶対に**載せない（ユーザー裁定 2026-07-23）。
+- **既に規約超過しているディレクトリへの1〜2ファイル追加も努力目標** — `dir-file-limit` のうち、そのディレクトリが本ブランチ以前から10ファイルを超えていた場合は `file-too-long` と同様に扱う。報告のWarning備考に1行のみ載せ、**AskUserQuestionには載せない**（ユーザー裁定 2026-08-14・[[2026-08-14-既存超過ディレクトリへの追加はレビューで問わない]]）。本ブランチが新規に作ったディレクトリが超過した場合のみCriticalとして扱う。
 - **テストコードは200行/10ファイル規約の適用外** — `*Test(s).cs`・`*.test.ts(x)`・`*.spec.ts`・`Tests`系/`e2e`/`tests`ディレクトリ配下は `file-too-long`/`dir-file-limit` の対象外（スクリプトが除外済み。ユーザー裁定 2026-07-28）。
 - **webui（`moorestech_web/webui`）は分割を実施する** — 上の適用外・努力目標の扱いと異なり、webuiでは e2e/tests 含め10ファイル超過を検出したら機能別サブディレクトリへの分割を修正として実施する（報告止まりにしない）。前例: e2e/tests を research/ inventory/ recipe/ へ分割。playwright testDir は再帰globのため設定変更不要（ユーザー裁定 2026-08-04 「基本的にwebuiは分割もするし、コメントの短縮も行う」・[[2026-08-04-e2eテストはサブディレクトリ分割し10ファイル規約を守る]]）。
 - **`candidates.comparison_operator`** — 1件以上あればStep 3で比較演算子verifier（sonnet）を並列起動。0件なら起動しない。
@@ -160,6 +161,8 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 6. **サーバDateTime用途verifier**（Step 2の `candidates.server_elapsed_time` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/server-elapsed-time-verifier.md` を渡す。
 7. **死にメンバーverifier**（Step 2.5の `candidates.dead_member` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/dead-member-verifier.md` を渡す（候補JSONのパスをpromptに含める）。ILに現れない経路（UnityEvent配線・プレイテストDSL・文字列リフレクション）の実在だけをrgで裁く。
 
+**回収はファイルハンドオフで行う（オーケストレータのコンテキストを空けるため）。** 起動前に共通出力契約を `<$RUNDIRの実値>/contract.md` へ1本だけ書き、各エージェントのプロンプトは `Read this` / `Patch path` / `User prompt` / `Output contract`（contract.mdのパス） / `Write full report to`（`<$RUNDIRの実値>/agents/<名前>.md`）の5行に畳む。**返答は3行以内（Critical件数・設計判断あり/なし・一行要約）に制限し、詳細は返答に書かせずファイルへ書かせる。** Step 5の回収は個々の返答ではなく `agents/` 配下のファイル群をgrep・集計して行う。起動数が多い場合はwaveに分けてよい（1メッセージ内の並列は各wave内で守る）。**コンテキスト残量を理由にこの工程を中断してはならない** — 詰まるのは実行可否ではなく回収の設計であり、この方式で消費はほぼゼロになる（ユーザー裁定 2026-08-14・[[2026-08-14-大規模ファンアウトは回収方式を変えて完走する]]）。
+
 各サブエージェントは上記の共通出力契約（Critical/Warning/Info＋設計判断）で返す。**二値（あり/なし）に潰さず3段階で出させる理由**: Warning/Infoは「とりあえず統合報告のコンテキストに乗る」ことが目的の保険であり、二値だと確信の一段弱い実指摘が `なし` に丸められて消失する（ユーザー裁定 2026-07-23。実例: リプレースファミリーのハードコードを複数レンズが視認しながら二値契約のため無出力で落とした）。`設計判断: あり` はCriticalでも備考でもない第3の出口で、Step 7のAskUserQuestionへ**必ず**載せる（備考落ちで黙殺しない）。reviewer発火が0件でもレンズ群とFableは起動する。
 
 ## Step 5: 回収・実コード照合・重複排除 ④
@@ -243,5 +246,6 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **文字数はスクリプトの値が正** — LLMに日本語の文字数を数え直させない。convention-guardは `count` を信頼し例外判定と短縮案だけ行う。
 - **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。
 - **Agent起動時に必ずmodel列を渡す（モデル継承事故の防止）** — Agentツールは `model` を省略すると**親（＝あなた＝オーケストレータ）のモデルを継承**する。あなた自身がfableで走っていると、model未指定のサブエージェントが誤ってfableで起動しうる。両セレクタはTSV2列目に**常に具体値**を出す（`select_lenses.py` はmodel未記載lensを `opus` に、`select_reviewers.py` は未記載reviewerを `default:opus` に具体化。空欄は絶対に出さない）。この2列目を**必ずそのまま** Agentの `model` に渡すこと。fableが正になるのは `precedent-alignment` レンズ（YAMLに `model: fable`）とFable全般（prose指定）だけで、それ以外にfableは現れない。
+- **残量不足を理由に系統を間引かない／中断しない** — レポートはファイルへ書かせ返答は3行に絞る（Step 4の回収方式）。系統を落とすなら報告に明記する。
 - **AskUserQuestionは末尾だけ** — 確定修正の途中で割り込まない。
 - **人間指摘の見逃しが出たら** — その場で観点をいじらず `references/skill-improvement.md` の手順（フォレンジック・リプレイ診断→対策→4段階検証）に従う。
