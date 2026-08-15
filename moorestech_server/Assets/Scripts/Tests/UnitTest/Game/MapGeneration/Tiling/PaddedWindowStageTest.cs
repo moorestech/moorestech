@@ -20,6 +20,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         // Compare only the inner area beyond window-edge effects: beach radius 16px + blendRadius 4 + blurRadius 2 plus slack
         private const int Margin = 24;
         private const int BlendRadius = 4;
+
+        // 導出padding（この設定では海岸系22 + 高さ1 = 23）を上回る chunkPadding。下回ると両実行が同じ窓になり比較が恒真化する
+        // A chunkPadding above the derived padding (22 shore + 1 height = 23 here); below it both runs share one window and the comparison goes vacuous
+        private const int WideChunkPadding = 40;
         private const float Tolerance = 1e-4f;
 
         [Test]
@@ -52,17 +56,20 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         [Test]
         public void chunkPaddingを変えても内陸の高さと分類は一致する()
         {
-            // padding=max(chunkPadding, blendRadius/2) なので 8 と 2 になり、窓サイズが実際に変わる
-            // padding=max(chunkPadding, blendRadius/2) yields 8 and 2, so the window size really differs
-            var wide = RunPadded(BuildConfig(8));
+            var wide = RunPadded(BuildConfig(WideChunkPadding));
             var narrow = RunPadded(BuildConfig(0));
+
+            // 同じ padding に落ちると2実行がビット同一になり以降が恒真になるので、窓が実際に違うことを先に固定する
+            // Landing on the same padding would make both runs bit-identical and everything below vacuous, so pin that the windows really differ
+            Assert.AreEqual(WideChunkPadding, wide.Padding, "chunkPadding が導出paddingに飲まれている");
+            Assert.Less(narrow.Padding, wide.Padding, "両実行の窓サイズが同じで比較が恒真になっている");
 
             Assert.AreEqual(0, CountMismatches(wide.Heights, narrow.Heights, 1, 0), "heights");
             Assert.AreEqual(0, CountWinnerMismatches(wide.Winner, narrow.Winner), "winnerBiomeIndex");
         }
 
-        // 解像度129・小さめの blendRadius で、パディング量が chunkPadding で決まる条件を作る。
-        // Builds a 129-resolution config with a small blendRadius so chunkPadding drives the padding amount.
+        // 解像度129・小さめの blendRadius で、chunkPadding が導出paddingを上回れば窓幅を動かせる条件を作る。
+        // Builds a 129-resolution config with a small blendRadius so a chunkPadding above the derived padding can move the window width.
         private static TerrainGenerationConfig BuildConfig(int chunkPadding)
         {
             var config = GenerationRuntimeConfigFactory.Build(TestGenerationConfigFactory.CreateSmall());
@@ -87,7 +94,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             try
             {
                 PaddedWindowStage.Run(config, biomeTypes, buffers);
-                return WindowResult.From(buffers);
+                return WindowResult.From(buffers, PaddedWindowStage.ResolvePadding(config, buffers.biomeParams));
             }
             finally
             {
@@ -106,7 +113,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             {
                 ClassificationStage.Run(config, biomeTypes.Length, buffers, cont, ero, protectEdgeSea: false);
                 HeightmapStage.Run(config, biomeTypes.Length, buffers);
-                return WindowResult.From(buffers);
+                return WindowResult.From(buffers, 0);
             }
             finally
             {
@@ -171,11 +178,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             public float[] LandTextureFactor;
             public float[] SeaTextureFactor;
             public int[] Winner;
+            public int Padding;
 
-            public static WindowResult From(JobBuffers buffers)
+            public static WindowResult From(JobBuffers buffers, int padding)
             {
                 return new WindowResult
                 {
+                    Padding = padding,
                     Heights = buffers.heights.ToArray(),
                     BiomeWeights = buffers.biomeWeights.ToArray(),
                     ShoreMask = buffers.shoreMask.ToArray(),

@@ -68,11 +68,16 @@ namespace Game.MapGeneration.Pipeline.Stages
         // ガウシアン式は元実装と完全一致（sigma=radiusPixels/3, falloff=exp(-d^2/(2 sigma^2))）。
         // Look up heightMod params per placed tree by guid and add a Gaussian falloff to heights[].
         // The Gaussian math is verbatim from the original.
+        // 解像度は config からだけ読む。res を引数で受けると MaxReach 側の config.Resolution と食い違い、
+        // 別解像度で呼んだときに halo だけがずれる形になる
+        // The resolution is read from config alone; taking it as an argument lets it diverge from MaxReach's
+        // config.Resolution and skews the halo by itself when called at another resolution
         public static void Apply(
-            float[] heights, int res, TerrainGenerationConfig config,
+            float[] heights, TerrainGenerationConfig config,
             List<PlacementEntry> trees, Dictionary<string, (float amount, float width)> guidModMap)
         {
             if (trees == null || guidModMap.Count == 0) return;
+            int res = config.Resolution;
             float terrainWidth = config.terrainWidth;
             float terrainLength = config.terrainLength;
             float terrainHeight = config.terrainHeight;

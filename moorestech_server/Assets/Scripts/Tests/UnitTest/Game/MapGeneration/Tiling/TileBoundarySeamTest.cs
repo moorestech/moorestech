@@ -21,9 +21,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         private const int GridSide = 3;
         private const int Seed = 42;
 
-        // factory既定の biomeBlendRadius=200 は導出paddingを302まで押し上げ、窓が 861² になって3タイル格子が実用外の遅さになる。
+        // factory既定の biomeBlendRadius=200 は導出paddingを301まで押し上げ、解像度129に対し窓が 731² になって3タイル格子が実用外の遅さになる。
         // 小さくしても導出paddingが chunkPadding 32 を下回るだけで、測りたいクロップ機構の被覆は落ちない。
-        // The factory default biomeBlendRadius=200 pushes the derived padding to 302, a 861 window that makes a 3x3 grid impractically slow.
+        // The factory default biomeBlendRadius=200 pushes the derived padding to 301, a 731 window over a 129 resolution that makes a 3x3 grid impractically slow.
         // Shrinking it only drops the derived padding below chunkPadding 32 and costs none of the crop coverage this test is about.
         private const int ChunkPadding = 32;
         private const int BiomeBlendRadius = 8;

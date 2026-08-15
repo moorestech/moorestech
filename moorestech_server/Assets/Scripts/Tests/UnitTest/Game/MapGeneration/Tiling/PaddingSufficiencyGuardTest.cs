@@ -1,3 +1,4 @@
+using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Jobs;
 using Game.MapGeneration.Pipeline.Stages;
 using Game.MapGeneration.Pipeline.Tiling;
@@ -7,10 +8,12 @@ using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration.Tiling
 {
-    // 各チャネルの必要到達を production とは別に書き起こし、PaddedWindowStage が導く実効padding がそれを満たすことを固定する。
-    // 式を複製しているのが要点で、production 側の MaxReachPixels が痩せる方向に変わればこのテストが落ちる。
-    // Restates each channel's required reach independently of production and pins that PaddedWindowStage's derived padding covers it.
-    // Duplicating the formulas is the point: this test fails if production's MaxReachPixels ever shrinks.
+    // 分類チャネルの必要到達を production とは別に書き起こし、PaddedWindowStage が導く実効padding がそれを満たすことを固定する。
+    // 分類側は式を複製しているので ClassificationWindowReach が痩せれば落ちる。高さ側は式を複製できない
+    // （半径の抽出が HeightmapStage の private）ため、加算3項が全て効く設定で合計値を直接ピン留めして代替している。
+    // Restates the classification channels' required reach independently of production and pins that the derived padding covers it.
+    // The classification side duplicates the formulas, so it fails if ClassificationWindowReach shrinks. The height side cannot be
+    // duplicated (its radius extraction is private to HeightmapStage), so instead it pins the total on a config where all three added terms are live.
     public class PaddingSufficiencyGuardTest
     {
         private const int Seed = 1;
@@ -47,9 +50,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
                 var neededWeights = config.biomeBlendRadius + config.biomeBlendRadius / divisor;
                 Assert.AreEqual(300, neededWeights);
 
-                var classificationReach = ClassificationStage.MaxReachPixels(config);
+                var classificationReach = ClassificationWindowReach.Pixels(config);
                 Assert.AreEqual(Mathf.Max(Mathf.Max(neededBeach, neededCoastal), neededWeights), classificationReach,
-                    "ClassificationStage.MaxReachPixels が3チャネルの最大と食い違っている");
+                    "ClassificationWindowReach.Pixels が3チャネルの最大と食い違っている");
 
                 // 内訳は CoastalSmoothJob の 3x3 ぶんの1のみ。この設定は jungle を無効化するので BoundaryNoiseJob は走らず、
                 // heightBlur(Jungle terraceSharpness) と slope(secondaryAmplitude) もどちらも0になる
@@ -74,6 +77,52 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             {
                 biomeParams.Dispose();
             }
+        }
+
+        // 上のテストの設定は加算3項が全て0なので、3項を丸ごと削除しても通ってしまう。
+        // jungle のテラス・砂漠のスロープ・jungle の境界ノイズを全て効かせた設定で、内訳ごと合計を固定する。
+        // The test above zeroes all three added terms, so deleting them outright would still pass it.
+        // This one turns on jungle's terrace, the desert slope, and jungle's boundary noise, pinning the total together with its breakdown.
+        [Test]
+        public void 高さ後処理の到達は加算3項が全て効く設定で内訳どおりになる()
+        {
+            var config = BuildAllTermsLiveConfig();
+            var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);
+            var biomeParams = JobDataConverter.ConvertBiomeParams(config, biomeTypes, Allocator.TempJob);
+            try
+            {
+                // 内訳: CoastalSmoothJob の 3x3 が1、HeightBlur が terraceSharpness*20 = 10、
+                // HeightSlope が desert の canyonOctaves = 4、BoundaryNoise の勾配が1
+                // Breakdown: 1 for CoastalSmoothJob's 3x3, 10 for HeightBlur (terraceSharpness*20),
+                // 4 for HeightSlope (the desert canyonOctaves), and 1 for BoundaryNoise's gradient
+                Assert.AreEqual(1 + 10 + 4 + 1, HeightmapStage.MaxReachPixels(config, biomeParams),
+                    "加算3項のどれかが落ちているか、ゲート条件が RunHeightPostProcess とずれている");
+            }
+            finally
+            {
+                biomeParams.Dispose();
+            }
+        }
+
+        // HeightBlur は Jungle(8) の terraceSharpness、HeightSlope は canyonOctaves と secondaryAmplitude と
+        // absSmoothing の3つ揃い、BoundaryNoise は jungleEnabled と boundaryNoiseStrength でそれぞれゲートされる。
+        // HeightBlur gates on Jungle(8)'s terraceSharpness, HeightSlope on canyonOctaves plus secondaryAmplitude plus
+        // absSmoothing all being set, and BoundaryNoise on jungleEnabled together with boundaryNoiseStrength.
+        private static TerrainGenerationConfig BuildAllTermsLiveConfig()
+        {
+            var config = MultiTileTestWorld.BuildConfig(1, Seed);
+
+            config.jungleEnabled = true;
+            config.jungle.transitionSmoothing = 0.5f;
+            config.jungle.boundaryNoiseStrength = 40f;
+
+            // desert は Jungle より後ろに並ぶが canyonOctaves を持つ唯一の有効バイオームになるので GetSlopeParams が拾う
+            // Desert sorts after Jungle but becomes the only enabled biome carrying canyonOctaves, so GetSlopeParams picks it up
+            config.desertEnabled = true;
+            config.desert.canyonOctaves = 4;
+            config.desert.duneAmplitude = 0.025f;
+            config.desert.absSmoothing = 0.25f;
+            return config;
         }
     }
 }

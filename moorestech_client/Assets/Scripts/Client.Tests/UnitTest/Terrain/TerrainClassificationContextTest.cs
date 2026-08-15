@@ -111,8 +111,8 @@ namespace Client.Tests.UnitTest.Terrain
             }
         }
 
-        // 解像度129・小さめのblendRadiusで、パディング量がchunkPaddingで決まる条件を作る（サーバー側と同じ組み立て）
-        // Builds a 129-resolution config with a small blendRadius so chunkPadding drives the padding, as the server test does
+        // 解像度129・小さめのblendRadiusで、パディング量が海岸系の到達で決まる小さな窓にする（サーバー側と同じ組み立て）
+        // Builds a 129-resolution config with a small blendRadius so the shore reach settles a small padding, as the server test does
         internal static TerrainGenerationConfig BuildConfig()
         {
             var config = GenerationRuntimeConfigFactory.Build(TestGenerationConfigFactory.CreateSmall());

@@ -32,6 +32,12 @@ namespace Game.MapGeneration.Pipeline.Tiling
                 throw new ArgumentException(
                     $"destination must be allocated at the tile resolution {baseResolution}.", nameof(destination));
 
+            // biomeParams が空だと ResolvePadding が高さ側の到達を0と読み、padding だけ無言で痩せてシームが戻る
+            // An empty biomeParams makes ResolvePadding read the height reach as zero, silently shrinking the padding and bringing the seam back
+            if (destination.biomeParams.Length == 0)
+                throw new ArgumentException(
+                    "destination.biomeParams must be filled before Run; the padding derivation reads it.", nameof(destination));
+
             var padding = ResolvePadding(tileConfig, destination.biomeParams);
             if (padding <= 0)
             {
@@ -71,7 +77,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
         // chunkPadding stays as the floor, the extra margin the master states explicitly.
         public static int ResolvePadding(TerrainGenerationConfig config, NativeArray<BiomeParams> biomeParams)
         {
-            var requiredPadding = ClassificationStage.MaxReachPixels(config)
+            var requiredPadding = ClassificationWindowReach.Pixels(config)
                                   + HeightmapStage.MaxReachPixels(config, biomeParams);
             return Mathf.Max(config.chunkPadding, requiredPadding);
         }

@@ -42,7 +42,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
                 mapObjects, tileWorldPosition, tileConfig.terrainWidth, tileConfig.terrainLength, halo);
 
             TreeHeightModifier.Apply(
-                flatHeights, resolution, tileConfig, ToPlacementEntries(tileLocalObjects), guidModMap);
+                flatHeights, tileConfig, ToPlacementEntries(tileLocalObjects), guidModMap);
 
             var postHeights = new float[resolution, resolution];
             for (var z = 0; z < resolution; z++)
