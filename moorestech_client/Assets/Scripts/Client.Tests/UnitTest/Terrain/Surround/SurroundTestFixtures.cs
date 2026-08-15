@@ -1,5 +1,6 @@
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
+using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Server.Protocol.PacketResponse.MapData;
 
@@ -41,7 +42,29 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             return SplatLayerTable.Build(
                 "addr/beach", "addr/Mud01", new[] { "addr/grass" },
                 new[] { new BiomeTextureConfig { entries = new TextureEntry[0] } },
-                new[] { new SurroundTextureConfig() }, new string[0]);
+                new[] { new SurroundTextureConfig() }, CreateTreeSurroundSpecies());
+        }
+
+        // 樹種テーブルは本番と同じくConfigから組む。列やマップを手書きで注げる口を作ると、その導出をテストが迂回してしまう
+        // The species table is assembled from a config as production does; a hand-written map or column list would let tests bypass that derivation
+        public static TreeSurroundSpeciesTable CreateTreeSurroundSpecies(params TreePrototypeEntry[] prototypes)
+        {
+            var config = CreateConfig();
+            config.grassland.treePlacement = new TreePlacementConfig { prototypes = prototypes };
+
+            return TreeSurroundSpeciesTable.Build(new BiomePlacementHelper(config), new[] { BiomeType.Grassland });
+        }
+
+        public static TreePrototypeEntry CreateTreePrototype(
+            string[] mapObjectGuids, string layerAddress, float weight, float width)
+        {
+            return new TreePrototypeEntry
+            {
+                mapObjectGuids = mapObjectGuids,
+                surroundLayerAddressablePath = layerAddress,
+                surroundLayerWeight = weight,
+                surroundLayerWidth = width,
+            };
         }
 
         public static SurroundTextureConfig CreateSurroundConfig()

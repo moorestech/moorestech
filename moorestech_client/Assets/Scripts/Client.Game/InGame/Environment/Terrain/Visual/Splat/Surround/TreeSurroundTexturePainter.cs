@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
@@ -17,74 +16,17 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
     /// </summary>
     public static class TreeSurroundTexturePainter
     {
-        // guid → (レイヤーアドレス, 重み, 幅)。TreeHeightModifier.BuildGuidModMapと同じ規約で最初の出現が勝つ
-        // guid to (layer address, weight, width) under BuildGuidModMap's rule, where the first occurrence wins
-        public static Dictionary<string, (string layerAddress, float weight, float width)> BuildGuidSurroundMap(
-            BiomePlacementHelper helper, BiomeType[] biomeTypes)
-        {
-            var surroundParamsByGuid = new Dictionary<string, (string, float, float)>();
-            foreach (var biome in biomeTypes)
-            {
-                var treePlacement = helper.GetTreePlacementConfig(biome);
-                if (treePlacement?.prototypes == null) continue;
-
-                // 塗らないプロトタイプも載せる。最初の出現が勝つ規約は「塗るかどうか」より前に決まるため
-                // Non-painting prototypes are mapped too: the first-occurrence rule is settled before painting is
-                foreach (var entry in treePlacement.prototypes)
-                {
-                    if (entry == null || entry.disabled || entry.mapObjectGuids == null) continue;
-
-                    foreach (var mapObjectGuid in entry.mapObjectGuids)
-                    {
-                        if (string.IsNullOrEmpty(mapObjectGuid) || surroundParamsByGuid.ContainsKey(mapObjectGuid)) continue;
-                        surroundParamsByGuid[mapObjectGuid] =
-                            (entry.surroundLayerAddressablePath, entry.surroundLayerWeight, entry.surroundLayerWidth);
-                    }
-                }
-            }
-
-            return surroundParamsByGuid;
-        }
-
-        // splatmapの列は塗る樹種のぶんだけ要る。重み0や未設定のアドレスまで登録すると使われない列がTerrainLayerごと増える
-        // The splatmap needs a column per painting species; registering unset or zero-weight addresses would add unused columns and TerrainLayers
-        public static List<string> LayerAddresses(
-            IReadOnlyDictionary<string, (string layerAddress, float weight, float width)> surroundParamsByGuid)
-        {
-            var layerAddresses = new List<string>();
-            foreach (var surroundParams in surroundParamsByGuid.Values)
-                if (Paints(surroundParams))
-                    layerAddresses.Add(surroundParams.layerAddress);
-
-            return layerAddresses;
-        }
-
-        // 隣タイルの木の根元もこちらへ伸びる。切り出しhaloがこの距離を下回るとタイル境界で根元の塗りが直線に切れる
-        // A tree's root reaches in from the neighbouring tile too; a slice halo below this distance breaks the root patch in a straight line at the seam
-        public static float MaxReach(
-            IReadOnlyDictionary<string, (string layerAddress, float weight, float width)> surroundParamsByGuid)
-        {
-            var reach = 0f;
-            foreach (var surroundParams in surroundParamsByGuid.Values)
-                if (Paints(surroundParams))
-                    reach = Mathf.Max(reach, surroundParams.width);
-
-            return reach;
-        }
-
         public static void Apply(
             float[,,] alphamap, TerrainGenerationConfig config, SplatLayerTable layerTable,
-            IReadOnlyDictionary<string, (string layerAddress, float weight, float width)> surroundParamsByGuid,
-            IReadOnlyList<MapObjectLayoutMessagePack> treeObjects)
+            TreeSurroundSpeciesTable speciesTable, IReadOnlyList<MapObjectLayoutMessagePack> treeObjects)
         {
             var alphaResolution = alphamap.GetLength(0);
 
             foreach (var treeObject in treeObjects)
             {
-                // 岩・鉱脈のguidはマップに載らない。木でも未設定・重み0のプロトタイプはここで抜ける
-                // Rock and vein guids never enter the map, and an unset or zero-weight tree prototype leaves here too
-                if (!surroundParamsByGuid.TryGetValue(treeObject.MapObjectGuid, out var surroundParams)) continue;
-                if (!Paints(surroundParams)) continue;
+                // 岩・鉱脈のguidは樹種テーブルに載らない。木でも未設定・重み0のプロトタイプはここで抜ける
+                // Rock and vein guids never enter the species table, and an unset or zero-weight tree prototype leaves here too
+                if (!speciesTable.TryGetPaintingParams(treeObject.MapObjectGuid, out var surroundParams)) continue;
 
                 // 幅0はsigma0でガウシアンがNaNになり、alphamap全体へ伝播する。黙って飛ばさずデータの穴として落とす
                 // A zero width makes sigma zero and the Gaussian NaN, which spreads across the alphamap; it fails as a data gap rather than being skipped
@@ -132,13 +74,6 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
             }
 
             alphamap[pixelZ, pixelX, layerIndex] = alphamap[pixelZ, pixelX, layerIndex] * remaining + blend;
-        }
-
-        // 移植元の `layer == null || weight <= 0f` と同じ足切り。列の確保・haloの幅・実際の塗りが同じ条件で揃う
-        // The same cutoff as the source's `layer == null || weight <= 0f`, keeping the reserved columns, the halo and the painting on one condition
-        private static bool Paints((string layerAddress, float weight, float width) surroundParams)
-        {
-            return !string.IsNullOrEmpty(surroundParams.layerAddress) && 0f < surroundParams.weight;
         }
     }
 }

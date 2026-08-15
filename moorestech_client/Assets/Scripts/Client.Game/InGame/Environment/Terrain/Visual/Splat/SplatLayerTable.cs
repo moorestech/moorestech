@@ -28,7 +28,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
         public static SplatLayerTable Build(
             string beachLayerAddress, string rockLayerAddress,
             string[] biomeMainLayerAddresses, BiomeTextureConfig[] biomeTextureConfigs,
-            SurroundTextureConfig[] biomeSurroundTextureConfigs, IReadOnlyList<string> treeSurroundLayerAddresses)
+            SurroundTextureConfig[] biomeSurroundTextureConfigs, TreeSurroundSpeciesTable treeSurroundSpecies)
         {
             var orderedLayerAddresses = new List<string>();
             var layerIndexByAddress = new Dictionary<string, int>();
@@ -51,9 +51,9 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
             foreach (var surroundTextureConfig in biomeSurroundTextureConfigs)
                 RegisterOptional(surroundTextureConfig.surroundLayerAddressablePath);
 
-            // 木の根元のレイヤーは樹種ごと。呼び出し側が塗る樹種ぶんだけ渡すので、ここへ来る時点で空は無い
-            // A tree's root layer is per species; the caller passes only the painting ones, so nothing empty arrives here
-            foreach (var treeSurroundLayerAddress in treeSurroundLayerAddresses)
+            // 木の根元のレイヤーは樹種ごと。塗る樹種のぶんだけを樹種テーブル自身が数えているので、ここへ来る時点で空は無い
+            // A tree's root layer is per species, counted by the species table itself for the painting ones alone, so nothing empty arrives here
+            foreach (var treeSurroundLayerAddress in treeSurroundSpecies.LayerAddresses)
                 Register(treeSurroundLayerAddress, "treePlacement.prototypes.surroundLayerAddressablePath");
 
             return new SplatLayerTable(orderedLayerAddresses, layerIndexByAddress);

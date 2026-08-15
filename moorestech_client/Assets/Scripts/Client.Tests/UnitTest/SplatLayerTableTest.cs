@@ -1,6 +1,8 @@
 using System;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
+using Client.Tests.UnitTest.Terrain.Surround;
+using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Jobs;
 using NUnit.Framework;
 using Unity.Collections;
@@ -22,7 +24,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass", "addr/sand" },
                 new[] { CreateTextureConfig(), CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty, string.Empty), new string[0]);
+                CreateSurroundConfigs(string.Empty, string.Empty), CreateTreeSurroundSpecies());
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/sand" }));
@@ -39,7 +41,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass" },
                 new[] { CreateTextureConfig("addr/cliff", "addr/moss") },
-                CreateSurroundConfigs(string.Empty), new string[0]);
+                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies());
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/cliff", "addr/moss" }));
@@ -54,7 +56,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass", "addr/grass" },
                 new[] { CreateTextureConfig("addr/rock"), CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty, string.Empty), new string[0]);
+                CreateSurroundConfigs(string.Empty, string.Empty), CreateTreeSurroundSpecies());
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass" }));
@@ -68,15 +70,15 @@ namespace Client.Tests.UnitTest
             // Falling an empty address back to index 0 would paint the whole terrain with sand, hiding the data gap
             Assert.Throws<InvalidOperationException>(() => SplatLayerTable.Build(
                 string.Empty, "addr/rock", new[] { "addr/grass" }, new[] { CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty), new string[0]));
+                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies()));
 
             Assert.Throws<InvalidOperationException>(() => SplatLayerTable.Build(
                 "addr/beach", "addr/rock", new[] { string.Empty }, new[] { CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty), new string[0]));
+                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies()));
 
             Assert.Throws<InvalidOperationException>(() => SplatLayerTable.Build(
                 "addr/beach", "addr/rock", new[] { "addr/grass" }, new[] { CreateTextureConfig(string.Empty) },
-                CreateSurroundConfigs(string.Empty), new string[0]));
+                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies()));
         }
 
         [Test]
@@ -88,7 +90,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass" },
                 new[] { CreateTextureConfig("addr/cliff") },
-                CreateSurroundConfigs("addr/mud"), new string[0]);
+                CreateSurroundConfigs("addr/mud"), CreateTreeSurroundSpecies());
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/cliff", "addr/mud" }));
@@ -104,7 +106,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass" },
                 new[] { CreateTextureConfig() },
-                CreateSurroundConfigs("addr/mud"), new[] { "addr/dirt", "addr/mud" });
+                CreateSurroundConfigs("addr/mud"), CreateTreeSurroundSpecies("addr/dirt", "addr/mud"));
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/mud", "addr/dirt" }));
@@ -120,7 +122,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass" },
                 new[] { CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty), new string[0]);
+                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies());
 
             Assert.That(table.OrderedLayerAddresses, Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass" }));
         }
@@ -132,7 +134,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass", "addr/sand" },
                 new[] { CreateTextureConfig("addr/cliff", "addr/moss"), CreateTextureConfig("addr/dune") },
-                CreateSurroundConfigs(string.Empty, string.Empty), new string[0]);
+                CreateSurroundConfigs(string.Empty, string.Empty), CreateTreeSurroundSpecies());
 
             var biomeParams = new NativeArray<BiomeParams>(2, Allocator.Temp);
             var textureEntries = TextureEntryParamsBuilder.Build(
@@ -157,6 +159,18 @@ namespace Client.Tests.UnitTest
 
             biomeParams.Dispose();
             textureEntries.Dispose();
+        }
+
+        // 木の根元の列は樹種設定からしか作れない。アドレスの配列を直に渡せる口が無いので、列と塗りの導出は本番と同じ1本に揃う
+        // The tree root columns come only from species settings; with no way to hand in a bare address array, columns and painting share production's single derivation
+        private static TreeSurroundSpeciesTable CreateTreeSurroundSpecies(params string[] layerAddresses)
+        {
+            var prototypes = new TreePrototypeEntry[layerAddresses.Length];
+            for (var i = 0; i < layerAddresses.Length; i++)
+                prototypes[i] = SurroundTestFixtures.CreateTreePrototype(
+                    new[] { $"00000000-0000-0000-0000-00000000000{i}" }, layerAddresses[i], 1f, 1f);
+
+            return SurroundTestFixtures.CreateTreeSurroundSpecies(prototypes);
         }
 
         private static SurroundTextureConfig[] CreateSurroundConfigs(params string[] surroundLayerAddresses)

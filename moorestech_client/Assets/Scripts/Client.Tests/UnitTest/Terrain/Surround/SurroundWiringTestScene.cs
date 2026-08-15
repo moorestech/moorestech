@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Build.Placement;
 using Client.Game.InGame.Environment.Terrain.Visual.Detail;
 using Client.Game.InGame.Environment.Terrain.Visual.Source;
@@ -50,8 +49,11 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         public const string TreeRootLayerAddress = "addr/Dirt";
         public const string TreeGuid = "00000000-0000-1111-0000-000000000001";
 
+        // 岩のguidも樹種テーブルに載せる（SurroundWiringTestConfig）。載せないと振り分けの取り違えをテーブル引きが黙って救ってしまう
+        // The rock's guid is mapped as a species too (SurroundWiringTestConfig); otherwise a failed lookup would quietly rescue a mis-sorted rock
+        public const string StoneGuid = "00000000-0000-2222-0000-000000000001";
+
         private const string MudLayerAddress = "addr/MudDry";
-        private const string StoneGuid = "00000000-0000-2222-0000-000000000001";
         private const int ClusterId = 7;
 
         // 原点から離れ、Zが負のタイル。タイル原点やローカル化を取り違えると岩が切り出しから丸ごと落ちる
@@ -73,25 +75,24 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             var config = SurroundWiringTestConfig.Create();
             var visualSections = CreateVisualSections();
 
-            // 本番と同じく樹種マップから列を確保する。ここを手書きの配列に替えると塗りと列がずれても気付けない
-            // The columns come from the species map as production does; a hand-written array here would hide a drift between painting and columns
-            var treeSurroundParamsByGuid = TreeSurroundParamsByGuid();
+            // 本番と同じく樹種テーブルを列と塗りの双方へ渡す。片方だけ別物を注げないのはこの型の持ち分
+            // The species table feeds both the columns and the painting as production does; that only one can be supplied is the type's own doing
+            var treeSurroundSpecies = TreeSurroundSpecies();
             var layerTable = SplatLayerTable.Build(
                 "addr/beach", "addr/rock", visualSections.MainLayerAddresses, visualSections.TextureConfigs,
-                visualSections.SurroundTextureConfigs,
-                TreeSurroundTexturePainter.LayerAddresses(treeSurroundParamsByGuid));
+                visualSections.SurroundTextureConfigs, treeSurroundSpecies);
 
             using var classification = new TerrainClassificationContext(config, BiomeTypes);
             classification.Initialize();
 
             return SplatmapRuntimeGenerator.Generate(
-                config, BiomeTypes, classification, layerTable, visualSections, treeSurroundParamsByGuid,
+                config, BiomeTypes, classification, layerTable, visualSections, treeSurroundSpecies,
                 CreateHeights(), CreateBiomeIndices(), AlphaResolution, mapObjects, TileWorldPosition);
         }
 
-        public static Dictionary<string, (string layerAddress, float weight, float width)> TreeSurroundParamsByGuid()
+        public static TreeSurroundSpeciesTable TreeSurroundSpecies()
         {
-            return TreeSurroundTexturePainter.BuildGuidSurroundMap(
+            return TreeSurroundSpeciesTable.Build(
                 new BiomePlacementHelper(SurroundWiringTestConfig.Create()), BiomeTypes);
         }
 

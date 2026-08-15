@@ -5,6 +5,7 @@ using Client.Game.InGame.Environment.Terrain.Visual.Detail;
 using Client.Game.InGame.Environment.Terrain.Visual.Source;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
+using Client.Tests.UnitTest.Terrain.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
@@ -147,7 +148,7 @@ namespace Client.Tests.UnitTest
                 new[] { new SurroundTextureConfig() });
             var layerTable = SplatLayerTable.Build(
                 "addr/beach", "addr/rock", visualSections.MainLayerAddresses, visualSections.TextureConfigs,
-                visualSections.SurroundTextureConfigs, new string[0]);
+                visualSections.SurroundTextureConfigs, SurroundTestFixtures.CreateTreeSurroundSpecies());
 
             // 分類は呼び出し側の持ち物になった。1回の生成につき1個をusingで抱える本番と同じ形
             // The classification now belongs to the caller, held one per generation in a using as production does
@@ -155,7 +156,7 @@ namespace Client.Tests.UnitTest
             classification.Initialize();
             return SplatmapRuntimeGenerator.Generate(
                 config, biomeTypes, classification, layerTable, visualSections,
-                new Dictionary<string, (string layerAddress, float weight, float width)>(),
+                SurroundTestFixtures.CreateTreeSurroundSpecies(),
                 CreateHeights(), transferredBiomeIndices, AlphamapResolution,
                 new List<MapObjectLayoutMessagePack>(), Vector3.zero);
         }

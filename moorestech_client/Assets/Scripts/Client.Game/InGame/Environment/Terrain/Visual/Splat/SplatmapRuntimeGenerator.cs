@@ -26,7 +26,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
         public static float[,,] Generate(
             TerrainGenerationConfig config, BiomeType[] biomeTypes, TerrainClassificationContext classification,
             SplatLayerTable layerTable, BiomeVisualSections visualSections,
-            IReadOnlyDictionary<string, (string layerAddress, float weight, float width)> treeSurroundParamsByGuid,
+            TreeSurroundSpeciesTable treeSurroundSpecies,
             float[,] transferredHeights, byte[,] transferredBiomeIndices, int alphamapResolution,
             IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition)
         {
@@ -148,12 +148,11 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
             // A root patch reaches in from a neighbouring tile's trees too, as far as that species' surroundLayerWidth rather than the rocks' MaxReach
             void PaintTreeSurroundTexture(float[,,] alphamap)
             {
-                var halo = TreeSurroundTexturePainter.MaxReach(treeSurroundParamsByGuid);
                 var haloObjects = TileMapObjectSlicer.SliceWithHalo(
-                    mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength, halo);
+                    mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength, treeSurroundSpecies.MaxReach);
                 MapObjectKindSplitter.Split(haloObjects, out var trees, out _);
 
-                TreeSurroundTexturePainter.Apply(alphamap, config, layerTable, treeSurroundParamsByGuid, trees);
+                TreeSurroundTexturePainter.Apply(alphamap, config, layerTable, treeSurroundSpecies, trees);
             }
 
             #endregion

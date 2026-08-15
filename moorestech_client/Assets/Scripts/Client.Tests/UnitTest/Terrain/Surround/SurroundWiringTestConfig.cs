@@ -5,9 +5,9 @@ namespace Client.Tests.UnitTest.Terrain.Surround
 {
     /// <summary>
     ///     結線テストが走る1タイルぶんのTerrainGenerationConfig。有効バイオームは草原1つだけに絞り、
-    ///     その樹木配置に根元レイヤーを持つプロトタイプを1本だけ載せる
+    ///     その樹木配置に根元レイヤーを持つプロトタイプを載せる
     ///     The single-tile TerrainGenerationConfig the wiring tests run on: grassland is the only enabled biome,
-    ///     and its tree placement carries exactly one prototype owning a root layer
+    ///     and its tree placement carries prototypes owning a root layer
     /// </summary>
     public static class SurroundWiringTestConfig
     {
@@ -36,17 +36,28 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             {
                 prototypes = new[]
                 {
-                    new TreePrototypeEntry
-                    {
-                        mapObjectGuids = new[] { TreeGuid },
-                        surroundLayerAddressablePath = TreeRootLayerAddress,
-                        surroundLayerWeight = 1f,
-                        surroundLayerWidth = TreeSurroundWidth,
-                    },
+                    CreateRootPrototype(TreeGuid),
+
+                    // 岩のguidも同じ設定で載せる。テーブルに無いと振り分けの取り違えがTryGetの失敗で黙って救われ、
+                    // 「岩は木として塗られない」の検証が Split ではなくテーブルの穴を見ているだけになる
+                    // The rock's guid carries the same settings: absent from the table, a mis-sorted rock would be rescued by
+                    // a failed lookup and the rock-never-paints check would watch that hole rather than Split
+                    CreateRootPrototype(StoneGuid),
                 },
             };
 
             return config;
+        }
+
+        private static TreePrototypeEntry CreateRootPrototype(string mapObjectGuid)
+        {
+            return new TreePrototypeEntry
+            {
+                mapObjectGuids = new[] { mapObjectGuid },
+                surroundLayerAddressablePath = TreeRootLayerAddress,
+                surroundLayerWeight = 1f,
+                surroundLayerWidth = TreeSurroundWidth,
+            };
         }
     }
 }

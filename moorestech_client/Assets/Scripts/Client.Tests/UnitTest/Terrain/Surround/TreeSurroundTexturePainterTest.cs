@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.MapData;
@@ -37,7 +36,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         public void ATreePullsThePixelUnderItsRootOntoItsSurroundLayer()
         {
             var alphamap = CreateUniformAlphamap();
-            Paint(alphamap, CreateTree(TreeGuid), CreateSurroundMap(TreeLayerAddress, Weight, Width));
+            Paint(alphamap, CreateTree(TreeGuid), CreateSpecies(TreeLayerAddress, Weight, Width));
 
             // 中心は減衰1なので blend=weight。書き込み先は 0*(1-w)+w、他は元の重み*(1-w)
             // The falloff is 1 at the centre so blend = weight: the target lands on 0*(1-w)+w and the rest on their weight*(1-w)
@@ -51,7 +50,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             // 木は再正規化しない代わりに元の合計も掛けない。合計1の盤面は合計1のまま残る
             // A tree neither renormalizes nor multiplies by the original total, so a board summing to 1 still sums to 1
             var alphamap = CreateAlphamapWithSurroundWeight();
-            Paint(alphamap, CreateTree(TreeGuid), CreateSurroundMap(TreeLayerAddress, Weight, Width));
+            Paint(alphamap, CreateTree(TreeGuid), CreateSpecies(TreeLayerAddress, Weight, Width));
 
             // 岩のSurroundBlendWriterに化けると書き込み先は 0.4+0.8*1.0=1.2 になり、合計も1.32へ膨らむ
             // Under the rocks' SurroundBlendWriter the target would be 0.4 + 0.8*1.0 = 1.2 and the sum would swell to 1.32
@@ -68,7 +67,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         public void TheBlendFadesAsAGaussianAndStopsAtTheRadius()
         {
             var alphamap = CreateUniformAlphamap();
-            Paint(alphamap, CreateTree(TreeGuid), CreateSurroundMap(TreeLayerAddress, Weight, Width));
+            Paint(alphamap, CreateTree(TreeGuid), CreateSpecies(TreeLayerAddress, Weight, Width));
 
             // 1画素隣はガウシアンぶんだけ薄い。線形減衰へ差し替えると 0.4 になりここで落ちる
             // One pixel out is thinner by the Gaussian; a linear falloff would read 0.4 and fail here
@@ -96,7 +95,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             var alphamap = CreateUniformAlphamap();
             var tree = CreateTreeAt(TreeGuid, RockLocalPosition, RockLocalPosition * 2f);
             TreeSurroundTexturePainter.Apply(
-                alphamap, config, CreateLayerTable(), CreateSurroundMap(TreeLayerAddress, Weight, Width), new[] { tree });
+                alphamap, config, CreateLayerTable(), CreateSpecies(TreeLayerAddress, Weight, Width), new[] { tree });
 
             Assert.That(alphamap[TreePixel, TreePixel, MudLayerIndex], Is.EqualTo(Weight).Within(1e-4f));
         }
@@ -107,10 +106,10 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             // 木には岩のようなMudフォールバックが無い。未設定を勝手に倒すと全樹種の根元が塗られてしまう
             // A tree has no Mud fallback as the rocks do; falling an unset layer back would paint the root of every species
             var unsetAlphamap = CreateUniformAlphamap();
-            Paint(unsetAlphamap, CreateTree(TreeGuid), CreateSurroundMap(string.Empty, Weight, Width));
+            Paint(unsetAlphamap, CreateTree(TreeGuid), CreateSpecies(string.Empty, Weight, Width));
 
             var zeroWeightAlphamap = CreateUniformAlphamap();
-            Paint(zeroWeightAlphamap, CreateTree(TreeGuid), CreateSurroundMap(TreeLayerAddress, 0f, Width));
+            Paint(zeroWeightAlphamap, CreateTree(TreeGuid), CreateSpecies(TreeLayerAddress, 0f, Width));
 
             Assert.That(unsetAlphamap[TreePixel, TreePixel, MudLayerIndex], Is.EqualTo(0f));
             Assert.That(zeroWeightAlphamap[TreePixel, TreePixel, MudLayerIndex], Is.EqualTo(0f));
@@ -124,7 +123,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             var alphamap = CreateUniformAlphamap();
 
             Assert.Throws<InvalidOperationException>(
-                () => Paint(alphamap, CreateTree(TreeGuid), CreateSurroundMap(TreeLayerAddress, Weight, 0f)));
+                () => Paint(alphamap, CreateTree(TreeGuid), CreateSpecies(TreeLayerAddress, Weight, 0f)));
         }
 
         [Test]
@@ -133,18 +132,14 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             // 岩や鉱脈のguidは木のマップに載らない。引きを飛ばすと岩の周りまで樹種のレイヤーで塗られる
             // Rock and vein guids never enter the tree map; skipping the lookup would paint the species' layer around rocks too
             var alphamap = CreateUniformAlphamap();
-            Paint(alphamap, CreateTree(RockGuid), CreateSurroundMap(TreeLayerAddress, Weight, Width));
+            Paint(alphamap, CreateTree(RockGuid), CreateSpecies(TreeLayerAddress, Weight, Width));
 
             Assert.That(alphamap[TreePixel, TreePixel, MudLayerIndex], Is.EqualTo(0f));
         }
 
-        private static Dictionary<string, (string layerAddress, float weight, float width)> CreateSurroundMap(
-            string layerAddress, float weight, float width)
+        private static TreeSurroundSpeciesTable CreateSpecies(string layerAddress, float weight, float width)
         {
-            return new Dictionary<string, (string layerAddress, float weight, float width)>
-            {
-                { TreeGuid, (layerAddress, weight, width) },
-            };
+            return CreateTreeSurroundSpecies(CreateTreePrototype(new[] { TreeGuid }, layerAddress, weight, width));
         }
 
         private static MapObjectLayoutMessagePack CreateTree(string mapObjectGuid)
@@ -159,11 +154,10 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         }
 
         private static void Paint(
-            float[,,] alphamap, MapObjectLayoutMessagePack treeObject,
-            Dictionary<string, (string layerAddress, float weight, float width)> surroundParamsByGuid)
+            float[,,] alphamap, MapObjectLayoutMessagePack treeObject, TreeSurroundSpeciesTable speciesTable)
         {
             TreeSurroundTexturePainter.Apply(
-                alphamap, CreateConfig(), CreateLayerTable(), surroundParamsByGuid, new[] { treeObject });
+                alphamap, CreateConfig(), CreateLayerTable(), speciesTable, new[] { treeObject });
         }
     }
 }

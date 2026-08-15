@@ -1,4 +1,3 @@
-using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using NUnit.Framework;
 using static Client.Tests.UnitTest.Terrain.Surround.SurroundWiringTestScene;
 
@@ -58,9 +57,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         {
             // 上の2本は30mを境に内外を置いている。設定を変えたときにその前提だけが黙って崩れるのを防ぐ
             // The two tests above straddle 30m, and this keeps a config change from silently invalidating that premise
-            var reach = TreeSurroundTexturePainter.MaxReach(TreeSurroundParamsByGuid());
-
-            Assert.That(reach, Is.EqualTo(TreeSurroundWidth).Within(1e-4f));
+            Assert.That(TreeSurroundSpecies().MaxReach, Is.EqualTo(TreeSurroundWidth).Within(1e-4f));
         }
 
         [Test]
@@ -79,8 +76,10 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         [Test]
         public void ARockNeverPaintsTheTreeRootLayer()
         {
-            // 岩を木へ振り分けると根元の列が塗られる。列が別なので取り違えがそのまま見える
-            // Sorting a rock onto the tree side would paint the root column; the columns are separate, so the mix-up shows directly
+            // 岩のguidは樹種テーブルに載せてある(SurroundWiringTestConfig)ので、根元の列を守っているのは
+            // MapObjectKindSplitter.Splitの振り分けだけ。outを取り違えると岩がそのまま根元色で塗られる
+            // The rock's guid is in the species table (SurroundWiringTestConfig), so Split's sorting alone keeps the root
+            // column clean; swapping its out arguments paints the rock with the root colour outright
             var alphamap = Generate(CreateStone(SeamLocalZ, SeamLocalZ));
 
             for (var z = 0; z < AlphaResolution; z++)
