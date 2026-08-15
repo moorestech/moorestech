@@ -80,6 +80,10 @@ namespace Client.Game.InGame.Map.MapObject
 
                     var instance = Instantiate(prefab, new Vector3(layout.X, layout.Y, layout.Z), Quaternion.identity, transform);
 
+                    // 生成時のScaleを実インスタンスへ戻す。等倍のままだと小さい岩の周りに生成時サイズの裸地が広がる
+                    // Restore the generated scale onto the instance; left at unit scale a small rock sits in bare ground sized for the generated one
+                    instance.transform.localScale = new Vector3(layout.ScaleX, layout.ScaleY, layout.ScaleZ);
+
                     // rootにMapObjectGameObjectが無いのはprefab authoring不正。生成物を破棄してskipする
                     // Missing MapObjectGameObject on root is invalid prefab authoring; destroy the instance and skip
                     var mapObject = instance.GetComponent<MapObjectGameObject>();

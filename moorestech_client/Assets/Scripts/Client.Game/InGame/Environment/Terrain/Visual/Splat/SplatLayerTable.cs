@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
 {
@@ -26,7 +27,8 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
         // biomeMainLayerAddresses and biomeTextureConfigs are parallel arrays over the enabled biomes
         public static SplatLayerTable Build(
             string beachLayerAddress, string rockLayerAddress,
-            string[] biomeMainLayerAddresses, BiomeTextureConfig[] biomeTextureConfigs)
+            string[] biomeMainLayerAddresses, BiomeTextureConfig[] biomeTextureConfigs,
+            SurroundTextureConfig[] biomeSurroundTextureConfigs)
         {
             var orderedLayerAddresses = new List<string>();
             var layerIndexByAddress = new Dictionary<string, int>();
@@ -44,6 +46,11 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
                     Register(entry.layerAddressablePath, $"biome[{biome}].textureConfig.entries[].layerAddressablePath");
             }
 
+            // 岩周辺の裸地レイヤーは未設定が既定でMudフォールバックへ倒れる。空を欠落として弾くと全バイオームで落ちる
+            // The bare-ground layer around rocks is unset by default and falls back to Mud, so rejecting empties would fail every biome
+            foreach (var surroundTextureConfig in biomeSurroundTextureConfigs)
+                RegisterOptional(surroundTextureConfig.surroundLayerAddressablePath);
+
             return new SplatLayerTable(orderedLayerAddresses, layerIndexByAddress);
 
             #region Internal
@@ -60,6 +67,14 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
 
                 layerIndexByAddress[layerAddress] = orderedLayerAddresses.Count;
                 orderedLayerAddresses.Add(layerAddress);
+            }
+
+            // 空を欠落と見なさない唯一の経路。空でなければ通常の登録と同じ扱いに戻す
+            // The one path that does not read an empty address as a gap; anything non-empty rejoins the normal registration
+            void RegisterOptional(string layerAddress)
+            {
+                if (string.IsNullOrEmpty(layerAddress)) return;
+                Register(layerAddress, "biome[].objectConfig.surroundTextureConfig.surroundLayerAddressablePath");
             }
 
             #endregion

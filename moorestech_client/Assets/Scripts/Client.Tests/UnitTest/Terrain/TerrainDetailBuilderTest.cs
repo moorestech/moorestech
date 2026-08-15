@@ -3,6 +3,7 @@ using Client.Game.InGame.Environment.Terrain.Visual;
 using Client.Game.InGame.Environment.Terrain.Visual.Detail;
 using Client.Game.InGame.Environment.Terrain.Visual.Source;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
+using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
@@ -113,7 +114,8 @@ namespace Client.Tests.UnitTest.Terrain
             // The detail path reads only DetailConfigs; the other two exist solely to keep the arrays parallel
             return new BiomeVisualSections(
                 new string[BiomeTypes.Length], new BiomeTextureConfig[BiomeTypes.Length],
-                new[] { CreateEmptyDetailConfig(), CreatePopulatedDetailConfig() });
+                new[] { CreateEmptyDetailConfig(), CreatePopulatedDetailConfig() },
+                new SurroundTextureConfig[BiomeTypes.Length]);
         }
 
         private static BiomeDetailConfig CreateEmptyDetailConfig()

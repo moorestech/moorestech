@@ -12,9 +12,9 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
         // "MTVC" = Moorestech Terrain Visual Cache; the identifier keeping a foreign file from being misread
         public const int MagicNumber = 0x4D545643;
 
-        // 4でDetailのマスクがローカル分類の勝者由来(R11)になり、距離フィルタがSDF距離マップで実際に効くようになった。据え置くと古い意味の見た目が復活する
-        // Version 4 sourced the detail masks from the local classification winners (R11) and let the distance filters actually bite via the SDF maps; holding it back would revive the old meaning's visuals
-        public const int FormatVersion = 4;
+        // 5でsplatに岩周辺の裸地テクスチャ(R6)が乗った。据え置くと岩の周りが草のままの古いalphamapがヒットし続ける
+        // Version 5 put the bare-ground texture around rocks (R6) into the splat; holding it back would keep hitting old alphamaps whose rocks still sit in grass
+        public const int FormatVersion = 5;
 
         // キーはSHA256の16進64文字固定。可変長にすると壊れたファイルで読み出し長が暴れる
         // The key is a fixed 64-char SHA256 hex; a variable length would let a broken file dictate how much is read

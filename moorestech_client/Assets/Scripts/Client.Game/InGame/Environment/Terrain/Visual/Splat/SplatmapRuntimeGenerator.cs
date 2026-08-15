@@ -1,10 +1,15 @@
 using System;
+using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Build.Placement;
+using Client.Game.InGame.Environment.Terrain.Visual.Source;
+using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Jobs;
+using Server.Protocol.PacketResponse.MapData;
 using Unity.Collections;
 using Unity.Jobs;
+using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
 {
@@ -20,9 +25,12 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
 
         public static float[,,] Generate(
             TerrainGenerationConfig config, BiomeType[] biomeTypes, TerrainClassificationContext classification,
-            SplatLayerTable layerTable, BiomeTextureConfig[] biomeTextureConfigs, string[] biomeMainLayerAddresses,
-            float[,] transferredHeights, byte[,] transferredBiomeIndices, int alphamapResolution)
+            SplatLayerTable layerTable, BiomeVisualSections visualSections,
+            float[,] transferredHeights, byte[,] transferredBiomeIndices, int alphamapResolution,
+            IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition)
         {
+            var biomeTextureConfigs = visualSections.TextureConfigs;
+            var biomeMainLayerAddresses = visualSections.MainLayerAddresses;
             var resolution = config.Resolution;
             var pixelCount = resolution * resolution;
             var biomeCount = biomeTypes.Length;
@@ -52,7 +60,9 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
                 OverwriteWithTransferredTerrain();
                 RunSplatmapJob();
 
-                return SplatWeightConverter.ToAlphamap(splatWeights, resolution, alphamapResolution, layerCount);
+                var alphamap = SplatWeightConverter.ToAlphamap(splatWeights, resolution, alphamapResolution, layerCount);
+                PaintRockSurroundTexture(alphamap);
+                return alphamap;
             }
             finally
             {
@@ -111,6 +121,22 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
                     textureEntries = textureEntries,
                     splatWeights = splatWeights,
                 }.Schedule(pixelCount, JobBatchSize).Complete();
+            }
+
+            // 岩周辺の裸地はSplatmapJobの外。合成後のalphamap上で上書きするのが移植元の順序
+            // Bare ground around rocks sits outside SplatmapJob and overwrites the composed alphamap, as the source ordered it
+            void PaintRockSurroundTexture(float[,,] alphamap)
+            {
+                // 遷移帯は隣タイルの岩からも伸びる。等倍で切り出すと裸地がタイル境界で直線に切れる
+                // The transition band reaches in from neighbouring tiles' rocks; a plain slice would break it in a straight line at the seam
+                var halo = ObjectSurroundTexturePainter.MaxReach(visualSections.SurroundTextureConfigs, mapObjects);
+                var haloObjects = TileMapObjectSlicer.SliceWithHalo(
+                    mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength, halo);
+                MapObjectKindSplitter.Split(haloObjects, out _, out var stones);
+
+                ObjectSurroundTexturePainter.Apply(
+                    alphamap, config, layerTable, visualSections.SurroundTextureConfigs,
+                    classification.Weights2D, biomeCount, transferredHeights, stones);
             }
 
             #endregion

@@ -1,10 +1,16 @@
 using System;
+using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Build.Placement;
+using Client.Game.InGame.Environment.Terrain.Visual.Detail;
+using Client.Game.InGame.Environment.Terrain.Visual.Source;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
+using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
+using Server.Protocol.PacketResponse.MapData;
 using Unity.Collections;
+using UnityEngine;
 
 namespace Client.Tests.UnitTest
 {
@@ -134,17 +140,23 @@ namespace Client.Tests.UnitTest
         {
             var config = CreateConfig();
             var biomeTypes = new[] { BiomeType.Grassland };
-            var biomeTextureConfigs = new[] { new BiomeTextureConfig { entries = new TextureEntry[0] } };
-            var biomeMainLayerAddresses = new[] { "addr/grass" };
-            var layerTable = SplatLayerTable.Build("addr/beach", "addr/rock", biomeMainLayerAddresses, biomeTextureConfigs);
+            var visualSections = new BiomeVisualSections(
+                new[] { "addr/grass" },
+                new[] { new BiomeTextureConfig { entries = new TextureEntry[0] } },
+                new[] { new BiomeDetailConfig { entries = new DetailEntry[0] } },
+                new[] { new SurroundTextureConfig() });
+            var layerTable = SplatLayerTable.Build(
+                "addr/beach", "addr/rock", visualSections.MainLayerAddresses, visualSections.TextureConfigs,
+                visualSections.SurroundTextureConfigs);
 
             // 分類は呼び出し側の持ち物になった。1回の生成につき1個をusingで抱える本番と同じ形
             // The classification now belongs to the caller, held one per generation in a using as production does
             using var classification = new TerrainClassificationContext(config, biomeTypes);
             classification.Initialize();
             return SplatmapRuntimeGenerator.Generate(
-                config, biomeTypes, classification, layerTable, biomeTextureConfigs, biomeMainLayerAddresses,
-                CreateHeights(), transferredBiomeIndices, AlphamapResolution);
+                config, biomeTypes, classification, layerTable, visualSections,
+                CreateHeights(), transferredBiomeIndices, AlphamapResolution,
+                new List<MapObjectLayoutMessagePack>(), Vector3.zero);
         }
 
         private static TerrainGenerationConfig CreateConfig()

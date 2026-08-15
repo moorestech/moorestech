@@ -82,19 +82,19 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
                 var haloObjects = TileMapObjectSlicer.SliceWithHalo(
                     mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength, halo);
-                MapObjectPointSplitter.Split(haloObjects, out var treePoints, out var objectPoints);
+                MapObjectKindSplitter.Split(haloObjects, out var trees, out var stones);
 
-                treeGrid = CreateGrid(treePoints);
-                objectGrid = CreateGrid(objectPoints);
+                treeGrid = CreateGrid(trees);
+                objectGrid = CreateGrid(stones);
             }
 
             // セルサイズは移植元と同じ。halo内の点はタイル外の座標を持つがSpatialGridが端セルへ寄せ、距離は真値で測られる
             // The cell size matches the source; halo points lie outside the tile and SpatialGrid folds them into the edge cells at true distance
-            SpatialGrid CreateGrid(List<Vector2> points)
+            SpatialGrid CreateGrid(List<MapObjectLayoutMessagePack> kindObjects)
             {
                 var grid = new SpatialGrid(
                     config.terrainWidth, config.terrainLength, Mathf.Max(config.terrainWidth / 50f, 5f));
-                foreach (var point in points) grid.Add(point.x, point.y);
+                foreach (var kindObject in kindObjects) grid.Add(kindObject.X, kindObject.Z);
 
                 return grid;
             }

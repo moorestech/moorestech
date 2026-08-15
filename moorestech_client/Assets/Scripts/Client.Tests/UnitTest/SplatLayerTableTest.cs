@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
+using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using Game.MapGeneration.Pipeline.Jobs;
 using NUnit.Framework;
 using Unity.Collections;
@@ -20,7 +21,8 @@ namespace Client.Tests.UnitTest
             var table = SplatLayerTable.Build(
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass", "addr/sand" },
-                new[] { CreateTextureConfig(), CreateTextureConfig() });
+                new[] { CreateTextureConfig(), CreateTextureConfig() },
+                CreateSurroundConfigs(string.Empty, string.Empty));
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/sand" }));
@@ -36,7 +38,8 @@ namespace Client.Tests.UnitTest
             var table = SplatLayerTable.Build(
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass" },
-                new[] { CreateTextureConfig("addr/cliff", "addr/moss") });
+                new[] { CreateTextureConfig("addr/cliff", "addr/moss") },
+                CreateSurroundConfigs(string.Empty));
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/cliff", "addr/moss" }));
@@ -50,7 +53,8 @@ namespace Client.Tests.UnitTest
             var table = SplatLayerTable.Build(
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass", "addr/grass" },
-                new[] { CreateTextureConfig("addr/rock"), CreateTextureConfig() });
+                new[] { CreateTextureConfig("addr/rock"), CreateTextureConfig() },
+                CreateSurroundConfigs(string.Empty, string.Empty));
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass" }));
@@ -63,13 +67,46 @@ namespace Client.Tests.UnitTest
             // 空アドレスを0番へ倒すと地形全面がビーチテクスチャになり、整備漏れに気づけない
             // Falling an empty address back to index 0 would paint the whole terrain with sand, hiding the data gap
             Assert.Throws<InvalidOperationException>(() => SplatLayerTable.Build(
-                string.Empty, "addr/rock", new[] { "addr/grass" }, new[] { CreateTextureConfig() }));
+                string.Empty, "addr/rock", new[] { "addr/grass" }, new[] { CreateTextureConfig() },
+                CreateSurroundConfigs(string.Empty)));
 
             Assert.Throws<InvalidOperationException>(() => SplatLayerTable.Build(
-                "addr/beach", "addr/rock", new[] { string.Empty }, new[] { CreateTextureConfig() }));
+                "addr/beach", "addr/rock", new[] { string.Empty }, new[] { CreateTextureConfig() },
+                CreateSurroundConfigs(string.Empty)));
 
             Assert.Throws<InvalidOperationException>(() => SplatLayerTable.Build(
-                "addr/beach", "addr/rock", new[] { "addr/grass" }, new[] { CreateTextureConfig(string.Empty) }));
+                "addr/beach", "addr/rock", new[] { "addr/grass" }, new[] { CreateTextureConfig(string.Empty) },
+                CreateSurroundConfigs(string.Empty)));
+        }
+
+        [Test]
+        public void RegistersASurroundLayerAddressAfterEveryBiomeLayer()
+        {
+            // 未登録のまま参照すると裸地テクスチャが列を持たず、岩の周りだけ描けない
+            // Leaving it unregistered would give the bare-ground texture no column, so only rocks lose their surroundings
+            var table = SplatLayerTable.Build(
+                "addr/beach", "addr/rock",
+                new[] { "addr/grass" },
+                new[] { CreateTextureConfig("addr/cliff") },
+                CreateSurroundConfigs("addr/mud"));
+
+            Assert.That(table.OrderedLayerAddresses,
+                Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/cliff", "addr/mud" }));
+            Assert.That(table.LayerIndexByAddress["addr/mud"], Is.EqualTo(4));
+        }
+
+        [Test]
+        public void SkipsAnEmptySurroundLayerInsteadOfRejectingIt()
+        {
+            // surroundLayerは未設定が既定でMudフォールバックへ倒れる。他アドレスと同じく空で落とすと全バイオームが通らない
+            // An unset surroundLayer is the default and falls back to Mud; failing on empty as other addresses do would reject every biome
+            var table = SplatLayerTable.Build(
+                "addr/beach", "addr/rock",
+                new[] { "addr/grass" },
+                new[] { CreateTextureConfig() },
+                CreateSurroundConfigs(string.Empty));
+
+            Assert.That(table.OrderedLayerAddresses, Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass" }));
         }
 
         [Test]
@@ -78,7 +115,8 @@ namespace Client.Tests.UnitTest
             var table = SplatLayerTable.Build(
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass", "addr/sand" },
-                new[] { CreateTextureConfig("addr/cliff", "addr/moss"), CreateTextureConfig("addr/dune") });
+                new[] { CreateTextureConfig("addr/cliff", "addr/moss"), CreateTextureConfig("addr/dune") },
+                CreateSurroundConfigs(string.Empty, string.Empty));
 
             var biomeParams = new NativeArray<BiomeParams>(2, Allocator.Temp);
             var textureEntries = TextureEntryParamsBuilder.Build(
@@ -103,6 +141,15 @@ namespace Client.Tests.UnitTest
 
             biomeParams.Dispose();
             textureEntries.Dispose();
+        }
+
+        private static SurroundTextureConfig[] CreateSurroundConfigs(params string[] surroundLayerAddresses)
+        {
+            var configs = new SurroundTextureConfig[surroundLayerAddresses.Length];
+            for (var i = 0; i < surroundLayerAddresses.Length; i++)
+                configs[i] = new SurroundTextureConfig { surroundLayerAddressablePath = surroundLayerAddresses[i] };
+
+            return configs;
         }
 
         private static BiomeTextureConfig CreateTextureConfig(params string[] layerAddresses)

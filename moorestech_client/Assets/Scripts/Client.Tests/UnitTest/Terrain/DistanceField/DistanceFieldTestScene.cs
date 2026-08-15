@@ -3,6 +3,7 @@ using Client.Game.InGame.Environment.Terrain.Build;
 using Client.Game.InGame.Environment.Terrain.Visual.Detail;
 using Client.Game.InGame.Environment.Terrain.Visual.Source;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
+using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Server.Boot;
@@ -39,8 +40,8 @@ namespace Client.Tests.UnitTest.Terrain.DistanceField
 
         private static readonly BiomeType[] BiomeTypes = { BiomeType.Grassland };
 
-        // MapObjectPointSplitterがsoundEffectTypeを引くためMasterHolderが要る
-        // MapObjectPointSplitter reads soundEffectType, so MasterHolder must be loaded
+        // MapObjectKindSplitterがsoundEffectTypeを引くためMasterHolderが要る
+        // MapObjectKindSplitter reads soundEffectType, so MasterHolder must be loaded
         public static void LoadMasterData()
         {
             new MoorestechServerDIContainerGenerator()
@@ -104,7 +105,8 @@ namespace Client.Tests.UnitTest.Terrain.DistanceField
             };
 
             return new BiomeVisualSections(
-                new string[BiomeTypes.Length], new BiomeTextureConfig[BiomeTypes.Length], new[] { detailConfig });
+                new string[BiomeTypes.Length], new BiomeTextureConfig[BiomeTypes.Length], new[] { detailConfig },
+                new SurroundTextureConfig[BiomeTypes.Length]);
         }
 
         private static TerrainGenerationConfig CreateConfig()

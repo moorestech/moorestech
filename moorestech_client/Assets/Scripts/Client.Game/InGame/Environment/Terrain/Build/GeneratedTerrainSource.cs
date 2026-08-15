@@ -85,7 +85,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             var visualSections = BiomeVisualSectionTable.Resolve(selectedGeneration, biomeTypes);
             var layerTable = SplatLayerTable.Build(
                 config.shoreConfig.beachLayerAddressablePath, config.rockLayerAddressablePath,
-                visualSections.MainLayerAddresses, visualSections.TextureConfigs);
+                visualSections.MainLayerAddresses, visualSections.TextureConfigs,
+                visualSections.SurroundTextureConfigs);
 
             var terrainLayers = await TerrainLayerAssetLoader.LoadAsync(layerTable.OrderedLayerAddresses);
             await DetailAssetResolver.ResolveAsync(visualSections.DetailConfigs);
@@ -163,9 +164,12 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 using var classification = new TerrainClassificationContext(tileConfig, _biomeTypes);
                 classification.Initialize();
 
+                // splatも岩の裸地でmapObjectを読むようになったので、Detailと同じく全タイルぶんを渡してhaloで切らせる
+                // The splat now reads map objects for the rocks' bare ground too, so it takes the whole layout and slices its own halo, as detail does
                 var rebuiltAlphamap = SplatmapRuntimeGenerator.Generate(
-                    tileConfig, _biomeTypes, classification, _layerTable, _visualSections.TextureConfigs,
-                    _visualSections.MainLayerAddresses, preHeights, transferredBiomeIndices, _config.AlphamapResolution);
+                    tileConfig, _biomeTypes, classification, _layerTable, _visualSections,
+                    preHeights, transferredBiomeIndices, _config.AlphamapResolution,
+                    _mapObjects, TileWorldPosition(tileX, tileZ));
                 // 距離場はタイル境界の外まで見るため、切り出し済みのtileObjectsではなく全タイルぶんを渡す
                 // The distance fields look past the tile boundary, so the whole layout goes in rather than the sliced tileObjects
                 var rebuiltDetailMaps = TerrainDetailBuilder.Build(
