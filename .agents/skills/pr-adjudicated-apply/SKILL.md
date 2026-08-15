@@ -54,12 +54,19 @@ description: |
          "completed": true,
          "completed_at": "<ISO8601>",
          "items": [
-           {"id": "F01", "decision": "<案キー(A〜F)|other|reject>", "comment": "<人間の補足指示（otherでは必須）>"}
+           {"id": "F01", "decision": "<案キー(A〜F)|other|reject>", "comment": "<人間の補足指示（otherでは必須）>",
+            "auto_recommended": false}
          ]
        }
 
    decisionの意味: 案キー（`A`〜`F`）＝findings.jsonの `options` またはdigestカード記載の当該案を実装する ／
    `other`＝commentに書かれた自由指示を実装する ／ `reject`＝一切触らない
+
+   `auto_recommended: true` は、人間が完了ボタンを押した時点で未裁定だった指摘を**推奨案で一括採用**した印
+   （`decision` は推奨案のキー・`comment` は空・`other`/`reject` には付かない）。
+   **実装上の扱いは明示裁定と同じ**（decisionの案をそのまま実装する）。個別に読まれていない可能性があるため、
+   実装が推奨案の想定と食い違ったときに勝手に別案へ寄せず、apply-result.jsonの `summary` に
+   「推奨一括採用のFxxで想定と差異: <内容>」と記して人へ返すこと
 
 ## Step 2: スコープ確認（adopt以外には絶対に触れない）
 

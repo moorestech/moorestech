@@ -376,7 +376,9 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   ルート要素（`section.verdict-card` 等）へ `data-finding-id="F01"` を付与する。対象は設計判断カード・
   Critical要点の各項目・新形カード・suppressedカードの全て。Step 7.5は**必ずこの採番をそのまま使う**
   （裁定サイトはこの属性で案ボタンの注入位置を特定する。欠けるとトークン一致のフォールバック頼みになる）。
-  代替案（案A/案B…）を提示するカードでは、その案リストをStep 7.5の `options` にそのまま写す
+  代替案（案A/案B…）を提示するカードでは、その案リストをStep 7.5の `options` にそのまま写し、
+  **推奨する案には案リスト本文で「（推奨）」と明記する**（案が1つだけのカードでも書く）。
+  Step 7.5の `recommended: true` と同じ案を指すこと
 - **一言サマリの書式（ユーザー裁定 2026-07-30「デッドコードがあるが免責されてる、でいい」）**: **欠陥・裁定対象そのものを
   主語にした短文1つ**（目安20字前後）。免責の仕組み・出所ラベルの話・系統数・規約条番号などのメタ情報をサマリに書くのは禁止
   （それらはsuppressed-by行・出所行が既に持っている）。例: Critical「絶対に発火しないifガードが2箇所ある」/
@@ -467,7 +469,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
       "excerpt": "<問題箇所のコード抜粋>",
       "recommendation": "<推奨対応の要約>",
       "options": [
-        {"key": "A", "summary": "<案Aの要約（推奨案）>"},
+        {"key": "A", "summary": "<案Aの要約>", "recommended": true},
         {"key": "B", "summary": "<案Bの要約>"}
       ],
       "suppressed": false,
@@ -479,6 +481,17 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 
 - **options**: digestカードが対応案を複数提示する場合は全案を `A` から順に列挙する（裁定サイトが案ボタンとして表示する）。
   案が1つしか無い指摘は `options` を推奨対応1件（key "A"）だけで書く。suppressedの指摘はoptions不要（裁定対象外）
+- **`recommended: true`（必須・非suppressedの全finding）**: 各findingの `options` のうち**ちょうど1つ**に
+  `"recommended": true` を付ける（案が1つだけの指摘でも省略しない）。どれを推奨とするかは `recommendation` と同じ判断で決め、
+  digestカード本文の案リストでも同じ案に「（推奨）」と表記して食い違わせない。
+  裁定サイトの完了ボタンは未裁定の指摘をこのフラグの案で一括採用するため、**欠けると先頭案（案A）が黙って採用される**
+  （ユーザー裁定 2026-08-15 [[2026-08-15-裁定サイトの完了ボタンは推奨一括採用にする]]）。
+  検査（Step 7.5の出荷前に必ず通す。出力が空でなければ不合格）:
+
+      python3 -c "import json,sys;d=json.load(open('<\$RUNDIRの実値>/findings.json'));\
+      [print('recommended不正:',f['id'],len([o for o in f.get('options',[]) if o.get('recommended')])) \
+      for f in d['findings'] if not f.get('suppressed') \
+      and len([o for o in f.get('options',[]) if o.get('recommended')])!=1]"
 - **digestカードとの対応付け**: digest.htmlの各裁定カード（`section.verdict-card`）に `data-finding-id="F01"` 属性を
   必ず付与する（裁定サイトがボタン注入位置を特定するアンカー。Step 7のテンプレ改変時に忘れやすいので明記）
 
