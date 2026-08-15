@@ -50,7 +50,7 @@ digraph when_to_use {
 1. **既にworktree内にいる** — 新規作成せずそのまま再利用する
 2. **人間がこのセッション内で自分の言葉で「本体で実装せよ」と指示した** — 進捗台帳に記録して続行する
 
-本体ワーキングツリーで既にfeatureブランチを切って作業中だった場合も例外にはならない。未コミット変更ごとworktreeへ移してから着手する。
+本体ワーキングツリーで既にfeatureブランチを切って作業中だった場合も例外にはならない。このタスクが所有すると確認できた未コミット変更だけをworktreeへ移してから着手する。所有者を判定できない変更が1件でもあれば移送せず、人間へエスカレーションする。
 
 ```bash
 # 0. 現在地を判定する（2つの値が異なればworktree内 = 作成不要）
@@ -61,12 +61,13 @@ git rev-parse --git-dir; git rev-parse --git-common-dir
 # 1. Refresh origin/master without touching the main checkout
 git fetch origin master
 
-# 1.5. 未コミット変更があれば未追跡ファイルも含めて退避する
-# 1.5. Stash changes, including untracked files, only when changes exist
-SDD_HAS_UNCOMMITTED_CHANGES=false
-if test -n "$(git status --porcelain)"; then
-  git stash push --include-untracked -m "sdd-worktree-move" || exit 1
-  SDD_HAS_UNCOMMITTED_CHANGES=true
+# 1.5. dirtyなら所有者をパス単位で確認し、このタスク所有の変更だけを退避する
+# 1.5. If dirty, verify ownership per path and stash only this task's changes
+git status --short
+TASK_OWNED_PATHS=(<validated-path> ...)
+if test ${#TASK_OWNED_PATHS[@]} -gt 0; then
+  git stash push --include-untracked -m "sdd-worktree-move-<task-slug>" -- "${TASK_OWNED_PATHS[@]}"
+  SDD_STASH_COMMIT=$(git rev-parse stash@{0})
 fi
 
 # 2. 計画名から取ったslugでタスクブランチ付きworktreeを作る
@@ -74,10 +75,11 @@ fi
 MAIN=$(git rev-parse --show-toplevel)
 git worktree add -b <task-slug> ~/moorestech-worktrees/<task-slug> <base>
 
-# 2.5. 退避した変更があれば隔離worktreeへ復元する
-# 2.5. Restore the stashed changes in the isolated worktree when present
-if [ "$SDD_HAS_UNCOMMITTED_CHANGES" = true ]; then
-  git -C ~/moorestech-worktrees/<task-slug> stash pop || exit 1
+# 2.5. 退避した変更を隔離worktreeへ復元し、stashは復旧用に保持する
+# 2.5. Restore task changes in the isolated worktree and retain the stash for recovery
+if test -n "${SDD_STASH_COMMIT:-}"; then
+  git -C ~/moorestech-worktrees/<task-slug> stash apply "$SDD_STASH_COMMIT"
+  git -C ~/moorestech-worktrees/<task-slug> status --short
 fi
 
 # 3. メイン側Unityを閉じてからLibraryをAPFSクローンで複製する
@@ -88,7 +90,8 @@ cp -Rc "$MAIN/moorestech_client/Library" ~/moorestech-worktrees/<task-slug>/moor
 - `<base>`は計画が積み上がる土台。通常は最新の`origin/master`、本体の未コミット変更を移す場合と計画が現ブランチの続きなら`HEAD`
 - Libraryの複製は計画がUnityに触れるかに関わらず常に行う。数秒の投資で、後からコンパイル・テストが必要になった際の再インポート数十分を確実に回避する
 - メイン側Unityが開いている間はLibraryを複製しない。実行中ならUnityを閉じてから手順3を実行する
-- 本体に未コミット変更が乗っていた場合は未追跡ファイルも含めて退避し、worktree側で復元する。本体に置き去りにしない
+- 本体がdirtyなら全変更の所有者をパス単位で確認する。このタスク所有と確認できたパスだけを明示して`git stash push --include-untracked -- <paths>`で退避し、所有者不明の変更があれば移送せず人間へエスカレーションする
+- worktree側ではstashを`apply`し、復元結果を確認する。復旧手段を失わないようstashは自動dropしない
 - 以降の編集・`uloop`各コマンド・テスト・コミットは**すべてworktree側の絶対パス**で行う。`--project-path`もworktree側を指す
 - 有料アセット(`PersonalAssets`)は本体にしか存在しない。計画がこれに依存する場合は着手前に人間へエスカレーションする
 - サーバーポート11564は固定のため、他worktreeのPlayModeとは同時実行できない。プレイ録画テストを含む計画では1本ずつ動かす
