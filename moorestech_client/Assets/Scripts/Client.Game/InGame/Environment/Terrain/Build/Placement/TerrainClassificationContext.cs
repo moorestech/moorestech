@@ -58,6 +58,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
 
             var buffers = Buffers;
             buffers.biomeParams = JobDataConverter.ConvertBiomeParams(_tileConfig, _biomeTypes, Allocator.TempJob);
+            Buffers = buffers;
             buffers.noiseOffsets = JobDataConverter.GenerateNoiseOffsets(
                 _tileConfig, buffers.biomeParams, _biomeTypes, Allocator.TempJob);
             Buffers = buffers;
