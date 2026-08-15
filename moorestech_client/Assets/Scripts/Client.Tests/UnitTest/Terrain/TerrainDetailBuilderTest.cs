@@ -3,7 +3,6 @@ using Client.Game.InGame.Environment.Terrain.Visual;
 using Client.Game.InGame.Environment.Terrain.Visual.Detail;
 using Client.Game.InGame.Environment.Terrain.Visual.Source;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
@@ -115,7 +114,7 @@ namespace Client.Tests.UnitTest.Terrain
             return new BiomeVisualSections(
                 new string[BiomeTypes.Length], new BiomeTextureConfig[BiomeTypes.Length],
                 new[] { CreateEmptyDetailConfig(), CreatePopulatedDetailConfig() },
-                new SurroundTextureConfig[BiomeTypes.Length]);
+                DetailTestConfigBuilder.CreateDisabledSurroundConfigs(BiomeTypes.Length));
         }
 
         private static BiomeDetailConfig CreateEmptyDetailConfig()

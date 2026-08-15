@@ -98,14 +98,32 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             return heights;
         }
 
-        // レイヤー2に全重みを寄せた初期状態。裸地が乗ればここが削れてMud側へ移る
-        // A start state with all weight on layer 2; bare ground eats into it and moves onto Mud
+        // 書き込み先のMud列が0で始まる初期状態。合計が保たれるのはこの m=0 の場合だけ
+        // A start state whose Mud column begins at zero, the m = 0 case in which alone the weight sum is preserved
         public static float[,,] CreateUniformAlphamap()
         {
             var alphamap = new float[AlphaResolution, AlphaResolution, LayerCount];
             for (var z = 0; z < AlphaResolution; z++)
             for (var x = 0; x < AlphaResolution; x++)
                 alphamap[z, x, 2] = 1f;
+
+            return alphamap;
+        }
+
+        // Mud列に元から重みがある初期状態。desertはMudDryをtextureConfigに持つので実データではこちらが普通
+        // A start state already carrying weight on the Mud column, the ordinary case in real data since desert lists MudDry in its textureConfig
+        public const float PresetSurroundWeight = 0.4f;
+        public const float PresetMainWeight = 1f - PresetSurroundWeight;
+
+        public static float[,,] CreateAlphamapWithSurroundWeight()
+        {
+            var alphamap = new float[AlphaResolution, AlphaResolution, LayerCount];
+            for (var z = 0; z < AlphaResolution; z++)
+            for (var x = 0; x < AlphaResolution; x++)
+            {
+                alphamap[z, x, MudLayerIndex] = PresetSurroundWeight;
+                alphamap[z, x, 2] = PresetMainWeight;
+            }
 
             return alphamap;
         }

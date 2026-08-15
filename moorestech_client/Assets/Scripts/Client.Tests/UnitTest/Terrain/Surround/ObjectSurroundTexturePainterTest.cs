@@ -28,13 +28,15 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         }
 
         [Test]
-        public void EveryPixelStillSumsToOneAfterPainting()
+        public void PixelsWhoseSurroundLayerStartsEmptyKeepTheirWeightSum()
         {
             var alphamap = CreateUniformAlphamap();
             Paint(alphamap, CreateSurroundConfig(), CreateHeights(0f), CreateRock(ClusterId));
 
-            // 再正規化を落とすと足した重みぶんだけ合計が1を超え、Unityが割り戻して全レイヤーが薄くなる
-            // Dropping the renormalization pushes the sum past 1 and Unity rescales it, thinning every layer
+            // 再正規化を落とすと足した重みぶんだけ合計が1を超え、Unityが割り戻して全レイヤーが薄くなる。
+            // 合計が保たれるのは書き込み先のMud列が0で始まるこの盤面だけで、一般の保証ではない
+            // Dropping the renormalization pushes the sum past 1 and Unity rescales it, thinning every layer.
+            // The sum only survives because this board starts with an empty Mud column; it is not a general guarantee
             for (var z = 0; z < AlphaResolution; z++)
             for (var x = 0; x < AlphaResolution; x++)
             {
@@ -42,6 +44,29 @@ namespace Client.Tests.UnitTest.Terrain.Surround
                 for (var layer = 0; layer < LayerCount; layer++) sum += alphamap[z, x, layer];
                 Assert.That(sum, Is.EqualTo(1f).Within(1e-4f), $"z={z} x={x}");
             }
+        }
+
+        [Test]
+        public void APixelWhoseSurroundLayerAlreadyHasWeightEndsAboveOne()
+        {
+            // 移植元の畳み方は「他レイヤー×(1-blend)」＋「書き込み先へ元の合計×blend」なので、合計は S+blend*m になる
+            // (m は書き込み先レイヤーの元の重み)。desertはMudDryをtextureConfigに持ち、重なる岩の2回目以降も必ず m>0 になる
+            // The source folds the other layers by (1-blend) and adds blend times the original total to the target, so the sum
+            // becomes S + blend*m (m being the target layer's original weight). Desert lists MudDry in its textureConfig, and any
+            // second write on overlapping rocks always has m > 0
+            var alphamap = CreateAlphamapWithSurroundWeight();
+            Paint(alphamap, CreateSurroundConfig(), CreateHeights(0f), CreateRock(ClusterId));
+
+            // blendはノイズ込みなので結果から復元する。式を再実装せずに畳み方だけを固定するため
+            // The blend carries noise, so it is recovered from the result to fix the fold without reimplementing the formula
+            var blend = 1f - alphamap[RockPixel, RockPixel, 2] / PresetMainWeight;
+            Assert.That(blend, Is.GreaterThan(0.5f), "岩の直下はコア帯なので大きく寄る");
+
+            var sum = 0f;
+            for (var layer = 0; layer < LayerCount; layer++) sum += alphamap[RockPixel, RockPixel, layer];
+
+            Assert.That(sum, Is.EqualTo(1f + blend * PresetSurroundWeight).Within(1e-4f));
+            Assert.That(sum, Is.GreaterThan(1f), "実データでは書き込み後の合計が1を超えうる");
         }
 
         [Test]

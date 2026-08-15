@@ -1,4 +1,5 @@
 using Client.Game.InGame.Environment.Terrain.Visual.Detail;
+using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using Game.MapGeneration.Pipeline.Config;
 using UnityEngine;
 
@@ -83,6 +84,17 @@ namespace Client.Tests.UnitTest
         public static DetailNoiseLayer CreateInactiveNoiseLayer()
         {
             return new DetailNoiseLayer { noiseType = MapNoiseType.None, frequency = 10f, amplitude = 1f };
+        }
+
+        // 岩周辺の裸地を使わないテストぶんの実体。null要素のまま渡すとMaxReachへ流れた瞬間にNREになる
+        // The instances tests that ignore the bare ground around rocks still need; null elements would NRE the moment MaxReach reads them
+        public static SurroundTextureConfig[] CreateDisabledSurroundConfigs(int biomeCount)
+        {
+            var surroundConfigs = new SurroundTextureConfig[biomeCount];
+            for (var biome = 0; biome < biomeCount; biome++)
+                surroundConfigs[biome] = new SurroundTextureConfig { surroundLayerAddressablePath = string.Empty };
+
+            return surroundConfigs;
         }
 
         public static DetailFilter CreateDisabledFilter()

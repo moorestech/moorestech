@@ -2,10 +2,14 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
 {
     /// <summary>
     ///     1画素ぶんの重みを裸地レイヤーへ寄せる。他レイヤーを(1-blend)倍してから元の合計のblend割合を足すので、
-    ///     元が合計1の画素は1のまま保たれる（移植元 TerrainGenerator.cs:1650-1660 / :1699-1706 と同一の畳み方）
+    ///     書き込み後の合計は S+blend*m になる（S は元の合計、m は書き込み先レイヤーの元の重み）。
+    ///     合計が保たれるのは m=0 の画素だけで、既に重みがある画素や重なる岩の2回目以降は1を超える。
+    ///     移植元 TerrainGenerator.cs:1650-1660 / :1699-1706 と同一の畳み方で、この性質もそのまま引き継いでいる
     ///     Shifts one pixel's weight onto the bare-ground layer; the other layers scale by (1-blend) before the
-    ///     blended share of the original total is added, so a pixel summing to 1 still sums to 1
-    ///     (the same fold as the source's TerrainGenerator.cs:1650-1660 / :1699-1706)
+    ///     blended share of the original total is added, leaving the sum at S + blend*m (S the original total,
+    ///     m the target layer's original weight). Only an m = 0 pixel keeps its sum; one that already carries
+    ///     weight, or a second write from overlapping rocks, ends above 1.
+    ///     This is the same fold as the source's TerrainGenerator.cs:1650-1660 / :1699-1706, inherited property included
     /// </summary>
     public static class SurroundBlendWriter
     {
