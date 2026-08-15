@@ -38,8 +38,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 terrainData.heightmapResolution = config.Resolution;
                 terrainData.size = new Vector3(config.terrainWidth, config.terrainHeight, config.terrainLength);
 
-                // 切れるのは高さの適用だけ。解像度とsizeはTerrainの器そのもので、落とすとタイルが縮む（移植元TerrainGenerator.cs:212）
-                // Only applying the heights is gated; resolution and size are the terrain's own shape and dropping them shrinks the tile (source TerrainGenerator.cs:212)
+                // 切れるのは高さの適用だけ。移植元TerrainApplier.cs:69は解像度とsizeも一緒に飛ばすが、あちらは既存TerrainDataへの上書きで、こちらはタイル毎の新規生成なので意図的に逸脱する
+                // Only the height apply is gated: source TerrainApplier.cs:69 skips resolution and size along with it, but that one overwrites an existing TerrainData while this builds a fresh one per tile, so the deviation is deliberate
                 if (!config.generateHeightmap) return;
 
                 terrainData.SetHeights(0, 0, displayHeights);

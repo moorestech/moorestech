@@ -12,9 +12,9 @@ namespace Client.Tests.UnitTest.Terrain.Build
 {
     /// <summary>
     ///     generateHeightmap / generateTexture がTerrainDataへの適用だけを切ることを検証する。
-    ///     移植元は結果側のHeights/Splatmapを落として適用を止めており、器の寸法は落とさない
-    ///     Verifies generateHeightmap and generateTexture gate only what reaches the TerrainData; the source drops
-    ///     the result's Heights/Splatmap to stop the apply and never drops the terrain's own dimensions
+    ///     器の寸法は移植元と違い常に設定し、テクスチャOFFではalphamapに一切触れないことをnull入力で固定する
+    ///     Verifies generateHeightmap and generateTexture gate only what reaches the TerrainData: the terrain's own
+    ///     dimensions are always set unlike the source, and a null input pins that the alphamap is untouched when texture is off
     /// </summary>
     public class TerrainDataAssemblerGateTest
     {
@@ -93,8 +93,11 @@ namespace Client.Tests.UnitTest.Terrain.Build
 
         private IEnumerator Assemble(TerrainGenerationConfig config)
         {
+            // テクスチャOFFではproviderがalphamapをnullで返す。本番と同じ形を渡してassemblerがそこへ触れないことを固定する
+            // With the texture off the provider hands back a null alphamap, so production's own shape goes in and pins that the assembler never touches it
+            var tileVisual = new TerrainTileVisual(config.generateTexture ? CreateAlphamap() : null, new int[0][,]);
             var assembleTask = TerrainDataAssembler.AssembleAsync(
-                config, CreateHeights(), new TerrainTileVisual(CreateAlphamap(), new int[0][,]),
+                config, CreateHeights(), tileVisual,
                 new List<DetailPrototype>(), _terrainLayers);
 
             yield return assembleTask.ToCoroutine(terrainData => _terrainData = terrainData);

@@ -113,7 +113,7 @@ total=10 passed=5 failed=5
 
 ## 4. 移植元（MM）との対応
 
-- `generateHeightmap`: MM は `result.Heights = null` にして `TerrainApplier` 側で適用を止める。moorestech では TerrainData を組むのが `TerrainDataAssembler` 1箇所しか無いので、そこで `SetHeights` だけを飛ばす形にした。**`heightmapResolution` と `size` は落とさない**（MM も `TerrainGenerationResult.Resolution`/`TerrainSize` は常に埋めている）
+- `generateHeightmap`: MM は `result.Heights = null` にして `TerrainApplier` 側で適用を止める。moorestech では TerrainData を組むのが `TerrainDataAssembler` 1箇所しか無いので、そこで `SetHeights` だけを飛ばす形にした。**`heightmapResolution` と `size` は落とさない**が、これは **MM からの意図的な逸脱**である（詳細は §5-8。当初この行に「MM も常に埋めている」と書いていたのは誤りで、Fix ラウンド1で訂正した）
 - `generateTexture`: MM は `SplatmapJob`（:792）と `ConvertSplatWeights`（:216）の2箇所で切っている。moorestech でも「生成」と「適用」の2箇所で切った（provider と assembler）
 - `generateDetail`: MM は Stage 5 全体を `wantDetail` で囲み、`DetailPlacementGenerator.GenerateForBiome` が prototypes と maps を**同時に**返すため、片方だけ欠ける形が原理的に無い。moorestech は2つの型に分かれているので、**同じ型に所有させる**ことで同じ性質を作った
 - MM の `PlateauDebugOverlayJob`（:825）は `config.generateTexture && ...` で始まっている。moorestech でも `Generate` の内側なので自然にスキップされる（追記3）
@@ -161,6 +161,27 @@ total=10 passed=5 failed=5
 
 第4引数 `List<DetailPrototype>` → `IReadOnlyList<DetailPrototype>`（provider が公開する型に合わせる）。呼び出し側は本番1箇所＋新規テスト1箇所のみ。
 
+### 5-8. `heightmapResolution` / `size` を `generateHeightmap=false` でも常に設定する（**MM からの意図的な逸脱**・Fix ラウンド1で追記）
+
+MM の `TerrainApplier.Apply`（`TmpUnityPjt/MapMaking/Assets/MapGenerator/TerrainApplier.cs:68-80`）は
+
+```csharp
+// Heights=null の場合はハイトマップ適用をスキップ（既存データを保持）
+if (result.Heights != null)
+{
+    terrainData.heightmapResolution = res;
+    terrainData.size = result.TerrainSize;
+    ...
+    terrainData.SetHeights(0, 0, heights2D);
+}
+```
+
+で、**解像度と size も heights と一緒にスキップする**。`TerrainGenerationResult.Resolution`/`TerrainSize` が常に埋まっている（`TerrainGenerator.cs:207-208`）のは事実だが、それは result 側の話で、**適用されるかは `Heights != null` に従属している**。MM がこう書けるのは「シーンに既にある TerrainData へ上書きする」前提で、スキップすれば既存の寸法が残るため。
+
+moorestech の `TerrainDataAssembler` はタイル毎に `new TerrainData()` を作るので、スキップすると寸法が Unity 既定（`heightmapResolution=513` / `size=(1000,600,1000)`）のまま残り、**タイルの大きさが実データと食い違う**。したがって常に設定するのが唯一正しい。
+
+**判断は変えないが、根拠は「MM と同じ」ではなく「MM から意図的に逸脱した」が正しい。** `TerrainDataAssembler.cs:41-42` のコメントもその旨へ訂正した（旧: 移植元 `TerrainGenerator.cs:212` を根拠に挙げていたが、あの行は `result.Heights = null` を置く側で、寸法の扱いには触れていない）。
+
 ## 6. 実行したコマンドと出力
 
 macOS のログイン画面がロック中（`ioreg -n Root -d1 -a | grep -A1 CGSSessionScreenIsLocked` → `<true/>`）だったため、Task 12 報告 §3 の手順どおり **`uloop` は使わず Unity batchmode** で回した。全実行をバックグラウンド起動＋ポーリングで待った。
@@ -201,3 +222,114 @@ git commit        # -> b3d543fb28f91369a94381d337e7530aca106462
 - **`generateHeightmap=false` でも `postHeights` は detail の傾斜計算に使われ続ける**（移植元と同じ）。サーバー側は heights を常に生成・保存したままで、サーバーには一切手を入れていない
 - **EditModeInPlayingTest（`TerrainVisualCacheReuseTest` / `PlayerStartsOnBuiltTerrainTest`）は実行していない。** タスク指定のフィルタが PlayMode 遷移テストを避ける形だったため。`GeneratedTerrainSource` を分割したので、Task 15 の前に一度は通しておく価値がある（`EditModeInPlayingTestMod/master/generation.json` は3フラグとも `true` なのでゲートは no-op になるはず）
 - テストフィクスチャで踏んだ Unity の下限（`alphamapResolution` は16未満不可 / `heightmapResolution` は33未満不可）は、後続が同種のテストを書くときに再度踏む。定数の脇に2行コメントで残してある
+
+---
+
+## Fix ラウンド1
+
+レビュー所見 Important 2件 + Minor 3件への対応。**production のロジックは1行も変えていない**（変更はテストフィクスチャ1行・コメント2行・報告文）。
+
+### I-1: テストフィクスチャが texture-OFF でも非 null の alphamap を渡していた
+
+**所見は正しい。** `Assemble` ヘルパーが全ケースで `new TerrainTileVisual(CreateAlphamap(), …)` を渡しており、production で `generateTexture=false` のとき provider が `Alphamap = null` を返す（`TerrainTileVisualProvider.cs:70,100`）形をテストが一度も再現していなかった。結果、**「assembler は texture-OFF のとき `Alphamap` に触れてはならない」という契約が全くテストで守られていなかった**。
+
+対応（`TerrainDataAssemblerGateTest.cs` の `Assemble` ヘルパー）:
+
+```csharp
+// テクスチャOFFではproviderがalphamapをnullで返す。本番と同じ形を渡してassemblerがそこへ触れないことを固定する
+// With the texture off the provider hands back a null alphamap, so production's own shape goes in and pins that the assembler never touches it
+var tileVisual = new TerrainTileVisual(config.generateTexture ? CreateAlphamap() : null, new int[0][,]);
+```
+
+クラスの XMLドキュメントも実態に合わせて書き直した（旧文は「移植元は器の寸法を落とさない」と書いていたが、これは I-2 と同じ誤り）。
+
+#### ミューテーション MUT-D: ゲート行を1行下げる（所見が名指しした変異）
+
+```csharp
+terrainData.alphamapResolution = tileVisual.Alphamap.GetLength(0);
+if (!config.generateTexture) return;   // ← 1行下げる
+```
+
+**修正前**（旧フィクスチャ）: この変異は10本すべてを通過する（所見どおり判別力ゼロ）。
+**修正後**（`fix1` フィルタ22本で実行）: **検知した。**
+
+```
+total=22 passed=21 failed=1
+--- LeavesTheDefaultAlphamapWhenTheTextureFlagIsOff -> Failed
+    System.NullReferenceException : Object reference not set to an instance of an object
+    at ...TerrainDataAssembler+<>c__DisplayClass1_0.<AssembleAsync>g__ApplySplatmapAsync|1 ()
+       in .../Build/TerrainDataAssembler.cs:52
+    at ...TerrainDataAssembler.AssembleAsync (...) in .../Build/TerrainDataAssembler.cs:28
+```
+
+production が texture-OFF 経路で投げるのと**同じ NRE を、同じ行番号で**テストが再現した。変異を戻して再実行し 22/22 GREEN に復帰することも確認済み。
+
+### I-2: 移植元の根拠が事実と食い違っていた（未申告の逸脱）
+
+**MM の該当箇所を自分で読んで所見が正しいことを確認した。**
+`TmpUnityPjt/MapMaking/Assets/MapGenerator/TerrainApplier.cs:68-80`:
+
+```csharp
+// Heights=null の場合はハイトマップ適用をスキップ（既存データを保持）
+if (result.Heights != null)
+{
+    terrainData.heightmapResolution = res;
+    terrainData.size = result.TerrainSize;
+    ... SetHeights(0, 0, heights2D);
+}
+```
+
+**`heightmapResolution` と `size` は `Heights != null` の内側にあり、heights と一緒にスキップされる。**
+`TerrainGenerator.cs:204-213` を見ると `TerrainGenerationResult.Resolution`/`TerrainSize` 自体は常に埋まっているが、それは result 側の話で「適用される」こととは別。旧報告 §4 はこの2つを混同していた。MM がスキップして良いのは既存 TerrainData への上書きだからで、moorestech はタイル毎に `new TerrainData()` を作るため、スキップすると Unity 既定寸法が残ってタイルが実データと食い違う。
+
+対応（判断は変えず、根拠だけ訂正）:
+
+- `TerrainDataAssembler.cs:41-42` のコメントを「移植元 `TerrainGenerator.cs:212` と同じ」から「**移植元 `TerrainApplier.cs:69` は寸法も一緒に飛ばすが、生成先が使い回しではなく新規 TerrainData なので意図的に逸脱する**」へ（日本語1行→英語1行の2行セットは維持）
+- 報告 §4 の当該行を訂正し、**§5-8 を新設**して逸脱として正式に申告した
+
+### M-1: 両方OFFの早期脱出（`TerrainTileVisualProvider.cs:69-70`）— **残す**
+
+所見どおり、これは**どのテストでも区別できない**（削除しても出力は `Rebuild()` 経路と完全に同一で、差は分類を1回回すコストだけ）。本プロジェクトはパフォーマンス最適化を要求しないので、それだけなら削る側に倒すべきところ。
+
+**それでも残す理由**: 移植元の `needPlacement`（`TerrainGenerator.cs:228` = `generateObject || generateDetail || generateOre` で配置ステージ全体を囲う）と**同形の構造**であり、このブランチの規律は「移植の忠実性が最優先」。観測できない差だからこそ、性能ではなく**移植元と同じ形をしていること**を理由に残す。テストで固定できない以上、将来これを消しても誰も気付かないというリスクは受け入れる。
+
+### M-2: `DetailAssetResolver.ResolveAsync` を `generateDetail=false` でゲートしない — **ゲートしないのが正解**
+
+`GeneratedTerrainSource.cs:92` の `await DetailAssetResolver.ResolveAsync(visualSections.DetailConfigs)` はフラグに関係なく走る。所見の指摘どおり、**ゲートすると `generateTexture=false, generateDetail=true` の組み合わせで逆に落ちる**: `DetailRuntimeGenerator.cs:52` の `entry.textureFilter.ThrowIfUnresolved()` はフラグと無関係に無条件で走るため、解決を飛ばすと未解決のまま到達する。解決は「アドレスの実体化」であってタイル毎の生成ではないので、フラグの管轄外。§5-3（`SplatLayerTable.Build` / `TerrainLayerAssetLoader.LoadAsync` をゲートしない）と同じ理屈。
+
+### M-3: `TerrainDetailPrototypeList.Build` がタイル毎 → ワールド1回になった（挙動差・申し送り）
+
+分割前は `CreateTerrainDataAsync` 内でタイル毎に呼ばれていたが、`TerrainTileVisualProvider` の ctor へ移したことで **`GeneratedTerrainSource.CreateAsync`（:103）で1回だけ**になった。生じる差は2点、いずれも安全側:
+
+- **`DetailPrototype` インスタンスが全25タイルで共有される** → `TerrainData.detailPrototypes` setter は値をコピーするので共有は安全（`TerrainDataAssembler.cs:69` が `ToArray()` 済み）
+- **`entry.prototypeConfig.ThrowIfUnresolved()` の発火が `CreateAsync` 時へ前倒しになる** → タイル1枚目の構築時ではなくワールド初期化時に落ちる。**fail-fast 方向なので退行ではない**が、スタックトレースの出所が変わるので申し送りに含める
+
+### 変更ファイル
+
+| ファイル | 変更 |
+|---|---|
+| `moorestech_client/Assets/Scripts/Client.Tests/UnitTest/Terrain/Build/TerrainDataAssemblerGateTest.cs` | `Assemble` ヘルパーを texture-OFF で `Alphamap = null` にする（+2行コメント）／クラスXMLドキュメントの誤記訂正 |
+| `moorestech_client/Assets/Scripts/Client.Game/InGame/Environment/Terrain/Build/TerrainDataAssembler.cs` | `ApplyHeightmap` のコメント2行を差し替え（**コードは無変更**） |
+| `.superpowers/sdd/task-13-report.md` | §4 訂正・§5-8 新設・本セクション追記 |
+
+新規ファイルなし（`Build/` = 9 .cs、`UnitTest/Terrain/Build/` = 2 .cs のまま）。
+
+### 実行したコマンドと出力
+
+画面ロック中（`CGSSessionScreenIsLocked` → `<true/>`）のため今回も `uloop` を使わず Unity batchmode。全実行をバックグラウンド起動＋ポーリングで待った。
+
+```bash
+/Applications/Unity/Hub/Editor/6000.3.8f1/Unity.app/Contents/MacOS/Unity \
+  -batchmode -projectPath /Users/katsumi/moorestech-worktrees/map-autogen-5x5/moorestech_client \
+  -runTests -testPlatform EditMode \
+  -testFilter "TerrainDataAssembler|TerrainTileVisualProvider|GeneratedTerrain|TerrainDetail" \
+  -testResults <xml> -logFile <log>
+```
+
+| 段階 | 結果 |
+|---|---|
+| フィクスチャ修正後 GREEN | **total=22 passed=22 failed=0** |
+| MUT-D（ゲート行を1行下げる） | **total=22 passed=21 failed=1**（`LeavesTheDefaultAlphamapWhenTheTextureFlagIsOff` が NRE @ `TerrainDataAssembler.cs:52`） |
+| MUT-D 復旧確認 | production ファイルをバックアップから復元し、`git diff` が I-2 のコメント2行のみであることを確認 |
+
+（`-batchmode -runTests` は失敗があっても exit code 0 を返すことがあるので、判定は必ず結果XMLで行っている）
