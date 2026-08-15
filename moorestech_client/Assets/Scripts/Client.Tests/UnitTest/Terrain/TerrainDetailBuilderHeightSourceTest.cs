@@ -68,7 +68,7 @@ namespace Client.Tests.UnitTest.Terrain
             BiomeVisualSections visualSections, float[,] preHeights, float[,] postHeights)
         {
             return TerrainDetailBuilder.Build(
-                CreateConfig(), BiomeTypes, visualSections, preHeights, postHeights, CreateBiomeIndices(), null, null);
+                CreateConfig(), BiomeTypes, visualSections, preHeights, postHeights, CreateWinnerMasks(), null, null);
         }
 
         private static BiomeVisualSections CreateSlopeFilteredSections()
@@ -114,14 +114,16 @@ namespace Client.Tests.UnitTest.Terrain
             };
         }
 
-        private static byte[,] CreateBiomeIndices()
+        // 唯一のバイオームがタイル全面で勝つ配置。高さの取り違えだけを観測するためマスクは一様にする
+        // The single biome wins the whole tile; a uniform mask keeps the observation on the height mix-up alone
+        private static bool[][,] CreateWinnerMasks()
         {
-            var biomeIndices = new byte[Resolution, Resolution];
+            var mask = new bool[Resolution, Resolution];
             for (var z = 0; z < Resolution; z++)
             for (var x = 0; x < Resolution; x++)
-                biomeIndices[z, x] = (byte)BiomeTypes[0];
+                mask[z, x] = true;
 
-            return biomeIndices;
+            return new[] { mask };
         }
 
         private static float[,] CreateFlat()

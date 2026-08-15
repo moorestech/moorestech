@@ -42,7 +42,7 @@ namespace Client.Tests.UnitTest.Terrain
             var visualSections = CreateVisualSections();
             var maps = TerrainDetailBuilder.Build(
                 CreateConfig(), BiomeTypes, visualSections, CreateHeights(), CreateHeights(),
-                CreateBiomeIndices(), null, null);
+                CreateWinnerMasks(), null, null);
             var prototypes = TerrainDetailPrototypeList.Build(BiomeTypes, visualSections);
 
             Assert.That(prototypes.Count, Is.EqualTo(2));
@@ -70,7 +70,7 @@ namespace Client.Tests.UnitTest.Terrain
 
             var maps = TerrainDetailBuilder.Build(
                 CreateConfig(), BiomeTypes, CreateVisualSections(), CreateHeights(), CreateHeights(),
-                CreateBiomeIndices(), null, null);
+                CreateWinnerMasks(), null, null);
 
             Assert.That(AreEqual(maps[0], expected), Is.True, "添字1のseedで生成されている");
 
@@ -84,7 +84,7 @@ namespace Client.Tests.UnitTest.Terrain
             var config = CreateConfig();
             var heights = CreateHeights();
             var maps = DetailRuntimeGenerator.GenerateForBiome(
-                TransferredBiomeMaskBuilder.Build(CreateBiomeIndices(), BiomeTypes[PopulatedBiomeIndex], Resolution),
+                CreateWinnerMasks()[PopulatedBiomeIndex],
                 heights, TerrainSlopeCalculator.Compute(heights, config),
                 TerrainDimensions.From(config, config.shoreConfig.waterMargin),
                 CreatePopulatedDetailConfig(), new System.Random(seed), null, null, null, null);
@@ -161,13 +161,20 @@ namespace Client.Tests.UnitTest.Terrain
             return heights;
         }
 
-        private static byte[,] CreateBiomeIndices()
+        // 添字1のバイオームがタイル全面で勝つ配置。0番は勝者ゼロなので密度マップも空になる
+        // The biome at index 1 wins the whole tile; index 0 wins nowhere, so its density maps stay empty
+        private static bool[][,] CreateWinnerMasks()
         {
-            var biomeIndices = new byte[Resolution, Resolution];
-            for (var z = 0; z < Resolution; z++)
-            for (var x = 0; x < Resolution; x++)
-                biomeIndices[z, x] = (byte)BiomeTypes[PopulatedBiomeIndex];
-            return biomeIndices;
+            var masks = new bool[BiomeTypes.Length][,];
+            for (var biomeIndex = 0; biomeIndex < BiomeTypes.Length; biomeIndex++)
+            {
+                masks[biomeIndex] = new bool[Resolution, Resolution];
+                for (var z = 0; z < Resolution; z++)
+                for (var x = 0; x < Resolution; x++)
+                    masks[biomeIndex][z, x] = biomeIndex == PopulatedBiomeIndex;
+            }
+
+            return masks;
         }
     }
 }

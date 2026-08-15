@@ -26,7 +26,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         // swapping them throws nothing and only shifts how grass grows around each tree
         public static List<int[,]> Build(
             TerrainGenerationConfig config, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
-            float[,] preHeights, float[,] postHeights, byte[,] transferredBiomeIndices, float[,,] alphamap,
+            float[,] preHeights, float[,] postHeights, bool[][,] winnerMasks, float[,,] alphamap,
             TerrainLayer[] terrainLayers)
         {
             var slopes = TerrainSlopeCalculator.Compute(postHeights, config);
@@ -39,7 +39,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 var detailConfig = visualSections.DetailConfigs[biomeIndex];
                 if (detailConfig.entries.Length == 0) continue;
 
-                var mask = TransferredBiomeMaskBuilder.Build(transferredBiomeIndices, biomeTypes[biomeIndex], config.Resolution);
+                // 勝者マスクは移植元と同じくローカル分類の重み由来。転送バイトと違いビーチ帯も勝者バイオーム側に残る
+                // The winner mask derives from the locally classified weights as in the source; unlike the transferred bytes it keeps the beach band
+                var mask = winnerMasks[biomeIndex];
                 var detailRandom = new System.Random(config.seed + DetailSeedBase + biomeIndex * DetailSeedStridePerBiome);
 
                 // 木・オブジェクトの距離場はクライアントに配置情報が無いため渡さない。距離フィルタだけが休む

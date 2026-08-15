@@ -158,11 +158,15 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             // Only the missed tiles are rebuilt on the spot and written back for next time
             TerrainTileVisual RebuildAndCacheVisual()
             {
+                // 分類はタイル1枚につき1回。splatのブレンド入力とDetailの勝者マスクを同じパディング窓から採る
+                // One classification per tile, so splat's blend inputs and detail's winner masks come from the same padded window
+                using var classification = new TerrainClassificationContext(tileConfig, _biomeTypes);
+
                 var rebuiltAlphamap = SplatmapRuntimeGenerator.Generate(
-                    tileConfig, _biomeTypes, _layerTable, _visualSections.TextureConfigs, _visualSections.MainLayerAddresses,
-                    preHeights, transferredBiomeIndices, _config.AlphamapResolution);
+                    tileConfig, _biomeTypes, classification, _layerTable, _visualSections.TextureConfigs,
+                    _visualSections.MainLayerAddresses, preHeights, transferredBiomeIndices, _config.AlphamapResolution);
                 var rebuiltDetailMaps = TerrainDetailBuilder.Build(
-                    tileConfig, _biomeTypes, _visualSections, preHeights, postHeights, transferredBiomeIndices,
+                    tileConfig, _biomeTypes, _visualSections, preHeights, postHeights, classification.WinnerMasks,
                     rebuiltAlphamap, _terrainLayers);
 
                 var rebuiltVisual = new TerrainTileVisual(rebuiltAlphamap, rebuiltDetailMaps);

@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.Environment.Terrain.Build.Placement;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
@@ -137,8 +138,11 @@ namespace Client.Tests.UnitTest
             var biomeMainLayerAddresses = new[] { "addr/grass" };
             var layerTable = SplatLayerTable.Build("addr/beach", "addr/rock", biomeMainLayerAddresses, biomeTextureConfigs);
 
+            // 分類は呼び出し側の持ち物になった。1回の生成につき1個をusingで抱える本番と同じ形
+            // The classification now belongs to the caller, held one per generation in a using as production does
+            using var classification = new TerrainClassificationContext(config, biomeTypes);
             return SplatmapRuntimeGenerator.Generate(
-                config, biomeTypes, layerTable, biomeTextureConfigs, biomeMainLayerAddresses,
+                config, biomeTypes, classification, layerTable, biomeTextureConfigs, biomeMainLayerAddresses,
                 CreateHeights(), transferredBiomeIndices, AlphamapResolution);
         }
 
