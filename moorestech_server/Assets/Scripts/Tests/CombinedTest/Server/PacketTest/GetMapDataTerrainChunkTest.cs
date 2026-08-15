@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
-using Game.MapGeneration.Transfer;
 using Game.Paths;
 using MessagePack;
 using NUnit.Framework;
@@ -22,6 +21,10 @@ namespace Tests.CombinedTest.Server.PacketTest
     // Verify terrain restoration over the wire
     public class GetMapDataTerrainChunkTest
     {
+        // ForUnitTestModのgeneration.jsonが定めるgridSizeX/Z。値は生成jsonの実値であり推測ではない
+        // gridSizeX/Z as declared in ForUnitTestMod's generation.json; a real value, not a guess
+        private const int GridSideForUnitTestMod = 5;
+
         private TerrainTransferTestScope _testScope;
 
         [SetUp]
@@ -44,9 +47,9 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var layoutResponse = RequestLayout(packetResponseCreator);
 
-            // ForUnitTestModのgridSizeX/Z=5(生成タイル数はWorldProvisionerが実出力から書く)なのでタイル数は直書きしない
-            // ForUnitTestMod's gridSizeX/Z=5 (WorldProvisioner writes the actual output count), so the tile count is never hardcoded here
-            Assert.Greater(layoutResponse.TerrainMeta.TerrainTileCount, 1);
+            // ForUnitTestModのgeneration.jsonはgridSizeX/Z=5固定なのでタイル数25を直書きできる
+            // ForUnitTestMod's generation.json pins gridSizeX/Z=5, so the tile count 25 can be hardcoded here
+            Assert.AreEqual(GridSideForUnitTestMod * GridSideForUnitTestMod, layoutResponse.TerrainMeta.TerrainTileCount);
             Assert.Greater(layoutResponse.TerrainMeta.TerrainChunkTotal, 0);
 
             // ChunkIndexは応答にも載る。要求と応答がずれていないことを1件ずつ確かめる
@@ -60,7 +63,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             }
 
             var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(
-                TerrainTransferMeta.EnumerateStreamFilePaths(worldDataDirectory, layoutResponse.TerrainMeta.TerrainTileCount).ToList());
+                ExpectedStreamFilePathsOfGeneratedWorld(worldDataDirectory, GridSideForUnitTestMod));
             Assert.AreEqual(expectedStreamBytes, restoredStreamBytes.ToArray());
 
             // TerrainHashは同じ論理ストリームのSHA256。テスト側で実ファイルから独立に再計算して突き合わせる
@@ -104,6 +107,20 @@ namespace Tests.CombinedTest.Server.PacketTest
             LogAssert.Expect(LogType.Error, new Regex("[\\s\\S]*owns no terrain chunk to read[\\s\\S]*"));
 
             Assert.AreEqual(0, SendTerrainChunkRequest(packetResponseCreator, 0));
+        }
+
+        // 期待する並び順をテスト側に直書きする。実装の列挙メソッドを使うと並び順の検証が循環する
+        // Spell the expected order out here; reusing the production enumerator would make the check circular
+        private static List<string> ExpectedStreamFilePathsOfGeneratedWorld(WorldDataDirectory worldDataDirectory, int gridSide)
+        {
+            var streamFilePaths = new List<string>(gridSide * gridSide * 2);
+            for (var tileZ = 0; tileZ < gridSide; tileZ++)
+            for (var tileX = 0; tileX < gridSide; tileX++)
+            {
+                streamFilePaths.Add(worldDataDirectory.TerrainHeightFilePath(tileX, tileZ));
+                streamFilePaths.Add(worldDataDirectory.TerrainBiomeFilePath(tileX, tileZ));
+            }
+            return streamFilePaths;
         }
 
         private static int SendTerrainChunkRequest(PacketResponseCreator packetResponseCreator, int chunkIndex)

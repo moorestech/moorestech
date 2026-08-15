@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -18,6 +19,11 @@ namespace Tests.UnitTest.Game.MapGeneration
     public class TerrainChunkReaderTest
     {
         private const int SyntheticFileByteSize = 100 * 1024;
+
+        // ForUnitTestModのgeneration.jsonが定めるgridSizeX/Z。値は生成jsonの実値であり推測ではない
+        // gridSizeX/Z as declared in ForUnitTestMod's generation.json; a real value, not a guess
+        private const int GridSideForUnitTestMod = 5;
+
         private TerrainTransferTestScope _testScope;
 
         [SetUp]
@@ -74,12 +80,12 @@ namespace Tests.UnitTest.Game.MapGeneration
             var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
             var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
 
-            // ForUnitTestModのgridSizeX/Z=5(生成タイル数はWorldProvisionerが実出力から書く)なのでタイル数は直書きしない
-            // ForUnitTestMod's gridSizeX/Z=5 (WorldProvisioner writes the actual output count), so the tile count is never hardcoded here
-            Assert.Greater(terrainMeta.TerrainTileCount, 1);
+            // ForUnitTestModのgeneration.jsonはgridSizeX/Z=5固定なのでタイル数25を直書きできる
+            // ForUnitTestMod's generation.json pins gridSizeX/Z=5, so the tile count 25 can be hardcoded here
+            Assert.AreEqual(GridSideForUnitTestMod * GridSideForUnitTestMod, terrainMeta.TerrainTileCount);
 
             var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(
-                TerrainTransferMeta.EnumerateStreamFilePaths(worldDataDirectory, terrainMeta.TerrainTileCount).ToList());
+                ExpectedStreamFilePathsOfGeneratedWorld(worldDataDirectory, GridSideForUnitTestMod));
             var restoredStreamBytes = Enumerable.Range(0, terrainMeta.TerrainChunkTotal)
                 .SelectMany(chunkIndex => TerrainTransferTestScope.DecompressChunk(TerrainChunkReader.Read(worldDataDirectory, chunkIndex))).ToArray();
 
@@ -133,6 +139,20 @@ namespace Tests.UnitTest.Game.MapGeneration
                 worldDataDirectory.TerrainHeightFilePath(0, 1), worldDataDirectory.TerrainBiomeFilePath(0, 1),
                 worldDataDirectory.TerrainHeightFilePath(1, 1), worldDataDirectory.TerrainBiomeFilePath(1, 1),
             };
+        }
+
+        // 期待する並び順をテスト側に直書きする。実装の列挙メソッドを使うと並び順の検証が循環する
+        // Spell the expected order out here; reusing the production enumerator would make the check circular
+        private static List<string> ExpectedStreamFilePathsOfGeneratedWorld(WorldDataDirectory worldDataDirectory, int gridSide)
+        {
+            var streamFilePaths = new List<string>(gridSide * gridSide * 2);
+            for (var tileZ = 0; tileZ < gridSide; tileZ++)
+            for (var tileX = 0; tileX < gridSide; tileX++)
+            {
+                streamFilePaths.Add(worldDataDirectory.TerrainHeightFilePath(tileX, tileZ));
+                streamFilePaths.Add(worldDataDirectory.TerrainBiomeFilePath(tileX, tileZ));
+            }
+            return streamFilePaths;
         }
 
         // 実生成を通さずタイル数と内容を制御した合成ワールドを作る。ファイルごとに異なる値で埋めて順序違反を検出可能にする
