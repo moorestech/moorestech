@@ -26,16 +26,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
     /// </summary>
     public class GeneratedTerrainSource
     {
-        private readonly BiomeType[] _biomeTypes;
-        private readonly SplatLayerTable _layerTable;
         private readonly TerrainLayer[] _terrainLayers;
-        private readonly TerrainVisualCache _visualCache;
-        private readonly BiomeVisualSections _visualSections;
+        private readonly TerrainTileVisualProvider _tileVisualProvider;
         private readonly WorldDataDirectory _worldCacheDirectory;
-
-        // 木の根元のレイヤーは樹種ごとにguidで引く。列の確保もタイルごとの塗りもこの1本から派生させる
-        // A tree's root layer is looked up per species by guid; both the reserved columns and every tile's painting derive from this one table
-        private readonly TreeSurroundSpeciesTable _treeSurroundSpecies;
 
         // ノイズ窓の原点をindex(0,0)タイルに合わせたConfig。他のタイルはここからタイル座標ぶんずらして作る
         // The config whose noise window origin sits on the index (0,0) tile; every other tile shifts off it by its tile coordinate
@@ -50,21 +43,16 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         private readonly Vector2 _sceneOrigin;
 
         private GeneratedTerrainSource(
-            TerrainGenerationConfig config, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
-            SplatLayerTable layerTable, TerrainLayer[] terrainLayers, WorldDataDirectory worldCacheDirectory,
-            Vector2 sceneOrigin, IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, TerrainVisualCache visualCache,
-            TreeSurroundSpeciesTable treeSurroundSpecies)
+            TerrainGenerationConfig config, TerrainLayer[] terrainLayers, WorldDataDirectory worldCacheDirectory,
+            Vector2 sceneOrigin, IReadOnlyList<MapObjectLayoutMessagePack> mapObjects,
+            TerrainTileVisualProvider tileVisualProvider)
         {
-            _treeSurroundSpecies = treeSurroundSpecies;
-            _visualCache = visualCache;
-            _sceneOrigin = sceneOrigin;
-            _mapObjects = mapObjects;
             _config = config;
-            _biomeTypes = biomeTypes;
-            _visualSections = visualSections;
-            _layerTable = layerTable;
             _terrainLayers = terrainLayers;
             _worldCacheDirectory = worldCacheDirectory;
+            _sceneOrigin = sceneOrigin;
+            _mapObjects = mapObjects;
+            _tileVisualProvider = tileVisualProvider;
         }
 
         public static async UniTask<GeneratedTerrainSource> CreateAsync(
@@ -112,9 +100,12 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 new Vector2(config.worldOffsetX, config.worldOffsetZ), config.seed,
                 MapObjectsDigest.Compute(mapObjects)));
 
+            var tileVisualProvider = new TerrainTileVisualProvider(
+                config, biomeTypes, visualSections, layerTable, terrainLayers, treeSurroundSpecies,
+                mapObjects, worldCacheDirectory, visualCache);
+
             return new GeneratedTerrainSource(
-                config, biomeTypes, visualSections, layerTable, terrainLayers, worldCacheDirectory, sceneOrigin,
-                mapObjects, visualCache, treeSurroundSpecies);
+                config, terrainLayers, worldCacheDirectory, sceneOrigin, mapObjects, tileVisualProvider);
         }
 
         // タイルはシーン原点を起点に地形1枚ぶんずつ並ぶ。MapObjects/MapVeinsも同じ原点で配られる
@@ -130,13 +121,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         // visualCacheHit reports, tile by tile, whether the rebuild was skipped, for the caller's measurement
         public async UniTask<(TerrainData TerrainData, bool VisualCacheHit)> CreateTerrainDataAsync(int tileX, int tileZ)
         {
-            var resolution = _config.Resolution;
-
             // 転送された高さは木の摂動前が正本（R12）。splatとdetail密度はこの値を読み、表示だけが摂動後を使う
             // The transferred heights are pre-tree by definition (R12): splat and detail density read them and only the display uses the perturbed ones
-            var preHeights = TerrainFileLoader.LoadHeights(_worldCacheDirectory, tileX, tileZ, resolution);
-            var transferredBiomeIndices = TerrainFileLoader.LoadBiomeIndices(_worldCacheDirectory, tileX, tileZ, resolution);
-            var detailPrototypes = TerrainDetailPrototypeList.Build(_biomeTypes, _visualSections);
+            var preHeights = TerrainFileLoader.LoadHeights(_worldCacheDirectory, tileX, tileZ, _config.Resolution);
 
             // サーバーのタイルループと同形にずらす。窓が1枚ぶんずれないと全25タイルが同じ地形として分類される
             // Shifted exactly as the server's tile loop does; without the per-tile shift all 25 tiles classify as the same terrain
@@ -144,19 +131,17 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             tileConfig.worldOffsetX = _config.worldOffsetX + tileX * _config.terrainWidth;
             tileConfig.worldOffsetZ = _config.worldOffsetZ + tileZ * _config.terrainLength;
 
+            var tileWorldPosition = TileWorldPosition(tileX, tileZ);
             var tileObjects = TileMapObjectSlicer.Slice(
-                _mapObjects, TileWorldPosition(tileX, tileZ), _config.terrainWidth, _config.terrainLength);
+                _mapObjects, tileWorldPosition, _config.terrainWidth, _config.terrainLength);
             var postHeights = TreePerturbationApplier.Apply(preHeights, tileConfig, tileObjects);
 
-            // detailの解像度とプロトタイプ数を先に固定する。ヒット後に数違いで落とさず、Readerで壊れた取り逃しにする
-            // Fix detail resolution and prototype count before loading so a mismatch becomes a broken miss in the Reader, never a post-hit failure
-            var visualCacheHit = _visualCache.TryLoad(
-                tileX, tileZ, _config.AlphamapResolution, _terrainLayers.Length, resolution - 1, detailPrototypes.Count,
-                out var tileVisual);
-            if (!visualCacheHit) tileVisual = RebuildAndCacheVisual();
+            var (tileVisual, visualCacheHit) = _tileVisualProvider.Resolve(
+                tileX, tileZ, tileConfig, tileWorldPosition, preHeights, postHeights);
 
             // 密度マップはプロトタイプと1対1。数が食い違ったまま流すとSetDetailLayerが別の草を描く
             // Density maps pair one-to-one with prototypes; letting a mismatched count through would make SetDetailLayer draw the wrong plant
+            var detailPrototypes = _tileVisualProvider.DetailPrototypes;
             if (detailPrototypes.Count != tileVisual.DetailMaps.Count)
                 throw new InvalidOperationException(
                     $"[GeneratedTerrainSource] Tile ({tileX}, {tileZ}) has {tileVisual.DetailMaps.Count} detail maps for {detailPrototypes.Count} prototypes.");
@@ -164,36 +149,6 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             var terrainData = await TerrainDataAssembler.AssembleAsync(
                 tileConfig, postHeights, tileVisual, detailPrototypes, _terrainLayers);
             return (terrainData, visualCacheHit);
-
-            #region Internal
-
-            // 取り逃したタイルだけをその場で作り直し、次回のために書き戻す
-            // Only the missed tiles are rebuilt on the spot and written back for next time
-            TerrainTileVisual RebuildAndCacheVisual()
-            {
-                // 分類はタイル1枚につき1回。splatのブレンド入力とDetailの勝者マスクを同じパディング窓から採る
-                // One classification per tile, so splat's blend inputs and detail's winner masks come from the same padded window
-                using var classification = new TerrainClassificationContext(tileConfig, _biomeTypes);
-                classification.Initialize();
-
-                // splatも岩の裸地でmapObjectを読むようになったので、Detailと同じく全タイルぶんを渡してhaloで切らせる
-                // The splat now reads map objects for the rocks' bare ground too, so it takes the whole layout and slices its own halo, as detail does
-                var rebuiltAlphamap = SplatmapRuntimeGenerator.Generate(
-                    tileConfig, _biomeTypes, classification, _layerTable, _visualSections, _treeSurroundSpecies,
-                    preHeights, transferredBiomeIndices, _config.AlphamapResolution,
-                    _mapObjects, TileWorldPosition(tileX, tileZ));
-                // 距離場はタイル境界の外まで見るため、切り出し済みのtileObjectsではなく全タイルぶんを渡す
-                // The distance fields look past the tile boundary, so the whole layout goes in rather than the sliced tileObjects
-                var rebuiltDetailMaps = TerrainDetailBuilder.Build(
-                    tileConfig, _biomeTypes, _visualSections, preHeights, postHeights, classification.WinnerMasks,
-                    rebuiltAlphamap, _terrainLayers, _mapObjects, TileWorldPosition(tileX, tileZ));
-
-                var rebuiltVisual = new TerrainTileVisual(rebuiltAlphamap, rebuiltDetailMaps);
-                _visualCache.Save(tileX, tileZ, rebuiltVisual);
-                return rebuiltVisual;
-            }
-
-            #endregion
         }
     }
 }
