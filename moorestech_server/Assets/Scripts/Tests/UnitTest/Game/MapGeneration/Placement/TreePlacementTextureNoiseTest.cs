@@ -1,78 +1,109 @@
-using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators;
-using Game.MapGeneration.Pipeline.Generators.Util;
 using NUnit.Framework;
-using Unity.Collections;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration
 {
-    // 樹木配置側の「ノイズタイプ None でもテクスチャ源があれば有効」というガードを固定する。
+    // 樹木配置の「ノイズタイプ None でもテクスチャ源があれば有効」というガードを、公開経路
+    // TreePlacementGenerator.GenerateForBiome を通した配置数の差として固定する。
     // 移植元 TreePlacementGenerator.cs:335,339,549 の `|| noise.texture != null` に対応する。
     // Pins the tree-placement guard that keeps a noise active with noiseType None as long as a texture
-    // source exists, matching `|| noise.texture != null` at the source's TreePlacementGenerator.cs:335,339,549.
+    // source exists, observed as a placement-count difference through the public GenerateForBiome path.
+    // Matches `|| noise.texture != null` at the source's TreePlacementGenerator.cs:335,339,549.
     public class TreePlacementTextureNoiseTest
     {
-        private const int Resolution = 8;
-        private const float TerrainSize = 100f;
+        private const int Resolution = 16;
+        private const float TerrainSize = 200f;
 
-        // フィルタノイズの「源なし」は 0（加算の中立値）。テクスチャ源があれば読んだ値を返す。
-        // "No source" for a filter noise means 0 (the additive neutral); with a texture it returns what it read.
-        [Test]
-        public void ノイズタイプNoneでもテクスチャ源があればフィルタノイズを読む()
-        {
-            var noise = CreateUniformTextureNoise(255);
-            noise.noiseType = MapNoiseType.None;
-
-            float withTexture = TreePlacementCommon.SampleFilterNoise(noise, 50f, 50f, null, TerrainSize, TerrainSize);
-            Assert.AreEqual(1f, withTexture, 1e-3f);
-
-            var withoutTexture = noise;
-            withoutTexture.texturePixels = null;
-            Assert.AreEqual(0f, TreePlacementCommon.SampleFilterNoise(withoutTexture, 50f, 50f, null, TerrainSize, TerrainSize));
-        }
-
-        // 真っ黒はしきい値以下で棄却、真っ白は通過。ガードを外すとどちらも「クラスタ判定なし」で通ってしまう。
-        // Black falls under the threshold and is rejected while white passes; dropping the guard lets both through unjudged.
+        // 真っ黒なクラスタテクスチャはしきい値以下で全候補を棄却し、真っ白は素通しする。
+        // A black cluster texture rejects every candidate below the threshold while a white one lets them through.
         [Test]
         public void ノイズタイプNoneでもテクスチャ源があればクラスタ判定が働く()
         {
-            Assert.AreEqual(0, PlaceWithClusterTexture(0), "真っ黒なクラスタテクスチャは棄却されるべき");
-            Assert.AreEqual(1, PlaceWithClusterTexture(255), "真っ白なクラスタテクスチャは通過するべき");
+            var black = CreateEntry();
+            black.clusterNoise = UniformTextureNoise(0);
+            Assert.AreEqual(0, PlaceCount(black), "真っ黒なクラスタテクスチャは全候補を棄却するべき");
+
+            var white = CreateEntry();
+            white.clusterNoise = UniformTextureNoise(255);
+            Assert.Greater(PlaceCount(white), 0, "真っ白なクラスタテクスチャは通過するべき");
         }
 
-        private static int PlaceWithClusterTexture(byte level)
+        // clusterNoise2 のテクスチャ源も noise2Op の合成に加わる。白×黒は Multiply で 0、Max なら 1 のまま。
+        // The clusterNoise2 texture also feeds noise2Op: white against black is 0 under Multiply, still 1 under Max.
+        [Test]
+        public void クラスタノイズ2のテクスチャ源もnoise2Opの合成に加わる()
         {
-            var entry = new TreePrototypeEntry
-            {
-                mapObjectGuids = new[] { "11111111-0000-0000-0000-000000000001" },
-                sharedGridMinDistance = 0f,
-                clusterNoiseThreshold = 0.3f,
-                clusterNoise = CreateUniformTextureNoise(level),
-            };
-            entry.clusterNoise.noiseType = MapNoiseType.None;
+            var multiply = CreateEntry();
+            multiply.clusterNoise = UniformTextureNoise(255);
+            multiply.clusterNoise2 = UniformTextureNoise(0);
+            multiply.noise2Op = NoiseOp.Multiply;
+            Assert.AreEqual(0, PlaceCount(multiply), "白と黒のMultiplyは0になり全候補が棄却されるべき");
 
-            // 完全な平地・曲率0にして、クラスタ判定より手前の傾斜フィルタを必ず通す。
-            // A perfectly flat, zero-curvature tile so the slope filter ahead of the cluster test always passes.
+            var max = CreateEntry();
+            max.clusterNoise = UniformTextureNoise(255);
+            max.clusterNoise2 = UniformTextureNoise(0);
+            max.noise2Op = NoiseOp.Max;
+            Assert.Greater(PlaceCount(max), 0, "白と黒のMaxは1のままなので通過するべき");
+        }
+
+        // フィルタノイズの「源なし」は 0（加算の中立値）。テクスチャ源の有無がそのまま重み 1/0 の分岐になる。
+        // "No source" for a filter noise means 0, the additive neutral, so its presence flips the weight between 1 and 0.
+        [Test]
+        public void ノイズタイプNoneでもテクスチャ源があればフィルタノイズを読む()
+        {
+            var withTexture = CreateEntry();
+            withTexture.slopeFilter = SlopeFilterReadingNoise(UniformTextureNoise(255));
+            Assert.Greater(PlaceCount(withTexture), 0, "テクスチャの1.0が傾斜へ足されて範囲に入るべき");
+
+            var withoutTexture = CreateEntry();
+            withoutTexture.slopeFilter = SlopeFilterReadingNoise(default);
+            Assert.AreEqual(0, PlaceCount(withoutTexture), "源なしのノイズは0なので範囲外で全棄却されるべき");
+        }
+
+        // 完全な平地・全面マスクの1タイルへ1プロトタイプだけを配置し、配置数だけを観測する。
+        // Place a single prototype on one perfectly flat, fully masked tile and observe only the placement count.
+        private static int PlaceCount(TreePrototypeEntry entry)
+        {
             var dims = new TerrainDimensions(TerrainSize, TerrainSize, 100f, 0f, 0f, Resolution, 0f, 0f, 1, 0f, 0f);
             var heights = new float[Resolution * Resolution];
-            var curvature = new float[Resolution * Resolution];
-            var nativeHeights = new NativeArray<float>(heights, Allocator.Temp);
-            var placements = new List<PlacementEntry>();
+            var mask = new bool[Resolution, Resolution];
+            for (int z = 0; z < Resolution; z++)
+            for (int x = 0; x < Resolution; x++)
+                mask[z, x] = true;
 
-            TreePlacementEntry.TryPlaceEntry(entry, new Vector2(50f, 50f), dims, heights, curvature,
-                nativeHeights, null, new TreeDensityConfig(), new SpatialGrid(TerrainSize, TerrainSize, 10f),
-                new System.Random(1), placements);
-
-            nativeHeights.Dispose();
-            return placements.Count;
+            var treeConfig = new TreePlacementConfig { prototypes = new[] { entry } };
+            return TreePlacementGenerator.GenerateForBiome(mask, heights, dims, treeConfig, new System.Random(1)).Count;
         }
 
-        private static PlacementNoise CreateUniformTextureNoise(byte level)
+        private static TreePrototypeEntry CreateEntry()
+        {
+            return new TreePrototypeEntry
+            {
+                mapObjectGuids = new[] { "11111111-0000-0000-0000-000000000001" },
+                clusterNoiseThreshold = 0.3f,
+            };
+        }
+
+        // 平地の傾斜0にノイズ値を足した結果で判定させる。テクスチャの 1.0 だけが範囲 [0.5,1.5] に入る。
+        // Judges slope 0 plus the noise value, so only the texture's 1.0 lands inside the [0.5,1.5] range.
+        private static PlacementFilter SlopeFilterReadingNoise(PlacementNoise noise)
+        {
+            return new PlacementFilter
+            {
+                enabled = true,
+                range = new Vector2(0.5f, 1.5f),
+                smoothness = Vector2.zero,
+                noise = noise,
+            };
+        }
+
+        private static PlacementNoise UniformTextureNoise(byte level)
         {
             return new PlacementNoise
             {
+                noiseType = MapNoiseType.None,
                 channel = TextureChannel.R,
                 amplitude = 1f,
                 textureWidth = 2,

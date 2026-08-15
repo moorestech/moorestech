@@ -63,6 +63,9 @@ MM 側の `texture != null` / `texture == null` は**全5箇所**（`grep -rn "t
 `TreePlacementCommon` / `TreePlacementEntry` は internal のままで、ガードをテストから直接検証するため（public 化はしない）。
 クライアント側に同形の前例がある（`Client.Playtest/AssemblyInfo.cs`, `Client.Localization/AssemblyInfo.cs`）。
 
+> **【Fix ラウンド1 で撤回】** この IVT はレビュー指摘 I-1 で削除した。テストは公開経路
+> `TreePlacementGenerator.GenerateForBiome` 経由へ書き換えてある。詳細は末尾の「Fix ラウンド1」参照。
+
 ---
 
 ## 2. スキーマ変更と SourceGenerator 再実行の手順と結果
@@ -72,7 +75,8 @@ edit-schema スキルの手順どおり。
 1. `VanillaSchema/mapGenerate/placementNoise.yml` を編集（実体は**リポジトリルート直下**。`moorestech_server/` の下ではない）
 2. **csc.rsp は変更不要**。`placementNoise.yml` は既に `moorestech_server/Assets/Scripts/Core.Master/csc.rsp:25` に `additionalfile` として載っている（新規スキーマ追加ではないため）
 3. `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs` の `dummyText` を
-   `C4-0A-D8-...` → `06-DC-04-03-09-3E-48-A3-9C-97-76-29-54-51-1E-92` へ更新（再コンパイル印）
+   `C6-7C-91-0D-49-0C-F7-0D-32-34-32-2A-29-15-7F-EE` へ更新（再コンパイル印）
+   ※初稿では値を `06-DC-04-...` と誤記していた。実際にコミットされているのは上記（Fix ラウンド1 M-4 で訂正）
 4. Unity のコンパイルで SourceGenerator が走り、`Mooresmaster.Model.PlacementNoiseModule.PlacementNoise` に `TexturePngPath` が生えた
 
 **結果の確認**: `PlacementRefConvert.cs` が `gen.TexturePngPath` を参照した状態で **RED 実行がコンパイルエラー0件で通った**（`grep "error CS" /tmp/t14_red.log` = 0件、テストは22本走って5本がアサーション失敗）。
@@ -441,6 +445,189 @@ Task 15 の5x5録画を含め、以降は共有checkout `/Users/katsumi/mooreste
 `Server.Tests` から `TreePlacementCommon` / `TreePlacementEntry` を叩くため。production の可視性は変えていない
 （`internal` のまま）が、アセンブリ属性が1つ増えたことは申し送る。
 
+> **【Fix ラウンド1 で解消】** I-1 の指摘により `AssemblyInfo.cs` は削除済み。アセンブリ属性の増加は無くなった。
+
 ### 実行手段
 
 コントローラからロック解除の連絡を受けたが、**最後まで Unity batchmode で回した**（理由は §6 冒頭）。`uloop` は使っていない。
+
+---
+
+# Fix ラウンド1（レビュー指摘 I-1 / I-3 / I-2 / M-1 / M-4 への対応）
+
+BASE: `5b7bf88a8`（半テクセル裁定コミット）/ worktree: 同上
+
+**ステータス: DONE**（サンプリング規約と master には一切触っていない）
+
+## 前提（対応不要と確定した2件）
+
+- **半テクセル問題はユーザー裁定で現行実装が追認された**（`.decisions/2026-08-16-テクスチャノイズのサンプリング規約はGPU標準に統一する.md`）。
+  `ManagedNoise.GetPixelBilinear` の `uv*size-0.5` + Clamp は**1行も変えていない**
+- **master 側の一括追加はレビュアーの独立検証で非破壊確認済み**。`../moorestech_master` は**一切触っていない**（pin も据え置き）
+
+## I-1: `InternalsVisibleTo` を削除し、テストを公開経路へ移した → **対応済み（削除した）**
+
+指摘どおり、サーバー側アセンブリ群で初の IVT 導入だった上に、開けるのは1つの internal ではなく
+`Game.MapGeneration` の internal 全部だった。1テストの都合で契約面を恒久的に広げる取引は成立していない。
+
+- `moorestech_server/.../Game.MapGeneration/AssemblyInfo.cs` と `.meta` を**削除**
+- `TreePlacementTextureNoiseTest` を、`TreePlacementEntry.TryPlaceEntry` / `TreePlacementCommon.SampleFilterNoise`
+  （どちらも internal）の直叩きから、**public な `TreePlacementGenerator.GenerateForBiome` 経由の配置数観測**へ全面的に書き換えた
+  - フィクスチャ: 全面 true のマスク / 全高 0 の平地 / 200m 角・resolution 16 の1タイル / プロトタイプ1件 / `new System.Random(1)`
+  - 観測量は `List<PlacementEntry>.Count`（白テクスチャ経路で 311件、棄却経路で 0件）
+- フィルタノイズ側は指摘のとおり `slopeFilter.enabled = true` で公開経路から観測できた。
+  `range=[0.5,1.5]` / `smoothness=0` にすると、平地の傾斜 0 に足されるノイズ値が **テクスチャの 1.0 なら通過・源なしの 0 なら全棄却**になる
+
+**IVT を消しても検出力は落ちなかった**（下の3つの個別変異がすべて落ちている）。むしろ Poisson の4パス・密度ノイズ・
+共有グリッド・下層木まで含んだ実際の呼び出し経路を通るぶん、テストとして強くなっている。
+
+削除の安全性: `grep` で `Server.Tests` 側から `Game.MapGeneration` の internal を参照している箇所が
+この1ファイルだけであることを確認済み。IVT 削除後にコンパイルエラー0件で87本走ったことが裏付けになっている。
+
+## I-3: `clusterNoise2` のガードに個別テストを足した → **対応済み**
+
+新規テスト `クラスタノイズ2のテクスチャ源もnoise2Opの合成に加わる` を追加した。
+
+- `clusterNoise` = 白（値 1.0）、`clusterNoise2` = **黒（値 0.0）＝別レベル**、どちらも `noiseType = None`
+- `noise2Op = Multiply` → 合成 0.0 は `hardEdge`(=0.18) 未満で**全候補棄却 → 0件**
+- `noise2Op = Max` → 合成 1.0 のまま**通過 → 311件**
+
+Max 側を対にしたのは、「clusterNoise2 にテクスチャがあると常に棄却される」ではなく
+**`noise2Op` の合成結果で決まっている**ことまで固定するため（`noise2Op` を Multiply 固定にする変異も落ちる）。
+
+### ミューテーション注入の観測（**3つのガードを1つずつ**個別に落とした）
+
+前回の MUT-D が3箇所同時だったという指摘に対応し、**1箇所ずつ**注入して毎回 Unity を回した。
+フィルタは全実行で `"PlacementNoise|ManagedNoise|TreePlacement"`（13本）。GREEN は 13/13。
+
+**MUT-1: `clusterNoise2` のガードだけを落とす**（`TreePlacementEntry.cs:73`）
+
+```csharp
+- if (entry.clusterNoise2.noiseType != MapNoiseType.None || entry.clusterNoise2.texturePixels != null)
++ if (entry.clusterNoise2.noiseType != MapNoiseType.None)
+```
+
+```
+total=13 passed=12 failed=1
+--- クラスタノイズ2のテクスチャ源もnoise2Opの合成に加わる -> Failed
+    白と黒のMultiplyは0になり全候補が棄却されるべき |   Expected: 0 |   But was:  311
+```
+
+**指摘どおり、この変異は従来のテスト群では1本も落ちなかった。新テストがピンポイントで落としている。**
+
+**MUT-2: `clusterNoise` のガードだけを落とす**（`TreePlacementEntry.cs:69`）
+
+```csharp
+- if (entry.clusterNoise.noiseType != MapNoiseType.None || entry.clusterNoise.texturePixels != null)
++ if (entry.clusterNoise.noiseType != MapNoiseType.None)
+```
+
+```
+total=13 passed=11 failed=2
+--- クラスタノイズ2のテクスチャ源もnoise2Opの合成に加わる -> Failed
+    白と黒のMultiplyは0になり全候補が棄却されるべき |   Expected: 0 |   But was:  311
+--- ノイズタイプNoneでもテクスチャ源があればクラスタ判定が働く -> Failed
+    真っ黒なクラスタテクスチャは全候補を棄却するべき |   Expected: 0 |   But was:  311
+```
+
+（外側のガードなので clusterNoise2 のテストも巻き込んで落ちる。これは包含関係として正しい）
+
+**MUT-3: フィルタノイズのガードだけを落とす**（`TreePlacementCommon.cs:62`）
+
+```csharp
+- if (noise.noiseType == MapNoiseType.None && noise.texturePixels == null) return 0f;
++ if (noise.noiseType == MapNoiseType.None) return 0f;
+```
+
+```
+total=13 passed=12 failed=1
+--- ノイズタイプNoneでもテクスチャ源があればフィルタノイズを読む -> Failed
+    テクスチャの1.0が傾斜へ足されて範囲に入るべき |   Expected: greater than 0 |   But was:  0
+```
+
+3変異とも注入 → 観測 → バックアップから復元し、復元後に production ファイルの差分がゼロであることを
+`git status` で確認してから最終 GREEN を回した。
+
+## M-1: `DestroyImmediate` → `Destroy` → **試したが Unity が拒否したので `DestroyImmediate` のまま据え置き**
+
+指摘に従って両方を `UnityEngine.Object.Destroy` に替え、実際に走らせたところ**既存テスト2本が落ちた**。
+
+```
+total=13 passed=11 failed=2
+--- 全バイオームの全ノイズ枠のPNGを画素へ展開する -> Failed
+    Unhandled log message: '[Error] Destroy may not be called from edit mode! Use DestroyImmediate instead.
+     | Destroying an object in edit mode destroys it permanently.'
+--- 手書きバイリニアはUnityのGetPixelBilinearと半テクセルずれを除いて一致する -> Failed
+    同上
+```
+
+Unity は **EditMode での `Object.Destroy` を拒否し、テクスチャを破棄しない**（ネイティブ実体が残る）。
+サーバーのユニットテストは EditMode で走るので、`Destroy` は「懸念が消える」どころか
+**この worktree で確実に壊れ、かつリークする**選択になる。
+
+据え置きの根拠を補強しておくと、ここで捨てるのは**シーングラフに一切入らない一時 `Texture2D`** で、
+`DestroyImmediate` が警告される典型ケース（コールバック中にシーンオブジェクトを消して反復を壊す）に当たらない。
+Player でも同期解放として正常に働く。**`DestroyImmediate` 固定である理由をコード直上の2行コメントに明記した**ので、
+「未検証のまま放置」という §8 の申告状態は解消されている。
+
+`#if UNITY_EDITOR` で二経路に割る案は採らなかった（挙動を分岐させる必要が実在しないうえ、
+エディタ専用コードはファイル末尾に置く規約とも噛み合わない）。
+
+## M-4: 報告 §2 の `dummyText` 誤記 → **対応済み**
+
+§2 手順3 の値を実コミット値 `C6-7C-91-0D-49-0C-F7-0D-32-34-32-2A-29-15-7F-EE` へ訂正し、誤記した旨も併記した。
+`_CompileRequester.cs:8` の実値と一致することを確認済み。
+
+## I-2（記録のみ）: マスクの UV はタイル単位で一周する
+
+`TreePlacementEntry.cs:22-23` の `point.x / dims.TerrainWidth` が示すとおり、`SamplePlacementNoise` に渡る
+`point` は**タイルローカル座標**（0..TerrainWidth）なので、テクスチャ UV も **0..1 がタイルごとに一周する**。
+移植元 MM は地形1枚だったので「マスク1枚 = マップ全体」だったが、moorestech の 5x5 では
+**同じマスクが25タイルに繰り返しスタンプされる**。式は MM の写経として正しく、実データの `texturePngPath` が
+180件すべて空文字なので現状は無害。**最初にマスク PNG を描く人が「世界地図として描いたのにタイルごとに
+繰り返された」と踏み抜く**ので、その時点で「ワールド絶対座標 UV」へ寄せるか裁定すること（YAGNI のため今回は対応しない）。
+
+## 変更ファイル
+
+| ファイル | 変更 |
+|---|---|
+| `moorestech_server/.../Game.MapGeneration/AssemblyInfo.cs` (+ `.meta`) | **削除**（I-1） |
+| `moorestech_server/.../Tests/UnitTest/Game/MapGeneration/Placement/TreePlacementTextureNoiseTest.cs` | 公開経路へ全面書き換え＋`clusterNoise2` テスト追加（I-1 / I-3）。119行 |
+| `moorestech_server/.../Pipeline/Runtime/PlacementNoiseTextureResolver.cs` | `DestroyImmediate` 固定の根拠コメント2行のみ（M-1） |
+| `.superpowers/sdd/task-14-report.md` | §2 の誤記訂正＋本セクション（M-4） |
+
+**触っていないもの**: サンプリング規約（`ManagedNoise`）／スキーマ／`../moorestech_master`／
+`.moorestech-external-revisions.json` の pin／`TreePlacementEntry.cs`・`TreePlacementCommon.cs` の production コード。
+
+## 実行したコマンドと結果
+
+Unity Editor はこの worktree では立っておらず（起動中は本体 `/Users/katsumi/moorestech` のもの）、
+2本目を起こすと CEF/TMPDIR 共有ロックで永久ハングする既知事故があるため、**batchmode を継続**した。
+すべてバックグラウンド起動＋ポーリングで、単一の長時間ブロッキング呼び出しは作っていない。
+
+```bash
+/Applications/Unity/Hub/Editor/6000.3.8f1/Unity.app/Contents/MacOS/Unity \
+  -batchmode -projectPath .../map-autogen-5x5/moorestech_client \
+  -runTests -testPlatform EditMode -testFilter "<フィルタ>" \
+  -testResults /tmp/t14fix_xxx.xml -logFile /tmp/t14fix_xxx.log
+```
+
+| 段階 | フィルタ | 結果 |
+|---|---|---|
+| M-1 検証（`Destroy` 版） | `PlacementNoise\|ManagedNoise\|TreePlacement` | total=13 passed=11 **failed=2**（EditMode で Destroy 不可） |
+| MUT-1 clusterNoise2 のみ | 同上 | total=13 passed=12 **failed=1** |
+| MUT-2 clusterNoise のみ | 同上 | total=13 passed=11 **failed=2** |
+| MUT-3 フィルタのみ | 同上 | total=13 passed=12 **failed=1** |
+| **最終 GREEN / 回帰** | `Tests.UnitTest.Game.MapGeneration` | total=87 **passed=87 failed=0** |
+
+コンパイルは最終回帰の中で全アセンブリが再ビルドされており、`grep -cE "error CS\|Compilation failed" /tmp/t14fix_final.log` = **0**。
+IVT 削除で `Server.Tests` から internal 参照が残っていれば CS0122 で落ちるので、これが削除完遂の裏付けになっている。
+（Task 14 初稿の86本 → 87本は、樹木ガードのテストが2本→3本に増えたぶん）
+
+## 新たな懸念
+
+- **配置数 311 という具体値には依存していない**（アサーションは `0` と `> 0` のみ）。ただし `System.Random(1)` と
+  `Mathf.PerlinNoise` に依存した「>0」なので、密度ノイズの既定値（`denseMinThreshold` 等）を大きく動かすと
+  白テクスチャ経路が 0件に転んでテストが偽陽性で落ちうる。その時はフィクスチャの地形サイズを広げること
+- テストが Poisson 4パス＋下層木まで通すようになったぶん、1本あたりの実行時間は増えた（体感で数百 ms 程度・許容範囲）
+- I-2 のタイル単位 UV は未対応のまま。最初のマスク PNG 投入時に必ず表面化する

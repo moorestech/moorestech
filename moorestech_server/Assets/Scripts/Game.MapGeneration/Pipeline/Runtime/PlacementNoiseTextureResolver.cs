@@ -58,6 +58,9 @@ namespace Game.MapGeneration.Pipeline.Runtime
                 noise.texturePixels = texture.GetPixels32();
                 noise.textureWidth = texture.width;
                 noise.textureHeight = texture.height;
+
+                // 破棄は DestroyImmediate 固定。Destroy は EditMode で例外になりネイティブ実体が解放されない。
+                // Disposal is pinned to DestroyImmediate; Destroy throws in EditMode and leaks the native texture.
                 UnityEngine.Object.DestroyImmediate(texture);
             }
 
