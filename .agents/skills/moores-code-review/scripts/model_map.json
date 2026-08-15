@@ -14,5 +14,6 @@
     "core-ts_tsx-dead-code-and-scope",
     "core-ts_tsx-dev-production-separation",
     "core-ts_tsx-component-colocation"
-  ]
+  ],
+  "_code_review_ports": "組み込み /code-review v2.1.232 からの移植観点(2026-08-14): core-any-removed-invariant(Angle B: 削除された不変条件) / core-any-callsite-tracer(Angle C: 呼び出し元トレース) / core-any-efficiency。all-code-review との同一 diff 精度比較で検出実績のある角度のみ採録(all-code-review ADR-0004)。モデルは default(opus)。"
 }
