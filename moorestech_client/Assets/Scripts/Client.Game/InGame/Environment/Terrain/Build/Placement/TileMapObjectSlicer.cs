@@ -18,12 +18,23 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
             IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition,
             float tileWidth, float tileLength)
         {
+            return SliceWithHalo(mapObjects, tileWorldPosition, tileWidth, tileLength, 0f);
+        }
+
+        // 距離場専用の広い窓。半開区間のままだと境界の外の木が消え、境界に沿って距離フィルタの効き方が変わる帯ができる
+        // The wider window distance fields need; the bare half-open one drops trees just outside and bands the filter's effect along the seam
+        // haloは距離フィルタの探索半径。タイル外の点はローカル座標で負値やtileWidth超になり、SpatialGridが端セルへ寄せて真の距離で測る
+        // The halo is the filters' search radius; out-of-tile points go negative or past tileWidth and SpatialGrid folds them into the edge cells at true distance
+        public static List<MapObjectLayoutMessagePack> SliceWithHalo(
+            IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition,
+            float tileWidth, float tileLength, float halo)
+        {
             var tileLocalObjects = new List<MapObjectLayoutMessagePack>();
             foreach (var mapObject in mapObjects)
             {
                 var localX = mapObject.X - tileWorldPosition.x;
                 var localZ = mapObject.Z - tileWorldPosition.z;
-                if (localX < 0f || tileWidth <= localX || localZ < 0f || tileLength <= localZ) continue;
+                if (localX < -halo || tileWidth + halo <= localX || localZ < -halo || tileLength + halo <= localZ) continue;
 
                 // Yはタイル格子の軸ではないので絶対高さのまま残す。XZだけがタイル原点基準へ移る
                 // Y is not an axis of the tile lattice and stays an absolute height; only XZ move onto the tile origin

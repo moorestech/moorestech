@@ -7,6 +7,7 @@ using Client.Game.InGame.Environment.Terrain.Visual.Splat;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
+using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Tests.UnitTest.Terrain
@@ -68,7 +69,8 @@ namespace Client.Tests.UnitTest.Terrain
             BiomeVisualSections visualSections, float[,] preHeights, float[,] postHeights)
         {
             return TerrainDetailBuilder.Build(
-                CreateConfig(), BiomeTypes, visualSections, preHeights, postHeights, CreateWinnerMasks(), null, null);
+                CreateConfig(), BiomeTypes, visualSections, preHeights, postHeights, CreateWinnerMasks(), null, null,
+                new MapObjectLayoutMessagePack[0], Vector3.zero);
         }
 
         private static BiomeVisualSections CreateSlopeFilteredSections()

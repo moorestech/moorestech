@@ -6,6 +6,7 @@ using Client.Game.InGame.Environment.Terrain.Visual.Splat;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
+using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Tests.UnitTest.Terrain
@@ -32,6 +33,10 @@ namespace Client.Tests.UnitTest.Terrain
 
         private static readonly BiomeType[] BiomeTypes = { BiomeType.Grassland, BiomeType.Forest };
 
+        // 距離フィルタを有効にしていないので距離場は作られない。MasterHolder無しで回せる
+        // No distance filter is enabled here, so no field is built and the fixture runs without MasterHolder
+        private static readonly MapObjectLayoutMessagePack[] NoMapObjects = new MapObjectLayoutMessagePack[0];
+
         [Test]
         public void KeepsPrototypesAndMapsAlignedAcrossBiomes()
         {
@@ -42,7 +47,7 @@ namespace Client.Tests.UnitTest.Terrain
             var visualSections = CreateVisualSections();
             var maps = TerrainDetailBuilder.Build(
                 CreateConfig(), BiomeTypes, visualSections, CreateHeights(), CreateHeights(),
-                CreateWinnerMasks(), null, null);
+                CreateWinnerMasks(), null, null, NoMapObjects, Vector3.zero);
             var prototypes = TerrainDetailPrototypeList.Build(BiomeTypes, visualSections);
 
             Assert.That(prototypes.Count, Is.EqualTo(2));
@@ -70,7 +75,7 @@ namespace Client.Tests.UnitTest.Terrain
 
             var maps = TerrainDetailBuilder.Build(
                 CreateConfig(), BiomeTypes, CreateVisualSections(), CreateHeights(), CreateHeights(),
-                CreateWinnerMasks(), null, null);
+                CreateWinnerMasks(), null, null, NoMapObjects, Vector3.zero);
 
             Assert.That(AreEqual(maps[0], expected), Is.True, "添字1のseedで生成されている");
 

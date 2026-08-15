@@ -114,9 +114,67 @@ namespace Client.Tests.UnitTest.Terrain.Placement
             Assert.That(sliced[0].ScaleZ, Is.EqualTo(2.5f));
         }
 
+        // halo付きの窓は距離場専用。木の摂動が使う半開区間を広げると境界上の1本が両隣で二重に効くため経路を分けてある
+        // The haloed window is for distance fields only; widening the half-open one the perturbation uses would double-apply boundary trees
+        [Test]
+        public void KeepsTheNeighbouringTilesObjectsInsideTheHalo()
+        {
+            var justOutsideLowerEdge = CreateMapObject(1, TilePosition.x - 30f, 0f, TilePosition.z + 500f);
+
+            Assert.That(Slice(justOutsideLowerEdge).Count, Is.EqualTo(0), "haloなしの窓は隣タイルの木を落とす");
+
+            var haloed = SliceWithHalo(50f, justOutsideLowerEdge);
+
+            Assert.That(haloed.Count, Is.EqualTo(1), "halo内の隣タイルの木は距離場の入力に残る");
+            Assert.That(haloed[0].X, Is.EqualTo(-30f).Within(1e-3f), "タイル外はローカル座標で負値になる");
+        }
+
+        [Test]
+        public void ExtendsTheWindowByTheHaloOnEveryEdge()
+        {
+            // 4辺すべてに広げないと、広げ忘れた側の境界だけが距離場の抜けた帯になる
+            // Without extending all four edges, the forgotten side alone becomes a band where the distance field is missing
+            var haloed = SliceWithHalo(50f,
+                CreateMapObject(1, TilePosition.x - 49f, 0f, TilePosition.z + 500f),
+                CreateMapObject(2, TilePosition.x + TileSize + 49f, 0f, TilePosition.z + 500f),
+                CreateMapObject(3, TilePosition.x + 500f, 0f, TilePosition.z - 49f),
+                CreateMapObject(4, TilePosition.x + 500f, 0f, TilePosition.z + TileSize + 49f));
+
+            Assert.That(haloed.Count, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void DropsObjectsBeyondTheHalo()
+        {
+            // halo幅は距離フィルタの探索半径そのもの。外側の点は距離場の結果を1画素も変えないので入れない
+            // The halo equals the filters' search radius; points beyond it change no pixel of the distance field
+            var haloed = SliceWithHalo(50f,
+                CreateMapObject(1, TilePosition.x - 51f, 0f, TilePosition.z + 500f),
+                CreateMapObject(2, TilePosition.x + 500f, 0f, TilePosition.z + TileSize + 51f));
+
+            Assert.That(haloed.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void FallsBackToTheBareHalfOpenWindowAtZeroHalo()
+        {
+            // halo=0はSliceと同一の窓。ここがずれると距離場を足しただけで配置側の境界も動く
+            // A zero halo reproduces Slice exactly; a discrepancy here would shift the placement boundary merely by adding distance fields
+            var onLowerEdge = CreateMapObject(1, TilePosition.x, 0f, TilePosition.z);
+            var onUpperEdge = CreateMapObject(2, TilePosition.x + TileSize, 0f, TilePosition.z);
+
+            Assert.That(SliceWithHalo(0f, onLowerEdge).Count, Is.EqualTo(1));
+            Assert.That(SliceWithHalo(0f, onUpperEdge).Count, Is.EqualTo(0));
+        }
+
         private static List<MapObjectLayoutMessagePack> Slice(params MapObjectLayoutMessagePack[] mapObjects)
         {
             return TileMapObjectSlicer.Slice(mapObjects, TilePosition, TileSize, TileSize);
+        }
+
+        private static List<MapObjectLayoutMessagePack> SliceWithHalo(float halo, params MapObjectLayoutMessagePack[] mapObjects)
+        {
+            return TileMapObjectSlicer.SliceWithHalo(mapObjects, TilePosition, TileSize, TileSize, halo);
         }
 
         private static MapObjectLayoutMessagePack CreateMapObject(int instanceId, float x, float y, float z)

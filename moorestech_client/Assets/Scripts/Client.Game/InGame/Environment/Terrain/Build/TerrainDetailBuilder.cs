@@ -1,8 +1,12 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Environment.Terrain.Build.Placement;
 using Client.Game.InGame.Environment.Terrain.Visual;
+using Client.Game.InGame.Environment.Terrain.Visual.Detail.Distance;
 using Client.Game.InGame.Environment.Terrain.Visual.Source;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
+using Game.MapGeneration.Pipeline.Generators.Util;
+using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Build
@@ -27,10 +31,15 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         public static List<int[,]> Build(
             TerrainGenerationConfig config, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
             float[,] preHeights, float[,] postHeights, bool[][,] winnerMasks, float[,,] alphamap,
-            TerrainLayer[] terrainLayers)
+            TerrainLayer[] terrainLayers,
+            IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition)
         {
             var slopes = TerrainSlopeCalculator.Compute(postHeights, config);
             var dimensions = TerrainDimensions.From(config, config.shoreConfig.waterMargin);
+
+            // 距離場の点群はタイル境界の外まで要る。切り出しは全バイオームの最大探索半径で1回だけ行う
+            // The distance fields need points from past the tile boundary; one slice at the largest search radius serves every biome
+            BuildDistanceGrids(out var treeGrid, out var objectGrid);
 
             var maps = new List<int[,]>();
 
@@ -44,14 +53,63 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 var mask = winnerMasks[biomeIndex];
                 var detailRandom = new System.Random(config.seed + DetailSeedBase + biomeIndex * DetailSeedStridePerBiome);
 
-                // 木・オブジェクトの距離場はクライアントに配置情報が無いため渡さない。距離フィルタだけが休む
-                // The tree and object distance fields are absent client-side, so only the distance filters idle
+                // 打ち切り半径はバイオームごとに違うので距離マップもバイオームごとに作る（移植元TerrainGenerator.cs:1274）
+                // The cutoff radius differs per biome, so each biome gets its own distance map (source TerrainGenerator.cs:1274)
                 maps.AddRange(DetailRuntimeGenerator.GenerateForBiome(
-                    mask, preHeights, slopes, dimensions, detailConfig, detailRandom,
-                    alphamap, terrainLayers, null, null));
+                    mask, preHeights, slopes, dimensions, detailConfig, detailRandom, alphamap, terrainLayers,
+                    GenerateDistanceMap(treeGrid, DetailDistanceRadius.ForTrees(detailConfig.entries)),
+                    GenerateDistanceMap(objectGrid, DetailDistanceRadius.ForObjects(detailConfig.entries))));
             }
 
             return maps;
+
+            #region Internal
+
+            void BuildDistanceGrids(out SpatialGrid treeGrid, out SpatialGrid objectGrid)
+            {
+                treeGrid = null;
+                objectGrid = null;
+
+                var halo = 0f;
+                foreach (var detailConfig in visualSections.DetailConfigs)
+                    halo = Mathf.Max(halo, Mathf.Max(
+                        DetailDistanceRadius.ForTrees(detailConfig.entries),
+                        DetailDistanceRadius.ForObjects(detailConfig.entries)));
+
+                // 距離フィルタが1つも無ければ距離場は誰も読まない。点群を組む意味がないので作らない
+                // With no distance filter enabled nobody reads the fields, so the point sets are never built
+                if (halo <= 0f) return;
+
+                var haloObjects = TileMapObjectSlicer.SliceWithHalo(
+                    mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength, halo);
+                MapObjectPointSplitter.Split(haloObjects, out var treePoints, out var objectPoints);
+
+                treeGrid = CreateGrid(treePoints);
+                objectGrid = CreateGrid(objectPoints);
+            }
+
+            // セルサイズは移植元と同じ。halo内の点はタイル外の座標を持つがSpatialGridが端セルへ寄せ、距離は真値で測られる
+            // The cell size matches the source; halo points lie outside the tile and SpatialGrid folds them into the edge cells at true distance
+            SpatialGrid CreateGrid(List<Vector2> points)
+            {
+                var grid = new SpatialGrid(
+                    config.terrainWidth, config.terrainLength, Mathf.Max(config.terrainWidth / 50f, 5f));
+                foreach (var point in points) grid.Add(point.x, point.y);
+
+                return grid;
+            }
+
+            // 解像度はalphamapと同値。detail解像度と一致するのでDetailDensitySamplerがdetail座標のまま引ける
+            // The resolution equals the alphamap's, which matches the detail resolution so DetailDensitySampler indexes it directly
+            float[,] GenerateDistanceMap(SpatialGrid grid, float maxSearchRadius)
+            {
+                if (maxSearchRadius <= 0f) return null;
+
+                return SdfMapGenerator.Generate(
+                    grid, config.AlphamapResolution, config.terrainWidth, config.terrainLength, maxSearchRadius);
+            }
+
+            #endregion
         }
     }
 }

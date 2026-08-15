@@ -166,9 +166,11 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 var rebuiltAlphamap = SplatmapRuntimeGenerator.Generate(
                     tileConfig, _biomeTypes, classification, _layerTable, _visualSections.TextureConfigs,
                     _visualSections.MainLayerAddresses, preHeights, transferredBiomeIndices, _config.AlphamapResolution);
+                // 距離場はタイル境界の外まで見るため、切り出し済みのtileObjectsではなく全タイルぶんを渡す
+                // The distance fields look past the tile boundary, so the whole layout goes in rather than the sliced tileObjects
                 var rebuiltDetailMaps = TerrainDetailBuilder.Build(
                     tileConfig, _biomeTypes, _visualSections, preHeights, postHeights, classification.WinnerMasks,
-                    rebuiltAlphamap, _terrainLayers);
+                    rebuiltAlphamap, _terrainLayers, _mapObjects, TileWorldPosition(tileX, tileZ));
 
                 var rebuiltVisual = new TerrainTileVisual(rebuiltAlphamap, rebuiltDetailMaps);
                 _visualCache.Save(tileX, tileZ, rebuiltVisual);
