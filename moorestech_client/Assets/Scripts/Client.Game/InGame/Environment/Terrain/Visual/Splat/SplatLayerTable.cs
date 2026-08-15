@@ -17,10 +17,19 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
         public readonly IReadOnlyList<string> OrderedLayerAddresses;
         public readonly IReadOnlyDictionary<string, int> LayerIndexByAddress;
 
-        private SplatLayerTable(IReadOnlyList<string> orderedLayerAddresses, IReadOnlyDictionary<string, int> layerIndexByAddress)
+        // 台地デバッグ用の列。PlateauDebugOverlayJobは領域IDをこの連番へ割り当てるので、末尾の連続域であることが前提
+        // The plateau debug columns; PlateauDebugOverlayJob maps region ids onto this run, so it must stay contiguous at the tail
+        public readonly int DebugLayerStart;
+        public readonly int DebugLayerCount;
+
+        private SplatLayerTable(
+            IReadOnlyList<string> orderedLayerAddresses, IReadOnlyDictionary<string, int> layerIndexByAddress,
+            int debugLayerStart, int debugLayerCount)
         {
             OrderedLayerAddresses = orderedLayerAddresses;
             LayerIndexByAddress = layerIndexByAddress;
+            DebugLayerStart = debugLayerStart;
+            DebugLayerCount = debugLayerCount;
         }
 
         // biomeMainLayerAddresses と biomeTextureConfigs は有効バイオームの並びで対応する
@@ -28,7 +37,8 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
         public static SplatLayerTable Build(
             string beachLayerAddress, string rockLayerAddress,
             string[] biomeMainLayerAddresses, BiomeTextureConfig[] biomeTextureConfigs,
-            SurroundTextureConfig[] biomeSurroundTextureConfigs, TreeSurroundSpeciesTable treeSurroundSpecies)
+            SurroundTextureConfig[] biomeSurroundTextureConfigs, TreeSurroundSpeciesTable treeSurroundSpecies,
+            string[] debugLayerAddresses)
         {
             var orderedLayerAddresses = new List<string>();
             var layerIndexByAddress = new Dictionary<string, int>();
@@ -56,7 +66,16 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
             foreach (var treeSurroundLayerAddress in treeSurroundSpecies.LayerAddresses)
                 Register(treeSurroundLayerAddress, "treePlacement.prototypes.surroundLayerAddressablePath");
 
-            return new SplatLayerTable(orderedLayerAddresses, layerIndexByAddress);
+            // 台地デバッグの列は全レイヤーの後ろ。前へ入れると既存の列がずれ、過去タイルの見た目キャッシュと意味が食い違う
+            // The plateau debug columns go behind every layer; inserting them earlier shifts the existing ones away from what the cached tiles mean
+            // オーバーレイを切ってある構成では呼び出し側が空を渡す。塗らない列を確保するとTerrainLayerを無駄に読み込む
+            // A configuration with the overlay off hands in an empty array: reserving unpainted columns would load TerrainLayers for nothing
+            var debugLayerStart = orderedLayerAddresses.Count;
+            foreach (var debugLayerAddress in debugLayerAddresses)
+                RegisterDebug(debugLayerAddress);
+
+            return new SplatLayerTable(
+                orderedLayerAddresses, layerIndexByAddress, debugLayerStart, debugLayerAddresses.Length);
 
             #region Internal
 
@@ -80,6 +99,19 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
             {
                 if (string.IsNullOrEmpty(layerAddress)) return;
                 Register(layerAddress, "biome[].objectConfig.surroundTextureConfig.surroundLayerAddressablePath");
+            }
+
+            // 重複を畳まない唯一の経路。設定の本数がそのまま列数になり、領域IDの剰余がその中を巡る
+            // The one path that never folds duplicates: the configured count is the column count the region ids cycle through
+            void RegisterDebug(string layerAddress)
+            {
+                if (string.IsNullOrEmpty(layerAddress))
+                    throw new InvalidOperationException(
+                        "[SplatLayerTable] 'alpine.debugTerrainLayerAddressablePaths[]' is empty: every debug layer needs an Addressables address.");
+
+                // 索引辞書へは載せない。同じアドレスの通常レイヤーがあると索引を奪い、そのバイオームが台地色に染まる
+                // They stay out of the index dictionary: an ordinary layer sharing the address would lose its index and take the plateau colour
+                orderedLayerAddresses.Add(layerAddress);
             }
 
             #endregion

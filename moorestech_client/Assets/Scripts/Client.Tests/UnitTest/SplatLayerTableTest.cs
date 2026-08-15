@@ -17,6 +17,8 @@ namespace Client.Tests.UnitTest
     /// </summary>
     public class SplatLayerTableTest
     {
+        private static readonly string[] NoDebugLayers = Array.Empty<string>();
+
         [Test]
         public void PinsBeachToIndexZeroThenRockThenBiomeLayersInOrder()
         {
@@ -24,7 +26,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass", "addr/sand" },
                 new[] { CreateTextureConfig(), CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty, string.Empty), CreateTreeSurroundSpecies());
+                CreateSurroundConfigs(string.Empty, string.Empty), CreateTreeSurroundSpecies(), NoDebugLayers);
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/sand" }));
@@ -41,7 +43,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass" },
                 new[] { CreateTextureConfig("addr/cliff", "addr/moss") },
-                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies());
+                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies(), NoDebugLayers);
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/cliff", "addr/moss" }));
@@ -56,7 +58,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass", "addr/grass" },
                 new[] { CreateTextureConfig("addr/rock"), CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty, string.Empty), CreateTreeSurroundSpecies());
+                CreateSurroundConfigs(string.Empty, string.Empty), CreateTreeSurroundSpecies(), NoDebugLayers);
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass" }));
@@ -70,15 +72,15 @@ namespace Client.Tests.UnitTest
             // Falling an empty address back to index 0 would paint the whole terrain with sand, hiding the data gap
             Assert.Throws<InvalidOperationException>(() => SplatLayerTable.Build(
                 string.Empty, "addr/rock", new[] { "addr/grass" }, new[] { CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies()));
+                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies(), NoDebugLayers));
 
             Assert.Throws<InvalidOperationException>(() => SplatLayerTable.Build(
                 "addr/beach", "addr/rock", new[] { string.Empty }, new[] { CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies()));
+                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies(), NoDebugLayers));
 
             Assert.Throws<InvalidOperationException>(() => SplatLayerTable.Build(
                 "addr/beach", "addr/rock", new[] { "addr/grass" }, new[] { CreateTextureConfig(string.Empty) },
-                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies()));
+                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies(), NoDebugLayers));
         }
 
         [Test]
@@ -90,7 +92,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass" },
                 new[] { CreateTextureConfig("addr/cliff") },
-                CreateSurroundConfigs("addr/mud"), CreateTreeSurroundSpecies());
+                CreateSurroundConfigs("addr/mud"), CreateTreeSurroundSpecies(), NoDebugLayers);
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/cliff", "addr/mud" }));
@@ -106,7 +108,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass" },
                 new[] { CreateTextureConfig() },
-                CreateSurroundConfigs("addr/mud"), CreateTreeSurroundSpecies("addr/dirt", "addr/mud"));
+                CreateSurroundConfigs("addr/mud"), CreateTreeSurroundSpecies("addr/dirt", "addr/mud"), NoDebugLayers);
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/mud", "addr/dirt" }));
@@ -122,7 +124,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass" },
                 new[] { CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies());
+                CreateSurroundConfigs(string.Empty), CreateTreeSurroundSpecies(), NoDebugLayers);
 
             Assert.That(table.OrderedLayerAddresses, Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass" }));
         }
@@ -134,7 +136,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass", "addr/sand" },
                 new[] { CreateTextureConfig("addr/cliff", "addr/moss"), CreateTextureConfig("addr/dune") },
-                CreateSurroundConfigs(string.Empty, string.Empty), CreateTreeSurroundSpecies());
+                CreateSurroundConfigs(string.Empty, string.Empty), CreateTreeSurroundSpecies(), NoDebugLayers);
 
             var biomeParams = new NativeArray<BiomeParams>(2, Allocator.Temp);
             var textureEntries = TextureEntryParamsBuilder.Build(

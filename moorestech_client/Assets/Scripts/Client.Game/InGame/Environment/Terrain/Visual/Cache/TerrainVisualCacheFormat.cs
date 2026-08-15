@@ -12,9 +12,9 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
         // "MTVC" = Moorestech Terrain Visual Cache; the identifier keeping a foreign file from being misread
         public const int MagicNumber = 0x4D545643;
 
-        // 6でsplatに木の根元テクスチャ(R7)が乗った。据え置くと木の根元が草のままの古いalphamapがヒットし続ける
-        // Version 6 put the tree root texture (R7) into the splat; holding it back would keep hitting old alphamaps whose tree roots still sit in grass
-        public const int FormatVersion = 6;
+        // 7でsplatに台地デバッグオーバーレイ(R8)が乗った。据え置くと台地が塗られない古いalphamapがヒットし続ける
+        // Version 7 put the plateau debug overlay (R8) into the splat; holding it back would keep hitting old alphamaps whose plateaus are unpainted
+        public const int FormatVersion = 7;
 
         // キーはSHA256の16進64文字固定。可変長にすると壊れたファイルで読み出し長が暴れる
         // The key is a fixed 64-char SHA256 hex; a variable length would let a broken file dictate how much is read

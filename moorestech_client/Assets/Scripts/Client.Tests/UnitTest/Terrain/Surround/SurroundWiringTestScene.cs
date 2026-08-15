@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.Environment.Terrain.Build.Placement;
 using Client.Game.InGame.Environment.Terrain.Visual.Detail;
 using Client.Game.InGame.Environment.Terrain.Visual.Source;
@@ -80,7 +81,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             var treeSurroundSpecies = TreeSurroundSpecies();
             var layerTable = SplatLayerTable.Build(
                 "addr/beach", "addr/rock", visualSections.MainLayerAddresses, visualSections.TextureConfigs,
-                visualSections.SurroundTextureConfigs, treeSurroundSpecies);
+                visualSections.SurroundTextureConfigs, treeSurroundSpecies, Array.Empty<string>());
 
             using var classification = new TerrainClassificationContext(config, BiomeTypes);
             classification.Initialize();

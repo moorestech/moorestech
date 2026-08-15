@@ -60,6 +60,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
 
                 OverwriteWithTransferredTerrain();
                 RunSplatmapJob();
+                RunPlateauDebugOverlayJob();
 
                 var alphamap = SplatWeightConverter.ToAlphamap(splatWeights, resolution, alphamapResolution, layerCount);
 
@@ -124,6 +125,36 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
                     biomeParams = buffers.biomeParams,
                     noiseOffsets = buffers.noiseOffsets,
                     textureEntries = textureEntries,
+                    splatWeights = splatWeights,
+                }.Schedule(pixelCount, JobBatchSize).Complete();
+            }
+
+            // 受理された台地をデバッグ色で塗り、棄却候補をAlpineのベース色で塗る。移植元と同じくalphamap化の前に走る
+            // Paints the accepted plateaus in their debug colours and the rejected candidates in Alpine's base colour, before the alphamap as in the source
+            void RunPlateauDebugOverlayJob()
+            {
+                if (!config.alpineEnabled || !config.alpine.enablePlateau || !config.alpine.debugPlateauOverlay) return;
+
+                // Alpineが無効な構成でもここへ来る。ベース色が引けなければ移植元と同じく0番を使う
+                // A configuration without Alpine reaches here too; with no base colour to find it falls back to layer 0 as the source does
+                var alpineBaseLayerIndex = 0;
+                for (var biome = 0; biome < biomeCount; biome++)
+                {
+                    if (buffers.biomeParams[biome].biomeType != (int)BiomeType.Alpine) continue;
+                    alpineBaseLayerIndex = buffers.biomeParams[biome].splatmapLayerIndex;
+                    break;
+                }
+
+                new PlateauDebugOverlayJob
+                {
+                    resolution = resolution,
+                    totalLayers = layerCount,
+                    baseLayerIndex = alpineBaseLayerIndex,
+                    debugLayerStart = layerTable.DebugLayerStart,
+                    debugLayerCount = layerTable.DebugLayerCount,
+                    fadeRadius = Mathf.Max(config.alpine.smoothRadius / 2, 3),
+                    plateauMask = buffers.plateauMask,
+                    regionLabels = buffers.regionLabels,
                     splatWeights = splatWeights,
                 }.Schedule(pixelCount, JobBatchSize).Complete();
             }

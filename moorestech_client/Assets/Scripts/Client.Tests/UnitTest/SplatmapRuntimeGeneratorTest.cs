@@ -148,7 +148,7 @@ namespace Client.Tests.UnitTest
                 new[] { new SurroundTextureConfig() });
             var layerTable = SplatLayerTable.Build(
                 "addr/beach", "addr/rock", visualSections.MainLayerAddresses, visualSections.TextureConfigs,
-                visualSections.SurroundTextureConfigs, SurroundTestFixtures.CreateTreeSurroundSpecies());
+                visualSections.SurroundTextureConfigs, SurroundTestFixtures.CreateTreeSurroundSpecies(), Array.Empty<string>());
 
             // 分類は呼び出し側の持ち物になった。1回の生成につき1個をusingで抱える本番と同じ形
             // The classification now belongs to the caller, held one per generation in a using as production does

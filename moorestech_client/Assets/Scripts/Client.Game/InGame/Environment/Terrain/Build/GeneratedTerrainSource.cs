@@ -97,7 +97,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             var layerTable = SplatLayerTable.Build(
                 config.shoreConfig.beachLayerAddressablePath, config.rockLayerAddressablePath,
                 visualSections.MainLayerAddresses, visualSections.TextureConfigs,
-                visualSections.SurroundTextureConfigs, treeSurroundSpecies);
+                visualSections.SurroundTextureConfigs, treeSurroundSpecies,
+                config.alpine.debugPlateauOverlay ? config.alpine.debugTerrainLayerAddressablePaths : Array.Empty<string>());
 
             var terrainLayers = await TerrainLayerAssetLoader.LoadAsync(layerTable.OrderedLayerAddresses);
             await DetailAssetResolver.ResolveAsync(visualSections.DetailConfigs);

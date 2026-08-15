@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
@@ -42,7 +43,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             return SplatLayerTable.Build(
                 "addr/beach", "addr/Mud01", new[] { "addr/grass" },
                 new[] { new BiomeTextureConfig { entries = new TextureEntry[0] } },
-                new[] { new SurroundTextureConfig() }, CreateTreeSurroundSpecies());
+                new[] { new SurroundTextureConfig() }, CreateTreeSurroundSpecies(), Array.Empty<string>());
         }
 
         // 樹種テーブルは本番と同じくConfigから組む。列やマップを手書きで注げる口を作ると、その導出をテストが迂回してしまう

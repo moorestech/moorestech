@@ -91,8 +91,8 @@ namespace Game.MapGeneration.Pipeline
                 tileConfig.worldOffsetX = config.worldOffsetX + coordX * config.terrainWidth;
                 tileConfig.worldOffsetZ = config.worldOffsetZ + coordZ * config.terrainLength;
 
-                // クロップされないチャネル(rawBiomeIndex/plateauMask等)に前タイルの値を残さないよう、タイル毎に確保する。
-                // Allocate per tile so the non-cropped channels (rawBiomeIndex, plateauMask, ...) cannot retain the previous tile's values.
+                // クロップされないチャネル(rawBiomeIndex等)に前タイルの値を残さないよう、タイル毎に確保する。
+                // Allocate per tile so the non-cropped channels (rawBiomeIndex, ...) cannot retain the previous tile's values.
                 var buffers = JobDataConverter.AllocateBuffers(config.Resolution, biomeTypes.Length, 1, Allocator.TempJob);
                 buffers.biomeParams = biomeParams;
                 buffers.noiseOffsets = noiseOffsets;

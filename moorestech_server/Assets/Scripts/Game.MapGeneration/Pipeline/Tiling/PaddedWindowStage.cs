@@ -12,11 +12,13 @@ namespace Game.MapGeneration.Pipeline.Tiling
     ///     タイル1枚を四方へ広げたパディング窓で分類＋高さ生成し、中央を切り出して destination へ書き戻す。
     ///     窓端でカーネルを打ち切った値を捨てることが目的で、これがタイル境界のシーム解消の中核になる。
     ///     destination に書かれるのは heights・shoreMask・landMask・beachFactor・landTextureFactor・
-    ///     seaTextureFactor・biomeWeights・winnerBiomeIndex の8本で、残りはステージ内部の作業領域として扱う。
+    ///     seaTextureFactor・biomeWeights・winnerBiomeIndex・plateauMask・regionLabels の10本で、
+    ///     残りはステージ内部の作業領域として扱う。
     ///     Generates one tile's classification and heights on a window padded on all four sides, then crops the
     ///     center back into destination. Discarding the window-truncated values is what removes the tile seams.
-    ///     The eight channels written into destination are heights, shoreMask, landMask, beachFactor,
-    ///     landTextureFactor, seaTextureFactor, biomeWeights, and winnerBiomeIndex; the rest stay stage scratch.
+    ///     The ten channels written into destination are heights, shoreMask, landMask, beachFactor,
+    ///     landTextureFactor, seaTextureFactor, biomeWeights, winnerBiomeIndex, plateauMask, and regionLabels;
+    ///     the rest stay stage scratch.
     /// </summary>
     public static class PaddedWindowStage
     {
@@ -100,8 +102,8 @@ namespace Game.MapGeneration.Pipeline.Tiling
             }
         }
 
-        // 下流が読む8チャネルを同一の添字で切り出す。高さだけ切ると分類側に窓端のシームが残る
-        // Crops the eight downstream-read channels with one shared index; cropping heights alone leaves the classification seam
+        // 下流が読む10チャネルを同一の添字で切り出す。高さだけ切ると分類側に窓端のシームが残る
+        // Crops the ten downstream-read channels with one shared index; cropping heights alone leaves the classification seam
         static void CropWindow(
             JobBuffers window, JobBuffers destination, int baseResolution, int padding, int biomeCount)
         {
@@ -116,6 +118,11 @@ namespace Game.MapGeneration.Pipeline.Tiling
             // Weights alone hold biomeCount elements per pixel, matching the stride the blur jobs use
             Crop(window.biomeWeights, destination.biomeWeights, baseResolution, padding, biomeCount);
             Crop(window.winnerBiomeIndex, destination.winnerBiomeIndex, baseResolution, padding, 1);
+
+            // 台地の候補と受理領域も窓の判定が正本。等倍で作り直すと境界を跨ぐ台地が割れて隣タイルと食い違う
+            // The plateau candidates and accepted regions are authoritative from the window; a redo at tile size would split a plateau across the seam
+            Crop(window.plateauMask, destination.plateauMask, baseResolution, padding, 1);
+            Crop(window.regionLabels, destination.regionLabels, baseResolution, padding, 1);
         }
 
         // 窓の中央 baseResolution 角を行単位で複製する（channels は1ピクセルあたりの要素数）。
