@@ -14,6 +14,10 @@ namespace Client.Game.InGame.Hotbar
         private float _pressStartTime;
         private bool _longPressFired;
 
+        // Reset時に押下中だった枠。離されるまで再武装させない
+        // The slot held at Reset time; it must not re-arm until the key is released
+        private int? _deadSlot;
+
         private bool _tapPending;
         private int _tapSlot;
         private bool _longPressPending;
@@ -23,15 +27,26 @@ namespace Client.Game.InGame.Hotbar
         // Advances the currently-held key's state by one frame and detects a tap or long-press event
         public void ManualUpdate(int? heldSlot, float unscaledTime)
         {
-            if (heldSlot != _heldSlot)
+            var activeSlot = ResolveActiveSlot();
+            if (activeSlot != _heldSlot)
             {
-                HandleHeldSlotChanged(heldSlot);
+                HandleHeldSlotChanged(activeSlot);
                 return;
             }
 
             TryFireLongPress();
 
             #region Internal
+
+            // Resetで消費済みにした押下は、物理的に離されるまで未押下として扱う
+            // A press marked consumed by Reset is reported as "no key" until it is physically released
+            int? ResolveActiveSlot()
+            {
+                if (_deadSlot == heldSlot) return null;
+
+                _deadSlot = null;
+                return heldSlot;
+            }
 
             // 保持キー変更/離脱の処理。閾値未満の離しでタップ確定
             // Handles a held-key change/release; only a release before the threshold confirms a tap
@@ -93,12 +108,11 @@ namespace Client.Game.InGame.Hotbar
             return false;
         }
 
-        // UIStateを跨いだ保持状態を破棄する。ManualUpdateが呼ばれないUIState滞在中は経過時間が進まないため、
-        // 復帰直後に古い押下開始時刻へ基づく誤長押し判定が起きないよう、遷移のたびリセットする
-        // Discards held-key state across UIStates. Elapsed time freezes while a UIState that never calls ManualUpdate is active,
-        // so this is reset on every transition to avoid a stale press-start time firing a false long press
+        // 押下中の枠を消費済みにし、遷移直後の誤タップ・二重長押しを防ぐ
+        // Marks the held slot consumed so a transition cannot produce a false tap or a second long press
         public void Reset()
         {
+            _deadSlot = _heldSlot;
             _heldSlot = null;
             _longPressFired = false;
             _tapPending = false;

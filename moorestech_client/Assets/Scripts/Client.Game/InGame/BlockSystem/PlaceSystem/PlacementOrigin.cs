@@ -8,23 +8,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     /// </summary>
     public readonly struct PlacementOrigin : IEquatable<PlacementOrigin>
     {
-        // 設置対象を保持していない状態の由来
-        // The origin held while nothing is being placed
-        public static readonly PlacementOrigin None = new(OriginKind.None, default);
-        public static readonly PlacementOrigin Menu = new(OriginKind.Menu, default);
-        public static readonly PlacementOrigin Eyedropper = new(OriginKind.Eyedropper, default);
+        // ホットバー以外の由来。枠番号を持たない点だけが意味を持つため一値に畳んである
+        // Any non-hotbar origin; only "holds no slot" carries meaning, so they collapse into a single value
+        public static readonly PlacementOrigin NonHotbar = new(false, default);
 
         public static PlacementOrigin FromHotbarSlot(int slot)
         {
-            return new PlacementOrigin(OriginKind.HotbarSlot, slot);
+            return new PlacementOrigin(true, slot);
         }
 
-        private readonly OriginKind _kind;
+        private readonly bool _isHotbarSlot;
         private readonly int _hotbarSlot;
 
-        private PlacementOrigin(OriginKind kind, int hotbarSlot)
+        private PlacementOrigin(bool isHotbarSlot, int hotbarSlot)
         {
-            _kind = kind;
+            _isHotbarSlot = isHotbarSlot;
             _hotbarSlot = hotbarSlot;
         }
 
@@ -33,12 +31,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public bool TryGetHotbarSlot(out int slot)
         {
             slot = _hotbarSlot;
-            return _kind == OriginKind.HotbarSlot;
+            return _isHotbarSlot;
         }
 
         public bool Equals(PlacementOrigin other)
         {
-            return _kind == other._kind && _hotbarSlot == other._hotbarSlot;
+            return _isHotbarSlot == other._isHotbarSlot && _hotbarSlot == other._hotbarSlot;
         }
 
         public override bool Equals(object obj)
@@ -48,17 +46,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 
         public override int GetHashCode()
         {
-            return HashCode.Combine((int)_kind, _hotbarSlot);
-        }
-
-        // 由来の語彙はこの値の内側に閉じ、設置システム側へは漏らさない
-        // The origin vocabulary stays inside this value and never leaks into the placement system
-        private enum OriginKind
-        {
-            None,
-            Menu,
-            Eyedropper,
-            HotbarSlot,
+            return HashCode.Combine(_isHotbarSlot, _hotbarSlot);
         }
     }
 }

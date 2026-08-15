@@ -8,8 +8,8 @@ using Game.UnlockState;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
     /// <summary>
-    ///     解放済みの設置対象を引く唯一の解決点。IDまたはマスタ表示名から完成した設置対象を返す
-    ///     The single resolution point for unlocked placement targets, returning a finished target by id or master display name
+    ///     解放済みの設置対象を引く唯一の解決点。IDから完成した設置対象を返し、解放済み一覧も供給する
+    ///     The single resolution point for unlocked placement targets: resolves one by id and supplies the unlocked list
     /// </summary>
     public class PlacementTargetResolver
     {
@@ -41,24 +41,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
             return false;
         }
 
-        // 表示名一致はテストDSL専用の入口
-        // Display-name lookup is the playtest DSL's entry point (locale-independent)
-        public bool TryResolveByDisplayName(string masterDisplayName, out IPlacementTarget target)
+        // 解放済み対象を完成形で列挙する。ビルドメニューのuGUI版・Web版が共有する唯一の供給点
+        // Enumerates the unlocked targets as finished objects; the single supply point shared by the uGUI and web build menus
+        public IReadOnlyList<IPlacementTarget> CreateUnlockedTargets()
         {
+            var targets = new List<IPlacementTarget>();
             foreach (var entry in UnlockedEntries())
             {
-                if (entry.MasterDisplayName != masterDisplayName) continue;
-                target = PlacementTargetFactory.Create(entry);
-                return true;
+                targets.Add(PlacementTargetFactory.Create(entry));
             }
 
-            target = null;
-            return false;
+            return targets;
         }
 
-        // ビルドメニュー(BuildMenuEntryCatalog.CreateEntries)と同じ供給源を全解決が共有する
-        // Every resolution shares the same supply source the build menu uses (BuildMenuEntryCatalog.CreateEntries)
-        private IEnumerable<PlacementTargetEntry> UnlockedEntries()
+        // 解放判定と無料設置デバッグを一箇所で解決する。呼び出し側は解放条件を再実装しない
+        // Resolves the unlock check and the free-placement debug flag in one place, so callers never re-implement the condition
+        public IEnumerable<PlacementTargetEntry> UnlockedEntries()
         {
             var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
             return _catalog.UnlockedEntries(_gameUnlockStateData, showAllPlaceable, _blueprintLibrary.BlueprintEntries);

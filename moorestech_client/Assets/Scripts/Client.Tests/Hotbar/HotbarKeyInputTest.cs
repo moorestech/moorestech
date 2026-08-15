@@ -67,5 +67,36 @@ namespace Client.Tests.Hotbar
 
             Assert.IsFalse(keyInput.TryGetLongPressedSlot(out _), "復帰直後の押下は復帰時刻から計り直す");
         }
+
+        [Test]
+        public void ResetWhileHeldNeverRearmsUntilTheKeyIsReleased()
+        {
+            var keyInput = new HotbarKeyInput();
+
+            // 長押し成立で割当てた直後、押しっぱなしのままUIStateが遷移する
+            // The long press assigns, then a UIState transition happens while the key is still held down
+            keyInput.ManualUpdate(PressedSlot, 0f);
+            keyInput.ManualUpdate(PressedSlot, LongPressThresholdSeconds);
+            Assert.IsTrue(keyInput.TryGetLongPressedSlot(out _));
+            keyInput.Reset();
+
+            // 押下継続は再武装しない。閾値を跨いでも2度目の長押しもタップも出ない
+            // The continued hold never re-arms: neither a second long press nor a tap appears across the threshold
+            keyInput.ManualUpdate(PressedSlot, LongPressThresholdSeconds + 0.1f);
+            keyInput.ManualUpdate(PressedSlot, LongPressThresholdSeconds * 3f);
+
+            Assert.IsFalse(keyInput.TryGetLongPressedSlot(out _), "1回の長押しは2度割当てない");
+            Assert.IsFalse(keyInput.TryGetTappedSlot(out _));
+
+            // 離して押し直せば通常どおりタップが成立する
+            // Releasing and pressing again classifies as a tap exactly as usual
+            keyInput.ManualUpdate(null, LongPressThresholdSeconds * 3f);
+            Assert.IsFalse(keyInput.TryGetTappedSlot(out _), "死格化された押下の解放はタップにならない");
+
+            keyInput.ManualUpdate(PressedSlot, 10f);
+            keyInput.ManualUpdate(null, 10.1f);
+            Assert.IsTrue(keyInput.TryGetTappedSlot(out var tappedSlot));
+            Assert.AreEqual(PressedSlot, tappedSlot);
+        }
     }
 }

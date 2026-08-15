@@ -2,11 +2,14 @@ using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Hotbar;
+using Client.Game.InGame.UI.UIState;
+using Client.Playtest.Input;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Game.UnlockState;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using VContainer;
 
 namespace Client.Playtest.Operations
@@ -17,22 +20,29 @@ namespace Client.Playtest.Operations
     /// </summary>
     public static class PlaytestHotbarOps
     {
+        // 数字キーのタップと遷移待ちは常に対で使うため1操作に閉じる。片方だけ書いた取りこぼしを構造的に無くす
+        // The digit-key tap and the transition wait are always used as a pair, so they close into one operation
+        public static async UniTask TapSlotAndWaitUiState(int slot, UIStateEnum expected, float timeoutSeconds)
+        {
+            await SemanticInput.TapKey(Key.Digit1 + slot);
+            await PlaytestUiOps.WaitUiState(expected, timeoutSeconds);
+        }
+
         public static async UniTask AssignHotbar(int slot, string targetName, float timeoutSeconds)
         {
             var resolver = ClientDIContext.DIContainer.DIContainerResolver;
             var datastore = resolver.Resolve<ClientHotbarDatastore>();
 
-            // 解決はビルドメニューと同一の PlacementTargetResolver 1本に寄せる。未解放対象は割当できない
-            // Resolution goes through the single PlacementTargetResolver the build menu uses; locked targets cannot be assigned
-            if (!resolver.Resolve<PlacementTargetResolver>().TryResolveByDisplayName(targetName, out var target))
-                throw new ArgumentException($"Placement target not found (locked or nonexistent): {targetName}");
+            // 供給源はビルドメニューと同一のResolverだが、ロケール非依存のマスタ表示名一致はテスト側で行う
+            // The supply source is the same resolver the build menu uses, but the locale-independent master-name match lives here
+            var targetId = ResolvePlacementTargetId();
 
             // 楽観更新はせず、va:event:hotbarUpdateのエコーが戻るまで待つ
             // No optimistic update; wait for the va:event:hotbarUpdate echo to land
-            datastore.RequestAssign(slot, target.Id);
+            datastore.RequestAssign(slot, targetId);
 
             var startTime = Time.realtimeSinceStartup;
-            while (datastore.Assignments[slot] != target.Id)
+            while (datastore.Assignments[slot] != targetId)
             {
                 if (timeoutSeconds < Time.realtimeSinceStartup - startTime)
                 {
@@ -40,6 +50,20 @@ namespace Client.Playtest.Operations
                 }
                 await UniTask.Yield();
             }
+
+            #region Internal
+
+            Guid ResolvePlacementTargetId()
+            {
+                foreach (var entry in resolver.Resolve<PlacementTargetResolver>().UnlockedEntries())
+                {
+                    if (entry.MasterDisplayName == targetName) return entry.Id;
+                }
+
+                throw new ArgumentException($"Placement target not found (locked or nonexistent): {targetName}");
+            }
+
+            #endregion
         }
 
         public static void UnlockConnectToolServerSide(string toolName)

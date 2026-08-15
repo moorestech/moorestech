@@ -1,10 +1,15 @@
 // ホットバーD&Dの純粋ロジック
 // Pure hotbar-D&D logic: resolves a drag source/target pair into the action to dispatch
 
-// D&Dの共通端点。枠外はoutside
-// Shared endpoint type for drag source/target; a drop outside any slot is "outside"
-export type DragEndpoint =
+// ドラッグ元。枠外から掴むことはないのでoutsideを持たない
+// A drag source; nothing is ever grabbed from outside a slot, so "outside" is not one of these
+export type HotbarDragSource =
   | { kind: "buildMenuEntry"; id: string }
+  | { kind: "hotbarSlot"; index: number };
+
+// ドロップ先。ビルドメニューのエントリへは落とせない
+// A drop target; a build-menu entry is never a place to drop onto
+export type HotbarDropTarget =
   | { kind: "hotbarSlot"; index: number }
   | { kind: "outside" };
 
@@ -14,25 +19,35 @@ type HotbarDropAction =
   | { type: "hotbar.clear"; payload: { slot: number } };
 
 // 枠の組み合わせをassign/swap/clearへ
-// buildMenuEntry→slot is assign, slot→slot is swap, slot→outside is clear; any other pairing is an invalid drop (null)
-export function resolveDropAction(source: DragEndpoint, target: DragEndpoint): HotbarDropAction | null {
-  if (source.kind === "buildMenuEntry") {
-    if (target.kind !== "hotbarSlot") return null;
-    return { type: "hotbar.assign", payload: { slot: target.index, id: source.id } };
+// buildMenuEntry→slot is assign, slot→slot is swap, slot→outside is clear
+export function resolveDropAction(source: HotbarDragSource, target: HotbarDropTarget): HotbarDropAction | null {
+  switch (source.kind) {
+    case "buildMenuEntry":
+      // メニューのエントリは枠へ落としたときだけ割当になる
+      // A menu entry only assigns when it lands on a slot
+      return target.kind === "hotbarSlot" ? { type: "hotbar.assign", payload: { slot: target.index, id: source.id } } : null;
+    case "hotbarSlot":
+      return resolveFromSlot(source.index, target);
+    default:
+      return assertNever(source);
   }
+}
 
-  if (source.kind === "hotbarSlot") {
-    if (target.kind === "hotbarSlot") {
-      // 自分自身へのdropは無視
-      // A drop onto itself changes nothing, so ignore it
-      if (target.index === source.index) return null;
-      return { type: "hotbar.swap", payload: { from: source.index, to: target.index } };
-    }
-    if (target.kind === "outside") {
-      return { type: "hotbar.clear", payload: { slot: source.index } };
-    }
-    return null;
+function resolveFromSlot(sourceIndex: number, target: HotbarDropTarget): HotbarDropAction | null {
+  switch (target.kind) {
+    case "hotbarSlot":
+      // 自分自身へのdropは何も変えない
+      // A drop onto itself changes nothing
+      return target.index === sourceIndex ? null : { type: "hotbar.swap", payload: { from: sourceIndex, to: target.index } };
+    case "outside":
+      return { type: "hotbar.clear", payload: { slot: sourceIndex } };
+    default:
+      return assertNever(target);
   }
+}
 
-  return null;
+// 種別を足したら網羅漏れをコンパイル時に落とす
+// Adding a kind breaks compilation here instead of silently falling through
+function assertNever(value: never): never {
+  throw new Error(`Unhandled hotbar D&D endpoint: ${JSON.stringify(value)}`);
 }

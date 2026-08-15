@@ -230,6 +230,7 @@ namespace Client.Starter
             builder.Register<PlacementTargetResolver>(Lifetime.Singleton);
             builder.Register<HotbarKeyInput>(Lifetime.Singleton);
             builder.Register<HotbarTapInputService>(Lifetime.Singleton);
+            builder.Register<HotbarSelectionReconciler>(Lifetime.Singleton);
 
             // UI非依存の視点モード処理
             // UI-independent view-mode processing
@@ -356,6 +357,10 @@ namespace Client.Starter
             _resolver.Resolve<ChallengeManager>();
             _resolver.Resolve<PlayerSystemContainer>();
             _resolver.Resolve<SkitUI>();
+
+            // 購読で成立するため生成しておく。割当変更に選択枠を追従させる
+            // Instantiated because it only works through its subscription, keeping the selected slot in step with assignments
+            _resolver.Resolve<HotbarSelectionReconciler>();
 
             return _resolver;
         }

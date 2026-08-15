@@ -39,10 +39,9 @@ namespace Client.Starter.Initialization
             new ClientDIContext(new DIContainer(resolver));
             WebUiHost.Game.WebUiGameBinder.Bind();
 
-            // ホットバー初期割当を取得し適用する。メインインベントリと同様イベント購読開始前に適用する
-            // Fetch and apply the initial hotbar assignments before event dispatch starts, same as the main inventory
-            var hotbarResponse = await _serverResult.VanillaApi.Response.GetHotbar(default);
-            resolver.Resolve<ClientHotbarDatastore>().ApplyAssignments(hotbarResponse.Assignments);
+            // ホットバー初期割当はhandshakeへ同梱済み。メインインベントリと同様イベント購読開始前に適用する
+            // The initial hotbar assignments ride along with the handshake; applied before event dispatch starts, same as the main inventory
+            resolver.Resolve<ClientHotbarDatastore>().ApplyAssignments(_serverResult.HandshakeResponse.HotbarAssignments);
 
             // BP割当の解決元をログイン時に1度満たす。ビルドメニュー入場までBP枠が未解決に見えるのを防ぐ
             // Fill the blueprint assignments' resolution source once at login so blueprint slots are not unresolved until the build menu is opened

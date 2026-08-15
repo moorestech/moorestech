@@ -1,8 +1,7 @@
+using Client.Game.InGame.UI.UIState;
 using Client.Playtest.Core;
-using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Cysharp.Threading.Tasks;
-using UnityEngine.InputSystem;
 
 namespace Client.Playtest
 {
@@ -12,6 +11,10 @@ namespace Client.Playtest
     /// </summary>
     public class PlaytestHotbarDriver
     {
+        // 建築モード出入りの遷移待ち上限
+        // The transition timeout for entering and leaving build mode
+        private const float UiStateTimeoutSeconds = 10f;
+
         private readonly PlaytestReporter _reporter;
 
         public PlaytestHotbarDriver(PlaytestReporter reporter)
@@ -20,10 +23,16 @@ namespace Client.Playtest
         }
 
         /// <summary>
-        ///     slotは0始まり(0→キー1)。持ち替えではなく建築モードのトグル: 割当済み対象を持って入り、同じ枠で抜ける
-        ///     slot is zero-based (0 -> key "1"); a build-mode toggle, not an item swap: enters holding the assigned target, exits on the same slot
+        ///     slotは0始まり(0→キー1)。割当済み対象を持って建築モードへ入り、遷移完了まで待つ
+        ///     slot is zero-based (0 -> key "1"); enters build mode holding the assigned target and waits for the transition
         /// </summary>
-        public async UniTask SelectHotbar(int slot) => await _reporter.Act($"ホットバー{slot + 1}をタップ", () => SemanticInput.TapKey(Key.Digit1 + slot));
+        public async UniTask EnterBuildMode(int slot) => await _reporter.Act($"ホットバー{slot + 1}で建築モードへ", () => PlaytestHotbarOps.TapSlotAndWaitUiState(slot, UIStateEnum.PlaceBlock, UiStateTimeoutSeconds));
+
+        /// <summary>
+        ///     入場と同じ枠をもう一度叩いて建築モードを抜ける。持ち替えではなくトグルなので枠番号は入場時と一致させる
+        ///     Taps the entry slot again to leave build mode; it is a toggle rather than a swap, so the slot must match the one used to enter
+        /// </summary>
+        public async UniTask ExitBuildMode(int slot) => await _reporter.Act($"ホットバー{slot + 1}で建築モードを抜ける", () => PlaytestHotbarOps.TapSlotAndWaitUiState(slot, UIStateEnum.GameScreen, UiStateTimeoutSeconds));
 
         // ビルドメニューと同一供給源(PlacementTargetCatalog.UnlockedEntries)から表示名で割当てる。未解放対象は割当不可
         // Assigns by display name from the same source as the build menu (PlacementTargetCatalog.UnlockedEntries); locked targets cannot be assigned

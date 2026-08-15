@@ -1,8 +1,7 @@
-import { SlotFrame } from "@/shared/ui";
+import { PlacementTargetFace, SlotFrame } from "@/shared/ui";
 import { tutorialAnchor, buildMenuEntryAnchorId } from "@/shared/tutorialAnchor";
 import { useHotbarDragSource } from "@/features/hotbar";
 import type { BuildMenuDisplayEntry } from "./buildMenuGrouping";
-import styles from "./style.module.css";
 
 type Props = {
   entry: BuildMenuDisplayEntry;
@@ -28,11 +27,7 @@ export function BuildMenuSlot({ entry, onLeftClick, onRightClick, onHoverChange 
       {...dragHandlers}
       {...tutorialAnchor(buildMenuEntryAnchorId(entry.kind, entry.id))}
     >
-      {entry.iconUrl ? (
-        <img className={styles.slotIcon} src={entry.iconUrl} alt={entry.displayLabel} draggable={false} />
-      ) : (
-        <span className={styles.slotLabel}>{entry.displayLabel}</span>
-      )}
+      <PlacementTargetFace iconUrl={entry.iconUrl} displayName={entry.displayLabel} />
     </SlotFrame>
   );
 }

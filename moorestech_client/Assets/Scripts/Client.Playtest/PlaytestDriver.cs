@@ -23,11 +23,16 @@ namespace Client.Playtest
     /// </summary>
     public class PlaytestDriver
     {
+        // 開幕スキットのSkip受理待ちと、その後のGameScreen到達待ちの上限
+        // Timeouts for the opening skit's skip acceptance and the subsequent arrival at GameScreen
+        private const float SkitSkipTimeoutSeconds = 30f;
+        private const float SkitSkipUiStateTimeoutSeconds = 15f;
+
         private readonly PlaytestResult _result;
         private readonly string _runDirectory;
         private readonly PlaytestReporter _reporter;
         // ホットバー操作のサブファサード
-        // Sub-facade for hotbar operations (SelectHotbar/AssignHotbar/UnlockConnectTool)
+        // Sub-facade for hotbar operations (EnterBuildMode/ExitBuildMode/AssignHotbar/UnlockConnectTool)
         public PlaytestHotbarDriver Hotbar { get; }
         public PlaytestDriver(PlaytestResult result, string runDirectory)
         {
@@ -122,6 +127,9 @@ namespace Client.Playtest
             _reporter.EndWait(waitEntry);
         }
         public async UniTask OpenBuildMenuAndSelectBlock(string blockName) => await _reporter.Act($"ビルドメニューで選択: {blockName}", () => PlaytestUiOps.OpenBuildMenuAndSelectBlock(blockName));
+        // 開幕スキットを飛ばしゲーム画面まで抜ける。ホットバー・ビルドメニュー操作すべての前提
+        // Skips the opening skit and lands on the game screen; the precondition for every hotbar and build-menu operation
+        public async UniTask SkipOpeningSkit() => await _reporter.Act("開幕スキットをSkipインテントで飛ばす", () => PlaytestUiOps.SkipOpeningSkit(SkitSkipTimeoutSeconds, SkitSkipUiStateTimeoutSeconds));
         public async UniTask ExitToGameScreen() => await _reporter.Act("ゲーム画面へ戻る", PlaytestUiOps.ExitToGameScreen);
         public async UniTask AimAt(Vector3 worldPosition) => await _reporter.Act($"照準: {worldPosition}", () => PlaytestUiOps.AimAtWorldPosition(worldPosition));
         // 指定originに設置されるよう接地面上のフットプリント中心へ照準する（向きはNorth前提）

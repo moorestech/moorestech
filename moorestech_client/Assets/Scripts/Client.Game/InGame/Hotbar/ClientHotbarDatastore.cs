@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Game.Hotbar;
-using Server.Protocol.PacketResponse;
 using UniRx;
 
 namespace Client.Game.InGame.Hotbar
@@ -14,10 +13,10 @@ namespace Client.Game.InGame.Hotbar
     public class ClientHotbarDatastore
     {
         public IReadOnlyList<Guid> Assignments => _assignments;
-        public IObservable<Unit> OnChanged => _onChanged;
+        public IObservable<Unit> OnAssignmentsChanged => _onAssignmentsChanged;
 
         private readonly Guid[] _assignments = new Guid[HotbarAssignmentDatastore.SlotCount];
-        private readonly Subject<Unit> _onChanged = new();
+        private readonly Subject<Unit> _onAssignmentsChanged = new();
         private int? _pendingSelectRequest;
 
         // 購読・初期データ応答から適用する（送信起点のローカル書き換えはしない）
@@ -25,27 +24,24 @@ namespace Client.Game.InGame.Hotbar
         public void ApplyAssignments(Guid[] assignments)
         {
             Array.Copy(assignments, _assignments, HotbarAssignmentDatastore.SlotCount);
-            _onChanged.OnNext(Unit.Default);
+            _onAssignmentsChanged.OnNext(Unit.Default);
         }
 
         // 楽観更新はせず、サーバーからの va:event:hotbarUpdate エコーで反映する
         // No optimistic update; the va:event:hotbarUpdate echo from the server applies the change
         public void RequestAssign(int slot, Guid targetId)
         {
-            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(ClientContext.PlayerConnectionSetting.PlayerId, slot, targetId);
-            ClientContext.VanillaApi.SendOnly.SendHotbarRequest(request);
+            ClientContext.VanillaApi.SendOnly.AssignHotbar(slot, targetId);
         }
 
         public void RequestClear(int slot)
         {
-            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateClearRequest(ClientContext.PlayerConnectionSetting.PlayerId, slot);
-            ClientContext.VanillaApi.SendOnly.SendHotbarRequest(request);
+            ClientContext.VanillaApi.SendOnly.ClearHotbar(slot);
         }
 
         public void RequestSwap(int slotA, int slotB)
         {
-            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateSwapRequest(ClientContext.PlayerConnectionSetting.PlayerId, slotA, slotB);
-            ClientContext.VanillaApi.SendOnly.SendHotbarRequest(request);
+            ClientContext.VanillaApi.SendOnly.SwapHotbar(slotA, slotB);
         }
 
         // Web由来のキー/クリック選択を貯め、UIStateが1回だけ消費する（前例 BuildMenuView.TryConsumeSelectedEntry）
@@ -53,6 +49,13 @@ namespace Client.Game.InGame.Hotbar
         public void EnqueueSelectRequest(int slot)
         {
             _pendingSelectRequest = slot;
+        }
+
+        // UIState遷移で未消費の要求を捨てる。復帰後に古いクリックが建築モードを暴発させない
+        // Drops an unconsumed request on a UIState transition so a stale click cannot fire build mode after returning
+        public void ClearPendingSelectRequest()
+        {
+            _pendingSelectRequest = null;
         }
 
         public bool TryConsumeSelectRequest(out int slot)

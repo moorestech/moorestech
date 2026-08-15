@@ -47,7 +47,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             // 選択の寿命はPlaceBlock滞在中のみ。離脱時にターゲットと由来を同時に破棄する
             // Selection lives only while in PlaceBlock; drop the target and its origin together on leave
             CurrentTarget = null;
-            CurrentOrigin = PlacementOrigin.None;
+            CurrentOrigin = PlacementOrigin.NonHotbar;
             _onTargetChanged.OnNext(null);
             _lastTarget = null;
         }

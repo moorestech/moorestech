@@ -24,14 +24,7 @@ return PlaytestRunner.Run("gear-chain-pole-via-ui", options, async p =>
 
     // 開幕スキット(Story)を表示中はホットバー入力が効かないためSkipインテントで飛ばしGameScreenへ抜ける
     // The opening skit (Story) blocks hotbar input, so skip it via the intent path and reach GameScreen
-    p.Note("開幕スキットをSkipインテントで飛ばす");
-    var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
-    await p.Until(() =>
-    {
-        var s = skitStore.GetCurrent();
-        return s != null && skitStore.TrySkip(s.SessionId, s.SceneRevision).Ok;
-    }, 30f, "開幕スキットのSkipインテントが受理される");
-    await p.WaitUiState(UIStateEnum.GameScreen, 15f);
+    await p.SkipOpeningSkit();
 
     // ポールの建設コストと、延長ごとに消費されるチェーン素材（鉄のワイヤー）の在庫を用意する
     // Stock the pole's construction cost and the chain material (iron wire) consumed by each extension
@@ -43,8 +36,7 @@ return PlaytestRunner.Run("gear-chain-pole-via-ui", options, async p =>
     // ポール割当後同キーで建築モードへ
     // Assign the pole to hotbar slot 1, then the same key enters build mode
     await p.Hotbar.AssignHotbar(0, "歯車チェーンポール");
-    await p.Hotbar.SelectHotbar(0);
-    await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
+    await p.Hotbar.EnterBuildMode(0);
 
     // ポール1本をクリック設置し、サーバー反映とクライアント出現（＝延長起点の確定）を待つ
     // Click-place one pole, then wait for server placement and client spawn (which fixes the extension source)
@@ -66,21 +58,18 @@ return PlaytestRunner.Run("gear-chain-pole-via-ui", options, async p =>
 
     // 同キーで建築モードを抜けて延長起点をリセットし、セグメントを分離する（遷移完了を待ってから次を打つ）
     // Exit build mode with the same key to reset the extension source and separate the segments (wait for the transition before the next tap)
-    await p.Hotbar.SelectHotbar(0);
-    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+    await p.Hotbar.ExitBuildMode(0);
 
     // セグメントB: 3本連結（割当は残っているので同キーで再入場できる）。Aと同じZ行でX方向に離す
     // Segment B: 3 poles (the assignment persists, so the same key re-enters); same Z row as A, offset along X
     var b1 = new Vector3Int(14, 32, 2);
     var b2 = new Vector3Int(18, 32, 2);
     var b3 = new Vector3Int(22, 32, 2);
-    await p.Hotbar.SelectHotbar(0);
-    await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
+    await p.Hotbar.EnterBuildMode(0);
     await PlacePole(b1);
     await PlacePole(b2);
     await PlacePole(b3);
-    await p.Hotbar.SelectHotbar(0);
-    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+    await p.Hotbar.ExitBuildMode(0);
     await p.Screenshot("01-poles-placed");
 
     // 歯車ネットワーク所属を検証: A1-A2同一 / B1-B2-B3同一 / AとBは別ネットワーク

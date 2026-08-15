@@ -36,10 +36,13 @@ namespace Client.Tests.WebUi
             var unlockState = new AllPlacementTargetsUnlockedStateData();
             var blueprintGuid = Guid.Parse("70000000-0000-4000-8000-000000000001");
 
-            var dtos = BuildMenuEntryDtoFactory.CreateDtos(
-                unlockState,
-                new PlacementTargetCatalog(),
-                new[] { (blueprintGuid, "starter-base") });
+            // 解放判定はResolverの責務のため、変換対象の設置対象一覧を直接渡して変換だけを検証する
+            // The unlock decision belongs to the resolver, so hand the targets in directly and verify only the conversion
+            var targets = new PlacementTargetCatalog()
+                .UnlockedEntries(unlockState, false, new[] { (blueprintGuid, "starter-base") })
+                .Select(PlacementTargetFactory.Create)
+                .ToList();
+            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets);
 
             // 実マスタ規模で複数エントリが返ること（空リストでは以降の検証が無意味）
             // Multiple entries must come back at real-master scale (an empty list would make the rest of this test meaningless)

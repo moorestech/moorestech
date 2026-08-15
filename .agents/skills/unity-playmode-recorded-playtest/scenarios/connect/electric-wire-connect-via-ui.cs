@@ -31,6 +31,10 @@ return PlaytestRunner.Run("electric-wire-connect-via-ui", options, async p =>
     p.WarpPlayer(new Vector3(5f, 33.5f, 6f));
     await p.WaitSeconds(0.5f);
 
+    // 電線ツールはinitialUnlocked=falseのため、解放しないとビルドメニューに出ず選択できない
+    // The wire tool is initialUnlocked=false, so without unlocking it never appears in the build menu
+    p.Hotbar.UnlockConnectTool("電線");
+
     // 電線接続ツールの消費素材（銅のワイヤー）はインベントリ在庫から自動消費される（クライアント在庫を自動選択するため同期込みで付与）
     // The wire connect tool's material (copper wire) is auto-consumed from inventory stock (grant with sync so the client mirror reflects it)
     await p.GiveItem("銅のワイヤー", 64);

@@ -310,14 +310,6 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<BlueprintResponse>(request, ct);
         }
 
-        // ホットバー9枠の割当一覧を取得する
-        // Fetch all 9 hotbar assignment slots
-        public async UniTask<GetHotbarProtocol.ResponseGetHotbarMessagePack> GetHotbar(CancellationToken ct)
-        {
-            var request = new GetHotbarProtocol.RequestGetHotbarMessagePack(_playerConnectionSetting.PlayerId);
-            return await _packetExchangeManager.GetPacketResponse<GetHotbarProtocol.ResponseGetHotbarMessagePack>(request, ct);
-        }
-
         public async UniTask<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack> DisconnectRailAsync(
             int playerId,
             int fromNodeId,

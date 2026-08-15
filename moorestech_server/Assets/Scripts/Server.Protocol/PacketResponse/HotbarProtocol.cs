@@ -13,11 +13,11 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:hotbar";
 
-        private readonly HotbarAssignmentDatastore _hotbarAssignmentDatastore;
+        private readonly IHotbarAssignmentMutation _hotbarAssignmentMutation;
 
         public HotbarProtocol(ServiceProvider serviceProvider)
         {
-            _hotbarAssignmentDatastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
+            _hotbarAssignmentMutation = serviceProvider.GetService<IHotbarAssignmentMutation>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -29,13 +29,13 @@ namespace Server.Protocol.PacketResponse
             switch (request.Operation)
             {
                 case HotbarOperation.Assign:
-                    _hotbarAssignmentDatastore.SetAssignment(request.PlayerId, request.Slot, request.TargetId);
+                    _hotbarAssignmentMutation.SetAssignment(request.PlayerId, request.Slot, request.TargetId);
                     break;
                 case HotbarOperation.Clear:
-                    _hotbarAssignmentDatastore.ClearAssignment(request.PlayerId, request.Slot);
+                    _hotbarAssignmentMutation.ClearAssignment(request.PlayerId, request.Slot);
                     break;
                 case HotbarOperation.Swap:
-                    _hotbarAssignmentDatastore.SwapAssignments(request.PlayerId, request.Slot, request.SlotB);
+                    _hotbarAssignmentMutation.SwapAssignments(request.PlayerId, request.Slot, request.SlotB);
                     break;
             }
 

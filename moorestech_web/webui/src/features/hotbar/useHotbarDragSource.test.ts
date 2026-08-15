@@ -3,7 +3,7 @@
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { DragEndpoint } from "./hotbarDnd";
+import type { HotbarDragSource } from "./hotbarDnd";
 
 const host = vi.hoisted(() => ({ dispatchAction: vi.fn() }));
 
@@ -16,7 +16,7 @@ import { useHotbarDragSource } from "./useHotbarDragSource";
 
 // 5ハンドラをdivへ配線するハーネス
 // Test harness wiring the hook's 5 handlers onto a div carrying a data-testid
-function Harness({ source, onTap }: { source: DragEndpoint | null; onTap: () => void }) {
+function Harness({ source, onTap }: { source: HotbarDragSource | null; onTap: () => void }) {
   const handlers = useHotbarDragSource(source, onTap);
   return createElement("div", { "data-testid": "slot", ...handlers });
 }
@@ -109,6 +109,21 @@ describe("useHotbarDragSource", () => {
     act(() => view.props.onPointerUp({ pointerId: 1, clientX: 10, clientY: 0 }));
 
     expect(host.dispatchAction).toHaveBeenCalledWith("hotbar.assign", { slot: 2, id: "guid-a" });
+  });
+
+  it("空枠を閾値超えで引きずって離してもタップにならない（建築モードを抜けさせない）", () => {
+    vi.stubGlobal("document", { elementFromPoint: () => null });
+    const onTap = vi.fn();
+    const renderer = create(createElement(Harness, { source: null, onTap }));
+    const view = renderer.root.findByProps({ "data-testid": "slot" });
+    const ct = fakeCurrentTarget();
+
+    act(() => view.props.onPointerDown({ isPrimary: true, button: 0, pointerId: 1, clientX: 0, clientY: 0, preventDefault: vi.fn(), currentTarget: ct }));
+    act(() => view.props.onPointerMove({ pointerId: 1, clientX: 40, clientY: 0 }));
+    act(() => view.props.onPointerUp({ pointerId: 1, clientX: 40, clientY: 0 }));
+
+    expect(onTap).not.toHaveBeenCalled();
+    expect(host.dispatchAction).not.toHaveBeenCalled();
   });
 
   it("右ボタン押下は無視し、preventDefaultもpointer捕捉も行わない（右クリック削除の温存）", () => {

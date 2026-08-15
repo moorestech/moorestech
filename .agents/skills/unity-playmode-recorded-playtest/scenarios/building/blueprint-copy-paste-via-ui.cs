@@ -86,10 +86,10 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     var nameInputView = UnityEngine.Object.FindFirstObjectByType<BlueprintNameInputView>(FindObjectsInactive.Include);
     await p.Until(() => nameInputView.gameObject.activeSelf, 10f, "ドラッグ解放で名前入力ダイアログが開く");
 
-    // ウォッチリスト2観察: ドラッグ中スクロールでホットバー選択が同時に動くか（観察のみ・失敗にしない）
-    // Watch-list 2 observation: whether the drag scroll also moved the hotbar selection (observe only)
+    // BPコピー中のホイールは範囲調整が占有し、ホットバー選択を動かしてはならない
+    // The wheel is owned by range adjustment during a blueprint copy and must not move the hotbar selection
     var hotbarAfter = placeSystemStateController.CurrentOrigin.TryGetHotbarSlot(out var hotbarSlotAfter) ? hotbarSlotAfter : -1;
-    p.Assert(true, $"watchlist2-observe: ドラッグ中スクロールでホットバー選択 {hotbarBefore} -> {hotbarAfter}");
+    p.Assert(hotbarAfter == hotbarBefore, $"ドラッグ中スクロールでホットバー選択が変わらない {hotbarBefore} -> {hotbarAfter}");
 
     // 名前入力中のB/G/V/Tabキー抑止を検証
     // Key suppression while naming: injecting B/G/V/Tab must not leave PlaceBlock nor close the dialog

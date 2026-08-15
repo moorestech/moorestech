@@ -16,22 +16,22 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:hotbarUpdate";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
-        private readonly HotbarAssignmentDatastore _hotbarAssignmentDatastore;
+        private readonly IHotbarAssignmentLookup _hotbarAssignmentLookup;
 
-        public HotbarUpdateEventPacket(EventProtocolProvider eventProtocolProvider, HotbarAssignmentDatastore hotbarAssignmentDatastore)
+        public HotbarUpdateEventPacket(EventProtocolProvider eventProtocolProvider, IHotbarAssignmentLookup hotbarAssignmentLookup)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            _hotbarAssignmentDatastore = hotbarAssignmentDatastore;
+            _hotbarAssignmentLookup = hotbarAssignmentLookup;
         }
 
         public void Load()
         {
-            _hotbarAssignmentDatastore.OnAssignmentChanged.Subscribe(OnAssignmentChanged);
+            _hotbarAssignmentLookup.OnAssignmentChanged.Subscribe(OnAssignmentChanged);
         }
 
         private void OnAssignmentChanged(int playerId)
         {
-            var assignments = _hotbarAssignmentDatastore.GetAssignments(playerId).ToArray();
+            var assignments = _hotbarAssignmentLookup.GetAssignments(playerId).ToArray();
             var messagePack = new HotbarUpdateEventMessagePack(assignments);
             var payload = MessagePackSerializer.Serialize(messagePack);
 

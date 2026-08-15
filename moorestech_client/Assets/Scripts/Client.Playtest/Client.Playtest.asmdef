@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "Client.Game",
+        "Client.Skit",
         "Client.Starter",
         "Client.Common",
         "Client.Network",

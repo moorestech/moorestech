@@ -1,4 +1,5 @@
-﻿using Client.Game.Common;
+﻿using System;
+using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
@@ -52,11 +53,21 @@ namespace Client.Game.InGame.UI.UIState.State
             // ミドルクリックで設置物をスポイトし配置モードへ入る
             // Middle-click eyedrops a placed object and enters placement mode
             if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget))
-                return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(pickedTarget, PlacementOrigin.Eyedropper)));
+                return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(pickedTarget, PlacementOrigin.NonHotbar)));
 
             // キー/Web選択で建築モードへ遷移
             // A digit key or a web-originated selection enters build mode holding the assigned placement target
-            if (_hotbarInputService.TryGetEnterBuildTransit(out var hotbarTransit)) return hotbarTransit;
+            var hotbarTapOutcome = _hotbarInputService.ResolveGameScreenTap(out var hotbarTransit);
+            switch (hotbarTapOutcome)
+            {
+                case HotbarTapOutcome.EnterBuildMode: return hotbarTransit;
+                case HotbarTapOutcome.None: break;
+                // ゲーム画面では建築モードの離脱・持ち替えは起こりえない
+                // Leaving build mode and swapping targets cannot occur on the game screen
+                case HotbarTapOutcome.ExitBuildMode:
+                case HotbarTapOutcome.SwappedTarget:
+                default: throw new ArgumentOutOfRangeException(nameof(hotbarTapOutcome), hotbarTapOutcome, null);
+            }
 
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);

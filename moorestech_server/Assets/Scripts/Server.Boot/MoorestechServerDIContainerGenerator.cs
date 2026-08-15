@@ -191,6 +191,8 @@ namespace Server.Boot
             services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
             services.AddSingleton<PlacementTargetCatalog>();
             services.AddSingleton<HotbarAssignmentDatastore>();
+            services.AddSingleton<IHotbarAssignmentLookup>(provider => provider.GetRequiredService<HotbarAssignmentDatastore>());
+            services.AddSingleton<IHotbarAssignmentMutation>(provider => provider.GetRequiredService<HotbarAssignmentDatastore>());
 
             services.AddSingleton<ResearchEvent>();
 

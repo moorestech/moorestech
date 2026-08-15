@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest.Input;
+using Client.Skit.UI;
 using Client.Playtest.WebUi;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -96,6 +97,31 @@ namespace Client.Playtest.Operations
             // PlaceBlock遷移直後のカメラtween（トップダウン化）が落ち着くまで待つ
             // Wait for the camera tween (to top-down) right after entering PlaceBlock to settle
             await UniTask.Delay(TimeSpan.FromSeconds(0.6f));
+        }
+
+        // 開幕スキット表示中はホットバー入力もビルドメニューもポーズメニューも通らないため、全シナリオ共通の前提として飛ばす
+        // The opening skit blocks hotbar input, the build menu, and the pause menu alike, so every scenario skips it as a shared precondition
+        public static async UniTask SkipOpeningSkit(float skipTimeoutSeconds, float uiStateTimeoutSeconds)
+        {
+            var skitStore = SkitPresentationStateStore.Instance;
+            var startTime = Time.realtimeSinceStartup;
+            while (!TrySkipCurrentSkit())
+            {
+                if (skipTimeoutSeconds < Time.realtimeSinceStartup - startTime) throw new TimeoutException("Opening skit's skip intent was never accepted");
+                await UniTask.Yield();
+            }
+
+            await WaitUiState(UIStateEnum.GameScreen, uiStateTimeoutSeconds);
+
+            #region Internal
+
+            bool TrySkipCurrentSkit()
+            {
+                var current = skitStore.GetCurrent();
+                return current != null && skitStore.TrySkip(current.SessionId, current.SceneRevision).Ok;
+            }
+
+            #endregion
         }
 
         public static async UniTask ExitToGameScreen()

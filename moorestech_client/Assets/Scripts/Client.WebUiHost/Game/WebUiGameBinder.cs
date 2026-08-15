@@ -148,17 +148,16 @@ namespace Client.WebUiHost.Game
             // ビルドメニュートピックを登録（BP名入力ブリッジも同時に張る）
             // Register the build-menu topic (also wires the blueprint-name input bridge)
             var blueprintLibrary = resolver.Resolve<ClientBlueprintLibrary>();
-            var placementTargetCatalog = resolver.Resolve<PlacementTargetCatalog>();
+            var placementTargetResolver = resolver.Resolve<PlacementTargetResolver>();
             var buildMenuView = resolver.Resolve<BuildMenuView>();
             var blueprintNameInputView = resolver.Resolve<BlueprintNameInputView>();
-            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, unlockStateData, blueprintLibrary, placementTargetCatalog);
+            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver);
             hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
             new BlueprintNameInputWebBridge(blueprintNameInputView, modalService);
 
             // ホットバーのtopic/actionをまとめて登録（前例 C4WebUiRegistration）
             // Register the hotbar topic/actions together (precedent: C4WebUiRegistration)
             var clientHotbarDatastore = resolver.Resolve<ClientHotbarDatastore>();
-            var placementTargetResolver = resolver.Resolve<PlacementTargetResolver>();
             HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, placementTargetResolver, blueprintLibrary, resolver.Resolve<PlaceSystemStateController>(), uiStateControl);
 
             // action ハンドラ登録

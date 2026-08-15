@@ -71,7 +71,6 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(SetElectricToGearOutputModeProtocol.ProtocolTag, new SetElectricToGearOutputModeProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlueprintProtocol.ProtocolTag, new BlueprintProtocol(serviceProvider));
             _packetResponseDictionary.Add(HotbarProtocol.ProtocolTag, new HotbarProtocol(serviceProvider));
-            _packetResponseDictionary.Add(GetHotbarProtocol.ProtocolTag, new GetHotbarProtocol(serviceProvider));
         }
         
         public List<byte[]> GetPacketResponse(byte[] payload, PacketResponseContext context)

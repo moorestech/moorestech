@@ -53,7 +53,7 @@ namespace Client.WebUiHost.Game.Topics.Hotbar
 
             // 割当の変更・解決先であるBPライブラリの変更・由来枠を含む設置対象の変更で再配信する
             // Republish on assignment changes, on blueprint-library changes (the resolution source), and on placement-target changes that carry the origin
-            _datastoreSubscription = _clientHotbarDatastore.OnChanged.Subscribe(_ => SchedulePublish());
+            _datastoreSubscription = _clientHotbarDatastore.OnAssignmentsChanged.Subscribe(_ => SchedulePublish());
             _librarySubscription = _blueprintLibrary.OnChanged.Subscribe(_ => SchedulePublish());
             _targetSubscription = _placeSystemStateController.OnTargetChanged.Subscribe(_ => SchedulePublish());
 

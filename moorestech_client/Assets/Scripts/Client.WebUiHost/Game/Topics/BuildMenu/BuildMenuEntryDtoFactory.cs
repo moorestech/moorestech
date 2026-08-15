@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Common.Debug;
 using Core.Master;
 using Game.PlacementTarget;
-using Game.UnlockState;
 using Mooresmaster.Model.BuildMenuModule;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
@@ -16,22 +14,24 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     /// </summary>
     public static class BuildMenuEntryDtoFactory
     {
-        public static List<BuildMenuEntryDto> CreateDtos(IGameUnlockStateData unlockState, PlacementTargetCatalog placementTargetCatalog, IReadOnlyList<(Guid id, string name)> blueprintEntries)
+        // 解放判定はResolverが持つ唯一の供給点へ委ね、ここは変換だけを担う
+        // Delegates the unlock decision to the resolver's single supply point; this file only converts
+        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver)
+        {
+            return CreateDtos(placementTargetResolver.CreateUnlockedTargets());
+        }
+
+        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets)
         {
             var dtos = new List<BuildMenuEntryDto>();
             var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
-
-            // 無料設置では未解放も表示
-            // Show locked targets in free mode
-            var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
 
             // 共有カタログの列挙順（ブロック→車両→接続ツール→BPコピー→BP）がそのまま表示順
             // The shared catalog's order (blocks, train cars, connect tools, blueprint copy, blueprints) is the display order
             // カテゴリ整合はマスタロード時に検証済み（block参照はBlockMasterUtil・非ブロックはentrySource必須定義）
             // Category consistency is validated at master load (block refs by BlockMasterUtil, non-blocks by required entrySource)
-            foreach (var entry in placementTargetCatalog.UnlockedEntries(unlockState, showAllPlaceable, blueprintEntries))
+            foreach (var target in targets)
             {
-                var target = PlacementTargetFactory.Create(entry);
                 var (categoryGuid, subCategoryGuid) = ResolveCategoryPair(target);
                 dtos.Add(new BuildMenuEntryDto
                 {
@@ -98,10 +98,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 }).ToList();
         }
 
-        // PlacementTargetCatalogが既に確定させたKind enumを網羅switchで文字列化する（型switchの二重分類・未知値文字列漏れを禁止）
-        // ホットバートピックも同じKind語彙を配信するため公開する（同じ解決を二重実装しない）
-        // Stringify the Kind enum the PlacementTargetCatalog already determined via an exhaustive switch (no duplicate type-pattern classification, no unknown-value string leak)
-        // Public so the hotbar topic ships the same Kind vocabulary without re-implementing the resolution
+        // 確定済みKindを網羅switchで文字列化する。ホットバートピックと共有するため公開
+        // Stringifies the settled Kind via an exhaustive switch; public so the hotbar topic shares it
         public static string ResolveKind(PlacementTargetKind kind)
         {
             return kind switch

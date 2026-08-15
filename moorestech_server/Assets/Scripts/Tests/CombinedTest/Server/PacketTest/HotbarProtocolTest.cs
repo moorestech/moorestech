@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.Block.Interface.Extension;
+using Game.Hotbar;
+using Microsoft.Extensions.DependencyInjection;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
@@ -15,14 +18,14 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     /// <summary>
     /// Assign/Clear/Swapと3点セットを検証
-    /// Verifies the Assign/Clear/Swap operations, GetHotbar, and the event packet.
+    /// Verifies the Assign/Clear/Swap operations, the resulting state, and the event packet.
     /// </summary>
     public class HotbarProtocolTest
     {
         private const int PlayerId = 1;
 
         [Test]
-        public void Assign_Clear_Swapが反映されGetHotbarで読める()
+        public void Assign_Clear_Swapが割当状態へ反映される()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -31,25 +34,25 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Use a real, catalog-resolvable block GUID as the assignment target (slopes are excluded from the catalog)
             var validId = MasterHolder.BlockMaster.Blocks.Data.First(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid)).BlockGuid;
 
-            // Assign後GetHotbarが一致
-            // Assign then read back via GetHotbar
+            // Assign後に割当状態が一致
+            // Assign then read the resulting assignments back
             SendHotbar(HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(PlayerId, 3, validId));
-            var afterAssign = GetHotbar();
-            Assert.AreEqual(validId, afterAssign.Assignments[3]);
-            Assert.AreEqual(Guid.Empty, afterAssign.Assignments[5]);
+            var afterAssign = ReadAssignments();
+            Assert.AreEqual(validId, afterAssign[3]);
+            Assert.AreEqual(Guid.Empty, afterAssign[5]);
 
             // Swap(3, 5) → [5]に移動
             // Swap moves the assignment from slot 3 to slot 5
             SendHotbar(HotbarProtocol.HotbarProtocolMessagePack.CreateSwapRequest(PlayerId, 3, 5));
-            var afterSwap = GetHotbar();
-            Assert.AreEqual(Guid.Empty, afterSwap.Assignments[3]);
-            Assert.AreEqual(validId, afterSwap.Assignments[5]);
+            var afterSwap = ReadAssignments();
+            Assert.AreEqual(Guid.Empty, afterSwap[3]);
+            Assert.AreEqual(validId, afterSwap[5]);
 
             // Clear(5) → Guid.Empty
             // Clear resets the slot to Guid.Empty
             SendHotbar(HotbarProtocol.HotbarProtocolMessagePack.CreateClearRequest(PlayerId, 5));
-            var afterClear = GetHotbar();
-            Assert.AreEqual(Guid.Empty, afterClear.Assignments[5]);
+            var afterClear = ReadAssignments();
+            Assert.AreEqual(Guid.Empty, afterClear[5]);
 
             #region Internal
 
@@ -59,12 +62,11 @@ namespace Tests.CombinedTest.Server.PacketTest
                 packet.GetPacketResponse(payload, new PacketResponseContext(null));
             }
 
-            GetHotbarProtocol.ResponseGetHotbarMessagePack GetHotbar()
+            // 取得口はInitialHandshakeへ同梱されたため、状態はlookupから直接読む
+            // The fetch endpoint moved into InitialHandshake, so the state is read straight from the lookup
+            IReadOnlyList<Guid> ReadAssignments()
             {
-                var request = new GetHotbarProtocol.RequestGetHotbarMessagePack(PlayerId);
-                var payload = MessagePackSerializer.Serialize(request);
-                var responses = packet.GetPacketResponse(payload, new PacketResponseContext(null));
-                return MessagePackSerializer.Deserialize<GetHotbarProtocol.ResponseGetHotbarMessagePack>(responses[0]);
+                return serviceProvider.GetService<IHotbarAssignmentLookup>().GetAssignments(PlayerId);
             }
 
             #endregion

@@ -106,7 +106,19 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // キー/Web選択を共通3分岐へ
             // Route a digit-key or web-originated tap into the shared 3-way branch (same slot / different slot / empty slot)
-            if (_hotbarInputService.TryGetTapTransit(out var hotbarTapTransit)) return hotbarTapTransit;
+            var hotbarTapOutcome = _hotbarInputService.ResolveBuildModeTap(out var hotbarTapTransit);
+            switch (hotbarTapOutcome)
+            {
+                case HotbarTapOutcome.ExitBuildMode: return hotbarTapTransit;
+                // 持ち替えは同一画面で完結するため遷移しない
+                // A swap completes within this screen, so no transition is returned
+                case HotbarTapOutcome.SwappedTarget:
+                case HotbarTapOutcome.None: break;
+                // 建築モード中に建築モードへ入る分類は起こりえない
+                // Entering build mode cannot be produced while already in build mode
+                case HotbarTapOutcome.EnterBuildMode:
+                default: throw new ArgumentOutOfRangeException(nameof(hotbarTapOutcome), hotbarTapOutcome, null);
+            }
 
             // 長押しで設置対象を枠へ割当
             // A long press assigns the current placement target to that slot
@@ -115,7 +127,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // TPSのみ右ドラッグで設置照準回転
             // TPS rotates the placement aim only during right-drag
             _cameraPolicyService.UpdateRotationInput();
-            if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget, PlacementOrigin.Eyedropper);
+            if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget, PlacementOrigin.NonHotbar);
 
             _placeSystemStateController.ManualUpdate();
 

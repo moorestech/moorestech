@@ -22,14 +22,7 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
 
     // 開幕スキット(Story)を表示中はホットバー入力が効かないためSkipインテントで飛ばしGameScreenへ抜ける
     // The opening skit (Story) blocks hotbar input, so skip it via the intent path and reach GameScreen
-    p.Note("開幕スキットをSkipインテントで飛ばす");
-    var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
-    await p.Until(() =>
-    {
-        var s = skitStore.GetCurrent();
-        return s != null && skitStore.TrySkip(s.SessionId, s.SceneRevision).Ok;
-    }, 30f, "開幕スキットのSkipインテントが受理される");
-    await p.WaitUiState(UIStateEnum.GameScreen, 15f);
+    await p.SkipOpeningSkit();
 
     // ホットバー1=ポール、2=チェーン接続ツール。両方ともホットバー割当前にアンロックが要る（ブロックと接続ツールは別枠）
     // Hotbar 1 = pole, 2 = chain connect tool. Both need unlocking before hotbar assignment (blocks and connect tools use separate unlock buckets)
@@ -47,14 +40,12 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
 
     async UniTask PlaceIsolatedPole(Vector3Int origin)
     {
-        await p.Hotbar.SelectHotbar(0);
-        await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
+        await p.Hotbar.EnterBuildMode(0);
         await p.AimAtPlaceOrigin("歯車チェーンポール", origin);
         await p.ClickPlace();
         await p.Until(() => p.GetBlock(origin) != null, 15f, $"孤立ポール設置 {origin}");
         await p.WaitBlockGameObject(origin);
-        await p.Hotbar.SelectHotbar(0);
-        await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+        await p.Hotbar.ExitBuildMode(0);
     }
 
     await PlaceIsolatedPole(c1);
@@ -83,8 +74,7 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
 
     // 接続ツールを保持し建築モードへ
     // Hold the connect tool to enter build mode
-    await p.Hotbar.SelectHotbar(1);
-    await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
+    await p.Hotbar.EnterBuildMode(1);
 
     // ポールA→ポールBの順にクリックして結線（A=起点選択、B=接続送信）
     // Click pole A then pole B to connect (A selects the source, B sends the connection)
@@ -97,7 +87,6 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
     // 結線反映を条件待機し、同一ネットワークになったことを検証
     // Wait for the connection to land, then verify both poles share one network
     await p.Until(() => networkOf(c1) != null && networkOf(c1).Equals(networkOf(c2)), 15f, "クリック結線で同一ネットワーク化");
-    await p.Hotbar.SelectHotbar(1);
-    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+    await p.Hotbar.ExitBuildMode(1);
     await p.Screenshot("02-connected");
 });

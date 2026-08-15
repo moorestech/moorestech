@@ -9,12 +9,16 @@ namespace Game.Hotbar
 {
     // プレイヤー×9枠の設置対象参照ホットバー。カタログ/BP解決できないIDは保持しない
     // Player x 9-slot placement-target hotbar; ids the catalog/BPs can't resolve are never retained
-    public class HotbarAssignmentDatastore
+    public class HotbarAssignmentDatastore : IHotbarAssignmentLookup, IHotbarAssignmentMutation
     {
         public const int SlotCount = 9;
 
         public IObservable<int> OnAssignmentChanged => _onAssignmentChanged;
         private readonly Subject<int> _onAssignmentChanged = new();
+
+        // 未割当プレイヤーへ返す共有の空枠。読み取りだけでレコードを作らないための返り値
+        // The shared empty-slot view returned for players with no record, so a read never creates one
+        private static readonly Guid[] EmptySlots = new Guid[SlotCount];
 
         // プレイヤーごとの9枠。未割当はGuid.Empty
         // 9 slots per player; Guid.Empty means unassigned
@@ -26,11 +30,17 @@ namespace Game.Hotbar
         {
             _catalog = catalog;
             _blueprintDatastore = blueprintDatastore;
+
+            // BP削除で解決不能になった枠をその場で捨てる。セッション中に死んだ参照が残らない
+            // Drops slots that a blueprint deletion just made unresolvable, so no dead reference survives the session
+            _blueprintDatastore.OnBlueprintDeleted.Subscribe(PruneDeletedBlueprint);
         }
 
+        // 読み取りではレコードを作らない。参照しただけの空プレイヤーがセーブへ永続するのを防ぐ
+        // A read never creates a record, so merely inspecting a player does not persist an empty entry into the save
         public IReadOnlyList<Guid> GetAssignments(int playerId)
         {
-            return GetOrCreate(playerId);
+            return _assignments.TryGetValue(playerId, out var slots) ? slots : EmptySlots;
         }
 
         public void SetAssignment(int playerId, int slot, Guid targetId)
@@ -89,6 +99,25 @@ namespace Game.Hotbar
             }
 
             #endregion
+        }
+
+        // 削除されたBPを指す枠を全プレイヤーから外し、変化したプレイヤーだけ通知する
+        // Clears slots pointing at the deleted blueprint for every player, notifying only those actually changed
+        private void PruneDeletedBlueprint(Guid deletedBlueprintGuid)
+        {
+            foreach (var pair in _assignments)
+            {
+                var slots = pair.Value;
+                var pruned = false;
+                for (var slot = 0; slot < SlotCount; slot++)
+                {
+                    if (slots[slot] != deletedBlueprintGuid) continue;
+                    slots[slot] = Guid.Empty;
+                    pruned = true;
+                }
+
+                if (pruned) _onAssignmentChanged.OnNext(pair.Key);
+            }
         }
 
         private bool IsResolvable(Guid id)
