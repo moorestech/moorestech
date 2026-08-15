@@ -20,11 +20,16 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         private const int DetailSeedBase = 6000;
         private const int DetailSeedStridePerBiome = 100;
 
+        // 密度は摂動前・傾斜は摂動後から採る移植元の使い分け（TerrainGenerator.cs:1147,1283）をそのまま持ち込む。
+        // 取り違えても例外は出ず、木の根元だけ草の生え方が変わる形で静かにずれる
+        // Keeps the source's split of pre-tree heights for density and post-tree ones for slopes (TerrainGenerator.cs:1147,1283);
+        // swapping them throws nothing and only shifts how grass grows around each tree
         public static List<int[,]> Build(
             TerrainGenerationConfig config, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
-            float[,] heights, byte[,] transferredBiomeIndices, float[,,] alphamap, TerrainLayer[] terrainLayers)
+            float[,] preHeights, float[,] postHeights, byte[,] transferredBiomeIndices, float[,,] alphamap,
+            TerrainLayer[] terrainLayers)
         {
-            var slopes = TerrainSlopeCalculator.Compute(heights, config);
+            var slopes = TerrainSlopeCalculator.Compute(postHeights, config);
             var dimensions = TerrainDimensions.From(config, config.shoreConfig.waterMargin);
 
             var maps = new List<int[,]>();
@@ -40,7 +45,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 // 木・オブジェクトの距離場はクライアントに配置情報が無いため渡さない。距離フィルタだけが休む
                 // The tree and object distance fields are absent client-side, so only the distance filters idle
                 maps.AddRange(DetailRuntimeGenerator.GenerateForBiome(
-                    mask, heights, slopes, dimensions, detailConfig, detailRandom,
+                    mask, preHeights, slopes, dimensions, detailConfig, detailRandom,
                     alphamap, terrainLayers, null, null));
             }
 

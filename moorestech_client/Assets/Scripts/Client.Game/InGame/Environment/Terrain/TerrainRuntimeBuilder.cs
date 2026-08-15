@@ -5,6 +5,7 @@ using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Transfer;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 // System.Diagnostics を丸ごと開くと Debug が UnityEngine.Debug と衝突する
@@ -56,7 +57,8 @@ namespace Client.Game.InGame.Environment.Terrain
             if (terrainMeta.IsTemplate)
                 await BuildTemplateTerrainAsync(environmentRoot, terrainMaterial);
             else
-                await BuildGeneratedTerrainAsync(terrainMeta, wireMeta.TerrainHash, environmentRoot, terrainMaterial);
+                await BuildGeneratedTerrainAsync(
+                    terrainMeta, wireMeta.TerrainHash, mapLayout.MapObjects, environmentRoot, terrainMaterial);
 
             // 露頭生成はこの直後に地表へレイキャストを飛ばす。新しいコライダーを物理シーンへ確実に反映させる
             // Outcrop instantiation raycasts the ground right after this, so the new colliders are pushed into the physics scene
@@ -77,11 +79,14 @@ namespace Client.Game.InGame.Environment.Terrain
                 TemplateDetailObjectDistance, TemplateDetailObjectDensity);
         }
 
+        // mapObjectsはシーン絶対座標の全タイルぶん。木の高さ摂動が転送高さの意味(R12)を表示用へ戻すのに要る
+        // The map objects arrive scene-absolute for every tile; the tree height perturbation needs them to turn the transferred meaning (R12) back into display heights
         private static async UniTask BuildGeneratedTerrainAsync(
-            TerrainTransferMeta terrainMeta, string terrainHash, Transform environmentRoot, Material terrainMaterial)
+            TerrainTransferMeta terrainMeta, string terrainHash, IReadOnlyList<MapObjectLayoutMessagePack> mapObjects,
+            Transform environmentRoot, Material terrainMaterial)
         {
             var buildStopwatch = Stopwatch.StartNew();
-            var terrainSource = await GeneratedTerrainSource.CreateAsync(terrainMeta, terrainHash);
+            var terrainSource = await GeneratedTerrainSource.CreateAsync(terrainMeta, terrainHash, mapObjects);
             var terrainsByTileCoordinate = new Dictionary<Vector2Int, UnityEngine.Terrain>();
             var visualCacheHitCount = 0;
 

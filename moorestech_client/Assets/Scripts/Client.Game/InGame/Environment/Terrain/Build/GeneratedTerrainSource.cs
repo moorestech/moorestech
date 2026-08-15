@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Client.Game.InGame.Environment.Terrain.Build.Placement;
 using Client.Game.InGame.Environment.Terrain.Visual.Cache;
 using Client.Game.InGame.Environment.Terrain.Visual.Source;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
@@ -10,29 +12,33 @@ using Game.MapGeneration.Pipeline.Runtime;
 using Game.MapGeneration.Pipeline.Stages;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
+using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Build
 {
     /// <summary>
     ///     生成ワールドの地形をタイル単位で組み立てる素材一式。マスタ由来の設定とアセットは全タイルで共有し、
-    ///     タイルごとに変わるのは転送バイナリだけという構造をそのまま形にしたもの
-    ///     The material set building a generated world's terrain tile by tile; master-derived config and assets are
-    ///     shared across tiles, mirroring that only the transferred binaries differ per tile
+    ///     タイルごとに変わるのは転送バイナリ・ノイズ窓・そのタイルに立つmapObjectだけという構造をそのまま形にしたもの
+    ///     The material set building a generated world's terrain tile by tile; master-derived config and assets are shared
+    ///     across tiles, mirroring that only the binaries, the noise window and the tile's own map objects differ
     /// </summary>
     public class GeneratedTerrainSource
     {
-        // 移植元と同じパッチ解像度。SetDetailResolutionの第2引数で描画パッチの粒度を決める
-        // The source's patch resolution; SetDetailResolution's second argument sets the render patch granularity
-        private const int DetailResolutionPerPatch = 16;
-
         private readonly BiomeType[] _biomeTypes;
-        private readonly TerrainGenerationConfig _config;
         private readonly SplatLayerTable _layerTable;
         private readonly TerrainLayer[] _terrainLayers;
         private readonly TerrainVisualCache _visualCache;
         private readonly BiomeVisualSections _visualSections;
         private readonly WorldDataDirectory _worldCacheDirectory;
+
+        // ノイズ窓の原点をindex(0,0)タイルに合わせたConfig。他のタイルはここからタイル座標ぶんずらして作る
+        // The config whose noise window origin sits on the index (0,0) tile; every other tile shifts off it by its tile coordinate
+        private readonly TerrainGenerationConfig _config;
+
+        // シーン絶対座標のまま全タイルぶんを持つ。切り出しはタイル毎にTileMapObjectSlicerが行う
+        // Held whole in scene-absolute coordinates; TileMapObjectSlicer carves out each tile's share
+        private readonly IReadOnlyList<MapObjectLayoutMessagePack> _mapObjects;
 
         // 地形をシーンへ置く原点。config.worldOffsetはノイズ窓の原点なので設置には使えない
         // Scene origin the terrain is placed at; config.worldOffset is the noise window origin and cannot serve as a position
@@ -41,10 +47,11 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         private GeneratedTerrainSource(
             TerrainGenerationConfig config, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
             SplatLayerTable layerTable, TerrainLayer[] terrainLayers, WorldDataDirectory worldCacheDirectory,
-            Vector2 sceneOrigin, TerrainVisualCache visualCache)
+            Vector2 sceneOrigin, IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, TerrainVisualCache visualCache)
         {
             _visualCache = visualCache;
             _sceneOrigin = sceneOrigin;
+            _mapObjects = mapObjects;
             _config = config;
             _biomeTypes = biomeTypes;
             _visualSections = visualSections;
@@ -53,7 +60,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             _worldCacheDirectory = worldCacheDirectory;
         }
 
-        public static async UniTask<GeneratedTerrainSource> CreateAsync(TerrainTransferMeta terrainMeta, string terrainHash)
+        public static async UniTask<GeneratedTerrainSource> CreateAsync(
+            TerrainTransferMeta terrainMeta, string terrainHash, IReadOnlyList<MapObjectLayoutMessagePack> mapObjects)
         {
             // 生成時と同じ手順でConfigを組み直す。seedとノイズ窓原点はworld.json由来の値をワイヤで受け取っている
             // Rebuild the config exactly as generation did; the seed and noise window origin arrive over the wire from world.json
@@ -84,14 +92,16 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             var worldCacheDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(terrainMeta.WorldId));
 
-            // 見た目はマスタ・地形バイナリ・ノイズ窓原点・seedの派生物。その4つを畳んだキーで前回の結果を引き当てる
-            // The visuals derive from the master, the terrain binaries, the noise window origin, and the seed; a key folding those four finds the previous result
+            // 見た目はマスタ・地形バイナリ・ノイズ窓原点・seed・mapObject配置の派生物。その5つを畳んだキーで前回の結果を引き当てる
+            // The visuals derive from the master, the terrain binaries, the noise window origin, the seed and the map object layout; a key folding those five finds the previous result
             var visualCache = new TerrainVisualCache(worldCacheDirectory, TerrainVisualCacheKey.Compute(
                 MasterHolder.GenerationMaster.SourceJsonText, terrainHash,
-                new Vector2(config.worldOffsetX, config.worldOffsetZ), config.seed));
+                new Vector2(config.worldOffsetX, config.worldOffsetZ), config.seed,
+                MapObjectsDigest.Compute(mapObjects)));
 
             return new GeneratedTerrainSource(
-                config, biomeTypes, visualSections, layerTable, terrainLayers, worldCacheDirectory, sceneOrigin, visualCache);
+                config, biomeTypes, visualSections, layerTable, terrainLayers, worldCacheDirectory, sceneOrigin,
+                mapObjects, visualCache);
         }
 
         // タイルはシーン原点を起点に地形1枚ぶんずつ並ぶ。MapObjects/MapVeinsも同じ原点で配られる
@@ -108,9 +118,22 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         public async UniTask<(TerrainData TerrainData, bool VisualCacheHit)> CreateTerrainDataAsync(int tileX, int tileZ)
         {
             var resolution = _config.Resolution;
-            var heights = TerrainFileLoader.LoadHeights(_worldCacheDirectory, tileX, tileZ, resolution);
+
+            // 転送された高さは木の摂動前が正本（R12）。splatとdetail密度はこの値を読み、表示だけが摂動後を使う
+            // The transferred heights are pre-tree by definition (R12): splat and detail density read them and only the display uses the perturbed ones
+            var preHeights = TerrainFileLoader.LoadHeights(_worldCacheDirectory, tileX, tileZ, resolution);
             var transferredBiomeIndices = TerrainFileLoader.LoadBiomeIndices(_worldCacheDirectory, tileX, tileZ, resolution);
             var detailPrototypes = TerrainDetailPrototypeList.Build(_biomeTypes, _visualSections);
+
+            // サーバーのタイルループと同形にずらす。窓が1枚ぶんずれないと全25タイルが同じ地形として分類される
+            // Shifted exactly as the server's tile loop does; without the per-tile shift all 25 tiles classify as the same terrain
+            var tileConfig = _config.ShallowCopy();
+            tileConfig.worldOffsetX = _config.worldOffsetX + tileX * _config.terrainWidth;
+            tileConfig.worldOffsetZ = _config.worldOffsetZ + tileZ * _config.terrainLength;
+
+            var tileObjects = TileMapObjectSlicer.Slice(
+                _mapObjects, TileWorldPosition(tileX, tileZ), _config.terrainWidth, _config.terrainLength);
+            var postHeights = TreePerturbationApplier.Apply(preHeights, tileConfig, tileObjects);
 
             // detailの解像度とプロトタイプ数を先に固定する。ヒット後に数違いで落とさず、Readerで壊れた取り逃しにする
             // Fix detail resolution and prototype count before loading so a mismatch becomes a broken miss in the Reader, never a post-hit failure
@@ -119,19 +142,14 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 out var tileVisual);
             if (!visualCacheHit) tileVisual = RebuildAndCacheVisual();
 
-            var alphamap = tileVisual.Alphamap;
-            var detailMaps = tileVisual.DetailMaps;
-
             // 密度マップはプロトタイプと1対1。数が食い違ったまま流すとSetDetailLayerが別の草を描く
             // Density maps pair one-to-one with prototypes; letting a mismatched count through would make SetDetailLayer draw the wrong plant
-            if (detailPrototypes.Count != detailMaps.Count)
+            if (detailPrototypes.Count != tileVisual.DetailMaps.Count)
                 throw new InvalidOperationException(
-                    $"[GeneratedTerrainSource] Tile ({tileX}, {tileZ}) has {detailMaps.Count} detail maps for {detailPrototypes.Count} prototypes.");
+                    $"[GeneratedTerrainSource] Tile ({tileX}, {tileZ}) has {tileVisual.DetailMaps.Count} detail maps for {detailPrototypes.Count} prototypes.");
 
-            var terrainData = new TerrainData();
-            ApplyHeightmap();
-            await ApplySplatmapAsync();
-            ApplyDetail();
+            var terrainData = await TerrainDataAssembler.AssembleAsync(
+                tileConfig, postHeights, tileVisual, detailPrototypes, _terrainLayers);
             return (terrainData, visualCacheHit);
 
             #region Internal
@@ -141,45 +159,15 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             TerrainTileVisual RebuildAndCacheVisual()
             {
                 var rebuiltAlphamap = SplatmapRuntimeGenerator.Generate(
-                    _config, _biomeTypes, _layerTable, _visualSections.TextureConfigs, _visualSections.MainLayerAddresses,
-                    heights, transferredBiomeIndices, _config.AlphamapResolution);
+                    tileConfig, _biomeTypes, _layerTable, _visualSections.TextureConfigs, _visualSections.MainLayerAddresses,
+                    preHeights, transferredBiomeIndices, _config.AlphamapResolution);
                 var rebuiltDetailMaps = TerrainDetailBuilder.Build(
-                    _config, _biomeTypes, _visualSections, heights, transferredBiomeIndices, rebuiltAlphamap, _terrainLayers);
+                    tileConfig, _biomeTypes, _visualSections, preHeights, postHeights, transferredBiomeIndices,
+                    rebuiltAlphamap, _terrainLayers);
 
                 var rebuiltVisual = new TerrainTileVisual(rebuiltAlphamap, rebuiltDetailMaps);
                 _visualCache.Save(tileX, tileZ, rebuiltVisual);
                 return rebuiltVisual;
-            }
-
-            // heightmapResolutionを先に入れる。後から変えるとsizeもSetHeightsの結果も作り直される
-            // heightmapResolution comes first: changing it afterwards rebuilds both size and the SetHeights result
-            void ApplyHeightmap()
-            {
-                terrainData.heightmapResolution = resolution;
-                terrainData.size = new Vector3(_config.terrainWidth, _config.terrainHeight, _config.terrainLength);
-                terrainData.SetHeights(0, 0, heights);
-            }
-
-            async UniTask ApplySplatmapAsync()
-            {
-                terrainData.alphamapResolution = alphamap.GetLength(0);
-                terrainData.terrainLayers = _terrainLayers;
-                await TerrainAlphamapApplier.ApplyAsync(terrainData, alphamap);
-            }
-
-            void ApplyDetail()
-            {
-                if (detailPrototypes.Count == 0) return;
-
-                terrainData.SetDetailResolution(detailMaps[0].GetLength(0), DetailResolutionPerPatch);
-
-                // CoverageModeではメッシュDetailが描画されないことがあるため移植元と同じくInstanceCountModeにする
-                // CoverageMode can leave mesh details undrawn, so InstanceCountMode is used as in the source
-                terrainData.SetDetailScatterMode(DetailScatterMode.InstanceCountMode);
-                terrainData.detailPrototypes = detailPrototypes.ToArray();
-
-                for (var layerIndex = 0; layerIndex < detailMaps.Count; layerIndex++)
-                    terrainData.SetDetailLayer(0, 0, layerIndex, detailMaps[layerIndex]);
             }
 
             #endregion

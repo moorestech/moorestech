@@ -11,7 +11,10 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
         // "MTVC" = Moorestech Terrain Visual Cache。別形式のファイルを誤読しないための識別子
         // "MTVC" = Moorestech Terrain Visual Cache; the identifier keeping a foreign file from being misread
         public const int MagicNumber = 0x4D545643;
-        public const int FormatVersion = 2;
+
+        // 3で高さの意味が摂動前(R12)へ変わり、splat/detailがmapObjectに依存するようになった。据え置くと古い意味の見た目が復活する
+        // Version 3 moved the heights' meaning to pre-tree (R12) and made splat/detail depend on the map objects; holding it back would revive the old meaning's visuals
+        public const int FormatVersion = 3;
 
         // キーはSHA256の16進64文字固定。可変長にすると壊れたファイルで読み出し長が暴れる
         // The key is a fixed 64-char SHA256 hex; a variable length would let a broken file dictate how much is read

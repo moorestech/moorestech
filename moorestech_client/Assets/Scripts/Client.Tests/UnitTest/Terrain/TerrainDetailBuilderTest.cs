@@ -41,7 +41,8 @@ namespace Client.Tests.UnitTest.Terrain
             // empty lists and the output stays identical, so the name is scoped to what this actually pins
             var visualSections = CreateVisualSections();
             var maps = TerrainDetailBuilder.Build(
-                CreateConfig(), BiomeTypes, visualSections, CreateHeights(), CreateBiomeIndices(), null, null);
+                CreateConfig(), BiomeTypes, visualSections, CreateHeights(), CreateHeights(),
+                CreateBiomeIndices(), null, null);
             var prototypes = TerrainDetailPrototypeList.Build(BiomeTypes, visualSections);
 
             Assert.That(prototypes.Count, Is.EqualTo(2));
@@ -68,7 +69,8 @@ namespace Client.Tests.UnitTest.Terrain
             var slipped = GenerateDirectly(Seed + DetailSeedBase + 0 * DetailSeedStridePerBiome);
 
             var maps = TerrainDetailBuilder.Build(
-                CreateConfig(), BiomeTypes, CreateVisualSections(), CreateHeights(), CreateBiomeIndices(), null, null);
+                CreateConfig(), BiomeTypes, CreateVisualSections(), CreateHeights(), CreateHeights(),
+                CreateBiomeIndices(), null, null);
 
             Assert.That(AreEqual(maps[0], expected), Is.True, "添字1のseedで生成されている");
 
