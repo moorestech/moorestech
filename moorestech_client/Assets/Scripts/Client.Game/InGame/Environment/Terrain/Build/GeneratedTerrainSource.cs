@@ -132,9 +132,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             tileConfig.worldOffsetZ = _config.worldOffsetZ + tileZ * _config.terrainLength;
 
             var tileWorldPosition = TileWorldPosition(tileX, tileZ);
-            var tileObjects = TileMapObjectSlicer.Slice(
-                _mapObjects, tileWorldPosition, _config.terrainWidth, _config.terrainLength);
-            var postHeights = TreePerturbationApplier.Apply(preHeights, tileConfig, tileObjects);
+            var postHeights = TreePerturbationApplier.Apply(
+                preHeights, tileConfig, tileWorldPosition, _mapObjects);
 
             var (tileVisual, visualCacheHit) = _tileVisualProvider.Resolve(
                 tileX, tileZ, tileConfig, tileWorldPosition, preHeights, postHeights);

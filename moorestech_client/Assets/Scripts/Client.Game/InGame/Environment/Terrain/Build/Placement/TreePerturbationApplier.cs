@@ -17,9 +17,11 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
     {
         // 入力は書き換えない。摂動前の高さはsplatとdetail密度がこの後も読むため、写してから足す
         // The input is never mutated: splat and detail density read the pre-tree heights afterwards, so the sum lands in a copy
+        // 切り出しもここが持つ。到達半径を導くguidマップと同じ場所に置かないと、呼び出し側が窓を狭めても誰も気付けない
+        // The slice lives here too: away from the guid map the reach is derived from, a caller narrowing the window would go unnoticed
         public static float[,] Apply(
             float[,] preHeights, TerrainGenerationConfig tileConfig,
-            IReadOnlyList<MapObjectLayoutMessagePack> tileLocalObjects)
+            Vector3 tileWorldPosition, IReadOnlyList<MapObjectLayoutMessagePack> mapObjects)
         {
             var resolution = tileConfig.Resolution;
             var flatHeights = new float[resolution * resolution];
@@ -32,6 +34,13 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
             var helper = new BiomePlacementHelper(tileConfig);
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(tileConfig);
             var guidModMap = TreeHeightModifier.BuildGuidModMap(helper, biomeTypes);
+
+            // 摂動はタイル境界の外の木からも届く。等倍で切り出すと片側の辺だけが持ち上がり、境界に縦の崖が立つ
+            // The perturbation reaches in from trees past the tile boundary; a plain slice lifts one edge only and stands a cliff along the seam
+            var halo = TreeHeightModifier.MaxReach(tileConfig, guidModMap);
+            var tileLocalObjects = TileMapObjectSlicer.SliceWithHalo(
+                mapObjects, tileWorldPosition, tileConfig.terrainWidth, tileConfig.terrainLength, halo);
+
             TreeHeightModifier.Apply(
                 flatHeights, resolution, tileConfig, ToPlacementEntries(tileLocalObjects), guidModMap);
 
@@ -43,8 +52,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
             return postHeights;
         }
 
-        // WorldPositionはタイルローカル。TreeHeightModifierがタイル寸法で割って格子へ写すため、シーン絶対座標では格子外を指す
-        // WorldPosition is tile-local: TreeHeightModifier divides it by the tile size, so a scene-absolute value lands off the lattice
+        // WorldPositionはタイルローカル。halo内のタイル外の木は負値やtileWidth超で入り、TreeHeightModifierが格子外の画素を捨てる
+        // WorldPosition is tile-local; trees inside the halo but outside the tile arrive negative or past tileWidth and TreeHeightModifier drops the off-lattice pixels
         private static List<PlacementEntry> ToPlacementEntries(IReadOnlyList<MapObjectLayoutMessagePack> tileLocalObjects)
         {
             var entries = new List<PlacementEntry>(tileLocalObjects.Count);

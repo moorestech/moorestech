@@ -158,8 +158,8 @@ namespace Client.Tests.UnitTest.Terrain.Placement
         [Test]
         public void FallsBackToTheBareHalfOpenWindowAtZeroHalo()
         {
-            // halo=0はSliceと同一の窓。ここがずれると距離場を足しただけで配置側の境界も動く
-            // A zero halo reproduces Slice exactly; a discrepancy here would shift the placement boundary merely by adding distance fields
+            // halo=0は素の半開区間そのもの。ここがずれると距離場を足しただけで配置側の境界も動く
+            // A zero halo is the bare half-open interval itself; a discrepancy here would shift the placement boundary merely by adding distance fields
             var onLowerEdge = CreateMapObject(1, TilePosition.x, 0f, TilePosition.z);
             var onUpperEdge = CreateMapObject(2, TilePosition.x + TileSize, 0f, TilePosition.z);
 
@@ -169,7 +169,7 @@ namespace Client.Tests.UnitTest.Terrain.Placement
 
         private static List<MapObjectLayoutMessagePack> Slice(params MapObjectLayoutMessagePack[] mapObjects)
         {
-            return TileMapObjectSlicer.Slice(mapObjects, TilePosition, TileSize, TileSize);
+            return TileMapObjectSlicer.SliceWithHalo(mapObjects, TilePosition, TileSize, TileSize, 0f);
         }
 
         private static List<MapObjectLayoutMessagePack> SliceWithHalo(float halo, params MapObjectLayoutMessagePack[] mapObjects)

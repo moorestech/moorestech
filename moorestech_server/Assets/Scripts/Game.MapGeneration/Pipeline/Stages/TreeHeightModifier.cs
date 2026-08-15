@@ -36,6 +36,34 @@ namespace Game.MapGeneration.Pipeline.Stages
             return map;
         }
 
+        // 摂動が格子へ届く最大距離。隣タイルの木もここまで効くので、切り出しhaloがこれを下回ると境界の片側だけが持ち上がる。
+        // Apply の丸めと同値の上界: 中心は RoundToInt で半画素まで格子側へ寄り、そこから radiusPixels 画素ぶん届く。
+        // The farthest the perturbation reaches onto the lattice; a neighbouring tile's trees reach this far too, so a
+        // smaller slice halo lifts only one side of the seam. It is Apply's own rounding bound: RoundToInt pulls the
+        // centre up to half a pixel towards the lattice and the falloff then spans radiusPixels pixels from there.
+        public static float MaxReach(
+            TerrainGenerationConfig config, Dictionary<string, (float amount, float width)> guidModMap)
+        {
+            // 幅の最大は amount が効く樹種だけから採る。足切りを Apply と揃えないと、塗らない樹種のせいでhaloが広がる。
+            // The widest width comes only from species whose amount lands, sharing Apply's cutoff so a no-op species cannot widen the halo.
+            var maxModWidth = 0f;
+            foreach (var mod in guidModMap.Values)
+            {
+                if (Mathf.Approximately(mod.amount, 0f)) continue;
+                maxModWidth = Mathf.Max(maxModWidth, mod.width);
+            }
+
+            if (maxModWidth <= 0f) return 0f;
+
+            // radiusPixels は Apply と同じく terrainWidth だけで割る。届く実距離は縦横の広いほうの画素間隔で決まる。
+            // radiusPixels divides by terrainWidth exactly as Apply does; the reach in metres follows the coarser of the two pixel pitches.
+            var radiusPixels = maxModWidth / config.terrainWidth * (config.Resolution - 1);
+            var pixelPitch = Mathf.Max(
+                config.terrainWidth / (config.Resolution - 1), config.terrainLength / (config.Resolution - 1));
+
+            return (radiusPixels + 0.5f) * pixelPitch;
+        }
+
         // 各配置木の guid から heightMod パラメータを引き、ガウシアンフォールオフで heights[] を加算する。
         // ガウシアン式は元実装と完全一致（sigma=radiusPixels/3, falloff=exp(-d^2/(2 sigma^2))）。
         // Look up heightMod params per placed tree by guid and add a Gaussian falloff to heights[].

@@ -2,6 +2,7 @@ using Client.Game.InGame.Environment.Terrain.Build.Placement;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.MapData;
+using UnityEngine;
 
 namespace Client.Tests.UnitTest.Terrain.Placement
 {
@@ -30,11 +31,15 @@ namespace Client.Tests.UnitTest.Terrain.Placement
         // Directly over the center pixel [2, 2]; a coordinate landing exactly on the lattice keeps rounding out of the assertions
         private const float CenterLocalPosition = 50f;
 
+        // 境界の37m先。導出halo 52.5m には収まり、その半分の26.25mには収まらない。丸めで格子座標-1.48→-1へ寄り共有辺へ1画素で届く
+        // 37m past the seam: inside the derived 52.5m halo and outside half of it, and rounding -1.48 to -1 leaves it one pixel from the shared edge
+        private const float BeyondSeamOffset = 37f;
+
         [Test]
         public void RaisesTheHeightUnderATreeByItsHeightModAmount()
         {
             var postHeights = TreePerturbationApplier.Apply(
-                CreateFlatHeights(), CreateConfig(), new[] { CreateMapObject(TreeGuid, CenterLocalPosition) });
+                CreateFlatHeights(), CreateConfig(), Vector3.zero, new[] { CreateMapObject(TreeGuid, CenterLocalPosition, CenterLocalPosition) });
 
             // 中心は減衰1.0なので heightModAmount/terrainHeight がそのまま乗る
             // The falloff is 1.0 at the center, so heightModAmount/terrainHeight lands unattenuated
@@ -45,7 +50,7 @@ namespace Client.Tests.UnitTest.Terrain.Placement
         public void FadesTheModificationOutWithDistanceAndStopsAtTheRadius()
         {
             var postHeights = TreePerturbationApplier.Apply(
-                CreateFlatHeights(), CreateConfig(), new[] { CreateMapObject(TreeGuid, CenterLocalPosition) });
+                CreateFlatHeights(), CreateConfig(), Vector3.zero, new[] { CreateMapObject(TreeGuid, CenterLocalPosition, CenterLocalPosition) });
 
             // 隣接画素は持ち上がるが中心には届かない。定数を丸ごと足しているだけの実装をここで落とす
             // The neighbour rises without reaching the center, failing an implementation that merely adds a constant
@@ -66,7 +71,7 @@ namespace Client.Tests.UnitTest.Terrain.Placement
             var preHeights = CreateFlatHeights();
 
             var postHeights = TreePerturbationApplier.Apply(
-                preHeights, CreateConfig(), new[] { CreateMapObject(TreeGuid, CenterLocalPosition) });
+                preHeights, CreateConfig(), Vector3.zero, new[] { CreateMapObject(TreeGuid, CenterLocalPosition, CenterLocalPosition) });
 
             Assert.That(preHeights[2, 2], Is.EqualTo(FlatHeight).Within(1e-6f));
             Assert.That(postHeights, Is.Not.SameAs(preHeights));
@@ -78,28 +83,52 @@ namespace Client.Tests.UnitTest.Terrain.Placement
             // 岩・鉱脈も同じMapObjects配列で届く。木だけを選り分けないと岩の周りの地面が盛り上がる
             // Rocks and veins arrive in the same MapObjects array; without sorting trees out, the ground swells around rocks
             var postHeights = TreePerturbationApplier.Apply(
-                CreateFlatHeights(), CreateConfig(), new[] { CreateMapObject(RockGuid, CenterLocalPosition) });
+                CreateFlatHeights(), CreateConfig(), Vector3.zero, new[] { CreateMapObject(RockGuid, CenterLocalPosition, CenterLocalPosition) });
 
             Assert.That(postHeights[2, 2], Is.EqualTo(FlatHeight).Within(1e-6f));
         }
 
         [Test]
-        public void ReadsThePositionAsTileLocalRatherThanSceneAbsolute()
+        public void RebasesTheSceneAbsolutePositionOntoTheTileOrigin()
         {
-            // シーン絶対座標のまま渡すと格子外を指して無反応になる。この差はタイル外周でしか現れず気付きにくい
-            // A scene-absolute coordinate points off the lattice and does nothing; the difference only shows at tile edges
-            var sceneAbsolute = CenterLocalPosition + 2f * TerrainSize;
+            // MapObjectsはシーン絶対座標で届く。タイル原点を引かずに格子へ写すと、原点以外のタイルが全て無反応になる
+            // MapObjects arrive scene-absolute; mapping them onto the lattice without subtracting the tile origin leaves every tile but the first inert
+            var tileWorldPosition = new Vector3(2f * TerrainSize, 0f, 3f * TerrainSize);
+            var sceneAbsoluteTree = CreateMapObject(
+                TreeGuid, tileWorldPosition.x + CenterLocalPosition, tileWorldPosition.z + CenterLocalPosition);
 
             var postHeights = TreePerturbationApplier.Apply(
-                CreateFlatHeights(), CreateConfig(), new[] { CreateMapObject(TreeGuid, sceneAbsolute) });
+                CreateFlatHeights(), CreateConfig(), tileWorldPosition, new[] { sceneAbsoluteTree });
 
-            Assert.That(postHeights[2, 2], Is.EqualTo(FlatHeight).Within(1e-6f));
+            Assert.That(postHeights[2, 2], Is.EqualTo(FlatHeight + HeightModAmount / TerrainHeight).Within(1e-5f));
         }
 
-        private static MapObjectLayoutMessagePack CreateMapObject(string mapObjectGuid, float localPosition)
+        [Test]
+        public void MatchesTheSharedEdgeOfTwoTilesForATreeSittingBeyondTheSeam()
+        {
+            // 隣タイルにしか居ない木。等倍で切り出すと片側の辺だけが持ち上がり、共有辺に縦の崖が立つ（実測 最悪14.1m）
+            // A tree living only in the neighbour; a plain slice lifts one edge alone and stands a cliff on the shared edge (14.1m at worst, measured)
+            var beyondSeamTree = CreateMapObject(TreeGuid, TerrainSize + BeyondSeamOffset, CenterLocalPosition);
+
+            var originTile = TreePerturbationApplier.Apply(
+                CreateFlatHeights(), CreateConfig(), Vector3.zero, new[] { beyondSeamTree });
+            var neighbourTile = TreePerturbationApplier.Apply(
+                CreateFlatHeights(), CreateConfig(), new Vector3(TerrainSize, 0f, 0f), new[] { beyondSeamTree });
+
+            // 原点タイルの右端列と隣タイルの左端列は同じワールド点。全行の一致が高さの連続性そのもの
+            // The origin tile's rightmost column and the neighbour's leftmost column are the same world points; agreeing on every row is the height continuity itself
+            for (var z = 0; z < Resolution; z++)
+                Assert.That(originTile[z, Resolution - 1], Is.EqualTo(neighbourTile[z, 0]).Within(1e-6f), $"row {z}");
+
+            // 両側とも平らなまま一致する退化を落とす。摂動がそもそも共有辺へ届いていなければ比較に意味がない
+            // Rejects the degenerate agreement of two flat columns; the comparison is meaningless unless the perturbation reaches the shared edge at all
+            Assert.That(originTile[2, Resolution - 1], Is.GreaterThan(FlatHeight + 1e-4f));
+        }
+
+        private static MapObjectLayoutMessagePack CreateMapObject(string mapObjectGuid, float sceneX, float sceneZ)
         {
             return new MapObjectLayoutMessagePack(
-                1, mapObjectGuid, localPosition, 0f, localPosition,
+                1, mapObjectGuid, sceneX, 0f, sceneZ,
                 1f, 1f, 1f, -1, 0f, 0f);
         }
 

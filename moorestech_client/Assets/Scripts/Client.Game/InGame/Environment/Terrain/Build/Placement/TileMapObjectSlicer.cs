@@ -12,19 +12,12 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
     /// </summary>
     public static class TileMapObjectSlicer
     {
-        // 区間は半開[tile, tile+size)。閉区間にすると境界上の1本が両隣のタイルで二重に効く
-        // The interval is half-open [tile, tile+size); a closed one would let a boundary object act on both neighbouring tiles
-        public static List<MapObjectLayoutMessagePack> Slice(
-            IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition,
-            float tileWidth, float tileLength)
-        {
-            return SliceWithHalo(mapObjects, tileWorldPosition, tileWidth, tileLength, 0f);
-        }
-
-        // 距離場専用の広い窓。半開区間のままだと境界の外の木が消え、境界に沿って距離フィルタの効き方が変わる帯ができる
-        // The wider window distance fields need; the bare half-open one drops trees just outside and bands the filter's effect along the seam
-        // haloは距離フィルタの探索半径。タイル外の点はローカル座標で負値やtileWidth超になり、SpatialGridが端セルへ寄せて真の距離で測る
-        // The halo is the filters' search radius; out-of-tile points go negative or past tileWidth and SpatialGrid folds them into the edge cells at true distance
+        // 基本の窓は半開[tile, tile+size)。閉区間にすると境界上の1本が両隣のタイルで二重に効く
+        // The base window is half-open [tile, tile+size); a closed one would let a boundary object act on both neighbouring tiles
+        // haloはその外側へ広げる幅。境界の外の木が消えると、境界に沿って効き方が変わる帯や高さの段差ができる
+        // The halo widens it outwards; dropping the trees just outside bands the effect along the seam or steps the height there
+        // halo内のタイル外の点はローカル座標で負値やtileWidth超になる。受け手はその座標のまま真の距離で測る責任を持つ
+        // Points inside the halo but outside the tile go negative or past tileWidth in local coordinates, and the receiver must measure true distances from them as they are
         public static List<MapObjectLayoutMessagePack> SliceWithHalo(
             IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition,
             float tileWidth, float tileLength, float halo)
