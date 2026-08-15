@@ -8,9 +8,9 @@ using UnityEngine;
 namespace Client.Game.InGame.Environment.Terrain.Build.Placement
 {
     /// <summary>
-    ///     タイルローカルのMapObjectsを木の点群と岩の点群へ分ける。Detailの距離フィルタは両者を別の距離場として読むため、
+    ///     halo込みでタイルローカル化されたMapObjectsを木の点群と岩の点群へ分ける。Detailの距離フィルタは両者を別の距離場として読むため、
     ///     混ざると岩の周りの草だけが木と同じ規則で消える
-    ///     Splits the tile-local MapObjects into tree points and rock points; the detail distance filters read the two as
+    ///     Splits the halo-inclusive tile-local MapObjects into tree points and rock points; the detail distance filters read the two as
     ///     separate fields, so mixing them clears the grass around rocks by the trees' rule
     /// </summary>
     public static class MapObjectPointSplitter
@@ -18,13 +18,13 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
         // 木か岩かはマスタのsoundEffectTypeが正本。転送レイアウトは種別を持たずGUIDだけを運ぶ
         // The master's soundEffectType is the source of truth; the transferred layout carries only a GUID, never a kind
         public static void Split(
-            IReadOnlyList<MapObjectLayoutMessagePack> tileObjects,
+            IReadOnlyList<MapObjectLayoutMessagePack> haloObjects,
             out List<Vector2> treePoints, out List<Vector2> objectPoints)
         {
             treePoints = new List<Vector2>();
             objectPoints = new List<Vector2>();
 
-            foreach (var mapObject in tileObjects)
+            foreach (var mapObject in haloObjects)
             {
                 var masterElement = MasterHolder.MapObjectMaster.GetMapObjectElement(new Guid(mapObject.MapObjectGuid));
                 var point = new Vector2(mapObject.X, mapObject.Z);

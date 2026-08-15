@@ -103,10 +103,29 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             // The resolution equals the alphamap's, which matches the detail resolution so DetailDensitySampler indexes it directly
             float[,] GenerateDistanceMap(SpatialGrid grid, float maxSearchRadius)
             {
+                // 半径0はフィルタ自体が無効。誰も読まないのでnullを返す（移植元TerrainGenerator.cs:1276と同じ分岐）
+                // A zero radius means the filter itself is off; nothing reads the map so null is returned (source TerrainGenerator.cs:1276)
                 if (maxSearchRadius <= 0f) return null;
+
+                // 点群が空でもSdfMapGeneratorのnullは素通ししない。距離フィルタが休んで木ゼロのタイルだけ草が生え放題になる
+                // An empty point set must not pass SdfMapGenerator's null through; the filter would idle and flood tree-free tiles with grass
+                if (grid.Count == 0) return CreateSaturatedDistanceMap(maxSearchRadius);
 
                 return SdfMapGenerator.Generate(
                     grid, config.AlphamapResolution, config.terrainWidth, config.terrainLength, maxSearchRadius);
+            }
+
+            // 最寄りの点が探索半径の外にあるときSpatialGrid.FindMinDistanceが返す値で全画素を埋める。点群が空な状況の真値
+            // Fills every pixel with what SpatialGrid.FindMinDistance returns when the nearest point lies past the search radius: the true value for an empty set
+            float[,] CreateSaturatedDistanceMap(float maxSearchRadius)
+            {
+                var resolution = config.AlphamapResolution;
+                var map = new float[resolution, resolution];
+                for (var z = 0; z < resolution; z++)
+                for (var x = 0; x < resolution; x++)
+                    map[z, x] = maxSearchRadius;
+
+                return map;
             }
 
             #endregion
