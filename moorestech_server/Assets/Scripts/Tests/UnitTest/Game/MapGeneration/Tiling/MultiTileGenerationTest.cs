@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.MapGeneration.Pipeline;
+using Game.MapGeneration.Pipeline.Runtime;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -43,6 +45,18 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
                 Assert.AreEqual(config.Resolution * config.Resolution, tile.Heights.Length);
                 Assert.AreEqual(config.Resolution * config.Resolution, tile.BiomeIndices.Length);
             }
+        }
+
+        // 転送層のEnumerateTileCoordinatesは正方格子前提。非正方はindexとcoordの対応が崩れるので生成側で先に弾く
+        // The transfer layer's EnumerateTileCoordinates assumes a square grid; the generator rejects a non-square one before it can break the index-to-coord mapping
+        [Test]
+        public void 正方形でないグリッド設定は例外で拒否される()
+        {
+            var generation = TestGenerationConfigFactory.CreateSmall();
+            var config = GenerationRuntimeConfigFactory.Build(generation);
+            config.gridSizeX = 2;
+            config.gridSizeZ = 3;
+            Assert.Throws<InvalidOperationException>(() => new VanillaGenerator().Generate(config));
         }
 
         [Test]

@@ -73,13 +73,13 @@ namespace Tests.UnitTest.Game.MapGeneration
         {
             var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
             var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
-            Assert.AreEqual(1, terrainMeta.TerrainTileCount);
 
-            var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(new[]
-            {
-                worldDataDirectory.TerrainHeightFilePath(0, 0),
-                worldDataDirectory.TerrainBiomeFilePath(0, 0),
-            });
+            // ForUnitTestModのgridSizeX/Z=5(生成タイル数はWorldProvisionerが実出力から書く)なのでタイル数は直書きしない
+            // ForUnitTestMod's gridSizeX/Z=5 (WorldProvisioner writes the actual output count), so the tile count is never hardcoded here
+            Assert.Greater(terrainMeta.TerrainTileCount, 1);
+
+            var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(
+                TerrainTransferMeta.EnumerateStreamFilePaths(worldDataDirectory, terrainMeta.TerrainTileCount).ToList());
             var restoredStreamBytes = Enumerable.Range(0, terrainMeta.TerrainChunkTotal)
                 .SelectMany(chunkIndex => TerrainTransferTestScope.DecompressChunk(TerrainChunkReader.Read(worldDataDirectory, chunkIndex))).ToArray();
 
@@ -153,7 +153,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var worldMeta = new WorldMetaJson
             {
                 Seed = 1,
-                GeneratorVersion = "1.0.0",
+                GeneratorVersion = WorldProvisioner.GeneratorVersion,
                 Algorithm = "test",
                 MapMode = WorldProvisioner.GeneratedMapMode,
                 CreatedAt = DateTime.UtcNow.ToString("O"),

@@ -21,11 +21,13 @@ namespace Game.MapGeneration.Pipeline
             // Work on a copy since the search result is written back; mutating the argument would make a re-run differ.
             var config = sourceConfig.ShallowCopy();
 
-            // 転送層のタイル並びは正方格子前提。非正方だと index と coord の対応が崩れ、別タイルの地形を配ることになる。
-            // The transfer layer's tile order assumes a square grid; a non-square one breaks the index-to-coord mapping and ships the wrong terrain.
-            if (config.gridSizeX != config.gridSizeZ)
+            // 転送層のタイル並びは正方かつ1枚以上の格子前提。非正方は index と coord の対応が崩れ、0以下は
+            // EnumerateTileCoordinates の完全平方判定を素通りしてチャンク0本のワイヤ値になる(TerrainTransferMeta参照)。
+            // The transfer layer's tile order assumes a square, non-empty grid; a non-square one breaks the index-to-coord
+            // mapping, and a non-positive one slips past EnumerateTileCoordinates' perfect-square check into a zero-chunk wire value (see TerrainTransferMeta).
+            if (config.gridSizeX != config.gridSizeZ || config.gridSizeX <= 0)
                 throw new InvalidOperationException(
-                    $"[VanillaGenerator] gridSizeX ({config.gridSizeX}) and gridSizeZ ({config.gridSizeZ}) must match.");
+                    $"[VanillaGenerator] gridSizeX ({config.gridSizeX}) and gridSizeZ ({config.gridSizeZ}) must be equal and positive.");
 
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);
 

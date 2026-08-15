@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
 using MessagePack;
 using NUnit.Framework;
@@ -41,7 +43,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             var packetResponseCreator = CreatePacketResponseCreator(worldDataDirectory);
 
             var layoutResponse = RequestLayout(packetResponseCreator);
-            Assert.AreEqual(1, layoutResponse.TerrainMeta.TerrainTileCount);
+
+            // ForUnitTestModのgridSizeX/Z=5(生成タイル数はWorldProvisionerが実出力から書く)なのでタイル数は直書きしない
+            // ForUnitTestMod's gridSizeX/Z=5 (WorldProvisioner writes the actual output count), so the tile count is never hardcoded here
+            Assert.Greater(layoutResponse.TerrainMeta.TerrainTileCount, 1);
             Assert.Greater(layoutResponse.TerrainMeta.TerrainChunkTotal, 0);
 
             // ChunkIndexは応答にも載る。要求と応答がずれていないことを1件ずつ確かめる
@@ -54,11 +59,8 @@ namespace Tests.CombinedTest.Server.PacketTest
                 restoredStreamBytes.AddRange(TerrainTransferTestScope.DecompressChunk(chunkResponse.Payload));
             }
 
-            var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(new[]
-            {
-                worldDataDirectory.TerrainHeightFilePath(0, 0),
-                worldDataDirectory.TerrainBiomeFilePath(0, 0),
-            });
+            var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(
+                TerrainTransferMeta.EnumerateStreamFilePaths(worldDataDirectory, layoutResponse.TerrainMeta.TerrainTileCount).ToList());
             Assert.AreEqual(expectedStreamBytes, restoredStreamBytes.ToArray());
 
             // TerrainHashは同じ論理ストリームのSHA256。テスト側で実ファイルから独立に再計算して突き合わせる
