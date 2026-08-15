@@ -1,4 +1,4 @@
-決定: MapObjects に必須化した6キー（scaleX/Y/Z・clusterId・clusterCenterX/Z）の `../moorestech_master` への投入は `server_v8/map/map.json`（2002件）だけに絞る。v4〜v7 は未更新のまま残す。moorestech_master は detached HEAD かつ全worktree共有なので、専用ブランチを切ってからコミットしプレイテストpinを動かさない。
+決定: MapObjects に必須化した6キー（scaleX/Y/Z・clusterId・clusterCenterX/Z）の `../moorestech_master` への投入は `server_v8/map/map.json`（2002件）だけに絞る。v4〜v7 は未更新のまま残す。moorestech_master は detached HEAD かつ全checkout共有なので、専用ブランチ `feat/mapobject-scale-cluster-keys` を切ってコミットする。本ブランチは新データを要求するので `.moorestech-external-revisions.json` のpinは動かす（動かさない選択肢は無い）。共有checkout `/Users/katsumi/moorestech_master` は旧pin `c610e13` の detached HEAD に戻し、新pinは専用worktree `/Users/katsumi/moorestech-master-worktrees/mapobject-scale-cluster-keys` が持つ。プレイテストのpin解決（`unity-playmode-recorded-playtest/scripts/preflight.sh:26-27`）は「HEADがpin一致のworktree」を探すだけなので、旧pinのworktreeを残さないと他checkoutが起動不能になる。
 
 棄却案: server_v4〜v8 の全 map.json を一括更新する案（AGENTS.md「変更の波及を恐れない・全JSON一括更新」の正道）。コード側に「キー欠損を検出して明示エラー」を入れて master は触らない案。
 
