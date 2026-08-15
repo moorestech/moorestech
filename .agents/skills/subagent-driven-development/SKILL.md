@@ -61,19 +61,34 @@ git rev-parse --git-dir; git rev-parse --git-common-dir
 # 1. Refresh origin/master without touching the main checkout
 git fetch origin master
 
+# 1.5. 未コミット変更があれば未追跡ファイルも含めて退避する
+# 1.5. Stash changes, including untracked files, only when changes exist
+SDD_HAS_UNCOMMITTED_CHANGES=false
+if test -n "$(git status --porcelain)"; then
+  git stash push --include-untracked -m "sdd-worktree-move" || exit 1
+  SDD_HAS_UNCOMMITTED_CHANGES=true
+fi
+
 # 2. 計画名から取ったslugでタスクブランチ付きworktreeを作る
 # 2. Create a task-branch worktree named after the plan slug
 MAIN=$(git rev-parse --show-toplevel)
 git worktree add -b <task-slug> ~/moorestech-worktrees/<task-slug> <base>
 
-# 3. Unity LibraryをAPFSクローンで複製する（16GBでも数秒・数十分の再インポートを回避）
-# 3. Clone the Unity Library via APFS copy-on-write (seconds at 16GB, skips a long reimport)
+# 2.5. 退避した変更があれば隔離worktreeへ復元する
+# 2.5. Restore the stashed changes in the isolated worktree when present
+if [ "$SDD_HAS_UNCOMMITTED_CHANGES" = true ]; then
+  git -C ~/moorestech-worktrees/<task-slug> stash pop || exit 1
+fi
+
+# 3. メイン側Unityを閉じてからLibraryをAPFSクローンで複製する
+# 3. Close Unity for the main worktree before cloning its Library via APFS copy-on-write
 cp -Rc "$MAIN/moorestech_client/Library" ~/moorestech-worktrees/<task-slug>/moorestech_client/Library
 ```
 
-- `<base>`は計画が積み上がる土台。通常は最新の`origin/master`、計画が現ブランチの続きなら`HEAD`
+- `<base>`は計画が積み上がる土台。通常は最新の`origin/master`、本体の未コミット変更を移す場合と計画が現ブランチの続きなら`HEAD`
 - Libraryの複製は計画がUnityに触れるかに関わらず常に行う。数秒の投資で、後からコンパイル・テストが必要になった際の再インポート数十分を確実に回避する
-- 本体に未コミット変更が乗っていた場合は`git stash` → worktree側で`git stash pop`で持ち込む。本体に置き去りにしない
+- メイン側Unityが開いている間はLibraryを複製しない。実行中ならUnityを閉じてから手順3を実行する
+- 本体に未コミット変更が乗っていた場合は未追跡ファイルも含めて退避し、worktree側で復元する。本体に置き去りにしない
 - 以降の編集・`uloop`各コマンド・テスト・コミットは**すべてworktree側の絶対パス**で行う。`--project-path`もworktree側を指す
 - 有料アセット(`PersonalAssets`)は本体にしか存在しない。計画がこれに依存する場合は着手前に人間へエスカレーションする
 - サーバーポート11564は固定のため、他worktreeのPlayModeとは同時実行できない。プレイ録画テストを含む計画では1本ずつ動かす
