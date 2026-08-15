@@ -12,6 +12,10 @@ namespace Tests.UnitTest.Game.MapGeneration
     // Reuses the TestMod generation.json and overrides only the fields we need.
     public static class TestGenerationConfigFactory
     {
+        // MapGenerationPipeline.Generate が texturePngPath を解決する基準。TestMod は PNG を持たない。
+        // Base directory MapGenerationPipeline.Generate resolves texturePngPath against; TestMod ships no PNG.
+        public static string ServerDataDirectory => TestModDirectory.ForUnitTestModDirectory;
+
         // OreEntry が参照するテスト用鉱脈 GUID（固定文字列）。
         // Fixed test vein GUID referenced by the OreEntry.
         public const string TestVeinGuid = "11111111-0000-0000-0000-000000000001";

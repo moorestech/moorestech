@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             // This is the default-false main path; staying silent here makes it look identical to the fallback (ADR#13)
             LogAssert.Expect(LogType.Log, new Regex(@"^\[SpawnSearch\] 探索無効（useSpawnOffsetSearch=false）$"));
 
-            MapGenerationPipeline.Generate(generation, Seed);
+            MapGenerationPipeline.Generate(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory);
         }
     }
 }

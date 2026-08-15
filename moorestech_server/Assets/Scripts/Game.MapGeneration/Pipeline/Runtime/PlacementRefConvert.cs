@@ -5,10 +5,10 @@ using GenFilter = Mooresmaster.Model.PlacementFilterModule.PlacementFilter;
 
 namespace Game.MapGeneration.Pipeline.Runtime
 {
-    // 生成型 PlacementNoise/PlacementFilter → 実行時 POCO 変換。texture/channel はスキーマ化で
-    // 未使用のため写さない。curve は keyframe 配列から AnimationCurve を再構築する。
-    // Converts generated PlacementNoise/PlacementFilter to runtime POCOs. texture/channel are
-    // unused post-migration and skipped; curve is rebuilt into an AnimationCurve from keyframes.
+    // 生成型 PlacementNoise/PlacementFilter → 実行時 POCO 変換。texturePngPath は文字列のまま写し、
+    // 画素への展開は生成直前の PlacementNoiseTextureResolver が行う。curve は keyframe 配列から再構築。
+    // Converts generated PlacementNoise/PlacementFilter to runtime POCOs; texturePngPath is copied as a
+    // string and expanded to pixels later by PlacementNoiseTextureResolver. curve is rebuilt from keyframes.
     internal static class PlacementRefConvert
     {
         public static PlacementNoise ToPlacementNoise(GenNoise gen)
@@ -19,7 +19,9 @@ namespace Game.MapGeneration.Pipeline.Runtime
                 frequency = gen.Frequency,
                 amplitude = gen.Amplitude,
                 offset = gen.Offset,
-                balance = gen.Balance
+                balance = gen.Balance,
+                texturePngPath = gen.TexturePngPath,
+                channel = RuntimeConvert.ToTextureChannel(gen.Channel)
             };
         }
 

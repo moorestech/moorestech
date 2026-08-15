@@ -73,7 +73,7 @@ namespace Game.MapGeneration.Provisioning
                     throw new InvalidOperationException(
                         "Cannot provision a generated world: MasterHolder.GenerationMaster.SelectedGeneration is undefined.");
 
-                var output = MapGenerationPipeline.Generate(selected, settings.Seed);
+                var output = MapGenerationPipeline.Generate(selected, settings.Seed, settings.ServerDataDirectory);
 
                 var mapInfoJson = MapInfoJsonBuilder.Build(output);
                 File.WriteAllText(tempDataDirectory.MapJsonFilePath, JsonConvert.SerializeObject(mapInfoJson, Formatting.Indented));

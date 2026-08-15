@@ -59,7 +59,7 @@ namespace Game.MapGeneration.Pipeline.Generators
         public static float SampleFilterNoise(PlacementNoise noise, float worldX, float worldZ,
             Vector2[] offsets, float terrainWidth, float terrainLength)
         {
-            if (noise.noiseType == MapNoiseType.None) return 0f;
+            if (noise.noiseType == MapNoiseType.None && noise.texturePixels == null) return 0f;
             return ManagedNoise.SamplePlacementNoise(noise, worldX, worldZ, offsets,
                 terrainWidth, terrainLength);
         }

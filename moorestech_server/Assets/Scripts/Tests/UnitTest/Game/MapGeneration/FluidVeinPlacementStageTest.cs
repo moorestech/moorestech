@@ -14,7 +14,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void FluidVeinsAreGeneratedWithinTerrainBounds()
         {
             var generation = TestGenerationConfigFactory.CreateSmall();
-            var output = MapGenerationPipeline.Generate(generation, 12345);
+            var output = MapGenerationPipeline.Generate(generation, 12345, TestGenerationConfigFactory.ServerDataDirectory);
 
             Assert.That(output.FluidVeins, Is.Not.Empty);
 

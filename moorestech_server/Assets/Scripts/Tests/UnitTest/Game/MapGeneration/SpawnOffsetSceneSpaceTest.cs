@@ -81,8 +81,8 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TestGenerationConfigFactory.SpawnSearchSetup.Enabled,
                 new JObject { ["worldOffsetX"] = 317.0, ["worldOffsetZ"] = -213.0 });
 
-            var expected = MapGenerationPipeline.Generate(atOrigin, Seed);
-            var actual = MapGenerationPipeline.Generate(shifted, Seed);
+            var expected = MapGenerationPipeline.Generate(atOrigin, Seed, TestGenerationConfigFactory.ServerDataDirectory);
+            var actual = MapGenerationPipeline.Generate(shifted, Seed, TestGenerationConfigFactory.ServerDataDirectory);
 
             Assert.That(actual.SpawnPoint, Is.EqualTo(expected.SpawnPoint));
             Assert.That(actual.Tiles.Count, Is.EqualTo(expected.Tiles.Count));

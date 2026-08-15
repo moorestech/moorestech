@@ -18,7 +18,7 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TestGenerationConfigFactory.SpawnSearchSetup.Enabled,
                 new JObject { ["gridSizeX"] = 4, ["gridSizeZ"] = 4 });
 
-            var exception = Assert.Throws<InvalidOperationException>(() => MapGenerationPipeline.Generate(generation, Seed));
+            var exception = Assert.Throws<InvalidOperationException>(() => MapGenerationPipeline.Generate(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory));
             StringAssert.Contains("spawn target", exception.Message);
         }
 
@@ -29,7 +29,7 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TestGenerationConfigFactory.SpawnSearchSetup.Disabled,
                 new JObject { ["spawnWorldPosition"] = new JArray(2116.69922, -807.6172) });
 
-            var exception = Assert.Throws<InvalidOperationException>(() => MapGenerationPipeline.Generate(generation, Seed));
+            var exception = Assert.Throws<InvalidOperationException>(() => MapGenerationPipeline.Generate(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory));
             StringAssert.Contains("scene spawn", exception.Message);
         }
 
@@ -40,7 +40,7 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TestGenerationConfigFactory.SpawnSearchSetup.Disabled,
                 new JObject { ["spawnWorldPosition"] = new JArray(0, 0) });
 
-            var exception = Assert.Throws<InvalidOperationException>(() => MapGenerationPipeline.Generate(generation, Seed));
+            var exception = Assert.Throws<InvalidOperationException>(() => MapGenerationPipeline.Generate(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory));
             StringAssert.Contains("scene spawn", exception.Message);
         }
     }

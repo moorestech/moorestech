@@ -64,13 +64,13 @@ namespace Game.MapGeneration.Pipeline.Generators
             if (weight <= 0f) return;
             if (weight < 1f && (float)rng.NextDouble() > weight) return;
 
-            // クラスタリングノイズ（texture ソースはスキーマ化で削除済み）。
-            // Clustering noise (texture source removed by schema migration).
-            if (entry.clusterNoise.noiseType != MapNoiseType.None)
+            // クラスタリングノイズ。ノイズタイプ None でもテクスチャ源があれば有効。
+            // Clustering noise; still active with noiseType None as long as a texture source is present.
+            if (entry.clusterNoise.noiseType != MapNoiseType.None || entry.clusterNoise.texturePixels != null)
             {
                 float noise1 = ManagedNoise.SamplePlacementNoise(entry.clusterNoise,
                     point.x, point.y, noiseOffsets, dims.TerrainWidth, dims.TerrainLength);
-                if (entry.clusterNoise2.noiseType != MapNoiseType.None)
+                if (entry.clusterNoise2.noiseType != MapNoiseType.None || entry.clusterNoise2.texturePixels != null)
                 {
                     float noise2 = ManagedNoise.SamplePlacementNoise(entry.clusterNoise2,
                         point.x, point.y, noiseOffsets, dims.TerrainWidth, dims.TerrainLength);
