@@ -50,21 +50,25 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
                 postHeights[z, x] = flatHeights[z * resolution + x];
 
             return postHeights;
-        }
 
-        // WorldPositionはタイルローカル。halo内のタイル外の木は負値やtileWidth超で入り、TreeHeightModifierが格子外の画素を捨てる
-        // WorldPosition is tile-local; trees inside the halo but outside the tile arrive negative or past tileWidth and TreeHeightModifier drops the off-lattice pixels
-        private static List<PlacementEntry> ToPlacementEntries(IReadOnlyList<MapObjectLayoutMessagePack> tileLocalObjects)
-        {
-            var entries = new List<PlacementEntry>(tileLocalObjects.Count);
-            foreach (var mapObject in tileLocalObjects)
-                entries.Add(new PlacementEntry
-                {
-                    MapObjectGuid = mapObject.MapObjectGuid,
-                    WorldPosition = new Vector3(mapObject.X, mapObject.Y, mapObject.Z),
-                });
+            #region Internal
 
-            return entries;
+            // WorldPositionはタイルローカル。halo内のタイル外の木は負値やtileWidth超で入り、TreeHeightModifierが格子外の画素を捨てる
+            // WorldPosition is tile-local; trees inside the halo but outside the tile arrive negative or past tileWidth and TreeHeightModifier drops the off-lattice pixels
+            List<PlacementEntry> ToPlacementEntries(IReadOnlyList<MapObjectLayoutMessagePack> haloObjects)
+            {
+                var entries = new List<PlacementEntry>(haloObjects.Count);
+                foreach (var mapObject in haloObjects)
+                    entries.Add(new PlacementEntry
+                    {
+                        MapObjectGuid = mapObject.MapObjectGuid,
+                        WorldPosition = new Vector3(mapObject.X, mapObject.Y, mapObject.Z),
+                    });
+
+                return entries;
+            }
+
+            #endregion
         }
     }
 }

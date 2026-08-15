@@ -32,7 +32,7 @@ namespace Game.MapGeneration.Pipeline.Jobs
 
         // 砂浜そのものより少し広い平滑帯の半径。Execute と MaxReachPixels が同じ式を見るための唯一の置き場
         // The smoothing band's radius, a bit wider than the beach itself; the single home Execute and MaxReachPixels share
-        public static int CoastalSmoothRadius(int beachLandTerrainRadius)
+        private static int CoastalSmoothRadius(int beachLandTerrainRadius)
         {
             return math.max(beachLandTerrainRadius * 2, beachLandTerrainRadius + 12);
         }
@@ -99,8 +99,9 @@ namespace Game.MapGeneration.Pipeline.Jobs
                 float minDistSq = distToLandSq[idx];
                 float dist = math.sqrt(minDistSq);
 
-                // 海側地形遷移（shoreMask）
-                if (minDistSq <= beachSeaTerrainRadius * beachSeaTerrainRadius)
+                // 海側地形遷移（shoreMask）。半径0では距離0の海画素が 1-0/0 を踏み、無効なはずの遷移が最大強度で掛かる
+                // Sea-side terrain transition (shoreMask); at radius zero a zero-distance sea pixel hits 1-0/0 and the disabled transition lands at full strength
+                if (0 < beachSeaTerrainRadius && minDistSq <= beachSeaTerrainRadius * beachSeaTerrainRadius)
                 {
                     float t = 1f - dist / beachSeaTerrainRadius;
                     shoreMask[idx] = BurstTerrainMath.Smoothstep(0f, 1f, t);

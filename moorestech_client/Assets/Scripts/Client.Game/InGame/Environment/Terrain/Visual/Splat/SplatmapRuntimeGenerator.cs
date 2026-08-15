@@ -133,7 +133,11 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
             // Paints the accepted plateaus in their debug colours and the rejected candidates in Alpine's base colour, before the alphamap as in the source
             void RunPlateauDebugOverlayJob()
             {
-                if (!config.alpineEnabled || !config.alpine.enablePlateau || !config.alpine.debugPlateauOverlay) return;
+                if (!PlateauDebugOverlayGate.IsEnabled(config)) return;
+
+                // 列0本ではPlateauDebugOverlayJobが棄却側へ落ち、台地の全画素を全消ししてAlpineのベース色でベタ塗りする
+                // With zero columns PlateauDebugOverlayJob falls into its rejected branch, wiping every plateau pixel onto Alpine's base colour
+                if (layerTable.DebugLayerCount <= 0) return;
 
                 // Alpineが無効な構成でもここへ来る。ベース色が引けなければ移植元と同じく0番を使う
                 // A configuration without Alpine reaches here too; with no base colour to find it falls back to layer 0 as the source does

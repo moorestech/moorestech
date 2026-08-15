@@ -139,7 +139,7 @@ return PlaytestRunner.Run("generated-world-5x5-terrain-survey", options, async p
 
     // 6-5: 岩まわり。岩のmapObjectをクラスタごとに拾い、密集地の1つへ寄る（R6の裸地帯の目視）
     // 6-5: Around the rocks; pick a clustered rock map object and close in on it (visual check of R6's bare skirt)
-    var rockLike = mapLayout.MapObjects.Where(o => o.ClusterId >= 0).ToList();
+    var rockLike = mapLayout.MapObjects.Where(o => 0 <= o.ClusterId).ToList();
     p.Note($"mapObjects total={mapLayout.MapObjects.Count} clustered(ClusterId>=0)={rockLike.Count}");
     if (0 < rockLike.Count)
     {

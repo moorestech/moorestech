@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Config;
 using Server.Protocol.PacketResponse.MapData;
@@ -28,12 +27,8 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
                 // Rock and vein guids never enter the species table, and an unset or zero-weight tree prototype leaves here too
                 if (!speciesTable.TryGetPaintingParams(treeObject.MapObjectGuid, out var surroundParams)) continue;
 
-                // 幅0はsigma0でガウシアンがNaNになり、alphamap全体へ伝播する。黙って飛ばさずデータの穴として落とす
-                // A zero width makes sigma zero and the Gaussian NaN, which spreads across the alphamap; it fails as a data gap rather than being skipped
-                if (surroundParams.width <= 0f)
-                    throw new InvalidOperationException(
-                        $"[TreeSurroundTexturePainter] MapObject {treeObject.MapObjectGuid} carries surroundLayerWeight {surroundParams.weight} with a surroundLayerWidth of {surroundParams.width}.");
-
+                // 幅0（sigma0でガウシアンがNaN）はTreeSurroundSpeciesTable.Buildが弾く。ここへは正の幅しか来ない
+                // A zero width, whose zero sigma turns the Gaussian into NaN, is rejected by TreeSurroundSpeciesTable.Build, so only positive widths arrive here
                 var layerIndex = layerTable.LayerIndexByAddress[surroundParams.layerAddress];
 
                 // 半径も中心もalphamapの実寸基準。移植元はheightmap解像度を渡してclampで潰していたので、そこだけ正した
@@ -55,25 +50,29 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
 
                     var sigma = radiusInPixels / 3f;
                     var falloff = Mathf.Exp(-(distance * distance) / (2f * sigma * sigma));
-                    BlendWithoutTotal(alphamap, pixelZ, pixelX, layerIndex, surroundParams.weight * falloff);
+                    BlendWithoutTotal(pixelZ, pixelX, layerIndex, surroundParams.weight * falloff);
                 }
             }
-        }
 
-        // 岩のSurroundBlendWriterは元の合計を掛けて足すが、木は掛けない。流用すると根元の塗り強度だけが静かに変わる
-        // The rocks' SurroundBlendWriter adds the blended share of the original total; a tree does not, and reusing it would quietly change the root's strength
-        private static void BlendWithoutTotal(float[,,] alphamap, int pixelZ, int pixelX, int layerIndex, float blend)
-        {
-            var layerCount = alphamap.GetLength(2);
-            var remaining = 1f - blend;
+            #region Internal
 
-            for (var layer = 0; layer < layerCount; layer++)
+            // 岩のSurroundBlendWriterは元の合計を掛けて足すが、木は掛けない。流用すると根元の塗り強度だけが静かに変わる
+            // The rocks' SurroundBlendWriter adds the blended share of the original total; a tree does not, and reusing it would quietly change the root's strength
+            void BlendWithoutTotal(int targetZ, int targetX, int targetLayer, float blend)
             {
-                if (layer == layerIndex) continue;
-                alphamap[pixelZ, pixelX, layer] *= remaining;
+                var layerCount = alphamap.GetLength(2);
+                var remaining = 1f - blend;
+
+                for (var layer = 0; layer < layerCount; layer++)
+                {
+                    if (layer == targetLayer) continue;
+                    alphamap[targetZ, targetX, layer] *= remaining;
+                }
+
+                alphamap[targetZ, targetX, targetLayer] = alphamap[targetZ, targetX, targetLayer] * remaining + blend;
             }
 
-            alphamap[pixelZ, pixelX, layerIndex] = alphamap[pixelZ, pixelX, layerIndex] * remaining + blend;
+            #endregion
         }
     }
 }

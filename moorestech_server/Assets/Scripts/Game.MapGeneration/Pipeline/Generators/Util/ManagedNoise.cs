@@ -123,8 +123,8 @@ namespace Game.MapGeneration.Pipeline.Generators.Util
             float value;
             if (noise.texturePixels != null)
             {
-                float u = terrainWidth > 0f ? worldX / terrainWidth : 0f;
-                float v = terrainLength > 0f ? worldZ / terrainLength : 0f;
+                float u = 0f < terrainWidth ? worldX / terrainWidth : 0f;
+                float v = 0f < terrainLength ? worldZ / terrainLength : 0f;
                 value = SampleTextureChannel(GetPixelBilinear(noise, u, v), noise.channel);
             }
             else

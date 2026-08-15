@@ -50,17 +50,21 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
                 ToHex(mapObjectsDigest));
 
             return ToSha256Hex(keySource);
-        }
 
-        private static string ToSha256Hex(string text)
-        {
-            using var sha256 = SHA256.Create();
-            return ToHex(sha256.ComputeHash(Encoding.UTF8.GetBytes(text)));
-        }
+            #region Internal
 
-        private static string ToHex(byte[] bytes)
-        {
-            return BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
+            string ToSha256Hex(string text)
+            {
+                using var sha256 = SHA256.Create();
+                return ToHex(sha256.ComputeHash(Encoding.UTF8.GetBytes(text)));
+            }
+
+            string ToHex(byte[] bytes)
+            {
+                return BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
+            }
+
+            #endregion
         }
     }
 }

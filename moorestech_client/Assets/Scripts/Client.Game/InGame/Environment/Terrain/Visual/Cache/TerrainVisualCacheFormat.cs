@@ -12,8 +12,10 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
         // "MTVC" = Moorestech Terrain Visual Cache; the identifier keeping a foreign file from being misread
         public const int MagicNumber = 0x4D545643;
 
-        // 7でsplatに台地デバッグオーバーレイ(R8)が乗った。据え置くと台地が塗られない古いalphamapがヒットし続ける
-        // Version 7 put the plateau debug overlay (R8) into the splat; holding it back would keep hitting old alphamaps whose plateaus are unpainted
+        // 見た目の導出が変わるたびに1ずつbumpしてきた現在値。直近の7はsplatへ台地デバッグオーバーレイ(R8)が乗った回
+        // The running value, bumped by one whenever the visual derivation changed; the latest step to 7 was the plateau debug overlay (R8) entering the splat
+        // 据え置くと古い導出で焼いたalphamapがそのままヒットし続ける
+        // Holding it back would keep hitting alphamaps baked by the older derivation
         public const int FormatVersion = 7;
 
         // キーはSHA256の16進64文字固定。可変長にすると壊れたファイルで読み出し長が暴れる

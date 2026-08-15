@@ -82,11 +82,16 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             // 木の根元のレイヤーは有効バイオームの樹種から集める。列を確保しないまま塗るとインデックスが引けない
             // The tree root layers are gathered from the enabled biomes' species; painting without reserving their columns would find no index
             var treeSurroundSpecies = TreeSurroundSpeciesTable.Build(new BiomePlacementHelper(config), biomeTypes);
+
+            // 列を確保する条件は塗る条件と同一。緩めると誰も塗らない列のTerrainLayerをAddressablesから読み込むことになる
+            // The columns are reserved on exactly the painting condition; loosening it would load TerrainLayers for columns nobody paints
+            var debugLayerAddresses = PlateauDebugOverlayGate.IsEnabled(config)
+                ? config.alpine.debugTerrainLayerAddressablePaths
+                : Array.Empty<string>();
             var layerTable = SplatLayerTable.Build(
                 config.shoreConfig.beachLayerAddressablePath, config.rockLayerAddressablePath,
                 visualSections.MainLayerAddresses, visualSections.TextureConfigs,
-                visualSections.SurroundTextureConfigs, treeSurroundSpecies,
-                config.alpine.debugPlateauOverlay ? config.alpine.debugTerrainLayerAddressablePaths : Array.Empty<string>());
+                visualSections.SurroundTextureConfigs, treeSurroundSpecies, debugLayerAddresses);
 
             var terrainLayers = await TerrainLayerAssetLoader.LoadAsync(layerTable.OrderedLayerAddresses);
             await DetailAssetResolver.ResolveAsync(visualSections.DetailConfigs);

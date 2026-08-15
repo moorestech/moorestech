@@ -48,43 +48,47 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
 
             using var sha256 = SHA256.Create();
             return sha256.ComputeHash(digestSource.ToArray());
-        }
 
-        // List.Sortは不安定なので、同じInstanceIdが2本届いた瞬間に並びが揺れる。全項目まで比較して全順序にする
-        // List.Sort is unstable and would shuffle the instant two objects share an InstanceId, so every field takes part in the total order
-        private static int CompareByInstanceId(MapObjectLayoutMessagePack left, MapObjectLayoutMessagePack right)
-        {
-            var byInstanceId = left.InstanceId.CompareTo(right.InstanceId);
-            if (byInstanceId != 0) return byInstanceId;
+            #region Internal
 
-            var byGuid = string.CompareOrdinal(left.MapObjectGuid, right.MapObjectGuid);
-            if (byGuid != 0) return byGuid;
+            // List.Sortは不安定なので、同じInstanceIdが2本届いた瞬間に並びが揺れる。全項目まで比較して全順序にする
+            // List.Sort is unstable and would shuffle the instant two objects share an InstanceId, so every field takes part in the total order
+            int CompareByInstanceId(MapObjectLayoutMessagePack left, MapObjectLayoutMessagePack right)
+            {
+                var byInstanceId = left.InstanceId.CompareTo(right.InstanceId);
+                if (byInstanceId != 0) return byInstanceId;
 
-            var byX = left.X.CompareTo(right.X);
-            if (byX != 0) return byX;
+                var byGuid = string.CompareOrdinal(left.MapObjectGuid, right.MapObjectGuid);
+                if (byGuid != 0) return byGuid;
 
-            var byY = left.Y.CompareTo(right.Y);
-            if (byY != 0) return byY;
+                var byX = left.X.CompareTo(right.X);
+                if (byX != 0) return byX;
 
-            var byZ = left.Z.CompareTo(right.Z);
-            if (byZ != 0) return byZ;
+                var byY = left.Y.CompareTo(right.Y);
+                if (byY != 0) return byY;
 
-            var byScaleX = left.ScaleX.CompareTo(right.ScaleX);
-            if (byScaleX != 0) return byScaleX;
+                var byZ = left.Z.CompareTo(right.Z);
+                if (byZ != 0) return byZ;
 
-            var byScaleY = left.ScaleY.CompareTo(right.ScaleY);
-            if (byScaleY != 0) return byScaleY;
+                var byScaleX = left.ScaleX.CompareTo(right.ScaleX);
+                if (byScaleX != 0) return byScaleX;
 
-            var byScaleZ = left.ScaleZ.CompareTo(right.ScaleZ);
-            if (byScaleZ != 0) return byScaleZ;
+                var byScaleY = left.ScaleY.CompareTo(right.ScaleY);
+                if (byScaleY != 0) return byScaleY;
 
-            var byClusterId = left.ClusterId.CompareTo(right.ClusterId);
-            if (byClusterId != 0) return byClusterId;
+                var byScaleZ = left.ScaleZ.CompareTo(right.ScaleZ);
+                if (byScaleZ != 0) return byScaleZ;
 
-            var byClusterCenterX = left.ClusterCenterX.CompareTo(right.ClusterCenterX);
-            return byClusterCenterX != 0
-                ? byClusterCenterX
-                : left.ClusterCenterZ.CompareTo(right.ClusterCenterZ);
+                var byClusterId = left.ClusterId.CompareTo(right.ClusterId);
+                if (byClusterId != 0) return byClusterId;
+
+                var byClusterCenterX = left.ClusterCenterX.CompareTo(right.ClusterCenterX);
+                return byClusterCenterX != 0
+                    ? byClusterCenterX
+                    : left.ClusterCenterZ.CompareTo(right.ClusterCenterZ);
+            }
+
+            #endregion
         }
     }
 }

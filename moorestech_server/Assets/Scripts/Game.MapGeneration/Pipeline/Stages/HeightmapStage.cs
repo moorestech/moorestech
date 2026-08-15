@@ -13,9 +13,9 @@ namespace Game.MapGeneration.Pipeline.Stages
     public static class HeightmapStage
     {
         // 高さ1画素が分類チャネルの何画素外まで依存するか。後段カーネルは直列に掛かるので半径は合算になる。
-        // AlpinePlateauStage の連結領域解析は到達が無制限でここには含めない（別途裁定・bd moorestech-edd.8）。
+        // AlpinePlateauStage は到達を一切計上していない。連結領域解析が無制限なだけでなく、有界カーネルぶんも未計上（別途裁定・bd moorestech-edd.8）。
         // How far beyond a classification pixel one height pixel depends; the later kernels chain in series so their radii add up.
-        // AlpinePlateauStage's connected-region analysis has unbounded reach and is not folded in (adjudicated separately, bd moorestech-edd.8).
+        // AlpinePlateauStage contributes no reach at all: not only is its connected-region analysis unbounded, its bounded kernels are uncounted too (adjudicated separately, bd moorestech-edd.8).
         public static int MaxReachPixels(TerrainGenerationConfig config, NativeArray<BiomeParams> biomeParams)
         {
             // CoastalSmoothJob の 3x3 平均

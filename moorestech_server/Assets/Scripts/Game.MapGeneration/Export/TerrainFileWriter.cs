@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Game.MapGeneration.Pipeline;
 using Game.Paths;
@@ -29,6 +30,12 @@ namespace Game.MapGeneration.Export
 
             static void WriteHeightFile(WorldDataDirectory worldDataDirectory, TerrainTileOutput tile, int resolution)
             {
+                // 長さが解像度と食い違うと、読み側が別の行から読み始めて全画素が流れる。書く前に止める
+                // A length disagreeing with the resolution would start the reader on another row and shift every pixel, so it stops before writing
+                if (tile.Heights.Length != resolution * resolution)
+                    throw new InvalidOperationException(
+                        $"[TerrainFileWriter] Tile ({tile.TileX}, {tile.TileZ}) holds {tile.Heights.Length} heights for a {resolution}x{resolution} tile of {resolution * resolution} pixels.");
+
                 // 0-1正規化高さをushortへ変換しリトルエンディアンで書き込む(r16フォーマット)。
                 // ノイズの浮動小数点誤差で範囲外(例:1.0000003)になり得るためクランプ後に四捨五入する。
                 // Convert normalized 0-1 height to ushort and write little-endian (r16 format).

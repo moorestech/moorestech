@@ -96,42 +96,42 @@ namespace Game.MapGeneration.Pipeline.Tiling
                     tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, itemVeins);
             }
 
-            #endregion
-        }
-
-        private void AppendMapObjects(List<PlacementEntry> entries)
-        {
-            if (entries == null) return;
-
-            // このタイルの書き出し開始時点のオフセットを固定して使う。木呼び出しはクラスタを持たないため素通りする。
-            // Freeze the offset as of this tile's write start; the tree call carries no cluster so it passes through untouched.
-            var offset = _nextClusterIdOffset;
-            var maxLocalClusterId = -1;
-
-            foreach (var entry in entries)
+            void AppendMapObjects(List<PlacementEntry> entries)
             {
-                if (string.IsNullOrEmpty(entry.MapObjectGuid)) continue;
+                if (entries == null) return;
 
-                // 独立配置は Cluster を -1 の空情報で持つため、オフセットを掛けると隣タイルの実クラスタIDへ化ける。
-                // An independent placement carries an empty -1 Cluster, so offsetting it would morph into a neighbouring tile's real id.
-                var hasCluster = entry.Cluster.HasValue && 0 <= entry.Cluster.Value.ClusterId;
-                var clusterId = hasCluster ? entry.Cluster.Value.ClusterId + offset : -1;
-                var clusterCenter = hasCluster
-                    ? new Vector2(entry.Cluster.Value.Center.x, entry.Cluster.Value.Center.z)
-                    : Vector2.zero;
-                if (hasCluster) maxLocalClusterId = Mathf.Max(maxLocalClusterId, entry.Cluster.Value.ClusterId);
+                // このタイルの書き出し開始時点のオフセットを固定して使う。木呼び出しはクラスタを持たないため素通りする。
+                // Freeze the offset as of this tile's write start; the tree call carries no cluster so it passes through untouched.
+                var offset = _nextClusterIdOffset;
+                var maxLocalClusterId = -1;
 
-                _output.MapObjects.Add(new PlacedMapObject
+                foreach (var entry in entries)
                 {
-                    MapObjectGuid = entry.MapObjectGuid,
-                    Position = entry.WorldPosition,
-                    Scale = entry.Scale,
-                    ClusterId = clusterId,
-                    ClusterCenter = clusterCenter,
-                });
+                    if (string.IsNullOrEmpty(entry.MapObjectGuid)) continue;
+
+                    // 独立配置は Cluster を -1 の空情報で持つため、オフセットを掛けると隣タイルの実クラスタIDへ化ける。
+                    // An independent placement carries an empty -1 Cluster, so offsetting it would morph into a neighbouring tile's real id.
+                    var hasCluster = entry.Cluster.HasValue && 0 <= entry.Cluster.Value.ClusterId;
+                    var clusterId = hasCluster ? entry.Cluster.Value.ClusterId + offset : -1;
+                    var clusterCenter = hasCluster
+                        ? new Vector2(entry.Cluster.Value.Center.x, entry.Cluster.Value.Center.z)
+                        : Vector2.zero;
+                    if (hasCluster) maxLocalClusterId = Mathf.Max(maxLocalClusterId, entry.Cluster.Value.ClusterId);
+
+                    _output.MapObjects.Add(new PlacedMapObject
+                    {
+                        MapObjectGuid = entry.MapObjectGuid,
+                        Position = entry.WorldPosition,
+                        Scale = entry.Scale,
+                        ClusterId = clusterId,
+                        ClusterCenter = clusterCenter,
+                    });
+                }
+
+                if (0 <= maxLocalClusterId) _nextClusterIdOffset = offset + maxLocalClusterId + 1;
             }
 
-            if (maxLocalClusterId >= 0) _nextClusterIdOffset = offset + maxLocalClusterId + 1;
+            #endregion
         }
     }
 }

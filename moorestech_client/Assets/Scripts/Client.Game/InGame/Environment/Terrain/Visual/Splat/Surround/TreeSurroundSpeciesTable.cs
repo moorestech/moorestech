@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Biomes;
 using UnityEngine;
@@ -62,9 +63,17 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
             // The columns and the halo are derived from the finished map right here; closing that derivation into one place is why this type exists
             var layerAddresses = new List<string>();
             var maxReach = 0f;
-            foreach (var surroundParams in surroundParamsByGuid.Values)
+            foreach (var pair in surroundParamsByGuid)
             {
+                var surroundParams = pair.Value;
                 if (!Paints(surroundParams)) continue;
+
+                // 幅0はsigma0でガウシアンがNaNになりalphamap全体へ伝播する。塗る前のここで確定的に落とす
+                // A zero width makes sigma zero and the Gaussian NaN across the whole alphamap, so it fails deterministically here before any painting
+                if (surroundParams.width <= 0f)
+                    throw new InvalidOperationException(
+                        $"[TreeSurroundSpeciesTable] MapObject {pair.Key} carries surroundLayerWeight {surroundParams.weight} with a surroundLayerWidth of {surroundParams.width}.");
+
                 layerAddresses.Add(surroundParams.layerAddress);
                 maxReach = Mathf.Max(maxReach, surroundParams.width);
             }
