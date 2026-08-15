@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.MapGeneration.Pipeline;
-using Game.MapGeneration.Pipeline.Runtime;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -52,10 +51,17 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         [Test]
         public void 正方形でないグリッド設定は例外で拒否される()
         {
-            var generation = TestGenerationConfigFactory.CreateSmall();
-            var config = GenerationRuntimeConfigFactory.Build(generation);
-            config.gridSizeX = 2;
+            var config = MultiTileTestWorld.BuildConfig(2, Seed);
             config.gridSizeZ = 3;
+            Assert.Throws<InvalidOperationException>(() => new VanillaGenerator().Generate(config));
+        }
+
+        // 0は正方判定(gridSizeX == gridSizeZ)を素通りするため、正方チェックとは別条件で弾く必要がある
+        // Zero slips past the square check (gridSizeX == gridSizeZ), so it needs its own guard
+        [Test]
+        public void グリッドサイズが0以下なら例外で拒否される()
+        {
+            var config = MultiTileTestWorld.BuildConfig(0, Seed);
             Assert.Throws<InvalidOperationException>(() => new VanillaGenerator().Generate(config));
         }
 

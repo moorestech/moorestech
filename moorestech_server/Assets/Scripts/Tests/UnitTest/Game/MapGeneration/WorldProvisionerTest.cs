@@ -103,6 +103,14 @@ namespace Tests.UnitTest.Game.MapGeneration
             #endregion
         }
 
+        // 定数同士の比較はどんな版でも通るトートロジーになるため、版そのものをリテラルで固定する
+        // Comparing the constant to itself is a tautology regardless of value, so pin the version as a literal
+        [Test]
+        public void GeneratorVersion定数は2_0_0に固定されている()
+        {
+            Assert.AreEqual("2.0.0", WorldProvisioner.GeneratorVersion);
+        }
+
         [Test]
         public void 生成ワールドのTileCountはグリッド積でありバージョンは2_0_0()
         {
