@@ -17,6 +17,7 @@
   decisions-format-check.mjs     # .decisions/レコードの書式検査（違反はexit 2で差し戻し）
   beads-prime.mjs                # Beads台帳(bd)の概況と役割分担ルールをSessionStartで注入
   beads-guard.mjs                # 破壊的bd/doltコマンドの物理拒否とpublic誤送信ガード（PreToolUse）
+  poll-guard.mjs                 # 同一Bashコマンド3連続＝ポーリングを拒否し正しい待ち方を再注入（PreToolUse 全ツール。Claudeのみ登録 — リセット判定に全ツールイベントが要るため）
   beads-sync-watch.mjs           # Dolt同期障害の復旧誘導＋claim/createへのセッション出自刻印（PostToolUse）
   beads-learn-capture.mjs        # 応答末尾の「LEARN: 一行」をbd noteへ自動保存（Claude Stop）
   logs-sync.mjs                  # Claude/Codex生JSONLをprivateの../moorestech_logsへ退避（Stop/SessionEnd等）
