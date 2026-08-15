@@ -28,12 +28,16 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             config.forest.treePlacement = BuildTreePlacement();
         }
 
-        // テストmodは岩を1本も持たないため、クラスタ採番を通る散布エントリを有効バイオーム両方へ差し込む。
-        // The test mod ships no rocks, so inject a scatter entry that goes through cluster numbering into both enabled biomes.
-        public static void EnableClusteredObjects(TerrainGenerationConfig config)
+        // 独立散布の岩に使うGUID。クラスタ採番を通る岩と出自で選り分けるため、別GUIDにしておく。
+        // GUID for the independently scattered rocks; a separate one lets tests tell them apart from the cluster-numbered rocks.
+        public const string IndependentMapObjectGuid = "00000000-0000-1111-0000-000000000001";
+
+        // テストmodは岩を1本も持たないため、クラスタ採番を通る岩と独立散布の岩を有効バイオーム両方へ差し込む。
+        // The test mod ships no rocks, so inject both cluster-numbered and independently scattered rocks into the enabled biomes.
+        public static void EnableObjects(TerrainGenerationConfig config)
         {
-            config.grassland.objectConfig = BuildClusteredObjectConfig();
-            config.forest.objectConfig = BuildClusteredObjectConfig();
+            config.grassland.objectConfig = BuildObjectConfig();
+            config.forest.objectConfig = BuildObjectConfig();
         }
 
         public static Vector2Int TileBucket(float x, float z, TerrainGenerationConfig config)
@@ -51,9 +55,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             Assert.That(z, Is.InRange(minZ, minZ + config.gridSizeZ * config.terrainLength));
         }
 
-        // useClusterMode=true の散布エントリだけを持たせる。ClusterId を持つ配置物が必ず1件以上出る最短経路。
-        // Carries only a useClusterMode scatter entry, the shortest path that always emits placements owning a ClusterId.
-        private static BiomeObjectConfig BuildClusteredObjectConfig()
+        // クラスタ採番を通る岩と、ClusterId=-1 を持つ独立散布の岩を1つずつ。両方が同じタイルに出るのが要点。
+        // One cluster-numbered rock plus one independently scattered rock carrying ClusterId=-1; the point is that both land on every tile.
+        private static BiomeObjectConfig BuildObjectConfig()
         {
             return new BiomeObjectConfig
             {
@@ -63,6 +67,12 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
                     {
                         mapObjectGuids = new[] { TestGenerationConfigFactory.TestMapObjectGuid },
                         useClusterMode = true,
+                        scaleRange = new Vector2(0.5f, 2f),
+                    },
+                    new BiomeObjectConfig.ObjectEntry
+                    {
+                        mapObjectGuids = new[] { IndependentMapObjectGuid },
+                        useClusterMode = false,
                         scaleRange = new Vector2(0.5f, 2f),
                     },
                 },
