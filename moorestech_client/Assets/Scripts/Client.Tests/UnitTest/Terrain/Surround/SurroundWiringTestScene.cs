@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Build.Placement;
 using Client.Game.InGame.Environment.Terrain.Visual.Detail;
 using Client.Game.InGame.Environment.Terrain.Visual.Source;
@@ -27,19 +28,27 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         public const int AlphaResolution = 11;
         public const float TileSize = 100f;
 
-        // レイヤー並びは beach0 / rock1 / grass2 / Mud3。裸地はこの最後の列へ乗る
-        // The layer order is beach 0, rock 1, grass 2 and Mud 3, and the bare ground lands on the last column
+        // レイヤー並びは beach0 / rock1 / grass2 / Mud3 / Dirt4。岩の裸地と木の根元は別の列へ乗る
+        // The layer order is beach 0, rock 1, grass 2, Mud 3 and Dirt 4, keeping the rocks' bare ground and the tree roots on separate columns
         public const int MudLayerIndex = 3;
+        public const int TreeRootLayerIndex = 4;
 
         // 遷移帯15m + フットプリント半径(Scale1×rockMeshBaseSize5)。切り出しhaloはこの20mでなければならない
         // The 15m transition band plus the footprint radius (scale 1 by rockMeshBaseSize 5); the slice halo must be this 20m
         public const float ExpectedMaxReach = 20f;
+
+        // 木の根元は幅30m=3画素ぶん届く。岩の20mより広いので、岩のMaxReachを使い回すと境界の外の木が落ちる
+        // A tree's root reaches its 30m width, three pixels; wider than the rocks' 20m, so reusing their MaxReach drops trees past the seam
+        public const float TreeSurroundWidth = 30f;
 
         // タイルの西辺の中央。ここへ届くかどうかだけで境界の断裂が判定できる
         // The middle of the tile's west edge, where reaching or not decides whether the seam breaks
         public const float SeamLocalZ = 50f;
         public const int SeamPixelZ = 5;
         public const int SeamPixelX = 0;
+
+        public const string TreeRootLayerAddress = "addr/Dirt";
+        public const string TreeGuid = "00000000-0000-1111-0000-000000000001";
 
         private const string MudLayerAddress = "addr/MudDry";
         private const string StoneGuid = "00000000-0000-2222-0000-000000000001";
@@ -61,18 +70,29 @@ namespace Client.Tests.UnitTest.Terrain.Surround
 
         public static float[,,] Generate(params MapObjectLayoutMessagePack[] mapObjects)
         {
-            var config = CreateConfig();
+            var config = SurroundWiringTestConfig.Create();
             var visualSections = CreateVisualSections();
+
+            // 本番と同じく樹種マップから列を確保する。ここを手書きの配列に替えると塗りと列がずれても気付けない
+            // The columns come from the species map as production does; a hand-written array here would hide a drift between painting and columns
+            var treeSurroundParamsByGuid = TreeSurroundParamsByGuid();
             var layerTable = SplatLayerTable.Build(
                 "addr/beach", "addr/rock", visualSections.MainLayerAddresses, visualSections.TextureConfigs,
-                visualSections.SurroundTextureConfigs);
+                visualSections.SurroundTextureConfigs,
+                TreeSurroundTexturePainter.LayerAddresses(treeSurroundParamsByGuid));
 
             using var classification = new TerrainClassificationContext(config, BiomeTypes);
             classification.Initialize();
 
             return SplatmapRuntimeGenerator.Generate(
-                config, BiomeTypes, classification, layerTable, visualSections,
+                config, BiomeTypes, classification, layerTable, visualSections, treeSurroundParamsByGuid,
                 CreateHeights(), CreateBiomeIndices(), AlphaResolution, mapObjects, TileWorldPosition);
+        }
+
+        public static Dictionary<string, (string layerAddress, float weight, float width)> TreeSurroundParamsByGuid()
+        {
+            return TreeSurroundTexturePainter.BuildGuidSurroundMap(
+                new BiomePlacementHelper(SurroundWiringTestConfig.Create()), BiomeTypes);
         }
 
         // 引数はタイルローカル。シーン絶対座標へ戻して渡し、切り出しのローカル化まで通しで動かす
@@ -84,6 +104,15 @@ namespace Client.Tests.UnitTest.Terrain.Surround
 
             return new MapObjectLayoutMessagePack(
                 1, StoneGuid, worldX, 0f, worldZ, 1f, 1f, 1f, ClusterId, worldX, worldZ);
+        }
+
+        // 木もタイルローカルで書いてシーン絶対座標へ戻す。クラスタは持たないので独立配置(-1)で置く
+        // A tree is written tile-local and pushed back to scene-absolute too; it owns no cluster and goes in as an independent placement (-1)
+        public static MapObjectLayoutMessagePack CreateTree(float localX, float localZ)
+        {
+            return new MapObjectLayoutMessagePack(
+                2, TreeGuid, TileWorldPosition.x + localX, 0f, TileWorldPosition.z + localZ,
+                1f, 1f, 1f, -1, 0f, 0f);
         }
 
         public static SurroundTextureConfig CreateSurroundConfig()
@@ -114,26 +143,6 @@ namespace Client.Tests.UnitTest.Terrain.Surround
                 new[] { new BiomeTextureConfig { entries = new TextureEntry[0] } },
                 new[] { new BiomeDetailConfig { entries = new DetailEntry[0] } },
                 new[] { CreateSurroundConfig() });
-        }
-
-        private static TerrainGenerationConfig CreateConfig()
-        {
-            return new TerrainGenerationConfig
-            {
-                overrideResolution = Resolution,
-                seed = 12345,
-                terrainWidth = TileSize,
-                terrainLength = TileSize,
-                terrainHeight = 600f,
-                grasslandEnabled = true,
-                forestEnabled = false,
-                savannaEnabled = false,
-                desertEnabled = false,
-                mesaEnabled = false,
-                alpineEnabled = false,
-                jungleEnabled = false,
-                woodsEnabled = false,
-            };
         }
 
         // x方向に上がる傾斜。傾斜バイアスが一様入力で潰れないようにする

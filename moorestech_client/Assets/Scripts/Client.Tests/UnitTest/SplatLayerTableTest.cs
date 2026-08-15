@@ -22,7 +22,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass", "addr/sand" },
                 new[] { CreateTextureConfig(), CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty, string.Empty));
+                CreateSurroundConfigs(string.Empty, string.Empty), new string[0]);
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/sand" }));
@@ -39,7 +39,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass" },
                 new[] { CreateTextureConfig("addr/cliff", "addr/moss") },
-                CreateSurroundConfigs(string.Empty));
+                CreateSurroundConfigs(string.Empty), new string[0]);
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/cliff", "addr/moss" }));
@@ -54,7 +54,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass", "addr/grass" },
                 new[] { CreateTextureConfig("addr/rock"), CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty, string.Empty));
+                CreateSurroundConfigs(string.Empty, string.Empty), new string[0]);
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass" }));
@@ -68,15 +68,15 @@ namespace Client.Tests.UnitTest
             // Falling an empty address back to index 0 would paint the whole terrain with sand, hiding the data gap
             Assert.Throws<InvalidOperationException>(() => SplatLayerTable.Build(
                 string.Empty, "addr/rock", new[] { "addr/grass" }, new[] { CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty)));
+                CreateSurroundConfigs(string.Empty), new string[0]));
 
             Assert.Throws<InvalidOperationException>(() => SplatLayerTable.Build(
                 "addr/beach", "addr/rock", new[] { string.Empty }, new[] { CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty)));
+                CreateSurroundConfigs(string.Empty), new string[0]));
 
             Assert.Throws<InvalidOperationException>(() => SplatLayerTable.Build(
                 "addr/beach", "addr/rock", new[] { "addr/grass" }, new[] { CreateTextureConfig(string.Empty) },
-                CreateSurroundConfigs(string.Empty)));
+                CreateSurroundConfigs(string.Empty), new string[0]));
         }
 
         [Test]
@@ -88,11 +88,27 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass" },
                 new[] { CreateTextureConfig("addr/cliff") },
-                CreateSurroundConfigs("addr/mud"));
+                CreateSurroundConfigs("addr/mud"), new string[0]);
 
             Assert.That(table.OrderedLayerAddresses,
                 Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/cliff", "addr/mud" }));
             Assert.That(table.LayerIndexByAddress["addr/mud"], Is.EqualTo(4));
+        }
+
+        [Test]
+        public void RegistersEveryTreeRootLayerAfterTheRockSurroundLayer()
+        {
+            // 木の根元レイヤーが列を持たないと TreeSurroundTexturePainter の索引引きが落ちる。重複は岩側と同じく畳む
+            // Without a column the tree painter's index lookup throws, and a duplicate folds onto the rock layer's column as elsewhere
+            var table = SplatLayerTable.Build(
+                "addr/beach", "addr/rock",
+                new[] { "addr/grass" },
+                new[] { CreateTextureConfig() },
+                CreateSurroundConfigs("addr/mud"), new[] { "addr/dirt", "addr/mud" });
+
+            Assert.That(table.OrderedLayerAddresses,
+                Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass", "addr/mud", "addr/dirt" }));
+            Assert.That(table.LayerIndexByAddress["addr/dirt"], Is.EqualTo(4));
         }
 
         [Test]
@@ -104,7 +120,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass" },
                 new[] { CreateTextureConfig() },
-                CreateSurroundConfigs(string.Empty));
+                CreateSurroundConfigs(string.Empty), new string[0]);
 
             Assert.That(table.OrderedLayerAddresses, Is.EqualTo(new[] { "addr/beach", "addr/rock", "addr/grass" }));
         }
@@ -116,7 +132,7 @@ namespace Client.Tests.UnitTest
                 "addr/beach", "addr/rock",
                 new[] { "addr/grass", "addr/sand" },
                 new[] { CreateTextureConfig("addr/cliff", "addr/moss"), CreateTextureConfig("addr/dune") },
-                CreateSurroundConfigs(string.Empty, string.Empty));
+                CreateSurroundConfigs(string.Empty, string.Empty), new string[0]);
 
             var biomeParams = new NativeArray<BiomeParams>(2, Allocator.Temp);
             var textureEntries = TextureEntryParamsBuilder.Build(

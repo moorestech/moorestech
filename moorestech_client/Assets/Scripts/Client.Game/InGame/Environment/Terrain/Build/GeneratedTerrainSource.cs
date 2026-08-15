@@ -4,6 +4,7 @@ using Client.Game.InGame.Environment.Terrain.Build.Placement;
 using Client.Game.InGame.Environment.Terrain.Visual.Cache;
 using Client.Game.InGame.Environment.Terrain.Visual.Source;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
+using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Pipeline.Biomes;
@@ -32,6 +33,10 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         private readonly BiomeVisualSections _visualSections;
         private readonly WorldDataDirectory _worldCacheDirectory;
 
+        // 木の根元のレイヤーは樹種ごとにguidで引く。列の確保もタイルごとの塗りもこの1本から派生させる
+        // A tree's root layer is looked up per species by guid; both the reserved columns and every tile's painting derive from this one map
+        private readonly IReadOnlyDictionary<string, (string layerAddress, float weight, float width)> _treeSurroundParamsByGuid;
+
         // ノイズ窓の原点をindex(0,0)タイルに合わせたConfig。他のタイルはここからタイル座標ぶんずらして作る
         // The config whose noise window origin sits on the index (0,0) tile; every other tile shifts off it by its tile coordinate
         private readonly TerrainGenerationConfig _config;
@@ -47,8 +52,10 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         private GeneratedTerrainSource(
             TerrainGenerationConfig config, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
             SplatLayerTable layerTable, TerrainLayer[] terrainLayers, WorldDataDirectory worldCacheDirectory,
-            Vector2 sceneOrigin, IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, TerrainVisualCache visualCache)
+            Vector2 sceneOrigin, IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, TerrainVisualCache visualCache,
+            IReadOnlyDictionary<string, (string layerAddress, float weight, float width)> treeSurroundParamsByGuid)
         {
+            _treeSurroundParamsByGuid = treeSurroundParamsByGuid;
             _visualCache = visualCache;
             _sceneOrigin = sceneOrigin;
             _mapObjects = mapObjects;
@@ -83,10 +90,16 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);
             var visualSections = BiomeVisualSectionTable.Resolve(selectedGeneration, biomeTypes);
+
+            // 木の根元のレイヤーは有効バイオームの樹種から集める。列を確保しないまま塗るとインデックスが引けない
+            // The tree root layers are gathered from the enabled biomes' species; painting without reserving their columns would find no index
+            var treeSurroundParamsByGuid = TreeSurroundTexturePainter.BuildGuidSurroundMap(
+                new BiomePlacementHelper(config), biomeTypes);
             var layerTable = SplatLayerTable.Build(
                 config.shoreConfig.beachLayerAddressablePath, config.rockLayerAddressablePath,
                 visualSections.MainLayerAddresses, visualSections.TextureConfigs,
-                visualSections.SurroundTextureConfigs);
+                visualSections.SurroundTextureConfigs,
+                TreeSurroundTexturePainter.LayerAddresses(treeSurroundParamsByGuid));
 
             var terrainLayers = await TerrainLayerAssetLoader.LoadAsync(layerTable.OrderedLayerAddresses);
             await DetailAssetResolver.ResolveAsync(visualSections.DetailConfigs);
@@ -102,7 +115,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             return new GeneratedTerrainSource(
                 config, biomeTypes, visualSections, layerTable, terrainLayers, worldCacheDirectory, sceneOrigin,
-                mapObjects, visualCache);
+                mapObjects, visualCache, treeSurroundParamsByGuid);
         }
 
         // タイルはシーン原点を起点に地形1枚ぶんずつ並ぶ。MapObjects/MapVeinsも同じ原点で配られる
@@ -167,7 +180,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 // splatも岩の裸地でmapObjectを読むようになったので、Detailと同じく全タイルぶんを渡してhaloで切らせる
                 // The splat now reads map objects for the rocks' bare ground too, so it takes the whole layout and slices its own halo, as detail does
                 var rebuiltAlphamap = SplatmapRuntimeGenerator.Generate(
-                    tileConfig, _biomeTypes, classification, _layerTable, _visualSections,
+                    tileConfig, _biomeTypes, classification, _layerTable, _visualSections, _treeSurroundParamsByGuid,
                     preHeights, transferredBiomeIndices, _config.AlphamapResolution,
                     _mapObjects, TileWorldPosition(tileX, tileZ));
                 // 距離場はタイル境界の外まで見るため、切り出し済みのtileObjectsではなく全タイルぶんを渡す

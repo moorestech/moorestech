@@ -41,7 +41,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             return SplatLayerTable.Build(
                 "addr/beach", "addr/Mud01", new[] { "addr/grass" },
                 new[] { new BiomeTextureConfig { entries = new TextureEntry[0] } },
-                new[] { new SurroundTextureConfig() });
+                new[] { new SurroundTextureConfig() }, new string[0]);
         }
 
         public static SurroundTextureConfig CreateSurroundConfig()

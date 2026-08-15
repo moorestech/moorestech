@@ -26,6 +26,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
         public static float[,,] Generate(
             TerrainGenerationConfig config, BiomeType[] biomeTypes, TerrainClassificationContext classification,
             SplatLayerTable layerTable, BiomeVisualSections visualSections,
+            IReadOnlyDictionary<string, (string layerAddress, float weight, float width)> treeSurroundParamsByGuid,
             float[,] transferredHeights, byte[,] transferredBiomeIndices, int alphamapResolution,
             IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition)
         {
@@ -61,7 +62,11 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
                 RunSplatmapJob();
 
                 var alphamap = SplatWeightConverter.ToAlphamap(splatWeights, resolution, alphamapResolution, layerCount);
+
+                // 移植元の順序は岩の裸地→木の根元。逆にすると根元の塗りの上から岩の裸地が乗り、木の下だけ色が変わる
+                // The source paints the rocks' bare ground before the tree roots; reversing it lays bare ground over the roots and recolours only what sits under a tree
                 PaintRockSurroundTexture(alphamap);
+                PaintTreeSurroundTexture(alphamap);
                 return alphamap;
             }
             finally
@@ -137,6 +142,18 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
                 ObjectSurroundTexturePainter.Apply(
                     alphamap, config, layerTable, visualSections.SurroundTextureConfigs,
                     classification.Weights2D, biomeCount, transferredHeights, stones);
+            }
+
+            // 根元の塗りも隣タイルの木から伸びる。届く距離は樹種のsurroundLayerWidthで決まり、岩のMaxReachとは別物
+            // A root patch reaches in from a neighbouring tile's trees too, as far as that species' surroundLayerWidth rather than the rocks' MaxReach
+            void PaintTreeSurroundTexture(float[,,] alphamap)
+            {
+                var halo = TreeSurroundTexturePainter.MaxReach(treeSurroundParamsByGuid);
+                var haloObjects = TileMapObjectSlicer.SliceWithHalo(
+                    mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength, halo);
+                MapObjectKindSplitter.Split(haloObjects, out var trees, out _);
+
+                TreeSurroundTexturePainter.Apply(alphamap, config, layerTable, treeSurroundParamsByGuid, trees);
             }
 
             #endregion

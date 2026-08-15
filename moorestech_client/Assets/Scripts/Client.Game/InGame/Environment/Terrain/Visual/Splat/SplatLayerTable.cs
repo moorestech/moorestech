@@ -28,7 +28,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
         public static SplatLayerTable Build(
             string beachLayerAddress, string rockLayerAddress,
             string[] biomeMainLayerAddresses, BiomeTextureConfig[] biomeTextureConfigs,
-            SurroundTextureConfig[] biomeSurroundTextureConfigs)
+            SurroundTextureConfig[] biomeSurroundTextureConfigs, IReadOnlyList<string> treeSurroundLayerAddresses)
         {
             var orderedLayerAddresses = new List<string>();
             var layerIndexByAddress = new Dictionary<string, int>();
@@ -50,6 +50,11 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
             // The bare-ground layer around rocks is unset by default and falls back to Mud, so rejecting empties would fail every biome
             foreach (var surroundTextureConfig in biomeSurroundTextureConfigs)
                 RegisterOptional(surroundTextureConfig.surroundLayerAddressablePath);
+
+            // 木の根元のレイヤーは樹種ごと。呼び出し側が塗る樹種ぶんだけ渡すので、ここへ来る時点で空は無い
+            // A tree's root layer is per species; the caller passes only the painting ones, so nothing empty arrives here
+            foreach (var treeSurroundLayerAddress in treeSurroundLayerAddresses)
+                Register(treeSurroundLayerAddress, "treePlacement.prototypes.surroundLayerAddressablePath");
 
             return new SplatLayerTable(orderedLayerAddresses, layerIndexByAddress);
 
