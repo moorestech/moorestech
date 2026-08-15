@@ -23,9 +23,9 @@ namespace Game.MapGeneration.Pipeline.Stages
             }
         }
 
-        public static void ToSceneSpace(List<PlacementEntry> entries, Vector2 spawnOffset)
+        public static void ToSceneSpace(List<PlacementEntry> entries, Vector2 noiseToSceneShift)
         {
-            var shift = new Vector3(spawnOffset.x, 0f, spawnOffset.y);
+            var shift = new Vector3(noiseToSceneShift.x, 0f, noiseToSceneShift.y);
             for (int i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
@@ -36,9 +36,9 @@ namespace Game.MapGeneration.Pipeline.Stages
 
         // 鉱脈 AABB は整数スナップ済みなので、float の -G を掛けてから丸め直しタイルローカル格子へ戻す。
         // Vein AABBs are already integer-snapped, so apply the float -G and re-round back onto the tile-local lattice.
-        public static void ToSceneSpace(List<PlacedVein> veins, Vector2 spawnOffset)
+        public static void ToSceneSpace(List<PlacedVein> veins, Vector2 noiseToSceneShift)
         {
-            var shift = new Vector3(spawnOffset.x, 0f, spawnOffset.y);
+            var shift = new Vector3(noiseToSceneShift.x, 0f, noiseToSceneShift.y);
             foreach (var vein in veins)
             {
                 vein.Min = Vector3Int.RoundToInt((Vector3)vein.Min - shift);

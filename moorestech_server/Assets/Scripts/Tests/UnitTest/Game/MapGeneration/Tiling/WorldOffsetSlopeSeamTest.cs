@@ -8,7 +8,7 @@ using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Tiling
 {
     // HeightSlopeJob/BoundaryNoiseJobがワールド座標基準でノイズをサンプルすることを検証する。
     // タイル境界(worldOffsetXがterrainWidthぶん違う2窓)の高さが一致するかを見る。

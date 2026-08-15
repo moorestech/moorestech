@@ -16,17 +16,17 @@ namespace Game.MapGeneration.Pipeline.Tiling
     {
         private readonly BiomePlacementHelper _helper;
         private readonly BiomeType[] _biomeTypes;
-        private readonly Vector2 _spawnOffset;
+        private readonly Vector2 _noiseToSceneShift;
         private readonly Vector3 _sceneSpawn;
         private readonly MapGenerationOutput _output;
 
         public TilePlacementRunner(
             BiomePlacementHelper helper, BiomeType[] biomeTypes,
-            Vector2 spawnOffset, Vector3 sceneSpawn, MapGenerationOutput output)
+            Vector2 noiseToSceneShift, Vector3 sceneSpawn, MapGenerationOutput output)
         {
             _helper = helper;
             _biomeTypes = biomeTypes;
-            _spawnOffset = spawnOffset;
+            _noiseToSceneShift = noiseToSceneShift;
             _sceneSpawn = sceneSpawn;
             _output = output;
         }
@@ -53,12 +53,12 @@ namespace Game.MapGeneration.Pipeline.Tiling
             List<PlacedVein> fluidVeins = null;
             PlaceObjectsAndVeinsInNoiseSpace();
 
-            // 木はタイルローカル座標なのでタイルの設置位置ぶん進め、ノイズ座標の残りは -G でシーン座標へ揃える。
-            // Trees are tile-local and advance by the tile's placement position; the rest are noise-space and realign by -G.
+            // 木はタイルローカル座標なのでタイルの設置位置ぶん進め、ノイズ座標の残りは窓原点ぶん引いてシーン座標へ揃える。
+            // Trees are tile-local and advance by the tile's placement position; the rest are noise-space and realign by the window origin.
             PlacementSceneOffset.ToTileScene(treeEntries, tileScene);
-            PlacementSceneOffset.ToSceneSpace(objectEntries, _spawnOffset);
-            PlacementSceneOffset.ToSceneSpace(itemVeins, _spawnOffset);
-            PlacementSceneOffset.ToSceneSpace(fluidVeins, _spawnOffset);
+            PlacementSceneOffset.ToSceneSpace(objectEntries, _noiseToSceneShift);
+            PlacementSceneOffset.ToSceneSpace(itemVeins, _noiseToSceneShift);
+            PlacementSceneOffset.ToSceneSpace(fluidVeins, _noiseToSceneShift);
 
             // 安全域はシーン座標で判定する。ループ中は output.SpawnPoint が未確定なので採取済みのXZを使う。
             // Clearance is judged in scene space; output.SpawnPoint is unsettled mid-loop, so use the pre-sampled XZ.

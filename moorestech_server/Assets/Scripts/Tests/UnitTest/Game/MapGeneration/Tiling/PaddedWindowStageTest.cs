@@ -8,7 +8,7 @@ using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine;
 
-namespace Tests.UnitTest.Game.MapGeneration
+namespace Tests.UnitTest.Game.MapGeneration.Tiling
 {
     // パディング窓＋中央クロップが、等倍窓の生成結果と同じワールド座標を指すことを検証する。
     // Verifies the padded window plus center crop lands on the same world coordinates as the plain window.

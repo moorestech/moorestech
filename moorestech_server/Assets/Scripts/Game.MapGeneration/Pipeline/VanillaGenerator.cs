@@ -21,17 +21,21 @@ namespace Game.MapGeneration.Pipeline
             // Work on a copy since the search result is written back; mutating the argument would make a re-run differ.
             var config = sourceConfig.ShallowCopy();
 
-            var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);
-
-            // G はノイズのサンプル座標に効くため、全タイルより前にスポーン探索を1回だけ確定させる。
-            // The spawn search settles once before every tile since G feeds the noise sample coordinates.
-            Vector2 spawnOffset = ResolveSpawnOffset(config, biomeTypes);
-
             // 転送層のタイル並びは正方格子前提。非正方だと index と coord の対応が崩れ、別タイルの地形を配ることになる。
             // The transfer layer's tile order assumes a square grid; a non-square one breaks the index-to-coord mapping and ships the wrong terrain.
             if (config.gridSizeX != config.gridSizeZ)
                 throw new InvalidOperationException(
                     $"[VanillaGenerator] gridSizeX ({config.gridSizeX}) and gridSizeZ ({config.gridSizeZ}) must match.");
+
+            var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);
+
+            // G はノイズのサンプル座標に効くため、全タイルより前にスポーン探索を1回だけ確定させる。
+            // The spawn search settles once before every tile since G feeds the noise sample coordinates.
+            ResolveSpawnOffset(config, biomeTypes);
+
+            // シーン座標化の基準は探索の戻り値ではなく探索後の config から読む（探索無効時に master worldOffset を捨てないため）。
+            // Read the noise-to-scene basis from the post-search config, not the search result, so a disabled search keeps the master worldOffset.
+            var noiseToSceneShift = new Vector2(config.worldOffsetX, config.worldOffsetZ);
 
             int halfX = config.gridSizeX / 2;
             int halfZ = config.gridSizeZ / 2;
@@ -42,15 +46,15 @@ namespace Game.MapGeneration.Pipeline
 
                 // クライアントは分類段を再実行するのでノイズ窓の原点が要り、地形の設置にはシーン原点が要る。
                 // Clients re-run the classification stage, needing the noise window origin, and place the terrain at the scene origin.
-                NoiseOrigin = new Vector2(config.worldOffsetX, config.worldOffsetZ) + sceneOrigin,
+                NoiseOrigin = noiseToSceneShift + sceneOrigin,
                 SceneOrigin = sceneOrigin,
             };
 
             // スポーンのXZはタイル生成前に確定する（高さYだけ中心タイル生成後に採取する）。
             // Spawn XZ settles before tile generation; only its height Y is sampled after the center tile.
-            Vector2 sceneSpawnXz = ComputeSceneSpawnXz(config, spawnOffset);
+            Vector2 sceneSpawnXz = ComputeSceneSpawnXz(config, noiseToSceneShift);
             var runner = new TilePlacementRunner(new BiomePlacementHelper(config), biomeTypes,
-                spawnOffset, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output);
+                noiseToSceneShift, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output);
 
             // biomeParams と noiseOffsets が1タイルでも違うとそのタイルだけ別地形になるため、格子で1組だけ作る。
             // A single differing biomeParams or noiseOffsets would give that tile a different world, so the grid shares one set.
@@ -112,16 +116,16 @@ namespace Game.MapGeneration.Pipeline
             #endregion
         }
 
-        // スポーン探索を実行し、中央化オフセット G を config のノイズ座標へ反映して返す。
-        // Run the spawn search, push the centering offset G into the config's noise coordinates, and return it.
-        static Vector2 ResolveSpawnOffset(TerrainGenerationConfig config, BiomeType[] biomeTypes)
+        // スポーン探索を実行し、中央化オフセット G を config のノイズ座標へ反映する（結果の唯一の置き場が config）。
+        // Run the spawn search and push the centering offset G into the config's noise coordinates, config being the sole home of the result.
+        static void ResolveSpawnOffset(TerrainGenerationConfig config, BiomeType[] biomeTypes)
         {
             // 探索無効も1行残す。無効とフォールバックはどちらもオフセット0で、ログが無いと後から区別できない（ADR#13）
             // Log the disabled path too: disabled and fallback both yield a zero offset and become indistinguishable without it (ADR#13)
             if (!config.useSpawnOffsetSearch)
             {
                 Debug.Log("[SpawnSearch] 探索無効（useSpawnOffsetSearch=false）");
-                return Vector2.zero;
+                return;
             }
 
             var result = SpawnRegionFinder.Find(config, biomeTypes);
@@ -137,14 +141,13 @@ namespace Game.MapGeneration.Pipeline
             config.spawnWorldPosition = result.SpawnWorldPosition;
             config.worldOffsetX = result.WorldOffset.x;
             config.worldOffsetZ = result.WorldOffset.y;
-            return result.WorldOffset;
         }
 
-        // スポーンのXZをシーン座標で返す。config.spawnWorldPosition はノイズ座標 S なので -G する。
-        // Return the spawn XZ in scene space; config.spawnWorldPosition is the noise-space S, so subtract G.
-        static Vector2 ComputeSceneSpawnXz(TerrainGenerationConfig config, Vector2 spawnOffset)
+        // スポーンのXZをシーン座標で返す。config.spawnWorldPosition はノイズ座標 S なので窓原点ぶん引く。
+        // Return the spawn XZ in scene space; config.spawnWorldPosition is the noise-space S, so subtract the window origin.
+        static Vector2 ComputeSceneSpawnXz(TerrainGenerationConfig config, Vector2 noiseToSceneShift)
         {
-            var sceneSpawn = config.spawnWorldPosition - spawnOffset;
+            var sceneSpawn = config.spawnWorldPosition - noiseToSceneShift;
 
             // 全分岐で落下復帰先を中心タイルの開区間へ固定し、探索無効時だけ角スポーンが通る抜け道を残さない
             // Keep fall recovery inside the center tile's open interval in every branch, leaving no corner-spawn gap when search is disabled
