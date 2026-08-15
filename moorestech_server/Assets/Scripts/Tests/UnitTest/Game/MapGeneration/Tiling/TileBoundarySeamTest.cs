@@ -24,6 +24,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         // padding = max(chunkPadding, blendRadius/2) なので実効パディングは chunkPadding 側で決まる。
         // Sized so no local kernel (weight interpolation blendRadius, blur blendRadius/divisor, coastalSmoothFactor's smoothRadius of 22px) reads past the window.
         // padding = max(chunkPadding, blendRadius/2), so chunkPadding is what settles the effective padding here.
+        //
+        // この上書きは体裁ではなく必須。factory既定(biomeBlendRadius=200/chunkPadding=50→実効100)は
+        // biomeWeightsの必要300に対し不足し（PaddingSufficiencyGuardTest参照）、上書きしないと本テストが落ちる
+        // Not cosmetic: without this override the factory default (biomeBlendRadius=200/chunkPadding=50, effective 100)
+        // falls short of biomeWeights' required 300 (see PaddingSufficiencyGuardTest), and this test would fail
         private const int ChunkPadding = 32;
         private const int BiomeBlendRadius = 8;
 
