@@ -32,9 +32,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
                 throw new ArgumentException(
                     $"destination must be allocated at the tile resolution {baseResolution}.", nameof(destination));
 
-            // blendRadius/2 をパディング下限にする（移植元 InfiniteTerrainManager:46 と同じ底上げ）
-            // Floor the padding at blendRadius/2, the same lift as the source InfiniteTerrainManager:46
-            var padding = Mathf.Max(tileConfig.chunkPadding, tileConfig.biomeBlendRadius / 2);
+            var padding = ResolvePadding(tileConfig, destination.biomeParams);
             if (padding <= 0)
             {
                 RunWindow(tileConfig, biomeCount, destination);
@@ -61,6 +59,21 @@ namespace Game.MapGeneration.Pipeline.Tiling
                 window.noiseOffsets = default;
                 window.Dispose();
             }
+        }
+
+        // 窓の外を読むカーネルの実効到達半径を、半径を持っている型それぞれから採って足し合わせる。
+        // 移植元 InfiniteTerrainManager:46 の blendRadius/2 はブラーしか勘定しておらず coastalSmoothFactor の
+        // 到達（v8で120px）に届かないため、タイル境界に14mの崖が立っていた。式ごと差し替えてある。
+        // chunkPadding はマスタが明示する追加余白として下限に残す。
+        // Sums the true reach of every kernel that reads outside the window, taken from whichever type owns each radius.
+        // The source's blendRadius/2 (InfiniteTerrainManager:46) counted only the blur and fell short of coastalSmoothFactor's
+        // reach (120px on v8), which is what stood a 14m cliff on the tile seam; the whole formula is replaced.
+        // chunkPadding stays as the floor, the extra margin the master states explicitly.
+        public static int ResolvePadding(TerrainGenerationConfig config, NativeArray<BiomeParams> biomeParams)
+        {
+            var requiredPadding = ClassificationStage.MaxReachPixels(config)
+                                  + HeightmapStage.MaxReachPixels(config, biomeParams);
+            return Mathf.Max(config.chunkPadding, requiredPadding);
         }
 
         // ピクセル間隔を保ったまま窓を四方へ padding ピクセル広げる（移植元 GenerateWithPadding と同式）。

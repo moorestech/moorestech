@@ -12,6 +12,29 @@ namespace Game.MapGeneration.Pipeline.Stages
     // The texture (splatmap) path is not run (server-irrelevant).
     public static class HeightmapStage
     {
+        // 高さ1画素が分類チャネルの何画素外まで依存するか。後段カーネルは直列に掛かるので半径は合算になる。
+        // AlpinePlateauStage の連結領域解析は到達が無制限でここには含めない（別途裁定・bd moorestech-edd.8）。
+        // How far beyond a classification pixel one height pixel depends; the later kernels chain in series so their radii add up.
+        // AlpinePlateauStage's connected-region analysis has unbounded reach and is not folded in (adjudicated separately, bd moorestech-edd.8).
+        public static int MaxReachPixels(TerrainGenerationConfig config, NativeArray<BiomeParams> biomeParams)
+        {
+            // CoastalSmoothJob の 3x3 平均
+            // CoastalSmoothJob's 3x3 average
+            var reach = 1;
+            reach += GetHeightBlurRadius(biomeParams);
+
+            // 走らない設定で窓を広げないよう、加算条件は RunHeightPostProcess のゲートと同じにする
+            // Match RunHeightPostProcess's gate exactly so a config that never runs the job does not widen the window
+            var slope = GetSlopeParams(biomeParams);
+            if (0f < slope.Density && 0 < slope.Radius && 0f < slope.BlendStrength) reach += slope.Radius;
+
+            // BoundaryNoiseJob は隣接1画素の勾配を読む
+            // BoundaryNoiseJob reads a one-pixel gradient
+            if (config.jungleEnabled && 0f < config.jungle.boundaryNoiseStrength) reach += 1;
+
+            return reach;
+        }
+
         public static void Run(TerrainGenerationConfig config, int biomeCount, JobBuffers buffers)
         {
             int res = config.Resolution;

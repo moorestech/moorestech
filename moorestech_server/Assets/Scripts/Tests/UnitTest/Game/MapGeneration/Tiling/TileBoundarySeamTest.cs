@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline;
+using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
 using UnityEngine;
@@ -11,26 +12,26 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
     // Verifies adjacent tiles agree at their shared border on the full path: padded window, center crop, then the tile loop (R2).
     // WorldOffsetSlopeSeamTest covers the per-job coordinate basis, so this one compares only VanillaGenerator's final output.
     //
-    // 本テストが保証するのは「クロップ機構が正しいこと」であり「production にシームが無いこと」ではない
-    // （下の設定は landThreshold=0/alpineEnabled=false で ADR許容のグローバル経路を踏まない）。
-    // This test proves the crop mechanism is correct, not that production is seam-free
-    // (the config below sets landThreshold=0/alpineEnabled=false, so it never exercises the ADR-permitted global-reach paths).
+    // 本テストが保証するのは「クロップ機構と padding 導出が正しいこと」であり「production にシームが無いこと」ではない。
+    // SmallSeaRemoval と Alpine 台地の連結成分は到達が無制限で padding では直せず、全設定で無効化してある（bd moorestech-edd.8）。
+    // This proves the crop mechanism and the padding derivation are correct, not that production is seam-free.
+    // SmallSeaRemoval's and the alpine plateau's connected components have unbounded reach no padding can fix, and stay disabled here (bd moorestech-edd.8).
     public class TileBoundarySeamTest
     {
         private const int GridSide = 3;
         private const int Seed = 42;
 
-        // 局所カーネル（重み補間 blendRadius・ブラー blendRadius/divisor・coastalSmoothFactor の smoothRadius 22px）が窓の外を読まない値にする。
-        // padding = max(chunkPadding, blendRadius/2) なので実効パディングは chunkPadding 側で決まる。
-        // Sized so no local kernel (weight interpolation blendRadius, blur blendRadius/divisor, coastalSmoothFactor's smoothRadius of 22px) reads past the window.
-        // padding = max(chunkPadding, blendRadius/2), so chunkPadding is what settles the effective padding here.
-        //
-        // この上書きは体裁ではなく必須。factory既定(biomeBlendRadius=200/chunkPadding=50→実効100)は
-        // biomeWeightsの必要300に対し不足し（PaddingSufficiencyGuardTest参照）、上書きしないと本テストが落ちる
-        // Not cosmetic: without this override the factory default (biomeBlendRadius=200/chunkPadding=50, effective 100)
-        // falls short of biomeWeights' required 300 (see PaddingSufficiencyGuardTest), and this test would fail
+        // factory既定の biomeBlendRadius=200 は導出paddingを302まで押し上げ、窓が 861² になって3タイル格子が実用外の遅さになる。
+        // 小さくしても導出paddingが chunkPadding 32 を下回るだけで、測りたいクロップ機構の被覆は落ちない。
+        // The factory default biomeBlendRadius=200 pushes the derived padding to 302, a 861 window that makes a 3x3 grid impractically slow.
+        // Shrinking it only drops the derived padding below chunkPadding 32 and costs none of the crop coverage this test is about.
         private const int ChunkPadding = 32;
         private const int BiomeBlendRadius = 8;
+
+        // 海岸テストだけが使う陸側地形半径。BeachTransitionJob.CoastalSmoothRadius(60) = 120 で ChunkPadding 32 を超える
+        // The land-side terrain radius only the coastal test uses; BeachTransitionJob.CoastalSmoothRadius(60) = 120 exceeds ChunkPadding 32
+        private const int CoastalBeachLandTerrainRadius = 60;
+        private const float CoastalLandThreshold = 0.35f;
 
         // 高さは0..1正規化。terrainHeight=600m 換算で 1e-4 は 6cm 未満であり、クロップ漏れのシームは必ずこれより大きい。
         // Heights are normalized 0..1; at terrainHeight=600m, 1e-4 is under 6cm, well below any seam a missing crop would leave.
@@ -52,6 +53,55 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             AssertNoSeamAcrossGrid(BuildConfig(desertEnabled: true));
         }
 
+        // 上2件はどちらも海岸系の到達が chunkPadding に収まる設定なので、padding 導出の欠陥をゼロカバーで見逃す。
+        // ここだけ coastalSmoothFactor の到達（max(2r, r+12) = 120px）を chunkPadding 32 より大きくして実際に踏ませる。
+        // Both tests above keep the shore reach inside chunkPadding, so a broken padding derivation goes uncovered.
+        // This one alone pushes coastalSmoothFactor's reach (max(2r, r+12) = 120px) past chunkPadding 32 to actually exercise it.
+        [Test]
+        public void 海岸平滑の到達がchunkPaddingを超えても隣接タイルの境界は一致する()
+        {
+            var config = BuildCoastalConfig();
+            var output = AssertNoSeamAcrossGrid(config);
+
+            // 砂浜が一画素も出ていなければ海岸系の経路を踏んでおらず、上の突き合わせは空振りになる
+            // With no beach pixel at all the shore path never ran and the comparison above proved nothing
+            Assert.Less(0, CountBorderBeachSamples(output, config.Resolution),
+                "タイル境界に砂浜が一画素も出ておらず、海岸系チャネルを踏んでいない");
+        }
+
+        // SmallSeaRemovalJob と AlpinePlateauStage の連結成分は到達が無制限で padding では直せない別問題（bd moorestech-edd.8）。
+        // 本テストが測りたい海岸系の到達だけが残るよう、その2つは無効化してから海岸の帯を広げる。
+        // SmallSeaRemovalJob and AlpinePlateauStage use connected components, whose unbounded reach no padding can fix (bd moorestech-edd.8).
+        // Both are disabled so that only the shore reach this test is about remains, and then the beach band is widened.
+        private static TerrainGenerationConfig BuildCoastalConfig()
+        {
+            var config = BuildConfig(desertEnabled: false);
+            config.alpineEnabled = false;
+            config.shoreConfig.minSeaRegionSize = 0;
+
+            // 共通設定は landThreshold=0 で全面陸になり海岸が1画素も出ないため、海を作る閾値へ戻す
+            // The shared setup uses landThreshold=0 and comes out all land with no coast at all, so restore a threshold that makes sea
+            config.landThreshold = CoastalLandThreshold;
+            config.shoreConfig.beachLandTerrainRadius = CoastalBeachLandTerrainRadius;
+            return config;
+        }
+
+        private static int CountBorderBeachSamples(MapGenerationOutput output, int resolution)
+        {
+            var beach = (byte)BiomeType.Beach;
+            var count = 0;
+            foreach (var tile in output.Tiles)
+            for (var i = 0; i < resolution; i++)
+            {
+                if (tile.BiomeIndices[i] == beach) count++;
+                if (tile.BiomeIndices[(resolution - 1) * resolution + i] == beach) count++;
+                if (tile.BiomeIndices[i * resolution] == beach) count++;
+                if (tile.BiomeIndices[i * resolution + resolution - 1] == beach) count++;
+            }
+
+            return count;
+        }
+
         private static TerrainGenerationConfig BuildConfig(bool desertEnabled)
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
@@ -71,7 +121,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             return config;
         }
 
-        private static void AssertNoSeamAcrossGrid(TerrainGenerationConfig config)
+        private static MapGenerationOutput AssertNoSeamAcrossGrid(TerrainGenerationConfig config)
         {
             var output = new VanillaGenerator().Generate(config);
             Assert.AreEqual(GridSide * GridSide, output.Tiles.Count);
@@ -112,6 +162,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
                 var biomeSample = 0 < biomeMismatches.Count ? biomeMismatches[0] : "(none)";
                 Assert.Fail($"height seam count={heightMismatches.Count} sample={heightSample}\nbiome seam count={biomeMismatches.Count} sample={biomeSample}");
             }
+
+            return output;
         }
 
         // 左タイルの最右列と右タイルの最左列は同一ワールドXをサンプルする

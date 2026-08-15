@@ -30,6 +30,25 @@ namespace Game.MapGeneration.Pipeline.Stages
             return list.ToArray();
         }
 
+        // 本ステージが窓の外を読みうる最大画素数。海岸系はジョブ側から、重み系は補間とブラーの合算から採る。
+        // SmallSeaRemovalJob の連結成分だけは到達が無制限で、この値には含められない（別途裁定・bd moorestech-edd.8）。
+        // The largest pixel distance this stage reads outside the window: shore radii come from the job, weights from interpolation plus blur.
+        // SmallSeaRemovalJob's connected components alone have unbounded reach and cannot be folded in (adjudicated separately, bd moorestech-edd.8).
+        public static int MaxReachPixels(TerrainGenerationConfig config)
+        {
+            var shore = config.shoreConfig;
+            var beachReach = BeachTransitionJob.MaxReachPixels(
+                shore.beachLandTextureRadius, shore.beachLandTerrainRadius,
+                shore.beachSeaTextureRadius, shore.beachSeaTerrainRadius);
+
+            // InterpolateWeightsJob が ±blendRadius を読み、その結果を H/V ブラーが ±blendRadius/divisor でさらに広げる
+            // InterpolateWeightsJob reads +-blendRadius, then the H/V blur widens that result by another +-blendRadius/divisor
+            var divisor = Mathf.Max(1, config.boundaryConfig.blurRadiusDivisor);
+            var weightsReach = config.biomeBlendRadius + config.biomeBlendRadius / divisor;
+
+            return Mathf.Max(beachReach, weightsReach);
+        }
+
         // ボロノイ分類→小海除去→ビーチ遷移→補間→水平/垂直ブラーで最終バイオーム重みを確定する。
         // Voronoi classify -> small-sea removal -> beach transition -> interpolate -> H/V blur.
         public static void Run(
