@@ -56,12 +56,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             Assert.Throws<InvalidOperationException>(() => new VanillaGenerator().Generate(config));
         }
 
-        // 0は正方判定(gridSizeX == gridSizeZ)を素通りするため、正方チェックとは別条件で弾く必要がある
-        // Zero slips past the square check (gridSizeX == gridSizeZ), so it needs its own guard
-        [Test]
-        public void グリッドサイズが0以下なら例外で拒否される()
+        // 0と負値は正方判定(gridSizeX == gridSizeZ)を素通りするため、正方チェックとは別条件で弾く必要がある
+        // Zero and negative sides slip past the square check (gridSizeX == gridSizeZ), so they need their own guard
+        [TestCase(0)]
+        [TestCase(-1)]
+        public void グリッドサイズが0以下なら例外で拒否される(int gridSide)
         {
-            var config = MultiTileTestWorld.BuildConfig(0, Seed);
+            var config = MultiTileTestWorld.BuildConfig(gridSide, Seed);
             Assert.Throws<InvalidOperationException>(() => new VanillaGenerator().Generate(config));
         }
 

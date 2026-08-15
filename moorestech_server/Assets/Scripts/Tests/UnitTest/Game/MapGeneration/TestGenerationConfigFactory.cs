@@ -70,6 +70,14 @@ namespace Tests.UnitTest.Game.MapGeneration
             // 小さく速い1タイルマップにする（プリセット無視・直接解像度指定）。
             // Make a small, fast single-tile map (bypass preset, set resolution directly).
             ap["overrideResolution"] = spawnSearchSetup == SpawnSearchSetup.Disabled ? 129 : 0;
+
+            // forUnitTest の generation.json は 5x5 なので、多タイルを要らないテストのために 1x1 へ落とす。
+            // 5x5 を要るテスト（スポーン探索系）は algorithmParamOverrides で明示的に戻すこと。
+            // The forUnitTest generation.json ships 5x5, so drop to 1x1 for tests that do not need multiple tiles.
+            // Tests that do need 5x5 (the spawn-search ones) restore it explicitly through algorithmParamOverrides.
+            ap["gridSizeX"] = 1;
+            ap["gridSizeZ"] = 1;
+
             ap["useSpawnOffsetSearch"] = spawnSearchSetup != SpawnSearchSetup.Disabled;
             ap["generateOre"] = true;
             ConfigureSpawnSearch((JObject)ap["spawnSearch"], spawnSearchSetup);

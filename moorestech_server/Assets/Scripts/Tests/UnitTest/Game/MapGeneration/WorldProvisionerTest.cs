@@ -112,7 +112,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         }
 
         [Test]
-        public void 生成ワールドのTileCountはグリッド積でありバージョンは2_0_0()
+        public void 生成ワールドはグリッド積のタイル数と版定数を記録し全タイルのファイルを書き出す()
         {
             LoadMasterHolderForGeneration();
 

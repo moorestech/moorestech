@@ -15,7 +15,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void 探索無効でも診断ログが1行残る()
         {
-            var generation = TestGenerationConfigFactory.Create(
+            var generation = SpawnSearchTestWorld.CreateGeneration(
                 TestGenerationConfigFactory.SpawnSearchSetup.Disabled);
 
             // 既定値 false の主要経路。ここが無言だとフォールバックと同一に見える（ADR#13）

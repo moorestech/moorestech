@@ -23,7 +23,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void 探索無効時の地形外スポーンはワールド生成を落とす()
         {
-            var generation = TestGenerationConfigFactory.CreateWithAlgorithmParamOverrides(
+            var generation = SpawnSearchTestWorld.CreateGeneration(
                 TestGenerationConfigFactory.SpawnSearchSetup.Disabled,
                 new JObject { ["spawnWorldPosition"] = new JArray(2116.69922, -807.6172) });
 
@@ -34,7 +34,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void 探索無効時の地形角スポーンはワールド生成を落とす()
         {
-            var generation = TestGenerationConfigFactory.CreateWithAlgorithmParamOverrides(
+            var generation = SpawnSearchTestWorld.CreateGeneration(
                 TestGenerationConfigFactory.SpawnSearchSetup.Disabled,
                 new JObject { ["spawnWorldPosition"] = new JArray(0, 0) });
 
