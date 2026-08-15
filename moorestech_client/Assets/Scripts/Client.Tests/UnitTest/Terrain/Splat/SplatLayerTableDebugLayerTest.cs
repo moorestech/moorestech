@@ -1,4 +1,3 @@
-using System;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using Client.Tests.UnitTest.Terrain.Surround;
@@ -62,11 +61,29 @@ namespace Client.Tests.UnitTest.Terrain.Splat
         }
 
         [Test]
-        public void ThrowsWhenADebugLayerAddressIsEmpty()
+        public void TreatsEveryUnassignedDebugSlotAsNoColumnAtAll()
         {
-            // 空アドレスは列だけ増えてTerrainLayerが解決できない。dbgCountとの食い違いを黙って作らせない
-            // An empty address adds a column no TerrainLayer resolves, so the disagreement with dbgCount never passes silently
-            Assert.Throws<InvalidOperationException>(() => Build(string.Empty));
+            // 実マスタ(generation.json)のalpineは空文字5本を並べた未割当スロット。ここで落とすと地形構築が丸ごと死ぬ
+            // The real master's alpine holds five empty placeholder slots; throwing here would kill the whole terrain build
+            var table = Build(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+
+            Assert.That(table.OrderedLayerAddresses.Count, Is.EqualTo(NonDebugLayerCount));
+            Assert.That(table.DebugLayerCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void CountsOnlyTheDebugSlotsThatActuallyGotAColumn()
+        {
+            // 設定の本数で数えると領域IDの剰余が存在しない列を指し、PlateauDebugOverlayJobが塗りを丸ごと捨てる
+            // Counting the configured entries would point the region-id modulo at columns that do not exist, dropping the paint entirely
+            var table = Build(string.Empty, "addr/debug0", string.Empty);
+
+            Assert.That(table.OrderedLayerAddresses, Is.EqualTo(new[]
+            {
+                "addr/beach", "addr/rock", "addr/grass", "addr/mud", "addr/dirt", "addr/debug0",
+            }));
+            Assert.That(table.DebugLayerStart, Is.EqualTo(NonDebugLayerCount));
+            Assert.That(table.DebugLayerCount, Is.EqualTo(1));
         }
 
         // 岩surroundと木の根元まで含めた本番同形の並び。デバッグ列はこの5本の後ろに来なければならない

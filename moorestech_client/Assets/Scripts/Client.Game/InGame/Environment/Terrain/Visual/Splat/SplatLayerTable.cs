@@ -74,8 +74,12 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
             foreach (var debugLayerAddress in debugLayerAddresses)
                 RegisterDebug(debugLayerAddress);
 
+            // 列数は実際に積んだ本数。設定の本数で数えると未割当スロットのぶんだけ領域IDが空の列へ飛ぶ
+            // The column count is what was really appended; counting the configured entries would send region ids onto columns that do not exist
+            var debugLayerCount = orderedLayerAddresses.Count - debugLayerStart;
+
             return new SplatLayerTable(
-                orderedLayerAddresses, layerIndexByAddress, debugLayerStart, debugLayerAddresses.Length);
+                orderedLayerAddresses, layerIndexByAddress, debugLayerStart, debugLayerCount);
 
             #region Internal
 
@@ -101,13 +105,13 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
                 Register(layerAddress, "biome[].objectConfig.surroundTextureConfig.surroundLayerAddressablePath");
             }
 
-            // 重複を畳まない唯一の経路。設定の本数がそのまま列数になり、領域IDの剰余がその中を巡る
-            // The one path that never folds duplicates: the configured count is the column count the region ids cycle through
+            // 重複を畳まない唯一の経路。積んだ本数がそのまま列数になり、領域IDの剰余がその中を巡る
+            // The one path that never folds duplicates: the appended count is the column count the region ids cycle through
             void RegisterDebug(string layerAddress)
             {
-                if (string.IsNullOrEmpty(layerAddress))
-                    throw new InvalidOperationException(
-                        "[SplatLayerTable] 'alpine.debugTerrainLayerAddressablePaths[]' is empty: every debug layer needs an Addressables address.");
+                // 空は未割当のデバッグスロット。移植元がTerrainLayer未設定を読み飛ばすのと同義で、列を作らない
+                // An empty entry is an unassigned debug slot, the source's null TerrainLayer, and adds no column
+                if (string.IsNullOrEmpty(layerAddress)) return;
 
                 // 索引辞書へは載せない。同じアドレスの通常レイヤーがあると索引を奪い、そのバイオームが台地色に染まる
                 // They stay out of the index dictionary: an ordinary layer sharing the address would lose its index and take the plateau colour

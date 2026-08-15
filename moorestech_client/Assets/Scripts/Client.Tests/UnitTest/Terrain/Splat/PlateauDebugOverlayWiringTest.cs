@@ -32,7 +32,7 @@ namespace Client.Tests.UnitTest.Terrain.Splat
             // 1画素も塗られないならオーバーレイが走っていないか、台地チャネルが空のまま渡っている
             // Not one painted pixel means either the overlay never ran or the plateau channels arrived empty
             var layerTable = CreateLayerTable(DebugLayerAddress);
-            var alphamap = Generate(layerTable);
+            var alphamap = Generate(layerTable, out _);
 
             var paintedPixels = 0;
             for (var z = 0; z < AlphamapResolution; z++)
@@ -45,17 +45,47 @@ namespace Client.Tests.UnitTest.Terrain.Splat
         [Test]
         public void LeavesTheSplatmapAloneWhereNoPlateauWasAccepted()
         {
-            // 全面が塗られるならマスクを読まずに塗っている。台地以外は SplatmapJob の合成が残らなければならない
-            // Painting everywhere would mean ignoring the mask; outside the plateaus SplatmapJob's blend must survive
-            var layerTable = CreateLayerTable(DebugLayerAddress);
-            var alphamap = Generate(layerTable);
+            // デバッグ列の有無だけを変えた2走行を突き合わせる。受理領域の外が1画素でも動けば受理と棄却の区別を失っている
+            // Compares two runs differing only in the debug columns: any moved pixel outside an accepted region means the accept/reject split was lost
+            var withDebug = Generate(CreateLayerTable(DebugLayerAddress), out var channels);
+            var withoutDebug = Generate(CreateLayerTable(), out _);
 
-            var untouchedPixels = 0;
+            var debugColumn = CreateLayerTable(DebugLayerAddress).DebugLayerStart;
+            var comparedLayers = withoutDebug.GetLength(2);
+            var changedPixels = 0;
+            var strayDebugPixels = 0;
+            var rejectedCandidatePixels = 0;
             for (var z = 0; z < AlphamapResolution; z++)
             for (var x = 0; x < AlphamapResolution; x++)
-                if (alphamap[z, x, layerTable.DebugLayerStart] <= 0f) untouchedPixels++;
+            {
+                var source = SourcePixelIndex(z, x);
+                if (0 < channels.RegionLabels[source]) continue;
+                if (0f < channels.PlateauMask[source]) rejectedCandidatePixels++;
+                if (0f < withDebug[z, x, debugColumn]) strayDebugPixels++;
 
-            Assert.Less(0, untouchedPixels, "台地の外まで塗られている");
+                for (var layer = 0; layer < comparedLayers; layer++)
+                    if (withDebug[z, x, layer] != withoutDebug[z, x, layer]) changedPixels++;
+            }
+
+            // 棄却候補が1つも無いと「候補を全部塗る」壊し方が素通りする。緩めた閾値でも棄却は必ず出る
+            // With no rejected candidate the "paint every candidate" break would slip through; the loosened thresholds always leave some
+            Assert.Less(0, rejectedCandidatePixels, "棄却された台地候補が無く、塗り過ぎを検出できない");
+
+            // デバッグ列は受理領域だけの持ち物。棄却候補や平地に薄く乗るだけでも受理と棄却の区別を失っている
+            // The debug column belongs to accepted regions alone; even a faint trace on a rejected candidate or flat ground means the split was lost
+            Assert.AreEqual(0, strayDebugPixels, $"受理されていない{strayDebugPixels}画素にデバッグ列が乗っている");
+            Assert.AreEqual(0, changedPixels, "受理領域の外の合成が動いている");
+        }
+
+        // ToAlphamap と同じ最近傍対応。alphamap の1画素がどの分類画素を読んだのかを引く
+        // The same nearest-neighbour mapping ToAlphamap uses, resolving which classification pixel an alphamap pixel read
+        private static int SourcePixelIndex(int z, int x)
+        {
+            var sourceX = Mathf.Clamp(
+                Mathf.RoundToInt((float)x / (AlphamapResolution - 1) * (Resolution - 1)), 0, Resolution - 1);
+            var sourceZ = Mathf.Clamp(
+                Mathf.RoundToInt((float)z / (AlphamapResolution - 1) * (Resolution - 1)), 0, Resolution - 1);
+            return sourceZ * Resolution + sourceX;
         }
 
         private static SplatLayerTable CreateLayerTable(params string[] debugLayerAddresses)
@@ -67,7 +97,7 @@ namespace Client.Tests.UnitTest.Terrain.Splat
                 debugLayerAddresses);
         }
 
-        private static float[,,] Generate(SplatLayerTable layerTable)
+        private static float[,,] Generate(SplatLayerTable layerTable, out PlateauChannels channels)
         {
             var config = CreateConfig();
             var biomeTypes = new[] { BiomeType.Alpine };
@@ -75,11 +105,18 @@ namespace Client.Tests.UnitTest.Terrain.Splat
             using var classification = new TerrainClassificationContext(config, biomeTypes);
             classification.Initialize();
 
-            return SplatmapRuntimeGenerator.Generate(
+            var alphamap = SplatmapRuntimeGenerator.Generate(
                 config, biomeTypes, classification, layerTable, CreateVisualSections(),
                 SurroundTestFixtures.CreateTreeSurroundSpecies(),
                 new float[Resolution, Resolution], CreateBiomeIndices(), AlphamapResolution,
                 new List<MapObjectLayoutMessagePack>(), Vector3.zero);
+
+            channels = new PlateauChannels
+            {
+                PlateauMask = classification.Buffers.plateauMask.ToArray(),
+                RegionLabels = classification.Buffers.regionLabels.ToArray(),
+            };
+            return alphamap;
         }
 
         private static BiomeVisualSections CreateVisualSections()
@@ -129,6 +166,14 @@ namespace Client.Tests.UnitTest.Terrain.Splat
                 biomeIndices[z, x] = (byte)BiomeType.Alpine;
 
             return biomeIndices;
+        }
+
+        // NativeArray の寿命外で判定するため、台地の2チャネルをマネージド配列へ写す
+        // Copies the two plateau channels into managed arrays so the checks outlive the NativeArrays
+        private sealed class PlateauChannels
+        {
+            public float[] PlateauMask;
+            public int[] RegionLabels;
         }
     }
 }
