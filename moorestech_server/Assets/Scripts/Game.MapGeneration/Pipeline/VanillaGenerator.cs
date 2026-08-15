@@ -31,7 +31,7 @@ namespace Game.MapGeneration.Pipeline
 
             // G はノイズのサンプル座標に効くため、全タイルより前にスポーン探索を1回だけ確定させる。
             // The spawn search settles once before every tile since G feeds the noise sample coordinates.
-            ResolveSpawnOffset(config, biomeTypes);
+            RunSpawnSearch(config, biomeTypes);
 
             // シーン座標化の基準は探索の戻り値ではなく探索後の config から読む（探索無効時に master worldOffset を捨てないため）。
             // Read the noise-to-scene basis from the post-search config, not the search result, so a disabled search keeps the master worldOffset.
@@ -116,9 +116,9 @@ namespace Game.MapGeneration.Pipeline
             #endregion
         }
 
-        // スポーン探索を実行し、中央化オフセット G を config のノイズ座標へ反映する（結果の唯一の置き場が config）。
-        // Run the spawn search and push the centering offset G into the config's noise coordinates, config being the sole home of the result.
-        static void ResolveSpawnOffset(TerrainGenerationConfig config, BiomeType[] biomeTypes)
+        // スポーン探索を走らせ、中央化オフセット G を config のノイズ座標へ書き込む（結果の唯一の置き場が config）。
+        // Run the spawn search and write the centering offset G into the config's noise coordinates, config being the sole home of the result.
+        static void RunSpawnSearch(TerrainGenerationConfig config, BiomeType[] biomeTypes)
         {
             // 探索無効も1行残す。無効とフォールバックはどちらもオフセット0で、ログが無いと後から区別できない（ADR#13）
             // Log the disabled path too: disabled and fallback both yield a zero offset and become indistinguishable without it (ADR#13)

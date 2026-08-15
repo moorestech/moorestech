@@ -30,8 +30,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             // SceneOrigin = (-half*W, -half*L): with 3x3, half=1, so the center tile occupies scene (0,W)x(0,L)
             Assert.AreEqual(new Vector2(-config.terrainWidth, -config.terrainLength), output.SceneOrigin);
 
-            // 不変条件 NoiseOrigin - SceneOrigin = G。探索無効なら G=0 で master の worldOffset がそのまま残る
-            // Invariant NoiseOrigin - SceneOrigin = G; with the search disabled G=0 and the master worldOffset stays
+            // 不変条件 NoiseOrigin - SceneOrigin = G。G は探索後の config.worldOffset で、探索無効なら master 値のまま
+            // Invariant NoiseOrigin - SceneOrigin = G; G is the post-search config.worldOffset, staying at the master value when the search is disabled
             Assert.AreEqual(new Vector2(config.worldOffsetX, config.worldOffsetZ), output.NoiseOrigin - output.SceneOrigin);
 
             var indices = output.Tiles.Select(tile => new Vector2Int(tile.TileX, tile.TileZ)).ToList();
@@ -137,8 +137,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             Assert.AreEqual(config.terrainWidth * 0.25f, output.SpawnPoint.x, 0.001f, "スポーンXが地形と別フレーム");
             Assert.AreEqual(config.terrainLength * 0.25f, output.SpawnPoint.z, 0.001f, "スポーンZが地形と別フレーム");
 
+            Assert.IsNotEmpty(output.MapObjects);
             foreach (var mapObject in output.MapObjects)
                 MultiTileTestWorld.AssertInsideGrid(mapObject.Position.x, mapObject.Position.z, config);
+
+            Assert.IsNotEmpty(output.ItemVeins);
             foreach (var vein in output.ItemVeins)
             {
                 MultiTileTestWorld.AssertInsideGrid(vein.Min.x, vein.Min.z, config);
