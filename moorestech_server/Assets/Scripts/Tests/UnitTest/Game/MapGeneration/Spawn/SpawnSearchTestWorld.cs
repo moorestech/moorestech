@@ -20,13 +20,15 @@ namespace Tests.UnitTest.Game.MapGeneration
             return CreateGeneration(setup, new JObject());
         }
 
-        // 格子サイズは必ず明示する。factory の既定は1タイルで、そのままだと探索範囲が5分の1に縮む
-        // Always state the grid size: the factory defaults to a single tile, which would shrink the scan extent fivefold
+        // 格子サイズは未指定のときだけ 5x5 を補う。factory の既定は1タイルで、そのままだと探索範囲が5分の1に縮む。
+        // 呼び出し側が明示指定した値（例: 意図的な4x4境界テスト）は上書きしない
+        // Fill in 5x5 only when unset: the factory defaults to a single tile, which would shrink the scan extent fivefold.
+        // A value the caller already stated (e.g. an intentional 4x4 boundary test) is left untouched
         public static Generation CreateGeneration(
             TestGenerationConfigFactory.SpawnSearchSetup setup, JObject algorithmParamOverrides)
         {
-            algorithmParamOverrides["gridSizeX"] = GridSide;
-            algorithmParamOverrides["gridSizeZ"] = GridSide;
+            if (!algorithmParamOverrides.ContainsKey("gridSizeX")) algorithmParamOverrides["gridSizeX"] = GridSide;
+            if (!algorithmParamOverrides.ContainsKey("gridSizeZ")) algorithmParamOverrides["gridSizeZ"] = GridSide;
             return TestGenerationConfigFactory.CreateWithAlgorithmParamOverrides(setup, algorithmParamOverrides);
         }
 
@@ -86,7 +88,11 @@ namespace Tests.UnitTest.Game.MapGeneration
                     mapObject.Position.x - output.SpawnPoint.x, mapObject.Position.z - output.SpawnPoint.z);
                 Assert.That(distance.sqrMagnitude, Is.GreaterThanOrEqualTo(15f * 15f));
             }
-            Assert.That(occupiedTiles.Count, Is.GreaterThan(1), "配置物が単一タイルへ固まっている");
+            // 25タイル格子に対し1枚超では「中心タイルへ全部固まる」退行しか捕まえられない。3枚以上を要求し
+            // 単一・隣接2タイルへの偏り退行も検知できるようにする
+            // >1 out of a 25-tile grid only catches a "everything piles onto the center tile" regression;
+            // requiring at least 3 also catches a bias toward a single tile or an adjacent pair of tiles
+            Assert.That(occupiedTiles.Count, Is.GreaterThanOrEqualTo(3), "配置物が少数タイルへ偏っている");
         }
 
         private static void AssertVeinsInsideGrid(

@@ -12,7 +12,9 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void 偶数gridSizeで格子中心がタイル外へ落ちるならワールド生成を落とす()
         {
-            var generation = TestGenerationConfigFactory.CreateWithAlgorithmParamOverrides(
+            // 意図的に既定の5x5から外れ4x4を指定する。この上書きは明示済みなので helper に握り潰されない
+            // Intentionally deviates from the default 5x5 to 4x4; the helper leaves an explicit override like this untouched
+            var generation = SpawnSearchTestWorld.CreateGeneration(
                 TestGenerationConfigFactory.SpawnSearchSetup.Enabled,
                 new JObject { ["gridSizeX"] = 4, ["gridSizeZ"] = 4 });
 

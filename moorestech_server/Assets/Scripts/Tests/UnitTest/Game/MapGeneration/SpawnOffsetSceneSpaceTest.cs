@@ -96,6 +96,10 @@ namespace Tests.UnitTest.Game.MapGeneration
                 Assert.That(actualTile.TileX, Is.EqualTo(expectedTile.TileX));
                 Assert.That(actualTile.TileZ, Is.EqualTo(expectedTile.TileZ));
 
+                // 長さ違いを別assertに分ける。index=0 を流用すると「index=0で値が違う」と誤読されるため
+                // Length mismatch gets its own assert; reusing index=0 for it would misread as "index 0's value differs"
+                Assert.That(actualTile.Heights.Length, Is.EqualTo(expectedTile.Heights.Length));
+
                 int differentIndex = FirstDifferentIndex(expectedTile.Heights, actualTile.Heights);
                 Assert.That(differentIndex, Is.EqualTo(-1),
                     $"master の worldOffset がハイトマップを動かした: tile=({expectedTile.TileX},{expectedTile.TileZ}) index={differentIndex}");
@@ -118,9 +122,10 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(entries[0].WorldPosition, Is.EqualTo(new Vector3(20f, 0f, 0f)));
         }
 
+        // 長さが等しいことは呼び出し元が既にassert済みの前提で走査する
+        // Assumes the caller already asserted equal lengths before scanning
         private static int FirstDifferentIndex(float[] expected, float[] actual)
         {
-            if (expected.Length != actual.Length) return 0;
             for (int i = 0; i < expected.Length; i++)
                 if (expected[i] != actual[i]) return i;
             return -1;

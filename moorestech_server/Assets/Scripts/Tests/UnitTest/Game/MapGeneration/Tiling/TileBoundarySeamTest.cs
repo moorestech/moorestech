@@ -10,14 +10,19 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
     // ジョブ単体の座標基準は WorldOffsetSlopeSeamTest が見るので、ここは VanillaGenerator の最終出力だけを突き合わせる。
     // Verifies adjacent tiles agree at their shared border on the full path: padded window, center crop, then the tile loop (R2).
     // WorldOffsetSlopeSeamTest covers the per-job coordinate basis, so this one compares only VanillaGenerator's final output.
+    //
+    // 本テストが保証するのは「クロップ機構が正しいこと」であり「production にシームが無いこと」ではない
+    // （下の設定は landThreshold=0/alpineEnabled=false で ADR許容のグローバル経路を踏まない）。
+    // This test proves the crop mechanism is correct, not that production is seam-free
+    // (the config below sets landThreshold=0/alpineEnabled=false, so it never exercises the ADR-permitted global-reach paths).
     public class TileBoundarySeamTest
     {
         private const int GridSide = 3;
         private const int Seed = 42;
 
-        // 局所カーネル（重み補間 blendRadius・ブラー blendRadius/divisor・ビーチ半径16px）が窓の外を読まない値にする。
+        // 局所カーネル（重み補間 blendRadius・ブラー blendRadius/divisor・coastalSmoothFactor の smoothRadius 22px）が窓の外を読まない値にする。
         // padding = max(chunkPadding, blendRadius/2) なので実効パディングは chunkPadding 側で決まる。
-        // Sized so no local kernel (weight interpolation blendRadius, blur blendRadius/divisor, 16px beach radius) reads past the window.
+        // Sized so no local kernel (weight interpolation blendRadius, blur blendRadius/divisor, coastalSmoothFactor's smoothRadius of 22px) reads past the window.
         // padding = max(chunkPadding, blendRadius/2), so chunkPadding is what settles the effective padding here.
         private const int ChunkPadding = 32;
         private const int BiomeBlendRadius = 8;
@@ -80,38 +85,57 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
 
             // 格子の内部境界を全て見る。1組だけだと特定のタイルでしか起きない取りこぼしを見逃す
             // Walks every interior border of the grid; a single pair would miss a slip that only happens on some tiles
+            //
+            // height と biome を別リストへ収集してから最後にまとめて判定する。Assert.AreEqual を都度呼ぶと
+            // 最初の height 不一致で例外が飛び、同じ画素の biome 判定が一度も実行されないまま終わる
+            // Height and biome mismatches are collected into separate lists and judged at the end; calling
+            // Assert.AreEqual per pixel would throw on the first height miss and never even run the biome check for it
             var resolution = config.Resolution;
+            var heightMismatches = new List<string>();
+            var biomeMismatches = new List<string>();
             for (var z = 0; z < GridSide; z++)
             for (var x = 0; x < GridSide; x++)
             {
                 var tile = tilesByIndex[new Vector2Int(x, z)];
-                if (x + 1 < GridSide) AssertColumnBorderMatches(tile, tilesByIndex[new Vector2Int(x + 1, z)], resolution);
-                if (z + 1 < GridSide) AssertRowBorderMatches(tile, tilesByIndex[new Vector2Int(x, z + 1)], resolution);
+                if (x + 1 < GridSide) CollectColumnBorderMismatches(tile, tilesByIndex[new Vector2Int(x + 1, z)], resolution, heightMismatches, biomeMismatches);
+                if (z + 1 < GridSide) CollectRowBorderMismatches(tile, tilesByIndex[new Vector2Int(x, z + 1)], resolution, heightMismatches, biomeMismatches);
+            }
+
+            if (0 < heightMismatches.Count || 0 < biomeMismatches.Count)
+            {
+                var heightSample = 0 < heightMismatches.Count ? heightMismatches[0] : "(none)";
+                var biomeSample = 0 < biomeMismatches.Count ? biomeMismatches[0] : "(none)";
+                Assert.Fail($"height seam count={heightMismatches.Count} sample={heightSample}\nbiome seam count={biomeMismatches.Count} sample={biomeSample}");
             }
         }
 
         // 左タイルの最右列と右タイルの最左列は同一ワールドXをサンプルする
         // The left tile's rightmost column and the right tile's leftmost one sample the same world X
-        private static void AssertColumnBorderMatches(TerrainTileOutput left, TerrainTileOutput right, int resolution)
+        private static void CollectColumnBorderMismatches(
+            TerrainTileOutput left, TerrainTileOutput right, int resolution, List<string> heightMismatches, List<string> biomeMismatches)
         {
             for (var z = 0; z < resolution; z++)
-                AssertSampleMatches(left, right, z * resolution + (resolution - 1), z * resolution, $"z={z}");
+                CollectSampleMismatch(left, right, z * resolution + (resolution - 1), z * resolution, $"z={z}", heightMismatches, biomeMismatches);
         }
 
         // 手前タイルの最奥行と奥タイルの最手前行は同一ワールドZをサンプルする
         // The near tile's farthest row and the far tile's nearest one sample the same world Z
-        private static void AssertRowBorderMatches(TerrainTileOutput near, TerrainTileOutput far, int resolution)
+        private static void CollectRowBorderMismatches(
+            TerrainTileOutput near, TerrainTileOutput far, int resolution, List<string> heightMismatches, List<string> biomeMismatches)
         {
             for (var x = 0; x < resolution; x++)
-                AssertSampleMatches(near, far, (resolution - 1) * resolution + x, x, $"x={x}");
+                CollectSampleMismatch(near, far, (resolution - 1) * resolution + x, x, $"x={x}", heightMismatches, biomeMismatches);
         }
 
-        private static void AssertSampleMatches(
-            TerrainTileOutput near, TerrainTileOutput far, int nearIndex, int farIndex, string borderPosition)
+        private static void CollectSampleMismatch(
+            TerrainTileOutput near, TerrainTileOutput far, int nearIndex, int farIndex, string borderPosition,
+            List<string> heightMismatches, List<string> biomeMismatches)
         {
             var location = $"({near.TileX},{near.TileZ})->({far.TileX},{far.TileZ}) {borderPosition}";
-            Assert.AreEqual(near.Heights[nearIndex], far.Heights[farIndex], HeightTolerance, $"height seam {location}");
-            Assert.AreEqual(near.BiomeIndices[nearIndex], far.BiomeIndices[farIndex], $"biome seam {location}");
+            if (HeightTolerance < Mathf.Abs(near.Heights[nearIndex] - far.Heights[farIndex]))
+                heightMismatches.Add($"{location}: {near.Heights[nearIndex]} vs {far.Heights[farIndex]}");
+            if (near.BiomeIndices[nearIndex] != far.BiomeIndices[farIndex])
+                biomeMismatches.Add($"{location}: {near.BiomeIndices[nearIndex]} vs {far.BiomeIndices[farIndex]}");
         }
     }
 }
