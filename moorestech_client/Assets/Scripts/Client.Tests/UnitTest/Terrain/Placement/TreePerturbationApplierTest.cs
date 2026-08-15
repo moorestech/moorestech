@@ -98,7 +98,9 @@ namespace Client.Tests.UnitTest.Terrain.Placement
 
         private static MapObjectLayoutMessagePack CreateMapObject(string mapObjectGuid, float localPosition)
         {
-            return new MapObjectLayoutMessagePack(1, mapObjectGuid, localPosition, 0f, localPosition);
+            return new MapObjectLayoutMessagePack(
+                1, mapObjectGuid, localPosition, 0f, localPosition,
+                1f, 1f, 1f, -1, 0f, 0f);
         }
 
         private static float[,] CreateFlatHeights()

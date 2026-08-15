@@ -23,6 +23,18 @@ namespace Game.Map.Interface.Json
         [JsonProperty("z")] public float Z;
 
         [JsonIgnore] public Vector3 Position => new(X, Y, Z);
+
+        [JsonProperty("scaleX")] public float ScaleX;
+        [JsonProperty("scaleY")] public float ScaleY;
+        [JsonProperty("scaleZ")] public float ScaleZ;
+
+        [JsonIgnore] public Vector3 Scale => new(ScaleX, ScaleY, ScaleZ);
+
+        // 岩クラスターの識別子と重心XZ。-1 は独立配置で、そのとき重心は (0,0) の未使用値
+        // Rock cluster identifier plus its centroid XZ; -1 is an independent placement whose centroid stays an unused (0,0)
+        [JsonProperty("clusterId")] public int ClusterId;
+        [JsonProperty("clusterCenterX")] public float ClusterCenterX;
+        [JsonProperty("clusterCenterZ")] public float ClusterCenterZ;
     }
 
     // 鉱脈配置1件。item/fluidの区別はveinGuid→MapVeinMasterのveinTypeから導出し、jsonには保存しない

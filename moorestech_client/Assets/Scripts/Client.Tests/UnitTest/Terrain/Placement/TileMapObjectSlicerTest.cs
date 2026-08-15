@@ -74,6 +74,46 @@ namespace Client.Tests.UnitTest.Terrain.Placement
             Assert.That(sliced[0].InstanceId, Is.EqualTo(1));
         }
 
+        // クラスタ重心もタイルローカル化する。据え置くと岩の位置だけがタイル座標で重心がシーン座標という別フレームになる
+        // The cluster centroid is rebased too; leaving it as-is would pair a tile-local rock with a scene-space centroid
+        [Test]
+        public void RebasesTheClusterCenterOntoTheTileOrigin()
+        {
+            var sliced = Slice(CreateClusteredMapObject(1, 1250f, 0f, -1750f, 7, 1300f, -1700f));
+
+            Assert.That(sliced.Count, Is.EqualTo(1));
+            Assert.That(sliced[0].ClusterId, Is.EqualTo(7));
+            Assert.That(sliced[0].ClusterCenterX, Is.EqualTo(300f).Within(1e-3f));
+            Assert.That(sliced[0].ClusterCenterZ, Is.EqualTo(300f).Within(1e-3f));
+        }
+
+        // 独立配置(-1)の重心は未使用値(0,0)のまま。ここへシフトを適用すると意味の無い非ゼロ値へ化ける
+        // An independent placement's (-1) centroid stays the unused (0,0) sentinel; shifting it would turn it into a meaningless non-zero value
+        [Test]
+        public void LeavesTheIndependentPlacementsClusterCenterAtTheSentinel()
+        {
+            var sliced = Slice(CreateMapObject(1, 1250f, 0f, -1750f));
+
+            Assert.That(sliced[0].ClusterId, Is.EqualTo(-1));
+            Assert.That(sliced[0].ClusterCenterX, Is.EqualTo(0f));
+            Assert.That(sliced[0].ClusterCenterZ, Is.EqualTo(0f));
+        }
+
+        // スケールはタイル格子の軸ではないので素通しする。落とすと切り出した瞬間に全配置物が0倍になる
+        // The scale is not an axis of the tile lattice and passes straight through; dropping it zeroes every placement the moment it is sliced
+        [Test]
+        public void CarriesTheScaleThroughUnchanged()
+        {
+            var scaled = new MapObjectLayoutMessagePack(
+                1, MapObjectGuid, 1250f, 0f, -1750f, 1.5f, 2f, 2.5f, -1, 0f, 0f);
+
+            var sliced = Slice(scaled);
+
+            Assert.That(sliced[0].ScaleX, Is.EqualTo(1.5f));
+            Assert.That(sliced[0].ScaleY, Is.EqualTo(2f));
+            Assert.That(sliced[0].ScaleZ, Is.EqualTo(2.5f));
+        }
+
         private static List<MapObjectLayoutMessagePack> Slice(params MapObjectLayoutMessagePack[] mapObjects)
         {
             return TileMapObjectSlicer.Slice(mapObjects, TilePosition, TileSize, TileSize);
@@ -81,7 +121,17 @@ namespace Client.Tests.UnitTest.Terrain.Placement
 
         private static MapObjectLayoutMessagePack CreateMapObject(int instanceId, float x, float y, float z)
         {
-            return new MapObjectLayoutMessagePack(instanceId, MapObjectGuid, x, y, z);
+            return new MapObjectLayoutMessagePack(
+                instanceId, MapObjectGuid, x, y, z,
+                1f, 1f, 1f, -1, 0f, 0f);
+        }
+
+        private static MapObjectLayoutMessagePack CreateClusteredMapObject(
+            int instanceId, float x, float y, float z, int clusterId, float clusterCenterX, float clusterCenterZ)
+        {
+            return new MapObjectLayoutMessagePack(
+                instanceId, MapObjectGuid, x, y, z,
+                1f, 1f, 1f, clusterId, clusterCenterX, clusterCenterZ);
         }
     }
 }

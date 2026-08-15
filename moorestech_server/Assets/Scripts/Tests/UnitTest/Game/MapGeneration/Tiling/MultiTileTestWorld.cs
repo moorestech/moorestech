@@ -28,6 +28,14 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             config.forest.treePlacement = BuildTreePlacement();
         }
 
+        // テストmodは岩を1本も持たないため、クラスタ採番を通る散布エントリを有効バイオーム両方へ差し込む。
+        // The test mod ships no rocks, so inject a scatter entry that goes through cluster numbering into both enabled biomes.
+        public static void EnableClusteredObjects(TerrainGenerationConfig config)
+        {
+            config.grassland.objectConfig = BuildClusteredObjectConfig();
+            config.forest.objectConfig = BuildClusteredObjectConfig();
+        }
+
         public static Vector2Int TileBucket(float x, float z, TerrainGenerationConfig config)
         {
             return new Vector2Int(
@@ -41,6 +49,24 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             var minZ = -(config.gridSizeZ / 2) * config.terrainLength;
             Assert.That(x, Is.InRange(minX, minX + config.gridSizeX * config.terrainWidth));
             Assert.That(z, Is.InRange(minZ, minZ + config.gridSizeZ * config.terrainLength));
+        }
+
+        // useClusterMode=true の散布エントリだけを持たせる。ClusterId を持つ配置物が必ず1件以上出る最短経路。
+        // Carries only a useClusterMode scatter entry, the shortest path that always emits placements owning a ClusterId.
+        private static BiomeObjectConfig BuildClusteredObjectConfig()
+        {
+            return new BiomeObjectConfig
+            {
+                entries = new[]
+                {
+                    new BiomeObjectConfig.ObjectEntry
+                    {
+                        mapObjectGuids = new[] { TestGenerationConfigFactory.TestMapObjectGuid },
+                        useClusterMode = true,
+                        scaleRange = new Vector2(0.5f, 2f),
+                    },
+                },
+            };
         }
 
         private static TreePlacementConfig BuildTreePlacement()

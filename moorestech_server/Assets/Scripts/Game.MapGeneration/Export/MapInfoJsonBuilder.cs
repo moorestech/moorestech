@@ -42,6 +42,12 @@ namespace Game.MapGeneration.Export
                         X = placed.Position.x,
                         Y = placed.Position.y,
                         Z = placed.Position.z,
+                        ScaleX = placed.Scale.x,
+                        ScaleY = placed.Scale.y,
+                        ScaleZ = placed.Scale.z,
+                        ClusterId = placed.ClusterId,
+                        ClusterCenterX = placed.ClusterCenter.x,
+                        ClusterCenterZ = placed.ClusterCenter.y,
                     });
                 }
                 return mapObjects;

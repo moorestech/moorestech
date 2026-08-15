@@ -33,9 +33,33 @@ namespace Client.Tests.UnitTest.Terrain.Placement
         {
             var baseDigest = Compute(Create(1, TreeGuid, 10f));
 
-            Assert.That(Compute(new MapObjectLayoutMessagePack(1, TreeGuid, 10.5f, 10f, 10f)), Is.Not.EqualTo(baseDigest), "X");
-            Assert.That(Compute(new MapObjectLayoutMessagePack(1, TreeGuid, 10f, 10.5f, 10f)), Is.Not.EqualTo(baseDigest), "Y");
-            Assert.That(Compute(new MapObjectLayoutMessagePack(1, TreeGuid, 10f, 10f, 10.5f)), Is.Not.EqualTo(baseDigest), "Z");
+            Assert.That(Compute(Create(1, TreeGuid, 10.5f, 10f, 10f)), Is.Not.EqualTo(baseDigest), "X");
+            Assert.That(Compute(Create(1, TreeGuid, 10f, 10.5f, 10f)), Is.Not.EqualTo(baseDigest), "Y");
+            Assert.That(Compute(Create(1, TreeGuid, 10f, 10f, 10.5f)), Is.Not.EqualTo(baseDigest), "Z");
+        }
+
+        [Test]
+        public void ChangesWhenAnObjectIsResizedOnAnyAxis()
+        {
+            // 岩の大きさが周囲テクスチャの広がりを決める。太っただけの回を外すと痩せていた頃の地面が残る
+            // A rock's size drives how far its surround texture spreads; missing a run where it merely grew keeps the ground from when it was thin
+            var baseDigest = Compute(Create(1, RockGuid, 10f));
+
+            Assert.That(Compute(CreateScaled(2f, 1f, 1f)), Is.Not.EqualTo(baseDigest), "ScaleX");
+            Assert.That(Compute(CreateScaled(1f, 2f, 1f)), Is.Not.EqualTo(baseDigest), "ScaleY");
+            Assert.That(Compute(CreateScaled(1f, 1f, 2f)), Is.Not.EqualTo(baseDigest), "ScaleZ");
+        }
+
+        [Test]
+        public void ChangesWhenAnObjectJoinsAnotherClusterOrItsCenterMoves()
+        {
+            // 周囲テクスチャはクラスタ単位に重心から伸びる。所属や重心の変化を外すと隣のクラスタの形が残る
+            // The surround texture stretches from a cluster's centroid, so missing a changed membership or centroid keeps the neighbouring shape
+            var baseDigest = Compute(Create(1, RockGuid, 10f));
+
+            Assert.That(Compute(CreateClustered(2, 0f, 0f)), Is.Not.EqualTo(baseDigest), "ClusterId");
+            Assert.That(Compute(CreateClustered(-1, 5f, 0f)), Is.Not.EqualTo(baseDigest), "ClusterCenterX");
+            Assert.That(Compute(CreateClustered(-1, 0f, 5f)), Is.Not.EqualTo(baseDigest), "ClusterCenterZ");
         }
 
         [Test]
@@ -61,11 +85,11 @@ namespace Client.Tests.UnitTest.Terrain.Placement
             // 長さ無しで連結すると "ab"+"c" と "a"+"bc" が同じ列になる。座標が同じなら区別できなくなる
             // Concatenating without a length would make "ab"+"c" and "a"+"bc" one stream, indistinguishable at equal coordinates
             var split = Compute(
-                new MapObjectLayoutMessagePack(1, "ab", 0f, 0f, 0f),
-                new MapObjectLayoutMessagePack(2, "c", 0f, 0f, 0f));
+                Create(1, "ab", 0f, 0f, 0f),
+                Create(2, "c", 0f, 0f, 0f));
             var shifted = Compute(
-                new MapObjectLayoutMessagePack(1, "a", 0f, 0f, 0f),
-                new MapObjectLayoutMessagePack(2, "bc", 0f, 0f, 0f));
+                Create(1, "a", 0f, 0f, 0f),
+                Create(2, "bc", 0f, 0f, 0f));
 
             Assert.That(split, Is.Not.EqualTo(shifted));
         }
@@ -87,7 +111,30 @@ namespace Client.Tests.UnitTest.Terrain.Placement
 
         private static MapObjectLayoutMessagePack Create(int instanceId, string mapObjectGuid, float position)
         {
-            return new MapObjectLayoutMessagePack(instanceId, mapObjectGuid, position, position, position);
+            return Create(instanceId, mapObjectGuid, position, position, position);
+        }
+
+        private static MapObjectLayoutMessagePack Create(int instanceId, string mapObjectGuid, float x, float y, float z)
+        {
+            return new MapObjectLayoutMessagePack(
+                instanceId, mapObjectGuid, x, y, z,
+                1f, 1f, 1f, -1, 0f, 0f);
+        }
+
+        // Create(1, RockGuid, 10f) と1軸だけ違う岩。差分がスケールだけになるよう他の値は揃える
+        // A rock differing from Create(1, RockGuid, 10f) on one axis only, with every other value held equal
+        private static MapObjectLayoutMessagePack CreateScaled(float scaleX, float scaleY, float scaleZ)
+        {
+            return new MapObjectLayoutMessagePack(
+                1, RockGuid, 10f, 10f, 10f,
+                scaleX, scaleY, scaleZ, -1, 0f, 0f);
+        }
+
+        private static MapObjectLayoutMessagePack CreateClustered(int clusterId, float centerX, float centerZ)
+        {
+            return new MapObjectLayoutMessagePack(
+                1, RockGuid, 10f, 10f, 10f,
+                1f, 1f, 1f, clusterId, centerX, centerZ);
         }
     }
 }

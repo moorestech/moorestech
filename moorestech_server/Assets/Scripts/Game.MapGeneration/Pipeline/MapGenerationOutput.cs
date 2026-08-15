@@ -30,6 +30,18 @@ namespace Game.MapGeneration.Pipeline
     {
         public string MapObjectGuid;
         public Vector3 Position;
+
+        // 配置時のスケール。岩周辺テクスチャの広がりが岩の大きさで決まるため見た目の再構築が読む。
+        // The placement scale; the visual rebuild reads it because a rock's surround texture spreads with its size.
+        public Vector3 Scale;
+
+        // 所属する岩クラスターの識別子。格子全体で一意で、-1 は独立配置（クラスターに属さない）。
+        // Identifier of the owning rock cluster, unique across the grid; -1 marks an independent placement.
+        public int ClusterId;
+
+        // クラスターの重心をシーン座標のXZで持つ。ClusterId が -1 のときは中心を持たず (0,0)。
+        // The cluster centroid as scene-space XZ; a ClusterId of -1 owns no center and stays at (0,0).
+        public Vector2 ClusterCenter;
     }
 
     // 鉱脈クラスター1件（mapVeins マスタの veinGuid + 整数 AABB）。

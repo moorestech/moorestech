@@ -10,28 +10,53 @@
       "x": 0.0,
       "y": 0.0,
       "z": 0.0,
-      "instanceId": 0
+      "instanceId": 0,
+      "scaleX": 1.0,
+      "scaleY": 1.0,
+      "scaleZ": 1.0,
+      "clusterId": -1,
+      "clusterCenterX": 0.0,
+      "clusterCenterZ": 0.0
     },
     {
       "mapObjectGuid": "8c0e1339-be75-4690-99cd-58b5385a17cd",
       "x": 0.0,
       "y": 0.0,
       "z": 0.0,
-      "instanceId": 1
+      "instanceId": 1,
+      "scaleX": 1.0,
+      "scaleY": 1.0,
+      "scaleZ": 1.0,
+      "clusterId": -1,
+      "clusterCenterX": 0.0,
+      "clusterCenterZ": 0.0
     },
     {
       "mapObjectGuid": "00000000-0000-1111-0000-000000000001",
       "x": 0.0,
       "y": 0.0,
       "z": 0.0,
-      "instanceId": 2
+      "instanceId": 2,
+      "scaleX": 1.0,
+      "scaleY": 1.0,
+      "scaleZ": 1.0,
+      "clusterId": -1,
+      "clusterCenterX": 0.0,
+      "clusterCenterZ": 0.0
     },
     {
       "mapObjectGuid": "00000000-0000-1111-0000-000000000001",
       "x": 1.0,
       "y": 0.0,
       "z": 1.0,
-      "instanceId": 3
+      "instanceId": 3,
+      "#memoScale": "軸ごとに違うスケールを持たせ、転送が3軸を取り違えても通らないようにする",
+      "scaleX": 1.5,
+      "scaleY": 2.0,
+      "scaleZ": 2.5,
+      "clusterId": -1,
+      "clusterCenterX": 0.0,
+      "clusterCenterZ": 0.0
     },
     {
       "#memo": "範囲外で採掘されない",
@@ -39,7 +64,13 @@
       "x": 5.5,
       "y": 0.5,
       "z": 1.5,
-      "instanceId": 4
+      "instanceId": 4,
+      "scaleX": 1.0,
+      "scaleY": 1.0,
+      "scaleZ": 1.0,
+      "clusterId": -1,
+      "clusterCenterX": 0.0,
+      "clusterCenterZ": 0.0
     },
     {
       "#memo": "サーバ権威採掘テスト用のMining型。他テストの範囲検索に入らないよう遠方へ置く",
@@ -47,7 +78,14 @@
       "x": 100.0,
       "y": 0.0,
       "z": 100.0,
-      "instanceId": 5
+      "instanceId": 5,
+      "scaleX": 1.0,
+      "scaleY": 1.0,
+      "scaleZ": 1.0,
+      "#memoCluster": "唯一のクラスタ所属物。クラスタID・重心の転送経路をtemplateワールドで踏ませるための値",
+      "clusterId": 7,
+      "clusterCenterX": 100.5,
+      "clusterCenterZ": -100.25
     }
   ],
   "mapVeins": [

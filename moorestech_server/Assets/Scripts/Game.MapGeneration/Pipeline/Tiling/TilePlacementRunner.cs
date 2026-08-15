@@ -20,6 +20,10 @@ namespace Game.MapGeneration.Pipeline.Tiling
         private readonly Vector3 _sceneSpawn;
         private readonly MapGenerationOutput _output;
 
+        // クラスタIDはタイルごとに0から採番されるため、書き出し済みタイルの最大値+1を積み上げて格子全体で一意化する。
+        // Cluster ids restart at 0 per tile, so accumulate the max written so far + 1 to uniquify them across the whole grid.
+        private int _nextClusterIdOffset;
+
         public TilePlacementRunner(
             BiomePlacementHelper helper, BiomeType[] biomeTypes,
             Vector2 noiseToSceneShift, Vector3 sceneSpawn, MapGenerationOutput output)
@@ -98,12 +102,36 @@ namespace Game.MapGeneration.Pipeline.Tiling
         private void AppendMapObjects(List<PlacementEntry> entries)
         {
             if (entries == null) return;
+
+            // このタイルの書き出し開始時点のオフセットを固定して使う。木呼び出しはクラスタを持たないため素通りする。
+            // Freeze the offset as of this tile's write start; the tree call carries no cluster so it passes through untouched.
+            var offset = _nextClusterIdOffset;
+            var maxLocalClusterId = -1;
+
             foreach (var entry in entries)
             {
                 if (string.IsNullOrEmpty(entry.MapObjectGuid)) continue;
-                _output.MapObjects.Add(
-                    new PlacedMapObject { MapObjectGuid = entry.MapObjectGuid, Position = entry.WorldPosition });
+
+                // 独立配置は Cluster を -1 の空情報で持つため、オフセットを掛けると隣タイルの実クラスタIDへ化ける。
+                // An independent placement carries an empty -1 Cluster, so offsetting it would morph into a neighbouring tile's real id.
+                var hasCluster = entry.Cluster.HasValue && 0 <= entry.Cluster.Value.ClusterId;
+                var clusterId = hasCluster ? entry.Cluster.Value.ClusterId + offset : -1;
+                var clusterCenter = hasCluster
+                    ? new Vector2(entry.Cluster.Value.Center.x, entry.Cluster.Value.Center.z)
+                    : Vector2.zero;
+                if (hasCluster) maxLocalClusterId = Mathf.Max(maxLocalClusterId, entry.Cluster.Value.ClusterId);
+
+                _output.MapObjects.Add(new PlacedMapObject
+                {
+                    MapObjectGuid = entry.MapObjectGuid,
+                    Position = entry.WorldPosition,
+                    Scale = entry.Scale,
+                    ClusterId = clusterId,
+                    ClusterCenter = clusterCenter,
+                });
             }
+
+            if (maxLocalClusterId >= 0) _nextClusterIdOffset = offset + maxLocalClusterId + 1;
         }
     }
 }

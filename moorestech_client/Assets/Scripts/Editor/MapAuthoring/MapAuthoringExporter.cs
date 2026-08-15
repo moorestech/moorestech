@@ -95,7 +95,10 @@ public static class MapAuthoringExporter
                 mapObject.SetRuntimeIdentity(instanceId, guidString);
                 EditorUtility.SetDirty(mapObject);
 
+                // 手置きのオブジェクトはクラスターに属さないので、識別子は-1で重心は未使用値のまま出す
+                // A hand-placed object belongs to no cluster, so the identifier goes out as -1 with an unused centroid
                 var position = mapObject.transform.position;
+                var scale = mapObject.transform.localScale;
                 result.Add(new MapObjectInfoJson
                 {
                     InstanceId = instanceId,
@@ -103,6 +106,12 @@ public static class MapAuthoringExporter
                     X = position.x,
                     Y = position.y,
                     Z = position.z,
+                    ScaleX = scale.x,
+                    ScaleY = scale.y,
+                    ScaleZ = scale.z,
+                    ClusterId = -1,
+                    ClusterCenterX = 0f,
+                    ClusterCenterZ = 0f,
                 });
                 instanceId++;
             }

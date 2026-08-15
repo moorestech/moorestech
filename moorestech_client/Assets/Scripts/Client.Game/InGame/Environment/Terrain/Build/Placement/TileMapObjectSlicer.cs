@@ -27,8 +27,16 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
 
                 // Yはタイル格子の軸ではないので絶対高さのまま残す。XZだけがタイル原点基準へ移る
                 // Y is not an axis of the tile lattice and stays an absolute height; only XZ move onto the tile origin
+                // クラスタ重心も位置と同じくタイルローカル化する。独立配置(-1)は未使用値(0,0)のまま据え置く
+                // The cluster centroid is rebased the same as position; an independent placement (-1) keeps its unused (0,0)
+                var hasCluster = 0 <= mapObject.ClusterId;
+                var localClusterCenterX = hasCluster ? mapObject.ClusterCenterX - tileWorldPosition.x : mapObject.ClusterCenterX;
+                var localClusterCenterZ = hasCluster ? mapObject.ClusterCenterZ - tileWorldPosition.z : mapObject.ClusterCenterZ;
+
                 tileLocalObjects.Add(new MapObjectLayoutMessagePack(
-                    mapObject.InstanceId, mapObject.MapObjectGuid, localX, mapObject.Y, localZ));
+                    mapObject.InstanceId, mapObject.MapObjectGuid, localX, mapObject.Y, localZ,
+                    mapObject.ScaleX, mapObject.ScaleY, mapObject.ScaleZ,
+                    mapObject.ClusterId, localClusterCenterX, localClusterCenterZ));
             }
 
             return tileLocalObjects;

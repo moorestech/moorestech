@@ -35,6 +35,15 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
                 digestSource.AddRange(BitConverter.GetBytes(mapObject.X));
                 digestSource.AddRange(BitConverter.GetBytes(mapObject.Y));
                 digestSource.AddRange(BitConverter.GetBytes(mapObject.Z));
+
+                // スケールとクラスタ情報も見た目の導出元。岩が太っただけの回を外すと古い周囲テクスチャが残る
+                // The scale and cluster info derive visuals too; missing a run where a rock merely grew keeps its stale surround texture
+                digestSource.AddRange(BitConverter.GetBytes(mapObject.ScaleX));
+                digestSource.AddRange(BitConverter.GetBytes(mapObject.ScaleY));
+                digestSource.AddRange(BitConverter.GetBytes(mapObject.ScaleZ));
+                digestSource.AddRange(BitConverter.GetBytes(mapObject.ClusterId));
+                digestSource.AddRange(BitConverter.GetBytes(mapObject.ClusterCenterX));
+                digestSource.AddRange(BitConverter.GetBytes(mapObject.ClusterCenterZ));
             }
 
             using var sha256 = SHA256.Create();
@@ -55,7 +64,27 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
             if (byX != 0) return byX;
 
             var byY = left.Y.CompareTo(right.Y);
-            return byY != 0 ? byY : left.Z.CompareTo(right.Z);
+            if (byY != 0) return byY;
+
+            var byZ = left.Z.CompareTo(right.Z);
+            if (byZ != 0) return byZ;
+
+            var byScaleX = left.ScaleX.CompareTo(right.ScaleX);
+            if (byScaleX != 0) return byScaleX;
+
+            var byScaleY = left.ScaleY.CompareTo(right.ScaleY);
+            if (byScaleY != 0) return byScaleY;
+
+            var byScaleZ = left.ScaleZ.CompareTo(right.ScaleZ);
+            if (byScaleZ != 0) return byScaleZ;
+
+            var byClusterId = left.ClusterId.CompareTo(right.ClusterId);
+            if (byClusterId != 0) return byClusterId;
+
+            var byClusterCenterX = left.ClusterCenterX.CompareTo(right.ClusterCenterX);
+            return byClusterCenterX != 0
+                ? byClusterCenterX
+                : left.ClusterCenterZ.CompareTo(right.ClusterCenterZ);
         }
     }
 }

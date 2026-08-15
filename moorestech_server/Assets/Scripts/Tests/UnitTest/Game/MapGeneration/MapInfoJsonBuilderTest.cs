@@ -76,6 +76,27 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(fluid.MaxZ, Is.EqualTo(18));
         }
 
+        // スケールとクラスタ情報は岩周辺テクスチャの入力。map.jsonが落とすと再起動後だけ見た目が変わる。
+        // Scale and cluster info feed the rock surround texture; dropping them in map.json changes the visuals only after a restart.
+        [Test]
+        public void ScaleAndClusterInfoAreTranscribed()
+        {
+            var output = CreateDummyOutput();
+
+            var mapInfoJson = MapInfoJsonBuilder.Build(output);
+
+            var clustered = mapInfoJson.MapObjects[0];
+            Assert.That(clustered.Scale, Is.EqualTo(new Vector3(1.5f, 2f, 2.5f)));
+            Assert.That(clustered.ClusterId, Is.EqualTo(4));
+            Assert.That(clustered.ClusterCenterX, Is.EqualTo(11f));
+            Assert.That(clustered.ClusterCenterZ, Is.EqualTo(12f));
+
+            var independent = mapInfoJson.MapObjects[1];
+            Assert.That(independent.ClusterId, Is.EqualTo(-1));
+            Assert.That(independent.ClusterCenterX, Is.EqualTo(0f));
+            Assert.That(independent.ClusterCenterZ, Is.EqualTo(0f));
+        }
+
         [Test]
         public void SpawnPointIsTranscribed()
         {
@@ -94,9 +115,28 @@ namespace Tests.UnitTest.Game.MapGeneration
                 SpawnPoint = new Vector3(10, 20, 30),
                 MapObjects = new List<PlacedMapObject>
                 {
-                    new() { MapObjectGuid = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", Position = new Vector3(1, 1, 1) },
-                    new() { MapObjectGuid = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", Position = new Vector3(2, 2, 2) },
-                    new() { MapObjectGuid = "cccccccc-cccc-cccc-cccc-cccccccccccc", Position = new Vector3(3, 3, 3) },
+                    new()
+                    {
+                        MapObjectGuid = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                        Position = new Vector3(1, 1, 1),
+                        Scale = new Vector3(1.5f, 2f, 2.5f),
+                        ClusterId = 4,
+                        ClusterCenter = new Vector2(11f, 12f),
+                    },
+                    new()
+                    {
+                        MapObjectGuid = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+                        Position = new Vector3(2, 2, 2),
+                        Scale = Vector3.one,
+                        ClusterId = -1,
+                    },
+                    new()
+                    {
+                        MapObjectGuid = "cccccccc-cccc-cccc-cccc-cccccccccccc",
+                        Position = new Vector3(3, 3, 3),
+                        Scale = Vector3.one,
+                        ClusterId = -1,
+                    },
                 },
                 ItemVeins = new List<PlacedVein>
                 {
