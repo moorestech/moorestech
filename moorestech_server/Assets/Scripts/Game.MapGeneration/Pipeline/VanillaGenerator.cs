@@ -1,18 +1,18 @@
 using System;
-using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
-using Game.MapGeneration.Pipeline.Generators.Util;
 using Game.MapGeneration.Pipeline.Jobs;
 using Game.MapGeneration.Pipeline.Spawn;
 using Game.MapGeneration.Pipeline.Stages;
+using Game.MapGeneration.Pipeline.Tiling;
+using Game.MapGeneration.Transfer;
 using Unity.Collections;
 using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline
 {
-    // VanillaGenerator アルゴリズムの本体。ステージ(分類→高さ→木→オブジェクト→鉱脈)を順に呼ぶ。
-    // The VanillaGenerator algorithm body: runs stages in order (classify, height, tree, object, ore).
+    // VanillaGenerator アルゴリズムの本体。gridSizeX/Z の格子ぶんタイルを独立生成し、配置結果を1つの出力へまとめる。
+    // The VanillaGenerator algorithm body: generates one independent tile per gridSizeX/Z cell into a single output.
     public class VanillaGenerator : IMapGenerator
     {
         public MapGenerationOutput Generate(TerrainGenerationConfig sourceConfig)
@@ -23,128 +23,93 @@ namespace Game.MapGeneration.Pipeline
 
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);
 
-            // G はノイズのサンプル座標に効くため、全ステージより前にスポーン探索を確定させる。
-            // The spawn search must settle before every stage since G feeds the noise sample coordinates.
+            // G はノイズのサンプル座標に効くため、全タイルより前にスポーン探索を1回だけ確定させる。
+            // The spawn search settles once before every tile since G feeds the noise sample coordinates.
             Vector2 spawnOffset = ResolveSpawnOffset(config, biomeTypes);
 
-            var helper = new BiomePlacementHelper(config);
-            int biomeCount = biomeTypes.Length;
-            int res = config.Resolution;
-            int pixelCount = res * res;
+            // 転送層のタイル並びは正方格子前提。非正方だと index と coord の対応が崩れ、別タイルの地形を配ることになる。
+            // The transfer layer's tile order assumes a square grid; a non-square one breaks the index-to-coord mapping and ships the wrong terrain.
+            if (config.gridSizeX != config.gridSizeZ)
+                throw new InvalidOperationException(
+                    $"[VanillaGenerator] gridSizeX ({config.gridSizeX}) and gridSizeZ ({config.gridSizeZ}) must match.");
 
-            // ジョブ用 NativeArray を確保する（テクスチャ層は使わないため layerCount=1）。
-            // Allocate the job NativeArrays (layerCount=1 since no texture layers are used).
+            int halfX = config.gridSizeX / 2;
+            int halfZ = config.gridSizeZ / 2;
+            var sceneOrigin = new Vector2(-halfX * config.terrainWidth, -halfZ * config.terrainLength);
+            var output = new MapGenerationOutput
+            {
+                Resolution = config.Resolution,
+
+                // クライアントは分類段を再実行するのでノイズ窓の原点が要り、地形の設置にはシーン原点が要る。
+                // Clients re-run the classification stage, needing the noise window origin, and place the terrain at the scene origin.
+                NoiseOrigin = new Vector2(config.worldOffsetX, config.worldOffsetZ) + sceneOrigin,
+                SceneOrigin = sceneOrigin,
+            };
+
+            // スポーンのXZはタイル生成前に確定する（高さYだけ中心タイル生成後に採取する）。
+            // Spawn XZ settles before tile generation; only its height Y is sampled after the center tile.
+            Vector2 sceneSpawnXz = ComputeSceneSpawnXz(config, spawnOffset);
+            var runner = new TilePlacementRunner(new BiomePlacementHelper(config), biomeTypes,
+                spawnOffset, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output);
+
+            // biomeParams と noiseOffsets が1タイルでも違うとそのタイルだけ別地形になるため、格子で1組だけ作る。
+            // A single differing biomeParams or noiseOffsets would give that tile a different world, so the grid shares one set.
             var biomeParams = JobDataConverter.ConvertBiomeParams(config, biomeTypes, Allocator.TempJob);
             var noiseOffsets = JobDataConverter.GenerateNoiseOffsets(config, biomeParams, biomeTypes, Allocator.TempJob);
-            JobDataConverter.GenerateClassificationOffsets(config, Allocator.TempJob, out var cont, out var ero);
-            var buffers = JobDataConverter.AllocateBuffers(res, biomeCount, 1, Allocator.TempJob);
-            buffers.noiseOffsets = noiseOffsets;
-            buffers.biomeParams = biomeParams;
-
+            float[] centerTileHeights = null;
             try
             {
-                // ステージ1-2: 分類→高さ生成
-                // Stage 1-2: classification then height generation
-                ClassificationStage.Run(config, biomeCount, buffers, cont, ero, protectEdgeSea: false);
-                HeightmapStage.Run(config, biomeCount, buffers);
-
-                var heights = new float[pixelCount];
-                buffers.heights.CopyTo(heights);
-
-                var noiseOrigin = new Vector2(config.worldOffsetX, config.worldOffsetZ);
-                var biomeIndices = PlacementInputBuilder.BuildBiomeIndices(
-                    buffers.winnerBiomeIndex, buffers.landMask, buffers.beachFactor, biomeTypes, pixelCount);
-                var output = new MapGenerationOutput
+                foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(config.gridSizeX * config.gridSizeZ))
                 {
-                    Resolution = res,
-
-                    // クライアントは分類段を再実行するのでノイズ窓の原点が要り、地形の設置にはシーン原点が要る。
-                    // Clients re-run the classification stage, needing the noise window origin, and place the terrain at the scene origin.
-                    NoiseOrigin = noiseOrigin,
-                    SceneOrigin = noiseOrigin - spawnOffset,
-                };
-                // 暫定: 単一タイルのみ Tiles へ1件詰める。タイルループ化は Task 3 で行う
-                // Provisional: pack the single tile into Tiles; tile looping lands in Task 3
-                output.Tiles.Add(new TerrainTileOutput { TileX = 0, TileZ = 0, Heights = heights, BiomeIndices = biomeIndices });
-                output.SpawnPoint = ComputeSpawn(config, heights, res, spawnOffset);
-
-                RunPlacement(config, helper, biomeTypes, buffers, heights, res, biomeCount, output, spawnOffset);
-                return output;
+                    var tile = GenerateTile(tileX, tileZ, tileX - halfX, tileZ - halfZ);
+                    output.Tiles.Add(tile);
+                    if (tileX == halfX && tileZ == halfZ) centerTileHeights = tile.Heights;
+                }
             }
             finally
             {
-                buffers.Dispose();
-                if (cont.IsCreated) cont.Dispose();
-                if (ero.IsCreated) ero.Dispose();
+                noiseOffsets.Dispose();
+                biomeParams.Dispose();
             }
-        }
 
-        // ステージ3-6: 木・オブジェクト・鉱脈を配置し MapObjects / ItemVeins / FluidVeins を確定する。
-        // Stage 3-6: place trees, objects, and veins; finalize MapObjects, ItemVeins, and FluidVeins.
-        static void RunPlacement(
-            TerrainGenerationConfig config, BiomePlacementHelper helper, BiomeType[] biomeTypes,
-            JobBuffers buffers, float[] heights, int res, int biomeCount, MapGenerationOutput output,
-            Vector2 spawnOffset)
-        {
-            int totalCols = biomeCount + 2;
-            var weights2D = PlacementInputBuilder.BuildPlacementWeights(
-                buffers.biomeWeights, buffers.shoreMask, buffers.beachFactor, res, biomeCount, totalCols);
-            var masks = BiomeMaskBuilder.BuildAllWinnerMasks(weights2D, res, biomeCount);
-            var heights2D = PlacementInputBuilder.ConvertHeights(heights, res);
-
-            var treeEntries = new List<PlacementEntry>();
-            TreePlacementStage.Generate(config, helper, biomeTypes, masks, heights, treeEntries);
-
-            var objectEntries = new List<PlacementEntry>();
-            PlaceObjectsAndVeinsInNoiseSpace();
-
-            // オブジェクト/鉱脈はノイズ座標で算出されるため -G でシーン座標へ揃える（木は既にタイルローカル）。
-            // Objects/veins are computed in noise space, so -G realigns them to scene space (trees already are).
-            PlacementSceneOffset.ToSceneSpace(objectEntries, spawnOffset);
-            PlacementSceneOffset.ToSceneSpace(output.ItemVeins, spawnOffset);
-            PlacementSceneOffset.ToSceneSpace(output.FluidVeins, spawnOffset);
-
-            // スポーン安全域を確保してから、残った木だけで最終ハイトマップを摂動する
-            // Reserve spawn clearance before perturbing the final heightmap with only the remaining trees
-            SpawnPlacementExclusionStage.RemoveInsideSpawnClearance(treeEntries, output.SpawnPoint);
-            SpawnPlacementExclusionStage.RemoveInsideSpawnClearance(objectEntries, output.SpawnPoint);
-
-            // objectとveinを摂動前の高さで配置し、参照パイプラインの処理順を保つ
-            // Place objects and veins on pre-perturbation heights to preserve the reference pipeline order
-            var heightModMap = TreeHeightModifier.BuildGuidModMap(helper, biomeTypes);
-            TreeHeightModifier.Apply(heights, res, config, treeEntries, heightModMap);
-
-            AppendMapObjects(output.MapObjects, treeEntries);
-            AppendMapObjects(output.MapObjects, objectEntries);
+            output.SpawnPoint = ComputeSpawn(config, centerTileHeights, sceneSpawnXz);
+            return output;
 
             #region Internal
 
-            // objectPlacements はノイズ座標のままシーン座標化した objectEntries と混ざるため、消費者ごとこの中へ閉じ込める。
-            // objectPlacements stays in noise space and would be confused with the scene-space objectEntries, so its consumers live in here.
-            void PlaceObjectsAndVeinsInNoiseSpace()
+            // タイル1枚を生成する。窓側の巨大バッファは PaddedWindowStage の内部で確保・破棄される。
+            // Generates one tile; the large padded-window buffers are allocated and freed inside PaddedWindowStage.
+            TerrainTileOutput GenerateTile(int tileX, int tileZ, int coordX, int coordZ)
             {
-                List<ObjectPlacementResult> objectPlacements = null;
-                if (config.generateObject)
-                    ObjectPlacementStage.Generate(config, helper, biomeTypes, masks, heights, heights2D,
-                        treeEntries, out objectEntries, out objectPlacements);
+                var tileConfig = config.ShallowCopy();
+                tileConfig.worldOffsetX = config.worldOffsetX + coordX * config.terrainWidth;
+                tileConfig.worldOffsetZ = config.worldOffsetZ + coordZ * config.terrainLength;
 
-                output.ItemVeins = OrePlacementStage.Generate(
-                    config, masks, biomeTypes, heights2D, treeEntries, objectPlacements);
-                output.FluidVeins = FluidVeinPlacementStage.Generate(
-                    config, masks, biomeTypes, heights2D, treeEntries, objectPlacements, output.ItemVeins);
+                // クロップされないチャネル(rawBiomeIndex/plateauMask等)に前タイルの値を残さないよう、タイル毎に確保する。
+                // Allocate per tile so the non-cropped channels (rawBiomeIndex, plateauMask, ...) cannot retain the previous tile's values.
+                var buffers = JobDataConverter.AllocateBuffers(config.Resolution, biomeTypes.Length, 1, Allocator.TempJob);
+                buffers.biomeParams = biomeParams;
+                buffers.noiseOffsets = noiseOffsets;
+                try
+                {
+                    PaddedWindowStage.Run(tileConfig, biomeTypes, buffers);
+                    var heights = buffers.heights.ToArray();
+                    var tileScene = new Vector2(coordX * config.terrainWidth, coordZ * config.terrainLength);
+                    var biomeIndices = runner.Run(tileConfig, buffers, heights, tileScene);
+                    return new TerrainTileOutput
+                        { TileX = tileX, TileZ = tileZ, Heights = heights, BiomeIndices = biomeIndices };
+                }
+                finally
+                {
+                    // 共有した2本を切り離してから破棄する。付けたままだと次タイルが解放済みの配列を読む。
+                    // Detach the two shared arrays before disposing, otherwise the next tile would read freed arrays.
+                    buffers.biomeParams = default;
+                    buffers.noiseOffsets = default;
+                    buffers.Dispose();
+                }
             }
 
             #endregion
-        }
-
-        static void AppendMapObjects(List<PlacedMapObject> target, List<PlacementEntry> entries)
-        {
-            if (entries == null) return;
-            foreach (var e in entries)
-            {
-                if (string.IsNullOrEmpty(e.MapObjectGuid)) continue;
-                target.Add(new PlacedMapObject { MapObjectGuid = e.MapObjectGuid, Position = e.WorldPosition });
-            }
         }
 
         // スポーン探索を実行し、中央化オフセット G を config のノイズ座標へ反映して返す。
@@ -175,33 +140,41 @@ namespace Game.MapGeneration.Pipeline
             return result.WorldOffset;
         }
 
-        // スポーン地点をシーン座標で返す。config.spawnWorldPosition はノイズ座標 S なので高さ採取後に -G する。
-        // Return the spawn point in scene space; config.spawnWorldPosition is the noise-space S, so subtract G after sampling.
-        static Vector3 ComputeSpawn(TerrainGenerationConfig config, float[] heights, int res, Vector2 spawnOffset)
+        // スポーンのXZをシーン座標で返す。config.spawnWorldPosition はノイズ座標 S なので -G する。
+        // Return the spawn XZ in scene space; config.spawnWorldPosition is the noise-space S, so subtract G.
+        static Vector2 ComputeSceneSpawnXz(TerrainGenerationConfig config, Vector2 spawnOffset)
         {
-            Vector2 spawn = config.spawnWorldPosition;
-            var sceneSpawn = spawn - spawnOffset;
+            var sceneSpawn = config.spawnWorldPosition - spawnOffset;
 
-            // 全分岐で落下復帰先を地形の開区間へ固定し、探索無効時だけ角スポーンが通る抜け道を残さない
-            // Keep fall recovery inside the terrain's open interval in every branch, leaving no corner-spawn gap when search is disabled
+            // 全分岐で落下復帰先を中心タイルの開区間へ固定し、探索無効時だけ角スポーンが通る抜け道を残さない
+            // Keep fall recovery inside the center tile's open interval in every branch, leaving no corner-spawn gap when search is disabled
             if (sceneSpawn.x <= 0f || config.terrainWidth <= sceneSpawn.x ||
                 sceneSpawn.y <= 0f || config.terrainLength <= sceneSpawn.y)
                 throw new InvalidOperationException(
-                    $"[VanillaGenerator] scene spawn ({sceneSpawn.x}, {sceneSpawn.y}) is not inside the generated tile " +
+                    $"[VanillaGenerator] scene spawn ({sceneSpawn.x}, {sceneSpawn.y}) is not inside the center tile " +
                     $"(0, {config.terrainWidth}) x (0, {config.terrainLength}).");
 
+            return sceneSpawn;
+        }
+
+        // 中心タイルのハイトマップからスポーン高さを採り、シーン座標のスポーン地点にする。
+        // Samples the spawn height from the center tile's heightmap to complete the scene-space spawn point.
+        static Vector3 ComputeSpawn(TerrainGenerationConfig config, float[] centerTileHeights, Vector2 sceneSpawnXz)
+        {
+            Vector2 spawn = config.spawnWorldPosition;
+            int res = config.Resolution;
             int px = Mathf.RoundToInt((spawn.x - config.worldOffsetX) / config.terrainWidth * (res - 1));
             int pz = Mathf.RoundToInt((spawn.y - config.worldOffsetZ) / config.terrainLength * (res - 1));
 
-            // 格子外はスポーン座標が生成タイルの外という不整合。clamp で隅へ寄せると地形外スポーンのまま出荷される。
-            // Off-lattice means the spawn lies outside the generated tile; clamping to a corner would ship an off-terrain spawn.
+            // 格子外はスポーン座標が中心タイルの外という不整合。clamp で隅へ寄せると地形外スポーンのまま出荷される。
+            // Off-lattice means the spawn lies outside the center tile; clamping to a corner would ship an off-terrain spawn.
             if (px < 0 || res <= px || pz < 0 || res <= pz)
                 throw new InvalidOperationException(
-                    $"[VanillaGenerator] spawnWorldPosition ({spawn.x}, {spawn.y}) is outside the generated tile " +
+                    $"[VanillaGenerator] spawnWorldPosition ({spawn.x}, {spawn.y}) is outside the center tile " +
                     $"[{config.worldOffsetX}, {config.worldOffsetX + config.terrainWidth}] x [{config.worldOffsetZ}, {config.worldOffsetZ + config.terrainLength}].");
 
-            float heightMeters = heights[pz * res + px] * config.terrainHeight;
-            return new Vector3(sceneSpawn.x, heightMeters, sceneSpawn.y);
+            float heightMeters = centerTileHeights[pz * res + px] * config.terrainHeight;
+            return new Vector3(sceneSpawnXz.x, heightMeters, sceneSpawnXz.y);
         }
     }
 }

@@ -6,10 +6,10 @@ using UnityEngine;
 namespace Game.MapGeneration.Pipeline.Stages
 {
     // 配置済み樹木の周辺に生成ハイトマップをガウシアン摂動する（元 ApplyHeightModification）。
-    // 出力 heights[] を直接書き換えるゲームプレイ対象処理で、全配置(木＋岩周辺木)確定後に1回適用する。
+    // 摂動前の高さが転送の正本なのでサーバーは適用せず、クライアントが表示用の高さへ順適用する（R12）。
     // Perturbs the generated heightmap around placed trees (original ApplyHeightModification).
-    // A gameplay-affecting pass that writes heights[] directly, applied once after all tree placement.
-    internal static class TreeHeightModifier
+    // Pre-perturbation heights are the transferred source of truth, so the server never applies this; the client does, for display (R12).
+    public static class TreeHeightModifier
     {
         // guid → (heightModAmount, heightModWidth)。有効バイオーム順・エントリ順・guid順で最初の出現が勝つ。
         // これは元の prefab 展開＋prefabToProtoIndex（最初のインデックス）による属性付けと一致する。

@@ -4,12 +4,25 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Stages
 {
-    // ノイズ座標(タイルローカル + G)で算出された配置物を -G してシーン座標へ戻す変換。
-    // 移植元 TerrainApplier.Apply(placementOffset) と同じ役割で、木はタイルローカル生成のため対象外。
-    // Shifts placements computed in noise space (tile-local + G) back to scene space by -G.
-    // Mirrors the reference TerrainApplier.Apply(placementOffset); trees are excluded as they are tile-local.
+    // 配置物をシーン座標へ揃える変換をまとめる。ノイズ座標のものは -G、タイルローカルの木はタイル位置ぶん進める。
+    // 移植元 TerrainApplier.Apply(placementOffset) と、チャンクGameObjectをcoord*幅へ置く処理に対応する。
+    // Collects the shifts that bring placements into scene space: -G for noise-space ones, +tile position for tile-local trees.
+    // Mirrors the reference TerrainApplier.Apply(placementOffset) plus placing the chunk GameObject at coord*size.
     public static class PlacementSceneOffset
     {
+        // 木はタイルローカル(0..terrainWidth)で生成されるため、タイルの設置位置ぶん平行移動する。
+        // Trees are generated tile-local (0..terrainWidth), so they translate by the tile's placement position.
+        public static void ToTileScene(List<PlacementEntry> entries, Vector2 tileScene)
+        {
+            var shift = new Vector3(tileScene.x, 0f, tileScene.y);
+            for (int i = 0; i < entries.Count; i++)
+            {
+                var entry = entries[i];
+                entry.WorldPosition += shift;
+                entries[i] = entry;
+            }
+        }
+
         public static void ToSceneSpace(List<PlacementEntry> entries, Vector2 spawnOffset)
         {
             var shift = new Vector3(spawnOffset.x, 0f, spawnOffset.y);
