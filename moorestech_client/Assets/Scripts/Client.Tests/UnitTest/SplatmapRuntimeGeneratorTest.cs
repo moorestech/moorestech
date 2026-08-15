@@ -141,6 +141,7 @@ namespace Client.Tests.UnitTest
             // 分類は呼び出し側の持ち物になった。1回の生成につき1個をusingで抱える本番と同じ形
             // The classification now belongs to the caller, held one per generation in a using as production does
             using var classification = new TerrainClassificationContext(config, biomeTypes);
+            classification.Initialize();
             return SplatmapRuntimeGenerator.Generate(
                 config, biomeTypes, classification, layerTable, biomeTextureConfigs, biomeMainLayerAddresses,
                 CreateHeights(), transferredBiomeIndices, AlphamapResolution);

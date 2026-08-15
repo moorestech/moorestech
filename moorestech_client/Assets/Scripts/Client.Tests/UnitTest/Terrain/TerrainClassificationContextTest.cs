@@ -21,11 +21,11 @@ namespace Client.Tests.UnitTest.Terrain
     /// </summary>
     public class TerrainClassificationContextTest
     {
-        private const int Resolution = 129;
+        internal const int Resolution = 129;
 
         // 窓端の影響が届かない内側だけを見る。砂浜16px+blendRadius4+blurRadius2に余裕を足した幅（サーバー側PaddedWindowStageTestと同値）
         // Inspects only the interior beyond window-edge effects: beach 16px + blendRadius 4 + blurRadius 2 plus slack, as in the server's PaddedWindowStageTest
-        private const int Margin = 24;
+        internal const int Margin = 24;
         private const int BlendRadius = 4;
         private const int ChunkPadding = 8;
         private const float Tolerance = 1e-4f;
@@ -36,6 +36,7 @@ namespace Client.Tests.UnitTest.Terrain
             var config = BuildConfig();
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);
             using var context = new TerrainClassificationContext(config, biomeTypes);
+            context.Initialize();
 
             // 転送バイトはサーバーが確定させる値で、ビーチ帯はBeachに塗り潰されて有効バイオームのどれとも一致しなくなる
             // The transferred byte is what the server decides: the beach band becomes Beach and matches no enabled biome
@@ -72,6 +73,7 @@ namespace Client.Tests.UnitTest.Terrain
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);
             var reference = RunUnpadded(config, biomeTypes);
             using var context = new TerrainClassificationContext(config, biomeTypes);
+            context.Initialize();
 
             var totalColumns = biomeTypes.Length + 2;
             Assert.AreEqual(0, CountWeightMismatches(reference.Weights2D, context.Weights2D, totalColumns, 0),
@@ -93,6 +95,7 @@ namespace Client.Tests.UnitTest.Terrain
             var config = BuildConfig();
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);
             using var context = new TerrainClassificationContext(config, biomeTypes);
+            context.Initialize();
 
             // 窓解像度が外へ漏れると、消費側がresと窓幅を取り違えて全画素が黙ってずれる
             // A leaked window resolution makes consumers confuse res with the window width and silently shifts every pixel
@@ -110,7 +113,7 @@ namespace Client.Tests.UnitTest.Terrain
 
         // 解像度129・小さめのblendRadiusで、パディング量がchunkPaddingで決まる条件を作る（サーバー側と同じ組み立て）
         // Builds a 129-resolution config with a small blendRadius so chunkPadding drives the padding, as the server test does
-        private static TerrainGenerationConfig BuildConfig()
+        internal static TerrainGenerationConfig BuildConfig()
         {
             var config = GenerationRuntimeConfigFactory.Build(TestGenerationConfigFactory.CreateSmall());
             config.seed = 42;
@@ -131,7 +134,7 @@ namespace Client.Tests.UnitTest.Terrain
         // NativeArrayの寿命外で比較するため、マネージド配列に落ちた2本だけを返す
         // The pre-padding client path itself: the baseline is taken exactly as the pre-Task-8 SplatmapRuntimeGenerator ran it.
         // Only the two managed arrays are returned so the comparison outlives the NativeArrays
-        private static (float[,] Weights2D, bool[][,] WinnerMasks) RunUnpadded(
+        internal static (float[,] Weights2D, bool[][,] WinnerMasks) RunUnpadded(
             TerrainGenerationConfig config, BiomeType[] biomeTypes)
         {
             var biomeCount = biomeTypes.Length;
@@ -164,7 +167,6 @@ namespace Client.Tests.UnitTest.Terrain
             foreach (var mask in masks)
                 if (mask[z, x])
                     return true;
-
             return false;
         }
 

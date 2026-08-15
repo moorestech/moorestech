@@ -161,6 +161,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 // 分類はタイル1枚につき1回。splatのブレンド入力とDetailの勝者マスクを同じパディング窓から採る
                 // One classification per tile, so splat's blend inputs and detail's winner masks come from the same padded window
                 using var classification = new TerrainClassificationContext(tileConfig, _biomeTypes);
+                classification.Initialize();
 
                 var rebuiltAlphamap = SplatmapRuntimeGenerator.Generate(
                     tileConfig, _biomeTypes, classification, _layerTable, _visualSections.TextureConfigs,
