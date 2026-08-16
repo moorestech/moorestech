@@ -25,7 +25,7 @@ namespace Tests.UnitTest.Game.MapGeneration
                 amplitude = 1f,
             };
             float value = ManagedNoise.SamplePlacementNoise(noise, worldX: 500f, worldZ: 500f, offsets: null,
-                terrainWidth: 1000f, terrainLength: 1000f);
+                gridOriginX: 0f, gridOriginZ: 0f, gridWidth: 1000f, gridLength: 1000f);
             Assert.AreEqual(0.5f, value, 1e-2f);
         }
 
@@ -33,7 +33,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void テクスチャ未設定かつノイズNoneなら1を返す()
         {
             var noise = new PlacementNoise { noiseType = MapNoiseType.None };
-            Assert.AreEqual(1f, ManagedNoise.SamplePlacementNoise(noise, 0f, 0f, null, 0f, 0f));
+            Assert.AreEqual(1f, ManagedNoise.SamplePlacementNoise(noise, 0f, 0f, null, 0f, 0f, 0f, 0f));
         }
 
         // 4成分が別々の値を持つテクスチャの同一点を読み、channel ごとに違う数が返ることを見る。
@@ -49,7 +49,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             float SampleCenter(TextureChannel channel)
             {
                 var noise = CreateFixture(channel);
-                return ManagedNoise.SamplePlacementNoise(noise, 500f, 500f, null, 1000f, 1000f);
+                return ManagedNoise.SamplePlacementNoise(noise, 500f, 500f, null, 0f, 0f, 1000f, 1000f);
             }
         }
 
@@ -68,7 +68,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             float Sample(TextureChannel channel)
             {
                 var noise = CreateFixture(channel);
-                return ManagedNoise.SamplePlacementNoise(noise, 625f, 187.5f, null, 1000f, 500f);
+                return ManagedNoise.SamplePlacementNoise(noise, 625f, 187.5f, null, 0f, 0f, 1000f, 500f);
             }
         }
 
@@ -88,10 +88,10 @@ namespace Tests.UnitTest.Game.MapGeneration
             // First confirm the fixture can tell the two paths apart, so a coincidental match cannot neuter the test.
             var withoutTexture = noise;
             withoutTexture.texturePixels = null;
-            float noiseValue = ManagedNoise.SamplePlacementNoise(withoutTexture, 625f, 187.5f, offsets, 1000f, 500f);
+            float noiseValue = ManagedNoise.SamplePlacementNoise(withoutTexture, 625f, 187.5f, offsets, 0f, 0f, 1000f, 500f);
             Assert.That(noiseValue, Is.Not.EqualTo(0.75f).Within(1e-2f));
 
-            float value = ManagedNoise.SamplePlacementNoise(noise, 625f, 187.5f, offsets, 1000f, 500f);
+            float value = ManagedNoise.SamplePlacementNoise(noise, 625f, 187.5f, offsets, 0f, 0f, 1000f, 500f);
             Assert.AreEqual(0.75f, value, 1e-3f);
         }
 
@@ -105,7 +105,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             noise.balance = 0.1f;
             noise.amplitude = 2f;
 
-            float value = ManagedNoise.SamplePlacementNoise(noise, 500f, 500f, null, 1000f, 1000f);
+            float value = ManagedNoise.SamplePlacementNoise(noise, 500f, 500f, null, 0f, 0f, 1000f, 1000f);
             Assert.AreEqual((0.5f + 0.25f + 0.1f) * 2f, value, 1e-3f);
         }
 

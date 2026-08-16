@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
+using Game.MapGeneration.Pipeline.Tiling;
 using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Generators
@@ -21,7 +22,10 @@ namespace Game.MapGeneration.Pipeline.Generators
             TerrainDimensions dims,
             System.Random rng,
             SpatialGrid treeSpatialGrid,
-            SpatialGrid objectSpatialGrid)
+            SpatialGrid objectSpatialGrid,
+            PlacementHaloChannel memberHalo,
+            PlacementHaloChannel centerHalo,
+            float haloRadius)
         {
             var result = new List<PlacementEntry>();
             if (entries == null || entries.Length == 0)
@@ -36,6 +40,11 @@ namespace Game.MapGeneration.Pipeline.Generators
             // Shared grids for ore-member and cluster-center distance checks (across entries).
             var oreGrid = new SpatialGrid(w, l, Mathf.Max(w / 50f, 5f));
             var clusterCenterGrid = new SpatialGrid(w, l, Mathf.Max(w / 50f, 5f));
+
+            // 確定済みの隣タイルの鉱脈を先に入れる。木と同じく、入れないと境界の帯だけ最小距離が破られる。
+            // The already-confirmed neighbouring veins go in first; as with trees, the seam band would otherwise break the minimum distance.
+            memberHalo.SeedGrid(oreGrid, dims.WorldOffsetX, dims.WorldOffsetZ, w, l, haloRadius);
+            centerHalo.SeedGrid(clusterCenterGrid, dims.WorldOffsetX, dims.WorldOffsetZ, w, l, haloRadius);
 
             // クラスター中心の共有間隔（全エントリ・全バンド横断の clusterRadius*2.5 の最大値）。
             // Shared cluster-center spacing (max of clusterRadius*2.5 across all entries/bands).
@@ -61,8 +70,12 @@ namespace Game.MapGeneration.Pipeline.Generators
                 if (entryMasks == null || i >= entryMasks.Length || entryMasks[i] == null) continue;
                 OreEntryPlacer.Place(entry, entryMasks[i], heights, dims, rng,
                     borderPx, treeSpatialGrid, objectSpatialGrid,
-                    oreGrid, clusterCenterGrid, centerSpacing, result, ref nextClusterId);
+                    oreGrid, clusterCenterGrid, centerSpacing, centerHalo, result, ref nextClusterId);
             }
+
+            // このタイルで確定したメンバーを次のタイルの halo へ渡す。座標は既にワールドなので補正は要らない。
+            // Hands this tile's confirmed members to the next tile's halo; the coordinates are already world-space.
+            memberHalo.AddPlacements(result, 0f, 0f);
 
             return result;
         }

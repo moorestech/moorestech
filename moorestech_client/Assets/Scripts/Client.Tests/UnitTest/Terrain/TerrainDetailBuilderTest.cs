@@ -47,7 +47,7 @@ namespace Client.Tests.UnitTest.Terrain
             var visualSections = CreateVisualSections();
             var maps = TerrainDetailBuilder.Build(
                 CreateConfig(), BiomeTypes, visualSections, CreateHeights(), CreateHeights(),
-                CreateWinnerMasks(), null, null, NoMapObjects, Vector3.zero);
+                CreateWinnerMasks(), null, null, NoMapObjects, Vector3.zero, 0, 0);
             var prototypes = TerrainDetailPrototypeList.Build(BiomeTypes, visualSections);
 
             Assert.That(prototypes.Count, Is.EqualTo(2));
@@ -75,7 +75,7 @@ namespace Client.Tests.UnitTest.Terrain
 
             var maps = TerrainDetailBuilder.Build(
                 CreateConfig(), BiomeTypes, CreateVisualSections(), CreateHeights(), CreateHeights(),
-                CreateWinnerMasks(), null, null, NoMapObjects, Vector3.zero);
+                CreateWinnerMasks(), null, null, NoMapObjects, Vector3.zero, 0, 0);
 
             Assert.That(AreEqual(maps[0], expected), Is.True, "添字1のseedで生成されている");
 
@@ -91,7 +91,7 @@ namespace Client.Tests.UnitTest.Terrain
             var maps = DetailRuntimeGenerator.GenerateForBiome(
                 CreateWinnerMasks()[PopulatedBiomeIndex],
                 heights, TerrainSlopeCalculator.Compute(heights, config),
-                TerrainDimensions.From(config, config.shoreConfig.waterMargin),
+                TerrainDimensions.From(config, config.shoreConfig.waterMargin, 0, 0),
                 CreatePopulatedDetailConfig(), new System.Random(seed), null, null, null, null);
 
             return maps[0];

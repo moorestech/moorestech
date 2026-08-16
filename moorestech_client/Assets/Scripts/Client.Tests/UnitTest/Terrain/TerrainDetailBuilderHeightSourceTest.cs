@@ -70,7 +70,7 @@ namespace Client.Tests.UnitTest.Terrain
         {
             return TerrainDetailBuilder.Build(
                 CreateConfig(), BiomeTypes, visualSections, preHeights, postHeights, CreateWinnerMasks(), null, null,
-                new MapObjectLayoutMessagePack[0], Vector3.zero);
+                new MapObjectLayoutMessagePack[0], Vector3.zero, 0, 0);
         }
 
         private static BiomeVisualSections CreateSlopeFilteredSections()

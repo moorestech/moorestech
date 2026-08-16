@@ -124,7 +124,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             {
                 return TerrainDetailBuilder.Build(
                     tileConfig, _biomeTypes, _visualSections, preHeights, postHeights, classification.WinnerMasks,
-                    alphamap, _terrainLayers, _mapObjects, tileWorldPosition);
+                    alphamap, _terrainLayers, _mapObjects, tileWorldPosition, tileX, tileZ);
             }
 
             #endregion

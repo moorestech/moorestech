@@ -1,5 +1,6 @@
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators;
+using Game.MapGeneration.Pipeline.Tiling;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -66,7 +67,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         // Place a single prototype on one perfectly flat, fully masked tile and observe only the placement count.
         private static int PlaceCount(TreePrototypeEntry entry)
         {
-            var dims = new TerrainDimensions(TerrainSize, TerrainSize, 100f, 0f, 0f, Resolution, 0f, 0f, 1, 0f, 0f);
+            var dims = new TerrainDimensions(TerrainSize, TerrainSize, 100f, 0f, 0f, Resolution, 0f, 0f, 1, 0f, 0f, 0, 0, 1, 1);
             var heights = new float[Resolution * Resolution];
             var mask = new bool[Resolution, Resolution];
             for (int z = 0; z < Resolution; z++)
@@ -74,7 +75,9 @@ namespace Tests.UnitTest.Game.MapGeneration
                 mask[z, x] = true;
 
             var treeConfig = new TreePlacementConfig { prototypes = new[] { entry } };
-            return TreePlacementGenerator.GenerateForBiome(mask, heights, dims, treeConfig, new System.Random(1)).Count;
+            return TreePlacementGenerator.GenerateForBiome(
+                mask, heights, dims, treeConfig, new System.Random(1), noiseSeed: 1,
+                new PlacementHaloChannel(), 0f).Count;
         }
 
         private static TreePrototypeEntry CreateEntry()

@@ -54,7 +54,7 @@ namespace Client.Tests.UnitTest.Terrain.DistanceField
 
             return TerrainDetailBuilder.Build(
                 config, BiomeTypes, visualSections, heights, heights, CreateWinnerMasks(), null, null,
-                mapObjects, TilePosition);
+                mapObjects, TilePosition, 0, 0);
         }
 
         public static BiomeVisualSections TreeDistanceSections()

@@ -20,19 +20,25 @@ namespace Game.MapGeneration.Pipeline.Tiling
         private readonly Vector3 _sceneSpawn;
         private readonly MapGenerationOutput _output;
 
+        // 格子で1つの halo 帳面。タイルを順に回す間、確定済みの配置を持ち回して次のタイルの近傍判定へ渡す。
+        // One halo ledger for the whole grid, carried through the tile loop so confirmed placements reach the next tile's neighbour tests.
+        private readonly PlacementHaloStore _halo;
+
         // クラスタIDはタイルごとに0から採番されるため、書き出し済みタイルの最大値+1を積み上げて格子全体で一意化する。
         // Cluster ids restart at 0 per tile, so accumulate the max written so far + 1 to uniquify them across the whole grid.
         private int _nextClusterIdOffset;
 
         public TilePlacementRunner(
             BiomePlacementHelper helper, BiomeType[] biomeTypes,
-            Vector2 noiseToSceneShift, Vector3 sceneSpawn, MapGenerationOutput output)
+            Vector2 noiseToSceneShift, Vector3 sceneSpawn, MapGenerationOutput output,
+            PlacementHaloStore halo)
         {
             _helper = helper;
             _biomeTypes = biomeTypes;
             _noiseToSceneShift = noiseToSceneShift;
             _sceneSpawn = sceneSpawn;
             _output = output;
+            _halo = halo;
         }
 
         // buffers は PaddedWindowStage がクロップ済みの分類で、ここで分類を回し直すと転送する分類と境界で食い違う。
@@ -40,8 +46,10 @@ namespace Game.MapGeneration.Pipeline.Tiling
         // buffers carry PaddedWindowStage's cropped classification; re-running it here would disagree with the transferred one at the borders.
         // The return value is this tile's biomeIndices, built from that same cropped classification.
         public byte[] Run(
-            TerrainGenerationConfig tileConfig, JobBuffers buffers, float[] heights, Vector2 tileScene)
+            TerrainGenerationConfig tileConfig, JobBuffers buffers, float[] heights, Vector2 tileScene,
+            int tileIndexX, int tileIndexZ)
         {
+            var tile = new TilePlacementContext(tileIndexX, tileIndexZ, _halo);
             var res = tileConfig.Resolution;
             var biomeCount = _biomeTypes.Length;
             var weights2D = PlacementInputBuilder.BuildPlacementWeights(
@@ -50,7 +58,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
             var heights2D = PlacementInputBuilder.ConvertHeights(heights, res);
 
             var treeEntries = new List<PlacementEntry>();
-            TreePlacementStage.Generate(tileConfig, _helper, _biomeTypes, masks, heights, treeEntries);
+            TreePlacementStage.Generate(tileConfig, _helper, _biomeTypes, masks, heights, treeEntries, tile);
 
             var objectEntries = new List<PlacementEntry>();
             List<PlacedVein> itemVeins = null;
@@ -68,6 +76,13 @@ namespace Game.MapGeneration.Pipeline.Tiling
             // Clearance is judged in scene space; output.SpawnPoint is unsettled mid-loop, so use the pre-sampled XZ.
             SpawnPlacementExclusionStage.RemoveInsideSpawnClearance(treeEntries, _sceneSpawn);
             SpawnPlacementExclusionStage.RemoveInsideSpawnClearance(objectEntries, _sceneSpawn);
+
+            // 安全域で消えた配置は halo に残さない。残すと存在しない木が隣タイルの候補を弾く。
+            // シーン座標は world - 窓原点なので、足し戻してワールドへ揃える。
+            // Placements deleted by the clearance never enter the halo, otherwise a tree that does not exist would reject the neighbouring tile's candidates.
+            // Scene space is world minus the window origin, so adding it back returns to world space.
+            _halo.Trees.AddPlacements(treeEntries, _noiseToSceneShift.x, _noiseToSceneShift.y);
+            _halo.Objects.AddPlacements(objectEntries, _noiseToSceneShift.x, _noiseToSceneShift.y);
 
             // 全タイルぶんを1本のリストへ積む。代入にすると最後のタイルの配置物しか残らない。
             // Every tile appends to one list; assigning would keep only the last tile's placements.
@@ -88,12 +103,12 @@ namespace Game.MapGeneration.Pipeline.Tiling
                 List<ObjectPlacementResult> objectPlacements = null;
                 if (tileConfig.generateObject)
                     ObjectPlacementStage.Generate(tileConfig, _helper, _biomeTypes, masks, heights, heights2D,
-                        treeEntries, out objectEntries, out objectPlacements);
+                        treeEntries, tile, out objectEntries, out objectPlacements);
 
                 itemVeins = OrePlacementStage.Generate(
-                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements);
+                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, tile);
                 fluidVeins = FluidVeinPlacementStage.Generate(
-                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, itemVeins);
+                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, itemVeins, tile);
             }
 
             void AppendMapObjects(List<PlacementEntry> entries)

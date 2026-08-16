@@ -146,7 +146,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             #region Internal
 
             float Sample(PlacementNoise noise, float u, float v) =>
-                ManagedNoise.SamplePlacementNoise(noise, u * TerrainWidth, v * TerrainLength, null, TerrainWidth, TerrainLength);
+                ManagedNoise.SamplePlacementNoise(noise, u * TerrainWidth, v * TerrainLength, null, 0f, 0f, TerrainWidth, TerrainLength);
 
             float ChannelOf(Color pixel, TextureChannel channel)
             {

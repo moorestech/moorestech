@@ -113,18 +113,20 @@ namespace Game.MapGeneration.Pipeline.Generators.Util
         // Sample a noise value from PlacementNoise settings (offset/balance and the texture source).
         public static float SamplePlacementNoise(PlacementNoise noise,
             float worldX, float worldZ, Vector2[] offsets,
-            float terrainWidth, float terrainLength)
+            float gridOriginX, float gridOriginZ, float gridWidth, float gridLength)
         {
             if (noise.noiseType == MapNoiseType.None && noise.texturePixels == null)
                 return 1f;
 
-            // テクスチャが展開済みならノイズ関数より優先し、地形全体を 0-1 に正規化した UV で読む。
-            // An expanded texture wins over the noise functions and is read through UV normalized over the whole terrain.
+            // テクスチャが展開済みならノイズ関数より優先し、格子全体を 0-1 に正規化した UV で読む。
+            // タイル1枚で割ると2枚目以降の worldX が UV=1 を超え、残りのタイルが最右列テクセルの定数で塗られる。
+            // An expanded texture wins over the noise functions and is read through UV normalized over the whole grid.
+            // Dividing by one tile would push every later tile past UV=1 and paint them with the rightmost texel's constant.
             float value;
             if (noise.texturePixels != null)
             {
-                float u = 0f < terrainWidth ? worldX / terrainWidth : 0f;
-                float v = 0f < terrainLength ? worldZ / terrainLength : 0f;
+                float u = 0f < gridWidth ? (worldX - gridOriginX) / gridWidth : 0f;
+                float v = 0f < gridLength ? (worldZ - gridOriginZ) / gridLength : 0f;
                 value = SampleTextureChannel(GetPixelBilinear(noise, u, v), noise.channel);
             }
             else

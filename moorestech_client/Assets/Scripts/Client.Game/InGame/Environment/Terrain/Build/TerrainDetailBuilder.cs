@@ -32,10 +32,12 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             TerrainGenerationConfig config, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
             float[,] preHeights, float[,] postHeights, bool[][,] winnerMasks, float[,,] alphamap,
             TerrainLayer[] terrainLayers,
-            IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition)
+            IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition,
+            int tileIndexX, int tileIndexZ)
         {
             var slopes = TerrainSlopeCalculator.Compute(postHeights, config);
-            var dimensions = TerrainDimensions.From(config, config.shoreConfig.waterMargin);
+            var dimensions = TerrainDimensions.From(
+                config, config.shoreConfig.waterMargin, tileIndexX, tileIndexZ);
 
             // 距離場の点群はタイル境界の外まで要る。切り出しは全バイオームの最大探索半径で1回だけ行う
             // The distance fields need points from past the tile boundary; one slice at the largest search radius serves every biome

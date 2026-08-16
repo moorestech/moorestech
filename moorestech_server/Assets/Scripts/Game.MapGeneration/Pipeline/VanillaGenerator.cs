@@ -55,8 +55,12 @@ namespace Game.MapGeneration.Pipeline
             // スポーンのXZはタイル生成前に確定する（高さYだけ中心タイル生成後に採取する）。
             // Spawn XZ settles before tile generation; only its height Y is sampled after the center tile.
             Vector2 sceneSpawnXz = ComputeSceneSpawnXz(config, noiseToSceneShift);
-            var runner = new TilePlacementRunner(new BiomePlacementHelper(config), biomeTypes,
-                noiseToSceneShift, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output);
+            // halo の到達距離は格子で1つ。全バイオーム・全エントリの距離制約の最大値をここで1回だけ決める。
+            // One halo reach for the whole grid, settled once here as the maximum distance constraint across every biome and entry.
+            var helper = new BiomePlacementHelper(config);
+            var halo = new PlacementHaloStore(PlacementHaloRadius.Resolve(config, biomeTypes, helper));
+            var runner = new TilePlacementRunner(helper, biomeTypes,
+                noiseToSceneShift, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output, halo);
 
             // biomeParams と noiseOffsets が1タイルでも違うとそのタイルだけ別地形になるため、格子で1組だけ作る。
             // A single differing biomeParams or noiseOffsets would give that tile a different world, so the grid shares one set.
@@ -101,7 +105,7 @@ namespace Game.MapGeneration.Pipeline
                     PaddedWindowStage.Run(tileConfig, biomeTypes, buffers);
                     var heights = buffers.heights.ToArray();
                     var tileScene = new Vector2(coordX * config.terrainWidth, coordZ * config.terrainLength);
-                    var biomeIndices = runner.Run(tileConfig, buffers, heights, tileScene);
+                    var biomeIndices = runner.Run(tileConfig, buffers, heights, tileScene, tileX, tileZ);
                     return new TerrainTileOutput
                         { TileX = tileX, TileZ = tileZ, Heights = heights, BiomeIndices = biomeIndices };
                 }
