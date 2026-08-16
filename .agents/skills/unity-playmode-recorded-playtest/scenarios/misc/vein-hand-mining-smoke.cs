@@ -8,34 +8,41 @@ using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Mining;
 using Client.Playtest;
 using Client.Playtest.Input;
+using Cysharp.Threading.Tasks;
 using Core.Master;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 var stoneVeinGuid = new Guid("735633b7-7aac-4fb8-8b42-022f6bfb9e53");
 var expectedMasterVeinCount = 11;
-var expectedLayoutOutcropCount = 1772;
+var expectedLayoutOutcropCount = 1775;
 var options = new PlaytestRunOptions { Record = true };
 
 return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
 {
     // 開幕スキット終了
     // End opening skit
-    p.Note("開幕スキットを終了し、露頭の起動状態を検証する");
+    p.Note("開幕スキット(blocking-skit)の表示を待つ");
     var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
-    var skit = skitStore.GetCurrent();
-    if (0 <= Array.IndexOf(skit.AllowedIntents, "skip"))
-    {
-        var skipResult = skitStore.TrySkip(skit.SessionId, skit.SceneRevision);
-        p.Assert(skipResult.Ok, "開幕スキットのSkipインテントが受理された");
-        await p.Until(
-            () => Array.IndexOf(skitStore.GetCurrent().AllowedIntents, "skip") < 0,
-            30f,
-            "開幕スキット終了");
-    }
+    var skitShown = await PollUntilAsync(async () =>
+        (await Client.Playtest.WebUi.PlaytestDomQuery.Query("blocking-skit", 1f)).Found, 30);
+    p.Assert(skitShown, "開幕スキット(blocking-skit)がWeb HUDに表示された");
 
-    // 11種・1772件を検証
-    // Verify 11 kinds and 1,772 instances
+    // 受理されるまでSkipを試み、終了はskip自身では満たせないDOM消失で確かめる
+    // Retry Skip until accepted, then confirm the end by the DOM disappearing, which skip itself cannot satisfy
+    p.Note("Skipインテントで開幕スキットを飛ばす");
+    var skipAccepted = await PollUntil(() =>
+    {
+        var current = skitStore.GetCurrent();
+        return skitStore.TrySkip(current.SessionId, current.SceneRevision).Ok;
+    }, 15);
+    p.Assert(skipAccepted, "開幕スキットのSkipインテントが受理された");
+    var skitGone = await PollUntilAsync(async () =>
+        !(await Client.Playtest.WebUi.PlaytestDomQuery.Query("blocking-skit", 1f)).Found, 30);
+    p.Assert(skitGone, "開幕スキットが終了した");
+
+    // 11種・1775件を検証
+    // Verify 11 kinds and 1,775 instances
     var datastore = UnityEngine.Object.FindFirstObjectByType<OutcropGameObjectDatastore>();
     p.Assert(datastore != null, "OutcropGameObjectDatastoreがMainGameシーンで起動した");
     p.Assert(MasterHolder.MapVeinMaster.All.Count == expectedMasterVeinCount, "ライブv8マスタに鉱脈11種がある");
@@ -48,7 +55,7 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
     var outcrops = UnityEngine.Object.FindObjectsByType<OutcropGameObject>(
         FindObjectsInactive.Exclude,
         FindObjectsSortMode.None);
-    p.Assert(outcrops.Length == expectedLayoutOutcropCount, "固定v8レイアウト1772件の露頭が全て生成された");
+    p.Assert(outcrops.Length == expectedLayoutOutcropCount, "固定v8レイアウト1775件の露頭が全て生成された");
     p.Assert(MiningProtocol.ProtocolTag == "va:mining", "手掘りwire tagはva:miningである");
 
     // 石斧を装備枠へ設定
@@ -67,16 +74,16 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
     // 2方向の照準を検証
     // Verify aiming from two directions
     await p.Until(
-        () => UnityEngine.Object.FindFirstObjectByType<MapObjectMiningController>() != null && Camera.main != null,
+        () => UnityEngine.Object.FindFirstObjectByType<MiningController>() != null && Camera.main != null,
         10f,
         "採掘ControllerとMainCameraの起動");
-    var controller = UnityEngine.Object.FindFirstObjectByType<MapObjectMiningController>();
-    var contextField = typeof(MapObjectMiningController).GetField("_context", BindingFlags.Instance | BindingFlags.NonPublic);
-    p.Assert(controller != null, "有効なMapObjectMiningControllerを解決した");
+    var controller = UnityEngine.Object.FindFirstObjectByType<MiningController>();
+    var contextField = typeof(MiningController).GetField("_context", BindingFlags.Instance | BindingFlags.NonPublic);
+    p.Assert(controller != null, "有効なMiningControllerを解決した");
     p.Assert(contextField != null, "採掘Controllerのcontextフィールドを解決した");
-    if (contextField == null) throw new InvalidOperationException("MapObjectMiningController._context was not found");
+    if (contextField == null) throw new InvalidOperationException("MiningController._context was not found");
     await p.Until(() => contextField.GetValue(controller) != null, 10f, "採掘Controller contextのDI完了");
-    var context = (MapObjectMiningControllerContext)contextField.GetValue(controller);
+    var context = (MiningControllerContext)contextField.GetValue(controller);
     var mainCamera = Camera.main;
     var cameraForward = Vector3.ProjectOnPlane(mainCamera.transform.forward, Vector3.up).normalized;
     if (cameraForward.sqrMagnitude < 0.1f) cameraForward = Vector3.forward;
@@ -143,4 +150,28 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
         UnityEngine.Object.Destroy(outlineObject);
         UnityEngine.Object.Destroy(outlineMaterial);
     }
+
+    #region Internal
+
+    async UniTask<bool> PollUntil(Func<bool> condition, int seconds)
+    {
+        for (var i = 0; i < seconds; i++)
+        {
+            if (condition()) return true;
+            await p.WaitSeconds(1f);
+        }
+        return condition();
+    }
+
+    async UniTask<bool> PollUntilAsync(Func<UniTask<bool>> condition, int seconds)
+    {
+        for (var i = 0; i < seconds; i++)
+        {
+            if (await condition()) return true;
+            await p.WaitSeconds(1f);
+        }
+        return await condition();
+    }
+
+    #endregion
 });
