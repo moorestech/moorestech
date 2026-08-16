@@ -3,6 +3,7 @@ using DeadMemberAudit.Loading;
 using DeadMemberAudit.Metadata;
 using DeadMemberAudit.Model;
 using DeadMemberAudit.Placement;
+using DeadMemberAudit.PrivateHelper;
 
 namespace DeadMemberAudit.Analysis;
 
@@ -63,6 +64,10 @@ public sealed class AuditRunner
         // Placement and cancellation are populated by types and call sites rather than members, so they scan independently
         result.PlacementFindings.AddRange(new PlacementAnalyzer(classifier, typeSourceLocator).Analyze(assemblies));
         result.CancellationFindings.AddRange(new CancellationScanner(classifier, sourceLocator, typeSourceLocator).Scan(assemblies));
+
+        // privateメソッドの仕分けはpublicメンバーとは母集団が別なので、独立に走査する
+        // Sorting private methods runs on its own population, so it scans apart from the public member candidates
+        result.PrivateHelperFindings.AddRange(new PrivateHelperScanner(scan, sourceLocator).Scan(assemblies));
 
         result.SetCounts(candidates.Count, scan.ScannedMethodCount, liveCount);
         result.SetLoadDiagnostics(loader.SymbolLessAssemblyCount, loader.SkippedFileCount, loader.BrokenForwarderCycleCount);
@@ -129,10 +134,19 @@ public sealed class AuditRunner
         result.NonProductionOnly.Sort(CompareByLocation);
         result.PrivateCandidates.Sort(CompareByLocation);
         result.InternalCandidates.Sort(CompareByLocation);
+        result.PrivateHelperFindings.Sort(CompareHelperByLocation);
 
         #region Internal
 
         int CompareByLocation(MemberCandidate left, MemberCandidate right)
+        {
+            var byAssembly = string.CompareOrdinal(left.AssemblyName, right.AssemblyName);
+            if (byAssembly != 0) return byAssembly;
+            var byType = string.CompareOrdinal(left.DeclaringTypeFullName, right.DeclaringTypeFullName);
+            return byType != 0 ? byType : string.CompareOrdinal(left.Signature, right.Signature);
+        }
+
+        int CompareHelperByLocation(PrivateHelperFinding left, PrivateHelperFinding right)
         {
             var byAssembly = string.CompareOrdinal(left.AssemblyName, right.AssemblyName);
             if (byAssembly != 0) return byAssembly;

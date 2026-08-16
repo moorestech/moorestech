@@ -89,11 +89,17 @@ REPORT = f"""# 死にpublicメンバー監査レポート
 | --- | --- | --- | --- | --- |
 | Client.Game | `Sample._cts` | `Client.Game.Sample` | `{CHANGED}:90` | Cancel/Disposeがどのアセンブリにも無い |
 
-## リスト6: 単一呼び出し元privateヘルパ（呼び出し元の `#region Internal` ローカル関数へ畳む候補）
+## リスト6-A: 単一呼び出し元privateヘルパ（呼び出し元の `#region Internal` ローカル関数へ畳む候補）
 
 | アセンブリ | メソッド | 宣言型 | 宣言場所 | 唯一の呼び出し元 |
 | --- | --- | --- | --- | --- |
 | Client.Game | `Sample.BuildRow` — `BuildRow(Int32)` | `Client.Game.Sample` | `{CHANGED}:100` | `Sample.Render` |
+
+## リスト6-B: 参照0privateメソッド（同一型内のどこからも呼ばれていない）
+
+| アセンブリ | メソッド | 宣言型 | 宣言場所 | 呼び出し元 |
+| --- | --- | --- | --- | --- |
+| Client.Game | `Sample.Orphan` — `Orphan()` | `Client.Game.Sample` | `{CHANGED}:110` | IL上に呼び出し元なし |
 
 ## 注意
 
@@ -116,9 +122,18 @@ class CollectCandidatesTest(unittest.TestCase):
             "dead-member-overpublic-private", "dead-member-overpublic-internal",
             "placement-mismatch", "placement-registration-only",
             "ct-not-passed", "ct-async-void", "cts-not-released",
-            "single-caller-helper"]))
+            "single-caller-helper", "dead-private-member"]))
         for rule, rows in by_rule.items():
             self.assertEqual(len(rows), 1, f"{rule} が1件ではない")
+
+    def test_sublists_are_not_swallowed_by_the_parent_prefix(self):
+        # 見出しは前方一致なので、6-A/6-Bのような枝分かれが片方に吸われないこと
+        # Headings match by prefix, so a split like 6-A/6-B must not collapse into one rule
+        by_rule = {}
+        for candidate in self.candidates:
+            by_rule.setdefault(candidate["rule"], []).append(candidate["member"])
+        self.assertIn("Sample.Orphan", str(by_rule["dead-private-member"]))
+        self.assertIn("Sample.BuildRow", str(by_rule["single-caller-helper"]))
 
     def test_patch_scope_filters_untouched_files(self):
         # patch外のファイルの行は拾わない（既存の絞り込みが壊れていないこと）

@@ -32,6 +32,8 @@ markdownレポートを標準出力と `tools/DeadMemberAudit/report.md` の両�
 | 5-A「CT未伝搬」 | トークンを持つ呼び出し元がCTを渡していない呼び出しサイト | `ct-not-passed` |
 | 5-B「async void」 | `[AsyncStateMachine]`付きでvoid返しのメソッド | `ct-async-void` |
 | 5-C「CTS作りっぱなし」 | CTSフィールドにCancel/Disposeがどこにも無い | `cts-not-released` |
+| 6-A「単一呼び出し元ヘルパ」 | 同一型の1メソッドからしか呼ばれていないprivateメソッド | `single-caller-helper` |
+| 6-B「参照0private」 | どこからも呼ばれていないprivateメソッド | `dead-private-member` |
 
 全リストとも **2列目が対象・最終列が裁定用の文脈** で、`宣言場所` に `` `path:line` `` を持つ
 （`.claude/skills/moores-code-review/scripts/dead_member_gate.py` がこの2つの位置に依存している）。

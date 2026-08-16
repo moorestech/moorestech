@@ -1,5 +1,6 @@
 using DeadMemberAudit.Cancellation;
 using DeadMemberAudit.Placement;
+using DeadMemberAudit.PrivateHelper;
 
 namespace DeadMemberAudit.Model;
 
@@ -17,6 +18,11 @@ public sealed class AuditResult
 
     public readonly List<PlacementFinding> PlacementFindings = new();
     public readonly List<CancellationFinding> CancellationFindings = new();
+
+    // privateメソッドの畳む候補・消す候補（リスト6）。母集団がpublicメンバーではないので独立に持つ
+    // Folding and deletion candidates among private methods (list 6), held separately because their population is not the public members
+    public readonly List<PrivateHelperFinding> PrivateHelperFindings = new();
+
     public readonly Dictionary<ExclusionReason, int> ExclusionCounts = new();
     public readonly Dictionary<AssemblyCategory, int> AssemblyCountsByCategory = new();
 
