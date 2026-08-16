@@ -165,9 +165,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 対象変更後もプレイヤー単位で待機
             // Cooldown remains player-wide after changing targets
             Assert.AreEqual(MiningAttackResult.Success,
-                miningService.TryAttack(PlayerId, first, playerInventory.EquipmentInventory.GetSelectedItem(), out _));
+                miningService.TryAttack(PlayerId, first, playerInventory.EquipmentInventory.GetSelectedItem(), playerInventory.MainOpenableInventory, out _));
             Assert.AreEqual(MiningAttackResult.CooldownNotElapsed,
-                miningService.TryAttack(PlayerId, second, playerInventory.EquipmentInventory.GetSelectedItem(), out _));
+                miningService.TryAttack(PlayerId, second, playerInventory.EquipmentInventory.GetSelectedItem(), playerInventory.MainOpenableInventory, out _));
             Assert.AreEqual(secondInitialHp, second.CurrentHp);
         }
 

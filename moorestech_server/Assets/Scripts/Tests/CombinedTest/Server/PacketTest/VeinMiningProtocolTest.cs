@@ -49,17 +49,17 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 素手はNoTool
             // Bare hands yield NoTool
-            Assert.AreEqual(VeinMiningResult.NoTool, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, out _));
+            Assert.AreEqual(VeinMiningResult.NoTool, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, playerInventory.MainOpenableInventory, out _));
 
             // 非対応ツールはToolMismatch
             // A non-matching tool yields ToolMismatch
             EquipTool(playerInventory, UnmatchedToolItemGuid);
-            Assert.AreEqual(VeinMiningResult.ToolMismatch, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, playerInventory.EquipmentInventory.GetSelectedItem(), out _));
+            Assert.AreEqual(VeinMiningResult.ToolMismatch, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, playerInventory.EquipmentInventory.GetSelectedItem(), playerInventory.MainOpenableInventory, out _));
 
             // 設定範囲の個数を取得
             // Get count from configured range
             EquipTool(playerInventory, ToolItemGuid);
-            Assert.AreEqual(VeinMiningResult.Success, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, playerInventory.EquipmentInventory.GetSelectedItem(), out var earnedItems));
+            Assert.AreEqual(VeinMiningResult.Success, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, playerInventory.EquipmentInventory.GetSelectedItem(), playerInventory.MainOpenableInventory, out var earnedItems));
             Assert.AreEqual(1, earnedItems.Sum(item => item.Count));
             var ironVein = MasterHolder.MapVeinMaster.GetElementOrNull(IronVeinGuid);
             var veinItemGuid = ((ItemVeinParam)ironVein.VeinParam).ItemGuid;
@@ -77,15 +77,15 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // vein AABBの外は掘れない
             // Positions outside every vein AABB are not minable
-            Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, IronVeinGuid, OutsideAnyVein, equipped, out _));
+            Assert.AreEqual(VeinMiningResult.VeinNotFound, miningService.TryMine(PlayerId, IronVeinGuid, OutsideAnyVein, equipped, playerInventory.MainOpenableInventory, out _));
 
-            // fluidは採掘対象外
-            // Fluid is not minable
-            Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, FluidVeinGuid, InsideFluidVein, equipped, out _));
+            // fluid鉱脈はitem鉱脈の索引に載らないため、座標上に手掘り対象が存在しない扱いになる
+            // A fluid vein is absent from the item-vein index, so no hand-mining target exists at that position
+            Assert.AreEqual(VeinMiningResult.VeinNotFound, miningService.TryMine(PlayerId, FluidVeinGuid, InsideFluidVein, equipped, playerInventory.MainOpenableInventory, out _));
 
             // noneは採掘不可
             // None is not minable
-            Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, NoneItemVeinGuid, InsideNoneItemVein, equipped, out _));
+            Assert.AreEqual(VeinMiningResult.HandMiningNotAllowed, miningService.TryMine(PlayerId, NoneItemVeinGuid, InsideNoneItemVein, equipped, playerInventory.MainOpenableInventory, out _));
         }
 
         [Test]
@@ -99,8 +99,36 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // guidが別なので拒否される
             // Another vein's guid is rejected
-            Assert.AreEqual(VeinMiningResult.NoMinableVein, miningService.TryMine(PlayerId, NoneItemVeinGuid, InsideIronVein, equipped, out _));
-            Assert.AreEqual(VeinMiningResult.Success, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, out _));
+            Assert.AreEqual(VeinMiningResult.VeinGuidMismatch, miningService.TryMine(PlayerId, NoneItemVeinGuid, InsideIronVein, equipped, playerInventory.MainOpenableInventory, out _));
+            Assert.AreEqual(VeinMiningResult.Success, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, playerInventory.MainOpenableInventory, out _));
+        }
+
+        [Test]
+        public void インベントリに空きが無いとき採掘は成立せずクールダウンも消費しない()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var miningService = serviceProvider.GetService<VeinHandMiningService>();
+            EquipTool(playerInventory, ToolItemGuid);
+            var equipped = playerInventory.EquipmentInventory.GetSelectedItem();
+
+            // 別アイテムで満載にし、鉱石の受け皿を無くす
+            // Fill every slot with another item so the ore has nowhere to land
+            var fillerItemId = MasterHolder.ItemMaster.GetItemId(UnmatchedToolItemGuid);
+            var mainInventory = playerInventory.MainOpenableInventory;
+            for (var slot = 0; slot < mainInventory.GetSlotSize(); slot++)
+            {
+                mainInventory.SetItem(slot, ServerContext.ItemStackFactory.Create(fillerItemId, 1));
+            }
+
+            // 受け取れない取得物を消滅させず、打撃自体を拒否する
+            // Refuse the swing itself instead of letting undeliverable drops vanish
+            Assert.AreEqual(VeinMiningResult.InventoryFull, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, mainInventory, out _));
+
+            // 拒否時はクールダウンを消費しないので、空けた直後に掘れる
+            // A refusal consumes no cooldown, so mining succeeds immediately after freeing a slot
+            mainInventory.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
+            Assert.AreEqual(VeinMiningResult.Success, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, mainInventory, out _));
         }
 
         [Test]
@@ -116,13 +144,13 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 共有クールダウンを検証
             // Verify shared cooldown
-            Assert.AreEqual(MiningAttackResult.Success, mapObjectMiningService.TryAttack(PlayerId, mapObject, equipped, out _));
-            Assert.AreEqual(VeinMiningResult.CooldownNotElapsed, veinService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, out _));
+            Assert.AreEqual(MiningAttackResult.Success, mapObjectMiningService.TryAttack(PlayerId, mapObject, equipped, playerInventory.MainOpenableInventory, out _));
+            Assert.AreEqual(VeinMiningResult.CooldownNotElapsed, veinService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, playerInventory.MainOpenableInventory, out _));
 
             // 経過後は再採掘可能
             // Mine again after elapsed time
             GameUpdater.RunFrames(GameUpdater.SecondsToTicks(ExpectedAttackSpeed) + 1);
-            Assert.AreEqual(VeinMiningResult.Success, veinService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, out _));
+            Assert.AreEqual(VeinMiningResult.Success, veinService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, playerInventory.MainOpenableInventory, out _));
         }
 
         [Test]

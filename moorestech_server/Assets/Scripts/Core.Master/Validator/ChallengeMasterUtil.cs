@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Mooresmaster.Model.ChallengesModule;
 using Mooresmaster.Model.GameActionModule;
+using Mooresmaster.Model.MapModule;
 
 namespace Core.Master.Validator
 {
@@ -103,6 +104,12 @@ namespace Core.Master.Validator
                                     if (vein == null)
                                     {
                                         logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.VeinGuid:{veinPin.VeinGuid}\n";
+                                    }
+                                    // 手掘りできない鉱脈を指すピンは達成不能なチュートリアルになる
+                                    // A pin aimed at an unmineable vein makes the tutorial impossible to complete
+                                    else if (vein.HandMiningParam is not MinableHandMiningParam)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} points Tutorial.VeinGuid:{veinPin.VeinGuid} which forbids hand mining\n";
                                     }
                                     break;
                                 }

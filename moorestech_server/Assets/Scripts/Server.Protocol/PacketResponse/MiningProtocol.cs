@@ -48,8 +48,8 @@ namespace Server.Protocol.PacketResponse
 
             if (earnedItems == null) return null;
 
-            // 成功報酬だけ追加
-            // Add only successful rewards
+            // 空きは権威判定側で確認済みなので、ここでは残余が出ない
+            // The authority already verified the free space, so no remainder can appear here
             foreach (var earnItem in earnedItems) playerInventory.MainOpenableInventory.InsertItem(earnItem);
             return null;
 
@@ -58,11 +58,20 @@ namespace Server.Protocol.PacketResponse
             List<IItemStack> MineMapObject()
             {
                 var mapObject = ServerContext.MapObjectDatastore.Get(data.InstanceId);
-                var result = _mapObjectMiningService.TryAttack(data.PlayerId, mapObject, equippedItem, out var items);
-                if (result != MiningAttackResult.Success)
+                var result = _mapObjectMiningService.TryAttack(data.PlayerId, mapObject, equippedItem, playerInventory.MainOpenableInventory, out var items);
+                switch (result)
                 {
-                    Debug.Log($"Mining attack rejected. playerId:{data.PlayerId} instanceId:{data.InstanceId} result:{result}");
-                    return null;
+                    case MiningAttackResult.Success:
+                        break;
+                    case MiningAttackResult.AlreadyDestroyed:
+                    case MiningAttackResult.NoTool:
+                    case MiningAttackResult.ToolMismatch:
+                    case MiningAttackResult.CooldownNotElapsed:
+                    case MiningAttackResult.InventoryFull:
+                        Debug.Log($"Mining attack rejected. playerId:{data.PlayerId} instanceId:{data.InstanceId} result:{result}");
+                        return null;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(result), result, null);
                 }
 
                 // 未破壊時だけHP更新
@@ -73,12 +82,22 @@ namespace Server.Protocol.PacketResponse
 
             List<IItemStack> MineVein()
             {
-                var veinGuid = new Guid(data.VeinGuid);
-                var result = _veinHandMiningService.TryMine(data.PlayerId, veinGuid, data.VeinPosition.Vector3Int, equippedItem, out var items);
-                if (result != VeinMiningResult.Success)
+                var result = _veinHandMiningService.TryMine(data.PlayerId, data.VeinGuid, data.VeinPosition.Vector3Int, equippedItem, playerInventory.MainOpenableInventory, out var items);
+                switch (result)
                 {
-                    Debug.Log($"Vein mining rejected. playerId:{data.PlayerId} veinGuid:{veinGuid} position:{data.VeinPosition.Vector3Int} result:{result}");
-                    return null;
+                    case VeinMiningResult.Success:
+                        break;
+                    case VeinMiningResult.VeinNotFound:
+                    case VeinMiningResult.VeinGuidMismatch:
+                    case VeinMiningResult.HandMiningNotAllowed:
+                    case VeinMiningResult.NoTool:
+                    case VeinMiningResult.ToolMismatch:
+                    case VeinMiningResult.CooldownNotElapsed:
+                    case VeinMiningResult.InventoryFull:
+                        Debug.Log($"Vein mining rejected. playerId:{data.PlayerId} veinGuid:{data.VeinGuid} position:{data.VeinPosition.Vector3Int} result:{result}");
+                        return null;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(result), result, null);
                 }
 
                 // veinは無限資源で状態を持たないため更新イベントを送らない
@@ -105,12 +124,12 @@ namespace Server.Protocol.PacketResponse
 
             // 同座標に重なる別鉱脈を掘り分ける
             // Separates veins overlapping the same cell
-            [Key(6)] public byte[] VeinGuid { get; set; }
+            [Key(6)] public Guid VeinGuid { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public MiningProtocolMessagePack() { }
 
-            private MiningProtocolMessagePack(int playerId, MiningTargetType targetType, int instanceId, Vector3IntMessagePack veinPosition, byte[] veinGuid)
+            private MiningProtocolMessagePack(int playerId, MiningTargetType targetType, int instanceId, Vector3IntMessagePack veinPosition, Guid veinGuid)
             {
                 Tag = ProtocolTag;
                 PlayerId = playerId;
@@ -122,12 +141,12 @@ namespace Server.Protocol.PacketResponse
 
             public static MiningProtocolMessagePack CreateMapObjectRequest(int playerId, int instanceId)
             {
-                return new MiningProtocolMessagePack(playerId, MiningTargetType.MapObject, instanceId, new Vector3IntMessagePack(Vector3Int.zero), Guid.Empty.ToByteArray());
+                return new MiningProtocolMessagePack(playerId, MiningTargetType.MapObject, instanceId, new Vector3IntMessagePack(Vector3Int.zero), Guid.Empty);
             }
 
             public static MiningProtocolMessagePack CreateVeinRequest(int playerId, Guid veinGuid, Vector3Int position)
             {
-                return new MiningProtocolMessagePack(playerId, MiningTargetType.Vein, 0, new Vector3IntMessagePack(position), veinGuid.ToByteArray());
+                return new MiningProtocolMessagePack(playerId, MiningTargetType.Vein, 0, new Vector3IntMessagePack(position), veinGuid);
             }
         }
     }

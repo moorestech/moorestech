@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Core.Item;
+using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
@@ -14,10 +14,26 @@ namespace Game.Map
     public enum VeinMiningResult
     {
         Success,
-        NoMinableVein,
+
+        // 狙った座標にそもそも鉱脈が無い
+        // No vein exists at the aimed position at all
+        VeinNotFound,
+
+        // 座標に鉱脈はあるが、狙ったveinGuidと違う
+        // A vein exists at the position but it is not the aimed veinGuid
+        VeinGuidMismatch,
+
+        // 鉱脈は一致したがマスタが手掘りを許していない
+        // The vein matches but its master forbids hand mining
+        HandMiningNotAllowed,
+
         NoTool,
         ToolMismatch,
         CooldownNotElapsed,
+
+        // 取得物を受け取れないため採掘を成立させない
+        // Mining is refused because the drops could not be received
+        InventoryFull,
     }
 
     /// <summary>
@@ -34,11 +50,12 @@ namespace Game.Map
             _cooldownService = cooldownService;
         }
 
-        public VeinMiningResult TryMine(int playerId, Guid veinGuid, Vector3Int position, IItemStack equippedItem, out List<IItemStack> earnedItems)
+        public VeinMiningResult TryMine(int playerId, Guid veinGuid, Vector3Int position, IItemStack equippedItem, IOpenableInventory earnedItemsDestination, out List<IItemStack> earnedItems)
         {
             earnedItems = null;
 
-            if (!TryFindMinableVein(veinGuid, position, out var vein, out var minableParam)) return VeinMiningResult.NoMinableVein;
+            var findResult = FindMinableVein(veinGuid, position, out var vein, out var minableParam);
+            if (findResult != VeinMiningResult.Success) return findResult;
 
             // 素手はどのツールにも一致しない
             // Bare hands match no tools
@@ -48,30 +65,40 @@ namespace Game.Map
 
             if (_cooldownService.IsInCooldown(playerId, usableTool.AttackSpeed)) return VeinMiningResult.CooldownNotElapsed;
 
+            // 受け取れない取得物は消滅するので、打撃を記録する前に空きを確かめる
+            // Undeliverable drops would vanish, so verify the free space before recording the swing
+            var candidateItems = CreateEarnedItems(vein.VeinItemId, minableParam);
+            if (!earnedItemsDestination.InsertionCheck(candidateItems)) return VeinMiningResult.InventoryFull;
+
             _cooldownService.RecordAttack(playerId);
-            earnedItems = CreateEarnedItems(vein.VeinItemId, minableParam);
+            earnedItems = candidateItems;
             return VeinMiningResult.Success;
 
             #region Internal
 
-            bool TryFindMinableVein(Guid aimedVeinGuid, Vector3Int pos, out IItemMapVein foundVein, out MinableHandMiningParam foundParam)
+            VeinMiningResult FindMinableVein(Guid aimedVeinGuid, Vector3Int pos, out IItemMapVein foundVein, out MinableHandMiningParam foundParam)
             {
                 foundVein = null;
                 foundParam = null;
+
+                var anyVeinAtPosition = false;
                 foreach (var overVein in ServerContext.ItemMapVeinDatastore.GetOverVeins(pos))
                 {
+                    anyVeinAtPosition = true;
+
                     // 重なった別鉱脈を掘らせない
                     // An overlapping vein must not be mined
                     if (overVein.VeinGuid != aimedVeinGuid) continue;
 
                     var element = MasterHolder.MapVeinMaster.GetElementOrNull(overVein.VeinGuid);
-                    if (element.HandMiningParam is not MinableHandMiningParam minable) continue;
+                    if (element.HandMiningParam is not MinableHandMiningParam minable) return VeinMiningResult.HandMiningNotAllowed;
+
                     foundVein = overVein;
                     foundParam = minable;
-                    return true;
+                    return VeinMiningResult.Success;
                 }
 
-                return false;
+                return anyVeinAtPosition ? VeinMiningResult.VeinGuidMismatch : VeinMiningResult.VeinNotFound;
             }
 
             List<IItemStack> CreateEarnedItems(ItemId itemId, MinableHandMiningParam param)
@@ -79,26 +106,7 @@ namespace Game.Map
                 // 個数を一様抽選
                 // Sample count uniformly
                 var count = _random.Next(param.MinCount, param.MaxCount + 1);
-                var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(itemId);
-
-                // 最大スタック数を超える場合は分割して追加
-                // Split into multiple stacks if exceeding max stack size
-                var items = new List<IItemStack>();
-                var fullItemCount = count / maxStack;
-                for (var i = 0; i < fullItemCount; i++)
-                {
-                    items.Add(ServerContext.ItemStackFactory.Create(itemId, maxStack));
-                }
-
-                // あまりを追加する
-                // Add remainder
-                var remainCount = count % maxStack;
-                if (remainCount != 0)
-                {
-                    items.Add(ServerContext.ItemStackFactory.Create(itemId, remainCount));
-                }
-
-                return items;
+                return ServerContext.ItemStackFactory.CreateSplitStacks(itemId, count);
             }
 
             #endregion
