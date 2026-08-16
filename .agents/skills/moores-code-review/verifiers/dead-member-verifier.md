@@ -14,6 +14,7 @@
 | `ct-not-passed` | トークンを持つ呼び出し元がCTを渡していない | 伝搬 |
 | `ct-async-void` | `async void` | `UniTaskVoid` + `.Forget()` |
 | `cts-not-released` | CTSフィールドにCancel/Disposeが無い | 破棄経路の追加 |
+| `single-caller-helper` | 同一型の1メソッドからしか呼ばれていないprivateヘルパ | ローカル関数へ畳む |
 
 IL上の参照勘定は既に厳密（オーバーロード解決済み・interface実装/override/Unity関数/シリアライズ/DI生成は機械除外済み）。あなたが裁くのは **ILに現れない呼び出し経路の有無** と **規範上の扱い** だけ。
 
@@ -53,6 +54,18 @@ IL上の参照勘定は既に厳密（オーバーロード解決済み・interf
 1. `ct-not-passed` → 候補の `detail` に「呼び出し元がトークンを持っている根拠」（CT引数あり / CTSフィールド参照あり / Unityオブジェクト）が入っている。`Unityオブジェクト` 根拠のものは `this.GetCancellationTokenOnDestroy()` を出所にできるかをReadで確認してから裁く。**プロセス寿命と一致する起動時1回ロードは正当**（core-cs-async-cancellation「Criticalにしないもの」）
 2. `ct-async-void` → Unityイベント関数は機械除外済みなので、残っているものは原則Critical。デリゲート/`UnityEvent` のシグネチャ制約で `void` を強制されている場合だけ正当（`rg` でハンドラ登録側のdelegate型を確認する）
 3. `cts-not-released` → 破棄経路（`OnDestroy`/`Dispose`）にCancel→Disposeが無い。差し替え時の旧CTS未Cancelも同じ扱い。**IL上に現れない後始末は無い**ので、正当理由は「そのCTSがプロセス寿命と一致する」場合に限る
+
+## 単一呼び出し元privateヘルパの裁定（`single-caller-helper`）
+AGENTS.md「複雑なメソッドでは`#region Internal`とローカル関数を活用する」の候補。呼び出し元は候補の `detail`（唯一の呼び出し元メソッド）に入っている。
+
+1. 対象メソッドと呼び出し元メソッドを**両方Readする**（畳めるかは中身を見ないと分からない）
+2. patchが**新規に追加した**privateヘルパで、呼び出し元が1メソッドだけなら **Critical: 呼び出し元の `#region Internal` へ畳む**
+3. 次は **正当**（畳まない）:
+   - ヘルパが長く（目安30行超）、畳むと呼び出し元が200行/1ファイルの制限を破る
+   - 再帰・`yield return`・`ref struct`引数など、ローカル関数化でシグネチャが変わる形
+   - 同ディレクトリの姉妹クラスが同じ形のprivateヘルパで揃っている（規約として成立・Warningで1行残す）
+   - テスト・エディタコードから`InternalsVisibleTo`や`#if UNITY_EDITOR`経由で触られている（`rg`で実測する）
+4. 既存メソッドが偶々候補に載っただけならWarning止まり（patch外の畳み込みを要求しない）
 
 ## 出力フォーマット
 候補ごとに1行:

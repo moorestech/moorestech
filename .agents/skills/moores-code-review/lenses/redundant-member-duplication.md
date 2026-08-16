@@ -4,6 +4,8 @@ extensions:
 keywords:
   - "=> _"
   - "get { return _"
+keywords_re:
+  - "\{\s*get;\s*set;\s*\}"
 model: sonnet
 ---
 
