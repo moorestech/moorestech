@@ -5,7 +5,7 @@ paths:
   - "Client\.Network"
   - "DataStore"
   - "Datastore"
-model: opus
+model: sonnet
 ---
 
 # Lens: サーバー状態同期の3点セット（PR988由来）

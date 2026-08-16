@@ -21,7 +21,7 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 
 1. **決定論チェック**（`scripts/deterministic_checks.py`）— AGENTS.md・moorestech規約の機械判定分（partial・try-catch・Func・200行・10ファイル・デフォルト引数・SerializeField命名・比較演算子・コメント長・region・master_default_fallback・packet_response_root・server_realtime_api・server_elapsed_time・init_method_naming・schema_optional_true・event_tag_sync・try_catch_boundary）。0トークン。
 2. **moores設計レンズ群**（`lenses/`・11本）— moorestech固有の設計規約。実PRレビュー指摘（PR978/987/988/996/997/1000/1095/1108）由来。
-3. **汎用reviewer群**（`reviewers/`・32本）— 言語横断のコード品質。全数調査（63セッション/1029起動）で採用実績のある観点のみ採録（採用0/冗長の20本と決定論代替1本は除外。根拠は `scripts/model_map.json` の `_excluded_from_port`）。加えて、`.cs` ゲートの設計レンズ5本（speculative-abstraction・type-driven-structure・hardcoded-content-enumeration・default-resolution-ownership・implicit-cardinality-assumption）の **ts/tsx翻案版**を採録し、webui差分にも同じ意味構造の検査を当てる（`_ts_lens_ports`・2026-08-04逆輸入）。
+3. **汎用reviewer群**（`reviewers/`・30本）— 言語横断のコード品質。全数調査（63セッション/1029起動）で採用実績のある観点のみ採録（採用0/冗長の20本と決定論代替1本は除外、2026-08-16再監査で採用ゼロの2本を追加削除。根拠は `scripts/model_map.json` の `_excluded_from_port`）。加えて、`.cs` ゲートの設計レンズ5本（speculative-abstraction・type-driven-structure・hardcoded-content-enumeration・default-resolution-ownership・implicit-cardinality-assumption）の **ts/tsx翻案版**を採録し、webui差分にも同じ意味構造の検査を当てる（`_ts_lens_ports`・2026-08-04逆輸入）。
 4. **Codex外部監査**（`scripts/codex-audit-template.md`）— 別モデルCLIの独立第三者視点。
 5. **Fable全般レビュー**（`generalists/fable-holistic-review.md`）— チェックリスト非依存の俯瞰監査。自己裏取り契約。
 6. **分割深掘り調査**（`investigators/`・3観点）— 変更ファイル（テスト・非コード除外後）が16以上の大規模PRのみ発火。`scripts/split_chunks.py` がドメイン単位で10-15ファイルのチャンクに分割し、チャンクごとに深読みバグ狩り・縫い目統合・チャンク内一貫性の3エージェントが**変更後ファイル全文**をagenticにReadする（全体diff一括の系統では希釈される注意を担保）。テストは完全隔離＝チャンク割当もReadも禁止（ユーザー裁定 2026-08-03）。
@@ -130,7 +130,7 @@ python3 .claude/skills/moores-code-review/scripts/split_chunks.py "<PATCH_PATH>"
 
 split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘り調査は発火しない（0トークン）。非空なら**CHUNKS_TSV**として保持する。
 
-**1メッセージ内で並列に** 次を全部Agent起動する（順次起動は禁止）:
+**並列にAgent起動する。ただし1メッセージ最大12体**（同時実行20体上限に他セッション分を含め当たると起動が黙って消えるため。mac miniで実測17%が消失・2026-08-16再監査）。13体以上になる場合は残りを次のメッセージで**完了を待たずに**続けて起動する。起動失敗（`Concurrent subagent limit`）が返った体は控えておき必ず再起動する。起動対象:
 
 1. **各発火レンズ**（select_lensesのTSVどおりの `model`）— 3行契約＋共通出力契約:
    ```
@@ -256,5 +256,6 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。
 - **Agent起動時に必ずmodel列を渡す（モデル継承事故の防止）** — Agentツールは `model` を省略すると**親（＝あなた＝オーケストレータ）のモデルを継承**する。あなた自身がfableで走っていると、model未指定のサブエージェントが誤ってfableで起動しうる。両セレクタはTSV2列目に**常に具体値**を出す（`select_lenses.py` はmodel未記載lensを `opus` に、`select_reviewers.py` は未記載reviewerを `default:opus` に具体化。空欄は絶対に出さない）。この2列目を**必ずそのまま** Agentの `model` に渡すこと。fableが正になるのは `precedent-alignment` レンズ（YAMLに `model: fable`）とFable全般（prose指定）だけで、それ以外にfableは現れない。
 - **残量不足を理由に系統を間引かない／中断しない** — レポートはファイルへ書かせ返答は3行に絞る（Step 4の回収方式）。系統を落とすなら報告に明記する。
+- **fableクォータ切れは黙って欠員にしない** — fable指定の系統（precedent-alignment・Fable全般）が「weekly limit」等の失敗応答を返したら、その系統を `model: "opus"` で再起動する（2026-07〜08で14起動が無言消失した実測より）。再起動した事実は最終報告に1行明記。
 - **AskUserQuestionは末尾だけ** — 確定修正の途中で割り込まない。
 - **人間指摘の見逃しが出たら** — その場で観点をいじらず `references/skill-improvement.md` の手順（フォレンジック・リプレイ診断→対策→4段階検証）に従う。
