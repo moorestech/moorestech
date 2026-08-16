@@ -27,6 +27,12 @@ class SkillWiringTest(unittest.TestCase):
         for p in (SKILL_DIR / "post-checks").glob("*.md"):
             self.assertIn(p.name, SKILL_MD, f"{p.name} がSKILL.mdに配線されていない")
 
+    def test_every_integrator_is_wired_in_skill_md(self):
+        # integrators/配下の全ファイルがSKILL.md本文からフルネームで参照されていること（Step 5統合委譲の配線）
+        # Every integrator file must be referenced from SKILL.md by full name
+        for i in (SKILL_DIR / "integrators").glob("*.md"):
+            self.assertIn(i.name, SKILL_MD, f"{i.name} がSKILL.mdに配線されていない")
+
     def test_every_investigator_is_wired_in_skill_md(self):
         # investigators/配下の全ファイルがSKILL.md本文からフルネームで参照されていること（第6系統の配線）
         # Every investigator file must be referenced from SKILL.md by full name

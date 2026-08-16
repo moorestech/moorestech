@@ -2,6 +2,8 @@
 
 決定論スクリプト・moores設計レンズ群・汎用reviewer群・Codex外部監査・Fable全般レビューの生結果を、そのままユーザーへ転送しない。以下で1つの統合結果にマージする。
 
+**実行者の分担**: §0〜§2.7（回収・照合・重複排除・掃引）は統合integrator（`integrators/finding-integrator.md`）が実行し、結果を `integrated.md` に書く。§3〜§5（適用・保留・安全規則）はオーケストレータが `integrated.md` を入力として実行する。各Criticalの§3/§3.5/§4への区分判定はintegratorが行い、オーケストレータは疑義がある件だけ判定し直す。
+
 ## 0. 5系統の性質の違い
 
 - **決定論チェック（`deterministic_checks.py`）** — AGENTS.md・moorestech規約の機械判定可能分（partial・try-catch・200行・10ファイル・デフォルト引数・SerializeField命名・master_default_fallback・packet_response_root）の `confirmed`。**検出は正確で裏取り不要**（誤検出はスクリプトのバグ扱い）。ただし修正が設計作業になるものは §3/§4 の判断フローに乗せる。**例外: 200行超過（file-too-long）は努力目標** — Criticalに数えず報告のWarning備考のみ、質問・強制修正なし。

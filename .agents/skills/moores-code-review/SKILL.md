@@ -28,7 +28,7 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 
 ## 実行順序（厳守）
 
-> **① 機械チェック統一窓口 `check_all.py`（決定論＋死にメンバーゲート＋ts死コードゲート＋セレクタを1コマンドで同時実行） → ② Codex監査をバックグラウンド起動 → ③ レンズ群＋reviewer群＋Fable全般＋（閾値超なら）分割深掘り調査＋（`verifiers_to_launch`にあるverifier）を1メッセージで並列起動 → ④ 全系統を回収・実コード照合・重複排除 → ⑤ 機械的修正を自動適用＋コンパイル → ⑤.5 最終diffで決定論再チェック＋コメント保全post-checks 2本 → ⑥ 報告＋設計判断のみAskUserQuestion（末尾集約）**
+> **① 機械チェック統一窓口 `check_all.py`（決定論＋死にメンバーゲート＋ts死コードゲート＋セレクタを1コマンドで同時実行） → ② Codex監査をバックグラウンド起動（出力はファイルへ） → ③ レンズ群＋reviewer群＋Fable全般＋（閾値超なら）分割深掘り調査＋（`verifiers_to_launch`にあるverifier）を1メッセージで並列起動 → ④ 全系統の照合・重複排除をintegratorへ委譲し `integrated.md` を受け取る → ⑤ 機械的修正を自動適用＋コンパイル → ⑤.5 最終diffで決定論再チェック＋コメント保全post-checks 2本 → ⑥ 報告＋設計判断のみAskUserQuestion（末尾集約）**
 
 AskUserQuestionは**最後の報告フェーズに集約**する。修正適用の途中で割り込まない。
 
@@ -44,7 +44,8 @@ AskUserQuestionは**最後の報告フェーズに集約**する。修正適用�
   後から「何をどう測ってその結論になったか」を再現する唯一の材料。pr-independent-reviewのreconcileも
   ここを読む（あちらは `$LOGS/harness/pr-independent-review/runs/pr-<番号>/` を使う。混ぜない）
 - ファイル名は固定: `patch.diff` / `context.md` / `checks.json` / `codex-audit.md` / `codex-bughunt.md` /
-  `codex-design.md` / `chunks.tsv` / `final.diff` / `checks-final.json`
+  `codex-design.md`（各Codex**出力**は同名の `.out.md`） / `chunks.tsv` / `agents/<名前>.md` / `integrated.md` /
+  `final.diff` / `checks-final.json`
 - `$RUNDIR` 配下はStop/SessionEnd hook（`.dev-hooks/logs-sync.mjs`）でlogs repoへ自動commit・pushされる。
   セッション側で `git commit` しない
 
@@ -121,12 +122,12 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 3. **設計整合専任** — `scripts/codex-design-template.md`（設計のみ・**過剰設計提案の抑制付き**: 新抽象の推奨は既存前例が現にその形の場合に限る）→ `<$RUNDIRの実値>/codex-design.md`
 
 ```bash
-codex exec --sandbox read-only --skip-git-repo-check - < <$RUNDIRの実値>/codex-audit.md
-codex exec --sandbox read-only --skip-git-repo-check - < <$RUNDIRの実値>/codex-bughunt.md
-codex exec --sandbox read-only --skip-git-repo-check - < <$RUNDIRの実値>/codex-design.md
+codex exec --sandbox read-only --skip-git-repo-check - < <$RUNDIRの実値>/codex-audit.md > <$RUNDIRの実値>/codex-audit.out.md 2>&1
+codex exec --sandbox read-only --skip-git-repo-check - < <$RUNDIRの実値>/codex-bughunt.md > <$RUNDIRの実値>/codex-bughunt.out.md 2>&1
+codex exec --sandbox read-only --skip-git-repo-check - < <$RUNDIRの実値>/codex-design.md > <$RUNDIRの実値>/codex-design.out.md 2>&1
 ```
 
-それぞれBashの `run_in_background: true` で起動しシェルIDを控える。狭域専任2本は単発同梱プロンプトで注意が3分割される問題への対策（recall向上）で、俯瞰が残り全部の受け皿。**同一モデルの3起動は独立系統ではない** — 回収時、codex間で重複した指摘は1件に畳み、出所は「Codex」1系統として扱う（integration-rules §2）。`which codex` が失敗したら本Stepを3本ともスキップし、その旨を最終報告に明記する（黙って縮退しない）。
+それぞれBashの `run_in_background: true` で起動しシェルIDを控える。**出力は必ず `.out.md` へリダイレクトする** — 完了確認はシェル状態だけで行い、監査本文をオーケストレータのコンテキストへ読み込まない（回収はStep 5のintegratorが行う）。狭域専任2本は単発同梱プロンプトで注意が3分割される問題への対策（recall向上）で、俯瞰が残り全部の受け皿。**同一モデルの3起動は独立系統ではない** — 回収時、codex間で重複した指摘は1件に畳み、出所は「Codex」1系統として扱う（integration-rules §2）。`which codex` が失敗したら本Stepを3本ともスキップし、その旨を最終報告に明記する（黙って縮退しない）。
 
 ## Step 4: レンズ群＋reviewer群＋Fable全般＋verifierを並列発火する ③
 
@@ -181,20 +182,28 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 7. **死にメンバーverifier**（Step 2.5の `candidates.dead_member` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/dead-member-verifier.md` を渡す（候補JSONのパスをpromptに含める）。ILに現れない経路（UnityEvent配線・プレイテストDSL・文字列リフレクション）の実在だけをrgで裁く。
 8. **ts死コードverifier**（Step 2.6の `candidates.ts_dead_code` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/ts-dead-code-verifier.md` を渡す。import graphに現れない経路（動的import・C#側からの文字列ブリッジ・生成コード）の実在だけをrgで裁く。
 
-**回収はファイルハンドオフで行う（オーケストレータのコンテキストを空けるため）。** 起動前に共通出力契約を `<$RUNDIRの実値>/contract.md` へ1本だけ書き、各エージェントのプロンプトは `Read this` / `Patch path` / `User prompt` / `Output contract`（contract.mdのパス） / `Write full report to`（`<$RUNDIRの実値>/agents/<名前>.md`）の5行に畳む。**返答は3行以内（Critical件数・設計判断あり/なし・一行要約）に制限し、詳細は返答に書かせずファイルへ書かせる。** Step 5の回収は個々の返答ではなく `agents/` 配下のファイル群をgrep・集計して行う。起動数が多い場合はwaveに分けてよい（1メッセージ内の並列は各wave内で守る）。**コンテキスト残量を理由にこの工程を中断してはならない** — 詰まるのは実行可否ではなく回収の設計であり、この方式で消費はほぼゼロになる（ユーザー裁定 2026-08-14・[[2026-08-14-大規模ファンアウトは回収方式を変えて完走する]]）。
+**回収はファイルハンドオフで行う（オーケストレータのコンテキストを空けるため）。** 起動前に共通出力契約を `<$RUNDIRの実値>/contract.md` へ1本だけ書き、各エージェントのプロンプトは `Read this` / `Patch path` / `User prompt` / `Output contract`（contract.mdのパス） / `Write full report to`（`<$RUNDIRの実値>/agents/<名前>.md`）の5行に畳む。**返答は3行以内（Critical件数・設計判断あり/なし・一行要約）に制限し、詳細は返答に書かせずファイルへ書かせる。** `agents/` 配下のファイル群の回収・照合はStep 5のintegratorが行う（オーケストレータはgrep・集計しない）。起動数が多い場合はwaveに分けてよい（1メッセージ内の並列は各wave内で守る）。**コンテキスト残量を理由にこの工程を中断してはならない** — 詰まるのは実行可否ではなく回収の設計であり、この方式で消費はほぼゼロになる（ユーザー裁定 2026-08-14・[[2026-08-14-大規模ファンアウトは回収方式を変えて完走する]]）。
 
 各サブエージェントは上記の共通出力契約（Critical/Warning/Info＋設計判断）で返す。**二値（あり/なし）に潰さず3段階で出させる理由**: Warning/Infoは「とりあえず統合報告のコンテキストに乗る」ことが目的の保険であり、二値だと確信の一段弱い実指摘が `なし` に丸められて消失する（ユーザー裁定 2026-07-23。実例: リプレースファミリーのハードコードを複数レンズが視認しながら二値契約のため無出力で落とした）。`設計判断: あり` はCriticalでも備考でもない第3の出口で、Step 7のAskUserQuestionへ**必ず**載せる（備考落ちで黙殺しない）。reviewer発火が0件でもレンズ群とFableは起動する。
 
-## Step 5: 回収・実コード照合・重複排除 ④
+## Step 5: 回収・統合（integratorへ委譲） ④
 
-- Step 4の全サブエージェント（レンズ・reviewer・Fable・investigator・verifier）の返却を受け取る。
-- Step 3のバックグラウンドCodex（3本）の出力を回収する（未完了なら完了を待つ）。
-- 全部揃うまでStep 6へ進まない。`references/integration-rules.md` §0〜§2 に従い、実コード照合・重複排除する（決定論confirmedは裏取り不要、Codex/Fable/レンズ/reviewerのCriticalはReadで裏取り、複数系統一致は「N系統一致（高確度）」に統合）。
-- **Warning/Infoの扱い**（§2.5）: Warningは破棄せず統合報告に必ず載せる（軽い照合のみ。複数系統が同一箇所をWarningした場合と、照合で事実が確定した場合はCriticalへ昇格）。Infoは照合不要で報告末尾に圧縮列挙する。どちらもAskUserQuestionには載せない。
+- Step 4の全サブエージェント（レンズ・reviewer・Fable・investigator・verifier）の**完了**と、Step 3のバックグラウンドCodex3本の**完了**を確認する（未完了なら待つ）。各返答は3行契約なのでそのまま受けるが、**生の報告本文・Codex出力をオーケストレータが読むのは禁止** — 中身の回収と照合はintegratorが行う。
+- 全部揃ったら**統合integrator**を1体起動する（`model: "opus"` 明示・5行契約）:
+  ```
+  Read this : .claude/skills/moores-code-review/integrators/finding-integrator.md
+  Run dir : <$RUNDIRの実値>
+  Patch path : <PATCH_PATH>
+  User prompt : <USER_PROMPT_PATH>
+  Write integrated report to : <$RUNDIRの実値>/integrated.md
+  ```
+  integratorは `agents/` 配下・Codex出力3本（`.out.md`）・`checks.json` を読み、`references/integration-rules.md` §0〜§2.7（実コード照合・棄却の挙証責任・重複排除・Warning/Info統合・suppressed統合・同型掃引・系統間矛盾の検証）を適用して `integrated.md` に統合結果を書く。各Criticalには適用区分（自動適用可 §3/§3.5 | 設計判断 §4）が付く。返答は件数サマリのみ。
+- integratorの返答を受けたら `integrated.md` をReadしてStep 6へ。生のagentsファイル・Codex出力へ戻ってよいのは、integratorの結論に疑義がある個別件の再確認だけ（全量の読み直しは統合の二重実行であり禁止）。
+- `integrated.md` の「系統別回収状況」に欠員（起動失敗・weekly limit・Codexスキップ）があれば、Gotchasの再起動規則に従い、必要なら該当系統を再起動してintegratorを再実行する。
 
 ## Step 6: 確定修正の自動適用＋コンパイル ⑤
 
-`references/integration-rules.md` §3〜§5 に従う。要点:
+適用対象と区分は `integrated.md` の「採用Critical」の適用区分どおり（区分に疑義がある件だけ§3/§4の条文で判定し直す）。`references/integration-rules.md` §3〜§5 に従う。要点:
 - 具体名（ファイル/クラス/メソッド）と修正方針が挙がっていて選択の余地が無い機械的修正・単独系統cosmeticは、確認を挟まず自動適用する（デフォルト動作）。
 - 設計判断（複数の妥当な選択肢・スコープ影響・アーキテクチャ変更・両立不能な指摘・decisionを要するCodex High/Medium）は適用せずStep 7へ保留。
 - .csを修正したら `uloop compile --project-path ./moorestech_client` を実行しエラー0を確認する。
@@ -254,6 +263,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **レンズ** — `select_lenses.py` の2列目（各レンズ先頭YAMLの `model`）をそのまま渡す。
 - **reviewer** — `select_reviewers.py` の2列目（正は `scripts/model_map.json`。未記載reviewerはopus、`sonnet` 記載のみsonnet）。
 - **Fable全般** — `model: "fable"` 固定。**比較演算子verifier・サーバDateTime用途verifier・死にメンバーverifier・ts死コードverifier・comment-convention-guard** — `sonnet`。**comment-rationale-guard・try-catch境界verifier** — `opus`（WHY判定・境界の真偽判定は高ステークス）。
+- **統合integrator**（`integrators/finding-integrator.md`）— `opus` 固定（棄却の挙証責任・系統間矛盾の裁定・適用区分の判定は高ステークス）。
 - **investigator（分割深掘り調査）** — 各 `investigators/*.md` 先頭YAMLの `model` が正（2026-08-16裁定で3観点ともsonnetへ降格。経緯は `$LOGS/harness/moores-code-review/analysis/2026-08-16-agent-efficiency-reaudit.md`）。
 - Codex監査は別CLIなので対象外。
 
@@ -274,6 +284,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。
 - **Agent起動時に必ずmodel列を渡す（モデル継承事故の防止）** — Agentツールは `model` を省略すると**親（＝あなた＝オーケストレータ）のモデルを継承**する。あなた自身がfableで走っていると、model未指定のサブエージェントが誤ってfableで起動しうる。両セレクタはTSV2列目に**常に具体値**を出す（`select_lenses.py` はmodel未記載lensを `opus` に、`select_reviewers.py` は未記載reviewerを `default:opus` に具体化。空欄は絶対に出さない）。この2列目を**必ずそのまま** Agentの `model` に渡すこと。fableが正になるのは `precedent-alignment` レンズ（YAMLに `model: fable`）とFable全般（prose指定）だけで、それ以外にfableは現れない。
 - **残量不足を理由に系統を間引かない／中断しない** — レポートはファイルへ書かせ返答は3行に絞る（Step 4の回収方式）。系統を落とすなら報告に明記する。
+- **オーケストレータは生出力を読まない** — `agents/*.md`・Codexの`.out.md`の全量読み・grep集計は統合の二重実行。照合・重複排除はintegratorの担当で、オーケストレータが読むのは `integrated.md` と、疑義のある個別件の該当ファイルだけ。
 - **fableクォータ切れは黙って欠員にしない** — fable指定の系統（precedent-alignment・Fable全般）が「weekly limit」等の失敗応答を返したら、その系統を `model: "opus"` で再起動する（2026-07〜08で14起動が無言消失した実測より）。再起動した事実は最終報告に1行明記。
 - **AskUserQuestionは末尾だけ** — 確定修正の途中で割り込まない。
 - **人間指摘の見逃しが出たら** — その場で観点をいじらず `references/skill-improvement.md` の手順（フォレンジック・リプレイ診断→対策→4段階検証）に従う。
