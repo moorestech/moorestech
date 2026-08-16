@@ -49,7 +49,9 @@
         "VContainer",
         "StarterAssetsInputs",
         "ThirdPersonController",
-        "Mod.Loader"
+        "Mod.Loader",
+        "Game.Hotbar",
+        "Game.PlacementTarget"
     ],
     "includePlatforms": [
         "Editor"

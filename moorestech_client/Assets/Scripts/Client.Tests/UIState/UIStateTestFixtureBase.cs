@@ -4,7 +4,6 @@ using Client.Game.Common;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
-using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
@@ -76,11 +75,9 @@ namespace Client.Tests.UIState
             playerRoot.SetActive(true);
             InvokeAwake(playerContainer);
 
-            var hotBar = CreateComponent<HotBarView>("HotBar");
             var challengeHud = CreateComponent<CurrentChallengeHudView>("ChallengeHud");
             var gameState = CreateComponent<GameStateController>("GameState", false);
             SetField(gameState, "currentChallengeHudView", challengeHud);
-            gameState.Construct(hotBar);
             gameState.gameObject.SetActive(true);
             InvokeAwake(gameState);
         }

@@ -28,7 +28,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 _playerInventoryViewController.SetActive(false);
             }
 
-            // GameStateControllerでスキット状態に遷移（ホットバーの非表示を含む）
+            // スキット状態へ遷移
             GameStateController.ChangeState(GameStateType.Skit);
 
             KeyControlDescription.Instance.SetText("");

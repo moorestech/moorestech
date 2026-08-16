@@ -36,11 +36,8 @@ export default function ItemListPanel() {
   const craftRecipes = useTopic(Topics.craftRecipes);
 
   // 素材所持数を制作可能数へ変換する
-  // Aggregate materials across main+hotbar, then derive craftable counts for catalog badges
-  const ownedCounts = useMemo(
-    () => buildOwnedCounts(inventory ? [...inventory.mainSlots, ...inventory.hotbarSlots] : []),
-    [inventory],
-  );
+  // Aggregate materials across the main inventory, then derive craftable counts for catalog badges
+  const ownedCounts = useMemo(() => buildOwnedCounts(inventory?.mainSlots ?? []), [inventory]);
   const craftableCounts = useMemo(
     () => craftableResultCounts(craftRecipes?.recipes ?? [], ownedCounts),
     [craftRecipes, ownedCounts],

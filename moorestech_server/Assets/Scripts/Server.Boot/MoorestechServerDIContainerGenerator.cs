@@ -18,10 +18,12 @@ using Game.EnergySystem;
 using Game.Entity;
 using Game.Entity.Interface;
 using Game.Gear.Common;
+using Game.Hotbar;
 using Game.Map;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
+using Game.PlacementTarget;
 using Game.Paths;
 using Game.PlayerConnection;
 using Game.PlayerInventory;
@@ -187,6 +189,10 @@ namespace Server.Boot
             services.AddSingleton<IItemStackLevelUnlocker>(itemStackLevelDataStore);
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
+            services.AddSingleton<PlacementTargetCatalog>();
+            services.AddSingleton<HotbarAssignmentDatastore>();
+            services.AddSingleton<IHotbarAssignmentLookup>(provider => provider.GetRequiredService<HotbarAssignmentDatastore>());
+            services.AddSingleton<IHotbarAssignmentMutation>(provider => provider.GetRequiredService<HotbarAssignmentDatastore>());
 
             services.AddSingleton<ResearchEvent>();
 
@@ -254,6 +260,7 @@ namespace Server.Boot
             services.AddSingleton<ItemStackLevelUnlockEventPacket>();
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
+            services.AddSingleton<HotbarUpdateEventPacket>();
             services.AddSingleton<UnlockedEventPacket>();
             services.AddSingleton<RailNodeCreatedEventPacket>();
             services.AddSingleton<RailConnectionCreatedEventPacket>();

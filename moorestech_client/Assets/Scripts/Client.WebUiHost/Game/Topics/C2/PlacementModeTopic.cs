@@ -5,6 +5,7 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
+using Game.PlacementTarget;
 using UniRx;
 
 namespace Client.WebUiHost.Game.Topics
@@ -28,6 +29,7 @@ namespace Client.WebUiHost.Game.Topics
             // Republish the complete snapshot only when a HUD input changes
             controller.OnTargetChanged.Subscribe(_ => Publish()).AddTo(_subscriptions);
             state.OnPlacementHeightChanged.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
+            controller.OnWheelOwnedByToolChanged.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
         }
 
         public UniTask<string> GetSnapshotJsonAsync() => UniTask.FromResult(BuildJson());
@@ -40,7 +42,8 @@ namespace Client.WebUiHost.Game.Topics
             var dto = PlacementModeDtoFactory.Create(
                 _controller.CurrentTarget,
                 _state.GetPlacementHeight(),
-                "");
+                "",
+                _controller.IsWheelOwnedByTool);
             return WebUiJson.Serialize(dto);
         }
     }
@@ -54,6 +57,7 @@ namespace Client.WebUiHost.Game.Topics
         public string SelectedName;
         public int Height;
         public string UnavailableReason;
+        public bool WheelOwnedByTool;
     }
 
     public static class PlacementModeDtoFactory
@@ -61,12 +65,14 @@ namespace Client.WebUiHost.Game.Topics
         public static PlacementModeDto Create(
             IPlacementTarget target,
             int height,
-            string unavailableReason)
+            string unavailableReason,
+            bool wheelOwnedByTool)
         {
             var dto = new PlacementModeDto
             {
                 Height = height,
                 UnavailableReason = unavailableReason,
+                WheelOwnedByTool = wheelOwnedByTool,
             };
 
             // マスタ由来対象はWeb側辞書解決用の種別とGuidだけを配信する

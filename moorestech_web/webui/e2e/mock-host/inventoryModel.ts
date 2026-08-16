@@ -10,7 +10,7 @@ import type {
 
 export function slotOf(inv: PlayerInventoryData, ref: SlotRef): SlotData {
   if (ref.area === "grab") return inv.grab;
-  const list = ref.area === "main" ? inv.mainSlots : ref.area === "hotbar" ? inv.hotbarSlots : inv.equipment;
+  const list = ref.area === "main" ? inv.mainSlots : inv.equipment;
   return list[ref.slot];
 }
 
@@ -85,12 +85,12 @@ export function applySplitDrag(inv: PlayerInventoryData, p: ActionPayloads["inve
   return null;
 }
 
-// クラフト1回分: main+hotbar から必要素材を消費し結果を追加する。素材不足なら false で no-op
-// One craft: consume required materials from main+hotbar and add the result; returns false (no-op) if short
-// 実 host の OneClickCraft は main+hotbar のみ参照するため grab は対象外
-// The real host's OneClickCraft only consults main+hotbar, so grab is excluded
+// クラフト1回分。素材不足ならno-op
+// One craft: consume required materials from main and add the result; returns false (no-op) if short
+// 実hostと同じくgrabは対象外
+// The real host's OneClickCraft only consults main, so grab is excluded
 export function applyCraft(inv: PlayerInventoryData, recipe: CraftRecipe): boolean {
-  const pool = [...inv.mainSlots, ...inv.hotbarSlots];
+  const pool = inv.mainSlots;
 
   const owned = new Map<number, number>();
   for (const s of pool) if (s.count > 0) owned.set(s.itemId, (owned.get(s.itemId) ?? 0) + s.count);
@@ -117,7 +117,7 @@ export function applyCraft(inv: PlayerInventoryData, recipe: CraftRecipe): boole
 // 結果アイテムを同種スタックへ、無ければ最初の空 main スロットへ積む
 // Stack the result onto a same-type slot, else the first empty main slot
 function addItem(inv: PlayerInventoryData, itemId: number, count: number) {
-  const same = [...inv.mainSlots, ...inv.hotbarSlots].find((s) => s.itemId === itemId && s.count > 0);
+  const same = inv.mainSlots.find((s) => s.itemId === itemId && s.count > 0);
   if (same) { same.count += count; return; }
   const empty = inv.mainSlots.find((s) => s.count === 0);
   if (empty) { empty.itemId = itemId; empty.count = count; }
@@ -129,7 +129,7 @@ export function applyCollect(inv: PlayerInventoryData, p: ActionPayloads["invent
   const grabHeld = inv.grab.count > 0;
   const target = grabHeld ? inv.grab : slotOf(inv, p.slot);
   if (target.count === 0) return;
-  for (const s of [...inv.mainSlots, ...inv.hotbarSlots]) {
+  for (const s of inv.mainSlots) {
     if (s === target || s.itemId !== target.itemId || s.count === 0) continue;
     target.count += s.count;
     s.count = 0;
@@ -137,8 +137,8 @@ export function applyCollect(inv: PlayerInventoryData, p: ActionPayloads["invent
   }
 }
 
-// host の CollectItems と同様に grab 状態で集積先を決め、main/hotbar/block を跨いで同種を集約する
-// Like the host's CollectItems, pick the target from grab state and consolidate across main/hotbar/block
+// grab状態で集積先を決め同種を集約
+// Like the host's CollectItems, pick the target from grab state and consolidate across main/block
 export function applyBlockCollect(
   inv: PlayerInventoryData,
   currentBlock: BlockInventoryData,
@@ -148,7 +148,7 @@ export function applyBlockCollect(
   const target = grabHeld ? inv.grab : blockSlotOf(inv, currentBlock, p.slot);
   if (target.count === 0) return;
   const blockSlots = currentBlock.open ? currentBlock.itemSlots : [];
-  for (const s of [...inv.mainSlots, ...inv.hotbarSlots, ...blockSlots]) {
+  for (const s of [...inv.mainSlots, ...blockSlots]) {
     if (s === target || s.itemId !== target.itemId || s.count === 0) continue;
     target.count += s.count;
     s.count = 0;

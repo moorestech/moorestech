@@ -46,7 +46,7 @@ featureブランチが記録ファイルに触れてマージ衝突する構造�
   既存runを上書きしない
 - Step 1の直後に `mkdir -p <$RUNDIRの実値>` を1回だけ実行する
 - ファイル名は固定: `patch.diff` / `context.md` / `novelty.json` / `detchecks.json` / `codex-audit.md` /
-  `digest.html` / `reconcile-comments.json`。PR番号はディレクトリ名が持つのでファイル名に含めない
+  `digest.html` / `findings.json` / `reconcile-comments.json`。PR番号はディレクトリ名が持つのでファイル名に含めない
 - `$RUNDIR` 配下もhookで自動commit・pushされる（PRの実コードを含むが、logs repoはprivateなので出荷先として正しい）
 
 - **`$CANON` は本ドキュメント上のプレースホルダであり、シェル変数ではない**。Bashコマンド・subagentのprompt・
@@ -171,9 +171,12 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
       <BASE_REF>...HEAD -- . \
       ':(exclude)*.meta' ':(exclude)*.prefab' ':(exclude)*.asset' ':(exclude)*.unity' \
       ':(exclude)*.png' ':(exclude)*.jpg' ':(exclude)*.controller' ':(exclude)*.mat' ':(exclude)*.fbx' \
+      ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs' \
       > <$RUNDIRの実値>/patch.diff
 
 `<BASE_REF>` はStep 1.5で確定した実値。yml/jsonは残す（master-data系レンズの守備範囲のため）。
+**プレイテストシナリオの `.cs` も除外する** — 使い捨ての操作台本をプロダクトコードの規約で裁かない
+（ユーザー裁定 2026-08-16 / PR#1137-F12）。moores-code-review Step 1と同一のpathspecで揃える
 
 **フラグは省略禁止（本体パーサ保護）** — このpatchは `deterministic_checks.py` とレンズ/reviewer/Codexが読む唯一の
 差分実体であり、次はいずれもユーザー側git設定で有効化され得て、**patchを静かに痩せさせる**:
@@ -371,6 +374,14 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   9. **折りたたみ参考**
   各カードの中身: ファイル名太字・リポジトリ相対フルパス・行番号 → **その直下に一言サマリ1行（必須・ユーザー裁定 2026-07-30）**
   → 当該diffハンクの実コード抜粋（前後数行・追加行`<ins>`・問題行`.hl`）→ PR側の主張（出所ラベル付き）→ 代替案
+- **data-finding-id属性（必須・裁定サイトのアンカー）**: digest生成前にStep 7.5のid採番規則（severity降順→
+  ファイルパス昇順でF01から連番）で全裁定対象のidを確定させ、findings.jsonに載る所見に対応する各カードの
+  ルート要素（`section.verdict-card` 等）へ `data-finding-id="F01"` を付与する。対象は設計判断カード・
+  Critical要点の各項目・新形カード・suppressedカードの全て。Step 7.5は**必ずこの採番をそのまま使う**
+  （裁定サイトはこの属性で案ボタンの注入位置を特定する。欠けるとトークン一致のフォールバック頼みになる）。
+  代替案（案A/案B…）を提示するカードでは、その案リストをStep 7.5の `options` にそのまま写し、
+  **推奨する案には案リスト本文で「（推奨）」と明記する**（案が1つだけのカードでも書く）。
+  Step 7.5の `recommended: true` と同じ案を指すこと
 - **一言サマリの書式（ユーザー裁定 2026-07-30「デッドコードがあるが免責されてる、でいい」）**: **欠陥・裁定対象そのものを
   主語にした短文1つ**（目安20字前後）。免責の仕組み・出所ラベルの話・系統数・規約条番号などのメタ情報をサマリに書くのは禁止
   （それらはsuppressed-by行・出所行が既に持っている）。例: Critical「絶対に発火しないifガードが2箇所ある」/
@@ -400,13 +411,15 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   追加行 `<ins>`・問題行 `<span class="hl">` のマークアップを付与する。順序を逆にすると自分で付けたタグまで
   エスケープされて `&lt;ins&gt;` が画面に出る。エスケープを怠ると `Subject<int>` の `<int>` がタグとして食われ、
   **コード抜粋が黙って一部消える**（レビュー成果物としては致命傷。消えたことが画面から分からない）
-- **生成後検査3点（必須・全部通るまで出荷しない）**:
+- **生成後検査4点（必須・全部通るまで出荷しない）**:
   1. 未置換プレースホルダ0件 — `grep -c '{{' <$RUNDIRの実値>/digest.html` が0
   2. `<script>` 要素がちょうど1個 — `grep -c '<script' <$RUNDIRの実値>/digest.html` が1
      （コメント機能JSはverbatim維持＝増減しないのが正）
   3. `code-card` 内に生の `<` タグが無い — `<pre class="code-card">` ブロックを目視し、
      `<ins>` `</ins>` `<span class="ln">` `<span class="hl">` `</span>` 以外の `<` が残っていないことを確認する
      （残っていればエスケープ漏れ＝抜粋欠落）
+  4. `data-finding-id` の件数がStep 7.5で出す予定のfindings件数（suppressed含む）と一致し、重複が無い —
+     `grep -o 'data-finding-id="[^"]*"' <$RUNDIRの実値>/digest.html | sort | uniq -d` が空
 - **保存はこれで完了している**（`$RUNDIR` へ直接生成しているため別途コピーしない）。ダイジェストは
   Stop/SessionEnd hook（`.dev-hooks/logs-sync.mjs` の `git add -A`）でlogs repoへ自動commit・pushされ、
   後からいつでも見返せる。**`/tmp` へ書いてはいけない** — 過去に `/tmp` へ出していた分は全て消え、
@@ -432,6 +445,75 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   4. 参考扱いのnew_edges（`generic_origin=false` のもの・`dir_is_new=true` のもの。裁定カードにはしない）
   5. 各系統（決定論／レンズ／reviewer／Codex／Fable／post-checksガード）の生所見要約を系統ごとに1ブロック。
      Codex不在等の縮退があればここに明記する
+
+## Step 7.5: findings.json生成
+
+`<$RUNDIRの実値>/findings.json` に、Step 7で確定したdigest.htmlの各カード（Critical要点／設計判断／新形／suppressed）を
+機械可読形式で書き出す。**このJSONは裁定サイトとpr-adjudicated-applyスキルの入力になる**。
+
+- **単一ソース原則**: digest.html・`$LOGS/harness/pr-independent-review/records/pr-<番号>.md` と矛盾しないよう、
+  Step 7で確定したカード内容からそのまま生成する（別セッションのつもりで所見を数え直さない）。
+  digestの各カードとfindings配列の各要素が1対1対応するのが理想
+- スキーマ:
+
+```json
+{
+  "pr": <PR番号>,
+  "head": "<レビューしたheadの40桁SHA（Step 8の `- head:` と同値）>",
+  "verdict": "<verdict判定規則で確定した最終verdict>",
+  "generated_at": "<ISO8601（このステップ実行時刻）>",
+  "findings": [
+    {
+      "id": "F01",
+      "title": "<指摘の一行タイトル>",
+      "severity": "critical|high|medium|low",
+      "category": "critical|design-decision|novelty",
+      "files": ["path/to/file.cs:123"],
+      "excerpt": "<問題箇所のコード抜粋>",
+      "recommendation": "<推奨対応の要約>",
+      "options": [
+        {"key": "A", "summary": "<案Aの要約>", "recommended": true},
+        {"key": "B", "summary": "<案Bの要約>"}
+      ],
+      "suppressed": false,
+      "suppress_reason": ""
+    }
+  ]
+}
+```
+
+- **options**: digestカードが対応案を複数提示する場合は全案を `A` から順に列挙する（裁定サイトが案ボタンとして表示する）。
+  案が1つしか無い指摘は `options` を推奨対応1件（key "A"）だけで書く。suppressedの指摘はoptions不要（裁定対象外）
+- **`recommended: true`（必須・非suppressedの全finding）**: 各findingの `options` のうち**ちょうど1つ**に
+  `"recommended": true` を付ける（案が1つだけの指摘でも省略しない）。どれを推奨とするかは `recommendation` と同じ判断で決め、
+  digestカード本文の案リストでも同じ案に「（推奨）」と表記して食い違わせない。
+  裁定サイトの完了ボタンは未裁定の指摘をこのフラグの案で一括採用するため、**欠けると先頭案（案A）が黙って採用される**
+  （ユーザー裁定 2026-08-15 [[2026-08-15-裁定サイトの完了ボタンは推奨一括採用にする]]）。
+  検査（Step 7.5の出荷前に必ず通す。出力が空でなければ不合格）:
+
+      python3 -c "import json,sys;d=json.load(open('<\$RUNDIRの実値>/findings.json'));\
+      [print('recommended不正:',f['id'],len([o for o in f.get('options',[]) if o.get('recommended')])) \
+      for f in d['findings'] if not f.get('suppressed') \
+      and len([o for o in f.get('options',[]) if o.get('recommended')])!=1]"
+- **digestカードとの対応付け**: digest.htmlの各裁定カード（`section.verdict-card`）に `data-finding-id="F01"` 属性を
+  必ず付与する（裁定サイトがボタン注入位置を特定するアンカー。Step 7のテンプレ改変時に忘れやすいので明記）
+
+- **severityの対応**: Critical要点カード→`critical` / 折りたたみ参考のWarning→`high` / 設計判断カード→`medium` /
+  新形カード・Info→`low`。suppressedの項目は免責前の分類のseverityをそのまま引き継ぐ（suppressedを理由に格下げしない）
+- **categoryの対応**: どのdigestカード種別由来かを `critical` / `design-decision`（設計判断＝Step 8の「裁定」節と対応） /
+  `novelty`（新形）のいずれかで記す。suppressed由来の項目も免責前のカード種別をそのまま書く
+  （抑制の事実はcategoryではなく `suppressed` フラグ側で表現する）
+- **裁定（採用された指摘）とsuppressed（抑制された指摘）の両方を1つのfindings配列に入れる**。
+  suppressedは配列から除外せず `suppressed: true` ＋ `suppress_reason`（suppressed-by出所を要約）で区別する
+- **files**: `path/to/file.cs:行番号` 形式。Step 5の規約どおり `line` がnullの所見（`schema_change` 等ファイル単位の所見）は
+  ファイルパスのみとし `:行番号` を付けない
+- **excerpt**: Step 3のpatchから機械的に転記する（創作・要約禁止。Step 7のコード抜粋契約と同じ）
+- **id採番**: severity降順（critical→high→medium→low）→ファイルパス昇順で `F01` から連番を振る。
+  同一ファイルパス内はさらに行番号昇順で安定させる。
+  **Step 7のdigestカードへ付与した `data-finding-id` と必ず同一の採番を使う**（Step 7参照。ズレると裁定サイトの
+  ボタンが別の指摘に付く）
+- **エスケープ不要**: JSON文字列としてそのまま格納する（digest.html用のHTMLエスケープ処理は適用しない）
+- 保存はこれで完了（`$RUNDIR` 直下のため、Stop/SessionEnd hookが自動でcommit・pushする。Step 7の生成物と同じ扱い）
 
 ## Step 8: 記録
 

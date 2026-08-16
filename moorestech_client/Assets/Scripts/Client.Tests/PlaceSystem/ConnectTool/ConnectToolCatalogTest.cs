@@ -56,10 +56,6 @@ namespace Client.Tests.PlaceSystem.ConnectTool
             Assert.AreEqual(ForUnitTestModBlockId.TestTrainRail, railBlockId);
             Assert.AreEqual(MasterHolder.BlockMaster.GetBlockMaster(railBlockId).BlockGuid, railBlockMaster.BlockGuid);
 
-            Assert.IsTrue(ConnectToolCatalog.TryGetPlaceBlock(ConnectToolType.ElectricWireConnect, out var poleBlockId, out var poleBlockMaster));
-            Assert.AreEqual(ForUnitTestModBlockId.ElectricPoleId, poleBlockId);
-            Assert.AreEqual(MasterHolder.BlockMaster.GetBlockMaster(poleBlockId).BlockGuid, poleBlockMaster.BlockGuid);
-
             Assert.IsFalse(ConnectToolCatalog.TryGetPlaceBlock(ConnectToolType.GearChainPoleConnect, out _, out var gearBlockMaster));
             Assert.IsNull(gearBlockMaster);
         }

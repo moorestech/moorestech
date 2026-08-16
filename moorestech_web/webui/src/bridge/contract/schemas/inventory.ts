@@ -3,9 +3,7 @@ import { GuidSchema, SlotDataSchema } from "./common";
 
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
-  hotbarSlots: z.array(SlotDataSchema),
   grab: SlotDataSchema,
-  selectedHotbar: z.number(),
   // 装備枠は可変長、-1は素手
   // Equipment is variable-length; -1 means bare hands
   equipment: z.array(SlotDataSchema),

@@ -52,17 +52,23 @@ function findLogsRepo() {
   return existsSync(join(candidate, ".git")) ? candidate : null;
 }
 
-// ~/.claude/projects のmoorestech系スラグ配下のJSONLを増分コピーする
-// Incrementally copy JSONL under moorestech-ish slugs in ~/.claude/projects.
+// ~/.claude/projects のmoorestech系スラグ配下を丸ごと増分コピーする（subagents/・tool-results/含む）
+// Incrementally mirror everything under moorestech-ish slugs in ~/.claude/projects (incl. subagents/ and tool-results/).
 function syncClaudeTranscripts() {
   const projectsDir = join(homedir(), ".claude", "projects");
   for (const slug of safeReaddir(projectsDir)) {
     if (!slug.includes("moorestech")) continue;
-    const srcDir = join(projectsDir, slug);
-    for (const file of safeReaddir(srcDir)) {
-      if (!file.endsWith(".jsonl")) continue;
-      copyIfUpdated(join(srcDir, file), join(logsRepo, "claude", slug, file));
-    }
+    syncTree(join(projectsDir, slug), join(logsRepo, "claude", slug));
+  }
+}
+
+// srcDir以下の全ファイルを再帰的に増分コピーする
+// Recursively copy every file under srcDir, incrementally.
+function syncTree(srcDir, destDir) {
+  for (const entry of safeReaddir(srcDir)) {
+    const src = join(srcDir, entry);
+    if (isDirectory(src)) syncTree(src, join(destDir, entry));
+    else copyIfUpdated(src, join(destDir, entry));
   }
 }
 
@@ -116,8 +122,19 @@ function commitAndPush() {
   if (git(logsRepo, ["diff", "--cached", "--name-only"]) !== "") {
     git(logsRepo, ["commit", "-q", "-m", "auto: logs-sync"]);
     writeFileSync(commitMarker, "");
-    git(logsRepo, ["pull", "--rebase", "--autostash", "-q"], 30000);
-    git(logsRepo, ["push", "-q"], 30000);
+    // 前回のrebaseが残っていたら中断状態を解消してから進む
+    // Clear any leftover mid-rebase state before proceeding.
+    if (existsSync(join(logsRepo, ".git", "rebase-merge")) || existsSync(join(logsRepo, ".git", "rebase-apply"))) {
+      git(logsRepo, ["rebase", "--abort"]);
+    }
+    const pulled = git(logsRepo, ["pull", "--rebase", "--autostash", "-q"], 30000);
+    // pull失敗時はmid-rebaseを残さず中断し、push自体をスキップ（次回サイクルで再試行）
+    // On pull failure, abort to avoid leaving a mid-rebase state and skip the push (retried next cycle).
+    if (pulled === null) {
+      git(logsRepo, ["rebase", "--abort"]);
+    } else {
+      git(logsRepo, ["push", "-q"], 30000);
+    }
   }
   // 外部境界: ロック解放失敗は次回のstale判定に任せる
   // External boundary: leave failed unlock to the next stale check.
@@ -133,6 +150,9 @@ function copyIfUpdated(src, dest) {
   // External boundary: swallow stat/copy failures on files owned by other processes.
   try {
     const srcStat = statSync(src);
+    // GitHubの100MB上限を超えるファイルはpushできないため同期しない
+    // Skip files over GitHub's 100MB limit; they can never be pushed.
+    if (srcStat.size > 95 * 1024 * 1024) return;
     if (existsSync(dest)) {
       if (srcStat.mtimeMs <= statSync(dest).mtimeMs) return;
     } else if (Date.now() - srcStat.mtimeMs > 7 * 24 * 3600 * 1000) {
@@ -158,6 +178,18 @@ function readCwdOfRollout(path) {
     return firstLine.match(/"cwd":"([^"]+)"/)?.[1] ?? "";
   } catch {
     return "";
+  }
+}
+
+// ディレクトリならtrue（stat失敗はfalse）
+// True for directories; stat failures yield false.
+function isDirectory(path) {
+  // 外部境界: 他プロセス管理下のためstat失敗は握りつぶす
+  // External boundary: swallow stat failures on files owned by other processes.
+  try {
+    return statSync(path).isDirectory();
+  } catch {
+    return false;
   }
 }
 

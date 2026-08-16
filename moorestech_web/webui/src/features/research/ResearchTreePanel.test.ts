@@ -59,9 +59,7 @@ describe("ResearchTreePanel selection toggle", () => {
     mockState.tree = { nodes: [node] };
     mockState.inventory = {
       mainSlots: [{ itemId: 1, count: 1 }],
-      hotbarSlots: [],
       grab: { itemId: 0, count: 0 },
-      selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
       equipmentSelectionConfirmationRevision: 0,

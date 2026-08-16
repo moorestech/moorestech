@@ -14,3 +14,4 @@ export { default as GaugeBar } from "./GaugeBar";
 export { default as ModeSwitch, type ModeSwitchOption } from "./ModeSwitch";
 export { default as IconButton } from "./IconButton";
 export { default as FadeRule } from "./FadeRule";
+export { default as PlacementTargetFace } from "./PlacementTargetFace";

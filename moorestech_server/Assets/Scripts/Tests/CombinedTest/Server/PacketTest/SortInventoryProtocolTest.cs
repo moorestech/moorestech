@@ -32,36 +32,29 @@ namespace Tests.CombinedTest.Server.PacketTest
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
-            // バラけた・分割されたアイテムを上段スロットに配置する
-            // Place scattered and split items into the upper (non-hotbar) slots.
+            // 分割アイテムを末尾込みで配置
+            // Place scattered and split items, including the trailing slots.
             mainInventory.SetItem(0, new ItemId(2), 7);
             mainInventory.SetItem(2, new ItemId(3), 5);
             mainInventory.SetItem(5, new ItemId(1), 4);
             mainInventory.SetItem(8, new ItemId(1), 6);
-
-            // ホットバー（最下段）にアイテムを置き、整理で動かないことを確認する
-            // Put an item on the hotbar (bottom row) to verify it is left untouched.
-            var hotBarSlot = PlayerInventoryConst.GetHotBarSlots(mainInventory.GetSlotSize())[0];
-            mainInventory.SetItem(hotBarSlot, new ItemId(5), 9);
+            mainInventory.SetItem(mainInventory.GetSlotSize() - 1, new ItemId(5), 9);
 
             // メインインベントリを整理
             // Sort the main inventory.
             packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage(PlayerId)), new PacketResponseContext(null));
 
-            // 同種が結合され、ItemId 昇順に詰め直されている
-            // Same items are merged and re-packed in ItemId ascending order.
+            // 同種結合しId昇順に再配置
+            // Same items are merged and re-packed in ItemId ascending order (trailing slots included too).
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 10), mainInventory.GetItem(0));
             Assert.AreEqual(itemStackFactory.Create(new ItemId(2), 7), mainInventory.GetItem(1));
             Assert.AreEqual(itemStackFactory.Create(new ItemId(3), 5), mainInventory.GetItem(2));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(5), 9), mainInventory.GetItem(3));
 
             // 余ったスロットは空になっている
             // Remaining slots are emptied.
-            Assert.AreEqual(ItemMaster.EmptyItemId, mainInventory.GetItem(3).Id);
-            Assert.AreEqual(ItemMaster.EmptyItemId, mainInventory.GetItem(8).Id);
-
-            // ホットバーは整理対象外なので不動
-            // The hotbar is excluded from sorting and stays unchanged.
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(5), 9), mainInventory.GetItem(hotBarSlot));
+            Assert.AreEqual(ItemMaster.EmptyItemId, mainInventory.GetItem(4).Id);
+            Assert.AreEqual(ItemMaster.EmptyItemId, mainInventory.GetItem(mainInventory.GetSlotSize() - 1).Id);
         }
 
         [Test]

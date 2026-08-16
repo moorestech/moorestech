@@ -11,23 +11,23 @@ describe("placement mode schema", () => {
   it("accepts master identities without raw labels", () => {
     expect(validateTopicPayload(Topics.placementMode, {
       selectedTargetType: "block", selectedBlockGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefab",
-      height: 2, unavailableReason: "",
+      height: 2, unavailableReason: "", wheelOwnedByTool: false,
     })).toBe(true);
     expect(validateTopicPayload(Topics.placementMode, {
       selectedTargetType: "trainCar", selectedTrainCarGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefad",
-      height: 2, unavailableReason: "",
+      height: 2, unavailableReason: "", wheelOwnedByTool: false,
     })).toBe(true);
     expect(validateTopicPayload(Topics.placementMode, {
-      selectedTargetType: "blueprintCopy", height: 2, unavailableReason: "",
+      selectedTargetType: "blueprintCopy", height: 2, unavailableReason: "", wheelOwnedByTool: false,
     })).toBe(true);
   });
   it("accepts raw labels only for user-authored targets", () => {
     expect(validateTopicPayload(Topics.placementMode, {
-      selectedTargetType: "raw", selectedName: "My Blueprint", height: 2, unavailableReason: "",
+      selectedTargetType: "raw", selectedName: "My Blueprint", height: 2, unavailableReason: "", wheelOwnedByTool: false,
     })).toBe(true);
     expect(validateTopicPayload(Topics.placementMode, {
       selectedTargetType: "block", selectedBlockGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefab",
-      selectedName: "Conveyor Belt", height: 2, unavailableReason: "",
+      selectedName: "Conveyor Belt", height: 2, unavailableReason: "", wheelOwnedByTool: false,
     })).toBe(false);
     expect(validateTopicPayload(Topics.placementMode, {
       selectedTargetType: "raw", selectedName: "Conveyor Belt",

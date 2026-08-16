@@ -97,16 +97,6 @@ export function attachWsHandlers(wss: WebSocketServer) {
           if (recipe && applyCraft(inv, recipe)) {
             setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
           }
-        } else if (msg.type === "inventory.select_hotbar") {
-          // 選択 index を更新して inventory topic を再配信
-          // Update the selected index and republish the inventory topic
-          const index = (msg.payload as ActionPayloads["inventory.select_hotbar"]).index;
-          if (typeof index === "number" && index >= 0 && index < inv.hotbarSlots.length) {
-            inv.selectedHotbar = index;
-            setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
-          } else {
-            error = "invalid_index";
-          }
         } else if (msg.type === "inventory.select_equipment") {
           // 装備は素手(-1)も正当な選択のため下限を -1 とする
           // Bare hands (-1) is a legitimate selection for equipment, so the lower bound is -1
