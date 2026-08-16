@@ -58,7 +58,8 @@ class SkillWiringTest(unittest.TestCase):
         # scripts/の実行系（deterministic_checks・select_*・*_gate）が、どこかのスキルの
         # 実行経路（いずれかのSKILL.md。hooks経由含む）から呼ばれていること
         # Every executable gate/selector script must be invoked from some skill's SKILL.md
-        for pattern in ("deterministic_checks.py", "select_lenses.py", "select_reviewers.py"):
+        for pattern in ("deterministic_checks.py", "select_lenses.py", "select_reviewers.py",
+                        "select_post_checks.py"):
             self.assertIn(pattern, SKILL_MD, f"{pattern} がSKILL.mdに配線されていない")
         all_skill_mds = "\n".join(
             p.read_text(encoding="utf-8")
