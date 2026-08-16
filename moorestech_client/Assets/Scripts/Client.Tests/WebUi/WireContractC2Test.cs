@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
 using Core.Master;
+using Game.PlacementTarget;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;

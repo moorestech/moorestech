@@ -171,5 +171,35 @@ namespace Client.Network.API
             var request = ElectricWireDisconnectProtocol.ElectricWireDisconnectRequest.CreateDisconnectRequest(posA, posB, _playerId);
             _packetSender.Send(request);
         }
+
+        /// <summary>
+        /// ホットバーの枠へ設置対象を割り当てる（結果はホットバー更新イベントで返る）
+        /// Assign a placement target to a hotbar slot; the result comes back through the hotbar update event
+        /// </summary>
+        public void AssignHotbar(int slot, Guid targetId)
+        {
+            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(_playerId, slot, targetId);
+            _packetSender.Send(request);
+        }
+
+        /// <summary>
+        /// ホットバーの枠を空にする
+        /// Clear a hotbar slot
+        /// </summary>
+        public void ClearHotbar(int slot)
+        {
+            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateClearRequest(_playerId, slot);
+            _packetSender.Send(request);
+        }
+
+        /// <summary>
+        /// ホットバーの2枠を入れ替える
+        /// Swap two hotbar slots
+        /// </summary>
+        public void SwapHotbar(int slotA, int slotB)
+        {
+            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateSwapRequest(_playerId, slotA, slotB);
+            _packetSender.Send(request);
+        }
     }
 }

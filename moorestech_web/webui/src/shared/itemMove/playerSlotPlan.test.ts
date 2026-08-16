@@ -6,9 +6,7 @@ import type { PlayerInventoryData } from "@/bridge";
 const slot = (itemId: number, count: number) => ({ itemId, count });
 const inv = (grabCount: number): PlayerInventoryData => ({
   mainSlots: [slot(1, 98), slot(0, 0)],
-  hotbarSlots: [slot(0, 0)],
   grab: grabCount > 0 ? slot(9, grabCount) : slot(0, 0),
-  selectedHotbar: 0,
   equipment: [],
   selectedEquipment: -1,
   equipmentSelectionConfirmationRevision: 0,
@@ -40,15 +38,8 @@ describe("planPlayerLeftClick", () => {
       { type: "block_inventory.move_item", payload: { from: { area: "main", slot: 0 }, to: { area: "block", slot: 1 }, count: 4 } },
     ]);
   });
-  it("Shift+クリックはブロック閉時に反対エリア（main→hotbar）へ配分する", () => {
-    expect(planPlayerLeftClick({ area: "main", slot: 0 }, slot(1, 5), true, ctx(0, null))).toEqual([
-      { type: "inventory.move_item", payload: { from: { area: "main", slot: 0 }, to: { area: "hotbar", slot: 0 }, count: 5 } },
-    ]);
-  });
-  it("hotbar からの Shift は main へ向かう", () => {
-    expect(planPlayerLeftClick({ area: "hotbar", slot: 0 }, slot(1, 1), true, ctx(0, null))).toEqual([
-      { type: "inventory.move_item", payload: { from: { area: "hotbar", slot: 0 }, to: { area: "main", slot: 0 }, count: 1 } },
-    ]);
+  it("Shift+クリックはブロック閉時、main からは配分先を持たず無操作になる（旧main⇔hotbar振り分けは廃止済み）", () => {
+    expect(planPlayerLeftClick({ area: "main", slot: 0 }, slot(1, 5), true, ctx(0, null))).toEqual([]);
   });
   it("equipment からの Shift は持ち物本体(main)へ戻す", () => {
     expect(planPlayerLeftClick({ area: "equipment", slot: 0 }, slot(1, 1), true, ctx(0, null))).toEqual([
@@ -83,8 +74,8 @@ describe("planPlayerRightClick", () => {
 
 describe("planPlayerDoubleClick", () => {
   it("クリックスロットを送るだけ（収集先はホストが grab 状態で決める）", () => {
-    expect(planPlayerDoubleClick({ area: "hotbar", slot: 2 })).toEqual([
-      { type: "inventory.collect", payload: { slot: { area: "hotbar", slot: 2 } } },
+    expect(planPlayerDoubleClick({ area: "main", slot: 2 })).toEqual([
+      { type: "inventory.collect", payload: { slot: { area: "main", slot: 2 } } },
     ]);
   });
 });

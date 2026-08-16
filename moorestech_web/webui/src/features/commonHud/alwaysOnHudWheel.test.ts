@@ -11,7 +11,7 @@ const passiveHuds: [string, string, string][] = [
   ["配置モード", "../modeHud/style.module.css", ".placementHud"],
   ["削除モード警告", "../modeHud/style.module.css", ".deleteModeWarning"],
   ["列車搭乗", "../trainHud/style.module.css", ".hud"],
-  ["ホットバー帯", "../inventory/HotbarPanel/style.module.css", ".hotbarArea"],
+  ["ホットバー帯", "../hotbar/HotbarPanel/style.module.css", ".hotbarArea"],
   ["進捗バー", "../progress/style.module.css", ".wrapper"],
   ["カーソルツールチップ", "../../shared/tooltip/style.module.css", ".tooltip"],
 ];
@@ -22,8 +22,8 @@ describe("always-on HUD wheel contract", () => {
   });
 
   it("クリックを持つスロット列だけが入力を取り戻し、ホイールは素通しの印を持つ", () => {
-    const css = read("../inventory/HotbarPanel/style.module.css");
-    const source = read("../inventory/HotbarPanel/index.tsx");
+    const css = read("../hotbar/HotbarPanel/style.module.css");
+    const source = read("../hotbar/HotbarPanel/index.tsx");
 
     expect(ruleOf(css, ".hotbarFrame")).toContain("pointer-events: auto");
     // 印は実際のスロット列だけに付ける。全幅の帯へ戻すと何も無い場所まで実UI扱いになる

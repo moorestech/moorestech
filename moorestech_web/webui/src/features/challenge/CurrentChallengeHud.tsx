@@ -1,16 +1,17 @@
-import { Topics, useTopic, useTopicSelector } from "@/bridge";
+import { Topics, useTopic } from "@/bridge";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { challengeTitleKey, L, useI18n } from "@/shared/i18n";
 import { FadeRule } from "@/shared/ui";
+import { useBlockingSkitActive } from "@/shared/uiState";
 import styles from "./CurrentChallengeHud.module.css";
 
 export default function CurrentChallengeHud() {
   const current = useTopic(Topics.challengeCurrent);
   // 会話中は演出を優先してHUDを隠す
   // Withdraw the HUD during blocking skits so the dialogue presentation owns the screen
-  const skitMode = useTopicSelector(Topics.skitPresentation, (value) => value?.presentationState.mode ?? "none");
+  const blockingSkitActive = useBlockingSkitActive();
   const { t } = useI18n();
-  if (skitMode === "blocking") return null;
+  if (blockingSkitActive) return null;
   if (!current || current.challenges.length === 0) return null;
 
   // 見出し・罫線・目標だけで世界上の情報階層を作り、カード面は持たせない

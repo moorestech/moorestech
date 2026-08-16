@@ -65,9 +65,7 @@ describe("EquipmentPanel のクリック受付", () => {
     host.placementMode = null;
     host.inventory = {
       mainSlots: [slot(0, 0)],
-      hotbarSlots: [slot(0, 0)],
       grab: slot(0, 0),
-      selectedHotbar: 0,
       equipment: [slot(1, 3)],
       selectedEquipment: -1,
       equipmentSelectionConfirmationRevision: 0,

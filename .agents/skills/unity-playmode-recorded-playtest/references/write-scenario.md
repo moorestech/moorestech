@@ -41,7 +41,6 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | `WarpPlayer(pos)` / `PlayerPosition` | テレポート/現在地。UI設置前に対象範囲の中央へワープ推奨 |
 | `GiveItemDirect(name, count)` | サーバーインベントリ直挿入（即時） |
 | `GiveItem(name, count)` | 本番giveコマンド経路＋サーバー在庫反映待ち |
-| `GiveItemToHotbar(slot, name, count)` | **ホットバー特定スロット**(0始まり)へ直接セット＋クライアント同期待ち。HoldingItemId駆動システム用 |
 | `UnlockBlock(name)` | サーバー側アンロック→イベントでクライアント（ビルドメニュー）同期 |
 | `GiveConstructionCost(name, blockCount)` | マスタ`RequiredItems`×個数をgive経路で付与＋クライアント同期待ち |
 | `PrepareBlockForUiPlacement(name, blockCount)` | ↑2つの複合。**UI設置の前提はこれ1行** |
@@ -55,7 +54,9 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | `PlaceBlockViaUi(name, origin, dir)` | 単クリック設置の統合操作（**向きはNorth固定**）。設置反映Until込み |
 | `DragPlaceViaUi(name, from, to)` | ドラッグ設置（ベルト等）。**向きは経路から自動解決** |
 | `ExitToGameScreen()` | B注入でGameScreenへ（**place systemの内部状態をリセットする副作用**が重要。歯車ポールの延長起点等） |
-| `SelectHotbar(slot)` | 数字キー注入（slot 0→キー1）。HoldingItemIdが変わりplace systemが切り替わる |
+| `Hotbar.SelectHotbar(slot)` | 数字キー注入（slot 0→キー1）。建築モードのトグル: 割当済み対象を持って入り、同じ枠で抜ける |
+| `Hotbar.AssignHotbar(slot, targetName)` | ビルドメニューと同一供給源(`PlacementTargetCatalog.UnlockedEntries`)から表示名でホットバーへ割当てる |
+| `Hotbar.UnlockConnectTool(name)` | 接続ツール(電線/レール/歯車チェーン)のアンロック。ブロックとは別枠の状態で、`Hotbar.AssignHotbar`前に必要 |
 | `PressKey(key)` | 任意キーのタップ（UnityEngine.InputSystem.Key） |
 | `AimAt(worldPos)` / `AimAtPlaceOrigin(name, origin)` | マウス絶対座標照準（後者は設置原点→フットプリント中心の逆算込み） |
 | `ClickPlace()` | 左クリック（押下→2フレーム→解放。設置はGetKeyUpで確定するため解放必須） |
@@ -104,8 +105,8 @@ idは種別を問わず設置対象のGuid文字列。blockのtestidは`Playtest
    （＝そのブロックは搬入を受けない仕様。例: 素の木のチェスト→コンベアチェストを使う）
 5. **歯車ネットワークのassert**（連結検証の定石）:
    ```csharp
-   var nets = p.ServerService<Game.Gear.Common.GearNetworkDatastore>().GearNetworks;
-   // posのブロックの所属NW: 各netのGearTransformersからBlockInstanceId一致を探す
+   var gearNetworkDatastore = p.ServerService<Game.Gear.Common.GearNetworkDatastore>();
+   // posのブロックの所属NW: TryGetGearNetwork(blockInstanceId, out network)でnetwork.NetworkIdを取る
    ```
 6. 複数ブロック連結はYAMLの`inputConnects[].offset`/`outputConnects[].offset`を
    「OriginalPos + offset = 絶対座標」で先に表にする（手書き座標は「設置は成功するが繋がらない」を生む）

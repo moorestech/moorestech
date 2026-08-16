@@ -14,6 +14,10 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class PlayerInventoryProtocolTest
     {
+        // 応答検証で走査するメインインベントリの列数
+        // The main inventory's column count this test scans in the response
+        private const int MainInventoryColumns = 9;
+
         [Test]
         public void GetPlayerInventoryProtocolTest()
         {
@@ -28,7 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(playerId, data.PlayerId);
             
             //プレイヤーインベントリの検証
-            for (var i = 0; i < PlayerInventoryConst.MainInventoryColumns; i++)
+            for (var i = 0; i < MainInventoryColumns; i++)
             {
                 Assert.AreEqual(ItemMaster.EmptyItemId, data.Main[i].Id);
                 Assert.AreEqual(0, data.Main[i].Count);

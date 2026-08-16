@@ -1,15 +1,14 @@
 // [uGUI廃止Phase1] Web UI移行済みのため未メンテ・描画恒久停止。Phase2で削除予定（docs/webui/ugui-retirement-plan.md）
 // [uGUI retirement Phase1] Unmaintained; rendering permanently disabled after the Web UI migration. Slated for deletion in Phase2 (docs/webui/ugui-retirement-plan.md)
 using Core.Master;
-using Game.PlayerInventory.Interface;
 using Core.Item.Interface;
 using Core.Item;
 
 namespace Client.Game.InGame.UI.Inventory.Main
 {
     /// <summary>
-    /// Shift+クリックのアイテム直接移動（メイン/ホットバー/サブ間）を担う
-    /// Handles Shift+click direct item moves across main/hotbar/sub inventories
+    /// Shift+クリックで直接移動(メイン/サブ間)を担う
+    /// Handles Shift+click direct item moves across main/sub inventories
     /// </summary>
     public class PlayerInventoryDirectMover
     {
@@ -46,30 +45,21 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 if (hasSub && index >= mainSlotCount)
                     return InventoryType.SubInventory;
 
-                // ホットバーの判定
-                if (_playerInventory.LocalPlayerInventory.IsHotBarSlot(index))
-                    return InventoryType.HotBar;
-
                 return InventoryType.MainInventory;
             }
 
             (int start, int end) GetTargetRange(InventoryType source, bool hasSub)
             {
                 var mainSlotCount = _playerInventory.LocalPlayerInventory.MainSlotCount;
-                var hotBarStart = PlayerInventoryConst.HotBarSlotToInventorySlot(0, mainSlotCount);
                 switch (source)
                 {
                     case InventoryType.MainInventory:
-                        // メインインベントリから：サブがあればサブへ、なければホットバーへ
-                        return hasSub ? (mainSlotCount, mainSlotCount + subInventory.Count) : (hotBarStart, mainSlotCount);
-
-                    case InventoryType.HotBar:
-                        // ホットバーから：サブがあればサブへ、なければメインインベントリへ
-                        return hasSub ? (mainSlotCount, mainSlotCount + subInventory.Count) : (0, hotBarStart);
+                        // メインインベントリから：サブがあればサブへ、なければ配分先なし（旧ホットバー振り分けは廃止済み）
+                        return hasSub ? (mainSlotCount, mainSlotCount + subInventory.Count) : (0, 0);
 
                     case InventoryType.SubInventory:
-                        // サブインベントリから：メインインベントリへ（ホットバーを除く）
-                        return (0, hotBarStart);
+                        // サブから：メイン全域へ
+                        return (0, mainSlotCount);
 
                     default:
                         return (0, 0);
@@ -127,7 +117,6 @@ namespace Client.Game.InGame.UI.Inventory.Main
         private enum InventoryType
         {
             MainInventory,
-            HotBar,
             SubInventory
         }
     }

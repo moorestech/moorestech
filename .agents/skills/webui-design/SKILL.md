@@ -70,6 +70,7 @@ description: |
 - スロット寸法は `--slot-size`、間隔は `--slot-grid-gap` の局所上書きで調整する。コンポーネント内にpx直書きしない。
 - スロットの状態表現は data属性（`data-selected` / `data-filled` / `data-catalog` / `data-insufficient`）に統一。新しい状態が要るなら data属性を追加する。
 - マウス操作の契約は `useSlotMouse`（左押下・右押下・ドラッグ進入・ダブルクリック）。スロットに生の onClick を生やさない。
+- **同一要素でクリックと複数要素をまたぐドラッグ&ドロップ（掴む→運ぶ→離した場所で判定）を両立させる場面は `useHotbarDragSource`（前例: `HotbarPanel`/`BuildMenuSlot`）。** `useSlotMouse` は単一要素内の左右押下・ドラッグ進入・ダブルクリックのみが対象で、クロス要素D&Dは対象外。5px未満の移動はタップ（クリック相当）、以上はドラッグへ確定し、`pointerdown` で `preventDefault()` して旧 `mousedown` 経由クリックとの二重発火を止める。ドロップ先は `document.elementFromPoint` + 対象要素の `data-*` 属性（例: `data-hotbar-slot-index`）で判定し、HTML5 DnD（`draggable`/`dragstart`等）は使わない。
 - ホバープレビュー（ホバー中スロットの詳細を別領域へ出す）は SlotFrame/ItemSlot の `onHoverChange` を使う。機能側で生の onMouseEnter/Leave をスロットに生やさない。
 - **用途の異なるスロット群を同一パネル内に並置する時は、ラベル（`--text-muted`）または `FadeRule` の区切りで必ず区別する。** 無札の並置は入出力と誤読されるため禁止（例: アップグレードスロット）。
 - **左右のスロット数が非対称になり得る行の中央要素（進捗矢印等）は `1fr auto 1fr` グリッドで中央に固定する。** 行全体のflex中央寄せは個数差で中央要素がずれるため使わない。

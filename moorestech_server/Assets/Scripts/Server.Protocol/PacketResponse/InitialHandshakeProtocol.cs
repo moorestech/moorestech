@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Game.Entity.Interface;
+using Game.Hotbar;
 using Game.PlayerConnection;
 using Game.PlayerRiding.Interface;
 using Game.World.Interface.DataStore;
@@ -26,6 +27,7 @@ namespace Server.Protocol.PacketResponse
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IItemStackLevelLookup _itemStackLevelLookup;
+        private readonly IHotbarAssignmentLookup _hotbarAssignmentLookup;
 
         public InitialHandshakeProtocol(ServiceProvider serviceProvider)
         {
@@ -36,6 +38,7 @@ namespace Server.Protocol.PacketResponse
             _connectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
             _playerRidingDatastore = serviceProvider.GetService<IPlayerRidingDatastore>();
             _eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
+            _hotbarAssignmentLookup = serviceProvider.GetService<IHotbarAssignmentLookup>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -78,7 +81,11 @@ namespace Server.Protocol.PacketResponse
                     .Select(level => new ItemStackLevelMessagePack(level.Key, level.Value))
                     .ToArray();
 
-                return new ResponseInitialHandshakeMessagePack(playerPos, ridingTarget, ridingSeatIndex, itemStackLevels);
+                // ホットバー割当も初期データとして同梱し、ログイン後の追加往復とnull経路をなくす
+                // Bundle the hotbar assignments too, removing the extra post-login round trip and its null path
+                var hotbarAssignments = _hotbarAssignmentLookup.GetAssignments(data.PlayerId).ToArray();
+
+                return new ResponseInitialHandshakeMessagePack(playerPos, ridingTarget, ridingSeatIndex, itemStackLevels, hotbarAssignments);
             }
             
             Vector3MessagePack GetPlayerPosition(EntityInstanceId playerId)
@@ -126,6 +133,7 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public RidableIdentifierMessagePack RidingTarget { get; set; }
             [Key(5)] public int RidingSeatIndex { get; set; }
             [Key(6)] public ItemStackLevelMessagePack[] ItemStackLevels { get; set; }
+            [Key(7)] public Guid[] HotbarAssignments { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseInitialHandshakeMessagePack() { }
@@ -134,7 +142,8 @@ namespace Server.Protocol.PacketResponse
                 Vector3MessagePack playerPos,
                 RidableIdentifierMessagePack ridingTarget,
                 int ridingSeatIndex,
-                ItemStackLevelMessagePack[] itemStackLevels)
+                ItemStackLevelMessagePack[] itemStackLevels,
+                Guid[] hotbarAssignments)
             {
                 Tag = ProtocolTag;
                 PlayerPos = playerPos;
@@ -142,6 +151,7 @@ namespace Server.Protocol.PacketResponse
                 RidingTarget = ridingTarget;
                 RidingSeatIndex = ridingSeatIndex;
                 ItemStackLevels = itemStackLevels;
+                HotbarAssignments = hotbarAssignments;
             }
 
             [IgnoreMember] public bool HasRidingState => RidingStateType == InitialHandshakeRidingStateType.Restored;

@@ -70,6 +70,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(MachineRecipeSelectionProtocol.ProtocolTag, new MachineRecipeSelectionProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetElectricToGearOutputModeProtocol.ProtocolTag, new SetElectricToGearOutputModeProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlueprintProtocol.ProtocolTag, new BlueprintProtocol(serviceProvider));
+            _packetResponseDictionary.Add(HotbarProtocol.ProtocolTag, new HotbarProtocol(serviceProvider));
         }
         
         public List<byte[]> GetPacketResponse(byte[] payload, PacketResponseContext context)

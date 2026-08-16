@@ -68,7 +68,7 @@ namespace Client.Tests.WebUi
         }
 
         [TestCase(@"{""area"":""main"",""slot"":3}", LocalMoveInventoryType.MainOrSub, 3)]
-        [TestCase(@"{""area"":""hotbar"",""slot"":2}", LocalMoveInventoryType.MainOrSub, 47)]
+        [TestCase(@"{""area"":""main"",""slot"":53}", LocalMoveInventoryType.MainOrSub, 53)]
         [TestCase(@"{""area"":""equipment"",""slot"":2}", LocalMoveInventoryType.Equipment, 2)]
         public void TryParseClickableSlotRefAcceptsClickableSlots(string json, LocalMoveInventoryType expectedType, int expectedSlot)
         {
