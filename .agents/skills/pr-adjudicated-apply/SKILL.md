@@ -4,6 +4,7 @@ description: |
   人間の裁定結果（adjudications.json）に基づき、pr-independent-reviewが出力したfindings.jsonのうち
   reject以外の裁定（案キーA〜F・other）が付いた指摘だけをPRブランチへ実装・検証・pushする無人実行スキル。PR番号を受け取り、
   メインクローンでPRのheadブランチへcheckoutして修正し、コンパイル・関連テストで検証してからpushする。
+  checkout後は修正前にsubagentを無条件発火してmasterとのコンフリクトを検査し、あれば逆マージで事前解消する。
   裁定未完了時は即座にfailureとして終了し、却下された指摘・新規発見の問題には一切触れない。
   Use When:
   1. 「/pr-adjudicated-apply <PR番号>」で起動された時
@@ -125,6 +126,21 @@ description: |
 
 **この時点から先でどのように終了しても、Step 8（後片付け）を必ず実行してからapply-result.jsonを書く。**
 
+## Step 3.5: masterコンフリクト事前解消（subagent委譲・無条件発火）
+
+checkout成功後、修正実装に入る前に、**コンフリクトの有無を自分で調べず**、必ずsubagentを1体発火して委譲する
+（メインのコンテキストをコンフリクト詳細で消費しないため。`git merge-tree` やdiffでの予備調査も行わない）。
+
+`references/conflict-preflight-agent.md` をReadし、`{{REPO}}`・`{{HEAD_REF_NAME}}`・`{{PR_NUMBER}}` を
+実値に置換して、Agentツール（`model: "opus"`）のプロンプトとして丸ごと渡す。
+
+subagentの報告（コンフリクトなし／解消済み／解消不能）への後続処理:
+
+- 「コンフリクトなし」→ そのままStep 4へ進む
+- 「解消済み」→ マージコミットSHAをStep 7の `summary` に記録し（`pushed_commits` にも含める）、Step 4へ進む。
+  解消内容の再検証・diff閲覧は行わない（Step 5のコンパイル・テストが実効的な検証になる）
+- 「解消不能」→ 失敗として終了する（Step 8で元ブランチへ戻り、summaryに解消不能ファイルを記載）
+
 ## Step 4: 修正実装
 
 対象finding（Step 2で抽出したadopt分）それぞれについて、`recommendation` と `comment`（あれば）に従って
@@ -146,6 +162,7 @@ AGENTS.mdの規約を遵守する:
 ## Step 5: 検証
 
 - **.csファイルを1つでも変更したら** `cd <$REPOの実値> && uloop compile --project-path ./moorestech_client` を必ず実行する
+  （Step 3.5でマージコミットが作られた場合も、masterから流入した変更を含めた検証としてコンパイル必須）
 - 修正箇所に関連するテストを `cd <$REPOの実値> && uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<関連regex>"` で実行する
   （`<関連regex>` は修正したクラス・機能に対応するテストクラス名から組み立てる）
 - **コンパイルまたはテストが失敗し、かつStep 4の範囲内で直しきれない場合は、pushせず失敗として終了する**
