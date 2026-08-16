@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Map.MapObject;
@@ -11,17 +9,7 @@ using VContainer;
 
 namespace Client.Game.InGame.Tutorial
 {
-    public interface IMapObjectPin : ITutorialViewManager, ITutorialView
-    {
-        public void SetActive(bool active);
-
-        // 抑止は入れ子で始まり得るので、真偽の代入ではなく深さの増減で表す
-        // Suppression can nest, so it is expressed as depth changes rather than assigning a flag
-        public void BeginSkitSuppress();
-        public void EndSkitSuppress();
-    }
-    
-    public class MapObjectPin : MonoBehaviour, IMapObjectPin
+    public class MapObjectPin : MonoBehaviour, ITutorialWorldPin
     {
         // WebオーバーレイでのピンID。MapObjectPinはシーンに1つなので固定IDでよい
         // World-pin id on the web overlay; a single scene instance suffices, so the id is fixed
@@ -29,12 +17,14 @@ namespace Client.Game.InGame.Tutorial
 
         private InGameCameraController _inGameCameraController;
         private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
+        private TutorialWorldPinVisibility _visibility;
+
+        // ピンは非活性で置かれAwakeが走らないまま表示要求が届くため、初回要求時に組み立てる
+        // A pin can sit inactive with no Awake yet still receive a visibility request, so build it on first use
+        private TutorialWorldPinVisibility Visibility => _visibility ??= new TutorialWorldPinVisibility(gameObject, nameof(MapObjectPin));
 
         private MapObjectPinTutorialParam _currentTutorialParam;
         private string _pinTutorialGuid = "";
-        private bool _desiredActive;
-        private int _skitSuppressDepth;
-        private bool _visibilityInitialized;
 
         [Inject]
         public void Construct(InGameCameraController inGameCameraController, MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
@@ -74,19 +64,19 @@ namespace Client.Game.InGame.Tutorial
                 // 近くのMapObjectを探してピンを表示
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
                 var mapObject = _mapObjectGameObjectDatastore.SearchNearestMapObject(_currentTutorialParam.MapObjectGuid, playerPos);
-                
+
                 if (mapObject == null)
                 {
                     Debug.LogError($"未破壊のMapObject {_currentTutorialParam.MapObjectGuid} が存在しません");
                     return;
                 }
-                
+
                 transform.position = mapObject.GetPosition();
             }
-            
+
             #endregion
         }
-        
+
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
             _currentTutorialParam = (MapObjectPinTutorialParam)tutorial.TutorialParam;
@@ -106,45 +96,21 @@ namespace Client.Game.InGame.Tutorial
             WorldPinStateStore.Instance.RemovePin(WebPinId);
         }
 
+        public string TutorialType => TutorialsElement.TutorialTypeConst.mapObjectPin;
+
         public void SetActive(bool active)
         {
-            _desiredActive = active;
-            _visibilityInitialized = true;
-            ApplyVisibility();
+            Visibility.SetActive(active);
         }
 
         public void BeginSkitSuppress()
         {
-            EnsureDesiredActiveInitialized();
-            _skitSuppressDepth++;
-            ApplyVisibility();
-
-            #region Internal
-
-            void EnsureDesiredActiveInitialized()
-            {
-                if (_visibilityInitialized) return;
-                _desiredActive = gameObject.activeSelf;
-                _visibilityInitialized = true;
-            }
-
-            #endregion
+            Visibility.BeginSkitSuppress();
         }
 
         public void EndSkitSuppress()
         {
-            // 開始より多い解除は抑止が漏れた合図なので、0で止めず不整合として顕在化させる
-            // More ends than begins signals a leaked suppression, so surface it instead of clamping at zero
-            if (_skitSuppressDepth == 0)
-                throw new InvalidOperationException("[MapObjectPin] BeginSkitSuppressより多くEndSkitSuppressが呼ばれました");
-
-            _skitSuppressDepth--;
-            ApplyVisibility();
-        }
-
-        private void ApplyVisibility()
-        {
-            gameObject.SetActive(_desiredActive && _skitSuppressDepth == 0);
+            Visibility.EndSkitSuppress();
         }
 
         // スキットの一時抑止でもWebピンを確実に消す（RemovePinは冪等）

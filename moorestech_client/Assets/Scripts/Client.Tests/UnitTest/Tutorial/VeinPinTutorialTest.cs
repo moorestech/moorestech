@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Client.Game.InGame.Tutorial;
@@ -70,8 +71,7 @@ namespace Client.Tests.UnitTest.Tutorial
         {
             var veinPin = new RecordingVeinPin();
             var manager = new TutorialManager(
-                new RecordingMapObjectPin(),
-                veinPin,
+                new List<ITutorialWorldPin> { new RecordingMapObjectPin(), veinPin },
                 _root.AddComponent<UIHighlightTutorialManager>(),
                 _root.AddComponent<KeyControlTutorialManager>(),
                 _root.AddComponent<ItemViewHighLightTutorialManager>(),
@@ -148,8 +148,9 @@ namespace Client.Tests.UnitTest.Tutorial
             WorldPinStateStore.Instance.RemovePin(VeinPinId);
         }
 
-        private sealed class RecordingMapObjectPin : IMapObjectPin
+        private sealed class RecordingMapObjectPin : ITutorialWorldPin
         {
+            public string TutorialType => TutorialsElement.TutorialTypeConst.mapObjectPin;
             public void SetActive(bool active) { }
             public void BeginSkitSuppress() { }
             public void EndSkitSuppress() { }
@@ -157,9 +158,10 @@ namespace Client.Tests.UnitTest.Tutorial
             public void CompleteTutorial() { }
         }
 
-        private sealed class RecordingVeinPin : IVeinPin
+        private sealed class RecordingVeinPin : ITutorialWorldPin
         {
             public int ApplyCount;
+            public string TutorialType => TutorialsElement.TutorialTypeConst.veinPin;
             public void SetActive(bool active) { }
             public void BeginSkitSuppress() { }
             public void EndSkitSuppress() { }

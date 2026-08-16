@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
@@ -41,8 +42,9 @@ namespace Client.DebugSystem.Skit
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(environmentRoot);
             builder.RegisterComponent(skitUI);
-            builder.RegisterInstance<IMapObjectPin>(new MapObjectTest());
-            builder.RegisterInstance<IVeinPin>(new MapObjectTest());
+            // SkitManagerはIReadOnlyList<ITutorialWorldPin>でピンをまとめて抑止する
+            // SkitManager suppresses pins as a whole through IReadOnlyList<ITutorialWorldPin>
+            builder.RegisterInstance<IReadOnlyList<ITutorialWorldPin>>(new List<ITutorialWorldPin> { new MapObjectTest() });
 
             // テストシーンにmapObject/エンティティは存在しないのでSetActive先の空オブジェクトだけ用意する
             // The test scene has no map objects or entities, so provide empty objects purely as SetActive targets

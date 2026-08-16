@@ -10,17 +10,7 @@ using VContainer;
 
 namespace Client.Game.InGame.Tutorial
 {
-    public interface IVeinPin : ITutorialViewManager, ITutorialView
-    {
-        public void SetActive(bool active);
-
-        // 抑止は入れ子で始まり得るので、真偽の代入ではなく深さの増減で表す
-        // Suppression can nest, so it is expressed as depth changes rather than assigning a flag
-        public void BeginSkitSuppress();
-        public void EndSkitSuppress();
-    }
-
-    public class VeinPin : MonoBehaviour, IVeinPin
+    public class VeinPin : MonoBehaviour, ITutorialWorldPin
     {
         // 専用IDでmapObjectピンの掃除との干渉を防ぐ
         // A separate ID prevents map-object cleanup from removing the vein pin
@@ -28,11 +18,17 @@ namespace Client.Game.InGame.Tutorial
 
         private InGameCameraController _inGameCameraController;
         private OutcropGameObjectDatastore _outcropGameObjectDatastore;
+        private TutorialWorldPinVisibility _visibility;
+
+        // ピンは非活性で置かれAwakeが走らないまま表示要求が届くため、初回要求時に組み立てる
+        // A pin can sit inactive with no Awake yet still receive a visibility request, so build it on first use
+        private TutorialWorldPinVisibility Visibility => _visibility ??= new TutorialWorldPinVisibility(gameObject, nameof(VeinPin));
         private VeinPinTutorialParam _currentTutorialParam;
         private string _pinTutorialGuid = "";
-        private bool _desiredActive;
-        private int _skitSuppressDepth;
-        private bool _visibilityInitialized;
+
+        // 露頭不在は毎フレーム出すとログを埋めるので、対象1件につき1回だけ報告する
+        // Reporting a missing outcrop every frame would bury the log, so report once per target
+        private Guid _reportedMissingOutcropVeinGuid;
 
         [Inject]
         public void Initialize(InGameCameraController inGameCameraController, OutcropGameObjectDatastore outcropGameObjectDatastore)
@@ -49,12 +45,12 @@ namespace Client.Game.InGame.Tutorial
             // Face camera on Y axis only
             transform.LookAt(_inGameCameraController.Position);
             transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
-            TrackNearestOutcrop();
+            if (!TryTrackNearestOutcrop()) return;
             PublishWebWorldPin();
 
             #region Internal
 
-            void TrackNearestOutcrop()
+            bool TryTrackNearestOutcrop()
             {
                 var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
                 var outcrop = _outcropGameObjectDatastore.SearchNearestOutcrop(
@@ -62,11 +58,26 @@ namespace Client.Game.InGame.Tutorial
                     playerPosition);
                 if (outcrop == null)
                 {
-                    Debug.LogError($"veinGuid:{_currentTutorialParam.VeinGuid}の露頭が存在しません");
-                    return;
+                    HideForMissingOutcrop();
+                    return false;
                 }
 
                 transform.position = outcrop.transform.position;
+                return true;
+            }
+
+            void HideForMissingOutcrop()
+            {
+                // 指す先が無いピンは隠し、報告は対象ごとに初回だけにする
+                // Hide a pin with nothing to point at, and report only the first time per target
+                if (_reportedMissingOutcropVeinGuid != _currentTutorialParam.VeinGuid)
+                {
+                    _reportedMissingOutcropVeinGuid = _currentTutorialParam.VeinGuid;
+                    Debug.LogError($"veinGuid:{_currentTutorialParam.VeinGuid}の露頭が存在しません");
+                }
+
+                SetActive(false);
+                WorldPinStateStore.Instance.RemovePin(WebPinId);
             }
 
             void PublishWebWorldPin()
@@ -97,45 +108,21 @@ namespace Client.Game.InGame.Tutorial
             WorldPinStateStore.Instance.RemovePin(WebPinId);
         }
 
+        public string TutorialType => TutorialsElement.TutorialTypeConst.veinPin;
+
         public void SetActive(bool active)
         {
-            _desiredActive = active;
-            _visibilityInitialized = true;
-            ApplyVisibility();
+            Visibility.SetActive(active);
         }
 
         public void BeginSkitSuppress()
         {
-            EnsureDesiredActiveInitialized();
-            _skitSuppressDepth++;
-            ApplyVisibility();
-
-            #region Internal
-
-            void EnsureDesiredActiveInitialized()
-            {
-                if (_visibilityInitialized) return;
-                _desiredActive = gameObject.activeSelf;
-                _visibilityInitialized = true;
-            }
-
-            #endregion
+            Visibility.BeginSkitSuppress();
         }
 
         public void EndSkitSuppress()
         {
-            // 開始より多い解除は抑止が漏れた合図なので、0で止めず不整合として顕在化させる
-            // More ends than begins signals a leaked suppression, so surface it instead of clamping at zero
-            if (_skitSuppressDepth == 0)
-                throw new InvalidOperationException("[VeinPin] BeginSkitSuppressより多くEndSkitSuppressが呼ばれました");
-
-            _skitSuppressDepth--;
-            ApplyVisibility();
-        }
-
-        private void ApplyVisibility()
-        {
-            gameObject.SetActive(_desiredActive && _skitSuppressDepth == 0);
+            Visibility.EndSkitSuppress();
         }
 
         private void OnDisable()

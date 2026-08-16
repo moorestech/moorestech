@@ -12,11 +12,14 @@ namespace Client.Game.InGame.Tutorial
     {
         private readonly Dictionary<Guid, List<ITutorialView>> _tutorialViews = new();
         private readonly Dictionary<string, ITutorialViewManager> _tutorialViewManagers = new();
+
+        // 起動中に完了したチャレンジへ初期適用が後から届くため、完了済みを覚えて適用自体を冪等にする
+        // Initial application can arrive after a challenge completed during startup, so remember completions and make applying idempotent
+        private readonly HashSet<Guid> _completedChallengeGuids = new();
         private readonly KeyControlTutorialManager _keyControlTutorialManager;
         
         public TutorialManager(
-            IMapObjectPin mapObjectPin,
-            IVeinPin veinPin,
+            IReadOnlyList<ITutorialWorldPin> worldPins,
             UIHighlightTutorialManager uiHighlightTutorialManager,
             KeyControlTutorialManager keyControlTutorialManager,
             ItemViewHighLightTutorialManager itemViewHighLightTutorialManager,
@@ -24,8 +27,7 @@ namespace Client.Game.InGame.Tutorial
             )
         {
             _keyControlTutorialManager = keyControlTutorialManager;
-            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.mapObjectPin, mapObjectPin);
-            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.veinPin, veinPin);
+            foreach (var worldPin in worldPins) _tutorialViewManagers.Add(worldPin.TutorialType, worldPin);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.uiHighLight, uiHighlightTutorialManager);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.keyControl, keyControlTutorialManager);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.itemViewHighLight, itemViewHighLightTutorialManager);
@@ -34,6 +36,9 @@ namespace Client.Game.InGame.Tutorial
         
         public void ApplyTutorial(Guid challengeGuid)
         {
+            if (_completedChallengeGuids.Contains(challengeGuid)) return;
+            if (_tutorialViews.ContainsKey(challengeGuid)) return;
+
             var tutorialViews = new List<ITutorialView>();
             var challenge = MasterHolder.ChallengeMaster.GetChallenge(challengeGuid);
 
@@ -56,6 +61,7 @@ namespace Client.Game.InGame.Tutorial
         
         public void CompleteChallenge(Guid challengeId)
         {
+            _completedChallengeGuids.Add(challengeId);
             if (!_tutorialViews.TryGetValue(challengeId, out var tutorialViews)) return;
 
             // 平面表示を先にclearし、その後world viewを終了する
