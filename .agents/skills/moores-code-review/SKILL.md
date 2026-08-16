@@ -51,6 +51,14 @@ AskUserQuestionは**最後の報告フェーズに集約**する。修正適用�
 ## Step 1: レビュー対象と4カテゴリcontextを確定する
 
 1. **作業範囲を特定** — このセッションで生成・変更した成果物をコミット範囲・staged・unstagedから確定し、統合unified diffを `<$RUNDIRの実値>/patch.diff` に書く（**PATCH_PATH**）。`git diff <base>^..<last>` + `git diff --cached` + `git diff` を連結。ユーザーがレビュー範囲を明示したらそれを優先。
+   - **プレイテストシナリオの除外（省略禁止）** — 各 `git diff` に必ず次のpathspecを付け、
+     `unity-playmode-recorded-playtest` 配下の `.cs` をpatchへ入れない:
+
+         -- . ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'
+
+     シナリオは実プレイを踏ませるための使い捨ての操作台本であり、プロダクトコードの規約（重複排除・
+     命名・行数）で裁く対象ではない。指摘しても設計判断の裁定コストだけが増える
+     （ユーザー裁定 2026-08-16 / PR#1137-F12）。`Client.Playtest` のDSL本体はこのパス外なので通常どおり見る
 2. **4カテゴリcontextを書く** — `<$RUNDIRの実値>/context.md`（**USER_PROMPT_PATH**）に埋める。埋め忘れるとレンズ/reviewerがfalse-positiveを量産する:
    - **目指す（ゴール）** / **目指さない（非目標）** / **許容するトレードオフ** / **尊重すべき制約**
    - **4カテゴリは必ず `##` 見出しで書く**（太字箇条書き形式は出所ラベル検査の対象外になり沈黙故障する。見出しゼロはfail-closedでconfirmedになる）。
