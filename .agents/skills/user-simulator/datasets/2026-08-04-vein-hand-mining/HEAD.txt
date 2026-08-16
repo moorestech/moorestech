@@ -1,4 +1,0 @@
-branch: feature/misses
-HEAD: 46b4a9db725d2506be1748c164f452a3929f5127
-date: 2026-08-04
-dirty: 17 files (設計doc・plan・.decisions追加のみ)
