@@ -150,7 +150,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         private static MapObjectLayoutMessagePack CreateTreeAt(string mapObjectGuid, float localX, float localZ)
         {
             return new MapObjectLayoutMessagePack(
-                1, mapObjectGuid, localX, 0f, localZ, 1f, 1f, 1f, -1, 0f, 0f);
+                1, mapObjectGuid, localX, 0f, localZ, 0f, 0f, 0f, 1f, 1f, 1f, 1f, -1, 0f, 0f);
         }
 
         private static void Paint(

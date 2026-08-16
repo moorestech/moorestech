@@ -77,7 +77,7 @@ namespace Client.Tests.UnitTest.Terrain.DistanceField
         {
             return new MapObjectLayoutMessagePack(
                 1, mapObjectGuid, TilePosition.x + localX, 0f, TilePosition.z + localZ,
-                1f, 1f, 1f, -1, 0f, 0f);
+                0f, 0f, 0f, 1f, 1f, 1f, 1f, -1, 0f, 0f);
         }
 
         // detail画素xのワールド座標。SdfMapGeneratorの割り付けと同じ式で、距離の期待値を式で書けるようにする

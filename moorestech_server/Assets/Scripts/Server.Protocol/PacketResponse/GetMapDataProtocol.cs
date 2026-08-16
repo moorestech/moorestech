@@ -57,6 +57,7 @@ namespace Server.Protocol.PacketResponse
                 foreach (var mapObject in _mapInfoJson.MapObjects)
                     mapObjects.Add(new MapObjectLayoutMessagePack(
                         mapObject.InstanceId, mapObject.MapObjectGuidStr, mapObject.X, mapObject.Y, mapObject.Z,
+                        mapObject.RotationX, mapObject.RotationY, mapObject.RotationZ, mapObject.RotationW,
                         mapObject.ScaleX, mapObject.ScaleY, mapObject.ScaleZ,
                         mapObject.ClusterId, mapObject.ClusterCenterX, mapObject.ClusterCenterZ));
 

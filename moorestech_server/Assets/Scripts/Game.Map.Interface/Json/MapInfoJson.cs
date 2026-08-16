@@ -24,6 +24,15 @@ namespace Game.Map.Interface.Json
 
         [JsonIgnore] public Vector3 Position => new(X, Y, Z);
 
+        // 姿勢はクォータニオンの4成分で持つ。オイラー角に落とすと同じ向きに複数の表現ができて往復で値が動く
+        // The rotation is kept as the quaternion's four components; euler angles would give one orientation several spellings and drift on a round trip
+        [JsonProperty("rotationX")] public float RotationX;
+        [JsonProperty("rotationY")] public float RotationY;
+        [JsonProperty("rotationZ")] public float RotationZ;
+        [JsonProperty("rotationW")] public float RotationW;
+
+        [JsonIgnore] public Quaternion Rotation => new(RotationX, RotationY, RotationZ, RotationW);
+
         [JsonProperty("scaleX")] public float ScaleX;
         [JsonProperty("scaleY")] public float ScaleY;
         [JsonProperty("scaleZ")] public float ScaleZ;

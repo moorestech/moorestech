@@ -105,7 +105,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             var worldZ = TileWorldPosition.z + localZ;
 
             return new MapObjectLayoutMessagePack(
-                1, StoneGuid, worldX, 0f, worldZ, 1f, 1f, 1f, ClusterId, worldX, worldZ);
+                1, StoneGuid, worldX, 0f, worldZ, 0f, 0f, 0f, 1f, 1f, 1f, 1f, ClusterId, worldX, worldZ);
         }
 
         // 木もタイルローカルで書いてシーン絶対座標へ戻す。クラスタは持たないので独立配置(-1)で置く
@@ -114,7 +114,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         {
             return new MapObjectLayoutMessagePack(
                 2, TreeGuid, TileWorldPosition.x + localX, 0f, TileWorldPosition.z + localZ,
-                1f, 1f, 1f, -1, 0f, 0f);
+                0f, 0f, 0f, 1f, 1f, 1f, 1f, -1, 0f, 0f);
         }
 
         public static SurroundTextureConfig CreateSurroundConfig()

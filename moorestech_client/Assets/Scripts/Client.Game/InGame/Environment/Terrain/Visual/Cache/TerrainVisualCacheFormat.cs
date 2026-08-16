@@ -12,11 +12,11 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
         // "MTVC" = Moorestech Terrain Visual Cache; the identifier keeping a foreign file from being misread
         public const int MagicNumber = 0x4D545643;
 
-        // 見た目の導出が変わるたびに1ずつbumpしてきた現在値。直近の8はDetail密度のノイズをワールド座標基準へ移した回
-        // The running value, bumped by one whenever the visual derivation changed; the latest step to 8 moved the detail density noise onto world coordinates
+        // 見た目の導出が変わるたびに1ずつbumpしてきた現在値。直近の9はalphamapを保存前に正規化+量子化した回
+        // The running value, bumped by one whenever the visual derivation changed; the latest step to 9 normalized and quantized the alphamap before storage
         // 据え置くと古い導出で焼いたalphamapがそのままヒットし続ける
         // Holding it back would keep hitting alphamaps baked by the older derivation
-        public const int FormatVersion = 8;
+        public const int FormatVersion = 9;
 
         // キーはSHA256の16進64文字固定。可変長にすると壊れたファイルで読み出し長が暴れる
         // The key is a fixed 64-char SHA256 hex; a variable length would let a broken file dictate how much is read

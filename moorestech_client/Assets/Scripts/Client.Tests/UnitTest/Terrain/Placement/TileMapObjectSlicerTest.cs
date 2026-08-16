@@ -99,16 +99,20 @@ namespace Client.Tests.UnitTest.Terrain.Placement
             Assert.That(sliced[0].ClusterCenterZ, Is.EqualTo(0f));
         }
 
-        // スケールはタイル格子の軸ではないので素通しする。落とすと切り出した瞬間に全配置物が0倍になる
-        // The scale is not an axis of the tile lattice and passes straight through; dropping it zeroes every placement the moment it is sliced
+        // 姿勢もスケールもタイル格子の軸ではないので素通しする。落とすと切り出した瞬間に向きが消え全配置物が0倍になる
+        // Neither rotation nor scale is an axis of the tile lattice; dropping them loses the orientation and zeroes every placement as it is sliced
         [Test]
-        public void CarriesTheScaleThroughUnchanged()
+        public void CarriesTheRotationAndTheScaleThroughUnchanged()
         {
             var scaled = new MapObjectLayoutMessagePack(
-                1, MapObjectGuid, 1250f, 0f, -1750f, 1.5f, 2f, 2.5f, -1, 0f, 0f);
+                1, MapObjectGuid, 1250f, 0f, -1750f, 0.1f, 0.2f, 0.3f, 0.4f, 1.5f, 2f, 2.5f, -1, 0f, 0f);
 
             var sliced = Slice(scaled);
 
+            Assert.That(sliced[0].RotationX, Is.EqualTo(0.1f));
+            Assert.That(sliced[0].RotationY, Is.EqualTo(0.2f));
+            Assert.That(sliced[0].RotationZ, Is.EqualTo(0.3f));
+            Assert.That(sliced[0].RotationW, Is.EqualTo(0.4f));
             Assert.That(sliced[0].ScaleX, Is.EqualTo(1.5f));
             Assert.That(sliced[0].ScaleY, Is.EqualTo(2f));
             Assert.That(sliced[0].ScaleZ, Is.EqualTo(2.5f));
@@ -181,7 +185,7 @@ namespace Client.Tests.UnitTest.Terrain.Placement
         {
             return new MapObjectLayoutMessagePack(
                 instanceId, MapObjectGuid, x, y, z,
-                1f, 1f, 1f, -1, 0f, 0f);
+                0f, 0f, 0f, 1f, 1f, 1f, 1f, -1, 0f, 0f);
         }
 
         private static MapObjectLayoutMessagePack CreateClusteredMapObject(
@@ -189,7 +193,7 @@ namespace Client.Tests.UnitTest.Terrain.Placement
         {
             return new MapObjectLayoutMessagePack(
                 instanceId, MapObjectGuid, x, y, z,
-                1f, 1f, 1f, clusterId, clusterCenterX, clusterCenterZ);
+                0f, 0f, 0f, 1f, 1f, 1f, 1f, clusterId, clusterCenterX, clusterCenterZ);
         }
     }
 }

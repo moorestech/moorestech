@@ -37,8 +37,11 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
                 var localClusterCenterX = hasCluster ? mapObject.ClusterCenterX - tileWorldPosition.x : mapObject.ClusterCenterX;
                 var localClusterCenterZ = hasCluster ? mapObject.ClusterCenterZ - tileWorldPosition.z : mapObject.ClusterCenterZ;
 
+                // 姿勢はタイル格子と無関係なのでそのまま運ぶ。落とすと切り出し後の見た目が向きを失う
+                // The rotation is unrelated to the tile lattice and rides along untouched; dropping it loses the orientation downstream
                 tileLocalObjects.Add(new MapObjectLayoutMessagePack(
                     mapObject.InstanceId, mapObject.MapObjectGuid, localX, mapObject.Y, localZ,
+                    mapObject.RotationX, mapObject.RotationY, mapObject.RotationZ, mapObject.RotationW,
                     mapObject.ScaleX, mapObject.ScaleY, mapObject.ScaleZ,
                     mapObject.ClusterId, localClusterCenterX, localClusterCenterZ));
             }

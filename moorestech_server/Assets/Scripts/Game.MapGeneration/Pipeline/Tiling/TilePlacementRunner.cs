@@ -137,6 +137,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
                     {
                         MapObjectGuid = entry.MapObjectGuid,
                         Position = entry.WorldPosition,
+                        Rotation = entry.Rotation,
                         Scale = entry.Scale,
                         ClusterId = clusterId,
                         ClusterCenter = clusterCenter,

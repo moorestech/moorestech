@@ -78,8 +78,9 @@ public static class MapAuthoringImporter
                 var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
                 instance.transform.position = info.Position;
 
-                // Exportがスケールを書き出すため、戻さないとImport→Exportの往復でprefab既定値へ痩せる
-                // Export writes the scale out, so skipping it here would shrink an import-export round trip back to the prefab default
+                // Exportが姿勢とスケールを書き出すため、戻さないとImport→Exportの往復でprefab既定値へ痩せる
+                // Export writes the rotation and scale out, so skipping them here would shrink an import-export round trip back to the prefab defaults
+                instance.transform.rotation = info.Rotation;
                 instance.transform.localScale = info.Scale;
 
                 var mapObject = instance.GetComponent<MapObjectGameObject>();

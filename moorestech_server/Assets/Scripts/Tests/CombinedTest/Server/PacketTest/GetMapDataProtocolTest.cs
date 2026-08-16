@@ -106,10 +106,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, response.TerrainMeta.WorldSeed);
         }
 
-        // スケールとクラスタ情報は岩周辺テクスチャの入力。ワイヤで落ちるとクライアントだけが見た目を再現できない
-        // Scale and cluster info feed the rock surround texture; dropping them on the wire leaves only the client unable to reproduce the visuals
+        // 姿勢・スケール・クラスタ情報は見た目の入力。ワイヤで落ちるとクライアントだけが見た目を再現できない
+        // Rotation, scale and cluster info feed the visuals; dropping them on the wire leaves only the client unable to reproduce them
         [Test]
-        public void MapObjectsの転送にスケールとクラスタ情報が含まれる()
+        public void MapObjectsの転送に姿勢とスケールとクラスタ情報が含まれる()
         {
             var (packet, _) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -130,6 +130,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 3軸を取り違えても通らないよう、map.jsonで軸ごとに違う値を持たせた1件を突き合わせる
             // One object carries a different value per axis in map.json so a swapped axis cannot slip through
             var scaled = response.MapObjects[3];
+
+            // 姿勢はmap.json→MapInfoJson→ワイヤの全段で運ばれる。どこかで落ちると全個体が同じ向きで直立する
+            // The rotation rides map.json into MapInfoJson and onto the wire; dropped anywhere, every instance stands upright alike
+            Assert.AreEqual(0.0381346f, scaled.RotationX);
+            Assert.AreEqual(0.1893079f, scaled.RotationY);
+            Assert.AreEqual(0.2392983f, scaled.RotationZ);
+            Assert.AreEqual(0.9515485f, scaled.RotationW);
+
             Assert.AreEqual(1.5f, scaled.ScaleX);
             Assert.AreEqual(2.0f, scaled.ScaleY);
             Assert.AreEqual(2.5f, scaled.ScaleZ);

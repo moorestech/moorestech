@@ -51,6 +51,30 @@ namespace Client.Tests.UnitTest.Terrain.Placement
         }
 
         [Test]
+        public void ChangesWhenAnObjectTurnsOnAnyRotationComponent()
+        {
+            // 向きは配置物の見た目そのもの。回っただけの回を外すと前の向きのまま焼いた見た目が残る
+            // The facing is the placement's look itself; missing a run where it merely turned keeps the visuals baked at the old orientation
+            var baseDigest = Compute(Create(1, RockGuid, 10f));
+
+            Assert.That(Compute(CreateRotated(0.5f, 0f, 0f, 1f)), Is.Not.EqualTo(baseDigest), "RotationX");
+            Assert.That(Compute(CreateRotated(0f, 0.5f, 0f, 1f)), Is.Not.EqualTo(baseDigest), "RotationY");
+            Assert.That(Compute(CreateRotated(0f, 0f, 0.5f, 1f)), Is.Not.EqualTo(baseDigest), "RotationZ");
+            Assert.That(Compute(CreateRotated(0f, 0f, 0f, 0.5f)), Is.Not.EqualTo(baseDigest), "RotationW");
+        }
+
+        [Test]
+        public void OrdersObjectsSharingAnInstanceIdByTheirRotationToo()
+        {
+            // 全順序に姿勢が無いと、同じInstanceIdで向きだけ違う2本の並びが不安定なSortで揺れる
+            // Without the rotation in the total order, two objects sharing an InstanceId and differing only in facing shuffle under the unstable Sort
+            var ascending = Compute(CreateRotated(0f, 0f, 0f, 1f), CreateRotated(0f, 0.5f, 0f, 1f));
+            var descending = Compute(CreateRotated(0f, 0.5f, 0f, 1f), CreateRotated(0f, 0f, 0f, 1f));
+
+            Assert.That(ascending, Is.EqualTo(descending));
+        }
+
+        [Test]
         public void ChangesWhenAnObjectJoinsAnotherClusterOrItsCenterMoves()
         {
             // 周囲テクスチャはクラスタ単位に重心から伸びる。所属や重心の変化を外すと隣のクラスタの形が残る
@@ -118,7 +142,7 @@ namespace Client.Tests.UnitTest.Terrain.Placement
         {
             return new MapObjectLayoutMessagePack(
                 instanceId, mapObjectGuid, x, y, z,
-                1f, 1f, 1f, -1, 0f, 0f);
+                0f, 0f, 0f, 1f, 1f, 1f, 1f, -1, 0f, 0f);
         }
 
         // Create(1, RockGuid, 10f) と1軸だけ違う岩。差分がスケールだけになるよう他の値は揃える
@@ -127,14 +151,24 @@ namespace Client.Tests.UnitTest.Terrain.Placement
         {
             return new MapObjectLayoutMessagePack(
                 1, RockGuid, 10f, 10f, 10f,
-                scaleX, scaleY, scaleZ, -1, 0f, 0f);
+                0f, 0f, 0f, 1f, scaleX, scaleY, scaleZ, -1, 0f, 0f);
+        }
+
+        // Create(1, RockGuid, 10f) と姿勢だけ違う岩。差分が向きだけになるよう他の値は揃える
+        // A rock differing from Create(1, RockGuid, 10f) in facing alone, with every other value held equal
+        private static MapObjectLayoutMessagePack CreateRotated(
+            float rotationX, float rotationY, float rotationZ, float rotationW)
+        {
+            return new MapObjectLayoutMessagePack(
+                1, RockGuid, 10f, 10f, 10f,
+                rotationX, rotationY, rotationZ, rotationW, 1f, 1f, 1f, -1, 0f, 0f);
         }
 
         private static MapObjectLayoutMessagePack CreateClustered(int clusterId, float centerX, float centerZ)
         {
             return new MapObjectLayoutMessagePack(
                 1, RockGuid, 10f, 10f, 10f,
-                1f, 1f, 1f, clusterId, centerX, centerZ);
+                0f, 0f, 0f, 1f, 1f, 1f, 1f, clusterId, centerX, centerZ);
         }
     }
 }

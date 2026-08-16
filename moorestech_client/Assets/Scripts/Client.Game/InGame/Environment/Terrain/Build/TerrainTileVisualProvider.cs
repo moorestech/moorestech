@@ -102,6 +102,10 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                     ? BuildDetailMaps(classification, alphamap)
                     : new List<int[,]>();
 
+                // Detailは移植元と同じ生の重みを読む。畳むのはその後で、保存と適用に回る値だけをキャッシュ往復で不変にする
+                // Detail reads the same raw weights as the source; the fold comes after it and only makes the stored, applied values survive a round trip
+                if (alphamap != null) StoredAlphamapWeights.Fold(alphamap);
+
                 return new TerrainTileVisual(alphamap, detailMaps);
             }
 

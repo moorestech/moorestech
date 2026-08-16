@@ -95,7 +95,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         {
             return new MapObjectLayoutMessagePack(
                 1, "00000000-0000-0000-0000-000000000001",
-                RockLocalPosition, 0f, RockLocalPosition, 2f, 2f, 2f,
+                RockLocalPosition, 0f, RockLocalPosition, 0f, 0f, 0f, 1f, 2f, 2f, 2f,
                 clusterId,
                 clusterId < 0 ? 0f : RockLocalPosition,
                 clusterId < 0 ? 0f : RockLocalPosition);

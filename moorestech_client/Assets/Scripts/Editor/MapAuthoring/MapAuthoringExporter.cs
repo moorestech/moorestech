@@ -96,6 +96,7 @@ public static class MapAuthoringExporter
                 EditorUtility.SetDirty(mapObject);
 
                 var position = mapObject.transform.position;
+                var rotation = mapObject.transform.rotation;
                 var scale = mapObject.transform.localScale;
                 result.Add(new MapObjectInfoJson
                 {
@@ -104,6 +105,10 @@ public static class MapAuthoringExporter
                     X = position.x,
                     Y = position.y,
                     Z = position.z,
+                    RotationX = rotation.x,
+                    RotationY = rotation.y,
+                    RotationZ = rotation.z,
+                    RotationW = rotation.w,
                     ScaleX = scale.x,
                     ScaleY = scale.y,
                     ScaleZ = scale.z,

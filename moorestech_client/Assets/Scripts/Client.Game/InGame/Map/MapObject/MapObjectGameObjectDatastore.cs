@@ -78,7 +78,10 @@ namespace Client.Game.InGame.Map.MapObject
                         continue;
                     }
 
-                    var instance = Instantiate(prefab, new Vector3(layout.X, layout.Y, layout.Z), Quaternion.identity, transform);
+                    // 生成時のRotationを実インスタンスへ戻す。identity固定だと全個体が同じ向きで斜面に直立する
+                    // Restore the generated rotation onto the instance; pinned to identity every instance faces alike and stands upright on slopes
+                    var rotation = new Quaternion(layout.RotationX, layout.RotationY, layout.RotationZ, layout.RotationW);
+                    var instance = Instantiate(prefab, new Vector3(layout.X, layout.Y, layout.Z), rotation, transform);
 
                     // 生成時のScaleを実インスタンスへ戻す。等倍のままだと小さい岩の周りに生成時サイズの裸地が広がる
                     // Restore the generated scale onto the instance; left at unit scale a small rock sits in bare ground sized for the generated one

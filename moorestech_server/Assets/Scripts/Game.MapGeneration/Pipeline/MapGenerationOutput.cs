@@ -35,6 +35,10 @@ namespace Game.MapGeneration.Pipeline
         // The placement scale; the visual rebuild reads it because a rock's surround texture spreads with its size.
         public Vector3 Scale;
 
+        // 配置時の姿勢。斜面法線への傾きとランダムYを配置器が計算しており、落とすと全個体が同じ向きで直立する。
+        // The placement rotation; the placers derive the slope tilt and random yaw, and dropping it stands every instance up alike.
+        public Quaternion Rotation;
+
         // 所属する岩クラスターの識別子。格子全体で一意で、-1 は独立配置（クラスターに属さない）。
         // Identifier of the owning rock cluster, unique across the grid; -1 marks an independent placement.
         public int ClusterId;

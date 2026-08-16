@@ -129,7 +129,7 @@ namespace Client.Tests.UnitTest.Terrain.Placement
         {
             return new MapObjectLayoutMessagePack(
                 1, mapObjectGuid, sceneX, 0f, sceneZ,
-                1f, 1f, 1f, -1, 0f, 0f);
+                0f, 0f, 0f, 1f, 1f, 1f, 1f, -1, 0f, 0f);
         }
 
         private static float[,] CreateFlatHeights()

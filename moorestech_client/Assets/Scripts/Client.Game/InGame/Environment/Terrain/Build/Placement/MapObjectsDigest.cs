@@ -36,8 +36,12 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
                 digestSource.AddRange(BitConverter.GetBytes(mapObject.Y));
                 digestSource.AddRange(BitConverter.GetBytes(mapObject.Z));
 
-                // スケールとクラスタ情報も見た目の導出元。岩が太っただけの回を外すと古い周囲テクスチャが残る
-                // The scale and cluster info derive visuals too; missing a run where a rock merely grew keeps its stale surround texture
+                // 姿勢・スケール・クラスタ情報も見た目の導出元。岩が回っただけ・太っただけの回を外すと古い見た目が残る
+                // The rotation, scale and cluster info derive visuals too; missing a run where a rock merely turned or grew keeps the stale look
+                digestSource.AddRange(BitConverter.GetBytes(mapObject.RotationX));
+                digestSource.AddRange(BitConverter.GetBytes(mapObject.RotationY));
+                digestSource.AddRange(BitConverter.GetBytes(mapObject.RotationZ));
+                digestSource.AddRange(BitConverter.GetBytes(mapObject.RotationW));
                 digestSource.AddRange(BitConverter.GetBytes(mapObject.ScaleX));
                 digestSource.AddRange(BitConverter.GetBytes(mapObject.ScaleY));
                 digestSource.AddRange(BitConverter.GetBytes(mapObject.ScaleZ));
@@ -69,6 +73,18 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
 
                 var byZ = left.Z.CompareTo(right.Z);
                 if (byZ != 0) return byZ;
+
+                var byRotationX = left.RotationX.CompareTo(right.RotationX);
+                if (byRotationX != 0) return byRotationX;
+
+                var byRotationY = left.RotationY.CompareTo(right.RotationY);
+                if (byRotationY != 0) return byRotationY;
+
+                var byRotationZ = left.RotationZ.CompareTo(right.RotationZ);
+                if (byRotationZ != 0) return byRotationZ;
+
+                var byRotationW = left.RotationW.CompareTo(right.RotationW);
+                if (byRotationW != 0) return byRotationW;
 
                 var byScaleX = left.ScaleX.CompareTo(right.ScaleX);
                 if (byScaleX != 0) return byScaleX;

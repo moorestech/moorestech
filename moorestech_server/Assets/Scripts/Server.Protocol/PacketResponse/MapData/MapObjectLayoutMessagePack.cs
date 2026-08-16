@@ -22,11 +22,19 @@ namespace Server.Protocol.PacketResponse.MapData
         [Key(9)] public float ClusterCenterX { get; set; }
         [Key(10)] public float ClusterCenterZ { get; set; }
 
+        // 姿勢はクォータニオンの4成分。斜面法線への傾きとランダムYを配置器が持たせている
+        // The rotation as the quaternion's four components; the placers give it the slope tilt and a random yaw
+        [Key(11)] public float RotationX { get; set; }
+        [Key(12)] public float RotationY { get; set; }
+        [Key(13)] public float RotationZ { get; set; }
+        [Key(14)] public float RotationW { get; set; }
+
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public MapObjectLayoutMessagePack() { }
 
         public MapObjectLayoutMessagePack(
             int instanceId, string mapObjectGuid, float x, float y, float z,
+            float rotationX, float rotationY, float rotationZ, float rotationW,
             float scaleX, float scaleY, float scaleZ,
             int clusterId, float clusterCenterX, float clusterCenterZ)
         {
@@ -35,6 +43,10 @@ namespace Server.Protocol.PacketResponse.MapData
             X = x;
             Y = y;
             Z = z;
+            RotationX = rotationX;
+            RotationY = rotationY;
+            RotationZ = rotationZ;
+            RotationW = rotationW;
             ScaleX = scaleX;
             ScaleY = scaleY;
             ScaleZ = scaleZ;
