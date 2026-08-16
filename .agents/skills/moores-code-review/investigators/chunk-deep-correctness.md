@@ -1,5 +1,5 @@
 ---
-model: opus
+model: sonnet
 ---
 
 # Investigator: チャンク深読みバグ狩り

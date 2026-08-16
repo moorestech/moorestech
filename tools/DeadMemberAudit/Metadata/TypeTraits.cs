@@ -11,7 +11,18 @@ public static class TypeTraits
     public static bool HasAnyAttribute(ICustomAttributeProvider provider, IReadOnlyCollection<string> attributeNames)
     {
         if (!provider.HasCustomAttributes) return false;
-        return provider.CustomAttributes.Any(attribute => attributeNames.Contains(attribute.AttributeType.Name));
+        return provider.CustomAttributes.Any(attribute => Matches(attribute.AttributeType.Name));
+
+        #region Internal
+
+        // Unity製の属性はクラス名がAttributeで終わらないものがある（MenuItem・ContextMenu・SerializeField等）
+        // Some Unity attribute classes do not end in Attribute, such as MenuItem, ContextMenu and SerializeField
+        bool Matches(string name)
+        {
+            return attributeNames.Contains(name) || attributeNames.Contains($"{name}Attribute");
+        }
+
+        #endregion
     }
 
     // 基底型を名前で先に照合するので、UnityEngineのDLLが解決できなくても判定できる

@@ -47,17 +47,18 @@ public sealed class ReferenceCollector
         result.CountScannedMethod();
         var enclosingKey = MemberKey.For(method);
         var enclosingOutermost = TypeTraits.OutermostFullName(method.DeclaringType);
+        var enclosingCaller = CallerAttribution.For(method);
 
         foreach (var instruction in method.Body.Instructions)
         {
             if (!ReferenceOpCodes.Contains(instruction.OpCode)) continue;
-            if (instruction.Operand is MethodReference methodReference) HandleMethodOperand(methodReference);
+            if (instruction.Operand is MethodReference methodReference) HandleMethodOperand(methodReference, instruction.OpCode);
             if (instruction.OpCode == OpCodes.Ldtoken && instruction.Operand is TypeReference typeOperand) RecordReflectiveType(typeOperand);
         }
 
         #region Internal
 
-        void HandleMethodOperand(MethodReference methodReference)
+        void HandleMethodOperand(MethodReference methodReference, OpCode opCode)
         {
             RecordGenericArguments(methodReference);
 
@@ -70,11 +71,15 @@ public sealed class ReferenceCollector
             var targetKey = MemberKey.For(definition);
             if (targetKey == enclosingKey) return;
 
+            // デリゲート化はメソッドを値として渡す形なので、単一呼び出し元の判定から外すために印を付ける
+            // Turning a method into a delegate passes it as a value, so it is marked out of the single-caller judgement
+            if (opCode == OpCodes.Ldftn || opCode == OpCodes.Ldvirtftn) result.DelegateBoundMethods.Add(targetKey);
+
             // 縮小提案のため、参照が宣言型・宣言アセンブリの外へ出たかを同時に記録する
             // Record whether the reference escaped the declaring type or assembly, which drives the narrowing proposal
             var sameOutermostType = TypeTraits.OutermostFullName(definition.DeclaringType) == enclosingOutermost;
             var sameAssembly = string.Equals(definition.Module.Assembly.Name.Name, fromAssembly, StringComparison.Ordinal);
-            result.AddReference(targetKey, fromAssembly, sameOutermostType, sameAssembly);
+            result.AddReference(targetKey, fromAssembly, sameOutermostType, sameAssembly, enclosingCaller);
         }
 
         // DI登録とシリアライズAPIのジェネリック引数は、コンテナ/シリアライザが反射的に触る型

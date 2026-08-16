@@ -28,7 +28,7 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 
 ## 実行順序（厳守）
 
-> **① 機械チェック統一窓口 `check_all.py`（決定論＋死にメンバーゲート＋セレクタを1コマンドで同時実行） → ② Codex監査をバックグラウンド起動 → ③ レンズ群＋reviewer群＋Fable全般＋（閾値超なら）分割深掘り調査＋（`verifiers_to_launch`にあるverifier）を1メッセージで並列起動 → ④ 全系統を回収・実コード照合・重複排除 → ⑤ 機械的修正を自動適用＋コンパイル → ⑤.5 最終diffで決定論再チェック＋コメント保全post-checks 2本 → ⑥ 報告＋設計判断のみAskUserQuestion（末尾集約）**
+> **① 機械チェック統一窓口 `check_all.py`（決定論＋死にメンバーゲート＋ts死コードゲート＋セレクタを1コマンドで同時実行） → ② Codex監査をバックグラウンド起動 → ③ レンズ群＋reviewer群＋Fable全般＋（閾値超なら）分割深掘り調査＋（`verifiers_to_launch`にあるverifier）を1メッセージで並列起動 → ④ 全系統を回収・実コード照合・重複排除 → ⑤ 機械的修正を自動適用＋コンパイル → ⑤.5 最終diffで決定論再チェック＋コメント保全post-checks 2本 → ⑥ 報告＋設計判断のみAskUserQuestion（末尾集約）**
 
 AskUserQuestionは**最後の報告フェーズに集約**する。修正適用の途中で割り込まない。
 
@@ -72,7 +72,7 @@ AskUserQuestionは**最後の報告フェーズに集約**する。修正適用�
 python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --repo-root "$(pwd)" --context "<USER_PROMPT_PATH>" > <$RUNDIRの実値>/checks.json
 ```
 
-出力JSONの読み方: `deterministic`（confirmed/candidates）・`dead_member`（Step 2.5の節を参照）・`lenses`/`reviewers`（Step 4で使うTSV相当の`{path, model}`一覧）・**`verifiers_to_launch`（候補件数から計算済みの起動すべきverifier一覧 — Step 4はこれに従うだけ）**・`summary`（全体集計と`errors`。errorsが空でないまま先へ進むのは禁止）。
+出力JSONの読み方: `deterministic`（confirmed/candidates）・`dead_member`（Step 2.5の節を参照）・`ts_dead_code`（Step 2.6の節を参照）・`lenses`/`reviewers`（Step 4で使うTSV相当の`{path, model}`一覧）・**`verifiers_to_launch`（候補件数から計算済みの起動すべきverifier一覧 — Step 4はこれに従うだけ）**・`summary`（全体集計と`errors`。errorsが空でないまま先へ進むのは禁止）。
 
 `deterministic` 節の解釈:
 
@@ -86,6 +86,7 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 - **`candidates.server_elapsed_time`** — 1件以上あればStep 4でサーバDateTime用途verifier（sonnet）を並列起動。0件なら起動しない。サーバ`Game.*`の`DateTime.Now/UtcNow`は「セーブへの実世界時刻記録（正当）」と「ゲーム進行の経過時間ゲート（違反）」が同じ実装形になるため、確定検出にせずverifierが用途を裁定する（PR1095 `MapObjectMiningService` のDateTimeクールダウン由来・2026-08-02）。
 - **`candidates.comment_length` / `region_internal`** — この時点では保持のみ（commentはStep 5.5で最終diffに再計測、regionはregion-internal reviewerの裏付け）。
 - **`candidates.schema_optional_true`** は master-data-defense レンズ、**`candidates.event_tag_sync`** は server-state-sync レンズの裏付けデータとして渡す（正当な例外がありうるためレンズが裁定）。
+- **`candidates.guid_literal`** は hardcoded-content-enumeration レンズ、**`candidates.event_action`**（`event Action`宣言=UniRx規約違反疑い）は domain-boundary レンズ、**`candidates.mutable_auto_property`**（`{ get; set; }`=SetHogeメソッド規約違反疑い）と **`candidates.passthrough_property`** は redundant-member-duplication レンズの裏付けデータとして渡す（DTOシリアライズ・外部interop等の正当例外はレンズが裁定。2026-08-16決定論化第2弾）。
 
 ## Step 2.5: 死にメンバー・公開範囲・配置・キャンセルゲート（IL解析） ①.5
 
@@ -97,10 +98,19 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 | `dead-member-overpublic-private` / `-internal` | 参照は実在するが公開範囲が過剰（宣言型内のみ / 宣言アセンブリ内のみ） |
 | `placement-mismatch` / `placement-registration-only` | server宣言でserver側に利用者なし（client参照のみ / DI登録のみ・解決者なし） |
 | `ct-not-passed` / `ct-async-void` / `cts-not-released` | CancellationToken未伝搬 / `async void` / CTS作りっぱなし |
+| `single-caller-helper` | 同一型の1メソッドからしか呼ばれていないprivateヘルパ（`#region Internal` ローカル関数へ畳む候補） |
+| `dead-private-member` | どこからも呼ばれていないprivateメソッド（デリゲート束縛も無い完全な死にコード） |
 
 - **`status: ok`** — candidatesが1件以上あればStep 4で死にメンバーverifier（sonnet・`verifiers/dead-member-verifier.md`）を並列起動。0件なら起動しない。rule別の裁定手順はverifier側に書いてある。
 - **`status: stale`** — 変更.csがDLLより新しい。`uloop compile` を先に実行してからゲートを再実行する（コンパイルはどのみちStep 5で必須）。
 - **`status: skipped`** — ScriptAssemblies不在（素のレビューworktree等）。縮退として報告に1行明記し、dead-scope reviewer（LLM）の参照勘定が唯一の担保になる旨を記録する。
+
+## Step 2.6: webui死コード・テスト専用参照ゲート（knip） ①.6
+
+**check_all.py が同時実行済み**（出力JSONの `ts_dead_code` 節。単体で再実行したい時だけ `scripts/ts_dead_code_gate.py "<PATCH_PATH>" --repo-root "$(pwd)"`）。実体は `moorestech_web/webui` の knip（設定は `webui/knip.json` が正）で、**patchが触った .ts/.tsx のもの**を `candidates.ts_dead_code` として出す。C#側 DeadMemberAudit（Step 2.5）のts/tsx対称形（2026-08-16導入・弱かった `core-ts_tsx-dead-code-and-scope` reviewerの機械化代替）。rule: `ts-dead-file` / `ts-dead-export`（参照ゼロ）、`ts-nonproduction-file` / `ts-nonproduction-export`（テスト・e2e・開発コードからのみ参照）。
+
+- **`status: ok`** — candidatesが1件以上あればStep 4でts死コードverifier（sonnet・`verifiers/ts-dead-code-verifier.md`）を並列起動。0件なら起動しない。
+- **`status: skipped`** — webuiのts/tsx変更なし（knip自体を実行しない・0秒）、またはknip未インストール（後者は報告に1行明記）。
 
 ## Step 3: Codex外部監査を3本バックグラウンド起動する ②
 
@@ -169,6 +179,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 5. **try-catch境界verifier**（Step 2の `candidates.try_catch_boundary` が1件以上のときだけ・`model: "opus"`）— 同じ4行契約で `verifiers/try-catch-boundary-verifier.md` を渡す。
 6. **サーバDateTime用途verifier**（Step 2の `candidates.server_elapsed_time` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/server-elapsed-time-verifier.md` を渡す。
 7. **死にメンバーverifier**（Step 2.5の `candidates.dead_member` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/dead-member-verifier.md` を渡す（候補JSONのパスをpromptに含める）。ILに現れない経路（UnityEvent配線・プレイテストDSL・文字列リフレクション）の実在だけをrgで裁く。
+8. **ts死コードverifier**（Step 2.6の `candidates.ts_dead_code` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/ts-dead-code-verifier.md` を渡す。import graphに現れない経路（動的import・C#側からの文字列ブリッジ・生成コード）の実在だけをrgで裁く。
 
 **回収はファイルハンドオフで行う（オーケストレータのコンテキストを空けるため）。** 起動前に共通出力契約を `<$RUNDIRの実値>/contract.md` へ1本だけ書き、各エージェントのプロンプトは `Read this` / `Patch path` / `User prompt` / `Output contract`（contract.mdのパス） / `Write full report to`（`<$RUNDIRの実値>/agents/<名前>.md`）の5行に畳む。**返答は3行以内（Critical件数・設計判断あり/なし・一行要約）に制限し、詳細は返答に書かせずファイルへ書かせる。** Step 5の回収は個々の返答ではなく `agents/` 配下のファイル群をgrep・集計して行う。起動数が多い場合はwaveに分けてよい（1メッセージ内の並列は各wave内で守る）。**コンテキスト残量を理由にこの工程を中断してはならない** — 詰まるのは実行可否ではなく回収の設計であり、この方式で消費はほぼゼロになる（ユーザー裁定 2026-08-14・[[2026-08-14-大規模ファンアウトは回収方式を変えて完走する]]）。
 
@@ -194,9 +205,16 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 
 1. **最終diffを作り直す** — Step 6適用後の作業ツリーをbaseと比較し `<$RUNDIRの実値>/final.diff` に書く。
 2. **決定論チェックを最終diffで再実行** — `deterministic_checks.py` を再度実行し `<$RUNDIRの実値>/checks-final.json` に書く。自分の修正が新たに生んだ `confirmed`/`comparison_operator` 違反はその場でインライン修正する。**再実行時は `--context` を渡さない**（出所ラベルはStep 2で検査済み。再検出させるとcontext編集へ誘導され無意味）。
-3. **2本のガードを並列起動**（1メッセージ内）:
-   - **comment-rationale-guard**（`model: "opus"`・3行契約）— load-bearingな根拠コメントがコード本体を残したまま削除・希薄化されていないか（削除行 `-` が対象）。`Read this : .claude/skills/moores-code-review/post-checks/comment-rationale-guard.md` + Patch path（最終diff）+ User prompt。
-   - **comment-convention-guard**（`model: "sonnet"`・4行契約）— スクリプト計測の文字数超過候補の例外判定・短縮案 + 名前重複コメント検出。**文字数はスクリプトの値が正**。`Read this : .claude/skills/moores-code-review/post-checks/comment-convention-guard.md` + `Candidates : <$RUNDIRの実値>/checks-final.json` + Patch path（最終diff）+ User prompt。
+3. **発火すべきガードをスクリプトで選択し、出力どおりに並列起動**（1メッセージ内。2026-08-16裁定・空振り回の無条件起動を廃止）:
+
+   ```bash
+   python3 .claude/skills/moores-code-review/scripts/select_post_checks.py <$RUNDIRの実値>/final.diff <$RUNDIRの実値>/checks-final.json
+   ```
+
+   出力は `<post-check絶対パス>\t<モデル>` のTSV（レンズ/レビュアーのセレクタと同形式）。**出力された行だけを起動し、出力が空なら両方スキップ**（=0トークン）。発火条件は選択スクリプトが判定する: rationale-guardは最終diffにコメント削除行があるとき、convention-guardは `candidates.comment_length` が1件以上のとき。手動のgrep判定はしない。
+   - **comment-rationale-guard**（3行契約）— load-bearingな根拠コメントがコード本体を残したまま削除・希薄化されていないか（削除行 `-` が対象）。`Read this : .claude/skills/moores-code-review/post-checks/comment-rationale-guard.md` + Patch path（最終diff）+ User prompt。
+   - **comment-convention-guard**（4行契約）— スクリプト計測の文字数超過候補の例外判定・短縮案 + 名前重複コメント検出。**文字数はスクリプトの値が正**。`Read this : .claude/skills/moores-code-review/post-checks/comment-convention-guard.md` + `Candidates : <$RUNDIRの実値>/checks-final.json` + Patch path（最終diff）+ User prompt。
+   - スキップしたガードは最終報告に「post-checks: <名前> 発火条件未達でスキップ」と1行明記する（黙って縮退しない）。
 4. **rationale-guardのCriticalはescalate**（自動復元しない）— 削除コメント再挿入は設計判断。復元タグ案を添えてStep 7へ。
 5. **convention-guardはラベル分岐（Step 7へは送らない）** — `機械的` は §5 のもと自動適用、`要判断` は**ガード自身の裁定で完結**させる（短縮案が意図を保てるなら適用、例外該当なら残置。結果は報告に1行）。コメント短縮をAskUserQuestionに載せるのは**禁止**（ユーザー裁定 2026-07-23）。同一行で衝突したら**根拠保全を優先**。
    - **webui（`moorestech_web/webui`）では `要判断` も短縮を適用する** — 数値詳細・数式・設計意図が落ちる場合でも文字数規約を優先して短縮する（詳細はコードとテスト本体が担う）。残置してよいのは「なぜ必要か」型の純粋な根拠コメント（定数選定根拠・防止目的）のみ（ユーザー裁定 2026-08-04・[[2026-08-04-コメント文字数規約は根拠情報より優先する]]）。
@@ -223,11 +241,11 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 |---|---|---|
 | domain-boundary | 汎用基盤へのドメイン語彙漏れ・Update()ポーリング・共通サービス委譲漏れ（978/1000） | 全ての.cs |
 | server-state-sync | サーバー状態同期3点セット・Applier禁止・ハンドシェイク順序（988） | Server.Protocol/Server.Event/Client.Network |
-| datastore-access-separation | Lookup/Mutation分離・static変更露出（988） | DataStore系キーワード |
-| master-data-defense | optional濫用・??フォールバック・ローダープリフィル（978） | VanillaSchema/Core.Master/BlockTemplate |
+| datastore-access-separation | Lookup/Mutation分離・static変更露出（988） | DataStore系パス＋変更系語彙の追加行（2026-08-16厳格化） |
+| master-data-defense | optional濫用・??フォールバック・ローダープリフィル（978） | VanillaSchema/Core.Master/BlockTemplate＋防御イディオム追加行（2026-08-16厳格化） |
 | type-driven-structure | 共用体struct・god-context・N択1役割の型排除・DTO配置・振る舞い型switchの多態化漏れ（987/996/997/1045） | struct/Context/interface系キーワード |
-| redundant-member-duplication | バッキングフィールド＋素通しプロパティの二重保持・同値別名メンバーの排除（sonnet） | プロパティ/フィールド宣言を含む.cs |
-| implicit-cardinality-assumption | マスタ/ドメイン集合の単一要素決め打ち（`[0]`/`First`）で暗黙に単数を仮定（1017） | MasterHolderを読む.cs |
+| redundant-member-duplication | バッキングフィールド＋素通しプロパティの二重保持・同値別名メンバーの排除（sonnet） | 素通しプロパティ形（`=> _`等）の追加行（2026-08-16厳格化） |
+| implicit-cardinality-assumption | マスタ/ドメイン集合の単一要素決め打ち（`[0]`/`First`）で暗黙に単数を仮定（1017） | MasterHolder＋`[0]`/`First`/`Single`の追加行（2026-08-16厳格化） |
 | set-once-dependency-injection | 生成時に確定するset-once依存の可変setter注入（コンストラクタ注入漏れ）（1027） | `public void Set`追加を含む.cs |
 | hardcoded-content-enumeration | コンテンツ集合のコード内列挙→マスタ駆動化（2026-07-23リプレースファミリー指摘） | TypeConst/KindConst/GUIDリテラルを含む.cs |
 | speculative-abstraction | 受益者なき抽象の排除（単一実装interface・意味なしラッパー/IDisposable・存在意義なしメンバー・不要な新設型）（1095） | 型/interface/Dispose宣言を含む.cs |
@@ -235,8 +253,8 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 | precedent-alignment | 前例一致（全PR横断・役割で前例を選ぶ） | 常時 |
 - **レンズ** — `select_lenses.py` の2列目（各レンズ先頭YAMLの `model`）をそのまま渡す。
 - **reviewer** — `select_reviewers.py` の2列目（正は `scripts/model_map.json`。未記載reviewerはopus、`sonnet` 記載のみsonnet）。
-- **Fable全般** — `model: "fable"` 固定。**比較演算子verifier・サーバDateTime用途verifier・死にメンバーverifier・comment-convention-guard** — `sonnet`。**comment-rationale-guard・try-catch境界verifier** — `opus`（WHY判定・境界の真偽判定は高ステークス）。
-- **investigator（分割深掘り調査）** — 各 `investigators/*.md` 先頭YAMLの `model` が正（2026-08-03精度調査で決定。経緯は `$LOGS/harness/moores-code-review/eval-log.md`）。
+- **Fable全般** — `model: "fable"` 固定。**比較演算子verifier・サーバDateTime用途verifier・死にメンバーverifier・ts死コードverifier・comment-convention-guard** — `sonnet`。**comment-rationale-guard・try-catch境界verifier** — `opus`（WHY判定・境界の真偽判定は高ステークス）。
+- **investigator（分割深掘り調査）** — 各 `investigators/*.md` 先頭YAMLの `model` が正（2026-08-16裁定で3観点ともsonnetへ降格。経緯は `$LOGS/harness/moores-code-review/analysis/2026-08-16-agent-efficiency-reaudit.md`）。
 - Codex監査は別CLIなので対象外。
 
 ## スキル自体の改善

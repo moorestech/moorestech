@@ -1,5 +1,5 @@
 ---
-model: opus
+model: sonnet
 ---
 
 # Investigator: チャンク縫い目統合検査
