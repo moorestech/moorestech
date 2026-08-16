@@ -17,6 +17,12 @@ export function screenForUiState(state: string | null, subState?: string): UiScr
   return "none";
 }
 
+// ホットバー選択を消費するのは GameScreen と PlaceBlock だけ（C#側 HotbarSelectActionHandler と同一条件）
+// Only GameScreen and PlaceBlock consume a hotbar selection; mirrors the C# HotbarSelectActionHandler gate
+export function uiStateAcceptsHotbarSelect(state: string | null): boolean {
+  return state === UiStateNames.gameScreen || state === UiStateNames.placeBlock;
+}
+
 // grab は掴んだ絵が見える画面でしか成立しない。クリック可否と GrabOverlay 描画の単一の正
 // A grab only holds where the held item is visible; single source for clickability and GrabOverlay
 export function screenAllowsGrab(screen: UiScreen): boolean {

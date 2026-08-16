@@ -19,7 +19,8 @@ description: |
 
 **入出力の置き場**: `$LOGS` はメインリポジトリの兄弟にあるprivateログrepo `../moorestech_logs`
 （`git rev-parse --show-toplevel` の親ディレクトリ直下）、
-`$RUNDIR = $LOGS/harness/pr-independent-review/runs/pr-<番号>/`。
+`$RUNDIR = $LOGS/harness/pr-independent-review/runs/pr-<番号>/`（再レビューが存在する場合は
+最大のrNを持つ `pr-<番号>-rN/` が最新run。最新runを使う）。
 `$LOGS` / `$RUNDIR` は本ドキュメント上のプレースホルダでありシェル変数ではない。
 コマンド・ファイルパスへ渡すときは必ず実値の絶対パスへ展開して書く。
 
@@ -54,12 +55,19 @@ description: |
          "completed": true,
          "completed_at": "<ISO8601>",
          "items": [
-           {"id": "F01", "decision": "<案キー(A〜F)|other|reject>", "comment": "<人間の補足指示（otherでは必須）>"}
+           {"id": "F01", "decision": "<案キー(A〜F)|other|reject>", "comment": "<人間の補足指示（otherでは必須）>",
+            "auto_recommended": false}
          ]
        }
 
    decisionの意味: 案キー（`A`〜`F`）＝findings.jsonの `options` またはdigestカード記載の当該案を実装する ／
    `other`＝commentに書かれた自由指示を実装する ／ `reject`＝一切触らない
+
+   `auto_recommended: true` は、人間が完了ボタンを押した時点で未裁定だった指摘を**推奨案で一括採用**した印
+   （`decision` は推奨案のキー・`comment` は空・`other`/`reject` には付かない）。
+   **実装上の扱いは明示裁定と同じ**（decisionの案をそのまま実装する）。個別に読まれていない可能性があるため、
+   実装が推奨案の想定と食い違ったときに勝手に別案へ寄せず、apply-result.jsonの `summary` に
+   「推奨一括採用のFxxで想定と差異: <内容>」と記して人へ返すこと
 
 ## Step 2: スコープ確認（adopt以外には絶対に触れない）
 
@@ -78,13 +86,32 @@ description: |
 
 対象findingが1件以上ある場合のみ実行する（Step 2で0件なら本Stepはスキップ）。
 
-1. **dirtyチェックを最初に行う**: `git -C <$REPOの実値> status --porcelain --untracked-files=no` が非空なら、
-   ブランチ操作を一切せず即座に失敗として終了する（他作業を壊さないため）。
-   apply-result.jsonの `summary` に「working treeがdirtyのため中止」と書く。
-   - 未追跡ファイルは対象外（checkoutを妨げないため。パス衝突時はcheckout自体が失敗して止まる）
-   - 例外: 変更が `moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs` のみの場合は
-     uloop compileが書き換えるコンパイルトリガー痕跡なので、`git -C <$REPOの実値> checkout -- <当該ファイル>` で
-     破棄して続行してよい（無人環境ではコンパイルの度に必ず発生するため、失敗扱いにするとapplyが恒常的に不能になる）
+1. **dirtyの分類を最初に行う**: `git -C <$REPOの実値> status --porcelain --untracked-files=no` を実行する。
+   出力が空なら手順2へ進む。非空でも**中止しない** — 次の分類を行ってから続行する
+   （自動生成の痕跡1件で無人パイプラインを止めないため。ユーザー裁定 2026-08-15）:
+
+   1. dirtyな各パスについて `git -C <$REPOの実値> diff -- <パス>` を読み、2つに分類する。
+      **特定ファイル名のallowlistは持たない**（列挙は必ず陳腐化し、載っていないだけで止まるため）。
+      判定基準は「そのdiffが人間・エージェントの意図を1つでも表しているか」:
+      - **意味のない自動変更** — 意図を表さない、ツールが実行のたびに書き換える痕跡
+        （例: コンパイルトリガーの連番、兄弟クローンのHEADへ追随しただけの外部リビジョンピン）
+      - **意味のある変更** — それ以外すべて（他セッションのコミット漏れ等）。判定に迷ったらこちらへ倒す
+   2. 意味のない自動変更は `git -C <$REPOの実値> checkout -- <パス>` で破棄する
+   3. 意味のある変更は破棄も退避もしない。そのまま手順4のcheckoutでPRブランチへ持ち越し、
+      Step 6のcommitに含めてPRの一部とする（ユーザー裁定 2026-08-15。厳密な保全より続行を優先する）。
+      持ち越すパスを `CARRIED_PATHS` として控え、Step 7のsummaryへ
+      「持ち越し: <パス> — <diffの内容1行>」を、破棄したパスを「破棄: <パス>」として書く
+   4. 未追跡ファイルは分類対象外（`--untracked-files=no` のため。checkoutを妨げないが、
+      パス衝突時はcheckout自体が失敗して手順4で止まる）
+   5. **持ち越しはcheckoutが拒否することがある**。tracked な未コミット変更が持ち越せるのは、
+      現HEADとFETCH_HEADで**そのファイルの中身が同一の場合だけ**であり、PRブランチ側でも
+      同じファイルが変更されていると手順4は
+      `error: Your local changes to the following files would be overwritten by checkout` で失敗する。
+      さらに、手順2の破棄から手順4のcheckoutまでの間に常駐Unityが同じファイルを書き戻すレースもある
+      （ピンは5〜30秒毎に書き換わる）。手順4が失敗したら**本手順1へ戻って分類をやり直し**、
+      意味のない自動変更を破棄したうえでcheckoutを1回だけリトライする。
+      それでも失敗したら失敗として終了し（ブランチは切り替わっていないので後片付け不要）、summaryへ
+      「checkout失敗: <パス> — PRブランチ側と衝突する持ち越しのため中止（持ち越し分は未commitのまま保全）」と書く
 2. **元ブランチを記録する**（Step 8の後片付けで使う）:
    - `git -C <$REPOの実値> symbolic-ref --short -q HEAD` が値を返せばそれが `ORIGINAL_REF`（ブランチ名）
    - 値が空（detached HEAD）なら `git -C <$REPOの実値> rev-parse HEAD` の出力を `ORIGINAL_REF` とする
@@ -117,7 +144,11 @@ subagentの報告（コンフリクトなし／解消済み／解消不能）へ
 ## Step 4: 修正実装
 
 対象finding（Step 2で抽出したadopt分）それぞれについて、`recommendation` と `comment`（あれば）に従って
-`files` の指すコードを修正する。AGENTS.mdの規約を遵守する:
+`files` の指すコードを修正する。
+
+編集・新規作成したファイルのパスを `EDITED_PATHS` として控える（Step 6のadd対象・Step 8の破棄対象がこれに限定されるため）。既存ファイルの編集か新規作成かも区別して控えること（Step 8で始末の仕方が変わる）。
+
+AGENTS.mdの規約を遵守する:
 
 - コメントは日本語→英語の2行セット（3〜10行ごと）、`#region Internal` はローカル関数用途限定
 - `partial` 禁止、`Func<>` 禁止、デフォルト引数禁止、単純getter/setterプロパティ禁止
@@ -140,7 +171,12 @@ subagentの報告（コンフリクトなし／解消済み／解消不能）へ
 
 ## Step 6: commit & push
 
-- 採用finding単位、または意味的にまとまる単位でcommitする。コミットメッセージ末尾に必ず次を含める:
+- 採用finding単位、または意味的にまとまる単位でcommitする。**`git add` は必ずパスを明示する** —
+  対象は「Step 4で編集したパス（`EDITED_PATHS`）」と「Step 3で控えた `CARRIED_PATHS`」だけ。
+  `git add -A` / `git add .` / `git commit -a` は禁止。
+  apply実行中もUnityがdirtyを作り続けるため（Step 5の `uloop compile` はコンパイルトリガーを必ず書き換え、
+  外部リビジョンピンは常駐Unityが数十秒ごとに書き換える）、全体addすると実行中に湧いた痕跡がPRのcommitへ混入する。
+  コミットメッセージ末尾に必ず次を含める:
 
       Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 
@@ -163,14 +199,26 @@ subagentの報告（コンフリクトなし／解消済み／解消不能）へ
 
 ## Step 8: 後片付け（成功・失敗を問わず必ず実行）
 
-Step 3でブランチを切り替えた場合（＝対象findingが1件以上あり、dirtyチェックを通過した場合）は、
+Step 3でブランチを切り替えた場合（＝対象findingが1件以上あった場合）は、
 Step 3〜7のどこで終了するとしても、apply-result.jsonを書く前に必ず元ブランチへ戻る:
 
     git -C <$REPOの実値> checkout <ORIGINAL_REFの実値>
 
-失敗終了で未commitの変更が残っている場合は、先に `git -C <$REPOの実値> reset --hard` で破棄してから戻る
-（push済みでない失敗applyの変更は再実行時にゼロから作り直すため、残す価値がない。
-元ブランチ側の作業はStep 3のdirtyチェックで存在しないことを保証済み）。
+失敗終了で未commitの変更が残っている場合、**`git reset --hard` を使ってはならない**。
+自分が作った変更だけを、既存ファイルと新規ファイルで**書き分けて**始末してから戻る:
+
+    # Step 4で既存ファイルを編集した分
+    git -C <$REPOの実値> checkout -- <EDITED_PATHSのうち既存ファイルの各パス>
+    # Step 4で新規作成した分（未追跡なので checkout では消せない）
+    rm -f <EDITED_PATHSのうち新規作成ファイルの各パス>
+
+新規作成ファイルを `git checkout --` のpathspecに混ぜてはならない。未追跡パスは
+`error: pathspec ... did not match any file(s) known to git` でコマンド**全体**が失敗し、
+同時に指定した既存ファイルの復元まで行われない（`reset --hard` はtracked分を戻していたので機能的後退になる）。
+
+`CARRIED_PATHS` は破棄しない。未commitのまま元ブランチへ戻れば、apply前と同じ位置にそのまま復元される
+（他セッションのコミット漏れを無告知で消さないため。ユーザー裁定 2026-08-15）。
+push済みでない失敗applyの変更は再実行時にゼロから作り直すため、残す価値がない。
 
 Step 1・Step 2（対象0件）で終了した場合はブランチ操作自体を行っていないため、本Stepは不要。
 

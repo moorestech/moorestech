@@ -12,7 +12,8 @@
 """dead_member_gate.py — DeadMemberAudit(IL解析)の結果をpatchスコープへ絞る配線層。
 
 moores-code-review Step 2.5 から呼ばれる。tools/DeadMemberAudit を実行し、
-リスト1〜5（参照0・非production参照のみ・公開範囲過剰・サーバー配置ミス・CT未伝搬）の
+リスト1〜6（参照0・非production参照のみ・公開範囲過剰・サーバー配置ミス・CT未伝搬・
+単一呼び出し元ヘルパ・参照0private）の
 うち宣言場所がpatchの変更ファイルに含まれるものだけを candidates.dead_member として
 出力する（裁定はdead-member-verifier）。
 
@@ -48,6 +49,8 @@ SECTION_RULES = (
     ("## リスト5-A", "ct-not-passed"),
     ("## リスト5-B", "ct-async-void"),
     ("## リスト5-C", "cts-not-released"),
+    ("## リスト6-A", "single-caller-helper"),
+    ("## リスト6-B", "dead-private-member"),
 )
 
 

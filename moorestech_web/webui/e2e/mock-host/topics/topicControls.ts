@@ -23,23 +23,23 @@ export function serveDictionary(url: string, response: ServerResponse): void {
 const control = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]) => ({ topic, data });
 const controls = {
   placement: () => control(Topics.placementMode, {
-    selectedTargetType: "raw", selectedName: "Assembler", height: 3, unavailableReason: "",
+    selectedTargetType: "raw", selectedName: "Assembler", height: 3, unavailableReason: "", wheelOwnedByTool: false,
   }),
   placementUnavailable: () => control(Topics.placementMode, {
-    selectedTargetType: "raw", selectedName: "Assembler", height: 3, unavailableReason: "Blocked by terrain",
+    selectedTargetType: "raw", selectedName: "Assembler", height: 3, unavailableReason: "Blocked by terrain", wheelOwnedByTool: false,
   }),
   placementEmpty: () => control(Topics.placementMode, {
-    selectedTargetType: "raw", selectedName: "", height: 0, unavailableReason: "",
+    selectedTargetType: "raw", selectedName: "", height: 0, unavailableReason: "", wheelOwnedByTool: false,
   }),
   // connectToolはGuidのみ配信し表示名解決はWeb辞書に任せる
   // connectTool ships only its GUID and leaves display-name resolution to the web dictionary
   placementConnectTool: () => control(Topics.placementMode, {
-    selectedTargetType: "connectTool", selectedConnectToolGuid: fx.WIRE_CONNECT_TOOL_GUID, height: 3, unavailableReason: "",
+    selectedTargetType: "connectTool", selectedConnectToolGuid: fx.WIRE_CONNECT_TOOL_GUID, height: 3, unavailableReason: "", wheelOwnedByTool: true,
   }),
   // trainCarもGuidのみ配信し表示名解決はWeb辞書に任せる
   // Train cars also ship only their GUID and leave display-name resolution to the web dictionary
   placementTrainCar: () => control(Topics.placementMode, {
-    selectedTargetType: "trainCar", selectedTrainCarGuid: fx.CARGO_TRAIN_CAR_GUID, height: 3, unavailableReason: "",
+    selectedTargetType: "trainCar", selectedTrainCarGuid: fx.CARGO_TRAIN_CAR_GUID, height: 3, unavailableReason: "", wheelOwnedByTool: false,
   }),
   crosshairHidden: () => control(Topics.crosshair, { visible: false }),
   crosshairVisible: () => control(Topics.crosshair, { visible: true }),

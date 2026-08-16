@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.UI.Inventory.Common;
-using Game.PlayerInventory.Interface;
 using UniRx;
 using UnityEngine;
 
@@ -35,7 +34,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             {
                 // 参照漏れは末尾インデックス計算を壊すため明示的に失敗させる
                 // A missing reference breaks tail index math, so fail explicitly
-                if (hotBarSlotViews.Count != PlayerInventoryConst.HotBarSlotCount) throw new Exception($"hotBarSlotViews は {PlayerInventoryConst.HotBarSlotCount} 件必要です (現在 {hotBarSlotViews.Count} 件)");
+                if (hotBarSlotViews.Count == 0) throw new Exception("hotBarSlotViews に静的スロット参照が設定されていません");
 
                 foreach (var hotBarSlotView in hotBarSlotViews)
                 {

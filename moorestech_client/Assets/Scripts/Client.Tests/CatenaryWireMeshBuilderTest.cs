@@ -75,7 +75,7 @@ namespace Client.Tests
             // Buildは16セグメント分のコライダー情報を出力することを確認する
             // Verify Build outputs collider info for 16 segments
             var colliderSegments = new List<(Vector3 center, Vector3 up, float length)>();
-            var mesh = CatenaryWireMeshBuilder.Build(Vector3.zero, new Vector3(6f, 0f, 0f), sag: 0.6f, colliderSegments);
+            var mesh = CatenaryWireMeshBuilder.Build(Vector3.zero, new Vector3(6f, 0f, 0f), colliderSegments);
 
             Assert.AreEqual(CatenaryWireMeshBuilder.SegmentCount, colliderSegments.Count);
             Assert.IsNotNull(mesh);
@@ -100,7 +100,7 @@ namespace Client.Tests
             var start = Vector3.zero;
             var end = new Vector3(10f, 0f, 0f);
             var colliderSegments = new List<(Vector3 center, Vector3 up, float length)>();
-            var mesh = CatenaryWireMeshBuilder.Build(start, end, sag: 2f, colliderSegments);
+            var mesh = CatenaryWireMeshBuilder.Build(start, end, colliderSegments);
 
             var totalLength = 0f;
             foreach (var segment in colliderSegments) totalLength += segment.length;

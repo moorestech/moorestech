@@ -1,4 +1,4 @@
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
@@ -31,7 +31,7 @@ namespace Client.Game.InGame.UI.UIState.State
         public UITransitContext GetNextUpdate()
         {
             if (_buildMenuView.TryConsumeSelectedEntry(out var entry))
-                return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create<IPlacementTarget>(entry.Target));
+                return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(entry.Target, PlacementOrigin.NonHotbar)));
 
             if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen, null);
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory, null);

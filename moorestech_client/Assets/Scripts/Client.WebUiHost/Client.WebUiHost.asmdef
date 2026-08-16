@@ -26,7 +26,8 @@
         "Nuget",
         "UniRx",
         "UniTask",
-        "VContainer"
+        "VContainer",
+        "Game.PlacementTarget"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

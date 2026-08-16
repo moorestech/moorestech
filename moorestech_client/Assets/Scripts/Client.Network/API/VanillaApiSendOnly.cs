@@ -167,22 +167,42 @@ namespace Client.Network.API
         }
 
         /// <summary>
-        /// 電気系ブロック間に電線を接続する
-        /// Connect an electric wire between electric blocks
-        /// </summary>
-        public void ConnectElectricWire(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
-        {
-            var request = ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateConnectRequest(posA, posB, _playerId, connectToolGuid);
-            _packetSender.Send(request);
-        }
-
-        /// <summary>
         /// 電気系ブロック間の電線を切断する
         /// Disconnect an electric wire between electric blocks
         /// </summary>
         public void DisconnectElectricWire(Vector3Int posA, Vector3Int posB)
         {
-            var request = ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateDisconnectRequest(posA, posB, _playerId);
+            var request = ElectricWireDisconnectProtocol.ElectricWireDisconnectRequest.CreateDisconnectRequest(posA, posB, _playerId);
+            _packetSender.Send(request);
+        }
+
+        /// <summary>
+        /// ホットバーの枠へ設置対象を割り当てる（結果はホットバー更新イベントで返る）
+        /// Assign a placement target to a hotbar slot; the result comes back through the hotbar update event
+        /// </summary>
+        public void AssignHotbar(int slot, Guid targetId)
+        {
+            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(_playerId, slot, targetId);
+            _packetSender.Send(request);
+        }
+
+        /// <summary>
+        /// ホットバーの枠を空にする
+        /// Clear a hotbar slot
+        /// </summary>
+        public void ClearHotbar(int slot)
+        {
+            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateClearRequest(_playerId, slot);
+            _packetSender.Send(request);
+        }
+
+        /// <summary>
+        /// ホットバーの2枠を入れ替える
+        /// Swap two hotbar slots
+        /// </summary>
+        public void SwapHotbar(int slotA, int slotB)
+        {
+            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateSwapRequest(_playerId, slotA, slotB);
             _packetSender.Send(request);
         }
     }

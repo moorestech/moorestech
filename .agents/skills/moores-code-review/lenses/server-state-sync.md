@@ -5,7 +5,7 @@ paths:
   - "Client\.Network"
   - "DataStore"
   - "Datastore"
-model: opus
+model: sonnet
 ---
 
 # Lens: サーバー状態同期の3点セット（PR988由来）
@@ -49,3 +49,7 @@ cwdを読み、patchが**サーバー権威の可変状態をクライアント�
 ## 出力フォーマット
 Criticalが1件でもあれば `Critical: あり`、0件なら `Critical: なし`。
 続けて `修正方針:` に `- <ファイル:行>: <3点セットのどれが欠けていて、どの前例の形で足すか>` を1行ずつ列挙する。
+
+## 既存多数派パターンの扱い（ユーザー裁定 2026-08-14）
+
+payload の `PlayerId` を無検証で信じるプロトコルは `PacketResponse/` 配下で多数派（実測32件）であり、`PacketResponseContext.PlayerId` を使う実装と混在している。**新設プロトコルがこの形を踏襲しただけの場合は Warning 止まり**とし、Critical・設計判断に上げない（リポジトリ全体の一括是正案件であって機能PRのスコープではない）。Criticalに上げてよいのは、本ブランチが**新たに**なりすまし経路を作った場合（例: 従来 context 由来だった同定を payload 由来へ変更した）に限る。参照: [[2026-08-14-プロトコルのplayerId自己申告は既存多数派として放置する]]

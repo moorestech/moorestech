@@ -77,6 +77,7 @@ namespace Client.Tests.Mining
         public override void TearDown()
         {
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
+            AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.ScreenCenter);
             SetStaticProperty(typeof(PlayerSystemContainer), "Instance", null);
             Object.DestroyImmediate(_miningObject);
             Object.DestroyImmediate(_targetObject);
@@ -115,6 +116,9 @@ namespace Client.Tests.Mining
             SetField(controller, "_currentState", new StableMiningState());
 
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
+            // 新既定値は画面中央のため、マウス照準を検証する箇所は明示的にCursorへ切り替える
+            // The new default is screen center, so explicitly switch to Cursor to test mouse aim
+            AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.Cursor);
             Assert.AreEqual(mousePoint, (Vector2)AimPointProvider.GetAimScreenPoint());
             InvokePrivate(controller, "Update");
             Assert.AreSame(expectedMapObject, context.CurrentFocusTarget);

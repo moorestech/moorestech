@@ -1,5 +1,6 @@
 using System;
 using Core.Master;
+using Game.PlacementTarget;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {

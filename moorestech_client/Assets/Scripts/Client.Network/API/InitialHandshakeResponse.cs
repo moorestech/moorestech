@@ -24,6 +24,9 @@ namespace Client.Network.API
         public RidableIdentifierMessagePack RidingTarget { get; }
         public int RidingSeatIndex { get; }
         public ResponseMapDataMessagePack MapLayout { get; }
+        // ログイン時のホットバー9枠。初期データ同梱のため追加の往復も未取得状態も無い
+        // The login-time hotbar slots; bundled as initial data, so there is no extra round trip and no unfetched state
+        public Guid[] HotbarAssignments { get; }
 
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
@@ -48,6 +51,7 @@ namespace Client.Network.API
             RidingTarget = initialHandshake.RidingTarget;
             RidingSeatIndex = initialHandshake.RidingSeatIndex;
             MapLayout = responses.mapLayout;
+            HotbarAssignments = initialHandshake.HotbarAssignments;
         }
     }
 }

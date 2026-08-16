@@ -29,9 +29,7 @@ describe("slotActions", () => {
     bridge.dispatchAction.mockReset();
     bridge.inventory = {
       mainSlots: [slot(1, 5)],
-      hotbarSlots: [slot(0, 0)],
       grab: slot(0, 0),
-      selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
       equipmentSelectionConfirmationRevision: 0,
@@ -45,9 +43,7 @@ describe("slotActions", () => {
     // Simulate post-render updates so only the latest values determine distribution counts
     bridge.inventory = {
       mainSlots: [slot(1, 5)],
-      hotbarSlots: [slot(0, 0)],
       grab: slot(0, 0),
-      selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
       equipmentSelectionConfirmationRevision: 0,
@@ -80,9 +76,7 @@ describe("slotActions", () => {
   it("右クリック時の最新 grab 数で分割操作を選ぶ", () => {
     bridge.inventory = {
       mainSlots: [slot(1, 5)],
-      hotbarSlots: [],
       grab: slot(9, 3),
-      selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
       equipmentSelectionConfirmationRevision: 0,
@@ -103,9 +97,7 @@ describe("slotActions", () => {
 
     bridge.inventory = {
       mainSlots: [slot(0, 0)],
-      hotbarSlots: [],
       grab: slot(9, 3),
-      selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
       equipmentSelectionConfirmationRevision: 0,
@@ -125,9 +117,7 @@ describe("slotActions", () => {
     beforeEach(() => {
       bridge.inventory = {
         mainSlots: [slot(1, 5)],
-        hotbarSlots: [slot(1, 5)],
         grab: slot(0, 0),
-        selectedHotbar: 0,
         equipment: [],
         selectedEquipment: -1,
         equipmentSelectionConfirmationRevision: 0,
@@ -137,7 +127,6 @@ describe("slotActions", () => {
     it.each([
       ["equipment", { area: "equipment", slot: 0 } as const],
       ["main", { area: "main", slot: 9 } as const],
-      ["hotbar", { area: "hotbar", slot: 9 } as const],
     ])("%s の範囲外 ref は例外を投げず何も送らない", (_, ref) => {
       expect(() => slotActions.onLeftDown(ref, false)).not.toThrow();
       expect(() => slotActions.onLeftDown(ref, true)).not.toThrow();
@@ -151,9 +140,7 @@ describe("slotActions", () => {
     it("grab 保持中でも範囲外スロットへは何も送らない", () => {
       bridge.inventory = {
         mainSlots: [slot(0, 0)],
-        hotbarSlots: [slot(0, 0)],
         grab: slot(9, 4),
-        selectedHotbar: 0,
         equipment: [],
         selectedEquipment: -1,
         equipmentSelectionConfirmationRevision: 0,

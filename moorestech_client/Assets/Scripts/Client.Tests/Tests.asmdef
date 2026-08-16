@@ -50,7 +50,9 @@
         "StarterAssetsInputs",
         "ThirdPersonController",
         "Mod.Loader",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "Game.Hotbar",
+        "Game.PlacementTarget"
     ],
     "includePlatforms": [
         "Editor"

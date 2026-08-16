@@ -1,5 +1,6 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
+using Client.Tests.UIState.Fakes;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 

@@ -29,7 +29,8 @@
         "Game.MapGeneration",
         "Common.Debug",
         "Client.Localization",
-        "Mod.Loader"
+        "Mod.Loader",
+        "Game.PlacementTarget"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

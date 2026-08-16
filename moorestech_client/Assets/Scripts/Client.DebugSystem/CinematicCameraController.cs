@@ -25,7 +25,7 @@ namespace Client.DebugSystem
         [SerializeField] private float positionLerpSpeed = 0.05f;
         
         [SerializeField] private float sprintMagnitude = 1.5f;
-        
+
         public Camera Camera => camera;
         [SerializeField] private Camera camera;
         
