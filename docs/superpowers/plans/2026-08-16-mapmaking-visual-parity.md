@@ -51,10 +51,11 @@ Modify: moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/GetMapDa
 Modify: moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectGameObjectDatastore.cs … 回転・スケール適用
 Modify: moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectGameObject.cs   … HPバーの逆スケール補正
 Modify: moorestech_client/Assets/Scripts/Editor/MapAuthoring/MapAuthoringExporter.cs               … 実Transformを書き出し
+Modify: moorestech_client/Assets/Scripts/Editor/MapAuthoring/MapAuthoringImporter.cs               … import時にTransform適用
 Modify: moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/MapInfoJsonBuilderTest.cs
 Modify: moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/GetMapDataProtocolTest.cs
 Create: scripts/mapmaking-parity/migrate_template_map.py                                           … template map.json形式移行
-Modify: ../moorestech_master/server_v8/map/map.json                                                … 移行実行結果
+Modify: ../moorestech_master/server_v8/map/map.json ほかテスト用map.json 3件                        … 移行実行結果
 
 [Phase B: 樹種・岩登録]
 Create: scripts/mapmaking-parity/extract_mapmaking_species.py   … MapMakingプリセット→species-inventory.json
@@ -186,12 +187,14 @@ public void 回転スケールとsink畳み込みがmapObjectsへ出力される
 
         // 回転はオイラー角(度)・スケールは3軸。Transformと同じ3要素を運ぶ（ADR-0010）
         // Rotation as euler degrees, scale on all axes: the same triple a Transform holds (ADR-0010)
-        [JsonProperty("rotX")] public float RotX;
-        [JsonProperty("rotY")] public float RotY;
-        [JsonProperty("rotZ")] public float RotZ;
-        [JsonProperty("scaleX")] public float ScaleX;
-        [JsonProperty("scaleY")] public float ScaleY;
-        [JsonProperty("scaleZ")] public float ScaleZ;
+        // Required.Always: 未移行データの欠損キーが黙ってScale=0になる無言破壊をロード時に即例外へ変える
+        // Required.Always turns a missing key in unmigrated data into a load-time failure instead of a silent Scale=0
+        [JsonProperty("rotX", Required = Required.Always)] public float RotX;
+        [JsonProperty("rotY", Required = Required.Always)] public float RotY;
+        [JsonProperty("rotZ", Required = Required.Always)] public float RotZ;
+        [JsonProperty("scaleX", Required = Required.Always)] public float ScaleX;
+        [JsonProperty("scaleY", Required = Required.Always)] public float ScaleY;
+        [JsonProperty("scaleZ", Required = Required.Always)] public float ScaleZ;
 
         [JsonIgnore] public Vector3 Position => new(X, Y, Z);
         [JsonIgnore] public Quaternion Rotation => Quaternion.Euler(RotX, RotY, RotZ);
@@ -232,10 +235,11 @@ public void 回転スケールとsink畳み込みがmapObjectsへ出力される
 - Modify: `../moorestech_master/server_v8/map/map.json`（スクリプト実行結果）
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/map/map.json`（同上）
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ConfigOnly/map/map.json`（同上）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/map/map.json`（同上・379件。`EditModeInPlayingTestUtil.cs:31/83`が同じMapInfoJsonローダーで読むため、漏らすとScale=(0,0,0)の無言破壊になる）
 
 **Interfaces:**
 - Consumes: Task 1 のJSONフィールド名（`rotX/rotY/rotZ/scaleX/scaleY/scaleZ`）
-- Produces: 対象3ファイルの全mapObjectsに rotation=0/scale=1 が付与されたmap.json
+- Produces: 対象4ファイルの全mapObjectsに rotation=0/scale=1 が付与されたmap.json
 
 - [ ] **Step 1: 移行スクリプトを書く**
 
@@ -254,6 +258,7 @@ TARGETS = [
     REPO.parent / "moorestech_master/server_v8/map/map.json",
     REPO / "moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/map/map.json",
     REPO / "moorestech_server/Assets/Scripts/Tests.Module/TestMod/ConfigOnly/map/map.json",
+    REPO / "moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/map/map.json",
 ]
 
 def migrate(target: Path) -> None:
@@ -277,7 +282,7 @@ if __name__ == "__main__":
 ```
 
 - [ ] **Step 2: masterリポジトリにブランチを切る** — Run: `git -C ../moorestech_master checkout -b feat/mapmaking-visual-parity`
-- [ ] **Step 3: 実行と検証** — Run: `python3 scripts/mapmaking-parity/migrate_template_map.py` → Expected: 3ファイル分の `migrated N mapObjects`（master templateは2002件）。`python3 -c "import json;d=json.load(open('../moorestech_master/server_v8/map/map.json'));assert all('scaleY' in o for o in d['mapObjects'])"` がエラーなし
+- [ ] **Step 3: 実行と検証** — Run: `python3 scripts/mapmaking-parity/migrate_template_map.py` → Expected: 4ファイル分の `migrated N mapObjects`（master template 2002件・EditModeInPlayingTest 379件）。`python3 -c "import json;d=json.load(open('../moorestech_master/server_v8/map/map.json'));assert all('scaleY' in o for o in d['mapObjects'])"` がエラーなし
 - [ ] **Step 4: コミット** — moorestech側: `git add scripts/mapmaking-parity/migrate_template_map.py moorestech_server/Assets/Scripts/Tests.Module && git commit -m "feat: map.jsonのTransform形式移行スクリプトとテストデータ移行"`。master側: `git -C ../moorestech_master add server_v8/map/map.json && git -C ../moorestech_master commit -m "feat: mapObjectsへTransform3要素を付与(identity)"`
 
 ---
@@ -359,6 +364,7 @@ if __name__ == "__main__":
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectGameObjectDatastore.cs:81`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectGameObject.cs`
 - Modify: `moorestech_client/Assets/Scripts/Editor/MapAuthoring/MapAuthoringExporter.cs:99-107`
+- Modify: `moorestech_client/Assets/Scripts/Editor/MapAuthoring/MapAuthoringImporter.cs:79`
 
 **Interfaces:**
 - Consumes: `MapObjectLayoutMessagePack.RotX..ScaleZ`（Task 3）
@@ -466,7 +472,7 @@ if __name__ == "__main__":
   - mapObjectGuid: `uuid.uuid5(uuid.UUID('a3c7e0d4-0000-4000-8000-mapmaking000'), f"moorestech.mapobject.{key}")` 形式の決定論採番（再実行で不変）。※名前空間UUIDはスクリプト内定数として有効なUUIDを1つ固定する
   - prototypesの変換: Unity YAMLのフィールド名→スキーマキーは同名（`VanillaSchema/mapGenerate/treePlacementConfig.yml` を正としてキー一覧をスクリプトに定数化）。`Vector2 {x,y}`→`[x,y]`。`prefabs` guid配列→順序保存で `mapObjects` guid配列。ネスト（`densityConfig`/`understoryConfig`/`rockProximityConfig`/`slopeFilter`/`curvatureFilter`/`clusterNoise`/`clusterNoise2`）も全キー転写。**スキーマに無いキー・見つからないキーは即例外**（黙って落とさない）
 - [ ] **Step 2: 実行** — Run: `python3 scripts/mapmaking-parity/extract_mapmaking_species.py` → Expected: `species-inventory.json` 生成。件数目安: species 約94（tree約67/rock約24/pebble約3）、forest prototypes 7・grassland 18・savanna 2・mesa 2、jungle speciesFill 7・woods 4
-- [ ] **Step 3: 既存portとの突合で検証** — forest prototype 0 の抽出結果と、現行 `../moorestech_master/.../master/generation.json` の `algorithmParam.forest.treePlacement.prototypes[0]` を `mapObjects` 以外のキーで比較するワンライナーを実行し、差分をレビューする（既存portは同じプリセット由来なので原則一致。差分があればMapMaking側のその後の調整であり、プリセット現在値を正とする）
+- [ ] **Step 3: 既存portとの突合で検証** — forest prototype 0 の抽出結果と、現行 `../moorestech_master/.../master/generation.json` の `algorithmParam.forest.treePlacement.prototypes[0]` を `mapObjects` 以外のキーで比較するワンライナーを実行し、差分をレビューする（既存portは同じプリセット由来なので原則一致。差分があればMapMaking側のその後の調整であり、プリセット現在値を正とする）。注: 現行generation.jsonのforestは既に7プロトタイプ（0-4=木系、5-6=小石系）あり、突合は同種プロトタイプ同士で行う
 - [ ] **Step 4: コミット** — `git add scripts/mapmaking-parity/ && git commit -m "feat: MapMakingプリセットの樹種インベントリ抽出"`
 
 ---
@@ -604,7 +610,7 @@ public class MapObjectAddressableLoadTest
 
 （`MapObjectMaster` の全要素列挙プロパティ名は実装時に `Core.Master.MapObjectMaster` を確認して合わせる。マスタロード初期化はTests内の既存前例に従う）
 
-- [ ] **Step 2: テスト実行して失敗確認** — Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MapObjectAddressableLoadTest"` → Expected: FAIL（新アドレス約94件がload失敗）
+- [ ] **Step 2: テスト実行して失敗確認** — Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MapObjectAddressableLoadTest"` → Expected: FAIL（新アドレス約94件がload失敗）。**EditModeでのAddressables実ロード（`AddressableLoader.LoadDefault`）が動く前例は未確認**のため、動かない場合は `AddressableAssetSettings` のentry検査（アドレス→アセットguid→`AssetDatabase.LoadAssetAtPath`）へテスト実装を切り替える
 - [ ] **Step 3: Editorスクリプト3ファイルを実装** — 上記構造どおり。`MapObjectWrapperGeneratorMenu.cs` は `[MenuItem("Tools/MapObjectWrapper/Generate All")]` で `species-inventory.json`（パスは `Application.dataPath + "/../../scripts/mapmaking-parity/species-inventory.json"`）を読み全件生成。各ファイル200行以下・エディタ専用のため `Editor/` 配下（asmdefはMapAuthoringと同じEditorアセンブリに同居）
 - [ ] **Step 4: コンパイル** — Run: `uloop compile --project-path ./moorestech_client` → Expected: エラー0
 - [ ] **Step 5: 生成実行** — Run: `uloop execute-menu-item` で `Tools/MapObjectWrapper/Generate All`（またはexecute-dynamic-codeで同メソッド呼び出し）→ Expected: コンソールに生成件数ログ・エラー0（`uloop get-logs --log-type Error` で確認）
@@ -761,6 +767,12 @@ public void 距離場を渡すとtreeDistanceFilter有効エントリの密度�
 - `.decisions/2026-08-16-草の距離場フィルタ復元を今回スコープに含める.md`
 - `.decisions/2026-08-16-BushのRayTarget欠落修正は別タスクに切る.md`（本planのスコープ外根拠）
 
+レンズ該当ファイルの改修判断（ledger-gate掲載義務分）:
+- `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/MapData/MapObjectLayoutMessagePack.cs`: 既存Key(0)-(4)に連番でKey(5)-(10)を追加し旧コンストラクタは削除・全呼び出し側一括更新（出所: ユーザー裁定 2026-08-16 Transform3要素 + agent前提: プロトコル互換フォールバック禁止の既存原則）
+- `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/GetMapDataProtocol.cs`: Layout応答へ新フィールドを素通し転記するのみ。新規プロトコル・イベントは作らない（既存va:mapDataの拡張であり可変状態同期の3点セット新設対象ではない: 配置は起動時静的データ）（出所: agent前提・前例=既存Layout転記）
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectGameObjectDatastore.cs`: Instantiate時にTransform適用のみ追加。購読構造・初期化フローは不変（出所: agent前提・前例=既存InstantiateMapObjectsFromLayoutAsync）
+- `VanillaSchema/generation.yml:340,343`: 死にフラグ`generateDetail`/`generateTexture`をスキーマから削除（どこからも読まれていない実測に基づく。`generateObject`は配線済みのため残す）（出所: agent前提・根拠=server/client全grepで参照0件、AGENTS.md「デバッグ/テスト専用publicを残さない」）
+
 planning中の判断（出所: agent前提。異議があれば実装前に裁定へ）:
 - 回転のワイヤ表現はオイラー角(度)のflat 6フィールド（`rotX..scaleZ`）: 既存 `x/y/z` のflat前例に合わせた。quaternionは非可読で、生成側はY回転のみのため精度問題なし
 - 岩の採掘値: hp100・石ドロップ1-4・miningToolsは木と同一guid（複製統一裁定の具体化。バランスは後からJSON編集）
@@ -774,7 +786,8 @@ planning中の判断（出所: agent前提。異議があれば実装前に裁�
 - ラッパープレハブの配置は `AddressableResources/Environment/{Tree,Rock}/<パック>/`: Bush.prefab（AddressableResources直下）の前例に従いpublic側へ置く（BK実体への参照はguidのみでBush前例と同じ）
 - マスタ生成型の直読は `Visual/Source/` 層に集約（`PlacementGuidTable` 新設。`BiomeVisualSectionTable` が唯一の直読点という既存制約を層単位の集約として維持）
 - MapAuthoringImporterにもTransform適用を追加（export/import往復でrot/scaleが落ちるのは機能退化のため。既存identityデータでは無挙動変化）
-- テストデータ（Tests.Module/TestMod配下のmap.json 2件）も移行対象に含める（テスト用DIコンテナが同じMapInfoJsonローダーを通るため）
+- テストデータ（Tests.Module/TestMod配下2件＋Client.Tests/EditModeInPlayingTest/ServerData 1件）も移行対象に含める（テスト用DIコンテナが同じMapInfoJsonローダーを通るため。漏らすと欠損キーが黙って0になりScale=(0,0,0)の無言破壊）
+- 新6フィールドは `Required.Always` でfail-fast化（出所: シミュレーター予測（判事レビュー2026-08-16）→agent採用。既存x/y/zに前例は無いが、移行漏れ=無言Scale0という実害クラスをロード時例外に変える。planの他所の即例外方針と整合）
 
 ## 機能パリティ死活表（現在使える操作が計画後も生きるか）
 
