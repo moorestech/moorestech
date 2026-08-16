@@ -1,5 +1,5 @@
 ---
-model: opus
+model: sonnet
 ---
 
 # Investigator: チャンク内一貫性検査

@@ -2,12 +2,8 @@
 extensions:
   - .cs
 keywords:
-  - "get;"
-  - "set;"
-  - "get {"
-  - "get =>"
   - "=> _"
-  - "return _"
+  - "get { return _"
 model: sonnet
 ---
 

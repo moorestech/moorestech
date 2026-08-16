@@ -21,6 +21,8 @@ lenses/*.md 先頭YAMLの各グループはAND結合（グループ内はOR、�
       - .cs
     keywords:         # diff追加行 or 変更ファイルパスへの部分一致
       - "DataStore"
+    keywords_all:     # keywordsと同じ対象への部分一致だが、列挙した全語の出現が必要（AND）
+      - "MasterHolder"
     model: opus       # 省略時 opus
     always: true      # 無条件発火
     ---
@@ -89,10 +91,14 @@ def matches(header: dict[str, list[str]], files: list[str], added: str) -> bool:
     paths = [p for p in header.get("paths", []) if p]
     exts = [e for e in header.get("extensions", []) if e]
     kws = [k for k in header.get("keywords", []) if k]
+    kws_all = [k for k in header.get("keywords_all", []) if k]
     path_ok = (not paths) or any(re.search(p, f) for p in paths for f in files)
     ext_ok = (not exts) or any(f.endswith(ext) for ext in exts for f in files)
     kw_ok = (not kws) or any(kw in added or any(kw in f for f in files) for kw in kws)
-    return path_ok and ext_ok and kw_ok
+    # keywords_all は列挙全語の出現を要求（採用ゼロレンズの発火厳格化・2026-08-16裁定）
+    # keywords_all requires every listed term to appear (stricter firing per 2026-08-16 adjudication)
+    kw_all_ok = all(kw in added or any(kw in f for f in files) for kw in kws_all)
+    return path_ok and ext_ok and kw_ok and kw_all_ok
 
 
 def main(argv: list[str]) -> int:
