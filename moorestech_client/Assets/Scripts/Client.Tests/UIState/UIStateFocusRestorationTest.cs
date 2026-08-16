@@ -3,10 +3,8 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control.ViewMode;
-using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
-using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
@@ -102,13 +100,6 @@ namespace Client.Tests.UIState
             var pickService = new PlacementTargetPickService(null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
             return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier, viewModeController), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView(), hotbarInputService);
-        }
-
-        // 数字キー状態はサービス経由でしか触れないため、テストも本番と同じ組み立てで生成する
-        // The digit-key state is reachable only through the service, so tests build it the same way production does
-        private static HotbarTapInputService CreateHotbarTapInputService(PlaceSystemStateController placeStateController)
-        {
-            return new HotbarTapInputService(new ClientHotbarDatastore(), null, placeStateController, new HotbarKeyInput());
         }
 
         private DeleteObjectState CreateDeleteObjectState(FakePlayerCameraInteractionApplier applier, PlayerViewModeController viewModeController)

@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Client.Game.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control.ViewMode;
+using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
+using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Tests.UIState.Fakes;
 using Client.Tests.ViewMode;
 using UnityEngine;
@@ -44,6 +47,13 @@ namespace Client.Tests.UIState
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
             AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.ScreenCenter);
             base.TearDown();
+        }
+
+        // 数字キー状態はサービス経由でしか触れないため、テストも本番と同じ組み立てで生成する
+        // The digit-key state is reachable only through the service, so tests build it the same way production does
+        protected static HotbarTapInputService CreateHotbarTapInputService(PlaceSystemStateController placeStateController)
+        {
+            return new HotbarTapInputService(new ClientHotbarDatastore(), null, placeStateController, new HotbarKeyInput());
         }
 
         protected static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier)
