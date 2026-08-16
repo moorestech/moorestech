@@ -3,12 +3,6 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Control.ViewMode
 {
-    public enum AimPointMode
-    {
-        Mouse,
-        ScreenCenter,
-    }
-
     // 三人称時の照準ソース。基盤側では判断せず具体側がプッシュする
     // Third-person aim source; the concrete side pushes it, not this base
     public enum ThirdPersonAimSource
@@ -36,20 +30,22 @@ namespace Client.Game.InGame.Control.ViewMode
             _thirdPersonAimSource = aimSource;
         }
 
-        public static AimPointMode GetCurrentMode()
+        /// <summary>
+        ///     2入力から実際に適用される照準ソースを返す（観測用）
+        ///     Returns the aim source actually applied from the two inputs (for observation)
+        /// </summary>
+        public static ThirdPersonAimSource GetEffectiveAimSource()
         {
             // 一人称は照準ソースに関わらず常に画面中央
             // First person always aims at screen center regardless of aim source
-            if (_viewMode == PlayerViewMode.FirstPerson) return AimPointMode.ScreenCenter;
+            if (_viewMode == PlayerViewMode.FirstPerson) return ThirdPersonAimSource.ScreenCenter;
 
-            return _thirdPersonAimSource == ThirdPersonAimSource.Cursor
-                ? AimPointMode.Mouse
-                : AimPointMode.ScreenCenter;
+            return _thirdPersonAimSource;
         }
 
         public static Vector3 GetAimScreenPoint()
         {
-            if (GetCurrentMode() == AimPointMode.ScreenCenter) return new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+            if (GetEffectiveAimSource() == ThirdPersonAimSource.ScreenCenter) return ScreenCenter.GetPosition();
 
             return HybridInput.GetMousePosition();
         }

@@ -72,8 +72,8 @@ namespace Client.Game.InGame.UI.UIState.State.CameraPolicy
 
         public void UpdateGameplayFreeCursorInput()
         {
-            // Gameplayを所有していない間の呼び出しでゾーンを取り戻さない
-            // A call while this zone is not owned must not reclaim it
+            // 非所有中はゾーンを取り戻さない
+            // A call while unowned must not reclaim the zone
             if (_currentZone != PolicyZone.Gameplay) return;
 
             // 一人称は左Altを受け付けない（クロスヘア＋画面中央照準で一貫させる）
@@ -90,8 +90,8 @@ namespace Client.Game.InGame.UI.UIState.State.CameraPolicy
                 _cameraInteractionApplier.WarpCursorToScreenCenter();
             }
 
-            // ホールドしていない状態の解放通知では余計な再適用をしない
-            // A release without an active hold must not push a redundant re-apply
+            // 非ホールド時の解放は再適用しない
+            // A release without a hold pushes no re-apply
             if (HybridInput.GetKeyUp(KeyCode.LeftAlt) && _isGameplayAltHeld)
             {
                 _isGameplayAltHeld = false;
@@ -110,16 +110,16 @@ namespace Client.Game.InGame.UI.UIState.State.CameraPolicy
 
         public void RestoreAfterApplicationFocus()
         {
-            // 右ドラッグと左Altホールドを破棄し現ゾーンへ戻す
-            // Discards any in-progress right-drag and Alt hold, then reapplies the current zone policy
+            // ホールドを破棄し現ゾーンへ戻す
+            // Discards the hold and reapplies the current zone
             _isGameplayAltHeld = false;
             ApplyZonePolicy();
         }
 
         private void OnViewModeChanged(PlayerViewMode mode)
         {
-            // Gameplayでホールド中の視点切替はホールドを破棄してから再適用する
-            // A view toggle while holding Alt in Gameplay discards the hold before reapplying
+            // ホールド中の視点切替は破棄して再適用
+            // A view toggle during a hold discards it, then reapplies
             if (_currentZone == PolicyZone.Gameplay && _isGameplayAltHeld)
             {
                 _isGameplayAltHeld = false;

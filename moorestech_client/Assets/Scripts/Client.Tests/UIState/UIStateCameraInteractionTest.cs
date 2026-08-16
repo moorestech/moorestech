@@ -103,8 +103,8 @@ namespace Client.Tests.UIState
             var state = CreateGameScreenState(applier);
             state.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
 
-            // 左Alt押下がGetNextUpdateからサービスへ届いていることだけを確認する
-            // Verify only that the left Alt press reaches the service from GetNextUpdate
+            // 左Alt押下がサービスへ届くことだけ見る
+            // Verify only that the left Alt press reaches the service
             applier.Calls.Clear();
             Press(KeyboardDevice.leftAltKey);
             state.GetNextUpdate();

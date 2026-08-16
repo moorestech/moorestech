@@ -3,13 +3,11 @@ using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Tests.UIState.Fakes;
 using Client.Tests.ViewMode;
 using NUnit.Framework;
-using UnityEngine.InputSystem;
 
 namespace Client.Tests.UIState.CameraPolicy
 {
-    public class UiStateCameraPolicyServiceTest : InputTestFixture
+    public class UiStateCameraPolicyServiceTest : UIStateTestFixtureBase
     {
-        private Mouse _mouse;
         private FakePlayerCameraInteractionApplier _applier;
         private PlayerViewModeController _viewModeController;
         private UiStateCameraPolicyService _service;
@@ -17,19 +15,9 @@ namespace Client.Tests.UIState.CameraPolicy
         public override void Setup()
         {
             base.Setup();
-            _mouse = InputSystem.AddDevice<Mouse>();
             _applier = new FakePlayerCameraInteractionApplier();
             _viewModeController = new PlayerViewModeController(new FakePlayerViewApplier());
-            _service = new UiStateCameraPolicyService(_applier, _viewModeController);
-        }
-
-        public override void TearDown()
-        {
-            // 静的状態のAimPointProviderをテスト間で持ち越さない
-            // Reset the static AimPointProvider so no state leaks across tests
-            AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
-            AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.ScreenCenter);
-            base.TearDown();
+            _service = CreateCameraPolicy(_applier, _viewModeController);
         }
 
         [Test]
@@ -63,12 +51,12 @@ namespace Client.Tests.UIState.CameraPolicy
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, _applier.Calls);
 
             _applier.Calls.Clear();
-            Press(_mouse.rightButton);
+            Press(MouseDevice.rightButton);
             _service.UpdateRotationInput();
             CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, _applier.Calls);
 
             _applier.Calls.Clear();
-            Release(_mouse.rightButton);
+            Release(MouseDevice.rightButton);
             _service.UpdateRotationInput();
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, _applier.Calls);
         }
@@ -83,9 +71,9 @@ namespace Client.Tests.UIState.CameraPolicy
             // FPSは右クリックで状態変化なし
             // Right clicks cause no state change in FPS
             _applier.Calls.Clear();
-            Press(_mouse.rightButton);
+            Press(MouseDevice.rightButton);
             _service.UpdateRotationInput();
-            Release(_mouse.rightButton);
+            Release(MouseDevice.rightButton);
             _service.UpdateRotationInput();
             CollectionAssert.IsEmpty(_applier.Calls);
         }
@@ -137,29 +125,29 @@ namespace Client.Tests.UIState.CameraPolicy
         public void BuildZoneKeepsCursorAimSourceDuringRightDrag()
         {
             _service.EnterBuildMode();
-            Assert.AreEqual(AimPointMode.Mouse, AimPointProvider.GetCurrentMode());
+            Assert.AreEqual(ThirdPersonAimSource.Cursor, AimPointProvider.GetEffectiveAimSource());
 
             // 右ドラッグで回転しても照準はカーソルのまま（プレビューが画面中央へ跳ねない）
             // The aim stays on the cursor even while right-drag rotates, so the preview never jumps to the center
-            Press(_mouse.rightButton);
+            Press(MouseDevice.rightButton);
             _service.UpdateRotationInput();
-            Assert.AreEqual(AimPointMode.Mouse, AimPointProvider.GetCurrentMode());
+            Assert.AreEqual(ThirdPersonAimSource.Cursor, AimPointProvider.GetEffectiveAimSource());
         }
 
         [Test]
         public void MenuAndNeutralZonesKeepCursorAimSource()
         {
             _service.EnterGameplay();
-            Assert.AreEqual(AimPointMode.ScreenCenter, AimPointProvider.GetCurrentMode());
+            Assert.AreEqual(ThirdPersonAimSource.ScreenCenter, AimPointProvider.GetEffectiveAimSource());
 
             // 自由カーソルのゾーンで画面中央を狙うとパネル裏の対象がフォーカスされる
             // Centering the aim in a free-cursor zone would focus targets hidden behind panels
             _service.EnterMenu();
-            Assert.AreEqual(AimPointMode.Mouse, AimPointProvider.GetCurrentMode());
+            Assert.AreEqual(ThirdPersonAimSource.Cursor, AimPointProvider.GetEffectiveAimSource());
 
             _service.EnterGameplay();
             _service.ExitToNeutral();
-            Assert.AreEqual(AimPointMode.Mouse, AimPointProvider.GetCurrentMode());
+            Assert.AreEqual(ThirdPersonAimSource.Cursor, AimPointProvider.GetEffectiveAimSource());
         }
     }
 }

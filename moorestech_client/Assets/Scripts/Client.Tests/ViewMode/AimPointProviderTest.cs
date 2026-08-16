@@ -26,7 +26,7 @@ namespace Client.Tests.ViewMode
         public void FirstPersonUsesScreenCenterAim()
         {
             AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
-            Assert.AreEqual(AimPointMode.ScreenCenter, AimPointProvider.GetCurrentMode());
+            Assert.AreEqual(ThirdPersonAimSource.ScreenCenter, AimPointProvider.GetEffectiveAimSource());
         }
 
         [Test]
@@ -34,7 +34,7 @@ namespace Client.Tests.ViewMode
         {
             AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
             AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.Cursor);
-            Assert.AreEqual(AimPointMode.ScreenCenter, AimPointProvider.GetCurrentMode());
+            Assert.AreEqual(ThirdPersonAimSource.ScreenCenter, AimPointProvider.GetEffectiveAimSource());
         }
 
         [Test]
@@ -42,7 +42,7 @@ namespace Client.Tests.ViewMode
         {
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
             AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.ScreenCenter);
-            Assert.AreEqual(AimPointMode.ScreenCenter, AimPointProvider.GetCurrentMode());
+            Assert.AreEqual(ThirdPersonAimSource.ScreenCenter, AimPointProvider.GetEffectiveAimSource());
         }
 
         [Test]
@@ -50,7 +50,7 @@ namespace Client.Tests.ViewMode
         {
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
             AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.Cursor);
-            Assert.AreEqual(AimPointMode.Mouse, AimPointProvider.GetCurrentMode());
+            Assert.AreEqual(ThirdPersonAimSource.Cursor, AimPointProvider.GetEffectiveAimSource());
         }
     }
 }

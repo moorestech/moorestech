@@ -16,8 +16,8 @@ using UnityEngine.InputSystem;
 namespace Client.Tests.UIState
 {
     /// <summary>
-    ///     UIステートを直接組み立てるテストの共通土台。GameObjectの生成破棄と静的状態の後始末を担う
-    ///     Shared base for tests that build UI states directly: GameObject lifecycle and static state cleanup
+    ///     UIステートを直接組み立てるテストの共通土台
+    ///     Shared base for tests that build UI states directly
     /// </summary>
     public abstract class UIStateTestFixtureBase : InputTestFixture
     {
@@ -40,8 +40,8 @@ namespace Client.Tests.UIState
                 if (gameObject != null) Object.DestroyImmediate(gameObject);
             _objects.Clear();
 
-            // 静的状態のAimPointProviderをテスト間で持ち越さない
-            // Reset the static AimPointProvider so no state leaks across tests
+            // 静的な照準状態を持ち越さない
+            // Reset the static aim state so nothing leaks across tests
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
             AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.ScreenCenter);
             base.TearDown();
