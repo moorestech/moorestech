@@ -171,9 +171,12 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
       <BASE_REF>...HEAD -- . \
       ':(exclude)*.meta' ':(exclude)*.prefab' ':(exclude)*.asset' ':(exclude)*.unity' \
       ':(exclude)*.png' ':(exclude)*.jpg' ':(exclude)*.controller' ':(exclude)*.mat' ':(exclude)*.fbx' \
+      ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs' \
       > <$RUNDIRの実値>/patch.diff
 
 `<BASE_REF>` はStep 1.5で確定した実値。yml/jsonは残す（master-data系レンズの守備範囲のため）。
+**プレイテストシナリオの `.cs` も除外する** — 使い捨ての操作台本をプロダクトコードの規約で裁かない
+（ユーザー裁定 2026-08-16 / PR#1137-F12）。moores-code-review Step 1と同一のpathspecで揃える
 
 **フラグは省略禁止（本体パーサ保護）** — このpatchは `deterministic_checks.py` とレンズ/reviewer/Codexが読む唯一の
 差分実体であり、次はいずれもユーザー側git設定で有効化され得て、**patchを静かに痩せさせる**:

@@ -95,6 +95,17 @@ class SkillWiringTest(unittest.TestCase):
             self.assertIn("必ず回帰テストを実行", head,
                           f"scripts/{s.name} に回帰テスト必須バナーが無い")
 
+    def test_playtest_scenarios_are_excluded_from_patch(self):
+        # patch生成のpathspecからプレイテストシナリオ除外が消えていないこと
+        # （消えると使い捨ての操作台本が再びレビュー対象になる。ユーザー裁定 2026-08-16 / PR#1137-F12）
+        # The playtest-scenario exclusion must stay in every patch-building pathspec
+        pathspec = "':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'"
+        self.assertIn(pathspec, SKILL_MD,
+                      "moores-code-review Step 1 のpatch生成からプレイテストシナリオ除外が消えている")
+        independent = (REPO_ROOT / ".agents/skills/pr-independent-review/SKILL.md").read_text(encoding="utf-8")
+        self.assertIn(pathspec, independent,
+                      "pr-independent-review Step 3 のpatch生成からプレイテストシナリオ除外が消えている")
+
     def test_every_reviewer_and_lens_has_frontmatter(self):
         # selector発見可能性: reviewers/lensesはfrontmatter（extensions等）を持つこと
         # Selector discoverability: reviewers/lenses must carry frontmatter
