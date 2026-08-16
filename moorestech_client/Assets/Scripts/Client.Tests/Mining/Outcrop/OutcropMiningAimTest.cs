@@ -12,13 +12,13 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 
-namespace Client.Tests.Mining
+namespace Client.Tests.Mining.Outcrop
 {
     /// <summary>
     ///     露頭解決と優先順を検証
     ///     Verify outcrop resolution and priority
     /// </summary>
-    public class MapObjectMiningAimTestForOutcrop : InputTestFixture
+    public class OutcropMiningAimTest : InputTestFixture
     {
         private readonly List<GameObject> _previousMainCameraObjects = new();
         private GameObject _cameraObject;
@@ -92,58 +92,50 @@ namespace Client.Tests.Mining
         }
 
         [Test]
-        public void OutcropRayTargetだけのヒットは露頭をフォーカスする()
+        public void 露頭マーカーのヒットは共通マーカー経由で露頭をフォーカスする()
         {
-            var outcrop = CreateOutcropTarget(false);
-            var context = RunMiningUpdate();
+            var collider = CreateAimedCollider("OutcropTarget");
+            var outcrop = collider.gameObject.AddComponent<OutcropGameObject>();
+            collider.gameObject.AddComponent<OutcropRayTarget>().Initialize(outcrop);
+            Physics.SyncTransforms();
 
             // 露頭マーカーから解決
             // Resolve from outcrop marker
-            Assert.AreSame(outcrop, context.CurrentFocusTarget);
+            Assert.AreSame(outcrop, RunMiningUpdate().CurrentFocusTarget);
         }
 
         [Test]
-        public void 同じヒット対象に両マーカーがある場合はMapObjectを優先する()
+        public void mapObjectマーカーのヒットは同じ共通マーカー経由でmapObjectをフォーカスする()
         {
-            var outcrop = CreateOutcropTarget(true);
-            var expectedMapObject = _targetObject.GetComponent<MapObjectRayTarget>().MapObjectGameObject;
-            var context = RunMiningUpdate();
+            var collider = CreateAimedCollider("MapObjectTarget");
+            var mapObject = collider.gameObject.AddComponent<MapObjectGameObject>();
+            collider.gameObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject);
+            Physics.SyncTransforms();
 
-            // 同居時もmapObject優先
-            // Prefer mapObject when coexisting
-            Assert.AreNotSame(outcrop, context.CurrentFocusTarget);
-            Assert.AreSame(expectedMapObject, context.CurrentFocusTarget);
+            // 解決経路が対象種別によらず1本であることを固定する
+            // Pin that the resolution path is a single one regardless of target kind
+            Assert.AreSame(mapObject, RunMiningUpdate().CurrentFocusTarget);
         }
 
-        private OutcropGameObject CreateOutcropTarget(bool includeMapObjectMarker)
+        private Collider CreateAimedCollider(string name)
         {
             var center = new Vector2(Screen.width / 2f, Screen.height / 2f);
             Set(_mouse.position, center);
             var ray = _cameraObject.GetComponent<Camera>().ScreenPointToRay(center);
-            _targetObject = new GameObject("OutcropTarget");
+            _targetObject = new GameObject(name);
             _targetObject.layer = LayerConst.MapObjectLayer;
             _targetObject.transform.position = ray.GetPoint(1f);
-            _targetObject.AddComponent<SphereCollider>().radius = 0.05f;
-
-            // 同一Colliderで優先順検証
-            // Verify priority on same collider
-            var outcrop = _targetObject.AddComponent<OutcropGameObject>();
-            _targetObject.AddComponent<OutcropRayTarget>().Initialize(outcrop);
-            if (includeMapObjectMarker)
-            {
-                var mapObject = _targetObject.AddComponent<MapObjectGameObject>();
-                _targetObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject);
-            }
-            Physics.SyncTransforms();
-            return outcrop;
+            var sphereCollider = _targetObject.AddComponent<SphereCollider>();
+            sphereCollider.radius = 0.05f;
+            return sphereCollider;
         }
 
-        private MapObjectMiningControllerContext RunMiningUpdate()
+        private MiningControllerContext RunMiningUpdate()
         {
             _playerObject.transform.position = _targetObject.transform.position;
-            _miningObject = new GameObject("MapObjectMiningController");
-            var controller = _miningObject.AddComponent<MapObjectMiningController>();
-            var context = new MapObjectMiningControllerContext(null);
+            _miningObject = new GameObject("MiningController");
+            var controller = _miningObject.AddComponent<MiningController>();
+            var context = new MiningControllerContext(null);
             SetField(controller, "_context", context);
             SetField(controller, "_currentState", new StableMiningState());
 
@@ -169,9 +161,9 @@ namespace Client.Tests.Mining
             targetType.GetField($"<{propertyName}>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, value);
         }
 
-        private class StableMiningState : IMapObjectMiningState
+        private class StableMiningState : IMiningState
         {
-            public IMapObjectMiningState GetNextUpdate(MapObjectMiningControllerContext context, float dt)
+            public IMiningState GetNextUpdate(MiningControllerContext context, float dt)
             {
                 return this;
             }

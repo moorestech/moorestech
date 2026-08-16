@@ -71,6 +71,7 @@ using Game.PlayerRiding.Interface;
 using Game.Train.Unit;
 using Game.UnlockState;
 using UnityEngine;
+using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
@@ -101,7 +102,10 @@ namespace Client.Starter
         public EnvironmentRoot EnvironmentRoot => environmentRoot;
         
         [SerializeField] private HotBarView hotBarView;
-        [SerializeField] private MapObjectMiningController mapObjectMiningController;
+        // 対象非依存へrename済み。prefabに残る旧キーからそのまま引き継ぐ
+        // Renamed to a target-agnostic name; the old key still in the prefab carries over as is
+        [FormerlySerializedAs("mapObjectMiningController")]
+        [SerializeField] private MiningController miningController;
         [SerializeField] private PlayerSystemContainer playerSystemContainer;
         
         [SerializeField] private EntityObjectDatastore entityObjectDatastore;
@@ -303,7 +307,7 @@ namespace Client.Starter
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(networkDisconnectPresenter);
-            builder.RegisterComponent(mapObjectMiningController);
+            builder.RegisterComponent(miningController);
             
             builder.RegisterComponent(entityObjectDatastore);
             builder.RegisterComponent(trainCarObjectDatastore);
@@ -317,8 +321,8 @@ namespace Client.Starter
             builder.RegisterComponent(challengeListView);
             builder.RegisterComponent(researchTreeViewManager);
 
-            builder.RegisterComponent<IMapObjectPin>(mapObjectPin);
-            builder.RegisterComponent<IVeinPin>(veinPin);
+            builder.RegisterComponent(mapObjectPin).AsSelf().As<ITutorialWorldPin>();
+            builder.RegisterComponent(veinPin).AsSelf().As<ITutorialWorldPin>();
             builder.RegisterComponent(uiHighlightTutorialManager);
             builder.RegisterComponent(keyControlTutorialManager);
             builder.RegisterComponent(itemViewHighLightTutorialManager);

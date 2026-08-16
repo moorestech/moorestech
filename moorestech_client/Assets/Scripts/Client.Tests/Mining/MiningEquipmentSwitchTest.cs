@@ -21,7 +21,7 @@ using UnityEngine.UI;
 
 namespace Client.Tests.Mining
 {
-    public class MapObjectMiningEquipmentSwitchTest : InputTestFixture
+    public class MiningEquipmentSwitchTest : InputTestFixture
     {
         // ForUnitTestの採掘可能mapObjectと許可ツールを識別する
         // Identify the ForUnitTest minable mapObject and its allowed tool
@@ -90,9 +90,9 @@ namespace Client.Tests.Mining
         [Test]
         public void 採掘中に装備を持ち替えるとフォーカス状態へ戻る()
         {
-            var context = new MapObjectMiningControllerContext(CreateEquipmentHoldingTool());
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool());
             context.SetFocusTarget(CreateMiningMapObject());
-            var miningState = new MapObjectMiningMiningState(context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
+            var miningState = new MiningProgressState(context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
             PressLeftClick();
             // 装備が変わらない限り採掘は継続する（この土台が無いと切替検知の失敗を検出できない）
             // Mining continues while the equipment is unchanged; without this baseline a broken switch check is invisible
@@ -100,20 +100,20 @@ namespace Client.Tests.Mining
             // サーバーは現在の装備でGUID照合するため、素手へ持ち替えた時点で進捗を進めてはいけない
             // The server matches the GUID of the current equipment, so progress must stop the moment bare hands are selected
             context.LocalPlayerEquipment.ApplySelected(IEquipmentInventory.BareHandsIndex);
-            Assert.IsInstanceOf<MapObjectMiningFocusState>(miningState.GetNextUpdate(context, 0.01f));
+            Assert.IsInstanceOf<MiningFocusState>(miningState.GetNextUpdate(context, 0.01f));
         }
         [Test]
         public void 完了後に照準対象が変わっても開始対象だけを攻撃する()
         {
-            var context = new MapObjectMiningControllerContext(CreateEquipmentHoldingTool());
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool());
             var startedTarget = new AttackTrackingMiningTarget("StartedTarget", _mapObjectObject.transform);
             var replacementTarget = new AttackTrackingMiningTarget("ReplacementTarget", _mapObjectObject.transform);
             context.SetFocusTarget(startedTarget);
             var miningTool = new MiningToolCandidate(context.LocalPlayerEquipment.SelectedItem.Id, 0.01f);
-            var miningState = new MapObjectMiningMiningState(startedTarget, miningTool);
+            var miningState = new MiningProgressState(startedTarget, miningTool);
             PressLeftClick();
             var completeState = miningState.GetNextUpdate(context, miningTool.AttackSpeed);
-            Assert.IsInstanceOf<MapObjectMiningMiningCompleteState>(completeState);
+            Assert.IsInstanceOf<MiningCompleteState>(completeState);
 
             // 完了後の照準変更でも開始対象だけへ送信する
             // Send only to the started target even if focus changes after completion
@@ -126,14 +126,14 @@ namespace Client.Tests.Mining
         [Test]
         public void 採掘中に照準対象が変わるとフォーカス状態へ戻る()
         {
-            var context = new MapObjectMiningControllerContext(CreateEquipmentHoldingTool());
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool());
             context.SetFocusTarget(CreateMiningMapObject());
-            var miningState = new MapObjectMiningMiningState(context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
+            var miningState = new MiningProgressState(context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
             PressLeftClick();
 
             context.SetFocusTarget(CreateMiningMapObject());
 
-            Assert.IsInstanceOf<MapObjectMiningFocusState>(miningState.GetNextUpdate(context, 0.01f));
+            Assert.IsInstanceOf<MiningFocusState>(miningState.GetNextUpdate(context, 0.01f));
         }
 
         private LocalPlayerEquipment CreateEquipmentHoldingTool()
@@ -154,11 +154,11 @@ namespace Client.Tests.Mining
             return mapObject;
         }
 
-        private MiningToolCandidate MiningToolOfFocusedMapObject(MapObjectMiningControllerContext context)
+        private MiningToolCandidate MiningToolOfFocusedMapObject(MiningControllerContext context)
         {
             var target = context.CurrentFocusTarget;
             var equippedItemId = context.LocalPlayerEquipment.SelectedItem.Id;
-            Assert.IsTrue(target.TryResolveUsableTool(equippedItemId, out var miningTool));
+            Assert.AreEqual(MiningStartOutcome.Ready, target.TryBeginHandMining(equippedItemId, out var miningTool, out _));
             return miningTool;
         }
 

@@ -20,13 +20,16 @@ namespace Client.Game.InGame.Map.Outcrop
     /// </summary>
     public class OutcropGameObjectDatastore : MonoBehaviour, IInitialEventApplyWaitTarget
     {
-        internal const string OutcropObjectNamePrefix = "VeinOutcrop_";
+        // 露頭名にveinGuidを付与し、どの鉱脈の露頭かをシーン上で辿れるようにする
+        // Append the vein GUID to outcrop names so each one can be traced back to its vein in the scene
+        public const string OutcropObjectNamePrefix = "VeinOutcrop_";
 
-        // v8ワールドは約1772本の鉱脈を持ち、露頭1体はmapObjectより重いのでmapObject側の100より短い間隔でフレームを跨ぐ
-        // The v8 world holds ~1772 veins and one outcrop is heavier than a map object, so cross frames more often than that path's 100
+        // v8ワールドは約1775本の鉱脈を持ち、露頭1体はmapObjectより重いのでmapObject側の100より短い間隔でフレームを跨ぐ
+        // The v8 world holds ~1775 veins and one outcrop is heavier than a map object, so cross frames more often than that path's 100
         private const int FrameYieldObjectInterval = 50;
-        // 解決済みPrefabを再利用
-        // Reuse resolved prefabs
+
+        // 同一アドレスを複数のveinが共有するため、guidではなくアドレスでキャッシュする
+        // Several veins share one address, so cache by address rather than by guid
         private readonly Dictionary<string, GameObject> _prefabCacheByAddress = new();
         private readonly OutcropGuidIndex _outcropGuidIndex = new();
         private InitialHandshakeResponse _handshakeResponse;
@@ -95,10 +98,9 @@ namespace Client.Game.InGame.Map.Outcrop
                 // One failed load must not take every vein down
                 var loaded = AddressableLoader.LoadDefault<GameObject>(address);
                 if (loaded == null)
-                {
+                    // 失敗もキャッシュし、同じアドレスを共有する残りのveinで再試行とログを繰り返さない
+                    // Cache the failure too so the remaining veins sharing this address neither retry nor re-log
                     Debug.LogError($"[OutcropGameObjectDatastore] 露頭プレハブをロードできません VeinGuid:{veinGuid} VeinName:{element.VeinName} Address:{address}");
-                    return null;
-                }
 
                 _prefabCacheByAddress[address] = loaded;
                 return loaded;
@@ -123,8 +125,17 @@ namespace Client.Game.InGame.Map.Outcrop
                 outcrop.Initialize(element, veinGuid, CalculateMinePosition(layout, center));
             }
 
+            Vector3 SelectOutcropPosition(Vector3 center, bool groundResolved, Vector3 groundPosition)
+            {
+                // 地形範囲外の鉱脈はAABB中心へ置く
+                // Veins beyond the terrain use the baked AABB center
+                return groundResolved ? groundPosition : center;
+            }
+
             Vector3 CalculateInclusiveCenter(VeinLayoutMessagePack layout)
             {
+                // min/maxは内包セル座標なのでmax側に1セル分足してAABB中心を出す
+                // min/max are inclusive cell coords, so add one cell on the max side to get the AABB center
                 return new Vector3(
                     (layout.MinX + layout.MaxX + 1) * 0.5f,
                     (layout.MinY + layout.MaxY + 1) * 0.5f,
@@ -155,13 +166,6 @@ namespace Client.Game.InGame.Map.Outcrop
             }
 
             #endregion
-        }
-
-        internal static Vector3 SelectOutcropPosition(Vector3 center, bool groundResolved, Vector3 groundPosition)
-        {
-            // 地形範囲外の鉱脈はAABB中心へ置く
-            // Veins beyond the terrain use the baked AABB center
-            return groundResolved ? groundPosition : center;
         }
 
         public UniTask WaitForInitialApplyAsync()

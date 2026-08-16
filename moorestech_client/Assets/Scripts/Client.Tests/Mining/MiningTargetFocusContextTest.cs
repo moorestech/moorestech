@@ -12,7 +12,7 @@ namespace Client.Tests.Mining
         [Test]
         public void SetFocusTargetPushesOnlyWhenTargetChanges()
         {
-            var context = new MapObjectMiningControllerContext(null);
+            var context = new MiningControllerContext(null);
             var focusEventLog = new List<string>();
             var sharedGameObject = new GameObject("SharedTarget");
             var secondGameObject = new GameObject("SecondTarget");
@@ -58,13 +58,10 @@ namespace Client.Tests.Mining
         private class FocusTrackingMiningTarget : IMiningTargetObject
         {
             public GameObject GameObject { get; }
-            public bool IsAvailable => true;
-            public bool CanHandMine => true;
-            public bool IsPickUp => false;
-            public List<ItemId> UsableToolItemIds { get; } = new();
             public SoundEffectType DestroySoundType => SoundEffectType.DestroyStone;
             public int FocusEnabledCount { get; private set; }
             public int FocusDisabledCount { get; private set; }
+            private readonly List<ItemId> _recommendedToolItemIds = new();
             private readonly string _name;
             private readonly List<string> _focusEventLog;
 
@@ -75,10 +72,13 @@ namespace Client.Tests.Mining
                 _focusEventLog = focusEventLog;
             }
 
-            public bool TryResolveUsableTool(ItemId equippedItemId, out MiningToolCandidate tool)
+            public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)
             {
+                // フォーカス通知だけを見るfixtureなので採掘可否は問わない
+                // This fixture only observes focus notifications, so minability is irrelevant
                 tool = default;
-                return false;
+                recommendedToolItemIds = _recommendedToolItemIds;
+                return MiningStartOutcome.ToolMismatch;
             }
 
             public void SetFocused(bool focused)

@@ -13,7 +13,7 @@ using UnityEngine.InputSystem.UI;
 
 namespace Client.Tests.Mining
 {
-    public class MapObjectMiningAimTest : InputTestFixture
+    public class MiningAimTest : InputTestFixture
     {
         private GameObject _cameraObject;
         private GameObject _eventSystemObject;
@@ -110,7 +110,7 @@ namespace Client.Tests.Mining
             var controller = CreateMiningController();
             // このテストは照準/フォーカス判定のみを検証し装備は参照しないためnullで良い
             // This test only verifies aim/focus logic and never touches equipment, so null is fine here
-            var context = new MapObjectMiningControllerContext(null);
+            var context = new MiningControllerContext(null);
             SetField(controller, "_context", context);
             SetField(controller, "_currentState", new StableMiningState());
 
@@ -137,10 +137,10 @@ namespace Client.Tests.Mining
                 return mapObject;
             }
 
-            MapObjectMiningController CreateMiningController()
+            MiningController CreateMiningController()
             {
-                _miningObject = new GameObject("MapObjectMiningController");
-                return _miningObject.AddComponent<MapObjectMiningController>();
+                _miningObject = new GameObject("MiningController");
+                return _miningObject.AddComponent<MiningController>();
             }
 
             #endregion
@@ -158,9 +158,9 @@ namespace Client.Tests.Mining
             field.SetValue(target, value);
         }
 
-        private class StableMiningState : IMapObjectMiningState
+        private class StableMiningState : IMiningState
         {
-            public IMapObjectMiningState GetNextUpdate(MapObjectMiningControllerContext context, float dt)
+            public IMiningState GetNextUpdate(MiningControllerContext context, float dt)
             {
                 return this;
             }

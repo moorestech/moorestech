@@ -6,13 +6,13 @@ namespace Client.Game.InGame.Mining
     ///     採掘ステート群が共有する状態と照合を持つコンテキスト
     ///     Context holding the state and lookups shared by the mining states
     /// </summary>
-    public class MapObjectMiningControllerContext
+    public class MiningControllerContext
     {
         public IMiningTargetObject CurrentFocusTarget { get; private set; }
 
         public readonly LocalPlayerEquipment LocalPlayerEquipment;
 
-        public MapObjectMiningControllerContext(LocalPlayerEquipment localPlayerEquipment)
+        public MiningControllerContext(LocalPlayerEquipment localPlayerEquipment)
         {
             LocalPlayerEquipment = localPlayerEquipment;
         }

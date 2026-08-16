@@ -4,7 +4,7 @@ using Client.Game.InGame.Map.Outcrop;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Client.Tests.Mining
+namespace Client.Tests.Mining.Outcrop
 {
     public class OutcropGuidIndexTest
     {

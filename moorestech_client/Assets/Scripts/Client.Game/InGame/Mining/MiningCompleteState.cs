@@ -2,16 +2,16 @@ using Client.Game.InGame.SoundEffect;
 
 namespace Client.Game.InGame.Mining
 {
-    public class MapObjectMiningMiningCompleteState : IMapObjectMiningState
+    public class MiningCompleteState : IMiningState
     {
         private readonly IMiningTargetObject _completedTarget;
 
-        public MapObjectMiningMiningCompleteState(IMiningTargetObject completedTarget)
+        public MiningCompleteState(IMiningTargetObject completedTarget)
         {
             _completedTarget = completedTarget;
         }
 
-        public IMapObjectMiningState GetNextUpdate(MapObjectMiningControllerContext context, float dt)
+        public IMiningState GetNextUpdate(MiningControllerContext context, float dt)
         {
             SoundEffectManager.Instance.PlaySoundEffect(_completedTarget.DestroySoundType);
 
@@ -20,8 +20,8 @@ namespace Client.Game.InGame.Mining
             _completedTarget.SendAttack();
 
             return context.CurrentFocusTarget == null
-                ? new MapObjectMiningIdleState()
-                : new MapObjectMiningFocusState();
+                ? new MiningIdleState()
+                : new MiningFocusState();
         }
     }
 }

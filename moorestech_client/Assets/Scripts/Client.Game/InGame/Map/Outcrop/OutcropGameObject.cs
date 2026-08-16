@@ -19,14 +19,13 @@ namespace Client.Game.InGame.Map.Outcrop
         private static readonly HandMiningToolsElement[] NoHandMiningTools = Array.Empty<HandMiningToolsElement>();
 
         private HandMiningToolsElement[] _handMiningTools = NoHandMiningTools;
+        private bool _handMiningAllowed;
         private Guid _veinGuid;
         private Vector3Int _minePosition;
 
+        private readonly List<ItemId> _usableToolItemIds = new();
+
         public GameObject GameObject => gameObject;
-        public bool IsAvailable => true;
-        public bool CanHandMine { get; private set; }
-        public bool IsPickUp => false;
-        public List<ItemId> UsableToolItemIds { get; } = new();
         public SoundEffectType DestroySoundType { get; private set; }
 
         public void Initialize(MapVeinMasterElement element, Guid veinGuid, Vector3Int minePosition)
@@ -37,8 +36,8 @@ namespace Client.Game.InGame.Map.Outcrop
             // 不可の鉱脈も初期化は最後まで通す
             // Even an unmineable vein initializes fully
             var minableParam = element.HandMiningParam as MinableHandMiningParam;
-            CanHandMine = minableParam != null;
-            _handMiningTools = CanHandMine ? minableParam.HandMiningTools : NoHandMiningTools;
+            _handMiningAllowed = minableParam != null;
+            _handMiningTools = _handMiningAllowed ? minableParam.HandMiningTools : NoHandMiningTools;
 
             // 音種は鉱脈マスタ準拠
             // Resolve sound from vein master
@@ -46,8 +45,9 @@ namespace Client.Game.InGame.Map.Outcrop
                 ? SoundEffectType.DestroyTree
                 : SoundEffectType.DestroyStone;
 
+            _usableToolItemIds.Clear();
             foreach (var handMiningTool in _handMiningTools)
-                UsableToolItemIds.Add(MasterHolder.ItemMaster.GetItemId(handMiningTool.ToolItemGuid));
+                _usableToolItemIds.Add(MasterHolder.ItemMaster.GetItemId(handMiningTool.ToolItemGuid));
 
             // 掘れない露頭もレイを吸わせる
             // An unmineable outcrop absorbs the ray too
@@ -59,18 +59,22 @@ namespace Client.Game.InGame.Map.Outcrop
             }
         }
 
-        public bool TryResolveUsableTool(ItemId equippedItemId, out MiningToolCandidate tool)
+        public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)
         {
+            tool = default;
+            recommendedToolItemIds = _usableToolItemIds;
+
+            // 露頭は無限資源なので消滅せず、手掘り不可だけが不成立の理由になる
+            // An outcrop never disappears, so the only refusal is a vein that forbids hand mining
+            if (!_handMiningAllowed) return MiningStartOutcome.HandMiningNotAllowed;
+
             // 権威判定と同じ照合を使う
             // Reuse the authority's own matching
-            if (VeinHandMiningService.TryResolveUsableTool(equippedItemId, _handMiningTools, out var usableTool))
-            {
-                tool = new MiningToolCandidate(equippedItemId, usableTool.AttackSpeed);
-                return true;
-            }
+            if (!VeinHandMiningService.TryResolveUsableTool(equippedItemId, _handMiningTools, out var usableTool))
+                return MiningStartOutcome.ToolMismatch;
 
-            tool = default;
-            return false;
+            tool = new MiningToolCandidate(equippedItemId, usableTool.AttackSpeed);
+            return MiningStartOutcome.Ready;
         }
 
         public void SetFocused(bool focused)

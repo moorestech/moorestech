@@ -22,6 +22,10 @@ namespace Client.Game.InGame.Map.MapObject
         [SerializeField] private MapObjectHpBarView hpBarView;
         [SerializeField] private int instanceId;
         [SerializeField] private string mapObjectGuid;
+
+        // ツール不要の対象では推奨ツールが空になるため、毎回の確保を避けて共有する
+        // Targets that need no tool return an empty recommendation, so share one instance instead of allocating
+        private static readonly List<ItemId> EmptyToolItemIds = new();
         
         public bool IsDestroyed { get; private set; }
         public int CurrentHp { get; private set; }
@@ -30,29 +34,10 @@ namespace Client.Game.InGame.Map.MapObject
         public Guid MapObjectGuid => new(mapObjectGuid);
         public MapObjectMasterElement MapObjectMasterElement { get; private set; }
         public GameObject GameObject => gameObject;
+
         // マスタ欠損時は対象として扱わない
         // A master-less object is not a target
         public bool IsAvailable => !IsDestroyed && MapObjectMasterElement != null;
-        public bool CanHandMine => true;
-        public bool IsPickUp => MapObjectMasterElement.MiningType == MapObjectMasterElement.MiningTypeConst.PickUp;
-
-        public List<ItemId> UsableToolItemIds
-        {
-            get
-            {
-                var miningTools = ((MiningMiningParam)MapObjectMasterElement.MiningParam).MiningTools;
-                var itemIds = new List<ItemId>(miningTools.Length);
-
-                // ツールGUIDをItemId化
-                // Convert tool GUIDs to ItemIds
-                foreach (var miningTool in miningTools)
-                {
-                    itemIds.Add(MasterHolder.ItemMaster.GetItemId(miningTool.ToolItemGuid));
-                }
-
-                return itemIds;
-            }
-        }
 
         public SoundEffectType DestroySoundType
         {
@@ -108,17 +93,41 @@ namespace Client.Game.InGame.Map.MapObject
             }
         }
         
-        public bool TryResolveUsableTool(ItemId equippedItemId, out MiningToolCandidate tool)
+        public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)
         {
+            tool = default;
+            recommendedToolItemIds = EmptyToolItemIds;
+
+            if (!IsAvailable) return MiningStartOutcome.Unavailable;
+
+            // PickUpはツールを介さず1操作で取得する
+            // PickUp is acquired in a single action without any tool
+            if (MapObjectMasterElement.MiningType == MapObjectMasterElement.MiningTypeConst.PickUp) return MiningStartOutcome.InstantPickUp;
+
             var miningTools = ((MiningMiningParam)MapObjectMasterElement.MiningParam).MiningTools;
-            if (MapObjectMiningService.TryResolveUsableTool(equippedItemId, miningTools, out var usableTool))
+            if (!MapObjectMiningService.TryResolveUsableTool(equippedItemId, miningTools, out var usableTool))
             {
-                tool = new MiningToolCandidate(equippedItemId, usableTool.AttackSpeed);
-                return true;
+                recommendedToolItemIds = ToItemIds(miningTools);
+                return MiningStartOutcome.ToolMismatch;
             }
 
-            tool = default;
-            return false;
+            tool = new MiningToolCandidate(equippedItemId, usableTool.AttackSpeed);
+            return MiningStartOutcome.Ready;
+
+            #region Internal
+
+            List<ItemId> ToItemIds(MiningToolsElement[] tools)
+            {
+                var itemIds = new List<ItemId>(tools.Length);
+                foreach (var miningTool in tools)
+                {
+                    itemIds.Add(MasterHolder.ItemMaster.GetItemId(miningTool.ToolItemGuid));
+                }
+
+                return itemIds;
+            }
+
+            #endregion
         }
 
         public void SetFocused(bool focused)

@@ -10,12 +10,9 @@ namespace Client.Tests.Mining
     internal sealed class AttackTrackingMiningTarget : IMiningTargetObject
     {
         public GameObject GameObject { get; }
-        public bool IsAvailable => true;
-        public bool CanHandMine => true;
-        public bool IsPickUp => false;
-        public List<ItemId> UsableToolItemIds { get; } = new();
         public SoundEffectType DestroySoundType => SoundEffectType.DestroyStone;
         public int AttackCallCount { get; private set; }
+        private readonly List<ItemId> _recommendedToolItemIds = new();
 
         public AttackTrackingMiningTarget(string name, Transform parent)
         {
@@ -23,10 +20,13 @@ namespace Client.Tests.Mining
             GameObject.transform.SetParent(parent);
         }
 
-        public bool TryResolveUsableTool(ItemId equippedItemId, out MiningToolCandidate tool)
+        public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)
         {
-            tool = default;
-            return false;
+            // 打撃回数だけを見るfixtureなので常に採掘可能として応じる
+            // This fixture only counts attacks, so it always reports itself as minable
+            tool = new MiningToolCandidate(equippedItemId, 0.01f);
+            recommendedToolItemIds = _recommendedToolItemIds;
+            return MiningStartOutcome.Ready;
         }
 
         public void SetFocused(bool focused)

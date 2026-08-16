@@ -8,11 +8,11 @@ namespace Client.Game.InGame.Map.Outcrop
     ///     鉱脈別の最寄り露頭索引
     ///     Nearest-outcrop index by vein
     /// </summary>
-    internal sealed class OutcropGuidIndex
+    public sealed class OutcropGuidIndex
     {
         private readonly Dictionary<Guid, List<OutcropGameObject>> _outcropsByVeinGuid = new();
 
-        internal void Add(Guid veinGuid, OutcropGameObject outcrop)
+        public void Add(Guid veinGuid, OutcropGameObject outcrop)
         {
             if (!_outcropsByVeinGuid.TryGetValue(veinGuid, out var outcrops))
             {
@@ -23,7 +23,7 @@ namespace Client.Game.InGame.Map.Outcrop
             outcrops.Add(outcrop);
         }
 
-        internal OutcropGameObject SearchNearest(Guid veinGuid, Vector3 position)
+        public OutcropGameObject SearchNearest(Guid veinGuid, Vector3 position)
         {
             if (!_outcropsByVeinGuid.TryGetValue(veinGuid, out var outcrops)) return null;
 
