@@ -1,6 +1,6 @@
 using Client.Game.InGame.UI.BuildMenu;
 
-namespace Client.Tests.UIState
+namespace Client.Tests.UIState.Fakes
 {
     /// <summary>
     ///     ビルドメニューの表示状態だけを記録し、エントリ選択は常に空を返すテスト用の代替実装

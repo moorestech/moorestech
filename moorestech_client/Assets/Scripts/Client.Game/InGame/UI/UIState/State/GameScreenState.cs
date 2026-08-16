@@ -40,6 +40,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
+            // 遷移判定より先に左Alt自由カーソルの入力を処理する
+            // Handle the left-Alt free-cursor input before any transition check
+            _cameraPolicyService.UpdateGameplayFreeCursorInput();
+
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
             if (InputManager.UI.OpenMenu.GetKeyDown) return new UITransitContext(UIStateEnum.PauseMenu);
 
@@ -95,7 +99,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // Sync legacy uGUI HUD visibility when returning to GameScreen.
             GameStateController.ChangeState(GameStateType.InGame);
 
-            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: 建築ショートカット（同キーで解除）\nV: 視点切替\nB: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
+            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: 建築ショートカット（同キーで解除）\nV: 視点切替\n左Alt(長押し): カーソル解放(三人称のみ)\nB: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
         }
 
         public void OnExit()

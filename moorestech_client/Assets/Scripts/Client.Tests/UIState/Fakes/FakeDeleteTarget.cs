@@ -2,7 +2,7 @@ using Client.Game.Common;
 using Client.Game.InGame.UI.UIState.State;
 using Mooresmaster.Localization.Generated;
 
-namespace Client.Tests.UIState
+namespace Client.Tests.UIState.Fakes
 {
     /// <summary>
     ///     呼び出し回数を記録するIDeleteTargetのテスト用実装

@@ -60,7 +60,14 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | `PressKey(key)` | 任意キーのタップ（UnityEngine.InputSystem.Key） |
 | `AimAt(worldPos)` / `AimAtPlaceOrigin(name, origin)` | マウス絶対座標照準（後者は設置原点→フットプリント中心の逆算込み） |
 | `ClickPlace()` | 左クリック（押下→2フレーム→解放。設置はGetKeyUpで確定するため解放必須） |
+| `MiddleClick()` | ミドルクリック（スポイト。押下→2フレーム→解放） |
+| `PickWithAltHold(worldPos)` | 通常モードのスポイト1組（左Alt押下→照準→ミドルクリック→解放）。**GameScreenでのスポイトは必ずこれを使う** |
 | `CurrentUiState` / `WaitUiState(state, timeout)` | UIState確認/遷移待ち |
+
+通常モード（GameScreen）の三人称照準は左Alt非押下中は画面中央に固定されるため、`AimAt`＋`MiddleClick`だけでは
+画面中央外の対象をスポイトできない（[docs/adr/0008](../../../../docs/adr/0008-aim-source-pushed-by-ui-state.md)）。
+シナリオ側でAltホールドを書き写さず`PickWithAltHold`を呼ぶこと（実体は`Client.Playtest.Operations.PlaytestPickOps`）。
+PlaceBlock中のスポイトは照準がカーソル追従のためAltは不要で、`AimAt`＋`MiddleClick`でよい。
 
 ### Web UI (CEF) 操作（web-ui系ブランチのReact画面向け。DOM座標を自動解決し通常マウス経路でクリック）
 | API | 用途 |

@@ -1,5 +1,6 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
+using Client.Tests.UIState.Fakes;
 using NUnit.Framework;
 
 namespace Client.Tests.UIState

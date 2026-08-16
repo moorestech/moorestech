@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Control;
 
-namespace Client.Tests.UIState
+namespace Client.Tests.UIState.Fakes
 {
     public class FakePlayerCameraInteractionApplier : IPlayerCameraInteractionApplier
     {
@@ -10,6 +10,11 @@ namespace Client.Tests.UIState
         public void SetInteractionMode(CameraInteractionMode mode)
         {
             Calls.Add($"Mode:{mode}");
+        }
+
+        public void WarpCursorToScreenCenter()
+        {
+            Calls.Add("Warp");
         }
     }
 }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Map.MapVein;
 
-namespace Client.Tests.UIState
+namespace Client.Tests.UIState.Fakes
 {
     /// <summary>
     ///     設置状態から鉱脈範囲表示へ渡るプッシュだけを記録するテスト用の代替実装
