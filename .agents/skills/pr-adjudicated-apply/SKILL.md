@@ -128,29 +128,13 @@ description: |
 
 ## Step 3.5: masterコンフリクト事前解消（subagent委譲・無条件発火）
 
-checkout成功後、修正実装に入る前に、**コンフリクトの有無を自分で調べず**、必ずsubagent
-（Agentツール、general-purpose）を1体発火して委譲する。目的はメインエージェントのコンテキストを
-コンフリクト解消の詳細（差分・両側の変更内容）で消費しないこと。メインエージェントが渡してよい情報は
-`$REPO` の実値・`headRefName`・PR番号のみで、事前に `git merge-tree` や diff での予備調査は行わない。
+checkout成功後、修正実装に入る前に、**コンフリクトの有無を自分で調べず**、必ずsubagentを1体発火して委譲する
+（メインのコンテキストをコンフリクト詳細で消費しないため。`git merge-tree` やdiffでの予備調査も行わない）。
 
-subagentへの指示内容（プロンプトに含める）:
+`references/conflict-preflight-agent.md` をReadし、`{{REPO}}`・`{{HEAD_REF_NAME}}`・`{{PR_NUMBER}}` を
+実値に置換して、Agentツール（`model: "opus"`）のプロンプトとして丸ごと渡す。
 
-1. `git -C <$REPOの実値> fetch origin master` を実行する
-2. PRブランチ上で `git -C <$REPOの実値> merge --no-commit --no-ff origin/master` を試みる
-   - **Already up to date / コンフリクトなしで成功した場合**: `git -C <$REPOの実値> merge --abort`
-     （abort対象が無ければ `git reset --merge`）でマージ状態を破棄し、「コンフリクトなし」とだけ報告して
-     即終了する（クリーンでもマージは残さない。master取り込み自体はこのスキルの責務ではない）
-   - **コンフリクトが発生した場合**: 各コンフリクトファイルについて両側の変更意図を読み取り、
-     両方の意図を保つ形で解消する（機械的にours/theirsを選ばない）。解消後 `git add` し、
-     標準のマージメッセージ＋`Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>` トレーラーで
-     マージコミットを作成する。`.cs` を解消で触った場合は `uloop compile --project-path ./moorestech_client`
-     でコンパイルが通ることまで確認してからコミットする
-   - **自信を持って解消できないコンフリクトがある場合**: `git merge --abort` で完全に元へ戻し、
-     「解消不能」と対象ファイル一覧を報告して終了する（中途半端な解消状態を残さない）
-3. 報告は次の3値のいずれか＋最小限の情報のみとする（差分の中身は報告に含めない）:
-   「コンフリクトなし」／「解消済み: <マージコミットSHA> <解消ファイルパス一覧>」／「解消不能: <ファイル一覧と理由1行>」
-
-メインエージェント側の後続処理:
+subagentの報告（コンフリクトなし／解消済み／解消不能）への後続処理:
 
 - 「コンフリクトなし」→ そのままStep 4へ進む
 - 「解消済み」→ マージコミットSHAをStep 7の `summary` に記録し（`pushed_commits` にも含める）、Step 4へ進む。
