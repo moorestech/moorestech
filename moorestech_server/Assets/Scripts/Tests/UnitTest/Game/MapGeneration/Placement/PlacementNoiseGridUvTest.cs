@@ -30,6 +30,10 @@ namespace Tests.UnitTest.Game.MapGeneration
         private const float LeftOfSeam = 999f;
         private const float RightOfSeam = 1001f;
 
+        // 本番の格子原点はスポーン探索の worldOffset 由来で、0 から大きく離れた負値にもなる。
+        // In production the grid origin comes from the spawn search's worldOffset and can sit far from zero, negative included.
+        private const float ShiftedGridOrigin = -12345.6f;
+
         [Test]
         public void タイル境界を挟んでテクスチャ値が連続する()
         {
@@ -43,6 +47,24 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.AreEqual(0.5007f, right, 1e-3f);
         }
 
+        // 格子原点の減算が落ちると UV が [0,1] を大きく外れ、格子全体が端テクセルの定数で塗られる。
+        // Dropping the grid-origin subtraction throws UV far outside [0,1] and paints the whole grid with the edge texel's constant.
+        [Test]
+        public void 格子原点がずれても同じ格子内相対位置なら同じテクセルを引く()
+        {
+            // 原点 0 の格子の 1500m と、原点 -12345.6 の格子の同じ相対位置。どちらも格子内 75% の点。
+            // 1500m on the zero-origin grid and the same relative spot on the -12345.6 origin grid; both sit 75% into the grid.
+            var atZeroOrigin = SampleFromOrigin(1500f, 0f);
+            var atShiftedOrigin = SampleFromOrigin(ShiftedGridOrigin + 1500f, ShiftedGridOrigin);
+
+            Assert.AreEqual(atZeroOrigin, atShiftedOrigin, 1e-4f,
+                $"格子原点をずらすと値が {atZeroOrigin} から {atShiftedOrigin} へ動く＝原点の減算が効いていない");
+
+            // 対照: 減算が落ちれば UV は負の大きな値になり端テクセルへ Clamp される。0.833 と 0 は別物と見分けられる。
+            // Control: without the subtraction the UV goes far negative and clamps to the edge texel; 0.833 and 0 are distinguishable.
+            Assert.That(atZeroOrigin, Is.Not.EqualTo(0f).Within(1e-3f), "フィクスチャが端テクセルの値と区別できていない");
+        }
+
         [Test]
         public void 隣のタイル内でもテクスチャの階調が残る()
         {
@@ -52,13 +74,18 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.AreEqual(1f, Sample(1900f), 1e-3f);
         }
 
-        // 格子原点は 0、縦は格子中央に固定して横方向の階調だけを見る。
-        // The grid origin is 0 and the vertical stays at the grid's middle so only the horizontal ramp is read.
+        // 縦は格子中央に固定して横方向の階調だけを見る。格子原点は呼び出し側が選ぶ。
+        // The vertical stays at the grid's middle so only the horizontal ramp is read; the caller picks the grid origin.
         private static float Sample(float worldX)
         {
+            return SampleFromOrigin(worldX, 0f);
+        }
+
+        private static float SampleFromOrigin(float worldX, float gridOriginX)
+        {
             return ManagedNoise.SamplePlacementNoise(
-                CreateHorizontalRamp(), worldX, GridLength * 0.5f, null,
-                gridOriginX: 0f, gridOriginZ: 0f, gridWidth: GridWidth, gridLength: GridLength);
+                CreateHorizontalRamp(), worldX, gridOriginX + GridLength * 0.5f, null,
+                gridOriginX: gridOriginX, gridOriginZ: gridOriginX, gridWidth: GridWidth, gridLength: GridLength);
         }
 
         private static PlacementNoise CreateHorizontalRamp()
