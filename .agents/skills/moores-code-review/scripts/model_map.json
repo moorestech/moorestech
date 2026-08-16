@@ -6,6 +6,7 @@
   "replaced_by_script": [],
   "disabled": [],
   "sonnet": [
+    "core-any-user-intent-fulfillment",
     "core-cs-unidirectional-flow",
     "core-ts_tsx-implicit-cardinality-assumption",
     "core-cs-region-internal",

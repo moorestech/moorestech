@@ -38,6 +38,10 @@ public sealed class AuditResult
     public int SymbolLessAssemblyCount { get; private set; }
     public int SkippedFileCount { get; private set; }
 
+    // 循環フォワーダで解決を打ち切った回数。0でなければ一部の参照が未解決のまま集計されている
+    // Resolutions cut short by a forwarder cycle; a non-zero count means some references stayed unresolved
+    public int BrokenForwarderCycleCount { get; private set; }
+
     public void SetCounts(int populationCount, int scannedMethodCount, int liveCount)
     {
         PopulationCount = populationCount;
@@ -45,10 +49,11 @@ public sealed class AuditResult
         LiveCount = liveCount;
     }
 
-    public void SetLoadDiagnostics(int symbolLessAssemblyCount, int skippedFileCount)
+    public void SetLoadDiagnostics(int symbolLessAssemblyCount, int skippedFileCount, int brokenForwarderCycleCount)
     {
         SymbolLessAssemblyCount = symbolLessAssemblyCount;
         SkippedFileCount = skippedFileCount;
+        BrokenForwarderCycleCount = brokenForwarderCycleCount;
     }
 
     public void CountExclusion(ExclusionReason reason)

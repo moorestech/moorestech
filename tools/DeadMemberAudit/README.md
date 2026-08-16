@@ -175,6 +175,14 @@ Unity InputSystemが`.inputactions`から吐く`MoorestechInputSettings`が、�
 **PDBが読めないとこの判定が効かない。** レポートのサマリに「シンボル無しで読んだアセンブリ」の件数を出しているので、
 0でない場合は結果の精度が落ちていると考えること。
 
+## 型フォワーダの循環
+
+Unity/Monoが同梱するファサードDLLには型フォワーダが循環しているものがある（実測では`System.Net.Sockets.Socket`が1件）。
+素のCecilはこの循環を`Resolve`→`ExportedType.Resolve`→`Resolve`と無限再帰し、stack overflowでプロセスごと落ちる。
+`ForwarderCycleGuardResolver`が解決中の型を追跡して再入時にnullを返すことで打ち切っており、
+打ち切った件数はサマリの「循環フォワーダで打ち切った型解決」に出る。
+循環した鎖は本当に解決不能なのでnullが正しい答えだが、件数が急に増えた場合は検索ディレクトリ構成を疑うこと。
+
 ## DI・リフレクション経路の調査結果
 
 このリポジトリで「ILに呼び出し元が現れないのに実際は呼ばれる」経路を実地調査した結果と、対応する除外規則。

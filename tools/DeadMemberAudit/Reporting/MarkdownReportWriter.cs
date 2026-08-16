@@ -57,6 +57,7 @@ public sealed class MarkdownReportWriter
         builder.AppendLine($"| リスト5-C: CTS作りっぱなし | {CountCancellation(result, CancellationIssue.CancellationTokenSourceNotReleased)} |");
         builder.AppendLine($"| シンボル無しで読んだアセンブリ | {result.SymbolLessAssemblyCount} |");
         builder.AppendLine($"| 読み込めなかったDLL | {result.SkippedFileCount} |");
+        builder.AppendLine($"| 循環フォワーダで打ち切った型解決 | {result.BrokenForwarderCycleCount} |");
         builder.AppendLine();
 
         // アセンブリ分類の内訳。production以外からの参照は生存根拠にしない

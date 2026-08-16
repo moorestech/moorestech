@@ -65,7 +65,7 @@ public sealed class AuditRunner
         result.CancellationFindings.AddRange(new CancellationScanner(classifier, sourceLocator, typeSourceLocator).Scan(assemblies));
 
         result.SetCounts(candidates.Count, scan.ScannedMethodCount, liveCount);
-        result.SetLoadDiagnostics(loader.SymbolLessAssemblyCount, loader.SkippedFileCount);
+        result.SetLoadDiagnostics(loader.SymbolLessAssemblyCount, loader.SkippedFileCount, loader.BrokenForwarderCycleCount);
         SortResults(result);
         return result;
     }
