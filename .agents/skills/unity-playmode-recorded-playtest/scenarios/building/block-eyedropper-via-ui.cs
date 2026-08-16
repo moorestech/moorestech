@@ -3,7 +3,6 @@
 // Block eyedropper E2E (IPlacementTarget edition): pick placed blocks with middle-click during normal play and placement mode.
 // Verifies: GameScreen->PlaceBlock transition with CurrentTarget, target swap in PlaceBlock, West direction retention, no-op on bare terrain, and length-3 belt resolution.
 using Client.Playtest;
-using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
@@ -38,17 +37,7 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
     // Read the current target as BlockPlacementTarget (null when absent or another type)
     BlockPlacementTarget CurrentBlockTarget() => placeController.CurrentTarget as BlockPlacementTarget;
 
-    // 通常プレイ・配置モード共通のミドルクリック入力をSemanticInputで注入する
-    // Inject shared middle-click input for both normal play and placement mode via SemanticInput
-    async UniTask MiddleClickAsync()
-    {
-        SemanticInput.MouseButtonDown(2);
-        await UniTask.DelayFrame(2);
-        SemanticInput.MouseButtonUp(2);
-        await UniTask.DelayFrame(2);
-    }
-
-    // 指定座標のBlockGameObjectの"ClickCollider"の中心座標を取得する
+    // ブロックのClickColliderの中心を取得する
     // Resolve the world-space center of the block's "ClickCollider"
     async UniTask<Vector3> ClickColliderCenterAsync(Vector3Int blockPos)
     {
@@ -63,21 +52,7 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
     {
         var center = await ClickColliderCenterAsync(blockPos);
         await p.AimAt(center);
-        await MiddleClickAsync();
-        await UniTask.DelayFrame(3);
-    }
-
-    // 通常モード中のスポイトを「左Altを押す→狙う→ミドルクリック→離す」の1組で行う（実プレイヤー操作忠実）
-    // Bundle a normal-mode eyedrop into "press left Alt -> aim -> middle-click -> release" (matches real player input)
-    async UniTask PickWithAltHoldAsync(Vector3 worldPosition)
-    {
-        SemanticInput.KeyDown(UnityEngine.InputSystem.Key.LeftAlt);
-        // 押下がGetKeyDownとして拾われワープ+自由カーソルが反映されるまで待つ
-        // Wait for the press to be observed as GetKeyDown and the warp/free-cursor to take effect
-        await UniTask.DelayFrame(3);
-        await p.AimAt(worldPosition);
-        await MiddleClickAsync();
-        SemanticInput.KeyUp(UnityEngine.InputSystem.Key.LeftAlt);
+        await p.MiddleClick();
         await UniTask.DelayFrame(3);
     }
 
@@ -119,15 +94,15 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
     p.PlaceBlockDirect("木のチェスト", posA, BlockDirection.North);
     var chestCenter = await ClickColliderCenterAsync(posA);
 
-    // ネガティブ確認: 左Alt無しでは画面中央外の設置物はスポイトされない
-    // Negative check: without left Alt, an off-center placed object is never picked
+    // Alt無しでは中央外をスポイトできない
+    // Negative check: without left Alt, an off-center object is never picked
     await p.AimAt(chestCenter);
-    await MiddleClickAsync();
+    await p.MiddleClick();
     await UniTask.DelayFrame(3);
     p.Assert(p.CurrentUiState == UIStateEnum.GameScreen, "項目1前提: Alt無しではピックされずGameScreenのまま");
     await p.Screenshot("00-no-pick-without-alt");
 
-    await PickWithAltHoldAsync(chestCenter);
+    await p.PickWithAltHold(chestCenter);
     p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, "項目1: Altホールドでのピック成功でPlaceBlockへ遷移");
     p.Assert(CurrentBlockTarget() != null, "項目1: CurrentTargetがBlockPlacementTargetになる");
     p.Assert(CurrentBlockTarget()?.BlockId == chestBlockId, "項目1: 選択ブロックがチェストになる");
@@ -154,7 +129,7 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
     var beforeTarget = placeController.CurrentTarget;
     var beforeUiState = p.CurrentUiState;
     await p.AimAt(new Vector3(posD.x + 0.5f, 32f, posD.z + 0.5f));
-    await MiddleClickAsync();
+    await p.MiddleClick();
     await UniTask.DelayFrame(3);
     p.Assert(Equals(placeController.CurrentTarget, beforeTarget), "項目4: ターゲットが変化しない");
     p.Assert(p.CurrentUiState == beforeUiState, "項目4: UI状態が変化しない");
