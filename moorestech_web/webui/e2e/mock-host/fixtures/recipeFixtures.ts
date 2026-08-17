@@ -19,6 +19,22 @@ export const craftRecipes = {
       craftTime: 0.2,
       requiredItems: [{ itemId: 1, count: 999 }],
     },
+    // 同一アイテムに2件のクラフトレシピ。チュートリアルアンカーが1件だけ付くことの固定用（ADR 0011）
+    // Two craft recipes for one item, pinning that the tutorial anchor lands on exactly one entry (ADR 0011)
+    {
+      recipeGuid: "83000000-0000-4000-8000-000000000003",
+      resultItemId: 102,
+      resultCount: 1,
+      craftTime: 0.2,
+      requiredItems: [{ itemId: 1, count: 999 }],
+    },
+    {
+      recipeGuid: "83000000-0000-4000-8000-000000000004",
+      resultItemId: 102,
+      resultCount: 2,
+      craftTime: 0.4,
+      requiredItems: [{ itemId: 2, count: 999 }],
+    },
   ],
 } satisfies CraftRecipesData;
 
@@ -61,4 +77,4 @@ export const machineRecipes = {
   ],
 } satisfies MachineRecipesData;
 
-export const itemList = { itemIds: [100, 101, 1, 2] } satisfies RecipeViewerItemListData;
+export const itemList = { itemIds: [100, 101, 102, 1, 2] } satisfies RecipeViewerItemListData;

@@ -14,7 +14,7 @@ export type RecipeEntry =
 
 // 選択アイテムを生産するクラフトレシピを抽出する純関数。
 // Pure selector for craft recipes that produce the selected item.
-export function selectCraftRecipes(recipes: CraftRecipesData, itemId: number): CraftRecipe[] {
+function selectCraftRecipes(recipes: CraftRecipesData, itemId: number): CraftRecipe[] {
   return recipes.recipes.filter((r) => r.resultItemId === itemId);
 }
 

@@ -200,4 +200,17 @@
   /* Max height and entry gap for the recipe viewer single list (ADR 0011, §8.17) */
   --recipe-list-max-height: 352px;
   --recipe-entry-gap: 10px;
+  /* クラフトボタンと機械情報行が共有する行高。片方だけ変わると単一リストの縦リズムが崩れる */
+  /* Row height shared by the craft button and the machine info row; changing one alone breaks the list rhythm */
+  --recipe-action-button-height: 19px;
+  /* レシピリストのスクロールバー実寸。CSSの予約幅とScrollAreaのscrollbarSizeが同じ値を引く */
+  /* Measured scrollbar width of the recipe list; both the CSS reserve and ScrollArea's scrollbarSize read it */
+  --recipe-list-scrollbar-reserve: 4px;
+  /* 機械情報行の文字・アイコン寸法 */
+  /* Text and icon dimensions of the machine info row */
+  --recipe-info-text-size: 12px;
+  --recipe-info-icon-size: 1.25rem;
+  /* 個数バッジの黒（ユーザー裁定 2026-08-17。バッジが出るのは明色面のみが前提） */
+  /* Black used by count badges (user ruling 2026-08-17; badges only appear on light faces) */
+  --count-text: #111;
 }

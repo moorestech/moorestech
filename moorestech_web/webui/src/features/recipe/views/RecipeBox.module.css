@@ -1,7 +1,7 @@
 /* 素材から完成品までを細枠とシアンの四隅ブラケットで囲む。発光は線近傍(6px以内)に限定する。
-   3カラムgridで素材/矢印+時間/完成品を固定配置し、素材の点数で矢印列が押し出されないようにする */
+   3カラムgridで素材/矢印/完成品を固定配置し、素材の点数で矢印列が押し出されないようにする */
 /* Frame materials and result with a thin border and cyan corner brackets; keep the glow within 6px of the line.
-   A fixed 3-column grid pins materials/arrow+time/result so the arrow column never drifts with material count */
+   A fixed 3-column grid pins materials/arrow/result so the arrow column never drifts with material count */
 /* D4-2: 主線を暗青rgb(45 145 220/80%)へ強め、四隅の鉤(シアン#3fa0e8)と色を分離する。
    glowは1-2pxに絞り、20px外への滲みをゼロにする */
 /* D4-2: strengthen the main line to a darker blue rgb(45 145 220/80%), separating it in hue from the
@@ -68,7 +68,7 @@
   right: -2px;
   bottom: -4px;
   z-index: 2;
-  color: #111;
+  color: var(--count-text);
   font-size: 11px;
   line-height: 1;
   text-shadow: 0 1px 2px rgb(255 255 255 / 75%);
@@ -132,32 +132,25 @@
 /* 機械エントリのブロック情報行。ボタンと同じ高さ帯のクリック不可表示（ADR 0011） */
 /* Non-interactive block info row for machine entries, same band as the craft button (ADR 0011) */
 .machineInfoRow {
-  min-height: 19px;
+  min-height: var(--recipe-action-button-height);
   color: var(--text-muted);
 }
 
 .machineInfoIcon {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: var(--recipe-info-icon-size);
+  height: var(--recipe-info-icon-size);
   object-fit: contain;
 }
 
 .machineInfoText {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--recipe-info-text-size);
 }
 
 /* クラフト操作を控えめな中央寄せの青ボタンで示す。正本は縦グラデ+中央白帯でなく横方向の青→シアン */
 /* Present the craft action as a modest, center-aligned blue button; the reference is a horizontal blue-to-cyan gradient, not vertical with a center white band */
-/* D7: 正本の実測bboxへ位置合わせ。左端を約1.5CSSpx左へ・上端を1px上へ・青面高を49screenshot-px
-   (≈19.2CSS)相当へ詰める。文字は合成太字禁止のため4方向陰影で輪郭を太らせる */
-/* D7: nudge toward the reference's measured bbox — left edge ~1.5 CSS px left, top edge 1px up, and the
-   blue face trimmed to ~49 screenshot px (≈19.2 CSS) tall. Synthetic bold is forbidden, so the text weight
-   comes from a 4-direction shadow */
-/* iter6: bbox実測(1503,1305,1773,1353)を正本(1502,1302,1775,1351)へ微調整。中心はほぼ不変(+3px幅の
-   均等成長)、上へ2.5screenshot-px(≈0.98CSSpx)はmargin-bottomの加算で寄せる */
-/* iter6: nudge the measured bbox (1503,1305,1773,1353) toward the reference (1502,1302,1775,1351). The
-   center barely moves (grow width by +3px evenly); shift up 2.5 screenshot px (≈0.98 CSS px) via margin-bottom */
+/* 単一リストではボタンをエントリ幅いっぱいに伸ばす（ADR 0011） */
+/* In the single list the button stretches to the full entry width (ADR 0011) */
 .craftButton {
   composes: recipeActionButton from "./RecipeActionButton.module.css";
   align-self: stretch;

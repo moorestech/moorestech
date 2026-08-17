@@ -31,6 +31,9 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   const counts = useMemo(() => buildOwnedCounts(inventory.mainSlots), [inventory]);
 
   const itemName = resolveItemName(itemId) ?? t(L.ui.common.itemFallback, { itemId });
+  // チュートリアルアンカーは重複禁止。並び順ではなくkind判別子から対象クラフトを特定する
+  // The tutorial anchor must stay unique, so pick its craft entry by kind, never by list position
+  const anchoredCraftGuid = entries.find((entry) => entry.kind === "craft")?.recipe.recipeGuid;
 
   if (entries.length === 0) {
     return (
@@ -44,16 +47,16 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   return (
     <Stack className={styles.recipeContent} gap="sm">
       <ItemHeader name={itemName} />
-      <ScrollArea.Autosize mah="var(--recipe-list-max-height)" type="auto" scrollbarSize={4} className={styles.recipeListScroll}>
+      <ScrollArea.Autosize mah="var(--recipe-list-max-height)" type="auto" scrollbarSize="var(--recipe-list-scrollbar-reserve)" className={styles.recipeListScroll}>
         <Stack className={styles.recipeList} gap="var(--recipe-entry-gap)" data-testid="recipe-entry-list">
-          {entries.map((entry, i) =>
+          {entries.map((entry) =>
             entry.kind === "craft" ? (
               <CraftRecipeEntry
                 key={entry.recipe.recipeGuid}
                 recipe={entry.recipe}
                 counts={counts}
                 onSelect={onSelect}
-                tutorialAnchorProps={i === 0 ? tutorialAnchor(TutorialAnchorIds.recipeCraftButton) : undefined}
+                tutorialAnchorProps={entry.recipe.recipeGuid === anchoredCraftGuid ? tutorialAnchor(TutorialAnchorIds.recipeCraftButton) : undefined}
               />
             ) : (
               <MachineRecipeEntry key={entry.recipe.recipeGuid} recipe={entry.recipe} onSelect={onSelect} />

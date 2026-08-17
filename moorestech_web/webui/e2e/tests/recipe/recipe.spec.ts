@@ -155,3 +155,26 @@ test("複数レシピはクラフト優先の単一リストで同時に表示�
   // The tab/pager UI was removed and must not exist
   await expect(page.locator(".mantine-Tabs-root")).toHaveCount(0);
 });
+
+test("クラフトエントリが複数でもチュートリアルアンカーは1件だけ付く", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  // Twin Recipe Plank(102) はクラフトレシピを2件持つfixture
+  // Twin Recipe Plank(102) is fixtured with two craft recipes
+  await page.getByTestId("item-list-grid").locator('[data-item-id="102"]').click();
+
+  const list = page.getByTestId("recipe-entry-list");
+  await expect(list.getByTestId("craft-recipe-entry")).toHaveCount(2);
+  await expect(list.locator('[data-tutorial-anchor="recipe.craft-button"]')).toHaveCount(1);
+});
+
+test("クラフト可能数0のアイテムは個数バッジを出さない", async ({ page }) => {
+  await page.goto("/");
+  const grid = page.getByTestId("item-list-grid");
+  await expect(grid).toBeVisible();
+
+  // 101 は素材999個要求で常に0個。100 は所持素材で作れるため個数バッジが出る（ADR 0011）
+  // 101 always yields zero (it demands 999 materials) while 100 is craftable, so only 100 shows a count badge (ADR 0011)
+  await expect(grid.locator('[data-item-id="101"]').locator('[class*="_count_"]')).toHaveCount(0);
+  await expect(grid.locator('[data-item-id="100"]').locator('[class*="_count_"]')).toHaveCount(1);
+});

@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   craftable,
-  selectCraftRecipes,
   buildRecipeEntries,
   craftableResultCounts,
 } from "./craftLogic";
@@ -54,16 +53,6 @@ describe("craftable", () => {
   });
 });
 
-describe("selectCraftRecipes", () => {
-  const data: CraftRecipesData = { recipes: [craftRecipe(9, recipeA), craftRecipe(5, recipeB), craftRecipe(9, recipeC)] };
-  it("resultItemId 一致のみ抽出する", () => {
-    expect(selectCraftRecipes(data, 9).map((r) => r.recipeGuid)).toEqual([recipeA, recipeC]);
-  });
-  it("一致無しは空配列", () => {
-    expect(selectCraftRecipes(data, 42)).toEqual([]);
-  });
-});
-
 describe("buildRecipeEntries", () => {
   const craft = (guid: string, resultItemId: number): CraftRecipe => ({
     recipeGuid: guid, resultItemId, resultCount: 1, craftTime: 2,
@@ -86,5 +75,20 @@ describe("buildRecipeEntries", () => {
 
   it("対象アイテムのレシピが無ければ空配列", () => {
     expect(buildRecipeEntries({ recipes: [] }, { recipes: [] }, 9)).toEqual([]);
+  });
+
+  // クラフト側の絞り込み単体（旧 selectCraftRecipes のケースを移植）
+  // Craft-side filtering on its own (migrated from the former selectCraftRecipes cases)
+  const craftOnly: CraftRecipesData = { recipes: [craftRecipe(9, recipeA), craftRecipe(5, recipeB), craftRecipe(9, recipeC)] };
+
+  it("クラフトはresultItemId一致のみ抽出する", () => {
+    const entries = buildRecipeEntries(craftOnly, { recipes: [] }, 9);
+
+    expect(entries.map((e) => e.recipe.recipeGuid)).toEqual([recipeA, recipeC]);
+    expect(entries.every((e) => e.kind === "craft")).toBe(true);
+  });
+
+  it("クラフトのresultItemIdが一致しなければ空配列", () => {
+    expect(buildRecipeEntries(craftOnly, { recipes: [] }, 42)).toEqual([]);
   });
 });

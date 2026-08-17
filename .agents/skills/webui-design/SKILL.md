@@ -152,7 +152,7 @@ description: |
   - **加工行は進捗矢印をパネル中央に固定**し、左右を等幅（1fr auto 1fr）にして入力は矢印へ右寄せ、出力は矢印から左寄せで対称に置く。
   - **モジュールスロットは加工行から1段下げ、`--text-muted` の「アップグレードスロット」ラベルを直上に付けて**用途を明示する。入出力と紛れる無札の並置は禁止。
 - レシピ選択タブは上から「詳細プレビュー → `FadeRule` の区切り罫線 → レシピグリッド」の縦構成。
-  - **詳細プレビュー**: ホバー中レシピを優先し、無ければ選択中レシピを表示。どちらも無ければ `--text-muted` の案内テキスト。内容は「材料 `ItemSlot` 列 → 矢印テキスト（直下に所要時間） → 出力 `ItemSlot` 列」で、RecipeViewer の `MachineRecipeEntry`（矢印テキスト＋ItemSlot列）様式に準拠。高さを固定しホバーで段落が跳ねないようにする。
+  - **詳細プレビュー**: ホバー中レシピを優先し、無ければ選択中レシピを表示。どちらも無ければ `--text-muted` の案内テキスト。内容は「材料 `ItemSlot` 列 → 矢印テキスト（直下に所要時間） → 出力 `ItemSlot` 列」で、`MachineRecipeSelectionTab` 自身の矢印テキスト様式（`ui.common.rightArrow`）に準拠。高さを固定しホバーで段落が跳ねないようにする。
   - **レシピグリッド**: 解放済みレシピの代表出力アイテムを `shared/ui` の `ItemSlot` で `SlotGrid`（9列折返し）に列挙し、独自gridは作らない。
 - 選択中は ItemSlot の `selected`（SlotFrame の `data-selected`）で示し、新しい色相・光彩は足さない。
 - 左クリックで選択し、**選択と同時にインベントリタブへ切り替える**。右クリックは選択中の場合だけ解除する。マウス契約は ItemSlot の `onLeftDown` / `onRightDown`、ホバーは `onHoverChange` に従う。
@@ -288,8 +288,8 @@ description: |
 ## 8.13 クラフト進捗矢印（矢印グリフ自体がゲージ）
 
 - **矢印グリフゲージは共有部品 `ProgressArrowGlyph`（shared/ui）であり、クラフト画面の素材→結果矢印と機械の加工行（入力→出力間）が使う。** 機械側の寸法はクラフトと同寸（`--machine-arrow-*` は `--craft-arrow-*` を参照）。
-- **クラフト画面（`CraftRecipeView`）の素材→結果の矢印は、矢印グリフそのものが進捗ゲージ**。矢印の下に独立した細いバーを敷くのは禁止（旧 `.craftArrowTrack` / `.craftArrowFill` の緑バーは廃止した）。器＝矢印であり、ゲージを別の要素として増やさない。
-- **構造はインラインSVGの3層**（`CraftProgressArrow`）。同じ矢印 path を3回描く:
+- **クラフト画面（`CraftRecipeEntry`）の素材→結果の矢印は、矢印グリフそのものが進捗ゲージ**。矢印の下に独立した細いバーを敷くのは禁止（旧 `.craftArrowTrack` / `.craftArrowFill` の緑バーは廃止した）。器＝矢印であり、ゲージを別の要素として増やさない。
+- **構造はインラインSVGの3層**（`ProgressArrowGlyph`）。同じ矢印 path を3回描く:
   1. 溝レイヤー: `--gauge-track` で塗った矢印全体
   2. 充填レイヤー: `--color-content-primary` で塗った矢印を `clipPath` の矩形で左から `value`（0..1）分だけ切り出す
   3. 輪郭レイヤー: 塗り無し・`--craft-arrow-outline` のストロークのみ。**最上層に置いて clip を通さない**（輪郭が充填境界で途切れると矢印の形が壊れるため）

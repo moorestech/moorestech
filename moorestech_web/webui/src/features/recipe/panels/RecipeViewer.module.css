@@ -15,7 +15,7 @@
 }
 
 .recipeList {
-  /* エントリ幅をスクロールバー分だけ内側へ確保する */
-  /* Reserve room for the overlay scrollbar inside the entry width */
-  padding-right: 8px;
+  /* エントリ幅をスクロールバー分だけ内側へ確保する（ScrollAreaのscrollbarSizeと同一トークン） */
+  /* Reserve room for the overlay scrollbar inside the entry width (same token as ScrollArea's scrollbarSize) */
+  padding-right: var(--recipe-list-scrollbar-reserve);
 }

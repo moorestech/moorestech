@@ -44,6 +44,7 @@ describe("MachineRecipeEntry localization", () => {
     });
 
     expect(renderer!.root.findAllByType("mock-text" as never).some((node) => node.props.children === "Fallback Machine")).toBe(true);
+    expect(renderer!.root.findByType("mock-block-icon" as never).props.alt).toBe("Fallback Machine");
     expect(renderer!.root.findAllByType("mock-text" as never).some((node) => node.props.children === "1s")).toBe(true);
 
     // topic再配信なしで機械名更新
@@ -53,6 +54,7 @@ describe("MachineRecipeEntry localization", () => {
       [L.ui.recipe.duration]: "{seconds}秒",
     }, {}, {}));
     expect(renderer!.root.findAllByType("mock-text" as never).some((node) => node.props.children === "対象言語の機械")).toBe(true);
+    expect(renderer!.root.findByType("mock-block-icon" as never).props.alt).toBe("対象言語の機械");
     expect(renderer!.root.findAllByType("mock-text" as never).some((node) => node.props.children === "1秒")).toBe(true);
   });
 });

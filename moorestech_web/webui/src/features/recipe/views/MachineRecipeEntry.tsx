@@ -35,14 +35,14 @@ export default function MachineRecipeEntry({ recipe, onSelect }: Props) {
             <ProgressArrowGlyph value={0} testId="machine-progress-arrow" />
           </div>
         </Box>
-        <Box className={styles.recipeResult}>
+        <Group gap={0} wrap="nowrap" className={styles.recipeResult}>
           {recipe.outputItems.map((r, i) => (
             <ItemSlot key={i} itemId={r.itemId} count={r.count} onLeftDown={() => onSelect(r.itemId)} />
           ))}
-        </Box>
+        </Group>
       </div>
       <Group className={styles.machineInfoRow} gap="xs" justify="center" wrap="nowrap">
-        <BlockIcon blockId={recipe.blockId} className={styles.machineInfoIcon} />
+        <BlockIcon blockId={recipe.blockId} alt={localizedBlockName} className={styles.machineInfoIcon} />
         <Text className={styles.machineInfoText} truncate="end">{localizedBlockName}</Text>
         <Text className={styles.machineInfoText}>{t(L.ui.recipe.duration, { seconds: recipe.time })}</Text>
       </Group>

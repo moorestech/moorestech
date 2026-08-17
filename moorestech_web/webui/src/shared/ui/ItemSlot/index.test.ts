@@ -7,6 +7,7 @@ import { itemNameKey } from "@/shared/i18n/contentKeys";
 import { L } from "@/shared/i18n/generated/localizationKeys";
 import { setDictionaries } from "@/shared/i18n/i18nStore";
 import ItemSlot from "./index";
+import styles from "./style.module.css";
 
 const ITEM_GUID = "01234567-89ab-cdef-0123-456789abcdef";
 
@@ -62,12 +63,20 @@ describe("ItemSlot", () => {
   it("countがundefinedの時はバッジを表示しない", () => {
     const markup = renderItemSlot(undefined, undefined);
 
-    expect(markup).not.toContain('<span class="');
+    expect(markup).not.toContain(`class="${styles.count}"`);
+  });
+
+  // 0バッジ非表示（ADR 0011）は呼び出し側が0をundefinedへ畳む契約だが、0が届いても出さない
+  // Hiding the zero badge (ADR 0011) is the caller's fold to undefined, yet a literal 0 must not render either
+  it("countが0の時はバッジを表示しない", () => {
+    const markup = renderItemSlot(undefined, 0);
+
+    expect(markup).not.toContain(`class="${styles.count}"`);
   });
 
   it("countが正の数の時はバッジを表示する", () => {
     const markup = renderItemSlot(undefined, 5);
 
-    expect(markup).toContain('>5</span>');
+    expect(markup).toContain(`<span class="${styles.count}">5</span>`);
   });
 });
