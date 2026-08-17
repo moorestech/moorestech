@@ -1,32 +1,37 @@
-﻿using System;
-using System.Diagnostics;
+using System;
 using Client.Common;
-using Server.Boot;
 
 namespace Client.Starter
 {
     public class InitializeProprieties
     {
-        public readonly Process LocalServerProcess;
-        public readonly int PlayerId;
+        public readonly bool IsRemoteConnection;
         public readonly string ServerIp;
         public readonly int ServerPort;
-        
+        public readonly int PlayerId;
+
         public string[] CreateLocalServerArgs { get; set; } = Array.Empty<string>();
-        
-        public InitializeProprieties(Process localServerProcess, string serverIp, int serverPort, int playerId)
+
+        private InitializeProprieties(bool isRemoteConnection, string serverIp, int serverPort, int playerId)
         {
-            LocalServerProcess = localServerProcess;
+            IsRemoteConnection = isRemoteConnection;
             ServerIp = serverIp;
             ServerPort = serverPort;
             PlayerId = playerId;
         }
-        
-        public static InitializeProprieties CreateDefault()
+
+        // ローカルプレイは接続試行なしで内蔵サーバーを必ず起動する（ADR 0013）
+        // Local play always boots the embedded server without probing (ADR 0013)
+        public static InitializeProprieties CreateLocalServer(int playerId)
         {
-            var proprieties = new InitializeProprieties(null, ServerConst.LocalServerIp, ServerConst.LocalServerPort, ServerConst.DefaultPlayerId);
-             
-             return proprieties;
+            return new InitializeProprieties(false, ServerConst.LocalServerIp, 0, playerId);
+        }
+
+        // 外部サーバー接続は明示IP:ポート指定のみ・失敗時フォールバック無し
+        // Remote connection only with an explicit IP:port, never falling back
+        public static InitializeProprieties CreateRemoteConnection(string serverIp, int serverPort, int playerId)
+        {
+            return new InitializeProprieties(true, serverIp, serverPort, playerId);
         }
     }
 }

@@ -47,7 +47,7 @@ namespace Client.Starter.Initialization
             Task.Run(() => serverCommunicator.StartCommunicat(exchangeManager));
 
             //Vanilla APIの作成
-            var vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, _playerConnectionSetting, _proprieties.LocalServerProcess);
+            var vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, _playerConnectionSetting, null);
 
             //最初に必要なデータを取得
             // Fetch the initial data bundle

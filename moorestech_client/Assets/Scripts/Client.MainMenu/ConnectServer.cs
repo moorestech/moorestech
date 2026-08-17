@@ -77,7 +77,7 @@ namespace Client.MainMenu
             var port = int.Parse(serverPort.text);
             var playerId = PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey);
             
-            var properties = new InitializeProprieties(null, ip, port, playerId);
+            var properties = InitializeProprieties.CreateRemoteConnection(ip, port, playerId);
             
             starter.SetProperty(properties);
         }

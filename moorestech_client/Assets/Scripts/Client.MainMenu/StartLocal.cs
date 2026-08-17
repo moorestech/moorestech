@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Client.Common;
+﻿using Client.Common;
 using Client.Starter;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -12,10 +11,8 @@ namespace Client.MainMenu
     public class StartLocal : MonoBehaviour
     {
         [SerializeField] private Button startLocalButton;
-        
-        private Process _serverProcess;
-        
-        
+
+
         private void Start()
         {
             startLocalButton.onClick.AddListener(() => ConnectLocalServer().Forget());
@@ -33,11 +30,8 @@ namespace Client.MainMenu
         {
             SceneManager.sceneLoaded -= OnMainGameSceneLoaded;
             var starter = FindObjectOfType<InitializeScenePipeline>();
-            
-            starter.SetProperty(new InitializeProprieties(_serverProcess,
-                ServerConst.LocalServerIp,
-                ServerConst.LocalServerPort,
-                PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey)));
+
+            starter.SetProperty(InitializeProprieties.CreateLocalServer(PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey)));
         }
     }
 }

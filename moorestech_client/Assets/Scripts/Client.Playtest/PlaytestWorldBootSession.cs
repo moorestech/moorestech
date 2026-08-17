@@ -1,3 +1,4 @@
+using Client.Common;
 using Client.Starter;
 using Server.Boot;
 using Server.Boot.Args;
@@ -43,7 +44,7 @@ namespace Client.Playtest
                 AutoSave = false,
             };
 
-            proprieties = InitializeProprieties.CreateDefault();
+            proprieties = InitializeProprieties.CreateLocalServer(ServerConst.DefaultPlayerId);
             proprieties.CreateLocalServerArgs = CliConvert.Serialize(settings);
             return true;
         }

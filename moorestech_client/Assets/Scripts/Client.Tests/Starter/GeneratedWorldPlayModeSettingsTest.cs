@@ -1,4 +1,5 @@
 using System.IO;
+using Client.Common;
 using Client.DebugSystem.Environment;
 using Client.Starter;
 using Client.Starter.Editor;
@@ -47,7 +48,7 @@ namespace Client.Tests.Starter
         public void フラグ有効時はworld_generatedとgeneratedモードへ書き換える()
         {
             SessionState.SetBool(GeneratedWorldPlayModeSettings.SessionStateKey, true);
-            var proprieties = InitializeProprieties.CreateDefault();
+            var proprieties = InitializeProprieties.CreateLocalServer(ServerConst.DefaultPlayerId);
 
             GeneratedWorldPlayModeSettings.ApplyIfNeeded(proprieties);
 
@@ -61,7 +62,7 @@ namespace Client.Tests.Starter
         public void フラグ無効時は起動引数を変更しない()
         {
             SessionState.SetBool(GeneratedWorldPlayModeSettings.SessionStateKey, false);
-            var proprieties = InitializeProprieties.CreateDefault();
+            var proprieties = InitializeProprieties.CreateLocalServer(ServerConst.DefaultPlayerId);
 
             GeneratedWorldPlayModeSettings.ApplyIfNeeded(proprieties);
 
@@ -87,7 +88,7 @@ namespace Client.Tests.Starter
                 AutoSave = false,
                 ServerDataDirectory = "/tmp/moorestech-test-server-data",
             };
-            var proprieties = InitializeProprieties.CreateDefault();
+            var proprieties = InitializeProprieties.CreateLocalServer(ServerConst.DefaultPlayerId);
             proprieties.CreateLocalServerArgs = CliConvert.Serialize(original);
 
             GeneratedWorldPlayModeSettings.ApplyIfNeeded(proprieties);

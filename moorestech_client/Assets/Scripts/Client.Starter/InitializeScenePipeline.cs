@@ -32,7 +32,7 @@ namespace Client.Starter
         [SerializeField] private TMP_Text loadingLog;
         [SerializeField] private Button backToMainMenuButton;
 
-        private InitializeProprieties _proprieties = InitializeProprieties.CreateDefault();
+        private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer(ServerConst.DefaultPlayerId);
         public void SetProperty(InitializeProprieties proprieties)
         {
             _proprieties = proprieties;
@@ -94,7 +94,7 @@ namespace Client.Starter
             await initializeHandle.ToUniTask();
             await ModAssetLoader.PreloadCriticalAssetsAsync();
 
-            _proprieties ??= InitializeProprieties.CreateDefault();
+            _proprieties ??= InitializeProprieties.CreateLocalServer(ServerConst.DefaultPlayerId);
 
             // DIコンテナによるServerContextの作成
             if (!ServerContext.IsInitialized)
