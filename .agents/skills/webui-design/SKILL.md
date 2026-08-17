@@ -31,13 +31,15 @@ description: |
 - **背景ディムは App の screen backdrop 1枚だけが担う。** 各パネルが独自に画面を暗くしない。
 - **常時の縁ヴィネットは App の実viewport全面が担う。** 1280基準stageへ置くと横長画面の途中で切れるため、stage背景へ戻さない。ヴィネットの楕円寸法・中心・停止位置だけは、縦横比が異なる実viewportの四辺へ同じ比率で沿わせる必要があるため、固定長原則の例外としてviewport比例の`%`トークンを使う。
 - **重なり順は `index.css` の `--z-*` トークンのみで制御する。** 数値のz-index直書き禁止。
-- 常時表示HUD（ホットバー・クロスヘア・キーヒント等）は例外的にパネル外だが、これも「浮いている」表現であること。面で塗らない。
+- 常時表示HUD（ホットバー・クロスヘア・キーヒント等）は例外的にパネル外で、原則として「浮いている」表現とし面で塗らない。
+  - **唯一の例外は目標HUD（チャレンジHUD・§8.14）**。面が必要な場合も独自CSSで面を作らず、`GamePanel variant="hud"` から供給する（面色 `--hud-panel-face`・4辺フェード `--hud-panel-edge-fade`・安全帯 `--hud-panel-padding`）。他のHUDへ面を広げるのは都度裁定。
 
 ## 2. パネル — GamePanel を使い回す
 
 - **パネル背景はすべて `shared/ui/GamePanel`。** 新しいパネル背景を発明しない。
   - `variant="default"`: 縁を持たず世界背景へ溶ける半透明ネイビー面（インベントリパネルの背景）。側面・一覧系パネルの標準。
   - `variant="craft"`: 1px枠+内周線を持つ中央詳細用の細めバリアント。
+  - `variant="hud"`: 面と4辺の境界フェードだけを持つ常時表示HUD用バリアント。タイトル罫線・下向き三角・右下グリップ・正本合わせの実測オフセットを持たない。余白は `--hud-panel-padding`（全辺、フェード幅を超える安全帯）。
 - **面の左右フェード幅は固定長トークン `--panel-edge-fade` のみ。** %指定はパネル幅でフェード幅が伸びて内容がフェード帯に載るため禁止。内容はGamePanelのpadding内に置く限り不透明領域内に収まることを保証する（はみ出し防止の唯一の機構）。
 - **ただし共通GamePanelのpaddingは全辺でこの保証を満たしていない**（左28pxのみフェード幅12px超。右10px・上8pxはフェード幅未満）。正本合わせの持ち物パネルでは意図的な非対称なので共通paddingは変更せず、**内容量でサイズが決まるパネル（チェスト等）は不足する辺を安全帯トークンで補う**（前例: `--block-panel-right-safe-area` / `--block-panel-bottom-safe-area`）。内容の縁とフェード開始位置が近い辺は「面が内容の直後で途切れて見える」ため、余白は「フェード幅+視認できる余白」を確保する。
 - **上部2本線+タイトル（`title` 指定）は「一覧の置き場」に限る。**
@@ -97,6 +99,8 @@ description: |
   6. 黄黒の斜線警告帯（uGUI `delete bar.png` 由来。**削除モードの画面上下端限定**・§8.15。画像は移植せずCSS反復グラデーションで再現する）
 - 新しい装飾モチーフ（光彩、パーティクル、角丸カード、ドロップシャドウの多用等）を増やさない。
 - 装飾アニメーションは基本入れない。トランジションを入れる場合もe2eが同期検証できること（モーダルは duration 0）。
+  - **例外は通知の出入り（§8）だけ**。入場＝左から `--notification-shift` のスライド＋フェード、退場＝その逆再生で、色相・形・光彩は動かさない。
+  - アニメーションを足す場合、テスト時に尺をゼロへ落とす抜け道は作らない（実挙動と乖離するため）。計算値の `animation-name` はCSS Modulesがハッシュ化するので、e2eでは部分一致で照合する。
 
 ## 7. 文字
 
@@ -109,6 +113,7 @@ description: |
 
 - 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・5秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
 - **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。最大幅は`--notification-max-width`（画面幅20%・ユーザー裁定の画面比例値）で超過分は折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
+- **NotificationHostの出入りは唯一の装飾アニメーション例外**（§6）。入場は `--notification-enter-duration`（160ms・ease-out）で左から `--notification-shift`（12px）のスライドイン＋フェードイン、退場は `--notification-exit-duration`（200ms・ease-in）でその逆再生。生存尺は store の `NOTIFICATION_DISPLAY_MS`（7000ms）が単一の正で、`NotificationHost` がインラインCSS変数 `--notification-lifetime` として渡し、CSSは退場遅延を `calc(生存尺 − 退場尺)` で逆算する。**退場のためにstoreへ状態（`exiting` 等）を持たせない。** 退場の `animation-fill-mode` は `forwards`（`both` にすると遅延中に前方適用されて入場が消える）。積み替えの移動は補間せず、同時表示数の上限も設けない。
 - 接続前のプレースホルダは `ConnectingPlaceholder`。
 - 進捗矢印は `ProgressArrow`（機械・採掘機・流体行の帯状ゲージ）。クラフト画面の矢印グリフ進捗だけは §8.13 の様式に従う。
 
@@ -302,11 +307,14 @@ description: |
 
 ## 8.14 チャレンジHUD
 
-- 常時表示HUD族として、面・枠・角丸を持たず、`.viewportOverlay` の左上安全帯に浮かせる。
+- 常時表示HUD族の中で唯一**面を持つ**（§1の例外）。面は `GamePanel variant="hud"` が供給し、枠・角丸は持たない。位置決め（`.viewportOverlay` 左上・`--challenge-hud-*`）はHUD側CSSが持ち、面表現はHUD側に書かない。
+- 面の外形は実viewport左上24pxに据え、文字は `--hud-panel-padding` の安全帯で内側へ寄せる（画面端から約44px）。面幅は `--challenge-hud-width`（560px。面のpadding 20px×2を含み、実効テキスト幅は520pxを保つ）固定で、目標文が短くても縮めない。
 - 構成は「`--text-muted` の従属見出し → `FadeRule` → `--text-high-contrast` の目標一覧」だけとする。
 - HUDの本文幅は長文の可読性を保つ固定長とし、`FadeRule`だけを本文幅の約3分の1へ短縮する。位置・本文幅・罫線幅・間隔・文字サイズ・文字影は `--challenge-hud-*` 固定長トークンで管理する。
 - 複数目標は受信順で縦積みし、長文・長語を固定幅内で折り返す。
 - アイコン、ゲージ、箇条書き装飾、光彩、アニメーションは追加しない。
+- 文字影 `--challenge-hud-text-shadow` は面付き後も残し、通知同族の控えめな値（0.35px級）にする。可読性の主担当は面で、影は世界が透ける面上の補助。
+- メニュー上端の安全帯 `--menu-upper-safe-area`（168px）は、目標3件までの面付きHUDが収まる高さとして決めている。HUDの寸法・目標行数の上限を変えるときはこのトークンを一緒に見直す。
 - インベントリ・研究・建築・チャレンジ一覧・ポーズ等のメニュー中も表示を維持し、**HUD自身は画面状態を参照して位置・幅・間隔・文字サイズ・DOMを切り替えない**。全画面で同じ左上レイアウトを使い、`--menu-upper-safe-area` はその単一HUDが収まる高さを確保する。メニュー本体の高さは `--menu-content-height` を使う。
 - `pointer-events: none` を維持し、blockingスキット中は表示しない。
 
@@ -330,6 +338,7 @@ description: |
 - 選択の表現は `ItemSlot` の `selected`（`data-selected`）だけとし、新しい色相・光彩・アニメーションは追加しない。
 - 選択操作はホイール（素手=-1 を含む循環）。GameScreen中はカーソルロックでクリックできないため、クリック選択は画面表示中に限る。
 - ホイールは共有フック `useGameLayerWheel` で受け、**具体側のハンドラ先頭で `isPointerOverWebUi` によりWeb UI上のホイールを捨てる**。一覧のスクロールと二重発火するため。共有フックにこの判断を持ち込まない。
+- **常駐HUD族（ホットバー・装備HUD・チャレンジHUD・操作モードHUD等）はscreenレベルのメニューへ埋もれないよう `z-index: var(--z-overlay-panel)` を明示する。**
 
 ## 9. やらないことリスト（再掲・明示）
 
