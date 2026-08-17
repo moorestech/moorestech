@@ -1,7 +1,7 @@
 import { Topics, useTopic } from "@/bridge";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { challengeTitleKey, L, useI18n } from "@/shared/i18n";
-import { FadeRule } from "@/shared/ui";
+import { FadeRule, GamePanel } from "@/shared/ui";
 import { useBlockingSkitActive } from "@/shared/uiState";
 import styles from "./CurrentChallengeHud.module.css";
 
@@ -14,8 +14,8 @@ export default function CurrentChallengeHud() {
   if (blockingSkitActive) return null;
   if (!current || current.challenges.length === 0) return null;
 
-  // 見出し・罫線・目標だけで世界上の情報階層を作り、カード面は持たせない
-  // Build the world-overlay hierarchy from a label, rule, and objectives without a card face
+  // 面はGamePanelのhud variantが供給し、この階層は位置決めと情報階層だけを持つ
+  // GamePanel's hud variant supplies the face; this level only positions and orders the content
   const label = t(L.ui.challenge.currentTitle);
   return (
     <section
@@ -24,17 +24,19 @@ export default function CurrentChallengeHud() {
       data-testid="challenge-hud"
       {...tutorialAnchor(TutorialAnchorIds.challengeCurrentHud)}
     >
-      <div className={styles.label}>{label}</div>
-      <div className={styles.rule}>
-        <FadeRule />
-      </div>
-      <div className={styles.objectives}>
-        {current.challenges.map((challenge) => (
-          <div key={challenge.guid} className={styles.objective} data-testid="challenge-objective">
-            {t(challengeTitleKey(challenge.guid))}
-          </div>
-        ))}
-      </div>
+      <GamePanel variant="hud">
+        <div className={styles.label} data-testid="challenge-hud-label">{label}</div>
+        <div className={styles.rule}>
+          <FadeRule />
+        </div>
+        <div className={styles.objectives}>
+          {current.challenges.map((challenge) => (
+            <div key={challenge.guid} className={styles.objective} data-testid="challenge-objective">
+              {t(challengeTitleKey(challenge.guid))}
+            </div>
+          ))}
+        </div>
+      </GamePanel>
     </section>
   );
 }

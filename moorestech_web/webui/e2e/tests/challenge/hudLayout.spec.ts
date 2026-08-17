@@ -10,7 +10,7 @@ test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "japanese");
 });
 
-test("進行中チャレンジを内部キーやカード面なしで表示する", async ({ page }) => {
+test("進行中チャレンジを内部キーを出さずインベントリ同族の面付きで表示する", async ({ page }) => {
   await setTopicScenario(page, "challengeJapanese");
   await setUiState(page, "GameScreen");
   await page.goto("/");
@@ -19,29 +19,44 @@ test("進行中チャレンジを内部キーやカード面なしで表示す�
   await expect(hud).toContainText("石を採掘する");
   await expect(hud).not.toContainText("challenge.current");
   await expect(hud).toHaveCSS("pointer-events", "none");
-  await expect(hud).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 
   // 左上固定の寸法と短い罫線を検証する
   // Verify top-left fixed dimensions and the shortened rule
   await expect(hud).toHaveCSS("top", "24px");
   await expect(hud).toHaveCSS("left", "24px");
-  await expect(hud).toHaveCSS("width", "520px");
-  await expect(hud).toHaveCSS("text-shadow", "rgba(0, 0, 0, 0.85) 0px 1px 2px");
+  await expect(hud).toHaveCSS("width", "560px");
+  await expect(hud).toHaveCSS("text-shadow", "rgba(0, 0, 0, 0.8) 0.35px 0.35px 0px");
   const rule = hud.locator('[aria-hidden="true"]');
   await expect(rule).toHaveCount(1);
   await expect(rule).toHaveCSS("width", "176px");
 
-  // 面装飾と文字階層をスタイル検証する
-  // Verify surface decoration and type hierarchy through styles
+  // 面はGamePanelのhud variantが供給し、4辺フェードと安全帯paddingを持つ
+  // The face comes from GamePanel's hud variant with a four-edge fade and safe-area padding
+  const face = hud.locator('[data-variant="hud"]');
+  await expect(face).toHaveCount(1);
+  await expect(face).toHaveCSS("padding", "20px");
+  const faceLayer = await face.evaluate((element) => {
+    const before = getComputedStyle(element, "::before");
+    return { background: before.backgroundColor, maskImage: before.maskImage || before.webkitMaskImage };
+  });
+  expect(faceLayer.background).toBe("rgba(10, 14, 27, 0.8)");
+  // 横方向・縦方向の2枚が載ることで4辺フェードが成立する
+  // Both the horizontal and vertical gradients must be present for a four-edge fade
+  // 180degは既定方向のためブラウザのcomputed style直列化で角度が省略される
+  // 180deg is the default direction, so the browser's computed-style serializer omits the angle token
+  expect(faceLayer.maskImage).toContain("90deg");
+  expect(faceLayer.maskImage.match(/linear-gradient\(/g)).toHaveLength(2);
+
+  // HUD自身はアニメーションも角丸も枠も持たない
+  // The HUD itself keeps no animation, radius, or border
   const visualContract = await hud.evaluate((element) => {
     const hudStyle = getComputedStyle(element);
-    const labelStyle = getComputedStyle(element.firstElementChild!);
+    const labelStyle = getComputedStyle(element.querySelector('[data-testid="challenge-hud-label"]')!);
     const objectiveStyle = getComputedStyle(element.querySelector('[data-testid="challenge-objective"]')!);
     return {
       animationName: hudStyle.animationName,
       borderRadius: hudStyle.borderRadius,
       borderWidth: hudStyle.borderWidth,
-      boxShadow: hudStyle.boxShadow,
       fontWeight: objectiveStyle.fontWeight,
       labelLetterSpacing: labelStyle.letterSpacing,
       objectiveLineHeight: objectiveStyle.lineHeight,
@@ -51,11 +66,24 @@ test("進行中チャレンジを内部キーやカード面なしで表示す�
     animationName: "none",
     borderRadius: "0px",
     borderWidth: "0px",
-    boxShadow: "none",
     fontWeight: "400",
     labelLetterSpacing: "1px",
     objectiveLineHeight: "20px",
   });
+});
+
+test("面付きHUDは目標3件でもメニュー上端の安全帯に収まる", async ({ page }) => {
+  await setTopicScenario(page, "challengeMultiple");
+  await setUiState(page, "PlayerInventory");
+  await page.goto("/");
+
+  const hud = page.getByTestId("challenge-hud");
+  const hudBox = await hud.boundingBox();
+  expect(hudBox).not.toBeNull();
+  const safeArea = await page.evaluate(() =>
+    Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--menu-upper-safe-area")));
+  expect(safeArea).toBe(168);
+  expect(hudBox!.y + hudBox!.height).toBeLessThanOrEqual(safeArea);
 });
 
 test("横長画面で進行HUDを実画面左上へ置き罫線を約3分の1へ縮める", async ({ page }) => {
@@ -70,7 +98,7 @@ test("横長画面で進行HUDを実画面左上へ置き罫線を約3分の1へ
   const ruleBox = await hud.locator('[aria-hidden="true"]').boundingBox();
   expect(hudBox).not.toBeNull();
   expect(ruleBox).not.toBeNull();
-  expect(hudBox!.width).toBeCloseTo(520 * 786 / 720, 1);
+  expect(hudBox!.width).toBeCloseTo(560 * 786 / 720, 1);
   expect(ruleBox!.width).toBeCloseTo(176 * 786 / 720, 1);
 });
 

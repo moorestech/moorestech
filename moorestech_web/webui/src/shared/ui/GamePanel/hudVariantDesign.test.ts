@@ -29,7 +29,7 @@ describe("GamePanel hud variant", () => {
   });
 
   it("既定面のフェード合成からhudを除外する", () => {
-    expect(style).toContain(".panel:not(.craft):not(.skit):not(.hud)::before");
+    expect(style).toContain('.panel:not(.craft):not(.skit):not([data-variant="hud"])::before');
   });
 
   it("hudは罫線・三角・グリップの装飾を持たない", () => {

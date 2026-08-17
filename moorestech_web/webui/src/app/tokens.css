@@ -78,9 +78,9 @@
   --text-insufficient: #ff7878;
   --color-content-primary: #f2f3f7;
   --recipe-action-background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
-  /* メニュー内容を常駐HUDの下からホットバー手前までに収める */
-  /* Keep menu content between the resident HUD and the hotbar */
-  --menu-upper-safe-area: 128px;
+  /* メニュー内容を面付き常駐HUDの下からホットバー手前までに収める */
+  /* Keep menu content between the faced resident HUD and the hotbar */
+  --menu-upper-safe-area: 168px;
   --menu-content-height: 525px;
   /* 常時表示HUDの面。色はパネル面と同値、フェード幅は共通トークン、余白はフェード帯を避ける安全帯 */
   /* Resident-HUD face: panel-equal color, the shared fade width, and padding that clears the fade band */
@@ -91,7 +91,9 @@
   /* Keep the resident challenge HUD top-left with independent content and rule widths */
   --challenge-hud-left: 24px;
   --challenge-hud-top: 24px;
-  --challenge-hud-width: 520px;
+  /* 面幅=本文の折返し幅520px+GamePanel hud variantの安全帯padding20px×2 */
+  /* Face width = 520px text-wrap width + GamePanel hud variant's 20px safe-area padding on each side */
+  --challenge-hud-width: 560px;
   --challenge-hud-rule-width: 176px;
   --challenge-hud-label-font-size: 12px;
   --challenge-hud-objective-font-size: 14px;
@@ -100,7 +102,7 @@
   --challenge-hud-objective-gap: 2px;
   --challenge-hud-letter-spacing: 1px;
   --challenge-hud-objective-line-height: 20px;
-  --challenge-hud-text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
+  --challenge-hud-text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
   /* 配置モード情報を右上のクラフト枠へ固定長で配置する */
   /* Place placement-mode information in the top-right craft frame with fixed lengths */
   --operation-hud-right: 24px;

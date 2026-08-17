@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
-import hudVariantStyles from "./hudVariant.module.css";
 import styles from "./style.module.css";
+import hudVariantStyles from "./hudVariant.module.css";
 
 type Props = {
   gridArea?: string;
