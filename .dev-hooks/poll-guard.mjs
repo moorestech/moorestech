@@ -38,15 +38,15 @@ import { join, basename } from "node:path";
 
 const THRESHOLD = 3;
 const WINDOW = 24;
-// 3秒間隔のポーリングは窓に残り、分単位で離れた正当な同一呼び出しは残らない長さにする
-// Long enough to hold a 3-second poll loop, short enough to forget legitimate minute-apart repeats.
-const WINDOW_SECONDS = 300;
+// sleepを挟む遅いポーリング(間隔15分未満)まで捕まえる長さにする。短くすると素通りする穴になる
+// Long enough to catch slow sleep-based polling (under 15 min apart); shorter values become a bypass.
+const WINDOW_SECONDS = 1800;
 // 実作業を進めるツールだけが窓をリセットする(読み取り専用ツールを挟んだ偽装ポーリングを通さないため)
 // Only tools that advance real work reset the window, so read-only calls cannot launder a poll loop.
 // SendMessageは除外する — 同文の「終わった?」をsubagentへ反復送るのは実在のポーリング形態だから。
 // SendMessage is excluded: repeating the same "are you done?" to a subagent is itself a poll loop.
 const RESETTING_TOOLS =
-  /^(Edit|Write|MultiEdit|NotebookEdit|apply_patch|Agent|TaskCreate|TaskUpdate|AskUserQuestion|ExitPlanMode|Workflow|Artifact|EnterWorktree|ExitWorktree)$/;
+  /^(Edit|Write|MultiEdit|NotebookEdit|apply_patch|Agent|Task|TaskCreate|TaskUpdate|AskUserQuestion|ExitPlanMode|Workflow|Artifact|EnterWorktree|ExitWorktree)$/;
 
 let input = {};
 try {
