@@ -165,8 +165,13 @@ AGENTS.mdの規約を遵守する:
 - **コンパイルまたはテストが失敗し、かつStep 4の範囲内で直しきれない場合は、pushせず失敗として終了する**
   （apply-result.jsonの `status` を `"failure"`、`tests` に失敗内容を書く）
 - ドメインリロード中のエラー（「Unity is reloading」）はAGENTS.md記載どおり45秒待ってリトライする
-- Unityがこのworktreeで起動していなければ `uloop launch` で起動してから叩く
-  （apply専用worktreeは常駐対象ではないため、接続できない状態から始まることがある）
+- Unityがこのworktreeで起動していなければ `cd <$REPOの実値> && uloop launch ./moorestech_client` で起動する
+  （apply専用worktreeは常駐対象ではないため、接続できない状態から始まることがある。
+  `--project-path` は `launch` には無く位置引数で渡す。起動後 `uloop compile` が通るまで45秒間隔でリトライする）。
+  `Unity CLI Loop is not installed in this project` が出たら
+  `moorestech_client/UserSettings/UnityMcpSettings.json` が無い状態なので、
+  メインクローンの同ファイルをコピーし `customPort` を **8705**（apply worktree専用）へ書き換えてから起動する
+  — ポートを他worktreeと共有すると別プロジェクトのEditorへコマンドが飛ぶ
 - **テストの完了は必ずこのターン内で待ち切る**。7分かかっても待つ。
   「実行を投げてターンを終える」は結果を捨てるのと同じである（冒頭の最重要事項を再読すること）
 
