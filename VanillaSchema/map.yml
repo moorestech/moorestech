@@ -122,3 +122,43 @@ properties:
     - key: outcropAddressablePath
       type: string
       default: ""
+    - key: soundEffectType
+      type: enum
+      options:
+      - tree
+      - stone
+    - key: handMiningType
+      type: enum
+      options:
+      - none
+      - minable
+    - key: handMiningParam
+      switch: ./handMiningType
+      cases:
+      - when: none
+        type: object
+        optional: true
+        properties: []
+      - when: minable
+        type: object
+        properties:
+        - key: handMiningTools
+          type: array
+          items:
+            type: object
+            properties:
+            - key: toolItemGuid
+              type: uuid
+              foreignKey:
+                schemaId: items
+                foreignKeyIdPath: /data/[*]/itemGuid
+                displayElementPath: /data/[*]/name
+            - key: attackSpeed
+              type: number
+              default: 1
+        - key: minCount
+          type: integer
+          default: 1
+        - key: maxCount
+          type: integer
+          default: 1

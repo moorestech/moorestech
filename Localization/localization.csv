@@ -153,6 +153,7 @@ ui.blueprint.webModalMessage,Enter a name for the blueprint you want to save,Ent
 ui.blueprint.webModalConfirm,Save,Save,保存
 ui.tooltip.pickUpLeftClick,Left-click to pick up,Left-click to pick up,左クリックで取得
 ui.tooltip.requiredItems,Requires: {p0},Requires: {p0},このアイテムが必要です: {p0}
+ui.tooltip.cannotHandMine,Cannot be mined by hand,Cannot be mined by hand,手掘りできません
 ui.tooltip.craftCannotByItemShortage,Not enough items to craft,Not enough items to craft,アイテムが足りないためクラフトできません
 ui.tooltip.retiredUguiSlotText,{p0},{p0},{p0}
 ui.delete.differentCategorySelection,Blocks from different categories cannot be selected at the same time.,Blocks from different categories cannot be selected at the same time.,別カテゴリーのブロックは同時に選択できません。

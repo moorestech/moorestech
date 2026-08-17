@@ -5,9 +5,10 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Environment.Terrain;
 using Client.Game.InGame.Hotbar;
-using Client.Game.InGame.Map.MapVein;
+using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Presenter.Player;
+using Client.Game.InGame.UI.Challenge;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.Context;
@@ -57,9 +58,13 @@ namespace Client.Starter.Initialization
 
             // 露頭生成はTerrain完成後に明示開始する。完了待ちは下の待機境界が一括で担う（ADR#15）
             // Outcrop instantiation starts explicitly after the terrain is ready; the wait boundary below waits for it with the rest (ADR#15)
-            resolver.Resolve<MapVeinObjectDatastore>().StartOutcropInstantiation();
+            resolver.Resolve<OutcropGameObjectDatastore>().StartOutcropInstantiation();
 
             await InitialEventApplyWaiter.WaitAllAsync(resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>());
+
+            // ピンが探す対象の生成後に適用する
+            // Apply only once the objects a pin searches for exist
+            resolver.Resolve<ChallengeManager>().ApplyInitialTutorials();
 
             // 車両の生成まで終えてから自機を保存座標へ置く。乗車セーブの復帰先が未生成だと支えが無く落下する（ADR#16）
             // Place the player only after the train cars exist, since a riding save would otherwise land on nothing and fall (ADR#16)

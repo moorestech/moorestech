@@ -9,7 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8630411708005994052}
-  m_Layer: 0
+  - component: {fileID: 7622127441128741792}
+  - component: {fileID: 4115823528627236445}
+  m_Layer: 6
   m_Name: Tungsten
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -32,6 +34,39 @@ Transform:
   - {fileID: 6096420776674490349}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
+--- !u!114 &7622127441128741792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1182250607309361148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 452c315d66a2340eeb6a0b437524c191, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Map.Outcrop.OutcropGameObject
+--- !u!65 &4115823528627236445
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1182250607309361148}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3, y: 0.28079, z: 3}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4520619277583575703
 GameObject:
   m_ObjectHideFlags: 0
@@ -43,7 +78,7 @@ GameObject:
   - component: {fileID: 6096420776674490349}
   - component: {fileID: 5426492860217373603}
   - component: {fileID: 1383560398108554432}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: OutcropMesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}

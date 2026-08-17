@@ -68,7 +68,19 @@
       "veinParam": {
         "itemGuid": "00000000-0000-0000-1234-000000000001"
       },
-      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Iron"
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Iron",
+      "soundEffectType": "stone",
+      "handMiningType": "minable",
+      "handMiningParam": {
+        "handMiningTools": [
+          {
+            "toolItemGuid": "00000000-0000-0000-1234-000000000001",
+            "attackSpeed": 0.2
+          }
+        ],
+        "minCount": 1,
+        "maxCount": 1
+      }
     },
     {
       "veinGuid": "11111111-0000-0000-0000-000000000002",
@@ -77,7 +89,10 @@
       "veinParam": {
         "fluidGuid": "00000000-0000-0000-1234-000000000001"
       },
-      "outcropAddressablePath": "Vanilla/Environment/Vein/Fluid/Water"
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Fluid/Water",
+      "soundEffectType": "stone",
+      "handMiningType": "none",
+      "handMiningParam": null
     },
     {
       "veinGuid": "11111111-0000-0000-0000-000000000003",
@@ -86,7 +101,22 @@
       "veinParam": {
         "fluidGuid": "00000000-0000-0000-1234-000000000002"
       },
-      "outcropAddressablePath": "Vanilla/Environment/Vein/Fluid/Water"
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Fluid/Water",
+      "soundEffectType": "stone",
+      "handMiningType": "none",
+      "handMiningParam": null
+    },
+    {
+      "veinGuid": "11111111-0000-0000-0000-000000000004",
+      "veinName": "test:UnmineableItemVein",
+      "veinType": "item",
+      "veinParam": {
+        "itemGuid": "00000000-0000-0000-1234-000000000003"
+      },
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Stone",
+      "soundEffectType": "stone",
+      "handMiningType": "none",
+      "handMiningParam": null
     }
   ]
 }

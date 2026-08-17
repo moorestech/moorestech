@@ -158,6 +158,7 @@ namespace Client.Tests.Localization.Composition
             return tutorial.TutorialParam switch
             {
                 MapObjectPinTutorialParam mapObjectPin => mapObjectPin.PinText,
+                VeinPinTutorialParam veinPin => veinPin.PinText,
                 KeyControlTutorialParam keyControl => keyControl.ControlText,
                 UiHighLightTutorialParam uiHighLight => uiHighLight.HighLightText,
                 ItemViewHighLightTutorialParam itemViewHighLight => itemViewHighLight.HighLightText,

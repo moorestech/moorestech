@@ -1,0 +1,4 @@
+決定: 「手掘りできる対象か」を IMiningTargetObject のメンバーとして持たせ、MapObjectMiningFocusState がそれを見て専用ツールチップを出す。IsAvailable は「対象として生きているか」の意味に戻す
+棄却案: ①TryResolveUsableTool の戻り値を失敗理由つきに拡張し「道具違い」と「そもそも手掘り不可」を区別する ②OutcropGameObject.SetFocused の中で露頭が自分でツールチップを出す
+理由: ①は戻り値の意味が重くなり、ツール解決という単一の問いに2つの意味を載せる。②は提示の責務がFSMとviewの2箇所へ割れる。対象の性質は対象自身が答え、提示はFSMが一箇所で行う形が既存のShowRecommendMiningToolsと揃う
+リンク: IMiningTargetObject.cs / MapObjectMiningFocusState.cs:16-19 / MapObjectGameObject側は常に可を返す

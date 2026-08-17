@@ -1,0 +1,138 @@
+using System;
+using Client.Common;
+using Client.Game.InGame.Control;
+using Client.Game.InGame.Map.Outcrop;
+using Client.Game.InGame.Player;
+using Client.Game.InGame.UI.UIState;
+using Mooresmaster.Model.ChallengesModule;
+using UnityEngine;
+using VContainer;
+
+namespace Client.Game.InGame.Tutorial
+{
+    public class VeinPin : MonoBehaviour, ITutorialWorldPin
+    {
+        // 専用IDでmapObjectピンの掃除との干渉を防ぐ
+        // A separate ID prevents map-object cleanup from removing the vein pin
+        private const string WebPinId = "vein-pin";
+
+        private InGameCameraController _inGameCameraController;
+        private OutcropGameObjectDatastore _outcropGameObjectDatastore;
+        private TutorialWorldPinVisibility _visibility;
+
+        // ピンは非活性で置かれAwakeが走らないまま表示要求が届くため、初回要求時に組み立てる
+        // A pin can sit inactive with no Awake yet still receive a visibility request, so build it on first use
+        private TutorialWorldPinVisibility Visibility => _visibility ??= new TutorialWorldPinVisibility(gameObject, nameof(VeinPin));
+        private VeinPinTutorialParam _currentTutorialParam;
+        private string _pinTutorialGuid = "";
+
+        // 露頭不在は毎フレーム出すとログを埋めるので、対象1件につき1回だけ報告する
+        // Reporting a missing outcrop every frame would bury the log, so report once per target
+        private Guid _reportedMissingOutcropVeinGuid;
+
+        [Inject]
+        public void Initialize(InGameCameraController inGameCameraController, OutcropGameObjectDatastore outcropGameObjectDatastore)
+        {
+            _inGameCameraController = inGameCameraController;
+            _outcropGameObjectDatastore = outcropGameObjectDatastore;
+        }
+
+        private void Update()
+        {
+            if (_currentTutorialParam == null) return;
+
+            // Y軸だけカメラへ向ける
+            // Face camera on Y axis only
+            transform.LookAt(_inGameCameraController.Position);
+            transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+            if (!TryTrackNearestOutcrop()) return;
+            PublishWebWorldPin();
+
+            #region Internal
+
+            bool TryTrackNearestOutcrop()
+            {
+                var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
+                var outcrop = _outcropGameObjectDatastore.SearchNearestOutcrop(
+                    _currentTutorialParam.VeinGuid,
+                    playerPosition);
+                if (outcrop == null)
+                {
+                    HideForMissingOutcrop();
+                    return false;
+                }
+
+                transform.position = outcrop.transform.position;
+                return true;
+            }
+
+            void HideForMissingOutcrop()
+            {
+                // 指す先が無いピンは隠し、報告は対象ごとに初回だけにする
+                // Hide a pin with nothing to point at, and report only the first time per target
+                if (_reportedMissingOutcropVeinGuid != _currentTutorialParam.VeinGuid)
+                {
+                    _reportedMissingOutcropVeinGuid = _currentTutorialParam.VeinGuid;
+                    Debug.LogError($"veinGuid:{_currentTutorialParam.VeinGuid}の露頭が存在しません");
+                }
+
+                SetActive(false);
+                WorldPinStateStore.Instance.RemovePin(WebPinId);
+            }
+
+            void PublishWebWorldPin()
+            {
+                if (!WebUiScreenGate.IsWebUiMode) return;
+                var camera = CameraManager.MainCamera.Camera;
+                if (!camera) return;
+
+                var projection = WorldPinScreenProjection.Project(camera, transform.position);
+                WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
+            }
+
+            #endregion
+        }
+
+        public ITutorialView ApplyTutorial(TutorialsElement tutorial)
+        {
+            _currentTutorialParam = (VeinPinTutorialParam)tutorial.TutorialParam;
+            _pinTutorialGuid = tutorial.TutorialGuid.ToString("D");
+            SetActive(true);
+            return this;
+        }
+
+        public void CompleteTutorial()
+        {
+            SetActive(false);
+            _currentTutorialParam = null;
+            WorldPinStateStore.Instance.RemovePin(WebPinId);
+        }
+
+        public string TutorialType => TutorialsElement.TutorialTypeConst.veinPin;
+
+        public void SetActive(bool active)
+        {
+            Visibility.SetActive(active);
+        }
+
+        public void BeginSkitSuppress()
+        {
+            Visibility.BeginSkitSuppress();
+        }
+
+        public void EndSkitSuppress()
+        {
+            Visibility.EndSkitSuppress();
+        }
+
+        private void OnDisable()
+        {
+            WorldPinStateStore.Instance.RemovePin(WebPinId);
+        }
+
+        private void OnDestroy()
+        {
+            WorldPinStateStore.Instance.RemovePin(WebPinId);
+        }
+    }
+}

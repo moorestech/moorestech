@@ -19,13 +19,11 @@ namespace Client.Network.API
     public class VanillaApiSendOnly
     {
         private readonly PacketSender _packetSender;
-        private readonly PlayerConnectionSetting _playerConnectionSetting;
         private readonly int _playerId;
         
         public VanillaApiSendOnly(PacketSender packetSender, PlayerConnectionSetting playerConnectionSetting)
         {
             _packetSender = packetSender;
-            _playerConnectionSetting = playerConnectionSetting;
             _playerId = playerConnectionSetting.PlayerId;
         }
         
@@ -66,9 +64,15 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void AttackMapObject(int mapObjectInstanceId)
+        public void AttackMapObject(int instanceId)
         {
-            var request = new MapObjectAcquisitionProtocol.GetMapObjectProtocolProtocolMessagePack(_playerId, mapObjectInstanceId);
+            var request = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(_playerId, instanceId);
+            _packetSender.Send(request);
+        }
+
+        public void MineVein(Guid veinGuid, Vector3Int position)
+        {
+            var request = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(_playerId, veinGuid, position);
             _packetSender.Send(request);
         }
         
