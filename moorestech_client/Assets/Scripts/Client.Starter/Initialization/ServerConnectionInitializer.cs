@@ -1,5 +1,4 @@
 using System;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 using Client.Common;
 using Client.Network;
@@ -47,7 +46,7 @@ namespace Client.Starter.Initialization
             Task.Run(() => serverCommunicator.StartCommunicat(exchangeManager));
 
             //Vanilla APIの作成
-            var vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, _playerConnectionSetting, null);
+            var vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, _playerConnectionSetting);
 
             //最初に必要なデータを取得
             // Fetch the initial data bundle
@@ -61,50 +60,64 @@ namespace Client.Starter.Initialization
 
             async UniTask<ServerCommunicator> ConnectionToServer()
             {
-                var serverProperties = new ConnectionServerProperties(_proprieties.ServerIp, _proprieties.ServerPort);
                 var timeOut = TimeSpan.FromSeconds(3);
-                // サーバー接続はネットワーク境界。失敗を捕捉してローカルサーバー起動へフォールバックする
-                // Server connect is a network boundary; catch failures to fall back to launching a local server
-                try
+
+                // リモートは明示指定の宛先のみ。失敗しても内蔵サーバーへフォールバックしない（ADR 0013）
+                // Remote uses only the explicit destination and never falls back to the embedded server (ADR 0013)
+                if (_proprieties.IsRemoteConnection)
                 {
-                    // 10秒以内にサーバー接続できなければタイムアウト
-                    var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
-                    return serverCommunicator;
-                }
-                catch (SocketException)
-                {
-                    _loadingLog.text += "\nサーバーの接続が失敗しました。サーバーを起動します。";
-                    // ローカルサーバー起動と再接続もネットワーク/プロセス境界のため隔離する
-                    // Local server launch and reconnect are also network/process boundaries, so isolate them
+                    // サーバー接続はネットワーク境界のため失敗を隔離しメニューへ復帰する
+                    // Server connect is a network boundary; isolate failures and return to the menu
                     try
                     {
-                        var serverInstanceGameObject = new GameObject("ServerInstance");
-                        var serverStarter = serverInstanceGameObject.AddComponent<ServerStarter>();
-
-                        // ポート未指定なら0(OS自動採番)を渡し、実行時に空きポートへバインドさせる
-                        // Pass 0 (OS auto-assign) when no port is specified, so the server binds a free port at runtime
-                        var localServerSettings = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs ?? Array.Empty<string>());
-                        localServerSettings.Port ??= 0;
-                        serverStarter.SetArgs(CliConvert.Serialize(localServerSettings));
-                        UnityEngine.Object.DontDestroyOnLoad(serverInstanceGameObject);
-
-                        // バインド完了を待ち、実際に割り当てられたポートへ接続する
-                        // Wait for binding to complete, then connect to the actually assigned port
-                        await UniTask.WaitUntil(() => serverStarter.BoundPort != 0).Timeout(TimeSpan.FromSeconds(60));
-                        var localServerProperties = new ConnectionServerProperties(_proprieties.ServerIp, serverStarter.BoundPort);
-
-                        var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(localServerProperties).Timeout(timeOut);
-                        return serverCommunicator;
+                        var serverProperties = new ConnectionServerProperties(_proprieties.ServerIp, _proprieties.ServerPort);
+                        return await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError($"サーバーへの接続に失敗しました: {e.Message}");
-                        _loadingLog.text += "\nサーバーへの接続に失敗しました。メインメニューに戻ります。";
-                        await UniTask.Delay(2000);
-                        SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
+                        await HandleConnectionFailure(e);
                         throw;
                     }
                 }
+
+                // ローカルは接続試行なしで必ず内蔵サーバーを起動する
+                // Local play always boots the embedded server without probing
+                // 内蔵サーバー起動と接続はプロセス/ネットワーク境界のため失敗を隔離しメニューへ復帰する
+                // Embedded server launch and connect are process/network boundaries; isolate failures and return to the menu
+                try
+                {
+                    var serverInstanceGameObject = new GameObject("ServerInstance");
+                    var serverStarter = serverInstanceGameObject.AddComponent<ServerStarter>();
+
+                    // ポート未指定なら0(OS自動採番)を渡し、実行時に空きポートへバインドさせる
+                    // Pass 0 (OS auto-assign) when no port is specified, so the server binds a free port at runtime
+                    var localServerSettings = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs ?? Array.Empty<string>());
+                    localServerSettings.Port ??= 0;
+                    serverStarter.SetArgs(CliConvert.Serialize(localServerSettings));
+                    UnityEngine.Object.DontDestroyOnLoad(serverInstanceGameObject);
+
+                    // バインド完了を待ち、実際に割り当てられたポートへ接続する
+                    // Wait for binding to complete, then connect to the actually assigned port
+                    await UniTask.WaitUntil(() => serverStarter.BoundPort != 0).Timeout(TimeSpan.FromSeconds(60));
+                    var localServerProperties = new ConnectionServerProperties(_proprieties.ServerIp, serverStarter.BoundPort);
+
+                    return await ServerCommunicator.CreateConnectedInstance(localServerProperties).Timeout(timeOut);
+                }
+                catch (Exception e)
+                {
+                    await HandleConnectionFailure(e);
+                    throw;
+                }
+            }
+
+            // 失敗をログとUIへ出しメインメニューへ戻す共通復帰処理
+            // Shared recovery path: log the failure, show it in the UI, and return to the main menu
+            async UniTask HandleConnectionFailure(Exception e)
+            {
+                Debug.LogError($"サーバーへの接続に失敗しました: {e.Message}");
+                _loadingLog.text += "\nサーバーへの接続に失敗しました。メインメニューに戻ります。";
+                await UniTask.Delay(2000);
+                SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
             }
 
             #endregion
