@@ -33,6 +33,10 @@ test("正本のヘッダ装飾、常時スクロールバー、主要構造を�
   await expectCraftGrip(craftPanel, false);
   await expect(page.getByTestId("craft-recipe-entry").getByRole("button")).toBeVisible();
 
+  // 装飾タブは完全に廃止され存在しない
+  // The decorative tab was fully removed and must not exist
+  await expect(page.getByTestId("craft-tab")).toHaveCount(0);
+
   // 短いfixtureでも縦バーを保つ
   // Preserve the vertical scrollbar even with a short fixture
   const scrollRoot = page.getByTestId("item-list-grid").locator("xpath=ancestor::*[contains(@class, 'mantine-ScrollArea-root')][1]");
