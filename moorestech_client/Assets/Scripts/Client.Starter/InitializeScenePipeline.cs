@@ -73,13 +73,18 @@ namespace Client.Starter
             }
 
 #if UNITY_EDITOR
-            // ツールバーの専用再生ボタン経由なら、セーブデータをロード・保存しないよう起動引数を上書きする
-            // When launched via the dedicated toolbar play button, override launch args to skip loading/saving save data
-            Editor.SkipSaveLoadPlayModeSettings.ApplyIfNeeded(_proprieties);
+            // 起動引数は内蔵サーバー専用のためローカル接続時のみ上書きする
+            // Launch args belong to the embedded server, so override them only for local connections
+            if (!_proprieties.IsRemoteConnection)
+            {
+                // ツールバーの専用再生ボタン経由なら、セーブデータをロード・保存しないよう起動引数を上書きする
+                // When launched via the dedicated toolbar play button, override launch args to skip loading/saving save data
+                Editor.SkipSaveLoadPlayModeSettings.ApplyIfNeeded(_proprieties);
 
-            // 生成ワールド起動引数を上書き
-            // Override launch args for the generated-world play button
-            Editor.GeneratedWorldPlayModeSettings.ApplyIfNeeded(_proprieties);
+                // 生成ワールド起動引数を上書き
+                // Override launch args for the generated-world play button
+                Editor.GeneratedWorldPlayModeSettings.ApplyIfNeeded(_proprieties);
+            }
 #endif
 
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
@@ -93,8 +98,6 @@ namespace Client.Starter
             var initializeHandle = Addressables.InitializeAsync();
             await initializeHandle.ToUniTask();
             await ModAssetLoader.PreloadCriticalAssetsAsync();
-
-            _proprieties ??= InitializeProprieties.CreateLocalServer(ServerConst.DefaultPlayerId);
 
             // DIコンテナによるServerContextの作成
             if (!ServerContext.IsInitialized)
@@ -127,7 +130,11 @@ namespace Client.Starter
             }
             catch (Exception e)
             {
+                // 失敗をログとUIへ出し、文言を読ませてからメインメニューへ戻す
+                // Log the failure, surface it in the UI, and return to the main menu after the message is readable
                 Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
+                loadingLog.text += "\n初期化に失敗しました。メインメニューに戻ります。";
+                await UniTask.Delay(2000);
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 return;
             }
