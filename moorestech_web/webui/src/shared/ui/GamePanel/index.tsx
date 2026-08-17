@@ -6,7 +6,7 @@ import hudVariantStyles from "./hudVariant.module.css";
 // craft: narrower variant for the center detail
 // skit: 画面下部の全幅会話帯
 // skit: full-bleed dialogue band at the screen bottom
-// hud: 常時表示HUD用に面と境界フェードだけを持つ
+// hud: 面と境界フェードのみ持つ
 // hud: face and boundary fade only, for resident HUDs
 export type GamePanelVariant = "default" | "craft" | "skit" | "hud";
 

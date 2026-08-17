@@ -1,5 +1,5 @@
-// hud variantが面と境界フェードだけを持ち、罫線・三角・グリップを持たないことを固定する
-// Locks the hud variant to a face and boundary fade, without rules, triangles, or a grip
+// hudの見た目契約を固定する
+// Locks the hud variant's visual contract
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 

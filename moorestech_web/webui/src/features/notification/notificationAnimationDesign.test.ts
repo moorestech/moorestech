@@ -1,5 +1,5 @@
-// 通知の出入りアニメが生存尺を単一の正から引き、CSSへ尺を直書きしないことを固定する
-// Locks the notification enter/exit animation to a single lifetime source with no duration hardcoded in CSS
+// 生存尺を単一の正にする検証
+// Verifies a single lifetime source drives the CSS
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 

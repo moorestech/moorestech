@@ -14,8 +14,8 @@ export default function CurrentChallengeHud() {
   if (blockingSkitActive) return null;
   if (!current || current.challenges.length === 0) return null;
 
-  // 面はGamePanelのhud variantが供給し、この階層は位置決めと情報階層だけを持つ
-  // GamePanel's hud variant supplies the face; this level only positions and orders the content
+  // 面はhud variantが供給
+  // Face comes from the hud variant
   const label = t(L.ui.challenge.currentTitle);
   return (
     <section

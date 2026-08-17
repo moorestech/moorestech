@@ -98,8 +98,8 @@ async function measure(page: Page): Promise<unknown> {
   return page.evaluate(() => {
     const hud = document.querySelector<HTMLElement>('[data-testid="challenge-hud"]');
     const hudRect = hud?.getBoundingClientRect();
-    // 面はsectionではなくGamePanel hud variantの::beforeが敷くため、そこから読む
-    // The face is painted by the hud variant's ::before, not the section, so read it there
+    // 面は::beforeから読む
+    // Read the face from ::before
     const hudFace = hud?.querySelector<HTMLElement>(':scope > [data-variant="hud"]') ?? null;
     const hudFaceStyle = hudFace ? getComputedStyle(hudFace, "::before") : null;
     const objectives = Array.from(document.querySelectorAll<HTMLElement>('[data-testid="challenge-objective"]'));

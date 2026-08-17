@@ -29,8 +29,8 @@ export default function NotificationHost() {
     });
   }, [payload]);
 
-  // 生存尺はstoreの定数が正。CSS変数として流し込み、退場の遅延をCSS側で逆算させる
-  // The store constant is the single lifetime source; CSS receives it and derives the exit delay
+  // 生存尺はCSS変数で渡す
+  // Pass the lifetime to CSS as a variable
   const lifetimeStyle = { "--notification-lifetime": `${NOTIFICATION_DISPLAY_MS}ms` } as CSSProperties;
 
   return (

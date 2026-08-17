@@ -30,8 +30,8 @@ test("進行中チャレンジを内部キーを出さずインベントリ同�
   await expect(rule).toHaveCount(1);
   await expect(rule).toHaveCSS("width", "176px");
 
-  // 面はGamePanelのhud variantが供給し、4辺フェードと安全帯paddingを持つ
-  // The face comes from GamePanel's hud variant with a four-edge fade and safe-area padding
+  // hud variantの面と安全帯pad
+  // Face + safe-area padding, from hud variant
   const face = hud.locator('[data-variant="hud"]');
   await expect(face).toHaveCount(1);
   await expect(face).toHaveCSS("padding", "20px");
@@ -40,15 +40,15 @@ test("進行中チャレンジを内部キーを出さずインベントリ同�
     return { background: before.backgroundColor, maskImage: before.maskImage || before.webkitMaskImage };
   });
   expect(faceLayer.background).toBe("rgba(10, 14, 27, 0.8)");
-  // 横方向・縦方向の2枚が載ることで4辺フェードが成立する
-  // Both the horizontal and vertical gradients must be present for a four-edge fade
-  // 180degは既定方向のためブラウザのcomputed style直列化で角度が省略される
-  // 180deg is the default direction, so the browser's computed-style serializer omits the angle token
+  // 横縦2枚で4辺フェード成立
+  // Both axes' gradients complete the fade
+  // 既定角度は省略され得る
+  // Default angle may be omitted by the browser
   expect(faceLayer.maskImage).toContain("90deg");
   expect(faceLayer.maskImage.match(/linear-gradient\(/g)).toHaveLength(2);
 
-  // HUD自身はアニメーションも角丸も枠も持たず、面と影はGamePanel側にのみ置く
-  // The HUD itself keeps no animation, radius, or border, and leaves face and shadow to GamePanel
+  // 面と影はGamePanel側で持つ
+  // Face and shadow live in GamePanel
   const visualContract = await hud.evaluate((element) => {
     const hudStyle = getComputedStyle(element);
     const labelStyle = getComputedStyle(element.querySelector('[data-testid="challenge-hud-label"]')!);

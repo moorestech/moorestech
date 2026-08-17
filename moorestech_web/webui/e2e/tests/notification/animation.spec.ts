@@ -2,8 +2,8 @@ import { test, expect } from "@playwright/test";
 import { setTopicScenario, setUiState } from "../../support/mockControl";
 
 test.afterEach(async ({ page }) => {
-  // 通知トピックは値が残るため、他specへ漏らさないよう空へ戻す
-  // The notification topic is sticky, so reset it to empty and keep other specs clean
+  // 他specへ漏らさず空へ戻す
+  // Reset to empty so it doesn't leak to other specs
   await setTopicScenario(page, "notificationClear");
   // uiStateも他specと同じ前例に倣いデフォルトへ戻す（未リセットだとCRAFT RECIPE系specが汚染される）
   // Also reset uiState to the default, matching sibling specs (leaving it set pollutes the CRAFT RECIPE specs)
@@ -18,8 +18,8 @@ test("通知は左からのスライドとフェードで入場し生存尺の�
   const row = page.getByTestId("notification-row").first();
   await expect(row).toBeVisible();
 
-  // 入場・退場の2本が載り、退場だけが生存尺から逆算した遅延を持つ
-  // Two animations are attached and only the exit carries the lifetime-derived delay
+  // 入場退場の2本、遅延は退場のみ
+  // Enter/exit pair; only exit carries the delay
   const animation = await row.evaluate((element) => {
     const style = getComputedStyle(element);
     return {
@@ -37,8 +37,8 @@ test("通知は左からのスライドとフェードで入場し生存尺の�
   expect(animation.fillMode).toBe("both, forwards");
   expect(animation.timingFunction).toBe("ease-out, ease-in");
 
-  // keyframes本体を読み、入場の始点と退場の終点が「透明かつ左12px」であることを固定する
-  // Read the keyframes themselves and lock the enter's start and the exit's end to transparent and shifted 12px left
+  // keyframesで始点終点を固定
+  // Lock keyframe start/end via getAnimations()
   const keyframes = await row.evaluate((element) =>
     element.getAnimations().map((animation) => ({
       name: (animation as CSSAnimation).animationName,
@@ -59,7 +59,7 @@ test("通知は左からのスライドとフェードで入場し生存尺の�
   const settled = await row.evaluate((element) => getComputedStyle(element).transform);
   expect(settled === "none" || settled === "matrix(1, 0, 0, 1, 0, 0)").toBe(true);
 
-  // 生存尺の経過でDOMから消える（退場アニメの終端と一致する）
-  // It leaves the DOM when the lifetime elapses, matching the end of the exit animation
+  // 生存尺経過でDOMから消える
+  // It's removed from the DOM when the lifetime elapses
   await expect(page.getByTestId("notification-row")).toHaveCount(0, { timeout: 9000 });
 });
