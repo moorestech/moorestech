@@ -7,10 +7,13 @@ using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.Block.Interface.State;
 using Game.CleanRoom;
 using Game.Context;
 using Game.EnergySystem;
+using MessagePack;
 using NUnit.Framework;
+using System.Linq;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
@@ -92,6 +95,9 @@ namespace Tests.CombinedTest.Core.CleanRoom
             // Wait for purity convergence and explicitly prove the machine entered processing
             for (var i = 0; i < 200 && processor.CurrentState != ProcessState.Processing; i++) TickRoom();
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
+            // stateへ載る要求電力が基礎値ではなく実効値（EffectiveRequestPower）であることを固定する
+            // Lock in that the state carries the effective request power, not the raw base value
+            Assert.AreEqual(machineConsumer.EffectiveRequestPower, GetCommonMachineState(machine).RequestPower, 0.01f);
 
             // 完了前の進捗を作ってから壁を壊し、途中停止の対象を明確にする
             // Accumulate partial progress before breaking the wall so the freeze target is unambiguous
@@ -104,6 +110,9 @@ namespace Tests.CombinedTest.Core.CleanRoom
             for (var i = 0; i < 50 && processor.CurrentState != ProcessState.Halted; i++) TickRoom();
             Assert.AreEqual(ProcessState.Halted, processor.CurrentState);
             Assert.AreEqual(0, machineConsumer.EffectiveRequestPower);
+            // Halted中はstateの要求電力も0で張り付くこと（基礎値へ戻す退行を検出する）
+            // The state's request power must also latch to 0 while halted, catching a regression to the base value
+            Assert.AreEqual(0f, GetCommonMachineState(machine).RequestPower, 0.01f);
 
             // 長い停止中も出力が生えず、処理が勝手に完了しないことを確認する
             // During a long outage, output must not appear and processing must not complete silently
@@ -207,6 +216,16 @@ namespace Tests.CombinedTest.Core.CleanRoom
                 consumer.SupplyExternalPower(power);
                 GameUpdater.UpdateOneTick();
             }
+        }
+
+        // GetBlockStateDetailsが配信するCommonMachineBlockStateDetailをデシリアライズする
+        // Deserialize the CommonMachineBlockStateDetail published via GetBlockStateDetails
+        private static CommonMachineBlockStateDetail GetCommonMachineState(IBlock machine)
+        {
+            var stateObservable = machine.GetComponent<IBlockStateObservable>();
+            var details = stateObservable.GetBlockStateDetails();
+            var detail = details.First(d => d.Key == CommonMachineBlockStateDetail.BlockStateDetailKey);
+            return MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(detail.Value);
         }
 
         #endregion

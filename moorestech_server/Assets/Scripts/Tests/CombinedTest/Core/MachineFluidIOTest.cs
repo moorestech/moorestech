@@ -515,7 +515,7 @@ namespace Tests.CombinedTest.Core
                 {
                     Debug.Log($"Processing with partial power: Current={current}, Requested={requested}, Rate={rate}");
                     Assert.AreEqual(requiredPower / 2, current, 1f, "部分的な電力供給が正しく反映されていません");
-                    Assert.AreEqual(requiredPower, requested, 1f, "要求電力が正しくありません");
+                    Assert.AreEqual(machineComponent.EffectiveRequestPower, requested, 1f, "要求電力が正しくありません");
                     Assert.Greater(rate, 0f, "部分的な電力でも処理が進んでいません");
                     Assert.Less(rate, 1f, "部分的な電力で最大速度になっています");
                     break;
