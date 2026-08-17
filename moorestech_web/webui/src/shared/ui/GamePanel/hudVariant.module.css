@@ -1,12 +1,14 @@
-/* 常時表示HUDの面。フェード帯へ内容が載らないよう全辺に安全帯paddingを取る */
-/* Resident-HUD face; padding on every side keeps content off the fade band */
-.hud {
+/* 常時表示HUDの面。フェード帯へ内容が載らないよう全辺に安全帯paddingを取る
+   [data-variant="hud"]を併記し詳細度で.panelのpaddingを確実に上書きする(import順に非依存) */
+/* Resident-HUD face; padding on every side keeps content off the fade band.
+   [data-variant="hud"] is paired in so specificity beats .panel's padding regardless of import order */
+[data-variant="hud"].hud {
   padding: var(--hud-panel-padding);
 }
 
 /* 面は4辺を同尺でフェードさせ、世界背景へ溶かす。罫線・三角・グリップは持たない */
 /* The face fades on all four edges into the world; no rules, triangles, or grip */
-.hud::before {
+[data-variant="hud"].hud::before {
   position: absolute;
   inset: 0;
   z-index: 0;

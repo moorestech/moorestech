@@ -21,7 +21,7 @@ describe("GamePanel hud variant", () => {
   });
 
   it("hudの面は4辺を固定長でフェードする", () => {
-    const hudFace = hudVariantStyle.slice(hudVariantStyle.indexOf(".hud::before"));
+    const hudFace = hudVariantStyle.slice(hudVariantStyle.indexOf('[data-variant="hud"].hud::before'));
     expect(hudFace).toContain("background: var(--hud-panel-face)");
     expect(hudFace).toContain("90deg, transparent 0, #000 var(--hud-panel-edge-fade)");
     expect(hudFace).toContain("180deg, transparent 0, #000 var(--hud-panel-edge-fade)");
@@ -33,10 +33,16 @@ describe("GamePanel hud variant", () => {
   });
 
   it("hudは罫線・三角・グリップの装飾を持たない", () => {
-    const hudRules = hudVariantStyle.slice(hudVariantStyle.indexOf(".hud {"));
+    const hudRules = hudVariantStyle.slice(hudVariantStyle.indexOf('[data-variant="hud"].hud {'));
     expect(hudRules).not.toContain("decoLine");
     expect(hudRules).not.toContain("bottomDeco");
     expect(hudRules).not.toContain("clip-path");
+  });
+
+  it("hudのpaddingセレクタは.panelより詳細度で勝ち、import順に依存しない", () => {
+    // .panel(style.module.css)は単純クラス(0,1,0)のため、hud側は属性+クラスの複合(0,2,0)で確実に上回る
+    // .panel (style.module.css) is a plain class (0,1,0); pair an attribute selector with the class so hud always wins at (0,2,0)
+    expect(hudVariantStyle).toContain('[data-variant="hud"].hud {\n  padding: var(--hud-panel-padding);');
   });
 });
 
