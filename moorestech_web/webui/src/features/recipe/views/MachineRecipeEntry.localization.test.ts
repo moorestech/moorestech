@@ -40,6 +40,7 @@ describe("MachineRecipeEntry localization", () => {
       renderer = create(createElement(MachineRecipeEntry, {
         recipe,
         onSelect: vi.fn(),
+        testId: `machine-recipe-entry-${recipe.recipeGuid}`,
       }));
     });
 

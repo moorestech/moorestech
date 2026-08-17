@@ -15,8 +15,11 @@ const ARROW_SPAN = ARROW_RIGHT - ARROW_LEFT;
 
 // 矢印グリフ自体が進捗ゲージ（webui-design §8.13）。配置側が親要素で寸法を決める
 // The arrow glyph itself is the progress gauge (webui-design §8.13); the caller sizes it via the parent element
-export default function ProgressArrowGlyph({ value, testId }: { value: number; testId: string }) {
-  const filled = clamp01(value);
+// value=null は「進捗という概念が無い」表示で、progressbarロールも充填層も持たない静止矢印になる
+// value=null means "no progress concept at all": a static arrow with neither the progressbar role nor a fill layer
+export default function ProgressArrowGlyph({ value, testId }: { value: number | null; testId: string }) {
+  const filled = value === null ? null : clamp01(value);
+  const isGauge = filled !== null;
   // 矢印が並んでもclipが混線しないようidを一意化する
   // Keep clip ids unique so several arrows never share one clip
   const instanceId = useId();
@@ -28,21 +31,23 @@ export default function ProgressArrowGlyph({ value, testId }: { value: number; t
     <div
       className={styles.arrow}
       data-testid={testId}
-      role="progressbar"
-      aria-valuemin={0}
-      aria-valuemax={1}
-      aria-valuenow={filled}
+      role={isGauge ? "progressbar" : undefined}
+      aria-valuemin={isGauge ? 0 : undefined}
+      aria-valuemax={isGauge ? 1 : undefined}
+      aria-valuenow={filled ?? undefined}
     >
-      {/* 溝→充填→輪郭の3層。充填だけを進捗幅で切り出す */}
-      {/* Track, fill, and outline layers; only the fill is clipped to the progress width */}
+      {/* 溝→充填→輪郭の3層。充填だけを進捗幅で切り出す（静止表示では充填層を持たない） */}
+      {/* Track, fill, and outline layers; only the fill is clipped to the progress width (the static form has no fill) */}
       <svg className={styles.glyph} viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`} aria-hidden="true">
-        <defs>
-          <clipPath id={clipId}>
-            <rect x={ARROW_LEFT} y={0} width={ARROW_SPAN * filled} height={VIEWBOX_HEIGHT} />
-          </clipPath>
-        </defs>
+        {isGauge && (
+          <defs>
+            <clipPath id={clipId}>
+              <rect x={ARROW_LEFT} y={0} width={ARROW_SPAN * filled} height={VIEWBOX_HEIGHT} />
+            </clipPath>
+          </defs>
+        )}
         <path className={styles.track} d={ARROW_PATH} />
-        <path className={styles.fill} d={ARROW_PATH} clipPath={`url(#${clipId})`} />
+        {isGauge && <path className={styles.fill} d={ARROW_PATH} clipPath={`url(#${clipId})`} />}
         {/* 輪郭はclip外・最上層に置き、充填境界で形が途切れないようにする */}
         {/* The outline skips the clip and sits on top so the silhouette never breaks at the fill edge */}
         <path className={styles.outline} d={ARROW_PATH} />

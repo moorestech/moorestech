@@ -45,6 +45,31 @@ describe("ProgressArrowGlyph", () => {
     expect(paths[2]).toContain("outline");
   });
 
+  // 進捗概念の無い呼び出し元(機械レシピ)が「0%で停止中のprogressbar」を名乗らないこと
+  // A caller without any progress concept (machine recipes) must not pose as a progressbar stuck at 0%
+  it("value=nullではprogressbarロールもaria値も出さない", () => {
+    const markup = renderToStaticMarkup(createElement(ProgressArrowGlyph, { value: null, testId: "arrow" }));
+
+    expect(markup).not.toContain("progressbar");
+    expect(markup).not.toContain("aria-valuenow");
+    expect(markup).not.toContain("aria-valuemin");
+    expect(markup).not.toContain("aria-valuemax");
+    expect(markup).toContain('data-testid="arrow"');
+  });
+
+  // 静止表示は溝+輪郭の2層のみ。充填層が残ると進捗0の表現と区別できなくなる
+  // The static form draws only track + outline; a leftover fill layer would be indistinguishable from progress 0
+  it("value=nullでは充填層とclipPathを描かない", () => {
+    const markup = renderToStaticMarkup(createElement(ProgressArrowGlyph, { value: null, testId: "arrow" }));
+    const paths = [...markup.matchAll(/<path[^>]*>/g)].map((m) => m[0]);
+
+    expect(paths).toHaveLength(2);
+    expect(paths[0]).toContain("track");
+    expect(paths[1]).toContain("outline");
+    expect(markup).not.toContain("clipPath");
+    expect(markup).not.toContain("clip-path");
+  });
+
   it("同一ページに複数並んでもclip idが衝突しない", () => {
     const markup = renderToStaticMarkup(
       createElement(

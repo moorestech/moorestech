@@ -56,10 +56,16 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
                 recipe={entry.recipe}
                 counts={counts}
                 onSelect={onSelect}
+                testId={`craft-recipe-entry-${entry.recipe.recipeGuid}`}
                 tutorialAnchorProps={entry.recipe.recipeGuid === anchoredCraftGuid ? tutorialAnchor(TutorialAnchorIds.recipeCraftButton) : undefined}
               />
             ) : (
-              <MachineRecipeEntry key={entry.recipe.recipeGuid} recipe={entry.recipe} onSelect={onSelect} />
+              <MachineRecipeEntry
+                key={entry.recipe.recipeGuid}
+                recipe={entry.recipe}
+                onSelect={onSelect}
+                testId={`machine-recipe-entry-${entry.recipe.recipeGuid}`}
+              />
             ),
           )}
         </Stack>

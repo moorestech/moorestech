@@ -1,27 +1,30 @@
 import { useEffect } from "react";
-import { Box, Button, Group, Stack, Text } from "@mantine/core";
+import { Box, Button, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
-import { ItemSlot, ProgressArrowGlyph } from "@/shared/ui";
+import { ItemSlot } from "@/shared/ui";
 import type { CraftRecipe } from "@/bridge";
 import type { TutorialAnchorAttributes } from "@/shared/tutorialAnchor";
 import { craftable } from "../logic/craftLogic";
 import { useHoldCraft } from "../logic/useHoldCraft";
+import RecipeRow from "./RecipeRow";
 import styles from "./RecipeBox.module.css";
-import craftArrowStyles from "./craftArrow.module.css";
 import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
 
 type Props = {
   recipe: CraftRecipe;
   counts: Map<number, number>;
   onSelect: (itemId: number) => void;
-  // チュートリアルアンカーは重複禁止のため先頭エントリだけ親が注入する
-  // The tutorial anchor must stay unique, so only the first entry receives it from the parent
+  // 同一アイテムに複数レシピが並ぶため、レシピ単位で一意なtestIdを親が注入する
+  // Several recipes can share one item, so the parent injects a per-recipe unique testId
+  testId: string;
+  // チュートリアルアンカーは重複禁止のため対象クラフトだけ親が注入する
+  // The tutorial anchor must stay unique, so only the chosen craft entry receives it from the parent
   tutorialAnchorProps?: TutorialAnchorAttributes;
 };
 
 // クラフトエントリ: 素材列 → 進捗矢印 → 結果のレシピ行と、下端の全幅長押しボタン（ADR 0011・uGUI CraftButton 準拠）
 // Craft entry: material row → progress arrow → result, plus a full-width hold-to-craft button below (ADR 0011, mirrors uGUI CraftButton)
-export default function CraftRecipeEntry({ recipe, counts, onSelect, tutorialAnchorProps }: Props) {
+export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tutorialAnchorProps }: Props) {
   const { t } = useI18n();
   const resolveItemName = useItemNameResolver();
   const isCraftable = craftable(recipe, counts);
@@ -37,47 +40,35 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, tutorialAnc
   useEffect(() => stop, [recipe.recipeGuid, stop]);
 
   return (
-    <Stack className={styles.recipeEntry} gap="xs" data-testid="craft-recipe-entry">
-      {/* 正本は素材/矢印/完成品の3カラムを固定配置する。space-betweenだと素材の点数で矢印列が押されて
-          ズレるため、gridで列位置を内容量に依存させない */}
-      {/* The reference fixes 3 columns (materials / arrow / result); space-between let the arrow column
-          drift with material count, so a grid pins each column regardless of content size */}
-      <div className={styles.recipeBox} data-testid="craft-recipe-box">
-        <Group gap={0} className={styles.recipeMaterials}>
-          {recipe.requiredItems.map((r, i) => (
-            <Box className={styles.materialSlot} key={i}>
-              {/* 所持数不足の素材は既存どおり40%透過にし、数値も赤で示す */}
-              {/* Keep the existing 40% dimming for shortages and also mark the numeric count red */}
-              <ItemSlot
-                itemId={r.itemId}
-                insufficient={(counts.get(r.itemId) ?? 0) < r.count}
-                tooltip={<span style={{ whiteSpace: "pre-line" }}>{t(L.ui.recipe.materialTooltip, {
-                  itemName: resolveItemName(r.itemId) ?? t(L.ui.common.itemFallback, { itemId: r.itemId }),
-                  ownedCount: counts.get(r.itemId) ?? 0,
-                  requiredCount: r.count,
-                })}</span>}
-                onLeftDown={() => onSelect(r.itemId)}
-              />
-              <Text className={styles.materialCount} data-lack={(counts.get(r.itemId) ?? 0) < r.count || undefined}>
-                {t(L.ui.recipe.itemCountSummary, {
-                  ownedCount: counts.get(r.itemId) ?? 0,
-                  requiredCount: r.count,
-                })}
-              </Text>
-            </Box>
-          ))}
-        </Group>
-        {/* 素材と完成品の間に長押し進捗を矢印で表示する */}
-        {/* Show hold progress as an arrow between materials and result */}
-        <Box className={styles.recipeArrowCol}>
-          <div className={craftArrowStyles.craftArrow}>
-            <ProgressArrowGlyph value={isHolding ? progress : 0} testId="craft-progress-arrow" />
-          </div>
-        </Box>
-        <Box className={styles.recipeResult}>
-          <ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} />
-        </Box>
-      </div>
+    <Stack className={styles.recipeEntry} gap="xs" data-testid={testId}>
+      <RecipeRow
+        testId={`craft-recipe-box-${recipe.recipeGuid}`}
+        arrowValue={isHolding ? progress : 0}
+        arrowTestId={`craft-progress-arrow-${recipe.recipeGuid}`}
+        materials={recipe.requiredItems.map((r, i) => (
+          <Box className={styles.materialSlot} key={i}>
+            {/* 所持数不足の素材は既存どおり40%透過にし、数値も赤で示す */}
+            {/* Keep the existing 40% dimming for shortages and also mark the numeric count red */}
+            <ItemSlot
+              itemId={r.itemId}
+              insufficient={(counts.get(r.itemId) ?? 0) < r.count}
+              tooltip={<span style={{ whiteSpace: "pre-line" }}>{t(L.ui.recipe.materialTooltip, {
+                itemName: resolveItemName(r.itemId) ?? t(L.ui.common.itemFallback, { itemId: r.itemId }),
+                ownedCount: counts.get(r.itemId) ?? 0,
+                requiredCount: r.count,
+              })}</span>}
+              onLeftDown={() => onSelect(r.itemId)}
+            />
+            <Text className={styles.materialCount} data-lack={(counts.get(r.itemId) ?? 0) < r.count || undefined}>
+              {t(L.ui.recipe.itemCountSummary, {
+                ownedCount: counts.get(r.itemId) ?? 0,
+                requiredCount: r.count,
+              })}
+            </Text>
+          </Box>
+        ))}
+        result={<ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} />}
+      />
       <Button
         {...tutorialAnchorProps}
         className={styles.craftButton}

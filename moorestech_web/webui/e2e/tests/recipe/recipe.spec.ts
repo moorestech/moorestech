@@ -1,6 +1,10 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { expectCraftGrip } from "../../support/craftChromeAssertions";
+
+// エントリのtestIdはレシピGUIDで一意化されているため前方一致で束ねる（ADR 0011）
+// Entry testIds carry the recipe GUID, so gather them by prefix (ADR 0011)
+const craftEntry = (page: Page) => page.locator('[data-testid^="craft-recipe-entry"]');
 
 test("クラフトボタンのラベルに秒数を表示する", async ({ page }) => {
   await page.goto("/");
@@ -9,7 +13,7 @@ test("クラフトボタンのラベルに秒数を表示する", async ({ page 
 
   // 装飾タブ廃止後はクラフトボタン自体に craftTime を表示する（ADR 0011）。mock-hostの既定localeはjapanese
   // With the decorative tab gone, the craft button itself shows craftTime (ADR 0011); mock-host defaults to the japanese locale
-  const craftButton = page.getByTestId("craft-recipe-entry").getByRole("button");
+  const craftButton = craftEntry(page).getByRole("button");
   await expect(craftButton).toHaveText("クラフト（0.2秒）");
 });
 
@@ -27,11 +31,11 @@ test("正本のヘッダ装飾、常時スクロールバー、主要構造を�
 
   // 選択枠DOMを画像測定用に保つ
   // Keep the selection-frame DOM available for image measurement
-  const recipeBox = page.getByTestId("craft-recipe-box");
+  const recipeBox = page.locator('[data-testid^="craft-recipe-box"]');
   const craftPanel = recipeBox.locator('xpath=ancestor::*[@data-variant="craft"][1]');
   await expect(craftPanel).toBeVisible();
   await expectCraftGrip(craftPanel, false);
-  await expect(page.getByTestId("craft-recipe-entry").getByRole("button")).toBeVisible();
+  await expect(craftEntry(page).getByRole("button")).toBeVisible();
 
   // 装飾タブは完全に廃止され存在しない
   // The decorative tab was fully removed and must not exist
@@ -52,7 +56,7 @@ test("アイテム選択でレシピ表示、長押しで素材が尽きるま�
   // Select the first item Plank(100) in the right list
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
-  const craftButton = page.getByTestId("craft-recipe-entry").getByRole("button");
+  const craftButton = craftEntry(page).getByRole("button");
   await expect(craftButton).toBeEnabled();
 
   // ボタンを押し下げ保持して連続クラフトを発火させる
@@ -110,7 +114,7 @@ test("押下後にボタンから外れるとクラフトが止まり経過時�
   await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
-  const craftButton = page.getByTestId("craft-recipe-entry").getByRole("button");
+  const craftButton = craftEntry(page).getByRole("button");
   await expect(craftButton).toBeEnabled();
   const box = await craftButton.boundingBox();
   if (box === null) throw new Error("craft button has no bounding box");
@@ -142,14 +146,14 @@ test("複数レシピはクラフト優先の単一リストで同時に表示�
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
   const list = page.getByTestId("recipe-entry-list");
-  const entries = list.locator('[data-testid$="-recipe-entry"]');
+  const entries = list.locator('[data-testid*="-recipe-entry-"]');
 
   // クラフト優先: 先頭エントリは常にcraft
   // Craft-first: the leading entry is always the craft kind
-  await expect(entries.first()).toHaveAttribute("data-testid", "craft-recipe-entry");
+  await expect(entries.first()).toHaveAttribute("data-testid", /^craft-recipe-entry-/);
   // 機械エントリも同一リスト内に同時に存在する
   // The machine entry co-exists in the very same list
-  await expect(list.getByTestId("machine-recipe-entry").first()).toBeVisible();
+  await expect(list.locator('[data-testid^="machine-recipe-entry"]').first()).toBeVisible();
 
   // タブ・ページャは廃止され存在しない
   // The tab/pager UI was removed and must not exist
@@ -164,8 +168,13 @@ test("クラフトエントリが複数でもチュートリアルアンカー�
   await page.getByTestId("item-list-grid").locator('[data-item-id="102"]').click();
 
   const list = page.getByTestId("recipe-entry-list");
-  await expect(list.getByTestId("craft-recipe-entry")).toHaveCount(2);
+  await expect(list.locator('[data-testid^="craft-recipe-entry"]')).toHaveCount(2);
   await expect(list.locator('[data-tutorial-anchor="recipe.craft-button"]')).toHaveCount(1);
+
+  // testIdがレシピGUID単位で一意なため、2件目のレシピだけを厳密一致で指名できる（strict mode違反にならない）
+  // Per-recipe GUID testIds let an exact match address only the second recipe without a strict-mode violation
+  const secondEntry = list.getByTestId("craft-recipe-entry-83000000-0000-4000-8000-000000000004");
+  await expect(secondEntry.getByRole("button")).toHaveText("クラフト（0.4秒）");
 });
 
 test("クラフト可能数0のアイテムは個数バッジを出さない", async ({ page }) => {
