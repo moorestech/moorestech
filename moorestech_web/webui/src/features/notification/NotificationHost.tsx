@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
+import type { CSSProperties } from "react";
 import { useTopic, Topics } from "@/bridge";
 import { useI18n } from "@/shared/i18n";
 import ItemIcon from "@/shared/ui/ItemIcon";
-import { useNotificationStore } from "./notificationStore";
+import { NOTIFICATION_DISPLAY_MS, useNotificationStore } from "./notificationStore";
 import { resolveNotificationKey, resolveNotificationParams, buildInterpolationValues } from "./notificationMessages";
 import styles from "./style.module.css";
 
@@ -28,12 +29,16 @@ export default function NotificationHost() {
     });
   }, [payload]);
 
+  // 生存尺はstoreの定数が正。CSS変数として流し込み、退場の遅延をCSS側で逆算させる
+  // The store constant is the single lifetime source; CSS receives it and derives the exit delay
+  const lifetimeStyle = { "--notification-lifetime": `${NOTIFICATION_DISPLAY_MS}ms` } as CSSProperties;
+
   return (
-    <div className={styles.host} data-testid="notification-host">
+    <div className={styles.host} style={lifetimeStyle} data-testid="notification-host">
       {notifications.map((n) => (
         // categoryはdata属性で表し、色分けはCSSトークンに委ねる
         // Category goes into a data attribute; token-based CSS handles the coloring
-        <div key={n.id} className={styles.notification} data-category={n.category}>
+        <div key={n.id} className={styles.notification} data-testid="notification-row" data-category={n.category}>
           {n.itemId != null && <ItemIcon itemId={n.itemId} className={styles.icon} />}
           {t(
             resolveNotificationKey(n.messageId),

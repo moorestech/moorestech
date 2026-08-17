@@ -208,6 +208,11 @@
   /* 通知の最大幅は画面幅の20%（ユーザー裁定）。画面比例が要件のため例外的に%を使う */
   /* Notification max width is 20% of the screen width (user ruling); % is intentional because the cap must scale with the screen */
   --notification-max-width: 20vw;
+  /* 通知の出入り。左から固定長で滑り込み、退場は生存尺から逆算した遅延で逆再生する */
+  /* Notification enter/exit: slides in from the left by a fixed length; the exit mirrors it after a lifetime-derived delay */
+  --notification-enter-duration: 160ms;
+  --notification-exit-duration: 200ms;
+  --notification-shift: 12px;
   /* 選択・強調のシアン（uGUI frame_select.png / nav_arrow.png 由来）。スロット選択枠とスキットの強調に限る */
   /* Selection cyan from uGUI frame_select.png / nav_arrow.png; limited to slot selection frames and skit highlights */
   --select-cyan: rgb(0 221 255);
