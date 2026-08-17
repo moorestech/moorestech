@@ -2,8 +2,8 @@ import { test, expect, type Page } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { expectCraftGrip } from "../../support/craftChromeAssertions";
 
-// エントリのtestIdはレシピGUIDで一意化されているため前方一致で束ねる（ADR 0011）
-// Entry testIds carry the recipe GUID, so gather them by prefix (ADR 0011)
+// GUID単位で前方一致に束ねる
+// Group testIds by prefix per recipe GUID
 const craftEntry = (page: Page) => page.locator('[data-testid^="craft-recipe-entry"]');
 
 test("クラフトボタンのラベルに秒数を表示する", async ({ page }) => {
@@ -11,8 +11,8 @@ test("クラフトボタンのラベルに秒数を表示する", async ({ page 
   await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
-  // 装飾タブ廃止後はクラフトボタン自体に craftTime を表示する（ADR 0011）。mock-hostの既定localeはjapanese
-  // With the decorative tab gone, the craft button itself shows craftTime (ADR 0011); mock-host defaults to the japanese locale
+  // ボタンに秒数表示。既定はja
+  // Button shows the seconds; default locale is ja
   const craftButton = craftEntry(page).getByRole("button");
   await expect(craftButton).toHaveText("クラフト（0.2秒）");
 });
@@ -141,18 +141,18 @@ test("押下後にボタンから外れるとクラフトが止まり経過時�
 test("複数レシピはクラフト優先の単一リストで同時に表示される", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
-  // Plank(100) はクラフトと機械の両レシピを持つfixture
-  // Plank(100) is fixtured with both a craft recipe and a machine recipe
+  // Plank100はクラフト/機械両方
+  // Plank(100) has both craft and machine recipes
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
   const list = page.getByTestId("recipe-entry-list");
   const entries = list.locator('[data-testid*="-recipe-entry-"]');
 
-  // クラフト優先: 先頭エントリは常にcraft
-  // Craft-first: the leading entry is always the craft kind
+  // 先頭は常にcraftエントリ
+  // Leading entry is always craft
   await expect(entries.first()).toHaveAttribute("data-testid", /^craft-recipe-entry-/);
-  // 機械エントリも同一リスト内に同時に存在する
-  // The machine entry co-exists in the very same list
+  // 機械エントリも同一リストに存在
+  // Machine entry exists in the same list
   await expect(list.locator('[data-testid^="machine-recipe-entry"]').first()).toBeVisible();
 
   // タブ・ページャは廃止され存在しない
@@ -163,16 +163,16 @@ test("複数レシピはクラフト優先の単一リストで同時に表示�
 test("クラフトエントリが複数でもチュートリアルアンカーは1件だけ付く", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
-  // Twin Recipe Plank(102) はクラフトレシピを2件持つfixture
-  // Twin Recipe Plank(102) is fixtured with two craft recipes
+  // Plank102はクラフト2件持つ
+  // Plank(102) has two craft recipes
   await page.getByTestId("item-list-grid").locator('[data-item-id="102"]').click();
 
   const list = page.getByTestId("recipe-entry-list");
   await expect(list.locator('[data-testid^="craft-recipe-entry"]')).toHaveCount(2);
   await expect(list.locator('[data-tutorial-anchor="recipe.craft-button"]')).toHaveCount(1);
 
-  // testIdがレシピGUID単位で一意なため、2件目のレシピだけを厳密一致で指名できる（strict mode違反にならない）
-  // Per-recipe GUID testIds let an exact match address only the second recipe without a strict-mode violation
+  // GUID単位で2件目を厳密指定
+  // Exact-match the second recipe by its GUID testId
   const secondEntry = list.getByTestId("craft-recipe-entry-83000000-0000-4000-8000-000000000004");
   await expect(secondEntry.getByRole("button")).toHaveText("クラフト（0.4秒）");
 });
@@ -182,8 +182,8 @@ test("クラフト可能数0のアイテムは個数バッジを出さない", a
   const grid = page.getByTestId("item-list-grid");
   await expect(grid).toBeVisible();
 
-  // 101 は素材999個要求で常に0個。100 は所持素材で作れるため個数バッジが出る（ADR 0011）
-  // 101 always yields zero (it demands 999 materials) while 100 is craftable, so only 100 shows a count badge (ADR 0011)
+  // 101は常に0個、100はバッジ出る
+  // 101 always yields 0; 100 shows the count badge
   await expect(grid.locator('[data-item-id="101"]').locator('[class*="_count_"]')).toHaveCount(0);
   await expect(grid.locator('[data-item-id="100"]').locator('[class*="_count_"]')).toHaveCount(1);
 });

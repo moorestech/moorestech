@@ -8,15 +8,15 @@ import { blockNameKey, L, useI18n } from "@/shared/i18n";
 type Props = {
   recipe: MachineRecipe;
   onSelect: (itemId: number) => void;
-  // 同一アイテムを出す機械レシピが複数並ぶため、レシピ単位で一意なtestIdを親が注入する
-  // Several machine recipes can yield one item, so the parent injects a per-recipe unique testId
+  // testIdはレシピ単位で親が注入
+  // Parent injects a per-recipe testId
   testId: string;
 };
 
-// 機械エントリ: クラフトエントリと同じレシピ行ベース（矢印は進捗概念が無いためnullで静止）+
-// ブロックアイコン/名前/秒数のクリック不可情報行（ボタン相当、ADR 0011）
-// Machine entry: same recipe row base as craft (arrow static via null since there is no progress) plus a
-// non-interactive block icon/name/duration info row in place of the button (ADR 0011)
+// 機械エントリ: 矢印はnullで静止
+// ブロックアイコン+名前+秒数の情報行
+// Machine entry: arrow stays static via null
+// Info row: block icon + name + duration
 export default function MachineRecipeEntry({ recipe, onSelect, testId }: Props) {
   const { t } = useI18n();
   const localizedBlockName = t(blockNameKey(recipe.blockGuid));

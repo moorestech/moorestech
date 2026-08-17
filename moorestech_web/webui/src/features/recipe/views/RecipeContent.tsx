@@ -18,8 +18,8 @@ type Props = {
   onSelect: (itemId: number) => void;
 };
 
-// 選択アイテムのレシピ本体。全レシピをクラフト優先の単一リストで縦に並べる（ADR 0011）
-// Recipe body for the selected item; every recipe stacks in one craft-first list (ADR 0011)
+// 全レシピをクラフト優先の単一リストで表示
+// Shows every recipe in one craft-first list
 export default function RecipeContent({ itemId, recipes, machineRecipes, inventory, onSelect }: Props) {
   const { t } = useI18n();
   const resolveItemName = useItemNameResolver();
@@ -31,8 +31,8 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   const counts = useMemo(() => buildOwnedCounts(inventory.mainSlots), [inventory]);
 
   const itemName = resolveItemName(itemId) ?? t(L.ui.common.itemFallback, { itemId });
-  // チュートリアルアンカーは重複禁止。並び順ではなくkind判別子から対象クラフトを特定する
-  // The tutorial anchor must stay unique, so pick its craft entry by kind, never by list position
+  // アンカーはkindで対象クラフトを特定
+  // Pick the anchored craft by kind, not by position
   const anchoredCraftGuid = entries.find((entry) => entry.kind === "craft")?.recipe.recipeGuid;
 
   if (entries.length === 0) {

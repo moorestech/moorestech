@@ -66,8 +66,8 @@ describe("ItemSlot", () => {
     expect(markup).not.toContain(`class="${styles.count}"`);
   });
 
-  // 0バッジ非表示（ADR 0011）は呼び出し側が0をundefinedへ畳む契約だが、0が届いても出さない
-  // Hiding the zero badge (ADR 0011) is the caller's fold to undefined, yet a literal 0 must not render either
+  // 直接0でもバッジ非表示
+  // A literal 0 must not render the badge either
   it("countが0の時はバッジを表示しない", () => {
     const markup = renderItemSlot(undefined, 0);
 

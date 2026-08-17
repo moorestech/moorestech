@@ -19,8 +19,8 @@ export const craftRecipes = {
       craftTime: 0.2,
       requiredItems: [{ itemId: 1, count: 999 }],
     },
-    // 同一アイテムに2件のクラフトレシピ。チュートリアルアンカーが1件だけ付くことの固定用（ADR 0011）
-    // Two craft recipes for one item, pinning that the tutorial anchor lands on exactly one entry (ADR 0011)
+    // クラフト2件でアンカーは1件固定
+    // Two craft recipes; anchor stays pinned to one
     {
       recipeGuid: "83000000-0000-4000-8000-000000000003",
       resultItemId: 102,
@@ -41,9 +41,9 @@ export const craftRecipes = {
 export const machineRecipes = {
   recipes: [
     {
-      // Plankはクラフトと機械の両方で作れる（単一リスト同時表示のe2e用）。
-      // 既存3件のelectric machineレシピ数を数えるテストを崩さないようgear machine側へ足す
-      // Plank is producible by both craft and machine (for the single-list co-display e2e).
+      // Plankはクラフト・機械両方で作れる
+      // 既存3件カウント維持のため追加
+      // Plank has both a craft and a machine recipe.
       // Added on the gear-machine block so the existing electric-machine recipe-count test stays at 3
       recipeGuid: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
       blockGuid: GEAR_MACHINE_BLOCK_GUID,

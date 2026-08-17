@@ -6,8 +6,8 @@ import type {
 } from "@/bridge";
 import { hasEnoughItems } from "@/shared/ownedCounts";
 
-// 単一リストの1件。1レシピに対応する（ADR 0011: クラフト優先→機械の順）
-// One entry of the single list, one recipe each (ADR 0011: craft first, then machine)
+// 単一リストの1件=1レシピ
+// One list entry maps to one recipe
 export type RecipeEntry =
   | { kind: "craft"; recipe: CraftRecipe }
   | { kind: "machine"; recipe: MachineRecipe };
@@ -18,8 +18,8 @@ function selectCraftRecipes(recipes: CraftRecipesData, itemId: number): CraftRec
   return recipes.recipes.filter((r) => r.resultItemId === itemId);
 }
 
-// 選択アイテムの全レシピをクラフト優先の単一エントリ列へ畳む純関数
-// Pure builder flattening every recipe for the item into one craft-first entry list
+// 全レシピをクラフト優先の単一列へ畳む
+// Flattens every recipe into one craft-first list
 export function buildRecipeEntries(
   recipes: CraftRecipesData,
   machineRecipes: MachineRecipesData,

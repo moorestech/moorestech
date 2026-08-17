@@ -7,15 +7,15 @@ import craftArrowStyles from "./craftArrow.module.css";
 type Props = {
   testId: string;
   materials: ReactNode;
-  // 進捗概念のないエントリはnullを渡し、矢印を静止表示にする（webui-design §8.13）
-  // Entries without a progress concept pass null so the arrow renders static (webui-design §8.13)
+  // 進捗が無ければnullで静止矢印
+  // Pass null when there is no progress; the arrow renders static
   arrowValue: number | null;
   arrowTestId: string;
   result: ReactNode;
 };
 
-// クラフト/機械エントリ共通のレシピ行骨格。実測値ベースの幾何をここ1箇所に保つ（ADR 0011）
-// Shared recipe-row skeleton for craft and machine entries, keeping the measured geometry in one place (ADR 0011)
+// 共通レシピ行骨格。幾何値をここに集約
+// Shared recipe-row frame; keeps measured geometry in one place
 export default function RecipeRow({ testId, materials, arrowValue, arrowTestId, result }: Props) {
   return (
     // 正本は素材/矢印/完成品の3カラムを固定配置する。space-betweenだと素材の点数で矢印列が押されて

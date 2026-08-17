@@ -77,8 +77,8 @@ describe("buildRecipeEntries", () => {
     expect(buildRecipeEntries({ recipes: [] }, { recipes: [] }, 9)).toEqual([]);
   });
 
-  // クラフト側の絞り込み単体（旧 selectCraftRecipes のケースを移植）
-  // Craft-side filtering on its own (migrated from the former selectCraftRecipes cases)
+  // クラフト絞り込み単体(旧関数から移植)
+  // Craft filtering unit, migrated from the old function
   const craftOnly: CraftRecipesData = { recipes: [craftRecipe(9, recipeA), craftRecipe(5, recipeB), craftRecipe(9, recipeC)] };
 
   it("クラフトはresultItemId一致のみ抽出する", () => {

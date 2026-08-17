@@ -68,8 +68,8 @@ export default function ItemListPanel() {
         >
           <SlotGrid cols={6} testId="item-list-grid" style={GRID_STYLE}>
             {itemList.itemIds.map((id) => {
-              // 作れる個数が0のアイテムはバッジ自体を出さない（ADR 0011）。面のグレー/白はcatalog+count有無で決まる
-              // Hide the badge entirely when nothing is craftable (ADR 0011); the gray/white face follows catalog+count
+              // 0個はバッジ非表示
+              // Hide the badge when the count is 0
               const craftableCount = craftableCounts.get(id) ?? 0;
               return (
                 <div key={id} data-item-id={id} {...tutorialAnchor(recipeItemAnchorId(id))}>

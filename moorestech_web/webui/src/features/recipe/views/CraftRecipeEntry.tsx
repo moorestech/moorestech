@@ -14,29 +14,29 @@ type Props = {
   recipe: CraftRecipe;
   counts: Map<number, number>;
   onSelect: (itemId: number) => void;
-  // 同一アイテムに複数レシピが並ぶため、レシピ単位で一意なtestIdを親が注入する
-  // Several recipes can share one item, so the parent injects a per-recipe unique testId
+  // testIdはレシピ単位で親が注入
+  // Parent injects a per-recipe testId
   testId: string;
-  // チュートリアルアンカーは重複禁止のため対象クラフトだけ親が注入する
-  // The tutorial anchor must stay unique, so only the chosen craft entry receives it from the parent
+  // アンカーは対象クラフトのみ親が注入
+  // Parent injects the anchor only on the chosen craft entry
   tutorialAnchorProps?: TutorialAnchorAttributes;
 };
 
-// クラフトエントリ: 素材列 → 進捗矢印 → 結果のレシピ行と、下端の全幅長押しボタン（ADR 0011・uGUI CraftButton 準拠）
-// Craft entry: material row → progress arrow → result, plus a full-width hold-to-craft button below (ADR 0011, mirrors uGUI CraftButton)
+// 素材→矢印→結果の行と全幅長押しボタン
+// Material-arrow-result row plus a full-width hold-to-craft button
 export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tutorialAnchorProps }: Props) {
   const { t } = useI18n();
   const resolveItemName = useItemNameResolver();
   const isCraftable = craftable(recipe, counts);
 
-  // 長押し1周ごとに1回クラフト要求を送る。素材チェックはサーバー側で行われる
-  // Send one craft request per completed hold cycle; material checks happen server-side
+  // 長押し1周ごとにクラフト要求を送信
+  // Sends one craft request per hold cycle
   const { progress, isHolding, start, stop } = useHoldCraft(recipe.craftTime, isCraftable, () => {
     void dispatchAction("craft.execute", { recipeGuid: recipe.recipeGuid });
   });
 
-  // レシピが差し替わったら進行中の長押しを打ち切る
-  // Abort any in-progress hold when the recipe changes
+  // レシピ変更で長押しを打ち切る
+  // Cancel the hold when the recipe changes
   useEffect(() => stop, [recipe.recipeGuid, stop]);
 
   return (
@@ -75,11 +75,11 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
         fullWidth
         disabled={!isCraftable}
         title={t(L.ui.recipe.holdToCraft)}
-        // 主ボタン（左クリック/主タッチ）以外では長押しを開始しない
-        // Only the primary button/touch starts the hold; ignore right/middle clicks
+        // 主ボタン以外は長押し開始しない
+        // Only the primary button/touch starts the hold
         onPointerDown={(e) => { if (e.button === 0) start(); }}
-        // 離す・ボタンから外れる・キャンセルのいずれでもクラフトを止め、経過時間をリセットする
-        // Release, leaving the button, or cancel all stop the craft and reset the elapsed time
+        // 離す/外れる/キャンセルで停止しリセット
+        // Release, leave, or cancel: stop and reset elapsed time
         onPointerUp={stop}
         onPointerLeave={stop}
         onPointerCancel={stop}
