@@ -17,10 +17,3 @@
   display: flex;
   justify-content: flex-start;
 }
-
-/* 加工行中央の矢印グリフの寸法箱。offsetはクラフト固有のため持たない */
-/* Size box for the process-row arrow glyph; the craft-only vertical offset is not carried over */
-.machineArrow {
-  width: var(--machine-arrow-width);
-  height: var(--machine-arrow-height);
-}

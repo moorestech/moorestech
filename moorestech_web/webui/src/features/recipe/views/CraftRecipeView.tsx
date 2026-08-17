@@ -8,7 +8,6 @@ import { craftable } from "../logic/craftLogic";
 import { useHoldCraft } from "../logic/useHoldCraft";
 import styles from "./RecipeBox.module.css";
 import RecipePager from "./RecipePager";
-import craftArrowStyles from "./craftArrow.module.css";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
 
@@ -76,9 +75,7 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
         {/* 素材と完成品の間に長押し進捗を矢印で表示する */}
         {/* Show hold progress as an arrow between materials and result */}
         <Box className={styles.recipeArrowCol}>
-          <div className={craftArrowStyles.craftArrow}>
-            <ProgressArrowGlyph value={isHolding ? progress : 0} testId="craft-progress-arrow" />
-          </div>
+          <ProgressArrowGlyph value={isHolding ? progress : 0} testId="craft-progress-arrow" />
         </Box>
         <Box className={styles.recipeResult}>
           <ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} />

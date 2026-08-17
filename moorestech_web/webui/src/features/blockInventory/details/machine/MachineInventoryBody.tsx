@@ -37,9 +37,7 @@ export default function MachineInventoryBody({ data }: { data: BlockInventoryOpe
         <div className={styles.inputSide}>
           <SlotGrid cols={Math.max(1, input.length)} testId="machine-input-slots">{input.map(slotAt)}</SlotGrid>
         </div>
-        <div className={styles.machineArrow}>
-          <ProgressArrowGlyph value={data.progress ?? 0} testId="machine-progress-arrow" />
-        </div>
+        <ProgressArrowGlyph value={data.progress ?? 0} testId="machine-progress-arrow" />
         <div className={styles.outputSide}>
           <SlotGrid cols={Math.max(1, output.length)} testId="machine-output-slots">{output.map(slotAt)}</SlotGrid>
         </div>

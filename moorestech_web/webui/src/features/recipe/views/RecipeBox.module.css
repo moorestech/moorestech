@@ -79,8 +79,15 @@
   color: #ff4d4d;
 }
 
+/* 旧構成は矢印+下バーの2段で、行のcenter揃えとの差分をmargin-topで詰めていた。バー廃止で列が6px縮んだ分、
+   同じ見た目位置を保つため上寄せ量を倍にした（中央揃えの item は margin-top の半分だけ動くため）。
+   値は --craft-arrow-offset-y にあり、行の揃え方・矢印高・旧バーの6px footprint に依存する */
+/* The old layout stacked arrow + bar and used margin-top to offset row centering. Dropping the bar shrinks the
+   column by 6px, so the nudge doubled to hold the same visual position (a centered item moves half its margin-top).
+   The value lives in --craft-arrow-offset-y and depends on the row alignment, arrow height, and the old bar's 6px */
 .recipeArrowCol {
   justify-self: center;
+  margin-top: var(--craft-arrow-offset-y);
 }
 
 .recipeResult {
