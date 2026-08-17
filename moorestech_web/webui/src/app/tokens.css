@@ -38,6 +38,9 @@
   /* ホットバーと同じ床に揃えて右端へ寄せる。上へ伸ばすと持ち物画面の一覧パネルへ食い込むため下詰めが必須 */
   /* Share the hotbar's floor at the right edge; the column grows upward, so bottom-anchoring is what keeps it clear of the inventory screen's list panel */
   --equipment-bottom: var(--hotbar-bottom);
+  /* 半透明ネイビー族の基底面色。uGUI原画像 invebtory_bg_base #0a0e1b をα0.8で使う */
+  /* Base face color of the translucent navy family: the uGUI source invebtory_bg_base #0a0e1b at alpha 0.8 */
+  --surface-navy: rgb(10 14 27 / 80%);
   /* 面の左右フェード幅。%指定はパネル幅で伸びるため固定長で統一 */
   /* Horizontal face-fade span; fixed length so it never scales with panel width */
   --panel-edge-fade: 12px;
@@ -84,7 +87,7 @@
   --menu-content-height: 525px;
   /* 常時表示HUDの面。色はパネル面と同値、フェード幅は共通トークン、余白はフェード帯を避ける安全帯 */
   /* Resident-HUD face: panel-equal color, the shared fade width, and padding that clears the fade band */
-  --hud-panel-face: rgb(10 14 27 / 80%);
+  --hud-panel-face: var(--surface-navy);
   --hud-panel-edge-fade: var(--panel-edge-fade);
   --hud-panel-padding: 20px;
   /* 常駐チャレンジHUDは左上へ固定し、本文と罫線の幅を分離する */
@@ -125,7 +128,7 @@
   --delete-mode-warning-black: rgb(0 0 0);
   /* ゲージの溝は世界が透ける半透明ネイビー面にする */
   /* Use a translucent navy face for gauge tracks so the world remains visible */
-  --gauge-track: rgb(10 14 27 / 80%);
+  --gauge-track: var(--surface-navy);
   /* ゲージの充填は主要アクションと競合しない寒色グレーにする */
   /* Use a cool gray for gauge fills so they do not compete with primary actions */
   --gauge-fill: rgb(104 106 120);
@@ -160,7 +163,7 @@
   --z-world-pin: 10;
   /* ワールドピンのラベル・マーカー面は半透明ネイビー族に揃える */
   /* World-pin label and marker faces share the translucent navy family */
-  --world-pin-face: rgb(10 14 27 / 80%);
+  --world-pin-face: var(--surface-navy);
   /* 画面外矢印は旧シェブロンの2倍幅にし、チュートリアル誘導として見落としにくくする */
   /* Double the old chevron size so the off-screen tutorial cue is hard to miss */
   --world-pin-arrow-size: 56px;
@@ -200,11 +203,11 @@
   --craft-arrow-offset-y: -12.218px;
   /* 研究ノードカードの面と枠（GamePanelのネイビー族に揃える） */
   /* Research node card face and border, matching the GamePanel navy family */
-  --research-node-face: rgb(10 14 27 / 80%);
+  --research-node-face: var(--surface-navy);
   --research-node-border: rgb(104 106 120);
   /* 通知行の面と枠（研究ノードカードと同族の半透明ネイビー+寒色枠） */
   /* Notification row face and border, same navy-family face and cool border as research node cards */
-  --notification-face: rgb(10 14 27 / 80%);
+  --notification-face: var(--surface-navy);
   --notification-border: rgb(104 106 120);
   /* 通知の最大幅は画面幅の20%（ユーザー裁定）。画面比例が要件のため例外的に%を使う */
   /* Notification max width is 20% of the screen width (user ruling); % is intentional because the cap must scale with the screen */

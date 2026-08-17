@@ -18,7 +18,7 @@
 /* Side panels use the uGUI source (invebtory_bg_base #0a0e1b at α0.8) translucent navy. The old brown gradient
    was the baked-in blend of the orange world through the reference screenshot; the real alpha lets the world
    show through and recreate that vertical gradient naturally */
-.panel:not(.craft):not(.skit):not([data-variant="hud"])::before {
+.panel[data-variant="default"]::before {
   position: absolute;
   z-index: 0;
   /* 実測で10物理px遅かったフェード全体を上へ送り、開始267・完了297付近へ合わせる */
@@ -29,7 +29,7 @@
   left: var(--panel-left, -3px);
   /* 正本の上端断面に合わせ、側面パネルだけ約30物理pxで透明から面色へ遷移させる */
   /* Match the reference top cross-section by fading only side panels from transparent to the face over about 30 device pixels */
-  background: linear-gradient(180deg, rgb(10 14 27 / 0%) 0, rgb(10 14 27 / 80%) 11.742px, rgb(10 14 27 / 80%) 100%);
+  background: linear-gradient(180deg, rgb(10 14 27 / 0%) 0, var(--surface-navy) 11.742px, var(--surface-navy) 100%);
   box-shadow: 0 0 12px 7px rgb(9 11 20 / 45%);
   /* 左右に加え下端も上端フェードと同尺(約12CSSpx)で世界背景へ溶かす */
   /* Fade the bottom edge into the world over the same span as the top (~12 CSS px), in addition to the L/R ends */
@@ -45,7 +45,7 @@
    (このルールがposition:relativeで上書きすると38px分フローを占有し、パネル下端へ張り付かなくなる) */
 /* Keep panel content in front of the shading layer, but leave bottomDeco absolutely positioned out of
    flow (this rule overriding it to position:relative used to eat 38px of flow and detach it from the panel's bottom edge) */
-.panel:not(.craft):not(.skit) > *:not(.bottomDeco) {
+.panel > *:not(.bottomDeco) {
   position: relative;
   z-index: 1;
 }
@@ -72,11 +72,6 @@
   mask-image: linear-gradient(180deg, transparent 0, #000 var(--skit-window-top-fade));
   content: "";
   pointer-events: none;
-}
-
-.skit > * {
-  position: relative;
-  z-index: 1;
 }
 
 /* 正本は太い外周帯でなく硬い遷移と細い内周線だけのため、二層クロームを維持する */

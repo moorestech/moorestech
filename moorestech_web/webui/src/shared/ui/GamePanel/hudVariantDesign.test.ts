@@ -15,8 +15,10 @@ describe("GamePanel hud variant", () => {
     expect(component).toContain("hud: hudVariantStyles.hud");
   });
 
-  it("hudの面色はパネル面と同値でフェード幅は共通トークンを使う", () => {
-    expect(tokens).toContain("--hud-panel-face: rgb(10 14 27 / 80%)");
+  it("hudの面色はパネル面と同じ基底トークンから引き、フェード幅は共通トークンを使う", () => {
+    expect(tokens).toContain("--surface-navy: rgb(10 14 27 / 80%)");
+    expect(tokens).toContain("--hud-panel-face: var(--surface-navy)");
+    expect(style).toContain("var(--surface-navy) 11.742px, var(--surface-navy) 100%");
     expect(tokens).toContain("--hud-panel-edge-fade: var(--panel-edge-fade)");
     expect(tokens).toContain("--hud-panel-padding: 20px");
   });
@@ -29,8 +31,12 @@ describe("GamePanel hud variant", () => {
     expect(hudFace).toContain("mask-composite: intersect");
   });
 
-  it("既定面のフェード合成からhudを除外する", () => {
-    expect(style).toContain('.panel:not(.craft):not(.skit):not([data-variant="hud"])::before');
+  it("既定面は肯定形のvariant判定で敷き、重なり順は全variant共通にする", () => {
+    // 除外連鎖の食い違いで.bodyが面の裏へ沈む罠を、肯定形で構造的に潰す
+    // Positive-form predicates remove the trap where a mismatched :not() chain sinks .body behind the face
+    expect(style).toContain('.panel[data-variant="default"]::before');
+    expect(style).toContain(".panel > *:not(.bottomDeco)");
+    expect(style).not.toContain(":not(.craft)");
   });
 
   it("hudは罫線・三角・グリップの装飾を持たない", () => {
