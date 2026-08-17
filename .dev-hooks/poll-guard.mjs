@@ -13,7 +13,8 @@
 // the streak of 18 repeated Bash polls. Detection is now tool-agnostic and only side-effecting
 // tools clear the streak.
 //
-// 判定: ツール名＋引数の指紋が、直近WINDOW件の非リセット呼び出しの中でTHRESHOLD回に達したらdeny。
+// 判定: ツール名＋引数の指紋が、直近WINDOW件かつWINDOW_SECONDS秒内の非リセット呼び出しの中で
+// THRESHOLD回に達したらdeny。時間窓があるので、分単位で離れた正当な同一呼び出しは積み上がらない。
 // 交互ポーリング(ls → ListAgents → ls …)も窓内の出現回数で拾える。deny後は窓を空にする
 // (恒久ブロックにしない — 主目的は指示の再注入で、正当な反復や一時的失敗の再試行を殺さないため)。
 // Edit/Write/Agent等の副作用ツールが挟まれば窓ごとリセットされるため、実作業の反復は誤検知しない。
@@ -37,10 +38,15 @@ import { join, basename } from "node:path";
 
 const THRESHOLD = 3;
 const WINDOW = 24;
-// 副作用のあるツールだけが窓をリセットする(読み取り専用ツールを挟んだ偽装ポーリングを通さないため)
-// Only side-effecting tools reset the window, so read-only calls cannot launder a poll loop.
+// 3秒間隔のポーリングは窓に残り、分単位で離れた正当な同一呼び出しは残らない長さにする
+// Long enough to hold a 3-second poll loop, short enough to forget legitimate minute-apart repeats.
+const WINDOW_SECONDS = 300;
+// 実作業を進めるツールだけが窓をリセットする(読み取り専用ツールを挟んだ偽装ポーリングを通さないため)
+// Only tools that advance real work reset the window, so read-only calls cannot launder a poll loop.
+// SendMessageは除外する — 同文の「終わった?」をsubagentへ反復送るのは実在のポーリング形態だから。
+// SendMessage is excluded: repeating the same "are you done?" to a subagent is itself a poll loop.
 const RESETTING_TOOLS =
-  /^(Edit|Write|MultiEdit|NotebookEdit|apply_patch|Agent|Task|TaskCreate|TaskUpdate|SendMessage|AskUserQuestion|ExitPlanMode|Workflow|Artifact|EnterWorktree|ExitWorktree)$/;
+  /^(Edit|Write|MultiEdit|NotebookEdit|apply_patch|Agent|TaskCreate|TaskUpdate|AskUserQuestion|ExitPlanMode|Workflow|Artifact|EnterWorktree|ExitWorktree)$/;
 
 let input = {};
 try {
@@ -100,21 +106,26 @@ try {
     }
   }
 
+  const now = Date.now();
   let window = [];
   try {
     const st = JSON.parse(readFileSync(stateFile, "utf8"));
-    if (Array.isArray(st?.window)) window = st.window.filter((f) => typeof f === "string");
+    if (Array.isArray(st?.window)) {
+      window = st.window.filter(
+        (e) => typeof e?.fp === "string" && Number.isFinite(e?.at) && now - e.at <= WINDOW_SECONDS * 1000
+      );
+    }
   } catch {}
 
-  window.push(fingerprint);
+  window.push({ fp: fingerprint, at: now });
   if (window.length > WINDOW) window = window.slice(-WINDOW);
-  const hits = window.filter((f) => f === fingerprint).length;
+  const hits = window.filter((e) => e.fp === fingerprint).length;
+  const denied = hits >= THRESHOLD;
   // 書き込み失敗はcatchでexit 0に落ちる = denyまで進まない(fail open)
   // A write failure lands in the outer catch and exits 0, never reaching the deny.
-  writeFileSync(stateFile, JSON.stringify({ window, last: tool }));
+  writeFileSync(stateFile, JSON.stringify({ window: denied ? [] : window, last: tool }));
 
-  if (hits >= THRESHOLD) {
-    writeFileSync(stateFile, JSON.stringify({ window: [], last: tool }));
+  if (denied) {
     console.error(
       `poll-guard: 同一の ${tool} 呼び出し(引数まで一致)が直近${window.length}件中${hits}回出現しています` +
         "(ポーリングと判定して拒否。窓はリセット済みで、次の同一呼び出しは通る)。サブエージェント/" +
