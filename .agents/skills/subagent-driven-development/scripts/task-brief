@@ -24,10 +24,14 @@ else
   out="$dir/task-${n}-brief.md"
 fi
 
+# 対象Task見出しで開始し、別Task見出しまたは同レベル以下の非Task見出し
+# （## 判断記録 等）で終了する。Task内の深い小見出しでは切らない。
 awk -v n="$n" '
-  /^```/ { infence = !infence }
-  !infence && /^#+[ \t]+Task[ \t]+[0-9]+/ {
-    intask = ($0 ~ ("^#+[ \t]+Task[ \t]+" n "([^0-9]|$)"))
+  /^```/ { infence = !infence; if (intask) print; next }
+  !infence && /^#+[ \t]+/ {
+    match($0, /^#+/); lvl = RLENGTH
+    if ($0 ~ ("^#+[ \t]+Task[ \t]+" n "([^0-9]|$)")) { intask = 1; tasklvl = lvl; print; next }
+    if (intask && lvl <= tasklvl) intask = 0
   }
   intask { print }
 ' "$plan" > "$out"
