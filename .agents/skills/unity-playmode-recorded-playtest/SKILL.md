@@ -1,6 +1,6 @@
 ---
 name: unity-playmode-recorded-playtest
-description: 'Unity Editor を PlayMode 起動し、録画付きで end-to-end gameplay を検証する枠組み。第一選択はプレイテストDSL（Client.Playtest asmdef + 本スキル同梱の scripts/run-scenario.sh）による1コマンド一発実行で、preflight→PlayMode起動→シナリオ投入→result.json回収まで自動化される（実測ready~26秒）。UI経路設置（ビルドメニュー→クリック/ドラッグ）とホットバー手持ち駆動システム（歯車チェーンポール等）もDSLで操作可能。ユースケース別の詳細は references/ を参照（本文にルーティング表）。DSLが無いブランチのみレガシー手動フローへフォールバック。Use When: 「Unity をコードで動かして録画したい」「フォーカス無しで PlayMode テスト」「Recorder を CLI 制御」「実プレイで動くか確認」「キーマウ操作でE2E検証」「MonoBehaviour Update を回した状態で API 叩いて検証」「ロジック単体テストでは捕まらないシナリオを通しで確認」「プレイテストDSLでシナリオ実行」と言われた場合。フォーカス不要が必須要件のとき積極的に起動する。入力は必ず InputSystem QueueStateEvent で注入し OS simulate-keyboard/simulate-mouse-input は使わない（前面化して注入を汚染する・最重要）。masterデータはブランチ互換コミットへピン留めした worktree を使う（スキーマ不整合は MooresmasterLoaderException で初期化が無言死する）。サーバーポート11564は固定のため他worktreeのPlayModeと同時実行不可。録画には操作オーバーレイ（アクションログ・キー・カーソル）が自動で焼き込まれ、アクション間0.5秒インターバルが自動挿入される。'
+description: 'Unity Editor を PlayMode 起動し、録画付きで end-to-end gameplay を検証する枠組み。第一選択はプレイテストDSL（Client.Playtest asmdef + 本スキル同梱の scripts/run-scenario.sh）による1コマンド一発実行で、preflight→PlayMode起動→シナリオ投入→result.json回収まで自動化される（実測ready~26秒）。UI経路設置（ビルドメニュー→クリック/ドラッグ）とホットバー割当（建築ショートカット。歯車チェーンポール等）もDSLで操作可能。ユースケース別の詳細は references/ を参照（本文にルーティング表）。DSLが無いブランチのみレガシー手動フローへフォールバック。Use When: 「Unity をコードで動かして録画したい」「フォーカス無しで PlayMode テスト」「Recorder を CLI 制御」「実プレイで動くか確認」「キーマウ操作でE2E検証」「MonoBehaviour Update を回した状態で API 叩いて検証」「ロジック単体テストでは捕まらないシナリオを通しで確認」「プレイテストDSLでシナリオ実行」と言われた場合。フォーカス不要が必須要件のとき積極的に起動する。入力は必ず InputSystem QueueStateEvent で注入し OS simulate-keyboard/simulate-mouse-input は使わない（前面化して注入を汚染する・最重要）。masterデータはブランチ互換コミットへピン留めした worktree を使う（スキーマ不整合は MooresmasterLoaderException で初期化が無言死する）。サーバーポート11564は固定のため他worktreeのPlayModeと同時実行不可。録画には操作オーバーレイ（アクションログ・キー・カーソル）が自動で焼き込まれ、アクション間0.5秒インターバルが自動挿入される。'
 ---
 
 # unity-playmode-recorded-playtest
@@ -23,7 +23,7 @@ ls <repo-root>/moorestech_client/Assets/Scripts/Client.Playtest/ 2>/dev/null
 | 既存シナリオを実行して結果を見る | [references/run-scenario.md](references/run-scenario.md) |
 | 新しいシナリオを書く（**Driver API全リファレンス**含む） | [references/write-scenario.md](references/write-scenario.md) |
 | UI操作（ビルドメニュー→クリック/ドラッグ）でブロックを設置する | [references/place-blocks-via-ui.md](references/place-blocks-via-ui.md) |
-| ホットバー手持ち駆動システム（歯車チェーンポール・結線等）を操作する | [references/hotbar-driven-systems.md](references/hotbar-driven-systems.md) |
+| ホットバー割当（建築ショートカット。歯車チェーンポール・結線等）を操作する | [references/hotbar-driven-systems.md](references/hotbar-driven-systems.md) |
 | キー・マウス・uGUIを注入する / 入力が効かない | [references/input-injection.md](references/input-injection.md) |
 | 実行が進まない・設置されない・原因不明（診断手順） | [references/troubleshooting.md](references/troubleshooting.md) |
 | DSLが無いブランチで手動フロー（Recorder手動制御含む） | [references/legacy-manual-flow.md](references/legacy-manual-flow.md) |

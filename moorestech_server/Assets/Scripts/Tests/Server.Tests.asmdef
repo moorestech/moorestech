@@ -57,6 +57,8 @@
         "Game.PlayerConnection",
         "Game.CleanRoom",
         "Game.Blueprint",
+        "Game.PlacementTarget",
+        "Game.Hotbar",
         "Common.Debug",
         "Unity.Mathematics"
     ],

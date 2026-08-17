@@ -17,5 +17,10 @@ namespace Client.Game.InGame.Control
             InputManager.MouseCursorVisible(!cameraLook);
             _inGameCameraController.SetControllable(cameraLook);
         }
+
+        public void WarpCursorToScreenCenter()
+        {
+            InputManager.WarpMouseCursorToScreenCenter();
+        }
     }
 }

@@ -14,12 +14,5 @@ namespace Game.PlayerInventory.Interface
             GrabInventory = grabInventory;
             EquipmentInventory = equipmentInventory;
         }
-
-        // 現在のサイズでホットバー番号解決
-        // Resolve hotbar number using current size
-        public int GetHotBarSlotIndex(int hotBarSlot)
-        {
-            return PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot, MainOpenableInventory.GetSlotSize());
-        }
     }
 }

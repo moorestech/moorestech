@@ -13,7 +13,7 @@ using Server.Event.EventReceive;
 using Server.Protocol;
 using Tests.CombinedTest.Server.PacketTest.Event;
 using Tests.Module.TestMod;
-using static Server.Protocol.PacketResponse.MapObjectAcquisitionProtocol;
+using Server.Protocol.PacketResponse;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -53,18 +53,19 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             var miningService = serviceProvider.GetService<MapObjectMiningService>();
-            var equippedItem = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).EquipmentInventory.GetSelectedItem();
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var equippedItem = playerInventory.EquipmentInventory.GetSelectedItem();
             var mapObject = GetMapObject();
 
             // PickUpなので素手の1打で破壊される
             // Being PickUp, a single bare-handed hit destroys it
             Assert.AreEqual(MiningAttackResult.Success,
-                miningService.TryAttack(PlayerId, mapObject, equippedItem, out _));
+                miningService.TryAttack(PlayerId, mapObject, equippedItem, playerInventory.MainOpenableInventory, out _));
 
             // プロトコル層を経由せず直接叩いてもサービス側のガードが弾く
             // Even called directly without the protocol layer, the service guard rejects it
             Assert.AreEqual(MiningAttackResult.AlreadyDestroyed,
-                miningService.TryAttack(PlayerId, mapObject, equippedItem, out _));
+                miningService.TryAttack(PlayerId, mapObject, equippedItem, playerInventory.MainOpenableInventory, out _));
 
             // 破壊イベントは初回の1件だけ
             // Only the first destroy event exists
@@ -78,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private void SendAttack(PacketResponseCreator packet, int instanceId)
         {
-            var messagePack = new GetMapObjectProtocolProtocolMessagePack(PlayerId, instanceId);
+            var messagePack = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(PlayerId, instanceId);
             packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext(null));
         }
 

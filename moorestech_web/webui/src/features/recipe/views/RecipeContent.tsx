@@ -36,9 +36,9 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   const craftRecipes = useMemo(() => selectCraftRecipes(recipes, itemId), [recipes, itemId]);
   const machineGroups = useMemo(() => groupMachineRecipesByBlock(machineRecipes, itemId), [machineRecipes, itemId]);
   const tabs = useMemo(() => buildRecipeTabs(craftRecipes, machineGroups), [craftRecipes, machineGroups]);
-  // サーバーの OneClickCraft は main+hotbar のみ参照するため、grab は所持数に含めない
-  // The server's OneClickCraft only consults main+hotbar, so grab is excluded from the tally
-  const counts = useMemo(() => buildOwnedCounts([...inventory.mainSlots, ...inventory.hotbarSlots]), [inventory]);
+  // grabは所持数に含めない
+  // The server's OneClickCraft only consults the main inventory, so grab is excluded from the tally
+  const counts = useMemo(() => buildOwnedCounts(inventory.mainSlots), [inventory]);
 
   const [tabKey, setTabKey] = useState(tabs[0]?.key ?? "");
   const [recipeIndex, setRecipeIndex] = useState(0);

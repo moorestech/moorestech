@@ -219,73 +219,7 @@ namespace Core.Inventory
 
             #endregion
         }
-        
-        /// <summary>
-        ///     特定のスロットを優先してアイテムを挿入します
-        ///     優先すべきスロットに入らない場合は、通常通り挿入処理を行います
-        /// </summary>
-        public static IItemStack InsertItemWithPrioritySlot(IItemStack itemStack, List<IItemStack> inventory, IItemStackFactory itemStackFactory, OpenableInventoryItemDataStoreServiceOption option, int[] prioritySlots, Action<int> invokeEvent)
-        {
-            // 優先スロット内で同種スタックを優先する
-            // Prioritize same item stacks within the priority slots
-            var currentItemStack = itemStack;
-            var prioritizedSameSlots = CollectSameItemPrioritySlots(inventory, currentItemStack, itemStackFactory, prioritySlots);
 
-            foreach (var slot in prioritizedSameSlots)
-            {
-                currentItemStack = ProcessPrioritySlot(slot, currentItemStack, inventory, itemStackFactory, invokeEvent);
-                if (currentItemStack.Count == 0) return currentItemStack;
-            }
-
-            // 残った優先スロットで挿入を試す
-            // Use the remaining priority slots for insertion
-            foreach (var slot in prioritySlots)
-            {
-                if (prioritizedSameSlots.Contains(slot)) continue;
-                currentItemStack = ProcessPrioritySlot(slot, currentItemStack, inventory, itemStackFactory, invokeEvent);
-                if (currentItemStack.Count == 0) return currentItemStack;
-            }
-
-            // 優先枠で余った分は通常処理に回す
-            // Delegate the rest to the default insertion logic
-            return InsertItem(currentItemStack, inventory, itemStackFactory, option, invokeEvent);
-
-            #region Internal
-
-            List<int> CollectSameItemPrioritySlots(List<IItemStack> allSlots, IItemStack targetItemStack, IItemStackFactory factory, int[] prioritySlotIndices)
-            {
-                // 優先スロット内に存在する同種スタックを列挙する
-                // Enumerate priority slots containing the same item stack
-                var slots = new List<int>();
-                foreach (var slot in prioritySlotIndices)
-                {
-                    if (slot < 0 || slot >= allSlots.Count) continue;
-                    if (allSlots[slot].Count == 0) continue;
-                    if (allSlots[slot].Id != targetItemStack.Id) continue;
-                    slots.Add(slot);
-                }
-
-                return slots;
-            }
-
-            IItemStack ProcessPrioritySlot(int slotIndex, IItemStack targetItemStack, List<IItemStack> allSlots, IItemStackFactory factory, Action<int> slotUpdate)
-            {
-                // 指定スロットで挿入のみを行う（近傍展開はしない）
-                // Insert into the specified slot only (no proximity spreading)
-                if (slotIndex < 0 || slotIndex >= allSlots.Count) return targetItemStack;
-
-                if (allSlots[slotIndex].IsAllowedToAddWithRemain(targetItemStack))
-                {
-                    var remain = InsertionItemBySlot(slotIndex, targetItemStack, allSlots, factory, slotUpdate);
-                    return remain;
-                }
-
-                return targetItemStack;
-            }
-
-            #endregion
-        }
-        
         /// <summary>
         ///     指定されたスロットにアイテムを挿入する
         /// </summary>

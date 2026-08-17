@@ -334,16 +334,12 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse>(request, ct);
         }
 
-        public async UniTask<ElectricWireExtendProtocol.ElectricWireExtendResponse> ExtendElectricWire(
-            Vector3Int fromPos,
-            BlockId poleBlockId,
-            PlaceInfo polePlaceInfo,
-            Guid connectToolGuid,
+        // 電線延長プロトコルの唯一の送信口。Operationごとの組み立てはRequestのstatic factoryに委ねる
+        // Sole send entry for the wire-extend protocol; per-operation assembly is delegated to the Request's static factories
+        public async UniTask<ElectricWireExtendProtocol.ElectricWireExtendResponse> SendElectricWireExtend(
+            ElectricWireExtendProtocol.ElectricWireExtendRequest request,
             CancellationToken ct)
         {
-            // 起点あり延長として電柱設置＋接続要求を送り、設置電柱情報を受け取る
-            // Send a with-origin extend request (place pole + wire) and receive the placed pole info
-            var request = ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPos, poleBlockId, polePlaceInfo, connectToolGuid);
             return await _packetExchangeManager.GetPacketResponse<ElectricWireExtendProtocol.ElectricWireExtendResponse>(request, ct);
         }
 

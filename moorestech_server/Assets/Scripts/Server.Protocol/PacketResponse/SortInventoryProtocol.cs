@@ -34,18 +34,11 @@ namespace Server.Protocol.PacketResponse
             var inventory = _openableInventoryResolver.Resolve(data.Target);
             if (inventory == null) return null;
 
-            // メインインベントリのときはホットバーを整理対象から除外する
-            // Exclude the hotbar from sorting when the target is the main inventory.
-            IEnumerable<int> excludeSlots = data.Target.InventoryType == InventoryType.Main
-                ? PlayerInventoryConst.GetHotBarSlots(inventory.GetSlotSize())
+            // 除外スロット宣言時は除外
+            // Exclude slots declared by the inventory itself (e.g. machine module slots).
+            IEnumerable<int> excludeSlots = inventory is ISortExcludedSlots sortExcluded
+                ? sortExcluded.SortExcludedSlots
                 : Array.Empty<int>();
-
-            // インベントリ自身が除外スロットを宣言している場合（機械のモジュールスロット等）は結合する
-            // Union slots declared by the inventory itself (e.g. machine module slots).
-            if (inventory is ISortExcludedSlots sortExcluded)
-            {
-                excludeSlots = excludeSlots.Union(sortExcluded.SortExcludedSlots);
-            }
 
             InventorySortService.Sort(inventory, excludeSlots.ToList());
 

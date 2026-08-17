@@ -2,6 +2,7 @@ using DeadMemberAudit.Cancellation;
 using DeadMemberAudit.Loading;
 using DeadMemberAudit.Model;
 using DeadMemberAudit.Placement;
+using DeadMemberAudit.PrivateHelper;
 using System.Text;
 
 namespace DeadMemberAudit.Reporting;
@@ -32,6 +33,7 @@ public sealed class MarkdownReportWriter
         new OverPublicSection(_classifier).Append(builder, result);
         PlacementSection.Append(builder, result);
         CancellationSection.Append(builder, result);
+        PrivateHelperSection.Append(builder, result);
         AppendCaveats(builder);
         return builder.ToString();
     }
@@ -55,8 +57,11 @@ public sealed class MarkdownReportWriter
         builder.AppendLine($"| リスト5-A: CancellationToken未伝搬 | {CountCancellation(result, CancellationIssue.TokenNotPassed)} |");
         builder.AppendLine($"| リスト5-B: async void | {CountCancellation(result, CancellationIssue.AsyncVoid)} |");
         builder.AppendLine($"| リスト5-C: CTS作りっぱなし | {CountCancellation(result, CancellationIssue.CancellationTokenSourceNotReleased)} |");
+        builder.AppendLine($"| リスト6-A: 単一呼び出し元privateヘルパ | {CountPrivateHelper(result, PrivateHelperIssue.SingleCaller)} |");
+        builder.AppendLine($"| リスト6-B: 参照0privateメソッド | {CountPrivateHelper(result, PrivateHelperIssue.NeverCalled)} |");
         builder.AppendLine($"| シンボル無しで読んだアセンブリ | {result.SymbolLessAssemblyCount} |");
         builder.AppendLine($"| 読み込めなかったDLL | {result.SkippedFileCount} |");
+        builder.AppendLine($"| 循環フォワーダで打ち切った型解決 | {result.BrokenForwarderCycleCount} |");
         builder.AppendLine();
 
         // アセンブリ分類の内訳。production以外からの参照は生存根拠にしない
@@ -141,6 +146,11 @@ public sealed class MarkdownReportWriter
     private static int CountCancellation(AuditResult result, CancellationIssue issue)
     {
         return result.CancellationFindings.Count(finding => finding.Issue == issue);
+    }
+
+    private static int CountPrivateHelper(AuditResult result, PrivateHelperIssue issue)
+    {
+        return result.PrivateHelperFindings.Count(finding => finding.Issue == issue);
     }
 
     // 自動削除を禁じる注意書き。ILに現れない呼び出し経路が実在する

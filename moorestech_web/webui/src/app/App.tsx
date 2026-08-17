@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { Button, Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
-import { InventoryPanel, HotbarPanel, EquipmentPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
+import { InventoryPanel, EquipmentPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
+import { HotbarPanel } from "@/features/hotbar";
 import { RecipeViewer, ItemListPanel, RecipeSelectionKeyHandler } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
 import { NotificationHost } from "@/features/notification";

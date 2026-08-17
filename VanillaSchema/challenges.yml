@@ -125,6 +125,7 @@ properties:
               default: uiHighLight
               options:
               - mapObjectPin
+              - veinPin
               - keyControl
               - uiHighLight
               - itemViewHighLight
@@ -141,6 +142,18 @@ properties:
                     schemaId: map
                     foreignKeyIdPath: /mapObjects/[*]/mapObjectGuid
                     displayElementPath: /mapObjects/[*]/mapObjectName
+                - key: pinText
+                  type: string
+                  default: pin text
+              - when: veinPin
+                type: object
+                properties:
+                - key: veinGuid
+                  type: uuid
+                  foreignKey:
+                    schemaId: map
+                    foreignKeyIdPath: /mapVeins/[*]/veinGuid
+                    displayElementPath: /mapVeins/[*]/veinName
                 - key: pinText
                   type: string
                   default: pin text

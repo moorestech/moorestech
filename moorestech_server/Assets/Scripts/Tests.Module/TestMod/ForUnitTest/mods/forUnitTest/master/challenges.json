@@ -24,6 +24,14 @@
                 "highLightUIObjectId": "testHighLightUIObject",
                 "highLightText": "テストチュートリアル1"
               }
+            },
+            {
+              "tutorialGuid": "00000000-0000-0000-8901-000000000002",
+              "tutorialType": "veinPin",
+              "tutorialParam": {
+                "veinGuid": "11111111-0000-0000-0000-000000000001",
+                "pinText": "テスト鉱脈ピン"
+              }
             }
           ],
           "clearedActions": [],

@@ -3,7 +3,6 @@
 // Block eyedropper E2E (IPlacementTarget edition): pick placed blocks with middle-click during normal play and placement mode.
 // Verifies: GameScreen->PlaceBlock transition with CurrentTarget, target swap in PlaceBlock, West direction retention, no-op on bare terrain, and length-3 belt resolution.
 using Client.Playtest;
-using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
@@ -38,24 +37,22 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
     // Read the current target as BlockPlacementTarget (null when absent or another type)
     BlockPlacementTarget CurrentBlockTarget() => placeController.CurrentTarget as BlockPlacementTarget;
 
-    // 通常プレイ・配置モード共通のミドルクリック入力をSemanticInputで注入する
-    // Inject shared middle-click input for both normal play and placement mode via SemanticInput
-    async UniTask MiddleClickAsync()
+    // ブロックのClickColliderの中心を取得する
+    // Resolve the world-space center of the block's "ClickCollider"
+    async UniTask<Vector3> ClickColliderCenterAsync(Vector3Int blockPos)
     {
-        SemanticInput.MouseButtonDown(2);
-        await UniTask.DelayFrame(2);
-        SemanticInput.MouseButtonUp(2);
-        await UniTask.DelayFrame(2);
+        var blockGo = await p.WaitBlockGameObject(blockPos);
+        var collider = blockGo.GetComponentsInChildren<Collider>().First(c => c.name == "ClickCollider");
+        return collider.bounds.center;
     }
 
     // 指定座標のBlockGameObjectの"ClickCollider"を照準し、BlockレイヤーへのRaycastに当てる
     // Aim at the block's "ClickCollider" so the Block-layer raycast hits it
     async UniTask PickBlockAtAsync(Vector3Int blockPos)
     {
-        var blockGo = await p.WaitBlockGameObject(blockPos);
-        var collider = blockGo.GetComponentsInChildren<Collider>().First(c => c.name == "ClickCollider");
-        await p.AimAt(collider.bounds.center);
-        await MiddleClickAsync();
+        var center = await ClickColliderCenterAsync(blockPos);
+        await p.AimAt(center);
+        await p.MiddleClick();
         await UniTask.DelayFrame(3);
     }
 
@@ -95,8 +92,18 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
     // Check item 1: pick a North-facing chest during GameScreen, then verify PlaceBlock transition and CurrentTarget
     p.Assert(p.CurrentUiState == UIStateEnum.GameScreen, "初期状態はGameScreen");
     p.PlaceBlockDirect("木のチェスト", posA, BlockDirection.North);
-    await PickBlockAtAsync(posA);
-    p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, "項目1: ピック成功でPlaceBlockへ遷移");
+    var chestCenter = await ClickColliderCenterAsync(posA);
+
+    // Alt無しでは中央外をスポイトできない
+    // Negative check: without left Alt, an off-center object is never picked
+    await p.AimAt(chestCenter);
+    await p.MiddleClick();
+    await UniTask.DelayFrame(3);
+    p.Assert(p.CurrentUiState == UIStateEnum.GameScreen, "項目1前提: Alt無しではピックされずGameScreenのまま");
+    await p.Screenshot("00-no-pick-without-alt");
+
+    await p.PickWithAltHold(chestCenter);
+    p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, "項目1: Altホールドでのピック成功でPlaceBlockへ遷移");
     p.Assert(CurrentBlockTarget() != null, "項目1: CurrentTargetがBlockPlacementTargetになる");
     p.Assert(CurrentBlockTarget()?.BlockId == chestBlockId, "項目1: 選択ブロックがチェストになる");
     await p.Screenshot("01-pick-in-gamescreen");
@@ -122,7 +129,7 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
     var beforeTarget = placeController.CurrentTarget;
     var beforeUiState = p.CurrentUiState;
     await p.AimAt(new Vector3(posD.x + 0.5f, 32f, posD.z + 0.5f));
-    await MiddleClickAsync();
+    await p.MiddleClick();
     await UniTask.DelayFrame(3);
     p.Assert(Equals(placeController.CurrentTarget, beforeTarget), "項目4: ターゲットが変化しない");
     p.Assert(p.CurrentUiState == beforeUiState, "項目4: UI状態が変化しない");

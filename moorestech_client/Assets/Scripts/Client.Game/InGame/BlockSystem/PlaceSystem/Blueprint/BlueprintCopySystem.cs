@@ -24,6 +24,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
         private BlueprintAreaVisualizer _visualizer;
 
         private bool _isDragging;
+
+        // ホイールで高さを変えるのはドラッグ中だけ。非ドラッグ時は装備切替へ譲る
+        // The wheel changes height only while dragging; outside a drag it yields to equipment switching
+        public override bool OwnsWheelInput => _isDragging;
         private Vector3Int _dragStart;
         private Vector3Int _dragEnd;
         private int _topYOffset;

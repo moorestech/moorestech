@@ -26,7 +26,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(PlayerInventoryResponseProtocol.ProtocolTag, new PlayerInventoryResponseProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetPlayerCoordinateProtocol.ProtocolTag, new SetPlayerCoordinateProtocol(serviceProvider));
             _packetResponseDictionary.Add(GearChainConnectionEditProtocol.Tag, new GearChainConnectionEditProtocol(serviceProvider));
-            _packetResponseDictionary.Add(ElectricWireConnectionEditProtocol.Tag, new ElectricWireConnectionEditProtocol(serviceProvider));
+            _packetResponseDictionary.Add(ElectricWireDisconnectProtocol.Tag, new ElectricWireDisconnectProtocol(serviceProvider));
             _packetResponseDictionary.Add(ElectricWireExtendProtocol.Tag, new ElectricWireExtendProtocol(serviceProvider));
             _packetResponseDictionary.Add(GearChainPoleExtendProtocol.Tag, new GearChainPoleExtendProtocol(serviceProvider));
             _packetResponseDictionary.Add(InventoryItemMoveProtocol.ProtocolTag, new InventoryItemMoveProtocol(serviceProvider));
@@ -42,7 +42,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetMapObjectInfoProtocol.ProtocolTag, new GetMapObjectInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetMapDataProtocol.ProtocolTag, new GetMapDataProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetGameUnlockStateProtocol.ProtocolTag, new GetGameUnlockStateProtocol(serviceProvider));
-            _packetResponseDictionary.Add(MapObjectAcquisitionProtocol.ProtocolTag, new MapObjectAcquisitionProtocol(serviceProvider));
+            _packetResponseDictionary.Add(MiningProtocol.ProtocolTag, new MiningProtocol(serviceProvider));
             _packetResponseDictionary.Add(OneClickCraft.ProtocolTag, new OneClickCraft(serviceProvider));
             _packetResponseDictionary.Add(GetChallengeInfoProtocol.ProtocolTag, new GetChallengeInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(AllBlockStateProtocol.ProtocolTag, new AllBlockStateProtocol(serviceProvider));
@@ -70,6 +70,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(MachineRecipeSelectionProtocol.ProtocolTag, new MachineRecipeSelectionProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetElectricToGearOutputModeProtocol.ProtocolTag, new SetElectricToGearOutputModeProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlueprintProtocol.ProtocolTag, new BlueprintProtocol(serviceProvider));
+            _packetResponseDictionary.Add(HotbarProtocol.ProtocolTag, new HotbarProtocol(serviceProvider));
         }
         
         public List<byte[]> GetPacketResponse(byte[] payload, PacketResponseContext context)

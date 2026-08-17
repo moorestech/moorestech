@@ -27,6 +27,12 @@ class SkillWiringTest(unittest.TestCase):
         for p in (SKILL_DIR / "post-checks").glob("*.md"):
             self.assertIn(p.name, SKILL_MD, f"{p.name} がSKILL.mdに配線されていない")
 
+    def test_every_integrator_is_wired_in_skill_md(self):
+        # integrators/配下の全ファイルがSKILL.md本文からフルネームで参照されていること（Step 5統合委譲の配線）
+        # Every integrator file must be referenced from SKILL.md by full name
+        for i in (SKILL_DIR / "integrators").glob("*.md"):
+            self.assertIn(i.name, SKILL_MD, f"{i.name} がSKILL.mdに配線されていない")
+
     def test_every_investigator_is_wired_in_skill_md(self):
         # investigators/配下の全ファイルがSKILL.md本文からフルネームで参照されていること（第6系統の配線）
         # Every investigator file must be referenced from SKILL.md by full name
@@ -58,7 +64,8 @@ class SkillWiringTest(unittest.TestCase):
         # scripts/の実行系（deterministic_checks・select_*・*_gate）が、どこかのスキルの
         # 実行経路（いずれかのSKILL.md。hooks経由含む）から呼ばれていること
         # Every executable gate/selector script must be invoked from some skill's SKILL.md
-        for pattern in ("deterministic_checks.py", "select_lenses.py", "select_reviewers.py"):
+        for pattern in ("deterministic_checks.py", "select_lenses.py", "select_reviewers.py",
+                        "select_post_checks.py"):
             self.assertIn(pattern, SKILL_MD, f"{pattern} がSKILL.mdに配線されていない")
         all_skill_mds = "\n".join(
             p.read_text(encoding="utf-8")
@@ -94,6 +101,17 @@ class SkillWiringTest(unittest.TestCase):
             head = s.read_text(encoding="utf-8")[:1200]
             self.assertIn("必ず回帰テストを実行", head,
                           f"scripts/{s.name} に回帰テスト必須バナーが無い")
+
+    def test_playtest_scenarios_are_excluded_from_patch(self):
+        # patch生成のpathspecからプレイテストシナリオ除外が消えていないこと
+        # （消えると使い捨ての操作台本が再びレビュー対象になる。ユーザー裁定 2026-08-16 / PR#1137-F12）
+        # The playtest-scenario exclusion must stay in every patch-building pathspec
+        pathspec = "':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'"
+        self.assertIn(pathspec, SKILL_MD,
+                      "moores-code-review Step 1 のpatch生成からプレイテストシナリオ除外が消えている")
+        independent = (REPO_ROOT / ".agents/skills/pr-independent-review/SKILL.md").read_text(encoding="utf-8")
+        self.assertIn(pathspec, independent,
+                      "pr-independent-review Step 3 のpatch生成からプレイテストシナリオ除外が消えている")
 
     def test_every_reviewer_and_lens_has_frontmatter(self):
         # selector発見可能性: reviewers/lensesはfrontmatter（extensions等）を持つこと

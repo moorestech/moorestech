@@ -14760,26 +14760,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1388031229}
-  - component: {fileID: 1388031228}
+  - component: {fileID: 1388031230}
   m_Layer: 0
-  m_Name: MapVein
+  m_Name: OutcropGameObjectDatastore
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1388031228
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1388031227}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a104350879c24e9a9813a75b86e5f00, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Map.MapVein.MapVeinObjectDatastore
 --- !u!4 &1388031229
 Transform:
   m_ObjectHideFlags: 0
@@ -14795,6 +14783,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1061182519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1388031230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1388031227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a104350879c24e9a9813a75b86e5f00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Map.Outcrop.OutcropGameObjectDatastore
 --- !u!224 &1471090366 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3981407778892445589, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
@@ -15118,6 +15118,50 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.BuildMenu.BuildMenuView
   blockListContainer: {fileID: 116560558}
+--- !u!1 &1832386808
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1832386810}
+  - component: {fileID: 1832386809}
+  m_Layer: 0
+  m_Name: VeinPin
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &1832386809
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1832386808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2709bbf4893f9454eb1975b57be930d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Tutorial.VeinPin
+--- !u!4 &1832386810
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1832386808}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4.764, y: 2.72, z: 0.912}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1061182519}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1880976378
 GameObject:
   m_ObjectHideFlags: 0
@@ -35246,6 +35290,10 @@ PrefabInstance:
       value: 0.99974704
       objectReference: {fileID: 0}
     - target: {fileID: 6110538852407209855, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
+      propertyPath: veinPin
+      value: 
+      objectReference: {fileID: 1832386809}
+    - target: {fileID: 6110538852407209855, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
       propertyPath: groundPlane
       value: 
       objectReference: {fileID: 0}
@@ -35262,9 +35310,9 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1891355431}
     - target: {fileID: 6110538852407209855, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
-      propertyPath: mapVeinObjectDatastore
+      propertyPath: outcropGameObjectDatastore
       value: 
-      objectReference: {fileID: 1388031228}
+      objectReference: {fileID: 1388031230}
     - target: {fileID: 6110538852407209855, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
       propertyPath: trainEntityObjectDatastore
       value: 
@@ -37090,7 +37138,10 @@ PrefabInstance:
     - {fileID: 7623927846172718322, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 8466354111555762101, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
-      insertIndex: 11
+      insertIndex: 3
+      addedObject: {fileID: 1832386810}
+    - targetCorrespondingSourceObject: {fileID: 8466354111555762101, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
+      insertIndex: 12
       addedObject: {fileID: 1388031229}
     - targetCorrespondingSourceObject: {fileID: 3981407778892445589, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
       insertIndex: 16

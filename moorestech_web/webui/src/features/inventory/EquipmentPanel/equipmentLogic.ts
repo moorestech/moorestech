@@ -15,8 +15,8 @@ export function cycleEquipment(current: number, delta: number, slotCount: number
   return ((((ordinal + delta) % period) + period) % period) + BARE_HANDS_INDEX;
 }
 
-// wheel/100を累積し整数分だけを消費する（uGUI HotBarView の刻みをそのまま装備側へ引き継ぐ）
-// Accumulate wheel/100 and consume only crossed integer steps, carrying over uGUI HotBarView's granularity
+// wheel/100を累積し整数分だけを消費する（旧uGUIホットバーの刻みをそのまま装備側へ引き継ぐ）
+// Accumulate wheel/100 and consume only crossed integer steps, carrying over the old uGUI hotbar's granularity
 export function accumulateWheelSteps(remainder: number, delta: number): { remainder: number; steps: number } {
   const total = remainder + delta / 100;
   if (total >= 1) {

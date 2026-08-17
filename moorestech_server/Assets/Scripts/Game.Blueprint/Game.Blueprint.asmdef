@@ -5,7 +5,8 @@
         "Core.Master",
         "Game.Block.Interface",
         "Game.World.Interface",
-        "Game.Context"
+        "Game.Context",
+        "UniRx"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

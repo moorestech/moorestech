@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Game.PlacementTarget;
 using Game.Context;
 using Game.UnlockState;
 using NUnit.Framework;

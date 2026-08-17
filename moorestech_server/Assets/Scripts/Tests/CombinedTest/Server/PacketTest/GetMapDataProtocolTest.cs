@@ -62,9 +62,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0.0f, object5.Y);
             Assert.AreEqual(100.0f, object5.Z);
 
-            // mapVeins全3件のAABBがmap.jsonの内容と一致することを検証
-            // Verify all 3 mapVeins' AABBs match map.json's content
-            Assert.AreEqual(3, response.MapVeins.Count);
+            // 4本のvein範囲を検証
+            // Verify all four vein AABBs
+            Assert.AreEqual(4, response.MapVeins.Count);
 
             var vein0 = response.MapVeins[0];
             Assert.AreEqual("11111111-0000-0000-0000-000000000001", vein0.VeinGuid);
@@ -92,6 +92,15 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(20, vein2.MaxX);
             Assert.AreEqual(0, vein2.MaxY);
             Assert.AreEqual(0, vein2.MaxZ);
+
+            var vein3 = response.MapVeins[3];
+            Assert.AreEqual("11111111-0000-0000-0000-000000000004", vein3.VeinGuid);
+            Assert.AreEqual(20, vein3.MinX);
+            Assert.AreEqual(5, vein3.MinY);
+            Assert.AreEqual(0, vein3.MinZ);
+            Assert.AreEqual(20, vein3.MaxX);
+            Assert.AreEqual(5, vein3.MaxY);
+            Assert.AreEqual(0, vein3.MaxZ);
 
             // ワールドディレクトリを持たない構成では地形を持たずWorldIdも定まらない
             // A config without a world directory owns no terrain and has no world identity

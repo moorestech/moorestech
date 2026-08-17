@@ -7,6 +7,7 @@ using Game.Challenge;
 using Game.CleanRoom;
 using Game.Context;
 using Game.Entity.Interface;
+using Game.Hotbar;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Paths;
@@ -43,6 +44,7 @@ namespace Game.SaveLoad.Json
         private readonly TrainDockingStateRestorer _trainDockingStateRestorer;
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
         private readonly IBlueprintDatastore _blueprintDatastore;
+        private readonly HotbarAssignmentDatastore _hotbarAssignmentDatastore;
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
@@ -51,7 +53,7 @@ namespace Game.SaveLoad.Json
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, MapInfoJson mapInfoJson,
             IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
-            IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, ItemStackLevelDataStore itemStackLevelDataStore,
+            IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, HotbarAssignmentDatastore hotbarAssignmentDatastore, ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
@@ -70,6 +72,7 @@ namespace Game.SaveLoad.Json
             _trainDockingStateRestorer = trainDockingStateRestorer;
             _playerRidingDatastore = playerRidingDatastore;
             _blueprintDatastore = blueprintDatastore;
+            _hotbarAssignmentDatastore = hotbarAssignmentDatastore;
             _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
             _cleanRoomDatastore = cleanRoomDatastore;
@@ -153,9 +156,11 @@ namespace Game.SaveLoad.Json
 
             _playerRidingDatastore.LoadSaveData(load.PlayerRidingStates);
 
-            // 旧セーブはblueprints欠落のためnull時は空リスト復元
-            // Old saves lack blueprints, so restore an empty list on null
-            _blueprintDatastore.LoadBlueprints(load.Blueprints ?? new List<BlueprintJsonObject>());
+            _blueprintDatastore.LoadBlueprints(load.Blueprints);
+
+            // 割当検証がBP一覧を参照するため、BPロード後にホットバーを復元する
+            // Hotbar restore must follow blueprint load since assignment validation reads the BP list
+            _hotbarAssignmentDatastore.LoadHotbar(load.HotbarAssignments);
         }
         
         public void WorldInitialize()

@@ -3,35 +3,49 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Control.ViewMode
 {
-    public enum AimPointMode
+    // 三人称時の照準ソース。基盤側では判断せず具体側がプッシュする
+    // Third-person aim source; the concrete side pushes it, not this base
+    public enum ThirdPersonAimSource
     {
-        Mouse,
         ScreenCenter,
+        Cursor,
     }
 
     /// <summary>
-    ///     設置・削除・操作用の照準座標を方式別に返す
-    ///     Provides aim points for placement, deletion, and interaction by aim mode
+    ///     視点モードと三人称照準ソースの2入力から照準座標を方式別に返す
+    ///     Provides aim points from view mode and third-person aim source inputs
     /// </summary>
     public static class AimPointProvider
     {
-        private static AimPointMode _currentMode = AimPointMode.Mouse;
+        private static PlayerViewMode _viewMode = PlayerViewMode.ThirdPerson;
+        private static ThirdPersonAimSource _thirdPersonAimSource = ThirdPersonAimSource.ScreenCenter;
 
         public static void SetViewMode(PlayerViewMode viewMode)
         {
-            _currentMode = viewMode == PlayerViewMode.FirstPerson
-                ? AimPointMode.ScreenCenter
-                : AimPointMode.Mouse;
+            _viewMode = viewMode;
         }
 
-        public static AimPointMode GetCurrentMode()
+        public static void SetThirdPersonAimSource(ThirdPersonAimSource aimSource)
         {
-            return _currentMode;
+            _thirdPersonAimSource = aimSource;
+        }
+
+        /// <summary>
+        ///     2入力から実際に適用される照準ソースを返す（観測用）
+        ///     Returns the aim source actually applied from the two inputs (for observation)
+        /// </summary>
+        public static ThirdPersonAimSource GetEffectiveAimSource()
+        {
+            // 一人称は照準ソースに関わらず常に画面中央
+            // First person always aims at screen center regardless of aim source
+            if (_viewMode == PlayerViewMode.FirstPerson) return ThirdPersonAimSource.ScreenCenter;
+
+            return _thirdPersonAimSource;
         }
 
         public static Vector3 GetAimScreenPoint()
         {
-            if (_currentMode == AimPointMode.ScreenCenter) return new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+            if (GetEffectiveAimSource() == ThirdPersonAimSource.ScreenCenter) return ScreenCenter.GetPosition();
 
             return HybridInput.GetMousePosition();
         }

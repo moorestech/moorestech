@@ -43,6 +43,16 @@ namespace Client.Input
             return Suppress(held, InputSuppressionScope.Keyboard);
         }
 
+        // 解放通知を抑止するとホールド系修飾キーが押しっぱなしで固着するためGetKeyUpは抑止を通さない
+        // GetKeyUp skips suppression: a suppressed release would leave hold-style modifiers stuck down
+        public static bool GetKeyUp(KeyCode keyCode)
+        {
+            var key = ToInputSystemKey(keyCode);
+            return key.HasValue && Keyboard.current != null
+                ? Keyboard.current[key.Value].wasReleasedThisFrame
+                : UnityEngine.Input.GetKeyUp(keyCode);
+        }
+
         public static bool GetMouseButtonDown(int button)
         {
             var control = GetMouseButtonControl(button);
@@ -107,6 +117,7 @@ namespace Client.Input
                 KeyCode.LeftShift => Key.LeftShift,
                 KeyCode.LeftControl => Key.LeftCtrl,
                 KeyCode.LeftCommand => Key.LeftCommand,
+                KeyCode.LeftAlt => Key.LeftAlt,
                 KeyCode.Z => Key.Z,
                 _ => null,
             };
