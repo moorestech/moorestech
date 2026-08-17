@@ -7,13 +7,13 @@ import { L, useI18n } from "@/shared/i18n";
 import PowerRateText from "./PowerRateText";
 import MachineInventoryBody from "./machine/MachineInventoryBody";
 import MachineRecipeSelectionTab from "./machine/MachineRecipeSelectionTab";
-import { buildMachineRecipeSelectionRows } from "./machine/machineRecipeSelectionLogic";
+import { buildMachineRecipeSelectionRows, machineInitialTab } from "./machine/machineRecipeSelectionLogic";
 
 // 機械: レシピ有りはインベントリ/レシピ選択の2タブ、レシピ無しは従来スタック
 // Machine: recipe-capable machines get inventory/recipe tabs; others keep the plain stack
 export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
   const machineRecipes = useTopic(Topics.machineRecipes);
-  const [tab, setTab] = useState("inventory");
+  const [tab, setTab] = useState<string>(() => machineInitialTab(data.machine?.selectedRecipeGuid));
   const { t } = useI18n();
   if (!data.machine) return null;
   const machine = data.machine;
@@ -50,8 +50,8 @@ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
         value={tab}
         onChange={setTab}
         options={[
-          { value: "inventory", label: t(L.ui.blockInventory.inventoryTab), testId: "machine-tab-inventory" },
           { value: "recipes", label: t(L.ui.blockInventory.recipeSelectionTab), testId: "machine-tab-recipes" },
+          { value: "inventory", label: t(L.ui.blockInventory.inventoryTab), testId: "machine-tab-inventory" },
         ]}
         testId="machine-tab-switch"
       />

@@ -12,11 +12,15 @@ test("レシピ有り機械は大型パネルでインベントリ/レシピ選�
   await setBlock(page, "machine");
   await page.goto("/");
 
-  // レシピ有り機械は大型パネル、デフォルトはインベントリタブ
-  // Recipe-capable machines get the large panel; the inventory tab is the default
+  // 選択済み機械のデフォルトはインベントリタブ
+  // A machine with a selected recipe defaults to the inventory tab
   await expect(page.getByTestId("block-inventory")).toHaveAttribute("data-large", "true");
   await expect(page.getByTestId("machine-tab-switch")).toBeVisible();
   await expect(page.getByTestId("machine-tab-inventory")).toHaveAttribute("aria-pressed", "true");
+  // タブ順はレシピ選択が先頭（ADR 0010セッションの裁定）
+  // The recipe tab comes first (ruling from the ADR 0010 session)
+  const tabButtons = page.getByTestId("machine-tab-switch").locator("button");
+  await expect(tabButtons.first()).toHaveAttribute("data-testid", "machine-tab-recipes");
   await expect(page.getByTestId("machine-input-slots")).toBeVisible();
   await expect(page.getByTestId("machine-progress-arrow")).toBeVisible();
   await expect(page.getByTestId("machine-recipe-selection")).toHaveCount(0);
@@ -71,6 +75,13 @@ test("機械レシピ3件を表示し、ホバー詳細・解除・選択時の�
   await expect(page.getByTestId("machine-tab-inventory")).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("machine-input-slots")).toBeVisible();
   await expect(page.getByTestId("machine-selected-product")).toBeVisible();
+});
+
+test("レシピ未選択の機械はレシピ選択タブで開く", async ({ page }) => {
+  await setBlock(page, "gearMachine");
+  await page.goto("/");
+  await expect(page.getByTestId("machine-tab-recipes")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
 });
 
 test("レシピ無しブロックは小型パネルのままタブを出さない", async ({ page }) => {
