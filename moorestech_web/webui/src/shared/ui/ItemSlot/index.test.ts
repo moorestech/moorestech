@@ -15,11 +15,12 @@ vi.mock("@/bridge", async (importOriginal) => ({
   useItemMaster: () => new Map([[1, { itemId: 1, itemGuid: ITEM_GUID, maxStack: 100 }]]),
 }));
 
-function renderItemSlot(insufficient?: boolean) {
+function renderItemSlot(insufficient?: boolean, count?: number) {
   return renderToStaticMarkup(
     createElement(MantineProvider, null, createElement(ItemSlot, {
       itemId: 1,
       insufficient,
+      count,
     })),
   );
 }
@@ -56,5 +57,17 @@ describe("ItemSlot", () => {
     const css = readFileSync(new URL("../SlotFrame/style.module.css", import.meta.url), "utf8");
 
     expect(css).toMatch(/\.slot\[data-insufficient="true"\]\s*\{\s*opacity:\s*0\.4;/);
+  });
+
+  it("countがundefinedの時はバッジを表示しない", () => {
+    const markup = renderItemSlot(undefined, undefined);
+
+    expect(markup).not.toContain('<span class="');
+  });
+
+  it("countが正の数の時はバッジを表示する", () => {
+    const markup = renderItemSlot(undefined, 5);
+
+    expect(markup).toContain('>5</span>');
   });
 });

@@ -68,10 +68,10 @@
   right: -2px;
   bottom: -4px;
   z-index: 2;
-  color: #fff;
+  color: #111;
   font-size: 11px;
   line-height: 1;
-  text-shadow: 0 1px 2px #000;
+  text-shadow: 0 1px 2px rgb(255 255 255 / 75%);
   white-space: nowrap;
 }
 

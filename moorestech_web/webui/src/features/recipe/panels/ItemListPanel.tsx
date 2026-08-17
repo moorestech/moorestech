@@ -67,15 +67,16 @@ export default function ItemListPanel() {
           viewportProps={{ ...viewportHandlers, style: { cursor: dragging ? "grabbing" : undefined, userSelect: dragging ? "none" : undefined } }}
         >
           <SlotGrid cols={6} testId="item-list-grid" style={GRID_STYLE}>
-            {itemList.itemIds.map((id) => (
-              <div key={id} data-item-id={id} {...tutorialAnchor(recipeItemAnchorId(id))}>
-                <ItemSlot
-                  itemId={id}
-                  count={craftableCounts.get(id) ?? 0}
-                  catalog
-                />
-              </div>
-            ))}
+            {itemList.itemIds.map((id) => {
+              // 作れる個数が0のアイテムはバッジ自体を出さない（ADR 0011）。面のグレー/白はcatalog+count有無で決まる
+              // Hide the badge entirely when nothing is craftable (ADR 0011); the gray/white face follows catalog+count
+              const craftableCount = craftableCounts.get(id) ?? 0;
+              return (
+                <div key={id} data-item-id={id} {...tutorialAnchor(recipeItemAnchorId(id))}>
+                  <ItemSlot itemId={id} count={craftableCount > 0 ? craftableCount : undefined} catalog />
+                </div>
+              );
+            })}
           </SlotGrid>
         </ScrollArea.Autosize>
       ) : (
