@@ -13,7 +13,7 @@ const VIEWBOX_HEIGHT = 78;
 // Derive the clip width from the path extent so editing the path cannot desync it
 const ARROW_SPAN = ARROW_RIGHT - ARROW_LEFT;
 
-// 矢印グリフ自体が進捗ゲージ（webui-design §8.13）。既定寸法は部品自身がトークン参照で持つ
+// 矢印がゲージ本体（§8.13）。寸法はトークン参照で自己保持
 // The arrow glyph itself is the progress gauge (webui-design §8.13); the default size is owned by this component via token references
 export default function ProgressArrowGlyph({ value, testId }: { value: number; testId: string }) {
   const filled = clamp01(value);

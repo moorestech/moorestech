@@ -98,7 +98,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             // state公開値は前tick基準でラッチされるため、遷移直後の1tickだけ古い値を挟んでから実効値に揃う
             // The published state latches on the previous tick's basis, so it trails by one tick right after a transition before matching the effective value
             TickRoom();
-            // stateへ載る要求電力が基礎値ではなく実効値（EffectiveRequestPower）であることを固定する
+            // state要求電力は基礎でなく実効値
             // Lock in that the state carries the effective request power, not the raw base value
             Assert.AreEqual(machineConsumer.EffectiveRequestPower, GetCommonMachineState(machine).RequestPower, 0.01f);
 
@@ -221,8 +221,8 @@ namespace Tests.CombinedTest.Core.CleanRoom
             }
         }
 
-        // GetBlockStateDetailsが配信するCommonMachineBlockStateDetailをデシリアライズする
-        // Deserialize the CommonMachineBlockStateDetail published via GetBlockStateDetails
+        // GetBlockStateDetails結果をデシリアライズ
+        // Deserialize the result of GetBlockStateDetails
         private static CommonMachineBlockStateDetail GetCommonMachineState(IBlock machine)
         {
             var stateObservable = machine.GetComponent<IBlockStateObservable>();

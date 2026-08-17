@@ -26,7 +26,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public ProcessState CurrentState { get; private set; }
         public bool IsPolluting => CurrentState == ProcessState.Processing;
 
-        // 停止中は要求電力率を0にし、稼働中だけ通常機械と同じ倍率を適用する
+        // 停止中は0、稼働中は通常機械と同じ倍率
         // Halted machines request no power; operating states use the same multipliers as normal machines
         public float EffectiveRequestPowerRate => CurrentState switch
         {

@@ -25,7 +25,7 @@ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
     machine.blockGuid,
     machine.selectedRecipeGuid,
   );
-  // 稼働状態ラベル＋充足率をタブ外の共通フッタに常時表示する（ADR 0010）
+  // 状態ラベル+充足率を共通フッタに表示
   // The state label and satisfaction rate stay visible on both tabs as the shared footer (ADR 0010)
   const stateKey = machineStateTranslationKey(machine.currentState);
   const powerRate = (

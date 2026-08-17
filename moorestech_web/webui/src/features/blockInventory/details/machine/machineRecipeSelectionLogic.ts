@@ -37,7 +37,7 @@ function isEmptyGuid(guid: string | null | undefined): boolean {
   return !guid || guid === emptyGuid;
 }
 
-// 未選択で開いた機械はレシピ選択タブから始める（ADR 0010セッションのユーザー裁定）
+// 未選択機械はレシピ選択タブから開始（ADR 0010）
 // A machine opened with no recipe selected starts on the recipe tab (user ruling in the ADR 0010 session)
 export function machineInitialTab(selectedRecipeGuid: string | null | undefined): "inventory" | "recipes" {
   return isEmptyGuid(selectedRecipeGuid) ? "recipes" : "inventory";

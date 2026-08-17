@@ -56,7 +56,7 @@ const MachineStateKeys: Record<MachineProcessState, TranslationKey> = {
   halted: L.ui.blockInventory.machineStateHalted,
 };
 
-// halted のみ電力不足トーン（--text-insufficient）で示す。状態語彙は上のテーブルと同じ集合を参照する
+// haltedのみ不足トーン。語彙は上表と同じ集合を参照
 // Only halted gets the insufficient tone (--text-insufficient); shares the same state vocabulary as the table above
 export function isMachineStateInsufficient(currentState: MachineProcessState): boolean {
   return MachineStateInsufficientTone[currentState];

@@ -17,7 +17,7 @@ test("レシピ有り機械は大型パネルでインベントリ/レシピ選�
   await expect(page.getByTestId("block-inventory")).toHaveAttribute("data-large", "true");
   await expect(page.getByTestId("machine-tab-switch")).toBeVisible();
   await expect(page.getByTestId("machine-tab-inventory")).toHaveAttribute("aria-pressed", "true");
-  // タブ順はレシピ選択が先頭（ADR 0010セッションの裁定）
+  // レシピ選択タブが先頭（ADR 0010）
   // The recipe tab comes first (ruling from the ADR 0010 session)
   const tabButtons = page.getByTestId("machine-tab-switch").locator("button");
   await expect(tabButtons.first()).toHaveAttribute("data-testid", "machine-tab-recipes");
@@ -30,7 +30,7 @@ test("レシピ有り機械は大型パネルでインベントリ/レシピ選�
   // 電力率はタブ外の共通フッタとして常時表示される
   // The power rate stays visible as a common footer outside the tabs
   await expect(page.getByTestId("machine-power-rate")).toBeVisible();
-  // 稼働状態ラベルが電力率の隣に出る（fixtureはprocessing）
+  // 稼働状態ラベルが電力率の隣に表示
   // The machine state label sits next to the power rate (fixture is processing)
   await expect(page.getByTestId("machine-state-label")).toBeVisible();
 
