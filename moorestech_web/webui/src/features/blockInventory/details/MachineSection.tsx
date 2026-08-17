@@ -6,7 +6,7 @@ import { ItemSlot, ModeSwitch } from "@/shared/ui";
 import { L, useI18n } from "@/shared/i18n";
 import LackHighlightText from "./LackHighlightText";
 import PowerRateText from "./PowerRateText";
-import { isMachineStateInsufficient, machineStateTranslationKey } from "./detailLogic";
+import { isMachineStateInsufficient, isPowerRateMeaningful, machineStateTranslationKey } from "./detailLogic";
 import MachineInventoryBody from "./machine/MachineInventoryBody";
 import MachineRecipeSelectionTab from "./machine/MachineRecipeSelectionTab";
 import { buildMachineRecipeSelectionRows, machineInitialTab } from "./machine/machineRecipeSelectionLogic";
@@ -33,7 +33,9 @@ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
       <LackHighlightText insufficient={isMachineStateInsufficient(machine.currentState)} size="sm" testId="machine-state-label">
         {t(stateKey)}
       </LackHighlightText>
-      <PowerRateText currentPower={machine.currentPower} requestPower={machine.requestPower} testId="machine-power-rate" />
+      {isPowerRateMeaningful(machine.requestPower) && (
+        <PowerRateText currentPower={machine.currentPower} requestPower={machine.requestPower} testId="machine-power-rate" />
+      )}
     </Group>
   );
 

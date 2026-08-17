@@ -67,3 +67,9 @@ const MachineStateInsufficientTone: Record<MachineProcessState, boolean> = {
   processing: false,
   halted: true,
 };
+
+// 要求電力0（停止中）は充足率が意味を持たないため、表示自体を出さない判断をここで確定する
+// A request power of 0 (halted) makes the satisfaction rate meaningless, so the decision to hide it is settled here
+export function isPowerRateMeaningful(requestPower: number): boolean {
+  return requestPower !== 0;
+}
