@@ -69,6 +69,9 @@
   --z-overlay-panel: 30;
   --z-grab: 40;
   --z-modal: 200;
+  /* ツールチップはモーダルより前、トースト通知より後ろに置く */
+  /* Tooltips sit above modals and below toast notifications */
+  --z-tooltip: 250;
   --z-toast: 300;
   --z-reconnect: 2000;
   --text-default: #eee;
