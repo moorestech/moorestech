@@ -8,12 +8,14 @@ type Props = {
   // craft: narrower variant for the center detail
   // skit: 画面下部の全幅会話帯
   // skit: full-bleed dialogue band at the screen bottom
-  variant?: "default" | "craft" | "skit";
+  // hud: 常時表示HUD用に面と境界フェードだけを持つ
+  // hud: face and boundary fade only, for resident HUDs
+  variant?: "default" | "craft" | "skit" | "hud";
   style?: CSSProperties;
   children: ReactNode;
 };
 
-const VARIANT_CLASS_NAMES = { default: "", craft: styles.craft, skit: styles.skit };
+const VARIANT_CLASS_NAMES = { default: "", craft: styles.craft, skit: styles.skit, hud: styles.hud };
 
 // uGUI風の額縁パネル。タイトル+罫線+本文を囲う共通ラッパ
 // uGUI-style framed panel wrapping title + deco rule + body

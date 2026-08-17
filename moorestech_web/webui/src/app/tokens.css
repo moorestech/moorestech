@@ -82,6 +82,11 @@
   /* Keep menu content between the resident HUD and the hotbar */
   --menu-upper-safe-area: 128px;
   --menu-content-height: 525px;
+  /* 常時表示HUDの面。色はパネル面と同値、フェード幅は共通トークン、余白はフェード帯を避ける安全帯 */
+  /* Resident-HUD face: panel-equal color, the shared fade width, and padding that clears the fade band */
+  --hud-panel-face: rgb(10 14 27 / 80%);
+  --hud-panel-edge-fade: var(--panel-edge-fade);
+  --hud-panel-padding: 20px;
   /* 常駐チャレンジHUDは左上へ固定し、本文と罫線の幅を分離する */
   /* Keep the resident challenge HUD top-left with independent content and rule widths */
   --challenge-hud-left: 24px;

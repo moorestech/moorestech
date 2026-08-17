@@ -18,7 +18,7 @@
 /* Side panels use the uGUI source (invebtory_bg_base #0a0e1b at α0.8) translucent navy. The old brown gradient
    was the baked-in blend of the orange world through the reference screenshot; the real alpha lets the world
    show through and recreate that vertical gradient naturally */
-.panel:not(.craft):not(.skit)::before {
+.panel:not(.craft):not(.skit):not(.hud)::before {
   position: absolute;
   z-index: 0;
   /* 実測で10物理px遅かったフェード全体を上へ送り、開始267・完了297付近へ合わせる */
@@ -197,4 +197,25 @@
   height: 100%;
   background: rgb(94 100 128 / 20%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* 常時表示HUDの面。フェード帯へ内容が載らないよう全辺に安全帯paddingを取る */
+/* Resident-HUD face; padding on every side keeps content off the fade band */
+.hud {
+  padding: var(--hud-panel-padding);
+}
+
+/* 面は4辺を同尺でフェードさせ、世界背景へ溶かす。罫線・三角・グリップは持たない */
+/* The face fades on all four edges into the world; no rules, triangles, or grip */
+.hud::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--hud-panel-face);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--hud-panel-edge-fade), #000 calc(100% - var(--hud-panel-edge-fade)), transparent 100%), linear-gradient(180deg, transparent 0, #000 var(--hud-panel-edge-fade), #000 calc(100% - var(--hud-panel-edge-fade)), transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--hud-panel-edge-fade), #000 calc(100% - var(--hud-panel-edge-fade)), transparent 100%), linear-gradient(180deg, transparent 0, #000 var(--hud-panel-edge-fade), #000 calc(100% - var(--hud-panel-edge-fade)), transparent 100%);
+  mask-composite: intersect;
+  content: "";
+  pointer-events: none;
 }
