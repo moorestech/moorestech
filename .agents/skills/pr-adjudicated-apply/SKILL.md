@@ -3,7 +3,7 @@ name: pr-adjudicated-apply
 description: |
   人間の裁定結果（adjudications.json）に基づき、pr-independent-reviewが出力したfindings.jsonのうち
   reject以外の裁定（案キーA〜F・other）が付いた指摘だけをPRブランチへ実装・検証・pushする無人実行スキル。PR番号を受け取り、
-  メインクローンでPRのheadブランチへcheckoutして修正し、コンパイル・関連テストで検証してからpushする。
+  apply専用worktreeでPRのheadをdetached checkoutして修正し、コンパイル・関連テストで検証してからpushする。
   checkout後は修正前にsubagentを無条件発火してmasterとのコンフリクトを検査し、あれば逆マージで事前解消する。
   裁定未完了時は即座にfailureとして終了し、却下された指摘・新規発見の問題には一切触れない。
   Use When:
@@ -17,17 +17,38 @@ description: |
 **このスキルは無人パイプラインの一部として動く。AskUserQuestionは使わない**（禁止事項参照）。
 ユーザーに確認を求めたくなった判断は、実装せずapply-result.jsonのsummaryへ記載して終える。
 
-**入出力の置き場**: `$LOGS` はメインリポジトリの兄弟にあるprivateログrepo `../moorestech_logs`
-（`git rev-parse --show-toplevel` の親ディレクトリ直下）、
+## 最重要: ターンを終えた瞬間にプロセスが死ぬ
+
+このスキルは poller から `claude -p`（print mode）でdetach起動される。**print modeにはターンの続きが無い** —
+アシスタントのターンが終わった時点でプロセスがexitし、以後あなたは二度と再開されない。
+`apply-result.json` を書かずに終われば、それは poller から「プロセス死亡」と見なされ、
+その時点までの全作業がpushされないまま失敗として確定する（実際にPR1145で発生。ユーザー裁定 2026-08-17）。
+
+したがって:
+
+- **待機は必ず同一ターン内でブロッキングして行う**。`uloop run-tests` は結果が返るまでそのターンで待ち切る。
+  完了に数分かかっても、待つこと自体がこのスキルの仕事である
+- **「wakeupをスケジュールしたので待つ」「後で結果を確認する」と述べてターンを閉じることを禁止する**。
+  スケジュールされた再開はこの実行環境に存在しない
+- **終了はStep 7の `apply-result.json` を書いた直後だけ**。書く前に終わる終わり方は、成功・失敗いずれの意図であっても
+  バグである。行き詰まったなら `status: "failure"` で理由を書いて終える
+
+**入出力の置き場**: `$LOGS` はprivateログrepo `/Users/sakastudio/hermes-agent/data/repos/moorestech_logs`
+（apply専用worktreeからは兄弟symlink `../moorestech_logs` でも到達できるが、絶対パスで書くこと）、
 `$RUNDIR = $LOGS/harness/pr-independent-review/runs/pr-<番号>/`（再レビューが存在する場合は
 最大のrNを持つ `pr-<番号>-rN/` が最新run。最新runを使う）。
 `$LOGS` / `$RUNDIR` は本ドキュメント上のプレースホルダでありシェル変数ではない。
 コマンド・ファイルパスへ渡すときは必ず実値の絶対パスへ展開して書く。
 
-**$REPO（メインクローン）**: このSKILL.mdを実行しているセッションのリポジトリルート
-（`git rev-parse --show-toplevel` の出力）。pr-independent-reviewの専用レビューworktree
-（`~/moorestech-worktrees/pr-review`）は使わない — 本スキルはPRブランチへ実際にcommit・pushするため、
-そのブランチの本来の置き場であるメインクローンで作業する。`$REPO` も実値の絶対パスへ展開して書く。
+**$REPO（apply専用worktree）**: このSKILL.mdを実行しているセッションのリポジトリルート
+（`git rev-parse --show-toplevel` の出力。pollerは `~/moorestech-worktrees/pr-apply` をcwdとして起動する）。
+`$REPO` も実値の絶対パスへ展開して書く。
+
+このworktreeはapply専用であり、他セッションの作業物は存在しない前提で扱ってよい
+（メインクローンで走らせていた頃は、apply実行中に別セッションがブランチを切り替える事故が起きた。
+ユーザー裁定 2026-08-17）。したがって作業前の残骸は保全せず破棄する（Step 3）。
+一方、**ブランチのcheckoutは必ずdetachedで行う** — 同じブランチが他のworktreeでcheckout済みだと
+`fatal: '<branch>' is already used by worktree at ...` で失敗するため、ブランチ名を持たずに作業してpush時だけ名指す。
 
 ## Step 1: 入力読み込み・裁定完了ゲート（最初に必ず通る）
 
@@ -86,45 +107,21 @@ description: |
 
 対象findingが1件以上ある場合のみ実行する（Step 2で0件なら本Stepはスキップ）。
 
-1. **dirtyの分類を最初に行う**: `git -C <$REPOの実値> status --porcelain --untracked-files=no` を実行する。
-   出力が空なら手順2へ進む。非空でも**中止しない** — 次の分類を行ってから続行する
-   （自動生成の痕跡1件で無人パイプラインを止めないため。ユーザー裁定 2026-08-15）:
+1. **前回の残骸を無条件に破棄する**。ここはapply専用worktreeであり、他セッションの作業物は存在しない
+   （前回applyの未pushな変更・Unityが書いた痕跡しか残らず、どちらも残す価値がない）:
 
-   1. dirtyな各パスについて `git -C <$REPOの実値> diff -- <パス>` を読み、2つに分類する。
-      **特定ファイル名のallowlistは持たない**（列挙は必ず陳腐化し、載っていないだけで止まるため）。
-      判定基準は「そのdiffが人間・エージェントの意図を1つでも表しているか」:
-      - **意味のない自動変更** — 意図を表さない、ツールが実行のたびに書き換える痕跡
-        （例: コンパイルトリガーの連番、兄弟クローンのHEADへ追随しただけの外部リビジョンピン）
-      - **意味のある変更** — それ以外すべて（他セッションのコミット漏れ等）。判定に迷ったらこちらへ倒す
-   2. 意味のない自動変更は `git -C <$REPOの実値> checkout -- <パス>` で破棄する
-   3. 意味のある変更は破棄も退避もしない。そのまま手順4のcheckoutでPRブランチへ持ち越し、
-      Step 6のcommitに含めてPRの一部とする（ユーザー裁定 2026-08-15。厳密な保全より続行を優先する）。
-      持ち越すパスを `CARRIED_PATHS` として控え、Step 7のsummaryへ
-      「持ち越し: <パス> — <diffの内容1行>」を、破棄したパスを「破棄: <パス>」として書く
-   4. 未追跡ファイルは分類対象外（`--untracked-files=no` のため。checkoutを妨げないが、
-      パス衝突時はcheckout自体が失敗して手順4で止まる）
-   5. **持ち越しはcheckoutが拒否することがある**。tracked な未コミット変更が持ち越せるのは、
-      現HEADとFETCH_HEADで**そのファイルの中身が同一の場合だけ**であり、PRブランチ側でも
-      同じファイルが変更されていると手順4は
-      `error: Your local changes to the following files would be overwritten by checkout` で失敗する。
-      さらに、手順2の破棄から手順4のcheckoutまでの間に常駐Unityが同じファイルを書き戻すレースもある
-      （ピンは5〜30秒毎に書き換わる）。手順4が失敗したら**本手順1へ戻って分類をやり直し**、
-      意味のない自動変更を破棄したうえでcheckoutを1回だけリトライする。
-      それでも失敗したら失敗として終了し（ブランチは切り替わっていないので後片付け不要）、summaryへ
-      「checkout失敗: <パス> — PRブランチ側と衝突する持ち越しのため中止（持ち越し分は未commitのまま保全）」と書く
-2. **元ブランチを記録する**（Step 8の後片付けで使う）:
-   - `git -C <$REPOの実値> symbolic-ref --short -q HEAD` が値を返せばそれが `ORIGINAL_REF`（ブランチ名）
-   - 値が空（detached HEAD）なら `git -C <$REPOの実値> rev-parse HEAD` の出力を `ORIGINAL_REF` とする
-3. PRのheadRefNameを取得する: `gh pr view <番号> --repo moorestech/moorestech --json headRefName,headRefOid`
-4. PRのheadをfetchしてローカルブランチへ反映する（既存の同名ローカルブランチがあってもPRの最新headへ揃える）:
+       git -C <$REPOの実値> checkout -- .
+       git -C <$REPOの実値> clean -fd
+
+   `clean -fd` に `-x` を付けてはならない — `Library/` はgitignoreされており、消すと再インポートに数十分かかる。
+2. PRのheadRefNameを取得する: `gh pr view <番号> --repo moorestech/moorestech --json headRefName,headRefOid`
+3. PRのheadをfetchし、**detachedでcheckoutする**（ブランチ名を作らない。他worktreeとの二重checkout衝突を避ける）:
 
        git -C <$REPOの実値> fetch origin pull/<番号>/head && \
-         git -C <$REPOの実値> checkout -B <headRefName> FETCH_HEAD
+         git -C <$REPOの実値> checkout --detach FETCH_HEAD
 
-5. checkout後、`git -C <$REPOの実値> rev-parse HEAD` が手順3の `headRefOid` と一致することを確認する。
-   不一致なら即座に失敗として終了し（Step 8で元ブランチへ戻ってから）、理由をsummaryに記す
-
-**この時点から先でどのように終了しても、Step 8（後片付け）を必ず実行してからapply-result.jsonを書く。**
+4. checkout後、`git -C <$REPOの実値> rev-parse HEAD` が手順2の `headRefOid` と一致することを確認する。
+   不一致なら即座に失敗として終了し、理由をsummaryに記す
 
 ## Step 3.5: masterコンフリクト事前解消（subagent委譲・無条件発火）
 
@@ -139,14 +136,14 @@ subagentの報告（コンフリクトなし／解消済み／解消不能）へ
 - 「コンフリクトなし」→ そのままStep 4へ進む
 - 「解消済み」→ マージコミットSHAをStep 7の `summary` に記録し（`pushed_commits` にも含める）、Step 4へ進む。
   解消内容の再検証・diff閲覧は行わない（Step 5のコンパイル・テストが実効的な検証になる）
-- 「解消不能」→ 失敗として終了する（Step 8で元ブランチへ戻り、summaryに解消不能ファイルを記載）
+- 「解消不能」→ 失敗として終了する（summaryに解消不能ファイルを記載）
 
 ## Step 4: 修正実装
 
 対象finding（Step 2で抽出したadopt分）それぞれについて、`recommendation` と `comment`（あれば）に従って
 `files` の指すコードを修正する。
 
-編集・新規作成したファイルのパスを `EDITED_PATHS` として控える（Step 6のadd対象・Step 8の破棄対象がこれに限定されるため）。既存ファイルの編集か新規作成かも区別して控えること（Step 8で始末の仕方が変わる）。
+編集・新規作成したファイルのパスを `EDITED_PATHS` として控える（Step 6のadd対象がこれに限定されるため）。
 
 AGENTS.mdの規約を遵守する:
 
@@ -163,16 +160,29 @@ AGENTS.mdの規約を遵守する:
 
 - **.csファイルを1つでも変更したら** `cd <$REPOの実値> && uloop compile --project-path ./moorestech_client` を必ず実行する
   （Step 3.5でマージコミットが作られた場合も、masterから流入した変更を含めた検証としてコンパイル必須）
-- 修正箇所に関連するテストを `cd <$REPOの実値> && uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<関連regex>"` で実行する
-  （`<関連regex>` は修正したクラス・機能に対応するテストクラス名から組み立てる）
+- 修正箇所に関連するテストを
+  `cd <$REPOの実値> && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "<関連regex>"`
+  で実行する（`<関連regex>` は修正したクラス・機能に対応するテストクラス名から組み立てる）。
+  **`--test-mode EditMode` を省いてはならない** — uloopの既定は PlayMode であり、
+  ユニットテストのつもりで投げるとEditorがPlayModeへ入ったまま固着し、以後のuloopコマンドが全て180秒でタイムアウトする。
+  固着したら `uloop control-play-mode --project-path ./moorestech_client --action stop` で解除してからやり直す
 - **コンパイルまたはテストが失敗し、かつStep 4の範囲内で直しきれない場合は、pushせず失敗として終了する**
-  （Step 8で元ブランチへ戻ってから、apply-result.jsonの `status` を `"failure"`、`tests` に失敗内容を書く）
+  （apply-result.jsonの `status` を `"failure"`、`tests` に失敗内容を書く）
 - ドメインリロード中のエラー（「Unity is reloading」）はAGENTS.md記載どおり45秒待ってリトライする
+- Unityがこのworktreeで起動していなければ `cd <$REPOの実値> && uloop launch ./moorestech_client` で起動する
+  （apply専用worktreeは常駐対象ではないため、接続できない状態から始まることがある。
+  `--project-path` は `launch` には無く位置引数で渡す。起動後 `uloop compile` が通るまで45秒間隔でリトライする）。
+  `Unity CLI Loop is not installed in this project` が出たら
+  `moorestech_client/UserSettings/UnityMcpSettings.json` が無い状態なので、
+  メインクローンの同ファイルをコピーし `customPort` を **8705**（apply worktree専用）へ書き換えてから起動する
+  — ポートを他worktreeと共有すると別プロジェクトのEditorへコマンドが飛ぶ
+- **テストの完了は必ずこのターン内で待ち切る**。7分かかっても待つ。
+  「実行を投げてターンを終える」は結果を捨てるのと同じである（冒頭の最重要事項を再読すること）
 
 ## Step 6: commit & push
 
 - 採用finding単位、または意味的にまとまる単位でcommitする。**`git add` は必ずパスを明示する** —
-  対象は「Step 4で編集したパス（`EDITED_PATHS`）」と「Step 3で控えた `CARRIED_PATHS`」だけ。
+  対象は「Step 4で編集したパス（`EDITED_PATHS`）」だけ。
   `git add -A` / `git add .` / `git commit -a` は禁止。
   apply実行中もUnityがdirtyを作り続けるため（Step 5の `uloop compile` はコンパイルトリガーを必ず書き換え、
   外部リビジョンピンは常駐Unityが数十秒ごとに書き換える）、全体addすると実行中に湧いた痕跡がPRのcommitへ混入する。
@@ -185,8 +195,8 @@ AGENTS.mdの規約を遵守する:
 
 ## Step 7: 出力
 
-`<$RUNDIRの実値>/apply-result.json` を書く（Step 8の後片付けの後に書いても先に書いてもよいが、
-このファイルを書かずに終了することは禁止）:
+`<$RUNDIRの実値>/apply-result.json` を書く（**このファイルを書かずに終了することは禁止**。
+書き終えるまでターンを閉じない）:
 
     {
       "status": "success|failure",
@@ -197,30 +207,13 @@ AGENTS.mdの規約を遵守する:
 
 **PRへのコメント投稿・ラベル操作は一切行わない**（poller側の責務）。
 
-## Step 8: 後片付け（成功・失敗を問わず必ず実行）
+## Step 8: 後片付け（不要）
 
-Step 3でブランチを切り替えた場合（＝対象findingが1件以上あった場合）は、
-Step 3〜7のどこで終了するとしても、apply-result.jsonを書く前に必ず元ブランチへ戻る:
+apply専用worktreeで作業しているため、終了時の後片付けは行わない。失敗して未commitの変更が残っても、
+次回applyのStep 3手順1が無条件に破棄する。元ブランチへ戻す操作も不要（detachedのまま放置してよい）。
 
-    git -C <$REPOの実値> checkout <ORIGINAL_REFの実値>
-
-失敗終了で未commitの変更が残っている場合、**`git reset --hard` を使ってはならない**。
-自分が作った変更だけを、既存ファイルと新規ファイルで**書き分けて**始末してから戻る:
-
-    # Step 4で既存ファイルを編集した分
-    git -C <$REPOの実値> checkout -- <EDITED_PATHSのうち既存ファイルの各パス>
-    # Step 4で新規作成した分（未追跡なので checkout では消せない）
-    rm -f <EDITED_PATHSのうち新規作成ファイルの各パス>
-
-新規作成ファイルを `git checkout --` のpathspecに混ぜてはならない。未追跡パスは
-`error: pathspec ... did not match any file(s) known to git` でコマンド**全体**が失敗し、
-同時に指定した既存ファイルの復元まで行われない（`reset --hard` はtracked分を戻していたので機能的後退になる）。
-
-`CARRIED_PATHS` は破棄しない。未commitのまま元ブランチへ戻れば、apply前と同じ位置にそのまま復元される
-（他セッションのコミット漏れを無告知で消さないため。ユーザー裁定 2026-08-15）。
-push済みでない失敗applyの変更は再実行時にゼロから作り直すため、残す価値がない。
-
-Step 1・Step 2（対象0件）で終了した場合はブランチ操作自体を行っていないため、本Stepは不要。
+**やってはいけないこと**: 後片付けのために `apply-result.json` を書く前へ手数を増やすこと。
+出力を書かずに死ぬ方がはるかに高くつく（冒頭「ターンを終えた瞬間にプロセスが死ぬ」参照）。
 
 ## 禁止事項
 
