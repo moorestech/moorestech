@@ -39,7 +39,7 @@ description: |
 - **パネル背景はすべて `shared/ui/GamePanel`。** 新しいパネル背景を発明しない。
   - `variant="default"`: 縁を持たず世界背景へ溶ける半透明ネイビー面（インベントリパネルの背景）。側面・一覧系パネルの標準。
   - `variant="craft"`: 1px枠+内周線を持つ中央詳細用の細めバリアント。
-  - `variant="hud"`: 面と4辺の境界フェードだけを持つ常時表示HUD用バリアント。タイトル罫線・下向き三角・右下グリップ・正本合わせの実測オフセットを持たない。余白は `--hud-panel-padding`（全辺、フェード幅を超える安全帯）。
+  - `variant="hud"`: 面と4辺の境界フェードだけを持つ常時表示HUD用バリアント。タイトル罫線・下向き三角・右下グリップ・正本合わせの実測オフセットを持たない。余白は `--hud-panel-padding`（全辺、フェード幅を超える安全帯）。実装は `GamePanel/hudVariant.module.css` に分け、セレクタは `[data-variant="hud"].hud` と併記して `.panel` のpaddingへimport順に依存せず詳細度で勝たせる。
 - **面の左右フェード幅は固定長トークン `--panel-edge-fade` のみ。** %指定はパネル幅でフェード幅が伸びて内容がフェード帯に載るため禁止。内容はGamePanelのpadding内に置く限り不透明領域内に収まることを保証する（はみ出し防止の唯一の機構）。
 - **ただし共通GamePanelのpaddingは全辺でこの保証を満たしていない**（左28pxのみフェード幅12px超。右10px・上8pxはフェード幅未満）。正本合わせの持ち物パネルでは意図的な非対称なので共通paddingは変更せず、**内容量でサイズが決まるパネル（チェスト等）は不足する辺を安全帯トークンで補う**（前例: `--block-panel-right-safe-area` / `--block-panel-bottom-safe-area`）。内容の縁とフェード開始位置が近い辺は「面が内容の直後で途切れて見える」ため、余白は「フェード幅+視認できる余白」を確保する。
 - **上部2本線+タイトル（`title` 指定）は「一覧の置き場」に限る。**
@@ -111,7 +111,7 @@ description: |
 
 ## 8. 通知・情報表示
 
-- 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・5秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
+- 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・7秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
 - **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。最大幅は`--notification-max-width`（画面幅20%・ユーザー裁定の画面比例値）で超過分は折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
 - **NotificationHostの出入りは唯一の装飾アニメーション例外**（§6）。入場は `--notification-enter-duration`（160ms・ease-out）で左から `--notification-shift`（12px）のスライドイン＋フェードイン、退場は `--notification-exit-duration`（200ms・ease-in）でその逆再生。生存尺は store の `NOTIFICATION_DISPLAY_MS`（7000ms）が単一の正で、`NotificationHost` がインラインCSS変数 `--notification-lifetime` として渡し、CSSは退場遅延を `calc(生存尺 − 退場尺)` で逆算する。**退場のためにstoreへ状態（`exiting` 等）を持たせない。** 退場の `animation-fill-mode` は `forwards`（`both` にすると遅延中に前方適用されて入場が消える）。積み替えの移動は補間せず、同時表示数の上限も設けない。
 - 接続前のプレースホルダは `ConnectingPlaceholder`。
