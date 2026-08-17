@@ -24,6 +24,7 @@ ADR: `docs/adr/0011-recipe-viewer-single-list.md`（各項の出所はADR参照�
 
 ## Global Constraints
 
+- **先行作業との整合**: 同ブランチ（feature/machine-ui-refresh）で機械UI修正plan（`2026-08-17-machine-ui-refresh.md`）が `CraftProgressArrow` を `shared/ui/ProgressArrowGlyph` へ共有部品化する（webui-design §8.13）。本planはその**完了後**に実行し、planコード中の `CraftProgressArrow` import/JSXは実装時点の実名（移動済みなら `ProgressArrowGlyph`）へ読み替える。着手時に `git log --oneline -5` と `ls src/shared/ui/ProgressArrowGlyph` で状態を確認すること。
 - 作業ディレクトリ: `moorestech_web/webui`（コマンドはすべてここで実行）。リポジトリは git worktree 頻用のため各タスク開始時に `pwd` を確認する。
 - webui-design SKILL（`.claude/skills/webui-design/SKILL.md`）はホワイトリスト。**様式が先、実装が後**（Task 1 で様式を更新してから実装する）。
 - 表示文字列は必ず `t()` を通す（lint `no-jsx-visible-literal`）。新規文言は `Localization/localization.csv`（リポジトリルート）に追加し `npm run gen:i18n` で再生成する。
