@@ -488,6 +488,8 @@ git commit -m "feat: 機械フッタに稼働状態ラベルを併記する（AD
 
 - [x] **Step 1: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。** moores-code-review スキルを起動し、`feature/machine-ui-refresh` の全差分（origin/master比）をレビューする。指摘は本plan・ADR 0010・`.decisions/` と突合し、裁定済み事項への再指摘は却下理由を記録、未裁定の実指摘は修正してコミットする。
 - [x] **Step 2: 最終確認**: `uloop compile` と `npm run test && npm run lint && npm run test:e2e` が全て緑であることを確認し、未コミット差分ゼロで終了する。
+  - 結果（2026-08-18再検証）: uloop compile 0エラー / C# 31/31 / vitest 602/602 / lint clean / e2e 144 passed・10 failed。
+  - e2e失敗10件は本branch由来ではない既存赤。mock-hostの既定locale が japanese（`topicFixtures.ts:36`）なのに英語literalを期待するspec群（hotbar/modeHud/recipe/connection/skit/commonHud/train）で、失敗specは全てorigin/masterとbyte一致・単独実行でも同様に失敗する。機械・クラフト矢印のspecは緑。→ moorestech-2lh.1 へ分離。
 
 ## 判断記録（ADR）
 
