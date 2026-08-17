@@ -3,6 +3,7 @@ import { Box, Button, Group, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import { ItemSlot, ProgressArrowGlyph } from "@/shared/ui";
 import type { CraftRecipe } from "@/bridge";
+import type { TutorialAnchorAttributes } from "@/shared/tutorialAnchor";
 import { craftable } from "../logic/craftLogic";
 import { useHoldCraft } from "../logic/useHoldCraft";
 import styles from "./RecipeBox.module.css";
@@ -15,7 +16,7 @@ type Props = {
   onSelect: (itemId: number) => void;
   // チュートリアルアンカーは重複禁止のため先頭エントリだけ親が注入する
   // The tutorial anchor must stay unique, so only the first entry receives it from the parent
-  tutorialAnchorProps?: Record<string, string>;
+  tutorialAnchorProps?: TutorialAnchorAttributes;
 };
 
 // クラフトエントリ: 素材列 → 進捗矢印 → 結果のレシピ行と、下端の全幅長押しボタン（ADR 0011・uGUI CraftButton 準拠）
