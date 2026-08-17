@@ -23,7 +23,8 @@ Phase 2（本plan Task 2〜5）    : 樹種・岩登録（旧Task 5〜8のリベ
 Phase 3（本plan Task 6〜7）    : 視覚検収（樹種・岩のみ）+ moores-code-review
 Phase 4（別plan・bd moorestech-pt8）: 地形見た目のサーバー焼き移行。着手時 grill-first（HARD GATE）。
     旧Task 9（草距離場）・旧Task 10（generateDetail/generateTexture削除）・クラスタ3キー削除・
-    草分布の視覚検収はここへ吸収。前提調査: bd moorestech-7pk（v8実データClusterId>=0が0件の解明）
+    草分布の視覚検収はここへ吸収。前提調査だったbd moorestech-7pkは解明済み（下記「planning後の判明事項」）。
+    実データ是正はbd moorestech-iiu（クラスタ配置の復元）が担い、surround移設の実機検証はこれが前提になる
 ```
 
 ## Requirements
@@ -306,7 +307,13 @@ if __name__ == "__main__":
 | クラスタ3キー（ClusterId/ClusterCenterX/Z）の転送・永続化削除 | bd `moorestech-pt8`（surround描画のサーバー移設と同時） | ADR-0012 過渡措置裁定 |
 | 草分布の視覚検収 | pt8完了後の検収 | 距離フィルタ実装がpt8側のため |
 
-pt8は着手時に **grill-first（HARD GATE）**。前提調査として bd `moorestech-7pk`（v8実データでClusterId>=0が0件の解明）を先行させると surround 移設の設計材料が揃う。
+pt8は着手時に **grill-first（HARD GATE）**。
+
+## planning後の判明事項（2026-08-17 追記）
+
+- **ADR-0012の未解決事項「勾配依存テクスチャの高さ基準」は解消済み。** MapMaking原本 `TerrainGenerator.cs` の実測で「①splatは摂動前高さで焼く → ②木の高さ摂動 → ③木の根元テクスチャをsplatへ追い焼き → ④detail用slopesは摂動後高さ」の4段ルールと確定。PR #1145 のR12（`2026-08-14-map-autogen-5x5-and-visual-restore.md`）が既に文書化・実装済み（`TreePerturbationApplier` / `TreeSurroundTexturePainter`）。pt8のサーバー焼きも同ルールを踏襲するだけでよい（摂動は決定論のためサーバーで再現可能）
+- **bd `moorestech-7pk`（ClusterId>=0が0件）は原因特定済みでクローズ。** コード経路（スキーマ→ランタイム変換・useClusterMode分岐・ClusterId採番・転記）は健全で、原因はv8実データの2欠陥: ①`algorithmParam.generateObject: false` でオブジェクト配置ステージ全体がスキップ（`TilePlacementRunner.cs:104`、2026-07-24導入） ②grassland/forestの `objectConfig` 16エントリが `prefabs: []`（移植時のGUID変換落ちの疑い）。是正は bd `moorestech-iiu`（generateObject有効化・prefabs復元・実データバリデーションテスト）へ。クラスタ描画・surround経路の実機検証はこの是正が前提
+- **要確認:** masterデータの `generateDetail` も false であることを調査中に確認。裁定 2026-08-14/15「generateDetailをtrueにする」との食い違いの可能性があるため、moorestech-iiu 着手時にピンと突き合わせて確認する
 
 ## 判断記録（ADR）
 
