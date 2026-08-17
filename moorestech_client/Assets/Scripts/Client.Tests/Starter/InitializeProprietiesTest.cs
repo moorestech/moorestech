@@ -11,8 +11,8 @@ namespace Client.Tests.Starter
         {
             var proprieties = InitializeProprieties.CreateLocalServer(ServerConst.DefaultPlayerId);
 
-            // ローカルは接続試行しないモードとして固定する
-            // Pin local play as the mode that never probes an existing server
+            // 接続試行しないモードを固定
+            // Pin that local never probes
             Assert.That(proprieties.IsRemoteConnection, Is.False);
             Assert.That(proprieties.ServerIp, Is.EqualTo(ServerConst.LocalServerIp));
             Assert.That(proprieties.PlayerId, Is.EqualTo(ServerConst.DefaultPlayerId));
@@ -23,8 +23,8 @@ namespace Client.Tests.Starter
         {
             var proprieties = InitializeProprieties.CreateRemoteConnection("192.168.1.10", 25000, 5);
 
-            // 外部接続は明示指定の宛先だけを運ぶことを固定する
-            // Pin that remote connection carries only the explicitly specified destination
+            // 明示指定の宛先のみを固定
+            // Pin the explicit destination only
             Assert.That(proprieties.IsRemoteConnection, Is.True);
             Assert.That(proprieties.ServerIp, Is.EqualTo("192.168.1.10"));
             Assert.That(proprieties.ServerPort, Is.EqualTo(25000));

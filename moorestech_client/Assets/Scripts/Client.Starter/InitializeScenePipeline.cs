@@ -77,8 +77,8 @@ namespace Client.Starter
             // Launch args belong to the embedded server, so override them only for local connections
             if (!_proprieties.IsRemoteConnection)
             {
-                // ツールバーの専用再生ボタン経由なら、セーブデータをロード・保存しないよう起動引数を上書きする
-                // When launched via the dedicated toolbar play button, override launch args to skip loading/saving save data
+                // 専用再生ボタン時はセーブ無効化
+                // Skip save/load for the dedicated play button
                 Editor.SkipSaveLoadPlayModeSettings.ApplyIfNeeded(_proprieties);
 
                 // 生成ワールド起動引数を上書き

@@ -27,8 +27,8 @@ namespace Client.Starter
             return new InitializeProprieties(false, ServerConst.LocalServerIp, 0, playerId);
         }
 
-        // 外部サーバー接続は明示IP:ポート指定のみ・失敗時フォールバック無し
-        // Remote connection only with an explicit IP:port, never falling back
+        // 明示IP:ポート指定のみ。フォールバック無し
+        // Explicit IP:port only; no fallback
         public static InitializeProprieties CreateRemoteConnection(string serverIp, int serverPort, int playerId)
         {
             return new InitializeProprieties(true, serverIp, serverPort, playerId);

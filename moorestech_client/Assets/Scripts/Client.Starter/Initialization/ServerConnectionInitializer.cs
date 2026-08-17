@@ -67,20 +67,20 @@ namespace Client.Starter.Initialization
                     return await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
                 }
 
-                // ローカルは接続試行なしで必ず内蔵サーバーを起動する
-                // Local play always boots the embedded server without probing
+                // ローカルは試行せず内蔵サーバー起動
+                // Local boots the embedded server without probing
                 var serverInstanceGameObject = new GameObject("ServerInstance");
                 var serverStarter = serverInstanceGameObject.AddComponent<ServerStarter>();
 
-                // ポート未指定なら0(OS自動採番)を渡し、実行時に空きポートへバインドさせる
-                // Pass 0 (OS auto-assign) when no port is specified, so the server binds a free port at runtime
+                // 0でOS自動割り当てさせる
+                // 0 means OS auto-assigns the port
                 var localServerSettings = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
                 localServerSettings.Port ??= 0;
                 serverStarter.SetArgs(CliConvert.Serialize(localServerSettings));
                 UnityEngine.Object.DontDestroyOnLoad(serverInstanceGameObject);
 
-                // バインド完了を待ち、実際に割り当てられたポートへ接続する
-                // Wait for binding to complete, then connect to the actually assigned port
+                // バインド後に実ポートへ接続
+                // Connect to the assigned port after binding
                 await UniTask.WaitUntil(() => serverStarter.BoundPort != 0).Timeout(TimeSpan.FromSeconds(60));
                 var localServerProperties = new ConnectionServerProperties(_proprieties.ServerIp, serverStarter.BoundPort);
 
