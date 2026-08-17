@@ -22,7 +22,11 @@
 // Detection: deny when a tool-name+arguments fingerprint occurs THRESHOLD times within the last
 // WINDOW non-resetting calls; the window is cleared after a deny and by any side-effecting tool.
 //
-// 所有する状態: ~/.cache/claude-poll-guard/<session>__<transcript basename>(JSON {window,last})。
+// 所有する状態: ~/.cache/claude-poll-guard/<自スクリプトpathの短縮hash>__<session>__<transcript basename>
+// (JSON {window,last})。鍵に自分のpathを混ぜるのは、同じ内容の写し(ユーザー全体hookとproject hook)が
+// 両方登録された環境で1回のツール呼びを二重に数え、閾値より早くdenyしてしまうのを防ぐため。
+// The key includes this script's own path so a user-level and a project-level copy of the same hook
+// do not both count one tool call into the same window and deny before the threshold.
 // 鍵にtranscriptを含めるのは、並列subagentがhook入力で親と同一session_idを共有するため
 // (cmux-connector側で実測)。session単独鍵だと並列エージェント間でカウンタが相互汚染する。
 // State: keyed by session + transcript basename because parallel subagents share the parent's
@@ -34,6 +38,7 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, unlinkSync, rmSync, existsSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { homedir } from "node:os";
+import { fileURLToPath } from "node:url";
 import { join, basename } from "node:path";
 
 const THRESHOLD = 3;
@@ -63,7 +68,8 @@ if (!session || !tool) process.exit(0);
 const home = homedir();
 if (!home) process.exit(0);
 const stateDir = join(home, ".cache", "claude-poll-guard");
-const key = `${session}__${basename(transcript)}`.replace(/[\/\\]/g, "_");
+const scope = createHash("sha1").update(fileURLToPath(import.meta.url)).digest("hex").slice(0, 8);
+const key = `${scope}__${session}__${basename(transcript)}`.replace(/[\/\\]/g, "_");
 const stateFile = join(stateDir, key);
 
 // 副作用のあるツールが来たら窓ごと破棄する(実作業が進んだので反復の意味が変わる)
