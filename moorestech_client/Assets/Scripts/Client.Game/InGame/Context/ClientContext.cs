@@ -1,6 +1,7 @@
 using Client.Game.InGame.UI.Modal;
 using Client.Network.API;
 using Client.Network.Settings;
+using Server.Boot;
 
 namespace Client.Game.InGame.Context
 {
@@ -16,7 +17,11 @@ namespace Client.Game.InGame.Context
         public static VanillaApi VanillaApi { get; private set; }
         public static ModalManager ModalManager { get; private set; }
 
-        public ClientContext(BlockGameObjectPrefabContainer blockGameObjectPrefabContainer, ItemImageContainer itemImageContainer, BlockImageContainer blockImageContainer, TrainCarImageContainer trainCarImageContainer, ConnectToolImageContainer connectToolImageContainer, FluidImageContainer fluidImageContainer, PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi, ModalManager modalManager)
+        // ローカルプレイで起動した内蔵サーバー。リモート接続時はnull
+        // The embedded server started for local play; null when connected to a remote server
+        public static ServerStarter EmbeddedServer { get; private set; }
+
+        public ClientContext(BlockGameObjectPrefabContainer blockGameObjectPrefabContainer, ItemImageContainer itemImageContainer, BlockImageContainer blockImageContainer, TrainCarImageContainer trainCarImageContainer, ConnectToolImageContainer connectToolImageContainer, FluidImageContainer fluidImageContainer, PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi, ModalManager modalManager, ServerStarter embeddedServer)
         {
             BlockGameObjectPrefabContainer = blockGameObjectPrefabContainer;
             ModalManager = modalManager;
@@ -27,6 +32,7 @@ namespace Client.Game.InGame.Context
             FluidImageContainer = fluidImageContainer;
             PlayerConnectionSetting = playerConnectionSetting;
             VanillaApi = vanillaApi;
+            EmbeddedServer = embeddedServer;
         }
     }
 }

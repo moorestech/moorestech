@@ -6,9 +6,7 @@ namespace Client.Common
     {
         public const string LocalServerIp = "127.0.0.1";
 
-        public const int DefaultPlayerId = 1;
-        
-        
+
         public static string CreateServerModsDirectory(string serverDirectory)
         {
             return Combine(serverDirectory, "mods");

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Client.Network;
 using Client.Network.API;
@@ -21,6 +22,10 @@ namespace Client.Starter.Initialization
         private readonly TMP_Text _loadingLog;
         private readonly System.Diagnostics.Stopwatch _loadingStopwatch;
         private readonly PlayerConnectionSetting _playerConnectionSetting;
+
+        // 起動した内蔵サーバー。リモート接続では起動しないためnullのまま
+        // The embedded server that was started; stays null for remote connections
+        public ServerStarter EmbeddedServer { get; private set; }
 
         public ServerConnectionInitializer(InitializeProprieties proprieties, TMP_Text loadingLog, System.Diagnostics.Stopwatch loadingStopwatch, PlayerConnectionSetting playerConnectionSetting)
         {
@@ -51,7 +56,7 @@ namespace Client.Starter.Initialization
 
             _loadingLog.text += $"\n初期データ取得完了  {_loadingStopwatch.Elapsed}";
 
-            return new ServerConnectionResult { VanillaApi = vanillaApi, HandshakeResponse = handshakeResponse };
+            return new ServerConnectionResult { VanillaApi = vanillaApi, HandshakeResponse = handshakeResponse, EmbeddedServer = EmbeddedServer };
 
             #region Internal
 
@@ -63,7 +68,7 @@ namespace Client.Starter.Initialization
                 // Remote uses only the explicit destination and never falls back to the embedded server (ADR 0013)
                 if (_proprieties.IsRemoteConnection)
                 {
-                    var serverProperties = new ConnectionServerProperties(_proprieties.ServerIp, _proprieties.ServerPort);
+                    var serverProperties = new ConnectionServerProperties(_proprieties.ServerIp, _proprieties.RemoteServerPort);
                     return await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
                 }
 
@@ -71,6 +76,7 @@ namespace Client.Starter.Initialization
                 // Local boots the embedded server without probing
                 var serverInstanceGameObject = new GameObject("ServerInstance");
                 var serverStarter = serverInstanceGameObject.AddComponent<ServerStarter>();
+                EmbeddedServer = serverStarter;
 
                 // 0でOS自動割り当てさせる
                 // 0 means OS auto-assigns the port
@@ -79,9 +85,11 @@ namespace Client.Starter.Initialization
                 serverStarter.SetArgs(CliConvert.Serialize(localServerSettings));
                 UnityEngine.Object.DontDestroyOnLoad(serverInstanceGameObject);
 
-                // バインド後に実ポートへ接続
-                // Connect to the assigned port after binding
-                await UniTask.WaitUntil(() => serverStarter.BoundPort != 0).Timeout(TimeSpan.FromSeconds(60));
+                // バインド後に実ポートへ接続。タイムアウト時も述語をPlayerLoopに残さない
+                // Connect to the assigned port after binding, leaving no predicate in the PlayerLoop on timeout
+                using var boundPortWait = new CancellationTokenSource();
+                await UniTask.WaitUntil(() => serverStarter.BoundPort != 0, PlayerLoopTiming.Update, boundPortWait.Token)
+                    .Timeout(TimeSpan.FromSeconds(60), taskCancellationTokenSource: boundPortWait);
                 var localServerProperties = new ConnectionServerProperties(_proprieties.ServerIp, serverStarter.BoundPort);
 
                 return await ServerCommunicator.CreateConnectedInstance(localServerProperties).Timeout(timeOut);
@@ -99,5 +107,9 @@ namespace Client.Starter.Initialization
     {
         public VanillaApi VanillaApi;
         public InitialHandshakeResponse HandshakeResponse;
+
+        // 内蔵サーバー。リモート接続時はnullで、破棄責務は受け取った上位が持つ
+        // The embedded server; null for remote connections, and the receiving upper layer owns its destruction
+        public ServerStarter EmbeddedServer;
     }
 }

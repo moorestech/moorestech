@@ -5,26 +5,33 @@ namespace Client.Starter
 {
     public class InitializeProprieties
     {
+        // 未指定時の既定プレイヤー。既定の解決はこのクラスだけが持つ
+        // The default player when unspecified; only this class resolves it
+        private const int DefaultPlayerId = 1;
+
         public readonly bool IsRemoteConnection;
         public readonly string ServerIp;
-        public readonly int ServerPort;
+
+        // リモート接続専用の宛先ポート。ローカルは内蔵サーバーの実バインドポートを使う
+        // Destination port for remote connections only; local uses the embedded server's actual bound port
+        public readonly int RemoteServerPort;
         public readonly int PlayerId;
 
         public string[] CreateLocalServerArgs { get; set; } = Array.Empty<string>();
 
-        private InitializeProprieties(bool isRemoteConnection, string serverIp, int serverPort, int playerId)
+        private InitializeProprieties(bool isRemoteConnection, string serverIp, int remoteServerPort, int playerId)
         {
             IsRemoteConnection = isRemoteConnection;
             ServerIp = serverIp;
-            ServerPort = serverPort;
+            RemoteServerPort = remoteServerPort;
             PlayerId = playerId;
         }
 
         // ローカルプレイは接続試行なしで内蔵サーバーを必ず起動する（ADR 0013）
         // Local play always boots the embedded server without probing (ADR 0013)
-        public static InitializeProprieties CreateLocalServer(int playerId)
+        public static InitializeProprieties CreateLocalServer(int? playerId)
         {
-            return new InitializeProprieties(false, ServerConst.LocalServerIp, 0, playerId);
+            return new InitializeProprieties(false, ServerConst.LocalServerIp, 0, playerId ?? DefaultPlayerId);
         }
 
         // 明示IP:ポート指定のみ。フォールバック無し

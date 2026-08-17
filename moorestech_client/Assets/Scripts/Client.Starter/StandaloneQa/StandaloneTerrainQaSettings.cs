@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Client.Common;
 using Game.MapGeneration.Provisioning;
 using Server.Boot;
 using Server.Boot.Args;
@@ -76,7 +75,7 @@ namespace Client.Starter.StandaloneQa
                 AutoSave = false,
             };
 
-            var proprieties = InitializeProprieties.CreateLocalServer(ServerConst.DefaultPlayerId);
+            var proprieties = InitializeProprieties.CreateLocalServer(null);
             proprieties.CreateLocalServerArgs = CliConvert.Serialize(serverSettings);
             return proprieties;
         }

@@ -75,7 +75,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
                 SceneManager.sceneLoaded -= SetInitializeProperty;
                 
                 // 既存のセーブデータをロードさせず、オートセーブもしないようにする
-                var localProperties = InitializeProprieties.CreateLocalServer(ServerConst.DefaultPlayerId);
+                var localProperties = InitializeProprieties.CreateLocalServer(null);
                 var properties = new StartServerSettings
                 {
                     WorldDirectory = worldDirectory,

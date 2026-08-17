@@ -45,6 +45,10 @@ namespace Client.Game.InGame.Presenter.PauseMenu
             // Web UI 等、ゲーム終了に同期したい購読者へ通知
             // Notify subscribers tied to game shutdown (e.g. Web UI)
             GameShutdownEvent.FireGameShutdown();
+
+            // 内蔵サーバーはここで必ず落とす。生き残ると次回起動と同一セーブを奪い合う
+            // Always shut the embedded server down here; a survivor would fight the next boot over the same save
+            if (ClientContext.EmbeddedServer != null) Destroy(ClientContext.EmbeddedServer.gameObject);
         }
     }
 }

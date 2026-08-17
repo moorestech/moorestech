@@ -32,7 +32,7 @@ namespace Client.Starter
         [SerializeField] private TMP_Text loadingLog;
         [SerializeField] private Button backToMainMenuButton;
 
-        private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer(ServerConst.DefaultPlayerId);
+        private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer(null);
         public void SetProperty(InitializeProprieties proprieties)
         {
             _proprieties = proprieties;
@@ -133,6 +133,11 @@ namespace Client.Starter
                 // 失敗をログとUIへ出し、文言を読ませてからメインメニューへ戻す
                 // Log the failure, surface it in the UI, and return to the main menu after the message is readable
                 Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
+
+                // 起動済みの内蔵サーバーを道連れに破棄する。残すと同一セーブへ書く権威が二重になる
+                // Destroy the embedded server that already started; leaving it doubles the authority writing the same save
+                if (serverInitializer.EmbeddedServer != null) Destroy(serverInitializer.EmbeddedServer.gameObject);
+
                 loadingLog.text += "\n初期化に失敗しました。メインメニューに戻ります。";
                 await UniTask.Delay(2000);
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
@@ -142,7 +147,7 @@ namespace Client.Starter
             // 取得結果から通信フォーマッタと静的コンテキストを初期化する
             // Initialize the message formatter and static context from the collected results
             MessagePackInitializer.Initialize();
-            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi, modalManager);
+            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi, modalManager, serverResult.EmbeddedServer);
 
             // シーンロードは全アセットロード完了後に直列実行する
             // Load the scene serially, after every asset load has finished
