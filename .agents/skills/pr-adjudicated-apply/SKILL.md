@@ -160,8 +160,12 @@ AGENTS.mdの規約を遵守する:
 
 - **.csファイルを1つでも変更したら** `cd <$REPOの実値> && uloop compile --project-path ./moorestech_client` を必ず実行する
   （Step 3.5でマージコミットが作られた場合も、masterから流入した変更を含めた検証としてコンパイル必須）
-- 修正箇所に関連するテストを `cd <$REPOの実値> && uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<関連regex>"` で実行する
-  （`<関連regex>` は修正したクラス・機能に対応するテストクラス名から組み立てる）
+- 修正箇所に関連するテストを
+  `cd <$REPOの実値> && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "<関連regex>"`
+  で実行する（`<関連regex>` は修正したクラス・機能に対応するテストクラス名から組み立てる）。
+  **`--test-mode EditMode` を省いてはならない** — uloopの既定は PlayMode であり、
+  ユニットテストのつもりで投げるとEditorがPlayModeへ入ったまま固着し、以後のuloopコマンドが全て180秒でタイムアウトする。
+  固着したら `uloop control-play-mode --project-path ./moorestech_client --action stop` で解除してからやり直す
 - **コンパイルまたはテストが失敗し、かつStep 4の範囲内で直しきれない場合は、pushせず失敗として終了する**
   （apply-result.jsonの `status` を `"failure"`、`tests` に失敗内容を書く）
 - ドメインリロード中のエラー（「Unity is reloading」）はAGENTS.md記載どおり45秒待ってリトライする
