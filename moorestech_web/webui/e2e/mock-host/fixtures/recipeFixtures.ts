@@ -25,6 +25,16 @@ export const craftRecipes = {
 export const machineRecipes = {
   recipes: [
     {
+      // Plankはクラフトと機械の両方で作れる（単一リスト同時表示のe2e用）。
+      // 既存3件のelectric machineレシピ数を数えるテストを崩さないようgear machine側へ足す
+      // Plank is producible by both craft and machine (for the single-list co-display e2e).
+      // Added on the gear-machine block so the existing electric-machine recipe-count test stays at 3
+      recipeGuid: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+      blockGuid: GEAR_MACHINE_BLOCK_GUID,
+      blockId: 4, time: 8,
+      inputItems: [{ itemId: 2, count: 1 }], outputItems: [{ itemId: 100, count: 1 }],
+    },
+    {
       recipeGuid: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
       blockGuid: ELECTRIC_MACHINE_BLOCK_GUID,
       blockId: 3, time: 5,
