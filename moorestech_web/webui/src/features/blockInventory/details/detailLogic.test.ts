@@ -5,6 +5,7 @@ import {
   splitSlotIndices,
   fuelRatio,
   itemsPerMinute,
+  machineStateTranslationKey,
   stopReasonTranslationKey,
 } from "./detailLogic";
 
@@ -40,5 +41,19 @@ describe("detailLogic", () => {
     expect(stopReasonTranslationKey("overRequirePower")).toBe(
       L.ui.blockInventory.stopReasonInsufficientPower,
     );
+  });
+
+  describe("machineStateTranslationKey", () => {
+    it.each([
+      { state: "idle", key: L.ui.blockInventory.machineStateIdle },
+      { state: "processing", key: L.ui.blockInventory.machineStateProcessing },
+      { state: "halted", key: L.ui.blockInventory.machineStateHalted },
+    ])("$state を対応キーへ写像する", ({ state, key }) => {
+      expect(machineStateTranslationKey(state)).toBe(key);
+    });
+
+    it("未知の状態はnull（ラベル非表示）", () => {
+      expect(machineStateTranslationKey("unknown")).toBeNull();
+    });
   });
 });

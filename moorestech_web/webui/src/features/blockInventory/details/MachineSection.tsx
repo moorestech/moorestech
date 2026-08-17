@@ -4,7 +4,9 @@ import { Topics, useTopic } from "@/bridge";
 import type { BlockInventoryOpen } from "@/bridge";
 import { ItemSlot, ModeSwitch } from "@/shared/ui";
 import { L, useI18n } from "@/shared/i18n";
+import LackHighlightText from "./LackHighlightText";
 import PowerRateText from "./PowerRateText";
+import { machineStateTranslationKey } from "./detailLogic";
 import MachineInventoryBody from "./machine/MachineInventoryBody";
 import MachineRecipeSelectionTab from "./machine/MachineRecipeSelectionTab";
 import { buildMachineRecipeSelectionRows, machineInitialTab } from "./machine/machineRecipeSelectionLogic";
@@ -23,10 +25,16 @@ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
     machine.blockGuid,
     machine.selectedRecipeGuid,
   );
-  // 電力率は稼働状態の常時視認のため、タブの外の共通フッタとして中央揃えで表示する
-  // The power rate stays visible on both tabs as a centered common footer for at-a-glance status
+  // 稼働状態ラベル＋充足率をタブ外の共通フッタに常時表示する（ADR 0010）
+  // The state label and satisfaction rate stay visible on both tabs as the shared footer (ADR 0010)
+  const stateKey = machineStateTranslationKey(machine.currentState);
   const powerRate = (
-    <Group justify="center">
+    <Group justify="center" gap="xs">
+      {stateKey && (
+        <LackHighlightText insufficient={machine.currentState === "halted"} size="sm" testId="machine-state-label">
+          {t(stateKey)}
+        </LackHighlightText>
+      )}
       <PowerRateText currentPower={machine.currentPower} requestPower={machine.requestPower} testId="machine-power-rate" />
     </Group>
   );

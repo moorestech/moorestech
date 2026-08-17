@@ -43,3 +43,15 @@ const GearStopReasonKeys: Record<GearNetworkStopReason, TranslationKey | null> =
   rocked: L.ui.blockInventory.stopReasonLocked,
   overRequirePower: L.ui.blockInventory.stopReasonInsufficientPower,
 };
+
+// 機械の稼働状態→表示ラベル。%が待機を意味しなくなった分、状態はラベルで示す（ADR 0010）
+// Machine state → label key; the rate no longer encodes standby, so the state gets its own label (ADR 0010)
+export function machineStateTranslationKey(currentState: string): TranslationKey | null {
+  return MachineStateKeys[currentState] ?? null;
+}
+
+const MachineStateKeys: Record<string, TranslationKey> = {
+  idle: L.ui.blockInventory.machineStateIdle,
+  processing: L.ui.blockInventory.machineStateProcessing,
+  halted: L.ui.blockInventory.machineStateHalted,
+};

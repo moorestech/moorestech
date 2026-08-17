@@ -30,6 +30,9 @@ test("レシピ有り機械は大型パネルでインベントリ/レシピ選�
   // 電力率はタブ外の共通フッタとして常時表示される
   // The power rate stays visible as a common footer outside the tabs
   await expect(page.getByTestId("machine-power-rate")).toBeVisible();
+  // 稼働状態ラベルが電力率の隣に出る（fixtureはprocessing）
+  // The machine state label sits next to the power rate (fixture is processing)
+  await expect(page.getByTestId("machine-state-label")).toBeVisible();
 
   await page.getByTestId("machine-tab-recipes").click();
   await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();

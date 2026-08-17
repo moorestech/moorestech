@@ -33,6 +33,9 @@ ui.blockInventory.gearNetworkSummary,Supply {generated} / required {required},Su
 ui.blockInventory.stopReasonLocked,Locked,Locked,ロック
 ui.blockInventory.stopReasonInsufficientPower,Insufficient power,Insufficient power,パワー不足
 ui.blockInventory.powerRateSummary,Power {rate}% ({current}/{required}),Power {rate}% ({current}/{required}),電力 {rate}% ({current}/{required})
+ui.blockInventory.machineStateIdle,Standby,Standby,待機中
+ui.blockInventory.machineStateProcessing,Operating,Operating,稼働中
+ui.blockInventory.machineStateHalted,Halted,Halted,停止中
 ui.blockInventory.trainPlatformLoad,Load,Load,積込
 ui.blockInventory.trainPlatformUnload,Unload,Unload,卸し
 ui.blockInventory.trainPlatformCapacity,Capacity: {capacity},Capacity: {capacity},容量: {capacity}
