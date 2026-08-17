@@ -47,16 +47,18 @@ test("進行中チャレンジを内部キーを出さずインベントリ同�
   expect(faceLayer.maskImage).toContain("90deg");
   expect(faceLayer.maskImage.match(/linear-gradient\(/g)).toHaveLength(2);
 
-  // HUD自身はアニメーションも角丸も枠も持たない
-  // The HUD itself keeps no animation, radius, or border
+  // HUD自身はアニメーションも角丸も枠も持たず、面と影はGamePanel側にのみ置く
+  // The HUD itself keeps no animation, radius, or border, and leaves face and shadow to GamePanel
   const visualContract = await hud.evaluate((element) => {
     const hudStyle = getComputedStyle(element);
     const labelStyle = getComputedStyle(element.querySelector('[data-testid="challenge-hud-label"]')!);
     const objectiveStyle = getComputedStyle(element.querySelector('[data-testid="challenge-objective"]')!);
     return {
       animationName: hudStyle.animationName,
+      background: hudStyle.backgroundColor,
       borderRadius: hudStyle.borderRadius,
       borderWidth: hudStyle.borderWidth,
+      boxShadow: hudStyle.boxShadow,
       fontWeight: objectiveStyle.fontWeight,
       labelLetterSpacing: labelStyle.letterSpacing,
       objectiveLineHeight: objectiveStyle.lineHeight,
@@ -64,8 +66,10 @@ test("進行中チャレンジを内部キーを出さずインベントリ同�
   });
   expect(visualContract).toEqual({
     animationName: "none",
+    background: "rgba(0, 0, 0, 0)",
     borderRadius: "0px",
     borderWidth: "0px",
+    boxShadow: "none",
     fontWeight: "400",
     labelLetterSpacing: "1px",
     objectiveLineHeight: "20px",

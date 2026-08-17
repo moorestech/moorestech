@@ -1,7 +1,10 @@
 /* 全辺の安全帯paddingは[data-variant="hud"]併記の詳細度で.panelへ勝たせる（import順に非依存） */
 /* The safe-area padding beats .panel via the paired [data-variant="hud"] specificity, not import order */
+/* 文字色はHUD側の指定を継承し、.panelの既定色で上書きさせない */
+/* Inherit the HUD's own text color so .panel's default never overrides it */
 [data-variant="hud"].hud {
   padding: var(--hud-panel-padding);
+  color: inherit;
 }
 
 /* 面は4辺を同尺でフェードさせ世界背景へ溶かす。罫線・三角・グリップは持たない */

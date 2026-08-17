@@ -10,7 +10,8 @@ const tokens = read("../../../app/tokens.css");
 
 describe("GamePanel hud variant", () => {
   it("variantの型とクラスマップにhudを持つ", () => {
-    expect(component).toContain('variant?: "default" | "craft" | "skit" | "hud"');
+    expect(component).toContain('export type GamePanelVariant = "default" | "craft" | "skit" | "hud"');
+    expect(component).toContain("Record<GamePanelVariant, string>");
     expect(component).toContain("hud: hudVariantStyles.hud");
   });
 
@@ -37,6 +38,16 @@ describe("GamePanel hud variant", () => {
     expect(hudRules).not.toContain("decoLine");
     expect(hudRules).not.toContain("bottomDeco");
     expect(hudRules).not.toContain("clip-path");
+    expect(hudRules).not.toContain("box-shadow");
+  });
+
+  it("hudは文字色をGamePanelから受け取らず利用側から継承する", () => {
+    // .panelの既定色がHUD本文の--text-high-contrastを潰す退行を止める
+    // Stops .panel's default color from overriding the HUD body's --text-high-contrast
+    const hudPadding = hudVariantStyle.slice(
+      hudVariantStyle.indexOf('[data-variant="hud"].hud {'),
+      hudVariantStyle.indexOf('[data-variant="hud"].hud::before'));
+    expect(hudPadding).toContain("color: inherit");
   });
 
   it("hudのpaddingセレクタは.panelより詳細度で勝ち、import順に依存しない", () => {

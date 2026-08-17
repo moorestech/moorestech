@@ -1,7 +1,10 @@
 /* ホットバー同様に面を持たない浮遊HUD。stage右端へ絶対配置し、枠数が増えても上へ伸びる */
 /* A faceless floating HUD like the hotbar; anchored absolutely to the stage's right edge and growing upward as slots increase */
+/* 常駐HUD族の他メンバー(ホットバー等)と同格のz層。無指定(auto)だとscreenレベルの面の下へ沈む */
+/* Same z-tier as the rest of the resident-HUD family (the hotbar, etc.); without it, screen-level faces would cover it */
 .equipmentArea {
   position: absolute;
+  z-index: var(--z-overlay-panel);
   right: var(--equipment-right);
   bottom: var(--equipment-bottom);
   display: flex;

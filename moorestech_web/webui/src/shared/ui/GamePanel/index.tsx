@@ -2,21 +2,27 @@ import type { CSSProperties, ReactNode } from "react";
 import styles from "./style.module.css";
 import hudVariantStyles from "./hudVariant.module.css";
 
+// craft: 中央詳細用の細め
+// craft: narrower variant for the center detail
+// skit: 画面下部の全幅会話帯
+// skit: full-bleed dialogue band at the screen bottom
+// hud: 常時表示HUD用に面と境界フェードだけを持つ
+// hud: face and boundary fade only, for resident HUDs
+export type GamePanelVariant = "default" | "craft" | "skit" | "hud";
+
 type Props = {
   gridArea?: string;
   title?: ReactNode;
-  // craft: 中央詳細用の細め
-  // craft: narrower variant for the center detail
-  // skit: 画面下部の全幅会話帯
-  // skit: full-bleed dialogue band at the screen bottom
-  // hud: 常時表示HUD用に面と境界フェードだけを持つ
-  // hud: face and boundary fade only, for resident HUDs
-  variant?: "default" | "craft" | "skit" | "hud";
+  variant?: GamePanelVariant;
   style?: CSSProperties;
   children: ReactNode;
 };
 
-const VARIANT_CLASS_NAMES = { default: "", craft: styles.craft, skit: styles.skit, hud: hudVariantStyles.hud };
+// Record注釈でvariant追加時のクラス割当漏れをマップ定義側の型エラーにする
+// The Record annotation turns a missing class mapping for a new variant into a type error here
+const VARIANT_CLASS_NAMES: Record<GamePanelVariant, string> = {
+  default: "", craft: styles.craft, skit: styles.skit, hud: hudVariantStyles.hud,
+};
 
 // uGUI風の額縁パネル。タイトル+罫線+本文を囲う共通ラッパ
 // uGUI-style framed panel wrapping title + deco rule + body

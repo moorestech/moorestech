@@ -37,6 +37,22 @@ test("通知は左からのスライドとフェードで入場し生存尺の�
   expect(animation.fillMode).toBe("both, forwards");
   expect(animation.timingFunction).toBe("ease-out, ease-in");
 
+  // keyframes本体を読み、入場の始点と退場の終点が「透明かつ左12px」であることを固定する
+  // Read the keyframes themselves and lock the enter's start and the exit's end to transparent and shifted 12px left
+  const keyframes = await row.evaluate((element) =>
+    element.getAnimations().map((animation) => ({
+      name: (animation as CSSAnimation).animationName,
+      frames: (animation.effect as KeyframeEffect).getKeyframes()
+        .map((frame) => ({ opacity: String(frame.opacity), transform: String(frame.transform) })),
+    })));
+  const enterFrames = keyframes.find((entry) => /notificationEnter/.test(entry.name))!.frames;
+  const exitFrames = keyframes.find((entry) => /notificationExit/.test(entry.name))!.frames;
+  expect(enterFrames[0].opacity).toBe("0");
+  expect(enterFrames[0].transform).toContain("-12px");
+  expect(enterFrames[enterFrames.length - 1].opacity).toBe("1");
+  expect(exitFrames[exitFrames.length - 1].opacity).toBe("0");
+  expect(exitFrames[exitFrames.length - 1].transform).toContain("-12px");
+
   // 入場完了後は不透明・移動量ゼロへ落ち着く
   // After the enter finishes it settles at full opacity with no offset
   await expect.poll(async () => row.evaluate((element) => getComputedStyle(element).opacity)).toBe("1");

@@ -91,9 +91,10 @@
   /* Keep the resident challenge HUD top-left with independent content and rule widths */
   --challenge-hud-left: 24px;
   --challenge-hud-top: 24px;
-  /* 面幅=本文の折返し幅520px+GamePanel hud variantの安全帯padding20px×2 */
-  /* Face width = 520px text-wrap width + GamePanel hud variant's 20px safe-area padding on each side */
-  --challenge-hud-width: 560px;
+  /* 面幅は本文の折返し幅にGamePanel hud variantの安全帯paddingを左右分足して導く */
+  /* Derive the face width from the text-wrap width plus the hud variant's safe-area padding on each side */
+  --challenge-hud-content-width: 520px;
+  --challenge-hud-width: calc(var(--challenge-hud-content-width) + var(--hud-panel-padding) * 2);
   --challenge-hud-rule-width: 176px;
   --challenge-hud-label-font-size: 12px;
   --challenge-hud-objective-font-size: 14px;
