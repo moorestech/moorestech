@@ -83,7 +83,9 @@ namespace Game.Block.Blocks.Machine
             BlockException.CheckDestroy(this);
 
             var processingRate = Mathf.Clamp01(_processingState.TotalTicks > 0 ? 1f - (float)_processingState.RemainingTicks / _processingState.TotalTicks : 0f);
-            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _context.RequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
+            // 充足率表示のためstateには基礎値でなく実効要求電力を載せる（ADR 0010）
+            // Publish the effective request power (not the base) so the client rate reads as satisfaction (ADR 0010)
+            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, EffectiveRequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
             
             var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid, SelectedRecipeGuid);
             return new[] { commonMachineBlock, machineBlock };

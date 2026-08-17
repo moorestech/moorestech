@@ -313,8 +313,10 @@ namespace Tests.CombinedTest.Core
             var initialDetails = stateObservable.GetBlockStateDetails();
             var machineParam = blockMaster.BlockParam as ElectricMachineBlockParam;
             var requiredPower = machineParam?.RequiredPower ?? 100;
-            // アイドル状態でも要求電力は表示される
-            ValidateMachineBlockStateDetails(initialDetails, "idle", 0f, requiredPower, 0f);
+            var idlePowerRate = machineParam?.IdlePowerRate ?? 0.2f;
+            // idle中の要求電力は実効値（基礎×idlePowerRate）になる（ADR 0010）
+            // While idle the requested power is the effective value (base × idlePowerRate) per ADR 0010
+            ValidateMachineBlockStateDetails(initialDetails, "idle", 0f, requiredPower * idlePowerRate, 0f);
             
             // 電力を供給（アイドル状態でも通知が発生するはず）
             Debug.Log("Supplying power in idle state...");
