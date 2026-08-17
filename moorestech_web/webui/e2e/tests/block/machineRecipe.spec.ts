@@ -18,6 +18,7 @@ test("レシピ有り機械は大型パネルでインベントリ/レシピ選�
   await expect(page.getByTestId("machine-tab-switch")).toBeVisible();
   await expect(page.getByTestId("machine-tab-inventory")).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("machine-input-slots")).toBeVisible();
+  await expect(page.getByTestId("machine-progress-arrow")).toBeVisible();
   await expect(page.getByTestId("machine-recipe-selection")).toHaveCount(0);
   // 選択中レシピの生産物がインベントリタブにも1個表示される
   // The selected recipe's product also shows on the inventory tab as one slot

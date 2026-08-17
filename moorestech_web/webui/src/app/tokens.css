@@ -190,6 +190,10 @@
   /* 行のcenter揃えに対する矢印の上寄せ量。正本の矢印位置を保つ固定長 */
   /* Upward nudge against the row's center alignment; a fixed length that holds the reference arrow position */
   --craft-arrow-offset-y: -12.218px;
+  /* 機械加工行の矢印はクラフト矢印と同寸（同一見た目のユーザー裁定・ADR 0010セッション） */
+  /* The machine process-row arrow matches the craft arrow size (user ruling: identical look) */
+  --machine-arrow-width: var(--craft-arrow-width);
+  --machine-arrow-height: var(--craft-arrow-height);
   /* 研究ノードカードの面と枠（GamePanelのネイビー族に揃える） */
   /* Research node card face and border, matching the GamePanel navy family */
   --research-node-face: rgb(10 14 27 / 80%);
