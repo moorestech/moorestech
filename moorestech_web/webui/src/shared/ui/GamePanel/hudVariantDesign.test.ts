@@ -5,12 +5,13 @@ import { describe, expect, it } from "vitest";
 
 const component = read("./index.tsx");
 const style = read("./style.module.css");
+const hudVariantStyle = read("./hudVariant.module.css");
 const tokens = read("../../../app/tokens.css");
 
 describe("GamePanel hud variant", () => {
   it("variantの型とクラスマップにhudを持つ", () => {
     expect(component).toContain('variant?: "default" | "craft" | "skit" | "hud"');
-    expect(component).toContain("hud: styles.hud");
+    expect(component).toContain("hud: hudVariantStyles.hud");
   });
 
   it("hudの面色はパネル面と同値でフェード幅は共通トークンを使う", () => {
@@ -20,7 +21,7 @@ describe("GamePanel hud variant", () => {
   });
 
   it("hudの面は4辺を固定長でフェードする", () => {
-    const hudFace = style.slice(style.indexOf(".hud::before"));
+    const hudFace = hudVariantStyle.slice(hudVariantStyle.indexOf(".hud::before"));
     expect(hudFace).toContain("background: var(--hud-panel-face)");
     expect(hudFace).toContain("90deg, transparent 0, #000 var(--hud-panel-edge-fade)");
     expect(hudFace).toContain("180deg, transparent 0, #000 var(--hud-panel-edge-fade)");
@@ -32,7 +33,7 @@ describe("GamePanel hud variant", () => {
   });
 
   it("hudは罫線・三角・グリップの装飾を持たない", () => {
-    const hudRules = style.slice(style.indexOf(".hud {"));
+    const hudRules = hudVariantStyle.slice(hudVariantStyle.indexOf(".hud {"));
     expect(hudRules).not.toContain("decoLine");
     expect(hudRules).not.toContain("bottomDeco");
     expect(hudRules).not.toContain("clip-path");

@@ -574,3 +574,191 @@ EXIT=0
    （Task 11で実アドレスに更新予定とのことなので現時点では許容範囲と判断）。
 4. コンパイル確認中、Unity側のuloopブリッジ起動待ち・ドメインリロード待ちで複数回のポーリングが発生したが、
    最終的な状態は毎回`Success:true, ErrorCount:0`で安定している。
+
+---
+
+# Task 1 報告 (webui-hud): GamePanel に hud variant と面トークンを追加
+
+## ステータス: DONE
+
+## 実施内容
+
+TDD（RED → GREEN）アプローチに従い、GamePanel コンポーネントに「hud」variantを追加しました。
+
+### 実装の詳細
+
+**1. CSS トークン追加（`moorestech_web/webui/src/app/tokens.css:84-89`）**
+- `--hud-panel-face: rgb(10 14 27 / 80%);` — 半透明ネイビー面（既定パネル面と同値）
+- `--hud-panel-edge-fade: var(--panel-edge-fade);` — 4辺フェード幅を共通トークン参照
+- `--hud-panel-padding: 20px;` — コンテンツをフェード帯から隔離する安全帯
+
+**2. GamePanel コンポーネント更新（`moorestech_web/webui/src/shared/ui/GamePanel/index.tsx`）**
+- Props の `variant` 型に `"hud"` を追加（型宣言に日本語・英語コメント付）
+- `VARIANT_CLASS_NAMES` に `hud: styles.hud` を追加
+
+**3. CSS スタイル更新（`moorestech_web/webui/src/shared/ui/GamePanel/style.module.css:21, 205-227`）**
+- 既定面セレクタを `.panel:not(.craft):not(.skit):not(.hud)::before` へ変更（hud を除外）
+- `.hud` — padding で全辺の安全帯を設定
+- `.hud::before` — 4辺を均等にフェードさせる面：
+  - 水平・垂直の2つの線形勾配を合成（両端をtransparent、中央をフル不透明）
+  - `mask-composite: intersect` で2つの勾配が交差する領域のみに面を限定
+  - `pointer-events: none` で UI イベントを透過
+
+**4. テスト実装（新規`moorestech_web/webui/src/shared/ui/GamePanel/hudVariantDesign.test.ts`）**
+- 型と構造の検証（variant 型、class map）
+- トークン定義の検証（色、フェード幅、padding）
+- CSS マスク勾配の検証（4辺フェード）
+- 既定面からの除外検証
+- 罫線・三角・グリップが無いことの検証
+
+## テスト実行
+
+### RED 相（実装前）
+失敗テスト結果（抜粋）：
+```
+✗ variantの型とクラスマップにhudを持つ
+✗ hudの面色はパネル面と同値でフェード幅は共通トークンを使う
+✗ hudの面は4辺を固定長でフェードする
+✗ 既定面のフェード合成からhudを除外する
+✗ hudは罫線・三角・グリップの装飾を持たない
+```
+
+### GREEN 相（実装後）
+```
+✓ src/shared/ui/GamePanel/hudVariantDesign.test.ts (5 tests) 1ms
+  ✓ variantの型とクラスマップにhudを持つ
+  ✓ hudの面色はパネル面と同値でフェード幅は共通トークンを使う
+  ✓ hudの面は4辺を固定長でフェードする
+  ✓ 既定面のフェード合成からhudを除外する
+  ✓ hudは罫線・三角・グリップの装飾を持たない
+```
+
+### 全体テストスイート
+```
+Test Files  91 passed (91)
+      Tests  600 passed (600)
+```
+
+### Lint
+```
+eslint src
+(clean — no errors)
+```
+
+## ファイル変更
+
+- `moorestech_web/webui/src/app/tokens.css` (+6 行, -0 行)
+- `moorestech_web/webui/src/shared/ui/GamePanel/index.tsx` (+2 行, -1 行)
+- `moorestech_web/webui/src/shared/ui/GamePanel/style.module.css` (+20 行, -1 行)
+- `moorestech_web/webui/src/shared/ui/GamePanel/hudVariantDesign.test.ts` (新規, 64 行)
+
+**総計:** +92 行, -2 行
+
+## コミット
+
+**ハッシュ:** `3956f7ed3`  
+**メッセージ:** `feat(webui): GamePanelへ常時表示HUD用のhud variantを追加する`
+
+## 自己レビュー
+
+✅ **完全性**
+- ブリーフ Step 1〜8 を完全に実施
+- テストの RED→GREEN の遷移を実測確認
+- エッジケース処理なし（仕様上不要）
+
+✅ **品質**
+- 型コメント、CSS コメントは実装の意図を記述（前例 skit variant に準じた記述）
+- mask-composite 等の複雑なCSS合成に説明コメント記載
+- 既存パターン（variant 構造、selector 除外ルール）に厳密に従う
+
+✅ **規律**
+- 依頼内容以上の拡張機能なし（YAGNI 守持）
+- 既存 variant（default/craft/skit）への変更は selector 除外のみ
+- テストはファイル内容の文字列検証（モック不使用）
+
+✅ **テスト**
+- TDD 実施（失敗テストから開始、実装で通す）
+- 既存テスト回帰なし（600 件全部 PASS）
+- lint エラー 0
+
+## 懸念事項
+
+なし。仕様通りに完全実装。全テスト合格。Task 2 による使用準備完了。
+
+---
+
+# Task 1 Fix 報告: style.module.css の200行超過をhudVariant.module.cssへ分離
+
+## ステータス: DONE
+
+## 対応した指摘
+
+レビュー報告のImportant指摘のうち、ユーザー裁定済みの1件のみ対応した:
+- `style.module.css` が project-wide の「1ファイル200行以下」規約を超過（221行）
+
+裁定は `.decisions/2026-08-17-hud-variantのCSSは別モジュールへ切り出す.md` に記録済み。
+もう1件のImportant（hud variant で decoLine を variant ガードで排除する件）は
+裁定により「plan通り放置」で確定し、今回は対応しない。
+
+## 実施内容
+
+1. `moorestech_web/webui/src/shared/ui/GamePanel/style.module.css` から `.hud` と `.hud::before`
+   のルール（コメント込み）を削除。`.panel:not(.craft):not(.skit):not(.hud)::before` のセレクタは
+   そのままstyle.module.cssに残した。結果、221行→200行。
+2. 新規ファイル `moorestech_web/webui/src/shared/ui/GamePanel/hudVariant.module.css`（20行）を作成し、
+   削除した `.hud` / `.hud::before` ルールをそのまま移設。
+3. `index.tsx` に `hudVariantStyles` としてhudVariant.module.cssをimportし、
+   `VARIANT_CLASS_NAMES` の `hud` を `hudVariantStyles.hud` へ変更（`styles.hud` は廃止）。
+4. `hudVariantDesign.test.ts` を更新。`.hud::before` の4辺フェード検証と
+   「罫線・三角・グリップを持たない」検証の読み先を `hudVariant.module.css` へ変更。
+   `.panel:not(.craft):not(.skit):not(.hud)::before` の存在検証は従来通り `style.module.css` を読む。
+   componentのアサーション文字列も `hud: styles.hud` → `hud: hudVariantStyles.hud` へ更新。
+
+テストの意図（面色トークン・90deg/180degの2枚合成・mask-composite: intersect・
+罫線/三角/グリップを持たないこと）はすべて維持し、1件も削除・弱化していない。
+
+## テスト実行
+
+### `npx vitest run src/shared/ui/GamePanel/hudVariantDesign.test.ts`
+```
+✓ src/shared/ui/GamePanel/hudVariantDesign.test.ts (5 tests) 1ms
+Test Files  1 passed (1)
+     Tests  5 passed (5)
+```
+
+### `npm run test`
+```
+Test Files  91 passed (91)
+     Tests  600 passed (600)
+```
+
+### `npm run lint`
+```
+eslint src
+(clean — no errors)
+```
+
+### `wc -l style.module.css hudVariant.module.css`
+```
+     200 src/shared/ui/GamePanel/style.module.css
+      20 src/shared/ui/GamePanel/hudVariant.module.css
+```
+両方とも200行以下の規約を満たす。
+
+## 変更ファイル
+
+- `moorestech_web/webui/src/shared/ui/GamePanel/style.module.css` (221行→200行、`.hud`系を削除)
+- `moorestech_web/webui/src/shared/ui/GamePanel/hudVariant.module.css` (新規、20行)
+- `moorestech_web/webui/src/shared/ui/GamePanel/index.tsx` (hudVariantStyles importとclass map変更)
+- `moorestech_web/webui/src/shared/ui/GamePanel/hudVariantDesign.test.ts` (読み先を新ファイルへ変更)
+
+## 自己レビュー
+
+- 完全性: 裁定で指定されたファイル分割・import変更・テスト読み先変更をすべて実施
+- 品質: 既存のJP/EN 2行コメントをそのまま移設し、規約通りの体裁を維持
+- 規律: 裁定でスコープ外とされたdecoLine関連の修正には一切手を触れていない
+- テスト: 5件のhud variant検証は1件も削除せず、検査対象ファイルのみ変更
+
+## 懸念事項
+
+なし。

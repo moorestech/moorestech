@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import hudVariantStyles from "./hudVariant.module.css";
 import styles from "./style.module.css";
 
 type Props = {
@@ -15,7 +16,7 @@ type Props = {
   children: ReactNode;
 };
 
-const VARIANT_CLASS_NAMES = { default: "", craft: styles.craft, skit: styles.skit, hud: styles.hud };
+const VARIANT_CLASS_NAMES = { default: "", craft: styles.craft, skit: styles.skit, hud: hudVariantStyles.hud };
 
 // uGUI風の額縁パネル。タイトル+罫線+本文を囲う共通ラッパ
 // uGUI-style framed panel wrapping title + deco rule + body
