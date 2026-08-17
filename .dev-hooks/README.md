@@ -17,7 +17,7 @@
   decisions-format-check.mjs     # .decisions/レコードの書式検査（違反はexit 2で差し戻し）
   beads-prime.mjs                # Beads台帳(bd)の概況と役割分担ルールをSessionStartで注入
   beads-guard.mjs                # 破壊的bd/doltコマンドの物理拒否とpublic誤送信ガード（PreToolUse）
-  poll-guard.mjs                 # 同一Bashコマンド3連続＝ポーリングを拒否し正しい待ち方を再注入（PreToolUse 全ツール。Claudeのみ登録 — リセット判定に全ツールイベントが要るため）
+  poll-guard.mjs                 # 同一ツール呼び出しの反復＝ポーリングを拒否し正しい待ち方を再注入（PreToolUse 全ツール。Claudeのみ登録 — リセット判定に全ツールイベントが要るため）
   beads-sync-watch.mjs           # Dolt同期障害の復旧誘導＋claim/createへのセッション出自刻印（PostToolUse）
   beads-learn-capture.mjs        # 応答末尾の「LEARN: 一行」をbd noteへ自動保存（Claude Stop）
   logs-sync.mjs                  # Claude/Codex生JSONLをprivateの../moorestech_logsへ退避（Stop/SessionEnd等）
@@ -89,3 +89,12 @@ echo '{"tool_name":"Edit","tool_input":{"file_path":"Foo.cs","new_string":"publi
 ```
 
 一致すれば `hookSpecificOutput.additionalContext` を含む JSON が出力される。
+
+poll-guard は同じ入力を3回流すと3回目で exit 2 になる（ツール名は Bash 以外でも同じ）。
+
+```bash
+for i in 1 2 3; do
+  echo '{"session_id":"T","transcript_path":"/x/t.jsonl","tool_name":"ListAgents","tool_input":{}}' \
+    | node .dev-hooks/poll-guard.mjs; echo "exit=$?"
+done
+```
