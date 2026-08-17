@@ -20,8 +20,12 @@ datasets/への格納で解除）。自動発動時は手順1のtranscript特定
 
 ### 2. 質問・実回答ペアの抽出と盲検タスク生成
 
-出力先は使い捨てのscratchpadではなく、**永続データセットdir** `<このスキルdir>/datasets/<YYYY-MM-DD>-<slug>/` を作ってそこに置く
-（tasks/とgold.jsonは凍結データセットとして以後変更しない）:
+出力先は使い捨てのscratchpadではなく、**永続データセットdir** を作ってそこに置く
+（tasks/とgold.jsonは凍結データセットとして以後変更しない）。
+**置き場は private ログrepo**（moorestechルートからの相対で
+`../moorestech_logs/harness/user-simulator/datasets/<YYYY-MM-DD>-<slug>/`）。
+コードrepo側の `<このスキルdir>/datasets/` は `.gitignore` 済みで永続しないため使わない。
+`misses.md` も同様に `../moorestech_logs/harness/user-simulator/improve/misses.md` が正本:
 
 ```bash
 python3 <このスキルdir>/modes/shadow/scripts/extract_tasks.py <transcript.jsonl> <データセットdir>
@@ -125,3 +129,16 @@ datasets/<YYYY-MM-DD>-<slug>/
 - r2の高得点はin-sampleだったため汎化を示していなかったことが、このout-of-sampleで確認された
 
 - 次の指標: **out-of-sampleでベースライン超え＋逸脱2問以上的中＋逸脱FP 0件**
+
+### Web UI画面端HUD是正14問データセット（2026-08-17-webui-screen-edge-polish・上記指標を初達成）
+
+- r1（2026-08-17・束ね幅5/5/4・model opus）: exact 12/14=86%（目視込み）・ベースライン71%を**15pt超え**・
+  逸脱問的中 **2/4**・逸脱FP **0件**・確信高86%/中86%
+- 達成条件つき: 実行時に `knowledge/adjudications.md` と `deviation-cases.md` が参照できず（パス切れ・後に修正）、
+  **逸脱の一次資料なしでの2/4**。index.md修正後の再チェックで上振れの余地がある
+- 当てた逸脱の型: 「原則に厳密な側を選ぶ」（仮実装の免責を残さず様式化する／条文どおりトークンで宣言する）
+- 落とした逸脱の型: (a) **選択肢の枠自体を作り直す**（浮いている仮UIを本来の所属パネルへ畳む）
+  (b) **文脈依存の選好を一般則として適用した誤り**（「git worktree頻用」はUnityの再インポート回避文脈の選好で、
+  Web UIのように作成コストが低い領域では単純なブランチが選ばれる）
+- このデータセットは AskUserQuestion 不使用（地の文質問）のため `extract_tasks.py` が使えず、
+  tasks/gold を手作業で構築した。ラベル粒度が自動抽出runと厳密には同型でない点に注意
