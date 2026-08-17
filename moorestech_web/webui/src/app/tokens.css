@@ -208,4 +208,8 @@
   /* Default size of the shared faceless icon button; each use overrides it locally */
   --icon-button-size: calc(var(--slot-size) / 2);
   --icon-button-icon-size: calc(var(--slot-size) / 3);
+  /* レシピビューア単一リストの最大高とエントリ間隔（ADR 0011・§8.17） */
+  /* Max height and entry gap for the recipe viewer single list (ADR 0011, §8.17) */
+  --recipe-list-max-height: 352px;
+  --recipe-entry-gap: 10px;
 }

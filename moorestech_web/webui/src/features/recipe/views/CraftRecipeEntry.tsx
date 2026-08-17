@@ -3,32 +3,26 @@ import { Box, Button, Group, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import { ItemSlot, ProgressArrowGlyph } from "@/shared/ui";
 import type { CraftRecipe } from "@/bridge";
-import { clampIndex } from "@/shared/clampIndex";
 import { craftable } from "../logic/craftLogic";
 import { useHoldCraft } from "../logic/useHoldCraft";
 import styles from "./RecipeBox.module.css";
-import RecipePager from "./RecipePager";
 import craftArrowStyles from "./craftArrow.module.css";
-import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
 
 type Props = {
-  recipes: CraftRecipe[];
-  recipeIndex: number;
-  setRecipeIndex: (i: number) => void;
+  recipe: CraftRecipe;
   counts: Map<number, number>;
   onSelect: (itemId: number) => void;
+  // チュートリアルアンカーは重複禁止のため先頭エントリだけ親が注入する
+  // The tutorial anchor must stay unique, so only the first entry receives it from the parent
+  tutorialAnchorProps?: Record<string, string>;
 };
 
-// クラフトタブ: 素材列 → 進捗矢印 → 結果。下端ボタン長押しで craftTime ごとに連続クラフト（uGUI CraftButton 準拠）
-// Craft tab: material row → progress arrow → result; hold the bottom button to continuously craft every craftTime (mirrors uGUI CraftButton)
-export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, counts, onSelect }: Props) {
+// クラフトエントリ: 素材列 → 進捗矢印 → 結果のレシピ行と、下端の全幅長押しボタン（ADR 0011・uGUI CraftButton 準拠）
+// Craft entry: material row → progress arrow → result, plus a full-width hold-to-craft button below (ADR 0011, mirrors uGUI CraftButton)
+export default function CraftRecipeEntry({ recipe, counts, onSelect, tutorialAnchorProps }: Props) {
   const { t } = useI18n();
   const resolveItemName = useItemNameResolver();
-  // topic 更新でレシピ数が減った場合に備えて index をクランプ
-  // Clamp the index in case a topic update shrank the recipe list
-  const index = clampIndex(recipeIndex, recipes.length);
-  const recipe = recipes[index];
   const isCraftable = craftable(recipe, counts);
 
   // 長押し1周ごとに1回クラフト要求を送る。素材チェックはサーバー側で行われる
@@ -37,13 +31,12 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
     void dispatchAction("craft.execute", { recipeGuid: recipe.recipeGuid });
   });
 
-  // 表示レシピが切り替わったら進行中の長押しを打ち切る
-  // Abort any in-progress hold when the displayed recipe changes
+  // レシピが差し替わったら進行中の長押しを打ち切る
+  // Abort any in-progress hold when the recipe changes
   useEffect(() => stop, [recipe.recipeGuid, stop]);
 
   return (
-    <Stack className={styles.craftRecipe} gap="xs">
-      <RecipePager index={index} count={recipes.length} setIndex={setRecipeIndex} />
+    <Stack className={styles.recipeEntry} gap="xs" data-testid="craft-recipe-entry">
       {/* 正本は素材/矢印+時間/完成品の3カラムを固定配置する。space-betweenだと素材の点数で矢印列が押されて
           ズレるため、gridで列位置を内容量に依存させない */}
       {/* The reference fixes 3 columns (materials / arrow+time / result); space-between let the arrow column
@@ -52,24 +45,24 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
         <Group gap={0} className={styles.recipeMaterials}>
           {recipe.requiredItems.map((r, i) => (
             <Box className={styles.materialSlot} key={i}>
-                {/* 所持数不足の素材は既存どおり40%透過にし、数値も赤で示す */}
-                {/* Keep the existing 40% dimming for shortages and also mark the numeric count red */}
-                <ItemSlot
-                  itemId={r.itemId}
-                  insufficient={(counts.get(r.itemId) ?? 0) < r.count}
-                  tooltip={<span style={{ whiteSpace: "pre-line" }}>{t(L.ui.recipe.materialTooltip, {
-                    itemName: resolveItemName(r.itemId) ?? t(L.ui.common.itemFallback, { itemId: r.itemId }),
-                    ownedCount: counts.get(r.itemId) ?? 0,
-                    requiredCount: r.count,
-                  })}</span>}
-                  onLeftDown={() => onSelect(r.itemId)}
-                />
-                <Text className={styles.materialCount} data-lack={(counts.get(r.itemId) ?? 0) < r.count || undefined}>
-                  {t(L.ui.recipe.itemCountSummary, {
-                    ownedCount: counts.get(r.itemId) ?? 0,
-                    requiredCount: r.count,
-                  })}
-                </Text>
+              {/* 所持数不足の素材は既存どおり40%透過にし、数値も赤で示す */}
+              {/* Keep the existing 40% dimming for shortages and also mark the numeric count red */}
+              <ItemSlot
+                itemId={r.itemId}
+                insufficient={(counts.get(r.itemId) ?? 0) < r.count}
+                tooltip={<span style={{ whiteSpace: "pre-line" }}>{t(L.ui.recipe.materialTooltip, {
+                  itemName: resolveItemName(r.itemId) ?? t(L.ui.common.itemFallback, { itemId: r.itemId }),
+                  ownedCount: counts.get(r.itemId) ?? 0,
+                  requiredCount: r.count,
+                })}</span>}
+                onLeftDown={() => onSelect(r.itemId)}
+              />
+              <Text className={styles.materialCount} data-lack={(counts.get(r.itemId) ?? 0) < r.count || undefined}>
+                {t(L.ui.recipe.itemCountSummary, {
+                  ownedCount: counts.get(r.itemId) ?? 0,
+                  requiredCount: r.count,
+                })}
+              </Text>
             </Box>
           ))}
         </Group>
@@ -83,12 +76,9 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
         <Box className={styles.recipeResult}>
           <ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} />
         </Box>
-        <Text className={styles.craftTime} size="sm">
-          {t(L.ui.recipe.duration, { seconds: recipe.craftTime })}
-        </Text>
       </div>
       <Button
-        {...tutorialAnchor(TutorialAnchorIds.recipeCraftButton)}
+        {...tutorialAnchorProps}
         className={styles.craftButton}
         fullWidth
         disabled={!isCraftable}
@@ -107,7 +97,7 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
         onKeyUp={(e) => { if (e.key === "Enter" || e.key === " ") stop(); }}
         onBlur={stop}
       >
-        {t(L.ui.recipe.craft)}
+        {t(L.ui.recipe.craftButtonLabel, { seconds: recipe.craftTime })}
       </Button>
     </Stack>
   );

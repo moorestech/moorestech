@@ -123,22 +123,28 @@
   background-size: 9px 1px, 1px 9px, 9px 1px, 1px 9px;
 }
 
-/* 正本は時間ラベルの中心が選択枠の下辺に重なる位置まで下げる */
-/* Drop the time label until its center overlaps the selection frame's bottom edge, matching the reference */
-.craftTime {
-  position: absolute;
-  bottom: -7.434px;
-  left: 50%;
-  z-index: 2;
-  color: #d7dbe5;
-  text-align: center;
-  text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
-  transform: translateX(-50%);
+/* リスト内の1エントリのフックとして名前だけ確保する（単一パネル専有時の flex:1/min-height:0 は不要になった） */
+/* Reserve the name as a hook for one list entry; flex:1/min-height:0 from the single-panel layout are no longer needed */
+.recipeEntry {
+  min-width: 0;
 }
 
-.craftRecipe {
-  flex: 1;
-  min-height: 0;
+/* 機械エントリのブロック情報行。ボタンと同じ高さ帯のクリック不可表示（ADR 0011） */
+/* Non-interactive block info row for machine entries, same band as the craft button (ADR 0011) */
+.machineInfoRow {
+  min-height: 19px;
+  color: var(--text-muted);
+}
+
+.machineInfoIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  object-fit: contain;
+}
+
+.machineInfoText {
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 /* クラフト操作を控えめな中央寄せの青ボタンで示す。正本は縦グラデ+中央白帯でなく横方向の青→シアン */
@@ -154,12 +160,10 @@
    center barely moves (grow width by +3px evenly); shift up 2.5 screenshot px (≈0.98 CSS px) via margin-bottom */
 .craftButton {
   composes: recipeActionButton from "./RecipeActionButton.module.css";
-  align-self: center;
-  width: 107.609px;
+  align-self: stretch;
+  width: auto;
   max-width: none;
-  margin-top: auto;
-  margin-bottom: 14.763px;
-  margin-left: -1px;
+  margin: 0;
   padding: 0;
   font-size: 12px;
   letter-spacing: 0.12em;
