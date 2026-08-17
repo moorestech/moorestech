@@ -9,18 +9,11 @@ import type {
   CraftRecipe,
   CraftRecipesData,
   MachineRecipe,
-  MachineRecipesData,
 } from "@/bridge";
 
 const recipeA = "88000000-0000-4000-8000-000000000001";
 const recipeB = "88000000-0000-4000-8000-000000000002";
 const recipeC = "88000000-0000-4000-8000-000000000003";
-const machineRecipeA = "89000000-0000-4000-8000-000000000001";
-const machineRecipeB = "89000000-0000-4000-8000-000000000002";
-const machineRecipeC = "89000000-0000-4000-8000-000000000003";
-const machineRecipeD = "89000000-0000-4000-8000-000000000004";
-const blockA = "8a000000-0000-4000-8000-000000000001";
-const blockB = "8a000000-0000-4000-8000-000000000002";
 
 const craftRecipe = (resultItemId: number, guid: string): CraftRecipe => ({
   recipeGuid: guid,
@@ -40,15 +33,6 @@ describe("craftableResultCounts", () => {
 
     expect(craftableResultCounts(recipes.recipes, new Map([[1, 7], [2, 10]]))).toEqual(new Map([[9, 5]]));
   });
-});
-
-const machineRecipe = (blockId: number, blockGuid: string, outputItemId: number, guid: string): MachineRecipe => ({
-  recipeGuid: guid,
-  blockGuid,
-  blockId,
-  time: 1,
-  inputItems: [],
-  outputItems: [{ itemId: outputItemId, count: 1 }],
 });
 
 describe("craftable", () => {
