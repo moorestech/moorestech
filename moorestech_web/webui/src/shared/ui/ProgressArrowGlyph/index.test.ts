@@ -38,11 +38,11 @@ describe("ProgressArrowGlyph", () => {
     expect(paths[0]).not.toContain("clip-path");
     expect(paths[1]).toContain("clip-path");
     expect(paths[2]).not.toContain("clip-path");
-    // クラス名はCSS Modulesでハッシュ化されるため、元のクラス名を含むかで層を識別する
-    // CSS Modules hashes class names, so identify each layer by the original name it contains
-    expect(paths[0]).toContain("track");
-    expect(paths[1]).toContain("fill");
-    expect(paths[2]).toContain("outline");
+    // クラス名はCSS Modulesでハッシュ化されるため、class属性内に元の名前を含むかで層を識別する
+    // CSS Modules hashes class names, so identify each layer by the original name inside the class attribute
+    expect(paths[0]).toMatch(/class="[^"]*track/);
+    expect(paths[1]).toMatch(/class="[^"]*fill/);
+    expect(paths[2]).toMatch(/class="[^"]*outline/);
   });
 
   it("同一ページに複数並んでもclip idが衝突しない", () => {

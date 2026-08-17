@@ -1,4 +1,4 @@
-import type { GearNetworkStopReason } from "@/bridge";
+import type { GearNetworkStopReason, MachineProcessState } from "@/bridge";
 import { clamp01 } from "@/shared/clamp01";
 import { L, type TranslationKey } from "@/shared/i18n";
 
@@ -46,12 +46,24 @@ const GearStopReasonKeys: Record<GearNetworkStopReason, TranslationKey | null> =
 
 // 機械の稼働状態→表示ラベル。%が待機を意味しなくなった分、状態はラベルで示す（ADR 0010）
 // Machine state → label key; the rate no longer encodes standby, so the state gets its own label (ADR 0010)
-export function machineStateTranslationKey(currentState: string): TranslationKey | null {
-  return MachineStateKeys[currentState] ?? null;
+export function machineStateTranslationKey(currentState: MachineProcessState): TranslationKey {
+  return MachineStateKeys[currentState];
 }
 
-const MachineStateKeys: Record<string, TranslationKey> = {
+const MachineStateKeys: Record<MachineProcessState, TranslationKey> = {
   idle: L.ui.blockInventory.machineStateIdle,
   processing: L.ui.blockInventory.machineStateProcessing,
   halted: L.ui.blockInventory.machineStateHalted,
+};
+
+// halted のみ電力不足トーン（--text-insufficient）で示す。状態語彙は上のテーブルと同じ集合を参照する
+// Only halted gets the insufficient tone (--text-insufficient); shares the same state vocabulary as the table above
+export function isMachineStateInsufficient(currentState: MachineProcessState): boolean {
+  return MachineStateInsufficientTone[currentState];
+}
+
+const MachineStateInsufficientTone: Record<MachineProcessState, boolean> = {
+  idle: false,
+  processing: false,
+  halted: true,
 };

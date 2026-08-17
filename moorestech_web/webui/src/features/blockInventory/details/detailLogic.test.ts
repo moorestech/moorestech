@@ -48,12 +48,8 @@ describe("detailLogic", () => {
       { state: "idle", key: L.ui.blockInventory.machineStateIdle },
       { state: "processing", key: L.ui.blockInventory.machineStateProcessing },
       { state: "halted", key: L.ui.blockInventory.machineStateHalted },
-    ])("$state を対応キーへ写像する", ({ state, key }) => {
+    ] as const)("$state を対応キーへ写像する", ({ state, key }) => {
       expect(machineStateTranslationKey(state)).toBe(key);
-    });
-
-    it("未知の状態はnull（ラベル非表示）", () => {
-      expect(machineStateTranslationKey("unknown")).toBeNull();
     });
   });
 });
