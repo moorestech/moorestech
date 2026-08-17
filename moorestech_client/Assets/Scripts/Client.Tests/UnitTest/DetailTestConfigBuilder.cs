@@ -1,5 +1,6 @@
 using Client.Game.InGame.Environment.Terrain.Visual.Detail;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
+using Client.Tests.UnitTest.Terrain.Surround;
 using Game.MapGeneration.Pipeline.Config;
 using UnityEngine;
 
@@ -89,11 +90,16 @@ namespace Client.Tests.UnitTest
 
         // 岩周辺の裸地を使わないテストぶんの実体。null要素のまま渡すとMaxReachへ流れた瞬間にNREになる
         // The instances tests that ignore the bare ground around rocks still need; null elements would NRE the moment MaxReach reads them
+        // enabledがfalseでもアドレスは要る。SplatLayerTableは有効無効を見ずに全バイオームぶん登録する
+        // The address is required even while disabled: SplatLayerTable registers every biome without consulting the flag
         public static SurroundTextureConfig[] CreateDisabledSurroundConfigs(int biomeCount)
         {
             var surroundConfigs = new SurroundTextureConfig[biomeCount];
             for (var biome = 0; biome < biomeCount; biome++)
-                surroundConfigs[biome] = new SurroundTextureConfig { surroundLayerAddressablePath = string.Empty };
+                surroundConfigs[biome] = new SurroundTextureConfig
+                {
+                    surroundLayerAddressablePath = SurroundTestFixtures.MudLayerAddress,
+                };
 
             return surroundConfigs;
         }

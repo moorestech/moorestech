@@ -27,14 +27,14 @@ namespace Client.Tests.UnitTest.Terrain.Placement
             var sliced = Slice(CreateMapObject(1, 1250f, 12f, -1750f));
 
             Assert.That(sliced.Count, Is.EqualTo(1));
-            Assert.That(sliced[0].X, Is.EqualTo(250f).Within(1e-3f));
-            Assert.That(sliced[0].Z, Is.EqualTo(250f).Within(1e-3f));
+            Assert.That(sliced[0].LocalPosition.x, Is.EqualTo(250f).Within(1e-3f));
+            Assert.That(sliced[0].LocalPosition.z, Is.EqualTo(250f).Within(1e-3f));
 
             // Yはタイル格子の軸ではない。ここを引くと木の摂動が見ない値を壊しつつ後段の距離場だけが狂う
             // Y is not an axis of the tile lattice; subtracting it would corrupt a value the perturbation ignores while skewing later distance fields
-            Assert.That(sliced[0].Y, Is.EqualTo(12f).Within(1e-3f));
+            Assert.That(sliced[0].LocalPosition.y, Is.EqualTo(12f).Within(1e-3f));
             Assert.That(sliced[0].InstanceId, Is.EqualTo(1));
-            Assert.That(sliced[0].MapObjectGuid, Is.EqualTo(MapObjectGuid));
+            Assert.That(sliced[0].Guid, Is.EqualTo(MapObjectGuid));
         }
 
         [Test]
@@ -83,8 +83,8 @@ namespace Client.Tests.UnitTest.Terrain.Placement
 
             Assert.That(sliced.Count, Is.EqualTo(1));
             Assert.That(sliced[0].ClusterId, Is.EqualTo(7));
-            Assert.That(sliced[0].ClusterCenterX, Is.EqualTo(300f).Within(1e-3f));
-            Assert.That(sliced[0].ClusterCenterZ, Is.EqualTo(300f).Within(1e-3f));
+            Assert.That(sliced[0].LocalClusterCenter.x, Is.EqualTo(300f).Within(1e-3f));
+            Assert.That(sliced[0].LocalClusterCenter.y, Is.EqualTo(300f).Within(1e-3f));
         }
 
         // 独立配置(-1)の重心は未使用値(0,0)のまま。ここへシフトを適用すると意味の無い非ゼロ値へ化ける
@@ -95,8 +95,8 @@ namespace Client.Tests.UnitTest.Terrain.Placement
             var sliced = Slice(CreateMapObject(1, 1250f, 0f, -1750f));
 
             Assert.That(sliced[0].ClusterId, Is.EqualTo(-1));
-            Assert.That(sliced[0].ClusterCenterX, Is.EqualTo(0f));
-            Assert.That(sliced[0].ClusterCenterZ, Is.EqualTo(0f));
+            Assert.That(sliced[0].LocalClusterCenter.x, Is.EqualTo(0f));
+            Assert.That(sliced[0].LocalClusterCenter.y, Is.EqualTo(0f));
         }
 
         // 姿勢もスケールもタイル格子の軸ではないので素通しする。落とすと切り出した瞬間に向きが消え全配置物が0倍になる
@@ -109,13 +109,13 @@ namespace Client.Tests.UnitTest.Terrain.Placement
 
             var sliced = Slice(scaled);
 
-            Assert.That(sliced[0].RotationX, Is.EqualTo(0.1f));
-            Assert.That(sliced[0].RotationY, Is.EqualTo(0.2f));
-            Assert.That(sliced[0].RotationZ, Is.EqualTo(0.3f));
-            Assert.That(sliced[0].RotationW, Is.EqualTo(0.4f));
-            Assert.That(sliced[0].ScaleX, Is.EqualTo(1.5f));
-            Assert.That(sliced[0].ScaleY, Is.EqualTo(2f));
-            Assert.That(sliced[0].ScaleZ, Is.EqualTo(2.5f));
+            Assert.That(sliced[0].Rotation.x, Is.EqualTo(0.1f));
+            Assert.That(sliced[0].Rotation.y, Is.EqualTo(0.2f));
+            Assert.That(sliced[0].Rotation.z, Is.EqualTo(0.3f));
+            Assert.That(sliced[0].Rotation.w, Is.EqualTo(0.4f));
+            Assert.That(sliced[0].Scale.x, Is.EqualTo(1.5f));
+            Assert.That(sliced[0].Scale.y, Is.EqualTo(2f));
+            Assert.That(sliced[0].Scale.z, Is.EqualTo(2.5f));
         }
 
         // halo付きの窓は距離場専用。木の摂動が使う半開区間を広げると境界上の1本が両隣で二重に効くため経路を分けてある
@@ -130,7 +130,7 @@ namespace Client.Tests.UnitTest.Terrain.Placement
             var haloed = SliceWithHalo(50f, justOutsideLowerEdge);
 
             Assert.That(haloed.Count, Is.EqualTo(1), "halo内の隣タイルの木は距離場の入力に残る");
-            Assert.That(haloed[0].X, Is.EqualTo(-30f).Within(1e-3f), "タイル外はローカル座標で負値になる");
+            Assert.That(haloed[0].LocalPosition.x, Is.EqualTo(-30f).Within(1e-3f), "タイル外はローカル座標で負値になる");
         }
 
         [Test]
@@ -171,12 +171,12 @@ namespace Client.Tests.UnitTest.Terrain.Placement
             Assert.That(SliceWithHalo(0f, onUpperEdge).Count, Is.EqualTo(0));
         }
 
-        private static List<MapObjectLayoutMessagePack> Slice(params MapObjectLayoutMessagePack[] mapObjects)
+        private static List<TileLocalMapObject> Slice(params MapObjectLayoutMessagePack[] mapObjects)
         {
             return TileMapObjectSlicer.SliceWithHalo(mapObjects, TilePosition, TileSize, TileSize, 0f);
         }
 
-        private static List<MapObjectLayoutMessagePack> SliceWithHalo(float halo, params MapObjectLayoutMessagePack[] mapObjects)
+        private static List<TileLocalMapObject> SliceWithHalo(float halo, params MapObjectLayoutMessagePack[] mapObjects)
         {
             return TileMapObjectSlicer.SliceWithHalo(mapObjects, TilePosition, TileSize, TileSize, halo);
         }

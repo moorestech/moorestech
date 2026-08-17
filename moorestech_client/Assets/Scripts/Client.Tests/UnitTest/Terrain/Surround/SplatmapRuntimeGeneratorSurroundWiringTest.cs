@@ -49,14 +49,13 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         }
 
         [Test]
-        public void TheHaloTheTestsAssumeMatchesTheConfiguredReach()
+        public void ARockJustInsideMaxReachStillReachesTheTile()
         {
-            // 上の2本は20mを境に内外を置いている。設定を変えたときにその前提だけが黙って崩れるのを防ぐ
-            // The two tests above straddle 20m, and this keeps a config change from silently invalidating that premise
-            var reach = ObjectSurroundTexturePainter.MaxReach(
-                new[] { CreateSurroundConfig() }, new[] { CreateStone(0f, 0f) });
+            // 上の棄却テストと対で到達距離を挟み込む。到達距離が縮むとこちらが落ち、伸びると上が塗られる
+            // Paired with the rejection test above this brackets the reach: a shrunken reach drops this rock and a grown one paints that one
+            var alphamap = Generate(CreateStone(-(ExpectedMaxReach - 5f), SeamLocalZ));
 
-            Assert.That(reach, Is.EqualTo(ExpectedMaxReach).Within(1e-4f));
+            Assert.That(alphamap[SeamPixelZ, SeamPixelX, MudLayerIndex], Is.GreaterThan(0f), "到達距離の内側の岩は切り出しに残る");
         }
     }
 }

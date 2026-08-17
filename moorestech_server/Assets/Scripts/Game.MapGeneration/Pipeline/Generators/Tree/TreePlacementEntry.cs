@@ -70,11 +70,11 @@ namespace Game.MapGeneration.Pipeline.Generators
 
             // クラスタリングノイズ。ノイズタイプ None でもテクスチャ源があれば有効。
             // Clustering noise; still active with noiseType None as long as a texture source is present.
-            if (entry.clusterNoise.noiseType != MapNoiseType.None || entry.clusterNoise.texturePixels != null)
+            if (entry.clusterNoise.IsActive)
             {
                 float noise1 = ManagedNoise.SamplePlacementNoise(entry.clusterNoise,
                     worldX, worldZ, noiseOffsets, dims.GridOriginX, dims.GridOriginZ, dims.GridWidth, dims.GridLength);
-                if (entry.clusterNoise2.noiseType != MapNoiseType.None || entry.clusterNoise2.texturePixels != null)
+                if (entry.clusterNoise2.IsActive)
                 {
                     float noise2 = ManagedNoise.SamplePlacementNoise(entry.clusterNoise2,
                         worldX, worldZ, noiseOffsets, dims.GridOriginX, dims.GridOriginZ, dims.GridWidth, dims.GridLength);

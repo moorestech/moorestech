@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Environment.Terrain.Build.Placement;
 using Game.MapGeneration.Pipeline.Config;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
@@ -8,20 +9,16 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
     /// <summary>
     ///     岩をクラスタ単位にまとめ、その周りのalphamapを裸地レイヤーへ寄せる。移植元 TerrainGenerator.cs:1513-1571
     ///     と ResolveSurroundConfig(:1714-1743) の移植で、クラスタ内外の描画本体は2つの painter が持つ。
-    ///     受け取る岩はタイルローカル座標で、クラスタ重心も TileMapObjectSlicer が同じ原点へ寄せ済み
+    ///     受け取るのはシーン絶対座標の全MapObjectで、到達距離ぶんの切り出しと種別分割はこのクラスの中で行う
     ///     Groups rocks by cluster and pulls the alphamap around them onto a bare-ground layer; ported from the source's
     ///     TerrainGenerator.cs:1513-1571 plus ResolveSurroundConfig (:1714-1743), with the two painters owning the drawing.
-    ///     The rocks arrive in tile-local coordinates, their cluster centroids rebased onto the same origin by TileMapObjectSlicer
+    ///     It takes every scene-absolute MapObject and does the reach-sized slice and the kind split itself
     /// </summary>
     public static class ObjectSurroundTexturePainter
     {
-        // 移植元は TerrainLayer.name の一致でMudを探した。アドレス末尾がアセット名なので一致条件は同値
-        // The source matched Mud on TerrainLayer.name; an address ends in the asset name, so the condition is equivalent
-        private const string FallbackLayerAddressKeyword = "Mud";
-
         // 隣タイルの岩からも裸地は伸びる。切り出しhaloがこの距離を下回るとタイル境界で裸地が直線に切れる
         // Bare ground reaches in from neighbouring tiles too; a slice halo below this distance breaks it in a straight line at the seam
-        public static float MaxReach(
+        private static float MaxReach(
             SurroundTextureConfig[] surroundConfigs, IReadOnlyList<MapObjectLayoutMessagePack> mapObjects)
         {
             var maxHorizontalScale = 0f;
@@ -41,15 +38,19 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
             return reach;
         }
 
+        // 到達距離を知っているのはここだけなので、切り出しと種別分割もここが持つ。呼び出し側に選ばせると木の距離を渡せてしまう
+        // Only this class knows the reach, so it owns the slice and the kind split too; letting the caller choose lets a tree's reach slip in
         public static void Apply(
             float[,,] alphamap, TerrainGenerationConfig config, SplatLayerTable layerTable,
             SurroundTextureConfig[] surroundConfigs, float[,] biomeWeights, int biomeCount,
-            float[,] heights, IReadOnlyList<MapObjectLayoutMessagePack> stoneObjects)
+            float[,] heights, IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition)
         {
-            var fallbackLayerIndex = FindFallbackLayerIndex();
+            TileMapObjectSlicer.SliceKindsWithHalo(
+                mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength,
+                MaxReach(surroundConfigs, mapObjects), out _, out var stoneObjects);
 
-            var clusterGroups = new Dictionary<int, List<MapObjectLayoutMessagePack>>();
-            var nonClusterObjects = new List<MapObjectLayoutMessagePack>();
+            var clusterGroups = new Dictionary<int, List<TileLocalMapObject>>();
+            var nonClusterObjects = new List<TileLocalMapObject>();
             GroupByCluster();
 
             // クラスタは重心のバイオームで設定を1つに決める。メンバーごとに引くとクラスタが境界を跨いだとき裸地が割れる
@@ -57,18 +58,22 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
             foreach (var clusterGroup in clusterGroups)
             {
                 var members = clusterGroup.Value;
-                var surroundConfig = ResolveSurroundConfig(members[0].ClusterCenterX, members[0].ClusterCenterZ);
-                if (!TryResolveLayerIndex(surroundConfig, out var layerIndex)) continue;
+                var surroundConfig = ResolveSurroundConfig(
+                    members[0].LocalClusterCenter.x, members[0].LocalClusterCenter.y);
+                if (!surroundConfig.enabled) continue;
 
-                SurroundClusterPainter.Paint(alphamap, config, surroundConfig, layerIndex, members, heights);
+                SurroundClusterPainter.Paint(
+                    alphamap, config, surroundConfig, LayerIndexOf(surroundConfig), members, heights, tileWorldPosition);
             }
 
             foreach (var stoneObject in nonClusterObjects)
             {
-                var surroundConfig = ResolveSurroundConfig(stoneObject.X, stoneObject.Z);
-                if (!TryResolveLayerIndex(surroundConfig, out var layerIndex)) continue;
+                var surroundConfig = ResolveSurroundConfig(
+                    stoneObject.LocalPosition.x, stoneObject.LocalPosition.z);
+                if (!surroundConfig.enabled) continue;
 
-                SurroundSingleRockPainter.Paint(alphamap, config, surroundConfig, layerIndex, stoneObject);
+                SurroundSingleRockPainter.Paint(
+                    alphamap, config, surroundConfig, LayerIndexOf(surroundConfig), stoneObject, tileWorldPosition);
             }
 
             #region Internal
@@ -85,7 +90,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
 
                     if (!clusterGroups.TryGetValue(stoneObject.ClusterId, out var members))
                     {
-                        members = new List<MapObjectLayoutMessagePack>();
+                        members = new List<TileLocalMapObject>();
                         clusterGroups[stoneObject.ClusterId] = members;
                     }
 
@@ -93,28 +98,11 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
                 }
             }
 
-            int FindFallbackLayerIndex()
+            // 裸地レイヤーはマスタが必ずアドレスを持つ。SplatLayerTableが登録済みなので索引は必ず引ける
+            // The bare-ground layer always carries an address in the master data and SplatLayerTable has registered it, so the lookup always resolves
+            int LayerIndexOf(SurroundTextureConfig surroundConfig)
             {
-                for (var index = 0; index < layerTable.OrderedLayerAddresses.Count; index++)
-                    if (layerTable.OrderedLayerAddresses[index].Contains(FallbackLayerAddressKeyword))
-                        return index;
-
-                // v8は全バイオームがsurroundLayer未設定でフォールバック頼り。Mudが無いと岩周辺が一切裸地化しない
-                // Every v8 biome leaves surroundLayer unset and leans on the fallback; with no Mud no rock gets bare ground at all
-                Debug.Log(
-                    $"[ObjectSurroundTexturePainter] No splatmap layer address contains '{FallbackLayerAddressKeyword}'; rocks without an explicit surroundLayer stay untouched.");
-                return -1;
-            }
-
-            // surroundLayer未設定ならMudへ倒す。移植元の `stCfg.surroundLayer ?? fallbackMudLayer` と同じ順序
-            // An unset surroundLayer falls back to Mud, in the same order as the source's `stCfg.surroundLayer ?? fallbackMudLayer`
-            bool TryResolveLayerIndex(SurroundTextureConfig surroundConfig, out int layerIndex)
-            {
-                layerIndex = string.IsNullOrEmpty(surroundConfig.surroundLayerAddressablePath)
-                    ? fallbackLayerIndex
-                    : layerTable.LayerIndexByAddress[surroundConfig.surroundLayerAddressablePath];
-
-                return 0 <= layerIndex && surroundConfig.enabled;
+                return layerTable.LayerIndexByAddress[surroundConfig.surroundLayerAddressablePath];
             }
 
             // 分類重みの勝者バイオームで設定を引く。列オフセット+2はOcean/Beach列ぶんで移植元と同一

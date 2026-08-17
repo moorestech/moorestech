@@ -24,10 +24,10 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         private const int DetailSeedBase = 6000;
         private const int DetailSeedStridePerBiome = 100;
 
-        // 密度は摂動前・傾斜は摂動後から採る移植元の使い分け（TerrainGenerator.cs:1147,1283）をそのまま持ち込む。
+        // 密度は摂動前・傾斜は摂動後から採る移植元の使い分け（TerrainGenerator.cs:1147,1283）
+        // Density reads the pre-tree heights and slopes the post-tree ones, as the source did (TerrainGenerator.cs:1147,1283)
         // 取り違えても例外は出ず、木の根元だけ草の生え方が変わる形で静かにずれる
-        // Keeps the source's split of pre-tree heights for density and post-tree ones for slopes (TerrainGenerator.cs:1147,1283);
-        // swapping them throws nothing and only shifts how grass grows around each tree
+        // Swapping them throws nothing and only shifts how grass grows around each tree
         public static List<int[,]> Build(
             TerrainGenerationConfig config, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
             float[,] preHeights, float[,] postHeights, bool[][,] winnerMasks, float[,,] alphamap,
@@ -72,19 +72,15 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 treeGrid = null;
                 objectGrid = null;
 
-                var halo = 0f;
-                foreach (var detailConfig in visualSections.DetailConfigs)
-                    halo = Mathf.Max(halo, Mathf.Max(
-                        DetailDistanceRadius.ForTrees(detailConfig.entries),
-                        DetailDistanceRadius.ForObjects(detailConfig.entries)));
+                var halo = DetailDistanceRadius.MaxOverConfigs(visualSections.DetailConfigs);
 
                 // 距離フィルタが1つも無ければ距離場は誰も読まない。点群を組む意味がないので作らない
                 // With no distance filter enabled nobody reads the fields, so the point sets are never built
                 if (halo <= 0f) return;
 
-                var haloObjects = TileMapObjectSlicer.SliceWithHalo(
-                    mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength, halo);
-                MapObjectKindSplitter.Split(haloObjects, out var trees, out var stones);
+                TileMapObjectSlicer.SliceKindsWithHalo(
+                    mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength, halo,
+                    out var trees, out var stones);
 
                 treeGrid = CreateGrid(trees);
                 objectGrid = CreateGrid(stones);
@@ -92,11 +88,11 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             // セルサイズは移植元と同じ。halo内の点はタイル外の座標を持つがSpatialGridが端セルへ寄せ、距離は真値で測られる
             // The cell size matches the source; halo points lie outside the tile and SpatialGrid folds them into the edge cells at true distance
-            SpatialGrid CreateGrid(List<MapObjectLayoutMessagePack> kindObjects)
+            SpatialGrid CreateGrid(List<TileLocalMapObject> kindObjects)
             {
                 var grid = new SpatialGrid(
                     config.terrainWidth, config.terrainLength, Mathf.Max(config.terrainWidth / 50f, 5f));
-                foreach (var kindObject in kindObjects) grid.Add(kindObject.X, kindObject.Z);
+                foreach (var kindObject in kindObjects) grid.Add(kindObject.LocalPosition.x, kindObject.LocalPosition.z);
 
                 return grid;
             }

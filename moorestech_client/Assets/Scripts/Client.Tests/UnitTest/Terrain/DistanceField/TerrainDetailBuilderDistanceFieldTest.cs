@@ -56,8 +56,8 @@ namespace Client.Tests.UnitTest.Terrain.DistanceField
         [Test]
         public void FeedsTreesAndRocksIntoSeparateDistanceFields()
         {
-            // soundEffectTypeでの振り分けを外すと岩が木の距離場に混ざり、岩の周りだけ草が消える
-            // Losing the soundEffectType split mixes rocks into the tree field and clears the grass around every rock
+            // terrainSurroundEffectTypeでの振り分けを外すと岩が木の距離場に混ざり、岩の周りだけ草が消える
+            // Losing the terrainSurroundEffectType split mixes rocks into the tree field and clears the grass around every rock
             var treeFilteredWithRock = DistanceFieldTestScene.Build(
                 DistanceFieldTestScene.TreeDistanceSections(),
                 DistanceFieldTestScene.CreateMapObject(DistanceFieldTestScene.StoneGuid, localX: 0f, localZ: 0f));

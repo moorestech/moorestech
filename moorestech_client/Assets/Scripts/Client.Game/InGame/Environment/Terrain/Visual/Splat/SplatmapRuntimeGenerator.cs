@@ -167,27 +167,17 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
             // Bare ground around rocks sits outside SplatmapJob and overwrites the composed alphamap, as the source ordered it
             void PaintRockSurroundTexture(float[,,] alphamap)
             {
-                // 遷移帯は隣タイルの岩からも伸びる。等倍で切り出すと裸地がタイル境界で直線に切れる
-                // The transition band reaches in from neighbouring tiles' rocks; a plain slice would break it in a straight line at the seam
-                var halo = ObjectSurroundTexturePainter.MaxReach(visualSections.SurroundTextureConfigs, mapObjects);
-                var haloObjects = TileMapObjectSlicer.SliceWithHalo(
-                    mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength, halo);
-                MapObjectKindSplitter.Split(haloObjects, out _, out var stones);
-
                 ObjectSurroundTexturePainter.Apply(
                     alphamap, config, layerTable, visualSections.SurroundTextureConfigs,
-                    classification.Weights2D, biomeCount, transferredHeights, stones);
+                    classification.Weights2D, biomeCount, transferredHeights, mapObjects, tileWorldPosition);
             }
 
-            // 根元の塗りも隣タイルの木から伸びる。届く距離は樹種のsurroundLayerWidthで決まり、岩のMaxReachとは別物
-            // A root patch reaches in from a neighbouring tile's trees too, as far as that species' surroundLayerWidth rather than the rocks' MaxReach
+            // 根元の塗りも隣タイルの木から伸びる。届く距離は樹種のsurroundLayerWidthで決まり、岩の到達距離とは別物
+            // A root patch reaches in from a neighbouring tile's trees too, as far as that species' surroundLayerWidth rather than the rocks' reach
             void PaintTreeSurroundTexture(float[,,] alphamap)
             {
-                var haloObjects = TileMapObjectSlicer.SliceWithHalo(
-                    mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength, treeSurroundSpecies.MaxReach);
-                MapObjectKindSplitter.Split(haloObjects, out var trees, out _);
-
-                TreeSurroundTexturePainter.Apply(alphamap, config, layerTable, treeSurroundSpecies, trees);
+                TreeSurroundTexturePainter.Apply(
+                    alphamap, config, layerTable, treeSurroundSpecies, mapObjects, tileWorldPosition);
             }
 
             #endregion

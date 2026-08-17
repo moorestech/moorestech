@@ -17,9 +17,9 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 {
     /// <summary>
     /// テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する
-    /// map.jsonに書かれた姿勢が実インスタンスの向きへ届くことを実機検証する。
+    /// map.jsonに書かれた姿勢とスケールが実インスタンスへ届くことを実機検証する。
     /// This test runs in EditMode but switches to PlayMode during execution.
-    /// Verifies the rotation written in map.json reaches the real instance's facing.
+    /// Verifies the rotation and scale written in map.json reach the real instance.
     /// </summary>
     public class MapObjectRotationTest
     {
@@ -27,8 +27,12 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
         // The angle within which two facings count as equal, loosened only by the float round trip
         private const float RotationTolerance = 0.01f;
 
+        // スケールが一致しているとみなす許容差。float往復のぶんだけ緩めてある
+        // The difference within which two scales count as equal, loosened only by the float round trip
+        private const float ScaleTolerance = 0.001f;
+
         [UnityTest]
-        public IEnumerator MapObjectsFaceTheDirectionTheLayoutCarries()
+        public IEnumerator MapObjectsMatchTheFacingAndScaleTheLayoutCarries()
         {
             EnterPlayModeUtil();
 
@@ -55,19 +59,35 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
                 var datastore = Object.FindFirstObjectByType<MapObjectGameObjectDatastore>(FindObjectsInactive.Include);
                 Assert.IsNotNull(datastore, "MapObjectGameObjectDatastore was not found in scene");
 
-                // 初期化と同じawait経路を通し、生成が終わってから向きを見る
-                // Use the same await path as startup so the facings are read after instantiation finishes
+                // 初期化と同じawait経路を通し、生成が終わってから姿勢とスケールを見る
+                // Use the same await path as startup so the facings and scales are read after instantiation finishes
                 await datastore.WaitForInitialApplyAsync();
 
-                var layout = FindTurnedLayout();
-                var expected = new Quaternion(layout.RotationX, layout.RotationY, layout.RotationZ, layout.RotationW);
+                var turnedLayout = FindTurnedLayout();
+                var expectedRotation = new Quaternion(
+                    turnedLayout.RotationX, turnedLayout.RotationY, turnedLayout.RotationZ, turnedLayout.RotationW);
+                var turnedInstance = SearchInstance(datastore, turnedLayout);
+
+                Assert.Less(
+                    Quaternion.Angle(expectedRotation, turnedInstance.transform.rotation), RotationTolerance,
+                    "the instantiated map object does not face the direction the layout carries");
+
+                var scaledLayout = FindScaledLayout();
+                var expectedScale = new Vector3(scaledLayout.ScaleX, scaledLayout.ScaleY, scaledLayout.ScaleZ);
+                var scaledInstance = SearchInstance(datastore, scaledLayout);
+
+                Assert.Less(
+                    Vector3.Distance(expectedScale, scaledInstance.transform.localScale), ScaleTolerance,
+                    "the instantiated map object does not carry the scale the layout carries");
+            }
+
+            MapObjectGameObject SearchInstance(MapObjectGameObjectDatastore datastore, MapObjectLayoutMessagePack layout)
+            {
                 var instance = datastore.SearchNearestMapObject(
                     new Guid(layout.MapObjectGuid), new Vector3(layout.X, layout.Y, layout.Z));
 
                 Assert.IsNotNull(instance, $"map object {layout.InstanceId} was not instantiated");
-                Assert.Less(
-                    Quaternion.Angle(expected, instance.transform.rotation), RotationTolerance,
-                    "the instantiated map object does not face the direction the layout carries");
+                return instance;
             }
 
             // 向きを持たない個体で突き合わせるとidentity固定の実装でも通ってしまう。回っている1件を選び出す
@@ -84,6 +104,25 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
                 }
 
                 Assert.Fail("test world has no turned map object");
+                return null;
+            }
+
+            // 等倍の個体で突き合わせるとlocalScale適用を消しても通ってしまう。軸ごとに違う倍率の1件を選び出す
+            // Matching against a unit-scaled object would pass even with the localScale assignment deleted, so the per-axis scaled one is picked out
+            MapObjectLayoutMessagePack FindScaledLayout()
+            {
+                var layouts = ClientDIContext.DIContainer.DIContainerResolver
+                    .Resolve<InitialHandshakeResponse>().MapLayout.MapObjects;
+
+                foreach (var layout in layouts)
+                {
+                    if (Mathf.Approximately(layout.ScaleX, layout.ScaleY) &&
+                        Mathf.Approximately(layout.ScaleY, layout.ScaleZ)) continue;
+
+                    return layout;
+                }
+
+                Assert.Fail("test world has no map object scaled differently per axis");
                 return null;
             }
 

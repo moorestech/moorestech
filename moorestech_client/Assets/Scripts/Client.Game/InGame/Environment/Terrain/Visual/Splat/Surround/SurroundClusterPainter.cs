@@ -1,15 +1,15 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Environment.Terrain.Build.Placement;
 using Game.MapGeneration.Pipeline.Config;
-using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
 {
     /// <summary>
     ///     1クラスタぶんの岩を1つのフットプリント集合として扱い、コア帯と遷移帯の2層マスクで裸地を描く。
-    ///     移植元 TerrainGenerator.cs:1573-1663 の逐語移植。座標は全てタイルローカル
+    ///     移植元 TerrainGenerator.cs:1573-1663 の逐語移植。座標はノイズのサンプル位置を除きタイルローカル
     ///     Treats one cluster's rocks as a single footprint set and paints bare ground with the two-band core and
-    ///     transition mask; a verbatim port of the source's TerrainGenerator.cs:1573-1663, all coordinates tile-local
+    ///     transition mask; a verbatim port of the source's TerrainGenerator.cs:1573-1663, tile-local except where the noise is sampled
     /// </summary>
     public static class SurroundClusterPainter
     {
@@ -22,7 +22,8 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
 
         public static void Paint(
             float[,,] alphamap, TerrainGenerationConfig config, SurroundTextureConfig surroundConfig,
-            int layerIndex, IReadOnlyList<MapObjectLayoutMessagePack> members, float[,] heights)
+            int layerIndex, IReadOnlyList<TileLocalMapObject> members, float[,] heights,
+            Vector3 tileWorldPosition)
         {
             var alphaResolution = alphamap.GetLength(0);
             var heightResolution = config.Resolution;
@@ -37,14 +38,16 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
 
             foreach (var member in members)
             {
-                var footprintRadius = (member.ScaleX + member.ScaleZ) * 0.5f * surroundConfig.rockMeshBaseSize;
-                footprints.Add((member.X, member.Z, footprintRadius));
+                var memberScale = member.Scale;
+                var memberPosition = member.LocalPosition;
+                var footprintRadius = (memberScale.x + memberScale.z) * 0.5f * surroundConfig.rockMeshBaseSize;
+                footprints.Add((memberPosition.x, memberPosition.z, footprintRadius));
 
                 var expand = footprintRadius + surroundConfig.transitionRadius;
-                minLocalX = Mathf.Min(minLocalX, member.X - expand);
-                maxLocalX = Mathf.Max(maxLocalX, member.X + expand);
-                minLocalZ = Mathf.Min(minLocalZ, member.Z - expand);
-                maxLocalZ = Mathf.Max(maxLocalZ, member.Z + expand);
+                minLocalX = Mathf.Min(minLocalX, memberPosition.x - expand);
+                maxLocalX = Mathf.Max(maxLocalX, memberPosition.x + expand);
+                minLocalZ = Mathf.Min(minLocalZ, memberPosition.z - expand);
+                maxLocalZ = Mathf.Max(maxLocalZ, memberPosition.z + expand);
             }
 
             var pixelMinX = Mathf.Clamp(
@@ -59,16 +62,16 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
             for (var pixelZ = pixelMinZ; pixelZ <= pixelMaxZ; pixelZ++)
             for (var pixelX = pixelMinX; pixelX <= pixelMaxX; pixelX++)
             {
-                var worldX = (float)pixelX / (alphaResolution - 1) * config.terrainWidth;
-                var worldZ = (float)pixelZ / (alphaResolution - 1) * config.terrainLength;
+                var localX = (float)pixelX / (alphaResolution - 1) * config.terrainWidth;
+                var localZ = (float)pixelZ / (alphaResolution - 1) * config.terrainLength;
 
                 // 距離はフットプリント円の縁から測る。クラスタ内で最も近い1つが効く
                 // Distance is measured from the footprint circle's edge, and the nearest one in the cluster wins
                 var minDistance = float.MaxValue;
                 foreach (var (footprintX, footprintZ, footprintRadius) in footprints)
                 {
-                    var deltaX = worldX - footprintX;
-                    var deltaZ = worldZ - footprintZ;
+                    var deltaX = localX - footprintX;
+                    var deltaZ = localZ - footprintZ;
                     var edgeDistance = Mathf.Sqrt(deltaX * deltaX + deltaZ * deltaZ) - footprintRadius;
                     if (edgeDistance < minDistance) minDistance = edgeDistance;
                 }
@@ -76,13 +79,17 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
                 if (surroundConfig.transitionRadius < minDistance) continue;
 
                 var heightX = Mathf.Clamp(
-                    Mathf.RoundToInt(worldX / config.terrainWidth * (heightResolution - 1)), 0, heightResolution - 1);
+                    Mathf.RoundToInt(localX / config.terrainWidth * (heightResolution - 1)), 0, heightResolution - 1);
                 var heightZ = Mathf.Clamp(
-                    Mathf.RoundToInt(worldZ / config.terrainLength * (heightResolution - 1)), 0, heightResolution - 1);
+                    Mathf.RoundToInt(localZ / config.terrainLength * (heightResolution - 1)), 0, heightResolution - 1);
                 var slopeBias = SurroundDownhillBias.Compute(
-                    config, heights, heightResolution, heightX, heightZ, worldX, worldZ, footprints);
+                    config, heights, heightResolution, heightX, heightZ, localX, localZ, footprints);
 
-                var blend = ComputeBlend(minDistance / slopeBias, ComputeNoiseModulation(worldX, worldZ));
+                // ノイズだけはシーン絶対座標で引く。タイルローカルのままだと隣タイルで同じ模様が再開し境界に直線が出る
+                // The noise alone samples scene-absolute coordinates: tile-local ones restart the pattern next door and draw a line along the seam
+                var noiseModulation = ComputeNoiseModulation(
+                    localX + tileWorldPosition.x, localZ + tileWorldPosition.z);
+                var blend = ComputeBlend(minDistance / slopeBias, noiseModulation);
 
                 // 移植元と同じ足切り。ここを外すと縁の全画素に無限小の泥が乗って輪郭が濁る
                 // The source's cutoff; dropping it would smear an infinitesimal mud over every edge pixel

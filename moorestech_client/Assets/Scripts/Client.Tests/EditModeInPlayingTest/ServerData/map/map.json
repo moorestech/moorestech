@@ -678,9 +678,9 @@
       "rotationY": 0.0,
       "rotationZ": 0.0,
       "rotationW": 1.0,
-      "scaleX": 1.0,
-      "scaleY": 1.0,
-      "scaleZ": 1.0,
+      "scaleX": 1.5,
+      "scaleY": 2.0,
+      "scaleZ": 2.5,
       "clusterId": -1,
       "clusterCenterX": 0.0,
       "clusterCenterZ": 0.0

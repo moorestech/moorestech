@@ -38,10 +38,10 @@ namespace Client.Tests.UnitTest.Terrain.Surround
                 {
                     CreateRootPrototype(TreeGuid),
 
-                    // 岩のguidも同じ設定で載せる。テーブルに無いと振り分けの取り違えがTryGetの失敗で黙って救われ、
-                    // 「岩は木として塗られない」の検証が Split ではなくテーブルの穴を見ているだけになる
-                    // The rock's guid carries the same settings: absent from the table, a mis-sorted rock would be rescued by
-                    // a failed lookup and the rock-never-paints check would watch that hole rather than Split
+                    // 岩のguidも同じ設定で載せる。テーブルに無いと振り分けの取り違えがTryGetの失敗で黙って救われる
+                    // The rock's guid carries the same settings: absent from the table, a mis-sorted rock would be rescued by a failed lookup
+                    // そうなると「岩は木として塗られない」の検証がSplitではなくテーブルの穴を見ているだけになる
+                    // The rock-never-paints check would then watch that hole rather than Split
                     CreateRootPrototype(StoneGuid),
                 },
             };

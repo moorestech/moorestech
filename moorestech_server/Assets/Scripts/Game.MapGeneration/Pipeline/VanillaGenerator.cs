@@ -41,7 +41,7 @@ namespace Game.MapGeneration.Pipeline
 
             int halfX = config.gridSizeX / 2;
             int halfZ = config.gridSizeZ / 2;
-            var sceneOrigin = new Vector2(-halfX * config.terrainWidth, -halfZ * config.terrainLength);
+            var sceneOrigin = config.TileScenePosition(0, 0);
             var output = new MapGenerationOutput
             {
                 Resolution = config.Resolution,
@@ -62,6 +62,12 @@ namespace Game.MapGeneration.Pipeline
             var runner = new TilePlacementRunner(helper, biomeTypes,
                 noiseToSceneShift, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output, halo);
 
+            // タイル窓の基準はindex(0,0)タイル。config.worldOffset は中心タイル基準なのでそのままでは基準にできない。
+            // The tile windows are based on the index (0,0) tile; config.worldOffset is center-tile based and cannot serve as one.
+            var gridConfig = config.ShallowCopy();
+            gridConfig.worldOffsetX = output.NoiseOrigin.x;
+            gridConfig.worldOffsetZ = output.NoiseOrigin.y;
+
             // biomeParams と noiseOffsets が1タイルでも違うとそのタイルだけ別地形になるため、格子で1組だけ作る。
             // A single differing biomeParams or noiseOffsets would give that tile a different world, so the grid shares one set.
             var biomeParams = JobDataConverter.ConvertBiomeParams(config, biomeTypes, Allocator.TempJob);
@@ -71,7 +77,7 @@ namespace Game.MapGeneration.Pipeline
             {
                 foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(config.gridSizeX * config.gridSizeZ))
                 {
-                    var tile = GenerateTile(tileX, tileZ, tileX - halfX, tileZ - halfZ);
+                    var tile = GenerateTile(tileX, tileZ);
                     output.Tiles.Add(tile);
                     if (tileX == halfX && tileZ == halfZ) centerTileHeights = tile.Heights;
                 }
@@ -89,11 +95,9 @@ namespace Game.MapGeneration.Pipeline
 
             // タイル1枚を生成する。窓側の巨大バッファは PaddedWindowStage の内部で確保・破棄される。
             // Generates one tile; the large padded-window buffers are allocated and freed inside PaddedWindowStage.
-            TerrainTileOutput GenerateTile(int tileX, int tileZ, int coordX, int coordZ)
+            TerrainTileOutput GenerateTile(int tileX, int tileZ)
             {
-                var tileConfig = config.ShallowCopy();
-                tileConfig.worldOffsetX = config.worldOffsetX + coordX * config.terrainWidth;
-                tileConfig.worldOffsetZ = config.worldOffsetZ + coordZ * config.terrainLength;
+                var tileConfig = gridConfig.CreateTileConfig(tileX, tileZ);
 
                 // クロップされないチャネル(rawBiomeIndex等)に前タイルの値を残さないよう、タイル毎に確保する。
                 // Allocate per tile so the non-cropped channels (rawBiomeIndex, ...) cannot retain the previous tile's values.
@@ -104,7 +108,7 @@ namespace Game.MapGeneration.Pipeline
                 {
                     PaddedWindowStage.Run(tileConfig, biomeTypes, buffers);
                     var heights = buffers.heights.ToArray();
-                    var tileScene = new Vector2(coordX * config.terrainWidth, coordZ * config.terrainLength);
+                    var tileScene = config.TileScenePosition(tileX, tileZ);
                     var biomeIndices = runner.Run(tileConfig, buffers, heights, tileScene, tileX, tileZ);
                     return new TerrainTileOutput
                         { TileX = tileX, TileZ = tileZ, Heights = heights, BiomeIndices = biomeIndices };

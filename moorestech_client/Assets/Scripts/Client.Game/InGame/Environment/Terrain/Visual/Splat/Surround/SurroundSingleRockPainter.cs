@@ -1,5 +1,5 @@
+using Client.Game.InGame.Environment.Terrain.Build.Placement;
 using Game.MapGeneration.Pipeline.Config;
-using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
@@ -14,12 +14,17 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
     {
         public static void Paint(
             float[,,] alphamap, TerrainGenerationConfig config, SurroundTextureConfig surroundConfig,
-            int layerIndex, MapObjectLayoutMessagePack stoneObject)
+            int layerIndex, TileLocalMapObject stoneObject, Vector3 tileWorldPosition)
         {
             var alphaResolution = alphamap.GetLength(0);
 
-            var normalizedX = stoneObject.X / config.terrainWidth;
-            var normalizedZ = stoneObject.Z / config.terrainLength;
+            // ノイズをピクセル座標で引く移植元の式は地形1枚が前提。タイル番号ぶんずらして5x5でも模様を連続させる
+            // The source sampled the noise in pixel coordinates on a single terrain; the tile index shifts it so the pattern carries across the 5x5 grid
+            var pixelOriginX = Mathf.RoundToInt(tileWorldPosition.x / config.terrainWidth) * (alphaResolution - 1);
+            var pixelOriginZ = Mathf.RoundToInt(tileWorldPosition.z / config.terrainLength) * (alphaResolution - 1);
+
+            var normalizedX = stoneObject.LocalPosition.x / config.terrainWidth;
+            var normalizedZ = stoneObject.LocalPosition.z / config.terrainLength;
 
             // 半径はピクセル単位。クラスタ経路と違いScaleを見ず、singleRockRadiusだけで決まる
             // The radius is in pixels; unlike the cluster path it ignores Scale and comes from singleRockRadius alone
@@ -42,7 +47,8 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
                 // The noise samples pixel coordinates rather than world ones, as in the source; the falloff is squared
                 var falloff = 1f - distance / radiusInPixels;
                 var noise = Mathf.PerlinNoise(
-                    pixelX * surroundConfig.noiseHighFrequency, pixelZ * surroundConfig.noiseHighFrequency);
+                    (pixelOriginX + pixelX) * surroundConfig.noiseHighFrequency,
+                    (pixelOriginZ + pixelZ) * surroundConfig.noiseHighFrequency);
                 var blend = falloff * falloff * surroundConfig.singleRockBlend * (0.5f + noise);
 
                 SurroundBlendWriter.Blend(alphamap, pixelZ, pixelX, layerIndex, blend);

@@ -1,3 +1,4 @@
+using System;
 using Game.MapGeneration.Pipeline.Config;
 using UnityEngine;
 using GenNoise = Mooresmaster.Model.PlacementNoiseModule.PlacementNoise;
@@ -13,9 +14,16 @@ namespace Game.MapGeneration.Pipeline.Runtime
     {
         public static PlacementNoise ToPlacementNoise(GenNoise gen)
         {
+            // 源は手続きかテクスチャのどちらか一方。両指定は展開後にテクスチャが黙って勝ち、frequency が無言で捨てられる。
+            // A source is procedural or texture, never both: specifying both silently lets the texture win and drops frequency.
+            var noiseType = RuntimeConvert.ToMapNoiseType(gen.NoiseType);
+            if (!string.IsNullOrEmpty(gen.TexturePngPath) && noiseType != MapNoiseType.None)
+                throw new InvalidOperationException(
+                    $"[PlacementRefConvert] placementNoise specifies texturePngPath '{gen.TexturePngPath}' together with noiseType {noiseType}.");
+
             return new PlacementNoise
             {
-                noiseType = RuntimeConvert.ToMapNoiseType(gen.NoiseType),
+                noiseType = noiseType,
                 frequency = gen.Frequency,
                 amplitude = gen.Amplitude,
                 offset = gen.Offset,

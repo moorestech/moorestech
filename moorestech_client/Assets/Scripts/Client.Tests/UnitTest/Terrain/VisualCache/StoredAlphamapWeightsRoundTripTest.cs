@@ -3,6 +3,7 @@ using System.IO;
 using Client.Game.InGame.Environment.Terrain.Visual.Cache;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using NUnit.Framework;
+using UnityEngine;
 using static Client.Tests.UnitTest.Terrain.Surround.SurroundTestFixtures;
 
 namespace Client.Tests.UnitTest.Terrain.VisualCache
@@ -27,6 +28,7 @@ namespace Client.Tests.UnitTest.Terrain.VisualCache
         [SetUp]
         public void SetUp()
         {
+            LoadMasterData();
             _directoryPath = Path.Combine(Path.GetTempPath(), $"moorestech_alphamap_round_trip_{Guid.NewGuid()}");
             _filePath = Path.Combine(_directoryPath, "visual.bin");
         }
@@ -94,7 +96,7 @@ namespace Client.Tests.UnitTest.Terrain.VisualCache
             ObjectSurroundTexturePainter.Apply(
                 alphamap, CreateConfig(), CreateLayerTable(), new[] { CreateSurroundConfig() },
                 CreateBiomeWeights(0), 1, CreateHeights(0f),
-                new[] { CreateRock(ClusterId), CreateRock(NoCluster) });
+                new[] { CreateRock(ClusterId), CreateRock(NoCluster) }, Vector3.zero);
 
             return alphamap;
         }

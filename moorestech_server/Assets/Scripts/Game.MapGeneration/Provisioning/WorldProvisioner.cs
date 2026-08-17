@@ -3,6 +3,7 @@ using System.IO;
 using Core.Master;
 using Game.MapGeneration.Export;
 using Game.MapGeneration.Pipeline;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Newtonsoft.Json;
 
@@ -33,10 +34,15 @@ namespace Game.MapGeneration.Provisioning
             if (Directory.Exists(worldDataDirectory.ProvisioningTempDirectory))
                 Directory.Delete(worldDataDirectory.ProvisioningTempDirectory, true);
 
-            // world.jsonはコミット済みワールドの証跡。存在すれば何もしない
-            // world.json marks a committed world; if present this call is a no-op
+            // world.jsonはコミット済みワールドの証跡。作り直しはしないが、使えるワールドかはここで確かめる
+            // world.json marks a committed world; provisioning stops here, but whether the world is usable is settled now
             if (File.Exists(worldDataDirectory.WorldMetaFilePath))
+            {
+                // 版照合はTerrainTransferMetaReaderが唯一持つ。ハンドシェイクまで遅らせるとcatch-allに握り潰されクライアントが無言でハングする
+                // TerrainTransferMetaReader owns the sole version check; deferring it to the handshake lets a catch-all swallow it and hang the client silently
+                TerrainTransferMetaReader.Read(worldDataDirectory);
                 return;
+            }
 
             // Rootだけ存在してworld.jsonが無いのは書き込み途中の破損。無言で再生成しない
             // Root existing without world.json means a mid-write corruption; never silently regenerate

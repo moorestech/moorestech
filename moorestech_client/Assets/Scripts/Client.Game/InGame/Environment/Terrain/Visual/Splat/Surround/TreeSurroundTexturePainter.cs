@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Environment.Terrain.Build.Placement;
 using Game.MapGeneration.Pipeline.Config;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
@@ -15,17 +16,24 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
     /// </summary>
     public static class TreeSurroundTexturePainter
     {
+        // 届く距離は樹種テーブルだけが知っている。切り出しと種別分割をここが持たないと、呼び出し側が岩の距離で切り出せてしまう
+        // Only the species table knows the reach; owning the slice and the kind split here stops a caller from slicing with the rocks' distance
         public static void Apply(
             float[,,] alphamap, TerrainGenerationConfig config, SplatLayerTable layerTable,
-            TreeSurroundSpeciesTable speciesTable, IReadOnlyList<MapObjectLayoutMessagePack> treeObjects)
+            TreeSurroundSpeciesTable speciesTable, IReadOnlyList<MapObjectLayoutMessagePack> mapObjects,
+            Vector3 tileWorldPosition)
         {
+            TileMapObjectSlicer.SliceKindsWithHalo(
+                mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength,
+                speciesTable.MaxReach, out var treeObjects, out _);
+
             var alphaResolution = alphamap.GetLength(0);
 
             foreach (var treeObject in treeObjects)
             {
                 // 岩・鉱脈のguidは樹種テーブルに載らない。木でも未設定・重み0のプロトタイプはここで抜ける
                 // Rock and vein guids never enter the species table, and an unset or zero-weight tree prototype leaves here too
-                if (!speciesTable.TryGetPaintingParams(treeObject.MapObjectGuid, out var surroundParams)) continue;
+                if (!speciesTable.TryGetPaintingParams(treeObject.Guid, out var surroundParams)) continue;
 
                 // 幅0（sigma0でガウシアンがNaN）はTreeSurroundSpeciesTable.Buildが弾く。ここへは正の幅しか来ない
                 // A zero width, whose zero sigma turns the Gaussian into NaN, is rejected by TreeSurroundSpeciesTable.Build, so only positive widths arrive here
@@ -35,8 +43,10 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
                 // Both radius and centre use the alphamap's own resolution; the source passed the heightmap's and hid the gap behind a clamp
                 var radiusInPixels = surroundParams.width / config.terrainWidth * (alphaResolution - 1);
                 var scanRadius = Mathf.CeilToInt(radiusInPixels);
-                var centerX = Mathf.RoundToInt(treeObject.X / config.terrainWidth * (alphaResolution - 1));
-                var centerZ = Mathf.RoundToInt(treeObject.Z / config.terrainLength * (alphaResolution - 1));
+                var centerX = Mathf.RoundToInt(
+                    treeObject.LocalPosition.x / config.terrainWidth * (alphaResolution - 1));
+                var centerZ = Mathf.RoundToInt(
+                    treeObject.LocalPosition.z / config.terrainLength * (alphaResolution - 1));
 
                 for (var offsetZ = -scanRadius; offsetZ <= scanRadius; offsetZ++)
                 for (var offsetX = -scanRadius; offsetX <= scanRadius; offsetX++)

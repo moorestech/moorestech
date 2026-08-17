@@ -39,8 +39,8 @@ namespace Client.Tests.UnitTest.Terrain.DistanceField
 
         private static readonly BiomeType[] BiomeTypes = { BiomeType.Grassland };
 
-        // MapObjectKindSplitterがsoundEffectTypeを引くためMasterHolderが要る
-        // MapObjectKindSplitter reads soundEffectType, so MasterHolder must be loaded
+        // MapObjectKindSplitterがterrainSurroundEffectTypeを引くためMasterHolderが要る
+        // MapObjectKindSplitter reads terrainSurroundEffectType, so MasterHolder must be loaded
         public static void LoadMasterData()
         {
             new MoorestechServerDIContainerGenerator()

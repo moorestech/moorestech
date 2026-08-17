@@ -13,6 +13,12 @@ namespace Client.Tests.UnitTest.Terrain.Surround
     /// </summary>
     public class SurroundDownhillBiasTest
     {
+
+        [SetUp]
+        public void SetUp()
+        {
+            LoadMasterData();
+        }
         // +x方向に上がる斜面。下り方向は-x
         // A slope rising along +x, so downhill points along -x
         private const float SlopeAlongX = 0.6f;
@@ -62,7 +68,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             var alphamap = CreateUniformAlphamap();
             ObjectSurroundTexturePainter.Apply(
                 alphamap, CreateConfig(), CreateLayerTable(), new[] { surroundConfig },
-                CreateBiomeWeights(0), 1, CreateHeights(SlopeAlongX), new[] { CreateRock(7) });
+                CreateBiomeWeights(0), 1, CreateHeights(SlopeAlongX), new[] { CreateRock(7) }, UnityEngine.Vector3.zero);
 
             // 帯そのものが違うので閾値で切れる。ノイズ倍率の差だけを見ると倍率1でもたまたま通ってしまう
             // The two land in different bands, so a threshold separates them; comparing only noise could pass even at a flat bias

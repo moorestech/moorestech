@@ -76,10 +76,10 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         [Test]
         public void ARockNeverPaintsTheTreeRootLayer()
         {
-            // 岩のguidは樹種テーブルに載せてある(SurroundWiringTestConfig)ので、根元の列を守っているのは
-            // MapObjectKindSplitter.Splitの振り分けだけ。outを取り違えると岩がそのまま根元色で塗られる
-            // The rock's guid is in the species table (SurroundWiringTestConfig), so Split's sorting alone keeps the root
-            // column clean; swapping its out arguments paints the rock with the root colour outright
+            // 岩のguidは樹種テーブルに載せてある(SurroundWiringTestConfig)ので、根元の列を守るのはSplitの振り分けだけ
+            // The rock's guid sits in the species table (SurroundWiringTestConfig), so Split's sorting alone keeps the root column clean
+            // outを取り違えると岩がそのまま根元色で塗られる
+            // Swapping its out arguments paints the rock with the root colour outright
             var alphamap = Generate(CreateStone(SeamLocalZ, SeamLocalZ));
 
             for (var z = 0; z < AlphaResolution; z++)

@@ -33,10 +33,10 @@ namespace Client.Tests.UnitTest.Terrain.Classification
                 "境界帯でpaddedとunpaddedが一致した。PaddedWindowStageが効いていない");
         }
 
-        // 内陸(Margin)の外側、窓端の影響が届く外周帯だけを走査する。
+        // 内陸(Margin)の外側、窓端の影響が届く外周帯だけを走査する
+        // Scans only the outer band beyond the interior (Margin) that the window edge reaches
         // TerrainClassificationContextTest.CountMaskMismatchesが見る内陸の裏返し
-        // Scans only the outer band beyond the interior (Margin) that the window edge reaches;
-        // the mirror image of the interior TerrainClassificationContextTest.CountMaskMismatches scans
+        // The mirror image of the interior that TerrainClassificationContextTest.CountMaskMismatches scans
         private static int CountMaskMismatchesInEdgeBand(bool[][,] expected, bool[][,] actual)
         {
             var resolution = TerrainClassificationContextTest.Resolution;

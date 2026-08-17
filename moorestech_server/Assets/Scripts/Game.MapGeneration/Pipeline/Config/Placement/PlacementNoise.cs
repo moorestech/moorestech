@@ -22,5 +22,13 @@ namespace Game.MapGeneration.Pipeline.Config
         public Color32[] texturePixels;
         public int textureWidth;
         public int textureHeight;
+
+        // 源が1つも無ければフィルタは素通し。判定を各所へ複製すると1箇所の漏れで全通し/全落ちに倒れる。
+        // With no source at all the filter passes everything; duplicating the test lets one missed site pass or drop all.
+        public bool IsActive => noiseType != MapNoiseType.None || texturePixels != null;
+
+        // 展開済み画素があるときはテクスチャ源が手続き源に優先する。
+        // Expanded pixels make the texture source win over the procedural one.
+        public bool UsesTexture => texturePixels != null;
     }
 }

@@ -34,29 +34,18 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
             MaxReach = maxReach;
         }
 
-        // guid → (レイヤーアドレス, 重み, 幅)。TreeHeightModifier.BuildGuidModMapと同じ規約で最初の出現が勝つ
-        // guid to (layer address, weight, width) under BuildGuidModMap's rule, where the first occurrence wins
+        // guid → (レイヤーアドレス, 重み, 幅)。どのentryが勝つかはBiomePlacementHelperが唯一決める
+        // Projects (layer address, weight, width) out of the entries BiomePlacementHelper alone picks per guid
         public static TreeSurroundSpeciesTable Build(BiomePlacementHelper helper, BiomeType[] biomeTypes)
         {
+            // 塗らないプロトタイプも載せる。最初の出現が勝つ規約は「塗るかどうか」より前に決まるため
+            // Non-painting prototypes are mapped too: the first-occurrence rule is settled before painting is
             var surroundParamsByGuid = new Dictionary<string, (string layerAddress, float weight, float width)>();
-            foreach (var biome in biomeTypes)
+            foreach (var pair in helper.BuildFirstTreePrototypeByGuid(biomeTypes))
             {
-                var treePlacement = helper.GetTreePlacementConfig(biome);
-                if (treePlacement?.prototypes == null) continue;
-
-                // 塗らないプロトタイプも載せる。最初の出現が勝つ規約は「塗るかどうか」より前に決まるため
-                // Non-painting prototypes are mapped too: the first-occurrence rule is settled before painting is
-                foreach (var entry in treePlacement.prototypes)
-                {
-                    if (entry == null || entry.disabled || entry.mapObjectGuids == null) continue;
-
-                    foreach (var mapObjectGuid in entry.mapObjectGuids)
-                    {
-                        if (string.IsNullOrEmpty(mapObjectGuid) || surroundParamsByGuid.ContainsKey(mapObjectGuid)) continue;
-                        surroundParamsByGuid[mapObjectGuid] =
-                            (entry.surroundLayerAddressablePath, entry.surroundLayerWeight, entry.surroundLayerWidth);
-                    }
-                }
+                var entry = pair.Value;
+                surroundParamsByGuid[pair.Key] =
+                    (entry.surroundLayerAddressablePath, entry.surroundLayerWeight, entry.surroundLayerWidth);
             }
 
             // 列とhaloは組み上がったマップからその場で導く。導出をこの1箇所に閉じるのがこの型の存在理由

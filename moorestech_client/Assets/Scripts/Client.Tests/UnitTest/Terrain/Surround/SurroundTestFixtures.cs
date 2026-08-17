@@ -3,7 +3,9 @@ using Client.Game.InGame.Environment.Terrain.Visual.Splat;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
+using Server.Boot;
 using Server.Protocol.PacketResponse.MapData;
+using Tests.Module.TestMod;
 
 namespace Client.Tests.UnitTest.Terrain.Surround
 {
@@ -20,11 +22,25 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         public const float TerrainSize = 40f;
         public const int LayerCount = 3;
 
-        // Mudを含むアドレスが来る列。フォールバック探索が引き当てるべき唯一の索引
-        // The column holding the Mud-bearing address, the one index the fallback search must find
+        // 岩の裸地が書き込まれる列。マスタが必須キーで指すアドレスと索引の対応をここで固定する
+        // The column the rocks' bare ground writes into, pinning the address the required master key names to its index
+        public const string MudLayerAddress = "addr/Mud01";
         public const int MudLayerIndex = 1;
 
+        // painterがSplitを内側で回すので、テストのguidもforUnitTestマスタに実在する種別付きのものを使う
+        // The painters run Split internally, so the tests' guids must be ones the forUnitTest master really classifies
+        public const string StoneGuid = "00000000-0000-2222-0000-000000000001";
+        public const string TreeGuid = "00000000-0000-1111-0000-000000000001";
+
         public const int RockPixel = 4;
+
+        // painterがSplitを内側で回すのでMasterHolderが要る。呼ばないとguidの種別が引けず例外で落ちる
+        // The painters run Split internally and need MasterHolder; without this the guid's kind cannot be resolved and it throws
+        public static void LoadMasterData()
+        {
+            new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+        }
         public const float RockLocalPosition = TerrainSize * RockPixel / (AlphaResolution - 1);
 
         public static TerrainGenerationConfig CreateConfig()
@@ -41,9 +57,10 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         public static SplatLayerTable CreateLayerTable()
         {
             return SplatLayerTable.Build(
-                "addr/beach", "addr/Mud01", new[] { "addr/grass" },
+                "addr/beach", MudLayerAddress, new[] { "addr/grass" },
                 new[] { new BiomeTextureConfig { entries = new TextureEntry[0] } },
-                new[] { new SurroundTextureConfig() }, CreateTreeSurroundSpecies(), Array.Empty<string>());
+                new[] { new SurroundTextureConfig { surroundLayerAddressablePath = MudLayerAddress } },
+                CreateTreeSurroundSpecies(), Array.Empty<string>());
         }
 
         // 樹種テーブルは本番と同じくConfigから組む。列やマップを手書きで注げる口を作ると、その導出をテストが迂回してしまう
@@ -73,7 +90,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             return new SurroundTextureConfig
             {
                 enabled = true,
-                surroundLayerAddressablePath = string.Empty,
+                surroundLayerAddressablePath = MudLayerAddress,
                 coreRadius = 5f,
                 coreBlendMin = 0.8f,
                 coreBlendMax = 0.95f,
@@ -94,7 +111,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         public static MapObjectLayoutMessagePack CreateRock(int clusterId)
         {
             return new MapObjectLayoutMessagePack(
-                1, "00000000-0000-0000-0000-000000000001",
+                1, StoneGuid,
                 RockLocalPosition, 0f, RockLocalPosition, 0f, 0f, 0f, 1f, 2f, 2f, 2f,
                 clusterId,
                 clusterId < 0 ? 0f : RockLocalPosition,

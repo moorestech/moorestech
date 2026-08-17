@@ -18,11 +18,13 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
         // The halo widens it outwards; dropping the trees just outside bands the effect along the seam or steps the height there
         // halo内のタイル外の点はローカル座標で負値やtileWidth超になる。受け手はその座標のまま真の距離で測る責任を持つ
         // Points inside the halo but outside the tile go negative or past tileWidth in local coordinates, and the receiver must measure true distances from them as they are
-        public static List<MapObjectLayoutMessagePack> SliceWithHalo(
+        // DTOからタイルローカル型への写しはこの1箇所だけ。以降の painter/builder は絶対座標の型を受け取らない
+        // This is the only place the DTO is copied into the tile-local type; no painter or builder downstream takes the absolute-frame type
+        public static List<TileLocalMapObject> SliceWithHalo(
             IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition,
             float tileWidth, float tileLength, float halo)
         {
-            var tileLocalObjects = new List<MapObjectLayoutMessagePack>();
+            var tileLocalObjects = new List<TileLocalMapObject>();
             foreach (var mapObject in mapObjects)
             {
                 var localX = mapObject.X - tileWorldPosition.x;
@@ -39,14 +41,26 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
 
                 // 姿勢はタイル格子と無関係なのでそのまま運ぶ。落とすと切り出し後の見た目が向きを失う
                 // The rotation is unrelated to the tile lattice and rides along untouched; dropping it loses the orientation downstream
-                tileLocalObjects.Add(new MapObjectLayoutMessagePack(
-                    mapObject.InstanceId, mapObject.MapObjectGuid, localX, mapObject.Y, localZ,
-                    mapObject.RotationX, mapObject.RotationY, mapObject.RotationZ, mapObject.RotationW,
-                    mapObject.ScaleX, mapObject.ScaleY, mapObject.ScaleZ,
-                    mapObject.ClusterId, localClusterCenterX, localClusterCenterZ));
+                tileLocalObjects.Add(new TileLocalMapObject(
+                    mapObject.InstanceId, mapObject.MapObjectGuid,
+                    new Vector3(localX, mapObject.Y, localZ),
+                    new Quaternion(mapObject.RotationX, mapObject.RotationY, mapObject.RotationZ, mapObject.RotationW),
+                    new Vector3(mapObject.ScaleX, mapObject.ScaleY, mapObject.ScaleZ),
+                    mapObject.ClusterId, new Vector2(localClusterCenterX, localClusterCenterZ)));
             }
 
             return tileLocalObjects;
+        }
+
+        // 切り出しと種別分割は常に対で要る。別々に呼べる形だと呼び出し側が片方だけ別のhaloで回せてしまう
+        // Slicing and kind splitting are always needed together; exposing them apart lets a caller run one on a different halo
+        public static void SliceKindsWithHalo(
+            IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition,
+            float tileWidth, float tileLength, float halo,
+            out List<TileLocalMapObject> trees, out List<TileLocalMapObject> stones)
+        {
+            var tileLocalObjects = SliceWithHalo(mapObjects, tileWorldPosition, tileWidth, tileLength, halo);
+            MapObjectKindSplitter.Split(tileLocalObjects, out trees, out stones);
         }
     }
 }

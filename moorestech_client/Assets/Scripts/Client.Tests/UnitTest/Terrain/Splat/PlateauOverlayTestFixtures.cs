@@ -105,7 +105,13 @@ namespace Client.Tests.UnitTest.Terrain.Splat
                 new[] { "addr/alpine" },
                 new[] { new BiomeTextureConfig { entries = new[] { secondaryLayer } } },
                 new[] { new BiomeDetailConfig { entries = Array.Empty<DetailEntry>() } },
-                new[] { new SurroundTextureConfig() });
+                new[]
+                {
+                    new SurroundTextureConfig
+                    {
+                        surroundLayerAddressablePath = SurroundTestFixtures.MudLayerAddress,
+                    },
+                });
         }
 
         private static byte[,] CreateBiomeIndices()

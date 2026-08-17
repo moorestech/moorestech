@@ -130,9 +130,9 @@ namespace Client.Tests.UnitTest.Terrain
             return config;
         }
 
-        // パディング前のクライアント経路そのもの。Task 8 以前の SplatmapRuntimeGenerator と同じ回し方で基準を採る。
+        // パディング前のクライアント経路そのもの。Task 8 以前の SplatmapRuntimeGenerator と同じ回し方で基準を採る
+        // The pre-padding client path itself: the baseline is taken exactly as the pre-Task-8 SplatmapRuntimeGenerator ran it
         // NativeArrayの寿命外で比較するため、マネージド配列に落ちた2本だけを返す
-        // The pre-padding client path itself: the baseline is taken exactly as the pre-Task-8 SplatmapRuntimeGenerator ran it.
         // Only the two managed arrays are returned so the comparison outlives the NativeArrays
         internal static (float[,] Weights2D, bool[][,] WinnerMasks) RunUnpadded(
             TerrainGenerationConfig config, BiomeType[] biomeTypes)

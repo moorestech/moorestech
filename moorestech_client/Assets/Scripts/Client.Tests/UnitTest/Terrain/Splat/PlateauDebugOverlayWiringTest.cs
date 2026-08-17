@@ -33,10 +33,10 @@ namespace Client.Tests.UnitTest.Terrain.Splat
         [Test]
         public void LeavesTheSplatmapAloneWhereNoPlateauWasAccepted()
         {
-            // オーバーレイを走らせた走行と走らせない走行を突き合わせる。受理領域とも棄却候補とも無関係な画素が
-            // 1つでも動けば、オーバーレイが台地の外へ漏れている
-            // Compares a run with the overlay against one without it: any moved pixel belonging to neither an accepted
-            // region nor a rejected candidate means the overlay leaked outside the plateaus
+            // オーバーレイを走らせた走行と走らせない走行を突き合わせる
+            // Compares a run with the overlay against one without it
+            // 受理領域とも棄却候補とも無関係な画素が動けば、オーバーレイが台地の外へ漏れている
+            // A moved pixel belonging to neither an accepted region nor a rejected candidate means a leak outside the plateaus
             var withDebug = PlateauOverlayTestFixtures.Generate(
                 PlateauOverlayTestFixtures.CreateConfig(),
                 PlateauOverlayTestFixtures.CreateLayerTable(DebugLayerAddress), out var channels);

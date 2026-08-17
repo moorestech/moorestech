@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Detail.Distance
@@ -10,11 +11,23 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail.Distance
     /// </summary>
     public static class DetailDistanceRadius
     {
+        // 切り出しhaloは全バイオームで1つ。バイオームごとの半径から最大を採る式もこの半径の持ち主が持つ
+        // One halo serves every biome, and the class that owns the radius formula owns taking the maximum over them too
+        public static float MaxOverConfigs(IReadOnlyList<BiomeDetailConfig> detailConfigs)
+        {
+            var maxRadius = 0f;
+            foreach (var detailConfig in detailConfigs)
+                maxRadius = Mathf.Max(maxRadius, Mathf.Max(
+                    ForTrees(detailConfig.entries), ForObjects(detailConfig.entries)));
+
+            return maxRadius;
+        }
+
         public static float ForTrees(DetailEntry[] entries)
         {
             var maxRadius = 0f;
             foreach (var entry in entries)
-                maxRadius = Mathf.Max(maxRadius, RequiredRadius(entry.treeDistanceFilter));
+                maxRadius = Mathf.Max(maxRadius, entry.treeDistanceFilter.RequiredInputRange);
 
             return maxRadius;
         }
@@ -23,18 +36,9 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail.Distance
         {
             var maxRadius = 0f;
             foreach (var entry in entries)
-                maxRadius = Mathf.Max(maxRadius, RequiredRadius(entry.objectDistanceFilter));
+                maxRadius = Mathf.Max(maxRadius, entry.objectDistanceFilter.RequiredInputRange);
 
             return maxRadius;
-        }
-
-        // 上限側の減衰の裾までが必要範囲。range.yで切ると裾の内側の木を見落とし、境界画素だけ密度が跳ねる
-        // The upper falloff tail is part of the needed range; cutting at range.y misses trees inside it and spikes the edge pixels
-        private static float RequiredRadius(DetailFilter filter)
-        {
-            if (!filter.enabled) return 0f;
-
-            return filter.range.y + filter.smoothness.y;
         }
     }
 }

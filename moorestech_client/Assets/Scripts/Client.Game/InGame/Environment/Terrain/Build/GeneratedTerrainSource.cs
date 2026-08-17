@@ -38,19 +38,13 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         // Held whole in scene-absolute coordinates; TileMapObjectSlicer carves out each tile's share
         private readonly IReadOnlyList<MapObjectLayoutMessagePack> _mapObjects;
 
-        // 地形をシーンへ置く原点。config.worldOffsetはノイズ窓の原点なので設置には使えない
-        // Scene origin the terrain is placed at; config.worldOffset is the noise window origin and cannot serve as a position
-        private readonly Vector2 _sceneOrigin;
-
         private GeneratedTerrainSource(
             TerrainGenerationConfig config, TerrainLayer[] terrainLayers, WorldDataDirectory worldCacheDirectory,
-            Vector2 sceneOrigin, IReadOnlyList<MapObjectLayoutMessagePack> mapObjects,
-            TerrainTileVisualProvider tileVisualProvider)
+            IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, TerrainTileVisualProvider tileVisualProvider)
         {
             _config = config;
             _terrainLayers = terrainLayers;
             _worldCacheDirectory = worldCacheDirectory;
-            _sceneOrigin = sceneOrigin;
             _mapObjects = mapObjects;
             _tileVisualProvider = tileVisualProvider;
         }
@@ -68,7 +62,6 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             // The master worldOffset lacks the spawn-search centering offset; using it would classify a different window ~2km away
             config.worldOffsetX = terrainMeta.Origins.NoiseOrigin.x;
             config.worldOffsetZ = terrainMeta.Origins.NoiseOrigin.y;
-            var sceneOrigin = terrainMeta.Origins.SceneOrigin;
 
             // マスタを差し替えると解像度が動く。読み出し長がずれて全画素が1列ずつ流れるので黙って通さない
             // Swapping the master moves the resolution; the read length would shift every pixel by a column, so it never passes silently
@@ -110,16 +103,15 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 mapObjects, worldCacheDirectory, visualCache);
 
             return new GeneratedTerrainSource(
-                config, terrainLayers, worldCacheDirectory, sceneOrigin, mapObjects, tileVisualProvider);
+                config, terrainLayers, worldCacheDirectory, mapObjects, tileVisualProvider);
         }
 
-        // タイルはシーン原点を起点に地形1枚ぶんずつ並ぶ。MapObjects/MapVeinsも同じ原点で配られる
-        // Tiles are laid out one terrain apart from the scene origin, the same origin MapObjects/MapVeins are served in
+        // 割り当ての式はサーバーと同一の TerrainGenerationConfig 側に1本だけ置く。別式だと片方だけ隣タイルへずれる
+        // The assignment lives once on TerrainGenerationConfig, shared with the server; a second formula shifts only one side by a tile
         public Vector3 TileWorldPosition(int tileX, int tileZ)
         {
-            return new Vector3(
-                _sceneOrigin.x + tileX * _config.terrainWidth, 0f,
-                _sceneOrigin.y + tileZ * _config.terrainLength);
+            var tileScene = _config.TileScenePosition(tileX, tileZ);
+            return new Vector3(tileScene.x, 0f, tileScene.y);
         }
 
         // visualCacheHitは呼び出し側の計測用。1枚ごとに再構築を省けたかを返す
@@ -130,11 +122,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             // The transferred heights are pre-tree by definition (R12): splat and detail density read them and only the display uses the perturbed ones
             var preHeights = TerrainFileLoader.LoadHeights(_worldCacheDirectory, tileX, tileZ, _config.Resolution);
 
-            // サーバーのタイルループと同形にずらす。窓が1枚ぶんずれないと全25タイルが同じ地形として分類される
-            // Shifted exactly as the server's tile loop does; without the per-tile shift all 25 tiles classify as the same terrain
-            var tileConfig = _config.ShallowCopy();
-            tileConfig.worldOffsetX = _config.worldOffsetX + tileX * _config.terrainWidth;
-            tileConfig.worldOffsetZ = _config.worldOffsetZ + tileZ * _config.terrainLength;
+            // サーバーのタイルループと同じ1本の式でずらす。窓が1枚ぶんずれないと全25タイルが同じ地形として分類される
+            // Shifted by the very formula the server's tile loop uses; without the per-tile shift all 25 tiles classify as the same terrain
+            var tileConfig = _config.CreateTileConfig(tileX, tileZ);
 
             var tileWorldPosition = TileWorldPosition(tileX, tileZ);
             var postHeights = TreePerturbationApplier.Apply(

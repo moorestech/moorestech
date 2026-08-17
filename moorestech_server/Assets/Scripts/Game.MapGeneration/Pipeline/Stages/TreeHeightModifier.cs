@@ -11,28 +11,15 @@ namespace Game.MapGeneration.Pipeline.Stages
     // Pre-perturbation heights are the transferred source of truth, so the server never applies this; the client does, for display (R12).
     public static class TreeHeightModifier
     {
-        // guid → (heightModAmount, heightModWidth)。有効バイオーム順・エントリ順・guid順で最初の出現が勝つ。
-        // これは元の prefab 展開＋prefabToProtoIndex（最初のインデックス）による属性付けと一致する。
-        // guid to (heightModAmount, heightModWidth); first occurrence wins in enabled-biome/entry/guid order,
-        // matching the original prefab-expansion plus prefabToProtoIndex (first index) attribution.
+        // guid → (heightModAmount, heightModWidth)。どの entry が勝つかは BiomePlacementHelper が唯一決める。
+        // Projects (heightModAmount, heightModWidth) out of the entries BiomePlacementHelper alone picks per guid.
         public static Dictionary<string, (float amount, float width)> BuildGuidModMap(
             BiomePlacementHelper helper, BiomeType[] biomeTypes)
         {
             var map = new Dictionary<string, (float, float)>();
-            foreach (var biome in biomeTypes)
-            {
-                var tp = helper.GetTreePlacementConfig(biome);
-                if (tp?.prototypes == null) continue;
-                foreach (var entry in tp.prototypes)
-                {
-                    if (entry == null || entry.disabled || entry.mapObjectGuids == null) continue;
-                    foreach (var guid in entry.mapObjectGuids)
-                    {
-                        if (string.IsNullOrEmpty(guid) || map.ContainsKey(guid)) continue;
-                        map[guid] = (entry.heightModAmount, entry.heightModWidth);
-                    }
-                }
-            }
+            foreach (var pair in helper.BuildFirstTreePrototypeByGuid(biomeTypes))
+                map[pair.Key] = (pair.Value.heightModAmount, pair.Value.heightModWidth);
+
             return map;
         }
 

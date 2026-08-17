@@ -34,6 +34,7 @@ properties:
   - G
   - B
   - A
+# 必須キー。テクスチャ源が無いことは空文字で明示させる（欠損を「無し」へ倒さない）
+# A required key: the absence of a texture source is stated with an empty string rather than by omission
 - key: texturePngPath
   type: string
-  default: ""

@@ -1,6 +1,7 @@
 using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.MapData;
+using UnityEngine;
 using static Client.Tests.UnitTest.Terrain.Surround.SurroundTestFixtures;
 
 namespace Client.Tests.UnitTest.Terrain.Surround
@@ -13,6 +14,12 @@ namespace Client.Tests.UnitTest.Terrain.Surround
     /// </summary>
     public class ObjectSurroundTexturePainterTest
     {
+
+        [SetUp]
+        public void SetUp()
+        {
+            LoadMasterData();
+        }
         private const int ClusterId = 7;
         private const int NoCluster = -1;
 
@@ -33,9 +40,9 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             var alphamap = CreateUniformAlphamap();
             Paint(alphamap, CreateSurroundConfig(), CreateHeights(0f), CreateRock(ClusterId));
 
-            // 再正規化を落とすと足した重みぶんだけ合計が1を超え、Unityが割り戻して全レイヤーが薄くなる。
+            // 再正規化を落とすと足した重みぶんだけ合計が1を超え、Unityが割り戻して全レイヤーが薄くなる
+            // Dropping the renormalization pushes the sum past 1 and Unity rescales it, thinning every layer
             // 合計が保たれるのは書き込み先のMud列が0で始まるこの盤面だけで、一般の保証ではない
-            // Dropping the renormalization pushes the sum past 1 and Unity rescales it, thinning every layer.
             // The sum only survives because this board starts with an empty Mud column; it is not a general guarantee
             for (var z = 0; z < AlphaResolution; z++)
             for (var x = 0; x < AlphaResolution; x++)
@@ -49,11 +56,10 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         [Test]
         public void APixelWhoseSurroundLayerAlreadyHasWeightEndsAboveOne()
         {
-            // 移植元の畳み方は「他レイヤー×(1-blend)」＋「書き込み先へ元の合計×blend」なので、合計は S+blend*m になる
-            // (m は書き込み先レイヤーの元の重み)。desertはMudDryをtextureConfigに持ち、重なる岩の2回目以降も必ず m>0 になる
-            // The source folds the other layers by (1-blend) and adds blend times the original total to the target, so the sum
-            // becomes S + blend*m (m being the target layer's original weight). Desert lists MudDry in its textureConfig, and any
-            // second write on overlapping rocks always has m > 0
+            // 移植元は他レイヤー×(1-blend)＋書き込み先へ元の合計×blendなので、合計はS+blend*m（mは書き込み先の元の重み）
+            // The source folds the others by (1-blend) and adds blend times the original total, so the sum becomes S + blend*m
+            // desertはMudDryをtextureConfigに持つので、重なる岩の2回目以降は必ず m>0 になる
+            // Desert lists MudDry in its textureConfig, so any second write on overlapping rocks always has m > 0
             var alphamap = CreateAlphamapWithSurroundWeight();
             Paint(alphamap, CreateSurroundConfig(), CreateHeights(0f), CreateRock(ClusterId));
 
@@ -129,25 +135,14 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             Assert.That(wideAlphamap[RockPixel, RockPixel + 2, MudLayerIndex], Is.GreaterThan(0.5f));
         }
 
-        [Test]
-        public void MaxReachCoversTheScaledFootprintPlusTheTransitionBand()
-        {
-            // haloがこの値を下回るとタイル境界の外の岩が落ち、裸地が境界で直線に切れる
-            // A halo below this value drops rocks past the tile edge and breaks the bare ground in a straight line
-            var surroundConfig = CreateSurroundConfig();
-            var reach = ObjectSurroundTexturePainter.MaxReach(
-                new[] { surroundConfig }, new[] { CreateRock(ClusterId) });
-
-            Assert.That(reach,
-                Is.EqualTo(surroundConfig.transitionRadius + surroundConfig.rockMeshBaseSize * 2f).Within(1e-4f));
-        }
-
+        // 到達距離はpainterの内部事情になったので直接は測れない。境界を跨ぐ塗りはSplatmapRuntimeGeneratorSurroundWiringTestが挟み込む
+        // The reach is now the painter's own business and cannot be measured directly; the seam behaviour is bracketed by SplatmapRuntimeGeneratorSurroundWiringTest
         private static void PaintWithTwoBiomes(
             float[,,] alphamap, SurroundTextureConfig firstConfig, SurroundTextureConfig secondConfig, int winningBiome)
         {
             ObjectSurroundTexturePainter.Apply(
                 alphamap, CreateConfig(), CreateLayerTable(), new[] { firstConfig, secondConfig },
-                CreateBiomeWeights(winningBiome), 2, CreateHeights(0f), new[] { CreateRock(7) });
+                CreateBiomeWeights(winningBiome), 2, CreateHeights(0f), new[] { CreateRock(7) }, Vector3.zero);
         }
 
         private static void Paint(
@@ -156,7 +151,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         {
             ObjectSurroundTexturePainter.Apply(
                 alphamap, CreateConfig(), CreateLayerTable(), new[] { surroundConfig },
-                CreateBiomeWeights(0), 1, heights, new[] { stoneObject });
+                CreateBiomeWeights(0), 1, heights, new[] { stoneObject }, Vector3.zero);
         }
     }
 }

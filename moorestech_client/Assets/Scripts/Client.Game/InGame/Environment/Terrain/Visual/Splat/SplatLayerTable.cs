@@ -56,10 +56,12 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
                     Register(entry.layerAddressablePath, $"biome[{biome}].textureConfig.entries[].layerAddressablePath");
             }
 
-            // 岩周辺の裸地レイヤーは未設定が既定でMudフォールバックへ倒れる。空を欠落として弾くと全バイオームで落ちる
-            // The bare-ground layer around rocks is unset by default and falls back to Mud, so rejecting empties would fail every biome
+            // 岩周辺の裸地レイヤーはマスタの必須キー。空はフォールバック指示ではなくアドレス整備漏れとして弾く
+            // The bare-ground layer around rocks is a required master key, so an empty address is a data gap rather than a request to fall back
             foreach (var surroundTextureConfig in biomeSurroundTextureConfigs)
-                RegisterOptional(surroundTextureConfig.surroundLayerAddressablePath);
+                Register(
+                    surroundTextureConfig.surroundLayerAddressablePath,
+                    "biome[].objectConfig.surroundTextureConfig.surroundLayerAddressablePath");
 
             // 木の根元のレイヤーは樹種ごと。塗る樹種のぶんだけを樹種テーブル自身が数えているので、ここへ来る時点で空は無い
             // A tree's root layer is per species, counted by the species table itself for the painting ones alone, so nothing empty arrives here
@@ -95,14 +97,6 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
 
                 layerIndexByAddress[layerAddress] = orderedLayerAddresses.Count;
                 orderedLayerAddresses.Add(layerAddress);
-            }
-
-            // 空を欠落と見なさない唯一の経路。空でなければ通常の登録と同じ扱いに戻す
-            // The one path that does not read an empty address as a gap; anything non-empty rejoins the normal registration
-            void RegisterOptional(string layerAddress)
-            {
-                if (string.IsNullOrEmpty(layerAddress)) return;
-                Register(layerAddress, "biome[].objectConfig.surroundTextureConfig.surroundLayerAddressablePath");
             }
 
             // 重複を畳まない唯一の経路。積んだ本数がそのまま列数になり、領域IDの剰余がその中を巡る

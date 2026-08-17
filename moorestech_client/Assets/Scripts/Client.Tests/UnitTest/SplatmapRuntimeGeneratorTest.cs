@@ -145,7 +145,9 @@ namespace Client.Tests.UnitTest
                 new[] { "addr/grass" },
                 new[] { new BiomeTextureConfig { entries = new TextureEntry[0] } },
                 new[] { new BiomeDetailConfig { entries = new DetailEntry[0] } },
-                new[] { new SurroundTextureConfig() });
+                // 岩の裸地は見ないので既存の岩レイヤーを指す。新しいアドレスだと列が1本増えて重み合計の検証がずれる
+                // The bare ground is out of scope here, so it reuses the rock layer: a new address would add a column and shift the weight-sum check
+                new[] { new SurroundTextureConfig { surroundLayerAddressablePath = "addr/rock" } });
             var layerTable = SplatLayerTable.Build(
                 "addr/beach", "addr/rock", visualSections.MainLayerAddresses, visualSections.TextureConfigs,
                 visualSections.SurroundTextureConfigs, SurroundTestFixtures.CreateTreeSurroundSpecies(), Array.Empty<string>());

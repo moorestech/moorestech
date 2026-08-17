@@ -2,6 +2,7 @@ using System;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.MapData;
+using UnityEngine;
 using static Client.Tests.UnitTest.Terrain.Surround.SurroundTestFixtures;
 
 namespace Client.Tests.UnitTest.Terrain.Surround
@@ -17,8 +18,16 @@ namespace Client.Tests.UnitTest.Terrain.Surround
     /// </summary>
     public class TreeSurroundTexturePainterTest
     {
-        private const string TreeGuid = "11111111-1111-1111-1111-111111111111";
-        private const string RockGuid = "22222222-2222-2222-2222-222222222222";
+
+        [SetUp]
+        public void SetUp()
+        {
+            LoadMasterData();
+        }
+        // 種別はマスタが正本になったので、木・岩ともforUnitTestマスタに実在するguidを使う
+        // The master now owns the kind, so both the tree and the rock use guids the forUnitTest master really defines
+        private const string TreeGuid = SurroundTestFixtures.TreeGuid;
+        private const string RockGuid = SurroundTestFixtures.StoneGuid;
         private const string TreeLayerAddress = "addr/Mud01";
 
         private const float Weight = 0.8f;
@@ -95,7 +104,8 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             var alphamap = CreateUniformAlphamap();
             var tree = CreateTreeAt(TreeGuid, RockLocalPosition, RockLocalPosition * 2f);
             TreeSurroundTexturePainter.Apply(
-                alphamap, config, CreateLayerTable(), CreateSpecies(TreeLayerAddress, Weight, Width), new[] { tree });
+                alphamap, config, CreateLayerTable(), CreateSpecies(TreeLayerAddress, Weight, Width),
+                new[] { tree }, Vector3.zero);
 
             Assert.That(alphamap[TreePixel, TreePixel, MudLayerIndex], Is.EqualTo(Weight).Within(1e-4f));
         }
@@ -157,7 +167,7 @@ namespace Client.Tests.UnitTest.Terrain.Surround
             float[,,] alphamap, MapObjectLayoutMessagePack treeObject, TreeSurroundSpeciesTable speciesTable)
         {
             TreeSurroundTexturePainter.Apply(
-                alphamap, CreateConfig(), CreateLayerTable(), speciesTable, new[] { treeObject });
+                alphamap, CreateConfig(), CreateLayerTable(), speciesTable, new[] { treeObject }, Vector3.zero);
         }
     }
 }

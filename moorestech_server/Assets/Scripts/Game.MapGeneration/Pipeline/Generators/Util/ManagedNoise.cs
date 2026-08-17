@@ -115,7 +115,7 @@ namespace Game.MapGeneration.Pipeline.Generators.Util
             float worldX, float worldZ, Vector2[] offsets,
             float gridOriginX, float gridOriginZ, float gridWidth, float gridLength)
         {
-            if (noise.noiseType == MapNoiseType.None && noise.texturePixels == null)
+            if (!noise.IsActive)
                 return 1f;
 
             // テクスチャが展開済みならノイズ関数より優先し、格子全体を 0-1 に正規化した UV で読む。
@@ -123,7 +123,7 @@ namespace Game.MapGeneration.Pipeline.Generators.Util
             // An expanded texture wins over the noise functions and is read through UV normalized over the whole grid.
             // Dividing by one tile would push every later tile past UV=1 and paint them with the rightmost texel's constant.
             float value;
-            if (noise.texturePixels != null)
+            if (noise.UsesTexture)
             {
                 float u = 0f < gridWidth ? (worldX - gridOriginX) / gridWidth : 0f;
                 float v = 0f < gridLength ? (worldZ - gridOriginZ) / gridLength : 0f;
