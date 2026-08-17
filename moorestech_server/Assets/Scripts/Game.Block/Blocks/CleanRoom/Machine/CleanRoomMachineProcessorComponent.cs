@@ -26,15 +26,17 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public ProcessState CurrentState { get; private set; }
         public bool IsPolluting => CurrentState == ProcessState.Processing;
 
-        // 停止中は要求電力を0にし、稼働中だけ通常機械と同じ倍率を適用する
+        // 停止中は要求電力率を0にし、稼働中だけ通常機械と同じ倍率を適用する
         // Halted machines request no power; operating states use the same multipliers as normal machines
-        public float EffectiveRequestPower => CurrentState switch
+        public float EffectiveRequestPowerRate => CurrentState switch
         {
             ProcessState.Halted => 0f,
-            ProcessState.Processing => _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier,
-            ProcessState.Idle => _context.RequestPower * _idlePowerRate,
+            ProcessState.Processing => _context.ProcessingPowerMultiplier,
+            ProcessState.Idle => _idlePowerRate,
             _ => throw new ArgumentOutOfRangeException(),
         };
+
+        public float EffectiveRequestPower => _context.RequestPower * EffectiveRequestPowerRate;
 
         public IObservable<Unit> OnChangeBlockState => _changeState;
         private readonly Subject<Unit> _changeState = new();
@@ -49,6 +51,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         private uint _cycleCount;
         private CleanRoomEffect _cleanRoomEffect = new(false, 0, 0);
         private ProcessState _lastState = ProcessState.Idle;
+
+        // CurrentPowerのラッチと同位置で確定するstate公開用の要求電力（読み出し時の再導出による分子分母ズレを防ぐ）
+        // Request power for state publishing, latched at the same point as CurrentPower to avoid a numerator/denominator mismatch on readout
+        private float _publishedRequestPower;
 
         public CleanRoomMachineProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
         {
@@ -66,6 +72,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                     _processingState,
                     new HaltedMachineProcessState(_processingState, () => _cleanRoomEffect.CanOperate),
                 }.ToDictionary(handler => handler.State);
+
+            // 初回GetBlockStateDetailsがUpdate前に呼ばれても妥当な値を返せるよう初期化する
+            // Initialize so GetBlockStateDetails returns a sane value even if called before the first Update
+            _publishedRequestPower = EffectiveRequestPower;
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
@@ -74,7 +84,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             var processingRate = Mathf.Clamp01(_processingState.TotalTicks > 0 ? 1f - (float)_processingState.RemainingTicks / _processingState.TotalTicks : 0f);
             // 充足率表示のためstateには基礎値でなく実効要求電力を載せる（ADR 0010）
             // Publish the effective request power (not the base) so the client rate reads as satisfaction (ADR 0010)
-            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, EffectiveRequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
+            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _publishedRequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
             var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid, SelectedRecipeGuid);
             return new[] { commonMachineBlock, machineBlock };
         }
@@ -136,6 +146,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             // Latch the previous tick's power before evaluating clean-room gated transitions
             _context.CurrentPower = _context.SuppliedPower;
             _context.SuppliedPower = 0f;
+            // 分子（CurrentPower）と同じ地点・同じ状態基準でstate公開用の要求電力を確定する
+            // Latch the state-published request power at the same point and state basis as CurrentPower
+            _publishedRequestPower = EffectiveRequestPower;
             if (!_cleanRoomEffect.CanOperate && CurrentState != ProcessState.Halted)
             {
                 ForceHaltedWithoutCompletingJob();
@@ -158,6 +171,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 // Processing.OnExit pays outputs, so a clean-room loss freezes without invoking it
                 CurrentState = ProcessState.Halted;
                 _stateHandlers[ProcessState.Halted].OnEnter();
+
+                // Halted中はSupplyExternalPowerの再通知が無く恒久固着するため、突入時に分子分母を0で確定する
+                // Halted never re-notifies via SupplyExternalPower, so pin both current and published power to zero on entry to avoid a permanent stale snapshot
+                _context.CurrentPower = 0f;
+                _publishedRequestPower = 0f;
             }
             void UpdateCurrentState()
             {

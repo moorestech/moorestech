@@ -22,6 +22,10 @@ namespace Game.Block.Blocks.Machine.State
         public float SuppliedPower;
         public float CurrentPower;
 
+        // 加工中の効果倍率を1箇所から取得し、processorのEffectiveRequestPowerRateと計算式を共有する
+        // Single source for the processing power multiplier so it stays in sync with the processor's EffectiveRequestPowerRate
+        public float ProcessingPowerMultiplier => EffectComponent.AggregateCurrent().PowerMultiplier;
+
         public MachineProcessContext(
             VanillaMachineInputInventory inputInventory,
             VanillaMachineOutputInventory outputInventory,

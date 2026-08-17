@@ -95,6 +95,9 @@ namespace Tests.CombinedTest.Core.CleanRoom
             // Wait for purity convergence and explicitly prove the machine entered processing
             for (var i = 0; i < 200 && processor.CurrentState != ProcessState.Processing; i++) TickRoom();
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
+            // state公開値は前tick基準でラッチされるため、遷移直後の1tickだけ古い値を挟んでから実効値に揃う
+            // The published state latches on the previous tick's basis, so it trails by one tick right after a transition before matching the effective value
+            TickRoom();
             // stateへ載る要求電力が基礎値ではなく実効値（EffectiveRequestPower）であることを固定する
             // Lock in that the state carries the effective request power, not the raw base value
             Assert.AreEqual(machineConsumer.EffectiveRequestPower, GetCommonMachineState(machine).RequestPower, 0.01f);

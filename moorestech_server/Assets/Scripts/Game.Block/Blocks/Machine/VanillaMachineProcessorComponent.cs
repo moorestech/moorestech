@@ -24,10 +24,13 @@ namespace Game.Block.Blocks.Machine
         public float CurrentPower => _context.CurrentPower;
         public ProcessState CurrentState { get; private set; }
 
+        // 稼働状態に応じてアイドル倍率かモジュール倍率を選ぶ要求電力率。歯車機械の要求トルク率もここから導出する
+        // Requested power rate selecting the idle rate or module multiplier by state; the gear machine's requested torque rate also derives from here
+        public float EffectiveRequestPowerRate => CurrentState == ProcessState.Processing ? _context.ProcessingPowerMultiplier : _idlePowerRate;
+
         // 稼働状態に応じてアイドル倍率かモジュール倍率を適用した要求電力
         // Requested power applies the idle rate or module multiplier based on the active state
-        public float EffectiveRequestPower => _context.RequestPower *
-                                              (CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : _idlePowerRate);
+        public float EffectiveRequestPower => _context.RequestPower * EffectiveRequestPowerRate;
 
         public IObservable<Unit> OnChangeBlockState => _changeState;
         private readonly Subject<Unit> _changeState = new();
@@ -36,8 +39,12 @@ namespace Game.Block.Blocks.Machine
         private readonly Dictionary<ProcessState, IMachineProcessState> _stateHandlers;
         private readonly ProcessingMachineProcessState _processingState;
         private readonly float _idlePowerRate;
-        
+
         private ProcessState _lastState = ProcessState.Idle;
+
+        // CurrentPowerのラッチと同位置で確定するstate公開用の要求電力（読み出し時の再導出による分子分母ズレを防ぐ）
+        // Request power for state publishing, latched at the same point as CurrentPower to avoid a numerator/denominator mismatch on readout
+        private float _publishedRequestPower;
 
         // 新規作成
         // For new creation
@@ -76,6 +83,10 @@ namespace Game.Block.Blocks.Machine
                     new IdleMachineProcessState(_context, _processingState),
                     _processingState,
                 }.ToDictionary(handler => handler.State);
+
+            // 初回GetBlockStateDetailsがUpdate前に呼ばれても妥当な値を返せるよう初期化する
+            // Initialize so GetBlockStateDetails returns a sane value even if called before the first Update
+            _publishedRequestPower = EffectiveRequestPower;
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
@@ -85,7 +96,7 @@ namespace Game.Block.Blocks.Machine
             var processingRate = Mathf.Clamp01(_processingState.TotalTicks > 0 ? 1f - (float)_processingState.RemainingTicks / _processingState.TotalTicks : 0f);
             // 充足率表示のためstateには基礎値でなく実効要求電力を載せる（ADR 0010）
             // Publish the effective request power (not the base) so the client rate reads as satisfaction (ADR 0010)
-            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, EffectiveRequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
+            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _publishedRequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
             
             var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid, SelectedRecipeGuid);
             return new[] { commonMachineBlock, machineBlock };
@@ -154,6 +165,10 @@ namespace Game.Block.Blocks.Machine
             // Latch the power accumulated during the previous tick and reset the accumulator (no supply -> 0, power is lost)
             _context.CurrentPower = _context.SuppliedPower;
             _context.SuppliedPower = 0f;
+
+            // 分子（CurrentPower）と同じ地点・同じ状態基準でstate公開用の要求電力を確定する
+            // Latch the state-published request power at the same point and state basis as CurrentPower
+            _publishedRequestPower = EffectiveRequestPower;
 
             // ステートのアップデートと変更処理
             // State update and transition handling
