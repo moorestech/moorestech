@@ -2,6 +2,8 @@
 /* Grid auto columns collapse when panels close and drag the hotbar left, so anchor it to the stage absolutely and always center it on screen */
 /* 帯は画面全幅の空箱なので入力を奪わせず、実UIであるスロット列だけが受け取る */
 /* The band is an empty full-width box, so only the slot row (the real UI) may take input */
+/* 常駐HUD族の他メンバー(CurrentChallengeHud等)と同格のz層。無指定(auto)だとscreenレベルメニューが下に沈む */
+/* Same z-tier as the rest of the resident-HUD family (CurrentChallengeHud, etc.); without it, screen-level menus would sink below the hotbar */
 .hotbarArea {
   position: absolute;
   right: 0;
@@ -11,6 +13,7 @@
   justify-content: center;
   align-items: flex-end;
   pointer-events: none;
+  z-index: var(--z-overlay-panel);
 }
 
 /* 外周枠を持たず各スロットを地面へ直接並べる */
