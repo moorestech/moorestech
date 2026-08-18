@@ -82,8 +82,8 @@ export default function App() {
   return (
     <div className={styles.viewport} data-web-ui-transparent>
       {modalScreen && <div className={styles.backdrop} data-testid="screen-backdrop" />}
-      <div ref={stageRef} className={styles.stage} data-web-ui-transparent>
-        {screenAllowsGrab(screen) && <InventoryPanel />}
+      <div ref={stageRef} className={styles.stage} data-web-ui-transparent data-testid="ui-stage">
+        {screenAllowsGrab(screen) && <InventoryPanel screen={screen} />}
         {screen === "playerInventory" && <RecipeViewer />}
         {screen === "playerInventory" && <ItemListPanel />}
         {/* stage内オーバーレイを一様拡縮し、ModalはPortalでviewportへ描画する */}
