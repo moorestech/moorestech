@@ -31,9 +31,10 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   const counts = useMemo(() => buildOwnedCounts(inventory.mainSlots), [inventory]);
 
   const itemName = resolveItemName(itemId) ?? t(L.ui.common.itemFallback, { itemId });
-  // アンカーはkindで対象クラフトを特定
-  // Pick the anchored craft by kind, not by position
-  const anchoredCraftGuid = entries.find((entry) => entry.kind === "craft")?.recipe.recipeGuid;
+  // buildRecipeEntriesがクラフト優先で並べるため、先頭がクラフトならそれが代表
+  // buildRecipeEntries sorts craft first, so the head entry is the representative craft when it is one
+  const headEntry = entries[0];
+  const anchoredCraftGuid = headEntry?.kind === "craft" ? headEntry.recipe.recipeGuid : undefined;
 
   if (entries.length === 0) {
     return (

@@ -172,6 +172,8 @@
   padding: 0;
   font-size: 12px;
   letter-spacing: 0.12em;
+  /* 合成太字禁止（app/index.css）のため文字の太さは4方向陰影で作る */
+  /* Synthetic bold is banned (app/index.css), so the weight comes from a 4-way shadow */
   text-shadow: 1px 0 0 rgb(0 40 80 / 55%), -1px 0 0 rgb(0 40 80 / 55%), 0 1px 0 rgb(0 40 80 / 55%), 0 -1px 0 rgb(0 40 80 / 55%);
   box-shadow: none;
 }

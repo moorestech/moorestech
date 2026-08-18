@@ -17,10 +17,8 @@ type Props = {
 // Shared recipe-row frame; keeps measured geometry in one place
 export default function RecipeRow({ testId, materials, arrowValue, arrowTestId, result }: Props) {
   return (
-    // 正本は素材/矢印/完成品の3カラムを固定配置する。space-betweenだと素材の点数で矢印列が押されて
-    // ズレるため、gridで列位置を内容量に依存させない
-    // The reference fixes 3 columns (materials / arrow / result); space-between let the arrow column
-    // drift with material count, so a grid pins each column regardless of content size
+    // 素材点数で矢印列がズレるためgridで3カラムの列位置を固定する
+    // A grid pins the 3 columns; space-between let the arrow drift with material count
     <div className={styles.recipeBox} data-testid={testId}>
       <Group gap={0} className={styles.recipeMaterials}>{materials}</Group>
       {/* 素材と完成品の間に進捗矢印を置く */}

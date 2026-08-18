@@ -13,8 +13,8 @@ const VIEWBOX_HEIGHT = 78;
 // Derive the clip width from the path extent so editing the path cannot desync it
 const ARROW_SPAN = ARROW_RIGHT - ARROW_LEFT;
 
-// 矢印グリフ自体が進捗ゲージ（webui-design §8.13）。配置側が親要素で寸法を決める
-// The arrow glyph itself is the progress gauge (webui-design §8.13); the caller sizes it via the parent element
+// 寸法は`.arrow`がトークン直参照で単独保持する（§8.13: 呼び出し側に寸法ラッパーを作らない）
+// `.arrow` alone owns the size via direct token references (§8.13: callers add no sizing wrapper)
 // value=null は「進捗という概念が無い」表示で、progressbarロールも充填層も持たない静止矢印になる
 // value=null means "no progress concept at all": a static arrow with neither the progressbar role nor a fill layer
 export default function ProgressArrowGlyph({ value, testId }: { value: number | null; testId: string }) {
