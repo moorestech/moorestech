@@ -16,9 +16,9 @@ def _is_unknown_markup(line: str) -> bool:
     return line[0] in "#>|" or (line[0] in "*+" and not line.startswith("**"))
 
 
-def blocks_html(md: str, refs: dict[str, str], indent: str, lang: str = "") -> str:
-    # 空行区切りのブロックへ割ってから、種別ごとに変換する
-    # Split on blank lines, then convert each block by its kind
+def blocks_html(md: str, refs: dict[str, str], indent: str, lang: str) -> str:
+    # 空行区切りのブロックへ割ってから、種別ごとに変換する。langはcode-cardの構文着色言語
+    # Split on blank lines and convert each block by kind; lang is the code-card highlight language
     out = []
     lines = md.splitlines()
     i = 0

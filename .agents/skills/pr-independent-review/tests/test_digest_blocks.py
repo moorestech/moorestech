@@ -28,20 +28,20 @@ def test_inline_html_unknown_ref_is_error():
 
 
 def test_blocks_html_paragraph_and_list():
-    got = blocks_html("段落だ。\n\n- 一つ目\n- 二つ目", {}, "      ")
+    got = blocks_html("段落だ。\n\n- 一つ目\n- 二つ目", {}, "      ", "")
     assert "<p>段落だ。</p>" in got
     assert "<ul>" in got and "<li>一つ目</li>" in got
 
 
 def test_blocks_html_rejects_unknown_syntax():
     with pytest.raises(DigestError) as e:
-        blocks_html("> 引用は未対応", {}, "")
+        blocks_html("> 引用は未対応", {}, "", "")
     assert "未対応" in str(e.value)
 
 
 def test_blocks_html_rejects_unknown_fence():
     with pytest.raises(DigestError) as e:
-        blocks_html("```mermaid\ngraph TD\n```", {}, "")
+        blocks_html("```mermaid\ngraph TD\n```", {}, "", "")
     assert "mermaid" in str(e.value)
 
 
@@ -58,5 +58,5 @@ def test_blocks_html_rejects_unknown_syntax_on_continuation_line():
     # 段落の2行目以降でも未知記法はエラーで落ちるべき（先頭行限定であってはならない）
     # Unknown markup must error even on a paragraph's continuation line, not just its first
     with pytest.raises(DigestError) as e:
-        blocks_html("段落一行目\n> 引用っぽい二行目", {}, "")
+        blocks_html("段落一行目\n> 引用っぽい二行目", {}, "", "")
     assert "未対応" in str(e.value)

@@ -115,7 +115,7 @@ def _appendix_html(md: str, refs: dict) -> str:
         if level != "2":
             continue
         out.append(f"    <details>\n      <summary>{inline_html(title, refs)}</summary>\n"
-                   f"{blocks_html(body, refs, '      ')}\n    </details>")
+                   f"{blocks_html(body, refs, '      ', '')}\n    </details>")
     return "\n".join(out)
 
 
@@ -142,13 +142,13 @@ def render_html(doc: Document, template: str, refs: dict, assets: dict) -> str:
     ordered = sorted(doc.findings, key=sort_key)
     for zone_id, heading in ZONES:
         cards = [_card_html(f, refs) for f in ordered if _zone_of(f) == zone_id]
-        note = blocks_html(doc.notes[zone_id], refs, "    ")
+        note = blocks_html(doc.notes[zone_id], refs, "    ", "")
         body = note + ("\n" + "\n".join(cards) if cards else "")
         parts.append(f'  <section id="{zone_id}">\n    <h2>{escape(heading)}</h2>\n{body}\n  </section>')
 
     # 判断台帳の箇条書きはテンプレの ul.plain 体裁で出す（出所リストの詰まった見た目を保つ）
     # The ledger's lists use the template's ul.plain style, keeping the dense source-list look
-    ledger = blocks_html(doc.ledger_md, refs, "    ").replace("<ul>", '<ul class="plain">')
+    ledger = blocks_html(doc.ledger_md, refs, "    ", "").replace("<ul>", '<ul class="plain">')
     parts.append('  <section id="ledger">\n    <h2>判断台帳</h2>\n'
                  f'{ledger}\n  </section>')
     parts.append('  <section id="appendix">\n    <h2>折りたたみ参考</h2>\n'

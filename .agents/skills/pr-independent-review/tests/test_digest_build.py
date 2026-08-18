@@ -120,6 +120,16 @@ def test_inline_safe_js_neutralizes_script_terminating_sequences():
         assert "</script" not in text
 
 
+def test_vendored_css_cannot_close_the_style_element():
+    # CSSは<style>へ素で入るので、テーマ差し替え時に </style を持ち込んでいないか見張る
+    # The themes are inlined into <style>, so guard against a swapped-in file carrying </style
+    sys.path.insert(0, str(SCRIPT.parent))
+    from digest_build import load_assets
+    assets = load_assets()
+    for key in ("hljs_css_light", "hljs_css_dark"):
+        assert "</style" not in assets[key]
+
+
 def test_missing_patch_diff_fails(tmp_path):
     # R4: patch.diff は Step 4 が必ず作る。無いまま生成させない
     # R4: patch.diff is always produced by Step 4; never build without it
