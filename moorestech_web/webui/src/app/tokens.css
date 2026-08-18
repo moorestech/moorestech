@@ -67,6 +67,9 @@
   /* Centralize the screen layer order to keep every overlay's stacking relationship fixed */
   --z-screen: 20;
   --z-overlay-panel: 30;
+  /* 全域パネル（研究）の上へ重畳する常設面: 持ち物パネル・画面キーヒント */
+  /* Chrome overlaid above full-stage panels: the inventory panel and screen key hints */
+  --z-overlay-panel-chrome: 31;
   --z-grab: 40;
   --z-modal: 200;
   /* ツールチップはモーダルより前、トースト通知より後ろに置く */

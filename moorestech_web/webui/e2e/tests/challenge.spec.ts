@@ -73,21 +73,23 @@ test("常駐HUDをインベントリ・メニュー・操作モードで維持�
   await setTopicScenario(page, "challengeMultipleLong");
   await setUiState(page, "GameScreen");
   const worldPresentation = await readChallengeHudPresentation(page);
+  // 研究パネルのみステージ全域を占有するため上部安全帯を持たず、HUDは空間分離でなくz層で重畳する（ADR 0014）
+  // The research panel alone spans the full stage with no upper safe area; the HUD overlays it by z-layer, not spatial separation (ADR 0014)
   const upperSafeMenus = [
-    ["PlayerInventory", undefined, "main-grid"],
-    ["SubInventory", undefined, "main-grid"],
-    ["ResearchTree", undefined, "research-tree"],
-    ["BuildMenu", undefined, "build-menu-panel"],
-    ["ChallengeList", undefined, "challenge-panel"],
-    ["PauseMenu", undefined, "pause-menu"],
-    ["TrainHUDScreen", "PauseMenuScreen", "pause-menu"],
+    ["PlayerInventory", undefined, "main-grid", true],
+    ["SubInventory", undefined, "main-grid", true],
+    ["ResearchTree", undefined, "research-tree", false],
+    ["BuildMenu", undefined, "build-menu-panel", true],
+    ["ChallengeList", undefined, "challenge-panel", true],
+    ["PauseMenu", undefined, "pause-menu", true],
+    ["TrainHUDScreen", "PauseMenuScreen", "pause-menu", true],
   ] as const;
-  for (const [state, subState, contentTestId] of upperSafeMenus) {
+  for (const [state, subState, contentTestId, hasUpperSafeArea] of upperSafeMenus) {
     await setUiState(page, state, subState);
     const menuContent = page.getByTestId(contentTestId);
     await expect(menuContent).toBeVisible();
     await expectChallengeHudPresentation(page, worldPresentation);
-    await expectAbove(challengeHud, menuContent);
+    if (hasUpperSafeArea) await expectAbove(challengeHud, menuContent);
   }
 
   // 左配置のHUDを一覧より上へ分離する

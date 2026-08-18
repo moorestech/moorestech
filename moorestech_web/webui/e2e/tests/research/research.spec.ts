@@ -112,3 +112,24 @@ test("research button sends research.complete and node becomes completed", async
   // The mock rewrites the node to completed and pushes; the button flips to the completed label
   await expect(page.getByTestId(`research-button-${researchableNodeGuid}`)).toContainText("研究済み");
 });
+
+test("研究パネルはステージ全域を占有し持ち物とキーヒントが上に重なる", async ({ page }) => {
+  await setUiState(page, "ResearchTree");
+  await page.goto("/");
+  const tree = page.getByTestId("research-tree");
+  const stageBox = await page.locator(".stage, [class*='stage']").first().boundingBox();
+  const treeBox = await tree.boundingBox();
+  // stage全域一致（一様スケール後の実px。誤差1px許容）
+  // Full-stage match in post-scale pixels with 1px tolerance
+  expect(Math.abs(treeBox!.x - stageBox!.x)).toBeLessThan(1.5);
+  expect(Math.abs(treeBox!.y - stageBox!.y)).toBeLessThan(1.5);
+  expect(Math.abs(treeBox!.width - stageBox!.width)).toBeLessThan(1.5);
+  expect(Math.abs(treeBox!.height - stageBox!.height)).toBeLessThan(1.5);
+  // 持ち物パネルとキーヒントは可視のまま（重畳・裁定2026-08-18）
+  // Inventory panel and key hints stay visible on top (adjudicated 2026-08-18)
+  await expect(page.getByTestId("main-grid")).toBeVisible();
+  await expect(page.getByTestId("research-key-hints")).toBeVisible();
+  // 持ち物グリッドがクリックを受ける（最前面確認。trialは重なり判定のみ行う）
+  // The inventory grid receives clicks (front-most check; trial only verifies hit-testing)
+  await page.getByTestId("main-grid").locator(":scope > *").first().click({ trial: true });
+});

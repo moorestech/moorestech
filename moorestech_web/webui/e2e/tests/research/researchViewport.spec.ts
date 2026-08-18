@@ -38,7 +38,9 @@ test("research tree keeps its pan position across close and reopen", async ({ pa
   const node = page.getByTestId(RESEARCHABLE_NODE);
   await expect(node).toBeVisible();
   const viewportBox = await page.getByTestId("research-viewport").boundingBox();
-  const dragStart = { x: viewportBox!.x + viewportBox!.width - 40, y: viewportBox!.y + viewportBox!.height - 40 };
+  // 研究パネルのステージ全域化で右下は常時HUD(装備スロット)と重なるため、右上の空白を使う
+  // The research panel now spans the full stage, so the bottom-right overlaps the always-on equipment HUD; use the top-right instead
+  const dragStart = { x: viewportBox!.x + viewportBox!.width - 40, y: viewportBox!.y + 40 };
   await page.mouse.move(dragStart.x, dragStart.y);
   await page.mouse.down();
   await page.mouse.move(dragStart.x - 60, dragStart.y + 30, { steps: 5 });
@@ -88,9 +90,11 @@ test("research tree zooms with the wheel and pans by dragging its empty backgrou
 
   // ドラッグ距離以上、慣性で滑走後停止
   // Moves at least the drag distance, glides, then stops
+  // 研究パネルのステージ全域化で右下は常時HUD(装備スロット)と重なるため、右上の空白を使う
+  // The research panel now spans the full stage, so the bottom-right overlaps the always-on equipment HUD; use the top-right instead
   const dragStart = {
     x: viewportBox!.x + viewportBox!.width - 40,
-    y: viewportBox!.y + viewportBox!.height - 40,
+    y: viewportBox!.y + 40,
   };
   const beforePan = await settleBoundingBox(page, node);
   await page.mouse.move(dragStart.x, dragStart.y);

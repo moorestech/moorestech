@@ -56,6 +56,7 @@
   width: var(--ui-viewport-width);
   height: var(--ui-viewport-height);
   pointer-events: none;
+  z-index: var(--z-overlay-panel-chrome);
 }
 
 /* uGUI 同様、インベントリ表示中は世界全体を暗く沈める全面dim（stageより下のworldbgを覆う） */
