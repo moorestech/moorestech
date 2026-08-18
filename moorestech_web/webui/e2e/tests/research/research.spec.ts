@@ -1,8 +1,24 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { expectCraftGrip } from "../../support/craftChromeAssertions";
-import { resetResearch, setUiState } from "../../support/mockControl";
+import { resetResearch, setTopicScenario, setUiState } from "../../support/mockControl";
 import { researchableNodeGuid, itemLackingNodeGuid } from "../../mock-host/researchFixtures";
+
+// 中心座標のhit-testが対象要素の子孫を指すか（=遮蔽されていないか）を検証する。
+// HUD自体はpointer-events:noneでelementFromPointが素通りするため、判定中だけ一時的にautoへ戻す
+// Verify the element under the point's center is a descendant of the target (i.e. not occluded).
+// The HUD is pointer-events: none so elementFromPoint would skip past it; flip it to auto only for the measurement
+async function expectHitTestWithin(locator: Locator) {
+  const isUnoccluded = await locator.evaluate((element) => {
+    const originalPointerEvents = element.style.pointerEvents;
+    element.style.pointerEvents = "auto";
+    const rect = element.getBoundingClientRect();
+    const target = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    element.style.pointerEvents = originalPointerEvents;
+    return target !== null && element.contains(target);
+  });
+  expect(isUnoccluded).toBe(true);
+}
 
 // 各テスト後に研究ツリーと ui_state を既定へ戻し、状態漏れを防ぐ
 // Reset the research tree and ui_state to defaults after each test to prevent state leakage
@@ -132,4 +148,36 @@ test("研究パネルはステージ全域を占有し持ち物とキーヒン�
   // 持ち物グリッドがクリックを受ける（最前面確認。trialは重なり判定のみ行う）
   // The inventory grid receives clicks (front-most check; trial only verifies hit-testing)
   await page.getByTestId("main-grid").locator(":scope > *").first().click({ trial: true });
+});
+
+test("研究パネル展開中も常駐チャレンジHUDとキーヒントが遮蔽されない", async ({ page }) => {
+  // pointer-events: none のためclick trialが使えず、中心座標のhit-testで遮蔽有無を検証する
+  // Click trial cannot be used because the HUD is pointer-events: none, so hit-test its center point instead
+  await setTopicScenario(page, "challengeActive");
+  await setUiState(page, "ResearchTree");
+  await page.goto("/");
+  await expect(page.getByTestId("research-tree")).toBeVisible();
+  const challengeHud = page.getByTestId("challenge-hud");
+  await expect(challengeHud).toBeVisible();
+  await expectHitTestWithin(challengeHud);
+  await expectHitTestWithin(page.getByTestId("research-key-hints"));
+  await setTopicScenario(page, "japanese");
+});
+
+test("研究パネル展開中も採掘進捗バーが遮蔽されない（.viewportOverlayのz封じ込めに依存する回帰ガード）", async ({ page }) => {
+  // ChallengeHud/研究キーヒントは自身が--z-overlay-panel(-chrome)を明示するため.viewportOverlayの
+  // z付与が無くても偶然勝つ。採掘進捗バーは--z-screen(20)しか持たず研究パネルの--z-overlay-panel(30)に
+  // 単独では負けるため、この一本だけがApp.module.css:59のz-index行に実際に依存する
+  // ChallengeHud and the research key hints each declare their own --z-overlay-panel(-chrome), so they
+  // happen to win even without .viewportOverlay's z-index. The mining progress bar only carries
+  // --z-screen(20) and alone loses to the research panel's --z-overlay-panel(30), so it is the one
+  // assertion that genuinely depends on the z-index line at App.module.css:59
+  await setUiState(page, "ResearchTree");
+  await page.goto("/");
+  await expect(page.getByTestId("research-tree")).toBeVisible();
+  await setTopicScenario(page, "mining");
+  const progressBar = page.getByTestId("progress-bar");
+  await expect(progressBar).toBeVisible();
+  await expectHitTestWithin(progressBar);
+  await setTopicScenario(page, "miningHidden");
 });

@@ -41,11 +41,18 @@ test("research tree keeps its pan position across close and reopen", async ({ pa
   // 研究パネルのステージ全域化で右下は常時HUD(装備スロット)と重なるため、右上の空白を使う
   // The research panel now spans the full stage, so the bottom-right overlaps the always-on equipment HUD; use the top-right instead
   const dragStart = { x: viewportBox!.x + viewportBox!.width - 40, y: viewportBox!.y + 40 };
+  const beforePan = await settleBoundingBox(page, node);
   await page.mouse.move(dragStart.x, dragStart.y);
   await page.mouse.down();
   await page.mouse.move(dragStart.x - 60, dragStart.y + 30, { steps: 5 });
   await page.mouse.up();
   const settled = await settleBoundingBox(page, node);
+  // ドラッグが実際にパンを起こしたことを検証（装備スロットとの衝突で起点が死んでいた回帰の再発防止）
+  // Verify the drag actually panned (regression guard: the drag origin previously collided with the equipment slot and produced zero movement)
+  expect(settled.x - beforePan.x).toBeLessThanOrEqual(-59.5);
+  expect(settled.x - beforePan.x).toBeGreaterThan(-60 - MAX_GLIDE_PX - 1);
+  expect(settled.y - beforePan.y).toBeGreaterThanOrEqual(29.5);
+  expect(settled.y - beforePan.y).toBeLessThan(30 + MAX_GLIDE_PX + 1);
 
   // 閉じ直してもパン位置は復元
   // Reopening restores the pan position, not re-centered
