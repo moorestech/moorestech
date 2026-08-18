@@ -1,4 +1,4 @@
-import type { GearNetworkStopReason } from "@/bridge";
+import type { GearNetworkStopReason, MachineProcessState } from "@/bridge";
 import { clamp01 } from "@/shared/clamp01";
 import { L, type TranslationKey } from "@/shared/i18n";
 
@@ -42,4 +42,24 @@ const GearStopReasonKeys: Record<GearNetworkStopReason, TranslationKey | null> =
   none: null,
   rocked: L.ui.blockInventory.stopReasonLocked,
   overRequirePower: L.ui.blockInventory.stopReasonInsufficientPower,
+};
+
+// 機械の稼働状態→表示（ラベル・不足トーン・充足率の表示可否）を1枚のテーブルで確定する
+// One table settles every state-driven display decision: label, insufficient tone, and whether the rate is shown
+export type MachineStateDisplay = {
+  labelKey: TranslationKey;
+  insufficient: boolean;
+  showPowerRate: boolean;
+};
+
+export function machineStateDisplay(currentState: MachineProcessState): MachineStateDisplay {
+  return MachineStateDisplayTable[currentState];
+}
+
+// haltedは要求電力を出さないため充足率が意味を持たず、不足トーンのラベルだけを見せる
+// Halted requests no power, so the rate is meaningless there and only the insufficient-toned label remains
+const MachineStateDisplayTable: Record<MachineProcessState, MachineStateDisplay> = {
+  idle: { labelKey: L.ui.blockInventory.machineStateIdle, insufficient: false, showPowerRate: true },
+  processing: { labelKey: L.ui.blockInventory.machineStateProcessing, insufficient: false, showPowerRate: true },
+  halted: { labelKey: L.ui.blockInventory.machineStateHalted, insufficient: true, showPowerRate: false },
 };

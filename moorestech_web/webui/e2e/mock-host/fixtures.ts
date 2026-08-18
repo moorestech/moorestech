@@ -58,8 +58,8 @@ export const blockChest = {
   fluidSlots: [],
 } satisfies BlockInventoryData;
 
-// INV-6 タンク機械: 液体スロット + 製作進捗(ProgressArrow 用)
-// INV-6 tank machine: fluid slots + processing progress (for ProgressArrow)
+// INV-6 タンク機械: 液体スロット + 製作進捗(ProgressArrowBar 用)
+// INV-6 tank machine: fluid slots + processing progress (for ProgressArrowBar)
 export const blockTank = {
   open: true,
   source: "block",

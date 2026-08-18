@@ -14,7 +14,7 @@ export type MachineRecipeSelectionRowData = {
 export function buildMachineRecipeSelectionRows(
   recipes: readonly MachineRecipe[],
   blockGuid: string,
-  selectedRecipeGuid: string | null | undefined,
+  selectedRecipeGuid: string,
 ): MachineRecipeSelectionRowData[] {
   const hasSelection = !isEmptyGuid(selectedRecipeGuid);
 
@@ -33,6 +33,12 @@ export function buildMachineRecipeSelectionRows(
   });
 }
 
-function isEmptyGuid(guid: string | null | undefined): boolean {
-  return !guid || guid === emptyGuid;
+function isEmptyGuid(guid: string): boolean {
+  return guid === emptyGuid;
+}
+
+// 未選択機械はレシピ選択タブから開始（ADR 0010）
+// A machine opened with no recipe selected starts on the recipe tab (user ruling in the ADR 0010 session)
+export function machineInitialTab(selectedRecipeGuid: string): "inventory" | "recipes" {
+  return isEmptyGuid(selectedRecipeGuid) ? "recipes" : "inventory";
 }

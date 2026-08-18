@@ -1,6 +1,6 @@
 import { Stack, Text } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
-import { ItemSlot, SlotGrid, ProgressArrow, FluidSlotRow } from "@/shared/ui";
+import { ItemSlot, SlotGrid, ProgressArrowGlyph, FluidSlotRow } from "@/shared/ui";
 import { useBlockSlotGestures } from "../../useBlockSlotGestures";
 import { itemsPerMinute, splitSlotIndices } from "../detailLogic";
 import { L, useI18n } from "@/shared/i18n";
@@ -37,7 +37,7 @@ export default function MachineInventoryBody({ data }: { data: BlockInventoryOpe
         <div className={styles.inputSide}>
           <SlotGrid cols={Math.max(1, input.length)} testId="machine-input-slots">{input.map(slotAt)}</SlotGrid>
         </div>
-        <ProgressArrow value={data.progress ?? 0} />
+        <ProgressArrowGlyph value={data.progress ?? 0} testId="machine-progress-arrow" />
         <div className={styles.outputSide}>
           <SlotGrid cols={Math.max(1, output.length)} testId="machine-output-slots">{output.map(slotAt)}</SlotGrid>
         </div>

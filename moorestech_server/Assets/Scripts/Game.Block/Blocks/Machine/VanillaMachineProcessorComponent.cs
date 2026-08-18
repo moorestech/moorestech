@@ -8,12 +8,12 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Blocks.Machine.RecipeSelection;
 using Game.Block.Blocks.Machine.State;
+using Game.Block.Blocks.Machine.State.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.MachineRecipesModule;
 using UniRx;
-using UnityEngine;
 
 namespace Game.Block.Blocks.Machine
 {
@@ -24,10 +24,11 @@ namespace Game.Block.Blocks.Machine
         public float CurrentPower => _context.CurrentPower;
         public ProcessState CurrentState { get; private set; }
 
-        // 稼働状態に応じてアイドル倍率かモジュール倍率を適用した要求電力
-        // Requested power applies the idle rate or module multiplier based on the active state
-        public float EffectiveRequestPower => _context.RequestPower *
-                                              (CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : _idlePowerRate);
+        // 稼働状態に応じた要求電力率。歯車機械の要求トルク率もここから導出する
+        // Requested power rate for the active state; the gear machine's requested torque rate also derives from here
+        public float EffectiveRequestPowerRate => _context.EffectiveRequestPowerRate(CurrentState);
+
+        public float EffectiveRequestPower => _context.EffectiveRequestPower(CurrentState);
 
         public IObservable<Unit> OnChangeBlockState => _changeState;
         private readonly Subject<Unit> _changeState = new();
@@ -35,8 +36,7 @@ namespace Game.Block.Blocks.Machine
         private readonly MachineProcessContext _context;
         private readonly Dictionary<ProcessState, IMachineProcessState> _stateHandlers;
         private readonly ProcessingMachineProcessState _processingState;
-        private readonly float _idlePowerRate;
-        
+
         private ProcessState _lastState = ProcessState.Idle;
 
         // 新規作成
@@ -55,9 +55,7 @@ namespace Game.Block.Blocks.Machine
 
         private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, float idlePowerRate, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs, MachineRecipeMasterElement selectedRecipe)
         {
-            _context = new MachineProcessContext(input, output, effect, requestPower);
-            _context.SelectedRecipe = selectedRecipe;
-            _idlePowerRate = idlePowerRate;
+            _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate) { SelectedRecipe = selectedRecipe };
 
             // 加工状態を復元
             // Restore processing state
@@ -76,17 +74,16 @@ namespace Game.Block.Blocks.Machine
                     new IdleMachineProcessState(_context, _processingState),
                     _processingState,
                 }.ToDictionary(handler => handler.State);
+
+            // 初回GetBlockStateDetailsがUpdate前に呼ばれても妥当な値を返せるよう初期化する
+            // Initialize so GetBlockStateDetails returns a sane value even if called before the first Update
+            _context.RelatchPublishedRequestPower(CurrentState);
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
-
-            var processingRate = Mathf.Clamp01(_processingState.TotalTicks > 0 ? 1f - (float)_processingState.RemainingTicks / _processingState.TotalTicks : 0f);
-            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _context.RequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
-            
-            var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid, SelectedRecipeGuid);
-            return new[] { commonMachineBlock, machineBlock };
+            return MachineStateDetailFactory.Create(_context, _processingState, CurrentState, _lastState);
         }
 
         public Guid SelectedRecipeGuid => _context.SelectedRecipe?.MachineRecipeGuid ?? Guid.Empty;
@@ -123,6 +120,10 @@ namespace Game.Block.Blocks.Machine
 
             if (CurrentState == ProcessState.Processing) CurrentState = ProcessState.Idle;
             _context.SelectedRecipe = recipe;
+
+            // 状態を書き換えたので、公開中の分母を新状態基準へ取り直してから通知する
+            // The state was rewritten, so re-derive the published denominator on the new state before notifying
+            _context.RelatchPublishedRequestPower(CurrentState);
             _changeState.OnNext(Unit.Default);
             return MachineRecipeSelectionResult.Success;
         }
@@ -148,10 +149,9 @@ namespace Game.Block.Blocks.Machine
             // Drive output insertion into connected inventories here (was a global subscription on the inventory that outlived block destruction)
             _context.OutputInventory.InsertConnectInventory();
 
-            // 直前tickで蓄積された供給電力を確定し、加算器をリセットする（未供給なら0になり電力を失う）
-            // Latch the power accumulated during the previous tick and reset the accumulator (no supply -> 0, power is lost)
-            _context.CurrentPower = _context.SuppliedPower;
-            _context.SuppliedPower = 0f;
+            // 直前tickで蓄積された供給電力と、同じ状態基準の要求電力を同位置で確定する
+            // Latch the power accumulated during the previous tick together with the request power on the same state basis
+            _context.LatchTickPower(CurrentState);
 
             // ステートのアップデートと変更処理
             // State update and transition handling
@@ -178,13 +178,13 @@ namespace Game.Block.Blocks.Machine
         {
             IsDestroy = true;
         }
-        
+
         // セーブデータ構築
         // Build save data object
         public VanillaMachineProcessorSaveJsonObject GetSaveJsonObject()
         {
             BlockException.CheckDestroy(this);
-            
+    
             // tickを秒数に変換して保存（tick数の変動に対応）
             // Convert ticks to seconds for storage (to handle tick rate changes)
             return new VanillaMachineProcessorSaveJsonObject

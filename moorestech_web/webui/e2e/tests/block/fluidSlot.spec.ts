@@ -35,12 +35,12 @@ test("Water 名のツールチップが hover で表示される", async ({ page
   await expect(page.getByText("Water")).toBeVisible();
 });
 
-test("progress-arrow のフィル幅が 50% になる", async ({ page }) => {
+test("progress-arrow-bar のフィル幅が 50% になる", async ({ page }) => {
   await setBlock(page, "tank");
   await page.goto("/");
   await expect(page.getByTestId("generic-block-fluids")).toBeVisible();
   // progress 0.5 → フィル要素のインラインスタイル width:50%
   // progress 0.5 → fill element inline style width:50%
-  const fill = page.getByTestId("progress-arrow").locator("> div");
+  const fill = page.getByTestId("progress-arrow-bar").locator("> div");
   await expect(fill).toHaveAttribute("style", /50%/);
 });
