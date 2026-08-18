@@ -103,7 +103,7 @@ def _appendix_html(md: str, refs: dict) -> str:
     return "\n".join(out)
 
 
-def render_html(doc: Document, template: str, refs: dict) -> str:
+def render_html(doc: Document, template: str, refs: dict, assets: dict) -> str:
     # 検証 → verdictヘッダとインデックス → ゾーン → 判断台帳/折りたたみ参考、の順で <main> を組む
     # Validate, then assemble <main> as verdict header + index, zones, ledger/appendix
     if "<main>" not in template:
@@ -148,7 +148,8 @@ def render_html(doc: Document, template: str, refs: dict) -> str:
     title = f"独立レビュー: {heading}" if heading.startswith("PR #") else f"独立レビュー: PR #{meta['pr']} {heading}"
     # 置換前にテンプレ側の全トークン存在を確認し、欠落を無言で通さない
     # Verify every template token exists before replacing, so a missing one never slips through silently
-    for token in ("{{TITLE}}", "{{DATE}}", "{{SUBTITLE}}",
+    for token in ("{{TITLE}}", "{{DATE}}", "{{SUBTITLE}}", "{{HLJS_JS}}",
+                  "{{HLJS_CSS_LIGHT}}", "{{HLJS_CSS_DARK}}",
                   "REPLACE_WITH_UNIQUE_STORAGE_KEY", "REPLACE_WITH_COPY_HEADING"):
         if token not in out:
             raise DigestError(f"テンプレに {token} がありません")
@@ -156,4 +157,9 @@ def render_html(doc: Document, template: str, refs: dict) -> str:
     out = out.replace("{{SUBTITLE}}", escape(f"verdict: {VERDICT_TEXT[verdict]}"))
     out = out.replace("REPLACE_WITH_UNIQUE_STORAGE_KEY", f"pr-review-{meta['pr']}-comments-v1")
     out = out.replace("REPLACE_WITH_COPY_HEADING", f"PR #{meta['pr']} 独立レビュー裁定")
+    # vendor資産は固定バージョンの自前管理物なのでエスケープせず素通しする（唯一の生HTML注入点）
+    # Vendored assets are self-managed at a pinned version, so they pass through unescaped (the only raw-HTML injection)
+    out = out.replace("{{HLJS_JS}}", assets["hljs_js"])
+    out = out.replace("{{HLJS_CSS_LIGHT}}", assets["hljs_css_light"])
+    out = out.replace("{{HLJS_CSS_DARK}}", assets["hljs_css_dark"])
     return out

@@ -492,6 +492,13 @@
   details summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   details ul { padding-left: 20px; }
   details li { font-size: 13px; margin: 5px 0; }
+  /* ---- highlight.js テーマ（ライト） / highlight.js theme (light) ---- */
+{{HLJS_CSS_LIGHT}}
+  @media (prefers-color-scheme: dark) {
+{{HLJS_CSS_DARK}}
+  }
+  /* テーマ側の .hljs 背景はカードの帯を潰すので無効化する / the theme's .hljs background would hide the diff bands */
+  .code-card .hljs, .code-card .code { background: transparent !important; }
 </style>
 </head>
 <body>
@@ -575,6 +582,7 @@
   </div>
 </div>
 
+<script id="hljs-bundle">{{HLJS_JS}}</script>
 <script>
 (function () {
   'use strict';
@@ -969,6 +977,21 @@
   // ---- 初期描画 ----
   markFigureComments();
   renderPanel();
+  // コードカードを行ごとに構文着色する（行番号・差分グリフの構造を壊さないため行単位で当てる）
+  // Highlight code cards line by line so the gutter and diff signs stay intact
+  function highlightCodeCards() {
+    if (!window.hljs) return;
+    var cards = document.querySelectorAll('pre.code-card[data-lang]');
+    for (var i = 0; i < cards.length; i++) {
+      var lang = cards[i].getAttribute('data-lang');
+      if (!hljs.getLanguage(lang)) continue;
+      var codes = cards[i].querySelectorAll('span.code');
+      for (var j = 0; j < codes.length; j++) {
+        codes[j].innerHTML = hljs.highlight(codes[j].textContent, { language: lang, ignoreIllegals: true }).value;
+      }
+    }
+  }
+  highlightCodeCards();
 })();
 </script>
 

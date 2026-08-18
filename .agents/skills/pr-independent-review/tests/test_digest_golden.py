@@ -12,12 +12,23 @@ SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "digest_build.py"
 # Detects a bare finding id written outside the [F:slug] cross-reference syntax
 _BARE_FINDING_ID = re.compile(r"\bF(0[1-9]|1[01])\b")
 
+# 127KBのバンドル本体はgoldenへ持たない。存在と規模だけ検査し、比較時は差し替える
+# The 127KB bundle never lands in the golden file; presence and size are checked, then it is swapped out
+_BUNDLE = re.compile(r'(?s)<script id="hljs-bundle">.*?</script>')
+
+
+def _normalize(html: str) -> str:
+    m = _BUNDLE.search(html)
+    assert m, "hljsバンドルが出力にありません"
+    assert len(m.group(0)) > 100000, "hljsバンドルが小さすぎます（取得失敗の疑い）"
+    return _BUNDLE.sub('<script id="hljs-bundle">[BUNDLE]</script>', html)
+
 
 def test_golden_html_is_reproduced(tmp_path):
     (tmp_path / "digest.md").write_text((GOLDEN / "pr-1155-digest.md").read_text(encoding="utf-8"), encoding="utf-8")
     r = subprocess.run([sys.executable, str(SCRIPT), str(tmp_path)], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
-    got = (tmp_path / "digest.html").read_text(encoding="utf-8")
+    got = _normalize((tmp_path / "digest.html").read_text(encoding="utf-8"))
     want = (GOLDEN / "pr-1155-digest.expected.html").read_text(encoding="utf-8")
     assert got == want
 

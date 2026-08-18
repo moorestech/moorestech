@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -14,6 +15,28 @@ from digest_md.parse import DigestError, parse_document
 from digest_md.render import render_html
 
 TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "digest-template.html"
+VENDOR = Path(__file__).resolve().parent.parent / "assets" / "vendor"
+
+
+# インラインscriptの本文にこの並びが出るとHTMLパーサがscript終端を見失い、後続のJSごと本文に飲まれる
+# These sequences make the HTML parser lose the inline script's end tag and swallow the following JS
+_HTML_UNSAFE_IN_SCRIPT = {"<!--": "<\\x21--", "<script": "<\\x73cript", "</script": "<\\x2Fscript"}
+
+
+def inline_safe_js(js: str) -> str:
+    # 危険な並びを等価な16進エスケープへ置き換える。JSの文字列・正規表現リテラルどちらでも意味が変わらない
+    # Swap the dangerous sequences for equivalent hex escapes, which mean the same in JS strings and regex literals
+    for pattern, replacement in _HTML_UNSAFE_IN_SCRIPT.items():
+        js = js.replace(pattern, replacement)
+    return js
+
+
+def load_assets() -> dict:
+    # インライン同梱するvendor資産を読む。file://で完結させるための唯一の外部素材
+    # Load the vendored assets inlined into the page; the only external material, kept self-contained for file://
+    return {"hljs_js": inline_safe_js((VENDOR / "highlight.min.js").read_text(encoding="utf-8")),
+            "hljs_css_light": (VENDOR / "github.min.css").read_text(encoding="utf-8"),
+            "hljs_css_dark": (VENDOR / "github-dark.min.css").read_text(encoding="utf-8")}
 
 
 def verify(html: str, findings: dict) -> list:
@@ -37,8 +60,14 @@ def verify(html: str, findings: dict) -> list:
         problems.append("REPLACE_WITH_ プレースホルダが残っています")
     if "使い方:" in html:
         problems.append("使い方コメントが残っています")
-    if html.count("<script") != 1:
-        problems.append(f"<script> が {html.count('<script')} 個あります（1個であるべき）")
+    if html.count("<script") != 2:
+        problems.append(f"<script> が {html.count('<script')} 個あります（バンドルと本体で2個であるべき）")
+    if 'id="hljs-bundle"' not in html:
+        problems.append("highlight.js バンドルが埋め込まれていません")
+    # 本文が外部URLを引用するのは正当なので、資産を引きに行くタグ属性だけを見る
+    # Quoting an external URL in prose is legitimate, so only asset-fetching attributes are checked
+    if re.search(r'(?:src|href)\s*=\s*"https?://', html):
+        problems.append("外部資産を参照するタグが残っています（file://で完結しなくなる）")
     ids = [f["id"] for f in findings["findings"]]
     for fid in ids:
         if f'data-finding-id="{fid}"' not in html:
@@ -70,7 +99,7 @@ def main() -> int:
         doc = parse_document(md_path.read_text(encoding="utf-8"))
         refs = assign_ids(doc)
         findings = build_findings(doc)
-        html = render_html(doc, TEMPLATE.read_text(encoding="utf-8"), refs)
+        html = render_html(doc, TEMPLATE.read_text(encoding="utf-8"), refs, load_assets())
     except DigestError as e:
         print(f"digest.md の形式エラー: {e}", file=sys.stderr)
         return 1

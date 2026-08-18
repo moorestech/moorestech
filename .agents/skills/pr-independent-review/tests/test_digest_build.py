@@ -98,3 +98,14 @@ def test_cli_fails_loudly_on_broken_markdown(tmp_path):
     assert r.returncode == 1
     assert r.stderr.strip()
     assert not (tmp_path / "digest.html").exists()
+
+
+def test_inline_safe_js_neutralizes_script_terminating_sequences():
+    # インラインscriptの本文に <!-- や <script が残るとHTMLパーサが </script> を見失う
+    # A leftover <!-- or <script in the inline body makes the HTML parser lose the </script>
+    sys.path.insert(0, str(SCRIPT.parent))
+    from digest_build import inline_safe_js, load_assets
+    for text in (load_assets()["hljs_js"], inline_safe_js("/<!--/ /<script/ '</script>'")):
+        assert "<!--" not in text
+        assert "<script" not in text
+        assert "</script" not in text
