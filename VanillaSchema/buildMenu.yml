@@ -8,6 +8,9 @@ id: buildMenu
 type: object
 isDefaultOpen: true
 properties:
+- key: blueprintInitialUnlocked
+  type: boolean
+  default: false
 - key: categories
   type: array
   openedByDefault: true
@@ -104,6 +107,3 @@ properties:
       type: enum
       options:
       - blueprintCopy
-    - key: initialUnlocked
-      type: boolean
-      default: false

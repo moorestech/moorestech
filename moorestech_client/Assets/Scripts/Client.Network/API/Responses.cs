@@ -105,55 +105,30 @@ namespace Client.Network.API
     
     public class UnlockStateResponse
     {
-        public readonly List<Guid> LockedCraftRecipeGuids;
-        public readonly List<Guid> UnlockedCraftRecipeGuids;
-        
-        public readonly List<ItemId> LockedItemIds;
-        public readonly List<ItemId> UnlockedItemIds;
+        // 名前付きの対応するオブジェクト初期化子で構築する。位置引数コンストラクタは持たない（C14裁定）
+        // Built via a corresponding named object initializer; carries no positional constructor (C14 ruling)
+        public List<Guid> LockedCraftRecipeGuids { get; set; }
+        public List<Guid> UnlockedCraftRecipeGuids { get; set; }
 
-        public readonly List<Guid> LockedChallengeCategoryGuids;
-        public readonly List<Guid> UnlockedChallengeCategoryGuids;
+        public List<ItemId> LockedItemIds { get; set; }
+        public List<ItemId> UnlockedItemIds { get; set; }
 
-        public readonly List<Guid> LockedMachineRecipeGuids;
-        public readonly List<Guid> UnlockedMachineRecipeGuids;
+        public List<Guid> LockedChallengeCategoryGuids { get; set; }
+        public List<Guid> UnlockedChallengeCategoryGuids { get; set; }
 
-        public readonly List<Guid> LockedBlockGuids;
-        public readonly List<Guid> UnlockedBlockGuids;
+        public List<Guid> LockedMachineRecipeGuids { get; set; }
+        public List<Guid> UnlockedMachineRecipeGuids { get; set; }
 
-        public readonly List<Guid> LockedTrainCarGuids;
-        public readonly List<Guid> UnlockedTrainCarGuids;
+        public List<Guid> LockedBlockGuids { get; set; }
+        public List<Guid> UnlockedBlockGuids { get; set; }
 
-        public readonly List<Guid> LockedConnectToolGuids;
-        public readonly List<Guid> UnlockedConnectToolGuids;
+        public List<Guid> LockedTrainCarGuids { get; set; }
+        public List<Guid> UnlockedTrainCarGuids { get; set; }
 
-        public readonly bool IsBlueprintUnlocked;
+        public List<Guid> LockedConnectToolGuids { get; set; }
+        public List<Guid> UnlockedConnectToolGuids { get; set; }
 
-        public UnlockStateResponse(
-            List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids,
-            List<ItemId> lockedItemIds, List<ItemId> unlockedItemIds,
-            List<Guid> lockedChallengeCategoryGuids, List<Guid> unlockedChallengeCategoryGuids,
-            List<Guid> lockedMachineRecipeGuids, List<Guid> unlockedMachineRecipeGuids,
-            List<Guid> lockedBlockGuids, List<Guid> unlockedBlockGuids,
-            List<Guid> lockedTrainCarGuids, List<Guid> unlockedTrainCarGuids,
-            List<Guid> lockedConnectToolGuids, List<Guid> unlockedConnectToolGuids,
-            bool isBlueprintUnlocked)
-        {
-            LockedCraftRecipeGuids = lockedCraftRecipeGuids;
-            UnlockedCraftRecipeGuids = unlockedCraftRecipeGuids;
-            LockedItemIds = lockedItemIds;
-            UnlockedItemIds = unlockedItemIds;
-            LockedChallengeCategoryGuids = lockedChallengeCategoryGuids;
-            UnlockedChallengeCategoryGuids = unlockedChallengeCategoryGuids;
-            LockedMachineRecipeGuids = lockedMachineRecipeGuids;
-            UnlockedMachineRecipeGuids = unlockedMachineRecipeGuids;
-            LockedBlockGuids = lockedBlockGuids;
-            UnlockedBlockGuids = unlockedBlockGuids;
-            LockedTrainCarGuids = lockedTrainCarGuids;
-            UnlockedTrainCarGuids = unlockedTrainCarGuids;
-            LockedConnectToolGuids = lockedConnectToolGuids;
-            UnlockedConnectToolGuids = unlockedConnectToolGuids;
-            IsBlueprintUnlocked = isBlueprintUnlocked;
-        }
+        public bool IsBlueprintUnlocked { get; set; }
     }
 
     // 列車スナップショット取得時のレスポンス

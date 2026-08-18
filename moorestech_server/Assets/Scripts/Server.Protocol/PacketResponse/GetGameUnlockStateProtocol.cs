@@ -111,15 +111,25 @@ namespace Server.Protocol.PacketResponse
                 else lockedConnectTool.Add(connectTool.ConnectToolGuid.ToString());
             }
 
-            return new ResponseGameUnlockStateProtocolMessagePack(
-                unlockedCraftRecipe, lockedCraftRecipe,
-                lockedItem, unlockedItem,
-                lockedChallengeCategory, unlockedChallengeCategory,
-                lockedMachineRecipe, unlockedMachineRecipe,
-                lockedBlock, unlockedBlock,
-                lockedTrainCar, unlockedTrainCar,
-                lockedConnectTool, unlockedConnectTool,
-                gameUnlockStateData.IsBlueprintUnlocked);
+            return new ResponseGameUnlockStateProtocolMessagePack
+            {
+                Tag = ProtocolTag,
+                UnlockedCraftRecipeGuidsStr = unlockedCraftRecipe,
+                LockedCraftRecipeGuidsStr = lockedCraftRecipe,
+                LockedItemIdsInt = lockedItem,
+                UnlockedItemIdsInt = unlockedItem,
+                LockedChallengeCategoryGuidsStr = lockedChallengeCategory,
+                UnlockedChallengeCategoryGuidsStr = unlockedChallengeCategory,
+                LockedMachineRecipeGuidsStr = lockedMachineRecipe,
+                UnlockedMachineRecipeGuidsStr = unlockedMachineRecipe,
+                LockedBlockGuidsStr = lockedBlock,
+                UnlockedBlockGuidsStr = unlockedBlock,
+                LockedTrainCarGuidsStr = lockedTrainCar,
+                UnlockedTrainCarGuidsStr = unlockedTrainCar,
+                LockedConnectToolGuidsStr = lockedConnectTool,
+                UnlockedConnectToolGuidsStr = unlockedConnectTool,
+                IsBlueprintUnlocked = gameUnlockStateData.IsBlueprintUnlocked,
+            };
         }
         
         
@@ -169,36 +179,6 @@ namespace Server.Protocol.PacketResponse
             [Key(14)] public List<string> LockedConnectToolGuidsStr { get; set; }
             [Key(15)] public List<string> UnlockedConnectToolGuidsStr { get; set; }
             [Key(16)] public bool IsBlueprintUnlocked { get; set; }
-
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public ResponseGameUnlockStateProtocolMessagePack() { }
-            public ResponseGameUnlockStateProtocolMessagePack(
-                List<string> unlockedCraftRecipeGuidsStr, List<string> lockedCraftRecipeGuidsStr,
-                List<int> lockedItemIds, List<int> unlockedItemIds,
-                List<string> lockedChallengeCategoryGuidsStr, List<string> unlockedChallengeCategoryGuidsStr,
-                List<string> lockedMachineRecipeGuidsStr, List<string> unlockedMachineRecipeGuidsStr,
-                List<string> lockedBlockGuidsStr, List<string> unlockedBlockGuidsStr,
-                List<string> lockedTrainCarGuidsStr, List<string> unlockedTrainCarGuidsStr,
-                List<string> lockedConnectToolGuidsStr, List<string> unlockedConnectToolGuidsStr,
-                bool isBlueprintUnlocked)
-            {
-                Tag = ProtocolTag;
-                UnlockedCraftRecipeGuidsStr = unlockedCraftRecipeGuidsStr;
-                LockedCraftRecipeGuidsStr = lockedCraftRecipeGuidsStr;
-                LockedItemIdsInt = lockedItemIds;
-                UnlockedItemIdsInt = unlockedItemIds;
-                LockedChallengeCategoryGuidsStr = lockedChallengeCategoryGuidsStr;
-                UnlockedChallengeCategoryGuidsStr = unlockedChallengeCategoryGuidsStr;
-                LockedMachineRecipeGuidsStr = lockedMachineRecipeGuidsStr;
-                UnlockedMachineRecipeGuidsStr = unlockedMachineRecipeGuidsStr;
-                LockedBlockGuidsStr = lockedBlockGuidsStr;
-                UnlockedBlockGuidsStr = unlockedBlockGuidsStr;
-                LockedTrainCarGuidsStr = lockedTrainCarGuidsStr;
-                UnlockedTrainCarGuidsStr = unlockedTrainCarGuidsStr;
-                LockedConnectToolGuidsStr = lockedConnectToolGuidsStr;
-                UnlockedConnectToolGuidsStr = unlockedConnectToolGuidsStr;
-                IsBlueprintUnlocked = isBlueprintUnlocked;
-            }
         }
     }
 }

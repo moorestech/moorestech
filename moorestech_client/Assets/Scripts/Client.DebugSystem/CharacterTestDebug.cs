@@ -48,7 +48,24 @@ namespace Client.DebugSystem
                 var emptyItem = new ItemMessagePack(ItemMaster.EmptyItemId, 0);
                 var inventory = new PlayerInventoryResponse(new PlayerInventoryResponseProtocol.PlayerInventoryResponseProtocolMessagePack(
                     0, Array.Empty<ItemMessagePack>(), emptyItem, Array.Empty<ItemMessagePack>(), IEquipmentInventory.BareHandsIndex));
-                var unlockState = new UnlockStateResponse(new List<Guid>(), new List<Guid>(), new List<ItemId>(), new List<ItemId>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), false);
+                var unlockState = new UnlockStateResponse
+                {
+                    LockedCraftRecipeGuids = new List<Guid>(),
+                    UnlockedCraftRecipeGuids = new List<Guid>(),
+                    LockedItemIds = new List<ItemId>(),
+                    UnlockedItemIds = new List<ItemId>(),
+                    LockedChallengeCategoryGuids = new List<Guid>(),
+                    UnlockedChallengeCategoryGuids = new List<Guid>(),
+                    LockedMachineRecipeGuids = new List<Guid>(),
+                    UnlockedMachineRecipeGuids = new List<Guid>(),
+                    LockedBlockGuids = new List<Guid>(),
+                    UnlockedBlockGuids = new List<Guid>(),
+                    LockedTrainCarGuids = new List<Guid>(),
+                    UnlockedTrainCarGuids = new List<Guid>(),
+                    LockedConnectToolGuids = new List<Guid>(),
+                    UnlockedConnectToolGuids = new List<Guid>(),
+                    IsBlueprintUnlocked = false,
+                };
                 
                 // テストプレイ用の空レスポンスを構築
                 // Build an empty response set for test play

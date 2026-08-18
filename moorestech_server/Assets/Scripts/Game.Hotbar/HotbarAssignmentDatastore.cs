@@ -52,9 +52,9 @@ namespace Game.Hotbar
             // Both out-of-range slots and unknown ids are ignored as malicious-client defenses
             if (!IsValidSlot(slot)) return;
             if (!IsResolvable(targetId)) return;
-            // 未解放中のBP系新規割当は不正クライアント同様に無視。ロード済み割当はLoadHotbar側で保持される（ADR 0015）
-            // Ignore new blueprint-kind assignments while locked; loaded ones are preserved by LoadHotbar (ADR 0015)
-            if (!IsAssignableUnderUnlock(targetId)) return;
+            // 未解放中の新規割当は不正クライアント同様に無視。ロード済み割当はLoadHotbar側で保持される（ADR 0015）
+            // Ignore new assignments while locked; loaded ones are preserved by LoadHotbar (ADR 0015)
+            if (!_catalog.IsAssignable(targetId, _gameUnlockState)) return;
             GetOrCreate(playerId)[slot] = targetId;
             _onAssignmentChanged.OnNext(playerId);
         }
@@ -131,15 +131,6 @@ namespace Game.Hotbar
             // 有効=マスタ or 現行BP
             // Valid ids come from the master catalog or current blueprints
             return _catalog.TryGetMasterEntry(id, out _) || _blueprintDatastore.Blueprints.Any(bp => bp.BlueprintGuid == id);
-        }
-
-        private bool IsAssignableUnderUnlock(Guid id)
-        {
-            if (_gameUnlockState.IsBlueprintUnlocked) return true;
-            if (_catalog.TryGetMasterEntry(id, out var entry)) return entry.Kind != PlacementTargetKind.BlueprintCopy;
-            // マスタ外で解決可能なIDは現行BPのみのため、未解放中は割当不可
-            // The only non-master resolvable ids are current blueprints, unassignable while locked
-            return false;
         }
 
         private bool IsValidSlot(int slot)

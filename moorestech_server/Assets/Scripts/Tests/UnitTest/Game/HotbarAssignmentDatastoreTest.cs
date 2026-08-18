@@ -23,10 +23,12 @@ namespace Tests.UnitTest.Game
             var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
             var catalog = serviceProvider.GetService<PlacementTargetCatalog>();
             var blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
+            var unlockState = serviceProvider.GetService<IGameUnlockStateDataController>();
 
-            // マスタの実在ブロックを割当→保持される（坂はカタログ対象外なので除く）
-            // Assigning a real master block is retained (slopes are excluded from the catalog)
+            // マスタの実在ブロックを解放して割当→保持される（坂はカタログ対象外なので除く。C1裁定でブロックの割当も解放判定の対象）
+            // Unlock a real master block, then assigning it is retained (slopes excluded from the catalog; C1 ruling gates block assignment on unlock too)
             var validId = MasterHolder.BlockMaster.Blocks.Data.First(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid)).BlockGuid;
+            unlockState.UnlockBlock(validId);
             datastore.SetAssignment(playerId: 1, slot: 3, validId);
             Assert.AreEqual(validId, datastore.GetAssignments(1)[3]);
 
@@ -38,7 +40,7 @@ namespace Tests.UnitTest.Game
             // セーブ→ロード往復
             // Save and reload round-trips
             var saved = datastore.GetSaveJsonObject();
-            var datastore2 = new HotbarAssignmentDatastore(catalog, blueprintDatastore, serviceProvider.GetService<IGameUnlockStateDataController>());
+            var datastore2 = new HotbarAssignmentDatastore(catalog, blueprintDatastore, unlockState);
             datastore2.LoadHotbar(saved);
             Assert.AreEqual(validId, datastore2.GetAssignments(1)[3]);
         }

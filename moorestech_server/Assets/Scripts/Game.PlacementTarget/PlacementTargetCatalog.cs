@@ -111,36 +111,42 @@ namespace Game.PlacementTarget
             var entries = new List<PlacementTargetEntry>();
             foreach (var entry in CreateEntries(blueprintEntries))
             {
-                if (IsUnlocked(entry)) entries.Add(entry);
+                if (IsEntryUnlocked(entry, unlockState, showAllPlaceable)) entries.Add(entry);
             }
 
             return entries;
+        }
 
-            #region Internal
+        // このIDが今の解放状態で割当・使用可能か。判定規則はここへ完全集約する（C1裁定）
+        // Whether this id is assignable/usable under the current unlock state; the sole locus for this rule (C1 ruling)
+        public bool IsAssignable(Guid id, IGameUnlockStateData unlockState)
+        {
+            if (TryGetMasterEntry(id, out var entry)) return IsEntryUnlocked(entry, unlockState, showAllPlaceable: false);
+            // マスタ外で解決可能なIDは現行BPのみ。BP機能フラグで判定
+            // The only non-master resolvable ids are current blueprints, gated on the blueprint feature flag
+            return unlockState.IsBlueprintUnlocked;
+        }
 
-            bool IsUnlocked(PlacementTargetEntry entry)
+        private static bool IsEntryUnlocked(PlacementTargetEntry entry, IGameUnlockStateData unlockState, bool showAllPlaceable)
+        {
+            switch (entry.Kind)
             {
-                switch (entry.Kind)
-                {
-                    case PlacementTargetKind.Block:
-                        return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(entry.Id, out var blockInfo) && blockInfo.IsUnlocked);
-                    case PlacementTargetKind.TrainCar:
-                        return showAllPlaceable || (unlockState.TrainCarUnlockStateInfos.TryGetValue(entry.Id, out var trainCarInfo) && trainCarInfo.IsUnlocked);
-                    case PlacementTargetKind.ConnectTool:
-                        // 接続ツールは無料設置対象外
-                        // Connect tools are excluded from free placement
-                        return unlockState.ConnectToolUnlockStateInfos.TryGetValue(entry.Id, out var connectToolInfo) && connectToolInfo.IsUnlocked;
-                    case PlacementTargetKind.BlueprintCopy:
-                    case PlacementTargetKind.Blueprint:
-                        // BP機能は単一フラグで判定。無料設置デバッグの対象外（接続ツール同様・ADR 0015）
-                        // Blueprints gate on the single feature flag, excluded from free placement like connect tools (ADR 0015)
-                        return unlockState.IsBlueprintUnlocked;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                case PlacementTargetKind.Block:
+                    return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(entry.Id, out var blockInfo) && blockInfo.IsUnlocked);
+                case PlacementTargetKind.TrainCar:
+                    return showAllPlaceable || (unlockState.TrainCarUnlockStateInfos.TryGetValue(entry.Id, out var trainCarInfo) && trainCarInfo.IsUnlocked);
+                case PlacementTargetKind.ConnectTool:
+                    // 接続ツールは無料設置対象外
+                    // Connect tools are excluded from free placement
+                    return unlockState.ConnectToolUnlockStateInfos.TryGetValue(entry.Id, out var connectToolInfo) && connectToolInfo.IsUnlocked;
+                case PlacementTargetKind.BlueprintCopy:
+                case PlacementTargetKind.Blueprint:
+                    // BP機能は単一フラグで判定。無料設置デバッグの対象外（接続ツール同様・ADR 0015）
+                    // Blueprints gate on the single feature flag, excluded from free placement like connect tools (ADR 0015)
+                    return unlockState.IsBlueprintUnlocked;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-
-            #endregion
         }
     }
 }
