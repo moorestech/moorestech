@@ -922,7 +922,7 @@ git commit -m "feat(digest): id採番と先頭option推奨のfindings.json生成
 | `ledger` | 判断台帳 | `# 判断台帳` の中身 |
 | `appendix` | 折りたたみ参考 | `# 折りたたみ参考` の `## ` ごとに `<details>` |
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```python
 # .agents/skills/pr-independent-review/tests/test_digest_render.py
@@ -1002,12 +1002,12 @@ def test_render_index_lists_must_read_findings():
     assert 'href="#f02"' in index and "必読の設計判断 1件" in index
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `~/hermes-agent/venv/bin/pytest .agents/skills/pr-independent-review/tests/test_digest_render.py -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'digest_md.render'`
 
-- [ ] **Step 3: 最小限の実装を書く**
+- [x] **Step 3: 最小限の実装を書く**
 
 ```python
 # .agents/skills/pr-independent-review/scripts/digest_md/render.py
@@ -1146,12 +1146,12 @@ def render_html(doc: Document, template: str, refs: dict) -> str:
     return re.sub(r"<!--\n  使い方:.*?-->\n", "", out, flags=re.S)
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `~/hermes-agent/venv/bin/pytest .agents/skills/pr-independent-review/tests/test_digest_render.py -v`
 Expected: PASS（6件）。落ちる場合はテンプレの実文字列を `grep -n "REPLACE_WITH\|{{" .agents/skills/pr-independent-review/assets/digest-template.html` で確認し、置換対象名を実値に合わせる
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add .agents/skills/pr-independent-review/scripts/digest_md/render.py .agents/skills/pr-independent-review/tests/test_digest_render.py
@@ -1171,7 +1171,7 @@ git commit -m "feat(digest): ゾーン骨格自動生成とカードHTMLのレ�
 - Produces: CLI `python3 scripts/digest_build.py <RUNDIR>` — `<RUNDIR>/digest.md` を読み、`<RUNDIR>/digest.html` と `<RUNDIR>/findings.json` を書く。エラー時は stderr に出して終了コード1、出力は書かない。
 - Produces: `verify(html: str, findings: dict) -> list` — 生成後検査（未置換プレースホルダ0件 / `<script>` 1個 / `data-finding-id` 件数一致 / 全 non-suppressed に recommended ちょうど1件）。違反メッセージの配列を返す。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```python
 # .agents/skills/pr-independent-review/tests/test_digest_build.py
@@ -1204,12 +1204,12 @@ def test_cli_fails_loudly_on_broken_markdown(tmp_path):
     assert not (tmp_path / "digest.html").exists()
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `~/hermes-agent/venv/bin/pytest .agents/skills/pr-independent-review/tests/test_digest_build.py -v`
 Expected: 2件ともFAIL（`digest_build.py` 不在。golden md も Task 6 で作るため1件目はそこまで赤のままでよい）
 
-- [ ] **Step 3: 最小限の実装を書く**
+- [x] **Step 3: 最小限の実装を書く**
 
 ```python
 #!/usr/bin/env python3
@@ -1293,12 +1293,12 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 4: テストを実行して2件目が通ることを確認する**
+- [x] **Step 4: テストを実行して2件目が通ることを確認する**
 
 Run: `~/hermes-agent/venv/bin/pytest .agents/skills/pr-independent-review/tests/test_digest_build.py::test_cli_fails_loudly_on_broken_markdown -v`
 Expected: PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add .agents/skills/pr-independent-review/scripts/digest_build.py .agents/skills/pr-independent-review/tests/test_digest_build.py
@@ -1318,14 +1318,14 @@ git commit -m "feat(digest): digest.md からHTMLとfindings.jsonを生成する
 - Consumes: `scripts/digest_build.py`
 - Produces: `tests/golden/pr-1155-digest.md` — 現行 `pr-1155-r2/digest.html`（11 finding）を本フォーマットへ書き戻したもの。以後の見た目回帰の基準。
 
-- [ ] **Step 1: 現行digestを参照用にコピーする**
+- [x] **Step 1: 現行digestを参照用にコピーする**
 
 ```bash
 mkdir -p .agents/skills/pr-independent-review/tests/golden
 cp /Users/sakastudio/hermes-agent/data/repos/moorestech_logs/harness/pr-independent-review/runs/pr-1155-r2/digest.html /tmp/pr1155-current.html
 ```
 
-- [ ] **Step 2: golden md を書き起こす**
+- [x] **Step 2: golden md を書き起こす**
 
 `/tmp/pr1155-current.html` の `<main>` を読み、11件の finding（現行の F01〜F11）と5つの注記・判断台帳・折りたたみ参考を、本plan「digest.md フォーマット仕様」に従って `tests/golden/pr-1155-digest.md` へ書き起こす。**写経であって創作ではない**（本文・コード抜粋・行番号は現行HTMLからそのまま移す）。
 
@@ -1334,7 +1334,7 @@ cp /Users/sakastudio/hermes-agent/data/repos/moorestech_logs/harness/pr-independ
 - `must_read: true` を付けるのは現行の `#must-read` にある3件（F03/F08/F04）
 - 現行で推奨が案Bだった F09・F11 は、**推奨案を `options` の先頭へ移す**（これは意図した差分）
 
-- [ ] **Step 3: 再生成して生成後検査を通す**
+- [x] **Step 3: 再生成して生成後検査を通す**
 
 ```bash
 mkdir -p /tmp/goldenrun && cp .agents/skills/pr-independent-review/tests/golden/pr-1155-digest.md /tmp/goldenrun/digest.md
@@ -1342,7 +1342,7 @@ python3 .agents/skills/pr-independent-review/scripts/digest_build.py /tmp/golden
 ```
 Expected: `generated: /tmp/goldenrun/digest.html / /tmp/goldenrun/findings.json`。非0終了なら digest.md を直す（**コンバータを緩めて通すのは禁止**）
 
-- [ ] **Step 4: findings.json が現行と同値であることを確認する**
+- [x] **Step 4: findings.json が現行と同値であることを確認する**
 
 ```bash
 python3 - <<'PY'
@@ -1359,7 +1359,7 @@ PY
 ```
 Expected: 差分が出るのは F09・F11 の案の並び替えだけ（推奨を先頭へ移したため）。それ以外の差分が出たら golden md の写経ミスなので直す
 
-- [ ] **Step 5: スクリーンショットで見た目を突き合わせる**
+- [x] **Step 5: スクリーンショットで見た目を突き合わせる**
 
 ```bash
 cat > /Users/sakastudio/hermes-agent/data/repos/moorestech/moorestech_web/webui/shot.mjs <<'JS'
@@ -1377,7 +1377,7 @@ cd /Users/sakastudio/hermes-agent/data/repos/moorestech/moorestech_web/webui && 
 ```
 Expected: `/tmp/digest-current.png` と `/tmp/digest-rebuilt.png` が生成される。**両方をReadツールで開いて目視で突き合わせる**。差分が「案の並び替え」「インデックスの文言」以外に無いことを確認する。余白・フォント・枠線・バッジ・コード抜粋の見え方が変わっていたらレンダラを直す（**テンプレのCSSは変えない**）
 
-- [ ] **Step 6: 期待HTMLをゴールデンとして固定する**
+- [x] **Step 6: 期待HTMLをゴールデンとして固定する**
 
 ```bash
 cp /tmp/goldenrun/digest.html .agents/skills/pr-independent-review/tests/golden/pr-1155-digest.expected.html
@@ -1404,12 +1404,12 @@ def test_golden_html_is_reproduced(tmp_path):
     assert got == want
 ```
 
-- [ ] **Step 7: 全テストを実行して通ることを確認する**
+- [x] **Step 7: 全テストを実行して通ることを確認する**
 
 Run: `~/hermes-agent/venv/bin/pytest .agents/skills/pr-independent-review/tests/ -v`
 Expected: PASS（全件。`test_cli_writes_html_and_findings` も golden ができたことで通る）
 
-- [ ] **Step 8: 裁定サイトで実際にボタンが正しい位置に出ることを確認する**
+- [x] **Step 8: 裁定サイトで実際にボタンが正しい位置に出ることを確認する**
 
 ```bash
 mkdir -p /tmp/adjcheck/pr-9999 && cp /tmp/goldenrun/digest.html /tmp/goldenrun/findings.json /tmp/adjcheck/pr-9999/
@@ -1418,7 +1418,7 @@ sleep 2 && curl -s http://127.0.0.1:8941/pr/9999 | grep -c 'data-finding-id'
 ```
 Expected: 11以上（カード分）。ブラウザまたはplaywrightで開き、**11件すべての案ボタンが各カードの直下に出る**ことを確認する（今回の不具合の再発検知）。確認後 `kill %1`
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add .agents/skills/pr-independent-review/tests/golden .agents/skills/pr-independent-review/tests/test_digest_golden.py
@@ -1439,11 +1439,11 @@ git commit -m "test(digest): PR#1155をゴールデンに据えて見た目の�
 - Consumes: Task 5 の CLI（`python3 <スキル>/scripts/digest_build.py <$RUNDIR>`）
 - Produces: なし（文書のみ）
 
-- [ ] **Step 1: フォーマット仕様書を切り出す**
+- [x] **Step 1: フォーマット仕様書を切り出す**
 
 `.agents/skills/pr-independent-review/README-digest-format.md` を新規作成し、本planの「digest.md フォーマット仕様（全タスク共通の契約）」節を丸ごと転記する（生成subagentの参照先を1つにするため）。
 
-- [ ] **Step 2: Step 7 を差し替える**
+- [x] **Step 2: Step 7 を差し替える**
 
 見出しを `## Step 7: ダイジェスト生成（digest.md → コンバータ）` に変え、本文を次の内容にする:
 
@@ -1454,7 +1454,7 @@ git commit -m "test(digest): PR#1155をゴールデンに据えて見た目の�
 - **削除する規約**（すべてコンバータの責務へ移った）: HTMLエスケープ契約 / `<h1>` は1個 / 絵文字不使用 / プレースホルダ置換 / `data-verdict` の手設定 / `data-finding-id` の付与先 / テンプレ冒頭コメントの削除 / STORAGE_KEY・COPY_TITLE の置換 / カード間の視覚分離指示 / 生成後検査4点 / 並び順とセクション構成の規定
 - **保存**: `digest.md` / `digest.html` / `findings.json` はいずれも `$RUNDIR` 直下。`/tmp` へ書かない
 
-- [ ] **Step 3: Step 7.5 を縮約する**
+- [x] **Step 3: Step 7.5 を縮約する**
 
 見出しを `## Step 7.5: findings.json（コンバータ出力の確認）` に変え、本文を次の内容にする:
 
@@ -1464,14 +1464,14 @@ git commit -m "test(digest): PR#1155をゴールデンに据えて見た目の�
 - 旧「recommended検査」の python ワンライナーは削除する（`digest_build.py` の生成後検査が同じ検査を内蔵している）
 - id採番規則の記述は「コンバータが severity降順→ファイルパス昇順→行番号昇順で振る。digest.md には `F01` と書かず、参照は `[F:slug]` で書く」へ置き換える
 
-- [ ] **Step 4: 整合を確認する**
+- [x] **Step 4: 整合を確認する**
 
 ```bash
 sed -n '/^## Step 7:/,/^## Step 8:/p' .agents/skills/pr-independent-review/SKILL.md | grep -n "エスケープ\|data-finding-id\|生成後検査4点\|{{TITLE}}\|絵文字"
 ```
 Expected: 出力が空（Step 7〜7.5 の範囲にこれらの記述が残っていない）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add .agents/skills/pr-independent-review/SKILL.md .agents/skills/pr-independent-review/README-digest-format.md
@@ -1495,7 +1495,7 @@ git commit -m "docs(pr-independent-review): digest生成をMarkdown正本＋コ�
 
 **既存データへの影響（着手前に把握しておくこと）:** 過去runの `findings.json` のうち `pr-1127-r2`（42件中30件）・`pr-1137-r2`（16件中8件）・`pr-1138`（6件中6件）・`pr-1140-r2`（43件中38件）は `recommended` 欠落findingを含む。うち 1127/1137/1140 は裁定完了済み（`completed: true`）で影響なし。`pr-1138` は未裁定のまま残っており、この変更後は「完了」による一括採用が拒否される（明示クリックでの裁定は従来どおり可能）。**これは意図した挙動**である。
 
-- [ ] **Step 1: `autoPlanFor` からフォールバックを外す**
+- [x] **Step 1: `autoPlanFor` からフォールバックを外す**
 
 `inject.py` の `ADJ_SCRIPT` 内、`autoPlanFor` を次へ差し替える:
 
@@ -1510,7 +1510,7 @@ git commit -m "docs(pr-independent-review): digest生成をMarkdown正本＋コ�
   }
 ```
 
-- [ ] **Step 2: モーダルで欠落を拒否する**
+- [x] **Step 2: モーダルで欠落を拒否する**
 
 `openCompleteModal` の集計ループを次へ差し替える:
 
@@ -1529,7 +1529,7 @@ git commit -m "docs(pr-independent-review): digest生成をMarkdown正本＋コ�
     }
 ```
 
-- [ ] **Step 3: 欠落の警告を出し、完了ボタンを止める**
+- [x] **Step 3: 欠落の警告を出し、完了ボタンを止める**
 
 `openCompleteModal` のリスト生成部から次の1行を**削除**する（`source` は廃止したため）:
 
@@ -1558,7 +1558,7 @@ git commit -m "docs(pr-independent-review): digest生成をMarkdown正本＋コ�
 
 （実際の変数名は `openCompleteModal` 内の該当ボタン変数に合わせる。`grep -n "adj-modal" inject.py` で確認する）
 
-- [ ] **Step 4: 警告のCSSを足す**
+- [x] **Step 4: 警告のCSSを足す**
 
 `adj_style.py` の `ADJ_CSS` 末尾へ追記する:
 
@@ -1566,7 +1566,7 @@ git commit -m "docs(pr-independent-review): digest生成をMarkdown正本＋コ�
 .adj-modal-error{color:#DC2626;font-size:13px;font-weight:600;margin:8px 0 0;}
 ```
 
-- [ ] **Step 5: 再起動して両系統を確認する**
+- [x] **Step 5: 再起動して両系統を確認する**
 
 ```bash
 pkill -f "pr-review/site/app.py"; sleep 8
