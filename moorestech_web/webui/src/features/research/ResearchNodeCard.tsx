@@ -7,6 +7,7 @@ import { researchNameKey, useI18n } from "@/shared/i18n";
 
 type Props = {
   node: ResearchNodeData;
+  owned: Map<number, number>;
   left: number;
   top: number;
   selected: boolean;
@@ -15,8 +16,8 @@ type Props = {
 
 // モック準拠の「研究名+アイコン」ノードカード。詳細は選択時の詳細ペインが担う
 // Mock-compliant "name + icon" node card; details live in the selection detail pane
-export default function ResearchNodeCard({ node, left, top, selected, onSelect }: Props) {
-  const cardState = deriveNodeCardState(node.state);
+export default function ResearchNodeCard({ node, owned, left, top, selected, onSelect }: Props) {
+  const cardState = deriveNodeCardState(node, owned);
   const { t } = useI18n();
   return (
     <div
@@ -25,7 +26,7 @@ export default function ResearchNodeCard({ node, left, top, selected, onSelect }
       data-research-node
       data-selected={selected || undefined}
       data-completed={cardState.completed || undefined}
-      data-researchable={cardState.researchable || undefined}
+      data-researchable={cardState.ready || undefined}
       data-locked={cardState.locked || undefined}
       data-testid={`research-node-${node.guid}`}
       onClick={() => onSelect(node.guid)}

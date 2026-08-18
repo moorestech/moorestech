@@ -26,6 +26,7 @@ const researchGuid = "86000000-0000-4000-8000-000000000001";
 const node: ResearchNodeData = {
   guid: researchGuid, state: "researchable", iconItemId: 1,
   position: { x: 0, y: 0 }, prevGuids: [], consumeItems: [{ itemId: 1, count: 2 }], rewardItems: [], unlockItemIds: [],
+  unlockBlocks: [], unlockMachineRecipeOutputItemIds: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [],
 };
 
 describe("ResearchDetailPane", () => {

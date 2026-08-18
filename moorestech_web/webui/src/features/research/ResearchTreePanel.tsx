@@ -33,9 +33,9 @@ export default function ResearchTreePanel() {
     setSelectedGuid((current) => (current === guid ? null : guid));
   }, []);
   const renderResearchNode = useCallback((node: ResearchNodeData, point: TreePoint) => (
-    <ResearchNodeCard node={node} left={point.x} top={point.y}
+    <ResearchNodeCard node={node} owned={owned} left={point.x} top={point.y}
       selected={node.guid === selectedGuid} onSelect={toggleSelect} />
-  ), [selectedGuid, toggleSelect]);
+  ), [owned, selectedGuid, toggleSelect]);
   const selectedNode = nodes.find((node) => node.guid === selectedGuid);
   // 中央寄せはresearchLogic準拠
   // Centering target follows researchLogic

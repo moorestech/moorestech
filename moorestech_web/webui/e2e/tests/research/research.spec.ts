@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { expectCraftGrip } from "../../support/craftChromeAssertions";
 import { resetResearch, setUiState } from "../../support/mockControl";
-import { researchableNodeGuid } from "../../mock-host/researchFixtures";
+import { researchableNodeGuid, itemLackingNodeGuid } from "../../mock-host/researchFixtures";
 
 // 各テスト後に研究ツリーと ui_state を既定へ戻し、状態漏れを防ぐ
 // Reset the research tree and ui_state to defaults after each test to prevent state leakage
@@ -16,6 +16,20 @@ test("research tree renders nodes when uiState enters ResearchTree", async ({ pa
   await page.goto("/");
   await expect(page.getByTestId("research-tree")).toBeVisible();
   await expect(page.getByTestId("research-node-11111111-1111-4111-8111-111111111111")).toBeVisible();
+});
+
+test("ノードカードが4状態のdata属性で描き分けられる", async ({ page }) => {
+  await setUiState(page, "ResearchTree");
+  await page.goto("/");
+  const completed = page.getByTestId("research-node-11111111-1111-4111-8111-111111111111");
+  const locked = page.getByTestId("research-node-22222222-2222-4222-8222-222222222222");
+  const ready = page.getByTestId(`research-node-${researchableNodeGuid}`);
+  const lacking = page.getByTestId(`research-node-${itemLackingNodeGuid}`);
+  await expect(completed).toHaveAttribute("data-completed", "true");
+  await expect(locked).toHaveAttribute("data-locked", "true");
+  await expect(ready).toHaveAttribute("data-researchable", "true");
+  await expect(lacking).not.toHaveAttribute("data-researchable", "true");
+  await expect(lacking).not.toHaveAttribute("data-locked", "true");
 });
 
 test("研究報酬itemの個数をtopic payloadどおり詳細ペインで表示する", async ({ page }) => {

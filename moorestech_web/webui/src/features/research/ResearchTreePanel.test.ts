@@ -52,6 +52,10 @@ const node: ResearchNodeData = {
   consumeItems: [{ itemId: 1, count: 2 }],
   rewardItems: [],
   unlockItemIds: [],
+  unlockBlocks: [],
+  unlockMachineRecipeOutputItemIds: [],
+  unlockConnectToolGuids: [],
+  unlockTrainCarGuids: [],
 };
 
 describe("ResearchTreePanel selection toggle", () => {

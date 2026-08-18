@@ -11,7 +11,9 @@ import { L } from "@/shared/i18n";
 
 const node = (guid: string, x: number, y: number, extra?: Partial<ResearchNodeData>): ResearchNodeData => ({
   guid, state: "researchable", iconItemId: 1,
-  position: { x, y }, prevGuids: [], consumeItems: [], rewardItems: [], unlockItemIds: [], ...extra,
+  position: { x, y }, prevGuids: [], consumeItems: [], rewardItems: [], unlockItemIds: [],
+  unlockBlocks: [], unlockMachineRecipeOutputItemIds: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [],
+  ...extra,
 });
 
 describe("findInitialFocusNode", () => {

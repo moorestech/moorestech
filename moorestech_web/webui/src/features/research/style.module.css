@@ -37,6 +37,9 @@
   cursor: pointer;
 }
 .node[data-locked] { opacity: 0.45; }
+/* 研究可能（充足）はシアン枠で点灯する。ADR 0014の4状態語彙 */
+/* Ready-to-research lights up with a cyan border; the 4-state vocabulary of ADR 0014 */
+.node[data-researchable] { border-color: var(--select-cyan); }
 .node[data-completed] { border-color: var(--text-default); }
 .node[data-selected] { outline: 2px solid var(--text-high-contrast); }
 .nodeName {
