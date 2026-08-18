@@ -48,8 +48,23 @@ namespace Server.Event.Notification
             _eventProtocolProvider.AddBroadcastEvent(EventTag, MessagePackSerializer.Serialize(notification));
         }
 
+        // 獲得通知は1ドロップ1通知を全てワイヤに乗せ、まとめ上げはWeb UI側の加算表示に委ねる
+        // Item-earned notifications put every drop on the wire; the web UI folds them into one incrementing row
+        private static bool IsCooldownTarget(NotificationCategory category)
+        {
+            return category switch
+            {
+                NotificationCategory.Achievement => true,
+                NotificationCategory.OperationDenied => true,
+                NotificationCategory.ItemEarned => false,
+                _ => throw new ArgumentOutOfRangeException(nameof(category), category, null),
+            };
+        }
+
         private bool TryPassCooldown(int playerId, NotificationMessagePack notification)
         {
+            if (!IsCooldownTarget(notification.Category)) return true;
+
             var key = (playerId, notification.Category, notification.MessageId);
             var now = DateTime.UtcNow;
             // 判定と更新を1トランザクションとしてロックし競合更新を防ぐ

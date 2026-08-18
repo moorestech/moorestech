@@ -11,6 +11,7 @@ const notificationKeys = new Map<string, TranslationKey>([
   ["achievement.unlockedBlock", L.ui.notification.unlockedBlock],
   ["achievement.unlockedTrainCar", L.ui.notification.unlockedTrainCar],
   ["achievement.unlockedConnectTool", L.ui.notification.unlockedConnectTool],
+  ["itemEarned.mined", L.ui.notification.itemEarned],
   ["denied.researchNotCompletable", L.ui.notification.researchNotCompletable],
   ["denied.craftResultFull", L.ui.notification.craftResultFull],
   ["denied.craftMaterialShortage", L.ui.notification.craftMaterialShortage],
@@ -66,9 +67,10 @@ export function resolveNotificationParams(
   return messageParams.map((guid) => translate(buildContentKey(guid)));
 }
 
-export function buildInterpolationValues(messageId: string, messageParams: string[]) {
+export function buildInterpolationValues(messageId: string, messageParams: string[], count: number) {
   return {
     messageId,
+    count,
     ...buildPositionalInterpolationValues(messageParams),
   };
 }

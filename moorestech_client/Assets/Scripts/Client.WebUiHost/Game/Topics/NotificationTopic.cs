@@ -44,12 +44,26 @@ namespace Client.WebUiHost.Game.Topics
             var dto = new NotificationDto
             {
                 Seq = _seq,
-                Category = message.Category == NotificationCategory.Achievement ? "achievement" : "operationDenied",
+                Category = ToWebCategory(message.Category),
                 MessageId = message.MessageId,
                 MessageParams = message.MessageParams,
                 ItemId = message.ItemId == ItemMaster.EmptyItemId ? null : (int?)message.ItemId.AsPrimitive(),
+                Count = message.Count,
             };
             _hub.Publish(TopicName, WebUiJson.Serialize(dto));
+        }
+
+        // Web側のcategory名はここが唯一の対応表。カテゴリ追加時はここを通す
+        // This is the only mapping to web-side category names; new categories go through here
+        private static string ToWebCategory(NotificationCategory category)
+        {
+            return category switch
+            {
+                NotificationCategory.Achievement => "achievement",
+                NotificationCategory.OperationDenied => "operationDenied",
+                NotificationCategory.ItemEarned => "itemEarned",
+                _ => throw new ArgumentOutOfRangeException(nameof(category), category, null),
+            };
         }
     }
 
@@ -60,5 +74,6 @@ namespace Client.WebUiHost.Game.Topics
         public string MessageId;
         public string[] MessageParams;
         public int? ItemId;
+        public int Count;
     }
 }

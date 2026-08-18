@@ -2,10 +2,11 @@ import { create } from "zustand";
 
 export type GameNotification = {
   id: number;
-  category: "achievement" | "operationDenied";
+  category: "achievement" | "operationDenied" | "itemEarned";
   messageId: string;
   messageParams: string[];
   itemId: number | null;
+  count: number;
 };
 
 type NotificationState = {
@@ -26,7 +27,16 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   notifications: [],
   addNotification: (n) => {
     const id = nextId++;
-    set((s) => ({ notifications: [...s.notifications, { ...n, id }] }));
+    set((s) => {
+      // 表示中の同一アイテムの獲得行は作り直して数値を伸ばす。idを刷新すると再マウントされ入場アニメと生存尺が回り直す
+      // A live earned row for the same item is rebuilt with a larger number; the renewed id remounts it so the enter animation and lifetime restart
+      const merged = n.category === "itemEarned"
+        ? s.notifications.find((x) => x.category === "itemEarned" && x.itemId === n.itemId)
+        : undefined;
+      const rest = merged ? s.notifications.filter((x) => x.id !== merged.id) : s.notifications;
+      const count = (merged?.count ?? 0) + n.count;
+      return { notifications: [...rest, { ...n, count, id }] };
+    });
     setTimeout(() => set((s) => ({ notifications: s.notifications.filter((x) => x.id !== id) })), NOTIFICATION_REMOVAL_FALLBACK_MS);
   },
   removeNotification: (id) => set((s) => ({ notifications: s.notifications.filter((x) => x.id !== id) })),

@@ -27,6 +27,7 @@ export default function NotificationHost() {
       messageId: payload.messageId,
       messageParams: payload.messageParams,
       itemId: payload.itemId ?? null,
+      count: payload.count ?? 0,
     });
   }, [payload]);
 
@@ -50,7 +51,7 @@ export default function NotificationHost() {
           {n.itemId != null && <ItemIcon itemId={n.itemId} className={styles.icon} />}
           {t(
             resolveNotificationKey(n.messageId),
-            buildInterpolationValues(n.messageId, resolveNotificationParams(n.messageId, n.messageParams, t)),
+            buildInterpolationValues(n.messageId, resolveNotificationParams(n.messageId, n.messageParams, t), n.count),
           )}
         </div>
       ))}

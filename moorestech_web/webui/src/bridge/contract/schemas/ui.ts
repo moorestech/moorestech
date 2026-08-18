@@ -81,10 +81,13 @@ export const TooltipDataSchema = z.object({
 // itemId is normally omitted (not sent as null) when there is no item, but nullable is accepted too
 export const NotificationDataSchema = z.object({
   seq: z.number().optional(),
-  category: z.enum(["achievement", "operationDenied"]).optional(),
+  category: z.enum(["achievement", "operationDenied", "itemEarned"]).optional(),
   messageId: z.string().optional(),
   messageParams: z.array(z.string()).optional(),
   // シリアライザ揺れでnullが来ても弾かないよう外部境界として広めに受ける
   // Widened as an external boundary so serializer drift sending null is not rejected
   itemId: z.number().nullable().optional(),
+  // 獲得個数。itemEarned以外は0が入る
+  // Earned amount; categories other than itemEarned carry 0
+  count: z.number().optional(),
 });

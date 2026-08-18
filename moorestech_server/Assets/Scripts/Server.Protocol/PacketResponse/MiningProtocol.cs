@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using Game.Map;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event.EventReceive;
+using Server.Event.Notification;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -24,6 +26,7 @@ namespace Server.Protocol.PacketResponse
         private readonly MapObjectUpdateEventPacket _mapObjectUpdateEventPacket;
         private readonly MapObjectMiningService _mapObjectMiningService;
         private readonly VeinHandMiningService _veinHandMiningService;
+        private readonly NotificationService _notificationService;
 
         public MiningProtocol(ServiceProvider serviceProvider)
         {
@@ -31,6 +34,7 @@ namespace Server.Protocol.PacketResponse
             _mapObjectUpdateEventPacket = serviceProvider.GetService<MapObjectUpdateEventPacket>();
             _mapObjectMiningService = serviceProvider.GetService<MapObjectMiningService>();
             _veinHandMiningService = serviceProvider.GetService<VeinHandMiningService>();
+            _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -51,9 +55,27 @@ namespace Server.Protocol.PacketResponse
             // 空きは権威判定側で確認済みなので、ここでは残余が出ない
             // The authority already verified the free space, so no remainder can appear here
             foreach (var earnItem in earnedItems) playerInventory.MainOpenableInventory.InsertItem(earnItem);
+            NotifyEarnedItems();
             return null;
 
             #region Internal
+
+            // 1回の採掘で同じアイテムが複数スタックに割れても通知は1本に畳む
+            // Fold split stacks of the same item into a single notification per mining action
+            void NotifyEarnedItems()
+            {
+                var earnedCounts = new Dictionary<ItemId, int>();
+                foreach (var earnItem in earnedItems)
+                {
+                    earnedCounts.TryGetValue(earnItem.Id, out var current);
+                    earnedCounts[earnItem.Id] = current + earnItem.Count;
+                }
+
+                foreach (var earnedCount in earnedCounts)
+                {
+                    _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateItemEarned(earnedCount.Key, earnedCount.Value));
+                }
+            }
 
             List<IItemStack> MineMapObject()
             {

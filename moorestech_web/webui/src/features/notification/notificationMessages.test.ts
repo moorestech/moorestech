@@ -11,11 +11,19 @@ describe("notificationMessages", () => {
   it("未知のmessageIdは専用キーで可視化する", () => {
     expect(resolveNotificationKey("unknown.id")).toBe(L.ui.notification.unknownMessage);
   });
-  it("messageIdとparamsを補間値へ変換する", () => {
-    expect(buildInterpolationValues("known.id", ["a", "b"])).toEqual({
+  it("獲得通知は専用キーを返す", () => {
+    expect(resolveNotificationKey("itemEarned.mined")).toBe(L.ui.notification.itemEarned);
+  });
+  it("messageIdとparamsとcountを補間値へ変換する", () => {
+    expect(buildInterpolationValues("known.id", ["a", "b"], 0)).toEqual({
       messageId: "known.id",
+      count: 0,
       p0: "a",
       p1: "b",
+    });
+    expect(buildInterpolationValues("itemEarned.mined", [], 8)).toEqual({
+      messageId: "itemEarned.mined",
+      count: 8,
     });
   });
   it("Guidパラメータ通知はcontentキーで表示名へ解決する", () => {
