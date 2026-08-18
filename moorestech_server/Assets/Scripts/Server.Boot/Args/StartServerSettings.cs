@@ -10,7 +10,7 @@ namespace Server.Boot
         // ワールドディレクトリのルート。世界ごとの全ファイルがこの配下に置かれる
         // Root of the world directory; every per-world file lives under this path
         [Option(isFlag: false, "--worldDirectory", "-w")]
-        public string WorldDirectory { get; set; } = GameSystemPaths.GetSaveFilePath("world_1");
+        public string WorldDirectory { get; set; } = GameSystemPaths.DefaultWorldDirectory;
 
         // ワールド新規作成時の生成モード（"template" | "generated"）
         // Provisioning mode for a fresh world ("template" | "generated")

@@ -8,6 +8,10 @@ namespace Game.Paths
     {
         private const int WorldIdHexDigits = 16;
 
+        // 起動時に既定で使うワールドディレクトリ名。ワールド名の正はここ1箇所
+        // The world directory used by default at boot; this is the single source of the name
+        public const string DefaultWorldName = "world_1";
+
         public static string GameSystemDirectory
         {
             get
@@ -26,6 +30,7 @@ namespace Game.Paths
         public static string TmpFileDirectory => DirectoryCreator(GameSystemDirectory, "Tmp");
         public static string ExtractedModDirectory => DirectoryCreator(TmpFileDirectory, "ExtractedMods");
         public static string SaveFileDirectory => DirectoryCreator(GameSystemDirectory, "Saves");
+        public static string DefaultWorldDirectory => GetSaveFilePath(DefaultWorldName);
 
         // サーバーから受け取った派生データの置き場。削除しても再取得で復元される
         // Holds data derived from the server; deleting it only forces a re-fetch
