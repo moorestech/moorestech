@@ -2,7 +2,7 @@
 # Convert a single finding block into a Finding
 from __future__ import annotations
 
-from .blocks import read_fence
+from .sectioning import read_fence
 from .errors import DigestError
 from .models import Finding
 from .yaml_subset import parse_yaml_block

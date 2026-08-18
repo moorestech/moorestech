@@ -2,7 +2,7 @@
 # Parse digest.md into the document model; unknown structure and missing keys raise DigestError
 from __future__ import annotations
 
-from .blocks import read_fence, split_blocks
+from .sectioning import read_fence, split_blocks
 from .errors import DigestError
 from .finding_parser import finding_from
 from .models import Document, Finding
