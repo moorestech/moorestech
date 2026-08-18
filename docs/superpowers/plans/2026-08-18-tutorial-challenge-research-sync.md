@@ -454,7 +454,7 @@ git commit -m "feat: 研究完了を達成条件とするcompleteResearchチャ�
 - Consumes: `UiDragGuideTutorialParam.FromUIObjectId` / `.ToUIObjectId`（Task 1生成物）、`TutorialsElement.TutorialTypeConst.uiDragGuide`
 - Produces: `TutorialPresentationStateStore.AddDragGuide(string fromAnchorId, string toAnchorId)` → `ITutorialView`、`TutorialPresentationData.DragGuides`（`TutorialDragGuideData[]`: `GuideId`/`FromAnchorId`/`ToAnchorId`）、`TutorialAnchorIdMapper.FromUiObjectId` が `"hotbar"`→`"hotbar.hud"`・`"challengeHud"`→`"challenge.current-hud"`・`"buildMenuBlock:<guid>"`→`"build-menu.entry-block-<guid小文字>"`・`"researchNode:<guid>"`→`"research.node-<guid小文字>"` を解決
 
-- [ ] **Step 1: 失敗するテストを書く（アンカー契約テスト拡張）**
+- [x] **Step 1: 失敗するテストを書く（アンカー契約テスト拡張）**
 
 `TutorialAnchorContractTest.cs` に追記（既存3テストの後）:
 
@@ -520,12 +520,12 @@ git commit -m "feat: 研究完了を達成条件とするcompleteResearchチャ�
         }
 ```
 
-- [ ] **Step 2: テスト実行して失敗を確認**
+- [x] **Step 2: テスト実行して失敗を確認**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "TutorialAnchorContractTest"`
 Expected: `DynamicUiObjectIdsMapToWebDynamicPrefixes` がFAIL（`KeyNotFoundException`）
 
-- [ ] **Step 3: TutorialAnchorIdMapper を拡張**
+- [x] **Step 3: TutorialAnchorIdMapper を拡張**
 
 ```csharp
 using System;
@@ -587,11 +587,11 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
 }
 ```
 
-- [ ] **Step 4: フィクスチャに hotbar.hud を追加**
+- [x] **Step 4: フィクスチャに hotbar.hud を追加**
 
 `tutorial_anchor_ids.json` の `staticIds` 配列へ `"hotbar.hud"` を追加（Web側 anchorIds.ts の変更はTask 5で同期する）。
 
-- [ ] **Step 5: TutorialPresentationData に DragGuides を追加**
+- [x] **Step 5: TutorialPresentationData に DragGuides を追加**
 
 ```csharp
 namespace Client.Game.InGame.Tutorial
@@ -623,7 +623,7 @@ namespace Client.Game.InGame.Tutorial
 }
 ```
 
-- [ ] **Step 6: TutorialPresentationStateStore に AddDragGuide / RemoveDragGuide を追加**
+- [x] **Step 6: TutorialPresentationStateStore に AddDragGuide / RemoveDragGuide を追加**
 
 変更点（既存構造は維持。`SetHighlights` は highlights と dragGuides の両方を受ける `SetState` へ改名し、既存呼び出しは現在値を渡す）:
 
@@ -682,7 +682,7 @@ namespace Client.Game.InGame.Tutorial
 - `CreateIdle()` にも `DragGuides = Array.Empty<TutorialDragGuideData>()` を追加。
 - `TutorialDragGuideView` は既存 `TutorialPresentationView` と同型で `CompleteTutorial()` が `RemoveDragGuide` を呼ぶクラスを同ファイルに追加。ファイルが200行を超える場合は `TutorialPresentationView` / `TutorialDragGuideView` を `Presentation/TutorialPresentationViews.cs` へ分離する。
 
-- [ ] **Step 7: UiDragGuideTutorialManager を新規作成**
+- [x] **Step 7: UiDragGuideTutorialManager を新規作成**
 
 ```csharp
 using Mooresmaster.Model.ChallengesModule;
@@ -708,7 +708,7 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
 
 ※ MonoBehaviourの配置: `UIHighlightTutorialManager` がシーン/Prefabへどう配置されDIされているかを確認し（`TutorialManager` のコンストラクタ引数の注入元を遡る）、同じ場所へ `uloop execute-dynamic-code` でAddComponent+参照結線する。Prefab/シーンのテキスト直編集は禁止。
 
-- [ ] **Step 8: TutorialManager に登録**
+- [x] **Step 8: TutorialManager に登録**
 
 コンストラクタ引数に `UiDragGuideTutorialManager uiDragGuideTutorialManager` を追加し（デフォルト引数禁止・呼び出し側も更新）、登録行を追加:
 
@@ -716,14 +716,14 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.uiDragGuide, uiDragGuideTutorialManager);
 ```
 
-- [ ] **Step 9: コンパイルとテスト**
+- [x] **Step 9: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "TutorialAnchorContractTest|TutorialPresentation"`
 Expected: 全件PASS（既存のpresentation系テストがDragGuides未初期化で落ちる場合は `Array.Empty` 初期化を期待値に追加）
 
-- [ ] **Step 10: コミット**
+- [x] **Step 10: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Tutorial moorestech_client/Assets/Scripts/Client.Tests
