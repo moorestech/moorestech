@@ -99,16 +99,16 @@
   --panel-action-button-hover-mix: 22%;
   /* HUD面の安全帯。フェード帯を超える余白で、チャレンジHUDの面幅導出とも共有する */
   /* HUD face safe area: padding wider than the fade band, shared with the challenge HUD's width derivation */
-  --hud-panel-padding: 20px;
+  --hud-panel-padding: 14px;
   /* 常駐チャレンジHUDは左上へ固定し、本文と罫線の幅を分離する */
   /* Keep the resident challenge HUD top-left with independent content and rule widths */
   --challenge-hud-left: 24px;
   --challenge-hud-top: 24px;
   /* 面幅は本文の折返し幅にGamePanel hud variantの安全帯paddingを左右分足して導く */
   /* Derive the face width from the text-wrap width plus the hud variant's safe-area padding on each side */
-  --challenge-hud-content-width: 520px;
+  --challenge-hud-content-width: 250px;
   --challenge-hud-width: calc(var(--challenge-hud-content-width) + var(--hud-panel-padding) * 2);
-  --challenge-hud-rule-width: 176px;
+  --challenge-hud-rule-width: 88px;
   --challenge-hud-label-font-size: 12px;
   --challenge-hud-objective-font-size: 14px;
   --challenge-hud-label-rule-gap: 5px;
