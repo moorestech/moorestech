@@ -56,7 +56,7 @@ namespace Client.Tests.WebUi
 
             foreach (var uiObjectId in uiObjectIds)
             {
-                Assert.IsTrue(TutorialAnchorIdMapper.IsKnownUiObjectId(uiObjectId), $"'{uiObjectId}' is not a known key in TutorialAnchorIdMapper");
+                Assert.IsTrue(TutorialAnchorIdMapper.TryFromUiObjectId(uiObjectId, out _), $"'{uiObjectId}' is not a known key in TutorialAnchorIdMapper");
             }
         }
 
@@ -69,10 +69,10 @@ namespace Client.Tests.WebUi
             var buildMenuPrefix = fixture["dynamicPrefixes"]["buildMenuEntry"].Value<string>();
             var researchPrefix = fixture["dynamicPrefixes"]["researchNode"].Value<string>();
 
-            var blockAnchor = TutorialAnchorIdMapper.FromUiObjectId("buildMenuBlock:934C0EF9-B76E-4058-8FC8-0AD74AFBDCD0");
+            Assert.IsTrue(TutorialAnchorIdMapper.TryFromUiObjectId("buildMenuBlock:934C0EF9-B76E-4058-8FC8-0AD74AFBDCD0", out var blockAnchor));
             Assert.AreEqual($"{buildMenuPrefix}block-934c0ef9-b76e-4058-8fc8-0ad74afbdcd0", blockAnchor);
 
-            var researchAnchor = TutorialAnchorIdMapper.FromUiObjectId("researchNode:837E9697-8586-406E-A0F6-16A010050218");
+            Assert.IsTrue(TutorialAnchorIdMapper.TryFromUiObjectId("researchNode:837E9697-8586-406E-A0F6-16A010050218", out var researchAnchor));
             Assert.AreEqual($"{researchPrefix}837e9697-8586-406e-a0f6-16a010050218", researchAnchor);
         }
 
@@ -93,11 +93,9 @@ namespace Client.Tests.WebUi
 
             foreach (var uiObjectId in uiObjectIds)
             {
-                Assert.IsTrue(TutorialAnchorIdMapper.IsKnownUiObjectId(uiObjectId), $"'{uiObjectId}' is not a known key in TutorialAnchorIdMapper");
+                Assert.IsTrue(TutorialAnchorIdMapper.TryFromUiObjectId(uiObjectId, out _), $"'{uiObjectId}' is not a known key in TutorialAnchorIdMapper");
             }
         }
-
-        #region Internal
 
         private static JObject LoadFixture()
         {
@@ -147,7 +145,5 @@ namespace Client.Tests.WebUi
 
             return result;
         }
-
-        #endregion
     }
 }

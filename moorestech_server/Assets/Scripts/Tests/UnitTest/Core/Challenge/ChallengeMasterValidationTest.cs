@@ -74,14 +74,14 @@ namespace Tests.UnitTest.Core.Challenge
                 ["tutorialParam"] = new JObject
                 {
                     ["fromUIObjectId"] = "buildMenuBlock:99999999-9999-9999-9999-999999999999",
-                    ["toUIObjectId"] = "hotbar:0",
+                    ["toUIObjectId"] = "hotbar",
                 },
             });
 
             var master = new ChallengeMaster(json);
 
             Assert.IsFalse(master.Validate(out var logs));
-            StringAssert.Contains("invalid uiDragGuide target", logs);
+            StringAssert.Contains("invalid uiObjectId target", logs);
         }
 
         [Test]
@@ -101,7 +101,7 @@ namespace Tests.UnitTest.Core.Challenge
                 ["tutorialParam"] = new JObject
                 {
                     ["fromUIObjectId"] = "buildMenuBlock:00000000-0000-0000-0000-000000000001",
-                    ["toUIObjectId"] = "hotbar:0",
+                    ["toUIObjectId"] = "hotbar",
                 },
             });
 

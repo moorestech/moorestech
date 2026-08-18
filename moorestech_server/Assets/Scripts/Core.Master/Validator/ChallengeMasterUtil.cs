@@ -75,12 +75,15 @@ namespace Core.Master.Validator
                             {
                                 // 参照先研究ノードの実在を検証
                                 // Validate that the referenced research node exists
-                                if (!MasterHolder.ResearchMaster.ResearchElements.ContainsKey(completeResearch.ResearchNodeGuid))
+                                if (MasterHolder.ResearchMaster.GetResearch(completeResearch.ResearchNodeGuid) == null)
                                 {
                                     logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.ResearchNodeGuid:{completeResearch.ResearchNodeGuid}\n";
                                 }
                                 break;
                             }
+                            default:
+                                logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated TaskParam type:{challenge.TaskParam?.GetType().Name}\n";
+                                break;
                         }
                     }
                 }
@@ -145,12 +148,24 @@ namespace Core.Master.Validator
                                 }
                                 case UiDragGuideTutorialParam uiDragGuide:
                                 {
-                                    // buildMenuBlock:書式が指すブロックの実在を検証
-                                    // Validate blocks referenced by the buildMenuBlock: form
-                                    logs += ValidateDragGuideObjectId(uiDragGuide.FromUIObjectId, challenge.Title);
-                                    logs += ValidateDragGuideObjectId(uiDragGuide.ToUIObjectId, challenge.Title);
+                                    // 静的キー／buildMenuBlock:／researchNode:の網羅検証
+                                    // Exhaustively validate static keys / buildMenuBlock: / researchNode: forms
+                                    logs += ValidateUiObjectId(uiDragGuide.FromUIObjectId, challenge.Title);
+                                    logs += ValidateUiObjectId(uiDragGuide.ToUIObjectId, challenge.Title);
                                     break;
                                 }
+                                case UiHighLightTutorialParam uiHighLight:
+                                {
+                                    logs += ValidateUiObjectId(uiHighLight.HighLightUIObjectId, challenge.Title);
+                                    break;
+                                }
+                                case KeyControlTutorialParam:
+                                    // uiState/controlTextのみでマスタ参照を持たないため検証対象外
+                                    // No master reference to validate (uiState/controlText only)
+                                    break;
+                                default:
+                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated Tutorial type:{tutorial.TutorialParam?.GetType().Name}\n";
+                                    break;
                             }
                         }
                     }
@@ -339,17 +354,36 @@ namespace Core.Master.Validator
                 return logs;
             }
 
-            string ValidateDragGuideObjectId(string uiObjectId, string challengeTitle)
+            string ValidateUiObjectId(string uiObjectId, string challengeTitle)
             {
+                // マスタ側uiObjectIdの静的キー集合。TutorialAnchorIdMapper.UiAnchorsのキーと対応する
+                // Static uiObjectId keys; must mirror the keys of TutorialAnchorIdMapper.UiAnchors
                 const string blockPrefix = "buildMenuBlock:";
-                if (!uiObjectId.StartsWith(blockPrefix, StringComparison.Ordinal)) return "";
+                const string researchPrefix = "researchNode:";
 
-                if (!Guid.TryParse(uiObjectId.Substring(blockPrefix.Length), out var blockGuid) ||
-                    MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid) == null)
+                if (uiObjectId.StartsWith(blockPrefix, StringComparison.Ordinal))
                 {
-                    return $"[ChallengeMaster] Challenge:{challengeTitle} has invalid uiDragGuide target:{uiObjectId}\n";
+                    if (!Guid.TryParse(uiObjectId.Substring(blockPrefix.Length), out var blockGuid) ||
+                        MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid) == null)
+                    {
+                        return $"[ChallengeMaster] Challenge:{challengeTitle} has invalid uiObjectId target:{uiObjectId}\n";
+                    }
+                    return "";
                 }
-                return "";
+
+                if (uiObjectId.StartsWith(researchPrefix, StringComparison.Ordinal))
+                {
+                    if (!Guid.TryParse(uiObjectId.Substring(researchPrefix.Length), out var researchGuid) ||
+                        MasterHolder.ResearchMaster.GetResearch(researchGuid) == null)
+                    {
+                        return $"[ChallengeMaster] Challenge:{challengeTitle} has invalid uiObjectId target:{uiObjectId}\n";
+                    }
+                    return "";
+                }
+
+                if (uiObjectId is "craftButton" or "challengeHud" or "hotbar") return "";
+
+                return $"[ChallengeMaster] Challenge:{challengeTitle} has invalid uiObjectId:{uiObjectId}\n";
             }
 
             bool ExistsChallengeGuid(Guid challengeGuid)
