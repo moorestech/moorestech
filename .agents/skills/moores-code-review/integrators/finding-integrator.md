@@ -20,7 +20,12 @@
    担当だが、**各Criticalが§3/§3.5/§4のどれに該当するかの区分判定はあなたが行う**。
 2. **全系統の出力を読む**（Run dir配下）:
    - `agents/*.md` — レンズ・reviewer・Fable・investigator・verifierの全報告
-   - `codex-audit.out.md` / `codex-bughunt.out.md` / `codex-design.out.md` — Codex監査（無ければスキップ系統として記録）
+   - `codex-audit.final.md` / `codex-bughunt.final.md` / `codex-design.final.md` — Codex監査の**結論**（正本）
+     **空・不在でもスキップ扱いにしない。** `.out.md`（stdout）はツール実行ログの副産物で、完走しても
+     結論が入らないことがある（2026-08-18実測）。必ず先に回収を試みる:
+     `python3 .claude/skills/moores-code-review/scripts/codex_recover.py --prompt <run dir>/codex-<名前>.md --out <run dir>/codex-<名前>.out.md`
+     exit 0 → 生成/既存の `.final.md` を読んで**通常の1系統として統合する**。exit 3（未完走）/ exit 4（セッション不在）
+     のときだけ縮退と記録し、終了コードを「系統別回収状況」に併記する。`.out.md` をgrepして欠員判定しない
    - `checks.json` — 決定論confirmed（裏取り不要でそのまま採用）と候補群
    - `context.md` — suppressed裁定の出所ラベル検証に使う
 3. **実コード照合**: Codexの各指摘とレンズ/reviewerのCriticalは該当コードをReadして
@@ -61,8 +66,10 @@
 件数と、各件の棄却理由1行（§1.5のどの条件で落としたか）
 
 ## 系統別回収状況
-起動された全系統の1行判定表。欠員（agents/にファイルが無い・Codex出力が無い・
-weekly limit等の失敗応答）は縮退として明記
+起動された全系統の1行判定表。欠員（agents/にファイルが無い・weekly limit等の失敗応答）は
+縮退として明記。Codexは「完走したが回収失敗（recoverで回収し統合済み）」と「真の欠員（exit 3/4）」を
+必ず書き分ける — 前者を欠員として書くと、外部監査の結論が現に存在するのにPR本文とレビュー記録へ
+偽の縮退申告が残る（2026-08-18 PR#1167 実害）
 ```
 
 ## 返答（コンパクト・最終メッセージ）
