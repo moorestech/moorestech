@@ -21,6 +21,20 @@ namespace Client.WebUiHost.Game.Topics
         public List<ResearchConsumeItemDto> ConsumeItems;
         public List<ResearchRewardItemDto> RewardItems;
         public List<int> UnlockItemIds;
+        public List<ResearchUnlockBlockDto> UnlockBlocks;
+        public List<int> UnlockMachineRecipeOutputItemIds;
+        public List<string> UnlockConnectToolGuids;
+        public List<string> UnlockTrainCarGuids;
+    }
+
+    /// <summary>
+    /// unlockBlock解放の表示用DTO。IconはBlockId、名前はGuid導出キーで引く
+    /// Display DTO for unlockBlock; icon via BlockId, name via the Guid-derived key
+    /// </summary>
+    public class ResearchUnlockBlockDto
+    {
+        public int BlockId;
+        public string BlockGuid;
     }
 
     public class ResearchRewardItemDto

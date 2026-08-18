@@ -33,6 +33,10 @@ namespace Client.Tests.WebUi
                         ConsumeItems = new List<ResearchConsumeItemDto> { new() { ItemId = 1, Count = 5 } },
                         RewardItems = new List<ResearchRewardItemDto> { new() { ItemId = 2, Count = 4 } },
                         UnlockItemIds = new List<int>(),
+                        UnlockBlocks = new List<ResearchUnlockBlockDto>(),
+                        UnlockMachineRecipeOutputItemIds = new List<int>(),
+                        UnlockConnectToolGuids = new List<string>(),
+                        UnlockTrainCarGuids = new List<string>(),
                     },
                     new()
                     {
@@ -44,6 +48,10 @@ namespace Client.Tests.WebUi
                         ConsumeItems = new List<ResearchConsumeItemDto>(),
                         RewardItems = new List<ResearchRewardItemDto>(),
                         UnlockItemIds = new List<int> { 3 },
+                        UnlockBlocks = new List<ResearchUnlockBlockDto> { new() { BlockId = 7, BlockGuid = "44444444-4444-4444-8444-444444444444" } },
+                        UnlockMachineRecipeOutputItemIds = new List<int> { 9 },
+                        UnlockConnectToolGuids = new List<string> { "55555555-5555-4555-8555-555555555555" },
+                        UnlockTrainCarGuids = new List<string> { "66666666-6666-4666-8666-666666666666" },
                     },
                 },
             };

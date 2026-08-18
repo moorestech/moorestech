@@ -28,6 +28,10 @@ namespace Client.WebUiHost.Game.Topics
                 ConsumeItems = new List<ResearchConsumeItemDto>(),
                 RewardItems = new List<ResearchRewardItemDto>(),
                 UnlockItemIds = new List<int>(),
+                UnlockBlocks = new List<ResearchUnlockBlockDto>(),
+                UnlockMachineRecipeOutputItemIds = new List<int>(),
+                UnlockConnectToolGuids = new List<string>(),
+                UnlockTrainCarGuids = new List<string>(),
             };
 
             foreach (var prev in master.PrevResearchNodeGuids) dto.PrevGuids.Add(prev.ToString());
@@ -63,6 +67,31 @@ namespace Client.WebUiHost.Game.Topics
                     var unlock = (UnlockItemRecipeViewGameActionParam)action.GameActionParam;
                     foreach (var itemGuid in unlock.UnlockItemGuids)
                         dto.UnlockItemIds.Add(MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive());
+                }
+                else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockBlock)
+                {
+                    var unlock = (UnlockBlockGameActionParam)action.GameActionParam;
+                    foreach (var blockGuid in unlock.UnlockBlockGuids)
+                        dto.UnlockBlocks.Add(new ResearchUnlockBlockDto { BlockId = MasterHolder.BlockMaster.GetBlockId(blockGuid).AsPrimitive(), BlockGuid = blockGuid.ToString() });
+                }
+                else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockMachineRecipe)
+                {
+                    // 機械レシピは出力アイテムのアイコンで代表させる（§8.7の代表出力アイテム前例）
+                    // Represent machine recipes by their output item icons (per the §8.7 precedent)
+                    var unlock = (UnlockMachineRecipeGameActionParam)action.GameActionParam;
+                    foreach (var recipeGuid in unlock.UnlockMachineRecipeGuids)
+                    foreach (var output in MasterHolder.MachineRecipesMaster.GetRecipeElement(recipeGuid).OutputItems)
+                        dto.UnlockMachineRecipeOutputItemIds.Add(MasterHolder.ItemMaster.GetItemId(output.ItemGuid).AsPrimitive());
+                }
+                else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockConnectTool)
+                {
+                    var unlock = (UnlockConnectToolGameActionParam)action.GameActionParam;
+                    foreach (var toolGuid in unlock.UnlockConnectToolGuids) dto.UnlockConnectToolGuids.Add(toolGuid.ToString());
+                }
+                else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockTrainCar)
+                {
+                    var unlock = (UnlockTrainCarGameActionParam)action.GameActionParam;
+                    foreach (var carGuid in unlock.UnlockTrainCarGuids) dto.UnlockTrainCarGuids.Add(carGuid.ToString());
                 }
             }
         }
