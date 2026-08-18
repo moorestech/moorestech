@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Client.Game.InGame.Tutorial.UIHighlight;
+using Core.Master;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -25,6 +26,14 @@ namespace Client.Tests.WebUi
             {
                 Assert.IsTrue(staticIds.Contains(anchorId), $"'{anchorId}' is missing from tutorial_anchor_ids.json staticIds");
             }
+        }
+
+        // 正本(Core.Master.TutorialUiObjectId)の静的キー集合がマッパーの既知キー集合と一致すること
+        // Core.Master.TutorialUiObjectId's static key set (the source of truth) must match the mapper's known keys
+        [Test]
+        public void StaticKeysMatchCoreMasterSourceOfTruth()
+        {
+            CollectionAssert.AreEquivalent(TutorialUiObjectId.StaticKeys, TutorialAnchorIdMapper.KnownStaticKeys);
         }
 
         // FromItemIdが生成するprefixがWeb側の動的prefix定義と一致すること

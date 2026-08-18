@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mooresmaster.Model.ChallengesModule;
 using Mooresmaster.Model.GameActionModule;
 using Mooresmaster.Model.MapModule;
@@ -356,14 +357,11 @@ namespace Core.Master.Validator
 
             string ValidateUiObjectId(string uiObjectId, string challengeTitle)
             {
-                // マスタ側uiObjectIdの静的キー集合。TutorialAnchorIdMapper.UiAnchorsのキーと対応する
-                // Static uiObjectId keys; must mirror the keys of TutorialAnchorIdMapper.UiAnchors
-                const string blockPrefix = "buildMenuBlock:";
-                const string researchPrefix = "researchNode:";
-
-                if (uiObjectId.StartsWith(blockPrefix, StringComparison.Ordinal))
+                // 静的キー集合とprefixはCore.Master.TutorialUiObjectId（正本）を参照する
+                // Static keys and prefixes are sourced from Core.Master.TutorialUiObjectId (the source of truth)
+                if (uiObjectId.StartsWith(TutorialUiObjectId.BuildMenuBlockPrefix, StringComparison.Ordinal))
                 {
-                    if (!Guid.TryParse(uiObjectId.Substring(blockPrefix.Length), out var blockGuid) ||
+                    if (!Guid.TryParse(uiObjectId.Substring(TutorialUiObjectId.BuildMenuBlockPrefix.Length), out var blockGuid) ||
                         MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid) == null)
                     {
                         return $"[ChallengeMaster] Challenge:{challengeTitle} has invalid uiObjectId target:{uiObjectId}\n";
@@ -371,9 +369,9 @@ namespace Core.Master.Validator
                     return "";
                 }
 
-                if (uiObjectId.StartsWith(researchPrefix, StringComparison.Ordinal))
+                if (uiObjectId.StartsWith(TutorialUiObjectId.ResearchNodePrefix, StringComparison.Ordinal))
                 {
-                    if (!Guid.TryParse(uiObjectId.Substring(researchPrefix.Length), out var researchGuid) ||
+                    if (!Guid.TryParse(uiObjectId.Substring(TutorialUiObjectId.ResearchNodePrefix.Length), out var researchGuid) ||
                         MasterHolder.ResearchMaster.GetResearch(researchGuid) == null)
                     {
                         return $"[ChallengeMaster] Challenge:{challengeTitle} has invalid uiObjectId target:{uiObjectId}\n";
@@ -381,7 +379,7 @@ namespace Core.Master.Validator
                     return "";
                 }
 
-                if (uiObjectId is "craftButton" or "challengeHud" or "hotbar") return "";
+                if (TutorialUiObjectId.StaticKeys.Contains(uiObjectId)) return "";
 
                 return $"[ChallengeMaster] Challenge:{challengeTitle} has invalid uiObjectId:{uiObjectId}\n";
             }

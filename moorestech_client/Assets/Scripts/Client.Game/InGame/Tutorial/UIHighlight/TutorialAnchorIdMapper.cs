@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 
 namespace Client.Game.InGame.Tutorial.UIHighlight
 {
@@ -10,10 +11,10 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         // Dynamic anchor ID prefix; must mirror Web's TutorialAnchorDynamicPrefixes
         public const string ItemAnchorPrefix = "recipe.item-";
 
-        // マスタ側uiObjectIdの動的書式「種別:GUID」のprefix
-        // Prefixes of the master-side dynamic uiObjectId form "kind:GUID"
-        public const string BuildMenuBlockObjectIdPrefix = "buildMenuBlock:";
-        public const string ResearchNodeObjectIdPrefix = "researchNode:";
+        // マスタ側uiObjectIdの動的書式「種別:GUID」のprefix。正本はCore.Master.TutorialUiObjectId
+        // Prefixes of the master-side dynamic uiObjectId form "kind:GUID"; sourced from Core.Master.TutorialUiObjectId
+        public const string BuildMenuBlockObjectIdPrefix = TutorialUiObjectId.BuildMenuBlockPrefix;
+        public const string ResearchNodeObjectIdPrefix = TutorialUiObjectId.ResearchNodePrefix;
 
         private static readonly IReadOnlyDictionary<string, string> UiAnchors =
             new Dictionary<string, string>
@@ -62,5 +63,9 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         // Web側フィクスチャとの突合テスト用に、静的マッピングの出力アンカーID全件を公開する
         // Exposes every statically mapped anchor ID for the parity test against the Web-side fixture
         public static IReadOnlyCollection<string> AllMappedAnchorIds => UiAnchors.Values.ToArray();
+
+        // Core.Master.TutorialUiObjectId（正本）との突合テスト用に、マッパーが扱う静的キー全件を公開する
+        // Exposes every static key handled by the mapper, for the parity test against Core.Master.TutorialUiObjectId (the source of truth)
+        public static IReadOnlyCollection<string> KnownStaticKeys => UiAnchors.Keys.ToArray();
     }
 }
