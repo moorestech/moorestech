@@ -1165,6 +1165,14 @@
       "type": "text",
       "backgroundColor": "#ffffff",
       "characterId": "chr_002",
+      "body": "画面の左上に、いま目指す目標が表示されています。\n迷ったらそこを確認してください。",
+      "id": 139,
+      "overrideCharacterName": "？？？"
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "characterId": "chr_002",
       "body": "大丈夫です。ぼくがしっかりサポートするので\n姫さまは何も心配いりません。さあ、行きますよ",
       "id": 40,
       "overrideCharacterName": "？？？"
