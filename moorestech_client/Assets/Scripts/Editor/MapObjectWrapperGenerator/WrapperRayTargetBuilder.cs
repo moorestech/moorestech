@@ -5,13 +5,13 @@ using Client.Game.InGame.Map.MapObject;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// 採掘レイの当たり判定を、既存Tree.prefabの前例どおり幹に沿った円柱のconvex MeshColliderとして作る
-// Builds the mining ray target as a trunk-hugging convex cylinder MeshCollider, exactly like the existing Tree.prefab
+// 前例どおり幹沿いconvexコライダーを作る
+// Builds a trunk-hugging convex MeshCollider, matching the existing Tree.prefab precedent
 public static class WrapperRayTargetBuilder
 {
     private const string RayTargetObjectName = "RayTargetCollider";
 
-    // 根元の太さを測る高さ。最近接LODの高さに対する割合
+    // 根元太さ測定高さ(最近接LODの割合)
     // Fraction of the nearest LOD's height used to measure how thick the object is at its base
     private const float FootprintHeightRatio = 0.1f;
 

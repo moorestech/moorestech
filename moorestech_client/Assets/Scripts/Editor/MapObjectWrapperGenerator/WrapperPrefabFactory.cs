@@ -7,8 +7,8 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// BKプレハブをネストしたルートへ、アウトライン・レイターゲット・HPバーを足したラッパープレハブを1体分作る
-// Builds one wrapper prefab: a nested BK prefab root plus its outline, ray target, and HP bar
+// BKへアウトライン・レイターゲット・HPバーを付与
+// Builds one wrapper prefab: BK plus its outline, ray target, and HP bar
 public static class WrapperPrefabFactory
 {
     private const string HpBarPrefabPath = "Assets/Asset/Environment/Prefab/MapObjectHpBar.prefab";
@@ -18,6 +18,10 @@ public static class WrapperPrefabFactory
     // HPバーが樹冠へ埋まらないよう頂部から離す高さ
     // Height that lifts the HP bar clear of the canopy top
     private const float HpBarHeightMargin = 0.5f;
+
+    // kind値。HPバー分岐に唯一使う
+    // The kind value; the sole consumer that branches HP bar necessity on it
+    private const string PebbleKind = "pebble";
 
     public static void CreateWrapperPrefab(MapObjectWrapperSpecies species, Scene workScene)
     {
@@ -43,7 +47,9 @@ public static class WrapperPrefabFactory
 
         // HPバーの高さは見た目の外接、レイターゲットは幹の太さと、参照する外接を分ける
         // The HP bar rides the visual bounds while the ray target follows the trunk, so the two use different bounds
-        var hpBarView = CreateHpBar(root, localBounds);
+        // PickUp種(小石)は既存Pebble.prefab前例に倣いHPバーを持たない（1操作で消えるのでHP表示が不要）
+        // PickUp species (pebbles) carry no HP bar, matching the existing Pebble.prefab precedent (they vanish in one action, so HP display is meaningless)
+        var hpBarView = species.kind == PebbleKind ? null : CreateHpBar(root, localBounds);
 
         var serializedMapObject = new SerializedObject(mapObject);
         serializedMapObject.FindProperty("outlineObject").objectReferenceValue = outlineObject;
@@ -98,8 +104,8 @@ public static class WrapperPrefabFactory
         var hpBarPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(HpBarPrefabPath);
         if (hpBarPrefab == null) throw new InvalidOperationException($"hp bar prefab not found: {HpBarPrefabPath}");
 
-        // MapObjectGameObjectが親のlossyScaleで逆スケール補正するため、HPバーはルート直下に置く
-        // MapObjectGameObject counter-scales the bar by its parent lossyScale, so it must sit directly under the root
+        // HPバーの高さ(localBounds.max.y)はルートローカル空間の値なので、ルート直下に置いてそのまま渡す
+        // The HP bar height (localBounds.max.y) is expressed in the root's local space, so it sits directly under the root to consume that value as-is
         var hpBar = (GameObject)PrefabUtility.InstantiatePrefab(hpBarPrefab, root.transform);
         hpBar.transform.localPosition = new Vector3(0f, localBounds.max.y + HpBarHeightMargin, 0f);
 

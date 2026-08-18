@@ -92,13 +92,9 @@ namespace Client.Game.InGame.Map.MapObject
                 rayTarget.Initialize(this);
             }
 
-            // 個体スケールがUI表示に波及しないようHPバーは逆スケールで等倍を保つ
-            // Counter-scale the HP bar so per-instance scaling never distorts the UI
-            if (hpBarView)
-            {
-                var lossy = hpBarView.transform.parent.lossyScale;
-                hpBarView.transform.localScale = new Vector3(1f / lossy.x, 1f / lossy.y, 1f / lossy.z);
-            }
+            // 個体スケールがUI表示に波及しないようHPバーは逆スケールで等倍を保つ（姿勢と同様、補正はView自身の責務）
+            // Counter-scale the HP bar so per-instance scaling never distorts the UI (correction is the View's own responsibility, like its rotation)
+            if (hpBarView) hpBarView.SetWorldUnitScale();
         }
         
         public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)

@@ -189,79 +189,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c22ab40900a2421781a39544aff997cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Map.MapObject.MapObjectRayTarget
---- !u!1001 &1195043793393409397
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 8890952843036373029}
-    m_Modifications:
-    - target: {fileID: 2049014206115946122, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
-      propertyPath: m_Name
-      value: MapObjectHpBar
-      objectReference: {fileID: 0}
-    - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.65568125
-      objectReference: {fileID: 0}
-    - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
---- !u!4 &4827539846083842246 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
-  m_PrefabInstance: {fileID: 1195043793393409397}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &8744977431017022650 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7622838642539248079, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
-  m_PrefabInstance: {fileID: 1195043793393409397}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c26088fec1c545388b5eb5d830a20a3a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &9147097086043830724
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -327,9 +254,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 401390838221474273, guid: 4451a990c91b4e808c730cc4944dccff, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4493914149926977604}
-    - targetCorrespondingSourceObject: {fileID: 401390838221474273, guid: 4451a990c91b4e808c730cc4944dccff, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4827539846083842246}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1070122212980806491, guid: 4451a990c91b4e808c730cc4944dccff, type: 3}
       insertIndex: -1
@@ -353,7 +277,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Map.MapObject.MapObjectGameObject
   outlineObject: {fileID: 8055065286530732227}
-  hpBarView: {fileID: 8744977431017022650}
+  hpBarView: {fileID: 0}
   instanceId: 0
   mapObjectGuid: 6ea53728-3287-5565-ab4b-06945cbdb0b8
 --- !u!4 &8890952843036373029 stripped

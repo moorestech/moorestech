@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Client.Game.InGame.Map.MapObject;
 using NUnit.Framework;
 using UnityEditor;
@@ -7,8 +8,8 @@ using UnityEngine;
 namespace Client.Tests.Map
 {
     /// <summary>
-    ///     ラッパーのレイターゲット円柱が、採掘レンジから狙える太さで、かつBK自前コライダーを内側に包んでいることを検証する
-    ///     Verifies the wrapper's ray target cylinder is thick enough to aim at from the mining range and still swallows BK's own colliders
+    ///     レイターゲット円柱の太さとBK内包を検証
+    ///     Verifies the ray target cylinder is thick enough to aim at and still swallows BK's own colliders
     /// </summary>
     public class MapObjectRayTargetTest
     {
@@ -25,6 +26,24 @@ namespace Client.Tests.Map
         // Allows for floating point rounding only
         private const float Tolerance = 1e-4f;
 
+        private UnityEngine.SceneManagement.Scene _workScene;
+
+        [SetUp]
+        public void SetUp()
+        {
+            // カプセルコライダーの外接はシーンに居ないと引けないので、プレビューシーンへ実体化して測る
+            // A capsule collider has no bounds outside a scene, so the measurement runs on an instance in a preview scene
+            _workScene = EditorSceneManager.NewPreviewScene();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            // アサート失敗でメソッド本体が途中終了しても、TearDownは必ず呼ばれるのでシーンは確実に閉じる
+            // TearDown always runs even when the test body exits early on an assertion failure, so the scene is closed unconditionally
+            EditorSceneManager.ClosePreviewScene(_workScene);
+        }
+
         [Test]
         public void レイターゲットが採掘レンジから狙える太さでBK自前コライダーを包んでいる()
         {
@@ -32,55 +51,79 @@ namespace Client.Tests.Map
             // Unity never hits a collider from inside it, so a ray target wider than the camera can get is impossible to mine
             var allowedReach = MiningDistance + CameraDistance;
 
-            // カプセルコライダーの外接はシーンに居ないと引けないので、プレビューシーンへ実体化して測る
-            // A capsule collider has no bounds outside a scene, so the measurement runs on an instance in a preview scene
-            var workScene = EditorSceneManager.NewPreviewScene();
+            // 全species分の失敗を集めループ内でAssertを投げない（最初の1件で止まらず116件分を1回で見せる）
+            // Failures are collected across every species instead of throwing inside the loop, so all 116 show up in one run instead of stopping at the first
+            var failures = new List<string>();
 
             foreach (var element in MapObjectWrapperInventory.LoadSpecies())
             {
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(element.wrapperPath);
-                Assert.IsNotNull(prefab, $"wrapper prefab does not exist: {element.wrapperPath}");
+                if (prefab == null)
+                {
+                    failures.Add($"wrapper prefab does not exist: {element.wrapperPath}");
+                    continue;
+                }
 
-                var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, workScene);
+                var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, _workScene);
                 instance.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
 
-                var rayTarget = LoadRayTargetCollider(instance, element.wrapperPath);
-                var axis = MapObjectRayTargetGeometry.CalculateAxis(instance, rayTarget);
-                var inscribedRadius = MapObjectRayTargetGeometry.CalculateInscribedRadius(instance, rayTarget, axis);
-                Assert.IsFalse(float.IsInfinity(inscribedRadius), $"ray target mesh has no side face, so the thickness assertions below would pass vacuously: {element.wrapperPath}");
+                var rayTarget = LoadRayTargetCollider(instance, element.wrapperPath, failures);
+                if (rayTarget != null)
+                {
+                    var axis = MapObjectRayTargetGeometry.CalculateAxis(instance, rayTarget);
+                    var inscribedRadius = MapObjectRayTargetGeometry.CalculateInscribedRadius(instance, rayTarget, axis);
+                    if (float.IsInfinity(inscribedRadius))
+                    {
+                        failures.Add($"ray target mesh has no side face, so the thickness assertions below would pass vacuously: {element.wrapperPath}");
+                    }
+                    else
+                    {
+                        // 実頂点で測る。外接ボックスの角で測ると多角柱の外へ√2だけ膨らみ、閾値までの余裕を実際より小さく見せる
+                        // Measured on real vertices; AABB corners would inflate the prism by a factor of root two and understate the margin to the threshold
+                        var reach = MapObjectRayTargetGeometry.CalculateCircumscribedReach(instance, rayTarget);
+                        if (allowedReach < reach)
+                            failures.Add($"ray target is wider than the mining camera can stand off, so it can never be hit: {element.wrapperPath}");
 
-                // 実頂点で測る。外接ボックスの角で測ると多角柱の外へ√2だけ膨らみ、閾値までの余裕を実際より小さく見せる
-                // Measured on real vertices; AABB corners would inflate the prism by a factor of root two and understate the margin to the threshold
-                var reach = MapObjectRayTargetGeometry.CalculateCircumscribedReach(instance, rayTarget);
-                Assert.LessOrEqual(reach, allowedReach, $"ray target is wider than the mining camera can stand off, so it can never be hit: {element.wrapperPath}");
+                        // 地際のテーパーだけで太さを決めると幹を持たない小型種が数cmまで痩せるため、見た目に対する比率で下限を張る
+                        // Sizing from the ground-level taper alone shrinks trunkless small species to a few centimetres, so the floor is a ratio of how big they look
+                        var visualRadius = MapObjectRayTargetGeometry.CalculateVisualSilhouetteRadius(instance, axis);
+                        if (inscribedRadius + Tolerance < visualRadius * MinimumVisualSilhouetteRatio)
+                            failures.Add($"ray target is too thin against its own silhouette to aim at: {element.wrapperPath}");
 
-                // 地際のテーパーだけで太さを決めると幹を持たない小型種が数cmまで痩せるため、見た目に対する比率で下限を張る
-                // Sizing from the ground-level taper alone shrinks trunkless small species to a few centimetres, so the floor is a ratio of how big they look
-                var visualRadius = MapObjectRayTargetGeometry.CalculateVisualSilhouetteRadius(instance, axis);
-                Assert.GreaterOrEqual(inscribedRadius + Tolerance, visualRadius * MinimumVisualSilhouetteRatio, $"ray target is too thin against its own silhouette to aim at: {element.wrapperPath}");
-
-                // 多角柱は面の中央方位が最も細い。そこからBK自前コライダーがはみ出すと、その方位のレイをBK側が先に取り採掘対象を解決できない
-                // A prism is thinnest at its face midpoints; a BK collider poking out there takes the ray first and the mining target never resolves
-                var bkReach = MapObjectRayTargetGeometry.CalculateBkColliderReach(instance, axis);
-                Assert.LessOrEqual(bkReach, inscribedRadius + Tolerance, $"a BK collider pokes out of the ray target cylinder: {element.wrapperPath}");
+                        // 多角柱は面の中央方位が最も細い。そこからBK自前コライダーがはみ出すと、その方位のレイをBK側が先に取り採掘対象を解決できない
+                        // A prism is thinnest at its face midpoints; a BK collider poking out there takes the ray first and the mining target never resolves
+                        var bkReach = MapObjectRayTargetGeometry.CalculateBkColliderReach(instance, axis);
+                        if (inscribedRadius + Tolerance < bkReach)
+                            failures.Add($"a BK collider pokes out of the ray target cylinder: {element.wrapperPath}");
+                    }
+                }
 
                 Object.DestroyImmediate(instance);
             }
 
-            EditorSceneManager.ClosePreviewScene(workScene);
+            Assert.IsEmpty(failures, $"{failures.Count} species failed:\n" + string.Join("\n", failures));
         }
 
-        private static MeshCollider LoadRayTargetCollider(GameObject root, string wrapperPath)
+        private static MeshCollider LoadRayTargetCollider(GameObject root, string wrapperPath, List<string> failures)
         {
             var rayTarget = root.GetComponentInChildren<MapObjectRayTarget>(true);
-            Assert.IsNotNull(rayTarget, $"no MapObjectRayTarget for the mining raycast: {wrapperPath}");
+            if (rayTarget == null)
+            {
+                failures.Add($"no MapObjectRayTarget for the mining raycast: {wrapperPath}");
+                return null;
+            }
 
             // 前例(AddressableResources/Environment/Tree.prefab)と同じく幹に沿ったconvex MeshColliderであること
             // Same shape as the precedent (AddressableResources/Environment/Tree.prefab): a convex MeshCollider hugging the trunk
             var meshCollider = rayTarget.GetComponent<Collider>() as MeshCollider;
-            Assert.IsNotNull(meshCollider, $"ray target collider is not a MeshCollider: {wrapperPath}");
-            Assert.IsTrue(meshCollider.convex, $"ray target MeshCollider is not convex: {wrapperPath}");
-            Assert.IsTrue(meshCollider.isTrigger, $"ray target MeshCollider is not a trigger: {wrapperPath}");
+            if (meshCollider == null)
+            {
+                failures.Add($"ray target collider is not a MeshCollider: {wrapperPath}");
+                return null;
+            }
+
+            if (!meshCollider.convex) failures.Add($"ray target MeshCollider is not convex: {wrapperPath}");
+            if (!meshCollider.isTrigger) failures.Add($"ray target MeshCollider is not a trigger: {wrapperPath}");
             return meshCollider;
         }
     }

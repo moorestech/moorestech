@@ -29,10 +29,10 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 929871069232389401}
+  - {fileID: 8708244059976208546}
   m_Father: {fileID: 496942212390168377}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &3616073266473467674
+--- !u!1 &2805345195666977792
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -40,9 +40,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 929871069232389401}
-  - component: {fileID: 6094379080752998363}
-  - component: {fileID: 4218517873362196346}
+  - component: {fileID: 8708244059976208546}
+  - component: {fileID: 5062598567156280942}
+  - component: {fileID: 4936167905459211836}
   m_Layer: 10
   m_Name: Baobab7_LOD0
   m_TagString: Untagged
@@ -50,13 +50,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &929871069232389401
+--- !u!4 &8708244059976208546
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3616073266473467674}
+  m_GameObject: {fileID: 2805345195666977792}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -65,21 +65,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 874858331185068110}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &6094379080752998363
+--- !u!33 &5062598567156280942
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3616073266473467674}
+  m_GameObject: {fileID: 2805345195666977792}
   m_Mesh: {fileID: 2200593525561756705, guid: a157e19aa8fd40e0adb9d66d22111a94, type: 3}
---- !u!23 &4218517873362196346
+--- !u!23 &4936167905459211836
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3616073266473467674}
+  m_GameObject: {fileID: 2805345195666977792}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1

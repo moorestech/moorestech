@@ -22,16 +22,23 @@ public static class WrapperAddressableRegistrar
         var group = settings.FindGroup(GroupName);
         if (group == null) throw new InvalidOperationException($"addressable group not found: {GroupName}");
 
-        RemoveGeneratedEntries(settings);
-
-        var entries = new List<AddressableAssetEntry>(speciesList.Count);
+        // 途中失敗でも登録を欠落させないため、破壊操作(RemoveGeneratedEntries)より先に全species分のGUIDを解決し切る
+        // Resolve every species' GUID before the destructive RemoveGeneratedEntries call, so a mid-run failure never leaves entries missing
+        var resolvedGuids = new List<string>(speciesList.Count);
         foreach (var species in speciesList)
         {
             var assetGuid = AssetDatabase.AssetPathToGUID(species.wrapperPath);
             if (string.IsNullOrEmpty(assetGuid)) throw new InvalidOperationException($"wrapper prefab is not imported: {species.wrapperPath}");
+            resolvedGuids.Add(assetGuid);
+        }
 
-            var entry = settings.CreateOrMoveEntry(assetGuid, group, false, false);
-            entry.address = species.address;
+        RemoveGeneratedEntries(settings);
+
+        var entries = new List<AddressableAssetEntry>(speciesList.Count);
+        for (var i = 0; i < speciesList.Count; i++)
+        {
+            var entry = settings.CreateOrMoveEntry(resolvedGuids[i], group, false, false);
+            entry.address = speciesList[i].address;
             entries.Add(entry);
         }
 

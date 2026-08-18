@@ -5,8 +5,8 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// species-inventory.jsonに載った樹種・岩を全件ラッパープレハブ化し、Addressableへ登録する入口
-// Entry point that turns every tree and rock listed in species-inventory.json into a wrapper prefab and registers it to Addressables
+// 全speciesをラッパー化しAddressable登録する
+// Entry point that wraps every species and registers it to Addressables
 public static class MapObjectWrapperGeneratorMenu
 {
     // 抽出スクリプトの出力がアドレス・ラッパーパスの唯一のソース

@@ -10,8 +10,8 @@ using UnityEngine;
 namespace Client.Tests.Map
 {
     /// <summary>
-    ///     BK樹種・岩のラッパープレハブがインベントリ全件分ぶんAddressableへ登録され、採掘に必要な構造を備えていることを検証する
-    ///     Verifies every species in the inventory has a wrapper prefab registered to Addressables with the structure mining requires
+    ///     全speciesの登録先と採掘構造を検証
+    ///     Verifies every species' Addressable registration and mining structure
     /// </summary>
     public class MapObjectAddressableLoadTest
     {
@@ -42,12 +42,24 @@ namespace Client.Tests.Map
                 var serializedMapObject = new SerializedObject(mapObject);
                 var outlineObject = serializedMapObject.FindProperty("outlineObject").objectReferenceValue as GameObject;
                 var hpBarView = serializedMapObject.FindProperty("hpBarView").objectReferenceValue as MapObjectHpBarView;
+                var mapObjectGuid = serializedMapObject.FindProperty("mapObjectGuid").stringValue;
                 Assert.IsNotNull(outlineObject, $"outlineObject is not wired: {element.wrapperPath}");
-                Assert.IsNotNull(hpBarView, $"hpBarView is not wired: {element.wrapperPath}");
+                Assert.AreEqual(element.mapObjectGuid, mapObjectGuid, $"mapObjectGuid does not match the inventory: {element.wrapperPath}");
 
-                // HPバーの逆スケール補正が親のlossyScaleを読むため、ルート直下でなければ補正が別物になる
-                // The HP bar counter-scale reads its parent lossyScale, so anywhere but directly under the root changes what it corrects
-                Assert.AreSame(prefab.transform, hpBarView.transform.parent, $"hp bar is not a direct child of the root: {element.wrapperPath}");
+                // PickUp種(小石)は既存Pebble.prefab前例に倣いHPバーを持たない
+                // PickUp species (pebbles) carry no HP bar, matching the existing Pebble.prefab precedent
+                if (element.kind == "pebble")
+                {
+                    Assert.IsNull(hpBarView, $"pebble species must not have a hp bar: {element.wrapperPath}");
+                }
+                else
+                {
+                    Assert.IsNotNull(hpBarView, $"hpBarView is not wired: {element.wrapperPath}");
+
+                    // HPバーの高さ(localBounds.max.y)はルートローカル空間の値なので、ルート直下に置いてそのまま渡している
+                    // The HP bar height (localBounds.max.y) is expressed in the root's local space, so it sits directly under the root to consume that value as-is
+                    Assert.AreSame(prefab.transform, hpBarView.transform.parent, $"hp bar is not a direct child of the root: {element.wrapperPath}");
+                }
 
                 // BK由来の当たり判定がDefaultレイヤーに残ると設置レイが樹木に刺さる
                 // A BK collider left on the Default layer would make the block placement ray hit the tree

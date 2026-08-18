@@ -90,9 +90,12 @@ def main() -> None:
         biomes[name.lower()] = {"prototypes": [p for p in prototypes if not p["disabled"]]}
 
     for name in LEGACY_SCHEMA_BIOMES:
+        # 現行スキーマ側(:90)と同じくdisabledは配置対象から除外する（樹種一覧には既に_collect_speciesで登録済み）
+        # Same as the current-schema side (:90), disabled prototypes are dropped from placement (already registered in the species list by _collect_species)
         biomes[name.lower()] = {"speciesFill": [
             map_object_guid_by_prefab_guid[reference_guid(prototype["prefab"], f"{name}[{index}]")]
             for index, prototype in enumerate(unity_biomes[name]["prototypes"])
+            if not _legacy_disabled(prototype, f"{name}[{index}]")
         ]}
 
     _reject_placeable_species_only_biomes(unity_biomes)
@@ -125,6 +128,14 @@ def _reject_placeable_species_only_biomes(unity_biomes: dict) -> None:
                    if not prototype["disabled"]]
         if enabled:
             raise ValueError(f"{name}: 樹種のみ抽出の前提に反し有効プロトタイプがある: {enabled}")
+
+
+def _legacy_disabled(prototype: dict, label: str) -> bool:
+    """旧スキーマprototypeのdisabledを読む。キー欠落は生データの想定外なのでfail-fastする。
+    Reads a legacy-schema prototype's disabled flag; a missing key is unexpected raw data, so it fails fast."""
+    if "disabled" not in prototype:
+        raise KeyError(f"{label}: disabledが無い")
+    return bool(prototype["disabled"])
 
 
 def _load_tree_placement(biome_name: str) -> dict:

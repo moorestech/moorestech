@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Tests.Map
 {
     /// <summary>
-    ///     ラッパープレハブのレイターゲット円柱・見た目・BK自前コライダーの寸法を、ルートのローカル空間で測る
-    ///     Measures the ray target cylinder, the silhouette, and BK's own colliders of a wrapper prefab in the root's local space
+    ///     レイターゲット円柱・シルエット・BK寸法を測る
+    ///     Measures the ray target cylinder, its silhouette, and BK's own colliders, all in the root's local space
     /// </summary>
     public static class MapObjectRayTargetGeometry
     {

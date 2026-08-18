@@ -31,6 +31,8 @@ namespace Client.Tests.Map
         {
             public string address;
             public string wrapperPath;
+            public string kind;
+            public string mapObjectGuid;
         }
 
         [Serializable]

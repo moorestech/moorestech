@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
 
-// ワールド空間の外接や頂点を、基準トランスフォームのローカル空間ひとつの外接へまとめる
-// Collects world-space bounds and points into a single bounding box expressed in a reference transform's local space
+// ワールド外接をローカル空間の外接へまとめる
+// Collects world-space bounds and points into one bounding box in a reference transform's local space
 public class WrapperLocalBoundsAccumulator
 {
     private readonly Matrix4x4 _worldToLocal;
@@ -26,7 +26,7 @@ public class WrapperLocalBoundsAccumulator
                 (cornerIndex & 4) == 0 ? worldBounds.min.z : worldBounds.max.z));
     }
 
-    public void AddWorldPoint(Vector3 worldPoint)
+    private void AddWorldPoint(Vector3 worldPoint)
     {
         AddLocalPoint(_worldToLocal.MultiplyPoint3x4(worldPoint));
     }
