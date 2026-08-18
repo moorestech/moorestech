@@ -17,5 +17,9 @@ export const ResearchNodeDataSchema = z.object({
   consumeItems: z.array(z.object({ itemId: z.number(), count: z.number() })),
   rewardItems: z.array(z.object({ itemId: z.number(), count: z.number() })),
   unlockItemIds: z.array(z.number()),
+  unlockBlocks: z.array(z.object({ blockId: z.number(), blockGuid: GuidSchema }).strict()),
+  unlockMachineRecipeOutputItemIds: z.array(z.number()),
+  unlockConnectToolGuids: z.array(GuidSchema),
+  unlockTrainCarGuids: z.array(GuidSchema),
 }).strict();
 export const ResearchTreeDataSchema = z.object({ nodes: z.array(ResearchNodeDataSchema) }).strict();

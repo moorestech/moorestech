@@ -14,6 +14,10 @@ const researchNode = {
   consumeItems: [],
   rewardItems: [],
   unlockItemIds: [],
+  unlockBlocks: [],
+  unlockMachineRecipeOutputItemIds: [],
+  unlockConnectToolGuids: [],
+  unlockTrainCarGuids: [],
 };
 
 const challengeNode = {

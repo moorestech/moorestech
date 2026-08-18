@@ -174,6 +174,15 @@ describe("research_tree fixture", () => {
     expect(tree.nodes.length).toBe(2);
     expect(tree.nodes[1].prevGuids).toContain(tree.nodes[0].guid);
   });
+
+  it("解放物4種のフィールドを受理し型消費できる", () => {
+    const data = loadFixture("research_tree.json") as ResearchTreeData;
+    expect(validateTopicPayload(Topics.researchTree, data)).toBe(true);
+    const node = data.nodes[1];
+    expect(node.unlockBlocks[0]).toEqual({ blockId: 7, blockGuid: "44444444-4444-4444-8444-444444444444" });
+    expect(node.unlockMachineRecipeOutputItemIds).toEqual([9]);
+    expect(node.unlockConnectToolGuids.length + node.unlockTrainCarGuids.length).toBe(2);
+  });
 });
 
 describe("challenge fixtures", () => {
