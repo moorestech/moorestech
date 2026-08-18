@@ -67,10 +67,12 @@ export function resolveNotificationParams(
   return messageParams.map((guid) => translate(buildContentKey(guid)));
 }
 
-export function buildInterpolationValues(messageId: string, messageParams: string[], count: number) {
+// countはカテゴリ固有なので、持たない通知には注入しない（注入すると{count}が0で静かに描画される）
+// count is category-specific and is not injected into notifications that lack it (injecting would silently render 0)
+export function buildInterpolationValues(messageId: string, messageParams: string[], count: number | null) {
   return {
     messageId,
-    count,
+    ...(count === null ? {} : { count }),
     ...buildPositionalInterpolationValues(messageParams),
   };
 }

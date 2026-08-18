@@ -13,7 +13,6 @@ describe("notificationStore", () => {
       messageId: "achievement.researchCompleted",
       messageParams: ["Iron"],
       itemId: null,
-      count: 0,
     });
     expect(useNotificationStore.getState().notifications).toHaveLength(1);
     vi.advanceTimersByTime(NOTIFICATION_REMOVAL_FALLBACK_MS - 1);
@@ -28,7 +27,6 @@ describe("notificationStore", () => {
       messageId: "denied.craftMaterialShortage",
       messageParams: [],
       itemId: 42,
-      count: 0,
     });
     expect(useNotificationStore.getState().notifications[0].itemId).toBe(42);
   });
@@ -39,25 +37,24 @@ describe("notificationStore", () => {
       messageId: "achievement.unlockedItem",
       messageParams: [],
       itemId: null,
-      count: 0,
     });
     expect(Object.keys(useNotificationStore.getState().notifications[0]).sort())
-      .toEqual(["category", "count", "id", "itemId", "messageId", "messageParams"]);
+      .toEqual(["category", "id", "itemId", "messageId", "messageParams"]);
   });
 
   it("表示中の同一アイテムの獲得は1行に加算される", () => {
-    earnItem(5);
-    earnItem(3);
+    earnItem(5, 7, "itemEarned.mined");
+    earnItem(3, 7, "itemEarned.mined");
     const notifications = useNotificationStore.getState().notifications;
     expect(notifications).toHaveLength(1);
-    expect(notifications[0].count).toBe(8);
+    expect(earnedCountOf(0)).toBe(8);
   });
 
   it("加算時はidが刷新され生存尺が回り直す", () => {
-    earnItem(5);
+    earnItem(5, 7, "itemEarned.mined");
     const firstId = useNotificationStore.getState().notifications[0].id;
     vi.advanceTimersByTime(NOTIFICATION_REMOVAL_FALLBACK_MS - 1);
-    earnItem(3);
+    earnItem(3, 7, "itemEarned.mined");
     expect(useNotificationStore.getState().notifications[0].id).not.toBe(firstId);
 
     // 旧idの保険タイマーが発火しても加算後の行を巻き添えにしない
@@ -69,23 +66,36 @@ describe("notificationStore", () => {
   });
 
   it("別アイテムの獲得は別行になる", () => {
-    earnItem(5, 7);
-    earnItem(3, 9);
+    earnItem(5, 7, "itemEarned.mined");
+    earnItem(3, 9, "itemEarned.mined");
+    expect(useNotificationStore.getState().notifications).toHaveLength(2);
+  });
+
+  it("messageIdが異なる同一アイテムの獲得は合流しない", () => {
+    earnItem(5, 7, "itemEarned.mined");
+    earnItem(3, 7, "itemEarned.crafted");
     expect(useNotificationStore.getState().notifications).toHaveLength(2);
   });
 
   it("獲得以外のカテゴリは同じ内容でも集約されない", () => {
-    const unlocked = { category: "achievement" as const, messageId: "achievement.unlockedItem", messageParams: [], itemId: 7, count: 0 };
+    const unlocked = { category: "achievement" as const, messageId: "achievement.unlockedItem", messageParams: [], itemId: 7 };
     useNotificationStore.getState().addNotification(unlocked);
     useNotificationStore.getState().addNotification(unlocked);
     expect(useNotificationStore.getState().notifications).toHaveLength(2);
   });
 });
 
-function earnItem(count: number, itemId = 7) {
+// union化により count は itemEarned へ絞り込まないと読めない
+// The union means count is only readable after narrowing to itemEarned
+function earnedCountOf(index: number) {
+  const notification = useNotificationStore.getState().notifications[index];
+  return notification.category === "itemEarned" ? notification.count : null;
+}
+
+function earnItem(count: number, itemId: number, messageId: string) {
   useNotificationStore.getState().addNotification({
     category: "itemEarned",
-    messageId: "itemEarned.mined",
+    messageId,
     messageParams: [],
     itemId,
     count,

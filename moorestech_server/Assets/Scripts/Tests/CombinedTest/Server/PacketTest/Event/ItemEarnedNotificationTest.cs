@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Core.Item;
 using Core.Master;
 using Core.Update;
 using Game.Context;
@@ -19,7 +20,7 @@ using UnityEngine;
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
     /// <summary>
-    ///     手掘りの獲得がItemEarned通知として飛ぶことを検証する
+    ///     手掘りの獲得はItemEarned通知で飛ぶ
     ///     Verifies that hand-mining rewards are pushed as ItemEarned notifications
     /// </summary>
     public class ItemEarnedNotificationTest
@@ -32,6 +33,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         private static readonly Guid IronVeinGuid = Guid.Parse("11111111-0000-0000-0000-000000000001");
         private static readonly Vector3Int InsideIronVein = new(0, 5, 0);
         private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+
+        // 空きを潰すための獲得アイテムとは別のアイテム
+        // A different item used to fill the inventory
+        private static readonly Guid FillerItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000002");
         private const double ExpectedAttackSpeed = 0.2;
 
         [Test]
@@ -43,7 +48,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             SendMapObjectMining(packet, mapObject.InstanceId);
 
-            // 複数スタックに割れても通知は1本で、Countは獲得総数と一致する
+            // 分割されても通知は1本、Countは総数
             // Even when the reward splits into several stacks the notification stays single and Count matches the total
             var notifications = TakeItemEarnedNotifications(sink);
             Assert.AreEqual(1, notifications.Count);
@@ -52,7 +57,33 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var earnItemId = MasterHolder.ItemMaster.GetItemId(earnItem.ItemGuid);
             Assert.AreEqual(earnItemId, notifications[0].ItemId);
             Assert.AreEqual(CountMainInventoryItem(serviceProvider, earnItemId), notifications[0].Count);
-            Assert.AreEqual(NotificationMessagePack.ItemEarnedMessageId, notifications[0].MessageId);
+            Assert.AreEqual("itemEarned.mined", notifications[0].MessageId);
+        }
+
+        [Test]
+        public void 溢れて入らなかった分は通知の個数に含めない()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var mapObject = ServerContext.MapObjectDatastore.MapObjects.First(target => target.MapObjectGuid == PickUpMapObjectGuid);
+            var earnItem = MasterHolder.MapObjectMaster.GetMapObjectElement(PickUpMapObjectGuid).EarnItems[0];
+            var earnItemId = MasterHolder.ItemMaster.GetItemId(earnItem.ItemGuid);
+
+            // 空き検査はMaxCount1周分しか見ないため、それを1つ上回る空きは検査を通る
+            // The space check only covers one MaxCount round, so a free space one above it passes
+            var freeSpace = earnItem.MaxCount + 1;
+            FillInventoryLeavingFreeSpace(playerInventory, earnItemId, freeSpace);
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
+            var beforeCount = CountMainInventoryItem(serviceProvider, earnItemId);
+
+            // PickUpは一撃で全HP境界を跨ぐので、空き検査を超える量が生成されて溢れる
+            // PickUp crosses every HP threshold in one hit, generating more than the space check covered
+            SendMapObjectMining(packet, mapObject.InstanceId);
+
+            var notifications = TakeItemEarnedNotifications(sink);
+            Assert.AreEqual(1, notifications.Count);
+            Assert.AreEqual(freeSpace, CountMainInventoryItem(serviceProvider, earnItemId) - beforeCount);
+            Assert.AreEqual(freeSpace, notifications[0].Count);
         }
 
         [Test]
@@ -65,7 +96,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             SendVeinMining(packet);
 
-            // veinは1振り1ドロップなのでCountは1
+            // veinは1振り1ドロップでCount1
             // A vein drops one item per swing, so Count is 1
             var notifications = TakeItemEarnedNotifications(sink);
             Assert.AreEqual(1, notifications.Count);
@@ -102,6 +133,20 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var messagePack = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(PlayerId, IronVeinGuid, InsideIronVein);
             packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext(null));
+        }
+
+        // 指定アイテムの空きだけを残して他スロットを別アイテムで埋める
+        // Fills every other slot with a different item, leaving free space only for the given item
+        private void FillInventoryLeavingFreeSpace(PlayerInventoryData playerInventory, ItemId itemId, int freeSpace)
+        {
+            var mainInventory = playerInventory.MainOpenableInventory;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(itemId);
+            Assert.Greater(maxStack, freeSpace);
+            mainInventory.SetItem(0, itemId, maxStack - freeSpace);
+
+            var fillerItemId = MasterHolder.ItemMaster.GetItemId(FillerItemGuid);
+            var fillerMaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(fillerItemId);
+            for (var slot = 1; slot < mainInventory.GetSlotSize(); slot++) mainInventory.SetItem(slot, fillerItemId, fillerMaxStack);
         }
 
         private void EquipTool(PlayerInventoryData playerInventory)

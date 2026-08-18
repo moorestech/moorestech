@@ -1,0 +1,8 @@
+{
+  "seq": 1,
+  "category": "itemEarned",
+  "messageId": "itemEarned.mined",
+  "messageParams": [],
+  "itemId": 5,
+  "count": 8
+}

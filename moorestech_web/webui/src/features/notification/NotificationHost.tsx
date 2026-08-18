@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import type { CSSProperties } from "react";
-import { useTopic, Topics } from "@/bridge";
+import { useTopicEvents, Topics } from "@/bridge";
 import { useI18n } from "@/shared/i18n";
 import ItemIcon from "@/shared/ui/ItemIcon";
 import { NOTIFICATION_DISPLAY_MS, useNotificationStore } from "./notificationStore";
@@ -10,26 +10,35 @@ import styles from "./style.module.css";
 // 通知ホスト。左端縦中央に浮遊テキストで表示
 // Notification host; face-less floating text at the left edge, vertically centered
 export default function NotificationHost() {
-  const payload = useTopic(Topics.notification);
   const { t } = useI18n();
   const notifications = useNotificationStore((s) => s.notifications);
   const removeNotification = useNotificationStore((s) => s.removeNotification);
   const lastSeq = useRef(0);
 
-  useEffect(() => {
-    // 空/重複配信はseqで弾く
-    // Guard against empty/duplicate deliveries via seq
-    if (!payload?.seq || payload.seq <= lastSeq.current) return;
-    if (payload.category === undefined || payload.messageId === undefined || payload.messageParams === undefined) return;
+  // 最新値ではなくイベント列として受ける。同一レンダー内に連続で届いても取りこぼさない
+  // Received as an event stream rather than a latest value, so bursts inside one render are not dropped
+  useTopicEvents(Topics.notification, (payload) => {
+    // 空スナップショットと重複配信はseqで弾く
+    // Guard against the empty snapshot and duplicate deliveries via seq
+    if (!("seq" in payload) || payload.seq <= lastSeq.current) return;
     lastSeq.current = payload.seq;
+    if (payload.category === "itemEarned") {
+      useNotificationStore.getState().addNotification({
+        category: "itemEarned",
+        messageId: payload.messageId,
+        messageParams: payload.messageParams,
+        itemId: payload.itemId,
+        count: payload.count,
+      });
+      return;
+    }
     useNotificationStore.getState().addNotification({
       category: payload.category,
       messageId: payload.messageId,
       messageParams: payload.messageParams,
       itemId: payload.itemId ?? null,
-      count: payload.count ?? 0,
     });
-  }, [payload]);
+  });
 
   const lifetimeStyle = { "--notification-lifetime": `${NOTIFICATION_DISPLAY_MS}ms` } as CSSProperties;
 
@@ -51,7 +60,7 @@ export default function NotificationHost() {
           {n.itemId != null && <ItemIcon itemId={n.itemId} className={styles.icon} />}
           {t(
             resolveNotificationKey(n.messageId),
-            buildInterpolationValues(n.messageId, resolveNotificationParams(n.messageId, n.messageParams, t), n.count),
+            buildInterpolationValues(n.messageId, resolveNotificationParams(n.messageId, n.messageParams, t), n.category === "itemEarned" ? n.count : null),
           )}
         </div>
       ))}

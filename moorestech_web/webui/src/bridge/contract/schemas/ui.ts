@@ -75,19 +75,36 @@ export const TooltipDataSchema = z.object({
   fontSize: z.number().positive(),
 });
 
-// snapshotを持たない一時イベントのため、接続直後は{}が届く。全フィールドoptionalにしそれを許容する
-// Transient event without a snapshot: {} arrives right after connect, so every field is optional to accept it
 // itemIdはアイテム無し時にキー自体が省略される（NullValueHandling.Ignore）想定だがnullableも許容する
 // itemId is normally omitted (not sent as null) when there is no item, but nullable is accepted too
-export const NotificationDataSchema = z.object({
-  seq: z.number().optional(),
-  category: z.enum(["achievement", "operationDenied", "itemEarned"]).optional(),
-  messageId: z.string().optional(),
-  messageParams: z.array(z.string()).optional(),
+const MessageNotificationSchema = z.object({
+  seq: z.number(),
+  category: z.enum(["achievement", "operationDenied"]),
+  messageId: z.string(),
+  messageParams: z.array(z.string()),
   // シリアライザ揺れでnullが来ても弾かないよう外部境界として広めに受ける
   // Widened as an external boundary so serializer drift sending null is not rejected
   itemId: z.number().nullable().optional(),
-  // 獲得個数。itemEarned以外は0が入る
-  // Earned amount; categories other than itemEarned carry 0
   count: z.number().optional(),
 });
+
+// 獲得通知はアイコンと個数が揃って初めて意味を持つため、両方を必須にして欠損を境界で弾く
+// An earned notification only means anything with both icon and amount, so both are required and gaps are rejected at the boundary
+const ItemEarnedNotificationSchema = z.object({
+  seq: z.number(),
+  category: z.literal("itemEarned"),
+  messageId: z.string(),
+  messageParams: z.array(z.string()),
+  itemId: z.number(),
+  count: z.number().int().positive(),
+});
+
+// snapshotを持たない一時イベントのため、接続直後は{}が届く。空スナップショットを専用variantで受理する
+// Transient event without a snapshot: {} arrives right after connect, accepted by a dedicated empty variant
+const EmptyNotificationSchema = z.object({}).strict();
+
+export const NotificationDataSchema = z.union([
+  EmptyNotificationSchema,
+  ItemEarnedNotificationSchema,
+  MessageNotificationSchema,
+]);

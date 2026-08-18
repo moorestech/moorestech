@@ -6,6 +6,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using MessagePack;
 using Server.Event.Notification;
+using UnityEngine;
 
 namespace Client.WebUiHost.Game.Topics
 {
@@ -40,30 +41,51 @@ namespace Client.WebUiHost.Game.Topics
         private void OnNotification(byte[] payload)
         {
             var message = MessagePackSerializer.Deserialize<NotificationMessagePack>(payload);
+
+            // 未知カテゴリで例外を投げるとUniRxの購読パイプを貫きイベント配信全系統が止まるため、この1件だけ捨てる
+            // Throwing on an unknown category would pierce the UniRx pipe and halt every event stream, so drop just this one
+            if (!TryGetWebCategory(message.Category, out var webCategory))
+            {
+                Debug.LogWarning($"[NotificationTopic] dropped notification with unknown category: {message.Category}");
+                return;
+            }
+
             _seq++;
             var dto = new NotificationDto
             {
                 Seq = _seq,
-                Category = ToWebCategory(message.Category),
+                Category = webCategory,
                 MessageId = message.MessageId,
                 MessageParams = message.MessageParams,
                 ItemId = message.ItemId == ItemMaster.EmptyItemId ? null : (int?)message.ItemId.AsPrimitive(),
                 Count = message.Count,
             };
             _hub.Publish(TopicName, WebUiJson.Serialize(dto));
-        }
 
-        // Web側のcategory名はここが唯一の対応表。カテゴリ追加時はここを通す
-        // This is the only mapping to web-side category names; new categories go through here
-        private static string ToWebCategory(NotificationCategory category)
-        {
-            return category switch
+            #region Internal
+
+            // Web側のcategory名はここが唯一の対応表。カテゴリ追加時はここを通す
+            // This is the only mapping to web-side category names; new categories go through here
+            bool TryGetWebCategory(NotificationCategory category, out string name)
             {
-                NotificationCategory.Achievement => "achievement",
-                NotificationCategory.OperationDenied => "operationDenied",
-                NotificationCategory.ItemEarned => "itemEarned",
-                _ => throw new ArgumentOutOfRangeException(nameof(category), category, null),
-            };
+                switch (category)
+                {
+                    case NotificationCategory.Achievement:
+                        name = "achievement";
+                        return true;
+                    case NotificationCategory.OperationDenied:
+                        name = "operationDenied";
+                        return true;
+                    case NotificationCategory.ItemEarned:
+                        name = "itemEarned";
+                        return true;
+                    default:
+                        name = null;
+                        return false;
+                }
+            }
+
+            #endregion
         }
     }
 

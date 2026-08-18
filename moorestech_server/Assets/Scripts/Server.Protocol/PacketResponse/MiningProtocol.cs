@@ -52,28 +52,36 @@ namespace Server.Protocol.PacketResponse
 
             if (earnedItems == null) return null;
 
-            // 空きは権威判定側で確認済みなので、ここでは残余が出ない
-            // The authority already verified the free space, so no remainder can appear here
-            foreach (var earnItem in earnedItems) playerInventory.MainOpenableInventory.InsertItem(earnItem);
-            NotifyEarnedItems();
+            NotifyEarnedItems(InsertEarnedItems());
             return null;
 
             #region Internal
 
-            // 1回の採掘で同じアイテムが複数スタックに割れても通知は1本に畳む
-            // Fold split stacks of the same item into a single notification per mining action
-            void NotifyEarnedItems()
+            // 一撃で複数境界を跨ぐ経路では空き検査を超えて生成されるため、実際に入った分だけを数える
+            // Paths crossing several HP thresholds in one hit can outgrow the space check, so count only what actually landed
+            Dictionary<ItemId, int> InsertEarnedItems()
             {
-                var earnedCounts = new Dictionary<ItemId, int>();
+                var insertedCounts = new Dictionary<ItemId, int>();
                 foreach (var earnItem in earnedItems)
                 {
-                    earnedCounts.TryGetValue(earnItem.Id, out var current);
-                    earnedCounts[earnItem.Id] = current + earnItem.Count;
+                    var remain = playerInventory.MainOpenableInventory.InsertItem(earnItem);
+                    insertedCounts.TryGetValue(earnItem.Id, out var current);
+                    insertedCounts[earnItem.Id] = current + earnItem.Count - remain.Count;
                 }
 
-                foreach (var earnedCount in earnedCounts)
+                return insertedCounts;
+            }
+
+            // 同一アイテムの複数スタックを1本に畳む
+            // Fold split stacks of the same item into a single notification per mining action
+            void NotifyEarnedItems(Dictionary<ItemId, int> insertedCounts)
+            {
+                foreach (var insertedCount in insertedCounts)
                 {
-                    _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateItemEarned(earnedCount.Key, earnedCount.Value));
+                    // 溢れて1個も入らなかったアイテムは通知しない
+                    // Items that overflowed entirely get no notification
+                    if (insertedCount.Value <= 0) continue;
+                    _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateItemEarned(insertedCount.Key, insertedCount.Value));
                 }
             }
 
