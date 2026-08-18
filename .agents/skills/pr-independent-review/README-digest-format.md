@@ -46,6 +46,7 @@
     ```code-card
      36|        private void UpdateTorqueRequestRate()
      37|        {
+    -38|            _gearEnergyTransformer.SetTorqueRequestRate(idleRate);
     +38|            // 表示の分母・加工速度と同じ導出をそのまま歯車網への要求へ反映する
     *+40|            _gearEnergyTransformer.SetTorqueRequestRate(...);
      41|        }
@@ -66,35 +67,55 @@ YAMLキー:
 | `summary` | 必須 | 一言サマリ1行（`p.summary-line` になる） |
 | `index_label` | 任意 | 「あなたが判断すること」の短ラベル。省略時は `summary` |
 | `files` | 必須 | `path:line` の配列。1件目が主。**id採番のキー** |
-| `options` | 非suppressedで必須 | 案の要約の配列。**先頭が推奨案** |
-
-**注意（コンバータは検査しない）**: 同じ推奨案が `options` 先頭・`recommendation`・カード本文の代替案説明の3箇所に現れる。案を変えるときは3箇所すべてを直すこと。片方だけ直すと、裁定する人が反映されない古い案を読む。
+| `options` | 非suppressedで必須 | 案の要約の配列。**先頭が推奨**。コンバータがカード本文へ案A/案B…として描き、先頭へ推奨マークを付ける |
 | `suppressed` | 任意（既定 false） | true なら suppressed ゾーンへ |
 | `suppress_reason` | `suppressed: true` のとき必須 | 免責の出所要約 |
-| `recommendation` | 任意 | findings.json の `recommendation`。省略時は先頭optionの文言 |
+| `recommendation` | **書けない** | findings.json の `recommendation` は `options` 先頭から自動で入る。書くとエラーになる |
 | `label` | 任意 | `data-label`。省略時は `{title}のカード（実コード抜粋つき）` |
 
 **`recommended` を書く欄は存在しない**（R4）。コンバータが先頭optionに付ける。
+
+**案の正本は `options:` 1箇所である。** カード本文に `代替案` を書くとコンバータがエラーで落とす
+（同じ案が2箇所に出て片方だけ古くなる事故を防ぐため）。案の並び順がそのまま案A/案B…のキーになり、
+先頭が推奨として描かれる。案どうしが排他である等の関係は `summary` か `index_label` へ書く。
 
 **`[F:slug]` 参照が解決されるのはfindingの自由本文（`**PR側の主張:**` 等の段落）・
 `summary` フィールド・`suppress_reason` フィールド（`suppressed: true` のカードのみ表示）・
 `# 注記` の各ゾーン導入文・`# 判断台帳`・`# 折りたたみ参考` のMarkdown本文**（`render.py` が
 `summary`・`suppress_reason` を含めこれらすべてに `inline_html()` を適用するため）。
-`index_label` / `recommendation` / `options` の各要素の3フィールドのみ、[F:slug]を
-解決しない生文字列としてそのまま出力される（`render.py` はこの3フィールドに `escape()` のみを
-適用し、`findings.py` の `recommendation`/`options` はHTML描画自体を通らない）。これらの
+`index_label` と `options` の各要素の2フィールドのみ、[F:slug]を
+解決しない生文字列としてそのまま出力される（`render.py` はこの2フィールドに `escape()` のみを
+適用する）。これらの
 フィールドに `[F:slug]` を書いても素通しの `[F:slug]` という文字列がそのまま画面に出るので、
 **必ずID非依存の文言で書く**（例: `index_label: 歯車機械に倍率を効かせるか` はOK、
 `index_label: [F:gear-torque-rate] の是非` はNG）。既知の残課題としてbdに積み済み。
 
 ### コードフェンス `code-card`
 
-各行は `[フラグ]<行番号>|<コード>`。フラグ `+` = 追加行（`<ins>`）、`*` = 問題行（`.hl`）。`*+` の併用可。
-`|` の最初の1個だけが区切り。コードは**エスケープせず生のまま**書く（コンバータがエスケープする）。
+各行は `[フラグ]<行番号>|<コード>`。フラグは次の3種で、`*` は `+` / `-` と併用できる。
+
+| フラグ | 意味 | 行番号 | 見た目 |
+|---|---|---|---|
+| `+` | 追加行 | 新ファイルの行番号 | 緑帯・`+` グリフ |
+| `-` | 削除行 | **旧ファイルの行番号** | 赤帯・`-` グリフ |
+| （無し） | 文脈行 | 新ファイルの行番号 | 帯なし・空白グリフ |
+| `*` | 注目行（他フラグと併用） | — | 左端のアンバー縦バー＋太字 |
+
+`+` と `-` を同じ行に付けることはできない（エラー）。`|` の最初の1個だけが区切り。
+コードは**エスケープせず生のまま**書く（コンバータがエスケープする）。
+
+**置換を扱うカードには必ず `-` 行を書く。** コンバータは同じ `$RUNDIR` の `patch.diff` を読み、
+`+` 行が属するhunkが行を削除しているのにカードへ `-<旧行番号>|<コード>` が無い場合、**エラーで非0終了する**。
+「変更前が見えないと何を何に変えたか読めない」ためで、規約ではなく機械が担保する。
+
+構文着色の言語は **`files` 先頭の拡張子** から自動で決まる（`cs`→csharp、`ts`/`tsx`→typescript、
+`css`→css、`json`/`asmdef`→json、`yml`/`yaml`→yaml、`md`→markdown、未知拡張子は無着色）。
+フェンスに言語を書く欄は無い。1カードには**単一ファイルの抜粋だけ**を入れること
+（複数言語を混ぜると後半が誤着色される）。
 
 ### 相互参照
 
-本文中で他の finding を指すときは `[F:gear-torque-rate]` と書く。コンバータが `<a href="#f03">F03</a>` へ解決する。未定義 slug はエラー。解決範囲は前節を参照（`index_label`/`recommendation`/`options` の3フィールドでは解決されない）。
+本文中で他の finding を指すときは `[F:gear-torque-rate]` と書く。コンバータが `<a href="#f03">F03</a>` へ解決する。未定義 slug はエラー。解決範囲は前節を参照（`index_label`/`options` の2フィールドでは解決されない）。
 
 ### 予約見出し（`# ` 見出し・すべて必須）
 
