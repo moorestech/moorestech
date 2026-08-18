@@ -75,10 +75,13 @@ YAMLキー:
 **`recommended` を書く欄は存在しない**（R4）。コンバータが先頭optionに付ける。
 
 **`[F:slug]` 参照が解決されるのはfindingの自由本文（`**PR側の主張:**` 等の段落）・
-`# 注記` の各ゾーン導入文・`# 判断台帳`・`# 折りたたみ参考` のMarkdown本文のみ**。
-`index_label` / `recommendation` / `options` の各要素などYAMLフィールドの値は
-[F:slug]を解決しない生文字列としてそのまま出力される。これらのフィールドに
-`[F:slug]` を書いても素通しの `[F:slug]` という文字列がそのまま画面に出るので、
+`summary` フィールド・`suppress_reason` フィールド（`suppressed: true` のカードのみ表示）・
+`# 注記` の各ゾーン導入文・`# 判断台帳`・`# 折りたたみ参考` のMarkdown本文**（`render.py` が
+`summary`・`suppress_reason` を含めこれらすべてに `inline_html()` を適用するため）。
+`index_label` / `recommendation` / `options` の各要素の3フィールドのみ、[F:slug]を
+解決しない生文字列としてそのまま出力される（`render.py` はこの3フィールドに `escape()` のみを
+適用し、`findings.py` の `recommendation`/`options` はHTML描画自体を通らない）。これらの
+フィールドに `[F:slug]` を書いても素通しの `[F:slug]` という文字列がそのまま画面に出るので、
 **必ずID非依存の文言で書く**（例: `index_label: 歯車機械に倍率を効かせるか` はOK、
 `index_label: [F:gear-torque-rate] の是非` はNG）。既知の残課題としてbdに積み済み。
 
@@ -89,7 +92,7 @@ YAMLキー:
 
 ### 相互参照
 
-本文中で他の finding を指すときは `[F:gear-torque-rate]` と書く。コンバータが `<a href="#f03">F03</a>` へ解決する。未定義 slug はエラー。解決範囲は前節を参照（YAMLフィールドでは解決されない）。
+本文中で他の finding を指すときは `[F:gear-torque-rate]` と書く。コンバータが `<a href="#f03">F03</a>` へ解決する。未定義 slug はエラー。解決範囲は前節を参照（`index_label`/`recommendation`/`options` の3フィールドでは解決されない）。
 
 ### 予約見出し（`# ` 見出し・すべて必須）
 

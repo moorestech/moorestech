@@ -376,10 +376,8 @@ sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させ
   - `# 折りたたみ参考` に必ず入れる5項目: Criticalの修正方針詳細／Warning全件（1件1行・出所系統つき・
     要約による間引き禁止）／Info一覧（圧縮列挙可）／参考扱いのnew_edges／各系統の生所見要約
   - 推奨案は `options` の先頭に書く（`recommended` というキーは存在しない。README-digest-format.md参照）
-- **削除する規約**（すべてコンバータの責務へ移った。生成subagentへ指示不要）: HTMLエスケープ契約 /
-  `<h1>` は1個 / 絵文字不使用 / プレースホルダ置換 / `data-verdict` の手設定 / `data-finding-id` の付与先 /
-  テンプレ冒頭コメントの削除 / STORAGE_KEY・COPY_TITLE の置換 / カード間の視覚分離指示 / 生成後検査4点 /
-  並び順とセクション構成の規定
+- 旧フローにあったHTML手組みの細則（タグ・属性・置換・見た目の整形・生成後の確認手順など）は
+  すべてコンバータの責務へ移っており、生成subagentへ指示する必要はない
 - **保存**: `digest.md` / `digest.html` / `findings.json` はいずれも `$RUNDIR` 直下に保存する。
   `/tmp` へは一切書かない。`$RUNDIR` 配下はStop/SessionEnd hookが自動でcommit・pushする
 
