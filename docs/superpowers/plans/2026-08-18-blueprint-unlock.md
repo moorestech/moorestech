@@ -373,7 +373,7 @@ git commit -m "feat: ブループリント単一フラグのアンロック状�
 - Consumes: Task 2の`GameActionTypeConst.unlockBlueprint`、Task 3の`UnlockBlueprint()`/`OnUnlockBlueprint`/`IsBlueprintUnlocked`
 - Produces: `UnlockEventType.Blueprint`（enum末尾）、`ResponseGameUnlockStateProtocolMessagePack.IsBlueprintUnlocked`（`[Key(16)]`）。Task 5のクライアントミラーが使う
 
-- [ ] **Step 1: 失敗するテストを書く（executor経由の解放）**
+- [x] **Step 1: 失敗するテストを書く（executor経由の解放）**
 
 `BlueprintUnlockStateTest.cs`へ追加:
 
@@ -398,12 +398,12 @@ public void unlockBlueprintのgameActionで解放される()
 
 注意: 生成される`GameActionElement`/`UnlockBlueprintGameActionParam`のコンストラクタシグネチャは生成コードに合わせる（`Mooresmaster.Model.GameActionModule`の既存パラメータ型の生成形を確認して調整する。プロパティ0個のcaseなので引数無しの想定）。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlueprintUnlockStateTest" --test-mode EditMode`
 Expected: FAIL（executorがunlockBlueprintを処理しないため`IsBlueprintUnlocked`がfalse）
 
-- [ ] **Step 3: GameActionExecutorへcaseを追加する**
+- [x] **Step 3: GameActionExecutorへcaseを追加する**
 
 `ExecuteUnlockActions`のswitchの`unlockPlayerInventorySlotLevel`の後へ`case GameActionElement.GameActionTypeConst.unlockBlueprint:`を追加（`ExecuteAction(action, context); break;`へ落ちる既存グループに加える）。
 `ExecuteAction`のswitchへ追加:
@@ -416,7 +416,7 @@ case GameActionElement.GameActionTypeConst.unlockBlueprint:
 
 （パラメータ無しのためローカル関数は作らない）
 
-- [ ] **Step 4: イベントパケット・初期データ・通知を配線する**
+- [x] **Step 4: イベントパケット・初期データ・通知を配線する**
 
 `UnlockedEventPacket.cs`:
 - enum `UnlockEventType`の末尾へ`Blueprint,`を追加（既存値の順序変更禁止）
@@ -441,13 +441,13 @@ _unlockState.OnUnlockBlueprint.Subscribe(_ => _notificationService.NotifyAll(
     NotificationMessagePack.CreateAchievement("achievement.unlockedBlueprint", Array.Empty<string>())));
 ```
 
-- [ ] **Step 5: コンパイルとテストを実行して通す**
+- [x] **Step 5: コンパイルとテストを実行して通す**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlueprintUnlockStateTest|GetGameUnlockStateProtocol" --test-mode EditMode`
 Expected: PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server
