@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 from .blocks import blocks_html
+from .code_card.lang import language_of
 from .findings import sort_key
 from .inline import escape, inline_html
 from .parse import DigestError, Document, Finding
@@ -47,7 +48,7 @@ def _card_html(f: Finding, refs: dict) -> str:
     if rest:
         paths += "（＋ " + ", ".join(f"<code>{escape(p)}</code>" for p in rest) + "）"
     label = f.label or f"{f.title}のカード（実コード抜粋つき）"
-    body = blocks_html(f.body_md, refs, "        ", "")
+    body = blocks_html(f.body_md, refs, "        ", language_of(f.files))
     extra = ""
     if f.suppressed:
         extra = f'\n        <p><strong>suppressed-by:</strong> {inline_html(f.suppress_reason, refs)}</p>'

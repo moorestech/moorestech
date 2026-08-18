@@ -542,7 +542,7 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <h2><span class="badge badge-new">設計判断</span> <strong>VanillaGearMachineComponent.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs:40</code></p>
         <p class="summary-line">需要だけ1.5倍に膨らみ、供給も速度も増えない。</p>
-        <pre class="code-card"><code><span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">        private void UpdateTorqueRequestRate()</span></span>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">        private void UpdateTorqueRequestRate()</span></span>
 <span class="cl ctx"><span class="ln">37</span><span class="sign"> </span><span class="code">        {</span></span>
 <span class="cl add"><span class="ln">38</span><span class="sign">+</span><span class="code">            // 表示の分母・加工速度と同じ導出（EffectiveRequestPowerRate）をそのまま歯車網への要求へ反映する</span></span>
 <span class="cl add"><span class="ln">39</span><span class="sign">+</span><span class="code">            // Feed the gear network the same derivation used for the display denominator and processing speed (EffectiveRequestPowerRate)</span></span>
@@ -560,7 +560,7 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <h2><span class="badge badge-new">設計判断</span> <strong>VanillaMachineProcessorComponent.cs</strong> / <strong>CleanRoomMachineProcessorComponent.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:29</code>（＋ <code>moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:31</code>）</p>
         <p class="summary-line">同じ導出が2箇所に写され、既に食い違っている。</p>
-        <pre class="code-card"><code><span class="cl add"><span class="ln">27</span><span class="sign">+</span><span class="code">        // 稼働状態に応じてアイドル倍率かモジュール倍率を選ぶ要求電力率。歯車機械の要求トルク率もここから導出する</span></span>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl add"><span class="ln">27</span><span class="sign">+</span><span class="code">        // 稼働状態に応じてアイドル倍率かモジュール倍率を選ぶ要求電力率。歯車機械の要求トルク率もここから導出する</span></span>
 <span class="cl add"><span class="ln">28</span><span class="sign">+</span><span class="code">        // Requested power rate selecting the idle rate or module multiplier by state; the gear machine&#39;s requested torque rate also derives from here</span></span>
 <span class="cl add hl"><span class="ln">29</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState == ProcessState.Processing ? _context.ProcessingPowerMultiplier : _idlePowerRate;</span></span>
 <span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code"></span></span>
@@ -568,7 +568,7 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
 <span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        // Requested power applies the idle rate or module multiplier based on the active state</span></span>
 <span class="cl add"><span class="ln">33</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</span></span></code></pre>
         <p>同概念の写し（CleanRoom 側・<code>Halted</code> の扱いだけ既に食い違っている）:</p>
-        <pre class="code-card"><code><span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
 <span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code">        // Halted machines request no power; operating states use the same multipliers as normal machines</span></span>
 <span class="cl add hl"><span class="ln">31</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState switch</span></span>
 <span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        {</span></span>
@@ -591,7 +591,7 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <h2><span class="badge badge-new">設計判断</span> <strong>detailLogic.ts</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/src/features/blockInventory/details/detailLogic.ts:73</code></p>
         <p class="summary-line">石窯とボイラーで電力行が丸ごと消える。</p>
-        <pre class="code-card"><code><span class="cl add"><span class="ln">71</span><span class="sign">+</span><span class="code">// 要求電力0（停止中）は充足率が意味を持たないため、表示自体を出さない判断をここで確定する</span></span>
+        <pre class="code-card" data-lang="typescript"><code><span class="cl add"><span class="ln">71</span><span class="sign">+</span><span class="code">// 要求電力0（停止中）は充足率が意味を持たないため、表示自体を出さない判断をここで確定する</span></span>
 <span class="cl add"><span class="ln">72</span><span class="sign">+</span><span class="code">// A request power of 0 (halted) makes the satisfaction rate meaningless, so the decision to hide it is settled here</span></span>
 <span class="cl add hl"><span class="ln">73</span><span class="sign">+</span><span class="code">export function isPowerRateMeaningful(requestPower: number): boolean {</span></span>
 <span class="cl add hl"><span class="ln">74</span><span class="sign">+</span><span class="code">  return requestPower !== 0;</span></span>
@@ -613,7 +613,7 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <h2><span class="badge badge-new">設計判断</span> <strong>MachineProcessContext.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs:26</code></p>
         <p class="summary-line">同一tick内で別インスタンスの倍率を読む。</p>
-        <pre class="code-card"><code><span class="cl ctx"><span class="ln">22</span><span class="sign"> </span><span class="code">        public float SuppliedPower;</span></span>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl ctx"><span class="ln">22</span><span class="sign"> </span><span class="code">        public float SuppliedPower;</span></span>
 <span class="cl ctx"><span class="ln">23</span><span class="sign"> </span><span class="code">        public float CurrentPower;</span></span>
 <span class="cl ctx"><span class="ln">24</span><span class="sign"> </span><span class="code"></span></span>
 <span class="cl add"><span class="ln">25</span><span class="sign">+</span><span class="code">        // 加工中の効果倍率を1箇所から取得し、processorのEffectiveRequestPowerRateと計算式を共有する</span></span>
@@ -629,7 +629,7 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <h2><span class="badge badge-new">設計判断</span> <strong>style.module.css</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/src/shared/ui/ProgressArrowGlyph/style.module.css:4</code></p>
         <p class="summary-line">汎用部品がcraftドメインの語彙を参照する。</p>
-        <pre class="code-card"><code><span class="cl add"><span class="ln">1</span><span class="sign">+</span><span class="code">/* 既定寸法はクラフト矢印と同値のトークンを直接参照する。呼び出し側は寸法を持たない */</span></span>
+        <pre class="code-card" data-lang="css"><code><span class="cl add"><span class="ln">1</span><span class="sign">+</span><span class="code">/* 既定寸法はクラフト矢印と同値のトークンを直接参照する。呼び出し側は寸法を持たない */</span></span>
 <span class="cl add"><span class="ln">2</span><span class="sign">+</span><span class="code">/* Default size references the craft-arrow tokens directly; callers no longer size this themselves */</span></span>
 <span class="cl add"><span class="ln">3</span><span class="sign">+</span><span class="code">.arrow {</span></span>
 <span class="cl add hl"><span class="ln">4</span><span class="sign">+</span><span class="code">  width: var(--craft-arrow-width);</span></span>
@@ -646,7 +646,7 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <h2><span class="badge badge-new">設計判断</span> <strong>index.ts</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/src/shared/ui/index.ts:8</code></p>
         <p class="summary-line">同じ機械パネル内で矢印表現が2種混在する。</p>
-        <pre class="code-card"><code><span class="cl ctx"><span class="ln">5</span><span class="sign"> </span><span class="code">export { default as BlockSlot } from &quot;./BlockSlot&quot;;</span></span>
+        <pre class="code-card" data-lang="typescript"><code><span class="cl ctx"><span class="ln">5</span><span class="sign"> </span><span class="code">export { default as BlockSlot } from &quot;./BlockSlot&quot;;</span></span>
 <span class="cl ctx"><span class="ln">6</span><span class="sign"> </span><span class="code">export { default as FluidSlot } from &quot;./FluidSlot&quot;;</span></span>
 <span class="cl ctx"><span class="ln">7</span><span class="sign"> </span><span class="code">export { default as FluidSlotRow } from &quot;./FluidSlotRow&quot;;</span></span>
 <span class="cl ctx hl"><span class="ln">8</span><span class="sign"> </span><span class="code">export { default as ProgressArrow } from &quot;./ProgressArrow&quot;;</span></span>
@@ -678,7 +678,7 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <h2><span class="badge badge-sup">Critical</span> <strong>CleanRoomMachineProcessorComponent.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:31</code></p>
         <p class="summary-line">外部参照0のpublicが残っている。</p>
-        <pre class="code-card"><code><span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
 <span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code">        // Halted machines request no power; operating states use the same multipliers as normal machines</span></span>
 <span class="cl add hl"><span class="ln">31</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState switch</span></span>
 <span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        {</span></span>
@@ -700,13 +700,13 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <h2><span class="badge badge-sup">Critical</span> <strong>CleanRoomMachineProcessorComponent.cs</strong> / <strong>VanillaMachineProcessorComponent.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:216</code>（＋ <code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:137</code>）</p>
         <p class="summary-line">レシピ切替のたび偽の赤が出る。</p>
-        <pre class="code-card"><code><span class="cl ctx"><span class="ln">135</span><span class="sign"> </span><span class="code">            }</span></span>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl ctx"><span class="ln">135</span><span class="sign"> </span><span class="code">            }</span></span>
 <span class="cl ctx"><span class="ln">136</span><span class="sign"> </span><span class="code"></span></span>
 <span class="cl ctx hl"><span class="ln">137</span><span class="sign"> </span><span class="code">            if (CurrentState == ProcessState.Processing) CurrentState = ProcessState.Idle;</span></span>
 <span class="cl ctx"><span class="ln">138</span><span class="sign"> </span><span class="code">            _context.SelectedRecipe = recipe;</span></span>
 <span class="cl ctx hl"><span class="ln">139</span><span class="sign"> </span><span class="code">            _changeState.OnNext(Unit.Default);</span></span>
 <span class="cl ctx"><span class="ln">140</span><span class="sign"> </span><span class="code">            return MachineRecipeSelectionResult.Success;</span></span></code></pre>
-        <pre class="code-card"><code><span class="cl add"><span class="ln">214</span><span class="sign">+</span><span class="code">            // Halted含む非IdleはIdleへ戻し、次Updateで清浄室条件が再評価される</span></span>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl add"><span class="ln">214</span><span class="sign">+</span><span class="code">            // Halted含む非IdleはIdleへ戻し、次Updateで清浄室条件が再評価される</span></span>
 <span class="cl add"><span class="ln">215</span><span class="sign">+</span><span class="code">            // Non-Idle including Halted returns to Idle so the next Update re-evaluates clean-room conditions</span></span>
 <span class="cl ctx hl"><span class="ln">216</span><span class="sign"> </span><span class="code">            if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;</span></span>
 <span class="cl ctx"><span class="ln">217</span><span class="sign"> </span><span class="code">            _context.SelectedRecipe = recipe;</span></span>
@@ -722,7 +722,7 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <h2><span class="badge badge-sup">Critical</span> <strong>CleanRoomMachineTest.cs</strong> / <strong>MachineFluidIOTest.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomMachineTest.cs:103</code>（＋ <code>moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineFluidIOTest.cs:316</code>）</p>
         <p class="summary-line">旧実装へ戻しても全テストが緑になる。</p>
-        <pre class="code-card"><code><span class="cl ctx"><span class="ln">96</span><span class="sign"> </span><span class="code">            for (var i = 0; i &lt; 200 &amp;&amp; processor.CurrentState != ProcessState.Processing; i++) TickRoom();</span></span>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl ctx"><span class="ln">96</span><span class="sign"> </span><span class="code">            for (var i = 0; i &lt; 200 &amp;&amp; processor.CurrentState != ProcessState.Processing; i++) TickRoom();</span></span>
 <span class="cl ctx"><span class="ln">97</span><span class="sign"> </span><span class="code">            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);</span></span>
 <span class="cl add"><span class="ln">98</span><span class="sign">+</span><span class="code">            // state公開値は前tick基準でラッチされるため、遷移直後の1tickだけ古い値を挟んでから実効値に揃う</span></span>
 <span class="cl add"><span class="ln">99</span><span class="sign">+</span><span class="code">            // The published state latches on the previous tick&#39;s basis, so it trails by one tick right after a transition before matching the effective value</span></span>
@@ -741,7 +741,7 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <h2><span class="badge badge-sup">Critical</span> <strong>capture-machine-qa.ts</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/e2e/capture-machine-qa.ts:136</code></p>
         <p class="summary-line">QAスクリプトが必ず落ちて撮影物が残らない。</p>
-        <pre class="code-card"><code><span class="cl add"><span class="ln">133</span><span class="sign">+</span><span class="code">    const stateLabel = page.getByTestId(&quot;machine-state-label&quot;);</span></span>
+        <pre class="code-card" data-lang="typescript"><code><span class="cl add"><span class="ln">133</span><span class="sign">+</span><span class="code">    const stateLabel = page.getByTestId(&quot;machine-state-label&quot;);</span></span>
 <span class="cl add"><span class="ln">134</span><span class="sign">+</span><span class="code">    const powerRate = page.getByTestId(&quot;machine-power-rate&quot;);</span></span>
 <span class="cl add"><span class="ln">135</span><span class="sign">+</span><span class="code">    manifest.gearMachineStateLabelText = await stateLabel.textContent();</span></span>
 <span class="cl add hl"><span class="ln">136</span><span class="sign">+</span><span class="code">    manifest.gearMachinePowerRateText = await powerRate.textContent();</span></span>
@@ -762,7 +762,7 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <h2><span class="badge badge-sup">Critical</span> <strong>MachineSection.tsx</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/src/features/blockInventory/details/MachineSection.tsx:18</code></p>
         <p class="summary-line">選択済み機械でもレシピタブに固まる。</p>
-        <pre class="code-card"><code><span class="cl ctx"><span class="ln">16</span><span class="sign"> </span><span class="code">export default function MachineSection({ data }: { data: BlockInventoryOpen }) {</span></span>
+        <pre class="code-card" data-lang="typescript"><code><span class="cl ctx"><span class="ln">16</span><span class="sign"> </span><span class="code">export default function MachineSection({ data }: { data: BlockInventoryOpen }) {</span></span>
 <span class="cl ctx"><span class="ln">17</span><span class="sign"> </span><span class="code">  const machineRecipes = useTopic(Topics.machineRecipes);</span></span>
 <span class="cl add hl"><span class="ln">18</span><span class="sign">+</span><span class="code">  const [tab, setTab] = useState&lt;string&gt;(() =&gt; machineInitialTab(data.machine?.selectedRecipeGuid));</span></span>
 <span class="cl ctx"><span class="ln">19</span><span class="sign"> </span><span class="code">  const { t } = useI18n();</span></span>
