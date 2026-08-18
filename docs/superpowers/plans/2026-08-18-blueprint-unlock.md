@@ -141,7 +141,7 @@ git commit -m "feat: buildToolsへinitialUnlocked、gameActionへunlockBlueprint
 - Consumes: `MasterHolder.BuildToolMaster.All`（`IReadOnlyList<BuildToolMasterElement>`、Task 2の`InitialUnlocked`）
 - Produces: `IGameUnlockStateData.IsBlueprintUnlocked: bool` ／ `IGameUnlockStateDataController.OnUnlockBlueprint: IObservable<Unit>`・`void UnlockBlueprint()` ／ `GameUnlockStateJsonObject.BlueprintUnlockState: BlueprintUnlockStateInfoJsonObject`（Task 4〜6が使う）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/BlueprintUnlockStateTest.cs`を新規作成:
 
@@ -219,12 +219,12 @@ namespace Tests.CombinedTest.Game
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: FAIL（`IsBlueprintUnlocked`が未定義のコンパイルエラー）
 
-- [ ] **Step 3: State/Holderを実装する**
+- [x] **Step 3: State/Holderを実装する**
 
 `States/BlueprintUnlockStateInfo.cs`:
 
@@ -319,7 +319,7 @@ namespace Game.UnlockState.Holders
 }
 ```
 
-- [ ] **Step 4: インターフェースとコントローラへ配線する**
+- [x] **Step 4: インターフェースとコントローラへ配線する**
 
 `IGameUnlockStateDatastoreController.cs`: `IGameUnlockStateData`へ`public bool IsBlueprintUnlocked { get; }`を、`IGameUnlockStateDataController`へ以下を追加（`using UniRx;`が必要）:
 
@@ -345,13 +345,13 @@ public void UnlockBlueprint() => _blueprint.Unlock();
 
 注意: `IGameUnlockStateData`の実装は他にもある。`grep -rn "IGameUnlockStateData" --include="*.cs" moorestech_client moorestech_server`で全実装を洗い出し、`ClientGameUnlockStateData`（Task 5で対応）と`Client.Tests`内のスタブ（`AllPlacementTargetsUnlockedStateData`＝`BuildMenuEntryDtoFactoryTest.cs:186`。`public bool IsBlueprintUnlocked => true;`を追加）を同時に直さないとコンパイルが通らない。このタスクの時点で最小修正（スタブはtrue、`ClientGameUnlockStateData`は一旦`IsBlueprintUnlocked { get; private set; }`の追加だけ）を入れてよい。
 
-- [ ] **Step 5: コンパイルとテストを実行して通す**
+- [x] **Step 5: コンパイルとテストを実行して通す**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlueprintUnlockStateTest" --test-mode EditMode`
 Expected: PASS（3件）
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server moorestech_client
