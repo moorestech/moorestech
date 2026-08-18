@@ -140,7 +140,7 @@ YAMLキー:
 - Produces: `class DigestError(Exception)` — 全モジュール共通のエラー型。
 - Produces: `parse_yaml_block(text: str) -> dict` — サブセットYAML（`key: value` / `key:` + `- ` リスト / `[a, b]`）。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```python
 # .agents/skills/pr-independent-review/tests/test_digest_parse.py
@@ -263,12 +263,12 @@ def test_recommended_key_is_rejected():
     assert "recommended" in str(e.value)
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/digest-md && ~/hermes-agent/venv/bin/pytest .agents/skills/pr-independent-review/tests/test_digest_parse.py -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'digest_md'`
 
-- [ ] **Step 3: 最小限の実装を書く**
+- [x] **Step 3: 最小限の実装を書く**
 
 ```python
 # .agents/skills/pr-independent-review/scripts/digest_md/__init__.py
@@ -492,12 +492,12 @@ def parse_document(text: str) -> Document:
                     appendix_md=appendix.strip(), findings=findings)
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `~/hermes-agent/venv/bin/pytest .agents/skills/pr-independent-review/tests/test_digest_parse.py -v`
 Expected: PASS（6件）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add .agents/skills/pr-independent-review/scripts/digest_md/ .agents/skills/pr-independent-review/tests/test_digest_parse.py
@@ -520,7 +520,7 @@ git commit -m "feat(digest): digest.md を文書モデルへ落とすパーサ�
 - Produces: `blocks_html(md: str, refs: dict, indent: str) -> str` — 段落・`- `箇条書き・`### `見出し・`code-card`フェンス・無印フェンスをHTMLへ変換する。
 - Produces: `code_card_html(body: str, indent: str) -> str` — `[フラグ]<行番号>|<コード>` を `pre.code-card` へ変換する。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```python
 # .agents/skills/pr-independent-review/tests/test_digest_blocks.py
@@ -579,12 +579,12 @@ def test_blocks_html_rejects_unknown_fence():
     assert "mermaid" in str(e.value)
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `~/hermes-agent/venv/bin/pytest .agents/skills/pr-independent-review/tests/test_digest_blocks.py -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'digest_md.inline'`
 
-- [ ] **Step 3: 最小限の実装を書く**
+- [x] **Step 3: 最小限の実装を書く**
 
 ```python
 # .agents/skills/pr-independent-review/scripts/digest_md/inline.py
@@ -721,12 +721,12 @@ def _collect_paragraph(lines: list, i: int) -> tuple:
     return " ".join(buf), i
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `~/hermes-agent/venv/bin/pytest .agents/skills/pr-independent-review/tests/test_digest_blocks.py -v`
 Expected: PASS（7件）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add .agents/skills/pr-independent-review/scripts/digest_md/inline.py .agents/skills/pr-independent-review/scripts/digest_md/blocks.py .agents/skills/pr-independent-review/tests/test_digest_blocks.py
@@ -747,7 +747,7 @@ git commit -m "feat(digest): Markdown片のHTML化とcode-card行マークアッ
 - Produces: `build_findings(doc: Document) -> dict` — findings.json の dict。`options` は先頭が `{"key": "A", "summary": ..., "recommended": True}`、2件目以降は `{"key": "B", "summary": ...}`。
 - Produces: `sort_key(f: Finding) -> tuple` — 採番順の比較キー（render からも使う）。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```python
 # .agents/skills/pr-independent-review/tests/test_digest_findings.py
@@ -813,12 +813,12 @@ def test_build_findings_suppressed_has_no_options():
     assert out["findings"][0]["suppress_reason"] == "ADRで免責"
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `~/hermes-agent/venv/bin/pytest .agents/skills/pr-independent-review/tests/test_digest_findings.py -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'digest_md.findings'`
 
-- [ ] **Step 3: 最小限の実装を書く**
+- [x] **Step 3: 最小限の実装を書く**
 
 ```python
 # .agents/skills/pr-independent-review/scripts/digest_md/findings.py
@@ -885,12 +885,12 @@ def _excerpt(body_md: str) -> str:
     return ""
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `~/hermes-agent/venv/bin/pytest .agents/skills/pr-independent-review/tests/test_digest_findings.py -v`
 Expected: PASS（4件）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add .agents/skills/pr-independent-review/scripts/digest_md/findings.py .agents/skills/pr-independent-review/tests/test_digest_findings.py

@@ -574,3 +574,96 @@ EXIT=0
    （Task 11で実アドレスに更新予定とのことなので現時点では許容範囲と判断）。
 4. コンパイル確認中、Unity側のuloopブリッジ起動待ち・ドメインリロード待ちで複数回のポーリングが発生したが、
    最終的な状態は毎回`Success:true, ErrorCount:0`で安定している。
+
+---
+
+# Task 1 Report (pr-independent-review): Markdown Parser (Document Model)
+
+## Status
+DONE
+
+## What was implemented
+
+Created a parser that converts digest.md files into a document model with comprehensive validation. Three files:
+
+1. `.agents/skills/pr-independent-review/scripts/digest_md/__init__.py`
+2. `.agents/skills/pr-independent-review/scripts/digest_md/parse.py` (200 lines)
+3. `.agents/skills/pr-independent-review/tests/test_digest_parse.py` (130 lines)
+
+### Core functions/classes
+
+- `DigestError`: Exception type for all parsing errors (YAML, structure, validation)
+- `Finding`: Dataclass with 15 fields (slug, title, category, severity, summary, files, body_md, options, must_read, index_label, suppressed, suppress_reason, recommendation, label, id)
+- `Document`: Dataclass with meta, notes, ledger_md, appendix_md, findings
+- `parse_yaml_block(text: str) -> dict`: Parses YAML subset (key: value, - list items, [a, b] arrays); rejects deeper structures with DigestError
+- `parse_document(text: str) -> Document`: Full digest.md parser
+  - Extracts document header meta (required: pr, head, verdict, verdict_line, date, generated_at)
+  - Parses Finding blocks (level-2 heading + yaml + body)
+  - Validates "注記" section with 5 required subsections (must-read, other-rulings, suppressed, new-shape, criticals)
+  - Extracts "判断台帳" and "折りたたみ参考" sections
+  - Checks slug uniqueness and verdict validity
+
+### Validation rules
+
+- verdict must be one of {auto, ruling, reject, stub}
+- category must be one of {critical, design-decision, novelty}
+- severity must be one of {critical, high, medium, low}
+- Finding requires slug, category, severity, summary, files, and either options (if not suppressed) or suppress_reason (if suppressed)
+- "recommended" key in Finding is forbidden (first option is recommended)
+- All reserved sections (meta, notes, ledger, appendix) must be present and non-empty
+
+## Test results (6/6 passing)
+
+```
+test_parse_yaml_block_subset PASSED
+test_parse_document_reads_meta_and_findings PASSED
+test_missing_reserved_section_is_error PASSED
+test_missing_required_key_is_error PASSED
+test_unknown_verdict_is_error PASSED
+test_recommended_key_is_rejected PASSED
+
+============================== 6 passed in 0.02s ===============================
+```
+
+All tests pass, output pristine (no warnings).
+
+## Files changed
+
+- `.agents/skills/pr-independent-review/scripts/digest_md/__init__.py` (new)
+- `.agents/skills/pr-independent-review/scripts/digest_md/parse.py` (new)
+- `.agents/skills/pr-independent-review/tests/test_digest_parse.py` (new)
+
+## Commit
+
+```
+008892ce4 feat(digest): digest.md を文書モデルへ落とすパーサを追加する
+```
+
+## Self-review findings
+
+**Completeness:**
+- All spec items implemented: parse_yaml_block, parse_document, Finding, Document, DigestError
+- All error cases handled: missing meta, invalid verdict, duplicate slug, forbidden keys
+- No requirements missed
+
+**Quality:**
+- Names reflect role not implementation (parse_yaml_block, parse_document)
+- Clear structure: _split_blocks → _finding_from → parse_document
+- Helper functions (_prefix) hide details
+- Error messages include location and reason
+- Comments follow project style: Japanese→English per 3-10 lines, both languages on single line each
+
+**Discipline:**
+- No over-engineering (YAGNI)
+- Exact spec implementation (schema, MINIMAL test data)
+- Stdlib only (no pyyaml; custom parser)
+- Follows existing project patterns
+
+**Testing:**
+- 6 tests, 14 assertions, all pass
+- Normal and error paths covered
+- Output clean (no warnings)
+
+## Concerns
+
+None. Full spec implementation, all tests pass, comprehensive error handling.
