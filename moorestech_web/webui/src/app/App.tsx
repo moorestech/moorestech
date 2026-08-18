@@ -82,6 +82,9 @@ export default function App() {
   return (
     <div className={styles.viewport} data-web-ui-transparent>
       {modalScreen && <div className={styles.backdrop} data-testid="screen-backdrop" />}
+      {/* 通知はstage背面へ置き、全画面UIと常駐HUDの裏へ沈める（ADR 0017） */}
+      {/* Notifications sit behind the stage so every screen and always-on HUD covers them (ADR 0017) */}
+      <NotificationHost />
       <div ref={stageRef} className={styles.stage} data-web-ui-transparent>
         {screenAllowsGrab(screen) && <InventoryPanel />}
         {screen === "playerInventory" && <RecipeViewer />}
@@ -125,7 +128,6 @@ export default function App() {
       <GrabOverlay />
       <Portal>
         <ToastHost />
-        <NotificationHost />
         <SkitTransition />
         <TutorialOverlay />
         <WorldPinOverlay />

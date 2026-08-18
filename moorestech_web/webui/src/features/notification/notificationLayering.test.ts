@@ -1,0 +1,31 @@
+// 通知がstage背面へ置かれ続けることを固定する（ADR 0017）
+// Locks the notification into the layer behind the stage (ADR 0017)
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+const style = readFileSync(new URL("./style.module.css", import.meta.url), "utf8");
+const app = readFileSync(new URL("../../app/App.tsx", import.meta.url), "utf8");
+
+describe("notification layering", () => {
+  it("通知ホストは背面層のトークンを使い、最前面のトースト層を使わない", () => {
+    expect(style).toContain("z-index: var(--z-behind-stage)");
+    expect(style).not.toContain("var(--z-toast)");
+  });
+
+  it("通知はPortalの外、stageより前のDOM位置に描かれる", () => {
+    // Portal内はbody直下の兄弟になり、zをどう下げても.viewportより前に描かれる
+    // Inside the portal it becomes a body-level sibling and paints ahead of .viewport at any z
+    const hostIndex = app.indexOf("<NotificationHost />");
+    const portalIndex = app.indexOf("<Portal>");
+    const stageIndex = app.indexOf("className={styles.stage}");
+    expect(hostIndex).toBeGreaterThan(-1);
+    expect(hostIndex).toBeLessThan(stageIndex);
+    expect(hostIndex).toBeLessThan(portalIndex);
+  });
+
+  it("通知は実画面へ固定され、stage拡縮に追従しない", () => {
+    expect(style).toContain("position: fixed");
+    expect(style).toContain("top: 50%");
+    expect(style).toContain("left: 1rem");
+  });
+});
