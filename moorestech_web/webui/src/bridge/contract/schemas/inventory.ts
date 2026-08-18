@@ -20,13 +20,14 @@ export const FluidSlotDataSchema = z.object({
   fluidGuid: GuidSchema.or(z.literal("")),
 }).strict();
 
+export const MachineProcessStateSchema = z.enum(["idle", "processing", "halted"]);
 export const MachineDetailDataSchema = z.object({
   recipeGuid: GuidSchema,
   selectedRecipeGuid: GuidSchema,
   blockGuid: GuidSchema,
   recipeTime: z.number(),
   outputItems: z.array(z.object({ itemId: z.number(), count: z.number() })),
-  currentState: z.string(),
+  currentState: MachineProcessStateSchema,
   currentPower: z.number(),
   requestPower: z.number(),
   slotLayout: z.object({ input: z.number(), output: z.number(), module: z.number() }),

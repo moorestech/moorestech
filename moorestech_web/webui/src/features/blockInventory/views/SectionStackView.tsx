@@ -47,7 +47,7 @@ export default function SectionStackView({ data }: { data: BlockInventoryOpen })
   return (
     <Stack gap="sm">
       {showItemGrid ? <BlockItemGrid itemSlots={data.itemSlots} testId={itemGridTestId} /> : null}
-      <MachineSection data={data} />
+      {data.machine ? <MachineSection data={data} machine={data.machine} /> : null}
       <MinerSection data={data} />
       <GeneratorSection data={data} />
       <GearSection data={data} />

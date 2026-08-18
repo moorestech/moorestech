@@ -14,16 +14,16 @@ using UnityEngine.TestTools;
 
 namespace Tests.UnitTest.Game.MapGeneration
 {
-    // 中央化オフセット G をノイズ座標にだけ効かせ、出力を単一タイルのシーン座標へ戻すことを検証する。
-    // Verifies G affects only noise coordinates and all outputs return to scene space inside the single generated tile.
+    // 中央化オフセット G をノイズ座標にだけ効かせ、出力を格子のシーン座標へ戻すことを検証する。
+    // Verifies G affects only noise coordinates and all outputs return to scene space inside the generated grid.
     public class SpawnOffsetSceneSpaceTest
     {
         private const int Seed = 12345;
 
         [Test]
-        public void SpawnAndPlacementsAreInsideTileWhenSpawnSearchSucceeds()
+        public void SpawnAndPlacementsAreInsideGridWhenSpawnSearchSucceeds()
         {
-            var generation = TestGenerationConfigFactory.Create(
+            var generation = SpawnSearchTestWorld.CreateGeneration(
                 TestGenerationConfigFactory.SpawnSearchSetup.Enabled);
 
             // 探索が実際に成功し G が非ゼロであることを先に確定させる（G=0 だと -G の検証にならない）。
@@ -36,22 +36,23 @@ namespace Tests.UnitTest.Game.MapGeneration
             // Pin that generation logs the search outcome and diagnostics (ADR#13: fallbacks are never silent)
             LogAssert.Expect(LogType.Log, new Regex(@"\[SpawnSearch\] 成功\n.+"));
 
-            var output = AssertOutputIsInsideTile(generation);
+            var output = SpawnSearchTestWorld.AssertOutputIsInsideGrid(generation, Seed);
 
             // 探索が選んだ良地が実際に生成されていれば、スポーン地点の分類は Grassland になる。
             // If the region the search chose was really generated, the spawn point classifies as Grassland.
             Assert.That(BiomeAtSpawn(output, generation), Is.EqualTo(BiomeType.Grassland));
 
-            // world.json へ永続化されクライアントの分類段が使う値。ノイズ窓は G の位置、シーン原点はタイル基準の 0。
-            // These are persisted to world.json and drive the client's classification stage: the noise window sits at G, the scene origin at the tile's 0.
-            Assert.That(output.NoiseOrigin, Is.EqualTo(searchResult.WorldOffset));
-            Assert.That(output.SceneOrigin, Is.EqualTo(Vector2.zero));
+            // world.json へ永続化されクライアントの分類段が使う値。index(0,0)タイルの窓原点は G + SceneOrigin。
+            // These are persisted to world.json and drive the client's classification stage: the index(0,0) tile's window origin is G + SceneOrigin.
+            var expectedSceneOrigin = SpawnSearchTestWorld.ExpectedSceneOrigin(generation);
+            Assert.That(output.SceneOrigin, Is.EqualTo(expectedSceneOrigin));
+            Assert.That(output.NoiseOrigin, Is.EqualTo(searchResult.WorldOffset + expectedSceneOrigin));
         }
 
         [Test]
-        public void SpawnAndPlacementsAreInsideTileWhenSpawnSearchFallsBack()
+        public void SpawnAndPlacementsAreInsideGridWhenSpawnSearchFallsBack()
         {
-            var generation = TestGenerationConfigFactory.Create(
+            var generation = SpawnSearchTestWorld.CreateGeneration(
                 TestGenerationConfigFactory.SpawnSearchSetup.Unsatisfiable);
 
             var searchResult = FindSpawnRegion(generation);
@@ -61,10 +62,10 @@ namespace Tests.UnitTest.Game.MapGeneration
             // Pin that the fallback outcome is logged too (ADR#13: never strand the spawn silently)
             LogAssert.Expect(LogType.Log, new Regex(@"\[SpawnSearch\] フォールバック\n.+"));
 
-            // フォールバックは G=0 なのでシーン原点もタイルの0。絶対値で固定しないとスポーンと原点が同量ずれても通る
-            // The fallback has G=0, so the scene origin is the tile's 0; without pinning it absolutely, spawn and origin could drift together unnoticed
-            var output = AssertOutputIsInsideTile(generation);
-            Assert.That(output.SceneOrigin, Is.EqualTo(Vector2.zero));
+            // シーン原点は G に依らず格子形状だけで決まる。絶対値で固定しないとスポーンと原点が同量ずれても通る
+            // The scene origin depends only on the grid shape, not on G; without pinning it absolutely, spawn and origin could drift together unnoticed
+            var output = SpawnSearchTestWorld.AssertOutputIsInsideGrid(generation, Seed);
+            Assert.That(output.SceneOrigin, Is.EqualTo(SpawnSearchTestWorld.ExpectedSceneOrigin(generation)));
         }
 
         // 探索は master の worldOffsetX を見ずに絶対ノイズ空間で S を決めるため、G は上書きであって加算ではない。
@@ -74,85 +75,37 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void MasterWorldOffsetDoesNotMoveTerrainWhenSpawnSearchSucceeds()
         {
-            var atOrigin = TestGenerationConfigFactory.Create(
+            var atOrigin = SpawnSearchTestWorld.CreateGeneration(
                 TestGenerationConfigFactory.SpawnSearchSetup.Enabled);
-            var shifted = TestGenerationConfigFactory.CreateWithAlgorithmParamOverrides(
+            var shifted = SpawnSearchTestWorld.CreateGeneration(
                 TestGenerationConfigFactory.SpawnSearchSetup.Enabled,
                 new JObject { ["worldOffsetX"] = 317.0, ["worldOffsetZ"] = -213.0 });
 
-            var expected = MapGenerationPipeline.Generate(atOrigin, Seed);
-            var actual = MapGenerationPipeline.Generate(shifted, Seed);
+            var expected = MapGenerationPipeline.Generate(atOrigin, Seed, TestGenerationConfigFactory.ServerDataDirectory);
+            var actual = MapGenerationPipeline.Generate(shifted, Seed, TestGenerationConfigFactory.ServerDataDirectory);
 
             Assert.That(actual.SpawnPoint, Is.EqualTo(expected.SpawnPoint));
-            Assert.That(actual.Heights.Length, Is.EqualTo(expected.Heights.Length));
+            Assert.That(actual.Tiles.Count, Is.EqualTo(expected.Tiles.Count));
 
-            int differentIndex = FirstDifferentIndex(expected.Heights, actual.Heights);
-            Assert.That(differentIndex, Is.EqualTo(-1),
-                $"master の worldOffset がハイトマップを動かした: index={differentIndex}");
-        }
-
-        private static int FirstDifferentIndex(float[] expected, float[] actual)
-        {
-            for (int i = 0; i < expected.Length; i++)
-                if (expected[i] != actual[i]) return i;
-            return -1;
-        }
-
-        private static SpawnSearchResult FindSpawnRegion(Generation generation)
-        {
-            var config = GenerationRuntimeConfigFactory.Build(generation);
-            config.seed = Seed;
-            return SpawnRegionFinder.Find(config, ClassificationStage.GetEnabledBiomeTypes(config));
-        }
-
-        // スポーン地点のシーン座標をハイトマップ格子へ写し、その画素のバイオームを返す。
-        // 格子の原点は master の worldOffset ではなく、生成が確定させた SceneOrigin である。
-        // Maps the spawn scene position onto the heightmap lattice and returns that pixel's biome.
-        // The lattice origin is the SceneOrigin generation settled on, not the master worldOffset.
-        private static BiomeType BiomeAtSpawn(MapGenerationOutput output, Generation generation)
-        {
-            var vp = (VanillaGeneratorAlgorithmParam)generation.AlgorithmParam;
-            int res = output.Resolution;
-            int px = Mathf.RoundToInt((output.SpawnPoint.x - output.SceneOrigin.x) / vp.TerrainWidth * (res - 1));
-            int pz = Mathf.RoundToInt((output.SpawnPoint.z - output.SceneOrigin.y) / vp.TerrainLength * (res - 1));
-            return (BiomeType)output.BiomeIndices[pz * res + px];
-        }
-
-        private static MapGenerationOutput AssertOutputIsInsideTile(Generation generation)
-        {
-            var vp = (VanillaGeneratorAlgorithmParam)generation.AlgorithmParam;
-            var output = MapGenerationPipeline.Generate(generation, Seed);
-
-            // タイルが占める範囲を決めるのは SceneOrigin。master の worldOffset を原点に使うとタイルの実位置とずれる。
-            // SceneOrigin decides the tile's extent; using the master worldOffset as origin would diverge from where the tile really is.
-            float minX = output.SceneOrigin.x;
-            float minZ = output.SceneOrigin.y;
-            float maxX = minX + vp.TerrainWidth;
-            float maxZ = minZ + vp.TerrainLength;
-
-            // スポーン地点は S-G = spawnTarget に構造的に一致する。テスト mod は overrideSpawnScenePosition=false かつ
-            // gridSizeX/Z が奇数なので spawnTarget は GridCenterWorld = タイル中心になる。
-            // The spawn is structurally S-G = spawnTarget. With overrideSpawnScenePosition=false and odd gridSizeX/Z
-            // in the test mod, spawnTarget is GridCenterWorld, which is the tile center.
-            Assert.That(output.SpawnPoint.x, Is.EqualTo((minX + maxX) * 0.5f).Within(0.01f));
-            Assert.That(output.SpawnPoint.z, Is.EqualTo((minZ + maxZ) * 0.5f).Within(0.01f));
-
-            Assert.That(output.MapObjects, Is.Not.Empty);
-            foreach (var mapObject in output.MapObjects)
+            // 隅タイルだけ見ると格子中央のズレを見逃すため、全タイルを index で突き合わせる
+            // Checking only the corner tile would miss a shift at the grid's middle, so pair every tile up by index
+            for (int i = 0; i < expected.Tiles.Count; i++)
             {
-                Assert.That(mapObject.Position.x, Is.InRange(minX, maxX));
-                Assert.That(mapObject.Position.z, Is.InRange(minZ, maxZ));
+                var expectedTile = expected.Tiles[i];
+                var actualTile = actual.Tiles[i];
+                Assert.That(actualTile.TileX, Is.EqualTo(expectedTile.TileX));
+                Assert.That(actualTile.TileZ, Is.EqualTo(expectedTile.TileZ));
 
-                // 初期カメラとプレイヤーを塞がないよう、全mapObjectの中心をスポーンから15m以上離す
-                // Keep every map-object center at least 15m from spawn so it cannot block the player or initial camera
-                var distance = new Vector2(mapObject.Position.x - output.SpawnPoint.x, mapObject.Position.z - output.SpawnPoint.z);
-                Assert.That(distance.sqrMagnitude, Is.GreaterThanOrEqualTo(15f * 15f));
+                // 長さ違いを別assertに分ける。index=0 を流用すると「index=0で値が違う」と誤読されるため
+                // Length mismatch gets its own assert; reusing index=0 for it would misread as "index 0's value differs"
+                Assert.That(actualTile.Heights.Length, Is.EqualTo(expectedTile.Heights.Length));
+
+                int differentIndex = FirstDifferentIndex(expectedTile.Heights, actualTile.Heights);
+                Assert.That(differentIndex, Is.EqualTo(-1),
+                    $"master の worldOffset がハイトマップを動かした: tile=({expectedTile.TileX},{expectedTile.TileZ}) index={differentIndex}");
             }
-
-            AssertVeinsInsideTile(output.ItemVeins, minX, maxX, minZ, maxZ);
-            AssertVeinsInsideTile(output.FluidVeins, minX, maxX, minZ, maxZ);
-            return output;
         }
+
         [Test]
         public void スポーン安全域内のMapObjectだけを除外する()
         {
@@ -169,17 +122,38 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(entries[0].WorldPosition, Is.EqualTo(new Vector3(20f, 0f, 0f)));
         }
 
-        private static void AssertVeinsInsideTile(
-            List<PlacedVein> veins, float minX, float maxX, float minZ, float maxZ)
+        // 長さが等しいことは呼び出し元が既にassert済みの前提で走査する
+        // Assumes the caller already asserted equal lengths before scanning
+        private static int FirstDifferentIndex(float[] expected, float[] actual)
         {
-            Assert.That(veins, Is.Not.Empty);
-            foreach (var vein in veins)
-            {
-                Assert.That(vein.Min.x, Is.InRange(minX, maxX));
-                Assert.That(vein.Max.x, Is.InRange(minX, maxX));
-                Assert.That(vein.Min.z, Is.InRange(minZ, maxZ));
-                Assert.That(vein.Max.z, Is.InRange(minZ, maxZ));
-            }
+            for (int i = 0; i < expected.Length; i++)
+                if (expected[i] != actual[i]) return i;
+            return -1;
+        }
+
+        private static SpawnSearchResult FindSpawnRegion(Generation generation)
+        {
+            var config = GenerationRuntimeConfigFactory.Build(generation);
+            config.seed = Seed;
+            return SpawnRegionFinder.Find(config, ClassificationStage.GetEnabledBiomeTypes(config));
+        }
+
+        // スポーン地点のシーン座標を中心タイルのハイトマップ格子へ写し、その画素のバイオームを返す。
+        // 中心タイルはシーン (0,W)x(0,L) を占めるので、格子の原点は SceneOrigin ではなく 0 である。
+        // Maps the spawn scene position onto the center tile's heightmap lattice and returns that pixel's biome.
+        // The center tile occupies scene (0,W)x(0,L), so the lattice origin is 0, not SceneOrigin.
+        private static BiomeType BiomeAtSpawn(MapGenerationOutput output, Generation generation)
+        {
+            var vp = (VanillaGeneratorAlgorithmParam)generation.AlgorithmParam;
+            int res = output.Resolution;
+            int px = Mathf.RoundToInt(output.SpawnPoint.x / vp.TerrainWidth * (res - 1));
+            int pz = Mathf.RoundToInt(output.SpawnPoint.z / vp.TerrainLength * (res - 1));
+
+            // 中心タイルは index (half, half)。Tiles[0] は隅タイルなので添字が範囲外になる
+            // The center tile is index (half, half); Tiles[0] is a corner tile and the index would run past its end
+            int half = SpawnSearchTestWorld.GridSide / 2;
+            var centerTile = output.Tiles.Find(tile => tile.TileX == half && tile.TileZ == half);
+            return (BiomeType)centerTile.BiomeIndices[pz * res + px];
         }
     }
 }

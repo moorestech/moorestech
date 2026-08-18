@@ -1,8 +1,8 @@
-/* 親要素の寸法を埋める。配置側（クラフト・機械）がラッパーで幅・高さを決める */
-/* Fills the parent element; each placement (craft/machine) sizes it via a wrapper */
+/* 既定寸法はクラフト矢印と同値のトークンを直接参照する。呼び出し側は寸法を持たない */
+/* Default size references the craft-arrow tokens directly; callers no longer size this themselves */
 .arrow {
-  width: 100%;
-  height: 100%;
+  width: var(--craft-arrow-width);
+  height: var(--craft-arrow-height);
 }
 /* 正本の柔らかな影を再現する（parity diff-inventory 項目32） */
 /* Reproduce the reference's soft shadow (parity diff-inventory item 32) */

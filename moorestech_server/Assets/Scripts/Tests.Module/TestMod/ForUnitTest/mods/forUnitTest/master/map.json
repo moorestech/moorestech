@@ -14,6 +14,7 @@
       ],
       "mapObjectGuid": "8c0e1339-be75-4690-99cd-58b5385a17cd",
       "soundEffectType": "tree",
+      "terrainSurroundEffectType": "treeRootPatch",
       "miningType": "PickUp",
       "miningParam": {}
     },
@@ -23,6 +24,7 @@
       "mapObjectName": "vanilla:TreeTest",
       "addressablePath": "Vanilla/Environment/TreeTest",
       "soundEffectType": "tree",
+      "terrainSurroundEffectType": "treeRootPatch",
       "miningType": "PickUp",
       "earnItems": [
         {
@@ -40,6 +42,7 @@
       "mapObjectName": "vanilla:TestMiningRock",
       "addressablePath": "Vanilla/Environment/Tree",
       "soundEffectType": "stone",
+      "terrainSurroundEffectType": "rockBareGround",
       "miningType": "Mining",
       "earnItems": [
         {

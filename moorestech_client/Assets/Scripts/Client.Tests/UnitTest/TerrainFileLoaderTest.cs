@@ -149,15 +149,15 @@ namespace Client.Tests.UnitTest
 
         private static MapGenerationOutput CreateOutput(int resolution, float[] heights, byte[] biomeIndices)
         {
-            return new MapGenerationOutput
+            var output = new MapGenerationOutput
             {
-                Heights = heights,
-                BiomeIndices = biomeIndices,
                 Resolution = resolution,
                 SpawnPoint = Vector3.zero,
                 MapObjects = new List<PlacedMapObject>(),
                 ItemVeins = new List<PlacedVein>(),
             };
+            output.Tiles.Add(new TerrainTileOutput { TileX = 0, TileZ = 0, Heights = heights, BiomeIndices = biomeIndices });
+            return output;
         }
     }
 }

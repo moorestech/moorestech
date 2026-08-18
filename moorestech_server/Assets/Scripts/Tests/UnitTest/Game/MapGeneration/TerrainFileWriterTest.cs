@@ -61,13 +61,18 @@ namespace Tests.UnitTest.Game.MapGeneration
             const int resolution = 2;
             var output = new MapGenerationOutput
             {
-                Heights = new[] { 0f, 0.5f, 1.0f, 1.0000003f },
-                BiomeIndices = new byte[resolution * resolution],
                 Resolution = resolution,
                 SpawnPoint = Vector3.zero,
                 MapObjects = new List<PlacedMapObject>(),
                 ItemVeins = new List<PlacedVein>(),
             };
+            output.Tiles.Add(new TerrainTileOutput
+            {
+                TileX = 0,
+                TileZ = 0,
+                Heights = new[] { 0f, 0.5f, 1.0f, 1.0000003f },
+                BiomeIndices = new byte[resolution * resolution],
+            });
 
             TerrainFileWriter.Write(worldDataDirectory, output);
 
@@ -103,15 +108,21 @@ namespace Tests.UnitTest.Game.MapGeneration
 
         private static MapGenerationOutput CreateFlatOutput(int resolution)
         {
-            return new MapGenerationOutput
+            var output = new MapGenerationOutput
             {
-                Heights = new float[resolution * resolution],
-                BiomeIndices = new byte[resolution * resolution],
                 Resolution = resolution,
                 SpawnPoint = Vector3.zero,
                 MapObjects = new List<PlacedMapObject>(),
                 ItemVeins = new List<PlacedVein>(),
             };
+            output.Tiles.Add(new TerrainTileOutput
+            {
+                TileX = 0,
+                TileZ = 0,
+                Heights = new float[resolution * resolution],
+                BiomeIndices = new byte[resolution * resolution],
+            });
+            return output;
         }
     }
 }

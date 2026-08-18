@@ -1,0 +1,32 @@
+/* 面は検索入力と同族の半透明ネイビー、文字は高コントラスト。直角・影なしで正本のボタン面に揃える */
+/* A translucent navy face from the search-input family with high-contrast text; square and shadowless like the reference button */
+.button {
+  width: var(--panel-action-button-width);
+  height: var(--panel-action-button-height);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--gauge-track);
+  box-shadow: none;
+  color: var(--text-high-contrast);
+  font: inherit;
+  font-size: var(--panel-action-button-font-size);
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  text-shadow: 0.3px 0 0 rgb(0 0 0 / 70%), -0.3px 0 0 rgb(0 0 0 / 70%), 0 0.3px 0 rgb(0 0 0 / 70%), 0 -0.3px 0 rgb(0 0 0 / 70%);
+}
+
+/* hoverは色相を変えず面だけを明るくする */
+/* Hover brightens only the face, never the hue */
+.button:hover {
+  background: color-mix(in srgb, var(--gauge-track), var(--bevel-c2) var(--panel-action-button-hover-mix));
+}
+
+/* フォーカス表現はModeSwitch踏襲。新しいフォーカス様式を増やさない */
+/* Focus follows the ModeSwitch precedent; no new focus vocabulary */
+.button:focus-visible {
+  outline: var(--bevel-1) solid var(--text-high-contrast);
+  outline-offset: var(--bevel-1);
+}

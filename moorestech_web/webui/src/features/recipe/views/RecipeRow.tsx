@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { Box, Group } from "@mantine/core";
 import { ProgressArrowGlyph } from "@/shared/ui";
 import styles from "./RecipeBox.module.css";
-import craftArrowStyles from "./craftArrow.module.css";
 
 type Props = {
   testId: string;
@@ -27,9 +26,7 @@ export default function RecipeRow({ testId, materials, arrowValue, arrowTestId, 
       {/* 素材と完成品の間に進捗矢印を置く */}
       {/* Place the progress arrow between materials and result */}
       <Box className={styles.recipeArrowCol}>
-        <div className={craftArrowStyles.craftArrow}>
-          <ProgressArrowGlyph value={arrowValue} testId={arrowTestId} />
-        </div>
+        <ProgressArrowGlyph value={arrowValue} testId={arrowTestId} />
       </Box>
       {/* 出力は複数になりうるため横並びのflexで受ける（縦積みは固定高の枠を突き破る） */}
       {/* Results can be plural, so lay them out horizontally; stacking would burst the fixed-height frame */}

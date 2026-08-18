@@ -30,7 +30,8 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                 float parentX = canopy.WorldPosition.x;
                 float parentZ = canopy.WorldPosition.z;
-                float parentDensity = TreePlacementCommon.SampleDensityNoise(parentX, parentZ,
+                float parentDensity = TreePlacementCommon.SampleDensityNoise(
+                    parentX + dims.WorldOffsetX, parentZ + dims.WorldOffsetZ,
                     densityOffsets, detailOffsets, islandOffsets, dCfg);
 
                 int desiredPatches = parentDensity >= dCfg.denseMinThreshold
@@ -79,10 +80,14 @@ namespace Game.MapGeneration.Pipeline.Generators
                             >= dCfg.localDensityCapCount) continue;
                         if (!TreePlacementCommon.CheckMask(mask, new Vector2(tx, tz), dims, res, borderMarginPx)) continue;
 
-                        float localDensity = TreePlacementCommon.SampleDensityNoise(tx, tz,
+                        // ノイズは全てワールド座標で引く。タイルローカルのままだと全タイルが同じ下層木の絵を反復する
+                        // Every noise sample is world-space; tile-local coordinates would repeat one understory picture on every tile
+                        float worldX = tx + dims.WorldOffsetX;
+                        float worldZ = tz + dims.WorldOffsetZ;
+                        float localDensity = TreePlacementCommon.SampleDensityNoise(worldX, worldZ,
                             densityOffsets, detailOffsets, islandOffsets, dCfg);
-                        float mk = Mathf.PerlinNoise(tx * uCfg.patchMaskFrequency + maskOffX,
-                            tz * uCfg.patchMaskFrequency + maskOffZ);
+                        float mk = Mathf.PerlinNoise(worldX * uCfg.patchMaskFrequency + maskOffX,
+                            worldZ * uCfg.patchMaskFrequency + maskOffZ);
                         float combined = mk * uCfg.patchMaskWeight + localDensity * (1f - uCfg.patchMaskWeight);
                         if (combined < mThreshold - ellipse * uCfg.patchMaskEllipseOffset) continue;
 

@@ -27,8 +27,18 @@ namespace Game.MapGeneration.Transfer
 
             // terrainと原点を持つのはgeneratedのみ。未知のmapModeはフォールバックせず例外にする
             // Only generated worlds own terrain and origins; an unknown map mode throws instead of falling back
+            //
+            // generatedはgeneratorVersion不一致を明示拒否する。height_{x}_{z}.r16の正本が「木摂動前」に変わったため、
+            // 旧バージョンの(摂動後の意味で書かれた)heightを新クライアントが順適用すると摂動が二重に乗る。
+            // Generated worlds explicitly reject a generatorVersion mismatch: height_{x}_{z}.r16's source of truth moved
+            // to pre-tree-perturbation, so a new client applying the perturbation to an older (post-perturbation) height would double it.
             return worldMeta.MapMode switch
             {
+                WorldProvisioner.GeneratedMapMode when worldMeta.GeneratorVersion != WorldProvisioner.GeneratorVersion =>
+                    throw new InvalidOperationException(
+                        $"Generated world.json '{worldDataDirectory.WorldMetaFilePath}' was written by generator '{worldMeta.GeneratorVersion}', " +
+                        $"but this build is '{WorldProvisioner.GeneratorVersion}'. Terrain height's source of truth changed between versions " +
+                        "(pre- vs post-tree-perturbation), so applying the perturbation here could double it. Delete the world directory and generate the world again."),
                 WorldProvisioner.GeneratedMapMode => TerrainTransferMeta.CreateGenerated(
                     CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount,
                     CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedOrigins()),
