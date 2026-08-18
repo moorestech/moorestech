@@ -32,6 +32,7 @@ namespace Client.Game.InGame.Tutorial
                 Revision = 0,
                 ChallengeId = challengeId.ToString(),
                 Highlights = Array.Empty<TutorialHighlightData>(),
+                DragGuides = Array.Empty<TutorialDragGuideData>(),
             };
             Publish();
         }
@@ -49,8 +50,23 @@ namespace Client.Game.InGame.Tutorial
                 BlocksPointerInput = false,
             };
             var highlights = new List<TutorialHighlightData>(_current.Highlights) { highlight };
-            SetHighlights(highlights.ToArray());
+            SetState(highlights.ToArray(), _current.DragGuides);
             return new TutorialPresentationView(this, _current.TutorialSessionId, highlight.HighlightId);
+        }
+
+        // D&D操作の説明矢印。from→toのanchor間ループはWeb側が描く
+        // D&D guide arrow; the web side draws the looping motion between the anchors
+        public ITutorialView AddDragGuide(string fromAnchorId, string toAnchorId)
+        {
+            var guide = new TutorialDragGuideData
+            {
+                GuideId = Guid.NewGuid().ToString(),
+                FromAnchorId = fromAnchorId,
+                ToAnchorId = toAnchorId,
+            };
+            var guides = new List<TutorialDragGuideData>(_current.DragGuides) { guide };
+            SetState(_current.Highlights, guides.ToArray());
+            return new TutorialDragGuideView(this, _current.TutorialSessionId, guide.GuideId);
         }
 
         // 過去challengeの完了通知は現在sessionへ波及させない
@@ -58,8 +74,8 @@ namespace Client.Game.InGame.Tutorial
         public void EndSession(Guid challengeId)
         {
             if (_current.ChallengeId != challengeId.ToString()) return;
-            if (_current.Highlights.Length == 0) return;
-            SetHighlights(Array.Empty<TutorialHighlightData>());
+            if (_current.Highlights.Length == 0 && _current.DragGuides.Length == 0) return;
+            SetState(Array.Empty<TutorialHighlightData>(), Array.Empty<TutorialDragGuideData>());
         }
 
         public bool Matches(string sessionId, int revision)
@@ -77,10 +93,18 @@ namespace Client.Game.InGame.Tutorial
             if (sessionId != _current.TutorialSessionId) return;
             var highlights = _current.Highlights.Where(value => value.HighlightId != highlightId).ToArray();
             if (highlights.Length == _current.Highlights.Length) return;
-            SetHighlights(highlights);
+            SetState(highlights, _current.DragGuides);
         }
 
-        private void SetHighlights(TutorialHighlightData[] highlights)
+        public void RemoveDragGuide(string sessionId, string guideId)
+        {
+            if (sessionId != _current.TutorialSessionId) return;
+            var guides = _current.DragGuides.Where(value => value.GuideId != guideId).ToArray();
+            if (guides.Length == _current.DragGuides.Length) return;
+            SetState(_current.Highlights, guides);
+        }
+
+        private void SetState(TutorialHighlightData[] highlights, TutorialDragGuideData[] dragGuides)
         {
             _current = new TutorialPresentationData
             {
@@ -88,6 +112,7 @@ namespace Client.Game.InGame.Tutorial
                 Revision = _current.Revision + 1,
                 ChallengeId = _current.ChallengeId,
                 Highlights = highlights,
+                DragGuides = dragGuides,
             };
             Publish();
         }
@@ -103,27 +128,8 @@ namespace Client.Game.InGame.Tutorial
             {
                 TutorialSessionId = "", Revision = 0, ChallengeId = "",
                 Highlights = Array.Empty<TutorialHighlightData>(),
+                DragGuides = Array.Empty<TutorialDragGuideData>(),
             };
-        }
-    }
-
-    public class TutorialPresentationView : ITutorialView
-    {
-        private readonly TutorialPresentationStateStore _store;
-        private readonly string _sessionId;
-        private readonly string _highlightId;
-
-        public TutorialPresentationView(
-            TutorialPresentationStateStore store, string sessionId, string highlightId)
-        {
-            _store = store;
-            _sessionId = sessionId;
-            _highlightId = highlightId;
-        }
-
-        public void CompleteTutorial()
-        {
-            _store.RemoveHighlight(_sessionId, _highlightId);
         }
     }
 }
