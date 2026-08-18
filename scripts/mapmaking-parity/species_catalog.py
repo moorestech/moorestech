@@ -53,8 +53,8 @@ def build_species(prefab_guid: str, prefab_path: str) -> Species:
 
 
 def _kind_of(prefab_path: str, name: str) -> str:
-    """小石は岩フォルダに同居するため、Pebble判定を岩判定より先に行う。"""
-    """Pebbles share the rock folder, so the Pebble check must precede the rock check."""
+    """小石は岩フォルダに同居するため、Pebble判定を岩判定より先に行う。
+    Pebbles share the rock folder, so the Pebble check must precede the rock check."""
     if name.startswith("Pebble"):
         return "pebble"
     if "/Rocks/" in prefab_path:
@@ -63,8 +63,8 @@ def _kind_of(prefab_path: str, name: str) -> str:
 
 
 def _pack_short_name(prefab_path: str) -> str:
-    """BK配下のパック名を短縮する（PureNature_Xxx→Xxx、PureNature→Base）。"""
-    """Shortens the pack directory under BK (PureNature_Xxx to Xxx, PureNature to Base)."""
+    """BK配下のパック名を短縮する（PureNature_Xxx→Xxx、PureNature→Base）。
+    Shortens the pack directory under BK (PureNature_Xxx to Xxx, PureNature to Base)."""
     if not prefab_path.startswith(PRIVATE_ASSETS_PREFIX):
         raise ValueError(f"非公開アセット配下でないプレハブ: {prefab_path}")
 

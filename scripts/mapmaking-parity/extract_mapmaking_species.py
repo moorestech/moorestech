@@ -44,6 +44,13 @@ REMOVED_UNITY_FIELDS = frozenset({
     "overrideBoundaryScale", "overrideOldGrowth",
 })
 
+# 未再保存プリセットに欠けており、スキーマ既定値で補うことを許すフィールド（実測と一致することを検算する）
+# Fields absent from the stale preset that may be filled from the schema default, cross-checked each run
+STALE_MISSING_FIELDS = frozenset({
+    "densityConfig", "understoryConfig", "rockProximityConfig",
+    "borderMargin", "sharedGridMinDistance",
+})
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BIOME_PRESET_DIR = REPO_ROOT / "TmpUnityPjt/MapMaking/Assets/MapGenerator/Presets/Biomes"
 CLIENT_ASSETS_ROOT = REPO_ROOT / "moorestech_client/Assets"
@@ -68,13 +75,16 @@ def main() -> None:
 
     biomes: dict = {}
     for name in CURRENT_SCHEMA_BIOMES:
-        converter = PrototypeConverter(map_object_guid_by_prefab_guid,
-                                       name in STALE_SERIALIZED_BIOMES, REMOVED_UNITY_FIELDS)
+        stale = name in STALE_SERIALIZED_BIOMES
+        converter = PrototypeConverter(map_object_guid_by_prefab_guid, stale,
+                                       REMOVED_UNITY_FIELDS, STALE_MISSING_FIELDS)
         prototypes = [
             converter.convert(prototype_schema, prototype,
                               f"{name}.treePlacement.prototypes[{index}]")
             for index, prototype in enumerate(unity_biomes[name]["prototypes"])
         ]
+        if stale:
+            converter.reject_missing_field_mismatch(f"{name}.treePlacement")
         # disabled のプロトタイプは配置設定から除外する（樹種一覧には残す）
         # Disabled prototypes are dropped from the placement config but kept in the species list
         biomes[name.lower()] = {"prototypes": [p for p in prototypes if not p["disabled"]]}
@@ -100,16 +110,16 @@ def _prototype_schema() -> schema_spec.SchemaNode:
 
 
 def _reject_removed_fields_still_in_schema(prototype_schema) -> None:
-    """削除済み扱いのフィールドがスキーマに現存していないことを検算する。"""
-    """Verifies that fields treated as removed are genuinely absent from the schema."""
+    """削除済み扱いのフィールドがスキーマに現存していないことを検算する。
+    Verifies that fields treated as removed are genuinely absent from the schema."""
     resurrected = sorted(REMOVED_UNITY_FIELDS & {key for key, _ in prototype_schema.properties})
     if resurrected:
         raise ValueError(f"削除済みとみなしたフィールドがスキーマに存在する: {resurrected}")
 
 
 def _reject_placeable_species_only_biomes(unity_biomes: dict) -> None:
-    """樹種のみ抽出するプリセットに有効プロトタイプが現れていないことを検算する。"""
-    """Verifies that species-only presets still hold no enabled prototype to place."""
+    """樹種のみ抽出するプリセットに有効プロトタイプが現れていないことを検算する。
+    Verifies that species-only presets still hold no enabled prototype to place."""
     for name in SPECIES_ONLY_BIOMES:
         enabled = [index for index, prototype in enumerate(unity_biomes[name]["prototypes"])
                    if not prototype["disabled"]]
@@ -125,8 +135,8 @@ def _load_tree_placement(biome_name: str) -> dict:
 
 
 def _collect_species(unity_biomes: dict, prefab_path_by_guid: dict) -> dict:
-    """全プリセットのプロトタイプ参照から樹種を洗い出す（disabled分も登録する）。"""
-    """Enumerates species from every preset's prototype references, disabled ones included."""
+    """全プリセットのプロトタイプ参照から樹種を洗い出す（disabled分も登録する）。
+    Enumerates species from every preset's prototype references, disabled ones included."""
     species_by_guid: dict = {}
     for biome_name, tree_placement in unity_biomes.items():
         for index, prototype in enumerate(tree_placement["prototypes"]):

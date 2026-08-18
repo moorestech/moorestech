@@ -16,8 +16,8 @@ SCALAR = "scalar"
 
 
 class SchemaNode:
-    """スキーマ1要素。kindに応じてproperties/item/options/scalar_typeのいずれかを持つ。"""
-    """One schema element; holds properties, item, options, or scalar_type depending on kind."""
+    """スキーマ1要素。kindに応じてproperties/item/options/scalar_typeのいずれかを持つ。
+    One schema element; holds properties, item, options, or scalar_type depending on kind."""
 
     def __init__(self, kind: str, *, properties=None, item=None, options=None, scalar_type=None,
                  declared_default=None):
@@ -30,8 +30,8 @@ class SchemaNode:
 
 
 def default_value(node: SchemaNode, location: str):
-    """スキーマ既定値（＝MapMakingのC#フィールド初期値）を組み立てる。"""
-    """Builds the schema default, which mirrors the MapMaking C# field initializer."""
+    """スキーマ既定値（＝MapMakingのC#フィールド初期値）を組み立てる。
+    Builds the schema default, which mirrors the MapMaking C# field initializer."""
     if node.declared_default is not None:
         return node.declared_default
     if node.kind == OBJECT:
@@ -40,8 +40,8 @@ def default_value(node: SchemaNode, location: str):
 
 
 def load_schema(schema_dir: Path, schema_id: str) -> SchemaNode:
-    """スキーマidを起点にrefを解決しながらノード木を読み込む。"""
-    """Loads the node tree from a schema id, resolving refs along the way."""
+    """スキーマidを起点にrefを解決しながらノード木を読み込む。
+    Loads the node tree from a schema id, resolving refs along the way."""
     return _SchemaLoader(schema_dir).load(schema_id)
 
 
