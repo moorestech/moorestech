@@ -1,6 +1,7 @@
 import type { ResearchNodeData } from "@/bridge";
 import { dispatchAction } from "@/bridge";
 import { GamePanel, ItemSlot } from "@/shared/ui";
+import { ownedCountOf } from "@/shared/ownedCounts";
 import { deriveResearchButton, isItemSufficient } from "./researchLogic";
 import UnlockSections from "./UnlockSections";
 import {
@@ -8,22 +9,23 @@ import {
   researchDescriptionKey,
   researchNameKey,
   useI18n,
-  useItemNameResolver,
+  useMaterialTooltipText,
 } from "@/shared/i18n";
 import styles from "./style.module.css";
 
 type Props = {
   node: ResearchNodeData;
   owned: Map<number, number>;
+  ownedKnown: boolean;
   onClose: () => void;
 };
 
 // 選択ノードの詳細と研究実行を担うフロートペイン（パン・ズーム非追従）
 // Floating pane for selected-node details and research execution (not affected by pan/zoom)
-export default function ResearchDetailPane({ node, owned, onClose }: Props) {
+export default function ResearchDetailPane({ node, owned, ownedKnown, onClose }: Props) {
   const { t } = useI18n();
-  const resolveItemName = useItemNameResolver();
-  const button = deriveResearchButton(node, owned);
+  const materialTooltipText = useMaterialTooltipText();
+  const button = deriveResearchButton(node, owned, ownedKnown);
   return (
     <div className={styles.detailPane} data-testid="research-detail-pane">
       <GamePanel variant="craft">
@@ -39,16 +41,24 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
             <div data-testid="research-consume-items">
               <span className={styles.sectionLabel}>{t(L.ui.research.consumeItemsLabel)}</span>
               <div className={styles.detailSlots}>
-                {node.consumeItems.map((c, i) => (
-                  <ItemSlot key={`consume-${c.itemId}-${i}`} itemId={c.itemId} count={c.count}
-                    insufficient={!isItemSufficient(node, c.itemId, c.count, owned) && node.state !== "completed"}
-                    tooltip={<span style={{ whiteSpace: "pre-line" }}>{t(L.ui.recipe.materialTooltip, {
-                      itemName: resolveItemName(c.itemId) ?? t(L.ui.common.itemFallback, { itemId: c.itemId }),
-                      ownedCount: owned.get(c.itemId) ?? 0,
-                      requiredCount: c.count,
-                    })}</span>}
-                  />
-                ))}
+                {node.consumeItems.map((c, i) => {
+                  const lacking = node.state !== "completed" && !isItemSufficient(c.itemId, c.count, owned);
+                  return (
+                    <div key={`consume-${c.itemId}-${i}`} className={styles.consumeSlot}>
+                      <ItemSlot itemId={c.itemId} count={c.count}
+                        insufficient={lacking}
+                        tooltip={<span style={{ whiteSpace: "pre-line" }}>
+                          {materialTooltipText(L.ui.research.consumeItemTooltip, c.itemId, c.count, owned)}
+                        </span>}
+                      />
+                      {/* 不足時は数値も赤で示す(ADR 0014決定4・CraftRecipeView同型) */}
+                      {/* Shortages also color the count red (ADR 0014 decision 4; mirrors CraftRecipeView) */}
+                      <span className={styles.consumeCount} data-lack={lacking || undefined}>
+                        {t(L.ui.recipe.itemCountSummary, { ownedCount: ownedCountOf(owned, c.itemId), requiredCount: c.count })}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

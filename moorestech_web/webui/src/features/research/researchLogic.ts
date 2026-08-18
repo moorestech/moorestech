@@ -4,19 +4,14 @@ import { L, type TranslationKey } from "@/shared/i18n";
 
 // 前提研究が済んでいるか（uGUIは前提未達を専用stateで表すため状態から逆算）
 // Whether prerequisites are met (uGUI encodes unmet prereqs as dedicated states, so infer from state)
-export function isPreNodeMet(state: ResearchNodeState): boolean {
+function isPreNodeMet(state: ResearchNodeState): boolean {
   return state === "researchable" || state === "unresearchableNotEnoughItem";
 }
 
-// 消費アイテム1件が所持数を満たすか（completedは常に非ハイライト）
-// Whether one consume item is satisfied by owned count (completed is never highlighted)
-export function isItemSufficient(
-  node: ResearchNodeData,
-  itemId: number,
-  required: number,
-  owned: Map<number, number>,
-): boolean {
-  return node.state !== "completed" && (owned.get(itemId) ?? 0) >= required;
+// 消費アイテム1件が所持数を満たすか
+// Whether one consume item is satisfied by owned count
+export function isItemSufficient(itemId: number, required: number, owned: Map<number, number>): boolean {
+  return hasEnoughItems([{ itemId, count: required }], owned);
 }
 
 export type ResearchButtonState = {
@@ -25,9 +20,11 @@ export type ResearchButtonState = {
   tooltipKey: TranslationKey;
 };
 
-// uGUI RefreshNodeAvailability 準拠のボタン活性/ツールチップ導出
-// Button availability/tooltip derivation mirroring uGUI RefreshNodeAvailability
-export function deriveResearchButton(node: ResearchNodeData, owned: Map<number, number>): ResearchButtonState {
+// uGUI RefreshNodeAvailability 準拠のボタン活性/ツールチップ導出。
+// ownedKnownがfalseの間（インベントリtopic未受信）はサーバーstateへフォールバックする（D4）
+// Button availability/tooltip derivation mirroring uGUI RefreshNodeAvailability.
+// While ownedKnown is false (inventory topic not yet received), fall back to the server state (D4)
+export function deriveResearchButton(node: ResearchNodeData, owned: Map<number, number>, ownedKnown: boolean): ResearchButtonState {
   if (node.state === "completed") {
     return {
       completed: true,
@@ -36,7 +33,7 @@ export function deriveResearchButton(node: ResearchNodeData, owned: Map<number, 
     };
   }
   const preNodeMet = isPreNodeMet(node.state);
-  const itemsSufficient = hasEnoughItems(node.consumeItems, owned);
+  const itemsSufficient = ownedKnown ? hasEnoughItems(node.consumeItems, owned) : node.state === "researchable";
   const interactable = preNodeMet && itemsSufficient;
   const tooltipKey = preNodeMet
     ? itemsSufficient
@@ -52,12 +49,13 @@ export function deriveResearchButton(node: ResearchNodeData, owned: Map<number, 
 // Derive the card's 4-state data attributes; sufficiency is recomputed live from the inventory (ADR 0014)
 export type NodeCardState = { completed: boolean; ready: boolean; locked: boolean };
 
-export function deriveNodeCardState(node: ResearchNodeData, owned: Map<number, number>): NodeCardState {
+export function deriveNodeCardState(node: ResearchNodeData, owned: Map<number, number>, ownedKnown: boolean): NodeCardState {
   const completed = node.state === "completed";
   const preNodeMet = isPreNodeMet(node.state);
+  const { interactable } = deriveResearchButton(node, owned, ownedKnown);
   return {
     completed,
-    ready: !completed && preNodeMet && hasEnoughItems(node.consumeItems, owned),
+    ready: !completed && interactable,
     locked: !completed && !preNodeMet,
   };
 }

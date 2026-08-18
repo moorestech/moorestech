@@ -87,6 +87,22 @@
   gap: 4px;
   flex-wrap: wrap;
 }
+/* 消費アイテム1枠。不足数値の赤文字を絶対配置で載せる(CraftRecipeView同型・ADR 0014決定4) */
+/* One consume-item cell; the shortage count sits absolutely over it (mirrors CraftRecipeView, ADR 0014 decision 4) */
+.consumeSlot {
+  position: relative;
+}
+.consumeCount {
+  position: absolute;
+  right: -2px;
+  bottom: -4px;
+  z-index: 2;
+  color: #fff;
+  font-size: 11px;
+}
+.consumeCount[data-lack="true"] {
+  color: #ff4d4d;
+}
 /* 主要アクション: 青グラデはこのボタン限定 */
 /* Primary action: the blue gradient is exclusive to this button */
 .researchButton {

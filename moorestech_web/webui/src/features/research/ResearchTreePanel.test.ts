@@ -51,9 +51,9 @@ const node: ResearchNodeData = {
   prevGuids: [],
   consumeItems: [{ itemId: 1, count: 2 }],
   rewardItems: [],
-  unlockItemIds: [],
+  unlockItemRecipeViewItemIds: [],
   unlockBlocks: [],
-  unlockMachineRecipeOutputItemIds: [],
+  unlockMachineRecipes: [],
   unlockConnectToolGuids: [],
   unlockTrainCarGuids: [],
 };
@@ -90,5 +90,15 @@ describe("ResearchTreePanel selection toggle", () => {
     // Re-selecting the same node closes it
     act(() => selectedTree.props.renderNode(node, node.position).props.onSelect(node.guid));
     expect(renderer.root.findAllByType("mock-research-detail-pane" as never).length).toBe(0);
+  });
+
+  // インベントリtopic未受信(null)の間はownedKnown=falseをカード/ペインへ渡す(D4)
+  // While the inventory topic hasn't arrived (null), ownedKnown=false is passed to the card/pane (D4)
+  it("インベントリtopic未受信中はownedKnown=falseを渡す", () => {
+    mockState.inventory = null;
+    const renderer = create(createElement(ResearchTreePanel));
+    const tree = renderer.root.findByProps({ "data-testid": "mock-tree-view" }) as TreeViewInstance;
+    const card = tree.props.renderNode(node, node.position);
+    expect((card.props as unknown as { ownedKnown: boolean }).ownedKnown).toBe(false);
   });
 });
