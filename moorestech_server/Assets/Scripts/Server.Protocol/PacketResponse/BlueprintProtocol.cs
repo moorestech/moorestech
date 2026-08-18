@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Blueprint;
+using Game.UnlockState;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,10 +18,12 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:blueprint";
 
         private readonly IBlueprintDatastore _blueprintDatastore;
+        private readonly IGameUnlockStateDataController _gameUnlockState;
 
         public BlueprintProtocol(ServiceProvider serviceProvider)
         {
             _blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
+            _gameUnlockState = serviceProvider.GetService<IGameUnlockStateDataController>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -43,6 +46,9 @@ namespace Server.Protocol.PacketResponse
 
             ProtocolMessagePackBase HandleCreate(BlueprintRequest req)
             {
+                // 未解放中は状態を変える操作を拒否する（GetAllは読み取り専用のため対象外・ADR 0015）
+                // Reject mutating operations while locked; the read-only GetAll stays open (ADR 0015)
+                if (!_gameUnlockState.IsBlueprintUnlocked) return FailResponse(BlueprintFailureReason.NotUnlocked);
                 if (string.IsNullOrWhiteSpace(req.Name)) return FailResponse(BlueprintFailureReason.InvalidName);
                 if (req.Min == null || req.Max == null) return FailResponse(BlueprintFailureReason.InvalidRequest);
 
@@ -59,6 +65,9 @@ namespace Server.Protocol.PacketResponse
 
             ProtocolMessagePackBase HandleDelete(BlueprintRequest req)
             {
+                // 未解放中は状態を変える操作を拒否する（GetAllは読み取り専用のため対象外・ADR 0015）
+                // Reject mutating operations while locked; the read-only GetAll stays open (ADR 0015)
+                if (!_gameUnlockState.IsBlueprintUnlocked) return FailResponse(BlueprintFailureReason.NotUnlocked);
                 if (!Guid.TryParse(req.BlueprintGuidStr, out var blueprintGuid)) return FailResponse(BlueprintFailureReason.InvalidRequest);
 
                 return _blueprintDatastore.Delete(blueprintGuid)

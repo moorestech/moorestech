@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Blueprint;
 using Game.PlacementTarget;
+using Game.UnlockState;
 using UniRx;
 
 namespace Game.Hotbar
@@ -25,11 +26,13 @@ namespace Game.Hotbar
         private readonly Dictionary<int, Guid[]> _assignments = new();
         private readonly PlacementTargetCatalog _catalog;
         private readonly IBlueprintDatastore _blueprintDatastore;
+        private readonly IGameUnlockStateData _gameUnlockState;
 
-        public HotbarAssignmentDatastore(PlacementTargetCatalog catalog, IBlueprintDatastore blueprintDatastore)
+        public HotbarAssignmentDatastore(PlacementTargetCatalog catalog, IBlueprintDatastore blueprintDatastore, IGameUnlockStateDataController gameUnlockState)
         {
             _catalog = catalog;
             _blueprintDatastore = blueprintDatastore;
+            _gameUnlockState = gameUnlockState;
 
             // BP削除で解決不能になった枠をその場で捨てる。セッション中に死んだ参照が残らない
             // Drops slots that a blueprint deletion just made unresolvable, so no dead reference survives the session
@@ -49,6 +52,9 @@ namespace Game.Hotbar
             // Both out-of-range slots and unknown ids are ignored as malicious-client defenses
             if (!IsValidSlot(slot)) return;
             if (!IsResolvable(targetId)) return;
+            // 未解放中のBP系新規割当は不正クライアント同様に無視。ロード済み割当はLoadHotbar側で保持される（ADR 0015）
+            // Ignore new blueprint-kind assignments while locked; loaded ones are preserved by LoadHotbar (ADR 0015)
+            if (!IsAssignableUnderUnlock(targetId)) return;
             GetOrCreate(playerId)[slot] = targetId;
             _onAssignmentChanged.OnNext(playerId);
         }
@@ -125,6 +131,15 @@ namespace Game.Hotbar
             // 有効=マスタ or 現行BP
             // Valid ids come from the master catalog or current blueprints
             return _catalog.TryGetMasterEntry(id, out _) || _blueprintDatastore.Blueprints.Any(bp => bp.BlueprintGuid == id);
+        }
+
+        private bool IsAssignableUnderUnlock(Guid id)
+        {
+            if (_gameUnlockState.IsBlueprintUnlocked) return true;
+            if (_catalog.TryGetMasterEntry(id, out var entry)) return entry.Kind != PlacementTargetKind.BlueprintCopy;
+            // マスタ外で解決可能なIDは現行BPのみのため、未解放中は割当不可
+            // The only non-master resolvable ids are current blueprints, unassignable while locked
+            return false;
         }
 
         private bool IsValidSlot(int slot)

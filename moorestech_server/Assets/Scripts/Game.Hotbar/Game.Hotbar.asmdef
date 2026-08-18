@@ -4,6 +4,7 @@
     "references": [
         "Game.PlacementTarget",
         "Game.Blueprint",
+        "Game.UnlockState",
         "UniRx"
     ],
     "includePlatforms": [],

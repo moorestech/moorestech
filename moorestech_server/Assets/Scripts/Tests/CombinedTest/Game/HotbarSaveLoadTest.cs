@@ -7,6 +7,7 @@ using Game.Blueprint;
 using Game.Hotbar;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -65,6 +66,7 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
             var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlueprint();
 
             var blueprintGuid = Guid.Parse("70000000-0000-4000-8000-000000000001");
             blueprintDatastore.Register(new BlueprintJsonObject("starter-base", new List<BlueprintBlockJsonObject>(), blueprintGuid));
