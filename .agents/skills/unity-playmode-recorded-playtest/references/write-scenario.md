@@ -18,6 +18,8 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 {
     // デバッグ環境を1行構築（無限落下防止の足場+ワープ+無料設置）。設定値は冒頭ログとTimelineに流れる
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    // 開幕スキットは全UI入力を塞ぐため必ず先に飛ばす（プレイテストのフレッシュワールドでは常に再生される）
+    await p.SkipOpeningSkit();
     p.Note("チェスト設置フェーズ開始");                       // AIナレーション（動画とTimelineに残る）
     // ...操作...
     p.Assert(条件, "ラベル");                                // 失敗しても続行し記録される
@@ -37,6 +39,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | API | 用途 |
 |---|---|
 | `SetupDebugEnvironment(config)` | **推奨の最初の1行**。足場生成+ワープ+無料設置トグルを`PlaytestEnvironmentConfig`で一括設定し、全設定値をログ/Timelineへ出力 |
+| `SkipOpeningSkit()` | 開幕スキットをSkipインテントで飛ばし`GameScreen`到達まで待つ。スキット中は全UI入力が塞がるため**`SetupDebugEnvironment`直後の定型2行目** |
 | `SetupFlatGround()` | 足場(50x4x50 @ y30、**上面y=32ちょうど**、`GroundGameObject`付与)生成+ワープのみ（旧API・互換） |
 | `WarpPlayer(pos)` / `PlayerPosition` | テレポート/現在地。UI設置前に対象範囲の中央へワープ推奨 |
 | `GiveItemDirect(name, count)` | サーバーインベントリ直挿入（即時） |

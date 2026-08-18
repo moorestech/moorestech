@@ -10,10 +10,8 @@
 ## 基本パターン（このまま使う）
 
 ```csharp
-// 0. フレッシュワールドの開幕スキットを飛ばしGameScreenへ（落とし穴8参照。無ければ省略可）
-var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
-await p.Until(() => { var s = skitStore.GetCurrent(); return s != null && skitStore.TrySkip(s.SessionId, s.SceneRevision).Ok; }, 30f, "開幕スキットSkip");
-await p.WaitUiState(Client.Game.InGame.UI.UIState.UIStateEnum.GameScreen, 15f);
+// 0. フレッシュワールドの開幕スキットを飛ばしGameScreenへ（落とし穴8参照）
+await p.SkipOpeningSkit();
 
 // 1. アンロック（ブロックと接続ツールは別枠のアンロック状態を持つ）
 p.UnlockBlock("歯車チェーンポール");
@@ -122,8 +120,8 @@ p.Assert(!networkOf(a1).Equals(networkOf(b1)), "別セグメント");
    大量に必要なら100以下に収めるか複数回`GiveItem`を呼ぶ
 8. **フレッシュワールドの開幕スキット(Story)がホットバー入力より優先**される（`GameScreenState`の
    スキット遷移チェックがホットバー遷移チェックより後にあり、スキット中は`GameScreen`にすら入れない）。
-   `SetupFlatGround`直後に`Client.Skit.UI.SkitPresentationStateStore.Instance`のSkipインテントで
-   飛ばし`GameScreen`到達を待ってから`Hotbar.AssignHotbar`/`Hotbar.SelectHotbar`する（前例: `electric-wire-mutual-range-via-ui.cs`）
+   環境構築直後に`await p.SkipOpeningSkit()`で飛ばし`GameScreen`到達を待ってから
+   `Hotbar.AssignHotbar`/`Hotbar.SelectHotbar`する（前例: `electric-wire-mutual-range-via-ui.cs`）
 9. **`Hotbar.SelectHotbar`自体はUIState遷移完了を待たない**（キータップ+固定0.5秒インターバルのみ）。
    同キーで抜けてすぐ入り直す・別枠へ持ち替えてすぐ操作するなど連続呼び出しは、各タップの後に
    `p.WaitUiState(UIStateEnum.GameScreen/PlaceBlock, 10f)`を挟まないと、前の遷移未完了のまま次のタップが
