@@ -85,7 +85,7 @@ export default function App() {
       {/* 通知はstage背面へ置き、全画面UIと常駐HUDの裏へ沈める（ADR 0017） */}
       {/* Notifications sit behind the stage so every screen and always-on HUD covers them (ADR 0017) */}
       <NotificationHost />
-      <div ref={stageRef} className={styles.stage} data-web-ui-transparent>
+      <div ref={stageRef} className={styles.stage} data-testid="app-stage" data-web-ui-transparent>
         {screenAllowsGrab(screen) && <InventoryPanel />}
         {screen === "playerInventory" && <RecipeViewer />}
         {screen === "playerInventory" && <ItemListPanel />}
