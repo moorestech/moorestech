@@ -27,9 +27,9 @@ namespace Client.WebUiHost.Game.Topics
                 PrevGuids = new List<string>(),
                 ConsumeItems = new List<ResearchConsumeItemDto>(),
                 RewardItems = new List<ResearchRewardItemDto>(),
-                UnlockItemIds = new List<int>(),
+                UnlockItemRecipeViewItemIds = new List<int>(),
                 UnlockBlocks = new List<ResearchUnlockBlockDto>(),
-                UnlockMachineRecipeOutputItemIds = new List<int>(),
+                UnlockMachineRecipes = new List<ResearchUnlockMachineRecipeDto>(),
                 UnlockConnectToolGuids = new List<string>(),
                 UnlockTrainCarGuids = new List<string>(),
             };
@@ -44,68 +44,88 @@ namespace Client.WebUiHost.Game.Topics
                 dto.ConsumeItems.Add(new ResearchConsumeItemDto { ItemId = itemId.AsPrimitive(), Count = consume.ItemCount });
             }
 
-            // 報酬/解放アイテムは ClearedActions から抽出（uGUI ResearchTreeElement と同じ分岐）
+            // 報酬/解放は ClearedActions から抽出（uGUI ResearchTreeElement と同じ分岐）
             // Rewards/unlocks come from ClearedActions (same branching as uGUI ResearchTreeElement)
-            AppendActionItems(dto, master);
+            AppendActionItems();
             return dto;
-        }
 
-        private static void AppendActionItems(ResearchNodeDto dto, ResearchNodeMasterElement master)
-        {
-            // ClearedActions から報酬(giveItem)と解放(unlockItemRecipeView)のアイテムを抽出する
-            // Extract reward (giveItem) and unlock (unlockItemRecipeView) items from ClearedActions
-            foreach (var action in master.ClearedActions.items)
+            #region Internal
+
+            void AppendActionItems()
             {
-                if (action.GameActionType == GameActionElement.GameActionTypeConst.giveItem)
+                // 報酬(giveItem)と各種解放(アイテム/ブロック/機械レシピ/接続ツール/列車車両)を抽出する
+                // Extract the reward (giveItem) and every unlock-kind action (item/block/machine recipe/connect tool/train car)
+                foreach (var action in master.ClearedActions.items)
                 {
-                    var give = (GiveItemGameActionParam)action.GameActionParam;
-                    foreach (var reward in give.RewardItems)
-                        dto.RewardItems.Add(new ResearchRewardItemDto { ItemId = MasterHolder.ItemMaster.GetItemId(reward.ItemGuid).AsPrimitive(), Count = reward.ItemCount });
-                }
-                else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockItemRecipeView)
-                {
-                    var unlock = (UnlockItemRecipeViewGameActionParam)action.GameActionParam;
-                    foreach (var itemGuid in unlock.UnlockItemGuids)
-                        dto.UnlockItemIds.Add(MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive());
-                }
-                else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockBlock)
-                {
-                    var unlock = (UnlockBlockGameActionParam)action.GameActionParam;
-                    foreach (var blockGuid in unlock.UnlockBlockGuids)
-                        dto.UnlockBlocks.Add(new ResearchUnlockBlockDto { BlockId = MasterHolder.BlockMaster.GetBlockId(blockGuid).AsPrimitive(), BlockGuid = blockGuid.ToString() });
-                }
-                else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockMachineRecipe)
-                {
-                    // 機械レシピは出力アイテムのアイコンで代表させる（§8.7の代表出力アイテム前例）
-                    // Represent machine recipes by their output item icons (per the §8.7 precedent)
-                    var unlock = (UnlockMachineRecipeGameActionParam)action.GameActionParam;
-                    foreach (var recipeGuid in unlock.UnlockMachineRecipeGuids)
-                    foreach (var output in MasterHolder.MachineRecipesMaster.GetRecipeElement(recipeGuid).OutputItems)
-                        dto.UnlockMachineRecipeOutputItemIds.Add(MasterHolder.ItemMaster.GetItemId(output.ItemGuid).AsPrimitive());
-                }
-                else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockConnectTool)
-                {
-                    var unlock = (UnlockConnectToolGameActionParam)action.GameActionParam;
-                    foreach (var toolGuid in unlock.UnlockConnectToolGuids) dto.UnlockConnectToolGuids.Add(toolGuid.ToString());
-                }
-                else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockTrainCar)
-                {
-                    var unlock = (UnlockTrainCarGameActionParam)action.GameActionParam;
-                    foreach (var carGuid in unlock.UnlockTrainCarGuids) dto.UnlockTrainCarGuids.Add(carGuid.ToString());
+                    if (action.GameActionType == GameActionElement.GameActionTypeConst.giveItem)
+                    {
+                        var give = (GiveItemGameActionParam)action.GameActionParam;
+                        foreach (var reward in give.RewardItems)
+                            dto.RewardItems.Add(new ResearchRewardItemDto { ItemId = MasterHolder.ItemMaster.GetItemId(reward.ItemGuid).AsPrimitive(), Count = reward.ItemCount });
+                    }
+                    else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockItemRecipeView)
+                    {
+                        var unlock = (UnlockItemRecipeViewGameActionParam)action.GameActionParam;
+                        foreach (var itemGuid in unlock.UnlockItemGuids)
+                            dto.UnlockItemRecipeViewItemIds.Add(MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive());
+                    }
+                    else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockBlock)
+                    {
+                        var unlock = (UnlockBlockGameActionParam)action.GameActionParam;
+                        foreach (var blockGuid in unlock.UnlockBlockGuids)
+                            dto.UnlockBlocks.Add(new ResearchUnlockBlockDto { BlockId = MasterHolder.BlockMaster.GetBlockId(blockGuid).AsPrimitive(), BlockGuid = blockGuid.ToString() });
+                    }
+                    else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockMachineRecipe)
+                    {
+                        var unlock = (UnlockMachineRecipeGameActionParam)action.GameActionParam;
+                        foreach (var recipeGuid in unlock.UnlockMachineRecipeGuids)
+                            dto.UnlockMachineRecipes.Add(BuildUnlockMachineRecipeDto(recipeGuid));
+                    }
+                    else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockConnectTool)
+                    {
+                        var unlock = (UnlockConnectToolGameActionParam)action.GameActionParam;
+                        foreach (var toolGuid in unlock.UnlockConnectToolGuids) dto.UnlockConnectToolGuids.Add(toolGuid.ToString());
+                    }
+                    else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockTrainCar)
+                    {
+                        var unlock = (UnlockTrainCarGameActionParam)action.GameActionParam;
+                        foreach (var carGuid in unlock.UnlockTrainCarGuids) dto.UnlockTrainCarGuids.Add(carGuid.ToString());
+                    }
                 }
             }
-        }
 
-        private static string ToStateString(ResearchNodeState state)
-        {
-            return state switch
+            // 機械レシピをレシピ単位で運ぶ（液体のみ出力の消失を防ぐ）
+            // Carry each machine recipe individually (avoids losing fluid-only outputs)
+            ResearchUnlockMachineRecipeDto BuildUnlockMachineRecipeDto(Guid recipeGuid)
             {
-                ResearchNodeState.Completed => "completed",
-                ResearchNodeState.Researchable => "researchable",
-                ResearchNodeState.UnresearchableNotEnoughItem => "unresearchableNotEnoughItem",
-                ResearchNodeState.UnresearchableNotEnoughPreNode => "unresearchableNotEnoughPreNode",
-                _ => "unresearchableAllReasons",
-            };
+                var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(recipeGuid);
+                var outputItemIds = new List<int>();
+                foreach (var output in recipe.OutputItems)
+                    outputItemIds.Add(MasterHolder.ItemMaster.GetItemId(output.ItemGuid).AsPrimitive());
+                var outputFluids = new List<ResearchUnlockFluidDto>();
+                foreach (var output in recipe.OutputFluids)
+                    outputFluids.Add(new ResearchUnlockFluidDto
+                    {
+                        FluidId = MasterHolder.FluidMaster.GetFluidId(output.FluidGuid).AsPrimitive(),
+                        FluidGuid = output.FluidGuid.ToString(),
+                        Amount = output.Amount,
+                    });
+                return new ResearchUnlockMachineRecipeDto { RecipeGuid = recipeGuid.ToString(), OutputItemIds = outputItemIds, OutputFluids = outputFluids };
+            }
+
+            string ToStateString(ResearchNodeState s)
+            {
+                return s switch
+                {
+                    ResearchNodeState.Completed => "completed",
+                    ResearchNodeState.Researchable => "researchable",
+                    ResearchNodeState.UnresearchableNotEnoughItem => "unresearchableNotEnoughItem",
+                    ResearchNodeState.UnresearchableNotEnoughPreNode => "unresearchableNotEnoughPreNode",
+                    _ => "unresearchableAllReasons",
+                };
+            }
+
+            #endregion
         }
     }
 }

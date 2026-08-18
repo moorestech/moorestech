@@ -336,6 +336,26 @@
       ],
       "outputFluids": [],
       "machineRecipeGuid": "fa4f801f-da93-448e-a75c-a066821ffd53"
+    },
+    {
+      "time": 1,
+      "blockGuid": "00000000-0000-0000-0000-000000000001",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000001"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [],
+      "outputFluids": [
+        {
+          "fluidGuid": "00000000-0000-0000-1234-000000000003",
+          "amount": 50
+        }
+      ],
+      "machineRecipeGuid": "aa000000-0000-4000-8000-00000000fee1"
     }
   ]
 }
