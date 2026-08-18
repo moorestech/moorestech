@@ -947,7 +947,7 @@ git commit -m "feat: WebUIにD&D説明のドラッグガイド矢印とホット
 - Consumes: Task 1のスキーマ（completeResearch / uiDragGuide）、Task 3のuiObjectId書式（`buildMenuBlock:<guid>` / `researchNode:<guid>` / `hotbar` / `challengeHud`）
 - Produces: 24件直列の新チャレンジ実データ
 
-- [ ] **Step 1: generate_challenges.py のヘルパを追加・変更**
+- [x] **Step 1: generate_challenges.py のヘルパを追加・変更**
 
 既存ヘルパ群（`pin`/`ui`/`iv`/`key`）を以下へ変更。`key` ヘルパは削除する（keyControl全廃・Requirement 4）:
 
@@ -967,7 +967,7 @@ def research_node_ui(name, text): return ('uiHighLight', {
 
 ※ 既存の `ui('クラフトボタンで作成')` 呼び出しは `ui('craftButton', 'クラフトボタンで作成')` へ書き換える。`drag` の `text` 引数はスキーマに文言フィールドが無いため未使用（呼び出し側の可読性用）。
 
-- [ ] **Step 2: CHALLENGES 表を24件へ全面書き換え**
+- [x] **Step 2: CHALLENGES 表を24件へ全面書き換え**
 
 タスク種別 `'research'` を導入し、表全体を以下へ置換（ADR 0016 §2の並び。既存文言は維持し、変更点のみ差し替え）:
 
@@ -1014,7 +1014,7 @@ CHALLENGES = [
 ]
 ```
 
-- [ ] **Step 3: 'research' タスク種別の出力と検証を追加**
+- [x] **Step 3: 'research' タスク種別の出力と検証を追加**
 
 構築ループのtaskParam分岐へ追加:
 
@@ -1035,7 +1035,7 @@ for title, _, task, target, _, _, _ in CHALLENGES:
     ...
 ```
 
-- [ ] **Step 4: 再生成して差分確認**
+- [x] **Step 4: 再生成して差分確認**
 
 ```bash
 cd ../moorestech_master && python3 tools/tutorial_v3_port/generate_challenges.py
@@ -1051,7 +1051,7 @@ print([c['taskCompletionType'] for c in chs if c['taskCompletionType']=='complet
 ```
 Expected: 24件。研究チャレンジ4件が`completeResearch`。keyControlが0件（`grep -c keyControl` で確認）。直列（各prevChallengeGuidsが直前1件）はジェネレータ構造上保証される。
 
-- [ ] **Step 5: サーバー側マスタ検証テストで実マスタを照合**
+- [x] **Step 5: サーバー側マスタ検証テストで実マスタを照合**
 
 moorestechリポジトリ側で:
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "TutorialAnchorContractTest|ChallengeMasterValidation"`
@@ -1059,7 +1059,7 @@ Expected: 全件PASS（`AllModHighLightUIObjectIdsAreKnownToMapper` が新ID `ch
 
 ※ 旧バージョンmod（server_v4〜v7等）のchallenges.jsonに未知のuiObjectIdが残っていて落ちる場合は、そのIDをマッパーへ追加するのではなく、テストの収集対象が旧modを含む仕様のままで良いか実データを確認し、実際に使われていない残骸ならユーザーへ報告して裁定を仰ぐ。
 
-- [ ] **Step 6: moorestech_master をコミット**
+- [x] **Step 6: moorestech_master をコミット**
 
 ```bash
 cd ../moorestech_master
