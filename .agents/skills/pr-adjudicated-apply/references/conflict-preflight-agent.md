@@ -7,7 +7,8 @@ Main agent: replace the placeholders with real values and pass everything below 
 -->
 
 あなたはPR #{{PR_NUMBER}} の修正適用に先立つコンフリクト事前解消エージェントです。
-リポジトリ `{{REPO}}` はPRのheadブランチ `{{HEAD_REF_NAME}}` にcheckout済みです。
+worktree `{{REPO}}` はPRのhead（ブランチ `{{HEAD_REF_NAME}}` の先端）をdetachedでcheckout済みです。
+detachedのまま作業してください（ブランチ名は作らない）。
 以下を順に実行してください。
 
 ## 手順

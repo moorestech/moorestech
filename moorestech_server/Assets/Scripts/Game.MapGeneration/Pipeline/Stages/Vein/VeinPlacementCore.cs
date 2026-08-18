@@ -3,6 +3,7 @@ using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators;
 using Game.MapGeneration.Pipeline.Generators.Util;
+using Game.MapGeneration.Pipeline.Tiling;
 using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Stages
@@ -15,7 +16,8 @@ namespace Game.MapGeneration.Pipeline.Stages
             OreEntry[] entries, float borderMargin,
             TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
             float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
-            int rngSeedOffset, IReadOnlyList<PlacedVein> excludedVeins)
+            int rngSeedOffset, IReadOnlyList<PlacedVein> excludedVeins,
+            TilePlacementContext tile, PlacementHaloChannel memberHalo, PlacementHaloChannel centerHalo)
         {
             var veins = new List<PlacedVein>();
             if (entries.Length == 0) return veins;
@@ -27,10 +29,21 @@ namespace Game.MapGeneration.Pipeline.Stages
 
             var treeGrid = SpatialGrid.FromPlacements(treeEntries, config.terrainWidth, config.terrainLength, 0f);
             var objectGrid = ObjectsToGrid(objectPlacements, config);
-            var dims = TerrainDimensions.From(config, 0f);
-            var rng = new System.Random(config.seed + rngSeedOffset);
+
+            // 木と岩の近傍判定にも隣タイルぶんを入れる。鉱脈だけタイル内で閉じると境界の帯で距離が破られる。
+            // The tree and rock neighbour tests take the adjacent tiles too; closing veins inside one tile breaks the distance in the seam band.
+            tile.Halo.Trees.SeedGrid(treeGrid, config.worldOffsetX, config.worldOffsetZ,
+                config.terrainWidth, config.terrainLength, tile.Halo.Radius);
+            if (objectGrid != null)
+                tile.Halo.Objects.SeedGrid(objectGrid, config.worldOffsetX, config.worldOffsetZ,
+                    config.terrainWidth, config.terrainLength, tile.Halo.Radius);
+
+            var dims = TerrainDimensions.From(config, 0f, tile.TileIndexX, tile.TileIndexZ);
+            var rng = new System.Random(TileSeedMixer.Mix(
+                config.seed + rngSeedOffset, tile.TileIndexX, tile.TileIndexZ));
             var members = OrePlacementGenerator.GenerateForWorld(
-                entries, entryMasks, borderMargin, heights2D, dims, rng, treeGrid, objectGrid);
+                entries, entryMasks, borderMargin, heights2D, dims, rng, treeGrid, objectGrid,
+                memberHalo, centerHalo, tile.Halo.Radius);
 
             // クラスター単位でメンバー座標の min/max を整数化し PlacedVein を1件生成する。
             // Snap each cluster's member coord min/max to integers and emit one PlacedVein per cluster.

@@ -26,6 +26,13 @@ namespace Game.MapGeneration.Pipeline.Jobs
         // seed由来のオフセットでノイズパターンを固有化
         public float2 noiseOffset;
 
+        // 窓の原点と実寸。ノイズを窓ローカルのピクセル座標で引くとタイルごとに模様が反復する
+        // The window's origin and extent; drawing the noise in window-local pixels repeats the pattern per tile
+        public float worldOffsetX;
+        public float worldOffsetZ;
+        public float terrainWidth;
+        public float terrainLength;
+
         [ReadOnly] public NativeArray<int> regionLabels;
         [ReadOnly] public NativeArray<float> inputHeights;
         [ReadOnly] public NativeArray<PlateauRegionInfo> regionInfos;
@@ -80,7 +87,11 @@ namespace Game.MapGeneration.Pipeline.Jobs
             float localDelta = ComputeLocalHeightDelta(x, y);
             float clampedAmp = math.min(0.12f * localDelta, noiseAmplitude);
 
-            float2 pos = new float2(x, y) + noiseOffset;
+            // ワールド座標(メートル)で引く。noiseFrequency はピクセルではなくメートルあたりの周波数になる
+            // Drawn in world meters, so noiseFrequency counts per meter rather than per pixel
+            float2 pos = new float2(
+                worldOffsetX + (float)x / (resolution - 1) * terrainWidth,
+                worldOffsetZ + (float)y / (resolution - 1) * terrainLength) + noiseOffset;
             float n = SampleFbm(pos * noiseFrequency, noiseOctaves);
 
             outputHeights[idx] = blurred + n * clampedAmp * noiseMask;

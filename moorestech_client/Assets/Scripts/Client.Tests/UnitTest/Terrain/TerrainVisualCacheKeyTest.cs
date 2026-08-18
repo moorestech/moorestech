@@ -6,9 +6,9 @@ using UnityEngine;
 namespace Client.Tests.UnitTest.Terrain
 {
     /// <summary>
-    ///     キーが導出元4つすべてに反応することを検証する。1つでも取りこぼすと、導出元が動いたのに
+    ///     キーが導出元5つすべてに反応することを検証する。1つでも取りこぼすと、導出元が動いたのに
     ///     キャッシュがヒットして古いsplatmap/detailが描かれる
-    ///     Verifies the key reacts to all four inputs; missing even one would let the cache hit after an input moved,
+    ///     Verifies the key reacts to all five inputs; missing even one would let the cache hit after an input moved,
     ///     drawing a stale splatmap and detail
     /// </summary>
     public class TerrainVisualCacheKeyTest
@@ -18,6 +18,10 @@ namespace Client.Tests.UnitTest.Terrain
         private const int Seed = 12345;
 
         private static readonly Vector2 NoiseOrigin = new(1024f, -2048f);
+
+        // MapObjectsDigestが返すのと同じ32バイト。ここでは中身ではなく「キーが反応するか」だけを見る
+        // The same 32 bytes MapObjectsDigest returns; what matters here is whether the key reacts, not the content
+        private static readonly byte[] MapObjectsDigest = new byte[32];
 
         [Test]
         public void ProducesTheSameKeyForTheSameInputs()
@@ -118,9 +122,33 @@ namespace Client.Tests.UnitTest.Terrain
             Assert.Throws<InvalidOperationException>(() => Compute(MasterJsonText, string.Empty, NoiseOrigin, Seed));
         }
 
+        [Test]
+        public void ChangesWhenTheMapObjectLayoutChanges()
+        {
+            // 木の摂動・根元テクスチャ・距離場は配置の派生物。ここを外すと木を1本動かしても古い見た目が残る
+            // The tree perturbation, root textures and distance fields all derive from the layout; missing it keeps stale visuals after a single tree moves
+            var movedDigest = new byte[MapObjectsDigest.Length];
+            movedDigest[0] = 1;
+
+            Assert.That(
+                TerrainVisualCacheKey.Compute(MasterJsonText, TerrainHash, NoiseOrigin, Seed, movedDigest),
+                Is.Not.EqualTo(Compute(MasterJsonText, TerrainHash, NoiseOrigin, Seed)));
+        }
+
+        [Test]
+        public void ThrowsWhenTheMapObjectsDigestIsMissing()
+        {
+            // 空ダイジェストで黙って通すと、配線漏れが「配置を変えてもキャッシュが効き続ける」形でしか現れない
+            // Letting an empty digest pass silently would surface a wiring gap only as a cache that survives every layout change
+            Assert.Throws<InvalidOperationException>(
+                () => TerrainVisualCacheKey.Compute(MasterJsonText, TerrainHash, NoiseOrigin, Seed, null));
+            Assert.Throws<InvalidOperationException>(
+                () => TerrainVisualCacheKey.Compute(MasterJsonText, TerrainHash, NoiseOrigin, Seed, new byte[0]));
+        }
+
         private static string Compute(string generationMasterJsonText, string terrainHash, Vector2 noiseOrigin, int seed)
         {
-            return TerrainVisualCacheKey.Compute(generationMasterJsonText, terrainHash, noiseOrigin, seed);
+            return TerrainVisualCacheKey.Compute(generationMasterJsonText, terrainHash, noiseOrigin, seed, MapObjectsDigest);
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Config;
 
 namespace Game.MapGeneration.Pipeline.Biomes
@@ -49,6 +50,35 @@ namespace Game.MapGeneration.Pipeline.Biomes
                 case BiomeType.Woods:     return _config.woods.treePlacement;
                 default: return null;
             }
+        }
+
+        // guid → 最初に出会った TreePrototypeEntry。有効バイオーム順・エントリ順・guid順で最初の出現が勝つ。
+        // これは元の prefab 展開＋prefabToProtoIndex（最初のインデックス）による属性付けと一致する。
+        // 高さ摂動と根元塗りが別々にこの規約を書くと、同じ guid が2つの entry に載る mod で別の属性を引く。
+        // Maps each guid to the TreePrototypeEntry it first meets in enabled-biome, entry then guid order,
+        // matching the original prefab expansion plus prefabToProtoIndex (first index) attribution.
+        // Restating the rule per consumer would let the height perturbation and the root painting
+        // read different entries for one guid when a mod lists it in two prototypes.
+        public Dictionary<string, TreePrototypeEntry> BuildFirstTreePrototypeByGuid(BiomeType[] biomeTypes)
+        {
+            var firstEntryByGuid = new Dictionary<string, TreePrototypeEntry>();
+            foreach (var biome in biomeTypes)
+            {
+                var treePlacement = GetTreePlacementConfig(biome);
+                if (treePlacement?.prototypes == null) continue;
+
+                foreach (var entry in treePlacement.prototypes)
+                {
+                    if (entry == null || entry.disabled || entry.mapObjectGuids == null) continue;
+
+                    foreach (var mapObjectGuid in entry.mapObjectGuids)
+                    {
+                        if (string.IsNullOrEmpty(mapObjectGuid) || firstEntryByGuid.ContainsKey(mapObjectGuid)) continue;
+                        firstEntryByGuid[mapObjectGuid] = entry;
+                    }
+                }
+            }
+            return firstEntryByGuid;
         }
 
         // バイオーム別のオブジェクト配置設定。

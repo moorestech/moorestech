@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useNotificationStore } from "./notificationStore";
+import { NOTIFICATION_REMOVAL_FALLBACK_MS, useNotificationStore } from "./notificationStore";
 
 describe("notificationStore", () => {
   beforeEach(() => {
@@ -7,7 +7,7 @@ describe("notificationStore", () => {
     useNotificationStore.setState({ notifications: [] });
   });
 
-  it("追加され5秒後に消える", () => {
+  it("退場アニメが発火しなくても保険タイマーで消える", () => {
     useNotificationStore.getState().addNotification({
       category: "achievement",
       messageId: "achievement.researchCompleted",
@@ -15,7 +15,9 @@ describe("notificationStore", () => {
       itemId: null,
     });
     expect(useNotificationStore.getState().notifications).toHaveLength(1);
-    vi.advanceTimersByTime(5000);
+    vi.advanceTimersByTime(NOTIFICATION_REMOVAL_FALLBACK_MS - 1);
+    expect(useNotificationStore.getState().notifications).toHaveLength(1);
+    vi.advanceTimersByTime(1);
     expect(useNotificationStore.getState().notifications).toHaveLength(0);
   });
 
@@ -27,5 +29,16 @@ describe("notificationStore", () => {
       itemId: 42,
     });
     expect(useNotificationStore.getState().notifications[0].itemId).toBe(42);
+  });
+
+  it("退場用の状態を持たない", () => {
+    useNotificationStore.getState().addNotification({
+      category: "achievement",
+      messageId: "achievement.unlockedItem",
+      messageParams: [],
+      itemId: null,
+    });
+    expect(Object.keys(useNotificationStore.getState().notifications[0]).sort())
+      .toEqual(["category", "id", "itemId", "messageId", "messageParams"]);
   });
 });
