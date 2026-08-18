@@ -737,7 +737,7 @@ git commit -m "feat: uiDragGuideチュートリアルのクライアント経路
 **Files:**
 - Modify: `moorestech_client/Assets/AddressableResources/Skit/skits/100_start_game.json`
 
-- [ ] **Step 1: 台詞を挿入**
+- [x] **Step 1: 台詞を挿入**
 
 `commands` 配列の最後の `text` コマンド（`"id": 40`・「大丈夫です。ぼくがしっかりサポートするので…さあ、行きますよ」）の**直前**に挿入:
 
@@ -754,12 +754,12 @@ git commit -m "feat: uiDragGuideチュートリアルのクライアント経路
 
 ※ CommandForge形式のプレーンJSON（Unityシリアライズ物ではない）のためテキスト編集可。idは既存最大138の次の139。
 
-- [ ] **Step 2: JSONの整合を確認**
+- [x] **Step 2: JSONの整合を確認**
 
 Run: `python3 -c "import json; json.load(open('moorestech_client/Assets/AddressableResources/Skit/skits/100_start_game.json')); print('ok')"`
 Expected: `ok`
 
-- [ ] **Step 3: コミット**
+- [x] **Step 3: コミット**
 
 ```bash
 git add moorestech_client/Assets/AddressableResources/Skit/skits/100_start_game.json
