@@ -97,11 +97,21 @@ describe("deriveResearchButton", () => {
 });
 
 describe("deriveNodeCardState", () => {
-  it("completed/researchable/lockedを状態から導出する", () => {
-    expect(deriveNodeCardState("completed")).toEqual({ completed: true, researchable: false, locked: false });
-    expect(deriveNodeCardState("researchable")).toEqual({ completed: false, researchable: true, locked: false });
-    expect(deriveNodeCardState("unresearchableNotEnoughItem")).toEqual({ completed: false, researchable: false, locked: false });
-    expect(deriveNodeCardState("unresearchableNotEnoughPreNode")).toEqual({ completed: false, researchable: false, locked: true });
-    expect(deriveNodeCardState("unresearchableAllReasons")).toEqual({ completed: false, researchable: false, locked: true });
+  const owned = new Map([[1, 5]]);
+  it("完了ノードはcompletedのみ立つ", () => {
+    expect(deriveNodeCardState(node("a", 0, 0, { state: "completed" }), owned))
+      .toEqual({ completed: true, ready: false, locked: false });
+  });
+  it("前提未達はlocked", () => {
+    expect(deriveNodeCardState(node("a", 0, 0, { state: "unresearchableNotEnoughPreNode" }), owned))
+      .toEqual({ completed: false, ready: false, locked: true });
+  });
+  it("前提充足でも所持不足ならready無しの通常表示", () => {
+    const n = node("a", 0, 0, { state: "unresearchableNotEnoughItem", consumeItems: [{ itemId: 1, count: 6 }] });
+    expect(deriveNodeCardState(n, owned)).toEqual({ completed: false, ready: false, locked: false });
+  });
+  it("サーバーstateがアイテム不足でも所持が満ちればready（ライブ再計算）", () => {
+    const n = node("a", 0, 0, { state: "unresearchableNotEnoughItem", consumeItems: [{ itemId: 1, count: 5 }] });
+    expect(deriveNodeCardState(n, owned)).toEqual({ completed: false, ready: true, locked: false });
   });
 });

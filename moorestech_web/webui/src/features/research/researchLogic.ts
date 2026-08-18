@@ -48,15 +48,17 @@ export function deriveResearchButton(node: ResearchNodeData, owned: Map<number, 
   return { completed: false, interactable, tooltipKey };
 }
 
-// カードのdata属性用の状態導出（lockedは前提未達）
-// Derive card data-attribute state (locked = prerequisites unmet)
-export type NodeCardState = { completed: boolean; researchable: boolean; locked: boolean };
+// カードのdata属性用の4状態導出。充足はインベントリからのライブ再計算（ADR 0014）
+// Derive the card's 4-state data attributes; sufficiency is recomputed live from the inventory (ADR 0014)
+export type NodeCardState = { completed: boolean; ready: boolean; locked: boolean };
 
-export function deriveNodeCardState(state: ResearchNodeState): NodeCardState {
+export function deriveNodeCardState(node: ResearchNodeData, owned: Map<number, number>): NodeCardState {
+  const completed = node.state === "completed";
+  const preNodeMet = isPreNodeMet(node.state);
   return {
-    completed: state === "completed",
-    researchable: state === "researchable",
-    locked: state !== "completed" && !isPreNodeMet(state),
+    completed,
+    ready: !completed && preNodeMet && hasEnoughItems(node.consumeItems, owned),
+    locked: !completed && !preNodeMet,
   };
 }
 
