@@ -16,12 +16,13 @@ vi.mock("@/bridge", async (importOriginal) => ({
   useItemMaster: () => new Map([[1, { itemId: 1, itemGuid: ITEM_GUID, maxStack: 100 }]]),
 }));
 
-function renderItemSlot(insufficient?: boolean, count?: number) {
+function renderItemSlot(insufficient?: boolean, count?: number, catalog?: boolean) {
   return renderToStaticMarkup(
     createElement(MantineProvider, null, createElement(ItemSlot, {
       itemId: 1,
       insufficient,
       count,
+      catalog,
     })),
   );
 }
@@ -66,11 +67,12 @@ describe("ItemSlot", () => {
     expect(markup).not.toContain(`class="${styles.count}"`);
   });
 
-  // 直接0でもバッジ非表示
-  // A literal 0 must not render the badge either
+  // アイコンを描くcatalogでも0はバッジ非表示
+  // Even in catalog mode, where the icon renders, a 0 must not render the badge
   it("countが0の時はバッジを表示しない", () => {
-    const markup = renderItemSlot(undefined, 0);
+    const markup = renderItemSlot(undefined, 0, true);
 
+    expect(markup).toContain("<img");
     expect(markup).not.toContain(`class="${styles.count}"`);
   });
 
