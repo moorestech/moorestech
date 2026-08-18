@@ -71,6 +71,16 @@ namespace Core.Master.Validator
                                 }
                                 break;
                             }
+                            case CompleteResearchTaskParam completeResearch:
+                            {
+                                // 参照先研究ノードの実在を検証
+                                // Validate that the referenced research node exists
+                                if (!MasterHolder.ResearchMaster.ResearchElements.ContainsKey(completeResearch.ResearchNodeGuid))
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.ResearchNodeGuid:{completeResearch.ResearchNodeGuid}\n";
+                                }
+                                break;
+                            }
                         }
                     }
                 }
@@ -131,6 +141,14 @@ namespace Core.Master.Validator
                                     {
                                         logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.BlockGuid:{blockPlacePreview.BlockGuid}\n";
                                     }
+                                    break;
+                                }
+                                case UiDragGuideTutorialParam uiDragGuide:
+                                {
+                                    // buildMenuBlock:書式が指すブロックの実在を検証
+                                    // Validate blocks referenced by the buildMenuBlock: form
+                                    logs += ValidateDragGuideObjectId(uiDragGuide.FromUIObjectId, challenge.Title);
+                                    logs += ValidateDragGuideObjectId(uiDragGuide.ToUIObjectId, challenge.Title);
                                     break;
                                 }
                             }
@@ -319,6 +337,19 @@ namespace Core.Master.Validator
                     }
                 }
                 return logs;
+            }
+
+            string ValidateDragGuideObjectId(string uiObjectId, string challengeTitle)
+            {
+                const string blockPrefix = "buildMenuBlock:";
+                if (!uiObjectId.StartsWith(blockPrefix)) return "";
+
+                if (!Guid.TryParse(uiObjectId.Substring(blockPrefix.Length), out var blockGuid) ||
+                    MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid) == null)
+                {
+                    return $"[ChallengeMaster] Challenge:{challengeTitle} has invalid uiDragGuide target:{uiObjectId}\n";
+                }
+                return "";
             }
 
             bool ExistsChallengeGuid(Guid challengeGuid)
