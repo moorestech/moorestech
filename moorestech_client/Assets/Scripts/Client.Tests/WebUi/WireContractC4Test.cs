@@ -36,6 +36,13 @@ namespace Client.Tests.WebUi
                         PaddingPx = 4, BlocksPointerInput = false,
                     },
                 },
+                DragGuides = new[]
+                {
+                    new TutorialDragGuideData
+                    {
+                        GuideId = "guide-1", FromAnchorId = "hotbar.hud", ToAnchorId = "recipe.craft-button",
+                    },
+                },
             };
 
             AssertMatches(dto, "tutorial_presentation.json");
