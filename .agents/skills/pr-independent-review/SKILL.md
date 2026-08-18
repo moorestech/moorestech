@@ -46,7 +46,7 @@ featureブランチが記録ファイルに触れてマージ衝突する構造�
   既存runを上書きしない
 - Step 1の直後に `mkdir -p <$RUNDIRの実値>` を1回だけ実行する
 - ファイル名は固定: `patch.diff` / `context.md` / `novelty.json` / `detchecks.json` / `codex-audit.md` /
-  `digest.html` / `findings.json` / `reconcile-comments.json`。PR番号はディレクトリ名が持つのでファイル名に含めない
+  `digest.md` / `digest.html` / `findings.json` / `reconcile-comments.json`。PR番号はディレクトリ名が持つのでファイル名に含めない
 - `$RUNDIR` 配下もhookで自動commit・pushされる（PRの実コードを含むが、logs repoはprivateなので出荷先として正しい）
 
 - **`$CANON` は本ドキュメント上のプレースホルダであり、シェル変数ではない**。Bashコマンド・subagentのprompt・
@@ -355,116 +355,44 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   相対パスなので、そのままコピペするとsubagentのcwd（＝レビューworktree）側のPR同梱スキルを読む。
   `Candidates :` / `Patch path :` / `User prompt :` の各パス（`$RUNDIR` 配下）も同様に絶対パスで書く
 
-## Step 7: ダイジェストHTML生成
+## Step 7: ダイジェスト生成（digest.md → コンバータ）
 
-`$CANON/.claude/skills/pr-independent-review/assets/digest-template.html` をReadし、sonnet subagentに
-`<$RUNDIRの実値>/digest.html` を生成させて `open` する。CSS・コメント機能JSはverbatim維持。
+sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させる。フォーマットの正本は
+`$CANON/.agents/skills/pr-independent-review/README-digest-format.md` を読ませる（生成subagentの参照先はこの1本のみ）。
 
-- **並び順の原則: ユーザーの裁定が必要なものほど上（ユーザー裁定 2026-07-30）**。Criticalは裁定不要の修正リストなので
-  上位に置かない。構成は次の順で固定する:
-  1. **verdictヘッダ**（verdict＋件数）
-  2. **「あなたが判断すること」インデックス（新設・必須）** — このページでユーザーの裁定が要る項目だけを箇条書きで列挙
-     （①必読の設計判断（下記トリアージ上位・通常2〜4枚） ②suppressedのPR内新設ADR検証 ③新形の入国審査は実質何問に畳めるか）。
-     各行は該当カードへのページ内アンカーリンクにする
-  3. **必読の設計判断カード** — 設計判断を次の基準でトリアージし、上位だけをここへ置く:
-     (a)指摘系統の一致数が多い (b)裁定がCriticalの直し方を左右する（C連動） (c)ゲームプレイ・アーキテクチャの方向を変える。
-     カード冒頭に「なぜ必読か」を1行で書く
-  4. **残りの設計判断カード** — 「推奨案どおりで良ければ一言でよい」ものはその旨をカード内に明記
-  5. **suppressedカード** — PR内新設ADR由来（免責の真偽確認が要るもの）を先頭に、他はその後ろ（全件・同形式＋suppressed-by出所）
-  6. **新形カード** — 入国審査。論理グループ（新アセンブリ単位等）に畳み、各グループを「この新語彙を認めるか」の1問として提示
-  7. **Critical要点カード** — 裁定不要の修正リストであることをセクション冒頭に明記（詳細は折りたたみ）
-  8. **判断台帳**（ユーザー裁定/agent前提/PR内新設ADR（降格済み・要検証））
-  9. **折りたたみ参考**
-  各カードの中身: ファイル名太字・リポジトリ相対フルパス・行番号 → **その直下に一言サマリ1行（必須・ユーザー裁定 2026-07-30）**
-  → 当該diffハンクの実コード抜粋（前後数行・追加行`<ins>`・問題行`.hl`）→ PR側の主張（出所ラベル付き）→ 代替案
-- **data-finding-id属性（必須・裁定サイトのアンカー）**: digest生成前にStep 7.5のid採番規則（severity降順→
-  ファイルパス昇順でF01から連番）で全裁定対象のidを確定させ、findings.jsonに載る所見に対応する各カードの
-  ルート要素（`section.verdict-card` 等）へ `data-finding-id="F01"` を付与する。対象は設計判断カード・
-  Critical要点の各項目・新形カード・suppressedカードの全て。Step 7.5は**必ずこの採番をそのまま使う**
-  （裁定サイトはこの属性で案ボタンの注入位置を特定する。欠けるとトークン一致のフォールバック頼みになる）。
-  代替案（案A/案B…）を提示するカードでは、その案リストをStep 7.5の `options` にそのまま写し、
-  **推奨する案には案リスト本文で「（推奨）」と明記する**（案が1つだけのカードでも書く）。
-  Step 7.5の `recommended: true` と同じ案を指すこと
-- **一言サマリの書式（ユーザー裁定 2026-07-30「デッドコードがあるが免責されてる、でいい」）**: **欠陥・裁定対象そのものを
-  主語にした短文1つ**（目安20字前後）。免責の仕組み・出所ラベルの話・系統数・規約条番号などのメタ情報をサマリに書くのは禁止
-  （それらはsuppressed-by行・出所行が既に持っている）。例: Critical「絶対に発火しないifガードが2箇所ある」/
-  suppressed「デッドなDI登録があるが免責されている」/ 設計判断「クールダウンキーの粒度を決める」。
-  長い説明が要るならサマリの下に別段落で書き、サマリ行自体は絶対に伸ばさない
-- **コード抜粋は全カード必須**（コード位置を持たない所見＝PR本文由来の申告等のみ例外で、その場合は出典テキストを引用）。
-  suppressedカードも免責されているだけで所見のコード位置は持つので省略しない。生成後検査に「code-card（または出典引用）を
-  持たないカードが0枚」を加える
-- CONFIG固有化: `STORAGE_KEY='pr-review-<番号>-comments-v1'`、`COPY_TITLE='PR #<番号> 独立レビュー裁定'`。
-  テンプレートは `REPLACE_WITH_UNIQUE_STORAGE_KEY` / `REPLACE_WITH_COPY_HEADING` のプレースホルダのまま出荷されているので置換必須（未置換だと別PRのコメントがlocalStorageで混ざる）
-- **カード間の視覚分離**: 裁定カード・suppressedカードはテンプレート既定では背景・枠線を持たず、連続すると境界が曖昧になる。
-  生成時に各カードのdivへ背景色または枠線を付けるようsubagentへ指示する
-- **suppressedが0件でもセクションは省略しない**: suppressedセクションの見出しは常に出し、中身は
-  「該当なし（0件）」の**1行**にする（カードは作らない）。セクションごと消すと「収集し忘れ」と区別がつかなくなる
-- **判断台帳の「PR内新設ADR（降格済み・要検証）」グループ**: Step 4で `[agent前提]` へ降格したPR内新設ADR由来の
-  項目は、判断台帳セクション内に**この名前のグループを設けてまとめて表示する**（ユーザー裁定・一般の `[agent前提]` の
-  各項目と混ぜない）。0件でもグループの見出しは出し、中身は「該当なし（0件）」の1行にする。
-  降格の事実が画面から消えると、PR自作のADRが免責ソースとして通ったように読めてしまうため
-- **設計判断カードのバッジ**: テンプレートのバッジは `badge-new` / `badge-sup` の2種のみで「設計判断」用が無い。
-  **`badge-new` のclassをそのまま流用し、表示文言だけ「設計判断」とする**（新形カードの文言は「新形」）。
-  テンプレート側にclassを追加する改変はしない
-- 実コード抜粋はStep 3のpatchから機械的に転記する（創作・要約禁止）
-- **HTMLエスケープ契約（省略禁止）**: レビュー対象の文字列はそのままHTMLへ流し込むと壊れる。C#のジェネリクス
-  （`Subject<int>`・`List<Action>`）・XMLコメント・yml・PRタイトルはいずれも `<` `>` `&` `"` `'` を含み得る。
-  **PRタイトル・ファイルパス・コード抜粋・`data-label` などの動的文字列は、まず `&` `<` `>` `"` `'` を
-  `&amp;` `&lt;` `&gt;` `&quot;` `&#39;` へ置換し（`&` を最初に置換する）、その後に**行番号 `<span class="ln">`・
-  追加行 `<ins>`・問題行 `<span class="hl">` のマークアップを付与する。順序を逆にすると自分で付けたタグまで
-  エスケープされて `&lt;ins&gt;` が画面に出る。エスケープを怠ると `Subject<int>` の `<int>` がタグとして食われ、
-  **コード抜粋が黙って一部消える**（レビュー成果物としては致命傷。消えたことが画面から分からない）
-- **生成後検査4点（必須・全部通るまで出荷しない）**:
-  1. 未置換プレースホルダ0件 — `grep -c '{{' <$RUNDIRの実値>/digest.html` が0
-  2. `<script>` 要素がちょうど1個 — `grep -c '<script' <$RUNDIRの実値>/digest.html` が1
-     （コメント機能JSはverbatim維持＝増減しないのが正）
-  3. `code-card` 内に生の `<` タグが無い — `<pre class="code-card">` ブロックを目視し、
-     `<ins>` `</ins>` `<span class="ln">` `<span class="hl">` `</span>` 以外の `<` が残っていないことを確認する
-     （残っていればエスケープ漏れ＝抜粋欠落）
-  4. `data-finding-id` の件数がStep 7.5で出す予定のfindings件数（suppressed含む）と一致し、重複が無い —
-     `grep -o 'data-finding-id="[^"]*"' <$RUNDIRの実値>/digest.html | sort | uniq -d` が空
-- **保存はこれで完了している**（`$RUNDIR` へ直接生成しているため別途コピーしない）。ダイジェストは
-  Stop/SessionEnd hook（`.dev-hooks/logs-sync.mjs` の `git add -A`）でlogs repoへ自動commit・pushされ、
-  後からいつでも見返せる。**`/tmp` へ書いてはいけない** — 過去に `/tmp` へ出していた分は全て消え、
-  recordsのmd縮約しか残らなかった。`open` の対象も `$RUNDIR` 側のパス
-- **プレースホルダ置換**: `{{TITLE}}`（hero・`<footer>`・`<title>` の計3箇所）/ `{{DATE}}` / `{{SUBTITLE}}` を実値へ置換する。
-  `{{TITLE}}` = `独立レビュー: PR #<番号> <PRタイトル>`、`{{DATE}}` = レビュー実施日、`{{SUBTITLE}}` = verdict文字列。
-  `<title>` の置換漏れはタブ名が `{{TITLE}}` のまま出荷される
-- **`.verdict-header` の `data-verdict` 属性を必ずverdictに合わせて設定する**（テンプレート既定値は `ruling` 固定）。
-  値は `auto`（自動マージ可）/ `ruling`（新形につき裁定行き）/ `reject`（Critical差し戻し）/
-  `stub`（未測定（スタブ））の4語のみ（「verdict判定規則」の語彙と1対1）。
-  表示には使われないが、成果物HTMLからverdictを機械抽出する唯一の口なので、見出し文言と食い違わせない
-- **テンプレート冒頭の使い方コメントブロック（`<!DOCTYPE html>` 直後の `<!-- 使い方: ... -->`）は生成時に削除する**
-  （`{{TITLE}}` 等の文字列を含むため、残すと置換漏れの誤検知源になり成果物にも不要）
-- **`<h1>` はページに1個だけ**: テンプレートはhero（`{{TITLE}}`）と `.verdict-header` の両方が `h1` になっている。
-  **heroのh1を唯一のh1とし、`.verdict-header` 側は `h2` へ落とす**。heroの見出しとverdictヘッダの見出しで
-  同じ文言を二度出さない（verdictヘッダは `verdict: <判定>` ＋件数の1行サマリに徹する）
-- **絵文字はHTML全体で不使用**（hero・バッジ・カード・折りたたみ・footer・コメント機能の文言すべて）。
-  状態表現はテンプレート既定のバッジ（`badge-new` / `badge-sup` 等）と文字で行う
-- **折りたたみ参考節に必ず入れるもの**（本体規約「Warningを黙って落とさない」の担保。0件の項目は「0件」と明記する）:
-  1. Criticalの修正方針詳細（裁定カードは要点のみ・詳細はここ）
-  2. **Warning全件**（1件1行・出所系統つき。要約による間引き禁止）
-  3. Info一覧（圧縮列挙可）
-  4. 参考扱いのnew_edges（`generic_origin=false` のもの・`dir_is_new=true` のもの。裁定カードにはしない）
-  5. 各系統（決定論／レンズ／reviewer／Codex／Fable／post-checksガード）の生所見要約を系統ごとに1ブロック。
-     Codex不在等の縮退があればここに明記する
+- 生成後に次を実行する:
 
-## Step 7.5: findings.json生成
+      python3 $CANON/.agents/skills/pr-independent-review/scripts/digest_build.py <$RUNDIRの実値>
 
-`<$RUNDIRの実値>/findings.json` に、Step 7で確定したdigest.htmlの各カード（Critical要点／設計判断／新形／suppressed）を
-機械可読形式で書き出す。**このJSONは裁定サイトとpr-adjudicated-applyスキルの入力になる**。
+  非0終了なら **digest.mdを直して再実行する**（HTMLを手で直すのは禁止。コンバータのエラーメッセージが
+  何のキー・見出しが欠けているかを指すので、それに従ってdigest.mdを修正する）
+- 成功したら `open <$RUNDIRの実値>/digest.html`
+- **残す規約**（生成subagentへの指示として引き継ぐ）:
+  - カードのトリアージ基準（`must_read: true` を付ける条件）: (a)指摘系統の一致数が多い
+    (b)裁定がCriticalの直し方を左右する (c)ゲームプレイ・アーキテクチャの方向を変える
+  - 一言サマリの書式: 欠陥・裁定対象そのものを主語にした短文1つ（目安20字前後）。免責の仕組み・
+    出所ラベルの話・系統数・規約条番号などのメタ情報はサマリに書かない
+  - コード抜粋は全カード必須（`code-card` フェンス）。patchから機械的に転記する（創作・要約禁止）
+  - `# 折りたたみ参考` に必ず入れる5項目: Criticalの修正方針詳細／Warning全件（1件1行・出所系統つき・
+    要約による間引き禁止）／Info一覧（圧縮列挙可）／参考扱いのnew_edges／各系統の生所見要約
+  - 推奨案は `options` の先頭に書く（`recommended` というキーは存在しない。README-digest-format.md参照）
+- 旧フローにあったHTML手組みの細則（タグ・属性・置換・見た目の整形・生成後の確認手順など）は
+  すべてコンバータの責務へ移っており、生成subagentへ指示する必要はない
+- **保存**: `digest.md` / `digest.html` / `findings.json` はいずれも `$RUNDIR` 直下に保存する。
+  `/tmp` へは一切書かない。`$RUNDIR` 配下はStop/SessionEnd hookが自動でcommit・pushする
 
-- **単一ソース原則**: digest.html・`$LOGS/harness/pr-independent-review/records/pr-<番号>.md` と矛盾しないよう、
-  Step 7で確定したカード内容からそのまま生成する（別セッションのつもりで所見を数え直さない）。
-  digestの各カードとfindings配列の各要素が1対1対応するのが理想
-- スキーマ:
+## Step 7.5: findings.json（コンバータ出力の確認）
+
+`findings.json` はStep 7のコンバータ（`digest_build.py`）が生成する。**手で書かない・手で直さない**。
+
+- スキーマ（裁定サイトと `pr-adjudicated-apply` の入力契約であるため、読み方として残す）:
 
 ```json
 {
   "pr": <PR番号>,
   "head": "<レビューしたheadの40桁SHA（Step 8の `- head:` と同値）>",
   "verdict": "<verdict判定規則で確定した最終verdict>",
-  "generated_at": "<ISO8601（このステップ実行時刻）>",
+  "generated_at": "<ISO8601（Step 7実行時刻）>",
   "findings": [
     {
       "id": "F01",
@@ -485,38 +413,10 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 }
 ```
 
-- **options**: digestカードが対応案を複数提示する場合は全案を `A` から順に列挙する（裁定サイトが案ボタンとして表示する）。
-  案が1つしか無い指摘は `options` を推奨対応1件（key "A"）だけで書く。suppressedの指摘はoptions不要（裁定対象外）
-- **`recommended: true`（必須・非suppressedの全finding）**: 各findingの `options` のうち**ちょうど1つ**に
-  `"recommended": true` を付ける（案が1つだけの指摘でも省略しない）。どれを推奨とするかは `recommendation` と同じ判断で決め、
-  digestカード本文の案リストでも同じ案に「（推奨）」と表記して食い違わせない。
-  裁定サイトの完了ボタンは未裁定の指摘をこのフラグの案で一括採用するため、**欠けると先頭案（案A）が黙って採用される**
-  （ユーザー裁定 2026-08-15 [[2026-08-15-裁定サイトの完了ボタンは推奨一括採用にする]]）。
-  検査（Step 7.5の出荷前に必ず通す。出力が空でなければ不合格）:
-
-      python3 -c "import json,sys;d=json.load(open('<\$RUNDIRの実値>/findings.json'));\
-      [print('recommended不正:',f['id'],len([o for o in f.get('options',[]) if o.get('recommended')])) \
-      for f in d['findings'] if not f.get('suppressed') \
-      and len([o for o in f.get('options',[]) if o.get('recommended')])!=1]"
-- **digestカードとの対応付け**: digest.htmlの各裁定カード（`section.verdict-card`）に `data-finding-id="F01"` 属性を
-  必ず付与する（裁定サイトがボタン注入位置を特定するアンカー。Step 7のテンプレ改変時に忘れやすいので明記）
-
-- **severityの対応**: Critical要点カード→`critical` / 折りたたみ参考のWarning→`high` / 設計判断カード→`medium` /
-  新形カード・Info→`low`。suppressedの項目は免責前の分類のseverityをそのまま引き継ぐ（suppressedを理由に格下げしない）
-- **categoryの対応**: どのdigestカード種別由来かを `critical` / `design-decision`（設計判断＝Step 8の「裁定」節と対応） /
-  `novelty`（新形）のいずれかで記す。suppressed由来の項目も免責前のカード種別をそのまま書く
-  （抑制の事実はcategoryではなく `suppressed` フラグ側で表現する）
-- **裁定（採用された指摘）とsuppressed（抑制された指摘）の両方を1つのfindings配列に入れる**。
-  suppressedは配列から除外せず `suppressed: true` ＋ `suppress_reason`（suppressed-by出所を要約）で区別する
-- **files**: `path/to/file.cs:行番号` 形式。Step 5の規約どおり `line` がnullの所見（`schema_change` 等ファイル単位の所見）は
-  ファイルパスのみとし `:行番号` を付けない
-- **excerpt**: Step 3のpatchから機械的に転記する（創作・要約禁止。Step 7のコード抜粋契約と同じ）
-- **id採番**: severity降順（critical→high→medium→low）→ファイルパス昇順で `F01` から連番を振る。
-  同一ファイルパス内はさらに行番号昇順で安定させる。
-  **Step 7のdigestカードへ付与した `data-finding-id` と必ず同一の採番を使う**（Step 7参照。ズレると裁定サイトの
-  ボタンが別の指摘に付く）
-- **エスケープ不要**: JSON文字列としてそのまま格納する（digest.html用のHTMLエスケープ処理は適用しない）
-- 保存はこれで完了（`$RUNDIR` 直下のため、Stop/SessionEnd hookが自動でcommit・pushする。Step 7の生成物と同じ扱い）
+- **`recommended` は `options` の先頭に必ず付く。推奨したい案を digest.md の `options` 先頭に書くのが唯一の指定方法**。
+  `recommended` というキーを digest.md に書くとコンバータがエラーで落ちる（`recommended` を書く欄は存在しない）
+- **id採番規則**: コンバータがseverity降順（critical→high→medium→low）→ファイルパス昇順→行番号昇順で
+  `F01` から連番を振る。digest.mdには `F01` のようなidを書かず、相互参照は `[F:slug]`（finding YAMLの `slug` を指す）で書く
 
 ## Step 8: 記録
 

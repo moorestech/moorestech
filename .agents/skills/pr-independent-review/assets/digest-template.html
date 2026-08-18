@@ -467,6 +467,23 @@
   .verdict-card .badge, .suppressed-card .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-right: 8px; }
   .badge-new { background: #ddf4ff; color: #0969da; }
   .badge-sup { background: #fff1e5; color: #bc4c00; }
+
+  /* カード境界を明示する枠線と背景 / explicit card boundary */
+  .verdict-card, .suppressed-card {
+    background: #ffffff;
+    border: 1px solid #d0d7de;
+    border-left: 5px solid #2563eb;
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(15,23,42,.06);
+  }
+  .verdict-card.critical { border-left-color: #DC2626; }
+  .verdict-card.ruling { border-left-color: #F59E0B; }
+  .summary-line { font-size: 14.5px; font-weight: 700; color: #92400E; margin: 4px 0 12px; }
+  details { border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin: 12px 0; background: #FCFCFD; }
+  details summary { cursor: pointer; font-weight: 700; font-size: 14px; }
+  details ul { padding-left: 20px; }
+  details li { font-size: 13px; margin: 5px 0; }
 </style>
 </head>
 <body>
