@@ -23,6 +23,21 @@ namespace Client.Tests.Skit
         }
 
         [Test]
+        public void IsHiddenTracksWhetherWorldObjectsAreCurrentlyHidden()
+        {
+            var group = new SkitWorldObjectControlGroup(
+                new List<ISkitWorldObjectControl> { new RecordingWorldObjectControl() });
+
+            Assert.IsFalse(group.IsHidden);
+
+            group.SetActive(false);
+            Assert.IsTrue(group.IsHidden);
+
+            group.SetActive(true);
+            Assert.IsFalse(group.IsHidden);
+        }
+
+        [Test]
         public void SetActiveOnEmptyGroupDoesNotThrow()
         {
             var group = new SkitWorldObjectControlGroup(new List<ISkitWorldObjectControl>());

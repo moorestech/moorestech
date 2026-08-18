@@ -13,7 +13,7 @@ namespace CommandForgeGenerator.Command
         void SetActive(bool enable);
     }
 
-    // mapObjectと露頭のようにEnvironment外へ置かれる世界オブジェクトの表示窓口
+    // Environment外世界オブジェクトの表示窓口
     // Visibility entry point for world objects placed outside Environment, such as map objects and outcrops
     public interface ISkitWorldObjectControl
     {

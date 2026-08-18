@@ -73,6 +73,7 @@ namespace Client.Game.Skit
             var presentationStarted = false;
             var cameraRegistered = false;
             var suppressedWorldPins = new List<ITutorialWorldPin>();
+            SkitWorldObjectControlGroup worldObjectControlGroup = null;
             SkitLocalizationResolver localizationResolver = null;
             StoryContext storyContext = null;
             CharacterObjectContainer characterContainer = null;
@@ -152,7 +153,8 @@ namespace Client.Game.Skit
                 builder.RegisterInstance(characterContainer);
                 builder.RegisterInstance<ISkitEnvironmentRoot>(environmentRoot);
                 builder.RegisterInstance<ISkitBlockObjectControl>(blockGameObjectDataStore);
-                builder.RegisterInstance<ISkitWorldObjectControl>(new SkitWorldObjectControlGroup(worldObjectControls));
+                worldObjectControlGroup = new SkitWorldObjectControlGroup(worldObjectControls);
+                builder.RegisterInstance<ISkitWorldObjectControl>(worldObjectControlGroup);
                 builder.RegisterInstance<ISkitEntityObjectControl>(entityObjectDatastore);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
                 builder.RegisterInstance<ISkitActionContext>(_skitActionController);
@@ -169,6 +171,7 @@ namespace Client.Game.Skit
                 skitUI.SetActive(false);
                 if (presentationStarted) SkitPresentationStateStore.Instance.End();
                 foreach (var suppressedWorldPin in suppressedWorldPins) suppressedWorldPin.EndSkitSuppress();
+                if (worldObjectControlGroup is { IsHidden: true }) worldObjectControlGroup.SetActive(true);
                 characterContainer?.DestroyAllCharacters();
                 if (cameraRegistered) CameraManager.UnRegisterCamera(skitCamera);
                 storyContext?.Dispose();
