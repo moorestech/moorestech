@@ -40,4 +40,3 @@ namespace Client.Game.InGame.Tutorial
         }
     }
 }
-

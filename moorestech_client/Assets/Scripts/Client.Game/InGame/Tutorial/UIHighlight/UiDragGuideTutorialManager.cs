@@ -17,4 +17,3 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         }
     }
 }
-
