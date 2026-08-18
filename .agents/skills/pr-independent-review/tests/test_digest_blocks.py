@@ -51,3 +51,20 @@ def test_blocks_html_rejects_unknown_fence():
     with pytest.raises(DigestError) as e:
         blocks_html("```mermaid\ngraph TD\n```", {}, "")
     assert "mermaid" in str(e.value)
+
+
+def test_inline_html_code_span_protects_strong_and_ref():
+    # コードスパン内の ** と [F:slug] は変換されず生のまま残るべき
+    # "**" and "[F:slug]" inside a code span must stay raw, not get converted
+    got = inline_html("code has `a**b**c` inside", {})
+    assert got == "code has <code>a**b**c</code> inside"
+    got_ref = inline_html("code has `[F:gear]` inside", {"gear": "F03"})
+    assert got_ref == "code has <code>[F:gear]</code> inside"
+
+
+def test_blocks_html_rejects_unknown_syntax_on_continuation_line():
+    # 段落の2行目以降でも未知記法はエラーで落ちるべき（先頭行限定であってはならない）
+    # Unknown markup must error even on a paragraph's continuation line, not just its first
+    with pytest.raises(DigestError) as e:
+        blocks_html("段落一行目\n> 引用っぽい二行目", {}, "")
+    assert "未対応" in str(e.value)

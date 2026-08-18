@@ -18,10 +18,20 @@ def escape(text: str) -> str:
     return out.replace('"', "&quot;").replace("'", "&#39;")
 
 
-def inline_html(text: str, refs: dict) -> str:
+def inline_html(text: str, refs: dict[str, str]) -> str:
     # エスケープ済み文字列に対してのみマークアップを付ける
     # Markup is applied only on top of already-escaped text
     out = escape(text)
+
+    # コードスパンを先に退避し、参照・強調から保護してから最後に復元する
+    # Stash code spans first so refs/strong never touch their contents, restore last
+    stash: list = []
+
+    def stash_code(m):
+        stash.append(m.group(1))
+        return f"\x00CODE{len(stash) - 1}\x00"
+
+    out = _CODE.sub(stash_code, out)
 
     def ref(m):
         slug = m.group(1)
@@ -31,5 +41,10 @@ def inline_html(text: str, refs: dict) -> str:
         return f'<a href="#{fid.lower()}">{fid}</a>'
 
     out = _REF.sub(ref, out)
-    out = _CODE.sub(lambda m: f"<code>{m.group(1)}</code>", out)
-    return _STRONG.sub(lambda m: f"<strong>{m.group(1)}</strong>", out)
+    out = _STRONG.sub(lambda m: f"<strong>{m.group(1)}</strong>", out)
+
+    # プレースホルダをコードスパンの実内容へ戻す
+    # Restore placeholders back to their original code span content
+    for idx, code in enumerate(stash):
+        out = out.replace(f"\x00CODE{idx}\x00", f"<code>{code}</code>")
+    return out

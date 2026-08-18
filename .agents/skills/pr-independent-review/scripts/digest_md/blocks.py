@@ -8,6 +8,12 @@ from .parse import DigestError
 _KNOWN_FENCES = ("code-card", "")
 
 
+def _is_unknown_markup(line: str) -> bool:
+    # 先頭文字が未対応記法（引用・テーブル・裸の*/+）かを判定する
+    # Detect whether the leading char is unsupported markup (quote, table, bare */+)
+    return line[0] in "#>|" or (line[0] in "*+" and not line.startswith("**"))
+
+
 def code_card_html(body: str, indent: str) -> str:
     # 各行は [フラグ]<行番号>|<コード>。+ は追加行、* は問題行
     # Each line is [flags]<lineno>|<code>; "+" marks an insertion, "*" marks the offending line
@@ -28,7 +34,7 @@ def code_card_html(body: str, indent: str) -> str:
     return f'{indent}<pre class="code-card"><code>' + "\n".join(rendered) + "</code></pre>"
 
 
-def blocks_html(md: str, refs: dict, indent: str) -> str:
+def blocks_html(md: str, refs: dict[str, str], indent: str) -> str:
     # 空行区切りのブロックへ割ってから、種別ごとに変換する
     # Split on blank lines, then convert each block by its kind
     out = []
@@ -58,7 +64,7 @@ def blocks_html(md: str, refs: dict, indent: str) -> str:
             body = "\n".join(f"{indent}  <li>{inline_html(x, refs)}</li>" for x in items)
             out.append(f"{indent}<ul>\n{body}\n{indent}</ul>")
             continue
-        if line[0] in "#>|" or (line[0] in "*+" and not line.startswith("**")):
+        if _is_unknown_markup(line):
             raise DigestError(f"未対応の記法です: {line!r}")
         para, i = _collect_paragraph(lines, i)
         out.append(f"{indent}<p>{inline_html(para, refs)}</p>")
@@ -93,6 +99,11 @@ def _collect_paragraph(lines: list, i: int) -> tuple:
     # Collect consecutive plain text lines as a paragraph until blank line or markup
     buf = []
     while i < len(lines) and lines[i].strip() and not lines[i].startswith(("```", "- ", "### ")):
-        buf.append(lines[i].strip())
+        raw = lines[i].strip()
+        # 継続行も未知記法チェックの対象とし、無言で握り潰さない
+        # Continuation lines are checked too, so unknown markup never slips through silently
+        if _is_unknown_markup(raw):
+            raise DigestError(f"未対応の記法です: {lines[i]!r}")
+        buf.append(raw)
         i += 1
     return " ".join(buf), i
