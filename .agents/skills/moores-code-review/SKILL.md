@@ -33,6 +33,17 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 - 委譲は subagent 深度を 1 消費する。本体直下なら 本体→オーケストレータ→系統 の 3 層で収まる。
 - オーケストレータが返答せず死んだら、$RUNDIR の残骸を引き継いで再派遣する（テンプレに「$RUNDIR 内の完了済み工程はスキップして続きから」と 1 行足す）。最初からやり直さない。
 
+### 委譲の既知リスクと異常時の対応（導入時点 2026-08-18）
+
+導入時点で委譲構成の実走実績は all-code-review 側の 1 回のみで、**moores 版の委譲は未実走**。同型構成で実証済みなのは subagent からの Agent 入れ子起動・Bash バックグラウンド・ファイルハンドオフ・integrator 委譲まで。moores 版に固有で未検証なのは: (1) codex 3 本のバックグラウンド並列、(2) subagent からの `uloop compile`、(3) **大規模 PR 時の investigator 込み 30 体級を sonnet 監督が wave 規律（1 メッセージ 12 体・「起動が黙って消える」対応・失敗体の再起動）どおり捌けるか**。
+
+**回収時の検死（本体・毎回必須）**: オーケストレータの返答を受けたら、報告する前に次を突き合わせる —
+1. 返答の系統数が期待値と一致するか（期待値 = checks.json の `lenses` + `reviewers` + `verifiers_to_launch` + Fable 1 + Codex 3 + 決定論。分割深掘り発火時は + チャンク数×3）
+2. `integrated.md` の「系統別回収状況」に欠員・未回収がないか
+3. `$RUNDIR` に規定の成果物（checks.json / codex `.out.md` ×3 / `agents/` / integrated.md / final.diff / checks-final.json / design.md）が揃っているか
+
+**何か変なこと（規定数のエージェントが発火していない・モデル割り当てが指定と違う・成果物の欠落・integrated.md 不在・返答が契約と違う等）があれば、修正適用や再派遣を重ねる前に一旦止めて調査する。** 手順: セッション transcript（`~/.claude/projects/<プロジェクト>/<セッションID>/subagents/*.meta.json` で起動数とモデルを実測、`*.jsonl` で該当体の挙動を確認）→ 原因を特定してから再開の要否を決める。原因がスキル記述の穴なら `references/skill-improvement.md` の手順で恒久対応する。異常のまま結果だけ採用しない（欠員のある統合結果は「全系統レビュー済み」を偽装する）。
+
 ## Step 0: 実行ディレクトリ `$RUNDIR` を作る
 
 1回のレビューが作る生成物（patch・context・codex監査プロンプト3本・check_all出力・chunks・最終diff・最終detchecks）は
