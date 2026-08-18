@@ -572,7 +572,7 @@ git commit -m "feat: BP系設置対象の解放判定を単一フラグ参照へ
 - Consumes: Task 3の`IsBlueprintUnlocked`/`UnlockBlueprint()`
 - Produces: `BlueprintFailureReason.NotUnlocked = 6`（クライアント側は既存の失敗ハンドリングで受ける。UIは未解放中導線が消えているため専用文言は追加しない）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `BlueprintProtocolTest.cs`へ追加:
 
@@ -661,12 +661,12 @@ public void 未解放時はBP系の新規割当が無視されロード済み割
 
 （`CreateServer`ヘルパーが無ければ`ConnectToolUnlockStateTest.cs`と同型で追加。既存テストが直接`new`している場合はそのスタイルに合わせ、`IGameUnlockStateDataController`はDIから取るか実物`GameUnlockStateDataController`を生成して渡す — 既存テストの構築様式を確認して同じ形に揃えること）
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlueprintProtocolTest|HotbarAssignmentDatastoreTest" --test-mode EditMode`
 Expected: 新テストFAIL（NotUnlocked未実装・割当が素通り）
 
-- [ ] **Step 3: BlueprintProtocolへ未解放拒否を実装する**
+- [x] **Step 3: BlueprintProtocolへ未解放拒否を実装する**
 
 `BlueprintPacketDto.cs`のenum末尾へ`NotUnlocked = 6,`を追加。
 
@@ -680,7 +680,7 @@ Expected: 新テストFAIL（NotUnlocked未実装・割当が素通り）
 if (!_gameUnlockState.IsBlueprintUnlocked) return FailResponse(BlueprintFailureReason.NotUnlocked);
 ```
 
-- [ ] **Step 4: HotbarAssignmentDatastoreへ未解放時の割当無視を実装する**
+- [x] **Step 4: HotbarAssignmentDatastoreへ未解放時の割当無視を実装する**
 
 `Game.Hotbar.asmdef`の`references`へ`"Game.UnlockState"`を追加。
 
@@ -710,13 +710,13 @@ private bool IsAssignableUnderUnlock(Guid id)
 
 （`LoadHotbar`と`PruneDeletedBlueprint`は変更しない＝既存BP割当・削除連動は従来どおり）
 
-- [ ] **Step 5: コンパイルとテストを実行して通す**
+- [x] **Step 5: コンパイルとテストを実行して通す**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlueprintProtocolTest|HotbarAssignmentDatastoreTest|HotbarSaveLoadTest" --test-mode EditMode`
 Expected: PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server
@@ -736,16 +736,16 @@ git commit -m "feat: 未解放時のBP作成削除とホットバーBP割当を�
 - Consumes: Task 4がサーバーから送る messageId `achievement.unlockedBlueprint`
 - Produces: なし（終端）
 
-- [ ] **Step 1: ローカライズキーを追加する**
+- [x] **Step 1: ローカライズキーを追加する**
 
 `Localization/localization.csv`の`ui.notification.unlockedConnectTool`の行を確認し、同じ列構成で直後へ`ui.notification.unlockedBlueprint`の行を追加する（日本語例:「ブループリントが解放されました」/ 英語例: "Blueprint unlocked"。既存行の文体に合わせる）。
 
-- [ ] **Step 2: キー定義を再生成する**
+- [x] **Step 2: キー定義を再生成する**
 
 Run: `cd moorestech_web/webui && npm run gen:i18n`
 Expected: `localizationKeys.ts`に`unlockedBlueprint: "ui.notification.unlockedBlueprint"`が生成される
 
-- [ ] **Step 3: 通知テーブルへ追加する**
+- [x] **Step 3: 通知テーブルへ追加する**
 
 `notificationMessages.ts`の`["achievement.unlockedConnectTool", ...]`行の直後へ:
 
@@ -753,12 +753,12 @@ Expected: `localizationKeys.ts`に`unlockedBlueprint: "ui.notification.unlockedB
   ["achievement.unlockedBlueprint", L.ui.notification.unlockedBlueprint],
 ```
 
-- [ ] **Step 4: vitestを実行して通す**
+- [x] **Step 4: vitestを実行して通す**
 
 Run: `cd moorestech_web/webui && npm run test`
 Expected: PASS（通知テーブル・i18n整合系のテストが緑。既存赤があればbd:moorestech-2lh.1の既知10件かを確認して切り分ける）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add Localization moorestech_web/webui/src
