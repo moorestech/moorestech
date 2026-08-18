@@ -153,7 +153,7 @@ namespace Client.Game.Skit
                 builder.RegisterInstance(characterContainer);
                 builder.RegisterInstance<ISkitEnvironmentRoot>(environmentRoot);
                 builder.RegisterInstance<ISkitBlockObjectControl>(blockGameObjectDataStore);
-                builder.RegisterInstance<ISkitMapObjectControl>(mapObjectGameObjectDatastore);
+                builder.RegisterInstance<ISkitWorldObjectControl>(mapObjectGameObjectDatastore);
                 builder.RegisterInstance<ISkitEntityObjectControl>(entityObjectDatastore);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
                 builder.RegisterInstance<ISkitActionContext>(_skitActionController);
