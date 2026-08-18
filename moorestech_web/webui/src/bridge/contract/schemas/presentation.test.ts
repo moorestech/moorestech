@@ -46,6 +46,13 @@ describe("Phase C4 presentation contracts", () => {
     }).success).toBe(true);
   });
 
+  it("rejects a drag guide with an unknown extra key", () => {
+    expect(TutorialDragGuideSchema.safeParse({
+      guideId: "guide-1", fromAnchorId: "hotbar.hud", toAnchorId: "build-menu.entry-block-abc",
+      message: "Drag here",
+    }).success).toBe(false);
+  });
+
   it("carries dragGuides on the tutorial presentation snapshot", () => {
     const parsed = TutorialPresentationDataSchema.parse({
       tutorialSessionId: "session-1", revision: 1, challengeId: "challenge-1", highlights: [],
