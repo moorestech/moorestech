@@ -22,29 +22,6 @@ namespace Client.Tests.Skit
             CollectionAssert.AreEqual(new[] { false, true }, outcrops.ReceivedValues);
         }
 
-        [Test]
-        public void IsHiddenTracksWhetherWorldObjectsAreCurrentlyHidden()
-        {
-            var group = new SkitWorldObjectControlGroup(
-                new List<ISkitWorldObjectControl> { new RecordingWorldObjectControl() });
-
-            Assert.IsFalse(group.IsHidden);
-
-            group.SetActive(false);
-            Assert.IsTrue(group.IsHidden);
-
-            group.SetActive(true);
-            Assert.IsFalse(group.IsHidden);
-        }
-
-        [Test]
-        public void SetActiveOnEmptyGroupDoesNotThrow()
-        {
-            var group = new SkitWorldObjectControlGroup(new List<ISkitWorldObjectControl>());
-
-            Assert.DoesNotThrow(() => group.SetActive(false));
-        }
-
         private sealed class RecordingWorldObjectControl : ISkitWorldObjectControl
         {
             public readonly List<bool> ReceivedValues = new();

@@ -55,13 +55,18 @@ namespace Client.Game.Skit
         
         public async UniTask StartSkit(string addressablePath)
         {
+            // ロードのawaitを跨ぐ前に再生中を立て、多重起動が互いの世界復元を奪い合うのを防ぐ
+            // Raise the playing flag before the load await, so a double start cannot fight over restoring the world
+            IsPlayingSkit = true;
+
             var storyCsv = await AddressableLoader.LoadAsyncDefault<TextAsset>(addressablePath);
             if (!storyCsv)
             {
                 Debug.LogError($"ストーリーCSVが見つかりません : {addressablePath}");
+                IsPlayingSkit = false;
                 return;
             }
-            
+
             await StartSkit(storyCsv);
         }
         
@@ -73,7 +78,7 @@ namespace Client.Game.Skit
             var presentationStarted = false;
             var cameraRegistered = false;
             var suppressedWorldPins = new List<ITutorialWorldPin>();
-            SkitWorldObjectControlGroup worldObjectControlGroup = null;
+            SkitVisibilityLedger visibilityLedger = null;
             SkitLocalizationResolver localizationResolver = null;
             StoryContext storyContext = null;
             CharacterObjectContainer characterContainer = null;
@@ -151,11 +156,17 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitCamera>(skitCamera);
                 builder.RegisterInstance(voiceDefine);
                 builder.RegisterInstance(characterContainer);
-                builder.RegisterInstance<ISkitEnvironmentRoot>(environmentRoot);
-                builder.RegisterInstance<ISkitBlockObjectControl>(blockGameObjectDataStore);
-                worldObjectControlGroup = new SkitWorldObjectControlGroup(worldObjectControls);
-                builder.RegisterInstance<ISkitWorldObjectControl>(worldObjectControlGroup);
-                builder.RegisterInstance<ISkitEntityObjectControl>(entityObjectDatastore);
+                // 4窓口すべてを台帳経由で公開し、消した窓口の記録と復元を1箇所へ集める
+                // Expose all four entry points through the ledger, so recording and restoring live in one place
+                visibilityLedger = new SkitVisibilityLedger(
+                    environmentRoot,
+                    blockGameObjectDataStore,
+                    new SkitWorldObjectControlGroup(worldObjectControls),
+                    entityObjectDatastore);
+                builder.RegisterInstance<ISkitEnvironmentRoot>(visibilityLedger);
+                builder.RegisterInstance<ISkitBlockObjectControl>(visibilityLedger);
+                builder.RegisterInstance<ISkitWorldObjectControl>(visibilityLedger);
+                builder.RegisterInstance<ISkitEntityObjectControl>(visibilityLedger);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
                 builder.RegisterInstance<ISkitActionContext>(_skitActionController);
                 builder.RegisterInstance(new SkitPresentationMode(webUiMode));
@@ -171,7 +182,7 @@ namespace Client.Game.Skit
                 skitUI.SetActive(false);
                 if (presentationStarted) SkitPresentationStateStore.Instance.End();
                 foreach (var suppressedWorldPin in suppressedWorldPins) suppressedWorldPin.EndSkitSuppress();
-                if (worldObjectControlGroup is { IsHidden: true }) worldObjectControlGroup.SetActive(true);
+                visibilityLedger?.RestoreHiddenWindows();
                 characterContainer?.DestroyAllCharacters();
                 if (cameraRegistered) CameraManager.UnRegisterCamera(skitCamera);
                 storyContext?.Dispose();
