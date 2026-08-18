@@ -127,14 +127,20 @@ def render_html(doc: Document, template: str, refs: dict) -> str:
         body = note + ("\n" + "\n".join(cards) if cards else "")
         parts.append(f'  <section id="{zone_id}">\n    <h2>{escape(heading)}</h2>\n{body}\n  </section>')
 
+    # 判断台帳の箇条書きはテンプレの ul.plain 体裁で出す（出所リストの詰まった見た目を保つ）
+    # The ledger's lists use the template's ul.plain style, keeping the dense source-list look
+    ledger = blocks_html(doc.ledger_md, refs, "    ").replace("<ul>", '<ul class="plain">')
     parts.append('  <section id="ledger">\n    <h2>判断台帳</h2>\n'
-                 f'{blocks_html(doc.ledger_md, refs, "    ")}\n  </section>')
+                 f'{ledger}\n  </section>')
     parts.append('  <section id="appendix">\n    <h2>折りたたみ参考</h2>\n'
                  f'{_appendix_html(doc.appendix_md, refs)}\n  </section>')
 
     main = "<main>\n\n" + "\n\n".join(parts) + "\n\n</main>"
     out = re.sub(r"<main>.*</main>", lambda _: main, template, flags=re.S)
-    title = f"独立レビュー: PR #{meta['pr']} {meta['title']}"
+    # 文書見出しは仕様上すでに `PR #<番号>` を含むため、番号を二重に付けない
+    # The document heading already carries "PR #<number>" per spec, so never prepend it twice
+    heading = meta["title"]
+    title = f"独立レビュー: {heading}" if heading.startswith("PR #") else f"独立レビュー: PR #{meta['pr']} {heading}"
     out = out.replace("{{TITLE}}", escape(title)).replace("{{DATE}}", escape(meta["date"]))
     out = out.replace("{{SUBTITLE}}", escape(f"verdict: {VERDICT_TEXT[verdict]}"))
     out = out.replace("REPLACE_WITH_UNIQUE_STORAGE_KEY", f"pr-review-{meta['pr']}-comments-v1")
