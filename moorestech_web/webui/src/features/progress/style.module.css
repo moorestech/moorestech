@@ -9,7 +9,7 @@
   width: var(--hotbar-width);
   margin-inline: auto;
   transform: translateX(var(--hotbar-horizontal-offset));
-  z-index: var(--z-screen);
+  z-index: var(--z-stage-screen);
 }
 
 /* 任意ラベルをゲージ幅内の1行へ収め、採掘時の省略契約を維持する */

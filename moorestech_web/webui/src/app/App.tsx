@@ -136,7 +136,7 @@ export default function App() {
       {/* While reconnecting, a full-screen overlay blocks input (the Overlay itself captures pointers) */}
       {disconnected && (
         <Portal>
-          <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-reconnect)" data-testid="reconnect-overlay">
+          <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-portal-reconnect)" data-testid="reconnect-overlay">
             <Stack align="center" gap="sm">
               <Loader color="gray" />
               <Text c="white" fw={500}>{t(L.ui.error.reconnecting)}</Text>
@@ -148,7 +148,7 @@ export default function App() {
       {/* Surface dictionary load failures and offer reload to recover interaction */}
       {status === "error" && (
         <Portal>
-          <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-reconnect)" data-testid="dictionary-error-overlay">
+          <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-portal-reconnect)" data-testid="dictionary-error-overlay">
             <Stack align="center" gap="sm">
               <Text c="white" fw={500}>{DictionaryIndependentText.dictionaryLoadFailed}</Text>
               <Button color="red" onClick={() => location.reload()} data-testid="dictionary-error-reload">

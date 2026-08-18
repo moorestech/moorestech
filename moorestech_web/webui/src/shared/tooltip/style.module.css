@@ -1,6 +1,6 @@
 .tooltip {
   position: fixed;
-  z-index: var(--z-tooltip);
+  z-index: var(--z-stage-tooltip);
   max-width: 420px;
   padding: 8px 12px;
   color: white;

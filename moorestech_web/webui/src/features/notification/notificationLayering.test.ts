@@ -1,5 +1,5 @@
-// 通知がstage背面へ置かれ続けることを固定する（ADR 0017）
-// Locks the notification into the layer behind the stage (ADR 0017)
+// 通知の背面層固定（ADR 0017）
+// Notification stays in behind-stage layer (ADR 0017)
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
@@ -8,8 +8,8 @@ const app = readFileSync(new URL("../../app/App.tsx", import.meta.url), "utf8");
 
 describe("notification layering", () => {
   it("通知ホストは背面層のトークンを使い、最前面のトースト層を使わない", () => {
-    expect(style).toContain("z-index: var(--z-behind-stage)");
-    expect(style).not.toContain("var(--z-toast)");
+    expect(style).toContain("z-index: var(--z-viewport-behind-stage)");
+    expect(style).not.toContain("var(--z-portal-toast)");
   });
 
   it("通知はPortalの外、stageより前のDOM位置に描かれる", () => {
