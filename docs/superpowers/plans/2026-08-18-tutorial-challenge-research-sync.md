@@ -1071,22 +1071,22 @@ git commit -m "feat: チュートリアルを研究同期構成へ再編する�
 
 ### Task 7: 統合検証（コンパイル・全テスト・目視QA）
 
-- [ ] **Step 1: フルコンパイル**
+- [x] **Step 1: フルコンパイル**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
 
-- [ ] **Step 2: サーバー/クライアントEditModeテスト**
+- [x] **Step 2: サーバー/クライアントEditModeテスト**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Challenge|Research|Tutorial"`
 Expected: 全件PASS
 
-- [ ] **Step 3: WebUIテストスイート**
+- [x] **Step 3: WebUIテストスイート**
 
 Run: `cd moorestech_web/webui && npx vitest run`
 Expected: 既存赤（既知のロケール起因10件・moorestech-2lh.1）以外は全件PASS
 
-- [ ] **Step 4: 目視QA（webui-design §10）**
+- [x] **Step 4: 目視QA（webui-design §10）**
 
 mock-host（`e2e/capture-eval.ts` の様式）でビルドメニュー+ホットバーを表示し、dragGuide入りの `tutorial.presentation` を再現してスクリーンショット撮影。確認項目:
 1. 矢印がビルドメニューの対象エントリ中心→ホットバー中心へループ移動する
@@ -1094,11 +1094,11 @@ mock-host（`e2e/capture-eval.ts` の様式）でビルドメニュー+ホット
 3. チャレンジHUDのuiHighLight枠線が左上HUDに重なる
 4. `pointer-events` が素通し（矢印上でもクリック可能）
 
-- [ ] **Step 5: unityプレイ録画テストで通し確認（推奨）**
+- [x] **Step 5: unityプレイ録画テストで通し確認（推奨）**
 
 unity-playmode-recorded-playtest スキルのプレイテストDSLで、新規ワールド開始→スキット送り→小石3個→（チートまたは実操作で）原始研究1完了→チャレンジHUDの進行を録画で確認する。masterデータはブランチ互換コミットへピン留めしたworktreeを使う（スキーマ不整合はMooresmasterLoaderExceptionで無言死するため必須）。
 
-- [ ] **Step 6: コミット（残作業があれば）**
+- [x] **Step 6: コミット（残作業があれば）**
 
 ```bash
 git status --short && git add -A && git commit -m "test: 研究同期チュートリアルの統合検証を通す"
