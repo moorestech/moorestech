@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &2092626559836690847
+--- !u!1 &492823901390753357
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,41 +8,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6385119586412323171}
-  m_Layer: 10
-  m_Name: Outline
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &6385119586412323171
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2092626559836690847}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 7402251206728954479}
-  m_Father: {fileID: 7457983186941326410}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &3801346311410648444
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7402251206728954479}
-  - component: {fileID: 5761959808245763853}
-  - component: {fileID: 7655865155206481321}
+  - component: {fileID: 7526435007891870148}
+  - component: {fileID: 9148684120743107465}
+  - component: {fileID: 1801826273368479271}
   m_Layer: 10
   m_Name: Acacia1_LOD0
   m_TagString: Untagged
@@ -50,13 +18,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7402251206728954479
+--- !u!4 &7526435007891870148
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3801346311410648444}
+  m_GameObject: {fileID: 492823901390753357}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -65,21 +33,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6385119586412323171}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &5761959808245763853
+--- !u!33 &9148684120743107465
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3801346311410648444}
+  m_GameObject: {fileID: 492823901390753357}
   m_Mesh: {fileID: 7828701008223332569, guid: 656f31cf53954b6e9b2176aa66db461b, type: 3}
---- !u!23 &7655865155206481321
+--- !u!23 &1801826273368479271
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3801346311410648444}
+  m_GameObject: {fileID: 492823901390753357}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -123,6 +91,38 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &2092626559836690847
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6385119586412323171}
+  m_Layer: 10
+  m_Name: Outline
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &6385119586412323171
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2092626559836690847}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7526435007891870148}
+  m_Father: {fileID: 7457983186941326410}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8689916856880698107
 GameObject:
   m_ObjectHideFlags: 0
@@ -132,7 +132,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4533234455059638692}
-  - component: {fileID: 4578061502315519470}
+  - component: {fileID: 1270769659208609941}
   - component: {fileID: 3544457647912208376}
   m_Layer: 6
   m_Name: RayTargetCollider
@@ -150,14 +150,14 @@ Transform:
   m_GameObject: {fileID: 8689916856880698107}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0.48490027, y: 2.257432, z: -0.33418503}
+  m_LocalScale: {x: 2.2331111, y: 4.0016046, z: 2.2331111}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7457983186941326410}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &4578061502315519470
-BoxCollider:
+--- !u!64 &1270769659208609941
+MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -174,9 +174,10 @@ BoxCollider:
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 10.310784, y: 8.003209, z: 10.420765}
-  m_Center: {x: 0, y: 2.257432, z: 0.05499029}
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &3544457647912208376
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -342,10 +343,10 @@ PrefabInstance:
       addedObject: {fileID: 6385119586412323171}
     - targetCorrespondingSourceObject: {fileID: 945587396549210449, guid: b153b743398f43478620654abc08a2ab, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1008228199842962716}
+      addedObject: {fileID: 4533234455059638692}
     - targetCorrespondingSourceObject: {fileID: 945587396549210449, guid: b153b743398f43478620654abc08a2ab, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4533234455059638692}
+      addedObject: {fileID: 1008228199842962716}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 456189670860434411, guid: b153b743398f43478620654abc08a2ab, type: 3}
       insertIndex: -1

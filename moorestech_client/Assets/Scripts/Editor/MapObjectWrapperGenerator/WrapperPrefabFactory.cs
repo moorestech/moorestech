@@ -5,6 +5,7 @@ using Client.Common;
 using Client.Game.InGame.Map.MapObject;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 // BKプレハブをネストしたルートへ、アウトライン・レイターゲット・HPバーを足したラッパープレハブを1体分作る
 // Builds one wrapper prefab: a nested BK prefab root plus its outline, ray target, and HP bar
@@ -12,31 +13,37 @@ public static class WrapperPrefabFactory
 {
     private const string HpBarPrefabPath = "Assets/Asset/Environment/Prefab/MapObjectHpBar.prefab";
     private const string OutlineMaterialPath = "Assets/Asset/Common/Shader/Outline/Outline.mat";
-    private const string OutlineLayerName = "Outline";
     private const string OutlineObjectName = "Outline";
-    private const string RayTargetObjectName = "RayTargetCollider";
 
     // HPバーが樹冠へ埋まらないよう頂部から離す高さ
     // Height that lifts the HP bar clear of the canopy top
     private const float HpBarHeightMargin = 0.5f;
 
-    public static void CreateWrapperPrefab(MapObjectWrapperSpecies species)
+    public static void CreateWrapperPrefab(MapObjectWrapperSpecies species, Scene workScene)
     {
         var sourcePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(species.prefabPath);
         if (sourcePrefab == null) throw new InvalidOperationException($"BK prefab not found: {species.prefabPath}");
+        if (LayerConst.MapObjectLayer < 0 || LayerConst.OutlineLayer < 0) throw new InvalidOperationException("MapObject or Outline layer is not defined in this project");
 
         // BKプレハブのインスタンスをルートにするので、保存結果はBKプレハブのバリアントになる（Bush.prefabと同じ形）
         // The root is an instance of the BK prefab, so the saved asset is a variant of it, exactly like Bush.prefab
-        var root = (GameObject)PrefabUtility.InstantiatePrefab(sourcePrefab);
+        var root = (GameObject)PrefabUtility.InstantiatePrefab(sourcePrefab, workScene);
         root.name = species.mapObjectName;
         root.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
 
         var localBounds = CalculateLocalBounds(root);
+        var nearestLodRenderers = CollectNearestLodRenderers(root);
         ApplyMapObjectLayer(root);
         var mapObject = root.AddComponent<MapObjectGameObject>();
-        var outlineObject = CreateOutline(root);
+        var outlineObject = CreateOutline(root, nearestLodRenderers);
+
+        // レイターゲットはBKの当たり判定を測るので、後から足す物を巻き込まないようHPバーより先に作る
+        // The ray target measures BK's own colliders, so it is built before the HP bar and never sees anything added later
+        WrapperRayTargetBuilder.Create(root, localBounds, nearestLodRenderers);
+
+        // HPバーの高さは見た目の外接、レイターゲットは幹の太さと、参照する外接を分ける
+        // The HP bar rides the visual bounds while the ray target follows the trunk, so the two use different bounds
         var hpBarView = CreateHpBar(root, localBounds);
-        CreateRayTarget(root, localBounds);
 
         var serializedMapObject = new SerializedObject(mapObject);
         serializedMapObject.FindProperty("outlineObject").objectReferenceValue = outlineObject;
@@ -56,21 +63,21 @@ public static class WrapperPrefabFactory
         foreach (var child in root.GetComponentsInChildren<Transform>(true)) child.gameObject.layer = LayerConst.MapObjectLayer;
     }
 
-    private static GameObject CreateOutline(GameObject root)
+    private static GameObject CreateOutline(GameObject root, List<Renderer> nearestLodRenderers)
     {
         var outlineMaterial = AssetDatabase.LoadAssetAtPath<Material>(OutlineMaterialPath);
         if (outlineMaterial == null) throw new InvalidOperationException($"outline material not found: {OutlineMaterialPath}");
 
-        var outlineLayer = LayerMask.NameToLayer(OutlineLayerName);
-        var outlineRoot = new GameObject(OutlineObjectName) { layer = outlineLayer };
+        var outlineRoot = new GameObject(OutlineObjectName) { layer = LayerConst.OutlineLayer };
+        SceneManager.MoveGameObjectToScene(outlineRoot, root.scene);
         outlineRoot.transform.SetParent(root.transform, false);
 
-        foreach (var sourceRenderer in CollectNearestLodRenderers(root))
+        foreach (var sourceRenderer in nearestLodRenderers)
         {
             var sourceFilter = sourceRenderer.GetComponent<MeshFilter>();
             if (sourceFilter == null || sourceFilter.sharedMesh == null) continue;
 
-            var outlineMesh = new GameObject(sourceRenderer.name) { layer = outlineLayer };
+            var outlineMesh = new GameObject(sourceRenderer.name) { layer = LayerConst.OutlineLayer };
             outlineMesh.transform.SetParent(outlineRoot.transform, false);
             CopyWorldTransform(sourceRenderer.transform, outlineMesh.transform);
 
@@ -101,44 +108,15 @@ public static class WrapperPrefabFactory
         return hpBarView;
     }
 
-    private static void CreateRayTarget(GameObject root, Bounds localBounds)
-    {
-        // 採掘のレイキャストはMapObjectレイヤーだけを見るので、当たり判定はこのレイヤーに置く
-        // The mining raycast only sees the MapObject layer, so the hit box lives there
-        var rayTarget = new GameObject(RayTargetObjectName) { layer = LayerConst.MapObjectLayer };
-        rayTarget.transform.SetParent(root.transform, false);
-
-        var boxCollider = rayTarget.AddComponent<BoxCollider>();
-        boxCollider.isTrigger = true;
-        boxCollider.center = localBounds.center;
-        boxCollider.size = localBounds.size;
-
-        rayTarget.AddComponent<MapObjectRayTarget>();
-    }
-
     // 見た目の外接をルートのローカル空間で求める。ルートに拡縮が入っていても子のlocalPositionへそのまま渡せる
     // Computes the visual bounds in the root's local space so it can be handed straight to a child's local transform even when the root is scaled
     private static Bounds CalculateLocalBounds(GameObject root)
     {
-        var renderers = root.GetComponentsInChildren<Renderer>();
-        if (renderers.Length == 0) throw new InvalidOperationException($"no renderer under {root.name}");
+        var localBounds = new WrapperLocalBoundsAccumulator(root.transform);
+        foreach (var renderer in root.GetComponentsInChildren<Renderer>(true)) localBounds.AddWorldBounds(renderer.bounds);
+        if (!localBounds.HasPoint) throw new InvalidOperationException($"no renderer under {root.name}");
 
-        var worldToLocal = root.transform.worldToLocalMatrix;
-        var localBounds = new Bounds(worldToLocal.MultiplyPoint3x4(renderers[0].bounds.center), Vector3.zero);
-        foreach (var renderer in renderers)
-        {
-            var worldBounds = renderer.bounds;
-            for (var cornerIndex = 0; cornerIndex < 8; cornerIndex++)
-            {
-                var corner = new Vector3(
-                    (cornerIndex & 1) == 0 ? worldBounds.min.x : worldBounds.max.x,
-                    (cornerIndex & 2) == 0 ? worldBounds.min.y : worldBounds.max.y,
-                    (cornerIndex & 4) == 0 ? worldBounds.min.z : worldBounds.max.z);
-                localBounds.Encapsulate(worldToLocal.MultiplyPoint3x4(corner));
-            }
-        }
-
-        return localBounds;
+        return localBounds.GetBounds();
     }
 
     // 最近接LODのレンダラーだけをアウトライン化する。遠景LODまで複製すると輪郭が二重になる
@@ -146,10 +124,10 @@ public static class WrapperPrefabFactory
     private static List<Renderer> CollectNearestLodRenderers(GameObject root)
     {
         var renderers = new List<Renderer>();
-        var lodGroup = root.GetComponentInChildren<LODGroup>();
+        var lodGroup = root.GetComponentInChildren<LODGroup>(true);
         if (lodGroup == null)
         {
-            renderers.AddRange(root.GetComponentsInChildren<MeshRenderer>());
+            renderers.AddRange(root.GetComponentsInChildren<MeshRenderer>(true));
             return renderers;
         }
 
@@ -166,6 +144,8 @@ public static class WrapperPrefabFactory
         // localScaleは親の合成拡縮を打ち消してから入れる
         // Cancel out the parent's accumulated scale before assigning localScale
         var parentScale = target.parent.lossyScale;
+        if (parentScale.x == 0f || parentScale.y == 0f || parentScale.z == 0f) throw new InvalidOperationException($"parent of {target.name} is flattened to zero scale, so world scale cannot be reproduced");
+
         var sourceScale = source.lossyScale;
         target.localScale = new Vector3(sourceScale.x / parentScale.x, sourceScale.y / parentScale.y, sourceScale.z / parentScale.z);
     }

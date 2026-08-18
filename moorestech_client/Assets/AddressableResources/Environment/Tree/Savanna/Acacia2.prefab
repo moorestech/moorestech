@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &3210741933960181443
+--- !u!1 &2069872938731244571
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,41 +8,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6927478602659575830}
-  m_Layer: 10
-  m_Name: Outline
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &6927478602659575830
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3210741933960181443}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 2351375884596216326}
-  m_Father: {fileID: 6680027837489876177}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &5207952594253267899
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2351375884596216326}
-  - component: {fileID: 6093852541839716395}
-  - component: {fileID: 821794773708205478}
+  - component: {fileID: 4253078002067176765}
+  - component: {fileID: 7639910679000946375}
+  - component: {fileID: 5566027659688695845}
   m_Layer: 10
   m_Name: Acacia2_LOD0
   m_TagString: Untagged
@@ -50,13 +18,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &2351375884596216326
+--- !u!4 &4253078002067176765
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5207952594253267899}
+  m_GameObject: {fileID: 2069872938731244571}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -65,21 +33,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6927478602659575830}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &6093852541839716395
+--- !u!33 &7639910679000946375
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5207952594253267899}
+  m_GameObject: {fileID: 2069872938731244571}
   m_Mesh: {fileID: -5183974600306689445, guid: 0ca39d8640f84ac990f7f73b24b4c658, type: 3}
---- !u!23 &821794773708205478
+--- !u!23 &5566027659688695845
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5207952594253267899}
+  m_GameObject: {fileID: 2069872938731244571}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -123,6 +91,38 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &3210741933960181443
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6927478602659575830}
+  m_Layer: 10
+  m_Name: Outline
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &6927478602659575830
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3210741933960181443}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4253078002067176765}
+  m_Father: {fileID: 6680027837489876177}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7896882791701235129
 GameObject:
   m_ObjectHideFlags: 0
@@ -132,7 +132,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9055025133595539328}
-  - component: {fileID: 9194776678334916715}
+  - component: {fileID: 5074355796377412613}
   - component: {fileID: 8638743385505877021}
   m_Layer: 6
   m_Name: RayTargetCollider
@@ -150,14 +150,14 @@ Transform:
   m_GameObject: {fileID: 7896882791701235129}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0.18938817, y: 3.2770338, z: 0.10661237}
+  m_LocalScale: {x: 1.8413296, y: 4.8349333, z: 1.8413296}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6680027837489876177}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &9194776678334916715
-BoxCollider:
+--- !u!64 &5074355796377412613
+MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -174,9 +174,10 @@ BoxCollider:
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 12.327519, y: 9.669867, z: 11.679925}
-  m_Center: {x: 0.32379723, y: 3.2770338, z: 0}
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &8638743385505877021
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -342,10 +343,10 @@ PrefabInstance:
       addedObject: {fileID: 6927478602659575830}
     - targetCorrespondingSourceObject: {fileID: 4508872396447109933, guid: 5170f5d0335342a598eb069ce1acda2e, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 195434786077867232}
+      addedObject: {fileID: 9055025133595539328}
     - targetCorrespondingSourceObject: {fileID: 4508872396447109933, guid: 5170f5d0335342a598eb069ce1acda2e, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 9055025133595539328}
+      addedObject: {fileID: 195434786077867232}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3880250350639974807, guid: 5170f5d0335342a598eb069ce1acda2e, type: 3}
       insertIndex: -1

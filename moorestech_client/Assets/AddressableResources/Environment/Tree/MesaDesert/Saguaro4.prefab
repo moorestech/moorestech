@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &3364833537975423798
+--- !u!1 &4288440965252832710
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,9 +8,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 686324907557280616}
-  - component: {fileID: 5127592520414541002}
-  - component: {fileID: 6303228752563224507}
+  - component: {fileID: 387165805736511211}
+  - component: {fileID: 7488401599456479810}
+  - component: {fileID: 3015779088244999636}
   m_Layer: 10
   m_Name: Saguaro4_LOD0
   m_TagString: Untagged
@@ -18,13 +18,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &686324907557280616
+--- !u!4 &387165805736511211
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3364833537975423798}
+  m_GameObject: {fileID: 4288440965252832710}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -33,21 +33,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 8892792514948166275}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &5127592520414541002
+--- !u!33 &7488401599456479810
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3364833537975423798}
+  m_GameObject: {fileID: 4288440965252832710}
   m_Mesh: {fileID: -1714585120805082964, guid: 99fc74d5fe60434f8c44e16d05152723, type: 3}
---- !u!23 &6303228752563224507
+--- !u!23 &3015779088244999636
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3364833537975423798}
+  m_GameObject: {fileID: 4288440965252832710}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -120,7 +120,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 686324907557280616}
+  - {fileID: 387165805736511211}
   m_Father: {fileID: 4183412500923927966}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7353003742837366153
@@ -132,7 +132,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 744627636682816435}
-  - component: {fileID: 5778275560292977819}
+  - component: {fileID: 8138103577416640561}
   - component: {fileID: 5257452428662990062}
   m_Layer: 6
   m_Name: RayTargetCollider
@@ -150,14 +150,14 @@ Transform:
   m_GameObject: {fileID: 7353003742837366153}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0.10664669, y: 3.5328577, z: 0.032457575}
+  m_LocalScale: {x: 2.4816628, y: 3.5409105, z: 2.4816628}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4183412500923927966}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &5778275560292977819
-BoxCollider:
+--- !u!64 &8138103577416640561
+MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -174,9 +174,10 @@ BoxCollider:
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 3.0982964, y: 7.081821, z: 3.0982966}
-  m_Center: {x: 0.22130692, y: 3.5328577, z: -0.00000023841858}
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &5257452428662990062
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -342,10 +343,10 @@ PrefabInstance:
       addedObject: {fileID: 8892792514948166275}
     - targetCorrespondingSourceObject: {fileID: 2263695250179447210, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5439756956810021852}
+      addedObject: {fileID: 744627636682816435}
     - targetCorrespondingSourceObject: {fileID: 2263695250179447210, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 744627636682816435}
+      addedObject: {fileID: 5439756956810021852}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1450601610762715920, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
       insertIndex: -1

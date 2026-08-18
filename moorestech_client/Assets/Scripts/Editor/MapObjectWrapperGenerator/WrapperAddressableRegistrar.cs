@@ -10,6 +10,10 @@ public static class WrapperAddressableRegistrar
 {
     private const string GroupName = "Vanilla Asset Group";
 
+    // この生成器が持つアドレス空間。末尾のスラッシュで既存のVanilla/Environment/Tree(Tree.prefab)やBushを巻き込まない
+    // The address space this generator owns; the trailing slash keeps the existing Vanilla/Environment/Tree (Tree.prefab) and Bush out of it
+    private static readonly string[] GeneratedAddressPrefixes = { "Vanilla/Environment/Tree/", "Vanilla/Environment/Rock/" };
+
     public static int RegisterAll(List<MapObjectWrapperSpecies> speciesList)
     {
         var settings = AddressableAssetSettingsDefaultObject.Settings;
@@ -17,6 +21,8 @@ public static class WrapperAddressableRegistrar
 
         var group = settings.FindGroup(GroupName);
         if (group == null) throw new InvalidOperationException($"addressable group not found: {GroupName}");
+
+        RemoveGeneratedEntries(settings);
 
         var entries = new List<AddressableAssetEntry>(speciesList.Count);
         foreach (var species in speciesList)
@@ -34,5 +40,33 @@ public static class WrapperAddressableRegistrar
         settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, entries, true, true);
         AssetDatabase.SaveAssets();
         return entries.Count;
+    }
+
+    // 消えた・改名されたspeciesのエントリが残るとアドレスが実体の無いアセットを指し続けるので、登録前に生成空間を空にする
+    // Entries of removed or renamed species would keep pointing at assets that no longer exist, so the generated space is emptied before registering
+    private static void RemoveGeneratedEntries(AddressableAssetSettings settings)
+    {
+        var staleGuids = new List<string>();
+        foreach (var group in settings.groups)
+        {
+            if (group == null) continue;
+            foreach (var entry in group.entries)
+                if (HasGeneratedPrefix(entry.address))
+                    staleGuids.Add(entry.guid);
+        }
+
+        foreach (var staleGuid in staleGuids) settings.RemoveAssetEntry(staleGuid, false);
+
+        #region Internal
+
+        bool HasGeneratedPrefix(string address)
+        {
+            foreach (var prefix in GeneratedAddressPrefixes)
+                if (address.StartsWith(prefix, StringComparison.Ordinal))
+                    return true;
+            return false;
+        }
+
+        #endregion
     }
 }

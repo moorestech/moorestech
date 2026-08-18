@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // species-inventory.jsonに載った樹種・岩を全件ラッパープレハブ化し、Addressableへ登録する入口
@@ -17,7 +18,11 @@ public static class MapObjectWrapperGeneratorMenu
     {
         var species = LoadInventorySpecies();
 
-        foreach (var element in species) WrapperPrefabFactory.CreateWrapperPrefab(element);
+        // 開いているシーンを組み立て場に使うとシーンがdirtyのまま残り、以後のテスト実行がシーン保存ダイアログで止まる
+        // Assembling in the open scene would leave it dirty, and a later test run would then stall on the save-scene dialog
+        var workScene = EditorSceneManager.NewPreviewScene();
+        foreach (var element in species) WrapperPrefabFactory.CreateWrapperPrefab(element, workScene);
+        EditorSceneManager.ClosePreviewScene(workScene);
         AssetDatabase.SaveAssets();
 
         // プレハブが全件importされてからでないとGUIDが引けないので、登録は生成後にまとめて行う
@@ -42,18 +47,4 @@ public static class MapObjectWrapperGeneratorMenu
     {
         public List<MapObjectWrapperSpecies> species;
     }
-}
-
-// species-inventory.jsonの1species分。生成側とAddressable登録側で共有する
-// One species entry of species-inventory.json, shared by the prefab factory and the Addressable registrar
-[Serializable]
-public class MapObjectWrapperSpecies
-{
-    public string key;
-    public string prefabPath;
-    public string kind;
-    public string address;
-    public string wrapperPath;
-    public string mapObjectGuid;
-    public string mapObjectName;
 }

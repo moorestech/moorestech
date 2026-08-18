@@ -29,7 +29,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1276584157020450426}
+  - {fileID: 4085438247919810835}
   m_Father: {fileID: 3873940263783472402}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4988809527981393057
@@ -41,7 +41,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1021485516146963582}
-  - component: {fileID: 3349359155672602186}
+  - component: {fileID: 7968770031004636006}
   - component: {fileID: 7856385348360696707}
   m_Layer: 6
   m_Name: RayTargetCollider
@@ -59,14 +59,14 @@ Transform:
   m_GameObject: {fileID: 4988809527981393057}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -0.20338847, y: 3.6942816, z: -0.46642157}
+  m_LocalScale: {x: 4.3659115, y: 6.207425, z: 4.3659115}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3873940263783472402}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &3349359155672602186
-BoxCollider:
+--- !u!64 &7968770031004636006
+MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -83,9 +83,10 @@ BoxCollider:
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 10.390809, y: 12.41485, z: 10.310789}
-  m_Center: {x: -0.04001522, y: 3.6942813, z: -0.22437286}
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &7856385348360696707
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -98,7 +99,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c22ab40900a2421781a39544aff997cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Map.MapObject.MapObjectRayTarget
---- !u!1 &6116722902661254963
+--- !u!1 &9038359228360180933
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -106,9 +107,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1276584157020450426}
-  - component: {fileID: 3891476955134618376}
-  - component: {fileID: 1279736588701486681}
+  - component: {fileID: 4085438247919810835}
+  - component: {fileID: 6337973378341640546}
+  - component: {fileID: 600641812111052275}
   m_Layer: 10
   m_Name: Baobab5_LOD0
   m_TagString: Untagged
@@ -116,13 +117,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1276584157020450426
+--- !u!4 &4085438247919810835
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6116722902661254963}
+  m_GameObject: {fileID: 9038359228360180933}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -131,21 +132,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3223087604560591110}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &3891476955134618376
+--- !u!33 &6337973378341640546
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6116722902661254963}
+  m_GameObject: {fileID: 9038359228360180933}
   m_Mesh: {fileID: 150867892709092850, guid: df8cd37e4ed84d669fb88b7f5fec9731, type: 3}
---- !u!23 &1279736588701486681
+--- !u!23 &600641812111052275
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6116722902661254963}
+  m_GameObject: {fileID: 9038359228360180933}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -269,10 +270,10 @@ PrefabInstance:
       addedObject: {fileID: 3223087604560591110}
     - targetCorrespondingSourceObject: {fileID: 3625562270585896228, guid: eea0f7aed7d64d61864fe43b14c9b31f, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 174810923740814038}
+      addedObject: {fileID: 1021485516146963582}
     - targetCorrespondingSourceObject: {fileID: 3625562270585896228, guid: eea0f7aed7d64d61864fe43b14c9b31f, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1021485516146963582}
+      addedObject: {fileID: 174810923740814038}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 4114958557477398430, guid: eea0f7aed7d64d61864fe43b14c9b31f, type: 3}
       insertIndex: -1

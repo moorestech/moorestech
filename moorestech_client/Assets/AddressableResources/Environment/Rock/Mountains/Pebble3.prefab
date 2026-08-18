@@ -131,7 +131,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4493914149926977604}
-  - component: {fileID: 310380878339074381}
+  - component: {fileID: 787426605491205599}
   - component: {fileID: 8957359395793042628}
   m_Layer: 6
   m_Name: RayTargetCollider
@@ -149,14 +149,14 @@ Transform:
   m_GameObject: {fileID: 8646850676929021394}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -1.6672405, y: -0.009734251, z: -0.5556499}
+  m_LocalScale: {x: 1.4159465, y: 0.16541547, z: 1.4159465}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8890952843036373029}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &310380878339074381
-BoxCollider:
+--- !u!64 &787426605491205599
+MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -173,9 +173,10 @@ BoxCollider:
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 4.942926, y: 0.33083093, z: 4.4652424}
-  m_Center: {x: -0.018807173, y: -0.009734243, z: 0.108255625}
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &8957359395793042628
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -325,10 +326,10 @@ PrefabInstance:
       addedObject: {fileID: 868497762697305871}
     - targetCorrespondingSourceObject: {fileID: 401390838221474273, guid: 4451a990c91b4e808c730cc4944dccff, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4827539846083842246}
+      addedObject: {fileID: 4493914149926977604}
     - targetCorrespondingSourceObject: {fileID: 401390838221474273, guid: 4451a990c91b4e808c730cc4944dccff, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4493914149926977604}
+      addedObject: {fileID: 4827539846083842246}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1070122212980806491, guid: 4451a990c91b4e808c730cc4944dccff, type: 3}
       insertIndex: -1
