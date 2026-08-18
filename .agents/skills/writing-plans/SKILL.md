@@ -34,7 +34,7 @@ hooks:
 
 **最初に必ず実行（plan記述前）:** `git pull` を実行してプロジェクトを最新の状態にしてからplanを書き始める。古いコードを前提にしたplanは実装時に破綻するため、pullを省略しない。pullがコンフリクト等で失敗した場合は、planを書き始めずにその旨をユーザーに報告して指示を仰ぐ。
 
-**Context:** 独立したworktreeで作業する場合、実行時に`superpowers:using-git-worktrees`スキル経由で作成されているはず。
+**Context:** 独立したworktreeで作業する場合、plan作成前に作成されているはず。
 
 **plan保存先:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
 - （plan保存場所についてユーザーの指定がある場合はそちらを優先）
@@ -76,7 +76,7 @@ hooks:
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development（推奨）または superpowers:executing-plans を使い、このplanをタスクごとに実装すること。ステップはチェックボックス（`- [ ]`）記法で進捗管理する。
+> **For agentic workers:** REQUIRED SUB-SKILL: subagent-driven-development スキルを使い、このplanをタスクごとに実装すること。ステップはチェックボックス（`- [ ]`）記法で進捗管理する。
 
 **Goal:** [これが何を構築するかを1文で説明]
 
