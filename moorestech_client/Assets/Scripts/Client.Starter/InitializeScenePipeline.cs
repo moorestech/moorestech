@@ -177,6 +177,11 @@ namespace Client.Starter
                 new MainGameInitializationFinalizer(serverResult).RunAsync().Forget(exception =>
                 {
                     Debug.LogError($"初期化処理中にエラーが発生しました: {exception.GetType()} {exception.Message}\n{exception.StackTrace}");
+
+                    // メインメニューへ戻る経路はすべて内蔵サーバーを道連れにする
+                    // Every path back to the main menu takes the embedded server down with it
+                    if (serverResult.EmbeddedServer != null) Destroy(serverResult.EmbeddedServer.gameObject);
+
                     SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 });
             }

@@ -9,7 +9,6 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Args;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
@@ -56,8 +55,8 @@ namespace Client.Tests.EditModeInPlayingTest
             {
                 // 旧既定ポートに別サーバーが居座る状況を作る。acceptしないので接続要求は保留のまま残る
                 // Simulate a foreign server squatting on the legacy port; requests stay pending because nothing accepts them
-                var legacyPortListener = new TcpListener(IPAddress.Loopback, LegacyDefaultServerPort);
-                legacyPortListener.Start();
+                var legacyPortListener = StartLegacyPortListener();
+                if (legacyPortListener == null) Assert.Ignore($"{LegacyDefaultServerPort} が他プロセスに使用中のため検証をスキップ");
 
                 // 失敗しても待ち受けを必ず畳む。開きっぱなしだと後続の全ローカル起動を汚染する
                 // Always tear the listener down; leaving it open would poison every later local boot
@@ -74,13 +73,27 @@ namespace Client.Tests.EditModeInPlayingTest
                     // 誰も11564へ接続していない＝接続試行フォールバックが無い
                     // Nobody connected to 11564, which is the absence of the probe-and-fallback path
                     Assert.IsFalse(legacyPortListener.Pending(), "ローカル起動が11564へ接続を試みた");
-
-                    Debug.Log($"[LocalPlayEmbeddedServerBootTest] local boot verified on port {ClientContext.EmbeddedServer.BoundPort}");
                 }
                 finally
                 {
                     legacyPortListener.Stop();
                 }
+            }
+
+            // 待ち受け開始はソケット境界。開発機の実サーバーが握っていると必ず失敗するのでnullで占有を伝える
+            // Starting the listener is a socket boundary; a real server on a dev machine always fails it, so null reports occupancy
+            TcpListener StartLegacyPortListener()
+            {
+                var listener = new TcpListener(IPAddress.Loopback, LegacyDefaultServerPort);
+                try
+                {
+                    listener.Start();
+                }
+                catch (SocketException)
+                {
+                    return null;
+                }
+                return listener;
             }
 
             #endregion
@@ -129,8 +142,6 @@ namespace Client.Tests.EditModeInPlayingTest
                 }
 
                 Assert.IsTrue(returnedToMainMenu, "リモート接続失敗後にメインメニューへ戻らなかった");
-
-                Debug.Log("[LocalPlayEmbeddedServerBootTest] remote failure verified without embedded server");
             }
 
             // 閉じた宛先を指すリモート設定を流し込む
