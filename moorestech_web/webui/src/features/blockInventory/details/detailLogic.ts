@@ -44,32 +44,22 @@ const GearStopReasonKeys: Record<GearNetworkStopReason, TranslationKey | null> =
   overRequirePower: L.ui.blockInventory.stopReasonInsufficientPower,
 };
 
-// 機械の稼働状態→表示ラベル。%が待機を意味しなくなった分、状態はラベルで示す（ADR 0010）
-// Machine state → label key; the rate no longer encodes standby, so the state gets its own label (ADR 0010)
-export function machineStateTranslationKey(currentState: MachineProcessState): TranslationKey {
-  return MachineStateKeys[currentState];
-}
-
-const MachineStateKeys: Record<MachineProcessState, TranslationKey> = {
-  idle: L.ui.blockInventory.machineStateIdle,
-  processing: L.ui.blockInventory.machineStateProcessing,
-  halted: L.ui.blockInventory.machineStateHalted,
+// 機械の稼働状態→表示（ラベル・不足トーン・充足率の表示可否）を1枚のテーブルで確定する
+// One table settles every state-driven display decision: label, insufficient tone, and whether the rate is shown
+export type MachineStateDisplay = {
+  labelKey: TranslationKey;
+  insufficient: boolean;
+  showPowerRate: boolean;
 };
 
-// haltedのみ不足トーン。語彙は上表と同じ集合を参照
-// Only halted gets the insufficient tone (--text-insufficient); shares the same state vocabulary as the table above
-export function isMachineStateInsufficient(currentState: MachineProcessState): boolean {
-  return MachineStateInsufficientTone[currentState];
+export function machineStateDisplay(currentState: MachineProcessState): MachineStateDisplay {
+  return MachineStateDisplayTable[currentState];
 }
 
-const MachineStateInsufficientTone: Record<MachineProcessState, boolean> = {
-  idle: false,
-  processing: false,
-  halted: true,
+// haltedは要求電力を出さないため充足率が意味を持たず、不足トーンのラベルだけを見せる
+// Halted requests no power, so the rate is meaningless there and only the insufficient-toned label remains
+const MachineStateDisplayTable: Record<MachineProcessState, MachineStateDisplay> = {
+  idle: { labelKey: L.ui.blockInventory.machineStateIdle, insufficient: false, showPowerRate: true },
+  processing: { labelKey: L.ui.blockInventory.machineStateProcessing, insufficient: false, showPowerRate: true },
+  halted: { labelKey: L.ui.blockInventory.machineStateHalted, insufficient: true, showPowerRate: false },
 };
-
-// 要求電力0（停止中）は充足率が意味を持たないため、表示自体を出さない判断をここで確定する
-// A request power of 0 (halted) makes the satisfaction rate meaningless, so the decision to hide it is settled here
-export function isPowerRateMeaningful(requestPower: number): boolean {
-  return requestPower !== 0;
-}

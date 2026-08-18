@@ -36,8 +36,10 @@ describe("buildMachineRecipeSelectionRows", () => {
     expect(rows.map((row) => row.selected)).toEqual([true, false]);
   });
 
-  it.each([emptyGuid, "", undefined])("未選択値 %s ではハイライトしない", (selectedRecipeGuid) => {
-    const rows = buildMachineRecipeSelectionRows([recipe(emptyGuid, blockA)], blockA, selectedRecipeGuid);
+  // 未選択はワイヤ上も空GUIDのみ（machine.selectedRecipeGuidは必須のguid文字列）
+  // Unselected always arrives as the empty GUID on the wire; machine.selectedRecipeGuid is a required guid string
+  it("空GUIDではハイライトしない", () => {
+    const rows = buildMachineRecipeSelectionRows([recipe(emptyGuid, blockA)], blockA, emptyGuid);
 
     expect(rows[0].selected).toBe(false);
   });
@@ -62,8 +64,6 @@ describe("buildMachineRecipeSelectionRows", () => {
 
 describe("machineInitialTab", () => {
   it.each([
-    { guid: null, tab: "recipes" },
-    { guid: undefined, tab: "recipes" },
     { guid: "00000000-0000-0000-0000-000000000000", tab: "recipes" },
     { guid: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", tab: "inventory" },
   ])("selectedRecipeGuid=$guid → $tab", ({ guid, tab }) => {
