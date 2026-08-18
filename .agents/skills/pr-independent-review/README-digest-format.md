@@ -67,6 +67,8 @@ YAMLキー:
 | `index_label` | 任意 | 「あなたが判断すること」の短ラベル。省略時は `summary` |
 | `files` | 必須 | `path:line` の配列。1件目が主。**id採番のキー** |
 | `options` | 非suppressedで必須 | 案の要約の配列。**先頭が推奨案** |
+
+**注意（コンバータは検査しない）**: 同じ推奨案が `options` 先頭・`recommendation`・カード本文の代替案説明の3箇所に現れる。案を変えるときは3箇所すべてを直すこと。片方だけ直すと、裁定する人が反映されない古い案を読む。
 | `suppressed` | 任意（既定 false） | true なら suppressed ゾーンへ |
 | `suppress_reason` | `suppressed: true` のとき必須 | 免責の出所要約 |
 | `recommendation` | 任意 | findings.json の `recommendation`。省略時は先頭optionの文言 |

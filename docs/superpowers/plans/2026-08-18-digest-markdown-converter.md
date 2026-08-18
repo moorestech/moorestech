@@ -1582,16 +1582,16 @@ Expected: どちらも `200`。ブラウザで `http://127.0.0.1:8931/pr/1138`�
 **Files:**
 - レビュー対象: 本ブランチの master からの全差分
 
-- [ ] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
+- [x] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
 
 `moores-code-review` スキルを起動し、`feature/digest-markdown-converter` の master からの全差分をレビューする。**ゴール文言による省略は不可**。
 
-- [ ] **Step 2: 指摘へ対応し、再度テストを通す**
+- [x] **Step 2: 指摘へ対応し、再度テストを通す**
 
 Run: `~/hermes-agent/venv/bin/pytest .agents/skills/pr-independent-review/tests/ -v`
 Expected: PASS（全件）
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add -A
