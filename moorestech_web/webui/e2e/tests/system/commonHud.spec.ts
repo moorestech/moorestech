@@ -32,7 +32,7 @@ test("横長画面でビネットを実viewportの四辺へ沿わせる", async 
   // ビネットを実viewportで描く
   // Keep the vignette owner on the real viewport instead of the stage
   const layout = await page.locator("#root > div").evaluate((viewport) => {
-    const stage = viewport.firstElementChild!;
+    const stage = viewport.querySelector('[data-testid="app-stage"]')!;
     const rect = viewport.getBoundingClientRect();
     return {
       rect: { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left },
