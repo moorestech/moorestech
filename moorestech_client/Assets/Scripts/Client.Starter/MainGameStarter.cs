@@ -68,6 +68,7 @@ using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Skit.UI;
+using CommandForgeGenerator.Command;
 using Core.Item.Interface;
 using Game.Context;
 using Game.PlayerRiding.Interface;
@@ -304,8 +305,8 @@ namespace Client.Starter
             // register component on hierarchy
             builder.RegisterComponent(gameStateController);
             builder.RegisterComponent(blockGameObjectDataStore);
-            builder.RegisterComponent(mapObjectGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
-            builder.RegisterComponent(outcropGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
+            builder.RegisterComponent(mapObjectGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>().As<ISkitWorldObjectControl>();
+            builder.RegisterComponent(outcropGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>().As<ISkitWorldObjectControl>();
             builder.RegisterComponent(environmentRoot);
             
             builder.RegisterComponent(mainCamera);

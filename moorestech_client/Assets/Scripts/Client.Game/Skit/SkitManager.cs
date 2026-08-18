@@ -5,7 +5,6 @@ using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
-using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.Skit.Localization;
@@ -35,9 +34,9 @@ namespace Client.Game.Skit
         [Inject] private ISkitActionController _skitActionController;
         [Inject] private EnvironmentRoot environmentRoot;
         [Inject] private BlockGameObjectDataStore blockGameObjectDataStore;
-        [Inject] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
         [Inject] private EntityObjectDatastore entityObjectDatastore;
         [Inject] private IReadOnlyList<ITutorialWorldPin> worldPins;
+        [Inject] private IReadOnlyList<ISkitWorldObjectControl> worldObjectControls;
         
         public bool IsPlayingSkit { get; private set; }
         private bool _isSkip;
@@ -153,7 +152,7 @@ namespace Client.Game.Skit
                 builder.RegisterInstance(characterContainer);
                 builder.RegisterInstance<ISkitEnvironmentRoot>(environmentRoot);
                 builder.RegisterInstance<ISkitBlockObjectControl>(blockGameObjectDataStore);
-                builder.RegisterInstance<ISkitWorldObjectControl>(mapObjectGameObjectDatastore);
+                builder.RegisterInstance<ISkitWorldObjectControl>(new SkitWorldObjectControlGroup(worldObjectControls));
                 builder.RegisterInstance<ISkitEntityObjectControl>(entityObjectDatastore);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
                 builder.RegisterInstance<ISkitActionContext>(_skitActionController);
