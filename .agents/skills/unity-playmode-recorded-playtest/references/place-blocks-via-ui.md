@@ -7,6 +7,7 @@
 
 ```csharp
 await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());   // 足場+ワープ+無料設置を1行で
+await p.SkipOpeningSkit();                          // 開幕スキットは全UI入力を塞ぐため必ず先に飛ばす
 p.WarpPlayer(new Vector3(3.5f, 33.5f, -1f));       // 設置エリアの南側へ（設置カメラは北向き・浅ピッチ）
 
 // 遠いセルから設置する（手前の既設ブロックが奥セルへのレイを遮るため。単クリックは隣接が埋まる前に）
