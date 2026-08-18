@@ -191,9 +191,9 @@
     "command.inGameObjectControl.property.blockEnable.name": "ブロック表示",
     "command.inGameObjectControl.property.blockEnable.description": "ブロックオブジェクトの表示状態",
     "command.inGameObjectControl.property.worldObjectEnable.name": "世界オブジェクト表示",
-    "command.inGameObjectControl.property.worldObjectEnable.description": "mapObjectと露頭の表示状態",
+    "command.inGameObjectControl.property.worldObjectEnable.description": "mapObject・露頭・列車の表示状態",
     "command.inGameObjectControl.property.entityEnable.name": "エンティティ表示",
-    "command.inGameObjectControl.property.entityEnable.description": "ドロップアイテムや列車などエンティティの表示状態",
+    "command.inGameObjectControl.property.entityEnable.description": "ドロップアイテムなどエンティティの表示状態",
 
     "command.controlSkitBackground.name": "スキット背景を制御",
     "command.controlSkitBackground.description": "スキットの背景を追加または削除",

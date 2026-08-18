@@ -322,7 +322,7 @@ namespace Client.Starter
             builder.RegisterComponent(miningController);
             
             builder.RegisterComponent(entityObjectDatastore);
-            builder.RegisterComponent(trainCarObjectDatastore);
+            builder.RegisterComponent(trainCarObjectDatastore).AsSelf().As<ISkitWorldObjectControl>();
             builder.RegisterComponent(playerInventoryViewController);
             builder.RegisterComponent(challengeManager);
             builder.RegisterComponent(craftInventoryView);
@@ -349,7 +349,7 @@ namespace Client.Starter
             
             builder.RegisterComponent<IPlacementPreviewBlockGameObjectController>(previewBlockController);
             builder.RegisterComponent(railConnectPreviewObject);
-            builder.RegisterComponent(trainRailObjectManager);
+            builder.RegisterComponent(trainRailObjectManager).AsSelf().As<ISkitWorldObjectControl>();
             builder.RegisterComponent(trainCarObjectPreviewController);
             
             builder.RegisterBuildCallback(objectResolver => { });

@@ -20,10 +20,10 @@ namespace Client.Tests.Localization.Skit
             "skit.sample_short.9.Option3Tag",
             "skit.200_star_background.1.body",
         };
-        // count/hashはworldObjectEnableへの改名後のroot値とソート済みCommandForge key/valueを正本とする
-        // Baseline is the post-worldObjectEnable-rename root values and sorted CommandForge key/value pairs
-        [TestCase("english", 143, "af856df87bb3f24596f0dc6df76f777275fd6aff9e07b61b11c18425f9395d74")]
-        [TestCase("japanese", 208, "8ac9ba939b8a3309aa93e8a931a5d5f3d2a47a45fa70e988f2058976fc9bab9c")]
+        // count/hashは列車をworldObjectEnable側へ移した後のroot値とソート済みCommandForge key/valueを正本とする
+        // Baseline is the root values and sorted CommandForge key/value pairs after trains moved to worldObjectEnable
+        [TestCase("english", 143, "37060d89c2b4261de3d674e65767085449474bd3d115e6ceabd80abfaec28fd6")]
+        [TestCase("japanese", 208, "c702afae428b48ffd8d8f8f57a65c00250258430805e79890e636016ce533fd4")]
         public void CommandForgeDictionaryKeepsRootFlatTranslationsAndBaselineValues(
             string languageCode,
             int expectedBaselineCount,
