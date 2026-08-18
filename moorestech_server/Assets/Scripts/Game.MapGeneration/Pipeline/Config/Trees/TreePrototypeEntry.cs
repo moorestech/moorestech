@@ -37,6 +37,12 @@ namespace Game.MapGeneration.Pipeline.Config
         public float heightModAmount;
         public float heightModWidth = 2f;
 
+        // 配置木の根元へ寄せるスプラットレイヤー。TerrainLayer 参照は addressablePath へ置換した。
+        // The splat layer pulled in under a placed tree's root; the TerrainLayer reference became an addressablePath.
+        public string surroundLayerAddressablePath = string.Empty;
+        public float surroundLayerWeight;
+        public float surroundLayerWidth = 2f;
+
         public float boundaryScaleMultiplier = 1f;
         public float oldGrowthScale = 1f;
         public float oldGrowthRatio;

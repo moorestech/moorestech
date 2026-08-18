@@ -256,7 +256,6 @@ properties:
     default: true
   - key: surroundLayerAddressablePath
     type: string
-    default: ""
   - key: coreRadius
     type: number
     default: 5

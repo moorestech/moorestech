@@ -83,6 +83,24 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(exception.Message, Does.Contain(worldDataDirectory.WorldMetaFilePath));
         }
 
+        // 旧バージョンのheightは摂動後の意味で書かれている。新クライアントが順適用すると摂動が二重に乗る
+        // An older height file means post-perturbation; a new client applying it again would double the perturbation
+        [Test]
+        public void generatedのworld_jsonのgeneratorVersionが不一致なら例外を投げる()
+        {
+            var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
+
+            var worldMeta = JObject.Parse(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
+            worldMeta["generatorVersion"] = "1.0.0";
+            File.WriteAllText(worldDataDirectory.WorldMetaFilePath, worldMeta.ToString());
+
+            var exception = Assert.Throws<InvalidOperationException>(() => TerrainTransferMetaReader.Read(worldDataDirectory));
+
+            // 読み手はパケット応答経路で例外を握り潰されるため、ログ1行からどのworld.jsonをどうするか分かる必要がある
+            // The caller sits on a packet path that swallows exceptions, so the single log line must say which world.json to act on
+            Assert.That(exception.Message, Does.Contain(worldDataDirectory.WorldMetaFilePath));
+        }
+
         // templateは地形を生成せず原点という概念自体が無い。旧バージョンが書いたキー無しのworld.jsonも読めねばならない
         // Template worlds generate no terrain and have no origin concept, so a key-less world.json written by an older build must still read
         [Test]

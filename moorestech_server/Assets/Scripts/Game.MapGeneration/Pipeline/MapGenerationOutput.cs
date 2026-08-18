@@ -9,8 +9,7 @@ namespace Game.MapGeneration.Pipeline
     // All coordinates are scene-space relative to the generated tile, with the spawn-search offset G already removed.
     public class MapGenerationOutput
     {
-        public float[] Heights;            // [Resolution*Resolution] 0-1 正規化高さ / normalized height
-        public byte[] BiomeIndices;        // [Resolution*Resolution] BiomeType の値 / BiomeType value
+        public List<TerrainTileOutput> Tiles = new();  // 格子出力(1タイル以上) / grid output (one or more tiles)
         public int Resolution;             // 1辺のセル数 / cells per side
         public Vector3 SpawnPoint;         // シーン座標のスポーン地点 / spawn point in scene space
 
@@ -31,6 +30,22 @@ namespace Game.MapGeneration.Pipeline
     {
         public string MapObjectGuid;
         public Vector3 Position;
+
+        // 配置時のスケール。岩周辺テクスチャの広がりが岩の大きさで決まるため見た目の再構築が読む。
+        // The placement scale; the visual rebuild reads it because a rock's surround texture spreads with its size.
+        public Vector3 Scale;
+
+        // 配置時の姿勢。斜面法線への傾きとランダムYを配置器が計算しており、落とすと全個体が同じ向きで直立する。
+        // The placement rotation; the placers derive the slope tilt and random yaw, and dropping it stands every instance up alike.
+        public Quaternion Rotation;
+
+        // 所属する岩クラスターの識別子。格子全体で一意で、-1 は独立配置（クラスターに属さない）。
+        // Identifier of the owning rock cluster, unique across the grid; -1 marks an independent placement.
+        public int ClusterId;
+
+        // クラスターの重心をシーン座標のXZで持つ。ClusterId が -1 のときは中心を持たず (0,0)。
+        // The cluster centroid as scene-space XZ; a ClusterId of -1 owns no center and stays at (0,0).
+        public Vector2 ClusterCenter;
     }
 
     // 鉱脈クラスター1件（mapVeins マスタの veinGuid + 整数 AABB）。
