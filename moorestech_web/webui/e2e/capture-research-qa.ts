@@ -1,5 +1,5 @@
-// Task 9 目視QA: 研究UI改修（4状態ノード・全域パネル・種類別解放セクション）を撮影する
-// Task 9 visual QA: capture the research UI refresh (4-state nodes, full-stage panel, kind-labeled unlock sections)
+// Task 9 研究UI目視QA撮影
+// Task 9 visual QA capture for the research UI refresh
 
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -37,8 +37,8 @@ async function shoot(page: Page, name: string) {
 }
 
 async function captureDetailPanes(browser: Awaited<ReturnType<typeof chromium.launch>>) {
-  // (b)(c) 既定の中央寄せ(=研究可能ノード中心)のまま2ノードを選択して詳細ペインを撮る
-  // (b)(c) Keep the default centering (on the researchable node) and select two nodes to capture their detail panes
+  // (b)(c) 2ノード詳細ペイン撮影
+  // (b)(c) Capture the detail pane for two nodes
   const page = await browser.newPage({ viewport: VIEWPORT, deviceScaleFactor: 2 });
   await openResearchTree(page);
 
@@ -54,8 +54,8 @@ async function captureDetailPanes(browser: Awaited<ReturnType<typeof chromium.la
 }
 
 async function captureOverview(browser: Awaited<ReturnType<typeof chromium.launch>>) {
-  // (a) 4状態ノードが同時に写るよう新規ページ(=localStorageクリーン)で開き最小scaleまでズームアウトする
-  // (a) Open in a fresh page (clean localStorage) and zoom out to the minimum scale so all 4 states are visible together
+  // (a) 新規ページで最小scaleへ
+  // (a) Open a fresh page and zoom to the minimum scale
   const page = await browser.newPage({ viewport: VIEWPORT, deviceScaleFactor: 2 });
   await openResearchTree(page);
 
@@ -85,8 +85,8 @@ async function captureOverview(browser: Awaited<ReturnType<typeof chromium.launc
 }
 
 async function captureWideOverview(browser: Awaited<ReturnType<typeof chromium.launch>>) {
-  // (d) 横長viewportで全域パネルの左右端を確認する
-  // (d) Wide viewport capture to check the full-stage panel's left/right edges
+  // (d) 全域パネル左右端確認
+  // (d) Check the full-stage panel's left/right edges
   const page = await browser.newPage({ viewport: WIDE_VIEWPORT, deviceScaleFactor: 2 });
   await openResearchTree(page);
   await shoot(page, "overview-wide.png");

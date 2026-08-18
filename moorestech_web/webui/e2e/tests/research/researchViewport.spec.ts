@@ -12,6 +12,12 @@ const RESEARCHABLE_NODE = `research-node-${researchableNodeGuid}`;
 // Max glide distance = speed cap × time constant
 const MAX_GLIDE_PX = PAN_MAX_FLING_SPEED * PAN_FRICTION_TAU_MS;
 
+// 研究パネルのステージ全域化で右下は常時HUD(装備スロット)と重なるため、右上の空白を使う
+// The research panel now spans the full stage, so the bottom-right overlaps the always-on equipment HUD; use the top-right instead
+function topRightDragOrigin(viewportBox: { x: number; y: number; width: number }) {
+  return { x: viewportBox.x + viewportBox.width - 40, y: viewportBox.y + 40 };
+}
+
 // 各テスト後に研究ツリーと ui_state を既定へ戻し、状態漏れを防ぐ
 // Reset the research tree and ui_state to defaults after each test to prevent state leakage
 test.afterEach(async ({ page }) => {
@@ -38,9 +44,7 @@ test("research tree keeps its pan position across close and reopen", async ({ pa
   const node = page.getByTestId(RESEARCHABLE_NODE);
   await expect(node).toBeVisible();
   const viewportBox = await page.getByTestId("research-viewport").boundingBox();
-  // 研究パネルのステージ全域化で右下は常時HUD(装備スロット)と重なるため、右上の空白を使う
-  // The research panel now spans the full stage, so the bottom-right overlaps the always-on equipment HUD; use the top-right instead
-  const dragStart = { x: viewportBox!.x + viewportBox!.width - 40, y: viewportBox!.y + 40 };
+  const dragStart = topRightDragOrigin(viewportBox!);
   const beforePan = await settleBoundingBox(page, node);
   await page.mouse.move(dragStart.x, dragStart.y);
   await page.mouse.down();
@@ -97,12 +101,7 @@ test("research tree zooms with the wheel and pans by dragging its empty backgrou
 
   // ドラッグ距離以上、慣性で滑走後停止
   // Moves at least the drag distance, glides, then stops
-  // 研究パネルのステージ全域化で右下は常時HUD(装備スロット)と重なるため、右上の空白を使う
-  // The research panel now spans the full stage, so the bottom-right overlaps the always-on equipment HUD; use the top-right instead
-  const dragStart = {
-    x: viewportBox!.x + viewportBox!.width - 40,
-    y: viewportBox!.y + 40,
-  };
+  const dragStart = topRightDragOrigin(viewportBox!);
   const beforePan = await settleBoundingBox(page, node);
   await page.mouse.move(dragStart.x, dragStart.y);
   await page.mouse.down();

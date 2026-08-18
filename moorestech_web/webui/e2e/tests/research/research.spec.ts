@@ -1,30 +1,18 @@
-import { test, expect, type Locator } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { expectCraftGrip } from "../../support/craftChromeAssertions";
+import { expectHitTestWithin } from "../../support/layoutAssertions";
 import { resetResearch, setTopicScenario, setUiState } from "../../support/mockControl";
 import { researchableNodeGuid, itemLackingNodeGuid } from "../../mock-host/researchFixtures";
 
-// 中心座標のhit-testが対象要素の子孫を指すか（=遮蔽されていないか）を検証する。
-// HUD自体はpointer-events:noneでelementFromPointが素通りするため、判定中だけ一時的にautoへ戻す
-// Verify the element under the point's center is a descendant of the target (i.e. not occluded).
-// The HUD is pointer-events: none so elementFromPoint would skip past it; flip it to auto only for the measurement
-async function expectHitTestWithin(locator: Locator) {
-  const isUnoccluded = await locator.evaluate((element) => {
-    const originalPointerEvents = element.style.pointerEvents;
-    element.style.pointerEvents = "auto";
-    const rect = element.getBoundingClientRect();
-    const target = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
-    element.style.pointerEvents = originalPointerEvents;
-    return target !== null && element.contains(target);
-  });
-  expect(isUnoccluded).toBe(true);
-}
-
-// 各テスト後に研究ツリーと ui_state を既定へ戻し、状態漏れを防ぐ
-// Reset the research tree and ui_state to defaults after each test to prevent state leakage
+// 各テスト後に研究ツリー・ui_state・このファイルが動かしたtopicシナリオを既定へ戻し、状態漏れを防ぐ(W9)
+// After each test, reset the research tree, ui_state, and every topic scenario this file can touch (W9)
 test.afterEach(async ({ page }) => {
   await resetResearch(page);
   await setUiState(page, "PlayerInventory");
+  await setTopicScenario(page, "challengeActive");
+  await setTopicScenario(page, "miningHidden");
+  await setTopicScenario(page, "japanese");
 });
 
 test("research tree renders nodes when uiState enters ResearchTree", async ({ page }) => {
@@ -35,6 +23,9 @@ test("research tree renders nodes when uiState enters ResearchTree", async ({ pa
 });
 
 test("ノードカードが4状態のdata属性で描き分けられる", async ({ page }) => {
+  // 所持シナリオを明示設定する(共有mock hostの既定値への暗黙依存を断つ・W10)
+  // Explicitly set the owned-items scenario, rather than relying on the shared mock host's implicit default (W10)
+  await setTopicScenario(page, "researchOwnedItems");
   await setUiState(page, "ResearchTree");
   await page.goto("/");
   const completed = page.getByTestId("research-node-11111111-1111-4111-8111-111111111111");
@@ -71,9 +62,9 @@ test("詳細ペインに解放物が種類別ラベル付きで並ぶ", async ({
   await expect(pane.getByTestId("research-unlock-machine-recipes")).toBeVisible();
   await expect(pane.getByTestId("research-reward-items")).toBeVisible();
   await expect(pane.getByTestId("research-unlock-others")).toBeVisible();
-  // 空種類のセクションは出ない（ノード3はunlockItemIdsが空）
-  // Empty kinds render nothing (node 3 has no unlockItemIds)
-  await expect(pane.getByTestId("research-unlock-craft-recipes")).toHaveCount(0);
+  // 空種類非表示(ノード3)
+  // Empty kinds stay hidden (node 3)
+  await expect(pane.getByTestId("research-unlock-items")).toHaveCount(0);
 });
 
 test("translate後のグリップ矩形だけに重なる境界buttonをexpectCraftGripが検出する", async ({ page }) => {
@@ -148,10 +139,10 @@ test("研究パネルはステージ全域を占有し持ち物とキーヒン�
   await setUiState(page, "ResearchTree");
   await page.goto("/");
   const tree = page.getByTestId("research-tree");
-  const stageBox = await page.locator(".stage, [class*='stage']").first().boundingBox();
+  const stageBox = await page.getByTestId("ui-stage").boundingBox();
   const treeBox = await tree.boundingBox();
-  // stage全域一致（一様スケール後の実px。誤差1px許容）
-  // Full-stage match in post-scale pixels with 1px tolerance
+  // stage全域一致(誤差1px)
+  // Full-stage match (1px tolerance)
   expect(Math.abs(treeBox!.x - stageBox!.x)).toBeLessThan(1.5);
   expect(Math.abs(treeBox!.y - stageBox!.y)).toBeLessThan(1.5);
   expect(Math.abs(treeBox!.width - stageBox!.width)).toBeLessThan(1.5);
@@ -160,8 +151,8 @@ test("研究パネルはステージ全域を占有し持ち物とキーヒン�
   // Inventory panel and key hints stay visible on top (adjudicated 2026-08-18)
   await expect(page.getByTestId("main-grid")).toBeVisible();
   await expect(page.getByTestId("research-key-hints")).toBeVisible();
-  // 持ち物グリッドがクリックを受ける（最前面確認。trialは重なり判定のみ行う）
-  // The inventory grid receives clicks (front-most check; trial only verifies hit-testing)
+  // 持ち物グリッドがクリック可
+  // Inventory grid is clickable
   await page.getByTestId("main-grid").locator(":scope > *").first().click({ trial: true });
 });
 
@@ -176,7 +167,6 @@ test("研究パネル展開中も常駐チャレンジHUDとキーヒントが�
   await expect(challengeHud).toBeVisible();
   await expectHitTestWithin(challengeHud);
   await expectHitTestWithin(page.getByTestId("research-key-hints"));
-  await setTopicScenario(page, "japanese");
 });
 
 test("研究パネル展開中も採掘進捗バーが遮蔽されない（.viewportOverlayのz封じ込めに依存する回帰ガード）", async ({ page }) => {
@@ -194,5 +184,4 @@ test("研究パネル展開中も採掘進捗バーが遮蔽されない（.view
   const progressBar = page.getByTestId("progress-bar");
   await expect(progressBar).toBeVisible();
   await expectHitTestWithin(progressBar);
-  await setTopicScenario(page, "miningHidden");
 });
