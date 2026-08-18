@@ -7,6 +7,7 @@ description: |
   ④Codex外部監査 ⑤Fable全般レビュー ⑥分割深掘り調査（大規模PR時のみ・10-15ファイル/チャンクで全文精読）。
   指摘を実コード照合・重複排除のうえ統合し、機械的修正を自動適用、
   設計判断だけ末尾でAskUserQuestion。設計レンズと汎用レビュー機構を1本に束ね、これ単体でレビューが完結する。
+  既定ではStep 2〜6.5をsonnetオーケストレータsubagentに委譲して実行する（委譲実行・2026-08-18。本体は対象確定とAskUserQuestionのみ）。
   Use when:
   1. moorestechでPR作成前・マージ前のレビューを行う時（pr-create前に必ず1パス）
   2. subagent-driven-development の最終ブランチレビューを行う時
@@ -31,6 +32,38 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 > **① 機械チェック統一窓口 `check_all.py`（決定論＋死にメンバーゲート＋ts死コードゲート＋セレクタを1コマンドで同時実行） → ② Codex監査をバックグラウンド起動（出力はファイルへ） → ③ レンズ群＋reviewer群＋Fable全般＋（閾値超なら）分割深掘り調査＋（`verifiers_to_launch`にあるverifier）を1メッセージで並列起動 → ④ 全系統の照合・重複排除をintegratorへ委譲し `integrated.md` を受け取る → ⑤ 機械的修正を自動適用＋コンパイル → ⑤.5 最終diffで決定論再チェック＋コメント保全post-checks 2本 → ⑥ 報告＋設計判断のみAskUserQuestion（末尾集約）**
 
 AskUserQuestionは**最後の報告フェーズに集約**する。修正適用の途中で割り込まない。
+
+## 委譲実行（既定・2026-08-18）
+
+**既定では Step 2〜6.5 を sonnet オーケストレータ subagent 1 体に委譲する。** 本体（このスキルを起動したセッション）がやるのは Step 0〜1（$RUNDIR・patch・4カテゴリcontext — セッション文脈を知るのは本体だけなので委譲不可）と Step 7（報告・AskUserQuestion・記録）だけ。根拠実測（2026-08-18 両Mac transcript調査）: 系統群自体は $54〜139/回だが、派遣・回収の往復を opus/fable 本体で回すと監督だけで $60〜397 かかっていた（mini の実測で本体 $397 に対し実装系統 $3 の回さえある）。sonnet 委譲の初運転では監督 $7.1 で全16系統+integrator を欠員なく回収した。
+
+**インラインで Step 2〜6.5 を自分で回してよいのは次の場合のみ**（報告冒頭に理由を明記。黙って切り替えない）: (a) ユーザーが「インラインで」等を明示、(b) Agent ツールが使えない / subagent 深度上限で系統が起動できない、(c) 自分が委譲オーケストレータとして派遣された側である。
+
+- 派遣は **`model: "sonnet"` 明示**・1 体だけ。**sonnet になるのはオーケストレータだけ**で、レンズ・reviewer・verifier・integrator のモデルはセレクタ/YAML/本文の指定のまま（オーケストレータの都合で落とすことは決してしない）。
+- **本体はオーケストレータ完了まで対象リポジトリを編集しない**（Step 6 で修正が適用されるため衝突する）。
+- 委譲は subagent 深度を 1 消費する。本体直下なら 本体→オーケストレータ→系統 の 3 層で収まる。
+- オーケストレータが返答せず死んだら、$RUNDIR の残骸を引き継いで再派遣する（テンプレに「$RUNDIR 内の完了済み工程はスキップして続きから」と 1 行足す）。最初からやり直さない。
+
+派遣プロンプト（テンプレをそのまま埋める）:
+
+```
+moores-code-review のオーケストレータとして動け。
+Read this : <リポジトリ絶対パス>/.claude/skills/moores-code-review/SKILL.md
+実行範囲 : Step 2〜6.5(Step 0〜1 は完了済み。Step 7 の報告・AskUserQuestion・記録は親が行う)
+Run dir : <$RUNDIRの実値>
+Patch path : <PATCH_PATH>
+User prompt : <USER_PROMPT_PATH>
+Repo root : <リポジトリ絶対パス>
+追加契約 :
+- SKILL.md の手順・出力契約・「1 メッセージ最大 12 体」「全員に model 明示」・Gotchas を逐語で守る。系統のモデルを自分の判断で変えない。
+- 自分は委譲された側なので再委譲しない(インライン実行の条件 (c))。
+- Step 6 の自動適用・uloop compile・Step 6.5 の再チェックと post-checks まで実施する。設計判断は適用せず保留。
+- 設計判断を <$RUNDIRの実値>/design.md に書く(1 件ごとに 症状→原因→推奨と選択肢。Step 7 の設問基準で、コードを開かずに選べる形)。0 件なら「なし」とだけ書く。
+- $RUNDIR 配下のファイルは削除しない。
+- 返答は 10 行以内: 系統数(起動・回収・欠員) / Critical・Warning・Info・suppressed 件数 / 適用した修正数 / コンパイル・テスト結果 / integrated.md と design.md の 2 パス。生の指摘本文は返答に書かない。
+```
+
+回収: 返答を受けたら **`integrated.md` を Read する（この 1 ファイルだけ）**。`agents/`・Codex `.out.md` は読まない（疑義のある個別件の再確認のみ例外）。返答の欠員・縮退は Step 7 の報告へ転記する。Step 7 は本体が SKILL.md どおり実施し、裁定結果の適用は 1〜2 箇所の機械的な直しなら本体が最小 Edit、まとまった量なら fix subagent（`model: "sonnet"`）1 体に design.md のパス+裁定を渡す。
 
 ## Step 0: 実行ディレクトリ `$RUNDIR` を作る
 
