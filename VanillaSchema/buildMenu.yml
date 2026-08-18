@@ -104,3 +104,6 @@ properties:
       type: enum
       options:
       - blueprintCopy
+    - key: initialUnlocked
+      type: boolean
+      default: false
