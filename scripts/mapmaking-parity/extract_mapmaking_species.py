@@ -28,6 +28,10 @@ CURRENT_SCHEMA_BIOMES = ("Forest", "Grassland", "Savanna", "Mesa")
 # Presets on the legacy schema (a single prototypes[].prefab); only the species list is extracted
 LEGACY_SCHEMA_BIOMES = ("Jungle", "Woods")
 
+# 全プロトタイプがdisabledで配置設定を持たないプリセット。樹種の登録だけを行い biomes には出さない
+# Presets whose prototypes are all disabled: their species are registered but no biome entry is emitted
+SPECIES_ONLY_BIOMES = ("Desert",)
+
 # TreePrototypeEntry改修後に再保存されておらず、新フィールドが未記録・旧フィールドが残るプリセット
 # Presets not re-saved since the TreePrototypeEntry rework: new fields unwritten, removed fields still present
 STALE_SERIALIZED_BIOMES = frozenset({"Mesa"})
@@ -55,7 +59,7 @@ def main() -> None:
     # 全プリセットを先に読み、樹種を確定させてからプロトタイプ変換でguidを引く
     # Read every preset first so species are settled before prototype conversion resolves guids
     unity_biomes = {name: _load_tree_placement(name)
-                    for name in CURRENT_SCHEMA_BIOMES + LEGACY_SCHEMA_BIOMES}
+                    for name in CURRENT_SCHEMA_BIOMES + LEGACY_SCHEMA_BIOMES + SPECIES_ONLY_BIOMES}
     species_by_guid = _collect_species(unity_biomes, prefab_path_by_guid)
     map_object_guid_by_prefab_guid = {guid: species.map_object_guid
                                       for guid, species in species_by_guid.items()}
@@ -81,6 +85,8 @@ def main() -> None:
             for index, prototype in enumerate(unity_biomes[name]["prototypes"])
         ]}
 
+    _reject_placeable_species_only_biomes(unity_biomes)
+
     species = sorted(species_by_guid.values(), key=lambda entry: entry.key)
     document = {"species": [entry.to_json() for entry in species], "biomes": biomes}
     OUTPUT_PATH.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -99,6 +105,16 @@ def _reject_removed_fields_still_in_schema(prototype_schema) -> None:
     resurrected = sorted(REMOVED_UNITY_FIELDS & {key for key, _ in prototype_schema.properties})
     if resurrected:
         raise ValueError(f"削除済みとみなしたフィールドがスキーマに存在する: {resurrected}")
+
+
+def _reject_placeable_species_only_biomes(unity_biomes: dict) -> None:
+    """樹種のみ抽出するプリセットに有効プロトタイプが現れていないことを検算する。"""
+    """Verifies that species-only presets still hold no enabled prototype to place."""
+    for name in SPECIES_ONLY_BIOMES:
+        enabled = [index for index, prototype in enumerate(unity_biomes[name]["prototypes"])
+                   if not prototype["disabled"]]
+        if enabled:
+            raise ValueError(f"{name}: 樹種のみ抽出の前提に反し有効プロトタイプがある: {enabled}")
 
 
 def _load_tree_placement(biome_name: str) -> dict:

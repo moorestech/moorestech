@@ -641,6 +641,36 @@
       "mapObjectName": "Stone5"
     },
     {
+      "key": "Oasis/Olivebush1",
+      "prefabGuid": "4db60b76f414415cb38e593814b833dd",
+      "prefabPath": "Assets/PersonalAssets/moorestech-client-private/BK/PureNature_Oasis/Prefabs/Trees/Olivebush1.prefab",
+      "kind": "tree",
+      "address": "Vanilla/Environment/Tree/Oasis/Olivebush1",
+      "wrapperPath": "Assets/AddressableResources/Environment/Tree/Oasis/Olivebush1.prefab",
+      "mapObjectGuid": "b497a900-7e17-5e87-b998-4db57a253cd0",
+      "mapObjectName": "Olivebush1"
+    },
+    {
+      "key": "Oasis/Olivebush2",
+      "prefabGuid": "1daccfd274f9439bb7b537354fc0495b",
+      "prefabPath": "Assets/PersonalAssets/moorestech-client-private/BK/PureNature_Oasis/Prefabs/Trees/Olivebush2.prefab",
+      "kind": "tree",
+      "address": "Vanilla/Environment/Tree/Oasis/Olivebush2",
+      "wrapperPath": "Assets/AddressableResources/Environment/Tree/Oasis/Olivebush2.prefab",
+      "mapObjectGuid": "8b2e393a-662b-5202-9e11-5ff3d8b63a47",
+      "mapObjectName": "Olivebush2"
+    },
+    {
+      "key": "Oasis/Olivebush3",
+      "prefabGuid": "9cf5e545a3ce472aac31ad93cfba71dd",
+      "prefabPath": "Assets/PersonalAssets/moorestech-client-private/BK/PureNature_Oasis/Prefabs/Trees/Olivebush3.prefab",
+      "kind": "tree",
+      "address": "Vanilla/Environment/Tree/Oasis/Olivebush3",
+      "wrapperPath": "Assets/AddressableResources/Environment/Tree/Oasis/Olivebush3.prefab",
+      "mapObjectGuid": "1745a0ab-20f1-5d56-ad03-74136a0c049b",
+      "mapObjectName": "Olivebush3"
+    },
+    {
       "key": "Redwood/BigBoulders_0",
       "prefabGuid": "6fa5497cc8b84fdd9a19dda98de77447",
       "prefabPath": "Assets/PersonalAssets/moorestech-client-private/BK/PureNature_Redwood/Prefabs/Rocks/BigBoulders_0.prefab",
