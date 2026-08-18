@@ -84,7 +84,7 @@ namespace Game.Block.Blocks.Machine.State
         {
             // 電力、モジュールに基づいてこのティックで引くティック数を計算
             // Calculate the number of ticks to consume this tick based on power and modules
-            var effectiveRequestPower = _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier;
+            var effectiveRequestPower = _context.EffectiveRequestPower(ProcessState.Processing);
             var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_context.CurrentPower, effectiveRequestPower);
 
             // 残りtickを使い切ったら完了して待機へ

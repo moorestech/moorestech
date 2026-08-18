@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { ScrollArea } from "@mantine/core";
 import { useTopic, dispatchAction, Topics, UiStateNames } from "@/bridge";
 import { GamePanel, IconButton } from "@/shared/ui";
@@ -12,19 +12,45 @@ import {
   type BuildMenuDisplayEntry,
 } from "./buildMenuGrouping";
 import { BuildMenuCategoryGrid } from "./BuildMenuCategoryGrid";
-import { BuildMenuDetailPreview } from "./BuildMenuDetailPreview";
+import { BuildMenuDetailSidebar } from "./BuildMenuDetailSidebar";
 import { BuildMenuSearchInput } from "./BuildMenuSearchInput";
 import { CategorySidebar } from "./CategorySidebar";
+import { loadBuildMenuSessionState, updateBuildMenuSessionState } from "./sessionState/buildMenuSessionState";
 import styles from "./style.module.css";
 
-// uGUI BuildMenuView の web 版。カテゴリ導出は純関数、選択は build_menu.select で Unity へ届く
-// Web version of uGUI BuildMenuView; categories via pure functions, selections reach Unity via build_menu.select
+// BuildMenuViewのweb版・3カラム(§8.11)
+// Web version of BuildMenuView; 3 columns (§8.11)
 export function BuildMenuPanel() {
   const { t } = useI18n();
   const data = useTopic(Topics.buildMenu);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
-  const [hovered, setHovered] = useState<BuildMenuDisplayEntry | null>(null);
+  // ストアから初期値を復元
+  // Restore initial values from the session store
+  const [stored] = useState(() => loadBuildMenuSessionState());
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(stored.categoryGuid);
+  const [query, setQuery] = useState(stored.query);
+  const [hoveredId, setHoveredId] = useState<string | null>(stored.hoveredEntryId);
+  // 視口アタッチ時に1回復元
+  // Restore once via the viewport attach callback
+  const scrollRestoredRef = useRef(false);
+  const scrollViewportRef = useRef<HTMLDivElement | null>(null);
+  const attachScrollViewport = (viewport: HTMLDivElement | null) => {
+    if (viewport === null) return;
+    // 保存先は常に最新視口
+    // Save target always tracks the latest viewport
+    scrollViewportRef.current = viewport;
+    if (scrollRestoredRef.current) return;
+    scrollRestoredRef.current = true;
+    viewport.scrollTop = loadBuildMenuSessionState().scrollTop;
+    // クランプ後の実効値へ揃え直す
+    // Realign the store with the clamped effective value
+    updateBuildMenuSessionState({ scrollTop: viewport.scrollTop });
+  };
+  // scrollイベントは次フレームまで合体されアンマウントに間に合わないため、DOM除去前の実効値を確定保存する
+  // Scroll events coalesce until the next frame and miss the unmount, so persist the effective value before DOM removal
+  useLayoutEffect(() => () => {
+    if (scrollViewportRef.current === null) return;
+    updateBuildMenuSessionState({ scrollTop: scrollViewportRef.current.scrollTop });
+  }, []);
   if (!data) return null;
 
   // 表示名を一度解決し全表示へ共有
@@ -39,11 +65,26 @@ export function BuildMenuPanel() {
       ? sectionsForCategory(currentCategory, data.categories, displayEntries)
       : [];
 
-  // topic再配信で hovered が消えたエントリを指し続けても、描画時に現データ側の実在エントリへ引き直す
-  // If a topic rebroadcast leaves hovered pointing at a removed entry, re-resolve to the live entry at render time
-  const previewEntry = hovered
-    ? displayEntries.find((entry) => entry.id === hovered.id) ?? null
+  // sticky:離脱で消さず引き直す
+  // Sticky: never clear; re-resolve on rebroadcast
+  const detailEntry = hoveredId
+    ? displayEntries.find((entry) => entry.id === hoveredId) ?? null
     : null;
+  const hover = (entry: BuildMenuDisplayEntry) => {
+    setHoveredId(entry.id);
+    updateBuildMenuSessionState({ hoveredEntryId: entry.id });
+  };
+
+  // 変更時にプッシュ保存
+  // Push-save on change
+  const selectCategory = (categoryGuid: string) => {
+    setSelectedCategory(categoryGuid);
+    updateBuildMenuSessionState({ categoryGuid });
+  };
+  const changeQuery = (next: string) => {
+    setQuery(next);
+    updateBuildMenuSessionState({ query: next });
+  };
 
   const select = (entry: BuildMenuDisplayEntry) =>
     void dispatchAction("build_menu.select", { id: entry.id });
@@ -56,35 +97,46 @@ export function BuildMenuPanel() {
   const close = () => void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });
 
   return (
-    <div className={styles.panel} data-testid="build-menu-panel">
-      <GamePanel title={t(L.ui.buildMenu.title)} variant="default">
-        <IconButton onClick={close} ariaLabel={t(L.ui.common.close)} className={styles.close} testId="build-menu-close" />
-        <div className={styles.columns}>
-          <CategorySidebar
-            categories={visible}
-            selected={currentCategory ?? ""}
-            disabled={searching}
-            onSelect={setSelectedCategory}
-          />
-          <div className={styles.main}>
-            <BuildMenuSearchInput value={query} onChange={setQuery} />
-            <BuildMenuDetailPreview entry={previewEntry} />
-            <ScrollArea className={styles.scroll} type="auto">
-              {sections.length === 0 && searching ? (
-                <span className={styles.noHit}>{t(L.ui.buildMenu.noResults)}</span>
-              ) : (
-                <BuildMenuCategoryGrid
-                  sections={sections}
-                  compositeHeading={searching}
-                  onSelect={select}
-                  onDelete={remove}
-                  onHoverChange={setHovered}
-                />
-              )}
-            </ScrollArea>
+    <div className={styles.panelBand}>
+      <div className={styles.panel} data-testid="build-menu-panel">
+        {/* GamePanelは内容高で伸びるため、研究パネル前例と同じくバンド高へ明示的に縛る（§8.11の--menu-content-height） */}
+        {/* GamePanel grows with its content, so pin it to the band height like the research-panel precedent (§8.11 --menu-content-height) */}
+        <GamePanel title={t(L.ui.buildMenu.title)} variant="default" style={{ height: "100%", boxSizing: "border-box" }}>
+          <IconButton onClick={close} ariaLabel={t(L.ui.common.close)} className={styles.close} testId="build-menu-close" />
+          <div className={styles.columns} data-testid="build-menu-columns">
+            <div className={styles.sidebar}>
+              <CategorySidebar
+                categories={visible}
+                selected={currentCategory ?? ""}
+                disabled={searching}
+                onSelect={selectCategory}
+              />
+            </div>
+            <div className={styles.main}>
+              <BuildMenuSearchInput value={query} onChange={changeQuery} />
+              <ScrollArea
+                className={styles.scroll}
+                type="auto"
+                viewportRef={attachScrollViewport}
+                onScrollPositionChange={({ y }) => updateBuildMenuSessionState({ scrollTop: y })}
+              >
+                {sections.length === 0 && searching ? (
+                  <span className={styles.noHit}>{t(L.ui.buildMenu.noResults)}</span>
+                ) : (
+                  <BuildMenuCategoryGrid
+                    sections={sections}
+                    compositeHeading={searching}
+                    onSelect={select}
+                    onDelete={remove}
+                    onEntryHovered={hover}
+                  />
+                )}
+              </ScrollArea>
+            </div>
+            <BuildMenuDetailSidebar entry={detailEntry} />
           </div>
-        </div>
-      </GamePanel>
+        </GamePanel>
+      </div>
     </div>
   );
 }

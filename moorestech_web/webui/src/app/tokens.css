@@ -38,6 +38,9 @@
   /* ホットバーと同じ床に揃えて右端へ寄せる。上へ伸ばすと持ち物画面の一覧パネルへ食い込むため下詰めが必須 */
   /* Share the hotbar's floor at the right edge; the column grows upward, so bottom-anchoring is what keeps it clear of the inventory screen's list panel */
   --equipment-bottom: var(--hotbar-bottom);
+  /* 半透明ネイビー族の基底面色。uGUI原画像 invebtory_bg_base #0a0e1b をα0.8で使う */
+  /* Base face color of the translucent navy family: the uGUI source invebtory_bg_base #0a0e1b at alpha 0.8 */
+  --surface-navy: rgb(10 14 27 / 80%);
   /* 面の左右フェード幅。%指定はパネル幅で伸びるため固定長で統一 */
   /* Horizontal face-fade span; fixed length so it never scales with panel width */
   --panel-edge-fade: 12px;
@@ -66,6 +69,9 @@
   --z-overlay-panel: 30;
   --z-grab: 40;
   --z-modal: 200;
+  /* ツールチップはモーダルより前、トースト通知より後ろに置く */
+  /* Tooltips sit above modals and below toast notifications */
+  --z-tooltip: 250;
   --z-toast: 300;
   --z-reconnect: 2000;
   --text-default: #eee;
@@ -78,15 +84,30 @@
   --text-insufficient: #ff7878;
   --color-content-primary: #f2f3f7;
   --recipe-action-background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
-  /* メニュー内容を常駐HUDの下からホットバー手前までに収める */
-  /* Keep menu content between the resident HUD and the hotbar */
-  --menu-upper-safe-area: 128px;
-  --menu-content-height: 525px;
+  /* メニュー内容を面付き常駐HUDの下からホットバー帯の手前までに収める */
+  /* Keep menu content between the faced resident HUD and the hotbar band */
+  --menu-upper-safe-area: 168px;
+  /* 床はホットバー帯の占有高(bottom2+slot51.68+数字タブ16≒69.68px)を切り上げた単一の正 */
+  /* The floor is the hotbar band's footprint (bottom 2 + slot 51.68 + number tab 16 = 69.68px) rounded up */
+  --menu-lower-safe-area: 70px;
+  --menu-content-height: calc(var(--ui-stage-height) - var(--menu-upper-safe-area) - var(--menu-lower-safe-area));
+  /* パネル付随の副次アクションボタン。正本の整理ボタン実測寸法を固定長で持つ */
+  /* Panel-attached secondary action button; fixed lengths taken from the reference sort button */
+  --panel-action-button-width: 87px;
+  --panel-action-button-height: 28.609px;
+  --panel-action-button-font-size: 15px;
+  --panel-action-button-hover-mix: 22%;
+  /* HUD面の安全帯。フェード帯を超える余白で、チャレンジHUDの面幅導出とも共有する */
+  /* HUD face safe area: padding wider than the fade band, shared with the challenge HUD's width derivation */
+  --hud-panel-padding: 20px;
   /* 常駐チャレンジHUDは左上へ固定し、本文と罫線の幅を分離する */
   /* Keep the resident challenge HUD top-left with independent content and rule widths */
   --challenge-hud-left: 24px;
   --challenge-hud-top: 24px;
-  --challenge-hud-width: 520px;
+  /* 面幅は本文の折返し幅にGamePanel hud variantの安全帯paddingを左右分足して導く */
+  /* Derive the face width from the text-wrap width plus the hud variant's safe-area padding on each side */
+  --challenge-hud-content-width: 520px;
+  --challenge-hud-width: calc(var(--challenge-hud-content-width) + var(--hud-panel-padding) * 2);
   --challenge-hud-rule-width: 176px;
   --challenge-hud-label-font-size: 12px;
   --challenge-hud-objective-font-size: 14px;
@@ -95,7 +116,7 @@
   --challenge-hud-objective-gap: 2px;
   --challenge-hud-letter-spacing: 1px;
   --challenge-hud-objective-line-height: 20px;
-  --challenge-hud-text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
+  --challenge-hud-text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
   /* 配置モード情報を右上のクラフト枠へ固定長で配置する */
   /* Place placement-mode information in the top-right craft frame with fixed lengths */
   --operation-hud-right: 24px;
@@ -117,7 +138,7 @@
   --delete-mode-warning-black: rgb(0 0 0);
   /* ゲージの溝は世界が透ける半透明ネイビー面にする */
   /* Use a translucent navy face for gauge tracks so the world remains visible */
-  --gauge-track: rgb(10 14 27 / 80%);
+  --gauge-track: var(--surface-navy);
   /* ゲージの充填は主要アクションと競合しない寒色グレーにする */
   /* Use a cool gray for gauge fills so they do not compete with primary actions */
   --gauge-fill: rgb(104 106 120);
@@ -130,17 +151,31 @@
   /* 内容量で幅が決まる小型ブロックパネルの右余白を左インデントと対称にする */
   /* Mirrors the left inset on content-sized block panels so the right edge gets equal padding */
   --block-panel-right-safe-area: 28px;
-  /* 建設メニュー: サイドバー幅・プレビュー高・フェード帯と内容の安全余白（固定長。%は破綻源） */
-  /* Construction menu: sidebar width, preview height, and edge safe area (fixed length; % is a failure source) */
-  --build-menu-sidebar-width: 8.5rem;
-  --build-menu-preview-height: calc(var(--slot-size) + 8px);
+  /* カテゴリ列の幅。実マスタ最長の英訳 Building Materials(実測136.2px)を左右padding 19.2px込みで1行に収める */
+  /* Width of the category column, fitting the real master's longest English name Building Materials (measured 136.2px) plus its 19.2px inline padding on one line */
+  --build-menu-sidebar-width: 10rem;
+  /* 3カラム間のgapとパネル右端の余白を兼ねる安全帯 */
+  /* Safe area serving as both the gap between the three columns and the panel's right inset */
   --build-menu-edge-safe-area: 16px;
+  /* Mantineのオーバーレイ縦スクロールバー実寸(--scrollarea-scrollbar-size = 0.75rem)をグリッド右へ予約する */
+  /* Reserves the measured width of Mantine's overlay vertical scrollbar (--scrollarea-scrollbar-size = 0.75rem) to the right of the grid */
+  --build-menu-grid-scrollbar-reserve: 12px;
+  /* 中央3カラムの固定寸法（§8.11・目視QAで確定）。886px=中央列452pxで予約12pxを引いた440pxに8列431.6pxが収まる */
+  /* Fixed dimensions of the centered three columns (§8.11, settled by visual QA): 886px gives a 452px center column whose 440px remainder after the 12px reserve holds the 431.6px eight columns */
+  --build-menu-panel-width: 886px;
+  --build-menu-detail-width: 11.75rem;
+  /* 床の明示でバンドが482pxへ縮んだため、33px×10+gap4px×9=366pxを利用可能高372.6pxへ収め直した */
+  /* The explicit floor shrank the band to 482px, so 33px x 10 + 4px gap x 9 = 366px now fits the 372.6px available height */
+  --build-menu-category-height: 2.0625rem;
+  /* 閉じる✕は詳細列の右上に重なるため、1行目を✕の下端より下へ逃がす安全帯（✕上端 --bevel-3 + ✕実寸 --icon-button-size + 縦積みgap 8px） */
+  /* Safe area dropping the detail column's first line below the close cross that overlaps its top-right (cross top --bevel-3 + cross size --icon-button-size + the 8px stack gap) */
+  --build-menu-detail-top-safe-area: calc(var(--bevel-3) + var(--icon-button-size) + 8px);
   /* ワールドピンHUDの層。パネル面より下に置き、開いたパネルの背後に隠れる */
   /* World-pin HUD layer; kept below panel faces so open panels cover it */
   --z-world-pin: 10;
   /* ワールドピンのラベル・マーカー面は半透明ネイビー族に揃える */
   /* World-pin label and marker faces share the translucent navy family */
-  --world-pin-face: rgb(10 14 27 / 80%);
+  --world-pin-face: var(--surface-navy);
   /* 画面外矢印は旧シェブロンの2倍幅にし、チュートリアル誘導として見落としにくくする */
   /* Double the old chevron size so the off-screen tutorial cue is hard to miss */
   --world-pin-arrow-size: 56px;
@@ -180,15 +215,20 @@
   --craft-arrow-offset-y: -12.218px;
   /* 研究ノードカードの面と枠（GamePanelのネイビー族に揃える） */
   /* Research node card face and border, matching the GamePanel navy family */
-  --research-node-face: rgb(10 14 27 / 80%);
+  --research-node-face: var(--surface-navy);
   --research-node-border: rgb(104 106 120);
   /* 通知行の面と枠（研究ノードカードと同族の半透明ネイビー+寒色枠） */
   /* Notification row face and border, same navy-family face and cool border as research node cards */
-  --notification-face: rgb(10 14 27 / 80%);
+  --notification-face: var(--surface-navy);
   --notification-border: rgb(104 106 120);
   /* 通知の最大幅は画面幅の20%（ユーザー裁定）。画面比例が要件のため例外的に%を使う */
   /* Notification max width is 20% of the screen width (user ruling); % is intentional because the cap must scale with the screen */
   --notification-max-width: 20vw;
+  /* 通知の出入り。左から固定長で滑り込み、退場は生存尺から逆算した遅延で逆再生する */
+  /* Notification enter/exit: slides in from the left by a fixed length; the exit mirrors it after a lifetime-derived delay */
+  --notification-enter-duration: 160ms;
+  --notification-exit-duration: 200ms;
+  --notification-shift: 12px;
   /* 選択・強調のシアン（uGUI frame_select.png / nav_arrow.png 由来）。スロット選択枠とスキットの強調に限る */
   /* Selection cyan from uGUI frame_select.png / nav_arrow.png; limited to slot selection frames and skit highlights */
   --select-cyan: rgb(0 221 255);

@@ -11,6 +11,7 @@ const dispatchMock = vi.hoisted(() => vi.fn());
 const recipeA = "84000000-0000-4000-8000-000000000001";
 const recipeB = "84000000-0000-4000-8000-000000000002";
 const blockGuid = "85000000-0000-4000-8000-000000000001";
+const emptyGuid = "00000000-0000-0000-0000-000000000000";
 
 vi.mock("@/bridge", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/bridge")>()),
@@ -92,7 +93,7 @@ describe("MachineRecipeSelectionTab", () => {
 
     // 未選択・非ホバーでは詳細を出さず案内文を表示する
     // With no selection and no hover, the guidance text replaces the detail
-    const unselectedRows = buildMachineRecipeSelectionRows(recipes, blockGuid, null);
+    const unselectedRows = buildMachineRecipeSelectionRows(recipes, blockGuid, emptyGuid);
     const unselected = create(createElement(MachineRecipeSelectionTab, { rows: unselectedRows, recipes, onSelected: vi.fn() }));
     expect(unselected.root.findAllByProps({ "data-testid": "machine-recipe-detail" })).toHaveLength(0);
     expect(unselected.root.findByProps({ "data-testid": "machine-recipe-detail-empty" })).toBeTruthy();

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/main.tsx!",
+    "e2e/capture-*.ts",
+    "e2e/challenge-hud/capture.ts",
+    "e2e/mock-host/server.ts",
+    "screenshot.mjs",
+    "scripts/*.mjs",
+    "eslint-rules/*.mjs",
+    "eslint.config.mjs"
+  ],
+  "project": ["src/**/*.{ts,tsx}!", "e2e/**/*.ts", "scripts/**/*.mjs"],
+  "playwright": {
+    "config": ["e2e/playwright.config.ts", "e2e/config/*.config.ts"]
+  },
+  "vitest": true,
+  "ignore": ["eslint-rules/*.d.ts"],
+  "ignoreDependencies": ["globals", "tsx"]
+}

@@ -37,7 +37,7 @@ namespace Client.Game.Skit
         [Inject] private BlockGameObjectDataStore blockGameObjectDataStore;
         [Inject] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
         [Inject] private EntityObjectDatastore entityObjectDatastore;
-        [Inject] private IMapObjectPin mapObjectPin;
+        [Inject] private IReadOnlyList<ITutorialWorldPin> worldPins;
         
         public bool IsPlayingSkit { get; private set; }
         private bool _isSkip;
@@ -73,7 +73,7 @@ namespace Client.Game.Skit
             var webUiMode = WebUiScreenGate.IsWebUiMode;
             var presentationStarted = false;
             var cameraRegistered = false;
-            var mapPinHidden = false;
+            var suppressedWorldPins = new List<ITutorialWorldPin>();
             SkitLocalizationResolver localizationResolver = null;
             StoryContext storyContext = null;
             CharacterObjectContainer characterContainer = null;
@@ -136,8 +136,14 @@ namespace Client.Game.Skit
                 
                 // 表示の設定
                 skitUI.SetActive(!webUiMode);
-                mapObjectPin.SetActive(false);
-                mapPinHidden = true;
+
+                // 抑止できたピンだけを控え、途中で失敗しても解除漏れで消えたままにしない
+                // Track only the pins actually suppressed so a mid-way failure cannot leave one hidden forever
+                foreach (var worldPin in worldPins)
+                {
+                    worldPin.BeginSkitSuppress();
+                    suppressedWorldPins.Add(worldPin);
+                }
 
                 // DIコンテナをセットアップ
                 var builder = new ContainerBuilder();
@@ -163,7 +169,7 @@ namespace Client.Game.Skit
                 // Restore only the playback state actually changed, from the single finally
                 skitUI.SetActive(false);
                 if (presentationStarted) SkitPresentationStateStore.Instance.End();
-                if (mapPinHidden) mapObjectPin.SetActive(true);
+                foreach (var suppressedWorldPin in suppressedWorldPins) suppressedWorldPin.EndSkitSuppress();
                 characterContainer?.DestroyAllCharacters();
                 if (cameraRegistered) CameraManager.UnRegisterCamera(skitCamera);
                 storyContext?.Dispose();

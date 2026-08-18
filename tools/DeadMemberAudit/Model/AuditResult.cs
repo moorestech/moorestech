@@ -1,5 +1,6 @@
 using DeadMemberAudit.Cancellation;
 using DeadMemberAudit.Placement;
+using DeadMemberAudit.PrivateHelper;
 
 namespace DeadMemberAudit.Model;
 
@@ -17,6 +18,11 @@ public sealed class AuditResult
 
     public readonly List<PlacementFinding> PlacementFindings = new();
     public readonly List<CancellationFinding> CancellationFindings = new();
+
+    // privateメソッドの畳む候補・消す候補（リスト6）。母集団がpublicメンバーではないので独立に持つ
+    // Folding and deletion candidates among private methods (list 6), held separately because their population is not the public members
+    public readonly List<PrivateHelperFinding> PrivateHelperFindings = new();
+
     public readonly Dictionary<ExclusionReason, int> ExclusionCounts = new();
     public readonly Dictionary<AssemblyCategory, int> AssemblyCountsByCategory = new();
 
@@ -38,6 +44,10 @@ public sealed class AuditResult
     public int SymbolLessAssemblyCount { get; private set; }
     public int SkippedFileCount { get; private set; }
 
+    // 循環フォワーダで解決を打ち切った回数。0でなければ一部の参照が未解決のまま集計されている
+    // Resolutions cut short by a forwarder cycle; a non-zero count means some references stayed unresolved
+    public int BrokenForwarderCycleCount { get; private set; }
+
     public void SetCounts(int populationCount, int scannedMethodCount, int liveCount)
     {
         PopulationCount = populationCount;
@@ -45,10 +55,11 @@ public sealed class AuditResult
         LiveCount = liveCount;
     }
 
-    public void SetLoadDiagnostics(int symbolLessAssemblyCount, int skippedFileCount)
+    public void SetLoadDiagnostics(int symbolLessAssemblyCount, int skippedFileCount, int brokenForwarderCycleCount)
     {
         SymbolLessAssemblyCount = symbolLessAssemblyCount;
         SkippedFileCount = skippedFileCount;
+        BrokenForwarderCycleCount = brokenForwarderCycleCount;
     }
 
     public void CountExclusion(ExclusionReason reason)

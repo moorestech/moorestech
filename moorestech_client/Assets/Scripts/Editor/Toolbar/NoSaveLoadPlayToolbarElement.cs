@@ -44,6 +44,10 @@ namespace Client.Editor.Toolbar
             // Set the skip-save-load flag (persists across domain reload)
             SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, true);
 
+            // Generated Playの残置フラグはworldDirectoryを生成ワールドへ乗っ取るので明示解除する
+            // A leftover Generated Play flag hijacks worldDirectory to the generated world, so clear it explicitly
+            SessionState.SetBool(GeneratedWorldPlayModeSettings.SessionStateKey, false);
+
             // ゲーム初期化シーンから再生を開始する
             // Start play mode from the game initializer scene
             EditorSceneManager.playModeStartScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(GameInitializerScenePath);

@@ -32,6 +32,11 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
         public readonly float TerrainWidth;
         public readonly float TerrainLength;
 
+        // タイル原点のワールド座標。捨てると全タイルが同じ草の粗密を反復し、境目で模様が直線状に切り替わる
+        // The tile origin in world space; dropping it repeats one grass pattern on every tile and cuts a straight seam at the boundary
+        public readonly float WorldOffsetX;
+        public readonly float WorldOffsetZ;
+
         public readonly float FilterRejectThreshold;
         public readonly float BorderMarginPixels;
 
@@ -40,7 +45,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
             float[,] treeDistanceMap, float[,] objectDistanceMap,
             float[,,] splatmap, TerrainLayer[] terrainLayers, Vector2[] noiseOffsets,
             int heightmapResolution, int detailResolution, int splatResolution,
-            float terrainWidth, float terrainLength,
+            float terrainWidth, float terrainLength, float worldOffsetX, float worldOffsetZ,
             float filterRejectThreshold, float borderMarginPixels)
         {
             Mask = mask;
@@ -57,6 +62,8 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
             SplatResolution = splatResolution;
             TerrainWidth = terrainWidth;
             TerrainLength = terrainLength;
+            WorldOffsetX = worldOffsetX;
+            WorldOffsetZ = worldOffsetZ;
             FilterRejectThreshold = filterRejectThreshold;
             BorderMarginPixels = borderMarginPixels;
         }

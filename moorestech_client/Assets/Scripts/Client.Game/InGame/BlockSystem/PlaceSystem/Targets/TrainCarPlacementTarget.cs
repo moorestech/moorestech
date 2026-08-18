@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Localization;
 using Core.Master;
+using Game.PlacementTarget;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets

@@ -32,6 +32,8 @@ markdownレポートを標準出力と `tools/DeadMemberAudit/report.md` の両�
 | 5-A「CT未伝搬」 | トークンを持つ呼び出し元がCTを渡していない呼び出しサイト | `ct-not-passed` |
 | 5-B「async void」 | `[AsyncStateMachine]`付きでvoid返しのメソッド | `ct-async-void` |
 | 5-C「CTS作りっぱなし」 | CTSフィールドにCancel/Disposeがどこにも無い | `cts-not-released` |
+| 6-A「単一呼び出し元ヘルパ」 | 同一型の1メソッドからしか呼ばれていないprivateメソッド | `single-caller-helper` |
+| 6-B「参照0private」 | どこからも呼ばれていないprivateメソッド | `dead-private-member` |
 
 全リストとも **2列目が対象・最終列が裁定用の文脈** で、`宣言場所` に `` `path:line` `` を持つ
 （`.claude/skills/moores-code-review/scripts/dead_member_gate.py` がこの2つの位置に依存している）。
@@ -174,6 +176,14 @@ Unity InputSystemが`.inputactions`から吐く`MoorestechInputSettings`が、�
 
 **PDBが読めないとこの判定が効かない。** レポートのサマリに「シンボル無しで読んだアセンブリ」の件数を出しているので、
 0でない場合は結果の精度が落ちていると考えること。
+
+## 型フォワーダの循環
+
+Unity/Monoが同梱するファサードDLLには型フォワーダが循環しているものがある（実測では`System.Net.Sockets.Socket`が1件）。
+素のCecilはこの循環を`Resolve`→`ExportedType.Resolve`→`Resolve`と無限再帰し、stack overflowでプロセスごと落ちる。
+`ForwarderCycleGuardResolver`が解決中の型を追跡して再入時にnullを返すことで打ち切っており、
+打ち切った件数はサマリの「循環フォワーダで打ち切った型解決」に出る。
+循環した鎖は本当に解決不能なのでnullが正しい答えだが、件数が急に増えた場合は検索ディレクトリ構成を疑うこと。
 
 ## DI・リフレクション経路の調査結果
 

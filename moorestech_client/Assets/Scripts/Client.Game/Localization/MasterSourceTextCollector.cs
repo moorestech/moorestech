@@ -121,6 +121,7 @@ namespace Client.Game.Localization
                 return tutorial.TutorialParam switch
                 {
                     MapObjectPinTutorialParam mapObjectPin => mapObjectPin.PinText,
+                    VeinPinTutorialParam veinPin => veinPin.PinText,
                     KeyControlTutorialParam keyControl => keyControl.ControlText,
                     UiHighLightTutorialParam uiHighLight => uiHighLight.HighLightText,
                     ItemViewHighLightTutorialParam itemViewHighLight => itemViewHighLight.HighLightText,

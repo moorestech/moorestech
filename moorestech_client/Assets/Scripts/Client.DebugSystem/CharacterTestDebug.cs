@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Network.API;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Hotbar;
 using Game.MapGeneration.Transfer;
 using Game.PlayerInventory.Interface;
 using Game.Research;
@@ -42,7 +43,7 @@ namespace Client.DebugSystem
                 // プレイヤーの初期位置をコンテナから取得
                 // Fetch initial player position from the container
                 var playerPos = _playerSystemContainer.transform.position;
-                var handshake = new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(new Vector3MessagePack(playerPos), null, -1, Array.Empty<ItemStackLevelUnlockEventPacket.ItemStackLevelMessagePack>());
+                var handshake = new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(new Vector3MessagePack(playerPos), null, -1, Array.Empty<ItemStackLevelUnlockEventPacket.ItemStackLevelMessagePack>(), new Guid[HotbarAssignmentDatastore.SlotCount]);
                 var worldData = new WorldDataResponse(new List<BlockInfo>(), new List<EntityResponse>());
                 var emptyItem = new ItemMessagePack(ItemMaster.EmptyItemId, 0);
                 var inventory = new PlayerInventoryResponse(new PlayerInventoryResponseProtocol.PlayerInventoryResponseProtocolMessagePack(

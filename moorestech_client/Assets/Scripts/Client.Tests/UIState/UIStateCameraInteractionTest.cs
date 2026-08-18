@@ -1,84 +1,56 @@
-using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.Serialization;
-using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
-using Client.Game.InGame.Player;
-using Client.Game.InGame.UI.Challenge;
-using Client.Game.InGame.UI.Inventory;
-using Client.Game.InGame.UI.KeyControl;
-using Client.Game.InGame.UI.Tooltip;
+using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
+using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
+using Client.Tests.UIState.Fakes;
 using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Client.Tests.UIState
 {
-    public class UIStateCameraInteractionTest : InputTestFixture
+    public class UIStateCameraInteractionTest : UIStateTestFixtureBase
     {
-        private readonly List<GameObject> _objects = new();
-        private Mouse _mouse;
-
-        public override void Setup()
-        {
-            base.Setup();
-            _mouse = InputSystem.AddDevice<Mouse>();
-            InvokeAwake(CreateComponent<KeyControlDescription>("KeyControl"));
-        }
-
-        public override void TearDown()
-        {
-            foreach (var gameObject in _objects)
-                if (gameObject != null) Object.DestroyImmediate(gameObject);
-            _objects.Clear();
-            base.TearDown();
-        }
-
         [Test]
         public void GameScreenAndBuildMenuPushTheirOnEnterPolicies()
         {
             SetUpGameStateController();
             var gameApplier = new FakePlayerCameraInteractionApplier();
-            var gameState = new GameScreenState(null, null, null, null, gameApplier);
+            var gameState = new GameScreenState(null, null, null, null, CreateCameraPolicy(gameApplier), CreateHotbarTapInputService(null));
             gameState.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
-            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, gameApplier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, gameApplier.Calls);
 
             var menuApplier = new FakePlayerCameraInteractionApplier();
             var menuView = new FakeBuildMenuView();
-            var menuState = new BuildMenuState(menuView, menuApplier);
+            var menuState = new BuildMenuState(menuView, CreateCameraPolicy(menuApplier));
             menuState.OnEnter(new UITransitContext(UIStateEnum.BuildMenu));
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, menuApplier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, menuApplier.Calls);
             Assert.IsTrue(menuView.IsActive);
         }
 
         [Test]
-        public void PlaceBlockHandlesEnterRightDragAndExitNormally()
+        public void PlaceBlockPushesEnterDragStartAndExitPolicies()
         {
             var applier = new FakePlayerCameraInteractionApplier();
             var state = CreatePlaceBlockState(applier, new FakeMapVeinRangeView());
             state.OnEnter(new UITransitContext(UIStateEnum.PlaceBlock));
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
 
+            // ドラッグ全遷移はUiStateCameraPolicyServiceTest側が担い、ここでは委譲配線のみ確認
+            // Full drag transitions are covered by UiStateCameraPolicyServiceTest; only the delegation wiring is verified here
             applier.Calls.Clear();
-            Press(_mouse.rightButton);
+            Press(MouseDevice.rightButton);
             state.GetNextUpdate();
-            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
-
-            applier.Calls.Clear();
-            Release(_mouse.rightButton);
-            state.GetNextUpdate();
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
 
             applier.Calls.Clear();
             state.OnExit();
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
         }
 
         [Test]
@@ -101,7 +73,7 @@ namespace Client.Tests.UIState
         }
 
         [Test]
-        public void DeleteObjectHandlesEnterRightDragAndExitNormally()
+        public void DeleteObjectPushesEnterDragStartAndExitPolicies()
         {
             SetUpMouseCursorTooltip();
             var deleteObject = CreateComponent<DeleteBarObject>("DeleteBar");
@@ -109,23 +81,48 @@ namespace Client.Tests.UIState
             // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
-            var state = new DeleteObjectState(deleteObject, null, applier, buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
+            var state = new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
 
             applier.Calls.Clear();
-            Press(_mouse.rightButton);
+            Press(MouseDevice.rightButton);
             state.GetNextUpdate();
-            CollectionAssert.AreEqual(new[] { "Cursor:False", "Rotatable:True" }, applier.Calls);
-
-            applier.Calls.Clear();
-            Release(_mouse.rightButton);
-            state.GetNextUpdate();
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
 
             applier.Calls.Clear();
             state.OnExit();
-            CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
+        }
+
+        [Test]
+        public void GameScreenDelegatesLeftAltFreeCursorToPolicyService()
+        {
+            SetUpGameStateController();
+            var applier = new FakePlayerCameraInteractionApplier();
+            var state = CreateGameScreenState(applier);
+            state.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
+
+            // 左Alt押下がサービスへ届くことだけ見る
+            // Verify only that the left Alt press reaches the service
+            applier.Calls.Clear();
+            Press(KeyboardDevice.leftAltKey);
+            state.GetNextUpdate();
+            CollectionAssert.AreEqual(new[] { "Mode:PointerFree", "Warp" }, applier.Calls);
+
+            applier.Calls.Clear();
+            Release(KeyboardDevice.leftAltKey);
+            state.GetNextUpdate();
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
+        }
+
+        private GameScreenState CreateGameScreenState(FakePlayerCameraInteractionApplier applier)
+        {
+            var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
+            var subInventoryInteractService = new GameScreenSubInventoryInteractService(null);
+            var rideVehicleInputService = new RideVehicleInputService();
+            var placementTargetPickService = new PlacementTargetPickService(null);
+            return new GameScreenState(skitManager, subInventoryInteractService, rideVehicleInputService, placementTargetPickService, CreateCameraPolicy(applier), CreateHotbarTapInputService(null));
         }
 
         private PlaceBlockState CreatePlaceBlockState(FakePlayerCameraInteractionApplier applier, FakeMapVeinRangeView mapVeinRangeView)
@@ -135,64 +132,8 @@ namespace Client.Tests.UIState
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
             var placeStateController = new PlaceSystemStateController(selector);
             var pickService = new PlacementTargetPickService(null);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, applier, new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView);
-        }
-
-        private void SetUpMouseCursorTooltip()
-        {
-            var tooltip = CreateComponent<MouseCursorTooltip>("Tooltip", false);
-            SetField(tooltip, "canvasGroup", tooltip.gameObject.AddComponent<CanvasGroup>());
-            tooltip.gameObject.SetActive(true);
-            InvokeAwake(tooltip);
-        }
-
-        private void SetUpGameStateController()
-        {
-            var playerRoot = CreateObject("PlayerSystem", false);
-            var grabManager = playerRoot.AddComponent<PlayerGrabItemManager>();
-            var playerController = playerRoot.AddComponent<PlayerObjectController>();
-            var playerContainer = playerRoot.AddComponent<PlayerSystemContainer>();
-            SetField(playerContainer, "playerGrabItemManager", grabManager);
-            SetField(playerContainer, "playerObjectController", playerController);
-            playerRoot.SetActive(true);
-            InvokeAwake(playerContainer);
-
-            var hotBar = CreateComponent<HotBarView>("HotBar");
-            var challengeHud = CreateComponent<CurrentChallengeHudView>("ChallengeHud");
-            var gameState = CreateComponent<GameStateController>("GameState", false);
-            SetField(gameState, "currentChallengeHudView", challengeHud);
-            gameState.Construct(hotBar);
-            gameState.gameObject.SetActive(true);
-            InvokeAwake(gameState);
-        }
-
-        private T CreateComponent<T>(string name) where T : Component
-        {
-            return CreateComponent<T>(name, true);
-        }
-
-        private T CreateComponent<T>(string name, bool active) where T : Component
-        {
-            var gameObject = CreateObject(name, active);
-            return gameObject.AddComponent<T>();
-        }
-
-        private GameObject CreateObject(string name, bool active)
-        {
-            var gameObject = new GameObject(name);
-            gameObject.SetActive(active);
-            _objects.Add(gameObject);
-            return gameObject;
-        }
-
-        private static void SetField(object target, string fieldName, object value)
-        {
-            target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
-        }
-
-        private static void InvokeAwake(object target)
-        {
-            target.GetType().GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target, null);
+            var hotbarInputService = CreateHotbarTapInputService(placeStateController);
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier), new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView, hotbarInputService);
         }
     }
 }

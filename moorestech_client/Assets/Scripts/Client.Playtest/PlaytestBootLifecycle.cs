@@ -25,6 +25,10 @@ namespace Client.Playtest
             // 従来入口はNoSave指定を保ち、前回の固定world設定だけを破棄する
             // Preserve the legacy NoSave choice while discarding only stale fixed-world settings
             SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, noSave);
+
+            // Generated Playの残置フラグはworldDirectoryとmapModeを乗っ取るので明示解除する
+            // A leftover Generated Play flag hijacks worldDirectory and mapMode, so clear it explicitly
+            SessionState.SetBool(GeneratedWorldPlayModeSettings.SessionStateKey, false);
             PlaytestWorldBootSession.Clear();
             PrepareCommonBootSession(serverDirectory);
         }
@@ -38,6 +42,10 @@ namespace Client.Playtest
             // 固定worldはGuid一時パスへの上書きを止め、正式な起動設定をdomain reload越しに渡す
             // Fixed-world boot disables the GUID temp-path override and carries official settings across domain reload
             SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, false);
+
+            // Generated Playの残置フラグは指定worldDirectoryとmapModeを乗っ取るので明示解除する
+            // A leftover Generated Play flag hijacks the requested worldDirectory and mapMode, so clear it explicitly
+            SessionState.SetBool(GeneratedWorldPlayModeSettings.SessionStateKey, false);
             PlaytestWorldBootSession.Save(serverDirectory, worldDirectory, mapMode, seed);
             PrepareCommonBootSession(serverDirectory);
 
@@ -119,6 +127,7 @@ namespace Client.Playtest
             // 通常再生へ設定を漏らさないよう起動状態と購読を一括解除する
             // Clear boot state and subscriptions together so nothing leaks into normal play
             SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, false);
+            SessionState.SetBool(GeneratedWorldPlayModeSettings.SessionStateKey, false);
             SessionState.SetBool(PendingBootKey, false);
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
             PlaytestWorldBootSession.Clear();

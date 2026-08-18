@@ -1,14 +1,10 @@
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
-using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.Control;
 using Client.Input;
-using Core.Master;
 using Game.Block.Interface;
-using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
 
@@ -23,23 +19,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
     public class ElectricWireExtendMode
     {
         private readonly ElectricWireToolContext _context;
-        private readonly CommonBlockPlacePointCalculator _pointCalculator;
 
         public ElectricWireExtendMode(ElectricWireToolContext context)
         {
             _context = context;
-            _pointCalculator = new CommonBlockPlacePointCalculator(context.BlockDataStore);
         }
 
         /// <summary>
-        /// 起点選択済みの1フレーム更新。延長リクエストを送信したらtrueを返し、上位が起点をクリアする
-        /// One-frame update with an origin; returns true when an extend request was sent so the owner clears the origin
+        /// 起点選択済みの1フレーム更新。送信はsender経由で行い、起点の引き継ぎは応答確認後にシステム側が行う
+        /// One-frame update with an origin; sending goes through the sender, and origin hand-off happens after the response
         /// </summary>
-        public bool Update(PlaceSystemUpdateContext ctx, BlockGameObject source, int toolEpoch)
+        public void Update(PlaceSystemUpdateContext ctx, BlockGameObject source)
         {
             // 起点の接続上限を解決（非電気系なら何もしない）
             // Resolve the origin's connection limit (do nothing when it is not electric)
-            if (!ElectricWireExtendPreviewCalculator.TryResolveWireParam(source, out var sourceMaxCount, out _, out _)) return false;
+            if (!ElectricWireExtendPreviewCalculator.TryResolveWireParam(source, out var sourceMaxCount, out _, out _)) return;
 
             // 選択中の電線connectToolのGuidを使う（未選択時はEmpty）
             // Use the selected wire connectTool's Guid (Empty when nothing is selected)
@@ -53,18 +47,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 ElectricWireExtendPreviewCalculator.TryResolveWireParam(target, out var targetMaxCount, out _, out _))
             {
                 ConnectToTarget(target, targetMaxCount);
-                return false;
+                return;
             }
 
             // それ以外は空きスペースへの電柱設置＋延長モード
             // Otherwise, pole-placement-into-empty-space extension mode
-            return ExtendToEmptySpace();
+            ExtendToEmptySpace();
 
             #region Internal
 
             void ConnectToTarget(BlockGameObject targetBlock, int targetMaxConnectionCount)
             {
                 _context.PreviewBlockController.SetActive(false);
+                _context.PoleGhostPart.SetNameLabelActive(false);
 
                 // 既接続・接続上限の判定はCalculator内部に委ねる
                 // Already-connected and connection-full judgements are delegated to the calculator
@@ -72,80 +67,58 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 var distance = Vector3Int.Distance(fromPos, toPos);
                 var judgement = ElectricWireExtendPreviewCalculator.Evaluate(source, targetBlock, sourceMaxCount, targetMaxConnectionCount, distance, connectToolGuid, _context.Inventory);
 
-                _context.WirePreview.Show(fromPos, toPos, judgement.IsPlaceable, ResolveCostCount(judgement, distance));
+                var failureText = ElectricWirePlacementFailureText.ToText(judgement.FailureReason);
+                _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), ElectricWireEndpointResolver.Resolve(targetBlock), judgement.IsPlaceable, ResolveCostCount(judgement, distance), failureText);
 
-                // 可否OK かつクリックで接続する。起点は維持し連続接続できる
-                // Connect on click when placeable; keep the origin for continuous connection
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi() && judgement.IsPlaceable)
-                {
-                    ElectricWireExtendRequestSender.Connect(fromPos, toPos, connectToolGuid);
-                }
+                // 可否OK かつクリックで接続する。起点は応答確認後に接続先へ移る
+                // The origin moves to the target after the response confirms
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi() && judgement.IsPlaceable && !_context.RequestSender.IsAwaitingResponse) _context.RequestSender.SendConnect(fromPos, toPos, connectToolGuid);
             }
 
-            bool ExtendToEmptySpace()
+            void ExtendToEmptySpace()
             {
-                if (!ConnectToolCatalog.TryGetPlaceBlock(ConnectToolType.ElectricWireConnect, out var poleBlockId, out var poleMaster))
+                if (!_context.PoleGhostPart.TryEvaluateGhost(_context.PoleSelection, out var evaluation))
                 {
                     HidePreview();
-                    return false;
+                    return;
                 }
-
-                // 電柱の建設コストを賄えるかを所持素材から判定する
-                // Judge from owned materials whether the pole's construction cost is affordable
-                var canAffordPole = ConstructionCostPreviewCalculator.CalculateAffordableCellCount(poleMaster.RequiredItems, _context.Inventory) >= 1;
-
-                // 電柱の設置座標を地面レイキャストから求める
-                // Compute the pole placement position from a ground raycast
-                if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_context.MainCamera, 0, BlockDirection.North, poleMaster, out var placePoint, out _))
-                {
-                    HidePreview();
-                    return false;
-                }
-
-                if (poleMaster.BlockParam is not ElectricPoleBlockParam poleParam)
-                {
-                    HidePreview();
-                    return false;
-                }
-
-                // 通常設置と同じ計算でPlaceInfo生成
-                // Build the pole PlaceInfo using the same calculation as normal placement
-                var placeInfos = _pointCalculator.CalculatePoint(placePoint, placePoint, BlockDirection.North, poleMaster);
-                var placeInfo = placeInfos[0];
-
-                // 設置可否を確定しワイヤー可否と合算
-                // Finalize block placeability via ground contact, then combine with wire placeability
-                var groundOverlaps = _context.PreviewBlockController.SetPreviewAndGroundDetect(placeInfos, poleMaster);
-                if (groundOverlaps[0]) placeInfo.Placeable = false;
 
                 // 新設電柱側の判定はCalculator内部に委ねる
-                // Judgement for the newly placed pole is delegated to the calculator
                 // 電柱は建設コスト充足を別途判定するためワイヤー判定へはポールアイテム所持前提を渡さない
-                // Pole affordability is judged separately, so the wire judgement receives no pole-item assumption
+                // Judgement for the newly placed pole is delegated to the calculator; pole affordability is judged separately
                 // 新設電柱の仮AABBを構築して範囲相互判定込みで評価する
                 // Build the new pole's ghost AABB and evaluate including the mutual range check
-                var poleGhostInfo = new BlockPositionInfo(placeInfo.Position, BlockDirection.North, poleMaster.BlockSize);
-                var distance = Vector3Int.Distance(fromPos, placeInfo.Position);
-                var judgement = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, poleParam, poleGhostInfo, distance, connectToolGuid, _context.Inventory);
-                var placeable = placeInfo.Placeable && judgement.IsPlaceable && canAffordPole;
+                var poleGhostInfo = new BlockPositionInfo(evaluation.PlaceInfo.Position, _context.PoleSelection.CurrentDirection, evaluation.PoleMaster.BlockSize);
+                var distance = Vector3Int.Distance(fromPos, evaluation.PlaceInfo.Position);
+                var judgement = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, evaluation.PoleParam, poleGhostInfo, distance, connectToolGuid, _context.Inventory);
+                var placeable = evaluation.GroundClear && judgement.IsPlaceable && evaluation.CanAffordPole;
 
                 // ゴーストとワイヤー線を可否色で表示する
                 // Show the ghost and wire line colored by placeability
-                placeInfo.Placeable = placeable;
-                _context.PreviewBlockController.UpdatePlaceableColors(placeInfos);
-                _context.WirePreview.Show(fromPos, placeInfo.Position, placeable, ResolveCostCount(judgement, distance));
+                evaluation.PlaceInfo.Placeable = placeable;
+                _context.PreviewBlockController.UpdatePlaceableColors(evaluation.PlaceInfos);
 
-                // 可否OK かつクリックで延長設置する。trueを返して上位が起点をクリアし、二重発火を防ぐ
-                // Extend on click when placeable; return true so the owner clears the origin, preventing double-fire
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi() && placeable)
+                // 新設電柱ゴースト内のマーカー端点を実描画と同じ計算式で解決する。ゴースト未生成時のフォールバックはResolver側が担う
+                // Resolve the new pole ghost's marker endpoint using the same calculation as the actual rendering; the ghost-unavailable fallback lives in the resolver
+                _ = _context.PreviewBlockController.TryGetPreviewBlock(0, out var poleGhost);
+                var endEndpoint = ElectricWireEndpointResolver.ResolveFromGhost(poleGhost, evaluation.PlaceInfo, evaluation.PoleMaster);
+
+                // judgement失敗時はその理由を、judgement成功だが電柱の建設コスト不足で不可なときは素材不足の理由を表示する
+                // Show the judgement's failure reason, or an insufficient-materials reason when the judgement succeeds but the pole cost is unaffordable
+                var failureText = !judgement.IsPlaceable ? ElectricWirePlacementFailureText.ToText(judgement.FailureReason)
+                    : !evaluation.CanAffordPole ? ElectricWirePlacementFailureText.ToText(ElectricWirePlacementFailureReason.InsufficientItems)
+                    : string.Empty;
+                _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), endEndpoint, placeable, ResolveCostCount(judgement, distance), failureText);
+
+                // 可否OK かつクリックで延長設置する。応答待ち中は多重送信を防ぐため送信しない
+                // Extend on click when placeable; skip sending while a response is pending to avoid duplicate sends
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi() && placeable && !_context.RequestSender.IsAwaitingResponse)
                 {
                     _context.WirePreview.SetActive(false);
                     _context.PreviewBlockController.SetActive(false);
-                    ElectricWireExtendRequestSender.Extend(fromPos, poleBlockId, placeInfo, connectToolGuid, _context.BlockDataStore, toolEpoch);
-                    return true;
+                    _context.PoleGhostPart.SetNameLabelActive(false);
+                    _context.RequestSender.SendExtend(fromPos, evaluation.PoleBlockId, evaluation.PlaceInfo, connectToolGuid);
                 }
-
-                return false;
             }
 
             int ResolveCostCount(ElectricWirePlacementJudgement judgement, float distance)
@@ -160,6 +133,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             {
                 _context.PreviewBlockController.SetActive(false);
                 _context.WirePreview.SetActive(false);
+                _context.PoleGhostPart.SetNameLabelActive(false);
             }
 
             #endregion

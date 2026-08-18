@@ -49,13 +49,14 @@ uloop execute-dynamic-code --project-path <保持側client> --code 'UnityEditor.
 
 PlayModeは生きているので**ライブで観測**する。効いた実績のある調査順:
 
-1. **UI状態・手持ち・ホットバー**:
+1. **UI状態・ホットバー割当**:
    ```bash
    uloop execute-dynamic-code --project-path <client> --code '
    var ui = UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.UI.UIState.UIStateControl>();
-   var hb = UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.UI.Inventory.HotBarView>();
-   var n = hb.CurrentItem.Id == Core.Master.ItemMaster.EmptyItemId ? "(empty)" : Core.Master.MasterHolder.ItemMaster.GetItemMaster(hb.CurrentItem.Id).Name;
-   return "state=" + ui.CurrentState + " slot=" + hb.SelectIndex + " holding=" + n + " x" + hb.CurrentItem.Count;'
+   var hb = Client.Game.InGame.Context.ClientDIContext.DIContainer.DIContainerResolver.Resolve<Client.Game.InGame.Hotbar.ClientHotbarDatastore>();
+   var place = Client.Game.InGame.Context.ClientDIContext.DIContainer.DIContainerResolver.Resolve<Client.Game.InGame.BlockSystem.PlaceSystem.PlaceSystemStateController>();
+   var originSlot = place.CurrentOrigin.TryGetHotbarSlot(out var s) ? s.ToString() : "none";
+   return "state=" + ui.CurrentState + " originSlot=" + originSlot + " assignments=" + string.Join(",", hb.Assignments);'
    ```
 2. **マウス位置とUI被り**: `Mouse.current.position.ReadValue()` と `EventSystem.current.IsPointerOverGameObject()`、
    `EventSystem.RaycastAll` のヒット一覧（クリックはUI被り画素で無効化される）

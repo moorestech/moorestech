@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Game.PlacementTarget;
 using Core.Master;
 using Game.Block.Interface.Extension;
 using NUnit.Framework;

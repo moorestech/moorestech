@@ -6,48 +6,111 @@
   },
   "mapObjects": [
     {
+      "instanceId": 0,
       "mapObjectGuid": "8c0e1339-be75-4690-99cd-58b5385a17cd",
       "x": 0.0,
       "y": 0.0,
       "z": 0.0,
-      "instanceId": 0
+      "rotationX": 0.0,
+      "rotationY": 0.0,
+      "rotationZ": 0.0,
+      "rotationW": 1.0,
+      "scaleX": 1.0,
+      "scaleY": 1.0,
+      "scaleZ": 1.0,
+      "clusterId": -1,
+      "clusterCenterX": 0.0,
+      "clusterCenterZ": 0.0
     },
     {
+      "instanceId": 1,
       "mapObjectGuid": "8c0e1339-be75-4690-99cd-58b5385a17cd",
       "x": 0.0,
       "y": 0.0,
       "z": 0.0,
-      "instanceId": 1
+      "rotationX": 0.0,
+      "rotationY": 0.0,
+      "rotationZ": 0.0,
+      "rotationW": 1.0,
+      "scaleX": 1.0,
+      "scaleY": 1.0,
+      "scaleZ": 1.0,
+      "clusterId": -1,
+      "clusterCenterX": 0.0,
+      "clusterCenterZ": 0.0
     },
     {
+      "instanceId": 2,
       "mapObjectGuid": "00000000-0000-1111-0000-000000000001",
       "x": 0.0,
       "y": 0.0,
       "z": 0.0,
-      "instanceId": 2
+      "rotationX": 0.0,
+      "rotationY": 0.0,
+      "rotationZ": 0.0,
+      "rotationW": 1.0,
+      "scaleX": 1.0,
+      "scaleY": 1.0,
+      "scaleZ": 1.0,
+      "clusterId": -1,
+      "clusterCenterX": 0.0,
+      "clusterCenterZ": 0.0
     },
     {
+      "instanceId": 3,
       "mapObjectGuid": "00000000-0000-1111-0000-000000000001",
       "x": 1.0,
       "y": 0.0,
       "z": 1.0,
-      "instanceId": 3
+      "rotationX": 0.0381346,
+      "rotationY": 0.1893079,
+      "rotationZ": 0.2392983,
+      "rotationW": 0.9515485,
+      "scaleX": 1.5,
+      "scaleY": 2.0,
+      "scaleZ": 2.5,
+      "clusterId": -1,
+      "clusterCenterX": 0.0,
+      "clusterCenterZ": 0.0,
+      "#memoScale": "\u8ef8\u3054\u3068\u306b\u9055\u3046\u30b9\u30b1\u30fc\u30eb\u3092\u6301\u305f\u305b\u3001\u8ee2\u9001\u304c3\u8ef8\u3092\u53d6\u308a\u9055\u3048\u3066\u3082\u901a\u3089\u306a\u3044\u3088\u3046\u306b\u3059\u308b",
+      "#memoRotation": "4\u6210\u5206\u3059\u3079\u3066\u9055\u3046\u59ff\u52e2\u3092\u6301\u305f\u305b\u3001\u8ee2\u9001\u304c\u30af\u30a9\u30fc\u30bf\u30cb\u30aa\u30f3\u306e\u6210\u5206\u3092\u53d6\u308a\u9055\u3048\u3066\u3082\u901a\u3089\u306a\u3044\u3088\u3046\u306b\u3059\u308b"
     },
     {
-      "#memo": "範囲外で採掘されない",
+      "instanceId": 4,
       "mapObjectGuid": "00000000-0000-1111-0000-000000000001",
       "x": 5.5,
       "y": 0.5,
       "z": 1.5,
-      "instanceId": 4
+      "rotationX": 0.0,
+      "rotationY": 0.0,
+      "rotationZ": 0.0,
+      "rotationW": 1.0,
+      "scaleX": 1.0,
+      "scaleY": 1.0,
+      "scaleZ": 1.0,
+      "clusterId": -1,
+      "clusterCenterX": 0.0,
+      "clusterCenterZ": 0.0,
+      "#memo": "\u7bc4\u56f2\u5916\u3067\u63a1\u6398\u3055\u308c\u306a\u3044"
     },
     {
-      "#memo": "サーバ権威採掘テスト用のMining型。他テストの範囲検索に入らないよう遠方へ置く",
+      "instanceId": 5,
       "mapObjectGuid": "00000000-0000-2222-0000-000000000001",
       "x": 100.0,
       "y": 0.0,
       "z": 100.0,
-      "instanceId": 5
+      "rotationX": 0.0,
+      "rotationY": 0.0,
+      "rotationZ": 0.0,
+      "rotationW": 1.0,
+      "scaleX": 1.0,
+      "scaleY": 1.0,
+      "scaleZ": 1.0,
+      "clusterId": 7,
+      "clusterCenterX": 100.5,
+      "clusterCenterZ": -100.25,
+      "#memo": "\u30b5\u30fc\u30d0\u6a29\u5a01\u63a1\u6398\u30c6\u30b9\u30c8\u7528\u306eMining\u578b\u3002\u4ed6\u30c6\u30b9\u30c8\u306e\u7bc4\u56f2\u691c\u7d22\u306b\u5165\u3089\u306a\u3044\u3088\u3046\u9060\u65b9\u3078\u7f6e\u304f",
+      "#memoCluster": "\u552f\u4e00\u306e\u30af\u30e9\u30b9\u30bf\u6240\u5c5e\u7269\u3002\u30af\u30e9\u30b9\u30bfID\u30fb\u91cd\u5fc3\u306e\u8ee2\u9001\u7d4c\u8def\u3092template\u30ef\u30fc\u30eb\u30c9\u3067\u8e0f\u307e\u305b\u308b\u305f\u3081\u306e\u5024"
     }
   ],
   "mapVeins": [
@@ -76,6 +139,15 @@
       "minZ": 0,
       "maxX": 20,
       "maxY": 0,
+      "maxZ": 0
+    },
+    {
+      "veinGuid": "11111111-0000-0000-0000-000000000004",
+      "minX": 20,
+      "minY": 5,
+      "minZ": 0,
+      "maxX": 20,
+      "maxY": 5,
       "maxZ": 0
     }
   ]

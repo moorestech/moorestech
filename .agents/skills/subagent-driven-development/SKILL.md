@@ -15,19 +15,40 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 **継続実行:** タスクの合間に人間パートナーへ確認を取るために止まらない。計画の全タスクを止まらずに実行する。止まってよい理由は、解決できないBLOCKED状態、真に進行を妨げる曖昧さ、または全タスク完了のみ。「続けてよいですか？」という確認や進捗サマリーは相手の時間の無駄になる — 彼らは計画の実行を依頼したのだから、実行せよ。
 
+## 規模ゲート: 既定はインライン実装（2026-08-18 実測に基づく）
+
+計画があっても、**規模が閾値未満ならこのスキルを使わずインラインで実装するのが既定**である。SDDの実装subagent自体は安いが、派遣往復によるコントローラーの肥大とタスクごとのレビューゲートが固定費として乗る（実測: 1計画あたり$40〜90相当 + 本体ループ肥大。実装subagentは大型セッション総額の6〜25%に過ぎなかった）。
+
+**SDDを発動する条件（いずれか1つで発動）:**
+
+1. **予想変更が約15ファイル超、または約1,000行超**
+2. **計画の独立タスクが6個以上**
+3. 実装と並行して**長いデバッグ・実機e2e往復**が見込まれる（調査churnがコンテキストを食う）
+4. **並列実行**したい独立タスク群がある
+
+どれにも該当しなければインラインで実装する。その場合も最終レビュー1本（moores-code-review）は省略しない。worktree隔離が必要なだけならworktree + インラインでよく、SDDの理由にはならない。
+
+**閾値の根拠（両Mac 130+セッションのtranscript実測、2026-08-18）:** インライン実装は編集約20ファイル・読み書き合計約45ファイルまでcompaction発生ゼロで完走している（25〜32ファイルも読み込みが少なければ可）。編集25〜30ファイル超または長いデバッグ往復を伴うと高頻度でcompactionし、文脈喪失は「完了済みタスクの再派遣」級の最も高くつく失敗につながる。15ファイルはこの実測限界に対する安全マージンである。
+
+**途中切替:** インラインで始めて、半分に達する前にコンテキスト残量が3割を切ったら、そこで止めて残りのタスクをこのスキル（subagent派遣）に切り替える。進捗台帳（下記）に切替点を記録する。
+
 ## 使用場面
 
 ```dot
 digraph when_to_use {
     "Have implementation plan?" [shape=diamond];
+    "Over size gate? (>~15 files / >~1000 lines / 6+ tasks / long debug loop)" [shape=diamond];
     "Tasks mostly independent?" [shape=diamond];
-    "Stay in this session?" [shape=diamond];
     "subagent-driven-development" [shape=box];
     "executing-plans" [shape=box];
     "Manual execution or brainstorm first" [shape=box];
+    "Inline implementation + final review" [shape=box];
+    "Stay in this session?" [shape=diamond];
 
-    "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
+    "Have implementation plan?" -> "Over size gate? (>~15 files / >~1000 lines / 6+ tasks / long debug loop)" [label="yes"];
     "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
+    "Over size gate? (>~15 files / >~1000 lines / 6+ tasks / long debug loop)" -> "Tasks mostly independent?" [label="yes"];
+    "Over size gate? (>~15 files / >~1000 lines / 6+ tasks / long debug loop)" -> "Inline implementation + final review" [label="no - below gate"];
     "Tasks mostly independent?" -> "Stay in this session?" [label="yes"];
     "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
     "Stay in this session?" -> "subagent-driven-development" [label="yes"];
@@ -40,6 +61,62 @@ digraph when_to_use {
 - タスクごとに新規subagent（コンテキスト汚染なし）
 - 各タスク後にレビュー（spec準拠＋コード品質）、最後に広範なレビュー
 - 高速なイテレーション（タスク間でhuman-in-loopなし）
+
+## ワークスペース隔離（タスク1派遣前・必須）
+
+**専用worktreeの外でimplementer subagentを派遣してはならない。** 本体ワーキングツリーは他セッション・並行エージェントと共有されており、subagentのコミットが無関係な作業を巻き込む事故が実際に起きている。隔離は「あれば良いもの」ではなくタスク1の前提条件である。
+
+例外は2つだけ:
+
+1. **既にworktree内にいる** — 新規作成せずそのまま再利用する
+2. **人間がこのセッション内で自分の言葉で「本体で実装せよ」と指示した** — 進捗台帳に記録して続行する
+
+本体ワーキングツリーで既にfeatureブランチを切って作業中だった場合も例外にはならない。このタスクが所有すると確認できた未コミット変更だけをworktreeへ移してから着手する。所有者を判定できない変更が1件でもあれば移送せず、人間へエスカレーションする。
+
+```bash
+# 0. 現在地を判定する（2つの値が異なればworktree内 = 作成不要）
+# 0. Detect the current location; differing values mean we are already in a worktree
+git rev-parse --git-dir; git rev-parse --git-common-dir
+
+# 1. 本体checkoutに触れずorigin/masterを最新化する
+# 1. Refresh origin/master without touching the main checkout
+git fetch origin master
+
+# 1.5. dirtyなら所有者をパス単位で確認し、このタスク所有の変更だけを退避する
+# 1.5. If dirty, verify ownership per path and stash only this task's changes
+git status --short
+TASK_OWNED_PATHS=(<validated-path> ...)
+if test ${#TASK_OWNED_PATHS[@]} -gt 0; then
+  git stash push --include-untracked -m "sdd-worktree-move-<task-slug>" -- "${TASK_OWNED_PATHS[@]}"
+  SDD_STASH_COMMIT=$(git rev-parse stash@{0})
+fi
+
+# 2. 計画名から取ったslugでタスクブランチ付きworktreeを作る
+# 2. Create a task-branch worktree named after the plan slug
+MAIN=$(git rev-parse --show-toplevel)
+git worktree add -b <task-slug> ~/moorestech-worktrees/<task-slug> <base>
+
+# 2.5. 退避した変更を隔離worktreeへ復元し、stashは復旧用に保持する
+# 2.5. Restore task changes in the isolated worktree and retain the stash for recovery
+if test -n "${SDD_STASH_COMMIT:-}"; then
+  git -C ~/moorestech-worktrees/<task-slug> stash apply "$SDD_STASH_COMMIT"
+  git -C ~/moorestech-worktrees/<task-slug> status --short
+fi
+
+# 3. メイン側Unityを閉じてからLibraryをAPFSクローンで複製する
+# 3. Close Unity for the main worktree before cloning its Library via APFS copy-on-write
+cp -Rc "$MAIN/moorestech_client/Library" ~/moorestech-worktrees/<task-slug>/moorestech_client/Library
+```
+
+- `<base>`は計画が積み上がる土台。通常は最新の`origin/master`、本体の未コミット変更を移す場合と計画が現ブランチの続きなら`HEAD`
+- Libraryの複製は計画がUnityに触れるかに関わらず常に行う。数秒の投資で、後からコンパイル・テストが必要になった際の再インポート数十分を確実に回避する
+- メイン側Unityが開いている間はLibraryを複製しない。実行中ならUnityを閉じてから手順3を実行する
+- 本体がdirtyなら全変更の所有者をパス単位で確認する。このタスク所有と確認できたパスだけを明示して`git stash push --include-untracked -- <paths>`で退避し、所有者不明の変更があれば移送せず人間へエスカレーションする
+- worktree側ではstashを`apply`し、復元結果を確認する。復旧手段を失わないようstashは自動dropしない
+- 以降の編集・`uloop`各コマンド・テスト・コミットは**すべてworktree側の絶対パス**で行う。`--project-path`もworktree側を指す
+- 有料アセット(`PersonalAssets`)は本体にしか存在しない。計画がこれに依存する場合は着手前に人間へエスカレーションする
+- サーバーポート11564は固定のため、他worktreeのPlayModeとは同時実行できない。プレイ録画テストを含む計画では1本ずつ動かす
+- worktreeは完了後も削除しない（作業消失防止。cleanupは人間の指示があった時のみ）
 
 ## プロセス
 
@@ -59,11 +136,13 @@ digraph process {
         "Mark task complete in todo list and progress ledger" [shape=box];
     }
 
+    "Ensure isolated worktree (create, or verify already inside one)" [shape=box];
     "Read plan, note context and global constraints, create todos" [shape=box];
     "More tasks remain?" [shape=diamond];
     "Run final whole-branch review: moores-code-review skill" [shape=box];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
+    "Ensure isolated worktree (create, or verify already inside one)" -> "Read plan, note context and global constraints, create todos";
     "Read plan, note context and global constraints, create todos" -> "Dispatch implementer subagent (./implementer-prompt.md)";
     "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
     "Implementer subagent asks questions?" -> "Answer questions, provide context" [label="yes"];
@@ -157,9 +236,10 @@ Implementer subagentは4つのステータスのいずれかを報告する。�
 - レビュアーに渡すglobal-constraintsブロックは彼らの注意のレンズである。計画のGlobal Constraintsセクションまたはspecから、拘束力ある要件を逐語的にコピーすること: 正確な値、正確なフォーマット、コンポーネント間で述べられている関係性（「Xと同じレイアウト」「Yと一致」）。レビュアーのテンプレートにはすでにプロセスのルール（YAGNI、テスト衛生、レビュー手法）が含まれている — constraintsブロックはこのプロジェクトのspecが要求する内容のためのものである。
 - レビュアーにはdiffをファイルとして渡すこと: このスキルの`scripts/review-package BASE HEAD`を実行し、表示されたファイルパスをレビュアーに渡す（bashが無い場合は`git log --oneline`、`git diff --stat`、範囲に対する`git diff -U10`を、一意な名前の1ファイルにリダイレクトする）。出力は自分自身のコンテキストには一切入らず、レビュアーはコミット一覧・stat要約・コンテキスト付き全diffを1回のRead呼び出しで見られる。implementerを派遣する前に記録したBASEを使うこと — 決して`HEAD~1`ではない。これは複数コミットタスクを無言で切り詰める。
 - 派遣プロンプトは1つのタスクを記述するものであり、セッションの履歴ではない。蓄積された前タスクの要約（「タスク1〜3後の状態」）を後続の派遣に貼り付けないこと — 実セッションのある派遣は42k文字に達し、その99%が貼り付けられた履歴だった。新規subagentが必要とするのは自分のタスク、触れるインターフェース、global constraintsだけである。それ以外は不要。
-- Critical・Important所見にはfix subagentを派遣すること。Minor所見は進捗台帳に記録し、最終ブランチ全体レビューにそのリストを参照させ、マージ前に修正すべきものを判定させる。誰も読まないロールアップは無言の握りつぶしである。
+- Critical・Important所見にはfix subagentを派遣すること。fix派遣にはレビュー報告ファイルのパスを渡し、所見の転記はしない。Minor所見は進捗台帳に記録し、最終ブランチ全体レビューにそのリストを参照させ、マージ前に修正すべきものを判定させる。誰も読まないロールアップは無言の握りつぶしである。
 - plan-mandatedとラベル付けされた所見 — あるいは計画のテキストが要求する内容と矛盾する所見 — は、あらゆる計画との矛盾と同様に人間の判断事項である: 所見と計画テキストを提示し、どちらを優先するか尋ねる。計画が義務付けているという理由で所見を却下したり、計画と矛盾する修正を確認なしに派遣したりしないこと。
 - 最終ブランチ全体レビューは**moores-code-reviewスキル**である（単一のレビュアーsubagentではなくSkillツール経由で呼び出す）。これは必須の自動ゲートである — 上記「最終ブランチ全体レビューは必須の自動ゲートである」を参照。決定論チェックとmoorestech設計レンズを並列実行し、所見を統合する。まずブランチdiffを`scripts/review-package MERGE_BASE HEAD`で生成し（MERGE_BASE = ブランチが分岐したコミット、例: `git merge-base main HEAD`）、表示されたファイルをスキルのPATCH_PATHとして使う。Minor所見台帳をレンズエージェント群の4カテゴリコンテキストに投入し、トリアージさせること。
+- fix派遣プロンプトには`implementer-contract.md`の**絶対パス**も含める（fixはimplementer契約を担うが、fix subagentは契約ファイルの場所を自力では知らない）。
 - すべてのfix派遣はimplementer契約を担う: fix subagentは自分の変更をカバーするテストを再実行し結果を報告する。派遣時にカバーするテストファイル名を挙げること — 1行の修正にスイート全体は不要。レビュアーを再派遣する前に、fix報告にカバーするテスト・実行したコマンド・出力が含まれていることを確認し、この3つが揃ってから再レビューを派遣する。
 - 最終ブランチ全体レビューで所見が返ってきた場合、所見1件につき1体ではなく、完全な所見リストを持った**単一の**fix subagentを派遣すること。所見ごとのfixerはそれぞれコンテキストを再構築しスイートを再実行するため、実セッションのある最終レビューのfix waveは全タスク合計より高コストになった。
 
@@ -169,8 +249,10 @@ Implementer subagentは4つのステータスのいずれかを報告する。�
 
 - **タスクブリーフ:** implementerを派遣する前に、このスキルの`scripts/task-brief PLAN_FILE N`を実行する — タスクの全文を一意な名前のファイルに抽出し、パスを表示する。ブリーフを唯一の要件ソースとして保つよう派遣を組み立てる。派遣内容には次を含めること: (1) このタスクがプロジェクトのどこに位置するかの1行、(2) ブリーフのパス（「まずこれを読め — あなたの要件であり、値はそのまま使うこと」として紹介）、(3) ブリーフが知り得ない、前タスクからのインターフェースと決定事項、(4) ブリーフで気づいた曖昧さに対する自分の解消、(5) 報告ファイルのパスと報告契約。正確な値（数値、マジックストリング、シグネチャ、テストケース）はブリーフにのみ現れる。
 - **報告ファイル:** implementerの報告ファイルはブリーフに合わせた名前にし（ブリーフ`…/task-N-brief.md` → 報告`…/task-N-report.md`）、派遣プロンプトに記載する。implementerは完全な報告をそこに書き、返答ではステータス・コミット・1行のテスト要約・懸念のみを返す。
-- **レビュアーの入力:** タスクレビュアーには3つのパス — 同じブリーフファイル、報告ファイル、レビューパッケージ — に加え、タスクを拘束するglobal constraintsを渡す。
+- **レビュアーの入力:** タスクレビュアーには4つのパス — 同じブリーフファイル、報告ファイル、レビューパッケージ、レビュー報告ファイル（書き先） — に加え、タスクを拘束するglobal constraintsを渡す。
+- **レビュー報告ファイル:** レビュアーは所見全文を`…/task-N-review.md`に書き、返答は判定サマリーのみ（Spec判定・⚠️項目全文・quality判定・Critical/Important各1行・Minor件数・ファイルパス）。fix subagentにはこのファイルのパスを渡す — コントローラーが所見を転記しない。
 - fix派遣は同じ報告ファイルにfix報告（テスト結果込み）を追記し、短い要約を返す。再レビューは更新されたファイルを読む。
+- **契約ファイル:** implementer/レビュアーの定型指示は`implementer-contract.md`・`task-reviewer-contract.md`にあり、subagentが自分で読む。派遣プロンプトには契約ファイルの絶対パスとタスク固有情報だけを書く — 定型文を派遣プロンプトへ展開しない（派遣プロンプトはコントローラーのコンテキストに残り続ける）。
 
 ## 永続的な進捗管理
 
@@ -185,8 +267,8 @@ Implementer subagentは4つのステータスのいずれかを報告する。�
 
 ## プロンプトテンプレート
 
-- [implementer-prompt.md](implementer-prompt.md) - implementer subagentの派遣
-- [task-reviewer-prompt.md](task-reviewer-prompt.md) - タスクレビュアーsubagentの派遣（spec準拠＋コード品質）
+- [implementer-prompt.md](implementer-prompt.md) - implementer subagentの派遣（タスク固有情報のみ。定型は[implementer-contract.md](implementer-contract.md)をsubagentが読む）
+- [task-reviewer-prompt.md](task-reviewer-prompt.md) - タスクレビュアーsubagentの派遣（同上。定型は[task-reviewer-contract.md](task-reviewer-contract.md)）
 - 最終ブランチ全体レビュー: superpowers:requesting-code-reviewの[code-reviewer.md](../requesting-code-review/code-reviewer.md)を使用
 
 ## ワークフロー例
@@ -288,6 +370,8 @@ Final reviewer: 全要件を満たし、マージ可能
 
 **絶対にしないこと:**
 - 明示的なユーザー同意なしにmain/masterブランチで実装を開始する
+- worktreeを作らずに（あるいは既にworktree内かを確認せずに）タスク1のimplementerを派遣する — 「今回は小さい計画だから」は理由にならない
+- 本体ワーキングツリーで既にfeatureブランチを切っているという理由で隔離を省略する — 共有されているのはブランチではなくディレクトリである
 - タスクレビューをスキップする、または片方の判定（spec準拠とタスク品質の両方が必須）を欠く報告を受け入れる
 - 未修正の問題を抱えたまま進める
 - 複数の実装subagentを並列に派遣する（衝突する）
@@ -321,7 +405,7 @@ Final reviewer: 全要件を満たし、マージ可能
 ## 統合
 
 **必須のワークフロースキル:**
-- **superpowers:using-git-worktrees** - 隔離されたワークスペースを保証する（作成または既存のものを検証する）
+- **ワークスペース隔離** - 上記「ワークスペース隔離（タスク1派遣前・必須）」がこのスキル内で手順を持つ。外部スキルへは委譲しない
 - **superpowers:writing-plans** - このスキルが実行する計画を作成する
 - **superpowers:requesting-code-review** - 最終ブランチ全体レビュー用のコードレビューテンプレート
 - **superpowers:finishing-a-development-branch** - 全タスク完了後の開発を仕上げる

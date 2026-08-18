@@ -11,7 +11,6 @@ using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
-using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -37,16 +36,6 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
     var placeController = resolver.Resolve<PlaceSystemStateController>();
     var clientUnlockState = resolver.Resolve<IGameUnlockStateData>();
-
-    // 両モード共通のミドルクリックをSemanticInputで注入する
-    // Inject shared middle-click input for both normal play and placement mode via SemanticInput
-    async UniTask MiddleClickAsync()
-    {
-        SemanticInput.MouseButtonDown(2);
-        await UniTask.DelayFrame(2);
-        SemanticInput.MouseButtonUp(2);
-        await UniTask.DelayFrame(2);
-    }
 
     // ===== 準備: レールを敷いて貨車を出現させる =====
     // ===== Setup: lay rails and spawn the cargo car =====
@@ -136,12 +125,10 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     await p.Until(() => WireWithColliders() != null, 15f, "電線ビューとクリック判定コライダーの生成");
     await p.Screenshot("02-wire-connected");
 
-    p.Note("GameScreen中に電線をミドルクリックでスポイトする");
+    p.Note("GameScreen中に電線をAltホールドでミドルクリックしてスポイトする");
     p.Assert(p.CurrentUiState == UIStateEnum.GameScreen, "初期状態はGameScreen");
     var wireColliders = WireWithColliders().GetComponentsInChildren<Collider>(true);
-    await p.AimAt(wireColliders[wireColliders.Length / 2].bounds.center);
-    await MiddleClickAsync();
-    await UniTask.DelayFrame(3);
+    await p.PickWithAltHold(wireColliders[wireColliders.Length / 2].bounds.center);
     p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, "項目1: 電線ピックでPlaceBlockへ遷移");
     var wireTarget = placeController.CurrentTarget as ConnectToolPlacementTarget;
     p.Assert(wireTarget != null, "項目1: CurrentTargetがConnectToolPlacementTargetになる");
@@ -161,7 +148,7 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     p.WarpPlayer(new Vector3(carCenter.x - 3f, 33.5f, carCenter.z - 3f));
     await p.WaitSeconds(1f);
     await p.AimAt(carCollider.bounds.center);
-    await MiddleClickAsync();
+    await p.MiddleClick();
     await UniTask.DelayFrame(3);
     p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, "項目2: PlaceBlockのまま");
     var carTarget = placeController.CurrentTarget as TrainCarPlacementTarget;

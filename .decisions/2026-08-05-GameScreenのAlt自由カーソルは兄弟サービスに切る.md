@@ -1,0 +1,4 @@
+決定: GameScreenのAlt自由カーソル制御はControl/ViewModeにGameScreenCameraInteractionServiceとして新設し、GameScreenStateがOnEnter/Update/OnExit/RestoreAfterApplicationFocusを委譲する
+棄却案: ①BuildModeCameraInteractionServiceを「TPS既定ポリシー＋修飾入力」でパラメータ化し1本に統合 ②GameScreenStateへ直書き
+理由: BuildModeとはTPS既定が鏡像で修飾入力も別物のため、統合するとFunc禁止規約により修飾入力のinterface化と既存BuildModeテスト群の書き換えが要る。直書きだと視点切替購読とフォーカス復帰の復元をステートが抱え、設置/破壊モードだけサービス化済みという不揃いが残る
+リンク: 出所=ユーザー裁定 2026-08-05（AskUserQuestion「実装の置き場」＝兄弟サービスを新設）

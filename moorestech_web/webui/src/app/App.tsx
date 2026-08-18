@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { Button, Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
-import { InventoryPanel, HotbarPanel, EquipmentPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
+import { InventoryPanel, EquipmentPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
+import { HotbarPanel } from "@/features/hotbar";
 import { RecipeViewer, ItemListPanel, RecipeSelectionKeyHandler } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
 import { NotificationHost } from "@/features/notification";
@@ -82,15 +83,7 @@ export default function App() {
     <div className={styles.viewport} data-web-ui-transparent>
       {modalScreen && <div className={styles.backdrop} data-testid="screen-backdrop" />}
       <div ref={stageRef} className={styles.stage} data-web-ui-transparent>
-        {inventoryScreen && <InventoryScreenChrome />}
-        {researchScreen && <ResearchScreenChrome />}
         {screenAllowsGrab(screen) && <InventoryPanel />}
-        {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}
-        {/* The hotbar is an always-on HUD mirroring uGUI GameStateController (shown during GameScreen too) */}
-        <HotbarPanel />
-        {/* 装備HUDもホットバーと同じ常時表示族で、ホイールの持ち替え先を画面右端に見せる */}
-        {/* The equipment HUD belongs to the same always-on family, showing the wheel's switch target at the screen's right edge */}
-        <EquipmentPanel />
         {screen === "playerInventory" && <RecipeViewer />}
         {screen === "playerInventory" && <ItemListPanel />}
         {/* stage内オーバーレイを一様拡縮し、ModalはPortalでviewportへ描画する */}
@@ -110,10 +103,20 @@ export default function App() {
           {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
           {uiState === UiStateNames.deleteBar && <DeleteModeWarningBands />}
           <CurrentChallengeHud />
+          {inventoryScreen && <InventoryScreenChrome />}
+          {researchScreen && <ResearchScreenChrome />}
+          {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}
+          {/* The hotbar is an always-on HUD mirroring uGUI GameStateController (shown during GameScreen too) */}
+          <HotbarPanel />
+          {/* 装備HUDもホットバーと同じ常時表示族で、ホイールの持ち替え先を画面右端に見せる */}
+          {/* The equipment HUD belongs to the same always-on family, showing the wheel's switch target at the screen's right edge */}
+          <EquipmentPanel />
+          {/* 採掘ゲージはホットバーの床を基準に積むため同じviewport族へ置く */}
+          {/* The mining gauge stacks on the hotbar's floor, so it belongs to the same viewport family */}
+          <ProgressBar />
           <SkitPresentation />
         </div>
         <ModalHost />
-        <ProgressBar />
         <BlockInventoryKeyHandler />
         <RecipeSelectionKeyHandler />
       </div>

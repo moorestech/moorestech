@@ -26,7 +26,7 @@ SKILL=.claude/skills/unity-playmode-recorded-playtest
 generated mapや同一worldの再起動を検証するときは、次の3環境変数を全て指定する。
 
 ```bash
-PLAYTEST_WORLD_DIRECTORY=/tmp/moorestech-task8/seed-12345-world \
+PLAYTEST_WORLD_DIRECTORY="$PWD/moorestech_client/PlaytestResults/worlds/seed-12345-world" \
 PLAYTEST_MAP_MODE=generated \
 PLAYTEST_SEED=12345 \
 "$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/<カテゴリ>/<シナリオ名>.cs"

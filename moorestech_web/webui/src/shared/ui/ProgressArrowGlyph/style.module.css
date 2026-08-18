@@ -1,0 +1,34 @@
+/* 既定寸法はクラフト矢印と同値のトークンを直接参照する。呼び出し側は寸法を持たない */
+/* Default size references the craft-arrow tokens directly; callers no longer size this themselves */
+.arrow {
+  width: var(--craft-arrow-width);
+  height: var(--craft-arrow-height);
+}
+/* 正本の柔らかな影を再現する（parity diff-inventory 項目32） */
+/* Reproduce the reference's soft shadow (parity diff-inventory item 32) */
+.glyph {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 45%));
+}
+/* 溝はGaugeBarと同じ--gauge-track。空の器であることが他のゲージと同じトーンで読める */
+/* The track reuses GaugeBar's --gauge-track so an empty vessel reads in the same tone as every other gauge */
+.track {
+  fill: var(--gauge-track);
+}
+/* 充填だけは--gauge-fillでなく正本の白を引き継ぐ。uGUI正本の白矢印がクラフト完了状態の見た目そのものであり、
+   value=1で正本と一致させるため（ユーザー裁定・webui-design §8.13） */
+/* The fill keeps the reference white instead of --gauge-fill: uGUI's white arrow *is* the completed-craft look,
+   so value=1 matches the reference (user ruling, webui-design §8.13) */
+.fill {
+  fill: var(--color-content-primary);
+}
+/* 輪郭は塗りを持たず、溝でも充填でも矢印の形が読めるようにする */
+/* The outline carries no fill so the silhouette stays readable over both track and fill */
+.outline {
+  fill: none;
+  stroke: var(--craft-arrow-outline);
+  stroke-width: 2px;
+}

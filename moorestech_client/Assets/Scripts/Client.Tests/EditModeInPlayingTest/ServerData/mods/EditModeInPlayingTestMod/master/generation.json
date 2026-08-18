@@ -30,8 +30,8 @@
     "terrainHeight": 600,
     "terrainWidth": 1000,
     "terrainLength": 1000,
-    "gridSizeX": 5,
-    "gridSizeZ": 5,
+    "gridSizeX": 1,
+    "gridSizeZ": 1,
     "seed": 160,
     "worldOffsetX": 0,
     "worldOffsetZ": 0,
@@ -151,7 +151,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Redwood/GrassMud",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -245,7 +245,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Redwood/GrassMud",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -331,7 +331,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Redwood/GrassMud",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -420,7 +420,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Redwood/GrassMud",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -522,7 +522,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Redwood/GrassMud",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -635,7 +635,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Redwood/GrassMud",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -731,7 +731,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Redwood/GrassMud",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -816,7 +816,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "Vanilla/Environment/Terrain/Layer/Redwood/GrassMud",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,

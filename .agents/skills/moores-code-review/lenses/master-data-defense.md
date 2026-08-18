@@ -3,6 +3,11 @@ paths:
   - "VanillaSchema/"
   - "Core\.Master"
   - "BlockTemplate"
+keywords:
+  - "??"
+  - "optional"
+  - "Default"
+  - "TryGet"
 model: sonnet
 ---
 

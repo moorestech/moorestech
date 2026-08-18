@@ -20,6 +20,8 @@ namespace Game.MapGeneration.Pipeline.Runtime
             ParseEnum<NoiseOp>(generatedNoiseOp, "noiseOp");
         public static SecondaryPlacementMode ToSecondaryMode(string generatedMode) =>
             ParseEnum<SecondaryPlacementMode>(generatedMode, "secondaryPlacementMode");
+        public static TextureChannel ToTextureChannel(string generatedChannel) =>
+            ParseEnum<TextureChannel>(generatedChannel, "channel");
 
         static T ParseEnum<T>(string name, string fieldName) where T : struct
         {

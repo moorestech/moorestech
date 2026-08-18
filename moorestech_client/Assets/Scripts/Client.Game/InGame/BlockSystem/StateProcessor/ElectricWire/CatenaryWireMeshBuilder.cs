@@ -15,18 +15,25 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
         public const int SegmentCount = 16;
         public const float WireRadius = 0.03f;
 
+        // 両端距離に対する垂れ量の比。外へ出すと呼び出し側が各自で垂れ量を算出して式が分散するため、Build内部だけで使う
+        // Sag-to-span ratio; kept internal because exposing it makes every caller derive the sag itself and the formula spreads
+        private const float SagRatio = 0.1f;
+
         // t=0,1で垂れ0に正規化するための端点係数 cosh(1)
         // Endpoint coefficient cosh(1) used to normalize sag to zero at t=0,1
         private static readonly double CoshOne = Math.Cosh(1.0);
 
         /// <summary>
-        /// カテナリー曲線メッシュを生成し、クリック判定用のセグメント情報を出力する
-        /// Build the catenary curve mesh and output per-segment info for click detection
+        /// カテナリー曲線メッシュを生成し、クリック判定用のセグメント情報を出力する。
+        /// 垂れ量は両端距離から内部で決めるため、実描画も各プレビューも必ず同じ垂れ方になる
+        /// Build the catenary curve mesh and output per-segment info for click detection.
+        /// The sag is derived internally from the span, so the actual rendering and every preview always sag identically
         /// </summary>
-        public static Mesh Build(Vector3 start, Vector3 end, float sag, List<(Vector3 center, Vector3 up, float length)> outColliderSegments)
+        public static Mesh Build(Vector3 start, Vector3 end, List<(Vector3 center, Vector3 up, float length)> outColliderSegments)
         {
             // 曲線上の折れ線頂点を計算する
             // Calculate the polyline vertices along the curve
+            var sag = Vector3.Distance(start, end) * SagRatio;
             var points = CalculateCurvePoints(start, end, sag, SegmentCount);
 
             // セグメントごとのコライダー配置情報を書き出す

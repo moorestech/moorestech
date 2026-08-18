@@ -33,6 +33,9 @@ ui.blockInventory.gearNetworkSummary,Supply {generated} / required {required},Su
 ui.blockInventory.stopReasonLocked,Locked,Locked,ロック
 ui.blockInventory.stopReasonInsufficientPower,Insufficient power,Insufficient power,パワー不足
 ui.blockInventory.powerRateSummary,Power {rate}% ({current}/{required}),Power {rate}% ({current}/{required}),電力 {rate}% ({current}/{required})
+ui.blockInventory.machineStateIdle,Standby,Standby,待機中
+ui.blockInventory.machineStateProcessing,Operating,Operating,稼働中
+ui.blockInventory.machineStateHalted,Halted,Halted,停止中
 ui.blockInventory.trainPlatformLoad,Load,Load,積込
 ui.blockInventory.trainPlatformUnload,Unload,Unload,卸し
 ui.blockInventory.trainPlatformCapacity,Capacity: {capacity},Capacity: {capacity},容量: {capacity}
@@ -52,6 +55,7 @@ ui.buildMenu.detailHint,Hover over an item to view details,Hover over an item to
 ui.buildMenu.title,Build Menu,Build Menu,ビルドメニュー
 ui.buildMenu.noResults,No results,No results,該当なし
 ui.buildMenu.searchPlaceholder,Search,Search,検索
+ui.buildMenu.requiredItems,Required Items,Required Items,必要素材
 ui.challenge.stateLocked,Locked,Locked,未解放
 ui.challenge.stateCurrent,In Progress,In Progress,進行中
 ui.challenge.stateCompleted,Completed,Completed,完了
@@ -89,6 +93,19 @@ ui.notification.railEditNotEnoughInventorySpace,Rail edit failed: inventory is f
 ui.notification.railEditRailLengthExceeded,Rail edit failed: rail is too long,Rail edit failed: rail is too long,レール編集に失敗しました: レールが長すぎます
 ui.notification.railEditNotUnlocked,Rail edit failed: connect tool not unlocked,Rail edit failed: connect tool not unlocked,レール編集に失敗しました: 接続ツールが未解放です
 ui.notification.railEditUnknownError,Rail edit failed,Rail edit failed,レール編集に失敗しました
+ui.notification.electricWireExtendOutOfRange,Wiring failed: out of connection range,Wiring failed: out of connection range,接続範囲外のため配線できませんでした
+ui.notification.electricWireExtendAlreadyConnected,Wiring failed: already connected,Wiring failed: already connected,すでに接続されています
+ui.notification.electricWireExtendConnectionLimit,Wiring failed: connection limit reached,Wiring failed: connection limit reached,接続上限のため配線できませんでした
+ui.notification.electricWireExtendNoWireItem,Wiring failed: not enough wires,Wiring failed: not enough wires,電線が不足しているため配線できませんでした
+ui.notification.electricWireExtendNoPoleItem,Placement failed: not enough poles,Placement failed: not enough poles,電柱が不足しているため設置できませんでした
+ui.notification.electricWireExtendInvalidTarget,Wiring failed: invalid target,Wiring failed: invalid target,接続できない対象のため配線できませんでした
+ui.notification.electricWireExtendPositionOccupied,Placement failed: position is occupied,Placement failed: position is occupied,設置位置が埋まっているため設置できませんでした
+ui.notification.electricWireExtendNotUnlocked,Wiring failed: connect tool not unlocked,Wiring failed: connect tool not unlocked,接続ツールが未解放のため配線できませんでした
+ui.notification.electricWireExtendInsufficientItems,Placement failed: not enough materials,Placement failed: not enough materials,素材が不足しているため設置できませんでした
+ui.notification.electricWireExtendFailed,Wiring failed,Wiring failed,配線に失敗しました
+ui.notification.electricWireDisconnectNotConnected,Disconnect failed: not connected,Disconnect failed: not connected,接続されていないため切断できませんでした
+ui.notification.electricWireDisconnectInventoryFull,Disconnect failed: inventory is full,Disconnect failed: inventory is full,インベントリが満杯のため切断できませんでした
+ui.notification.electricWireDisconnectFailed,Disconnect failed,Disconnect failed,切断に失敗しました
 ui.notification.unknownMessage,Unknown notification: {messageId},Unknown notification: {messageId},不明な通知: {messageId}
 ui.pauseMenu.title,Pause Menu,Pause Menu,ポーズメニュー
 ui.pauseMenu.disconnected,Disconnected from server,Disconnected from server,サーバーから切断されました
@@ -139,6 +156,7 @@ ui.blueprint.webModalMessage,Enter a name for the blueprint you want to save,Ent
 ui.blueprint.webModalConfirm,Save,Save,保存
 ui.tooltip.pickUpLeftClick,Left-click to pick up,Left-click to pick up,左クリックで取得
 ui.tooltip.requiredItems,Requires: {p0},Requires: {p0},このアイテムが必要です: {p0}
+ui.tooltip.cannotHandMine,Cannot be mined by hand,Cannot be mined by hand,手掘りできません
 ui.tooltip.craftCannotByItemShortage,Not enough items to craft,Not enough items to craft,アイテムが足りないためクラフトできません
 ui.tooltip.retiredUguiSlotText,{p0},{p0},{p0}
 ui.delete.differentCategorySelection,Blocks from different categories cannot be selected at the same time.,Blocks from different categories cannot be selected at the same time.,別カテゴリーのブロックは同時に選択できません。

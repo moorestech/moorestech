@@ -1,6 +1,7 @@
 import { useViewportSize } from "@mantine/hooks";
-import { Topics, useTopic, useTopicSelector, type WorldPinPresentationData } from "@/bridge";
+import { Topics, useTopic, type WorldPinPresentationData } from "@/bridge";
 import { challengeTutorialTextKey, useI18n } from "@/shared/i18n";
+import { useBlockingSkitActive } from "@/shared/uiState";
 import styles from "./worldPin.module.css";
 
 type WorldPin = WorldPinPresentationData["pins"][number];
@@ -11,9 +12,9 @@ export function WorldPinOverlay() {
   const data = useTopic(Topics.worldPins);
   // ピンはPortal層で会話窓より上に来るため、blockingスキット中は演出を専有させて引っ込む
   // Pins paint above the dialogue window from the portal layer, so they withdraw and let a blocking skit own the screen
-  const skitMode = useTopicSelector(Topics.skitPresentation, (value) => value?.presentationState.mode ?? "none");
+  const blockingSkitActive = useBlockingSkitActive();
   const { width, height } = useViewportSize();
-  if (skitMode === "blocking") return null;
+  if (blockingSkitActive) return null;
   if (!data || data.pins.length === 0) return null;
   return (
     <div className={styles.overlay} data-testid="world-pin-overlay">

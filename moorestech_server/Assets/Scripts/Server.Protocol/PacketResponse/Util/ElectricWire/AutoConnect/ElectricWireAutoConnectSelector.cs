@@ -51,13 +51,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             return results;
         }
 
-        // レール延長でも使用。残容量で機械のみ収集
-        // Also used by rail extend; collects machines within remaining capacity
-        public static List<(BlockInstanceId TargetId, float Distance)> SelectPoleMachineTargets(ElectricPoleBlockParam ownParam, BlockPositionInfo ownInfo, int usedCount, IReadOnlyList<ElectricWireConnectCandidate> candidates)
-        {
-            return SelectPoleMachineTargetsCore(ownParam, ownInfo, usedCount, candidates, ConnectionRangeProfile.CreatePole(ownParam));
-        }
-
         // 機械設置: 相互範囲内の最寄り電柱1本のみ
         // Machine placement: only the nearest mutually-in-range pole
         private static List<(BlockInstanceId TargetId, float Distance)> SelectMachineTargets(IBlockParam ownParam, BlockPositionInfo ownInfo, IReadOnlyList<ElectricWireConnectCandidate> candidates)

@@ -6,6 +6,7 @@ description: |
   実コード抜粋入りのインフォグラフィックHTMLダイジェスト（verdict/裁定カード/suppressed）と
   シャドー台帳を出力し、ダイジェストはcloudflaredクイックトンネルで外部からも閲覧できるURLを毎回発行する。
   実装セッションの自己申告contextは一切受け取らない。
+  レビューと指摘への対応が完了したPRには「独立レビュー&対応完了」ラベルを付与する。
   Use When:
   1. 「/pr-independent-review <PR URL|番号>」で起動された時
   2. 「このPRを独立レビューして」「シャドーレビューして」と言われた時
@@ -56,9 +57,24 @@ description: |
    これは黙って進むと所見の由来が説明不能になる種類の故障なのでfail-closedにする。
    ユーザーが続行を選んだ場合のみ進み、**recordsの `canonical:` に `skew` と両SHAを明記する**
 
-**記録repo `$LOGS`**: レビュー実行記録（`records/pr-*.md`・シャドー台帳・改善キュー・前向きログ）は
-コードrepoではなく `../moorestech_logs`（以下 `$LOGS`、privateログrepo）の `harness/` 配下に置く。
+**記録repo `$LOGS`**: レビュー実行記録（`records/pr-*.md`・シャドー台帳・改善キュー・前向きログ・
+下記 `$RUNDIR` の中間生成物とダイジェスト）はコードrepoではなく `../moorestech_logs`
+（以下 `$LOGS`、privateログrepo）の `harness/` 配下に置く。
 featureブランチが記録ファイルに触れてマージ衝突する構造を断つための分離であり、コードrepo側へ記録を書き戻さない。
+`$LOGS` への書き込みはStop/SessionEnd hookが自動でcommit・pushする（Step 8末尾。セッション側でcommitしない）。
+
+**実行ディレクトリ `$RUNDIR`**: 1回のレビューが作る中間生成物（patch・context・novelty・detchecks・codex監査プロンプト・
+ダイジェストHTML）は**すべて** `$LOGS/harness/pr-independent-review/runs/pr-<番号>/` 配下に置く。以下これを `$RUNDIR` と呼ぶ
+（`$CANON`・`$LOGS` と同じくプレースホルダであり、シェル変数ではない。コマンドには実値の絶対パスへ展開して書く）。
+
+- **`/tmp` には一切置かない** — OSに掃除されて消える。これらはreconcileのフォレンジック・リプレイの入力そのもの
+  （どのpatchを・どのcontextで・どのdetchecks結果のもとに測ったか）であり、失うと後から見逃しの原因が特定できない
+- 再レビュー時は `runs/pr-<番号>-r2/`（以降 `-r3`…）を新規作成する。records の `pr-<番号>-r2.md` と1対1で対応させ、
+  既存runを上書きしない
+- Step 1の直後に `mkdir -p <$RUNDIRの実値>` を1回だけ実行する
+- ファイル名は固定: `patch.diff` / `context.md` / `novelty.json` / `detchecks.json` / `codex-audit.md` /
+  `digest.md` / `digest.html` / `findings.json` / `reconcile-comments.json`。PR番号はディレクトリ名が持つのでファイル名に含めない
+- `$RUNDIR` 配下もhookで自動commit・pushされる（PRの実コードを含むが、logs repoはprivateなので出荷先として正しい）
 
 - **`$CANON` / `$ORIGIN` は本ドキュメント上のプレースホルダであり、シェル変数ではない**。Bashコマンド・
   subagentのprompt・ファイルパスに渡すときは**必ず実値の絶対パスへ展開して書く**。リテラルのまま渡すと
@@ -74,7 +90,7 @@ featureブランチが記録ファイルに触れてマージ衝突する構造�
 | `$ORIGIN`（起動元・多くはメインworktree） | 他セッションの作業中ブランチ | 他人の作業ツリーを汚し、コミットすれば無関係なブランチへ混入する（**実際に実行中ブランチが切り替わった**） |
 | `$PRWT`（`pr-<番号>`） | PRのheadブランチ | **PRのコード修正だけは書いてよい**（Step 9）。skill改修・`.decisions/` の裁定記録をここに積むのは筋が通らない |
 
-- レビュー成果物の置き先は既に分離済み — ダイジェストは `/tmp/pr-review-<番号>/`、実行記録は `$LOGS`。
+- レビュー成果物の置き先は既に分離済み — ダイジェスト・中間生成物は `$RUNDIR`、実行記録は `$LOGS`。
   **レビューだけで終わる1周では、コードrepoへの書き込みは1バイトも発生しない**
 - PRのコード修正を頼まれたときだけ `$PRWT` へ書く（Step 9）
 - skill改修・`.decisions/` への裁定記録は、上の3treeのどれでもない**専用worktreeを新たに切ってそこで完結させる**:
@@ -92,7 +108,8 @@ featureブランチが記録ファイルに触れてマージ衝突する構造�
   「どのブランチに載せたか」「まだ有効でないこと」を必ず報告に書く
 
 改善と言われたときは0.5を実行する。
-修正と言われたときは改善ではなく、PRそのもののコード修正を行う。
+修正と言われたときは改善ではなく、PRそのもののコード修正を行う。修正がpushまで完了したら
+Step 10（対応完了ラベル）の付与条件を確認し、満たしていればラベルを付ける。
 
 ## Step 0: 独立性の自己申告ガード
 
@@ -125,6 +142,10 @@ featureブランチが記録ファイルに触れてマージ衝突する構造�
 で取得。失敗（未認証・不存在）は即エラー終了し理由を報告する。黙って縮退しない。
 `state` と `mergeCommit` は次節の `BASE_REF` 確定に必須なので、必ずこの1回で一緒に取る。
 `headRefOid` はStep 2末尾のcheckout整合確認に使うので同時に取る（後から取り直さない）。
+
+取得できたら `$RUNDIR` を作る（以降の全生成物の置き場。既存 `pr-<番号>/` があれば再レビューなので `-r2` を使う）:
+
+    mkdir -p <$RUNDIRの実値>
 
 ## Step 1.5: BASE_REF の確定（base参照はここで一度だけ決める）
 
@@ -225,9 +246,12 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
       <BASE_REF>...HEAD -- . \
       ':(exclude)*.meta' ':(exclude)*.prefab' ':(exclude)*.asset' ':(exclude)*.unity' \
       ':(exclude)*.png' ':(exclude)*.jpg' ':(exclude)*.controller' ':(exclude)*.mat' ':(exclude)*.fbx' \
-      > /tmp/pr-review-<番号>-patch.diff
+      ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs' \
+      > <$RUNDIRの実値>/patch.diff
 
 `<BASE_REF>` はStep 1.5で確定した実値。yml/jsonは残す（master-data系レンズの守備範囲のため）。
+**プレイテストシナリオの `.cs` も除外する** — 使い捨ての操作台本をプロダクトコードの規約で裁かない
+（ユーザー裁定 2026-08-16 / PR#1137-F12）。moores-code-review Step 1と同一のpathspecで揃える
 
 **フラグは省略禁止（本体パーサ保護）** — このpatchは `deterministic_checks.py` とレンズ/reviewer/Codexが読む唯一の
 差分実体であり、次はいずれもユーザー側git設定で有効化され得て、**patchを静かに痩せさせる**:
@@ -240,7 +264,7 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 
 **成功条件＝patch非空（必須ガード・省略禁止）**: 生成直後に
 
-    grep -c '^diff' /tmp/pr-review-<番号>-patch.diff
+    grep -c '^diff' <$RUNDIRの実値>/patch.diff
 
 を実行し、**1以上**であることを確認する。**0なら「base指定ミスまたはpatch取得失敗」として即エラー終了する**。
 空patchのまま先へ進むのは禁止 — 空patchは全レンズ・全reviewerを無所見にしverdictを「自動マージ可」へ化けさせるが、
@@ -249,7 +273,7 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 
 ## Step 4: 4カテゴリcontextの独立再構成
 
-`/tmp/pr-review-<番号>-context.md` に書く。**情報源はPR本文とリポジトリ内のspec/planの判断台帳（ADR）のみ**。
+`<$RUNDIRの実値>/context.md` に書く。**情報源はPR本文とリポジトリ内のspec/planの判断台帳（ADR）のみ**。
 実装セッションの申告・PRコメントの合意主張は使わない。
 
 - **4カテゴリは必ず `##` 見出しで書く**（太字箇条書き・箇条書きの見出し代用は不可）。カテゴリ名は本体Step 1と同一の
@@ -274,20 +298,20 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 ## Step 5: 新規性ゲートL1
 
     python3 "$CANON/.claude/skills/pr-independent-review/scripts/novelty_gate.py" \
-      <$PRWTの実値> <BASE_REF> > /tmp/pr-review-<番号>-novelty.json
+      <$PRWTの実値> <BASE_REF> > <$RUNDIRの実値>/novelty.json
 
 （`$CANON` は冒頭で決めた実値に展開して書く。リテラルのまま渡さない。第2引数はStep 1.5の `BASE_REF` の実値であり、
 `origin/<baseRefName>` のベタ書きではない）
 
 **出力は必ずこのファイルへ保存し、以降のStep（新形の数え上げ・裁定カード化・Step 8の記録）は
-`/tmp/pr-review-<番号>-novelty.json` を読み直して行う**。stdoutの見た目や記憶から新形を数えない
+`<$RUNDIRの実値>/novelty.json` を読み直して行う**。stdoutの見た目や記憶から新形を数えない
 （件数の写し間違いが台帳の実測値を直接汚す）。
 
 **保存直後の受け取り検査（必須・省略禁止）**: 次の1行で「JSONとしてパースできること」と
 「`new_edges` / `asmdef_refs` / `grammar` の3キーが揃っていること」を確認する。失敗したら即エラー終了する
 （ゲートが途中で壊れた出力を、空＝新形0件として受け取らないため）:
 
-    python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert {"new_edges","asmdef_refs","grammar"} <= d.keys(), d.keys(); print({k: len(d[k]) for k in ("new_edges","asmdef_refs","grammar")})' /tmp/pr-review-<番号>-novelty.json
+    python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert {"new_edges","asmdef_refs","grammar"} <= d.keys(), d.keys(); print({k: len(d[k]) for k in ("new_edges","asmdef_refs","grammar")})' <$RUNDIRの実値>/novelty.json
 
 出力JSONのうち次を**新形フラグ**として数える（3系統で採用基準が違う。混同禁止）:
 
@@ -314,6 +338,9 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
   ただし**件数はStep 8の記録に「うちdir_is_new N件」として残す**（黙って消さない）
 - **スキルミラーの除外**: `.claude/` `.agents/` `.codex/` 配下の `.cs` はプロダクトコードでないため、
   novelty_gate出力からファイルパスで除外して解釈する（新形にもverdictにも数えない）
+- **外部リビジョンピンの除外**: `.moorestech-external-revisions.json` の差分は指摘対象にしない
+  （兄弟クローンのHEADへ追随するだけの機械的な更新であり、内容がずれても後から幾らでも直せる。
+  ユーザー裁定 2026-08-16 / PR#1127-F06）。findings.jsonへ起こさず、ダイジェストにも裁定カードを作らない
 - **`line` が `null` の所見はファイル単位の所見**（`schema_change` / `new_protocol_file` / `new_datastore_file`）。
   ダイジェスト・records の表記は `ファイル:行` ではなく**ファイルパスのみ**にする。`:1` や `:null` を書き足さない
   （存在しない行番号を書くと、後から「その行を見た」という誤った痕跡になる）
@@ -332,7 +359,7 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 （`$CANON` は冒頭で決めた実値に展開して書くこと）:
 
 ```bash
-python3 "$CANON/.claude/skills/moores-code-review/scripts/deterministic_checks.py" "<PATCH_PATH>" --repo-root <$PRWTの実値> --context "<USER_PROMPT_PATH>" > /tmp/pr-review-<番号>-detchecks.json
+python3 "$CANON/.claude/skills/moores-code-review/scripts/deterministic_checks.py" "<PATCH_PATH>" --repo-root <$PRWTの実値> --context "<USER_PROMPT_PATH>" > <$RUNDIRの実値>/detchecks.json
 python3 "$CANON/.claude/skills/moores-code-review/scripts/select_lenses.py" "<PATCH_PATH>"
 python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "<PATCH_PATH>"
 ```
@@ -346,12 +373,12 @@ python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "
   適用がない以上最終diff＝Step 3のpatchなので、それをそのまま渡す。convention-guardの「機械的は自動適用」も
   report-onlyでは適用せず指摘として出す
 - **comment-convention-guardの `Candidates :` は本体Step 2相当（本スキルStep 6冒頭の決定論チェック）で生成したdetchecks JSON**
-  （`/tmp/pr-review-<番号>-detchecks.json`）を渡す。本体は「最終diffで再計測したdetchecks-final」を渡す規定だが、
+  （`<$RUNDIRの実値>/detchecks.json`）を渡す。本体は「最終diffで再計測したdetchecks-final」を渡す規定だが、
   report-onlyでは**修正適用が無いため最終diff＝Step 3のpatchであり、Step 6冒頭のdetchecks出力がそのまま最終値**になる。
   よって `deterministic_checks.py` の再実行はしない。4行契約の残り3行は `Read this : $CANON/.claude/skills/moores-code-review/post-checks/comment-convention-guard.md` /
   `Patch path : <PATCH_PATH>` / `User prompt : <USER_PROMPT_PATH>`（いずれも実値の絶対パスへ展開。下記「subagent起動契約への必須追記」参照）
-- **`/tmp` の一時ファイル削除（本体Step 7の項目4）も行わない** — Step 3のpatchは後段のコード抜粋転記で読むため、
-  ここで消すとダイジェストの実コードが作れなくなる
+- **中間生成物の削除（本体Step 7の項目4）は行わない** — `$RUNDIR` 配下は保存物であって一時ファイルではない。
+  Step 3のpatchは後段のコード抜粋転記で読むうえ、reconcileのフォレンジック・リプレイの入力でもある
 - AskUserQuestionは使わない。設計判断もダイジェストの裁定カードへ
 
 ### Codex外部監査（本体Step 3）の起動手当て
@@ -362,9 +389,15 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 レビュアーの指示を書ける自己弱体化経路）。次を必ず守る:
 
 - **中立ディレクトリ（`/tmp` 等・リポジトリ外）から起動し、対象は全部プロンプト内の絶対パスで渡す**
-  （バックグラウンド起動は本体どおり）:
+  （バックグラウンド起動は本体どおり）。ここの `/tmp` は**codexのcwdとして使うだけ**でありファイル置き場ではない
+  （`$RUNDIR` は `$LOGS` 配下＝git repo内なので、cwdにするとcodexがlogs repoを覗く。cwdは中立のまま保つ）:
 
-      cd /tmp && codex exec --sandbox read-only --skip-git-repo-check - < /tmp/pr-review-<番号>-audit.md
+      cd /tmp && codex exec --sandbox read-only --skip-git-repo-check -o <$RUNDIRの実値>/codex-audit.final.md - < <$RUNDIRの実値>/codex-audit.md > <$RUNDIRの実値>/codex-audit.out.md 2>&1
+
+  **`-o` は必須で、結論の正本は `.final.md`**（stdoutは完走しても最終回答が届かないことがある）。`.final.md` が
+  空・不在なら欠員と断定する前に
+  `python3 $CANON/.claude/skills/moores-code-review/scripts/codex_recover.py --prompt <$RUNDIRの実値>/codex-audit.md --out <$RUNDIRの実値>/codex-audit.out.md`
+  を走らせる（exit 0=回収成功で通常の1系統として扱う / 3=未完走 / 4=起動失敗＝真の欠員）
 
   **`$PRWT` へ `cd` しない**。プロンプト内でリポジトリを参照する箇所は必ず
   `git -C <$PRWTの実値> ...` の形（`-C` に実値の絶対パス）で書き、
@@ -400,123 +433,72 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 - **全サブエージェント契約（レンズ・reviewer・Fable全般・verifier・comment-rationale-guard・comment-convention-guard）の
   `Read this :` 行は `$CANON` 実値の絶対パスで書く** — 本体SKILL.mdの契約例は `.claude/skills/moores-code-review/...` の
   相対パスなので、そのままコピペするとsubagentのcwd（＝`$PRWT`）側のPR同梱スキルを読む。
-  `Candidates :` / `Patch path :` / `User prompt :` の各パス（`/tmp` 配下）も同様に絶対パスで書く
+  `Candidates :` / `Patch path :` / `User prompt :` の各パス（`$RUNDIR` 配下）も同様に絶対パスで書く
 
-## Step 7: ダイジェストHTML生成
+## Step 7: ダイジェスト生成（digest.md → コンバータ）
 
-`$CANON/.claude/skills/pr-independent-review/assets/digest-template.html` をReadし、sonnet subagentに
-`/tmp/pr-review-<番号>/index.html` を生成させて `open` する。CSS・コメント機能JSはverbatim維持。
+sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させる。フォーマットの正本は
+`$CANON/.agents/skills/pr-independent-review/README-digest-format.md` を読ませる（生成subagentの参照先はこの1本のみ）。
 
-- **並び順の原則: ユーザーの裁定が必要なものほど上（ユーザー裁定 2026-07-30）**。Criticalは裁定不要の修正リストなので
-  上位に置かない。構成は次の順で固定する（各項目の `[tier]` は下記「優先度3階層」の所属層）:
-  1. **verdictヘッダ**（verdict＋件数）`[must]`
-  2. **「あなたが判断すること」インデックス（新設・必須）** `[must]` — このページでユーザーの裁定が要る項目だけを箇条書きで列挙
-     （①必読の設計判断（下記トリアージ上位・通常2〜4枚） ②suppressedのPR内新設ADR検証 ③新形の入国審査は実質何問に畳めるか）。
-     各行は該当カードへのページ内アンカーリンクにする
-  3. **必読の設計判断カード** `[must]` — 設計判断を次の基準でトリアージし、上位だけをここへ置く:
-     (a)指摘系統の一致数が多い (b)裁定がCriticalの直し方を左右する（C連動） (c)ゲームプレイ・アーキテクチャの方向を変える。
-     カード冒頭に「なぜ必読か」を1行で書く
-  4. **残りの設計判断カード** `[should]` — 「推奨案どおりで良ければ一言でよい」ものはその旨をカード内に明記
-  5. **suppressedカード** `[should]` — PR内新設ADR由来（免責の真偽確認が要るもの）を先頭に、他はその後ろ（全件・同形式＋suppressed-by出所）
-  6. **新形カード** `[should]` — 入国審査。論理グループ（新アセンブリ単位等）に畳み、各グループを「この新語彙を認めるか」の1問として提示
-  7. **Critical要点カード** `[optional]` — 裁定不要の修正リストであることをセクション冒頭に明記（詳細は折りたたみ）
-  8. **判断台帳**（ユーザー裁定/agent前提/PR内新設ADR（降格済み・要検証））`[optional]`
-  9. **折りたたみ参考** `[optional]`
-  各カードの中身: ファイル名太字・リポジトリ相対フルパス・行番号 → **その直下に一言サマリ1行（必須・ユーザー裁定 2026-07-30）**
-  → 当該diffハンクの実コード抜粋（前後数行・追加行`<ins>`・問題行`.hl`）→ PR側の主張（出所ラベル付き）→ 代替案
-- **優先度3階層（tier）を帯見出しで明示する（必須）** — 「どこまで必ず見るべきか」が並び順だけでは伝わらないため、
-  各層の先頭に `<section class="tier-banner" data-tier="...">` を置き、`<h2>`＋説明文1行＋当該層のカード枚数
-  （`<span class="tier-count">`）を出す。3層とも必ず出す（0枚でも帯は省略しない）:
+- 生成後に次を実行する:
 
-  | tier | 見出し | 説明文 |
-  | --- | --- | --- |
-  | `must` | 必読 — ここまでは必ず見る | あなたの裁定が要る。ここを読まないと先へ進めない |
-  | `should` | 余裕があれば — 見ると判断の質が上がる | 読まなくても進行できるが、裁定の背景が分かる |
-  | `optional` | 任意 — 見なくても進行できる | 裁定不要。修正方針が既に一意に決まっているものと、参照用の資料 |
+      python3 $CANON/.agents/skills/pr-independent-review/scripts/digest_build.py <$RUNDIRの実値>
 
-  - **`must` の末尾に終端マーカー** `<div class="tier-end">ここまでが必読。以降は任意に読む</div>` を必ず置く
-  - **各カードの `<h2>` 先頭に `<span class="tier-chip" data-tier="...">必読|余裕があれば|任意</span>`** を付ける
-    （スクロールで帯を見失っても所属層が分かるようにするため）。`badge-new` / `badge-sup` とは別物で、chip → badge の順に並置する
-  - **`optional` の帯配下は `<details class="tier-collapse">` で包み既定closedにする**。`must` と `should` は常に開いた状態にする
-    （`details` で包まない）
-- **Critical要点が `optional` にあるのは severity が低いからではない** — 修正は必須だが選択の余地がないので、
-  裁定のためには読まなくてよい、という意味である。セクション冒頭にこの1文を明記し、「Criticalは軽い」と読めないようにする
-- **設計判断カードには `.choice-bar` を必ず付ける（必須要件）** — ユーザーがボタン1つで裁定を返せるようにするため。
-  `<div class="choice-bar" role="group" aria-label="この裁定の選択肢">` を **`.figure[data-label]` の内側**に置き
-  （JSは直近の `.figure` の `data-label` をキーにする）、各選択肢を
-  `<button type="button" class="choice-btn" data-choice-label="..." data-choice-body="...">` で並べ、
-  末尾に `<button type="button" class="choice-btn choice-clear" data-choice-clear>選択を取り消す</button>` を置く。
-  - **選択肢は推奨を先頭**にし、ラベルにも `A（推奨）` のように推奨であることを書く
-  - **`data-choice-body` にはカード本文の選択肢説明と同じ内容を入れる**（要約して食い違わせない。
-    コピー出力に載るのはこの属性値であり、本文と違うことを書くと裁定の記録が本文と矛盾する）
-  - 同一カードのchoiceは常に1件で、別の選択肢を押すと置換される（AとBが両方エクスポートされない）。
-    自由記述のコメント機能は併存するので、1枚のカードがchoiceと自由コメントを両方持ってよい
-- **一言サマリの書式（ユーザー裁定 2026-07-30「デッドコードがあるが免責されてる、でいい」）**: **欠陥・裁定対象そのものを
-  主語にした短文1つ**（目安20字前後）。免責の仕組み・出所ラベルの話・系統数・規約条番号などのメタ情報をサマリに書くのは禁止
-  （それらはsuppressed-by行・出所行が既に持っている）。例: Critical「絶対に発火しないifガードが2箇所ある」/
-  suppressed「デッドなDI登録があるが免責されている」/ 設計判断「クールダウンキーの粒度を決める」。
-  長い説明が要るならサマリの下に別段落で書き、サマリ行自体は絶対に伸ばさない
-- **コード抜粋は全カード必須**（コード位置を持たない所見＝PR本文由来の申告等のみ例外で、その場合は出典テキストを引用）。
-  suppressedカードも免責されているだけで所見のコード位置は持つので省略しない。生成後検査に「code-card（または出典引用）を
-  持たないカードが0枚」を加える
-- CONFIG固有化: `STORAGE_KEY='pr-review-<番号>-comments-v1'`、`COPY_TITLE='PR #<番号> 独立レビュー裁定'`。
-  テンプレートは `REPLACE_WITH_UNIQUE_STORAGE_KEY` / `REPLACE_WITH_COPY_HEADING` のプレースホルダのまま出荷されているので置換必須（未置換だと別PRのコメントがlocalStorageで混ざる）
-- **カード間の視覚分離**: 裁定カード・suppressedカードはテンプレート既定では背景・枠線を持たず、連続すると境界が曖昧になる。
-  生成時に各カードのdivへ背景色または枠線を付けるようsubagentへ指示する
-- **suppressedが0件でもセクションは省略しない**: suppressedセクションの見出しは常に出し、中身は
-  「該当なし（0件）」の**1行**にする（カードは作らない）。セクションごと消すと「収集し忘れ」と区別がつかなくなる
-- **判断台帳の「PR内新設ADR（降格済み・要検証）」グループ**: Step 4で `[agent前提]` へ降格したPR内新設ADR由来の
-  項目は、判断台帳セクション内に**この名前のグループを設けてまとめて表示する**（ユーザー裁定・一般の `[agent前提]` の
-  各項目と混ぜない）。0件でもグループの見出しは出し、中身は「該当なし（0件）」の1行にする。
-  降格の事実が画面から消えると、PR自作のADRが免責ソースとして通ったように読めてしまうため
-- **設計判断カードのバッジ**: テンプレートのバッジは `badge-new` / `badge-sup` の2種のみで「設計判断」用が無い。
-  **`badge-new` のclassをそのまま流用し、表示文言だけ「設計判断」とする**（新形カードの文言は「新形」）。
-  テンプレート側にclassを追加する改変はしない
-- 実コード抜粋はStep 3のpatchから機械的に転記する（創作・要約禁止）
-- **HTMLエスケープ契約（省略禁止）**: レビュー対象の文字列はそのままHTMLへ流し込むと壊れる。C#のジェネリクス
-  （`Subject<int>`・`List<Action>`）・XMLコメント・yml・PRタイトルはいずれも `<` `>` `&` `"` `'` を含み得る。
-  **PRタイトル・ファイルパス・コード抜粋・`data-label`・`data-choice-label`・`data-choice-body` などの動的文字列は、まず `&` `<` `>` `"` `'` を
-  `&amp;` `&lt;` `&gt;` `&quot;` `&#39;` へ置換し（`&` を最初に置換する）、その後に**行番号 `<span class="ln">`・
-  追加行 `<ins>`・問題行 `<span class="hl">` のマークアップを付与する。順序を逆にすると自分で付けたタグまで
-  エスケープされて `&lt;ins&gt;` が画面に出る。エスケープを怠ると `Subject<int>` の `<int>` がタグとして食われ、
-  **コード抜粋が黙って一部消える**（レビュー成果物としては致命傷。消えたことが画面から分からない）。
-  **`data-choice-label` / `data-choice-body` は属性値なので `"` のエスケープ漏れが即座に属性を割って壊す**
-  （`&quot;` への置換を省略しない）
-- **生成後検査5点（必須・全部通るまで出荷しない）**:
-  1. 未置換プレースホルダ0件 — `grep -c '{{' /tmp/pr-review-<番号>/index.html` が0
-  2. `<script>` 要素がちょうど1個 — `grep -c '<script' /tmp/pr-review-<番号>/index.html` が1
-     （コメント機能JSはverbatim維持＝増減しないのが正）
-  3. `code-card` 内に生の `<` タグが無い — `<pre class="code-card">` ブロックを目視し、
-     `<ins>` `</ins>` `<span class="ln">` `<span class="hl">` `</span>` 以外の `<` が残っていないことを確認する
-     （残っていればエスケープ漏れ＝抜粋欠落）
-  4. **設計判断カードで `.choice-bar` を持たないものが0枚** — `badge-new` かつ表示文言が「設計判断」のカードを
-     すべて数え上げ、各カードの `.figure` 内に `class="choice-bar"` が1つあることを確認する
-     （欠けているとそのカードだけボタンで裁定を返せず、ユーザーが取りこぼす）
-  5. **`tier-banner` が must / should / optional の3つとも存在する** —
-     `grep -c 'class="tier-banner" data-tier="must"'` / 同 `should` / 同 `optional` がいずれも1以上
-- **プレースホルダ置換**: `{{TITLE}}`（hero・`<footer>`・`<title>` の計3箇所）/ `{{DATE}}` / `{{SUBTITLE}}` を実値へ置換する。
-  `{{TITLE}}` = `独立レビュー: PR #<番号> <PRタイトル>`、`{{DATE}}` = レビュー実施日、`{{SUBTITLE}}` = verdict文字列。
-  `<title>` の置換漏れはタブ名が `{{TITLE}}` のまま出荷される
-- **`.verdict-header` の `data-verdict` 属性を必ずverdictに合わせて設定する**（テンプレート既定値は `ruling` 固定）。
-  値は `auto`（自動マージ可）/ `ruling`（新形につき裁定行き）/ `reject`（Critical差し戻し）/
-  `stub`（未測定（スタブ））の4語のみ（「verdict判定規則」の語彙と1対1）。
-  表示には使われないが、成果物HTMLからverdictを機械抽出する唯一の口なので、見出し文言と食い違わせない
-- **テンプレート冒頭の使い方コメントブロック（`<!DOCTYPE html>` 直後の `<!-- 使い方: ... -->`）は生成時に削除する**
-  （`{{TITLE}}` 等の文字列を含むため、残すと置換漏れの誤検知源になり成果物にも不要）
-- **`<h1>` はページに1個だけ**: テンプレートはhero（`{{TITLE}}`）と `.verdict-header` の両方が `h1` になっている。
-  **heroのh1を唯一のh1とし、`.verdict-header` 側は `h2` へ落とす**。heroの見出しとverdictヘッダの見出しで
-  同じ文言を二度出さない（verdictヘッダは `verdict: <判定>` ＋件数の1行サマリに徹する）
-- **絵文字はHTML全体で不使用**（hero・バッジ・カード・折りたたみ・footer・コメント機能の文言すべて）。
-  状態表現はテンプレート既定のバッジ（`badge-new` / `badge-sup` 等）と文字で行う
-- **折りたたみ参考節に必ず入れるもの**（本体規約「Warningを黙って落とさない」の担保。0件の項目は「0件」と明記する）:
-  1. Criticalの修正方針詳細（裁定カードは要点のみ・詳細はここ）
-  2. **Warning全件**（1件1行・出所系統つき。要約による間引き禁止）
-  3. Info一覧（圧縮列挙可）
-  4. 参考扱いのnew_edges（`generic_origin=false` のもの・`dir_is_new=true` のもの。裁定カードにはしない）
-  5. 各系統（決定論／レンズ／reviewer／Codex／Fable／post-checksガード）の生所見要約を系統ごとに1ブロック。
-     Codex不在等の縮退があればここに明記する
+  非0終了なら **digest.mdを直して再実行する**（HTMLを手で直すのは禁止。コンバータのエラーメッセージが
+  何のキー・見出しが欠けているかを指すので、それに従ってdigest.mdを修正する）
+- 成功したら `open <$RUNDIRの実値>/digest.html`
+- **残す規約**（生成subagentへの指示として引き継ぐ）:
+  - カードのトリアージ基準（`must_read: true` を付ける条件）: (a)指摘系統の一致数が多い
+    (b)裁定がCriticalの直し方を左右する (c)ゲームプレイ・アーキテクチャの方向を変える
+  - 一言サマリの書式: 欠陥・裁定対象そのものを主語にした短文1つ（目安20字前後）。免責の仕組み・
+    出所ラベルの話・系統数・規約条番号などのメタ情報はサマリに書かない
+  - コード抜粋は全カード必須（`code-card` フェンス）。patchから機械的に転記する（創作・要約禁止）
+  - `# 折りたたみ参考` に必ず入れる5項目: Criticalの修正方針詳細／Warning全件（1件1行・出所系統つき・
+    要約による間引き禁止）／Info一覧（圧縮列挙可）／参考扱いのnew_edges／各系統の生所見要約
+  - 推奨案は `options` の先頭に書く（`recommended` というキーは存在しない。README-digest-format.md参照）
+- 旧フローにあったHTML手組みの細則（タグ・属性・置換・見た目の整形・生成後の確認手順など）は
+  すべてコンバータの責務へ移っており、生成subagentへ指示する必要はない
+- **保存**: `digest.md` / `digest.html` / `findings.json` はいずれも `$RUNDIR` 直下に保存する。
+  `/tmp` へは一切書かない。`$RUNDIR` 配下はStop/SessionEnd hookが自動でcommit・pushする
 
-## Step 7.5: ダイジェストの外部公開（cloudflaredクイックトンネル）
+## Step 7.5: findings.json（コンバータ出力の確認）
+
+`findings.json` はStep 7のコンバータ（`digest_build.py`）が生成する。**手で書かない・手で直さない**。
+
+- スキーマ（裁定サイトと `pr-adjudicated-apply` の入力契約であるため、読み方として残す）:
+
+```json
+{
+  "pr": <PR番号>,
+  "head": "<レビューしたheadの40桁SHA（Step 8の `- head:` と同値）>",
+  "verdict": "<verdict判定規則で確定した最終verdict>",
+  "generated_at": "<ISO8601（Step 7実行時刻）>",
+  "findings": [
+    {
+      "id": "F01",
+      "title": "<指摘の一行タイトル>",
+      "severity": "critical|high|medium|low",
+      "category": "critical|design-decision|novelty",
+      "files": ["path/to/file.cs:123"],
+      "excerpt": "<問題箇所のコード抜粋>",
+      "recommendation": "<推奨対応の要約>",
+      "options": [
+        {"key": "A", "summary": "<案Aの要約>", "recommended": true},
+        {"key": "B", "summary": "<案Bの要約>"}
+      ],
+      "suppressed": false,
+      "suppress_reason": ""
+    }
+  ]
+}
+```
+
+- **`recommended` は `options` の先頭に必ず付く。推奨したい案を digest.md の `options` 先頭に書くのが唯一の指定方法**。
+  `recommended` というキーを digest.md に書くとコンバータがエラーで落ちる（`recommended` を書く欄は存在しない）
+- **id採番規則**: コンバータがseverity降順（critical→high→medium→low）→ファイルパス昇順→行番号昇順で
+  `F01` から連番を振る。digest.mdには `F01` のようなidを書かず、相互参照は `[F:slug]`（finding YAMLの `slug` を指す）で書く
+
+## Step 7.6: ダイジェストの外部公開（cloudflaredクイックトンネル）
 
 `open` によるローカル表示に加え、**毎回必ず**ダイジェストを外部からアクセス可能にしてURLを報告する
 （ユーザー裁定 2026-08-05・[[2026-08-05-レビューダイジェストの外部公開はcloudflaredクイックトンネルで行う]]）。
@@ -527,7 +509,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
    （同一マシンで複数PRのレビューが並走しうるため、決め打ちで潰さない）
 2. **静的配信を起動**（`run_in_background: true`）:
 
-       cd /tmp/pr-review-<番号> && exec python3 -m http.server <port> --bind 127.0.0.1
+       exec python3 -m http.server <port> --bind 127.0.0.1 --directory <$RUNDIRの実値>
 
    `--bind 127.0.0.1` は省略禁止（LAN全体への無用な露出を避ける。外部到達はトンネルだけが担う）。
    `exec` はシェルを置き換えてPIDを一致させ、後で確実に止められるようにするため
@@ -536,20 +518,25 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
        cloudflared tunnel --url http://127.0.0.1:<port> --no-autoupdate
 
 4. **URLを取り出す** — 起動ログから `https://<ランダム>.trycloudflare.com` を拾う。
-   **ログを読む前に「URLはこれだろう」と推測して報告してはいけない**（毎回変わる）
+   **ログを読む前に「URLはこれだろう」と推測して報告してはいけない**（毎回変わる）。
+   報告するURLは `https://<ランダム>.trycloudflare.com/digest.html`（配信ルートは `$RUNDIR` なのでファイル名まで付ける）
 5. **到達確認（必須・省略禁止）** — 次が **HTTP 200 かつ `<title>` が当該PRのものである**ことを確かめる:
 
-       curl -s -o /tmp/tunnel-check-<番号>.html -w "%{http_code}\n" --max-time 25 https://<ランダム>.trycloudflare.com/
+       curl -s -o /tmp/tunnel-check-<番号>.html -w "%{http_code}\n" --max-time 25 https://<ランダム>.trycloudflare.com/digest.html
        grep -o '<title>[^<]*</title>' /tmp/tunnel-check-<番号>.html
+
+   この一時ファイルは成果物ではないので `/tmp` でよい（`$RUNDIR` へ置くとhookが記録として拾ってしまう）。
 
    確認せずURLを報告するのは禁止 — トンネル確立とオリジン到達は別物で、`cloudflared` はオリジンが死んでいても
    URLを印字する。この確認だけが「本当に見える」ことの検知点である。
    なお**サンドボックス環境では `curl http://127.0.0.1:<port>` が `000` を返すことがある**が、
    トンネル側が200ならオリジンは生きている（ループバック直叩きの遮断であってサーバの故障ではない）
-6. **報告に必ず添える2点**:
+6. **報告に必ず添える3点**:
    - **URLは認証なし**で、知っている者全員がprivateリポジトリのソース抜粋を閲覧できる
+   - **配信ルートは `$RUNDIR` 全体**なので、`digest.html` 以外の中間生成物（`patch.diff`・`context.md`・
+     `findings.json`）も同じURL配下で読める。PRの差分が丸ごと出ることを承知のうえで渡す
    - **寿命はプロセス生存中のみ**。セッション終了・`TaskStop`・マシン再起動で失効する
-7. **`/tmp/pr-review-<番号>/` は消さない**（Step 7の成果物が配信実体。Step 6のreport-only規約どおり `/tmp` は残す）
+7. **`$RUNDIR` を消さない・移動しない**（Step 7の成果物が配信実体。hookが自動commitする記録の正本でもある）
 
 - **公開URLを `$LOGS` の records・シャドー台帳へ書かない**。URLは毎回変わる使い捨てで台帳の再現性に寄与せず、
   失効済みURLが記録に残ると後から「まだ見える」と誤読される。固定書式にフィールドを足すのも禁止（grep横断集計が壊れる）
@@ -576,6 +563,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
       - canonical: <$CANONのHEAD SHA>（origin/master固定）<SKILL.md同一性ガードで差分が出たまま続行した場合のみ ・skew: $ORIGIN=<SHA> を追記>
       - 系統: <発火した系統名と各々の完了/縮退。例: 決定論=完了/レンズ3本=完了/reviewer5本=完了/Codex=縮退（不在）/Fable=完了>
       - session: <このレビューセッションの識別子>
+      - rundir: <$LOGS/harness/pr-independent-review/ からの相対パス。例: runs/pr-1116/>
 
       ## 新形
       <新形フラグ1件1行（系統名・ファイル:行（lineがnullならファイルのみ）・要点）>
@@ -588,7 +576,9 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
       ## suppressed
       <1件1行（ファイル:行・指摘要点・suppressed-by出所）>
 
-- **測定器メタデータ行（`head` / `base` / `canonical` / `系統` / `session`）は省略禁止**。
+- **測定器メタデータ行（`head` / `base` / `canonical` / `系統` / `session` / `rundir`）は省略禁止**。
+  `rundir` は「このverdictを出したときの実入力（patch・context・detchecks）がどこにあるか」の唯一の口であり、
+  reconcileのフォレンジック・リプレイはここから辿る。
   これらは「何を・どの測定器で測ったか」の記録であり、欠けると後からverdictの再現も、
   測定器の版差による見逃し率の比較もできなくなる。`head` と `base` は
   `git -C <$PRWTの実値> rev-parse HEAD` / `rev-parse "<BASE_REF>^{commit}"` の実出力、
@@ -631,8 +621,12 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
     認めた総数）で行う。`false-positive` はこの分母に入れない（別途の誤検知率として数える）
   - 本セクションは上の固定書式への**追補**であり、reconcile実施まで当該ファイルに存在しないのが正
     （固定書式の「0件のセクションも省略せず」は本セクションには適用しない）
-- 記録類は `$LOGS` にのみ書き、コミットはユーザーに委ねる。**コードrepoのどのtreeへも書かない**
-  （冒頭「書き込み先の規律」参照）
+- **記録類のcommitはセッションが行わない。書き込むだけでよい**（`$LOGS` 配下のrecords・shadow-ledger・
+  improvement-queue・`$RUNDIR` 配下の中間生成物とダイジェスト のすべて）。Stop/SessionEnd に登録された `.dev-hooks/logs-sync.mjs` が
+  logs repoで `git add -A` → `auto: logs-sync` → `pull --rebase` → `push` まで自動で行うため、
+  セッション側で `git commit` すると同一内容を二重に扱うことになる。**書いたら放置が正**
+  （旧版の「正典treeへ書き込むが勝手にcommitしない」は記録先を `$LOGS` へ分離する前の記述。
+  現在は正典tree＝コードrepoへは記録を一切書かない）
 
 ## Step 9: 修正モード（「修正して」と言われたときだけ）
 
@@ -660,17 +654,42 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 - コンパイル・テストを実行できなかった場合は、**やっていないことを報告に明記する**。
   「直した」とだけ言って検証状況を伏せるのは禁止
 
+## Step 10: 対応完了ラベル（レビューと対応が両方終わった時のみ）
+
+レビュー（Step 1〜8）と、検出した指摘への対応が**両方**完了した時点で、PRへ `独立レビュー&対応完了` ラベルを付ける
+（このラベルはリポジトリに既存。`独立レビュー待ち` が付いていれば同時に外す）:
+
+    gh pr edit <番号> --repo moorestech/moorestech \
+      --add-label "独立レビュー&対応完了" --remove-label "独立レビュー待ち"
+
+（`--remove-label` はPRに付いていないラベルの指定でもエラーにならないので常に両方指定でよい）
+
+付与条件はverdictで分岐する。**「レビューだけ終わった」状態では絶対に付けない** — このラベルは
+「人間はマージ判断だけすればよい」の合図であり、対応未実施のPRに付くと未修正のCriticalがマージされる:
+
+- **Critical差し戻し** → 全Criticalへの修正コミットがPRブランチへ**push済みであることを確認してから**付ける
+  （`gh pr view <番号> --json headRefOid` が修正コミットを指しているか、または `git log` で修正コミットが
+  headの祖先にあることを確認する）。修正が未実施・ローカルのみなら付けない
+- **新形につき裁定行き** → ユーザー裁定が出て、裁定に伴う対応（あれば）がpushされてから付ける。裁定待ちの間は付けない
+- **自動マージ可** → 対応すべきものが無いので、レビュー完了（Step 8の記録まで）の時点で付けてよい
+- **未測定（スタブ）** → 付けない（測定していないものに完了の合図を出さない）
+
 ## reconcileモード（人間レビューとの突き合わせ・改善発火）
 
 `/pr-independent-review reconcile <番号>` で単独起動、またはStep 0.5の負債ゲートから強制実行される。
 **ここは改善機構の発火装置であり、改善の手法・検証・回帰コーパスは moores-code-review 側
 （`references/skill-improvement.md`・`eval/`）が単一の正である。手順・fixture・検証規則をこちらへ複製しない。**
 
+**reconcileでの `$RUNDIR`**: reconcileはレビュー本体とは別セッションで走るので、`$RUNDIR` は自分で決めずに
+`$LOGS/harness/pr-independent-review/records/pr-<番号>.md`（最新の `-rN`）の `- rundir:` 行が指すディレクトリを使う。
+その行が無い古い記録（2026-08-08以前のレビュー）はrun保存前のものなので、中間生成物は存在しない前提で進める
+（人間コメントとrecordsのテキストだけで突き合わせる。無いものを探して止まらない）。
+
 1. **入力は人間のGitHubコメントのみ**（人間に台帳記入・ラベル付け・分類を求めない。人間の自然なレビュー行為の
    排気だけを信号源にする）:
 
        gh api repos/moorestech/moorestech/pulls/<番号>/comments --paginate \
-         --jq '.[] | {path, line, body, html_url, commit_id}' > /tmp/pr-reconcile-<番号>-comments.json
+         --jq '.[] | {path, line, body, html_url, commit_id}' > <$RUNDIRの実値>/reconcile-comments.json
 
    **`commit_id` は必ず一緒に取る** — 改善時のフォレンジック・リプレイのピン先はこの `commit_id` であり、
    `$LOGS/harness/pr-independent-review/records/pr-<番号>.md` に記録された自動レビュー当時のheadではない（人間指摘の行番号・コード実体は
@@ -715,7 +734,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 - **Critical差し戻し**: 統合後Criticalが1件以上（**決定論チェックの `confirmed` を含む**・
   **200行超過（file-too-long）は除外**＝努力目標・**`context_source_label` も除外**）
   - `context_source_label` はStep 4で**自分が書いた**contextファイルの `##` 見出し／出所ラベル欠落の検出であり、
-    PR側の欠陥ではない。検出時はcontextファイル（`/tmp/pr-review-<番号>-context.md`）を書式どおりに修正して
+    PR側の欠陥ではない。検出時はcontextファイル（`<$RUNDIRの実値>/context.md`）を書式どおりに修正して
     `deterministic_checks.py` を再実行し、消えたことを確認してから先へ進む。verdictには一切数えない
     （PRを自分の書式ミスで差し戻すのは誤判定であり、見逃し率実測を壊す）
 - **新形につき裁定行き**: Criticalなし、かつ新形フラグ or `設計判断: あり` が1件以上
@@ -754,7 +773,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 - 新規性ゲート出力の受け取り検査失敗（JSONパース不能・3キーのいずれか欠落）: 即エラー終了・理由報告（Step 5参照）
 - 新規性ゲートが3系統全空（patchは非空）: `BASE_REF` の妥当性を確認してから継続（Step 5参照）
 - codex不在などmoores-code-review内の縮退: 本体規約に従いダイジェストの参考節に明記
-- Step 7.5の外部公開に失敗（`cloudflared` 不在・トンネル未確立・到達確認がHTTP 200以外またはtitle不一致）:
+- Step 7.6の外部公開に失敗（`cloudflared` 不在・トンネル未確立・到達確認がHTTP 200以外またはtitle不一致）:
   **レビュー自体はエラー終了させない**（ダイジェストとrecordsは既に手元にあり、成果物としては完成しているため）。
   ローカルの `open` 済みパスを案内し、公開できなかった事実と理由を報告に1行明記する。
   URLに触れないまま黙って完了報告するのは禁止

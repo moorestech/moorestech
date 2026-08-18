@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useTopic, readTopic, dispatchAction, Topics, useConnectionStatus } from "@/bridge";
+import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics, useConnectionStatus } from "@/bridge";
 import { isPointerOverWebUi, isWheelPassthrough, useGameLayerWheel, useGrabInteractive } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
@@ -18,6 +18,12 @@ export default function EquipmentPanel() {
   // 掴んだ絵が出ない画面ではクリックを受けず、選択操作はホイールだけになる
   // Where the held item cannot be seen, clicks are refused and the wheel is the only selection input
   const grabInteractive = useGrabInteractive();
+  // ホイールを占有中かはC#が判定して配る値をそのまま読む（種別からの再導出はしない）
+  // Read the occupancy flag C# publishes as-is; never re-derive it from the target kind
+  const wheelOwnedByBuildTool = useTopicSelector(
+    Topics.placementMode,
+    (data) => data?.wheelOwnedByTool === true,
+  );
 
   // サーバー適用だけが進めるrevisionの差分だけ、送信順FIFOから確認済み要求を除く
   // Remove only the FIFO requests confirmed by server-only revision advances
@@ -51,6 +57,11 @@ export default function EquipmentPanel() {
     // ただし常時表示HUD自身はスクロールを持たずゲーム操作の場なので、その上のホイールは装備切替へ通す
     // Always-on HUDs have no scrolling of their own and belong to the game, so a wheel over them still switches equipment
     if (isPointerOverWebUi(e.target) && !isWheelPassthrough(e.target)) return;
+
+    // ホイールを占有する建築ツール中は装備切替へ流さない（購読値なので購読が無い間もnull扱いにならない）
+    // Build tools that own the wheel suppress equipment switching; the subscribed value never degrades to null
+    if (wheelOwnedByBuildTool) return;
+
     const latest = readTopic(Topics.inventory);
     if (!latest || latest.equipment.length === 0) return;
     const accumulated = accumulateWheelSteps(wheelRemainder.current, e.deltaY);

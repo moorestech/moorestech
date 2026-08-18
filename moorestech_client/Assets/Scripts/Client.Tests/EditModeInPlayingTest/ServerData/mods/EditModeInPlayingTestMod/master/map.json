@@ -15,6 +15,7 @@
       ],
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "soundEffectType": "stone",
+      "terrainSurroundEffectType": "rockBareGround",
       "miningType": "PickUp",
       "miningParam": {}
     },
@@ -27,6 +28,7 @@
       "sortPriority": 100,
       "maxStack": 100,
       "soundEffectType": "tree",
+      "terrainSurroundEffectType": "treeRootPatch",
       "miningType": "Mining",
       "earnItems": [
         {
@@ -89,7 +91,8 @@
         ]
       },
       "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b",
-      "soundEffectType": "tree"
+      "soundEffectType": "tree",
+      "terrainSurroundEffectType": "treeRootPatch"
     },
     {
       "earnItemHpInterval": 10,
@@ -98,6 +101,7 @@
       "addressablePath": "Vanilla/Environment/StoneVein",
       "miningType": "Mining",
       "soundEffectType": "stone",
+      "terrainSurroundEffectType": "rockBareGround",
       "miningParam": {
         "miningTools": [
           {
@@ -130,7 +134,10 @@
       "veinParam": {
         "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
       },
-      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Stone"
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Stone",
+      "soundEffectType": "stone",
+      "handMiningType": "none",
+      "handMiningParam": null
     },
     {
       "veinGuid": "22222222-0000-0000-0000-000000000002",
@@ -139,7 +146,10 @@
       "veinParam": {
         "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
       },
-      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Stone"
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Stone",
+      "soundEffectType": "stone",
+      "handMiningType": "none",
+      "handMiningParam": null
     },
     {
       "veinGuid": "22222222-0000-0000-0000-000000000003",
@@ -148,7 +158,10 @@
       "veinParam": {
         "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
       },
-      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Copper"
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Copper",
+      "soundEffectType": "stone",
+      "handMiningType": "none",
+      "handMiningParam": null
     },
     {
       "veinGuid": "22222222-0000-0000-0000-000000000004",
@@ -157,7 +170,10 @@
       "veinParam": {
         "itemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d"
       },
-      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Tree"
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Tree",
+      "soundEffectType": "stone",
+      "handMiningType": "none",
+      "handMiningParam": null
     }
   ]
 }

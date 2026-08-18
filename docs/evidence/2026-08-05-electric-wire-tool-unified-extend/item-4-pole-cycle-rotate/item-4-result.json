@@ -1,0 +1,182 @@
+{
+    "RunName": "electric-wire-tool-pole-cycle-rotate-via-ui",
+    "Success": true,
+    "Error": "",
+    "StartedAt": "2026-08-14T18:53:38.5742530+09:00",
+    "FinishedAt": "2026-08-14T18:53:57.1342350+09:00",
+    "Asserts": [
+        {
+            "Label": "開幕スキットのSkipインテントが受理される",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "3種の電柱アンロックがクライアントへ同期される",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "対照実験: ゲーム画面のホイールで装備選択が変わる (前=0 後=-1)",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "電線接続ツールが選択される",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "解放済み電柱が選択候補にある",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "受け入れ4: スクロールで電柱種が切り替わる",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "受け入れ4: ツール使用中のスクロールで装備は切り替わらない (前=-1 後=-1)",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "受け入れ4: サーバー側の装備選択も不変 (前=-1 後=-1)",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "ゴーストの名前ラベルが選択中の電柱種を示す 実際:'高圧電柱'",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "受け入れ4: もう1ノッチで次の電柱種へ切り替わる",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "受け入れ4: 2ノッチ目でも装備は切り替わらない",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "3種の電柱を順にサイクルした (電柱/高圧電柱/広範囲電柱)",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "逆スクロールで前の電柱種へ戻る",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "受け入れ4: 逆スクロールでも装備は切り替わらない",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "受け入れ4: 回転キーで向きが変わる",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "回転キーをもう一度押すとさらに向きが変わる",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "回転操作でも装備は切り替わらない",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "後対照: ツール解除後は同じホイールで装備が切り替わる (前=-1 後=2)",
+            "Passed": true,
+            "Message": "ok"
+        }
+    ],
+    "Timeline": [
+        "    0.2s [STEP] 地形を平坦化してプレイヤーをワープ",
+        "    1.0s [STEP] ワープ: (8.00, 34.00, -6.00)",
+        "    1.0s [WAIT] 0.5秒",
+        "    1.5s [NOTE] 開幕スキットをSkipインテントで飛ばす",
+        "    1.5s [WAIT] 開幕スキットのSkipインテントが受理される",
+        "    1.5s [PASS] 開幕スキットのSkipインテントが受理される",
+        "    1.5s [WAIT] UI状態待ち: GameScreen",
+        "    5.6s [STEP] アンロック: 電柱",
+        "    5.6s [STEP] 建設コスト付与: 電柱 x2",
+        "    6.3s [STEP] アンロック: 高圧電柱",
+        "    6.3s [STEP] アンロック: 広範囲電柱",
+        "    6.3s [STEP] give: 銅のワイヤー x64",
+        "    6.9s [WAIT] 3種の電柱アンロックがクライアントへ同期される",
+        "    6.9s [PASS] 3種の電柱アンロックがクライアントへ同期される",
+        "    6.9s [NOTE] 対照実験: ゲーム画面でホイールを回すと装備が切り替わることを先に確認する（装備枠数=3）",
+        "    7.1s [WAIT] 0.5秒",
+        "    7.6s [PASS] 対照実験: ゲーム画面のホイールで装備選択が変わる (前=0 後=-1)",
+        "    7.6s [NOTE] 対照実験の結果: 装備選択 0 → -1",
+        "    7.6s [STEP] スクリーンショット: 01-control-equipment-switched-by-wheel",
+        "    7.7s [NOTE] ビルドメニューのツールカテゴリから電線接続ツールを選ぶ",
+        "    7.7s [STEP] キー入力: B",
+        "    8.3s [WAIT] Web UI要素待ち: build-menu-panel",
+        "    8.9s [STEP] Web UIクリック: build-menu-category-d1000000-0000-4000-8000-000000000009",
+        "   10.1s [STEP] Web UIクリック: build-menu-entry-connectTool-872372d5-2998-4fb7-826c-593ceeafcfb2",
+        "   11.3s [WAIT] UI状態待ち: PlaceBlock",
+        "   11.3s [PASS] 電線接続ツールが選択される",
+        "   11.3s [STEP] 照準: (8.50, 32.00, 6.50)",
+        "   12.5s [PASS] 解放済み電柱が選択候補にある",
+        "   12.5s [NOTE] ツール使用中の初期状態: 電柱種=電柱 / 装備選択=-1",
+        "   12.5s [STEP] スクリーンショット: 02-pole-type-1",
+        "   12.6s [NOTE] スクロールを1ノッチ回す（電柱種は次へ、装備は不変のはず）",
+        "   12.7s [WAIT] 0.5秒",
+        "   13.2s [WAIT] 受け入れ4: スクロールで電柱種が切り替わる",
+        "   13.2s [PASS] 受け入れ4: スクロールで電柱種が切り替わる",
+        "   13.2s [NOTE] 電柱種: 電柱 → 高圧電柱 / 装備選択: -1 → -1",
+        "   13.2s [PASS] 受け入れ4: ツール使用中のスクロールで装備は切り替わらない (前=-1 後=-1)",
+        "   13.2s [PASS] 受け入れ4: サーバー側の装備選択も不変 (前=-1 後=-1)",
+        "   13.2s [PASS] ゴーストの名前ラベルが選択中の電柱種を示す 実際:'高圧電柱'",
+        "   13.2s [STEP] スクリーンショット: 03-pole-type-2",
+        "   13.2s [NOTE] さらにスクロールし3種目の電柱へ切り替える",
+        "   13.4s [WAIT] 0.5秒",
+        "   13.9s [WAIT] 受け入れ4: もう1ノッチで次の電柱種へ切り替わる",
+        "   13.9s [PASS] 受け入れ4: もう1ノッチで次の電柱種へ切り替わる",
+        "   13.9s [NOTE] 電柱種: 高圧電柱 → 広範囲電柱 / 装備選択: -1",
+        "   13.9s [PASS] 受け入れ4: 2ノッチ目でも装備は切り替わらない",
+        "   13.9s [PASS] 3種の電柱を順にサイクルした (電柱/高圧電柱/広範囲電柱)",
+        "   13.9s [STEP] スクリーンショット: 04-pole-type-3",
+        "   13.9s [NOTE] 逆方向にスクロールして前の電柱種へ戻す",
+        "   14.0s [WAIT] 0.5秒",
+        "   14.5s [WAIT] 逆スクロールで前の電柱種へ戻る",
+        "   14.5s [PASS] 逆スクロールで前の電柱種へ戻る",
+        "   14.5s [PASS] 受け入れ4: 逆スクロールでも装備は切り替わらない",
+        "   14.5s [NOTE] Rキーを押して設置向きを回転させる",
+        "   14.5s [STEP] キー入力: R",
+        "   15.2s [WAIT] 受け入れ4: 回転キーで向きが変わる",
+        "   15.2s [PASS] 受け入れ4: 回転キーで向きが変わる",
+        "   15.2s [NOTE] 設置向き: North → East",
+        "   15.2s [STEP] スクリーンショット: 05-rotated-once",
+        "   15.2s [STEP] キー入力: R",
+        "   15.8s [WAIT] 回転キーをもう一度押すとさらに向きが変わる",
+        "   15.8s [PASS] 回転キーをもう一度押すとさらに向きが変わる",
+        "   15.8s [NOTE] 設置向き: East → South",
+        "   15.8s [PASS] 回転操作でも装備は切り替わらない",
+        "   15.8s [STEP] スクリーンショット: 06-rotated-twice",
+        "   15.9s [NOTE] 後対照: ツールを抜けてゲーム画面へ戻り、同じホイール注入で装備が切り替わることを確認する",
+        "   15.9s [STEP] ゲーム画面へ戻る",
+        "   16.8s [WAIT] 0.5秒",
+        "   17.3s [PASS] 後対照: ツール解除後は同じホイールで装備が切り替わる (前=-1 後=2)",
+        "   17.3s [NOTE] 後対照の結果: 装備選択 -1 → 2（抑止はツール使用中に限定されている）",
+        "   17.3s [STEP] スクリーンショット: 07-post-control-equipment-switched"
+    ],
+    "ErrorLogs": [],
+    "Screenshots": [
+        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_185323/electric-wire-tool-pole-cycle-rotate-via-ui/01-control-equipment-switched-by-wheel.png",
+        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_185323/electric-wire-tool-pole-cycle-rotate-via-ui/02-pole-type-1.png",
+        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_185323/electric-wire-tool-pole-cycle-rotate-via-ui/03-pole-type-2.png",
+        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_185323/electric-wire-tool-pole-cycle-rotate-via-ui/04-pole-type-3.png",
+        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_185323/electric-wire-tool-pole-cycle-rotate-via-ui/05-rotated-once.png",
+        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_185323/electric-wire-tool-pole-cycle-rotate-via-ui/06-rotated-twice.png",
+        "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_185323/electric-wire-tool-pole-cycle-rotate-via-ui/07-post-control-equipment-switched.png"
+    ],
+    "RecordingPath": "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/electric-wire-tool-unified-extend/moorestech_client/PlaytestResults/20260814_185323/electric-wire-tool-pole-cycle-rotate-via-ui/recording.mp4"
+}

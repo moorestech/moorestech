@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.PlacementTarget;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {

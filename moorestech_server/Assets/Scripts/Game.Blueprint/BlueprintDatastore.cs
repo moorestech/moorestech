@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UniRx;
 
 namespace Game.Blueprint
 {
     public class BlueprintDatastore : IBlueprintDatastore
     {
         private readonly List<BlueprintJsonObject> _blueprints = new();
+        private readonly Subject<Guid> _onBlueprintDeleted = new();
 
         public IReadOnlyList<BlueprintJsonObject> Blueprints => _blueprints;
+        public IObservable<Guid> OnBlueprintDeleted => _onBlueprintDeleted;
 
         public Guid Register(BlueprintJsonObject blueprint)
         {
@@ -23,6 +26,7 @@ namespace Game.Blueprint
             var index = _blueprints.FindIndex(b => b.BlueprintGuid == blueprintGuid);
             if (index < 0) return false;
             _blueprints.RemoveAt(index);
+            _onBlueprintDeleted.OnNext(blueprintGuid);
             return true;
         }
 

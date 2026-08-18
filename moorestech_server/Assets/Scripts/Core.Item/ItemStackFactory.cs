@@ -43,6 +43,28 @@ namespace Core.Item
             return Create(id, count, metaData);
         }
         
+        public List<IItemStack> CreateSplitStacks(ItemId id, int totalCount)
+        {
+            var stacks = new List<IItemStack>();
+            if (id == ItemMaster.EmptyItemId || totalCount < 1) return stacks;
+
+            // 最大スタック数を超える場合は分割して追加
+            // Split into multiple stacks if exceeding max stack size
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(id);
+            var fullStackCount = totalCount / maxStack;
+            for (var i = 0; i < fullStackCount; i++)
+            {
+                stacks.Add(Create(id, maxStack));
+            }
+
+            // あまりを追加する
+            // Add remainder
+            var remainCount = totalCount % maxStack;
+            if (remainCount != 0) stacks.Add(Create(id, remainCount));
+
+            return stacks;
+        }
+
         public IItemStack CreatEmpty()
         {
             return _nullItem;

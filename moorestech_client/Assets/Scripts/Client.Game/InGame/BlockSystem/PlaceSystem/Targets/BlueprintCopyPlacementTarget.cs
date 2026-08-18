@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Localization;
+using Game.PlacementTarget;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets

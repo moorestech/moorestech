@@ -98,23 +98,7 @@ namespace Game.Map
                 {
                     var itemCount = _random.Next(earnItemConfig.MinCount, earnItemConfig.MaxCount + 1);
                     var itemId = MasterHolder.ItemMaster.GetItemId(earnItemConfig.ItemGuid);
-                    var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(itemId);
-
-                    // 最大スタック数を超える場合は分割して追加
-                    // Split into multiple stacks if exceeding max stack size
-                    var fullItemCount = itemCount / maxStack;
-                    for (var j = 0; j < fullItemCount; j++)
-                    {
-                        items.Add(ServerContext.ItemStackFactory.Create(itemId, maxStack));
-                    }
-
-                    // あまりを追加する
-                    // Add remainder
-                    var remainCount = itemCount % maxStack;
-                    if (remainCount != 0)
-                    {
-                        items.Add(ServerContext.ItemStackFactory.Create(itemId, remainCount));
-                    }
+                    items.AddRange(ServerContext.ItemStackFactory.CreateSplitStacks(itemId, itemCount));
                 }
             }
 

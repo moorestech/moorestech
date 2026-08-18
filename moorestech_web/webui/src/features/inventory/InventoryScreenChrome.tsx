@@ -1,27 +1,17 @@
-import { Button } from "@mantine/core";
-import { dispatchAction } from "@/bridge";
-import { L, LocalizedShortcutHint, useI18n } from "@/shared/i18n";
+import { L, LocalizedShortcutHint } from "@/shared/i18n";
 import styles from "./InventoryScreenChrome.module.css";
 
-// インベントリ画面固有の操作とキーヒントを所有する
-// Own inventory-screen controls and key hints
+// インベントリ画面固有のキーヒントを所有する（整理操作はInventoryPanelのタイトル行が持つ）
+// Owns the inventory screen's key hints; the sort action lives in InventoryPanel's title row
 export default function InventoryScreenChrome() {
-  const { t } = useI18n();
   return (
-    <>
-      <div className={styles.topControls}>
-        <Button className={styles.sortButton} variant="default" size="compact-sm" onClick={() => void dispatchAction("inventory.sort", {})}>
-          {t(L.ui.inventory.sort)}
-        </Button>
+    <div className={styles.keyHints} data-testid="key-hints">
+      <div>
+        <LocalizedShortcutHint shortcut="Tab/ESC" translationKey={L.ui.inventory.closeHint} />
       </div>
-      <div className={styles.keyHints} data-testid="key-hints">
-        <div>
-          <LocalizedShortcutHint shortcut="Tab/ESC" translationKey={L.ui.inventory.closeHint} />
-        </div>
-        <div>
-          <LocalizedShortcutHint shortcut="R" translationKey={L.ui.inventory.researchHint} />
-        </div>
+      <div>
+        <LocalizedShortcutHint shortcut="R" translationKey={L.ui.inventory.researchHint} />
       </div>
-    </>
+    </div>
   );
 }

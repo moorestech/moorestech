@@ -23,14 +23,23 @@ namespace Client.Playtest
     /// </summary>
     public class PlaytestDriver
     {
+        // 開幕スキットのSkip受理待ちと、その後のGameScreen到達待ちの上限
+        // Timeouts for the opening skit's skip acceptance and the subsequent arrival at GameScreen
+        private const float SkitSkipTimeoutSeconds = 30f;
+        private const float SkitSkipUiStateTimeoutSeconds = 15f;
+
         private readonly PlaytestResult _result;
         private readonly string _runDirectory;
         private readonly PlaytestReporter _reporter;
+        // ホットバー操作のサブファサード
+        // Sub-facade for hotbar operations (EnterBuildMode/ExitBuildMode/AssignHotbar/UnlockConnectTool)
+        public PlaytestHotbarDriver Hotbar { get; }
         public PlaytestDriver(PlaytestResult result, string runDirectory)
         {
             _result = result;
             _runDirectory = runDirectory;
             _reporter = new PlaytestReporter(result);
+            Hotbar = new PlaytestHotbarDriver(_reporter);
         }
         // AIナレーション用。今から何をするか・何が起きたかを動画とTimelineに残す
         // For AI narration: records what's about to happen / what happened, into the video and Timeline
@@ -111,9 +120,6 @@ namespace Client.Playtest
         }
         public async UniTask ClickBuildMenuBlock(string blockName) => await ClickWebUi(PlaytestWebUiOps.BuildMenuBlockTestId(blockName));
         public async UniTask CloseWebUiPanel() => await ClickWebUi("build-menu-close");
-        // slotは0始まり（HotBarView.SelectIndexと同じ）。0→キー1、8→キー9
-        // slot is zero-based (same as HotBarView.SelectIndex): 0 -> key "1", 8 -> key "9"
-        public async UniTask SelectHotbar(int slot) => await _reporter.Act($"ホットバー{slot + 1}を選択", () => SemanticInput.TapKey(Key.Digit1 + slot));
         public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds)
         {
             var waitEntry = _reporter.BeginWait($"UI状態待ち: {state}");
@@ -121,13 +127,15 @@ namespace Client.Playtest
             _reporter.EndWait(waitEntry);
         }
         public async UniTask OpenBuildMenuAndSelectBlock(string blockName) => await _reporter.Act($"ビルドメニューで選択: {blockName}", () => PlaytestUiOps.OpenBuildMenuAndSelectBlock(blockName));
+        // 開幕スキットを飛ばしゲーム画面まで抜ける。ホットバー・ビルドメニュー操作すべての前提
+        // Skips the opening skit and lands on the game screen; the precondition for every hotbar and build-menu operation
+        public async UniTask SkipOpeningSkit() => await _reporter.Act("開幕スキットをSkipインテントで飛ばす", () => PlaytestUiOps.SkipOpeningSkit(SkitSkipTimeoutSeconds, SkitSkipUiStateTimeoutSeconds));
         public async UniTask ExitToGameScreen() => await _reporter.Act("ゲーム画面へ戻る", PlaytestUiOps.ExitToGameScreen);
         public async UniTask AimAt(Vector3 worldPosition) => await _reporter.Act($"照準: {worldPosition}", () => PlaytestUiOps.AimAtWorldPosition(worldPosition));
         // 指定originに設置されるよう接地面上のフットプリント中心へ照準する（向きはNorth前提）
         // Aim at the footprint center on the ground so placement lands on the given origin (assumes North)
         public async UniTask AimAtPlaceOrigin(string blockName, Vector3Int origin) => await _reporter.Act($"照準: {blockName} at {origin}", () => PlaytestUiOps.AimAtWorldPosition(PlaytestUiOps.PlaceAimPoint(blockName, origin, BlockDirection.North)));
         public async UniTask ClickPlace() => await _reporter.Act("クリック設置", PlaytestUiOps.ClickPlace);
-        public async UniTask GiveItemToHotbar(int hotbarSlot, string itemName, int count) => await _reporter.Act($"ホットバー{hotbarSlot + 1}へgive: {itemName} x{count}", () => PlaytestItemOps.GiveItemToHotbar(hotbarSlot, itemName, count, 15f));
         public async UniTask PlaceBlockViaUi(string blockName, Vector3Int origin, BlockDirection direction)
         {
             // ビルドメニュー選択→照準→クリック設置→サーバー反映待ちの統合操作（方向はデフォルトNorth前提）

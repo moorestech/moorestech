@@ -44,12 +44,16 @@
         "Common.Debug",
         "Game.Paths",
         "Game.MapGeneration",
+        "Unity.Mathematics",
         "Game.PlayerRiding.Interface",
         "Game.Research",
         "VContainer",
         "StarterAssetsInputs",
         "ThirdPersonController",
-        "Mod.Loader"
+        "Mod.Loader",
+        "Unity.TextMeshPro",
+        "Game.Hotbar",
+        "Game.PlacementTarget"
     ],
     "includePlatforms": [
         "Editor"

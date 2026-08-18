@@ -29,14 +29,7 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
 
     // 開幕スキット(Story)中はポーズメニューもビルドメニューも開けないためSkipインテントで抜ける
     // The opening skit (Story) blocks both the pause menu and the build menu, so skip it via the intent path
-    p.Note("開幕スキットをSkipインテントで飛ばす");
-    var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
-    await p.Until(() =>
-    {
-        var current = skitStore.GetCurrent();
-        return current != null && skitStore.TrySkip(current.SessionId, current.SceneRevision).Ok;
-    }, 30f, "開幕スキットのSkipインテントが受理される");
-    await p.WaitUiState(UIStateEnum.GameScreen, 15f);
+    await p.SkipOpeningSkit();
 
     // ロケールはPlayerPrefsへ永続化されるため、前回ランの残留を潰してから日本語で始める
     // The locale persists in PlayerPrefs, so clear any carry-over from the previous run and start in Japanese
@@ -45,16 +38,16 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
     p.Assert(Localize.GetContent(ContentLocalizationKeys.BlockName(windDrillGuid)) == "風力掘削機",
         "日本語ロケールでブロック名が日本語原文へ解決される");
 
-    // 表示名はスロットではなく詳細プレビューに出るため、ホバーして絵に残す
-    // Display names live in the detail preview rather than the slot, so hover to capture them
+    // 詳細サイドバー表示のためホバーする
+    // Hover to capture it in the detail sidebar
     p.Note("日本語のまま2種の機関車をホバーし、別名で表示されることを確認する");
     await OpenBuildMenu();
     await p.ClickWebUi(transportCategoryTestId);
     await p.HoverWebUi(steamLocomotiveTestId);
-    await PlaytestWebUiOps.WaitWebUiTextContains("build-menu-preview", "蒸気機関車", 15f);
+    await PlaytestWebUiOps.WaitWebUiTextContains("build-menu-detail", "蒸気機関車", 15f);
     await p.Screenshot("01-traincar-steam-japanese");
     await p.HoverWebUi(dieselLocomotiveTestId);
-    await PlaytestWebUiOps.WaitWebUiTextContains("build-menu-preview", "ディーゼル機関車", 15f);
+    await PlaytestWebUiOps.WaitWebUiTextContains("build-menu-detail", "ディーゼル機関車", 15f);
     await p.Screenshot("02-traincar-diesel-japanese");
 
     // 車両名はマスタのnameが正で、addressablePath末尾ではないことを辞書経路で固定する
@@ -67,7 +60,7 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
     p.Note("日本語のままブロック名と配置HUDを確認する");
     await p.ClickWebUi(miningCategoryTestId);
     await p.HoverWebUi(windDrillEntryTestId);
-    await PlaytestWebUiOps.WaitWebUiTextContains("build-menu-preview", "風力掘削機", 15f);
+    await PlaytestWebUiOps.WaitWebUiTextContains("build-menu-detail", "風力掘削機", 15f);
     await p.Screenshot("03-block-preview-japanese");
     await p.ClickBuildMenuBlock("風力掘削機");
     await p.WaitUiState(UIStateEnum.PlaceBlock, 15f);
@@ -86,7 +79,7 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
     await OpenBuildMenu();
     await p.ClickWebUi(miningCategoryTestId);
     await p.HoverWebUi(windDrillEntryTestId);
-    await PlaytestWebUiOps.WaitWebUiTextContains("build-menu-preview", "Wind Drill", 15f);
+    await PlaytestWebUiOps.WaitWebUiTextContains("build-menu-detail", "Wind Drill", 15f);
     await p.Screenshot("05-block-preview-english");
     await p.ClickBuildMenuBlock("風力掘削機");
     await p.WaitUiState(UIStateEnum.PlaceBlock, 15f);

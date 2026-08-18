@@ -23,10 +23,13 @@ import type {
   GearNetworkDataSchema,
   GearNetworkStopReasonSchema,
   GeneratorDetailDataSchema,
+  HotbarDataSchema,
+  HotbarSlotSchema,
   InventoryAreaSchema,
   ItemMasterDataSchema,
   ItemMasterEntrySchema,
   MachineDetailDataSchema,
+  MachineProcessStateSchema,
   MachineRecipeItemSchema,
   MachineRecipeSchema,
   MachineRecipesDataSchema,
@@ -92,6 +95,7 @@ export type SkitPresentationData = z.infer<typeof SkitPresentationDataSchema>;
 export type SkitIntent = SkitPresentationData["allowedIntents"][number];
 export type TrainRidingData = z.infer<typeof TrainRidingDataSchema>;
 export type FluidSlotData = z.infer<typeof FluidSlotDataSchema>;
+export type MachineProcessState = z.infer<typeof MachineProcessStateSchema>;
 export type MachineDetailData = z.infer<typeof MachineDetailDataSchema>;
 export type GeneratorDetailData = z.infer<typeof GeneratorDetailDataSchema>;
 export type MinerDetailData = z.infer<typeof MinerDetailDataSchema>;
@@ -126,6 +130,8 @@ export type BuildMenuRequiredItem = z.infer<typeof BuildMenuRequiredItemSchema>;
 export type BuildMenuCategory = z.infer<typeof BuildMenuCategorySchema>;
 export type BuildMenuEntryData = z.infer<typeof BuildMenuEntryDataSchema>;
 export type BuildMenuData = z.infer<typeof BuildMenuDataSchema>;
+export type HotbarSlot = z.infer<typeof HotbarSlotSchema>;
+export type HotbarData = z.infer<typeof HotbarDataSchema>;
 export type ChallengeNodeState = z.infer<typeof ChallengeNodeStateSchema>;
 export type ChallengeNodeData = z.infer<typeof ChallengeNodeDataSchema>;
 export type ChallengeCategoryData = z.infer<typeof ChallengeCategoryDataSchema>;
