@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Box, Button, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
@@ -34,10 +33,6 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
   const { progress, isHolding, start, stop } = useHoldCraft(recipe.craftTime, isCraftable, () => {
     void dispatchAction("craft.execute", { recipeGuid: recipe.recipeGuid });
   });
-
-  // レシピ変更で長押しを打ち切る
-  // Cancel the hold when the recipe changes
-  useEffect(() => stop, [recipe.recipeGuid, stop]);
 
   return (
     <Stack className={styles.recipeEntry} gap="xs" data-testid={testId}>
@@ -89,7 +84,9 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
         onKeyUp={(e) => { if (e.key === "Enter" || e.key === " ") stop(); }}
         onBlur={stop}
       >
-        {t(L.ui.recipe.craftButtonLabel, { seconds: recipe.craftTime })}
+        {/* 秒数の書式は ui.recipe.duration が唯一の出所 */}
+        {/* ui.recipe.duration is the single source for the seconds format */}
+        {t(L.ui.recipe.craftButtonLabel, { duration: t(L.ui.recipe.duration, { seconds: recipe.craftTime }) })}
       </Button>
     </Stack>
   );
