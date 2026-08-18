@@ -48,8 +48,8 @@ namespace Client.DebugSystem.Skit
             // SkitManager suppresses pins as a whole through IReadOnlyList<ITutorialWorldPin>
             builder.RegisterInstance<IReadOnlyList<ITutorialWorldPin>>(new List<ITutorialWorldPin> { new MapObjectTest() });
 
-            // SetActive用の空ダミーのみ用意
-            // Prepare only empty dummies as SetActive targets
+            // テストシーンに実体が無いためSetActive先の空ダミーのみ用意
+            // The test scene has no real objects, so provide empty dummies purely as SetActive targets
             var mapObjectDatastore = CreateChildComponent<MapObjectGameObjectDatastore>();
             var outcropDatastore = CreateChildComponent<OutcropGameObjectDatastore>();
             var entityObjectDatastore = CreateChildComponent<EntityObjectDatastore>();
