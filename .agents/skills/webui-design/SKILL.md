@@ -28,6 +28,9 @@ description: |
 - **全画面UIは作らない。** すべてフローティングパネルまたはモーダル形式。
   - Web UIは3D世界の上に載る透明オーバーレイ（CEF）であり、世界が透けて見えることが前提。
   - 画面全体を不透明な面で塗り潰すレイアウトは、いかなる画面でも禁止。
+  - 例外（ADR 0014・ユーザー裁定 2026-08-18）: 研究ツリー画面のみ、半透明GamePanelがステージ全域
+    （安全帯含む上下左右端まで）を占有してよい。面は従来どおり半透明で世界は透ける。
+    チャレンジHUD・キー操作ヒント・持ち物パネルはこのパネルより上の層（`--z-overlay-panel-chrome`）に重畳する。
 - **背景ディムは App の screen backdrop 1枚だけが担う。** 各パネルが独自に画面を暗くしない。
 - **常時の縁ヴィネットは App の実viewport全面が担う。** 1280基準stageへ置くと横長画面の途中で切れるため、stage背景へ戻さない。ヴィネットの楕円寸法・中心・停止位置だけは、縦横比が異なる実viewportの四辺へ同じ比率で沿わせる必要があるため、固定長原則の例外としてviewport比例の`%`トークンを使う。
 - **重なり順は `index.css` の `--z-*` トークンのみで制御する。** 数値のz-index直書き禁止。
@@ -95,7 +98,8 @@ description: |
 - アクセントの青グラデ（`--recipe-action-background`）は**主要アクションボタン限定**。装飾や面には使わない。
 - 面は必ず半透明。不透明100%の面は作らない（世界が透けるのが前提のため）。
 - `index.css` の `--text-muted` は従属テキスト、`--text-insufficient` は不足/警告、`--gauge-track` はゲージの溝、`--gauge-fill` はゲージの充填に使う。
-- **選択・強調のシアンは `--select-cyan`（`rgb(0 221 255)`、uGUI `frame_select.png` / `nav_arrow.png` 由来）。** 用途はスロット選択枠とスキットの送り待ちマーカー・選択肢ホバー/押下・ツールボタンON状態の点灯に限る。青グラデ（`--recipe-action-background`）とは別語彙であり、面の常時装飾には使わない。
+- **選択・強調のシアンは `--select-cyan`（`rgb(0 221 255)`、uGUI `frame_select.png` / `nav_arrow.png` 由来）。** 用途はスロット選択枠とスキットの送り待ちマーカー・選択肢ホバー/押下・ツールボタンON状態の点灯・
+  研究ノードカードの実行可能状態の枠色点灯（§8.5・ADR 0014）に限る。青グラデ（`--recipe-action-background`）とは別語彙であり、面の常時装飾には使わない。
 - 機能側への色ハードコードは引き続き禁止し、これらの色も必ずトークン経由で参照する。
 
 ## 6. 装飾
@@ -132,12 +136,20 @@ description: |
 
 - グラフの置き場は `GamePanel variant="default"` + タイトル罫線。body内で `shared/treeView` のパン・ズームを使う。
 - **研究ノードカード**: 「名前1行(ellipsis) + `ItemSlot`アイコン」の縦積みのみ。説明・消費・報酬・ボタンはカードに載せない。
-  面は `--research-node-face`、枠は `--research-node-border`（index.cssのトークン）。
-  状態はdata属性（`data-completed` / `data-researchable` / `data-locked` / `data-selected`）。
-  lockedはopacity減衰、selectedは `--text-high-contrast` のoutlineで表す。新しい色相・光彩は使わない。
+  面は `--research-node-face`、枠は `--research-node-border`（tokens.cssのトークン）。
+  状態はdata属性で4値を表す（ADR 0014）:
+  `data-locked`（前提未達）=opacity減衰45% / 無印（前提充足・アイテム不足）=通常グレー枠 /
+  `data-researchable`（今すぐ研究できる）=`--select-cyan`の枠色 / `data-completed`=`--text-default`の白枠。
+  アイテム充足はサーバーstateでなくインベントリトピックからのクライアント側再計算で判定する（ライブ追従）。
+  `data-selected` は従来どおり `--text-high-contrast` のoutline。新しい色相・光彩は使わない。
 - **グラフ内詳細ペイン**: ノード選択で開く `GamePanel variant="craft"` のフロート。グラフパネル内の固定位置
-  （パン・ズーム非追従）。内容は名前・説明・消費(`ItemSlot`+insufficient)・報酬/解放(`ItemSlot`)・
-  主要アクションボタン（青グラデ）・閉じるボタン。オンオフ可能（同ノード再クリック/閉じるで消える）。
+  （パン・ズーム非追従）。
+  内容は名前・説明・「必要アイテム」ラベル付き消費（`ItemSlot`+insufficient+所持/必要ツールチップ＝
+  CraftRecipeViewのmaterialTooltip様式）・種類別ラベル付き解放セクション（「解放: ブロック」=`BlockSlot`、
+  「解放: 機械レシピ」=出力アイテムの`ItemSlot`、「解放: クラフトレシピ」=`ItemSlot`、「報酬アイテム」=個数付き
+  `ItemSlot`、「解放: その他」=connect tool/train car名のテキスト行）・主要アクションボタン（青グラデ）・
+  閉じるボタン。ラベルは`--text-muted`、空の種類のセクションは出さない（§4の無札並置禁止に従う）。
+  オンオフ可能（同ノード再クリック/閉じるで消える）。
 - **ビューポートの保持と初期フォーカス**: パン・ズーム位置は `viewportKey` によるセッション内ストアで保持し、
   画面を閉じて開き直しても復元する（リロードで消える。永続化はしない）。保存が無い初回のみ、機能側が渡す
   `initialFocus`（研究では最初の `researchable` ノード）をビューポート中央に据える。保存済みが常に優先。
@@ -330,6 +342,7 @@ description: |
 - 文字影 `--challenge-hud-text-shadow` は面付き後も残し、通知同族の控えめな値（0.35px級）にする。可読性の主担当は面で、影は世界が透ける面上の補助。
 - メニュー上端の安全帯 `--menu-upper-safe-area`（168px）は、目標3件までの面付きHUDが収まる高さとして決めている。HUDの寸法・目標行数の上限を変えるときはこのトークンを一緒に見直す。
 - インベントリ・研究・建築・チャレンジ一覧・ポーズ等のメニュー中も表示を維持し、**HUD自身は画面状態を参照して位置・幅・間隔・文字サイズ・DOMを切り替えない**。全画面で同じ左上レイアウトを使い、`--menu-upper-safe-area` はその単一HUDが収まる高さを確保する。メニュー本体の高さは `--menu-content-height` を使う。
+  研究画面はADR 0014の例外として安全帯を覆う全域パネルを敷き、HUDはその上に重畳される。
 - `pointer-events: none` を維持し、blockingスキット中は表示しない。
 
 ## 8.15 操作モードHUD
