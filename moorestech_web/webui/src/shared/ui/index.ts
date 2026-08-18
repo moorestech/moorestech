@@ -5,7 +5,7 @@ export { default as SlotFrame } from "./SlotFrame";
 export { default as BlockSlot } from "./BlockSlot";
 export { default as FluidSlot } from "./FluidSlot";
 export { default as FluidSlotRow } from "./FluidSlotRow";
-export { default as ProgressArrow } from "./ProgressArrow";
+export { default as ProgressArrowBar } from "./ProgressArrowBar";
 export { default as ProgressArrowGlyph } from "./ProgressArrowGlyph";
 export { default as SlotGrid } from "./SlotGrid";
 export { useSlotMouse } from "./useSlotMouse";

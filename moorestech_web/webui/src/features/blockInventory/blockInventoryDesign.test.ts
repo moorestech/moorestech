@@ -19,7 +19,7 @@ const styles = {
   panel: read("./style.module.css"),
   gaugeBar: read("../../shared/ui/GaugeBar/style.module.css"),
   modeSwitch: read("../../shared/ui/ModeSwitch/style.module.css"),
-  progressArrow: read("../../shared/ui/ProgressArrow/style.module.css"),
+  progressArrow: read("../../shared/ui/ProgressArrowBar/style.module.css"),
   progressArrowGlyph: read("../../shared/ui/ProgressArrowGlyph/style.module.css"),
   machineInventoryBody: read("./details/machine/machineInventoryBody.module.css"),
 };
