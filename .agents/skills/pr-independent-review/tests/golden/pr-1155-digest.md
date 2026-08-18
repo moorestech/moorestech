@@ -20,7 +20,6 @@ summary: 需要だけ1.5倍に膨らみ、供給も速度も増えない。
 index_label: 歯車機械に倍率を効かせるか（案A/案Bは排他）
 label: 歯車機械の要求トルク率に上限なしの電力倍率を流し込む変更の設計判断カード（実コード抜粋つき）
 files: [moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs:40]
-recommendation: 案A（推奨）: GearConsumptionCalculator.CalcOperatingRate / CalcCurrentPower に requestRate を通し、要求と供給を一致させる。
 options:
   - GearConsumptionCalculator.CalcOperatingRate / CalcCurrentPower に requestRate 引数を足し、required と供給の両方へ倍率を反映して要求と供給を一致させる（推奨）
   - SetTorqueRequestRate を Processing ? 1f : idleRate へ戻し、歯車機械では PowerMultiplier を要求側に載せない（表示分母も基礎値へ戻す）
@@ -41,8 +40,6 @@ options:
 
 **独立レビューの実測:** `MachineModuleEffect.cs:75` の倍率は下限のみで上限クランプがない。一方 `GearConsumptionCalculator.cs:41-52` の `required` は rate を掛けない素の値で `Mathf.Min(currentTorque / required, 1f)` により rate>1 分を必ず捨て、`CalcCurrentPower` は `_torqueRequestRate` を参照しない。結果、`GearNetworkPowerCalculator.cs:44-47` で `demandPower > availablePower` となり **同一歯車網の全消費者が `OverRequirePower` で停止**し、停止しない場合も充足率は恒久的に 67%（赤固定）になる。5系統がこの二択を提示し、Fable の「意図どおり」判定は供給側の導出を読んでいない。
 
-**代替案:** **案A（推奨）** — `GearConsumptionCalculator.CalcOperatingRate/CalcCurrentPower` へ `requestRate` を通し、要求と供給を同じ式に揃える（`GearNetworkPowerCalculator.cs:30-31` の既存コメントが示す責務統一の方向と一致し、PRの掲げた三者一致を実際に達成する唯一の案）。**案B** — `SetTorqueRequestRate(CurrentState == Processing ? 1f : _idlePowerRate)` へ戻し、歯車機械の表示分母も基礎値へ戻す（＝歯車機械には倍率を載せない）。
-
 **併用推奨（案C相当）:** `readonly struct TorqueRequestRate` を切り、定義域 [0,∞) の `PowerMultiplier` と `float` 取り違えを型で止める。
 
 ## 充足率の表示可否を判別子 currentState でなく requestPower !== 0 の数値センチネルで判定しており、実在マスタで誤表示する
@@ -56,7 +53,6 @@ summary: 石窯とボイラーで電力行が丸ごと消える。
 index_label: 充足率を隠す判断の正本を state に置くか実効要求値に置くか
 label: 充足率の表示可否を requestPower !== 0 の数値センチネルで判定している箇所の設計判断カード（実コード抜粋つき）
 files: [moorestech_web/webui/src/features/blockInventory/details/detailLogic.ts:73]
-recommendation: 案A（推奨）: Record<MachineProcessState, { labelKey; insufficient; showPowerRate }> の1枚へ集約し isPowerRateMeaningful を削除する。石窯・ボイラー（requiredPower: 0 の稼働機械）を「停止中」と同一表示に潰さないこと。
 options:
   - state 由来の1枚テーブルへ集約し、MachineStateKeys / MachineStateInsufficientTone も統合する（状態追加が必ずコンパイルエラーになる・推奨）
   - 「0 なら描画しない」を所有者 PowerRateText の early return へ移し computePowerRate の 0→1 を撤去する（MinerSection の既存表示も変わる）
@@ -74,8 +70,6 @@ options:
 
 **独立レビューの実測:** 実マスタ `../moorestech_master/server_v8/.../blocks.json` に **石窯（L94・`requiredPower: 0`）とボイラー（L1937・同）**が実在し、`EffectiveRequestPower = 0 × rate = 0` が常に成立する。よって**正常稼働中でも電力行が消え**、「電力が来ていない」のか「需要が0」なのかユーザーが区別できない。判別子 `currentState` は本PRで `z.enum(["idle","processing","halted"])` に narrowing 済みで**ワイヤ上に既に存在する**のに使っていない。`requestPower === 0` の解釈は現状4通りに分裂（`detailLogic.ts:74`＝表示可否 ／ `detailLogic.ts:8`＝100%充足 ／ `CommonMachineBlockStateDetail.cs:35`＝同上 ／ `MinerSection.tsx:15`＝判定なしで常時表示）。7系統一致。
 
-**代替案:** **案A（推奨）** — `Record<MachineProcessState, { labelKey; insufficient; showPowerRate }>` 1枚へ集約し（`MachineStateKeys` と `MachineStateInsufficientTone` も統合）、`isPowerRateMeaningful` を削除して `view.showPowerRate && (...)` にする。4状態目の追加が必ずコンパイルエラーになる。**案B** — 「0なら描画しない」を所有者 `PowerRateText.tsx` の early return へ移し `computePowerRate` の `=== 0 ? 1` を撤去する（`MinerSection` の既存表示「100% (0/0)」が消える挙動変化を伴う）。
-
 **決着に要る追加の裁定:** 石窯・ボイラーを「需要なし」と明示表示するか（`L.ui.blockInventory.noDemand` の前例が `NetworkSections.tsx:16` にある）／`MinerSection` の既存表示も揃えて消すか。`CommonMachineBlockStateDetail` に判別共用体を持たせる案はMessagePackワイヤ変更を伴うため非推奨。
 
 ## 実効率導出・ラッチ・公開が2 processor へ逐語重複し集約が途中で止まっており、両者の Halted 扱いが既に食い違う
@@ -89,7 +83,6 @@ summary: 同じ導出が2箇所に写され、既に食い違っている。
 index_label: 実効率導出の集約先の選択（ChangeSelectionの再ラッチ判断が従属する）
 label: 2つのprocessorへ逐語コピーされた実効率導出とラッチ手続きの集約先を選ぶ設計判断カード（実コード抜粋つき）
 files: [moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:29, moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:31]
-recommendation: 案A（推奨）: 既存 MachineProcessContext へ IdlePowerRate / EffectiveRequestPowerRate(state) / LatchTickPower / PinPowerToZero を集約し、両 processor のフィールドと手続きを削除する（両ファイルが200行以内へ戻る副次効果あり）。
 options:
   - MachineProcessContext へ率の網羅switchとラッチ手続きを集約する（推奨・ChangeSelectionの再ラッチ修正と同一編集）
   - 率は IMachineProcessState に float RequestPowerRate を足して実装側へ散らし、状態追加をコンパイルエラーで検知させる（ラッチのみ context へ集約）
@@ -131,8 +124,6 @@ options:
 
 **独立レビューの実測:** フィールド宣言・ctor 初期ラッチ・`GetBlockStateDetails` の公開・Update 冒頭3文が**日英2行コメントごと逐語一致**で両クラスに存在し、率だけ Vanilla=三項（`Halted` が無言で `_idlePowerRate` に落ちる）／CleanRoom=網羅switch（`Halted => 0f`）と**既に食い違っている**。両ファイルは 217行 / 222行で200行上限を超過。故障は仮定でなく patch 内で既に1回起きており（CleanRoom の Halted 固着を `:177-178` の手動0埋めで塞いだ）、同型の `ChangeSelection` 2件（[F:change-selection-latch]）では漏れている。4系統一致。
 
-**代替案（新規クラス・新規ファイルは作らない）:** **案A（推奨）** — 既存 `MachineProcessContext` へ `IdlePowerRate`・`EffectiveRequestPowerRate(state)`・`LatchTickPower(state)`・`PinPowerToZero()` を集約し、両processorのフィールドと3文を1行へ畳む（両ファイルが200行以内へ戻る）。**案B** — 率の switch を `IMachineProcessState` に `float RequestPowerRate { get; }` として持たせ、状態追加をコンパイルエラーで検知させる。
-
 **裁定ポイント:** ラッチの置き場所は `MachineProcessContext` 一択で拮抗しない。選択は「率の分岐を context の網羅switch+throw に置くか、`IMachineProcessState` の実装へ分散させるか」だけ。どちらでも [F:change-selection-latch] の直し方（`ChangeSelection` 直後の再ラッチを1行で呼ぶ）が決まるため、**[F:change-selection-latch] より先に決める必要がある**。
 
 ## ProcessingPowerMultiplier を毎回集計のままにするか tick スナップショットにするか
@@ -145,7 +136,6 @@ must_read: false
 summary: 同一tick内で別インスタンスの倍率を読む。
 label: ProcessingPowerMultiplierを毎回集計するかtickスナップショットにするかの設計判断カード（実コード抜粋つき）
 files: [moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs:26]
-recommendation: 案A（推奨）: GameUpdater.CurrentTick スタンプ付きのtickメモにする。同一tick内の全読み手が同一スナップショットを見るため、PRの掲げた「分子分母の基準一致」がtick内で構造的に保証される（現状は EnergySegment.SettleTick 時点と Update() 時点で別インスタンスを集計）。
 options:
   - GameUpdater.CurrentTick スタンプ付きスナップショットにする。モジュール着脱の反映が最大1tick遅れる代わりに基準一致が構造的に保証される（推奨）
   - 現状維持（毎回 AggregateCurrent。1tickに機械あたり3〜4回のList確保とMasterHolder参照が走る）
@@ -163,8 +153,6 @@ options:
 
 **独立レビューの実測:** 非キャッシュ getter のため同一tick内で同じモジュール集計を3〜4回作り直す（`AggregateCurrent()` は毎回 List 確保＋`MasterHolder.ItemMaster` 参照。Processing中1台あたり電気/CleanRoom 60→80回/秒、歯車 20→60回/秒）。性能だけの話ではなく、`EnergySegment.SettleTick` が読んだ倍率と `Update()` がラッチする倍率が**別インスタンス**のため、PRの掲げた「基準一致」が tick 内で完全には成立していない。
 
-**代替案:** **案A（推奨）** — `GameUpdater.CurrentTick` スタンプ付きの tick メモ（`CurrentTickEffect`）にし、同一tick内の全読み手が同一スナップショットを見るようにする。集計は機械あたり1回/tickに固定され、基準一致が構造的に保証される。代償はモジュール着脱の反映が最大1tick遅れること。**案B** — 現状の毎回集計を維持する（1tick遅延を嫌う場合）。
-
 ## 共有部品 ProgressArrowGlyph が --craft-arrow-* というドメイン語彙トークンを参照している
 
 ```yaml
@@ -175,7 +163,6 @@ must_read: false
 summary: 汎用部品がcraftドメインの語彙を参照する。
 label: ProgressArrowGlyphが参照する既定寸法トークンの命名に関する設計判断カード（実コード抜粋つき）
 files: [moorestech_web/webui/src/shared/ui/ProgressArrowGlyph/style.module.css:4]
-recommendation: 案A（推奨）: 現状維持。前例 shared/ui/GamePanel が --craft-grip-* を参照しており逸脱ではない。中立名へ揃えたい場合のみ案B（改名は別名追加ではないので「別名トークンを増やさない」裁定とも矛盾しない）。
 options:
   - 現状維持。前例 GamePanel の --craft-grip-* 参照と同形で、追加トークンも増えていない（推奨）
   - tokens.css の3トークンを --progress-arrow-glyph-* へ改名し参照3箇所を差し替える（兄弟 ProgressArrow の中立名と揃う）
@@ -194,8 +181,6 @@ options:
 
 **独立レビューの実測:** 兄弟の `ProgressArrow` は中立名 `--progress-arrow-*`（`tokens.css:179,182`）を使っており、`shared/ui` 内で語彙が割れている。`[ADR: AGENTS.md#設計原則]`（汎用基盤にドメイン語彙を持ち込まない）に抵触。PR内新設 `.decisions` は「別名トークン新設」案しか検討しておらず、**改名案は検討されていない**。改名は別名追加ではないので同文書の方針とも矛盾しない。
 
-**代替案:** **案A（推奨）** — 現状維持（craft名トークンを共有部品が参照。`GamePanel` の前例に揃える）。**案B** — `--progress-arrow-glyph-*` へ**改名**し、`tokens.css:185,188,189` の3トークンと本CSSの参照3箇所を一括更新する。
-
 ## ProgressArrow（矩形バー）と ProgressArrowGlyph（SVG矢印）が並立し、同じ機械パネル内で矢印表現が2種混在する
 
 ```yaml
@@ -206,7 +191,6 @@ must_read: false
 summary: 同じ機械パネル内で矢印表現が2種混在する。
 label: ProgressArrowとProgressArrowGlyphが同一責務で並立している状態の解消方針を選ぶ設計判断カード（実コード抜粋つき）
 files: [moorestech_web/webui/src/shared/ui/index.ts:8]
-recommendation: 案A（推奨）: 見た目を変えず ProgressArrow を ProgressArrowBar へ改名し、名前で役割差が読めるようにする。採掘機・流体行の見た目まで矢印グリフへ寄せる案Bは表示が変わるためユーザー裁定が要る。
 options:
   - 見た目は変えず ProgressArrow → ProgressArrowBar へクロスファイル改名し、2部品の役割差を名前に出す（推奨）
   - MinerSection と FluidSlotRow も Glyph へ寄せ、旧 ProgressArrow とトークンを削除する（採掘機・流体行の見た目が矩形バー→矢印グリフに変わる）
@@ -225,8 +209,6 @@ options:
 
 **独立レビューの実測:** 移したのは craft / machine の2箇所のみで、`MinerSection.tsx:14` と `FluidSlotRow/index.tsx:23` は旧型（div幅%の矩形バー）のまま。**同じ機械パネル内で矢印表現が2種混在**し、目標「同一部品・同一寸法」が半分しか達成されていない。
 
-**代替案:** **案A（推奨）** — 見た目を変えず `ProgressArrow` → `ProgressArrowBar` へクロスファイル改名し、名前で役割差が読める形にする（[F:arrow-token-name] の改名と同時に行える）。**案B** — `MinerSection` と `FluidSlotRow` も Glyph へ寄せ、`shared/ui/ProgressArrow/`・`--progress-arrow-*`・`blockInventoryDesign.test.ts:22` を削除して完全集約する（**採掘機と流体行の見た目が矩形バー→矢印グリフへ変わるためユーザー裁定が要る**）。
-
 ## ChangeSelection が状態遷移後に _publishedRequestPower を再ラッチせず、分子分母の基準ズレをレシピ変更経路で再発させる
 
 ```yaml
@@ -236,7 +218,6 @@ severity: critical
 summary: レシピ切替のたび偽の赤が出る。
 label: ChangeSelectionが状態遷移後に_publishedRequestPowerを再ラッチしないCriticalカード（実コード抜粋つき）
 files: [moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:216, moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:137]
-recommendation: CurrentState を書き換えた直後・_changeState.OnNext の前に _publishedRequestPower = EffectiveRequestPower; を置く。実効率導出の集約を採るなら _context.LatchTickPower(CurrentState) の1行に畳み、2ファイルで同形にする。
 options:
   - ChangeSelection の2箇所で状態書き換え直後に再ラッチする（実効率導出の集約と同一編集にまとめる）
 ```
@@ -273,7 +254,6 @@ severity: critical
 summary: 外部参照0のpublicが残っている。
 label: CleanRoomMachineProcessorComponentのEffectiveRequestPowerRateが参照0のままpublicになっているCriticalカード（実コード抜粋つき）
 files: [moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:31]
-recommendation: public を private に落とす。実効率導出の集約を採る場合は MachineProcessContext 側へ移動して本メンバー自体が消えるため、その集約と一括で処理する。
 options:
   - private へ落とす（実効率導出の集約を採るなら context へ移動して消滅）
 ```
@@ -311,7 +291,6 @@ severity: critical
 summary: QAスクリプトが必ず落ちて撮影物が残らない。
 label: capture-machine-qa.tsがgearMachineで必ずタイムアウト死するCriticalカード（実コード抜粋つき）
 files: [moorestech_web/webui/e2e/capture-machine-qa.ts:136]
-recommendation: powerRate.count() === 0 を許容する形へ直しクロップ基準を stateLabelBox 単独に切り替える。あわせて sha256 の try-catch 撤去・旧 manifest.json の rm 追加・padding のデフォルト引数廃止（AGENTS.md の try-catch / デフォルト引数 / フォールバック禁止規約）。
 options:
   - 「要求0で率が非表示」を manifest に記録する形へ直し、try-catch・旧manifest残置・デフォルト引数の3点も前例どおりに整える（推奨）
 ```
@@ -344,7 +323,6 @@ severity: critical
 summary: 選択済み機械でもレシピタブに固まる。
 label: MachineSectionの初期タブがmachine未着時にrecipesで固着するCriticalカード（実コード抜粋つき）
 files: [moorestech_web/webui/src/features/blockInventory/details/MachineSection.tsx:18]
-recommendation: SectionStackView 側で data.machine 到着までマウントしない形にし、MachineSection を machine 必須 props にする。machineInitialTab の引数を非nullableへ絞り、到達不能を固定していたテスト2ケースを削除する。
 options:
   - SectionStackView でマウント境界を machine 到着へ合わせ、machineInitialTab を非nullable に絞る（推奨）
   - userTab: string | null を持ち、描画時に userTab ?? machineInitialTab(...) で解決する
@@ -375,7 +353,6 @@ severity: critical
 summary: 旧実装へ戻しても全テストが緑になる。
 label: 中核変更がmutationで死なずテストが自己参照化しているCriticalカード（実コード抜粋つき）
 files: [moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomMachineTest.cs:103, moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineFluidIOTest.cs:316]
-recommendation: モジュール装着機で期待値を base × 倍率 の独立計算に置き換え、遷移直後の1tick読み飛ばしをやめる。MachineFluidIOTest の ?? 100 / ?? 0.2f を廃して Assert.IsNotNull(machineParam) を先に置く。歯車率・isPowerRateMeaningful・key=identifier のテストを新設する（歯車機械の要求トルク率 / 充足率の表示可否判定 の裁定確定後に着手）。
 options:
   - 自己参照アサートを独立計算の期待値に置換し、死んでいる中核5件に1対1でテストを追加する（推奨）
 ```

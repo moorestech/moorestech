@@ -32,6 +32,12 @@ def finding_from(title: str, body: str) -> Finding:
     meta_text, after = read_fence(lines, j)
     meta = parse_yaml_block(meta_text)
     rest = "\n".join(lines[after:]).strip()
+    # 案の列挙は options が正本。本文へ代替案を書くと同じ案が2箇所に出て片方が古くなる
+    # options is the single source for alternatives; a body copy would go stale on one side
+    if "代替案" in rest:
+        raise DigestError(
+            f"finding「{title}」の本文に代替案を書けません。案は options: へ書いてください"
+            f"（コンバータが案A/案B…として描き、先頭へ推奨マークを付けます）")
 
     # suppressedの真偽で必須キー集合が切り替わる（suppress_reason vs options）
     # The required key set switches on suppressed (suppress_reason vs options)
@@ -49,6 +55,10 @@ def finding_from(title: str, body: str) -> Finding:
     # recommended is a reserved key: the convention is "the first option is the recommendation"
     if "recommended" in meta:
         raise DigestError(f"finding「{title}」に recommended は書けません（先頭optionが推奨です）")
+    # recommendation は options 先頭から自動で埋まるため、書かせない（案の正本を1箇所に保つ）
+    # recommendation is auto-filled from the first option, so writing it would split the source of truth
+    if "recommendation" in meta:
+        raise DigestError(f"finding「{title}」に recommendation は書けません（options先頭から自動で入ります）")
 
     files = meta["files"] if isinstance(meta["files"], list) else [meta["files"]]
     options = meta.get("options", [])
@@ -60,5 +70,5 @@ def finding_from(title: str, body: str) -> Finding:
         must_read=_parse_bool(meta, "must_read", title),
         index_label=meta.get("index_label", ""), suppressed=suppressed,
         suppress_reason=meta.get("suppress_reason", ""),
-        recommendation=meta.get("recommendation", ""), label=meta.get("label", ""),
+        label=meta.get("label", ""),
     )

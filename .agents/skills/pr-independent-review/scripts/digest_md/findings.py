@@ -40,7 +40,7 @@ def build_findings(doc: Document) -> dict:
         out.append({
             "id": f.id, "title": f.title, "severity": f.severity, "category": f.category,
             "files": f.files, "excerpt": _excerpt(f.body_md),
-            "recommendation": f.recommendation or (f.options[0] if f.options else ""),
+            "recommendation": f.options[0] if f.options else "",
             "options": options, "suppressed": f.suppressed, "suppress_reason": f.suppress_reason,
         })
     return {"pr": int(doc.meta["pr"]), "head": doc.meta["head"], "verdict": doc.meta["verdict"],

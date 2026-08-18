@@ -6,7 +6,7 @@ import re
 
 from .blocks import blocks_html
 from .code_card.lang import language_of
-from .findings import sort_key
+from .findings import OPTION_KEYS, sort_key
 from .inline import escape, inline_html
 from .parse import DigestError, Document, Finding
 from .sectioning import split_blocks
@@ -35,6 +35,20 @@ def _zone_of(f: Finding) -> str:
     return "must-read" if f.must_read else "other-rulings"
 
 
+def options_html(f: Finding, indent: str) -> str:
+    # 案はoptionsが正本。キー採番と推奨マークはfindings.jsonと同じ規則で機械的に付ける
+    # options is the single source for alternatives; keys and the recommended mark follow findings.json
+    if not f.options:
+        return ""
+    items = []
+    for n, summary in enumerate(f.options):
+        mark = '<span class="opt-recommended">推奨</span>' if n == 0 else ""
+        items.append(f'{indent}  <li><strong>案{OPTION_KEYS[n]}</strong>{mark} — {escape(summary)}</li>')
+    body = "\n".join(items)
+    return (f'\n{indent}<p class="options-head"><strong>選べる案</strong></p>'
+            f'\n{indent}<ul class="plain options-list">\n{body}\n{indent}</ul>')
+
+
 def _card_html(f: Finding, refs: dict) -> str:
     # data-finding-id はカード要素そのものに付ける（裁定サイトの注入位置の正）
     # data-finding-id sits on the card element itself: the anchor the adjudication site injects at
@@ -49,6 +63,7 @@ def _card_html(f: Finding, refs: dict) -> str:
         paths += "（＋ " + ", ".join(f"<code>{escape(p)}</code>" for p in rest) + "）"
     label = f.label or f"{f.title}のカード（実コード抜粋つき）"
     body = blocks_html(f.body_md, refs, "        ", language_of(f.files))
+    opts = options_html(f, "        ")
     extra = ""
     if f.suppressed:
         extra = f'\n        <p><strong>suppressed-by:</strong> {inline_html(f.suppress_reason, refs)}</p>'
@@ -58,7 +73,7 @@ def _card_html(f: Finding, refs: dict) -> str:
         <h2><span class="badge {badge_class}">{badge_text}</span> {names}</h2>
         <p class="file-path">{paths}</p>
         <p class="summary-line">{inline_html(f.summary, refs)}</p>
-{body}{extra}
+{body}{opts}{extra}
       </section>
     </div>"""
 
