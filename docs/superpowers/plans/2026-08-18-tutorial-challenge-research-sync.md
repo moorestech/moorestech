@@ -81,9 +81,9 @@ ADR: `docs/adr/0016-tutorial-challenge-lineup-research-sync.md`（全裁定の�
 **Interfaces:**
 - Produces: 生成型 `Mooresmaster.Model.ChallengesModule.CompleteResearchTaskParam`（プロパティ `System.Guid ResearchNodeGuid`）、`UiDragGuideTutorialParam`（`string FromUIObjectId` / `string ToUIObjectId`）、定数 `TutorialsElement.TutorialTypeConst.uiDragGuide`
 
-- [ ] **Step 1: edit-schemaスキルの`references/yaml_spec.md`を読む**（スキーマ編集の必須前提）
+- [x] **Step 1: edit-schemaスキルの`references/yaml_spec.md`を読む**（スキーマ編集の必須前提）
 
-- [ ] **Step 2: challenges.yml の taskCompletionType enum に completeResearch を追加**
+- [x] **Step 2: challenges.yml の taskCompletionType enum に completeResearch を追加**
 
 `- blockPlace`（既存options末尾、73-76行付近）の直後に1行追加:
 
@@ -98,7 +98,7 @@ ADR: `docs/adr/0016-tutorial-challenge-lineup-research-sync.md`（全裁定の�
           - completeResearch
 ```
 
-- [ ] **Step 3: taskParam の cases に completeResearch を追加**
+- [x] **Step 3: taskParam の cases に completeResearch を追加**
 
 `- when: blockPlace` ケース（102-113行付近）の直後、`- key: tutorials` の前に追加:
 
@@ -114,7 +114,7 @@ ADR: `docs/adr/0016-tutorial-challenge-lineup-research-sync.md`（全裁定の�
                 displayElementPath: /data/[*]/researchNodeName
 ```
 
-- [ ] **Step 4: tutorialType enum に uiDragGuide を追加**
+- [x] **Step 4: tutorialType enum に uiDragGuide を追加**
 
 ```yaml
             - key: tutorialType
@@ -130,7 +130,7 @@ ADR: `docs/adr/0016-tutorial-challenge-lineup-research-sync.md`（全裁定の�
               - uiDragGuide
 ```
 
-- [ ] **Step 5: tutorialParam の cases に uiDragGuide を追加**
+- [x] **Step 5: tutorialParam の cases に uiDragGuide を追加**
 
 `- when: blockPlacePreview` ケースの直後（`- key: startedActions` の前）に追加:
 
@@ -146,16 +146,16 @@ ADR: `docs/adr/0016-tutorial-challenge-lineup-research-sync.md`（全裁定の�
                   default: to ui object id
 ```
 
-- [ ] **Step 6: _CompileRequester.cs の dummyText を変更**（SourceGeneratorトリガー）
+- [x] **Step 6: _CompileRequester.cs の dummyText を変更**（SourceGeneratorトリガー）
 
 `private const string dummyText = "...";` の値を任意の新文字列（例: `"complete-research-drag-guide"`）へ変更する。
 
-- [ ] **Step 7: コンパイルして生成型を確認**
+- [x] **Step 7: コンパイルして生成型を確認**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件。`CompleteResearchTaskParam` / `UiDragGuideTutorialParam` が生成される（既存JSONは新enumを使っていないためロード互換）。
 
-- [ ] **Step 8: コミット**
+- [x] **Step 8: コミット**
 
 ```bash
 git add VanillaSchema/challenges.yml moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs
