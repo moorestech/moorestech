@@ -35,6 +35,7 @@ namespace Server.Event.EventReceive
             _unlockState.OnUnlockBlock.Subscribe(b => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.Block, b)));
             _unlockState.OnUnlockTrainCar.Subscribe(t => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.TrainCar, t)));
             _unlockState.OnUnlockConnectTool.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.ConnectTool, c)));
+            _unlockState.OnUnlockBlueprint.Subscribe(_ => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.Blueprint, Guid.Empty)));
         }
         
         private void AddBroadcastEvent(UnlockEventMessagePack unlockEventMessagePack)
@@ -100,6 +101,10 @@ namespace Server.Event.EventReceive
                 case UnlockEventType.ConnectTool:
                     UnlockedConnectToolGuidStr = guid.ToString();
                     break;
+                case UnlockEventType.Blueprint:
+                    // 単一フラグのためGuidを持たない
+                    // Single flag; carries no GUID
+                    break;
             }
         }
     }
@@ -113,5 +118,6 @@ namespace Server.Event.EventReceive
         Block,
         TrainCar,
         ConnectTool,
+        Blueprint,
     }
 }

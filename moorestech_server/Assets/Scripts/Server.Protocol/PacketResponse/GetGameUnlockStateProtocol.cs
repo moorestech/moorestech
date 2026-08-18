@@ -118,7 +118,8 @@ namespace Server.Protocol.PacketResponse
                 lockedMachineRecipe, unlockedMachineRecipe,
                 lockedBlock, unlockedBlock,
                 lockedTrainCar, unlockedTrainCar,
-                lockedConnectTool, unlockedConnectTool);
+                lockedConnectTool, unlockedConnectTool,
+                gameUnlockStateData.IsBlueprintUnlocked);
         }
         
         
@@ -167,6 +168,7 @@ namespace Server.Protocol.PacketResponse
             [Key(13)] public List<string> UnlockedTrainCarGuidsStr { get; set; }
             [Key(14)] public List<string> LockedConnectToolGuidsStr { get; set; }
             [Key(15)] public List<string> UnlockedConnectToolGuidsStr { get; set; }
+            [Key(16)] public bool IsBlueprintUnlocked { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseGameUnlockStateProtocolMessagePack() { }
@@ -177,7 +179,8 @@ namespace Server.Protocol.PacketResponse
                 List<string> lockedMachineRecipeGuidsStr, List<string> unlockedMachineRecipeGuidsStr,
                 List<string> lockedBlockGuidsStr, List<string> unlockedBlockGuidsStr,
                 List<string> lockedTrainCarGuidsStr, List<string> unlockedTrainCarGuidsStr,
-                List<string> lockedConnectToolGuidsStr, List<string> unlockedConnectToolGuidsStr)
+                List<string> lockedConnectToolGuidsStr, List<string> unlockedConnectToolGuidsStr,
+                bool isBlueprintUnlocked)
             {
                 Tag = ProtocolTag;
                 UnlockedCraftRecipeGuidsStr = unlockedCraftRecipeGuidsStr;
@@ -194,6 +197,7 @@ namespace Server.Protocol.PacketResponse
                 UnlockedTrainCarGuidsStr = unlockedTrainCarGuidsStr;
                 LockedConnectToolGuidsStr = lockedConnectToolGuidsStr;
                 UnlockedConnectToolGuidsStr = unlockedConnectToolGuidsStr;
+                IsBlueprintUnlocked = isBlueprintUnlocked;
             }
         }
     }

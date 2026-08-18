@@ -49,6 +49,24 @@ namespace Tests.CombinedTest.Game
         }
 
         [Test]
+        public void unlockBlueprintのgameActionで解放される()
+        {
+            var (_, serviceProvider) = CreateServer();
+            var controller = serviceProvider.GetService<IGameUnlockStateDataController>();
+            var executor = serviceProvider.GetService<global::Game.Action.IGameActionExecutor>();
+
+            // unlockBlueprintアクションを直接組み立てて実行する
+            // Build and execute the unlockBlueprint action directly
+            var action = new Mooresmaster.Model.GameActionModule.GameActionElement(
+                0,
+                Mooresmaster.Model.GameActionModule.GameActionElement.GameActionTypeConst.unlockBlueprint,
+                new Mooresmaster.Model.GameActionModule.UnlockBlueprintGameActionParam());
+            executor.ExecuteUnlockActions(new[] { action });
+
+            Assert.IsTrue(controller.IsBlueprintUnlocked);
+        }
+
+        [Test]
         public void 旧セーブのように項目が欠損していればシード値のまま未解放()
         {
             var (_, serviceProvider) = CreateServer();
