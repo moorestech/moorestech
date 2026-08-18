@@ -120,10 +120,12 @@ description: |
 - 実フォントは単一ウェイトのため**合成bold/italicは禁止**（`font-synthesis: none` を崩さない）。
 - **表示文字列は必ず `t()` を通す。** JSXへの生リテラルは lint（no-jsx-visible-literal）で落ちる。
 - キー操作ヒントは `<kbd>` + `t()` の既存様式（InventoryScreenChrome の keyHints）に従う。
+- **テキスト選択は入力欄のみ**（§9・ADR 0021）。`app/index.css` の `body { user-select: none }` ＋ `input, textarea { user-select: text }` が唯一の正で、機能側CSSで `user-select` を書かない。
 
 ## 8. 通知・情報表示
 
 - 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・7秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
+- **`CursorTooltip` の書式はWeb側トークンが唯一の正**（ADR 0019）: フォント18px・padding 6/10px・max-width 320px。ホストは辞書キーと位置パラメータだけを送り、寸法値（fontSize等）はwireに載せない。
 - **NotificationHostは背面viewport族**（§1.5・`--z-viewport-behind-stage`）。stage族でもviewport族でもなく、`--ui-scale` に追従しない。
 - **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。最大幅は`--notification-max-width`（画面幅20%・ユーザー裁定の画面比例値）で超過分は折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
 - **NotificationHostの出入りは唯一の装飾アニメーション例外**（§6）。入場は `--notification-enter-duration`（160ms・ease-out）で左から `--notification-shift`（12px）のスライドイン＋フェードイン、退場は `--notification-exit-duration`（200ms・ease-in）でその逆再生。生存尺は store の `NOTIFICATION_DISPLAY_MS`（7000ms）が単一の正で、`NotificationHost` がインラインCSS変数 `--notification-lifetime` として渡し、CSSは退場遅延を `calc(生存尺 − 退場尺)` で逆算する。**退場のためにstoreへ状態（`exiting` 等）を持たせない。** 退場の `animation-fill-mode` は `forwards`（`both` にすると遅延中に前方適用されて入場が消える）。積み替えの移動は補間せず、同時表示数の上限も設けない。
@@ -363,6 +365,7 @@ description: |
 - UI装飾のための画像アセット追加
 - GamePanel 以外のパネル背景 / shared/ui 以外のスロット表現
 - 機能側CSSへの色・z-index・スロット寸法の直書き
+- 機能側CSSでの `user-select` 指定（グローバル1箇所＋入力欄の例外だけで表現する・§7）
 - 新しい装飾モチーフ・装飾アニメーションの無断追加
 - 面フェード・余白の%指定（固定長トークンを使う。理由なき%は破綻源）
 - 用途の異なるスロット群の無札並置（ラベルか区切りで区別する）
