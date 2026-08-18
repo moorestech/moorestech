@@ -22,6 +22,11 @@ namespace Tests.CombinedTest.Core.CleanRoom
 {
     public class CleanRoomMachineTest
     {
+        // 期待値をproduction式から独立させるためのマスタ実値（forUnitTest mod の TestCleanRoomMachine）
+        // Master values kept independent from the production formula (TestCleanRoomMachine in the forUnitTest mod)
+        private const float CleanRoomMachineRequiredPower = 100f;
+        private const float CleanRoomMachineIdlePowerRate = 0.2f;
+
         [Test]
         public void MachineOutsideRoomStaysHaltedAndDrawsNoPowerTest()
         {
@@ -95,12 +100,14 @@ namespace Tests.CombinedTest.Core.CleanRoom
             // Wait for purity convergence and explicitly prove the machine entered processing
             for (var i = 0; i < 200 && processor.CurrentState != ProcessState.Processing; i++) TickRoom();
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
-            // state公開値は前tick基準でラッチされるため、遷移直後の1tickだけ古い値を挟んでから実効値に揃う
-            // The published state latches on the previous tick's basis, so it trails by one tick right after a transition before matching the effective value
+            // 遷移直後のstateは分子CurrentPowerと同じ前tick(Idle)基準でラッチされる（期待値はマスタ値からの独立計算）
+            // Right after the transition the state latches on the previous tick's Idle basis, matching the numerator CurrentPower (expected value computed independently from master values)
+            Assert.AreEqual(CleanRoomMachineRequiredPower * CleanRoomMachineIdlePowerRate, GetCommonMachineState(machine).RequestPower, 0.01f);
+
+            // 次tickで加工基準の実効要求電力（モジュール0枠なので倍率1）へ揃う
+            // The next tick moves it to the processing basis (multiplier 1 because the machine has no module slots)
             TickRoom();
-            // state要求電力は基礎でなく実効値
-            // Lock in that the state carries the effective request power, not the raw base value
-            Assert.AreEqual(machineConsumer.EffectiveRequestPower, GetCommonMachineState(machine).RequestPower, 0.01f);
+            Assert.AreEqual(CleanRoomMachineRequiredPower, GetCommonMachineState(machine).RequestPower, 0.01f);
 
             // 完了前の進捗を作ってから壁を壊し、途中停止の対象を明確にする
             // Accumulate partial progress before breaking the wall so the freeze target is unambiguous
