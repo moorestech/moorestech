@@ -1,0 +1,111 @@
+// Task 9 目視QA: 研究UI改修（4状態ノード・全域パネル・種類別解放セクション）を撮影する
+// Task 9 visual QA: capture the research UI refresh (4-state nodes, full-stage panel, kind-labeled unlock sections)
+
+import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
+import { chromium, type Page } from "@playwright/test";
+import { WebSocketServer } from "ws";
+import { researchableNodeGuid, itemLackingNodeGuid } from "./mock-host/researchFixtures";
+import { settleBoundingBox } from "./support/panSettle";
+
+const PORT = Number(process.env.CAPTURE_PORT ?? 5412);
+const OUT_DIR = process.env.CAPTURE_OUT_DIR ?? "/tmp/research-qa";
+const VIEWPORT = { width: 1280, height: 720 } as const;
+const WIDE_VIEWPORT = { width: 2432, height: 786 } as const;
+
+async function openResearchTree(page: Page) {
+  // mock制御はcontextにbaseURLが無いため絶対URLで叩く（capture-mining-progress.ts踏襲）
+  // No context baseURL is set for capture scripts, so hit mock control with absolute URLs (follows capture-mining-progress.ts)
+  await page.request.get(`http://127.0.0.1:${PORT}/__research`);
+  await page.request.get(`http://127.0.0.1:${PORT}/__uistate?state=ResearchTree`);
+  await page.goto(`http://127.0.0.1:${PORT}/`);
+  await page.getByTestId("research-tree").waitFor();
+  await page.evaluate("document.fonts.ready.then(() => undefined)");
+}
+
+// ホバー由来のツールチップを消すためカーソルを画面外へ退避してから撮る
+// Move the cursor off-screen to dismiss hover tooltips before shooting
+async function shoot(page: Page, name: string) {
+  await page.mouse.move(2, 2);
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: join(OUT_DIR, name) });
+}
+
+async function captureDetailPanes(browser: Awaited<ReturnType<typeof chromium.launch>>) {
+  // (b)(c) 既定の中央寄せ(=研究可能ノード中心)のまま2ノードを選択して詳細ペインを撮る
+  // (b)(c) Keep the default centering (on the researchable node) and select two nodes to capture their detail panes
+  const page = await browser.newPage({ viewport: VIEWPORT, deviceScaleFactor: 2 });
+  await openResearchTree(page);
+
+  await page.getByTestId(`research-node-${researchableNodeGuid}`).click();
+  await page.getByTestId("research-detail-pane").waitFor();
+  await shoot(page, "detail-researchable.png");
+
+  await page.getByTestId(`research-node-${itemLackingNodeGuid}`).click();
+  await page.getByTestId("research-detail-pane").waitFor();
+  await shoot(page, "detail-item-lacking.png");
+
+  await page.close();
+}
+
+async function captureOverview(browser: Awaited<ReturnType<typeof chromium.launch>>) {
+  // (a) 4状態ノードが同時に写るよう新規ページ(=localStorageクリーン)で開き最小scaleまでズームアウトする
+  // (a) Open in a fresh page (clean localStorage) and zoom out to the minimum scale so all 4 states are visible together
+  const page = await browser.newPage({ viewport: VIEWPORT, deviceScaleFactor: 2 });
+  await openResearchTree(page);
+
+  const center = { x: VIEWPORT.width / 2, y: VIEWPORT.height / 2 };
+  await page.mouse.move(center.x, center.y);
+  // MIN_VIEW_SCALE(0.4)に張り付くまで大きく倒す一発のwheel（viewport.tsのクランプに依存）
+  // One large wheel event pegged to MIN_VIEW_SCALE(0.4); relies on the clamp in viewport.ts
+  await page.mouse.wheel(0, 2000);
+  const researchableNode = page.getByTestId(`research-node-${researchableNodeGuid}`);
+  await researchableNode.waitFor();
+
+  // ズーム直後は既定中央寄せのため完了ノードが常駐インベントリの裏へ回る。
+  // 空白背景をドラッグして4ノードをインベントリ・ホットバー・装備スロットの空白域へ逃がす
+  // Right after the zoom, default centering hides the completed node behind the persistent inventory panel;
+  // drag the empty background so all 4 nodes land in the gap between the inventory, hotbar, and equipment HUD
+  // 離す直前で静止する（PAN_RELEASE_STALL_MSより長く止めて慣性オーバーシュートを防ぐ）
+  // Hold still right before release (longer than PAN_RELEASE_STALL_MS) to avoid a fling-momentum overshoot
+  await page.mouse.move(450, 600);
+  await page.mouse.down();
+  await page.mouse.move(450 + 556.5, 600 - 63.5, { steps: 30 });
+  await page.waitForTimeout(150);
+  await page.mouse.up();
+  await settleBoundingBox(page, researchableNode);
+  await shoot(page, "overview-full.png");
+
+  await page.close();
+}
+
+async function captureWideOverview(browser: Awaited<ReturnType<typeof chromium.launch>>) {
+  // (d) 横長viewportで全域パネルの左右端を確認する
+  // (d) Wide viewport capture to check the full-stage panel's left/right edges
+  const page = await browser.newPage({ viewport: WIDE_VIEWPORT, deviceScaleFactor: 2 });
+  await openResearchTree(page);
+  await shoot(page, "overview-wide.png");
+  await page.close();
+}
+
+async function main() {
+  process.env.MOCK_DEMO = "1";
+  const { createMockHttpServer } = await import("./mock-host/httpHandler");
+  const { attachWsHandlers } = await import("./mock-host/wsHandler");
+  const server = createMockHttpServer();
+  const wss = new WebSocketServer({ server, path: "/ws" });
+  await new Promise<void>((resolve) => server.listen(PORT, resolve));
+  attachWsHandlers(wss);
+  await mkdir(OUT_DIR, { recursive: true });
+
+  const browser = await chromium.launch();
+  await captureDetailPanes(browser);
+  await captureOverview(browser);
+  await captureWideOverview(browser);
+  await browser.close();
+
+  wss.close();
+  await new Promise<void>((resolve) => server.close(() => resolve()));
+}
+
+void main();
