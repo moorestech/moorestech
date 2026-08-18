@@ -36,7 +36,7 @@ export const challengeMultipleLong = {
 } satisfies ChallengeCurrentData;
 export const gameState = { state: "InGame" } satisfies GameStateData;
 export const tutorialPresentation = {
-  tutorialSessionId: "", revision: 0, challengeId: "", highlights: [],
+  tutorialSessionId: "", revision: 0, challengeId: "", highlights: [], dragGuides: [],
 } satisfies TutorialPresentationData;
 export const worldPins = { revision: 0, pins: [] } satisfies WorldPinPresentationData;
 export const skitPresentation = {

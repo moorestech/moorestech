@@ -86,9 +86,10 @@ const controls = {
       kind: "outline" as const,
       paddingPx: 8, blocksPointerInput: false,
     }],
+    dragGuides: [],
   }),
   tutorialEmpty: () => control(Topics.tutorialPresentation, {
-    tutorialSessionId: "", revision: 0, challengeId: "", highlights: [],
+    tutorialSessionId: "", revision: 0, challengeId: "", highlights: [], dragGuides: [],
   }),
 };
 export type TopicScenario = keyof typeof controls;
