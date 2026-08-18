@@ -406,13 +406,13 @@ git commit -m "test(webui): 通知がstage背面に沈むことをe2eで固定�
 
 ### Task 4: 全ブランチレビュー（省略不可）
 
-- [ ] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
+- [x] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
 
 `moores-code-review` スキルを起動し、master からの全差分をレビュー対象にする。指摘のうち機械的修正は適用し、設計判断は AskUserQuestion でユーザーへ諮る。
 
 このタスクはゴール文言や「変更が小さいから」を理由に省略できない。
 
-- [ ] **Step 2: レビュー指摘の反映をコミットする**
+- [x] **Step 2: レビュー指摘の反映をコミットする**
 
 ```bash
 git add -A
