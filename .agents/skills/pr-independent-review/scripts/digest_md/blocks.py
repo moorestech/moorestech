@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .inline import escape, inline_html
 from .parse import DigestError
+from .sectioning import read_fence
 
 _KNOWN_FENCES = ("code-card", "")
 
@@ -14,10 +15,10 @@ def _is_unknown_markup(line: str) -> bool:
     return line[0] in "#>|" or (line[0] in "*+" and not line.startswith("**"))
 
 
-def code_card_html(body: str, indent: str) -> str:
-    # 各行は [フラグ]<行番号>|<コード>。+ は追加行、* は問題行
-    # Each line is [flags]<lineno>|<code>; "+" marks an insertion, "*" marks the offending line
-    rendered = []
+def code_card_lines(body: str) -> list[tuple[str, bool, bool, str]]:
+    # code-card行を (行番号, 追加行か, 問題行か, コード) へ分解する。他の読み手も必ずこれを経由する
+    # Split each code-card line into (line number, is-insertion, is-highlight, code); all readers go through this
+    parsed = []
     for raw in body.splitlines():
         if "|" not in raw:
             raise DigestError(f"code-card の行に | がありません: {raw!r}")
@@ -27,6 +28,15 @@ def code_card_html(body: str, indent: str) -> str:
         num = head.replace("+", "").replace("*", "").strip()
         if not num.isdigit():
             raise DigestError(f"code-card の行番号が数字ではありません: {raw!r}")
+        parsed.append((num, ins, hl, code))
+    return parsed
+
+
+def code_card_html(body: str, indent: str) -> str:
+    # 各行は [フラグ]<行番号>|<コード>。+ は追加行、* は問題行
+    # Each line is [flags]<lineno>|<code>; "+" marks an insertion, "*" marks the offending line
+    rendered = []
+    for num, ins, hl, code in code_card_lines(body):
         inner = escape(code)
         inner = f"<ins>{inner}</ins>" if ins else inner
         line = f'<span class="ln">{num}</span>{inner}'
@@ -49,7 +59,7 @@ def blocks_html(md: str, refs: dict[str, str], indent: str) -> str:
             lang = line[3:].strip()
             if lang not in _KNOWN_FENCES:
                 raise DigestError(f"未対応のコードフェンス種別です: {lang}")
-            body, i = _collect_fence(lines, i)
+            body, i = read_fence(lines, i)
             if lang == "code-card":
                 out.append(code_card_html(body, indent))
             else:
@@ -69,19 +79,6 @@ def blocks_html(md: str, refs: dict[str, str], indent: str) -> str:
         para, i = _collect_paragraph(lines, i)
         out.append(f"{indent}<p>{inline_html(para, refs)}</p>")
     return "\n".join(out)
-
-
-def _collect_fence(lines: list, i: int) -> tuple:
-    # コードフェンスの開始行をスキップして本体を抽出する
-    # Skip opening fence line and extract body until closing fence
-    body = []
-    i += 1
-    while i < len(lines) and not lines[i].startswith("```"):
-        body.append(lines[i])
-        i += 1
-    if i >= len(lines):
-        raise DigestError("閉じられていないコードフェンスがあります")
-    return "\n".join(body), i + 1
 
 
 def _collect_list(lines: list, i: int) -> tuple:

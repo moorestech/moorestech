@@ -11,6 +11,15 @@ CATEGORIES = {"critical", "design-decision", "novelty"}
 SEVERITIES = {"critical", "high", "medium", "low"}
 
 
+def _parse_bool(meta: dict, key: str, title: str) -> bool:
+    # true/false の表記ゆれを許さず、それ以外の値は無言でfalseに潰さずエラーにする
+    # Reject anything but exact true/false spelling instead of silently defaulting to false
+    raw = str(meta.get(key, "false")).lower()
+    if raw not in ("true", "false"):
+        raise DigestError(f"finding「{title}」の {key} は true/false で書いてください: {raw}")
+    return raw == "true"
+
+
 def finding_from(title: str, body: str) -> Finding:
     # findingの直下は必ず```yamlメタ、それ以降がbody_md本文
     # A finding's body must open with a ```yaml meta block, then free body_md text
@@ -26,7 +35,7 @@ def finding_from(title: str, body: str) -> Finding:
 
     # suppressedの真偽で必須キー集合が切り替わる（suppress_reason vs options）
     # The required key set switches on suppressed (suppress_reason vs options)
-    suppressed = str(meta.get("suppressed", "false")).lower() == "true"
+    suppressed = _parse_bool(meta, "suppressed", title)
     required = ["slug", "category", "severity", "summary", "files"]
     required += ["suppress_reason"] if suppressed else ["options"]
     for key in required:
@@ -48,7 +57,7 @@ def finding_from(title: str, body: str) -> Finding:
     return Finding(
         slug=meta["slug"], title=title, category=meta["category"], severity=meta["severity"],
         summary=meta["summary"], files=files, body_md=rest, options=list(options),
-        must_read=str(meta.get("must_read", "false")).lower() == "true",
+        must_read=_parse_bool(meta, "must_read", title),
         index_label=meta.get("index_label", ""), suppressed=suppressed,
         suppress_reason=meta.get("suppress_reason", ""),
         recommendation=meta.get("recommendation", ""), label=meta.get("label", ""),

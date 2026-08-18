@@ -34,8 +34,8 @@ def parse_document(text: str) -> Document:
 
 
 def _parse_header_meta(text: str) -> dict:
-    # 文書冒頭の```yamlブロックを文書ヘッダとして読む
-    # Read the leading ```yaml block as the document header
+    # 文書冒頭の```yamlブロックを文書ヘッダとして読む（文書全体で最初に現れる```yamlという暗黙前提）
+    # Read the leading ```yaml block as the document header (assumes it's the first ```yaml in the whole doc)
     head_lines = text.splitlines()
     k = next((n for n, ln in enumerate(head_lines) if ln.startswith("```yaml")), -1)
     if k < 0:
@@ -46,6 +46,10 @@ def _parse_header_meta(text: str) -> dict:
             raise DigestError(f"文書ヘッダに必須キー {key} がありません")
     if meta["verdict"] not in VERDICTS:
         raise DigestError(f"verdict が不正です: {meta['verdict']}")
+    # pr は外部入力（AI生成md）由来の値のため、境界で数字であることを確認する
+    # pr comes from external input (AI-authored markdown), so verify it's numeric at the boundary
+    if not str(meta["pr"]).isdigit():
+        raise DigestError(f"文書ヘッダの pr は数字で書いてください: {meta['pr']}")
     return meta
 
 

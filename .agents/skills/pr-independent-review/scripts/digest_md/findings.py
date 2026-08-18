@@ -2,6 +2,7 @@
 # Id assignment and findings.json generation; the recommended option is always options[0]
 from __future__ import annotations
 
+from .blocks import code_card_lines
 from .parse import DigestError, Document, Finding
 
 SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
@@ -47,15 +48,17 @@ def build_findings(doc: Document) -> dict:
 
 
 def _excerpt(body_md: str) -> str:
-    # code-cardの中身を行番号を落として抜粋にする（HTMLエスケープはしない契約）
-    # Take the code-card body as the excerpt, dropping line numbers; no HTML escaping by contract
+    # 最初のcode-cardの中身を行番号を落として抜粋にする（複数あっても2つ目以降は拾わない）
+    # Take the first code-card's body as the excerpt, dropping line numbers (later cards are not picked up)
+    # HTMLエスケープはしない契約。blocks側の行解析（code_card_lines）と読み方を共有する
+    # No HTML escaping by contract; shares line parsing with blocks via code_card_lines
     lines = body_md.splitlines()
     for n, line in enumerate(lines):
         if line.startswith("```code-card"):
-            body = []
+            fence_body = []
             for rest in lines[n + 1:]:
                 if rest.startswith("```"):
                     break
-                body.append(rest.split("|", 1)[1] if "|" in rest else rest)
-            return "\n".join(body)
+                fence_body.append(rest)
+            return "\n".join(code for _, _, _, code in code_card_lines("\n".join(fence_body)))
     return ""

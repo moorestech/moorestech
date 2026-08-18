@@ -20,8 +20,23 @@ def verify(html: str, findings: dict) -> list:
     # 出荷前の機械検査。人の目視に頼っていた検査をここへ集約する
     # Pre-ship machine checks; the checks that used to rely on human inspection live here
     problems = []
-    if "{{" in html:
-        problems.append("未置換のプレースホルダが残っています")
+    # 実在するプレースホルダのみ検査する（コード抜粋中の "{{" は本文由来で誤爆するため）
+    # Only check the placeholders that actually exist ("{{" bare can false-positive on code excerpts)
+    for token in ("{{TITLE}}", "{{DATE}}", "{{SUBTITLE}}"):
+        if token in html:
+            problems.append(f"未置換のプレースホルダ {token} が残っています")
+    # テンプレ外枠（style/head/main本数/剥がし残り）が生き残っているかを検査する
+    # Check the template shell survived (style/head/main count/leftover strip markers)
+    if "<style>" not in html:
+        problems.append("<style> がありません")
+    if "</head>" not in html:
+        problems.append("</head> がありません")
+    if html.count("</main>") != 1:
+        problems.append(f"</main> が {html.count('</main>')} 個あります（1個であるべき）")
+    if "REPLACE_WITH_" in html:
+        problems.append("REPLACE_WITH_ プレースホルダが残っています")
+    if "使い方:" in html:
+        problems.append("使い方コメントが残っています")
     if html.count("<script") != 1:
         problems.append(f"<script> が {html.count('<script')} 個あります（1個であるべき）")
     ids = [f["id"] for f in findings["findings"]]

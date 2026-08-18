@@ -8,6 +8,7 @@ from .blocks import blocks_html
 from .findings import sort_key
 from .inline import escape, inline_html
 from .parse import DigestError, Document, Finding
+from .sectioning import split_blocks
 
 VERDICT_TEXT = {"auto": "自動マージ可", "ruling": "新形につき裁定行き",
                 "reject": "Critical差し戻し", "stub": "未測定（スタブ）"}
@@ -90,15 +91,15 @@ def _index_html(doc: Document, refs: dict) -> str:
 
 
 def _appendix_html(md: str, refs: dict) -> str:
-    # ## 見出しごとに details へ畳む
-    # Fold each "## " heading into its own details block
+    # ## 見出しごとに details へ畳む（split_blocksはフェンス内の見出しを無視する）
+    # Fold each "## " heading into its own details block (split_blocks ignores headings inside fences)
+    blocks, _ = split_blocks(md)
     out = []
-    for part in re.split(r"^## ", md, flags=re.M):
-        if not part.strip():
+    for level, title, body in blocks:
+        if level != "2":
             continue
-        title, _, body = part.partition("\n")
-        out.append(f"    <details>\n      <summary>{inline_html(title.strip(), refs)}</summary>\n"
-                   f"{blocks_html(body.strip(), refs, '      ')}\n    </details>")
+        out.append(f"    <details>\n      <summary>{inline_html(title, refs)}</summary>\n"
+                   f"{blocks_html(body, refs, '      ')}\n    </details>")
     return "\n".join(out)
 
 
@@ -109,7 +110,9 @@ def render_html(doc: Document, template: str, refs: dict) -> str:
         raise DigestError("テンプレートに <main> がありません")
     # 使い方コメント内に文字列 "<main>" が出現するため、<main>置換より先に剥がしておく
     # The usage comment contains the literal string "<main>", so strip it before the <main> swap
-    template = re.sub(r"<!--\n  使い方:.*?-->\n", "", template, flags=re.S)
+    template, n = re.subn(r"<!--.*?使い方:.*?-->\n", "", template, flags=re.S)
+    if n != 1:
+        raise DigestError("テンプレの使い方コメントを剥がせませんでした")
     meta = doc.meta
     verdict = meta["verdict"]
     text = escape(VERDICT_TEXT[verdict])
@@ -135,12 +138,20 @@ def render_html(doc: Document, template: str, refs: dict) -> str:
     parts.append('  <section id="appendix">\n    <h2>折りたたみ参考</h2>\n'
                  f'{_appendix_html(doc.appendix_md, refs)}\n  </section>')
 
+    if template.count("<main>") != 1:
+        raise DigestError("テンプレの<main>が1個ではありません")
     main = "<main>\n\n" + "\n\n".join(parts) + "\n\n</main>"
     out = re.sub(r"<main>.*</main>", lambda _: main, template, flags=re.S)
     # 文書見出しは仕様上すでに `PR #<番号>` を含むため、番号を二重に付けない
     # The document heading already carries "PR #<number>" per spec, so never prepend it twice
     heading = meta["title"]
     title = f"独立レビュー: {heading}" if heading.startswith("PR #") else f"独立レビュー: PR #{meta['pr']} {heading}"
+    # 置換前にテンプレ側の全トークン存在を確認し、欠落を無言で通さない
+    # Verify every template token exists before replacing, so a missing one never slips through silently
+    for token in ("{{TITLE}}", "{{DATE}}", "{{SUBTITLE}}",
+                  "REPLACE_WITH_UNIQUE_STORAGE_KEY", "REPLACE_WITH_COPY_HEADING"):
+        if token not in out:
+            raise DigestError(f"テンプレに {token} がありません")
     out = out.replace("{{TITLE}}", escape(title)).replace("{{DATE}}", escape(meta["date"]))
     out = out.replace("{{SUBTITLE}}", escape(f"verdict: {VERDICT_TEXT[verdict]}"))
     out = out.replace("REPLACE_WITH_UNIQUE_STORAGE_KEY", f"pr-review-{meta['pr']}-comments-v1")
