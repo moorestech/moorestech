@@ -122,15 +122,21 @@ PR作成（または既存PRへのpush）後、マージ可能状態を確認す
 gh pr view <PR番号またはPR_BRANCH> --json mergeable,mergeStateStatus
 ```
 
-- `mergeable: CONFLICTING` の場合は、BASEをPRブランチへマージして解消する:
-  ```bash
-  git fetch origin <BASE>
-  git merge origin/<BASE>
-  # コンフリクトを解消してコミット（両側の意図を保つ。機械的に片側を捨てない）
-  git push
+- `mergeable: CONFLICTING` の場合は、**コンフリクト解消を自分では行わず、opus subagentへ委譲する**（解消は両側の意図の理解を要する作業のため、実行モデルを問わず必ずopusに任せる）。Agentツールで `model: opus` を指定し、次のプロンプトで同期起動する:
+
   ```
-  - .csファイルがコンフリクト解消で変更された場合は `uloop compile --project-path ./moorestech_client` でコンパイルを確認してからpushする
-  - 解消が設計判断を要する場合（両側が同一箇所へ相反する仕様変更をしている等）は、機械的に解消せず、状況を明記して呼び出し元へ返す
+  PRブランチ <PR_BRANCH>（cwd: <作業ディレクトリ絶対パス>）に origin/<BASE> をマージし、
+  コンフリクトを解消せよ。手順:
+  1. git fetch origin <BASE> && git merge origin/<BASE>
+  2. 各コンフリクトは両側の変更意図を読み取って解消する。機械的に片側を捨てない
+  3. .csファイルを変更した場合は `uloop compile --project-path ./moorestech_client` でコンパイル確認
+  4. マージコミットを作成し git push
+  5. 解消が設計判断を要する場合（両側が同一箇所へ相反する仕様変更をしている等）は、
+     マージを中断（git merge --abort）し、該当ファイルと両側の意図を明記して報告せよ
+  最後に、解消したファイル一覧と各解消方針の1行説明を返すこと。
+  ```
+
+  - subagentが「要裁定」で返した場合は、自分でも解消せず、その内容をそのまま呼び出し元へ返す
 - 解消後、再度 `gh pr view --json mergeable` で `MERGEABLE` になったことを確認する
 - ここでの「マージ」はBASE→PRブランチへの取り込みであり、PR自体のマージ（`gh pr merge`）は引き続き行わない
 
