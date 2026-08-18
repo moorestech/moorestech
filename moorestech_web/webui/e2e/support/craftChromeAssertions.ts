@@ -73,6 +73,7 @@ export async function expectCraftGrip(frame: Locator, expectedOverlaps: boolean)
       backgroundColor: grip.backgroundColor,
       backgroundImage: grip.backgroundImage,
       boxShadow: grip.boxShadow,
+      zIndex: grip.zIndex,
       overlaps,
     };
   });
@@ -90,6 +91,9 @@ export async function expectCraftGrip(frame: Locator, expectedOverlaps: boolean)
     backgroundColor: "rgba(134, 136, 152, 0.98)",
     backgroundImage: "none",
     boxShadow: "none",
+    // 子要素は.panel > *でz-index 1へ上がるため、グリップは2で常にその前面に立つ
+    // Children are lifted to z-index 1 by .panel > *, so the grip must stand at 2 to stay in front
+    zIndex: "2",
     overlaps: expectedOverlaps,
   });
 }

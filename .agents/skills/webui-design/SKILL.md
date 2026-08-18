@@ -32,7 +32,16 @@ description: |
 - **常時の縁ヴィネットは App の実viewport全面が担う。** 1280基準stageへ置くと横長画面の途中で切れるため、stage背景へ戻さない。ヴィネットの楕円寸法・中心・停止位置だけは、縦横比が異なる実viewportの四辺へ同じ比率で沿わせる必要があるため、固定長原則の例外としてviewport比例の`%`トークンを使う。
 - **重なり順は `index.css` の `--z-*` トークンのみで制御する。** 数値のz-index直書き禁止。
 - 常時表示HUD（ホットバー・クロスヘア・キーヒント等）は例外的にパネル外で、原則として「浮いている」表現とし面で塗らない。
-  - **唯一の例外は目標HUD（チャレンジHUD・§8.14）**。面が必要な場合も独自CSSで面を作らず、`GamePanel variant="hud"` から供給する（面色 `--hud-panel-face`・4辺フェード `--hud-panel-edge-fade`・安全帯 `--hud-panel-padding`）。他のHUDへ面を広げるのは都度裁定。
+  - **唯一の例外は目標HUD（チャレンジHUD・§8.14）**。面が必要な場合も独自CSSで面を作らず、`GamePanel variant="hud"` から供給する（面色は `--surface-navy`・4辺フェードは `--panel-edge-fade` をパネル面と共有し、安全帯だけ `--hud-panel-padding` を持つ）。他のHUDへ面を広げるのは都度裁定。
+
+## 1.5 stage族 と viewport族
+
+- **全ての表示要素は stage族 か viewport族 のどちらかに属する。実装前にどちらかを宣言する**（ADR 0013）。
+  - **stage族**: 1280×720基準の `.stage` 上で一様拡縮する。形はアスペクト比で変わらない。パネル・グリッド・詳細はこちら。
+  - **viewport族**: 実画面の辺へ位置が追従し、内容寸法だけが stage 拡縮に従う。`App.module.css` の `.viewportOverlay` 配下へ置く。
+- **常時表示HUD族（ホットバー・装備HUD・キーヒント・採掘プログレスバー・目標HUD・操作モードHUD）は viewport族。** stage絶対配置のまま `calc()` で補正しない（補正式がHUDの数だけ増殖して破綻する）。
+- **`.viewportOverlay` は `pointer-events: none`。** 配下へ置く操作可能要素（ホットバーのスロット列・装備HUD）は `pointer-events: auto` を明示する。忘れると操作が死ぬ。
+- 基準解像度1280×720では stage と viewport が一致するため、族の移動だけでは描画結果が変わらない。
 
 ## 2. パネル — GamePanel を使い回す
 
@@ -42,11 +51,13 @@ description: |
   - `variant="hud"`: 面と4辺の境界フェードだけを持つ常時表示HUD用バリアント。タイトル罫線・下向き三角・右下グリップ・正本合わせの実測オフセットを持たない。余白は `--hud-panel-padding`（全辺、フェード幅を超える安全帯）。実装は `GamePanel/hudVariant.module.css` に分け、セレクタは `[data-variant="hud"].hud` と併記して `.panel` のpaddingへimport順に依存せず詳細度で勝たせる。
 - **面の左右フェード幅は固定長トークン `--panel-edge-fade` のみ。** %指定はパネル幅でフェード幅が伸びて内容がフェード帯に載るため禁止。内容はGamePanelのpadding内に置く限り不透明領域内に収まることを保証する（はみ出し防止の唯一の機構）。
 - **ただし共通GamePanelのpaddingは全辺でこの保証を満たしていない**（左28pxのみフェード幅12px超。右10px・上8pxはフェード幅未満）。正本合わせの持ち物パネルでは意図的な非対称なので共通paddingは変更せず、**内容量でサイズが決まるパネル（チェスト等）は不足する辺を安全帯トークンで補う**（前例: `--block-panel-right-safe-area` / `--block-panel-bottom-safe-area`）。内容の縁とフェード開始位置が近い辺は「面が内容の直後で途切れて見える」ため、余白は「フェード幅+視認できる余白」を確保する。
+- **`titleAction?: ReactNode`（枠付きvariant限定）**: タイトル行の右端へ絶対配置する汎用スロット。パネル自身への副次アクション（§8.6 `PanelActionButton`）を置く場所で、GamePanel 側はドメイン語彙を持たない。本文先頭/末尾へ置くとグリッドが押されて正本合わせの実測値が崩れるため、行の右端絶対配置を守る。
+- **面のみのvariant（`skit` / `hud`）は型でタイトル行を持てない。** Props は「枠付き（`default` / `craft`：`gridArea` / `title` / `titleAction` 可）」と「面のみ（`skit` / `hud`）」のunionで、面のみ側に `title` を渡すのはコンパイルエラーになる。
 - **上部2本線+タイトル（`title` 指定）は「一覧の置き場」に限る。**
   - 使う: インベントリ、クラフトレシピ一覧など、アイテムが並ぶ主要パネル。
   - 使わない: 詳細表示、小型フロート、モーダル、HUD。`title` を渡さなければ罫線は出ない。
 - 新しい見た目が必要なら GamePanel に variant を追加し、本ドキュメントに追記してから使う。GamePanel の外で独自CSSのパネル面を作るのは禁止。
-- **注: インベントリ画面の「整理」ボタンとpingボタンは仮実装であり、様式に含めない。** これらを前例として引用しない。
+- **注: 「整理」ボタンは §8.6 `PanelActionButton` として様式化済み**（stage右上への浮かせ置き＋色ハードコードの仮実装は撤去）。pingボタンは依然として仮実装であり、様式に含めず前例として引用しない。
 
 ## 2.5 ブロックUIパネル
 
@@ -146,6 +157,8 @@ description: |
 - **ModeSwitch**: `option.value` / `option.label` / `onChange` の汎用I/Fを持つ択一モード切替。選択中は `data-selected`（`--text-high-contrast` + 寒色面）、非選択は `--text-muted` とし、各選択肢は間隔を空けて独立したボタンとして示す。青グラデは禁止。
   - **縦利用（`orientation="vertical"`）はサイドバーナビとして使ってよい。** カテゴリ切替のような縦積み択一に、新規コンポーネントを作らずこれを転用する。
   - **`disabled?: boolean`**: root に `data-disabled` を付与し全ボタンを `disabled` にする汎用減衰。選択肢は `--text-muted` 系へさらに減衰しクリック不可（`pointer-events: none`）。判断（いつdisabledにするか）は利用側が持ち、ModeSwitch自体はドメイン語彙を持たない。
+- **PanelActionButton**: パネルへ付随する副次アクションの押しボタン。面は検索入力（§8.9）同族の `--gauge-track`、文字は `--text-high-contrast`、hoverは色相を変えず面だけを明化、`:focus-visible` は ModeSwitch 踏襲。寸法は `--panel-action-button-*` 固定長トークン。主要アクションの青グラデ（`RecipeActionButton`・§5）へ寄せない。置き場は `GamePanel` の `titleAction`（前例: 持ち物パネルの「整理」）。`onClick` / `children` だけを受け、ドメイン語彙は持たない。
+  - `PauseMenuPanel` / `ChallengePanel` / `ModalHost` には素の Mantine `Button` が残っている。同語彙へ寄せる候補だが未着手の負債であり、**前例として引用しない**。
 - **IconButton**: 面を持たない浮遊アイコンボタン。`children` 省略時は既定の×（従来の PanelCloseButton）で、閉じる以外の用途は呼び出し側がインラインSVGを渡す。寸法は `--icon-button-size` / `--icon-button-icon-size` の局所上書きで変え、共有側にドメイン語彙は持たせない。
 - **FadeRule**: 両端フェードする水平罫線（装飾語彙1）の単体部品。パネル内のセクション区切りに使う。GamePanel のタイトル罫線と同族の青灰グラデで、新しい色相は持たない。
 

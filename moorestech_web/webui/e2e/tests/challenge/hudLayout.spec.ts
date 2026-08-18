@@ -59,6 +59,7 @@ test("進行中チャレンジを内部キーを出さずインベントリ同�
       borderRadius: hudStyle.borderRadius,
       borderWidth: hudStyle.borderWidth,
       boxShadow: hudStyle.boxShadow,
+      objectiveColor: objectiveStyle.color,
       fontWeight: objectiveStyle.fontWeight,
       labelLetterSpacing: labelStyle.letterSpacing,
       objectiveLineHeight: objectiveStyle.lineHeight,
@@ -70,6 +71,9 @@ test("進行中チャレンジを内部キーを出さずインベントリ同�
     borderRadius: "0px",
     borderWidth: "0px",
     boxShadow: "none",
+    // hud variantはcolor: inheritなので、HUD側の--text-high-contrastがGamePanel既定色に潰されない
+    // The hud variant inherits color, so the HUD's --text-high-contrast survives GamePanel's default
+    objectiveColor: "rgb(255, 255, 255)",
     fontWeight: "400",
     labelLetterSpacing: "1px",
     objectiveLineHeight: "20px",
@@ -82,12 +86,18 @@ test("面付きHUDは目標3件でもメニュー上端の安全帯に収まる"
   await page.goto("/");
 
   const hud = page.getByTestId("challenge-hud");
-  const hudBox = await hud.boundingBox();
-  expect(hudBox).not.toBeNull();
-  const safeArea = await page.evaluate(() =>
-    Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--menu-upper-safe-area")));
-  expect(safeArea).toBe(168);
-  expect(hudBox!.y + hudBox!.height).toBeLessThanOrEqual(safeArea);
+  await expect(page.getByTestId("challenge-objective")).toHaveCount(3);
+
+  // 安全帯はstage座標のトークンなので、HUD下端もoffsetでstage座標へ揃えて比べる
+  // The safe area is a stage-space token, so the HUD's bottom is measured via offsets in the same space
+  const layout = await hud.evaluate((element: HTMLElement) => {
+    const overlay = element.offsetParent as HTMLElement;
+    return {
+      bottom: overlay.offsetTop + element.offsetTop + element.offsetHeight,
+      safeArea: Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--menu-upper-safe-area")),
+    };
+  });
+  expect(layout.bottom).toBeLessThanOrEqual(layout.safeArea);
 });
 
 test("横長画面で進行HUDを実画面左上へ置き罫線を約3分の1へ縮める", async ({ page }) => {

@@ -87,8 +87,11 @@
 
 /* 右下グリップは固定寸法の単色三角形として枠内に収める */
 /* Keep the bottom-right grip as one fixed-size, single-color triangle inside the frame */
+/* 子要素は.panel > *で z-index 1 に上がるため、グリップは2を明示して常にその前面へ出す */
+/* Children are lifted to z-index 1 by .panel > *, so the grip states 2 to stay in front of them */
 .craft::after {
   position: absolute;
+  z-index: 2;
   right: var(--craft-grip-inset);
   bottom: var(--craft-grip-inset);
   width: var(--craft-grip-size);
@@ -124,6 +127,15 @@
   transform: translateX(var(--title-shift-x, 0)) scale(var(--title-scale-x, 0.947), var(--title-scale-y, 0.947));
   transform-origin: left center;
   white-space: nowrap;
+}
+
+/* 副次アクションはタイトル行の右端へ寄せ、行の固定高とタイトルのtransformへ影響させない */
+/* The secondary action hugs the title row's right end without affecting its fixed height or the title's transform */
+.titleAction {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
 }
 
 /* 上下罫線は中央を保ちつつ両端を世界背景へフェードさせる */

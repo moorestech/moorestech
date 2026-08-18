@@ -13,5 +13,6 @@ export { default as ConnectingPlaceholder } from "./ConnectingPlaceholder";
 export { default as GaugeBar } from "./GaugeBar";
 export { default as ModeSwitch, type ModeSwitchOption } from "./ModeSwitch";
 export { default as IconButton } from "./IconButton";
+export { default as PanelActionButton } from "./PanelActionButton";
 export { default as FadeRule } from "./FadeRule";
 export { default as PlacementTargetFace } from "./PlacementTargetFace";

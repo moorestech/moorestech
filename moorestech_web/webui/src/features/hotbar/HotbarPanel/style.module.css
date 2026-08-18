@@ -1,5 +1,5 @@
-/* パネル列のauto幅に依存すると閉画面でgridが収縮し左へ流れるため、stage絶対配置で常に画面中央へ置く */
-/* Grid auto columns collapse when panels close and drag the hotbar left, so anchor it to the stage absolutely and always center it on screen */
+/* パネル列のauto幅に依存すると閉画面でgridが収縮し左へ流れるため、viewport絶対配置で常に画面中央へ置く */
+/* Grid auto columns collapse when panels close and drag the hotbar left, so anchor it to the viewport overlay absolutely and always center it on screen */
 /* 帯は画面全幅の空箱なので入力を奪わせず、実UIであるスロット列だけが受け取る */
 /* The band is an empty full-width box, so only the slot row (the real UI) may take input */
 /* 常駐HUD族(CurrentChallengeHud・装備HUD等)と同格のz層。無指定(auto)だとホットバーがビルドメニュー帯の下へ沈む */

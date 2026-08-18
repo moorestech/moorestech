@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { NOTIFICATION_DISPLAY_MS, useNotificationStore } from "./notificationStore";
+import { NOTIFICATION_REMOVAL_FALLBACK_MS, useNotificationStore } from "./notificationStore";
 
 describe("notificationStore", () => {
   beforeEach(() => {
@@ -7,7 +7,7 @@ describe("notificationStore", () => {
     useNotificationStore.setState({ notifications: [] });
   });
 
-  it("追加され7秒後に消える", () => {
+  it("退場アニメが発火しなくても保険タイマーで消える", () => {
     useNotificationStore.getState().addNotification({
       category: "achievement",
       messageId: "achievement.researchCompleted",
@@ -15,7 +15,7 @@ describe("notificationStore", () => {
       itemId: null,
     });
     expect(useNotificationStore.getState().notifications).toHaveLength(1);
-    vi.advanceTimersByTime(NOTIFICATION_DISPLAY_MS - 1);
+    vi.advanceTimersByTime(NOTIFICATION_REMOVAL_FALLBACK_MS - 1);
     expect(useNotificationStore.getState().notifications).toHaveLength(1);
     vi.advanceTimersByTime(1);
     expect(useNotificationStore.getState().notifications).toHaveLength(0);

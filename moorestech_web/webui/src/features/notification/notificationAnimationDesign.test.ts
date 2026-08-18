@@ -34,6 +34,20 @@ describe("notification enter/exit animation", () => {
     expect(tokens).toContain("--notification-shift: 12px");
   });
 
+  it("除去は退場アニメの終了が主で、タイマーは尺より後ろの保険に留める", () => {
+    // 削除(JS)と退場(CSS)が別時計だと、行が消えた後も面が残る/面が消える前に消える
+    // If the delete (JS) and the exit (CSS) run on separate clocks, the row and its face stop agreeing
+    expect(host).toContain("event.animationName === styles.notificationExit");
+    expect(store).toContain("NOTIFICATION_REMOVAL_FALLBACK_MS = NOTIFICATION_DISPLAY_MS + 1000");
+    expect(store).toContain("NOTIFICATION_REMOVAL_FALLBACK_MS)");
+  });
+
+  it("生存尺はホストでなく各行へ渡し、面と同じ要素の上で解決させる", () => {
+    const rowMarkup = host.slice(host.indexOf("styles.notification}"));
+    expect(rowMarkup).toContain("style={lifetimeStyle}");
+    expect(host.slice(0, host.indexOf("styles.notification}"))).not.toContain("style={lifetimeStyle}");
+  });
+
   it("同時表示数の上限を持たない", () => {
     expect(store).not.toMatch(/slice\(|MAX_|limit/);
   });
