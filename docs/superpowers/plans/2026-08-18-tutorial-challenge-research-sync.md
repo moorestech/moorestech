@@ -179,7 +179,7 @@ git commit -m "feat: チャレンジスキーマにcompleteResearchタスクとu
 - Consumes: `Game.Research.ResearchEvent.OnResearchCompleted`（`IObservable<(int playerId, ResearchNodeMasterElement researchNode)>`）、`Game.Research.IResearchDataStore.IsResearchCompleted(Guid)`、`CompleteResearchTaskParam.ResearchNodeGuid`（Task 1生成物）
 - Produces: `CompleteResearchChallengeTask`（`IChallengeTask`実装・`static IChallengeTask Create(ChallengeMasterElement)`）、定数 `VanillaChallengeType.CompleteResearchTask = "completeResearch"`
 
-- [ ] **Step 1: テストmodにcompleteResearchチャレンジを追加**
+- [x] **Step 1: テストmodにcompleteResearchチャレンジを追加**
 
 `Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/challenges.json` の Category1（`03ca4ded-3b2b-4e7f-bb6e-430f060c4ed1`）の `challenges` 配列末尾に追加（既存要素の書式に合わせる。`startedActions`/`clearedActions`/`displayListParam`は既存要素からコピーして流用する）:
 
@@ -201,7 +201,7 @@ git commit -m "feat: チャレンジスキーマにcompleteResearchタスクとu
 
 ※ `prevChallengeGuids: []` なので初期チャレンジとして起動する。既存テストが初期チャレンジ数を数えている場合は期待値を更新する（Step 6で検出）。
 
-- [ ] **Step 2: 失敗するテストを書く**
+- [x] **Step 2: 失敗するテストを書く**
 
 `Tests/CombinedTest/Game/CompleteResearchChallengeTaskTest.cs` を新規作成。初期化・研究完了の作法は `Tests/CombinedTest/Game/ResearchDataStoreTest.cs`、tick進行は `Tests/CombinedTest/Server/PacketTest/Event/ChallengeCompletedEventTest.cs:89`（`GameUpdater.UpdateOneTick()`）に倣う:
 
@@ -276,12 +276,12 @@ namespace Tests.CombinedTest.Game
 
 ※ `ServiceProvider` の実型名が違いコンパイルエラーになる場合は `ResearchDataStoreTest.cs` の `CompleteResearchForTest` の引数型に合わせる。
 
-- [ ] **Step 3: テスト実行して失敗を確認**
+- [x] **Step 3: テスト実行して失敗を確認**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "CompleteResearchChallengeTaskTest"`
 Expected: FAIL（`ChallengeFactory` の Dictionary に `completeResearch` が無く `KeyNotFoundException`）
 
-- [ ] **Step 4: 実装を書く**
+- [x] **Step 4: 実装を書く**
 
 `Game.Challenge.asmdef` の references に `"Game.Research"` を追加（`Game.Research` は `Game.Challenge` を参照していないため循環しない）。
 
@@ -416,12 +416,12 @@ namespace Game.Challenge.Task
             }
 ```
 
-- [ ] **Step 5: コンパイル**
+- [x] **Step 5: コンパイル**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
 
-- [ ] **Step 6: テスト実行して通ることを確認**
+- [x] **Step 6: テスト実行して通ることを確認**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "CompleteResearchChallengeTaskTest"`
 Expected: PASS 2件
@@ -430,7 +430,7 @@ Expected: PASS 2件
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Challenge"`
 Expected: 全件PASS。テストmodへの初期チャレンジ追加で件数期待値が壊れたテストがあれば期待値を+1更新する。
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Challenge moorestech_server/Assets/Scripts/Core.Master/Validator/ChallengeMasterUtil.cs moorestech_server/Assets/Scripts/Tests.Module moorestech_server/Assets/Scripts/Tests
