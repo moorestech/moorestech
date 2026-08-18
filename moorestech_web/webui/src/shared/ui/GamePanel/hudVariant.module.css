@@ -1,0 +1,27 @@
+/* 全辺の安全帯paddingは[data-variant="hud"]併記の詳細度で.panelへ勝たせる（import順に非依存） */
+/* The safe-area padding beats .panel via the paired [data-variant="hud"] specificity, not import order */
+/* 文字色はHUD側の指定を継承し、.panelの既定色で上書きさせない */
+/* Inherit the HUD's own text color so .panel's default never overrides it */
+[data-variant="hud"].hud {
+  padding: var(--hud-panel-padding);
+  color: inherit;
+}
+
+/* 面は4辺を同尺でフェードさせ世界背景へ溶かす。罫線・三角・グリップは持たない */
+/* The face fades on all four edges into the world; no rules, triangles, or grip */
+/* 面色とフェード幅はパネル面と同値のため別名トークンを挟まず基底トークンを直参照する */
+/* The face color and fade span equal the panel face, so this reads the base tokens directly without alias hops */
+/* webkit接頭辞のsource-inは標準のintersectに対応する値で、両者は同じ2枚合成を指す */
+/* The prefixed source-in is the WebKit spelling of the standard intersect; both mean the same two-layer composite */
+[data-variant="hud"].hud::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--surface-navy);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--panel-edge-fade), #000 calc(100% - var(--panel-edge-fade)), transparent 100%), linear-gradient(180deg, transparent 0, #000 var(--panel-edge-fade), #000 calc(100% - var(--panel-edge-fade)), transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--panel-edge-fade), #000 calc(100% - var(--panel-edge-fade)), transparent 100%), linear-gradient(180deg, transparent 0, #000 var(--panel-edge-fade), #000 calc(100% - var(--panel-edge-fade)), transparent 100%);
+  mask-composite: intersect;
+  content: "";
+  pointer-events: none;
+}
