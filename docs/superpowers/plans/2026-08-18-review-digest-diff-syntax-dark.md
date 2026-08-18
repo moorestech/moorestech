@@ -24,13 +24,15 @@
 - R10: digest.html・裁定レイヤー・一覧ページの3つすべてが `prefers-color-scheme: dark` でダーク表示になる。受け入れ: 3ファイルすべてに `@media (prefers-color-scheme: dark)` ブロックがあり、生の16進が `:root` 系トークン定義の外に残っていない（テンプレートについては後述の閾値検査）
 - R11: ダークモードの切替UIは追加しない。受け入れ: テンプレートに切替ボタンの要素・localStorageキーが増えていない
 - R12: `README-digest-format.md` と `SKILL.md` が新記法（`-` 行・言語自動判定・patch.diff必須）を反映している。受け入れ: 両ファイルに `-<行番号>|` の説明と patch.diff 照合の記述がある
+- R14: 各カードの本文へ `options:` が案A/案B…の一覧として描かれ、先頭に推奨マークが付く。受け入れ: 非suppressedカードの数だけ `opt-recommended` が生成HTMLに出る
+- R15: 案の正本は `options:` 一本で、本文の手書き代替案と `recommendation:` はコンバータが拒否する。受け入れ: 本文に `代替案` を含む digest.md と `recommendation:` を持つ digest.md が、いずれも非0終了になる
 - R13: ゴールデンテスト（pr-1155）が新表示で固定され、削除行を含むケースを1件以上持つ。受け入れ: `tests/golden/pr-1155-digest.md` に `-` 行があり、`test_digest_golden.py` が通る
 
 **やらないこと（スコープ境界）:**
 - 既存 run の `digest.html` の再生成（PR #1167 を含む。ADR 背景1のとおり不可避の事故として残す）
 - 旧/新2列行番号・before/after 2ブロック表示（ADR 決定1で棄却）
 - ダークモードの手動トグルUI（ADR 決定6で棄却）
-- `findings.json` スキーマの変更（ADR 決定7）
+- `findings.json` スキーマの変更（ADR 決定7）。`recommendation` フィールドは残り、`options` 先頭から自動で埋まる（ADR 決定8）
 - `pr-adjudicated-apply` 側の改修
 
 ## Global Constraints
@@ -44,7 +46,7 @@
 - **シェルコマンドは断りが無い限りリポジトリルートで実行する**（`cd .agents/...` はルートからの相対）。`~/hermes-agent/...` で始まるパスだけがこのマシンのホーム配下を指す
 - highlight.js のバージョンは **11.11.1 固定**。取得元は `https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/`
 - 作業ブランチは `feat/review-digest-diff-syntax-dark`。**メインワークツリーでのブランチ操作は hook で物理拒否される**ため、`moores-wt new feat/review-digest-diff-syntax-dark --no-editor` で worktree を切って作業する（Unity は不要なので `--no-editor`）
-- `~/hermes-agent/data/services/pr-review/` は **git 管理外**（このマシンローカル）。Task 7 の変更はコミットできないため、変更前に `cp` でバックアップを取り、変更内容を plan のチェックボックスとコミットメッセージ本文で追跡する
+- `~/hermes-agent/data/services/pr-review/` は **git 管理外**（このマシンローカル）。Task 8 の変更はコミットできないため、変更前に `cp` でバックアップを取り、変更内容を plan のチェックボックスとコミットメッセージ本文で追跡する
 
 ---
 
@@ -1132,7 +1134,223 @@ git commit -m "feat(digest): 削除行の欠落をpatch.diff照合でビルド�
 
 ---
 
-### Task 6: digest.html テンプレートのダークモード
+### Task 6: 案（options）をカード本文へ描き、手書き代替案を禁止する
+
+**Files:**
+- Modify: `.agents/skills/pr-independent-review/scripts/digest_md/render.py`
+- Modify: `.agents/skills/pr-independent-review/scripts/digest_md/finding_parser.py`
+- Modify: `.agents/skills/pr-independent-review/assets/digest-template.html`（`ul.plain` の直下へ案リストのCSS）
+- Modify: `.agents/skills/pr-independent-review/tests/golden/pr-1155-digest.md`
+- Test: `.agents/skills/pr-independent-review/tests/test_digest_options.py`
+
+**Interfaces:**
+- Consumes: `Finding.options: list`（`finding_parser` が既に埋めている）、`digest_md.findings.OPTION_KEYS = "ABCDEF"`
+- Produces: `digest_md.render.options_html(f: Finding, indent: str) -> str` — options が空なら空文字。案キーは `OPTION_KEYS` と同じ採番で、先頭に推奨マークが付く
+
+- [ ] **Step 1: 失敗するテストを書く**
+
+`.agents/skills/pr-independent-review/tests/test_digest_options.py`:
+
+```python
+# 案（options）がカード本文へ描かれること、手書き代替案が拒否されることを検証する
+# Verify options are rendered into the card body and that hand-written alternatives are rejected
+import sys
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+
+from digest_md.errors import DigestError
+from digest_md.finding_parser import finding_from
+from digest_md.models import Finding
+from digest_md.render import options_html
+
+META = ("```yaml\n"
+        "slug: s\ncategory: design-decision\nseverity: medium\nmust_read: true\n"
+        "summary: 一言\nfiles: [a/B.cs:1]\noptions:\n  - 直す\n  - 戻す\n"
+        "```\n")
+
+
+def _finding(options):
+    return Finding(slug="s", title="t", category="design-decision", severity="medium",
+                   summary="一言", files=["a/B.cs:1"], body_md="", options=options)
+
+
+def test_options_render_as_keyed_list():
+    got = options_html(_finding(["供給側へ通す", "元へ戻す"]), "        ")
+    assert '<p class="options-head"><strong>選べる案</strong></p>' in got
+    assert '<ul class="plain options-list">' in got
+    assert '<li><strong>案A</strong><span class="opt-recommended">推奨</span> — 供給側へ通す</li>' in got
+    assert "<li><strong>案B</strong> — 元へ戻す</li>" in got
+
+
+def test_options_are_escaped():
+    got = options_html(_finding(["Subject<int> を使う"]), "  ")
+    assert "Subject&lt;int&gt; を使う" in got
+
+
+def test_no_options_renders_nothing():
+    assert options_html(_finding([]), "  ") == ""
+
+
+def test_hand_written_alternatives_paragraph_is_rejected():
+    # 案の正本は options 一本。本文の代替案段落は二重管理になるので落とす
+    # options is the single source for alternatives; a body paragraph would duplicate it
+    with pytest.raises(DigestError) as e:
+        finding_from("t", META + "\n**代替案:** **案A（推奨）** — 直す")
+    assert "代替案" in str(e.value)
+
+
+def test_recommendation_key_is_rejected():
+    # recommendation は options 先頭から自動で埋まるので書かせない
+    # recommendation is auto-filled from the first option, so it must not be written
+    with pytest.raises(DigestError) as e:
+        finding_from("t", META.replace("options:", "recommendation: 案A: 直す\noptions:"))
+    assert "recommendation" in str(e.value)
+
+
+def test_body_without_alternatives_passes():
+    f = finding_from("t", META + "\n**PR側の主張:** 一致させる")
+    assert f.options == ["直す", "戻す"]
+```
+
+- [ ] **Step 2: テストを実行して失敗を確認する**
+
+Run: `cd .agents/skills/pr-independent-review && python3 -m pytest tests/test_digest_options.py -v`
+Expected: FAIL with `ImportError: cannot import name 'options_html'`
+
+- [ ] **Step 3: `render.py` に案リストの描画を足す**
+
+import へ `OPTION_KEYS` を足す:
+
+```python
+from .findings import OPTION_KEYS, sort_key
+```
+
+`_card_html` の直前へ関数を足す:
+
+```python
+def options_html(f: Finding, indent: str) -> str:
+    # 案はoptionsが正本。キー採番と推奨マークはfindings.jsonと同じ規則で機械的に付ける
+    # options is the single source for alternatives; keys and the recommended mark follow findings.json
+    if not f.options:
+        return ""
+    items = []
+    for n, summary in enumerate(f.options):
+        mark = '<span class="opt-recommended">推奨</span>' if n == 0 else ""
+        items.append(f'{indent}  <li><strong>案{OPTION_KEYS[n]}</strong>{mark} — {escape(summary)}</li>')
+    body = "\n".join(items)
+    return (f'\n{indent}<p class="options-head"><strong>選べる案</strong></p>'
+            f'\n{indent}<ul class="plain options-list">\n{body}\n{indent}</ul>')
+```
+
+`_card_html` の戻り値で `{body}{extra}` を `{body}{opts}{extra}` へ変え、その手前で組み立てる:
+
+```python
+    opts = options_html(f, "        ")
+```
+
+（`options` は非suppressedで必須・suppressedでは空なので、suppressedカードには何も出ない）
+
+- [ ] **Step 4: `finding_parser.py` で手書き代替案を拒否する**
+
+`recommended` の予約語チェックの直後へ追記:
+
+```python
+    # recommendation は options 先頭から自動で埋まるため、書かせない（案の正本を1箇所に保つ）
+    # recommendation is auto-filled from the first option, so writing it would split the source of truth
+    if "recommendation" in meta:
+        raise DigestError(f"finding「{title}」に recommendation は書けません（options先頭から自動で入ります）")
+```
+
+`rest` を作った直後へ本文検査を追記:
+
+```python
+    # 案の列挙は options が正本。本文へ代替案を書くと同じ案が2箇所に出て片方が古くなる
+    # options is the single source for alternatives; a body copy would go stale on one side
+    if "代替案" in rest:
+        raise DigestError(
+            f"finding「{title}」の本文に代替案を書けません。案は options: へ書いてください"
+            f"（コンバータが案A/案B…として描き、先頭へ推奨マークを付けます）")
+```
+
+- [ ] **Step 5: テンプレートへ案リストのCSSを足す**
+
+`assets/digest-template.html` の `ul.plain li{...}`（315行目付近）の直下へ追記する。色はTask 7でトークン化するため、この時点では既存の生16進の流儀に合わせて書き、Task 7の置換対象に含める:
+
+```css
+  .options-head{ margin:12px 0 4px; font-size:13px; color:var(--text-muted); }
+  ul.options-list li{ line-height:1.7; }
+  /* 推奨マークは案キーの直後に置く。裁定サイトの推奨一括採用と同じ案を指す / the mark points at the same option the site bulk-accepts */
+  .opt-recommended{ display:inline-block; margin-left:6px; padding:1px 6px; border-radius:8px;
+    font-size:11px; font-weight:600; background:var(--badge-new-bg); color:var(--badge-new-fg); }
+```
+
+（`--badge-new-bg` / `--badge-new-fg` はTask 7で `:root` へ足すトークン。この時点では未定義なので、Task 7 完了までは色が効かない。Task 7 Step 3 のトークン追加で有効になる）
+
+- [ ] **Step 6: ゴールデンmdから手書き代替案を落とす**
+
+`tests/golden/pr-1155-digest.md` には `**代替案:**` 段落が12箇所ある。各段落の内容が対応する `options:` に含まれていることを確かめてから段落を削除する（options側が薄い場合は、段落の情報をoptionsの各要素へ移してから消す）。
+
+```bash
+cd .agents/skills/pr-independent-review
+grep -n "代替案" tests/golden/pr-1155-digest.md
+```
+
+削除後に `recommendation:` 行も全て削除する（先頭optionから自動で入るため）:
+
+```bash
+grep -n "^recommendation:" tests/golden/pr-1155-digest.md
+```
+
+- [ ] **Step 7: テストを実行して通ることを確認する**
+
+Run: `cd .agents/skills/pr-independent-review && python3 -m pytest tests/ -v`
+Expected: `test_digest_options.py` の6件が PASS。ゴールデンは案リストが増えるため FAIL する
+
+- [ ] **Step 8: findings.json の recommendation が壊れていないことを確認する**
+
+`recommendation:` を消したので、findings.json の `recommendation` は options 先頭の文言になる。裁定サイトはこれを推奨案の表示に使うため、空になっていないことを確認する:
+
+```bash
+cd .agents/skills/pr-independent-review
+python3 -c "
+import json, pathlib, shutil, subprocess, sys, tempfile
+g = pathlib.Path('tests/golden'); d = pathlib.Path(tempfile.mkdtemp())
+shutil.copy(g / 'pr-1155-digest.md', d / 'digest.md')
+shutil.copy(g / 'pr-1155-patch.diff', d / 'patch.diff')
+r = subprocess.run([sys.executable, 'scripts/digest_build.py', str(d)], capture_output=True, text=True)
+print(r.returncode, r.stderr)
+f = json.load(open(d / 'findings.json'))['findings']
+print('empty recommendation:', [x['id'] for x in f if not x['recommendation']])
+print('recommended count ok:', all(sum(1 for o in x['options'] if o.get('recommended')) == 1 for x in f if not x['suppressed']))
+"
+```
+
+Expected: `returncode` が0、空の recommendation が無く、`recommended count ok: True`
+
+- [ ] **Step 9: ゴールデンを再生成してテストを通す**
+
+Task 5 Step 10 のスクリプトを実行し、`python3 -m pytest tests/ -v` を通す。
+Expected: 全テスト PASS。`grep -c 'opt-recommended' tests/golden/pr-1155-digest.expected.html` が非suppressedカードの件数と一致する
+
+- [ ] **Step 10: 案が全カードに出ることを目視で確認する**
+
+Task 5 Step 10 のスクリプトが出力した一時ディレクトリの `digest.html` を開く。
+Expected: 設計判断・Critical の各カードに「選べる案」の見出しと案A/案B…の一覧が出て、案Aに「推奨」バッジが付いている。suppressedカードには案が出ない
+
+- [ ] **Step 11: コミットする**
+
+```bash
+cd "$(git rev-parse --show-toplevel)"
+git add .agents/skills/pr-independent-review/
+git commit -m "feat(digest): 案をoptionsからカードへ描き手書き代替案を禁止する"
+```
+
+---
+
+### Task 7: digest.html テンプレートのダークモード
 
 **Files:**
 - Modify: `.agents/skills/pr-independent-review/assets/digest-template.html:21-33`（`:root` トークン）と本文CSS全域
@@ -1323,7 +1541,7 @@ git commit -m "feat(digest): テンプレートの色をトークン化しOS追�
 
 ---
 
-### Task 7: 裁定サイト（裁定レイヤー・一覧ページ）のダークモード
+### Task 8: 裁定サイト（裁定レイヤー・一覧ページ）のダークモード
 
 **Files:**
 - Modify: `~/hermes-agent/data/services/pr-review/site/adj_style.py`
@@ -1422,14 +1640,14 @@ git管理外の ~/hermes-agent/data/services/pr-review/site/ 配下を変更し�
 
 ---
 
-### Task 8: フォーマット仕様とSKILL.mdの更新
+### Task 9: フォーマット仕様とSKILL.mdの更新
 
 **Files:**
 - Modify: `.agents/skills/pr-independent-review/README-digest-format.md`
 - Modify: `.agents/skills/pr-independent-review/SKILL.md:438-461`
 
 **Interfaces:**
-- Consumes: Task 1〜5 で確定した記法とエラー条件
+- Consumes: Task 1〜6 で確定した記法とエラー条件
 
 - [ ] **Step 1: `README-digest-format.md` のコードフェンス節を書き換える**
 
@@ -1473,6 +1691,28 @@ git管理外の ~/hermes-agent/data/services/pr-review/site/ 配下を変更し�
     ```
 ```
 
+- [ ] **Step 1.5: `README-digest-format.md` の YAML キー表と注意書きを直す**
+
+`options` の行を次へ差し替える:
+
+```markdown
+| `options` | 非suppressedで必須 | 案の要約の配列。**先頭が推奨**。コンバータがカード本文へ案A/案B…として描き、先頭へ推奨マークを付ける |
+```
+
+`recommendation` の行を次へ差し替える:
+
+```markdown
+| `recommendation` | **書けない** | findings.json の `recommendation` は `options` 先頭から自動で入る。書くとエラーになる |
+```
+
+「**注意（コンバータは検査しない）**: 同じ推奨案が `options` 先頭・`recommendation`・カード本文の代替案説明の3箇所に現れる。…」の段落を**削除**し、次へ置き換える:
+
+```markdown
+**案の正本は `options:` 1箇所である。** カード本文に `代替案` を書くとコンバータがエラーで落とす
+（同じ案が2箇所に出て片方だけ古くなる事故を防ぐため）。案の並び順がそのまま案A/案B…のキーになり、
+先頭が推奨として描かれる。案どうしが排他である等の関係は `summary` か `index_label` へ書く。
+```
+
 - [ ] **Step 2: `SKILL.md` の Step 7 を更新する**
 
 「**残す規約**」の箇条書きのうち、コード抜粋の行を次へ差し替える:
@@ -1489,6 +1729,8 @@ git管理外の ~/hermes-agent/data/services/pr-review/site/ 配下を変更し�
 ```markdown
 - コンバータは `$RUNDIR/patch.diff` を読む。Step 4 の生成物なので通常は存在するが、
   無い場合はエラーで落ちる（`patch.diff がありません`）
+- 案はカード本文へ手で書かない。`options:` へ書けばコンバータが案A/案B…として描き、
+  先頭へ推奨マークを付ける。本文に「代替案」を書くとエラーで落ちる
 ```
 
 - [ ] **Step 3: 記述と実装が一致することを確認する**
@@ -1512,13 +1754,13 @@ git commit -m "docs(digest): 削除行・言語自動判定・patch照合を仕�
 
 ---
 
-### Task 9: 実データで通しの動作確認
+### Task 10: 実データで通しの動作確認
 
 **Files:**
 - 変更なし（検証のみ）
 
 **Interfaces:**
-- Consumes: Task 1〜8 の成果物すべて
+- Consumes: Task 1〜9 の成果物すべて
 
 - [ ] **Step 1: 直近の実runで再生成してみる**
 
@@ -1570,7 +1812,7 @@ git commit --allow-empty -m "test(digest): pr-1157の実データで通し確認
 
 ---
 
-### Task 10: ブランチ全体のコードレビュー（省略不可）
+### Task 11: ブランチ全体のコードレビュー（省略不可）
 
 **Files:**
 - 変更なし（レビューのみ）
@@ -1605,6 +1847,13 @@ planning 中に生じた判断:
 - **ゴールデン比較では127KBのバンドルを `[BUNDLE]` へ正規化する**。期待HTMLにミニファイJSを含めるとレビュー不能な巨大diffになる。代わりに「バンドルが存在し10万文字以上ある」ことをテストで明示的に検査し、正規化が欠落を隠さないようにする。出所: agent前提
 - **`render_html` に `assets` 引数を足し、vendor の読み込みは `digest_build.py`（IO層）に置く**。`digest_md/` 配下は文字列を受け取って文字列を返す純関数群という既存の層分けを崩さない。出所: agent前提（既存 `render_html(doc, template, refs)` の設計に従う）
 - **`~/hermes-agent/data/services/pr-review/` は git 管理外なので、変更は空コミットのメッセージ本文で追跡する**。バックアップを取ってから触る。出所: agent前提（同ディレクトリに `.git` が無いことの実測）
+- **案（`options`）はコンバータがカード本文へ描き、手書きの代替案段落と `recommendation:` は拒否する**。
+  コンバータ産の pr-1157 は案の表示が0箇所で、案が出るかが生成subagentの手書き次第だった（実測）。
+  これは `.decisions/2026-08-18-推奨案の3重記述は注意書きだけで留める.md` の撤回であり、
+  `.decisions/2026-08-19-案はoptionsを正本としてカードへ機械描画する.md` に記録した。
+  出所: ユーザー裁定 2026-08-19「裁定の選択肢のフィールドをちゃんと出すようにしてほしい。1167みたいに、それをデフォルトにして」
+- **案リストの描画は `render.py` に置き、`findings.py` の `OPTION_KEYS` を共有する**。案キーの採番規則が
+  HTML と findings.json で割れると、裁定サイトのボタンとカードの案が食い違う。採番の正本は1箇所に保つ。出所: agent前提
 - **PR #1167 の digest は再生成しない**。出所: ユーザー裁定 2026-08-18「順番的にコンバータが作られる前のPRなの？それならしょうがない」
 
 ## 配置と前例（spec-architecture-review）
@@ -1614,6 +1863,7 @@ planning 中に生じた判断:
 | 行解析 `lines.py` / 描画 `html.py` / 言語 `lang.py` / 検証 `patch_guard.py` | `scripts/digest_md/code_card/`（文字列→文字列の純関数層） | `digest_md/` 既存11モジュールがすべて純関数（IOを持たない） |
 | vendor資産の読み込み `load_assets()` | `scripts/digest_build.py`（IO層） | 既存の `TEMPLATE.read_text()` / `findings.json` 書き出しが同ファイルにある |
 | 削除行ガードの呼び出し | `digest_build.py` の `main()`（`verify()` と並べる） | 既存 `verify(html, findings)` が「出荷前の機械検査」として同じ位置にある |
+| 案リストの描画 `options_html()` | `scripts/digest_md/render.py`（カード組み立ての層） | 既存 `_card_html` が files・summary・suppress_reason を同じ場所で組んでいる |
 | CSSトークンとダーク配色 | `assets/digest-template.html` の `<style>` | 既存の `:root` 11トークンが同じ場所にある |
 | 着色ドライバJS | テンプレート既存 `<script>` 内の末尾 | コメントUIのJSが同じブロックにまとまっている |
 
@@ -1629,6 +1879,7 @@ planning 中に生じた判断:
 | 裁定ボタンの注入位置 | ○ | `inject.py` は `section[data-finding-id]` を起点にする。カード要素の属性は不変 |
 | 裁定レイヤーのCSS | ○ | `adj_style.py` / `inject.py` / `style.py` / `pages.py` に `code-card` / `ins` / `.hl` / `.ln` への参照が1件も無いことを実測済み（`grep` でヒット0） |
 | `findings.json` を読む poller と `pr-adjudicated-apply` | ○ | スキーマ不変。`excerpt` は従来どおり「PR後の現行コード」（R9） |
+| 裁定サイトの推奨一括採用（未裁定を推奨案で埋める） | ○ | `options[0].recommended` はコンバータが必ず付ける規則のまま。カードの推奨マークも同じ先頭要素を指す（R14） |
 | 一覧ページの `pre.excerpt` 表示 | ○ | プレーンテキスト表示のままで、差分記法を持ち込まない |
 | `file://` で digest.html を開く運用（Step 8 のクイックトンネル・`open`） | ○ | vendor資産をインライン同梱するため外部参照が発生しない（R6） |
 
