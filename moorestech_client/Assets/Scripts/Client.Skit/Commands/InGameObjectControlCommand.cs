@@ -34,7 +34,7 @@ namespace CommandForgeGenerator.Command
 
             // mapObject・露頭・エンティティはEnvironment外に生成されるため個別に消す
             // Map objects, outcrops, and entities live outside Environment, so hide them individually
-            storyContext.GetService<ISkitWorldObjectControl>().SetActive(MapObjectEnable);
+            storyContext.GetService<ISkitWorldObjectControl>().SetActive(WorldObjectEnable);
             storyContext.GetService<ISkitEntityObjectControl>().SetActive(EntityEnable);
             return null;
         }
