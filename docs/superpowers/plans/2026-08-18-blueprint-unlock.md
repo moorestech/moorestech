@@ -468,7 +468,7 @@ git commit -m "feat: unlockBlueprintアクションと解放イベント・初�
 - Consumes: Task 3の`IsBlueprintUnlocked`、Task 4の`UnlockEventType.Blueprint`と応答`IsBlueprintUnlocked`
 - Produces: 未解放時に`PlacementTargetCatalog.UnlockedEntries`がBP系を除外する挙動。ビルドメニュー（WebUI含む）・ホットバー表示・配置解決は`PlacementTargetResolver`経由で自動追従する（個別UI変更なし）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `PlacementTargetCatalogUnlockTest.cs`へ追加:
 
@@ -503,12 +503,12 @@ public void ブループリント未解放ならBP系エントリは列挙され
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlacementTargetCatalogUnlockTest" --test-mode EditMode`
 Expected: 新テストFAIL（現状ハードコードtrueのため未解放でも列挙される）
 
-- [ ] **Step 3: PlacementTargetCatalogのハードコードtrueを置換する**
+- [x] **Step 3: PlacementTargetCatalogのハードコードtrueを置換する**
 
 `PlacementTargetCatalog.cs`の`IsUnlocked`ローカル関数:
 
@@ -520,7 +520,7 @@ case PlacementTargetKind.Blueprint:
     return unlockState.IsBlueprintUnlocked;
 ```
 
-- [ ] **Step 4: クライアントミラーを実装する**
+- [x] **Step 4: クライアントミラーを実装する**
 
 `ClientGameUnlockStateDatastore.cs`の`ClientGameUnlockStateData`:
 - `public bool IsBlueprintUnlocked { get; private set; }`を追加（Task 3で追加済みならシードと反映のみ）
@@ -542,13 +542,13 @@ case UnlockEventType.Blueprint:
     break;
 ```
 
-- [ ] **Step 5: コンパイルと関連テストを実行して通す**
+- [x] **Step 5: コンパイルと関連テストを実行して通す**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlacementTargetCatalogUnlockTest|BuildMenuEntryDtoFactoryTest" --test-mode EditMode`
 Expected: PASS（`BuildMenuEntryDtoFactoryTest`はスタブが常時true=従来挙動のまま通る）
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server moorestech_client
