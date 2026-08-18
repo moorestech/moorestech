@@ -6,6 +6,7 @@ using Client.Game.InGame.Environment.Terrain.Visual.Splat;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
+using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Tests.UnitTest.Terrain
@@ -32,6 +33,10 @@ namespace Client.Tests.UnitTest.Terrain
 
         private static readonly BiomeType[] BiomeTypes = { BiomeType.Grassland, BiomeType.Forest };
 
+        // 距離フィルタを有効にしていないので距離場は作られない。MasterHolder無しで回せる
+        // No distance filter is enabled here, so no field is built and the fixture runs without MasterHolder
+        private static readonly MapObjectLayoutMessagePack[] NoMapObjects = new MapObjectLayoutMessagePack[0];
+
         [Test]
         public void KeepsPrototypesAndMapsAlignedAcrossBiomes()
         {
@@ -41,7 +46,8 @@ namespace Client.Tests.UnitTest.Terrain
             // empty lists and the output stays identical, so the name is scoped to what this actually pins
             var visualSections = CreateVisualSections();
             var maps = TerrainDetailBuilder.Build(
-                CreateConfig(), BiomeTypes, visualSections, CreateHeights(), CreateBiomeIndices(), null, null);
+                CreateConfig(), BiomeTypes, visualSections, CreateHeights(), CreateHeights(),
+                CreateWinnerMasks(), null, null, NoMapObjects, Vector3.zero, 0, 0);
             var prototypes = TerrainDetailPrototypeList.Build(BiomeTypes, visualSections);
 
             Assert.That(prototypes.Count, Is.EqualTo(2));
@@ -68,7 +74,8 @@ namespace Client.Tests.UnitTest.Terrain
             var slipped = GenerateDirectly(Seed + DetailSeedBase + 0 * DetailSeedStridePerBiome);
 
             var maps = TerrainDetailBuilder.Build(
-                CreateConfig(), BiomeTypes, CreateVisualSections(), CreateHeights(), CreateBiomeIndices(), null, null);
+                CreateConfig(), BiomeTypes, CreateVisualSections(), CreateHeights(), CreateHeights(),
+                CreateWinnerMasks(), null, null, NoMapObjects, Vector3.zero, 0, 0);
 
             Assert.That(AreEqual(maps[0], expected), Is.True, "添字1のseedで生成されている");
 
@@ -82,9 +89,9 @@ namespace Client.Tests.UnitTest.Terrain
             var config = CreateConfig();
             var heights = CreateHeights();
             var maps = DetailRuntimeGenerator.GenerateForBiome(
-                TransferredBiomeMaskBuilder.Build(CreateBiomeIndices(), BiomeTypes[PopulatedBiomeIndex], Resolution),
+                CreateWinnerMasks()[PopulatedBiomeIndex],
                 heights, TerrainSlopeCalculator.Compute(heights, config),
-                TerrainDimensions.From(config, config.shoreConfig.waterMargin),
+                TerrainDimensions.From(config, config.shoreConfig.waterMargin, 0, 0),
                 CreatePopulatedDetailConfig(), new System.Random(seed), null, null, null, null);
 
             return maps[0];
@@ -106,7 +113,8 @@ namespace Client.Tests.UnitTest.Terrain
             // The detail path reads only DetailConfigs; the other two exist solely to keep the arrays parallel
             return new BiomeVisualSections(
                 new string[BiomeTypes.Length], new BiomeTextureConfig[BiomeTypes.Length],
-                new[] { CreateEmptyDetailConfig(), CreatePopulatedDetailConfig() });
+                new[] { CreateEmptyDetailConfig(), CreatePopulatedDetailConfig() },
+                DetailTestConfigBuilder.CreateDisabledSurroundConfigs(BiomeTypes.Length));
         }
 
         private static BiomeDetailConfig CreateEmptyDetailConfig()
@@ -159,13 +167,20 @@ namespace Client.Tests.UnitTest.Terrain
             return heights;
         }
 
-        private static byte[,] CreateBiomeIndices()
+        // 添字1のバイオームがタイル全面で勝つ配置。0番は勝者ゼロなので密度マップも空になる
+        // The biome at index 1 wins the whole tile; index 0 wins nowhere, so its density maps stay empty
+        private static bool[][,] CreateWinnerMasks()
         {
-            var biomeIndices = new byte[Resolution, Resolution];
-            for (var z = 0; z < Resolution; z++)
-            for (var x = 0; x < Resolution; x++)
-                biomeIndices[z, x] = (byte)BiomeTypes[PopulatedBiomeIndex];
-            return biomeIndices;
+            var masks = new bool[BiomeTypes.Length][,];
+            for (var biomeIndex = 0; biomeIndex < BiomeTypes.Length; biomeIndex++)
+            {
+                masks[biomeIndex] = new bool[Resolution, Resolution];
+                for (var z = 0; z < Resolution; z++)
+                for (var x = 0; x < Resolution; x++)
+                    masks[biomeIndex][z, x] = biomeIndex == PopulatedBiomeIndex;
+            }
+
+            return masks;
         }
     }
 }

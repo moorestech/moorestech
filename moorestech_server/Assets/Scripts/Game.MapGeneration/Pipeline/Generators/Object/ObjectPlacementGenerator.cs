@@ -18,6 +18,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             TerrainDimensions dims,
             BiomeObjectConfig objConfig,
             System.Random rng,
+            int noiseSeed,
             SpatialGrid treeSpatialGrid,
             ref int nextClusterId)
         {
@@ -30,7 +31,9 @@ namespace Game.MapGeneration.Pipeline.Generators
 
             var objAlgCfg = objConfig.algorithmConfig ?? new ObjectAlgorithmConfig();
             float borderMarginPx = BiomeMaskBuilder.MetersToPixels(objConfig.borderMargin, dims.TerrainWidth, hRes);
-            var noiseOffsets = ManagedNoise.GenerateOffsets(new System.Random(rng.Next()), 4);
+            // rng にはタイルが混ざっているため、ここから引くとノイズ場がタイルごとに別物になり境目に直線が立つ。
+            // rng carries the tile term, so drawing from it would give each tile a different noise field and stand a straight line on the seam.
+            var noiseOffsets = ManagedNoise.GenerateOffsets(new System.Random(noiseSeed), 4);
 
             // ===== Phase A: clusterEntries =====
             var clusterInfos = new List<RockClusterInfo>();

@@ -81,10 +81,14 @@ namespace Game.MapGeneration.Pipeline.Generators
                             float tz = patchCZ + Mathf.Sin(localAngle) * localDist;
                             float distFromCenter = localDist / patchSize;
 
-                            float mk = Mathf.PerlinNoise(tx * proxCfg.maskCoarseFrequency + noiseOffX,
-                                tz * proxCfg.maskCoarseFrequency + noiseOffZ);
-                            float detail = Mathf.PerlinNoise(tx * proxCfg.maskFineFrequency + noiseOffX + 77f,
-                                tz * proxCfg.maskFineFrequency + noiseOffZ + 33f);
+                            // パッチのマスクもワールド座標で引く。タイルローカルのままだと同じ絵が全タイルに出る
+                            // The patch mask is world-space too; tile-local coordinates would print one picture on every tile
+                            float worldX = tx + dims.WorldOffsetX;
+                            float worldZ = tz + dims.WorldOffsetZ;
+                            float mk = Mathf.PerlinNoise(worldX * proxCfg.maskCoarseFrequency + noiseOffX,
+                                worldZ * proxCfg.maskCoarseFrequency + noiseOffZ);
+                            float detail = Mathf.PerlinNoise(worldX * proxCfg.maskFineFrequency + noiseOffX + 77f,
+                                worldZ * proxCfg.maskFineFrequency + noiseOffZ + 33f);
                             float combined = mk * proxCfg.maskCoarseWeight + detail * (1f - proxCfg.maskCoarseWeight);
                             float distPenalty = distFromCenter * distFromCenter * proxCfg.distancePenaltyFactor;
                             if (combined - distPenalty < maskThreshold) continue;
