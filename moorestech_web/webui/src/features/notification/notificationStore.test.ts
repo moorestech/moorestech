@@ -57,8 +57,8 @@ describe("notificationStore", () => {
     earnItem(3, 7, "itemEarned.mined");
     expect(useNotificationStore.getState().notifications[0].id).not.toBe(firstId);
 
-    // 旧idの保険タイマーが発火しても加算後の行を巻き添えにしない
-    // The old id's fallback timer must not sweep away the merged row
+    // 旧idのタイマーで加算後の行を消さない
+    // The old id's timer must not remove the merged row
     vi.advanceTimersByTime(1);
     expect(useNotificationStore.getState().notifications).toHaveLength(1);
     vi.advanceTimersByTime(NOTIFICATION_REMOVAL_FALLBACK_MS);
@@ -85,8 +85,8 @@ describe("notificationStore", () => {
   });
 });
 
-// union化により count は itemEarned へ絞り込まないと読めない
-// The union means count is only readable after narrowing to itemEarned
+// countはitemEarnedへ絞り込んで読む
+// count is read after narrowing to itemEarned
 function earnedCountOf(index: number) {
   const notification = useNotificationStore.getState().notifications[index];
   return notification.category === "itemEarned" ? notification.count : null;

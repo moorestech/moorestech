@@ -19,21 +19,21 @@ export function useTopic<K extends keyof TopicPayloads>(topic: K): TopicPayloads
 }
 
 /**
- * topicを「最新値」ではなく「届いた分を全て流すイベント列」として購読するフック。
- * 最新値1枠のstoreはReactが読む前に次が届くと前の値を失うため、書き込みのたびに同期でhandlerを呼ぶ。
+ * topicをイベント列として購読するフック。
+ * 最新値1枠は読む前に次が来ると失うので書き込み毎に呼ぶ。
  * Subscribes to a topic as an event stream rather than a latest value.
  * The single-slot store loses a value when the next arrives before React reads it, so the handler runs synchronously on every write.
  */
 export function useTopicEvents<K extends keyof TopicPayloads>(topic: K, handler: (payload: TopicPayloads[K]) => void): void {
-  // handlerは毎レンダー新しい関数になるので、購読を張り直さずrefで最新を参照する
-  // The handler is a fresh function each render, so a ref keeps it current without re-subscribing
+  // handlerはrefで最新を参照する
+  // A ref keeps the handler current without re-subscribing
   const handlerRef = useRef(handler);
   handlerRef.current = handler;
 
   useEffect(() => {
     subscriptions.acquire(topic);
-    // 購読開始時点より後のrevisionだけを配る。過去分は再生しない
-    // Deliver only revisions after subscribe time; history is not replayed
+    // 購読後のrevisionだけ配る
+    // Deliver only revisions after subscribe time
     let lastRevision = useTopicStore.getState().revisions[topic] ?? -1;
     const unsubscribe = useTopicStore.subscribe((state) => {
       const revision = state.revisions[topic] ?? -1;

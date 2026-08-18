@@ -69,15 +69,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var earnItem = MasterHolder.MapObjectMaster.GetMapObjectElement(PickUpMapObjectGuid).EarnItems[0];
             var earnItemId = MasterHolder.ItemMaster.GetItemId(earnItem.ItemGuid);
 
-            // 空き検査はMaxCount1周分しか見ないため、それを1つ上回る空きは検査を通る
-            // The space check only covers one MaxCount round, so a free space one above it passes
+            // MaxCount1周分+1の空きは通る
+            // A space one above a MaxCount round passes the check
             var freeSpace = earnItem.MaxCount + 1;
             FillInventoryLeavingFreeSpace(playerInventory, earnItemId, freeSpace);
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             var beforeCount = CountMainInventoryItem(serviceProvider, earnItemId);
 
-            // PickUpは一撃で全HP境界を跨ぐので、空き検査を超える量が生成されて溢れる
-            // PickUp crosses every HP threshold in one hit, generating more than the space check covered
+            // PickUpは全境界を跨ぎ溢れさせる
+            // PickUp crosses every threshold and generates more than fits
             SendMapObjectMining(packet, mapObject.InstanceId);
 
             var notifications = TakeItemEarnedNotifications(sink);
@@ -114,8 +114,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             EquipTool(playerInventory);
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
 
-            // 実時間ではクールダウン3秒に収まる2連続採掘。集約はWeb UI側なので両方ワイヤに乗る
-            // Two swings that fall inside the 3s cooldown in real time; aggregation lives in the web UI so both reach the wire
+            // クールダウン3秒内の2連打も通る
+            // Two swings inside the 3s cooldown both reach the wire
             SendVeinMining(packet);
             GameUpdater.RunFrames(GameUpdater.SecondsToTicks(ExpectedAttackSpeed) + 1);
             SendVeinMining(packet);

@@ -9,8 +9,8 @@ test.afterEach(async ({ page }) => {
   // 他specへ漏らさず空へ戻す
   // Reset to empty so it doesn't leak to other specs
   await setTopicScenario(page, "notificationClear");
-  // 未リセットだとCRAFT RECIPE系specが汚染される
-  // Leaving uiState set pollutes the CRAFT RECIPE specs
+  // 未リセットだと他specを汚染する
+  // Leaving uiState set pollutes other specs
   await setUiState(page, "PlayerInventory");
 });
 

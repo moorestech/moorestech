@@ -57,8 +57,8 @@ namespace Server.Protocol.PacketResponse
 
             #region Internal
 
-            // 一撃で複数境界を跨ぐ経路では空き検査を超えて生成されるため、実際に入った分だけを数える
-            // Paths crossing several HP thresholds in one hit can outgrow the space check, so count only what actually landed
+            // 空き検査を超えて生成されるので実挿入量を数える
+            // Generation can outgrow the space check, so count what actually landed
             Dictionary<ItemId, int> InsertEarnedItems()
             {
                 var insertedCounts = new Dictionary<ItemId, int>();
@@ -78,8 +78,8 @@ namespace Server.Protocol.PacketResponse
             {
                 foreach (var insertedCount in insertedCounts)
                 {
-                    // 溢れて1個も入らなかったアイテムは通知しない
-                    // Items that overflowed entirely get no notification
+                    // 1個も入らなければ通知しない
+                    // No notification when nothing landed
                     if (insertedCount.Value <= 0) continue;
                     _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateItemEarned(insertedCount.Key, insertedCount.Value));
                 }

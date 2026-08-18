@@ -42,8 +42,8 @@ namespace Client.WebUiHost.Game.Topics
         {
             var message = MessagePackSerializer.Deserialize<NotificationMessagePack>(payload);
 
-            // 未知カテゴリで例外を投げるとUniRxの購読パイプを貫きイベント配信全系統が止まるため、この1件だけ捨てる
-            // Throwing on an unknown category would pierce the UniRx pipe and halt every event stream, so drop just this one
+            // throwは購読パイプを貫き配信を止める
+            // A throw would pierce the subscription pipe and halt all event delivery
             if (!TryGetWebCategory(message.Category, out var webCategory))
             {
                 Debug.LogWarning($"[NotificationTopic] dropped notification with unknown category: {message.Category}");
@@ -64,8 +64,8 @@ namespace Client.WebUiHost.Game.Topics
 
             #region Internal
 
-            // Web側のcategory名はここが唯一の対応表。カテゴリ追加時はここを通す
-            // This is the only mapping to web-side category names; new categories go through here
+            // Web側category名の唯一の対応表
+            // The only mapping to web-side category names
             bool TryGetWebCategory(NotificationCategory category, out string name)
             {
                 switch (category)

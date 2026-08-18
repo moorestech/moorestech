@@ -65,8 +65,8 @@ namespace Server.Event.Notification
 
             #region Internal
 
-            // 獲得通知は1ドロップ1通知を全て通す。まとめ上げはWeb UI側の加算表示が担う
-            // Item-earned passes every drop; the web UI's incrementing row does the folding
+            // 獲得は全て通し集約はWeb UIが担う
+            // Earned passes everything through; the web UI aggregates
             bool IsCooldownTarget(NotificationCategory category)
             {
                 return category switch

@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { useTopicStore, deliverTopicPayload } from "./topicStore";
 import { Topics } from "../transport/protocol";
 
-// useTopicEventsが依存する不変条件を固定する。最新値1枠の読み出しでは1件目が失われる
-// Locks the invariant useTopicEvents relies on; reading the single latest-value slot loses the first write
+// useTopicEventsの前提を固定
+// The invariant useTopicEvents relies on
 describe("topic event delivery", () => {
   beforeEach(() => {
     useTopicStore.setState({ topics: {}, revisions: {} });
@@ -27,8 +27,8 @@ describe("topic event delivery", () => {
     earned(2, 3);
     unsubscribe();
 
-    // 最新値だけを読むと5が失われて合計が過少になる
-    // Reading only the latest value would lose the 5 and undercount the total
+    // 最新値だけ読むと5が失われる
+    // Reading only the latest value loses the 5
     expect(observed).toEqual([5, 3]);
   });
 });

@@ -1,13 +1,13 @@
 import { create } from "zustand";
 import type { NotificationData } from "@/bridge";
 
-// 配信された通知(空スナップショットを除く)のカテゴリはbridgeの契約から導く。二重定義を避ける
-// Categories come from the bridge contract's delivered variants (excluding the empty snapshot), avoiding a duplicate definition
+// categoryはbridgeから導く
+// Categories come from the bridge contract, avoiding duplication
 type DeliveredNotificationData = Extract<NotificationData, { category: string }>;
 type MessageCategory = Exclude<DeliveredNotificationData["category"], "itemEarned">;
 
-// 獲得通知はアイコンと個数が必須、その他は個数を持たない。カテゴリで必要な項目が決まる
-// Earned notifications require icon and amount; the others carry no amount. The category decides which fields exist
+// 必要な項目はカテゴリで決まる
+// The category decides which fields exist
 export type NewGameNotification =
   | { category: "itemEarned"; messageId: string; messageParams: string[]; itemId: number; count: number }
   | { category: MessageCategory; messageId: string; messageParams: string[]; itemId: number | null };
@@ -33,12 +33,12 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   addNotification: (n) => {
     const id = nextId++;
     set((s) => {
-      // 集約するのは獲得通知だけ。他カテゴリは同じ内容でも別行として積む
-      // Only earned notifications aggregate; other categories stack as separate rows even when identical
+      // 集約するのは獲得通知だけ
+      // Only earned notifications aggregate
       if (n.category !== "itemEarned") return { notifications: [...s.notifications, { ...n, id }] };
 
-      // 表示中の同一アイテムの獲得行は作り直して数値を伸ばす。idを刷新すると再マウントされ入場アニメと生存尺が回り直す
-      // A live earned row for the same item is rebuilt with a larger number; the renewed id remounts it so the enter animation and lifetime restart
+      // id刷新で再マウントし生存尺を回し直す
+      // Renewing the id remounts the row so the lifetime restarts
       const merged = s.notifications.find(
         (x) => x.category === "itemEarned" && x.messageId === n.messageId && x.itemId === n.itemId,
       );
@@ -46,8 +46,8 @@ export const useNotificationStore = create<NotificationState>((set) => ({
       const count = (merged?.category === "itemEarned" ? merged.count : 0) + n.count;
       return { notifications: [...rest, { ...n, count, id }] };
     });
-    // 加算でidが刷新された行を巻き添えにしないよう、対象idが残っていない時は何もしない
-    // Do nothing when the target id is gone, so a row whose id was renewed by a merge is not swept away
+    // 対象idが残っていなければ何もしない
+    // Do nothing when the target id is gone
     setTimeout(() => set((s) => (s.notifications.some((x) => x.id === id)
       ? { notifications: s.notifications.filter((x) => x.id !== id) }
       : s)), NOTIFICATION_REMOVAL_FALLBACK_MS);

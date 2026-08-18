@@ -15,11 +15,11 @@ export default function NotificationHost() {
   const removeNotification = useNotificationStore((s) => s.removeNotification);
   const lastSeq = useRef(0);
 
-  // 最新値ではなくイベント列として受ける。同一レンダー内に連続で届いても取りこぼさない
-  // Received as an event stream rather than a latest value, so bursts inside one render are not dropped
+  // イベント列で受け連続配信を落とさない
+  // Received as an event stream so bursts are not dropped
   useTopicEvents(Topics.notification, (payload) => {
-    // 空スナップショットと重複配信はseqで弾く
-    // Guard against the empty snapshot and duplicate deliveries via seq
+    // 空snapshotと重複はseqで弾く
+    // Guard the empty snapshot and duplicates via seq
     if (!("seq" in payload) || payload.seq <= lastSeq.current) return;
     lastSeq.current = payload.seq;
     if (payload.category === "itemEarned") {

@@ -14,8 +14,8 @@ namespace Server.Event.Notification
     [MessagePackObject]
     public class NotificationMessagePack
     {
-        // 獲得通知は文言が1種類しかないためmessageIdを定数で固定する。Web側は独立したlocalizationキーで持つため公開しても一元化にならない
-        // Item-earned notifications have a single wording, so the messageId is a fixed constant; the web side keeps its own literal, so exposing this const would not centralize anything
+        // Web側は別リテラルを持つので公開しない
+        // The web keeps its own literal, so this stays private
         private const string ItemEarnedMessageId = "itemEarned.mined";
 
         // EventのMessagePackはProtocolMessagePackBaseを継承しない。Key(0)から開始
