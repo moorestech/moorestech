@@ -29,10 +29,10 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1573246773890042601}
+  - {fileID: 5175198208385040826}
   m_Father: {fileID: 1944295541015757383}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &6120449089591008482
+--- !u!1 &5643547068421343332
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -40,9 +40,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1573246773890042601}
-  - component: {fileID: 2899070552166879463}
-  - component: {fileID: 1658969466180447867}
+  - component: {fileID: 5175198208385040826}
+  - component: {fileID: 2654561483560876492}
+  - component: {fileID: 2195363394761193349}
   m_Layer: 10
   m_Name: Stone4_LOD0
   m_TagString: Untagged
@@ -50,13 +50,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1573246773890042601
+--- !u!4 &5175198208385040826
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6120449089591008482}
+  m_GameObject: {fileID: 5643547068421343332}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -65,21 +65,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3191411934972456882}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &2899070552166879463
+--- !u!33 &2654561483560876492
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6120449089591008482}
+  m_GameObject: {fileID: 5643547068421343332}
   m_Mesh: {fileID: -714781386817441566, guid: 2bb12a711de6459a8ad418f672aabd2b, type: 3}
---- !u!23 &1658969466180447867
+--- !u!23 &2195363394761193349
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6120449089591008482}
+  m_GameObject: {fileID: 5643547068421343332}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -150,7 +150,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.1696429, y: 0, z: 0.25416026}
-  m_LocalScale: {x: 2.4262, y: 1.0073484, z: 2.4262}
+  m_LocalScale: {x: 2.456443, y: 1.0073484, z: 2.456443}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1944295541015757383}

@@ -11,18 +11,17 @@ public static class WrapperRayTargetBuilder
 {
     private const string RayTargetObjectName = "RayTargetCollider";
 
-    // Tree.prefabのレイターゲットが参照するプリミティブ円柱(unity default resourcesのfileID 10206)を引く名前
-    // The name that resolves to the primitive cylinder Tree.prefab's ray target uses (fileID 10206 of unity default resources)
-    private const string CylinderMeshResourceName = "New-Cylinder.fbx";
-
     // 根元の太さを測る高さ。最近接LODの高さに対する割合
     // Fraction of the nearest LOD's height used to measure how thick the object is at its base
     private const float FootprintHeightRatio = 0.1f;
 
+    // 手書き前例のレイターゲットは最も細いTree.prefabでも見た目シルエット半径の13%(0.35m / 2.68m)あり、全前例がこの比率を満たす
+    // Every hand-authored ray target keeps at least 13% of its own silhouette radius; Tree.prefab is the thinnest at 0.35m against 2.68m
+    private const float MinimumVisualSilhouetteRatio = 0.13f;
+
     public static void Create(GameObject root, Bounds visualLocalBounds, List<Renderer> nearestLodRenderers)
     {
-        var cylinderMesh = Resources.GetBuiltinResource<Mesh>(CylinderMeshResourceName);
-        if (cylinderMesh == null) throw new InvalidOperationException($"builtin cylinder mesh not found: {CylinderMeshResourceName}");
+        var cylinderMesh = WrapperCylinderMesh.Resolve();
 
         // 樹冠まで含む外接ボックスにすると、採掘レンジ(2.5m)＋カメラ背後(3.5m)の内側にコライダー内壁が来て、レイが内側からは当たらず採掘不能になる
         // A canopy-wide box would put its inner wall within the mining reach (2.5m) plus the camera offset (3.5m), and Unity never hits a collider from inside
@@ -38,6 +37,10 @@ public static class WrapperRayTargetBuilder
         var radius = 0f;
         foreach (var solidPoint in solidPoints) radius = Mathf.Max(radius, (new Vector2(solidPoint.x, solidPoint.z) - axis).magnitude);
 
+        // 地際のテーパーだけで太さを決めると、幹を持たない小型種のレイターゲットが数cmまで痩せて実質狙えなくなる
+        // Sizing from the ground-level taper alone shrinks a trunkless small species down to a few centimetres, far too thin to aim at
+        radius = Mathf.Max(radius, CalculateVisualSilhouetteRadius(root.transform, nearestLodRenderers, axis) * MinimumVisualSilhouetteRatio);
+
         var top = Mathf.Max(visualLocalBounds.max.y, solidBounds.max.y);
         var bottom = Mathf.Min(visualLocalBounds.min.y, solidBounds.min.y);
         if (radius <= 0f || top <= bottom) throw new InvalidOperationException($"ray target has no extent for {root.name}");
@@ -48,7 +51,9 @@ public static class WrapperRayTargetBuilder
         SceneManager.MoveGameObjectToScene(rayTarget, root.scene);
         rayTarget.transform.SetParent(root.transform, false);
 
-        var meshRadius = Mathf.Max(cylinderMesh.bounds.extents.x, cylinderMesh.bounds.extents.z);
+        // 内接円半径でスケールしないと、面の中央方位だけ要求半径に届かず、そこからBK自前コライダーがはみ出して先にレイを取る
+        // Scaling by anything but the inscribed radius leaves the face midpoints short, and BK's own colliders poke out there to take the ray first
+        var meshRadius = WrapperCylinderMesh.CalculateInscribedRadius(cylinderMesh);
         var scale = new Vector3(radius / meshRadius, (top - bottom) * 0.5f / cylinderMesh.bounds.extents.y, radius / meshRadius);
         var center = new Vector3(axis.x, (top + bottom) * 0.5f, axis.y);
         rayTarget.transform.localScale = scale;
@@ -60,6 +65,28 @@ public static class WrapperRayTargetBuilder
         meshCollider.isTrigger = true;
 
         rayTarget.AddComponent<MapObjectRayTarget>();
+    }
+
+    // 見た目のシルエット半径を軸まわりで測る。遠景LODの膨らんだ外接ではなく最近接LODの実頂点で測る
+    // Measures the silhouette radius around the axis on the nearest LOD's real vertices, not on a far LOD's inflated bounds
+    private static float CalculateVisualSilhouetteRadius(Transform root, List<Renderer> nearestLodRenderers, Vector2 axis)
+    {
+        var worldToLocal = root.worldToLocalMatrix;
+        var radius = 0f;
+        foreach (var renderer in nearestLodRenderers)
+        {
+            var meshFilter = renderer.GetComponent<MeshFilter>();
+            if (meshFilter == null || meshFilter.sharedMesh == null) continue;
+
+            var toRootLocal = worldToLocal * renderer.transform.localToWorldMatrix;
+            foreach (var vertex in meshFilter.sharedMesh.vertices)
+            {
+                var localVertex = toRootLocal.MultiplyPoint3x4(vertex);
+                radius = Mathf.Max(radius, (new Vector2(localVertex.x, localVertex.z) - axis).magnitude);
+            }
+        }
+
+        return radius;
     }
 
     // 幹・岩など実体のある部分の点群を、ルートのローカル空間で集める

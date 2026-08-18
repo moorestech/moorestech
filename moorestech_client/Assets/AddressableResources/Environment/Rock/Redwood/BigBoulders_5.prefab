@@ -29,7 +29,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1559994726791073704}
+  - {fileID: 4430906662323174618}
   m_Father: {fileID: 5037768819041174574}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &602140598050696542
@@ -59,8 +59,8 @@ Transform:
   m_GameObject: {fileID: 602140598050696542}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.011497887, y: -0.024033546, z: -0.002207888}
-  m_LocalScale: {x: 6.5245304, y: 2.902556, z: 6.5245304}
+  m_LocalPosition: {x: -0.0114978915, y: -0.024033546, z: -0.0022078806}
+  m_LocalScale: {x: 6.60586, y: 2.902556, z: 6.60586}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5037768819041174574}
@@ -99,7 +99,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c22ab40900a2421781a39544aff997cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Map.MapObject.MapObjectRayTarget
---- !u!1 &1774709152418191647
+--- !u!1 &1019752506629060514
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -107,9 +107,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1559994726791073704}
-  - component: {fileID: 4983294668483517442}
-  - component: {fileID: 737322076740046949}
+  - component: {fileID: 4430906662323174618}
+  - component: {fileID: 1237611028806522956}
+  - component: {fileID: 4486279037598746109}
   m_Layer: 10
   m_Name: BigBoulders_5_LOD0
   m_TagString: Untagged
@@ -117,13 +117,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1559994726791073704
+--- !u!4 &4430906662323174618
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1774709152418191647}
+  m_GameObject: {fileID: 1019752506629060514}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -132,21 +132,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4474581047116895027}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &4983294668483517442
+--- !u!33 &1237611028806522956
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1774709152418191647}
+  m_GameObject: {fileID: 1019752506629060514}
   m_Mesh: {fileID: 6909586839392065337, guid: 98e2eff25e504a14bbb742179e2e59f0, type: 3}
---- !u!23 &737322076740046949
+--- !u!23 &4486279037598746109
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1774709152418191647}
+  m_GameObject: {fileID: 1019752506629060514}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1

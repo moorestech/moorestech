@@ -29,10 +29,10 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1053273829522688727}
+  - {fileID: 4901240607850146713}
   m_Father: {fileID: 5144632084649769442}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &4349165908727794772
+--- !u!1 &3465854117778218209
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -40,9 +40,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1053273829522688727}
-  - component: {fileID: 5615181058194838441}
-  - component: {fileID: 7070540890889705756}
+  - component: {fileID: 4901240607850146713}
+  - component: {fileID: 1494992078681999613}
+  - component: {fileID: 1052416278000464174}
   m_Layer: 10
   m_Name: Saguaro1_LOD0
   m_TagString: Untagged
@@ -50,13 +50,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1053273829522688727
+--- !u!4 &4901240607850146713
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4349165908727794772}
+  m_GameObject: {fileID: 3465854117778218209}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -65,21 +65,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4470067843899519791}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &5615181058194838441
+--- !u!33 &1494992078681999613
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4349165908727794772}
+  m_GameObject: {fileID: 3465854117778218209}
   m_Mesh: {fileID: 6948658569422889989, guid: b2e787e9d4524d3c8ffe79fec5d96b00, type: 3}
---- !u!23 &7070540890889705756
+--- !u!23 &1052416278000464174
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4349165908727794772}
+  m_GameObject: {fileID: 3465854117778218209}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -150,8 +150,8 @@ Transform:
   m_GameObject: {fileID: 6709799550757580216}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.29615113, y: 1.9194429, z: 0.0000001128159}
-  m_LocalScale: {x: 1.2618245, y: 1.9221544, z: 1.2618245}
+  m_LocalPosition: {x: -0.29615113, y: 1.9194429, z: 0.00000011422219}
+  m_LocalScale: {x: 1.2775536, y: 1.9221544, z: 1.2775536}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5144632084649769442}
