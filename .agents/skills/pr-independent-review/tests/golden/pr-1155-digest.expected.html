@@ -493,7 +493,7 @@
   <section id="you-decide">
     <h2>あなたが判断すること</h2>
     <ul class="lead-list">
-      <li class="lead-item"><span class="badge">1</span><div><strong>必読の設計判断 3件</strong> — <a href="#f03">F03 歯車機械に倍率を効かせるか（案A/案Bは排他）</a> ／ <a href="#f04">F04 実効率導出の集約先の選択（F02 の直し方が従属する）</a> ／ <a href="#f08">F08 充足率を隠す判断の正本を state に置くか実効要求値に置くか</a></div></li>
+      <li class="lead-item"><span class="badge">1</span><div><strong>必読の設計判断 3件</strong> — <a href="#f03">F03 歯車機械に倍率を効かせるか（案A/案Bは排他）</a> ／ <a href="#f04">F04 実効率導出の集約先の選択（ChangeSelectionの再ラッチ判断が従属する）</a> ／ <a href="#f08">F08 充足率を隠す判断の正本を state に置くか実効要求値に置くか</a></div></li>
       <li class="lead-item"><span class="badge">2</span><div><strong>suppressed 0件</strong> — <a href="#suppressed">suppressedセクション</a></div></li>
       <li class="lead-item"><span class="badge">3</span><div><strong>新形の入国審査 0件</strong> — <a href="#new-shape">新形セクション</a></div></li>
       <li class="lead-item"><span class="badge">4</span><div><strong>裁定不要</strong>: <a href="#criticals">Critical要点</a>（<a href="#f01">F01</a>・<a href="#f02">F02</a>・<a href="#f05">F05</a>・<a href="#f06">F06</a>・<a href="#f07">F07</a>）</div></li>
@@ -549,7 +549,7 @@
         <p><strong>PR側の主張:</strong> <code>ProcessingPowerMultiplier</code> を <code>MachineProcessContext</code> へ寄せて「1箇所から取得」した <code>[agent前提]</code>（コード内コメント）。集約はそこで止まっている。</p>
         <p><strong>独立レビューの実測:</strong> フィールド宣言・ctor 初期ラッチ・<code>GetBlockStateDetails</code> の公開・Update 冒頭3文が<strong>日英2行コメントごと逐語一致</strong>で両クラスに存在し、率だけ Vanilla=三項（<code>Halted</code> が無言で <code>_idlePowerRate</code> に落ちる）／CleanRoom=網羅switch（<code>Halted =&gt; 0f</code>）と<strong>既に食い違っている</strong>。両ファイルは 217行 / 222行で200行上限を超過。故障は仮定でなく patch 内で既に1回起きており（CleanRoom の Halted 固着を <code>:177-178</code> の手動0埋めで塞いだ）、同型の <code>ChangeSelection</code> 2件（<a href="#f02">F02</a>）では漏れている。4系統一致。</p>
         <p><strong>代替案（新規クラス・新規ファイルは作らない）:</strong> <strong>案A（推奨）</strong> — 既存 <code>MachineProcessContext</code> へ <code>IdlePowerRate</code>・<code>EffectiveRequestPowerRate(state)</code>・<code>LatchTickPower(state)</code>・<code>PinPowerToZero()</code> を集約し、両processorのフィールドと3文を1行へ畳む（両ファイルが200行以内へ戻る）。<strong>案B</strong> — 率の switch を <code>IMachineProcessState</code> に <code>float RequestPowerRate { get; }</code> として持たせ、状態追加をコンパイルエラーで検知させる。</p>
-        <p><strong>裁定ポイント:</strong> ラッチの置き場所は <code>MachineProcessContext</code> 一択で拮抗しない。選択は「率の分岐を context の網羅switch+throw に置くか、<code>IMachineProcessState</code> の実装へ分散させるか」だけ。どちらでも <a href="#f02">F02</a> の直し方（<code>ChangeSelection</code> 直後の再ラッチを1行で呼ぶ）が決まるため、<strong>F02 より先に決める必要がある</strong>。</p>
+        <p><strong>裁定ポイント:</strong> ラッチの置き場所は <code>MachineProcessContext</code> 一択で拮抗しない。選択は「率の分岐を context の網羅switch+throw に置くか、<code>IMachineProcessState</code> の実装へ分散させるか」だけ。どちらでも <a href="#f02">F02</a> の直し方（<code>ChangeSelection</code> 直後の再ラッチを1行で呼ぶ）が決まるため、<strong><a href="#f02">F02</a> より先に決める必要がある</strong>。</p>
       </section>
     </div>
     <div class="figure" data-label="充足率の表示可否を requestPower !== 0 の数値センチネルで判定している箇所の設計判断カード（実コード抜粋つき）">
@@ -658,7 +658,7 @@
 <span class="ln">39</span><ins>        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</ins></code></pre>
         <p><strong>PR側の主張:</strong> Vanilla 側と同じ形で率を切り出した <code>[agent前提]</code>（差分実体から観測）。</p>
         <p><strong>独立レビューの実測:</strong> <code>rg</code> 実測で CleanRoom 側の参照は<strong>自ファイル <code>:39</code> のみ</strong>（プロダクション・テストとも他ファイル0件）。Vanilla 側は <code>VanillaGearMachineComponent.cs:40</code> という実消費者を持つので非対称で、CleanRoom には歯車消費者が構造的に存在しない。<code>[ADR: AGENTS.md#その他の規約]</code>「デバッグ/テスト専用publicを残さない」の隣接規約に抵触。なお死にメンバーゲート（IL解析）はレビューworktree未コンパイルのため<strong>skipped</strong>で、本件は <code>rg</code> 実測で代替検出した。</p>
-        <p><strong>修正方針:</strong> <code>public</code> → <code>private</code>。<a href="#f04">F04</a> の集約を採る場合は context 側へ移って本メンバー自体が消えるため、<strong>F04 と一括で処理する</strong>。同型掃引済み・残り0件。</p>
+        <p><strong>修正方針:</strong> <code>public</code> → <code>private</code>。<a href="#f04">F04</a> の集約を採る場合は context 側へ移って本メンバー自体が消えるため、<strong><a href="#f04">F04</a> と一括で処理する</strong>。同型掃引済み・残り0件。</p>
       </section>
     </div>
     <div class="figure" data-label="ChangeSelectionが状態遷移後に_publishedRequestPowerを再ラッチしないCriticalカード（実コード抜粋つき）">
@@ -680,7 +680,7 @@
 <span class="hl"><span class="ln">218</span>            _changeState.OnNext(Unit.Default);</span></code></pre>
         <p><strong>PR側の主張:</strong> 表示用要求電力を <code>CurrentPower</code> と同位置でラッチし、分子分母の基準ずれによる偽の赤/500%表示を解消する <code>[agent前提]</code>（PR本文「レビュー裁定」）。実際のラッチ点は Update 冒頭（<code>:171</code> / <code>:151</code>）の1箇所のみ。</p>
         <p><strong>独立レビューの実測:</strong> 両メソッドとも <code>CurrentState</code> を書き換えた直後に <code>_changeState.OnNext</code> を発火するが、<code>_publishedRequestPower</code> の再確定がない。<code>BlockSystem.cs:44</code> の購読が同期的に <code>GetBlockStateDetails()</code> を呼ぶため、<code>currentState:&quot;idle&quot;</code> に Processing 基準の高い分母が同梱され、次 Update まで<strong>「待機中なのに加工基準の低い充足率（偽の赤）」</strong>が出る。レシピ変更のたびに毎回起こりうる。3系統一致。</p>
-        <p><strong>修正方針:</strong> <code>CurrentState</code> 書き換えの直後・<code>_changeState.OnNext</code> の<strong>前</strong>に <code>_publishedRequestPower = EffectiveRequestPower;</code> を置く。<a href="#f04">F04</a> の集約を採る場合は <code>_context.LatchTickPower(CurrentState);</code> の1行に畳み、2ファイルで同じ形にする（<strong>F04 と同一 surface のため1つの編集にまとめること</strong>）。同型掃引済み・残り0件。</p>
+        <p><strong>修正方針:</strong> <code>CurrentState</code> 書き換えの直後・<code>_changeState.OnNext</code> の<strong>前</strong>に <code>_publishedRequestPower = EffectiveRequestPower;</code> を置く。<a href="#f04">F04</a> の集約を採る場合は <code>_context.LatchTickPower(CurrentState);</code> の1行に畳み、2ファイルで同じ形にする（<strong><a href="#f04">F04</a> と同一 surface のため1つの編集にまとめること</strong>）。同型掃引済み・残り0件。</p>
       </section>
     </div>
     <div class="figure" data-label="中核変更がmutationで死なずテストが自己参照化しているCriticalカード（実コード抜粋つき）">
@@ -774,14 +774,14 @@
     <details>
       <summary>① Critical の修正方針詳細（適用区分つき）</summary>
       <ul>
-        <li><strong>F03</strong>: 設計判断。案A採用時の波及は <code>GearEnergyTransformerComponent.GetCurrentOperatingRate</code> / <code>GetCurrentSuppliedPower</code>（デフォルト引数禁止のため呼び出し側を明示更新）と gear 系需給テスト群の再検証。案B採用時は歯車機械の表示分母も基礎値へ戻すところまで一貫させる必要がある。同型掃引: <code>SetTorqueRequestRate</code> の全6呼び出しを実測し、1を超え得るのは本件のみ・残り0件。</li>
-        <li><strong>F08</strong>: 設計判断。案A採用時は <code>MachineStateKeys</code>・<code>MachineStateInsufficientTone</code>・<code>isPowerRateMeaningful</code> を1枚のテーブルへ統合し <code>MachineSection.tsx:36</code> を <code>view.showPowerRate &amp;&amp; (...)</code> にする。<code>requestPower === 0</code> の4解釈を1つの述語へ寄せること。</li>
-        <li><strong>F04</strong>: 自動適用可（集約先が拮抗しない）。<code>MachineProcessContext</code> に <code>IdlePowerRate</code>・<code>EffectiveRequestPowerRate(state)</code>・<code>EffectiveRequestPower(state)</code>・<code>PublishedRequestPower { get; private set; }</code>・<code>LatchTickPower(state)</code>・<code>PinPowerToZero()</code> を追加。両processorのフィールド（<code>_idlePowerRate</code>・<code>_publishedRequestPower</code>）を削除し、Update 冒頭3文を1行へ、CleanRoom <code>:175-178</code> を <code>PinPowerToZero()</code> へ、<code>ProcessingMachineProcessState.cs:87</code> を <code>_context.EffectiveRequestPower(ProcessState.Processing)</code> へ。公開APIのシグネチャは維持されるため各Componentr/Template/既存テストは無変更で通る。副次効果として両ファイルが200行以内へ戻る。</li>
-        <li><strong>F02</strong>: 自動適用可。F04 と同一 surface のため1編集にまとめる。</li>
-        <li><strong>F01</strong>: 自動適用可（単独系統cosmetic相当・照合済み）。F04 と一括。</li>
-        <li><strong>F06</strong>: 自動適用可（1は挙動一意、2〜4は前例踏襲の規約整形）。</li>
-        <li><strong>F07</strong>: 自動適用可（3系統が同一の修正形＝マウント境界の narrowing を推しており選択の余地が実質ない）。</li>
-        <li><strong>F05</strong>: 自動適用可。ただし修正方針④は F03 の、⑤は F08 の裁定確定後に着手する。</li>
+        <li><strong><a href="#f03">F03</a></strong>: 設計判断。案A採用時の波及は <code>GearEnergyTransformerComponent.GetCurrentOperatingRate</code> / <code>GetCurrentSuppliedPower</code>（デフォルト引数禁止のため呼び出し側を明示更新）と gear 系需給テスト群の再検証。案B採用時は歯車機械の表示分母も基礎値へ戻すところまで一貫させる必要がある。同型掃引: <code>SetTorqueRequestRate</code> の全6呼び出しを実測し、1を超え得るのは本件のみ・残り0件。</li>
+        <li><strong><a href="#f08">F08</a></strong>: 設計判断。案A採用時は <code>MachineStateKeys</code>・<code>MachineStateInsufficientTone</code>・<code>isPowerRateMeaningful</code> を1枚のテーブルへ統合し <code>MachineSection.tsx:36</code> を <code>view.showPowerRate &amp;&amp; (...)</code> にする。<code>requestPower === 0</code> の4解釈を1つの述語へ寄せること。</li>
+        <li><strong><a href="#f04">F04</a></strong>: 自動適用可（集約先が拮抗しない）。<code>MachineProcessContext</code> に <code>IdlePowerRate</code>・<code>EffectiveRequestPowerRate(state)</code>・<code>EffectiveRequestPower(state)</code>・<code>PublishedRequestPower { get; private set; }</code>・<code>LatchTickPower(state)</code>・<code>PinPowerToZero()</code> を追加。両processorのフィールド（<code>_idlePowerRate</code>・<code>_publishedRequestPower</code>）を削除し、Update 冒頭3文を1行へ、CleanRoom <code>:175-178</code> を <code>PinPowerToZero()</code> へ、<code>ProcessingMachineProcessState.cs:87</code> を <code>_context.EffectiveRequestPower(ProcessState.Processing)</code> へ。公開APIのシグネチャは維持されるため各Componentr/Template/既存テストは無変更で通る。副次効果として両ファイルが200行以内へ戻る。</li>
+        <li><strong><a href="#f02">F02</a></strong>: 自動適用可。<a href="#f04">F04</a> と同一 surface のため1編集にまとめる。</li>
+        <li><strong><a href="#f01">F01</a></strong>: 自動適用可（単独系統cosmetic相当・照合済み）。<a href="#f04">F04</a> と一括。</li>
+        <li><strong><a href="#f06">F06</a></strong>: 自動適用可（1は挙動一意、2〜4は前例踏襲の規約整形）。</li>
+        <li><strong><a href="#f07">F07</a></strong>: 自動適用可（3系統が同一の修正形＝マウント境界の narrowing を推しており選択の余地が実質ない）。</li>
+        <li><strong><a href="#f05">F05</a></strong>: 自動適用可。ただし修正方針④は <a href="#f03">F03</a> の、⑤は <a href="#f08">F08</a> の裁定確定後に着手する。</li>
       </ul>
     </details>
     <details>
@@ -805,15 +805,15 @@
         <li><code>shared/ui/ProgressArrowGlyph/style.module.css:20-22</code>［Fable］: 充填色の根拠コメントが「クラフト完了状態」のまま。共有部品になったのに複製元のクラフト限定説明が残る。</li>
         <li><code>shared/ui/</code> 直下［決定論・lens-precedent-alignment］: エントリ22件で「1ディレクトリ10ファイルまで」を大幅超過（本PRで <code>ProgressArrowGlyph/</code> を追加しさらに悪化）。<code>shared/ui/gauge/</code>・<code>shared/ui/slot/</code> 等の役割別分割が前例どおりの形。</li>
         <li><code>MachineInventoryBody.tsx:40</code>（＋ <code>MinerSection.tsx:14</code> / <code>FluidSlotRow/index.tsx:23</code>）［rev-core-ts_tsx-default-resolution-ownership］: 同じ optional な <code>progress</code> に「未指定→0／未指定→0／未指定→非表示」の3規則が散在。所有者が <code>clamp01(value ?? 0)</code> で1回だけ解決するのが最小修正。</li>
-        <li><code>detailLogic.ts:53,65</code>［rev-core-ts_tsx-centralization-duplication］: <code>MachineStateKeys</code> と <code>MachineStateInsufficientTone</code> が同じキー集合の並行テーブル2枚（F08 案A に併合）。</li>
-        <li><code>detailLogic.ts:61-70</code>［rev-core-ts_tsx-speculative-abstraction］: 真偽値テーブルは同ファイルの「union→翻訳キー」規約の外側の新形で、受益者は1式のみ・テストも無い。F08 案A で統合するか <code>insufficient={machine.currentState === &quot;halted&quot;}</code> へ落とす。</li>
+        <li><code>detailLogic.ts:53,65</code>［rev-core-ts_tsx-centralization-duplication］: <code>MachineStateKeys</code> と <code>MachineStateInsufficientTone</code> が同じキー集合の並行テーブル2枚（<a href="#f08">F08</a> 案A に併合）。</li>
+        <li><code>detailLogic.ts:61-70</code>［rev-core-ts_tsx-speculative-abstraction］: 真偽値テーブルは同ファイルの「union→翻訳キー」規約の外側の新形で、受益者は1式のみ・テストも無い。<a href="#f08">F08</a> 案A で統合するか <code>insufficient={machine.currentState === &quot;halted&quot;}</code> へ落とす。</li>
         <li><code>capture-machine-qa.ts:166</code> 付近［rev-core-ts_tsx-ai-recurring-mistakes］: 撮影ファイル名の配列が撮影側とマニフェスト側で二重管理。片方だけ追加すると <code>sha256: null</code> で静かに落ちる。</li>
-        <li><code>capture-machine-qa.ts</code>［同上］: <code>void main()</code> のため失敗時のサーバ後始末・非0終了が無い（F06 の故障と複合）。</li>
+        <li><code>capture-machine-qa.ts</code>［同上］: <code>void main()</code> のため失敗時のサーバ後始末・非0終了が無い（<a href="#f06">F06</a> の故障と複合）。</li>
         <li><code>docs/adr/0011</code> / <code>plans/2026-08-17-recipe-viewer-single-list.md</code>（780行の未実装plan）/ レシピビューア系 <code>.decisions/</code> 7件 / worktree運用・Library温め <code>.decisions/</code> 2件［lens-precedent-alignment］: 機械UI改修PRに設計文書のみが同梱。出所は <code>[agent前提]</code> のみで免責力なし。</li>
         <li><code>.agents/skills/webui-design/SKILL.md</code> §8.13［post-check 系］: 残存行「構造はインラインSVGの3層（<code>CraftProgressArrow</code>）」が本PRで削除された旧コンポーネント名を指したまま。</li>
         <li><code>MachineFluidIOTest.cs:518</code>［rev-core-any-test-mutation-effectiveness］: ライブ再導出値とラッチ値の突き合わせのため、idle→processing 遷移tickを観測すると ±1f では通らない。逆に一度も入らないなら死んだ検証。<code>CleanRoomMachineTest.cs:99-103</code> は「1tick余分に回す」で回避しており非対称。</li>
-        <li><code>CleanRoomMachineProcessorComponent.cs:177</code>［rev-core-cs-caller-orchestration-minimization］: <code>_context.CurrentPower = 0f</code> が「CurrentPower は Update 冒頭のラッチ以外で書き換えない」という単一書き込み点の不変条件を破る。現状実害なし（F04 の <code>PinPowerToZero()</code> で1箇所へ戻る）。</li>
-        <li>決定論 confirmed（file-too-long・努力目標のため Critical に数えず）: <code>CleanRoomMachineProcessorComponent.cs</code> 222行 / <code>VanillaMachineProcessorComponent.cs</code> 217行（上限200）。F04 の集約で両方とも上限内へ戻る。</li>
+        <li><code>CleanRoomMachineProcessorComponent.cs:177</code>［rev-core-cs-caller-orchestration-minimization］: <code>_context.CurrentPower = 0f</code> が「CurrentPower は Update 冒頭のラッチ以外で書き換えない」という単一書き込み点の不変条件を破る。現状実害なし（<a href="#f04">F04</a> の <code>PinPowerToZero()</code> で1箇所へ戻る）。</li>
+        <li>決定論 confirmed（file-too-long・努力目標のため Critical に数えず）: <code>CleanRoomMachineProcessorComponent.cs</code> 222行 / <code>VanillaMachineProcessorComponent.cs</code> 217行（上限200）。<a href="#f04">F04</a> の集約で両方とも上限内へ戻る。</li>
       </ul>
     </details>
     <details>
@@ -823,7 +823,7 @@
         <li><code>MachineProcessStateSchema</code> の3値はサーバ <code>VanillaMachineBlockStateConst.cs:5-7</code> と完全一致。<code>ToCamelCase</code> はこの3値では恒等。採掘機は <code>dto.Machine</code> に流入しないため enum 化は現時点で安全。</li>
         <li><code>key={data.identifier}</code> の値は <code>BlockInventoryTopic.cs:139</code> の <code>BlockPosition.ToString()</code> で publish 毎に不変。毎フレーム再マウント事故は起きない。</li>
         <li>歯車機械の idle 挙動はビット同値（旧 <code>idleTorqueRate</code> の実引数と新経路の <code>_idlePowerRate</code> が同値）。</li>
-        <li><code>ProcessingPowerMultiplier</code> への一本化で加工速度・表示分母・歯車要求の「式」は同一になった（値の再計算タイミングは別＝F09）。方向としては改善。</li>
+        <li><code>ProcessingPowerMultiplier</code> への一本化で加工速度・表示分母・歯車要求の「式」は同一になった（値の再計算タイミングは別＝<a href="#f09">F09</a>）。方向としては改善。</li>
         <li><code>_publishedRequestPower</code> は new/load とも単一の実体ctor末尾で初期化され、load 経路の未初期化は無い。</li>
         <li><code>CraftProgressArrow.{tsx,module.css,test.ts}</code> の不変条件（3層構造・clip矩形 x=2/width=117/height=78・<code>useId</code> のコロン除去・トークン参照）は <code>ProgressArrowGlyph/</code> で再確立済み。残存参照0件。</li>
         <li><code>ProgressArrowGlyph/index.test.ts</code> は本PRで最も mutation 耐性が高く、他テストの水準の基準にできる。</li>
@@ -849,12 +849,12 @@
       <summary>⑤ 系統別の生所見要約（縮退・事故の申告を含む）</summary>
       <ul>
         <li><strong>決定論チェック</strong>: confirmed 2（file-too-long ×2＝努力目標）／候補27（全て comment_length）。</li>
-        <li><strong>死にメンバーゲート（IL解析）</strong>: <strong>skipped＝縮退</strong>。<code>moorestech_client/Library/ScriptAssemblies</code> 不在（レビューworktreeはUnity未コンパイル）。新設 public の死活は <code>rg</code> 実測で代替し F01 を検出。</li>
+        <li><strong>死にメンバーゲート（IL解析）</strong>: <strong>skipped＝縮退</strong>。<code>moorestech_client/Library/ScriptAssemblies</code> 不在（レビューworktreeはUnity未コンパイル）。新設 public の死活は <code>rg</code> 実測で代替し <a href="#f01">F01</a> を検出。</li>
         <li><strong>ts 死コードゲート（knip）</strong>: <strong>skipped＝縮退</strong>。knip 未インストール（webui で <code>pnpm install</code> が必要）。TS の未参照シンボルは参照表で部分的に代替。</li>
-        <li><strong>moores設計レンズ ×7</strong>: 7起動7回収。domain-boundary が F03、type-driven-structure が F04・F08 へ併合。default-resolution-ownership / precedent-alignment / redundant-member-duplication / master-data-defense / hardcoded-content-enumeration は Critical なし。</li>
+        <li><strong>moores設計レンズ ×7</strong>: 7起動7回収。domain-boundary が <a href="#f03">F03</a>、type-driven-structure が <a href="#f04">F04</a>・<a href="#f08">F08</a> へ併合。default-resolution-ownership / precedent-alignment / redundant-member-duplication / master-data-defense / hardcoded-content-enumeration は Critical なし。</li>
         <li><strong>汎用reviewer ×25</strong>: 25起動25回収・欠員なし。Critical あり10本 / なし15本。</li>
-        <li><strong>investigator ×6</strong>: 6起動6回収だが<strong>二重起動事故により5本のレポートが2回目の実行で上書きされ、1回目の詳細（行番号・根拠）が失われている</strong>。<code>ORCHESTRATOR-NOTE-superseded-first-run.md</code> の逐語控えを1系統として扱い全件を実コードで裏取りした結果、F03・F02・F08 へ併合、<strong>4件を事実誤りとして棄却</strong>（<code>machineStateType</code> 必須追加による parse 全損／CleanRoom Halted の非0 publish／倍率の分子分母二重適用／<code>?? 0</code> による電力行消失。いずれも該当行を引用して否定）。5件目は F08 と同一指摘のため重複排除で併合。</li>
-        <li><strong>Fable 全般レビュー</strong>: Critical なし／Warning 2。<code>[検証済み]</code> 9項目を spot-check し、「歯車の rate&gt;1 は裁定どおり」という判定のみ F03 と真っ向から矛盾。実コード検証の結果 <strong>Fable の Info 判定は採らない</strong>（供給側 <code>GearConsumptionCalculator</code> の導出を読んでいない）。</li>
+        <li><strong>investigator ×6</strong>: 6起動6回収だが<strong>二重起動事故により5本のレポートが2回目の実行で上書きされ、1回目の詳細（行番号・根拠）が失われている</strong>。<code>ORCHESTRATOR-NOTE-superseded-first-run.md</code> の逐語控えを1系統として扱い全件を実コードで裏取りした結果、<a href="#f03">F03</a>・<a href="#f02">F02</a>・<a href="#f08">F08</a> へ併合、<strong>4件を事実誤りとして棄却</strong>（<code>machineStateType</code> 必須追加による parse 全損／CleanRoom Halted の非0 publish／倍率の分子分母二重適用／<code>?? 0</code> による電力行消失。いずれも該当行を引用して否定）。5件目は <a href="#f08">F08</a> と同一指摘のため重複排除で併合。</li>
+        <li><strong>Fable 全般レビュー</strong>: Critical なし／Warning 2。<code>[検証済み]</code> 9項目を spot-check し、「歯車の rate&gt;1 は裁定どおり」という判定のみ <a href="#f03">F03</a> と真っ向から矛盾。実コード検証の結果 <strong>Fable の Info 判定は採らない</strong>（供給側 <code>GearConsumptionCalculator</code> の導出を読んでいない）。</li>
         <li><strong>post-checks</strong>: <code>comment-rationale-guard</code> は起動・回収とも1で Critical なし。<code>comment-convention-guard</code> は <code>select_post_checks.py</code> が発火条件未達と判定しスキップ（縮退ではなく設計どおり）。</li>
         <li><strong>Codex 外部監査 ×3（俯瞰・バグ狩り・設計整合）</strong>: <strong>0起動・全欠員＝縮退</strong>。<code>which codex</code> が失敗し CLI 不在のため3本ともスキップされ、<code>codex-audit.out.md</code> / <code>codex-bughunt.out.md</code> / <code>codex-design.out.md</code> は生成されていない。<strong>別モデルによる独立第三者視点がこの run には一切入っていない。</strong></li>
       </ul>
