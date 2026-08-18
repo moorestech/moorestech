@@ -13,9 +13,9 @@ const researchNode = {
   prevGuids: [],
   consumeItems: [],
   rewardItems: [],
-  unlockItemIds: [],
+  unlockItemRecipeViewItemIds: [],
   unlockBlocks: [],
-  unlockMachineRecipeOutputItemIds: [],
+  unlockMachineRecipes: [],
   unlockConnectToolGuids: [],
   unlockTrainCarGuids: [],
 };

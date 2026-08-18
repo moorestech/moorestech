@@ -20,7 +20,10 @@ describe("research_tree fixture", () => {
     expect(validateTopicPayload(Topics.researchTree, data)).toBe(true);
     const node = data.nodes[1];
     expect(node.unlockBlocks[0]).toEqual({ blockId: 7, blockGuid: "44444444-4444-4444-8444-444444444444" });
-    expect(node.unlockMachineRecipeOutputItemIds).toEqual([9]);
+    expect(node.unlockMachineRecipes[0].outputItemIds).toEqual([9]);
+    expect(node.unlockMachineRecipes[0].outputFluids).toEqual([
+      { fluidId: 1, fluidGuid: "99999999-9999-4999-8999-999999999999", amount: 100 },
+    ]);
     expect(node.unlockConnectToolGuids.length + node.unlockTrainCarGuids.length).toBe(2);
   });
 });

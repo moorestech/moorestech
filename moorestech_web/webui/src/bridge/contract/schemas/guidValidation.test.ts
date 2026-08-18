@@ -64,7 +64,11 @@ const researchNode = {
   prevGuids: [guidB],
   consumeItems: [],
   rewardItems: [],
-  unlockItemIds: [],
+  unlockItemRecipeViewItemIds: [],
+  unlockBlocks: [{ blockId: 1, blockGuid: guidC }],
+  unlockMachineRecipes: [{ recipeGuid: guidA, outputItemIds: [], outputFluids: [{ fluidId: 1, amount: 1, fluidGuid: guidB }] }],
+  unlockConnectToolGuids: [guidB],
+  unlockTrainCarGuids: [guidC],
 };
 
 const challengeNode = {
@@ -88,6 +92,31 @@ describe("content GUID schemas", () => {
     { label: "item master itemGuid", schema: ItemMasterEntrySchema, payload: { itemId: 1, itemGuid: invalidGuid, maxStack: 100 } },
     { label: "research guid", schema: ResearchNodeDataSchema, payload: { ...researchNode, guid: invalidGuid } },
     { label: "research prevGuids", schema: ResearchNodeDataSchema, payload: { ...researchNode, prevGuids: [invalidGuid] } },
+    {
+      label: "research unlockBlocks blockGuid",
+      schema: ResearchNodeDataSchema,
+      payload: { ...researchNode, unlockBlocks: [{ blockId: 1, blockGuid: invalidGuid }] },
+    },
+    {
+      label: "research unlockMachineRecipes recipeGuid",
+      schema: ResearchNodeDataSchema,
+      payload: { ...researchNode, unlockMachineRecipes: [{ recipeGuid: invalidGuid, outputItemIds: [], outputFluids: [] }] },
+    },
+    {
+      label: "research unlockMachineRecipes outputFluids fluidGuid",
+      schema: ResearchNodeDataSchema,
+      payload: { ...researchNode, unlockMachineRecipes: [{ recipeGuid: guidA, outputItemIds: [], outputFluids: [{ fluidId: 1, amount: 1, fluidGuid: invalidGuid }] }] },
+    },
+    {
+      label: "research unlockConnectToolGuids",
+      schema: ResearchNodeDataSchema,
+      payload: { ...researchNode, unlockConnectToolGuids: [invalidGuid] },
+    },
+    {
+      label: "research unlockTrainCarGuids",
+      schema: ResearchNodeDataSchema,
+      payload: { ...researchNode, unlockTrainCarGuids: [invalidGuid] },
+    },
     { label: "challenge guid", schema: ChallengeNodeDataSchema, payload: { ...challengeNode, guid: invalidGuid } },
     { label: "challenge prevGuids", schema: ChallengeNodeDataSchema, payload: { ...challengeNode, prevGuids: [invalidGuid] } },
     {
