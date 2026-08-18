@@ -52,7 +52,7 @@
   - `CommandForgeGenerator.Command.ISkitWorldObjectControl`（`void SetActive(bool enable)`）
   - `Client.Game.Skit.SkitWorldObjectControlGroup`（ctor: `SkitWorldObjectControlGroup(IReadOnlyList<ISkitWorldObjectControl> worldObjectControls)` / `void SetActive(bool enable)`）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Skit/SkitWorldObjectControlGroupTest.cs` を新規作成する:
 
@@ -102,12 +102,12 @@ namespace Client.Tests.Skit
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "SkitWorldObjectControlGroupTest"`
 Expected: コンパイルエラー（`ISkitWorldObjectControl` / `SkitWorldObjectControlGroup` が存在しない）で実行に至らない
 
-- [ ] **Step 3: interfaceを置換する**
+- [x] **Step 3: interfaceを置換する**
 
 `InGameObjectControlCommand.cs` の `ISkitMapObjectControl` 宣言（16-19行）を差し替え、`ExecuteAsync` の該当行も同時に新 interface へ向ける:
 
@@ -130,7 +130,7 @@ Expected: コンパイルエラー（`ISkitWorldObjectControl` / `SkitWorldObjec
 
 （`MapObjectEnable` は Task 3 で `WorldObjectEnable` へリネームする。この時点では `commands.yaml` が旧名のままなので生成プロパティ名も旧名である）
 
-- [ ] **Step 4: compositeを実装する**
+- [x] **Step 4: compositeを実装する**
 
 `moorestech_client/Assets/Scripts/Client.Game/Skit/SkitWorldObjectControlGroup.cs` を新規作成する:
 
@@ -161,7 +161,7 @@ namespace Client.Game.Skit
 }
 ```
 
-- [ ] **Step 5: SkitManagerとMapObjectGameObjectDatastoreの参照を暫定で合わせてコンパイルを通す**
+- [x] **Step 5: SkitManagerとMapObjectGameObjectDatastoreの参照を暫定で合わせてコンパイルを通す**
 
 `ISkitMapObjectControl` が消えたことで2箇所が壊れる。Task 2 で本実装するが、このタスクをコンパイルグリーンで閉じるため、ここで最小の追従を行う:
 
@@ -172,17 +172,17 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitWorldObjectControl>(mapObjectGameObjectDatastore);
 ```
 
-- [ ] **Step 6: コンパイルする**
+- [x] **Step 6: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0
 
-- [ ] **Step 7: テストを実行して通ることを確認する**
+- [x] **Step 7: テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "SkitWorldObjectControlGroupTest"`
 Expected: 2 tests PASS
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Skit/Commands/InGameObjectControlCommand.cs \
@@ -209,7 +209,7 @@ git commit -m "feat(skit): Environment外の世界オブジェクトを束ねる
 - Consumes: `CommandForgeGenerator.Command.ISkitWorldObjectControl` / `Client.Game.Skit.SkitWorldObjectControlGroup`（Task 1）
 - Produces: `OutcropGameObjectDatastore.SetActive(bool enable)`（`ISkitWorldObjectControl` 実装）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Skit/OutcropGameObjectDatastoreSkitVisibilityTest.cs` を新規作成する:
 
@@ -258,12 +258,12 @@ namespace Client.Tests.Skit
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "OutcropGameObjectDatastoreSkitVisibilityTest"`
 Expected: コンパイルエラー（`OutcropGameObjectDatastore` に `SetActive` が無い）
 
-- [ ] **Step 3: 露頭datastoreにinterfaceを実装する**
+- [x] **Step 3: 露頭datastoreにinterfaceを実装する**
 
 `OutcropGameObjectDatastore.cs:21` のクラス宣言を置換する:
 
@@ -280,7 +280,7 @@ Expected: コンパイルエラー（`OutcropGameObjectDatastore` に `SetActive
         }
 ```
 
-- [ ] **Step 4: SkitManagerをcomposite登録へ切り替える**
+- [x] **Step 4: SkitManagerをcomposite登録へ切り替える**
 
 `SkitManager.cs:37` の `[Inject] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;` を削除し、代わりに `worldPins` の隣へ追加する:
 
@@ -296,7 +296,7 @@ Expected: コンパイルエラー（`OutcropGameObjectDatastore` に `SetActive
 
 `using Client.Game.InGame.Map.MapObject;` が他で使われていなければ削除する（コンパイル警告ではなく未使用using整理として。使われていれば残す）。
 
-- [ ] **Step 5: MainGameStarterのDI登録に新interfaceを足す**
+- [x] **Step 5: MainGameStarterのDI登録に新interfaceを足す**
 
 `MainGameStarter.cs:307-308` を置換する:
 
@@ -307,7 +307,7 @@ Expected: コンパイルエラー（`OutcropGameObjectDatastore` に `SetActive
 
 `using CommandForgeGenerator.Command;` が無ければ using 群へ追加する。
 
-- [ ] **Step 6: SkitTesterへ露頭ダミーを足す**
+- [x] **Step 6: SkitTesterへ露頭ダミーを足す**
 
 `SkitTester.cs` の「テストシーンにmapObject/エンティティは存在しないので〜」ブロックを置換する:
 
@@ -327,17 +327,17 @@ Expected: コンパイルエラー（`OutcropGameObjectDatastore` に `SetActive
 
 using へ `using Client.Game.InGame.Map.Outcrop;` と `using CommandForgeGenerator.Command;` を追加する。
 
-- [ ] **Step 7: コンパイルする**
+- [x] **Step 7: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0
 
-- [ ] **Step 8: テストを実行して通ることを確認する**
+- [x] **Step 8: テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "OutcropGameObjectDatastoreSkitVisibilityTest|SkitWorldObjectControlGroupTest|SkitFailureCleanupTest"`
 Expected: 全 PASS
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Map/Outcrop/OutcropGameObjectDatastore.cs \
@@ -364,7 +364,7 @@ git commit -m "fix(skit): 露頭をISkitWorldObjectControlへ載せスキット�
 - Consumes: Task 1 で置いた `ISkitWorldObjectControl`
 - Produces: 生成プロパティ `InGameObjectControlCommand.WorldObjectEnable`（`commands.yaml` から SourceGenerator が生成。`Assets/Scripts/Client.Skit/csc.rsp` の `/additionalfile:Assets/AddressableResources/Skit/commands.yaml` 経由）
 
-- [ ] **Step 1: commands.yaml を書き換える**
+- [x] **Step 1: commands.yaml を書き換える**
 
 189行の `commandListLabelFormat` と 199行のプロパティ名を置換する:
 
@@ -378,7 +378,7 @@ git commit -m "fix(skit): 露頭をISkitWorldObjectControlへ載せスキット�
         required: true
 ```
 
-- [ ] **Step 2: スキットJSONを書き換える**
+- [x] **Step 2: スキットJSONを書き換える**
 
 `skits/100_start_game.json` の2箇所（132行 `"mapObjectEnable": false,` / 329行 `"mapObjectEnable": true,`）をキー名だけ `"worldObjectEnable"` へ置換する。値は変えない。
 
@@ -389,7 +389,7 @@ grep -n "worldObjectEnable" moorestech_client/Assets/AddressableResources/Skit/s
 
 Expected: 2行ヒットする
 
-- [ ] **Step 3: i18n の2ファイルを書き換える**
+- [x] **Step 3: i18n の2ファイルを書き換える**
 
 `i18n/japanese.json`:
 
@@ -409,7 +409,7 @@ Expected: 2行ヒットする
 
 キーの並び順は既存位置（`blockEnable` の次）を維持する。
 
-- [ ] **Step 4: コマンドの参照プロパティ名を変える**
+- [x] **Step 4: コマンドの参照プロパティ名を変える**
 
 `InGameObjectControlCommand.cs` の `ExecuteAsync` 内の該当行:
 
@@ -417,17 +417,17 @@ Expected: 2行ヒットする
             storyContext.GetService<ISkitWorldObjectControl>().SetActive(WorldObjectEnable);
 ```
 
-- [ ] **Step 5: コンパイルする**
+- [x] **Step 5: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0（SourceGenerator が `WorldObjectEnable` を再生成する。`MapObjectEnable` が見つからないというエラーが出た場合は `commands.yaml` の保存漏れか Editor のリフレッシュ待ちなので、45秒待って再実行する）
 
-- [ ] **Step 6: ローカライズ辞書テストを実行して baseline のズレを確認する**
+- [x] **Step 6: ローカライズ辞書テストを実行して baseline のズレを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "SkitLocalizationDictionaryCompletenessTest"`
 Expected: `CommandForgeDictionaryKeepsRootFlatTranslationsAndBaselineValues` が hash 不一致で FAIL する（キー名が変わったため）。失敗メッセージの Actual 値（english / japanese それぞれの64桁hex）を控える。件数（english 143 / japanese 208）は1:1リネームなので変わらない — 件数側が変わっていたらキーの追加・削除ミスなので先にそちらを直す
 
-- [ ] **Step 7: baseline hash を更新する**
+- [x] **Step 7: baseline hash を更新する**
 
 `SkitLocalizationDictionaryCompletenessTest.cs:25-26` の `TestCase` 属性2行の hash を Step 6 で控えた Actual 値へ置換し、直上のコメントを実態に合わせる:
 
@@ -438,17 +438,17 @@ Expected: `CommandForgeDictionaryKeepsRootFlatTranslationsAndBaselineValues` が
         [TestCase("japanese", 208, "<Step 6 で控えたjapaneseのhash>")]
 ```
 
-- [ ] **Step 8: スキット系テストを実行して通ることを確認する**
+- [x] **Step 8: スキット系テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Skit"`
 Expected: 全 PASS（`SkitLocalizationDictionaryCompletenessTest` の `RuntimeSkitKeysMatchAssetBasenamesAndSchemaFields` と `AllTranslationValuesAreNonEmpty` を含む）
 
-- [ ] **Step 9: 旧名の残骸が無いことを確認する**
+- [x] **Step 9: 旧名の残骸が無いことを確認する**
 
 Run: `grep -rn "mapObjectEnable\|MapObjectEnable\|ISkitMapObjectControl" --include='*.cs' --include='*.json' --include='*.yaml' . | grep -v '/Library/' | grep -v '^./docs/' | grep -v '^./.decisions/' | grep -v '^./.superpowers/'`
 Expected: 0件
 
-- [ ] **Step 10: コミットする**
+- [x] **Step 10: コミットする**
 
 ```bash
 git add moorestech_client/Assets/AddressableResources/Skit \
@@ -468,7 +468,7 @@ git commit -m "refactor(skit): inGameObjectControlのフラグをworldObjectEnab
 - Consumes: Task 2・Task 3 の実装一式
 - Produces: 実行成果物（`result.json` / mp4 / スクリーンショット）。コードは生まない
 
-- [ ] **Step 1: シナリオを書く**
+- [x] **Step 1: シナリオを書く**
 
 `.claude/skills/unity-playmode-recorded-playtest/scenarios/misc/skit-opening-world-hidden.cs` を新規作成する。**開幕スキットを Skip しない**のがこのシナリオの要点:
 
@@ -519,17 +519,17 @@ return PlaytestRunner.Run("skit-opening-world-hidden", options, async p =>
 });
 ```
 
-- [ ] **Step 2: シナリオを実行する**
+- [x] **Step 2: シナリオを実行する**
 
 Run: `.claude/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh .claude/skills/unity-playmode-recorded-playtest/scenarios/misc/skit-opening-world-hidden.cs`
 （引数の渡し方が異なる場合は `.claude/skills/unity-playmode-recorded-playtest/references/run-scenario.md` に従う）
 Expected: `result.json` の assert / until がすべて ok。タイムアウトで落ちる場合は `references/troubleshooting.md` を参照する
 
-- [ ] **Step 3: 録画とスクリーンショットを目視する**
+- [x] **Step 3: 録画とスクリーンショットを目視する**
 
 `01-space-cut-without-outcrop` に露頭（岩の露出）が1つも写っていないこと、`02-world-restored-with-outcrop` で世界が戻っていることを確認する。mp4 も宇宙カット前後を再生して確認する。
 
-- [ ] **Step 4: 結果を記録してコミットする**
+- [x] **Step 4: 結果を記録してコミットする**
 
 ```bash
 bd note moorestech-kvl "録画実走で確認: 宇宙カットに露頭なし / 復帰後に再表示。scenario=misc/skit-opening-world-hidden.cs"
