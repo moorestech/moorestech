@@ -9,6 +9,7 @@ import pytest
 
 SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "digest_build.py"
 GOLDEN_MD = Path(__file__).resolve().parent / "golden" / "pr-1155-digest.md"
+GOLDEN_PATCH = Path(__file__).resolve().parent / "golden" / "pr-1155-patch.diff"
 
 # Task 6 が golden/pr-1155-digest.md を作るまでは、goldenに依存しない最小digestで代替する
 # Until Task 6 adds golden/pr-1155-digest.md, fall back to a golden-independent minimal digest
@@ -71,9 +72,15 @@ options:
 """
 
 
+def _write_patch(tmp_path, text=""):
+    # コンバータは patch.diff を必須とするため、どのケースでも RUNDIR へ置く
+    # The converter requires patch.diff, so every case puts one into the RUNDIR
+    (tmp_path / "patch.diff").write_text(text, encoding="utf-8")
+
 @pytest.mark.skipif(not GOLDEN_MD.is_file(), reason="golden/pr-1155-digest.md はTask 6で追加される")
 def test_cli_writes_html_and_findings_from_golden(tmp_path):
     (tmp_path / "digest.md").write_text(GOLDEN_MD.read_text(encoding="utf-8"), encoding="utf-8")
+    _write_patch(tmp_path, GOLDEN_PATCH.read_text(encoding="utf-8"))
     r = subprocess.run([sys.executable, str(SCRIPT), str(tmp_path)], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
     html = (tmp_path / "digest.html").read_text(encoding="utf-8")
@@ -84,6 +91,7 @@ def test_cli_writes_html_and_findings_from_golden(tmp_path):
 
 def test_cli_writes_html_and_findings_from_minimal_digest(tmp_path):
     (tmp_path / "digest.md").write_text(MINIMAL_DIGEST, encoding="utf-8")
+    _write_patch(tmp_path)
     r = subprocess.run([sys.executable, str(SCRIPT), str(tmp_path)], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
     html = (tmp_path / "digest.html").read_text(encoding="utf-8")
@@ -94,6 +102,7 @@ def test_cli_writes_html_and_findings_from_minimal_digest(tmp_path):
 
 def test_cli_fails_loudly_on_broken_markdown(tmp_path):
     (tmp_path / "digest.md").write_text("# PR #1 x\n\n本文だけ\n", encoding="utf-8")
+    _write_patch(tmp_path)
     r = subprocess.run([sys.executable, str(SCRIPT), str(tmp_path)], capture_output=True, text=True)
     assert r.returncode == 1
     assert r.stderr.strip()
@@ -109,3 +118,23 @@ def test_inline_safe_js_neutralizes_script_terminating_sequences():
         assert "<!--" not in text
         assert "<script" not in text
         assert "</script" not in text
+
+
+def test_missing_patch_diff_fails(tmp_path):
+    # R4: patch.diff は Step 4 が必ず作る。無いまま生成させない
+    # R4: patch.diff is always produced by Step 4; never build without it
+    (tmp_path / "digest.md").write_text(MINIMAL_DIGEST, encoding="utf-8")
+    r = subprocess.run([sys.executable, str(SCRIPT), str(tmp_path)], capture_output=True, text=True)
+    assert r.returncode != 0
+    assert "patch.diff" in r.stderr
+
+
+def test_missing_deletion_line_fails_the_build(tmp_path):
+    # R3: 置換なのに削除行が無いカードはビルドごと落ちる（finding idを文言に含む）
+    # R3: a card missing its deletion lines fails the whole build, naming the finding id
+    card = "```code-card\n+10|            New(rate);\n```"
+    (tmp_path / "digest.md").write_text(MINIMAL_DIGEST.replace("**PR側の主張:** なし", card), encoding="utf-8")
+    _write_patch(tmp_path, "diff --git a/C.cs b/C.cs\n@@ -10,2 +10,2 @@\n-            Old(1f);\n+            New(rate);\n")
+    r = subprocess.run([sys.executable, str(SCRIPT), str(tmp_path)], capture_output=True, text=True)
+    assert r.returncode != 0
+    assert "F01" in r.stderr and "削除行" in r.stderr

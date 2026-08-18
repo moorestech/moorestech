@@ -544,6 +544,8 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <p class="summary-line">需要だけ1.5倍に膨らみ、供給も速度も増えない。</p>
         <pre class="code-card" data-lang="csharp"><code><span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">        private void UpdateTorqueRequestRate()</span></span>
 <span class="cl ctx"><span class="ln">37</span><span class="sign"> </span><span class="code">        {</span></span>
+<span class="cl del"><span class="ln">40</span><span class="sign">-</span><span class="code">            var isProcessing = _vanillaMachineProcessorComponent.CurrentState == ProcessState.Processing;</span></span>
+<span class="cl del"><span class="ln">41</span><span class="sign">-</span><span class="code">            _gearEnergyTransformer.SetTorqueRequestRate(isProcessing ? 1f : _idleTorqueRate);</span></span>
 <span class="cl add"><span class="ln">38</span><span class="sign">+</span><span class="code">            // 表示の分母・加工速度と同じ導出（EffectiveRequestPowerRate）をそのまま歯車網への要求へ反映する</span></span>
 <span class="cl add"><span class="ln">39</span><span class="sign">+</span><span class="code">            // Feed the gear network the same derivation used for the display denominator and processing speed (EffectiveRequestPowerRate)</span></span>
 <span class="cl add hl"><span class="ln">40</span><span class="sign">+</span><span class="code">            _gearEnergyTransformer.SetTorqueRequestRate(_vanillaMachineProcessorComponent.EffectiveRequestPowerRate);</span></span>
@@ -566,13 +568,19 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
 <span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code"></span></span>
 <span class="cl ctx"><span class="ln">31</span><span class="sign"> </span><span class="code">        // 稼働状態に応じてアイドル倍率かモジュール倍率を適用した要求電力</span></span>
 <span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        // Requested power applies the idle rate or module multiplier based on the active state</span></span>
+<span class="cl del"><span class="ln">29</span><span class="sign">-</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower *</span></span>
+<span class="cl del"><span class="ln">30</span><span class="sign">-</span><span class="code">                                              (CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : _idlePowerRate);</span></span>
 <span class="cl add"><span class="ln">33</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</span></span></code></pre>
         <p>同概念の写し（CleanRoom 側・<code>Halted</code> の扱いだけ既に食い違っている）:</p>
-        <pre class="code-card" data-lang="csharp"><code><span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl del"><span class="ln">29</span><span class="sign">-</span><span class="code">        // 停止中は要求電力を0にし、稼働中だけ通常機械と同じ倍率を適用する</span></span>
+<span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
 <span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code">        // Halted machines request no power; operating states use the same multipliers as normal machines</span></span>
+<span class="cl del"><span class="ln">31</span><span class="sign">-</span><span class="code">        public float EffectiveRequestPower =&gt; CurrentState switch</span></span>
 <span class="cl add hl"><span class="ln">31</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState switch</span></span>
 <span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        {</span></span>
 <span class="cl ctx hl"><span class="ln">33</span><span class="sign"> </span><span class="code">            ProcessState.Halted =&gt; 0f,</span></span>
+<span class="cl del"><span class="ln">34</span><span class="sign">-</span><span class="code">            ProcessState.Processing =&gt; _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier,</span></span>
+<span class="cl del"><span class="ln">35</span><span class="sign">-</span><span class="code">            ProcessState.Idle =&gt; _context.RequestPower * _idlePowerRate,</span></span>
 <span class="cl add"><span class="ln">34</span><span class="sign">+</span><span class="code">            ProcessState.Processing =&gt; _context.ProcessingPowerMultiplier,</span></span>
 <span class="cl add"><span class="ln">35</span><span class="sign">+</span><span class="code">            ProcessState.Idle =&gt; _idlePowerRate,</span></span>
 <span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">            _ =&gt; throw new ArgumentOutOfRangeException(),</span></span>
@@ -678,11 +686,15 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <h2><span class="badge badge-sup">Critical</span> <strong>CleanRoomMachineProcessorComponent.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:31</code></p>
         <p class="summary-line">外部参照0のpublicが残っている。</p>
-        <pre class="code-card" data-lang="csharp"><code><span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl del"><span class="ln">29</span><span class="sign">-</span><span class="code">        // 停止中は要求電力を0にし、稼働中だけ通常機械と同じ倍率を適用する</span></span>
+<span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
 <span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code">        // Halted machines request no power; operating states use the same multipliers as normal machines</span></span>
+<span class="cl del"><span class="ln">31</span><span class="sign">-</span><span class="code">        public float EffectiveRequestPower =&gt; CurrentState switch</span></span>
 <span class="cl add hl"><span class="ln">31</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState switch</span></span>
 <span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        {</span></span>
 <span class="cl ctx"><span class="ln">33</span><span class="sign"> </span><span class="code">            ProcessState.Halted =&gt; 0f,</span></span>
+<span class="cl del"><span class="ln">34</span><span class="sign">-</span><span class="code">            ProcessState.Processing =&gt; _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier,</span></span>
+<span class="cl del"><span class="ln">35</span><span class="sign">-</span><span class="code">            ProcessState.Idle =&gt; _context.RequestPower * _idlePowerRate,</span></span>
 <span class="cl add"><span class="ln">34</span><span class="sign">+</span><span class="code">            ProcessState.Processing =&gt; _context.ProcessingPowerMultiplier,</span></span>
 <span class="cl add"><span class="ln">35</span><span class="sign">+</span><span class="code">            ProcessState.Idle =&gt; _idlePowerRate,</span></span>
 <span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">            _ =&gt; throw new ArgumentOutOfRangeException(),</span></span>
@@ -764,6 +776,7 @@ pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5p
         <p class="summary-line">選択済み機械でもレシピタブに固まる。</p>
         <pre class="code-card" data-lang="typescript"><code><span class="cl ctx"><span class="ln">16</span><span class="sign"> </span><span class="code">export default function MachineSection({ data }: { data: BlockInventoryOpen }) {</span></span>
 <span class="cl ctx"><span class="ln">17</span><span class="sign"> </span><span class="code">  const machineRecipes = useTopic(Topics.machineRecipes);</span></span>
+<span class="cl del"><span class="ln">17</span><span class="sign">-</span><span class="code">  const [tab, setTab] = useState(&quot;inventory&quot;);</span></span>
 <span class="cl add hl"><span class="ln">18</span><span class="sign">+</span><span class="code">  const [tab, setTab] = useState&lt;string&gt;(() =&gt; machineInitialTab(data.machine?.selectedRecipeGuid));</span></span>
 <span class="cl ctx"><span class="ln">19</span><span class="sign"> </span><span class="code">  const { t } = useI18n();</span></span>
 <span class="cl ctx"><span class="ln">20</span><span class="sign"> </span><span class="code">  if (!data.machine) return null;</span></span>

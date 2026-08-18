@@ -26,6 +26,7 @@ def _normalize(html: str) -> str:
 
 def test_golden_html_is_reproduced(tmp_path):
     (tmp_path / "digest.md").write_text((GOLDEN / "pr-1155-digest.md").read_text(encoding="utf-8"), encoding="utf-8")
+    (tmp_path / "patch.diff").write_text((GOLDEN / "pr-1155-patch.diff").read_text(encoding="utf-8"), encoding="utf-8")
     r = subprocess.run([sys.executable, str(SCRIPT), str(tmp_path)], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
     got = _normalize((tmp_path / "digest.html").read_text(encoding="utf-8"))

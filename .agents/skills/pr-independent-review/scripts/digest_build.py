@@ -10,6 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from digest_md.code_card.patch_guard import missing_deletion_problems
 from digest_md.findings import assign_ids, build_findings
 from digest_md.parse import DigestError, parse_document
 from digest_md.render import render_html
@@ -92,6 +93,10 @@ def main() -> int:
     if not md_path.is_file():
         print(f"digest.md がありません: {md_path}", file=sys.stderr)
         return 1
+    patch_path = rundir / "patch.diff"
+    if not patch_path.is_file():
+        print(f"patch.diff がありません: {patch_path}", file=sys.stderr)
+        return 1
 
     # 外部入力（AI生成のMarkdown）の隔離のためここだけ例外を捕える
     # This is the external-input boundary (AI-authored markdown), so the exception is caught here
@@ -104,7 +109,8 @@ def main() -> int:
         print(f"digest.md の形式エラー: {e}", file=sys.stderr)
         return 1
 
-    problems = verify(html, findings)
+    problems = missing_deletion_problems(doc, patch_path.read_text(encoding="utf-8", errors="replace"))
+    problems += verify(html, findings)
     if problems:
         for p in problems:
             print(f"生成後検査に失敗: {p}", file=sys.stderr)

@@ -29,6 +29,8 @@ options:
 ```code-card
 36|        private void UpdateTorqueRequestRate()
 37|        {
+-40|            var isProcessing = _vanillaMachineProcessorComponent.CurrentState == ProcessState.Processing;
+-41|            _gearEnergyTransformer.SetTorqueRequestRate(isProcessing ? 1f : _idleTorqueRate);
 +38|            // 表示の分母・加工速度と同じ導出（EffectiveRequestPowerRate）をそのまま歯車網への要求へ反映する
 +39|            // Feed the gear network the same derivation used for the display denominator and processing speed (EffectiveRequestPowerRate)
 *+40|            _gearEnergyTransformer.SetTorqueRequestRate(_vanillaMachineProcessorComponent.EffectiveRequestPowerRate);
@@ -100,17 +102,23 @@ options:
 30|
 31|        // 稼働状態に応じてアイドル倍率かモジュール倍率を適用した要求電力
 32|        // Requested power applies the idle rate or module multiplier based on the active state
+-29|        public float EffectiveRequestPower => _context.RequestPower *
+-30|                                              (CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : _idlePowerRate);
 +33|        public float EffectiveRequestPower => _context.RequestPower * EffectiveRequestPowerRate;
 ```
 
 同概念の写し（CleanRoom 側・`Halted` の扱いだけ既に食い違っている）:
 
 ```code-card
+-29|        // 停止中は要求電力を0にし、稼働中だけ通常機械と同じ倍率を適用する
 +29|        // 停止中は0、稼働中は通常機械と同じ倍率
 30|        // Halted machines request no power; operating states use the same multipliers as normal machines
+-31|        public float EffectiveRequestPower => CurrentState switch
 *+31|        public float EffectiveRequestPowerRate => CurrentState switch
 32|        {
 *33|            ProcessState.Halted => 0f,
+-34|            ProcessState.Processing => _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier,
+-35|            ProcessState.Idle => _context.RequestPower * _idlePowerRate,
 +34|            ProcessState.Processing => _context.ProcessingPowerMultiplier,
 +35|            ProcessState.Idle => _idlePowerRate,
 36|            _ => throw new ArgumentOutOfRangeException(),
@@ -271,11 +279,15 @@ options:
 ```
 
 ```code-card
+-29|        // 停止中は要求電力を0にし、稼働中だけ通常機械と同じ倍率を適用する
 +29|        // 停止中は0、稼働中は通常機械と同じ倍率
 30|        // Halted machines request no power; operating states use the same multipliers as normal machines
+-31|        public float EffectiveRequestPower => CurrentState switch
 *+31|        public float EffectiveRequestPowerRate => CurrentState switch
 32|        {
 33|            ProcessState.Halted => 0f,
+-34|            ProcessState.Processing => _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier,
+-35|            ProcessState.Idle => _context.RequestPower * _idlePowerRate,
 +34|            ProcessState.Processing => _context.ProcessingPowerMultiplier,
 +35|            ProcessState.Idle => _idlePowerRate,
 36|            _ => throw new ArgumentOutOfRangeException(),
@@ -341,6 +353,7 @@ options:
 ```code-card
 16|export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
 17|  const machineRecipes = useTopic(Topics.machineRecipes);
+-17|  const [tab, setTab] = useState("inventory");
 *+18|  const [tab, setTab] = useState<string>(() => machineInitialTab(data.machine?.selectedRecipeGuid));
 19|  const { t } = useI18n();
 20|  if (!data.machine) return null;
