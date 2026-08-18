@@ -11,6 +11,7 @@ const notificationKeys = new Map<string, TranslationKey>([
   ["achievement.unlockedBlock", L.ui.notification.unlockedBlock],
   ["achievement.unlockedTrainCar", L.ui.notification.unlockedTrainCar],
   ["achievement.unlockedConnectTool", L.ui.notification.unlockedConnectTool],
+  ["achievement.unlockedBlueprint", L.ui.notification.unlockedBlueprint],
   ["denied.researchNotCompletable", L.ui.notification.researchNotCompletable],
   ["denied.craftResultFull", L.ui.notification.craftResultFull],
   ["denied.craftMaterialShortage", L.ui.notification.craftMaterialShortage],
