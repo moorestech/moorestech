@@ -65,6 +65,11 @@
   --font-ui: "MooresUI", "MooresUI JP", sans-serif;
   /* 画面レイヤーの層序を一元化し、各オーバーレイの前後関係を固定する */
   /* Centralize the screen layer order to keep every overlay's stacking relationship fixed */
+  /* stage全体との前後関係。通知はディムより前・stageより後ろの背面層へ沈める（ADR 0017） */
+  /* Whole-stage ordering; notifications sink into a layer ahead of the dim and behind the stage (ADR 0017) */
+  --z-app-backdrop: 0;
+  --z-behind-stage: 1;
+  --z-stage: 2;
   --z-screen: 20;
   --z-overlay-panel: 30;
   --z-grab: 40;
