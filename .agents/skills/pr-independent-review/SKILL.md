@@ -446,7 +446,7 @@ sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させ
 
   非0終了なら **digest.mdを直して再実行する**（HTMLを手で直すのは禁止。コンバータのエラーメッセージが
   何のキー・見出しが欠けているかを指すので、それに従ってdigest.mdを修正する）
-- コンバータは `$RUNDIR/patch.diff` を読む。Step 4 の生成物なので通常は存在するが、
+- コンバータは `$RUNDIR/patch.diff` を読む。Step 3 の生成物なので通常は存在するが、
   無い場合はエラーで落ちる（`patch.diff がありません`）
 - 成功したら `open <$RUNDIRの実値>/digest.html`
 - **残す規約**（生成subagentへの指示として引き継ぐ）:

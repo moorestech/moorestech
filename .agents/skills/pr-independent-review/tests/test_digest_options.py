@@ -59,3 +59,10 @@ def test_recommendation_key_is_rejected():
 def test_body_without_alternatives_passes():
     f = finding_from("t", META + "\n**PR側の主張:** 一致させる")
     assert f.options == ["直す", "戻す"]
+
+
+def test_code_card_quoting_the_word_alternatives_passes():
+    # 抜粋は逐語転記が規約なので、コードが「代替案」という語を含むだけで落としてはならない
+    # Excerpts are transcribed verbatim, so merely quoting the word must not fail the build
+    f = finding_from("t", META + "\n```code-card\n 1|        // 代替案としてキャッシュを使う\n```")
+    assert f.options == ["直す", "戻す"]

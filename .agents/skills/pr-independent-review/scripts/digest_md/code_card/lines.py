@@ -2,11 +2,16 @@
 # Parse the code-card line syntax [flags]<lineno>|<code>; every reader goes through this module
 from __future__ import annotations
 
+import re
+
 from ..errors import DigestError
 
 # フラグ文字と行種別の対応。* は行種別と直交する注目マーク
 # Flag characters mapped to line kinds; "*" is an orthogonal highlight marker
 _KIND_FLAGS = {"+": "add", "-": "del"}
+# フラグは必ず行番号の前に並ぶ。`36-38` のような範囲表記を削除行として黙って飲まないため厳密に切る
+# Flags always precede the line number; a strict split keeps a range like `36-38` from silently becoming a deletion
+_HEAD_RE = re.compile(r"^(?P<flags>[*+-]*)(?P<num>\d+)$")
 
 
 def code_card_lines(body: str) -> list[tuple[str, str, bool, str]]:
@@ -17,15 +22,14 @@ def code_card_lines(body: str) -> list[tuple[str, str, bool, str]]:
         if "|" not in raw:
             raise DigestError(f"code-card の行に | がありません: {raw!r}")
         head, code = raw.split("|", 1)
-        head = head.strip()
-        kinds = [k for flag, k in _KIND_FLAGS.items() if flag in head]
+        matched = _HEAD_RE.match(head.strip())
+        if not matched:
+            raise DigestError(f"code-card の行頭が [フラグ]<行番号> の形ではありません: {raw!r}")
+        flags = matched.group("flags")
+        kinds = [k for flag, k in _KIND_FLAGS.items() if flag in flags]
         if len(kinds) > 1:
             raise DigestError(f"code-card の行に + と - を同時に付けられません: {raw!r}")
-        hl = "*" in head
-        num = head.replace("+", "").replace("-", "").replace("*", "").strip()
-        if not num.isdigit():
-            raise DigestError(f"code-card の行番号が数字ではありません: {raw!r}")
-        parsed.append((num, kinds[0] if kinds else "ctx", hl, code))
+        parsed.append((matched.group("num"), kinds[0] if kinds else "ctx", "*" in flags, code))
     return parsed
 
 

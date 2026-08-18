@@ -32,9 +32,11 @@ def finding_from(title: str, body: str) -> Finding:
     meta_text, after = read_fence(lines, j)
     meta = parse_yaml_block(meta_text)
     rest = "\n".join(lines[after:]).strip()
-    # 案の列挙は options が正本。本文へ代替案を書くと同じ案が2箇所に出て片方が古くなる
-    # options is the single source for alternatives; a body copy would go stale on one side
-    if "代替案" in rest:
+    # 案の列挙は options が正本。本文へ代替案の段落を書くと同じ案が2箇所に出て片方が古くなる
+    # options is the single source for alternatives; a body paragraph would go stale on one side
+    # 検出は段落見出し `**代替案` に限る。素の部分一致だと抜粋コードが語を含むだけで落ちる
+    # Only the `**代替案` paragraph marker counts; a bare substring would fail on excerpts that merely quote the word
+    if any(line.lstrip().startswith("**代替案") for line in rest.splitlines()):
         raise DigestError(
             f"finding「{title}」の本文に代替案を書けません。案は options: へ書いてください"
             f"（コンバータが案A/案B…として描き、先頭へ推奨マークを付けます）")

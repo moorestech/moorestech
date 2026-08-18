@@ -131,8 +131,8 @@ def test_vendored_css_cannot_close_the_style_element():
 
 
 def test_missing_patch_diff_fails(tmp_path):
-    # R4: patch.diff は Step 4 が必ず作る。無いまま生成させない
-    # R4: patch.diff is always produced by Step 4; never build without it
+    # R4: patch.diff は Step 3 が必ず作る。無いまま生成させない
+    # R4: patch.diff is always produced by Step 3; never build without it
     (tmp_path / "digest.md").write_text(MINIMAL_DIGEST, encoding="utf-8")
     r = subprocess.run([sys.executable, str(SCRIPT), str(tmp_path)], capture_output=True, text=True)
     assert r.returncode != 0
@@ -148,3 +148,14 @@ def test_missing_deletion_line_fails_the_build(tmp_path):
     r = subprocess.run([sys.executable, str(SCRIPT), str(tmp_path)], capture_output=True, text=True)
     assert r.returncode != 0
     assert "F01" in r.stderr and "削除行" in r.stderr
+
+
+def test_deletion_only_card_fails_with_an_empty_excerpt(tmp_path):
+    # 削除行だけのカードは excerpt が空になる。pr-adjudicated-apply の入力契約が壊れるので落とす
+    # A deletion-only card yields an empty excerpt, breaking pr-adjudicated-apply's input contract
+    card = "```code-card\n-10|            Old();\n```"
+    (tmp_path / "digest.md").write_text(MINIMAL_DIGEST.replace("**PR側の主張:** なし", card), encoding="utf-8")
+    _write_patch(tmp_path)
+    r = subprocess.run([sys.executable, str(SCRIPT), str(tmp_path)], capture_output=True, text=True)
+    assert r.returncode != 0
+    assert "excerpt" in r.stderr and "F01" in r.stderr

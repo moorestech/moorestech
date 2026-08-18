@@ -95,3 +95,13 @@ def test_render_pulls_no_external_asset():
     doc = _doc()
     out = render_html(doc, TEMPLATE, assign_ids(doc), ASSETS)
     assert not re.search(r'(?:src|href)\s*=\s*"https?://', out)
+
+
+def test_body_quoting_a_template_token_is_not_expanded():
+    # このスキルは自分自身もレビューする。抜粋が {{HLJS_JS}} を引用しても127KBを本文へ展開しない
+    # This skill reviews itself; an excerpt quoting {{HLJS_JS}} must not expand 127KB into the body
+    doc = _doc()
+    doc.findings[0].body_md = '```code-card\n 1|<script id="hljs-bundle">{{HLJS_JS}}</script>\n```'
+    out = render_html(doc, TEMPLATE, assign_ids(doc), ASSETS)
+    assert out.count("HLJS_BODY") == 1
+    assert "{{HLJS_JS}}" in out.split("</main>")[0]

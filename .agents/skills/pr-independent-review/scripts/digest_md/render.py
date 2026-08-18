@@ -154,10 +154,6 @@ def render_html(doc: Document, template: str, refs: dict, assets: dict) -> str:
     parts.append('  <section id="appendix">\n    <h2>折りたたみ参考</h2>\n'
                  f'{_appendix_html(doc.appendix_md, refs)}\n  </section>')
 
-    if template.count("<main>") != 1:
-        raise DigestError("テンプレの<main>が1個ではありません")
-    main = "<main>\n\n" + "\n\n".join(parts) + "\n\n</main>"
-    out = re.sub(r"<main>.*</main>", lambda _: main, template, flags=re.S)
     # 文書見出しは仕様上すでに `PR #<番号>` を含むため、番号を二重に付けない
     # The document heading already carries "PR #<number>" per spec, so never prepend it twice
     heading = meta["title"]
@@ -167,15 +163,21 @@ def render_html(doc: Document, template: str, refs: dict, assets: dict) -> str:
     for token in ("{{TITLE}}", "{{DATE}}", "{{SUBTITLE}}", "{{HLJS_JS}}",
                   "{{HLJS_CSS_LIGHT}}", "{{HLJS_CSS_DARK}}",
                   "REPLACE_WITH_UNIQUE_STORAGE_KEY", "REPLACE_WITH_COPY_HEADING"):
-        if token not in out:
+        if token not in template:
             raise DigestError(f"テンプレに {token} がありません")
-    out = out.replace("{{TITLE}}", escape(title)).replace("{{DATE}}", escape(meta["date"]))
-    out = out.replace("{{SUBTITLE}}", escape(f"verdict: {VERDICT_TEXT[verdict]}"))
-    out = out.replace("REPLACE_WITH_UNIQUE_STORAGE_KEY", f"pr-review-{meta['pr']}-comments-v1")
-    out = out.replace("REPLACE_WITH_COPY_HEADING", f"PR #{meta['pr']} 独立レビュー裁定")
+    # 置換は本文を差し込む前のテンプレへ当てる。後だと抜粋がトークンを引用しただけで展開されてしまう
+    # Substitute into the template before the body lands; afterwards an excerpt quoting a token would expand it
+    template = template.replace("{{TITLE}}", escape(title)).replace("{{DATE}}", escape(meta["date"]))
+    template = template.replace("{{SUBTITLE}}", escape(f"verdict: {VERDICT_TEXT[verdict]}"))
+    template = template.replace("REPLACE_WITH_UNIQUE_STORAGE_KEY", f"pr-review-{meta['pr']}-comments-v1")
+    template = template.replace("REPLACE_WITH_COPY_HEADING", f"PR #{meta['pr']} 独立レビュー裁定")
     # vendor資産は固定バージョンの自前管理物なのでエスケープせず素通しする（唯一の生HTML注入点）
     # Vendored assets are self-managed at a pinned version, so they pass through unescaped (the only raw-HTML injection)
-    out = out.replace("{{HLJS_JS}}", assets["hljs_js"])
-    out = out.replace("{{HLJS_CSS_LIGHT}}", assets["hljs_css_light"])
-    out = out.replace("{{HLJS_CSS_DARK}}", assets["hljs_css_dark"])
-    return out
+    template = template.replace("{{HLJS_JS}}", assets["hljs_js"])
+    template = template.replace("{{HLJS_CSS_LIGHT}}", assets["hljs_css_light"])
+    template = template.replace("{{HLJS_CSS_DARK}}", assets["hljs_css_dark"])
+
+    if template.count("<main>") != 1 or template.count("</main>") != 1:
+        raise DigestError("テンプレの<main>が1個ではありません")
+    main = "<main>\n\n" + "\n\n".join(parts) + "\n\n</main>"
+    return re.sub(r"<main>.*</main>", lambda _: main, template, flags=re.S)

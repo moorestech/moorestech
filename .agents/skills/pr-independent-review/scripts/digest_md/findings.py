@@ -39,7 +39,7 @@ def build_findings(doc: Document) -> dict:
             options.append(option)
         out.append({
             "id": f.id, "title": f.title, "severity": f.severity, "category": f.category,
-            "files": f.files, "excerpt": _excerpt(f.body_md),
+            "files": f.files, "excerpt": _excerpt(f),
             "recommendation": f.options[0] if f.options else "",
             "options": options, "suppressed": f.suppressed, "suppress_reason": f.suppress_reason,
         })
@@ -47,12 +47,18 @@ def build_findings(doc: Document) -> dict:
             "generated_at": doc.meta["generated_at"], "findings": out}
 
 
-def _excerpt(body_md: str) -> str:
+def _excerpt(f: Finding) -> str:
     # 最初のcode-cardをPR後の現行コードとして抜き出す（削除行はpr-adjudicated-applyの誤読を招くので落とす）
     # Take the first code-card as the post-PR code; deletions are dropped so pr-adjudicated-apply never misreads them
     # HTMLエスケープはしない契約。行の読み方は code_card_lines と共有する
     # No HTML escaping by contract; line parsing is shared with code_card_lines
-    cards = iter_code_cards(body_md)
+    cards = iter_code_cards(f.body_md)
     if not cards:
         return ""
-    return "\n".join(code for _, kind, _, code in code_card_lines(cards[0]) if kind != "del")
+    kept = [code for _, kind, _, code in code_card_lines(cards[0]) if kind != "del"]
+    # 削除行だけのカードは excerpt が空になる。applyが修正対象を突き止められなくなるので出荷させない
+    # A deletion-only card empties the excerpt, leaving apply with no anchor on the code, so it must not ship
+    if not kept:
+        raise DigestError(f"{f.id}: 最初のcode-cardが削除行だけで excerpt が空になります"
+                          f"（文脈行か追加行を1行は入れてください）")
+    return "\n".join(kept)

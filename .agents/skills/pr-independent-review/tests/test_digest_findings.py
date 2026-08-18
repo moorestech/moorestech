@@ -3,8 +3,11 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
+from digest_md.errors import DigestError
 from digest_md.findings import assign_ids, build_findings
 from digest_md.parse import Document, Finding
 
@@ -60,9 +63,23 @@ def test_build_findings_suppressed_has_no_options():
     assert out["findings"][0]["suppress_reason"] == "ADRで免責"
 
 
+def _finding_with(body_md: str) -> Finding:
+    f = Finding(slug="s", title="t", category="critical", severity="critical",
+                summary="s", files=["a/B.cs:1"], body_md=body_md, options=["直す"])
+    f.id = "F01"
+    return f
+
+
 def test_excerpt_drops_deleted_lines():
     # R9: excerptはPR後の現行コードだけを持つ（pr-adjudicated-applyの入力契約）
     # R9: the excerpt carries only post-PR code, which is pr-adjudicated-apply's input contract
     from digest_md.findings import _excerpt
-    body = "```code-card\n-37|old();\n+38|new();\n```"
-    assert _excerpt(body) == "new();"
+    assert _excerpt(_finding_with("```code-card\n-37|old();\n+38|new();\n```")) == "new();"
+
+
+def test_excerpt_rejects_a_deletion_only_card():
+    # 削除行だけだと excerpt が空になり、applyが修正対象を突き止められなくなる
+    # A deletion-only card empties the excerpt and leaves apply with no anchor on the code
+    from digest_md.findings import _excerpt
+    with pytest.raises(DigestError):
+        _excerpt(_finding_with("```code-card\n-37|old();\n```"))

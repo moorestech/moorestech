@@ -30,7 +30,6 @@
     --amber:#F59E0B;
     --amber-bg:#FFFBEB;
     --amber-border:#FDE68A;
-    --panel-bg:#FFFFFF;
     --shadow-rgb:15,23,42;
     --code-bg:#F6F8FA;
     --code-border:#D0D7DE;
@@ -92,7 +91,6 @@
     --amber:#D29922;
     --amber-bg:#2B2513;
     --amber-border:#5A431A;
-    --panel-bg:#161B22;
     --shadow-rgb:0,0,0;
     --code-bg:#161B22;
     --code-border:#30363D;
@@ -578,16 +576,21 @@
   .code-card { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 6px; padding: 12px 0; overflow-x: auto; font-size: 13px; line-height: 1.6; color: var(--code-fg); }
   /* min-width:100%で横スクロール時も行の帯が途切れないようにする / min-width keeps the row band intact while scrolling horizontally */
   .code-card code { display: inline-block; min-width: 100%; }
-  .code-card .cl { display: block; white-space: pre; padding-left: 12px; }
-  .code-card .ln { display: inline-block; width: 3.2em; text-align: right; padding-right: .7em; color: var(--code-ln); user-select: none; }
+  .code-card .cl { display: block; white-space: pre; }
+  /* 行番号と記号は横スクロールしても左端へ貼り付ける（注目行バーもここに載るため逃がせない） / the gutter sticks while the code scrolls; the highlight bar rides on it */
+  .code-card .ln, .code-card .sign { position: sticky; background: inherit; user-select: none; }
+  .code-card .ln { left: 0; display: inline-block; width: 4.2em; text-align: right; padding-right: .7em; color: var(--code-ln); }
   /* 記号列は色が潰れても差分を読ませる最後の砦なので必ず等幅で確保する / the sign column is the last line of defense when colors wash out */
-  .code-card .sign { display: inline-block; width: 1.2em; color: var(--code-ln); user-select: none; }
+  .code-card .sign { left: 4.2em; display: inline-block; width: 1.2em; color: var(--code-ln); }
+  .code-card .cl { background: var(--code-bg); }
   .code-card .cl.add { background: var(--diff-add-bg); }
   .code-card .cl.add .sign { color: var(--diff-add-fg); }
   .code-card .cl.del { background: var(--diff-del-bg); }
   .code-card .cl.del .sign { color: var(--diff-del-fg); }
   /* 注目行は背景を使わない（追加/削除の背景と3層に重なるため）。左縁バーと字の太さで示す / no background here: it would stack on the add/del bands */
-  .code-card .cl.hl { box-shadow: inset 4px 0 0 var(--amber); font-weight: 600; }
+  /* バーは貼り付く行番号側に載せる。行そのものへ inset で引くと横スクロールで視界外へ逃げる / the bar rides the sticky gutter; on the row itself it would scroll away */
+  .code-card .cl.hl { font-weight: 600; }
+  .code-card .cl.hl .ln { box-shadow: inset 4px 0 0 var(--amber); }
   /* vendorの.lead-item .badgeと衝突するためカード内に限定 / scoped to cards to avoid clashing with vendor .lead-item .badge */
   .verdict-card .badge, .suppressed-card .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-right: 8px; }
   .badge-new { background: var(--badge-new-bg); color: var(--badge-new-fg); }

@@ -50,3 +50,15 @@ def test_iter_code_cards_returns_every_fence_in_order():
 def test_iter_code_cards_ignores_plain_fences():
     body = "```\nplain\n```\n\n```code-card\n+1|a\n```\n"
     assert iter_code_cards(body) == ["+1|a"]
+
+
+def test_line_range_shorthand_is_error():
+    # `36-38` を削除行の 3638 行目として黙って描かない（大声のエラーのまま保つ）
+    # A range like `36-38` must never be silently rendered as deletion of line 3638
+    with pytest.raises(DigestError):
+        code_card_lines(" 36-38|        void A()")
+
+
+def test_flag_after_the_number_is_error():
+    with pytest.raises(DigestError):
+        code_card_lines("36+|added();")
