@@ -115,3 +115,77 @@ def test_recommended_key_is_rejected():
     with pytest.raises(DigestError) as e:
         parse_document(text)
     assert "recommended" in str(e.value)
+
+
+def test_suppressed_finding_requires_suppress_reason_not_options():
+    text = MINIMAL.replace(
+        "options:\n  - 直す",
+        "suppressed: true\nsuppress_reason: 既存挙動のため対象外",
+    )
+    doc = parse_document(text)
+    f = doc.findings[0]
+    assert f.suppressed is True
+    assert f.suppress_reason == "既存挙動のため対象外"
+    assert f.options == []
+
+
+def test_suppressed_finding_missing_suppress_reason_is_error():
+    text = MINIMAL.replace("options:\n  - 直す", "suppressed: true")
+    with pytest.raises(DigestError) as e:
+        parse_document(text)
+    assert "suppress_reason" in str(e.value)
+
+
+def test_invalid_category_is_error():
+    text = MINIMAL.replace("category: critical", "category: unknown-cat")
+    with pytest.raises(DigestError) as e:
+        parse_document(text)
+    assert "category" in str(e.value)
+
+
+def test_invalid_severity_is_error():
+    text = MINIMAL.replace("severity: critical", "severity: unknown-sev")
+    with pytest.raises(DigestError) as e:
+        parse_document(text)
+    assert "severity" in str(e.value)
+
+
+def test_duplicate_slug_is_error():
+    second_finding = MINIMAL[MINIMAL.index("## 最初の指摘"):MINIMAL.index("# 注記")]
+    text = MINIMAL.replace("# 注記", second_finding + "# 注記")
+    with pytest.raises(DigestError) as e:
+        parse_document(text)
+    assert "slug" in str(e.value)
+
+
+def test_finding_without_yaml_block_is_error():
+    text = MINIMAL.replace(
+        "## 最初の指摘\n\n```yaml\n"
+        "slug: first\ncategory: critical\nseverity: critical\nsummary: 壊れている。\n"
+        "files: [a/b/C.cs:10]\noptions:\n  - 直す\n```\n\n**PR側の主張:** なし",
+        "## 最初の指摘\n\n本文のみでyamlブロックが無い。",
+    )
+    with pytest.raises(DigestError) as e:
+        parse_document(text)
+    assert "```yaml" in str(e.value)
+
+
+def test_unclosed_fence_is_error():
+    text = MINIMAL.replace("files: [a/b/C.cs:10]\noptions:\n  - 直す\n```", "files: [a/b/C.cs:10]\noptions:\n  - 直す")
+    with pytest.raises(DigestError) as e:
+        parse_document(text)
+    assert "コードフェンス" in str(e.value)
+
+
+def test_unknown_note_heading_is_error():
+    text = MINIMAL.replace("## criticals", "## unknown-note")
+    with pytest.raises(DigestError) as e:
+        parse_document(text)
+    assert "注記見出し" in str(e.value)
+
+
+def test_unknown_reserved_heading_is_error():
+    text = MINIMAL.replace("# 判断台帳", "# 未知の見出し")
+    with pytest.raises(DigestError) as e:
+        parse_document(text)
+    assert "予約見出し" in str(e.value)
