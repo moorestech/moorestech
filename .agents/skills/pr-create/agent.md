@@ -114,9 +114,29 @@ EOF
 )"
 ```
 
+### 5. コンフリクト確認と解消（必須）
+PR作成（または既存PRへのpush）後、マージ可能状態を確認する。
+
+```bash
+# mergeable判定は計算に少し時間がかかるため、UNKNOWNなら数秒待って再実行する
+gh pr view <PR番号またはPR_BRANCH> --json mergeable,mergeStateStatus
+```
+
+- `mergeable: CONFLICTING` の場合は、BASEをPRブランチへマージして解消する:
+  ```bash
+  git fetch origin <BASE>
+  git merge origin/<BASE>
+  # コンフリクトを解消してコミット（両側の意図を保つ。機械的に片側を捨てない）
+  git push
+  ```
+  - .csファイルがコンフリクト解消で変更された場合は `uloop compile --project-path ./moorestech_client` でコンパイルを確認してからpushする
+  - 解消が設計判断を要する場合（両側が同一箇所へ相反する仕様変更をしている等）は、機械的に解消せず、状況を明記して呼び出し元へ返す
+- 解消後、再度 `gh pr view --json mergeable` で `MERGEABLE` になったことを確認する
+- ここでの「マージ」はBASE→PRブランチへの取り込みであり、PR自体のマージ（`gh pr merge`）は引き続き行わない
+
 ## Important Notes
 
-- 完了したらPRのURLを返す（呼び出し元がユーザーに提示できるように）。worktree用ブランチ（`treeN`）から切り出した場合は、作成したPR用ブランチ名も併せて報告する
+- 完了したらPRのURLとマージ可能状態（MERGEABLE / コンフリクト解消済み / 要裁定で未解消）を返す（呼び出し元がユーザーに提示できるように）。worktree用ブランチ（`treeN`）から切り出した場合は、作成したPR用ブランチ名も併せて報告する
 - Web関連変更では、`gh api` で各画像がPRブランチのコミットに存在することを確認し、`gh pr view --json body` で `## スクリーンショット` 節とGitHub上の画像URLを確認して掲載画像数も報告する
 - `treeN` のようなworktree運用ブランチをそのままPRのheadにしない。必ず内容を表す別ブランチを切ってからPRを作る
 - `treeN`・ベースブランチ以外では、現在のブランチ名を別のprefixへ付け替えない（`chore/xxx` を `feature/xxx` にし直す等は禁止）

@@ -100,11 +100,17 @@ hooks:
 ---
 ```
 
-**Final task (moorestech, required):** every plan's task list ends with an
-explicit closing task — 「必ず最後にmoores-code-reviewスキルで全ブランチ
-レビューを実行すること（自動実行・ゴール文言による省略不可）」。実行者は
-これを無条件に実行する。planから省略してもゲートは免除されない
-（subagent-driven-developmentのmandatory-gateセクション参照）。
+**Final tasks (moorestech, required):** every plan's task list ends with an
+explicit closing task pair — 実行者はこれを無条件に実行する。planから省略しても
+ゲートは免除されない（subagent-driven-developmentのmandatory-gateセクション参照）:
+
+1. 「必ずmoores-code-reviewスキルで全ブランチレビューを実行すること
+   （自動実行・ゴール文言による省略不可）」
+2. 「セッション終了可能状態にすること: pr-createスキルでPRを作成し、
+   masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする。
+   全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な
+   状態になっていることを確認して終える」。全実装タスク完了＝完了ではない。
+   PR未作成のまま終わるのはplan未完了である。
 
 **unityプレイ録画テストの実行を検討する（moorestech, required check）:** plan作成時、
 ランタイム挙動（ゲームプレイ・入力・カメラ・UI・エンティティ表示等）に触れる変更なら、
@@ -220,7 +226,7 @@ Self-Review（内容）と spec-architecture-review（構造）を終えたら�
    - 作業場所: <ブランチ名>（worktreeの場合はそのパスも記載）
    - まずplan全文を読み、`## Requirements`・`## Global Constraints`・`## 判断記録（ADR）`を全タスク共通の制約として扱ってください
    - 進捗はplanのチェックボックス更新で管理してください
-   - planの最終タスク（moores-code-reviewによる全ブランチレビュー）は省略不可です
+   - planの最終タスク群（moores-code-reviewによる全ブランチレビュー→pr-createでPR作成・コンフリクト解消まで）は省略不可です。PRが作成されセッションを閉じられる状態になるまで完了扱いにしないでください
    ```
    ````
 
