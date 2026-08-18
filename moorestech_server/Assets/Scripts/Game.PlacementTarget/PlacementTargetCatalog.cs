@@ -132,7 +132,9 @@ namespace Game.PlacementTarget
                         return unlockState.ConnectToolUnlockStateInfos.TryGetValue(entry.Id, out var connectToolInfo) && connectToolInfo.IsUnlocked;
                     case PlacementTargetKind.BlueprintCopy:
                     case PlacementTargetKind.Blueprint:
-                        return true;
+                        // BP機能は単一フラグで判定。無料設置デバッグの対象外（接続ツール同様・ADR 0015）
+                        // Blueprints gate on the single feature flag, excluded from free placement like connect tools (ADR 0015)
+                        return unlockState.IsBlueprintUnlocked;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

@@ -104,6 +104,10 @@ namespace Client.Game.InGame.UnlockState
                 _connectToolUnlockStateInfos[unlockedGuid] = new ConnectToolUnlockStateInfo(unlockedGuid, true);
             }
 
+            // ブループリント機能の解放状態を初期化
+            // Initialize the blueprint feature unlock state
+            IsBlueprintUnlocked = unlockState.IsBlueprintUnlocked;
+
             ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, OnUpdateUnlock);
         }
         
@@ -146,6 +150,11 @@ namespace Client.Game.InGame.UnlockState
                  case UnlockEventType.ConnectTool:
                      var connectToolGuid = message.UnlockedConnectToolGuid;
                      _connectToolUnlockStateInfos[connectToolGuid] = new ConnectToolUnlockStateInfo(connectToolGuid, true);
+                     break;
+                 // ブループリント機能の解放をイベントから反映する
+                 // Reflect the blueprint feature unlock from the event
+                 case UnlockEventType.Blueprint:
+                     IsBlueprintUnlocked = true;
                      break;
                  default:
                      throw new ArgumentOutOfRangeException();

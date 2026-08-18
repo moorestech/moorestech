@@ -126,6 +126,8 @@ namespace Client.Network.API
         public readonly List<Guid> LockedConnectToolGuids;
         public readonly List<Guid> UnlockedConnectToolGuids;
 
+        public readonly bool IsBlueprintUnlocked;
+
         public UnlockStateResponse(
             List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids,
             List<ItemId> lockedItemIds, List<ItemId> unlockedItemIds,
@@ -133,7 +135,8 @@ namespace Client.Network.API
             List<Guid> lockedMachineRecipeGuids, List<Guid> unlockedMachineRecipeGuids,
             List<Guid> lockedBlockGuids, List<Guid> unlockedBlockGuids,
             List<Guid> lockedTrainCarGuids, List<Guid> unlockedTrainCarGuids,
-            List<Guid> lockedConnectToolGuids, List<Guid> unlockedConnectToolGuids)
+            List<Guid> lockedConnectToolGuids, List<Guid> unlockedConnectToolGuids,
+            bool isBlueprintUnlocked)
         {
             LockedCraftRecipeGuids = lockedCraftRecipeGuids;
             UnlockedCraftRecipeGuids = unlockedCraftRecipeGuids;
@@ -149,9 +152,10 @@ namespace Client.Network.API
             UnlockedTrainCarGuids = unlockedTrainCarGuids;
             LockedConnectToolGuids = lockedConnectToolGuids;
             UnlockedConnectToolGuids = unlockedConnectToolGuids;
+            IsBlueprintUnlocked = isBlueprintUnlocked;
         }
     }
-    
+
     // 列車スナップショット取得時のレスポンス
     // Response wrapper for the initial train unit snapshot payload
     public class TrainUnitSnapshotResponse
