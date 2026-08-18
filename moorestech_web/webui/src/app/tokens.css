@@ -63,17 +63,25 @@
   --craft-tab-edge: rgb(73 75 120);
   --craft-tab-hammer: rgb(75 75 75);
   --font-ui: "MooresUI", "MooresUI JP", sans-serif;
-  /* 画面レイヤーの層序を一元化し、各オーバーレイの前後関係を固定する */
-  /* Centralize the screen layer order to keep every overlay's stacking relationship fixed */
-  --z-screen: 20;
-  --z-overlay-panel: 30;
-  --z-grab: 40;
-  --z-modal: 200;
-  /* ツールチップはモーダルより前、トースト通知より後ろに置く */
-  /* Tooltips sit above modals and below toast notifications */
-  --z-tooltip: 250;
-  --z-toast: 300;
-  --z-reconnect: 2000;
+  /* z層は互いに比較できない3つのスタッキングコンテキスト別に接頭辞で分け、文脈をまたぐ比較を名前で防ぐ */
+  /* Split z-layers by their incomparable stacking context via a name prefix, so cross-context comparisons read as wrong at a glance */
+  /* .viewport直下の層序。通知はディムより前・stageより後ろの背面層へ沈める（ADR 0017） */
+  /* Order directly under .viewport; notifications sink into a layer ahead of the dim and behind the stage (ADR 0017) */
+  --z-viewport-backdrop: 0;
+  --z-viewport-behind-stage: 1;
+  --z-viewport-stage: 2;
+  --z-viewport-grab: 40;
+  /* .stage内部の層序。stageの一様拡縮に追従する常駐HUD・ツールチップ間の前後関係 */
+  /* Order inside .stage; governs always-on HUDs and the tooltip that follow the stage's uniform scaling */
+  --z-stage-screen: 20;
+  --z-stage-overlay-panel: 30;
+  --z-stage-tooltip: 250;
+  /* body直下Portal層の層序。stageの外へ抜けて実画面全体を覆う要素間の前後関係 */
+  /* Order in the body-level Portal layer; governs elements that escape the stage to cover the whole real screen */
+  --z-portal-modal: 200;
+  --z-portal-toast: 300;
+  --z-portal-tutorial: 900;
+  --z-portal-reconnect: 2000;
   --text-default: #eee;
   --text-high-contrast: #fff;
   /* 従属テキストには通常テキストより抑えた寒色グレーを使う */
@@ -170,9 +178,9 @@
   /* 閉じる✕は詳細列の右上に重なるため、1行目を✕の下端より下へ逃がす安全帯（✕上端 --bevel-3 + ✕実寸 --icon-button-size + 縦積みgap 8px） */
   /* Safe area dropping the detail column's first line below the close cross that overlaps its top-right (cross top --bevel-3 + cross size --icon-button-size + the 8px stack gap) */
   --build-menu-detail-top-safe-area: calc(var(--bevel-3) + var(--icon-button-size) + 8px);
-  /* ワールドピンHUDの層。パネル面より下に置き、開いたパネルの背後に隠れる */
-  /* World-pin HUD layer; kept below panel faces so open panels cover it */
-  --z-world-pin: 10;
+  /* ワールドピンHUDの層。body直下Portalの一員（TutorialOverlayと同じ描画位置） */
+  /* World-pin HUD layer; a member of the body-level Portal group (rendered alongside TutorialOverlay) */
+  --z-portal-world-pin: 10;
   /* ワールドピンのラベル・マーカー面は半透明ネイビー族に揃える */
   /* World-pin label and marker faces share the translucent navy family */
   --world-pin-face: var(--surface-navy);

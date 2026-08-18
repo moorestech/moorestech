@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: var(--z-tutorial, 900);
+  z-index: var(--z-portal-tutorial);
   pointer-events: none;
 }
 
