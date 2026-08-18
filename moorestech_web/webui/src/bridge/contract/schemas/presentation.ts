@@ -7,9 +7,15 @@ export const TutorialHighlightSchema = z.object({
   highlightId: z.string(), anchorId: z.string(), kind: z.literal("outline"),
   paddingPx: z.number().nonnegative(), blocksPointerInput: z.boolean(),
 }).strict();
+// D&D説明の矢印ガイド。from/to両anchorが解決している間だけ描く
+// Drag guide arrows for D&D instruction; drawn only while both anchors resolve
+export const TutorialDragGuideSchema = z.object({
+  guideId: z.string(), fromAnchorId: z.string(), toAnchorId: z.string(),
+}).strict();
 export const TutorialPresentationDataSchema = z.object({
   tutorialSessionId: z.string(), revision: z.number().int().nonnegative(),
   challengeId: z.string(), highlights: z.array(TutorialHighlightSchema),
+  dragGuides: z.array(TutorialDragGuideSchema),
 });
 // ワールドピン: Unity射影の正規化座標と画面外矢印用の方向ベクトル。文言はGuid導出キーでWeb解決する
 // World pins: Unity-projected normalized coords plus an off-screen arrow vector; text resolves web-side from the GUID

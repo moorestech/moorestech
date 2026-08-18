@@ -15,6 +15,7 @@ export const TutorialAnchorIds = {
   miningHud: "mining.hud",
   challengePanel: "challenge.panel",
   challengeCategories: "challenge.categories",
+  hotbarHud: "hotbar.hud",
 } as const;
 
 export type StaticTutorialAnchorId = (typeof TutorialAnchorIds)[keyof typeof TutorialAnchorIds];
