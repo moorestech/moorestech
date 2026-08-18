@@ -139,7 +139,7 @@ test("研究パネルはステージ全域を占有し持ち物とキーヒン�
   await setUiState(page, "ResearchTree");
   await page.goto("/");
   const tree = page.getByTestId("research-tree");
-  const stageBox = await page.getByTestId("ui-stage").boundingBox();
+  const stageBox = await page.getByTestId("app-stage").boundingBox();
   const treeBox = await tree.boundingBox();
   // stage全域一致(誤差1px)
   // Full-stage match (1px tolerance)
@@ -170,12 +170,12 @@ test("研究パネル展開中も常駐チャレンジHUDとキーヒントが�
 });
 
 test("研究パネル展開中も採掘進捗バーが遮蔽されない（.viewportOverlayのz封じ込めに依存する回帰ガード）", async ({ page }) => {
-  // ChallengeHud/研究キーヒントは自身が--z-overlay-panel(-chrome)を明示するため.viewportOverlayの
-  // z付与が無くても偶然勝つ。採掘進捗バーは--z-screen(20)しか持たず研究パネルの--z-overlay-panel(30)に
+  // ChallengeHud/研究キーヒントは自身が--z-stage-overlay-panel(-chrome)を明示するため.viewportOverlayの
+  // z付与が無くても偶然勝つ。採掘進捗バーは--z-stage-screen(20)しか持たず研究パネルの--z-stage-overlay-panel(30)に
   // 単独では負けるため、この一本だけがApp.module.css:59のz-index行に実際に依存する
-  // ChallengeHud and the research key hints each declare their own --z-overlay-panel(-chrome), so they
+  // ChallengeHud and the research key hints each declare their own --z-stage-overlay-panel(-chrome), so they
   // happen to win even without .viewportOverlay's z-index. The mining progress bar only carries
-  // --z-screen(20) and alone loses to the research panel's --z-overlay-panel(30), so it is the one
+  // --z-stage-screen(20) and alone loses to the research panel's --z-stage-overlay-panel(30), so it is the one
   // assertion that genuinely depends on the z-index line at App.module.css:59
   await setUiState(page, "ResearchTree");
   await page.goto("/");

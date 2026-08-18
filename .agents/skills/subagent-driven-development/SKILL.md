@@ -40,7 +40,7 @@ digraph when_to_use {
     "Over size gate? (>~15 files / >~1000 lines / 6+ tasks / long debug loop)" [shape=diamond];
     "Tasks mostly independent?" [shape=diamond];
     "subagent-driven-development" [shape=box];
-    "executing-plans" [shape=box];
+    "Parallel session execution" [shape=box];
     "Manual execution or brainstorm first" [shape=box];
     "Inline implementation + final review" [shape=box];
     "Stay in this session?" [shape=diamond];
@@ -52,11 +52,11 @@ digraph when_to_use {
     "Tasks mostly independent?" -> "Stay in this session?" [label="yes"];
     "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
     "Stay in this session?" -> "subagent-driven-development" [label="yes"];
-    "Stay in this session?" -> "executing-plans" [label="no - parallel session"];
+    "Stay in this session?" -> "Parallel session execution" [label="no - parallel session"];
 }
 ```
 
-**vs. Executing Plans（並列セッション）:**
+**vs. 並列セッション実行:**
 - 同一セッション（コンテキスト切り替えなし）
 - タスクごとに新規subagent（コンテキスト汚染なし）
 - 各タスク後にレビュー（spec準拠＋コード品質）、最後に広範なレビュー
@@ -140,7 +140,7 @@ digraph process {
     "Read plan, note context and global constraints, create todos" [shape=box];
     "More tasks remain?" [shape=diamond];
     "Run final whole-branch review: moores-code-review skill" [shape=box];
-    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+    "Finish branch (commit, create PR via pr-create, resolve conflicts vs master)" [shape=box style=filled fillcolor=lightgreen];
 
     "Ensure isolated worktree (create, or verify already inside one)" -> "Read plan, note context and global constraints, create todos";
     "Read plan, note context and global constraints, create todos" -> "Dispatch implementer subagent (./implementer-prompt.md)";
@@ -156,7 +156,7 @@ digraph process {
     "Mark task complete in todo list and progress ledger" -> "More tasks remain?";
     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
     "More tasks remain?" -> "Run final whole-branch review: moores-code-review skill" [label="no"];
-    "Run final whole-branch review: moores-code-review skill" -> "Use superpowers:finishing-a-development-branch";
+    "Run final whole-branch review: moores-code-review skill" -> "Finish branch (commit, create PR via pr-create, resolve conflicts vs master)";
 }
 ```
 
@@ -170,6 +170,15 @@ digraph process {
 - スキップできる唯一の方法は、人間がこのセッション内で自分の言葉で明示的にスキップを指示した場合のみ。その指示を進捗台帳に記録すること。
 - 計画を書く・レビューする際は、タスクリストの末尾に明示的な最終タスクがあることを確認する: 「必ず最後にmoores-code-reviewスキルで全ブランチ
   レビューを実行する」。計画にこれが無い場合は自分のtodoリストに追加すること — タスク行の欠落はゲートを免除しない。
+
+## セッション終了可能化（PR作成）も必須の自動ゲートである
+
+最終レビュー完了後、**pr-createスキルでPRを作成し、セッションをそのまま閉じられる状態にする**ところまでがこのプロセスの一部である。「全タスク完了」はPR未作成なら完了ではない:
+
+- 全作業をコミット・pushし、pr-createスキルでPRを作成する（既存PRがあればpushで更新する）。
+- masterとのコンフリクトがある場合は、masterをブランチへマージして解消し、コンパイル（.cs変更時）を確認してからpushする。解消の実作業は**opus subagent**へ委譲する（pr-createスキルのステップ5がこの委譲を含む）。解消内容が設計判断を伴う場合のみユーザーに諮る。
+- 「実装は完了しました。PRが必要なら作成します」という言葉でセッションを終えてはならない — それはPR作成をスキップしたことになる。
+- スキップできる唯一の方法は、人間がこのセッション内で明示的に「PRは不要」と指示した場合のみ。その指示を進捗台帳に記録すること。計画にこのタスク行が無くてもゲートは免除されない。
 
 ## 事前計画レビュー
 
@@ -269,7 +278,7 @@ Implementer subagentは4つのステータスのいずれかを報告する。�
 
 - [implementer-prompt.md](implementer-prompt.md) - implementer subagentの派遣（タスク固有情報のみ。定型は[implementer-contract.md](implementer-contract.md)をsubagentが読む）
 - [task-reviewer-prompt.md](task-reviewer-prompt.md) - タスクレビュアーsubagentの派遣（同上。定型は[task-reviewer-contract.md](task-reviewer-contract.md)）
-- 最終ブランチ全体レビュー: superpowers:requesting-code-reviewの[code-reviewer.md](../requesting-code-review/code-reviewer.md)を使用
+- 最終ブランチ全体レビュー: moores-code-review スキル（Skillツール経由で呼び出す。プロンプトテンプレートは持たない）
 
 ## ワークフロー例
 
@@ -406,12 +415,8 @@ Final reviewer: 全要件を満たし、マージ可能
 
 **必須のワークフロースキル:**
 - **ワークスペース隔離** - 上記「ワークスペース隔離（タスク1派遣前・必須）」がこのスキル内で手順を持つ。外部スキルへは委譲しない
-- **superpowers:writing-plans** - このスキルが実行する計画を作成する
-- **superpowers:requesting-code-review** - 最終ブランチ全体レビュー用のコードレビューテンプレート
-- **superpowers:finishing-a-development-branch** - 全タスク完了後の開発を仕上げる
-
-**Subagentが使うべきもの:**
-- **superpowers:test-driven-development** - Subagentは各タスクでTDDに従う
+- **writing-plans** - このスキルが実行する計画を作成する
+- **moores-code-review** - 最終ブランチ全体レビューの実体（Skillツール経由）
 
 **代替ワークフロー:**
-- **superpowers:executing-plans** - 同一セッション実行の代わりに並列セッションで使用する
+- **並列セッション実行** - 同一セッション実行の代わりに、タスクごとに別セッションを立てて進める

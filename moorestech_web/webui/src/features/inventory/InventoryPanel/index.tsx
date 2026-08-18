@@ -29,7 +29,7 @@ export default function InventoryPanel({ screen }: Props) {
   }
   // chrome z の重畳はステージ全域パネル(研究)の上へ出す用途に限る(D9)
   // The chrome z-overlay is only for surfacing above the full-stage panel (research) (D9)
-  const chromeZ: CSSProperties = screen === "researchTree" ? { zIndex: "var(--z-overlay-panel-chrome)" } : {};
+  const chromeZ: CSSProperties = screen === "researchTree" ? { zIndex: "var(--z-stage-overlay-panel-chrome)" } : {};
 
   // 整理は持ち物そのものへの副次アクションなので、パネルのタイトル行右端に置く
   // Sorting acts on the inventory itself, so it lives at the right end of this panel's title row

@@ -30,7 +30,7 @@ description: |
   - 画面全体を不透明な面で塗り潰すレイアウトは、いかなる画面でも禁止。
   - 例外（ADR 0014・ユーザー裁定 2026-08-18）: 研究ツリー画面のみ、半透明GamePanelがステージ全域
     （安全帯含む上下左右端まで）を占有してよい。面は従来どおり半透明で世界は透ける。
-    チャレンジHUD・キー操作ヒント・持ち物パネルはこのパネルより上の層（`--z-overlay-panel-chrome`）に重畳する。
+    チャレンジHUD・キー操作ヒント・持ち物パネルはこのパネルより上の層（`--z-stage-overlay-panel-chrome`）に重畳する。
 - **背景ディムは App の screen backdrop 1枚だけが担う。** 各パネルが独自に画面を暗くしない。
 - **常時の縁ヴィネットは App の実viewport全面が担う。** 1280基準stageへ置くと横長画面の途中で切れるため、stage背景へ戻さない。ヴィネットの楕円寸法・中心・停止位置だけは、縦横比が異なる実viewportの四辺へ同じ比率で沿わせる必要があるため、固定長原則の例外としてviewport比例の`%`トークンを使う。
 - **重なり順は `index.css` の `--z-*` トークンのみで制御する。** 数値のz-index直書き禁止。
@@ -44,6 +44,7 @@ description: |
   - **viewport族**: 実画面の辺へ位置が追従し、内容寸法だけが stage 拡縮に従う。`App.module.css` の `.viewportOverlay` 配下へ置く。
 - **常時表示HUD族（ホットバー・装備HUD・キーヒント・採掘プログレスバー・目標HUD・操作モードHUD）は viewport族。** stage絶対配置のまま `calc()` で補正しない（補正式がHUDの数だけ増殖して破綻する）。
 - **`.viewportOverlay` は `pointer-events: none`。** 配下へ置く操作可能要素（ホットバーのスロット列・装備HUD）は `pointer-events: auto` を明示する。忘れると操作が死ぬ。
+- **第三の所属として背面viewport族がある**（ADR 0017）。`.viewport` 直下・`.stage` の裏（`--z-viewport-behind-stage`）に置き、`--ui-scale` に追従しない。stage族でもviewport族でもない。現状の唯一の利用者は通知（§8）。
 - 基準解像度1280×720では stage と viewport が一致するため、族の移動だけでは描画結果が変わらない。
 
 ## 2. パネル — GamePanel を使い回す
@@ -127,6 +128,7 @@ description: |
 ## 8. 通知・情報表示
 
 - 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・7秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
+- **NotificationHostは背面viewport族**（§1.5・`--z-viewport-behind-stage`）。stage族でもviewport族でもなく、`--ui-scale` に追従しない。
 - **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。最大幅は`--notification-max-width`（画面幅20%・ユーザー裁定の画面比例値）で超過分は折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
 - **NotificationHostの出入りは唯一の装飾アニメーション例外**（§6）。入場は `--notification-enter-duration`（160ms・ease-out）で左から `--notification-shift`（12px）のスライドイン＋フェードイン、退場は `--notification-exit-duration`（200ms・ease-in）でその逆再生。生存尺は store の `NOTIFICATION_DISPLAY_MS`（7000ms）が単一の正で、`NotificationHost` がインラインCSS変数 `--notification-lifetime` として渡し、CSSは退場遅延を `calc(生存尺 − 退場尺)` で逆算する。**退場のためにstoreへ状態（`exiting` 等）を持たせない。** 退場の `animation-fill-mode` は `forwards`（`both` にすると遅延中に前方適用されて入場が消える）。積み替えの移動は補間せず、同時表示数の上限も設けない。
 - 接続前のプレースホルダは `ConnectingPlaceholder`。

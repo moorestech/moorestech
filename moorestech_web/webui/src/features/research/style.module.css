@@ -3,7 +3,7 @@
 .researchArea {
   position: absolute;
   inset: 0;
-  z-index: var(--z-overlay-panel);
+  z-index: var(--z-stage-overlay-panel);
   min-width: 0;
 }
 /* TreeViewのviewportはflex:1で高さを取る前提。ChallengePanel同様にflex列で包む */

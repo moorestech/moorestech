@@ -40,7 +40,7 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 **回収時の検死（本体・毎回必須）**: オーケストレータの返答を受けたら、報告する前に次を突き合わせる —
 1. 返答の系統数が期待値と一致するか（期待値 = checks.json の `lenses` + `reviewers` + `verifiers_to_launch` + Fable 1 + Codex 3 + 決定論。分割深掘り発火時は + チャンク数×3）
 2. `integrated.md` の「系統別回収状況」に欠員・未回収がないか
-3. `$RUNDIR` に規定の成果物（checks.json / codex `.out.md` ×3 / `agents/` / integrated.md / final.diff / checks-final.json / design.md）が揃っているか
+3. `$RUNDIR` に規定の成果物（checks.json / codex `.final.md` ×3（結論の正本。`.out.md` は副産物） / `agents/` / integrated.md / final.diff / checks-final.json / design.md）が揃っているか
 
 **何か変なこと（規定数のエージェントが発火していない・モデル割り当てが指定と違う・成果物の欠落・integrated.md 不在・返答が契約と違う等）があれば、修正適用や再派遣を重ねる前に一旦止めて調査する。** 手順: セッション transcript（`~/.claude/projects/<プロジェクト>/<セッションID>/subagents/*.meta.json` で起動数とモデルを実測、`*.jsonl` で該当体の挙動を確認）→ 原因を特定してから再開の要否を決める。原因がスキル記述の穴なら `references/skill-improvement.md` の手順で恒久対応する。異常のまま結果だけ採用しない（欠員のある統合結果は「全系統レビュー済み」を偽装する）。
 
@@ -56,7 +56,7 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
   後から「何をどう測ってその結論になったか」を再現する唯一の材料。pr-independent-reviewのreconcileも
   ここを読む（あちらは `$LOGS/harness/pr-independent-review/runs/pr-<番号>/` を使う。混ぜない）
 - ファイル名は固定: `patch.diff` / `context.md` / `checks.json` / `codex-audit.md` / `codex-bughunt.md` /
-  `codex-design.md`（各Codex**出力**は同名の `.out.md`） / `chunks.tsv` / `agents/<名前>.md` / `integrated.md` /
+  `codex-design.md`（各Codexの**結論**は同名の `.final.md`＝`-o` の出力が正本、stdoutログは `.out.md`） / `chunks.tsv` / `agents/<名前>.md` / `integrated.md` /
   `final.diff` / `checks-final.json`
 - `$RUNDIR` 配下はStop/SessionEnd hook（`.dev-hooks/logs-sync.mjs`）でlogs repoへ自動commit・pushされる。
   セッション側で `git commit` しない
@@ -100,7 +100,7 @@ Repo root : <リポジトリ絶対パス>
 - 返答は 10 行以内: 系統数(起動・回収・欠員) / Critical・Warning・Info・suppressed 件数 / 適用した修正数 / コンパイル・テスト結果 / integrated.md と design.md の 2 パス。生の指摘本文は返答に書かない。
 ```
 
-回収: 返答を受けたら **`integrated.md` を Read する（この 1 ファイルだけ）**。`agents/`・Codex `.out.md` は読まない（疑義のある個別件の再確認のみ例外）。返答の欠員・縮退は Step 7 の報告へ転記する。
+回収: 返答を受けたら **`integrated.md` を Read する（この 1 ファイルだけ）**。`agents/`・Codex `.out.md` は読まない（疑義のある個別件の再確認のみ例外）。返答の欠員・縮退は Step 7 の報告へ転記する。ただし **Codex の欠員申告だけは転記前に裏を取る** — `codex_recover.py` の終了コード（3 or 4）が添えられていなければ自分で 1 コマンド走らせて確認し、exit 0 なら欠員ではないので integrator を再実行させる。
 
 ## Step 7: 報告＋AskUserQuestion ⑥
 

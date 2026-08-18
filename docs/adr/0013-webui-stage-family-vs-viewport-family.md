@@ -16,5 +16,6 @@ Web UI は 1280×720 基準の `.stage` をレターボックス中央へ一様�
 - `.viewportOverlay` は `pointer-events: none` のため、移設するホットバー（D&D・クリック）と装備HUD（クリック選択）には `pointer-events: auto` の明示が必須。忘れると操作が死ぬ。
 - 極端な横長では装備HUD（実画面右端）が `ItemListPanel`（stage右端）から大きく離れる。これは「画面の角に沿う」要求の当然の帰結として受け入れる。
   出所: ユーザー裁定 2026-08-17（Q13-6）
-- stage は `z-index: 1` で独自スタッキングコンテキストを作るため、stage内部の層序は Portal 層（モーダル `z=200` / トースト `z=300` / 再接続 `z=2000`）へ影響しない。stage内部の前後関係は `--z-*` トークンで明示する（DOM順への暗黙依存をやめる）。
+- stage は `z-index: var(--z-viewport-stage)`（=2）で独自スタッキングコンテキストを作るため、stage内部の層序は Portal 層（モーダル `z=200` / トースト `z=300` / 再接続 `z=2000`）へ影響しない。stage内部の前後関係は `--z-stage-*` トークンで明示する（DOM順への暗黙依存をやめる）。
   出所: ユーザー裁定 2026-08-17（Q7 は当初 B＝DOM順だったが、モーダルへの影響が無いと確認した上で A＝トークン明示へ変更）
+- `.viewport` 直下は `--z-viewport-backdrop`(0) / `--z-viewport-behind-stage`(1) / `--z-viewport-stage`(2) の3値で層序を明示する（ADR 0017）。

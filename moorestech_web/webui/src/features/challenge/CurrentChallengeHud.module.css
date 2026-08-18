@@ -4,7 +4,7 @@
   position: absolute;
   top: var(--challenge-hud-top);
   left: var(--challenge-hud-left);
-  z-index: var(--z-overlay-panel);
+  z-index: var(--z-stage-overlay-panel);
   width: var(--challenge-hud-width);
   color: var(--text-high-contrast);
   pointer-events: none;

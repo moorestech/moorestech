@@ -6,7 +6,7 @@
 /* The viewportOverlay is pointer-events:none, so this click-selectable column re-enables input explicitly */
 .equipmentArea {
   position: absolute;
-  z-index: var(--z-overlay-panel);
+  z-index: var(--z-stage-overlay-panel);
   pointer-events: auto;
   right: var(--equipment-right);
   bottom: var(--equipment-bottom);
