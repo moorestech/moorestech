@@ -207,6 +207,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 - 具体名（ファイル/クラス/メソッド）と修正方針が挙がっていて選択の余地が無い機械的修正・単独系統cosmeticは、確認を挟まず自動適用する（デフォルト動作）。
 - 設計判断（複数の妥当な選択肢・スコープ影響・アーキテクチャ変更・両立不能な指摘・decisionを要するCodex High/Medium）は適用せずStep 7へ保留。
 - .csを修正したら `uloop compile --project-path ./moorestech_client` を実行しエラー0を確認する。
+- **Read規律（オーケストレータのコンテキスト節約・2026-08-18）**: 修正適用のためのReadはEdit対象の該当範囲だけを `offset`/`limit` で読む（ファイル全文Readしない）。疑義照合で実コードへ戻るときも該当関数の範囲だけに絞る。裏取りはintegratorが済ませており、オーケストレータの再Readは「これからEditする箇所の現物確認」が目的。
 
 ## Step 6.5: 決定論再チェック＋コメント保全post-checks ⑤.5
 
