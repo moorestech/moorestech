@@ -16,6 +16,9 @@ namespace Game.Challenge.Task
         private bool _completed;
         private bool _initialCheckDone;
 
+        private readonly CompleteResearchTaskParam _completeResearchTaskParam;
+        private readonly IResearchDataStore _researchDataStore;
+
         public static IChallengeTask Create(ChallengeMasterElement challengeMasterElement)
         {
             return new CompleteResearchChallengeTask(challengeMasterElement);
@@ -25,6 +28,11 @@ namespace Game.Challenge.Task
         {
             ChallengeMasterElement = challengeMasterElement;
 
+            // マスタのtaskParam型不整合を生成時に検出する（前例: InInventoryItemChallengeTask）
+            // Detect a taskParam type mismatch at construction time (precedent: InInventoryItemChallengeTask)
+            _completeResearchTaskParam = (CompleteResearchTaskParam)challengeMasterElement.TaskParam;
+            _researchDataStore = ServerContext.GetService<IResearchDataStore>();
+
             var researchEvent = ServerContext.GetService<ResearchEvent>();
             researchEvent.OnResearchCompleted.Subscribe(OnResearchCompleted);
         }
@@ -32,9 +40,7 @@ namespace Game.Challenge.Task
         private void OnResearchCompleted((int playerId, ResearchNodeMasterElement researchNode) research)
         {
             if (_completed) return;
-
-            var param = (CompleteResearchTaskParam)ChallengeMasterElement.TaskParam;
-            if (research.researchNode.ResearchNodeGuid != param.ResearchNodeGuid) return;
+            if (research.researchNode.ResearchNodeGuid != _completeResearchTaskParam.ResearchNodeGuid) return;
 
             _completed = true;
             _onChallengeComplete.OnNext(this);
@@ -47,9 +53,7 @@ namespace Game.Challenge.Task
             if (_completed || _initialCheckDone) return;
             _initialCheckDone = true;
 
-            var param = (CompleteResearchTaskParam)ChallengeMasterElement.TaskParam;
-            var researchDataStore = ServerContext.GetService<IResearchDataStore>();
-            if (!researchDataStore.IsResearchCompleted(param.ResearchNodeGuid)) return;
+            if (!_researchDataStore.IsResearchCompleted(_completeResearchTaskParam.ResearchNodeGuid)) return;
 
             _completed = true;
             _onChallengeComplete.OnNext(this);

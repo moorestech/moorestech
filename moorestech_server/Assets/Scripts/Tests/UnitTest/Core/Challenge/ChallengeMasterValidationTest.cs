@@ -38,5 +38,77 @@ namespace Tests.UnitTest.Core.Challenge
             Assert.IsFalse(master.Validate(out var logs));
             StringAssert.Contains("invalid Tutorial.VeinGuid", logs);
         }
+
+        [Test]
+        public void completeResearchが存在しないresearchNodeGuidを参照すると失敗する()
+        {
+            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
+                "mods", "forUnitTest", "master", "challenges.json");
+            var json = JObject.Parse(File.ReadAllText(path));
+            var taskParam = (JObject)json["data"][0]["challenges"][5]["taskParam"];
+
+            // completeResearchチャレンジ以外のfixtureは保ち、researchNodeGuid参照だけを壊して検出責務を分離する
+            // Keep the remaining fixture valid and break only the researchNodeGuid reference to isolate this validator
+            taskParam["researchNodeGuid"] = "99999999-9999-9999-9999-999999999999";
+
+            var master = new ChallengeMaster(json);
+
+            Assert.IsFalse(master.Validate(out var logs));
+            StringAssert.Contains("invalid TaskParam.ResearchNodeGuid", logs);
+        }
+
+        [Test]
+        public void uiDragGuideが存在しないbuildMenuBlockを参照すると失敗する()
+        {
+            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
+                "mods", "forUnitTest", "master", "challenges.json");
+            var json = JObject.Parse(File.ReadAllText(path));
+            var tutorials = (JArray)json["data"][0]["challenges"][5]["tutorials"];
+
+            // uiDragGuideはテストmodにfixtureが無いため、このテストで検証対象のtutorialを追加する
+            // uiDragGuide has no fixture in the test mod, so this test adds the tutorial under scrutiny
+            tutorials.Add(new JObject
+            {
+                ["tutorialGuid"] = "00000000-0000-0000-8901-000000000101",
+                ["tutorialType"] = "uiDragGuide",
+                ["tutorialParam"] = new JObject
+                {
+                    ["fromUIObjectId"] = "buildMenuBlock:99999999-9999-9999-9999-999999999999",
+                    ["toUIObjectId"] = "hotbar:0",
+                },
+            });
+
+            var master = new ChallengeMaster(json);
+
+            Assert.IsFalse(master.Validate(out var logs));
+            StringAssert.Contains("invalid uiDragGuide target", logs);
+        }
+
+        [Test]
+        public void uiDragGuideが実在するbuildMenuBlockを参照すると成功する()
+        {
+            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
+                "mods", "forUnitTest", "master", "challenges.json");
+            var json = JObject.Parse(File.ReadAllText(path));
+            var tutorials = (JArray)json["data"][0]["challenges"][5]["tutorials"];
+
+            // 実在するブロックGUIDを指す正常系。uiDragGuide分岐を初めてtrueルートで実行する
+            // Valid case pointing at an existing block GUID. Exercises the uiDragGuide branch's true route for the first time
+            tutorials.Add(new JObject
+            {
+                ["tutorialGuid"] = "00000000-0000-0000-8901-000000000102",
+                ["tutorialType"] = "uiDragGuide",
+                ["tutorialParam"] = new JObject
+                {
+                    ["fromUIObjectId"] = "buildMenuBlock:00000000-0000-0000-0000-000000000001",
+                    ["toUIObjectId"] = "hotbar:0",
+                },
+            });
+
+            var master = new ChallengeMaster(json);
+
+            Assert.IsTrue(master.Validate(out var logs));
+            Assert.IsEmpty(logs);
+        }
     }
 }

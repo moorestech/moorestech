@@ -342,7 +342,7 @@ namespace Core.Master.Validator
             string ValidateDragGuideObjectId(string uiObjectId, string challengeTitle)
             {
                 const string blockPrefix = "buildMenuBlock:";
-                if (!uiObjectId.StartsWith(blockPrefix)) return "";
+                if (!uiObjectId.StartsWith(blockPrefix, StringComparison.Ordinal)) return "";
 
                 if (!Guid.TryParse(uiObjectId.Substring(blockPrefix.Length), out var blockGuid) ||
                     MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid) == null)
