@@ -162,9 +162,16 @@
   background: linear-gradient(90deg, transparent 0%, rgb(128 132 159 / 30%) 5%, rgb(128 132 159 / 42%) 11%, rgb(128 132 159 / 42%) 89%, rgb(128 132 159 / 26%) 95%, transparent 100%);
 }
 
+/* basisをautoにすると、height固定パネル(研究/ビルドメニュー)で子孫の内容サイズが最初のレイアウトパスだけ
+   上へ漏れ、header/decoLineが一時的に縮む(初期中央寄せの測定タイミングとレースし数px級のズレを生む)。
+   viewport(TreeView.module.css)同様にbasis 0%へ固定し、内容サイズに一切依存させない */
+/* An auto basis lets descendant content size leak upward during only the first layout pass in
+   height-pinned panels (research/build menu), transiently shrinking header/decoLine (racing the
+   initial-centering measurement into a several-px error). Pin basis to 0%, like .viewport in
+   TreeView.module.css, so this never depends on content size at all */
 .body {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   flex-direction: column;
   min-height: 0;
 }
