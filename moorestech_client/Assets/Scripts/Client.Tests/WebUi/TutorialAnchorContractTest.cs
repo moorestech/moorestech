@@ -88,7 +88,10 @@ namespace Client.Tests.WebUi
                 return;
             }
 
-            foreach (var uiObjectId in CollectDragGuideUiObjectIds(masterRoot))
+            var uiObjectIds = CollectDragGuideUiObjectIds(masterRoot);
+            Assert.IsNotEmpty(uiObjectIds, "No uiDragGuide from/to found across any mod's challenges.json");
+
+            foreach (var uiObjectId in uiObjectIds)
             {
                 Assert.IsTrue(TutorialAnchorIdMapper.IsKnownUiObjectId(uiObjectId), $"'{uiObjectId}' is not a known key in TutorialAnchorIdMapper");
             }
