@@ -22,6 +22,19 @@ vi.mock("@/shared/ui", () => ({
 
 import ResearchDetailPane from "./ResearchDetailPane";
 
+// tooltipプロップに渡すJSX要素はdev用_ownerでFiberを循環参照するため、JSON.stringifyの標準replacerでは落ちる
+// JSX passed as the tooltip prop carries a dev-only _owner back to the Fiber, so plain JSON.stringify throws on the cycle
+function safeStringify(value: unknown): string {
+  const seen = new WeakSet<object>();
+  return JSON.stringify(value, (_key, val) => {
+    if (typeof val === "object" && val !== null) {
+      if (seen.has(val)) return "[Circular]";
+      seen.add(val);
+    }
+    return val;
+  });
+}
+
 const researchGuid = "86000000-0000-4000-8000-000000000001";
 const node: ResearchNodeData = {
   guid: researchGuid, state: "researchable", iconItemId: 1,
@@ -38,7 +51,7 @@ describe("ResearchDetailPane", () => {
     expect(button.props.disabled).toBe(false);
     act(() => button.props.onClick());
     expect(dispatchMock).toHaveBeenCalledWith("research.complete", { researchGuid });
-    const rendered = JSON.stringify(renderer.toJSON());
+    const rendered = safeStringify(renderer.toJSON());
     expect(rendered).toContain(`research.${researchGuid}.name`);
     expect(rendered).toContain(`research.${researchGuid}.description`);
   });

@@ -2,11 +2,13 @@ import type { ResearchNodeData } from "@/bridge";
 import { dispatchAction } from "@/bridge";
 import { GamePanel, ItemSlot } from "@/shared/ui";
 import { deriveResearchButton, isItemSufficient } from "./researchLogic";
+import UnlockSections from "./UnlockSections";
 import {
   L,
   researchDescriptionKey,
   researchNameKey,
   useI18n,
+  useItemNameResolver,
 } from "@/shared/i18n";
 import styles from "./style.module.css";
 
@@ -20,6 +22,7 @@ type Props = {
 // Floating pane for selected-node details and research execution (not affected by pan/zoom)
 export default function ResearchDetailPane({ node, owned, onClose }: Props) {
   const { t } = useI18n();
+  const resolveItemName = useItemNameResolver();
   const button = deriveResearchButton(node, owned);
   return (
     <div className={styles.detailPane} data-testid="research-detail-pane">
@@ -33,23 +36,23 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
           </div>
           <p className={styles.detailDescription}>{t(researchDescriptionKey(node.guid))}</p>
           {node.consumeItems.length > 0 && (
-            <div className={styles.detailSlots}>
-              {node.consumeItems.map((c, i) => (
-                <ItemSlot key={`consume-${c.itemId}-${i}`} itemId={c.itemId} count={c.count}
-                  insufficient={!isItemSufficient(node, c.itemId, c.count, owned) && node.state !== "completed"} />
-              ))}
+            <div data-testid="research-consume-items">
+              <span className={styles.sectionLabel}>{t(L.ui.research.consumeItemsLabel)}</span>
+              <div className={styles.detailSlots}>
+                {node.consumeItems.map((c, i) => (
+                  <ItemSlot key={`consume-${c.itemId}-${i}`} itemId={c.itemId} count={c.count}
+                    insufficient={!isItemSufficient(node, c.itemId, c.count, owned) && node.state !== "completed"}
+                    tooltip={<span style={{ whiteSpace: "pre-line" }}>{t(L.ui.recipe.materialTooltip, {
+                      itemName: resolveItemName(c.itemId) ?? t(L.ui.common.itemFallback, { itemId: c.itemId }),
+                      ownedCount: owned.get(c.itemId) ?? 0,
+                      requiredCount: c.count,
+                    })}</span>}
+                  />
+                ))}
+              </div>
             </div>
           )}
-          {node.rewardItems.length + node.unlockItemIds.length > 0 && (
-            <div className={styles.detailSlots}>
-              {node.rewardItems.map((reward, i) => (
-                <ItemSlot key={`reward-${reward.itemId}-${i}`} itemId={reward.itemId} count={reward.count} />
-              ))}
-              {node.unlockItemIds.map((id, i) => (
-                <ItemSlot key={`unlock-${id}-${i}`} itemId={id} />
-              ))}
-            </div>
-          )}
+          <UnlockSections node={node} />
           <button
             type="button"
             className={styles.researchButton}

@@ -61,6 +61,21 @@ test("研究報酬itemの個数をtopic payloadどおり詳細ペインで表示
   await expectCraftGrip(pane.locator(':scope > [data-variant="craft"]'), false);
 });
 
+test("詳細ペインに解放物が種類別ラベル付きで並ぶ", async ({ page }) => {
+  await setUiState(page, "ResearchTree");
+  await page.goto("/");
+  await page.getByTestId(`research-node-${researchableNodeGuid}`).click();
+  const pane = page.getByTestId("research-detail-pane");
+  await expect(pane.getByTestId("research-consume-items")).toBeVisible();
+  await expect(pane.getByTestId("research-unlock-blocks")).toBeVisible();
+  await expect(pane.getByTestId("research-unlock-machine-recipes")).toBeVisible();
+  await expect(pane.getByTestId("research-reward-items")).toBeVisible();
+  await expect(pane.getByTestId("research-unlock-others")).toBeVisible();
+  // 空種類のセクションは出ない（ノード3はunlockItemIdsが空）
+  // Empty kinds render nothing (node 3 has no unlockItemIds)
+  await expect(pane.getByTestId("research-unlock-craft-recipes")).toHaveCount(0);
+});
+
 test("translate後のグリップ矩形だけに重なる境界buttonをexpectCraftGripが検出する", async ({ page }) => {
   await setUiState(page, "ResearchTree");
   await page.goto("/");
