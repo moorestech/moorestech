@@ -20,6 +20,7 @@ namespace Client.Game.InGame.UnlockState
         public IReadOnlyDictionary<Guid, BlockUnlockStateInfo> BlockUnlockStateInfos => _blockUnlockStateInfos;
         public IReadOnlyDictionary<Guid, TrainCarUnlockStateInfo> TrainCarUnlockStateInfos => _trainCarUnlockStateInfos;
         public IReadOnlyDictionary<Guid, ConnectToolUnlockStateInfo> ConnectToolUnlockStateInfos => _connectToolUnlockStateInfos;
+        public bool IsBlueprintUnlocked { get; private set; }
 
         private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
         private readonly Dictionary<ItemId, ItemUnlockStateInfo> _itemUnlockStateInfos = new();

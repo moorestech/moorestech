@@ -199,6 +199,8 @@ namespace Client.Tests.WebUi
                 MasterHolder.TrainUnitMaster.Train.TrainCars.ToDictionary(
                     trainCar => trainCar.TrainCarGuid,
                     trainCar => new TrainCarUnlockStateInfo(trainCar.TrainCarGuid, true));
+
+            public bool IsBlueprintUnlocked => true;
         }
     }
 }
