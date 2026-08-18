@@ -18,7 +18,7 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:blueprint";
 
         private readonly IBlueprintDatastore _blueprintDatastore;
-        private readonly IGameUnlockStateDataController _gameUnlockState;
+        private readonly IGameUnlockStateData _gameUnlockState;
 
         public BlueprintProtocol(ServiceProvider serviceProvider)
         {

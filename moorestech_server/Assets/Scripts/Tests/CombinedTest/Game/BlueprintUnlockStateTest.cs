@@ -55,7 +55,7 @@ namespace Tests.CombinedTest.Game
             var controller = serviceProvider.GetService<IGameUnlockStateDataController>();
             var executor = serviceProvider.GetService<global::Game.Action.IGameActionExecutor>();
 
-            // unlockBlueprintアクションを直接組み立てて実行する
+            // unlockBlueprintを実行
             // Build and execute the unlockBlueprint action directly
             var action = new Mooresmaster.Model.GameActionModule.GameActionElement(
                 0,
@@ -72,7 +72,7 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = CreateServer();
             var controller = serviceProvider.GetService<IGameUnlockStateDataController>();
 
-            // 旧セーブ相当: BlueprintUnlockStateがnullのJSONをロードする
+            // 旧セーブ相当（状態null）
             // Old-save equivalent: load JSON whose BlueprintUnlockState is null
             var saveJson = controller.GetSaveJsonObject();
             saveJson.BlueprintUnlockState = null;

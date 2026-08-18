@@ -151,7 +151,7 @@ namespace Client.Game.InGame.UnlockState
                      var connectToolGuid = message.UnlockedConnectToolGuid;
                      _connectToolUnlockStateInfos[connectToolGuid] = new ConnectToolUnlockStateInfo(connectToolGuid, true);
                      break;
-                 // ブループリント機能の解放をイベントから反映する
+                 // BP解放をイベントから反映
                  // Reflect the blueprint feature unlock from the event
                  case UnlockEventType.Blueprint:
                      IsBlueprintUnlocked = true;

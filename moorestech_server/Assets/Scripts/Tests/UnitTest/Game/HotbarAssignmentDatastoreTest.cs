@@ -132,7 +132,7 @@ namespace Tests.UnitTest.Game
         [Test]
         public void 未解放時はBP系の新規割当が無視されロード済み割当は保持される()
         {
-            // DIから実物一式を取得（unlockStateは初期=未解放）
+            // DIから実物一式を取得（初期=未解放）
             // Resolve the real instances from DI (unlock state starts locked)
             var (_, serviceProvider) = CreateServer();
             var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
@@ -146,7 +146,7 @@ namespace Tests.UnitTest.Game
             datastore.SetAssignment(1, 0, copyToolId);
             Assert.AreEqual(Guid.Empty, datastore.GetAssignments(1)[0]);
 
-            // 旧セーブ相当: BP割当を含むセーブはロックでも保持される（存在チェックのみ）
+            // 旧セーブ相当: ロックでも保持
             // Old-save equivalent: saved blueprint-tool slots survive a locked load (existence check only)
             unlockState.UnlockBlueprint();
             datastore.SetAssignment(1, 0, copyToolId);
@@ -155,6 +155,21 @@ namespace Tests.UnitTest.Game
             var lockedDatastore = lockedProvider.GetService<HotbarAssignmentDatastore>();
             lockedDatastore.LoadHotbar(save);
             Assert.AreEqual(copyToolId, lockedDatastore.GetAssignments(1)[0]);
+        }
+
+        [Test]
+        public void 未解放時は登録済みBPGuidの新規割当も無視される()
+        {
+            var (_, serviceProvider) = CreateServer();
+            var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
+            var blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
+
+            // 現行BPのGuidを未解放のまま割当てる
+            // A guid resolvable as a current blueprint (not in the master), assigned while still locked
+            var blueprintGuid = blueprintDatastore.Register(new BlueprintJsonObject("locked-bp", new List<BlueprintBlockJsonObject>(), Guid.NewGuid()));
+            datastore.SetAssignment(1, 0, blueprintGuid);
+
+            Assert.AreEqual(Guid.Empty, datastore.GetAssignments(1)[0]);
         }
 
         private static (global::Server.Protocol.PacketResponseCreator packet, ServiceProvider serviceProvider) CreateServer()

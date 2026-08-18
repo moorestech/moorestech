@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Core.Master;
 using Game.UnlockState.States;
+using Mooresmaster.Model.BuildMenuModule;
 using UniRx;
 
 namespace Game.UnlockState.Holders
@@ -16,9 +17,9 @@ namespace Game.UnlockState.Holders
 
         public BlueprintUnlockStateHolder()
         {
-            // 機能全体の単一フラグ。buildToolsのinitialUnlockedからシードする（ADR 0015）
-            // Single feature-wide flag seeded from buildTools initialUnlocked (ADR 0015)
-            var initialUnlocked = MasterHolder.BuildToolMaster.All.Any(tool => tool.InitialUnlocked);
+            // 機能全体の単一フラグ。buildToolsのブループリントコピーツールのinitialUnlockedからシードする（ADR 0015）
+            // Single feature-wide flag seeded from the blueprint-copy build tool's initialUnlocked (ADR 0015)
+            var initialUnlocked = MasterHolder.BuildToolMaster.All.Any(tool => tool.ToolType == BuildToolMasterElement.ToolTypeConst.blueprintCopy && tool.InitialUnlocked);
             _info = new BlueprintUnlockStateInfo(initialUnlocked);
         }
 

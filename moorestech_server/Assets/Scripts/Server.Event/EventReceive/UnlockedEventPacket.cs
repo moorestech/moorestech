@@ -35,7 +35,7 @@ namespace Server.Event.EventReceive
             _unlockState.OnUnlockBlock.Subscribe(b => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.Block, b)));
             _unlockState.OnUnlockTrainCar.Subscribe(t => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.TrainCar, t)));
             _unlockState.OnUnlockConnectTool.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.ConnectTool, c)));
-            _unlockState.OnUnlockBlueprint.Subscribe(_ => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.Blueprint, Guid.Empty)));
+            _unlockState.OnUnlockBlueprint.Subscribe(_ => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.Blueprint)));
         }
         
         private void AddBroadcastEvent(UnlockEventMessagePack unlockEventMessagePack)
@@ -77,7 +77,14 @@ namespace Server.Event.EventReceive
             UnlockEventTypeInt = (int)UnlockEventType.Item;
             UnlockedItemIdInt = (int)itemId;
         }
-        
+
+        // 単一フラグ種別(Blueprint等)専用コンストラクタ
+        // Constructor for GUID-less single-flag kinds (e.g. Blueprint)
+        public UnlockEventMessagePack(UnlockEventType unlockEventType)
+        {
+            UnlockEventTypeInt = (int)unlockEventType;
+        }
+
         public UnlockEventMessagePack(UnlockEventType unlockEventType, Guid guid)
         {
             UnlockEventTypeInt = (int)unlockEventType;
@@ -101,10 +108,8 @@ namespace Server.Event.EventReceive
                 case UnlockEventType.ConnectTool:
                     UnlockedConnectToolGuidStr = guid.ToString();
                     break;
-                case UnlockEventType.Blueprint:
-                    // 単一フラグのためGuidを持たない
-                    // Single flag; carries no GUID
-                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(unlockEventType), unlockEventType, "この種別はGuidを持たない。Guid無しコンストラクタを使うこと");
             }
         }
     }
