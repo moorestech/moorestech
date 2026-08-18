@@ -784,7 +784,7 @@ git commit -m "feat: 開始スキットに左上目標HUDの案内台詞を追�
 - Consumes: `tutorial.presentation` topicの `dragGuides`（Task 3のUnity側が配信: `{guideId, fromAnchorId, toAnchorId}`）
 - Produces: `TutorialAnchorIds.hotbarHud = "hotbar.hud"`、矢印ループ描画
 
-- [ ] **Step 1: webui-design SKILL.md に §8.17 を追記**（ユーザー裁定2026-08-18に基づく様式化。§8.16の後に挿入）
+- [x] **Step 1: webui-design SKILL.md に §8.17 を追記**（ユーザー裁定2026-08-18に基づく様式化。§8.16の後に挿入）
 
 ```markdown
 ## 8.17 チュートリアルのドラッグガイド矢印
@@ -802,14 +802,14 @@ git commit -m "feat: 開始スキットに左上目標HUDの案内台詞を追�
 - e2e/スクリーンショット検証はアニメーション非同期のため座標一致を要求しない（表示有無のみ検証する）。
 ```
 
-- [ ] **Step 2: 失敗するテストを書く（アンカー単一ソースとスキーマ）**
+- [x] **Step 2: 失敗するテストを書く（アンカー単一ソースとスキーマ）**
 
 `anchorIds.test.ts` はフィクスチャ（`tutorial_anchor_ids.json`）と `TutorialAnchorIds` の突合をしている。Task 3 Step 4でフィクスチャに `hotbar.hud` を足したため、この時点でテストは**既に失敗している**はず。確認:
 
 Run: `cd moorestech_web/webui && npx vitest run src/shared/tutorialAnchor`
 Expected: FAIL（`hotbar.hud` がWeb側に無い）
 
-- [ ] **Step 3: anchorIds.ts に hotbarHud を追加**
+- [x] **Step 3: anchorIds.ts に hotbarHud を追加**
 
 `TutorialAnchorIds` オブジェクトへ1行追加:
 
@@ -817,7 +817,7 @@ Expected: FAIL（`hotbar.hud` がWeb側に無い）
   hotbarHud: "hotbar.hud",
 ```
 
-- [ ] **Step 4: HotbarPanel にアンカーを宣言**
+- [x] **Step 4: HotbarPanel にアンカーを宣言**
 
 `HotbarPanel/index.tsx` の `data-hotbar-row` を持つdiv（30行付近）へ追加:
 
@@ -829,7 +829,7 @@ import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
         {...tutorialAnchor(TutorialAnchorIds.hotbarHud)}>
 ```
 
-- [ ] **Step 5: presentation.ts スキーマに dragGuides を追加**
+- [x] **Step 5: presentation.ts スキーマに dragGuides を追加**
 
 ```ts
 // D&D説明の矢印ガイド。from/to両anchorが解決している間だけ描く
@@ -846,7 +846,7 @@ export const TutorialPresentationDataSchema = z.object({
 
 ※ スキーマのテストファイル（`presentation.test.ts` 等）が存在すれば `dragGuides: []` を既存フィクスチャへ追加し、guide入りのケースを1件足す。Unity側スナップショット（`WebUiJson.Serialize`）が`dragGuides`を必ず含むため optional にしない。
 
-- [ ] **Step 6: TutorialOverlay に矢印ループを実装**
+- [x] **Step 6: TutorialOverlay に矢印ループを実装**
 
 `TutorialOverlay.tsx` を拡張。dragGuideごとにfrom/to両anchorを `TutorialAnchorRegistry.subscribe` で解決し（ハイライトと同じ購読機構・ackはハイライトのみで矢印は送らない）、両方 `ready` のときだけ矢印を描く:
 
@@ -918,17 +918,17 @@ guide用の解決購読は専用の `useEffect` で束ねる（ackは送らな�
   --tutorial-drag-guide-duration: 1600ms;
 ```
 
-- [ ] **Step 7: テスト実行**
+- [x] **Step 7: テスト実行**
 
 Run: `cd moorestech_web/webui && npx vitest run src/shared/tutorialAnchor src/bridge src/features/tutorial`
 Expected: 全件PASS（TutorialOverlayのテストが `dragGuides` 欠落フィクスチャで落ちる場合は `dragGuides: []` を追加）
 
-- [ ] **Step 8: lint/型チェック**
+- [x] **Step 8: lint/型チェック**
 
 Run: `cd moorestech_web/webui && npx tsc --noEmit && npx eslint src/features/tutorial src/shared/tutorialAnchor src/features/hotbar`
 Expected: エラー0件
 
-- [ ] **Step 9: コミット**
+- [x] **Step 9: コミット**
 
 ```bash
 git add .agents/skills/webui-design/SKILL.md moorestech_web/webui
