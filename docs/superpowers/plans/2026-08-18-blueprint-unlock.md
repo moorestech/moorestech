@@ -53,7 +53,7 @@ ADR: `docs/adr/0015-blueprint-feature-unlock-single-flag.md`（実装前に必�
 - Consumes: なし（先頭タスク）
 - Produces: 以後の全タスクが参照するADR・裁定・用語
 
-- [ ] **Step 1: メインクローンから設計文書8点をコピーする**
+- [x] **Step 1: メインクローンから設計文書8点をコピーする**
 
 ```bash
 SRC=<メインクローンの絶対パス>   # moores-wt newの元ディレクトリ
@@ -65,7 +65,7 @@ cp "$SRC/CONTEXT.md" CONTEXT.md
 
 注意: `CONTEXT.md`のコピーで研究UIセッション由来の「### 研究」節も一緒に入る（メインクローンの現行内容が正）。
 
-- [ ] **Step 2: コミットする**
+- [x] **Step 2: コミットする**
 
 ```bash
 git add docs/adr .decisions CONTEXT.md docs/superpowers/plans
@@ -85,11 +85,11 @@ git commit -m "docs: ブループリントアンロックのADR 0015と裁定・
 - Consumes: なし
 - Produces: 自動生成される `BuildToolMasterElement.InitialUnlocked: bool`（Task 3が使う）と `GameActionElement.GameActionTypeConst.unlockBlueprint`（Task 4が使う）
 
-- [ ] **Step 1: `edit-schema`スキルを読み込む**
+- [x] **Step 1: `edit-schema`スキルを読み込む**
 
 Skillツールで`edit-schema`を起動し、スキーマ編集規約に従う。
 
-- [ ] **Step 2: `VanillaSchema/buildMenu.yml`のbuildTools itemsへinitialUnlockedを追加する**
+- [x] **Step 2: `VanillaSchema/buildMenu.yml`のbuildTools itemsへinitialUnlockedを追加する**
 
 `- key: toolType`ブロック（enum options: blueprintCopy）の直後に追加:
 
@@ -99,7 +99,7 @@ Skillツールで`edit-schema`を起動し、スキーマ編集規約に従う�
       default: false
 ```
 
-- [ ] **Step 3: `VanillaSchema/ref/gameAction.yml`へunlockBlueprintを追加する**
+- [x] **Step 3: `VanillaSchema/ref/gameAction.yml`へunlockBlueprintを追加する**
 
 `gameActionType`のenum optionsの`unlockConnectTool`の後に`- unlockBlueprint`を追加し、`cases:`へ以下を追加（`playBackgroundSkit`のパラメータ無し前例と同型）:
 
@@ -110,16 +110,16 @@ Skillツールで`edit-schema`を起動し、スキーマ編集規約に従う�
       properties: []
 ```
 
-- [ ] **Step 4: テストマスタJSONへinitialUnlockedを明示する**
+- [x] **Step 4: テストマスタJSONへinitialUnlockedを明示する**
 
 `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/buildMenu.json`のbuildTools配列の要素（`3f8f6de0-0000-4000-8000-000000000001`）へ`"initialUnlocked": false`を追加する（connectToolsが全JSONで明示している前例に合わせる）。実マスタ（moorestech_master repo）の更新は後続タスクbd:moorestech-fy6のスコープ。
 
-- [ ] **Step 5: コンパイルして自動生成を確認する**
+- [x] **Step 5: コンパイルして自動生成を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: 成功。`BuildToolMasterElement.InitialUnlocked`と`GameActionTypeConst.unlockBlueprint`が生成される（生成物は手で編集しない）。
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add VanillaSchema moorestech_server/Assets/Scripts/Tests.Module
