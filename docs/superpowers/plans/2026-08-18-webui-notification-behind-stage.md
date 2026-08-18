@@ -12,7 +12,7 @@
 
 作業ディレクトリはすべて `moorestech_web/webui`。パスは特記なき限りこのディレクトリ相対で記す。
 
-- R1: インベントリ画面を開いている間、通知はインベントリのパネルより**背面**に描かれ、パネルに重なる部分は隠れる。受け入れ基準: `screen === "playerInventory"` でパネルと通知が重なる領域において、通知の有無でパネルの描画結果が変化しない（e2eのピクセル比較で検証）。
+- R1: インベントリ画面を開いている間、通知はインベントリのパネルより**背面**に描かれ、パネルに重なる部分は隠れる。受け入れ基準: `screen === "playerInventory"` で**アイテム入りスロット（完全不透明面）**と通知が重なる領域において、通知の有無でその領域の描画結果が変化しない（e2eのピクセル比較で検証）。パネル面は意図的に半透明なため、空きスロットを含むgrid全体での完全一致は原理的に成立しない（ユーザー裁定 2026-08-18 / `.decisions/2026-08-18-通知背面e2eの比較は不透明マスで行う.md`）。
 - R2: 裏に回す対象は特定画面ではなく**全画面UI全般**（インベントリ・ブロックインベントリ・研究・ビルドメニュー・チャレンジ・ポーズ・スキット・モーダル）。受け入れ基準: 画面ごとの条件分岐を一切書かず、`.stage` 全体の背面へ置くことで一律に達成する。
 - R3: 通知の見た目（位置・文字サイズ）は現行から変えない。受け入れ基準: `position: fixed` / `top: 50%` / `left: 1rem` を保持し、`--ui-scale` による拡縮に追従させない（`.stage` / `.viewportOverlay` の配下には置かない）。
 - R4: 通知は背景ディム（`.backdrop`）より**前**に立ち、画面を開いている間もパネル外へはみ出た部分は読める。受け入れ基準: z層序が `app-backdrop < behind-stage < stage` である。
@@ -89,7 +89,7 @@
 - Consumes: なし（本planの最初のタスク）
 - Produces: CSSカスタムプロパティ 3つ — `--z-app-backdrop: 0` / `--z-behind-stage: 1` / `--z-stage: 2`。Task 2 は `--z-behind-stage` を参照する。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/app/zLayerTokens.test.ts` の末尾、最後の `it(...)` の直後（`describe` ブロック内）へ以下を追記する。既存の `layer()` ヘルパをそのまま使う。ファイル冒頭の import 群の直後（`const tokens = readFileSync(...)` の次の行）に `appStyles` の読み込みを追加する。
 
@@ -117,12 +117,12 @@ const appStyles = readFileSync(new URL("./App.module.css", import.meta.url), "ut
   });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && pnpm vitest run src/app/zLayerTokens.test.ts`
 Expected: FAIL。`--z-app-backdrop is missing from tokens.css`（`layer()` が throw）で1件、`z-index: var(--z-stage)` を含まない旨で1件。
 
-- [ ] **Step 3: トークンを定義する**
+- [x] **Step 3: トークンを定義する**
 
 `src/app/tokens.css` の `--z-screen: 20;` の**直前**へ以下を挿入する（既存の `/* 画面レイヤーの層序を一元化し... */` コメントの下）:
 
@@ -134,7 +134,7 @@ Expected: FAIL。`--z-app-backdrop is missing from tokens.css`（`layer()` が t
   --z-stage: 2;
 ```
 
-- [ ] **Step 4: App.module.css を生値からトークンへ差し替える**
+- [x] **Step 4: App.module.css を生値からトークンへ差し替える**
 
 `src/app/App.module.css` の `.stage` 内 `z-index: 1;` を次へ置換する:
 
@@ -148,17 +148,17 @@ Expected: FAIL。`--z-app-backdrop is missing from tokens.css`（`layer()` が t
   z-index: var(--z-app-backdrop);
 ```
 
-- [ ] **Step 5: テストを実行して通ることを確認する**
+- [x] **Step 5: テストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && pnpm vitest run src/app/zLayerTokens.test.ts`
 Expected: PASS（既存2件＋追加2件の計4件）
 
-- [ ] **Step 6: 全ユニットテストとlintを実行する**
+- [x] **Step 6: 全ユニットテストとlintを実行する**
 
 Run: `cd moorestech_web/webui && pnpm test && pnpm lint`
 Expected: 既存テストの失敗ゼロ、lintエラーゼロ
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/app/tokens.css moorestech_web/webui/src/app/App.module.css moorestech_web/webui/src/app/zLayerTokens.test.ts
@@ -180,7 +180,7 @@ git commit -m "refactor(webui): stageとディムの層序を--z-*トークン�
 - Consumes: Task 1 が定義した `--z-behind-stage`
 - Produces: なし（`NotificationHost` の export・props は不変。`src/features/notification/index.ts` は変更しない）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/features/notification/notificationLayering.test.ts` を新規作成する:
 
@@ -218,12 +218,12 @@ describe("notification layering", () => {
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && pnpm vitest run src/features/notification/notificationLayering.test.ts`
 Expected: FAIL。1件目は `z-index: var(--z-behind-stage)` を含まない、2件目は `hostIndex`（Portal内なので後方）が `stageIndex` より大きい。
 
-- [ ] **Step 3: 通知ホストのz-indexを背面層へ変える**
+- [x] **Step 3: 通知ホストのz-indexを背面層へ変える**
 
 `src/features/notification/style.module.css` の `.host` 内 `z-index: var(--z-toast);` を次へ置換する:
 
@@ -231,7 +231,7 @@ Expected: FAIL。1件目は `z-index: var(--z-behind-stage)` を含まない、2
   z-index: var(--z-behind-stage);
 ```
 
-- [ ] **Step 4: App.tsx の描画位置を移す**
+- [x] **Step 4: App.tsx の描画位置を移す**
 
 `src/app/App.tsx` の `<Portal>` ブロックから `<NotificationHost />` の行を**削除**する。変更後:
 
@@ -256,17 +256,17 @@ Expected: FAIL。1件目は `z-index: var(--z-behind-stage)` を含まない、2
 
 import 行（`import { NotificationHost } from "@/features/notification";`）はそのまま残す。
 
-- [ ] **Step 5: テストを実行して通ることを確認する**
+- [x] **Step 5: テストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && pnpm vitest run src/features/notification/notificationLayering.test.ts`
 Expected: PASS（3件）
 
-- [ ] **Step 6: 全ユニットテスト・型検査・lintを実行する**
+- [x] **Step 6: 全ユニットテスト・型検査・lintを実行する**
 
 Run: `cd moorestech_web/webui && pnpm test && pnpm build && pnpm lint`
 Expected: すべて成功。`pnpm build` の `tsc -b` で未使用importなどの型エラーが出ないこと。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/app/App.tsx moorestech_web/webui/src/features/notification/style.module.css moorestech_web/webui/src/features/notification/notificationLayering.test.ts
@@ -286,7 +286,7 @@ git commit -m "fix(webui): 通知をstage背面へ移し全画面UIの裏へ沈�
 - Consumes: Task 2 で移設済みの `NotificationHost`。既存のmock-host操作 `setUiState(page, "PlayerInventory" | "GameScreen")` と `setTopicScenario(page, "notificationAchievement" | "notificationClear")`（`e2e/support/mockControl` から export）。既存 testid: `notification-row`（通知1行）、`notification-host`（通知ホスト）、`main-grid`（インベントリのメイングリッド）。
 - Produces: なし
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `e2e/tests/notification/layering.spec.ts` を新規作成する:
 
@@ -367,12 +367,12 @@ test("通知ホストはstageより後ろの層に立つ", async ({ page }) => {
 
 3本目が参照する `data-testid="app-stage"` はまだ存在しないため、この時点では必ず失敗する。Step 3 で App.tsx へ付与する。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && pnpm test:e2e -- e2e/tests/notification/layering.spec.ts`
 Expected: 3本目が FAIL（`app-stage` の要素が見つからず `stage` が null になる）。1本目・2本目は Task 2 完了済みなので PASS する。
 
-- [ ] **Step 3: stageにtestidを付ける**
+- [x] **Step 3: stageにtestidを付ける**
 
 `src/app/App.tsx` の stage の div へ testid を追加する:
 
@@ -380,22 +380,22 @@ Expected: 3本目が FAIL（`app-stage` の要素が見つからず `stage` が 
       <div ref={stageRef} className={styles.stage} data-testid="app-stage" data-web-ui-transparent>
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && pnpm test:e2e -- e2e/tests/notification/layering.spec.ts`
 Expected: PASS（3件）。失敗する場合、他セッションのe2eによるポート5273の衝突を疑い、単独で再実行する。
 
-- [ ] **Step 5: 通知まわりの既存e2eが壊れていないことを確認する**
+- [x] **Step 5: 通知まわりの既存e2eが壊れていないことを確認する**
 
 Run: `cd moorestech_web/webui && pnpm test:e2e -- e2e/tests/notification e2e/tests/inventory`
 Expected: すべて PASS
 
-- [ ] **Step 6: ユニットテストとlintを再実行する**
+- [x] **Step 6: ユニットテストとlintを再実行する**
 
 Run: `cd moorestech_web/webui && pnpm test && pnpm lint`
 Expected: すべて成功
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_web/webui/e2e/tests/notification/layering.spec.ts moorestech_web/webui/src/app/App.tsx
