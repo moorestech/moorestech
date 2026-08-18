@@ -2,6 +2,7 @@
 # Block-level markdown to HTML (paragraph, list, h3, fences); unknown syntax fails loudly
 from __future__ import annotations
 
+from .code_card.lines import code_card_lines
 from .inline import escape, inline_html
 from .parse import DigestError
 from .sectioning import read_fence
@@ -15,30 +16,14 @@ def _is_unknown_markup(line: str) -> bool:
     return line[0] in "#>|" or (line[0] in "*+" and not line.startswith("**"))
 
 
-def code_card_lines(body: str) -> list[tuple[str, bool, bool, str]]:
-    # code-card行を (行番号, 追加行か, 問題行か, コード) へ分解する。他の読み手も必ずこれを経由する
-    # Split each code-card line into (line number, is-insertion, is-highlight, code); all readers go through this
-    parsed = []
-    for raw in body.splitlines():
-        if "|" not in raw:
-            raise DigestError(f"code-card の行に | がありません: {raw!r}")
-        head, code = raw.split("|", 1)
-        head = head.strip()
-        ins, hl = "+" in head, "*" in head
-        num = head.replace("+", "").replace("*", "").strip()
-        if not num.isdigit():
-            raise DigestError(f"code-card の行番号が数字ではありません: {raw!r}")
-        parsed.append((num, ins, hl, code))
-    return parsed
-
-
 def code_card_html(body: str, indent: str) -> str:
     # 各行は [フラグ]<行番号>|<コード>。+ は追加行、* は問題行
     # Each line is [flags]<lineno>|<code>; "+" marks an insertion, "*" marks the offending line
     rendered = []
-    for num, ins, hl, code in code_card_lines(body):
+    for num, kind, hl, code in code_card_lines(body):
         inner = escape(code)
-        inner = f"<ins>{inner}</ins>" if ins else inner
+        inner = f"<ins>{inner}</ins>" if kind == "add" else inner
+        inner = f"<del>{inner}</del>" if kind == "del" else inner
         line = f'<span class="ln">{num}</span>{inner}'
         rendered.append(f'<span class="hl">{line}</span>' if hl else line)
     return f'{indent}<pre class="code-card"><code>' + "\n".join(rendered) + "</code></pre>"

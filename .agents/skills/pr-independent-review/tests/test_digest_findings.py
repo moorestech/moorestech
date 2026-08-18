@@ -58,3 +58,11 @@ def test_build_findings_suppressed_has_no_options():
     out = build_findings(doc)
     assert out["findings"][0]["options"] == []
     assert out["findings"][0]["suppress_reason"] == "ADRで免責"
+
+
+def test_excerpt_drops_deleted_lines():
+    # R9: excerptはPR後の現行コードだけを持つ（pr-adjudicated-applyの入力契約）
+    # R9: the excerpt carries only post-PR code, which is pr-adjudicated-apply's input contract
+    from digest_md.findings import _excerpt
+    body = "```code-card\n-37|old();\n+38|new();\n```"
+    assert _excerpt(body) == "new();"
