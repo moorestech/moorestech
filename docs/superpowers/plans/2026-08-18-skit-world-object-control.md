@@ -543,15 +543,15 @@ git commit -m "test(playtest): 開幕スキットの世界非表示で露頭が�
 
 **Files:** なし（レビュー実行のみ）
 
-- [ ] **Step 1: moores-code-review を実行する**
+- [x] **Step 1: moores-code-review を実行する**
 
 `moores-code-review` スキルを起動し、`master...fix/skit-hide-outcrop-with-world-objects` の全差分をレビューする。ゴール達成を理由に省略してはならない。
 
-- [ ] **Step 2: 指摘へ対応する**
+- [x] **Step 2: 指摘へ対応する**
 
 機械的修正は適用し、設計判断は AskUserQuestion で裁定を仰ぐ。修正後は `uloop compile` と Task 1〜3 のテストを再実行する。
 
-- [ ] **Step 3: 作業を全てコミットする**
+- [x] **Step 3: 作業を全てコミットする**
 
 ```bash
 git status   # 未コミットの変更が無いことを確認
