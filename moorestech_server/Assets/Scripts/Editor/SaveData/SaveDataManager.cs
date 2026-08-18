@@ -71,7 +71,7 @@ public class SaveDataManager : EditorWindow
 
     private void CreateInfoLabel(VisualElement root)
     {
-        var infoLabel = new Label($"World Directory:\n{WorldBackupService.WorldDirectory}");
+        var infoLabel = new Label($"World Directory:\n{GameSystemPaths.DefaultWorldDirectory}");
         infoLabel.style.fontSize = 10;
         infoLabel.style.marginTop = 15;
         infoLabel.style.whiteSpace = WhiteSpace.Normal;
@@ -81,73 +81,82 @@ public class SaveDataManager : EditorWindow
 
     private void DeleteWorld()
     {
-        if (!ConfirmWorldExists()) return;
+        if (!ConfirmWorldOperable()) return;
 
         var result = EditorUtility.DisplayDialog(
             "Confirm Delete",
-            $"Delete the whole world directory \"{WorldBackupService.WorldName}\"?\n\n{WorldBackupService.WorldDirectory}",
+            $"Delete the whole world directory \"{GameSystemPaths.DefaultWorldName}\"?\n\n{GameSystemPaths.DefaultWorldDirectory}",
             "Delete",
             "Cancel");
 
         if (!result) return;
 
         WorldBackupService.DeleteWorld();
-        EditorUtility.DisplayDialog("Success", $"Deleted world \"{WorldBackupService.WorldName}\".", "OK");
+        EditorUtility.DisplayDialog("Success", $"Deleted world \"{GameSystemPaths.DefaultWorldName}\".", "OK");
     }
 
     private void BackupAndDeleteWorld()
     {
-        var backupPath = RunBackup(true);
+        var backupPath = RunBackup(WorldBackupDialogMode.BackupAndDelete);
         if (backupPath == null) return;
-
-        WorldBackupService.DeleteWorld();
 
         EditorUtility.DisplayDialog(
             "Success",
-            $"Backed up and deleted world \"{WorldBackupService.WorldName}\".\n\nBackup location:\n{backupPath}",
+            $"Backed up and deleted world \"{GameSystemPaths.DefaultWorldName}\".\n\nBackup location:\n{backupPath}",
             "OK");
     }
 
     private void BackupWorld()
     {
-        var backupPath = RunBackup(false);
+        var backupPath = RunBackup(WorldBackupDialogMode.BackupOnly);
         if (backupPath == null) return;
 
         EditorUtility.DisplayDialog(
             "Success",
-            $"Backed up world \"{WorldBackupService.WorldName}\".\n\nBackup location:\n{backupPath}",
+            $"Backed up world \"{GameSystemPaths.DefaultWorldName}\".\n\nBackup location:\n{backupPath}",
             "OK");
     }
 
-    // バックアップの共通フロー。中止・失敗時はnullを返し、呼び出し側の後続処理を止める
-    // Shared backup flow; returns null on cancel or failure so the caller stops
-    private string RunBackup(bool deleteAfterBackup)
+    // 中止・拒否時はnullで呼び出し側を止める
+    // Returns null on cancel or deny to stop the caller
+    private string RunBackup(WorldBackupDialogMode mode)
     {
-        if (!ConfirmWorldExists()) return null;
+        if (!ConfirmWorldOperable()) return null;
 
-        var dialog = BackupNameDialog.ShowDialog(WorldBackupService.GetWorldSizeBytes(), deleteAfterBackup);
+        var dialog = BackupNameDialog.ShowDialog(WorldBackupService.GetWorldSizeBytes(), mode);
         if (!dialog.Confirmed) return null;
 
-        var backupFolderName = $"Backup_{dialog.Result}";
-        if (WorldBackupService.BackupDestinationExists(backupFolderName))
+        var deleteWorldAfterBackup = mode switch
         {
-            EditorUtility.DisplayDialog(
-                "Error",
-                $"Backup destination already exists.\n\n{WorldBackupService.GetBackupWorldPath(backupFolderName)}",
-                "OK");
+            WorldBackupDialogMode.BackupOnly => false,
+            WorldBackupDialogMode.BackupAndDelete => true,
+            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+        };
+
+        if (!WorldBackupService.TryBackupWorld(dialog.BackupFolderName, deleteWorldAfterBackup, out var backupPath, out var denyReason))
+        {
+            EditorUtility.DisplayDialog("Error", denyReason, "OK");
             return null;
         }
 
-        return WorldBackupService.BackupWorld(backupFolderName);
+        return backupPath;
     }
 
-    private bool ConfirmWorldExists()
+    private bool ConfirmWorldOperable()
     {
+        // 再生中は操作を拒否する
+        // Refuse the operation during play mode
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            EditorUtility.DisplayDialog("Info", "再生中は操作できません。再生を停止してください。", "OK");
+            return false;
+        }
+
         if (WorldBackupService.WorldExists()) return true;
 
         EditorUtility.DisplayDialog(
             "Info",
-            $"World \"{WorldBackupService.WorldName}\" does not exist.\n\n{WorldBackupService.WorldDirectory}",
+            $"World \"{GameSystemPaths.DefaultWorldName}\" does not exist.\n\n{GameSystemPaths.DefaultWorldDirectory}",
             "OK");
         return false;
     }

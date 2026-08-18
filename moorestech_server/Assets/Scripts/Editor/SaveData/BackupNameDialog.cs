@@ -1,7 +1,16 @@
 using System;
+using Game.Paths;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+
+// ダイアログの表示モード。削除の実行有無ではなく表示切り替えを表す
+// Dialog display mode; represents the display switch, not whether delete actually runs
+internal enum WorldBackupDialogMode
+{
+    BackupOnly,
+    BackupAndDelete
+}
 
 /// <summary>バックアップフォルダ名（日時＋任意の説明）を入力させるモーダル</summary>
 /// <summary>Modal that asks for the backup folder name (timestamp plus optional description)</summary>
@@ -11,18 +20,18 @@ public class BackupNameDialog : EditorWindow
     private Label previewLabel;
     private long worldSizeBytes;
     private string dateString;
-    private bool deleteAfterBackup;
+    private WorldBackupDialogMode mode;
 
-    public string Result { get; private set; }
-    public bool Confirmed { get; private set; }
+    internal string BackupFolderName { get; private set; }
+    internal bool Confirmed { get; private set; }
 
-    public static BackupNameDialog ShowDialog(long worldSizeBytes, bool deleteAfterBackup)
+    internal static BackupNameDialog ShowDialog(long worldSizeBytes, WorldBackupDialogMode mode)
     {
         var window = CreateInstance<BackupNameDialog>();
         window.worldSizeBytes = worldSizeBytes;
         window.dateString = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        window.deleteAfterBackup = deleteAfterBackup;
-        window.titleContent = new GUIContent(deleteAfterBackup ? "Backup & Delete" : "Backup");
+        window.mode = mode;
+        window.titleContent = new GUIContent(mode == WorldBackupDialogMode.BackupAndDelete ? "Backup & Delete" : "Backup");
         window.minSize = new Vector2(450, 220);
         window.maxSize = new Vector2(450, 220);
         window.ShowModalUtility();
@@ -36,9 +45,9 @@ public class BackupNameDialog : EditorWindow
         rootVisualElement.style.paddingLeft = 15;
         rootVisualElement.style.paddingRight = 15;
 
-        var actionText = deleteAfterBackup ? "Backup and delete" : "Backup";
+        var actionText = mode == WorldBackupDialogMode.BackupAndDelete ? "Backup and delete" : "Backup";
         var sizeText = $"{worldSizeBytes / 1024f / 1024f:F1} MB";
-        var message = new Label($"{actionText} world \"{WorldBackupService.WorldName}\" ({sizeText})?");
+        var message = new Label($"{actionText} world \"{GameSystemPaths.DefaultWorldName}\" ({sizeText})?");
         message.style.marginBottom = 15;
         message.style.whiteSpace = WhiteSpace.Normal;
         rootVisualElement.Add(message);
@@ -74,17 +83,23 @@ public class BackupNameDialog : EditorWindow
         cancelButton.style.height = 30;
         cancelButton.style.marginRight = 5;
 
-        var okButtonText = deleteAfterBackup ? "Backup & Delete" : "Backup";
+        var okButtonText = mode == WorldBackupDialogMode.BackupAndDelete ? "Backup & Delete" : "Backup";
         var okButton = new Button(() =>
         {
+            var folderName = WorldBackupService.BuildBackupFolderName(dateString, descriptionField.value);
+            if (folderName == null)
+            {
+                previewLabel.text = "Invalid description: avoid / \\ and \"..\"";
+                return;
+            }
+
             Confirmed = true;
-            var description = descriptionField.value;
-            Result = string.IsNullOrEmpty(description) ? dateString : $"{dateString}_{description}";
+            BackupFolderName = folderName;
             Close();
         }) { text = okButtonText };
         okButton.style.width = 130;
         okButton.style.height = 30;
-        okButton.style.backgroundColor = deleteAfterBackup
+        okButton.style.backgroundColor = mode == WorldBackupDialogMode.BackupAndDelete
             ? new Color(1.0f, 0.6f, 0.0f)
             : new Color(0.2f, 0.6f, 0.9f);
 
@@ -95,10 +110,9 @@ public class BackupNameDialog : EditorWindow
 
     private void UpdatePreview()
     {
-        var description = descriptionField.value;
-        var folderName = string.IsNullOrEmpty(description)
-            ? $"Backup_{dateString}"
-            : $"Backup_{dateString}_{description}";
-        previewLabel.text = $"Folder name: {folderName}/{WorldBackupService.WorldName}";
+        var folderName = WorldBackupService.BuildBackupFolderName(dateString, descriptionField.value);
+        previewLabel.text = folderName == null
+            ? "Invalid description: avoid / \\ and \"..\""
+            : $"Folder name: {folderName}/{GameSystemPaths.DefaultWorldName}";
     }
 }

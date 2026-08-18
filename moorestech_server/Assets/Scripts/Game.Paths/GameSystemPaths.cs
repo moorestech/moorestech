@@ -8,8 +8,8 @@ namespace Game.Paths
     {
         private const int WorldIdHexDigits = 16;
 
-        // 起動時に既定で使うワールドディレクトリ名。ワールド名の正はここ1箇所
-        // The world directory used by default at boot; this is the single source of the name
+        // 起動時の既定ワールド名。正はここ1箇所
+        // The default world name at boot; single source of truth
         public const string DefaultWorldName = "world_1";
 
         public static string GameSystemDirectory
@@ -72,13 +72,7 @@ namespace Game.Paths
         {
             return Path.Combine(ExtractedModDirectory, folderName);
         }
-        
-        public static string CreateExtractedModDirectory(string folderName)
-        {
-            return DirectoryCreator(ExtractedModDirectory, folderName);
-        }
 
-        
         public static string GetSaveFilePath(string fileName)
         {
             return Path.Combine(SaveFileDirectory, fileName);
