@@ -2,7 +2,7 @@
 # Block-level markdown to HTML (paragraph, list, h3, fences); unknown syntax fails loudly
 from __future__ import annotations
 
-from .code_card.lines import code_card_lines
+from .code_card.html import code_card_html
 from .inline import escape, inline_html
 from .parse import DigestError
 from .sectioning import read_fence
@@ -16,20 +16,7 @@ def _is_unknown_markup(line: str) -> bool:
     return line[0] in "#>|" or (line[0] in "*+" and not line.startswith("**"))
 
 
-def code_card_html(body: str, indent: str) -> str:
-    # 各行は [フラグ]<行番号>|<コード>。+ は追加行、* は問題行
-    # Each line is [flags]<lineno>|<code>; "+" marks an insertion, "*" marks the offending line
-    rendered = []
-    for num, kind, hl, code in code_card_lines(body):
-        inner = escape(code)
-        inner = f"<ins>{inner}</ins>" if kind == "add" else inner
-        inner = f"<del>{inner}</del>" if kind == "del" else inner
-        line = f'<span class="ln">{num}</span>{inner}'
-        rendered.append(f'<span class="hl">{line}</span>' if hl else line)
-    return f'{indent}<pre class="code-card"><code>' + "\n".join(rendered) + "</code></pre>"
-
-
-def blocks_html(md: str, refs: dict[str, str], indent: str) -> str:
+def blocks_html(md: str, refs: dict[str, str], indent: str, lang: str = "") -> str:
     # 空行区切りのブロックへ割ってから、種別ごとに変換する
     # Split on blank lines, then convert each block by its kind
     out = []
@@ -41,12 +28,12 @@ def blocks_html(md: str, refs: dict[str, str], indent: str) -> str:
             i += 1
             continue
         if line.startswith("```"):
-            lang = line[3:].strip()
-            if lang not in _KNOWN_FENCES:
-                raise DigestError(f"未対応のコードフェンス種別です: {lang}")
+            lang_fence = line[3:].strip()
+            if lang_fence not in _KNOWN_FENCES:
+                raise DigestError(f"未対応のコードフェンス種別です: {lang_fence}")
             body, i = read_fence(lines, i)
-            if lang == "code-card":
-                out.append(code_card_html(body, indent))
+            if lang_fence == "code-card":
+                out.append(code_card_html(body, indent, lang))
             else:
                 out.append(f"{indent}<pre><code>{escape(body)}</code></pre>")
             continue

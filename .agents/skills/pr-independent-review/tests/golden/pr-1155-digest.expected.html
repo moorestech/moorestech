@@ -445,11 +445,19 @@
   .file-path code { font-size: 12px; color: #555; }
   .verdict-card h2, .suppressed-card h2 { font-size: 18px; }
   /* colorは必須: 素のpreが暗背景用の明色文字なので明背景では読めなくなる / color is required: bare pre uses light text for dark bg */
-  .code-card { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px; overflow-x: auto; font-size: 13px; line-height: 1.6; color: #24292f; }
-  .code-card .ln { display: inline-block; width: 3em; color: #8b949e; user-select: none; }
-  /* max-contentで横スクロール幅まで帯を伸ばす（width:100%だと初期表示幅で切れる） / max-content stretches the band to the scroll width */
-  .code-card .hl { background: #fff8c5; display: inline-block; min-width: 100%; width: max-content; }
-  .code-card ins { text-decoration: none; background: #dafbe1; }
+  .code-card { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 0; overflow-x: auto; font-size: 13px; line-height: 1.6; color: #24292f; }
+  /* min-width:100%で横スクロール時も行の帯が途切れないようにする / min-width keeps the row band intact while scrolling horizontally */
+  .code-card code { display: inline-block; min-width: 100%; }
+  .code-card .cl { display: block; white-space: pre; padding-left: 12px; }
+  .code-card .ln { display: inline-block; width: 3.2em; text-align: right; padding-right: .7em; color: #8b949e; user-select: none; }
+  /* 記号列は色が潰れても差分を読ませる最後の砦なので必ず等幅で確保する / the sign column is the last line of defense when colors wash out */
+  .code-card .sign { display: inline-block; width: 1.2em; color: #6e7781; user-select: none; }
+  .code-card .cl.add { background: #dafbe1; }
+  .code-card .cl.add .sign { color: #1a7f37; }
+  .code-card .cl.del { background: #ffebe9; }
+  .code-card .cl.del .sign { color: #cf222e; }
+  /* 注目行は背景を使わない（追加/削除の背景と3層に重なるため）。左縁バーと字の太さで示す / no background here: it would stack on the add/del bands */
+  .code-card .cl.hl { box-shadow: inset 4px 0 0 #F59E0B; font-weight: 600; }
   /* vendorの.lead-item .badgeと衝突するためカード内に限定 / scoped to cards to avoid clashing with vendor .lead-item .badge */
   .verdict-card .badge, .suppressed-card .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-right: 8px; }
   .badge-new { background: #ddf4ff; color: #0969da; }
@@ -509,12 +517,12 @@
         <h2><span class="badge badge-new">設計判断</span> <strong>VanillaGearMachineComponent.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs:40</code></p>
         <p class="summary-line">需要だけ1.5倍に膨らみ、供給も速度も増えない。</p>
-        <pre class="code-card"><code><span class="ln">36</span>        private void UpdateTorqueRequestRate()
-<span class="ln">37</span>        {
-<span class="ln">38</span><ins>            // 表示の分母・加工速度と同じ導出（EffectiveRequestPowerRate）をそのまま歯車網への要求へ反映する</ins>
-<span class="ln">39</span><ins>            // Feed the gear network the same derivation used for the display denominator and processing speed (EffectiveRequestPowerRate)</ins>
-<span class="hl"><span class="ln">40</span><ins>            _gearEnergyTransformer.SetTorqueRequestRate(_vanillaMachineProcessorComponent.EffectiveRequestPowerRate);</ins></span>
-<span class="ln">41</span>        }</code></pre>
+        <pre class="code-card"><code><span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">        private void UpdateTorqueRequestRate()</span></span>
+<span class="cl ctx"><span class="ln">37</span><span class="sign"> </span><span class="code">        {</span></span>
+<span class="cl add"><span class="ln">38</span><span class="sign">+</span><span class="code">            // 表示の分母・加工速度と同じ導出（EffectiveRequestPowerRate）をそのまま歯車網への要求へ反映する</span></span>
+<span class="cl add"><span class="ln">39</span><span class="sign">+</span><span class="code">            // Feed the gear network the same derivation used for the display denominator and processing speed (EffectiveRequestPowerRate)</span></span>
+<span class="cl add hl"><span class="ln">40</span><span class="sign">+</span><span class="code">            _gearEnergyTransformer.SetTorqueRequestRate(_vanillaMachineProcessorComponent.EffectiveRequestPowerRate);</span></span>
+<span class="cl ctx"><span class="ln">41</span><span class="sign"> </span><span class="code">        }</span></span></code></pre>
         <p><strong>PR側の主張:</strong> 歯車機械の要求トルクにもモジュール倍率を反映し、表示分母・加工速度・歯車網要求を一致させる <code>[agent前提]</code>（PR本文「レビュー裁定」／PR内新設 <code>.decisions/2026-08-17-歯車機械の需要にもモジュール倍率を載せる.md</code>・免責力なし）。Fable も「意図どおり」と判定した。</p>
         <p><strong>独立レビューの実測:</strong> <code>MachineModuleEffect.cs:75</code> の倍率は下限のみで上限クランプがない。一方 <code>GearConsumptionCalculator.cs:41-52</code> の <code>required</code> は rate を掛けない素の値で <code>Mathf.Min(currentTorque / required, 1f)</code> により rate&gt;1 分を必ず捨て、<code>CalcCurrentPower</code> は <code>_torqueRequestRate</code> を参照しない。結果、<code>GearNetworkPowerCalculator.cs:44-47</code> で <code>demandPower &gt; availablePower</code> となり <strong>同一歯車網の全消費者が <code>OverRequirePower</code> で停止</strong>し、停止しない場合も充足率は恒久的に 67%（赤固定）になる。5系統がこの二択を提示し、Fable の「意図どおり」判定は供給側の導出を読んでいない。</p>
         <p><strong>代替案:</strong> <strong>案A（推奨）</strong> — <code>GearConsumptionCalculator.CalcOperatingRate/CalcCurrentPower</code> へ <code>requestRate</code> を通し、要求と供給を同じ式に揃える（<code>GearNetworkPowerCalculator.cs:30-31</code> の既存コメントが示す責務統一の方向と一致し、PRの掲げた三者一致を実際に達成する唯一の案）。<strong>案B</strong> — <code>SetTorqueRequestRate(CurrentState == Processing ? 1f : _idlePowerRate)</code> へ戻し、歯車機械の表示分母も基礎値へ戻す（＝歯車機械には倍率を載せない）。</p>
@@ -527,25 +535,25 @@
         <h2><span class="badge badge-new">設計判断</span> <strong>VanillaMachineProcessorComponent.cs</strong> / <strong>CleanRoomMachineProcessorComponent.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:29</code>（＋ <code>moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:31</code>）</p>
         <p class="summary-line">同じ導出が2箇所に写され、既に食い違っている。</p>
-        <pre class="code-card"><code><span class="ln">27</span><ins>        // 稼働状態に応じてアイドル倍率かモジュール倍率を選ぶ要求電力率。歯車機械の要求トルク率もここから導出する</ins>
-<span class="ln">28</span><ins>        // Requested power rate selecting the idle rate or module multiplier by state; the gear machine&#39;s requested torque rate also derives from here</ins>
-<span class="hl"><span class="ln">29</span><ins>        public float EffectiveRequestPowerRate =&gt; CurrentState == ProcessState.Processing ? _context.ProcessingPowerMultiplier : _idlePowerRate;</ins></span>
-<span class="ln">30</span>
-<span class="ln">31</span>        // 稼働状態に応じてアイドル倍率かモジュール倍率を適用した要求電力
-<span class="ln">32</span>        // Requested power applies the idle rate or module multiplier based on the active state
-<span class="ln">33</span><ins>        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</ins></code></pre>
+        <pre class="code-card"><code><span class="cl add"><span class="ln">27</span><span class="sign">+</span><span class="code">        // 稼働状態に応じてアイドル倍率かモジュール倍率を選ぶ要求電力率。歯車機械の要求トルク率もここから導出する</span></span>
+<span class="cl add"><span class="ln">28</span><span class="sign">+</span><span class="code">        // Requested power rate selecting the idle rate or module multiplier by state; the gear machine&#39;s requested torque rate also derives from here</span></span>
+<span class="cl add hl"><span class="ln">29</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState == ProcessState.Processing ? _context.ProcessingPowerMultiplier : _idlePowerRate;</span></span>
+<span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl ctx"><span class="ln">31</span><span class="sign"> </span><span class="code">        // 稼働状態に応じてアイドル倍率かモジュール倍率を適用した要求電力</span></span>
+<span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        // Requested power applies the idle rate or module multiplier based on the active state</span></span>
+<span class="cl add"><span class="ln">33</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</span></span></code></pre>
         <p>同概念の写し（CleanRoom 側・<code>Halted</code> の扱いだけ既に食い違っている）:</p>
-        <pre class="code-card"><code><span class="ln">29</span><ins>        // 停止中は0、稼働中は通常機械と同じ倍率</ins>
-<span class="ln">30</span>        // Halted machines request no power; operating states use the same multipliers as normal machines
-<span class="hl"><span class="ln">31</span><ins>        public float EffectiveRequestPowerRate =&gt; CurrentState switch</ins></span>
-<span class="ln">32</span>        {
-<span class="hl"><span class="ln">33</span>            ProcessState.Halted =&gt; 0f,</span>
-<span class="ln">34</span><ins>            ProcessState.Processing =&gt; _context.ProcessingPowerMultiplier,</ins>
-<span class="ln">35</span><ins>            ProcessState.Idle =&gt; _idlePowerRate,</ins>
-<span class="ln">36</span>            _ =&gt; throw new ArgumentOutOfRangeException(),
-<span class="ln">37</span>        };
-<span class="ln">38</span>
-<span class="ln">39</span><ins>        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</ins></code></pre>
+        <pre class="code-card"><code><span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
+<span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code">        // Halted machines request no power; operating states use the same multipliers as normal machines</span></span>
+<span class="cl add hl"><span class="ln">31</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState switch</span></span>
+<span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        {</span></span>
+<span class="cl ctx hl"><span class="ln">33</span><span class="sign"> </span><span class="code">            ProcessState.Halted =&gt; 0f,</span></span>
+<span class="cl add"><span class="ln">34</span><span class="sign">+</span><span class="code">            ProcessState.Processing =&gt; _context.ProcessingPowerMultiplier,</span></span>
+<span class="cl add"><span class="ln">35</span><span class="sign">+</span><span class="code">            ProcessState.Idle =&gt; _idlePowerRate,</span></span>
+<span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">            _ =&gt; throw new ArgumentOutOfRangeException(),</span></span>
+<span class="cl ctx"><span class="ln">37</span><span class="sign"> </span><span class="code">        };</span></span>
+<span class="cl ctx"><span class="ln">38</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl add"><span class="ln">39</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</span></span></code></pre>
         <p><strong>PR側の主張:</strong> <code>ProcessingPowerMultiplier</code> を <code>MachineProcessContext</code> へ寄せて「1箇所から取得」した <code>[agent前提]</code>（コード内コメント）。集約はそこで止まっている。</p>
         <p><strong>独立レビューの実測:</strong> フィールド宣言・ctor 初期ラッチ・<code>GetBlockStateDetails</code> の公開・Update 冒頭3文が<strong>日英2行コメントごと逐語一致</strong>で両クラスに存在し、率だけ Vanilla=三項（<code>Halted</code> が無言で <code>_idlePowerRate</code> に落ちる）／CleanRoom=網羅switch（<code>Halted =&gt; 0f</code>）と<strong>既に食い違っている</strong>。両ファイルは 217行 / 222行で200行上限を超過。故障は仮定でなく patch 内で既に1回起きており（CleanRoom の Halted 固着を <code>:177-178</code> の手動0埋めで塞いだ）、同型の <code>ChangeSelection</code> 2件（<a href="#f02">F02</a>）では漏れている。4系統一致。</p>
         <p><strong>代替案（新規クラス・新規ファイルは作らない）:</strong> <strong>案A（推奨）</strong> — 既存 <code>MachineProcessContext</code> へ <code>IdlePowerRate</code>・<code>EffectiveRequestPowerRate(state)</code>・<code>LatchTickPower(state)</code>・<code>PinPowerToZero()</code> を集約し、両processorのフィールドと3文を1行へ畳む（両ファイルが200行以内へ戻る）。<strong>案B</strong> — 率の switch を <code>IMachineProcessState</code> に <code>float RequestPowerRate { get; }</code> として持たせ、状態追加をコンパイルエラーで検知させる。</p>
@@ -558,11 +566,11 @@
         <h2><span class="badge badge-new">設計判断</span> <strong>detailLogic.ts</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/src/features/blockInventory/details/detailLogic.ts:73</code></p>
         <p class="summary-line">石窯とボイラーで電力行が丸ごと消える。</p>
-        <pre class="code-card"><code><span class="ln">71</span><ins>// 要求電力0（停止中）は充足率が意味を持たないため、表示自体を出さない判断をここで確定する</ins>
-<span class="ln">72</span><ins>// A request power of 0 (halted) makes the satisfaction rate meaningless, so the decision to hide it is settled here</ins>
-<span class="hl"><span class="ln">73</span><ins>export function isPowerRateMeaningful(requestPower: number): boolean {</ins></span>
-<span class="hl"><span class="ln">74</span><ins>  return requestPower !== 0;</ins></span>
-<span class="ln">75</span><ins>}</ins></code></pre>
+        <pre class="code-card"><code><span class="cl add"><span class="ln">71</span><span class="sign">+</span><span class="code">// 要求電力0（停止中）は充足率が意味を持たないため、表示自体を出さない判断をここで確定する</span></span>
+<span class="cl add"><span class="ln">72</span><span class="sign">+</span><span class="code">// A request power of 0 (halted) makes the satisfaction rate meaningless, so the decision to hide it is settled here</span></span>
+<span class="cl add hl"><span class="ln">73</span><span class="sign">+</span><span class="code">export function isPowerRateMeaningful(requestPower: number): boolean {</span></span>
+<span class="cl add hl"><span class="ln">74</span><span class="sign">+</span><span class="code">  return requestPower !== 0;</span></span>
+<span class="cl add"><span class="ln">75</span><span class="sign">+</span><span class="code">}</span></span></code></pre>
         <p><strong>PR側の主張:</strong> 実効要求0の機械は充足率を表示せず停止中ラベルのみ出す <code>[agent前提]</code>（PR内新設ADR 0010・PR本文R4。免責力なし）。</p>
         <p><strong>独立レビューの実測:</strong> 実マスタ <code>../moorestech_master/server_v8/.../blocks.json</code> に <strong>石窯（L94・<code>requiredPower: 0</code>）とボイラー（L1937・同）</strong>が実在し、<code>EffectiveRequestPower = 0 × rate = 0</code> が常に成立する。よって<strong>正常稼働中でも電力行が消え</strong>、「電力が来ていない」のか「需要が0」なのかユーザーが区別できない。判別子 <code>currentState</code> は本PRで <code>z.enum([&quot;idle&quot;,&quot;processing&quot;,&quot;halted&quot;])</code> に narrowing 済みで<strong>ワイヤ上に既に存在する</strong>のに使っていない。<code>requestPower === 0</code> の解釈は現状4通りに分裂（<code>detailLogic.ts:74</code>＝表示可否 ／ <code>detailLogic.ts:8</code>＝100%充足 ／ <code>CommonMachineBlockStateDetail.cs:35</code>＝同上 ／ <code>MinerSection.tsx:15</code>＝判定なしで常時表示）。7系統一致。</p>
         <p><strong>代替案:</strong> <strong>案A（推奨）</strong> — <code>Record&lt;MachineProcessState, { labelKey; insufficient; showPowerRate }&gt;</code> 1枚へ集約し（<code>MachineStateKeys</code> と <code>MachineStateInsufficientTone</code> も統合）、<code>isPowerRateMeaningful</code> を削除して <code>view.showPowerRate &amp;&amp; (...)</code> にする。4状態目の追加が必ずコンパイルエラーになる。<strong>案B</strong> — 「0なら描画しない」を所有者 <code>PowerRateText.tsx</code> の early return へ移し <code>computePowerRate</code> の <code>=== 0 ? 1</code> を撤去する（<code>MinerSection</code> の既存表示「100% (0/0)」が消える挙動変化を伴う）。</p>
@@ -580,11 +588,11 @@
         <h2><span class="badge badge-new">設計判断</span> <strong>MachineProcessContext.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs:26</code></p>
         <p class="summary-line">同一tick内で別インスタンスの倍率を読む。</p>
-        <pre class="code-card"><code><span class="ln">22</span>        public float SuppliedPower;
-<span class="ln">23</span>        public float CurrentPower;
-<span class="ln">24</span>
-<span class="ln">25</span><ins>        // 加工中の効果倍率を1箇所から取得し、processorのEffectiveRequestPowerRateと計算式を共有する</ins>
-<span class="hl"><span class="ln">26</span><ins>        public float ProcessingPowerMultiplier =&gt; EffectComponent.AggregateCurrent().PowerMultiplier;</ins></span></code></pre>
+        <pre class="code-card"><code><span class="cl ctx"><span class="ln">22</span><span class="sign"> </span><span class="code">        public float SuppliedPower;</span></span>
+<span class="cl ctx"><span class="ln">23</span><span class="sign"> </span><span class="code">        public float CurrentPower;</span></span>
+<span class="cl ctx"><span class="ln">24</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl add"><span class="ln">25</span><span class="sign">+</span><span class="code">        // 加工中の効果倍率を1箇所から取得し、processorのEffectiveRequestPowerRateと計算式を共有する</span></span>
+<span class="cl add hl"><span class="ln">26</span><span class="sign">+</span><span class="code">        public float ProcessingPowerMultiplier =&gt; EffectComponent.AggregateCurrent().PowerMultiplier;</span></span></code></pre>
         <p><strong>PR側の主張:</strong> 倍率の単一取得点を作り、加工速度・表示分母・歯車要求で式を共有する <code>[agent前提]</code>（コード内コメント）。式の一致という点では改善している。</p>
         <p><strong>独立レビューの実測:</strong> 非キャッシュ getter のため同一tick内で同じモジュール集計を3〜4回作り直す（<code>AggregateCurrent()</code> は毎回 List 確保＋<code>MasterHolder.ItemMaster</code> 参照。Processing中1台あたり電気/CleanRoom 60→80回/秒、歯車 20→60回/秒）。性能だけの話ではなく、<code>EnergySegment.SettleTick</code> が読んだ倍率と <code>Update()</code> がラッチする倍率が<strong>別インスタンス</strong>のため、PRの掲げた「基準一致」が tick 内で完全には成立していない。</p>
         <p><strong>代替案:</strong> <strong>案A（推奨）</strong> — <code>GameUpdater.CurrentTick</code> スタンプ付きの tick メモ（<code>CurrentTickEffect</code>）にし、同一tick内の全読み手が同一スナップショットを見るようにする。集計は機械あたり1回/tickに固定され、基準一致が構造的に保証される。代償はモジュール着脱の反映が最大1tick遅れること。<strong>案B</strong> — 現状の毎回集計を維持する（1tick遅延を嫌う場合）。</p>
@@ -596,12 +604,12 @@
         <h2><span class="badge badge-new">設計判断</span> <strong>style.module.css</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/src/shared/ui/ProgressArrowGlyph/style.module.css:4</code></p>
         <p class="summary-line">汎用部品がcraftドメインの語彙を参照する。</p>
-        <pre class="code-card"><code><span class="ln">1</span><ins>/* 既定寸法はクラフト矢印と同値のトークンを直接参照する。呼び出し側は寸法を持たない */</ins>
-<span class="ln">2</span><ins>/* Default size references the craft-arrow tokens directly; callers no longer size this themselves */</ins>
-<span class="ln">3</span><ins>.arrow {</ins>
-<span class="hl"><span class="ln">4</span><ins>  width: var(--craft-arrow-width);</ins></span>
-<span class="hl"><span class="ln">5</span><ins>  height: var(--craft-arrow-height);</ins></span>
-<span class="ln">6</span><ins>}</ins></code></pre>
+        <pre class="code-card"><code><span class="cl add"><span class="ln">1</span><span class="sign">+</span><span class="code">/* 既定寸法はクラフト矢印と同値のトークンを直接参照する。呼び出し側は寸法を持たない */</span></span>
+<span class="cl add"><span class="ln">2</span><span class="sign">+</span><span class="code">/* Default size references the craft-arrow tokens directly; callers no longer size this themselves */</span></span>
+<span class="cl add"><span class="ln">3</span><span class="sign">+</span><span class="code">.arrow {</span></span>
+<span class="cl add hl"><span class="ln">4</span><span class="sign">+</span><span class="code">  width: var(--craft-arrow-width);</span></span>
+<span class="cl add hl"><span class="ln">5</span><span class="sign">+</span><span class="code">  height: var(--craft-arrow-height);</span></span>
+<span class="cl add"><span class="ln">6</span><span class="sign">+</span><span class="code">}</span></span></code></pre>
         <p><strong>PR側の主張:</strong> 矢印の既定寸法は部品CSSがトークンを1箇所参照して持つ（<strong>別名トークンを増やさない</strong>） <code>[agent前提]</code>（PR内新設 <code>.decisions/2026-08-17-矢印グリフの既定寸法は部品がトークン参照で持つ.md</code>。免責力なし）。前例として <code>shared/ui/GamePanel/style.module.css:97-103</code> が <code>--craft-grip-*</code> を参照している［検証済み］。</p>
         <p><strong>独立レビューの実測:</strong> 兄弟の <code>ProgressArrow</code> は中立名 <code>--progress-arrow-*</code>（<code>tokens.css:179,182</code>）を使っており、<code>shared/ui</code> 内で語彙が割れている。<code>[ADR: AGENTS.md#設計原則]</code>（汎用基盤にドメイン語彙を持ち込まない）に抵触。PR内新設 <code>.decisions</code> は「別名トークン新設」案しか検討しておらず、<strong>改名案は検討されていない</strong>。改名は別名追加ではないので同文書の方針とも矛盾しない。</p>
         <p><strong>代替案:</strong> <strong>案A（推奨）</strong> — 現状維持（craft名トークンを共有部品が参照。<code>GamePanel</code> の前例に揃える）。<strong>案B</strong> — <code>--progress-arrow-glyph-*</code> へ<strong>改名</strong>し、<code>tokens.css:185,188,189</code> の3トークンと本CSSの参照3箇所を一括更新する。</p>
@@ -613,12 +621,12 @@
         <h2><span class="badge badge-new">設計判断</span> <strong>index.ts</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/src/shared/ui/index.ts:8</code></p>
         <p class="summary-line">同じ機械パネル内で矢印表現が2種混在する。</p>
-        <pre class="code-card"><code><span class="ln">5</span>export { default as BlockSlot } from &quot;./BlockSlot&quot;;
-<span class="ln">6</span>export { default as FluidSlot } from &quot;./FluidSlot&quot;;
-<span class="ln">7</span>export { default as FluidSlotRow } from &quot;./FluidSlotRow&quot;;
-<span class="hl"><span class="ln">8</span>export { default as ProgressArrow } from &quot;./ProgressArrow&quot;;</span>
-<span class="hl"><span class="ln">9</span><ins>export { default as ProgressArrowGlyph } from &quot;./ProgressArrowGlyph&quot;;</ins></span>
-<span class="ln">10</span>export { default as SlotGrid } from &quot;./SlotGrid&quot;;</code></pre>
+        <pre class="code-card"><code><span class="cl ctx"><span class="ln">5</span><span class="sign"> </span><span class="code">export { default as BlockSlot } from &quot;./BlockSlot&quot;;</span></span>
+<span class="cl ctx"><span class="ln">6</span><span class="sign"> </span><span class="code">export { default as FluidSlot } from &quot;./FluidSlot&quot;;</span></span>
+<span class="cl ctx"><span class="ln">7</span><span class="sign"> </span><span class="code">export { default as FluidSlotRow } from &quot;./FluidSlotRow&quot;;</span></span>
+<span class="cl ctx hl"><span class="ln">8</span><span class="sign"> </span><span class="code">export { default as ProgressArrow } from &quot;./ProgressArrow&quot;;</span></span>
+<span class="cl add hl"><span class="ln">9</span><span class="sign">+</span><span class="code">export { default as ProgressArrowGlyph } from &quot;./ProgressArrowGlyph&quot;;</span></span>
+<span class="cl ctx"><span class="ln">10</span><span class="sign"> </span><span class="code">export { default as SlotGrid } from &quot;./SlotGrid&quot;;</span></span></code></pre>
         <p><strong>PR側の主張:</strong> 進捗矢印を <code>shared/ui/ProgressArrowGlyph</code> へ昇格し、クラフト画面と機械の加工行で同一部品・同一寸法にする <code>[agent前提]</code>（PR本文R1・PR内新設ADR。免責力なし）。</p>
         <p><strong>独立レビューの実測:</strong> 移したのは craft / machine の2箇所のみで、<code>MinerSection.tsx:14</code> と <code>FluidSlotRow/index.tsx:23</code> は旧型（div幅%の矩形バー）のまま。<strong>同じ機械パネル内で矢印表現が2種混在</strong>し、目標「同一部品・同一寸法」が半分しか達成されていない。</p>
         <p><strong>代替案:</strong> <strong>案A（推奨）</strong> — 見た目を変えず <code>ProgressArrow</code> → <code>ProgressArrowBar</code> へクロスファイル改名し、名前で役割差が読める形にする（<a href="#f10">F10</a> の改名と同時に行える）。<strong>案B</strong> — <code>MinerSection</code> と <code>FluidSlotRow</code> も Glyph へ寄せ、<code>shared/ui/ProgressArrow/</code>・<code>--progress-arrow-*</code>・<code>blockInventoryDesign.test.ts:22</code> を削除して完全集約する（<strong>採掘機と流体行の見た目が矩形バー→矢印グリフへ変わるためユーザー裁定が要る</strong>）。</p>
@@ -645,17 +653,17 @@
         <h2><span class="badge badge-sup">Critical</span> <strong>CleanRoomMachineProcessorComponent.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:31</code></p>
         <p class="summary-line">外部参照0のpublicが残っている。</p>
-        <pre class="code-card"><code><span class="ln">29</span><ins>        // 停止中は0、稼働中は通常機械と同じ倍率</ins>
-<span class="ln">30</span>        // Halted machines request no power; operating states use the same multipliers as normal machines
-<span class="hl"><span class="ln">31</span><ins>        public float EffectiveRequestPowerRate =&gt; CurrentState switch</ins></span>
-<span class="ln">32</span>        {
-<span class="ln">33</span>            ProcessState.Halted =&gt; 0f,
-<span class="ln">34</span><ins>            ProcessState.Processing =&gt; _context.ProcessingPowerMultiplier,</ins>
-<span class="ln">35</span><ins>            ProcessState.Idle =&gt; _idlePowerRate,</ins>
-<span class="ln">36</span>            _ =&gt; throw new ArgumentOutOfRangeException(),
-<span class="ln">37</span>        };
-<span class="ln">38</span>
-<span class="ln">39</span><ins>        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</ins></code></pre>
+        <pre class="code-card"><code><span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
+<span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code">        // Halted machines request no power; operating states use the same multipliers as normal machines</span></span>
+<span class="cl add hl"><span class="ln">31</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState switch</span></span>
+<span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        {</span></span>
+<span class="cl ctx"><span class="ln">33</span><span class="sign"> </span><span class="code">            ProcessState.Halted =&gt; 0f,</span></span>
+<span class="cl add"><span class="ln">34</span><span class="sign">+</span><span class="code">            ProcessState.Processing =&gt; _context.ProcessingPowerMultiplier,</span></span>
+<span class="cl add"><span class="ln">35</span><span class="sign">+</span><span class="code">            ProcessState.Idle =&gt; _idlePowerRate,</span></span>
+<span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">            _ =&gt; throw new ArgumentOutOfRangeException(),</span></span>
+<span class="cl ctx"><span class="ln">37</span><span class="sign"> </span><span class="code">        };</span></span>
+<span class="cl ctx"><span class="ln">38</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl add"><span class="ln">39</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</span></span></code></pre>
         <p><strong>PR側の主張:</strong> Vanilla 側と同じ形で率を切り出した <code>[agent前提]</code>（差分実体から観測）。</p>
         <p><strong>独立レビューの実測:</strong> <code>rg</code> 実測で CleanRoom 側の参照は<strong>自ファイル <code>:39</code> のみ</strong>（プロダクション・テストとも他ファイル0件）。Vanilla 側は <code>VanillaGearMachineComponent.cs:40</code> という実消費者を持つので非対称で、CleanRoom には歯車消費者が構造的に存在しない。<code>[ADR: AGENTS.md#その他の規約]</code>「デバッグ/テスト専用publicを残さない」の隣接規約に抵触。なお死にメンバーゲート（IL解析）はレビューworktree未コンパイルのため<strong>skipped</strong>で、本件は <code>rg</code> 実測で代替検出した。</p>
         <p><strong>修正方針:</strong> <code>public</code> → <code>private</code>。<a href="#f04">F04</a> の集約を採る場合は context 側へ移って本メンバー自体が消えるため、<strong><a href="#f04">F04</a> と一括で処理する</strong>。同型掃引済み・残り0件。</p>
@@ -667,17 +675,17 @@
         <h2><span class="badge badge-sup">Critical</span> <strong>CleanRoomMachineProcessorComponent.cs</strong> / <strong>VanillaMachineProcessorComponent.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:216</code>（＋ <code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:137</code>）</p>
         <p class="summary-line">レシピ切替のたび偽の赤が出る。</p>
-        <pre class="code-card"><code><span class="ln">135</span>            }
-<span class="ln">136</span>
-<span class="hl"><span class="ln">137</span>            if (CurrentState == ProcessState.Processing) CurrentState = ProcessState.Idle;</span>
-<span class="ln">138</span>            _context.SelectedRecipe = recipe;
-<span class="hl"><span class="ln">139</span>            _changeState.OnNext(Unit.Default);</span>
-<span class="ln">140</span>            return MachineRecipeSelectionResult.Success;</code></pre>
-        <pre class="code-card"><code><span class="ln">214</span><ins>            // Halted含む非IdleはIdleへ戻し、次Updateで清浄室条件が再評価される</ins>
-<span class="ln">215</span><ins>            // Non-Idle including Halted returns to Idle so the next Update re-evaluates clean-room conditions</ins>
-<span class="hl"><span class="ln">216</span>            if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;</span>
-<span class="ln">217</span>            _context.SelectedRecipe = recipe;
-<span class="hl"><span class="ln">218</span>            _changeState.OnNext(Unit.Default);</span></code></pre>
+        <pre class="code-card"><code><span class="cl ctx"><span class="ln">135</span><span class="sign"> </span><span class="code">            }</span></span>
+<span class="cl ctx"><span class="ln">136</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl ctx hl"><span class="ln">137</span><span class="sign"> </span><span class="code">            if (CurrentState == ProcessState.Processing) CurrentState = ProcessState.Idle;</span></span>
+<span class="cl ctx"><span class="ln">138</span><span class="sign"> </span><span class="code">            _context.SelectedRecipe = recipe;</span></span>
+<span class="cl ctx hl"><span class="ln">139</span><span class="sign"> </span><span class="code">            _changeState.OnNext(Unit.Default);</span></span>
+<span class="cl ctx"><span class="ln">140</span><span class="sign"> </span><span class="code">            return MachineRecipeSelectionResult.Success;</span></span></code></pre>
+        <pre class="code-card"><code><span class="cl add"><span class="ln">214</span><span class="sign">+</span><span class="code">            // Halted含む非IdleはIdleへ戻し、次Updateで清浄室条件が再評価される</span></span>
+<span class="cl add"><span class="ln">215</span><span class="sign">+</span><span class="code">            // Non-Idle including Halted returns to Idle so the next Update re-evaluates clean-room conditions</span></span>
+<span class="cl ctx hl"><span class="ln">216</span><span class="sign"> </span><span class="code">            if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;</span></span>
+<span class="cl ctx"><span class="ln">217</span><span class="sign"> </span><span class="code">            _context.SelectedRecipe = recipe;</span></span>
+<span class="cl ctx hl"><span class="ln">218</span><span class="sign"> </span><span class="code">            _changeState.OnNext(Unit.Default);</span></span></code></pre>
         <p><strong>PR側の主張:</strong> 表示用要求電力を <code>CurrentPower</code> と同位置でラッチし、分子分母の基準ずれによる偽の赤/500%表示を解消する <code>[agent前提]</code>（PR本文「レビュー裁定」）。実際のラッチ点は Update 冒頭（<code>:171</code> / <code>:151</code>）の1箇所のみ。</p>
         <p><strong>独立レビューの実測:</strong> 両メソッドとも <code>CurrentState</code> を書き換えた直後に <code>_changeState.OnNext</code> を発火するが、<code>_publishedRequestPower</code> の再確定がない。<code>BlockSystem.cs:44</code> の購読が同期的に <code>GetBlockStateDetails()</code> を呼ぶため、<code>currentState:&quot;idle&quot;</code> に Processing 基準の高い分母が同梱され、次 Update まで<strong>「待機中なのに加工基準の低い充足率（偽の赤）」</strong>が出る。レシピ変更のたびに毎回起こりうる。3系統一致。</p>
         <p><strong>修正方針:</strong> <code>CurrentState</code> 書き換えの直後・<code>_changeState.OnNext</code> の<strong>前</strong>に <code>_publishedRequestPower = EffectiveRequestPower;</code> を置く。<a href="#f04">F04</a> の集約を採る場合は <code>_context.LatchTickPower(CurrentState);</code> の1行に畳み、2ファイルで同じ形にする（<strong><a href="#f04">F04</a> と同一 surface のため1つの編集にまとめること</strong>）。同型掃引済み・残り0件。</p>
@@ -689,14 +697,14 @@
         <h2><span class="badge badge-sup">Critical</span> <strong>CleanRoomMachineTest.cs</strong> / <strong>MachineFluidIOTest.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomMachineTest.cs:103</code>（＋ <code>moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineFluidIOTest.cs:316</code>）</p>
         <p class="summary-line">旧実装へ戻しても全テストが緑になる。</p>
-        <pre class="code-card"><code><span class="ln">96</span>            for (var i = 0; i &lt; 200 &amp;&amp; processor.CurrentState != ProcessState.Processing; i++) TickRoom();
-<span class="ln">97</span>            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
-<span class="ln">98</span><ins>            // state公開値は前tick基準でラッチされるため、遷移直後の1tickだけ古い値を挟んでから実効値に揃う</ins>
-<span class="ln">99</span><ins>            // The published state latches on the previous tick&#39;s basis, so it trails by one tick right after a transition before matching the effective value</ins>
-<span class="hl"><span class="ln">100</span><ins>            TickRoom();</ins></span>
-<span class="ln">101</span><ins>            // state要求電力は基礎でなく実効値</ins>
-<span class="ln">102</span><ins>            // Lock in that the state carries the effective request power, not the raw base value</ins>
-<span class="hl"><span class="ln">103</span><ins>            Assert.AreEqual(machineConsumer.EffectiveRequestPower, GetCommonMachineState(machine).RequestPower, 0.01f);</ins></span></code></pre>
+        <pre class="code-card"><code><span class="cl ctx"><span class="ln">96</span><span class="sign"> </span><span class="code">            for (var i = 0; i &lt; 200 &amp;&amp; processor.CurrentState != ProcessState.Processing; i++) TickRoom();</span></span>
+<span class="cl ctx"><span class="ln">97</span><span class="sign"> </span><span class="code">            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);</span></span>
+<span class="cl add"><span class="ln">98</span><span class="sign">+</span><span class="code">            // state公開値は前tick基準でラッチされるため、遷移直後の1tickだけ古い値を挟んでから実効値に揃う</span></span>
+<span class="cl add"><span class="ln">99</span><span class="sign">+</span><span class="code">            // The published state latches on the previous tick&#39;s basis, so it trails by one tick right after a transition before matching the effective value</span></span>
+<span class="cl add hl"><span class="ln">100</span><span class="sign">+</span><span class="code">            TickRoom();</span></span>
+<span class="cl add"><span class="ln">101</span><span class="sign">+</span><span class="code">            // state要求電力は基礎でなく実効値</span></span>
+<span class="cl add"><span class="ln">102</span><span class="sign">+</span><span class="code">            // Lock in that the state carries the effective request power, not the raw base value</span></span>
+<span class="cl add hl"><span class="ln">103</span><span class="sign">+</span><span class="code">            Assert.AreEqual(machineConsumer.EffectiveRequestPower, GetCommonMachineState(machine).RequestPower, 0.01f);</span></span></code></pre>
         <p><strong>PR側の主張:</strong> state の <code>RequestPower</code> を基礎値で検証していた既存テストは実効値前提へ書き換える <code>[agent前提]</code>（PR内新設ADR 0010#影響）。</p>
         <p><strong>独立レビューの実測:</strong> <code>:103</code> は期待値を被検証コード <code>machineConsumer.EffectiveRequestPower</code> から取る<strong>トートロジー</strong>で、モジュールを1個も装着しないため <code>PowerMultiplier == 1</code> となり「基礎値でなく実効値」を数値上区別できない。加えて <code>:100</code> の <code>TickRoom()</code> が<strong>ラッチ機構が守る当のtickを意図的に読み飛ばしている</strong>。<code>MachineFluidIOTest.cs:518</code> もリテラル期待を production 式へ置換した弱体化で、<code>:316</code> の <code>machineParam?.IdlePowerRate ?? 0.2f</code> は <code>as</code> キャストが null に落ちても自己整合値で緑になる。<code>VanillaGearMachineComponent.cs:40</code> の歯車率・<code>detailLogic.ts:73</code> の <code>isPowerRateMeaningful</code>・<code>BlockInventoryPanel.tsx:63</code> の <code>key={data.identifier}</code> を守るテストは<strong>1本も存在せず、旧実装へ戻しても全テストが緑</strong>。<code>currentState: &quot;halted&quot;</code> を通す webui テスト／fixture もコードベース全体に0件。3系統一致。</p>
         <p><strong>修正方針:</strong> ①モジュール装着機械（<code>MachineModuleSlotTest</code> の装着ユーティリティ）で期待値を <code>base × 倍率</code> の独立計算で書き、<code>:103</code> と <code>MachineFluidIOTest.cs:518</code> の自己参照を置換。②<code>:98-100</code> の読み飛ばしをやめ遷移直後1tickで整合を検証し、電気機械側にも同型テストを新設。③<code>:315-316</code> の <code>?? 100</code>/<code>?? 0.2f</code> を廃し <code>Assert.IsNotNull(machineParam)</code> を先に置く。④歯車機械の要求トルクを固定するテストを追加（<strong>期待値が変わるため <a href="#f03">F03</a> の裁定後に書く</strong>）。⑤<code>detailLogic.test.ts</code> に述語の <code>it.each</code> を追加し、gearMachine e2e に <code>toHaveCount(0)</code> を1行足す（<strong><a href="#f08">F08</a> の裁定で述語が state 由来へ変わる場合はそれに追随</strong>）。⑥<code>identifier</code> 差し替えでタブ再評価を検証。</p>
@@ -708,16 +716,16 @@
         <h2><span class="badge badge-sup">Critical</span> <strong>capture-machine-qa.ts</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/e2e/capture-machine-qa.ts:136</code></p>
         <p class="summary-line">QAスクリプトが必ず落ちて撮影物が残らない。</p>
-        <pre class="code-card"><code><span class="ln">133</span><ins>    const stateLabel = page.getByTestId(&quot;machine-state-label&quot;);</ins>
-<span class="ln">134</span><ins>    const powerRate = page.getByTestId(&quot;machine-power-rate&quot;);</ins>
-<span class="ln">135</span><ins>    manifest.gearMachineStateLabelText = await stateLabel.textContent();</ins>
-<span class="hl"><span class="ln">136</span><ins>    manifest.gearMachinePowerRateText = await powerRate.textContent();</ins></span>
-<span class="ln">137</span><ins>    const panel = page.getByTestId(&quot;block-inventory&quot;);</ins>
-<span class="ln">138</span><ins>    const [panelBox, stateLabelBox, powerRateBox] = await Promise.all([</ins>
-<span class="ln">139</span><ins>      panel.boundingBox(),</ins>
-<span class="ln">140</span><ins>      stateLabel.boundingBox(),</ins>
-<span class="hl"><span class="ln">141</span><ins>      powerRate.boundingBox(),</ins></span>
-<span class="ln">142</span><ins>    ]);</ins></code></pre>
+        <pre class="code-card"><code><span class="cl add"><span class="ln">133</span><span class="sign">+</span><span class="code">    const stateLabel = page.getByTestId(&quot;machine-state-label&quot;);</span></span>
+<span class="cl add"><span class="ln">134</span><span class="sign">+</span><span class="code">    const powerRate = page.getByTestId(&quot;machine-power-rate&quot;);</span></span>
+<span class="cl add"><span class="ln">135</span><span class="sign">+</span><span class="code">    manifest.gearMachineStateLabelText = await stateLabel.textContent();</span></span>
+<span class="cl add hl"><span class="ln">136</span><span class="sign">+</span><span class="code">    manifest.gearMachinePowerRateText = await powerRate.textContent();</span></span>
+<span class="cl add"><span class="ln">137</span><span class="sign">+</span><span class="code">    const panel = page.getByTestId(&quot;block-inventory&quot;);</span></span>
+<span class="cl add"><span class="ln">138</span><span class="sign">+</span><span class="code">    const [panelBox, stateLabelBox, powerRateBox] = await Promise.all([</span></span>
+<span class="cl add"><span class="ln">139</span><span class="sign">+</span><span class="code">      panel.boundingBox(),</span></span>
+<span class="cl add"><span class="ln">140</span><span class="sign">+</span><span class="code">      stateLabel.boundingBox(),</span></span>
+<span class="cl add hl"><span class="ln">141</span><span class="sign">+</span><span class="code">      powerRate.boundingBox(),</span></span>
+<span class="cl add"><span class="ln">142</span><span class="sign">+</span><span class="code">    ]);</span></span></code></pre>
         <p><strong>PR側の主張:</strong> ADR 0010 の矢印グリフ・中心線・フッタ・タブ順を撮影して実測する目視QA <code>[agent前提]</code>（ファイル冒頭コメント）。</p>
         <p><strong>独立レビューの実測:</strong> <code>e2e/mock-host/blockDetailFixtures.ts:50-51</code> の <code>blockGearMachine</code> は <code>currentPower: 0.0</code> / <code>requestPower: 0.0</code> で、同PRが入れた <code>isPowerRateMeaningful(machine.requestPower)</code>（<code>MachineSection.tsx:36</code>）が false になるため <code>machine-power-rate</code> が <strong>DOM に出ない</strong>。<code>locator.textContent</code> が30秒タイムアウト → <code>void main()</code> の未処理 rejection でプロセスが落ち、<code>manifest.json</code>・<code>gearmachine-*.png</code> が一切生成されず、<code>browser.close()</code>/<code>wss.close()</code>/<code>server.close()</code> も走らず Chromium とポート5411が残留する。<strong>ADR 0010 の「実効要求0の機械は充足率を出さない」を検証するはずのQAが、まさにその状態のブロックで死ぬ。</strong>3系統一致。</p>
         <p><strong>修正方針（4点セット）:</strong> ① <code>:136</code> を <code>(await powerRate.count()) === 0 ? null : await powerRate.textContent()</code> にし、<code>:138-142</code> の <code>Promise.all</code> から <code>powerRate.boundingBox()</code> を外して <code>:144</code> 以降のクロップ基準を <code>stateLabelBox</code> 単独へ切り替える。② <code>:159-175</code> の <code>try { readFile } catch { sha256: null }</code> を撤去し前例 <code>capture-mining-progress.ts:97-101</code> どおり素の <code>await readFile</code> にする <code>[ADR: AGENTS.md#設計原則]</code>。③ <code>:34</code> の <code>mkdir</code> 直後に <code>rm(join(OUT_DIR, &quot;manifest.json&quot;), { force: true })</code> を足す（前例 <code>capture-mining-progress.ts:27</code>）。④ <code>:15</code> の <code>padding = CROP_PADDING_PX</code> を必須引数へ <code>[ADR: AGENTS.md#その他の規約]</code>。同型掃引済み・残り0件。</p>
@@ -729,12 +737,12 @@
         <h2><span class="badge badge-sup">Critical</span> <strong>MachineSection.tsx</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/src/features/blockInventory/details/MachineSection.tsx:18</code></p>
         <p class="summary-line">選択済み機械でもレシピタブに固まる。</p>
-        <pre class="code-card"><code><span class="ln">16</span>export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
-<span class="ln">17</span>  const machineRecipes = useTopic(Topics.machineRecipes);
-<span class="hl"><span class="ln">18</span><ins>  const [tab, setTab] = useState&lt;string&gt;(() =&gt; machineInitialTab(data.machine?.selectedRecipeGuid));</ins></span>
-<span class="ln">19</span>  const { t } = useI18n();
-<span class="ln">20</span>  if (!data.machine) return null;
-<span class="ln">21</span>  const machine = data.machine;</code></pre>
+        <pre class="code-card"><code><span class="cl ctx"><span class="ln">16</span><span class="sign"> </span><span class="code">export default function MachineSection({ data }: { data: BlockInventoryOpen }) {</span></span>
+<span class="cl ctx"><span class="ln">17</span><span class="sign"> </span><span class="code">  const machineRecipes = useTopic(Topics.machineRecipes);</span></span>
+<span class="cl add hl"><span class="ln">18</span><span class="sign">+</span><span class="code">  const [tab, setTab] = useState&lt;string&gt;(() =&gt; machineInitialTab(data.machine?.selectedRecipeGuid));</span></span>
+<span class="cl ctx"><span class="ln">19</span><span class="sign"> </span><span class="code">  const { t } = useI18n();</span></span>
+<span class="cl ctx"><span class="ln">20</span><span class="sign"> </span><span class="code">  if (!data.machine) return null;</span></span>
+<span class="cl ctx"><span class="ln">21</span><span class="sign"> </span><span class="code">  const machine = data.machine;</span></span></code></pre>
         <p><strong>PR側の主張:</strong> レシピ未選択で開いた場合の初期タブをレシピ選択にし、開いた後の手動切替は尊重する <code>[agent前提]</code>（PR本文R2/R3）。</p>
         <p><strong>独立レビューの実測:</strong> <code>SectionStackView.tsx:50</code> は <code>&lt;MachineSection data={data} /&gt;</code> を<strong>無条件にマウント</strong>し、lazy initializer（マウント時1回のみ）が <code>if (!data.machine) return null</code>（<code>:20</code>）<strong>より前</strong>に走る。<code>machineInitialTab</code> は <code>isEmptyGuid(undefined) === true</code> で <code>&quot;recipes&quot;</code> を返し、再評価の契機は <code>key={data.identifier}</code> のみで同一ブロックでは変化しない。ブロック生成直後（<code>BlockGameObject</code> の state 未着）に開くと <code>BlockDetailDtoBuilder.cs:29</code> の <code>common != null &amp;&amp; machineState != null</code> が偽で初回 publish に <code>machine</code> が乗らず、<strong>レシピ選択済みでもタブが recipes に確定して閉じるまで是正されない</strong>。e2e <code>machineRecipe.spec.ts</code> は <code>setBlock</code> を <code>page.goto</code> の前に行うためこのレースを1本もカバーしていない。4系統一致。</p>
         <p><strong>修正方針:</strong> マウント境界を machine 到着に合わせる。<code>SectionStackView.tsx:50</code> を <code>{data.machine ? &lt;MachineSection machine={data.machine} data={data} /&gt; : null}</code> にし、<code>MachineSection</code> の引数を <code>machine: MachineDetailData</code> 込みへ変えて内部の null 分岐（<code>:20-21</code>）を削除。併せて <code>machineInitialTab(selectedRecipeGuid: string)</code> を非nullableへ絞り、到達不能状態を固定していた <code>machineRecipeSelectionLogic.test.ts:46-47</code> の <code>null</code>/<code>undefined</code> 2ケースを削除する。<code>useEffect</code> による後追い同期は派生stateのアンチパターンかつ「開いた後の手動切替を尊重する」目標と衝突するため採らない。</p>

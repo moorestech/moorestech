@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
-from digest_md.blocks import blocks_html, code_card_html
+from digest_md.blocks import blocks_html
 from digest_md.inline import escape, inline_html
 from digest_md.parse import DigestError
 
@@ -25,14 +25,6 @@ def test_inline_html_unknown_ref_is_error():
     with pytest.raises(DigestError) as e:
         inline_html("[F:nope]", {"gear": "F03"})
     assert "nope" in str(e.value)
-
-
-def test_code_card_marks_ins_and_hl():
-    body = " 36|        void A()\n+38|            // add\n*+40|            B<int>();"
-    got = code_card_html(body, "        ")
-    assert '<pre class="code-card"><code><span class="ln">36</span>        void A()' in got
-    assert '<span class="ln">38</span><ins>            // add</ins>' in got
-    assert '<span class="hl"><span class="ln">40</span><ins>            B&lt;int&gt;();</ins></span>' in got
 
 
 def test_blocks_html_paragraph_and_list():
