@@ -48,24 +48,22 @@ namespace Client.DebugSystem
                 var emptyItem = new ItemMessagePack(ItemMaster.EmptyItemId, 0);
                 var inventory = new PlayerInventoryResponse(new PlayerInventoryResponseProtocol.PlayerInventoryResponseProtocolMessagePack(
                     0, Array.Empty<ItemMessagePack>(), emptyItem, Array.Empty<ItemMessagePack>(), IEquipmentInventory.BareHandsIndex));
-                var unlockState = new UnlockStateResponse
-                {
-                    LockedCraftRecipeGuids = new List<Guid>(),
-                    UnlockedCraftRecipeGuids = new List<Guid>(),
-                    LockedItemIds = new List<ItemId>(),
-                    UnlockedItemIds = new List<ItemId>(),
-                    LockedChallengeCategoryGuids = new List<Guid>(),
-                    UnlockedChallengeCategoryGuids = new List<Guid>(),
-                    LockedMachineRecipeGuids = new List<Guid>(),
-                    UnlockedMachineRecipeGuids = new List<Guid>(),
-                    LockedBlockGuids = new List<Guid>(),
-                    UnlockedBlockGuids = new List<Guid>(),
-                    LockedTrainCarGuids = new List<Guid>(),
-                    UnlockedTrainCarGuids = new List<Guid>(),
-                    LockedConnectToolGuids = new List<Guid>(),
-                    UnlockedConnectToolGuids = new List<Guid>(),
-                    IsBlueprintUnlocked = false,
-                };
+                var unlockState = new UnlockStateResponse(
+                    lockedCraftRecipeGuids: new List<Guid>(),
+                    unlockedCraftRecipeGuids: new List<Guid>(),
+                    lockedItemIds: new List<ItemId>(),
+                    unlockedItemIds: new List<ItemId>(),
+                    lockedChallengeCategoryGuids: new List<Guid>(),
+                    unlockedChallengeCategoryGuids: new List<Guid>(),
+                    lockedMachineRecipeGuids: new List<Guid>(),
+                    unlockedMachineRecipeGuids: new List<Guid>(),
+                    lockedBlockGuids: new List<Guid>(),
+                    unlockedBlockGuids: new List<Guid>(),
+                    lockedTrainCarGuids: new List<Guid>(),
+                    unlockedTrainCarGuids: new List<Guid>(),
+                    lockedConnectToolGuids: new List<Guid>(),
+                    unlockedConnectToolGuids: new List<Guid>(),
+                    isBlueprintUnlocked: false);
                 
                 // テストプレイ用の空レスポンスを構築
                 // Build an empty response set for test play
