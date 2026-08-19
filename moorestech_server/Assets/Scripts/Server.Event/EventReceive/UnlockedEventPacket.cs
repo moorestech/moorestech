@@ -82,6 +82,11 @@ namespace Server.Event.EventReceive
         // Constructor for GUID-less single-flag kinds (e.g. Blueprint)
         public UnlockEventMessagePack(UnlockEventType unlockEventType)
         {
+            // Guid付き側と対称に、種別違いをここで弾く（Guidを落としたイベントを流さない）
+            // Symmetric with the GUID-taking ctor: reject other kinds so no event silently drops its GUID
+            if (unlockEventType != UnlockEventType.Blueprint)
+                throw new ArgumentOutOfRangeException(nameof(unlockEventType), unlockEventType, "この種別はGuidを持つ。Guid付きコンストラクタを使うこと");
+
             UnlockEventTypeInt = (int)unlockEventType;
         }
 
