@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Visual.Detail;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
+using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Source
 {
     /// <summary>
-    ///     有効バイオームの並びに対応する見た目設定3種。splatmap生成もdetail生成もこの並び順を前提に添字で引く
-    ///     The three visual configs indexed by the enabled-biome order that both splatmap and detail generation assume
+    ///     有効バイオームの並びに対応する見た目設定4種。splatmap生成もdetail生成もこの並び順を前提に添字で引く
+    ///     The four visual configs indexed by the enabled-biome order that both splatmap and detail generation assume
     /// </summary>
     public class BiomeVisualSections
     {
@@ -17,11 +18,18 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Source
         public readonly string[] MainLayerAddresses;
         public readonly BiomeTextureConfig[] TextureConfigs;
 
-        public BiomeVisualSections(string[] mainLayerAddresses, BiomeTextureConfig[] textureConfigs, BiomeDetailConfig[] detailConfigs)
+        // 岩周辺の裸地設定。勝者バイオームではなく岩のクラスタ重心のバイオームで引かれる
+        // The bare-ground settings around rocks, looked up by the biome at a rock cluster's centroid rather than the pixel's winner
+        public readonly SurroundTextureConfig[] SurroundTextureConfigs;
+
+        public BiomeVisualSections(
+            string[] mainLayerAddresses, BiomeTextureConfig[] textureConfigs, BiomeDetailConfig[] detailConfigs,
+            SurroundTextureConfig[] surroundTextureConfigs)
         {
             MainLayerAddresses = mainLayerAddresses;
             TextureConfigs = textureConfigs;
             DetailConfigs = detailConfigs;
+            SurroundTextureConfigs = surroundTextureConfigs;
         }
     }
 }

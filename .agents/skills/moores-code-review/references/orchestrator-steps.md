@@ -68,12 +68,23 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 3. **設計整合専任** — `scripts/codex-design-template.md`（設計のみ・**過剰設計提案の抑制付き**: 新抽象の推奨は既存前例が現にその形の場合に限る）→ `<$RUNDIRの実値>/codex-design.md`
 
 ```bash
-codex exec --sandbox read-only --skip-git-repo-check - < <$RUNDIRの実値>/codex-audit.md > <$RUNDIRの実値>/codex-audit.out.md 2>&1
-codex exec --sandbox read-only --skip-git-repo-check - < <$RUNDIRの実値>/codex-bughunt.md > <$RUNDIRの実値>/codex-bughunt.out.md 2>&1
-codex exec --sandbox read-only --skip-git-repo-check - < <$RUNDIRの実値>/codex-design.md > <$RUNDIRの実値>/codex-design.out.md 2>&1
+codex exec --sandbox read-only --skip-git-repo-check -o <$RUNDIRの実値>/codex-audit.final.md   - < <$RUNDIRの実値>/codex-audit.md   > <$RUNDIRの実値>/codex-audit.out.md 2>&1
+codex exec --sandbox read-only --skip-git-repo-check -o <$RUNDIRの実値>/codex-bughunt.final.md - < <$RUNDIRの実値>/codex-bughunt.md > <$RUNDIRの実値>/codex-bughunt.out.md 2>&1
+codex exec --sandbox read-only --skip-git-repo-check -o <$RUNDIRの実値>/codex-design.final.md  - < <$RUNDIRの実値>/codex-design.md  > <$RUNDIRの実値>/codex-design.out.md 2>&1
 ```
 
+**`-o`（`--output-last-message`）は必須** — 結論の正本は `.final.md` であり、`.out.md`（stdout）はツール実行ログ込みの副産物にすぎない。stdoutは完走しても最終回答まで届かないことがある（2026-08-18実測：3本ともtask_completeまで完走したのに`.out.md`はツールログの途中で終端し、integratorが「Codex全滅」と誤判定した）。
+
 それぞれBashの `run_in_background: true` で起動しシェルIDを控える。**出力は必ず `.out.md` へリダイレクトする** — 完了確認はシェル状態だけで行い、監査本文をオーケストレータのコンテキストへ読み込まない（回収はStep 5のintegratorが行う）。狭域専任2本は単発同梱プロンプトで注意が3分割される問題への対策（recall向上）で、俯瞰が残り全部の受け皿。**同一モデルの3起動は独立系統ではない** — 回収時、codex間で重複した指摘は1件に畳み、出所は「Codex」1系統として扱う（integration-rules §2）。`which codex` が失敗したら本Stepを3本ともスキップし、その旨を最終報告に明記する（黙って縮退しない）。
+
+**完了確認は「`.final.md` が非空か」で行う（`.out.md` の中身では判定しない）。** 空・不在なら**欠員と断定する前に必ず**回収スクリプトを走らせる（codexは `$CODEX_HOME/sessions/**/rollout-*.jsonl` に結論を必ず残すので、そこが最後の正本）:
+
+```bash
+python3 .claude/skills/moores-code-review/scripts/codex_recover.py \
+  --prompt <$RUNDIRの実値>/codex-<名前>.md --out <$RUNDIRの実値>/codex-<名前>.out.md
+```
+
+終了コードで系統の扱いが決まる: `0`=結論あり（`.final.md` を回収して**通常どおり1系統として数える**）/ `3`=セッションはあるが未完走（再実行）/ `4`=セッション自体が無い（起動失敗＝真の欠員）。**「完走したが回収に失敗した」を「Codexが失敗した」と報告するのは禁止**（前者は結論が現に存在する）。
 
 ## Step 4: レンズ群＋reviewer群＋Fable全般＋verifierを並列発火する ③
 
@@ -143,9 +154,9 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
   User prompt : <USER_PROMPT_PATH>
   Write integrated report to : <$RUNDIRの実値>/integrated.md
   ```
-  integratorは `agents/` 配下・Codex出力3本（`.out.md`）・`checks.json` を読み、`references/integration-rules.md` §0〜§2.7（実コード照合・棄却の挙証責任・重複排除・Warning/Info統合・suppressed統合・同型掃引・系統間矛盾の検証）を適用して `integrated.md` に統合結果を書く。各Criticalには適用区分（自動適用可 §3/§3.5 | 設計判断 §4）が付く。返答は件数サマリのみ。
+  integratorは `agents/` 配下・Codex結論3本（`.final.md`。不在なら回収スクリプト実行後の同ファイル。`.out.md` は疑義がある時だけ補助的に見る）・`checks.json` を読み、`references/integration-rules.md` §0〜§2.7（実コード照合・棄却の挙証責任・重複排除・Warning/Info統合・suppressed統合・同型掃引・系統間矛盾の検証）を適用して `integrated.md` に統合結果を書く。各Criticalには適用区分（自動適用可 §3/§3.5 | 設計判断 §4）が付く。返答は件数サマリのみ。
 - integratorの返答を受けたら `integrated.md` をReadしてStep 6へ。生のagentsファイル・Codex出力へ戻ってよいのは、integratorの結論に疑義がある個別件の再確認だけ（全量の読み直しは統合の二重実行であり禁止）。
-- `integrated.md` の「系統別回収状況」に欠員（起動失敗・weekly limit・Codexスキップ）があれば、Gotchasの再起動規則に従い、必要なら該当系統を再起動してintegratorを再実行する。
+- `integrated.md` の「系統別回収状況」に欠員（起動失敗・weekly limit・Codexスキップ）があれば、Gotchasの再起動規則に従い、必要なら該当系統を再起動してintegratorを再実行する。**Codexの欠員申告は `codex_recover.py` の終了コードを添えていない限り受け付けない** — 回収漏れを欠員として通すと「外部監査の観点が効いていない」という偽の縮退申告がPR本文とレビュー記録に残る（2026-08-18 PR#1167 実害）。
 
 ## Step 6: 確定修正の自動適用＋コンパイル ⑤
 
@@ -211,5 +222,6 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。
 - **Agent起動時に必ずmodel列を渡す（モデル継承事故の防止）** — Agentツールは `model` を省略すると**親（＝あなた＝オーケストレータ）のモデルを継承**する。委譲時のあなたはsonnetなので、model未指定のサブエージェントが誤ってsonnetで起動しうる（opus/fable指定系統の無言降格）。両セレクタはTSV2列目に**常に具体値**を出す（`select_lenses.py` はmodel未記載lensを `opus` に、`select_reviewers.py` は未記載reviewerを `default:opus` に具体化。空欄は絶対に出さない）。この2列目を**必ずそのまま** Agentの `model` に渡すこと。fableが正になるのは `precedent-alignment` レンズ（YAMLに `model: fable`）とFable全般（prose指定）だけで、それ以外にfableは現れない。
 - **残量不足を理由に系統を間引かない／中断しない** — レポートはファイルへ書かせ返答は3行に絞る（Step 4の回収方式）。系統を落とすなら報告に明記する。
+- **Codexの `.out.md` が途中で切れていても失敗ではない** — 判定材料は `.final.md`（`-o` の出力）と `codex_recover.py` の終了コードだけ。`.out.md` を `grep` して「結論が無い＝失敗」と断じない（stdoutにはツール実行ログしか残っていないことがある）。真の失敗は「rollout にセッションが無い（exit 4）」か「task_complete が無い（exit 3）」の2つだけ。
 - **オーケストレータは生出力を読まない** — `agents/*.md`・Codexの`.out.md`の全量読み・grep集計は統合の二重実行。照合・重複排除はintegratorの担当で、オーケストレータが読むのは `integrated.md` と、疑義のある個別件の該当ファイルだけ。
 - **fableクォータ切れは黙って欠員にしない** — fable指定の系統（precedent-alignment・Fable全般）が「weekly limit」等の失敗応答を返したら、その系統を `model: "opus"` で再起動する（2026-07〜08で14起動が無言消失した実測より）。再起動した事実は最終報告に1行明記。

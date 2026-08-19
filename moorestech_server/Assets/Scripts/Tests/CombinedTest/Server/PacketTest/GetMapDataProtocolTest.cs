@@ -114,5 +114,53 @@ namespace Tests.CombinedTest.Server.PacketTest
             // A config without world.json has no seed at all, so 0 is carried (TerrainResolution=0 remains the terrain-less signal)
             Assert.AreEqual(0, response.TerrainMeta.WorldSeed);
         }
+
+        // 姿勢・スケール・クラスタ情報は見た目の入力。ワイヤで落ちるとクライアントだけが見た目を再現できない
+        // Rotation, scale and cluster info feed the visuals; dropping them on the wire leaves only the client unable to reproduce them
+        [Test]
+        public void MapObjectsの転送に姿勢とスケールとクラスタ情報が含まれる()
+        {
+            var (packet, _) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var request = RequestMapDataMessagePack.CreateLayoutRequest();
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null))[0];
+            var response = MessagePackSerializer.Deserialize<ResponseMapDataMessagePack>(responseBytes);
+
+            Assert.IsTrue(0 < response.MapObjects.Count);
+            foreach (var mapObject in response.MapObjects)
+            {
+                Assert.Greater(mapObject.ScaleX, 0f);
+                Assert.Greater(mapObject.ScaleY, 0f);
+                Assert.Greater(mapObject.ScaleZ, 0f);
+                Assert.GreaterOrEqual(mapObject.ClusterId, -1);
+            }
+
+            // 3軸を取り違えても通らないよう、map.jsonで軸ごとに違う値を持たせた1件を突き合わせる
+            // One object carries a different value per axis in map.json so a swapped axis cannot slip through
+            var scaled = response.MapObjects[3];
+
+            // 姿勢はmap.json→MapInfoJson→ワイヤの全段で運ばれる。どこかで落ちると全個体が同じ向きで直立する
+            // The rotation rides map.json into MapInfoJson and onto the wire; dropped anywhere, every instance stands upright alike
+            Assert.AreEqual(0.0381346f, scaled.RotationX);
+            Assert.AreEqual(0.1893079f, scaled.RotationY);
+            Assert.AreEqual(0.2392983f, scaled.RotationZ);
+            Assert.AreEqual(0.9515485f, scaled.RotationW);
+
+            Assert.AreEqual(1.5f, scaled.ScaleX);
+            Assert.AreEqual(2.0f, scaled.ScaleY);
+            Assert.AreEqual(2.5f, scaled.ScaleZ);
+
+            // 独立配置は-1のまま届き、重心を持たない
+            // An independent placement arrives as -1 and owns no centroid
+            Assert.AreEqual(-1, scaled.ClusterId);
+            Assert.AreEqual(0f, scaled.ClusterCenterX);
+            Assert.AreEqual(0f, scaled.ClusterCenterZ);
+
+            var clustered = response.MapObjects[5];
+            Assert.AreEqual(7, clustered.ClusterId);
+            Assert.AreEqual(100.5f, clustered.ClusterCenterX);
+            Assert.AreEqual(-100.25f, clustered.ClusterCenterZ);
+        }
     }
 }

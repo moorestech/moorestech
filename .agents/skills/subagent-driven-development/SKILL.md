@@ -15,27 +15,48 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 **継続実行:** タスクの合間に人間パートナーへ確認を取るために止まらない。計画の全タスクを止まらずに実行する。止まってよい理由は、解決できないBLOCKED状態、真に進行を妨げる曖昧さ、または全タスク完了のみ。「続けてよいですか？」という確認や進捗サマリーは相手の時間の無駄になる — 彼らは計画の実行を依頼したのだから、実行せよ。
 
+## 規模ゲート: 既定はインライン実装（2026-08-18 実測に基づく）
+
+計画があっても、**規模が閾値未満ならこのスキルを使わずインラインで実装するのが既定**である。SDDの実装subagent自体は安いが、派遣往復によるコントローラーの肥大とタスクごとのレビューゲートが固定費として乗る（実測: 1計画あたり$40〜90相当 + 本体ループ肥大。実装subagentは大型セッション総額の6〜25%に過ぎなかった）。
+
+**SDDを発動する条件（いずれか1つで発動）:**
+
+1. **予想変更が約15ファイル超、または約1,000行超**
+2. **計画の独立タスクが6個以上**
+3. 実装と並行して**長いデバッグ・実機e2e往復**が見込まれる（調査churnがコンテキストを食う）
+4. **並列実行**したい独立タスク群がある
+
+どれにも該当しなければインラインで実装する。その場合も最終レビュー1本（moores-code-review）は省略しない。worktree隔離が必要なだけならworktree + インラインでよく、SDDの理由にはならない。
+
+**閾値の根拠（両Mac 130+セッションのtranscript実測、2026-08-18）:** インライン実装は編集約20ファイル・読み書き合計約45ファイルまでcompaction発生ゼロで完走している（25〜32ファイルも読み込みが少なければ可）。編集25〜30ファイル超または長いデバッグ往復を伴うと高頻度でcompactionし、文脈喪失は「完了済みタスクの再派遣」級の最も高くつく失敗につながる。15ファイルはこの実測限界に対する安全マージンである。
+
+**途中切替:** インラインで始めて、半分に達する前にコンテキスト残量が3割を切ったら、そこで止めて残りのタスクをこのスキル（subagent派遣）に切り替える。進捗台帳（下記）に切替点を記録する。
+
 ## 使用場面
 
 ```dot
 digraph when_to_use {
     "Have implementation plan?" [shape=diamond];
+    "Over size gate? (>~15 files / >~1000 lines / 6+ tasks / long debug loop)" [shape=diamond];
     "Tasks mostly independent?" [shape=diamond];
-    "Stay in this session?" [shape=diamond];
     "subagent-driven-development" [shape=box];
-    "executing-plans" [shape=box];
+    "Parallel session execution" [shape=box];
     "Manual execution or brainstorm first" [shape=box];
+    "Inline implementation + final review" [shape=box];
+    "Stay in this session?" [shape=diamond];
 
-    "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
+    "Have implementation plan?" -> "Over size gate? (>~15 files / >~1000 lines / 6+ tasks / long debug loop)" [label="yes"];
     "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
+    "Over size gate? (>~15 files / >~1000 lines / 6+ tasks / long debug loop)" -> "Tasks mostly independent?" [label="yes"];
+    "Over size gate? (>~15 files / >~1000 lines / 6+ tasks / long debug loop)" -> "Inline implementation + final review" [label="no - below gate"];
     "Tasks mostly independent?" -> "Stay in this session?" [label="yes"];
     "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
     "Stay in this session?" -> "subagent-driven-development" [label="yes"];
-    "Stay in this session?" -> "executing-plans" [label="no - parallel session"];
+    "Stay in this session?" -> "Parallel session execution" [label="no - parallel session"];
 }
 ```
 
-**vs. Executing Plans（並列セッション）:**
+**vs. 並列セッション実行:**
 - 同一セッション（コンテキスト切り替えなし）
 - タスクごとに新規subagent（コンテキスト汚染なし）
 - 各タスク後にレビュー（spec準拠＋コード品質）、最後に広範なレビュー
@@ -119,7 +140,7 @@ digraph process {
     "Read plan, note context and global constraints, create todos" [shape=box];
     "More tasks remain?" [shape=diamond];
     "Run final whole-branch review: moores-code-review skill" [shape=box];
-    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+    "Finish branch (commit, create PR via pr-create, resolve conflicts vs master)" [shape=box style=filled fillcolor=lightgreen];
 
     "Ensure isolated worktree (create, or verify already inside one)" -> "Read plan, note context and global constraints, create todos";
     "Read plan, note context and global constraints, create todos" -> "Dispatch implementer subagent (./implementer-prompt.md)";
@@ -135,7 +156,7 @@ digraph process {
     "Mark task complete in todo list and progress ledger" -> "More tasks remain?";
     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
     "More tasks remain?" -> "Run final whole-branch review: moores-code-review skill" [label="no"];
-    "Run final whole-branch review: moores-code-review skill" -> "Use superpowers:finishing-a-development-branch";
+    "Run final whole-branch review: moores-code-review skill" -> "Finish branch (commit, create PR via pr-create, resolve conflicts vs master)";
 }
 ```
 
@@ -149,6 +170,15 @@ digraph process {
 - スキップできる唯一の方法は、人間がこのセッション内で自分の言葉で明示的にスキップを指示した場合のみ。その指示を進捗台帳に記録すること。
 - 計画を書く・レビューする際は、タスクリストの末尾に明示的な最終タスクがあることを確認する: 「必ず最後にmoores-code-reviewスキルで全ブランチ
   レビューを実行する」。計画にこれが無い場合は自分のtodoリストに追加すること — タスク行の欠落はゲートを免除しない。
+
+## セッション終了可能化（PR作成）も必須の自動ゲートである
+
+最終レビュー完了後、**pr-createスキルでPRを作成し、セッションをそのまま閉じられる状態にする**ところまでがこのプロセスの一部である。「全タスク完了」はPR未作成なら完了ではない:
+
+- 全作業をコミット・pushし、pr-createスキルでPRを作成する（既存PRがあればpushで更新する）。
+- masterとのコンフリクトがある場合は、masterをブランチへマージして解消し、コンパイル（.cs変更時）を確認してからpushする。解消の実作業は**opus subagent**へ委譲する（pr-createスキルのステップ5がこの委譲を含む）。解消内容が設計判断を伴う場合のみユーザーに諮る。
+- 「実装は完了しました。PRが必要なら作成します」という言葉でセッションを終えてはならない — それはPR作成をスキップしたことになる。
+- スキップできる唯一の方法は、人間がこのセッション内で明示的に「PRは不要」と指示した場合のみ。その指示を進捗台帳に記録すること。計画にこのタスク行が無くてもゲートは免除されない。
 
 ## 事前計画レビュー
 
@@ -248,7 +278,7 @@ Implementer subagentは4つのステータスのいずれかを報告する。�
 
 - [implementer-prompt.md](implementer-prompt.md) - implementer subagentの派遣（タスク固有情報のみ。定型は[implementer-contract.md](implementer-contract.md)をsubagentが読む）
 - [task-reviewer-prompt.md](task-reviewer-prompt.md) - タスクレビュアーsubagentの派遣（同上。定型は[task-reviewer-contract.md](task-reviewer-contract.md)）
-- 最終ブランチ全体レビュー: superpowers:requesting-code-reviewの[code-reviewer.md](../requesting-code-review/code-reviewer.md)を使用
+- 最終ブランチ全体レビュー: moores-code-review スキル（Skillツール経由で呼び出す。プロンプトテンプレートは持たない）
 
 ## ワークフロー例
 
@@ -385,12 +415,8 @@ Final reviewer: 全要件を満たし、マージ可能
 
 **必須のワークフロースキル:**
 - **ワークスペース隔離** - 上記「ワークスペース隔離（タスク1派遣前・必須）」がこのスキル内で手順を持つ。外部スキルへは委譲しない
-- **superpowers:writing-plans** - このスキルが実行する計画を作成する
-- **superpowers:requesting-code-review** - 最終ブランチ全体レビュー用のコードレビューテンプレート
-- **superpowers:finishing-a-development-branch** - 全タスク完了後の開発を仕上げる
-
-**Subagentが使うべきもの:**
-- **superpowers:test-driven-development** - Subagentは各タスクでTDDに従う
+- **writing-plans** - このスキルが実行する計画を作成する
+- **moores-code-review** - 最終ブランチ全体レビューの実体（Skillツール経由）
 
 **代替ワークフロー:**
-- **superpowers:executing-plans** - 同一セッション実行の代わりに並列セッションで使用する
+- **並列セッション実行** - 同一セッション実行の代わりに、タスクごとに別セッションを立てて進める

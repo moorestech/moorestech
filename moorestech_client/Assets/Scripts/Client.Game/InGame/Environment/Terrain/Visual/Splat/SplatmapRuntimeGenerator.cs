@@ -1,71 +1,79 @@
 using System;
+using System.Collections.Generic;
+using Client.Game.InGame.Environment.Terrain.Build.Placement;
+using Client.Game.InGame.Environment.Terrain.Visual.Source;
+using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Jobs;
-using Game.MapGeneration.Pipeline.Stages;
+using Server.Protocol.PacketResponse.MapData;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.Mathematics;
+using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
 {
     /// <summary>
-    ///     転送済みの地形から splatmap を実行時生成する。分類段を再実行して SplatmapJob の補助バッファを揃え、
+    ///     転送済みの地形から splatmap を実行時生成する。分類済みの補助バッファは呼び出し側の context から借り、
     ///     サーバーと同じ SplatmapJob をそのまま流用する（このクラスは合成式を1行も持たない）
-    ///     Builds the splatmap at runtime from the transferred terrain by re-running the classification stage to
-    ///     supply SplatmapJob's auxiliary buffers, then reusing the server's SplatmapJob verbatim
+    ///     Builds the splatmap at runtime from the transferred terrain, borrowing the classified auxiliary buffers from the
+    ///     caller's context and reusing the server's SplatmapJob verbatim
     /// </summary>
     public static class SplatmapRuntimeGenerator
     {
-        // 本番の生成経路と同じ値。窓・粗グリッド探索専用の true とは別物
-        // Matches the production generation path; true is reserved for the window and coarse-grid searches
-        private const bool ProtectEdgeSea = false;
-
         private const int JobBatchSize = 64;
 
         public static float[,,] Generate(
-            TerrainGenerationConfig config, BiomeType[] biomeTypes, SplatLayerTable layerTable,
-            BiomeTextureConfig[] biomeTextureConfigs, string[] biomeMainLayerAddresses,
-            float[,] transferredHeights, byte[,] transferredBiomeIndices, int alphamapResolution)
+            TerrainGenerationConfig config, BiomeType[] biomeTypes, TerrainClassificationContext classification,
+            SplatLayerTable layerTable, BiomeVisualSections visualSections,
+            TreeSurroundSpeciesTable treeSurroundSpecies,
+            float[,] transferredHeights, byte[,] transferredBiomeIndices, int alphamapResolution,
+            IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition)
         {
+            var biomeTextureConfigs = visualSections.TextureConfigs;
+            var biomeMainLayerAddresses = visualSections.MainLayerAddresses;
             var resolution = config.Resolution;
             var pixelCount = resolution * resolution;
             var biomeCount = biomeTypes.Length;
+            var buffers = classification.Buffers;
+
+            // contextが別configで作られていると全画素が1列ずつ流れる。窓解像度が漏れた場合もここで止まる
+            // A context built from another config would shift every pixel by a column; a leaked window resolution stops here too
+            if (buffers.heights.Length != pixelCount)
+                throw new InvalidOperationException(
+                    $"[SplatmapRuntimeGenerator] The classification context holds {buffers.heights.Length} pixels for a {pixelCount} pixel tile.");
 
             // レイヤー0本だとNativeArrayが空になりSplatmapJobが落ちる（移植元と同じく最低1本を確保する）
             // A zero-length layer array would crash SplatmapJob, so at least one is reserved as in the source
             var layerCount = Math.Max(layerTable.OrderedLayerAddresses.Count, 1);
 
-            // 確保した端からbuffersへ預ける。整備漏れの例外が途中で出ても、常にbuffers.Disposeが全部を解放できる状態を保つ
-            // Each allocation is handed to buffers immediately so a mid-way data-gap exception still leaves everything for buffers.Dispose
-            var buffers = JobDataConverter.AllocateBuffers(resolution, biomeCount, layerCount, Allocator.TempJob);
-            var continentalnessOffsets = default(NativeArray<float2>);
-            var erosionOffsets = default(NativeArray<float2>);
+            // splat専用の2本だけをここで確保する。分類チャネルはcontextの持ち物なので触らない
+            // Only the two splat-specific arrays are allocated here; the classification channels belong to the context
+            var splatWeights = new NativeArray<float>(pixelCount * layerCount, Allocator.TempJob);
+            var textureEntries = default(NativeArray<TextureEntryParams>);
 
             try
             {
-                buffers.biomeParams = JobDataConverter.ConvertBiomeParams(config, biomeTypes, Allocator.TempJob);
                 OverwriteSplatmapLayerIndices();
-
-                buffers.textureEntries = TextureEntryParamsBuilder.Build(
+                textureEntries = TextureEntryParamsBuilder.Build(
                     config.seed, biomeTextureConfigs, layerTable.LayerIndexByAddress, buffers.biomeParams, Allocator.TempJob);
-                buffers.noiseOffsets = JobDataConverter.GenerateNoiseOffsets(config, buffers.biomeParams, biomeTypes, Allocator.TempJob);
-                JobDataConverter.GenerateClassificationOffsets(config, Allocator.TempJob, out continentalnessOffsets, out erosionOffsets);
-
-                // 分類段を再実行して海陸マスク・ビーチ遷移・バイオーム重みを揃える。転送されていないのはこの6本だけ
-                // Re-run classification to supply the land/sea masks, beach transition, and biome weights: the only six buffers never transferred
-                ClassificationStage.Run(config, biomeCount, buffers, continentalnessOffsets, erosionOffsets, ProtectEdgeSea);
 
                 OverwriteWithTransferredTerrain();
                 RunSplatmapJob();
+                RunPlateauDebugOverlayJob();
 
-                return SplatWeightConverter.ToAlphamap(buffers.splatWeights, resolution, alphamapResolution, layerCount);
+                var alphamap = SplatWeightConverter.ToAlphamap(splatWeights, resolution, alphamapResolution, layerCount);
+
+                // 移植元の順序は岩の裸地→木の根元。逆にすると根元の塗りの上から岩の裸地が乗り、木の下だけ色が変わる
+                // The source paints the rocks' bare ground before the tree roots; reversing it lays bare ground over the roots and recolours only what sits under a tree
+                PaintRockSurroundTexture(alphamap);
+                PaintTreeSurroundTexture(alphamap);
+                return alphamap;
             }
             finally
             {
-                buffers.Dispose();
-                if (continentalnessOffsets.IsCreated) continentalnessOffsets.Dispose();
-                if (erosionOffsets.IsCreated) erosionOffsets.Dispose();
+                splatWeights.Dispose();
+                if (textureEntries.IsCreated) textureEntries.Dispose();
             }
 
             #region Internal
@@ -82,8 +90,8 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
                 }
             }
 
-            // 高さとwinnerは転送データが権威。再計算した分類結果は補助floatバッファとしてのみ使う
-            // Heights and winner come from the authoritative transferred data; the recomputed classification only feeds the auxiliary float buffers
+            // 高さとwinnerは転送データが権威。重みは触らないのでcontextのWinnerMasksはこの上書きの影響を受けない
+            // Heights and winner come from the authoritative transferred data; the weights stay untouched, so the context's WinnerMasks are unaffected
             void OverwriteWithTransferredTerrain()
             {
                 for (var z = 0; z < resolution; z++)
@@ -116,9 +124,60 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
                     winnerBiomeIndex = buffers.winnerBiomeIndex,
                     biomeParams = buffers.biomeParams,
                     noiseOffsets = buffers.noiseOffsets,
-                    textureEntries = buffers.textureEntries,
-                    splatWeights = buffers.splatWeights,
+                    textureEntries = textureEntries,
+                    splatWeights = splatWeights,
                 }.Schedule(pixelCount, JobBatchSize).Complete();
+            }
+
+            // 受理された台地をデバッグ色で塗り、棄却候補をAlpineのベース色で塗る。移植元と同じくalphamap化の前に走る
+            // Paints the accepted plateaus in their debug colours and the rejected candidates in Alpine's base colour, before the alphamap as in the source
+            void RunPlateauDebugOverlayJob()
+            {
+                if (!PlateauDebugOverlayGate.IsEnabled(config)) return;
+
+                // 列0本ではPlateauDebugOverlayJobが棄却側へ落ち、台地の全画素を全消ししてAlpineのベース色でベタ塗りする
+                // With zero columns PlateauDebugOverlayJob falls into its rejected branch, wiping every plateau pixel onto Alpine's base colour
+                if (layerTable.DebugLayerCount <= 0) return;
+
+                // Alpineが無効な構成でもここへ来る。ベース色が引けなければ移植元と同じく0番を使う
+                // A configuration without Alpine reaches here too; with no base colour to find it falls back to layer 0 as the source does
+                var alpineBaseLayerIndex = 0;
+                for (var biome = 0; biome < biomeCount; biome++)
+                {
+                    if (buffers.biomeParams[biome].biomeType != (int)BiomeType.Alpine) continue;
+                    alpineBaseLayerIndex = buffers.biomeParams[biome].splatmapLayerIndex;
+                    break;
+                }
+
+                new PlateauDebugOverlayJob
+                {
+                    resolution = resolution,
+                    totalLayers = layerCount,
+                    baseLayerIndex = alpineBaseLayerIndex,
+                    debugLayerStart = layerTable.DebugLayerStart,
+                    debugLayerCount = layerTable.DebugLayerCount,
+                    fadeRadius = Mathf.Max(config.alpine.smoothRadius / 2, 3),
+                    plateauMask = buffers.plateauMask,
+                    regionLabels = buffers.regionLabels,
+                    splatWeights = splatWeights,
+                }.Schedule(pixelCount, JobBatchSize).Complete();
+            }
+
+            // 岩周辺の裸地はSplatmapJobの外。合成後のalphamap上で上書きするのが移植元の順序
+            // Bare ground around rocks sits outside SplatmapJob and overwrites the composed alphamap, as the source ordered it
+            void PaintRockSurroundTexture(float[,,] alphamap)
+            {
+                ObjectSurroundTexturePainter.Apply(
+                    alphamap, config, layerTable, visualSections.SurroundTextureConfigs,
+                    classification.Weights2D, biomeCount, transferredHeights, mapObjects, tileWorldPosition);
+            }
+
+            // 根元の塗りも隣タイルの木から伸びる。届く距離は樹種のsurroundLayerWidthで決まり、岩の到達距離とは別物
+            // A root patch reaches in from a neighbouring tile's trees too, as far as that species' surroundLayerWidth rather than the rocks' reach
+            void PaintTreeSurroundTexture(float[,,] alphamap)
+            {
+                TreeSurroundTexturePainter.Apply(
+                    alphamap, config, layerTable, treeSurroundSpecies, mapObjects, tileWorldPosition);
             }
 
             #endregion

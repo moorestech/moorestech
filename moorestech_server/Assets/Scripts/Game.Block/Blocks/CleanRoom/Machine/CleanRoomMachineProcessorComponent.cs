@@ -2,19 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
-using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Blocks.Machine.RecipeSelection;
 using Game.Block.Blocks.Machine.State;
+using Game.Block.Blocks.Machine.State.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.MachineRecipesModule;
 using Newtonsoft.Json;
 using UniRx;
-using UnityEngine;
 
 namespace Game.Block.Blocks.CleanRoom.Machine
 {
@@ -26,15 +25,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public ProcessState CurrentState { get; private set; }
         public bool IsPolluting => CurrentState == ProcessState.Processing;
 
-        // 停止中は要求電力を0にし、稼働中だけ通常機械と同じ倍率を適用する
-        // Halted machines request no power; operating states use the same multipliers as normal machines
-        public float EffectiveRequestPower => CurrentState switch
-        {
-            ProcessState.Halted => 0f,
-            ProcessState.Processing => _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier,
-            ProcessState.Idle => _context.RequestPower * _idlePowerRate,
-            _ => throw new ArgumentOutOfRangeException(),
-        };
+        // 停止中は0、稼働中は通常機械と同じ倍率（率の導出はcontextが一元管理する）
+        // Halted requests no power and operating states share the normal machine multipliers; the context owns the derivation
+        public float EffectiveRequestPower => _context.EffectiveRequestPower(CurrentState);
 
         public IObservable<Unit> OnChangeBlockState => _changeState;
         private readonly Subject<Unit> _changeState = new();
@@ -44,7 +37,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         private readonly ProcessingMachineProcessState _processingState;
         private readonly VanillaMachineModuleInventory _moduleInventory;
         private readonly BlockInstanceId _blockInstanceId;
-        private readonly float _idlePowerRate;
 
         private uint _cycleCount;
         private CleanRoomEffect _cleanRoomEffect = new(false, 0, 0);
@@ -53,11 +45,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public CleanRoomMachineProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
         {
             _blockInstanceId = blockInstanceId;
-            _context = new MachineProcessContext(input, output, effect, requestPower);
             _moduleInventory = module;
-            _idlePowerRate = idlePowerRate;
             CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var remainingTicks, out var recipe, out var pendingOutputs, out _cycleCount, out var selectedRecipe);
-            _context.SelectedRecipe = selectedRecipe;
+            _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate) { SelectedRecipe = selectedRecipe };
             CurrentState = restoredState;
             _processingState = new ProcessingMachineProcessState(_context, remainingTicks, recipe, pendingOutputs);
             _stateHandlers = new IMachineProcessState[]
@@ -66,15 +56,16 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                     _processingState,
                     new HaltedMachineProcessState(_processingState, () => _cleanRoomEffect.CanOperate),
                 }.ToDictionary(handler => handler.State);
+
+            // 初回GetBlockStateDetailsがUpdate前に呼ばれても妥当な値を返せるよう初期化する
+            // Initialize so GetBlockStateDetails returns a sane value even if called before the first Update
+            _context.RelatchPublishedRequestPower(CurrentState);
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
-            var processingRate = Mathf.Clamp01(_processingState.TotalTicks > 0 ? 1f - (float)_processingState.RemainingTicks / _processingState.TotalTicks : 0f);
-            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _context.RequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
-            var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid, SelectedRecipeGuid);
-            return new[] { commonMachineBlock, machineBlock };
+            return MachineStateDetailFactory.Create(_context, _processingState, CurrentState, _lastState);
         }
 
         public Guid SelectedRecipeGuid => _context.SelectedRecipe?.MachineRecipeGuid ?? Guid.Empty;
@@ -130,10 +121,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             // 産出スロットの接続先への払い出しをここで駆動する（inventory自身のグローバル購読は廃止済み）
             // Drive output insertion into connected inventories here (the inventory's own global subscription was removed)
             _context.OutputInventory.InsertConnectInventory();
-            // 直前tickの給電を確定してから清浄室条件で状態遷移を判断する
-            // Latch the previous tick's power before evaluating clean-room gated transitions
-            _context.CurrentPower = _context.SuppliedPower;
-            _context.SuppliedPower = 0f;
+            // 直前tickの給電と同じ状態基準の要求電力を確定してから清浄室条件で状態遷移を判断する
+            // Latch the previous tick's power and the matching request power before evaluating clean-room gated transitions
+            _context.LatchTickPower(CurrentState);
             if (!_cleanRoomEffect.CanOperate && CurrentState != ProcessState.Halted)
             {
                 ForceHaltedWithoutCompletingJob();
@@ -156,6 +146,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 // Processing.OnExit pays outputs, so a clean-room loss freezes without invoking it
                 CurrentState = ProcessState.Halted;
                 _stateHandlers[ProcessState.Halted].OnEnter();
+
+                // Halted中はSupplyExternalPowerの再通知が無く恒久固着するため、突入時に分子分母を0で確定する
+                // Halted never re-notifies via SupplyExternalPower, so pin both current and published power to zero on entry to avoid a permanent stale snapshot
+                _context.PinPowerToZero();
             }
             void UpdateCurrentState()
             {
@@ -195,6 +189,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             // Non-Idle including Halted returns to Idle so the next Update re-evaluates clean-room conditions
             if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;
             _context.SelectedRecipe = recipe;
+
+            // 状態を書き換えたので、公開中の分母を新状態基準へ取り直してから通知する
+            // The state was rewritten, so re-derive the published denominator on the new state before notifying
+            _context.RelatchPublishedRequestPower(CurrentState);
             _changeState.OnNext(Unit.Default);
             return MachineRecipeSelectionResult.Success;
         }

@@ -39,8 +39,8 @@ export default function RecipeViewer() {
       ) : selectedItemId === null ? (
         <Text size="sm" c="dimmed" ta="center" m="auto">{t(L.ui.recipe.selectItemHint)}</Text>
       ) : (
-        // key={selectedItemId} の再マウントで tabKey/recipeIndex をリセットする契約は維持
-        // Keep the contract: remount via key={selectedItemId} resets tabKey/recipeIndex
+        // key再マウントでスクロール位置リセット
+        // Remount via key resets scroll position
         <RecipeContent
           key={selectedItemId}
           itemId={selectedItemId}

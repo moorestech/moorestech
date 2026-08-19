@@ -4,9 +4,9 @@ using UnityEngine;
 namespace Game.MapGeneration.Pipeline.Generators.Util
 {
     // マネージド配置処理で使うノイズ関数の最小セット（Mathf.PerlinNoise ベース）。
-    // texture ソースはスキーマ化で削除済みのため、テクスチャ経路は移植しない。
-    // Minimal managed noise set (Mathf.PerlinNoise based) for placement; the texture noise
-    // source was removed by schema migration so the texture path is not ported.
+    // PlacementNoise はテクスチャを源に取れるので、その読み出しもここに置く。
+    // Minimal managed noise set (Mathf.PerlinNoise based) for placement; since PlacementNoise can
+    // take a texture as its source, reading that texture lives here too.
     public static class ManagedNoise
     {
         public static Vector2[] GenerateOffsets(System.Random rng, int count)
@@ -109,17 +109,75 @@ namespace Game.MapGeneration.Pipeline.Generators.Util
             }
         }
 
-        // PlacementNoise 設定からノイズ値をサンプリング（offset/balance 適用）。
-        // Sample a noise value from PlacementNoise settings (applying offset/balance).
+        // PlacementNoise 設定からノイズ値をサンプリング（offset/balance/テクスチャ源に対応）。
+        // Sample a noise value from PlacementNoise settings (offset/balance and the texture source).
         public static float SamplePlacementNoise(PlacementNoise noise,
             float worldX, float worldZ, Vector2[] offsets,
-            float terrainWidth, float terrainLength)
+            float gridOriginX, float gridOriginZ, float gridWidth, float gridLength)
         {
-            if (noise.noiseType == MapNoiseType.None)
+            if (!noise.IsActive)
                 return 1f;
 
-            float value = SampleByType(noise.noiseType, worldX, worldZ, noise.frequency, offsets);
+            // テクスチャが展開済みならノイズ関数より優先し、格子全体を 0-1 に正規化した UV で読む。
+            // タイル1枚で割ると2枚目以降の worldX が UV=1 を超え、残りのタイルが最右列テクセルの定数で塗られる。
+            // An expanded texture wins over the noise functions and is read through UV normalized over the whole grid.
+            // Dividing by one tile would push every later tile past UV=1 and paint them with the rightmost texel's constant.
+            float value;
+            if (noise.UsesTexture)
+            {
+                float u = 0f < gridWidth ? (worldX - gridOriginX) / gridWidth : 0f;
+                float v = 0f < gridLength ? (worldZ - gridOriginZ) / gridLength : 0f;
+                value = SampleTextureChannel(GetPixelBilinear(noise, u, v), noise.channel);
+            }
+            else
+            {
+                value = SampleByType(noise.noiseType, worldX, worldZ, noise.frequency, offsets);
+            }
+
+            // offset: 出力を上下シフト、balance: 中心をずらす
+            // offset shifts the output up/down, balance moves the center
             return (value + noise.offset + noise.balance) * noise.amplitude;
+        }
+
+        // UnityEngine.Texture2D に依存しないバイリニア。GPU と同じテクセル中心基準 (uv*size-0.5) で4近傍を
+        // 加重平均し、端は Clamp。移植元が呼ぶ Texture2D.GetPixelBilinear は原点を uv*size に取るため
+        // 半テクセルずれるが、そちらは UV=0.5 が隣のテクセル中心に一致してしまい補間が効かない規約なので採らない。
+        // Texture2D-free bilinear on the GPU's texel-center basis (uv*size-0.5), clamping at the border.
+        // The source's Texture2D.GetPixelBilinear puts the origin at uv*size, half a texel away; that rule is
+        // not adopted because it lands UV=0.5 exactly on a texel center and stops interpolating there.
+        static Color GetPixelBilinear(PlacementNoise noise, float u, float v)
+        {
+            float px = u * noise.textureWidth - 0.5f;
+            float py = v * noise.textureHeight - 0.5f;
+            int x0 = Mathf.FloorToInt(px);
+            int y0 = Mathf.FloorToInt(py);
+            float tx = px - x0;
+            float ty = py - y0;
+
+            Color bottom = Color.Lerp(GetPixel(noise, x0, y0), GetPixel(noise, x0 + 1, y0), tx);
+            Color top = Color.Lerp(GetPixel(noise, x0, y0 + 1), GetPixel(noise, x0 + 1, y0 + 1), tx);
+            return Color.Lerp(bottom, top, ty);
+        }
+
+        // 画素は GetPixels32 と同じ左下始まりの行優先で並ぶ。
+        // Pixels are laid out row-major from the bottom-left, exactly as GetPixels32 returns them.
+        static Color GetPixel(PlacementNoise noise, int x, int y)
+        {
+            int cx = Mathf.Clamp(x, 0, noise.textureWidth - 1);
+            int cy = Mathf.Clamp(y, 0, noise.textureHeight - 1);
+            return noise.texturePixels[cy * noise.textureWidth + cx];
+        }
+
+        static float SampleTextureChannel(Color pixel, TextureChannel channel)
+        {
+            switch (channel)
+            {
+                case TextureChannel.R: return pixel.r;
+                case TextureChannel.G: return pixel.g;
+                case TextureChannel.B: return pixel.b;
+                case TextureChannel.A: return pixel.a;
+                default: return pixel.r;
+            }
         }
 
         public static float CombineNoise(float a, float b, NoiseOp op)

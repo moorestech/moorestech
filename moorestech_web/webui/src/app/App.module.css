@@ -35,7 +35,7 @@
   flex: 0 0 auto;
   transform: scale(var(--ui-scale, 1));
   transform-origin: center center;
-  z-index: 1;
+  z-index: var(--z-viewport-stage);
   /* 上段パネル3列のみgridで並べる。ホットバーはstage絶対配置で常時画面中央（HotbarPanel側で定義） */
   /* The grid lays out only the three upper panel columns; the hotbar is stage-absolute and always screen-centered (defined in HotbarPanel) */
   grid-template-areas: "inv viewer items";
@@ -65,5 +65,5 @@
   inset: 0;
   background: rgb(0 0 0 / 42%);
   pointer-events: none;
-  z-index: 0;
+  z-index: var(--z-viewport-backdrop);
 }

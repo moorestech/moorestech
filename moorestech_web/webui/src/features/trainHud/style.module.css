@@ -6,6 +6,6 @@
   padding: 0.75rem 1rem;
   color: var(--mantine-color-gray-1);
   background: color-mix(in srgb, var(--mantine-color-dark-8) 82%, transparent);
-  z-index: var(--z-screen);
+  z-index: var(--z-stage-screen);
   pointer-events: none;
 }

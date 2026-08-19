@@ -14,15 +14,17 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void FluidVeinsAreGeneratedWithinTerrainBounds()
         {
             var generation = TestGenerationConfigFactory.CreateSmall();
-            var output = MapGenerationPipeline.Generate(generation, 12345);
+            var output = MapGenerationPipeline.Generate(generation, 12345, TestGenerationConfigFactory.ServerDataDirectory);
 
             Assert.That(output.FluidVeins, Is.Not.Empty);
 
+            // 鉱脈はシーン座標で出るので、範囲は master の worldOffset ではなく生成が確定させた格子から取る。
+            // Veins come out in scene space, so bound them by the grid generation settled on, not the master worldOffset.
             var vp = (VanillaGeneratorAlgorithmParam)generation.AlgorithmParam;
-            int minWorldX = (int)vp.WorldOffsetX;
-            int maxWorldX = (int)(vp.WorldOffsetX + vp.TerrainWidth);
-            int minWorldZ = (int)vp.WorldOffsetZ;
-            int maxWorldZ = (int)(vp.WorldOffsetZ + vp.TerrainLength);
+            int minWorldX = (int)output.SceneOrigin.x;
+            int maxWorldX = (int)(output.SceneOrigin.x + vp.GridSizeX * vp.TerrainWidth);
+            int minWorldZ = (int)output.SceneOrigin.y;
+            int maxWorldZ = (int)(output.SceneOrigin.y + vp.GridSizeZ * vp.TerrainLength);
             int maxWorldY = (int)vp.TerrainHeight;
 
             foreach (var vein in output.FluidVeins)

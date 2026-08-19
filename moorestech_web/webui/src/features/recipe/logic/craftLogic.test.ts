@@ -1,28 +1,18 @@
 import { describe, it, expect } from "vitest";
 import {
   craftable,
-  selectCraftRecipes,
-  groupMachineRecipesByBlock,
-  buildRecipeTabs,
+  buildRecipeEntries,
   craftableResultCounts,
 } from "./craftLogic";
 import type {
   CraftRecipe,
   CraftRecipesData,
   MachineRecipe,
-  MachineRecipesData,
 } from "@/bridge";
-import { blockNameKey, L } from "@/shared/i18n";
 
 const recipeA = "88000000-0000-4000-8000-000000000001";
 const recipeB = "88000000-0000-4000-8000-000000000002";
 const recipeC = "88000000-0000-4000-8000-000000000003";
-const machineRecipeA = "89000000-0000-4000-8000-000000000001";
-const machineRecipeB = "89000000-0000-4000-8000-000000000002";
-const machineRecipeC = "89000000-0000-4000-8000-000000000003";
-const machineRecipeD = "89000000-0000-4000-8000-000000000004";
-const blockA = "8a000000-0000-4000-8000-000000000001";
-const blockB = "8a000000-0000-4000-8000-000000000002";
 
 const craftRecipe = (resultItemId: number, guid: string): CraftRecipe => ({
   recipeGuid: guid,
@@ -44,15 +34,6 @@ describe("craftableResultCounts", () => {
   });
 });
 
-const machineRecipe = (blockId: number, blockGuid: string, outputItemId: number, guid: string): MachineRecipe => ({
-  recipeGuid: guid,
-  blockGuid,
-  blockId,
-  time: 1,
-  inputItems: [],
-  outputItems: [{ itemId: outputItemId, count: 1 }],
-});
-
 describe("craftable", () => {
   const recipe = {
     recipeGuid: recipeA,
@@ -72,57 +53,42 @@ describe("craftable", () => {
   });
 });
 
-describe("selectCraftRecipes", () => {
-  const data: CraftRecipesData = { recipes: [craftRecipe(9, recipeA), craftRecipe(5, recipeB), craftRecipe(9, recipeC)] };
-  it("resultItemId 一致のみ抽出する", () => {
-    expect(selectCraftRecipes(data, 9).map((r) => r.recipeGuid)).toEqual([recipeA, recipeC]);
+describe("buildRecipeEntries", () => {
+  const craft = (guid: string, resultItemId: number): CraftRecipe => ({
+    recipeGuid: guid, resultItemId, resultCount: 1, craftTime: 2,
+    requiredItems: [{ itemId: 1, count: 1 }],
   });
-  it("一致無しは空配列", () => {
-    expect(selectCraftRecipes(data, 42)).toEqual([]);
+  const machine = (guid: string, outputItemId: number, blockId: number): MachineRecipe => ({
+    recipeGuid: guid, blockGuid: "00000000-0000-0000-0000-00000000000b", blockId, time: 4,
+    inputItems: [{ itemId: 1, count: 1 }], outputItems: [{ itemId: outputItemId, count: 1 }],
   });
-});
 
-describe("groupMachineRecipesByBlock", () => {
-  const data: MachineRecipesData = {
-    recipes: [
-      machineRecipe(10, blockA, 9, machineRecipeA),
-      machineRecipe(10, blockA, 9, machineRecipeB),
-      machineRecipe(20, blockB, 9, machineRecipeC),
-      machineRecipe(20, blockB, 7, machineRecipeD),
-    ],
-  };
-  it("出力アイテム一致を blockId 毎に集約する", () => {
-    const groups = groupMachineRecipesByBlock(data, 9);
-    expect([...groups.keys()]).toEqual([10, 20]);
-    expect(groups.get(10)!.map((r) => r.recipeGuid)).toEqual([machineRecipeA, machineRecipeB]);
-    expect(groups.get(20)!.map((r) => r.recipeGuid)).toEqual([machineRecipeC]);
-  });
-  it("一致無しは空 Map", () => {
-    expect(groupMachineRecipesByBlock(data, 999).size).toBe(0);
-  });
-});
-
-describe("buildRecipeTabs", () => {
-  it("クラフト有り→先頭が craft タブ、続いて機械タブ", () => {
-    const groups = groupMachineRecipesByBlock(
-      { recipes: [machineRecipe(10, blockA, 9, machineRecipeA)] },
+  it("クラフトレシピを先頭に、機械レシピを後ろにデータ順で並べる", () => {
+    const entries = buildRecipeEntries(
+      { recipes: [craft("c1", 9), craft("c2", 5), craft("c3", 9)] },
+      { recipes: [machine("m1", 9, 100), machine("m2", 7, 100), machine("m3", 9, 200)] },
       9,
     );
-    const tabs = buildRecipeTabs([craftRecipe(9, recipeA)], groups);
-    expect(tabs).toEqual([
-      { key: "craft", labelKey: L.ui.recipe.craftTab, blockId: null },
-      { key: "m10", labelKey: blockNameKey(blockA), blockId: 10 },
-    ]);
+    expect(entries.map((e) => e.recipe.recipeGuid)).toEqual(["c1", "c3", "m1", "m3"]);
+    expect(entries.map((e) => e.kind)).toEqual(["craft", "craft", "machine", "machine"]);
   });
-  it("クラフト無し→機械タブのみ", () => {
-    const groups = groupMachineRecipesByBlock(
-      { recipes: [machineRecipe(20, blockB, 9, machineRecipeA)] },
-      9,
-    );
-    const tabs = buildRecipeTabs([], groups);
-    expect(tabs).toEqual([{ key: "m20", labelKey: blockNameKey(blockB), blockId: 20 }]);
+
+  it("対象アイテムのレシピが無ければ空配列", () => {
+    expect(buildRecipeEntries({ recipes: [] }, { recipes: [] }, 9)).toEqual([]);
   });
-  it("両方無し→空配列", () => {
-    expect(buildRecipeTabs([], new Map())).toEqual([]);
+
+  // クラフト絞り込み単体(旧関数から移植)
+  // Craft filtering unit, migrated from the old function
+  const craftOnly: CraftRecipesData = { recipes: [craftRecipe(9, recipeA), craftRecipe(5, recipeB), craftRecipe(9, recipeC)] };
+
+  it("クラフトはresultItemId一致のみ抽出する", () => {
+    const entries = buildRecipeEntries(craftOnly, { recipes: [] }, 9);
+
+    expect(entries.map((e) => e.recipe.recipeGuid)).toEqual([recipeA, recipeC]);
+    expect(entries.every((e) => e.kind === "craft")).toBe(true);
+  });
+
+  it("クラフトのresultItemIdが一致しなければ空配列", () => {
+    expect(buildRecipeEntries(craftOnly, { recipes: [] }, 42)).toEqual([]);
   });
 });

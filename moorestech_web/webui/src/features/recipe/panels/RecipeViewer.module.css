@@ -1,12 +1,21 @@
-/* タブ見出し内のブロックアイコン（20px） */
-/* Block icon inside the tab label (20px) */
-.tabIcon {
-  width: 1.25rem;
-  height: 1.25rem;
-  object-fit: contain;
-}
-
 .recipeContent {
   flex: 1;
   min-height: 0;
+}
+
+/* リストのスクロールバーは§8.10のネイビートーンへ統一する */
+/* Unify the list scrollbar with the §8.10 navy tone */
+.recipeListScroll :global(.mantine-ScrollArea-scrollbar) {
+  background: var(--gauge-track);
+}
+
+.recipeListScroll :global(.mantine-ScrollArea-thumb) {
+  background: var(--bevel-c2);
+  border-radius: 0;
+}
+
+.recipeList {
+  /* エントリ幅をスクロールバー分だけ内側へ確保する（ScrollAreaのscrollbarSizeと同一トークン） */
+  /* Reserve room for the overlay scrollbar inside the entry width (same token as ScrollArea's scrollbarSize) */
+  padding-right: var(--recipe-list-scrollbar-reserve);
 }

@@ -64,7 +64,7 @@ export default function EquipmentPanel() {
 
     const latest = readTopic(Topics.inventory);
     if (!latest || latest.equipment.length === 0) return;
-    const accumulated = accumulateWheelSteps(wheelRemainder.current, e.deltaY);
+    const accumulated = accumulateWheelSteps(wheelRemainder.current, e.deltaY, e.deltaMode);
     wheelRemainder.current = accumulated.remainder;
     if (accumulated.steps === 0) return;
     // 未反映の送信値を起点にし、高速な連続ノッチが古いtopicへ巻き戻されないようにする

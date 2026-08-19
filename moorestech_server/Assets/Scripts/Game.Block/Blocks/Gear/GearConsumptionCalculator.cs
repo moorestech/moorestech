@@ -19,7 +19,9 @@ namespace Game.Block.Blocks.Gear
             return new Torque(consumption.BaseTorque * Mathf.Pow(x, exp));
         }
 
-        public static float CalcOperatingRate(GearConsumption consumption, RPM currentRpm, Torque currentTorque)
+        // 要求トルク率は需要側と同じ上限として効く。1を超える要求も供給・稼働率へ届く
+        // The request rate caps the supply the same way it scales demand, so a rate above 1 reaches the supply side too
+        public static float CalcOperatingRate(GearConsumption consumption, RPM currentRpm, Torque currentTorque, float requestRate)
         {
             if (currentRpm.AsPrimitive() < consumption.MinimumRpm) return 0f;
             if (consumption.BaseRpm <= 0f) return 0f;
@@ -28,7 +30,7 @@ namespace Game.Block.Blocks.Gear
             var required = CalcRequiredTorque(consumption, currentRpm).AsPrimitive();
             if (required <= 0f) return 0f;
 
-            var torqueRate = Mathf.Min(currentTorque.AsPrimitive() / required, 1f);
+            var torqueRate = Mathf.Min(currentTorque.AsPrimitive() / required, requestRate);
             return rpmRatio * torqueRate;
         }
 

@@ -5,47 +5,32 @@ import type {
   MachineRecipesData,
 } from "@/bridge";
 import { hasEnoughItems } from "@/shared/ownedCounts";
-import { blockNameKey, L, type TranslationKey } from "@/shared/i18n";
 
-// null はクラフトタブ
-// null denotes the craft tab
-type RecipeTab = { key: string; labelKey: TranslationKey; blockId: number | null };
+// 単一リストの1件=1レシピ
+// One list entry maps to one recipe
+export type RecipeEntry =
+  | { kind: "craft"; recipe: CraftRecipe }
+  | { kind: "machine"; recipe: MachineRecipe };
 
 // 選択アイテムを生産するクラフトレシピを抽出する純関数。
 // Pure selector for craft recipes that produce the selected item.
-export function selectCraftRecipes(recipes: CraftRecipesData, itemId: number): CraftRecipe[] {
+function selectCraftRecipes(recipes: CraftRecipesData, itemId: number): CraftRecipe[] {
   return recipes.recipes.filter((r) => r.resultItemId === itemId);
 }
 
-export function groupMachineRecipesByBlock(
+// 全レシピをクラフト優先の単一列へ畳む
+// Flattens every recipe into one craft-first list
+export function buildRecipeEntries(
+  recipes: CraftRecipesData,
   machineRecipes: MachineRecipesData,
   itemId: number,
-): Map<number, MachineRecipe[]> {
-  const groups = new Map<number, MachineRecipe[]>();
-  machineRecipes.recipes
+): RecipeEntry[] {
+  const craftEntries: RecipeEntry[] = selectCraftRecipes(recipes, itemId)
+    .map((recipe) => ({ kind: "craft", recipe }));
+  const machineEntries: RecipeEntry[] = machineRecipes.recipes
     .filter((r) => r.outputItems.some((o) => o.itemId === itemId))
-    .forEach((r) => {
-      const group = groups.get(r.blockId) ?? [];
-      group.push(r);
-      groups.set(r.blockId, group);
-    });
-  return groups;
-}
-
-// クラフトタブ + 機械ごとのタブを組み立てる純関数（uGUI RecipeTabView 相当）。
-// Pure builder for the craft tab plus one tab per machine (mirrors uGUI RecipeTabView).
-export function buildRecipeTabs(
-  craftRecipes: CraftRecipe[],
-  machineGroups: Map<number, MachineRecipe[]>,
-): RecipeTab[] {
-  const tabs: RecipeTab[] = [];
-  if (craftRecipes.length > 0) {
-    tabs.push({ key: "craft", labelKey: L.ui.recipe.craftTab, blockId: null });
-  }
-  machineGroups.forEach((group, blockId) =>
-    tabs.push({ key: `m${blockId}`, labelKey: blockNameKey(group[0].blockGuid), blockId }),
-  );
-  return tabs;
+    .map((recipe) => ({ kind: "machine", recipe }));
+  return [...craftEntries, ...machineEntries];
 }
 
 // 全必要素材を所持数が満たすか。
