@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { expectCraftGrip } from "../../support/craftChromeAssertions";
-import { expectHitTestWithin } from "../../support/layoutAssertions";
+import { expectHitTestWithin, expectSeparatedHorizontally } from "../../support/layoutAssertions";
 import { resetResearch, setTopicScenario, setUiState } from "../../support/mockControl";
 import { researchableNodeGuid, itemLackingNodeGuid } from "../../mock-host/researchFixtures";
 
@@ -135,25 +136,46 @@ test("research button sends research.complete and node becomes completed", async
   await expect(page.getByTestId(`research-button-${researchableNodeGuid}`)).toContainText("研究済み");
 });
 
-test("研究パネルはステージ全域を占有し持ち物とキーヒントが上に重なる", async ({ page }) => {
+test("研究パネルは持ち物の右隣から画面端までを占有し持ち物と重ならない", async ({ page }) => {
   await setUiState(page, "ResearchTree");
   await page.goto("/");
   const tree = page.getByTestId("research-tree");
   const stageBox = await page.getByTestId("app-stage").boundingBox();
   const treeBox = await tree.boundingBox();
-  // stage全域一致(誤差1px)
-  // Full-stage match (1px tolerance)
-  expect(Math.abs(treeBox!.x - stageBox!.x)).toBeLessThan(1.5);
+  const inventoryBox = await page.getByTestId("main-grid").boundingBox();
+  // 上・右・下はstage端に密着（誤差1.5px）
+  // Top, right and bottom hug the stage edges (1.5px tolerance)
   expect(Math.abs(treeBox!.y - stageBox!.y)).toBeLessThan(1.5);
-  expect(Math.abs(treeBox!.width - stageBox!.width)).toBeLessThan(1.5);
-  expect(Math.abs(treeBox!.height - stageBox!.height)).toBeLessThan(1.5);
-  // 持ち物パネルとキーヒントは可視のまま（重畳・裁定2026-08-18）
-  // Inventory panel and key hints stay visible on top (adjudicated 2026-08-18)
-  await expect(page.getByTestId("main-grid")).toBeVisible();
-  await expect(page.getByTestId("research-key-hints")).toBeVisible();
-  // 持ち物グリッドがクリック可
-  // Inventory grid is clickable
+  expect(Math.abs(treeBox!.x + treeBox!.width - (stageBox!.x + stageBox!.width))).toBeLessThan(1.5);
+  expect(Math.abs(treeBox!.y + treeBox!.height - (stageBox!.y + stageBox!.height))).toBeLessThan(1.5);
+  // 左端は「持ち物幅378px + 列gap35px」のscale後の位置（GamePanelにtestIdが無いため数値で押さえる）
+  // The left edge is the scaled position of "inventory width 378px + column gap 35px" (GamePanel exposes no testId, so assert numerically)
+  const scale = await stageScale(page);
+  expect(treeBox!.x - stageBox!.x).toBeCloseTo((378 + 35) * scale, 0);
+  // スロットグリッド基準でも重なりが無いことを二重に押さえる
+  // Double-check non-overlap against the slot grid as well
+  await expectSeparatedHorizontally(page.getByTestId("main-grid"), tree);
+  expect(inventoryBox!.x + inventoryBox!.width).toBeLessThanOrEqual(treeBox!.x);
+  // 持ち物はクリック可のまま（棲み分け後もgrabは生きる）
+  // The inventory stays clickable; grab survives the split
   await page.getByTestId("main-grid").locator(":scope > *").first().click({ trial: true });
+  await expect(page.getByTestId("research-key-hints")).toBeVisible();
+});
+
+test("研究画面では持ち物がstage左paddingぶん左へ寄る", async ({ page }) => {
+  await setUiState(page, "PlayerInventory");
+  await page.goto("/");
+  const onInventoryScreen = await page.getByTestId("main-grid").boundingBox();
+  await setUiState(page, "ResearchTree");
+  await expect(page.getByTestId("research-tree")).toBeVisible();
+  const onResearchScreen = await page.getByTestId("main-grid").boundingBox();
+  // stage拡縮がかかるため、左padding59.7pxのscale後の値と突き合わせる
+  // The stage is scaled, so compare against the scaled value of the 59.7px left padding
+  const scale = await stageScale(page);
+  expect(onInventoryScreen!.x - onResearchScreen!.x).toBeCloseTo(59.7 * scale, 0);
+  // 縦位置は動かさない
+  // The vertical position does not move
+  expect(Math.abs(onResearchScreen!.y - onInventoryScreen!.y)).toBeLessThan(1.5);
 });
 
 test("研究パネル展開中も常駐チャレンジHUDとキーヒントが遮蔽されない", async ({ page }) => {
@@ -199,3 +221,9 @@ test("研究画面ではホットバーと装備HUDを描画しない", async ({
   await expect(page.getByTestId("hotbar-grid")).toBeVisible();
   await expect(page.getByTestId("equipment-slots")).toBeVisible();
 });
+
+// stageは実viewportへ一様拡縮されるため、基準stage座標のpx期待値はこの倍率を掛けて突き合わせる
+// The stage is uniformly scaled into the real viewport, so px expectations in stage coordinates are multiplied by this factor
+async function stageScale(page: Page): Promise<number> {
+  return page.getByTestId("app-stage").evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a);
+}

@@ -1,8 +1,13 @@
-/* 研究エリア: ステージ全域を占有する（ADR 0014・裁定2026-08-18）。持ち物・HUD・キーヒントは上層に重畳 */
-/* Research area occupies the full stage (ADR 0014); inventory, HUD and key hints overlay above it */
+/* 研究エリア: 持ち物パネルの右隣から画面端までを占有する（ADR 0014 決定2・裁定2026-08-19） */
+/* Research area spans from the inventory panel's right edge to the screen edges (ADR 0014 decision 2) */
+/* 絶対配置の基準はstageのpadding boxなので、上右下の0はstageのpaddingを跨いで実画面端へ届く */
+/* The containing block is the stage's padding box, so 0 on top/right/bottom reaches the real screen edges across the stage padding */
 .researchArea {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: calc(var(--inventory-panel-width) + var(--stage-column-gap));
   z-index: var(--z-stage-overlay-panel);
   min-width: 0;
 }

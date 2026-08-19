@@ -17,7 +17,9 @@ describe("notification layering", () => {
     // Inside the portal it becomes a body-level sibling and paints ahead of .viewport at any z
     const hostIndex = app.indexOf("<NotificationHost />");
     const portalIndex = app.indexOf("<Portal>");
-    const stageIndex = app.indexOf("className={styles.stage}");
+    // stageの目印はclassNameでなくtestId。修飾クラス合成でclassName記述が変わっても位置検査は生き残る
+    // Anchor the stage by its testId, not its className, so composing modifier classes cannot break this position check
+    const stageIndex = app.indexOf('data-testid="app-stage"');
     expect(hostIndex).toBeGreaterThan(-1);
     expect(hostIndex).toBeLessThan(stageIndex);
     expect(hostIndex).toBeLessThan(portalIndex);

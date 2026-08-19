@@ -26,7 +26,7 @@
 .stage {
   position: relative;
   display: grid;
-  column-gap: 2.1875rem;
+  column-gap: var(--stage-column-gap);
   row-gap: 1rem;
   width: var(--ui-stage-width);
   height: var(--ui-stage-height);
@@ -45,6 +45,12 @@
   /* 正本は左詰めの固定アンカー配置。center centeringは総幅で揺れるため使わない */
   /* The reference uses fixed left-anchored panels; centering would drift with total width */
   justify-content: start;
+}
+
+/* 研究画面だけ左paddingを外し、持ち物を画面左端へ寄せて右側の空きを研究パネルへ渡す */
+/* Drop the left padding on the research screen alone, pushing the inventory to the screen edge and handing the freed space to the research panel */
+.stageResearch {
+  padding-left: 0;
 }
 
 /* stage拡縮を維持したまま、画面端HUDの論理領域だけを実viewportまで広げる */

@@ -331,7 +331,7 @@ git commit -m "feat: 研究画面でホットバーと装備HUDを引っ込め�
   - CSSクラス `.stageResearch`（`App.module.css`）
   - `InventoryPanel` のシグネチャは `export default function InventoryPanel()`（引数なし）へ戻る
 
-- [ ] **Step 1: レイアウトの失敗するe2eを書く**
+- [x] **Step 1: レイアウトの失敗するe2eを書く**
 
 `moorestech_web/webui/e2e/tests/research/research.spec.ts` の既存テスト `研究パネルはステージ全域を占有し持ち物とキーヒントが上に重なる`（138行目付近、`});` まで）を、次のテスト2本で丸ごと置き換える:
 
@@ -393,7 +393,7 @@ Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research
 
 Expected: FAIL 2件。1本目は `expectSeparatedHorizontally` が「研究パネルの左端(=stage左端)が持ち物の右端より左」で落ちる。2本目は差分が 0 で `toBeCloseTo(59.7 * scale)` に落ちる。
 
-- [ ] **Step 3: レイアウトトークンを追加する**
+- [x] **Step 3: レイアウトトークンを追加する**
 
 `moorestech_web/webui/src/app/tokens.css` の `--menu-content-height` を定義している行の直下へ追記する:
 
@@ -406,7 +406,7 @@ Expected: FAIL 2件。1本目は `expectSeparatedHorizontally` が「研究パ�
   --stage-column-gap: 2.1875rem;
 ```
 
-- [ ] **Step 4: stage の column-gap をトークン化し、研究画面用の修飾クラスを足す**
+- [x] **Step 4: stage の column-gap をトークン化し、研究画面用の修飾クラスを足す**
 
 `moorestech_web/webui/src/app/App.module.css` の `.stage` 内の行を変更する。変更前:
 
@@ -430,7 +430,7 @@ Expected: FAIL 2件。1本目は `expectSeparatedHorizontally` が「研究パ�
 }
 ```
 
-- [ ] **Step 5: App.tsx で修飾クラスを当て、InventoryPanel の prop を外す**
+- [x] **Step 5: App.tsx で修飾クラスを当て、InventoryPanel の prop を外す**
 
 `moorestech_web/webui/src/app/App.tsx` の stage の div を変更する。変更前:
 
@@ -448,7 +448,7 @@ Expected: FAIL 2件。1本目は `expectSeparatedHorizontally` が「研究パ�
 
 （`researchScreen` は同ファイル内に既存の `const researchScreen = screen === "researchTree";` があるのでそのまま使う）
 
-- [ ] **Step 6: InventoryPanel から重畳ハックを撤去し、幅をトークン化する**
+- [x] **Step 6: InventoryPanel から重畳ハックを撤去し、幅をトークン化する**
 
 `moorestech_web/webui/src/features/inventory/InventoryPanel/index.tsx` から次を削除する:
 - import 行 `import type { UiScreen } from "@/shared/uiState";`
@@ -481,7 +481,7 @@ style={{ justifySelf: "start", alignSelf: "start", width: "var(--inventory-panel
 
 （`...` の部分は既存の `--panel-right` 以降をそのまま残す。消してはいけない）
 
-- [ ] **Step 7: researchArea の左端をトークンで確定する**
+- [x] **Step 7: researchArea の左端をトークンで確定する**
 
 `moorestech_web/webui/src/features/research/style.module.css` の先頭8行（`.researchArea` ブロックとその上のコメント）を、次で置き換える:
 
@@ -501,13 +501,13 @@ style={{ justifySelf: "start", alignSelf: "start", width: "var(--inventory-panel
 }
 ```
 
-- [ ] **Step 8: テストを実行して通ることを確認する**
+- [x] **Step 8: テストを実行して通ることを確認する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh/moorestech_web/webui && npx playwright test e2e/tests/research/research.spec.ts`
 
 Expected: 全PASS。特に「研究パネルは持ち物の右隣から画面端までを占有し持ち物と重ならない」「研究画面では持ち物がstage左paddingぶん左へ寄る」「研究パネル展開中も常駐チャレンジHUDとキーヒントが遮蔽されない」「研究パネル展開中も採掘進捗バーが遮蔽されない」の4本が通ること。
 
-- [ ] **Step 9: researchViewport.spec.ts の古い前提コメントを直す**
+- [x] **Step 9: researchViewport.spec.ts の古い前提コメントを直す**
 
 `moorestech_web/webui/e2e/tests/research/researchViewport.spec.ts` の以下2行のコメントを差し替える。変更前:
 
@@ -543,7 +543,7 @@ Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research
 
 Expected: vitest 全PASS、eslint clean、playwright は既知の恒常赤（既定ロケールjapaneseと英語literal期待の10件・bd moorestech-2lh.1）以外すべてPASS。**inventory系・hotbar系・equipment系のspecが新たに落ちていないことを必ず確認する**（落ちていればR4/R8違反なので直す）。
 
-- [x] **Step 11: コミットする**
+- [ ] **Step 11: コミットする**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh
