@@ -11,6 +11,9 @@ namespace Client.Tests.Map
     ///     レイターゲット円柱の太さとBK内包を検証
     ///     Verifies the ray target cylinder is thick enough to aim at and still swallows BK's own colliders
     /// </summary>
+    // ラッパーはgitignoreされたPersonalAssetsのBKプレハブのバリアントで、CIには親が無く必ずnullになる
+    // The wrappers are variants of BK prefabs under the gitignored PersonalAssets, whose parents never exist on CI
+    [Category("IgnoreCI")]
     public class MapObjectRayTargetTest
     {
         // 採掘可能距離(MiningController.miningDistance=2.5)とカメラの背後距離(PlayerSystem.prefabのm_CameraDistance=3.5)

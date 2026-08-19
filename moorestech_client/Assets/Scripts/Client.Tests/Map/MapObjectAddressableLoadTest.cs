@@ -13,6 +13,9 @@ namespace Client.Tests.Map
     ///     全speciesの登録先と採掘構造を検証
     ///     Verifies every species' Addressable registration and mining structure
     /// </summary>
+    // ラッパーはgitignoreされたPersonalAssetsのBKプレハブのバリアントで、CIには親が無く必ずnullになる
+    // The wrappers are variants of BK prefabs under the gitignored PersonalAssets, whose parents never exist on CI
+    [Category("IgnoreCI")]
     public class MapObjectAddressableLoadTest
     {
         // 今回生成する樹種・岩のアドレス空間。既存のVanilla/Environment/Tree(スラッシュ無し)とは前方一致で衝突しない
