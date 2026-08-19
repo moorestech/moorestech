@@ -76,7 +76,7 @@ ADR 0014 決定2の差し替えに合わせ、様式ドキュメントを先に�
 - Consumes: なし（ドキュメントのみ）
 - Produces: Task 3のCSS実装が参照する様式記述。後続タスクはこの記述と矛盾してはならない。
 
-- [ ] **Step 1: §1の例外記述を差し替える**
+- [x] **Step 1: §1の例外記述を差し替える**
 
 `.agents/skills/webui-design/SKILL.md` の以下3行（`- **全画面UIは作らない。**` ブロック内）を探す:
 
@@ -96,7 +96,7 @@ ADR 0014 決定2の差し替えに合わせ、様式ドキュメントを先に�
     このパネルより上の層（`.viewportOverlay` の `--z-stage-overlay-panel-chrome`）に残す。
 ```
 
-- [ ] **Step 2: §8.14 の安全帯記述を差し替える**
+- [x] **Step 2: §8.14 の安全帯記述を差し替える**
 
 同ファイルの以下1行を探す:
 
@@ -111,13 +111,13 @@ ADR 0014 決定2の差し替えに合わせ、様式ドキュメントを先に�
   同画面では常時表示族（ホットバー・装備HUD）を描画しないため、パネル下端は下安全帯を超えて画面下端まで伸びる。
 ```
 
-- [ ] **Step 3: 記述の矛盾が残っていないか検索して確認する**
+- [x] **Step 3: 記述の矛盾が残っていないか検索して確認する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh && grep -n "ステージ全域\|全域パネル\|重畳" .agents/skills/webui-design/SKILL.md`
 
 Expected: 研究画面に関する「ステージ全域」「全域パネル」「重畳」の記述がヒットしない（他機能の重畳記述はヒットしてよい。研究文脈の行が残っていたらStep 1/2の置換漏れなので直す）。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh
