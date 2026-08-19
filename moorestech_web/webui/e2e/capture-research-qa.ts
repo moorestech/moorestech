@@ -67,10 +67,10 @@ async function captureOverview(browser: Awaited<ReturnType<typeof chromium.launc
   const researchableNode = page.getByTestId(`research-node-${researchableNodeGuid}`);
   await researchableNode.waitFor();
 
-  // ズーム直後は既定中央寄せのため完了ノードが常駐インベントリの裏へ回る。
-  // 空白背景をドラッグして4ノードをインベントリ・ホットバー・装備スロットの空白域へ逃がす
-  // Right after the zoom, default centering hides the completed node behind the persistent inventory panel;
-  // drag the empty background so all 4 nodes land in the gap between the inventory, hotbar, and equipment HUD
+  // ズーム直後は既定中央寄せのため一部ノードが持ち物パネルの右隣パネル外へはみ出す。
+  // 空白背景をドラッグして4ノードを見える位置へ動かす（(450,600)→+556.5,-63.5は実測起点）
+  // Right after the zoom, default centering places some nodes outside the panel next to the inventory;
+  // drag the empty background to bring all 4 nodes into view ((450,600)→+556.5,-63.5 is a measured anchor)
   // 離す直前で静止する（PAN_RELEASE_STALL_MSより長く止めて慣性オーバーシュートを防ぐ）
   // Hold still right before release (longer than PAN_RELEASE_STALL_MS) to avoid a fling-momentum overshoot
   await page.mouse.move(450, 600);
@@ -85,8 +85,8 @@ async function captureOverview(browser: Awaited<ReturnType<typeof chromium.launc
 }
 
 async function captureWideOverview(browser: Awaited<ReturnType<typeof chromium.launch>>) {
-  // (d) 全域パネル左右端確認
-  // (d) Check the full-stage panel's left/right edges
+  // (d) 持ち物右隣パネルの左右端確認
+  // (d) Check the panel-next-to-inventory's left/right edges
   const page = await browser.newPage({ viewport: WIDE_VIEWPORT, deviceScaleFactor: 2 });
   await openResearchTree(page);
   await shoot(page, "overview-wide.png");

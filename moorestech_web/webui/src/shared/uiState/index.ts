@@ -1,5 +1,5 @@
 export { deriveActiveLayer, isPointerOverWebUi, isTextInputElement, isWheelPassthrough, readActiveLayer, reduceWebInputState, type ActiveLayer, type WebInputState } from "./activeLayer";
-export { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud, uiStateAcceptsHotbarSelect, type UiScreen } from "./uiScreenRouting";
+export { screenAllowsGrab, screenForUiState, uiStateAcceptsHotbarSelect, type UiScreen } from "./uiScreenRouting";
 export { useAlwaysOnHudVisible } from "./useAlwaysOnHudVisible";
 export { useGrabInteractive } from "./useGrabInteractive";
 export { useGameLayerKeydown } from "./useGameLayerKeydown";

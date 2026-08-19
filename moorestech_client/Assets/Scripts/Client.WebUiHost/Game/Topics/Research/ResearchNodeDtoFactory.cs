@@ -44,52 +44,74 @@ namespace Client.WebUiHost.Game.Topics
                 dto.ConsumeItems.Add(new ResearchConsumeItemDto { ItemId = itemId.AsPrimitive(), Count = consume.ItemCount });
             }
 
-            // 報酬/解放は ClearedActions から抽出（uGUI ResearchTreeElement と同じ分岐）
-            // Rewards/unlocks come from ClearedActions (same branching as uGUI ResearchTreeElement)
-            AppendActionItems();
+            // 報酬と解放はClearedActionsで抽出
+            // Rewards and unlocks come from ClearedActions
+            AppendRewardsAndUnlocks();
             return dto;
 
             #region Internal
 
-            void AppendActionItems()
+            void AppendRewardsAndUnlocks()
             {
-                // 報酬(giveItem)と各種解放(アイテム/ブロック/機械レシピ/接続ツール/列車車両)を抽出する
-                // Extract the reward (giveItem) and every unlock-kind action (item/block/machine recipe/connect tool/train car)
+                // 報酬と表示対象6種を抽出し、表示しない種別も明示して未知の種別だけを弾く
+                // Extract the reward and the 6 displayed kinds, naming the non-displayed ones so only unknown kinds fall through
                 foreach (var action in master.ClearedActions.items)
                 {
-                    if (action.GameActionType == GameActionElement.GameActionTypeConst.giveItem)
+                    switch (action.GameActionType)
                     {
-                        var give = (GiveItemGameActionParam)action.GameActionParam;
-                        foreach (var reward in give.RewardItems)
-                            dto.RewardItems.Add(new ResearchRewardItemDto { ItemId = MasterHolder.ItemMaster.GetItemId(reward.ItemGuid).AsPrimitive(), Count = reward.ItemCount });
-                    }
-                    else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockItemRecipeView)
-                    {
-                        var unlock = (UnlockItemRecipeViewGameActionParam)action.GameActionParam;
-                        foreach (var itemGuid in unlock.UnlockItemGuids)
-                            dto.UnlockItemRecipeViewItemIds.Add(MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive());
-                    }
-                    else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockBlock)
-                    {
-                        var unlock = (UnlockBlockGameActionParam)action.GameActionParam;
-                        foreach (var blockGuid in unlock.UnlockBlockGuids)
-                            dto.UnlockBlocks.Add(new ResearchUnlockBlockDto { BlockId = MasterHolder.BlockMaster.GetBlockId(blockGuid).AsPrimitive(), BlockGuid = blockGuid.ToString() });
-                    }
-                    else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockMachineRecipe)
-                    {
-                        var unlock = (UnlockMachineRecipeGameActionParam)action.GameActionParam;
-                        foreach (var recipeGuid in unlock.UnlockMachineRecipeGuids)
-                            dto.UnlockMachineRecipes.Add(BuildUnlockMachineRecipeDto(recipeGuid));
-                    }
-                    else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockConnectTool)
-                    {
-                        var unlock = (UnlockConnectToolGameActionParam)action.GameActionParam;
-                        foreach (var toolGuid in unlock.UnlockConnectToolGuids) dto.UnlockConnectToolGuids.Add(toolGuid.ToString());
-                    }
-                    else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockTrainCar)
-                    {
-                        var unlock = (UnlockTrainCarGameActionParam)action.GameActionParam;
-                        foreach (var carGuid in unlock.UnlockTrainCarGuids) dto.UnlockTrainCarGuids.Add(carGuid.ToString());
+                        case GameActionElement.GameActionTypeConst.giveItem:
+                        {
+                            var give = (GiveItemGameActionParam)action.GameActionParam;
+                            foreach (var reward in give.RewardItems)
+                                dto.RewardItems.Add(new ResearchRewardItemDto { ItemId = MasterHolder.ItemMaster.GetItemId(reward.ItemGuid).AsPrimitive(), Count = reward.ItemCount });
+                            break;
+                        }
+                        case GameActionElement.GameActionTypeConst.unlockItemRecipeView:
+                        {
+                            var unlock = (UnlockItemRecipeViewGameActionParam)action.GameActionParam;
+                            foreach (var itemGuid in unlock.UnlockItemGuids)
+                                dto.UnlockItemRecipeViewItemIds.Add(MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive());
+                            break;
+                        }
+                        case GameActionElement.GameActionTypeConst.unlockBlock:
+                        {
+                            var unlock = (UnlockBlockGameActionParam)action.GameActionParam;
+                            foreach (var blockGuid in unlock.UnlockBlockGuids)
+                                dto.UnlockBlocks.Add(new ResearchUnlockBlockDto { BlockId = MasterHolder.BlockMaster.GetBlockId(blockGuid).AsPrimitive(), BlockGuid = blockGuid.ToString() });
+                            break;
+                        }
+                        case GameActionElement.GameActionTypeConst.unlockMachineRecipe:
+                        {
+                            var unlock = (UnlockMachineRecipeGameActionParam)action.GameActionParam;
+                            foreach (var recipeGuid in unlock.UnlockMachineRecipeGuids)
+                                dto.UnlockMachineRecipes.Add(BuildUnlockMachineRecipeDto(recipeGuid));
+                            break;
+                        }
+                        case GameActionElement.GameActionTypeConst.unlockConnectTool:
+                        {
+                            var unlock = (UnlockConnectToolGameActionParam)action.GameActionParam;
+                            foreach (var toolGuid in unlock.UnlockConnectToolGuids) dto.UnlockConnectToolGuids.Add(toolGuid.ToString());
+                            break;
+                        }
+                        case GameActionElement.GameActionTypeConst.unlockTrainCar:
+                        {
+                            var unlock = (UnlockTrainCarGameActionParam)action.GameActionParam;
+                            foreach (var carGuid in unlock.UnlockTrainCarGuids) dto.UnlockTrainCarGuids.Add(carGuid.ToString());
+                            break;
+                        }
+                        // 解放されるが研究画面には出さないと決めた種別（ADR 0014 決定3の表示集合6種の外）
+                        // Kinds that are unlocked but deliberately not shown on the research screen (outside ADR 0014 decision 3's set of 6)
+                        case GameActionElement.GameActionTypeConst.unlockCraftRecipe:
+                        case GameActionElement.GameActionTypeConst.unlockChallengeCategory:
+                        case GameActionElement.GameActionTypeConst.unlockItemStackLevel:
+                        case GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel:
+                        case GameActionElement.GameActionTypeConst.playSkit:
+                        case GameActionElement.GameActionTypeConst.playBackgroundSkit:
+                            break;
+                        // 種別が増えた日に無言で解放物を落とさず、ここで気づかせる
+                        // A newly added kind must not silently drop its unlocks; fail here instead
+                        default:
+                            throw new InvalidOperationException($"研究の解放物として未対応のGameActionTypeです: {action.GameActionType}");
                     }
                 }
             }
@@ -121,7 +143,8 @@ namespace Client.WebUiHost.Game.Topics
                     ResearchNodeState.Researchable => "researchable",
                     ResearchNodeState.UnresearchableNotEnoughItem => "unresearchableNotEnoughItem",
                     ResearchNodeState.UnresearchableNotEnoughPreNode => "unresearchableNotEnoughPreNode",
-                    _ => "unresearchableAllReasons",
+                    ResearchNodeState.UnresearchableAllReasons => "unresearchableAllReasons",
+                    _ => throw new InvalidOperationException($"未対応のResearchNodeStateです: {s}"),
                 };
             }
 

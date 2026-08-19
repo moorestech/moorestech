@@ -53,8 +53,8 @@ describe("screenAllowsGrab", () => {
 });
 
 describe("screenShowsAlwaysOnHud", () => {
-  // 常時表示族(ホットバー・装備HUD)を引っ込めるのは研究画面だけ
-  // Only the research screen withdraws the always-on family (hotbar + equipment HUD)
+  // 常時表示族を引っ込めるのは研究画面のみ
+  // Only the research screen withdraws the always-on family
   const expectations: Record<UiScreen, boolean> = {
     none: true,
     playerInventory: true,

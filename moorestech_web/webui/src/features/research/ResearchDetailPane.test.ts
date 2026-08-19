@@ -13,11 +13,15 @@ vi.mock("@/shared/i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/i18n")>()),
   useI18n: () => ({ t: (key: string) => key }),
 }));
-// MantineProvider依存（Tooltip等）を避けるためGamePanel/ItemSlotはスタブにする
-// Stub GamePanel/ItemSlot to avoid MantineProvider dependencies (Tooltip, etc.)
+// MantineProvider依存（Tooltip等）を避けるためGamePanel/ItemSlot/BlockSlot/FluidSlotはスタブにする
+// (UnlockSectionsがBlockSlot/FluidSlotをimportするため、解放物入りfixtureを使うにはここも必須)
+// Stub GamePanel/ItemSlot/BlockSlot/FluidSlot to avoid MantineProvider dependencies (Tooltip, etc.)
+// (UnlockSections imports BlockSlot/FluidSlot, so these are required once a fixture carries unlock entries)
 vi.mock("@/shared/ui", () => ({
   GamePanel: ({ children }: { children: unknown }) => createElement("mock-game-panel", null, children as never),
   ItemSlot: (props: object) => createElement("mock-item-slot", props),
+  BlockSlot: (props: object) => createElement("mock-block-slot", props),
+  FluidSlot: (props: object) => createElement("mock-fluid-slot", props),
 }));
 
 import ResearchDetailPane from "./ResearchDetailPane";
@@ -47,7 +51,7 @@ const node: ResearchNodeData = {
 describe("ResearchDetailPane", () => {
   it("研究可能ノードでボタン活性・クリックでresearch.completeを送る", () => {
     const renderer = create(createElement(ResearchDetailPane, {
-      node, owned: new Map([[1, 5]]), ownedKnown: true, onClose: () => {},
+      node, owned: new Map([[1, 5]]), onClose: () => {},
     }));
     const button = renderer.root.findByProps({ "data-testid": `research-button-${researchGuid}` });
     expect(button.props.disabled).toBe(false);
@@ -61,11 +65,63 @@ describe("ResearchDetailPane", () => {
   it("不足時はボタン非活性で理由を表示し、閉じるでonCloseが呼ばれる", () => {
     const onClose = vi.fn();
     const renderer = create(createElement(ResearchDetailPane, {
-      node, owned: new Map(), ownedKnown: true, onClose,
+      node, owned: new Map(), onClose,
     }));
     expect(renderer.root.findByProps({ "data-testid": `research-button-${researchGuid}` }).props.disabled).toBe(true);
     expect(renderer.root.findByProps({ "data-testid": "research-detail-reason" })).toBeTruthy();
     act(() => renderer.root.findByProps({ "data-testid": "research-detail-close" }).props.onClick());
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("所持数不足の消費アイテムはinsufficient=trueかつdata-lack付きの数値を出す", () => {
+    const renderer = create(createElement(ResearchDetailPane, {
+      node, owned: new Map(), onClose: () => {},
+    }));
+    const slot = renderer.root.findByType("mock-item-slot" as never);
+    expect(slot.props.insufficient).toBe(true);
+    expect(slot.props.tooltip).toBeTruthy();
+    const rendered = safeStringify(renderer.toJSON());
+    expect(rendered).toContain('"data-lack":true');
+  });
+
+  it("所持数が足りていればinsufficient=falseでdata-lackを出さない", () => {
+    const renderer = create(createElement(ResearchDetailPane, {
+      node, owned: new Map([[1, 2]]), onClose: () => {},
+    }));
+    const slot = renderer.root.findByType("mock-item-slot" as never);
+    expect(slot.props.insufficient).toBe(false);
+    const rendered = safeStringify(renderer.toJSON());
+    expect(rendered).not.toContain('"data-lack"');
+  });
+
+  it("所持数未受信中(owned=null)は不足表示も数値もツールチップも出さない", () => {
+    const renderer = create(createElement(ResearchDetailPane, {
+      node, owned: null, onClose: () => {},
+    }));
+    const slot = renderer.root.findByType("mock-item-slot" as never);
+    expect(slot.props.insufficient).toBe(false);
+    expect(slot.props.tooltip).toBeUndefined();
+    const rendered = safeStringify(renderer.toJSON());
+    expect(rendered).not.toContain('"data-lack"');
+  });
+
+  it("完了ノードは所持不足でも消費アイテムを不足強調しない", () => {
+    const completedNode: ResearchNodeData = { ...node, state: "completed" };
+    const renderer = create(createElement(ResearchDetailPane, {
+      node: completedNode, owned: new Map(), onClose: () => {},
+    }));
+    expect(renderer.root.findByType("mock-item-slot" as never).props.insufficient).toBe(false);
+  });
+
+  it("解放ブロックがあればBlockSlotで描画される", () => {
+    const nodeWithUnlock: ResearchNodeData = {
+      ...node,
+      unlockBlocks: [{ blockId: 10, blockGuid: "86000000-0000-4000-8000-000000000099" }],
+    };
+    const renderer = create(createElement(ResearchDetailPane, {
+      node: nodeWithUnlock, owned: new Map([[1, 2]]), onClose: () => {},
+    }));
+    expect(renderer.root.findAllByType("mock-block-slot" as never)).toHaveLength(1);
+    expect(renderer.root.findByProps({ "data-testid": "research-unlock-blocks" })).toBeTruthy();
   });
 });

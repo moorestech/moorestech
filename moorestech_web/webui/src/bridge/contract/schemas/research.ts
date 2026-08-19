@@ -8,12 +8,12 @@ export const ResearchNodeStateSchema = z.enum([
   "unresearchableNotEnoughPreNode",
   "unresearchableAllReasons",
 ]);
-export const ResearchUnlockFluidSchema = z.object({
+const ResearchUnlockFluidSchema = z.object({
   fluidId: z.number(),
   amount: z.number(),
   fluidGuid: GuidSchema.or(z.literal("")),
 }).strict();
-export const ResearchUnlockMachineRecipeSchema = z.object({
+const ResearchUnlockMachineRecipeSchema = z.object({
   recipeGuid: GuidSchema,
   outputItemIds: z.array(z.number()),
   outputFluids: z.array(ResearchUnlockFluidSchema),

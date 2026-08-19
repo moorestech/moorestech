@@ -9,8 +9,8 @@ type Props = {
   testId?: string;
 };
 
-// 機械レシピの従来どおり暗面を維持するブロックスロット。ホバー名はItemSlot同様Tooltipで出す
-// Block slot that preserves the machine recipe's existing dark face; hover name via Tooltip like ItemSlot
+// 暗面維持ブロックスロット。ホバー名はTooltip表示
+// Block slot preserving the dark face; hover name via Tooltip
 export default function BlockSlot({ blockId, name, testId }: Props) {
   // 白面化は後続較正へ送る
   // Defer the white face to uGUI comparison and omit data-filled here

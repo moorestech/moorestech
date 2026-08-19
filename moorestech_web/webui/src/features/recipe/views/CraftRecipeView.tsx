@@ -4,12 +4,13 @@ import { dispatchAction } from "@/bridge";
 import { ItemSlot, ProgressArrowGlyph } from "@/shared/ui";
 import type { CraftRecipe } from "@/bridge";
 import { clampIndex } from "@/shared/clampIndex";
+import { ownedCountOf } from "@/shared/ownedCounts";
 import { craftable } from "../logic/craftLogic";
 import { useHoldCraft } from "../logic/useHoldCraft";
 import styles from "./RecipeBox.module.css";
 import RecipePager from "./RecipePager";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
-import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
+import { L, useI18n, useMaterialTooltipText } from "@/shared/i18n";
 
 type Props = {
   recipes: CraftRecipe[];
@@ -23,7 +24,7 @@ type Props = {
 // Craft tab: material row → progress arrow → result; hold the bottom button to continuously craft every craftTime (mirrors uGUI CraftButton)
 export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, counts, onSelect }: Props) {
   const { t } = useI18n();
-  const resolveItemName = useItemNameResolver();
+  const materialTooltipText = useMaterialTooltipText();
   // topic 更新でレシピ数が減った場合に備えて index をクランプ
   // Clamp the index in case a topic update shrank the recipe list
   const index = clampIndex(recipeIndex, recipes.length);
@@ -55,19 +56,14 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
                 {/* Keep the existing 40% dimming for shortages and also mark the numeric count red */}
                 <ItemSlot
                   itemId={r.itemId}
-                  insufficient={(counts.get(r.itemId) ?? 0) < r.count}
-                  tooltip={<span style={{ whiteSpace: "pre-line" }}>{t(L.ui.recipe.materialTooltip, {
-                    itemName: resolveItemName(r.itemId) ?? t(L.ui.common.itemFallback, { itemId: r.itemId }),
-                    ownedCount: counts.get(r.itemId) ?? 0,
-                    requiredCount: r.count,
-                  })}</span>}
+                  insufficient={ownedCountOf(counts, r.itemId) < r.count}
+                  tooltip={<span style={{ whiteSpace: "pre-line" }}>
+                    {materialTooltipText(L.ui.recipe.materialTooltip, r.itemId, r.count, counts)}
+                  </span>}
                   onLeftDown={() => onSelect(r.itemId)}
                 />
-                <Text className={styles.materialCount} data-lack={(counts.get(r.itemId) ?? 0) < r.count || undefined}>
-                  {t(L.ui.recipe.itemCountSummary, {
-                    ownedCount: counts.get(r.itemId) ?? 0,
-                    requiredCount: r.count,
-                  })}
+                <Text className={styles.materialCount} data-lack={ownedCountOf(counts, r.itemId) < r.count || undefined}>
+                  {t(L.ui.recipe.itemCountSummary, { ownedCount: ownedCountOf(counts, r.itemId), requiredCount: r.count })}
                 </Text>
             </Box>
           ))}

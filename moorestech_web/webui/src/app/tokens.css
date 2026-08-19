@@ -75,8 +75,8 @@
   /* Order inside .stage; governs always-on HUDs and the tooltip that follow the stage's uniform scaling */
   --z-stage-screen: 20;
   --z-stage-overlay-panel: 30;
-  /* 全域パネル（研究）の上へ重畳する常設面: 持ち物パネル・画面キーヒント */
-  /* Chrome overlaid above full-stage panels: the inventory panel and screen key hints */
+  /* 研究パネル(--z-stage-overlay-panel)の上へ出す.viewportOverlay一式: チャレンジHUD・画面キーヒント・採掘進捗バー */
+  /* Everything in .viewportOverlay, raised above the research panel (--z-stage-overlay-panel): the challenge HUD, screen key hints, and the mining progress bar */
   --z-stage-overlay-panel-chrome: 31;
   --z-stage-tooltip: 250;
   /* body直下Portal層の層序。stageの外へ抜けて実画面全体を覆う要素間の前後関係 */

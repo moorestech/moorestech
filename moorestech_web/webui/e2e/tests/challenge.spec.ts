@@ -73,8 +73,8 @@ test("常駐HUDをインベントリ・メニュー・操作モードで維持�
   await setTopicScenario(page, "challengeMultipleLong");
   await setUiState(page, "GameScreen");
   const worldPresentation = await readChallengeHudPresentation(page);
-  // 研究パネルのみステージ全域を占有するため上部安全帯を持たず、HUDは空間分離でなくz層で重畳する（ADR 0014）
-  // The research panel alone spans the full stage with no upper safe area; the HUD overlays it by z-layer, not spatial separation (ADR 0014)
+  // 研究パネルのみ持ち物の右を上端まで占有するため上部安全帯を持たない（ADR 0014）
+  // The research panel alone occupies the area right of the inventory up to the top edge, so it has no upper safe area (ADR 0014)
   const upperSafeMenus = [
     ["PlayerInventory", undefined, "main-grid", true],
     ["SubInventory", undefined, "main-grid", true],

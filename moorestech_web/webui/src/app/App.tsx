@@ -108,11 +108,9 @@ export default function App() {
           <CurrentChallengeHud />
           {inventoryScreen && <InventoryScreenChrome />}
           {researchScreen && <ResearchScreenChrome />}
-          {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}
-          {/* The hotbar is an always-on HUD mirroring uGUI GameStateController (shown during GameScreen too) */}
+          {/* 研究画面を除き常時表示するHUD（可否は各Panelがフック経由で自己判定する） */}
+          {/* Always-on HUDs except on the research screen (each panel self-gates via its hook) */}
           <HotbarPanel />
-          {/* 装備HUDもホットバーと同じ常時表示族で、ホイールの持ち替え先を画面右端に見せる */}
-          {/* The equipment HUD belongs to the same always-on family, showing the wheel's switch target at the screen's right edge */}
           <EquipmentPanel />
           {/* 採掘ゲージはホットバーの床を基準に積むため同じviewport族へ置く */}
           {/* The mining gauge stacks on the hotbar's floor, so it belongs to the same viewport family */}

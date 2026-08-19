@@ -11,13 +11,13 @@ using Tests.Module.TestMod;
 namespace Client.Tests.WebUi
 {
     /// <summary>
-    /// ResearchNodeDtoFactory.Create を実マスタで直接叩く回帰試験（前例: BuildMenuEntryDtoFactoryTest）
-    /// Regression tests that call ResearchNodeDtoFactory.Create against the real master (precedent: BuildMenuEntryDtoFactoryTest)
+    /// 実マスタ直叩き回帰試験（前例あり）
+    /// Regression tests against the real master (precedent exists)
     /// </summary>
     public class ResearchNodeDtoFactoryTest
     {
-        // unlockBlock/unlockMachineRecipe を持つカバレッジ用ノード（forUnitTest master）
-        // Coverage node carrying unlockBlock/unlockMachineRecipe (forUnitTest master)
+        // unlockBlock/machineRecipe用ノード
+        // Node for unlockBlock/machineRecipe
         private static readonly Guid CoverageNodeGuid = Guid.Parse("bb000000-0000-4000-8000-000000000001");
 
         [Test]
@@ -46,17 +46,19 @@ namespace Client.Tests.WebUi
             // All 4 recipes survive as separate per-recipe DTOs (no flattening/dedup drops them)
             Assert.AreEqual(4, dto.UnlockMachineRecipes.Count);
 
-            // (a) 通常出力: item 3個 (b) 重複出力: 別レシピが同じ出力アイテムを持っても両方残る
-            // (a) normal output (b) duplicate output: a different recipe with the same output item still survives
+            // (a) 通常出力: item 3個
+            // (a) normal output: item 3
             var normal = dto.UnlockMachineRecipes.Single(r => r.RecipeGuid == "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d");
+            // (b)別レシピの同一出力も残る
+            // (b) another recipe's same output also survives
             var duplicateOutput = dto.UnlockMachineRecipes.Single(r => r.RecipeGuid == "7ba3de84-6823-4970-b84a-13e7d8b7bf1d");
             var expectedItem3 = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000003")).AsPrimitive();
             CollectionAssert.AreEqual(new[] { expectedItem3 }, normal.OutputItemIds);
             CollectionAssert.AreEqual(new[] { expectedItem3 }, duplicateOutput.OutputItemIds);
             CollectionAssert.IsEmpty(normal.OutputFluids);
 
-            // (c) 複数出力アイテムを1レシピが両方保持する
-            // (c) a single recipe retains multiple output items
+            // (c) 1レシピが複数出力を保持
+            // (c) a single recipe retains multiple outputs
             var multiOutput = dto.UnlockMachineRecipes.Single(r => r.RecipeGuid == "ad81ded0-8b7f-40ab-85e3-cff4108479da");
             Assert.AreEqual(2, multiOutput.OutputItemIds.Count);
 
@@ -78,8 +80,8 @@ namespace Client.Tests.WebUi
 
             var dto = ResearchNodeDtoFactory.Create(master, new Dictionary<Guid, ResearchNodeState>());
 
-            // このノードは unlockBlock/unlockMachineRecipe のみを持ち、他の解放/報酬種別は空のまま
-            // This node only carries unlockBlock/unlockMachineRecipe; every other unlock/reward kind stays empty
+            // 他の解放/報酬種別は空のまま
+            // Every other unlock/reward kind stays empty
             Assert.AreEqual(1, dto.UnlockBlocks.Count);
             Assert.AreEqual(4, dto.UnlockMachineRecipes.Count);
             CollectionAssert.IsEmpty(dto.UnlockItemRecipeViewItemIds);

@@ -143,8 +143,8 @@ test("研究パネルは持ち物の右隣から画面端までを占有し持�
   const stageBox = await page.getByTestId("app-stage").boundingBox();
   const treeBox = await tree.boundingBox();
   const inventoryBox = await page.getByTestId("main-grid").boundingBox();
-  // 上・右・下はstage端に密着（誤差1.5px）
-  // Top, right and bottom hug the stage edges (1.5px tolerance)
+  // 上右下はstage端に密着
+  // Top/right/bottom hug the stage edges
   expect(Math.abs(treeBox!.y - stageBox!.y)).toBeLessThan(1.5);
   expect(Math.abs(treeBox!.x + treeBox!.width - (stageBox!.x + stageBox!.width))).toBeLessThan(1.5);
   expect(Math.abs(treeBox!.y + treeBox!.height - (stageBox!.y + stageBox!.height))).toBeLessThan(1.5);
@@ -152,12 +152,12 @@ test("研究パネルは持ち物の右隣から画面端までを占有し持�
   // The left edge is the scaled position of "inventory width 378px + column gap 35px" (GamePanel exposes no testId, so assert numerically)
   const scale = await stageScale(page);
   expect(treeBox!.x - stageBox!.x).toBeCloseTo((378 + 35) * scale, 0);
-  // スロットグリッド基準でも重なりが無いことを二重に押さえる
-  // Double-check non-overlap against the slot grid as well
+  // 重なり無しを二重に確認
+  // Double-check non-overlap
   await expectSeparatedHorizontally(page.getByTestId("main-grid"), tree);
   expect(inventoryBox!.x + inventoryBox!.width).toBeLessThanOrEqual(treeBox!.x);
-  // 持ち物はクリック可のまま（棲み分け後もgrabは生きる）
-  // The inventory stays clickable; grab survives the split
+  // 持ち物はクリック可能なまま
+  // The inventory stays clickable
   await page.getByTestId("main-grid").locator(":scope > *").first().click({ trial: true });
   await expect(page.getByTestId("research-key-hints")).toBeVisible();
 });
@@ -215,8 +215,8 @@ test("研究画面ではホットバーと装備HUDを描画しない", async ({
   await expect(page.getByTestId("hotbar-grid")).toHaveCount(0);
   await expect(page.getByTestId("equipment-slots")).toHaveCount(0);
 
-  // 持ち物画面へ戻せば両HUDが復帰する（研究画面限定であることの担保）
-  // Both HUDs return on the inventory screen, proving the hiding is research-only
+  // 持ち物画面で両HUD復帰
+  // Both HUDs return on the inventory screen
   await setUiState(page, "PlayerInventory");
   await expect(page.getByTestId("hotbar-grid")).toBeVisible();
   await expect(page.getByTestId("equipment-slots")).toBeVisible();

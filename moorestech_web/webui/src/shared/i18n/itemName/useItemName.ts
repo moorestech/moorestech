@@ -18,10 +18,8 @@ export function useItemNameResolver(): (itemId: number) => string | null {
   }, [itemMaster, t]);
 }
 
-// 素材ツールチップ共通部: itemNameフォールバック+所持数解決だけを集約する。
-// 文言キー自体は呼び出し側(craft/research)ごとに分かれるため引数で受け取る(D2/D7)
-// Shared material-tooltip piece: only itemName fallback + owned-count resolution are centralized.
-// The wording key itself differs per caller (craft/research), so it's passed in (D2/D7)
+// 素材ツールチップ共通部(itemName+所持数)
+// Shared material-tooltip piece (itemName + owned-count)
 export function useMaterialTooltipText(): (key: TranslationKey, itemId: number, requiredCount: number, owned: Map<number, number>) => string {
   const { t } = useI18n();
   const resolveItemName = useItemNameResolver();

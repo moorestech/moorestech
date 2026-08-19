@@ -26,19 +26,18 @@ export default function ResearchTreePanel() {
   const inventory = useTopic(Topics.inventory);
   const nodes = tree?.nodes ?? EMPTY_NODES;
   const [selectedGuid, setSelectedGuid] = useState<string | null>(null);
-  const owned = useMemo(() => buildOwnedCounts(inventory?.mainSlots ?? []), [inventory]);
-  // topic未受信(null)の間はサーバーstateへフォールバックする判定引数(D4)
-  // While the topic hasn't arrived (null), callers fall back to the server state (D4)
-  const ownedKnown = inventory !== null;
+  // topic未受信はnullのまま渡し、読む側が「所持0」と取り違えられない形にする(D4)
+  // Pass null through while the topic has not arrived, so no reader can mistake it for "owns zero" (D4)
+  const owned = useMemo(() => (inventory ? buildOwnedCounts(inventory.mainSlots) : null), [inventory]);
   // 同ノード再クリックで閉じるトグル選択
   // Toggle selection: clicking the same node again closes the pane
   const toggleSelect = useCallback((guid: string) => {
     setSelectedGuid((current) => (current === guid ? null : guid));
   }, []);
   const renderResearchNode = useCallback((node: ResearchNodeData, point: TreePoint) => (
-    <ResearchNodeCard node={node} owned={owned} ownedKnown={ownedKnown} left={point.x} top={point.y}
+    <ResearchNodeCard node={node} owned={owned} left={point.x} top={point.y}
       selected={node.guid === selectedGuid} onSelect={toggleSelect} />
-  ), [owned, ownedKnown, selectedGuid, toggleSelect]);
+  ), [owned, selectedGuid, toggleSelect]);
   const selectedNode = nodes.find((node) => node.guid === selectedGuid);
   // 中央寄せはresearchLogic準拠
   // Centering target follows researchLogic
@@ -57,7 +56,7 @@ export default function ResearchTreePanel() {
         </div>
       </GamePanel>
       {selectedNode && (
-        <ResearchDetailPane node={selectedNode} owned={owned} ownedKnown={ownedKnown}
+        <ResearchDetailPane node={selectedNode} owned={owned}
           onClose={() => setSelectedGuid(null)} />
       )}
     </div>
