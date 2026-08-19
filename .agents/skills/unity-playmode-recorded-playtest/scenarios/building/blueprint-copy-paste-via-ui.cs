@@ -54,6 +54,10 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     await p.WaitBlockGameObject(new Vector3Int(2, 32, 4));
     await p.Screenshot("01-source-blocks");
 
+    // BP機能を解放（未解放時メニュー非表示）
+    // Unlock the blueprint feature (otherwise it never appears in the build menu)
+    p.Hotbar.UnlockBlueprint();
+
     // BPコピーツールを選択（テキストスロット）
     // Select the blueprint copy tool (icon-less text slot)
     await OpenBuildMenuAndClickTextSlot("ブループリントコピー", "02-menu-copy-tool");

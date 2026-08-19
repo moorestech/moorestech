@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.UnlockState.States;
+using UniRx;
 
 namespace Game.UnlockState
 {
@@ -21,6 +22,7 @@ namespace Game.UnlockState
         public IReadOnlyDictionary<Guid, BlockUnlockStateInfo> BlockUnlockStateInfos { get; }
         public IReadOnlyDictionary<Guid, TrainCarUnlockStateInfo> TrainCarUnlockStateInfos { get; }
         public IReadOnlyDictionary<Guid, ConnectToolUnlockStateInfo> ConnectToolUnlockStateInfos { get; }
+        public bool IsBlueprintUnlocked { get; }
     }
     
     /// <summary>
@@ -52,6 +54,9 @@ namespace Game.UnlockState
 
         public IObservable<Guid> OnUnlockConnectTool { get; }
         void UnlockConnectTool(Guid connectToolGuid);
+
+        public IObservable<Unit> OnUnlockBlueprint { get; }
+        void UnlockBlueprint();
 
         void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject);
         GameUnlockStateJsonObject GetSaveJsonObject();
