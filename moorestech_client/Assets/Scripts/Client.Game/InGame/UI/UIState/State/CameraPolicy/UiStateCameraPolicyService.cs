@@ -135,6 +135,10 @@ namespace Client.Game.InGame.UI.UIState.State.CameraPolicy
         {
             var isGameplayLocked = _currentZone == PolicyZone.Gameplay && !_isGameplayAltHeld;
             var cameraLook = isGameplayLocked || (_currentZone == PolicyZone.Build && IsFirstPerson);
+
+            // ロック中はカーソル座標が凍結するため、ロック前に中央へ寄せてクロスヘアと一致させる
+            // The cursor position freezes while locked, so warp to center before locking to match the crosshair
+            if (cameraLook) _cameraInteractionApplier.WarpCursorToScreenCenter();
             _cameraInteractionApplier.SetInteractionMode(cameraLook ? CameraInteractionMode.CameraLook : CameraInteractionMode.PointerFree);
 
             // 画面中央照準はカーソルを固定するGameplayだけ。他ゾーンは自由カーソルなのでカーソルを狙う

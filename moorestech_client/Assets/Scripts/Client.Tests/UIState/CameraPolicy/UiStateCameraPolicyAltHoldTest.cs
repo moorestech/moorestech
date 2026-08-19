@@ -39,7 +39,7 @@ namespace Client.Tests.UIState.CameraPolicy
             _applier.Calls.Clear();
             Release(KeyboardDevice.leftAltKey);
             _service.UpdateGameplayFreeCursorInput();
-            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, _applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Warp", "Mode:CameraLook" }, _applier.Calls);
         }
 
         [Test]
@@ -82,7 +82,7 @@ namespace Client.Tests.UIState.CameraPolicy
             // A view toggle discards the hold and the cursor stays locked
             _applier.Calls.Clear();
             _viewModeController.ToggleViewMode();
-            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, _applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Warp", "Mode:CameraLook" }, _applier.Calls);
             Assert.AreEqual(ThirdPersonAimSource.ScreenCenter, AimPointProvider.GetEffectiveAimSource());
         }
 
@@ -129,7 +129,7 @@ namespace Client.Tests.UIState.CameraPolicy
             // Re-entering with Alt still down stays locked until it is pressed again (the hold is edge-detected)
             _applier.Calls.Clear();
             _service.EnterGameplay();
-            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, _applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Warp", "Mode:CameraLook" }, _applier.Calls);
             Assert.AreEqual(ThirdPersonAimSource.ScreenCenter, AimPointProvider.GetEffectiveAimSource());
         }
     }
