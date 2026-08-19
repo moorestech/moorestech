@@ -41,7 +41,8 @@ description: |
 コマンド・ファイルパスへ渡すときは必ず実値の絶対パスへ展開して書く。
 
 **$REPO（apply専用worktree）**: このSKILL.mdを実行しているセッションのリポジトリルート
-（`git rev-parse --show-toplevel` の出力。pollerは `~/moorestech-worktrees/pr-apply` をcwdとして起動する）。
+（`git rev-parse --show-toplevel` の出力。pollerはapplyスロットworktree — `~/moorestech-worktrees/pr-apply` /
+`pr-apply-2` 等のスロットプールから空きを1つ選ぶ — をcwdとして起動する。並列applyのためスロットは複数ある）。
 `$REPO` も実値の絶対パスへ展開して書く。
 
 このworktreeはapply専用であり、他セッションの作業物は存在しない前提で扱ってよい
@@ -173,8 +174,10 @@ AGENTS.mdの規約を遵守する:
   （apply専用worktreeは常駐対象ではないため、接続できない状態から始まることがある。
   `--project-path` は `launch` には無く位置引数で渡す。起動後 `uloop compile` が通るまで45秒間隔でリトライする）。
   `Unity CLI Loop is not installed in this project` が出たら
-  `moorestech_client/UserSettings/UnityMcpSettings.json` が無い状態なので、
-  メインクローンの同ファイルをコピーし `customPort` を **8705**（apply worktree専用）へ書き換えてから起動する
+  `moorestech_client/UserSettings/UnityMcpSettings.json` が無い状態。本来スロット配備時に固有ポートで
+  設置済みのはずのファイルなので、メインクローンの同ファイルをコピーし `customPort` を
+  **このスロット固有の値**（他worktreeの `UnityMcpSettings.json` と重複しない未使用ポート）へ書き換えてから起動し、
+  復旧した事実と使用ポートをapply-result.jsonのsummaryに記載する
   — ポートを他worktreeと共有すると別プロジェクトのEditorへコマンドが飛ぶ
 - **テストの完了は必ずこのターン内で待ち切る**。7分かかっても待つ。
   「実行を投げてターンを終える」は結果を捨てるのと同じである（冒頭の最重要事項を再読すること）
