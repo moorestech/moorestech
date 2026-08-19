@@ -10,10 +10,9 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         {
             var highlightParam = (UiHighLightTutorialParam)tutorial.TutorialParam;
 
-            // UIHighlightはWebオーバーレイのDOMハイライトのみで表示する
-            // UI highlighting is rendered exclusively via the web overlay's DOM highlight
-            var anchorId = TutorialAnchorIdMapper.FromUiObjectId(highlightParam.HighLightUIObjectId);
-            return TutorialPresentationStateStore.Instance.AddOutlineHighlight(anchorId);
+            // マスタのanchorIdを無変換でWebオーバーレイへ渡す。DOMとの突き合わせはWeb側のみが行う
+            // Pass the master anchorId to the web overlay verbatim; DOM matching happens only on the web side
+            return TutorialPresentationStateStore.Instance.AddOutlineHighlight(highlightParam.HighLightAnchorId);
         }
     }
 }

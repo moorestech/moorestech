@@ -1,1 +1,1 @@
-{"tutorialSessionId":"tutorial-1","revision":3,"challengeId":"challenge-1","highlights":[{"highlightId":"craft","anchorId":"recipe.craft-button","kind":"outline","paddingPx":4,"blocksPointerInput":false}]}
+{"revision":3,"sessions":[{"tutorialSessionId":"tutorial-1","challengeId":"challenge-1","elements":[{"kind":"outline","elementId":"craft","anchorId":"recipe.craft-button","paddingPx":4,"blocksPointerInput":false},{"kind":"dragGuide","elementId":"guide-1","fromAnchorId":"hotbar.hud","toAnchorId":"recipe.craft-button"}]}]}

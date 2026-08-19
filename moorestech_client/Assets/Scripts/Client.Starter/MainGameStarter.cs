@@ -134,6 +134,7 @@ namespace Client.Starter
         [SerializeField] private KeyControlTutorialManager keyControlTutorialManager;
         [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
         [SerializeField] private BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager;
+        [SerializeField] private UiDragGuideTutorialManager uiDragGuideTutorialManager;
         
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
@@ -339,6 +340,7 @@ namespace Client.Starter
             builder.RegisterComponent(keyControlTutorialManager);
             builder.RegisterComponent(itemViewHighLightTutorialManager);
             builder.RegisterComponent(blockPlacePreviewTutorialManager);
+            builder.RegisterComponent(uiDragGuideTutorialManager);
             
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager).As<IInitializable>();

@@ -247,9 +247,9 @@
                       "then": {
                         "type": "object",
                         "properties": {
-                          "highLightUIObjectId": {
+                          "highLightAnchorId": {
                             "type": "string",
-                            "default": "ui object id"
+                            "default": "web anchor id"
                           },
                           "highLightText": {
                             "type": "string",

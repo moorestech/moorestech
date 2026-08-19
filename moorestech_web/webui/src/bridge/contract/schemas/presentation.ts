@@ -4,12 +4,28 @@ export const GameStateDataSchema = z.object({ state: z.enum(["InGame", "Skit", "
 // ハイライトは枠線だけを描く。文言を持つkindは廃止済みで生産者が存在しない
 // Highlights draw an outline only; text-carrying kinds were retired and have no producer
 export const TutorialHighlightSchema = z.object({
-  highlightId: z.string(), anchorId: z.string(), kind: z.literal("outline"),
+  kind: z.literal("outline"), elementId: z.string(), anchorId: z.string(),
   paddingPx: z.number().nonnegative(), blocksPointerInput: z.boolean(),
 }).strict();
+// D&D説明の矢印ガイド。from/to両anchorが解決している間だけ描く
+// Drag guide arrows for D&D instruction; drawn only while both anchors resolve
+export const TutorialDragGuideSchema = z.object({
+  kind: z.literal("dragGuide"), elementId: z.string(),
+  fromAnchorId: z.string(), toAnchorId: z.string(),
+}).strict();
+// overlay要素はkind判別unionの単一列。種別追加は配列を増やさずunionへ足す
+// Overlay elements form one kind-discriminated union list; new kinds extend the union, not the arrays
+export const TutorialOverlayElementSchema = z.discriminatedUnion("kind", [
+  TutorialHighlightSchema, TutorialDragGuideSchema,
+]);
+// sessionはchallenge単位。同時currentの複数challengeが並存できる
+// One session per challenge, so simultaneously current challenges coexist
+export const TutorialSessionSchema = z.object({
+  tutorialSessionId: z.string(), challengeId: z.string(),
+  elements: z.array(TutorialOverlayElementSchema),
+}).strict();
 export const TutorialPresentationDataSchema = z.object({
-  tutorialSessionId: z.string(), revision: z.number().int().nonnegative(),
-  challengeId: z.string(), highlights: z.array(TutorialHighlightSchema),
+  revision: z.number().int().nonnegative(), sessions: z.array(TutorialSessionSchema),
 });
 // ワールドピン: Unity射影の正規化座標と画面外矢印用の方向ベクトル。文言はGuid導出キーでWeb解決する
 // World pins: Unity-projected normalized coords plus an off-screen arrow vector; text resolves web-side from the GUID

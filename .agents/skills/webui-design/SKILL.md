@@ -381,6 +381,20 @@ description: |
   塗り分け（`data-catalog`/`data-filled`）は維持する。
 - **`ItemSlot` の個数バッジと素材の所持/必要テキストは黒**（明色面前提）。不足の赤字だけ例外。
 
+## 8.17 チュートリアルのドラッグガイド矢印
+
+- **D&D操作の説明専用。** `tutorial.presentation` の `dragGuides`（from/to anchor）を受け、
+  fromアンカー中心→toアンカー中心へカーソル型インラインSVGが移動をループするアニメーションを
+  `TutorialOverlay` に描く。装飾ではなく操作説明であり、他用途への流用は禁止（ユーザー裁定 2026-08-18）。
+- from/toの**両方**のアンカーが解決している間だけ表示する。片方でも未解決（対象UIが閉じている等）なら
+  何も描かない。「対象UIを開くまでの誘導」はチャレンジsummary文言の責務。
+- 図像は `--text-high-contrast` の塗り+世界分離用の最小限の固定長ドロップシャドウ（§8.12ツールボタンと同族）。
+  新しい色相・光彩は使わない。寸法 `--tutorial-drag-guide-size`、周期 `--tutorial-drag-guide-duration` の
+  固定長トークンで管理する。移動はCSS keyframesのtranslateで、ease-in-out・無限ループ・終端で不透明度を
+  落として先頭へ戻る。
+- `pointer-events: none` を維持し、z層は既存の tutorial overlay 内（新しい `--z-*` を増やさない）。
+- e2e/スクリーンショット検証はアニメーション非同期のため座標一致を要求しない（表示有無のみ検証する）。
+
 ## 9. やらないことリスト（再掲・明示）
 
 - 全画面UI・不透明な面での塗り潰し（唯一の例外は §8.12 のスキット暗転）
