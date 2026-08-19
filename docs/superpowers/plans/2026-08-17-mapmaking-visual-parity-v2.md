@@ -23,7 +23,7 @@ Phase 2（本plan Task 2〜5）    : 樹種・岩登録（旧Task 5〜8のリベ
 Phase 3（本plan Task 6〜7）    : 視覚検収（樹種・岩のみ）+ moores-code-review
 Phase 4（別plan・bd moorestech-pt8）: 地形見た目のサーバー焼き移行。着手時 grill-first（HARD GATE）。
     旧Task 9（草距離場）・旧Task 10（generateDetail/generateTexture削除）・クラスタ3キー削除・
-    草分布の視覚検収はここへ吸収。前提調査だったbd moorestech-7pkは解明済み（下記「planning後の判明事項」）。
+    terrainSurroundEffectType削除・草分布の視覚検収はここへ吸収。前提調査だったbd moorestech-7pkは解明済み（下記「planning後の判明事項」）。
     実データ是正はbd moorestech-iiu（クラスタ配置の復元）が担い、surround移設の実機検証はこれが前提になる
 ```
 
@@ -187,6 +187,7 @@ def build_entry(species: dict) -> dict:
             "mapObjectGuid": species["mapObjectGuid"], "mapObjectName": species["mapObjectName"],
             "addressablePath": species["address"], "hp": 1, "earnItemHps": [0],
             "soundEffectType": "stone",
+            "terrainSurroundEffectType": "rockBareGround",
             "earnItems": [{"itemGuid": STONE_ITEM, "minCount": 1, "maxCount": 1}],
             "miningType": "PickUp", "earnItemHpInterval": 1, "miningParam": {"miningTools": []},
         }
@@ -195,6 +196,7 @@ def build_entry(species: dict) -> dict:
         "mapObjectGuid": species["mapObjectGuid"], "mapObjectName": species["mapObjectName"],
         "addressablePath": species["address"], "hp": 100, "earnItemHps": [0],
         "soundEffectType": "tree" if is_tree else "stone",
+        "terrainSurroundEffectType": "treeRootPatch" if is_tree else "rockBareGround",
         "earnItems": [{"itemGuid": WOOD_ITEM if is_tree else STONE_ITEM, "minCount": 1, "maxCount": 4}],
         "miningType": "Mining", "miningParam": {"miningTools": TREE_TOOLS},
         "earnItemHpInterval": 10,
@@ -220,6 +222,7 @@ if __name__ == "__main__":
     main()
 ```
 
+  - **注意（v2.1追記）**: `terrainSurroundEffectType` はPR #1145 新設の必須キー（`MapObjectKindSplitter` の分類正本）。kindから機械決定する（tree→`treeRootPatch`、rock/pebble→`rockBareGround`）。このキー自体はpt8で削除予定の過渡キー（裁定: `.decisions/2026-08-18-terrainSurroundEffectTypeの削除はpt8送りにする.md`）だが、pt8までは必須のため省略しない
   - **注意（v2追記）**: vein手掘り（PR #1127）でmapObjectスキーマに `durabilityType` / `outcropMapObjectGuid` / `miningType: None` 系のキーが入っている可能性がある。`VanillaSchema/map.yml` の現行必須キーを確認し、欠けがあれば既存「木」「小石」エントリの現物値を複製して埋める（fail-fast: スキーマ必須キーを黙って省略しない）
 - [ ] **Step 2: 実行** — Run: `python3 scripts/mapmaking-parity/gen_map_master.py` → Expected: `added=約94 replaced=0`
 - [ ] **Step 3: ロード検証** — `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MapObjectMaster"` でマスタロード系テストがPASS（該当テストが無ければ任意のCombinedTest 1本でマスタロードが通ることを確認）
@@ -305,6 +308,7 @@ if __name__ == "__main__":
 | Task 9: クライアント側草距離場（DetailDistanceFieldBuilder等） | bd `moorestech-pt8`（サーバー焼きのdetail密度計算内で距離フィルタを有効化） | ADR-0012。クライアント距離場は「後で捨てる過渡実装」 |
 | Task 10: generateDetail/generateTexture削除 | bd `moorestech-pt8`（ビジュアル生成のサーバー移設でゲートごと自然死） | PR #1145 で生きたゲートになった。死にフラグ前提が偽 |
 | クラスタ3キー（ClusterId/ClusterCenterX/Z）の転送・永続化削除 | bd `moorestech-pt8`（surround描画のサーバー移設と同時） | ADR-0012 過渡措置裁定 |
+| map.yml `terrainSurroundEffectType` の削除（スキーマ・全map.json・`MapObjectKindSplitter`） | bd `moorestech-pt8`（サーバー焼き移設でクライアント側分類＝Splitterごと自然死。サーバーは生成時に配置元prototype/objectConfigを知るためマスタ分類が不要になる） | 転送レイアウトがGUIDのみのため、pt8まではマスタが分類正本として必須。裁定: `.decisions/2026-08-18-terrainSurroundEffectTypeの削除はpt8送りにする.md` |
 | 草分布の視覚検収 | pt8完了後の検収 | 距離フィルタ実装がpt8側のため |
 
 pt8は着手時に **grill-first（HARD GATE）**。
@@ -329,6 +333,7 @@ pt8は着手時に **grill-first（HARD GATE）**。
 - `.decisions/2026-08-17-地形の見た目データはサーバーが焼いてチャンク配信する.md`
 - `.decisions/2026-08-17-PR1145のクラスタ3キーは後で消える前提で現状維持する.md`
 - `.decisions/2026-08-17-AB比較実験は一旦見送り計画のみ作り直す.md`
+- `.decisions/2026-08-18-terrainSurroundEffectTypeの削除はpt8送りにする.md`
 
 v2 planning中の判断（出所: agent前提。異議があれば実装前に裁定へ）:
 - ワイヤ・JSON形式は旧planのオイラー6フィールド案でなく、PR #1145 実装済みの四元数4成分＋スケール3軸を正とする（ADR-0010の要件は満たし、実装のやり直しは無価値）

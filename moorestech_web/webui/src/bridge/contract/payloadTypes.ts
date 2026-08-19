@@ -29,6 +29,7 @@ import type {
   ItemMasterDataSchema,
   ItemMasterEntrySchema,
   MachineDetailDataSchema,
+  MachineProcessStateSchema,
   MachineRecipeItemSchema,
   MachineRecipeSchema,
   MachineRecipesDataSchema,
@@ -94,6 +95,7 @@ export type SkitPresentationData = z.infer<typeof SkitPresentationDataSchema>;
 export type SkitIntent = SkitPresentationData["allowedIntents"][number];
 export type TrainRidingData = z.infer<typeof TrainRidingDataSchema>;
 export type FluidSlotData = z.infer<typeof FluidSlotDataSchema>;
+export type MachineProcessState = z.infer<typeof MachineProcessStateSchema>;
 export type MachineDetailData = z.infer<typeof MachineDetailDataSchema>;
 export type GeneratorDetailData = z.infer<typeof GeneratorDetailDataSchema>;
 export type MinerDetailData = z.infer<typeof MinerDetailDataSchema>;

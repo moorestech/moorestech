@@ -1,7 +1,7 @@
 /* 素材から完成品までを細枠とシアンの四隅ブラケットで囲む。発光は線近傍(6px以内)に限定する。
-   3カラムgridで素材/矢印+時間/完成品を固定配置し、素材の点数で矢印列が押し出されないようにする */
+   3カラムgridで素材/矢印/完成品を固定配置し、素材の点数で矢印列が押し出されないようにする */
 /* Frame materials and result with a thin border and cyan corner brackets; keep the glow within 6px of the line.
-   A fixed 3-column grid pins materials/arrow+time/result so the arrow column never drifts with material count */
+   A fixed 3-column grid pins materials/arrow/result so the arrow column never drifts with material count */
 /* D4-2: 主線を暗青rgb(45 145 220/80%)へ強め、四隅の鉤(シアン#3fa0e8)と色を分離する。
    glowは1-2pxに絞り、20px外への滲みをゼロにする */
 /* D4-2: strengthen the main line to a darker blue rgb(45 145 220/80%), separating it in hue from the
@@ -63,15 +63,17 @@
   position: relative;
 }
 
+/* 下端をスロット外(暗面)へはみ出させない。§8.17の明色面前提を満たすため0px床にする */
+/* Keep the bottom edge from spilling onto the dark box; floor at 0px per §8.17's light-face rule */
 .materialCount {
   position: absolute;
   right: -2px;
-  bottom: -4px;
+  bottom: 0;
   z-index: 2;
-  color: #fff;
+  color: var(--count-text);
   font-size: 11px;
   line-height: 1;
-  text-shadow: 0 1px 2px #000;
+  text-shadow: 0 1px 2px rgb(255 255 255 / 75%);
   white-space: nowrap;
 }
 
@@ -79,8 +81,15 @@
   color: #ff4d4d;
 }
 
+/* 旧構成は矢印+下バーの2段で、行のcenter揃えとの差分をmargin-topで詰めていた。バー廃止で列が6px縮んだ分、
+   同じ見た目位置を保つため上寄せ量を倍にした（中央揃えの item は margin-top の半分だけ動くため）。
+   値は --craft-arrow-offset-y にあり、行の揃え方・矢印高・旧バーの6px footprint に依存する */
+/* The old layout stacked arrow + bar and used margin-top to offset row centering. Dropping the bar shrinks the
+   column by 6px, so the nudge doubled to hold the same visual position (a centered item moves half its margin-top).
+   The value lives in --craft-arrow-offset-y and depends on the row alignment, arrow height, and the old bar's 6px */
 .recipeArrowCol {
   justify-self: center;
+  margin-top: var(--craft-arrow-offset-y);
 }
 
 .recipeResult {
@@ -123,47 +132,48 @@
   background-size: 9px 1px, 1px 9px, 9px 1px, 1px 9px;
 }
 
-/* 正本は時間ラベルの中心が選択枠の下辺に重なる位置まで下げる */
-/* Drop the time label until its center overlaps the selection frame's bottom edge, matching the reference */
-.craftTime {
-  position: absolute;
-  bottom: -7.434px;
-  left: 50%;
-  z-index: 2;
-  color: #d7dbe5;
-  text-align: center;
-  text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
-  transform: translateX(-50%);
+/* リスト内の1エントリのフックとして名前だけ確保する（単一パネル専有時の flex:1/min-height:0 は不要になった） */
+/* Reserve the name as a hook for one list entry; flex:1/min-height:0 from the single-panel layout are no longer needed */
+.recipeEntry {
+  min-width: 0;
 }
 
-.craftRecipe {
-  flex: 1;
-  min-height: 0;
+/* 機械エントリのブロック情報行。ボタンと同じ高さ帯のクリック不可表示（ADR 0011） */
+/* Non-interactive block info row for machine entries, same band as the craft button (ADR 0011) */
+.machineInfoRow {
+  min-height: var(--recipe-action-button-height);
+  color: var(--text-muted);
+}
+
+.machineInfoIcon {
+  width: var(--recipe-info-icon-size);
+  height: var(--recipe-info-icon-size);
+  object-fit: contain;
+}
+
+/* nowrap親でtruncateを効かせるにはflex itemのmin-content床を外す必要がある */
+/* Truncate needs the min-content floor removed to work inside a nowrap parent */
+.machineInfoText {
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: var(--recipe-info-text-size);
 }
 
 /* クラフト操作を控えめな中央寄せの青ボタンで示す。正本は縦グラデ+中央白帯でなく横方向の青→シアン */
 /* Present the craft action as a modest, center-aligned blue button; the reference is a horizontal blue-to-cyan gradient, not vertical with a center white band */
-/* D7: 正本の実測bboxへ位置合わせ。左端を約1.5CSSpx左へ・上端を1px上へ・青面高を49screenshot-px
-   (≈19.2CSS)相当へ詰める。文字は合成太字禁止のため4方向陰影で輪郭を太らせる */
-/* D7: nudge toward the reference's measured bbox — left edge ~1.5 CSS px left, top edge 1px up, and the
-   blue face trimmed to ~49 screenshot px (≈19.2 CSS) tall. Synthetic bold is forbidden, so the text weight
-   comes from a 4-direction shadow */
-/* iter6: bbox実測(1503,1305,1773,1353)を正本(1502,1302,1775,1351)へ微調整。中心はほぼ不変(+3px幅の
-   均等成長)、上へ2.5screenshot-px(≈0.98CSSpx)はmargin-bottomの加算で寄せる */
-/* iter6: nudge the measured bbox (1503,1305,1773,1353) toward the reference (1502,1302,1775,1351). The
-   center barely moves (grow width by +3px evenly); shift up 2.5 screenshot px (≈0.98 CSS px) via margin-bottom */
+/* 単一リストではボタンをエントリ幅いっぱいに伸ばす（ADR 0011） */
+/* In the single list the button stretches to the full entry width (ADR 0011) */
 .craftButton {
   composes: recipeActionButton from "./RecipeActionButton.module.css";
-  align-self: center;
-  width: 107.609px;
+  align-self: stretch;
+  width: auto;
   max-width: none;
-  margin-top: auto;
-  margin-bottom: 14.763px;
-  margin-left: -1px;
+  margin: 0;
   padding: 0;
   font-size: 12px;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
+  /* 合成太字禁止（app/index.css）のため文字の太さは4方向陰影で作る */
+  /* Synthetic bold is banned (app/index.css), so the weight comes from a 4-way shadow */
   text-shadow: 1px 0 0 rgb(0 40 80 / 55%), -1px 0 0 rgb(0 40 80 / 55%), 0 1px 0 rgb(0 40 80 / 55%), 0 -1px 0 rgb(0 40 80 / 55%);
   box-shadow: none;
 }

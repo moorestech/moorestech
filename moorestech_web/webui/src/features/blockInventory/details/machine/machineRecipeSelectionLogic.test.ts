@@ -2,7 +2,7 @@
 // Verifies machine recipe selection filtering, representative icons, and selection state
 import { describe, expect, it } from "vitest";
 import type { MachineRecipe } from "@/bridge";
-import { buildMachineRecipeSelectionRows } from "./machineRecipeSelectionLogic";
+import { buildMachineRecipeSelectionRows, machineInitialTab } from "./machineRecipeSelectionLogic";
 
 const emptyGuid = "00000000-0000-0000-0000-000000000000";
 const blockA = "85000000-0000-4000-8000-000000000001";
@@ -36,8 +36,10 @@ describe("buildMachineRecipeSelectionRows", () => {
     expect(rows.map((row) => row.selected)).toEqual([true, false]);
   });
 
-  it.each([emptyGuid, "", undefined])("未選択値 %s ではハイライトしない", (selectedRecipeGuid) => {
-    const rows = buildMachineRecipeSelectionRows([recipe(emptyGuid, blockA)], blockA, selectedRecipeGuid);
+  // 未選択はワイヤ上も空GUIDのみ（machine.selectedRecipeGuidは必須のguid文字列）
+  // Unselected always arrives as the empty GUID on the wire; machine.selectedRecipeGuid is a required guid string
+  it("空GUIDではハイライトしない", () => {
+    const rows = buildMachineRecipeSelectionRows([recipe(emptyGuid, blockA)], blockA, emptyGuid);
 
     expect(rows[0].selected).toBe(false);
   });
@@ -57,5 +59,14 @@ describe("buildMachineRecipeSelectionRows", () => {
       { recipeGuid: recipeA, iconItemId: 2, iconCount: 3, selected: false },
       { recipeGuid: recipeB, iconItemId: 7, iconCount: 8, selected: false },
     ]);
+  });
+});
+
+describe("machineInitialTab", () => {
+  it.each([
+    { guid: "00000000-0000-0000-0000-000000000000", tab: "recipes" },
+    { guid: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", tab: "inventory" },
+  ])("selectedRecipeGuid=$guid → $tab", ({ guid, tab }) => {
+    expect(machineInitialTab(guid)).toBe(tab);
   });
 });

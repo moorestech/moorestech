@@ -59,7 +59,8 @@
         "Game.Blueprint",
         "Game.PlacementTarget",
         "Game.Hotbar",
-        "Common.Debug"
+        "Common.Debug",
+        "Unity.Mathematics"
     ],
     "includePlatforms": [
         "Editor"

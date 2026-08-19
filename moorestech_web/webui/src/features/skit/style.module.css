@@ -3,7 +3,7 @@
 .root {
   position: absolute;
   inset: 0;
-  z-index: var(--z-skit);
+  z-index: var(--z-stage-skit);
   pointer-events: none;
 }
 
@@ -82,7 +82,7 @@
 .transition {
   position: fixed;
   inset: 0;
-  z-index: var(--z-skit-transition);
+  z-index: var(--z-portal-skit-transition);
   background: var(--skit-transition-face);
   pointer-events: none;
 }

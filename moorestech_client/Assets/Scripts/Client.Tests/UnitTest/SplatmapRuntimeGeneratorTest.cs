@@ -1,9 +1,17 @@
 using System;
+using System.Collections.Generic;
+using Client.Game.InGame.Environment.Terrain.Build.Placement;
+using Client.Game.InGame.Environment.Terrain.Visual.Detail;
+using Client.Game.InGame.Environment.Terrain.Visual.Source;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
+using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
+using Client.Tests.UnitTest.Terrain.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
+using Server.Protocol.PacketResponse.MapData;
 using Unity.Collections;
+using UnityEngine;
 
 namespace Client.Tests.UnitTest
 {
@@ -133,13 +141,26 @@ namespace Client.Tests.UnitTest
         {
             var config = CreateConfig();
             var biomeTypes = new[] { BiomeType.Grassland };
-            var biomeTextureConfigs = new[] { new BiomeTextureConfig { entries = new TextureEntry[0] } };
-            var biomeMainLayerAddresses = new[] { "addr/grass" };
-            var layerTable = SplatLayerTable.Build("addr/beach", "addr/rock", biomeMainLayerAddresses, biomeTextureConfigs);
+            var visualSections = new BiomeVisualSections(
+                new[] { "addr/grass" },
+                new[] { new BiomeTextureConfig { entries = new TextureEntry[0] } },
+                new[] { new BiomeDetailConfig { entries = new DetailEntry[0] } },
+                // 岩の裸地は見ないので既存の岩レイヤーを指す。新しいアドレスだと列が1本増えて重み合計の検証がずれる
+                // The bare ground is out of scope here, so it reuses the rock layer: a new address would add a column and shift the weight-sum check
+                new[] { new SurroundTextureConfig { surroundLayerAddressablePath = "addr/rock" } });
+            var layerTable = SplatLayerTable.Build(
+                "addr/beach", "addr/rock", visualSections.MainLayerAddresses, visualSections.TextureConfigs,
+                visualSections.SurroundTextureConfigs, SurroundTestFixtures.CreateTreeSurroundSpecies(), Array.Empty<string>());
 
+            // 分類は呼び出し側の持ち物になった。1回の生成につき1個をusingで抱える本番と同じ形
+            // The classification now belongs to the caller, held one per generation in a using as production does
+            using var classification = new TerrainClassificationContext(config, biomeTypes);
+            classification.Initialize();
             return SplatmapRuntimeGenerator.Generate(
-                config, biomeTypes, layerTable, biomeTextureConfigs, biomeMainLayerAddresses,
-                CreateHeights(), transferredBiomeIndices, AlphamapResolution);
+                config, biomeTypes, classification, layerTable, visualSections,
+                SurroundTestFixtures.CreateTreeSurroundSpecies(),
+                CreateHeights(), transferredBiomeIndices, AlphamapResolution,
+                new List<MapObjectLayoutMessagePack>(), Vector3.zero);
         }
 
         private static TerrainGenerationConfig CreateConfig()

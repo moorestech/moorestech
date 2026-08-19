@@ -29,10 +29,14 @@ SUBCROP_BOXES = {
     "inv-slots-top": (180, 390, 1090, 730),
     "inv-slots-empty": (180, 690, 940, 1040),
     "inv-bottom-deco": (170, 1210, 1100, 1510),
-    "craft-tab-title": (1140, 190, 2100, 470),
+    # 装飾タブはADR 0011で廃止したため、上部は選択アイテム名ヘッダーだけを切り出す
+    # The decorative tab is retired by ADR 0011, so the top crop covers only the selected-item name header
+    "craft-header": (1140, 400, 2100, 600),
     "craft-selection": (1190, 430, 2080, 730),
     "craft-body": (1250, 700, 2030, 1230),
-    "craft-button": (1390, 1220, 2100, 1440),
+    # クラフトボタンは単一リストのエントリ直下・エントリ幅へ移った
+    # The craft button moved under its list entry and now spans the entry width
+    "craft-button": (1180, 700, 2080, 870),
     "recipe-header": (2160, 260, 3130, 420),
     "recipe-grid-top": (2170, 390, 2790, 1050),
     "recipe-scrollbar": (2860, 370, 3160, 1430),

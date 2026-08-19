@@ -58,7 +58,9 @@ export default function BlockInventoryPanel() {
       >
         {data.source === "train" && trainError && <div data-testid="train-inventory-error">{trainError}</div>}
         {data.source === "train" && !trainError && <BlockItemGrid itemSlots={data.itemSlots} testId="train-inventory-slots" />}
-        {data.source === "block" && Body && <Body data={data} />}
+        {/* identifierでkey付与。同一フレーム内でホストのpublishデバウンスにより閉/開が畳まれても、別ブロックの再マウントを保証する */}
+        {/* Keyed by identifier so a different block always remounts even when the host's publish debounce collapses close/open into one frame */}
+        {data.source === "block" && Body && <Body key={data.identifier} data={data} />}
       </GamePanel>
       {/* uGUIのEsc/Tab相当のマウス閉じ操作。GameScreenへの遷移をhostへ要求する */}
       {/* Mouse-driven close, like uGUI Esc/Tab; asks the host to transit to GameScreen */}

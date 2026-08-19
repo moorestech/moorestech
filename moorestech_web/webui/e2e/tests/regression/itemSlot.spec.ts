@@ -4,7 +4,7 @@ test("素材不足スロットはdata-insufficientと40% opacityを持つ", asyn
   await page.goto("/");
   await page.getByTestId("item-list-grid").locator("> div").nth(1).click();
 
-  const insufficient = page.getByTestId("craft-recipe-box").locator('[data-insufficient="true"]');
+  const insufficient = page.locator('[data-testid^="craft-recipe-box"]').locator('[data-insufficient="true"]');
   await expect(insufficient).toHaveCount(1);
   await expect(insufficient).toHaveCSS("opacity", "0.4");
 });

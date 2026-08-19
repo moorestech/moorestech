@@ -35,6 +35,10 @@ namespace Tests.CombinedTest.Core
         private const int ModuleSlotCount = 4;
         private const int ModuleRangeStart = InputSlotCount + OutputSlotCount;
 
+        // アイドル要求電力の期待値をproduction式から独立させるためのマスタ実値
+        // Master value keeping the idle request-power expectation independent from the production formula
+        private const float MachineIdlePowerRate = 0.25f;
+
         [Test]
         // モジュールスロットがインプット・アウトプットの後ろの第3レンジとして存在することを確認する
         // Verify module slots exist as the third range after input and output
@@ -242,7 +246,7 @@ namespace Tests.CombinedTest.Core
             // Idle中はモジュールではなくidlePowerRate分だけ要求電力が下がる
             // While idle, idlePowerRate reduces demand instead of the module
             var electric = block.GetComponent<VanillaElectricMachineComponent>();
-            Assert.AreEqual(processor.EffectiveRequestPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);
+            Assert.AreEqual(processor.RequestPower * MachineIdlePowerRate, electric.RequestEnergy.AsPrimitive(), 0.0001f);
 
             // プロセス開始後は省エネ倍率分だけ要求電力が下がる
             // After processing starts, the requested power drops by the efficiency multiplier

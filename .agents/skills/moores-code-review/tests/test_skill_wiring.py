@@ -9,7 +9,13 @@ import unittest
 from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
-SKILL_MD = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+# 2026-08-18にSKILL.mdは委譲ディスパッチャへ分割され、実行手順はreferences/orchestrator-steps.mdへ移った。
+# 配線検査の対象は「SKILL.md + references配下の手順書」の全体（片方だけ見ると検査が空振りする）。
+# The skill body was split into references/ on 2026-08-18; wiring lives across both.
+SKILL_MD = "\n".join(
+    [(SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")]
+    + [f.read_text(encoding="utf-8") for f in sorted((SKILL_DIR / "references").glob("*.md"))]
+)
 REPO_ROOT = SKILL_DIR.parent.parent.parent
 
 
@@ -67,9 +73,12 @@ class SkillWiringTest(unittest.TestCase):
         for pattern in ("deterministic_checks.py", "select_lenses.py", "select_reviewers.py",
                         "select_post_checks.py"):
             self.assertIn(pattern, SKILL_MD, f"{pattern} がSKILL.mdに配線されていない")
+        # 手順書がreferences/へ分割されたスキルがあるため、そちらも配線先として数える
+        # Some skills moved their steps into references/, so scan those too
         all_skill_mds = "\n".join(
             p.read_text(encoding="utf-8")
-            for p in (REPO_ROOT / ".agents/skills").glob("*/SKILL.md"))
+            for pattern in ("*/SKILL.md", "*/references/*.md")
+            for p in (REPO_ROOT / ".agents/skills").glob(pattern))
         for g in (SKILL_DIR / "scripts").glob("*_gate.py"):
             self.assertIn(g.name, all_skill_mds,
                           f"{g.name} がどのスキルのSKILL.mdにも配線されていない")
@@ -125,3 +134,29 @@ class SkillWiringTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CodexOutputRecoveryTest(unittest.TestCase):
+    """codexの結論回収経路の再発防止（2026-08-18 PR#1167: 完走したのに欠員と誤判定した）。
+    Recurrence prevention for codex conclusion recovery."""
+
+    def _docs(self):
+        return (sorted((SKILL_DIR / "references").glob("*.md"))
+                + [SKILL_DIR / "SKILL.md"]
+                + sorted((SKILL_DIR / "integrators").glob("*.md")))
+
+    def test_every_codex_exec_writes_final_message_to_file(self):
+        # stdout(.out.md)は完走しても結論が入らないことがあるため -o が必須
+        # stdout can be truncated even on completion, so -o is mandatory
+        for doc in self._docs():
+            for line in doc.read_text(encoding="utf-8").splitlines():
+                if line.strip().startswith("codex exec"):
+                    self.assertRegex(line, r"(?:^|\s)(?:-o|--output-last-message)\s",
+                                     f"{doc.name}: codex exec に -o が無い -> {line}")
+
+    def test_recovery_script_exists_and_is_wired(self):
+        script = SKILL_DIR / "scripts" / "codex_recover.py"
+        self.assertTrue(script.is_file(), "scripts/codex_recover.py が無い")
+        wired = [d.name for d in self._docs() if "codex_recover.py" in d.read_text(encoding="utf-8")]
+        self.assertIn("orchestrator-steps.md", wired)
+        self.assertIn("finding-integrator.md", wired)

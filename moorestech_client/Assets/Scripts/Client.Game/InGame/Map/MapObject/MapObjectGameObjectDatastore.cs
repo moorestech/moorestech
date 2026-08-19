@@ -19,7 +19,7 @@ namespace Client.Game.InGame.Map.MapObject
     ///     mapObjectをLayout応答から実行時Instantiateし、破壊/HPの状態同期を担うデータストア
     ///     Instantiates map objects at runtime from the layout response and keeps their destroy/HP state synced
     /// </summary>
-    public class MapObjectGameObjectDatastore : MonoBehaviour, IInitialEventApplyWaitTarget, ISkitMapObjectControl
+    public class MapObjectGameObjectDatastore : MonoBehaviour, IInitialEventApplyWaitTarget, ISkitWorldObjectControl
     {
         // 2011個規模の起動スパイクを避けるためこの個数ごとにフレームを跨ぐ
         // Cross a frame every this many objects to avoid a startup spike at the ~2011-object scale
@@ -78,7 +78,11 @@ namespace Client.Game.InGame.Map.MapObject
                         continue;
                     }
 
-                    var instance = Instantiate(prefab, new Vector3(layout.X, layout.Y, layout.Z), Quaternion.identity, transform);
+                    // 生成時のRotation/Scaleを実インスタンスへ戻す。既定値のままだと全個体が同じ向きで直立し裸地も生成時サイズで広がる
+                    // Restore the generated rotation and scale; the defaults face every instance alike and spread bare ground at the generated size
+                    var rotation = new Quaternion(layout.RotationX, layout.RotationY, layout.RotationZ, layout.RotationW);
+                    var instance = Instantiate(prefab, new Vector3(layout.X, layout.Y, layout.Z), rotation, transform);
+                    instance.transform.localScale = new Vector3(layout.ScaleX, layout.ScaleY, layout.ScaleZ);
 
                     // rootにMapObjectGameObjectが無いのはprefab authoring不正。生成物を破棄してskipする
                     // Missing MapObjectGameObject on root is invalid prefab authoring; destroy the instance and skip

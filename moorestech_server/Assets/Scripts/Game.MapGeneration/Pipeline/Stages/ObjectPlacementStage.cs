@@ -3,6 +3,7 @@ using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators;
 using Game.MapGeneration.Pipeline.Generators.Util;
+using Game.MapGeneration.Pipeline.Tiling;
 
 namespace Game.MapGeneration.Pipeline.Stages
 {
@@ -10,19 +11,29 @@ namespace Game.MapGeneration.Pipeline.Stages
     // Stage 4/4.5: per-biome object placement plus extra trees seeded around those objects.
     public static class ObjectPlacementStage
     {
+        private const int ObjectSeedBase = 4000;
+        private const int RockTreeSeedBase = 5000;
+        private const int SeedStridePerBiome = 100;
+
+        // 候補点の乱数種とノイズ場の種を分ける幅。ノイズ側にはタイルを混ぜない。
+        // The gap separating the candidate-point seed from the noise-field seed; the noise side omits the tile term.
+        private const int NoiseSeedOffset = 50;
+
         // objectEntries を生成し、周辺樹木を treeEntries に追記する。objectPlacements は鉱脈距離チェック用。
         // Produce objectEntries and append around-object trees into treeEntries; objectPlacements feeds ore checks.
         public static void Generate(
             TerrainGenerationConfig config, BiomePlacementHelper helper, BiomeType[] biomeTypes,
             bool[][,] masks, float[] heights, float[,] heights2D, List<PlacementEntry> treeEntries,
+            TilePlacementContext tile,
             out List<PlacementEntry> objectEntries, out List<ObjectPlacementResult> objectPlacements)
         {
             int biomeCount = biomeTypes.Length;
             objectEntries = new List<PlacementEntry>();
 
-            // Stage 3 樹木から距離チェック用グリッドを構築（オブジェクト配置が参照）。
-            // Build the distance-check grid from stage-3 trees (consumed by object placement).
+            // Stage 3 樹木から距離チェック用グリッドを構築（オブジェクト配置が参照）。halo で隣タイルの木も入れる。
+            // Build the distance-check grid from stage-3 trees (consumed by object placement), the halo adding the neighbouring tiles' trees.
             var treeSpatialGrid = SpatialGrid.FromPlacements(treeEntries, config.terrainWidth, config.terrainLength, 0f);
+            SeedTreeHalo(treeSpatialGrid);
 
             // クラスター採番は生成コンテキストのローカル状態。全バイオームを通して連番になる（元のグローバル採番と等価）。
             // Cluster numbering is generation-local state, sequential across all biomes (equivalent to the old global counter).
@@ -35,15 +46,19 @@ namespace Game.MapGeneration.Pipeline.Stages
                 if (!hasAny) continue;
 
                 float wm = helper.GetShoreConfig(biomeTypes[b]).waterMargin;
-                var dims = TerrainDimensions.From(config, wm);
-                var objRng = new System.Random(config.seed + 4000 + b * 100);
-                var entries = ObjectPlacementGenerator.GenerateForBiome(masks[b], heights2D, dims, oc, objRng, treeSpatialGrid, ref nextClusterId);
+                var dims = TerrainDimensions.From(config, wm, tile.TileIndexX, tile.TileIndexZ);
+                int biomeSeed = config.seed + ObjectSeedBase + b * SeedStridePerBiome;
+                var objRng = new System.Random(TileSeedMixer.Mix(biomeSeed, tile.TileIndexX, tile.TileIndexZ));
+                var entries = ObjectPlacementGenerator.GenerateForBiome(
+                    masks[b], heights2D, dims, oc, objRng, biomeSeed + NoiseSeedOffset,
+                    treeSpatialGrid, ref nextClusterId);
                 objectEntries.AddRange(entries);
             }
 
             // Stage 4.5: 岩周辺樹木。Stage3グリッドを再利用し岩周辺の木も距離チェック対象にする。
             // Stage 4.5: trees around rocks, reusing the stage-3 grid so those trees are distance-checked too.
             var rockTreeGrid = SpatialGrid.FromPlacements(treeEntries, config.terrainWidth, config.terrainLength, 3f);
+            SeedTreeHalo(rockTreeGrid);
             objectPlacements = PlacementInputBuilder.ToObjectPlacements(objectEntries);
             for (int b = 0; b < biomeCount; b++)
             {
@@ -51,12 +66,23 @@ namespace Game.MapGeneration.Pipeline.Stages
                 if (tp?.prototypes == null || tp.prototypes.Length == 0) continue;
 
                 float wm = helper.GetShoreConfig(biomeTypes[b]).waterMargin;
-                var dims = TerrainDimensions.From(config, wm);
-                var rockRng = new System.Random(config.seed + 5000 + b * 100);
+                var dims = TerrainDimensions.From(config, wm, tile.TileIndexX, tile.TileIndexZ);
+                var rockRng = new System.Random(TileSeedMixer.Mix(
+                    config.seed + RockTreeSeedBase + b * SeedStridePerBiome, tile.TileIndexX, tile.TileIndexZ));
                 var rockEntries = TreePlacementAroundObjects.GenerateAroundObjects(
                     masks[b], heights, dims, tp, objectPlacements, rockRng, rockTreeGrid);
                 treeEntries.AddRange(rockEntries);
             }
+
+            #region Internal
+
+            void SeedTreeHalo(SpatialGrid grid)
+            {
+                tile.Halo.Trees.SeedGrid(grid, config.worldOffsetX, config.worldOffsetZ,
+                    config.terrainWidth, config.terrainLength, tile.Halo.Radius);
+            }
+
+            #endregion
         }
     }
 }

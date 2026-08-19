@@ -27,19 +27,20 @@ BBOX_TARGETS = {
     "recipe-panel": ((2168, 280, 3121, 1473), 6),
     "selection-frame": ((1250, 492, 2015, 651), 3),
     "tree-button": ((1502, 422, 1773, 469), 3),
-    "craft-button": ((1502, 1302, 1775, 1351), 4),
-    "craft-tab": ((1210, 228, 1375, 297), 4),
+    # レシピビューアはADR 0011で単一リストへ移行し、装飾タブは廃止・クラフトボタンはエントリ幅へ変わった。
+    # 以下2件は旧uGUI正本でなく単一リスト実装(DEMOフィクスチャ: item100=クラフト1件+機械1件)の実測が正本
+    # The recipe viewer moved to the ADR 0011 single list: the tab is gone and the craft button spans the entry.
+    # These two targets are measured on that implementation (DEMO fixture: item 100 = 1 craft + 1 machine recipe)
+    "craft-button": ((1239, 758, 2019, 805), 4),
     "sort-button": ((3028, 32, 3249, 105), 3),
     "key-hints": ((20, 1656, 993, 1811), 3),
     "hotbar-ring": ((994, 1704, 1125, 1835), 3),
     "scroll-knob": ((3078, 434, 3087, 1103), 4),
     # 矢印は白ベタ塗りをやめゲージ化したため、明ピクセルのみでは待機時に矢印が写らない。
-    # 正本・実装ともに矢印はシアン輪郭を持つので「明or シアン」で測り、目標も正本を同条件で再実測した値にした
-    # The arrow is a gauge now, not a flat white fill, so bright pixels alone miss it at rest. Both the reference
-    # and the implementation outline it in cyan, so this measures bright-or-cyan against a re-measured reference
-    # tolを6にしたのは、上辺Δ5(シアン輪郭の矢尻頂点のマスク差)＋下辺Δ4(「秒」のディセンダ)で
-    # max Δ が常時5に張り付き、フォントAAの環境差1pxでFAILへ転ぶため。目標値自体は緩めていない
-    # tol is 6 because top Δ5 (mask difference at the cyan arrowhead tip) and bottom Δ4 (the descender of 「秒」)
-    # pin max Δ at 5, so a 1px font-AA difference across environments flips it to FAIL. The target itself is unchanged
-    "craft-arrow-time": ((1570, 530, 1693, 651), 6),
+    # 実装は矢印にシアン輪郭を持つので「明orシアン」で測る
+    # The arrow is a gauge now, not a flat white fill, so bright pixels alone miss it at rest.
+    # The implementation outlines it in cyan, so this measures bright-or-cyan
+    # 秒数は単一リストでクラフトボタンのラベルへ移ったため、矢印単体の外接で測る（旧craft-arrow-time）
+    # The seconds label moved into the craft button label, so this bounds the arrow alone (was craft-arrow-time)
+    "craft-arrow": ((1562, 604, 1680, 679), 6),
 }
