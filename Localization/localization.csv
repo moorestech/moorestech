@@ -78,6 +78,7 @@ ui.notification.unlockedBlock,New block unlocked,New block unlocked,新しいブ
 ui.notification.unlockedTrainCar,New train car unlocked,New train car unlocked,新しい車両を解放しました
 ui.notification.unlockedConnectTool,New connect tool unlocked,New connect tool unlocked,新しい接続ツールを解放しました
 ui.notification.unlockedBlueprint,Blueprint unlocked,Blueprint unlocked,ブループリントが解放されました
+ui.notification.blueprintNotUnlocked,Blueprint failed: blueprint is not unlocked,Blueprint failed: blueprint is not unlocked,ブループリント操作に失敗しました: ブループリントが未解放です
 ui.notification.researchNotCompletable,Cannot complete research (prerequisites or materials missing),Cannot complete research (prerequisites or materials missing),研究を完了できません（前提条件または素材が不足しています）
 ui.notification.craftResultFull,Cannot craft: inventory is full,Cannot craft: inventory is full,クラフトできません: インベントリが満杯です
 ui.notification.craftMaterialShortage,Cannot craft: not enough materials,Cannot craft: not enough materials,クラフトできません: 素材が不足しています
