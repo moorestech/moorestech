@@ -688,13 +688,13 @@ git add docs/pr-assets/research-ui-refresh
 git commit -m "docs: 棲み分けレイアウトでPR用スクリーンショットを撮り直す"
 ```
 
-- [ ] **Step 4: PR本文を更新する**
+- [x] **Step 4: PR本文を更新する**
 
 `gh pr edit 1176 --body-file` で本文を差し替える。差し替える箇所は次の2つだけで、他の節（Summary の解放物まわり・Test plan）は現行の記述を保つ:
 - Summary 1行目の「研究パネルをステージ全域占有にして持ち物・ヒントを上層へ重畳する」を「研究パネルを持ち物の右側へ広げて棲み分けさせ、研究画面ではホットバー・装備HUDを引っ込める（ADR 0014 決定2を2026-08-19に差し替え）」へ書き換える
 - 「## スクリーンショット」節の各URLの commit SHA を、Step 3 のコミットSHAへ更新する（`git rev-parse HEAD` で取得）
 
-- [ ] **Step 5: pushする**
+- [x] **Step 5: pushする**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh
