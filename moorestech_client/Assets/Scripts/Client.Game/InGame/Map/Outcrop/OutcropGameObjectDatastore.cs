@@ -5,6 +5,7 @@ using Client.Common.Asset;
 using Client.Game.Common;
 using Client.Game.InGame.BlockSystem;
 using Client.Network.API;
+using CommandForgeGenerator.Command;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.MapModule;
@@ -18,7 +19,7 @@ namespace Client.Game.InGame.Map.Outcrop
     ///     全鉱脈の露頭を生成
     ///     Create outcrops for all veins
     /// </summary>
-    public class OutcropGameObjectDatastore : MonoBehaviour, IInitialEventApplyWaitTarget
+    public class OutcropGameObjectDatastore : MonoBehaviour, IInitialEventApplyWaitTarget, ISkitWorldObjectControl
     {
         // 露頭名にveinGuidを付与し、どの鉱脈の露頭かをシーン上で辿れるようにする
         // Append the vein GUID to outcrop names so each one can be traced back to its vein in the scene
@@ -180,6 +181,11 @@ namespace Client.Game.InGame.Map.Outcrop
         public OutcropGameObject SearchNearestOutcrop(Guid veinGuid, Vector3 position)
         {
             return _outcropGuidIndex.SearchNearest(veinGuid, position);
+        }
+
+        public void SetActive(bool enable)
+        {
+            gameObject.SetActive(enable);
         }
     }
 }
