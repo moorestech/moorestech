@@ -712,19 +712,19 @@ git push
 - Consumes: Task 1〜5 の全成果
 - Produces: レビュー通過状態のブランチ
 
-- [ ] **Step 1: moores-code-review を実行する**
+- [x] **Step 1: moores-code-review を実行する**
 
 `moores-code-review` スキルを起動し、`feature/research-ui-refresh` の全ブランチ差分（master...HEAD）をレビュー対象として実行する。ゴール文言による省略は不可。
 
-- [ ] **Step 2: 機械的な指摘を適用する**
+- [x] **Step 2: 機械的な指摘を適用する**
 
 決定論チェック・規約違反（コメント規約・行数・トークン直書き等）の指摘をすべて適用する。
 
-- [ ] **Step 3: 設計判断の指摘をユーザーへ諮る**
+- [x] **Step 3: 設計判断の指摘をユーザーへ諮る**
 
 設計判断を要する指摘は AskUserQuestion でまとめて裁定を仰ぐ。裁定は `.decisions/` へ記録する。
 
-- [ ] **Step 4: 再検証してコミット・pushする**
+- [x] **Step 4: 再検証してコミット・pushする**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh/moorestech_web/webui
