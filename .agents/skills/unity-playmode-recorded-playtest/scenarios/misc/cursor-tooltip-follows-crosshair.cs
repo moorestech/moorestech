@@ -1,10 +1,15 @@
 // メニューから自由行動へ戻る遷移でカーソルツールチップがクロスヘア基準に出ることを検証する
 // Verifies the cursor tooltip anchors on the crosshair when returning from a menu to free play
 //
-// 開幕スキット直後を再現しない理由: スキットの遷移演出中はWeb UIが丸ごとunmountされ、
-// 再mount時にReactのpointer状態が初期値へ戻るため、ワープ由来のmousemoveがDOMに残らない。
-// Why not the post-skit moment: the whole Web UI unmounts during the skit transition and remounts
-// with React's pointer state reset, so the warp's mousemove leaves no observable trace in the DOM.
+// 再現前提は「Web側のpointerがクロスヘア以外の場所に居る」こと。注入カーソルを隅へ動かし、
+// ツールチップDOMがその隅へ追従したことを確かめてから、メニュー往復でロック遷移を踏む。
+// 開幕スキット直後を契機にしない理由: スキット中はWeb UIが丸ごとunmountされ、pointerが初期値(0,0)のまま
+// 残るため、隅へ退避させた前提そのものをDOMで確認できない（この経路の実測は task-5-report.md 参照）。
+// The precondition is that the Web-side pointer sits somewhere other than the crosshair: the injected cursor
+// is parked in a corner and the tooltip DOM is confirmed to have followed it there, before the menu round
+// trip triggers the lock transition.
+// Why not the post-skit moment: the Web UI unmounts during the skit, leaving the pointer at its initial
+// (0,0), so the corner precondition itself cannot be confirmed in the DOM (measurements in task-5-report.md).
 using System;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Mining;
@@ -39,12 +44,14 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
 
     // 照準はロック中ScreenCenter固定のため、カーソルを動かさず立ち位置だけで小石を捉える
     // The aim source is fixed to ScreenCenter while locked, so catch the pebble by standing position alone
+    // ワープはカメラの向きを変えないため、正面ベクトルは試行ごとに変わらない
+    // Warping never rotates the camera, so the forward vector is identical across the attempts
+    var cameraForward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
+    if (cameraForward.sqrMagnitude < 0.1f) cameraForward = Vector3.forward;
     var standPosition = Vector3.zero;
     var focused = false;
     foreach (var standDistance in new[] { 1.2f, 1.6f, 2.0f, 2.6f })
     {
-        var cameraForward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized;
-        if (cameraForward.sqrMagnitude < 0.1f) cameraForward = Vector3.forward;
         p.Note($"小石の正面{standDistance}m地点へワープして照準する");
         standPosition = pebbleCollider.bounds.center - cameraForward * standDistance + Vector3.up * 0.5f;
         p.WarpPlayer(standPosition);
@@ -55,42 +62,53 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
 
     p.Assert(focused, "小石へのフォーカスでツールチップ表示がUnity側から発火した");
 
-    // インベントリを開いて自由カーソルにし、カーソルを画面隅へ寄せて不具合条件を作る
-    // Open the inventory to free the cursor, then park it in a screen corner to build the bug's precondition
+    // 注入カーソルを画面隅へ寄せ、ツールチップDOMが隅へ追従したことで前提の到達を確かめる
+    // Park the injected cursor in a screen corner and confirm the precondition landed via the tooltip DOM
     var corner = new Vector2(Screen.width - 40f, 40f);
+    p.Note($"注入カーソルを画面隅{corner}へ寄せる（不具合の再現前提）");
+    SemanticInput.MouseMoveTo(corner);
+    await p.WaitSeconds(1.5f);
+    p.Assert(await IsTooltipNearAsync(corner, "隅へ退避したカーソル"), "退避先の隅にツールチップが追従した（前提がWeb側へ届いた）");
+
+    // インベントリを開閉してGameplayへ戻す（ここでカーソルがロックされる）
+    // Open and close the inventory to return to Gameplay, which is where the cursor gets locked
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.PlayerInventory, 15f);
-    p.Note($"自由カーソル中に注入カーソルを画面隅{corner}へ寄せる（不具合の再現条件）");
-    SemanticInput.MouseMoveTo(corner);
-    await p.WaitSeconds(1f);
-    p.Assert(Vector2.Distance(SemanticInput.CurrentMousePosition(), corner) < 1f, "カーソルが画面隅へ移動した");
-
-    // インベントリを閉じてGameplayへ戻す（ここでカーソルがロックされる）
-    // Close the inventory to return to Gameplay, which is where the cursor gets locked
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.GameScreen, 15f);
     p.WarpPlayer(standPosition);
     await p.Until(() => MouseCursorTooltip.Instance.GetPresentation().Visible, 20f, "自由行動復帰後にツールチップが再表示される");
 
-    // ツールチップDOMを取得し、矩形中心が画面中央付近にあることを確かめる
-    // Fetch the tooltip DOM, then confirm its rect center sits near the screen center
-    var tooltip = await PollUntilQueryAsync("cursor-tooltip", 20);
-    p.Assert(tooltip.Found, "カーソルツールチップがWeb HUDに表示された");
-
-    // ツールチップはpointer-events:noneでヒットテストを通らないため、矩形中心を直接ブラウザpxへ換算する
-    // The tooltip is pointer-events:none and fails the hit test, so convert its rect center to browser px directly
-    var tooltipBrowserPoint = new Vector2(
-        (tooltip.X + tooltip.Width * 0.5f) * tooltip.DevicePixelRatio,
-        (tooltip.Y + tooltip.Height * 0.5f) * tooltip.DevicePixelRatio);
-    p.Assert(CefScreenMapper.TryBrowserToScreen(tooltipBrowserPoint, out var tooltipScreenPoint), "ツールチップDOM矩形をスクリーン座標へ変換できた");
-
     var screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
-    var distance = Vector2.Distance(tooltipScreenPoint, screenCenter);
-    p.Note($"ツールチップ中心={tooltipScreenPoint} 画面中央={screenCenter} 隅={corner} 距離={distance:F1}px 文字='{tooltip.Text}'");
-    p.Assert(distance < 200f, "ツールチップがクロスヘア近傍（200px以内）に出る");
+    p.Assert(await IsTooltipNearAsync(screenCenter, "クロスヘア"), "ツールチップがクロスヘア近傍（200px以内）に出る");
     await p.Screenshot("01-tooltip-near-crosshair");
 
     #region Internal
+
+    async UniTask<bool> IsTooltipNearAsync(Vector2 expectedScreenPoint, string expectedLabel)
+    {
+        var tooltip = await PollUntilQueryAsync("cursor-tooltip", 20);
+        if (!tooltip.Found)
+        {
+            p.Note($"ツールチップDOMが見つからない（期待位置={expectedLabel}{expectedScreenPoint}）");
+            return false;
+        }
+
+        // ツールチップはpointer-events:noneでヒットテストを通らないため、矩形中心を直接ブラウザpxへ換算する
+        // The tooltip is pointer-events:none and fails the hit test, so convert its rect center to browser px directly
+        var tooltipBrowserPoint = new Vector2(
+            (tooltip.X + tooltip.Width * 0.5f) * tooltip.DevicePixelRatio,
+            (tooltip.Y + tooltip.Height * 0.5f) * tooltip.DevicePixelRatio);
+        if (!CefScreenMapper.TryBrowserToScreen(tooltipBrowserPoint, out var tooltipScreenPoint))
+        {
+            p.Note($"ツールチップDOM矩形をスクリーン座標へ変換できない（css={tooltip.X},{tooltip.Y}）");
+            return false;
+        }
+
+        var distance = Vector2.Distance(tooltipScreenPoint, expectedScreenPoint);
+        p.Note($"ツールチップ中心={tooltipScreenPoint} 期待={expectedLabel}{expectedScreenPoint} 距離={distance:F1}px 文字='{tooltip.Text}'");
+        return distance < 200f;
+    }
 
     async UniTask<DomQueryResult> PollUntilQueryAsync(string testid, int seconds)
     {
