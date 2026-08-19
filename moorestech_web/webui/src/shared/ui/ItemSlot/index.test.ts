@@ -7,6 +7,7 @@ import { itemNameKey } from "@/shared/i18n/contentKeys";
 import { L } from "@/shared/i18n/generated/localizationKeys";
 import { setDictionaries } from "@/shared/i18n/i18nStore";
 import ItemSlot from "./index";
+import styles from "./style.module.css";
 
 const ITEM_GUID = "01234567-89ab-cdef-0123-456789abcdef";
 
@@ -15,11 +16,13 @@ vi.mock("@/bridge", async (importOriginal) => ({
   useItemMaster: () => new Map([[1, { itemId: 1, itemGuid: ITEM_GUID, maxStack: 100 }]]),
 }));
 
-function renderItemSlot(insufficient?: boolean) {
+function renderItemSlot(insufficient?: boolean, count?: number, catalog?: boolean) {
   return renderToStaticMarkup(
     createElement(MantineProvider, null, createElement(ItemSlot, {
       itemId: 1,
       insufficient,
+      count,
+      catalog,
     })),
   );
 }
@@ -56,5 +59,26 @@ describe("ItemSlot", () => {
     const css = readFileSync(new URL("../SlotFrame/style.module.css", import.meta.url), "utf8");
 
     expect(css).toMatch(/\.slot\[data-insufficient="true"\]\s*\{\s*opacity:\s*0\.4;/);
+  });
+
+  it("countがundefinedの時はバッジを表示しない", () => {
+    const markup = renderItemSlot(undefined, undefined);
+
+    expect(markup).not.toContain(`class="${styles.count}"`);
+  });
+
+  // アイコンを描くcatalogでも0はバッジ非表示
+  // Even in catalog mode, where the icon renders, a 0 must not render the badge
+  it("countが0の時はバッジを表示しない", () => {
+    const markup = renderItemSlot(undefined, 0, true);
+
+    expect(markup).toContain("<img");
+    expect(markup).not.toContain(`class="${styles.count}"`);
+  });
+
+  it("countが正の数の時はバッジを表示する", () => {
+    const markup = renderItemSlot(undefined, 5);
+
+    expect(markup).toContain(`<span class="${styles.count}">5</span>`);
   });
 });

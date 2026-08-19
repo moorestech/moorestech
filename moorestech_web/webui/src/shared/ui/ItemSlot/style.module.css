@@ -7,8 +7,10 @@
   padding: var(--icon-pad, 5px);
 }
 
-/* 個数調整は用途側から注入し、未指定のホットバーは検出互換の旧値を保つ */
-/* Inject count tuning per usage while unset hotbar slots retain detector-compatible legacy values */
+/* 個数バッジの黒は --count-text で一元管理する（ユーザー裁定 2026-08-17）。 */
+/* var()の既定値は用途側未注入のホットバーが依存する検出互換の旧値、変更削除禁止 */
+/* The badge black lives in --count-text as the single source (user ruling 2026-08-17); */
+/* the var() fallbacks are legacy values the un-injecting hotbar relies on, do not change */
 .count {
   position: absolute;
   bottom: var(--count-bottom, -3px);
@@ -17,13 +19,6 @@
   font-weight: 500;
   line-height: 1;
   letter-spacing: var(--count-letter-spacing, normal);
-  color: var(--text-high-contrast);
-  text-shadow: 0.25px 0 0 #000, -0.25px 0 0 #000, 0 0.25px 0 #000, 0 -0.25px 0 #000;
-}
-
-/* 明色塗りのセル上では個数を黒文字にして視認性を確保する */
-/* Use black count text on the light-filled cell for legibility */
-[data-filled="true"][data-filled="true"] .count {
-  color: #111;
+  color: var(--count-text);
   text-shadow: 0.25px 0 0 rgb(255 255 255 / 75%), -0.25px 0 0 rgb(255 255 255 / 75%), 0 0.25px 0 rgb(255 255 255 / 75%), 0 -0.25px 0 rgb(255 255 255 / 75%);
 }

@@ -6,8 +6,8 @@ import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
 
 type Props = {
   itemId: number;
-  // count 省略時は個数バッジを表示せず、itemId>0 ならアイコンのみ表示する
-  // When count is omitted, the count badge is hidden and the icon shows for itemId>0
+  // count が未指定か0なら個数バッジを出さず、itemId>0 ならアイコンのみ表示する
+  // With count undefined or 0 the badge is hidden, and the icon shows for itemId>0
   count?: number;
   tooltip?: TooltipProps["label"];
   selected?: boolean;
@@ -57,7 +57,7 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
         {hasItem ? (
           <>
             <ItemIcon itemId={itemId} alt={resolvedName ?? t(L.ui.common.itemFallback, { itemId })} className={styles.icon} />
-            {count !== undefined ? <span className={styles.count}>{count}</span> : null}
+            {owned ? <span className={styles.count}>{count}</span> : null}
           </>
         ) : null}
       </SlotFrame>

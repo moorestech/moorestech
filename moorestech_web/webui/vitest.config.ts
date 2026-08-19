@@ -10,5 +10,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "e2e/**/*.test.ts"],
+    // CSSクラス名を素通しで検証可能に
+    // Resolve CSS class names verbatim for element-based assertions
+    css: { include: [/\.module\.css$/], modules: { classNameStrategy: "non-scoped" } },
   },
 });
