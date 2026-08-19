@@ -42,7 +42,7 @@ const topicFixtures: TopicFixtureRegistry = {
   }),
   [Topics.crosshair]: () => ({ visible: true }),
   [Topics.uiVisibility]: () => ({ visible: true }),
-  [Topics.tooltip]: () => ({ visible: false, textKey: "", textParams: [], fontSize: 14 }),
+  [Topics.tooltip]: () => ({ visible: false, textKey: "", textParams: [] }),
   [Topics.gameState]: () => state.gameState,
   [Topics.tutorialPresentation]: () => fx.tutorialPresentation,
   [Topics.worldPins]: () => state.worldPins,

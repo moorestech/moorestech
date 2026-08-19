@@ -1,8 +1,9 @@
 .tooltip {
   position: fixed;
   z-index: var(--z-stage-tooltip);
-  max-width: 420px;
-  padding: 8px 12px;
+  max-width: var(--cursor-tooltip-max-width);
+  padding: var(--cursor-tooltip-padding-block) var(--cursor-tooltip-padding-inline);
+  font-size: var(--cursor-tooltip-font-size);
   color: white;
   white-space: pre-line;
   pointer-events: none;

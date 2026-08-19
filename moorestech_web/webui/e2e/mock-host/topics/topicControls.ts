@@ -55,13 +55,11 @@ const controls = {
     visible: true,
     textKey: L.ui.tooltip.worldTarget,
     textParams: [],
-    fontSize: 18,
   }),
   tooltipHidden: () => control(Topics.tooltip, {
     visible: false,
     textKey: "",
     textParams: [],
-    fontSize: 14,
   }),
   pauseConnected: () => control(Topics.pauseMenu, { disconnected: false }),
   pauseDisconnected: () => control(Topics.pauseMenu, { disconnected: true }),

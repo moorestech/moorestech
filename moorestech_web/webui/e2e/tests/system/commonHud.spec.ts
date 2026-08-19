@@ -64,6 +64,14 @@ test("採掘進捗・クロスヘア・tooltipのtopic eventを表示する", as
   await expect(page.locator('[data-tutorial-anchor="game.crosshair"]')).toBeVisible();
   await expect(page.getByText("世界の対象", { exact: true })).toBeVisible();
 
+  // 書式はWeb側トークンが唯一の値源。ホスト由来の寸法へ戻らないよう実測で固定する
+  // The web tokens are the only source of the format; lock the measured values so host-driven sizes cannot return
+  const tooltipStyle = await page.getByTestId("cursor-tooltip").evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { fontSize: style.fontSize, padding: style.padding, maxWidth: style.maxWidth };
+  });
+  expect(tooltipStyle).toEqual({ fontSize: "18px", padding: "6px 10px", maxWidth: "320px" });
+
   await setTopicScenario(page, "crosshairHidden");
   await expect(page.locator('[data-tutorial-anchor="game.crosshair"]')).toBeHidden();
 });
