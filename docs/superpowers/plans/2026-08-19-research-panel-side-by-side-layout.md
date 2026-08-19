@@ -537,13 +537,13 @@ Expected: 全PASS。特に「研究パネルは持ち物の右隣から画面端
   // Verify the drag actually panned (regression guard against a drag origin swallowed by another element, producing zero movement)
 ```
 
-- [ ] **Step 10: webui全体のテストとlintを実行する**
+- [x] **Step 10: webui全体のテストとlintを実行する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh/moorestech_web/webui && npx vitest run && npx eslint . && npx playwright test`
 
 Expected: vitest 全PASS、eslint clean、playwright は既知の恒常赤（既定ロケールjapaneseと英語literal期待の10件・bd moorestech-2lh.1）以外すべてPASS。**inventory系・hotbar系・equipment系のspecが新たに落ちていないことを必ず確認する**（落ちていればR4/R8違反なので直す）。
 
-- [ ] **Step 11: コミットする**
+- [x] **Step 11: コミットする**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh
@@ -566,14 +566,14 @@ git commit -m "fix: 研究パネルを持ち物の右側へ棲み分けさせ重
 - Consumes: なし（コメントのみ。ロジック・シグネチャを一切変えない）
 - Produces: なし
 
-- [ ] **Step 1: 着手をbdへ記録する**
+- [x] **Step 1: 着手をbdへ記録する**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh
 bd update moorestech-4ed --claim
 ```
 
-- [ ] **Step 2: hotbarDnd.ts のドラッグ元の型へ役割を書く**
+- [x] **Step 2: hotbarDnd.ts のドラッグ元の型へ役割を書く**
 
 `moorestech_web/webui/src/features/hotbar/hotbarDnd.ts` の既存コメント2行を探す:
 
@@ -591,7 +591,7 @@ bd update moorestech-4ed --claim
 // The one and only path that creates an assignment is dragging a build-menu entry; dropping from the inventory does not exist by design
 ```
 
-- [ ] **Step 3: HotbarPanel の冒頭コメントへ役割を書く**
+- [x] **Step 3: HotbarPanel の冒頭コメントへ役割を書く**
 
 `moorestech_web/webui/src/features/hotbar/HotbarPanel/index.tsx` の既存コメント4行を探す:
 
@@ -609,7 +609,7 @@ bd update moorestech-4ed --claim
 // The hotbar assigns and selects placement targets across 9 slots; it is not an inventory item bar (only the build menu assigns into it)
 ```
 
-- [ ] **Step 4: HotbarDtos.cs の docstring へ役割を書く**
+- [x] **Step 4: HotbarDtos.cs の docstring へ役割を書く**
 
 `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/Hotbar/HotbarDtos.cs` の `HotbarTopicDto` の docstring を変更する。変更前:
 
@@ -629,19 +629,19 @@ bd update moorestech-4ed --claim
     /// </summary>
 ```
 
-- [ ] **Step 5: コンパイルを実行する（.cs変更のため必須）**
+- [x] **Step 5: コンパイルを実行する（.cs変更のため必須）**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh && uloop compile --project-path ./moorestech_client`
 
 Expected: errors 0。「Unity is reloading (Domain Reload in progress)」が出たら45秒待ってリトライする。Editorが立っていない場合は `moores-wt` で用意したこのworktreeのEditorを `uloop launch` で起動してから再実行する。
 
-- [ ] **Step 6: webuiのlintとユニットテストを実行する**
+- [x] **Step 6: webuiのlintとユニットテストを実行する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh/moorestech_web/webui && npx eslint src/features/hotbar && npx vitest run src/features/hotbar`
 
 Expected: eslint clean、vitest 全PASS（`hotbarDnd.test.ts` / `useHotbarDragSource.test.ts`）。
 
-- [ ] **Step 7: コミットしてbdを閉じる**
+- [x] **Step 7: コミットしてbdを閉じる**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace Client.WebUiHost.Game.Topics.Hotbar
 {
     /// <summary>
-    /// local_player.hotbar の配信 DTO
-    /// Payload DTOs for local_player.hotbar
+    /// local_player.hotbar の配信 DTO。枠が持つのは配置対象9件のみで、持ち物のアイテムは入らない
+    /// Payload DTOs for local_player.hotbar; the 9 slots hold placement targets only, never inventory items
     /// </summary>
     public class HotbarTopicDto
     {

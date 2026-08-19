@@ -1,6 +1,10 @@
 // ホットバーD&Dの純粋ロジック
 // Pure hotbar-D&D logic: resolves a drag source/target pair into the action to dispatch
 
+// ホットバーの枠が持つのは配置対象(ブロック・列車車両・接続ツール・BP・BPコピー)だけで、持ち物のアイテムは入らない
+// A hotbar slot only ever holds a placement target (block, train car, connect tool, blueprint, blueprint copy); inventory items never enter it
+// 割当が生まれる唯一の経路はビルドメニューのエントリのドラッグで、持ち物からのドロップは仕様として存在しない
+// The one and only path that creates an assignment is dragging a build-menu entry; dropping from the inventory does not exist by design
 // ドラッグ元。枠外から掴むことはないのでoutsideを持たない
 // A drag source; nothing is ever grabbed from outside a slot, so "outside" is not one of these
 export type HotbarDragSource =

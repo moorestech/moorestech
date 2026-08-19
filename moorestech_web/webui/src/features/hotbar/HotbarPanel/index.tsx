@@ -8,6 +8,8 @@ import { useHotbarDragSource } from "../useHotbarDragSource";
 import type { HotbarDragSource } from "../hotbarDnd";
 import styles from "./style.module.css";
 
+// ホットバーは配置対象を9枠へ割り当てて選ぶHUDで、持ち物のアイテム欄ではない(割当元はビルドメニューのみ)
+// The hotbar assigns and selects placement targets across 9 slots; it is not an inventory item bar (only the build menu assigns into it)
 // 常時表示のホットバーHUD
 // 数字キーは一切listenしない
 // Always-on hotbar HUD; it only subscribes to local_player.hotbar (independent of UIState).
