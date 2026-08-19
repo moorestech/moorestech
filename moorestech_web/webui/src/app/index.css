@@ -37,4 +37,14 @@ body {
   font-synthesis: none;
   background-color: transparent;
   color: var(--text-default);
+  /* ゲーム画面なのでドラッグ選択のハイライトを出さない。例外は下の入力欄だけ */
+  /* This is the game screen, so drag-selection highlights never appear; inputs below are the only exception */
+  user-select: none;
+}
+
+/* 選択可の唯一のホワイトリスト。機能側CSSで user-select を書かない */
+/* The only whitelist for selectable text; feature CSS never writes user-select */
+input,
+textarea {
+  user-select: text;
 }
