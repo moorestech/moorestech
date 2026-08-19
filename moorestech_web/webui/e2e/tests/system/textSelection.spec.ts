@@ -1,8 +1,14 @@
 import { expect, test } from "@playwright/test";
 import { setUiState } from "../../support/mockControl";
 
-// 選択可否の値源はグローバル1箇所。パネル文字は選択不可・入力欄だけ選択可を実画面で固定する
-// The selection policy lives in one global place; assert unselectable panel text and selectable inputs in the real page
+// 各テスト後に既定状態へ戻し、他 spec へ画面状態を漏らさない
+// Reset to defaults after each test so screen state never leaks into other specs
+test.afterEach(async ({ page }) => {
+  await setUiState(page, "PlayerInventory");
+});
+
+// パネル選択不可・入力欄のみ選択可を確認
+// Assert panel text unselectable, inputs selectable
 test("入力欄以外はテキスト選択できない", async ({ page }) => {
   await setUiState(page, "PlayerInventory");
   await page.goto("/");
