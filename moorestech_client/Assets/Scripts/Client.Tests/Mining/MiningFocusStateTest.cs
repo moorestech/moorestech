@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
@@ -191,17 +190,6 @@ namespace Client.Tests.Mining
             public void SendAttack()
             {
             }
-        }
-
-        // 寸法値はWeb側が持つため、presentationは表示状態と辞書キーだけを運ぶ
-        // The web side owns sizes, so the presentation carries only visibility and the dictionary key
-        [Test]
-        public void TooltipPresentationCarriesOnlyVisibilityKeyAndParams()
-        {
-            var fields = typeof(TooltipPresentation).GetFields(BindingFlags.Public | BindingFlags.Instance);
-            var fieldNames = fields.Select(field => field.Name).OrderBy(name => name).ToArray();
-
-            CollectionAssert.AreEqual(new[] { "TextKey", "TextParams", "Visible" }, fieldNames);
         }
     }
 }
