@@ -18,7 +18,9 @@ description: |
 対応spec: `docs/superpowers/specs/2026-07-27-pr-independent-review-design.md`
 
 **正典tree `$CANON`**: 測定器（スクリプト・レンズ・reviewer・統合ルール・テンプレート）の唯一の読み取り元。
-**`origin/master` に固定した専用worktree**とする（ユーザー裁定 2026-08-05）。
+**起動時に解決した `origin/master` のSHAへピンした使い捨てworktree `skills-canon-<sha8>`** とする
+（ユーザー裁定 2026-08-05。共有worktreeへの毎回resetをSHAピンへ変えたのは2026-08-19裁定 —
+並列レビューが共有canonをresetし合うと、実行中に物差しが差し替わる競合が生じるため）。
 スクリプト・レンズ・統合ルールは必ず `$CANON` の絶対パスで参照する。`$PRWT` 側の
 `.claude/` は**絶対に使わない**（PRごとに測定器が変わり見逃し率実測が壊れる・自己弱体化経路）。
 
@@ -32,21 +34,28 @@ description: |
    `/<dir>/skills/pr-independent-review/SKILL.md`（`<dir>` は `.agents`/`.claude`/`.codex` のいずれか。
    skills実体は `.agents/skills` で他2つはsymlink）を**文字列として取り除いた**残り。
    **`$ORIGIN` はworktreeを生やす起点としてのみ使い、読み取り元にも書き込み先にもしない**
-2. **固定worktreeの場所**: PR専用worktree `$PRWT`（`pr-<番号>`）と**同じ親ディレクトリ**の `skills-canon`。
-   これが `$CANON` の実値。無ければ作る:
+2. **ピンSHAの解決**: `$ORIGIN` の `origin/master` を更新し、今回の測定器の版を確定する:
 
-       git -C <$ORIGINの実値> worktree add <$CANONの実値> --detach origin/master
+       git -C <$ORIGINの実値> fetch origin "+refs/heads/master:refs/remotes/origin/master"
+       git -C <$ORIGINの実値> rev-parse --short=8 refs/remotes/origin/master
 
-3. **毎回 `origin/master` へ固定し直す**（前回実行の残骸・他セッションの巻き込みを断つ）:
+   出力（曖昧回避で8桁より伸びることがある。そのまま使う）を `<sha8>` とする
+3. **SHAピンworktreeの場所**: PR専用worktree `$PRWT`（`pr-<番号>`）と**同じ親ディレクトリ**の
+   `skills-canon-<sha8>`。これが `$CANON` の実値。無ければ作る:
 
-       git -C <$CANONの実値> fetch origin "+refs/heads/master:refs/remotes/origin/master"
-       git -C <$CANONの実値> reset --hard origin/master
-       git -C <$CANONの実値> clean -fd
+       git -C <$ORIGINの実値> worktree add <$CANONの実値> --detach <sha8>
 
-4. 実在確認: `ls <$CANONの実値>/.agents/skills/pr-independent-review/scripts/novelty_gate.py`。
+   既にあればそのまま再利用する。**SHA固定なので内容は不変であり、`fetch`・`reset`・`clean` は一切行わない**
+   （並列レビューが同じピンを同時に読んでも安全。これがSHAピン化の目的）
+4. **使用記録と古ピンの掃除**: `touch <$CANONの実値>/.last-used` で使用時刻を記録する。そのうえで
+   同じ親ディレクトリの他の `skills-canon-*`（旧方式のsha8無し `skills-canon` を含む）のうち、
+   `.last-used` の更新時刻が**24時間より古い**もの・`.last-used` が無いものを
+   `git -C <$ORIGINの実値> worktree remove --force <ピンの実値>` で消す。
+   24時間はレビュー1本の所要より十分長く、実行中の他レビューのピンを消さないための猶予
+5. 実在確認: `ls <$CANONの実値>/.agents/skills/pr-independent-review/scripts/novelty_gate.py`。
    失敗したら即エラー終了（$CANON誤決定のまま走らせない）。**確認先はこのファイルでなければならない** —
    `moores-code-review/SKILL.md` は `$PRWT` 側にも存在しうるため、誤決定した$CANONでも通ってしまい弁別にならない
-5. **SKILL.md同一性ガード（必須・省略禁止）**:
+6. **SKILL.md同一性ガード（必須・省略禁止）**:
 
        diff <$ORIGINの実値>/.agents/skills/pr-independent-review/SKILL.md \
             <$CANONの実値>/.agents/skills/pr-independent-review/SKILL.md
@@ -86,7 +95,7 @@ featureブランチが記録ファイルに触れてマージ衝突する構造�
 
 | tree | 中身 | 書けない理由 |
 | --- | --- | --- |
-| `$CANON`（skills-canon） | `origin/master` 固定の測定器 | 毎回 `reset --hard` されるので書いても消える |
+| `$CANON`（skills-canon-<sha8>） | 起動時のorigin/master SHAへピンした測定器 | SHAピンは「不変」が契約。書けば同じピンを読む並列レビュー全員の物差しが汚れる（`.last-used` の `touch` だけが例外） |
 | `$ORIGIN`（起動元・多くはメインworktree） | 他セッションの作業中ブランチ | 他人の作業ツリーを汚し、コミットすれば無関係なブランチへ混入する（**実際に実行中ブランチが切り替わった**） |
 | `$PRWT`（`pr-<番号>`） | PRのheadブランチ | **PRのコード修正だけは書いてよい**（Step 9）。skill改修・`.decisions/` の裁定記録をここに積むのは筋が通らない |
 
@@ -98,13 +107,13 @@ featureブランチが記録ファイルに触れてマージ衝突する構造�
       git -C <$ORIGINの実値> worktree add \
         <worktree親ディレクトリ>/skill-<用件> -b chore/<用件> origin/master
 
-  worktree親ディレクトリは `$PRWT` / `skills-canon` と同じ場所。`origin/master` 起点にするのは、
+  worktree親ディレクトリは `$PRWT` / `skills-canon-<sha8>` と同じ場所。`origin/master` 起点にするのは、
   `$ORIGIN` の現在ブランチ（他人の作業中ブランチ）を巻き込まないため。
   **裁定記録を `$PRWT` に積まない** — PRブランチが `.decisions/` を抱えるとレビュー対象と記録が混ざる
 - **撤収確認（必須）**: 作業後に `git -C <$ORIGINの実値> status --porcelain -- <触れたパス>` が**空**であることを
   確かめる。空でなければ `$ORIGIN` に自分の変更が残っている＝ミスの再演
 - **報告義務**: skill改修を専用worktreeのブランチに載せた場合、**その改修はmasterへマージされるまで有効にならない**
-  （`$CANON` は毎回 `origin/master` に固定されるため）。
+  （`$CANON` はmasterのSHAからピンされるため、マージ前の改修は測定器に入らない）。
   「どのブランチに載せたか」「まだ有効でないこと」を必ず報告に書く
 
 改善と言われたときは0.5を実行する。
@@ -179,7 +188,7 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 共用の使い回しworktreeにしてはいけない — 並行レビューで奪い合いになり、修正作業中のツリーを次のレビューが
 `reset --hard` で消すためである。
 
-- **場所**: `skills-canon` と同じ親ディレクトリの `pr-<番号>`。以下これを `$PRWT` と呼ぶ
+- **場所**: `skills-canon-<sha8>` ピン群と同じ親ディレクトリの `pr-<番号>`。以下これを `$PRWT` と呼ぶ
 - **無ければ作る**（`$ORIGIN` は冒頭で決めた実値に展開して渡す。`~/moorestech-worktrees` の決め打ちは禁止 —
   worktree親ディレクトリが `$ORIGIN` の兄弟にあるケースが現に存在する）:
 
@@ -566,7 +575,7 @@ sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させ
       - 縮退: <なし（5系統フル実行）|<縮退内容。例: codex不在>|スタブ（Step 6未実行）>
       - head: <レビューしたHEADの40桁SHA>
       - base: <BASE_REFを解決した40桁SHA>
-      - canonical: <$CANONのHEAD SHA>（origin/master固定）<SKILL.md同一性ガードで差分が出たまま続行した場合のみ ・skew: $ORIGIN=<SHA> を追記>
+      - canonical: <$CANONのHEAD SHA>（起動時origin/masterのSHAピン）<SKILL.md同一性ガードで差分が出たまま続行した場合のみ ・skew: $ORIGIN=<SHA> を追記>
       - 系統: <発火した系統名と各々の完了/縮退。例: 決定論=完了/レンズ3本=完了/reviewer5本=完了/Codex=縮退（不在）/Fable=完了>
       - session: <このレビューセッションの識別子>
       - rundir: <$LOGS/harness/pr-independent-review/ からの相対パス。例: runs/pr-1116/>
@@ -588,8 +597,8 @@ sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させ
   これらは「何を・どの測定器で測ったか」の記録であり、欠けると後からverdictの再現も、
   測定器の版差による見逃し率の比較もできなくなる。`head` と `base` は
   `git -C <$PRWTの実値> rev-parse HEAD` / `rev-parse "<BASE_REF>^{commit}"` の実出力、
-  `canonical` は `git -C <$CANONの実値> rev-parse HEAD` の実出力（`origin/master` 固定＋毎回 `reset --hard`
-  なので `clean`/`dirty` の別は生じない）。SKILL.md同一性ガードで差分が出たまま続行した場合のみ、
+  `canonical` は `git -C <$CANONの実値> rev-parse HEAD` の実出力（SHAピンで不変なので
+  `clean`/`dirty` の別は生じない。`.last-used` は未追跡ファイルでdirtyに数えない）。SKILL.md同一性ガードで差分が出たまま続行した場合のみ、
   `git -C <$ORIGINの実値> rev-parse HEAD` も併記して版ズレを残す
 - **同一PRを再レビューしたときは `pr-<番号>.md` を上書きせず `pr-<番号>-r2.md`（以降 `-r3`…）を新規作成する**。
   上書きは「前回何を見て何を見落としたか」を消す＝見逃し率の実測そのものを壊す。
@@ -759,10 +768,11 @@ sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させ
 - `$PRWT` が既にあり `status --porcelain` が非空 / `merge --ff-only` が失敗: 即エラー終了・理由報告（Step 2参照）。
   前回の修正作業が残っている可能性があるので `reset --hard` で潰さない
 - `gh pr checkout` がブランチロックで失敗: **奪わずに**保持しているworktreeを報告して指示を仰ぐ（Step 2参照）
-- `$CANON`（skills-canon）の用意に失敗（`worktree add` 失敗・`fetch`/`reset --hard origin/master` 失敗・
-  `novelty_gate.py` 不在）: 即エラー終了・理由報告。起動元treeの `.claude/` で代替するのは**禁止**
-  （物差しが実行中に動く状態へ戻るだけで、それは今の固定方式が解こうとしている問題そのもの）
-- SKILL.md同一性ガードで差分が出た: **先へ進まずユーザーへ報告して指示を仰ぐ**（冒頭「$CANONの用意」手順5）。
+- `$CANON`（skills-canon-<sha8>）の用意に失敗（`fetch`/`rev-parse` によるピンSHA解決の失敗・
+  `worktree add` 失敗・`novelty_gate.py` 不在）: 即エラー終了・理由報告。起動元treeの `.claude/` で代替するのは**禁止**
+  （物差しが実行中に動く状態へ戻るだけで、それは今の固定方式が解こうとしている問題そのもの）。
+  ただし**古ピンの掃除の失敗だけは例外** — エラー終了せず報告のみで続行してよい（掃除は衛生であって測定の前提ではない）
+- SKILL.md同一性ガードで差分が出た: **先へ進まずユーザーへ報告して指示を仰ぐ**（冒頭「$CANONの用意」手順6）。
   続行を指示された場合のみ進み、recordsの `canonical:` に `skew` と両SHAを明記する
 - gh未認証・PR不存在・checkout失敗（MERGED分岐のフォールバックも尽きた場合）: 即エラー終了・理由報告
 - OPENの通常経路で `headRefOid` とcheckout結果が不一致: 即エラー終了・理由報告し、Step 1のメタデータ再取得から
