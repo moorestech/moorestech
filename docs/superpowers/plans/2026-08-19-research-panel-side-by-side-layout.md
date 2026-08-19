@@ -146,7 +146,7 @@ git commit -m "docs: 研究画面の様式を持ち物との棲み分けへ差�
   - `screenShowsAlwaysOnHud(screen: UiScreen): boolean` — `uiScreenRouting.ts` からexport
   - `useAlwaysOnHudVisible(): boolean` — `shared/uiState` からexport。Task 3以降は使わない
 
-- [ ] **Step 1: 述語の失敗するテストを書く**
+- [x] **Step 1: 述語の失敗するテストを書く**
 
 `moorestech_web/webui/src/shared/uiState/uiScreenRouting.test.ts` の末尾へ追記する:
 
@@ -167,13 +167,13 @@ describe("screenShowsAlwaysOnHud", () => {
 
 同ファイル先頭のimport行へ `screenShowsAlwaysOnHud` と型 `UiScreen` を追加する（既存のimport文の形に合わせる。`import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud, uiStateAcceptsHotbarSelect, type UiScreen } from "./uiScreenRouting";` の形になる。既存import内容は変えず追加のみ）。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh/moorestech_web/webui && npx vitest run src/shared/uiState/uiScreenRouting.test.ts`
 
 Expected: FAIL。`screenShowsAlwaysOnHud is not a function` もしくはTSの型解決エラー。
 
-- [ ] **Step 3: 述語を実装する**
+- [x] **Step 3: 述語を実装する**
 
 `moorestech_web/webui/src/shared/uiState/uiScreenRouting.ts` の末尾（`screenAllowsGrab` の下）へ追記する:
 
@@ -187,13 +187,13 @@ export function screenShowsAlwaysOnHud(screen: UiScreen): boolean {
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh/moorestech_web/webui && npx vitest run src/shared/uiState/uiScreenRouting.test.ts`
 
 Expected: PASS（追加2件を含む全件）。
 
-- [ ] **Step 5: hookを実装する**
+- [x] **Step 5: hookを実装する**
 
 `moorestech_web/webui/src/shared/uiState/useAlwaysOnHudVisible.ts` を新規作成する。既存の `useGrabInteractive.ts` と同じ形にする:
 
@@ -208,7 +208,7 @@ export function useAlwaysOnHudVisible(): boolean {
 }
 ```
 
-- [ ] **Step 6: re-exportを足す**
+- [x] **Step 6: re-exportを足す**
 
 `moorestech_web/webui/src/shared/uiState/index.ts` を開き、既存の `export { screenAllowsGrab, screenForUiState, uiStateAcceptsHotbarSelect, type UiScreen } from "./uiScreenRouting";` の行へ `screenShowsAlwaysOnHud` を追加し、その近くへ新規行を足す:
 
@@ -216,7 +216,7 @@ export function useAlwaysOnHudVisible(): boolean {
 export { useAlwaysOnHudVisible } from "./useAlwaysOnHudVisible";
 ```
 
-- [ ] **Step 7: HotbarPanel を自己ゲートさせる**
+- [x] **Step 7: HotbarPanel を自己ゲートさせる**
 
 `moorestech_web/webui/src/features/hotbar/HotbarPanel/index.tsx` のimport行を変更する。変更前:
 
@@ -246,7 +246,7 @@ import { useAlwaysOnHudVisible, useBlockingSkitActive, uiStateAcceptsHotbarSelec
 
 （`useTopicSelector` を使う `selectAccepted` の行より前にhookを置くこと。すべてのhook呼び出しが早期returnより上にある状態を保つ）
 
-- [ ] **Step 8: EquipmentPanel を自己ゲートさせる**
+- [x] **Step 8: EquipmentPanel を自己ゲートさせる**
 
 `moorestech_web/webui/src/features/inventory/EquipmentPanel/index.tsx` のimport行を変更する。変更前:
 
@@ -274,7 +274,7 @@ import { isPointerOverWebUi, isWheelPassthrough, useAlwaysOnHudVisible, useGameL
   if (!alwaysOnHudVisible) return null;
 ```
 
-- [ ] **Step 9: 非表示のe2eを書く**
+- [x] **Step 9: 非表示のe2eを書く**
 
 `moorestech_web/webui/e2e/tests/research/research.spec.ts` の末尾へ追記する:
 
@@ -294,13 +294,13 @@ test("研究画面ではホットバーと装備HUDを描画しない", async ({
 });
 ```
 
-- [ ] **Step 10: テストを実行して通ることを確認する**
+- [x] **Step 10: テストを実行して通ることを確認する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh/moorestech_web/webui && npx vitest run src/shared/uiState && npx playwright test e2e/tests/research/`
 
 Expected: vitest 全PASS。playwright は research 配下が全PASS（`researchViewport.spec.ts` は Task 3 でコメントのみ直すが、この時点では通る）。
 
-- [ ] **Step 11: コミットする**
+- [x] **Step 11: コミットする**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh
@@ -387,7 +387,7 @@ test("研究画面では持ち物がstage左paddingぶん左へ寄る", async ({
 
 同ファイル先頭のimport群へ `expectSeparatedHorizontally` を追加する（既存で `expectHitTestWithin` を `../../support/layoutAssertions` から取り込んでいるので、その行へ足す）。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh/moorestech_web/webui && npx playwright test e2e/tests/research/research.spec.ts -g "持ち物"`
 
@@ -543,7 +543,7 @@ Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research
 
 Expected: vitest 全PASS、eslint clean、playwright は既知の恒常赤（既定ロケールjapaneseと英語literal期待の10件・bd moorestech-2lh.1）以外すべてPASS。**inventory系・hotbar系・equipment系のspecが新たに落ちていないことを必ず確認する**（落ちていればR4/R8違反なので直す）。
 
-- [ ] **Step 11: コミットする**
+- [x] **Step 11: コミットする**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh

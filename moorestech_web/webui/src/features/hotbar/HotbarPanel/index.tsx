@@ -2,7 +2,7 @@ import { useTopic, useTopicSelector, dispatchAction, Topics } from "@/bridge";
 import type { HotbarSlot } from "@/bridge";
 import { PlacementTargetFace, SlotFrame } from "@/shared/ui";
 import { useI18n } from "@/shared/i18n";
-import { useBlockingSkitActive, uiStateAcceptsHotbarSelect } from "@/shared/uiState";
+import { useAlwaysOnHudVisible, useBlockingSkitActive, uiStateAcceptsHotbarSelect } from "@/shared/uiState";
 import { localizeSelectableTargetName, placementTargetOf } from "@/shared/placementTarget";
 import { useHotbarDragSource } from "../useHotbarDragSource";
 import type { HotbarDragSource } from "../hotbarDnd";
@@ -15,11 +15,16 @@ import styles from "./style.module.css";
 export default function HotbarPanel() {
   const hotbar = useTopic(Topics.hotbar);
   const blockingSkitActive = useBlockingSkitActive();
+  const alwaysOnHudVisible = useAlwaysOnHudVisible();
 
   // 選択を受理しない画面ではタップ判定ごと止め、見た目でも操作不能を示す
   // On screens that reject a selection the tap is disabled outright, and the look says so too
   const selectAccepted = useTopicSelector(Topics.uiState, (data) => uiStateAcceptsHotbarSelect(data?.state ?? null));
   if (blockingSkitActive) return null;
+
+  // 研究画面のように全幅を使う画面ではHUDごと引っ込む
+  // Withdraw the whole HUD on screens that use the full width, such as the research screen
+  if (!alwaysOnHudVisible) return null;
 
   // 未受信の間はHUD非表示
   // Hide the whole HUD until the first snapshot

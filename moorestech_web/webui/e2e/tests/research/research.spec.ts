@@ -185,3 +185,17 @@ test("研究パネル展開中も採掘進捗バーが遮蔽されない（.view
   await expect(progressBar).toBeVisible();
   await expectHitTestWithin(progressBar);
 });
+
+test("研究画面ではホットバーと装備HUDを描画しない", async ({ page }) => {
+  await setUiState(page, "ResearchTree");
+  await page.goto("/");
+  await expect(page.getByTestId("research-tree")).toBeVisible();
+  await expect(page.getByTestId("hotbar-grid")).toHaveCount(0);
+  await expect(page.getByTestId("equipment-slots")).toHaveCount(0);
+
+  // 持ち物画面へ戻せば両HUDが復帰する（研究画面限定であることの担保）
+  // Both HUDs return on the inventory screen, proving the hiding is research-only
+  await setUiState(page, "PlayerInventory");
+  await expect(page.getByTestId("hotbar-grid")).toBeVisible();
+  await expect(page.getByTestId("equipment-slots")).toBeVisible();
+});
