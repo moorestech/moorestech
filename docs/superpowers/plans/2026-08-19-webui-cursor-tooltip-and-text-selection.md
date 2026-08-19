@@ -825,19 +825,19 @@ git commit -m "test: スキット後のツールチップがクロスヘア基�
 - Consumes: Task 1〜5 の全コミット
 - Produces: レビュー指摘への対応コミット
 
-- [ ] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
+- [x] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
 
 `moores-code-review` スキルを起動し、`master` からの全差分（Task 1〜5）を対象にレビューする。ゴール文言による省略は禁止。
 
-- [ ] **Step 2: 機械的指摘を適用する**
+- [x] **Step 2: 機械的指摘を適用する**
 
 規約違反・命名・コメント様式など判断を要しない指摘はその場で修正する。
 
-- [ ] **Step 3: 設計判断が必要な指摘をユーザーへ諮る**
+- [x] **Step 3: 設計判断が必要な指摘をユーザーへ諮る**
 
 `AskUserQuestion` でまとめて裁定を仰ぐ。裁定結果は `.decisions/` と該当ADRへ反映する。
 
-- [ ] **Step 4: 全テストを再実行する**
+- [x] **Step 4: 全テストを再実行する**
 
 ```bash
 cd moorestech_web/webui && pnpm test && pnpm lint && pnpm build
@@ -849,7 +849,7 @@ uloop run-tests --project-path ./moorestech_client --test-mode EditMode \
 
 Expected: 全PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add -A
