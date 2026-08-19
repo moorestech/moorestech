@@ -664,13 +664,13 @@ bd close moorestech-4ed --reason="hotbarDnd.ts・HotbarPanel・HotbarDtos.csへ�
 - Consumes: Task 3 完了後のレイアウト
 - Produces: PR #1176 本文が参照する画像4枚
 
-- [ ] **Step 1: 撮影スクリプトを走らせる**
+- [x] **Step 1: 撮影スクリプトを走らせる**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh/moorestech_web/webui && CAPTURE_OUT_DIR=/tmp/research-qa-2026-08-19 npx tsx e2e/capture-research-qa.ts`
 
 Expected: `/tmp/research-qa-2026-08-19/` に4枚のpngが出力される。ポート5412が他セッションと衝突する場合は `CAPTURE_PORT` を空きポートへ変えて再実行する。
 
-- [ ] **Step 2: 撮れた画像を目視で検分する**
+- [x] **Step 2: 撮れた画像を目視で検分する**
 
 `/tmp/research-qa-2026-08-19/overview-wide.png` を開き、次の3点を必ず確認する:
 1. 持ち物パネルと研究ツリーのノードが**一切重なっていない**
@@ -679,7 +679,7 @@ Expected: `/tmp/research-qa-2026-08-19/` に4枚のpngが出力される。ポ�
 
 1つでも満たさなければ Task 3 の実装に戻る（画像を差し替えて先へ進んではいけない）。
 
-- [ ] **Step 3: リポジトリへ反映する**
+- [x] **Step 3: リポジトリへ反映する**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/research-ui-refresh
