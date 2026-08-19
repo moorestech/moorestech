@@ -188,9 +188,9 @@ properties:
               - when: uiHighLight
                 type: object
                 properties:
-                - key: highLightUIObjectId
+                - key: highLightAnchorId
                   type: string
-                  default: ui object id
+                  default: web anchor id
                 - key: highLightText
                   type: string
                   default: highlight text
@@ -240,12 +240,12 @@ properties:
               - when: uiDragGuide
                 type: object
                 properties:
-                - key: fromUIObjectId
+                - key: fromAnchorId
                   type: string
-                  default: from ui object id
-                - key: toUIObjectId
+                  default: from web anchor id
+                - key: toAnchorId
                   type: string
-                  default: to ui object id
+                  default: to web anchor id
         - key: startedActions
           ref: gameAction
         - key: clearedActions

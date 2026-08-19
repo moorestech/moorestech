@@ -128,8 +128,8 @@ namespace Client.Game.Localization
                     UiHighLightTutorialParam uiHighLight => uiHighLight.HighLightText,
                     ItemViewHighLightTutorialParam itemViewHighLight => itemViewHighLight.HighLightText,
                     BlockPlacePreviewTutorialParam blockPlacePreview => blockPlacePreview.Message,
-                    // uiDragGuideはfrom/toのUIObjectIdのみで表示文言フィールドを持たない
-                    // uiDragGuide has only from/to UIObjectIds and no display-text field
+                    // uiDragGuideはfrom/toのanchorIdのみで表示文言フィールドを持たない
+                    // uiDragGuide has only from/to anchorIds and no display-text field
                     UiDragGuideTutorialParam => null,
                     _ => throw new InvalidOperationException(
                         $"Unknown tutorial type: {tutorial.TutorialType}"),

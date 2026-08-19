@@ -41,8 +41,8 @@ namespace Client.Tests.UnitTest.Tutorial
                 tutorial["tutorialType"] = "uiDragGuide";
                 tutorial["tutorialParam"] = new JObject
                 {
-                    ["fromUIObjectId"] = "buildMenuBlock:00000000-0000-0000-0000-000000000001",
-                    ["toUIObjectId"] = "hotbar",
+                    ["fromAnchorId"] = "build-menu.entry-block-00000000-0000-0000-0000-000000000001",
+                    ["toAnchorId"] = "hotbar.hud",
                 };
                 var master = new ChallengeMaster(json);
                 master.Initialize();

@@ -58,50 +58,23 @@ namespace Tests.UnitTest.Core.Challenge
         }
 
         [Test]
-        public void uiDragGuideが存在しないbuildMenuBlockを参照すると失敗する()
+        public void uiDragGuideのanchorIdは検証されず素通りする()
         {
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
                 "mods", "forUnitTest", "master", "challenges.json");
             var json = JObject.Parse(File.ReadAllText(path));
             var tutorials = (JArray)json["data"][0]["challenges"][5]["tutorials"];
 
-            // uiDragGuideはテストmodにfixtureが無いため、このテストで検証対象のtutorialを追加する
-            // uiDragGuide has no fixture in the test mod, so this test adds the tutorial under scrutiny
+            // anchorIdはWeb側でのみ解決するためマスタ検証は素通り（誤設定は表示されないだけ・設定者責任）
+            // Anchor IDs resolve only on the web side; master validation passes them through (missets simply don't render)
             tutorials.Add(new JObject
             {
                 ["tutorialGuid"] = "00000000-0000-0000-8901-000000000101",
                 ["tutorialType"] = "uiDragGuide",
                 ["tutorialParam"] = new JObject
                 {
-                    ["fromUIObjectId"] = "buildMenuBlock:99999999-9999-9999-9999-999999999999",
-                    ["toUIObjectId"] = "hotbar",
-                },
-            });
-
-            var master = new ChallengeMaster(json);
-
-            Assert.IsFalse(master.Validate(out var logs));
-            StringAssert.Contains("invalid uiObjectId target", logs);
-        }
-
-        [Test]
-        public void uiDragGuideが実在するbuildMenuBlockを参照すると成功する()
-        {
-            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
-                "mods", "forUnitTest", "master", "challenges.json");
-            var json = JObject.Parse(File.ReadAllText(path));
-            var tutorials = (JArray)json["data"][0]["challenges"][5]["tutorials"];
-
-            // 実在するブロックGUIDを指す正常系。uiDragGuide分岐を初めてtrueルートで実行する
-            // Valid case pointing at an existing block GUID. Exercises the uiDragGuide branch's true route for the first time
-            tutorials.Add(new JObject
-            {
-                ["tutorialGuid"] = "00000000-0000-0000-8901-000000000102",
-                ["tutorialType"] = "uiDragGuide",
-                ["tutorialParam"] = new JObject
-                {
-                    ["fromUIObjectId"] = "buildMenuBlock:00000000-0000-0000-0000-000000000001",
-                    ["toUIObjectId"] = "hotbar",
+                    ["fromAnchorId"] = "totally-unknown.anchor",
+                    ["toAnchorId"] = "hotbar.hud",
                 },
             });
 

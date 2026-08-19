@@ -147,19 +147,11 @@ namespace Core.Master.Validator
                                     }
                                     break;
                                 }
-                                case UiDragGuideTutorialParam uiDragGuide:
-                                {
-                                    // 静的キー／buildMenuBlock:／researchNode:の網羅検証
-                                    // Exhaustively validate static keys / buildMenuBlock: / researchNode: forms
-                                    logs += ValidateUiObjectId(uiDragGuide.FromUIObjectId, challenge.Title);
-                                    logs += ValidateUiObjectId(uiDragGuide.ToUIObjectId, challenge.Title);
+                                case UiDragGuideTutorialParam:
+                                case UiHighLightTutorialParam:
+                                    // anchorIdはWeb側のDOM名乗りと突き合わせるだけなので検証しない（誤設定は表示されないだけ・設定者責任）
+                                    // Anchor IDs are only string-matched against web-side DOM declarations; missets simply don't render (configurer's responsibility)
                                     break;
-                                }
-                                case UiHighLightTutorialParam uiHighLight:
-                                {
-                                    logs += ValidateUiObjectId(uiHighLight.HighLightUIObjectId, challenge.Title);
-                                    break;
-                                }
                                 case KeyControlTutorialParam:
                                     // uiState/controlTextのみでマスタ参照を持たないため検証対象外
                                     // No master reference to validate (uiState/controlText only)
@@ -353,35 +345,6 @@ namespace Core.Master.Validator
                     }
                 }
                 return logs;
-            }
-
-            string ValidateUiObjectId(string uiObjectId, string challengeTitle)
-            {
-                // 静的キー集合とprefixはCore.Master.TutorialUiObjectId（正本）を参照する
-                // Static keys and prefixes are sourced from Core.Master.TutorialUiObjectId (the source of truth)
-                if (uiObjectId.StartsWith(TutorialUiObjectId.BuildMenuBlockPrefix, StringComparison.Ordinal))
-                {
-                    if (!Guid.TryParse(uiObjectId.Substring(TutorialUiObjectId.BuildMenuBlockPrefix.Length), out var blockGuid) ||
-                        MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid) == null)
-                    {
-                        return $"[ChallengeMaster] Challenge:{challengeTitle} has invalid uiObjectId target:{uiObjectId}\n";
-                    }
-                    return "";
-                }
-
-                if (uiObjectId.StartsWith(TutorialUiObjectId.ResearchNodePrefix, StringComparison.Ordinal))
-                {
-                    if (!Guid.TryParse(uiObjectId.Substring(TutorialUiObjectId.ResearchNodePrefix.Length), out var researchGuid) ||
-                        MasterHolder.ResearchMaster.GetResearch(researchGuid) == null)
-                    {
-                        return $"[ChallengeMaster] Challenge:{challengeTitle} has invalid uiObjectId target:{uiObjectId}\n";
-                    }
-                    return "";
-                }
-
-                if (TutorialUiObjectId.StaticKeys.Contains(uiObjectId)) return "";
-
-                return $"[ChallengeMaster] Challenge:{challengeTitle} has invalid uiObjectId:{uiObjectId}\n";
             }
 
             bool ExistsChallengeGuid(Guid challengeGuid)

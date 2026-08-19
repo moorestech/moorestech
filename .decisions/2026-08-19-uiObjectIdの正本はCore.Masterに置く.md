@@ -1,5 +1,7 @@
 # uiObjectIdの正本はCore.Masterに置く
 
+**[上書き済み]** 同日の裁定「チュートリアルUI指定はWebアンカーIDを直書きし変換も検証も持たない」により、uiObjectId語彙自体が廃止された。本裁定は歴史的記録として残す。
+
 決定: チュートリアルの uiObjectId（静的キー集合と `buildMenuBlock:` / `researchNode:` prefix）の正本を Core.Master 側に置き、クライアントの TutorialAnchorIdMapper はそれを参照するだけにする。マスタ検証は起動時フェイルファストとし、静的キー一致のテストで機械保証する。
 
 棄却案:

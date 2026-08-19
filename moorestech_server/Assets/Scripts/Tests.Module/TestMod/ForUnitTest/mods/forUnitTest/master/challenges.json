@@ -21,7 +21,7 @@
               "tutorialGuid": "00000000-0000-0000-8901-000000000001",
               "tutorialType": "uiHighLight",
               "tutorialParam": {
-                "highLightUIObjectId": "craftButton",
+                "highLightAnchorId": "recipe.craft-button",
                 "highLightText": "テストチュートリアル1"
               }
             },
