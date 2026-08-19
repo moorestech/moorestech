@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
 using Client.Game.Common;
-using Client.Game.InGame.BlockSystem;
 using Client.Network.API;
 using CommandForgeGenerator.Command;
 using Core.Master;
@@ -60,7 +59,6 @@ namespace Client.Game.InGame.Map.Outcrop
             async UniTask InstantiateOutcropsFromLayoutAsync()
             {
                 var cancellationToken = this.GetCancellationTokenOnDestroy();
-                var groundFallbackCount = 0;
                 var processedCount = 0;
 
                 foreach (var layout in _handshakeResponse.MapLayout.MapVeins)
@@ -73,21 +71,13 @@ namespace Client.Game.InGame.Map.Outcrop
                     var prefab = ResolveOutcropPrefab(veinGuid, element);
                     var center = CalculateInclusiveCenter(layout);
 
-                    // 地形未解決でも生成を止めない
-                    // Keep creating even when the ground is unresolved
-                    var groundResolved = TryResolveGroundPosition(center, out var groundPosition);
-                    var position = SelectOutcropPosition(center, groundResolved, groundPosition);
-                    if (!groundResolved) groundFallbackCount++;
-                    if (prefab != null) InstantiateOutcrop(prefab, veinGuid, element, layout, position, center);
+                    // 露頭は地形状態に依存させず鉱脈AABB中心へ配置する
+                    // Place outcrops at vein AABB centers without depending on terrain state
+                    if (prefab != null) InstantiateOutcrop(prefab, veinGuid, element, layout, center);
 
                     processedCount++;
                     if (processedCount % FrameYieldObjectInterval == 0) await UniTask.Yield(cancellationToken);
                 }
-
-                // 既知の正常系なので件数はInfoに留める
-                // A known normal case, so the count stays at Info
-                if (0 < groundFallbackCount)
-                    Debug.Log($"[OutcropGameObjectDatastore] 地表未解決の露頭をAABB中心高さへ設置 件数:{groundFallbackCount}");
             }
 
             GameObject ResolveOutcropPrefab(Guid veinGuid, MapVeinMasterElement element)
@@ -107,9 +97,9 @@ namespace Client.Game.InGame.Map.Outcrop
                 return loaded;
             }
 
-            void InstantiateOutcrop(GameObject prefab, Guid veinGuid, MapVeinMasterElement element, VeinLayoutMessagePack layout, Vector3 position, Vector3 center)
+            void InstantiateOutcrop(GameObject prefab, Guid veinGuid, MapVeinMasterElement element, VeinLayoutMessagePack layout, Vector3 center)
             {
-                var instance = Instantiate(prefab, position, Quaternion.identity, transform);
+                var instance = Instantiate(prefab, center, Quaternion.identity, transform);
                 instance.name = $"{OutcropObjectNamePrefix}{layout.VeinGuid}";
 
                 // 全階層を採掘レイヤー化
@@ -124,13 +114,6 @@ namespace Client.Game.InGame.Map.Outcrop
                 // 不可の鉱脈も提示対象なので初期化する
                 // An unmineable vein still has to say so
                 outcrop.Initialize(element, veinGuid, CalculateMinePosition(layout, center));
-            }
-
-            Vector3 SelectOutcropPosition(Vector3 center, bool groundResolved, Vector3 groundPosition)
-            {
-                // 地形範囲外の鉱脈はAABB中心へ置く
-                // Veins beyond the terrain use the baked AABB center
-                return groundResolved ? groundPosition : center;
             }
 
             Vector3 CalculateInclusiveCenter(VeinLayoutMessagePack layout)
@@ -150,20 +133,6 @@ namespace Client.Game.InGame.Map.Outcrop
                     Mathf.Clamp(rounded.x, layout.MinX, layout.MaxX),
                     Mathf.Clamp(rounded.y, layout.MinY, layout.MaxY),
                     Mathf.Clamp(rounded.z, layout.MinZ, layout.MaxZ));
-            }
-
-            bool TryResolveGroundPosition(Vector3 center, out Vector3 position)
-            {
-                // 地表探査を共有入口へ集約し、他種コライダを誤って地面扱いしない
-                // Delegate to the shared probe so unrelated colliders are never treated as ground
-                if (SlopeBlockPlaceSystem.TryGetGroundPoint(center.x, center.z, out var groundPoint))
-                {
-                    position = groundPoint;
-                    return true;
-                }
-
-                position = default;
-                return false;
             }
 
             #endregion
