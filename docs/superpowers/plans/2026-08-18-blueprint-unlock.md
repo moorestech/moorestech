@@ -14,7 +14,7 @@ ADR: `docs/adr/0015-blueprint-feature-unlock-single-flag.md`（実装前に必�
 
 1. ブループリント機能全体を単一のアンロック状態で束ねる。受け入れ基準: `IGameUnlockStateData.IsBlueprintUnlocked`の1値で、コピーツール・保存済みBPのビルドメニュー表示/選択/ペースト・作成/削除の可否がすべて決まる。
 2. 新gameAction `unlockBlueprint`（パラメータ無し）を追加し、研究・チャレンジ双方のclearedActionsから呼べる。受け入れ基準: `GameActionExecutor`経由で`UnlockBlueprint()`が呼ばれるサーバーテストが通る。
-3. 初期状態はマスタでシードする: `buildMenu.yml`のbuildToolsへ`initialUnlocked`（boolean, default false）を追加し、Holderが`BuildToolMaster`からシードする。受け入れ基準: テストマスタ（initialUnlocked:false）で新規サーバーの`IsBlueprintUnlocked`がfalse。
+3. 初期状態はマスタでシードする: `buildMenu.yml`のルートへ`blueprintInitialUnlocked`（boolean, default false）を追加し、Holderが`BuildToolMaster`からシードする。受け入れ基準: テストマスタ（blueprintInitialUnlocked:false）で新規サーバーの`IsBlueprintUnlocked`がfalse。
 4. 同期は3点セット: `UnlockEventType.Blueprint`を`va:event:unlocked`へ追加／`va:getGameUnlockState`応答に`IsBlueprintUnlocked`を追加／`ClientGameUnlockStateData`がシード＋イベント反映する。受け入れ基準: 各拡張点のテスト（サーバー保存ロード・クライアントカタログ判定）が通る。
 5. 未解放中、ビルドメニューにBPコピーツール・保存済みBPエントリは出ない（除外方式）。受け入れ基準: `PlacementTargetCatalog.UnlockedEntries`が未解放時にBlueprintCopy/Blueprint種別を返さないテストが通る。BP系は`showAllPlaceable`（無料設置デバッグ）の対象外（接続ツール同様）。
 6. サーバー側拒否: 未解放時、`BlueprintProtocol`のCreate/Deleteは`BlueprintFailureReason.NotUnlocked`で失敗し、GetAllは成功のまま。ホットバーへの新規BP系割当（コピーツールGuid・BP Guid）は無視される。受け入れ基準: それぞれのサーバーテストが通る。
@@ -74,29 +74,29 @@ git commit -m "docs: ブループリントアンロックのADR 0015と裁定・
 
 ---
 
-### Task 2: スキーマ拡張（initialUnlocked / unlockBlueprint）
+### Task 2: スキーマ拡張（blueprintInitialUnlocked / unlockBlueprint）
 
 **Files:**
-- Modify: `VanillaSchema/buildMenu.yml`（buildToolsへinitialUnlocked追加）
+- Modify: `VanillaSchema/buildMenu.yml`（ルートへblueprintInitialUnlocked追加）
 - Modify: `VanillaSchema/ref/gameAction.yml`（unlockBlueprint追加）
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/buildMenu.json`
 
 **Interfaces:**
 - Consumes: なし
-- Produces: 自動生成される `BuildToolMasterElement.InitialUnlocked: bool`（Task 3が使う）と `GameActionElement.GameActionTypeConst.unlockBlueprint`（Task 4が使う）
+- Produces: 自動生成される `BuildMenu.BlueprintInitialUnlocked: bool`（Task 3が使う）と `GameActionElement.GameActionTypeConst.unlockBlueprint`（Task 4が使う）
 
 - [x] **Step 1: `edit-schema`スキルを読み込む**
 
 Skillツールで`edit-schema`を起動し、スキーマ編集規約に従う。
 
-- [x] **Step 2: `VanillaSchema/buildMenu.yml`のbuildTools itemsへinitialUnlockedを追加する**
+- [x] **Step 2: `VanillaSchema/buildMenu.yml`のルートへblueprintInitialUnlockedを追加する**
 
-`- key: toolType`ブロック（enum options: blueprintCopy）の直後に追加:
+ルートの`properties`先頭（`- key: categories`の直前）に追加:
 
 ```yaml
-    - key: initialUnlocked
-      type: boolean
-      default: false
+- key: blueprintInitialUnlocked
+  type: boolean
+  default: false
 ```
 
 - [x] **Step 3: `VanillaSchema/ref/gameAction.yml`へunlockBlueprintを追加する**
@@ -110,14 +110,14 @@ Skillツールで`edit-schema`を起動し、スキーマ編集規約に従う�
       properties: []
 ```
 
-- [x] **Step 4: テストマスタJSONへinitialUnlockedを明示する**
+- [x] **Step 4: テストマスタJSONへblueprintInitialUnlockedを明示する**
 
-`moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/buildMenu.json`のbuildTools配列の要素（`3f8f6de0-0000-4000-8000-000000000001`）へ`"initialUnlocked": false`を追加する（connectToolsが全JSONで明示している前例に合わせる）。実マスタ（moorestech_master repo）の更新は後続タスクbd:moorestech-fy6のスコープ。
+`moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/buildMenu.json`のルートへ`"blueprintInitialUnlocked": false`を追加する（connectToolsが全JSONで明示している前例に合わせる）。実マスタ（moorestech_master repo）の更新は後続タスクbd:moorestech-fy6のスコープ。
 
 - [x] **Step 5: コンパイルして自動生成を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
-Expected: 成功。`BuildToolMasterElement.InitialUnlocked`と`GameActionTypeConst.unlockBlueprint`が生成される（生成物は手で編集しない）。
+Expected: 成功。`BuildMenu.BlueprintInitialUnlocked`と`GameActionTypeConst.unlockBlueprint`が生成される（生成物は手で編集しない）。
 
 - [x] **Step 6: コミットする**
 
@@ -138,7 +138,7 @@ git commit -m "feat: buildToolsへinitialUnlocked、gameActionへunlockBlueprint
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/BlueprintUnlockStateTest.cs`（新規。`ConnectToolUnlockStateTest.cs`と同型）
 
 **Interfaces:**
-- Consumes: `MasterHolder.BuildToolMaster.All`（`IReadOnlyList<BuildToolMasterElement>`、Task 2の`InitialUnlocked`）
+- Consumes: `MasterHolder.BuildToolMaster.BlueprintInitialUnlocked`（Task 2の`blueprintInitialUnlocked`）
 - Produces: `IGameUnlockStateData.IsBlueprintUnlocked: bool` ／ `IGameUnlockStateDataController.OnUnlockBlueprint: IObservable<Unit>`・`void UnlockBlueprint()` ／ `GameUnlockStateJsonObject.BlueprintUnlockState: BlueprintUnlockStateInfoJsonObject`（Task 4〜6が使う）
 
 - [x] **Step 1: 失敗するテストを書く**
@@ -158,7 +158,7 @@ namespace Tests.CombinedTest.Game
     public class BlueprintUnlockStateTest
     {
         [Test]
-        public void テストマスタのinitialUnlockedがfalseなので初期状態は未解放()
+        public void テストマスタのblueprintInitialUnlockedがfalseなので初期状態は未解放()
         {
             var (_, serviceProvider) = CreateServer();
             var controller = serviceProvider.GetService<IGameUnlockStateDataController>();
@@ -288,10 +288,9 @@ namespace Game.UnlockState.Holders
 
         public BlueprintUnlockStateHolder()
         {
-            // 機能全体の単一フラグ。buildToolsのinitialUnlockedからシードする（ADR 0015）
-            // Single feature-wide flag seeded from buildTools initialUnlocked (ADR 0015)
-            var initialUnlocked = MasterHolder.BuildToolMaster.All.Any(tool => tool.InitialUnlocked);
-            _info = new BlueprintUnlockStateInfo(initialUnlocked);
+            // 機能全体の単一フラグ。buildMenuルートのblueprintInitialUnlockedからシードする（ADR 0015）
+            // Single feature-wide flag seeded from buildMenu's root blueprintInitialUnlocked (ADR 0015)
+            _info = new BlueprintUnlockStateInfo(MasterHolder.BuildToolMaster.BlueprintInitialUnlocked);
         }
 
         public void Unlock()
@@ -796,7 +795,7 @@ moores-code-review スキルを起動し、`origin/master`との全差分をレ�
 | BlueprintUnlockStateHolder / Info | Game.UnlockState/Holders・States | `ConnectToolUnlockStateHolder.cs`・`ConnectToolUnlockStateInfo.cs`（同ディレクトリ・同形） |
 | IsBlueprintUnlocked / OnUnlockBlueprint / UnlockBlueprint | IGameUnlockStateData / IGameUnlockStateDataController | 既存7ドメインと同じインターフェース拡張 |
 | unlockBlueprint gameAction | VanillaSchema/ref/gameAction.yml + GameActionExecutorのcase | `unlockConnectTool`（パラメータ形は`playBackgroundSkit`の空properties） |
-| initialUnlockedシード | buildMenu.yml buildTools（マスタ）→ Holderコンストラクタ | connectToolsの`initialUnlocked`→`ConnectToolUnlockStateHolder`ctor |
+| blueprintInitialUnlockedシード | buildMenu.ymlルート（マスタ）→ Holderコンストラクタ | connectToolsの`initialUnlocked`→`ConnectToolUnlockStateHolder`ctor |
 | イベント/初期データ/ミラー | UnlockedEventPacket / GetGameUnlockStateProtocol / ClientGameUnlockStateData | 同期3点セット標準（`.claude/rules/server-protocol.md`）。新規プロトコルは作らない |
 | 解放判定点 | PlacementTargetCatalog.UnlockedEntries（唯一の判定点） | 既存コメント「uGUIとWebの判定ずれによる未解放対象の露出を防ぐ」 |
 | プロトコル拒否 | BlueprintProtocol内のガード＋FailureReason末尾追加 | `PlaceBlockProtocol`のNotUnlocked拒否・`BlueprintFailureReason`既存enum |
