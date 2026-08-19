@@ -5,7 +5,8 @@ from __future__ import annotations
 import re
 
 from .blocks import blocks_html
-from .findings import sort_key
+from .code_card.lang import language_of
+from .findings import OPTION_KEYS, sort_key
 from .inline import escape, inline_html
 from .parse import DigestError, Document, Finding
 from .sectioning import split_blocks
@@ -34,6 +35,20 @@ def _zone_of(f: Finding) -> str:
     return "must-read" if f.must_read else "other-rulings"
 
 
+def options_html(f: Finding, indent: str) -> str:
+    # 案はoptionsが正本。キー採番と推奨マークはfindings.jsonと同じ規則で機械的に付ける
+    # options is the single source for alternatives; keys and the recommended mark follow findings.json
+    if not f.options:
+        return ""
+    items = []
+    for n, summary in enumerate(f.options):
+        mark = '<span class="opt-recommended">推奨</span>' if n == 0 else ""
+        items.append(f'{indent}  <li><strong>案{OPTION_KEYS[n]}</strong>{mark} — {escape(summary)}</li>')
+    body = "\n".join(items)
+    return (f'\n{indent}<p class="options-head"><strong>選べる案</strong></p>'
+            f'\n{indent}<ul class="plain options-list">\n{body}\n{indent}</ul>')
+
+
 def _card_html(f: Finding, refs: dict) -> str:
     # data-finding-id はカード要素そのものに付ける（裁定サイトの注入位置の正）
     # data-finding-id sits on the card element itself: the anchor the adjudication site injects at
@@ -47,7 +62,8 @@ def _card_html(f: Finding, refs: dict) -> str:
     if rest:
         paths += "（＋ " + ", ".join(f"<code>{escape(p)}</code>" for p in rest) + "）"
     label = f.label or f"{f.title}のカード（実コード抜粋つき）"
-    body = blocks_html(f.body_md, refs, "        ")
+    body = blocks_html(f.body_md, refs, "        ", language_of(f.files))
+    opts = options_html(f, "        ")
     extra = ""
     if f.suppressed:
         extra = f'\n        <p><strong>suppressed-by:</strong> {inline_html(f.suppress_reason, refs)}</p>'
@@ -57,7 +73,7 @@ def _card_html(f: Finding, refs: dict) -> str:
         <h2><span class="badge {badge_class}">{badge_text}</span> {names}</h2>
         <p class="file-path">{paths}</p>
         <p class="summary-line">{inline_html(f.summary, refs)}</p>
-{body}{extra}
+{body}{opts}{extra}
       </section>
     </div>"""
 
@@ -99,11 +115,11 @@ def _appendix_html(md: str, refs: dict) -> str:
         if level != "2":
             continue
         out.append(f"    <details>\n      <summary>{inline_html(title, refs)}</summary>\n"
-                   f"{blocks_html(body, refs, '      ')}\n    </details>")
+                   f"{blocks_html(body, refs, '      ', '')}\n    </details>")
     return "\n".join(out)
 
 
-def render_html(doc: Document, template: str, refs: dict) -> str:
+def render_html(doc: Document, template: str, refs: dict, assets: dict) -> str:
     # 検証 → verdictヘッダとインデックス → ゾーン → 判断台帳/折りたたみ参考、の順で <main> を組む
     # Validate, then assemble <main> as verdict header + index, zones, ledger/appendix
     if "<main>" not in template:
@@ -126,34 +142,42 @@ def render_html(doc: Document, template: str, refs: dict) -> str:
     ordered = sorted(doc.findings, key=sort_key)
     for zone_id, heading in ZONES:
         cards = [_card_html(f, refs) for f in ordered if _zone_of(f) == zone_id]
-        note = blocks_html(doc.notes[zone_id], refs, "    ")
+        note = blocks_html(doc.notes[zone_id], refs, "    ", "")
         body = note + ("\n" + "\n".join(cards) if cards else "")
         parts.append(f'  <section id="{zone_id}">\n    <h2>{escape(heading)}</h2>\n{body}\n  </section>')
 
     # 判断台帳の箇条書きはテンプレの ul.plain 体裁で出す（出所リストの詰まった見た目を保つ）
     # The ledger's lists use the template's ul.plain style, keeping the dense source-list look
-    ledger = blocks_html(doc.ledger_md, refs, "    ").replace("<ul>", '<ul class="plain">')
+    ledger = blocks_html(doc.ledger_md, refs, "    ", "").replace("<ul>", '<ul class="plain">')
     parts.append('  <section id="ledger">\n    <h2>判断台帳</h2>\n'
                  f'{ledger}\n  </section>')
     parts.append('  <section id="appendix">\n    <h2>折りたたみ参考</h2>\n'
                  f'{_appendix_html(doc.appendix_md, refs)}\n  </section>')
 
-    if template.count("<main>") != 1:
-        raise DigestError("テンプレの<main>が1個ではありません")
-    main = "<main>\n\n" + "\n\n".join(parts) + "\n\n</main>"
-    out = re.sub(r"<main>.*</main>", lambda _: main, template, flags=re.S)
     # 文書見出しは仕様上すでに `PR #<番号>` を含むため、番号を二重に付けない
     # The document heading already carries "PR #<number>" per spec, so never prepend it twice
     heading = meta["title"]
     title = f"独立レビュー: {heading}" if heading.startswith("PR #") else f"独立レビュー: PR #{meta['pr']} {heading}"
     # 置換前にテンプレ側の全トークン存在を確認し、欠落を無言で通さない
     # Verify every template token exists before replacing, so a missing one never slips through silently
-    for token in ("{{TITLE}}", "{{DATE}}", "{{SUBTITLE}}",
+    for token in ("{{TITLE}}", "{{DATE}}", "{{SUBTITLE}}", "{{HLJS_JS}}",
+                  "{{HLJS_CSS_LIGHT}}", "{{HLJS_CSS_DARK}}",
                   "REPLACE_WITH_UNIQUE_STORAGE_KEY", "REPLACE_WITH_COPY_HEADING"):
-        if token not in out:
+        if token not in template:
             raise DigestError(f"テンプレに {token} がありません")
-    out = out.replace("{{TITLE}}", escape(title)).replace("{{DATE}}", escape(meta["date"]))
-    out = out.replace("{{SUBTITLE}}", escape(f"verdict: {VERDICT_TEXT[verdict]}"))
-    out = out.replace("REPLACE_WITH_UNIQUE_STORAGE_KEY", f"pr-review-{meta['pr']}-comments-v1")
-    out = out.replace("REPLACE_WITH_COPY_HEADING", f"PR #{meta['pr']} 独立レビュー裁定")
-    return out
+    # 置換は本文を差し込む前のテンプレへ当てる。後だと抜粋がトークンを引用しただけで展開されてしまう
+    # Substitute into the template before the body lands; afterwards an excerpt quoting a token would expand it
+    template = template.replace("{{TITLE}}", escape(title)).replace("{{DATE}}", escape(meta["date"]))
+    template = template.replace("{{SUBTITLE}}", escape(f"verdict: {VERDICT_TEXT[verdict]}"))
+    template = template.replace("REPLACE_WITH_UNIQUE_STORAGE_KEY", f"pr-review-{meta['pr']}-comments-v1")
+    template = template.replace("REPLACE_WITH_COPY_HEADING", f"PR #{meta['pr']} 独立レビュー裁定")
+    # vendor資産は固定バージョンの自前管理物なのでエスケープせず素通しする（唯一の生HTML注入点）
+    # Vendored assets are self-managed at a pinned version, so they pass through unescaped (the only raw-HTML injection)
+    template = template.replace("{{HLJS_JS}}", assets["hljs_js"])
+    template = template.replace("{{HLJS_CSS_LIGHT}}", assets["hljs_css_light"])
+    template = template.replace("{{HLJS_CSS_DARK}}", assets["hljs_css_dark"])
+
+    if template.count("<main>") != 1 or template.count("</main>") != 1:
+        raise DigestError("テンプレの<main>が1個ではありません")
+    main = "<main>\n\n" + "\n\n".join(parts) + "\n\n</main>"
+    return re.sub(r"<main>.*</main>", lambda _: main, template, flags=re.S)
