@@ -26,9 +26,7 @@ namespace Client.Game.InGame.UI.Tooltip
         ///     表示するかどうか
         /// </summary>
         [SerializeField] private bool displayEnable;
-        
-        [SerializeField] private int fontSize = IMouseCursorTooltip.DefaultFontSize;
-        
+
         private bool _pointerStay;
         
         public void OnPointerMove(PointerEventData eventData)
@@ -56,7 +54,7 @@ namespace Client.Game.InGame.UI.Tooltip
             //表示する設定で、ポインターが乗ったので表示
             if (_pointerStay && displayEnable)
             {
-                MouseCursorTooltip.Instance.Show(new LocalizationKey(textKey), textParams, fontSize);
+                MouseCursorTooltip.Instance.Show(new LocalizationKey(textKey), textParams);
                 return;
             }
             

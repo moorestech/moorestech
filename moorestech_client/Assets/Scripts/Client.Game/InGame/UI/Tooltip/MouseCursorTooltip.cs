@@ -13,14 +13,10 @@ namespace Client.Game.InGame.UI.Tooltip
 {
     public interface IMouseCursorTooltip
     {
-        public const int DefaultFontSize = 36;
-        
         // TODO hotbarから毎フレーム呼び出されると常にfalseになってしまうので、何か実装方法を考えたいな、、
         public void Hide();
         public void Show(LocalizationKey key);
         public void Show(LocalizationKey key, IReadOnlyList<string> textParams);
-        public void Show(LocalizationKey key, int fontSize);
-        public void Show(LocalizationKey key, IReadOnlyList<string> textParams, int fontSize);
     }
     
     /// <summary>
@@ -45,29 +41,16 @@ namespace Client.Game.InGame.UI.Tooltip
             Instance = this;
         }
         
-        // フォントサイズ未指定の呼び出しは既定値を所有者側で解決する
-        // Calls without a font size resolve the default here, inside the owner
         public void Show(LocalizationKey key)
         {
-            Show(key, Array.Empty<string>(), IMouseCursorTooltip.DefaultFontSize);
+            Show(key, Array.Empty<string>());
         }
-        
+
         public void Show(LocalizationKey key, IReadOnlyList<string> textParams)
-        {
-            Show(key, textParams, IMouseCursorTooltip.DefaultFontSize);
-        }
-        
-        public void Show(LocalizationKey key, int fontSize)
-        {
-            Show(key, Array.Empty<string>(), fontSize);
-        }
-        
-        public void Show(LocalizationKey key, IReadOnlyList<string> textParams, int fontSize)
         {
             canvasGroup.alpha = WebUiScreenGate.IsWebUiMode ? 0 : 1;
             itemName.text = InterpolateTextParams(Localize.Get(key), textParams);
-            itemName.fontSize = fontSize;
-            _presentation.Value = new TooltipPresentation(true, key.Key, textParams, fontSize);
+            _presentation.Value = new TooltipPresentation(true, key.Key, textParams);
         }
         
         public void Hide()
@@ -93,19 +76,17 @@ namespace Client.Game.InGame.UI.Tooltip
     public readonly struct TooltipPresentation
     {
         public static readonly TooltipPresentation Hidden =
-            new(false, "", Array.Empty<string>(), IMouseCursorTooltip.DefaultFontSize);
+            new(false, "", Array.Empty<string>());
 
         public readonly bool Visible;
         public readonly string TextKey;
         public readonly IReadOnlyList<string> TextParams;
-        public readonly int FontSize;
 
-        public TooltipPresentation(bool visible, string textKey, IReadOnlyList<string> textParams, int fontSize)
+        public TooltipPresentation(bool visible, string textKey, IReadOnlyList<string> textParams)
         {
             Visible = visible;
             TextKey = textKey;
             TextParams = textParams;
-            FontSize = fontSize;
         }
     }
 }

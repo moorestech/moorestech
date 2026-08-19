@@ -16,13 +16,10 @@ namespace Client.Game.InGame.UI.Tooltip
         ///     表示するかどうか
         /// </summary>
         [SerializeField] private bool displayEnable = true;
-        
-        [SerializeField] private int fontSize = IMouseCursorTooltip.DefaultFontSize;
-        
-        
+
         public void OnCursorEnter()
         {
-            if (displayEnable) MouseCursorTooltip.Instance.Show(new LocalizationKey(textKey), fontSize);
+            if (displayEnable) MouseCursorTooltip.Instance.Show(new LocalizationKey(textKey));
         }
         
         public void OnCursorExit()

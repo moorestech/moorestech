@@ -163,7 +163,6 @@ namespace Client.Tests.WebUi
                     Visible = true,
                     TextKey = "ui.tooltip.requiredItems",
                     TextParams = new[] { "Iron Pickaxe" },
-                    FontSize = 36,
                 },
                 "tooltip.json");
         }
