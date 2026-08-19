@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Common.Debug;
 using Game.Blueprint;
 using Game.PlacementTarget;
 using Game.UnlockState;
@@ -28,7 +29,7 @@ namespace Game.Hotbar
         private readonly IBlueprintDatastore _blueprintDatastore;
         private readonly IGameUnlockStateData _gameUnlockState;
 
-        public HotbarAssignmentDatastore(PlacementTargetCatalog catalog, IBlueprintDatastore blueprintDatastore, IGameUnlockStateDataController gameUnlockState)
+        public HotbarAssignmentDatastore(PlacementTargetCatalog catalog, IBlueprintDatastore blueprintDatastore, IGameUnlockStateData gameUnlockState)
         {
             _catalog = catalog;
             _blueprintDatastore = blueprintDatastore;
@@ -48,13 +49,12 @@ namespace Game.Hotbar
 
         public void SetAssignment(int playerId, int slot, Guid targetId)
         {
-            // 範囲外slot・未知IDはいずれも不正クライアント対策として無視する
-            // Both out-of-range slots and unknown ids are ignored as malicious-client defenses
+            // 範囲外slotは不正クライアント対策として無視する
+            // Out-of-range slots are ignored as a malicious-client defense
             if (!IsValidSlot(slot)) return;
-            if (!IsResolvable(targetId)) return;
-            // 未解放中の新規割当は不正クライアント同様に無視。ロード済み割当はLoadHotbar側で保持される（ADR 0015）
-            // Ignore new assignments while locked; loaded ones are preserved by LoadHotbar (ADR 0015)
-            if (!_catalog.IsAssignable(targetId, _gameUnlockState)) return;
+            // 実在確認と未解放判定はカタログの1問い合わせへ畳む。ロード済み割当はLoadHotbar側で保持される（ADR 0015）
+            // Existence and unlock checks collapse into one catalog query; loaded assignments are preserved by LoadHotbar (ADR 0015)
+            if (!_catalog.IsAssignable(targetId, _gameUnlockState, IsFreeBlockPlacement(), CurrentBlueprintIds())) return;
             GetOrCreate(playerId)[slot] = targetId;
             _onAssignmentChanged.OnNext(playerId);
         }
@@ -84,6 +84,7 @@ namespace Game.Hotbar
         public void LoadHotbar(List<PlayerHotbarSaveJsonObject> saveData)
         {
             _assignments.Clear();
+            var currentBlueprintIds = CurrentBlueprintIds();
             foreach (var playerSave in saveData)
             {
                 var slots = GetOrCreate(playerSave.PlayerId);
@@ -101,7 +102,7 @@ namespace Game.Hotbar
                 // Missing entries, unparsable strings, and unresolved ids all fall back to Guid.Empty so a malformed save never aborts the whole load
                 if (playerSave.Assignments == null || playerSave.Assignments.Count != SlotCount) return Guid.Empty;
                 if (!Guid.TryParse(playerSave.Assignments[slot], out var id)) return Guid.Empty;
-                return IsResolvable(id) ? id : Guid.Empty;
+                return _catalog.IsResolvable(id, currentBlueprintIds) ? id : Guid.Empty;
             }
 
             #endregion
@@ -126,11 +127,18 @@ namespace Game.Hotbar
             }
         }
 
-        private bool IsResolvable(Guid id)
+        // 判定のたびに現行BPのGuid一覧をカタログへ渡す（BPは実行中に増減するためキャッシュしない）
+        // Hands the current blueprint GUIDs to the catalog per query; blueprints change at runtime so this is never cached
+        private IReadOnlyList<Guid> CurrentBlueprintIds()
         {
-            // 有効=マスタ or 現行BP
-            // Valid ids come from the master catalog or current blueprints
-            return _catalog.TryGetMasterEntry(id, out _) || _blueprintDatastore.Blueprints.Any(bp => bp.BlueprintGuid == id);
+            return _blueprintDatastore.Blueprints.Select(blueprint => blueprint.BlueprintGuid).ToList();
+        }
+
+        // 無料設置デバッグ中はビルドメニューの表示と割当可否を揃える
+        // While the free-placement debug is on, keep assignability aligned with what the build menu shows
+        private bool IsFreeBlockPlacement()
+        {
+            return DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
         }
 
         private bool IsValidSlot(int slot)

@@ -185,6 +185,9 @@ namespace Server.Boot
             services.AddSingleton<IRailGraphNodeRemovalListener>(initializerProvider.GetService<TrainRailPositionManager>());
 
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
+            // 解放状態を読むだけの利用者へは操作APIを渡さない
+            // Consumers that only read the unlock state never receive the mutating API
+            services.AddSingleton<IGameUnlockStateData>(provider => provider.GetService<IGameUnlockStateDataController>());
             services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
             services.AddSingleton(itemStackLevelDataStore);
             services.AddSingleton<IItemStackLevelLookup>(itemStackLevelDataStore);

@@ -5,6 +5,7 @@
         "Game.PlacementTarget",
         "Game.Blueprint",
         "Game.UnlockState",
+        "Common.Debug",
         "UniRx"
     ],
     "includePlatforms": [],

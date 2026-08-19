@@ -117,14 +117,21 @@ namespace Game.PlacementTarget
             return entries;
         }
 
-        // このIDが今の解放状態で割当・使用可能か。判定規則はここへ完全集約する（C1裁定）
-        // Whether this id is assignable/usable under the current unlock state; the sole locus for this rule (C1 ruling)
-        public bool IsAssignable(Guid id, IGameUnlockStateData unlockState)
+        // このIDが実在するか。マスタか現行BPのどちらかに在ることを解放状態と無関係に判定する
+        // Whether this id exists at all: present in the master catalog or among current blueprints, regardless of unlock state
+        public bool IsResolvable(Guid id, IReadOnlyList<Guid> currentBlueprintIds)
         {
-            if (TryGetMasterEntry(id, out var entry)) return IsEntryUnlocked(entry, unlockState, showAllPlaceable: false);
-            // マスタ外で解決可能なIDは現行BPのみ。BP機能フラグで判定
-            // The only non-master resolvable ids are current blueprints, gated on the blueprint feature flag
-            return unlockState.IsBlueprintUnlocked;
+            return TryGetMasterEntry(id, out _) || currentBlueprintIds.Contains(id);
+        }
+
+        // このIDが今の解放状態で割当・使用可能か。実在確認も含め判定規則はここへ完全集約する（C1裁定）
+        // Whether this id is assignable/usable under the current unlock state, existence included; the sole locus for this rule (C1 ruling)
+        public bool IsAssignable(Guid id, IGameUnlockStateData unlockState, bool showAllPlaceable, IReadOnlyList<Guid> currentBlueprintIds)
+        {
+            if (TryGetMasterEntry(id, out var entry)) return IsEntryUnlocked(entry, unlockState, showAllPlaceable);
+            // マスタ外は現行BPだけを通す。どこにも実在しないIDは割当不可
+            // Outside the master, only current blueprints pass; an id that exists nowhere is never assignable
+            return currentBlueprintIds.Contains(id) && unlockState.IsBlueprintUnlocked;
         }
 
         private static bool IsEntryUnlocked(PlacementTargetEntry entry, IGameUnlockStateData unlockState, bool showAllPlaceable)
