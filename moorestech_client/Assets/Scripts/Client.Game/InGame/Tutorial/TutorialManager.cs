@@ -71,7 +71,7 @@ namespace Client.Game.InGame.Tutorial
             if (WebUiScreenGate.IsWebUiMode)
             {
                 var presentationStore = TutorialPresentationStateStore.Instance;
-                if (presentationStore.IsCurrentChallenge(challengeId))
+                if (presentationStore.HasSession(challengeId))
                 {
                     presentationStore.EndSession(challengeId);
                     _keyControlTutorialManager.ClearPresentation();

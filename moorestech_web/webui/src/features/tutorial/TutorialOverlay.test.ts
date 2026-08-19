@@ -4,6 +4,7 @@ import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ResolvedAnchor } from "@/shared/tutorialAnchor";
+import { dispatchAction } from "@/bridge";
 import type { TutorialPresentationData } from "@/bridge";
 
 const mockState = vi.hoisted(() => ({
@@ -52,6 +53,14 @@ function pushAnchor(anchorId: string, value: ResolvedAnchor) {
   act(() => { for (const listener of mockState.listeners.get(anchorId) ?? []) listener(value); });
 }
 
+const outline = (elementId: string, anchorId: string) => ({
+  kind: "outline" as const, elementId, anchorId, paddingPx: 0, blocksPointerInput: false,
+});
+const dragGuide = (elementId: string, fromAnchorId: string, toAnchorId: string) => ({
+  kind: "dragGuide" as const, elementId, fromAnchorId, toAnchorId,
+});
+const presentation = (revision: number, sessions: TutorialPresentationData["sessions"]) => ({ revision, sessions });
+
 describe("TutorialOverlay drag guides", () => {
   afterEach(() => {
     mockState.presentation = null;
@@ -59,10 +68,9 @@ describe("TutorialOverlay drag guides", () => {
   });
 
   it("両anchorがreadyのときだけ tutorial-drag-guide を1件描画する", () => {
-    mockState.presentation = {
-      tutorialSessionId: "s1", revision: 1, challengeId: "c1", highlights: [],
-      dragGuides: [{ guideId: "guide-1", fromAnchorId: "hotbar.hud", toAnchorId: "recipe.craft-button" }],
-    };
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [dragGuide("guide-1", "hotbar.hud", "recipe.craft-button")] },
+    ]);
     let renderer!: ReturnType<typeof create>;
     act(() => { renderer = create(createElement(TutorialOverlay)); });
 
@@ -78,10 +86,9 @@ describe("TutorialOverlay drag guides", () => {
   });
 
   it("片方のanchorが未解決に戻ると非表示になる", () => {
-    mockState.presentation = {
-      tutorialSessionId: "s1", revision: 1, challengeId: "c1", highlights: [],
-      dragGuides: [{ guideId: "guide-1", fromAnchorId: "hotbar.hud", toAnchorId: "recipe.craft-button" }],
-    };
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [dragGuide("guide-1", "hotbar.hud", "recipe.craft-button")] },
+    ]);
     let renderer!: ReturnType<typeof create>;
     act(() => { renderer = create(createElement(TutorialOverlay)); });
     pushAnchor("hotbar.hud", ready(10));
@@ -90,5 +97,92 @@ describe("TutorialOverlay drag guides", () => {
 
     pushAnchor("recipe.craft-button", hidden);
     expect(renderer.root.findAllByProps({ "data-testid": "tutorial-drag-guide" }).length).toBe(0);
+  });
+});
+
+describe("TutorialOverlay anchor resolution", () => {
+  afterEach(() => {
+    mockState.presentation = null;
+    mockState.listeners.clear();
+    vi.mocked(dispatchAction).mockClear();
+  });
+
+  // 同一anchorを指す複数highlightが全てackされる（先着1件で潰さない）
+  // Every highlight pointing at the same anchor is acked, not just the first one found
+  it("同一anchorを共有する全highlightへackを配る", () => {
+    mockState.presentation = presentation(4, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "recipe.craft-button")] },
+      { tutorialSessionId: "s2", challengeId: "c2", elements: [outline("highlight-2", "recipe.craft-button")] },
+    ]);
+    act(() => { create(createElement(TutorialOverlay)); });
+
+    pushAnchor("recipe.craft-button", ready(10));
+
+    const acked = vi.mocked(dispatchAction).mock.calls.map(([, payload]) => payload);
+    expect(acked).toEqual([
+      { tutorialSessionId: "s1", revision: 4, elementId: "highlight-1", anchorId: "recipe.craft-button",
+        status: "ready", reason: "mounted" },
+      { tutorialSessionId: "s2", revision: 4, elementId: "highlight-2", anchorId: "recipe.craft-button",
+        status: "ready", reason: "mounted" },
+    ]);
+  });
+
+  // revision更新で解決済みanchorを全消去せず、表示中の要素を消灯させない
+  // A revision bump keeps already-resolved anchors so visible elements do not blink off
+  it("revision更新でも購読が続くanchorの解決状態を保つ", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "recipe.craft-button")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    pushAnchor("recipe.craft-button", ready(10));
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(1);
+
+    mockState.presentation = presentation(2, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        outline("highlight-1", "recipe.craft-button"), outline("highlight-2", "hotbar.hud"),
+      ] },
+    ]);
+    act(() => { renderer.update(createElement(TutorialOverlay)); });
+
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(1);
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" })[0].props.style.left).toBe(10);
+  });
+
+  // 購読が切れたanchorの解決状態は落とす
+  // Anchors that left the subscription set are dropped
+  it("購読対象外になったanchorの解決状態は落とす", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "recipe.craft-button")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    pushAnchor("recipe.craft-button", ready(10));
+
+    mockState.presentation = presentation(2, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "hotbar.hud")] },
+    ]);
+    act(() => { renderer.update(createElement(TutorialOverlay)); });
+
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(0);
+  });
+
+  // 同値のrectが再通知されても再描画しない（参照等価では常にfalseになる死んだ分岐だった）
+  // Re-notifying an equal-valued rect must not re-render; reference equality made that branch dead
+  it("同値rectの再解決では再描画しない", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "recipe.craft-button")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    pushAnchor("recipe.craft-button", ready(10));
+    const styleBefore = renderer.root.findByProps({ "data-kind": "outline" }).props.style;
+
+    pushAnchor("recipe.craft-button", ready(10));
+
+    expect(renderer.root.findByProps({ "data-kind": "outline" }).props.style).toBe(styleBefore);
+
+    pushAnchor("recipe.craft-button", ready(20));
+    expect(renderer.root.findByProps({ "data-kind": "outline" }).props.style).not.toBe(styleBefore);
   });
 });

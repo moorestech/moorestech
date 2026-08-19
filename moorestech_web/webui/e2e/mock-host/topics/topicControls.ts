@@ -82,18 +82,18 @@ const controls = {
   // Reset hook for spec teardown
   notificationClear: () => control(Topics.notification, {}),
   tutorialOutline: () => control(Topics.tutorialPresentation, {
-    tutorialSessionId: "tutorial-session-1", revision: 1, challengeId: "tutorial-challenge-1",
-    highlights: [{
-      highlightId: "tutorial-highlight-1",
-      anchorId: "game.crosshair",
-      kind: "outline" as const,
-      paddingPx: 8, blocksPointerInput: false,
+    revision: 1,
+    sessions: [{
+      tutorialSessionId: "tutorial-session-1", challengeId: "tutorial-challenge-1",
+      elements: [{
+        kind: "outline" as const,
+        elementId: "tutorial-highlight-1",
+        anchorId: "game.crosshair",
+        paddingPx: 8, blocksPointerInput: false,
+      }],
     }],
-    dragGuides: [],
   }),
-  tutorialEmpty: () => control(Topics.tutorialPresentation, {
-    tutorialSessionId: "", revision: 0, challengeId: "", highlights: [], dragGuides: [],
-  }),
+  tutorialEmpty: () => control(Topics.tutorialPresentation, { revision: 0, sessions: [] }),
 };
 export type TopicScenario = keyof typeof controls;
 

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Core.Master;
@@ -66,15 +67,26 @@ namespace Client.Tests.UnitTest.Tutorial
         {
             var manager = _root.AddComponent<UiDragGuideTutorialManager>();
             var tutorial = MasterHolder.ChallengeMaster.GetChallenge(ChallengeGuid).Tutorials[0];
-            var countBefore = TutorialPresentationStateStore.Instance.GetCurrent().DragGuides.Length;
+            var countBefore = DragGuides().Length;
 
             manager.ApplyTutorial(tutorial);
 
-            var guides = TutorialPresentationStateStore.Instance.GetCurrent().DragGuides;
+            var guides = DragGuides();
             Assert.AreEqual(countBefore + 1, guides.Length);
             var guide = guides[guides.Length - 1];
             Assert.AreEqual("build-menu.entry-block-00000000-0000-0000-0000-000000000001", guide.FromAnchorId);
             Assert.AreEqual("hotbar.hud", guide.ToAnchorId);
+
+            #region Internal
+
+            TutorialDragGuideElementData[] DragGuides()
+            {
+                return TutorialPresentationStateStore.Instance.GetCurrent().Sessions
+                    .SelectMany(session => session.Elements)
+                    .OfType<TutorialDragGuideElementData>().ToArray();
+            }
+
+            #endregion
         }
 
         private static void SetChallengeMaster(ChallengeMaster challengeMaster)

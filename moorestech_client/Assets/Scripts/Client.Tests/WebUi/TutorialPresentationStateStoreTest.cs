@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Client.Game.InGame.Tutorial;
 using NUnit.Framework;
 
@@ -15,42 +16,65 @@ namespace Client.Tests.WebUi
 
             store.AddOutlineHighlight("recipe.craft-button");
 
-            var current = store.GetCurrent();
-            Assert.AreEqual(challengeId.ToString(), current.ChallengeId);
-            Assert.AreEqual("recipe.craft-button", current.Highlights[0].AnchorId);
-            Assert.AreEqual("outline", current.Highlights[0].Kind);
+            var session = store.GetCurrent().Sessions.Single();
+            var element = (TutorialOutlineElementData)session.Elements.Single();
+            Assert.AreEqual(challengeId.ToString(), session.ChallengeId);
+            Assert.AreEqual("recipe.craft-button", element.AnchorId);
+            Assert.AreEqual(TutorialOutlineElementData.KindName, element.Kind);
         }
 
-        // challenge完了時は同じsessionのhighlightを全て消す
-        // Clear every highlight in the same session when the challenge completes
+        // challenge完了時は同じsessionの要素をsessionごと畳む
+        // Completing the challenge drops the whole session along with its elements
         [Test]
-        public void EndSessionClearsHighlights()
+        public void EndSessionDropsTheChallengeSession()
         {
             var store = new TutorialPresentationStateStore();
             var challengeId = Guid.NewGuid();
             store.BeginSession(challengeId);
-            var sessionId = store.GetCurrent().TutorialSessionId;
             store.AddOutlineHighlight("recipe.craft-button");
 
             store.EndSession(challengeId);
 
-            Assert.AreEqual(sessionId, store.GetCurrent().TutorialSessionId);
-            Assert.IsEmpty(store.GetCurrent().Highlights);
+            Assert.IsEmpty(store.GetCurrent().Sessions);
+            Assert.IsFalse(store.HasSession(challengeId));
         }
 
-        // 過去challengeの完了通知は現在sessionを消さない
-        // Completion of an older challenge does not clear the current session
+        // 別challengeの完了通知は他challengeのsessionを消さない
+        // Completing one challenge does not clear another challenge's session
         [Test]
-        public void OlderChallengeCompletionDoesNotClearCurrentSession()
+        public void OtherChallengeCompletionDoesNotClearRemainingSession()
         {
             var store = new TutorialPresentationStateStore();
-            store.BeginSession(Guid.NewGuid());
+            var challengeId = Guid.NewGuid();
+            store.BeginSession(challengeId);
             store.AddOutlineHighlight("recipe.craft-button");
             var current = store.GetCurrent();
 
             store.EndSession(Guid.NewGuid());
 
             Assert.AreSame(current, store.GetCurrent());
+        }
+
+        // 同時currentの2challengeは互いの提示を残したまま並存する
+        // Two simultaneously current challenges coexist without erasing each other's presentation
+        [Test]
+        public void BeginSessionKeepsThePreviousChallengePresentation()
+        {
+            var store = new TutorialPresentationStateStore();
+            var firstChallengeId = Guid.NewGuid();
+            store.BeginSession(firstChallengeId);
+            store.AddOutlineHighlight("recipe.craft-button");
+            var secondChallengeId = Guid.NewGuid();
+
+            store.BeginSession(secondChallengeId);
+            store.AddDragGuide("build-menu.entry-block-934c0ef9", "hotbar.hud");
+
+            var sessions = store.GetCurrent().Sessions;
+            Assert.AreEqual(2, sessions.Length);
+            Assert.AreEqual(firstChallengeId.ToString(), sessions[0].ChallengeId);
+            Assert.AreEqual("recipe.craft-button", ((TutorialOutlineElementData)sessions[0].Elements.Single()).AnchorId);
+            Assert.AreEqual(secondChallengeId.ToString(), sessions[1].ChallengeId);
+            Assert.AreEqual("hotbar.hud", ((TutorialDragGuideElementData)sessions[1].Elements.Single()).ToAnchorId);
         }
 
         // AddDragGuideがfrom/toanchorとrevision加算を伴って公開されること
@@ -65,73 +89,58 @@ namespace Client.Tests.WebUi
             store.AddDragGuide("build-menu.entry-block-934c0ef9", "hotbar.hud");
 
             var current = store.GetCurrent();
-            Assert.AreEqual("build-menu.entry-block-934c0ef9", current.DragGuides[0].FromAnchorId);
-            Assert.AreEqual("hotbar.hud", current.DragGuides[0].ToAnchorId);
+            var guide = (TutorialDragGuideElementData)current.Sessions.Single().Elements.Single();
+            Assert.AreEqual("build-menu.entry-block-934c0ef9", guide.FromAnchorId);
+            Assert.AreEqual("hotbar.hud", guide.ToAnchorId);
+            Assert.AreEqual(TutorialDragGuideElementData.KindName, guide.Kind);
             Assert.AreEqual(revisionBeforeAdd + 1, current.Revision);
         }
 
-        // RemoveDragGuideは対象のguideだけを消しハイライトは残す
-        // RemoveDragGuide clears only the targeted guide, leaving highlights intact
+        // RemoveElementは対象の要素だけを消し同一sessionの他要素は残す
+        // RemoveElement clears only the targeted element and leaves the session's other elements intact
         [Test]
-        public void RemoveDragGuideClearsOnlyTargetGuideAndKeepsHighlights()
+        public void RemoveElementClearsOnlyTargetElement()
         {
             var store = new TutorialPresentationStateStore();
             store.BeginSession(Guid.NewGuid());
             store.AddOutlineHighlight("recipe.craft-button");
             var guideView = store.AddDragGuide("build-menu.entry-block-934c0ef9", "hotbar.hud");
-            var sessionId = store.GetCurrent().TutorialSessionId;
+            var sessionId = store.GetCurrent().Sessions.Single().TutorialSessionId;
 
             guideView.CompleteTutorial();
 
-            var current = store.GetCurrent();
-            Assert.IsEmpty(current.DragGuides);
-            Assert.AreEqual(1, current.Highlights.Length);
-            Assert.AreEqual(sessionId, current.TutorialSessionId);
+            var session = store.GetCurrent().Sessions.Single();
+            Assert.AreEqual(sessionId, session.TutorialSessionId);
+            Assert.AreEqual(1, session.Elements.Length);
+            Assert.IsInstanceOf<TutorialOutlineElementData>(session.Elements.Single());
         }
 
-        // RemoveHighlightは対象のhighlightだけを消しガイドは残す
-        // RemoveHighlight clears only the targeted highlight, leaving drag guides intact
+        // セッション不一致のRemoveElementは無視され現在状態は変化しない
+        // RemoveElement from a stale session id is ignored and leaves the current state untouched
         [Test]
-        public void RemoveHighlightClearsOnlyTargetHighlightAndKeepsDragGuides()
-        {
-            var store = new TutorialPresentationStateStore();
-            store.BeginSession(Guid.NewGuid());
-            var highlightView = store.AddOutlineHighlight("recipe.craft-button");
-            store.AddDragGuide("build-menu.entry-block-934c0ef9", "hotbar.hud");
-
-            highlightView.CompleteTutorial();
-
-            var current = store.GetCurrent();
-            Assert.IsEmpty(current.Highlights);
-            Assert.AreEqual(1, current.DragGuides.Length);
-        }
-
-        // セッション不一致のRemoveDragGuideは無視され現在状態は変化しない
-        // RemoveDragGuide from a stale session id is ignored and leaves the current state untouched
-        [Test]
-        public void RemoveDragGuideIgnoresMismatchedSessionId()
+        public void RemoveElementIgnoresMismatchedSessionId()
         {
             var store = new TutorialPresentationStateStore();
             store.BeginSession(Guid.NewGuid());
             store.AddDragGuide("build-menu.entry-block-934c0ef9", "hotbar.hud");
             var current = store.GetCurrent();
 
-            store.RemoveDragGuide("stale-session-id", current.DragGuides[0].GuideId);
+            store.RemoveElement("stale-session-id", current.Sessions.Single().Elements.Single().ElementId);
 
             Assert.AreSame(current, store.GetCurrent());
         }
 
-        // 存在しないguideIdのRemoveDragGuideはrevisionを据え置く
-        // RemoveDragGuide with an unknown guide id leaves the revision unchanged
+        // 存在しないelementIdのRemoveElementはrevisionを据え置く
+        // RemoveElement with an unknown element id leaves the revision unchanged
         [Test]
-        public void RemoveDragGuideWithUnknownGuideIdKeepsRevision()
+        public void RemoveElementWithUnknownElementIdKeepsRevision()
         {
             var store = new TutorialPresentationStateStore();
             store.BeginSession(Guid.NewGuid());
             store.AddDragGuide("build-menu.entry-block-934c0ef9", "hotbar.hud");
             var current = store.GetCurrent();
 
-            store.RemoveDragGuide(current.TutorialSessionId, "unknown-guide-id");
+            store.RemoveElement(current.Sessions.Single().TutorialSessionId, "unknown-element-id");
 
             Assert.AreSame(current, store.GetCurrent());
         }
@@ -149,9 +158,7 @@ namespace Client.Tests.WebUi
 
             store.EndSession(challengeId);
 
-            var current = store.GetCurrent();
-            Assert.IsEmpty(current.Highlights);
-            Assert.IsEmpty(current.DragGuides);
+            Assert.IsEmpty(store.GetCurrent().Sessions.SelectMany(session => session.Elements));
         }
     }
 }
