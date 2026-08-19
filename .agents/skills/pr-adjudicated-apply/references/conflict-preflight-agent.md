@@ -37,7 +37,7 @@ detachedのまま作業してください（ブランチ名は作らない）。
 | ファイル | 解消方法 |
 | --- | --- |
 | `.moorestech-external-revisions.json` | **PR head側（ours）を採る**。外部repoピンは厳密運用しておらず、常駐Unityが実チェックアウト値へ書き戻す。PRのコードはPR側ピンのマスタで検証されているので、PR側を保つのが唯一の整合 |
-| `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs` | **ours**（SchemaWatcherのコンパイルトリガー印。内容に意味は無い） |
+| `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs` | **origin/master側（theirs）を採る**。印の文字列自体に意味は無いが、**値が変わること**がSourceGenerator再生成のトリガーである。oursだとPR headのLibraryがキャッシュした生成コードのまま据え置かれ、masterが持ち込んだスキーマ変更が反映されず `Mooresmaster.Model.*` へのアクセスがCS1061で落ちる（PR1175で実測） |
 | `moorestech_client/.uloop/tools.json` | **ours**（uloopが書く環境ファイル） |
 | `.superpowers/**`・`docs/superpowers/**` のレポート/進捗記録 | modify/delete衝突なら**削除側を採る**（`git rm`）。作業記録の成果物であり、コードの正しさに影響しない |
 
