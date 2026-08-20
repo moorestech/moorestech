@@ -3,7 +3,7 @@
 .hud {
   position: absolute;
   right: 0;
-  bottom: calc(var(--hotbar-bottom) + var(--hotbar-slot-size) + var(--hotbar-number-tab-overhang) + var(--tutorial-key-hint-hotbar-gap));
+  bottom: calc(var(--hotbar-floor-offset) + var(--tutorial-key-hint-hotbar-gap));
   left: 0;
   display: flex;
   flex-direction: column;
@@ -13,20 +13,20 @@
   z-index: var(--z-stage-overlay-panel);
 }
 
-/* InventoryScreenChrome の keyHints と同じ文字様式（kbd + 文言） */
-/* Same text style as InventoryScreenChrome's keyHints (kbd + text) */
+/* InventoryScreenChrome の keyHints と共有する文字様式（kbd + 文言。§7） */
+/* Text style shared with InventoryScreenChrome's keyHints (kbd + text; §7) */
 .hint {
   display: flex;
   align-items: center;
   gap: var(--tutorial-key-hint-kbd-gap);
-  font-size: var(--tutorial-key-hint-font-size);
-  line-height: 1.2;
-  letter-spacing: 0.055em;
-  font-weight: 500;
+  font-size: var(--key-hint-font-size);
+  line-height: var(--key-hint-line-height);
+  letter-spacing: var(--key-hint-letter-spacing);
+  font-weight: var(--key-hint-font-weight);
   color: var(--text-high-contrast);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
+  text-shadow: var(--key-hint-text-shadow);
 }
 
 .hint kbd {

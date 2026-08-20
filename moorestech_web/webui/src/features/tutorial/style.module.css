@@ -44,7 +44,7 @@
 .highlightLabel {
   position: fixed;
   margin-top: var(--tutorial-highlight-label-gap);
-  padding: var(--tutorial-highlight-label-padding);
+  padding: var(--label-face-padding);
   color: var(--text-high-contrast);
   background: var(--world-pin-face);
   white-space: nowrap;

@@ -17,7 +17,7 @@
 
 .label {
   margin-bottom: 2px;
-  padding: 4px 10px;
+  padding: var(--label-face-padding);
   color: var(--text-high-contrast);
   background: var(--world-pin-face);
   white-space: nowrap;

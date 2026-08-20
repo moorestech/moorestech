@@ -7,14 +7,14 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-size: 25px;
-  line-height: 1.2;
-  letter-spacing: 0.055em;
-  font-weight: 500;
+  font-size: var(--key-hint-font-size);
+  line-height: var(--key-hint-line-height);
+  letter-spacing: var(--key-hint-letter-spacing);
+  font-weight: var(--key-hint-font-weight);
   color: var(--text-high-contrast);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
+  text-shadow: var(--key-hint-text-shadow);
   pointer-events: none;
   z-index: 10;
 }

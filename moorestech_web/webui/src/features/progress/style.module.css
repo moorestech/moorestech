@@ -4,7 +4,7 @@
   pointer-events: none;
   position: absolute;
   right: 0;
-  bottom: calc(var(--hotbar-bottom) + var(--hotbar-slot-size) + var(--hotbar-number-tab-overhang) + var(--progress-hotbar-gap));
+  bottom: calc(var(--hotbar-floor-offset) + var(--progress-hotbar-gap));
   left: 0;
   width: var(--hotbar-width);
   margin-inline: auto;
