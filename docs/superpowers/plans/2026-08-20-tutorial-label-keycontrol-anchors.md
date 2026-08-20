@@ -128,7 +128,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
   - `ITutorialView TutorialPresentationStateStore.AddOutlineHighlight(string anchorId, string labelTutorialGuid)`
   - `ITutorialView TutorialPresentationStateStore.AddKeyControlHint(string tutorialGuid, string keyName, string uiState)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `TutorialPresentationStateStoreTest.cs` に追加:
 
@@ -173,12 +173,12 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 既存テストの `store.AddOutlineHighlight("recipe.craft-button")` 呼び出しは全て `store.AddOutlineHighlight("recipe.craft-button", null)` に書き換える（デフォルト引数禁止のため第2引数必須）。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `AddOutlineHighlight` の引数不一致・`TutorialKeyControlElementData` 未定義でコンパイルエラー。
 
-- [ ] **Step 3: データ型を追加する**
+- [x] **Step 3: データ型を追加する**
 
 `TutorialPresentationData.cs` の `TutorialOutlineElementData` に追加し、新クラスを末尾に足す:
 
@@ -217,7 +217,7 @@ Expected: `AddOutlineHighlight` の引数不一致・`TutorialKeyControlElementD
     }
 ```
 
-- [ ] **Step 4: store の API を拡張する**
+- [x] **Step 4: store の API を拡張する**
 
 `TutorialPresentationStateStore.cs` の `AddOutlineHighlight` を差し替え、`AddKeyControlHint` を `AddDragGuide` の下に追加:
 
@@ -250,7 +250,7 @@ Expected: `AddOutlineHighlight` の引数不一致・`TutorialKeyControlElementD
         }
 ```
 
-- [ ] **Step 5: 呼び出し側（枠線2種）でラベルguidを渡す**
+- [x] **Step 5: 呼び出し側（枠線2種）でラベルguidを渡す**
 
 `UIHighlightTutorialManager.cs`:
 
@@ -284,13 +284,13 @@ Expected: `AddOutlineHighlight` の引数不一致・`TutorialKeyControlElementD
 
 他に `AddOutlineHighlight(` を呼ぶ箇所が無いか確認: `grep -rn "AddOutlineHighlight(" moorestech_client/Assets/Scripts`（テストと上記2件以外に無いこと）。
 
-- [ ] **Step 6: コンパイル・テスト**
+- [x] **Step 6: コンパイル・テスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → errors 0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "TutorialPresentationStateStoreTest"`
 Expected: 全PASS（新規2件含む）。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Tutorial moorestech_client/Assets/Scripts/Client.Tests/WebUi/TutorialPresentationStateStoreTest.cs
