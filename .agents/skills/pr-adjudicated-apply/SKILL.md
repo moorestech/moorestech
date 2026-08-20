@@ -17,21 +17,24 @@ description: |
 **このスキルは無人パイプラインの一部として動く。AskUserQuestionは使わない**（禁止事項参照）。
 ユーザーに確認を求めたくなった判断は、実装せずapply-result.jsonのsummaryへ記載して終える。
 
-## 最重要: ターンを終えた瞬間にプロセスが死ぬ
+## 最重要: 無人起動でも「apply-result.json で終える」
 
-このスキルは poller から `claude -p`（print mode）でdetach起動される。**print modeにはターンの続きが無い** —
-アシスタントのターンが終わった時点でプロセスがexitし、以後あなたは二度と再開されない。
-`apply-result.json` を書かずに終われば、それは poller から「プロセス死亡」と見なされ、
-その時点までの全作業がpushされないまま失敗として確定する（実際にPR1145で発生。ユーザー裁定 2026-08-17）。
+このスキルは poller から cmux ワークスペース上の**対話モード** claude でフォアグラウンド起動されている
+（ADR 0023。2026-08-20 までは `claude -p` だった）。対話モードではターンを終えてもプロセスは消えないが、
+**poller は `apply-result.json` の存在とプロセス生存（`pgrep -f "session-id <id>"`）であなたを監視している**。
+transcript が1200秒更新されず `apply-result.json` も無ければ「自壊相当」と判定され、同じペインへ
+RESUME 指示が1回送られ、それでも進まなければ失敗ラベルになる。
 
 したがって:
 
-- **待機は必ず同一ターン内でブロッキングして行う**。`uloop run-tests` は結果が返るまでそのターンで待ち切る。
+- **待機は同一ターン内でブロッキングして行う**。`uloop run-tests` は結果が返るまでそのターンで待ち切る。
   完了に数分かかっても、待つこと自体がこのスキルの仕事である
 - **「wakeupをスケジュールしたので待つ」「後で結果を確認する」と述べてターンを閉じることを禁止する**。
   スケジュールされた再開はこの実行環境に存在しない
 - **終了はStep 7の `apply-result.json` を書いた直後だけ**。書く前に終わる終わり方は、成功・失敗いずれの意図であっても
   バグである。行き詰まったなら `status: "failure"` で理由を書いて終える
+- **session limit に当たったら何もしなくてよい**。poller が reset 時刻まで待ち、同じペインへ継続指示を送る
+  （リトライ予算は消費しない）。weekly limit は失敗ラベルにして人を呼ぶ
 
 **入出力の置き場**: `$LOGS` はprivateログrepo `/Users/sakastudio/hermes-agent/data/repos/moorestech_logs`
 （apply専用worktreeからは兄弟symlink `../moorestech_logs` でも到達できるが、絶対パスで書くこと）、

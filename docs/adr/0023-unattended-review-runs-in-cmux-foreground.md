@@ -24,3 +24,5 @@ poller は cmux CLI（`new-workspace --cwd --command` / `send` / `capture-pane` 
 - poller は cmux アプリの稼働に依存する（launchd 配下から GUI セッションの cmux ソケットへ）。cmux 停止時は無人パイプラインが止まり通知される
 - review.log（stdout）が無くなり、検知は transcript ベースへ移る。`rate_limited()` 等の判定関数は transcript の最終 assistant text を読む形へ置き換える
 - 人が介入できる反面、介入した内容は無人フローの想定外になりうる。介入は「止める・続きを指示する」に限る運用
+
+実装: docs/superpowers/plans/2026-08-20-pr-review-poller-cmux-foreground.md
