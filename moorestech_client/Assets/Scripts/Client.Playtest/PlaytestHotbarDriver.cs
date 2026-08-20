@@ -45,5 +45,13 @@ namespace Client.Playtest
             _reporter.Step($"接続ツールをアンロック: {toolName}");
             PlaytestHotbarOps.UnlockConnectToolServerSide(toolName);
         }
+
+        public void UnlockBlueprint()
+        {
+            // ブループリントはブロックとは別枠のアンロック状態を持つため、AssignHotbar前に必要
+            // Blueprint holds a separate unlock state from blocks, so this precedes AssignHotbar
+            _reporter.Step("ブループリントをアンロック");
+            PlaytestHotbarOps.UnlockBlueprintServerSide();
+        }
     }
 }

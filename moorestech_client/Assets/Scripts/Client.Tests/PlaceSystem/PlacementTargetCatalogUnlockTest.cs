@@ -55,5 +55,34 @@ namespace Client.Tests.PlaceSystem
             foreach (var connectTool in unlockState.ConnectToolUnlockStateInfos)
                 Assert.AreEqual(normalIds.Contains(connectTool.Key), showAllIds.Contains(connectTool.Key));
         }
+
+        [Test]
+        public void ブループリント未解放ならBP系エントリは列挙されず解放後に現れる()
+        {
+            var catalog = new PlacementTargetCatalog();
+            var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
+            var blueprintGuid = Guid.Parse("70000000-0000-4000-8000-000000000002");
+            var blueprints = new[] { (blueprintGuid, "locked-base") };
+
+            // 未解放: コピーツールも保存済みBPも出ない。showAllPlaceableでも出ない（接続ツール同様）
+            // Locked: neither the copy tool nor saved blueprints appear, even with showAllPlaceable
+            var lockedIds = catalog.UnlockedEntries(unlockState, false, blueprints).Select(entry => entry.Id).ToHashSet();
+            var lockedShowAllIds = catalog.UnlockedEntries(unlockState, true, blueprints).Select(entry => entry.Id).ToHashSet();
+            var blueprintCopyIds = catalog.CreateEntries(blueprints).Where(entry => entry.Kind == PlacementTargetKind.BlueprintCopy).Select(entry => entry.Id).ToList();
+            Assert.IsNotEmpty(blueprintCopyIds);
+            foreach (var copyId in blueprintCopyIds)
+            {
+                Assert.IsFalse(lockedIds.Contains(copyId));
+                Assert.IsFalse(lockedShowAllIds.Contains(copyId));
+            }
+            Assert.IsFalse(lockedIds.Contains(blueprintGuid));
+
+            // 解放後: 両方現れる
+            // Unlocked: both appear
+            unlockState.UnlockBlueprint();
+            var unlockedIds = catalog.UnlockedEntries(unlockState, false, blueprints).Select(entry => entry.Id).ToHashSet();
+            foreach (var copyId in blueprintCopyIds) Assert.IsTrue(unlockedIds.Contains(copyId));
+            Assert.IsTrue(unlockedIds.Contains(blueprintGuid));
+        }
     }
 }

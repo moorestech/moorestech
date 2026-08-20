@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using CommandForgeGenerator.Command;
 using Game.Train.Unit;
 using UnityEngine;
 using VContainer;
 
 namespace Client.Game.InGame.Train.View.Object.Core
 {
-    public class TrainCarObjectDatastore : MonoBehaviour
+    public class TrainCarObjectDatastore : MonoBehaviour, ISkitWorldObjectControl
     {
         private readonly Dictionary<TrainCarInstanceId, TrainCarEntityObject> _entities = new();
 
@@ -17,6 +18,13 @@ namespace Client.Game.InGame.Train.View.Object.Core
             // datastoreはfactoryを保持し、表示状態そのものは管理しない
             // The datastore holds the factory and does not manage visual state
             _carObjectFactory = new TrainCarObjectFactory();
+        }
+
+        // 車両viewは自身の配下に生成されるため、スキット中は根ごと消す
+        // Car views are created under this transform, so a skit hides them at the root
+        public void SetActive(bool enable)
+        {
+            gameObject.SetActive(enable);
         }
 
         public void OnTrainObjectUpdate(IReadOnlyList<TrainCarSnapshot> carSnapshots)

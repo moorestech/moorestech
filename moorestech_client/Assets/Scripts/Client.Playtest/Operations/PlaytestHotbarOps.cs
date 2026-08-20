@@ -86,5 +86,12 @@ namespace Client.Playtest.Operations
 
             #endregion
         }
+
+        public static void UnlockBlueprintServerSide()
+        {
+            // ブループリントはBlockUnlockStateInfosと別枠(単一bool)のため、接続ツール同様に独立して解放が必要
+            // Blueprint lives in a separate unlock bucket (a single bool), so this is required independently, like connect tools
+            ServerContext.GetService<IGameUnlockStateDataController>().UnlockBlueprint();
+        }
     }
 }

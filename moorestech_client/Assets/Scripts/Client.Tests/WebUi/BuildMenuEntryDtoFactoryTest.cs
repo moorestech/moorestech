@@ -151,6 +151,7 @@ namespace Client.Tests.WebUi
 
         [TestCase(BlueprintDeleteResult.Success, true, null)]
         [TestCase(BlueprintDeleteResult.NotFound, false, "blueprint_delete_not_found")]
+        [TestCase(BlueprintDeleteResult.NotUnlocked, false, "blueprint_delete_not_unlocked")]
         [TestCase(BlueprintDeleteResult.RequestFailed, false, "blueprint_delete_request_failed")]
         public void BlueprintDeleteActionは削除結果をエラー契約へ変換する(
             BlueprintDeleteResult deleteResult, bool expectedOk, string expectedError)
@@ -199,6 +200,8 @@ namespace Client.Tests.WebUi
                 MasterHolder.TrainUnitMaster.Train.TrainCars.ToDictionary(
                     trainCar => trainCar.TrainCarGuid,
                     trainCar => new TrainCarUnlockStateInfo(trainCar.TrainCarGuid, true));
+
+            public bool IsBlueprintUnlocked => true;
         }
     }
 }

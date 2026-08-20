@@ -75,7 +75,8 @@ namespace Client.Tests.UnitTest.Tutorial
                 _root.AddComponent<UIHighlightTutorialManager>(),
                 _root.AddComponent<KeyControlTutorialManager>(),
                 _root.AddComponent<ItemViewHighLightTutorialManager>(),
-                _root.AddComponent<BlockPlacePreviewTutorialManager>());
+                _root.AddComponent<BlockPlacePreviewTutorialManager>(),
+                _root.AddComponent<UiDragGuideTutorialManager>());
 
             manager.ApplyTutorial(ChallengeGuid);
 

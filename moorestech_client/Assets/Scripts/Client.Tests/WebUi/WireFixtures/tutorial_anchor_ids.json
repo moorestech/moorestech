@@ -12,7 +12,8 @@
     "recipe.craft-button",
     "mining.hud",
     "challenge.panel",
-    "challenge.categories"
+    "challenge.categories",
+    "hotbar.hud"
   ],
   "dynamicPrefixes": {
     "researchNode": "research.node-",

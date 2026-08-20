@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Core.Master;
 using Game.Research;
 using MessagePack;
 using NUnit.Framework;
@@ -20,7 +21,9 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var emptyResponse = SendGetResearchInfoRequest(packet);
             Assert.IsNotNull(emptyResponse);
-            Assert.AreEqual(6, emptyResponse.ResearchNodeStates.Count);
+            // ノード数はマスタから導出する（フィクスチャ追加で赤にならないため）
+            // Derive the node count from the master so fixture additions cannot turn this red
+            Assert.AreEqual(MasterHolder.ResearchMaster.GetAllResearches().Count, emptyResponse.ResearchNodeStates.Count);
             Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughItem, GetNodeState(emptyResponse, Research1Guid));
             Assert.AreEqual(ResearchNodeState.UnresearchableAllReasons, GetNodeState(emptyResponse, Research2Guid));
             Assert.AreEqual(ResearchNodeState.UnresearchableAllReasons, GetNodeState(emptyResponse, Research3Guid));

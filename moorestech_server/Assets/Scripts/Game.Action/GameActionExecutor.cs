@@ -46,6 +46,7 @@ namespace Game.Action
                     case GameActionElement.GameActionTypeConst.unlockTrainCar:
                     case GameActionElement.GameActionTypeConst.unlockConnectTool:
                     case GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel:
+                    case GameActionElement.GameActionTypeConst.unlockBlueprint:
                         ExecuteAction(action, context);
                         break;
                 }
@@ -105,6 +106,10 @@ namespace Game.Action
 
                 case GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel:
                     UnlockPlayerInventorySlotLevel();
+                    break;
+
+                case GameActionElement.GameActionTypeConst.unlockBlueprint:
+                    _gameUnlockStateDataController.UnlockBlueprint();
                     break;
             }
             

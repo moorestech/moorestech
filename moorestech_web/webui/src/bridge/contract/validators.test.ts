@@ -127,7 +127,8 @@ describe("validResearchTree", () => {
   const node = {
     guid: "60000000-0000-4000-8000-000000000001", state: "researchable", iconItemId: 1, position: { x: 100, y: -50 },
     prevGuids: [], consumeItems: [{ itemId: 1, count: 3 }],
-    rewardItems: [{ itemId: 2, count: 4 }], unlockItemIds: [],
+    rewardItems: [{ itemId: 2, count: 4 }], unlockItemRecipeViewItemIds: [],
+    unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [],
   };
   it("accepts nodes payload", () => {
     expect(validateTopicPayload(Topics.researchTree, { nodes: [node] })).toBe(true);

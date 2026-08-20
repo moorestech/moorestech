@@ -91,13 +91,15 @@ namespace Core.Master
                 : CleanRoomMaster.CreateEmpty();
             InitializeMaster(CleanRoomMaster);
 
-            // 複数依存
-            // Multiple dependencies
-            ChallengeMaster = new ChallengeMaster(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
-            InitializeMaster(ChallengeMaster);
-
+            // ItemMaster, CraftRecipeMaster, MachineRecipesMaster, BlockMaster, TrainUnitMaster依存
+            // Depends on ItemMaster, CraftRecipeMaster, MachineRecipesMaster, BlockMaster, TrainUnitMaster
             ResearchMaster = new ResearchMaster(GetJson(masterJsonFileContainer, new JsonFileName("research")));
             InitializeMaster(ResearchMaster);
+
+            // 複数依存（ResearchMasterのTaskParam.ResearchNodeGuid検証を含む）
+            // Multiple dependencies (including TaskParam.ResearchNodeGuid validation against ResearchMaster)
+            ChallengeMaster = new ChallengeMaster(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
+            InitializeMaster(ChallengeMaster);
 
             #region Internal
 

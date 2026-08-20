@@ -77,6 +77,7 @@ namespace Client.WebUiHost.Game.Actions
             {
                 BlueprintDeleteResult.Success => ActionResult.Success(),
                 BlueprintDeleteResult.NotFound => ActionResult.Fail("blueprint_delete_not_found"),
+                BlueprintDeleteResult.NotUnlocked => ActionResult.Fail("blueprint_delete_not_unlocked"),
                 _ => ActionResult.Fail("blueprint_delete_request_failed"),
             };
         }

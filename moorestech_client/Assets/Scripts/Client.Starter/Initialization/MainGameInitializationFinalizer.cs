@@ -52,8 +52,8 @@ namespace Client.Starter.Initialization
             // Start event application before terrain build so the drop window for not-yet-spawned targets never widens by build time (ADR#15)
             (_serverResult.VanillaApi.Event as VanillaApiEvent)?.InitializeDispatch();
 
-            // 露頭生成の地表Raycastより前にTerrainを構築し、物理シーンへ反映する
-            // Build Terrain before outcrop surface raycasts and synchronize it into the physics scene
+            // 露頭を含むワールドオブジェクトの生成前にTerrainを構築する
+            // Build Terrain before instantiating world objects including outcrops
             await TerrainRuntimeBuilder.BuildAsync(_serverResult.HandshakeResponse.MapLayout, starter.EnvironmentRoot.transform);
 
             // 露頭生成はTerrain完成後に明示開始する。完了待ちは下の待機境界が一括で担う（ADR#15）

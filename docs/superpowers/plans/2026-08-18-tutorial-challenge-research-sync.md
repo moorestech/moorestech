@@ -81,9 +81,9 @@ ADR: `docs/adr/0016-tutorial-challenge-lineup-research-sync.md`（全裁定の�
 **Interfaces:**
 - Produces: 生成型 `Mooresmaster.Model.ChallengesModule.CompleteResearchTaskParam`（プロパティ `System.Guid ResearchNodeGuid`）、`UiDragGuideTutorialParam`（`string FromUIObjectId` / `string ToUIObjectId`）、定数 `TutorialsElement.TutorialTypeConst.uiDragGuide`
 
-- [ ] **Step 1: edit-schemaスキルの`references/yaml_spec.md`を読む**（スキーマ編集の必須前提）
+- [x] **Step 1: edit-schemaスキルの`references/yaml_spec.md`を読む**（スキーマ編集の必須前提）
 
-- [ ] **Step 2: challenges.yml の taskCompletionType enum に completeResearch を追加**
+- [x] **Step 2: challenges.yml の taskCompletionType enum に completeResearch を追加**
 
 `- blockPlace`（既存options末尾、73-76行付近）の直後に1行追加:
 
@@ -98,7 +98,7 @@ ADR: `docs/adr/0016-tutorial-challenge-lineup-research-sync.md`（全裁定の�
           - completeResearch
 ```
 
-- [ ] **Step 3: taskParam の cases に completeResearch を追加**
+- [x] **Step 3: taskParam の cases に completeResearch を追加**
 
 `- when: blockPlace` ケース（102-113行付近）の直後、`- key: tutorials` の前に追加:
 
@@ -114,7 +114,7 @@ ADR: `docs/adr/0016-tutorial-challenge-lineup-research-sync.md`（全裁定の�
                 displayElementPath: /data/[*]/researchNodeName
 ```
 
-- [ ] **Step 4: tutorialType enum に uiDragGuide を追加**
+- [x] **Step 4: tutorialType enum に uiDragGuide を追加**
 
 ```yaml
             - key: tutorialType
@@ -130,7 +130,7 @@ ADR: `docs/adr/0016-tutorial-challenge-lineup-research-sync.md`（全裁定の�
               - uiDragGuide
 ```
 
-- [ ] **Step 5: tutorialParam の cases に uiDragGuide を追加**
+- [x] **Step 5: tutorialParam の cases に uiDragGuide を追加**
 
 `- when: blockPlacePreview` ケースの直後（`- key: startedActions` の前）に追加:
 
@@ -146,16 +146,16 @@ ADR: `docs/adr/0016-tutorial-challenge-lineup-research-sync.md`（全裁定の�
                   default: to ui object id
 ```
 
-- [ ] **Step 6: _CompileRequester.cs の dummyText を変更**（SourceGeneratorトリガー）
+- [x] **Step 6: _CompileRequester.cs の dummyText を変更**（SourceGeneratorトリガー）
 
 `private const string dummyText = "...";` の値を任意の新文字列（例: `"complete-research-drag-guide"`）へ変更する。
 
-- [ ] **Step 7: コンパイルして生成型を確認**
+- [x] **Step 7: コンパイルして生成型を確認**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件。`CompleteResearchTaskParam` / `UiDragGuideTutorialParam` が生成される（既存JSONは新enumを使っていないためロード互換）。
 
-- [ ] **Step 8: コミット**
+- [x] **Step 8: コミット**
 
 ```bash
 git add VanillaSchema/challenges.yml moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs
@@ -179,7 +179,7 @@ git commit -m "feat: チャレンジスキーマにcompleteResearchタスクとu
 - Consumes: `Game.Research.ResearchEvent.OnResearchCompleted`（`IObservable<(int playerId, ResearchNodeMasterElement researchNode)>`）、`Game.Research.IResearchDataStore.IsResearchCompleted(Guid)`、`CompleteResearchTaskParam.ResearchNodeGuid`（Task 1生成物）
 - Produces: `CompleteResearchChallengeTask`（`IChallengeTask`実装・`static IChallengeTask Create(ChallengeMasterElement)`）、定数 `VanillaChallengeType.CompleteResearchTask = "completeResearch"`
 
-- [ ] **Step 1: テストmodにcompleteResearchチャレンジを追加**
+- [x] **Step 1: テストmodにcompleteResearchチャレンジを追加**
 
 `Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/challenges.json` の Category1（`03ca4ded-3b2b-4e7f-bb6e-430f060c4ed1`）の `challenges` 配列末尾に追加（既存要素の書式に合わせる。`startedActions`/`clearedActions`/`displayListParam`は既存要素からコピーして流用する）:
 
@@ -201,7 +201,7 @@ git commit -m "feat: チャレンジスキーマにcompleteResearchタスクとu
 
 ※ `prevChallengeGuids: []` なので初期チャレンジとして起動する。既存テストが初期チャレンジ数を数えている場合は期待値を更新する（Step 6で検出）。
 
-- [ ] **Step 2: 失敗するテストを書く**
+- [x] **Step 2: 失敗するテストを書く**
 
 `Tests/CombinedTest/Game/CompleteResearchChallengeTaskTest.cs` を新規作成。初期化・研究完了の作法は `Tests/CombinedTest/Game/ResearchDataStoreTest.cs`、tick進行は `Tests/CombinedTest/Server/PacketTest/Event/ChallengeCompletedEventTest.cs:89`（`GameUpdater.UpdateOneTick()`）に倣う:
 
@@ -276,12 +276,12 @@ namespace Tests.CombinedTest.Game
 
 ※ `ServiceProvider` の実型名が違いコンパイルエラーになる場合は `ResearchDataStoreTest.cs` の `CompleteResearchForTest` の引数型に合わせる。
 
-- [ ] **Step 3: テスト実行して失敗を確認**
+- [x] **Step 3: テスト実行して失敗を確認**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "CompleteResearchChallengeTaskTest"`
 Expected: FAIL（`ChallengeFactory` の Dictionary に `completeResearch` が無く `KeyNotFoundException`）
 
-- [ ] **Step 4: 実装を書く**
+- [x] **Step 4: 実装を書く**
 
 `Game.Challenge.asmdef` の references に `"Game.Research"` を追加（`Game.Research` は `Game.Challenge` を参照していないため循環しない）。
 
@@ -416,12 +416,12 @@ namespace Game.Challenge.Task
             }
 ```
 
-- [ ] **Step 5: コンパイル**
+- [x] **Step 5: コンパイル**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
 
-- [ ] **Step 6: テスト実行して通ることを確認**
+- [x] **Step 6: テスト実行して通ることを確認**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "CompleteResearchChallengeTaskTest"`
 Expected: PASS 2件
@@ -430,7 +430,7 @@ Expected: PASS 2件
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Challenge"`
 Expected: 全件PASS。テストmodへの初期チャレンジ追加で件数期待値が壊れたテストがあれば期待値を+1更新する。
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Challenge moorestech_server/Assets/Scripts/Core.Master/Validator/ChallengeMasterUtil.cs moorestech_server/Assets/Scripts/Tests.Module moorestech_server/Assets/Scripts/Tests
@@ -454,7 +454,7 @@ git commit -m "feat: 研究完了を達成条件とするcompleteResearchチャ�
 - Consumes: `UiDragGuideTutorialParam.FromUIObjectId` / `.ToUIObjectId`（Task 1生成物）、`TutorialsElement.TutorialTypeConst.uiDragGuide`
 - Produces: `TutorialPresentationStateStore.AddDragGuide(string fromAnchorId, string toAnchorId)` → `ITutorialView`、`TutorialPresentationData.DragGuides`（`TutorialDragGuideData[]`: `GuideId`/`FromAnchorId`/`ToAnchorId`）、`TutorialAnchorIdMapper.FromUiObjectId` が `"hotbar"`→`"hotbar.hud"`・`"challengeHud"`→`"challenge.current-hud"`・`"buildMenuBlock:<guid>"`→`"build-menu.entry-block-<guid小文字>"`・`"researchNode:<guid>"`→`"research.node-<guid小文字>"` を解決
 
-- [ ] **Step 1: 失敗するテストを書く（アンカー契約テスト拡張）**
+- [x] **Step 1: 失敗するテストを書く（アンカー契約テスト拡張）**
 
 `TutorialAnchorContractTest.cs` に追記（既存3テストの後）:
 
@@ -520,12 +520,12 @@ git commit -m "feat: 研究完了を達成条件とするcompleteResearchチャ�
         }
 ```
 
-- [ ] **Step 2: テスト実行して失敗を確認**
+- [x] **Step 2: テスト実行して失敗を確認**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "TutorialAnchorContractTest"`
 Expected: `DynamicUiObjectIdsMapToWebDynamicPrefixes` がFAIL（`KeyNotFoundException`）
 
-- [ ] **Step 3: TutorialAnchorIdMapper を拡張**
+- [x] **Step 3: TutorialAnchorIdMapper を拡張**
 
 ```csharp
 using System;
@@ -587,11 +587,11 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
 }
 ```
 
-- [ ] **Step 4: フィクスチャに hotbar.hud を追加**
+- [x] **Step 4: フィクスチャに hotbar.hud を追加**
 
 `tutorial_anchor_ids.json` の `staticIds` 配列へ `"hotbar.hud"` を追加（Web側 anchorIds.ts の変更はTask 5で同期する）。
 
-- [ ] **Step 5: TutorialPresentationData に DragGuides を追加**
+- [x] **Step 5: TutorialPresentationData に DragGuides を追加**
 
 ```csharp
 namespace Client.Game.InGame.Tutorial
@@ -623,7 +623,7 @@ namespace Client.Game.InGame.Tutorial
 }
 ```
 
-- [ ] **Step 6: TutorialPresentationStateStore に AddDragGuide / RemoveDragGuide を追加**
+- [x] **Step 6: TutorialPresentationStateStore に AddDragGuide / RemoveDragGuide を追加**
 
 変更点（既存構造は維持。`SetHighlights` は highlights と dragGuides の両方を受ける `SetState` へ改名し、既存呼び出しは現在値を渡す）:
 
@@ -682,7 +682,7 @@ namespace Client.Game.InGame.Tutorial
 - `CreateIdle()` にも `DragGuides = Array.Empty<TutorialDragGuideData>()` を追加。
 - `TutorialDragGuideView` は既存 `TutorialPresentationView` と同型で `CompleteTutorial()` が `RemoveDragGuide` を呼ぶクラスを同ファイルに追加。ファイルが200行を超える場合は `TutorialPresentationView` / `TutorialDragGuideView` を `Presentation/TutorialPresentationViews.cs` へ分離する。
 
-- [ ] **Step 7: UiDragGuideTutorialManager を新規作成**
+- [x] **Step 7: UiDragGuideTutorialManager を新規作成**
 
 ```csharp
 using Mooresmaster.Model.ChallengesModule;
@@ -708,7 +708,7 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
 
 ※ MonoBehaviourの配置: `UIHighlightTutorialManager` がシーン/Prefabへどう配置されDIされているかを確認し（`TutorialManager` のコンストラクタ引数の注入元を遡る）、同じ場所へ `uloop execute-dynamic-code` でAddComponent+参照結線する。Prefab/シーンのテキスト直編集は禁止。
 
-- [ ] **Step 8: TutorialManager に登録**
+- [x] **Step 8: TutorialManager に登録**
 
 コンストラクタ引数に `UiDragGuideTutorialManager uiDragGuideTutorialManager` を追加し（デフォルト引数禁止・呼び出し側も更新）、登録行を追加:
 
@@ -716,14 +716,14 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.uiDragGuide, uiDragGuideTutorialManager);
 ```
 
-- [ ] **Step 9: コンパイルとテスト**
+- [x] **Step 9: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "TutorialAnchorContractTest|TutorialPresentation"`
 Expected: 全件PASS（既存のpresentation系テストがDragGuides未初期化で落ちる場合は `Array.Empty` 初期化を期待値に追加）
 
-- [ ] **Step 10: コミット**
+- [x] **Step 10: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Tutorial moorestech_client/Assets/Scripts/Client.Tests
@@ -737,7 +737,7 @@ git commit -m "feat: uiDragGuideチュートリアルのクライアント経路
 **Files:**
 - Modify: `moorestech_client/Assets/AddressableResources/Skit/skits/100_start_game.json`
 
-- [ ] **Step 1: 台詞を挿入**
+- [x] **Step 1: 台詞を挿入**
 
 `commands` 配列の最後の `text` コマンド（`"id": 40`・「大丈夫です。ぼくがしっかりサポートするので…さあ、行きますよ」）の**直前**に挿入:
 
@@ -754,12 +754,12 @@ git commit -m "feat: uiDragGuideチュートリアルのクライアント経路
 
 ※ CommandForge形式のプレーンJSON（Unityシリアライズ物ではない）のためテキスト編集可。idは既存最大138の次の139。
 
-- [ ] **Step 2: JSONの整合を確認**
+- [x] **Step 2: JSONの整合を確認**
 
 Run: `python3 -c "import json; json.load(open('moorestech_client/Assets/AddressableResources/Skit/skits/100_start_game.json')); print('ok')"`
 Expected: `ok`
 
-- [ ] **Step 3: コミット**
+- [x] **Step 3: コミット**
 
 ```bash
 git add moorestech_client/Assets/AddressableResources/Skit/skits/100_start_game.json
@@ -784,7 +784,7 @@ git commit -m "feat: 開始スキットに左上目標HUDの案内台詞を追�
 - Consumes: `tutorial.presentation` topicの `dragGuides`（Task 3のUnity側が配信: `{guideId, fromAnchorId, toAnchorId}`）
 - Produces: `TutorialAnchorIds.hotbarHud = "hotbar.hud"`、矢印ループ描画
 
-- [ ] **Step 1: webui-design SKILL.md に §8.17 を追記**（ユーザー裁定2026-08-18に基づく様式化。§8.16の後に挿入）
+- [x] **Step 1: webui-design SKILL.md に §8.17 を追記**（ユーザー裁定2026-08-18に基づく様式化。§8.16の後に挿入）
 
 ```markdown
 ## 8.17 チュートリアルのドラッグガイド矢印
@@ -802,14 +802,14 @@ git commit -m "feat: 開始スキットに左上目標HUDの案内台詞を追�
 - e2e/スクリーンショット検証はアニメーション非同期のため座標一致を要求しない（表示有無のみ検証する）。
 ```
 
-- [ ] **Step 2: 失敗するテストを書く（アンカー単一ソースとスキーマ）**
+- [x] **Step 2: 失敗するテストを書く（アンカー単一ソースとスキーマ）**
 
 `anchorIds.test.ts` はフィクスチャ（`tutorial_anchor_ids.json`）と `TutorialAnchorIds` の突合をしている。Task 3 Step 4でフィクスチャに `hotbar.hud` を足したため、この時点でテストは**既に失敗している**はず。確認:
 
 Run: `cd moorestech_web/webui && npx vitest run src/shared/tutorialAnchor`
 Expected: FAIL（`hotbar.hud` がWeb側に無い）
 
-- [ ] **Step 3: anchorIds.ts に hotbarHud を追加**
+- [x] **Step 3: anchorIds.ts に hotbarHud を追加**
 
 `TutorialAnchorIds` オブジェクトへ1行追加:
 
@@ -817,7 +817,7 @@ Expected: FAIL（`hotbar.hud` がWeb側に無い）
   hotbarHud: "hotbar.hud",
 ```
 
-- [ ] **Step 4: HotbarPanel にアンカーを宣言**
+- [x] **Step 4: HotbarPanel にアンカーを宣言**
 
 `HotbarPanel/index.tsx` の `data-hotbar-row` を持つdiv（30行付近）へ追加:
 
@@ -829,7 +829,7 @@ import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
         {...tutorialAnchor(TutorialAnchorIds.hotbarHud)}>
 ```
 
-- [ ] **Step 5: presentation.ts スキーマに dragGuides を追加**
+- [x] **Step 5: presentation.ts スキーマに dragGuides を追加**
 
 ```ts
 // D&D説明の矢印ガイド。from/to両anchorが解決している間だけ描く
@@ -846,7 +846,7 @@ export const TutorialPresentationDataSchema = z.object({
 
 ※ スキーマのテストファイル（`presentation.test.ts` 等）が存在すれば `dragGuides: []` を既存フィクスチャへ追加し、guide入りのケースを1件足す。Unity側スナップショット（`WebUiJson.Serialize`）が`dragGuides`を必ず含むため optional にしない。
 
-- [ ] **Step 6: TutorialOverlay に矢印ループを実装**
+- [x] **Step 6: TutorialOverlay に矢印ループを実装**
 
 `TutorialOverlay.tsx` を拡張。dragGuideごとにfrom/to両anchorを `TutorialAnchorRegistry.subscribe` で解決し（ハイライトと同じ購読機構・ackはハイライトのみで矢印は送らない）、両方 `ready` のときだけ矢印を描く:
 
@@ -918,17 +918,17 @@ guide用の解決購読は専用の `useEffect` で束ねる（ackは送らな�
   --tutorial-drag-guide-duration: 1600ms;
 ```
 
-- [ ] **Step 7: テスト実行**
+- [x] **Step 7: テスト実行**
 
 Run: `cd moorestech_web/webui && npx vitest run src/shared/tutorialAnchor src/bridge src/features/tutorial`
 Expected: 全件PASS（TutorialOverlayのテストが `dragGuides` 欠落フィクスチャで落ちる場合は `dragGuides: []` を追加）
 
-- [ ] **Step 8: lint/型チェック**
+- [x] **Step 8: lint/型チェック**
 
 Run: `cd moorestech_web/webui && npx tsc --noEmit && npx eslint src/features/tutorial src/shared/tutorialAnchor src/features/hotbar`
 Expected: エラー0件
 
-- [ ] **Step 9: コミット**
+- [x] **Step 9: コミット**
 
 ```bash
 git add .agents/skills/webui-design/SKILL.md moorestech_web/webui
@@ -947,7 +947,7 @@ git commit -m "feat: WebUIにD&D説明のドラッグガイド矢印とホット
 - Consumes: Task 1のスキーマ（completeResearch / uiDragGuide）、Task 3のuiObjectId書式（`buildMenuBlock:<guid>` / `researchNode:<guid>` / `hotbar` / `challengeHud`）
 - Produces: 24件直列の新チャレンジ実データ
 
-- [ ] **Step 1: generate_challenges.py のヘルパを追加・変更**
+- [x] **Step 1: generate_challenges.py のヘルパを追加・変更**
 
 既存ヘルパ群（`pin`/`ui`/`iv`/`key`）を以下へ変更。`key` ヘルパは削除する（keyControl全廃・Requirement 4）:
 
@@ -967,7 +967,7 @@ def research_node_ui(name, text): return ('uiHighLight', {
 
 ※ 既存の `ui('クラフトボタンで作成')` 呼び出しは `ui('craftButton', 'クラフトボタンで作成')` へ書き換える。`drag` の `text` 引数はスキーマに文言フィールドが無いため未使用（呼び出し側の可読性用）。
 
-- [ ] **Step 2: CHALLENGES 表を24件へ全面書き換え**
+- [x] **Step 2: CHALLENGES 表を24件へ全面書き換え**
 
 タスク種別 `'research'` を導入し、表全体を以下へ置換（ADR 0016 §2の並び。既存文言は維持し、変更点のみ差し替え）:
 
@@ -1014,7 +1014,7 @@ CHALLENGES = [
 ]
 ```
 
-- [ ] **Step 3: 'research' タスク種別の出力と検証を追加**
+- [x] **Step 3: 'research' タスク種別の出力と検証を追加**
 
 構築ループのtaskParam分岐へ追加:
 
@@ -1035,7 +1035,7 @@ for title, _, task, target, _, _, _ in CHALLENGES:
     ...
 ```
 
-- [ ] **Step 4: 再生成して差分確認**
+- [x] **Step 4: 再生成して差分確認**
 
 ```bash
 cd ../moorestech_master && python3 tools/tutorial_v3_port/generate_challenges.py
@@ -1051,7 +1051,7 @@ print([c['taskCompletionType'] for c in chs if c['taskCompletionType']=='complet
 ```
 Expected: 24件。研究チャレンジ4件が`completeResearch`。keyControlが0件（`grep -c keyControl` で確認）。直列（各prevChallengeGuidsが直前1件）はジェネレータ構造上保証される。
 
-- [ ] **Step 5: サーバー側マスタ検証テストで実マスタを照合**
+- [x] **Step 5: サーバー側マスタ検証テストで実マスタを照合**
 
 moorestechリポジトリ側で:
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "TutorialAnchorContractTest|ChallengeMasterValidation"`
@@ -1059,7 +1059,7 @@ Expected: 全件PASS（`AllModHighLightUIObjectIdsAreKnownToMapper` が新ID `ch
 
 ※ 旧バージョンmod（server_v4〜v7等）のchallenges.jsonに未知のuiObjectIdが残っていて落ちる場合は、そのIDをマッパーへ追加するのではなく、テストの収集対象が旧modを含む仕様のままで良いか実データを確認し、実際に使われていない残骸ならユーザーへ報告して裁定を仰ぐ。
 
-- [ ] **Step 6: moorestech_master をコミット**
+- [x] **Step 6: moorestech_master をコミット**
 
 ```bash
 cd ../moorestech_master
@@ -1071,22 +1071,22 @@ git commit -m "feat: チュートリアルを研究同期構成へ再編する�
 
 ### Task 7: 統合検証（コンパイル・全テスト・目視QA）
 
-- [ ] **Step 1: フルコンパイル**
+- [x] **Step 1: フルコンパイル**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
 
-- [ ] **Step 2: サーバー/クライアントEditModeテスト**
+- [x] **Step 2: サーバー/クライアントEditModeテスト**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Challenge|Research|Tutorial"`
 Expected: 全件PASS
 
-- [ ] **Step 3: WebUIテストスイート**
+- [x] **Step 3: WebUIテストスイート**
 
 Run: `cd moorestech_web/webui && npx vitest run`
 Expected: 既存赤（既知のロケール起因10件・moorestech-2lh.1）以外は全件PASS
 
-- [ ] **Step 4: 目視QA（webui-design §10）**
+- [x] **Step 4: 目視QA（webui-design §10）**
 
 mock-host（`e2e/capture-eval.ts` の様式）でビルドメニュー+ホットバーを表示し、dragGuide入りの `tutorial.presentation` を再現してスクリーンショット撮影。確認項目:
 1. 矢印がビルドメニューの対象エントリ中心→ホットバー中心へループ移動する
@@ -1094,11 +1094,11 @@ mock-host（`e2e/capture-eval.ts` の様式）でビルドメニュー+ホット
 3. チャレンジHUDのuiHighLight枠線が左上HUDに重なる
 4. `pointer-events` が素通し（矢印上でもクリック可能）
 
-- [ ] **Step 5: unityプレイ録画テストで通し確認（推奨）**
+- [x] **Step 5: unityプレイ録画テストで通し確認（推奨）**
 
 unity-playmode-recorded-playtest スキルのプレイテストDSLで、新規ワールド開始→スキット送り→小石3個→（チートまたは実操作で）原始研究1完了→チャレンジHUDの進行を録画で確認する。masterデータはブランチ互換コミットへピン留めしたworktreeを使う（スキーマ不整合はMooresmasterLoaderExceptionで無言死するため必須）。
 
-- [ ] **Step 6: コミット（残作業があれば）**
+- [x] **Step 6: コミット（残作業があれば）**
 
 ```bash
 git status --short && git add -A && git commit -m "test: 研究同期チュートリアルの統合検証を通す"
@@ -1108,7 +1108,7 @@ git status --short && git add -A && git commit -m "test: 研究同期チュー�
 
 ### Task 8: 全ブランチレビュー（省略不可）
 
-- [ ] **必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
+- [x] **必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
 
 moores-code-review スキルを起動し、本ブランチの全変更（moorestech_master側の変更も対象に含める）をレビューする。指摘の機械的修正を適用し、設計判断はAskUserQuestionで裁定を仰ぐ。
 

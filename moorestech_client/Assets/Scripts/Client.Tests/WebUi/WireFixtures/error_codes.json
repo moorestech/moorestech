@@ -30,6 +30,7 @@
     "intent_not_allowed",
     "unknown_choice",
     "blueprint_delete_not_found",
+    "blueprint_delete_not_unlocked",
     "blueprint_delete_request_failed"
   ]
 }

@@ -19,7 +19,7 @@ namespace Client.Game.InGame.Map.MapObject
     ///     mapObjectをLayout応答から実行時Instantiateし、破壊/HPの状態同期を担うデータストア
     ///     Instantiates map objects at runtime from the layout response and keeps their destroy/HP state synced
     /// </summary>
-    public class MapObjectGameObjectDatastore : MonoBehaviour, IInitialEventApplyWaitTarget, ISkitMapObjectControl
+    public class MapObjectGameObjectDatastore : MonoBehaviour, IInitialEventApplyWaitTarget, ISkitWorldObjectControl
     {
         // 2011個規模の起動スパイクを避けるためこの個数ごとにフレームを跨ぐ
         // Cross a frame every this many objects to avoid a startup spike at the ~2011-object scale

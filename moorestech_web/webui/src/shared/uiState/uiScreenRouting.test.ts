@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { screenAllowsGrab, screenForUiState, type UiScreen } from "./uiScreenRouting";
+import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud, type UiScreen } from "./uiScreenRouting";
 
 describe("screenForUiState", () => {
   it("PlayerInventory はインベントリ画面", () => {
@@ -49,5 +49,25 @@ describe("screenAllowsGrab", () => {
 
   it.each(Object.entries(expectations))("%s の grab 成立可否は %s", (screen, allowed) => {
     expect(screenAllowsGrab(screen as UiScreen)).toBe(allowed);
+  });
+});
+
+describe("screenShowsAlwaysOnHud", () => {
+  // 常時表示族を引っ込めるのは研究画面のみ
+  // Only the research screen withdraws the always-on family
+  const expectations: Record<UiScreen, boolean> = {
+    none: true,
+    playerInventory: true,
+    subInventory: true,
+    researchTree: false,
+    buildMenu: true,
+    challengeList: true,
+    pauseMenu: true,
+    trainHud: true,
+    trainPause: true,
+  };
+
+  it.each(Object.entries(expectations))("%s の常時表示HUD可否は %s", (screen, shown) => {
+    expect(screenShowsAlwaysOnHud(screen as UiScreen)).toBe(shown);
   });
 });

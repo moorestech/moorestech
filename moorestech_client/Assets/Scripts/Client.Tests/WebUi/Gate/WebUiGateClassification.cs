@@ -110,6 +110,8 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/Tutorial/BlockPlacePreviewTutorialManager.cs", Category.Excluded, "3D配置previewのためUnity残置"),
             new Rule("Client.Game/InGame/Tutorial/TutorialBlock", Category.Excluded, "3D配置preview配下"),
             new Rule("Client.Game/InGame/Tutorial", Category.Infra, "challenge lifecycle・presentation state・interface"),
+            new Rule("Client.Game/Skit/SkitWorldObjectControlGroup.cs", Category.Excluded, "Environment外のワールド表示物を束ねる切替でスクリーンUIを持たない"),
+            new Rule("Client.Game/Skit/SkitVisibilityLedger.cs", Category.Excluded, "スキットが消したワールド表示の復元台帳でスクリーンUIを持たない"),
             new Rule("Client.Skit", Category.CoveredByRoot, "SkitManagerがUI Toolkit rootをWebモード時に抑止 (C4/S2-S3)"),
             new Rule("Client.CutScene", Category.Pending, "C4: カットシーン退避（GameStateType Topic化）"),
         };

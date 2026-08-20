@@ -57,7 +57,7 @@ export type ActionPayloads = {
   "train_platform.set_transfer_mode": { mode: "loadToTrain" | "unloadToPlatform" };
   "debug.echo": { hello: string };
   "tutorial.anchor_ack": {
-    tutorialSessionId: string; revision: number; highlightId: string; anchorId: string;
+    tutorialSessionId: string; revision: number; elementId: string; anchorId: string;
     status: "ready" | "not-found" | "hidden";
     reason: "mounted" | "missing" | "duplicate-anchor" | "display-none" | "visibility-hidden" | "aria-hidden" | "zero-area" | "outside-viewport";
   };

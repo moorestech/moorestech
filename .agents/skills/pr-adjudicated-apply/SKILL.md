@@ -137,7 +137,14 @@ subagentの報告（コンフリクトなし／解消済み／解消不能）へ
 - 「コンフリクトなし」→ そのままStep 4へ進む
 - 「解消済み」→ マージコミットSHAをStep 7の `summary` に記録し（`pushed_commits` にも含める）、Step 4へ進む。
   解消内容の再検証・diff閲覧は行わない（Step 5のコンパイル・テストが実効的な検証になる）
-- 「解消不能」→ 失敗として終了する（summaryに解消不能ファイルを記載）
+- 「解消不能」→ 失敗として終了する（summaryに解消不能ファイルを記載）。
+  ただし**報告された解消不能ファイルが機械生成・緩い運用のファイルだけ**の場合
+  （`.moorestech-external-revisions.json` / `_CompileRequester.cs` / `moorestech_client/.uloop/tools.json` /
+  `.superpowers/**`・`docs/superpowers/**` の記録類）は、subagentがreferenceの
+  「機械的に解消するファイル」節を守れていない。失敗させず、その節の解消方法を明示した指示で
+  **subagentを1回だけ再発火する**。再発火後もなお同じ報告なら失敗として終了する
+  — 外部リビジョンピンの分岐はapplyの中止理由にしない（ユーザー裁定 2026-08-19。
+  `.decisions/2026-08-19-applyのピン衝突はPR側を採って続行する.md`）
 
 ## Step 4: 修正実装
 

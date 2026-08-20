@@ -147,5 +147,6 @@ namespace Server.Protocol.PacketResponse
         NotFound = 3,
         UnknownOperation = 4,
         InvalidRequest = 5,
+        NotUnlocked = 6,
     }
 }

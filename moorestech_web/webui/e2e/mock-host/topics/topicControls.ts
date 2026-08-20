@@ -80,17 +80,23 @@ const controls = {
   // Reset hook for spec teardown
   notificationClear: () => control(Topics.notification, {}),
   tutorialOutline: () => control(Topics.tutorialPresentation, {
-    tutorialSessionId: "tutorial-session-1", revision: 1, challengeId: "tutorial-challenge-1",
-    highlights: [{
-      highlightId: "tutorial-highlight-1",
-      anchorId: "game.crosshair",
-      kind: "outline" as const,
-      paddingPx: 8, blocksPointerInput: false,
+    revision: 1,
+    sessions: [{
+      tutorialSessionId: "tutorial-session-1", challengeId: "tutorial-challenge-1",
+      elements: [{
+        kind: "outline" as const,
+        elementId: "tutorial-highlight-1",
+        anchorId: "game.crosshair",
+        paddingPx: 8, blocksPointerInput: false,
+      }],
     }],
   }),
-  tutorialEmpty: () => control(Topics.tutorialPresentation, {
-    tutorialSessionId: "", revision: 0, challengeId: "", highlights: [],
-  }),
+  tutorialEmpty: () => control(Topics.tutorialPresentation, { revision: 0, sessions: [] }),
+  // DEMO時のinventory topicはdemoInventory(itemId1=木材を含まない)へ差し替わるため、
+  // 研究ツリーfixtureが前提とする所持itemId1×15を復元する（研究可能状態の目視QA用）
+  // The demo-mode inventory topic swaps to demoInventory (no itemId1/wood), so restore the
+  // owned itemId1×15 the research tree fixture assumes (needed for the researchable-state visual QA)
+  researchOwnedItems: () => control(Topics.inventory, clone(fx.inventory)),
 };
 export type TopicScenario = keyof typeof controls;
 

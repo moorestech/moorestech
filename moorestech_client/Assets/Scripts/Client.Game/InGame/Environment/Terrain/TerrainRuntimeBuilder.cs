@@ -58,10 +58,6 @@ namespace Client.Game.InGame.Environment.Terrain
             else
                 await BuildGeneratedTerrainAsync();
 
-            // 露頭生成はこの直後に地表へレイキャストを飛ばす。新しいコライダーを物理シーンへ確実に反映させる
-            // Outcrop instantiation raycasts the ground right after this, so the new colliders are pushed into the physics scene
-            Physics.SyncTransforms();
-
             #region Internal
 
             // templateは地形バイナリを持たないワールド。見た目は従来どおりオーサリング済みTerrainDataのまま

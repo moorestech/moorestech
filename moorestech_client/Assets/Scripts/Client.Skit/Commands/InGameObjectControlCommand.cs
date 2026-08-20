@@ -13,7 +13,9 @@ namespace CommandForgeGenerator.Command
         void SetActive(bool enable);
     }
 
-    public interface ISkitMapObjectControl
+    // Environment外世界オブジェクトの表示窓口
+    // Visibility entry point for world objects placed outside Environment, such as map objects, outcrops, and trains
+    public interface ISkitWorldObjectControl
     {
         void SetActive(bool enable);
     }
@@ -30,9 +32,9 @@ namespace CommandForgeGenerator.Command
             storyContext.GetService<ISkitEnvironmentRoot>().SetActive(BackgroundEnable);
             storyContext.GetService<ISkitBlockObjectControl>().SetActive(BlockEnable);
 
-            // mapObjectとエンティティはEnvironment外に生成されるため個別に消す
-            // Map objects and entities live outside Environment, so hide them individually
-            storyContext.GetService<ISkitMapObjectControl>().SetActive(MapObjectEnable);
+            // mapObject・露頭・列車・エンティティはEnvironment外に生成されるため個別に消す
+            // Map objects, outcrops, trains, and entities live outside Environment, so hide them individually
+            storyContext.GetService<ISkitWorldObjectControl>().SetActive(WorldObjectEnable);
             storyContext.GetService<ISkitEntityObjectControl>().SetActive(EntityEnable);
             return null;
         }

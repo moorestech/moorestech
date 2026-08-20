@@ -30,6 +30,10 @@ return PlaytestRunner.Run("blueprint-right-click-delete-via-ui", options, async 
     p.PlaceBlockDirect("木のチェスト", chestPos, BlockDirection.North);
     await p.WaitBlockGameObject(chestPos);
 
+    // BP機能を解放（未解放時メニュー非表示）
+    // Unlock the blueprint feature (otherwise it never appears in the build menu)
+    p.Hotbar.UnlockBlueprint();
+
     // BPコピーツールを選択しドラッグでBP「delbp」を作成する
     // Select the copy tool and create blueprint "delbp" via drag
     await OpenBuildMenuAndClickTextSlot("ブループリントコピー", "01-menu-copy-tool");

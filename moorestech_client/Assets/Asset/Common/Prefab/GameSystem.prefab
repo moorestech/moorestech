@@ -522,6 +522,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4663746090568947687}
+  - {fileID: 7419827495625904718}
   m_Father: {fileID: 8466354111555762101}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4643187565465294795
@@ -568,6 +569,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8f1609c5798421f8f472e2360118295, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &5874460757428069273
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7419827495625904718}
+  - component: {fileID: 8694145142195592791}
+  m_Layer: 0
+  m_Name: UiDragGuideTutorialManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7419827495625904718
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5874460757428069273}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1860740779786800095}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8694145142195592791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5874460757428069273}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20e63865dc3174710ac9ad83914d0140, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Tutorial.UIHighlight.UiDragGuideTutorialManager
 --- !u!1 &5911380220449400823
 GameObject:
   m_ObjectHideFlags: 0
@@ -773,9 +818,9 @@ MonoBehaviour:
   gameStateController: {fileID: 6089311176537732676}
   blockGameObjectDataStore: {fileID: 8650265669030383555}
   mapObjectGameObjectDatastore: {fileID: 2378660713236389372}
-  mapVeinObjectDatastore: {fileID: 0}
+  outcropGameObjectDatastore: {fileID: 0}
   environmentRoot: {fileID: 0}
-  mapObjectMiningController: {fileID: 6370490414090957468}
+  miningController: {fileID: 6370490414090957468}
   playerSystemContainer: {fileID: 9095410978574352372}
   entityObjectDatastore: {fileID: 9004822369202094949}
   trainCarObjectDatastore: {fileID: 7885969649220293225}
@@ -793,10 +838,12 @@ MonoBehaviour:
   challengeListView: {fileID: 3927056720062408772}
   researchTreeViewManager: {fileID: 6041840377622776724}
   mapObjectPin: {fileID: 467412427984320023}
+  veinPin: {fileID: 0}
   uiHighlightTutorialManager: {fileID: 3842753579192151890}
   keyControlTutorialManager: {fileID: 6070939093797517548}
   itemViewHighLightTutorialManager: {fileID: 5778655673289165689}
   blockPlacePreviewTutorialManager: {fileID: 7928357057976155080}
+  uiDragGuideTutorialManager: {fileID: 8694145142195592791}
   previewBlockController: {fileID: 5250938589678043889}
   railConnectPreviewObject: {fileID: 8373410826899010315}
   saveButton: {fileID: 773343225977944571}

@@ -68,6 +68,7 @@ using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Skit.UI;
+using CommandForgeGenerator.Command;
 using Core.Item.Interface;
 using Game.Context;
 using Game.PlayerRiding.Interface;
@@ -133,6 +134,7 @@ namespace Client.Starter
         [SerializeField] private KeyControlTutorialManager keyControlTutorialManager;
         [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
         [SerializeField] private BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager;
+        [SerializeField] private UiDragGuideTutorialManager uiDragGuideTutorialManager;
         
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
@@ -304,8 +306,8 @@ namespace Client.Starter
             // register component on hierarchy
             builder.RegisterComponent(gameStateController);
             builder.RegisterComponent(blockGameObjectDataStore);
-            builder.RegisterComponent(mapObjectGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
-            builder.RegisterComponent(outcropGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
+            builder.RegisterComponent(mapObjectGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>().As<ISkitWorldObjectControl>();
+            builder.RegisterComponent(outcropGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>().As<ISkitWorldObjectControl>();
             builder.RegisterComponent(environmentRoot);
             
             builder.RegisterComponent(mainCamera);
@@ -321,7 +323,7 @@ namespace Client.Starter
             builder.RegisterComponent(miningController);
             
             builder.RegisterComponent(entityObjectDatastore);
-            builder.RegisterComponent(trainCarObjectDatastore);
+            builder.RegisterComponent(trainCarObjectDatastore).AsSelf().As<ISkitWorldObjectControl>();
             builder.RegisterComponent(playerInventoryViewController);
             builder.RegisterComponent(challengeManager);
             builder.RegisterComponent(craftInventoryView);
@@ -338,6 +340,7 @@ namespace Client.Starter
             builder.RegisterComponent(keyControlTutorialManager);
             builder.RegisterComponent(itemViewHighLightTutorialManager);
             builder.RegisterComponent(blockPlacePreviewTutorialManager);
+            builder.RegisterComponent(uiDragGuideTutorialManager);
             
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager).As<IInitializable>();
@@ -348,7 +351,7 @@ namespace Client.Starter
             
             builder.RegisterComponent<IPlacementPreviewBlockGameObjectController>(previewBlockController);
             builder.RegisterComponent(railConnectPreviewObject);
-            builder.RegisterComponent(trainRailObjectManager);
+            builder.RegisterComponent(trainRailObjectManager).AsSelf().As<ISkitWorldObjectControl>();
             builder.RegisterComponent(trainCarObjectPreviewController);
             
             builder.RegisterBuildCallback(objectResolver => { });

@@ -17,6 +17,7 @@ items:
     - unlockMachineRecipe
     - unlockBlock
     - unlockConnectTool
+    - unlockBlueprint
     - unlockTrainCar
     - playSkit
     - playBackgroundSkit
@@ -89,6 +90,10 @@ items:
             schemaId: buildMenu
             foreignKeyIdPath: /connectTools/[*]/connectToolGuid
             displayElementPath: /connectTools/[*]/name
+    - when: unlockBlueprint
+      type: object
+      isDefaultOpen: true
+      properties: []
     - when: unlockTrainCar
       type: object
       isDefaultOpen: true

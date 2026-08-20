@@ -4,6 +4,7 @@ using Core.Master;
 using Game.UnlockState.Holders;
 using Game.UnlockState.States;
 using Newtonsoft.Json;
+using UniRx;
 
 namespace Game.UnlockState
 {
@@ -18,6 +19,7 @@ namespace Game.UnlockState
         private readonly BlockUnlockStateHolder _block = new();
         private readonly TrainCarUnlockStateHolder _trainCar = new();
         private readonly ConnectToolUnlockStateHolder _connectTool = new();
+        private readonly BlueprintUnlockStateHolder _blueprint = new();
 
         public IObservable<Guid> OnUnlockCraftRecipe => _craftRecipe.OnUnlock;
         public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos => _craftRecipe.Infos;
@@ -47,6 +49,10 @@ namespace Game.UnlockState
         public IReadOnlyDictionary<Guid, ConnectToolUnlockStateInfo> ConnectToolUnlockStateInfos => _connectTool.Infos;
         public void UnlockConnectTool(Guid connectToolGuid) => _connectTool.Unlock(connectToolGuid);
 
+        public IObservable<Unit> OnUnlockBlueprint => _blueprint.OnUnlock;
+        public bool IsBlueprintUnlocked => _blueprint.IsUnlocked;
+        public void UnlockBlueprint() => _blueprint.Unlock();
+
         #region SaveLoad
 
         public void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject)
@@ -58,6 +64,7 @@ namespace Game.UnlockState
             _block.Load(stateJsonObject.BlockUnlockStateInfos);
             _trainCar.Load(stateJsonObject.TrainCarUnlockStateInfos);
             _connectTool.Load(stateJsonObject.ConnectToolUnlockStateInfos);
+            _blueprint.Load(stateJsonObject.BlueprintUnlockState);
         }
 
         public GameUnlockStateJsonObject GetSaveJsonObject()
@@ -71,6 +78,7 @@ namespace Game.UnlockState
                 BlockUnlockStateInfos = _block.GetSaveJsonObject(),
                 TrainCarUnlockStateInfos = _trainCar.GetSaveJsonObject(),
                 ConnectToolUnlockStateInfos = _connectTool.GetSaveJsonObject(),
+                BlueprintUnlockState = _blueprint.GetSaveJsonObject(),
             };
         }
 
@@ -86,5 +94,6 @@ namespace Game.UnlockState
         [JsonProperty("blockUnlockStateInfos")] public List<BlockUnlockStateInfoJsonObject> BlockUnlockStateInfos;
         [JsonProperty("trainCarUnlockStateInfos")] public List<TrainCarUnlockStateInfoJsonObject> TrainCarUnlockStateInfos;
         [JsonProperty("connectToolUnlockStateInfos")] public List<ConnectToolUnlockStateInfoJsonObject> ConnectToolUnlockStateInfos;
+        [JsonProperty("blueprintUnlockState")] public BlueprintUnlockStateInfoJsonObject BlueprintUnlockState;
     }
 }

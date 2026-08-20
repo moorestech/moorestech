@@ -24,7 +24,7 @@ namespace Tests.UnitTest.Core.Block
 
         private static JToken CreateJson(string categoriesJson)
         {
-            var json = JToken.Parse($@"{{""categories"":[{categoriesJson},{NonBlockCategories}],""connectTools"":[],""buildTools"":[]}}");
+            var json = JToken.Parse($@"{{""blueprintInitialUnlocked"":false,""categories"":[{categoriesJson},{NonBlockCategories}],""connectTools"":[],""buildTools"":[]}}");
             AddRequiredGuids(json);
             return json;
         }
@@ -65,7 +65,7 @@ namespace Tests.UnitTest.Core.Block
         [Test]
         public void 非ブロックentrySourceの欠落はバリデーションで失敗する()
         {
-            var json = JToken.Parse(@"{""categories"":[
+            var json = JToken.Parse(@"{""blueprintInitialUnlocked"":false,""categories"":[
                 {""name"":""採掘"",""subCategories"":[{""name"":""採掘機"",""entrySource"":""blocks""}]}],""connectTools"":[],""buildTools"":[]}");
             AddRequiredGuids(json);
             var master = new BuildMenuCategoryMaster(json);
@@ -107,7 +107,7 @@ namespace Tests.UnitTest.Core.Block
         [Test]
         public void categoryGuid欠落はローダーで拒否する()
         {
-            var json = JToken.Parse(@"{""categories"":[
+            var json = JToken.Parse(@"{""blueprintInitialUnlocked"":false,""categories"":[
                 {""name"":""採掘"",""subCategories"":[
                     {""subCategoryGuid"":""20000000-0000-4000-8000-000000000001"",""name"":""採掘機"",""entrySource"":""blocks""}]}],
                 ""connectTools"":[],""buildTools"":[]}");

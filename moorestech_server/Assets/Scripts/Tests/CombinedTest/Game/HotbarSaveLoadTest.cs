@@ -7,6 +7,7 @@ using Game.Blueprint;
 using Game.Hotbar;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -31,6 +32,7 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
             var blockGuid = ResolvableBlockGuid();
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlock(blockGuid);
 
             datastore.SetAssignment(PlayerId, 4, blockGuid);
             var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
@@ -65,11 +67,14 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
             var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
+            var unlockState = serviceProvider.GetService<IGameUnlockStateDataController>();
+            unlockState.UnlockBlueprint();
 
             var blueprintGuid = Guid.Parse("70000000-0000-4000-8000-000000000001");
             blueprintDatastore.Register(new BlueprintJsonObject("starter-base", new List<BlueprintBlockJsonObject>(), blueprintGuid));
 
             var blockGuid = ResolvableBlockGuid();
+            unlockState.UnlockBlock(blockGuid);
             datastore.SetAssignment(PlayerId, 0, blueprintGuid);
             datastore.SetAssignment(PlayerId, 1, blockGuid);
 

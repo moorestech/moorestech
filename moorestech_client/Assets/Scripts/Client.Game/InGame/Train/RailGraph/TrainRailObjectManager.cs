@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
 using Game.Train.RailGraph;
 using Game.Train.RailCalc;
@@ -10,7 +11,7 @@ namespace Client.Game.InGame.Train.RailGraph
     ///     レールキャッシュ更新に追従するランタイム描画を管理するクラス
     ///     Manages runtime line renderers driven directly by rail cache updates
     /// </summary>
-    public sealed class TrainRailObjectManager : MonoBehaviour
+    public sealed class TrainRailObjectManager : MonoBehaviour, ISkitWorldObjectControl
     {
         public static TrainRailObjectManager Instance { get; private set; }
         [SerializeField] private BezierRailChain _railPrefab;
@@ -37,6 +38,13 @@ namespace Client.Game.InGame.Train.RailGraph
                 }
             }
             _railObjs.Clear();
+        }
+
+        // レール描画は自身の配下に生成されるため、スキット中は根ごと消す
+        // Rail renderers are created under this transform, so a skit hides them at the root
+        public void SetActive(bool enable)
+        {
+            gameObject.SetActive(enable);
         }
 
         internal void OnCacheRebuilt(RailGraphClientCache cache)

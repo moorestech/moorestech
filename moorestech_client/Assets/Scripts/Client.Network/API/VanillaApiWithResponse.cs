@@ -211,15 +211,22 @@ namespace Client.Network.API
             var request = new GetGameUnlockStateProtocol.RequestGameUnlockStateProtocolMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<GetGameUnlockStateProtocol.ResponseGameUnlockStateProtocolMessagePack>(request, ct);
 
-            // Pass challenge unlock data to the response constructor
             return new UnlockStateResponse(
-                response.LockedCraftRecipeGuids, response.UnlockedCraftRecipeGuids,
-                response.LockedItemIds, response.UnlockedItemIds,
-                response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids,
-                response.LockedMachineRecipeGuids, response.UnlockedMachineRecipeGuids,
-                response.LockedBlockGuids, response.UnlockedBlockGuids,
-                response.LockedTrainCarGuids, response.UnlockedTrainCarGuids,
-                response.LockedConnectToolGuids, response.UnlockedConnectToolGuids);
+                lockedCraftRecipeGuids: response.LockedCraftRecipeGuids,
+                unlockedCraftRecipeGuids: response.UnlockedCraftRecipeGuids,
+                lockedItemIds: response.LockedItemIds,
+                unlockedItemIds: response.UnlockedItemIds,
+                lockedChallengeCategoryGuids: response.LockedCategoryChallengeGuids,
+                unlockedChallengeCategoryGuids: response.UnlockedCategoryChallengeGuids,
+                lockedMachineRecipeGuids: response.LockedMachineRecipeGuids,
+                unlockedMachineRecipeGuids: response.UnlockedMachineRecipeGuids,
+                lockedBlockGuids: response.LockedBlockGuids,
+                unlockedBlockGuids: response.UnlockedBlockGuids,
+                lockedTrainCarGuids: response.LockedTrainCarGuids,
+                unlockedTrainCarGuids: response.UnlockedTrainCarGuids,
+                lockedConnectToolGuids: response.LockedConnectToolGuids,
+                unlockedConnectToolGuids: response.UnlockedConnectToolGuids,
+                isBlueprintUnlocked: response.IsBlueprintUnlocked);
         }
 
         public async UniTask<Dictionary<Guid, ResearchNodeState>> GetResearchNodeStates(CancellationToken ct)

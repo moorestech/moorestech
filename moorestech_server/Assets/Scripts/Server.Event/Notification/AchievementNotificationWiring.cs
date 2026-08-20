@@ -52,6 +52,8 @@ namespace Server.Event.Notification
                 NotificationMessagePack.CreateAchievement("achievement.unlockedTrainCar", Array.Empty<string>())));
             _unlockState.OnUnlockConnectTool.Subscribe(_ => _notificationService.NotifyAll(
                 NotificationMessagePack.CreateAchievement("achievement.unlockedConnectTool", Array.Empty<string>())));
+            _unlockState.OnUnlockBlueprint.Subscribe(_ => _notificationService.NotifyAll(
+                NotificationMessagePack.CreateAchievement("achievement.unlockedBlueprint", Array.Empty<string>())));
         }
     }
 }
