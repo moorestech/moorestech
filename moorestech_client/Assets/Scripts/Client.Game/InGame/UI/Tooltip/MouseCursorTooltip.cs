@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.UI.UIState;
 using Mooresmaster.Localization.Generated;
 using UniRx;
@@ -73,7 +74,11 @@ namespace Client.Game.InGame.UI.Tooltip
         }
     }
 
-    public readonly struct TooltipPresentation
+    /// <summary>
+    ///     表示内容が同じなら同値として扱い、毎フレーム作り直される配列で変化通知が湧かないようにする
+    ///     Equal content compares equal, so the array rebuilt every frame never raises a change notification
+    /// </summary>
+    public readonly struct TooltipPresentation : IEquatable<TooltipPresentation>
     {
         public static readonly TooltipPresentation Hidden =
             new(false, "", Array.Empty<string>());
@@ -87,6 +92,23 @@ namespace Client.Game.InGame.UI.Tooltip
             Visible = visible;
             TextKey = textKey;
             TextParams = textParams;
+        }
+
+        public bool Equals(TooltipPresentation other)
+        {
+            return Visible == other.Visible && TextKey == other.TextKey && TextParams.SequenceEqual(other.TextParams);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is TooltipPresentation other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            var hash = HashCode.Combine(Visible, TextKey, TextParams.Count);
+            foreach (var textParam in TextParams) hash = HashCode.Combine(hash, textParam);
+            return hash;
         }
     }
 }
