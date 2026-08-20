@@ -1,14 +1,17 @@
 # commit-guardはsakastudio機でのみ発火させる
 
 決定:
-1. `.dev-hooks/commit-guard.mjs` の冒頭で `os.homedir()` を見て、`/Users/sakastudio` 以外のマシンでは即 bail（無検査で通す）
+1. `.dev-hooks/commit-guard.mjs` の冒頭で `os.userInfo().username` を見て、`sakastudio` 以外のマシンでは即 bail（無検査で通す）
 2. 絞り込みの軸は「検知パターン」ではなく「発火マシン」。他マシンではメール・秘密情報・transcript痕跡・ローカル専用パスの検知も含めてガード全体が沈黙する
 3. 他マシンで意図的に有効化する環境変数などの逃げ道は設けない（必要になったら再裁定）
 
 棄却案:
 - 個人パス検知の正規表現を `/(Users|home)/<任意名>/` から `/Users/sakastudio/` へ狭める（発火マシンを絞らない案。現マシンのhomeは `/Users/katsumi` なので効果が逆で、tracked内に101件ある sakastudio パスを含むファイルは今後もステージのたびブロックされ、今回の誤検知が再発する）
 - 発火マシンとパターンの両方を絞る（マシンを絞れば残りは冗長）
+- 判定を `os.homedir() !== "/Users/sakastudio"` で行う（`homedir()` は `$HOME` をそのまま返すため、無人レビューのcmux起動など `HOME=…` を明示するセッションでは mac mini 上でもガードが黙って無効化される沈黙故障になる）
+- `os.hostname()` で判定する（ネットワーク環境で `.local` の有無が揺れ、設定で変更されうる）
 
 理由: ガードは差分ではなくステージされた最終コンテンツを走査する設計のため、既に origin/master に存在する個人パスを含むファイルがマージ等でステージに乗るだけで毎回ブロックする。tracked 内には既に `/Users/sakastudio/` が101件・`/Users/katsumi/` が20件露出しており、漏洩防止としては事後で、実態は誤検知装置になっていた。運用の実感（mac mini 限定のつもりだった）に実装を合わせ、守りたい1台だけで動かす。
 
 出所: ユーザー裁定 2026-08-20 原文「じゃあ /Users/sakastudio/ 限定にして」→ AskUserQuestion「限定の対象」で選択「発火マシンを絞る」
+出所: ユーザー裁定 2026-08-21 AskUserQuestion「マシン判定軸」で選択「実ユーザー名で判定」

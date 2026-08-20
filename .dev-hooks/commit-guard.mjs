@@ -7,7 +7,7 @@
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { userInfo } from "node:os";
 import { resolve } from "node:path";
 
 function bail() {
@@ -16,7 +16,9 @@ function bail() {
 
 // 守る対象はsakastudio機の1台のみ。他マシンでは一切検査しない
 // Only the sakastudio machine is guarded; every other machine skips inspection entirely.
-if (homedir() !== "/Users/sakastudio") bail();
+// HOME差し替え起動でも沈黙しないよう、$HOMEでなく実ユーザー名で判定する
+// Identify by the real user name rather than $HOME so a HOME-overridden launch cannot silence the guard.
+if (userInfo().username !== "sakastudio") bail();
 
 // 外部境界: フック標準入力のJSONパース失敗はfail open
 // External boundary: fail open when parsing the hook stdin JSON fails.
