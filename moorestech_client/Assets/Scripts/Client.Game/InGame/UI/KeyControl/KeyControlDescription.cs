@@ -12,7 +12,6 @@ namespace Client.Game.InGame.UI.KeyControl
 
         [SerializeField] private TMP_Text keyControlText;
         private string _defaultText = "";
-        private string _overrideText;
 
         private void Awake()
         {
@@ -25,21 +24,9 @@ namespace Client.Game.InGame.UI.KeyControl
             RefreshText();
         }
 
-        public void SetOverrideText(string text)
-        {
-            _overrideText = text;
-            RefreshText();
-        }
-
-        public void ClearOverrideText()
-        {
-            _overrideText = null;
-            RefreshText();
-        }
-
         private void RefreshText()
         {
-            var text = _overrideText ?? _defaultText;
+            var text = _defaultText;
             if (keyControlText != null)
             {
                 keyControlText.text = text;
