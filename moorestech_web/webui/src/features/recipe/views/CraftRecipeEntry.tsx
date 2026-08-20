@@ -86,7 +86,7 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
             {t(L.ui.recipe.craftButtonLabel)}
           </Button>
         )}
-        result={<ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} />}
+        result={[<ItemSlot key="result" itemId={recipe.resultItemId} count={recipe.resultCount} />]}
       />
     </Box>
   );

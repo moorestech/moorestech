@@ -243,9 +243,11 @@
   /* クラフトボタンと機械情報行が共有する行高。片方だけ変わると単一リストの縦リズムが崩れる */
   /* Row height shared by the craft button and the machine info row; changing one alone breaks the list rhythm */
   --recipe-action-button-height: 19px;
-  /* クラフトボタンの幅。矢印幅の約2.1倍という正本比率で決めるためエントリ全幅には追随しない */
-  /* Craft button width; fixed at the reference's ~2.1x arrow-width ratio, so it never tracks the entry width */
-  --recipe-craft-button-width: calc(var(--craft-arrow-width) * 2.1);
+  /* クラフトボタンの幅。矢印を枠の中心へ固定したまま素材2点をフルサイズで置ける上限が矢印幅の1.5倍
+     （ユーザー裁定 2026-08-20）。広げると左右の枠が痩せて素材が縮むため、単独で上げてはいけない */
+  /* Craft button width; 1.5x the arrow is the widest that still fits two full-size material slots while the
+     arrow stays centered (user ruling 2026-08-20). Raising it alone starves the side tracks and shrinks slots */
+  --recipe-craft-button-width: calc(var(--craft-arrow-width) * 1.5);
   /* 矢印の真上に置く所要秒数の文字寸法 */
   /* Font size of the duration text sitting above the arrow */
   --recipe-duration-text-size: 13px;
@@ -265,12 +267,22 @@
      スロット幅ではなくそのテキストが隣へ届かない距離で決める（8pxでは"0/2"と"100/1"が接触した） */
   /* Gap between recipe-row slots; the owned/required text bleeds outside each slot's bottom-right, so the
      distance is set by that text's reach rather than the slot width (at 8px "0/2" and "100/1" touched) */
-  --recipe-slot-gap: 16px;
+  --recipe-slot-gap: 10px;
+  /* レシピ行スロットの上限寸法。実寸は点数と枠幅から算出され、点数が増えるほどこの値未満へ縮む */
+  /* Upper bound for a recipe-row slot; the real size is derived from the count and track width, shrinking below this as the count grows */
+  --recipe-slot-size-max: 2.3rem;
+  /* 縮小後の個数テキストはスロット寸法へ連動させる。固定pxだと隣のスロットのテキストと重なる
+     （実測: スロット22.3pxに対し9pxの"100/20"は約35px＝ピッチ32.3pxを超える）。
+     係数はテキスト幅≒3.9×フォント寸法から、ピッチ(スロット+間隔)に収まる上限として引いた */
+  /* Tie the shrunken count text to the slot size; a fixed px overlaps the neighbouring slot's text
+     (measured: "100/20" at 9px is ~35px against a 22.3px slot, over the 32.3px pitch).
+     The ratio comes from text width ≈ 3.9x font size, capped to fit the pitch (slot + gap) */
+  --recipe-count-font-scale-dense: 0.28;
   /* 素材列・中央列・結果列の間隔。0だと素材の所持/必要テキスト(スロット右へ2pxはみ出す)が
      クラフトボタンの真上に乗る */
   /* Gap between the material, center, and result columns; at 0 the owned/required text (which bleeds 2px past
      the slot) lands right on top of the craft button */
-  --recipe-column-gap: 14px;
+  --recipe-column-gap: 8px;
   /* 個数バッジの黒（ユーザー裁定 2026-08-17。バッジが出るのは明色面のみが前提） */
   /* Black used by count badges (user ruling 2026-08-17; badges only appear on light faces) */
   --count-text: #111;

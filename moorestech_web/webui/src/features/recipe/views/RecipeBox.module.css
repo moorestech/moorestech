@@ -9,7 +9,12 @@
 .recipeBox {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  /* minmax(0,1fr)で左右の枠を必ず等幅にし、素材の点数が増えても中央列（矢印）が枠の中心から動かないようにする。
+     素のfrはmin-content床で素材側だけ広がるため、矢印が右へズレる（実測24.8px・ユーザー裁定 2026-08-20） */
+  /* minmax(0,1fr) forces both side tracks to stay equal so the center column (the arrow) never leaves the frame's
+     center as materials grow; a bare fr keeps a min-content floor, widening only the material side and pushing
+     the arrow right (measured 24.8px, user ruling 2026-08-20) */
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   column-gap: var(--recipe-column-gap);
   align-items: center;
   width: 100%;
@@ -37,13 +42,26 @@
    min-height stays fixed, and align-items:center keeps the shrunk cells vertically centered */
 /* 正本の94px角セルに近づけるため選択行だけ1pxへ縮め、アイコン占有率を高める */
 /* Tighten only the selection row to 1px for higher icon occupancy inside the reference-sized 94px cells */
+/* 枠幅からスロット寸法を引くため、列いっぱいに広げたうえでcqwの基準（container）にする */
+/* Fill the track and become the container so cqw resolves to this column's width when sizing slots */
 .recipeMaterials {
-  justify-self: start;
-  --slot-size: 2.3rem;
+  justify-self: stretch;
+  justify-content: start;
+  width: 100%;
+  container-type: inline-size;
+  gap: var(--recipe-slot-gap);
   --icon-pad: 1px;
   --count-bottom: -1px;
   --count-font-size: 16px;
   --count-letter-spacing: 0.12em;
+}
+
+/* 縮んだスロットからはみ出さないよう、点数が多い側だけ個数テキストを落とす */
+/* Drop the count text only on the crowded side so it stays inside the shrunken slot */
+.recipeMaterials[data-dense],
+.recipeResult[data-dense] {
+  --recipe-material-count-font-size: calc(var(--slot-size) * var(--recipe-count-font-scale-dense));
+  --count-font-size: calc(var(--slot-size) * var(--recipe-count-font-scale-dense));
 }
 
 .materialSlot {
@@ -58,7 +76,9 @@
   bottom: 0;
   z-index: 2;
   color: var(--count-text);
-  font-size: 11px;
+  /* 縮小時だけスロット連動へ切り替わる。既定の11pxはフルサイズ用 */
+  /* Switches to slot-linked sizing only when shrunken; 11px is the full-size default */
+  font-size: var(--recipe-material-count-font-size, 11px);
   line-height: 1;
   text-shadow: 0 1px 2px rgb(255 255 255 / 75%);
   white-space: nowrap;
@@ -97,8 +117,11 @@
 }
 
 .recipeResult {
-  justify-self: end;
-  --slot-size: 2.3rem;
+  justify-self: stretch;
+  justify-content: end;
+  width: 100%;
+  container-type: inline-size;
+  gap: var(--recipe-slot-gap);
   --icon-pad: 1px;
   --count-bottom: -1px;
   --count-font-size: 16px;

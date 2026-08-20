@@ -85,6 +85,10 @@ const scrollDemoCraftRecipes = [
   { recipeGuid: "83000000-0000-4000-8000-0000000000d1", resultItemId: 1, resultCount: 1, craftTime: 0.5, requiredItems: [{ itemId: 2, count: 1 }] },
   { recipeGuid: "83000000-0000-4000-8000-0000000000d2", resultItemId: 1, resultCount: 2, craftTime: 1.5, requiredItems: [{ itemId: 3, count: 2 }, { itemId: 7, count: 1 }] },
   { recipeGuid: "83000000-0000-4000-8000-0000000000d3", resultItemId: 1, resultCount: 4, craftTime: 3, requiredItems: [{ itemId: 11, count: 3 }] },
+  // 素材3点・4点はスロットが段階的に縮む側。縮小後も中央列へ食い込まないことを目視できるようにする
+  // Three and four materials fall on the shrinking side; these make the post-shrink clearance inspectable by eye
+  { recipeGuid: "83000000-0000-4000-8000-0000000000d4", resultItemId: 1, resultCount: 5, craftTime: 6, requiredItems: [{ itemId: 2, count: 10 }, { itemId: 3, count: 20 }, { itemId: 7, count: 30 }] },
+  { recipeGuid: "83000000-0000-4000-8000-0000000000d5", resultItemId: 1, resultCount: 8, craftTime: 9, requiredItems: [{ itemId: 2, count: 1 }, { itemId: 3, count: 2 }, { itemId: 7, count: 3 }, { itemId: 11, count: 4 }] },
 ];
 
 const scrollDemoMachineRecipes = [
