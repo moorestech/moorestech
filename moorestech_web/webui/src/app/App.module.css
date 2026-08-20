@@ -26,12 +26,7 @@
 .stage {
   position: relative;
   display: grid;
-  /* 持ち物スロット1.3倍でinvパネルが約96px広がった分を列間隔と左右余白から取り戻す（ユーザー裁定 2026-08-20）。
-     基準stageを広げる案は--ui-scaleが下がり画面全体が7%縮むため採らない */
-  /* The 1.3x inventory slots widened the inv panel by ~96px; the column gap and side padding give that back
-     (user ruling 2026-08-20). Widening the reference stage instead was rejected: it lowers --ui-scale and
-     shrinks the whole screen by 7% */
-  column-gap: 1rem;
+  column-gap: var(--stage-column-gap);
   row-gap: 1rem;
   width: var(--ui-stage-width);
   height: var(--ui-stage-height);
@@ -52,8 +47,16 @@
   justify-content: start;
 }
 
+/* 研究画面だけ左paddingを外し、持ち物を画面左端へ寄せて右側の空きを研究パネルへ渡す */
+/* Drop the left padding on the research screen alone, pushing the inventory to the screen edge and handing the freed space to the research panel */
+.stageResearch {
+  padding-left: 0;
+}
+
 /* stage拡縮を維持したまま、画面端HUDの論理領域だけを実viewportまで広げる */
 /* Extend only the logical screen-edge HUD area to the real viewport while retaining stage scaling */
+/* このz付与は配下を31のコンテキストへ封じ込める。31より上でstage兄弟と競合する必要がある要素はこのオーバーレイの外へ出すこと */
+/* This z-index creates a stacking context that pins every descendant to 31; anything needing to outrank a .stage sibling above 31 must live outside this overlay */
 .viewportOverlay {
   position: absolute;
   top: calc((var(--ui-stage-height) - var(--ui-viewport-height)) / 2);
@@ -61,6 +64,7 @@
   width: var(--ui-viewport-width);
   height: var(--ui-viewport-height);
   pointer-events: none;
+  z-index: var(--z-stage-overlay-panel-chrome);
 }
 
 /* uGUI 同様、インベントリ表示中は世界全体を暗く沈める全面dim（stageより下のworldbgを覆う） */

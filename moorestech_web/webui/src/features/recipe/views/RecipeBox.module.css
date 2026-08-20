@@ -81,7 +81,7 @@
 }
 
 .materialCount[data-lack="true"] {
-  color: #ff4d4d;
+  color: var(--text-insufficient);
 }
 
 /* 中央列は秒数→矢印→操作の縦積み。行のcenter揃えのままアイコン列と矢印の高さを合わせる */

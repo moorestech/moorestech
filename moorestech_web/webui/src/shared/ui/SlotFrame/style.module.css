@@ -29,7 +29,6 @@
     var(--bevel-inset, ) 0 0 0 var(--bevel-1) var(--bevel-c1),
     var(--bevel-inset, ) 0 0 0 var(--bevel-2) var(--bevel-c2),
     var(--bevel-inset, ) 0 0 0 var(--bevel-3) var(--bevel-c3);
-  user-select: none;
 }
 
 /* カタログ（レシピ一覧）の未所持セルは中間グレー面。所持セルは白面で上書きする */

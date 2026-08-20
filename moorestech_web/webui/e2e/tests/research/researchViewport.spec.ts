@@ -12,6 +12,12 @@ const RESEARCHABLE_NODE = `research-node-${researchableNodeGuid}`;
 // Max glide distance = speed cap × time constant
 const MAX_GLIDE_PX = PAN_MAX_FLING_SPEED * PAN_FRICTION_TAU_MS;
 
+// 右下は詳細ペインや将来のHUD復帰と競合しうるため、ノードの居ない右上の空白を安定した起点として使う
+// The bottom-right can collide with the detail pane or a future HUD, so the node-free top-right is the stable drag origin
+function topRightDragOrigin(viewportBox: { x: number; y: number; width: number }) {
+  return { x: viewportBox.x + viewportBox.width - 40, y: viewportBox.y + 40 };
+}
+
 // 各テスト後に研究ツリーと ui_state を既定へ戻し、状態漏れを防ぐ
 // Reset the research tree and ui_state to defaults after each test to prevent state leakage
 test.afterEach(async ({ page }) => {
@@ -57,12 +63,19 @@ test("research tree keeps its pan position across close and reopen", async ({ pa
   const node = page.getByTestId(RESEARCHABLE_NODE);
   await expect(node).toBeVisible();
   const viewportBox = await page.getByTestId("research-viewport").boundingBox();
-  const dragStart = { x: viewportBox!.x + viewportBox!.width - 40, y: viewportBox!.y + viewportBox!.height - 40 };
+  const dragStart = topRightDragOrigin(viewportBox!);
+  const beforePan = await settleBoundingBox(page, node);
   await page.mouse.move(dragStart.x, dragStart.y);
   await page.mouse.down();
   await page.mouse.move(dragStart.x - 60, dragStart.y + 30, { steps: 5 });
   await page.mouse.up();
   const settled = await settleBoundingBox(page, node);
+  // ドラッグが実際にパンを起こしたことを検証（起点が他要素に食われて無反応になる回帰の再発防止）
+  // Verify the drag actually panned (regression guard against a drag origin swallowed by another element, producing zero movement)
+  expect(settled.x - beforePan.x).toBeLessThanOrEqual(-59.5);
+  expect(settled.x - beforePan.x).toBeGreaterThan(-60 - MAX_GLIDE_PX - 1);
+  expect(settled.y - beforePan.y).toBeGreaterThanOrEqual(29.5);
+  expect(settled.y - beforePan.y).toBeLessThan(30 + MAX_GLIDE_PX + 1);
 
   // 閉じ直してもパン位置は復元
   // Reopening restores the pan position, not re-centered

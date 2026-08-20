@@ -49,6 +49,22 @@ export async function expectWithinViewport(locator: Locator) {
   expect(layout.bottom).toBeLessThanOrEqual(layout.height);
 }
 
+// 中心hit-testで遮蔽有無を検証。
+// HUD自体はpointer-events:noneでelementFromPointが素通りするため、判定中だけ一時的にautoへ戻す
+// Verify occlusion via a center-point hit-test.
+// The HUD is pointer-events: none so elementFromPoint would skip past it; flip it to auto only for the measurement
+export async function expectHitTestWithin(locator: Locator) {
+  const isUnoccluded = await locator.evaluate((element) => {
+    const originalPointerEvents = element.style.pointerEvents;
+    element.style.pointerEvents = "auto";
+    const rect = element.getBoundingClientRect();
+    const target = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    element.style.pointerEvents = originalPointerEvents;
+    return target !== null && element.contains(target);
+  });
+  expect(isUnoccluded).toBe(true);
+}
+
 export async function expectAtViewportTopCorner(
   locator: Locator,
   horizontalEdge: "left" | "right",

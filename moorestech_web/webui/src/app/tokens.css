@@ -63,6 +63,9 @@
   /* Order inside .stage; governs always-on HUDs and the tooltip that follow the stage's uniform scaling */
   --z-stage-screen: 20;
   --z-stage-overlay-panel: 30;
+  /* 研究パネル(--z-stage-overlay-panel)の上へ出す.viewportOverlay一式: チャレンジHUD・画面キーヒント・採掘進捗バー */
+  /* Everything in .viewportOverlay, raised above the research panel (--z-stage-overlay-panel): the challenge HUD, screen key hints, and the mining progress bar */
+  --z-stage-overlay-panel-chrome: 31;
   --z-stage-tooltip: 250;
   /* body直下Portal層の層序。stageの外へ抜けて実画面全体を覆う要素間の前後関係 */
   /* Order in the body-level Portal layer; governs elements that escape the stage to cover the whole real screen */
@@ -87,6 +90,16 @@
   /* The floor is the hotbar band's footprint (bottom 2 + slot 51.68 + number tab 16 = 69.68px) rounded up */
   --menu-lower-safe-area: 70px;
   --menu-content-height: calc(var(--ui-stage-height) - var(--menu-upper-safe-area) - var(--menu-lower-safe-area));
+  /* 持ち物パネルの幅。InventoryPanelのインラインstyleと研究パネルの左端導出が同じ値を見る */
+  /* The inventory panel width; InventoryPanel's inline style and the research panel's left edge share this one value */
+  /* 378pxは1.0倍時の実測。スロット1.3倍化で9列グリッドが伸びた分を足す（ユーザー裁定 2026-08-20） */
+  /* 378px is the measured 1.0x width; the 1.3x slots stretch the 9-column grid, and that growth is added here (user ruling 2026-08-20) */
+  --inventory-panel-width: calc(378px + (9 * 30.123px + 8 * 6.064px) * 0.3);
+  /* stage上段3カラムの列間隔。研究パネルはこの間隔を挟んで持ち物の右へ並ぶ */
+  /* The gap between the stage's three upper columns; the research panel sits to the inventory's right across it */
+  /* 持ち物1.3倍で広がった約96pxをこの間隔とstage左右余白から取り戻す。基準stageを広げる案は--ui-scaleが下がり全体が7%縮むため不採用 */
+  /* The ~96px the 1.3x inventory added is reclaimed from this gap and the stage's side padding; widening the reference stage instead lowers --ui-scale and shrinks everything by 7% */
+  --stage-column-gap: 1rem;
   /* パネル付随の副次アクションボタン。正本の整理ボタン実測寸法を固定長で持つ */
   /* Panel-attached secondary action button; fixed lengths taken from the reference sort button */
   --panel-action-button-width: 87px;
@@ -125,6 +138,12 @@
   --operation-hud-detail-gap: 5px;
   --operation-hud-letter-spacing: 1px;
   --operation-hud-detail-line-height: 25px;
+  /* カーソル追従ツールチップの書式はWeb側が唯一の値源。ホストから寸法は受け取らない */
+  /* The cursor tooltip's format is owned solely by the web side; the host sends no sizes */
+  --cursor-tooltip-font-size: 18px;
+  --cursor-tooltip-padding-block: 6px;
+  --cursor-tooltip-padding-inline: 10px;
+  --cursor-tooltip-max-width: 320px;
   /* uGUIの削除バーを1280基準へ縮尺し、上下端に見える半幅と斜線周期を固定する */
   /* Scale the uGUI deletion bar to the 1280 baseline and lock its visible half-height and stripe period */
   --delete-mode-warning-band-height: 20px;

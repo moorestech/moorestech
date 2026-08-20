@@ -1,18 +1,21 @@
 import type { ResearchNodeData } from "@/bridge";
 import { dispatchAction } from "@/bridge";
 import { GamePanel, ItemSlot } from "@/shared/ui";
-import { deriveResearchButton, isItemSufficient } from "./researchLogic";
+import { ownedCountOf } from "@/shared/ownedCounts";
+import { deriveResearchButton, isConsumeItemLacking } from "./researchLogic";
+import UnlockSections from "./unlock/UnlockSections";
 import {
   L,
   researchDescriptionKey,
   researchNameKey,
   useI18n,
 } from "@/shared/i18n";
+import { useMaterialTooltipText } from "@/shared/materialTooltipText";
 import styles from "./style.module.css";
 
 type Props = {
   node: ResearchNodeData;
-  owned: Map<number, number>;
+  owned: Map<number, number> | null;
   onClose: () => void;
 };
 
@@ -20,7 +23,8 @@ type Props = {
 // Floating pane for selected-node details and research execution (not affected by pan/zoom)
 export default function ResearchDetailPane({ node, owned, onClose }: Props) {
   const { t } = useI18n();
-  const button = deriveResearchButton(node, owned);
+  const materialTooltipText = useMaterialTooltipText();
+  const button = deriveResearchButton(node);
   return (
     <div className={styles.detailPane} data-testid="research-detail-pane">
       <GamePanel variant="craft">
@@ -33,23 +37,35 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
           </div>
           <p className={styles.detailDescription}>{t(researchDescriptionKey(node.guid))}</p>
           {node.consumeItems.length > 0 && (
-            <div className={styles.detailSlots}>
-              {node.consumeItems.map((c, i) => (
-                <ItemSlot key={`consume-${c.itemId}-${i}`} itemId={c.itemId} count={c.count}
-                  insufficient={!isItemSufficient(node, c.itemId, c.count, owned) && node.state !== "completed"} />
-              ))}
+            <div data-testid="research-consume-items">
+              <span className={styles.sectionLabel}>{t(L.ui.research.consumeItemsLabel)}</span>
+              <div className={styles.detailSlots}>
+                {node.consumeItems.map((c, i) => {
+                  const lacking = isConsumeItemLacking(node, c.itemId, c.count, owned);
+                  return (
+                    <div key={`consume-${c.itemId}-${i}`} className={styles.consumeSlot}>
+                      <ItemSlot itemId={c.itemId}
+                        insufficient={lacking}
+                        tooltip={owned
+                          ? <span style={{ whiteSpace: "pre-line" }}>
+                              {materialTooltipText(L.ui.research.consumeItemTooltip, c.itemId, c.count, owned)}
+                            </span>
+                          : undefined}
+                      />
+                      {/* 不足時は数値も赤で示す(ADR 0014決定4・CraftRecipeView同型)。所持数未受信中は数値自体を出さない */}
+                      {/* Shortages also color the count red (ADR 0014 decision 4; mirrors CraftRecipeView); the number is hidden while owned counts are unknown */}
+                      {owned && (
+                        <span className={styles.consumeCount} data-lack={lacking || undefined}>
+                          {t(L.ui.recipe.itemCountSummary, { ownedCount: ownedCountOf(owned, c.itemId), requiredCount: c.count })}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
-          {node.rewardItems.length + node.unlockItemIds.length > 0 && (
-            <div className={styles.detailSlots}>
-              {node.rewardItems.map((reward, i) => (
-                <ItemSlot key={`reward-${reward.itemId}-${i}`} itemId={reward.itemId} count={reward.count} />
-              ))}
-              {node.unlockItemIds.map((id, i) => (
-                <ItemSlot key={`unlock-${id}-${i}`} itemId={id} />
-              ))}
-            </div>
-          )}
+          <UnlockSections node={node} />
           <button
             type="button"
             className={styles.researchButton}

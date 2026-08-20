@@ -56,7 +56,7 @@
 - Consumes: なし（このタスクは他タスクに依存しない）
 - Produces: グローバルCSSの選択規約。後続タスクは `user-select` を一切書かない。
 
-- [ ] **Step 1: 失敗するe2eテストを書く**
+- [x] **Step 1: 失敗するe2eテストを書く**
 
 Create `moorestech_web/webui/e2e/tests/system/textSelection.spec.ts`:
 
@@ -90,7 +90,7 @@ test("建設メニューの検索入力はテキスト選択できる", async ({
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 ```bash
 lsof -i :5273    # 空いていることを確認（埋まっていたら待つ）
@@ -101,7 +101,7 @@ Expected: FAIL — 1件目は `userSelect` が `"auto"` で返り `expected "non
 
 （`setUiState(page, "BuildMenu")` は `e2e/tests/regression/buildMenuLayout.spec.ts` で使われている既存の値。検索入力の `data-testid="build-menu-search"` は `BuildMenuSearchInput.tsx` に既にある）
 
-- [ ] **Step 3: グローバルCSSへ選択規約を実装する**
+- [x] **Step 3: グローバルCSSへ選択規約を実装する**
 
 `moorestech_web/webui/src/app/index.css` の `body` ブロックを次に置き換える（`color: var(--text-default);` の直後に2行追加）:
 
@@ -127,7 +127,7 @@ textarea {
 }
 ```
 
-- [ ] **Step 4: 重複する局所指定を削除する**
+- [x] **Step 4: 重複する局所指定を削除する**
 
 `moorestech_web/webui/src/shared/ui/SlotFrame/style.module.css` から `  user-select: none;` の1行を削除する。
 `moorestech_web/webui/src/shared/ui/FluidSlot/style.module.css` から `  user-select: none;` の1行を削除する。
@@ -140,7 +140,7 @@ grep -rn "user-select" moorestech_web/webui/src
 
 Expected: `src/app/index.css` の2行のみ。
 
-- [ ] **Step 5: テストを実行して通ることを確認する**
+- [x] **Step 5: テストを実行して通ることを確認する**
 
 ```bash
 cd moorestech_web/webui && pnpm test:e2e -- tests/system/textSelection.spec.ts
@@ -148,7 +148,7 @@ cd moorestech_web/webui && pnpm test:e2e -- tests/system/textSelection.spec.ts
 
 Expected: PASS（2 passed）
 
-- [ ] **Step 6: 単体テストとlintの回帰を確認する**
+- [x] **Step 6: 単体テストとlintの回帰を確認する**
 
 ```bash
 cd moorestech_web/webui && pnpm test && pnpm lint
@@ -156,7 +156,7 @@ cd moorestech_web/webui && pnpm test && pnpm lint
 
 Expected: 全PASS、lintエラー0。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/app/index.css \
@@ -185,7 +185,7 @@ git commit -m "fix: Web UIのテキスト選択を入力欄のみに限定する
 - Consumes: なし（Task 1 とは独立。並行実装可）
 - Produces: `TooltipData = { visible: boolean; textKey: string; textParams: string[] }`（`fontSize` なし）。Task 3 の Unity 側 `TooltipDto` はこの形へ合わせる。CSS トークン `--cursor-tooltip-font-size` / `--cursor-tooltip-padding-block` / `--cursor-tooltip-padding-inline` / `--cursor-tooltip-max-width`。`CursorTooltip` の DOM に `data-testid="cursor-tooltip"` が付く（Task 5 の DOM クエリが使う）。
 
-- [ ] **Step 1: 失敗する契約テストへ書き換える**
+- [x] **Step 1: 失敗する契約テストへ書き換える**
 
 `moorestech_web/webui/src/bridge/contract/validators.test.ts` の `describe("tooltip schema", ...)` ブロックを次に置き換える:
 
@@ -202,7 +202,7 @@ describe("tooltip schema", () => {
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 ```bash
 cd moorestech_web/webui && pnpm test -- src/bridge/contract/validators.test.ts
@@ -210,7 +210,7 @@ cd moorestech_web/webui && pnpm test -- src/bridge/contract/validators.test.ts
 
 Expected: FAIL — 1件目が `false`（スキーマが `fontSize` を必須にしているため）。
 
-- [ ] **Step 3: スキーマから fontSize を落とす**
+- [x] **Step 3: スキーマから fontSize を落とす**
 
 `moorestech_web/webui/src/bridge/contract/schemas/ui.ts` の `TooltipDataSchema` を次に置き換える:
 
@@ -224,7 +224,7 @@ export const TooltipDataSchema = z.object({
 });
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 ```bash
 cd moorestech_web/webui && pnpm test -- src/bridge/contract/validators.test.ts
@@ -232,7 +232,7 @@ cd moorestech_web/webui && pnpm test -- src/bridge/contract/validators.test.ts
 
 Expected: PASS
 
-- [ ] **Step 5: 寸法トークンを追加する**
+- [x] **Step 5: 寸法トークンを追加する**
 
 `moorestech_web/webui/src/app/tokens.css` の `--operation-hud-detail-line-height: 25px;` の直後へ挿入する:
 
@@ -245,7 +245,7 @@ Expected: PASS
   --cursor-tooltip-max-width: 320px;
 ```
 
-- [ ] **Step 6: ツールチップのCSSをトークン化する**
+- [x] **Step 6: ツールチップのCSSをトークン化する**
 
 `moorestech_web/webui/src/shared/tooltip/style.module.css` を全置換する:
 
@@ -264,7 +264,7 @@ Expected: PASS
 }
 ```
 
-- [ ] **Step 7: `CursorTooltip` からインラインfontSizeを外しtestidを付ける**
+- [x] **Step 7: `CursorTooltip` からインラインfontSizeを外しtestidを付ける**
 
 `moorestech_web/webui/src/shared/tooltip/CursorTooltip.tsx` の `return (` 内の `<Paper .../>` 行を置き換える:
 
@@ -272,11 +272,11 @@ Expected: PASS
       <Paper ref={elementRef} className={styles.tooltip} data-testid="cursor-tooltip" style={{ left: position.x, top: position.y }}>
 ```
 
-- [ ] **Step 8: 単体テストの型リテラルから fontSize を外す**
+- [x] **Step 8: 単体テストの型リテラルから fontSize を外す**
 
 `moorestech_web/webui/src/shared/tooltip/CursorTooltip.test.ts` 内の `fontSize: 36,` を含む5行すべてを削除する（`vi.hoisted` の `testState.data`、`afterEach` の再代入、`resolveTooltipText` 3箇所の引数オブジェクト）。他のフィールドは変更しない。
 
-- [ ] **Step 9: 単体テスト・型検査を実行して通ることを確認する**
+- [x] **Step 9: 単体テスト・型検査を実行して通ることを確認する**
 
 ```bash
 cd moorestech_web/webui && pnpm test && pnpm build
@@ -284,7 +284,7 @@ cd moorestech_web/webui && pnpm test && pnpm build
 
 Expected: 全PASS、`tsc -b` で型エラー0（`TooltipData` に `fontSize` が無くなったため、残存参照があればここで露見する）。
 
-- [ ] **Step 10: mock-host のペイロードから fontSize を外す**
+- [x] **Step 10: mock-host のペイロードから fontSize を外す**
 
 `moorestech_web/webui/e2e/mock-host/topics/topicControls.ts` の `tooltip` / `tooltipHidden` を置き換える:
 
@@ -307,7 +307,7 @@ Expected: 全PASS、`tsc -b` で型エラー0（`TooltipData` に `fontSize` が
   [Topics.tooltip]: () => ({ visible: false, textKey: "", textParams: [] }),
 ```
 
-- [ ] **Step 11: 実画面の寸法をe2eで固定する**
+- [x] **Step 11: 実画面の寸法をe2eで固定する**
 
 `moorestech_web/webui/e2e/tests/system/commonHud.spec.ts` の `test("採掘進捗・クロスヘア・tooltipのtopic eventを表示する", ...)` 内、`await expect(page.getByText("世界の対象", { exact: true })).toBeVisible();` の直後へ追加する:
 
@@ -321,7 +321,7 @@ Expected: 全PASS、`tsc -b` で型エラー0（`TooltipData` に `fontSize` が
   expect(tooltipStyle).toEqual({ fontSize: "18px", padding: "6px 10px", maxWidth: "320px" });
 ```
 
-- [ ] **Step 12: e2eを実行して通ることを確認する**
+- [x] **Step 12: e2eを実行して通ることを確認する**
 
 ```bash
 lsof -i :5273
@@ -330,7 +330,7 @@ cd moorestech_web/webui && pnpm test:e2e -- tests/system/commonHud.spec.ts
 
 Expected: PASS
 
-- [ ] **Step 13: コミットする**
+- [x] **Step 13: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/app/tokens.css \
@@ -360,7 +360,7 @@ git commit -m "fix: カーソルツールチップの書式をWeb側トークン
 - Consumes: Task 2 の `TooltipData`（`visible` / `textKey` / `textParams` のみ）
 - Produces: `IMouseCursorTooltip` は `Hide()` / `Show(LocalizationKey)` / `Show(LocalizationKey, IReadOnlyList<string>)` の3メソッドのみ。`TooltipPresentation(bool visible, string textKey, IReadOnlyList<string> textParams)`。`TooltipDto { bool Visible; string TextKey; IReadOnlyList<string> TextParams; }`。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Mining/MiningFocusStateTest.cs` の末尾（クラス内最後のテストメソッドの後）へ追加する:
 
@@ -379,7 +379,7 @@ git commit -m "fix: カーソルツールチップの書式をWeb側トークン
 
 ファイル先頭の using に不足があれば追加する（`System.Linq`、`System.Reflection`、`Client.Game.InGame.UI.Tooltip`）。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 ```bash
 uloop run-tests --project-path ./moorestech_client --test-mode EditMode \
@@ -388,7 +388,7 @@ uloop run-tests --project-path ./moorestech_client --test-mode EditMode \
 
 Expected: FAIL — `Expected: < "TextKey", "TextParams", "Visible" >  But was: < "FontSize", "TextKey", "TextParams", "Visible" >`
 
-- [ ] **Step 3: `MouseCursorTooltip` から fontSize を撤去する**
+- [x] **Step 3: `MouseCursorTooltip` から fontSize を撤去する**
 
 `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip/MouseCursorTooltip.cs` の `IMouseCursorTooltip` 宣言を置き換える（`DefaultFontSize` 定数と fontSize 付き2メソッドを削除）:
 
@@ -439,7 +439,7 @@ Expected: FAIL — `Expected: < "TextKey", "TextParams", "Visible" >  But was: <
     }
 ```
 
-- [ ] **Step 4: 廃止済みuGUIターゲットから fontSize を撤去する**
+- [x] **Step 4: 廃止済みuGUIターゲットから fontSize を撤去する**
 
 `GameObjectTooltipTarget.cs`: `[SerializeField] private int fontSize = IMouseCursorTooltip.DefaultFontSize;` の宣言行（と直前の空行1つ）を削除し、`OnCursorEnter` を置き換える:
 
@@ -456,7 +456,7 @@ Expected: FAIL — `Expected: < "TextKey", "TextParams", "Visible" >  But was: <
                 MouseCursorTooltip.Instance.Show(new LocalizationKey(textKey), textParams);
 ```
 
-- [ ] **Step 5: topic DTO から FontSize を撤去する**
+- [x] **Step 5: topic DTO から FontSize を撤去する**
 
 `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/C2/TooltipTopic.cs` の `BuildJson` と `TooltipDto` を置き換える:
 
@@ -481,7 +481,7 @@ Expected: FAIL — `Expected: < "TextKey", "TextParams", "Visible" >  But was: <
     }
 ```
 
-- [ ] **Step 6: コンパイルする**
+- [x] **Step 6: コンパイルする**
 
 ```bash
 uloop compile --project-path ./moorestech_client
@@ -489,7 +489,7 @@ uloop compile --project-path ./moorestech_client
 
 Expected: エラー0。`DefaultFontSize` の残存参照があればここで露見するので、露見したら該当箇所も削除する（新たな既定値を作らない）。
 
-- [ ] **Step 7: テストを実行して通ることを確認する**
+- [x] **Step 7: テストを実行して通ることを確認する**
 
 ```bash
 uloop run-tests --project-path ./moorestech_client --test-mode EditMode \
@@ -498,7 +498,7 @@ uloop run-tests --project-path ./moorestech_client --test-mode EditMode \
 
 Expected: 全PASS
 
-- [ ] **Step 8: wire 全体から fontSize が消えたことを確認する**
+- [x] **Step 8: wire 全体から fontSize が消えたことを確認する**
 
 ```bash
 grep -rn "FontSize\|fontSize" moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip \
@@ -508,7 +508,7 @@ grep -rn "FontSize\|fontSize" moorestech_client/Assets/Scripts/Client.Game/InGam
 
 Expected: 一致なし（0行）。
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip \
@@ -530,7 +530,7 @@ git commit -m "refactor: tooltip presentationとtopic DTOからFontSizeを撤去
 - Consumes: 既存 `IPlayerCameraInteractionApplier.WarpCursorToScreenCenter()`（`FakePlayerCameraInteractionApplier` は `"Warp"` を記録する。変更不要）
 - Produces: `ApplyZonePolicy` の呼び出し規約 — ロックする遷移では必ず `WarpCursorToScreenCenter()` → `SetInteractionMode(CameraInteractionMode.CameraLook)` の順。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `UiStateCameraPolicyServiceTest.cs` の `GameplayZoneAlwaysCameraLookAndIgnoresViewToggle` を置き換える:
 
@@ -552,7 +552,7 @@ git commit -m "refactor: tooltip presentationとtopic DTOからFontSizeを撤去
         }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 ```bash
 uloop run-tests --project-path ./moorestech_client --test-mode EditMode \
@@ -561,7 +561,7 @@ uloop run-tests --project-path ./moorestech_client --test-mode EditMode \
 
 Expected: FAIL — `Expected: < "Warp", "Mode:CameraLook" >  But was: < "Mode:CameraLook" >`
 
-- [ ] **Step 3: `ApplyZonePolicy` にロック前ワープを実装する**
+- [x] **Step 3: `ApplyZonePolicy` にロック前ワープを実装する**
 
 `UiStateCameraPolicyService.cs` の `ApplyZonePolicy` を置き換える:
 
@@ -583,7 +583,7 @@ Expected: FAIL — `Expected: < "Warp", "Mode:CameraLook" >  But was: < "Mode:Ca
         }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 ```bash
 uloop run-tests --project-path ./moorestech_client --test-mode EditMode \
@@ -592,7 +592,7 @@ uloop run-tests --project-path ./moorestech_client --test-mode EditMode \
 
 Expected: `GameplayZoneAlwaysCameraLookAndIgnoresViewToggle` は PASS。`BuildZoneFpsLocksCursorAndIgnoresRightClick` と `BuildZoneFollowsViewToggleWhileStaying` が新たに FAIL する（`Warp` が増えたため）。
 
-- [ ] **Step 5: ロック遷移を持つ残りの期待列を更新する**
+- [x] **Step 5: ロック遷移を持つ残りの期待列を更新する**
 
 `UiStateCameraPolicyServiceTest.cs` の2テストの期待列を置き換える。
 
@@ -619,7 +619,7 @@ Expected: `GameplayZoneAlwaysCameraLookAndIgnoresViewToggle` は PASS。`BuildZo
             CollectionAssert.AreEqual(new[] { "Warp", "Mode:CameraLook" }, _applier.Calls);
 ```
 
-- [ ] **Step 6: 右ドラッグ経路が不変であることを含めて全カメラポリシーテストを通す**
+- [x] **Step 6: 右ドラッグ経路が不変であることを含めて全カメラポリシーテストを通す**
 
 ```bash
 uloop run-tests --project-path ./moorestech_client --test-mode EditMode \
@@ -628,7 +628,7 @@ uloop run-tests --project-path ./moorestech_client --test-mode EditMode \
 
 Expected: 全PASS。`BuildZoneTpsRotatesOnlyDuringRightDrag`（`UpdateRotationInput` 経路）は `Mode:*` のみの列で通り続ける。
 
-- [ ] **Step 7: コンパイルしてコミットする**
+- [x] **Step 7: コンパイルしてコミットする**
 
 ```bash
 uloop compile --project-path ./moorestech_client
@@ -650,7 +650,7 @@ git commit -m "fix: カーソルをロックする遷移でクロスヘアへワ
 
 **背景（実装者向け）**: 不具合は「スキット中に自由カーソルを画面隅へ動かす → スキット終了で Gameplay がカーソルをロック → `Input.mousePosition` が隅で凍結 → CEF が隅の座標を送り続ける」で起きる。シナリオはこの順序を人為的に再現し、修正後はツールチップが画面中央付近へ出ることを DOM 矩形で確かめる。EditMode テスト（Task 4）は呼び出し順しか見ないため、OS ワープが CEF の座標源へ届くかはこのタスクだけが検証できる。
 
-- [ ] **Step 1: 失敗する（未修正なら落ちる）シナリオを書く**
+- [x] **Step 1: 失敗する（未修正なら落ちる）シナリオを書く**
 
 Create `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/cursor-tooltip-follows-crosshair.cs`:
 
@@ -770,7 +770,7 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
 });
 ```
 
-- [ ] **Step 2: 参照APIの実名を突き合わせる**
+- [x] **Step 2: 参照APIの実名を突き合わせる**
 
 シナリオを走らせる前に、使っているAPIの実シグネチャを確認する（食い違いがあれば**シナリオ側を**直し、存在しないAPIを実装で作らない）:
 
@@ -782,7 +782,7 @@ grep -n "SearchNearestMapObject" moorestech_client/Assets/Scripts/Client.Game/In
 
 **`PlaytestDomQuery.TryGetScreenCenter` は使わない。** 同メソッドは `HitTestPassed` を要求するが、ツールチップは `pointer-events: none` のため `document.elementFromPoint` が直下の要素を返し、ヒットテストの成否が下に何があるかで変わる（`domQueryResponder.ts` の判定を参照）。矩形中心の換算は Step 1 のコードのように自前で行い、`CefScreenMapper.TryBrowserToScreen` へ渡す。
 
-- [ ] **Step 3: シナリオを実行する**
+- [x] **Step 3: シナリオを実行する**
 
 ```bash
 .agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client \
@@ -791,7 +791,7 @@ grep -n "SearchNearestMapObject" moorestech_client/Assets/Scripts/Client.Game/In
 
 Expected: 全assert PASS。`result.json` の `01-tooltip-near-crosshair` スクショでツールチップがクロスヘア横に出ていること、文字サイズが他HUDと同程度（巨大でない）ことを目視確認する。
 
-- [ ] **Step 4: 修正が効いていることを確認する（逆検証）**
+- [x] **Step 4: 修正が効いていることを確認する（逆検証）**
 
 `UiStateCameraPolicyService.ApplyZonePolicy` の `if (cameraLook) _cameraInteractionApplier.WarpCursorToScreenCenter();` を一時的にコメントアウトして再実行し、距離アサーションが落ちる（ツールチップが右下に残る）ことを確認する。確認後ただちに元へ戻す。
 
@@ -803,7 +803,7 @@ uloop compile --project-path ./moorestech_client
 
 Expected: 「ツールチップがクロスヘア近傍（200px以内）に出る」が FAIL。これで本シナリオが不具合を検出できることが示される。落ちなかった場合は再現条件（隅へのワープ・タイミング）が足りていないので、`p.Note` のログを見て条件を直す（アサーションを緩めて誤魔化さない）。
 
-- [ ] **Step 5: 修正を戻して再実行し、コミットする**
+- [x] **Step 5: 修正を戻して再実行し、コミットする**
 
 ```bash
 git checkout -- moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/CameraPolicy/UiStateCameraPolicyService.cs
@@ -825,19 +825,19 @@ git commit -m "test: スキット後のツールチップがクロスヘア基�
 - Consumes: Task 1〜5 の全コミット
 - Produces: レビュー指摘への対応コミット
 
-- [ ] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
+- [x] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
 
 `moores-code-review` スキルを起動し、`master` からの全差分（Task 1〜5）を対象にレビューする。ゴール文言による省略は禁止。
 
-- [ ] **Step 2: 機械的指摘を適用する**
+- [x] **Step 2: 機械的指摘を適用する**
 
 規約違反・命名・コメント様式など判断を要しない指摘はその場で修正する。
 
-- [ ] **Step 3: 設計判断が必要な指摘をユーザーへ諮る**
+- [x] **Step 3: 設計判断が必要な指摘をユーザーへ諮る**
 
 `AskUserQuestion` でまとめて裁定を仰ぐ。裁定結果は `.decisions/` と該当ADRへ反映する。
 
-- [ ] **Step 4: 全テストを再実行する**
+- [x] **Step 4: 全テストを再実行する**
 
 ```bash
 cd moorestech_web/webui && pnpm test && pnpm lint && pnpm build
@@ -849,7 +849,7 @@ uloop run-tests --project-path ./moorestech_client --test-mode EditMode \
 
 Expected: 全PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add -A

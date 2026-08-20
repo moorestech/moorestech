@@ -3,11 +3,13 @@ import { dispatchAction } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
 import type { CraftRecipe } from "@/bridge";
 import type { TutorialAnchorAttributes } from "@/shared/tutorialAnchor";
+import { ownedCountOf } from "@/shared/ownedCounts";
 import { craftable } from "../logic/craftLogic";
 import { useHoldCraft } from "../logic/useHoldCraft";
 import RecipeRow from "./RecipeRow";
 import styles from "./RecipeBox.module.css";
-import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
+import { useMaterialTooltipText } from "@/shared/materialTooltipText";
 
 type Props = {
   recipe: CraftRecipe;
@@ -25,7 +27,7 @@ type Props = {
 // Material-arrow-result row with the duration above the arrow and the hold-to-craft button below it
 export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tutorialAnchorProps }: Props) {
   const { t } = useI18n();
-  const resolveItemName = useItemNameResolver();
+  const materialTooltipText = useMaterialTooltipText();
   const isCraftable = craftable(recipe, counts);
 
   // 長押し1周ごとにクラフト要求を送信
@@ -47,19 +49,14 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
             {/* Keep the existing 40% dimming for shortages and also mark the numeric count red */}
             <ItemSlot
               itemId={r.itemId}
-              insufficient={(counts.get(r.itemId) ?? 0) < r.count}
-              tooltip={<span style={{ whiteSpace: "pre-line" }}>{t(L.ui.recipe.materialTooltip, {
-                itemName: resolveItemName(r.itemId) ?? t(L.ui.common.itemFallback, { itemId: r.itemId }),
-                ownedCount: counts.get(r.itemId) ?? 0,
-                requiredCount: r.count,
-              })}</span>}
+              insufficient={ownedCountOf(counts, r.itemId) < r.count}
+              tooltip={<span style={{ whiteSpace: "pre-line" }}>
+                {materialTooltipText(L.ui.recipe.materialTooltip, r.itemId, r.count, counts)}
+              </span>}
               onLeftDown={() => onSelect(r.itemId)}
             />
-            <Text className={styles.materialCount} data-lack={(counts.get(r.itemId) ?? 0) < r.count || undefined}>
-              {t(L.ui.recipe.itemCountSummary, {
-                ownedCount: counts.get(r.itemId) ?? 0,
-                requiredCount: r.count,
-              })}
+            <Text className={styles.materialCount} data-lack={ownedCountOf(counts, r.itemId) < r.count || undefined}>
+              {t(L.ui.recipe.itemCountSummary, { ownedCount: ownedCountOf(counts, r.itemId), requiredCount: r.count })}
             </Text>
           </Box>
         ))}

@@ -10,6 +10,10 @@
   margin-inline: auto;
   transform: translateX(var(--hotbar-horizontal-offset));
   z-index: var(--z-stage-screen);
+
+  /* 採掘HUDの充填だけ白へ逸脱する。世界の上に浮く常時表示HUDでは寒色グレーが背景へ沈み進捗が読めないため（ユーザー裁定） */
+  /* The mining HUD alone deviates to a white fill: the cool gray sinks into the world behind this always-on overlay (user ruling) */
+  --gauge-fill: var(--color-content-primary);
 }
 
 /* 任意ラベルをゲージ幅内の1行へ収め、採掘時の省略契約を維持する */
