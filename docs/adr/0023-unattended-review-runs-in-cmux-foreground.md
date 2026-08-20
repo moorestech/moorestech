@@ -26,3 +26,28 @@ poller は cmux CLI（`workspace create --cwd --command` / `send` / `capture-pan
 - 人が介入できる反面、介入した内容は無人フローの想定外になりうる。介入は「止める・続きを指示する」に限る運用
 
 実装: docs/superpowers/plans/2026-08-20-pr-review-poller-cmux-foreground.md
+
+## 追記 2026-08-20: 無人実行の関所（スキルfrontmatter hooks）
+
+対話モード化の副作用として「ターン終了＝プロセス死」という暗黙の終了契約が消えた。途中で止まっても
+プロセスは生き続けるため誰も気付かず、poller は transcript が `IDLE_SECONDS=1200` 止まって初めて自壊と判定し、
+唯一の `MAX_REVIEW_RESUME=1` を消費する。実質20分の空転と予算1発の消費が、無言で起きる。
+
+そこで両スキルの frontmatter hooks に関所を置いた（`pr-independent-review/scripts/unattended-gate.py`）。
+repo横断の `.claude/settings.json` ではなく frontmatter に置くのは、**そのスキルが発動している間だけ**関所を立て、
+開発者の通常セッションを巻き込まないため（前例: `moores-grill-with-docs` の shadow-gate）。
+
+- `Stop` … 起動プロンプトに `【無人起動】` があり、かつ成果物（review: `session-done.marker` /
+  apply: `apply-result.json` / 共通: `abort.json`）が無ければブロックし、正しい終わり方を再注入する。
+  同一セッション2回でフェイルオープンする（無制限blockは、続行不能なセッションがquotaを焼き切るため棄却）
+- `PreToolUse(AskUserQuestion)` … 無人実行中はdenyし、判断の行き先（裁定カード / apply-result.json の summary /
+  abort.json）を再注入する。起動引数の `--disallowedTools` と二重化するのは、hookはサブエージェント内でも
+  発火することが実測済みなのに対し、`--disallowedTools` のサブエージェント継承が未検証のため
+- 全失敗経路は exit 0・無出力（fail open）。関所の実装バグでレビューが止まる方が、たまに素通しするより高くつく
+
+apply は `cwd=slot`（`~/moorestech-worktrees/pr-apply`）で起動し、スロットのディスク状態は前回ジョブが残した
+別PRのheadのままである。frontmatter hooks は起動時点でディスクにある版が読まれるため、そのままでは関所が
+黙って登録されない。よって poller は apply 起動の直前にスロットを `origin/master` へ戻す
+（`reset_apply_slot_to_master`）。review 側は `cwd=CLONE_DIR`（master固定のメインクローン）なので元から問題ない。
+
+裁定の蒸留: `.decisions/2026-08-20-無人実行の関所はスキルfrontmatter-hooksで立てる.md`

@@ -10,6 +10,18 @@ description: |
   1. 「/pr-adjudicated-apply <PR番号>」で起動された時
   2. 「裁定結果をPRに適用して」「adoptされた指摘を直してpushして」と言われた時
   3. pr-independent-reviewの裁定サイトで裁定が完了したPRへ、無人で対応を反映させる時
+hooks:
+  # 無人実行の関所。スキル発動中だけ有効（repo横断のsettings.jsonに置くと開発者の通常セッションまで巻き込む）
+  # Gate for unattended runs; active only while this skill runs, unlike a repo-wide settings.json hook
+  PreToolUse:
+    - matcher: "AskUserQuestion"
+      hooks:
+        - type: command
+          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py ask"
+  Stop:
+    - hooks:
+        - type: command
+          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py stop apply"
 ---
 
 # pr-adjudicated-apply — 裁定結果のPR適用（無人実行）
@@ -55,6 +67,10 @@ apply向けpollerはidle検知を行わない（session/subagentsのtranscript�
 ユーザー裁定 2026-08-17）。したがって作業前の残骸は保全せず破棄する（Step 3）。
 一方、**ブランチのcheckoutは必ずdetachedで行う** — 同じブランチが他のworktreeでcheckout済みだと
 `fatal: '<branch>' is already used by worktree at ...` で失敗するため、ブランチ名を持たずに作業してpush時だけ名指す。
+
+この規律は本スキルのfrontmatter hooks（`pr-independent-review/scripts/unattended-gate.py`）が機械的に守らせる。
+起動プロンプトに `【無人起動】` がある場合に限り、`$RUNDIR/apply-result.json` も `abort.json` も無いまま
+ターンを終えようとすると Stop がブロックされ、AskUserQuestion はdenyされる（同一セッション2回でフェイルオープン）。
 
 ## Step 1: 入力読み込み・裁定完了ゲート（最初に必ず通る）
 

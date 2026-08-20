@@ -11,6 +11,18 @@ description: |
   1. 「/pr-independent-review <PR URL|番号>」で起動された時
   2. 「このPRを独立レビューして」「シャドーレビューして」と言われた時
   3. 「/pr-independent-review reconcile <番号>」で起動された時（人間レビューとの突き合わせ・見逃し検知・改善発火）
+hooks:
+  # 無人実行の関所。スキル発動中だけ有効（repo横断のsettings.jsonに置くと開発者の通常セッションまで巻き込む）
+  # Gate for unattended runs; active only while this skill runs, unlike a repo-wide settings.json hook
+  PreToolUse:
+    - matcher: "AskUserQuestion"
+      hooks:
+        - type: command
+          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py ask"
+  Stop:
+    - hooks:
+        - type: command
+          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py stop review"
 ---
 
 # pr-independent-review — 独立セッションPRレビュー（シャドー運用v1）
@@ -37,6 +49,11 @@ RESUME 指示が1回送られ、それでも進まなければ失敗ラベルに
 
 `PR_REVIEW_UNATTENDED` が無い（人が対話で起動した）場合は、質問して止まってよい。ただし
 `findings.json` / `abort.json` のどちらかで終える規律は同じく守る。
+
+この規律は本スキルのfrontmatter hooks（`scripts/unattended-gate.py`）が機械的に守らせる。起動プロンプトに
+`【無人起動】` がある場合に限り、`$RUNDIR/session-done.marker` も `abort.json` も無いままターンを終えようとすると
+Stopがブロックされ、AskUserQuestion はdenyされる。ブロックは同一セッション2回でフェイルオープンするので、
+関所の誤爆が作業を恒久的に止めることはない。人が対話で起動したセッションでは関所は立たない。
 
 ### 中止の申告（abort.json）
 
