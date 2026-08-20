@@ -8,7 +8,7 @@ pr-review poller は `claude -p`（headless・detach）でレビューと apply 
 
 ## 決定
 
-poller は cmux CLI（`new-workspace --cwd --command` / `send` / `capture-pane` / `close-workspace`）で PR ごとに専用ワークスペースを作り、**対話モードの claude をフォアグラウンドで起動**する。プロンプト冒頭で無人運用であることを明示する。完了・死亡・限界の検知は transcript jsonl（session-id 固定）と findings.json / apply 結果ファイル、必要なら `capture-pane` で行う。session limit は reset 時刻まで待ってから同じペインへ継続指示を送る。cmux が応答しなければ起動を見送り通知する（headless へのフォールバックは持たない）。同時レビューは2本まで。
+poller は cmux CLI（`workspace create --cwd --command` / `send` / `capture-pane` / `workspace close`）で PR ごとに専用ワークスペースを作り、**対話モードの claude をフォアグラウンドで起動**する。プロンプト冒頭で無人運用であることを明示する。完了・死亡・限界の検知は transcript jsonl（session-id 固定）と findings.json / apply 結果ファイル、必要なら `capture-pane` で行う。session limit は reset 時刻まで待ってから同じペインへ継続指示を送る。cmux が応答しなければ起動を見送り通知する（headless へのフォールバックは持たない）。同時レビューは2本まで。
 
 出所: ユーザー裁定 2026-08-20「cmuxで新しいペインを作ってそこでフォアグラウンドで実行する。これにより、何か合った時にすぐに介入できる。ただし、AIには無人運用であることを伝える」「同時起動は2にしたい」。
 
