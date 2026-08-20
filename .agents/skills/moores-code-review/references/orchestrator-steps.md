@@ -1,6 +1,6 @@
 # Step 2〜6.5 実行手順（正本・委譲オーケストレータが読む）
 
-moores-code-review の実行本体。**既定ではこの手順書は委譲された sonnet オーケストレータ subagent が読んで実行する**（SKILL.md の「委譲実行」参照。本体セッションが読むのはインライン実行の場合のみ）。Step 0〜1（$RUNDIR・patch.diff・context.md）は親が完了済みで、派遣プロンプトの `Run dir` / `Patch path` / `User prompt` / `Repo root` を前提に Step 2 から始める。Step 7（報告・AskUserQuestion・記録）は親が行う — このファイルには含まれない。
+moores-code-review の実行本体。**既定（2026-08-20）ではこの手順書の Step 3.5〜6.5 を `scripts/review_workflow.js`（Workflow ツール）が実行する** — 本体が Step 2（check_all.py・split_chunks・Codex起動・`build_workflow_args.py`）まで行い、Workflow が系統の並列発火→統合→適用→post-check を決定論的に回す。この手順書は Workflow スクリプトの**仕様の正本**であり、JS を変えるときは先にここを直す。sonnet オーケストレータ委譲（旧既定）・インライン実行の場合は、派遣プロンプトの `Run dir` / `Patch path` / `User prompt` / `Repo root` を前提に Step 2 から自分で始める（Step 0〜1 は親が完了済み）。Step 7（報告・AskUserQuestion・記録）は親が行う — このファイルには含まれない。
 
 ## 6系統の構成
 
@@ -50,7 +50,7 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 
 - **`status: ok`** — candidatesが1件以上あればStep 4で死にメンバーverifier（sonnet・`verifiers/dead-member-verifier.md`）を並列起動。0件なら起動しない。rule別の裁定手順はverifier側に書いてある。
 - **`status: stale`** — 変更.csがDLLより新しい。`uloop compile` を先に実行してからゲートを再実行する（コンパイルはどのみちStep 5で必須）。
-- **`status: skipped`** — ScriptAssemblies不在（素のレビューworktree等）。縮退として報告に1行明記し、dead-scope reviewer（LLM）の参照勘定が唯一の担保になる旨を記録する。
+- **`status: skipped`** — ScriptAssemblies不在（素のレビューworktree等）、または dotnet 不在（`note` に「dotnet不在」と出る。PATH/`DOTNET_ROOT`/`~/.dotnet` で解決できなかった）。どちらも縮退として報告に1行明記し（理由は `note` を転記）、dead-scope reviewer（LLM）の参照勘定が唯一の担保になる旨を記録する。
 
 ## Step 2.6: webui死コード・テスト専用参照ゲート（knip） ①.6
 
@@ -60,6 +60,14 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 - **`status: skipped`** — webuiのts/tsx変更なし（knip自体を実行しない・0秒）、またはknip未インストール（後者は報告に1行明記）。
 
 ## Step 3: Codex外部監査を3本バックグラウンド起動する ②
+
+**起動前に実体パスと認証ファイルを解決する**（`which codex` は使わない — 封じ込めPATHでは失敗し、実体が `~/.local/bin` にあるのに「codex不在」と誤診して10本連続で縮退した・2026-08-20）:
+
+```bash
+python3 .claude/skills/moores-code-review/scripts/codex_preflight.py   # {"status":"ok","codex":"<実体パス>",...} / exit 10=バイナリ不在 / 11=認証ファイル不在（報告は status 文字列で転記）
+```
+
+exit 0 なら以下の `codex` を出力の `codex` 実体パスに読み替えて起動する。exit 10/11 なら3本ともスキップし、**理由（バイナリ不在 / `$CODEX_HOME/auth.json` 不在）を区別して**最終報告と `integrated.md` の系統別回収状況に明記する（「不在」と一括りにしない）。
 
 3種のテンプレートを埋めて監査プロンプトを `$RUNDIR` に書き、**3本ともバックグラウンドで並列起動する**:
 
@@ -75,7 +83,7 @@ codex exec --sandbox read-only --skip-git-repo-check -o <$RUNDIRの実値>/codex
 
 **`-o`（`--output-last-message`）は必須** — 結論の正本は `.final.md` であり、`.out.md`（stdout）はツール実行ログ込みの副産物にすぎない。stdoutは完走しても最終回答まで届かないことがある（2026-08-18実測：3本ともtask_completeまで完走したのに`.out.md`はツールログの途中で終端し、integratorが「Codex全滅」と誤判定した）。
 
-それぞれBashの `run_in_background: true` で起動しシェルIDを控える。**出力は必ず `.out.md` へリダイレクトする** — 完了確認はシェル状態だけで行い、監査本文をオーケストレータのコンテキストへ読み込まない（回収はStep 5のintegratorが行う）。狭域専任2本は単発同梱プロンプトで注意が3分割される問題への対策（recall向上）で、俯瞰が残り全部の受け皿。**同一モデルの3起動は独立系統ではない** — 回収時、codex間で重複した指摘は1件に畳み、出所は「Codex」1系統として扱う（integration-rules §2）。`which codex` が失敗したら本Stepを3本ともスキップし、その旨を最終報告に明記する（黙って縮退しない）。
+それぞれBashの `run_in_background: true` で起動しシェルIDを控える。**出力は必ず `.out.md` へリダイレクトする** — 完了確認はシェル状態だけで行い、監査本文をオーケストレータのコンテキストへ読み込まない（回収はStep 5のintegratorが行う）。狭域専任2本は単発同梱プロンプトで注意が3分割される問題への対策（recall向上）で、俯瞰が残り全部の受け皿。**同一モデルの3起動は独立系統ではない** — 回収時、codex間で重複した指摘は1件に畳み、出所は「Codex」1系統として扱う（integration-rules §2）。preflight が exit 10/11 なら本Stepを3本ともスキップし、その理由（`status` 文字列）を最終報告に明記する（黙って縮退しない）。
 
 **完了確認は「`.final.md` が非空か」で行う（`.out.md` の中身では判定しない）。** 空・不在なら**欠員と断定する前に必ず**回収スクリプトを走らせる（codexは `$CODEX_HOME/sessions/**/rollout-*.jsonl` に結論を必ず残すので、そこが最後の正本）:
 
@@ -84,7 +92,7 @@ python3 .claude/skills/moores-code-review/scripts/codex_recover.py \
   --prompt <$RUNDIRの実値>/codex-<名前>.md --out <$RUNDIRの実値>/codex-<名前>.out.md
 ```
 
-終了コードで系統の扱いが決まる: `0`=結論あり（`.final.md` を回収して**通常どおり1系統として数える**）/ `3`=セッションはあるが未完走（再実行）/ `4`=セッション自体が無い（起動失敗＝真の欠員）。**「完走したが回収に失敗した」を「Codexが失敗した」と報告するのは禁止**（前者は結論が現に存在する）。
+終了コードで系統の扱いが決まる: `0`=結論あり（`.final.md` を回収して**通常どおり1系統として数える**）/ `3`=セッションはあるが未完走（再実行）/ `4`=セッション自体が無い（起動失敗＝真の欠員）/ `5`=認証失効（`.out.md` に 401・`Please log in again`。この `CODEX_HOME` で `codex login` が必要＝環境起因の欠員として報告し「codex不在」とは書かない）。**「完走したが回収に失敗した」を「Codexが失敗した」と報告するのは禁止**（前者は結論が現に存在する）。
 
 ## Step 4: レンズ群＋reviewer群＋Fable全般＋verifierを並列発火する ③
 
@@ -139,13 +147,13 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 7. **死にメンバーverifier**（Step 2.5の `candidates.dead_member` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/dead-member-verifier.md` を渡す（候補JSONのパスをpromptに含める）。ILに現れない経路（UnityEvent配線・プレイテストDSL・文字列リフレクション）の実在だけをrgで裁く。
 8. **ts死コードverifier**（Step 2.6の `candidates.ts_dead_code` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/ts-dead-code-verifier.md` を渡す。import graphに現れない経路（動的import・C#側からの文字列ブリッジ・生成コード）の実在だけをrgで裁く。
 
-**回収はファイルハンドオフで行う（オーケストレータのコンテキストを空けるため）。** 起動前に共通出力契約を `<$RUNDIRの実値>/contract.md` へ1本だけ書き、各エージェントのプロンプトは `Read this` / `Patch path` / `User prompt` / `Output contract`（contract.mdのパス） / `Write full report to`（`<$RUNDIRの実値>/agents/<名前>.md`）の5行に畳む。**返答は3行以内（Critical件数・設計判断あり/なし・一行要約）に制限し、詳細は返答に書かせずファイルへ書かせる。** `agents/` 配下のファイル群の回収・照合はStep 5のintegratorが行う（オーケストレータはgrep・集計しない）。起動数が多い場合はwaveに分けてよい（1メッセージ内の並列は各wave内で守る）。**コンテキスト残量を理由にこの工程を中断してはならない** — 詰まるのは実行可否ではなく回収の設計であり、この方式で消費はほぼゼロになる（ユーザー裁定 2026-08-14・[[2026-08-14-大規模ファンアウトは回収方式を変えて完走する]]）。
+**回収はファイルハンドオフで行う（オーケストレータのコンテキストを空けるため）。** 起動前に共通出力契約（正本は `references/output-contract.md`。Workflow 既定では `build_workflow_args.py` が書く）を `<$RUNDIRの実値>/contract.md` へ1本だけ書き、各エージェントのプロンプトは `Read this` / `Patch path` / `User prompt` / `Output contract`（contract.mdのパス） / `Write full report to`（`<$RUNDIRの実値>/agents/<名前>.md`）の5行に畳む。**返答は3行以内（Critical件数・設計判断あり/なし・一行要約）に制限し、詳細は返答に書かせずファイルへ書かせる。** `agents/` 配下のファイル群の回収・照合はStep 5のintegratorが行う（オーケストレータはgrep・集計しない）。起動数が多い場合はwaveに分けてよい（1メッセージ内の並列は各wave内で守る）。**コンテキスト残量を理由にこの工程を中断してはならない** — 詰まるのは実行可否ではなく回収の設計であり、この方式で消費はほぼゼロになる（ユーザー裁定 2026-08-14・[[2026-08-14-大規模ファンアウトは回収方式を変えて完走する]]）。
 
 各サブエージェントは上記の共通出力契約（Critical/Warning/Info＋設計判断）で返す。**二値（あり/なし）に潰さず3段階で出させる理由**: Warning/Infoは「とりあえず統合報告のコンテキストに乗る」ことが目的の保険であり、二値だと確信の一段弱い実指摘が `なし` に丸められて消失する（ユーザー裁定 2026-07-23。実例: リプレースファミリーのハードコードを複数レンズが視認しながら二値契約のため無出力で落とした）。`設計判断: あり` はCriticalでも備考でもない第3の出口で、Step 7のAskUserQuestionへ**必ず**載せる（備考落ちで黙殺しない）。reviewer発火が0件でもレンズ群とFableは起動する。
 
 ## Step 5: 回収・統合（integratorへ委譲） ④
 
-- Step 4の全サブエージェント（レンズ・reviewer・Fable・investigator・verifier）の**完了**と、Step 3のバックグラウンドCodex3本の**完了**を確認する（未完了なら待つ）。各返答は3行契約なのでそのまま受けるが、**生の報告本文・Codex出力をオーケストレータが読むのは禁止** — 中身の回収と照合はintegratorが行う。
+- Step 4の全サブエージェント（レンズ・reviewer・Fable・investigator・verifier）の**完了**と、Step 3のバックグラウンドCodex3本の**完了**を確認する（未完了なら待つ。Workflow 経路では `review_workflow.js` が haiku の待機係1体（until ループ・最大 `codexWaitMaxMinutes` 分）で `.final.md` 非空を待ち、期限切れ分は `codex_recover.py` の終了コードを integrator へ渡す）。各返答は3行契約なのでそのまま受けるが、**生の報告本文・Codex出力をオーケストレータが読むのは禁止** — 中身の回収と照合はintegratorが行う。
 - 全部揃ったら**統合integrator**を1体起動する（`model: "opus"` 明示・5行契約）:
   ```
   Read this : .claude/skills/moores-code-review/integrators/finding-integrator.md
@@ -222,6 +230,6 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。
 - **Agent起動時に必ずmodel列を渡す（モデル継承事故の防止）** — Agentツールは `model` を省略すると**親（＝あなた＝オーケストレータ）のモデルを継承**する。委譲時のあなたはsonnetなので、model未指定のサブエージェントが誤ってsonnetで起動しうる（opus/fable指定系統の無言降格）。両セレクタはTSV2列目に**常に具体値**を出す（`select_lenses.py` はmodel未記載lensを `opus` に、`select_reviewers.py` は未記載reviewerを `default:opus` に具体化。空欄は絶対に出さない）。この2列目を**必ずそのまま** Agentの `model` に渡すこと。fableが正になるのは `precedent-alignment` レンズ（YAMLに `model: fable`）とFable全般（prose指定）だけで、それ以外にfableは現れない。
 - **残量不足を理由に系統を間引かない／中断しない** — レポートはファイルへ書かせ返答は3行に絞る（Step 4の回収方式）。系統を落とすなら報告に明記する。
-- **Codexの `.out.md` が途中で切れていても失敗ではない** — 判定材料は `.final.md`（`-o` の出力）と `codex_recover.py` の終了コードだけ。`.out.md` を `grep` して「結論が無い＝失敗」と断じない（stdoutにはツール実行ログしか残っていないことがある）。真の失敗は「rollout にセッションが無い（exit 4）」か「task_complete が無い（exit 3）」の2つだけ。
+- **Codexの `.out.md` が途中で切れていても失敗ではない** — 判定材料は `.final.md`（`-o` の出力）と `codex_recover.py` の終了コードだけ。`.out.md` を `grep` して「結論が無い＝失敗」と断じない（stdoutにはツール実行ログしか残っていないことがある）。真の失敗は「rollout にセッションが無い（exit 4）」「task_complete が無い（exit 3）」「認証失効（exit 5。rollout に結論が無いときだけ `.out.md` 両端の codex ERROR 行で判定）」の3つだけ。
 - **オーケストレータは生出力を読まない** — `agents/*.md`・Codexの`.out.md`の全量読み・grep集計は統合の二重実行。照合・重複排除はintegratorの担当で、オーケストレータが読むのは `integrated.md` と、疑義のある個別件の該当ファイルだけ。
 - **fableクォータ切れは黙って欠員にしない** — fable指定の系統（precedent-alignment・Fable全般）が「weekly limit」等の失敗応答を返したら、その系統を `model: "opus"` で再起動する（2026-07〜08で14起動が無言消失した実測より）。再起動した事実は最終報告に1行明記。

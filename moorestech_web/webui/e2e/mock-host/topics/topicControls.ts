@@ -8,6 +8,7 @@ import { L } from "../../../src/shared/i18n/generated/localizationKeys";
 // The JavaScript codegen parser has no type declarations
 // @ts-expect-error Importing the plain ESM parser is intentional
 import { parseLocalizationCsv } from "../../../scripts/generate-localization-keys.mjs";
+import { researchNodeAnchorId } from "../../../src/shared/tutorialAnchor/anchorIds";
 import * as fx from "../fixtures";
 import { state, topicSubscribers } from "../state";
 import { clone, send, setTopicRevision } from "../wire";
@@ -21,6 +22,10 @@ export function serveDictionary(url: string, response: ServerResponse): void {
 }
 
 const control = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]) => ({ topic, data });
+
+// spec共有のSSOT値
+// SSOT value shared with the spec
+export const TUTORIAL_RESEARCH_NODE_PADDING_PX = 8;
 const controls = {
   placement: () => control(Topics.placementMode, {
     selectedTargetType: "raw", selectedName: "Assembler", height: 3, unavailableReason: "", wheelOwnedByTool: false,
@@ -92,6 +97,20 @@ const controls = {
         elementId: "tutorial-highlight-1",
         anchorId: "game.crosshair",
         paddingPx: 8, blocksPointerInput: false,
+      }],
+    }],
+  }),
+  // パンでクリップ境界を跨ぐノード
+  // A node that crosses the clip edge on pan
+  tutorialResearchNode: () => control(Topics.tutorialPresentation, {
+    revision: 1,
+    sessions: [{
+      tutorialSessionId: "tutorial-session-research", challengeId: "tutorial-challenge-research",
+      elements: [{
+        kind: "outline" as const,
+        elementId: "tutorial-highlight-research",
+        anchorId: researchNodeAnchorId(fx.researchableNodeGuid),
+        paddingPx: TUTORIAL_RESEARCH_NODE_PADDING_PX, blocksPointerInput: false,
       }],
     }],
   }),

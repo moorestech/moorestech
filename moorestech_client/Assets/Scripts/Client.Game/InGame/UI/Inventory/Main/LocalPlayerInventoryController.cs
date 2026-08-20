@@ -60,6 +60,14 @@ namespace Client.Game.InGame.UI.Inventory.Main
             var fromInvItem = GetItem(from, fromSlot);
 
             if (fromInvItem.Count < count) return;
+            // 空の移動元×count=0はswap分岐で行先スタックを空スロットへ吸い出してしまうため弾く
+            // Reject count<=0 or an empty source; otherwise the swap branch drains the target stack into an empty slot
+            if (count <= 0 || fromInvItem.Id == ItemMaster.EmptyItemId) return;
+
+            var toInvItem = GetItem(to, toSlot);
+            // 別ID×部分移動は確定no-opなので送信自体を止める
+            // A different-id partial move is a guaranteed no-op; stop before dispatch, not inside SetInventory
+            if (toInvItem.Id != ItemMaster.EmptyItemId && toInvItem.Id != fromInvItem.Id && count != fromInvItem.Count) return;
 
             SetInventory();
 
@@ -73,7 +81,15 @@ namespace Client.Game.InGame.UI.Inventory.Main
             {
                 var itemStackFactory = ServerContext.ItemStackFactory;
 
-                var toInvItem = GetItem(to, toSlot);
+                // 別IDのスロットへ全量移動したときはサーバーのSwapSlotと同じく入れ替える（部分移動はMoveItem本体で弾き済み）
+                // A full move onto a different-id slot swaps, matching the server's SwapSlot; a partial move is already rejected in MoveItem
+                if (toInvItem.Id != ItemMaster.EmptyItemId && toInvItem.Id != fromInvItem.Id)
+                {
+                    SetItem(to, toSlot, fromInvItem);
+                    SetItem(from, fromSlot, toInvItem);
+                    return;
+                }
+
                 var moveItem = itemStackFactory.Create(fromInvItem.Id, count);
 
                 var add = toInvItem.AddItem(moveItem);
