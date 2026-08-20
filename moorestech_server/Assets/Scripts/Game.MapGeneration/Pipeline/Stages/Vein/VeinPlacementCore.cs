@@ -45,8 +45,8 @@ namespace Game.MapGeneration.Pipeline.Stages
                 entries, entryMasks, borderMargin, heights2D, dims, rng, treeGrid, objectGrid,
                 memberHalo, centerHalo, tile.Halo.Radius);
 
-            // クラスター単位でメンバー座標の min/max を整数化し PlacedVein を1件生成する。
-            // Snap each cluster's member coord min/max to integers and emit one PlacedVein per cluster.
+            // メンバー点ごとに固定サイズの PlacedVein を1件生成する。
+            // Emit one fixed-size PlacedVein per member point.
             return BuildVeins(members, veins, excludedVeins);
         }
 
@@ -86,32 +86,11 @@ namespace Game.MapGeneration.Pipeline.Stages
         static List<PlacedVein> BuildVeins(
             List<PlacementEntry> members, List<PlacedVein> veins, IReadOnlyList<PlacedVein> excludedVeins)
         {
-            // clusterId → (guid, min, max) の集約。順序はクラスター発見順（決定論・挿入順）を保つ。
-            // Aggregate by clusterId → (guid, min, max); preserve cluster discovery (insertion) order for determinism.
-            var order = new List<int>();
-            var acc = new Dictionary<int, (string guid, Vector3Int min, Vector3Int max)>();
-            foreach (var m in members)
+            // 配置順をそのまま出力順にする。順序は同一 seed の再現性の一部。
+            // The placement order becomes the output order; that order is part of same-seed reproducibility.
+            foreach (var member in members)
             {
-                if (m.Cluster == null) continue;
-                int id = m.Cluster.Value.ClusterId;
-                var p = new Vector3Int(
-                    Mathf.RoundToInt(m.WorldPosition.x),
-                    Mathf.RoundToInt(m.WorldPosition.y),
-                    Mathf.RoundToInt(m.WorldPosition.z));
-                if (!acc.TryGetValue(id, out var e))
-                {
-                    order.Add(id);
-                    acc[id] = (m.MapObjectGuid, p, p);
-                    continue;
-                }
-                e.min = Vector3Int.Min(e.min, p);
-                e.max = Vector3Int.Max(e.max, p);
-                acc[id] = e;
-            }
-            foreach (int id in order)
-            {
-                var e = acc[id];
-                var vein = new PlacedVein { VeinGuid = e.guid, Min = e.min, Max = e.max };
+                var vein = VeinAabbBuilder.Build(member.MapObjectGuid, member.WorldPosition);
                 if (!OverlapsExcludedVein(vein)) veins.Add(vein);
             }
             return veins;

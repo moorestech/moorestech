@@ -25,8 +25,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             SpatialGrid clusterCenterGrid,
             float centerSpacing,
             PlacementHaloChannel centerHalo,
-            List<PlacementEntry> result,
-            ref int nextClusterId)
+            List<PlacementEntry> result)
         {
             // バンド未設定は生成器側で警告してスキップ（OreBandPlanner は純粋関数のため）。
             // Warn and skip when bands are missing (OreBandPlanner stays a pure function).
@@ -106,10 +105,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                     clusterCenterGrid.Add(localX, localZ);
                     centerHalo.Add(localX + dims.WorldOffsetX, localZ + dims.WorldOffsetZ);
 
-                    // 1クラスターに一意な id を割り当て、メンバー座標群を AABB へ束ねる鍵にする。
-                    // Assign a unique id per cluster; it is the key that binds member coords into one AABB.
-                    int clusterId = nextClusterId++;
-                    PlaceClusterMembers(entry, band, localX, localZ, heights, dims, rng, oreGrid, result, clusterId);
+                    PlaceClusterMembers(entry, band, localX, localZ, heights, dims, rng, oreGrid, result);
                 }
             }
         }
@@ -119,7 +115,7 @@ namespace Game.MapGeneration.Pipeline.Generators
         static void PlaceClusterMembers(
             OreEntry entry, OreBand band, float localX, float localZ,
             float[,] heights, TerrainDimensions dims, System.Random rng,
-            SpatialGrid oreGrid, List<PlacementEntry> result, int clusterId)
+            SpatialGrid oreGrid, List<PlacementEntry> result)
         {
             float w = dims.TerrainWidth;
             float l = dims.TerrainLength;
@@ -160,7 +156,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                     Rotation = Quaternion.identity,
                     Scale = Vector3.one,
                     Sink = 0f,
-                    Cluster = new RockClusterInfo { ClusterId = clusterId }
+                    Cluster = null
                 });
 
                 oreGrid.Add(mx, mz);

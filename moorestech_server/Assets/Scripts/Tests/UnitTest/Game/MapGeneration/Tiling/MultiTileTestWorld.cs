@@ -55,6 +55,16 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             Assert.That(z, Is.InRange(minZ, minZ + config.gridSizeZ * config.terrainLength));
         }
 
+        // 鉱脈は配置点から±1広がるため、格子判定に余白を持たせる。
+        // Veins reach one unit out from their point, so the grid test takes a margin.
+        public static void AssertInsideGridWithMargin(float x, float z, TerrainGenerationConfig config, float margin)
+        {
+            var minX = -(config.gridSizeX / 2) * config.terrainWidth;
+            var minZ = -(config.gridSizeZ / 2) * config.terrainLength;
+            Assert.That(x, Is.InRange(minX - margin, minX + config.gridSizeX * config.terrainWidth + margin));
+            Assert.That(z, Is.InRange(minZ - margin, minZ + config.gridSizeZ * config.terrainLength + margin));
+        }
+
         // クラスタ採番を通る岩と、ClusterId=-1 を持つ独立散布の岩を1つずつ。両方が同じタイルに出るのが要点。
         // One cluster-numbered rock plus one independently scattered rock carrying ClusterId=-1; the point is that both land on every tile.
         private static BiomeObjectConfig BuildObjectConfig()
