@@ -4,7 +4,7 @@ Step 5（実測検証）の対話工程版。レビュー系対策の「当時�
 
 ## 前提: フィクスチャの材料はすべて実記録から採る
 
-- 会話の実記録: セッションtranscript（`~/.claude/projects/<slug>/<session>.jsonl` またはログrepoのミラー）。AskUserQuestionの提示全文（選択肢・説明・プレビュー）とユーザー回答は `tool_use` / `tool_result` に verbatim で残っている
+- 会話の実記録: セッションtranscript。**探索はまず `../moorestech_logs`**（`map/commit-sessions.tsv` でコミット→session_id を引き、`claude/<slug>/<session>.jsonl` / `codex/` の生ログを開く。手順は同repoのREADME。codexセッションはここにしか無い）。`~/.claude/projects/<slug>/<session>.jsonl` の直読みは同一マシン・session_id既知の近道としてのみ可。AskUserQuestionの提示全文（選択肢・説明・プレビュー）とユーザー回答は `tool_use` / `tool_result` に verbatim で残っている
 - 出力の実記録: 当時書かれた台帳・ADR（事故後に修正済みなら `git show <当時sha>:<path>` で当時版を採る。作業ツリーは並行修正で汚染されている前提で扱う）
 - 旧版スキルは `git show <対策マージ前sha>:<skill path>` で凍結する
 
