@@ -1,0 +1,33 @@
+/* ホットバー直上（採掘ゲージのさらに上）へ中央揃えで積む常時表示HUD族。面は持たず pointer-events:none */
+/* Always-on HUD family stacked centered right above the hotbar (above the mining gauge); faceless, pointer-events:none */
+.hud {
+  position: absolute;
+  right: 0;
+  bottom: calc(var(--hotbar-bottom) + var(--hotbar-slot-size) + var(--hotbar-number-tab-overhang) + var(--tutorial-key-hint-hotbar-gap));
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tutorial-key-hint-gap);
+  pointer-events: none;
+  z-index: var(--z-stage-overlay-panel);
+}
+
+/* InventoryScreenChrome の keyHints と同じ文字様式（kbd + 文言） */
+/* Same text style as InventoryScreenChrome's keyHints (kbd + text) */
+.hint {
+  display: flex;
+  align-items: center;
+  gap: var(--tutorial-key-hint-kbd-gap);
+  font-size: var(--tutorial-key-hint-font-size);
+  line-height: 1.2;
+  letter-spacing: 0.055em;
+  font-weight: 500;
+  color: var(--text-high-contrast);
+  text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
+}
+
+.hint kbd {
+  font: inherit;
+  color: var(--text-high-contrast);
+}

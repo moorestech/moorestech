@@ -404,6 +404,12 @@ description: |
 - e2e/スクリーンショット検証はアニメーション非同期のため座標一致を要求しない（表示有無のみ検証する）。
 - **枠線ハイライトの文言ラベル**: `tutorial.presentation` の outline に `labelTutorialGuid` があるとき、`TutorialOverlay` が枠線の下辺外側・左揃えに `t(challengeTutorial.<guid>.text)` のラベルを描く（ユーザー裁定 2026-08-20）。面は `--world-pin-face`、文字は `--text-high-contrast`、間隔・文字サイズは `--tutorial-highlight-label-*` 固定長トークン。枠線が非表示ならラベルも出さない。吹き出し矢印・光彩・アニメーションは付けない。
 
+## 8.19 キー操作ヒントHUD（チュートリアルの keyControl）
+
+- `tutorial.presentation` の kind `keyControl`（tutorialGuid / keyName / uiState）を `KeyControlHintHud` が描く。表示は `ui_state.current` の `state` が `uiState` と一致する間だけで、blockingスキット中は出さない（ユーザー裁定 2026-08-20）。
+- 配置は常時表示HUD族の `.viewportOverlay` 内・画面下中央で、ホットバーの床（`--hotbar-bottom` + スロット高 + 番号タブ）から `--tutorial-key-hint-hotbar-gap` だけ上に置き、採掘ゲージと重ねない。複数は `--tutorial-key-hint-gap` で縦積み。
+- 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。文字サイズ・間隔は `--tutorial-key-hint-*` 固定長トークン。面・枠・光彩・アニメーションは持たず `pointer-events: none`。
+
 ## 9. やらないことリスト（再掲・明示）
 
 - 全画面UI・不透明な面での塗り潰し（唯一の例外は §8.12 のスキット暗転）
