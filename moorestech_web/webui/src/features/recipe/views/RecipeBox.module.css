@@ -42,11 +42,15 @@
    min-height stays fixed, and align-items:center keeps the shrunk cells vertically centered */
 /* 正本の94px角セルに近づけるため選択行だけ1pxへ縮め、アイコン占有率を高める */
 /* Tighten only the selection row to 1px for higher icon occupancy inside the reference-sized 94px cells */
-/* 枠幅からスロット寸法を引くため、列いっぱいに広げたうえでcqwの基準（container）にする */
-/* Fill the track and become the container so cqw resolves to this column's width when sizing slots */
+/* 枠幅からスロット寸法を引くため、列いっぱいに広げたうえでcqwの基準（container）にする。
+   列数はgridTemplateColumnsで注入され、3点以上は2行になって高さが自動で伸びる */
+/* Fill the track and become the container so cqw resolves to this column's width when sizing slots;
+   the column count is injected via gridTemplateColumns and three or more items take two rows, growing the height */
 .recipeMaterials {
+  display: grid;
   justify-self: stretch;
   justify-content: start;
+  align-content: center;
   width: 100%;
   container-type: inline-size;
   gap: var(--recipe-slot-gap);
@@ -70,9 +74,11 @@
 
 /* 下端をスロット外(暗面)へはみ出させない。§8.17の明色面前提を満たすため0px床にする */
 /* Keep the bottom edge from spilling onto the dark box; floor at 0px per §8.17's light-face rule */
+/* スロットの外へ出さない。右へ2px出すと最終列で枠の実効幅を超え、中央列へ食い込む（実測1.9px） */
+/* Never bleed outside the slot; 2px to the right pushes the last column past the track and into the center column (measured 1.9px) */
 .materialCount {
   position: absolute;
-  right: -2px;
+  right: 0;
   bottom: 0;
   z-index: 2;
   color: var(--count-text);
@@ -117,8 +123,10 @@
 }
 
 .recipeResult {
+  display: grid;
   justify-self: stretch;
   justify-content: end;
+  align-content: center;
   width: 100%;
   container-type: inline-size;
   gap: var(--recipe-slot-gap);

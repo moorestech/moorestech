@@ -277,7 +277,7 @@
   /* Tie the shrunken count text to the slot size; a fixed px overlaps the neighbouring slot's text
      (measured: "100/20" at 9px is ~35px against a 22.3px slot, over the 32.3px pitch).
      The ratio comes from text width ≈ 3.9x font size, capped to fit the pitch (slot + gap) */
-  --recipe-count-font-scale-dense: 0.28;
+  --recipe-count-font-scale-dense: 0.36;
   /* 素材列・中央列・結果列の間隔。0だと素材の所持/必要テキスト(スロット右へ2pxはみ出す)が
      クラフトボタンの真上に乗る */
   /* Gap between the material, center, and result columns; at 0 the owned/required text (which bleeds 2px past
