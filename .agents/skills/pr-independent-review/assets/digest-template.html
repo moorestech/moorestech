@@ -9,13 +9,13 @@
   5. script 内の STORAGE_KEY と COPY_TITLE は必ずページごとに固有の値へ変更する（CONFIG 注記箇所）。
      STORAGE_KEY が他ページと同じだと localStorage 上でコメントが混ざる。
   6. CSS とコメント機能 JS（本文選択コメント/図コメント/左下パネル/すべてコピー/localStorage永続化）は
-     動作確認済みのため一切変更しない。
+     回帰テストとデスクトップ/390pxの視覚検証を通したうえで変更する。
   7. ビルド・サーバ不要。file:// で直接ブラウザに開いて動作する。
 -->
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{{TITLE}}</title>
 <style>
   :root{
@@ -151,7 +151,7 @@
     font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans",system-ui,sans-serif;
     line-height:1.75;
   }
-  p,li,td,th,.lead-item,.callout,.compare-col,.ci-body,.panel-empty{
+  h1,h2,h3,h4,p,li,td,th,.file-path,.lead-item,.callout,.compare-col,.ci-body,.panel-empty{
     overflow-wrap:anywhere;
   }
   main{
@@ -159,6 +159,8 @@
     margin:0 auto;
     padding:0 20px 96px;
   }
+  main>*{min-width:0;}
+  pre,.code-card,.table-wrap{max-width:100%;}
   .hero{
     background:linear-gradient(180deg,var(--surface-alt) 0%,var(--surface) 100%);
     border-bottom:1px solid var(--border);
@@ -441,9 +443,13 @@
   }
 
   @media (max-width:640px){
-    main{ padding:0 14px 96px; }
-    .hero{ padding:40px 14px 26px; }
+    body{ font-size:14.5px; line-height:1.7; }
+    /* ノッチ端末でも本文を安全領域へ収める / Keep content inside notched-device safe areas */
+    main{ padding:0 max(14px,env(safe-area-inset-right,0px)) 96px max(14px,env(safe-area-inset-left,0px)); }
+    .hero{ padding:calc(40px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 26px max(14px,env(safe-area-inset-left,0px)); }
     .hero h1{ font-size:21px; }
+    h2{ font-size:19px; line-height:1.4; }
+    h3{ font-size:15.5px; line-height:1.45; }
     .compare{ grid-template-columns:1fr; }
     .align-head,.align-row{ grid-template-columns:1fr; gap:4px; }
     .align-tag{ justify-self:start; }
@@ -555,13 +561,15 @@
 
   @media (hover:none){
     .comment-composer{
-      position:fixed; left:50% !important; top:12px !important;
-      transform:translateX(-50%) !important; width:min(92vw,360px); max-width:92vw;
+      position:fixed; left:50% !important; top:calc(12px + env(safe-area-inset-top,0px)) !important;
+      transform:translateX(-50%) !important;
+      width:min(360px,calc(100vw - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));max-width:none;
     }
     .composer-input{ font-size:16px; }
   }
   @media (max-width:640px){
-    .comment-panel{ left:12px; right:12px; bottom:calc(18px + env(safe-area-inset-bottom,0px)); }
+    .comment-composer{width:calc(100vw - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));}
+    .comment-panel{ left:max(12px,env(safe-area-inset-left,0px)); right:max(12px,env(safe-area-inset-right,0px)); width:auto; bottom:calc(18px + env(safe-area-inset-bottom,0px)); }
     .comment-panel.open{ width:auto; }
     .panel-body{ display:flex; flex-direction:column; max-height:70vh; }
     .comment-list{ flex:1 1 auto; min-height:0; max-height:none; }
@@ -619,6 +627,19 @@
   }
   /* テーマ側の .hljs 背景はカードの帯を潰すので無効化する / the theme's .hljs background would hide the diff bands */
   .code-card .hljs, .code-card .code { background: transparent !important; }
+  @media (max-width:640px){
+    .verdict-header{padding-left:10px;margin-bottom:18px;}
+    .verdict-card,.suppressed-card{padding:12px 10px;}
+    .verdict-card h2,.suppressed-card h2{font-size:16px;}
+    .code-card{font-size:12px;padding:10px 0;}
+    .callout,.lead-item{padding:12px;}
+    .table-wrap{-webkit-overflow-scrolling:touch;}
+    .figure-comment-btn,.comment-fab,.panel-toggle,.btn-primary,.btn-ghost,.ci-act,.ci-del{
+      min-height:44px;
+    }
+    .ci-act,.ci-del{min-width:44px;}
+    footer{padding-bottom:calc(132px + env(safe-area-inset-bottom,0px));}
+  }
 </style>
 </head>
 <body>
