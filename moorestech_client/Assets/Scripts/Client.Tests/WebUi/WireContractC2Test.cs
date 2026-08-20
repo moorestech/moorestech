@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.UI.Tooltip;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
 using Core.Master;
@@ -170,15 +168,20 @@ namespace Client.Tests.WebUi
                 "tooltip.json");
         }
 
-        // 寸法値はWeb側が持つため、presentationは表示状態と辞書キーだけを運ぶ
-        // The web side owns sizes, so the presentation carries only visibility and the dictionary key
+        // 寸法値はWeb側が持つため、wireへ出るtooltipは表示状態と辞書キーだけを運ぶ
+        // The web side owns sizes, so the tooltip reaching the wire carries only visibility and the dictionary key
         [Test]
-        public void TooltipPresentationCarriesOnlyVisibilityKeyAndParams()
+        public void TooltipWireCarriesOnlyVisibilityKeyAndParams()
         {
-            var fields = typeof(TooltipPresentation).GetFields(BindingFlags.Public | BindingFlags.Instance);
-            var fieldNames = fields.Select(field => field.Name).OrderBy(name => name).ToArray();
+            var wire = JToken.Parse(WebUiJson.Serialize(new TooltipDto
+            {
+                Visible = true,
+                TextKey = "ui.tooltip.requiredItems",
+                TextParams = new[] { "Iron Pickaxe" },
+            }));
+            var wireKeys = wire.Children<JProperty>().Select(property => property.Name).OrderBy(name => name).ToArray();
 
-            CollectionAssert.AreEqual(new[] { "TextKey", "TextParams", "Visible" }, fieldNames);
+            CollectionAssert.AreEqual(new[] { "textKey", "textParams", "visible" }, wireKeys);
         }
 
         private static void AssertMatches(object dto, string fixtureName)
