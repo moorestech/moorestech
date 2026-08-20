@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics, useConnectionStatus } from "@/bridge";
-import { isPointerOverWebUi, isWheelPassthrough, useAlwaysOnHudVisible, useGameLayerWheel, useGrabInteractive } from "@/shared/uiState";
+import { isPointerOverWebUi, isWheelPassthrough, useGameLayerWheel, useGrabInteractive } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
 import { accumulateWheelSteps, cycleEquipment } from "./equipmentLogic";
@@ -18,7 +18,6 @@ export default function EquipmentPanel() {
   // 掴んだ絵が出ない画面ではクリックを受けず、選択操作はホイールだけになる
   // Where the held item cannot be seen, clicks are refused and the wheel is the only selection input
   const grabInteractive = useGrabInteractive();
-  const alwaysOnHudVisible = useAlwaysOnHudVisible();
   // ホイールを占有中かはC#が判定して配る値をそのまま読む（種別からの再導出はしない）
   // Read the occupancy flag C# publishes as-is; never re-derive it from the target kind
   const wheelOwnedByBuildTool = useTopicSelector(
@@ -81,10 +80,6 @@ export default function EquipmentPanel() {
       if (requestIndex >= 0) pendingSelections.current.splice(requestIndex, 1);
     });
   });
-
-  // 研究画面は持ち物の右側を全て使うため、常時表示のこのHUDを描画しない
-  // The research screen uses everything right of the inventory, so this always-on HUD is not rendered there
-  if (!alwaysOnHudVisible) return null;
 
   // snapshot 未受信の間は HUD ごと出さない（HotbarPanel と同じ判断）
   // Hide the whole HUD until the first snapshot, matching HotbarPanel

@@ -20,7 +20,7 @@ import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
-import { screenAllowsGrab, screenForUiState } from "@/shared/uiState";
+import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud } from "@/shared/uiState";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
 
@@ -108,10 +108,10 @@ export default function App() {
           <CurrentChallengeHud />
           {inventoryScreen && <InventoryScreenChrome />}
           {researchScreen && <ResearchScreenChrome />}
-          {/* 研究画面を除き常時表示するHUD（可否は各Panelがフック経由で自己判定する） */}
-          {/* Always-on HUDs except on the research screen (each panel self-gates via its hook) */}
-          <HotbarPanel />
-          <EquipmentPanel />
+          {/* 常時表示HUD族の可否は screenAllowsGrab と対称にここで合成する */}
+          {/* The always-on HUD family is gated here, symmetric with screenAllowsGrab */}
+          {screenShowsAlwaysOnHud(screen) && <HotbarPanel />}
+          {screenShowsAlwaysOnHud(screen) && <EquipmentPanel />}
           {/* 採掘ゲージはホットバーの床を基準に積むため同じviewport族へ置く */}
           {/* The mining gauge stacks on the hotbar's floor, so it belongs to the same viewport family */}
           <ProgressBar />

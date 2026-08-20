@@ -2,7 +2,7 @@ import { useTopic, useTopicSelector, dispatchAction, Topics } from "@/bridge";
 import type { HotbarSlot } from "@/bridge";
 import { PlacementTargetFace, SlotFrame } from "@/shared/ui";
 import { useI18n } from "@/shared/i18n";
-import { useAlwaysOnHudVisible, useBlockingSkitActive, uiStateAcceptsHotbarSelect } from "@/shared/uiState";
+import { useBlockingSkitActive, uiStateAcceptsHotbarSelect } from "@/shared/uiState";
 import { localizeSelectableTargetName, placementTargetOf } from "@/shared/placementTarget";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { useHotbarDragSource } from "../useHotbarDragSource";
@@ -11,23 +11,18 @@ import styles from "./style.module.css";
 
 // ホットバーは配置対象を9枠へ割り当てて選ぶHUDで、持ち物のアイテム欄ではない(割当元はビルドメニューのみ)
 // The hotbar assigns and selects placement targets across 9 slots; it is not an inventory item bar (only the build menu assigns into it)
-// 研究画面以外で常時表示（可否は hook が持つ）
-// Always-on except the research screen (eligibility lives in the hook)
+// 常時表示の可否は App の合成側が持ち、このHUDは画面名を知らない
+// Whether this HUD shows at all is composed in App; the panel itself knows no screen names
 // 数字キーは一切listenしない(Unity側HotbarKeyInputへ統一済み)
 // Digit keys are unified into the Unity-side HotbarKeyInput, so this panel never listens for keys
 export default function HotbarPanel() {
   const hotbar = useTopic(Topics.hotbar);
   const blockingSkitActive = useBlockingSkitActive();
-  const alwaysOnHudVisible = useAlwaysOnHudVisible();
 
   // 選択を受理しない画面ではタップ判定ごと止め、見た目でも操作不能を示す
   // On screens that reject a selection the tap is disabled outright, and the look says so too
   const selectAccepted = useTopicSelector(Topics.uiState, (data) => uiStateAcceptsHotbarSelect(data?.state ?? null));
   if (blockingSkitActive) return null;
-
-  // 研究画面のように全幅を使う画面ではHUDごと引っ込む
-  // Withdraw the whole HUD on screens that use the full width, such as the research screen
-  if (!alwaysOnHudVisible) return null;
 
   // 未受信の間はHUD非表示
   // Hide the whole HUD until the first snapshot

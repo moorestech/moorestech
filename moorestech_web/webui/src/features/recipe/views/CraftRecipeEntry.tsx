@@ -8,7 +8,8 @@ import { craftable } from "../logic/craftLogic";
 import { useHoldCraft } from "../logic/useHoldCraft";
 import RecipeRow from "./RecipeRow";
 import styles from "./RecipeBox.module.css";
-import { L, useI18n, useMaterialTooltipText } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
+import { useMaterialTooltipText } from "@/shared/materialTooltipText";
 
 type Props = {
   recipe: CraftRecipe;
