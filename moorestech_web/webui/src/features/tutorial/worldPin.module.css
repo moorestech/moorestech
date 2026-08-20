@@ -21,7 +21,7 @@
   color: var(--text-high-contrast);
   background: var(--world-pin-face);
   white-space: nowrap;
-  font-size: 14px;
+  font-size: var(--label-face-font-size);
 }
 
 .marker {

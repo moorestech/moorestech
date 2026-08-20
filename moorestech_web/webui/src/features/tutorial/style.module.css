@@ -50,6 +50,6 @@
   color: var(--text-high-contrast);
   background: var(--world-pin-face);
   white-space: nowrap;
-  font-size: var(--tutorial-highlight-label-font-size);
+  font-size: var(--label-face-font-size);
   pointer-events: none;
 }
