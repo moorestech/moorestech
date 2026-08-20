@@ -201,6 +201,63 @@
         }
       ],
       "prevResearchNodeGuids": []
+    },
+    {
+      "researchNodeGuid": "bb000000-0000-4000-8000-000000000001",
+      "researchNodeName": "Test Research 6",
+      "researchNodeDescription": "unlockBlock/unlockMachineRecipe/unlockConnectTool/unlockTrainCar coverage",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [
+        {
+          "gameActionType": "unlockBlock",
+          "gameActionParam": {
+            "unlockBlockGuids": [
+              "00000000-0000-0000-0000-000000000002"
+            ]
+          }
+        },
+        {
+          "gameActionType": "unlockMachineRecipe",
+          "gameActionParam": {
+            "unlockMachineRecipeGuids": [
+              "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d",
+              "7ba3de84-6823-4970-b84a-13e7d8b7bf1d",
+              "ad81ded0-8b7f-40ab-85e3-cff4108479da",
+              "aa000000-0000-4000-8000-00000000fee1"
+            ]
+          }
+        },
+        {
+          "gameActionType": "unlockConnectTool",
+          "gameActionParam": {
+            "unlockConnectToolGuids": [
+              "cc000000-0000-4000-8000-000000000001"
+            ]
+          }
+        },
+        {
+          "gameActionType": "unlockTrainCar",
+          "gameActionParam": {
+            "unlockTrainCarGuids": [
+              "dc82cf3f-709d-49eb-bdb2-67ffcaff561b"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [],
+      "prevResearchNodeGuids": []
     }
   ]
 }

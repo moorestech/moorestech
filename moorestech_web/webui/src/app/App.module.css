@@ -26,7 +26,7 @@
 .stage {
   position: relative;
   display: grid;
-  column-gap: 2.1875rem;
+  column-gap: var(--stage-column-gap);
   row-gap: 1rem;
   width: var(--ui-stage-width);
   height: var(--ui-stage-height);
@@ -47,8 +47,16 @@
   justify-content: start;
 }
 
+/* 研究画面だけ左paddingを外し、持ち物を画面左端へ寄せて右側の空きを研究パネルへ渡す */
+/* Drop the left padding on the research screen alone, pushing the inventory to the screen edge and handing the freed space to the research panel */
+.stageResearch {
+  padding-left: 0;
+}
+
 /* stage拡縮を維持したまま、画面端HUDの論理領域だけを実viewportまで広げる */
 /* Extend only the logical screen-edge HUD area to the real viewport while retaining stage scaling */
+/* このz付与は配下を31のコンテキストへ封じ込める。31より上でstage兄弟と競合する必要がある要素はこのオーバーレイの外へ出すこと */
+/* This z-index creates a stacking context that pins every descendant to 31; anything needing to outrank a .stage sibling above 31 must live outside this overlay */
 .viewportOverlay {
   position: absolute;
   top: calc((var(--ui-stage-height) - var(--ui-viewport-height)) / 2);
@@ -56,6 +64,7 @@
   width: var(--ui-viewport-width);
   height: var(--ui-viewport-height);
   pointer-events: none;
+  z-index: var(--z-stage-overlay-panel-chrome);
 }
 
 /* uGUI 同様、インベントリ表示中は世界全体を暗く沈める全面dim（stageより下のworldbgを覆う） */

@@ -16,5 +16,11 @@ type ItemRequirement = { itemId: number; count: number };
 // 全必要アイテムを所持数が満たすか判定する
 // Determine whether owned counts satisfy every required item
 export function hasEnoughItems(requirements: readonly ItemRequirement[], owned: Map<number, number>): boolean {
-  return requirements.every((requirement) => (owned.get(requirement.itemId) ?? 0) >= requirement.count);
+  return requirements.every((requirement) => ownedCountOf(owned, requirement.itemId) >= requirement.count);
+}
+
+// 未登録なら0を返す既定込みの所持数取得(呼び出し側での`?? 0`重複記述を防ぐ)
+// Owned-count lookup with the missing-entry-means-0 default baked in (avoids repeated `?? 0` at call sites)
+export function ownedCountOf(owned: Map<number, number>, itemId: number): number {
+  return owned.get(itemId) ?? 0;
 }
