@@ -23,7 +23,7 @@ namespace Client.Tests.UIState
             var gameApplier = new FakePlayerCameraInteractionApplier();
             var gameState = new GameScreenState(null, null, null, null, CreateCameraPolicy(gameApplier), CreateHotbarTapInputService(null));
             gameState.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
-            CollectionAssert.AreEqual(new[] { "Warp", "Mode:CameraLook" }, gameApplier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, gameApplier.Calls);
 
             var menuApplier = new FakePlayerCameraInteractionApplier();
             var menuView = new FakeBuildMenuView();
@@ -113,7 +113,7 @@ namespace Client.Tests.UIState
             applier.Calls.Clear();
             Release(KeyboardDevice.leftAltKey);
             state.GetNextUpdate();
-            CollectionAssert.AreEqual(new[] { "Warp", "Mode:CameraLook" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
         }
 
         private GameScreenState CreateGameScreenState(FakePlayerCameraInteractionApplier applier)

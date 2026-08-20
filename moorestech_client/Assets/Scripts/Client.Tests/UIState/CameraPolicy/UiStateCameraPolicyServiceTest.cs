@@ -25,9 +25,9 @@ namespace Client.Tests.UIState.CameraPolicy
         {
             _service.EnterGameplay();
 
-            // ロック中はカーソル座標が凍結するため、ロック前に中央へ寄せてクロスヘアと一致させる
-            // The cursor position freezes while locked, so warp to center before locking to match the crosshair
-            CollectionAssert.AreEqual(new[] { "Warp", "Mode:CameraLook" }, _applier.Calls);
+            // ロック直前の中央寄せはInputManagerが担うため、ここではモード指定だけが見える
+            // InputManager owns the centering right before the lock, so only the mode push is visible here
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, _applier.Calls);
 
             // 視点切替でも再適用なし
             // View toggles never re-push the policy
@@ -69,7 +69,7 @@ namespace Client.Tests.UIState.CameraPolicy
         {
             _viewModeController.ToggleViewMode();
             _service.EnterBuildMode();
-            CollectionAssert.AreEqual(new[] { "Warp", "Mode:CameraLook" }, _applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, _applier.Calls);
 
             // FPSは右クリックで状態変化なし
             // Right clicks cause no state change in FPS
@@ -88,7 +88,7 @@ namespace Client.Tests.UIState.CameraPolicy
 
             _applier.Calls.Clear();
             _viewModeController.ToggleViewMode();
-            CollectionAssert.AreEqual(new[] { "Warp", "Mode:CameraLook" }, _applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, _applier.Calls);
 
             _applier.Calls.Clear();
             _viewModeController.ToggleViewMode();

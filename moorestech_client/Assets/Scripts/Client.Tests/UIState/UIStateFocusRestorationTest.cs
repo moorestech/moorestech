@@ -69,11 +69,11 @@ namespace Client.Tests.UIState
             viewModeController.ToggleViewMode();
             var state = CreatePlaceBlockState(applier, viewModeController);
             state.OnEnter(new UITransitContext(UIStateEnum.PlaceBlock));
-            CollectionAssert.AreEqual(new[] { "Warp", "Mode:CameraLook" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
 
             applier.Calls.Clear();
             state.RestoreAfterApplicationFocus();
-            CollectionAssert.AreEqual(new[] { "Warp", "Mode:CameraLook" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
         }
 
         [Test]
@@ -84,11 +84,11 @@ namespace Client.Tests.UIState
             viewModeController.ToggleViewMode();
             var state = CreateDeleteObjectState(applier, viewModeController);
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
-            CollectionAssert.AreEqual(new[] { "Warp", "Mode:CameraLook" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
 
             applier.Calls.Clear();
             state.RestoreAfterApplicationFocus();
-            CollectionAssert.AreEqual(new[] { "Warp", "Mode:CameraLook" }, applier.Calls);
+            CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, applier.Calls);
         }
 
         private PlaceBlockState CreatePlaceBlockState(FakePlayerCameraInteractionApplier applier, PlayerViewModeController viewModeController)
