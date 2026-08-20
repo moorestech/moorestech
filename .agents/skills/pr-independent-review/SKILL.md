@@ -685,6 +685,12 @@ sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させ
   セッション側で `git commit` すると同一内容を二重に扱うことになる。**書いたら放置が正**
   （旧版の「正典treeへ書き込むが勝手にcommitしない」は記録先を `$LOGS` へ分離する前の記述。
   現在は正典tree＝コードrepoへは記録を一切書かない）
+- **本Step完了の最後に `$RUNDIR/session-done.marker` を書く**（中身は空でよい）。
+  pollerはcmuxワークスペースをフォアグラウンド起動しており「ターン終了＝プロセス終了」の合図を持たないため、
+  `findings.json` の生成だけでは Step 7.6/8 の完了を意味しない。このマーカーが「終了してよい」の唯一の合図であり、
+  pollerは `findings.json ∧ session-done.marker` の両方が揃うまでワークスペースを閉じない
+  (This marker is the sole "safe to close" signal for the poller's foreground cmux launch — write it only
+  after Step 7.6/8 are truly done, since findings.json alone no longer implies the session has finished)
 
 ## Step 9: 修正モード（「修正して」と言われたときだけ）
 
