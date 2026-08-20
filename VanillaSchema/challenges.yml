@@ -171,6 +171,8 @@ properties:
               - when: keyControl
                 type: object
                 properties:
+                # 判定はstate単独。TrainHUDScreen等subStateを持つ状態ではポーズ等の下位状態を区別しない
+                # Match uses state alone; states with a subState (e.g. TrainHUDScreen) don't distinguish it (pause, etc)
                 - key: uiState
                   type: enum
                   options:
@@ -188,7 +190,6 @@ properties:
                   default: GameScreen
                 - key: keyName
                   type: string
-                  default: Tab
                 - key: controlText
                   type: string
                   default: control text
