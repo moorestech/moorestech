@@ -57,10 +57,11 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
         public static void SliceKindsWithHalo(
             IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition,
             float tileWidth, float tileLength, float halo,
-            out List<TileLocalMapObject> trees, out List<TileLocalMapObject> stones)
+            out List<TileLocalMapObject> trees, out List<TileLocalMapObject> stones,
+            out List<TileLocalMapObject> bareGroundStones)
         {
             var tileLocalObjects = SliceWithHalo(mapObjects, tileWorldPosition, tileWidth, tileLength, halo);
-            MapObjectKindSplitter.Split(tileLocalObjects, out trees, out stones);
+            MapObjectKindSplitter.Split(tileLocalObjects, out trees, out stones, out bareGroundStones);
         }
     }
 }

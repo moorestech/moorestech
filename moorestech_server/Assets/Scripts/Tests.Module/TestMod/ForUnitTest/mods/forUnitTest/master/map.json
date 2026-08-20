@@ -61,6 +61,25 @@
           }
         ]
       }
+    },
+    {
+      "earnItemHpInterval": 1,
+      "hp": 1,
+      "mapObjectName": "vanilla:TestRubbleRock",
+      "addressablePath": "Vanilla/Environment/Tree",
+      "soundEffectType": "stone",
+      "terrainSurroundEffectType": "rockNoBareGround",
+      "miningType": "PickUp",
+      "earnItems": [
+        {
+          "maxCount": 1,
+          "minCount": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000002"
+        }
+      ],
+      "mapObjectGuid": "00000000-0000-3333-0000-000000000001",
+      "miningParam": {},
+      "#memo": "裸地を塗らない岩(rockNoBareGround)。距離場には岩として乗るが裸地テクスチャは描かれないことをテストで確認する。Mining型を単一に保つテストがあるためPickUp"
     }
   ],
   "mapVeins": [

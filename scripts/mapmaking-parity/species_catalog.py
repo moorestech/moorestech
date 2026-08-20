@@ -16,9 +16,13 @@ BK_SEGMENT = "BK"
 ADDRESS_ROOT = "Vanilla/Environment"
 WRAPPER_ROOT = "Assets/AddressableResources/Environment"
 
-# kindごとのアドレス分類。pebbleは岩側に置く
-# Address category per kind; pebbles live on the rock side
-ADDRESS_CATEGORY_BY_KIND = {"tree": "Tree", "rock": "Rock", "pebble": "Rock"}
+# kindごとのアドレス分類。pebbleは岩側に置く。plant/propはobjectConfig専用（Mesaの低木・小物）
+# Address category per kind; pebbles live on the rock side, plant/prop exist only for objectConfig (Mesa shrubs and props)
+ADDRESS_CATEGORY_BY_KIND = {"tree": "Tree", "rock": "Rock", "pebble": "Rock", "plant": "Plant", "prop": "Prop"}
+
+# 移植元TerrainGenerator.ApplyObjectSurroundTextureは、objectConfig配置のうち名前にこれを含む岩だけ裸地化する
+# The source TerrainGenerator.ApplyObjectSurroundTexture repaints bare ground only under objectConfig placements whose name contains one of these
+BARE_GROUND_NAME_MARKERS = ("Boulder", "Cliff")
 
 
 class Species:
@@ -34,6 +38,14 @@ class Species:
         self.wrapper_path = f"{WRAPPER_ROOT}/{category}/{self.key}.prefab"
         self.map_object_guid = str(
             uuid.uuid5(MAP_OBJECT_NAMESPACE, f"moorestech.mapobject.{self.key}"))
+        # objectConfigから参照された種だけがtrueになりうる。treePlacement経由の岩は移植元で裸地化されない
+        # Only species referenced from objectConfig can become true; rocks placed via treePlacement are never repainted in the source
+        self.referenced_by_object_config = False
+
+    @property
+    def bare_ground(self) -> bool:
+        return self.referenced_by_object_config and any(
+            marker in self.name for marker in BARE_GROUND_NAME_MARKERS)
 
     def to_json(self) -> dict:
         return {
@@ -45,6 +57,7 @@ class Species:
             "wrapperPath": self.wrapper_path,
             "mapObjectGuid": self.map_object_guid,
             "mapObjectName": self.name,
+            "bareGround": self.bare_ground,
         }
 
 
@@ -57,8 +70,12 @@ def _kind_of(prefab_path: str, name: str) -> str:
     Pebbles share the rock folder, so the Pebble check must precede the rock check."""
     if name.startswith("Pebble"):
         return "pebble"
-    if "/Rocks/" in prefab_path:
+    if "/Rocks/" in prefab_path or "/Rubble/" in prefab_path:
         return "rock"
+    if "/Plants/" in prefab_path:
+        return "plant"
+    if "/Props/" in prefab_path:
+        return "prop"
     return "tree"
 
 

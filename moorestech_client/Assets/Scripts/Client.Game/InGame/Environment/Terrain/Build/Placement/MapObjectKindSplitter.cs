@@ -15,12 +15,16 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
     {
         // 分類はマスタのterrainSurroundEffectTypeが正本。転送レイアウトは種別を持たずGUIDだけを運ぶ
         // The master's terrainSurroundEffectType is the source of truth; the transferred layout carries only a GUID, never a kind
+        // stonesは岩用距離場を担う全岩、bareGroundStonesはその中で裸地を塗る岩だけ（移植元はBoulder/Cliff名の岩のみ裸地化する）
+        // stones carries every rock for the rock distance field; bareGroundStones is the subset that paints bare ground (the source repaints only Boulder/Cliff rocks)
         public static void Split(
             IReadOnlyList<TileLocalMapObject> mapObjects,
-            out List<TileLocalMapObject> trees, out List<TileLocalMapObject> stones)
+            out List<TileLocalMapObject> trees, out List<TileLocalMapObject> stones,
+            out List<TileLocalMapObject> bareGroundStones)
         {
             trees = new List<TileLocalMapObject>();
             stones = new List<TileLocalMapObject>();
+            bareGroundStones = new List<TileLocalMapObject>();
 
             foreach (var mapObject in mapObjects)
             {
@@ -34,6 +38,10 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
                         trees.Add(mapObject);
                         break;
                     case MapObjectMasterElement.TerrainSurroundEffectTypeConst.rockBareGround:
+                        stones.Add(mapObject);
+                        bareGroundStones.Add(mapObject);
+                        break;
+                    case MapObjectMasterElement.TerrainSurroundEffectTypeConst.rockNoBareGround:
                         stones.Add(mapObject);
                         break;
                     default:

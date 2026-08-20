@@ -80,7 +80,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
                 TileMapObjectSlicer.SliceKindsWithHalo(
                     mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength, halo,
-                    out var trees, out var stones);
+                    out var trees, out var stones, out _);
 
                 treeGrid = CreateGrid(trees);
                 objectGrid = CreateGrid(stones);
