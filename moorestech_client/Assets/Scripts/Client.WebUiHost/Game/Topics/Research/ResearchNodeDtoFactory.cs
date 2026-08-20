@@ -44,8 +44,8 @@ namespace Client.WebUiHost.Game.Topics
                 dto.ConsumeItems.Add(new ResearchConsumeItemDto { ItemId = itemId.AsPrimitive(), Count = consume.ItemCount });
             }
 
-            // 報酬と解放はClearedActionsで抽出
-            // Rewards and unlocks come from ClearedActions
+            // 解放物はClearedActionsから抽出
+            // Unlocks come from ClearedActions
             AppendRewardsAndUnlocks();
             return dto;
 
@@ -53,8 +53,8 @@ namespace Client.WebUiHost.Game.Topics
 
             void AppendRewardsAndUnlocks()
             {
-                // 報酬と表示対象6種を抽出し、表示しない種別も明示して未知の種別だけを弾く
-                // Extract the reward and the 6 displayed kinds, naming the non-displayed ones so only unknown kinds fall through
+                // 抽出は報酬と表示6種のみ
+                // Only the reward and the 6 displayed kinds are extracted
                 foreach (var action in master.ClearedActions.items)
                 {
                     switch (action.GameActionType)
@@ -99,19 +99,10 @@ namespace Client.WebUiHost.Game.Topics
                             foreach (var carGuid in unlock.UnlockTrainCarGuids) dto.UnlockTrainCarGuids.Add(carGuid.ToString());
                             break;
                         }
-                        // 解放されるが研究画面には出さないと決めた種別（ADR 0014 決定3の表示集合6種の外）
-                        // Kinds that are unlocked but deliberately not shown on the research screen (outside ADR 0014 decision 3's set of 6)
-                        case GameActionElement.GameActionTypeConst.unlockCraftRecipe:
-                        case GameActionElement.GameActionTypeConst.unlockChallengeCategory:
-                        case GameActionElement.GameActionTypeConst.unlockItemStackLevel:
-                        case GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel:
-                        case GameActionElement.GameActionTypeConst.playSkit:
-                        case GameActionElement.GameActionTypeConst.playBackgroundSkit:
-                            break;
-                        // 種別が増えた日に無言で解放物を落とさず、ここで気づかせる
-                        // A newly added kind must not silently drop its unlocks; fail here instead
+                        // 表示集合6種の外は全て素通し。種別追加の検知はResearchUnlockGameActionCoverageTestが担う
+                        // Everything outside the 6 displayed kinds passes through; ResearchUnlockGameActionCoverageTest catches new kinds
                         default:
-                            throw new InvalidOperationException($"研究の解放物として未対応のGameActionTypeです: {action.GameActionType}");
+                            break;
                     }
                 }
             }
