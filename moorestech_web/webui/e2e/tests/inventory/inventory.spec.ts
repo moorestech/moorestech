@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { payloadsOf } from "../../support/actions";
+import { allActions, payloadsOf } from "../../support/actions";
 
 test("接続後にインベントリが描画される", async ({ page }) => {
   await page.goto("/");
@@ -98,4 +98,27 @@ test("grab 中の左ドラッグは配分先だけを host へ送る", async ({ 
   await expect(slots.nth(4)).toContainText("3");
   await expect(slots.nth(5)).toContainText("3");
   await expect(page.getByTestId("grab-overlay")).toContainText("1");
+});
+
+// 別ID押下は全量moveでswap(no_valid_slots回避)
+// Clicking a different-item slot sends a full move and the server swaps; must not fail as no_valid_slots
+test("grab 中に別アイテムのスロットを押すと入れ替えの move を送りトーストを出さない", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
+  const slots = page.getByTestId("main-grid").locator("> div");
+  await slots.nth(0).click();
+  await expect(page.getByTestId("grab-overlay")).toBeVisible();
+
+  await slots.nth(1).click();
+
+  // received蓄積のため末尾1件でmove確認
+  // received accumulates across tests; check only the final record for a move
+  await expect
+    .poll(async () => (await allActions(page)).at(-1))
+    .toEqual({ type: "inventory.move_item", payload: { from: { area: "grab", slot: 0 }, to: { area: "main", slot: 1 }, count: 10 } });
+  // 入替後は受取側を保持継続(アイコンフォールバックのidで同一性確認。e2eはicon画像を配信しないため#id表示になる)
+  // The swapped-in stack stays in hand; identity is checked via the icon-fallback id text (e2e serves no icon images, so it renders as #id)
+  await expect(slots.nth(1)).toContainText("#1");
+  await expect(page.getByTestId("grab-overlay")).toContainText("#2");
+  await expect(page.getByTestId("toast-host").getByText(/failed/)).toHaveCount(0, { timeout: 2000 });
 });
