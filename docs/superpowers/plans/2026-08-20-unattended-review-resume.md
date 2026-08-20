@@ -190,7 +190,7 @@ git commit -m "chore: Task 1完了（pollerのセッションID固定・無人�
 - Consumes: Task 1 の `session_id_path` / `launch_claude(..., session_id, resume)` / `MAX_REVIEW_RESUME` / `RESUME_PROMPT`
 - Produces: `read_abort(number: int, started_at: float) -> str | None`（`$RUNDIR/abort.json` が存在し `started_at` より新しければ `reason` 文字列、無ければ `None`。JSONパース不能・`reason` 欠落時は `"(reasonなし)"` を返して申告ありとして扱う）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `test_poller.py:147` の `ReviewSelfTerminationTest` から `test_clean_exit_without_findings_fails_without_retry` を**削除し**、同クラスへ4本入れる（`setUp` は既存のものをそのまま使う。`poller.rundir(4001)` の実体が要るテストでは `os.makedirs` する）:
 
@@ -250,12 +250,12 @@ git commit -m "chore: Task 1完了（pollerのセッションID固定・無人�
         failed.assert_not_called()
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/services/pr-review && python3 -m unittest test_poller.ReviewSelfTerminationTest -v`
 Expected: FAIL（`module 'pr_review_poller' has no attribute 'read_abort'` / resumeされず `enter_failed` が呼ばれる）
 
-- [ ] **Step 3: `read_abort` を実装する**
+- [x] **Step 3: `read_abort` を実装する**
 
 `read_exit_code`（321-328行）の直後へ追加する:
 
@@ -275,7 +275,7 @@ def read_abort(number: int, started_at: float) -> str | None:
         return "(abort.json読み取り不能)"
 ```
 
-- [ ] **Step 4: `handle_running` の `exit=0` 分岐を差し替える**
+- [x] **Step 4: `handle_running` の `exit=0` 分岐を差し替える**
 
 611-628行の「正常終了なのにfindingsが無い」ブロックを次で置き換える:
 
@@ -328,12 +328,12 @@ def read_abort(number: int, started_at: float) -> str | None:
         return False
 ```
 
-- [ ] **Step 5: テストを実行して全緑を確認する**
+- [x] **Step 5: テストを実行して全緑を確認する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/services/pr-review && python3 -m unittest test_poller -v`
 Expected: 全テストPASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/unattended-review-resume
