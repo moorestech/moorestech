@@ -1,5 +1,4 @@
 using Game.MapGeneration.Pipeline;
-using Game.MapGeneration.Pipeline.Stages;
 using Mooresmaster.Model.GenerationModule;
 using NUnit.Framework;
 using UnityEngine;
@@ -31,7 +30,7 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             // 鉱脈は配置点から±1広がるため、格子の外へ1ブロックはみ出しうる。
             // A vein reaches one unit out from its point, so it can overhang the grid by one block.
-            var margin = VeinAabbBuilder.Extent;
+            const int margin = TestGenerationConfigFactory.VeinGridOverhang;
 
             foreach (var vein in output.FluidVeins)
             {
@@ -39,12 +38,12 @@ namespace Tests.UnitTest.Game.MapGeneration
 
                 Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 2, 2)));
 
-                Assert.That(vein.Min.x, Is.GreaterThanOrEqualTo(minWorldX - margin.x));
-                Assert.That(vein.Max.x, Is.LessThanOrEqualTo(maxWorldX + margin.x));
-                Assert.That(vein.Min.z, Is.GreaterThanOrEqualTo(minWorldZ - margin.z));
-                Assert.That(vein.Max.z, Is.LessThanOrEqualTo(maxWorldZ + margin.z));
-                Assert.That(vein.Min.y, Is.GreaterThanOrEqualTo(-margin.y));
-                Assert.That(vein.Max.y, Is.LessThanOrEqualTo(maxWorldY + margin.y));
+                Assert.That(vein.Min.x, Is.GreaterThanOrEqualTo(minWorldX - margin));
+                Assert.That(vein.Max.x, Is.LessThanOrEqualTo(maxWorldX + margin));
+                Assert.That(vein.Min.z, Is.GreaterThanOrEqualTo(minWorldZ - margin));
+                Assert.That(vein.Max.z, Is.LessThanOrEqualTo(maxWorldZ + margin));
+                Assert.That(vein.Min.y, Is.GreaterThanOrEqualTo(-margin));
+                Assert.That(vein.Max.y, Is.LessThanOrEqualTo(maxWorldY + margin));
             }
         }
     }

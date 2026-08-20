@@ -1,7 +1,6 @@
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Runtime;
-using Game.MapGeneration.Pipeline.Stages;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -54,12 +53,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             AssertInsideGridWithMargin(x, z, config, 0f, 0f);
         }
 
-        // 鉱脈は軸ごとに VeinAabbBuilder.Extent ぶん張り出すため、Min/Max 両隅を軸別の余白で判定する。
-        // Veins reach VeinAabbBuilder.Extent per axis, so both the Min and Max corners are checked with axis-specific margins.
+        // 鉱脈は格子外へ1ブロックはみ出しうるため、Min/Max 両隅をその余白ぶん緩めて判定する。
+        // A vein may overhang the grid by one block, so both the Min and Max corners are checked with that margin.
         public static void AssertVeinInsideGrid(PlacedVein vein, TerrainGenerationConfig config)
         {
-            AssertInsideGridWithMargin(vein.Min.x, vein.Min.z, config, VeinAabbBuilder.Extent.x, VeinAabbBuilder.Extent.z);
-            AssertInsideGridWithMargin(vein.Max.x, vein.Max.z, config, VeinAabbBuilder.Extent.x, VeinAabbBuilder.Extent.z);
+            const int margin = TestGenerationConfigFactory.VeinGridOverhang;
+            AssertInsideGridWithMargin(vein.Min.x, vein.Min.z, config, margin, margin);
+            AssertInsideGridWithMargin(vein.Max.x, vein.Max.z, config, margin, margin);
         }
 
         static void AssertInsideGridWithMargin(
