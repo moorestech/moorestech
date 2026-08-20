@@ -2,10 +2,10 @@ import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { setUiState } from "../../support/mockControl";
 
-// 装備HUDは data-testid="equipment-slots" で特定し、直下の各 div が1枠になる
-// The equipment HUD is identified via data-testid="equipment-slots"; each direct child div is one slot
+// 装備HUDは data-testid="equipment-slots" で特定し、各枠はアンカー用ラッパーdivの中のスロット本体になる
+// The equipment HUD is identified via data-testid="equipment-slots"; each slot sits inside its anchor wrapper div
 const equipmentSlots = (page: import("@playwright/test").Page) =>
-  page.getByTestId("equipment-slots").locator("> div");
+  page.getByTestId("equipment-slots").locator("> div > div");
 
 // 画面状態を変えるテストがあるため、既定状態へ戻して他 spec へ漏らさない
 // Some tests change the screen state; reset to defaults so it never leaks into other specs
