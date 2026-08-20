@@ -140,8 +140,11 @@ def summarize(result: dict) -> dict:
         "lenses": len([l for l in result["lenses"] if "path" in l]),
         "reviewers": len([r for r in result["reviewers"] if "path" in r]),
         "verifiers_to_launch": len(result["verifiers_to_launch"]),
+        # セレクタの失敗（error 行）も errors へ集約する。落とすと「レビュアー0体」が成功として通る（2026-08-20 C3）
+        # Selector failures are collected too; otherwise a zero-reviewer review passes as success
         "errors": [v.get("error") for v in
-                   (det, result["dead_member"], result["ts_dead_code"]) if v.get("error")],
+                   (det, result["dead_member"], result["ts_dead_code"]) if v.get("error")]
+                  + [row["error"] for key in ("lenses", "reviewers") for row in result[key] if "error" in row],
     }
 
 

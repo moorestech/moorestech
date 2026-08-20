@@ -46,15 +46,19 @@ namespace Game.MapGeneration.Pipeline.Stages
             }
         }
 
-        // 鉱脈 AABB は整数スナップ済みなので、float の窓原点シフトを引いてから丸め直しシーン座標格子へ戻す。
-        // Vein AABBs are already integer-snapped, so subtract the float window-origin shift and re-round back onto the scene-space lattice.
+        // 鉱脈 AABB は整数スナップ済みなので、Min だけ float の窓原点シフトを引いて丸め直す。
+        // Vein AABBs are already integer-snapped, so only Min re-rounds after subtracting the float window-origin shift.
+        //
+        // Max を独立に丸めると Min と偶奇が違う AABB で丸め方向が割れ、サイズが 1 ずれる。サイズは生成時に決まり以後変わらない。
+        // Rounding Max apart splits the direction on an AABB whose Min differs in parity and drifts the size by one; the size is settled at generation and never moves.
         public static void ToSceneSpace(List<PlacedVein> veins, Vector2 noiseToSceneShift)
         {
             var shift = new Vector3(noiseToSceneShift.x, 0f, noiseToSceneShift.y);
             foreach (var vein in veins)
             {
+                var size = vein.Max - vein.Min;
                 vein.Min = Vector3Int.RoundToInt((Vector3)vein.Min - shift);
-                vein.Max = Vector3Int.RoundToInt((Vector3)vein.Max - shift);
+                vein.Max = vein.Min + size;
             }
         }
     }

@@ -409,10 +409,14 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 （`$CANON` は冒頭で決めた実値に展開して書くこと）:
 
 ```bash
-python3 "$CANON/.claude/skills/moores-code-review/scripts/deterministic_checks.py" "<PATCH_PATH>" --repo-root <$PRWTの実値> --context "<USER_PROMPT_PATH>" > <$RUNDIRの実値>/detchecks.json
-python3 "$CANON/.claude/skills/moores-code-review/scripts/select_lenses.py" "<PATCH_PATH>"
-python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "<PATCH_PATH>"
+python3 "$CANON/.claude/skills/moores-code-review/scripts/check_all.py" "<PATCH_PATH>" --repo-root <$PRWTの実値> --context "<USER_PROMPT_PATH>" > <$RUNDIRの実値>/checks.json
+python3 - <<'EOF'
+import json; j=json.load(open("<$RUNDIRの実値>/checks.json")); json.dump(j["deterministic"], open("<$RUNDIRの実値>/detchecks.json","w"), ensure_ascii=False, indent=1)
+EOF
+python3 "$CANON/.claude/skills/moores-code-review/scripts/split_chunks.py" "<PATCH_PATH>" > <$RUNDIRの実値>/chunks.tsv
 ```
+
+`check_all.py` は決定論チェック・dead_member・knip・レンズ/reviewer セレクタを1コマンドで束ねる（`select_lenses.py` / `select_reviewers.py` の個別実行は包含されるので不要・二重実行しない）。`detchecks.json` は `checks.json["deterministic"]` の切り出しで、後段の convention-guard と `build_workflow_args.py --report-only --detchecks` がこれを読む。
 
 - **`--repo-root` は `$PRWT` 側**（`<$PRWTの実値>`）。ADR参照の解決と200行判定は
   PR側の木のファイル実体を見る必要があるため。スクリプト本体だけが `$CANON` 側という非対称は意図的
@@ -430,6 +434,7 @@ python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "
 - **中間生成物の削除（本体Step 7の項目4）は行わない** — `$RUNDIR` 配下は保存物であって一時ファイルではない。
   Step 3のpatchは後段のコード抜粋転記で読むうえ、reconcileのフォレンジック・リプレイの入力でもある
 - AskUserQuestionは使わない。設計判断もダイジェストの裁定カードへ
+- **Workflow 既定（本体 2026-08-20）での report-only 指定**: 本体 Step 2 の `build_workflow_args.py` に `--report-only --detchecks <$RUNDIRの実値>/detchecks.json` を足す（`--repo-root` は `$PRWT`、スクリプトは `$CANON` 側）。これで Apply フェーズが省かれ、post-check は patch＋detchecks.json で発火し、contract.md に report-only の前提が付く。Workflow には `workflow-args.json` の中身をそのまま `args` に渡す
 
 ### Codex外部監査（本体Step 3）の起動手当て
 
@@ -447,7 +452,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   **`-o` は必須で、結論の正本は `.final.md`**（stdoutは完走しても最終回答が届かないことがある）。`.final.md` が
   空・不在なら欠員と断定する前に
   `python3 $CANON/.claude/skills/moores-code-review/scripts/codex_recover.py --prompt <$RUNDIRの実値>/codex-audit.md --out <$RUNDIRの実値>/codex-audit.out.md`
-  を走らせる（exit 0=回収成功で通常の1系統として扱う / 3=未完走 / 4=起動失敗＝真の欠員）
+  を走らせる（exit 0=回収成功で通常の1系統として扱う / 3=未完走 / 4=起動失敗＝真の欠員 / 5=認証失効＝環境起因の欠員。「codex不在」とは書かない）
 
   **`$PRWT` へ `cd` しない**。プロンプト内でリポジトリを参照する箇所は必ず
   `git -C <$PRWTの実値> ...` の形（`-C` に実値の絶対パス）で書き、
@@ -464,7 +469,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   1行目の役割宣言行はそのまま使う。staged/unstaged 行を残してはいけない（常に空で「変更なし＝問題なし」という誤結論を誘発する）。
   **`-C` の省略も禁止** — 起動cwdが中立ディレクトリなので、省くと差分が1行も取れないまま監査が走る
 - `## 目指す / 目指さない / 許容するトレードオフ / 尊重すべき制約` 欄にはStep 4のcontextをそのまま貼る
-- `which codex` が失敗したらスキップし、ダイジェストの折りたたみ参考節に縮退として明記する（本体規約どおり）
+- 起動前に `python3 $CANON/.claude/skills/moores-code-review/scripts/codex_preflight.py` で実体パスと auth.json を解決する（`which codex` は使わない — 封じ込めPATHでは失敗し10本連続で偽縮退した）。exit 10（バイナリ不在）/ 11（認証ファイル不在）ならスキップし、`status` 文字列つきでダイジェストの折りたたみ参考節に縮退として明記する（本体規約どおり）
 
 ### subagent起動契約への必須追記
 

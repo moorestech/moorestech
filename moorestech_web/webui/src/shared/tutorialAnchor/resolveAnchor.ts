@@ -1,7 +1,9 @@
+import { ancestorClipRect, type ClipRect } from "./ancestorClip";
+
 export type AnchorReason = "mounted" | "missing" | "duplicate-anchor" | "display-none" |
   "visibility-hidden" | "aria-hidden" | "zero-area" | "outside-viewport";
 export type ResolvedAnchor =
-  | { status: "ready"; reason: "mounted"; rect: DOMRectReadOnly }
+  | { status: "ready"; reason: "mounted"; rect: DOMRectReadOnly; clip: ClipRect }
   | { status: "not-found"; reason: "missing" | "duplicate-anchor" }
   | { status: "hidden"; reason: Exclude<AnchorReason, "mounted" | "missing" | "duplicate-anchor"> };
 
@@ -21,5 +23,5 @@ export function resolveTutorialAnchor(anchorId: string): ResolvedAnchor {
   if (rect.bottom <= 0 || rect.right <= 0 || rect.top >= innerHeight || rect.left >= innerWidth) {
     return { status: "hidden", reason: "outside-viewport" };
   }
-  return { status: "ready", reason: "mounted", rect };
+  return { status: "ready", reason: "mounted", rect, clip: ancestorClipRect(element) };
 }

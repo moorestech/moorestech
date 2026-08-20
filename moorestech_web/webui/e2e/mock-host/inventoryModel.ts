@@ -35,6 +35,19 @@ export function applyBlockMove(
   const to = blockSlotOf(inv, currentBlock, p.to);
   if (from.count === 0) return "empty_slot";
   if (from.count < p.count) return "insufficient_count";
+
+  // 別IDは全量moveのみ入替(部分は無音no-op)
+  // A different-id slot swaps only on a full move; a partial move is a silent no-op
+  if (to.count > 0 && to.itemId !== from.itemId) {
+    if (p.count !== from.count) return null;
+    const swapped = { itemId: to.itemId, count: to.count };
+    to.itemId = from.itemId;
+    to.count = from.count;
+    from.itemId = swapped.itemId;
+    from.count = swapped.count;
+    return null;
+  }
+
   if (to.count === 0) to.itemId = from.itemId;
   to.count += p.count;
   from.count -= p.count;
