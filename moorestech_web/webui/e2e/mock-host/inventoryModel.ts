@@ -36,8 +36,8 @@ export function applyBlockMove(
   if (from.count === 0) return "empty_slot";
   if (from.count < p.count) return "insufficient_count";
 
-  // 別IDのスロットへは全量移動のときだけ入れ替える。部分移動は無音no-op（サーバーのInventoryItemMoveServiceと同型）
-  // A different-id slot swaps only on a full move; a partial move is a silent no-op, mirroring the server's InventoryItemMoveService
+  // 別IDは全量moveのみ入替(部分は無音no-op)
+  // A different-id slot swaps only on a full move; a partial move is a silent no-op
   if (to.count > 0 && to.itemId !== from.itemId) {
     if (p.count !== from.count) return null;
     const swapped = { itemId: to.itemId, count: to.count };

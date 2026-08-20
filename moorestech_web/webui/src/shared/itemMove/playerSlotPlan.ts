@@ -12,20 +12,21 @@ export type PlayerSlotContext = {
   blockItemSlots: SlotData[] | null;
 };
 
-// grab保持中の左クリックは空スロットのみスプリットドラッグ。中身ありは全量置きへ回す（別IDはサーバーがswap）
-// A grab-held left click starts split-drag only on an empty slot; a filled slot takes the place-all path (the server swaps on a different id)
-export function isSplitDragStart(slot: SlotData, grabCount: number, shiftKey: boolean): boolean {
-  return !shiftKey && grabCount > 0 && slot.count === 0;
-}
+// 左クリックの帰結。actionsは送信するプラン、beginSplitDragは呼び出し側にドラッグ開始を促す合図
+// Left-click outcome: actions carries the plan to dispatch, beginSplitDrag signals the caller to start the drag
+export type PlayerLeftClickPlan = { kind: "actions"; actions: PlannedAction[] } | { kind: "beginSplitDrag" };
 
-// 左クリック: grab保持なら全量置き / Shiftなら配分移動 / 中身ありなら全量掴み
-// Left click: place all while holding grab / allocate on Shift / pick the whole stack when filled
-export function planPlayerLeftClick(ref: SlotRef, slot: SlotData, shiftKey: boolean, ctx: PlayerSlotContext): PlannedAction[] {
+// 左クリック: grab保持中の空スロットはsplitDrag開始 / 全量置き / Shiftなら配分移動 / 中身ありなら全量掴み
+// Left click: an empty slot while holding grab begins split-drag / place-all / allocate on Shift / pick the whole stack when filled
+export function planPlayerLeftClick(ref: SlotRef, slot: SlotData, shiftKey: boolean, ctx: PlayerSlotContext): PlayerLeftClickPlan {
   const grabCount = ctx.inventory.grab.count;
-  if (grabCount > 0) return [{ type: "inventory.move_item", payload: { from: GRAB, to: ref, count: grabCount } }];
-  if (slot.count === 0) return [];
-  if (shiftKey) return planShiftMove(ref, slot, ctx);
-  return [{ type: "inventory.move_item", payload: { from: ref, to: GRAB, count: slot.count } }];
+  if (grabCount > 0) {
+    if (!shiftKey && slot.count === 0) return { kind: "beginSplitDrag" };
+    return { kind: "actions", actions: [{ type: "inventory.move_item", payload: { from: GRAB, to: ref, count: grabCount } }] };
+  }
+  if (slot.count === 0) return { kind: "actions", actions: [] };
+  if (shiftKey) return { kind: "actions", actions: planShiftMove(ref, slot, ctx) };
+  return { kind: "actions", actions: [{ type: "inventory.move_item", payload: { from: ref, to: GRAB, count: slot.count } }] };
 }
 
 // 右クリック: grab保持なら1個置き / 空手なら inventory.split（半分掴みはホスト計算。stale な client 数量に依存しない）

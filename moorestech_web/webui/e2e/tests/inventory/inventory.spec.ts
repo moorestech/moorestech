@@ -100,8 +100,8 @@ test("grab 中の左ドラッグは配分先だけを host へ送る", async ({ 
   await expect(page.getByTestId("grab-overlay")).toContainText("1");
 });
 
-// 掴んだまま別アイテムのスロットを押すと、旧uGUI同様に全量moveを送りサーバーが入れ替える（split_dragのno_valid_slotsで失敗しない）
-// Clicking a different-item slot while holding sends a full move like the old uGUI and the server swaps; it must not fail as split_drag/no_valid_slots
+// 別ID押下は全量moveでswap(no_valid_slots回避)
+// Clicking a different-item slot sends a full move and the server swaps; must not fail as no_valid_slots
 test("grab 中に別アイテムのスロットを押すと入れ替えの move を送りトーストを出さない", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
@@ -111,13 +111,14 @@ test("grab 中に別アイテムのスロットを押すと入れ替えの move 
 
   await slots.nth(1).click();
 
-  // received はテスト横断で蓄積されるので、末尾1件だけを見て split_drag ではなく move が出たことを確かめる
-  // received accumulates across tests, so check only the final record to prove a move, not a split_drag, was sent
+  // received蓄積のため末尾1件でmove確認
+  // received accumulates across tests; check only the final record for a move
   await expect
     .poll(async () => (await allActions(page)).at(-1))
     .toEqual({ type: "inventory.move_item", payload: { from: { area: "grab", slot: 0 }, to: { area: "main", slot: 1 }, count: 10 } });
-  // 入れ替えで受け取った側を掴んだままになる
-  // The swapped-in stack stays in hand
-  await expect(page.getByTestId("grab-overlay")).toBeVisible();
+  // 入替後は受取側を保持継続(アイコンフォールバックのidで同一性確認。e2eはicon画像を配信しないため#id表示になる)
+  // The swapped-in stack stays in hand; identity is checked via the icon-fallback id text (e2e serves no icon images, so it renders as #id)
+  await expect(slots.nth(1)).toContainText("#1");
+  await expect(page.getByTestId("grab-overlay")).toContainText("#2");
   await expect(page.getByTestId("toast-host").getByText(/failed/)).toHaveCount(0, { timeout: 2000 });
 });
