@@ -11,6 +11,10 @@ namespace Client.Common
         public static readonly int GroundLayer = LayerMask.NameToLayer("Ground");
         public static readonly int ElectricWireLayer = LayerMask.NameToLayer("ElectricWire");
 
+        // フォーカス時の輪郭だけを描くレイヤー
+        // Layer that draws nothing but the focus outline
+        public static readonly int OutlineLayer = LayerMask.NameToLayer("Outline");
+
         // このレイヤーマスク、列車の追加によって「ブロック」だけでなく、ワールド中にインタラクトできるもの、という意味になりつつあるからリネームを検討する
         public static readonly int BlockOnlyLayerMask = 1 << BlockLayer;
         public static readonly int BlockBoundingBoxOnlyLayerMask = 1 << BlockBoundingBoxLayer;

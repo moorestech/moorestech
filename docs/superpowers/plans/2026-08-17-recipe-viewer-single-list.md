@@ -72,7 +72,7 @@ ADR: `docs/adr/0011-recipe-viewer-single-list.md`（各項の出所はADR参照�
 **Files:**
 - Modify: `.claude/skills/webui-design/SKILL.md`
 
-- [ ] **Step 1: §8.17 を追加する**
+- [x] **Step 1: §8.17 を追加する**
 
 `## 8.16 装備HUD` セクションの後、`## 9 やらないことリスト` の前に挿入:
 
@@ -95,11 +95,11 @@ ADR: `docs/adr/0011-recipe-viewer-single-list.md`（各項の出所はADR参照�
 - **`ItemSlot` の個数バッジと素材の所持/必要テキストは黒**（明色面前提）。不足の赤字だけ例外。
 ```
 
-- [ ] **Step 2: 旧記述の整合を取る**
+- [x] **Step 2: 旧記述の整合を取る**
 
 同ファイル内を `craft-tab`・`RecipePager`・`ハンマー` で検索し、残存参照があれば §8.17 準拠に書き換える（2026-08-17時点では冒頭「正本はインベントリ画面」の説明は変更不要。§8.7 の `MachineRecipeView` 参照は `MachineRecipeEntry` へ改名追従させる）。
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add .claude/skills/webui-design/SKILL.md
@@ -118,7 +118,7 @@ git commit -m "docs(webui): レシピビューア単一リストの様式を追�
 - Produces: `RecipeEntry` / `buildRecipeEntries`（Task 4 が消費）
 - 削除: `buildRecipeTabs` / `groupMachineRecipesByBlock`（消費元は Task 4 で消える）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `craftLogic.test.ts` の既存 `buildRecipeTabs`・`groupMachineRecipesByBlock` のdescribeブロックを削除し、代わりに追加（既存テストのレシピfixtureヘルパがあれば流用する）:
 
@@ -149,12 +149,12 @@ describe("buildRecipeEntries", () => {
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `npm run test -- craftLogic`
 Expected: FAIL（`buildRecipeEntries` 未定義）
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `craftLogic.ts` の `buildRecipeTabs`・`groupMachineRecipesByBlock`・`RecipeTab` 型を削除し（import側の `blockNameKey`/`TranslationKey` も未使用になるなら整理）、追加:
 
@@ -181,12 +181,12 @@ export function buildRecipeEntries(
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `npm run test -- craftLogic`
 Expected: PASS（この時点で `RecipeContent.tsx` が旧関数importでtscエラーになるのは想定内。vitestは対象テストのみ通ればよい）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add src/features/recipe/logic/craftLogic.ts src/features/recipe/logic/craftLogic.test.ts
@@ -203,7 +203,7 @@ git commit -m "feat(webui): レシピエントリ列ビルダーを追加しタ�
 - Modify: `Localization/localization.csv`（リポジトリルート。webuiからは `../../Localization/localization.csv`）
 - 再生成: `src/shared/i18n/generated/localizationKeys.ts`
 
-- [ ] **Step 1: CSVを編集する**
+- [x] **Step 1: CSVを編集する**
 
 `ui.recipe.craft` 行の直後に追加（列は key,Source,EN,JA）:
 
@@ -215,17 +215,17 @@ ui.recipe.craftButtonLabel,Craft ({seconds}s),Craft ({seconds}s),クラフト（
 削除前に `grep -rn "previousRecipe\|pageIndicator\|craftTab" src ../../moorestech_client/Assets --include="*.ts*" --include="*.cs"` で他利用が無いことを確認する（uGUI側 `.cs` がキーを参照していても uGUI は描画恒久停止のretiredコードなので、webui外の参照はユーザー確認なしに削除して良い…ではなく、**.cs側は触らない**。csがキーを参照している場合はCSV行を残し、webuiから使わなくなるだけに留める）。
 `ui.recipe.craft`（ボタン外で未使用になるか確認して同様に扱う）・`ui.recipe.duration`（機械エントリで使用続行）は残す。
 
-- [ ] **Step 2: 再生成して差分を確認する**
+- [x] **Step 2: 再生成して差分を確認する**
 
 Run: `npm run gen:i18n && git diff --stat src/shared/i18n/generated/`
 Expected: `localizationKeys.ts` に `craftButtonLabel` が入り、削除キーが消える
 
-- [ ] **Step 3: i18n関連テストを回す**
+- [x] **Step 3: i18n関連テストを回す**
 
 Run: `npm run test -- i18n`
 Expected: PASS（`localizationKeysFreshness` / `allScreensI18n`。削除キーを参照するコードが残っているとtsc/テストが落ちる——その場合は該当参照の削除タスク（Task 4）と順序を入れ替えず、一時的な失敗として次タスクで解消する）
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add ../../Localization/localization.csv src/shared/i18n/generated/
@@ -247,7 +247,7 @@ git commit -m "feat(webui): クラフトボタン文言を追加しタブ・ペ�
 - Consumes: `buildRecipeEntries` / `RecipeEntry`（Task 2）、`L.ui.recipe.craftButtonLabel`（Task 3）
 - Produces: `CraftRecipeEntry` / `MachineRecipeEntry`（RecipeContentのみが消費）
 
-- [ ] **Step 1: CraftRecipeEntry を書く**
+- [x] **Step 1: CraftRecipeEntry を書く**
 
 `git mv src/features/recipe/views/CraftRecipeView.tsx src/features/recipe/views/CraftRecipeEntry.tsx` 後、以下へ書き換える（差分の本質: props から `recipes/recipeIndex/setRecipeIndex` を外し単一 `recipe` に、`RecipePager` 削除、`clampIndex` 削除、ボタンを全幅+秒数ラベルに、`.craftTime` ラベル削除、tutorialAnchorは親から注入）:
 
@@ -341,7 +341,7 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, tutorialAnc
 
 長押しボタンのpointer/keyboardハンドラ群のコメント（既存3組）は元ファイルのものを残すこと。
 
-- [ ] **Step 2: MachineRecipeEntry を書く**
+- [x] **Step 2: MachineRecipeEntry を書く**
 
 `git mv src/features/recipe/views/MachineRecipeView.tsx src/features/recipe/views/MachineRecipeEntry.tsx` 後:
 
@@ -397,7 +397,7 @@ export default function MachineRecipeEntry({ recipe, onSelect }: Props) {
 
 （`BlockIcon` が `@/shared/ui` からexportされていることは `RecipeContent.tsx` の既存importで確認済み。出力が複数ある場合は `recipeResult` 内に横並びになる）
 
-- [ ] **Step 3: RecipePager を削除し、localizationテストを追従させる**
+- [x] **Step 3: RecipePager を削除し、localizationテストを追従させる**
 
 ```bash
 git rm src/features/recipe/views/RecipePager.tsx
@@ -406,7 +406,7 @@ git mv src/features/recipe/views/MachineRecipeView.localization.test.ts src/feat
 
 テスト内のimport・コンポーネント名参照を `MachineRecipeEntry` へ、props（`recipes/recipeIndex/setRecipeIndex`→`recipe`）を新契約へ書き換える。秒数表示（`ui.recipe.duration`）のアサートを追加する。
 
-- [ ] **Step 4: RecipeContent を単一リストへ書き換える**
+- [x] **Step 4: RecipeContent を単一リストへ書き換える**
 
 ```tsx
 import { useMemo } from "react";
@@ -479,7 +479,7 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
 
 （`RecipeViewer.tsx` の `key={selectedItemId}` 再マウント契約は維持——コメントの「tabKey/recipeIndexリセット」文言を「リストスクロール位置リセット」へ更新する。`panelMinHeight` の432.983は現状維持でよい）
 
-- [ ] **Step 5: CSSを追従させる**
+- [x] **Step 5: CSSを追従させる**
 
 `src/index.css` のwebui変数定義ブロックに追加（既存 `--slot-size` 等の近く）:
 
@@ -535,12 +535,12 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
 }
 ```
 
-- [ ] **Step 6: lint・型・テストを回す**
+- [x] **Step 6: lint・型・テストを回す**
 
 Run: `npm run lint && npm run test`
 Expected: PASS（tscはtest:e2e内だが、vitest+lintで参照切れを検出できる。`tsc -b --noEmit` 相当は `npm run build` の前段で確認してもよい）
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add -A src/features/recipe src/index.css
@@ -554,7 +554,7 @@ git commit -m "feat(webui): レシピビューアをタブ廃止の単一エン�
 **Files:**
 - Modify: `src/features/recipe/views/ItemHeader.tsx`, `src/features/recipe/views/ItemHeader.module.css`
 
-- [ ] **Step 1: SVGを削除する**
+- [x] **Step 1: SVGを削除する**
 
 `ItemHeader.tsx` から `<svg …data-testid="craft-tab"…>` ブロック全体を削除し、名前+罫線のみにする:
 
@@ -574,16 +574,16 @@ export default function ItemHeader({ name }: { name: string }) {
 }
 ```
 
-- [ ] **Step 2: CSSから `toolTab*` 規則を削除する**
+- [x] **Step 2: CSSから `toolTab*` 規則を削除する**
 
 `ItemHeader.module.css` の `.toolTab` / `.toolTabBack` / `.toolTabFace` / `.toolTabEdge` / `.toolTabSide` / `.toolTabHammer` を削除。`.itemHeader` にタブ用の上余白・負マージンがあれば外し、名前が潰れないことをStep 4のQAで確認する。
 
-- [ ] **Step 3: lint・テスト**
+- [x] **Step 3: lint・テスト**
 
 Run: `npm run lint && npm run test`
 Expected: PASS
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add src/features/recipe/views/ItemHeader.tsx src/features/recipe/views/ItemHeader.module.css
@@ -600,7 +600,7 @@ git commit -m "feat(webui): レシピUI上の装飾タブを削除する（ADR 0
 - Modify: `src/features/recipe/views/RecipeBox.module.css`
 - Test: `src/shared/ui/ItemSlot/index.test.ts`（既存テストがcount表示を検証していれば追従）
 
-- [ ] **Step 1: 0のとき count を渡さない**
+- [x] **Step 1: 0のとき count を渡さない**
 
 `ItemListPanel.tsx` の `ItemSlot` 呼び出しを変更:
 
@@ -619,7 +619,7 @@ git commit -m "feat(webui): レシピUI上の装飾タブを削除する（ADR 0
 
 （`ItemSlot` は `count === undefined` でバッジ非描画・`catalog` 時 `owned=false` でグレー面のまま——既存実装どおりで面の挙動は変わらない）
 
-- [ ] **Step 2: 個数バッジを黒へ統一する**
+- [x] **Step 2: 個数バッジを黒へ統一する**
 
 `src/shared/ui/ItemSlot/style.module.css` の `.count` を黒基調へ変更し、filled上書きを削除:
 
@@ -641,16 +641,16 @@ git commit -m "feat(webui): レシピUI上の装飾タブを削除する（ADR 0
 
 （`[data-filled="true"] .count` の上書きブロックは同値になるため削除する。バッジ表示は「所持=白面」か「レシピ必要数=白面」の明色面に限られるため黒で常時可読）
 
-- [ ] **Step 3: 素材の所持/必要テキストも黒へ**
+- [x] **Step 3: 素材の所持/必要テキストも黒へ**
 
 `RecipeBox.module.css` の `.materialCount` の `color: #fff; text-shadow: 0 1px 2px #000;` を `color: #111; text-shadow: 0 1px 2px rgb(255 255 255 / 75%);` へ変更。`.materialCount[data-lack="true"]` の赤（`#ff4d4d`）は変更しない。
 
-- [ ] **Step 4: テスト・lint**
+- [x] **Step 4: テスト・lint**
 
 Run: `npm run test -- ItemSlot && npm run lint`
 Expected: PASS（ItemSlotのテストがcountバッジのDOM有無を検証していれば `count: undefined` ケースを1本追加する）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add src/features/recipe/panels/ItemListPanel.tsx src/shared/ui/ItemSlot/style.module.css src/features/recipe/views/RecipeBox.module.css
@@ -665,13 +665,13 @@ git commit -m "feat(webui): クラフト可能数0のバッジを非表示にし
 - Delete: `e2e/tests/recipe/craftTabVisual.spec.ts`
 - Modify: `e2e/tests/recipe/recipe.spec.ts`
 
-- [ ] **Step 1: 装飾タブの視覚テストを削除する**
+- [x] **Step 1: 装飾タブの視覚テストを削除する**
 
 ```bash
 git rm e2e/tests/recipe/craftTabVisual.spec.ts
 ```
 
-- [ ] **Step 2: recipe.spec.ts を新仕様へ書き換える**
+- [x] **Step 2: recipe.spec.ts を新仕様へ書き換える**
 
 既存5テストを次の方針で更新する（mock-hostのデモデータは既存fixtureを使う。データにアイテム・レシピが足りない場合はfixture側に機械レシピを1件追加する）:
 
@@ -695,12 +695,12 @@ test("複数レシピはクラフト優先の単一リストで同時に表示�
 
 （fixtureに「クラフトと機械の両レシピを持つアイテム」が無ければ、機械エントリ検証は機械レシピのみのアイテムで別テストに分けてよい。ヘルパ名は実ファイルの既存手順に合わせること）
 
-- [ ] **Step 3: e2eを実行する**
+- [x] **Step 3: e2eを実行する**
 
 Run: `npm run test:e2e -- recipe`
 Expected: PASS（tsc型検査込み。Playwright未インストール環境なら `npx playwright install chromium` を先に実行）
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add -A e2e/tests/recipe
@@ -714,12 +714,12 @@ git commit -m "test(webui): レシピe2eを単一リスト仕様へ更新する"
 **Files:**
 - 参照: `e2e/capture-eval.ts`（撮影様式）
 
-- [ ] **Step 1: mock-hostで対象画面を撮影する**
+- [x] **Step 1: mock-hostで対象画面を撮影する**
 
 `e2e/capture-eval.ts` の様式でmock-hostを起動し、playerInventory画面で次の状態を撮影する:
 1. クラフトレシピのみのアイテム 2. 機械レシピのみのアイテム 3. 両方持つアイテム（混在リスト） 4. レシピ0件のアイテム 5. アイテム一覧（0バッジ非表示・黒個数）
 
-- [ ] **Step 2: §10チェックを実施する**
+- [x] **Step 2: §10チェックを実施する**
 
 - 端: エントリ・ボタンがGamePanel(craft)のフェード帯/枠に食い込んでいないか（4辺）
 - 中央と対称: 進捗矢印が `1fr auto 1fr` で中央に固定されているか（素材1個と3個のレシピで確認）
@@ -727,7 +727,7 @@ git commit -m "test(webui): レシピe2eを単一リスト仕様へ更新する"
 - スクロール: エントリ多数（4件以上）でリストがスクロールし、スクロールバーがネイビートーンか
 - 個数: アイテム一覧に「0」が出ておらず、出ている数字が全て黒か
 
-- [ ] **Step 3: 問題があれば修正してコミット、なければ撮影結果を記録する**
+- [x] **Step 3: 問題があれば修正してコミット、なければ撮影結果を記録する**
 
 修正はCSSトークン調整に留め、構造変更が要る場合はタスクへ戻る。確認結果（スクショパス・判定）を `bd note moorestech-dw7` に残す。
 
@@ -735,11 +735,11 @@ git commit -m "test(webui): レシピe2eを単一リスト仕様へ更新する"
 
 ### Task 9: 全ブランチレビュー（省略不可）
 
-- [ ] **Step 1: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
+- [x] **Step 1: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
 
 moores-code-review スキルを起動し、本ブランチの全変更をレビューする。指摘の機械的修正は適用し、設計判断はAskUserQuestionで仰ぐ。
 
-- [ ] **Step 2: レビュー後の修正をコミットし、`bd close moorestech-dw7 --reason="..."` で完了する**
+- [x] **Step 2: レビュー後の修正をコミットし、`bd close moorestech-dw7 --reason="..."` で完了する**
 
 ---
 

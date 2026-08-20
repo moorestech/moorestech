@@ -14,6 +14,7 @@ namespace Game.Challenge.Task.Factory
             _taskCreators.Add(VanillaChallengeType.CreateItemTask,CreateItemChallengeTask.Create);
             _taskCreators.Add(VanillaChallengeType.InInventoryItemTask,InInventoryItemChallengeTask.Create);
             _taskCreators.Add(VanillaChallengeType.BlockPlaceTask,BlockPlaceChallengeTask.Create);
+            _taskCreators.Add(VanillaChallengeType.CompleteResearchTask,CompleteResearchChallengeTask.Create);
         }
         
         public IChallengeTask CreateChallengeTask(ChallengeMasterElement challengeElement)

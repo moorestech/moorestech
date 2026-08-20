@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
-from digest_md.blocks import blocks_html, code_card_html
+from digest_md.blocks import blocks_html
 from digest_md.inline import escape, inline_html
 from digest_md.parse import DigestError
 
@@ -27,29 +27,21 @@ def test_inline_html_unknown_ref_is_error():
     assert "nope" in str(e.value)
 
 
-def test_code_card_marks_ins_and_hl():
-    body = " 36|        void A()\n+38|            // add\n*+40|            B<int>();"
-    got = code_card_html(body, "        ")
-    assert '<pre class="code-card"><code><span class="ln">36</span>        void A()' in got
-    assert '<span class="ln">38</span><ins>            // add</ins>' in got
-    assert '<span class="hl"><span class="ln">40</span><ins>            B&lt;int&gt;();</ins></span>' in got
-
-
 def test_blocks_html_paragraph_and_list():
-    got = blocks_html("段落だ。\n\n- 一つ目\n- 二つ目", {}, "      ")
+    got = blocks_html("段落だ。\n\n- 一つ目\n- 二つ目", {}, "      ", "")
     assert "<p>段落だ。</p>" in got
     assert "<ul>" in got and "<li>一つ目</li>" in got
 
 
 def test_blocks_html_rejects_unknown_syntax():
     with pytest.raises(DigestError) as e:
-        blocks_html("> 引用は未対応", {}, "")
+        blocks_html("> 引用は未対応", {}, "", "")
     assert "未対応" in str(e.value)
 
 
 def test_blocks_html_rejects_unknown_fence():
     with pytest.raises(DigestError) as e:
-        blocks_html("```mermaid\ngraph TD\n```", {}, "")
+        blocks_html("```mermaid\ngraph TD\n```", {}, "", "")
     assert "mermaid" in str(e.value)
 
 
@@ -66,5 +58,5 @@ def test_blocks_html_rejects_unknown_syntax_on_continuation_line():
     # 段落の2行目以降でも未知記法はエラーで落ちるべき（先頭行限定であってはならない）
     # Unknown markup must error even on a paragraph's continuation line, not just its first
     with pytest.raises(DigestError) as e:
-        blocks_html("段落一行目\n> 引用っぽい二行目", {}, "")
+        blocks_html("段落一行目\n> 引用っぽい二行目", {}, "", "")
     assert "未対応" in str(e.value)

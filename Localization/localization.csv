@@ -77,6 +77,8 @@ ui.notification.unlockedMachineRecipe,New machine recipe unlocked,New machine re
 ui.notification.unlockedBlock,New block unlocked,New block unlocked,新しいブロックを解放しました
 ui.notification.unlockedTrainCar,New train car unlocked,New train car unlocked,新しい車両を解放しました
 ui.notification.unlockedConnectTool,New connect tool unlocked,New connect tool unlocked,新しい接続ツールを解放しました
+ui.notification.unlockedBlueprint,Blueprint unlocked,Blueprint unlocked,ブループリントが解放されました
+ui.notification.blueprintNotUnlocked,Blueprint failed: blueprint is not unlocked,Blueprint failed: blueprint is not unlocked,ブループリント操作に失敗しました: ブループリントが未解放です
 ui.notification.researchNotCompletable,Cannot complete research (prerequisites or materials missing),Cannot complete research (prerequisites or materials missing),研究を完了できません（前提条件または素材が不足しています）
 ui.notification.craftResultFull,Cannot craft: inventory is full,Cannot craft: inventory is full,クラフトできません: インベントリが満杯です
 ui.notification.craftMaterialShortage,Cannot craft: not enough materials,Cannot craft: not enough materials,クラフトできません: 素材が不足しています
@@ -116,14 +118,8 @@ ui.recipe.materialTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCo
 ui.recipe.itemCountSummary,{ownedCount}/{requiredCount},{ownedCount}/{requiredCount},{ownedCount}/{requiredCount}
 ui.recipe.duration,{seconds} seconds,{seconds} seconds,{seconds}秒
 ui.recipe.holdToCraft,Hold to craft (keep holding to craft continuously),Hold to craft (keep holding to craft continuously),長押しでクラフト（押し続けで連続クラフト）
-ui.recipe.craft,Craft,Craft,クラフト
+ui.recipe.craftButtonLabel,Craft ({duration}),Craft ({duration}),クラフト（{duration}）
 ui.recipe.noRecipes,There are no recipes for this item,There are no recipes for this item,このアイテムのレシピはありません
-ui.recipe.previousRecipe,Previous recipe,Previous recipe,前のレシピ
-ui.recipe.previousSymbol,<,<,<
-ui.recipe.pageIndicator,{current}/{count},{current}/{count},{current}/{count}
-ui.recipe.nextRecipe,Next recipe,Next recipe,次のレシピ
-ui.recipe.nextSymbol,>,>,>
-ui.recipe.craftTab,Craft,Craft,クラフト
 ui.research.closeSymbol,×,×,×
 ui.research.completed,Researched,Researched,研究済み
 ui.research.action,Research,Research,研究

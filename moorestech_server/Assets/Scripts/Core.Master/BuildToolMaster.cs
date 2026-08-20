@@ -11,6 +11,10 @@ namespace Core.Master
     // Master for build tools (blueprint copy, etc.); holds only raw load and a Guid index
     public class BuildToolMaster : IMasterValidator
     {
+        // BP機能全体の初期解放フラグ（buildMenuルート・C5b裁定）
+        // Initial-unlock flag for the whole blueprint feature (buildMenu root key, C5b ruling)
+        public bool BlueprintInitialUnlocked { get; }
+
         private readonly BuildToolMasterElement[] _buildTools;
 
         // buildToolGuid→要素の索引
@@ -19,7 +23,9 @@ namespace Core.Master
 
         public BuildToolMaster(JToken buildMenuJToken)
         {
-            _buildTools = BuildMenuLoader.Load(buildMenuJToken).BuildTools;
+            var buildMenu = BuildMenuLoader.Load(buildMenuJToken);
+            _buildTools = buildMenu.BuildTools;
+            BlueprintInitialUnlocked = buildMenu.BlueprintInitialUnlocked;
         }
 
         public bool Validate(out string errorLogs)

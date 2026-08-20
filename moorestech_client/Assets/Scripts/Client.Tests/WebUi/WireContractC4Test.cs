@@ -23,17 +23,28 @@ namespace Client.Tests.WebUi
         }
 
         [Test]
-        public void TutorialHighlightMatchesFixture()
+        public void TutorialOverlayElementsMatchFixture()
         {
             var dto = new TutorialPresentationData
             {
-                TutorialSessionId = "tutorial-1", Revision = 3, ChallengeId = "challenge-1",
-                Highlights = new[]
+                Revision = 3,
+                Sessions = new[]
                 {
-                    new TutorialHighlightData
+                    new TutorialSessionData
                     {
-                        HighlightId = "craft", AnchorId = "recipe.craft-button", Kind = "outline",
-                        PaddingPx = 4, BlocksPointerInput = false,
+                        TutorialSessionId = "tutorial-1", ChallengeId = "challenge-1",
+                        Elements = new TutorialOverlayElementData[]
+                        {
+                            new TutorialOutlineElementData
+                            {
+                                ElementId = "craft", AnchorId = "recipe.craft-button",
+                                PaddingPx = 4, BlocksPointerInput = false,
+                            },
+                            new TutorialDragGuideElementData
+                            {
+                                ElementId = "guide-1", FromAnchorId = "hotbar.hud", ToAnchorId = "recipe.craft-button",
+                            },
+                        },
                     },
                 },
             };

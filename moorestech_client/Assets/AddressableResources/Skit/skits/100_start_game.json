@@ -129,7 +129,7 @@
       "backgroundColor": "#ffffff",
       "backgroundEnable": false,
       "blockEnable": false,
-      "mapObjectEnable": false,
+      "worldObjectEnable": false,
       "entityEnable": false,
       "id": 70
     },
@@ -326,7 +326,7 @@
       "backgroundColor": "#ffffff",
       "backgroundEnable": true,
       "blockEnable": true,
-      "mapObjectEnable": true,
+      "worldObjectEnable": true,
       "entityEnable": true,
       "id": 71
     },
@@ -1160,6 +1160,14 @@
       "characterId": "chr_001",
       "body": "ありがとう.\nでも、これからどうすれば...",
       "id": 39
+    },
+    {
+      "type": "text",
+      "backgroundColor": "#ffffff",
+      "characterId": "chr_002",
+      "body": "画面の左上に、いま目指す目標が表示されています。\n迷ったらそこを確認してください。",
+      "id": 139,
+      "overrideCharacterName": "？？？"
     },
     {
       "type": "text",

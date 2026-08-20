@@ -17,8 +17,118 @@
     --amber:#F59E0B;
     --amber-bg:#FFFBEB;
     --amber-border:#FDE68A;
+    --shadow-rgb:15,23,42;
+    --code-bg:#F6F8FA;
+    --code-border:#D0D7DE;
+    --code-fg:#24292F;
+    --code-ln:#8B949E;
+    --diff-add-bg:#DAFBE1;
+    --diff-add-fg:#1A7F37;
+    --diff-del-bg:#FFEBE9;
+    --diff-del-fg:#CF222E;
+    --badge-new-bg:#DDF4FF;
+    --badge-new-fg:#0969DA;
+    --badge-sup-bg:#FFF1E5;
+    --badge-sup-fg:#BC4C00;
+    --surface-alt:#F8FAFC;
+    --surface-alt2:#F1F5F9;
+    --surface-inset:#FCFCFD;
+    --surface-info:#EFF6FF;
+    --border-strong:#94A3B8;
+    --border-focus:#93C5FD;
+    --on-accent:#FFFFFF;
+    --engine-hover:#1D4ED8;
+    --btn-disabled:#CBD5E1;
+    --focus-ring:#FCD34D;
+    --focus-outline:#BFDBFE;
+    --mark-bg:#FEF08A;
+    --mark-fg:#0F172A;
+    --fab-bg:#0F172A;
+    --fab-fg:#FFFFFF;
+    --fab-hover:#1E293B;
+    --pre-bg:#0F172A;
+    --pre-fg:#E2E8F0;
+    --pre-anchor:#F59E0B;
+    --pre-ctrl:#93C5FD;
+    --pre-head:#86EFAC;
+    --tag-blue-bg:#DBEAFE;
+    --tag-blue-fg:#1D4ED8;
+    --tag-green-bg:#DCFCE7;
+    --tag-green-fg:#166534;
+    --tag-amber-bg:#FEF3C7;
+    --tag-amber-fg:#92400E;
+    --tag-red-bg:#FEE2E2;
+    --tag-red-fg:#B91C1C;
+    --tag-indigo-bg:#EEF2FF;
+    --tag-indigo-fg:#4338CA;
+    --tag-violet-bg:#EDE9FE;
+    --tag-violet-fg:#6D28D9;
+  }
+  /* OS設定に追従するダーク配色。切替UIは持たない（毎run使い捨てで状態を引き継がないため） / follows the OS setting; no toggle since each run is disposable */
+  @media (prefers-color-scheme: dark){
+  :root{
+    --surface:#0D1117;
+    --bg:#010409;
+    --border:#30363D;
+    --text:#E6EDF3;
+    --text-muted:#B1BAC4;
+    --text-subtle:#8B949E;
+    --engine:#58A6FF;
+    --danger:#FF7B72;
+    --amber:#D29922;
+    --amber-bg:#2B2513;
+    --amber-border:#5A431A;
+    --shadow-rgb:0,0,0;
+    --code-bg:#161B22;
+    --code-border:#30363D;
+    --code-fg:#E6EDF3;
+    --code-ln:#6E7681;
+    --diff-add-bg:#12261E;
+    --diff-add-fg:#3FB950;
+    --diff-del-bg:#25171C;
+    --diff-del-fg:#F85149;
+    --badge-new-bg:#12283F;
+    --badge-new-fg:#58A6FF;
+    --badge-sup-bg:#3A2413;
+    --badge-sup-fg:#DB8B4E;
+    --surface-alt:#161B22;
+    --surface-alt2:#1C2128;
+    --surface-inset:#12171F;
+    --surface-info:#12283F;
+    --border-strong:#484F58;
+    --border-focus:#316DCA;
+    --on-accent:#0D1117;
+    --engine-hover:#388BFD;
+    --btn-disabled:#30363D;
+    --focus-ring:#D29922;
+    --focus-outline:#1F6FEB;
+    --mark-bg:#9E6A03;
+    --mark-fg:#E6EDF3;
+    --fab-bg:#30363D;
+    --fab-fg:#E6EDF3;
+    --fab-hover:#3C444D;
+    --pre-bg:#161B22;
+    --pre-fg:#E6EDF3;
+    --pre-anchor:#D29922;
+    --pre-ctrl:#79C0FF;
+    --pre-head:#7EE787;
+    --tag-blue-bg:#12283F;
+    --tag-blue-fg:#58A6FF;
+    --tag-green-bg:#12261E;
+    --tag-green-fg:#3FB950;
+    --tag-amber-bg:#2B2513;
+    --tag-amber-fg:#D29922;
+    --tag-red-bg:#25171C;
+    --tag-red-fg:#F85149;
+    --tag-indigo-bg:#1C1E3A;
+    --tag-indigo-fg:#A5A6F6;
+    --tag-violet-bg:#241A3C;
+    --tag-violet-fg:#C297FF;
+  }
   }
   *{box-sizing:border-box;}
+  /* リンク色を指定しないとダークで既定の濃紺のまま沈むので、必ずトークンから引く / without this, links keep the UA's dark navy and vanish on dark */
+  a{ color:var(--engine); }
   html,body{
     margin:0;
     width:100%;
@@ -37,7 +147,7 @@
     padding:0 20px 96px;
   }
   .hero{
-    background:linear-gradient(180deg,#F8FAFC 0%,#FFFFFF 100%);
+    background:linear-gradient(180deg,var(--surface-alt) 0%,var(--surface) 100%);
     border-bottom:1px solid var(--border);
     padding:52px 20px 34px;
     text-align:center;
@@ -62,9 +172,9 @@
     font-weight:600;
     font-size:12px;
   }
-  .pill.date{ background:#EEF2FF; color:#4338CA; }
-  .pill.review{ background:#FEF3C7; color:#92400E; }
-  .pill.status{ background:#DCFCE7; color:#166534; }
+  .pill.date{ background:var(--tag-indigo-bg); color:var(--tag-indigo-fg); }
+  .pill.review{ background:var(--tag-amber-bg); color:var(--tag-amber-fg); }
+  .pill.status{ background:var(--tag-green-bg); color:var(--tag-green-fg); }
 
   section{ margin-top:52px; }
   h2{
@@ -85,7 +195,7 @@
     width:22px;height:22px;
     border-radius:999px;
     background:var(--engine);
-    color:#fff;
+    color:var(--on-accent);
     font-size:12px;
     margin-right:8px;
   }
@@ -102,7 +212,7 @@
     display:flex;
     gap:12px;
     align-items:flex-start;
-    background:#F8FAFC;
+    background:var(--surface-alt);
     border:1px solid var(--border);
     border-radius:12px;
     padding:14px 16px;
@@ -113,7 +223,7 @@
     width:26px;height:26px;
     border-radius:999px;
     background:var(--engine);
-    color:#fff;
+    color:var(--on-accent);
     font-size:13px;
     font-weight:700;
     display:flex;align-items:center;justify-content:center;
@@ -127,7 +237,7 @@
     margin:8px 2px 0;
   }
   .figure[data-has-comment]{
-    outline:2px solid #FCD34D;
+    outline:2px solid var(--focus-ring);
     outline-offset:6px;
     border-radius:16px;
   }
@@ -139,8 +249,8 @@
     display:flex;
     align-items:center;
     gap:5px;
-    background:rgba(15,23,42,0.86);
-    color:#fff;
+    background:var(--fab-bg);
+    color:var(--fab-fg);
     border:none;
     border-radius:999px;
     padding:6px 11px;
@@ -150,7 +260,7 @@
     cursor:pointer;
     opacity:0;
     transition:opacity .15s;
-    box-shadow:0 4px 14px rgba(15,23,42,.25);
+    box-shadow:0 4px 14px rgba(var(--shadow-rgb),.25);
   }
   .figure:hover .figure-comment-btn,
   .figure-comment-btn:focus-visible{ opacity:1; }
@@ -169,10 +279,10 @@
     font-size:13px;
   }
   .compare-col.before h4{ color:var(--danger); }
-  .compare-col.after h4{ color:#166534; }
+  .compare-col.after h4{ color:var(--tag-green-fg); }
   pre{
-    background:#0F172A;
-    color:#E2E8F0;
+    background:var(--pre-bg);
+    color:var(--pre-fg);
     border-radius:10px;
     padding:14px 16px;
     font-size:12.5px;
@@ -181,9 +291,9 @@
     overflow-x:auto;
     margin:0;
   }
-  pre .anchor{ color:#F59E0B; }
-  pre .ctrl{ color:#93C5FD; }
-  pre .head{ color:#86EFAC; }
+  pre .anchor{ color:var(--pre-anchor); }
+  pre .ctrl{ color:var(--pre-ctrl); }
+  pre .head{ color:var(--pre-head); }
 
   /* ---- callouts ---- */
   .callout{
@@ -198,14 +308,14 @@
   .callout h4{
     margin:0 0 10px;
     font-size:14.5px;
-    color:#92400E;
+    color:var(--tag-amber-fg);
     display:flex;
     align-items:center;
     gap:8px;
   }
   .callout.plain{
-    border-left-color:#94A3B8;
-    background:#F8FAFC;
+    border-left-color:var(--border-strong);
+    background:var(--surface-alt);
     border-color:var(--border);
   }
   .callout.plain h4{ color:var(--text); }
@@ -217,12 +327,12 @@
     border:1px solid var(--border);
     border-radius:12px;
     overflow:hidden;
-    background:#FAFAFA;
+    background:var(--surface-inset);
   }
   .align-head{
     display:grid;
     grid-template-columns:1fr 140px 1fr;
-    background:#F1F5F9;
+    background:var(--surface-alt2);
     font-size:12px;
     font-weight:700;
     color:var(--text-muted);
@@ -230,13 +340,13 @@
     border-bottom:1px solid var(--border);
   }
   .align-sync{
-    background:#EFF6FF;
-    color:#1D4ED8;
+    background:var(--surface-info);
+    color:var(--tag-blue-fg);
     font-size:12.5px;
     font-weight:600;
     padding:8px 14px;
-    border-top:1px dashed #93C5FD;
-    border-bottom:1px dashed #93C5FD;
+    border-top:1px dashed var(--border-focus);
+    border-bottom:1px dashed var(--border-focus);
   }
   .align-row{
     display:grid;
@@ -244,18 +354,18 @@
     gap:8px;
     align-items:center;
     padding:8px 12px;
-    border-bottom:1px solid #EEF1F5;
+    border-bottom:1px solid var(--border);
     font-size:12.5px;
   }
   .align-cell{
     font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-    background:#fff;
+    background:var(--surface);
     border:1px solid var(--border);
     border-radius:6px;
     padding:6px 8px;
     min-height:16px;
   }
-  .align-cell.empty{ background:#F8FAFC; border-style:dashed; color:var(--text-subtle); }
+  .align-cell.empty{ background:var(--surface-alt); border-style:dashed; color:var(--text-subtle); }
   .align-tag{
     text-align:center;
     font-size:11px;
@@ -263,25 +373,25 @@
     border-radius:999px;
     padding:4px 6px;
   }
-  .align-row.match .align-tag{ background:#DCFCE7; color:#166534; }
-  .align-row.update .align-tag{ background:#FEF3C7; color:#92400E; }
-  .align-row.insert .align-tag{ background:#DBEAFE; color:#1D4ED8; }
-  .align-row.delete .align-tag{ background:#FEE2E2; color:#B91C1C; }
+  .align-row.match .align-tag{ background:var(--tag-green-bg); color:var(--tag-green-fg); }
+  .align-row.update .align-tag{ background:var(--tag-amber-bg); color:var(--tag-amber-fg); }
+  .align-row.insert .align-tag{ background:var(--tag-blue-bg); color:var(--tag-blue-fg); }
+  .align-row.delete .align-tag{ background:var(--tag-red-bg); color:var(--tag-red-fg); }
   .align-note{
     font-size:12px;
     color:var(--text-subtle);
     padding:10px 14px;
-    background:#F8FAFC;
+    background:var(--surface-alt);
   }
 
   /* ---- table ---- */
   .table-wrap{ overflow-x:auto; border:1px solid var(--border); border-radius:12px; }
   table{ border-collapse:collapse; width:100%; font-size:13px; min-width:560px; }
   th,td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
-  thead th{ background:#F1F5F9; font-size:12.5px; color:var(--text-muted); }
+  thead th{ background:var(--surface-alt2); font-size:12.5px; color:var(--text-muted); }
   tbody tr:last-child td{ border-bottom:none; }
   td code, li code, p code{
-    background:#F1F5F9;
+    background:var(--surface-alt2);
     border-radius:5px;
     padding:1px 6px;
     font-size:12px;
@@ -294,16 +404,21 @@
     border-radius:999px;
     padding:2px 8px;
   }
-  .kind-tag.new{ background:#DBEAFE; color:#1D4ED8; }
-  .kind-tag.mod{ background:#FEF3C7; color:#92400E; }
-  .kind-tag.keep{ background:#F1F5F9; color:var(--text-muted); }
+  .kind-tag.new{ background:var(--tag-blue-bg); color:var(--tag-blue-fg); }
+  .kind-tag.mod{ background:var(--tag-amber-bg); color:var(--tag-amber-fg); }
+  .kind-tag.keep{ background:var(--surface-alt2); color:var(--text-muted); }
 
   ul.plain{ padding-left:22px; margin:8px 0; }
   ul.plain li{ margin:6px 0; font-size:14px; }
+  .options-head{ margin:12px 0 4px; font-size:13px; color:var(--text-muted); }
+  ul.options-list li{ line-height:1.7; }
+  /* 推奨マークは案キーの直後に置く。裁定サイトの推奨一括採用と同じ案を指す / the mark points at the same option the site bulk-accepts */
+  .opt-recommended{ display:inline-block; margin-left:6px; padding:1px 6px; border-radius:8px;
+    font-size:11px; font-weight:600; background:var(--badge-new-bg); color:var(--badge-new-fg); }
 
   .ref-list{ list-style:none; padding:0; margin:0; display:grid; gap:6px; }
   .ref-list li{ font-size:13px; }
-  .ref-list code{ background:#F1F5F9; border-radius:5px; padding:2px 6px; }
+  .ref-list code{ background:var(--surface-alt2); border-radius:5px; padding:2px 6px; }
 
   footer{
     text-align:center;
@@ -323,30 +438,30 @@
   }
 
   /* ================= comment feature ================= */
-  ::highlight(review-comment){ background-color:#FEF08A; color:#0F172A; }
+  ::highlight(review-comment){ background-color:var(--mark-bg); color:var(--mark-fg); }
 
   .comment-fab{
     position:absolute; z-index:9000;
     display:flex; align-items:center; gap:6px;
-    background:#0F172A; color:#fff; border:none;
+    background:var(--fab-bg); color:var(--fab-fg); border:none;
     border-radius:999px; padding:8px 14px;
     font-size:12.5px; font-weight:600; font-family:inherit;
-    cursor:pointer; box-shadow:0 6px 20px rgba(15,23,42,.28);
+    cursor:pointer; box-shadow:0 6px 20px rgba(var(--shadow-rgb),.28);
   }
-  .comment-fab:hover{ background:#1E293B; }
+  .comment-fab:hover{ background:var(--fab-hover); }
   .comment-fab[hidden]{ display:none; }
 
   .comment-composer{
     position:absolute; z-index:9000;
     width:320px; background:var(--surface);
     border:1px solid var(--border); border-radius:12px;
-    padding:14px; box-shadow:0 12px 32px rgba(15,23,42,.22);
+    padding:14px; box-shadow:0 12px 32px rgba(var(--shadow-rgb),.22);
   }
   .comment-composer[hidden]{ display:none; }
   .composer-quote{
     font-size:12px; color:var(--text-subtle); line-height:1.6;
     margin-bottom:9px; max-height:56px; overflow:hidden;
-    border-left:3px solid #FCD34D; padding-left:8px;
+    border-left:3px solid var(--focus-ring); padding-left:8px;
   }
   .composer-input{
     width:100%; min-height:76px; resize:vertical;
@@ -354,19 +469,19 @@
     padding:9px 10px; font-size:13px; font-family:inherit;
     line-height:1.6; color:var(--text);
   }
-  .composer-input:focus{ outline:2px solid #BFDBFE; border-color:var(--engine); }
+  .composer-input:focus{ outline:2px solid var(--focus-outline); border-color:var(--engine); }
   .composer-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:10px; }
 
   .btn-primary,.btn-ghost{
     font-family:inherit; font-size:12.5px; font-weight:600;
     border-radius:8px; padding:7px 14px; cursor:pointer; border:1px solid transparent;
   }
-  .btn-primary{ background:var(--engine); color:#fff; }
-  .btn-primary:hover{ background:#1D4ED8; }
-  .btn-primary:disabled{ background:#CBD5E1; cursor:not-allowed; }
+  .btn-primary{ background:var(--engine); color:var(--on-accent); }
+  .btn-primary:hover{ background:var(--engine-hover); }
+  .btn-primary:disabled{ background:var(--btn-disabled); cursor:not-allowed; }
   .btn-primary.wide{ width:100%; padding:10px; font-size:13px; }
   .btn-ghost{ background:var(--surface); color:var(--text-muted); border-color:var(--border); }
-  .btn-ghost:hover{ background:#F1F5F9; }
+  .btn-ghost:hover{ background:var(--surface-alt2); }
 
   .comment-panel{
     position:fixed; left:22px; bottom:22px; z-index:8500;
@@ -375,54 +490,54 @@
   .comment-panel.open{ width:350px; }
   .panel-toggle{
     display:flex; align-items:center; gap:7px; margin-right:auto;
-    background:#0F172A; color:#fff; border:none; border-radius:999px;
+    background:var(--fab-bg); color:var(--fab-fg); border:none; border-radius:999px;
     padding:11px 17px; font-size:13px; font-weight:600; font-family:inherit;
-    cursor:pointer; box-shadow:0 8px 24px rgba(15,23,42,.26);
+    cursor:pointer; box-shadow:0 8px 24px rgba(var(--shadow-rgb),.26);
   }
-  .panel-toggle:hover{ background:#1E293B; }
+  .panel-toggle:hover{ background:var(--fab-hover); }
   .panel-count{
-    background:var(--engine); color:#fff; font-size:11px; font-weight:700;
+    background:var(--engine); color:var(--on-accent); font-size:11px; font-weight:700;
     border-radius:999px; min-width:19px; height:19px;
     display:inline-flex; align-items:center; justify-content:center; padding:0 5px;
   }
   .panel-caret{ font-size:11px; opacity:.8; }
   .panel-body{
     margin-bottom:10px; background:var(--surface); border:1px solid var(--border);
-    border-radius:14px; box-shadow:0 16px 40px rgba(15,23,42,.18); overflow:hidden;
+    border-radius:14px; box-shadow:0 16px 40px rgba(var(--shadow-rgb),.18); overflow:hidden;
   }
   .panel-body[hidden]{ display:none; }
   .panel-empty{ font-size:13px; line-height:1.75; color:var(--text-muted); padding:18px 16px; margin:0; }
   .comment-list{ list-style:none; margin:0; padding:8px; max-height:46vh; overflow-y:auto; }
   .comment-item{
     border:1px solid var(--border); border-radius:10px; padding:10px 11px; margin:6px 0;
-    background:#FCFCFD; cursor:pointer; transition:border-color .12s, background .12s;
+    background:var(--surface-inset); cursor:pointer; transition:border-color .12s, background .12s;
   }
-  .comment-item:hover{ border-color:#93C5FD; background:#F8FAFF; }
+  .comment-item:hover{ border-color:var(--border-focus); background:var(--surface-info); }
   .ci-head{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
   .ci-num{ font-size:11px; font-weight:700; color:var(--engine); }
   .ci-act{
     display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700;
-    font-family:inherit; background:var(--engine); color:#fff; border:none;
+    font-family:inherit; background:var(--engine); color:var(--on-accent); border:none;
     border-radius:6px; padding:4px 10px; cursor:pointer;
   }
-  .ci-act:hover{ background:#1D4ED8; }
+  .ci-act:hover{ background:var(--engine-hover); }
   .ci-del{
     margin-left:auto; font-size:14px; line-height:1; background:none; border:none;
     color:var(--text-subtle); cursor:pointer; padding:2px 6px; border-radius:6px;
   }
-  .ci-del:hover{ background:#FEE2E2; color:var(--danger); }
+  .ci-del:hover{ background:var(--tag-red-bg); color:var(--danger); }
   .ci-quote{
     font-size:11.5px; color:var(--text-subtle); line-height:1.55;
-    border-left:3px solid #FCD34D; padding-left:7px; margin-bottom:6px;
+    border-left:3px solid var(--focus-ring); padding-left:7px; margin-bottom:6px;
   }
   .ci-body{ font-size:13px; line-height:1.65; color:var(--text); white-space:pre-wrap; }
   .ci-edit{ margin-bottom:0; }
   .ci-edit-label{ font-size:11px; font-weight:700; color:var(--engine); margin:2px 0 6px; }
-  .panel-foot{ border-top:1px solid var(--border); padding:10px; background:#F8FAFC; }
+  .panel-foot{ border-top:1px solid var(--border); padding:10px; background:var(--surface-alt); }
 
   .kind-pill{ display:inline-block; font-size:10px; font-weight:700; border-radius:999px; padding:2px 7px; letter-spacing:.02em; }
-  .kind-pill.fig{ background:#EDE9FE; color:#6D28D9; }
-  .kind-pill.txt{ background:#DBEAFE; color:#1D4ED8; }
+  .kind-pill.fig{ background:var(--tag-violet-bg); color:var(--tag-violet-fg); }
+  .kind-pill.txt{ background:var(--tag-blue-bg); color:var(--tag-blue-fg); }
   .composer-quote .kind-pill{ margin-right:6px; }
 
   @media (hover:none){
@@ -441,36 +556,74 @@
   }
 
   /* ================= digest components ================= */
-  .verdict-header { border-left: 4px solid #2563eb; padding-left: 16px; margin-bottom: 24px; }
-  .file-path code { font-size: 12px; color: #555; }
+  .verdict-header { border-left: 4px solid var(--engine); padding-left: 16px; margin-bottom: 24px; }
+  .file-path code { font-size: 12px; color: var(--text-subtle); }
   .verdict-card h2, .suppressed-card h2 { font-size: 18px; }
   /* colorは必須: 素のpreが暗背景用の明色文字なので明背景では読めなくなる / color is required: bare pre uses light text for dark bg */
-  .code-card { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px; overflow-x: auto; font-size: 13px; line-height: 1.6; color: #24292f; }
-  .code-card .ln { display: inline-block; width: 3em; color: #8b949e; user-select: none; }
-  /* max-contentで横スクロール幅まで帯を伸ばす（width:100%だと初期表示幅で切れる） / max-content stretches the band to the scroll width */
-  .code-card .hl { background: #fff8c5; display: inline-block; min-width: 100%; width: max-content; }
-  .code-card ins { text-decoration: none; background: #dafbe1; }
+  .code-card { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 6px; padding: 12px 0; overflow-x: auto; font-size: 13px; line-height: 1.6; color: var(--code-fg); }
+  /* min-width:100%で横スクロール時も行の帯が途切れないようにする / min-width keeps the row band intact while scrolling horizontally */
+  .code-card code { display: inline-block; min-width: 100%; }
+  .code-card .cl { display: block; white-space: pre; }
+  /* 行番号と記号は横スクロールしても左端へ貼り付ける（注目行バーもここに載るため逃がせない） / the gutter sticks while the code scrolls; the highlight bar rides on it */
+  .code-card .ln, .code-card .sign { position: sticky; background: inherit; user-select: none; }
+  .code-card .ln { left: 0; display: inline-block; width: 4.2em; text-align: right; padding-right: .7em; color: var(--code-ln); }
+  /* 記号列は色が潰れても差分を読ませる最後の砦なので必ず等幅で確保する / the sign column is the last line of defense when colors wash out */
+  .code-card .sign { left: 4.2em; display: inline-block; width: 1.2em; color: var(--code-ln); }
+  .code-card .cl { background: var(--code-bg); }
+  .code-card .cl.add { background: var(--diff-add-bg); }
+  .code-card .cl.add .sign { color: var(--diff-add-fg); }
+  .code-card .cl.del { background: var(--diff-del-bg); }
+  .code-card .cl.del .sign { color: var(--diff-del-fg); }
+  /* 注目行は背景を使わない（追加/削除の背景と3層に重なるため）。左縁バーと字の太さで示す / no background here: it would stack on the add/del bands */
+  /* バーは貼り付く行番号側に載せる。行そのものへ inset で引くと横スクロールで視界外へ逃げる / the bar rides the sticky gutter; on the row itself it would scroll away */
+  .code-card .cl.hl { font-weight: 600; }
+  .code-card .cl.hl .ln { box-shadow: inset 4px 0 0 var(--amber); }
   /* vendorの.lead-item .badgeと衝突するためカード内に限定 / scoped to cards to avoid clashing with vendor .lead-item .badge */
   .verdict-card .badge, .suppressed-card .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-right: 8px; }
-  .badge-new { background: #ddf4ff; color: #0969da; }
-  .badge-sup { background: #fff1e5; color: #bc4c00; }
+  .badge-new { background: var(--badge-new-bg); color: var(--badge-new-fg); }
+  .badge-sup { background: var(--badge-sup-bg); color: var(--badge-sup-fg); }
 
   /* カード境界を明示する枠線と背景 / explicit card boundary */
   .verdict-card, .suppressed-card {
-    background: #ffffff;
-    border: 1px solid #d0d7de;
-    border-left: 5px solid #2563eb;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--engine);
     border-radius: 12px;
     padding: 16px 18px;
-    box-shadow: 0 1px 3px rgba(15,23,42,.06);
+    box-shadow: 0 1px 3px rgba(var(--shadow-rgb),.06);
   }
-  .verdict-card.critical { border-left-color: #DC2626; }
-  .verdict-card.ruling { border-left-color: #F59E0B; }
-  .summary-line { font-size: 14.5px; font-weight: 700; color: #92400E; margin: 4px 0 12px; }
-  details { border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin: 12px 0; background: #FCFCFD; }
+  .verdict-card.critical { border-left-color: var(--danger); }
+  .verdict-card.ruling { border-left-color: var(--amber); }
+  .summary-line { font-size: 14.5px; font-weight: 700; color: var(--tag-amber-fg); margin: 4px 0 12px; }
+  details { border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin: 12px 0; background: var(--surface-inset); }
   details summary { cursor: pointer; font-weight: 700; font-size: 14px; }
   details ul { padding-left: 20px; }
   details li { font-size: 13px; margin: 5px 0; }
+  /* ---- highlight.js テーマ（ライト） / highlight.js theme (light) ---- */
+pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5px}/*!
+  Theme: GitHub
+  Description: Light theme as seen on github.com
+  Author: github.com
+  Maintainer: @Hirse
+  Updated: 2021-05-15
+
+  Outdated base version: https://github.com/primer/github-syntax-light
+  Current colors taken from GitHub's CSS
+*/.hljs{color:#24292e;background:#fff}.hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-template-tag,.hljs-template-variable,.hljs-type,.hljs-variable.language_{color:#d73a49}.hljs-title,.hljs-title.class_,.hljs-title.class_.inherited__,.hljs-title.function_{color:#6f42c1}.hljs-attr,.hljs-attribute,.hljs-literal,.hljs-meta,.hljs-number,.hljs-operator,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-id,.hljs-variable{color:#005cc5}.hljs-meta .hljs-string,.hljs-regexp,.hljs-string{color:#032f62}.hljs-built_in,.hljs-symbol{color:#e36209}.hljs-code,.hljs-comment,.hljs-formula{color:#6a737d}.hljs-name,.hljs-quote,.hljs-selector-pseudo,.hljs-selector-tag{color:#22863a}.hljs-subst{color:#24292e}.hljs-section{color:#005cc5;font-weight:700}.hljs-bullet{color:#735c0f}.hljs-emphasis{color:#24292e;font-style:italic}.hljs-strong{color:#24292e;font-weight:700}.hljs-addition{color:#22863a;background-color:#f0fff4}.hljs-deletion{color:#b31d28;background-color:#ffeef0}
+  @media (prefers-color-scheme: dark) {
+pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5px}/*!
+  Theme: GitHub Dark
+  Description: Dark theme as seen on github.com
+  Author: github.com
+  Maintainer: @Hirse
+  Updated: 2021-05-15
+
+  Outdated base version: https://github.com/primer/github-syntax-dark
+  Current colors taken from GitHub's CSS
+*/.hljs{color:#c9d1d9;background:#0d1117}.hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-template-tag,.hljs-template-variable,.hljs-type,.hljs-variable.language_{color:#ff7b72}.hljs-title,.hljs-title.class_,.hljs-title.class_.inherited__,.hljs-title.function_{color:#d2a8ff}.hljs-attr,.hljs-attribute,.hljs-literal,.hljs-meta,.hljs-number,.hljs-operator,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-id,.hljs-variable{color:#79c0ff}.hljs-meta .hljs-string,.hljs-regexp,.hljs-string{color:#a5d6ff}.hljs-built_in,.hljs-symbol{color:#ffa657}.hljs-code,.hljs-comment,.hljs-formula{color:#8b949e}.hljs-name,.hljs-quote,.hljs-selector-pseudo,.hljs-selector-tag{color:#7ee787}.hljs-subst{color:#c9d1d9}.hljs-section{color:#1f6feb;font-weight:700}.hljs-bullet{color:#f2cc60}.hljs-emphasis{color:#c9d1d9;font-style:italic}.hljs-strong{color:#c9d1d9;font-weight:700}.hljs-addition{color:#aff5b4;background-color:#033a16}.hljs-deletion{color:#ffdcd7;background-color:#67060c}
+  }
+  /* テーマ側の .hljs 背景はカードの帯を潰すので無効化する / the theme's .hljs background would hide the diff bands */
+  .code-card .hljs, .code-card .code { background: transparent !important; }
 </style>
 </head>
 <body>
@@ -509,16 +662,22 @@
         <h2><span class="badge badge-new">設計判断</span> <strong>VanillaGearMachineComponent.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs:40</code></p>
         <p class="summary-line">需要だけ1.5倍に膨らみ、供給も速度も増えない。</p>
-        <pre class="code-card"><code><span class="ln">36</span>        private void UpdateTorqueRequestRate()
-<span class="ln">37</span>        {
-<span class="ln">38</span><ins>            // 表示の分母・加工速度と同じ導出（EffectiveRequestPowerRate）をそのまま歯車網への要求へ反映する</ins>
-<span class="ln">39</span><ins>            // Feed the gear network the same derivation used for the display denominator and processing speed (EffectiveRequestPowerRate)</ins>
-<span class="hl"><span class="ln">40</span><ins>            _gearEnergyTransformer.SetTorqueRequestRate(_vanillaMachineProcessorComponent.EffectiveRequestPowerRate);</ins></span>
-<span class="ln">41</span>        }</code></pre>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">        private void UpdateTorqueRequestRate()</span></span>
+<span class="cl ctx"><span class="ln">37</span><span class="sign"> </span><span class="code">        {</span></span>
+<span class="cl del"><span class="ln">40</span><span class="sign">-</span><span class="code">            var isProcessing = _vanillaMachineProcessorComponent.CurrentState == ProcessState.Processing;</span></span>
+<span class="cl del"><span class="ln">41</span><span class="sign">-</span><span class="code">            _gearEnergyTransformer.SetTorqueRequestRate(isProcessing ? 1f : _idleTorqueRate);</span></span>
+<span class="cl add"><span class="ln">38</span><span class="sign">+</span><span class="code">            // 表示の分母・加工速度と同じ導出（EffectiveRequestPowerRate）をそのまま歯車網への要求へ反映する</span></span>
+<span class="cl add"><span class="ln">39</span><span class="sign">+</span><span class="code">            // Feed the gear network the same derivation used for the display denominator and processing speed (EffectiveRequestPowerRate)</span></span>
+<span class="cl add hl"><span class="ln">40</span><span class="sign">+</span><span class="code">            _gearEnergyTransformer.SetTorqueRequestRate(_vanillaMachineProcessorComponent.EffectiveRequestPowerRate);</span></span>
+<span class="cl ctx"><span class="ln">41</span><span class="sign"> </span><span class="code">        }</span></span></code></pre>
         <p><strong>PR側の主張:</strong> 歯車機械の要求トルクにもモジュール倍率を反映し、表示分母・加工速度・歯車網要求を一致させる <code>[agent前提]</code>（PR本文「レビュー裁定」／PR内新設 <code>.decisions/2026-08-17-歯車機械の需要にもモジュール倍率を載せる.md</code>・免責力なし）。Fable も「意図どおり」と判定した。</p>
         <p><strong>独立レビューの実測:</strong> <code>MachineModuleEffect.cs:75</code> の倍率は下限のみで上限クランプがない。一方 <code>GearConsumptionCalculator.cs:41-52</code> の <code>required</code> は rate を掛けない素の値で <code>Mathf.Min(currentTorque / required, 1f)</code> により rate&gt;1 分を必ず捨て、<code>CalcCurrentPower</code> は <code>_torqueRequestRate</code> を参照しない。結果、<code>GearNetworkPowerCalculator.cs:44-47</code> で <code>demandPower &gt; availablePower</code> となり <strong>同一歯車網の全消費者が <code>OverRequirePower</code> で停止</strong>し、停止しない場合も充足率は恒久的に 67%（赤固定）になる。5系統がこの二択を提示し、Fable の「意図どおり」判定は供給側の導出を読んでいない。</p>
-        <p><strong>代替案:</strong> <strong>案A（推奨）</strong> — <code>GearConsumptionCalculator.CalcOperatingRate/CalcCurrentPower</code> へ <code>requestRate</code> を通し、要求と供給を同じ式に揃える（<code>GearNetworkPowerCalculator.cs:30-31</code> の既存コメントが示す責務統一の方向と一致し、PRの掲げた三者一致を実際に達成する唯一の案）。<strong>案B</strong> — <code>SetTorqueRequestRate(CurrentState == Processing ? 1f : _idlePowerRate)</code> へ戻し、歯車機械の表示分母も基礎値へ戻す（＝歯車機械には倍率を載せない）。</p>
         <p><strong>併用推奨（案C相当）:</strong> <code>readonly struct TorqueRequestRate</code> を切り、定義域 [0,∞) の <code>PowerMultiplier</code> と <code>float</code> 取り違えを型で止める。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — GearConsumptionCalculator.CalcOperatingRate / CalcCurrentPower に requestRate 引数を足し、required と供給の両方へ倍率を反映して要求と供給を一致させる（推奨）</li>
+          <li><strong>案B</strong> — SetTorqueRequestRate を Processing ? 1f : idleRate へ戻し、歯車機械では PowerMultiplier を要求側に載せない（表示分母も基礎値へ戻す）</li>
+        </ul>
       </section>
     </div>
     <div class="figure" data-label="2つのprocessorへ逐語コピーされた実効率導出とラッチ手続きの集約先を選ぶ設計判断カード（実コード抜粋つき）">
@@ -527,29 +686,39 @@
         <h2><span class="badge badge-new">設計判断</span> <strong>VanillaMachineProcessorComponent.cs</strong> / <strong>CleanRoomMachineProcessorComponent.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:29</code>（＋ <code>moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:31</code>）</p>
         <p class="summary-line">同じ導出が2箇所に写され、既に食い違っている。</p>
-        <pre class="code-card"><code><span class="ln">27</span><ins>        // 稼働状態に応じてアイドル倍率かモジュール倍率を選ぶ要求電力率。歯車機械の要求トルク率もここから導出する</ins>
-<span class="ln">28</span><ins>        // Requested power rate selecting the idle rate or module multiplier by state; the gear machine&#39;s requested torque rate also derives from here</ins>
-<span class="hl"><span class="ln">29</span><ins>        public float EffectiveRequestPowerRate =&gt; CurrentState == ProcessState.Processing ? _context.ProcessingPowerMultiplier : _idlePowerRate;</ins></span>
-<span class="ln">30</span>
-<span class="ln">31</span>        // 稼働状態に応じてアイドル倍率かモジュール倍率を適用した要求電力
-<span class="ln">32</span>        // Requested power applies the idle rate or module multiplier based on the active state
-<span class="ln">33</span><ins>        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</ins></code></pre>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl add"><span class="ln">27</span><span class="sign">+</span><span class="code">        // 稼働状態に応じてアイドル倍率かモジュール倍率を選ぶ要求電力率。歯車機械の要求トルク率もここから導出する</span></span>
+<span class="cl add"><span class="ln">28</span><span class="sign">+</span><span class="code">        // Requested power rate selecting the idle rate or module multiplier by state; the gear machine&#39;s requested torque rate also derives from here</span></span>
+<span class="cl add hl"><span class="ln">29</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState == ProcessState.Processing ? _context.ProcessingPowerMultiplier : _idlePowerRate;</span></span>
+<span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl ctx"><span class="ln">31</span><span class="sign"> </span><span class="code">        // 稼働状態に応じてアイドル倍率かモジュール倍率を適用した要求電力</span></span>
+<span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        // Requested power applies the idle rate or module multiplier based on the active state</span></span>
+<span class="cl del"><span class="ln">29</span><span class="sign">-</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower *</span></span>
+<span class="cl del"><span class="ln">30</span><span class="sign">-</span><span class="code">                                              (CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : _idlePowerRate);</span></span>
+<span class="cl add"><span class="ln">33</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</span></span></code></pre>
         <p>同概念の写し（CleanRoom 側・<code>Halted</code> の扱いだけ既に食い違っている）:</p>
-        <pre class="code-card"><code><span class="ln">29</span><ins>        // 停止中は0、稼働中は通常機械と同じ倍率</ins>
-<span class="ln">30</span>        // Halted machines request no power; operating states use the same multipliers as normal machines
-<span class="hl"><span class="ln">31</span><ins>        public float EffectiveRequestPowerRate =&gt; CurrentState switch</ins></span>
-<span class="ln">32</span>        {
-<span class="hl"><span class="ln">33</span>            ProcessState.Halted =&gt; 0f,</span>
-<span class="ln">34</span><ins>            ProcessState.Processing =&gt; _context.ProcessingPowerMultiplier,</ins>
-<span class="ln">35</span><ins>            ProcessState.Idle =&gt; _idlePowerRate,</ins>
-<span class="ln">36</span>            _ =&gt; throw new ArgumentOutOfRangeException(),
-<span class="ln">37</span>        };
-<span class="ln">38</span>
-<span class="ln">39</span><ins>        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</ins></code></pre>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl del"><span class="ln">29</span><span class="sign">-</span><span class="code">        // 停止中は要求電力を0にし、稼働中だけ通常機械と同じ倍率を適用する</span></span>
+<span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
+<span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code">        // Halted machines request no power; operating states use the same multipliers as normal machines</span></span>
+<span class="cl del"><span class="ln">31</span><span class="sign">-</span><span class="code">        public float EffectiveRequestPower =&gt; CurrentState switch</span></span>
+<span class="cl add hl"><span class="ln">31</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState switch</span></span>
+<span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        {</span></span>
+<span class="cl ctx hl"><span class="ln">33</span><span class="sign"> </span><span class="code">            ProcessState.Halted =&gt; 0f,</span></span>
+<span class="cl del"><span class="ln">34</span><span class="sign">-</span><span class="code">            ProcessState.Processing =&gt; _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier,</span></span>
+<span class="cl del"><span class="ln">35</span><span class="sign">-</span><span class="code">            ProcessState.Idle =&gt; _context.RequestPower * _idlePowerRate,</span></span>
+<span class="cl add"><span class="ln">34</span><span class="sign">+</span><span class="code">            ProcessState.Processing =&gt; _context.ProcessingPowerMultiplier,</span></span>
+<span class="cl add"><span class="ln">35</span><span class="sign">+</span><span class="code">            ProcessState.Idle =&gt; _idlePowerRate,</span></span>
+<span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">            _ =&gt; throw new ArgumentOutOfRangeException(),</span></span>
+<span class="cl ctx"><span class="ln">37</span><span class="sign"> </span><span class="code">        };</span></span>
+<span class="cl ctx"><span class="ln">38</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl add"><span class="ln">39</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</span></span></code></pre>
         <p><strong>PR側の主張:</strong> <code>ProcessingPowerMultiplier</code> を <code>MachineProcessContext</code> へ寄せて「1箇所から取得」した <code>[agent前提]</code>（コード内コメント）。集約はそこで止まっている。</p>
         <p><strong>独立レビューの実測:</strong> フィールド宣言・ctor 初期ラッチ・<code>GetBlockStateDetails</code> の公開・Update 冒頭3文が<strong>日英2行コメントごと逐語一致</strong>で両クラスに存在し、率だけ Vanilla=三項（<code>Halted</code> が無言で <code>_idlePowerRate</code> に落ちる）／CleanRoom=網羅switch（<code>Halted =&gt; 0f</code>）と<strong>既に食い違っている</strong>。両ファイルは 217行 / 222行で200行上限を超過。故障は仮定でなく patch 内で既に1回起きており（CleanRoom の Halted 固着を <code>:177-178</code> の手動0埋めで塞いだ）、同型の <code>ChangeSelection</code> 2件（<a href="#f02">F02</a>）では漏れている。4系統一致。</p>
-        <p><strong>代替案（新規クラス・新規ファイルは作らない）:</strong> <strong>案A（推奨）</strong> — 既存 <code>MachineProcessContext</code> へ <code>IdlePowerRate</code>・<code>EffectiveRequestPowerRate(state)</code>・<code>LatchTickPower(state)</code>・<code>PinPowerToZero()</code> を集約し、両processorのフィールドと3文を1行へ畳む（両ファイルが200行以内へ戻る）。<strong>案B</strong> — 率の switch を <code>IMachineProcessState</code> に <code>float RequestPowerRate { get; }</code> として持たせ、状態追加をコンパイルエラーで検知させる。</p>
         <p><strong>裁定ポイント:</strong> ラッチの置き場所は <code>MachineProcessContext</code> 一択で拮抗しない。選択は「率の分岐を context の網羅switch+throw に置くか、<code>IMachineProcessState</code> の実装へ分散させるか」だけ。どちらでも <a href="#f02">F02</a> の直し方（<code>ChangeSelection</code> 直後の再ラッチを1行で呼ぶ）が決まるため、<strong><a href="#f02">F02</a> より先に決める必要がある</strong>。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — MachineProcessContext へ率の網羅switchとラッチ手続きを集約する（推奨・ChangeSelectionの再ラッチ修正と同一編集）</li>
+          <li><strong>案B</strong> — 率は IMachineProcessState に float RequestPowerRate を足して実装側へ散らし、状態追加をコンパイルエラーで検知させる（ラッチのみ context へ集約）</li>
+        </ul>
       </section>
     </div>
     <div class="figure" data-label="充足率の表示可否を requestPower !== 0 の数値センチネルで判定している箇所の設計判断カード（実コード抜粋つき）">
@@ -558,15 +727,19 @@
         <h2><span class="badge badge-new">設計判断</span> <strong>detailLogic.ts</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/src/features/blockInventory/details/detailLogic.ts:73</code></p>
         <p class="summary-line">石窯とボイラーで電力行が丸ごと消える。</p>
-        <pre class="code-card"><code><span class="ln">71</span><ins>// 要求電力0（停止中）は充足率が意味を持たないため、表示自体を出さない判断をここで確定する</ins>
-<span class="ln">72</span><ins>// A request power of 0 (halted) makes the satisfaction rate meaningless, so the decision to hide it is settled here</ins>
-<span class="hl"><span class="ln">73</span><ins>export function isPowerRateMeaningful(requestPower: number): boolean {</ins></span>
-<span class="hl"><span class="ln">74</span><ins>  return requestPower !== 0;</ins></span>
-<span class="ln">75</span><ins>}</ins></code></pre>
+        <pre class="code-card" data-lang="typescript"><code><span class="cl add"><span class="ln">71</span><span class="sign">+</span><span class="code">// 要求電力0（停止中）は充足率が意味を持たないため、表示自体を出さない判断をここで確定する</span></span>
+<span class="cl add"><span class="ln">72</span><span class="sign">+</span><span class="code">// A request power of 0 (halted) makes the satisfaction rate meaningless, so the decision to hide it is settled here</span></span>
+<span class="cl add hl"><span class="ln">73</span><span class="sign">+</span><span class="code">export function isPowerRateMeaningful(requestPower: number): boolean {</span></span>
+<span class="cl add hl"><span class="ln">74</span><span class="sign">+</span><span class="code">  return requestPower !== 0;</span></span>
+<span class="cl add"><span class="ln">75</span><span class="sign">+</span><span class="code">}</span></span></code></pre>
         <p><strong>PR側の主張:</strong> 実効要求0の機械は充足率を表示せず停止中ラベルのみ出す <code>[agent前提]</code>（PR内新設ADR 0010・PR本文R4。免責力なし）。</p>
         <p><strong>独立レビューの実測:</strong> 実マスタ <code>../moorestech_master/server_v8/.../blocks.json</code> に <strong>石窯（L94・<code>requiredPower: 0</code>）とボイラー（L1937・同）</strong>が実在し、<code>EffectiveRequestPower = 0 × rate = 0</code> が常に成立する。よって<strong>正常稼働中でも電力行が消え</strong>、「電力が来ていない」のか「需要が0」なのかユーザーが区別できない。判別子 <code>currentState</code> は本PRで <code>z.enum([&quot;idle&quot;,&quot;processing&quot;,&quot;halted&quot;])</code> に narrowing 済みで<strong>ワイヤ上に既に存在する</strong>のに使っていない。<code>requestPower === 0</code> の解釈は現状4通りに分裂（<code>detailLogic.ts:74</code>＝表示可否 ／ <code>detailLogic.ts:8</code>＝100%充足 ／ <code>CommonMachineBlockStateDetail.cs:35</code>＝同上 ／ <code>MinerSection.tsx:15</code>＝判定なしで常時表示）。7系統一致。</p>
-        <p><strong>代替案:</strong> <strong>案A（推奨）</strong> — <code>Record&lt;MachineProcessState, { labelKey; insufficient; showPowerRate }&gt;</code> 1枚へ集約し（<code>MachineStateKeys</code> と <code>MachineStateInsufficientTone</code> も統合）、<code>isPowerRateMeaningful</code> を削除して <code>view.showPowerRate &amp;&amp; (...)</code> にする。4状態目の追加が必ずコンパイルエラーになる。<strong>案B</strong> — 「0なら描画しない」を所有者 <code>PowerRateText.tsx</code> の early return へ移し <code>computePowerRate</code> の <code>=== 0 ? 1</code> を撤去する（<code>MinerSection</code> の既存表示「100% (0/0)」が消える挙動変化を伴う）。</p>
         <p><strong>決着に要る追加の裁定:</strong> 石窯・ボイラーを「需要なし」と明示表示するか（<code>L.ui.blockInventory.noDemand</code> の前例が <code>NetworkSections.tsx:16</code> にある）／<code>MinerSection</code> の既存表示も揃えて消すか。<code>CommonMachineBlockStateDetail</code> に判別共用体を持たせる案はMessagePackワイヤ変更を伴うため非推奨。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — state 由来の1枚テーブルへ集約し、MachineStateKeys / MachineStateInsufficientTone も統合する（状態追加が必ずコンパイルエラーになる・推奨）</li>
+          <li><strong>案B</strong> — 「0 なら描画しない」を所有者 PowerRateText の early return へ移し computePowerRate の 0→1 を撤去する（MinerSection の既存表示も変わる）</li>
+        </ul>
       </section>
     </div>
   </section>
@@ -580,14 +753,18 @@
         <h2><span class="badge badge-new">設計判断</span> <strong>MachineProcessContext.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs:26</code></p>
         <p class="summary-line">同一tick内で別インスタンスの倍率を読む。</p>
-        <pre class="code-card"><code><span class="ln">22</span>        public float SuppliedPower;
-<span class="ln">23</span>        public float CurrentPower;
-<span class="ln">24</span>
-<span class="ln">25</span><ins>        // 加工中の効果倍率を1箇所から取得し、processorのEffectiveRequestPowerRateと計算式を共有する</ins>
-<span class="hl"><span class="ln">26</span><ins>        public float ProcessingPowerMultiplier =&gt; EffectComponent.AggregateCurrent().PowerMultiplier;</ins></span></code></pre>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl ctx"><span class="ln">22</span><span class="sign"> </span><span class="code">        public float SuppliedPower;</span></span>
+<span class="cl ctx"><span class="ln">23</span><span class="sign"> </span><span class="code">        public float CurrentPower;</span></span>
+<span class="cl ctx"><span class="ln">24</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl add"><span class="ln">25</span><span class="sign">+</span><span class="code">        // 加工中の効果倍率を1箇所から取得し、processorのEffectiveRequestPowerRateと計算式を共有する</span></span>
+<span class="cl add hl"><span class="ln">26</span><span class="sign">+</span><span class="code">        public float ProcessingPowerMultiplier =&gt; EffectComponent.AggregateCurrent().PowerMultiplier;</span></span></code></pre>
         <p><strong>PR側の主張:</strong> 倍率の単一取得点を作り、加工速度・表示分母・歯車要求で式を共有する <code>[agent前提]</code>（コード内コメント）。式の一致という点では改善している。</p>
         <p><strong>独立レビューの実測:</strong> 非キャッシュ getter のため同一tick内で同じモジュール集計を3〜4回作り直す（<code>AggregateCurrent()</code> は毎回 List 確保＋<code>MasterHolder.ItemMaster</code> 参照。Processing中1台あたり電気/CleanRoom 60→80回/秒、歯車 20→60回/秒）。性能だけの話ではなく、<code>EnergySegment.SettleTick</code> が読んだ倍率と <code>Update()</code> がラッチする倍率が<strong>別インスタンス</strong>のため、PRの掲げた「基準一致」が tick 内で完全には成立していない。</p>
-        <p><strong>代替案:</strong> <strong>案A（推奨）</strong> — <code>GameUpdater.CurrentTick</code> スタンプ付きの tick メモ（<code>CurrentTickEffect</code>）にし、同一tick内の全読み手が同一スナップショットを見るようにする。集計は機械あたり1回/tickに固定され、基準一致が構造的に保証される。代償はモジュール着脱の反映が最大1tick遅れること。<strong>案B</strong> — 現状の毎回集計を維持する（1tick遅延を嫌う場合）。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — GameUpdater.CurrentTick スタンプ付きスナップショットにする。モジュール着脱の反映が最大1tick遅れる代わりに基準一致が構造的に保証される（推奨）</li>
+          <li><strong>案B</strong> — 現状維持（毎回 AggregateCurrent。1tickに機械あたり3〜4回のList確保とMasterHolder参照が走る）</li>
+        </ul>
       </section>
     </div>
     <div class="figure" data-label="ProgressArrowGlyphが参照する既定寸法トークンの命名に関する設計判断カード（実コード抜粋つき）">
@@ -596,15 +773,19 @@
         <h2><span class="badge badge-new">設計判断</span> <strong>style.module.css</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/src/shared/ui/ProgressArrowGlyph/style.module.css:4</code></p>
         <p class="summary-line">汎用部品がcraftドメインの語彙を参照する。</p>
-        <pre class="code-card"><code><span class="ln">1</span><ins>/* 既定寸法はクラフト矢印と同値のトークンを直接参照する。呼び出し側は寸法を持たない */</ins>
-<span class="ln">2</span><ins>/* Default size references the craft-arrow tokens directly; callers no longer size this themselves */</ins>
-<span class="ln">3</span><ins>.arrow {</ins>
-<span class="hl"><span class="ln">4</span><ins>  width: var(--craft-arrow-width);</ins></span>
-<span class="hl"><span class="ln">5</span><ins>  height: var(--craft-arrow-height);</ins></span>
-<span class="ln">6</span><ins>}</ins></code></pre>
+        <pre class="code-card" data-lang="css"><code><span class="cl add"><span class="ln">1</span><span class="sign">+</span><span class="code">/* 既定寸法はクラフト矢印と同値のトークンを直接参照する。呼び出し側は寸法を持たない */</span></span>
+<span class="cl add"><span class="ln">2</span><span class="sign">+</span><span class="code">/* Default size references the craft-arrow tokens directly; callers no longer size this themselves */</span></span>
+<span class="cl add"><span class="ln">3</span><span class="sign">+</span><span class="code">.arrow {</span></span>
+<span class="cl add hl"><span class="ln">4</span><span class="sign">+</span><span class="code">  width: var(--craft-arrow-width);</span></span>
+<span class="cl add hl"><span class="ln">5</span><span class="sign">+</span><span class="code">  height: var(--craft-arrow-height);</span></span>
+<span class="cl add"><span class="ln">6</span><span class="sign">+</span><span class="code">}</span></span></code></pre>
         <p><strong>PR側の主張:</strong> 矢印の既定寸法は部品CSSがトークンを1箇所参照して持つ（<strong>別名トークンを増やさない</strong>） <code>[agent前提]</code>（PR内新設 <code>.decisions/2026-08-17-矢印グリフの既定寸法は部品がトークン参照で持つ.md</code>。免責力なし）。前例として <code>shared/ui/GamePanel/style.module.css:97-103</code> が <code>--craft-grip-*</code> を参照している［検証済み］。</p>
         <p><strong>独立レビューの実測:</strong> 兄弟の <code>ProgressArrow</code> は中立名 <code>--progress-arrow-*</code>（<code>tokens.css:179,182</code>）を使っており、<code>shared/ui</code> 内で語彙が割れている。<code>[ADR: AGENTS.md#設計原則]</code>（汎用基盤にドメイン語彙を持ち込まない）に抵触。PR内新設 <code>.decisions</code> は「別名トークン新設」案しか検討しておらず、<strong>改名案は検討されていない</strong>。改名は別名追加ではないので同文書の方針とも矛盾しない。</p>
-        <p><strong>代替案:</strong> <strong>案A（推奨）</strong> — 現状維持（craft名トークンを共有部品が参照。<code>GamePanel</code> の前例に揃える）。<strong>案B</strong> — <code>--progress-arrow-glyph-*</code> へ<strong>改名</strong>し、<code>tokens.css:185,188,189</code> の3トークンと本CSSの参照3箇所を一括更新する。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — 現状維持。前例 GamePanel の --craft-grip-* 参照と同形で、追加トークンも増えていない（推奨）</li>
+          <li><strong>案B</strong> — tokens.css の3トークンを --progress-arrow-glyph-* へ改名し参照3箇所を差し替える（兄弟 ProgressArrow の中立名と揃う）</li>
+        </ul>
       </section>
     </div>
     <div class="figure" data-label="ProgressArrowとProgressArrowGlyphが同一責務で並立している状態の解消方針を選ぶ設計判断カード（実コード抜粋つき）">
@@ -613,15 +794,19 @@
         <h2><span class="badge badge-new">設計判断</span> <strong>index.ts</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/src/shared/ui/index.ts:8</code></p>
         <p class="summary-line">同じ機械パネル内で矢印表現が2種混在する。</p>
-        <pre class="code-card"><code><span class="ln">5</span>export { default as BlockSlot } from &quot;./BlockSlot&quot;;
-<span class="ln">6</span>export { default as FluidSlot } from &quot;./FluidSlot&quot;;
-<span class="ln">7</span>export { default as FluidSlotRow } from &quot;./FluidSlotRow&quot;;
-<span class="hl"><span class="ln">8</span>export { default as ProgressArrow } from &quot;./ProgressArrow&quot;;</span>
-<span class="hl"><span class="ln">9</span><ins>export { default as ProgressArrowGlyph } from &quot;./ProgressArrowGlyph&quot;;</ins></span>
-<span class="ln">10</span>export { default as SlotGrid } from &quot;./SlotGrid&quot;;</code></pre>
+        <pre class="code-card" data-lang="typescript"><code><span class="cl ctx"><span class="ln">5</span><span class="sign"> </span><span class="code">export { default as BlockSlot } from &quot;./BlockSlot&quot;;</span></span>
+<span class="cl ctx"><span class="ln">6</span><span class="sign"> </span><span class="code">export { default as FluidSlot } from &quot;./FluidSlot&quot;;</span></span>
+<span class="cl ctx"><span class="ln">7</span><span class="sign"> </span><span class="code">export { default as FluidSlotRow } from &quot;./FluidSlotRow&quot;;</span></span>
+<span class="cl ctx hl"><span class="ln">8</span><span class="sign"> </span><span class="code">export { default as ProgressArrow } from &quot;./ProgressArrow&quot;;</span></span>
+<span class="cl add hl"><span class="ln">9</span><span class="sign">+</span><span class="code">export { default as ProgressArrowGlyph } from &quot;./ProgressArrowGlyph&quot;;</span></span>
+<span class="cl ctx"><span class="ln">10</span><span class="sign"> </span><span class="code">export { default as SlotGrid } from &quot;./SlotGrid&quot;;</span></span></code></pre>
         <p><strong>PR側の主張:</strong> 進捗矢印を <code>shared/ui/ProgressArrowGlyph</code> へ昇格し、クラフト画面と機械の加工行で同一部品・同一寸法にする <code>[agent前提]</code>（PR本文R1・PR内新設ADR。免責力なし）。</p>
         <p><strong>独立レビューの実測:</strong> 移したのは craft / machine の2箇所のみで、<code>MinerSection.tsx:14</code> と <code>FluidSlotRow/index.tsx:23</code> は旧型（div幅%の矩形バー）のまま。<strong>同じ機械パネル内で矢印表現が2種混在</strong>し、目標「同一部品・同一寸法」が半分しか達成されていない。</p>
-        <p><strong>代替案:</strong> <strong>案A（推奨）</strong> — 見た目を変えず <code>ProgressArrow</code> → <code>ProgressArrowBar</code> へクロスファイル改名し、名前で役割差が読める形にする（<a href="#f10">F10</a> の改名と同時に行える）。<strong>案B</strong> — <code>MinerSection</code> と <code>FluidSlotRow</code> も Glyph へ寄せ、<code>shared/ui/ProgressArrow/</code>・<code>--progress-arrow-*</code>・<code>blockInventoryDesign.test.ts:22</code> を削除して完全集約する（<strong>採掘機と流体行の見た目が矩形バー→矢印グリフへ変わるためユーザー裁定が要る</strong>）。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — 見た目は変えず ProgressArrow → ProgressArrowBar へクロスファイル改名し、2部品の役割差を名前に出す（推奨）</li>
+          <li><strong>案B</strong> — MinerSection と FluidSlotRow も Glyph へ寄せ、旧 ProgressArrow とトークンを削除する（採掘機・流体行の見た目が矩形バー→矢印グリフに変わる）</li>
+        </ul>
       </section>
     </div>
   </section>
@@ -645,20 +830,28 @@
         <h2><span class="badge badge-sup">Critical</span> <strong>CleanRoomMachineProcessorComponent.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:31</code></p>
         <p class="summary-line">外部参照0のpublicが残っている。</p>
-        <pre class="code-card"><code><span class="ln">29</span><ins>        // 停止中は0、稼働中は通常機械と同じ倍率</ins>
-<span class="ln">30</span>        // Halted machines request no power; operating states use the same multipliers as normal machines
-<span class="hl"><span class="ln">31</span><ins>        public float EffectiveRequestPowerRate =&gt; CurrentState switch</ins></span>
-<span class="ln">32</span>        {
-<span class="ln">33</span>            ProcessState.Halted =&gt; 0f,
-<span class="ln">34</span><ins>            ProcessState.Processing =&gt; _context.ProcessingPowerMultiplier,</ins>
-<span class="ln">35</span><ins>            ProcessState.Idle =&gt; _idlePowerRate,</ins>
-<span class="ln">36</span>            _ =&gt; throw new ArgumentOutOfRangeException(),
-<span class="ln">37</span>        };
-<span class="ln">38</span>
-<span class="ln">39</span><ins>        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</ins></code></pre>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl del"><span class="ln">29</span><span class="sign">-</span><span class="code">        // 停止中は要求電力を0にし、稼働中だけ通常機械と同じ倍率を適用する</span></span>
+<span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
+<span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code">        // Halted machines request no power; operating states use the same multipliers as normal machines</span></span>
+<span class="cl del"><span class="ln">31</span><span class="sign">-</span><span class="code">        public float EffectiveRequestPower =&gt; CurrentState switch</span></span>
+<span class="cl add hl"><span class="ln">31</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState switch</span></span>
+<span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        {</span></span>
+<span class="cl ctx"><span class="ln">33</span><span class="sign"> </span><span class="code">            ProcessState.Halted =&gt; 0f,</span></span>
+<span class="cl del"><span class="ln">34</span><span class="sign">-</span><span class="code">            ProcessState.Processing =&gt; _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier,</span></span>
+<span class="cl del"><span class="ln">35</span><span class="sign">-</span><span class="code">            ProcessState.Idle =&gt; _context.RequestPower * _idlePowerRate,</span></span>
+<span class="cl add"><span class="ln">34</span><span class="sign">+</span><span class="code">            ProcessState.Processing =&gt; _context.ProcessingPowerMultiplier,</span></span>
+<span class="cl add"><span class="ln">35</span><span class="sign">+</span><span class="code">            ProcessState.Idle =&gt; _idlePowerRate,</span></span>
+<span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">            _ =&gt; throw new ArgumentOutOfRangeException(),</span></span>
+<span class="cl ctx"><span class="ln">37</span><span class="sign"> </span><span class="code">        };</span></span>
+<span class="cl ctx"><span class="ln">38</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl add"><span class="ln">39</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</span></span></code></pre>
         <p><strong>PR側の主張:</strong> Vanilla 側と同じ形で率を切り出した <code>[agent前提]</code>（差分実体から観測）。</p>
         <p><strong>独立レビューの実測:</strong> <code>rg</code> 実測で CleanRoom 側の参照は<strong>自ファイル <code>:39</code> のみ</strong>（プロダクション・テストとも他ファイル0件）。Vanilla 側は <code>VanillaGearMachineComponent.cs:40</code> という実消費者を持つので非対称で、CleanRoom には歯車消費者が構造的に存在しない。<code>[ADR: AGENTS.md#その他の規約]</code>「デバッグ/テスト専用publicを残さない」の隣接規約に抵触。なお死にメンバーゲート（IL解析）はレビューworktree未コンパイルのため<strong>skipped</strong>で、本件は <code>rg</code> 実測で代替検出した。</p>
         <p><strong>修正方針:</strong> <code>public</code> → <code>private</code>。<a href="#f04">F04</a> の集約を採る場合は context 側へ移って本メンバー自体が消えるため、<strong><a href="#f04">F04</a> と一括で処理する</strong>。同型掃引済み・残り0件。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — private へ落とす（実効率導出の集約を採るなら context へ移動して消滅）</li>
+        </ul>
       </section>
     </div>
     <div class="figure" data-label="ChangeSelectionが状態遷移後に_publishedRequestPowerを再ラッチしないCriticalカード（実コード抜粋つき）">
@@ -667,20 +860,24 @@
         <h2><span class="badge badge-sup">Critical</span> <strong>CleanRoomMachineProcessorComponent.cs</strong> / <strong>VanillaMachineProcessorComponent.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:216</code>（＋ <code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:137</code>）</p>
         <p class="summary-line">レシピ切替のたび偽の赤が出る。</p>
-        <pre class="code-card"><code><span class="ln">135</span>            }
-<span class="ln">136</span>
-<span class="hl"><span class="ln">137</span>            if (CurrentState == ProcessState.Processing) CurrentState = ProcessState.Idle;</span>
-<span class="ln">138</span>            _context.SelectedRecipe = recipe;
-<span class="hl"><span class="ln">139</span>            _changeState.OnNext(Unit.Default);</span>
-<span class="ln">140</span>            return MachineRecipeSelectionResult.Success;</code></pre>
-        <pre class="code-card"><code><span class="ln">214</span><ins>            // Halted含む非IdleはIdleへ戻し、次Updateで清浄室条件が再評価される</ins>
-<span class="ln">215</span><ins>            // Non-Idle including Halted returns to Idle so the next Update re-evaluates clean-room conditions</ins>
-<span class="hl"><span class="ln">216</span>            if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;</span>
-<span class="ln">217</span>            _context.SelectedRecipe = recipe;
-<span class="hl"><span class="ln">218</span>            _changeState.OnNext(Unit.Default);</span></code></pre>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl ctx"><span class="ln">135</span><span class="sign"> </span><span class="code">            }</span></span>
+<span class="cl ctx"><span class="ln">136</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl ctx hl"><span class="ln">137</span><span class="sign"> </span><span class="code">            if (CurrentState == ProcessState.Processing) CurrentState = ProcessState.Idle;</span></span>
+<span class="cl ctx"><span class="ln">138</span><span class="sign"> </span><span class="code">            _context.SelectedRecipe = recipe;</span></span>
+<span class="cl ctx hl"><span class="ln">139</span><span class="sign"> </span><span class="code">            _changeState.OnNext(Unit.Default);</span></span>
+<span class="cl ctx"><span class="ln">140</span><span class="sign"> </span><span class="code">            return MachineRecipeSelectionResult.Success;</span></span></code></pre>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl add"><span class="ln">214</span><span class="sign">+</span><span class="code">            // Halted含む非IdleはIdleへ戻し、次Updateで清浄室条件が再評価される</span></span>
+<span class="cl add"><span class="ln">215</span><span class="sign">+</span><span class="code">            // Non-Idle including Halted returns to Idle so the next Update re-evaluates clean-room conditions</span></span>
+<span class="cl ctx hl"><span class="ln">216</span><span class="sign"> </span><span class="code">            if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;</span></span>
+<span class="cl ctx"><span class="ln">217</span><span class="sign"> </span><span class="code">            _context.SelectedRecipe = recipe;</span></span>
+<span class="cl ctx hl"><span class="ln">218</span><span class="sign"> </span><span class="code">            _changeState.OnNext(Unit.Default);</span></span></code></pre>
         <p><strong>PR側の主張:</strong> 表示用要求電力を <code>CurrentPower</code> と同位置でラッチし、分子分母の基準ずれによる偽の赤/500%表示を解消する <code>[agent前提]</code>（PR本文「レビュー裁定」）。実際のラッチ点は Update 冒頭（<code>:171</code> / <code>:151</code>）の1箇所のみ。</p>
         <p><strong>独立レビューの実測:</strong> 両メソッドとも <code>CurrentState</code> を書き換えた直後に <code>_changeState.OnNext</code> を発火するが、<code>_publishedRequestPower</code> の再確定がない。<code>BlockSystem.cs:44</code> の購読が同期的に <code>GetBlockStateDetails()</code> を呼ぶため、<code>currentState:&quot;idle&quot;</code> に Processing 基準の高い分母が同梱され、次 Update まで<strong>「待機中なのに加工基準の低い充足率（偽の赤）」</strong>が出る。レシピ変更のたびに毎回起こりうる。3系統一致。</p>
         <p><strong>修正方針:</strong> <code>CurrentState</code> 書き換えの直後・<code>_changeState.OnNext</code> の<strong>前</strong>に <code>_publishedRequestPower = EffectiveRequestPower;</code> を置く。<a href="#f04">F04</a> の集約を採る場合は <code>_context.LatchTickPower(CurrentState);</code> の1行に畳み、2ファイルで同じ形にする（<strong><a href="#f04">F04</a> と同一 surface のため1つの編集にまとめること</strong>）。同型掃引済み・残り0件。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — ChangeSelection の2箇所で状態書き換え直後に再ラッチする（実効率導出の集約と同一編集にまとめる）</li>
+        </ul>
       </section>
     </div>
     <div class="figure" data-label="中核変更がmutationで死なずテストが自己参照化しているCriticalカード（実コード抜粋つき）">
@@ -689,17 +886,21 @@
         <h2><span class="badge badge-sup">Critical</span> <strong>CleanRoomMachineTest.cs</strong> / <strong>MachineFluidIOTest.cs</strong></h2>
         <p class="file-path"><code>moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomMachineTest.cs:103</code>（＋ <code>moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineFluidIOTest.cs:316</code>）</p>
         <p class="summary-line">旧実装へ戻しても全テストが緑になる。</p>
-        <pre class="code-card"><code><span class="ln">96</span>            for (var i = 0; i &lt; 200 &amp;&amp; processor.CurrentState != ProcessState.Processing; i++) TickRoom();
-<span class="ln">97</span>            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
-<span class="ln">98</span><ins>            // state公開値は前tick基準でラッチされるため、遷移直後の1tickだけ古い値を挟んでから実効値に揃う</ins>
-<span class="ln">99</span><ins>            // The published state latches on the previous tick&#39;s basis, so it trails by one tick right after a transition before matching the effective value</ins>
-<span class="hl"><span class="ln">100</span><ins>            TickRoom();</ins></span>
-<span class="ln">101</span><ins>            // state要求電力は基礎でなく実効値</ins>
-<span class="ln">102</span><ins>            // Lock in that the state carries the effective request power, not the raw base value</ins>
-<span class="hl"><span class="ln">103</span><ins>            Assert.AreEqual(machineConsumer.EffectiveRequestPower, GetCommonMachineState(machine).RequestPower, 0.01f);</ins></span></code></pre>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl ctx"><span class="ln">96</span><span class="sign"> </span><span class="code">            for (var i = 0; i &lt; 200 &amp;&amp; processor.CurrentState != ProcessState.Processing; i++) TickRoom();</span></span>
+<span class="cl ctx"><span class="ln">97</span><span class="sign"> </span><span class="code">            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);</span></span>
+<span class="cl add"><span class="ln">98</span><span class="sign">+</span><span class="code">            // state公開値は前tick基準でラッチされるため、遷移直後の1tickだけ古い値を挟んでから実効値に揃う</span></span>
+<span class="cl add"><span class="ln">99</span><span class="sign">+</span><span class="code">            // The published state latches on the previous tick&#39;s basis, so it trails by one tick right after a transition before matching the effective value</span></span>
+<span class="cl add hl"><span class="ln">100</span><span class="sign">+</span><span class="code">            TickRoom();</span></span>
+<span class="cl add"><span class="ln">101</span><span class="sign">+</span><span class="code">            // state要求電力は基礎でなく実効値</span></span>
+<span class="cl add"><span class="ln">102</span><span class="sign">+</span><span class="code">            // Lock in that the state carries the effective request power, not the raw base value</span></span>
+<span class="cl add hl"><span class="ln">103</span><span class="sign">+</span><span class="code">            Assert.AreEqual(machineConsumer.EffectiveRequestPower, GetCommonMachineState(machine).RequestPower, 0.01f);</span></span></code></pre>
         <p><strong>PR側の主張:</strong> state の <code>RequestPower</code> を基礎値で検証していた既存テストは実効値前提へ書き換える <code>[agent前提]</code>（PR内新設ADR 0010#影響）。</p>
         <p><strong>独立レビューの実測:</strong> <code>:103</code> は期待値を被検証コード <code>machineConsumer.EffectiveRequestPower</code> から取る<strong>トートロジー</strong>で、モジュールを1個も装着しないため <code>PowerMultiplier == 1</code> となり「基礎値でなく実効値」を数値上区別できない。加えて <code>:100</code> の <code>TickRoom()</code> が<strong>ラッチ機構が守る当のtickを意図的に読み飛ばしている</strong>。<code>MachineFluidIOTest.cs:518</code> もリテラル期待を production 式へ置換した弱体化で、<code>:316</code> の <code>machineParam?.IdlePowerRate ?? 0.2f</code> は <code>as</code> キャストが null に落ちても自己整合値で緑になる。<code>VanillaGearMachineComponent.cs:40</code> の歯車率・<code>detailLogic.ts:73</code> の <code>isPowerRateMeaningful</code>・<code>BlockInventoryPanel.tsx:63</code> の <code>key={data.identifier}</code> を守るテストは<strong>1本も存在せず、旧実装へ戻しても全テストが緑</strong>。<code>currentState: &quot;halted&quot;</code> を通す webui テスト／fixture もコードベース全体に0件。3系統一致。</p>
         <p><strong>修正方針:</strong> ①モジュール装着機械（<code>MachineModuleSlotTest</code> の装着ユーティリティ）で期待値を <code>base × 倍率</code> の独立計算で書き、<code>:103</code> と <code>MachineFluidIOTest.cs:518</code> の自己参照を置換。②<code>:98-100</code> の読み飛ばしをやめ遷移直後1tickで整合を検証し、電気機械側にも同型テストを新設。③<code>:315-316</code> の <code>?? 100</code>/<code>?? 0.2f</code> を廃し <code>Assert.IsNotNull(machineParam)</code> を先に置く。④歯車機械の要求トルクを固定するテストを追加（<strong>期待値が変わるため <a href="#f03">F03</a> の裁定後に書く</strong>）。⑤<code>detailLogic.test.ts</code> に述語の <code>it.each</code> を追加し、gearMachine e2e に <code>toHaveCount(0)</code> を1行足す（<strong><a href="#f08">F08</a> の裁定で述語が state 由来へ変わる場合はそれに追随</strong>）。⑥<code>identifier</code> 差し替えでタブ再評価を検証。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — 自己参照アサートを独立計算の期待値に置換し、死んでいる中核5件に1対1でテストを追加する（推奨）</li>
+        </ul>
       </section>
     </div>
     <div class="figure" data-label="capture-machine-qa.tsがgearMachineで必ずタイムアウト死するCriticalカード（実コード抜粋つき）">
@@ -708,19 +909,23 @@
         <h2><span class="badge badge-sup">Critical</span> <strong>capture-machine-qa.ts</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/e2e/capture-machine-qa.ts:136</code></p>
         <p class="summary-line">QAスクリプトが必ず落ちて撮影物が残らない。</p>
-        <pre class="code-card"><code><span class="ln">133</span><ins>    const stateLabel = page.getByTestId(&quot;machine-state-label&quot;);</ins>
-<span class="ln">134</span><ins>    const powerRate = page.getByTestId(&quot;machine-power-rate&quot;);</ins>
-<span class="ln">135</span><ins>    manifest.gearMachineStateLabelText = await stateLabel.textContent();</ins>
-<span class="hl"><span class="ln">136</span><ins>    manifest.gearMachinePowerRateText = await powerRate.textContent();</ins></span>
-<span class="ln">137</span><ins>    const panel = page.getByTestId(&quot;block-inventory&quot;);</ins>
-<span class="ln">138</span><ins>    const [panelBox, stateLabelBox, powerRateBox] = await Promise.all([</ins>
-<span class="ln">139</span><ins>      panel.boundingBox(),</ins>
-<span class="ln">140</span><ins>      stateLabel.boundingBox(),</ins>
-<span class="hl"><span class="ln">141</span><ins>      powerRate.boundingBox(),</ins></span>
-<span class="ln">142</span><ins>    ]);</ins></code></pre>
+        <pre class="code-card" data-lang="typescript"><code><span class="cl add"><span class="ln">133</span><span class="sign">+</span><span class="code">    const stateLabel = page.getByTestId(&quot;machine-state-label&quot;);</span></span>
+<span class="cl add"><span class="ln">134</span><span class="sign">+</span><span class="code">    const powerRate = page.getByTestId(&quot;machine-power-rate&quot;);</span></span>
+<span class="cl add"><span class="ln">135</span><span class="sign">+</span><span class="code">    manifest.gearMachineStateLabelText = await stateLabel.textContent();</span></span>
+<span class="cl add hl"><span class="ln">136</span><span class="sign">+</span><span class="code">    manifest.gearMachinePowerRateText = await powerRate.textContent();</span></span>
+<span class="cl add"><span class="ln">137</span><span class="sign">+</span><span class="code">    const panel = page.getByTestId(&quot;block-inventory&quot;);</span></span>
+<span class="cl add"><span class="ln">138</span><span class="sign">+</span><span class="code">    const [panelBox, stateLabelBox, powerRateBox] = await Promise.all([</span></span>
+<span class="cl add"><span class="ln">139</span><span class="sign">+</span><span class="code">      panel.boundingBox(),</span></span>
+<span class="cl add"><span class="ln">140</span><span class="sign">+</span><span class="code">      stateLabel.boundingBox(),</span></span>
+<span class="cl add hl"><span class="ln">141</span><span class="sign">+</span><span class="code">      powerRate.boundingBox(),</span></span>
+<span class="cl add"><span class="ln">142</span><span class="sign">+</span><span class="code">    ]);</span></span></code></pre>
         <p><strong>PR側の主張:</strong> ADR 0010 の矢印グリフ・中心線・フッタ・タブ順を撮影して実測する目視QA <code>[agent前提]</code>（ファイル冒頭コメント）。</p>
         <p><strong>独立レビューの実測:</strong> <code>e2e/mock-host/blockDetailFixtures.ts:50-51</code> の <code>blockGearMachine</code> は <code>currentPower: 0.0</code> / <code>requestPower: 0.0</code> で、同PRが入れた <code>isPowerRateMeaningful(machine.requestPower)</code>（<code>MachineSection.tsx:36</code>）が false になるため <code>machine-power-rate</code> が <strong>DOM に出ない</strong>。<code>locator.textContent</code> が30秒タイムアウト → <code>void main()</code> の未処理 rejection でプロセスが落ち、<code>manifest.json</code>・<code>gearmachine-*.png</code> が一切生成されず、<code>browser.close()</code>/<code>wss.close()</code>/<code>server.close()</code> も走らず Chromium とポート5411が残留する。<strong>ADR 0010 の「実効要求0の機械は充足率を出さない」を検証するはずのQAが、まさにその状態のブロックで死ぬ。</strong>3系統一致。</p>
         <p><strong>修正方針（4点セット）:</strong> ① <code>:136</code> を <code>(await powerRate.count()) === 0 ? null : await powerRate.textContent()</code> にし、<code>:138-142</code> の <code>Promise.all</code> から <code>powerRate.boundingBox()</code> を外して <code>:144</code> 以降のクロップ基準を <code>stateLabelBox</code> 単独へ切り替える。② <code>:159-175</code> の <code>try { readFile } catch { sha256: null }</code> を撤去し前例 <code>capture-mining-progress.ts:97-101</code> どおり素の <code>await readFile</code> にする <code>[ADR: AGENTS.md#設計原則]</code>。③ <code>:34</code> の <code>mkdir</code> 直後に <code>rm(join(OUT_DIR, &quot;manifest.json&quot;), { force: true })</code> を足す（前例 <code>capture-mining-progress.ts:27</code>）。④ <code>:15</code> の <code>padding = CROP_PADDING_PX</code> を必須引数へ <code>[ADR: AGENTS.md#その他の規約]</code>。同型掃引済み・残り0件。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — 「要求0で率が非表示」を manifest に記録する形へ直し、try-catch・旧manifest残置・デフォルト引数の3点も前例どおりに整える（推奨）</li>
+        </ul>
       </section>
     </div>
     <div class="figure" data-label="MachineSectionの初期タブがmachine未着時にrecipesで固着するCriticalカード（実コード抜粋つき）">
@@ -729,15 +934,21 @@
         <h2><span class="badge badge-sup">Critical</span> <strong>MachineSection.tsx</strong></h2>
         <p class="file-path"><code>moorestech_web/webui/src/features/blockInventory/details/MachineSection.tsx:18</code></p>
         <p class="summary-line">選択済み機械でもレシピタブに固まる。</p>
-        <pre class="code-card"><code><span class="ln">16</span>export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
-<span class="ln">17</span>  const machineRecipes = useTopic(Topics.machineRecipes);
-<span class="hl"><span class="ln">18</span><ins>  const [tab, setTab] = useState&lt;string&gt;(() =&gt; machineInitialTab(data.machine?.selectedRecipeGuid));</ins></span>
-<span class="ln">19</span>  const { t } = useI18n();
-<span class="ln">20</span>  if (!data.machine) return null;
-<span class="ln">21</span>  const machine = data.machine;</code></pre>
+        <pre class="code-card" data-lang="typescript"><code><span class="cl ctx"><span class="ln">16</span><span class="sign"> </span><span class="code">export default function MachineSection({ data }: { data: BlockInventoryOpen }) {</span></span>
+<span class="cl ctx"><span class="ln">17</span><span class="sign"> </span><span class="code">  const machineRecipes = useTopic(Topics.machineRecipes);</span></span>
+<span class="cl del"><span class="ln">17</span><span class="sign">-</span><span class="code">  const [tab, setTab] = useState(&quot;inventory&quot;);</span></span>
+<span class="cl add hl"><span class="ln">18</span><span class="sign">+</span><span class="code">  const [tab, setTab] = useState&lt;string&gt;(() =&gt; machineInitialTab(data.machine?.selectedRecipeGuid));</span></span>
+<span class="cl ctx"><span class="ln">19</span><span class="sign"> </span><span class="code">  const { t } = useI18n();</span></span>
+<span class="cl ctx"><span class="ln">20</span><span class="sign"> </span><span class="code">  if (!data.machine) return null;</span></span>
+<span class="cl ctx"><span class="ln">21</span><span class="sign"> </span><span class="code">  const machine = data.machine;</span></span></code></pre>
         <p><strong>PR側の主張:</strong> レシピ未選択で開いた場合の初期タブをレシピ選択にし、開いた後の手動切替は尊重する <code>[agent前提]</code>（PR本文R2/R3）。</p>
         <p><strong>独立レビューの実測:</strong> <code>SectionStackView.tsx:50</code> は <code>&lt;MachineSection data={data} /&gt;</code> を<strong>無条件にマウント</strong>し、lazy initializer（マウント時1回のみ）が <code>if (!data.machine) return null</code>（<code>:20</code>）<strong>より前</strong>に走る。<code>machineInitialTab</code> は <code>isEmptyGuid(undefined) === true</code> で <code>&quot;recipes&quot;</code> を返し、再評価の契機は <code>key={data.identifier}</code> のみで同一ブロックでは変化しない。ブロック生成直後（<code>BlockGameObject</code> の state 未着）に開くと <code>BlockDetailDtoBuilder.cs:29</code> の <code>common != null &amp;&amp; machineState != null</code> が偽で初回 publish に <code>machine</code> が乗らず、<strong>レシピ選択済みでもタブが recipes に確定して閉じるまで是正されない</strong>。e2e <code>machineRecipe.spec.ts</code> は <code>setBlock</code> を <code>page.goto</code> の前に行うためこのレースを1本もカバーしていない。4系統一致。</p>
         <p><strong>修正方針:</strong> マウント境界を machine 到着に合わせる。<code>SectionStackView.tsx:50</code> を <code>{data.machine ? &lt;MachineSection machine={data.machine} data={data} /&gt; : null}</code> にし、<code>MachineSection</code> の引数を <code>machine: MachineDetailData</code> 込みへ変えて内部の null 分岐（<code>:20-21</code>）を削除。併せて <code>machineInitialTab(selectedRecipeGuid: string)</code> を非nullableへ絞り、到達不能状態を固定していた <code>machineRecipeSelectionLogic.test.ts:46-47</code> の <code>null</code>/<code>undefined</code> 2ケースを削除する。<code>useEffect</code> による後追い同期は派生stateのアンチパターンかつ「開いた後の手動切替を尊重する」目標と衝突するため採らない。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — SectionStackView でマウント境界を machine 到着へ合わせ、machineInitialTab を非nullable に絞る（推奨）</li>
+          <li><strong>案B</strong> — userTab: string | null を持ち、描画時に userTab ?? machineInitialTab(...) で解決する</li>
+        </ul>
       </section>
     </div>
   </section>
@@ -897,6 +1108,7 @@
   </div>
 </div>
 
+<script id="hljs-bundle">[BUNDLE]</script>
 <script>
 (function () {
   'use strict';
@@ -1291,6 +1503,21 @@
   // ---- 初期描画 ----
   markFigureComments();
   renderPanel();
+  // コードカードを行ごとに構文着色する（行番号・差分グリフの構造を壊さないため行単位で当てる）
+  // Highlight code cards line by line so the gutter and diff signs stay intact
+  function highlightCodeCards() {
+    if (!window.hljs) return;
+    var cards = document.querySelectorAll('pre.code-card[data-lang]');
+    for (var i = 0; i < cards.length; i++) {
+      var lang = cards[i].getAttribute('data-lang');
+      if (!hljs.getLanguage(lang)) continue;
+      var codes = cards[i].querySelectorAll('span.code');
+      for (var j = 0; j < codes.length; j++) {
+        codes[j].innerHTML = hljs.highlight(codes[j].textContent, { language: lang, ignoreIllegals: true }).value;
+      }
+    }
+  }
+  highlightCodeCards();
 })();
 </script>
 

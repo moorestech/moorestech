@@ -13,3 +13,28 @@
   box-shadow: 0 0 0 4px rgb(255 221 87 / 24%);
   pointer-events: none;
 }
+
+/* D&D説明のカーソル矢印。fromからtoへの移動をループする（webui-design §8.17） */
+/* Cursor arrow for D&D instruction; loops the move from the from-anchor to the to-anchor (webui-design §8.17) */
+.dragGuide {
+  position: fixed;
+  width: var(--tutorial-drag-guide-size);
+  height: var(--tutorial-drag-guide-size);
+  margin: calc(var(--tutorial-drag-guide-size) / -2) 0 0 calc(var(--tutorial-drag-guide-size) / -2);
+  pointer-events: none;
+  animation: drag-guide-loop var(--tutorial-drag-guide-duration) ease-in-out infinite;
+}
+
+.dragGuide svg {
+  width: 100%;
+  height: 100%;
+  fill: var(--text-high-contrast);
+  filter: drop-shadow(0 1px 2px var(--tutorial-drag-guide-shadow));
+}
+
+@keyframes drag-guide-loop {
+  0% { transform: translate(0, 0); opacity: 0; }
+  15% { opacity: 1; }
+  75% { transform: translate(var(--drag-guide-dx), var(--drag-guide-dy)); opacity: 1; }
+  100% { transform: translate(var(--drag-guide-dx), var(--drag-guide-dy)); opacity: 0; }
+}

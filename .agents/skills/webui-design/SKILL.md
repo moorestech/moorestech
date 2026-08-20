@@ -126,10 +126,12 @@ description: |
 - 実フォントは単一ウェイトのため**合成bold/italicは禁止**（`font-synthesis: none` を崩さない）。
 - **表示文字列は必ず `t()` を通す。** JSXへの生リテラルは lint（no-jsx-visible-literal）で落ちる。
 - キー操作ヒントは `<kbd>` + `t()` の既存様式（InventoryScreenChrome の keyHints）に従う。
+- **テキスト選択は入力欄のみ**（§9・ADR 0021）。`app/index.css` の `body { user-select: none }` ＋ `input, textarea { user-select: text }` が唯一の正で、機能側CSSで `user-select` を書かない。
 
 ## 8. 通知・情報表示
 
 - 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・7秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
+- **`CursorTooltip` の書式はWeb側トークンが唯一の正**（ADR 0019）: フォント18px・padding 6/10px・max-width 320px。ホストは辞書キーと位置パラメータだけを送り、寸法値（fontSize等）はwireに載せない。
 - **NotificationHostは背面viewport族**（§1.5・`--z-viewport-behind-stage`）。stage族でもviewport族でもなく、`--ui-scale` に追従しない。
 - **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。最大幅は`--notification-max-width`（画面幅20%・ユーザー裁定の画面比例値）で超過分は折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
 - **NotificationHostの出入りは唯一の装飾アニメーション例外**（§6）。入場は `--notification-enter-duration`（160ms・ease-out）で左から `--notification-shift`（12px）のスライドイン＋フェードイン、退場は `--notification-exit-duration`（200ms・ease-in）でその逆再生。生存尺は store の `NOTIFICATION_DISPLAY_MS`（7000ms）が単一の正で、`NotificationHost` がインラインCSS変数 `--notification-lifetime` として渡し、CSSは退場遅延を `calc(生存尺 − 退場尺)` で逆算する。**退場のためにstoreへ状態（`exiting` 等）を持たせない。** 退場の `animation-fill-mode` は `forwards`（`both` にすると遅延中に前方適用されて入場が消える）。積み替えの移動は補間せず、同時表示数の上限も設けない。
@@ -189,7 +191,7 @@ description: |
   - **加工行は進捗矢印をパネル中央に固定**し、左右を等幅（1fr auto 1fr）にして入力は矢印へ右寄せ、出力は矢印から左寄せで対称に置く。
   - **モジュールスロットは加工行から1段下げ、`--text-muted` の「アップグレードスロット」ラベルを直上に付けて**用途を明示する。入出力と紛れる無札の並置は禁止。
 - レシピ選択タブは上から「詳細プレビュー → `FadeRule` の区切り罫線 → レシピグリッド」の縦構成。
-  - **詳細プレビュー**: ホバー中レシピを優先し、無ければ選択中レシピを表示。どちらも無ければ `--text-muted` の案内テキスト。内容は「材料 `ItemSlot` 列 → 矢印テキスト（直下に所要時間） → 出力 `ItemSlot` 列」で、RecipeViewer の `MachineRecipeView`（矢印テキスト＋ItemSlot列）様式に準拠。高さを固定しホバーで段落が跳ねないようにする。
+  - **詳細プレビュー**: ホバー中レシピを優先し、無ければ選択中レシピを表示。どちらも無ければ `--text-muted` の案内テキスト。内容は「材料 `ItemSlot` 列 → 矢印テキスト（直下に所要時間） → 出力 `ItemSlot` 列」で、`MachineRecipeSelectionTab` 自身の矢印テキスト様式（`ui.common.rightArrow`）に準拠。高さを固定しホバーで段落が跳ねないようにする。
   - **レシピグリッド**: 解放済みレシピの代表出力アイテムを `shared/ui` の `ItemSlot` で `SlotGrid`（9列折返し）に列挙し、独自gridは作らない。
 - 選択中は ItemSlot の `selected`（SlotFrame の `data-selected`）で示し、新しい色相・光彩は足さない。
 - 左クリックで選択し、**選択と同時にインベントリタブへ切り替える**。右クリックは選択中の場合だけ解除する。マウス契約は ItemSlot の `onLeftDown` / `onRightDown`、ホバーは `onHoverChange` に従う。
@@ -325,8 +327,8 @@ description: |
 ## 8.13 クラフト進捗矢印（矢印グリフ自体がゲージ）
 
 - **矢印グリフゲージは共有部品 `ProgressArrowGlyph`（shared/ui）であり、クラフト画面の素材→結果矢印と機械の加工行（入力→出力間）が使う。** 既定寸法は部品自身の `.arrow` が `--craft-arrow-width`/`--craft-arrow-height` を直接参照して1箇所だけ持ち、呼び出し側は寸法用ラッパーを持たない。機械側だけ余白調整が要るときは `.arrow` の親要素へ最小限のCSSを足す（別名トークンの新設は禁止）。
-- **クラフト画面（`CraftRecipeView`）の素材→結果の矢印は、矢印グリフそのものが進捗ゲージ**。矢印の下に独立した細いバーを敷くのは禁止（旧 `.craftArrowTrack` / `.craftArrowFill` の緑バーは廃止した）。器＝矢印であり、ゲージを別の要素として増やさない。
-- **構造はインラインSVGの3層**（`CraftProgressArrow`）。同じ矢印 path を3回描く:
+- **クラフト画面（`CraftRecipeEntry`）の素材→結果の矢印は、矢印グリフそのものが進捗ゲージ**。矢印の下に独立した細いバーを敷くのは禁止（旧 `.craftArrowTrack` / `.craftArrowFill` の緑バーは廃止した）。器＝矢印であり、ゲージを別の要素として増やさない。
+- **構造はインラインSVGの3層**（`ProgressArrowGlyph`）。同じ矢印 path を3回描く:
   1. 溝レイヤー: `--gauge-track` で塗った矢印全体
   2. 充填レイヤー: `--color-content-primary` で塗った矢印を `clipPath` の矩形で左から `value`（0..1）分だけ切り出す
   3. 輪郭レイヤー: 塗り無し・`--craft-arrow-outline` のストロークのみ。**最上層に置いて clip を通さない**（輪郭が充填境界で途切れると矢印の形が壊れるため）
@@ -334,6 +336,7 @@ description: |
 - **`value=1` の一致は「塗りの内部が一致」の意味。** 輪郭のアンチエイリアス画素だけは、旧実装が白を背景へ、本実装が白を溝へブレンドするため最大31/255（実測1221px）暗くなる。縁1pxに閉じた差なので視覚的には判別できない。画素完全一致を要求する検査を足さないこと。
 - **`value=1` は基準状態であって、連続クラフト中には現れない。** `advanceHoldCraft` は完了フレームで `elapsed` を 0 へ戻すため、長押し中の進捗は `0→1未満` を周回して完了時に 0 へスナップする。`value=1` に到達するのは `craftTime<=0` の即時レシピのみ。完了の演出を足したくなったらここを読むこと（1フレームの満杯表示は §8.13 の transition 禁止と併せてほぼ視認できない）。
 - **待機（`value=0`）では矢印が暗い溝＋シアン輪郭になる。** 形はシアン輪郭が担保する。待機時を明るく戻すために溝を明色化するのは禁止（進捗の読み取りが成立しなくなる）。
+- **進捗という概念が無い箇所は `value={null}` を渡して静止表示にする。** `null` では `role="progressbar"`・`aria-value*`・充填層・clipPath を一切出さず、溝と輪郭の2層だけを描く。`value={0}`（進捗0の待機）で代用するのは禁止（支援技術に「0%で停止中のprogressbar」と読み上げられ、待機表現に手を入れると進捗概念の無い側へ自動で波及する）。
 - **clipPath の id は `useId()` 由来で一意化する。** 同一ページに矢印が複数並ぶと固定 id は衝突して全部が同じ進捗になるため、固定文字列の id は禁止。
 - `value` は `clamp01` を通す（NaN は 0）。クリップ矩形は矢印 path の水平範囲（viewBox 座標系）に合わせ、`value=0` で完全に空、`value=1` で完全に充填になること。
 - 進捗はアニメーション（transition）を付けない。`useHoldCraft` の rAF が毎フレーム値を更新するため、補間は二重になる。
@@ -375,6 +378,42 @@ description: |
 - ホイールは共有フック `useGameLayerWheel` で受け、**具体側のハンドラ先頭で `isPointerOverWebUi` によりWeb UI上のホイールを捨てる**。一覧のスクロールと二重発火するため。共有フックにこの判断を持ち込まない。
 - **常駐HUD族（ホットバー・装備HUD・チャレンジHUD・操作モードHUD等）はscreenレベルのメニューへ埋もれないよう `z-index: var(--z-overlay-panel)` を明示する。**
 
+## 8.17 レシピビューア（単一リスト）
+
+- **タブ・ページャは持たない。** 選択アイテムの全レシピを「クラフトレシピ優先→機械レシピ」の順で
+  1本の縦スクロールリストに並べる。1エントリ=1レシピ（ADR 0011）。
+- リスト上部は選択中アイテムの名前ヘッダー（名前+`FadeRule`同族の罫線）のみ。装飾タブ（ハンマーSVG）は廃止済みで復活させない。
+- **レシピ行の骨格（3カラムgrid・矢印列・結果列の実測値ベース幾何）は表示専用の `views/RecipeRow` 1枚に集約する。**
+  クラフト/機械の各エントリは素材・結果の中身と矢印の値だけを渡す。片側だけに骨格の変更を書き足すのは禁止
+  （両者が単一リスト内で上下に並ぶため、縦位置・列幅のズレが直接見える）。
+- **クラフトレシピエントリ**は「素材`ItemSlot`列 → 進捗矢印（§8.13）→ 結果`ItemSlot`」のレシピ行と、
+  直下のエントリ幅クラフト実行ボタン（青グラデ `--recipe-action-background`・秒数込みラベル）の2段構成。
+  素材の不足は `data-insufficient` 減光と所持/必要の赤字（`--text-insufficient` 系）で示す。
+- **機械レシピエントリ**はクラフトエントリと同じレシピ行ベース（矢印は §8.13 の `value={null}` 静止表示）で、
+  ボタン部分が「ブロックアイコン+ブロック名+秒数」のクリック不可情報行（`--text-muted`）に置き換わる。
+  素材は必要数のみ表示し、所持数チェックは付けない。
+- **エントリの `data-testid` はレシピGUIDで一意化する**（`craft-recipe-entry-<recipeGuid>` / `machine-recipe-entry-<recipeGuid>`）。
+  同一アイテムに同種レシピが何件並んでも指名できるようにするため、種別だけの固定testIdへ戻さない。
+- リストのスクロールは Mantine `ScrollArea` + §8.10 のネイビースクロールバー。
+  最大高・エントリ間隔は `--recipe-list-*` 固定長トークンで管理する。
+- **アイテム一覧のクラフト可能数バッジは0のとき描画しない**（1以上のみ）。スロット面のグレー/白の
+  塗り分け（`data-catalog`/`data-filled`）は維持する。
+- **`ItemSlot` の個数バッジと素材の所持/必要テキストは黒**（明色面前提）。不足の赤字だけ例外。
+
+## 8.17 チュートリアルのドラッグガイド矢印
+
+- **D&D操作の説明専用。** `tutorial.presentation` の `dragGuides`（from/to anchor）を受け、
+  fromアンカー中心→toアンカー中心へカーソル型インラインSVGが移動をループするアニメーションを
+  `TutorialOverlay` に描く。装飾ではなく操作説明であり、他用途への流用は禁止（ユーザー裁定 2026-08-18）。
+- from/toの**両方**のアンカーが解決している間だけ表示する。片方でも未解決（対象UIが閉じている等）なら
+  何も描かない。「対象UIを開くまでの誘導」はチャレンジsummary文言の責務。
+- 図像は `--text-high-contrast` の塗り+世界分離用の最小限の固定長ドロップシャドウ（§8.12ツールボタンと同族）。
+  新しい色相・光彩は使わない。寸法 `--tutorial-drag-guide-size`、周期 `--tutorial-drag-guide-duration` の
+  固定長トークンで管理する。移動はCSS keyframesのtranslateで、ease-in-out・無限ループ・終端で不透明度を
+  落として先頭へ戻る。
+- `pointer-events: none` を維持し、z層は既存の tutorial overlay 内（新しい `--z-*` を増やさない）。
+- e2e/スクリーンショット検証はアニメーション非同期のため座標一致を要求しない（表示有無のみ検証する）。
+
 ## 9. やらないことリスト（再掲・明示）
 
 - 全画面UI・不透明な面での塗り潰し（唯一の例外は §8.12 のスキット暗転）
@@ -382,6 +421,7 @@ description: |
 - UI装飾のための画像アセット追加
 - GamePanel 以外のパネル背景 / shared/ui 以外のスロット表現
 - 機能側CSSへの色・z-index・スロット寸法の直書き
+- 機能側CSSでの `user-select` 指定（グローバル1箇所＋入力欄の例外だけで表現する・§7）
 - 新しい装飾モチーフ・装飾アニメーションの無断追加
 - 面フェード・余白の%指定（固定長トークンを使う。理由なき%は破綻源）
 - 用途の異なるスロット群の無札並置（ラベルか区切りで区別する）

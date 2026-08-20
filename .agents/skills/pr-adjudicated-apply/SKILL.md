@@ -41,7 +41,8 @@ description: |
 コマンド・ファイルパスへ渡すときは必ず実値の絶対パスへ展開して書く。
 
 **$REPO（apply専用worktree）**: このSKILL.mdを実行しているセッションのリポジトリルート
-（`git rev-parse --show-toplevel` の出力。pollerは `~/moorestech-worktrees/pr-apply` をcwdとして起動する）。
+（`git rev-parse --show-toplevel` の出力。pollerはapplyスロットworktree — `~/moorestech-worktrees/pr-apply` /
+`pr-apply-2` 等のスロットプールから空きを1つ選ぶ — をcwdとして起動する。並列applyのためスロットは複数ある）。
 `$REPO` も実値の絶対パスへ展開して書く。
 
 このworktreeはapply専用であり、他セッションの作業物は存在しない前提で扱ってよい
@@ -136,7 +137,14 @@ subagentの報告（コンフリクトなし／解消済み／解消不能）へ
 - 「コンフリクトなし」→ そのままStep 4へ進む
 - 「解消済み」→ マージコミットSHAをStep 7の `summary` に記録し（`pushed_commits` にも含める）、Step 4へ進む。
   解消内容の再検証・diff閲覧は行わない（Step 5のコンパイル・テストが実効的な検証になる）
-- 「解消不能」→ 失敗として終了する（summaryに解消不能ファイルを記載）
+- 「解消不能」→ 失敗として終了する（summaryに解消不能ファイルを記載）。
+  ただし**報告された解消不能ファイルが機械生成・緩い運用のファイルだけ**の場合
+  （`.moorestech-external-revisions.json` / `_CompileRequester.cs` / `moorestech_client/.uloop/tools.json` /
+  `.superpowers/**`・`docs/superpowers/**` の記録類）は、subagentがreferenceの
+  「機械的に解消するファイル」節を守れていない。失敗させず、その節の解消方法を明示した指示で
+  **subagentを1回だけ再発火する**。再発火後もなお同じ報告なら失敗として終了する
+  — 外部リビジョンピンの分岐はapplyの中止理由にしない（ユーザー裁定 2026-08-19。
+  `.decisions/2026-08-19-applyのピン衝突はPR側を採って続行する.md`）
 
 ## Step 4: 修正実装
 
@@ -173,8 +181,10 @@ AGENTS.mdの規約を遵守する:
   （apply専用worktreeは常駐対象ではないため、接続できない状態から始まることがある。
   `--project-path` は `launch` には無く位置引数で渡す。起動後 `uloop compile` が通るまで45秒間隔でリトライする）。
   `Unity CLI Loop is not installed in this project` が出たら
-  `moorestech_client/UserSettings/UnityMcpSettings.json` が無い状態なので、
-  メインクローンの同ファイルをコピーし `customPort` を **8705**（apply worktree専用）へ書き換えてから起動する
+  `moorestech_client/UserSettings/UnityMcpSettings.json` が無い状態。本来スロット配備時に固有ポートで
+  設置済みのはずのファイルなので、メインクローンの同ファイルをコピーし `customPort` を
+  **このスロット固有の値**（他worktreeの `UnityMcpSettings.json` と重複しない未使用ポート）へ書き換えてから起動し、
+  復旧した事実と使用ポートをapply-result.jsonのsummaryに記載する
   — ポートを他worktreeと共有すると別プロジェクトのEditorへコマンドが飛ぶ
 - **テストの完了は必ずこのターン内で待ち切る**。7分かかっても待つ。
   「実行を投げてターンを終える」は結果を捨てるのと同じである（冒頭の最重要事項を再読すること）

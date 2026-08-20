@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Master;
 using Game.Block.Interface.Extension;
 using Game.Hotbar;
+using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
 using MessagePack;
 using NUnit.Framework;
@@ -33,6 +34,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             // カタログで解決できる実在ブロックGuidを割当対象に使う（坂はカタログ対象外なので除く）
             // Use a real, catalog-resolvable block GUID as the assignment target (slopes are excluded from the catalog)
             var validId = MasterHolder.BlockMaster.Blocks.Data.First(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid)).BlockGuid;
+
+            // 割当は解放済みブロックのみ通るため、対象を解放してから要求する
+            // Assignment only accepts unlocked blocks, so unlock the target before requesting it
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlock(validId);
 
             // Assign後に割当状態が一致
             // Assign then read the resulting assignments back
@@ -80,6 +85,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
 
             var validId = MasterHolder.BlockMaster.Blocks.Data.First(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid)).BlockGuid;
+
+            // 割当は解放済みブロックのみ通るため、対象を解放してから要求する
+            // Assignment only accepts unlocked blocks, so unlock the target before requesting it
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlock(validId);
 
             // Assignで全9枠がイベントに
             // Assign enqueues a hotbar update event carrying all 9 slots

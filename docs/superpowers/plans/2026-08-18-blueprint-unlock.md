@@ -14,7 +14,7 @@ ADR: `docs/adr/0015-blueprint-feature-unlock-single-flag.md`（実装前に必�
 
 1. ブループリント機能全体を単一のアンロック状態で束ねる。受け入れ基準: `IGameUnlockStateData.IsBlueprintUnlocked`の1値で、コピーツール・保存済みBPのビルドメニュー表示/選択/ペースト・作成/削除の可否がすべて決まる。
 2. 新gameAction `unlockBlueprint`（パラメータ無し）を追加し、研究・チャレンジ双方のclearedActionsから呼べる。受け入れ基準: `GameActionExecutor`経由で`UnlockBlueprint()`が呼ばれるサーバーテストが通る。
-3. 初期状態はマスタでシードする: `buildMenu.yml`のbuildToolsへ`initialUnlocked`（boolean, default false）を追加し、Holderが`BuildToolMaster`からシードする。受け入れ基準: テストマスタ（initialUnlocked:false）で新規サーバーの`IsBlueprintUnlocked`がfalse。
+3. 初期状態はマスタでシードする: `buildMenu.yml`のルートへ`blueprintInitialUnlocked`（boolean, default false）を追加し、Holderが`BuildToolMaster`からシードする。受け入れ基準: テストマスタ（blueprintInitialUnlocked:false）で新規サーバーの`IsBlueprintUnlocked`がfalse。
 4. 同期は3点セット: `UnlockEventType.Blueprint`を`va:event:unlocked`へ追加／`va:getGameUnlockState`応答に`IsBlueprintUnlocked`を追加／`ClientGameUnlockStateData`がシード＋イベント反映する。受け入れ基準: 各拡張点のテスト（サーバー保存ロード・クライアントカタログ判定）が通る。
 5. 未解放中、ビルドメニューにBPコピーツール・保存済みBPエントリは出ない（除外方式）。受け入れ基準: `PlacementTargetCatalog.UnlockedEntries`が未解放時にBlueprintCopy/Blueprint種別を返さないテストが通る。BP系は`showAllPlaceable`（無料設置デバッグ）の対象外（接続ツール同様）。
 6. サーバー側拒否: 未解放時、`BlueprintProtocol`のCreate/Deleteは`BlueprintFailureReason.NotUnlocked`で失敗し、GetAllは成功のまま。ホットバーへの新規BP系割当（コピーツールGuid・BP Guid）は無視される。受け入れ基準: それぞれのサーバーテストが通る。
@@ -53,7 +53,7 @@ ADR: `docs/adr/0015-blueprint-feature-unlock-single-flag.md`（実装前に必�
 - Consumes: なし（先頭タスク）
 - Produces: 以後の全タスクが参照するADR・裁定・用語
 
-- [ ] **Step 1: メインクローンから設計文書8点をコピーする**
+- [x] **Step 1: メインクローンから設計文書8点をコピーする**
 
 ```bash
 SRC=<メインクローンの絶対パス>   # moores-wt newの元ディレクトリ
@@ -65,7 +65,7 @@ cp "$SRC/CONTEXT.md" CONTEXT.md
 
 注意: `CONTEXT.md`のコピーで研究UIセッション由来の「### 研究」節も一緒に入る（メインクローンの現行内容が正）。
 
-- [ ] **Step 2: コミットする**
+- [x] **Step 2: コミットする**
 
 ```bash
 git add docs/adr .decisions CONTEXT.md docs/superpowers/plans
@@ -74,32 +74,32 @@ git commit -m "docs: ブループリントアンロックのADR 0015と裁定・
 
 ---
 
-### Task 2: スキーマ拡張（initialUnlocked / unlockBlueprint）
+### Task 2: スキーマ拡張（blueprintInitialUnlocked / unlockBlueprint）
 
 **Files:**
-- Modify: `VanillaSchema/buildMenu.yml`（buildToolsへinitialUnlocked追加）
+- Modify: `VanillaSchema/buildMenu.yml`（ルートへblueprintInitialUnlocked追加）
 - Modify: `VanillaSchema/ref/gameAction.yml`（unlockBlueprint追加）
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/buildMenu.json`
 
 **Interfaces:**
 - Consumes: なし
-- Produces: 自動生成される `BuildToolMasterElement.InitialUnlocked: bool`（Task 3が使う）と `GameActionElement.GameActionTypeConst.unlockBlueprint`（Task 4が使う）
+- Produces: 自動生成される `BuildMenu.BlueprintInitialUnlocked: bool`（Task 3が使う）と `GameActionElement.GameActionTypeConst.unlockBlueprint`（Task 4が使う）
 
-- [ ] **Step 1: `edit-schema`スキルを読み込む**
+- [x] **Step 1: `edit-schema`スキルを読み込む**
 
 Skillツールで`edit-schema`を起動し、スキーマ編集規約に従う。
 
-- [ ] **Step 2: `VanillaSchema/buildMenu.yml`のbuildTools itemsへinitialUnlockedを追加する**
+- [x] **Step 2: `VanillaSchema/buildMenu.yml`のルートへblueprintInitialUnlockedを追加する**
 
-`- key: toolType`ブロック（enum options: blueprintCopy）の直後に追加:
+ルートの`properties`先頭（`- key: categories`の直前）に追加:
 
 ```yaml
-    - key: initialUnlocked
-      type: boolean
-      default: false
+- key: blueprintInitialUnlocked
+  type: boolean
+  default: false
 ```
 
-- [ ] **Step 3: `VanillaSchema/ref/gameAction.yml`へunlockBlueprintを追加する**
+- [x] **Step 3: `VanillaSchema/ref/gameAction.yml`へunlockBlueprintを追加する**
 
 `gameActionType`のenum optionsの`unlockConnectTool`の後に`- unlockBlueprint`を追加し、`cases:`へ以下を追加（`playBackgroundSkit`のパラメータ無し前例と同型）:
 
@@ -110,16 +110,16 @@ Skillツールで`edit-schema`を起動し、スキーマ編集規約に従う�
       properties: []
 ```
 
-- [ ] **Step 4: テストマスタJSONへinitialUnlockedを明示する**
+- [x] **Step 4: テストマスタJSONへblueprintInitialUnlockedを明示する**
 
-`moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/buildMenu.json`のbuildTools配列の要素（`3f8f6de0-0000-4000-8000-000000000001`）へ`"initialUnlocked": false`を追加する（connectToolsが全JSONで明示している前例に合わせる）。実マスタ（moorestech_master repo）の更新は後続タスクbd:moorestech-fy6のスコープ。
+`moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/buildMenu.json`のルートへ`"blueprintInitialUnlocked": false`を追加する（connectToolsが全JSONで明示している前例に合わせる）。実マスタ（moorestech_master repo）の更新は後続タスクbd:moorestech-fy6のスコープ。
 
-- [ ] **Step 5: コンパイルして自動生成を確認する**
+- [x] **Step 5: コンパイルして自動生成を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
-Expected: 成功。`BuildToolMasterElement.InitialUnlocked`と`GameActionTypeConst.unlockBlueprint`が生成される（生成物は手で編集しない）。
+Expected: 成功。`BuildMenu.BlueprintInitialUnlocked`と`GameActionTypeConst.unlockBlueprint`が生成される（生成物は手で編集しない）。
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add VanillaSchema moorestech_server/Assets/Scripts/Tests.Module
@@ -138,10 +138,10 @@ git commit -m "feat: buildToolsへinitialUnlocked、gameActionへunlockBlueprint
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/BlueprintUnlockStateTest.cs`（新規。`ConnectToolUnlockStateTest.cs`と同型）
 
 **Interfaces:**
-- Consumes: `MasterHolder.BuildToolMaster.All`（`IReadOnlyList<BuildToolMasterElement>`、Task 2の`InitialUnlocked`）
+- Consumes: `MasterHolder.BuildToolMaster.BlueprintInitialUnlocked`（Task 2の`blueprintInitialUnlocked`）
 - Produces: `IGameUnlockStateData.IsBlueprintUnlocked: bool` ／ `IGameUnlockStateDataController.OnUnlockBlueprint: IObservable<Unit>`・`void UnlockBlueprint()` ／ `GameUnlockStateJsonObject.BlueprintUnlockState: BlueprintUnlockStateInfoJsonObject`（Task 4〜6が使う）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/BlueprintUnlockStateTest.cs`を新規作成:
 
@@ -158,7 +158,7 @@ namespace Tests.CombinedTest.Game
     public class BlueprintUnlockStateTest
     {
         [Test]
-        public void テストマスタのinitialUnlockedがfalseなので初期状態は未解放()
+        public void テストマスタのblueprintInitialUnlockedがfalseなので初期状態は未解放()
         {
             var (_, serviceProvider) = CreateServer();
             var controller = serviceProvider.GetService<IGameUnlockStateDataController>();
@@ -219,12 +219,12 @@ namespace Tests.CombinedTest.Game
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: FAIL（`IsBlueprintUnlocked`が未定義のコンパイルエラー）
 
-- [ ] **Step 3: State/Holderを実装する**
+- [x] **Step 3: State/Holderを実装する**
 
 `States/BlueprintUnlockStateInfo.cs`:
 
@@ -288,10 +288,9 @@ namespace Game.UnlockState.Holders
 
         public BlueprintUnlockStateHolder()
         {
-            // 機能全体の単一フラグ。buildToolsのinitialUnlockedからシードする（ADR 0015）
-            // Single feature-wide flag seeded from buildTools initialUnlocked (ADR 0015)
-            var initialUnlocked = MasterHolder.BuildToolMaster.All.Any(tool => tool.InitialUnlocked);
-            _info = new BlueprintUnlockStateInfo(initialUnlocked);
+            // 機能全体の単一フラグ。buildMenuルートのblueprintInitialUnlockedからシードする（ADR 0015）
+            // Single feature-wide flag seeded from buildMenu's root blueprintInitialUnlocked (ADR 0015)
+            _info = new BlueprintUnlockStateInfo(MasterHolder.BuildToolMaster.BlueprintInitialUnlocked);
         }
 
         public void Unlock()
@@ -319,7 +318,7 @@ namespace Game.UnlockState.Holders
 }
 ```
 
-- [ ] **Step 4: インターフェースとコントローラへ配線する**
+- [x] **Step 4: インターフェースとコントローラへ配線する**
 
 `IGameUnlockStateDatastoreController.cs`: `IGameUnlockStateData`へ`public bool IsBlueprintUnlocked { get; }`を、`IGameUnlockStateDataController`へ以下を追加（`using UniRx;`が必要）:
 
@@ -345,13 +344,13 @@ public void UnlockBlueprint() => _blueprint.Unlock();
 
 注意: `IGameUnlockStateData`の実装は他にもある。`grep -rn "IGameUnlockStateData" --include="*.cs" moorestech_client moorestech_server`で全実装を洗い出し、`ClientGameUnlockStateData`（Task 5で対応）と`Client.Tests`内のスタブ（`AllPlacementTargetsUnlockedStateData`＝`BuildMenuEntryDtoFactoryTest.cs:186`。`public bool IsBlueprintUnlocked => true;`を追加）を同時に直さないとコンパイルが通らない。このタスクの時点で最小修正（スタブはtrue、`ClientGameUnlockStateData`は一旦`IsBlueprintUnlocked { get; private set; }`の追加だけ）を入れてよい。
 
-- [ ] **Step 5: コンパイルとテストを実行して通す**
+- [x] **Step 5: コンパイルとテストを実行して通す**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlueprintUnlockStateTest" --test-mode EditMode`
 Expected: PASS（3件）
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server moorestech_client
@@ -373,7 +372,7 @@ git commit -m "feat: ブループリント単一フラグのアンロック状�
 - Consumes: Task 2の`GameActionTypeConst.unlockBlueprint`、Task 3の`UnlockBlueprint()`/`OnUnlockBlueprint`/`IsBlueprintUnlocked`
 - Produces: `UnlockEventType.Blueprint`（enum末尾）、`ResponseGameUnlockStateProtocolMessagePack.IsBlueprintUnlocked`（`[Key(16)]`）。Task 5のクライアントミラーが使う
 
-- [ ] **Step 1: 失敗するテストを書く（executor経由の解放）**
+- [x] **Step 1: 失敗するテストを書く（executor経由の解放）**
 
 `BlueprintUnlockStateTest.cs`へ追加:
 
@@ -398,12 +397,12 @@ public void unlockBlueprintのgameActionで解放される()
 
 注意: 生成される`GameActionElement`/`UnlockBlueprintGameActionParam`のコンストラクタシグネチャは生成コードに合わせる（`Mooresmaster.Model.GameActionModule`の既存パラメータ型の生成形を確認して調整する。プロパティ0個のcaseなので引数無しの想定）。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlueprintUnlockStateTest" --test-mode EditMode`
 Expected: FAIL（executorがunlockBlueprintを処理しないため`IsBlueprintUnlocked`がfalse）
 
-- [ ] **Step 3: GameActionExecutorへcaseを追加する**
+- [x] **Step 3: GameActionExecutorへcaseを追加する**
 
 `ExecuteUnlockActions`のswitchの`unlockPlayerInventorySlotLevel`の後へ`case GameActionElement.GameActionTypeConst.unlockBlueprint:`を追加（`ExecuteAction(action, context); break;`へ落ちる既存グループに加える）。
 `ExecuteAction`のswitchへ追加:
@@ -416,7 +415,7 @@ case GameActionElement.GameActionTypeConst.unlockBlueprint:
 
 （パラメータ無しのためローカル関数は作らない）
 
-- [ ] **Step 4: イベントパケット・初期データ・通知を配線する**
+- [x] **Step 4: イベントパケット・初期データ・通知を配線する**
 
 `UnlockedEventPacket.cs`:
 - enum `UnlockEventType`の末尾へ`Blueprint,`を追加（既存値の順序変更禁止）
@@ -441,13 +440,13 @@ _unlockState.OnUnlockBlueprint.Subscribe(_ => _notificationService.NotifyAll(
     NotificationMessagePack.CreateAchievement("achievement.unlockedBlueprint", Array.Empty<string>())));
 ```
 
-- [ ] **Step 5: コンパイルとテストを実行して通す**
+- [x] **Step 5: コンパイルとテストを実行して通す**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlueprintUnlockStateTest|GetGameUnlockStateProtocol" --test-mode EditMode`
 Expected: PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server
@@ -468,7 +467,7 @@ git commit -m "feat: unlockBlueprintアクションと解放イベント・初�
 - Consumes: Task 3の`IsBlueprintUnlocked`、Task 4の`UnlockEventType.Blueprint`と応答`IsBlueprintUnlocked`
 - Produces: 未解放時に`PlacementTargetCatalog.UnlockedEntries`がBP系を除外する挙動。ビルドメニュー（WebUI含む）・ホットバー表示・配置解決は`PlacementTargetResolver`経由で自動追従する（個別UI変更なし）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `PlacementTargetCatalogUnlockTest.cs`へ追加:
 
@@ -503,12 +502,12 @@ public void ブループリント未解放ならBP系エントリは列挙され
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlacementTargetCatalogUnlockTest" --test-mode EditMode`
 Expected: 新テストFAIL（現状ハードコードtrueのため未解放でも列挙される）
 
-- [ ] **Step 3: PlacementTargetCatalogのハードコードtrueを置換する**
+- [x] **Step 3: PlacementTargetCatalogのハードコードtrueを置換する**
 
 `PlacementTargetCatalog.cs`の`IsUnlocked`ローカル関数:
 
@@ -520,7 +519,7 @@ case PlacementTargetKind.Blueprint:
     return unlockState.IsBlueprintUnlocked;
 ```
 
-- [ ] **Step 4: クライアントミラーを実装する**
+- [x] **Step 4: クライアントミラーを実装する**
 
 `ClientGameUnlockStateDatastore.cs`の`ClientGameUnlockStateData`:
 - `public bool IsBlueprintUnlocked { get; private set; }`を追加（Task 3で追加済みならシードと反映のみ）
@@ -542,13 +541,13 @@ case UnlockEventType.Blueprint:
     break;
 ```
 
-- [ ] **Step 5: コンパイルと関連テストを実行して通す**
+- [x] **Step 5: コンパイルと関連テストを実行して通す**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlacementTargetCatalogUnlockTest|BuildMenuEntryDtoFactoryTest" --test-mode EditMode`
 Expected: PASS（`BuildMenuEntryDtoFactoryTest`はスタブが常時true=従来挙動のまま通る）
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server moorestech_client
@@ -572,7 +571,7 @@ git commit -m "feat: BP系設置対象の解放判定を単一フラグ参照へ
 - Consumes: Task 3の`IsBlueprintUnlocked`/`UnlockBlueprint()`
 - Produces: `BlueprintFailureReason.NotUnlocked = 6`（クライアント側は既存の失敗ハンドリングで受ける。UIは未解放中導線が消えているため専用文言は追加しない）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `BlueprintProtocolTest.cs`へ追加:
 
@@ -661,12 +660,12 @@ public void 未解放時はBP系の新規割当が無視されロード済み割
 
 （`CreateServer`ヘルパーが無ければ`ConnectToolUnlockStateTest.cs`と同型で追加。既存テストが直接`new`している場合はそのスタイルに合わせ、`IGameUnlockStateDataController`はDIから取るか実物`GameUnlockStateDataController`を生成して渡す — 既存テストの構築様式を確認して同じ形に揃えること）
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlueprintProtocolTest|HotbarAssignmentDatastoreTest" --test-mode EditMode`
 Expected: 新テストFAIL（NotUnlocked未実装・割当が素通り）
 
-- [ ] **Step 3: BlueprintProtocolへ未解放拒否を実装する**
+- [x] **Step 3: BlueprintProtocolへ未解放拒否を実装する**
 
 `BlueprintPacketDto.cs`のenum末尾へ`NotUnlocked = 6,`を追加。
 
@@ -680,7 +679,7 @@ Expected: 新テストFAIL（NotUnlocked未実装・割当が素通り）
 if (!_gameUnlockState.IsBlueprintUnlocked) return FailResponse(BlueprintFailureReason.NotUnlocked);
 ```
 
-- [ ] **Step 4: HotbarAssignmentDatastoreへ未解放時の割当無視を実装する**
+- [x] **Step 4: HotbarAssignmentDatastoreへ未解放時の割当無視を実装する**
 
 `Game.Hotbar.asmdef`の`references`へ`"Game.UnlockState"`を追加。
 
@@ -710,13 +709,13 @@ private bool IsAssignableUnderUnlock(Guid id)
 
 （`LoadHotbar`と`PruneDeletedBlueprint`は変更しない＝既存BP割当・削除連動は従来どおり）
 
-- [ ] **Step 5: コンパイルとテストを実行して通す**
+- [x] **Step 5: コンパイルとテストを実行して通す**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlueprintProtocolTest|HotbarAssignmentDatastoreTest|HotbarSaveLoadTest" --test-mode EditMode`
 Expected: PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server
@@ -736,16 +735,16 @@ git commit -m "feat: 未解放時のBP作成削除とホットバーBP割当を�
 - Consumes: Task 4がサーバーから送る messageId `achievement.unlockedBlueprint`
 - Produces: なし（終端）
 
-- [ ] **Step 1: ローカライズキーを追加する**
+- [x] **Step 1: ローカライズキーを追加する**
 
 `Localization/localization.csv`の`ui.notification.unlockedConnectTool`の行を確認し、同じ列構成で直後へ`ui.notification.unlockedBlueprint`の行を追加する（日本語例:「ブループリントが解放されました」/ 英語例: "Blueprint unlocked"。既存行の文体に合わせる）。
 
-- [ ] **Step 2: キー定義を再生成する**
+- [x] **Step 2: キー定義を再生成する**
 
 Run: `cd moorestech_web/webui && npm run gen:i18n`
 Expected: `localizationKeys.ts`に`unlockedBlueprint: "ui.notification.unlockedBlueprint"`が生成される
 
-- [ ] **Step 3: 通知テーブルへ追加する**
+- [x] **Step 3: 通知テーブルへ追加する**
 
 `notificationMessages.ts`の`["achievement.unlockedConnectTool", ...]`行の直後へ:
 
@@ -753,12 +752,12 @@ Expected: `localizationKeys.ts`に`unlockedBlueprint: "ui.notification.unlockedB
   ["achievement.unlockedBlueprint", L.ui.notification.unlockedBlueprint],
 ```
 
-- [ ] **Step 4: vitestを実行して通す**
+- [x] **Step 4: vitestを実行して通す**
 
 Run: `cd moorestech_web/webui && npm run test`
 Expected: PASS（通知テーブル・i18n整合系のテストが緑。既存赤があればbd:moorestech-2lh.1の既知10件かを確認して切り分ける）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add Localization moorestech_web/webui/src
@@ -769,7 +768,7 @@ git commit -m "feat: ブループリント解放の達成トーストをwebuiへ
 
 ### Task 8: 全ブランチレビュー（必須・省略不可）
 
-- [ ] **Step 1: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
+- [x] **Step 1: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
 
 moores-code-review スキルを起動し、`origin/master`との全差分をレビューする。指摘の機械的修正は適用し、設計判断はAskUserQuestionで裁定を仰ぐ。
 
@@ -796,7 +795,7 @@ moores-code-review スキルを起動し、`origin/master`との全差分をレ�
 | BlueprintUnlockStateHolder / Info | Game.UnlockState/Holders・States | `ConnectToolUnlockStateHolder.cs`・`ConnectToolUnlockStateInfo.cs`（同ディレクトリ・同形） |
 | IsBlueprintUnlocked / OnUnlockBlueprint / UnlockBlueprint | IGameUnlockStateData / IGameUnlockStateDataController | 既存7ドメインと同じインターフェース拡張 |
 | unlockBlueprint gameAction | VanillaSchema/ref/gameAction.yml + GameActionExecutorのcase | `unlockConnectTool`（パラメータ形は`playBackgroundSkit`の空properties） |
-| initialUnlockedシード | buildMenu.yml buildTools（マスタ）→ Holderコンストラクタ | connectToolsの`initialUnlocked`→`ConnectToolUnlockStateHolder`ctor |
+| blueprintInitialUnlockedシード | buildMenu.ymlルート（マスタ）→ Holderコンストラクタ | connectToolsの`initialUnlocked`→`ConnectToolUnlockStateHolder`ctor |
 | イベント/初期データ/ミラー | UnlockedEventPacket / GetGameUnlockStateProtocol / ClientGameUnlockStateData | 同期3点セット標準（`.claude/rules/server-protocol.md`）。新規プロトコルは作らない |
 | 解放判定点 | PlacementTargetCatalog.UnlockedEntries（唯一の判定点） | 既存コメント「uGUIとWebの判定ずれによる未解放対象の露出を防ぐ」 |
 | プロトコル拒否 | BlueprintProtocol内のガード＋FailureReason末尾追加 | `PlaceBlockProtocol`のNotUnlocked拒否・`BlueprintFailureReason`既存enum |

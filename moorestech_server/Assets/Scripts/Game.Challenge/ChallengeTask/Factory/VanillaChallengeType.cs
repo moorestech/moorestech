@@ -5,5 +5,6 @@ namespace Game.Challenge.Task.Factory
         public const string CreateItemTask = "createItem";
         public const string InInventoryItemTask = "inInventoryItem";
         public const string BlockPlaceTask = "blockPlace";
+        public const string CompleteResearchTask = "completeResearch";
     }
 }

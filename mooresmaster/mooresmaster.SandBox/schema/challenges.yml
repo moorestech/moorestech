@@ -145,9 +145,9 @@ properties:
                   - when: uiHighLight
                     type: object
                     properties:
-                      - key: highLightUIObjectId
+                      - key: highLightAnchorId
                         type: string
-                        default: ui object id
+                        default: web anchor id
                       - key: highLightText
                         type: string
                         default: highlight text

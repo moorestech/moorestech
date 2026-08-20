@@ -2,7 +2,7 @@
 # Id assignment and findings.json generation; the recommended option is always options[0]
 from __future__ import annotations
 
-from .blocks import code_card_lines
+from .code_card.lines import code_card_lines, iter_code_cards
 from .parse import DigestError, Document, Finding
 
 SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
@@ -39,26 +39,26 @@ def build_findings(doc: Document) -> dict:
             options.append(option)
         out.append({
             "id": f.id, "title": f.title, "severity": f.severity, "category": f.category,
-            "files": f.files, "excerpt": _excerpt(f.body_md),
-            "recommendation": f.recommendation or (f.options[0] if f.options else ""),
+            "files": f.files, "excerpt": _excerpt(f),
+            "recommendation": f.options[0] if f.options else "",
             "options": options, "suppressed": f.suppressed, "suppress_reason": f.suppress_reason,
         })
     return {"pr": int(doc.meta["pr"]), "head": doc.meta["head"], "verdict": doc.meta["verdict"],
             "generated_at": doc.meta["generated_at"], "findings": out}
 
 
-def _excerpt(body_md: str) -> str:
-    # 最初のcode-cardの中身を行番号を落として抜粋にする（複数あっても2つ目以降は拾わない）
-    # Take the first code-card's body as the excerpt, dropping line numbers (later cards are not picked up)
-    # HTMLエスケープはしない契約。blocks側の行解析（code_card_lines）と読み方を共有する
-    # No HTML escaping by contract; shares line parsing with blocks via code_card_lines
-    lines = body_md.splitlines()
-    for n, line in enumerate(lines):
-        if line.startswith("```code-card"):
-            fence_body = []
-            for rest in lines[n + 1:]:
-                if rest.startswith("```"):
-                    break
-                fence_body.append(rest)
-            return "\n".join(code for _, _, _, code in code_card_lines("\n".join(fence_body)))
-    return ""
+def _excerpt(f: Finding) -> str:
+    # 最初のcode-cardをPR後の現行コードとして抜き出す（削除行はpr-adjudicated-applyの誤読を招くので落とす）
+    # Take the first code-card as the post-PR code; deletions are dropped so pr-adjudicated-apply never misreads them
+    # HTMLエスケープはしない契約。行の読み方は code_card_lines と共有する
+    # No HTML escaping by contract; line parsing is shared with code_card_lines
+    cards = iter_code_cards(f.body_md)
+    if not cards:
+        return ""
+    kept = [code for _, kind, _, code in code_card_lines(cards[0]) if kind != "del"]
+    # 削除行だけのカードは excerpt が空になる。applyが修正対象を突き止められなくなるので出荷させない
+    # A deletion-only card empties the excerpt, leaving apply with no anchor on the code, so it must not ship
+    if not kept:
+        raise DigestError(f"{f.id}: 最初のcode-cardが削除行だけで excerpt が空になります"
+                          f"（文脈行か追加行を1行は入れてください）")
+    return "\n".join(kept)

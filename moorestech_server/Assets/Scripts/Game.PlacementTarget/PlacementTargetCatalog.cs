@@ -111,34 +111,49 @@ namespace Game.PlacementTarget
             var entries = new List<PlacementTargetEntry>();
             foreach (var entry in CreateEntries(blueprintEntries))
             {
-                if (IsUnlocked(entry)) entries.Add(entry);
+                if (IsEntryUnlocked(entry, unlockState, showAllPlaceable)) entries.Add(entry);
             }
 
             return entries;
+        }
 
-            #region Internal
+        // このIDが実在するか。マスタか現行BPのどちらかに在ることを解放状態と無関係に判定する
+        // Whether this id exists at all: present in the master catalog or among current blueprints, regardless of unlock state
+        public bool IsResolvable(Guid id, IReadOnlyList<Guid> currentBlueprintIds)
+        {
+            return TryGetMasterEntry(id, out _) || currentBlueprintIds.Contains(id);
+        }
 
-            bool IsUnlocked(PlacementTargetEntry entry)
+        // このIDが今の解放状態で割当・使用可能か。実在確認も含め判定規則はここへ完全集約する（C1裁定）
+        // Whether this id is assignable/usable under the current unlock state, existence included; the sole locus for this rule (C1 ruling)
+        public bool IsAssignable(Guid id, IGameUnlockStateData unlockState, bool showAllPlaceable, IReadOnlyList<Guid> currentBlueprintIds)
+        {
+            if (TryGetMasterEntry(id, out var entry)) return IsEntryUnlocked(entry, unlockState, showAllPlaceable);
+            // マスタ外は現行BPだけを通す。どこにも実在しないIDは割当不可
+            // Outside the master, only current blueprints pass; an id that exists nowhere is never assignable
+            return currentBlueprintIds.Contains(id) && unlockState.IsBlueprintUnlocked;
+        }
+
+        private static bool IsEntryUnlocked(PlacementTargetEntry entry, IGameUnlockStateData unlockState, bool showAllPlaceable)
+        {
+            switch (entry.Kind)
             {
-                switch (entry.Kind)
-                {
-                    case PlacementTargetKind.Block:
-                        return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(entry.Id, out var blockInfo) && blockInfo.IsUnlocked);
-                    case PlacementTargetKind.TrainCar:
-                        return showAllPlaceable || (unlockState.TrainCarUnlockStateInfos.TryGetValue(entry.Id, out var trainCarInfo) && trainCarInfo.IsUnlocked);
-                    case PlacementTargetKind.ConnectTool:
-                        // 接続ツールは無料設置対象外
-                        // Connect tools are excluded from free placement
-                        return unlockState.ConnectToolUnlockStateInfos.TryGetValue(entry.Id, out var connectToolInfo) && connectToolInfo.IsUnlocked;
-                    case PlacementTargetKind.BlueprintCopy:
-                    case PlacementTargetKind.Blueprint:
-                        return true;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                case PlacementTargetKind.Block:
+                    return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(entry.Id, out var blockInfo) && blockInfo.IsUnlocked);
+                case PlacementTargetKind.TrainCar:
+                    return showAllPlaceable || (unlockState.TrainCarUnlockStateInfos.TryGetValue(entry.Id, out var trainCarInfo) && trainCarInfo.IsUnlocked);
+                case PlacementTargetKind.ConnectTool:
+                    // 接続ツールは無料設置対象外
+                    // Connect tools are excluded from free placement
+                    return unlockState.ConnectToolUnlockStateInfos.TryGetValue(entry.Id, out var connectToolInfo) && connectToolInfo.IsUnlocked;
+                case PlacementTargetKind.BlueprintCopy:
+                case PlacementTargetKind.Blueprint:
+                    // BP機能は単一フラグで判定。無料設置デバッグの対象外（接続ツール同様・ADR 0015）
+                    // Blueprints gate on the single feature flag, excluded from free placement like connect tools (ADR 0015)
+                    return unlockState.IsBlueprintUnlocked;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-
-            #endregion
         }
     }
 }

@@ -50,18 +50,6 @@
   --craft-grip-inset: 6.98px;
   --craft-grip-offset: 0.4px;
   --craft-grip-face: rgb(134 136 152 / 98%);
-  /* クラフトタブの正本寸法、パネル原点からの位置、各層色を一元化する */
-  /* Centralize the craft tab's reference size, panel-relative placement, and layer colors */
-  --craft-tab-width: 64.978px;
-  --craft-tab-height: 27.397px;
-  --craft-tab-margin-top: -37.18px;
-  --craft-tab-margin-left: -11px;
-  --craft-tab-margin-bottom: 6.46px;
-  --craft-tab-back: rgb(51 43 40);
-  --craft-tab-side: rgb(16 15 21);
-  --craft-tab-face: rgb(58 59 72);
-  --craft-tab-edge: rgb(73 75 120);
-  --craft-tab-hammer: rgb(75 75 75);
   --font-ui: "MooresUI", "MooresUI JP", sans-serif;
   /* z層は互いに比較できない3つのスタッキングコンテキスト別に接頭辞で分け、文脈をまたぐ比較を名前で防ぐ */
   /* Split z-layers by their incomparable stacking context via a name prefix, so cross-context comparisons read as wrong at a glance */
@@ -202,6 +190,13 @@
   /* 画面外矢印を画面端からこの固定長だけ内側にクランプする */
   /* Clamp off-screen arrows this fixed length inside the screen edge */
   --world-pin-edge-margin: 40px;
+  /* D&D説明のドラッグガイド矢印の寸法と1周期の長さ（webui-design §8.17） */
+  /* Size and one-cycle duration of the D&D drag guide arrow (webui-design §8.17) */
+  --tutorial-drag-guide-size: 28px;
+  --tutorial-drag-guide-duration: 1600ms;
+  /* ドラッグガイド矢印を世界背景から分離する最小限の影（world-pin矢印と同族） */
+  /* Minimal shadow separating the drag guide arrow from the world background, same family as the world-pin arrow */
+  --tutorial-drag-guide-shadow: rgb(0 0 0 / 65%);
   /* モード選択肢を独立したボタンとして見せる間隔を確保する */
   /* Separates mode options so each reads as an independent button */
   --mode-switch-gap: 4px;
@@ -253,4 +248,21 @@
   /* Default size of the shared faceless icon button; each use overrides it locally */
   --icon-button-size: calc(var(--slot-size) / 2);
   --icon-button-icon-size: calc(var(--slot-size) / 3);
+  /* レシピビューア単一リストの最大高とエントリ間隔（ADR 0011・§8.17） */
+  /* Max height and entry gap for the recipe viewer single list (ADR 0011, §8.17) */
+  --recipe-list-max-height: 352px;
+  --recipe-entry-gap: 10px;
+  /* クラフトボタンと機械情報行が共有する行高。片方だけ変わると単一リストの縦リズムが崩れる */
+  /* Row height shared by the craft button and the machine info row; changing one alone breaks the list rhythm */
+  --recipe-action-button-height: 19px;
+  /* レシピリストのスクロールバー実寸。CSSの予約幅とScrollAreaのscrollbarSizeが同じ値を引く */
+  /* Measured scrollbar width of the recipe list; both the CSS reserve and ScrollArea's scrollbarSize read it */
+  --recipe-list-scrollbar-reserve: 4px;
+  /* 機械情報行の文字・アイコン寸法 */
+  /* Text and icon dimensions of the machine info row */
+  --recipe-info-text-size: 12px;
+  --recipe-info-icon-size: 1.25rem;
+  /* 個数バッジの黒（ユーザー裁定 2026-08-17。バッジが出るのは明色面のみが前提） */
+  /* Black used by count badges (user ruling 2026-08-17; badges only appear on light faces) */
+  --count-text: #111;
 }
