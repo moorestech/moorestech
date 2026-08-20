@@ -352,7 +352,7 @@ git commit -m "chore: Task 2完了（自壊のresume回収とabort.json弁別）
 **Interfaces:**
 - Consumes: Task 1 の `session_id_path` / `launch_claude(..., session_id, resume)` / `RESUME_PROMPT`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `ReviewSelfTerminationTest` へ追加する:
 
@@ -374,12 +374,12 @@ git commit -m "chore: Task 2完了（自壊のresume回収とabort.json弁別）
 
 `review.resume` が増えないことも確認する（レート制限は自壊ではないため resume 予算を消費しない）。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/services/pr-review && python3 -m unittest test_poller -v -k rate_limit`
 Expected: FAIL（`session_id` が `""`、`resume` が `False`）
 
-- [ ] **Step 3: レート制限分岐を差し替える**
+- [x] **Step 3: レート制限分岐を差し替える**
 
 601-609行の `launch_claude(...)` 呼び出しを置き換える（`set_backoff` / `write_text(started_path, ...)` の2行はそのまま残す）:
 
@@ -399,12 +399,12 @@ Expected: FAIL（`session_id` が `""`、`resume` が `False`）
         return True
 ```
 
-- [ ] **Step 4: テストを実行して全緑を確認する**
+- [x] **Step 4: テストを実行して全緑を確認する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/services/pr-review && python3 -m unittest test_poller -v`
 Expected: 全テストPASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/unattended-review-resume
