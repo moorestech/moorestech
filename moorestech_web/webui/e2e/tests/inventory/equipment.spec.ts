@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { setUiState } from "../../support/mockControl";
 
-// 各枠はアンカー用ラッパーdiv内のスロット本体
+// 各枠はラッパーdiv内のスロット本体
 // Each slot sits inside its anchor wrapper div
 const equipmentSlots = (page: import("@playwright/test").Page) =>
   page.getByTestId("equipment-slots").locator("> div > div");

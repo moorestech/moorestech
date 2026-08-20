@@ -13,7 +13,7 @@ export function tutorialAnchor(first: TutorialAnchorId, ...rest: TutorialAnchorI
   return { "data-tutorial-anchor": [first, ...rest].join(" ") };
 }
 
-// resolveAnchorとregistry共通のトークン一致セレクタ
+// resolveAnchorとregistry共通のセレクタ
 // Token-match selector shared by resolveAnchor and the registry
 export function tutorialAnchorSelector(anchorId: string): string {
   const escaped = globalThis.CSS?.escape ? globalThis.CSS.escape(anchorId) : anchorId.replaceAll('"', '\\"');

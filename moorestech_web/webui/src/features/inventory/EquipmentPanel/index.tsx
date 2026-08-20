@@ -92,7 +92,7 @@ export default function EquipmentPanel() {
     <div className={styles.equipmentArea} data-testid="equipment-slots" data-wheel-passthrough>
       {inventory.equipment.map((slot, i) => {
         const ref: SlotRef = { area: "equipment", slot: i };
-        // 選択枠はホイールで動くので選択アンカーも同居させる
+        // 選択枠は動くので選択アンカーも同居
         // The selected slot moves with the wheel, so it also declares the selection anchor
         const selected = i === inventory.selectedEquipment;
         const anchor = selected

@@ -40,7 +40,7 @@ describe("resolveTutorialAnchor", () => {
     expect(resolveTutorialAnchor("research.node")).toEqual({ status: "not-found", reason: "duplicate-anchor" });
   });
 
-  // 複数名乗る要素にも当たるトークン一致で問い合わせる
+  // 複数名乗る要素にも当たるトークン一致
   // Queried as tokens so multi-anchor elements match
   it("matches anchors as whitespace-separated tokens", () => {
     resolveTutorialAnchor("equipment.selected-slot");
