@@ -8,6 +8,7 @@ import { L } from "../../../src/shared/i18n/generated/localizationKeys";
 // The JavaScript codegen parser has no type declarations
 // @ts-expect-error Importing the plain ESM parser is intentional
 import { parseLocalizationCsv } from "../../../scripts/generate-localization-keys.mjs";
+import { researchNodeAnchorId } from "../../../src/shared/tutorialAnchor/anchorIds";
 import * as fx from "../fixtures";
 import { state, topicSubscribers } from "../state";
 import { clone, send, setTopicRevision } from "../wire";
@@ -89,6 +90,20 @@ const controls = {
         kind: "outline" as const,
         elementId: "tutorial-highlight-1",
         anchorId: "game.crosshair",
+        paddingPx: 8, blocksPointerInput: false,
+      }],
+    }],
+  }),
+  // 研究ノードは TreeView の overflow:hidden 内にあり、パンでクリップ境界をまたげる
+  // The research node lives inside TreeView's overflow:hidden, so panning moves it across the clip edge
+  tutorialResearchNode: () => control(Topics.tutorialPresentation, {
+    revision: 1,
+    sessions: [{
+      tutorialSessionId: "tutorial-session-research", challengeId: "tutorial-challenge-research",
+      elements: [{
+        kind: "outline" as const,
+        elementId: "tutorial-highlight-research",
+        anchorId: researchNodeAnchorId(fx.researchableNodeGuid),
         paddingPx: 8, blocksPointerInput: false,
       }],
     }],
