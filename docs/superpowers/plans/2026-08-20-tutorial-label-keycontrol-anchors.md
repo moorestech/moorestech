@@ -734,7 +734,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `Topics.tutorialPresentation`、`Topics.uiState`（`state: string`）、`useBlockingSkitActive()`、`challengeTutorialTextKey`、`useI18n`
 - Produces: `export function KeyControlHintHud()`；DOM `div[data-testid="key-control-hint-hud"] > div[data-testid="key-control-hint"]`（`<kbd>{keyName}</kbd><span>{text}</span>`）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `KeyControlHintHud.test.ts`:
 
@@ -816,12 +816,12 @@ describe("KeyControlHintHud", () => {
 });
 ```
 
-- [ ] **Step 2: 実行して失敗を確認する**
+- [x] **Step 2: 実行して失敗を確認する**
 
 Run: `npx vitest run src/features/tutorial/KeyControlHintHud.test.ts`
 Expected: FAIL（モジュール未作成）。
 
-- [ ] **Step 3: コンポーネントを実装する**
+- [x] **Step 3: コンポーネントを実装する**
 
 `KeyControlHintHud.tsx`:
 
@@ -918,12 +918,12 @@ export function KeyControlHintHud() {
 - 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。文字サイズ・間隔は `--tutorial-key-hint-*` 固定長トークン。面・枠・光彩・アニメーションは持たず `pointer-events: none`。
 ```
 
-- [ ] **Step 4: テスト・lint・型**
+- [x] **Step 4: テスト・lint・型**
 
 Run: `npx vitest run src/features/tutorial && npm run lint && npx tsc -b`
 Expected: 全PASS。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/features/tutorial moorestech_web/webui/src/app .agents/skills/webui-design/SKILL.md
