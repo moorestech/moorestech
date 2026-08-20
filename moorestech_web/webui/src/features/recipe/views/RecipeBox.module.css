@@ -14,7 +14,11 @@
   /* minmax(0,1fr) forces both side tracks to stay equal so the center column (the arrow) never leaves the frame's
      center as materials grow; a bare fr keeps a min-content floor, widening only the material side and pushing
      the arrow right (measured 24.8px, user ruling 2026-08-20) */
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  /* 中央列はクラフトボタン幅で固定する。autoのままだと機械名や秒数の長さが左右のスロット幅を削り、
+     「素材・結果は常にフルサイズ」が中身のテキスト次第で破れる（ユーザー裁定 2026-08-20） */
+  /* The center track is pinned to the craft button width; leaving it auto lets machine names or duration text
+     eat into the side slots, breaking "materials and results stay full size" (user ruling 2026-08-20) */
+  grid-template-columns: minmax(0, 1fr) var(--recipe-craft-button-width) minmax(0, 1fr);
   column-gap: var(--recipe-column-gap);
   align-items: center;
   width: 100%;
@@ -90,7 +94,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-self: center;
+  justify-self: stretch;
+  min-width: 0;
   gap: 2px;
 }
 
@@ -101,6 +106,11 @@
   font-size: var(--recipe-duration-text-size);
   line-height: 1;
   white-space: nowrap;
+  /* 中央列は固定幅なので、桁数の多い秒数は溢れる前に省略記号で止める */
+  /* The center track is fixed width, so long durations are ellipsized instead of overflowing */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 操作は矢印の下に固定高で置き、クラフト/機械どちらでも行高を揃える */
@@ -174,11 +184,16 @@
   object-fit: contain;
 }
 
+/* 中央列幅を超える機械名は省略記号で打ち切る（フルネームはアイコンaltへ残す） */
+/* Machine names beyond the center column width are truncated with an ellipsis; the full name stays on the icon's alt text */
 .machineInfoText {
   color: var(--text-muted);
   font-size: var(--recipe-info-text-size);
   line-height: 1;
   white-space: nowrap;
+  max-width: var(--recipe-craft-button-width);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* クラフト操作を控えめな中央寄せの青ボタンで示す。正本は縦グラデ+中央白帯でなく横方向の青→シアン */

@@ -90,11 +90,26 @@
   /* The floor is the hotbar band's footprint (bottom 2 + slot 51.68 + number tab 16 = 69.68px) rounded up */
   --menu-lower-safe-area: 70px;
   --menu-content-height: calc(var(--ui-stage-height) - var(--menu-upper-safe-area) - var(--menu-lower-safe-area));
+  /* 持ち物グリッドの基準寸法。InventoryPanelのインラインstyleが同じトークンをvar()で参照し二重著述を避ける */
+  /* Base inventory grid dimensions; InventoryPanel's inline style references these same tokens via var() to avoid dual authorship */
+  /* 端数の由来: 9列45スロット(PlayerInventoryConst.MainInventoryColumns)を6列時と同じ319.6pxの専有幅へ収めるため実測ピッチを×0.6603した値。枠:間隔比と正本の左右余白が壊れるので単独で丸めない */
+  /* Where the fractions come from: the measured pitch scaled by x0.6603 so 9 columns of the 45-slot main inventory (PlayerInventoryConst.MainInventoryColumns) occupy the same 319.6px as the 6-column layout; do not round them individually, it breaks the frame:gap ratio and the reference side margins */
+  --inventory-slot-base-size: 30.123px;
+  --inventory-slot-base-gap: 6.064px;
+  --inventory-count-base-font-size: 10.565px;
+  --inventory-slot-scale: 1.3;
+  --inventory-columns: 9;
   /* 持ち物パネルの幅。InventoryPanelのインラインstyleと研究パネルの左端導出が同じ値を見る */
   /* The inventory panel width; InventoryPanel's inline style and the research panel's left edge share this one value */
   /* 378pxは1.0倍時の実測。スロット1.3倍化で9列グリッドが伸びた分を足す（ユーザー裁定 2026-08-20） */
   /* 378px is the measured 1.0x width; the 1.3x slots stretch the 9-column grid, and that growth is added here (user ruling 2026-08-20) */
-  --inventory-panel-width: calc(378px + (9 * 30.123px + 8 * 6.064px) * 0.3);
+  --inventory-panel-width: calc(378px + (var(--inventory-columns) * var(--inventory-slot-base-size) + (var(--inventory-columns) - 1) * var(--inventory-slot-base-gap)) * (var(--inventory-slot-scale) - 1));
+  /* stageの左右余白。stage幅の連立式（全幅 - 左右padding - 持ち物幅 - 列gap = 機械パネル幅）の項なので、
+     App.module.cssとblockInventoryの両方がこの1個を見る。片方だけ動かすと機械パネルが枠外へ溢れる */
+  /* The stage's side padding; it is a term of the width equation (full width - side padding - inventory - column gap
+     = machine panel width), so App.module.css and blockInventory both read this one value. Moving only one overflows the panel */
+  --stage-padding-left: 40px;
+  --stage-padding-right: 10px;
   /* stage上段3カラムの列間隔。研究パネルはこの間隔を挟んで持ち物の右へ並ぶ */
   /* The gap between the stage's three upper columns; the research panel sits to the inventory's right across it */
   /* 持ち物1.3倍で広がった約96pxをこの間隔とstage左右余白から取り戻す。基準stageを広げる案は--ui-scaleが下がり全体が7%縮むため不採用 */

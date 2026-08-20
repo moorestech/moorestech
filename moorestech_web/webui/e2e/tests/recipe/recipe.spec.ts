@@ -11,8 +11,8 @@ test("秒数は矢印の上に出し、クラフトボタンは秒数を持た�
   await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
-  // 秒数は矢印の上、ボタンは操作名だけ。既定はja
-  // The duration sits above the arrow and the button carries only the action name; default locale is ja
+  // 秒数は矢印上、ボタンは操作名のみ
+  // The duration sits above the arrow and the button carries only the action name
   await expect(craftEntry(page).locator('[data-testid$="-duration"]')).toHaveText("0.2秒");
   await expect(craftEntry(page).getByRole("button")).toHaveText("クラフト");
 });

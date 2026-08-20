@@ -32,8 +32,8 @@ const recipe: CraftRecipe = {
   requiredItems: [],
 };
 
-// 秒数はRecipeRowが矢印の上へ描く。testIdはレシピ単位のtestId+"-duration"
-// RecipeRow renders the duration above the arrow under the per-recipe testId + "-duration"
+// testIdはレシピtestId+"-duration"
+// The testId is the per-recipe testId + "-duration"
 function durationText(renderer: ReactTestRenderer) {
   return renderer.root.findByProps({ "data-testid": `craft-recipe-box-${recipe.recipeGuid}-duration` }).props.children;
 }

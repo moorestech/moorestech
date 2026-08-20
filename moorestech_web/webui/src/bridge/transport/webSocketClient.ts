@@ -164,7 +164,7 @@ const PINNED_TOPICS = [
 
 // httpsで配信された場合にws:を使うとブラウザがmixed contentで接続自体を拒否するため、ページのスキームへ揃える
 // A ws: URL from an https page is rejected outright as mixed content, so follow the page's scheme
-export function bridgeSocketUrl() {
+function bridgeSocketUrl() {
   const scheme = location.protocol === "https:" ? "wss" : "ws";
   return `${scheme}://${location.host}/ws`;
 }

@@ -23,8 +23,8 @@ type Props = {
   tutorialAnchorProps?: TutorialAnchorAttributes;
 };
 
-// 素材→矢印→結果の行。矢印の上に秒数、下に長押しクラフトボタン
-// Material-arrow-result row with the duration above the arrow and the hold-to-craft button below it
+// 素材→矢印→結果の行。矢印上に秒数、下に長押しボタン
+// Material-arrow-result row with the duration above the arrow and the craft button below it
 export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tutorialAnchorProps }: Props) {
   const { t } = useI18n();
   const materialTooltipText = useMaterialTooltipText();

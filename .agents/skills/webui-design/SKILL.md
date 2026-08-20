@@ -86,6 +86,7 @@ description: |
   - `ItemSlot` / `BlockSlot` / `FluidSlot` / `FluidSlotRow` / 素枠は `SlotFrame`。
   - 並べるのは `SlotGrid`（既定9列）。独自の grid CSS でスロットを並べない。
   - **ただしパネル内のスロット群に限る。常時表示HUD族（ホットバー・装備HUD）は `SlotGrid` の対象外**で、HUD自身の固定長トークンで組んだ1列のflexに並べる（前例: `HotbarPanel` / `EquipmentPanel`）。折返しの無い1列にグリッドの列数概念を持ち込まないため。
+  - **もう1つの例外はレシピ行（§8.17）**。素材・結果のスロット寸法はコンテナクエリ（`container-type: inline-size` + `cqw`）から引くため `SlotGrid` の既定 `grid-template-columns` を必ず上書きすることになる。`--slot-size` を要素自身の `grid-template-columns` で使うと `cqw` が祖先コンテナへ解決して失敗する（実測でスロットが縮まず溢れた）ため、`RecipeRow` は独自gridを持つ。ユーザー裁定 2026-08-20。
 - スロット寸法は `--slot-size`、間隔は `--slot-grid-gap` の局所上書きで調整する。コンポーネント内にpx直書きしない。
 - スロットの状態表現は data属性（`data-selected` / `data-filled` / `data-catalog` / `data-insufficient`）に統一。新しい状態が要るなら data属性を追加する。
 - マウス操作の契約は `useSlotMouse`（左押下・右押下・ドラッグ進入・ダブルクリック）。スロットに生の onClick を生やさない。

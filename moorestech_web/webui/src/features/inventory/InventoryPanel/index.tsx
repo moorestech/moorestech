@@ -9,11 +9,20 @@ import { L, useI18n } from "@/shared/i18n";
 // Use fixed-pixel slots and gaps to prevent fractional drift from the 140px screenshot pitch
 // 正本の占有率へ寄せるため持ち物だけ1pxへ縮め、inv-white面隅プローブの合格を維持する
 // Tighten inventory padding to 1px for the reference occupancy while preserving the inv-white corner probe
-// スロット・間隔・個数文字を一括で1.3倍にする。広がった分のパネル幅は--inventory-panel-widthが持つ（ユーザー裁定 2026-08-20）
-// Slot, gap, and count text all scale 1.3x; --inventory-panel-width carries the matching panel growth (user ruling 2026-08-20)
-const SLOT_SCALE = 1.3;
-const px = (base: number) => `${base * SLOT_SCALE}px`;
-const GRID_STYLE = { "--slot-size": px(30.123), "--slot-grid-gap": px(6.064), "--filled-face-inset": "1.565749px", "--face-inset-color": "rgb(50 52 67)", "--icon-pad": "1px", "--count-bottom": "-1px", "--count-font-size": px(10.565), "--count-letter-spacing": "0.12em", marginTop: "12px", marginLeft: "-0.549px" } as CSSProperties;
+// 基準寸法・倍率はtokens.cssの--inventory-slot-base-*/--inventory-slot-scaleが正本。ここでは二重著述しない
+// Base dimensions and scale live in tokens.css's --inventory-slot-base-*/--inventory-slot-scale; not duplicated here
+const GRID_STYLE = {
+  "--slot-size": "calc(var(--inventory-slot-base-size) * var(--inventory-slot-scale))",
+  "--slot-grid-gap": "calc(var(--inventory-slot-base-gap) * var(--inventory-slot-scale))",
+  "--filled-face-inset": "1.565749px",
+  "--face-inset-color": "rgb(50 52 67)",
+  "--icon-pad": "1px",
+  "--count-bottom": "-1px",
+  "--count-font-size": "calc(var(--inventory-count-base-font-size) * var(--inventory-slot-scale))",
+  "--count-letter-spacing": "0.12em",
+  marginTop: "12px",
+  marginLeft: "-0.549px",
+} as CSSProperties;
 
 // 全スロットを操作。grabは別表示
 // Handle every main-inventory slot; grab tracking renders separately

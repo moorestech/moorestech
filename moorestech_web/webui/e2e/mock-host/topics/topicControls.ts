@@ -20,7 +20,14 @@ export function serveDictionary(url: string, response: ServerResponse): void {
   response.end(JSON.stringify(dictionaries.get(locale) ?? {}));
 }
 
-const control = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]) => ({ topic, data });
+// overrideを設定する側と解除する側をkindで区別する。どちらかをシナリオ名の外部テーブルで表すと
+// 登録漏れが型エラーにならず、汚染が別specの遅れた赤として出るため原因を辿れない
+// The kind distinguishes setting an override from clearing one; expressing that through an external table of
+// scenario names lets a missing entry slip past the type checker and surface as a late failure in another spec
+const control = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]) => ({ kind: "set" as const, topic, data });
+// broadcast値は既に開いているページを既定へ戻すためだけに使い、overrideは持たせない
+// The broadcast value only resets pages that are already open; no override is stored
+const clearingControl = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]) => ({ kind: "clear" as const, topic, data });
 const controls = {
   placement: () => control(Topics.placementMode, {
     selectedTargetType: "raw", selectedName: "Assembler", height: 3, unavailableReason: "", wheelOwnedByTool: false,
@@ -71,19 +78,14 @@ const controls = {
   challengeLong: () => control(Topics.challengeCurrent, clone(fx.challengeLong)),
   challengeMultipleLong: () => control(Topics.challengeCurrent, clone(fx.challengeMultipleLong)),
   challengeCompleted: () => control(Topics.challengeCurrent, { challenges: [], completedChallengeGuid: "82000000-0000-4000-8000-000000000002" }),
-  // サーバーはGuidを送りWebが辞書で名前解決するため、fixtureも研究Guidを渡す
-  // The server sends GUIDs and the web resolves names via the dictionary, so the fixture passes a research GUID
   // 層序specが通知と重なる不透明スロットを必ず得られるようにする（グリッド寸法変更に耐えるため各行を埋める）
   // Gives the layering spec a guaranteed opaque slot overlapping the notification, one per row so grid resizes don't break it
   inventoryEveryRowFilled: () => control(Topics.inventory, clone(fx.inventoryEveryRowFilled)),
-  // 差し替えた持ち物を既定fixtureへ戻す（未リセットだとクラフト・接続系specが汚染される）
-  // Restores the default inventory fixture; leaving it swapped pollutes the craft and connection specs
-  inventoryDefault: () => control(Topics.inventory, clone(fx.inventory)),
-  // 上のシナリオはoverrideを消す側。既定fixtureでoverrideを塗り直すとinventoryが固定され、
-  // 接続復元specが期待するgrab保持（可変inventoryのsnapshot）が壊れるため
-  // The scenario above clears the override instead of setting it: repainting the override with the default
-  // fixture would freeze the inventory and break the grab retention (mutable-inventory snapshot) the
-  // connection restore spec expects
+  // 差し替えた持ち物を既定fixtureへ戻す。既定fixtureでoverrideを塗り直すとinventoryが固定され、接続復元specのgrab保持が壊れる
+  // Restores the default inventory; repainting the override would freeze the inventory and break the connection spec's grab retention
+  inventoryDefault: () => clearingControl(Topics.inventory, clone(fx.inventory)),
+  // サーバーはGuidを送りWebが辞書で名前解決するため、fixtureも研究Guidを渡す
+  // The server sends GUIDs and the web resolves names via the dictionary, so the fixture passes a research GUID
   notificationAchievement: () => control(Topics.notification, { seq: 1, category: "achievement", messageId: "achievement.researchCompleted", messageParams: ["11111111-1111-4111-8111-111111111111"], itemId: 1 }),
   notificationItemUnlocked: () => control(Topics.notification, { seq: 2, category: "achievement", messageId: "achievement.unlockedItem", messageParams: [], itemId: 2 }),
   notificationDenied: () => control(Topics.notification, { seq: 3, category: "operationDenied", messageId: "denied.researchNotCompletable", messageParams: [], itemId: null }),
@@ -115,10 +117,6 @@ const controls = {
 };
 export type TopicScenario = keyof typeof controls;
 
-// overrideを設定せず解除するシナリオ。broadcast値は現在開いているページを既定へ戻すためだけに使う
-// Scenarios that clear rather than set an override; the broadcast value only resets pages that are already open
-const overrideClearingScenarios = new Set<TopicScenario>(["inventoryDefault"]);
-
 export function applyTopicControl(url: string, response: ServerResponse): void {
   const params = new URL(url, "http://x").searchParams;
   const scenario = params.get("scenario") ?? "";
@@ -130,7 +128,7 @@ export function applyTopicControl(url: string, response: ServerResponse): void {
     response.end(JSON.stringify({ ok: false, error: "unknown_scenario" }));
     return;
   }
-  if (overrideClearingScenarios.has(scenario as TopicScenario)) state.topicOverrides.delete(controlValue.topic);
+  if (controlValue.kind === "clear") state.topicOverrides.delete(controlValue.topic);
   else state.topicOverrides.set(controlValue.topic, clone(controlValue.data));
   const revision = params.has("revision") ? Number(params.get("revision")) : undefined;
   if (revision !== undefined && params.get("setWireRevision") === "1") setTopicRevision(controlValue.topic, revision);

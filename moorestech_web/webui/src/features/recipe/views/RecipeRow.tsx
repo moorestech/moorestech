@@ -1,13 +1,8 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Box } from "@mantine/core";
 import { ProgressArrowGlyph } from "@/shared/ui";
+import { recipeSlotLayout } from "../logic/recipeSlotLayout";
 import styles from "./RecipeBox.module.css";
-
-// 折り返し後の列数は2で固定し、点数が増えたぶんは行が増える（3点=横2縦2、6点=横2縦3。ユーザー裁定 2026-08-20）。
-// 列を増やす向きに折り返すとスロットが縮んで個数テキストが読めなくなる（実測6.2px）
-// Wrapping keeps two columns and grows rows instead (3 items = 2x2, 6 items = 2x3; user ruling 2026-08-20).
-// Wrapping the other way adds columns, which shrinks slots until the count text is unreadable (measured 6.2px)
-const MAX_SLOT_COLUMNS = 2;
 
 type Props = {
   testId: string;
@@ -21,35 +16,17 @@ type Props = {
   // 矢印の真上に置く所要秒数
   // Duration text sitting directly above the arrow
   duration: ReactNode;
-  // 矢印の真下に置く操作（クラフトボタン／機械表示）
-  // The action placed directly below the arrow (craft button / machine display)
+  // 矢印下の操作（クラフト/機械表示）
+  // The action placed below the arrow (craft button / machine display)
   action: ReactNode;
   result: ReactNode[];
 };
 
-// 点数から行数・列数と、列幅に実際に収まるスロット寸法を引く。
-// 基準幅はcqw（列そのものの幅）で取る。%はスロットの親が内容依存幅のため循環し、実測で0.8pxまで潰れた
-// Derive the row/column counts and the slot size that actually fits the column from the item count.
-// The basis is cqw (the column's own width); % is circular because the slot's parent is content-sized, which
-// measured out at 0.8px
-function slotLayout(count: number) {
-  const columns = Math.min(count, MAX_SLOT_COLUMNS);
-  // 列幅はautoでスロット実寸に追従させる。--slot-sizeをこの要素自身のgrid-template-columnsで使うと
-  // cqwが祖先のコンテナを見にいって解決に失敗し、実測でスロットが縮まず溢れた
-  // Columns are auto so they follow the slot's real size; using --slot-size in this element's own
-  // grid-template-columns makes cqw resolve against an ancestor container instead, which measured out as
-  // slots stuck at their cap and overflowing
-  return {
-    gridTemplateColumns: `repeat(${columns}, auto)`,
-    "--slot-size": `min(var(--recipe-slot-size-max), calc((100cqw - ${columns - 1} * var(--recipe-slot-gap)) / ${columns}))`,
-  } as CSSProperties;
-}
-
 // 共通レシピ行骨格。幾何値をここに集約
 // Shared recipe-row frame; keeps measured geometry in one place
 export default function RecipeRow({ testId, materials, arrowValue, arrowTestId, duration, action, result }: Props) {
-  const materialStyle = slotLayout(materials.length);
-  const resultStyle = slotLayout(result.length);
+  const materialStyle = recipeSlotLayout(materials.length);
+  const resultStyle = recipeSlotLayout(result.length);
 
   return (
     // 素材点数で矢印列がズレるためgridで3カラムの列位置を固定する
