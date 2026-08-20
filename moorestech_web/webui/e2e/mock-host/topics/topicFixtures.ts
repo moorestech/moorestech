@@ -18,8 +18,8 @@ type TopicFixtureRegistry = {
 
 const topicFixtures: TopicFixtureRegistry = {
   [Topics.inventory]: ({ inventory }) => inventory,
-  [Topics.craftRecipes]: ({ demo }) => (demo ? fx.demoCraftRecipes : fx.craftRecipes),
-  [Topics.machineRecipes]: ({ demo }) => (demo ? fx.demoMachineRecipes : fx.machineRecipes),
+  [Topics.craftRecipes]: () => fx.craftRecipes,
+  [Topics.machineRecipes]: () => fx.machineRecipes,
   [Topics.itemList]: ({ demo }) => (demo ? fx.demoItemList : fx.itemList),
   [Topics.blockInventory]: () => state.currentBlock,
   // ModalData.modal は optional（null 不可）のため型適合で undefined 化。ワイヤ上の null 除去は wire.ts の stripNulls が担う
