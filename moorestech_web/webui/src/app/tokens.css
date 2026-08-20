@@ -252,6 +252,11 @@
   /* レシピリストのスクロールバー実寸。CSSの予約幅とScrollAreaのscrollbarSizeが同じ値を引く */
   /* Measured scrollbar width of the recipe list; both the CSS reserve and ScrollArea's scrollbarSize read it */
   --recipe-list-scrollbar-reserve: 4px;
+  /* エントリ枠が外側へはみ出す量（四隅ブラケット3px+外周リング1.2px）。リスト側の余白がこれを下回ると
+     ブラケットがScrollAreaにクリップされ、はみ出しぶんで不要なスクロールが生まれる */
+  /* How far an entry frame bleeds outward (3px corner brackets + 1.2px outer ring); if the list's padding is
+     smaller, the ScrollArea clips the brackets and the bleed creates a needless scroll */
+  --recipe-entry-bleed: 5px;
   /* 機械表示の文字・アイコン寸法。アイコンは素材スロットと同寸にして矢印の下で対になるようにする */
   /* Machine display text and icon sizes; the icon matches the material slot so it pairs under the arrow */
   --recipe-info-text-size: 12px;
