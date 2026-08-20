@@ -1318,7 +1318,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 - [x] **Step 1:** `npx vitest run`、`npm run lint`、`npx tsc -b`、`uloop run-tests ... "TutorialAnchorContractTest"` を再確認。
 - [x] **Step 2:** 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（moores-code-review・自動実行・ゴール文言による省略不可）。
-- [ ] **Step 3:** pr-create で PR 作成（`feat(webui): チュートリアルアンカー語彙にインベントリ所持スロットと装備スロットを追加`）。
+- [x] **Step 3:** pr-create で PR 作成（`feat(webui): チュートリアルアンカー語彙にインベントリ所持スロットと装備スロットを追加`）。→ PR #1207
 
 ---
 
