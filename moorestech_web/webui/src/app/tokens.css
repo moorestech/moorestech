@@ -134,6 +134,12 @@
   --operation-hud-detail-gap: 5px;
   --operation-hud-letter-spacing: 1px;
   --operation-hud-detail-line-height: 25px;
+  /* カーソル追従ツールチップの書式はWeb側が唯一の値源。ホストから寸法は受け取らない */
+  /* The cursor tooltip's format is owned solely by the web side; the host sends no sizes */
+  --cursor-tooltip-font-size: 18px;
+  --cursor-tooltip-padding-block: 6px;
+  --cursor-tooltip-padding-inline: 10px;
+  --cursor-tooltip-max-width: 320px;
   /* uGUIの削除バーを1280基準へ縮尺し、上下端に見える半幅と斜線周期を固定する */
   /* Scale the uGUI deletion bar to the 1280 baseline and lock its visible half-height and stripe period */
   --delete-mode-warning-band-height: 20px;

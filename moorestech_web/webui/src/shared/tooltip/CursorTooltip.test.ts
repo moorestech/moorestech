@@ -10,7 +10,6 @@ const testState = vi.hoisted(() => ({
     visible: true,
     textKey: "ui.mainMenu.playLocally",
     textParams: [] as string[],
-    fontSize: 36,
   },
   clamp: vi.fn(() => ({ x: 12, y: 12 })),
 }));
@@ -46,7 +45,6 @@ describe("CursorTooltip", () => {
       visible: true,
       textKey: "ui.mainMenu.playLocally",
       textParams: [],
-      fontSize: 36,
     };
     testState.clamp.mockClear();
     vi.restoreAllMocks();
@@ -59,7 +57,6 @@ describe("CursorTooltip", () => {
       visible: true,
       textKey: L.ui.tooltip.requiredItems,
       textParams: ["Iron Pickaxe, Stone Pickaxe"],
-      fontSize: 36,
     }, createTranslator(getI18nSnapshot()))).toBe("Requires: Iron Pickaxe, Stone Pickaxe");
   });
 
@@ -71,7 +68,6 @@ describe("CursorTooltip", () => {
       visible: true,
       textKey: itemNameKey(ironIngotGuid),
       textParams: [],
-      fontSize: 36,
     }, createTranslator(getI18nSnapshot()))).toBe("Iron Ingot");
     expect(warn).not.toHaveBeenCalled();
   });
@@ -83,7 +79,6 @@ describe("CursorTooltip", () => {
       visible: true,
       textKey: "ui.tooltip.unknown",
       textParams: [],
-      fontSize: 36,
     };
 
     expect(resolveTooltipText(data, vi.fn())).toBe("[!ui.tooltip.unknown]");

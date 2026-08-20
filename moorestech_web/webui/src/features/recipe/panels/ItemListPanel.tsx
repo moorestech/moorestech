@@ -65,9 +65,9 @@ export default function ItemListPanel() {
           scrollbarSize={4}
           className={styles.scrollArea}
           style={{ marginLeft: -3.561498, marginRight: 4.435, marginTop: 12 }}
-          // ドラッグ中だけカーソルを掴み表示にしテキスト選択を抑止する（touch-actionはCSS側）
-          // Only while dragging, show a grabbing cursor and suppress text selection (touch-action lives in CSS)
-          viewportProps={{ ...viewportHandlers, style: { cursor: dragging ? "grabbing" : undefined, userSelect: dragging ? "none" : undefined } }}
+          // ドラッグ中のみ掴みカーソル表示
+          // Grabbing cursor only while dragging
+          viewportProps={{ ...viewportHandlers, style: { cursor: dragging ? "grabbing" : undefined } }}
         >
           <SlotGrid cols={6} testId="item-list-grid" style={GRID_STYLE}>
             {itemList.itemIds.map((id) => (
