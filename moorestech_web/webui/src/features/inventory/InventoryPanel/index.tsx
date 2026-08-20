@@ -9,12 +9,16 @@ import { L, useI18n } from "@/shared/i18n";
 // Use fixed-pixel slots and gaps to prevent fractional drift from the 140px screenshot pitch
 // 正本の占有率へ寄せるため持ち物だけ1pxへ縮め、inv-white面隅プローブの合格を維持する
 // Tighten inventory padding to 1px for the reference occupancy while preserving the inv-white corner probe
-// 9列を等比縮小し実測値へ適用
-// 枠:間隔比と余白は正本のまま
-// The main inventory is 45 slots in 9 columns (PlayerInventoryConst.MainInventoryColumns). The 378px panel cannot grow — the
-// three-column stage is fully used — so the measured pitch is uniformly scaled (×0.6603) to fit 9 columns into the same
-// 319.6px grid footprint the 6-column layout had, preserving the slot:gap ratio and the reference side margins
-const GRID_STYLE = { "--slot-size": "30.123px", "--slot-grid-gap": "6.064px", "--filled-face-inset": "1.565749px", "--face-inset-color": "rgb(50 52 67)", "--icon-pad": "1px", "--count-bottom": "-1px", "--count-font-size": "10.565px", "--count-letter-spacing": "0.12em", marginTop: "12px", marginLeft: "-0.549px" } as CSSProperties;
+// スロット・間隔・個数文字を一括で1.3倍にし、広がった分だけパネル幅も広げる（ユーザー裁定 2026-08-20）
+// Slot, gap, and count text all scale 1.3x, and the panel widens by exactly the grid's growth (user ruling 2026-08-20)
+const SLOT_SCALE = 1.3;
+const px = (base: number) => `${base * SLOT_SCALE}px`;
+const GRID_STYLE = { "--slot-size": px(30.123), "--slot-grid-gap": px(6.064), "--filled-face-inset": "1.565749px", "--face-inset-color": "rgb(50 52 67)", "--icon-pad": "1px", "--count-bottom": "-1px", "--count-font-size": px(10.565), "--count-letter-spacing": "0.12em", marginTop: "12px", marginLeft: "-0.549px" } as CSSProperties;
+
+// 9列グリッドの拡大分をそのままパネル幅へ足す
+// Add the 9-column grid's growth straight onto the panel width
+const GRID_GROWTH = (9 * 30.123 + 8 * 6.064) * (SLOT_SCALE - 1);
+const PANEL_WIDTH = 378 + GRID_GROWTH;
 
 // 全スロットを操作。grabは別表示
 // Handle every main-inventory slot; grab tracking renders separately
@@ -34,7 +38,7 @@ export default function InventoryPanel() {
   );
 
   return (
-    <GamePanel gridArea="inv" title={t(L.ui.inventory.title)} titleAction={sortAction} style={{ justifySelf: "start", alignSelf: "start", width: 378, minHeight: 452.391, transform: "translate(0.783px, 0.783px)", "--panel-left": "-2.22px", "--panel-right": "-2.22px", "--title-shift-x": "-1.96px", "--title-scale-x": 0.919, "--title-scale-y": 0.924 } as CSSProperties}>
+    <GamePanel gridArea="inv" title={t(L.ui.inventory.title)} titleAction={sortAction} style={{ justifySelf: "start", alignSelf: "start", width: PANEL_WIDTH, minHeight: 452.391, transform: "translate(0.783px, 0.783px)", "--panel-left": "-2.22px", "--panel-right": "-2.22px", "--title-shift-x": "-1.96px", "--title-scale-x": 0.919, "--title-scale-y": 0.924 } as CSSProperties}>
       <SlotGrid testId="main-grid" cols={9} style={GRID_STYLE}>
         {inventory.mainSlots.map((slot, i) => {
           const ref: SlotRef = { area: "main", slot: i };

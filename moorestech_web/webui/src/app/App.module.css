@@ -26,11 +26,16 @@
 .stage {
   position: relative;
   display: grid;
-  column-gap: 2.1875rem;
+  /* 持ち物スロット1.3倍でinvパネルが約96px広がった分を列間隔と左右余白から取り戻す（ユーザー裁定 2026-08-20）。
+     基準stageを広げる案は--ui-scaleが下がり画面全体が7%縮むため採らない */
+  /* The 1.3x inventory slots widened the inv panel by ~96px; the column gap and side padding give that back
+     (user ruling 2026-08-20). Widening the reference stage instead was rejected: it lowers --ui-scale and
+     shrinks the whole screen by 7% */
+  column-gap: 1rem;
   row-gap: 1rem;
   width: var(--ui-stage-width);
   height: var(--ui-stage-height);
-  padding: var(--menu-upper-safe-area) 48px 2px 59.7px;
+  padding: var(--menu-upper-safe-area) 10px 2px 40px;
   box-sizing: border-box;
   flex: 0 0 auto;
   transform: scale(var(--ui-scale, 1));

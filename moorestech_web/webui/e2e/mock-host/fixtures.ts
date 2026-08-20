@@ -44,6 +44,13 @@ export const inventory = {
   equipmentSelectionConfirmationRevision: 0,
 } satisfies PlayerInventoryData;
 
+// 全9列×5行の各行に1つ以上アイテムが載る持ち物。層序specが通知と必ず重なる不透明スロットを得るために使う
+// An inventory with at least one item per row of the 9x5 grid, so the layering spec always finds an opaque slot overlapping the notification
+export const inventoryEveryRowFilled = {
+  ...inventory,
+  mainSlots: Array.from({ length: 45 }, (_, i) => (i % 9 === 0 ? { itemId: 1, count: 10 } : empty())),
+} satisfies PlayerInventoryData;
+
 // BLK-1 チェスト: 9 スロット(uGUI IChestParam.ItemSlotCount 相当)、一部にアイテム
 // BLK-1 chest: 9 slots (mirrors uGUI IChestParam.ItemSlotCount), some filled
 export const blockChest = {

@@ -213,9 +213,6 @@
   /* Craft-arrow render size, carried over as fixed lengths from the reference white arrow */
   --craft-arrow-width: 53.622px;
   --craft-arrow-height: 30.53px;
-  /* 行のcenter揃えに対する矢印の上寄せ量。正本の矢印位置を保つ固定長 */
-  /* Upward nudge against the row's center alignment; a fixed length that holds the reference arrow position */
-  --craft-arrow-offset-y: -12.218px;
   /* 研究ノードカードの面と枠（GamePanelのネイビー族に揃える） */
   /* Research node card face and border, matching the GamePanel navy family */
   --research-node-face: var(--surface-navy);
@@ -246,13 +243,22 @@
   /* クラフトボタンと機械情報行が共有する行高。片方だけ変わると単一リストの縦リズムが崩れる */
   /* Row height shared by the craft button and the machine info row; changing one alone breaks the list rhythm */
   --recipe-action-button-height: 19px;
+  /* クラフトボタンの幅。矢印幅の約2.1倍という正本比率で決めるためエントリ全幅には追随しない */
+  /* Craft button width; fixed at the reference's ~2.1x arrow-width ratio, so it never tracks the entry width */
+  --recipe-craft-button-width: calc(var(--craft-arrow-width) * 2.1);
+  /* 矢印の真上に置く所要秒数の文字寸法 */
+  /* Font size of the duration text sitting above the arrow */
+  --recipe-duration-text-size: 13px;
   /* レシピリストのスクロールバー実寸。CSSの予約幅とScrollAreaのscrollbarSizeが同じ値を引く */
   /* Measured scrollbar width of the recipe list; both the CSS reserve and ScrollArea's scrollbarSize read it */
   --recipe-list-scrollbar-reserve: 4px;
-  /* 機械情報行の文字・アイコン寸法 */
-  /* Text and icon dimensions of the machine info row */
+  /* 機械表示の文字・アイコン寸法。アイコンは素材スロットと同寸にして矢印の下で対になるようにする */
+  /* Machine display text and icon sizes; the icon matches the material slot so it pairs under the arrow */
   --recipe-info-text-size: 12px;
-  --recipe-info-icon-size: 1.25rem;
+  --recipe-info-icon-size: 2.3rem;
+  /* レシピ行のスロット間隔。0だと隣接スロットへ所持数テキストがはみ出して重なる */
+  /* Gap between recipe-row slots; at 0 the owned-count text spills onto the neighboring slot */
+  --recipe-slot-gap: 8px;
   /* 個数バッジの黒（ユーザー裁定 2026-08-17。バッジが出るのは明色面のみが前提） */
   /* Black used by count badges (user ruling 2026-08-17; badges only appear on light faces) */
   --count-text: #111;

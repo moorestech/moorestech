@@ -75,6 +75,17 @@ const controls = {
   challengeCompleted: () => control(Topics.challengeCurrent, { challenges: [], completedChallengeGuid: "82000000-0000-4000-8000-000000000002" }),
   // サーバーはGuidを送りWebが辞書で名前解決するため、fixtureも研究Guidを渡す
   // The server sends GUIDs and the web resolves names via the dictionary, so the fixture passes a research GUID
+  // 層序specが通知と重なる不透明スロットを必ず得られるようにする（グリッド寸法変更に耐えるため各行を埋める）
+  // Gives the layering spec a guaranteed opaque slot overlapping the notification, one per row so grid resizes don't break it
+  inventoryEveryRowFilled: () => control(Topics.inventory, clone(fx.inventoryEveryRowFilled)),
+  // 差し替えた持ち物を既定fixtureへ戻す（未リセットだとクラフト・接続系specが汚染される）
+  // Restores the default inventory fixture; leaving it swapped pollutes the craft and connection specs
+  inventoryDefault: () => control(Topics.inventory, clone(fx.inventory)),
+  // 上のシナリオはoverrideを消す側。既定fixtureでoverrideを塗り直すとinventoryが固定され、
+  // 接続復元specが期待するgrab保持（可変inventoryのsnapshot）が壊れるため
+  // The scenario above clears the override instead of setting it: repainting the override with the default
+  // fixture would freeze the inventory and break the grab retention (mutable-inventory snapshot) the
+  // connection restore spec expects
   notificationAchievement: () => control(Topics.notification, { seq: 1, category: "achievement", messageId: "achievement.researchCompleted", messageParams: ["11111111-1111-4111-8111-111111111111"], itemId: 1 }),
   notificationItemUnlocked: () => control(Topics.notification, { seq: 2, category: "achievement", messageId: "achievement.unlockedItem", messageParams: [], itemId: 2 }),
   notificationDenied: () => control(Topics.notification, { seq: 3, category: "operationDenied", messageId: "denied.researchNotCompletable", messageParams: [], itemId: null }),
@@ -97,6 +108,10 @@ const controls = {
 };
 export type TopicScenario = keyof typeof controls;
 
+// overrideを設定せず解除するシナリオ。broadcast値は現在開いているページを既定へ戻すためだけに使う
+// Scenarios that clear rather than set an override; the broadcast value only resets pages that are already open
+const overrideClearingScenarios = new Set<TopicScenario>(["inventoryDefault"]);
+
 export function applyTopicControl(url: string, response: ServerResponse): void {
   const params = new URL(url, "http://x").searchParams;
   const scenario = params.get("scenario") ?? "";
@@ -108,7 +123,8 @@ export function applyTopicControl(url: string, response: ServerResponse): void {
     response.end(JSON.stringify({ ok: false, error: "unknown_scenario" }));
     return;
   }
-  state.topicOverrides.set(controlValue.topic, clone(controlValue.data));
+  if (overrideClearingScenarios.has(scenario as TopicScenario)) state.topicOverrides.delete(controlValue.topic);
+  else state.topicOverrides.set(controlValue.topic, clone(controlValue.data));
   const revision = params.has("revision") ? Number(params.get("revision")) : undefined;
   if (revision !== undefined && params.get("setWireRevision") === "1") setTopicRevision(controlValue.topic, revision);
   for (const ws of topicSubscribers.get(controlValue.topic) ?? []) {

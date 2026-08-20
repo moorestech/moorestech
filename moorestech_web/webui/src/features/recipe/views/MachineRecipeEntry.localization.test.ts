@@ -28,6 +28,12 @@ const recipe: MachineRecipe = {
   outputItems: [],
 };
 
+// 秒数はRecipeRowが矢印の上へ描く。testIdはレシピ単位のtestId+"-duration"
+// RecipeRow renders the duration above the arrow under the per-recipe testId + "-duration"
+function durationText(renderer: ReactTestRenderer) {
+  return renderer.root.findByProps({ "data-testid": `machine-recipe-box-${recipe.recipeGuid}-duration` }).props.children;
+}
+
 describe("MachineRecipeEntry localization", () => {
   it("機械名をblockGuidから解決し、fallbackと言語変更をアイコンaltと表示・秒数へ反映する", () => {
     const key = blockNameKey(recipe.blockGuid);
@@ -46,7 +52,7 @@ describe("MachineRecipeEntry localization", () => {
 
     expect(renderer!.root.findAllByType("mock-text" as never).some((node) => node.props.children === "Fallback Machine")).toBe(true);
     expect(renderer!.root.findByType("mock-block-icon" as never).props.alt).toBe("Fallback Machine");
-    expect(renderer!.root.findAllByType("mock-text" as never).some((node) => node.props.children === "1s")).toBe(true);
+    expect(durationText(renderer!)).toBe("1s");
 
     // topic再配信なしで機械名更新
     // Update the machine name without topic republication
@@ -56,6 +62,6 @@ describe("MachineRecipeEntry localization", () => {
     }, {}, {}));
     expect(renderer!.root.findAllByType("mock-text" as never).some((node) => node.props.children === "対象言語の機械")).toBe(true);
     expect(renderer!.root.findByType("mock-block-icon" as never).props.alt).toBe("対象言語の機械");
-    expect(renderer!.root.findAllByType("mock-text" as never).some((node) => node.props.children === "1秒")).toBe(true);
+    expect(durationText(renderer!)).toBe("1秒");
   });
 });

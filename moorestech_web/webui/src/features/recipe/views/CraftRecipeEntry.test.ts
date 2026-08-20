@@ -32,6 +32,12 @@ const recipe: CraftRecipe = {
   requiredItems: [],
 };
 
+// 秒数はRecipeRowが矢印の上へ描く。testIdはレシピ単位のtestId+"-duration"
+// RecipeRow renders the duration above the arrow under the per-recipe testId + "-duration"
+function durationText(renderer: ReactTestRenderer) {
+  return renderer.root.findByProps({ "data-testid": `craft-recipe-box-${recipe.recipeGuid}-duration` }).props.children;
+}
+
 function renderEntry() {
   let renderer: ReactTestRenderer;
   act(() => {
@@ -46,29 +52,31 @@ function renderEntry() {
 }
 
 describe("CraftRecipeEntry", () => {
-  // 秒数の書式はui.recipe.durationだけが持つ
-  // ui.recipe.duration alone owns the seconds format
-  it("クラフトボタンの秒数をui.recipe.durationの書式で組む", () => {
+  // 秒数の書式はui.recipe.durationだけが持ち、矢印の上のduration要素へ出る
+  // ui.recipe.duration alone owns the seconds format and renders in the duration element above the arrow
+  it("矢印の上の秒数をui.recipe.durationの書式で組み、ボタンは秒数を持たない", () => {
     act(() => setDictionaries("japanese", {}, {}, {
       [L.ui.recipe.duration]: "{seconds}秒",
-      [L.ui.recipe.craftButtonLabel]: "クラフト（{duration}）",
+      [L.ui.recipe.craftButtonLabel]: "クラフト",
       [L.ui.recipe.holdToCraft]: "長押しでクラフト",
     }));
 
     const renderer = renderEntry();
 
-    expect(renderer.root.findByType("mock-button" as never).props.children).toBe("クラフト（2秒）");
+    expect(durationText(renderer)).toBe("2秒");
+    expect(renderer.root.findByType("mock-button" as never).props.children).toBe("クラフト");
   });
 
-  it("言語ごとの秒数書式をボタンラベルへ反映する", () => {
+  it("言語ごとの秒数書式を矢印上の表示へ反映する", () => {
     act(() => setDictionaries("english", {}, {
       [L.ui.recipe.duration]: "{seconds} seconds",
-      [L.ui.recipe.craftButtonLabel]: "Craft ({duration})",
+      [L.ui.recipe.craftButtonLabel]: "Craft",
       [L.ui.recipe.holdToCraft]: "Hold to craft",
     }, {}));
 
     const renderer = renderEntry();
 
-    expect(renderer.root.findByType("mock-button" as never).props.children).toBe("Craft (2 seconds)");
+    expect(durationText(renderer)).toBe("2 seconds");
+    expect(renderer.root.findByType("mock-button" as never).props.children).toBe("Craft");
   });
 });
