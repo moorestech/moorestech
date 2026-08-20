@@ -46,10 +46,15 @@ describe("common HUD schemas", () => {
 describe("tooltip schema", () => {
   it("requires a complete cursor-tooltip snapshot", () => {
     expect(validateTopicPayload(Topics.tooltip, {
-      visible: true, textKey: "ui.tooltip.requiredItems", textParams: ["Iron Pickaxe"], fontSize: 36,
+      visible: true, textKey: "ui.tooltip.requiredItems", textParams: ["Iron Pickaxe"],
     })).toBe(true);
     expect(validateTopicPayload(Topics.tooltip, {
-      visible: true, textKey: "Cannot remove", fontSize: 36,
+      visible: true, textKey: "Cannot remove",
+    })).toBe(false);
+  });
+  it("rejects sizes smuggled in alongside the dictionary key", () => {
+    expect(validateTopicPayload(Topics.tooltip, {
+      visible: true, textKey: "ui.tooltip.requiredItems", textParams: [], width: 240,
     })).toBe(false);
   });
 });
@@ -122,7 +127,8 @@ describe("validResearchTree", () => {
   const node = {
     guid: "60000000-0000-4000-8000-000000000001", state: "researchable", iconItemId: 1, position: { x: 100, y: -50 },
     prevGuids: [], consumeItems: [{ itemId: 1, count: 3 }],
-    rewardItems: [{ itemId: 2, count: 4 }], unlockItemIds: [],
+    rewardItems: [{ itemId: 2, count: 4 }], unlockItemRecipeViewItemIds: [],
+    unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [],
   };
   it("accepts nodes payload", () => {
     expect(validateTopicPayload(Topics.researchTree, { nodes: [node] })).toBe(true);

@@ -26,7 +26,9 @@ export default function ResearchTreePanel() {
   const inventory = useTopic(Topics.inventory);
   const nodes = tree?.nodes ?? EMPTY_NODES;
   const [selectedGuid, setSelectedGuid] = useState<string | null>(null);
-  const owned = useMemo(() => buildOwnedCounts(inventory?.mainSlots ?? []), [inventory]);
+  // topic未受信はnullのまま渡し、読む側が「所持0」と取り違えられない形にする(D4)
+  // Pass null through while the topic has not arrived, so no reader can mistake it for "owns zero" (D4)
+  const owned = useMemo(() => (inventory ? buildOwnedCounts(inventory.mainSlots) : null), [inventory]);
   // 同ノード再クリックで閉じるトグル選択
   // Toggle selection: clicking the same node again closes the pane
   const toggleSelect = useCallback((guid: string) => {

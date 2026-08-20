@@ -42,7 +42,10 @@ describe("z-layer tokens: .stage内部", () => {
     // stageは独自スタッキングコンテキストなので、この群の比較はstage内部でのみ意味を持つ
     // .stage owns its own stacking context, so this comparison is only meaningful inside .stage
     expect(stageLayer("screen")).toBeLessThan(stageLayer("overlay-panel"));
-    expect(stageLayer("overlay-panel")).toBeLessThan(stageLayer("tooltip"));
+    // 全域パネルの上へ出す常設面は常駐HUD層より前・ツールチップより後ろに挟まる
+    // The chrome above full-stage panels wedges ahead of the always-on HUD layer and behind the tooltip
+    expect(stageLayer("overlay-panel")).toBeLessThan(stageLayer("overlay-panel-chrome"));
+    expect(stageLayer("overlay-panel-chrome")).toBeLessThan(stageLayer("tooltip"));
   });
 });
 

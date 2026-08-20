@@ -16,7 +16,7 @@
   text-rendering: optimizeLegibility;
   text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
   pointer-events: none;
-  z-index: 10;
+  z-index: var(--z-stage-overlay-panel-chrome);
 }
 
 .keyHints kbd {

@@ -31,5 +31,19 @@ namespace Client.Tests.Input
             InputManager.WarpMouseCursorToScreenCenter();
             Assert.AreEqual(ScreenCenter.GetPosition(), (Vector2)HybridInput.GetMousePosition());
         }
+
+        [Test]
+        public void MouseCursorLockCentersCursorBeforeFreezingIt()
+        {
+            // ロック経路が何であれ凍結前に中央へ寄る（呼び出し口ごとのwarp書き忘れを潰す）
+            // Every lock path centers the cursor before freezing it, so no call site can forget the warp
+            var offCenter = ScreenCenter.GetPosition() + new Vector2(37f, 53f);
+            Set(_mouse.position, offCenter);
+
+            InputManager.MouseCursorVisible(false);
+            Assert.AreEqual(ScreenCenter.GetPosition(), (Vector2)HybridInput.GetMousePosition());
+
+            InputManager.MouseCursorVisible(true);
+        }
     }
 }
