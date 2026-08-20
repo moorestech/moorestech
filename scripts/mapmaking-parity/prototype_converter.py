@@ -20,6 +20,10 @@ UNITY_FIELD_OVERRIDES = {
 # Keys replaced by an addressable path string; the underlying Unity reference must be unset
 REFERENCE_TO_PATH_KEYS = frozenset({"surroundLayerAddressablePath", "texturePngPath"})
 
+# プレハブ参照配列を {mapObjectGuid} 配列へ写すスキーマキー（treePlacement / objectConfig）
+# Schema keys whose prefab reference arrays become {mapObjectGuid} arrays (treePlacement / objectConfig)
+GUID_ARRAY_KEYS = frozenset({"mapObjects", "primary", "prefabs"})
+
 # UnityのAnimationCurveラッパが持つキー全集合。ここに無いキーは未知の情報として弾く
 # Every key Unity's AnimationCurve wrapper carries; anything else is unknown information and rejected
 ANIMATION_CURVE_KEYS = frozenset({
@@ -40,8 +44,12 @@ class PrototypeConverter:
     Converter for one preset; legacy field handling is opted into per preset."""
 
     def __init__(self, map_object_guid_by_prefab_guid: dict, stale_serialization: bool,
-                 removed_unity_fields: frozenset, missing_unity_fields: frozenset):
+                 removed_unity_fields: frozenset, missing_unity_fields: frozenset,
+                 null_surround_layer_address: str):
         self._map_object_guid_by_prefab_guid = map_object_guid_by_prefab_guid
+        # surroundLayer未設定時に書くアドレス。treePlacementは空文字（重み0で不使用）、objectConfigは移植元のMudフォールバック
+        # The address written for an unset surroundLayer: "" for treePlacement (unused at weight 0), the source's Mud fallback for objectConfig
+        self._null_surround_layer_address = null_surround_layer_address
         # 現行C#クラスへの改修後にプリセットが再保存されていない場合のみTrue
         # True only when the preset has not been re-saved since the current C# class landed
         self._stale_serialization = stale_serialization
@@ -76,7 +84,8 @@ class PrototypeConverter:
         if not self._stale_serialization or key not in self._missing_unity_fields:
             raise KeyError(f"{location}: MapMakingアセットに該当フィールドが無い")
         self._missing_fields_seen.add(key)
-        return schema_spec.default_value(node, location)
+        return schema_spec.default_value(
+            node, location, {"surroundLayerAddressablePath": self._null_surround_layer_address})
 
     def reject_missing_field_mismatch(self, location: str) -> None:
         """欠落を宣言したフィールドが実際に全て欠落していたことを検算する。
@@ -93,7 +102,8 @@ class PrototypeConverter:
 
     def _convert_value(self, key: str, node: schema_spec.SchemaNode, unity_value, location: str):
         if key in REFERENCE_TO_PATH_KEYS:
-            return _convert_reference_to_path(unity_value, location)
+            _reject_set_reference(unity_value, location)
+            return self._null_surround_layer_address if key == "surroundLayerAddressablePath" else ""
 
         if node.kind == schema_spec.OBJECT:
             return self.convert(node, unity_value, location)
@@ -108,12 +118,18 @@ class PrototypeConverter:
 
     def _convert_array(self, key: str, node: schema_spec.SchemaNode, unity_value,
                        location: str) -> list:
-        if key == "mapObjects":
+        if key in GUID_ARRAY_KEYS:
             return [{"mapObjectGuid": self._map_object_guid(reference, f"{location}[{index}]")}
                     for index, reference in enumerate(unity_value)]
 
         if key == "curve":
             return _convert_animation_curve(node, unity_value, location)
+
+        # 構造体配列（clusterEntries/secondaries/entries）は要素ごとに同じ規則で再帰変換する
+        # Struct arrays (clusterEntries/secondaries/entries) recurse element by element under the same rules
+        if node.item.kind == schema_spec.OBJECT:
+            return [self.convert(node.item, item, f"{location}[{index}]")
+                    for index, item in enumerate(unity_value)]
 
         raise NotImplementedError(f"{location}: 配列キー {key} の変換規則が未定義")
 
@@ -148,11 +164,12 @@ def _convert_animation_curve(node: schema_spec.SchemaNode, unity_value: dict, lo
     return []
 
 
-def _convert_reference_to_path(unity_value: dict, location: str) -> str:
+def _reject_set_reference(unity_value: dict, location: str) -> None:
+    """参照が設定されたTerrainLayer/Textureはアドレッサブルパスへ機械変換できないので止める。
+    A set TerrainLayer/Texture reference cannot be mechanically mapped to an addressable path, so stop."""
     if not is_null_reference(unity_value, location):
         raise ValueError(
             f"{location}: アドレッサブルパスへの置換対象だが参照が設定されている ({unity_value!r})")
-    return ""
 
 
 def _convert_enum(node: schema_spec.SchemaNode, unity_value, location: str) -> str:

@@ -30,7 +30,7 @@
   row-gap: 1rem;
   width: var(--ui-stage-width);
   height: var(--ui-stage-height);
-  padding: var(--menu-upper-safe-area) 48px 2px 59.7px;
+  padding: var(--menu-upper-safe-area) var(--stage-padding-right) 2px var(--stage-padding-left);
   box-sizing: border-box;
   flex: 0 0 auto;
   transform: scale(var(--ui-scale, 1));

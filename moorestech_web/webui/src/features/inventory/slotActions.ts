@@ -32,14 +32,15 @@ export const slotActions: SlotActions = {
     if (!inventory) return;
     const slot = resolveSlot(inventory, ref);
     if (!slot) return;
-    if (!shiftKey && inventory.grab.count > 0) { splitDrag.begin(ref, true); return; }
     const block = readTopic(Topics.blockInventory);
     const ctx: PlayerSlotContext = {
       inventory,
       maxStack: readItemMaster()?.get(slot.itemId)?.maxStack,
       blockItemSlots: block?.open ? block.itemSlots : null,
     };
-    dispatchPlanned(planPlayerLeftClick(ref, slot, shiftKey, ctx));
+    const plan = planPlayerLeftClick(ref, slot, shiftKey, ctx);
+    if (plan.kind === "beginSplitDrag") { splitDrag.begin(ref); return; }
+    dispatchPlanned(plan.actions);
   },
 
   onRightDown: (ref) => {

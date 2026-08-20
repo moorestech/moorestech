@@ -25,7 +25,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
         {
             TileMapObjectSlicer.SliceKindsWithHalo(
                 mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength,
-                speciesTable.MaxReach, out var treeObjects, out _);
+                speciesTable.MaxReach, out var treeObjects, out _, out _);
 
             var alphaResolution = alphamap.GetLength(0);
 

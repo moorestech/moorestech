@@ -13,11 +13,18 @@ test.afterEach(async ({ page }) => {
   // 未リセットだとCRAFT RECIPE系specが汚染される
   // Leaving uiState set pollutes the CRAFT RECIPE specs
   await setUiState(page, "PlayerInventory");
+  // 差し替えた持ち物も戻す。残すとクラフト所持数と接続復元specが崩れる
+  // Restore the swapped inventory too; leaving it breaks the craft owned-counts and connection restore specs
+  await setTopicScenario(page, "inventoryDefault");
 });
 
 test("インベントリを開いている間、通知はパネルの描画を一切変えない", async ({ page }, testInfo) => {
   await setUiState(page, "PlayerInventory");
   await page.goto("/");
+
+  // 既定fixtureは3行が空でスロット寸法が変わると重なりが消えるため、各行が埋まる持ち物へ差し替える
+  // The default fixture leaves three rows empty, so a slot-size change can erase the overlap; use the per-row-filled inventory
+  await setTopicScenario(page, "inventoryEveryRowFilled");
 
   const grid = page.getByTestId("main-grid");
   await expect(grid).toBeVisible();

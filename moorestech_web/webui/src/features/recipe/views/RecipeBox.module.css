@@ -9,25 +9,22 @@
 .recipeBox {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  /* minmax(0,1fr)で左右の枠を必ず等幅にし、素材の点数が増えても中央列（矢印）が枠の中心から動かないようにする。
+     素のfrはmin-content床で素材側だけ広がるため、矢印が右へズレる（実測24.8px・ユーザー裁定 2026-08-20） */
+  /* minmax(0,1fr) forces both side tracks to stay equal so the center column (the arrow) never leaves the frame's
+     center as materials grow; a bare fr keeps a min-content floor, widening only the material side and pushing
+     the arrow right (measured 24.8px, user ruling 2026-08-20) */
+  /* 中央列はクラフトボタン幅で固定する。autoのままだと機械名や秒数の長さが左右のスロット幅を削り、
+     「素材・結果は常にフルサイズ」が中身のテキスト次第で破れる（ユーザー裁定 2026-08-20） */
+  /* The center track is pinned to the craft button width; leaving it auto lets machine names or duration text
+     eat into the side slots, breaking "materials and results stay full size" (user ruling 2026-08-20) */
+  grid-template-columns: minmax(0, 1fr) var(--recipe-craft-button-width) minmax(0, 1fr);
+  column-gap: var(--recipe-column-gap);
   align-items: center;
-  align-self: center;
-  margin-top: -1px;
-  /* ヘッダーのフロー高を保ったまま選択枠だけ4物理px上へ戻す */
-  /* Move only the selection frame four device pixels upward while preserving the header's flow height */
-  transform: translateY(-1.565749px);
-  /* 選択枠を正本へ寄せるため実測約2倍のグリッド反応を織り込み、左余白と幅を微調整する */
-  /* Tune the selection margin and width for the measured roughly 2x grid response toward the reference */
-  margin-left: -5.2px;
-  width: calc(100% - 19.5px);
-  /* C2でスロットを2.3remへ縮小した後もmin-heightが行高を担保する(縮小前は3remスロット自身が
-     3.36remを上回って高さを決めていたため、収縮後はmin-heightを底上げしないと行高が縮む) */
-  /* min-height now owns the row height after C2 shrank the slots to 2.3rem — previously the 3rem slot
-     itself exceeded 3.36rem and drove the height, so shrinking it needs a taller min-height to compensate */
-  /* 上端を固定したまま下端だけ正本まで7物理px伸ばす */
-  /* Extend only the bottom edge seven device pixels to the reference while keeping the top fixed */
-  min-height: calc(3.52rem + 2.740061px);
-  padding: 0.35rem 0.75rem 0.1rem;
+  width: 100%;
+  /* 中央列（秒数+矢印+操作）が行高を決めるため、旧2段構成のmin-heightと画素合わせのオフセットは持たない */
+  /* The center column (duration + arrow + action) now drives the row height, so the old two-tier min-height and pixel-nudge offsets are gone */
+  padding: 0.5rem 0.75rem;
   /* 5x5中央値が枠色に支配されるため、視認性を残しつつ正本色へ収まる実測下限12%に抑える */
   /* The border controls the 5x5 median, so cap it at the measured 12% floor that stays visible while matching the reference color */
   border: 1px solid rgb(60 145 215 / 12%);
@@ -49,10 +46,18 @@
    min-height stays fixed, and align-items:center keeps the shrunk cells vertically centered */
 /* 正本の94px角セルに近づけるため選択行だけ1pxへ縮め、アイコン占有率を高める */
 /* Tighten only the selection row to 1px for higher icon occupancy inside the reference-sized 94px cells */
+/* 枠幅からスロット寸法を引くため、列いっぱいに広げたうえでcqwの基準（container）にする。
+   列数はgridTemplateColumnsで注入され、3点以上は2行になって高さが自動で伸びる */
+/* Fill the track and become the container so cqw resolves to this column's width when sizing slots;
+   the column count is injected via gridTemplateColumns and three or more items take two rows, growing the height */
 .recipeMaterials {
-  justify-self: start;
-  margin-left: 1px;
-  --slot-size: 2.3rem;
+  display: grid;
+  justify-self: stretch;
+  justify-content: start;
+  align-content: center;
+  width: 100%;
+  container-type: inline-size;
+  gap: var(--recipe-slot-gap);
   --icon-pad: 1px;
   --count-bottom: -1px;
   --count-font-size: 16px;
@@ -65,9 +70,11 @@
 
 /* 下端をスロット外(暗面)へはみ出させない。§8.17の明色面前提を満たすため0px床にする */
 /* Keep the bottom edge from spilling onto the dark box; floor at 0px per §8.17's light-face rule */
+/* スロットの外へ出さない。右へ2px出すと最終列で枠の実効幅を超え、中央列へ食い込む（実測1.9px） */
+/* Never bleed outside the slot; 2px to the right pushes the last column past the track and into the center column (measured 1.9px) */
 .materialCount {
   position: absolute;
-  right: -2px;
+  right: 0;
   bottom: 0;
   z-index: 2;
   color: var(--count-text);
@@ -81,21 +88,48 @@
   color: var(--text-insufficient);
 }
 
-/* 旧構成は矢印+下バーの2段で、行のcenter揃えとの差分をmargin-topで詰めていた。バー廃止で列が6px縮んだ分、
-   同じ見た目位置を保つため上寄せ量を倍にした（中央揃えの item は margin-top の半分だけ動くため）。
-   値は --craft-arrow-offset-y にあり、行の揃え方・矢印高・旧バーの6px footprint に依存する */
-/* The old layout stacked arrow + bar and used margin-top to offset row centering. Dropping the bar shrinks the
-   column by 6px, so the nudge doubled to hold the same visual position (a centered item moves half its margin-top).
-   The value lives in --craft-arrow-offset-y and depends on the row alignment, arrow height, and the old bar's 6px */
+/* 中央列は秒数→矢印→操作の縦積み。行のcenter揃えのままアイコン列と矢印の高さを合わせる */
+/* The center column stacks duration, arrow, and action; row centering keeps the arrow level with the slots */
 .recipeArrowCol {
-  justify-self: center;
-  margin-top: var(--craft-arrow-offset-y);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-self: stretch;
+  min-width: 0;
+  gap: 2px;
+}
+
+/* 矢印の真上に置く所要秒数 */
+/* Duration text placed directly above the arrow */
+.recipeDuration {
+  color: var(--text-high-contrast);
+  font-size: var(--recipe-duration-text-size);
+  line-height: 1;
+  white-space: nowrap;
+  /* 中央列は固定幅なので、桁数の多い秒数は溢れる前に省略記号で止める */
+  /* The center track is fixed width, so long durations are ellipsized instead of overflowing */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 操作は矢印の下に固定高で置き、クラフト/機械どちらでも行高を揃える */
+/* The action sits below the arrow at a fixed height so craft and machine rows share one geometry */
+.recipeActionSlot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: var(--recipe-action-button-height);
 }
 
 .recipeResult {
-  justify-self: end;
-  margin-right: 21px;
-  --slot-size: 2.3rem;
+  display: grid;
+  justify-self: stretch;
+  justify-content: end;
+  align-content: center;
+  width: 100%;
+  container-type: inline-size;
+  gap: var(--recipe-slot-gap);
   --icon-pad: 1px;
   --count-bottom: -1px;
   --count-font-size: 16px;
@@ -138,10 +172,9 @@
   min-width: 0;
 }
 
-/* 機械エントリのブロック情報行。ボタンと同じ高さ帯のクリック不可表示（ADR 0011） */
-/* Non-interactive block info row for machine entries, same band as the craft button (ADR 0011) */
-.machineInfoRow {
-  min-height: var(--recipe-action-button-height);
+/* 機械エントリは矢印の下にブロックアイコンと名前を縦に置く（機械レシピ時代の並びへ戻す） */
+/* Machine entries stack the block icon and name below the arrow, back to the machine-recipe-era layout */
+.machineInfo {
   color: var(--text-muted);
 }
 
@@ -151,24 +184,26 @@
   object-fit: contain;
 }
 
-/* nowrap親でtruncateを効かせるにはflex itemのmin-content床を外す必要がある */
-/* Truncate needs the min-content floor removed to work inside a nowrap parent */
+/* 中央列幅を超える機械名は省略記号で打ち切る（フルネームはアイコンaltへ残す） */
+/* Machine names beyond the center column width are truncated with an ellipsis; the full name stays on the icon's alt text */
 .machineInfoText {
-  min-width: 0;
   color: var(--text-muted);
   font-size: var(--recipe-info-text-size);
+  line-height: 1;
+  white-space: nowrap;
+  max-width: var(--recipe-craft-button-width);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* クラフト操作を控えめな中央寄せの青ボタンで示す。正本は縦グラデ+中央白帯でなく横方向の青→シアン */
 /* Present the craft action as a modest, center-aligned blue button; the reference is a horizontal blue-to-cyan gradient, not vertical with a center white band */
-/* 単一リストではボタンをエントリ幅いっぱいに伸ばす（ADR 0011） */
-/* In the single list the button stretches to the full entry width (ADR 0011) */
+/* ボタン幅はエントリ全幅ではなく矢印列の実測幅に揃える（ユーザー裁定 2026-08-20） */
+/* The button width follows the measured arrow-column width instead of the full entry (user ruling 2026-08-20) */
 .craftButton {
   composes: recipeActionButton from "./RecipeActionButton.module.css";
-  align-self: stretch;
-  width: auto;
-  max-width: none;
-  margin: 0;
+  width: var(--recipe-craft-button-width);
+  min-width: var(--recipe-craft-button-width);
   padding: 0;
   font-size: 12px;
   letter-spacing: 0.12em;

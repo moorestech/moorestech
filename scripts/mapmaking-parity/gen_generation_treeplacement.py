@@ -101,7 +101,10 @@ def main() -> None:
 
     # インベントリのバイオームが想定の分類から外れていたら、黙って一部を落とさず止める
     # Stop instead of silently skipping a biome the inventory carries but this script does not classify
-    unknown = set(biomes) - set(PRESET_BIOMES) - set(SPECIES_FILL_BIOMES)
+    # objectConfigだけを持つバイオーム（desert/alpine）は本スクリプトの対象外なので、treePlacementを持つものだけを検査する
+    # Biomes carrying only objectConfig (desert/alpine) are outside this script, so only those with treePlacement data are checked
+    tree_biomes = {name for name, biome in biomes.items() if "prototypes" in biome or "speciesFill" in biome}
+    unknown = tree_biomes - set(PRESET_BIOMES) - set(SPECIES_FILL_BIOMES)
     if unknown:
         raise ValueError(f"分類されていないバイオーム: {sorted(unknown)}")
 

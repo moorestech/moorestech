@@ -31,6 +31,9 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         // The painters run Split internally, so the tests' guids must be ones the forUnitTest master really classifies
         public const string StoneGuid = "00000000-0000-2222-0000-000000000001";
         public const string TreeGuid = "00000000-0000-1111-0000-000000000001";
+        // 裸地を塗らない岩(rockNoBareGround)。距離場には岩として乗り、裸地painterは触らない
+        // A rock that paints no bare ground (rockNoBareGround): it feeds the rock distance field and the bare-ground painter skips it
+        public const string NoBareGroundStoneGuid = "00000000-0000-3333-0000-000000000001";
 
         public const int RockPixel = 4;
 
@@ -110,8 +113,13 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         // The scale is doubled, making the footprint radius (2+2)/2 * rockMeshBaseSize
         public static MapObjectLayoutMessagePack CreateRock(int clusterId)
         {
+            return CreateRock(clusterId, StoneGuid);
+        }
+
+        public static MapObjectLayoutMessagePack CreateRock(int clusterId, string mapObjectGuid)
+        {
             return new MapObjectLayoutMessagePack(
-                1, StoneGuid,
+                1, mapObjectGuid,
                 RockLocalPosition, 0f, RockLocalPosition, 0f, 0f, 0f, 1f, 2f, 2f, 2f,
                 clusterId,
                 clusterId < 0 ? 0f : RockLocalPosition,

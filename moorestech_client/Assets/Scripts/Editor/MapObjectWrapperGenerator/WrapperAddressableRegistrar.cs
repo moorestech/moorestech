@@ -12,7 +12,8 @@ public static class WrapperAddressableRegistrar
 
     // この生成器が持つアドレス空間。末尾のスラッシュで既存のVanilla/Environment/Tree(Tree.prefab)やBushを巻き込まない
     // The address space this generator owns; the trailing slash keeps the existing Vanilla/Environment/Tree (Tree.prefab) and Bush out of it
-    private static readonly string[] GeneratedAddressPrefixes = { "Vanilla/Environment/Tree/", "Vanilla/Environment/Rock/" };
+    private static readonly string[] GeneratedAddressPrefixes =
+        { "Vanilla/Environment/Tree/", "Vanilla/Environment/Rock/", "Vanilla/Environment/Plant/", "Vanilla/Environment/Prop/" };
 
     public static int RegisterAll(List<MapObjectWrapperSpecies> speciesList)
     {
