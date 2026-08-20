@@ -505,12 +505,12 @@ git commit -m "docs(pr-independent-review): 無人実行のターン終了自壊
 **Interfaces:**
 - Consumes: Task 1〜3 の `poller.py`
 
-- [ ] **Step 1: 構文と全テストの最終確認**
+- [x] **Step 1: 構文と全テストの最終確認**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/services/pr-review && python3 -m py_compile poller.py && python3 -m unittest test_poller -v`
 Expected: 例外なし・全テストPASS
 
-- [ ] **Step 2: DRYRUNで1tick流して既存PRの状態遷移が壊れていないことを見る**
+- [x] **Step 2: DRYRUNで1tick流して既存PRの状態遷移が壊れていないことを見る**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/services/pr-review && PR_REVIEW_DRYRUN=1 python3 poller.py`
 Expected: 例外で落ちず、管理対象PRごとに `[DRYRUN]` 行か状態行が出る
@@ -522,14 +522,14 @@ Expected: 例外で落ちず、管理対象PRごとに `[DRYRUN]` 行か状態�
 Run: `ls ~/hermes-agent/data/services/pr-review/state/pr-*/review.session && grep "launched claude" ~/hermes-agent/data/services/pr-review/state/poller.log | tail -3`
 Expected: `review.session` にUUIDが入っており、起動ログが出ている
 
-- [ ] **Step 4: bd issue をクローズする**
+- [x] **Step 4: bd issue をクローズする**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/unattended-review-resume
 bd close moorestech-616u --reason="poller resume/abort弁別とSKILL.mdハードルールを実装"
 ```
 
-- [ ] **Step 5: コミットしてpush・PR作成する**
+- [x] **Step 5: コミットしてpush・PR作成する**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/unattended-review-resume
