@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { dispatchAction, Topics, useTopic, type TutorialPresentationData } from "@/bridge";
 import { TutorialAnchorRegistry, clipPathInset, type ClipRect, type ResolvedAnchor } from "@/shared/tutorialAnchor";
+import { readTutorialHighlightGlowPx } from "./highlightGlowToken";
 import styles from "./style.module.css";
 
 type TutorialSession = TutorialPresentationData["sessions"][number];
@@ -83,10 +84,6 @@ export function TutorialOverlay() {
   </div>;
 }
 
-// style.module.css の .highlight が持つ box-shadow の広がり幅。clip-pathで削らないため外側へ逃がす
-// The spread of .highlight's box-shadow in style.module.css; the clip is pushed out so it is not shaved off
-const HIGHLIGHT_GLOW_PX = 4;
-
 function renderOutline(key: string, element: TutorialOutlineElement, value: ResolvedAnchor | undefined) {
   if (!value || value.status !== "ready") return null;
   const padding = element.paddingPx;
@@ -97,7 +94,7 @@ function renderOutline(key: string, element: TutorialOutlineElement, value: Reso
   };
   // 祖先のoverflowで完全に隠れている間は要素ごと出さず、DOMと見た目を一致させる
   // While ancestor overflow hides it entirely, omit the element so the DOM matches what is painted
-  const clipPath = clipPathInset(box, value.clip, HIGHLIGHT_GLOW_PX);
+  const clipPath = clipPathInset({ box, clip: value.clip, outsetPx: readTutorialHighlightGlowPx() });
   if (clipPath === null) return null;
   return <div key={key} className={styles.highlight} data-kind={element.kind}
     style={{ left: box.left, top: box.top, width: box.right - box.left, height: box.bottom - box.top, clipPath }} />;

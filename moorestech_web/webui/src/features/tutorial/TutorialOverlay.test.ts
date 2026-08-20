@@ -41,6 +41,12 @@ vi.mock("@/shared/tutorialAnchor", async (importOriginal) => {
   };
 });
 
+// vitestはnode環境でdocumentを持たないため、CSS変数読み取りをテスト用の固定値へ差し替える
+// vitest runs in a node environment with no document, so the CSS variable read is swapped for a fixed test value
+vi.mock("./highlightGlowToken", () => ({
+  readTutorialHighlightGlowPx: () => 4,
+}));
+
 import { TutorialOverlay } from "./TutorialOverlay";
 
 const FULL_CLIP = { left: -100, top: -100, right: 1280, bottom: 820 };

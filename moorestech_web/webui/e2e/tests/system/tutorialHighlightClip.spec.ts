@@ -6,9 +6,6 @@ import { TUTORIAL_RESEARCH_NODE_PADDING_PX } from "../../mock-host/topics/topicC
 import { PAN_RELEASE_STALL_MS } from "../../../src/shared/treeView/viewport/viewport";
 
 const RESEARCH_NODE = `research-node-${researchableNodeGuid}`;
-// TutorialOverlay の HIGHLIGHT_GLOW_PX と同じ値。切れていない辺は枠がここまで外へ出る
-// Same value as HIGHLIGHT_GLOW_PX in TutorialOverlay; intact sides extend this far outward
-const GLOW_PX = 4;
 const TOLERANCE_PX = 1.5;
 
 type Rect = { left: number; top: number; right: number; bottom: number };
@@ -62,7 +59,7 @@ async function highlightVisibleRect(page: Page) {
 
 // 期待端=padding+glow分広げclipでクランプ
 // Expected edge = anchor expanded by padding+glow, clamped to clip
-function expectMaskedLikeAnchor(highlight: Rect, anchor: { full: Rect }, clip: Rect) {
+function expectMaskedLikeAnchor(highlight: Rect, anchor: { full: Rect }, clip: Rect, glowPx: number) {
   const sides = [
     { key: "left" as const, sign: -1, clamp: Math.max },
     { key: "top" as const, sign: -1, clamp: Math.max },
@@ -70,10 +67,19 @@ function expectMaskedLikeAnchor(highlight: Rect, anchor: { full: Rect }, clip: R
     { key: "bottom" as const, sign: 1, clamp: Math.min },
   ];
   for (const side of sides) {
-    const expanded = anchor.full[side.key] + side.sign * (TUTORIAL_RESEARCH_NODE_PADDING_PX + GLOW_PX);
+    const expanded = anchor.full[side.key] + side.sign * (TUTORIAL_RESEARCH_NODE_PADDING_PX + glowPx);
     const expected = side.clamp(expanded, clip[side.key]);
     expect(Math.abs(highlight[side.key] - expected), side.key).toBeLessThanOrEqual(TOLERANCE_PX);
   }
+}
+
+// TutorialOverlay と同じCSS変数を読む。切れていない辺は枠がここまで外へ出る
+// Reads the same CSS variable as TutorialOverlay; intact sides extend this far outward
+async function readGlowPx(page: Page) {
+  return page.evaluate(() => {
+    const raw = getComputedStyle(document.documentElement).getPropertyValue("--tutorial-highlight-glow");
+    return Number.parseFloat(raw);
+  });
 }
 
 // 空背景を掴んでキャンバスをパンする。ノード上から始めるとクリック扱いになる
@@ -98,6 +104,7 @@ test("研究ノードのハイライトが祖先のoverflowクリップに合わ
   await expect(node).toBeVisible();
   const highlight = page.locator('[data-testid="tutorial-overlay"] [data-kind="outline"]');
   await expect(highlight).toBeVisible();
+  const glowPx = await readGlowPx(page);
 
   // クリップ矩形はビューポートのpadding box。.viewportはborder 0なのでboundingBoxをそのまま使える
   // The clip rect is the viewport's padding box; .viewport has border:0 so boundingBox doubles as it
@@ -111,7 +118,7 @@ test("研究ノードのハイライトが祖先のoverflowクリップに合わ
   // 1. Centered: drawn on all sides
   const inside = await anchorRects(page, RESEARCH_NODE);
   expect(inside?.visible).not.toBeNull();
-  expectMaskedLikeAnchor((await highlightVisibleRect(page))!, { full: inside!.full }, clip);
+  expectMaskedLikeAnchor((await highlightVisibleRect(page))!, { full: inside!.full }, clip, glowPx);
   await page.screenshot({ path: testInfo.outputPath("clip-1-inside.png") });
 
   // 2. 端跨ぎ: 同位置で切れる
@@ -121,7 +128,7 @@ test("研究ノードのハイライトが祖先のoverflowクリップに合わ
   const partial = await anchorRects(page, RESEARCH_NODE);
   expect(partial?.visible).not.toBeNull();
   expect(partial!.visible!.right).toBeLessThan(partial!.full.right - TOLERANCE_PX);
-  expectMaskedLikeAnchor((await highlightVisibleRect(page))!, { full: partial!.full }, clip);
+  expectMaskedLikeAnchor((await highlightVisibleRect(page))!, { full: partial!.full }, clip, glowPx);
   await page.screenshot({ path: testInfo.outputPath("clip-2-partial.png") });
 
   // 3. 押し出し: 枠ごと消える

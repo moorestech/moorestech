@@ -188,6 +188,9 @@
   /* ドラッグガイド矢印を世界背景から分離する最小限の影（world-pin矢印と同族） */
   /* Minimal shadow separating the drag guide arrow from the world background, same family as the world-pin arrow */
   --tutorial-drag-guide-shadow: rgb(0 0 0 / 65%);
+  /* ハイライト枠の外側グロー幅。clip-pathの計算もこの値を読むため単一の値源として扱う */
+  /* Outer glow width of the highlight frame; the clip-path math also reads this value as the single source */
+  --tutorial-highlight-glow: 4px;
   /* モード選択肢を独立したボタンとして見せる間隔を確保する */
   /* Separates mode options so each reads as an independent button */
   --mode-switch-gap: 4px;

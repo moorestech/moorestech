@@ -46,9 +46,11 @@ walk は feature の知識を持たず、`data-tutorial-anchor` が付いた任�
 
 ## Consequences
 
-- **脱出則は未検証のまま残る。** 現行アンカーはどれも `.stage`（`position: relative`）配下にあり absolute の包含ブロックは常に `.stage` になるため `absolute-escapes-static` は起きず、`position: fixed` なアンカーも存在しない。よって walk の脱出則は現状デッドロジックであり、実UI経路のテストでは踏まれない。将来スクロールコンテナ内へ `position: fixed` のモーダルを置いた場合に初めて効き、そこで誤ると**ハイライトが丸ごと消える**（現行バグより悪い壊れ方）。`ancestorClip.ts` にこの旨を明記する。
+- **脱出則はデッドロジックではなく、実UIで毎フレーム評価されている。** `position: fixed` なアンカーは実在する — `commonHud/style.module.css` の `.crosshair`（`CommonHud.tsx` が `TutorialAnchorIds.gameCrosshair` を付与）と `trainHud/style.module.css` の `.hud`（`TrainRidingHud.tsx` が `TutorialAnchorIds.trainHudStatus` を付与）。どちらも `App.tsx` で `.stage` 直下に置かれ、`.stage`（`App.module.css` の `transform: scale(var(--ui-scale,1))`）が fixed の包含ブロックになるため、escape 分岐は `.stage` で即座に捕捉される。そのため今のところマスク結果は変わらないが、評価自体は起きている。将来スクロールコンテナ内へ `position: fixed` のモーダルを置いた場合に結果が変わり、誤ると**ハイライトが丸ごと消える**（現行バグより悪い壊れ方）。`ancestorClip.ts` にこの旨を明記する。
 - **アンカーがクリップ端に密着している場合、`paddingPx` のリングだけが切られて枠が「コ」の字に欠ける。** ノードが100%見えていても起きる。レシピのアイテム一覧（`.mantine-ScrollArea-viewport` は `padding-left` のみで上パディング無し）とビルドメニュー（`.scroll` はパディング無し）の最上段で実際に発生する。今回は許容する。
 - **完全に隠れていても ack は `ready` のまま**で、Unity 側は「表示できている」と認識し続ける。描画はされないため見た目の不整合は無いが、契約上の不整合は残る。
 - `dragGuide` は従来どおりパネル外へはみ出したまま残る。
+- **クリップ祖先自身の幾何変化の購読は、window resize・DOM属性変異・スクロールに限定される。** `TutorialAnchorRegistry` はウィンドウの `resize`・`document` の `scroll`（capture）・`MutationObserver`（`childList`/`subtree`/`attributes`）・`visualViewport` の `resize`/`scroll` を購読し、アンカー自身の矩形は `ResizeObserver` でも監視する。しかし監視対象はアンカー要素そのものであり、それを包むクリップ祖先（研究ツリーのパネル等）の幅・高さ変化は個別に監視していない。抜けているのは「ウィンドウは変わらないが祖先パネルの内部だけがCSSトランジション等で幅・高さを変える」経路（現行UIには該当する入力は無い）で、これが起きると再解決が走らず古いマスクのままハイライトがはみ出しうる。
+- **`renderOutline` の戻り値契約が変わった。** 従来は「`status: "ready"` ⇒ `[data-kind="outline"]` の DOM 要素が存在する」だったが、祖先クリップとの交差が空のとき `null` を返して要素ごと描かなくなったため、正しくは「ready かつ可視 ⇒ 要素が存在する」である。DOM存在をready の代理として見ているテスト・監視コードはこの契約変更を踏まえること。
 
-出所: ユーザー裁定 2026-08-20「一旦そこ許容して実際の見た目をしりたい」
+出所: ユーザー裁定 2026-08-20「一旦そこ許容して実際の見た目をしりたい」・2026-08-20 レビュー裁定（C7実測・D2案A/W17）

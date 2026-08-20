@@ -54,7 +54,7 @@ export function ancestorClipRect(element: HTMLElement): ClipRect {
 // clip-path resolves against the border box, so even inset(0px) shaves off the box-shadow's outer glow
 // 非クリップ辺は-outsetPxで装飾温存
 // Non-clipped sides use -outsetPx to preserve the decoration
-export function clipPathInset(box: ClipRect, clip: ClipRect, outsetPx: number): string | null {
+export function clipPathInset({ box, clip, outsetPx }: { box: ClipRect; clip: ClipRect; outsetPx: number }): string | null {
   if (isDisjoint(box, clip)) return null;
   const top = Math.max(-outsetPx, clip.top - box.top);
   const right = Math.max(-outsetPx, box.right - clip.right);
