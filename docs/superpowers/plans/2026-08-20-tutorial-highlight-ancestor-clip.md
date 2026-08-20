@@ -21,7 +21,7 @@
 
 ### やらないこと（スコープ境界）
 
-- **`dragGuide`（D&Dガイド矢印）はマスクしない。** 従来どおりパネル外へはみ出したまま残す。理由: 矢印は from→to を translate アニメーションで移動するため、どの時点のどのクリップ矩形を当てるかが未決（ADR 0023 Considered Options）
+- **`dragGuide`（D&Dガイド矢印）はマスクしない。** 従来どおりパネル外へはみ出したまま残す。理由: 矢印は from→to を translate アニメーションで移動するため、どの時点のどのクリップ矩形を当てるかが未決（ADR 0024 Considered Options）
 - **ack セマンティクスは変えない。** 完全にクリップされていても `status: "ready"` / `reason: "mounted"` を ack し続ける。理由: 「1pxだけ見えている状態を表示成功とみなすか」の閾値が未裁定
 - **`paddingPx` のリングが端で切られて枠が「コ」の字に欠ける件は直さない。** ユーザー裁定により今回は許容する
 - **祖先の `border-radius` に追従しない。** 矩形 `inset()` のみ。現状の webui でクリップ祖先に角丸を持つものは無い
@@ -38,7 +38,7 @@
 - **`?? Default` フォールバックやスキーマの `optional: true` で欠損を吸収しない**（AGENTS.md 設計原則）。`clip` は `status: "ready"` の必須フィールドにし、型エラーが出る呼び出し側は全て更新する
 - **e2e はポート 5273 を単一で共有する。** 他セッションが同時に `pnpm test:e2e` を走らせていると無関係な spec が落ちる。失敗 spec が実行ごとに変わったらまずポート衝突を疑う
 - **既知の外部ブロッカー**: `origin/master` の `.moorestech-external-revisions.json` が存在しないコミット `c35f10ab` を指しており、CI の master data checkout が失敗する（bd `moorestech-hvwb`、別担当が対応中）。本planの変更とは無関係で、ローカル検証には影響しない。PR の CI が master pin で落ちた場合はこの issue の解決を待つ
-- **設計の正本**: `docs/adr/0023-tutorial-highlight-ancestor-clip-mask.md` と `.decisions/2026-08-20-チュートリアルハイライトのマスク方式とテスト方針.md`。実装前に両方読むこと
+- **設計の正本**: `docs/adr/0024-tutorial-highlight-ancestor-clip-mask.md` と `.decisions/2026-08-20-チュートリアルハイライトのマスク方式とテスト方針.md`。実装前に両方読むこと
 
 ---
 
@@ -74,7 +74,7 @@
 
 **検査3（イディオム）**: 新しい通知機構は導入しない（既存の registry → React state 経路のまま）。`try-catch` 無し、デフォルト引数はテストヘルパのみ、全ファイル200行以下。
 
-**検査4（機構選択）**: 受動的統合案（ブラウザの `IntersectionObserver.intersectionRect` をそのまま使う）と能動介入案（自前 walk）を ADR 0023 の Considered Options で head-to-head 比較済み。IO は非同期配信でパン中に rAF 更新から遅れマスク端がチラつくため、追従精度を理由に walk を採用した。
+**検査4（機構選択）**: 受動的統合案（ブラウザの `IntersectionObserver.intersectionRect` をそのまま使う）と能動介入案（自前 walk）を ADR 0024 の Considered Options で head-to-head 比較済み。IO は非同期配信でパン中に rAF 更新から遅れマスク端がチラつくため、追従精度を理由に walk を採用した。
 
 **機能パリティ死活表**:
 
@@ -120,8 +120,8 @@
 // so absolutes never escape, and no anchor is position: fixed
 // スクロールコンテナ内へ position:fixed のモーダルを置いた時に初めて効き、誤るとハイライトが丸ごと消える
 // They only matter once a fixed modal lands inside a scroller, where a mistake hides the highlight entirely
-// 変更する場合は docs/adr/0023-tutorial-highlight-ancestor-clip-mask.md の Consequences を読むこと
-// Read the Consequences section of ADR 0023 before changing them
+// 変更する場合は docs/adr/0024-tutorial-highlight-ancestor-clip-mask.md の Consequences を読むこと
+// Read the Consequences section of ADR 0024 before changing them
 
 export type ClipRect = { left: number; top: number; right: number; bottom: number };
 
@@ -652,23 +652,23 @@ git commit -m "test(webui): ハイライトのマスクを実UI経路とIntersec
 
 - [ ] **Step 2: 指摘へ対応してコミットする**
 
-機械的修正は適用し、設計判断が必要な指摘は `AskUserQuestion` でユーザーへ諮る。ADR 0023 の Consequences に「今回は許容する」と明記済みの3件（`dragGuide` 未対応・ack セマンティクス据え置き・「コ」の字欠け）は裁定済みであり、再指摘されても実装し直さない。
+機械的修正は適用し、設計判断が必要な指摘は `AskUserQuestion` でユーザーへ諮る。ADR 0024 の Consequences に「今回は許容する」と明記済みの3件（`dragGuide` 未対応・ack セマンティクス据え置き・「コ」の字欠け）は裁定済みであり、再指摘されても実装し直さない。
 
 - [ ] **Step 3: 台帳を更新して派生タスクを積む**
 
-タスク台帳 `moorestech-2j6n` を close する。理由には「outlineの祖先クリップマスクを実装。dragGuide・ackセマンティクス・コの字欠けはADR 0023で今回スコープ外と裁定」と書く。
+タスク台帳 `moorestech-2j6n` を close する。理由には「outlineの祖先クリップマスクを実装。dragGuide・ackセマンティクス・コの字欠けはADR 0024で今回スコープ外と裁定」と書く。
 
 続けて、スコープ外とした3件を新規 issue として積む（いずれも type=bug / priority=2、本 issue から派生した旨を残す）:
 
-1. 「チュートリアルのD&Dガイド矢印が祖先のoverflowでクリップされない」— `renderDragGuide` は `renderOutline` と同じ body 直下 fixed portal にあり同じ問題を持つ。矢印は from→to を translate アニメーションで移動するため、どの時点のどのクリップ矩形を当てるかが未決（from側固定・to側固定・両者の和・アニメーション追従の4案）。ADR 0023 Considered Options 参照
-2. 「チュートリアルハイライトのackが完全クリップ時もreadyのまま」— 祖先クリップで完全に隠れていても `status: "ready"` を ack するため Unity 側は表示できていると認識する。`hidden` / 新 reason `clipped` を返す案は、1pxだけ見えている状態を表示成功とみなすかの閾値が未裁定のため保留。ADR 0023 Consequences 参照
-3. 「ハイライトのpaddingリングが端に密着したアンカーで枠が「コ」の字に欠ける」— `paddingPx` はアンカーの外側へ広がるため、クリップ端に密着したアンカーではノードが100%見えていてもリングの一辺だけ切られる。レシピ一覧（`.mantine-ScrollArea-viewport` に上パディング無し）とビルドメニュー（`.scroll` にパディング無し）の最上段で実発生する。手当て案はリングを内側へ逃がす / アンカー内側に描く。ADR 0023 Consequences 参照
+1. 「チュートリアルのD&Dガイド矢印が祖先のoverflowでクリップされない」— `renderDragGuide` は `renderOutline` と同じ body 直下 fixed portal にあり同じ問題を持つ。矢印は from→to を translate アニメーションで移動するため、どの時点のどのクリップ矩形を当てるかが未決（from側固定・to側固定・両者の和・アニメーション追従の4案）。ADR 0024 Considered Options 参照
+2. 「チュートリアルハイライトのackが完全クリップ時もreadyのまま」— 祖先クリップで完全に隠れていても `status: "ready"` を ack するため Unity 側は表示できていると認識する。`hidden` / 新 reason `clipped` を返す案は、1pxだけ見えている状態を表示成功とみなすかの閾値が未裁定のため保留。ADR 0024 Consequences 参照
+3. 「ハイライトのpaddingリングが端に密着したアンカーで枠が「コ」の字に欠ける」— `paddingPx` はアンカーの外側へ広がるため、クリップ端に密着したアンカーではノードが100%見えていてもリングの一辺だけ切られる。レシピ一覧（`.mantine-ScrollArea-viewport` に上パディング無し）とビルドメニュー（`.scroll` にパディング無し）の最上段で実発生する。手当て案はリングを内側へ逃がす / アンカー内側に描く。ADR 0024 Consequences 参照
 
 ---
 
 ## 判断記録（ADR）
 
-設計セッションの正本: `docs/adr/0023-tutorial-highlight-ancestor-clip-mask.md` / `.decisions/2026-08-20-チュートリアルハイライトのマスク方式とテスト方針.md`
+設計セッションの正本: `docs/adr/0024-tutorial-highlight-ancestor-clip-mask.md` / `.decisions/2026-08-20-チュートリアルハイライトのマスク方式とテスト方針.md`
 
 planning 中に新たに生じた判断:
 

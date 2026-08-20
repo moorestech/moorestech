@@ -10,8 +10,8 @@
 // So the escape branch runs every frame without changing the mask outcome. Only once a fixed modal
 // position:fixed のモーダルを置いた場合に結果が変わり、誤るとハイライトが丸ごと消える
 // lands inside a scroller does the result change, and a mistake there hides the highlight entirely
-// 変更する場合は docs/adr/0023-tutorial-highlight-ancestor-clip-mask.md の Consequences を読むこと
-// Read the Consequences section of ADR 0023 before changing them
+// 変更する場合は docs/adr/0024-tutorial-highlight-ancestor-clip-mask.md の Consequences を読むこと
+// Read the Consequences section of ADR 0024 before changing them
 
 export type ClipRect = { left: number; top: number; right: number; bottom: number };
 
