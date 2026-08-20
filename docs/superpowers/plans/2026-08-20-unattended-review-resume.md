@@ -51,7 +51,7 @@
 - Produces: `launch_claude(number: int, prompt: str, log_name: str, pid_name: str, cwd: str, session_id: str, resume: bool) -> None`
 - Produces: 起動プロセスの env に `PR_REVIEW_UNATTENDED=1`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `test_poller.py` の `LaunchClaudeTest` へ2本追加する:
 
@@ -92,12 +92,12 @@
             self.assertNotIn("--session-id", command)
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/services/pr-review && python3 -m unittest test_poller.LaunchClaudeTest -v`
 Expected: FAIL（`launch_claude() got an unexpected keyword argument 'session_id'` / `module 'pr_review_poller' has no attribute 'RESUME_PROMPT'`）
 
-- [ ] **Step 3: `poller.py` に実装する**
+- [x] **Step 3: `poller.py` に実装する**
 
 `import uuid` を `import time` の下（15-22行のimport群、アルファベット順の位置）へ追加する。`MAX_APPLY_RETRY = 1`（102行）の直後へ定数を追加する:
 
@@ -142,7 +142,7 @@ def claude_argv(prompt: str, session_id: str, resume: bool) -> list[str]:
     env["PR_REVIEW_UNATTENDED"] = "1"
 ```
 
-- [ ] **Step 4: 全呼び出し側を更新する**
+- [x] **Step 4: 全呼び出し側を更新する**
 
 `grep -n "launch_claude(" poller.py` で出る呼び出しを全部更新する。この時点では resume 経路がまだ無いので、レビュー起動以外はすべて `session_id="", resume=False` を渡す。`handle_waiting`（477-505行）だけは新規セッションIDを発行する:
 
@@ -163,12 +163,12 @@ def claude_argv(prompt: str, session_id: str, resume: bool) -> list[str]:
     )
 ```
 
-- [ ] **Step 5: テストを実行して全緑を確認する**
+- [x] **Step 5: テストを実行して全緑を確認する**
 
 Run: `cd /Users/sakastudio/hermes-agent/data/services/pr-review && python3 -m unittest test_poller -v`
 Expected: 全テストPASS（既存13本 + 新規2本）
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 `poller.py` は git 管理外なのでコミット対象は無い。plan のチェックボックス更新のみ worktree 側でコミットする:
 
