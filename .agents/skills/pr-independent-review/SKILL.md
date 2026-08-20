@@ -11,30 +11,49 @@ description: |
   1. 「/pr-independent-review <PR URL|番号>」で起動された時
   2. 「このPRを独立レビューして」「シャドーレビューして」と言われた時
   3. 「/pr-independent-review reconcile <番号>」で起動された時（人間レビューとの突き合わせ・見逃し検知・改善発火）
+hooks:
+  # 無人実行の関所。スキル発動中だけ有効（repo横断のsettings.jsonに置くと開発者の通常セッションまで巻き込む）
+  # Gate for unattended runs; active only while this skill runs, unlike a repo-wide settings.json hook
+  PreToolUse:
+    - matcher: "AskUserQuestion"
+      hooks:
+        - type: command
+          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py ask"
+  Stop:
+    - hooks:
+        - type: command
+          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py stop review"
 ---
 
 # pr-independent-review — 独立セッションPRレビュー（シャドー運用v1）
 
-## 最重要: ターンを終えた瞬間にプロセスが死ぬ
+## 最重要: 無人起動でも「findings.json か abort.json で終える」
 
-環境変数 `PR_REVIEW_UNATTENDED=1` が立っているとき、このスキルは poller から `claude -p`（print mode）で
-detach起動されている。**print modeにはターンの続きが無い** — アシスタントのターンが終わった時点でプロセスがexitし、
-以後あなたは二度と再開されない。`findings.json` を書かずに終われば、それは poller から自壊と見なされる
-（実際にPR1176・PR1178で発生。ユーザー裁定 2026-08-20）。
+環境変数 `PR_REVIEW_UNATTENDED=1` が立っているとき、このスキルは poller から cmux ワークスペース上の
+**対話モード** claude でフォアグラウンド起動されている（ADR 0023。2026-08-20 までは `claude -p` だった）。
+対話モードではターンを終えてもプロセスは消えないが、**poller はあなたが動いているかを transcript の更新で見ている**。
+session と subagents の transcript が 1200 秒更新されないと「自壊相当」と判定され、同じペインへ
+RESUME 指示が1回送られ、それでも進まなければ失敗ラベルになる。
 
 したがって無人起動時は:
 
-- **待機は必ず同一ターン内でブロッキングして行う**。subagentの完了待ちは、そのターンで待ち切る。
-  完了に数十分かかっても、待つこと自体がこのスキルの仕事である
-- **「残り1本の完了を待ちます」「後で結果を確認します」と述べてターンを閉じることを禁止する**。
-  スケジュールされた再開はこの実行環境に存在しない
-- **質問して停止することを禁止する**。判断が要る指摘はダイジェストの裁定カード（設計判断）へ落とす。
-  裁定サイトが人間へ渡す経路であり、ターンを閉じて聞くのは経路ではない
-- **終了地点は2つだけ** — Step 7.5の `findings.json` が生成された直後か、下記「中止の申告」で
-  `abort.json` を書いた直後。どちらも書かずに終わる終わり方は、成功・失敗いずれの意図であってもバグである
+- **待機は同一ターン内でブロッキングして行う**（subagent の完了待ちは Monitor 等で待ち切る）。
+  「後で結果を確認します」とターンを閉じて待つことは、transcript が止まるため自壊と判定される
+- **質問して停止することを禁止する**。判断が要る指摘はダイジェストの裁定カード（設計判断）へ落とす
+- **終了地点は2つだけ** — Step 7.5 の `findings.json` が生成された直後か、下記「中止の申告」で
+  `abort.json` を書いた直後
+- **session limit に当たったら何もしなくてよい**。poller が reset 時刻まで待ち、同じペインへ
+  「$RUNDIR/agents/*.md を点検し、オーケストレータのエージェントIDへ SendMessage で未完了分だけ続行」
+  という継続指示を送る。その指示が来たら、完了済みの体は再派遣せず、保持しているIDへ SendMessage で続きを頼むこと
+- 人がペインに割り込んで指示した場合は「止める」「続きを指示する」に限って従う
 
 `PR_REVIEW_UNATTENDED` が無い（人が対話で起動した）場合は、質問して止まってよい。ただし
 `findings.json` / `abort.json` のどちらかで終える規律は同じく守る。
+
+この規律は本スキルのfrontmatter hooks（`scripts/unattended-gate.py`）が機械的に守らせる。起動プロンプトに
+`【無人起動】` がある場合に限り、`$RUNDIR/session-done.marker` も `abort.json` も無いままターンを終えようとすると
+Stopがブロックされ、AskUserQuestion はdenyされる。ブロックは同一セッション2回でフェイルオープンするので、
+関所の誤爆が作業を恒久的に止めることはない。人が対話で起動したセッションでは関所は立たない。
 
 ### 中止の申告（abort.json）
 
@@ -688,6 +707,12 @@ sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させ
   セッション側で `git commit` すると同一内容を二重に扱うことになる。**書いたら放置が正**
   （旧版の「正典treeへ書き込むが勝手にcommitしない」は記録先を `$LOGS` へ分離する前の記述。
   現在は正典tree＝コードrepoへは記録を一切書かない）
+- **本Step完了の最後に `$RUNDIR/session-done.marker` を書く**（中身は空でよい）。
+  pollerはcmuxワークスペースをフォアグラウンド起動しており「ターン終了＝プロセス終了」の合図を持たないため、
+  `findings.json` の生成だけでは Step 7.6/8 の完了を意味しない。このマーカーが「終了してよい」の唯一の合図であり、
+  pollerは `findings.json ∧ session-done.marker` の両方が揃うまでワークスペースを閉じない
+  (This marker is the sole "safe to close" signal for the poller's foreground cmux launch — write it only
+  after Step 7.6/8 are truly done, since findings.json alone no longer implies the session has finished)
 
 ## Step 9: 修正モード（「修正して」と言われたときだけ）
 
