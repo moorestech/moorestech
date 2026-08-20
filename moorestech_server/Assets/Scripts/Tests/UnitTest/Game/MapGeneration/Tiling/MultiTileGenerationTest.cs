@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.MapGeneration.Pipeline;
-using Game.MapGeneration.Pipeline.Stages;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -126,8 +125,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             var buckets = new HashSet<Vector2Int>();
             foreach (var vein in output.ItemVeins)
             {
-                MultiTileTestWorld.AssertInsideGridWithMargin(vein.Min.x, vein.Min.z, config, VeinAabbBuilder.Extent.x);
-                MultiTileTestWorld.AssertInsideGridWithMargin(vein.Max.x, vein.Max.z, config, VeinAabbBuilder.Extent.x);
+                MultiTileTestWorld.AssertVeinInsideGrid(vein, config);
                 buckets.Add(MultiTileTestWorld.TileBucket(vein.Min.x, vein.Min.z, config));
             }
 
@@ -166,8 +164,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             Assert.IsNotEmpty(output.ItemVeins);
             foreach (var vein in output.ItemVeins)
             {
-                MultiTileTestWorld.AssertInsideGridWithMargin(vein.Min.x, vein.Min.z, config, VeinAabbBuilder.Extent.x);
-                MultiTileTestWorld.AssertInsideGridWithMargin(vein.Max.x, vein.Max.z, config, VeinAabbBuilder.Extent.x);
+                MultiTileTestWorld.AssertVeinInsideGrid(vein, config);
             }
         }
     }

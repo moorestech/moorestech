@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline;
+using Game.MapGeneration.Pipeline.Stages;
 using Mooresmaster.Model.GenerationModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -99,12 +100,17 @@ namespace Tests.UnitTest.Game.MapGeneration
             List<PlacedVein> veins, float minX, float maxX, float minZ, float maxZ)
         {
             Assert.That(veins, Is.Not.Empty);
+
+            // 鉱脈は軸ごとに VeinAabbBuilder.Extent ぶん張り出すため、判定に軸別の余白を持たせる。
+            // Veins reach VeinAabbBuilder.Extent per axis, so the range check takes an axis-specific margin.
+            var marginX = VeinAabbBuilder.Extent.x;
+            var marginZ = VeinAabbBuilder.Extent.z;
             foreach (var vein in veins)
             {
-                Assert.That(vein.Min.x, Is.InRange(minX, maxX));
-                Assert.That(vein.Max.x, Is.InRange(minX, maxX));
-                Assert.That(vein.Min.z, Is.InRange(minZ, maxZ));
-                Assert.That(vein.Max.z, Is.InRange(minZ, maxZ));
+                Assert.That(vein.Min.x, Is.InRange(minX - marginX, maxX + marginX));
+                Assert.That(vein.Max.x, Is.InRange(minX - marginX, maxX + marginX));
+                Assert.That(vein.Min.z, Is.InRange(minZ - marginZ, maxZ + marginZ));
+                Assert.That(vein.Max.z, Is.InRange(minZ - marginZ, maxZ + marginZ));
             }
         }
     }

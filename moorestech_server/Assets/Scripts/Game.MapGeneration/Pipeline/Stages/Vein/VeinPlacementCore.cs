@@ -19,8 +19,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             int rngSeedOffset, IReadOnlyList<PlacedVein> excludedVeins,
             TilePlacementContext tile, PlacementHaloChannel memberHalo, PlacementHaloChannel centerHalo)
         {
-            var veins = new List<PlacedVein>();
-            if (entries.Length == 0) return veins;
+            if (entries.Length == 0) return new List<PlacedVein>();
 
             int biomeCount = biomeTypes.Length;
             int res = config.Resolution;
@@ -45,9 +44,9 @@ namespace Game.MapGeneration.Pipeline.Stages
                 entries, entryMasks, borderMargin, heights2D, dims, rng, treeGrid, objectGrid,
                 memberHalo, centerHalo, tile.Halo.Radius);
 
-            // メンバー点ごとに固定サイズの PlacedVein を1件生成する。
-            // Emit one fixed-size PlacedVein per member point.
-            return BuildVeins(members, veins, excludedVeins);
+            // 点ごとに固定サイズの鉱脈を生成。
+            // Emit one fixed-size vein per point.
+            return BuildVeins(members, excludedVeins);
         }
 
         static bool[][,] BuildEntryMasks(
@@ -84,10 +83,11 @@ namespace Game.MapGeneration.Pipeline.Stages
         }
 
         static List<PlacedVein> BuildVeins(
-            List<PlacementEntry> members, List<PlacedVein> veins, IReadOnlyList<PlacedVein> excludedVeins)
+            List<PlacementEntry> members, IReadOnlyList<PlacedVein> excludedVeins)
         {
             // 配置順をそのまま出力順にする。順序は同一 seed の再現性の一部。
             // The placement order becomes the output order; that order is part of same-seed reproducibility.
+            var veins = new List<PlacedVein>();
             foreach (var member in members)
             {
                 var vein = VeinAabbBuilder.Build(member.MapObjectGuid, member.WorldPosition);

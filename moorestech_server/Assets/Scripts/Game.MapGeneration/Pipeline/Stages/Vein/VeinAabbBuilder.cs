@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Stages
 {
-    // 鉱脈AABBを配置点を中心とした固定サイズで作る。移植元MapMakingのbounds(size 2 / center 0)と同じ式（ADR-0023）。
-    // Builds a vein AABB as a fixed size centred on its placement point, matching MapMaking's bounds (size 2, centre 0) (ADR-0023).
+    // 配置点中心の固定サイズAABBを作る（ADR-0023）。
+    // Builds a fixed-size AABB centred on the point (ADR-0023).
     public static class VeinAabbBuilder
     {
         // 中心から各軸へ張り出す量。Min/Max は inclusive 判定なので1辺3セルを覆う。

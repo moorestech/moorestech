@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration
 {
-    // 鉱脈AABBは配置点を中心とした固定サイズであることを固定する（ADR-0023）。
-    // Pins that a vein AABB is a fixed size centred on its placement point (ADR-0023).
+    // AABBは配置点中心の固定サイズを固定（ADR-0023）。
+    // Pins the AABB as a fixed size centred on the point (ADR-0023).
     public class VeinAabbBuilderTest
     {
         [Test]

@@ -1,5 +1,7 @@
+using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Runtime;
+using Game.MapGeneration.Pipeline.Stages;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -49,20 +51,24 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
 
         public static void AssertInsideGrid(float x, float z, TerrainGenerationConfig config)
         {
-            var minX = -(config.gridSizeX / 2) * config.terrainWidth;
-            var minZ = -(config.gridSizeZ / 2) * config.terrainLength;
-            Assert.That(x, Is.InRange(minX, minX + config.gridSizeX * config.terrainWidth));
-            Assert.That(z, Is.InRange(minZ, minZ + config.gridSizeZ * config.terrainLength));
+            AssertInsideGridWithMargin(x, z, config, 0f, 0f);
         }
 
-        // 鉱脈は配置点から±1広がるため、格子判定に余白を持たせる。
-        // Veins reach one unit out from their point, so the grid test takes a margin.
-        public static void AssertInsideGridWithMargin(float x, float z, TerrainGenerationConfig config, float margin)
+        // 鉱脈は軸ごとに VeinAabbBuilder.Extent ぶん張り出すため、Min/Max 両隅を軸別の余白で判定する。
+        // Veins reach VeinAabbBuilder.Extent per axis, so both the Min and Max corners are checked with axis-specific margins.
+        public static void AssertVeinInsideGrid(PlacedVein vein, TerrainGenerationConfig config)
+        {
+            AssertInsideGridWithMargin(vein.Min.x, vein.Min.z, config, VeinAabbBuilder.Extent.x, VeinAabbBuilder.Extent.z);
+            AssertInsideGridWithMargin(vein.Max.x, vein.Max.z, config, VeinAabbBuilder.Extent.x, VeinAabbBuilder.Extent.z);
+        }
+
+        static void AssertInsideGridWithMargin(
+            float x, float z, TerrainGenerationConfig config, float marginX, float marginZ)
         {
             var minX = -(config.gridSizeX / 2) * config.terrainWidth;
             var minZ = -(config.gridSizeZ / 2) * config.terrainLength;
-            Assert.That(x, Is.InRange(minX - margin, minX + config.gridSizeX * config.terrainWidth + margin));
-            Assert.That(z, Is.InRange(minZ - margin, minZ + config.gridSizeZ * config.terrainLength + margin));
+            Assert.That(x, Is.InRange(minX - marginX, minX + config.gridSizeX * config.terrainWidth + marginX));
+            Assert.That(z, Is.InRange(minZ - marginZ, minZ + config.gridSizeZ * config.terrainLength + marginZ));
         }
 
         // クラスタ採番を通る岩と、ClusterId=-1 を持つ独立散布の岩を1つずつ。両方が同じタイルに出るのが要点。
