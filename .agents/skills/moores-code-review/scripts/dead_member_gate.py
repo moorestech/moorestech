@@ -22,9 +22,12 @@ ScriptAssemblies が無い環境（素のレビューworktree等）では status
 
 Wires DeadMemberAudit (IL analysis) into the review flow, scoped to the patch.
 """
+from __future__ import annotations
+
 import argparse
 import json
 import os
+import pwd
 import re
 import shutil
 import subprocess
@@ -88,7 +91,7 @@ def main() -> int:
         # Report a missing dotnet as a degradation, not a traceback (24/26 runs silently degraded)
         dotnet = resolve_dotnet()
         if dotnet is None:
-            return emit("skipped", "dotnet が見つからない（SDK未導入 or PATH外）。dead_member ゲートは縮退", [])
+            return emit("skipped", "dotnet不在（SDK未導入 or PATH/DOTNET_ROOT/~/.dotnet に無い）。dead_member ゲートは縮退", [])
         run = subprocess.run(
             [dotnet, "run", "--project", str(root / TOOL_REL), "--", str(assemblies)],
             capture_output=True, text=True, cwd=str(root), timeout=600)
@@ -102,13 +105,19 @@ def main() -> int:
 
 
 def resolve_dotnet() -> str | None:
-    # PATH → 既知のインストール先の順で実体を探す / PATH first, then known install locations
+    # PATH → DOTNET_ROOT → 既知のインストール先（HOME差し替え時は実ホームも）の順で実体を探す
+    # PATH first, then DOTNET_ROOT, then known install locations (real home too when HOME is swapped)
     found = shutil.which("dotnet")
     if found:
         return found
-    for cand in ("/usr/local/share/dotnet/dotnet", "/opt/homebrew/bin/dotnet",
-                 "/usr/local/bin/dotnet", "~/.dotnet/dotnet"):
-        p = Path(os.path.expanduser(cand))
+    candidates = []
+    if os.environ.get("DOTNET_ROOT"):
+        candidates.append(os.path.join(os.environ["DOTNET_ROOT"], "dotnet"))
+    candidates += ["/usr/local/share/dotnet/dotnet", "/opt/homebrew/bin/dotnet", "/usr/local/bin/dotnet"]
+    homes = [os.path.expanduser("~"), pwd.getpwuid(os.getuid()).pw_dir]
+    candidates += [os.path.join(h, ".dotnet", "dotnet") for h in dict.fromkeys(homes)]
+    for cand in candidates:
+        p = Path(cand)
         if p.is_file() and os.access(p, os.X_OK):
             return str(p)
     return None

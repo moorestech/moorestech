@@ -32,8 +32,25 @@ import time
 from pathlib import Path
 
 
-# stdout に残る認証失効の痕跡 / Footprints of an expired login in stdout
-AUTH_FAILURE_RE = re.compile(r"401 Unauthorized|refresh_token_invalidated|Please log in again")
+# stdout に残る認証失効の痕跡。codex 自身の ERROR 行にアンカーする（監査対象本文の引用で誤マッチさせない）
+# Footprints of an expired login, anchored to codex's own ERROR lines (never the audited text)
+AUTH_FAILURE_RE = re.compile(
+    r"^\S*\s*ERROR\s+codex_login.*(401 Unauthorized|refresh_token_invalidated|Please log in again)", re.M)
+AUTH_SCAN_TAIL_BYTES = 8192
+
+
+def auth_failure_in_stdout(out_path: Path) -> bool:
+    # 認証エラーは起動直後（先頭）か終了間際（末尾）に出る。監査本文の巻き込みを避けるため両端だけ読む
+    # Auth errors appear right after launch (head) or at exit (tail); read only both ends, never the body
+    if not out_path.is_file():
+        return False
+    with out_path.open("rb") as handle:
+        head = handle.read(AUTH_SCAN_TAIL_BYTES).decode("utf-8", errors="replace")
+        handle.seek(0, 2)
+        size = handle.tell()
+        handle.seek(max(0, size - AUTH_SCAN_TAIL_BYTES))
+        tail = handle.read().decode("utf-8", errors="replace")
+    return bool(AUTH_FAILURE_RE.search(head) or AUTH_FAILURE_RE.search(tail))
 
 
 def codex_sessions_root() -> Path:
@@ -108,18 +125,16 @@ def main() -> int:
         print(json.dumps(result, ensure_ascii=False))
         return 0
 
-    # 認証失効は「起動失敗」と区別して申告する（2026-08-19: refresh token 失効の401を不在と誤診した）
-    # Report an expired login distinctly from a missing binary (401 was misread as "absent")
-    if out_path.is_file() and AUTH_FAILURE_RE.search(
-            out_path.read_text(encoding="utf-8", errors="replace")):
-        result.update(status="auth_expired", source="stdout",
-                      hint="codex の認証が失効（401）。この CODEX_HOME で `codex login` を再実行する必要がある")
-        print(json.dumps(result, ensure_ascii=False))
-        return 5
-
     prompt_text = Path(args.prompt).read_text(encoding="utf-8", errors="replace")
     found = find_session(prompt_text, args.since_min)
     if not found:
+        # rollout に結論が無いときだけ stdout の認証失効痕跡を見る（監査対象の引用で誤マッチしないよう末尾8KB・codexのERROR行に限定）
+        # Only when the rollout has no answer do we look for an auth failure in stdout (tail 8KB, codex ERROR lines only)
+        if auth_failure_in_stdout(out_path):
+            result.update(status="auth_expired", source="stdout",
+                          hint="codex の認証が失効（401）。この CODEX_HOME で `codex login` を再実行する必要がある")
+            print(json.dumps(result, ensure_ascii=False))
+            return 5
         result.update(status="missing", source="none",
                       hint="$CODEX_HOME/sessions に該当セッションなし。起動自体が失敗した可能性")
         print(json.dumps(result, ensure_ascii=False))

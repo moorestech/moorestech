@@ -24,20 +24,22 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 
 ## Workflow実行（既定・2026-08-20）
 
-**既定では Step 2 を本体が回し、Step 3.5〜6.5（系統の並列発火→統合→自動適用→post-check）を Workflow ツール（`scripts/review_workflow.js`）で実行する。** 2026-08-18〜20 の sonnet オーケストレータ委譲は、系統群 $164〜225/回 に対し **オーケストレータ1体が待機だけで $194〜240/回**（590〜625ターン・毎ターン25万トークン再送・`Concurrent subagent limit` の再起動16〜34回）を燃やしていた（`docs/research/2026-08-20-moores-code-review-diet-assessment.md`）。Workflow は待機が JS の `await` なのでこの項目が消え、「1メッセージ12体」「全員に model 明示」「起動失敗の再起動」「欠員の申告」「fable quota 時の opus fallback」が散文でなくコードで強制される。同じ `args` での再実行（`resumeFromRunId`）は完了済みの体をキャッシュから返すので、上限死からの再開で全系統をやり直さない。
+**既定では Step 2 を本体が回し、Step 3.5〜6.5（系統の並列発火→統合→自動適用→post-check）を Workflow ツール（`scripts/review_workflow.js`）で実行する。** 2026-08-18〜20 の sonnet オーケストレータ委譲は、系統群 $164〜225/回 に対し **オーケストレータ1体が待機だけで $194〜240/回**（590〜625ターン・毎ターン25万トークン再送・`Concurrent subagent limit` の再起動16〜34回）を燃やしていた（`docs/research/2026-08-20-moores-code-review-diet-assessment.md`）。Workflow は待機が JS の `await` なのでこの項目が消え、「全員に model 明示」「起動失敗の再起動」「欠員の申告」「fable quota 時の opus fallback」「Codex 完了待ち」が散文でなくコードで強制される（「1メッセージ12体」は Agent 直起動時の規律で、Workflow では同時数をランタイムがキューイングする）。同じ `args` での再実行（`resumeFromRunId`）は完了済みの体をキャッシュから返すので、上限死からの再開で全系統をやり直さない。
 
 **Workflow を使わず sonnet オーケストレータ委譲（旧既定）やインライン実行に落としてよいのは次の場合のみ**（報告冒頭に理由を明記。黙って切り替えない）: (a) Workflow ツールがこのセッションで使えない、(b) ユーザーが「委譲で」「インラインで」等を明示、(c) 自分が委譲オーケストレータとして派遣された側である。委譲時の派遣プロンプトは末尾「旧既定: sonnet 委譲」を、インライン時は `references/orchestrator-steps.md` を Read して Step 2〜6.5 を自分で実行する。
 
 - **本体は Workflow 完了まで対象リポジトリを編集しない**（Apply フェーズで修正が適用されるため衝突する）。
 - Codex 3本は Workflow の外（本体の Bash `run_in_background`）で先に投げる。スクリプトはシェルを持たないため。
-- Workflow の同時実行数はランタイムが `min(16, CPU-2)` でキューイングする（Mac mini=8）。体数は減らさず所要時間だけ伸びる。
+- Workflow の同時実行数はランタイムが `min(16, CPU-2)` でキューイングする（Mac mini=8）。体数は減らさず所要時間だけ伸びる。CPU 18コア以上のホストへ移すなら 12体/波の分割を JS に足す（同時20体上限の「起動が黙って消える」対策）。
+- **Workflow の可用性は保証されない**（2026-08-20 実測: session limit 到達→課金切替の後、同一セッションで「Workflow is disabled for this session」となり消えた）。不可なら (a) のフォールバックへ落ち、その事実を報告冒頭に書く。
 
 ### 回収時の検死（本体・毎回必須）
 
-Workflow の返り値（`systems.launched/recovered/missing/fallbacks`・`integrated`・`apply`・`postChecks`）を受けたら、報告する前に次を突き合わせる —
-1. `systems.launched` が `workflow-args.json` の `systems` 数と一致し、`missing` が空か（空でなければ欠員として報告に転記。`agents/` は残っているので、欠員分だけ Agent で再起動→integrator だけ再派遣してよい）
+Workflow の返り値（`systems.planned/expected/responded/noResponse/missing/fallbacks`・`codexWait`・`integrated`・`apply`・`postCheckSelection`・`postChecks[].report`・`postfix.warnings/infos`）を受けたら、報告する前に次を突き合わせる —
+1. `systems.planned` が **`checks.json` 由来の独立した期待値** `systems.expected.total`（= summary.lenses + summary.reviewers + verifiers_to_launch + Fable 1 + チャンク数×3）と一致し、`systems.missing`（integrator が `agents/*.md` の実在で確定した欠員）が空か。不一致・欠員なら報告に転記。`agents/` は残っているので、欠員分だけ Agent で再起動→integrator だけ再派遣してよい。`noResponse` は自己申告ベースの参考値
 2. `integrated.md` の「系統別回収状況」に欠員・未回収がないか。**Codex の欠員申告だけは転記前に裏を取る** — `codex_recover.py` の終了コード（3/4/5）が添えられていなければ自分で1コマンド走らせて確認し、exit 0 なら欠員ではないので integrator を再実行させる
-3. `$RUNDIR` に規定の成果物（checks.json / workflow-args.json / contract.md / codex `.final.md` ×3 / `agents/` / integrated.md / final.diff / checks-final.json / design.md）が揃っているか
+3. `$RUNDIR` に規定の成果物（checks.json / workflow-args.json / contract.md / codex `.final.md` ×3 / `agents/` / integrated.md / final.diff / checks-final.json / design.md）が揃っているか。**report-only では final.diff / checks-final.json / design.md は生成されない**（apply が無い）ので欠落扱いにしない
+4. `postfix.warnings/infos`（post-check の Warning/Info）と `postCheckSelection.note`（スキップしたガードと理由）を Step 7 の報告へ転記する（integrator より後に走るため integrated.md には載らない）
 
 **何か変なこと（体数不一致・モデル割り当てが指定と違う・成果物の欠落・integrated.md 不在等）があれば、修正適用や再派遣を重ねる前に一旦止めて調査する。** 手順: セッション transcript（`~/.claude/projects/<プロジェクト>/<セッションID>/subagents/*.meta.json` で起動数とモデルを実測）→ 原因特定→再開の要否。原因がスキル記述の穴なら `references/skill-improvement.md` の手順で恒久対応する。異常のまま結果だけ採用しない（欠員のある統合結果は「全系統レビュー済み」を偽装する）。
 
@@ -83,7 +85,7 @@ Workflow の返り値（`systems.launched/recovered/missing/fallbacks`・`integr
        python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --repo-root "$(pwd)" --context "<USER_PROMPT_PATH>" > <$RUNDIRの実値>/checks.json
        python3 .claude/skills/moores-code-review/scripts/split_chunks.py "<PATCH_PATH>" > <$RUNDIRの実値>/chunks.tsv
 
-2. **Codex 3本をバックグラウンド起動**（orchestrator-steps.md Step 3 のとおり。`codex_preflight.py` で実体パスを解決し、不在/認証ファイル不在なら理由つきで縮退を報告）。
+2. **Codex 3本をバックグラウンド起動** — orchestrator-steps.md の **Step 3 節だけ**を Read して実行する（`codex_preflight.py` で実体パスを解決 → 3テンプレを埋めて `codex exec --sandbox read-only --skip-git-repo-check -o <$RUNDIR>/codex-<名前>.final.md - < <$RUNDIR>/codex-<名前>.md > <$RUNDIR>/codex-<名前>.out.md` を `run_in_background`。preflight が exit 10/11 なら `status` 文字列つきで縮退を報告）。完了待ちは Workflow 内の待機係が行う。
 3. **Workflow args を組み立てる**（選択・命名・contract.md 生成はここで完結。`--base-ref` は Step 1 の base コミット）:
 
        python3 .claude/skills/moores-code-review/scripts/build_workflow_args.py --run-dir <$RUNDIRの実値> --patch "<PATCH_PATH>" --context "<USER_PROMPT_PATH>" --repo-root "$(pwd)" --base-ref <base SHA>
@@ -96,7 +98,7 @@ Workflow の返り値（`systems.launched/recovered/missing/fallbacks`・`integr
 
     Workflow({ scriptPath: "<リポジトリ絶対パス>/.agents/skills/moores-code-review/scripts/review_workflow.js", args: <workflow-args.json の中身> })
 
-完了通知を受けたら **`integrated.md` を Read する（この1ファイルだけ）**。`agents/`・Codex `.out.md` は読まない（疑義のある個別件の再確認のみ例外）。返り値の `missing`・`fallbacks`・`apply.compile` は Step 7 の報告へ転記する。Workflow が例外で止まった場合（integrator/apply の応答なし）は `$RUNDIR` の残骸を引き継ぎ、同じ `scriptPath`＋`args` に `resumeFromRunId` を付けて再起動する（完了済みの体はキャッシュ）。最初からやり直さない。
+完了通知を受けたら **`integrated.md` を Read する（この1ファイルだけ）**。`agents/`・Codex `.out.md` は読まない（疑義のある個別件の再確認のみ例外）。返り値の `missing`・`fallbacks`・`apply.compile`・`postCheckSelection.note`・`postfix.warnings/infos` は Step 7 の報告へ転記する。Workflow が例外で止まった場合（integrator/apply の応答なし）は `$RUNDIR` の残骸を引き継ぎ、同じ `scriptPath`＋`args` に `resumeFromRunId` を付けて再起動する（完了済みの体はキャッシュ）。最初からやり直さない。
 
 ### 旧既定: sonnet 委譲（Workflow 不可時のフォールバック・2026-08-18）
 

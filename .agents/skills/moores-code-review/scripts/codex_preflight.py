@@ -22,10 +22,13 @@ Resolve through known install paths and report auth.json presence/age as well.
 
 usage:
   codex_preflight.py            # JSONを標準出力へ / JSON to stdout
-exit: 0=ok / 2=バイナリ不在 / 3=認証ファイル不在
+exit: 0=ok / 10=バイナリ不在 / 11=認証ファイル不在（codex_recover.py の 3/4/5 と番号を重ねない）
 """
+from __future__ import annotations
+
 import json
 import os
+import pwd
 import shutil
 import sys
 import time
@@ -40,14 +43,24 @@ CANDIDATE_BINARIES = (
 )
 
 
+def home_candidates() -> list[str]:
+    # HOME 差し替え（封じ込め env）でも実ホームを見に行く / Also look under the real home when HOME is swapped
+    homes = [os.path.expanduser("~")]
+    real = pwd.getpwuid(os.getuid()).pw_dir
+    if real not in homes:
+        homes.append(real)
+    return homes
+
+
 def resolve_binary() -> str | None:
     found = shutil.which("codex")
     if found:
         return found
-    for cand in CANDIDATE_BINARIES:
-        p = Path(os.path.expanduser(cand))
-        if p.is_file() and os.access(p, os.X_OK):
-            return str(p)
+    for home in home_candidates():
+        for cand in CANDIDATE_BINARIES:
+            p = Path(cand.replace("~", home, 1)) if cand.startswith("~") else Path(cand)
+            if p.is_file() and os.access(p, os.X_OK):
+                return str(p)
     return None
 
 
@@ -75,12 +88,12 @@ def main() -> int:
         result.update(status="missing_binary",
                       hint="codex バイナリが見つからない。PATH か CANDIDATE_BINARIES を確認")
         print(json.dumps(result, ensure_ascii=False))
-        return 2
+        return 10
     if not auth.is_file():
         result.update(status="missing_auth",
                       hint=f"{auth} が無い。この CODEX_HOME で `codex login` が必要")
         print(json.dumps(result, ensure_ascii=False))
-        return 3
+        return 11
     print(json.dumps(result, ensure_ascii=False))
     return 0
 
