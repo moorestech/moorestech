@@ -938,7 +938,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Modify: `moorestech_web/webui/e2e/mock-host/topics/topicControls.ts:84-96`
 - Modify: `moorestech_web/webui/e2e/tests/system/tutorial.spec.ts`
 
-- [ ] **Step 1: mock-host にシナリオを追加する**
+- [x] **Step 1: mock-host にシナリオを追加する**
 
 `topicControls.ts` の `tutorialOutline` の次に追加:
 
@@ -965,7 +965,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
   }),
 ```
 
-- [ ] **Step 2: スペックを追加する**
+- [x] **Step 2: スペックを追加する**
 
 `tutorial.spec.ts` 末尾:
 
@@ -989,12 +989,12 @@ test("keyControl hint renders a kbd and text above the hotbar while uiState matc
 
 mock-host の既定 `ui_state.current` が `GameScreen` でない場合は、既存の ui state シナリオ（`topicControls.ts` 内の `uiState*`）で `GameScreen` にしてから検証する。
 
-- [ ] **Step 3: 実行**
+- [x] **Step 3: 実行**
 
 Run: `cd moorestech_web/webui && npm run test:e2e -- e2e/tests/system/tutorial.spec.ts`
 Expected: PASS（ポート5273衝突で偽失敗する場合は別セッションのe2e終了を待つ）。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_web/webui/e2e
