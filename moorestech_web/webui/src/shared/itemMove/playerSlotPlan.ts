@@ -12,6 +12,12 @@ export type PlayerSlotContext = {
   blockItemSlots: SlotData[] | null;
 };
 
+// grab保持中の左クリックは空スロットのみスプリットドラッグ。中身ありは全量置きへ回す（別IDはサーバーがswap）
+// A grab-held left click starts split-drag only on an empty slot; a filled slot takes the place-all path (the server swaps on a different id)
+export function isSplitDragStart(slot: SlotData, grabCount: number, shiftKey: boolean): boolean {
+  return !shiftKey && grabCount > 0 && slot.count === 0;
+}
+
 // 左クリック: grab保持なら全量置き / Shiftなら配分移動 / 中身ありなら全量掴み
 // Left click: place all while holding grab / allocate on Shift / pick the whole stack when filled
 export function planPlayerLeftClick(ref: SlotRef, slot: SlotData, shiftKey: boolean, ctx: PlayerSlotContext): PlannedAction[] {

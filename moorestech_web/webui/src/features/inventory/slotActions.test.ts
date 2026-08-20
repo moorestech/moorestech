@@ -111,6 +111,54 @@ describe("slotActions", () => {
     });
   });
 
+  // grab保持中の左クリックは対象スロットの中身で分岐する（uGUI の LeftClickDown と同じ判断）
+  // A grab-held left click branches on the target slot's contents, matching uGUI's LeftClickDown
+  describe("grab保持中の左クリック", () => {
+    const grabbing = (target: { itemId: number; count: number }): PlayerInventoryData => ({
+      mainSlots: [target],
+      grab: slot(9, 4),
+      equipment: [],
+      selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
+    });
+
+    it("別IDの中身ありスロットへは全量moveを送る（サーバーが入れ替える）", () => {
+      bridge.inventory = grabbing(slot(1, 5));
+
+      slotActions.onLeftDown({ area: "main", slot: 0 }, false);
+
+      expect(bridge.dispatchAction).toHaveBeenCalledTimes(1);
+      expect(bridge.dispatchAction).toHaveBeenCalledWith("inventory.move_item", {
+        from: { area: "grab", slot: 0 },
+        to: { area: "main", slot: 0 },
+        count: 4,
+      });
+    });
+
+    it("同IDの中身ありスロットへも全量moveを送る", () => {
+      bridge.inventory = grabbing(slot(9, 5));
+
+      slotActions.onLeftDown({ area: "main", slot: 0 }, false);
+
+      expect(bridge.dispatchAction).toHaveBeenCalledTimes(1);
+      expect(bridge.dispatchAction).toHaveBeenCalledWith("inventory.move_item", {
+        from: { area: "grab", slot: 0 },
+        to: { area: "main", slot: 0 },
+        count: 4,
+      });
+    });
+
+    // 空スロットはスプリットドラッグ開始で即時送信しない（配分の中身は splitDrag.test.ts が持つ）
+    // An empty slot starts split-drag and sends nothing yet; the distribution itself is covered by splitDrag.test.ts
+    it("空スロットは従来どおりスプリットドラッグを開始し何も送らない", () => {
+      bridge.inventory = grabbing(slot(0, 0));
+
+      slotActions.onLeftDown({ area: "main", slot: 0 }, false);
+
+      expect(bridge.dispatchAction).not.toHaveBeenCalled();
+    });
+  });
+
   // 枠数が縮んだ直後のクリックは描画済みの ref だけが残り、最新 snapshot には対象が無い
   // Right after the slot count shrinks, only the rendered ref survives while the latest snapshot has no such slot
   describe("範囲外スロットへの操作", () => {

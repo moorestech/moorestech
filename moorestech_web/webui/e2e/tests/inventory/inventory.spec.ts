@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { payloadsOf } from "../../support/actions";
+import { allActions, payloadsOf } from "../../support/actions";
 
 test("接続後にインベントリが描画される", async ({ page }) => {
   await page.goto("/");
@@ -98,4 +98,26 @@ test("grab 中の左ドラッグは配分先だけを host へ送る", async ({ 
   await expect(slots.nth(4)).toContainText("3");
   await expect(slots.nth(5)).toContainText("3");
   await expect(page.getByTestId("grab-overlay")).toContainText("1");
+});
+
+// 掴んだまま別アイテムのスロットを押すと、旧uGUI同様に全量moveを送りサーバーが入れ替える（split_dragのno_valid_slotsで失敗しない）
+// Clicking a different-item slot while holding sends a full move like the old uGUI and the server swaps; it must not fail as split_drag/no_valid_slots
+test("grab 中に別アイテムのスロットを押すと入れ替えの move を送りトーストを出さない", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
+  const slots = page.getByTestId("main-grid").locator("> div");
+  await slots.nth(0).click();
+  await expect(page.getByTestId("grab-overlay")).toBeVisible();
+
+  await slots.nth(1).click();
+
+  // received はテスト横断で蓄積されるので、末尾1件だけを見て split_drag ではなく move が出たことを確かめる
+  // received accumulates across tests, so check only the final record to prove a move, not a split_drag, was sent
+  await expect
+    .poll(async () => (await allActions(page)).at(-1))
+    .toEqual({ type: "inventory.move_item", payload: { from: { area: "grab", slot: 0 }, to: { area: "main", slot: 1 }, count: 10 } });
+  // 入れ替えで受け取った側を掴んだままになる
+  // The swapped-in stack stays in hand
+  await expect(page.getByTestId("grab-overlay")).toBeVisible();
+  await expect(page.getByTestId("toast-host").getByText(/failed/)).toHaveCount(0, { timeout: 2000 });
 });

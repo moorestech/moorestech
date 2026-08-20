@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { GRAB, planPlayerLeftClick, planPlayerRightClick, planPlayerDoubleClick } from "./playerSlotPlan";
+import { GRAB, isSplitDragStart, planPlayerLeftClick, planPlayerRightClick, planPlayerDoubleClick } from "./playerSlotPlan";
 import type { PlayerSlotContext } from "./playerSlotPlan";
 import type { PlayerInventoryData } from "@/bridge";
 
@@ -77,5 +77,19 @@ describe("planPlayerDoubleClick", () => {
     expect(planPlayerDoubleClick({ area: "main", slot: 2 })).toEqual([
       { type: "inventory.collect", payload: { slot: { area: "main", slot: 2 } } },
     ]);
+  });
+});
+
+describe("isSplitDragStart", () => {
+  it("grab保持中の空スロットだけスプリットドラッグを始める", () => {
+    expect(isSplitDragStart(slot(0, 0), 4, false)).toBe(true);
+  });
+  it("中身ありは同ID・別IDとも全量置きへ回す（別IDはサーバーがswap）", () => {
+    expect(isSplitDragStart(slot(9, 2), 4, false)).toBe(false);
+    expect(isSplitDragStart(slot(1, 2), 4, false)).toBe(false);
+  });
+  it("空手やShift併用では始めない", () => {
+    expect(isSplitDragStart(slot(0, 0), 0, false)).toBe(false);
+    expect(isSplitDragStart(slot(0, 0), 4, true)).toBe(false);
   });
 });

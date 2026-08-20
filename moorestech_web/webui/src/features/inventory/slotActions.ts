@@ -2,6 +2,7 @@ import { dispatchAction, readItemMaster, readTopic, Topics } from "@/bridge";
 import type { PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
 import {
   dispatchPlanned,
+  isSplitDragStart,
   planPlayerDoubleClick,
   planPlayerLeftClick,
   planPlayerRightClick,
@@ -32,7 +33,7 @@ export const slotActions: SlotActions = {
     if (!inventory) return;
     const slot = resolveSlot(inventory, ref);
     if (!slot) return;
-    if (!shiftKey && inventory.grab.count > 0) { splitDrag.begin(ref, true); return; }
+    if (isSplitDragStart(slot, inventory.grab.count, shiftKey)) { splitDrag.begin(ref, true); return; }
     const block = readTopic(Topics.blockInventory);
     const ctx: PlayerSlotContext = {
       inventory,

@@ -74,6 +74,17 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 var itemStackFactory = ServerContext.ItemStackFactory;
 
                 var toInvItem = GetItem(to, toSlot);
+
+                // 別IDのスロットへ全量移動したときはサーバーのSwapSlotと同じく入れ替える（部分移動はサーバー側もno-op）
+                // A full move onto a different-id slot swaps, matching the server's SwapSlot; a partial move is a no-op there too
+                if (toInvItem.Id != ItemMaster.EmptyItemId && toInvItem.Id != fromInvItem.Id)
+                {
+                    if (count != fromInvItem.Count) return;
+                    SetItem(to, toSlot, fromInvItem);
+                    SetItem(from, fromSlot, toInvItem);
+                    return;
+                }
+
                 var moveItem = itemStackFactory.Create(fromInvItem.Id, count);
 
                 var add = toInvItem.AddItem(moveItem);
