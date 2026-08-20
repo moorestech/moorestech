@@ -39,7 +39,7 @@
 .node[data-locked] { opacity: 0.45; }
 /* 研究可能（充足）はシアン枠で点灯する。ADR 0014の4状態語彙 */
 /* Ready-to-research lights up with a cyan border; the 4-state vocabulary of ADR 0014 */
-.node[data-researchable] { border-color: var(--select-cyan); }
+.node[data-ready] { border-color: var(--select-cyan); }
 .node[data-completed] { border-color: var(--text-default); }
 .node[data-selected] { outline: 2px solid var(--text-high-contrast); }
 .nodeName {
@@ -102,14 +102,14 @@
   right: -2px;
   bottom: -4px;
   z-index: 2;
-  color: #fff;
+  color: var(--text-high-contrast);
   font-size: 11px;
   line-height: 1;
-  text-shadow: 0 1px 2px #000;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 100%);
   white-space: nowrap;
 }
 .consumeCount[data-lack="true"] {
-  color: #ff4d4d;
+  color: var(--text-insufficient);
 }
 /* 主要アクション: 青グラデはこのボタン限定 */
 /* Primary action: the blue gradient is exclusive to this button */
@@ -148,4 +148,13 @@
   margin: 0;
   font-size: 13px;
   color: var(--text-default);
+}
+
+/* 解放レシピの液体出力。スロットではなく量ラベルで示す(容量の概念が無いため) */
+/* Fluid output of an unlocked recipe; an amount label rather than a slot (there is no capacity here) */
+.unlockFluidAmount {
+  align-self: center;
+  font-size: 13px;
+  color: var(--text-default);
+  white-space: nowrap;
 }

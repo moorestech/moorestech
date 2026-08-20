@@ -78,7 +78,7 @@
 }
 
 .materialCount[data-lack="true"] {
-  color: #ff4d4d;
+  color: var(--text-insufficient);
 }
 
 /* 旧構成は矢印+下バーの2段で、行のcenter揃えとの差分をmargin-topで詰めていた。バー廃止で列が6px縮んだ分、
