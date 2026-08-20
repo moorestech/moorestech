@@ -10,6 +10,7 @@
   position: relative;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
+  column-gap: var(--recipe-column-gap);
   align-items: center;
   width: 100%;
   /* 中央列（秒数+矢印+操作）が行高を決めるため、旧2段構成のmin-heightと画素合わせのオフセットは持たない */

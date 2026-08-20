@@ -261,9 +261,16 @@
   /* Machine display text and icon sizes; the icon matches the material slot so it pairs under the arrow */
   --recipe-info-text-size: 12px;
   --recipe-info-icon-size: 2.3rem;
-  /* レシピ行のスロット間隔。0だと隣接スロットへ所持数テキストがはみ出して重なる */
-  /* Gap between recipe-row slots; at 0 the owned-count text spills onto the neighboring slot */
-  --recipe-slot-gap: 8px;
+  /* レシピ行のスロット間隔。所持/必要テキストはスロットの右下へ外側にはみ出して描かれるため、
+     スロット幅ではなくそのテキストが隣へ届かない距離で決める（8pxでは"0/2"と"100/1"が接触した） */
+  /* Gap between recipe-row slots; the owned/required text bleeds outside each slot's bottom-right, so the
+     distance is set by that text's reach rather than the slot width (at 8px "0/2" and "100/1" touched) */
+  --recipe-slot-gap: 16px;
+  /* 素材列・中央列・結果列の間隔。0だと素材の所持/必要テキスト(スロット右へ2pxはみ出す)が
+     クラフトボタンの真上に乗る */
+  /* Gap between the material, center, and result columns; at 0 the owned/required text (which bleeds 2px past
+     the slot) lands right on top of the craft button */
+  --recipe-column-gap: 14px;
   /* 個数バッジの黒（ユーザー裁定 2026-08-17。バッジが出るのは明色面のみが前提） */
   /* Black used by count badges (user ruling 2026-08-17; badges only appear on light faces) */
   --count-text: #111;
