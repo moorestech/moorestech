@@ -4,6 +4,8 @@ export const WATER_FLUID_GUID = "54000000-0000-4000-8000-000000000001";
 export const WIRE_CONNECT_TOOL_GUID = "55000000-0000-4000-8000-000000000001";
 export const CARGO_TRAIN_CAR_GUID = "56000000-0000-4000-8000-000000000001";
 export const WORLD_PIN_TUTORIAL_GUID = "57000000-0000-4000-8000-000000000001";
+export const OUTLINE_LABEL_TUTORIAL_GUID = "58000000-0000-4000-8000-000000000001";
+export const KEY_CONTROL_TUTORIAL_GUID = "59000000-0000-4000-8000-000000000001";
 
 const source = {
   [fluidNameKey(WATER_FLUID_GUID)]: "Water",
@@ -55,6 +57,8 @@ const source = {
   [connectToolNameKey(WIRE_CONNECT_TOOL_GUID)]: "電線接続ツール",
   [trainCarNameKey(CARGO_TRAIN_CAR_GUID)]: "貨物車両",
   [challengeTutorialTextKey(WORLD_PIN_TUTORIAL_GUID)]: "小石を拾う",
+  [challengeTutorialTextKey(OUTLINE_LABEL_TUTORIAL_GUID)]: "照準に合わせる",
+  [challengeTutorialTextKey(KEY_CONTROL_TUTORIAL_GUID)]: "Tabでインベントリを開く",
   "ui.buildMenu.blueprintCopy": "ブループリントコピー",
   "challengeCategory.81000000-0000-4000-8000-000000000001.name": "Basics",
   "challenge.82000000-0000-4000-8000-000000000001.title": "First Craft",

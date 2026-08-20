@@ -100,7 +100,7 @@ const controls = {
       tutorialSessionId: "tutorial-session-1", challengeId: "tutorial-challenge-1",
       elements: [{
         kind: "outline" as const, elementId: "tutorial-highlight-2", anchorId: "game.crosshair",
-        paddingPx: 8, blocksPointerInput: false, labelTutorialGuid: "11111111-1111-4111-8111-111111111111",
+        paddingPx: 8, blocksPointerInput: false, labelTutorialGuid: fx.OUTLINE_LABEL_TUTORIAL_GUID,
       }],
     }],
   }),
@@ -110,7 +110,7 @@ const controls = {
       tutorialSessionId: "tutorial-session-1", challengeId: "tutorial-challenge-1",
       elements: [{
         kind: "keyControl" as const, elementId: "tutorial-key-1",
-        tutorialGuid: "11111111-1111-4111-8111-111111111111", keyName: "Tab", uiState: "GameScreen",
+        tutorialGuid: fx.KEY_CONTROL_TUTORIAL_GUID, keyName: "Tab", uiState: "GameScreen",
       }],
     }],
   }),

@@ -33,7 +33,7 @@ test("outline with a label renders the label text beside the outline", async ({ 
   await setTopicScenario(page, "tutorialOutlineWithLabel");
   const label = page.getByTestId("tutorial-highlight-label");
   await expect(label).toBeVisible();
-  await expect(label).not.toHaveText("");
+  await expect(label).toHaveText("照準に合わせる");
 });
 
 test("keyControl hint renders a kbd and text above the hotbar while uiState matches", async ({ page }) => {
@@ -43,4 +43,5 @@ test("keyControl hint renders a kbd and text above the hotbar while uiState matc
   const hint = page.getByTestId("key-control-hint");
   await expect(hint).toBeVisible();
   await expect(hint.locator("kbd")).toHaveText("Tab");
+  await expect(hint).toContainText("Tabでインベントリを開く");
 });
