@@ -40,6 +40,8 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
 
         // 到達距離を知っているのはここだけなので、切り出しと種別分割もここが持つ。呼び出し側に選ばせると木の距離を渡せてしまう
         // Only this class knows the reach, so it owns the slice and the kind split too; letting the caller choose lets a tree's reach slip in
+        // 裸地を塗るのはrockBareGroundの岩だけ。rockNoBareGroundの瓦礫・メサは距離場にだけ乗り、ここでは触らない
+        // Only rockBareGround rocks paint bare ground; rockNoBareGround rubble and mesas feed the distance field alone and are left untouched here
         public static void Apply(
             float[,,] alphamap, TerrainGenerationConfig config, SplatLayerTable layerTable,
             SurroundTextureConfig[] surroundConfigs, float[,] biomeWeights, int biomeCount,
@@ -47,7 +49,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
         {
             TileMapObjectSlicer.SliceKindsWithHalo(
                 mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength,
-                MaxReach(surroundConfigs, mapObjects), out _, out var stoneObjects);
+                MaxReach(surroundConfigs, mapObjects), out _, out _, out var bareGroundStoneObjects);
 
             var clusterGroups = new Dictionary<int, List<TileLocalMapObject>>();
             var nonClusterObjects = new List<TileLocalMapObject>();
@@ -80,7 +82,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround
 
             void GroupByCluster()
             {
-                foreach (var stoneObject in stoneObjects)
+                foreach (var stoneObject in bareGroundStoneObjects)
                 {
                     if (stoneObject.ClusterId < 0)
                     {

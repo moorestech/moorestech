@@ -162,10 +162,17 @@ const PINNED_TOPICS = [
   Topics.inventory,
 ] as const satisfies readonly (keyof TopicPayloads)[];
 
+// httpsで配信された場合にws:を使うとブラウザがmixed contentで接続自体を拒否するため、ページのスキームへ揃える
+// A ws: URL from an https page is rejected outright as mixed content, so follow the page's scheme
+function bridgeSocketUrl() {
+  const scheme = location.protocol === "https:" ? "wss" : "ws";
+  return `${scheme}://${location.host}/ws`;
+}
+
 export function initBridge() {
   if (client !== null) return;
   PINNED_TOPICS.forEach((topic) => subscriptions.acquire(topic));
-  client = new WebSocketClient(`ws://${location.host}/ws`);
+  client = new WebSocketClient(bridgeSocketUrl());
 }
 
 // UI コードは原則 actions.ts の dispatchAction を使うこと（reject の処理が必要なため）

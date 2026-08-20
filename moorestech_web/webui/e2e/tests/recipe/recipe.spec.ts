@@ -6,15 +6,15 @@ import { expectCraftGrip } from "../../support/craftChromeAssertions";
 // Group testIds by prefix per recipe GUID
 const craftEntry = (page: Page) => page.locator('[data-testid^="craft-recipe-entry"]');
 
-test("クラフトボタンのラベルに秒数を表示する", async ({ page }) => {
+test("秒数は矢印の上に出し、クラフトボタンは秒数を持たない", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
-  // ボタンに秒数表示。既定はja
-  // Button shows the seconds; default locale is ja
-  const craftButton = craftEntry(page).getByRole("button");
-  await expect(craftButton).toHaveText("クラフト（0.2秒）");
+  // 秒数は矢印上、ボタンは操作名のみ
+  // The duration sits above the arrow and the button carries only the action name
+  await expect(craftEntry(page).locator('[data-testid$="-duration"]')).toHaveText("0.2秒");
+  await expect(craftEntry(page).getByRole("button")).toHaveText("クラフト");
 });
 
 test("正本のヘッダ装飾、常時スクロールバー、主要構造を保つ", async ({ page }) => {
@@ -174,7 +174,8 @@ test("クラフトエントリが複数でもチュートリアルアンカー�
   // GUID単位で2件目を厳密指定
   // Exact-match the second recipe by its GUID testId
   const secondEntry = list.getByTestId("craft-recipe-entry-83000000-0000-4000-8000-000000000004");
-  await expect(secondEntry.getByRole("button")).toHaveText("クラフト（0.4秒）");
+  await expect(secondEntry.locator('[data-testid$="-duration"]')).toHaveText("0.4秒");
+  await expect(secondEntry.getByRole("button")).toHaveText("クラフト");
 });
 
 test("クラフト可能数0のアイテムは個数バッジを出さない", async ({ page }) => {

@@ -1,8 +1,15 @@
 # mapmaking-parity 抽出スクリプト
 
-MapMaking プロジェクト（`TmpUnityPjt/MapMaking`）のバイオームプリセットから、樹種・岩のインベントリと
-`treePlacement` 設定を抽出し `species-inventory.json` を生成する。この JSON は後続タスク
+MapMaking プロジェクト（`TmpUnityPjt/MapMaking`）のバイオームプリセットから、樹種・岩・小物のインベントリと
+`treePlacement`・`objectConfig` 設定を抽出し `species-inventory.json` を生成する。この JSON は後続タスク
 （map.json 生成・ラッパープレハブ生成・generation.json 同期）の唯一の入力。
+
+後続スクリプト: `gen_map_master.py`（map.json へ mapObject 追記）、`gen_generation_treeplacement.py`
+（treePlacement 同期）、`gen_generation_objectconfig.py`（objectConfig 同期＋generateObject 有効化）。
+ラッパープレハブは Unity メニュー `moorestech/MapObjectWrapper/Generate All`。
+
+`terrainSurroundEffectType` は kind と `bareGround` から機械決定する。移植元は objectConfig 配置のうち
+名前に Boulder/Cliff を含む岩だけ裸地化するため、それ以外の岩・小物は `rockNoBareGround`（距離場のみ）になる。
 
 This directory extracts the tree/rock inventory and `treePlacement` settings from the MapMaking biome
 presets into `species-inventory.json`, the sole input for the follow-up map.json, wrapper prefab, and

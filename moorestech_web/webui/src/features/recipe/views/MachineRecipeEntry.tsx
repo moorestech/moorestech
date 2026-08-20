@@ -1,4 +1,4 @@
-import { Box, Group, Stack, Text } from "@mantine/core";
+import { Box, Stack, Text } from "@mantine/core";
 import { ItemSlot, BlockIcon } from "@/shared/ui";
 import type { MachineRecipe } from "@/bridge";
 import RecipeRow from "./RecipeRow";
@@ -14,19 +14,20 @@ type Props = {
 };
 
 // 機械エントリ: 矢印はnullで静止
-// ブロックアイコン+名前+秒数の情報行
+// 矢印の上に秒数、下にブロックアイコンとブロック名
 // Machine entry: arrow stays static via null
-// Info row: block icon + name + duration
+// Duration above the arrow, block icon and name below it
 export default function MachineRecipeEntry({ recipe, onSelect, testId }: Props) {
   const { t } = useI18n();
   const localizedBlockName = t(blockNameKey(recipe.blockGuid));
 
   return (
-    <Stack className={styles.recipeEntry} gap="xs" data-testid={testId}>
+    <Box className={styles.recipeEntry} data-testid={testId}>
       <RecipeRow
         testId={`machine-recipe-box-${recipe.recipeGuid}`}
         arrowValue={null}
         arrowTestId={`machine-progress-arrow-${recipe.recipeGuid}`}
+        duration={t(L.ui.recipe.duration, { seconds: recipe.time })}
         materials={recipe.inputItems.map((r, i) => (
           <Box className={styles.materialSlot} key={i}>
             {/* 機械レシピは手クラフトしないため必要数のみ表示する（所持数チェックなし） */}
@@ -34,15 +35,16 @@ export default function MachineRecipeEntry({ recipe, onSelect, testId }: Props) 
             <ItemSlot itemId={r.itemId} count={r.count} onLeftDown={() => onSelect(r.itemId)} />
           </Box>
         ))}
+        action={(
+          <Stack className={styles.machineInfo} gap={2} align="center">
+            <BlockIcon blockId={recipe.blockId} alt={localizedBlockName} className={styles.machineInfoIcon} />
+            <Text className={styles.machineInfoText}>{localizedBlockName}</Text>
+          </Stack>
+        )}
         result={recipe.outputItems.map((r, i) => (
           <ItemSlot key={i} itemId={r.itemId} count={r.count} onLeftDown={() => onSelect(r.itemId)} />
         ))}
       />
-      <Group className={styles.machineInfoRow} gap="xs" justify="center" wrap="nowrap">
-        <BlockIcon blockId={recipe.blockId} alt={localizedBlockName} className={styles.machineInfoIcon} />
-        <Text className={styles.machineInfoText} truncate="end">{localizedBlockName}</Text>
-        <Text className={styles.machineInfoText}>{t(L.ui.recipe.duration, { seconds: recipe.time })}</Text>
-      </Group>
-    </Stack>
+    </Box>
   );
 }

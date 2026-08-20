@@ -52,7 +52,7 @@ if [[ -z "$MASTER_DIR" ]]; then
         exit 1
     }
 fi
-READY_TIMEOUT=300
+READY_TIMEOUT="${PLAYTEST_READY_TIMEOUT:-300}"
 RESULT_TIMEOUT=420
 
 extract_json() { sed -n '/^{/,$p'; }
