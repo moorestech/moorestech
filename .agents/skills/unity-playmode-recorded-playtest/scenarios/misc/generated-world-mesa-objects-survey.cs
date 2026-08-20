@@ -7,7 +7,6 @@ using Client.Game.InGame.Map.MapObject;
 using Client.Playtest;
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -20,26 +19,36 @@ return PlaytestRunner.Run("generated-world-mesa-objects-survey", options, async 
 
     // 1: 種別ごとの個体数。objectConfig経由の種が0なら配置ステージかプレハブ解決が死んでいる
     // 1: Instance count per species; zero for any objectConfig species means the stage or prefab resolution is dead
-    var all = Object.FindObjectsByType<MapObjectGameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+    var all = UnityEngine.Object.FindObjectsByType<MapObjectGameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
     var counts = new SortedDictionary<string, int>();
+    MapObjectGameObject bigMesa = null;
+    MapObjectGameObject desertBoulder = null;
     foreach (var mapObject in all)
     {
         var name = mapObject.name.Replace("(Clone)", "").Trim();
-        counts[name] = counts.TryGetValue(name, out var c) ? c + 1 : 1;
+        int current;
+        counts.TryGetValue(name, out current);
+        counts[name] = current + 1;
+        if (bigMesa == null && name.StartsWith("BigMesa_")) bigMesa = mapObject;
+        if (desertBoulder == null && name.StartsWith("DesertBoulder_")) desertBoulder = mapObject;
     }
     var report = new StringBuilder();
-    foreach (var kv in counts) report.Append(kv.Key).Append('=').Append(kv.Value).Append(' ');
-    p.Note($"mapObjects total={all.Length}");
-    p.Note("counts: " + report);
+    foreach (var kv in counts) report.Append(kv.Key).Append("=").Append(kv.Value).Append(" ");
+    p.Note("mapObjects total=" + all.Length);
+    p.Note("counts: " + report.ToString());
 
-    int CountPrefix(string prefix) => counts.Where(kv => kv.Key.StartsWith(prefix)).Sum(kv => kv.Value);
-    foreach (var prefix in new[] { "BigMesa_", "ThinMesa_", "Boulders_", "RubbleDense_", "RubbleSparse_", "StratMesaSharp_", "DesertBoulder_", "DesertRock_" })
-        p.Assert(CountPrefix(prefix) > 0, $"{prefix}* がシーンに存在する (count={CountPrefix(prefix)})");
-    p.Assert(counts.Keys.All(k => k != "Pebble" && k != "Bush"), "旧プレースホルダ(Pebble/Bush)が混ざっていない");
+    var prefixes = new string[] { "BigMesa_", "ThinMesa_", "Boulders_", "RubbleDense_", "RubbleSparse_", "StratMesaSharp_", "DesertBoulder_", "DesertRock_" };
+    foreach (var prefix in prefixes)
+    {
+        var sum = 0;
+        foreach (var kv in counts) if (kv.Key.StartsWith(prefix)) sum += kv.Value;
+        p.Assert(sum > 0, prefix + "* がシーンに存在する (count=" + sum + ")");
+    }
+    var hasPlaceholder = counts.ContainsKey("Pebble") || counts.ContainsKey("Bush");
+    p.Assert(!hasPlaceholder, "旧プレースホルダ(Pebble/Bush)が混ざっていない");
 
     // 2: BigMesa付近を俯瞰で撮る。存在確認だけでなく見た目（大きさ・沈み込み）を録る
     // 2: Overhead shots near a BigMesa; records the look (size, sink) rather than mere existence
-    var bigMesa = all.FirstOrDefault(m => m.name.StartsWith("BigMesa_"));
     if (bigMesa != null)
     {
         var cameraObject = new GameObject("PlaytestSurveyCamera");
@@ -55,10 +64,9 @@ return PlaytestRunner.Run("generated-world-mesa-objects-survey", options, async 
         cameraObject.transform.LookAt(target);
         await UniTask.DelayFrame(5);
         await p.Screenshot("02-bigmesa-overhead");
-        Object.Destroy(cameraObject);
+        UnityEngine.Object.Destroy(cameraObject);
     }
 
-    var desertBoulder = all.FirstOrDefault(m => m.name.StartsWith("DesertBoulder_"));
     if (desertBoulder != null)
     {
         var cameraObject = new GameObject("PlaytestSurveyCamera2");
@@ -70,6 +78,6 @@ return PlaytestRunner.Run("generated-world-mesa-objects-survey", options, async 
         cameraObject.transform.LookAt(target);
         await UniTask.DelayFrame(5);
         await p.Screenshot("03-desertboulder-oblique");
-        Object.Destroy(cameraObject);
+        UnityEngine.Object.Destroy(cameraObject);
     }
 });
