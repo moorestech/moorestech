@@ -43,9 +43,11 @@ vi.mock("@/shared/tutorialAnchor", async (importOriginal) => {
 
 import { TutorialOverlay } from "./TutorialOverlay";
 
-const ready = (left: number): ResolvedAnchor => ({
+const FULL_CLIP = { left: -100, top: -100, right: 1280, bottom: 820 };
+const ready = (left: number, clip = FULL_CLIP): ResolvedAnchor => ({
   status: "ready", reason: "mounted",
   rect: { left, top: 0, width: 10, height: 10 } as DOMRectReadOnly,
+  clip,
 });
 const hidden: ResolvedAnchor = { status: "hidden", reason: "display-none" };
 
@@ -184,5 +186,60 @@ describe("TutorialOverlay anchor resolution", () => {
 
     pushAnchor("recipe.craft-button", ready(20));
     expect(renderer.root.findByProps({ "data-kind": "outline" }).props.style).not.toBe(styleBefore);
+  });
+});
+
+describe("TutorialOverlay outline clipping", () => {
+  afterEach(() => {
+    mockState.presentation = null;
+    mockState.listeners.clear();
+  });
+
+  it("祖先クリップの外へ出た辺はclip-pathで切られる", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "research.node-a")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = create(createElement(TutorialOverlay)); });
+
+    // rectは left:100 top:0 の 10x10、paddingPx:0 なのでboxは 100..110 / 0..10。右辺だけがclipに掛かる
+    // The rect is 10x10 at left:100 top:0 with paddingPx:0 so the box spans 100..110 / 0..10; only the right side clips
+    pushAnchor("research.node-a", ready(100, { left: -100, top: -100, right: 104, bottom: 820 }));
+
+    const outlines = renderer.root.findAllByProps({ "data-kind": "outline" });
+    expect(outlines.length).toBe(1);
+    expect(outlines[0].props.style.clipPath).toBe("inset(-4px 6px -4px -4px)");
+  });
+
+  it("完全にクリップされた枠は要素ごと描かない", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "research.node-a")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = create(createElement(TutorialOverlay)); });
+
+    pushAnchor("research.node-a", ready(100, { left: -100, top: -100, right: 50, bottom: 820 }));
+
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(0);
+  });
+
+  // clipだけが変わった場合（コンテナのリサイズ等）に再描画されないとマスクが古いまま残る
+  // A clip-only change (container resize etc.) must still re-render, or the mask goes stale
+  it("rectが同値でもclipが変われば再描画する", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "research.node-a")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = create(createElement(TutorialOverlay)); });
+
+    // クリップが遠い＝どの辺も切らない。グロー4pxを残すため全辺 -4px になる
+    // A far-away clip cuts no side, so every side is -4px to preserve the 4px glow
+    pushAnchor("research.node-a", ready(100, { left: -100, top: -100, right: 1280, bottom: 820 }));
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" })[0].props.style.clipPath)
+      .toBe("inset(-4px -4px -4px -4px)");
+
+    pushAnchor("research.node-a", ready(100, { left: -100, top: -100, right: 104, bottom: 820 }));
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" })[0].props.style.clipPath)
+      .toBe("inset(-4px 6px -4px -4px)");
   });
 });

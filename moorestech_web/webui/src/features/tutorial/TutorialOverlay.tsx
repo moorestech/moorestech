@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { dispatchAction, Topics, useTopic, type TutorialPresentationData } from "@/bridge";
-import { TutorialAnchorRegistry, type ResolvedAnchor } from "@/shared/tutorialAnchor";
+import { TutorialAnchorRegistry, clipPathInset, type ClipRect, type ResolvedAnchor } from "@/shared/tutorialAnchor";
 import styles from "./style.module.css";
 
 type TutorialSession = TutorialPresentationData["sessions"][number];
@@ -83,12 +83,24 @@ export function TutorialOverlay() {
   </div>;
 }
 
+// style.module.css の .highlight が持つ box-shadow の広がり幅。clip-pathで削らないため外側へ逃がす
+// The spread of .highlight's box-shadow in style.module.css; the clip is pushed out so it is not shaved off
+const HIGHLIGHT_GLOW_PX = 4;
+
 function renderOutline(key: string, element: TutorialOutlineElement, value: ResolvedAnchor | undefined) {
   if (!value || value.status !== "ready") return null;
   const padding = element.paddingPx;
+  const box = {
+    left: value.rect.left - padding, top: value.rect.top - padding,
+    right: value.rect.left + value.rect.width + padding,
+    bottom: value.rect.top + value.rect.height + padding,
+  };
+  // 祖先のoverflowで完全に隠れている間は要素ごと出さず、DOMと見た目を一致させる
+  // While ancestor overflow hides it entirely, omit the element so the DOM matches what is painted
+  const clipPath = clipPathInset(box, value.clip, HIGHLIGHT_GLOW_PX);
+  if (clipPath === null) return null;
   return <div key={key} className={styles.highlight} data-kind={element.kind}
-    style={{ left: value.rect.left - padding, top: value.rect.top - padding,
-      width: value.rect.width + padding * 2, height: value.rect.height + padding * 2 }} />;
+    style={{ left: box.left, top: box.top, width: box.right - box.left, height: box.bottom - box.top, clipPath }} />;
 }
 
 function renderDragGuide(key: string, from: ResolvedAnchor | undefined, to: ResolvedAnchor | undefined) {
@@ -106,13 +118,19 @@ function renderDragGuide(key: string, from: ResolvedAnchor | undefined, to: Reso
   </div>;
 }
 
-// 矩形は参照ではなく4値で比較する。同値の再解決で再描画させないため
-// Compare rects by their four values, not by reference, so a same-valued re-resolve skips the re-render
+// 矩形とクリップは参照ではなく値で比較する。同値の再解決で再描画させないため
+// Compare the rect and the clip by value, not by reference, so a same-valued re-resolve skips the re-render
 function isSameAnchor(previous: ResolvedAnchor | undefined, value: ResolvedAnchor) {
   if (!previous || previous.status !== value.status || previous.reason !== value.reason) return false;
   if (previous.status !== "ready" || value.status !== "ready") return true;
   return previous.rect.left === value.rect.left && previous.rect.top === value.rect.top &&
-    previous.rect.width === value.rect.width && previous.rect.height === value.rect.height;
+    previous.rect.width === value.rect.width && previous.rect.height === value.rect.height &&
+    isSameClip(previous.clip, value.clip);
+}
+
+function isSameClip(previous: ClipRect, value: ClipRect) {
+  return previous.left === value.left && previous.top === value.top &&
+    previous.right === value.right && previous.bottom === value.bottom;
 }
 
 function keepSubscribed(current: Record<string, ResolvedAnchor>, anchorIds: Set<string>) {
