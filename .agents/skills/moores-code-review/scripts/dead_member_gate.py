@@ -24,7 +24,9 @@ Wires DeadMemberAudit (IL analysis) into the review flow, scoped to the patch.
 """
 import argparse
 import json
+import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -82,8 +84,13 @@ def main() -> int:
         dll_mtimes = [d.stat().st_mtime for d in assemblies.glob("*.dll")]
         if cs_mtimes and dll_mtimes and max(cs_mtimes) > max(dll_mtimes):
             return emit("stale", "変更.csがDLLより新しい。uloop compile 後に再実行すること", [])
+        # dotnet未導入の環境ではTracebackでなく縮退として申告する（2026-08-20: 24/26runが無言縮退していた）
+        # Report a missing dotnet as a degradation, not a traceback (24/26 runs silently degraded)
+        dotnet = resolve_dotnet()
+        if dotnet is None:
+            return emit("skipped", "dotnet が見つからない（SDK未導入 or PATH外）。dead_member ゲートは縮退", [])
         run = subprocess.run(
-            ["dotnet", "run", "--project", str(root / TOOL_REL), "--", str(assemblies)],
+            [dotnet, "run", "--project", str(root / TOOL_REL), "--", str(assemblies)],
             capture_output=True, text=True, cwd=str(root), timeout=600)
         if run.returncode != 0:
             return emit("error", f"DeadMemberAudit失敗: {run.stderr.strip()[:300]}", [])
@@ -92,6 +99,19 @@ def main() -> int:
         return emit("error", "report.md が生成されていない", [])
     candidates = collect_candidates(report_path.read_text(encoding="utf-8"), changed)
     return emit("ok", f"patch内.cs {len(changed)}件と突き合わせ", candidates)
+
+
+def resolve_dotnet() -> str | None:
+    # PATH → 既知のインストール先の順で実体を探す / PATH first, then known install locations
+    found = shutil.which("dotnet")
+    if found:
+        return found
+    for cand in ("/usr/local/share/dotnet/dotnet", "/opt/homebrew/bin/dotnet",
+                 "/usr/local/bin/dotnet", "~/.dotnet/dotnet"):
+        p = Path(os.path.expanduser(cand))
+        if p.is_file() and os.access(p, os.X_OK):
+            return str(p)
+    return None
 
 
 def collect_candidates(report: str, changed: set) -> list:

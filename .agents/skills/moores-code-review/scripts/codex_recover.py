@@ -21,7 +21,7 @@ The rollout jsonl under $CODEX_HOME/sessions is the authoritative record, so rea
 usage:
   codex_recover.py --prompt <prompt.md> --out <stdout .out.md> [--final <final.md>] [--since-min N]
 
-exit: 0=結論あり(ok/recovered) / 3=セッションはあるが未完走 / 4=セッションが見つからない
+exit: 0=結論あり(ok/recovered) / 3=セッションはあるが未完走 / 4=セッションが見つからない / 5=認証失効(401)
 """
 import argparse
 import json
@@ -30,6 +30,10 @@ import re
 import sys
 import time
 from pathlib import Path
+
+
+# stdout に残る認証失効の痕跡 / Footprints of an expired login in stdout
+AUTH_FAILURE_RE = re.compile(r"401 Unauthorized|refresh_token_invalidated|Please log in again")
 
 
 def codex_sessions_root() -> Path:
@@ -103,6 +107,15 @@ def main() -> int:
         result.update(status="ok", source="output-last-message")
         print(json.dumps(result, ensure_ascii=False))
         return 0
+
+    # 認証失効は「起動失敗」と区別して申告する（2026-08-19: refresh token 失効の401を不在と誤診した）
+    # Report an expired login distinctly from a missing binary (401 was misread as "absent")
+    if out_path.is_file() and AUTH_FAILURE_RE.search(
+            out_path.read_text(encoding="utf-8", errors="replace")):
+        result.update(status="auth_expired", source="stdout",
+                      hint="codex の認証が失効（401）。この CODEX_HOME で `codex login` を再実行する必要がある")
+        print(json.dumps(result, ensure_ascii=False))
+        return 5
 
     prompt_text = Path(args.prompt).read_text(encoding="utf-8", errors="replace")
     found = find_session(prompt_text, args.since_min)

@@ -430,6 +430,7 @@ python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "
 - **中間生成物の削除（本体Step 7の項目4）は行わない** — `$RUNDIR` 配下は保存物であって一時ファイルではない。
   Step 3のpatchは後段のコード抜粋転記で読むうえ、reconcileのフォレンジック・リプレイの入力でもある
 - AskUserQuestionは使わない。設計判断もダイジェストの裁定カードへ
+- **Workflow 既定（本体 2026-08-20）での report-only 指定**: 本体 Step 2 の `build_workflow_args.py` に `--report-only --detchecks <$RUNDIRの実値>/detchecks.json` を足す（`--repo-root` は `$PRWT`、スクリプトは `$CANON` 側）。これで Apply フェーズが省かれ、post-check は patch＋detchecks.json で発火し、contract.md に report-only の前提が付く。Workflow には `workflow-args.json` の中身をそのまま `args` に渡す
 
 ### Codex外部監査（本体Step 3）の起動手当て
 
