@@ -52,6 +52,11 @@ describe("tooltip schema", () => {
       visible: true, textKey: "Cannot remove",
     })).toBe(false);
   });
+  it("rejects sizes smuggled in alongside the dictionary key", () => {
+    expect(validateTopicPayload(Topics.tooltip, {
+      visible: true, textKey: "ui.tooltip.requiredItems", textParams: [], width: 240,
+    })).toBe(false);
+  });
 });
 
 describe("localization.current schema", () => {

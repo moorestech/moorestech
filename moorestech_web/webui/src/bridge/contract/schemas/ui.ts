@@ -72,7 +72,7 @@ export const TooltipDataSchema = z.object({
   visible: z.boolean(),
   textKey: z.string(),
   textParams: z.array(z.string()),
-});
+}).strict();
 
 // snapshotを持たない一時イベントのため、接続直後は{}が届く。全フィールドoptionalにしそれを許容する
 // Transient event without a snapshot: {} arrives right after connect, so every field is optional to accept it
