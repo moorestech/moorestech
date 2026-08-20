@@ -490,7 +490,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `TutorialHighlightSchema` に `labelTutorialGuid: z.string().uuid().optional()`；新 `TutorialKeyControlSchema { kind:"keyControl", elementId, tutorialGuid(uuid), keyName, uiState }`；`TutorialOverlayElementSchema` の union に追加。型 `TutorialPresentationData` は既存の `z.infer` 経由で自動更新。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `presentation.test.ts` に追加:
 
@@ -511,12 +511,12 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 `import` に `TutorialHighlightSchema, TutorialOverlayElementSchema` を足す。
 
-- [ ] **Step 2: 実行して失敗を確認する**
+- [x] **Step 2: 実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && npx vitest run src/bridge/contract/schemas/presentation.test.ts`
 Expected: FAIL（`labelTutorialGuid` は strict で拒否、`keyControl` は union 外）。
 
-- [ ] **Step 3: スキーマを実装する**
+- [x] **Step 3: スキーマを実装する**
 
 ```ts
 // 枠線は矩形だけ。文言を持つなら labelTutorialGuid で辞書キーを示し、Web側が t() で解決して脇に描く
@@ -545,12 +545,12 @@ export const TutorialOverlayElementSchema = z.discriminatedUnion("kind", [
 ]);
 ```
 
-- [ ] **Step 4: テスト・型チェック**
+- [x] **Step 4: テスト・型チェック**
 
 Run: `npx vitest run src/bridge/contract/schemas/presentation.test.ts && npx tsc -b`
 Expected: PASS。`tsc` で `TutorialOverlay.tsx` の `element.kind !== "outline"` 分岐が keyControl に `fromAnchorId` 無しで型エラーになる → Task A5 で直すため、このステップでは `TutorialOverlay.tsx:37-41` を一時的に `if (element.kind === "dragGuide") { ...; continue; } if (element.kind !== "outline") continue;` に直してから進める。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/bridge/contract/schemas/presentation.ts moorestech_web/webui/src/bridge/contract/schemas/presentation.test.ts moorestech_web/webui/src/features/tutorial/TutorialOverlay.tsx
