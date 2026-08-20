@@ -424,7 +424,7 @@ git commit -m "chore: Task 3完了（レート制限再起動のresume化）"
 - Consumes: Task 2 の `read_abort` が読む `$RUNDIR/abort.json` のスキーマ（`reason` / `step` / `at`）
 - Consumes: Task 1 が渡す `PR_REVIEW_UNATTENDED=1`
 
-- [ ] **Step 1: ハードルール節を挿入する**
+- [x] **Step 1: ハードルール節を挿入する**
 
 `# pr-independent-review — 独立セッションPRレビュー（シャドー運用v1）`（16行目）と `対応spec:` の行の間へ挿入する:
 
@@ -463,7 +463,7 @@ fail-closedが、押し切られて続行される）。`$RUNDIR` がまだ無�
 `reason` は失敗コメントへそのまま転記されるので、人間が次の一手を決められる粒度で書く。
 ```
 
-- [ ] **Step 2: エラー処理節の冒頭へ共通ルールを追加する**
+- [x] **Step 2: エラー処理節の冒頭へ共通ルールを追加する**
 
 `## エラー処理`（挿入により行番号がずれるので `grep -n "^## エラー処理" SKILL.md` で位置を取る）の直後、
 最初の箇条書きの前へ1行入れる:
@@ -472,12 +472,12 @@ fail-closedが、押し切られて続行される）。`$RUNDIR` がまだ無�
 **下記のどの中止でも、終わる前に `$RUNDIR/abort.json` を書く**（冒頭「中止の申告」節。書かずに終わると自壊と誤認されresumeされる）。
 ```
 
-- [ ] **Step 3: 挿入結果を確認する**
+- [x] **Step 3: 挿入結果を確認する**
 
 Run: `grep -n "PR_REVIEW_UNATTENDED\|abort.json" .agents/skills/pr-independent-review/SKILL.md`
 Expected: ハードルール節・中止の申告節・エラー処理節冒頭の3箇所すべてにヒットする
 
-- [ ] **Step 4: README.md を更新する**
+- [x] **Step 4: README.md を更新する**
 
 `/Users/sakastudio/hermes-agent/data/services/pr-review/README.md` の以下2点を書き換える:
 
@@ -487,7 +487,7 @@ Expected: ハードルール節・中止の申告節・エラー処理節冒頭�
    「加えてレビューの自壊（exit=0・findings未生成）は同一セッションを1回だけresumeして回収する
    （`review.resume`。abort.json申告がある中止は対象外）」を追記する
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/unattended-review-resume
