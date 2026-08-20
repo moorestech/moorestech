@@ -15,8 +15,8 @@ export function LocalizedShortcutHint({ shortcut, translationKey }: Props) {
   const text = t(translationKey, { shortcut: SHORTCUT_MARKER });
   const markerIndex = text.indexOf(SHORTCUT_MARKER);
 
-  // 辞書破損時も文言を失わずショートカットを先頭へ露出する
-  // Keep the text visible and surface the shortcut first if a dictionary loses the marker
+  // マーカーが無い文言は先頭にkbdを置く正規経路（例: keyControlヒントのADR0022様式）
+  // A marker-less text takes this route by design (e.g. keyControl hints' ADR 0022 style)
   if (markerIndex < 0) {
     return (
       <Fragment>

@@ -4,6 +4,8 @@ import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TutorialPresentationData } from "@/bridge";
+import { challengeTutorialTextKey } from "@/shared/i18n";
+import { setDictionaries } from "@/shared/i18n/i18nStore";
 
 const host = vi.hoisted(() => ({
   presentation: null as TutorialPresentationData | null,
@@ -24,15 +26,13 @@ vi.mock("@/shared/uiState", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/shared/uiState")>();
   return { ...actual, useBlockingSkitActive: () => host.blockingSkit };
 });
-vi.mock("@/shared/i18n", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/shared/i18n")>();
-  return { ...actual, useI18n: () => ({ t: (key: string) => `T:${key}` }) };
-});
 
 import { KeyControlHintHud } from "./KeyControlHintHud";
 
+const tutorialGuid = "22222222-2222-4222-8222-222222222222";
+
 const keyControl = (elementId: string, keyName: string, uiState: string) => ({
-  kind: "keyControl" as const, elementId, tutorialGuid: "22222222-2222-4222-8222-222222222222", keyName, uiState,
+  kind: "keyControl" as const, elementId, tutorialGuid, keyName, uiState,
 });
 
 function render() {
@@ -42,9 +42,15 @@ function render() {
 }
 
 describe("KeyControlHintHud", () => {
-  afterEach(() => { host.presentation = null; host.uiState = null; host.blockingSkit = false; });
+  afterEach(() => {
+    host.presentation = null;
+    host.uiState = null;
+    host.blockingSkit = false;
+    setDictionaries("english", {}, {}, {});
+  });
 
-  it("uiStateが一致するヒントだけを描く", () => {
+  it("uiStateが一致するヒントだけを、既存共有部品のkbd+本文の順で描く", () => {
+    setDictionaries("english", { [challengeTutorialTextKey(tutorialGuid)]: "Open inventory" }, {}, {});
     host.uiState = { state: "GameScreen" };
     host.presentation = { revision: 1, sessions: [{ tutorialSessionId: "s1", challengeId: "c1", elements: [
       keyControl("k1", "Tab", "GameScreen"), keyControl("k2", "R", "PlayerInventory"),
@@ -53,7 +59,13 @@ describe("KeyControlHintHud", () => {
     const hints = renderer.root.findAllByProps({ "data-testid": "key-control-hint" });
     expect(hints.length).toBe(1);
     expect(renderer.root.findByType("kbd").children).toEqual(["Tab"]);
-    expect(renderer.root.findByType("span").children).toEqual(["T:challengeTutorial.22222222-2222-4222-8222-222222222222.text"]);
+    // ADR 0022様式: kbdが先頭、続けて本文
+    // ADR 0022 style: kbd comes first, followed by the body text
+    const hintComponent = hints[0].children[0] as { children: unknown[] };
+    const [kbdChild, textChild] = hintComponent.children;
+    expect((kbdChild as { type: string }).type).toBe("kbd");
+    expect(textChild).toBe("Open inventory");
+    act(() => renderer.unmount());
   });
 
   it("一致するヒントが無ければHUD自体を描かない", () => {
@@ -61,6 +73,7 @@ describe("KeyControlHintHud", () => {
     host.presentation = { revision: 1, sessions: [{ tutorialSessionId: "s1", challengeId: "c1", elements: [keyControl("k1", "Tab", "GameScreen")] }] };
     const renderer = render();
     expect(renderer.root.findAllByProps({ "data-testid": "key-control-hint-hud" }).length).toBe(0);
+    act(() => renderer.unmount());
   });
 
   it("blockingスキット中は描かない", () => {
@@ -69,11 +82,13 @@ describe("KeyControlHintHud", () => {
     host.presentation = { revision: 1, sessions: [{ tutorialSessionId: "s1", challengeId: "c1", elements: [keyControl("k1", "Tab", "GameScreen")] }] };
     const renderer = render();
     expect(renderer.root.findAllByProps({ "data-testid": "key-control-hint-hud" }).length).toBe(0);
+    act(() => renderer.unmount());
   });
 
   // 2件同時一致→縦積み(ADR0022)
   // Two simultaneous matches stack vertically
   it("同時に一致するヒントが2件あれば2件とも描く", () => {
+    setDictionaries("english", { [challengeTutorialTextKey(tutorialGuid)]: "Open inventory" }, {}, {});
     host.uiState = { state: "GameScreen" };
     host.presentation = { revision: 1, sessions: [{ tutorialSessionId: "s1", challengeId: "c1", elements: [
       keyControl("k1", "Tab", "GameScreen"), keyControl("k2", "E", "GameScreen"),
@@ -81,5 +96,6 @@ describe("KeyControlHintHud", () => {
     const renderer = render();
     const hints = renderer.root.findAllByProps({ "data-testid": "key-control-hint" });
     expect(hints.length).toBe(2);
+    act(() => renderer.unmount());
   });
 });
