@@ -12,5 +12,7 @@ export {
   recipeItemAnchorId,
   buildMenuEntryAnchorId,
   challengeNodeAnchorId,
+  inventoryItemAnchorId,
+  equipmentSlotAnchorId,
 } from "./anchorIds";
 export type { StaticTutorialAnchorId, DynamicTutorialAnchorId } from "./anchorIds";

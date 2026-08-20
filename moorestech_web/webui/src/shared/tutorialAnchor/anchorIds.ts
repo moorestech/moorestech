@@ -16,6 +16,7 @@ export const TutorialAnchorIds = {
   challengePanel: "challenge.panel",
   challengeCategories: "challenge.categories",
   hotbarHud: "hotbar.hud",
+  equipmentSelectedSlot: "equipment.selected-slot",
 } as const;
 
 export type StaticTutorialAnchorId = (typeof TutorialAnchorIds)[keyof typeof TutorialAnchorIds];
@@ -27,6 +28,8 @@ export const TutorialAnchorDynamicPrefixes = {
   recipeItem: "recipe.item-",
   buildMenuEntry: "build-menu.entry-",
   challengeNode: "challenge.node-",
+  inventoryItem: "inventory.item-",
+  equipmentSlot: "equipment.slot-",
 } as const;
 
 export type DynamicTutorialAnchorId =
@@ -46,4 +49,14 @@ export function buildMenuEntryAnchorId(kind: string, id: string): DynamicTutoria
 
 export function challengeNodeAnchorId(guid: string): DynamicTutorialAnchorId {
   return `${TutorialAnchorDynamicPrefixes.challengeNode}${guid}`.toLowerCase() as DynamicTutorialAnchorId;
+}
+
+// メインインベントリで該当アイテムを持つ先頭スロット。guidはマスタ直書き値と一致させるため小文字化する
+// First main-inventory slot holding the item; the guid is lowercased to match master-written values
+export function inventoryItemAnchorId(itemGuid: string): DynamicTutorialAnchorId {
+  return `${TutorialAnchorDynamicPrefixes.inventoryItem}${itemGuid}`.toLowerCase() as DynamicTutorialAnchorId;
+}
+
+export function equipmentSlotAnchorId(index: number): DynamicTutorialAnchorId {
+  return `${TutorialAnchorDynamicPrefixes.equipmentSlot}${index}` as DynamicTutorialAnchorId;
 }
