@@ -36,28 +36,41 @@ export const TutorialAnchorDynamicPrefixes = {
 export type DynamicTutorialAnchorId =
   `${(typeof TutorialAnchorDynamicPrefixes)[keyof typeof TutorialAnchorDynamicPrefixes]}${string}`;
 
+// 解決セレクタが空白区切りトークン一致のため、空白入りIDは永久に解決しない。生成時点で弾く
+// The resolver matches whitespace-separated tokens, so a whitespace-bearing ID never resolves; reject it at generation time
+// 開発時は即throwで気付かせ、実機ではマスタ由来の不正値で画面を落とさず警告に留める
+// Throw during development so it cannot pass unnoticed; in the shipped app a malformed master value only warns instead of blanking the screen
+function asAnchorId(value: string): DynamicTutorialAnchorId {
+  if (/\s/.test(value)) {
+    const message = `[tutorialAnchor] anchor id must not contain whitespace: "${value}"`;
+    if (import.meta.env.DEV) throw new Error(message);
+    console.warn(message);
+  }
+  return value as DynamicTutorialAnchorId;
+}
+
 export function researchNodeAnchorId(guid: string): DynamicTutorialAnchorId {
-  return `${TutorialAnchorDynamicPrefixes.researchNode}${guid}`.toLowerCase() as DynamicTutorialAnchorId;
+  return asAnchorId(`${TutorialAnchorDynamicPrefixes.researchNode}${guid}`.toLowerCase());
 }
 
 export function recipeItemAnchorId(itemId: number): DynamicTutorialAnchorId {
-  return `${TutorialAnchorDynamicPrefixes.recipeItem}${itemId}` as DynamicTutorialAnchorId;
+  return asAnchorId(`${TutorialAnchorDynamicPrefixes.recipeItem}${itemId}`);
 }
 
 export function buildMenuEntryAnchorId(kind: string, id: string): DynamicTutorialAnchorId {
-  return `${TutorialAnchorDynamicPrefixes.buildMenuEntry}${kind}-${id}`.toLowerCase() as DynamicTutorialAnchorId;
+  return asAnchorId(`${TutorialAnchorDynamicPrefixes.buildMenuEntry}${kind}-${id}`.toLowerCase());
 }
 
 export function challengeNodeAnchorId(guid: string): DynamicTutorialAnchorId {
-  return `${TutorialAnchorDynamicPrefixes.challengeNode}${guid}`.toLowerCase() as DynamicTutorialAnchorId;
+  return asAnchorId(`${TutorialAnchorDynamicPrefixes.challengeNode}${guid}`.toLowerCase());
 }
 
 // guidはマスタ直書き値に合わせて小文字化する
 // The guid is lowercased to match master-written values
 export function inventoryItemAnchorId(itemGuid: string): DynamicTutorialAnchorId {
-  return `${TutorialAnchorDynamicPrefixes.inventoryItem}${itemGuid}`.toLowerCase() as DynamicTutorialAnchorId;
+  return asAnchorId(`${TutorialAnchorDynamicPrefixes.inventoryItem}${itemGuid}`.toLowerCase());
 }
 
 export function equipmentSlotAnchorId(index: number): DynamicTutorialAnchorId {
-  return `${TutorialAnchorDynamicPrefixes.equipmentSlot}${index}` as DynamicTutorialAnchorId;
+  return asAnchorId(`${TutorialAnchorDynamicPrefixes.equipmentSlot}${index}`);
 }

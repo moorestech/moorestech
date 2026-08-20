@@ -1,10 +1,13 @@
+import type { HTMLAttributes } from "react";
 import { Tooltip, type TooltipProps } from "@mantine/core";
 import ItemIcon from "../ItemIcon";
 import SlotFrame from "../SlotFrame";
 import styles from "./style.module.css";
 import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
 
-type Props = {
+// 素のdiv属性はSlotFrameへ素通しする。呼び出し側の関心事（アンカー等）に共有側が名前を与えないため
+// Bare div attributes pass straight through to SlotFrame so the shared part never names the caller's concerns (anchors etc.)
+type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "onMouseDown" | "onDoubleClick" | "onContextMenu" | "onMouseEnter" | "onMouseLeave"> & {
   itemId: number;
   // count が未指定か0なら個数バッジを出さず、itemId>0 ならアイコンのみ表示する
   // With count undefined or 0 the badge is hidden, and the icon shows for itemId>0
@@ -26,7 +29,7 @@ type Props = {
 
 // アイコン・個数・ホバーツールチップ付きの汎用アイテムスロット
 // Generic item slot with icon, count, and a hover tooltip
-export default function ItemSlot({ itemId, count, tooltip, selected, catalog, insufficient, onLeftDown, onRightDown, onRightEnter, onLeftEnter, onDoubleClick, onHoverChange, testId }: Props) {
+export default function ItemSlot({ itemId, count, tooltip, selected, catalog, insufficient, onLeftDown, onRightDown, onRightEnter, onLeftEnter, onDoubleClick, onHoverChange, testId, ...divProps }: Props) {
   const { t } = useI18n();
   const resolveItemName = useItemNameResolver();
   const resolvedName = resolveItemName(itemId);
@@ -42,6 +45,7 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
     // Tooltip clones the child without a wrapper, keeping the grid > div DOM shape intact
     <Tooltip label={tooltip ?? resolvedName} disabled={!hasItem || (!tooltip && !resolvedName)}>
       <SlotFrame
+        {...divProps}
         testId={testId}
         selected={selected}
         filled={filled}

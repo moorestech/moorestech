@@ -34,10 +34,14 @@ import InventoryPanel from "./index";
 
 const slot = (itemId: number, count: number) => ({ itemId, count });
 
-function renderAnchors() {
+function renderSlots() {
   const renderer = create(createElement(InventoryPanel));
-  return renderer.root
-    .findAll((node) => typeof node.props["data-tutorial-anchor"] === "string")
+  return renderer.root.findAllByProps({ "data-mock": "item-slot" });
+}
+
+function renderAnchors() {
+  return renderSlots()
+    .filter((node) => typeof node.props["data-tutorial-anchor"] === "string")
     .map((node) => node.props["data-tutorial-anchor"] as string);
 }
 
@@ -55,5 +59,28 @@ describe("InventoryPanel の所持アンカー", () => {
     };
 
     expect(renderAnchors()).toEqual(["inventory.item-a0000000-0000-4000-8000-000000000001"]);
+  });
+
+  // 名乗る位置まで固定する。空枠や別の山へ付け替わっても、アンカー名だけの検査では気付けない
+  // Pin the position too: a swap to an empty slot or another stack would slip past a name-only assertion
+  it("アンカーは実所持の先頭スロット(4番目)に付き、そのスロットの中身と一致する", () => {
+    host.itemMaster = new Map<number, ItemMasterEntry>([
+      [7, { itemId: 7, itemGuid: "A0000000-0000-4000-8000-000000000001", maxStack: 100 }],
+    ]);
+    host.inventory = {
+      mainSlots: [slot(0, 0), slot(7, 0), slot(3, 1), slot(7, 5)],
+      grab: slot(0, 0),
+      equipment: [],
+      selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
+    };
+
+    const slots = renderSlots();
+    const anchoredIndexes = slots
+      .map((node, index) => (typeof node.props["data-tutorial-anchor"] === "string" ? index : -1))
+      .filter((index) => index >= 0);
+
+    expect(anchoredIndexes).toEqual([3]);
+    expect(slots[3].props).toMatchObject({ itemId: 7, count: 5 });
   });
 });

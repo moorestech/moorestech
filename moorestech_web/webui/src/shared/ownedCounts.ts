@@ -1,11 +1,17 @@
 import type { SlotData } from "@/bridge";
 
+// 所持の唯一の判定。集計と先頭スロット探索で同じ述語を物理的に共有する
+// The single owned predicate, physically shared by the tally and the first-slot lookup
+export function isOwnedSlot(slot: SlotData): boolean {
+  return slot.itemId > 0 && slot.count > 0;
+}
+
 // スロット列から itemId 別の所持数を集計する。空スロット・0個は除外（recipe/research 共用）
 // Tally owned counts per itemId from slots, skipping empties and zero counts (shared by recipe/research)
 export function buildOwnedCounts(slots: SlotData[]): Map<number, number> {
   const owned = new Map<number, number>();
   for (const slot of slots) {
-    if (slot.itemId <= 0 || slot.count <= 0) continue;
+    if (!isOwnedSlot(slot)) continue;
     owned.set(slot.itemId, (owned.get(slot.itemId) ?? 0) + slot.count);
   }
   return owned;
@@ -16,7 +22,7 @@ export function buildOwnedCounts(slots: SlotData[]): Map<number, number> {
 export function firstSlotIndexByItemId(slots: ReadonlyArray<SlotData>): Map<number, number> {
   const result = new Map<number, number>();
   slots.forEach((slot, index) => {
-    if (slot.itemId <= 0 || slot.count <= 0 || result.has(slot.itemId)) return;
+    if (!isOwnedSlot(slot) || result.has(slot.itemId)) return;
     result.set(slot.itemId, index);
   });
   return result;

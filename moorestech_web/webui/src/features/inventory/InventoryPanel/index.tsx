@@ -46,17 +46,17 @@ export default function InventoryPanel() {
           const ref: SlotRef = { area: "main", slot: i };
           const itemGuid = firstSlots.get(slot.itemId) === i ? itemMaster?.get(slot.itemId)?.itemGuid : undefined;
           return (
-            <div key={`main-${i}`} {...(itemGuid ? tutorialAnchor(inventoryItemAnchorId(itemGuid)) : {})}>
-              <ItemSlot
-                itemId={slot.itemId}
-                count={slot.count}
-                onLeftDown={(shiftKey) => slotActions.onLeftDown(ref, shiftKey)}
-                onRightDown={() => slotActions.onRightDown(ref)}
-                onRightEnter={() => slotActions.onRightEnter(ref)}
-                onLeftEnter={() => slotActions.onLeftEnter(ref)}
-                onDoubleClick={() => slotActions.onDoubleClick(ref)}
-              />
-            </div>
+            <ItemSlot
+              key={`main-${i}`}
+              {...(itemGuid ? tutorialAnchor(inventoryItemAnchorId(itemGuid)) : {})}
+              itemId={slot.itemId}
+              count={slot.count}
+              onLeftDown={(shiftKey) => slotActions.onLeftDown(ref, shiftKey)}
+              onRightDown={() => slotActions.onRightDown(ref)}
+              onRightEnter={() => slotActions.onRightEnter(ref)}
+              onLeftEnter={() => slotActions.onLeftEnter(ref)}
+              onDoubleClick={() => slotActions.onDoubleClick(ref)}
+            />
           );
         })}
       </SlotGrid>

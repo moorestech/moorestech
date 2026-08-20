@@ -106,18 +106,18 @@ export default function EquipmentPanel() {
           ? tutorialAnchor(equipmentSlotAnchorId(i), TutorialAnchorIds.equipmentSelectedSlot)
           : tutorialAnchor(equipmentSlotAnchorId(i));
         return (
-          <div key={`equipment-${i}`} {...anchor}>
-            <ItemSlot
-              itemId={slot.itemId}
-              count={slot.count}
-              selected={selected}
-              onLeftDown={grabInteractive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
-              onRightDown={grabInteractive ? () => slotActions.onRightDown(ref) : undefined}
-              onRightEnter={grabInteractive ? () => slotActions.onRightEnter(ref) : undefined}
-              onLeftEnter={grabInteractive ? () => slotActions.onLeftEnter(ref) : undefined}
-              onDoubleClick={grabInteractive ? () => slotActions.onDoubleClick(ref) : undefined}
-            />
-          </div>
+          <ItemSlot
+            key={`equipment-${i}`}
+            {...anchor}
+            itemId={slot.itemId}
+            count={slot.count}
+            selected={selected}
+            onLeftDown={grabInteractive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
+            onRightDown={grabInteractive ? () => slotActions.onRightDown(ref) : undefined}
+            onRightEnter={grabInteractive ? () => slotActions.onRightEnter(ref) : undefined}
+            onLeftEnter={grabInteractive ? () => slotActions.onLeftEnter(ref) : undefined}
+            onDoubleClick={grabInteractive ? () => slotActions.onDoubleClick(ref) : undefined}
+          />
         );
       })}
     </div>

@@ -1,11 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
-import { setUiState } from "../../support/mockControl";
+import { setTopicScenario, setUiState } from "../../support/mockControl";
 
-// 各枠はラッパーdiv内のスロット本体
-// Each slot sits inside its anchor wrapper div
 const equipmentSlots = (page: import("@playwright/test").Page) =>
-  page.getByTestId("equipment-slots").locator("> div > div");
+  page.getByTestId("equipment-slots").locator("> div");
 
 // 画面状態を変えるテストがあるため、既定状態へ戻して他 spec へ漏らさない
 // Some tests change the screen state; reset to defaults so it never leaks into other specs
@@ -170,4 +168,24 @@ test("持ち物画面の一覧スクロールでは装備が持ち替わらな�
   await page.mouse.wheel(0, 100);
   await expect.poll(async () => (await payloadsOf(page, "inventory.select_equipment")).length).toBeGreaterThanOrEqual(before + 1);
   expect((await payloadsOf(page, "inventory.select_equipment")).length).toBe(before + 1);
+});
+
+// 枠数はマスタ可変で0にもなり得る。子任せの寸法だと0x0になりHUDのアンカーが永久に解決しない
+// The slot count is master-driven and can be zero; a child-driven size would collapse to 0x0 and the HUD anchor would never resolve
+test("装備枠0でも装備HUDは面積を保ちアンカーが解決する", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("equipment-slots")).toBeVisible();
+
+  await setTopicScenario(page, "equipmentEmpty");
+  await expect.poll(() => equipmentSlots(page).count()).toBe(0);
+
+  const hud = page.locator('[data-tutorial-anchor~="equipment.hud"]');
+  await expect(hud).toBeVisible();
+  const box = await hud.boundingBox();
+  expect(box?.width ?? 0).toBeGreaterThan(0);
+  expect(box?.height ?? 0).toBeGreaterThan(0);
+
+  // 装備topicの上書きは host 側に残るため、既定fixtureへ戻して他 spec へ漏らさない
+  // The inventory override lives on the host, so restore the default fixture to keep it out of other specs
+  await setTopicScenario(page, "researchOwnedItems");
 });

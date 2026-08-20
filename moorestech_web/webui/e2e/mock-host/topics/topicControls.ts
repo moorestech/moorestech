@@ -120,6 +120,9 @@ const controls = {
   // The demo-mode inventory topic swaps to demoInventory (no itemId1/wood), so restore the
   // owned itemId1×15 the research tree fixture assumes (needed for the researchable-state visual QA)
   researchOwnedItems: () => control(Topics.inventory, clone(fx.inventory)),
+  // 装備枠0のマスタでもHUDが面積を保つかを見るための空装備
+  // Zero equipment slots, for checking the HUD keeps an area under a master with no slots
+  equipmentEmpty: () => control(Topics.inventory, { ...clone(fx.inventory), equipment: [], selectedEquipment: -1 }),
 };
 export type TopicScenario = keyof typeof controls;
 
