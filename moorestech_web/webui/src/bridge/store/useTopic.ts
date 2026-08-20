@@ -32,14 +32,14 @@ export function useTopicEvents<K extends keyof TopicPayloads>(topic: K, handler:
 
   useEffect(() => {
     subscriptions.acquire(topic);
-    // 購読後のrevisionだけ配る
-    // Deliver only revisions after subscribe time
-    let lastRevision = useTopicStore.getState().revisions[topic] ?? -1;
-    const unsubscribe = useTopicStore.subscribe((state) => {
-      const revision = state.revisions[topic] ?? -1;
-      if (revision <= lastRevision) return;
-      lastRevision = revision;
-      handlerRef.current(state.topics[topic] as TopicPayloads[K]);
+    // 配信条件は値の参照同一性。revisionの高水位を持つと再接続で番号が巻き戻ったとき恒久停止する
+    // Delivery is keyed on the value's reference identity; a revision high-water mark would stall forever once a reconnect rewinds the numbering
+    const unsubscribe = useTopicStore.subscribe((state, previousState) => {
+      const payload = state.topics[topic];
+      // 値の消去（購読解除・再接続の掃除）は配信ではないのでハンドラへ渡さない
+      // Clearing the value (release or reconnect cleanup) is not a delivery, so the handler is not called
+      if (payload === undefined || payload === previousState.topics[topic]) return;
+      handlerRef.current(payload as TopicPayloads[K]);
     });
     return () => {
       unsubscribe();

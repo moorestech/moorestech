@@ -39,7 +39,7 @@ describe("notificationStore", () => {
       itemId: null,
     });
     expect(Object.keys(useNotificationStore.getState().notifications[0]).sort())
-      .toEqual(["category", "id", "itemId", "messageId", "messageParams"]);
+      .toEqual(["category", "id", "itemId", "lifetimeEpoch", "messageId", "messageParams"]);
   });
 
   it("表示中の同一アイテムの獲得は1行に加算される", () => {
@@ -50,19 +50,30 @@ describe("notificationStore", () => {
     expect(earnedCountOf(0)).toBe(8);
   });
 
-  it("加算時はidが刷新され生存尺が回り直す", () => {
+  it("加算時はidを据え置きlifetimeEpochで生存尺が回り直す", () => {
     earnItem(5, 7, "itemEarned.mined");
     const firstId = useNotificationStore.getState().notifications[0].id;
     vi.advanceTimersByTime(NOTIFICATION_REMOVAL_FALLBACK_MS - 1);
     earnItem(3, 7, "itemEarned.mined");
-    expect(useNotificationStore.getState().notifications[0].id).not.toBe(firstId);
+    expect(useNotificationStore.getState().notifications[0].id).toBe(firstId);
+    expect(useNotificationStore.getState().notifications[0].lifetimeEpoch).toBe(1);
 
-    // 旧idのタイマーで加算後の行を消さない
-    // The old id's timer must not remove the merged row
+    // 旧epochのタイマーで加算後の行を消さない
+    // The stale epoch's timer must not remove the merged row
     vi.advanceTimersByTime(1);
     expect(useNotificationStore.getState().notifications).toHaveLength(1);
     vi.advanceTimersByTime(NOTIFICATION_REMOVAL_FALLBACK_MS);
     expect(useNotificationStore.getState().notifications).toHaveLength(0);
+  });
+
+  it("加算しても表示順は入れ替わらない", () => {
+    earnItem(5, 7, "itemEarned.mined");
+    earnItem(1, 9, "itemEarned.mined");
+    earnItem(3, 7, "itemEarned.mined");
+
+    const notifications = useNotificationStore.getState().notifications;
+    expect(notifications.map((x) => (x.category === "itemEarned" ? x.itemId : null))).toEqual([7, 9]);
+    expect(earnedCountOf(0)).toBe(8);
   });
 
   it("別アイテムの獲得は別行になる", () => {

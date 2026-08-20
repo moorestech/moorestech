@@ -1,6 +1,7 @@
 // messageId→表示テンプレートの対応表。文言はWeb側が所有しサーバーは構造化IDのみ送る
 // Maps messageId to display templates; the web owns wording, the server sends structured ids only
 import { L, buildPositionalInterpolationValues, challengeTitleKey, researchNameKey, type TranslationKey } from "@/shared/i18n";
+import type { GameNotification } from "./notificationStore";
 
 const notificationKeys = new Map<string, TranslationKey>([
   ["achievement.researchCompleted", L.ui.notification.researchCompleted],
@@ -69,12 +70,33 @@ export function resolveNotificationParams(
   return messageParams.map((guid) => translate(buildContentKey(guid)));
 }
 
-// countを持たない通知には注入しない
-// count is not injected into notifications that lack it
-export function buildInterpolationValues(messageId: string, messageParams: string[], count: number | null) {
+export function buildInterpolationValues(messageId: string, messageParams: string[]) {
   return {
     messageId,
-    ...(count === null ? {} : { count }),
     ...buildPositionalInterpolationValues(messageParams),
   };
+}
+
+// 表示キーと補間値を同じnarrowから作り、countを持つのは獲得通知だけという不変条件を1箇所に閉じる
+// The key and the interpolation values come from one narrow, closing the "only earned rows carry a count" invariant in a single place
+export function resolveNotificationText(notification: GameNotification, translate: (key: TranslationKey) => string) {
+  const key = resolveNotificationKey(notification.messageId);
+  const values = buildInterpolationValues(
+    notification.messageId,
+    resolveNotificationParams(notification.messageId, notification.messageParams, translate),
+  );
+
+  switch (notification.category) {
+    case "itemEarned":
+      return { key, values: { ...values, count: notification.count } };
+    case "achievement":
+    case "operationDenied":
+      return { key, values };
+    default: {
+      // categoryが増えたらここがコンパイルエラーになる
+      // Adding a category turns this into a compile error
+      const unreachable: never = notification;
+      return unreachable;
+    }
+  }
 }

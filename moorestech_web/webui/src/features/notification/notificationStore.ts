@@ -12,7 +12,7 @@ export type NewGameNotification =
   | { category: "itemEarned"; messageId: string; messageParams: string[]; itemId: number; count: number }
   | { category: MessageCategory; messageId: string; messageParams: string[]; itemId: number | null };
 
-export type GameNotification = NewGameNotification & { id: number };
+export type GameNotification = NewGameNotification & { id: number; lifetimeEpoch: number };
 
 type NotificationState = {
   notifications: GameNotification[];
@@ -28,29 +28,41 @@ export const NOTIFICATION_DISPLAY_MS = 7000;
 // The exit animation's end drives removal; this fallback only collects rows whose animation never fired (hidden tab, etc.)
 export const NOTIFICATION_REMOVAL_FALLBACK_MS = NOTIFICATION_DISPLAY_MS + 1000;
 
-export const useNotificationStore = create<NotificationState>((set) => ({
+export const useNotificationStore = create<NotificationState>((set, get) => ({
   notifications: [],
   addNotification: (n) => {
-    const id = nextId++;
-    set((s) => {
-      // 集約するのは獲得通知だけ
-      // Only earned notifications aggregate
-      if (n.category !== "itemEarned") return { notifications: [...s.notifications, { ...n, id }] };
+    // 集約するのは獲得通知だけ。合流先は同じアイテム・同じmessageIdの表示中の行
+    // Only earned notifications aggregate; the merge target is a visible row with the same item and messageId
+    const merged = n.category === "itemEarned" ? findEarnedRow(get().notifications, n.messageId, n.itemId) : null;
 
-      // id刷新で再マウントし生存尺を回し直す
-      // Renewing the id remounts the row so the lifetime restarts
-      const merged = s.notifications.find(
-        (x) => x.category === "itemEarned" && x.messageId === n.messageId && x.itemId === n.itemId,
-      );
-      const rest = merged ? s.notifications.filter((x) => x.id !== merged.id) : s.notifications;
-      const count = (merged?.category === "itemEarned" ? merged.count : 0) + n.count;
-      return { notifications: [...rest, { ...n, count, id }] };
-    });
-    // 対象idが残っていなければ何もしない
-    // Do nothing when the target id is gone
-    setTimeout(() => set((s) => (s.notifications.some((x) => x.id === id)
-      ? { notifications: s.notifications.filter((x) => x.id !== id) }
-      : s)), NOTIFICATION_REMOVAL_FALLBACK_MS);
+    if (n.category === "itemEarned" && merged) {
+      // idは据え置きlifetimeEpochだけ進める。行のDOMとアイコンと表示位置が保たれる
+      // The id stays and only lifetimeEpoch advances, preserving the row's DOM, icon, and position
+      const row: GameNotification = { ...n, count: merged.count + n.count, id: merged.id, lifetimeEpoch: merged.lifetimeEpoch + 1 };
+      set((s) => ({ notifications: s.notifications.map((x) => (x.id === row.id ? row : x)) }));
+      scheduleRemovalFallback(row.id, row.lifetimeEpoch);
+      return;
+    }
+
+    const row: GameNotification = { ...n, id: nextId++, lifetimeEpoch: 0 };
+    set((s) => ({ notifications: [...s.notifications, row] }));
+    scheduleRemovalFallback(row.id, row.lifetimeEpoch);
   },
   removeNotification: (id) => set((s) => ({ notifications: s.notifications.filter((x) => x.id !== id) })),
 }));
+
+// countを読むため獲得通知へ絞り込んだ行を返す
+// Returns the row narrowed to an earned notification so its count is readable
+function findEarnedRow(notifications: GameNotification[], messageId: string, itemId: number) {
+  const found = notifications.find((x) => x.category === "itemEarned" && x.messageId === messageId && x.itemId === itemId);
+  return found?.category === "itemEarned" ? found : null;
+}
+
+// 生存尺が回り直した行は別epochになるので、古いタイマーでは消えない
+// A row whose lifetime restarted carries a new epoch, so the stale timer no longer removes it
+function scheduleRemovalFallback(id: number, lifetimeEpoch: number) {
+  setTimeout(() => useNotificationStore.setState((s) => (
+    s.notifications.some((x) => x.id === id && x.lifetimeEpoch === lifetimeEpoch)
+      ? { notifications: s.notifications.filter((x) => x.id !== id) }
+      : s)), NOTIFICATION_REMOVAL_FALLBACK_MS);
+}
