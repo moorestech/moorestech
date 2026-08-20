@@ -58,7 +58,7 @@
 **Interfaces:**
 - Produces: 生成型 `Mooresmaster.Model.ChallengesModule.KeyControlTutorialParam` に `string KeyName` プロパティが追加される（`UiState`・`ControlText` は既存）。
 
-- [ ] **Step 1: スキーマを編集する**
+- [x] **Step 1: スキーマを編集する**
 
 `VanillaSchema/challenges.yml` の keyControl case を次に置き換える（`uiState` の enum は `Client.Game/InGame/UI/UIState/UIStateEnum.cs` から `Debug` を除いた全値）:
 
@@ -89,21 +89,21 @@
                   default: control text
 ```
 
-- [ ] **Step 2: SourceGenerator を再トリガする**
+- [x] **Step 2: SourceGenerator を再トリガする**
 
 `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs` の `dummyText` 定数の値を別の文字列（例: 現在値の末尾に `-keyName` を付けたもの）へ変更する。
 
-- [ ] **Step 3: 旧enum値・データ残存を確認する**
+- [x] **Step 3: 旧enum値・データ残存を確認する**
 
 Run: `grep -rn '"BlockInventory"' --include='*.json' moorestech_server moorestech_client ../moorestech_master | grep -v worktrees`
 Expected: 0件（keyControl データは TestMod / EditModeInPlayingTestMod に存在せず、v8 origin/master にも0件。mod_3 の1件はマスタPR側で keyName を足す）。
 
-- [ ] **Step 4: コンパイルして生成物を確認する**
+- [x] **Step 4: コンパイルして生成物を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0。`grep -rn "KeyName" Library/` ではなく、次のテスト（Task A2）で `KeyControlTutorialParam.KeyName` を参照してコンパイルが通ることで確認する。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add VanillaSchema/challenges.yml moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs
