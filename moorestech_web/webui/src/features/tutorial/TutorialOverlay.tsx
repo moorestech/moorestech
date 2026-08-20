@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { dispatchAction, Topics, useTopic, type TutorialPresentationData } from "@/bridge";
+import { dispatchAction, Topics, useTopic } from "@/bridge";
 import { challengeTutorialTextKey, useI18n, type TranslationKey } from "@/shared/i18n";
 import { TutorialAnchorRegistry, type ResolvedAnchor } from "@/shared/tutorialAnchor";
 import styles from "./style.module.css";
+import { isAnchoredElement, tutorialElementKey, type TutorialOverlayElement } from "./tutorialElement";
 
-type TutorialSession = TutorialPresentationData["sessions"][number];
-type TutorialOverlayElement = TutorialSession["elements"][number];
 type TutorialOutlineElement = Extract<TutorialOverlayElement, { kind: "outline" }>;
 type AckTarget = { tutorialSessionId: string; elementId: string };
 
@@ -88,17 +87,15 @@ export function TutorialOverlay() {
 
   if (!presentation) return null;
   return <div className={styles.overlay} data-testid="tutorial-overlay">
-    {presentation.sessions.flatMap((session) => session.elements.map((element) => {
-      const key = `${session.tutorialSessionId}:${element.elementId}`;
+    {/* keyControlはanchorを持たず下中央HUDが描画するため、列挙前に除外する */}
+    {/* keyControl has no anchor and is rendered by the bottom-center HUD, so it is filtered out before iteration */}
+    {presentation.sessions.flatMap((session) => session.elements.filter(isAnchoredElement).map((element) => {
+      const key = tutorialElementKey(session.tutorialSessionId, element.elementId);
       switch (element.kind) {
         case "outline":
           return renderOutline(key, element, resolved[element.anchorId], t);
         case "dragGuide":
           return renderDragGuide(key, resolved[element.fromAnchorId], resolved[element.toAnchorId]);
-        case "keyControl":
-          // keyControlは下中央HUDが描画
-          // keyControl is rendered by the bottom-center HUD
-          return null;
         default:
           return assertNever(element);
       }

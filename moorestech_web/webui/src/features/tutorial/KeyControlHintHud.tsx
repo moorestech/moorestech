@@ -2,6 +2,7 @@ import { Topics, useTopic, useTopicSelector } from "@/bridge";
 import { LocalizedShortcutHint, challengeTutorialTextKey } from "@/shared/i18n";
 import { useBlockingSkitActive } from "@/shared/uiState";
 import styles from "./keyControlHint.module.css";
+import { tutorialElementKey } from "./tutorialElement";
 
 // uiState一致keyControlのみ縦積み
 // Stack only keyControl elements matching uiState
@@ -13,7 +14,7 @@ export function KeyControlHintHud() {
 
   const hints = presentation.sessions.flatMap((session) => session.elements.flatMap((element) =>
     element.kind === "keyControl" && element.uiState === uiStateName
-      ? [{ key: `${session.tutorialSessionId}:${element.elementId}`, keyName: element.keyName, tutorialGuid: element.tutorialGuid }]
+      ? [{ key: tutorialElementKey(session.tutorialSessionId, element.elementId), keyName: element.keyName, tutorialGuid: element.tutorialGuid }]
       : []));
   if (hints.length === 0) return null;
 
