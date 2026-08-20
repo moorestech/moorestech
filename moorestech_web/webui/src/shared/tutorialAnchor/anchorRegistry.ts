@@ -1,4 +1,5 @@
 import { resolveTutorialAnchor, type ResolvedAnchor } from "./resolveAnchor";
+import { tutorialAnchorSelector } from "./tutorialAnchor";
 
 export class TutorialAnchorRegistry {
   private readonly listeners = new Map<string, Set<(value: ResolvedAnchor) => void>>();
@@ -44,8 +45,7 @@ export class TutorialAnchorRegistry {
       this.resize.disconnect();
       this.intersection.disconnect();
       for (const [anchorId, listeners] of this.listeners) {
-        const escaped = globalThis.CSS?.escape ? globalThis.CSS.escape(anchorId) : anchorId.replaceAll('"', '\\"');
-        for (const element of document.querySelectorAll<HTMLElement>(`[data-tutorial-anchor="${escaped}"]`)) {
+        for (const element of document.querySelectorAll<HTMLElement>(tutorialAnchorSelector(anchorId))) {
           this.resize.observe(element);
           this.intersection.observe(element);
         }

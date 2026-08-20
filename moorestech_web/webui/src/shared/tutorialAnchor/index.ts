@@ -1,4 +1,4 @@
-export { tutorialAnchor } from "./tutorialAnchor";
+export { tutorialAnchor, tutorialAnchorSelector } from "./tutorialAnchor";
 export { TutorialAnchorRegistry } from "./anchorRegistry";
 export { resolveTutorialAnchor } from "./resolveAnchor";
 export type { ResolvedAnchor, AnchorReason } from "./resolveAnchor";

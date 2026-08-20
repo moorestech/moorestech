@@ -13,12 +13,19 @@ const visible = (rect: DOMRectReadOnly): FakeElement => ({
 
 describe("resolveTutorialAnchor", () => {
   let matches: FakeElement[];
+  let lastSelector: string;
 
   beforeEach(() => {
     matches = [];
+    lastSelector = "";
     vi.stubGlobal("innerWidth", 1280);
     vi.stubGlobal("innerHeight", 720);
-    vi.stubGlobal("document", { querySelectorAll: () => matches });
+    vi.stubGlobal("document", {
+      querySelectorAll: (selector: string) => {
+        lastSelector = selector;
+        return matches;
+      },
+    });
     vi.stubGlobal("getComputedStyle", () => ({ display: "block", visibility: "visible" }));
   });
 
@@ -31,6 +38,13 @@ describe("resolveTutorialAnchor", () => {
     const rect = { left: 0, top: 0, right: 10, bottom: 10, width: 10, height: 10 } as DOMRectReadOnly;
     matches = [visible(rect), visible(rect)];
     expect(resolveTutorialAnchor("research.node")).toEqual({ status: "not-found", reason: "duplicate-anchor" });
+  });
+
+  // 複数アンカーを名乗る要素にも当たるようトークン一致セレクタで問い合わせる
+  // Anchors are queried as whitespace-separated tokens so multi-anchor elements match
+  it("matches anchors as whitespace-separated tokens", () => {
+    resolveTutorialAnchor("equipment.selected-slot");
+    expect(lastSelector).toBe('[data-tutorial-anchor~="equipment.selected-slot"]');
   });
 
   it("distinguishes missing and zero-area anchors", () => {
