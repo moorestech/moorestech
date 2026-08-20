@@ -14,7 +14,7 @@ namespace Client.Tests.WebUi
             var challengeId = Guid.NewGuid();
             store.BeginSession(challengeId);
 
-            store.AddOutlineHighlight("recipe.craft-button", null, Guid.NewGuid());
+            store.AddOutlineHighlight("recipe.craft-button", Guid.NewGuid());
 
             var session = store.GetCurrent().Sessions.Single();
             var element = (TutorialOutlineElementData)session.Elements.Single();
@@ -31,7 +31,7 @@ namespace Client.Tests.WebUi
             var store = new TutorialPresentationStateStore();
             var challengeId = Guid.NewGuid();
             store.BeginSession(challengeId);
-            store.AddOutlineHighlight("recipe.craft-button", null, Guid.NewGuid());
+            store.AddOutlineHighlight("recipe.craft-button", Guid.NewGuid());
 
             store.EndSession(challengeId);
 
@@ -46,7 +46,7 @@ namespace Client.Tests.WebUi
             var store = new TutorialPresentationStateStore();
             var challengeId = Guid.NewGuid();
             store.BeginSession(challengeId);
-            store.AddOutlineHighlight("recipe.craft-button", null, Guid.NewGuid());
+            store.AddOutlineHighlight("recipe.craft-button", Guid.NewGuid());
             var current = store.GetCurrent();
 
             store.EndSession(Guid.NewGuid());
@@ -62,7 +62,7 @@ namespace Client.Tests.WebUi
             var store = new TutorialPresentationStateStore();
             var firstChallengeId = Guid.NewGuid();
             store.BeginSession(firstChallengeId);
-            store.AddOutlineHighlight("recipe.craft-button", null, Guid.NewGuid());
+            store.AddOutlineHighlight("recipe.craft-button", Guid.NewGuid());
             var secondChallengeId = Guid.NewGuid();
 
             store.BeginSession(secondChallengeId);
@@ -102,7 +102,7 @@ namespace Client.Tests.WebUi
         {
             var store = new TutorialPresentationStateStore();
             store.BeginSession(Guid.NewGuid());
-            store.AddOutlineHighlight("recipe.craft-button", null, Guid.NewGuid());
+            store.AddOutlineHighlight("recipe.craft-button", Guid.NewGuid());
             var guideView = store.AddDragGuide("build-menu.entry-block-934c0ef9", "hotbar.hud");
             var sessionId = store.GetCurrent().Sessions.Single().TutorialSessionId;
 
@@ -152,7 +152,7 @@ namespace Client.Tests.WebUi
             var store = new TutorialPresentationStateStore();
             var challengeId = Guid.NewGuid();
             store.BeginSession(challengeId);
-            store.AddOutlineHighlight("recipe.craft-button", null, Guid.NewGuid());
+            store.AddOutlineHighlight("recipe.craft-button", Guid.NewGuid());
             store.AddDragGuide("build-menu.entry-block-934c0ef9", "hotbar.hud");
 
             store.EndSession(challengeId);
@@ -160,20 +160,20 @@ namespace Client.Tests.WebUi
             Assert.IsEmpty(store.GetCurrent().Sessions.SelectMany(session => session.Elements));
         }
 
-        // 文言有=guid付与,無=null
-        // Text present means guid set, absent means null
+        // 枠線は常にtutorialGuidを載せる(ラベル有無はWeb側のt()解決結果で決まる)
+        // An outline always carries the tutorialGuid; the web side decides label presence from the t() result
         [Test]
         public void AddOutlineHighlightCarriesLabelTutorialGuid()
         {
             var store = new TutorialPresentationStateStore();
             store.BeginSession(Guid.NewGuid());
 
-            store.AddOutlineHighlight("recipe.craft-button", "text", new Guid("11111111-1111-4111-8111-111111111111"));
-            store.AddOutlineHighlight("hotbar.hud", null, Guid.NewGuid());
+            store.AddOutlineHighlight("recipe.craft-button", new Guid("11111111-1111-4111-8111-111111111111"));
+            store.AddOutlineHighlight("hotbar.hud", new Guid("22222222-2222-4222-8222-222222222222"));
 
             var elements = store.GetCurrent().Sessions.Single().Elements.Cast<TutorialOutlineElementData>().ToArray();
             Assert.AreEqual("11111111-1111-4111-8111-111111111111", elements[0].LabelTutorialGuid);
-            Assert.IsNull(elements[1].LabelTutorialGuid);
+            Assert.AreEqual("22222222-2222-4222-8222-222222222222", elements[1].LabelTutorialGuid);
         }
         // keyControlは独立kind
         // keyControl is its own kind

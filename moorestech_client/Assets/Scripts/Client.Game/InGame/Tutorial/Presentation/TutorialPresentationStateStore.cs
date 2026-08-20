@@ -44,18 +44,17 @@ namespace Client.Game.InGame.Tutorial
             Publish();
         }
 
-        // outline専用に限定(廃止kind再流入防止)。ラベル有無判定はここへ集約
-        // Outline-only, to prevent removed kinds from returning; label presence decision lives here
-        public ITutorialView AddOutlineHighlight(string anchorId, string labelText, Guid tutorialGuid)
+        // outline専用に限定(廃止kind再流入防止)。keyControlと同じくtutorialGuidを常に載せる
+        // Outline-only, to prevent removed kinds from returning; always carries tutorialGuid like keyControl does
+        public ITutorialView AddOutlineHighlight(string anchorId, Guid tutorialGuid)
         {
-            var labelTutorialGuid = string.IsNullOrEmpty(labelText) ? null : tutorialGuid.ToString();
             return AddElement(new TutorialOutlineElementData
             {
                 ElementId = Guid.NewGuid().ToString(),
                 AnchorId = anchorId,
                 PaddingPx = 8,
                 BlocksPointerInput = false,
-                LabelTutorialGuid = labelTutorialGuid,
+                LabelTutorialGuid = tutorialGuid.ToString(),
             });
         }
 

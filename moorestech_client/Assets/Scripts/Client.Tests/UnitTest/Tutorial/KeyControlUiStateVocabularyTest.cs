@@ -20,15 +20,19 @@ namespace Client.Tests.UnitTest.Tutorial
                 .ToHashSet();
 
             CollectionAssert.AreEquivalent(enumNames, schemaOptions);
-        }
 
-        // 生成型UiStateConstの定数フィールド名を読む(SourceGenerator出力がschema optionsの正本)
-        // Read UiStateConst's const field names (SourceGenerator output is the schema options source of truth)
-        private static string[] SchemaUiStateOptionNames()
-        {
-            var uiStateConstType = typeof(KeyControlTutorialParam).GetNestedType("UiStateConst");
-            var fields = uiStateConstType.GetFields(BindingFlags.Public | BindingFlags.Static);
-            return fields.Select(field => field.Name).ToArray();
+            #region Internal
+
+            string[] SchemaUiStateOptionNames()
+            {
+                // 生成型UiStateConstの定数フィールド名を読む(SourceGenerator出力がschema optionsの正本)
+                // Read UiStateConst's const field names (SourceGenerator output is the schema options source of truth)
+                var uiStateConstType = typeof(KeyControlTutorialParam).GetNestedType("UiStateConst");
+                var fields = uiStateConstType.GetFields(BindingFlags.Public | BindingFlags.Static);
+                return fields.Select(field => field.Name).ToArray();
+            }
+
+            #endregion
         }
     }
 }
