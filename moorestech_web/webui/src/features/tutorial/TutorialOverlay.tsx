@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { dispatchAction, Topics, useTopic } from "@/bridge";
 import { challengeTutorialTextKey, useI18n, type TranslationKey } from "@/shared/i18n";
-import { TutorialAnchorRegistry, type ResolvedAnchor } from "@/shared/tutorialAnchor";
+import { TutorialAnchorRegistry, clipPathInset, type ClipRect, type ResolvedAnchor } from "@/shared/tutorialAnchor";
+import { readTutorialHighlightGlowPx } from "./highlightGlowToken";
 import styles from "./style.module.css";
 import { isAnchoredElement, tutorialElementKey, type TutorialOverlayElement } from "./tutorialElement";
 
@@ -106,15 +107,22 @@ export function TutorialOverlay() {
 function renderOutline(key: string, element: TutorialOutlineElement, value: ResolvedAnchor | undefined, t: (key: TranslationKey) => string) {
   if (!value || value.status !== "ready") return null;
   const padding = element.paddingPx;
-  const left = value.rect.left - padding;
+  const box = {
+    left: value.rect.left - padding, top: value.rect.top - padding,
+    right: value.rect.left + value.rect.width + padding,
+    bottom: value.rect.top + value.rect.height + padding,
+  };
+  // 祖先のoverflowで完全に隠れている間は要素ごと出さず、DOMと見た目を一致させる
+  // While ancestor overflow hides it entirely, omit the element so the DOM matches what is painted
+  const clipPath = clipPathInset({ box, clip: value.clip, outsetPx: readTutorialHighlightGlowPx() });
+  if (clipPath === null) return null;
   const outline = <div key={key} className={styles.highlight} data-kind={element.kind}
-    style={{ left, top: value.rect.top - padding,
-      width: value.rect.width + padding * 2, height: value.rect.height + padding * 2 }} />;
+    style={{ left: box.left, top: box.top, width: box.right - box.left, height: box.bottom - box.top, clipPath }} />;
   if (!element.labelTutorialGuid) return outline;
   // ラベルは枠線下辺外側左揃え配置
   // Label sits left-aligned below the outline
   const label = <div key={`${key}:label`} className={styles.highlightLabel} data-testid="tutorial-highlight-label"
-    style={{ left, top: value.rect.top + value.rect.height + padding }}>
+    style={{ left: box.left, top: box.bottom }}>
     {t(challengeTutorialTextKey(element.labelTutorialGuid))}
   </div>;
   return [outline, label];
@@ -135,13 +143,19 @@ function renderDragGuide(key: string, from: ResolvedAnchor | undefined, to: Reso
   </div>;
 }
 
-// 矩形は参照ではなく4値で比較する。同値の再解決で再描画させないため
-// Compare rects by their four values, not by reference, so a same-valued re-resolve skips the re-render
+// 矩形とクリップは参照ではなく値で比較する。同値の再解決で再描画させないため
+// Compare the rect and the clip by value, not by reference, so a same-valued re-resolve skips the re-render
 function isSameAnchor(previous: ResolvedAnchor | undefined, value: ResolvedAnchor) {
   if (!previous || previous.status !== value.status || previous.reason !== value.reason) return false;
   if (previous.status !== "ready" || value.status !== "ready") return true;
   return previous.rect.left === value.rect.left && previous.rect.top === value.rect.top &&
-    previous.rect.width === value.rect.width && previous.rect.height === value.rect.height;
+    previous.rect.width === value.rect.width && previous.rect.height === value.rect.height &&
+    isSameClip(previous.clip, value.clip);
+}
+
+function isSameClip(previous: ClipRect, value: ClipRect) {
+  return previous.left === value.left && previous.top === value.top &&
+    previous.right === value.right && previous.bottom === value.bottom;
 }
 
 function keepSubscribed(current: Record<string, ResolvedAnchor>, anchorIds: Set<string>) {

@@ -10,6 +10,18 @@ description: |
   1. 「/pr-adjudicated-apply <PR番号>」で起動された時
   2. 「裁定結果をPRに適用して」「adoptされた指摘を直してpushして」と言われた時
   3. pr-independent-reviewの裁定サイトで裁定が完了したPRへ、無人で対応を反映させる時
+hooks:
+  # 無人実行の関所。スキル発動中だけ有効（repo横断のsettings.jsonに置くと開発者の通常セッションまで巻き込む）
+  # Gate for unattended runs; active only while this skill runs, unlike a repo-wide settings.json hook
+  PreToolUse:
+    - matcher: "AskUserQuestion"
+      hooks:
+        - type: command
+          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py ask"
+  Stop:
+    - hooks:
+        - type: command
+          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py stop apply"
 ---
 
 # pr-adjudicated-apply — 裁定結果のPR適用（無人実行）
@@ -17,21 +29,26 @@ description: |
 **このスキルは無人パイプラインの一部として動く。AskUserQuestionは使わない**（禁止事項参照）。
 ユーザーに確認を求めたくなった判断は、実装せずapply-result.jsonのsummaryへ記載して終える。
 
-## 最重要: ターンを終えた瞬間にプロセスが死ぬ
+## 最重要: 無人起動でも「apply-result.json で終える」
 
-このスキルは poller から `claude -p`（print mode）でdetach起動される。**print modeにはターンの続きが無い** —
-アシスタントのターンが終わった時点でプロセスがexitし、以後あなたは二度と再開されない。
-`apply-result.json` を書かずに終われば、それは poller から「プロセス死亡」と見なされ、
-その時点までの全作業がpushされないまま失敗として確定する（実際にPR1145で発生。ユーザー裁定 2026-08-17）。
+このスキルは poller から cmux ワークスペース上の**対話モード** claude でフォアグラウンド起動されている
+（ADR 0023。2026-08-20 までは `claude -p` だった）。対話モードではターンを終えてもプロセスは消えないが、
+**poller は `apply-result.json` の存在とプロセス生存（`pgrep -f "session-id <id>"`）であなたを監視している**。
+apply向けpollerはidle検知を行わない（session/subagentsのtranscript更新は見ない）。
+プロセスが死んで `apply-result.json` も無ければ、新しいセッション・新しいワークスペースで
+1回だけ作り直しリトライする（`MAX_APPLY_RETRY=1`）。死亡＝retryで足りるという設計裁定であり、
+長時間の無応答を待って救済する仕組みは無い。
 
 したがって:
 
-- **待機は必ず同一ターン内でブロッキングして行う**。`uloop run-tests` は結果が返るまでそのターンで待ち切る。
+- **待機は同一ターン内でブロッキングして行う**。`uloop run-tests` は結果が返るまでそのターンで待ち切る。
   完了に数分かかっても、待つこと自体がこのスキルの仕事である
 - **「wakeupをスケジュールしたので待つ」「後で結果を確認する」と述べてターンを閉じることを禁止する**。
   スケジュールされた再開はこの実行環境に存在しない
 - **終了はStep 7の `apply-result.json` を書いた直後だけ**。書く前に終わる終わり方は、成功・失敗いずれの意図であっても
   バグである。行き詰まったなら `status: "failure"` で理由を書いて終える
+- **session limit に当たったら何もしなくてよい**。poller が reset 時刻まで待ち、同じペインへ継続指示を送る
+  （リトライ予算は消費しない）。weekly limit は失敗ラベルにして人を呼ぶ
 
 **入出力の置き場**: `$LOGS` はprivateログrepo `/Users/sakastudio/hermes-agent/data/repos/moorestech_logs`
 （apply専用worktreeからは兄弟symlink `../moorestech_logs` でも到達できるが、絶対パスで書くこと）、
@@ -50,6 +67,10 @@ description: |
 ユーザー裁定 2026-08-17）。したがって作業前の残骸は保全せず破棄する（Step 3）。
 一方、**ブランチのcheckoutは必ずdetachedで行う** — 同じブランチが他のworktreeでcheckout済みだと
 `fatal: '<branch>' is already used by worktree at ...` で失敗するため、ブランチ名を持たずに作業してpush時だけ名指す。
+
+この規律は本スキルのfrontmatter hooks（`pr-independent-review/scripts/unattended-gate.py`）が機械的に守らせる。
+起動プロンプトに `【無人起動】` がある場合に限り、`$RUNDIR/apply-result.json` も `abort.json` も無いまま
+ターンを終えようとすると Stop がブロックされ、AskUserQuestion はdenyされる（同一セッション2回でフェイルオープン）。
 
 ## Step 1: 入力読み込み・裁定完了ゲート（最初に必ず通る）
 
@@ -223,7 +244,7 @@ apply専用worktreeで作業しているため、終了時の後片付けは行�
 次回applyのStep 3手順1が無条件に破棄する。元ブランチへ戻す操作も不要（detachedのまま放置してよい）。
 
 **やってはいけないこと**: 後片付けのために `apply-result.json` を書く前へ手数を増やすこと。
-出力を書かずに死ぬ方がはるかに高くつく（冒頭「ターンを終えた瞬間にプロセスが死ぬ」参照）。
+出力を書かずに死ぬ方がはるかに高くつく（冒頭「最重要: 無人起動でも『apply-result.json で終える』」参照）。
 
 ## 禁止事項
 

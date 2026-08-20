@@ -10,7 +10,9 @@
   box-sizing: border-box;
   border: 3px solid #ffdd57;
   border-radius: 8px;
-  box-shadow: 0 0 0 4px rgb(255 221 87 / 24%);
+  /* グロー幅はtokens.cssの--tutorial-highlight-glowが単一の値源。clip-path計算も同じ変数を読む */
+  /* The glow width's single source is tokens.css's --tutorial-highlight-glow; the clip-path math reads the same variable */
+  box-shadow: 0 0 0 var(--tutorial-highlight-glow) rgb(255 221 87 / 24%);
   pointer-events: none;
 }
 
