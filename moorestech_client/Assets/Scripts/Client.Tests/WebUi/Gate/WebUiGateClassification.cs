@@ -82,7 +82,6 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/Inventory/Train/TrainInventoryView.cs", Category.GatedRoot, "列車インベントリ (C3)"),
             new Rule("Client.Game/InGame/BackgroundSkit/BackgroundSkitManager.cs", Category.GatedRoot, "背景スキット (C4/S1)"),
             new Rule("Client.Game/Skit/SkitManager.cs", Category.GatedRoot, "通常スキット UI Toolkit 抑止 (C4/S2)"),
-            new Rule("Client.Game/InGame/Tutorial/KeyControlTutorialManager.cs", Category.GatedRoot, "共通key hint統合 (C4/T4)"),
 
             // --- ルート配下 / Covered by roots
             new Rule("Client.Game/InGame/UI/Inventory", Category.CoveredByRoot, "移行済み画面の配下部品（Phase Dで全量最終監査）"),
