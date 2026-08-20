@@ -113,8 +113,8 @@ describe("EquipmentPanel のクリック受付", () => {
     // topic据置きで2入力を先行
     // Run two inputs ahead of the unchanged topic
     act(() => {
-      wheel!({ deltaY: 100, target: null } as WheelEvent);
-      wheel!({ deltaY: 100, target: null } as WheelEvent);
+      wheel!({ deltaY: 100, deltaMode: 0, target: null } as WheelEvent);
+      wheel!({ deltaY: 100, deltaMode: 0, target: null } as WheelEvent);
     });
 
     expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });
@@ -133,8 +133,8 @@ describe("EquipmentPanel のクリック受付", () => {
     // 0→1先行後、topic値1だけ更新
     // After 0→1, update only the topic value
     act(() => {
-      wheel({ deltaY: 100, target: null } as WheelEvent);
-      wheel({ deltaY: 100, target: null } as WheelEvent);
+      wheel({ deltaY: 100, deltaMode: 0, target: null } as WheelEvent);
+      wheel({ deltaY: 100, deltaMode: 0, target: null } as WheelEvent);
       host.inventory = { ...host.inventory!, selectedEquipment: 1 };
       renderer!.update(createElement(EquipmentPanel));
     });
@@ -148,7 +148,7 @@ describe("EquipmentPanel のクリック受付", () => {
         equipmentSelectionConfirmationRevision: 1,
       };
       renderer!.update(createElement(EquipmentPanel));
-      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+      host.wheelHandler!({ deltaY: 100, deltaMode: 0, target: null } as WheelEvent);
     });
 
     expect(host.dispatchAction).toHaveBeenNthCalledWith(3, "inventory.select_equipment", { index: 2 });
@@ -161,9 +161,9 @@ describe("EquipmentPanel のクリック受付", () => {
     renderSlots();
 
     await act(async () => {
-      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+      host.wheelHandler!({ deltaY: 100, deltaMode: 0, target: null } as WheelEvent);
       await Promise.resolve();
-      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+      host.wheelHandler!({ deltaY: 100, deltaMode: 0, target: null } as WheelEvent);
     });
 
     expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });
@@ -178,7 +178,7 @@ describe("EquipmentPanel のクリック受付", () => {
       renderer = create(createElement(EquipmentPanel));
     });
     act(() => {
-      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+      host.wheelHandler!({ deltaY: 100, deltaMode: 0, target: null } as WheelEvent);
     });
 
     // 切断で0を捨て復元値2から素手へ
@@ -191,10 +191,23 @@ describe("EquipmentPanel のクリック受付", () => {
       host.inventory = { ...host.inventory!, selectedEquipment: 2 };
       host.connectionStatus = "open";
       renderer!.update(createElement(EquipmentPanel));
-      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+      host.wheelHandler!({ deltaY: 100, deltaMode: 0, target: null } as WheelEvent);
     });
 
     expect(host.dispatchAction).toHaveBeenNthCalledWith(2, "inventory.select_equipment", { index: -1 });
+  });
+
+  it("加速で膨らんだ1イベントでも1段しか進まない", () => {
+    host.uiState = { state: "GameScreen" };
+    host.inventory!.equipment = [slot(1, 1), slot(2, 1), slot(3, 1)];
+    renderSlots();
+
+    act(() => {
+      host.wheelHandler!({ deltaY: 400, deltaMode: 0, target: null } as WheelEvent);
+    });
+
+    expect(host.dispatchAction).toHaveBeenCalledTimes(1);
+    expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });
   });
 
   it("ホイール占有中はホイールで装備が切り替わらない", () => {
@@ -204,7 +217,7 @@ describe("EquipmentPanel のクリック受付", () => {
     renderSlots();
 
     act(() => {
-      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+      host.wheelHandler!({ deltaY: 100, deltaMode: 0, target: null } as WheelEvent);
     });
 
     expect(host.dispatchAction).not.toHaveBeenCalled();
@@ -217,7 +230,7 @@ describe("EquipmentPanel のクリック受付", () => {
     renderSlots();
 
     act(() => {
-      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+      host.wheelHandler!({ deltaY: 100, deltaMode: 0, target: null } as WheelEvent);
     });
 
     expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });
@@ -230,7 +243,7 @@ describe("EquipmentPanel のクリック受付", () => {
     renderSlots();
 
     act(() => {
-      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+      host.wheelHandler!({ deltaY: 100, deltaMode: 0, target: null } as WheelEvent);
     });
 
     expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });
@@ -243,7 +256,7 @@ describe("EquipmentPanel のクリック受付", () => {
     renderSlots();
 
     act(() => {
-      host.wheelHandler!({ deltaY: 100, target: null } as WheelEvent);
+      host.wheelHandler!({ deltaY: 100, deltaMode: 0, target: null } as WheelEvent);
     });
 
     expect(host.dispatchAction).toHaveBeenNthCalledWith(1, "inventory.select_equipment", { index: 0 });

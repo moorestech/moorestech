@@ -112,13 +112,21 @@ namespace Server.Protocol.PacketResponse
             }
 
             return new ResponseGameUnlockStateProtocolMessagePack(
-                unlockedCraftRecipe, lockedCraftRecipe,
-                lockedItem, unlockedItem,
-                lockedChallengeCategory, unlockedChallengeCategory,
-                lockedMachineRecipe, unlockedMachineRecipe,
-                lockedBlock, unlockedBlock,
-                lockedTrainCar, unlockedTrainCar,
-                lockedConnectTool, unlockedConnectTool);
+                unlockedCraftRecipeGuidsStr: unlockedCraftRecipe,
+                lockedCraftRecipeGuidsStr: lockedCraftRecipe,
+                lockedItemIdsInt: lockedItem,
+                unlockedItemIdsInt: unlockedItem,
+                lockedChallengeCategoryGuidsStr: lockedChallengeCategory,
+                unlockedChallengeCategoryGuidsStr: unlockedChallengeCategory,
+                lockedMachineRecipeGuidsStr: lockedMachineRecipe,
+                unlockedMachineRecipeGuidsStr: unlockedMachineRecipe,
+                lockedBlockGuidsStr: lockedBlock,
+                unlockedBlockGuidsStr: unlockedBlock,
+                lockedTrainCarGuidsStr: lockedTrainCar,
+                unlockedTrainCarGuidsStr: unlockedTrainCar,
+                lockedConnectToolGuidsStr: lockedConnectTool,
+                unlockedConnectToolGuidsStr: unlockedConnectTool,
+                isBlueprintUnlocked: gameUnlockStateData.IsBlueprintUnlocked);
         }
         
         
@@ -167,23 +175,35 @@ namespace Server.Protocol.PacketResponse
             [Key(13)] public List<string> UnlockedTrainCarGuidsStr { get; set; }
             [Key(14)] public List<string> LockedConnectToolGuidsStr { get; set; }
             [Key(15)] public List<string> UnlockedConnectToolGuidsStr { get; set; }
+            [Key(16)] public bool IsBlueprintUnlocked { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public ResponseGameUnlockStateProtocolMessagePack() { }
+            public ResponseGameUnlockStateProtocolMessagePack() { Tag = ProtocolTag; }
+
+            // 全項目必須・Tagはここで確定する。同型のList<string>が並ぶため呼び出し側は名前付き引数で渡す
+            // Every field is required and the tag is fixed here; callers pass named arguments since same-typed lists line up
             public ResponseGameUnlockStateProtocolMessagePack(
-                List<string> unlockedCraftRecipeGuidsStr, List<string> lockedCraftRecipeGuidsStr,
-                List<int> lockedItemIds, List<int> unlockedItemIds,
-                List<string> lockedChallengeCategoryGuidsStr, List<string> unlockedChallengeCategoryGuidsStr,
-                List<string> lockedMachineRecipeGuidsStr, List<string> unlockedMachineRecipeGuidsStr,
-                List<string> lockedBlockGuidsStr, List<string> unlockedBlockGuidsStr,
-                List<string> lockedTrainCarGuidsStr, List<string> unlockedTrainCarGuidsStr,
-                List<string> lockedConnectToolGuidsStr, List<string> unlockedConnectToolGuidsStr)
+                List<string> unlockedCraftRecipeGuidsStr,
+                List<string> lockedCraftRecipeGuidsStr,
+                List<int> lockedItemIdsInt,
+                List<int> unlockedItemIdsInt,
+                List<string> lockedChallengeCategoryGuidsStr,
+                List<string> unlockedChallengeCategoryGuidsStr,
+                List<string> lockedMachineRecipeGuidsStr,
+                List<string> unlockedMachineRecipeGuidsStr,
+                List<string> lockedBlockGuidsStr,
+                List<string> unlockedBlockGuidsStr,
+                List<string> lockedTrainCarGuidsStr,
+                List<string> unlockedTrainCarGuidsStr,
+                List<string> lockedConnectToolGuidsStr,
+                List<string> unlockedConnectToolGuidsStr,
+                bool isBlueprintUnlocked)
             {
                 Tag = ProtocolTag;
                 UnlockedCraftRecipeGuidsStr = unlockedCraftRecipeGuidsStr;
                 LockedCraftRecipeGuidsStr = lockedCraftRecipeGuidsStr;
-                LockedItemIdsInt = lockedItemIds;
-                UnlockedItemIdsInt = unlockedItemIds;
+                LockedItemIdsInt = lockedItemIdsInt;
+                UnlockedItemIdsInt = unlockedItemIdsInt;
                 LockedChallengeCategoryGuidsStr = lockedChallengeCategoryGuidsStr;
                 UnlockedChallengeCategoryGuidsStr = unlockedChallengeCategoryGuidsStr;
                 LockedMachineRecipeGuidsStr = lockedMachineRecipeGuidsStr;
@@ -194,6 +214,7 @@ namespace Server.Protocol.PacketResponse
                 UnlockedTrainCarGuidsStr = unlockedTrainCarGuidsStr;
                 LockedConnectToolGuidsStr = lockedConnectToolGuidsStr;
                 UnlockedConnectToolGuidsStr = unlockedConnectToolGuidsStr;
+                IsBlueprintUnlocked = isBlueprintUnlocked;
             }
         }
     }

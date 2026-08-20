@@ -91,6 +91,30 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(electricWireGuid, data.UnlockedConnectToolGuid);
         }
 
+        [Test]
+        public void UnlockBlueprintEventTest()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
+
+            // イベントがないことを確認する
+            // Make sure there are no events
+            Assert.AreEqual(0, sink.TakeAll().Count);
+
+            // ブループリントを解放する
+            // Unlock the blueprint feature
+            var unlockStateDatastore = serviceProvider.GetService<IGameUnlockStateDataController>();
+            unlockStateDatastore.UnlockBlueprint();
+
+            // 解放イベントのみ抽出
+            // Take only unlock events, excluding achievement notification events
+            var events = sink.TakeAll().Where(e => e.Tag == UnlockedEventPacket.EventTag).ToList();
+            Assert.AreEqual(1, events.Count);
+
+            var data = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(events[0].Payload);
+            Assert.AreEqual(UnlockEventType.Blueprint, data.UnlockEventType);
+        }
+
         /// <summary>
         /// チャレンジがクリアされたらアンロックされるレシピのテスト
         /// </summary>

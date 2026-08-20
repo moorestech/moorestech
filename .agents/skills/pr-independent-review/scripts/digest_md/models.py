@@ -21,7 +21,6 @@ class Finding:
     index_label: str = ""
     suppressed: bool = False
     suppress_reason: str = ""
-    recommendation: str = ""
     label: str = ""
     id: str = ""
 

@@ -9,12 +9,13 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 {
-    // 削除結果でNotFoundと通信失敗を区別
-    // Distinguishes NotFound from request failures
+    // 削除結果でNotFound・未解放拒否・通信失敗を区別
+    // Distinguishes NotFound and locked-feature rejection from request failures
     public enum BlueprintDeleteResult
     {
         Success,
         NotFound,
+        NotUnlocked,
         RequestFailed,
     }
 
@@ -78,9 +79,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             // Null means request failure; the reason identifies NotFound
             if (response == null) return BlueprintDeleteResult.RequestFailed;
             if (response.Success) return BlueprintDeleteResult.Success;
-            return response.FailureReason == BlueprintFailureReason.NotFound
-                ? BlueprintDeleteResult.NotFound
-                : BlueprintDeleteResult.RequestFailed;
+            return response.FailureReason switch
+            {
+                BlueprintFailureReason.NotFound => BlueprintDeleteResult.NotFound,
+                BlueprintFailureReason.NotUnlocked => BlueprintDeleteResult.NotUnlocked,
+                _ => BlueprintDeleteResult.RequestFailed,
+            };
         }
 
         private void ApplyResponse(BlueprintResponse response)

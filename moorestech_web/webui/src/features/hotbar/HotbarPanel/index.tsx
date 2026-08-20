@@ -4,6 +4,7 @@ import { PlacementTargetFace, SlotFrame } from "@/shared/ui";
 import { useI18n } from "@/shared/i18n";
 import { useBlockingSkitActive, uiStateAcceptsHotbarSelect } from "@/shared/uiState";
 import { localizeSelectableTargetName, placementTargetOf } from "@/shared/placementTarget";
+import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { useHotbarDragSource } from "../useHotbarDragSource";
 import type { HotbarDragSource } from "../hotbarDnd";
 import styles from "./style.module.css";
@@ -27,7 +28,14 @@ export default function HotbarPanel() {
 
   return (
     <div className={styles.hotbarArea}>
-      <div className={styles.hotbarFrame} data-testid="hotbar-grid" data-hotbar-row data-wheel-passthrough data-select-disabled={selectAccepted ? undefined : "true"}>
+      <div
+        className={styles.hotbarFrame}
+        data-testid="hotbar-grid"
+        data-hotbar-row
+        data-wheel-passthrough
+        data-select-disabled={selectAccepted ? undefined : "true"}
+        {...tutorialAnchor(TutorialAnchorIds.hotbarHud)}
+      >
         {hotbar.slots.map((slot, i) => (
           <HotbarCell key={`hotbar-${i}`} index={i} slot={slot} selected={i === hotbar.selectedSlot} selectAccepted={selectAccepted} />
         ))}

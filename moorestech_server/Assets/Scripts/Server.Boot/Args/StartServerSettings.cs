@@ -17,8 +17,8 @@ namespace Server.Boot
         [Option(isFlag: false, "--mapMode")]
         public string MapMode { get; set; } = WorldProvisioner.TemplateMapMode;
 
-        // generatedモードのシード。未指定(null)なら生成時に採番する。0も有効なseed値として扱う
-        // Seed for generated mode; assigned at provisioning time only when unspecified (null). 0 is a valid seed
+        // generatedモードのシード。未指定(null)なら196を使い、0も有効なseed値として扱う
+        // Seed for generated mode; an unspecified value (null) resolves to 196, while zero remains valid
         [Option(isFlag: false, "--seed")]
         public int? Seed { get; set; } = null;
 

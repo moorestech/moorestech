@@ -68,11 +68,11 @@ async function main() {
     await page.goto(`http://127.0.0.1:${PORT}/`);
     await page.getByRole("heading", { name: "CRAFT RECIPE" }).waitFor();
     await page.getByTestId("item-list-grid").locator("> div").first().click();
-    await page.locator('[class*="_recipeBox_"]').waitFor();
+    await page.locator('[class*="_recipeBox_"]').first().waitFor();
     await page.evaluate("document.fonts.ready.then(() => undefined)");
     await page.mouse.move(2, 2);
     await page.waitForTimeout(300);
-    const arrow = page.getByTestId("craft-progress-arrow");
+    const arrow = page.locator('[data-testid^="craft-progress-arrow"]').first();
     const arrowBox = await arrow.boundingBox();
     await page.screenshot({ path: join(OUT_DIR, "craft-full.png") });
     await shotWithBox(page, "craft-arrow-crop.png", arrowBox, 24);

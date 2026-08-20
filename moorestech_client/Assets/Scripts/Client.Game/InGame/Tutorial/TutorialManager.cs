@@ -23,7 +23,8 @@ namespace Client.Game.InGame.Tutorial
             UIHighlightTutorialManager uiHighlightTutorialManager,
             KeyControlTutorialManager keyControlTutorialManager,
             ItemViewHighLightTutorialManager itemViewHighLightTutorialManager,
-            BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager
+            BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager,
+            UiDragGuideTutorialManager uiDragGuideTutorialManager
             )
         {
             _keyControlTutorialManager = keyControlTutorialManager;
@@ -32,6 +33,7 @@ namespace Client.Game.InGame.Tutorial
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.keyControl, keyControlTutorialManager);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.itemViewHighLight, itemViewHighLightTutorialManager);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.blockPlacePreview, blockPlacePreviewTutorialManager);
+            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.uiDragGuide, uiDragGuideTutorialManager);
         }
         
         public void ApplyTutorial(Guid challengeGuid)
@@ -69,7 +71,7 @@ namespace Client.Game.InGame.Tutorial
             if (WebUiScreenGate.IsWebUiMode)
             {
                 var presentationStore = TutorialPresentationStateStore.Instance;
-                if (presentationStore.IsCurrentChallenge(challengeId))
+                if (presentationStore.HasSession(challengeId))
                 {
                     presentationStore.EndSession(challengeId);
                     _keyControlTutorialManager.ClearPresentation();

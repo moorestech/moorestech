@@ -1,35 +1,11 @@
-/* 選択アイテム名を中央に置き、道具タブだけ左上へ寄せる */
-/* Center the selected item name while offsetting only the tool tab to the upper-left */
+/* 品名と区切り線を中央に配置する（装飾タブはADR 0011で廃止） */
+/* Center-align the item name and divider line; the decorative tab was removed by ADR 0011 */
 .itemHeader {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   text-align: center;
 }
-/* 5層SVGを正本の固定寸法とパネル相対位置で描画する */
-/* Render the five SVG layers at the reference's fixed size and panel-relative position */
-.toolTab {
-  display: block;
-  align-self: flex-start;
-  width: var(--craft-tab-width);
-  height: var(--craft-tab-height);
-  margin-top: var(--craft-tab-margin-top);
-  margin-left: var(--craft-tab-margin-left);
-  margin-bottom: var(--craft-tab-margin-bottom);
-  overflow: visible;
-}
-
-/* 各パスを正本の背面、斜面、前面、縁、ハンマー色へ対応付ける */
-/* Map each path to the reference back, side, face, edge, and hammer colors */
-.toolTabBack { fill: var(--craft-tab-back); }
-.toolTabSide { fill: var(--craft-tab-side); }
-.toolTabFace { fill: var(--craft-tab-face); }
-.toolTabEdge {
-  fill: none;
-  stroke: var(--craft-tab-edge);
-  stroke-width: 1;
-}
-.toolTabHammer { fill: var(--craft-tab-hammer); }
 /* 正本は約150x51screenshot-px相当(実測(1565,337)-(1715,388))。iter3でフォント未導入のまま拡大され
    幅188px超まで肥大していたため、実フォント導入(iter4)に合わせて正本相当のサイズへ戻す */
 /* The reference runs ~150x51 screenshot px (measured (1565,337)-(1715,388)). iter3 enlarged this before the

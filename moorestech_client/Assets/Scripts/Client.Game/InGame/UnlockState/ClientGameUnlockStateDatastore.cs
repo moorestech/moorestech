@@ -20,6 +20,7 @@ namespace Client.Game.InGame.UnlockState
         public IReadOnlyDictionary<Guid, BlockUnlockStateInfo> BlockUnlockStateInfos => _blockUnlockStateInfos;
         public IReadOnlyDictionary<Guid, TrainCarUnlockStateInfo> TrainCarUnlockStateInfos => _trainCarUnlockStateInfos;
         public IReadOnlyDictionary<Guid, ConnectToolUnlockStateInfo> ConnectToolUnlockStateInfos => _connectToolUnlockStateInfos;
+        public bool IsBlueprintUnlocked { get; private set; }
 
         private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
         private readonly Dictionary<ItemId, ItemUnlockStateInfo> _itemUnlockStateInfos = new();
@@ -103,6 +104,10 @@ namespace Client.Game.InGame.UnlockState
                 _connectToolUnlockStateInfos[unlockedGuid] = new ConnectToolUnlockStateInfo(unlockedGuid, true);
             }
 
+            // ブループリント機能の解放状態を初期化
+            // Initialize the blueprint feature unlock state
+            IsBlueprintUnlocked = unlockState.IsBlueprintUnlocked;
+
             ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, OnUpdateUnlock);
         }
         
@@ -145,6 +150,11 @@ namespace Client.Game.InGame.UnlockState
                  case UnlockEventType.ConnectTool:
                      var connectToolGuid = message.UnlockedConnectToolGuid;
                      _connectToolUnlockStateInfos[connectToolGuid] = new ConnectToolUnlockStateInfo(connectToolGuid, true);
+                     break;
+                 // BP解放をイベントから反映
+                 // Reflect the blueprint feature unlock from the event
+                 case UnlockEventType.Blueprint:
+                     IsBlueprintUnlocked = true;
                      break;
                  default:
                      throw new ArgumentOutOfRangeException();

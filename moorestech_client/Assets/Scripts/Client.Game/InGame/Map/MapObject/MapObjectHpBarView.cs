@@ -21,6 +21,14 @@ namespace Client.Game.InGame.Map.MapObject
         {
             gameObject.SetActive(active);
         }
+
+        // 個体スケールがUI表示に波及しないよう、親のlossyScaleを打ち消してワールド等倍にする
+        // Counter-scales against the parent's lossyScale so this bar renders at world unit scale regardless of the instance scale
+        public void SetWorldUnitScale()
+        {
+            var lossy = transform.parent.lossyScale;
+            transform.localScale = new Vector3(1f / lossy.x, 1f / lossy.y, 1f / lossy.z);
+        }
         
         private void Update()
         {
