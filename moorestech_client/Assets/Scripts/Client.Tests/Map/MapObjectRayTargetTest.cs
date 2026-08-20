@@ -84,7 +84,11 @@ namespace Client.Tests.Map
                         // 実頂点で測る。外接ボックスの角で測ると多角柱の外へ√2だけ膨らみ、閾値までの余裕を実際より小さく見せる
                         // Measured on real vertices; AABB corners would inflate the prism by a factor of root two and understate the margin to the threshold
                         var reach = MapObjectRayTargetGeometry.CalculateCircumscribedReach(instance, rayTarget);
-                        if (allowedReach < reach)
+                        var bkReach = MapObjectRayTargetGeometry.CalculateBkColliderReach(instance, axis);
+
+                        // BK自前コライダー自体が採掘レンジより広い巨岩（メサの丘・砂漠の大岩）は軸へ近づけず、必ず外側からレイが当たるので太さ上限を課さない
+                        // A giant rock whose BK collider already exceeds the mining reach (mesa buttes, desert boulders) cannot be approached to its axis and is always hit from outside, so the width cap does not apply
+                        if (allowedReach < reach && bkReach <= allowedReach)
                             failures.Add($"ray target is wider than the mining camera can stand off, so it can never be hit: {element.wrapperPath}");
 
                         // 地際のテーパーだけで太さを決めると幹を持たない小型種が数cmまで痩せるため、見た目に対する比率で下限を張る
@@ -95,7 +99,6 @@ namespace Client.Tests.Map
 
                         // 多角柱は面の中央方位が最も細い。そこからBK自前コライダーがはみ出すと、その方位のレイをBK側が先に取り採掘対象を解決できない
                         // A prism is thinnest at its face midpoints; a BK collider poking out there takes the ray first and the mining target never resolves
-                        var bkReach = MapObjectRayTargetGeometry.CalculateBkColliderReach(instance, axis);
                         if (inscribedRadius + Tolerance < bkReach)
                             failures.Add($"a BK collider pokes out of the ray target cylinder: {element.wrapperPath}");
                     }

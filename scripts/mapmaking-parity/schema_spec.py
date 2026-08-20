@@ -29,13 +29,21 @@ class SchemaNode:
         self.declared_default = declared_default
 
 
-def default_value(node: SchemaNode, location: str):
+def default_value(node: SchemaNode, location: str, key_overrides: dict | None = None):
     """スキーマ既定値（＝MapMakingのC#フィールド初期値）を組み立てる。
-    Builds the schema default, which mirrors the MapMaking C# field initializer."""
+    key_overridesは既定値を持たないキー（アドレッサブルパス等）へ呼び出し側が与える値。
+    Builds the schema default, which mirrors the MapMaking C# field initializer.
+    key_overrides supplies values for keys without a schema default (addressable paths etc.)."""
     if node.declared_default is not None:
         return node.declared_default
     if node.kind == OBJECT:
-        return {key: default_value(child, f"{location}.{key}") for key, child in node.properties}
+        return {key: (key_overrides[key] if key_overrides and key in key_overrides
+                      else default_value(child, f"{location}.{key}", key_overrides))
+                for key, child in node.properties}
+    # 配列フィールドのC#初期値は空配列（new T[0]）。未再保存プリセットの欠落はこれで補う
+    # An array field's C# initializer is the empty array (new T[0]); a stale preset's missing array is filled with it
+    if node.kind == ARRAY:
+        return []
     raise ValueError(f"{location}: 既定値が定義されていない")
 
 

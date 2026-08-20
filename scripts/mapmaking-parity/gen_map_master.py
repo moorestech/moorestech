@@ -27,25 +27,28 @@ SCHEMA_KEYS = {
     "mapObjectGuid", "mapObjectName", "addressablePath", "hp", "earnItemHpInterval",
     "soundEffectType", "terrainSurroundEffectType", "earnItems", "miningType", "miningParam",
 }
-# kindごとの音・地形効果の対応。未知のkindはfail-fastさせる
-# Sound and terrain effect per kind; unknown kinds fail fast
-KIND_EFFECTS = {
-    "tree": ("tree", "treeRootPatch"),
-    "rock": ("stone", "rockBareGround"),
-    "pebble": ("stone", "rockBareGround"),
-}
+# kindごとの効果音。plantは低木・草なので木、propは小物なので石の音を鳴らす。未知のkindはfail-fastさせる
+# Sound per kind; plants are shrubs and grasses so they sound like trees, props sound like stone. Unknown kinds fail fast
+KIND_SOUND_EFFECTS = {"tree": "tree", "rock": "stone", "pebble": "stone", "plant": "tree", "prop": "stone"}
+
+# 木だけが木用距離場＋根元パッチ。それ以外はオブジェクト用距離場で、裸地を塗るのは移植元が裸地化する種（bareGround）に限る
+# Only trees feed the tree field with root patches; everything else feeds the object field, and bare ground is painted only for species the source repaints (bareGround)
+def terrain_surround_effect_type(species: dict) -> str:
+    if species["kind"] == "tree":
+        return "treeRootPatch"
+    return "rockBareGround" if species["bareGround"] else "rockNoBareGround"
 
 
 def build_entry(species: dict) -> dict:
     kind = species["kind"]
-    if kind not in KIND_EFFECTS:
+    if kind not in KIND_SOUND_EFFECTS:
         raise ValueError(f"unknown kind: {kind} ({species['key']})")
-    sound_effect_type, terrain_surround_effect_type = KIND_EFFECTS[kind]
+    sound_effect_type = KIND_SOUND_EFFECTS[kind]
 
-    # 小石はPickUp（HP1・道具不要）、樹木と岩はMining（既存「木」の設定を複製）
-    # Pebbles are picked up bare-handed; trees and rocks are mined with the existing tree's settings
+    # 小石はPickUp（HP1・道具不要）、樹木・低木と岩・小物はMining（既存「木」の設定を複製）。ドロップは木・低木が原木、他は石
+    # Pebbles are picked up bare-handed; trees/plants and rocks/props are mined with the existing tree's settings. Trees/plants drop logs, the rest stone
     is_pebble = kind == "pebble"
-    earn_item = WOOD_ITEM if kind == "tree" else STONE_ITEM
+    earn_item = WOOD_ITEM if kind in ("tree", "plant") else STONE_ITEM
     entry = {
         "mapObjectGuid": species["mapObjectGuid"],
         "mapObjectName": species["mapObjectName"],
@@ -53,7 +56,7 @@ def build_entry(species: dict) -> dict:
         "hp": 1 if is_pebble else 100,
         "earnItemHpInterval": 1 if is_pebble else 10,
         "soundEffectType": sound_effect_type,
-        "terrainSurroundEffectType": terrain_surround_effect_type,
+        "terrainSurroundEffectType": terrain_surround_effect_type(species),
         "earnItems": [{"itemGuid": earn_item, "minCount": 1, "maxCount": 1 if is_pebble else 4}],
         "miningType": "PickUp" if is_pebble else "Mining",
         "miningParam": {} if is_pebble else {"miningTools": [dict(t) for t in MINING_TOOLS]},

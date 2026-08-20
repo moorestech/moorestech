@@ -104,6 +104,20 @@ namespace Client.Tests.UnitTest.Terrain.Surround
         }
 
         [Test]
+        public void ARockWithoutBareGroundLeavesTheAlphamapAlone()
+        {
+            // 移植元はBoulder/Cliff名の岩だけ裸地化する。rockNoBareGroundの瓦礫が塗り始めるとメサ一帯が泥になる
+            // The source repaints only Boulder/Cliff rocks; once rockNoBareGround rubble starts painting, the whole mesa turns to mud
+            var clusteredAlphamap = CreateUniformAlphamap();
+            Paint(clusteredAlphamap, CreateSurroundConfig(), CreateHeights(0f), CreateRock(ClusterId, NoBareGroundStoneGuid));
+            var loneAlphamap = CreateUniformAlphamap();
+            Paint(loneAlphamap, CreateSurroundConfig(), CreateHeights(0f), CreateRock(NoCluster, NoBareGroundStoneGuid));
+
+            Assert.That(clusteredAlphamap[RockPixel, RockPixel, MudLayerIndex], Is.EqualTo(0f));
+            Assert.That(loneAlphamap[RockPixel, RockPixel, MudLayerIndex], Is.EqualTo(0f));
+        }
+
+        [Test]
         public void ADisabledSurroundConfigLeavesTheAlphamapAlone()
         {
             var alphamap = CreateUniformAlphamap();
