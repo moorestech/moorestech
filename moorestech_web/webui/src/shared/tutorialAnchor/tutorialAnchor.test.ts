@@ -8,8 +8,8 @@ describe("tutorialAnchor", () => {
     });
   });
 
-  // 1要素が複数のアンカー名を名乗れるよう空白区切りで結合する
-  // Several anchor names on one element are joined by a single space
+  // 複数のアンカー名は空白1つで結合する
+  // Several anchor names join with a single space
   it("joins multiple anchor ids with a single space", () => {
     expect(tutorialAnchor("equipment.slot-0", "equipment.selected-slot")).toEqual({
       "data-tutorial-anchor": "equipment.slot-0 equipment.selected-slot",

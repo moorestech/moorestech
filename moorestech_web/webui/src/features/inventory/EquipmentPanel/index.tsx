@@ -92,8 +92,8 @@ export default function EquipmentPanel() {
     <div className={styles.equipmentArea} data-testid="equipment-slots" data-wheel-passthrough>
       {inventory.equipment.map((slot, i) => {
         const ref: SlotRef = { area: "equipment", slot: i };
-        // 選択中の枠はホイールで動くため、固定枠IDに加えて選択アンカーも同じ要素へ名乗らせる
-        // The selected slot moves with the wheel, so that element declares the selection anchor alongside its fixed slot ID
+        // 選択枠はホイールで動くので選択アンカーも同居させる
+        // The selected slot moves with the wheel, so it also declares the selection anchor
         const selected = i === inventory.selectedEquipment;
         const anchor = selected
           ? tutorialAnchor(equipmentSlotAnchorId(i), TutorialAnchorIds.equipmentSelectedSlot)

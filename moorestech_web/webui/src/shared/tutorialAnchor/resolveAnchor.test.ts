@@ -40,8 +40,8 @@ describe("resolveTutorialAnchor", () => {
     expect(resolveTutorialAnchor("research.node")).toEqual({ status: "not-found", reason: "duplicate-anchor" });
   });
 
-  // 複数アンカーを名乗る要素にも当たるようトークン一致セレクタで問い合わせる
-  // Anchors are queried as whitespace-separated tokens so multi-anchor elements match
+  // 複数名乗る要素にも当たるトークン一致で問い合わせる
+  // Queried as tokens so multi-anchor elements match
   it("matches anchors as whitespace-separated tokens", () => {
     resolveTutorialAnchor("equipment.selected-slot");
     expect(lastSelector).toBe('[data-tutorial-anchor~="equipment.selected-slot"]');

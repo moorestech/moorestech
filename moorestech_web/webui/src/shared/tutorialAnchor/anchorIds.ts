@@ -51,8 +51,8 @@ export function challengeNodeAnchorId(guid: string): DynamicTutorialAnchorId {
   return `${TutorialAnchorDynamicPrefixes.challengeNode}${guid}`.toLowerCase() as DynamicTutorialAnchorId;
 }
 
-// メインインベントリで該当アイテムを持つ先頭スロット。guidはマスタ直書き値と一致させるため小文字化する
-// First main-inventory slot holding the item; the guid is lowercased to match master-written values
+// guidはマスタ直書き値に合わせて小文字化する
+// The guid is lowercased to match master-written values
 export function inventoryItemAnchorId(itemGuid: string): DynamicTutorialAnchorId {
   return `${TutorialAnchorDynamicPrefixes.inventoryItem}${itemGuid}`.toLowerCase() as DynamicTutorialAnchorId;
 }

@@ -35,8 +35,8 @@ export default function InventoryPanel() {
     </PanelActionButton>
   );
 
-  // チュートリアルが「このアイテムを持っているスロット」を指せるよう、アイテムごとの先頭スロットへアンカーを付ける
-  // Anchor the first slot per item so tutorials can point at "the slot holding this item"
+  // 「このアイテムを持つスロット」を指すためのアンカー
+  // Anchors for "the slot holding this item"
   const firstSlots = firstSlotIndexByItemId(inventory.mainSlots);
 
   return (

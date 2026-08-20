@@ -84,8 +84,8 @@ describe("EquipmentPanel のクリック受付", () => {
     expect(host.dispatchAction).not.toHaveBeenCalled();
   });
 
-  // 各装備枠は equipment.slot-<i> を名乗り、選択中の枠だけ equipment.selected-slot も併せて名乗る
-  // Every equipment slot declares equipment.slot-<i>; only the selected one also declares equipment.selected-slot
+  // 選択中の枠だけ選択アンカーを併せて名乗る
+  // Only the selected slot also declares the selection anchor
   it("装備枠がアンカーを名乗り、選択中の枠には選択アンカーも付く", () => {
     host.uiState = { state: "GameScreen" };
     host.inventory = {

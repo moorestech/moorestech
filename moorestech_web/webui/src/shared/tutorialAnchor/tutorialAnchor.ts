@@ -7,13 +7,13 @@ export type TutorialAnchorAttributes = Readonly<{
   "data-tutorial-anchor": string;
 }>;
 
-// 1要素が複数のアンカー名を名乗れるよう空白区切りトークン列にする（アンカーIDに空白は含まれない）
-// One element may declare several anchor names as a whitespace-separated token list (anchor IDs never contain spaces)
+// 1要素が複数名乗れるよう空白区切りにする
+// A whitespace-separated list lets one element declare several anchors
 export function tutorialAnchor(first: TutorialAnchorId, ...rest: TutorialAnchorId[]): TutorialAnchorAttributes {
   return { "data-tutorial-anchor": [first, ...rest].join(" ") };
 }
 
-// トークン一致セレクタ。resolveAnchor と registry が同じ書式で問い合わせる
+// resolveAnchorとregistry共通のトークン一致セレクタ
 // Token-match selector shared by resolveAnchor and the registry
 export function tutorialAnchorSelector(anchorId: string): string {
   const escaped = globalThis.CSS?.escape ? globalThis.CSS.escape(anchorId) : anchorId.replaceAll('"', '\\"');

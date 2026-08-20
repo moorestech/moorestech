@@ -1,5 +1,5 @@
-// アイテムごとに先頭スロットだけをアンカー担当にする。同名アンカーの重複はresolverが不一致扱いにするため
-// Only the first slot per item carries the anchor; duplicate anchor names would be rejected by the resolver
+// 重複アンカーは解決不能なので先頭スロットだけ担当する
+// Duplicate anchors never resolve, so only the first slot carries it
 export function firstSlotIndexByItemId(slots: ReadonlyArray<{ itemId: number }>): Map<number, number> {
   const result = new Map<number, number>();
   slots.forEach((slot, index) => {

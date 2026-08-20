@@ -2,8 +2,8 @@ import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { setUiState } from "../../support/mockControl";
 
-// 装備HUDは data-testid="equipment-slots" で特定し、各枠はアンカー用ラッパーdivの中のスロット本体になる
-// The equipment HUD is identified via data-testid="equipment-slots"; each slot sits inside its anchor wrapper div
+// 各枠はアンカー用ラッパーdiv内のスロット本体
+// Each slot sits inside its anchor wrapper div
 const equipmentSlots = (page: import("@playwright/test").Page) =>
   page.getByTestId("equipment-slots").locator("> div > div");
 
