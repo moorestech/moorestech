@@ -185,6 +185,10 @@
   /* Size and one-cycle duration of the D&D drag guide arrow (webui-design §8.17) */
   --tutorial-drag-guide-size: 28px;
   --tutorial-drag-guide-duration: 1600ms;
+  /* 枠線ハイライトの文言ラベルの間隔と文字サイズ（webui-design §8.17） */
+  /* Gap and font size for an outline highlight's text label (webui-design §8.17) */
+  --tutorial-highlight-label-gap: 4px;
+  --tutorial-highlight-label-font-size: 14px;
   /* ドラッグガイド矢印を世界背景から分離する最小限の影（world-pin矢印と同族） */
   /* Minimal shadow separating the drag guide arrow from the world background, same family as the world-pin arrow */
   --tutorial-drag-guide-shadow: rgb(0 0 0 / 65%);

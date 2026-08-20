@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { dispatchAction, Topics, useTopic, type TutorialPresentationData } from "@/bridge";
+import { challengeTutorialTextKey, useI18n } from "@/shared/i18n";
 import { TutorialAnchorRegistry, type ResolvedAnchor } from "@/shared/tutorialAnchor";
 import styles from "./style.module.css";
 
@@ -10,6 +11,7 @@ type AckTarget = { tutorialSessionId: string; elementId: string };
 
 export function TutorialOverlay() {
   const presentation = useTopic(Topics.tutorialPresentation);
+  const { t } = useI18n();
   const registry = useRef<TutorialAnchorRegistry | null>(null);
   const lastAck = useRef<Record<string, string>>({});
   // ハイライト/ガイドを統合state化
@@ -80,19 +82,32 @@ export function TutorialOverlay() {
   return <div className={styles.overlay} data-testid="tutorial-overlay">
     {presentation.sessions.flatMap((session) => session.elements.map((element) => {
       const key = `${session.tutorialSessionId}:${element.elementId}`;
-      if (element.kind === "outline") return renderOutline(key, element, resolved[element.anchorId]);
-      if (element.kind !== "dragGuide") return null;
-      return renderDragGuide(key, resolved[element.fromAnchorId], resolved[element.toAnchorId]);
+      if (element.kind === "outline") return renderOutline(key, element, resolved[element.anchorId], t);
+      if (element.kind === "dragGuide") return renderDragGuide(key, resolved[element.fromAnchorId], resolved[element.toAnchorId]);
+      // keyControlはanchorを持たず、下中央HUD(KeyControlHintHud)が描く
+      // keyControl has no anchor; the bottom-center HUD (KeyControlHintHud) renders it
+      return null;
     }))}
   </div>;
 }
 
-function renderOutline(key: string, element: TutorialOutlineElement, value: ResolvedAnchor | undefined) {
+type Translate = ReturnType<typeof useI18n>["t"];
+
+function renderOutline(key: string, element: TutorialOutlineElement, value: ResolvedAnchor | undefined, t: Translate) {
   if (!value || value.status !== "ready") return null;
   const padding = element.paddingPx;
-  return <div key={key} className={styles.highlight} data-kind={element.kind}
-    style={{ left: value.rect.left - padding, top: value.rect.top - padding,
+  const left = value.rect.left - padding;
+  const outline = <div key={key} className={styles.highlight} data-kind={element.kind}
+    style={{ left, top: value.rect.top - padding,
       width: value.rect.width + padding * 2, height: value.rect.height + padding * 2 }} />;
+  if (!element.labelTutorialGuid) return outline;
+  // ラベルは枠線の下辺外側に左揃えで置き、文言はtutorialGuid導出キーで辞書解決する
+  // The label sits left-aligned just below the outline; its text resolves via the tutorialGuid-derived key
+  const label = <div key={`${key}:label`} className={styles.highlightLabel} data-testid="tutorial-highlight-label"
+    style={{ left, top: value.rect.top + value.rect.height + padding }}>
+    {t(challengeTutorialTextKey(element.labelTutorialGuid))}
+  </div>;
+  return [outline, label];
 }
 
 function renderDragGuide(key: string, from: ResolvedAnchor | undefined, to: ResolvedAnchor | undefined) {

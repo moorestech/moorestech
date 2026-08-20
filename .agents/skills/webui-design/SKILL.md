@@ -402,6 +402,7 @@ description: |
   落として先頭へ戻る。
 - `pointer-events: none` を維持し、z層は既存の tutorial overlay 内（新しい `--z-*` を増やさない）。
 - e2e/スクリーンショット検証はアニメーション非同期のため座標一致を要求しない（表示有無のみ検証する）。
+- **枠線ハイライトの文言ラベル**: `tutorial.presentation` の outline に `labelTutorialGuid` があるとき、`TutorialOverlay` が枠線の下辺外側・左揃えに `t(challengeTutorial.<guid>.text)` のラベルを描く（ユーザー裁定 2026-08-20）。面は `--world-pin-face`、文字は `--text-high-contrast`、間隔・文字サイズは `--tutorial-highlight-label-*` 固定長トークン。枠線が非表示ならラベルも出さない。吹き出し矢印・光彩・アニメーションは付けない。
 
 ## 9. やらないことリスト（再掲・明示）
 

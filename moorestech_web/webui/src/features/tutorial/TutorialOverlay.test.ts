@@ -41,6 +41,11 @@ vi.mock("@/shared/tutorialAnchor", async (importOriginal) => {
   };
 });
 
+vi.mock("@/shared/i18n", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/shared/i18n")>();
+  return { ...actual, useI18n: () => ({ t: (key: string) => `T:${key}` }) };
+});
+
 import { TutorialOverlay } from "./TutorialOverlay";
 
 const ready = (left: number): ResolvedAnchor => ({
@@ -184,5 +189,44 @@ describe("TutorialOverlay anchor resolution", () => {
 
     pushAnchor("recipe.craft-button", ready(20));
     expect(renderer.root.findByProps({ "data-kind": "outline" }).props.style).not.toBe(styleBefore);
+  });
+});
+
+describe("TutorialOverlay outline labels", () => {
+  afterEach(() => { mockState.presentation = null; mockState.listeners.clear(); });
+
+  // labelTutorialGuid付きの枠線だけが文言ラベルを持ち、文言は challengeTutorial.<guid>.text で解決する
+  // Only outlines with labelTutorialGuid get a text label, resolved through challengeTutorial.<guid>.text
+  it("labelTutorialGuid がある枠線だけラベルを描く", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        { ...outline("h1", "recipe.craft-button"), labelTutorialGuid: "11111111-1111-4111-8111-111111111111" },
+        outline("h2", "hotbar.hud"),
+      ] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    pushAnchor("recipe.craft-button", ready(10));
+    pushAnchor("hotbar.hud", ready(100));
+
+    const labels = renderer.root.findAllByProps({ "data-testid": "tutorial-highlight-label" });
+    expect(labels.length).toBe(1);
+    expect(labels[0].children).toEqual(["T:challengeTutorial.11111111-1111-4111-8111-111111111111.text"]);
+    // ラベルは枠線の下辺外側（top = rect.bottom + padding）に置く
+    // The label sits just below the outline (top = rect.bottom + padding)
+    expect(labels[0].props.style.top).toBe(10);
+    expect(labels[0].props.style.left).toBe(10);
+  });
+
+  it("anchor未解決の枠線はラベルも描かない", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        { ...outline("h1", "recipe.craft-button"), labelTutorialGuid: "11111111-1111-4111-8111-111111111111" },
+      ] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    pushAnchor("recipe.craft-button", hidden);
+    expect(renderer.root.findAllByProps({ "data-testid": "tutorial-highlight-label" }).length).toBe(0);
   });
 });
