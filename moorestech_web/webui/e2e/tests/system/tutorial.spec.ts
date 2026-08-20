@@ -43,5 +43,5 @@ test("keyControl hint renders a kbd and text above the hotbar while uiState matc
   const hint = page.getByTestId("key-control-hint");
   await expect(hint).toBeVisible();
   await expect(hint.locator("kbd")).toHaveText("Tab");
-  await expect(hint).toContainText("Tabでインベントリを開く");
+  await expect(hint).toContainText("インベントリを開く");
 });

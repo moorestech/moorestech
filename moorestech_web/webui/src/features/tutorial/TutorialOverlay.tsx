@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { dispatchAction, Topics, useTopic, type TutorialPresentationData } from "@/bridge";
-import { challengeTutorialTextKey, useI18n } from "@/shared/i18n";
+import { challengeTutorialTextKey, useI18n, type TranslationKey } from "@/shared/i18n";
 import { TutorialAnchorRegistry, type ResolvedAnchor } from "@/shared/tutorialAnchor";
 import styles from "./style.module.css";
 
@@ -36,18 +36,26 @@ export function TutorialOverlay() {
     const ackTargetsByAnchorId = new Map<string, AckTarget[]>();
     for (const session of presentation.sessions) {
       for (const element of session.elements) {
-        // keyControlはuiState一致で出す要素でanchor購読を持たない。A6でHUD描画を足す
-        // keyControl shows on uiState match and has no anchor to subscribe; A6 adds its HUD rendering
-        if (element.kind === "dragGuide") {
-          anchorIds.add(element.fromAnchorId);
-          anchorIds.add(element.toAnchorId);
-          continue;
+        switch (element.kind) {
+          case "dragGuide":
+            anchorIds.add(element.fromAnchorId);
+            anchorIds.add(element.toAnchorId);
+            continue;
+          case "outline": {
+            anchorIds.add(element.anchorId);
+            const targets = ackTargetsByAnchorId.get(element.anchorId) ?? [];
+            targets.push({ tutorialSessionId: session.tutorialSessionId, elementId: element.elementId });
+            ackTargetsByAnchorId.set(element.anchorId, targets);
+            continue;
+          }
+          case "keyControl":
+            // keyControlは購読なし
+            // keyControl has no subscription
+            continue;
+          default:
+            assertNever(element);
+            continue;
         }
-        if (element.kind !== "outline") continue;
-        anchorIds.add(element.anchorId);
-        const targets = ackTargetsByAnchorId.get(element.anchorId) ?? [];
-        targets.push({ tutorialSessionId: session.tutorialSessionId, elementId: element.elementId });
-        ackTargetsByAnchorId.set(element.anchorId, targets);
       }
     }
 
@@ -82,18 +90,23 @@ export function TutorialOverlay() {
   return <div className={styles.overlay} data-testid="tutorial-overlay">
     {presentation.sessions.flatMap((session) => session.elements.map((element) => {
       const key = `${session.tutorialSessionId}:${element.elementId}`;
-      if (element.kind === "outline") return renderOutline(key, element, resolved[element.anchorId], t);
-      if (element.kind === "dragGuide") return renderDragGuide(key, resolved[element.fromAnchorId], resolved[element.toAnchorId]);
-      // keyControlはanchorを持たず、下中央HUD(KeyControlHintHud)が描く
-      // keyControl has no anchor; the bottom-center HUD (KeyControlHintHud) renders it
-      return null;
+      switch (element.kind) {
+        case "outline":
+          return renderOutline(key, element, resolved[element.anchorId], t);
+        case "dragGuide":
+          return renderDragGuide(key, resolved[element.fromAnchorId], resolved[element.toAnchorId]);
+        case "keyControl":
+          // keyControlは下中央HUDが描画
+          // keyControl is rendered by the bottom-center HUD
+          return null;
+        default:
+          return assertNever(element);
+      }
     }))}
   </div>;
 }
 
-type Translate = ReturnType<typeof useI18n>["t"];
-
-function renderOutline(key: string, element: TutorialOutlineElement, value: ResolvedAnchor | undefined, t: Translate) {
+function renderOutline(key: string, element: TutorialOutlineElement, value: ResolvedAnchor | undefined, t: (key: TranslationKey) => string) {
   if (!value || value.status !== "ready") return null;
   const padding = element.paddingPx;
   const left = value.rect.left - padding;
@@ -101,8 +114,8 @@ function renderOutline(key: string, element: TutorialOutlineElement, value: Reso
     style={{ left, top: value.rect.top - padding,
       width: value.rect.width + padding * 2, height: value.rect.height + padding * 2 }} />;
   if (!element.labelTutorialGuid) return outline;
-  // ラベルは枠線の下辺外側に左揃えで置き、文言はtutorialGuid導出キーで辞書解決する
-  // The label sits left-aligned just below the outline; its text resolves via the tutorialGuid-derived key
+  // ラベルは枠線下辺外側左揃え配置
+  // Label sits left-aligned below the outline
   const label = <div key={`${key}:label`} className={styles.highlightLabel} data-testid="tutorial-highlight-label"
     style={{ left, top: value.rect.top + value.rect.height + padding }}>
     {t(challengeTutorialTextKey(element.labelTutorialGuid))}
@@ -145,4 +158,10 @@ function keepSubscribed(current: Record<string, ResolvedAnchor>, anchorIds: Set<
 
 function combine(disposers: Array<() => void>) {
   return () => disposers.forEach((dispose) => dispose());
+}
+
+// 種別を足したら網羅漏れをコンパイル時に落とす
+// Adding a kind breaks compilation here instead of silently falling through
+function assertNever(value: never): never {
+  throw new Error(`Unhandled tutorial overlay element: ${JSON.stringify(value)}`);
 }

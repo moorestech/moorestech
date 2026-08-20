@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const GameStateDataSchema = z.object({ state: z.enum(["InGame", "Skit", "CutScene"]) });
-// 枠線は矩形だけ。文言を持つなら labelTutorialGuid で辞書キーを示し、Web側が t() で解決して脇に描く
-// Highlights carry only the outline; when text exists, labelTutorialGuid names the dictionary key the web resolves with t()
+// 枠線+任意labelTutorialGuid(t()解決)
+// Outline plus optional labelTutorialGuid, resolved via t()
 export const TutorialHighlightSchema = z.object({
   kind: z.literal("outline"), elementId: z.string(), anchorId: z.string(),
   paddingPx: z.number().nonnegative(), blocksPointerInput: z.boolean(),
@@ -14,8 +14,8 @@ export const TutorialDragGuideSchema = z.object({
   kind: z.literal("dragGuide"), elementId: z.string(),
   fromAnchorId: z.string(), toAnchorId: z.string(),
 }).strict();
-// キー操作ヒント。uiStateが ui_state.current と一致する間だけ下中央HUDに描く
-// Key-control hint; drawn in the bottom-center HUD only while uiState matches ui_state.current
+// キー操作ヒント。uiState一致中のみHUD表示
+// Key-control hint; shown only while uiState matches
 export const TutorialKeyControlSchema = z.object({
   kind: z.literal("keyControl"), elementId: z.string(),
   tutorialGuid: z.string().uuid(), keyName: z.string(), uiState: z.string(),

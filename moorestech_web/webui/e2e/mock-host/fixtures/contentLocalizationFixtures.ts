@@ -58,7 +58,7 @@ const source = {
   [trainCarNameKey(CARGO_TRAIN_CAR_GUID)]: "貨物車両",
   [challengeTutorialTextKey(WORLD_PIN_TUTORIAL_GUID)]: "小石を拾う",
   [challengeTutorialTextKey(OUTLINE_LABEL_TUTORIAL_GUID)]: "照準に合わせる",
-  [challengeTutorialTextKey(KEY_CONTROL_TUTORIAL_GUID)]: "Tabでインベントリを開く",
+  [challengeTutorialTextKey(KEY_CONTROL_TUTORIAL_GUID)]: "インベントリを開く",
   "ui.buildMenu.blueprintCopy": "ブループリントコピー",
   "challengeCategory.81000000-0000-4000-8000-000000000001.name": "Basics",
   "challenge.82000000-0000-4000-8000-000000000001.title": "First Craft",

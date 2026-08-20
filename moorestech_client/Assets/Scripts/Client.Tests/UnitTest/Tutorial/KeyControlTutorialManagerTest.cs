@@ -60,8 +60,8 @@ namespace Client.Tests.UnitTest.Tutorial
             SetChallengeMaster(_originalChallengeMaster);
         }
 
-        // keyName/uiState/tutorialGuidがそのままkeyControl要素として公開され、完了で撤去される
-        // keyName/uiState/tutorialGuid are published verbatim as a keyControl element and removed on completion
+        // keyControlを公開・完了で撤去
+        // Publishes keyControl; removed on completion
         [Test]
         public void ApplyTutorialはkeyControl要素を公開し完了で撤去する()
         {

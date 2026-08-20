@@ -1,5 +1,5 @@
-// キー操作ヒントは uiState 一致かつスキット非blocking のときだけ描く
-// Key-control hints render only while uiState matches and no blocking skit is active
+// 一致&非blocking時のみ描画
+// Renders only when matching and non-blocking
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -15,11 +15,9 @@ vi.mock("@/bridge", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/bridge")>();
   return {
     ...actual,
-    useTopic: (topic: string) => {
-      if (topic === actual.Topics.tutorialPresentation) return host.presentation;
-      if (topic === actual.Topics.uiState) return host.uiState;
-      return null;
-    },
+    useTopic: (topic: string) => (topic === actual.Topics.tutorialPresentation ? host.presentation : null),
+    useTopicSelector: (topic: string, selector: (data: unknown) => unknown) =>
+      selector(topic === actual.Topics.uiState ? host.uiState : null),
   };
 });
 vi.mock("@/shared/uiState", async (importOriginal) => {
@@ -71,5 +69,17 @@ describe("KeyControlHintHud", () => {
     host.presentation = { revision: 1, sessions: [{ tutorialSessionId: "s1", challengeId: "c1", elements: [keyControl("k1", "Tab", "GameScreen")] }] };
     const renderer = render();
     expect(renderer.root.findAllByProps({ "data-testid": "key-control-hint-hud" }).length).toBe(0);
+  });
+
+  // 2件同時一致→縦積み(ADR0022)
+  // Two simultaneous matches stack vertically
+  it("同時に一致するヒントが2件あれば2件とも描く", () => {
+    host.uiState = { state: "GameScreen" };
+    host.presentation = { revision: 1, sessions: [{ tutorialSessionId: "s1", challengeId: "c1", elements: [
+      keyControl("k1", "Tab", "GameScreen"), keyControl("k2", "E", "GameScreen"),
+    ] }] };
+    const renderer = render();
+    const hints = renderer.root.findAllByProps({ "data-testid": "key-control-hint" });
+    expect(hints.length).toBe(2);
   });
 });

@@ -68,8 +68,7 @@ namespace Client.Game.InGame.Tutorial
             // Clear flat presentations before completing the remaining world views
             if (WebUiScreenGate.IsWebUiMode)
             {
-                var presentationStore = TutorialPresentationStateStore.Instance;
-                if (presentationStore.HasSession(challengeId)) presentationStore.EndSession(challengeId);
+                TutorialPresentationStateStore.Instance.EndSession(challengeId);
             }
             
             foreach (var tutorialView in tutorialViews)

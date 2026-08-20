@@ -35,8 +35,8 @@ namespace Client.Game.InGame.Tutorial
         public string AnchorId;
         public int PaddingPx;
         public bool BlocksPointerInput;
-        // 枠線脇ラベルの文言キー元。nullなら枠線のみ（JSONではキーごと省略される）
-        // Source GUID of the side label text; null means outline only (the key is omitted from JSON)
+        // ラベル文言キー元。null=枠線のみ
+        // Source GUID of the label text; null means outline only
         public string LabelTutorialGuid;
     }
 
@@ -53,8 +53,8 @@ namespace Client.Game.InGame.Tutorial
         public string ToAnchorId;
     }
 
-    // キー操作ヒント。uiState一致・skit中非表示の判定はWeb側が行う
-    // Key-control hint; the web side decides uiState matching and hides it during skits
+    // キー操作ヒント。判定はWeb側で行う
+    // Key-control hint; the web side decides matching
     public class TutorialKeyControlElementData : TutorialOverlayElementData
     {
         public const string KindName = "keyControl";

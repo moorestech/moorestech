@@ -24,6 +24,8 @@
   letter-spacing: 0.055em;
   font-weight: 500;
   color: var(--text-high-contrast);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
 }
 
