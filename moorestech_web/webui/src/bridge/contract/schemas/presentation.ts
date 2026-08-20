@@ -1,11 +1,12 @@
 import { z } from "zod";
 
 export const GameStateDataSchema = z.object({ state: z.enum(["InGame", "Skit", "CutScene"]) });
-// ハイライトは枠線だけを描く。文言を持つkindは廃止済みで生産者が存在しない
-// Highlights draw an outline only; text-carrying kinds were retired and have no producer
+// 枠線は矩形だけ。文言を持つなら labelTutorialGuid で辞書キーを示し、Web側が t() で解決して脇に描く
+// Highlights carry only the outline; when text exists, labelTutorialGuid names the dictionary key the web resolves with t()
 export const TutorialHighlightSchema = z.object({
   kind: z.literal("outline"), elementId: z.string(), anchorId: z.string(),
   paddingPx: z.number().nonnegative(), blocksPointerInput: z.boolean(),
+  labelTutorialGuid: z.string().uuid().optional(),
 }).strict();
 // D&D説明の矢印ガイド。from/to両anchorが解決している間だけ描く
 // Drag guide arrows for D&D instruction; drawn only while both anchors resolve
@@ -13,10 +14,16 @@ export const TutorialDragGuideSchema = z.object({
   kind: z.literal("dragGuide"), elementId: z.string(),
   fromAnchorId: z.string(), toAnchorId: z.string(),
 }).strict();
+// キー操作ヒント。uiStateが ui_state.current と一致する間だけ下中央HUDに描く
+// Key-control hint; drawn in the bottom-center HUD only while uiState matches ui_state.current
+export const TutorialKeyControlSchema = z.object({
+  kind: z.literal("keyControl"), elementId: z.string(),
+  tutorialGuid: z.string().uuid(), keyName: z.string(), uiState: z.string(),
+}).strict();
 // overlay要素はkind判別unionの単一列。種別追加は配列を増やさずunionへ足す
 // Overlay elements form one kind-discriminated union list; new kinds extend the union, not the arrays
 export const TutorialOverlayElementSchema = z.discriminatedUnion("kind", [
-  TutorialHighlightSchema, TutorialDragGuideSchema,
+  TutorialHighlightSchema, TutorialDragGuideSchema, TutorialKeyControlSchema,
 ]);
 // sessionはchallenge単位。同時currentの複数challengeが並存できる
 // One session per challenge, so simultaneously current challenges coexist

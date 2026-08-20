@@ -34,11 +34,14 @@ export function TutorialOverlay() {
     const ackTargetsByAnchorId = new Map<string, AckTarget[]>();
     for (const session of presentation.sessions) {
       for (const element of session.elements) {
-        if (element.kind !== "outline") {
+        // keyControlはuiState一致で出す要素でanchor購読を持たない。A6でHUD描画を足す
+        // keyControl shows on uiState match and has no anchor to subscribe; A6 adds its HUD rendering
+        if (element.kind === "dragGuide") {
           anchorIds.add(element.fromAnchorId);
           anchorIds.add(element.toAnchorId);
           continue;
         }
+        if (element.kind !== "outline") continue;
         anchorIds.add(element.anchorId);
         const targets = ackTargetsByAnchorId.get(element.anchorId) ?? [];
         targets.push({ tutorialSessionId: session.tutorialSessionId, elementId: element.elementId });
@@ -78,6 +81,7 @@ export function TutorialOverlay() {
     {presentation.sessions.flatMap((session) => session.elements.map((element) => {
       const key = `${session.tutorialSessionId}:${element.elementId}`;
       if (element.kind === "outline") return renderOutline(key, element, resolved[element.anchorId]);
+      if (element.kind !== "dragGuide") return null;
       return renderDragGuide(key, resolved[element.fromAnchorId], resolved[element.toAnchorId]);
     }))}
   </div>;
