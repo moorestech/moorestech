@@ -29,7 +29,7 @@ ADR 0016 でチュートリアル提示を WebUI 経路へ統一し、枠線ハ�
 
 - presentation に kind `keyControl { elementId, tutorialGuid, keyName }` を追加。Web は画面下中央（ホットバーの上）に「[Tab] インベントリを開く」形式（キーキャップ＋説明文。`LocalizedShortcutHint` と同じ見た目）で描く。説明文は `challengeTutorial.<tutorialGuid>.text`（= `controlText`）。
 - `uiState` 一致判定は **Web 側**で行う。Unity はチャレンジ開始時に kind `keyControl { elementId, tutorialGuid, keyName, uiState }` を当該チャレンジの session に載せるだけで、Web が `ui_state.current` topic の `state`（Unity `UIStateEnum` 名と同一文字列。`UiStateNames` 参照）と `uiState` が一致する間だけ描く。（planning時のagent前提修正: Unity側で状態変化のたびに要素を足し引きすると、`TutorialPresentationStateStore.AddElement` が「最後に BeginSession した challenge」の session へ付けるため別チャレンジの session に紛れ込む。要素を適用時に正しい session へ固定し、表示可否だけを Web に委ねる方が単純で前例（outline/dragGuide の anchor 解決可否も Web 側判断）と一致する）
-- schema `challenges.yml` の keyControl に `keyName: string`（必須）を追加し、`uiState` の enum を実 `UIStateEnum` に揃える（`BlockInventory`→`SubInventory`、`ChallengeList` / `ResearchTree` / `BuildMenu` / `TrainHUDScreen` を追加。`Debug` は含めない）。既存 keyControl データ（v8 は0件、moorestechAlphaMod_3 に1件）は keyName を付けて一括更新する（`optional` で吸収しない）。
+- schema `challenges.yml` の keyControl に `keyName: string`（必須）を追加し、`uiState` の enum を実 `UIStateEnum` に揃える（`BlockInventory`→`SubInventory`、`ChallengeList` / `ResearchTree` / `BuildMenu` / `TrainHUDScreen` を追加。`Debug` は含めない）。既存 keyControl データ（v8 に2件、moorestechAlphaMod_3 に1件の計3件）は keyName を付けて一括更新し、その追記は本体PRと同一マージ単位にする（`optional` で吸収しない。keyName 必須化だけが先に入ると3件ともロード時に例外死する）。
 - `KeyControlTutorialManager` は単一インスタンス保持（last-wins）から、tutorialGuid ごとの複数同時保持へ変える（原始研究1で GameScreen 用と PlayerInventory 用の R ヒントを並存させるため）。
 - 出所: ユーザー裁定 2026-08-20「HUDヒント＋キーキャップ付きで復活」「画面下中央（ホットバーの上）」（`.decisions/2026-08-20-keyControlはキーキャップ付きHUDヒントとしてWebで復活させる.md`）。2026-08-19「keyControlは将来使うので残す」の実現。
 - agent前提: スキット中は目標HUDと同様に非表示。同時に複数の keyControl 要素があるときは縦に並べる。
@@ -71,6 +71,6 @@ ADR 0016 でチュートリアル提示を WebUI 経路へ統一し、枠線ハ�
 ## Consequences
 
 - 2026-08-18 裁定の「Web で文言が出るのは title/summary/ピン/スキットのみ」は「＋枠線ラベル＋キー操作ヒント」に更新される。
-- schema 変更（keyName 必須・uiState enum）により `challenges.yml` 由来の生成コードが変わる。マスタ側 keyControl データは本体マージ後に追記する。
+- schema 変更（keyName 必須・uiState enum）により `challenges.yml` 由来の生成コードが変わる。マスタ側 keyControl 3件への keyName 追記だけは本体と同一マージ単位で入れ、残りの文言・誘導追記は本体マージ後に行う。
 - Web のアンカー属性がトークン列になるため、`resolveTutorialAnchor` と既存テストが追従する。
 - マスタ側の後続追記（本体3PRマージ後）: 小石の HUD 枠線文言「左上で現在の目標を確認する」、石器を作るの文言「①石器を選択」「②クラフトボタンを長押し」と keyControl(Tab)、木を伐採の keyControl(Tab)＋uiDragGuide、木の板の keyControl(Tab)、原始研究1の keyControl(R; GameScreen / PlayerInventory)、石の斧の handGrabModel。
