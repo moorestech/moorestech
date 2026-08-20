@@ -141,7 +141,7 @@ if (!A.reportOnly) {
     `User prompt : ${A.userPromptPath}`,
     `Repo root : ${A.repoRoot}（修正はこの作業ツリーだけに加える）`,
     `Skill root : ${A.skillRoot}（integration-rules.md §3〜§5・scripts はこの配下の絶対パス）`,
-    `Base ref : ${A.baseRef || '(未指定)'} — final.diff は「git diff <Base ref> -- . ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'」で作る。未指定なら patch.diff に「git diff HEAD」（Step 6 の未コミット変更）を連結する。`,
+    `Base ref : ${A.baseRef || '(未指定)'} — final.diff は「git diff <Base ref> -- <patch.diff が触ったファイル ∪ Step 6 で自分が編集・新規作成したファイル> ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'」で作る（pathspec で絞る。作業ツリーが Base ref から別件で進んでいても無関係な差分を巻き込まないため）。未指定なら patch.diff に「git diff HEAD -- <同じファイル集合>」を連結する。`,
     '手順: (1) integrated.md の採用Critical のうち適用区分が自動適用可のものだけ適用する。設計判断は適用せず design.md（症状→原因→推奨と選択肢。コードを開かずに選べる形。0件なら「なし」）へ書く。',
     '(2) .cs を変えたら `uloop compile --project-path <Repo root>/moorestech_client` でエラー0を確認する（Editor不在で実行不能なら compile=skipped と返す）。',
     `(3) final.diff を書き、\`python3 ${A.deterministicChecksScript} <final.diff> --repo-root <Repo root>\` を ${A.runDir}/checks-final.json へ書く（--context は渡さない）。自分の修正が新たに生んだ confirmed/比較演算子違反はその場で直す。`,
