@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { resetResearch, setUiState } from "../../support/mockControl";
 import { settleBoundingBox, waitForFrame } from "../../support/panSettle";
 import { researchableNodeGuid } from "../../mock-host/researchFixtures";
@@ -12,18 +12,31 @@ const RESEARCHABLE_NODE = `research-node-${researchableNodeGuid}`;
 // Max glide distance = speed cap × time constant
 const MAX_GLIDE_PX = PAN_MAX_FLING_SPEED * PAN_FRICTION_TAU_MS;
 
-// 右下は詳細ペインや将来のHUD復帰と競合しうるため、ノードの居ない右上の空白を安定した起点として使う
-// The bottom-right can collide with the detail pane or a future HUD, so the node-free top-right is the stable drag origin
-function topRightDragOrigin(viewportBox: { x: number; y: number; width: number }) {
-  return { x: viewportBox.x + viewportBox.width - 40, y: viewportBox.y + 40 };
-}
-
 // 各テスト後に研究ツリーと ui_state を既定へ戻し、状態漏れを防ぐ
 // Reset the research tree and ui_state to defaults after each test to prevent state leakage
 test.afterEach(async ({ page }) => {
   await resetResearch(page);
   await setUiState(page, "PlayerInventory");
 });
+
+
+// 掴み点は「viewport自身が最前面で、ノードもボタンも装備HUDも被っていない」点でなければ pan が起きない
+// The grip only pans where the viewport itself is frontmost, with no node, button, or equipment HUD on top
+async function findEmptyBackgroundPoint(page: Page, box: { x: number; y: number; width: number; height: number }) {
+  const point = await page.evaluate(([left, top, width, height]) => {
+    for (let inset = 40; inset < Math.min(width, height) / 2; inset += 8) {
+      const x = left + width - inset;
+      const y = top + height - inset;
+      const element = document.elementFromPoint(x, y);
+      if (!element || !element.closest('[data-testid="research-viewport"]')) continue;
+      if (element.closest('[data-testid^="research-node-"], button')) continue;
+      return { x, y };
+    }
+    return null;
+  }, [box.x, box.y, box.width, box.height]);
+  expect(point, "研究ツリーに空背景の掴み点が無い / no empty background grip point in the research tree").not.toBeNull();
+  return point!;
+}
 
 test("research tree opens centered on the researchable node", async ({ page }) => {
   await setUiState(page, "ResearchTree");
@@ -44,7 +57,7 @@ test("research tree keeps its pan position across close and reopen", async ({ pa
   const node = page.getByTestId(RESEARCHABLE_NODE);
   await expect(node).toBeVisible();
   const viewportBox = await page.getByTestId("research-viewport").boundingBox();
-  const dragStart = topRightDragOrigin(viewportBox!);
+  const dragStart = await findEmptyBackgroundPoint(page, viewportBox!);
   const beforePan = await settleBoundingBox(page, node);
   await page.mouse.move(dragStart.x, dragStart.y);
   await page.mouse.down();
@@ -101,7 +114,9 @@ test("research tree zooms with the wheel and pans by dragging its empty backgrou
 
   // ドラッグ距離以上、慣性で滑走後停止
   // Moves at least the drag distance, glides, then stops
-  const dragStart = topRightDragOrigin(viewportBox!);
+  // 角からの固定オフセットはノードやパネル寸法が動くとノードの上に落ちる。空背景を実測で選ぶ
+  // A fixed corner offset lands on a node whenever node or panel geometry moves, so probe for real empty background
+  const dragStart = await findEmptyBackgroundPoint(page, viewportBox!);
   const beforePan = await settleBoundingBox(page, node);
   await page.mouse.move(dragStart.x, dragStart.y);
   await page.mouse.down();

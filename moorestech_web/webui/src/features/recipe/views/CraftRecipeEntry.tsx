@@ -1,4 +1,4 @@
-import { Box, Button, Stack, Text } from "@mantine/core";
+import { Box, Button, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
 import type { CraftRecipe } from "@/bridge";
@@ -23,8 +23,8 @@ type Props = {
   tutorialAnchorProps?: TutorialAnchorAttributes;
 };
 
-// 素材→矢印→結果の行と全幅長押しボタン
-// Material-arrow-result row plus a full-width hold-to-craft button
+// 素材→矢印→結果の行。矢印上に秒数、下に長押しボタン
+// Material-arrow-result row with the duration above the arrow and the craft button below it
 export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tutorialAnchorProps }: Props) {
   const { t } = useI18n();
   const materialTooltipText = useMaterialTooltipText();
@@ -37,11 +37,12 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
   });
 
   return (
-    <Stack className={styles.recipeEntry} gap="xs" data-testid={testId}>
+    <Box className={styles.recipeEntry} data-testid={testId}>
       <RecipeRow
         testId={`craft-recipe-box-${recipe.recipeGuid}`}
         arrowValue={isHolding ? progress : 0}
         arrowTestId={`craft-progress-arrow-${recipe.recipeGuid}`}
+        duration={t(L.ui.recipe.duration, { seconds: recipe.craftTime })}
         materials={recipe.requiredItems.map((r, i) => (
           <Box className={styles.materialSlot} key={i}>
             {/* 所持数不足の素材は既存どおり40%透過にし、数値も赤で示す */}
@@ -59,32 +60,31 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
             </Text>
           </Box>
         ))}
-        result={<ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} />}
+        action={(
+          <Button
+            {...tutorialAnchorProps}
+            className={styles.craftButton}
+            disabled={!isCraftable}
+            title={t(L.ui.recipe.holdToCraft)}
+            // 主ボタン以外は長押し開始しない
+            // Only the primary button/touch starts the hold
+            onPointerDown={(e) => { if (e.button === 0) start(); }}
+            // 離す/外れる/キャンセルで停止しリセット
+            // Release, leave, or cancel: stop and reset elapsed time
+            onPointerUp={stop}
+            onPointerLeave={stop}
+            onPointerCancel={stop}
+            // キーボード（Enter/Space）長押しでも連続クラフトできるようにする（ネイティブ onClick 喪失分の回復）
+            // Keep keyboard (Enter/Space) hold working, restoring the craft path lost when native onClick was removed
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); start(); } }}
+            onKeyUp={(e) => { if (e.key === "Enter" || e.key === " ") stop(); }}
+            onBlur={stop}
+          >
+            {t(L.ui.recipe.craftButtonLabel)}
+          </Button>
+        )}
+        result={[<ItemSlot key="result" itemId={recipe.resultItemId} count={recipe.resultCount} />]}
       />
-      <Button
-        {...tutorialAnchorProps}
-        className={styles.craftButton}
-        fullWidth
-        disabled={!isCraftable}
-        title={t(L.ui.recipe.holdToCraft)}
-        // 主ボタン以外は長押し開始しない
-        // Only the primary button/touch starts the hold
-        onPointerDown={(e) => { if (e.button === 0) start(); }}
-        // 離す/外れる/キャンセルで停止しリセット
-        // Release, leave, or cancel: stop and reset elapsed time
-        onPointerUp={stop}
-        onPointerLeave={stop}
-        onPointerCancel={stop}
-        // キーボード（Enter/Space）長押しでも連続クラフトできるようにする（ネイティブ onClick 喪失分の回復）
-        // Keep keyboard (Enter/Space) hold working, restoring the craft path lost when native onClick was removed
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); start(); } }}
-        onKeyUp={(e) => { if (e.key === "Enter" || e.key === " ") stop(); }}
-        onBlur={stop}
-      >
-        {/* 秒数の書式は ui.recipe.duration が唯一の出所 */}
-        {/* ui.recipe.duration is the single source for the seconds format */}
-        {t(L.ui.recipe.craftButtonLabel, { duration: t(L.ui.recipe.duration, { seconds: recipe.craftTime }) })}
-      </Button>
-    </Stack>
+    </Box>
   );
 }

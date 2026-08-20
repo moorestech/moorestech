@@ -9,12 +9,20 @@ import { L, useI18n } from "@/shared/i18n";
 // Use fixed-pixel slots and gaps to prevent fractional drift from the 140px screenshot pitch
 // 正本の占有率へ寄せるため持ち物だけ1pxへ縮め、inv-white面隅プローブの合格を維持する
 // Tighten inventory padding to 1px for the reference occupancy while preserving the inv-white corner probe
-// 9列を等比縮小し実測値へ適用
-// 枠:間隔比と余白は正本のまま
-// The main inventory is 45 slots in 9 columns (PlayerInventoryConst.MainInventoryColumns). The 378px panel cannot grow — the
-// three-column stage is fully used — so the measured pitch is uniformly scaled (×0.6603) to fit 9 columns into the same
-// 319.6px grid footprint the 6-column layout had, preserving the slot:gap ratio and the reference side margins
-const GRID_STYLE = { "--slot-size": "30.123px", "--slot-grid-gap": "6.064px", "--filled-face-inset": "1.565749px", "--face-inset-color": "rgb(50 52 67)", "--icon-pad": "1px", "--count-bottom": "-1px", "--count-font-size": "10.565px", "--count-letter-spacing": "0.12em", marginTop: "12px", marginLeft: "-0.549px" } as CSSProperties;
+// 基準寸法・倍率はtokens.cssの--inventory-slot-base-*/--inventory-slot-scaleが正本。ここでは二重著述しない
+// Base dimensions and scale live in tokens.css's --inventory-slot-base-*/--inventory-slot-scale; not duplicated here
+const GRID_STYLE = {
+  "--slot-size": "calc(var(--inventory-slot-base-size) * var(--inventory-slot-scale))",
+  "--slot-grid-gap": "calc(var(--inventory-slot-base-gap) * var(--inventory-slot-scale))",
+  "--filled-face-inset": "1.565749px",
+  "--face-inset-color": "rgb(50 52 67)",
+  "--icon-pad": "1px",
+  "--count-bottom": "-1px",
+  "--count-font-size": "calc(var(--inventory-count-base-font-size) * var(--inventory-slot-scale))",
+  "--count-letter-spacing": "0.12em",
+  marginTop: "12px",
+  marginLeft: "-0.549px",
+} as CSSProperties;
 
 // 全スロットを操作。grabは別表示
 // Handle every main-inventory slot; grab tracking renders separately

@@ -15,7 +15,12 @@
 }
 
 .recipeList {
-  /* エントリ幅をスクロールバー分だけ内側へ確保する（ScrollAreaのscrollbarSizeと同一トークン） */
-  /* Reserve room for the overlay scrollbar inside the entry width (same token as ScrollArea's scrollbarSize) */
-  padding-right: var(--recipe-list-scrollbar-reserve);
+  /* 四隅ブラケットと外周リングが枠の外側へ出るため、全周にその分の余白を取る。
+     0だとScrollAreaに切られて左のブラケットが消え、はみ出し数pxで不要なスクロールが出る */
+  /* The corner brackets and outer ring sit outside the frame, so pad every side by that bleed; at 0 the
+     ScrollArea clips the left brackets and the few overflowing px create a needless scroll */
+  padding: var(--recipe-entry-bleed);
+  /* 右だけはスクロールバー実寸も足し、エントリとつまみを重ねない（ScrollAreaのscrollbarSizeと同一トークン） */
+  /* Only the right adds the measured scrollbar width so entries never sit under the thumb (same token as ScrollArea's scrollbarSize) */
+  padding-right: calc(var(--recipe-entry-bleed) + var(--recipe-list-scrollbar-reserve));
 }

@@ -148,10 +148,22 @@ test("研究パネルは持ち物の右隣から画面端までを占有し持�
   expect(Math.abs(treeBox!.y - stageBox!.y)).toBeLessThan(1.5);
   expect(Math.abs(treeBox!.x + treeBox!.width - (stageBox!.x + stageBox!.width))).toBeLessThan(1.5);
   expect(Math.abs(treeBox!.y + treeBox!.height - (stageBox!.y + stageBox!.height))).toBeLessThan(1.5);
-  // 左端は「持ち物幅378px + 列gap35px」のscale後の位置（GamePanelにtestIdが無いため数値で押さえる）
-  // The left edge is the scaled position of "inventory width 378px + column gap 35px" (GamePanel exposes no testId, so assert numerically)
+  // 左端は「持ち物幅 + 列gap」のscale後の位置。GamePanelにtestIdが無いため、寸法の正であるtokens.cssの値を
+  // stageから実測して突き合わせる（数値をテストへ焼くと持ち物スロット倍率の変更のたびに嘘になる）
+  // The left edge is the scaled position of "inventory width + column gap". GamePanel exposes no testId, so read
+  // the authoritative token values off the stage instead of baking numbers that rot whenever the slot scale moves
   const scale = await stageScale(page);
-  expect(treeBox!.x - stageBox!.x).toBeCloseTo((378 + 35) * scale, 0);
+  const { inventoryPanelWidth, stageColumnGap } = await page.getByTestId("app-stage").evaluate((stage) => {
+    const probe = document.createElement("div");
+    probe.style.cssText = "position:absolute;visibility:hidden;width:var(--inventory-panel-width)";
+    stage.appendChild(probe);
+    // offsetWidthはレイアウトpx。getBoundingClientRectはstageのtransform:scaleが乗るため使わない
+    // offsetWidth is layout px; getBoundingClientRect would already carry the stage's transform: scale
+    const inventoryPanelWidth = probe.offsetWidth;
+    probe.remove();
+    return { inventoryPanelWidth, stageColumnGap: parseFloat(getComputedStyle(stage).columnGap) };
+  });
+  expect(treeBox!.x - stageBox!.x).toBeCloseTo((inventoryPanelWidth + stageColumnGap) * scale, 0);
   // 重なり無しを二重に確認
   // Double-check non-overlap
   await expectSeparatedHorizontally(page.getByTestId("main-grid"), tree);
@@ -166,13 +178,16 @@ test("研究画面では持ち物がstage左paddingぶん左へ寄る", async ({
   await setUiState(page, "PlayerInventory");
   await page.goto("/");
   const onInventoryScreen = await page.getByTestId("main-grid").boundingBox();
+  // 研究画面では.stageの左paddingが0へ落ちるため、比較対象のpadding値は切替前に読む
+  // The research screen zeroes the stage's left padding, so read the value to compare against before switching
+  const stagePaddingLeft = await page.getByTestId("app-stage").evaluate((stage) => parseFloat(getComputedStyle(stage).paddingLeft));
   await setUiState(page, "ResearchTree");
   await expect(page.getByTestId("research-tree")).toBeVisible();
   const onResearchScreen = await page.getByTestId("main-grid").boundingBox();
-  // stage拡縮がかかるため、左padding59.7pxのscale後の値と突き合わせる
-  // The stage is scaled, so compare against the scaled value of the 59.7px left padding
+  // stage拡縮がかかるため、左paddingのscale後の値と突き合わせる
+  // The stage is scaled, so compare against the scaled left padding
   const scale = await stageScale(page);
-  expect(onInventoryScreen!.x - onResearchScreen!.x).toBeCloseTo(59.7 * scale, 0);
+  expect(onInventoryScreen!.x - onResearchScreen!.x).toBeCloseTo(stagePaddingLeft * scale, 0);
   // 縦位置は動かさない
   // The vertical position does not move
   expect(Math.abs(onResearchScreen!.y - onInventoryScreen!.y)).toBeLessThan(1.5);
