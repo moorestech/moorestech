@@ -18,6 +18,36 @@ export function useTopic<K extends keyof TopicPayloads>(topic: K): TopicPayloads
   return useTopicStore((s) => (s.topics[topic] ?? null) as TopicPayloads[K] | null);
 }
 
+/**
+ * topicをイベント列として購読するフック。
+ * 最新値1枠は読む前に次が来ると失うので書き込み毎に呼ぶ。
+ * Subscribes to a topic as an event stream rather than a latest value.
+ * The single-slot store loses a value when the next arrives before React reads it, so the handler runs synchronously on every write.
+ */
+export function useTopicEvents<K extends keyof TopicPayloads>(topic: K, handler: (payload: TopicPayloads[K]) => void): void {
+  // handlerはrefで最新を参照する
+  // A ref keeps the handler current without re-subscribing
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
+
+  useEffect(() => {
+    subscriptions.acquire(topic);
+    // 配信条件は値の参照同一性。revisionの高水位を持つと再接続で番号が巻き戻ったとき恒久停止する
+    // Delivery is keyed on the value's reference identity; a revision high-water mark would stall forever once a reconnect rewinds the numbering
+    const unsubscribe = useTopicStore.subscribe((state, previousState) => {
+      const payload = state.topics[topic];
+      // 値の消去（購読解除・再接続の掃除）は配信ではないのでハンドラへ渡さない
+      // Clearing the value (release or reconnect cleanup) is not a delivery, so the handler is not called
+      if (payload === undefined || payload === previousState.topics[topic]) return;
+      handlerRef.current(payload as TopicPayloads[K]);
+    });
+    return () => {
+      unsubscribe();
+      subscriptions.release(topic);
+    };
+  }, [topic]);
+}
+
 // topic の一部だけを購読して不要な再レンダーを避けるセレクタ版
 // Selector variant that subscribes to a derived slice to avoid needless re-renders
 // selector は安定値/プリミティブを返すこと（毎回新しいオブジェクトを返すと無限再レンダーになる）

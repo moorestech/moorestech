@@ -20,7 +20,45 @@ namespace Client.WebUiHost.Game.Topics
         public List<string> PrevGuids;
         public List<ResearchConsumeItemDto> ConsumeItems;
         public List<ResearchRewardItemDto> RewardItems;
-        public List<int> UnlockItemIds;
+        public List<int> UnlockItemRecipeViewItemIds;
+        public List<ResearchUnlockBlockDto> UnlockBlocks;
+        public List<ResearchUnlockMachineRecipeDto> UnlockMachineRecipes;
+        public List<string> UnlockConnectToolGuids;
+        public List<string> UnlockTrainCarGuids;
+    }
+
+    /// <summary>
+    /// unlockBlock表示DTO
+    /// - Icon: BlockId
+    /// - 名前: Guid導出キー
+    /// Display DTO for unlockBlock
+    /// - icon: BlockId
+    /// - name: Guid-derived key
+    /// </summary>
+    public class ResearchUnlockBlockDto
+    {
+        public int BlockId;
+        public string BlockGuid;
+    }
+
+    /// <summary>
+    /// unlockMachineRecipe表示DTO
+    /// - 1レシピの出力アイテム/流体を保持
+    /// Display DTO for unlockMachineRecipe
+    /// - holds one recipe's item and fluid outputs
+    /// </summary>
+    public class ResearchUnlockMachineRecipeDto
+    {
+        public string RecipeGuid;
+        public List<int> OutputItemIds;
+        public List<ResearchUnlockFluidDto> OutputFluids;
+    }
+
+    public class ResearchUnlockFluidDto
+    {
+        public int FluidId;
+        public string FluidGuid;
+        public double Amount;
     }
 
     public class ResearchRewardItemDto

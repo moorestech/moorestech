@@ -162,9 +162,18 @@
   background: linear-gradient(90deg, transparent 0%, rgb(128 132 159 / 30%) 5%, rgb(128 132 159 / 42%) 11%, rgb(128 132 159 / 42%) 89%, rgb(128 132 159 / 26%) 95%, transparent 100%);
 }
 
+/* 全パネル共通でbasisを0%へ固定し、bodyの高さを子孫の内容サイズへ一切依存させない
+   (viewport=TreeView.module.cssと同じ方針)。autoだと内容サイズが最初のレイアウトパスだけ上へ漏れ、
+   height固定パネル(研究/ビルドメニュー)ではheader/decoLineが一時的に縮んで初期中央寄せの測定と
+   レースし数px級のズレを生む。内容量で高さが決まるパネルでもbasis 0%で従来と同じ結果になる */
+/* Every panel pins basis to 0%, so .body's height never depends on descendant content size
+   (the same policy as .viewport in TreeView.module.css). With auto, content size leaks upward during
+   only the first layout pass; in height-pinned panels (research/build menu) that transiently shrinks
+   header/decoLine and races the initial-centering measurement into a several-px error.
+   Content-sized panels reach the same result under basis 0% as they did before */
 .body {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   flex-direction: column;
   min-height: 0;
 }

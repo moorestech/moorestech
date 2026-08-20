@@ -13,7 +13,11 @@ const researchNode = {
   prevGuids: [],
   consumeItems: [],
   rewardItems: [],
-  unlockItemIds: [],
+  unlockItemRecipeViewItemIds: [],
+  unlockBlocks: [],
+  unlockMachineRecipes: [],
+  unlockConnectToolGuids: [],
+  unlockTrainCarGuids: [],
 };
 
 const challengeNode = {

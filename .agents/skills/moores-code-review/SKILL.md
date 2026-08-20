@@ -7,7 +7,7 @@ description: |
   ④Codex外部監査 ⑤Fable全般レビュー ⑥分割深掘り調査（大規模PR時のみ・10-15ファイル/チャンクで全文精読）。
   指摘を実コード照合・重複排除のうえ統合し、機械的修正を自動適用、
   設計判断だけ末尾でAskUserQuestion。設計レンズと汎用レビュー機構を1本に束ね、これ単体でレビューが完結する。
-  既定ではStep 2〜6.5をsonnetオーケストレータsubagentに委譲して実行する（委譲実行・2026-08-18。本体は対象確定とAskUserQuestionのみ）。
+  既定ではStep 3.5〜6.5をWorkflowツール（scripts/review_workflow.js）で決定論的に実行する（2026-08-20。本体は対象確定・機械チェック・Codex起動・AskUserQuestionのみ。sonnet委譲はWorkflow不可時のフォールバック）。
   Use when:
   1. moorestechでPR作成前・マージ前のレビューを行う時（pr-create前に必ず1パス）
   2. subagent-driven-development の最終ブランチレビューを行う時
@@ -18,31 +18,30 @@ description: |
 
 moorestechのコードレビューを **決定論チェック → 6系統の並列レビュー → 実コード照合・重複排除 → 自動適用 → 報告** の順で単体完結させる（外部スキルへの依存なし）。
 
-**この SKILL.md は本体セッション用のディスパッチャである**（2026-08-18 分割。委譲が既定になったため、実行手順の厚い正本を本体のコンテキストへ毎回注入しないようにした）。本体がやるのは Step 0〜1（対象確定）・委譲・Step 7（報告と AskUserQuestion）だけで、**Step 2〜6.5 の実行手順・6系統の詳細・モデル割り当て・実行系 Gotchas の正本は `references/orchestrator-steps.md`** にある。本体がそれを読むのはインライン実行(後述)の場合のみ。
+**この SKILL.md は本体セッション用のディスパッチャである**（2026-08-18 分割・2026-08-20 Workflow化）。本体がやるのは Step 0〜2（対象確定・機械チェック・Codex起動・Workflow args）・Workflow 起動・Step 7（報告と AskUserQuestion）だけで、**Step 3〜6.5 の実行手順・6系統の詳細・モデル割り当て・実行系 Gotchas の正本は `references/orchestrator-steps.md`**、その実行形が `scripts/review_workflow.js` にある。本体が orchestrator-steps.md を通読するのはインライン実行(後述)の場合のみ。
 
 系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②mooresレンズ11本 ③汎用reviewer 30本 ④Codex外部監査3本 ⑤Fable全般 ⑥分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 2本 + opus integrator。
 
-## 委譲実行（既定・2026-08-18）
+## Workflow実行（既定・2026-08-20）
 
-**既定では Step 2〜6.5 を sonnet オーケストレータ subagent 1 体に委譲する。** 根拠実測（2026-08-18 両Mac transcript調査）: 系統群自体は $54〜139/回だが、派遣・回収の往復を opus/fable 本体で回すと監督だけで $60〜397 かかっていた（mini の実測で本体 $397 に対し実装系統 $3 の回さえある）。sonnet 委譲の初運転では監督 $7.1 で全16系統+integrator を欠員なく回収した。
+**既定では Step 2 を本体が回し、Step 3.5〜6.5（系統の並列発火→統合→自動適用→post-check）を Workflow ツール（`scripts/review_workflow.js`）で実行する。** 2026-08-18〜20 の sonnet オーケストレータ委譲は、系統群 $164〜225/回 に対し **オーケストレータ1体が待機だけで $194〜240/回**（590〜625ターン・毎ターン25万トークン再送・`Concurrent subagent limit` の再起動16〜34回）を燃やしていた（`docs/research/2026-08-20-moores-code-review-diet-assessment.md`）。Workflow は待機が JS の `await` なのでこの項目が消え、「全員に model 明示」「起動失敗の再起動」「欠員の申告」「fable quota 時の opus fallback」「Codex 完了待ち」が散文でなくコードで強制される（「1メッセージ12体」は Agent 直起動時の規律で、Workflow では同時数をランタイムがキューイングする）。同じ `args` での再実行（`resumeFromRunId`）は完了済みの体をキャッシュから返すので、上限死からの再開で全系統をやり直さない。
 
-**インラインで Step 2〜6.5 を自分で回してよいのは次の場合のみ**（報告冒頭に理由を明記。黙って切り替えない）: (a) ユーザーが「インラインで」等を明示、(b) Agent ツールが使えない / subagent 深度上限で系統が起動できない、(c) 自分が委譲オーケストレータとして派遣された側である。インライン時は `references/orchestrator-steps.md` を Read して Step 2〜6.5 を自分で実行する。
+**Workflow を使わず sonnet オーケストレータ委譲（旧既定）やインライン実行に落としてよいのは次の場合のみ**（報告冒頭に理由を明記。黙って切り替えない）: (a) Workflow ツールがこのセッションで使えない、(b) ユーザーが「委譲で」「インラインで」等を明示、(c) 自分が委譲オーケストレータとして派遣された側である。委譲時の派遣プロンプトは末尾「旧既定: sonnet 委譲」を、インライン時は `references/orchestrator-steps.md` を Read して Step 2〜6.5 を自分で実行する。
 
-- 派遣は **`model: "sonnet"` 明示**・1 体だけ。**sonnet になるのはオーケストレータだけ**で、レンズ・reviewer・verifier・integrator のモデルはセレクタ/YAML/orchestrator-steps.md の指定のまま（オーケストレータの都合で落とすことは決してしない）。
-- **本体はオーケストレータ完了まで対象リポジトリを編集しない**（Step 6 で修正が適用されるため衝突する）。
-- 委譲は subagent 深度を 1 消費する。本体直下なら 本体→オーケストレータ→系統 の 3 層で収まる。
-- オーケストレータが返答せず死んだら、$RUNDIR の残骸を引き継いで再派遣する（テンプレに「$RUNDIR 内の完了済み工程はスキップして続きから」と 1 行足す）。最初からやり直さない。
+- **本体は Workflow 完了まで対象リポジトリを編集しない**（Apply フェーズで修正が適用されるため衝突する）。
+- Codex 3本は Workflow の外（本体の Bash `run_in_background`）で先に投げる。スクリプトはシェルを持たないため。
+- Workflow の同時実行数はランタイムが `min(16, CPU-2)` でキューイングする（Mac mini=8）。体数は減らさず所要時間だけ伸びる。CPU 18コア以上のホストへ移すなら 12体/波の分割を JS に足す（同時20体上限の「起動が黙って消える」対策）。
+- **Workflow の可用性は保証されない**（2026-08-20 実測: session limit 到達→課金切替の後、同一セッションで「Workflow is disabled for this session」となり消えた）。不可なら (a) のフォールバックへ落ち、その事実を報告冒頭に書く。
 
-### 委譲の既知リスクと異常時の対応（導入時点 2026-08-18）
+### 回収時の検死（本体・毎回必須）
 
-導入時点で委譲構成の実走実績は all-code-review 側の 1 回のみで、**moores 版の委譲は未実走**。同型構成で実証済みなのは subagent からの Agent 入れ子起動・Bash バックグラウンド・ファイルハンドオフ・integrator 委譲まで。moores 版に固有で未検証なのは: (1) codex 3 本のバックグラウンド並列、(2) subagent からの `uloop compile`、(3) **大規模 PR 時の investigator 込み 30 体級を sonnet 監督が wave 規律（1 メッセージ 12 体・「起動が黙って消える」対応・失敗体の再起動）どおり捌けるか**。
+Workflow の返り値（`systems.planned/expected/responded/noResponse/missing/fallbacks`・`codexWait`・`integrated`・`apply`・`postCheckSelection`・`postChecks[].report`・`postfix.warnings/infos`）を受けたら、報告する前に次を突き合わせる —
+1. `systems.planned` が **`checks.json` 由来の独立した期待値** `systems.expected.total`（= summary.lenses + summary.reviewers + verifiers_to_launch + Fable 1 + チャンク数×3）と一致し、`systems.missing`（integrator が `agents/*.md` の実在で確定した欠員）が空か。不一致・欠員なら報告に転記。`agents/` は残っているので、欠員分だけ Agent で再起動→integrator だけ再派遣してよい。`noResponse` は自己申告ベースの参考値
+2. `integrated.md` の「系統別回収状況」に欠員・未回収がないか。**Codex の欠員申告だけは転記前に裏を取る** — `codex_recover.py` の終了コード（3/4/5）が添えられていなければ自分で1コマンド走らせて確認し、exit 0 なら欠員ではないので integrator を再実行させる
+3. `$RUNDIR` に規定の成果物（checks.json / workflow-args.json / contract.md / codex `.final.md` ×3 / `agents/` / integrated.md / final.diff / checks-final.json / design.md）が揃っているか。**report-only では final.diff / checks-final.json / design.md は生成されない**（apply が無い）ので欠落扱いにしない
+4. `postfix.warnings/infos`（post-check の Warning/Info）と `postCheckSelection.note`（スキップしたガードと理由）を Step 7 の報告へ転記する（integrator より後に走るため integrated.md には載らない）
 
-**回収時の検死（本体・毎回必須）**: オーケストレータの返答を受けたら、報告する前に次を突き合わせる —
-1. 返答の系統数が期待値と一致するか（期待値 = checks.json の `lenses` + `reviewers` + `verifiers_to_launch` + Fable 1 + Codex 3 + 決定論。分割深掘り発火時は + チャンク数×3）
-2. `integrated.md` の「系統別回収状況」に欠員・未回収がないか
-3. `$RUNDIR` に規定の成果物（checks.json / codex `.final.md` ×3（結論の正本。`.out.md` は副産物） / `agents/` / integrated.md / final.diff / checks-final.json / design.md）が揃っているか
-
-**何か変なこと（規定数のエージェントが発火していない・モデル割り当てが指定と違う・成果物の欠落・integrated.md 不在・返答が契約と違う等）があれば、修正適用や再派遣を重ねる前に一旦止めて調査する。** 手順: セッション transcript（`~/.claude/projects/<プロジェクト>/<セッションID>/subagents/*.meta.json` で起動数とモデルを実測、`*.jsonl` で該当体の挙動を確認）→ 原因を特定してから再開の要否を決める。原因がスキル記述の穴なら `references/skill-improvement.md` の手順で恒久対応する。異常のまま結果だけ採用しない（欠員のある統合結果は「全系統レビュー済み」を偽装する）。
+**何か変なこと（体数不一致・モデル割り当てが指定と違う・成果物の欠落・integrated.md 不在等）があれば、修正適用や再派遣を重ねる前に一旦止めて調査する。** 手順: セッション transcript（`~/.claude/projects/<プロジェクト>/<セッションID>/subagents/*.meta.json` で起動数とモデルを実測）→ 原因特定→再開の要否。原因がスキル記述の穴なら `references/skill-improvement.md` の手順で恒久対応する。異常のまま結果だけ採用しない（欠員のある統合結果は「全系統レビュー済み」を偽装する）。
 
 ## Step 0: 実行ディレクトリ `$RUNDIR` を作る
 
@@ -79,9 +78,31 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
    - **4カテゴリは必ず `##` 見出しで書く**（太字箇条書き形式は出所ラベル検査の対象外になり沈黙故障する。見出しゼロはfail-closedでconfirmedになる）。
    - **「許容するトレードオフ」「非目標」の各行に出所ラベル必須**: `[ユーザー裁定: "発言引用" または AskUserQuestion結果 YYYY-MM-DD]` / `[ADR: <spec名>#<台帳項目>]` / `[agent前提]`。ラベル無し・引用不能な行は自動的に `[agent前提]` 扱いで免責力を持たない（`references/integration-rules.md` §6）。ユーザー裁定の出所はspec/planの判断台帳（ADRセクション）から引く（台帳がSSOT）。
 
-## Step 2〜6.5: オーケストレータへ委譲
+## Step 2: 機械チェック＋Codex起動＋Workflow args（本体）
 
-派遣プロンプト（テンプレをそのまま埋める。Agent ツール・`model: "sonnet"` 明示・1 体）:
+1. **機械チェック統一窓口**（orchestrator-steps.md Step 2 と同じ1コマンド。`summary.errors` が空でないまま先へ進まない）:
+
+       python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --repo-root "$(pwd)" --context "<USER_PROMPT_PATH>" > <$RUNDIRの実値>/checks.json
+       python3 .claude/skills/moores-code-review/scripts/split_chunks.py "<PATCH_PATH>" > <$RUNDIRの実値>/chunks.tsv
+
+2. **Codex 3本をバックグラウンド起動** — orchestrator-steps.md の **Step 3 節だけ**を Read して実行する（`codex_preflight.py` で実体パスを解決 → 3テンプレを埋めて `codex exec --sandbox read-only --skip-git-repo-check -o <$RUNDIR>/codex-<名前>.final.md - < <$RUNDIR>/codex-<名前>.md > <$RUNDIR>/codex-<名前>.out.md` を `run_in_background`。preflight が exit 10/11 なら `status` 文字列つきで縮退を報告）。完了待ちは Workflow 内の待機係が行う。
+3. **Workflow args を組み立てる**（選択・命名・contract.md 生成はここで完結。`--base-ref` は Step 1 の base コミット）:
+
+       python3 .claude/skills/moores-code-review/scripts/build_workflow_args.py --run-dir <$RUNDIRの実値> --patch "<PATCH_PATH>" --context "<USER_PROMPT_PATH>" --repo-root "$(pwd)" --base-ref <base SHA>
+
+   report-only（pr-independent-review）では `--report-only --detchecks <detchecks.json>` を足す。
+
+## Step 3.5〜6.5: Workflow で実行
+
+`workflow-args.json` の中身（JSONオブジェクト）を `args` に渡して起動する（`scriptPath` は絶対パス）:
+
+    Workflow({ scriptPath: "<リポジトリ絶対パス>/.agents/skills/moores-code-review/scripts/review_workflow.js", args: <workflow-args.json の中身> })
+
+完了通知を受けたら **`integrated.md` を Read する（この1ファイルだけ）**。`agents/`・Codex `.out.md` は読まない（疑義のある個別件の再確認のみ例外）。返り値の `missing`・`fallbacks`・`apply.compile`・`postCheckSelection.note`・`postfix.warnings/infos` は Step 7 の報告へ転記する。Workflow が例外で止まった場合（integrator/apply の応答なし）は `$RUNDIR` の残骸を引き継ぎ、同じ `scriptPath`＋`args` に `resumeFromRunId` を付けて再起動する（完了済みの体はキャッシュ）。最初からやり直さない。
+
+### 旧既定: sonnet 委譲（Workflow 不可時のフォールバック・2026-08-18）
+
+派遣プロンプト（テンプレをそのまま埋める。Agent ツール・`model: "sonnet"` 明示・1体。派遣は subagent 深度を1消費する）:
 
 ```
 moores-code-review のオーケストレータとして動け。
@@ -97,10 +118,11 @@ Repo root : <リポジトリ絶対パス>
 - Step 6 の自動適用・uloop compile・Step 6.5 の再チェックと post-checks まで実施する。設計判断は適用せず保留。
 - 設計判断を <$RUNDIRの実値>/design.md に書く(1 件ごとに 症状→原因→推奨と選択肢。コードを開かずに選べる形)。0 件なら「なし」とだけ書く。
 - $RUNDIR 配下のファイルは削除しない。
+- 待機は Monitor の無出力 until ループ1回で行い、echo/sleep の連打でターンを回さない。
 - 返答は 10 行以内: 系統数(起動・回収・欠員) / Critical・Warning・Info・suppressed 件数 / 適用した修正数 / コンパイル・テスト結果 / integrated.md と design.md の 2 パス。生の指摘本文は返答に書かない。
 ```
 
-回収: 返答を受けたら **`integrated.md` を Read する（この 1 ファイルだけ）**。`agents/`・Codex `.out.md` は読まない（疑義のある個別件の再確認のみ例外）。返答の欠員・縮退は Step 7 の報告へ転記する。ただし **Codex の欠員申告だけは転記前に裏を取る** — `codex_recover.py` の終了コード（3 or 4）が添えられていなければ自分で 1 コマンド走らせて確認し、exit 0 なら欠員ではないので integrator を再実行させる。
+オーケストレータが返答せず死んだら、$RUNDIR の残骸を引き継いで再派遣する（テンプレに「$RUNDIR 内の完了済み工程はスキップして続きから」と1行足す）。
 
 ## Step 7: 報告＋AskUserQuestion ⑥
 

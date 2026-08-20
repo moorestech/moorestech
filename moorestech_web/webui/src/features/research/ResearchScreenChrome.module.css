@@ -16,7 +16,7 @@
   text-rendering: optimizeLegibility;
   text-shadow: var(--key-hint-text-shadow);
   pointer-events: none;
-  z-index: 10;
+  z-index: var(--z-stage-overlay-panel-chrome);
 }
 .keyHints kbd {
   font: inherit;
