@@ -571,7 +571,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `challengeTutorialTextKey(guid)`（`@/shared/i18n`）、`useI18n().t`
 - Produces: DOM `div[data-testid="tutorial-highlight-label"]`（枠線 div の兄弟、`.highlightLabel`）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `TutorialOverlay.test.ts` の `vi.mock("@/bridge"...)` の下に i18n モックを追加し、テストを足す:
 
@@ -625,12 +625,12 @@ describe("TutorialOverlay outline labels", () => {
 
 （`ready()` の rect は `top:0,height:10`、`outline()` の `paddingPx:0` なので `top` 期待値は `0 + 10 + 0 = 10`。）
 
-- [ ] **Step 2: 実行して失敗を確認する**
+- [x] **Step 2: 実行して失敗を確認する**
 
 Run: `npx vitest run src/features/tutorial/TutorialOverlay.test.ts`
 Expected: FAIL（ラベル要素が無い）。
 
-- [ ] **Step 3: 描画を実装する**
+- [x] **Step 3: 描画を実装する**
 
 `TutorialOverlay.tsx`:
 - import に `import { challengeTutorialTextKey, useI18n } from "@/shared/i18n";` を追加。
@@ -706,12 +706,12 @@ function renderOutline(key: string, element: TutorialOutlineElement, value: Reso
 - **枠線ハイライトの文言ラベル**: `tutorial.presentation` の outline に `labelTutorialGuid` があるとき、`TutorialOverlay` が枠線の下辺外側・左揃えに `t(challengeTutorial.<guid>.text)` のラベルを描く（ユーザー裁定 2026-08-20）。面は `--world-pin-face`、文字は `--text-high-contrast`、間隔・文字サイズは `--tutorial-highlight-label-*` 固定長トークン。枠線が非表示ならラベルも出さない。吹き出し矢印・光彩・アニメーションは付けない。
 ```
 
-- [ ] **Step 4: テスト・lint・型**
+- [x] **Step 4: テスト・lint・型**
 
 Run: `npx vitest run src/features/tutorial && npm run lint && npx tsc -b`
 Expected: 全PASS / エラー0。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/features/tutorial moorestech_web/webui/src/app/tokens.css .agents/skills/webui-design/SKILL.md
