@@ -191,7 +191,9 @@ describe("notification fixture", () => {
   it("itemEarned payloadのcategory/messageId/countをC#側と一致させる", () => {
     const data = loadFixture("notification_item_earned.json");
     expect(validateTopicPayload(Topics.notification, data)).toBe(true);
-    const notification = data as NotificationData;
+    // countを持つのは獲得variantだけなので、その型で受けて読む
+    // Only the earned variant carries a count, so the fixture is read through that variant
+    const notification = data as Extract<NotificationData, { category: "itemEarned" }>;
     expect(notification.category).toBe("itemEarned");
     expect(notification.messageId).toBe("itemEarned.mined");
     expect(notification.itemId).toBe(5);

@@ -29,6 +29,26 @@ namespace Client.Tests.WebUi
             AssertMatchesFixture(dto, "notification_item_earned.json");
         }
 
+        [Test]
+        public void MessageNotificationOmitsItemIdAndCount()
+        {
+            // countとitemIdを持つのは獲得通知だけ。他カテゴリはキーごと省略しWeb側の判別unionを保つ
+            // Only earned notifications carry count and itemId; other categories omit the keys entirely to keep the web's union honest
+            var dto = new NotificationDto
+            {
+                Seq = 2,
+                Category = "operationDenied",
+                MessageId = "denied.miningInventoryFull",
+                MessageParams = System.Array.Empty<string>(),
+                ItemId = null,
+                Count = null,
+            };
+
+            var json = JToken.Parse(WebUiJson.Serialize(dto));
+            Assert.IsNull(json["count"]);
+            Assert.IsNull(json["itemId"]);
+        }
+
         private static void AssertMatchesFixture(object dto, string fixtureName)
         {
             var actual = JToken.Parse(WebUiJson.Serialize(dto));

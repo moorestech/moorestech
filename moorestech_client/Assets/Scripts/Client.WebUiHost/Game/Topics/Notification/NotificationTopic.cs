@@ -44,7 +44,7 @@ namespace Client.WebUiHost.Game.Topics
 
             // throwは購読パイプを貫き配信を止める
             // A throw would pierce the subscription pipe and halt all event delivery
-            if (!TryGetWebCategory(message.Category, out var webCategory))
+            if (!NotificationCategoryTable.TryGetWebName(message.Category, out var webCategory))
             {
                 Debug.LogWarning($"[NotificationTopic] dropped notification with unknown category: {message.Category}");
                 return;
@@ -58,34 +58,11 @@ namespace Client.WebUiHost.Game.Topics
                 MessageId = message.MessageId,
                 MessageParams = message.MessageParams,
                 ItemId = message.ItemId == ItemMaster.EmptyItemId ? null : (int?)message.ItemId.AsPrimitive(),
-                Count = message.Count,
+                // countは獲得通知だけが持つ。他カテゴリはキーごと省略しWeb側の判別unionを保つ
+                // Only earned notifications carry a count; other categories omit the key entirely to keep the web's discriminated union honest
+                Count = message.Category == NotificationCategory.ItemEarned ? message.Count : (int?)null,
             };
             _hub.Publish(TopicName, WebUiJson.Serialize(dto));
-
-            #region Internal
-
-            // Web側category名の唯一の対応表
-            // The only mapping to web-side category names
-            bool TryGetWebCategory(NotificationCategory category, out string name)
-            {
-                switch (category)
-                {
-                    case NotificationCategory.Achievement:
-                        name = "achievement";
-                        return true;
-                    case NotificationCategory.OperationDenied:
-                        name = "operationDenied";
-                        return true;
-                    case NotificationCategory.ItemEarned:
-                        name = "itemEarned";
-                        return true;
-                    default:
-                        name = null;
-                        return false;
-                }
-            }
-
-            #endregion
         }
     }
 
@@ -96,6 +73,6 @@ namespace Client.WebUiHost.Game.Topics
         public string MessageId;
         public string[] MessageParams;
         public int? ItemId;
-        public int Count;
+        public int? Count;
     }
 }

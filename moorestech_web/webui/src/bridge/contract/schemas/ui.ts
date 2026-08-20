@@ -85,8 +85,7 @@ const MessageNotificationSchema = z.object({
   // シリアライザ揺れでnullが来ても弾かないよう外部境界として広めに受ける
   // Widened as an external boundary so serializer drift sending null is not rejected
   itemId: z.number().nullable().optional(),
-  count: z.number().optional(),
-});
+}).strict();
 
 // アイコンと個数の欠損は境界で弾く
 // Missing icon or amount is rejected at the boundary
