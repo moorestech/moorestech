@@ -223,6 +223,22 @@ describe("TutorialOverlay outline clipping", () => {
     expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(0);
   });
 
+  // clip.rightがboxのすぐ外（グロー幅未満）にあるとクランプ済みinset値では非交差を見逃す
+  // clip.right just outside the box (within the glow width) must not slip past the clamped-inset check
+  it("グロー幅未満だけ外れた枠は要素ごと描かない", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "research.node-a")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = create(createElement(TutorialOverlay)); });
+
+    // boxは100..110。clip.rightが99なので実際は完全にclipの外だが、-4pxクランプ後の和では素通りしうる
+    // box spans 100..110; clip.right=99 puts it fully outside, but the -4px-clamped sum could let it through
+    pushAnchor("research.node-a", ready(100, { left: -100, top: -100, right: 99, bottom: 820 }));
+
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(0);
+  });
+
   // clipだけが変わった場合（コンテナのリサイズ等）に再描画されないとマスクが古いまま残る
   // A clip-only change (container resize etc.) must still re-render, or the mask goes stale
   it("rectが同値でもclipが変われば再描画する", () => {

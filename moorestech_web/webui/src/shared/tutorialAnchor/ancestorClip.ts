@@ -4,12 +4,12 @@
 // CSSの規則: 祖先Aのoverflowは、Aが子孫Dの包含ブロック連鎖の内側にある場合にのみDをクリップする
 // CSS rule: ancestor A's overflow clips descendant D only while A sits inside D's containing-block chain
 //
-// 脱出則(escape)は現状デッドロジックである。実アンカーは全て .stage(position:relative) 配下にあり
-// The escape rules are dead logic today: every real anchor lives under .stage (position: relative)
-// absoluteの包含ブロックは常に .stage になるため脱出せず、position:fixed なアンカーも存在しない
-// so absolutes never escape, and no anchor is position: fixed
-// スクロールコンテナ内へ position:fixed のモーダルを置いた時に初めて効き、誤るとハイライトが丸ごと消える
-// They only matter once a fixed modal lands inside a scroller, where a mistake hides the highlight entirely
+// position:fixed なアンカーは実在する(crosshair・trainHud)が、いずれも.stage(transform)の直下で即捕捉される
+// Fixed-position anchors do exist (crosshair, trainHud) but are captured immediately by .stage's transform
+// そのため脱出則は毎フレーム評価されるがマスク結果は変わらない。スクロールコンテナ内へ
+// So the escape branch runs every frame without changing the mask outcome. Only once a fixed modal
+// position:fixed のモーダルを置いた場合に結果が変わり、誤るとハイライトが丸ごと消える
+// lands inside a scroller does the result change, and a mistake there hides the highlight entirely
 // 変更する場合は docs/adr/0023-tutorial-highlight-ancestor-clip-mask.md の Consequences を読むこと
 // Read the Consequences section of ADR 0023 before changing them
 
@@ -24,8 +24,8 @@ export function ancestorClipRect(element: HTMLElement): ClipRect {
     const containsFixed = createsFixedContainingBlock(style);
     const containsAbsolute = containsFixed || style.position !== "static";
 
-    // 現在効いている脱出力をこの祖先が捕まえるか
-    // Whether this ancestor captures the escape currently in effect
+    // この祖先が脱出力を捕まえるか
+    // Whether this ancestor captures the escape
     let clipsHere = true;
     if (escape === "fixed") {
       clipsHere = containsFixed;
@@ -34,31 +34,41 @@ export function ancestorClipRect(element: HTMLElement): ClipRect {
       clipsHere = containsAbsolute;
       if (containsAbsolute) escape = "static";
     }
-    if (clipsHere && clipsContent(style)) clip = intersect(clip, paddingBox(node, style));
+    if (clipsHere) {
+      if (clipsContent(style)) clip = intersect(clip, paddingBox(node, style));
 
-    // この祖先自身のpositionが、これより上での脱出力になる
-    // The ancestor's own position becomes the escape in effect above it
-    if (style.position === "fixed") escape = "fixed";
-    else if (style.position === "absolute") escape = "absolute";
+      // 捕捉された祖先自身のpositionが、これより上での脱出力になる
+      // The captured ancestor's own position becomes the escape in effect above it
+      if (style.position === "fixed") escape = "fixed";
+      else if (style.position === "absolute") escape = "absolute";
+    }
     node = node.parentElement;
   }
   return clip;
 }
 
-// ボックスをclipで切るclip-path値。完全に切り取られる場合はnullで、呼び出し側は描画しない
-// The clip-path value cutting box by clip; null when nothing survives so the caller skips rendering
+// clip適用後のinset値。nullは非描画
+// The inset value after applying clip; null means the caller skips rendering
 //
 // clip-pathの参照ボックスはborder boxなので inset(0px) でも box-shadow の外側グローが切り落とされる
 // clip-path resolves against the border box, so even inset(0px) shaves off the box-shadow's outer glow
-// クリップの要らない辺は -outsetPx にして、装飾ごと残す
-// Sides that need no clipping get -outsetPx so the decoration survives intact
+// 非クリップ辺は-outsetPxで装飾温存
+// Non-clipped sides use -outsetPx to preserve the decoration
 export function clipPathInset(box: ClipRect, clip: ClipRect, outsetPx: number): string | null {
+  if (isDisjoint(box, clip)) return null;
   const top = Math.max(-outsetPx, clip.top - box.top);
   const right = Math.max(-outsetPx, box.right - clip.right);
   const bottom = Math.max(-outsetPx, box.bottom - clip.bottom);
   const left = Math.max(-outsetPx, clip.left - box.left);
   if (top + bottom >= box.bottom - box.top || left + right >= box.right - box.left) return null;
   return `inset(${top}px ${right}px ${bottom}px ${left}px)`;
+}
+
+// クランプ済みinset値での空判定はグロー分の帯を見逃すため、素の矩形で先に非交差を判定する
+// The clamped inset values can miss a fully-clipped box, so check raw rect disjointness first
+function isDisjoint(box: ClipRect, clip: ClipRect): boolean {
+  return clip.right <= box.left || clip.left >= box.right ||
+    clip.bottom <= box.top || clip.top >= box.bottom;
 }
 
 function createsFixedContainingBlock(style: CSSStyleDeclaration) {

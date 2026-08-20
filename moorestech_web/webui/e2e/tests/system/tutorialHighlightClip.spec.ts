@@ -2,11 +2,10 @@ import { expect, test, type Page } from "@playwright/test";
 import { resetResearch, setTopicScenario, setUiState } from "../../support/mockControl";
 import { settleBoundingBox } from "../../support/panSettle";
 import { researchableNodeGuid } from "../../mock-host/researchFixtures";
+import { TUTORIAL_RESEARCH_NODE_PADDING_PX } from "../../mock-host/topics/topicControls";
+import { PAN_RELEASE_STALL_MS } from "../../../src/shared/treeView/viewport/viewport";
 
 const RESEARCH_NODE = `research-node-${researchableNodeGuid}`;
-// mock-host の tutorialResearchNode シナリオの paddingPx と同じ値
-// Same value as paddingPx in the mock host's tutorialResearchNode scenario
-const PADDING_PX = 8;
 // TutorialOverlay の HIGHLIGHT_GLOW_PX と同じ値。切れていない辺は枠がここまで外へ出る
 // Same value as HIGHLIGHT_GLOW_PX in TutorialOverlay; intact sides extend this far outward
 const GLOW_PX = 4;
@@ -41,15 +40,15 @@ async function anchorRects(page: Page, testId: string) {
   }, testId);
 }
 
-// ハイライトの実可視領域を boundingBox と computed clip-path から復元する
-// Reconstruct the highlight's actually visible region from its bounding box and computed clip-path
+// boundingBoxとclip-pathから可視矩形を復元
+// Reconstruct the visible rect from boundingBox and clip-path
 async function highlightVisibleRect(page: Page) {
   return page.evaluate(() => {
     const element = document.querySelector('[data-testid="tutorial-overlay"] [data-kind="outline"]');
     if (!element) return null;
     const box = element.getBoundingClientRect();
-    // 計算値はCSS短縮形へ畳まれる（inset(-4px) / inset(10px 6px) 等）ので1〜4値を展開する
-    // The computed value collapses to CSS shorthand (inset(-4px), inset(10px 6px)...), so expand 1..4 values
+    // CSS短縮inset値を1〜4値に展開
+    // Expand the CSS shorthand inset value to 1..4 numbers
     const matched = /^inset\(([^)]*)\)$/.exec(getComputedStyle(element).clipPath);
     if (!matched) return { left: box.left, top: box.top, right: box.right, bottom: box.bottom };
     const parts = matched[1].trim().split(/\s+/).map((value) => Number(value.replace("px", "")));
@@ -61,19 +60,19 @@ async function highlightVisibleRect(page: Page) {
   });
 }
 
-// クリップされた辺ではハイライトの可視端がアンカーの可視端に一致し、切れていない辺ではpadding+glow分だけ外側になる
-// On clipped sides the highlight's visible edge matches the anchor's; on intact sides it sits padding+glow outside
-function expectMaskedLikeAnchor(highlight: Rect, anchor: { full: Rect; visible: Rect }) {
+// 期待端=padding+glow分広げclipでクランプ
+// Expected edge = anchor expanded by padding+glow, clamped to clip
+function expectMaskedLikeAnchor(highlight: Rect, anchor: { full: Rect }, clip: Rect) {
   const sides = [
-    { key: "left" as const, sign: -1 }, { key: "top" as const, sign: -1 },
-    { key: "right" as const, sign: 1 }, { key: "bottom" as const, sign: 1 },
+    { key: "left" as const, sign: -1, clamp: Math.max },
+    { key: "top" as const, sign: -1, clamp: Math.max },
+    { key: "right" as const, sign: 1, clamp: Math.min },
+    { key: "bottom" as const, sign: 1, clamp: Math.min },
   ];
   for (const side of sides) {
-    const clipped = Math.abs(anchor.visible[side.key] - anchor.full[side.key]) > TOLERANCE_PX;
-    const expected = clipped
-      ? anchor.visible[side.key]
-      : anchor.full[side.key] + side.sign * (PADDING_PX + GLOW_PX);
-    expect(Math.abs(highlight[side.key] - expected), `${side.key} (clipped=${clipped})`).toBeLessThanOrEqual(TOLERANCE_PX);
+    const expanded = anchor.full[side.key] + side.sign * (TUTORIAL_RESEARCH_NODE_PADDING_PX + GLOW_PX);
+    const expected = side.clamp(expanded, clip[side.key]);
+    expect(Math.abs(highlight[side.key] - expected), side.key).toBeLessThanOrEqual(TOLERANCE_PX);
   }
 }
 
@@ -84,9 +83,9 @@ async function dragViewport(page: Page, viewportBox: { x: number; y: number; wid
   await page.mouse.move(start.x, start.y);
   await page.mouse.down();
   await page.mouse.move(start.x + dx, start.y + dy, { steps: 10 });
-  // PAN_RELEASE_STALL_MS(80ms)より長く静止させ慣性フリングを起こさず狙った位置で止める
-  // Stall longer than PAN_RELEASE_STALL_MS (80ms) so releasing doesn't trigger inertial fling past the target
-  await page.waitForTimeout(120);
+  // PAN_RELEASE_STALL_MSより長く静止させ慣性フリングを起こさず狙った位置で止める
+  // Stall longer than PAN_RELEASE_STALL_MS so releasing doesn't trigger inertial fling past the target
+  await page.waitForTimeout(PAN_RELEASE_STALL_MS + 40);
   await page.mouse.up();
 }
 
@@ -100,26 +99,33 @@ test("研究ノードのハイライトが祖先のoverflowクリップに合わ
   const highlight = page.locator('[data-testid="tutorial-overlay"] [data-kind="outline"]');
   await expect(highlight).toBeVisible();
 
-  // 1. ノードがビューポート中央にある状態: 枠は全周が描かれる
-  // 1. The node sits centered in the viewport: the frame is drawn on all four sides
+  // クリップ矩形はビューポートのpadding box。.viewportはborder 0なのでboundingBoxをそのまま使える
+  // The clip rect is the viewport's padding box; .viewport has border:0 so boundingBox doubles as it
+  const viewportBox = (await page.getByTestId("research-viewport").boundingBox())!;
+  const clip: Rect = {
+    left: viewportBox.x, top: viewportBox.y,
+    right: viewportBox.x + viewportBox.width, bottom: viewportBox.y + viewportBox.height,
+  };
+
+  // 1. 中央: 全周描画
+  // 1. Centered: drawn on all sides
   const inside = await anchorRects(page, RESEARCH_NODE);
   expect(inside?.visible).not.toBeNull();
-  expectMaskedLikeAnchor((await highlightVisibleRect(page))!, { full: inside!.full, visible: inside!.visible! });
+  expectMaskedLikeAnchor((await highlightVisibleRect(page))!, { full: inside!.full }, clip);
   await page.screenshot({ path: testInfo.outputPath("clip-1-inside.png") });
 
-  // 2. ノードがビューポート端をまたぐまでパンする: 枠がノードと同じ位置で切られる
-  // 2. Pan until the node straddles the viewport edge: the frame is cut where the node is
-  const viewportBox = (await page.getByTestId("research-viewport").boundingBox())!;
+  // 2. 端跨ぎ: 同位置で切れる
+  // 2. Straddling the edge: cut at the same position
   await dragViewport(page, viewportBox, viewportBox.width / 2 - 40, 0);
   await settleBoundingBox(page, node);
   const partial = await anchorRects(page, RESEARCH_NODE);
   expect(partial?.visible).not.toBeNull();
   expect(partial!.visible!.right).toBeLessThan(partial!.full.right - TOLERANCE_PX);
-  expectMaskedLikeAnchor((await highlightVisibleRect(page))!, { full: partial!.full, visible: partial!.visible! });
+  expectMaskedLikeAnchor((await highlightVisibleRect(page))!, { full: partial!.full }, clip);
   await page.screenshot({ path: testInfo.outputPath("clip-2-partial.png") });
 
-  // 3. ノードを完全に押し出す: 枠は要素ごと消える
-  // 3. Push the node fully out: the frame disappears element and all
+  // 3. 押し出し: 枠ごと消える
+  // 3. Pushed out: the frame disappears too
   await dragViewport(page, viewportBox, viewportBox.width, 0);
   await page.waitForFunction(() =>
     document.querySelector('[data-testid="tutorial-overlay"] [data-kind="outline"]') === null);
