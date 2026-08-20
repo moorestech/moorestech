@@ -51,15 +51,6 @@ jobs:
     name: EditMode Test (Client + Server)
     runs-on: ubuntu-latest
     steps:
-      # 使用するGithub Tokenを動的に生成する
-      # 利用は ${{ steps.generate_token.outputs.token }}
-      - name: Generate github token
-        id: generate_token
-        uses: tibdex/github-app-token@v1
-        with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.PRIVATE_KEY }}
-
       # リポジトリとサブモジュールをチェックアウト
       - name: Check out my unity project.
         uses: actions/checkout@v4
@@ -77,6 +68,15 @@ jobs:
         run: |
           commit_hash=$(jq -er '.repositories[] | select(.key == "moorestech_master") | .commitHash' .moorestech-external-revisions.json)
           echo "commit_hash=$commit_hash" >> "$GITHUB_OUTPUT"
+
+      # GitHub Appトークンの寿命は1時間なので、本体チェックアウト完走後に発行して残り寿命を最大化する
+      # The GitHub App token lives one hour, so mint it after the main checkout finishes to maximize its remaining life
+      - name: Generate github token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.PRIVATE_KEY }}
 
       # pin先の本番辞書を既存の相対パス契約どおり本体repoと横並びに配置する
       # Place the pinned production dictionary beside the main repo to preserve the existing relative-path contract

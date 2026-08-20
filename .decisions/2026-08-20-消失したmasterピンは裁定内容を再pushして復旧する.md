@@ -1,0 +1,4 @@
+決定: 消失したピンc35f10abは、裁定どおりのvoronoiCellSize=500をmoorestech_masterのmasterへ直接pushし直し、その新SHA(4e07ed0)へ再ピンする。
+棄却案: 現行origin/master(3e315af)へ暫定ピンし、voronoiCellSize=500は後日やり直す。／moorestech_master側もPRにして、そのブランチ先頭SHAへピンする。
+理由: 前者は記録済み裁定の内容を落としたままCIだけ通す状態になり、後者はマージ前のブランチ寿命にCIが依存する。moorestech_masterはmaster直pushが通常運用のため、内容を復元して確定SHAへピンするのが最短かつ最も壊れにくい。
+リンク: [[2026-08-19-v8modのバイオーム基準サイズは500とする]]
