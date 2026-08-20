@@ -1,14 +1,14 @@
-/* 研究エリア: stageグリッドのviewer〜items列を占有。全画面固定・不透明塗りは廃止 */
-/* Research area occupies the viewer..items grid columns; no fixed fullscreen, no opaque fill */
-/* 常駐HUD用の上部安全帯を空け、下端はホットバー手前のy640で止める */
-/* Preserve the resident HUD's upper safe area and stop at y640, clear of the hotbar */
-/* 下端装飾はパネル下-7pxまで出るため、ホットバー番号タブ(y≈652)との間に約5pxの余白が残る */
-/* The bottom deco extends 7px past the panel, leaving ~5px clearance to the hotbar number tabs (y≈652) */
+/* 研究エリア: 持ち物パネルの右隣から画面端までを占有する（ADR 0014 決定2・裁定2026-08-19） */
+/* Research area spans from the inventory panel's right edge to the screen edges (ADR 0014 decision 2) */
+/* 絶対配置の基準はstageのpadding boxなので、上右下の0はstageのpaddingを跨いで実画面端へ届く */
+/* The containing block is the stage's padding box, so 0 on top/right/bottom reaches the real screen edges across the stage padding */
 .researchArea {
-  grid-column: viewer-start / items-end;
-  grid-row: 1;
-  position: relative;
-  height: var(--menu-content-height);
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: calc(var(--inventory-panel-width) + var(--stage-column-gap));
+  z-index: var(--z-stage-overlay-panel);
   min-width: 0;
 }
 /* TreeViewのviewportはflex:1で高さを取る前提。ChallengePanel同様にflex列で包む */
@@ -37,6 +37,9 @@
   cursor: pointer;
 }
 .node[data-locked] { opacity: 0.45; }
+/* 研究可能（充足）はシアン枠で点灯する。ADR 0014の4状態語彙 */
+/* Ready-to-research lights up with a cyan border; the 4-state vocabulary of ADR 0014 */
+.node[data-ready] { border-color: var(--select-cyan); }
 .node[data-completed] { border-color: var(--text-default); }
 .node[data-selected] { outline: 2px solid var(--text-high-contrast); }
 .nodeName {
@@ -89,6 +92,25 @@
   gap: 4px;
   flex-wrap: wrap;
 }
+/* 消費アイテム1枠。不足数値の赤文字を絶対配置で載せる(CraftRecipeView同型・ADR 0014決定4) */
+/* One consume-item cell; the shortage count sits absolutely over it (mirrors CraftRecipeView, ADR 0014 decision 4) */
+.consumeSlot {
+  position: relative;
+}
+.consumeCount {
+  position: absolute;
+  right: -2px;
+  bottom: -4px;
+  z-index: 2;
+  color: var(--text-high-contrast);
+  font-size: 11px;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 100%);
+  white-space: nowrap;
+}
+.consumeCount[data-lack="true"] {
+  color: var(--text-insufficient);
+}
 /* 主要アクション: 青グラデはこのボタン限定 */
 /* Primary action: the blue gradient is exclusive to this button */
 .researchButton {
@@ -112,4 +134,27 @@
   font-size: 12px;
   color: var(--text-default);
   white-space: pre-line;
+}
+
+/* 種類別セクションの従属ラベルとその他解放物の名前行 */
+/* Muted per-kind section labels and name rows for other unlocks */
+.sectionLabel {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.unlockOtherName {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-default);
+}
+
+/* 解放レシピの液体出力。スロットではなく量ラベルで示す(容量の概念が無いため) */
+/* Fluid output of an unlocked recipe; an amount label rather than a slot (there is no capacity here) */
+.unlockFluidAmount {
+  align-self: center;
+  font-size: 13px;
+  color: var(--text-default);
+  white-space: nowrap;
 }

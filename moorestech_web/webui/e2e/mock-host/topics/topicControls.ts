@@ -55,13 +55,11 @@ const controls = {
     visible: true,
     textKey: L.ui.tooltip.worldTarget,
     textParams: [],
-    fontSize: 18,
   }),
   tooltipHidden: () => control(Topics.tooltip, {
     visible: false,
     textKey: "",
     textParams: [],
-    fontSize: 14,
   }),
   pauseConnected: () => control(Topics.pauseMenu, { disconnected: false }),
   pauseDisconnected: () => control(Topics.pauseMenu, { disconnected: true }),
@@ -98,6 +96,11 @@ const controls = {
     }],
   }),
   tutorialEmpty: () => control(Topics.tutorialPresentation, { revision: 0, sessions: [] }),
+  // DEMO時のinventory topicはdemoInventory(itemId1=木材を含まない)へ差し替わるため、
+  // 研究ツリーfixtureが前提とする所持itemId1×15を復元する（研究可能状態の目視QA用）
+  // The demo-mode inventory topic swaps to demoInventory (no itemId1/wood), so restore the
+  // owned itemId1×15 the research tree fixture assumes (needed for the researchable-state visual QA)
+  researchOwnedItems: () => control(Topics.inventory, clone(fx.inventory)),
 };
 export type TopicScenario = keyof typeof controls;
 

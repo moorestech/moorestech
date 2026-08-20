@@ -51,7 +51,12 @@ namespace Client.Tests.WebUi.Localization
         {
             AssertPublicFields<ResearchNodeDto>(
                 "Guid", "State", "IconItemId", "Position", "PrevGuids",
-                "ConsumeItems", "RewardItems", "UnlockItemIds");
+                "ConsumeItems", "RewardItems", "UnlockItemRecipeViewItemIds",
+                "UnlockBlocks", "UnlockMachineRecipes",
+                "UnlockConnectToolGuids", "UnlockTrainCarGuids");
+            AssertPublicFields<ResearchUnlockBlockDto>("BlockId", "BlockGuid");
+            AssertPublicFields<ResearchUnlockMachineRecipeDto>("RecipeGuid", "OutputItemIds", "OutputFluids");
+            AssertPublicFields<ResearchUnlockFluidDto>("FluidId", "FluidGuid", "Amount");
             AssertPublicFields<ChallengeCategoryDto>("Guid", "IconItemId", "Nodes");
             AssertPublicFields<ChallengeNodeDto>(
                 "Guid", "IconItemId", "State", "Position", "Scale", "PrevGuids");

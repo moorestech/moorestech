@@ -132,6 +132,14 @@ ui.research.missingItemsAndPrerequisites,Not enough research items.\nPrerequisit
 ui.research.inventoryHint,{shortcut}: Inventory,{shortcut}: Inventory,{shortcut}: インベントリ
 ui.research.closeHint,{shortcut}: Close,{shortcut}: Close,{shortcut}: 閉じる
 ui.research.title,Research,Research,研究
+ui.research.consumeItemsLabel,Required items,Required items,必要アイテム
+ui.research.consumeItemTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount}
+ui.research.unlockBlocksLabel,Unlocks: Blocks,Unlocks: Blocks,解放: ブロック
+ui.research.unlockMachineRecipesLabel,Unlocks: Machine recipes,Unlocks: Machine recipes,解放: 機械レシピ
+ui.research.unlockItemsLabel,Unlocks: Items,Unlocks: Items,解放: アイテム
+ui.research.rewardItemsLabel,Reward items,Reward items,報酬アイテム
+ui.research.unlockOthersLabel,Unlocks: Others,Unlocks: Others,解放: その他
+ui.research.unlockFluidSummary,{fluidName} {amount},{fluidName} {amount},{fluidName} {amount}
 ui.skit.auto,Auto,Auto,自動
 ui.skit.skip,Skip,Skip,スキップ
 ui.skit.hideUi,Hide UI,Hide UI,UIを非表示

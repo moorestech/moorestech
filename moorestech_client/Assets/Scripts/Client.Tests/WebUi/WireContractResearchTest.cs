@@ -32,7 +32,11 @@ namespace Client.Tests.WebUi
                         PrevGuids = new List<string>(),
                         ConsumeItems = new List<ResearchConsumeItemDto> { new() { ItemId = 1, Count = 5 } },
                         RewardItems = new List<ResearchRewardItemDto> { new() { ItemId = 2, Count = 4 } },
-                        UnlockItemIds = new List<int>(),
+                        UnlockItemRecipeViewItemIds = new List<int>(),
+                        UnlockBlocks = new List<ResearchUnlockBlockDto>(),
+                        UnlockMachineRecipes = new List<ResearchUnlockMachineRecipeDto>(),
+                        UnlockConnectToolGuids = new List<string>(),
+                        UnlockTrainCarGuids = new List<string>(),
                     },
                     new()
                     {
@@ -43,7 +47,22 @@ namespace Client.Tests.WebUi
                         PrevGuids = new List<string> { "11111111-1111-4111-8111-111111111111" },
                         ConsumeItems = new List<ResearchConsumeItemDto>(),
                         RewardItems = new List<ResearchRewardItemDto>(),
-                        UnlockItemIds = new List<int> { 3 },
+                        UnlockItemRecipeViewItemIds = new List<int> { 3 },
+                        UnlockBlocks = new List<ResearchUnlockBlockDto> { new() { BlockId = 7, BlockGuid = "44444444-4444-4444-8444-444444444444" } },
+                        UnlockMachineRecipes = new List<ResearchUnlockMachineRecipeDto>
+                        {
+                            new()
+                            {
+                                RecipeGuid = "88888888-8888-4888-8888-888888888888",
+                                OutputItemIds = new List<int> { 9 },
+                                OutputFluids = new List<ResearchUnlockFluidDto>
+                                {
+                                    new() { FluidId = 1, FluidGuid = "99999999-9999-4999-8999-999999999999", Amount = 100 },
+                                },
+                            },
+                        },
+                        UnlockConnectToolGuids = new List<string> { "55555555-5555-4555-8555-555555555555" },
+                        UnlockTrainCarGuids = new List<string> { "66666666-6666-4666-8666-666666666666" },
                     },
                 },
             };

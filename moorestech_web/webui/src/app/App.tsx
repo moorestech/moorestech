@@ -20,7 +20,7 @@ import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
-import { screenAllowsGrab, screenForUiState } from "@/shared/uiState";
+import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud } from "@/shared/uiState";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
 
@@ -85,7 +85,7 @@ export default function App() {
       {/* 通知はstage背面へ置き、全画面UIと常駐HUDの裏へ沈める（ADR 0017） */}
       {/* Notifications sit behind the stage so every screen and always-on HUD covers them (ADR 0017) */}
       <NotificationHost />
-      <div ref={stageRef} className={styles.stage} data-testid="app-stage" data-web-ui-transparent>
+      <div ref={stageRef} className={`${styles.stage}${researchScreen ? ` ${styles.stageResearch}` : ""}`} data-testid="app-stage" data-web-ui-transparent>
         {screenAllowsGrab(screen) && <InventoryPanel />}
         {screen === "playerInventory" && <RecipeViewer />}
         {screen === "playerInventory" && <ItemListPanel />}
@@ -108,12 +108,10 @@ export default function App() {
           <CurrentChallengeHud />
           {inventoryScreen && <InventoryScreenChrome />}
           {researchScreen && <ResearchScreenChrome />}
-          {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}
-          {/* The hotbar is an always-on HUD mirroring uGUI GameStateController (shown during GameScreen too) */}
-          <HotbarPanel />
-          {/* 装備HUDもホットバーと同じ常時表示族で、ホイールの持ち替え先を画面右端に見せる */}
-          {/* The equipment HUD belongs to the same always-on family, showing the wheel's switch target at the screen's right edge */}
-          <EquipmentPanel />
+          {/* 常時表示HUD族の可否は screenAllowsGrab と対称にここで合成する */}
+          {/* The always-on HUD family is gated here, symmetric with screenAllowsGrab */}
+          {screenShowsAlwaysOnHud(screen) && <HotbarPanel />}
+          {screenShowsAlwaysOnHud(screen) && <EquipmentPanel />}
           {/* 採掘ゲージはホットバーの床を基準に積むため同じviewport族へ置く */}
           {/* The mining gauge stacks on the hotbar's floor, so it belongs to the same viewport family */}
           <ProgressBar />

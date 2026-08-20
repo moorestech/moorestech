@@ -29,7 +29,7 @@ export function CursorTooltip() {
   if (!data?.visible) return null;
   return (
     <Portal>
-      <Paper ref={elementRef} className={styles.tooltip} style={{ left: position.x, top: position.y, fontSize: data.fontSize }}>
+      <Paper ref={elementRef} className={styles.tooltip} data-testid="cursor-tooltip" style={{ left: position.x, top: position.y }}>
         {text}
       </Paper>
     </Portal>

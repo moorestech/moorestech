@@ -1,0 +1,8 @@
+/* 既存の偽スロットと同じアイコン寸法・余白を保つ */
+/* Preserves the icon dimensions and padding from the former hand-built slot */
+.icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: var(--icon-pad, 5px);
+}

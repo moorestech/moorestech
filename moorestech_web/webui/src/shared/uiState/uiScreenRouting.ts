@@ -28,3 +28,11 @@ export function uiStateAcceptsHotbarSelect(state: string | null): boolean {
 export function screenAllowsGrab(screen: UiScreen): boolean {
   return screen === "playerInventory" || screen === "subInventory" || screen === "researchTree";
 }
+
+// 常時表示族は研究画面でだけ引っ込む
+// The always-on family withdraws only on the research screen
+// 常駐チャレンジHUDと採掘進捗バーはこの族に含まず、研究画面でも出したままにする
+// The resident challenge HUD and the mining progress bar are not in this family and stay visible there
+export function screenShowsAlwaysOnHud(screen: UiScreen): boolean {
+  return screen !== "researchTree";
+}
