@@ -87,6 +87,39 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
 
         [Test]
+        public void 満杯で失われた分は拒否通知として飛ぶ()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var mapObject = ServerContext.MapObjectDatastore.MapObjects.First(target => target.MapObjectGuid == PickUpMapObjectGuid);
+            var earnItem = MasterHolder.MapObjectMaster.GetMapObjectElement(PickUpMapObjectGuid).EarnItems[0];
+            var earnItemId = MasterHolder.ItemMaster.GetItemId(earnItem.ItemGuid);
+
+            FillInventoryLeavingFreeSpace(playerInventory, earnItemId, earnItem.MaxCount + 1);
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
+
+            SendMapObjectMining(packet, mapObject.InstanceId);
+
+            // 溢れて消えた分は無言にせず拒否として届く
+            // The overflow that vanished arrives as a denial instead of staying silent
+            var denied = TakeNotifications(sink, NotificationCategory.OperationDenied);
+            Assert.AreEqual(1, denied.Count);
+            Assert.AreEqual("denied.miningInventoryFull", denied[0].MessageId);
+        }
+
+        [Test]
+        public void 溢れなければ拒否通知は飛ばない()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
+            var mapObject = ServerContext.MapObjectDatastore.MapObjects.First(target => target.MapObjectGuid == PickUpMapObjectGuid);
+
+            SendMapObjectMining(packet, mapObject.InstanceId);
+
+            Assert.AreEqual(0, TakeNotifications(sink, NotificationCategory.OperationDenied).Count);
+        }
+
+        [Test]
         public void Vein手掘りの獲得も通知として飛ぶ()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -157,10 +190,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
         private System.Collections.Generic.List<NotificationMessagePack> TakeItemEarnedNotifications(CapturedEventSink sink)
         {
+            return TakeNotifications(sink, NotificationCategory.ItemEarned);
+        }
+
+        private System.Collections.Generic.List<NotificationMessagePack> TakeNotifications(CapturedEventSink sink, NotificationCategory category)
+        {
             return sink.TakeAll().
                 Where(captured => captured.Tag == NotificationService.EventTag).
                 Select(captured => MessagePackSerializer.Deserialize<NotificationMessagePack>(captured.Payload)).
-                Where(notification => notification.Category == NotificationCategory.ItemEarned).
+                Where(notification => notification.Category == category).
                 ToList();
         }
 

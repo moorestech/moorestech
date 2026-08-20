@@ -49,7 +49,13 @@ namespace Server.Event.Notification
         public static NotificationMessagePack CreateOperationDenied(string messageId, string[] messageParams)
             => new(NotificationCategory.OperationDenied, messageId, messageParams, ItemMaster.EmptyItemId, 0);
 
+        // 0個獲得・アイテム無しの獲得は存在しない結果なので生成時点で弾く
+        // A zero-count or item-less earn is not a representable result, so it is rejected at construction
         public static NotificationMessagePack CreateItemEarned(ItemId itemId, int count)
-            => new(NotificationCategory.ItemEarned, ItemEarnedMessageId, Array.Empty<string>(), itemId, count);
+        {
+            if (count < 1) throw new ArgumentOutOfRangeException(nameof(count), count, null);
+            if (itemId == ItemMaster.EmptyItemId) throw new ArgumentException("itemId must not be empty", nameof(itemId));
+            return new NotificationMessagePack(NotificationCategory.ItemEarned, ItemEarnedMessageId, Array.Empty<string>(), itemId, count);
+        }
     }
 }

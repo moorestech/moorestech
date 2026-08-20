@@ -52,24 +52,28 @@ namespace Server.Protocol.PacketResponse
 
             if (earnedItems == null) return null;
 
-            NotifyEarnedItems(InsertEarnedItems());
+            var insertion = InsertEarnedItems();
+            NotifyEarnedItems(insertion.insertedCounts);
+            NotifyLostEarnedItems(insertion.lostCount);
             return null;
 
             #region Internal
 
-            // 空き検査を超えて生成されるので実挿入量を数える
-            // Generation can outgrow the space check, so count what actually landed
-            Dictionary<ItemId, int> InsertEarnedItems()
+            // 空き検査を超えて生成されるので実挿入量と溢れ量を数える
+            // Generation can outgrow the space check, so count what actually landed and what overflowed
+            (Dictionary<ItemId, int> insertedCounts, int lostCount) InsertEarnedItems()
             {
                 var insertedCounts = new Dictionary<ItemId, int>();
+                var lostCount = 0;
                 foreach (var earnItem in earnedItems)
                 {
                     var remain = playerInventory.MainOpenableInventory.InsertItem(earnItem);
                     insertedCounts.TryGetValue(earnItem.Id, out var current);
                     insertedCounts[earnItem.Id] = current + earnItem.Count - remain.Count;
+                    lostCount += remain.Count;
                 }
 
-                return insertedCounts;
+                return (insertedCounts, lostCount);
             }
 
             // 同一アイテムの複数スタックを1本に畳む
@@ -81,8 +85,16 @@ namespace Server.Protocol.PacketResponse
                     // 1個も入らなければ通知しない
                     // No notification when nothing landed
                     if (insertedCount.Value <= 0) continue;
-                    _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateItemEarned(insertedCount.Key, insertedCount.Value));
+                    _notificationService.NotifyWithoutCooldown(data.PlayerId, NotificationMessagePack.CreateItemEarned(insertedCount.Key, insertedCount.Value));
                 }
+            }
+
+            // 満杯で失った分は無言にせず拒否通知に載せる。連打はクールダウンが畳む
+            // Items lost to a full inventory are surfaced as a denial instead of staying silent; the cooldown folds bursts
+            void NotifyLostEarnedItems(int lostCount)
+            {
+                if (lostCount <= 0) return;
+                _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.miningInventoryFull", Array.Empty<string>()));
             }
 
             List<IItemStack> MineMapObject()
