@@ -56,7 +56,7 @@
   - `close_workspace(workspace_uuid: str) -> bool`
   - `workspace_exists(workspace_uuid: str) -> bool`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```python
 # test_cmux_launcher.py
@@ -140,12 +140,12 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd ~/hermes-agent/data/services/pr-review && python3 -m unittest test_cmux_launcher -v`
 Expected: FAIL（`cmux_launcher.py` が無く import エラー）
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 ```python
 # cmux_launcher.py
@@ -229,12 +229,12 @@ def workspace_exists(workspace_uuid: str) -> bool:
     return bool(res and res.returncode == 0 and workspace_uuid.upper() in res.stdout.upper())
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `python3 -m unittest test_cmux_launcher -v`
 Expected: 8 tests PASS
 
-- [ ] **Step 5: 実機スモーク（cmux が起動している状態で）**
+- [x] **Step 5: 実機スモーク（cmux が起動している状態で）**
 
 Run:
 ```bash
@@ -251,7 +251,7 @@ EOF
 ```
 Expected: `uuid <UUID>` と末尾に `smoke ok`（ワークスペースは閉じられている）
 
-- [ ] **Step 6: 状態確認（コミット対象外）**
+- [x] **Step 6: 状態確認（コミット対象外）**
 
 poller ディレクトリは git 管理外。`ls -la ~/hermes-agent/data/services/pr-review/` に `cmux_launcher.py` `test_cmux_launcher.py` があることを確認してタスク完了とする。
 
@@ -273,7 +273,7 @@ poller ディレクトリは git 管理外。`ls -la ~/hermes-agent/data/service
   - `detect_limit(text: str, now_epoch: float) -> tuple[str, float | None] | None` — `("weekly", None)` / `("session", reset_epoch or None)` / None
   - `parse_reset_epoch(text: str, now_epoch: float) -> float | None` — `resets 11:50pm` / `resets 4:50am` を JST で当日→過去なら翌日に解決。`resets Aug 21 at 9pm` 形式は None（weekly は到達時刻を使わない）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```python
 # test_transcript_probe.py
@@ -381,12 +381,12 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `python3 -m unittest test_transcript_probe -v`
 Expected: FAIL（import エラー）
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 ```python
 # transcript_probe.py
@@ -496,7 +496,7 @@ def detect_limit(text: str, now_epoch: float) -> tuple[str, float | None] | None
     return None
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `python3 -m unittest test_transcript_probe -v`
 Expected: 5 tests PASS
@@ -520,7 +520,7 @@ Expected: 5 tests PASS
   - `start_apply_session(number) -> str`（`apply.session` に uuid）
   - `cmux_available_or_notify() -> bool` — `ping` 失敗時は1時間に1回 Discord 通知
 
-- [ ] **Step 1: 既存 `LaunchClaudeTest` を置き換える失敗テストを書く**
+- [x] **Step 1: 既存 `LaunchClaudeTest` を置き換える失敗テストを書く**
 
 ```python
 # test_poller.py の class LaunchClaudeTest を丸ごと以下に置換
@@ -585,12 +585,12 @@ class LaunchClaudeTest(unittest.TestCase):
         self.assertEqual(notify.call_count, 1)
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `python3 -m unittest test_poller.LaunchClaudeTest -v`
 Expected: FAIL（`build_claude_command` 等が未定義、`launch_claude` のシグネチャ不一致）
 
-- [ ] **Step 3: poller.py を実装する**
+- [x] **Step 3: poller.py を実装する**
 
 (a) import と定数（`RESUME_PROMPT` の直後・`RATE_LIMIT_RE` 群の置き換え）:
 
@@ -705,7 +705,7 @@ def close_workspace_of(number: int, pid_name: str) -> None:
 
 (d) 呼び出し側の暫定更新（Task 4〜6 で本実装するが、この時点でテストが通るよう引数を合わせる）: `handle_waiting` の `launch_claude(...)` を `launch_claude(number, prompt=..., pid_name="review.pid", cwd=CLONE_DIR, session_id=session_id)` に、`handle_running` 内の3箇所・`handle_adjudication`・`handle_applying` の呼び出しも同様に `log_name`/`resume` を外し、apply 側は `session_id=start_apply_session(number)` を渡す。
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `python3 -m unittest test_poller -v 2>&1 | tail -30`
 Expected: `LaunchClaudeTest` 6件 PASS。他クラスの一部（`ReviewSelfTerminationTest` の resume 系・`ReviewUnlimitedConcurrencyTest`）は旧挙動前提で FAIL してよい（Task 4〜6 で置換する）。FAIL 一覧をメモしておく。
@@ -724,7 +724,7 @@ Expected: `LaunchClaudeTest` 6件 PASS。他クラスの一部（`ReviewSelfTerm
   - `handle_waiting(pr: dict, review_budget: list[int]) -> None` — `review_budget[0]` が残り起動枠。起動したら 1 減らす
   - `review_in_flight(number: int) -> bool` — `session_alive(review.session)` or `backoff_active(number)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```python
 class ReviewConcurrencyCapTest(unittest.TestCase):
@@ -779,12 +779,12 @@ class ReviewConcurrencyCapTest(unittest.TestCase):
         poller.gh_edit_labels.assert_not_called()
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `python3 -m unittest test_poller.ReviewConcurrencyCapTest -v`
 Expected: FAIL（`handle_waiting` が第2引数を受けない／`review_in_flight` 未定義）
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `handle_waiting` を以下に置換（docstring の「同時起動数に制限は設けない」も削除）:
 
@@ -846,7 +846,7 @@ def handle_waiting(pr: dict, review_budget: list[int]) -> None:
 
 旧 `ReviewUnlimitedConcurrencyTest` は削除する。
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `python3 -m unittest test_poller.ReviewConcurrencyCapTest test_poller.LaunchClaudeTest -v`
 Expected: PASS
@@ -867,7 +867,7 @@ Expected: PASS
   - `failure_excerpt(number: int, pid_name: str) -> str` — transcript 最終発話（無ければ capture-pane 末尾20行）
   - `enter_failed(pr, marker_name, pid_name, extra)` — `log_name` を `pid_name` に変更し `failure_excerpt` を使う
 
-- [ ] **Step 1: 失敗するテストを書く（`ReviewSelfTerminationTest` を丸ごと置換）**
+- [x] **Step 1: 失敗するテストを書く（`ReviewSelfTerminationTest` を丸ごと置換）**
 
 ```python
 class ReviewRunningTest(unittest.TestCase):
@@ -1013,12 +1013,12 @@ class ReviewRunningTest(unittest.TestCase):
         self.assertEqual(poller.failure_excerpt(7, "review.pid"), "screen tail")
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `python3 -m unittest test_poller.ReviewRunningTest -v`
 Expected: FAIL（新関数未定義・旧分岐）
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 補助関数（`rate_limited`/`set_backoff` を置換。`backoff_active` はそのまま）:
 
@@ -1177,7 +1177,7 @@ def enter_failed(pr: dict, marker_name: str, pid_name: str, extra: str = "") -> 
 
 `exit_code_path`/`read_exit_code` と「exit==0 の自力終了」分岐は削除する（対話モードではターン終了でプロセスが死なない。idle 検知が代替）。`start_review_session` は `review.resume` を 0 に戻す挙動を維持。
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `python3 -m unittest test_poller.ReviewRunningTest -v`
 Expected: 13 tests PASS
@@ -1194,7 +1194,7 @@ Expected: 13 tests PASS
 - Consumes: Task 3 `start_apply_session/launch_claude/session_alive/close_workspace_of`、Task 5 `observed_limit/set_backoff_until/enter_failed(pid_name=...)`
 - Produces: `scan_live_apply_slots()` が `apply.session` の生存で判定する（`apply.pid` ではなく）
 
-- [ ] **Step 1: 失敗するテストを書く（`ApplyProcessDeathTest`・`ApplySlotPoolTest` を以下で置換）**
+- [x] **Step 1: 失敗するテストを書く（`ApplyProcessDeathTest`・`ApplySlotPoolTest` を以下で置換）**
 
 ```python
 class ApplyRunningTest(unittest.TestCase):
@@ -1314,12 +1314,12 @@ class ApplySlotPoolTest(unittest.TestCase):
             self.assertEqual(poller.scan_live_apply_slots(), {poller.APPLY_SLOT_DIRS[1]})
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `python3 -m unittest test_poller.ApplyRunningTest test_poller.ApplySlotPoolTest -v`
 Expected: FAIL
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `handle_adjudication` の起動部分:
 
@@ -1409,7 +1409,7 @@ Expected: FAIL
 
 （apply は従来どおり idle 検知を持たない: apply セッションは長時間 subagent を待たず、死亡＝retry で十分。）
 
-- [ ] **Step 4: 全テストを実行して通ることを確認する**
+- [x] **Step 4: 全テストを実行して通ることを確認する**
 
 Run: `python3 -m unittest test_poller test_cmux_launcher test_transcript_probe -v 2>&1 | tail -15`
 Expected: `OK`（`CloneSyncGateTest` 等の既存テストも含め全緑。`test_out_of_sync_clone_defers_launch_and_keeps_label` は `handle_waiting(pr, [2])` 形に引数を直す）
@@ -1422,17 +1422,17 @@ Expected: `OK`（`CloneSyncGateTest` 等の既存テストも含め全緑。`tes
 - Modify: `~/hermes-agent/data/services/pr-review/poller.py`（`read_pid_alive`/`pid_alive`/`tail_lines`/`exit_code_path`/`read_exit_code`/`LAUNCH_MARKER_PREFIX`/`RATE_LIMIT_RE` の未参照残骸を削除）
 - Modify: `~/hermes-agent/data/services/pr-review/README.md`
 
-- [ ] **Step 1: 未参照を機械的に確認する**
+- [x] **Step 1: 未参照を機械的に確認する**
 
 Run: `cd ~/hermes-agent/data/services/pr-review && for f in read_pid_alive pid_alive tail_lines exit_code_path read_exit_code LAUNCH_MARKER_PREFIX RATE_LIMIT_RE claude_argv rate_limited set_backoff; do echo "$f: $(grep -c "\b$f\b" poller.py)"; done`
 Expected: 定義行のみ（1）か 0 のもの → 削除対象
 
-- [ ] **Step 2: 削除して全テストを再実行**
+- [x] **Step 2: 削除して全テストを再実行**
 
 Run: `python3 -m unittest test_poller test_cmux_launcher test_transcript_probe 2>&1 | tail -3`
 Expected: `OK`
 
-- [ ] **Step 3: README.md の状態遷移図と説明を更新する**
+- [x] **Step 3: README.md の状態遷移図と説明を更新する**
 
 冒頭段落「フェーズごとにheadless `claude` を起動して」→「フェーズごとに cmux ワークスペース上で対話モードの `claude` をフォアグラウンド起動して（ADR 0023）」。状態遷移図の `独立レビュー待ち` 節を以下に差し替え:
 
@@ -1459,11 +1459,11 @@ Expected: `OK`
 - Modify: `.agents/skills/pr-adjudicated-apply/SKILL.md`（`PR_REVIEW_UNATTENDED` / `claude -p` / print mode に言及する箇所。`grep -n "print mode\|claude -p\|PR_REVIEW_UNATTENDED" .agents/skills/pr-adjudicated-apply/SKILL.md` で特定）
 - Modify: `docs/adr/0023-unattended-review-runs-in-cmux-foreground.md`（「状態: 採択」→ 実装 plan へのリンクを追記）
 
-- [ ] **Step 1: worktree を切る**
+- [x] **Step 1: worktree を切る**
 
 Run: `moores-wt new feature/pr-review-cmux-foreground --no-editor` → 以降の編集は `~/moorestech-worktrees/feature/pr-review-cmux-foreground`（`moores-wt` が出力したパス）で行う。
 
-- [ ] **Step 2: pr-independent-review/SKILL.md 18〜36行を差し替える**
+- [x] **Step 2: pr-independent-review/SKILL.md 18〜36行を差し替える**
 
 ```markdown
 ## 最重要: 無人起動でも「findings.json か abort.json で終える」
@@ -1490,15 +1490,15 @@ RESUME 指示が1回送られ、それでも進まなければ失敗ラベルに
 `findings.json` / `abort.json` のどちらかで終える規律は同じく守る。
 ```
 
-- [ ] **Step 3: pr-adjudicated-apply/SKILL.md の該当箇所を同趣旨で更新する**
+- [x] **Step 3: pr-adjudicated-apply/SKILL.md の該当箇所を同趣旨で更新する**
 
 `print mode` / `claude -p` の記述を「cmux ワークスペース上の対話モード（ADR 0023）」に、「ターンを終えると死ぬ」を「poller は `apply-result.json` と プロセス生存で見ている。session limit は poller が reset 後に継続指示を送る」に置き換える。`apply-result.json` を書いて終える規律は不変。
 
-- [ ] **Step 4: ADR 0023 に実装 plan へのリンクを足す**
+- [x] **Step 4: ADR 0023 に実装 plan へのリンクを足す**
 
 `docs/adr/0023-unattended-review-runs-in-cmux-foreground.md` 末尾に `実装: docs/superpowers/plans/2026-08-20-pr-review-poller-cmux-foreground.md` を追記。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add .agents/skills/pr-independent-review/SKILL.md .agents/skills/pr-adjudicated-apply/SKILL.md docs/adr/0023-unattended-review-runs-in-cmux-foreground.md
@@ -1512,7 +1512,7 @@ git commit -m "docs(skills): 無人レビュー/applyのcmux対話モード起�
 **Files:**
 - なし（検証のみ。state は一時ディレクトリ）
 
-- [ ] **Step 1: 起動〜検知〜close を一周させる**
+- [x] **Step 1: 起動〜検知〜close を一周させる**
 
 ```bash
 cd ~/hermes-agent/data/services/pr-review && PR_REVIEW_STATE_DIR=/tmp/pr-review-smoke python3 - <<'EOF'
@@ -1540,9 +1540,9 @@ EOF
 ```
 Expected: `launched True ws <UUID>`、数 tick 以内に `alive True` と `marker True`、`last text` に done、`send continue` True、`last text after send` に second、`exists after close: False`。この smoke で「対話モードでも transcript に assistant 発話が記録される」「同一ペインへの追送が効く」を実機確認する。
 
-- [ ] **Step 2: 週次/セッション limit の文言検知は fixture で担保済み（Task 2・5）。実機では limit を意図的に起こさないため、transcript に limit 文言が載るかどうかは本番初回の limit 到達時に `state/pr-<N>/` と transcript を見て確認し、載らなければ capture-pane 経路（R6）が効いていることをログで確認する。** この確認結果を `bd note moorestech-vltk` に残す。
+- [x] **Step 2: 週次/セッション limit の文言検知は fixture で担保済み（Task 2・5）。実機では limit を意図的に起こさないため、transcript に limit 文言が載るかどうかは本番初回の limit 到達時に `state/pr-<N>/` と transcript を見て確認し、載らなければ capture-pane 経路（R6）が効いていることをログで確認する。** この確認結果を `bd note moorestech-vltk` に残す。
 
-- [ ] **Step 3: 本番反映**
+- [x] **Step 3: 本番反映**
 
 supervisor は `services.json` 不変のため再起動不要。次 tick（120 秒以内）から新経路。`tail -f ~/hermes-agent/data/services/always-on/logs/pr-review-poller.log` で `launched interactive claude in cmux workspace` が出ることを確認。初回の待ち PR が無ければ、`独立レビュー待ち` ラベルの付いたPRが出た時に観察する。
 
@@ -1550,8 +1550,8 @@ supervisor は `services.json` 不変のため再起動不要。次 tick（120 �
 
 ### Task 10: 全ブランチレビュー（必須・省略不可）
 
-- [ ] **Step 1:** `moores-code-review` スキルで Task 8 のブランチ（`feature/pr-review-cmux-foreground`）をレビューし、指摘を適用する。poller 側（git 管理外）は `~/hermes-agent/data/services/pr-review/{poller.py,cmux_launcher.py,transcript_probe.py,test_*.py}` をレビュー対象パスとして同スキルに渡す（diff が取れないため「ファイル全文レビュー」で指示する）。
-- [ ] **Step 2:** 指摘対応後に `python3 -m unittest test_poller test_cmux_launcher test_transcript_probe` が `OK` であることを再確認し、Task 8 ブランチを push して `pr-create` で PR を作る。
+- [x] **Step 1:** `moores-code-review` スキルで Task 8 のブランチ（`feature/pr-review-cmux-foreground`）をレビューし、指摘を適用する。poller 側（git 管理外）は `~/hermes-agent/data/services/pr-review/{poller.py,cmux_launcher.py,transcript_probe.py,test_*.py}` をレビュー対象パスとして同スキルに渡す（diff が取れないため「ファイル全文レビュー」で指示する）。
+- [x] **Step 2:** 指摘対応後に `python3 -m unittest test_poller test_cmux_launcher test_transcript_probe` が `OK` であることを再確認し、Task 8 ブランチを push して `pr-create` で PR を作る。
 
 ---
 
