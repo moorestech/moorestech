@@ -84,6 +84,26 @@ describe("EquipmentPanel のクリック受付", () => {
     expect(host.dispatchAction).not.toHaveBeenCalled();
   });
 
+  // 各装備枠は equipment.slot-<i> を名乗り、選択中の枠だけ equipment.selected-slot も併せて名乗る
+  // Every equipment slot declares equipment.slot-<i>; only the selected one also declares equipment.selected-slot
+  it("装備枠がアンカーを名乗り、選択中の枠には選択アンカーも付く", () => {
+    host.uiState = { state: "GameScreen" };
+    host.inventory = {
+      mainSlots: [slot(0, 0)],
+      grab: slot(0, 0),
+      equipment: [slot(0, 0), slot(0, 0)],
+      selectedEquipment: 1,
+      equipmentSelectionConfirmationRevision: 0,
+    };
+
+    const renderer = create(createElement(EquipmentPanel));
+    const anchors = renderer.root
+      .findAll((node) => typeof node.props["data-tutorial-anchor"] === "string")
+      .map((node) => node.props["data-tutorial-anchor"] as string);
+
+    expect(anchors).toEqual(["equipment.slot-0", "equipment.slot-1 equipment.selected-slot"]);
+  });
+
   it("GameScreen 中も同様にクリックを受けない", () => {
     host.uiState = { state: "GameScreen" };
 

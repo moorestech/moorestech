@@ -5,6 +5,7 @@ import { ItemSlot } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
 import { accumulateWheelSteps, cycleEquipment } from "./equipmentLogic";
 import { slotActions } from "../slotActions";
+import { equipmentSlotAnchorId, tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import styles from "./style.module.css";
 
 // 装備スロットの常時表示HUD。枠数はトピックの equipment 長がそのまま正となる
@@ -91,18 +92,25 @@ export default function EquipmentPanel() {
     <div className={styles.equipmentArea} data-testid="equipment-slots" data-wheel-passthrough>
       {inventory.equipment.map((slot, i) => {
         const ref: SlotRef = { area: "equipment", slot: i };
+        // 選択中の枠はホイールで動くため、固定枠IDに加えて選択アンカーも同じ要素へ名乗らせる
+        // The selected slot moves with the wheel, so that element declares the selection anchor alongside its fixed slot ID
+        const selected = i === inventory.selectedEquipment;
+        const anchor = selected
+          ? tutorialAnchor(equipmentSlotAnchorId(i), TutorialAnchorIds.equipmentSelectedSlot)
+          : tutorialAnchor(equipmentSlotAnchorId(i));
         return (
-          <ItemSlot
-            key={`equipment-${i}`}
-            itemId={slot.itemId}
-            count={slot.count}
-            selected={i === inventory.selectedEquipment}
-            onLeftDown={grabInteractive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
-            onRightDown={grabInteractive ? () => slotActions.onRightDown(ref) : undefined}
-            onRightEnter={grabInteractive ? () => slotActions.onRightEnter(ref) : undefined}
-            onLeftEnter={grabInteractive ? () => slotActions.onLeftEnter(ref) : undefined}
-            onDoubleClick={grabInteractive ? () => slotActions.onDoubleClick(ref) : undefined}
-          />
+          <div key={`equipment-${i}`} {...anchor}>
+            <ItemSlot
+              itemId={slot.itemId}
+              count={slot.count}
+              selected={selected}
+              onLeftDown={grabInteractive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
+              onRightDown={grabInteractive ? () => slotActions.onRightDown(ref) : undefined}
+              onRightEnter={grabInteractive ? () => slotActions.onRightEnter(ref) : undefined}
+              onLeftEnter={grabInteractive ? () => slotActions.onLeftEnter(ref) : undefined}
+              onDoubleClick={grabInteractive ? () => slotActions.onDoubleClick(ref) : undefined}
+            />
+          </div>
         );
       })}
     </div>
