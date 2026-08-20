@@ -94,6 +94,26 @@ const controls = {
     }],
   }),
   tutorialEmpty: () => control(Topics.tutorialPresentation, { revision: 0, sessions: [] }),
+  tutorialOutlineWithLabel: () => control(Topics.tutorialPresentation, {
+    revision: 2,
+    sessions: [{
+      tutorialSessionId: "tutorial-session-1", challengeId: "tutorial-challenge-1",
+      elements: [{
+        kind: "outline" as const, elementId: "tutorial-highlight-2", anchorId: "game.crosshair",
+        paddingPx: 8, blocksPointerInput: false, labelTutorialGuid: "11111111-1111-4111-8111-111111111111",
+      }],
+    }],
+  }),
+  tutorialKeyControl: () => control(Topics.tutorialPresentation, {
+    revision: 3,
+    sessions: [{
+      tutorialSessionId: "tutorial-session-1", challengeId: "tutorial-challenge-1",
+      elements: [{
+        kind: "keyControl" as const, elementId: "tutorial-key-1",
+        tutorialGuid: "11111111-1111-4111-8111-111111111111", keyName: "Tab", uiState: "GameScreen",
+      }],
+    }],
+  }),
 };
 export type TopicScenario = keyof typeof controls;
 
