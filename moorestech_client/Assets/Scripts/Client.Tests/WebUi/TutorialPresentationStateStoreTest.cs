@@ -14,7 +14,7 @@ namespace Client.Tests.WebUi
             var challengeId = Guid.NewGuid();
             store.BeginSession(challengeId);
 
-            store.AddOutlineHighlight("recipe.craft-button");
+            store.AddOutlineHighlight("recipe.craft-button", null);
 
             var session = store.GetCurrent().Sessions.Single();
             var element = (TutorialOutlineElementData)session.Elements.Single();
@@ -31,7 +31,7 @@ namespace Client.Tests.WebUi
             var store = new TutorialPresentationStateStore();
             var challengeId = Guid.NewGuid();
             store.BeginSession(challengeId);
-            store.AddOutlineHighlight("recipe.craft-button");
+            store.AddOutlineHighlight("recipe.craft-button", null);
 
             store.EndSession(challengeId);
 
@@ -47,7 +47,7 @@ namespace Client.Tests.WebUi
             var store = new TutorialPresentationStateStore();
             var challengeId = Guid.NewGuid();
             store.BeginSession(challengeId);
-            store.AddOutlineHighlight("recipe.craft-button");
+            store.AddOutlineHighlight("recipe.craft-button", null);
             var current = store.GetCurrent();
 
             store.EndSession(Guid.NewGuid());
@@ -63,7 +63,7 @@ namespace Client.Tests.WebUi
             var store = new TutorialPresentationStateStore();
             var firstChallengeId = Guid.NewGuid();
             store.BeginSession(firstChallengeId);
-            store.AddOutlineHighlight("recipe.craft-button");
+            store.AddOutlineHighlight("recipe.craft-button", null);
             var secondChallengeId = Guid.NewGuid();
 
             store.BeginSession(secondChallengeId);
@@ -103,7 +103,7 @@ namespace Client.Tests.WebUi
         {
             var store = new TutorialPresentationStateStore();
             store.BeginSession(Guid.NewGuid());
-            store.AddOutlineHighlight("recipe.craft-button");
+            store.AddOutlineHighlight("recipe.craft-button", null);
             var guideView = store.AddDragGuide("build-menu.entry-block-934c0ef9", "hotbar.hud");
             var sessionId = store.GetCurrent().Sessions.Single().TutorialSessionId;
 
@@ -153,12 +153,48 @@ namespace Client.Tests.WebUi
             var store = new TutorialPresentationStateStore();
             var challengeId = Guid.NewGuid();
             store.BeginSession(challengeId);
-            store.AddOutlineHighlight("recipe.craft-button");
+            store.AddOutlineHighlight("recipe.craft-button", null);
             store.AddDragGuide("build-menu.entry-block-934c0ef9", "hotbar.hud");
 
             store.EndSession(challengeId);
 
             Assert.IsEmpty(store.GetCurrent().Sessions.SelectMany(session => session.Elements));
+        }
+
+        // 文言付きの枠線はラベル用tutorialGuidを載せ、文言無しはnullで枠線のみを表す
+        // Outlines with text carry the label tutorialGuid; outlines without text carry null for outline-only
+        [Test]
+        public void AddOutlineHighlightCarriesLabelTutorialGuid()
+        {
+            var store = new TutorialPresentationStateStore();
+            store.BeginSession(Guid.NewGuid());
+
+            store.AddOutlineHighlight("recipe.craft-button", "11111111-1111-4111-8111-111111111111");
+            store.AddOutlineHighlight("hotbar.hud", null);
+
+            var elements = store.GetCurrent().Sessions.Single().Elements.Cast<TutorialOutlineElementData>().ToArray();
+            Assert.AreEqual("11111111-1111-4111-8111-111111111111", elements[0].LabelTutorialGuid);
+            Assert.IsNull(elements[1].LabelTutorialGuid);
+        }
+        // keyControlはkeyName/uiState/tutorialGuidを持つ独立kindとして公開する
+        // keyControl is published as its own kind carrying keyName, uiState and tutorialGuid
+        [Test]
+        public void AddKeyControlHintPublishesKeyControlKind()
+        {
+            var store = new TutorialPresentationStateStore();
+            var challengeId = Guid.NewGuid();
+            store.BeginSession(challengeId);
+
+            var view = store.AddKeyControlHint("22222222-2222-4222-8222-222222222222", "Tab", "GameScreen");
+
+            var element = (TutorialKeyControlElementData)store.GetCurrent().Sessions.Single().Elements.Single();
+            Assert.AreEqual(TutorialKeyControlElementData.KindName, element.Kind);
+            Assert.AreEqual("22222222-2222-4222-8222-222222222222", element.TutorialGuid);
+            Assert.AreEqual("Tab", element.KeyName);
+            Assert.AreEqual("GameScreen", element.UiState);
+
+            view.CompleteTutorial();
+            Assert.IsEmpty(store.GetCurrent().Sessions.Single().Elements);
         }
     }
 }

@@ -44,9 +44,9 @@ namespace Client.Game.InGame.Tutorial
             Publish();
         }
 
-        // outline用途だけを公開し、廃止済みkindの再流入を防ぐ
-        // Expose only the outline use case to prevent removed kinds from returning
-        public ITutorialView AddOutlineHighlight(string anchorId)
+        // outline用途だけを公開し、廃止済みkindの再流入を防ぐ。labelTutorialGuidはnullでラベル無し
+        // Expose only the outline use case to prevent removed kinds from returning; null labelTutorialGuid means no label
+        public ITutorialView AddOutlineHighlight(string anchorId, string labelTutorialGuid)
         {
             return AddElement(new TutorialOutlineElementData
             {
@@ -54,6 +54,7 @@ namespace Client.Game.InGame.Tutorial
                 AnchorId = anchorId,
                 PaddingPx = 8,
                 BlocksPointerInput = false,
+                LabelTutorialGuid = labelTutorialGuid,
             });
         }
 
@@ -66,6 +67,19 @@ namespace Client.Game.InGame.Tutorial
                 ElementId = Guid.NewGuid().ToString(),
                 FromAnchorId = fromAnchorId,
                 ToAnchorId = toAnchorId,
+            });
+        }
+
+        // キー操作ヒント。表示可否（uiState一致）はWeb側が判定するので常に載せる
+        // Key-control hint; always published since the web side decides visibility by uiState
+        public ITutorialView AddKeyControlHint(string tutorialGuid, string keyName, string uiState)
+        {
+            return AddElement(new TutorialKeyControlElementData
+            {
+                ElementId = Guid.NewGuid().ToString(),
+                TutorialGuid = tutorialGuid,
+                KeyName = keyName,
+                UiState = uiState,
             });
         }
 
