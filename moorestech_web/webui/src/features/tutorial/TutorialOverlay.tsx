@@ -4,7 +4,7 @@ import { challengeTutorialTextKey, useI18n, type TranslationKey } from "@/shared
 import { TutorialAnchorRegistry, clipPathInset, type ClipRect, type ResolvedAnchor } from "@/shared/tutorialAnchor";
 import { readTutorialHighlightGlowPx } from "./highlightGlowToken";
 import styles from "./style.module.css";
-import { isAnchoredElement, tutorialElementKey, type TutorialOverlayElement } from "./tutorialElement";
+import { anchoredSubscriptionSignature, assertNever, tutorialElementKey, type TutorialOverlayElement } from "./tutorialElement";
 
 type TutorialOutlineElement = Extract<TutorialOverlayElement, { kind: "outline" }>;
 type AckTarget = { tutorialSessionId: string; elementId: string };
@@ -14,6 +14,11 @@ export function TutorialOverlay() {
   const { t } = useI18n();
   const registry = useRef<TutorialAnchorRegistry | null>(null);
   const lastAck = useRef<Record<string, string>>({});
+  // 購読を作り直さないrevision更新でもackが最新revisionを名乗れるよう、値はrefから読む
+  // Read through a ref so an ack carries the latest revision even when the subscription is not rebuilt
+  const presentationRef = useRef(presentation);
+  presentationRef.current = presentation;
+  const subscriptionSignature = anchoredSubscriptionSignature(presentation);
   // ハイライト/ガイドを統合state化
   // Merge highlight/guide into unified state
   const [resolved, setResolved] = useState<Record<string, ResolvedAnchor>>({});
@@ -27,14 +32,15 @@ export function TutorialOverlay() {
   }, []);
 
   useEffect(() => {
-    if (!presentation || !registry.current) return;
+    const subscribed = presentationRef.current;
+    if (!subscribed || !registry.current) return;
     lastAck.current = {};
 
     // anchorId購読の重複を除去しつつ、同一anchorを指す全highlightをack対象として束ねる
     // Deduplicate anchorIds to subscribe while grouping every highlight pointing at the same anchor
     const anchorIds = new Set<string>();
     const ackTargetsByAnchorId = new Map<string, AckTarget[]>();
-    for (const session of presentation.sessions) {
+    for (const session of subscribed.sessions) {
       for (const element of session.elements) {
         switch (element.kind) {
           case "dragGuide":
@@ -78,25 +84,27 @@ export function TutorialOverlay() {
           if (lastAck.current[ackId] === ackKey) continue;
           lastAck.current[ackId] = ackKey;
           void dispatchAction("tutorial.anchor_ack", {
-            tutorialSessionId: target.tutorialSessionId, revision: presentation.revision,
+            tutorialSessionId: target.tutorialSessionId, revision: presentationRef.current?.revision ?? subscribed.revision,
             elementId: target.elementId, anchorId,
             status: value.status, reason: value.reason,
           });
         }
       })));
-  }, [presentation]);
+  }, [subscriptionSignature]);
 
   if (!presentation) return null;
   return <div className={styles.overlay} data-testid="tutorial-overlay">
-    {/* keyControlはanchorを持たず下中央HUDが描画するため、列挙前に除外する */}
-    {/* keyControl has no anchor and is rendered by the bottom-center HUD, so it is filtered out before iteration */}
-    {presentation.sessions.flatMap((session) => session.elements.filter(isAnchoredElement).map((element) => {
+    {presentation.sessions.flatMap((session) => session.elements.map((element) => {
       const key = tutorialElementKey(session.tutorialSessionId, element.elementId);
       switch (element.kind) {
         case "outline":
           return renderOutline(key, element, resolved[element.anchorId], t);
         case "dragGuide":
           return renderDragGuide(key, resolved[element.fromAnchorId], resolved[element.toAnchorId]);
+        case "keyControl":
+          // keyControlはanchorを持たず下中央HUDが描画する
+          // keyControl has no anchor and is rendered by the bottom-center HUD
+          return null;
         default:
           return assertNever(element);
       }
@@ -119,11 +127,18 @@ function renderOutline(key: string, element: TutorialOutlineElement, value: Reso
   const outline = <div key={key} className={styles.highlight} data-kind={element.kind}
     style={{ left: box.left, top: box.top, width: box.right - box.left, height: box.bottom - box.top, clipPath }} />;
   if (!element.labelTutorialGuid) return outline;
+  // 枠線が祖先クリップで1pxでも削られるならラベルは出さない(半端に切れた文言より非表示が安全)
+  // Skip the label as soon as the ancestor clip shaves the outline at all; a half-cut sentence is worse than none
+  if (isClipped(box, value.clip)) return outline;
+  // 辞書解決が空ならラベル面ごと出さない
+  // An empty dictionary result renders no label face at all
+  const labelText = t(challengeTutorialTextKey(element.labelTutorialGuid));
+  if (!labelText) return outline;
   // ラベルは枠線下辺外側左揃え配置
   // Label sits left-aligned below the outline
   const label = <div key={`${key}:label`} className={styles.highlightLabel} data-testid="tutorial-highlight-label"
     style={{ left: box.left, top: box.bottom }}>
-    {t(challengeTutorialTextKey(element.labelTutorialGuid))}
+    {labelText}
   </div>;
   return [outline, label];
 }
@@ -141,6 +156,12 @@ function renderDragGuide(key: string, from: ResolvedAnchor | undefined, to: Reso
       <path d="M6 3 L18 12 L11 13.5 L13.5 20 L10.5 21 L8 14.5 L3 18 Z" />
     </svg>
   </div>;
+}
+
+// ラベルはclip-pathを持たないため、枠線がどこかで削られている時点で描かない判定に使う
+// The label carries no clip-path, so this decides to skip it the moment the outline is cut anywhere
+function isClipped(box: ClipRect, clip: ClipRect): boolean {
+  return clip.left > box.left || clip.top > box.top || clip.right < box.right || clip.bottom < box.bottom;
 }
 
 // 矩形とクリップは参照ではなく値で比較する。同値の再解決で再描画させないため
@@ -169,10 +190,4 @@ function keepSubscribed(current: Record<string, ResolvedAnchor>, anchorIds: Set<
 
 function combine(disposers: Array<() => void>) {
   return () => disposers.forEach((dispose) => dispose());
-}
-
-// 種別を足したら網羅漏れをコンパイル時に落とす
-// Adding a kind breaks compilation here instead of silently falling through
-function assertNever(value: never): never {
-  throw new Error(`Unhandled tutorial overlay element: ${JSON.stringify(value)}`);
 }

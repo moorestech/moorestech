@@ -17,6 +17,12 @@ export function screenForUiState(state: string | null, subState?: string): UiScr
   return "none";
 }
 
+// マスタ由来のuiState名がUnityのUIStateEnum語彙に載っているか。載らない値は照合せず捨てる
+// Whether a master-authored uiState name exists in Unity's UIStateEnum vocabulary; unlisted values never match
+export function isKnownUiStateName(name: string): boolean {
+  return (Object.values(UiStateNames) as string[]).includes(name);
+}
+
 // ホットバー選択を消費するのは GameScreen と PlaceBlock だけ（C#側 HotbarSelectActionHandler と同一条件）
 // Only GameScreen and PlaceBlock consume a hotbar selection; mirrors the C# HotbarSelectActionHandler gate
 export function uiStateAcceptsHotbarSelect(state: string | null): boolean {
