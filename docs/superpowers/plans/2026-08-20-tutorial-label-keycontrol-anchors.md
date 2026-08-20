@@ -310,7 +310,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `TutorialPresentationStateStore.AddKeyControlHint(string,string,string)`（Task A2）、生成型 `KeyControlTutorialParam.KeyName/UiState`（Task A1）
 - Produces: `KeyControlTutorialManager : MonoBehaviour, ITutorialViewManager`（`ITutorialView` 実装と `ClearPresentation()` は削除）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `KeyControlTutorialManagerTest.cs`（`UiDragGuideTutorialManagerTest.cs` と同型。TestMod の challenges.json 先頭tutorialを keyControl に差し替えて読み込む）:
 
@@ -419,14 +419,14 @@ namespace Client.Tests.UnitTest.Tutorial
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: 既存 `KeyControlTutorialManager.ApplyTutorial` は `this` を返す旧実装なので、テスト自体はコンパイルは通る。次に Step 4 の実行で失敗（`KeyControls()` が増えない）を確認する。
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "KeyControlTutorialManagerTest"`
 Expected: FAIL（要素が公開されない）。
 
-- [ ] **Step 3: KeyControlTutorialManager を書き換える**
+- [x] **Step 3: KeyControlTutorialManager を書き換える**
 
 全面置換:
 
@@ -462,17 +462,17 @@ namespace Client.Game.InGame.Tutorial
 
 `KeyControlDescription.Instance.SetOverrideText/ClearOverrideText` の呼び出し元が他に無いことを確認する（`grep -rn "OverrideText" moorestech_client/Assets/Scripts`）。無ければ `KeyControlDescription.cs` の `SetOverrideText`/`ClearOverrideText`/`_overrideText` を削除し `RefreshText` を `_defaultText` のみにする（デバッグ/未使用publicを残さない規約）。
 
-- [ ] **Step 4: prefab の旧SerializeField参照を確認する**
+- [x] **Step 4: prefab の旧SerializeField参照を確認する**
 
 `KeyControlTutorialManager` から `keyControlUIObject` / `keyControlTutorialText` が消える。シーン/プレハブ側の参照はUnityが無視するが、Console に「missing serialized field」系の警告が出ないことを `uloop get-logs --project-path ./moorestech_client --log-type Warning` で確認する。出る場合は `uloop execute-dynamic-code` で該当コンポーネントの SerializedObject を更新して保存する（テキスト編集禁止）。
 
-- [ ] **Step 5: コンパイル・テスト**
+- [x] **Step 5: コンパイル・テスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → errors 0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "KeyControlTutorialManagerTest|TutorialPresentationStateStoreTest|UiDragGuideTutorialManagerTest|VeinPinTutorialTest"`
 Expected: 全PASS。
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Tutorial moorestech_client/Assets/Scripts/Client.Game/InGame/UI/KeyControl/KeyControlDescription.cs moorestech_client/Assets/Scripts/Client.Tests/UnitTest/Tutorial/KeyControlTutorialManagerTest.cs*
