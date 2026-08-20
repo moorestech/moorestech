@@ -8,7 +8,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 
-namespace Client.Tests.WebUi
+namespace Client.Tests.WebUi.Research
 {
     /// <summary>
     /// 実マスタ直叩き回帰試験（前例あり）
@@ -16,8 +16,8 @@ namespace Client.Tests.WebUi
     /// </summary>
     public class ResearchNodeDtoFactoryTest
     {
-        // unlockBlock/machineRecipe用ノード
-        // Node for unlockBlock/machineRecipe
+        // 解放種別カバレッジ用ノード
+        // Node covering the unlock kinds
         private static readonly Guid CoverageNodeGuid = Guid.Parse("bb000000-0000-4000-8000-000000000001");
 
         [Test]
@@ -42,8 +42,8 @@ namespace Client.Tests.WebUi
 
             var dto = ResearchNodeDtoFactory.Create(master, new Dictionary<Guid, ResearchNodeState>());
 
-            // 4レシピすべてがレシピ単位DTOとして残る（平坦化・重複排除で消えない）
-            // All 4 recipes survive as separate per-recipe DTOs (no flattening/dedup drops them)
+            // 4レシピが平坦化されず個別に残る
+            // All 4 recipes survive individually, unflattened
             Assert.AreEqual(4, dto.UnlockMachineRecipes.Count);
 
             // (a) 通常出力: item 3個
@@ -62,8 +62,8 @@ namespace Client.Tests.WebUi
             var multiOutput = dto.UnlockMachineRecipes.Single(r => r.RecipeGuid == "ad81ded0-8b7f-40ab-85e3-cff4108479da");
             Assert.AreEqual(2, multiOutput.OutputItemIds.Count);
 
-            // (d) 出力アイテム0件・液体のみのレシピが消失せず、OutputFluidsへ現れる
-            // (d) an item-output-less, fluid-only recipe survives and appears under OutputFluids
+            // (d) 液体のみレシピも残存
+            // (d) a fluid-only recipe survives too
             var fluidOnly = dto.UnlockMachineRecipes.Single(r => r.RecipeGuid == "aa000000-0000-4000-8000-00000000fee1");
             CollectionAssert.IsEmpty(fluidOnly.OutputItemIds);
             Assert.AreEqual(1, fluidOnly.OutputFluids.Count);
@@ -80,14 +80,14 @@ namespace Client.Tests.WebUi
 
             var dto = ResearchNodeDtoFactory.Create(master, new Dictionary<Guid, ResearchNodeState>());
 
-            // 他の解放/報酬種別は空のまま
-            // Every other unlock/reward kind stays empty
+            // 解放種別ごとに対応先セクションが入れ替わっていないことを実マスタで押さえる
+            // Pin each unlock kind to its own section against the real master
             Assert.AreEqual(1, dto.UnlockBlocks.Count);
             Assert.AreEqual(4, dto.UnlockMachineRecipes.Count);
+            CollectionAssert.AreEqual(new[] { "cc000000-0000-4000-8000-000000000001" }, dto.UnlockConnectToolGuids);
+            CollectionAssert.AreEqual(new[] { "dc82cf3f-709d-49eb-bdb2-67ffcaff561b" }, dto.UnlockTrainCarGuids);
             CollectionAssert.IsEmpty(dto.UnlockItemRecipeViewItemIds);
             CollectionAssert.IsEmpty(dto.RewardItems);
-            CollectionAssert.IsEmpty(dto.UnlockConnectToolGuids);
-            CollectionAssert.IsEmpty(dto.UnlockTrainCarGuids);
         }
     }
 }

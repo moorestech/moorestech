@@ -19,9 +19,9 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class CompleteResearchProtocolTest
     {
-        // ForUnitTestのresearch.json定義ノード数（スロット・スタックレベル解放ノード含む）
-        // Node count defined in ForUnitTest research.json (includes slot and stack level unlock nodes)
-        private const int ResearchNodeCount = 6;
+        // ノード数はマスタから導出する（フィクスチャ追加で赤にならないため）
+        // Derive the node count from the master so fixture additions cannot turn this red
+        private static int ResearchNodeCount => MasterHolder.ResearchMaster.GetAllResearches().Count;
 
         [Test]
         public void CompleteResearchTest()
