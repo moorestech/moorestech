@@ -35,6 +35,10 @@ namespace Client.Input
         
         public static void MouseCursorVisible(bool isVisible)
         {
+            // ロック中はカーソル座標が凍結するため、どの経路からのロックでも直前に中央へ寄せてクロスヘアと一致させる
+            // The cursor freezes while locked, so every lock path centers it first to match the crosshair
+            if (!isVisible) WarpMouseCursorToScreenCenter();
+
             Cursor.visible = isVisible;
             Cursor.lockState = isVisible ? CursorLockMode.None : CursorLockMode.Locked;
         }

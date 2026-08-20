@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { L } from "@/shared/i18n";
-import { resolveNotificationKey, resolveNotificationParams, buildInterpolationValues } from "./notificationMessages";
+import { resolveNotificationKey, resolveNotificationParams, buildInterpolationValues, resolveNotificationText } from "./notificationMessages";
 
 describe("notificationMessages", () => {
   it("既知のmessageIdは型付きキーを返す", () => {
@@ -11,12 +11,27 @@ describe("notificationMessages", () => {
   it("未知のmessageIdは専用キーで可視化する", () => {
     expect(resolveNotificationKey("unknown.id")).toBe(L.ui.notification.unknownMessage);
   });
+  it("獲得通知は専用キーを返す", () => {
+    expect(resolveNotificationKey("itemEarned.mined")).toBe(L.ui.notification.itemEarned);
+  });
   it("messageIdとparamsを補間値へ変換する", () => {
     expect(buildInterpolationValues("known.id", ["a", "b"])).toEqual({
       messageId: "known.id",
       p0: "a",
       p1: "b",
     });
+  });
+  it("countを補間するのは獲得通知だけ", () => {
+    const translate = (key: string) => `resolved:${key}`;
+    expect(resolveNotificationText(
+      { category: "itemEarned", messageId: "itemEarned.mined", messageParams: [], itemId: 7, count: 8, id: 1, lifetimeEpoch: 0 },
+      translate,
+    )).toEqual({ key: L.ui.notification.itemEarned, values: { messageId: "itemEarned.mined", count: 8 } });
+
+    expect(resolveNotificationText(
+      { category: "operationDenied", messageId: "denied.craftResultFull", messageParams: ["a"], itemId: null, id: 2, lifetimeEpoch: 0 },
+      translate,
+    )).toEqual({ key: L.ui.notification.craftResultFull, values: { messageId: "denied.craftResultFull", p0: "a" } });
   });
   it("Guidパラメータ通知はcontentキーで表示名へ解決する", () => {
     const guid = "13C3D42F-BBBC-5EB4-8CD0-7B841EF53079";

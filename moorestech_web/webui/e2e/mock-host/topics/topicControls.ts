@@ -55,13 +55,11 @@ const controls = {
     visible: true,
     textKey: L.ui.tooltip.worldTarget,
     textParams: [],
-    fontSize: 18,
   }),
   tooltipHidden: () => control(Topics.tooltip, {
     visible: false,
     textKey: "",
     textParams: [],
-    fontSize: 14,
   }),
   pauseConnected: () => control(Topics.pauseMenu, { disconnected: false }),
   pauseDisconnected: () => control(Topics.pauseMenu, { disconnected: true }),
@@ -78,6 +76,10 @@ const controls = {
   notificationAchievement: () => control(Topics.notification, { seq: 1, category: "achievement", messageId: "achievement.researchCompleted", messageParams: ["11111111-1111-4111-8111-111111111111"], itemId: 1 }),
   notificationItemUnlocked: () => control(Topics.notification, { seq: 2, category: "achievement", messageId: "achievement.unlockedItem", messageParams: [], itemId: 2 }),
   notificationDenied: () => control(Topics.notification, { seq: 3, category: "operationDenied", messageId: "denied.researchNotCompletable", messageParams: [], itemId: null }),
+  // seqを分けて2発目を届かせる
+  // Distinct seqs let the second delivery land
+  notificationItemEarned: () => control(Topics.notification, { seq: 4, category: "itemEarned", messageId: "itemEarned.mined", messageParams: [], itemId: 2, count: 5 }),
+  notificationItemEarnedAgain: () => control(Topics.notification, { seq: 5, category: "itemEarned", messageId: "itemEarned.mined", messageParams: [], itemId: 2, count: 3 }),
   // 後片付け用の空値リセット口
   // Reset hook for spec teardown
   notificationClear: () => control(Topics.notification, {}),
@@ -94,6 +96,11 @@ const controls = {
     }],
   }),
   tutorialEmpty: () => control(Topics.tutorialPresentation, { revision: 0, sessions: [] }),
+  // DEMO時のinventory topicはdemoInventory(itemId1=木材を含まない)へ差し替わるため、
+  // 研究ツリーfixtureが前提とする所持itemId1×15を復元する（研究可能状態の目視QA用）
+  // The demo-mode inventory topic swaps to demoInventory (no itemId1/wood), so restore the
+  // owned itemId1×15 the research tree fixture assumes (needed for the researchable-state visual QA)
+  researchOwnedItems: () => control(Topics.inventory, clone(fx.inventory)),
 };
 export type TopicScenario = keyof typeof controls;
 

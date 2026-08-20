@@ -6,6 +6,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using MessagePack;
 using Server.Event.Notification;
+using UnityEngine;
 
 namespace Client.WebUiHost.Game.Topics
 {
@@ -40,14 +41,26 @@ namespace Client.WebUiHost.Game.Topics
         private void OnNotification(byte[] payload)
         {
             var message = MessagePackSerializer.Deserialize<NotificationMessagePack>(payload);
+
+            // throwは購読パイプを貫き配信を止める
+            // A throw would pierce the subscription pipe and halt all event delivery
+            if (!NotificationCategoryTable.TryGetWebName(message.Category, out var webCategory))
+            {
+                Debug.LogWarning($"[NotificationTopic] dropped notification with unknown category: {message.Category}");
+                return;
+            }
+
             _seq++;
             var dto = new NotificationDto
             {
                 Seq = _seq,
-                Category = message.Category == NotificationCategory.Achievement ? "achievement" : "operationDenied",
+                Category = webCategory,
                 MessageId = message.MessageId,
                 MessageParams = message.MessageParams,
                 ItemId = message.ItemId == ItemMaster.EmptyItemId ? null : (int?)message.ItemId.AsPrimitive(),
+                // countは獲得通知だけが持つ。他カテゴリはキーごと省略しWeb側の判別unionを保つ
+                // Only earned notifications carry a count; other categories omit the key entirely to keep the web's discriminated union honest
+                Count = message.Category == NotificationCategory.ItemEarned ? message.Count : (int?)null,
             };
             _hub.Publish(TopicName, WebUiJson.Serialize(dto));
         }
@@ -60,5 +73,6 @@ namespace Client.WebUiHost.Game.Topics
         public string MessageId;
         public string[] MessageParams;
         public int? ItemId;
+        public int? Count;
     }
 }

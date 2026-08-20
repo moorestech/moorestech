@@ -24,6 +24,9 @@ namespace Client.Tests.UIState.CameraPolicy
         public void GameplayZoneAlwaysCameraLookAndIgnoresViewToggle()
         {
             _service.EnterGameplay();
+
+            // ロック直前の中央寄せはInputManagerが担うため、ここではモード指定だけが見える
+            // InputManager owns the centering right before the lock, so only the mode push is visible here
             CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, _applier.Calls);
 
             // 視点切替でも再適用なし
