@@ -176,12 +176,19 @@ properties:
                   options:
                   - GameScreen
                   - PlayerInventory
-                  - BlockInventory
+                  - SubInventory
                   - PauseMenu
                   - DeleteBar
                   - Story
                   - PlaceBlock
+                  - ChallengeList
+                  - ResearchTree
+                  - TrainHUDScreen
+                  - BuildMenu
                   default: GameScreen
+                - key: keyName
+                  type: string
+                  default: Tab
                 - key: controlText
                   type: string
                   default: control text
