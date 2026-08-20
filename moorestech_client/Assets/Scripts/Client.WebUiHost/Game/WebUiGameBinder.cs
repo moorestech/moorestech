@@ -133,9 +133,9 @@ namespace Client.WebUiHost.Game
             var itemListTopic = new RecipeViewerItemListTopic(hub, recipeContainer);
             hub.RegisterTopic(RecipeViewerItemListTopic.TopicName, itemListTopic);
 
-            // 研究ツリートピックを登録（表示可否は ui_state.current 側で判定）
-            // Register the research-tree topic (visibility is decided by ui_state.current)
-            var researchTopic = new ResearchTopic(hub, uiStateControl);
+            // 研究ツリートピックを登録（充足の正本はサーバーstateなので所持変化でも取り直す）
+            // Register the research-tree topic (server state owns sufficiency, so inventory moves refetch too)
+            var researchTopic = new ResearchTopic(hub, uiStateControl, controller);
             hub.RegisterTopic(ResearchTopic.TopicName, researchTopic);
 
             // チャレンジツリーと常駐HUDは同じイベント駆動状態を共有する

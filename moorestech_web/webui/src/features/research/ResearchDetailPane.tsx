@@ -3,14 +3,14 @@ import { dispatchAction } from "@/bridge";
 import { GamePanel, ItemSlot } from "@/shared/ui";
 import { ownedCountOf } from "@/shared/ownedCounts";
 import { deriveResearchButton, isConsumeItemLacking } from "./researchLogic";
-import UnlockSections from "./UnlockSections";
+import UnlockSections from "./unlock/UnlockSections";
 import {
   L,
   researchDescriptionKey,
   researchNameKey,
   useI18n,
-  useMaterialTooltipText,
 } from "@/shared/i18n";
+import { useMaterialTooltipText } from "@/shared/materialTooltipText";
 import styles from "./style.module.css";
 
 type Props = {
@@ -24,7 +24,7 @@ type Props = {
 export default function ResearchDetailPane({ node, owned, onClose }: Props) {
   const { t } = useI18n();
   const materialTooltipText = useMaterialTooltipText();
-  const button = deriveResearchButton(node, owned);
+  const button = deriveResearchButton(node);
   return (
     <div className={styles.detailPane} data-testid="research-detail-pane">
       <GamePanel variant="craft">
@@ -44,7 +44,7 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
                   const lacking = isConsumeItemLacking(node, c.itemId, c.count, owned);
                   return (
                     <div key={`consume-${c.itemId}-${i}`} className={styles.consumeSlot}>
-                      <ItemSlot itemId={c.itemId} count={c.count}
+                      <ItemSlot itemId={c.itemId}
                         insufficient={lacking}
                         tooltip={owned
                           ? <span style={{ whiteSpace: "pre-line" }}>

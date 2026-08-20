@@ -62,10 +62,11 @@ describe("ResearchDetailPane", () => {
     expect(rendered).toContain(`research.${researchGuid}.description`);
   });
 
-  it("不足時はボタン非活性で理由を表示し、閉じるでonCloseが呼ばれる", () => {
+  it("サーバーstateがアイテム不足ならボタン非活性で理由を表示し、閉じるでonCloseが呼ばれる", () => {
     const onClose = vi.fn();
+    const lackingNode: ResearchNodeData = { ...node, state: "unresearchableNotEnoughItem" };
     const renderer = create(createElement(ResearchDetailPane, {
-      node, owned: new Map(), onClose,
+      node: lackingNode, owned: new Map(), onClose,
     }));
     expect(renderer.root.findByProps({ "data-testid": `research-button-${researchGuid}` }).props.disabled).toBe(true);
     expect(renderer.root.findByProps({ "data-testid": "research-detail-reason" })).toBeTruthy();
@@ -111,6 +112,42 @@ describe("ResearchDetailPane", () => {
       node: completedNode, owned: new Map(), onClose: () => {},
     }));
     expect(renderer.root.findByType("mock-item-slot" as never).props.insufficient).toBe(false);
+  });
+
+  it("機械レシピはアイテム出力と液体出力を両方描く（混在レシピの液体を落とさない）", () => {
+    const nodeWithRecipes: ResearchNodeData = {
+      ...node,
+      unlockMachineRecipes: [
+        // アイテムと液体を同時に出すレシピ（排他分岐なら液体が消える）
+        // A recipe emitting both an item and a fluid (an exclusive branch would drop the fluid)
+        { recipeGuid: "86000000-0000-4000-8000-0000000000a1", outputItemIds: [11], outputFluids: [{ fluidId: 5, fluidGuid: "86000000-0000-4000-8000-0000000000f1", amount: 300 }] },
+        // 液体のみのレシピ
+        // A fluid-only recipe
+        { recipeGuid: "86000000-0000-4000-8000-0000000000a2", outputItemIds: [], outputFluids: [{ fluidId: 6, fluidGuid: "86000000-0000-4000-8000-0000000000f2", amount: 100 }] },
+      ],
+    };
+    const renderer = create(createElement(ResearchDetailPane, {
+      node: nodeWithRecipes, owned: new Map([[1, 2]]), onClose: () => {},
+    }));
+    const section = renderer.root.findByProps({ "data-testid": "research-unlock-machine-recipes" });
+    expect(section.findAllByType("mock-item-slot" as never)).toHaveLength(1);
+    expect(section.findAllByProps({ "data-testid": "research-unlock-fluid" })).toHaveLength(2);
+  });
+
+  it("itemRecipeView解放とconnectTool/trainCarのテキスト行が並ぶ", () => {
+    const nodeWithOthers: ResearchNodeData = {
+      ...node,
+      unlockItemRecipeViewItemIds: [21],
+      unlockConnectToolGuids: ["86000000-0000-4000-8000-0000000000c1"],
+      unlockTrainCarGuids: ["86000000-0000-4000-8000-0000000000c2"],
+    };
+    const renderer = create(createElement(ResearchDetailPane, {
+      node: nodeWithOthers, owned: new Map([[1, 2]]), onClose: () => {},
+    }));
+    expect(renderer.root.findByProps({ "data-testid": "research-unlock-items" })
+      .findAllByType("mock-item-slot" as never)).toHaveLength(1);
+    expect(renderer.root.findByProps({ "data-testid": "research-unlock-others" })
+      .findAllByType("p")).toHaveLength(2);
   });
 
   it("解放ブロックがあればBlockSlotで描画される", () => {

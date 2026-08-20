@@ -2,18 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Research;
+using UniRx;
 
 namespace Client.WebUiHost.Game.Topics
 {
     /// <summary>
-    /// research.tree トピック: 研究マスタ + サーバー状態を合成して push（ResearchTree 突入時に再取得）
-    /// research.tree topic: merges research master with server states and pushes (refetch on entering ResearchTree)
+    /// research.tree トピック: 研究マスタ + サーバー状態を合成して push（突入時と所持変化で再取得）
+    /// research.tree topic: merges research master with server states and pushes (refetch on entry and inventory change)
     /// </summary>
     public class ResearchTopic : ITopicHandler, IDisposable
     {
@@ -21,11 +23,13 @@ namespace Client.WebUiHost.Game.Topics
 
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
+        private readonly IDisposable _inventorySubscription;
         private Dictionary<Guid, ResearchNodeState> _nodeStates = new();
         private CancellationTokenSource _cts;
+        private bool _researchScreenActive;
         private bool _disposed;
 
-        public ResearchTopic(WebSocketHub hub, UIStateControl uiStateControl)
+        public ResearchTopic(WebSocketHub hub, UIStateControl uiStateControl, LocalPlayerInventoryController inventoryController)
         {
             _hub = hub;
             _uiStateControl = uiStateControl;
@@ -33,6 +37,12 @@ namespace Client.WebUiHost.Game.Topics
             // state遷移を購読し、ResearchTree 突入で状態を取り直す
             // Subscribe to state transitions and refetch states on entering ResearchTree
             _uiStateControl.OnStateChanged += OnStateChanged;
+
+            // 充足の正本はサーバーstateなので、所持が動いたら研究画面表示中は取り直す
+            // Server state owns sufficiency, so refetch on inventory moves while the research screen is up
+            _inventorySubscription = new CompositeDisposable(
+                inventoryController.LocalPlayerInventory.OnItemChange.Subscribe(_ => RefreshWhileResearchScreenActive()),
+                inventoryController.OnInventoryRefreshed.Subscribe(_ => RefreshWhileResearchScreenActive()));
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -44,6 +54,7 @@ namespace Client.WebUiHost.Game.Topics
         {
             _disposed = true;
             _uiStateControl.OnStateChanged -= OnStateChanged;
+            _inventorySubscription.Dispose();
             _cts?.Cancel();
             _cts?.Dispose();
         }
@@ -60,7 +71,21 @@ namespace Client.WebUiHost.Game.Topics
         {
             // ResearchTree 突入時のみサーバーから最新状態を取り直す（uGUI と同じ駆動）
             // Refetch server states only on entering ResearchTree (same trigger as uGUI)
-            if (state != UIStateEnum.ResearchTree) return;
+            _researchScreenActive = state == UIStateEnum.ResearchTree;
+            if (!_researchScreenActive) return;
+            StartRefresh();
+        }
+
+        // 研究画面を見ていない間の所持変化は、次の突入時の取り直しで足りる
+        // Inventory moves while the screen is closed are covered by the refetch on the next entry
+        private void RefreshWhileResearchScreenActive()
+        {
+            if (!_researchScreenActive) return;
+            StartRefresh();
+        }
+
+        private void StartRefresh()
+        {
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = new CancellationTokenSource();
