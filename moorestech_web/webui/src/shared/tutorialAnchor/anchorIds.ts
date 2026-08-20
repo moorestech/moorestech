@@ -16,6 +16,7 @@ export const TutorialAnchorIds = {
   challengePanel: "challenge.panel",
   challengeCategories: "challenge.categories",
   hotbarHud: "hotbar.hud",
+  equipmentHud: "equipment.hud",
   equipmentSelectedSlot: "equipment.selected-slot",
 } as const;
 

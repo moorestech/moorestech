@@ -53,7 +53,7 @@ test("常駐HUDをインベントリ・メニュー・操作モードで維持�
   // Separate operation cues from the resident HUD
   await setTopicScenario(page, "placement");
   await setUiState(page, "PlaceBlock");
-  const placementHud = page.locator('[data-tutorial-anchor="placement.hud"]');
+  const placementHud = page.locator('[data-tutorial-anchor~="placement.hud"]');
   const challengeHud = page.getByTestId("challenge-hud");
   await expect(placementHud).toBeVisible();
   await expectChallengeHudPresentation(page, initialWorldPresentation);

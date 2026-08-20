@@ -126,7 +126,7 @@ test("ホットバーHUDの上でもホイールで装備が切り替わる", as
 test("画面中央のクロスヘアの上でもホイールで装備が切り替わる", async ({ page }) => {
   await setUiState(page, "GameScreen");
   await page.goto("/");
-  await expect(page.locator('[data-tutorial-anchor="game.crosshair"]')).toBeVisible();
+  await expect(page.locator('[data-tutorial-anchor~="game.crosshair"]')).toBeVisible();
   const before = (await payloadsOf(page, "inventory.select_equipment")).length;
 
   const viewport = page.viewportSize()!;

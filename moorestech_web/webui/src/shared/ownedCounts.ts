@@ -11,6 +11,17 @@ export function buildOwnedCounts(slots: SlotData[]): Map<number, number> {
   return owned;
 }
 
+// 重複時は先頭スロットのみアンカーを担当
+// Duplicate anchors never resolve, so only the first owned slot per item carries it
+export function firstSlotIndexByItemId(slots: ReadonlyArray<SlotData>): Map<number, number> {
+  const result = new Map<number, number>();
+  slots.forEach((slot, index) => {
+    if (slot.itemId <= 0 || slot.count <= 0 || result.has(slot.itemId)) return;
+    result.set(slot.itemId, index);
+  });
+  return result;
+}
+
 type ItemRequirement = { itemId: number; count: number };
 
 // 全必要アイテムを所持数が満たすか判定する

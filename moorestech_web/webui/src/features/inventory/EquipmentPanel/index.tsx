@@ -86,10 +86,17 @@ export default function EquipmentPanel() {
   // Hide the whole HUD until the first snapshot, matching HotbarPanel
   if (!inventory) return null;
 
+  // 素手でも解決するHUD自体のアンカーを常時出す
+  // The HUD's own anchor stays mounted so it resolves even with bare hands
   // クリックは他のスロットと同じアイテム移動。装備の選択はホイール専用にする
   // Clicks are ordinary item moves like every other slot; equipment selection belongs to the wheel alone
   return (
-    <div className={styles.equipmentArea} data-testid="equipment-slots" data-wheel-passthrough>
+    <div
+      className={styles.equipmentArea}
+      data-testid="equipment-slots"
+      data-wheel-passthrough
+      {...tutorialAnchor(TutorialAnchorIds.equipmentHud)}
+    >
       {inventory.equipment.map((slot, i) => {
         const ref: SlotRef = { area: "equipment", slot: i };
         // 選択枠は動くので選択アンカーも同居

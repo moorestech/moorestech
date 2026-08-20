@@ -5,7 +5,7 @@ import type { SlotRef } from "@/bridge";
 import { slotActions } from "../slotActions";
 import { L, useI18n } from "@/shared/i18n";
 import { inventoryItemAnchorId, tutorialAnchor } from "@/shared/tutorialAnchor";
-import { firstSlotIndexByItemId } from "../inventoryItemAnchors";
+import { firstSlotIndexByItemId } from "@/shared/ownedCounts";
 
 // 固定pxでピッチの端数ドリフトを防ぐ
 // Use fixed-pixel slots and gaps to prevent fractional drift from the 140px screenshot pitch

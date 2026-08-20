@@ -14,6 +14,7 @@
     "challenge.panel",
     "challenge.categories",
     "hotbar.hud",
+    "equipment.hud",
     "equipment.selected-slot"
   ],
   "dynamicPrefixes": {

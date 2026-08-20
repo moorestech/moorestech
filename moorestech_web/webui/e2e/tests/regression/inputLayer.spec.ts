@@ -29,5 +29,5 @@ test("GameScreenのホイールは最新equipment値から次スロットを選�
   // fixture の selectedEquipment:-1（素手）から1段進むと先頭スロットが選ばれる
   // Stepping once from the fixture's selectedEquipment:-1 (bare hands) selects the first slot
   await expect.poll(() => payloadsOf(page, "inventory.select_equipment")).toContainEqual({ index: 0 });
-  await expect(equipment.locator("> div").nth(0)).toHaveAttribute("data-selected", "true");
+  await expect(equipment.locator("> div > div").nth(0)).toHaveAttribute("data-selected", "true");
 });

@@ -101,7 +101,7 @@ describe("EquipmentPanel のクリック受付", () => {
       .findAll((node) => typeof node.props["data-tutorial-anchor"] === "string")
       .map((node) => node.props["data-tutorial-anchor"] as string);
 
-    expect(anchors).toEqual(["equipment.slot-0", "equipment.slot-1 equipment.selected-slot"]);
+    expect(anchors).toEqual(["equipment.hud", "equipment.slot-0", "equipment.slot-1 equipment.selected-slot"]);
   });
 
   it("GameScreen 中も同様にクリックを受けない", () => {

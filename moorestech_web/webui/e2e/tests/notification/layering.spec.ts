@@ -24,7 +24,7 @@ test("インベントリを開いている間、通知はパネルの描画を�
 
   // スロット面は半透明で背面でも透けるため、実際に不透明なスロット（アイテム持ち・選択枠なし・不足表示なし）だけを比較先に固定する
   // Slot faces are translucent and show through even when behind, so pin comparisons to slots that are actually opaque (filled, unselected, sufficient)
-  const opaqueFilledSlots = grid.locator('> div[data-filled="true"]:not([data-insufficient="true"]):not([data-selected="true"])');
+  const opaqueFilledSlots = grid.locator('> div > div[data-filled="true"]:not([data-insufficient="true"]):not([data-selected="true"])');
   const opaqueCount = await opaqueFilledSlots.count();
   expect(opaqueCount).toBeGreaterThan(0);
 
