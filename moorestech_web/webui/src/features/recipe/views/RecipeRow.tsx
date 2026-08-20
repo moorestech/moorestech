@@ -3,12 +3,11 @@ import { Box } from "@mantine/core";
 import { ProgressArrowGlyph } from "@/shared/ui";
 import styles from "./RecipeBox.module.css";
 
-// 3点以上は2行へ折り返す。1行のまま縮めると個数テキストが読めない寸法(実測6.2px)まで落ちるため
-// Three or more wrap to two rows; keeping one row shrinks the count text to an unreadable size (measured 6.2px)
-const WRAP_THRESHOLD = 3;
-// 列が3本以上になって初めてスロットが上限を割り、個数テキストの連動縮小が要る
-// Only at three or more columns does the slot drop below its cap, requiring the linked count-text shrink
-const DENSE_COLUMN_COUNT = 3;
+// 折り返し後の列数は2で固定し、点数が増えたぶんは行が増える（3点=横2縦2、6点=横2縦3。ユーザー裁定 2026-08-20）。
+// 列を増やす向きに折り返すとスロットが縮んで個数テキストが読めなくなる（実測6.2px）
+// Wrapping keeps two columns and grows rows instead (3 items = 2x2, 6 items = 2x3; user ruling 2026-08-20).
+// Wrapping the other way adds columns, which shrinks slots until the count text is unreadable (measured 6.2px)
+const MAX_SLOT_COLUMNS = 2;
 
 type Props = {
   testId: string;
@@ -34,33 +33,31 @@ type Props = {
 // The basis is cqw (the column's own width); % is circular because the slot's parent is content-sized, which
 // measured out at 0.8px
 function slotLayout(count: number) {
-  const rows = count >= WRAP_THRESHOLD ? 2 : 1;
-  const columns = Math.ceil(count / rows);
+  const columns = Math.min(count, MAX_SLOT_COLUMNS);
   // 列幅はautoでスロット実寸に追従させる。--slot-sizeをこの要素自身のgrid-template-columnsで使うと
-  // cqwが祖先のコンテナを見にいって解決に失敗し、実測でスロットが縮まず36.8pxのまま溢れた
+  // cqwが祖先のコンテナを見にいって解決に失敗し、実測でスロットが縮まず溢れた
   // Columns are auto so they follow the slot's real size; using --slot-size in this element's own
   // grid-template-columns makes cqw resolve against an ancestor container instead, which measured out as
-  // slots stuck at 36.8px and overflowing
-  const style = {
+  // slots stuck at their cap and overflowing
+  return {
     gridTemplateColumns: `repeat(${columns}, auto)`,
     "--slot-size": `min(var(--recipe-slot-size-max), calc((100cqw - ${columns - 1} * var(--recipe-slot-gap)) / ${columns}))`,
   } as CSSProperties;
-  return { style, dense: columns >= DENSE_COLUMN_COUNT || undefined };
 }
 
 // 共通レシピ行骨格。幾何値をここに集約
 // Shared recipe-row frame; keeps measured geometry in one place
 export default function RecipeRow({ testId, materials, arrowValue, arrowTestId, duration, action, result }: Props) {
-  const materialLayout = slotLayout(materials.length);
-  const resultLayout = slotLayout(result.length);
+  const materialStyle = slotLayout(materials.length);
+  const resultStyle = slotLayout(result.length);
 
   return (
     // 素材点数で矢印列がズレるためgridで3カラムの列位置を固定する
     // A grid pins the 3 columns; space-between let the arrow drift with material count
     <div className={styles.recipeBox} data-testid={testId}>
-      {/* 3点以上は2行へ折り返し、収まらない分だけスロットを縮めて中心の矢印・ボタンへ食い込ませない */}
-      {/* Three or more wrap to two rows; slots shrink only as far as needed so they never reach the centered arrow and button */}
-      <div className={styles.recipeMaterials} style={materialLayout.style} data-dense={materialLayout.dense}>{materials}</div>
+      {/* 3点以上は2列のまま行を増やす。列が増えないためスロットは常にフルサイズを保てる */}
+      {/* Three or more keep two columns and add rows; with the column count fixed the slots stay full size */}
+      <div className={styles.recipeMaterials} style={materialStyle}>{materials}</div>
       {/* 中央列は秒数→矢印→操作の縦積み。旧機械レシピUIと同じ並び */}
       {/* The center column stacks duration, arrow, then action, matching the old machine-recipe UI */}
       <Box className={styles.recipeArrowCol}>
@@ -70,7 +67,7 @@ export default function RecipeRow({ testId, materials, arrowValue, arrowTestId, 
       </Box>
       {/* 出力も素材と同じ折り返し規則で並べる（ユーザー裁定 2026-08-20） */}
       {/* Results follow the same wrapping rule as materials (user ruling 2026-08-20) */}
-      <div className={styles.recipeResult} style={resultLayout.style} data-dense={resultLayout.dense}>{result}</div>
+      <div className={styles.recipeResult} style={resultStyle}>{result}</div>
     </div>
   );
 }

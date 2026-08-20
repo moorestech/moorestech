@@ -60,14 +60,6 @@
   --count-letter-spacing: 0.12em;
 }
 
-/* 縮んだスロットからはみ出さないよう、点数が多い側だけ個数テキストを落とす */
-/* Drop the count text only on the crowded side so it stays inside the shrunken slot */
-.recipeMaterials[data-dense],
-.recipeResult[data-dense] {
-  --recipe-material-count-font-size: calc(var(--slot-size) * var(--recipe-count-font-scale-dense));
-  --count-font-size: calc(var(--slot-size) * var(--recipe-count-font-scale-dense));
-}
-
 .materialSlot {
   position: relative;
 }
@@ -82,9 +74,7 @@
   bottom: 0;
   z-index: 2;
   color: var(--count-text);
-  /* 縮小時だけスロット連動へ切り替わる。既定の11pxはフルサイズ用 */
-  /* Switches to slot-linked sizing only when shrunken; 11px is the full-size default */
-  font-size: var(--recipe-material-count-font-size, 11px);
+  font-size: 11px;
   line-height: 1;
   text-shadow: 0 1px 2px rgb(255 255 255 / 75%);
   white-space: nowrap;
