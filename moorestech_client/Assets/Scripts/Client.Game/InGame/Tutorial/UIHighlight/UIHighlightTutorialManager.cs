@@ -10,10 +10,9 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         {
             var highlightParam = (UiHighLightTutorialParam)tutorial.TutorialParam;
 
-            // マスタのanchorIdを無変換でWebオーバーレイへ渡す。文言があるときだけラベル用guidを添える
-            // Pass the master anchorId verbatim; attach the label GUID only when the master has text
-            var labelTutorialGuid = string.IsNullOrEmpty(highlightParam.HighLightText) ? null : tutorial.TutorialGuid.ToString();
-            return TutorialPresentationStateStore.Instance.AddOutlineHighlight(highlightParam.HighLightAnchorId, labelTutorialGuid);
+            // anchorId無変換で渡す
+            // Pass the anchorId verbatim
+            return TutorialPresentationStateStore.Instance.AddOutlineHighlight(highlightParam.HighLightAnchorId, highlightParam.HighLightText, tutorial.TutorialGuid);
         }
     }
 }

@@ -15,8 +15,7 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
             // Item highlighting is rendered exclusively via the web overlay's DOM highlight
             var itemId = MasterHolder.ItemMaster.GetItemId(highlightParam.HighLightItemGuid).AsPrimitive();
             var anchorId = TutorialAnchorIdMapper.FromItemId(itemId);
-            var labelTutorialGuid = string.IsNullOrEmpty(highlightParam.HighLightText) ? null : tutorial.TutorialGuid.ToString();
-            return TutorialPresentationStateStore.Instance.AddOutlineHighlight(anchorId, labelTutorialGuid);
+            return TutorialPresentationStateStore.Instance.AddOutlineHighlight(anchorId, highlightParam.HighLightText, tutorial.TutorialGuid);
         }
     }
 }

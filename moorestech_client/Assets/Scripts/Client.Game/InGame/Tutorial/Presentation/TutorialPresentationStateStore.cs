@@ -44,10 +44,11 @@ namespace Client.Game.InGame.Tutorial
             Publish();
         }
 
-        // outline用途だけを公開し、廃止済みkindの再流入を防ぐ。labelTutorialGuidはnullでラベル無し
-        // Expose only the outline use case to prevent removed kinds from returning; null labelTutorialGuid means no label
-        public ITutorialView AddOutlineHighlight(string anchorId, string labelTutorialGuid)
+        // outline専用に限定(廃止kind再流入防止)。ラベル有無判定はここへ集約
+        // Outline-only, to prevent removed kinds from returning; label presence decision lives here
+        public ITutorialView AddOutlineHighlight(string anchorId, string labelText, Guid tutorialGuid)
         {
+            var labelTutorialGuid = string.IsNullOrEmpty(labelText) ? null : tutorialGuid.ToString();
             return AddElement(new TutorialOutlineElementData
             {
                 ElementId = Guid.NewGuid().ToString(),
@@ -70,8 +71,8 @@ namespace Client.Game.InGame.Tutorial
             });
         }
 
-        // キー操作ヒント。表示可否（uiState一致）はWeb側が判定するので常に載せる
-        // Key-control hint; always published since the web side decides visibility by uiState
+        // キー操作ヒント。表示可否はWeb側判定
+        // Key-control hint; visibility is decided web-side
         public ITutorialView AddKeyControlHint(string tutorialGuid, string keyName, string uiState)
         {
             return AddElement(new TutorialKeyControlElementData
@@ -91,12 +92,6 @@ namespace Client.Game.InGame.Tutorial
             if (_sessions.RemoveAll(session => session.ChallengeId == challengeKey) == 0) return;
             if (_applyTargetChallengeId == challengeKey) _applyTargetChallengeId = "";
             Publish();
-        }
-
-        public bool HasSession(Guid challengeId)
-        {
-            var challengeKey = challengeId.ToString();
-            return _sessions.Any(session => session.ChallengeId == challengeKey);
         }
 
         public bool HasSessionId(string sessionId)
