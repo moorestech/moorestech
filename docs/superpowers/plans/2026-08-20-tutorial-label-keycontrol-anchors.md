@@ -1007,7 +1007,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 - [x] **Step 1:** `uloop compile` errors 0、`uloop run-tests ... --filter-value "Tutorial|Localization"` 全PASS、`npx vitest run` 全PASS、`npm run lint`、`npx tsc -b` を再確認する。
 - [x] **Step 2:** 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（moores-code-review・自動実行・ゴール文言による省略不可）。指摘の機械的修正を適用し、設計判断は AskUserQuestion で仰ぐ。
-- [ ] **Step 3:** pr-create スキルで PR を作る（タイトル例: `feat(tutorial): 枠線ラベル描画と keyControl のWeb復活（keyName/uiState enum）`）。
+- [x] **Step 3:** pr-create スキルで PR を作る（タイトル例: `feat(tutorial): 枠線ラベル描画と keyControl のWeb復活（keyName/uiState enum）`）。
 
 ---
 
