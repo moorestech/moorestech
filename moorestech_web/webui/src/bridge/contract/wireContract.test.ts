@@ -4,7 +4,7 @@ import { validateTopicPayload } from "./validators";
 import { loadFixture } from "./wireFixtures.test-helper";
 import { BENIGN_ERRORS } from "../transport/actions";
 import { TopicEnvelopeSchema, Topics } from "../transport/protocol";
-import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, BuildMenuData, ChallengeTreeData, ChallengeCurrentData, PauseMenuData } from "./payloadTypes";
+import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, BuildMenuData, ChallengeTreeData, ChallengeCurrentData, PauseMenuData, NotificationData } from "./payloadTypes";
 
 describe("wire contract fixtures (shared with C#)", () => {
   it("削除した重複採掘HUD topicと読み手のない削除モードtopicを公開しない", () => {
@@ -173,6 +173,20 @@ describe("challenge fixtures", () => {
     expect(validateTopicPayload(Topics.challengeCurrent, current)).toBe(true);
     expect((tree as ChallengeTreeData).categories[0].nodes[0].state).toBe("current");
     expect((current as ChallengeCurrentData).completedChallengeGuid).toBeUndefined();
+  });
+});
+
+describe("notification fixture", () => {
+  it("itemEarned payloadのcategory/messageId/countをC#側と一致させる", () => {
+    const data = loadFixture("notification_item_earned.json");
+    expect(validateTopicPayload(Topics.notification, data)).toBe(true);
+    // countを持つのは獲得variantだけなので、その型で受けて読む
+    // Only the earned variant carries a count, so the fixture is read through that variant
+    const notification = data as Extract<NotificationData, { category: "itemEarned" }>;
+    expect(notification.category).toBe("itemEarned");
+    expect(notification.messageId).toBe("itemEarned.mined");
+    expect(notification.itemId).toBe(5);
+    expect(notification.count).toBe(8);
   });
 });
 

@@ -83,6 +83,7 @@ ui.notification.researchNotCompletable,Cannot complete research (prerequisites o
 ui.notification.craftResultFull,Cannot craft: inventory is full,Cannot craft: inventory is full,クラフトできません: インベントリが満杯です
 ui.notification.craftMaterialShortage,Cannot craft: not enough materials,Cannot craft: not enough materials,クラフトできません: 素材が不足しています
 ui.notification.removeTrainCarInventoryFull,Cannot remove train car: inventory is full,Cannot remove train car: inventory is full,車両を取り外せません: インベントリが満杯です
+ui.notification.miningInventoryFull,Some mined items were lost: inventory is full,Some mined items were lost: inventory is full,採掘したアイテムを一部失いました: インベントリが満杯です
 ui.notification.placeBlockNotUnlocked,Some blocks were not placed: not unlocked yet,Some blocks were not placed: not unlocked yet,一部のブロックを設置できませんでした: 未解放です
 ui.notification.placeBlockCostShortage,Some blocks were not placed: not enough materials,Some blocks were not placed: not enough materials,一部のブロックを設置できませんでした: 素材が不足しています
 ui.notification.placeBlockWireShortage,Some blocks were not placed: not enough wires,Some blocks were not placed: not enough wires,一部のブロックを設置できませんでした: 電線が不足しています
@@ -108,6 +109,7 @@ ui.notification.electricWireExtendFailed,Wiring failed,Wiring failed,配線に�
 ui.notification.electricWireDisconnectNotConnected,Disconnect failed: not connected,Disconnect failed: not connected,接続されていないため切断できませんでした
 ui.notification.electricWireDisconnectInventoryFull,Disconnect failed: inventory is full,Disconnect failed: inventory is full,インベントリが満杯のため切断できませんでした
 ui.notification.electricWireDisconnectFailed,Disconnect failed,Disconnect failed,切断に失敗しました
+ui.notification.itemEarned,+{count},+{count},+{count}
 ui.notification.unknownMessage,Unknown notification: {messageId},Unknown notification: {messageId},不明な通知: {messageId}
 ui.pauseMenu.title,Pause Menu,Pause Menu,ポーズメニュー
 ui.pauseMenu.disconnected,Disconnected from server,Disconnected from server,サーバーから切断されました

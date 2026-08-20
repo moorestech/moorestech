@@ -76,6 +76,10 @@ const controls = {
   notificationAchievement: () => control(Topics.notification, { seq: 1, category: "achievement", messageId: "achievement.researchCompleted", messageParams: ["11111111-1111-4111-8111-111111111111"], itemId: 1 }),
   notificationItemUnlocked: () => control(Topics.notification, { seq: 2, category: "achievement", messageId: "achievement.unlockedItem", messageParams: [], itemId: 2 }),
   notificationDenied: () => control(Topics.notification, { seq: 3, category: "operationDenied", messageId: "denied.researchNotCompletable", messageParams: [], itemId: null }),
+  // seqを分けて2発目を届かせる
+  // Distinct seqs let the second delivery land
+  notificationItemEarned: () => control(Topics.notification, { seq: 4, category: "itemEarned", messageId: "itemEarned.mined", messageParams: [], itemId: 2, count: 5 }),
+  notificationItemEarnedAgain: () => control(Topics.notification, { seq: 5, category: "itemEarned", messageId: "itemEarned.mined", messageParams: [], itemId: 2, count: 3 }),
   // 後片付け用の空値リセット口
   // Reset hook for spec teardown
   notificationClear: () => control(Topics.notification, {}),

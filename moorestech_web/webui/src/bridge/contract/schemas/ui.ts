@@ -74,16 +74,35 @@ export const TooltipDataSchema = z.object({
   textParams: z.array(z.string()),
 }).strict();
 
-// snapshotを持たない一時イベントのため、接続直後は{}が届く。全フィールドoptionalにしそれを許容する
-// Transient event without a snapshot: {} arrives right after connect, so every field is optional to accept it
 // itemIdはアイテム無し時にキー自体が省略される（NullValueHandling.Ignore）想定だがnullableも許容する
 // itemId is normally omitted (not sent as null) when there is no item, but nullable is accepted too
-export const NotificationDataSchema = z.object({
-  seq: z.number().optional(),
-  category: z.enum(["achievement", "operationDenied"]).optional(),
-  messageId: z.string().optional(),
-  messageParams: z.array(z.string()).optional(),
+const MessageNotificationSchema = z.object({
+  seq: z.number(),
+  category: z.enum(["achievement", "operationDenied"]),
+  messageId: z.string(),
+  messageParams: z.array(z.string()),
   // シリアライザ揺れでnullが来ても弾かないよう外部境界として広めに受ける
   // Widened as an external boundary so serializer drift sending null is not rejected
   itemId: z.number().nullable().optional(),
+}).strict();
+
+// アイコンと個数の欠損は境界で弾く
+// Missing icon or amount is rejected at the boundary
+const ItemEarnedNotificationSchema = z.object({
+  seq: z.number(),
+  category: z.literal("itemEarned"),
+  messageId: z.string(),
+  messageParams: z.array(z.string()),
+  itemId: z.number(),
+  count: z.number().int().positive(),
 });
+
+// 接続直後の{}を専用variantで受理
+// The {} arriving right after connect is accepted by a dedicated variant
+const EmptyNotificationSchema = z.object({}).strict();
+
+export const NotificationDataSchema = z.union([
+  EmptyNotificationSchema,
+  ItemEarnedNotificationSchema,
+  MessageNotificationSchema,
+]);

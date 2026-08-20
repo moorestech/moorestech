@@ -1,6 +1,7 @@
 // messageId→表示テンプレートの対応表。文言はWeb側が所有しサーバーは構造化IDのみ送る
 // Maps messageId to display templates; the web owns wording, the server sends structured ids only
 import { L, buildPositionalInterpolationValues, challengeTitleKey, researchNameKey, type TranslationKey } from "@/shared/i18n";
+import type { GameNotification } from "./notificationStore";
 
 const notificationKeys = new Map<string, TranslationKey>([
   ["achievement.researchCompleted", L.ui.notification.researchCompleted],
@@ -12,6 +13,7 @@ const notificationKeys = new Map<string, TranslationKey>([
   ["achievement.unlockedTrainCar", L.ui.notification.unlockedTrainCar],
   ["achievement.unlockedConnectTool", L.ui.notification.unlockedConnectTool],
   ["achievement.unlockedBlueprint", L.ui.notification.unlockedBlueprint],
+  ["itemEarned.mined", L.ui.notification.itemEarned],
   ["denied.researchNotCompletable", L.ui.notification.researchNotCompletable],
   ["denied.craftResultFull", L.ui.notification.craftResultFull],
   ["denied.craftMaterialShortage", L.ui.notification.craftMaterialShortage],
@@ -73,4 +75,28 @@ export function buildInterpolationValues(messageId: string, messageParams: strin
     messageId,
     ...buildPositionalInterpolationValues(messageParams),
   };
+}
+
+// 表示キーと補間値を同じnarrowから作り、countを持つのは獲得通知だけという不変条件を1箇所に閉じる
+// The key and the interpolation values come from one narrow, closing the "only earned rows carry a count" invariant in a single place
+export function resolveNotificationText(notification: GameNotification, translate: (key: TranslationKey) => string) {
+  const key = resolveNotificationKey(notification.messageId);
+  const values = buildInterpolationValues(
+    notification.messageId,
+    resolveNotificationParams(notification.messageId, notification.messageParams, translate),
+  );
+
+  switch (notification.category) {
+    case "itemEarned":
+      return { key, values: { ...values, count: notification.count } };
+    case "achievement":
+    case "operationDenied":
+      return { key, values };
+    default: {
+      // categoryが増えたらここがコンパイルエラーになる
+      // Adding a category turns this into a compile error
+      const unreachable: never = notification;
+      return unreachable;
+    }
+  }
 }
