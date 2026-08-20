@@ -19,16 +19,23 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 計画があっても、**規模が閾値未満ならこのスキルを使わずインラインで実装するのが既定**である。SDDの実装subagent自体は安いが、派遣往復によるコントローラーの肥大とタスクごとのレビューゲートが固定費として乗る（実測: 1計画あたり$40〜90相当 + 本体ループ肥大。実装subagentは大型セッション総額の6〜25%に過ぎなかった）。
 
-**SDDを発動する条件（いずれか1つで発動）:**
+**インラインで実装する条件（すべて満たすならインライン。AND）:**
 
-1. **予想変更が約15ファイル超、または約1,000行超**
-2. **計画の独立タスクが6個以上**
-3. 実装と並行して**長いデバッグ・実機e2e往復**が見込まれる（調査churnがコンテキストを食う）
-4. **並列実行**したい独立タスク群がある
+1. **予想変更が約15ファイル以下**、かつ
+2. **予想変更が全体で約1,000行以下**、かつ
+3. **計画の独立タスクが7個以下**、かつ
+4. 実装と並行した**長いデバッグ・実機e2e往復が見込まれない**（調査churnがコンテキストを食う）、かつ
+5. **並列実行したい独立タスク群が無い**
 
-どれにも該当しなければインラインで実装する。その場合も最終レビュー1本（moores-code-review）は省略しない。worktree隔離が必要なだけならworktree + インラインでよく、SDDの理由にはならない。
+**この5つを全部満たすならSDDを使わずインラインで実装する。** 1つでも外れた場合（約15ファイル超／約1,000行超／独立タスク8個以上／長いデバッグ往復あり／並列実行したい）だけSDDを発動する。インラインの場合も最終レビュー1本（moores-code-review）は省略しない。worktree隔離が必要なだけならworktree + インラインでよく、SDDの理由にはならない。
+
+**タスク数の数え方:** 数えるのは**実装タスク**である。実サービス・実機での動作確認タスク、最終レビュータスク、コミット/PR作成タスクのような、コードを書かない末尾の定型タスクは数に含めない。計画のタスク見出しを機械的に数えて発動判定をしないこと（2026-08-20: 実装4タスク・4ファイルの計画を「タスク6個」と数えてSDDを発動した実例がある）。
 
 **閾値の根拠（両Mac 130+セッションのtranscript実測、2026-08-18）:** インライン実装は編集約20ファイル・読み書き合計約45ファイルまでcompaction発生ゼロで完走している（25〜32ファイルも読み込みが少なければ可）。編集25〜30ファイル超または長いデバッグ往復を伴うと高頻度でcompactionし、文脈喪失は「完了済みタスクの再派遣」級の最も高くつく失敗につながる。15ファイルはこの実測限界に対する安全マージンである。
+
+**判定は必ず声に出す。** 最初のsubagent派遣より前に、数えた実装タスク数・予想ファイル数・判定結果を1行でユーザーへ出す（例:「実装4タスク・4ファイル → インライン」）。黙って派遣を始めると、誤判定はsubagentが1本走り終えるまで是正されない（2026-08-20の実例）。
+
+**ユーザーがスキル名を明示して起動した場合もゲートは評価する。** 閾値未満なら「この規模ならインラインが既定です」と1行述べてから指示に従う。名指し起動はゲートの免除ではない。
 
 **途中切替:** インラインで始めて、半分に達する前にコンテキスト残量が3割を切ったら、そこで止めて残りのタスクをこのスキル（subagent派遣）に切り替える。進捗台帳（下記）に切替点を記録する。
 
@@ -37,7 +44,7 @@ description: 現在のセッションで、独立したタスクからなる実�
 ```dot
 digraph when_to_use {
     "Have implementation plan?" [shape=diamond];
-    "Over size gate? (>~15 files / >~1000 lines / 6+ tasks / long debug loop)" [shape=diamond];
+    "Over size gate? (>~15 files / >~1000 lines / 8+ impl tasks / long debug loop / want parallel)" [shape=diamond];
     "Tasks mostly independent?" [shape=diamond];
     "subagent-driven-development" [shape=box];
     "Parallel session execution" [shape=box];
@@ -45,22 +52,16 @@ digraph when_to_use {
     "Inline implementation + final review" [shape=box];
     "Stay in this session?" [shape=diamond];
 
-    "Have implementation plan?" -> "Over size gate? (>~15 files / >~1000 lines / 6+ tasks / long debug loop)" [label="yes"];
+    "Have implementation plan?" -> "Over size gate? (>~15 files / >~1000 lines / 8+ impl tasks / long debug loop / want parallel)" [label="yes"];
     "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
-    "Over size gate? (>~15 files / >~1000 lines / 6+ tasks / long debug loop)" -> "Tasks mostly independent?" [label="yes"];
-    "Over size gate? (>~15 files / >~1000 lines / 6+ tasks / long debug loop)" -> "Inline implementation + final review" [label="no - below gate"];
+    "Over size gate? (>~15 files / >~1000 lines / 8+ impl tasks / long debug loop / want parallel)" -> "Tasks mostly independent?" [label="yes"];
+    "Over size gate? (>~15 files / >~1000 lines / 8+ impl tasks / long debug loop / want parallel)" -> "Inline implementation + final review" [label="no - below gate"];
     "Tasks mostly independent?" -> "Stay in this session?" [label="yes"];
     "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
     "Stay in this session?" -> "subagent-driven-development" [label="yes"];
     "Stay in this session?" -> "Parallel session execution" [label="no - parallel session"];
 }
 ```
-
-**vs. 並列セッション実行:**
-- 同一セッション（コンテキスト切り替えなし）
-- タスクごとに新規subagent（コンテキスト汚染なし）
-- 各タスク後にレビュー（spec準拠＋コード品質）、最後に広範なレビュー
-- 高速なイテレーション（タスク間でhuman-in-loopなし）
 
 ## ワークスペース隔離（タスク1派遣前・必須）
 
