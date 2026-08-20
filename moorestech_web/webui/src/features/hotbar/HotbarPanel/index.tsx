@@ -9,9 +9,11 @@ import { useHotbarDragSource } from "../useHotbarDragSource";
 import type { HotbarDragSource } from "../hotbarDnd";
 import styles from "./style.module.css";
 
-// 常時表示のホットバーHUD
-// 数字キーは一切listenしない
-// Always-on hotbar HUD; it only subscribes to local_player.hotbar (independent of UIState).
+// ホットバーは配置対象を9枠へ割り当てて選ぶHUDで、持ち物のアイテム欄ではない(割当元はビルドメニューのみ)
+// The hotbar assigns and selects placement targets across 9 slots; it is not an inventory item bar (only the build menu assigns into it)
+// 常時表示の可否は App の合成側が持ち、このHUDは画面名を知らない
+// Whether this HUD shows at all is composed in App; the panel itself knows no screen names
+// 数字キーは一切listenしない(Unity側HotbarKeyInputへ統一済み)
 // Digit keys are unified into the Unity-side HotbarKeyInput, so this panel never listens for keys
 export default function HotbarPanel() {
   const hotbar = useTopic(Topics.hotbar);

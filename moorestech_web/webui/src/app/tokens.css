@@ -63,6 +63,9 @@
   /* Order inside .stage; governs always-on HUDs and the tooltip that follow the stage's uniform scaling */
   --z-stage-screen: 20;
   --z-stage-overlay-panel: 30;
+  /* 研究パネル(--z-stage-overlay-panel)の上へ出す.viewportOverlay一式: チャレンジHUD・画面キーヒント・採掘進捗バー */
+  /* Everything in .viewportOverlay, raised above the research panel (--z-stage-overlay-panel): the challenge HUD, screen key hints, and the mining progress bar */
+  --z-stage-overlay-panel-chrome: 31;
   --z-stage-tooltip: 250;
   /* body直下Portal層の層序。stageの外へ抜けて実画面全体を覆う要素間の前後関係 */
   /* Order in the body-level Portal layer; governs elements that escape the stage to cover the whole real screen */
@@ -87,6 +90,12 @@
   /* The floor is the hotbar band's footprint (bottom 2 + slot 51.68 + number tab 16 = 69.68px) rounded up */
   --menu-lower-safe-area: 70px;
   --menu-content-height: calc(var(--ui-stage-height) - var(--menu-upper-safe-area) - var(--menu-lower-safe-area));
+  /* 持ち物パネルの幅。InventoryPanelのインラインstyleと研究パネルの左端導出が同じ値を見る */
+  /* The inventory panel width; InventoryPanel's inline style and the research panel's left edge share this one value */
+  --inventory-panel-width: 378px;
+  /* stage上段3カラムの列間隔。研究パネルはこの間隔を挟んで持ち物の右へ並ぶ */
+  /* The gap between the stage's three upper columns; the research panel sits to the inventory's right across it */
+  --stage-column-gap: 2.1875rem;
   /* パネル付随の副次アクションボタン。正本の整理ボタン実測寸法を固定長で持つ */
   /* Panel-attached secondary action button; fixed lengths taken from the reference sort button */
   --panel-action-button-width: 87px;

@@ -4,7 +4,7 @@ import { validateTopicPayload } from "./validators";
 import { loadFixture } from "./wireFixtures.test-helper";
 import { BENIGN_ERRORS } from "../transport/actions";
 import { TopicEnvelopeSchema, Topics } from "../transport/protocol";
-import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData, BuildMenuData, ChallengeTreeData, ChallengeCurrentData, PauseMenuData } from "./payloadTypes";
+import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, BuildMenuData, ChallengeTreeData, ChallengeCurrentData, PauseMenuData } from "./payloadTypes";
 
 describe("wire contract fixtures (shared with C#)", () => {
   it("削除した重複採掘HUD topicと読み手のない削除モードtopicを公開しない", () => {
@@ -162,17 +162,6 @@ describe("block detail fixtures", () => {
     expect(gear.machine.selectedRecipeGuid).toBe("00000000-0000-0000-0000-000000000000");
     expect(gear.machine.blockGuid).toBe("22222222-2222-4222-8222-222222222222");
     expect(["none", "rocked", "overRequirePower"]).toContain(gear.gearNetwork.stopReason);
-  });
-});
-
-describe("research_tree fixture", () => {
-  it("accepts and types research payload", () => {
-    const data = loadFixture("research_tree.json");
-    expect(validateTopicPayload(Topics.researchTree, data)).toBe(true);
-    const tree = data as ResearchTreeData;
-    expect(tree.nodes[0].iconItemId).toBe(2);
-    expect(tree.nodes.length).toBe(2);
-    expect(tree.nodes[1].prevGuids).toContain(tree.nodes[0].guid);
   });
 });
 

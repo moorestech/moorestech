@@ -1,6 +1,8 @@
 :root {
   /* スキットの層序。会話窓は論理viewport内、暗転はPortalで会話窓より上に置く */
   /* Skit stacking: the window lives in the logical viewport while the blackout sits above it in the portal */
+  /* この値は.viewportOverlayのスタッキングコンテキストに封じ込まれ、実効値は常に31（--z-stage-overlay-panel-chrome）になる */
+  /* This value is contained by .viewportOverlay's stacking context, so the effective z-index is always 31 (--z-stage-overlay-panel-chrome) */
   --z-stage-skit: 100;
   --z-portal-skit-transition: 210;
   /* 会話窓の面・上端フェード・帯の高さ・内容インデント（1920設計px×2/3の1280 stage基準の固定長） */
