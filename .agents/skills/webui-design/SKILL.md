@@ -145,19 +145,22 @@ description: |
   面は `--research-node-face`、枠は `--research-node-border`（tokens.cssのトークン）。
   状態はdata属性で4値を表す（ADR 0014）:
   `data-locked`（前提未達）=opacity減衰45% / 無印（前提充足・アイテム不足）=通常グレー枠 /
-  `data-researchable`（今すぐ研究できる）=`--select-cyan`の枠色 / `data-completed`=`--text-default`の白枠。
-  アイテム充足はサーバーstateでなくインベントリトピックからのクライアント側再計算で判定する（ライブ追従）。
+  `data-ready`（今すぐ研究できる）=`--select-cyan`の枠色 / `data-completed`=`--text-default`の白枠。
+  アイテム充足の正本はサーバーstateであり、クライアントは所持数から再計算しない（インベントリ更新で
+  ホストが research.tree を再publishするため、state自体がライブ追従する）。所持数は消費アイテムの
+  不足強調・所持/必要バッジという表示にだけ使う。
   `data-selected` は従来どおり `--text-high-contrast` のoutline。新しい色相・光彩は使わない。
 - **グラフ内詳細ペイン**: ノード選択で開く `GamePanel variant="craft"` のフロート。グラフパネル内の固定位置
   （パン・ズーム非追従）。
   内容は名前・説明・「必要アイテム」ラベル付き消費（`ItemSlot`+insufficient+研究専用ツールチップ`ui.research.consumeItemTooltip`
   ＝名前/所持数/必要数の3行のみ・この画面に無いクリック導線は案内しない。不足時は`CraftRecipeView`同型で数値も赤文字にする）・
   種類別ラベル付き解放セクション（「解放: ブロック」=`BlockSlot`（ホバーで名前が出る）、「解放: 機械レシピ」=
-  レシピ単位でアイテム出力があれば`ItemSlot`・無ければ`FluidSlot`（液体のみ出力レシピを消さない）、
+  レシピ単位でアイテム出力は`ItemSlot`・液体出力は量ラベル（研究feature内の`UnlockFluidLabel`。容量の概念が
+  無いため`FluidSlot`の充填率表現は使わない）を連結表示（アイテムと液体は排他ではなく、混在レシピの液体も消さない）、
   「解放: アイテム」（`unlockItemRecipeView`由来。testId `research-unlock-items`）=`ItemSlot`、「報酬アイテム」=
   個数付き`ItemSlot`、「解放: その他」=connect tool/train car名のテキスト行）・主要アクションボタン（青グラデ）・
   閉じるボタン。ラベルは`--text-muted`、空の種類のセクションは出さない（§4の無札並置禁止に従う）。
-  種類→表示はTS側`unlockEntries.ts`の判別unionとルックアップ表に集約し、種類追加時は表の欠損がコンパイルエラーになる。
+  種類→表示はTS側`unlock/unlockEntries.ts`の判別unionとルックアップ表に集約し、種類追加時は表の欠損がコンパイルエラーになる。
   オンオフ可能（同ノード再クリック/閉じるで消える）。
 - **ビューポートの保持と初期フォーカス**: パン・ズーム位置は `viewportKey` によるセッション内ストアで保持し、
   画面を閉じて開き直しても復元する（リロードで消える。永続化はしない）。保存が無い初回のみ、機能側が渡す

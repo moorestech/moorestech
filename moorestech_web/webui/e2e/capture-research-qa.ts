@@ -18,10 +18,8 @@ async function openResearchTree(page: Page) {
   // No context baseURL is set for capture scripts, so hit mock control with absolute URLs (follows capture-mining-progress.ts)
   await page.request.get(`http://127.0.0.1:${PORT}/__research`);
   await page.request.get(`http://127.0.0.1:${PORT}/__uistate?state=ResearchTree`);
-  // MOCK_DEMO=1のdemoInventoryはitemId1(木材)を持たず研究可能ノードが常にアイテム不足に見えるため、
-  // e2eと同じ所持itemId1×15を持つinventoryへ購読前に差し替える
-  // demoInventory (used under MOCK_DEMO=1) has no itemId1/wood, which makes the researchable node
-  // always look item-lacking; override the inventory topic to the same itemId1×15 e2e relies on, before subscribing
+  // 所持itemId1×15へ購読前に差替え
+  // Swap in the itemId1×15 inventory before subscribing
   await page.request.get(`http://127.0.0.1:${PORT}/__topic-control?scenario=researchOwnedItems`);
   await page.goto(`http://127.0.0.1:${PORT}/`);
   await page.getByTestId("research-tree").waitFor();

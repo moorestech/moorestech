@@ -35,8 +35,8 @@ test("ノードカードが4状態のdata属性で描き分けられる", async 
   const lacking = page.getByTestId(`research-node-${itemLackingNodeGuid}`);
   await expect(completed).toHaveAttribute("data-completed", "true");
   await expect(locked).toHaveAttribute("data-locked", "true");
-  await expect(ready).toHaveAttribute("data-researchable", "true");
-  await expect(lacking).not.toHaveAttribute("data-researchable", "true");
+  await expect(ready).toHaveAttribute("data-ready", "true");
+  await expect(lacking).not.toHaveAttribute("data-ready", "true");
   await expect(lacking).not.toHaveAttribute("data-locked", "true");
 });
 
