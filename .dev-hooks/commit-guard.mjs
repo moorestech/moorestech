@@ -2,16 +2,21 @@
 // public repoへのgit commit直前に、持ち込まれる内容から個人情報・秘密情報を検知して物理拒否するガード
 // Guard that inspects content entering the public repo right before git commit and physically denies leaks.
 //
-// 登録: Claude PreToolUse(Bash)。GUARD_CONFIRMED=1を前置すると明示的に上書きできる
-// Wired to Claude PreToolUse (Bash); prefix the command with GUARD_CONFIRMED=1 to override.
+// 登録: Claude PreToolUse(Bash)。sakastudio機でのみ有効、GUARD_CONFIRMED=1の前置で明示的に上書きできる
+// Wired to Claude PreToolUse (Bash); active only on the sakastudio machine, overridable with GUARD_CONFIRMED=1.
 
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { resolve } from "node:path";
 
 function bail() {
   process.exit(0);
 }
+
+// 守る対象はsakastudio機の1台のみ。他マシンでは一切検査しない
+// Only the sakastudio machine is guarded; every other machine skips inspection entirely.
+if (homedir() !== "/Users/sakastudio") bail();
 
 // 外部境界: フック標準入力のJSONパース失敗はfail open
 // External boundary: fail open when parsing the hook stdin JSON fails.
