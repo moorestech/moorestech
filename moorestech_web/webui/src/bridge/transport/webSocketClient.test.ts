@@ -60,6 +60,19 @@ describe("WebSocket bridge initialization", () => {
     expect(openedUrls).toEqual(["ws://example.test/ws"]);
   });
 
+  // https配信でws:のままだとmixed contentでブラウザが接続を拒否し、UIが何も描画されないまま止まる
+  // Keeping ws: under https makes the browser refuse the connection outright, leaving the UI blank
+  it("bridgeSocketUrl はページのスキームに合わせ https では wss を使う", async () => {
+    const { bridgeSocketUrl } = await import("./webSocketClient");
+
+    expect(bridgeSocketUrl()).toBe("ws://example.test/ws");
+
+    const original = location.protocol;
+    Object.defineProperty(location, "protocol", { value: "https:", configurable: true });
+    expect(bridgeSocketUrl()).toBe("wss://example.test/ws");
+    Object.defineProperty(location, "protocol", { value: original, configurable: true });
+  });
+
   it("initBridge は命令的読み出し対象を pin し一時購読解除後も最新値を保持する", async () => {
     const { initBridge } = await import("./webSocketClient");
     const { subscriptions } = await import("./subscriptionManager");
