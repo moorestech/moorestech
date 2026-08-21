@@ -344,7 +344,7 @@ git commit -m "feat(master): blocks に必須フィールド placementsPerCost �
   - `RemainingPlacementCountDataStore : IRemainingPlacementCountLookup, IRemainingPlacementCountMutation` with `List<PlayerRemainingPlacementCountSaveJsonObject> GetSaveJsonObject()` / `void LoadRemainingCounts(List<PlayerRemainingPlacementCountSaveJsonObject> saveData)`
   - `WorldSaveAllInfoV1.RemainingPlacementCounts`（`[JsonProperty("remainingPlacementCounts")]`）
 
-- [ ] **Step 1: 失敗するテストを書く（DataStore単体）**
+- [x] **Step 1: 失敗するテストを書く（DataStore単体）**
 
 `Tests/UnitTest/Game/RemainingPlacementCountDataStoreTest.cs`:
 
@@ -458,12 +458,12 @@ namespace Tests.CombinedTest.Game
 }
 ```
 
-- [ ] **Step 2: テストがコンパイルエラーで失敗することを確認**
+- [x] **Step 2: テストがコンパイルエラーで失敗することを確認**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `Game.Construction` 未定義のコンパイルエラー
 
-- [ ] **Step 3: アセンブリと型を作る**
+- [x] **Step 3: アセンブリと型を作る**
 
 `Game.Construction.asmdef`:
 
@@ -736,7 +736,7 @@ namespace Game.Construction
 }
 ```
 
-- [ ] **Step 4: DI登録とセーブ配線**
+- [x] **Step 4: DI登録とセーブ配線**
 
 `MoorestechServerDIContainerGenerator.cs` の Hotbar 3行の直後:
 
@@ -760,13 +760,13 @@ namespace Game.Construction
             _remainingPlacementCountDataStore.LoadRemainingCounts(load.RemainingPlacementCounts);
 ```
 
-- [ ] **Step 5: コンパイル → テスト**
+- [x] **Step 5: コンパイル → テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "RemainingPlacementCountDataStoreTest|RemainingPlacementCountSaveLoadTest|HotbarSaveLoadTest"`
 Expected: 全PASS
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Construction moorestech_server/Assets/Scripts/Server.Boot moorestech_server/Assets/Scripts/Game.SaveLoad moorestech_server/Assets/Scripts/Tests
