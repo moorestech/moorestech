@@ -5,10 +5,15 @@ namespace Core.Master.Validator
 {
     public static class GenerationMasterUtil
     {
+        // AABBは点の±1なので軸差3未満は重なる。丸め1を見込み間隔の下限を4とする
+        // An AABB spans the point +/-1, so axis gaps under 3 overlap; allowing one for rounding puts the floor at 4
+        private const float MinOreSpacing = 4f;
+
         public static bool Validate(Generation generation, out string errorLogs)
         {
             errorLogs = "";
             errorLogs += VeinTypeValidation();
+            errorLogs += OreSpacingValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -52,6 +57,34 @@ namespace Core.Master.Validator
                     {
                         logs += $"[GenerationMaster] FluidVeinEntry VeinGuid:{fluidEntry.VeinGuid} references a non-fluid vein (veinName:{vein.VeinName})\n";
                     }
+                }
+
+                return logs;
+            }
+
+            // 最小配置間隔が下限未満の帯を弾く
+            // Reject bands whose spacing is under the floor
+            string OreSpacingValidation()
+            {
+                if (generation.AlgorithmParam is not VanillaGeneratorAlgorithmParam vanillaGenerator)
+                {
+                    return "";
+                }
+
+                var logs = "";
+
+                foreach (var oreEntry in vanillaGenerator.OreConfig.Entries)
+                foreach (var band in oreEntry.Bands)
+                {
+                    if (band.MinDistanceBetweenOres >= MinOreSpacing) continue;
+                    logs += $"[GenerationMaster] OreEntry VeinGuid:{oreEntry.VeinGuid} has minDistanceBetweenOres:{band.MinDistanceBetweenOres} below the {MinOreSpacing} floor\n";
+                }
+
+                foreach (var fluidEntry in vanillaGenerator.OreConfig.FluidEntries)
+                foreach (var band in fluidEntry.Bands)
+                {
+                    if (band.MinDistanceBetweenOres >= MinOreSpacing) continue;
+                    logs += $"[GenerationMaster] FluidVeinEntry VeinGuid:{fluidEntry.VeinGuid} has minDistanceBetweenOres:{band.MinDistanceBetweenOres} below the {MinOreSpacing} floor\n";
                 }
 
                 return logs;

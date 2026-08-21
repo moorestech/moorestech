@@ -25,8 +25,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             SpatialGrid clusterCenterGrid,
             float centerSpacing,
             PlacementHaloChannel centerHalo,
-            List<PlacementEntry> result,
-            ref int nextClusterId)
+            List<PlacementEntry> result)
         {
             // バンド未設定は生成器側で警告してスキップ（OreBandPlanner は純粋関数のため）。
             // Warn and skip when bands are missing (OreBandPlanner stays a pure function).
@@ -106,65 +105,59 @@ namespace Game.MapGeneration.Pipeline.Generators
                     clusterCenterGrid.Add(localX, localZ);
                     centerHalo.Add(localX + dims.WorldOffsetX, localZ + dims.WorldOffsetZ);
 
-                    // 1クラスターに一意な id を割り当て、メンバー座標群を AABB へ束ねる鍵にする。
-                    // Assign a unique id per cluster; it is the key that binds member coords into one AABB.
-                    int clusterId = nextClusterId++;
-                    PlaceClusterMembers(entry, band, localX, localZ, heights, dims, rng, oreGrid, result, clusterId);
+                    PlaceClusterMembers(band, localX, localZ);
                 }
             }
-        }
 
-        // クラスターメンバーを極座標で配置（ワールド整数座標にスナップ）。
-        // Place cluster members in polar coordinates, snapped to integer world coordinates.
-        static void PlaceClusterMembers(
-            OreEntry entry, OreBand band, float localX, float localZ,
-            float[,] heights, TerrainDimensions dims, System.Random rng,
-            SpatialGrid oreGrid, List<PlacementEntry> result, int clusterId)
-        {
-            float w = dims.TerrainWidth;
-            float l = dims.TerrainLength;
-            int hRes = dims.Resolution;
+            #region Internal
 
-            int clusterCount = rng.Next(1, band.maxObjectsPerCluster + 1);
-            float oreMinDist = band.minDistanceBetweenOres;
-            int retries = Mathf.Max(1, band.placementRetries);
-            for (int i = 0; i < clusterCount; i++)
+            // クラスターメンバーを極座標で配置（ワールド整数座標にスナップ）。
+            // Place cluster members in polar coordinates, snapped to integer world coordinates.
+            void PlaceClusterMembers(OreBand targetBand, float centerX, float centerZ)
             {
-                float mx = 0f, mz = 0f;
-                bool placed = false;
-                for (int attempt = 0; attempt < retries; attempt++)
+                int clusterCount = rng.Next(1, targetBand.maxObjectsPerCluster + 1);
+                float oreMinDist = targetBand.minDistanceBetweenOres;
+                int retries = Mathf.Max(1, targetBand.placementRetries);
+                for (int i = 0; i < clusterCount; i++)
                 {
-                    float angle = (float)(rng.NextDouble() * Mathf.PI * 2);
-                    float radius = (float)rng.NextDouble() * band.clusterRadius;
-                    mx = Mathf.Round(localX + Mathf.Cos(angle) * radius + dims.WorldOffsetX) - dims.WorldOffsetX;
-                    mz = Mathf.Round(localZ + Mathf.Sin(angle) * radius + dims.WorldOffsetZ) - dims.WorldOffsetZ;
+                    float mx = 0f, mz = 0f;
+                    bool placed = false;
+                    for (int attempt = 0; attempt < retries; attempt++)
+                    {
+                        float angle = (float)(rng.NextDouble() * Mathf.PI * 2);
+                        float radius = (float)rng.NextDouble() * targetBand.clusterRadius;
+                        mx = Mathf.Round(centerX + Mathf.Cos(angle) * radius + dims.WorldOffsetX) - dims.WorldOffsetX;
+                        mz = Mathf.Round(centerZ + Mathf.Sin(angle) * radius + dims.WorldOffsetZ) - dims.WorldOffsetZ;
 
-                    if (mx < 0 || w <= mx || mz < 0 || l <= mz) continue;
-                    if (0f < oreMinDist && oreGrid.HasNeighborWithin(mx, mz, oreMinDist))
-                        continue;
+                        if (mx < 0 || w <= mx || mz < 0 || l <= mz) continue;
+                        if (0f < oreMinDist && oreGrid.HasNeighborWithin(mx, mz, oreMinDist))
+                            continue;
 
-                    placed = true;
-                    break;
+                        placed = true;
+                        break;
+                    }
+                    if (!placed) continue;
+
+                    float my = OrePlacementMath.SampleHeight(heights, mx, mz, w, l, hRes) * dims.TerrainHeight;
+
+                    result.Add(new PlacementEntry
+                    {
+                        MapObjectGuid = entry.veinGuid,
+                        WorldPosition = new Vector3(
+                            mx + dims.WorldOffsetX,
+                            my,
+                            mz + dims.WorldOffsetZ),
+                        Rotation = Quaternion.identity,
+                        Scale = Vector3.one,
+                        Sink = 0f,
+                        Cluster = null
+                    });
+
+                    oreGrid.Add(mx, mz);
                 }
-                if (!placed) continue;
-
-                float my = OrePlacementMath.SampleHeight(heights, mx, mz, w, l, hRes) * dims.TerrainHeight;
-
-                result.Add(new PlacementEntry
-                {
-                    MapObjectGuid = entry.veinGuid,
-                    WorldPosition = new Vector3(
-                        mx + dims.WorldOffsetX,
-                        my,
-                        mz + dims.WorldOffsetZ),
-                    Rotation = Quaternion.identity,
-                    Scale = Vector3.one,
-                    Sink = 0f,
-                    Cluster = new RockClusterInfo { ClusterId = clusterId }
-                });
-
-                oreGrid.Add(mx, mz);
             }
+
+            #endregion
         }
     }
 }

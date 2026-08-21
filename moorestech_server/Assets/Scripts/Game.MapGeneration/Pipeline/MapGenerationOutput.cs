@@ -48,8 +48,8 @@ namespace Game.MapGeneration.Pipeline
         public Vector2 ClusterCenter;
     }
 
-    // 鉱脈クラスター1件（mapVeins マスタの veinGuid + 整数 AABB）。
-    // One vein cluster: mapVeins master veinGuid plus an integer AABB.
+    // 配置点1件ぶんの鉱脈（mapVeins マスタの veinGuid + 点中心の整数 AABB）。
+    // One vein per placement point: the mapVeins master veinGuid plus an integer AABB centred on the point.
     public class PlacedVein
     {
         public string VeinGuid;

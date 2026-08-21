@@ -49,7 +49,7 @@
 - Consumes: `Game.MapGeneration.Pipeline.Stages.PlacementSceneOffset.ToSceneSpace(List<PlacedVein> veins, Vector2 noiseToSceneShift)`、`Game.MapGeneration.Pipeline.PlacedVein { string VeinGuid; Vector3Int Min; Vector3Int Max; }`
 - Produces: シグネチャ変更なし。後段タスクは `ToSceneSpace` がサイズを保存する前提に乗る
 
-- [ ] **Step 1: テスト置き場のディレクトリを作り、既存の流体鉱脈テストを移す**
+- [x] **Step 1: テスト置き場のディレクトリを作り、既存の流体鉱脈テストを移す**
 
 ```bash
 cd /Users/katsumi/moorestech
@@ -62,7 +62,7 @@ git mv moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/FluidV
 
 `Vein/` ディレクトリの `.meta` は Unity が自動生成する。手動作成してはいけない。namespace は移動後も `Tests.UnitTest.Game.MapGeneration` のまま（同階層の `Placement/` 配下テストと同じ流儀）。
 
-- [ ] **Step 2: 失敗するテストを書く**
+- [x] **Step 2: 失敗するテストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Vein/VeinSceneOffsetTest.cs`:
 
@@ -111,12 +111,12 @@ namespace Tests.UnitTest.Game.MapGeneration
 }
 ```
 
-- [ ] **Step 3: テストを実行して失敗を確認する**
+- [x] **Step 3: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "VeinSceneOffsetTest"`
 Expected: `半整数シフトでも鉱脈AABBのサイズは保存される` が FAIL（`Expected: (1, 0, 1) But was: (2, 0, 2)`）。もう1件は PASS。
 
-- [ ] **Step 4: 実装を直す**
+- [x] **Step 4: 実装を直す**
 
 `PlacementSceneOffset.cs` の `ToSceneSpace(List<PlacedVein> veins, Vector2 noiseToSceneShift)` を差し替える:
 
@@ -138,13 +138,13 @@ Expected: `半整数シフトでも鉱脈AABBのサイズは保存される` が
         }
 ```
 
-- [ ] **Step 5: テストを実行して通ることを確認する**
+- [x] **Step 5: テストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0件を確認
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "VeinSceneOffsetTest|FluidVeinPlacementStageTest"`
 Expected: 全 PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.MapGeneration/Pipeline/Stages/PlacementSceneOffset.cs \
@@ -174,7 +174,7 @@ git commit -m "fix(mapgen): 鉱脈AABBのシーン座標化でサイズを保存
   - `Game.MapGeneration.Pipeline.Stages.VeinAabbBuilder.Build(string veinGuid, Vector3 worldPosition)` → `PlacedVein`
   - `OreEntryPlacer.Place(OreEntry, bool[,], float[,], TerrainDimensions, System.Random, float, SpatialGrid, SpatialGrid, SpatialGrid, SpatialGrid, float, PlacementHaloChannel, List<PlacementEntry>)` — `ref int nextClusterId` を削除した形
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Vein/VeinAabbBuilderTest.cs`:
 
@@ -211,12 +211,12 @@ namespace Tests.UnitTest.Game.MapGeneration
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `VeinAabbBuilder` が存在せずコンパイルエラー（`CS0103` 相当）
 
-- [ ] **Step 3: VeinAabbBuilder を実装する**
+- [x] **Step 3: VeinAabbBuilder を実装する**
 
 `moorestech_server/Assets/Scripts/Game.MapGeneration/Pipeline/Stages/Vein/VeinAabbBuilder.cs`:
 
@@ -247,13 +247,13 @@ namespace Game.MapGeneration.Pipeline.Stages
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "VeinAabbBuilderTest"`
 Expected: 2件 PASS
 
-- [ ] **Step 5: BuildVeins を点単位へ置き換える**
+- [x] **Step 5: BuildVeins を点単位へ置き換える**
 
 `VeinPlacementCore.cs` の `Generate` 末尾のコメントと `BuildVeins` を差し替える。まず `Generate` の末尾2行のコメント:
 
@@ -294,7 +294,7 @@ Expected: 2件 PASS
         }
 ```
 
-- [ ] **Step 6: 鉱脈側のクラスターID配線を外す**
+- [x] **Step 6: 鉱脈側のクラスターID配線を外す**
 
 鉱脈はクラスターIDで束ねなくなり、`MapObjects` へも出ないので採番自体が不要になる（移植元MapMakingも `Cluster = null`）。
 
@@ -337,12 +337,12 @@ Expected: 2件 PASS
                     oreGrid, clusterCenterGrid, centerSpacing, centerHalo, result);
 ```
 
-- [ ] **Step 7: コンパイルを確認する**
+- [x] **Step 7: コンパイルを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
 
-- [ ] **Step 8: パイプラインテストにサイズ固定の検査を入れる**
+- [x] **Step 8: パイプラインテストにサイズ固定の検査を入れる**
 
 `MapGenerationPipelineTest.cs` の `VeinAabbIsIntegerSnappedAndNonEmpty` を差し替える:
 
@@ -367,7 +367,7 @@ Expected: エラー0件
 
 `MapGenerationPipelineTest.cs` の using に `UnityEngine` が無ければ追加する。
 
-- [ ] **Step 9: 端はみ出しを許す形へ既存の境界テストを緩める**
+- [x] **Step 9: 端はみ出しを許す形へ既存の境界テストを緩める**
 
 `Vein/FluidVeinPlacementStageTest.cs` の境界判定6行を、`VeinAabbBuilder.Extent` ぶん緩めた形へ差し替える（using に `Game.MapGeneration.Pipeline.Stages` を追加する）:
 
@@ -418,18 +418,18 @@ Expected: エラー0件
 
 （2箇所目の `探索無効かつmaster_worldOffsetありでも…` 側は `buckets.Add` 行を持たない。ループ本体の2行だけ置き換える）
 
-- [ ] **Step 10: マップ生成テストを一式実行する**
+- [x] **Step 10: マップ生成テストを一式実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MapGeneration|VeinAabbBuilderTest|VeinSceneOffsetTest"`
 Expected: 全 PASS。失敗したら `uloop get-logs --project-path ./moorestech_client --log-type Error` で内容を確認して直す
 
-- [ ] **Step 11: 鉱脈を読む側のテストも回して回帰が無いことを確認する**
+- [x] **Step 11: 鉱脈を読む側のテストも回して回帰が無いことを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "VeinMiningProtocolTest|GetMapDataProtocolTest|MinerMiningTest|PumpFluidVeinTest|MapVeinMasterTest"`
 Expected: 全 PASS（これらは手動オーサリングの map.json を使うため、本変更の影響を受けないはず。落ちたら原因を特定してから進む）
 
-- [ ] **Step 12: コミットする**
+- [x] **Step 12: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.MapGeneration moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration
@@ -449,7 +449,7 @@ git commit -m "feat(mapgen): 鉱脈AABBを点単位・点中心の固定サイ�
 - Consumes: `ClientContext.VanillaApi.Response.GetMapData(default)` → `MapLayout.MapVeins`（`VeinGuid`, `MinX/Y/Z`, `MaxX/Y/Z`）、`PlaytestRunner.Run(name, options, async p => ...)`、`p.Note` / `p.Assert`
 - Produces: `PlaytestResults` 配下の `result.json` と録画
 
-- [ ] **Step 1: 調査シナリオを書く**
+- [x] **Step 1: 調査シナリオを書く**
 
 `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/generated-world-vein-size-survey.cs`:
 
@@ -503,7 +503,7 @@ return PlaytestRunner.Run("generated-world-vein-size-survey", options, async p =
 
 `GetMapData` は `ResponseMapDataMessagePack` を返し、その `MapVeins` は `List<VeinLayoutMessagePack>`（`string VeinGuid` / `int MinX,MinY,MinZ,MaxX,MaxY,MaxZ`。`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/MapData/VeinLayoutMessagePack.cs:7-15`）。クライアント側で同じ経路を読んでいる前例は `OutcropGameObjectDatastore` の `_handshakeResponse.MapLayout.MapVeins`。
 
-- [ ] **Step 2: シナリオを実行する**
+- [x] **Step 2: シナリオを実行する**
 
 ```bash
 SKILL=.claude/skills/unity-playmode-recorded-playtest
@@ -517,14 +517,14 @@ PLAYTEST_SEED=12345 \
 
 Expected: `Success` で終了し、Note に鉱脈総数・サイズ分布・veinGuid別内訳が出る。サイズ分布は `size (2, 2, 2)` 1種のみ
 
-- [ ] **Step 3: 結果をユーザーへ報告する**
+- [x] **Step 3: 結果をユーザーへ報告する**
 
 以下を1つのメッセージにまとめて報告する（判断はユーザーが行う。ここで勝手にマスタ調整へ進まない）:
 - 鉱脈総数と veinGuid 別の内訳
 - サイズ分布（全件 (2,2,2) であること）
 - 録画の保存先パスと、露頭の見た目についての所見
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/generated-world-vein-size-survey.cs
@@ -535,15 +535,15 @@ git commit -m "test(playtest): generatedワールドの鉱脈本数とAABBサイ
 
 ### Task 4: ブランチ全体のコードレビュー（省略不可）
 
-- [ ] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
+- [x] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
 
 `moores-code-review` スキルを起動し、本ブランチの全変更をレビューする。ゴール文言による省略は不可。実行者はこれを無条件に実行する。
 
-- [ ] **Step 2: 機械的な指摘を修正し、設計判断はユーザーへ諮る**
+- [x] **Step 2: 機械的な指摘を修正し、設計判断はユーザーへ諮る**
 
 スキルの手順どおり、機械的修正は自動適用し、設計判断だけ末尾で AskUserQuestion にかける。
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add -A

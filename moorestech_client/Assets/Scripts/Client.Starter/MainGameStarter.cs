@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.BackgroundSkit;
@@ -154,14 +153,7 @@ namespace Client.Starter
         
         
         private IObjectResolver _resolver;
-        private string IPAddress = ServerConst.LocalServerIp;
-        
-        private bool isLocal;
-        private Process localServerProcess;
-        
-        private int PlayerId = ServerConst.DefaultPlayerId;
-        private int Port = ServerConst.LocalServerPort;
-        
+
         protected override void OnDestroy()
         {
             _resolver?.Dispose();
