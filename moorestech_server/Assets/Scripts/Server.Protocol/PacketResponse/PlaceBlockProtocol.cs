@@ -5,6 +5,7 @@ using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
+using Game.Construction;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.UnlockState;
@@ -29,12 +30,16 @@ namespace Server.Protocol.PacketResponse
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly NotificationService _notificationService;
+        private readonly IRemainingPlacementCountLookup _remainingPlacementCountLookup;
+        private readonly IRemainingPlacementCountMutation _remainingPlacementCountMutation;
 
         public PlaceBlockProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
             _notificationService = serviceProvider.GetService<NotificationService>();
+            _remainingPlacementCountLookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
+            _remainingPlacementCountMutation = serviceProvider.GetService<IRemainingPlacementCountMutation>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -88,10 +93,10 @@ namespace Server.Protocol.PacketResponse
                 // Skip locked cells and resolve belt slopes through their family straight block
                 if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) { notUnlockedCount++; return; }
 
-                // コスト不足セルはスキップ
-                // Skip cells whose construction cost cannot be covered
+                // 財布で賄えるセルは消費ゼロ、それ以外は全額。不足セルはスキップ
+                // Wallet-covered cells consume nothing, others the full cost; skip cells that cannot be covered
                 var inventory = inventoryData.MainOpenableInventory;
-                var costItemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
+                var costItemCounts = RemainingPlacementChargeService.ResolveCostToConsume(blockMaster, data.PlayerId, _remainingPlacementCountLookup);
                 if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) { costShortageCount++; return; }
 
                 // 電気なら自動接続を事前検証
@@ -110,7 +115,7 @@ namespace Server.Protocol.PacketResponse
                 // Do not consume the cost when placement fails
                 if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) return;
 
-                ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
+                RemainingPlacementChargeService.Charge(blockMaster, data.PlayerId, _remainingPlacementCountMutation, costItemCounts, inventory);
 
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items
