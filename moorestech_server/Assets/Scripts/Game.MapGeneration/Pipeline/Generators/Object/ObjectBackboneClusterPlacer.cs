@@ -32,8 +32,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                 int desiredCenters = Mathf.RoundToInt(band.density * ringArea / 10000f);
                 if (desiredCenters <= 0) continue;
 
-                // Poissonはタイル全面に撒いてリングで絞るため、間隔はリング面積あたりdesiredCenters個になる密度で決める。
-                // Poisson covers the whole tile and is then filtered by the ring, so the spacing targets desiredCenters points per ring area.
+                // 間隔式はリング面積が約分で消えるため実質desiredCentersのみで決まり、ringAreaはdesiredCenters<=0のスキップ判定にのみ効く。
+                // The spacing formula cancels ringArea out algebraically and is driven by desiredCenters alone; ringArea only gates the desiredCenters<=0 skip.
                 float centerMinDist = Mathf.Sqrt(ringArea / desiredCenters * objAlgCfg.clusterSpacingFactor);
                 var centers = PoissonDiskSampler.Generate(w, l, centerMinDist, rng.Next());
 

@@ -79,7 +79,16 @@
           "biomes": [
             "Grassland"
           ],
-          "bands": [],
+          "bands": [
+            {
+              "outerRadiusMeters": -1,
+              "density": 0,
+              "maxObjectsPerCluster": 5,
+              "clusterRadius": 8,
+              "minDistanceBetweenOres": 4,
+              "placementRetries": 10
+            }
+          ],
           "useSlopeFilter": true,
           "slopeMax": 30,
           "slopeSmoothness": 5,

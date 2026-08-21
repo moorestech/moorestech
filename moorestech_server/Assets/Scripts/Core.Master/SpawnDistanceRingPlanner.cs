@@ -74,7 +74,9 @@ namespace Core.Master
         public static List<string> Diagnose(float[] outerRadiusMeters)
         {
             var problems = new List<string>();
-            if (outerRadiusMeters == null || outerRadiusMeters.Length == 0)
+            // 呼び出し元のOuterRadiiOfがnullを未然にNREで弾くため、ここではLength==0だけを見る。
+            // Callers' OuterRadiiOf already NREs on null, so only Length==0 is reachable here.
+            if (outerRadiusMeters.Length == 0)
             {
                 problems.Add("has no spawn-distance bands");
                 return problems;
