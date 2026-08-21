@@ -27,8 +27,8 @@ namespace Game.MapGeneration.Pipeline.Generators
             PlacementHaloChannel centerHalo,
             List<PlacementEntry> result)
         {
-            // バンド未設定は生成器側で警告してスキップ（OreBandPlanner は純粋関数のため）。
-            // Warn and skip when bands are missing (OreBandPlanner stays a pure function).
+            // バンド未設定は生成器側で警告してスキップ（SpawnDistanceRingPlanner は純粋関数のため）。
+            // Warn and skip when bands are missing (SpawnDistanceRingPlanner stays a pure function).
             if (entry.bands == null || entry.bands.Length == 0)
             {
                 Debug.LogWarning($"[OrePlacement] vein '{entry.veinGuid}' has no distance bands; skipping.");
@@ -37,7 +37,6 @@ namespace Game.MapGeneration.Pipeline.Generators
             var seenKeys = new HashSet<float>();
             foreach (var b in entry.bands)
             {
-                if (b == null) continue;
                 if (b.outerRadiusMeters < 0f && b.outerRadiusMeters != -1f)
                     Debug.LogWarning($"[OrePlacement] '{entry.veinGuid}' has a negative outer radius ({b.outerRadiusMeters}) other than -1; treated as infinite.");
                 float key = b.outerRadiusMeters < 0f ? float.PositiveInfinity : b.outerRadiusMeters;
@@ -52,11 +51,11 @@ namespace Game.MapGeneration.Pipeline.Generators
             float sx = dims.SpawnWorldX;
             float sz = dims.SpawnWorldZ;
 
-            var ranges = OreBandPlanner.BuildRanges(entry.bands);
+            var rings = SpawnDistanceRingPlanner.BuildRings(OreBand.OuterRadiiOf(entry.bands));
 
-            foreach (var range in ranges)
+            foreach (var range in rings)
             {
-                var band = range.Band;
+                var band = entry.bands[range.BandIndex];
 
                 float poissonArea = w * l;
                 float adjustedMinDist = Mathf.Sqrt(poissonArea / Mathf.Max(band.density * 100f, 1f));

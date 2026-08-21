@@ -12,5 +12,14 @@ namespace Game.MapGeneration.Pipeline.Config
         public float clusterRadius = 8f;
         public float minDistanceBetweenOres = 1.5f;
         public int placementRetries = 10;
+
+        // リングプランナーへ渡す外半径列。バンドの並び順をそのまま保つ。
+        // The outer-radius sequence handed to the ring planner, keeping band order.
+        public static float[] OuterRadiiOf(OreBand[] bands)
+        {
+            var radii = new float[bands.Length];
+            for (var i = 0; i < bands.Length; i++) radii[i] = bands[i].outerRadiusMeters;
+            return radii;
+        }
     }
 }
