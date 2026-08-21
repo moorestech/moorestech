@@ -270,6 +270,7 @@ namespace Server.Boot
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
             services.AddSingleton<HotbarUpdateEventPacket>();
+            services.AddSingleton<RemainingPlacementCountChangedEventPacket>();
             services.AddSingleton<UnlockedEventPacket>();
             services.AddSingleton<RailNodeCreatedEventPacket>();
             services.AddSingleton<RailConnectionCreatedEventPacket>();
