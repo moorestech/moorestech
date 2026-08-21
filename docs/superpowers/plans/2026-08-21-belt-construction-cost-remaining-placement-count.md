@@ -1630,7 +1630,7 @@ git commit -m "feat(client): 設置プレビューの置ける数を残り設置
 - Produces: DTO/contract fields `placementsPerCost:int(>=1)`, `remainingPlacementCount:int(>=0)`（全kind共通。非ブロックは 1 / 0）
 - i18n keys: `ui.buildMenu.requiredItemsPerSet`（`"Required Items (per {count})"` / `"必要素材（{count}個分）"`）、`ui.buildMenu.remainingPlacementCount`（`"Remaining placements: {count}"` / `"残り設置数: {count}"`）
 
-- [ ] **Step 1: 失敗するテスト（zod + wire fixture）**
+- [x] **Step 1: 失敗するテスト（zod + wire fixture）**
 
 `schemas/buildMenu.test.ts` に追加:
 
@@ -1656,7 +1656,7 @@ git commit -m "feat(client): 設置プレビューの置ける数を残り設置
 
 Run: `cd moorestech_web/webui && npx vitest run src/bridge/contract` → 新テストFAIL（strictで未知キー拒否）
 
-- [ ] **Step 2: contract とホストDTO**
+- [x] **Step 2: contract とホストDTO**
 
 `schemas/buildMenu.ts` の `BuildMenuEntryCommonFields` に追加:
 
@@ -1700,7 +1700,7 @@ Run: `cd moorestech_web/webui && npx vitest run src/bridge/contract` → 新テ�
 
 `BuildMenuTopic`: ctorに `ClientRemainingPlacementCountDatastore remainingPlacementCountDatastore` を追加して保持、`_remainingSubscription = remainingPlacementCountDatastore.OnChanged.Subscribe(_ => SchedulePublish());` を追加し `Dispose` で破棄、`BuildJson` の `CreateDtos(_placementTargetResolver, _remainingPlacementCountDatastore)`。`WebUiGameBinder.cs:154` で `resolver.Resolve<ClientRemainingPlacementCountDatastore>()` を渡す。他に `BuildMenuEntryDtoFactory.CreateDtos` を呼ぶ箇所（`grep -rn "BuildMenuEntryDtoFactory.CreateDtos" moorestech_client/Assets/Scripts`）も全て更新する。
 
-- [ ] **Step 3: i18n とサイドバー**
+- [x] **Step 3: i18n とサイドバー**
 
 `Localization/localization.csv` に2行追加（既存 `ui.buildMenu.requiredItems` 行の直後）:
 
@@ -1735,14 +1735,14 @@ ui.buildMenu.remainingPlacementCount,Remaining placements: {count},Remaining pla
           )}
 ```
 
-- [ ] **Step 4: 検証**
+- [x] **Step 4: 検証**
 
 Run: `cd moorestech_web/webui && npx vitest run src/bridge/contract src/features/buildMenu && npm run build`
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "WireContractTest"`
 Expected: 全PASS・ビルド成功
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Tests Localization/localization.csv moorestech_web/webui
