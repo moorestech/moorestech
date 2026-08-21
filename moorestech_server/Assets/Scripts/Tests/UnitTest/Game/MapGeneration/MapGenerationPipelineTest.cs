@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using System.Linq;
 using Game.MapGeneration.Pipeline;
 using NUnit.Framework;
+using Tests.UnitTest.Game.MapGeneration.Tiling;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration
@@ -54,8 +54,8 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(output.ItemVeins, Is.Not.Empty);
             Assert.That(output.FluidVeins, Is.Not.Empty);
 
-            // 変換後も鉱脈は一辺2の固定AABB。
-            // After the transform, every vein stays a fixed 2-unit AABB.
+            // 変換後も鉱脈は Max-Min = 2 の固定AABB
+            // After the transform, every vein keeps a fixed AABB whose Max-Min is 2
             foreach (var vein in output.ItemVeins)
                 Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 2, 2)));
             foreach (var vein in output.FluidVeins)
@@ -63,34 +63,15 @@ namespace Tests.UnitTest.Game.MapGeneration
         }
 
         [Test]
-        public void SameGuidVeinAabbsDoNotOverlap()
+        public void VeinAabbsDoNotOverlap()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
             var output = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
 
-            // 同一veinGuidが重なると採掘時間が1本ぶんのまま産出だけ倍になる不具合の再発検知。
-            // Regression guard: overlap within the same veinGuid halves mining time relative to output.
-            AssertNoOverlapWithinGuid(output.ItemVeins);
-            AssertNoOverlapWithinGuid(output.FluidVeins);
-        }
-
-        // 同一veinGuidの全ペアをinclusive判定で総当たりし、最初の重なりを座標付きで報告する。
-        // Brute-forces every same-guid pair with an inclusive check, reporting the first overlap with coordinates.
-        private static void AssertNoOverlapWithinGuid(List<PlacedVein> veins)
-        {
-            for (int i = 0; i < veins.Count; i++)
-            for (int j = i + 1; j < veins.Count; j++)
-            {
-                var a = veins[i];
-                var b = veins[j];
-                if (a.VeinGuid != b.VeinGuid) continue;
-
-                bool overlaps = a.Min.x <= b.Max.x && b.Min.x <= a.Max.x &&
-                                a.Min.y <= b.Max.y && b.Min.y <= a.Max.y &&
-                                a.Min.z <= b.Max.z && b.Min.z <= a.Max.z;
-                Assert.That(overlaps, Is.False,
-                    $"veinGuid={a.VeinGuid} が重複: A(Min={a.Min}, Max={a.Max}) vs B(Min={b.Min}, Max={b.Max})");
-            }
+            // 鉱脈の重なりは産出だけ倍にする不具合の再発検知
+            // Regression guard: an overlap doubles only the yield
+            MultiTileTestWorld.AssertNoOverlappingVeins(output.ItemVeins);
+            MultiTileTestWorld.AssertNoOverlappingVeins(output.FluidVeins);
         }
     }
 }

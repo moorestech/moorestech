@@ -132,6 +132,20 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             Assert.Less(1, buckets.Count, "鉱脈が単一タイルぶんしか残っていない");
         }
 
+        // 非重なりを支えるのはタイル境界の帯なので多タイルでも通す
+        // The seam band upholds non-overlap, so this runs on a multi-tile world
+        [Test]
+        public void 多タイルでも鉱脈AABBは重ならない()
+        {
+            var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
+
+            var output = new VanillaGenerator().Generate(config);
+
+            Assert.IsNotEmpty(output.ItemVeins);
+            MultiTileTestWorld.AssertNoOverlappingVeins(output.ItemVeins);
+            MultiTileTestWorld.AssertNoOverlappingVeins(output.FluidVeins);
+        }
+
         // シーン座標化の基準が探索の戻り値(探索無効なら0)だと、地形の窓原点だけが master worldOffset ぶん進む。
         // A basis taken from the search result (zero when disabled) advances only the terrain window origin by the master worldOffset.
         [Test]

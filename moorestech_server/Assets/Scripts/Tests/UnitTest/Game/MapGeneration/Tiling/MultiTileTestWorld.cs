@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Runtime;
@@ -53,13 +54,31 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             AssertInsideGridWithMargin(x, z, config, 0f, 0f);
         }
 
-        // 鉱脈は格子外へ1ブロックはみ出しうるため、Min/Max 両隅をその余白ぶん緩めて判定する。
-        // A vein may overhang the grid by one block, so both the Min and Max corners are checked with that margin.
+        // 鉱脈は格子外へ1ブロックはみ出すため両隅を余白ぶん緩める
+        // A vein overhangs the grid by one block, so both corners take that margin
         public static void AssertVeinInsideGrid(PlacedVein vein, TerrainGenerationConfig config)
         {
             const int margin = TestGenerationConfigFactory.VeinGridOverhang;
             AssertInsideGridWithMargin(vein.Min.x, vein.Min.z, config, margin, margin);
             AssertInsideGridWithMargin(vein.Max.x, vein.Max.z, config, margin, margin);
+        }
+
+        // 全ペアをinclusive判定し最初の重なりを報告する
+        // Brute-forces every pair inclusively and reports the first overlap
+        public static void AssertNoOverlappingVeins(List<PlacedVein> veins)
+        {
+            for (int i = 0; i < veins.Count; i++)
+            for (int j = i + 1; j < veins.Count; j++)
+            {
+                var a = veins[i];
+                var b = veins[j];
+
+                bool overlaps = a.Min.x <= b.Max.x && b.Min.x <= a.Max.x &&
+                                a.Min.y <= b.Max.y && b.Min.y <= a.Max.y &&
+                                a.Min.z <= b.Max.z && b.Min.z <= a.Max.z;
+                Assert.That(overlaps, Is.False,
+                    $"鉱脈が重複: A(guid={a.VeinGuid}, Min={a.Min}, Max={a.Max}) vs B(guid={b.VeinGuid}, Min={b.Min}, Max={b.Max})");
+            }
         }
 
         static void AssertInsideGridWithMargin(
