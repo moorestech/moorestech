@@ -1,11 +1,12 @@
 import { z } from "zod";
 
 export const GameStateDataSchema = z.object({ state: z.enum(["InGame", "Skit", "CutScene"]) });
-// ハイライトは枠線だけを描く。文言を持つkindは廃止済みで生産者が存在しない
-// Highlights draw an outline only; text-carrying kinds were retired and have no producer
+// 枠線+任意labelTutorialGuid(t()解決)
+// Outline plus optional labelTutorialGuid, resolved via t()
 export const TutorialHighlightSchema = z.object({
   kind: z.literal("outline"), elementId: z.string(), anchorId: z.string(),
   paddingPx: z.number().nonnegative(), blocksPointerInput: z.boolean(),
+  labelTutorialGuid: z.string().uuid().optional(),
 }).strict();
 // D&D説明の矢印ガイド。from/to両anchorが解決している間だけ描く
 // Drag guide arrows for D&D instruction; drawn only while both anchors resolve
@@ -13,10 +14,16 @@ export const TutorialDragGuideSchema = z.object({
   kind: z.literal("dragGuide"), elementId: z.string(),
   fromAnchorId: z.string(), toAnchorId: z.string(),
 }).strict();
+// キー操作ヒント。uiState一致中のみHUD表示
+// Key-control hint; shown only while uiState matches
+export const TutorialKeyControlSchema = z.object({
+  kind: z.literal("keyControl"), elementId: z.string(),
+  tutorialGuid: z.string().uuid(), keyName: z.string(), uiState: z.string(),
+}).strict();
 // overlay要素はkind判別unionの単一列。種別追加は配列を増やさずunionへ足す
 // Overlay elements form one kind-discriminated union list; new kinds extend the union, not the arrays
 export const TutorialOverlayElementSchema = z.discriminatedUnion("kind", [
-  TutorialHighlightSchema, TutorialDragGuideSchema,
+  TutorialHighlightSchema, TutorialDragGuideSchema, TutorialKeyControlSchema,
 ]);
 // sessionはchallenge単位。同時currentの複数challengeが並存できる
 // One session per challenge, so simultaneously current challenges coexist

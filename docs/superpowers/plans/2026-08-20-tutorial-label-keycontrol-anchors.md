@@ -58,7 +58,7 @@
 **Interfaces:**
 - Produces: 生成型 `Mooresmaster.Model.ChallengesModule.KeyControlTutorialParam` に `string KeyName` プロパティが追加される（`UiState`・`ControlText` は既存）。
 
-- [ ] **Step 1: スキーマを編集する**
+- [x] **Step 1: スキーマを編集する**
 
 `VanillaSchema/challenges.yml` の keyControl case を次に置き換える（`uiState` の enum は `Client.Game/InGame/UI/UIState/UIStateEnum.cs` から `Debug` を除いた全値）:
 
@@ -89,21 +89,21 @@
                   default: control text
 ```
 
-- [ ] **Step 2: SourceGenerator を再トリガする**
+- [x] **Step 2: SourceGenerator を再トリガする**
 
 `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs` の `dummyText` 定数の値を別の文字列（例: 現在値の末尾に `-keyName` を付けたもの）へ変更する。
 
-- [ ] **Step 3: 旧enum値・データ残存を確認する**
+- [x] **Step 3: 旧enum値・データ残存を確認する**
 
 Run: `grep -rn '"BlockInventory"' --include='*.json' moorestech_server moorestech_client ../moorestech_master | grep -v worktrees`
 Expected: 0件（keyControl データは TestMod / EditModeInPlayingTestMod に存在せず、v8 origin/master にも0件。mod_3 の1件はマスタPR側で keyName を足す）。
 
-- [ ] **Step 4: コンパイルして生成物を確認する**
+- [x] **Step 4: コンパイルして生成物を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0。`grep -rn "KeyName" Library/` ではなく、次のテスト（Task A2）で `KeyControlTutorialParam.KeyName` を参照してコンパイルが通ることで確認する。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add VanillaSchema/challenges.yml moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs
@@ -128,7 +128,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
   - `ITutorialView TutorialPresentationStateStore.AddOutlineHighlight(string anchorId, string labelTutorialGuid)`
   - `ITutorialView TutorialPresentationStateStore.AddKeyControlHint(string tutorialGuid, string keyName, string uiState)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `TutorialPresentationStateStoreTest.cs` に追加:
 
@@ -173,12 +173,12 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 既存テストの `store.AddOutlineHighlight("recipe.craft-button")` 呼び出しは全て `store.AddOutlineHighlight("recipe.craft-button", null)` に書き換える（デフォルト引数禁止のため第2引数必須）。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `AddOutlineHighlight` の引数不一致・`TutorialKeyControlElementData` 未定義でコンパイルエラー。
 
-- [ ] **Step 3: データ型を追加する**
+- [x] **Step 3: データ型を追加する**
 
 `TutorialPresentationData.cs` の `TutorialOutlineElementData` に追加し、新クラスを末尾に足す:
 
@@ -217,7 +217,7 @@ Expected: `AddOutlineHighlight` の引数不一致・`TutorialKeyControlElementD
     }
 ```
 
-- [ ] **Step 4: store の API を拡張する**
+- [x] **Step 4: store の API を拡張する**
 
 `TutorialPresentationStateStore.cs` の `AddOutlineHighlight` を差し替え、`AddKeyControlHint` を `AddDragGuide` の下に追加:
 
@@ -250,7 +250,7 @@ Expected: `AddOutlineHighlight` の引数不一致・`TutorialKeyControlElementD
         }
 ```
 
-- [ ] **Step 5: 呼び出し側（枠線2種）でラベルguidを渡す**
+- [x] **Step 5: 呼び出し側（枠線2種）でラベルguidを渡す**
 
 `UIHighlightTutorialManager.cs`:
 
@@ -284,13 +284,13 @@ Expected: `AddOutlineHighlight` の引数不一致・`TutorialKeyControlElementD
 
 他に `AddOutlineHighlight(` を呼ぶ箇所が無いか確認: `grep -rn "AddOutlineHighlight(" moorestech_client/Assets/Scripts`（テストと上記2件以外に無いこと）。
 
-- [ ] **Step 6: コンパイル・テスト**
+- [x] **Step 6: コンパイル・テスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → errors 0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "TutorialPresentationStateStoreTest"`
 Expected: 全PASS（新規2件含む）。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Tutorial moorestech_client/Assets/Scripts/Client.Tests/WebUi/TutorialPresentationStateStoreTest.cs
@@ -310,7 +310,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `TutorialPresentationStateStore.AddKeyControlHint(string,string,string)`（Task A2）、生成型 `KeyControlTutorialParam.KeyName/UiState`（Task A1）
 - Produces: `KeyControlTutorialManager : MonoBehaviour, ITutorialViewManager`（`ITutorialView` 実装と `ClearPresentation()` は削除）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `KeyControlTutorialManagerTest.cs`（`UiDragGuideTutorialManagerTest.cs` と同型。TestMod の challenges.json 先頭tutorialを keyControl に差し替えて読み込む）:
 
@@ -419,14 +419,14 @@ namespace Client.Tests.UnitTest.Tutorial
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: 既存 `KeyControlTutorialManager.ApplyTutorial` は `this` を返す旧実装なので、テスト自体はコンパイルは通る。次に Step 4 の実行で失敗（`KeyControls()` が増えない）を確認する。
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "KeyControlTutorialManagerTest"`
 Expected: FAIL（要素が公開されない）。
 
-- [ ] **Step 3: KeyControlTutorialManager を書き換える**
+- [x] **Step 3: KeyControlTutorialManager を書き換える**
 
 全面置換:
 
@@ -462,17 +462,17 @@ namespace Client.Game.InGame.Tutorial
 
 `KeyControlDescription.Instance.SetOverrideText/ClearOverrideText` の呼び出し元が他に無いことを確認する（`grep -rn "OverrideText" moorestech_client/Assets/Scripts`）。無ければ `KeyControlDescription.cs` の `SetOverrideText`/`ClearOverrideText`/`_overrideText` を削除し `RefreshText` を `_defaultText` のみにする（デバッグ/未使用publicを残さない規約）。
 
-- [ ] **Step 4: prefab の旧SerializeField参照を確認する**
+- [x] **Step 4: prefab の旧SerializeField参照を確認する**
 
 `KeyControlTutorialManager` から `keyControlUIObject` / `keyControlTutorialText` が消える。シーン/プレハブ側の参照はUnityが無視するが、Console に「missing serialized field」系の警告が出ないことを `uloop get-logs --project-path ./moorestech_client --log-type Warning` で確認する。出る場合は `uloop execute-dynamic-code` で該当コンポーネントの SerializedObject を更新して保存する（テキスト編集禁止）。
 
-- [ ] **Step 5: コンパイル・テスト**
+- [x] **Step 5: コンパイル・テスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → errors 0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "KeyControlTutorialManagerTest|TutorialPresentationStateStoreTest|UiDragGuideTutorialManagerTest|VeinPinTutorialTest"`
 Expected: 全PASS。
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Tutorial moorestech_client/Assets/Scripts/Client.Game/InGame/UI/KeyControl/KeyControlDescription.cs moorestech_client/Assets/Scripts/Client.Tests/UnitTest/Tutorial/KeyControlTutorialManagerTest.cs*
@@ -490,7 +490,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `TutorialHighlightSchema` に `labelTutorialGuid: z.string().uuid().optional()`；新 `TutorialKeyControlSchema { kind:"keyControl", elementId, tutorialGuid(uuid), keyName, uiState }`；`TutorialOverlayElementSchema` の union に追加。型 `TutorialPresentationData` は既存の `z.infer` 経由で自動更新。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `presentation.test.ts` に追加:
 
@@ -511,12 +511,12 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 `import` に `TutorialHighlightSchema, TutorialOverlayElementSchema` を足す。
 
-- [ ] **Step 2: 実行して失敗を確認する**
+- [x] **Step 2: 実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && npx vitest run src/bridge/contract/schemas/presentation.test.ts`
 Expected: FAIL（`labelTutorialGuid` は strict で拒否、`keyControl` は union 外）。
 
-- [ ] **Step 3: スキーマを実装する**
+- [x] **Step 3: スキーマを実装する**
 
 ```ts
 // 枠線は矩形だけ。文言を持つなら labelTutorialGuid で辞書キーを示し、Web側が t() で解決して脇に描く
@@ -545,12 +545,12 @@ export const TutorialOverlayElementSchema = z.discriminatedUnion("kind", [
 ]);
 ```
 
-- [ ] **Step 4: テスト・型チェック**
+- [x] **Step 4: テスト・型チェック**
 
 Run: `npx vitest run src/bridge/contract/schemas/presentation.test.ts && npx tsc -b`
 Expected: PASS。`tsc` で `TutorialOverlay.tsx` の `element.kind !== "outline"` 分岐が keyControl に `fromAnchorId` 無しで型エラーになる → Task A5 で直すため、このステップでは `TutorialOverlay.tsx:37-41` を一時的に `if (element.kind === "dragGuide") { ...; continue; } if (element.kind !== "outline") continue;` に直してから進める。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/bridge/contract/schemas/presentation.ts moorestech_web/webui/src/bridge/contract/schemas/presentation.test.ts moorestech_web/webui/src/features/tutorial/TutorialOverlay.tsx
@@ -571,7 +571,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `challengeTutorialTextKey(guid)`（`@/shared/i18n`）、`useI18n().t`
 - Produces: DOM `div[data-testid="tutorial-highlight-label"]`（枠線 div の兄弟、`.highlightLabel`）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `TutorialOverlay.test.ts` の `vi.mock("@/bridge"...)` の下に i18n モックを追加し、テストを足す:
 
@@ -625,12 +625,12 @@ describe("TutorialOverlay outline labels", () => {
 
 （`ready()` の rect は `top:0,height:10`、`outline()` の `paddingPx:0` なので `top` 期待値は `0 + 10 + 0 = 10`。）
 
-- [ ] **Step 2: 実行して失敗を確認する**
+- [x] **Step 2: 実行して失敗を確認する**
 
 Run: `npx vitest run src/features/tutorial/TutorialOverlay.test.ts`
 Expected: FAIL（ラベル要素が無い）。
 
-- [ ] **Step 3: 描画を実装する**
+- [x] **Step 3: 描画を実装する**
 
 `TutorialOverlay.tsx`:
 - import に `import { challengeTutorialTextKey, useI18n } from "@/shared/i18n";` を追加。
@@ -706,12 +706,12 @@ function renderOutline(key: string, element: TutorialOutlineElement, value: Reso
 - **枠線ハイライトの文言ラベル**: `tutorial.presentation` の outline に `labelTutorialGuid` があるとき、`TutorialOverlay` が枠線の下辺外側・左揃えに `t(challengeTutorial.<guid>.text)` のラベルを描く（ユーザー裁定 2026-08-20）。面は `--world-pin-face`、文字は `--text-high-contrast`、間隔・文字サイズは `--tutorial-highlight-label-*` 固定長トークン。枠線が非表示ならラベルも出さない。吹き出し矢印・光彩・アニメーションは付けない。
 ```
 
-- [ ] **Step 4: テスト・lint・型**
+- [x] **Step 4: テスト・lint・型**
 
 Run: `npx vitest run src/features/tutorial && npm run lint && npx tsc -b`
 Expected: 全PASS / エラー0。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/features/tutorial moorestech_web/webui/src/app/tokens.css .agents/skills/webui-design/SKILL.md
@@ -734,7 +734,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `Topics.tutorialPresentation`、`Topics.uiState`（`state: string`）、`useBlockingSkitActive()`、`challengeTutorialTextKey`、`useI18n`
 - Produces: `export function KeyControlHintHud()`；DOM `div[data-testid="key-control-hint-hud"] > div[data-testid="key-control-hint"]`（`<kbd>{keyName}</kbd><span>{text}</span>`）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `KeyControlHintHud.test.ts`:
 
@@ -816,12 +816,12 @@ describe("KeyControlHintHud", () => {
 });
 ```
 
-- [ ] **Step 2: 実行して失敗を確認する**
+- [x] **Step 2: 実行して失敗を確認する**
 
 Run: `npx vitest run src/features/tutorial/KeyControlHintHud.test.ts`
 Expected: FAIL（モジュール未作成）。
 
-- [ ] **Step 3: コンポーネントを実装する**
+- [x] **Step 3: コンポーネントを実装する**
 
 `KeyControlHintHud.tsx`:
 
@@ -918,12 +918,12 @@ export function KeyControlHintHud() {
 - 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。文字サイズ・間隔は `--tutorial-key-hint-*` 固定長トークン。面・枠・光彩・アニメーションは持たず `pointer-events: none`。
 ```
 
-- [ ] **Step 4: テスト・lint・型**
+- [x] **Step 4: テスト・lint・型**
 
 Run: `npx vitest run src/features/tutorial && npm run lint && npx tsc -b`
 Expected: 全PASS。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/features/tutorial moorestech_web/webui/src/app .agents/skills/webui-design/SKILL.md
@@ -938,7 +938,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Modify: `moorestech_web/webui/e2e/mock-host/topics/topicControls.ts:84-96`
 - Modify: `moorestech_web/webui/e2e/tests/system/tutorial.spec.ts`
 
-- [ ] **Step 1: mock-host にシナリオを追加する**
+- [x] **Step 1: mock-host にシナリオを追加する**
 
 `topicControls.ts` の `tutorialOutline` の次に追加:
 
@@ -965,7 +965,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
   }),
 ```
 
-- [ ] **Step 2: スペックを追加する**
+- [x] **Step 2: スペックを追加する**
 
 `tutorial.spec.ts` 末尾:
 
@@ -989,12 +989,12 @@ test("keyControl hint renders a kbd and text above the hotbar while uiState matc
 
 mock-host の既定 `ui_state.current` が `GameScreen` でない場合は、既存の ui state シナリオ（`topicControls.ts` 内の `uiState*`）で `GameScreen` にしてから検証する。
 
-- [ ] **Step 3: 実行**
+- [x] **Step 3: 実行**
 
 Run: `cd moorestech_web/webui && npm run test:e2e -- e2e/tests/system/tutorial.spec.ts`
 Expected: PASS（ポート5273衝突で偽失敗する場合は別セッションのe2e終了を待つ）。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_web/webui/e2e
@@ -1005,9 +1005,9 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 ### Task A8: PR-A 全ブランチレビュー（必須）
 
-- [ ] **Step 1:** `uloop compile` errors 0、`uloop run-tests ... --filter-value "Tutorial|Localization"` 全PASS、`npx vitest run` 全PASS、`npm run lint`、`npx tsc -b` を再確認する。
-- [ ] **Step 2:** 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（moores-code-review・自動実行・ゴール文言による省略不可）。指摘の機械的修正を適用し、設計判断は AskUserQuestion で仰ぐ。
-- [ ] **Step 3:** pr-create スキルで PR を作る（タイトル例: `feat(tutorial): 枠線ラベル描画と keyControl のWeb復活（keyName/uiState enum）`）。
+- [x] **Step 1:** `uloop compile` errors 0、`uloop run-tests ... --filter-value "Tutorial|Localization"` 全PASS、`npx vitest run` 全PASS、`npm run lint`、`npx tsc -b` を再確認する。
+- [x] **Step 2:** 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（moores-code-review・自動実行・ゴール文言による省略不可）。指摘の機械的修正を適用し、設計判断は AskUserQuestion で仰ぐ。
+- [x] **Step 3:** pr-create スキルで PR を作る（タイトル例: `feat(tutorial): 枠線ラベル描画と keyControl のWeb復活（keyName/uiState enum）`）。
 
 ---
 

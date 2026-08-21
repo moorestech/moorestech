@@ -10,9 +10,9 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
         {
             var highlightParam = (UiHighLightTutorialParam)tutorial.TutorialParam;
 
-            // マスタのanchorIdを無変換でWebオーバーレイへ渡す。DOMとの突き合わせはWeb側のみが行う
-            // Pass the master anchorId to the web overlay verbatim; DOM matching happens only on the web side
-            return TutorialPresentationStateStore.Instance.AddOutlineHighlight(highlightParam.HighLightAnchorId);
+            // マスタのanchorIdは無変換で渡す（DOM突き合わせはWeb側のみが担うため、ここで変換・検証しない）
+            // Pass the master anchorId verbatim; only the web side matches it against the DOM, so no mapping or validation here
+            return TutorialPresentationStateStore.Instance.AddOutlineHighlight(highlightParam.HighLightAnchorId, tutorial.TutorialGuid);
         }
     }
 }

@@ -40,3 +40,16 @@
   75% { transform: translate(var(--drag-guide-dx), var(--drag-guide-dy)); opacity: 1; }
   100% { transform: translate(var(--drag-guide-dx), var(--drag-guide-dy)); opacity: 0; }
 }
+
+/* 枠線脇のラベル。ワールドピンのラベルと同じ面・文字色で、枠線の下辺外側に付く */
+/* Side label of an outline; same face and text color as the world-pin label, attached just below the outline */
+.highlightLabel {
+  position: fixed;
+  margin-top: var(--tutorial-highlight-label-gap);
+  padding: var(--label-face-padding);
+  color: var(--text-high-contrast);
+  background: var(--world-pin-face);
+  white-space: nowrap;
+  font-size: var(--label-face-font-size);
+  pointer-events: none;
+}

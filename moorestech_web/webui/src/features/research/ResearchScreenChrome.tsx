@@ -5,12 +5,12 @@ import styles from "./ResearchScreenChrome.module.css";
 // Key hints for the research screen, following the InventoryScreenChrome style
 export default function ResearchScreenChrome() {
   return (
-    <div className={styles.keyHints} data-testid="research-key-hints">
+    <div className={`keyHintText ${styles.keyHints}`} data-testid="research-key-hints">
       <div>
-        <LocalizedShortcutHint shortcut="Tab" translationKey={L.ui.research.inventoryHint} />
+        <LocalizedShortcutHint layout="inline" shortcut="Tab" translationKey={L.ui.research.inventoryHint} />
       </div>
       <div>
-        <LocalizedShortcutHint shortcut="ESC/R" translationKey={L.ui.research.closeHint} />
+        <LocalizedShortcutHint layout="inline" shortcut="ESC/R" translationKey={L.ui.research.closeHint} />
       </div>
     </div>
   );

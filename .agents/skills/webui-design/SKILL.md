@@ -126,7 +126,7 @@ description: |
 - フォントは `--font-ui` のみ。個別 font-family 指定禁止。
 - 実フォントは単一ウェイトのため**合成bold/italicは禁止**（`font-synthesis: none` を崩さない）。
 - **表示文字列は必ず `t()` を通す。** JSXへの生リテラルは lint（no-jsx-visible-literal）で落ちる。
-- キー操作ヒントは `<kbd>` + `t()` の既存様式（InventoryScreenChrome の keyHints）に従う。
+- キー操作ヒントは `<kbd>` + `t()` の既存様式（InventoryScreenChrome の keyHints）に従う。**文字様式は `app/tokens.css` の低詳細度クラス `:where(.keyHintText)` が唯一の正**で、使う側は `keyHintText` を併記し、機能側CSSには位置決め（position / gap / z-index）だけを残す。同じ文字様式の宣言ブロックを機能側へ複製しない。
 - **テキスト選択は入力欄のみ**（§9・ADR 0021）。`app/index.css` の `body { user-select: none }` ＋ `input, textarea { user-select: text }` が唯一の正で、機能側CSSで `user-select` を書かない。
 
 ## 8. 通知・情報表示
@@ -441,6 +441,13 @@ description: |
   落として先頭へ戻る。
 - `pointer-events: none` を維持し、z層は既存の tutorial overlay 内（新しい `--z-*` を増やさない）。
 - e2e/スクリーンショット検証はアニメーション非同期のため座標一致を要求しない（表示有無のみ検証する）。
+- **枠線ハイライトの文言ラベル**: `tutorial.presentation` の outline に `labelTutorialGuid` があるとき、`TutorialOverlay` が枠線の下辺外側・左揃えに `t(challengeTutorial.<guid>.text)` のラベルを描く（ユーザー裁定 2026-08-20）。面は `--world-pin-face`、文字は `--text-high-contrast`、間隔は `--tutorial-highlight-label-gap`、padding・文字サイズはワールドピンのラベルと共有する `--label-face-padding` / `--label-face-font-size`。枠線が非表示ならラベルも出さない。ラベル自身はclip-pathを持たないため、祖先クリップが枠線を1pxでも削る間もラベルは出さない。`t()` の解決結果が空（辞書未着など）のときもラベル面ごと出さない。吹き出し矢印・光彩・アニメーションは付けない。
+
+## 8.19 キー操作ヒントHUD（チュートリアルの keyControl）
+
+- `tutorial.presentation` の kind `keyControl`（tutorialGuid / keyName / uiState）を `KeyControlHintHud` が描く。表示は `ui_state.current` の `state` が `uiState` と一致する間だけで、blockingスキット中は出さない（ユーザー裁定 2026-08-20）。
+- 配置は常時表示HUD族の `.viewportOverlay` 内・画面下中央で、ホットバーの床（`--hotbar-floor-offset`）から `--tutorial-key-hint-hotbar-gap` だけ上に置き、採掘ゲージと重ねない。複数は `--tutorial-key-hint-gap` で縦積み。床位置の計算式（`--hotbar-floor-offset` + 各HUD固有のgap）は採掘プログレスバー（§8.18）と共有する。
+- 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。実装は `LocalizedShortcutHint`（`shared/i18n`）を `layout="prefix"` で再利用する（kbdを常に先頭へ置く様式を型で表明し、`layout="inline"` の文言中マーカー差し込みと識別可能にする）。文字様式はInventoryScreenChrome/ResearchScreenChromeのkeyHintsと共有する `keyHintText` クラス（§7）、kbdとの間隔・縦積み間隔は `--tutorial-key-hint-*` 固定長トークン。面・枠・光彩・アニメーションは持たず `pointer-events: none`。
 
 ## 9. やらないことリスト（再掲・明示）
 

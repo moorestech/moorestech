@@ -40,9 +40,20 @@ namespace Client.Tests.WebUi
                                 ElementId = "craft", AnchorId = "recipe.craft-button",
                                 PaddingPx = 4, BlocksPointerInput = false,
                             },
+                            new TutorialOutlineElementData
+                            {
+                                ElementId = "craft-labeled", AnchorId = "recipe.craft-button",
+                                PaddingPx = 4, BlocksPointerInput = false,
+                                LabelTutorialGuid = "33333333-3333-4333-8333-333333333333",
+                            },
                             new TutorialDragGuideElementData
                             {
                                 ElementId = "guide-1", FromAnchorId = "hotbar.hud", ToAnchorId = "recipe.craft-button",
+                            },
+                            new TutorialKeyControlElementData
+                            {
+                                ElementId = "key-1", TutorialGuid = "44444444-4444-4444-8444-444444444444",
+                                KeyName = "Tab", UiState = "GameScreen",
                             },
                         },
                     },

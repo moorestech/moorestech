@@ -5,12 +5,12 @@ import styles from "./InventoryScreenChrome.module.css";
 // Owns the inventory screen's key hints; the sort action lives in InventoryPanel's title row
 export default function InventoryScreenChrome() {
   return (
-    <div className={styles.keyHints} data-testid="key-hints">
+    <div className={`keyHintText ${styles.keyHints}`} data-testid="key-hints">
       <div>
-        <LocalizedShortcutHint shortcut="Tab/ESC" translationKey={L.ui.inventory.closeHint} />
+        <LocalizedShortcutHint layout="inline" shortcut="Tab/ESC" translationKey={L.ui.inventory.closeHint} />
       </div>
       <div>
-        <LocalizedShortcutHint shortcut="R" translationKey={L.ui.inventory.researchHint} />
+        <LocalizedShortcutHint layout="inline" shortcut="R" translationKey={L.ui.inventory.researchHint} />
       </div>
     </div>
   );

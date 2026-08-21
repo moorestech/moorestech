@@ -35,6 +35,9 @@ namespace Client.Game.InGame.Tutorial
         public string AnchorId;
         public int PaddingPx;
         public bool BlocksPointerInput;
+        // ラベル文言キー元。null=枠線のみ
+        // Source GUID of the label text; null means outline only
+        public string LabelTutorialGuid;
     }
 
     public class TutorialDragGuideElementData : TutorialOverlayElementData
@@ -48,5 +51,21 @@ namespace Client.Game.InGame.Tutorial
 
         public string FromAnchorId;
         public string ToAnchorId;
+    }
+
+    // キー操作ヒント。判定はWeb側で行う
+    // Key-control hint; the web side decides matching
+    public class TutorialKeyControlElementData : TutorialOverlayElementData
+    {
+        public const string KindName = "keyControl";
+
+        public TutorialKeyControlElementData()
+        {
+            Kind = KindName;
+        }
+
+        public string TutorialGuid;
+        public string KeyName;
+        public string UiState;
     }
 }

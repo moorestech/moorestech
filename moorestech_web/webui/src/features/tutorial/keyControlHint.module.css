@@ -1,0 +1,22 @@
+/* ホットバー直上（採掘ゲージのさらに上）へ中央揃えで積む常時表示HUD族。面は持たず pointer-events:none */
+/* Always-on HUD family stacked centered right above the hotbar (above the mining gauge); faceless, pointer-events:none */
+.hud {
+  position: absolute;
+  right: 0;
+  bottom: calc(var(--hotbar-floor-offset) + var(--tutorial-key-hint-hotbar-gap));
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tutorial-key-hint-gap);
+  pointer-events: none;
+  z-index: var(--z-stage-overlay-panel);
+}
+
+/* 文字様式は共有の keyHintText が持ち、ここはkbdとの間隔だけを決める（§7） */
+/* The shared keyHintText class owns the text style; this rule only sets the gap to the kbd (§7) */
+.hint {
+  display: flex;
+  align-items: center;
+  gap: var(--tutorial-key-hint-kbd-gap);
+}

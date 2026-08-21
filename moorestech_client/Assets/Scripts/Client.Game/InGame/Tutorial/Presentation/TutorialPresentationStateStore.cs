@@ -44,9 +44,9 @@ namespace Client.Game.InGame.Tutorial
             Publish();
         }
 
-        // outline用途だけを公開し、廃止済みkindの再流入を防ぐ
-        // Expose only the outline use case to prevent removed kinds from returning
-        public ITutorialView AddOutlineHighlight(string anchorId)
+        // outline専用に限定(廃止kind再流入防止)。keyControlと同じくtutorialGuidを常に載せる
+        // Outline-only, to prevent removed kinds from returning; always carries tutorialGuid like keyControl does
+        public ITutorialView AddOutlineHighlight(string anchorId, Guid tutorialGuid)
         {
             return AddElement(new TutorialOutlineElementData
             {
@@ -54,6 +54,7 @@ namespace Client.Game.InGame.Tutorial
                 AnchorId = anchorId,
                 PaddingPx = 8,
                 BlocksPointerInput = false,
+                LabelTutorialGuid = tutorialGuid.ToString(),
             });
         }
 
@@ -69,6 +70,19 @@ namespace Client.Game.InGame.Tutorial
             });
         }
 
+        // キー操作ヒント。表示可否はWeb側判定
+        // Key-control hint; visibility is decided web-side
+        public ITutorialView AddKeyControlHint(string tutorialGuid, string keyName, string uiState)
+        {
+            return AddElement(new TutorialKeyControlElementData
+            {
+                ElementId = Guid.NewGuid().ToString(),
+                TutorialGuid = tutorialGuid,
+                KeyName = keyName,
+                UiState = uiState,
+            });
+        }
+
         // 完了したchallengeのsessionだけを畳み、他challengeの提示は残す
         // Drop only the completed challenge's session and leave the other challenges' presentation intact
         public void EndSession(Guid challengeId)
@@ -77,12 +91,6 @@ namespace Client.Game.InGame.Tutorial
             if (_sessions.RemoveAll(session => session.ChallengeId == challengeKey) == 0) return;
             if (_applyTargetChallengeId == challengeKey) _applyTargetChallengeId = "";
             Publish();
-        }
-
-        public bool HasSession(Guid challengeId)
-        {
-            var challengeKey = challengeId.ToString();
-            return _sessions.Any(session => session.ChallengeId == challengeKey);
         }
 
         public bool HasSessionId(string sessionId)

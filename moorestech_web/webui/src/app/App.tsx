@@ -18,7 +18,7 @@ import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
 import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
-import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
+import { KeyControlHintHud, TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud } from "@/shared/uiState";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
@@ -115,6 +115,7 @@ export default function App() {
           {/* 採掘ゲージはホットバーの床を基準に積むため同じviewport族へ置く */}
           {/* The mining gauge stacks on the hotbar's floor, so it belongs to the same viewport family */}
           <ProgressBar />
+          <KeyControlHintHud />
           <SkitPresentation />
         </div>
         <ModalHost />

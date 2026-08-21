@@ -43,6 +43,11 @@ vi.mock("@/shared/tutorialAnchor", async (importOriginal) => {
   };
 });
 
+vi.mock("@/shared/i18n", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/shared/i18n")>();
+  return { ...actual, useI18n: () => ({ t: (key: string) => `T:${key}` }) };
+});
+
 // vitestはnode環境でdocumentを持たないため、CSS変数読み取りをテスト用の固定値へ差し替える
 // vitest runs in a node environment with no document, so the CSS variable read is swapped for a fixed test value
 vi.mock("./highlightGlowToken", () => ({
@@ -68,6 +73,10 @@ const outline = (elementId: string, anchorId: string) => ({
 });
 const dragGuide = (elementId: string, fromAnchorId: string, toAnchorId: string) => ({
   kind: "dragGuide" as const, elementId, fromAnchorId, toAnchorId,
+});
+const keyControl = (elementId: string) => ({
+  kind: "keyControl" as const, elementId, tutorialGuid: "22222222-2222-4222-8222-222222222222",
+  keyName: "Tab", uiState: "GameScreen",
 });
 const presentation = (revision: number, sessions: TutorialPresentationData["sessions"]) => ({ revision, sessions });
 
@@ -219,6 +228,65 @@ describe("TutorialOverlay anchor resolution", () => {
 
     pushAnchor("recipe.craft-button", ready(20));
     expect(renderer.root.findByProps({ "data-kind": "outline" }).props.style).not.toBe(styleBefore);
+  });
+});
+
+describe("TutorialOverlay outline labels", () => {
+  afterEach(() => { mockState.presentation = null; mockState.listeners.clear(); });
+
+  // labelGuid時のみラベル描画
+  // Label renders only when labelGuid is set
+  it("labelTutorialGuid がある枠線だけラベルを描く", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        { ...outline("h1", "recipe.craft-button"), labelTutorialGuid: "11111111-1111-4111-8111-111111111111" },
+        outline("h2", "hotbar.hud"),
+      ] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    pushAnchor("recipe.craft-button", ready(10));
+    pushAnchor("hotbar.hud", ready(100));
+
+    const labels = renderer.root.findAllByProps({ "data-testid": "tutorial-highlight-label" });
+    expect(labels.length).toBe(1);
+    expect(labels[0].children).toEqual(["T:challengeTutorial.11111111-1111-4111-8111-111111111111.text"]);
+    // top=枠線下辺+padding
+    // top = outline bottom + padding
+    expect(labels[0].props.style.top).toBe(10);
+    expect(labels[0].props.style.left).toBe(10);
+  });
+
+  it("anchor未解決の枠線はラベルも描かない", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        { ...outline("h1", "recipe.craft-button"), labelTutorialGuid: "11111111-1111-4111-8111-111111111111" },
+      ] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    pushAnchor("recipe.craft-button", hidden);
+    expect(renderer.root.findAllByProps({ "data-testid": "tutorial-highlight-label" }).length).toBe(0);
+  });
+});
+
+describe("TutorialOverlay keyControl exclusion", () => {
+  afterEach(() => { mockState.presentation = null; mockState.listeners.clear(); });
+
+  // keyControl混在でも件数不変
+  // Count is unchanged when keyControl is mixed in
+  it("keyControlが混在してもoutline描画件数は変わらない", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        outline("h1", "recipe.craft-button"), keyControl("k1"),
+      ] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    pushAnchor("recipe.craft-button", ready(10));
+
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(1);
+    expect(renderer.root.findAllByProps({ "data-testid": "key-control-hint" }).length).toBe(0);
   });
 });
 

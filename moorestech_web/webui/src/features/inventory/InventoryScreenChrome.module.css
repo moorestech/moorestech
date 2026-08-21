@@ -1,5 +1,5 @@
-/* 左下へuGUI準拠のキー操作ヒントを固定する */
-/* Fix the uGUI-aligned key guide to the bottom-left */
+/* 左下へuGUI準拠のキー操作ヒントを固定する。文字様式は共有の keyHintText が持つ（§7） */
+/* Fix the uGUI-aligned key guide to the bottom-left; the shared keyHintText class owns the text style (§7) */
 .keyHints {
   position: absolute;
   left: 7px;
@@ -7,19 +7,6 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-size: 25px;
-  line-height: 1.2;
-  letter-spacing: 0.055em;
-  font-weight: 500;
-  color: var(--text-high-contrast);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
   pointer-events: none;
   z-index: var(--z-stage-overlay-panel-chrome);
-}
-
-.keyHints kbd {
-  font: inherit;
-  color: var(--text-high-contrast);
 }

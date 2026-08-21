@@ -16,8 +16,7 @@ namespace Client.Game.InGame.Tutorial
         // 起動中に完了したチャレンジへ初期適用が後から届くため、完了済みを覚えて適用自体を冪等にする
         // Initial application can arrive after a challenge completed during startup, so remember completions and make applying idempotent
         private readonly HashSet<Guid> _completedChallengeGuids = new();
-        private readonly KeyControlTutorialManager _keyControlTutorialManager;
-        
+
         public TutorialManager(
             IReadOnlyList<ITutorialWorldPin> worldPins,
             UIHighlightTutorialManager uiHighlightTutorialManager,
@@ -27,7 +26,6 @@ namespace Client.Game.InGame.Tutorial
             UiDragGuideTutorialManager uiDragGuideTutorialManager
             )
         {
-            _keyControlTutorialManager = keyControlTutorialManager;
             foreach (var worldPin in worldPins) _tutorialViewManagers.Add(worldPin.TutorialType, worldPin);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.uiHighLight, uiHighlightTutorialManager);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.keyControl, keyControlTutorialManager);
@@ -70,12 +68,7 @@ namespace Client.Game.InGame.Tutorial
             // Clear flat presentations before completing the remaining world views
             if (WebUiScreenGate.IsWebUiMode)
             {
-                var presentationStore = TutorialPresentationStateStore.Instance;
-                if (presentationStore.HasSession(challengeId))
-                {
-                    presentationStore.EndSession(challengeId);
-                    _keyControlTutorialManager.ClearPresentation();
-                }
+                TutorialPresentationStateStore.Instance.EndSession(challengeId);
             }
             
             foreach (var tutorialView in tutorialViews)

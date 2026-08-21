@@ -128,6 +128,26 @@ const controls = {
     }],
   }),
   tutorialEmpty: () => control(Topics.tutorialPresentation, { revision: 0, sessions: [] }),
+  tutorialOutlineWithLabel: () => control(Topics.tutorialPresentation, {
+    revision: 2,
+    sessions: [{
+      tutorialSessionId: "tutorial-session-1", challengeId: "tutorial-challenge-1",
+      elements: [{
+        kind: "outline" as const, elementId: "tutorial-highlight-2", anchorId: "game.crosshair",
+        paddingPx: 8, blocksPointerInput: false, labelTutorialGuid: fx.OUTLINE_LABEL_TUTORIAL_GUID,
+      }],
+    }],
+  }),
+  tutorialKeyControl: () => control(Topics.tutorialPresentation, {
+    revision: 3,
+    sessions: [{
+      tutorialSessionId: "tutorial-session-1", challengeId: "tutorial-challenge-1",
+      elements: [{
+        kind: "keyControl" as const, elementId: "tutorial-key-1",
+        tutorialGuid: fx.KEY_CONTROL_TUTORIAL_GUID, keyName: "Tab", uiState: "GameScreen",
+      }],
+    }],
+  }),
   // DEMO時のinventory topicはdemoInventory(itemId1=木材を含まない)へ差し替わるため、
   // 研究ツリーfixtureが前提とする所持itemId1×15を復元する（研究可能状態の目視QA用）
   // The demo-mode inventory topic swaps to demoInventory (no itemId1/wood), so restore the

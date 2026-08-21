@@ -37,6 +37,23 @@ describe("Phase C4 presentation contracts", () => {
     expect(parsed.map((element) => element.kind)).toEqual(["outline", "dragGuide"]);
   });
 
+  // ラベル無=guid省略形
+  // Label-less means guid is omitted
+  it("accepts an outline with and without a label tutorial guid", () => {
+    const base = { kind: "outline", elementId: "h1", anchorId: "recipe.craft-button", paddingPx: 8, blocksPointerInput: false };
+    expect(TutorialHighlightSchema.safeParse(base).success).toBe(true);
+    expect(TutorialHighlightSchema.safeParse({ ...base, labelTutorialGuid: "11111111-1111-4111-8111-111111111111" }).success).toBe(true);
+    expect(TutorialHighlightSchema.safeParse({ ...base, labelTutorialGuid: "" }).success).toBe(false);
+  });
+
+  // keyControlはstrict5キー
+  // keyControl is a strict 5-key shape
+  it("accepts a keyControl hint and rejects unknown keys", () => {
+    const hint = { kind: "keyControl", elementId: "k1", tutorialGuid: "22222222-2222-4222-8222-222222222222", keyName: "Tab", uiState: "GameScreen" };
+    expect(TutorialOverlayElementSchema.safeParse(hint).success).toBe(true);
+    expect(TutorialOverlayElementSchema.safeParse({ ...hint, text: "x" }).success).toBe(false);
+  });
+
   it("accepts the three idle snapshots", () => {
     expect(GameStateDataSchema.parse({ state: "InGame" })).toEqual({ state: "InGame" });
     expect(TutorialPresentationDataSchema.parse({ revision: 0, sessions: [] }).sessions).toEqual([]);

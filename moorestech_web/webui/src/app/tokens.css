@@ -28,6 +28,9 @@
   --hotbar-horizontal-offset: 0.782875px;
   --hotbar-width: calc(var(--hotbar-slot-size) * 9 + var(--hotbar-slot-gap) * 8);
   --progress-hotbar-gap: 12px;
+  /* ホットバー帯の床（下端+スロット高+番号タブ）。床基準で積む常時表示HUDはこの1本から間隔だけ足す */
+  /* The hotbar band's floor (bottom + slot height + number tab); always-on HUDs stacked on the floor add only their own gap to this one value */
+  --hotbar-floor-offset: calc(var(--hotbar-bottom) + var(--hotbar-slot-size) + var(--hotbar-number-tab-overhang));
   /* 装備HUDは枠数がマスタ可変のため、寸法と余白だけを固定長で決め列の高さは内容に任せる */
   /* The equipment HUD's slot count is master-driven, so only sizes and margins are fixed and the column height follows its content */
   /* マス目はホットバーと同じ常時表示HUD族なので寸法を共有し、リテラル複製で無言に食い違うのを防ぐ */
@@ -51,6 +54,13 @@
   --craft-grip-offset: 0.4px;
   --craft-grip-face: rgb(134 136 152 / 98%);
   --font-ui: "MooresUI", "MooresUI JP", sans-serif;
+  /* キー操作ヒント（<kbd>+文言）の文字様式。InventoryScreenChrome由来で3画面が共有する（§7） */
+  /* Text style for key-control hints (<kbd> + text), originating from InventoryScreenChrome and shared by 3 screens (§7) */
+  --key-hint-font-size: 25px;
+  --key-hint-line-height: 1.2;
+  --key-hint-letter-spacing: 0.055em;
+  --key-hint-font-weight: 500;
+  --key-hint-text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
   /* z層は互いに比較できない3つのスタッキングコンテキスト別に接頭辞で分け、文脈をまたぐ比較を名前で防ぐ */
   /* Split z-layers by their incomparable stacking context via a name prefix, so cross-context comparisons read as wrong at a glance */
   /* .viewport直下の層序。通知はディムより前・stageより後ろの背面層へ沈める（ADR 0017） */
@@ -219,6 +229,18 @@
   /* Size and one-cycle duration of the D&D drag guide arrow (webui-design §8.17) */
   --tutorial-drag-guide-size: 28px;
   --tutorial-drag-guide-duration: 1600ms;
+  /* 枠線ハイライトの文言ラベルの間隔（webui-design §8.17） */
+  /* Gap for an outline highlight's text label (webui-design §8.17) */
+  --tutorial-highlight-label-gap: 4px;
+  /* ラベル面のpaddingと文字サイズ。ワールドピンのラベルと枠線ラベルが共有する */
+  /* Label-face padding and font size shared by the world-pin label and the outline label */
+  --label-face-padding: 4px 10px;
+  --label-face-font-size: 14px;
+  /* keyControlヒントHUDのホットバー床からの間隔・縦積み間隔・kbdとの間隔（webui-design §8.19。文字様式は--key-hint-*を使う） */
+  /* Gap above the hotbar floor, vertical stack gap, and kbd gap for the keyControl hint HUD (webui-design §8.19; text style uses --key-hint-*) */
+  --tutorial-key-hint-hotbar-gap: 72px;
+  --tutorial-key-hint-gap: 6px;
+  --tutorial-key-hint-kbd-gap: 10px;
   /* ドラッグガイド矢印を世界背景から分離する最小限の影（world-pin矢印と同族） */
   /* Minimal shadow separating the drag guide arrow from the world background, same family as the world-pin arrow */
   --tutorial-drag-guide-shadow: rgb(0 0 0 / 65%);
@@ -316,4 +338,24 @@
   /* 個数バッジの黒（ユーザー裁定 2026-08-17。バッジが出るのは明色面のみが前提） */
   /* Black used by count badges (user ruling 2026-08-17; badges only appear on light faces) */
   --count-text: #111;
+}
+
+/* キー操作ヒントの文字様式は3画面が共有する1宣言に畳む。各画面のCSSは位置決めだけを持つ（§7） */
+/* The key-hint text style collapses into one declaration shared by 3 screens; each screen's CSS keeps only positioning (§7) */
+/* :where()で詳細度0にし、機能側の位置決めクラスと衝突させない */
+/* :where() keeps the specificity at zero so it never fights a feature's positioning class */
+:where(.keyHintText) {
+  font-size: var(--key-hint-font-size);
+  line-height: var(--key-hint-line-height);
+  letter-spacing: var(--key-hint-letter-spacing);
+  font-weight: var(--key-hint-font-weight);
+  color: var(--text-high-contrast);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  text-shadow: var(--key-hint-text-shadow);
+}
+
+:where(.keyHintText) kbd {
+  font: inherit;
+  color: var(--text-high-contrast);
 }

@@ -14,6 +14,7 @@ const passiveHuds: [string, string, string][] = [
   ["ホットバー帯", "../hotbar/HotbarPanel/style.module.css", ".hotbarArea"],
   ["進捗バー", "../progress/style.module.css", ".wrapper"],
   ["カーソルツールチップ", "../../shared/tooltip/style.module.css", ".tooltip"],
+  ["キー操作ヒント", "../tutorial/keyControlHint.module.css", ".hud"],
 ];
 
 describe("always-on HUD wheel contract", () => {
