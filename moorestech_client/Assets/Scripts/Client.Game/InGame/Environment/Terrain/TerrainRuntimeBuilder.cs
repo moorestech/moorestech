@@ -81,14 +81,12 @@ namespace Client.Game.InGame.Environment.Terrain
                 var buildStopwatch = Stopwatch.StartNew();
                 var terrainSource = await GeneratedTerrainSource.CreateAsync(terrainMeta, wireMeta.TerrainHash, mapLayout.MapObjects);
                 var terrainsByTileCoordinate = new Dictionary<Vector2Int, UnityEngine.Terrain>();
-                var visualCacheHitCount = 0;
 
                 // タイルの並びは転送ストリームの定義（正方格子・z行→x列）をそのまま使う
                 // The tile order reuses the transfer stream's own definition: a square grid scanned row (z) then column (x)
                 foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount))
                 {
-                    var (terrainData, visualCacheHit) = await terrainSource.CreateTerrainDataAsync(tile.TileX, tile.TileZ);
-                    if (visualCacheHit) visualCacheHitCount++;
+                    var terrainData = await terrainSource.CreateTerrainDataAsync(tile.TileX, tile.TileZ);
 
                     var terrain = TerrainObjectFactory.Create(
                         environmentRoot, $"{TerrainObjectName}_{tile.TileX}_{tile.TileZ}",
@@ -100,10 +98,8 @@ namespace Client.Game.InGame.Environment.Terrain
 
                 TerrainNeighborLinker.Link(terrainsByTileCoordinate);
 
-                // 見た目キャッシュの効きは1行で測る。初回と2回目の差はこのヒット数と所要時間に出る
-                // One line measures how well the visual cache works; the first and second runs differ in this hit count and elapsed time
                 Debug.Log($"[TerrainRuntimeBuilder] Generated terrain built: tiles={terrainsByTileCoordinate.Count} " +
-                          $"visualCacheHits={visualCacheHitCount} elapsedMs={buildStopwatch.ElapsedMilliseconds}");
+                          $"elapsedMs={buildStopwatch.ElapsedMilliseconds}");
             }
 
             #endregion

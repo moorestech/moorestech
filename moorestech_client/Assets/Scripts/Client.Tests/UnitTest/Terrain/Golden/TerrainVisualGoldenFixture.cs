@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
+using Game.MapGeneration.Facade;
 using Game.MapGeneration.Pipeline.Visual.Detail;
 using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
 using Game.MapGeneration.Pipeline.Visual.Source;
@@ -100,7 +101,7 @@ namespace Client.Tests.UnitTest.Terrain.Golden
                 {
                     new DetailEntry
                     {
-                        prototypeConfig = new DetailPrototypeConfig { usePrototypeMesh = false, prototypeTextureAddressablePath = "addr/grassTex", prototypeTexture = new Texture2D(1, 1), minWidth = 1f, maxWidth = 2f, minHeight = 1f, maxHeight = 2f },
+                        prototypeConfig = new DetailPrototypeSpec { usePrototypeMesh = false, prototypeTextureAddressablePath = "addr/grassTex", minWidth = 1f, maxWidth = 2f, minHeight = 1f, maxHeight = 2f },
                         weight = 1f, weightRange = new Vector2(0f, 1f), maxDensity = 8, occludedByOthers = false,
                         noiseStack = new DetailNoiseStack
                         {

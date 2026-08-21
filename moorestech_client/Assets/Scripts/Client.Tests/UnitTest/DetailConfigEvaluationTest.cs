@@ -17,20 +17,20 @@ namespace Client.Tests.UnitTest
         {
             // レイヤー0はエントリ一致で0.5、レイヤー1は未登録なのでotherTextureWeightの0.25が効く
             // Layer 0 matches an entry and uses 0.5; layer 1 is unregistered so otherTextureWeight 0.25 applies
-            var matchedLayer = new TerrainLayer();
-            var unmatchedLayer = new TerrainLayer();
+            var matchedEntry = new DetailTextureFilter.TextureFilterEntry { layerAddressablePath = "addr/matched", weight = 0.5f };
+            matchedEntry.SetLayerIndex(0);
             var textureFilter = new DetailTextureFilter
             {
                 enabled = true,
                 otherTextureWeight = 0.25f,
-                entries = new[] { new DetailTextureFilter.TextureFilterEntry { layer = matchedLayer, weight = 0.5f } },
+                entries = new[] { matchedEntry },
             };
 
             var splatmap = new float[1, 1, 2];
             splatmap[0, 0, 0] = 0.6f;
             splatmap[0, 0, 1] = 0.4f;
 
-            var result = textureFilter.Evaluate(splatmap, 0, 0, new[] { matchedLayer, unmatchedLayer });
+            var result = textureFilter.Evaluate(splatmap, 0, 0);
 
             Assert.That(result, Is.EqualTo(0.6f * 0.5f + 0.4f * 0.25f).Within(1e-5f));
         }

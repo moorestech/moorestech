@@ -1,28 +1,33 @@
+using System;
+using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Build;
-using Game.MapGeneration.Pipeline.Visual.Detail;
-using Game.MapGeneration.Pipeline.Visual.Source;
-using Game.MapGeneration.Pipeline.Visual.Splat;
-using Game.MapGeneration.Pipeline.Biomes;
+using Game.MapGeneration.Facade;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Client.Tests.UnitTest.Terrain
 {
     /// <summary>
-    ///     プロトタイプの並びが密度マップの並びと同じ規則で決まることを検証する。キャッシュヒット時は
-    ///     密度マップだけを復元してプロトタイプをここから引き直すため、この並びが崩れると別の草が描かれる
-    ///     Verifies the prototype order follows the same rule as the density maps; on a cache hit only the maps are
-    ///     restored and the prototypes come from here, so a broken order draws the wrong plant
+    ///     プロトタイプ仕様と解決済みアセット辞書からUnity DetailPrototypeを組み立てる変換を検証する。
+    ///     並びを決める側(DetailPrototypeSpecCollector)の検証はサーバー側のDetailPrototypeSpecCollectorTestが持つ
+    ///     Verifies the conversion assembling Unity DetailPrototypes from prototype specs and a resolved asset dictionary;
+    ///     the side deciding the order (DetailPrototypeSpecCollector) is covered by the server-side DetailPrototypeSpecCollectorTest
     /// </summary>
     public class TerrainDetailPrototypeListTest
     {
-        private static readonly BiomeType[] BiomeTypes = { BiomeType.Grassland, BiomeType.Forest };
+        private const string TextureAddress = "addr/grassTex";
 
         [Test]
-        public void ConcatenatesEntriesBiomeByBiomeSkippingEmptyOnes()
+        public void BuildsOneDetailPrototypePerSpecInOrder()
         {
-            // 空バイオームが1本でも列を占めると、以降の全プロトタイプが1つずれて密度マップと食い違う
-            // A single empty biome occupying a slot would shift every later prototype off its density map
-            var prototypes = TerrainDetailPrototypeList.Build(BiomeTypes, CreateVisualSections());
+            var specs = new List<DetailPrototypeSpec>
+            {
+                CreateSpec(1f),
+                CreateSpec(2f),
+            };
+            var resolvedAssets = new Dictionary<string, UnityEngine.Object> { [TextureAddress] = new Texture2D(1, 1) };
+
+            var prototypes = TerrainDetailPrototypeList.Build(specs, resolvedAssets);
 
             Assert.That(prototypes.Count, Is.EqualTo(2));
             Assert.That(prototypes[0].minWidth, Is.EqualTo(1f));
@@ -34,32 +39,21 @@ namespace Client.Tests.UnitTest.Terrain
         {
             // 黙って読み飛ばすとアドレス整備漏れが「草が1本も生えない」形でしか現れず、原因に辿り着けない
             // Silently skipping would surface a missing address only as "no grass at all", leaving no trail to the cause
-            var visualSections = CreateVisualSections();
-            visualSections.DetailConfigs[1].entries[0].prototypeConfig.SetPrototypeTexture(null);
+            var specs = new List<DetailPrototypeSpec> { CreateSpec(1f) };
+            var emptyResolvedAssets = new Dictionary<string, UnityEngine.Object>();
 
-            Assert.Throws<System.InvalidOperationException>(() => TerrainDetailPrototypeList.Build(BiomeTypes, visualSections));
+            Assert.Throws<InvalidOperationException>(() => TerrainDetailPrototypeList.Build(specs, emptyResolvedAssets));
         }
 
-        private static BiomeVisualSections CreateVisualSections()
+        private static DetailPrototypeSpec CreateSpec(float minWidth)
         {
-            // プロトタイプ経路はDetailConfigsしか読まない。残り2本は並びを合わせるためだけに置く
-            // The prototype path reads only DetailConfigs; the other two exist solely to keep the arrays parallel
-            return new BiomeVisualSections(
-                new string[BiomeTypes.Length], new BiomeTextureConfig[BiomeTypes.Length],
-                new[] { CreateDetailConfig(), CreateDetailConfig(1f, 2f) },
-                DetailTestConfigBuilder.CreateDisabledSurroundConfigs(BiomeTypes.Length));
-        }
-
-        private static BiomeDetailConfig CreateDetailConfig(params float[] entryMinWidths)
-        {
-            var entries = new DetailEntry[entryMinWidths.Length];
-            for (var index = 0; index < entryMinWidths.Length; index++)
+            return new DetailPrototypeSpec
             {
-                entries[index] = DetailTestConfigBuilder.CreateEntry(1f, 8);
-                entries[index].prototypeConfig.minWidth = entryMinWidths[index];
-            }
-
-            return new BiomeDetailConfig { entries = entries, filterRejectThreshold = 0.01f, borderMargin = 0f };
+                usePrototypeMesh = false,
+                prototypeTextureAddressablePath = TextureAddress,
+                renderMode = DetailRenderMode.Grass,
+                minWidth = minWidth,
+            };
         }
     }
 }

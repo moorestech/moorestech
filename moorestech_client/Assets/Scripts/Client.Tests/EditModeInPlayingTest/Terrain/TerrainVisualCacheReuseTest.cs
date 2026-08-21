@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Environment.Terrain;
 using Client.Game.InGame.Environment.Terrain.Build;
@@ -58,21 +58,33 @@ namespace Client.Tests.EditModeInPlayingTest
                 Directory.Delete(cacheWorldDirectory.TerrainVisualDirectory, true);
                 Assert.IsFalse(Directory.Exists(cacheWorldDirectory.TerrainVisualDirectory), "テスト用visualキャッシュが空でない");
 
-                // ① 空のtest固有cacheで第1構築を完了させ、取り逃し数0を正確なRuntimeBuilderログで確認する
-                // (1) Build first against the empty test-specific cache and verify the exact zero-hit RuntimeBuilder log
-                await BuildWithExpectedCacheHits(0, "TerrainVisualCacheFirstBuild");
+                // ① 空のtest固有cacheで第1構築を完了させ、全タイルぶんのキャッシュファイルが書かれることを確認する
+                // (1) Build first against the empty test-specific cache and verify every tile's cache file gets written
+                await BuildAsync("TerrainVisualCacheFirstBuild");
+                var writeTimesAfterFirstBuild = new Dictionary<(int TileX, int TileZ), DateTime>();
                 foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(mapLayout.TerrainMeta.TerrainTileCount))
-                    FileAssert.Exists(cacheWorldDirectory.TerrainVisualCacheFilePath(tile.TileX, tile.TileZ));
+                {
+                    var filePath = cacheWorldDirectory.TerrainVisualCacheFilePath(tile.TileX, tile.TileZ);
+                    FileAssert.Exists(filePath);
+                    writeTimesAfterFirstBuild[(tile.TileX, tile.TileZ)] = File.GetLastWriteTimeUtc(filePath);
+                }
 
-                // ② 第2構築では全タイルがhitする。全数hitならsplatmap/detailの再生成を一切通らない
-                // (2) The second build must hit every tile; a full hit count means it never regenerates splatmaps or details
-                await BuildWithExpectedCacheHits(mapLayout.TerrainMeta.TerrainTileCount, "TerrainVisualCacheSecondBuild");
+                // ② 第2構築は全タイルをキャッシュから読むだけで済む。書き戻しはヒットしたタイルでは起きないので、更新時刻が一切動かない
+                // (2) The second build reads every tile from the cache alone; a hit never writes back, so no file's timestamp moves
+                await BuildAsync("TerrainVisualCacheSecondBuild");
+                foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(mapLayout.TerrainMeta.TerrainTileCount))
+                {
+                    var filePath = cacheWorldDirectory.TerrainVisualCacheFilePath(tile.TileX, tile.TileZ);
+                    Assert.That(File.GetLastWriteTimeUtc(filePath), Is.EqualTo(writeTimesAfterFirstBuild[(tile.TileX, tile.TileZ)]),
+                        $"tile ({tile.TileX}, {tile.TileZ}) was rewritten on what should have been a full cache hit");
+                }
 
-                // ③ 対照: キャッシュファイルを消せば取り逃す。②が常にtrueを返すだけの検査でないことを示す
-                // (3) Control: deleting the file misses, showing (2) is not merely an assertion that always holds
+                // ③ 対照: キャッシュファイルを消せば取り逃し、再構築時に新しいファイルが書かれる。②が常にtrueを返すだけの検査でないことを示す
+                // (3) Control: deleting the file misses, and rebuilding writes a fresh one, showing (2) is not merely an assertion that always holds
                 var firstTileCacheFilePath = cacheWorldDirectory.TerrainVisualCacheFilePath(0, 0);
                 File.Delete(firstTileCacheFilePath);
-                Assert.IsFalse(await CreateTileAndReportCacheHit(0, 0), "キャッシュが無いのにヒット扱いになった");
+                Assert.IsFalse(File.Exists(firstTileCacheFilePath), "キャッシュファイルの削除に失敗した");
+                await CreateTileAsync(0, 0);
                 FileAssert.Exists(firstTileCacheFilePath);
 
                 Directory.Delete(cacheWorldDirectory.Root, true);
@@ -87,28 +99,25 @@ namespace Client.Tests.EditModeInPlayingTest
                     return true;
                 }
 
-                async UniTask BuildWithExpectedCacheHits(int expectedCacheHits, string rootName)
+                async UniTask BuildAsync(string rootName)
                 {
                     var buildRoot = new GameObject(rootName);
-                    LogAssert.Expect(LogType.Log, new Regex(
-                        $@"\[TerrainRuntimeBuilder\] Generated terrain built: tiles={mapLayout.TerrainMeta.TerrainTileCount} visualCacheHits={expectedCacheHits} elapsedMs=\d+"));
                     await TerrainRuntimeBuilder.BuildAsync(mapLayout, buildRoot.transform);
                     UnityEngine.Object.DestroyImmediate(buildRoot);
                 }
             }
 
-            // 起動時と同じ入口からタイルを1枚組み立て、見た目を再生成せずに済んだかを返す
-            // Builds one tile through the same entry point the boot uses and reports whether the visuals were reused
-            async UniTask<bool> CreateTileAndReportCacheHit(int tileX, int tileZ)
+            // 起動時と同じ入口からタイルを1枚組み立てる。見た目の再生成有無はキャッシュファイルの更新時刻で確認する
+            // Builds one tile through the same entry point the boot uses; whether the visuals were regenerated is checked via the cache file's timestamp
+            async UniTask CreateTileAsync(int tileX, int tileZ)
             {
                 var freshMapLayout = await ClientContext.VanillaApi.Response.GetMapData(default);
                 var wireMeta = freshMapLayout.TerrainMeta;
                 var terrainSource = await GeneratedTerrainSource.CreateAsync(
                     wireMeta.ToTerrainTransferMeta(), wireMeta.TerrainHash, freshMapLayout.MapObjects);
-                var (terrainData, visualCacheHit) = await terrainSource.CreateTerrainDataAsync(tileX, tileZ);
+                var terrainData = await terrainSource.CreateTerrainDataAsync(tileX, tileZ);
 
                 UnityEngine.Object.DestroyImmediate(terrainData);
-                return visualCacheHit;
             }
 
             #endregion

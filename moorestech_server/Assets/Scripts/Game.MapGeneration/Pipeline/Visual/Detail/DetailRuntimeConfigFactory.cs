@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.MapGeneration.Facade;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
 using UnityEngine;
@@ -48,7 +49,7 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail
             };
         }
 
-        private static DetailPrototypeConfig ToPrototypeConfig(Mooresmaster.Model.BiomeDetailConfigModule.PrototypeConfig generated)
+        private static DetailPrototypeSpec ToPrototypeConfig(Mooresmaster.Model.BiomeDetailConfigModule.PrototypeConfig generated)
         {
             // どちらのアドレスが必須かはusePrototypeMeshが決める。必須側の空文字は「意図的に未設定」ではなく整備漏れ
             // usePrototypeMesh decides which address is required; an empty required address is a data gap, not a deliberate blank
@@ -60,7 +61,7 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail
                 throw new InvalidOperationException(
                     "[DetailRuntimeConfigFactory] A detail prototype has usePrototypeMesh=false but an empty prototypeTextureAddressablePath.");
 
-            return new DetailPrototypeConfig
+            return new DetailPrototypeSpec
             {
                 prototypeMeshAddressablePath = generated.PrototypeMeshAddressablePath,
                 prototypeTextureAddressablePath = generated.PrototypeTextureAddressablePath,

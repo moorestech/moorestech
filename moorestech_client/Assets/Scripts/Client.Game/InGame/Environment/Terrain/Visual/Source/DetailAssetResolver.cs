@@ -1,51 +1,35 @@
 using System.Collections.Generic;
 using Client.Common.Asset;
-using Game.MapGeneration.Pipeline.Visual.Detail;
-using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
 using Cysharp.Threading.Tasks;
+using Game.MapGeneration.Facade;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Source
 {
     /// <summary>
-    ///     DetailEntryが持つアドレスを実アセットへ解決して設定へ差し戻す。未解決の検知は生成側の
-    ///     ThrowIfUnresolvedに任せ、ここは「どのアドレスを引くべきか」だけを判断する
-    ///     Resolves the addresses held by DetailEntry into assets and pushes them back into the configs; detecting an
-    ///     unresolved asset is left to the generator's ThrowIfUnresolved, so this only decides which addresses to load
+    ///     detailプロトタイプ仕様が持つアドレスを実アセットへ解決する。アドレスをキーにした辞書で返し、
+    ///     未解決の検知と組み立ては呼び出し側（TerrainDetailPrototypeList）に任せる
+    ///     Resolves the addresses a detail prototype spec holds into assets, returned in a dictionary keyed by address;
+    ///     detecting an unresolved asset and assembling the prototype are left to the caller (TerrainDetailPrototypeList)
     /// </summary>
     public static class DetailAssetResolver
     {
-        public static async UniTask ResolveAsync(IReadOnlyList<BiomeDetailConfig> detailConfigs)
+        public static async UniTask<Dictionary<string, Object>> ResolveAsync(IReadOnlyList<DetailPrototypeSpec> prototypeSpecs)
         {
-            foreach (var detailConfig in detailConfigs)
-            foreach (var detailEntry in detailConfig.entries)
+            var resolvedAssets = new Dictionary<string, Object>();
+            foreach (var spec in prototypeSpecs)
             {
-                await ResolvePrototypeAsync(detailEntry.prototypeConfig);
-                await ResolveTextureFilterAsync(detailEntry.textureFilter);
-            }
-        }
+                // 使わない側のアドレスは空文字が正しい値。空キーをAddressablesへ渡すとInvalidKeyExceptionになる
+                // The unused side's address is legitimately empty, and handing an empty key to Addressables raises InvalidKeyException
+                var address = spec.usePrototypeMesh ? spec.prototypeMeshAddressablePath : spec.prototypeTextureAddressablePath;
+                if (resolvedAssets.ContainsKey(address)) continue;
 
-        // 使わない側のアドレスは空文字が正しい値。空キーをAddressablesへ渡すとInvalidKeyExceptionになる
-        // The unused side's address is legitimately empty, and handing an empty key to Addressables raises InvalidKeyException
-        private static async UniTask ResolvePrototypeAsync(DetailPrototypeConfig prototypeConfig)
-        {
-            if (prototypeConfig.usePrototypeMesh)
-            {
-                prototypeConfig.SetPrototypeMesh(await AddressableLoader.LoadAsyncDefault<GameObject>(prototypeConfig.prototypeMeshAddressablePath));
-                return;
+                resolvedAssets[address] = spec.usePrototypeMesh
+                    ? await AddressableLoader.LoadAsyncDefault<GameObject>(address)
+                    : await AddressableLoader.LoadAsyncDefault<Texture2D>(address);
             }
 
-            prototypeConfig.SetPrototypeTexture(await AddressableLoader.LoadAsyncDefault<Texture2D>(prototypeConfig.prototypeTextureAddressablePath));
-        }
-
-        // 無効フィルタのエントリはEvaluateが一度も読まず、アドレスも空のまま置かれている
-        // A disabled filter's entries are never read by Evaluate and are left holding empty addresses
-        private static async UniTask ResolveTextureFilterAsync(DetailTextureFilter textureFilter)
-        {
-            if (!textureFilter.enabled) return;
-
-            foreach (var textureFilterEntry in textureFilter.entries)
-                textureFilterEntry.SetLayer(await AddressableLoader.LoadAsyncDefault<TerrainLayer>(textureFilterEntry.layerAddressablePath));
+            return resolvedAssets;
         }
     }
 }

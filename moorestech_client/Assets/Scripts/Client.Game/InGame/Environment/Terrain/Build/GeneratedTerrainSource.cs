@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Visual.Source;
 using Client.Game.InGame.Environment.Terrain.Build.Placement;
-using Game.MapGeneration.Pipeline.Visual.Placement;
+using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Cache;
+using Game.MapGeneration.Facade;
 using Game.MapGeneration.Pipeline.Visual.Source;
 using Game.MapGeneration.Pipeline.Visual.Splat;
 using Game.MapGeneration.Pipeline.Visual.Surround;
@@ -13,6 +14,7 @@ using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Runtime;
 using Game.MapGeneration.Pipeline.Stages;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Server.Protocol.PacketResponse.MapData;
@@ -29,28 +31,21 @@ namespace Client.Game.InGame.Environment.Terrain.Build
     public class GeneratedTerrainSource
     {
         private readonly TerrainLayer[] _terrainLayers;
-        private readonly TerrainTileVisualProvider _tileVisualProvider;
-        private readonly WorldDataDirectory _worldCacheDirectory;
+        private readonly TileVisualBaker _visualBaker;
+        private readonly List<DetailPrototype> _detailPrototypes;
 
         // ノイズ窓の原点をindex(0,0)タイルに合わせたConfig。他のタイルはここからタイル座標ぶんずらして作る
         // The config whose noise window origin sits on the index (0,0) tile; every other tile shifts off it by its tile coordinate
         private readonly TerrainGenerationConfig _config;
 
-        // シーン絶対座標のまま全タイルぶんを持つ。切り出しはタイル毎にTilePlacementSlicerが行う
-        // Held whole in scene-absolute coordinates; TilePlacementSlicer carves out each tile's share
-        // ワイヤ形式はMapObjectsDigestの入力としてのみ残す。台帳への変換はWireLayoutLedgerAdapterへ一本化する
-        // The wire shape survives only as MapObjectsDigest's input; the conversion to the ledger is centralized in WireLayoutLedgerAdapter
-        private readonly IReadOnlyList<LedgerPlacement> _placements;
-
         private GeneratedTerrainSource(
-            TerrainGenerationConfig config, TerrainLayer[] terrainLayers, WorldDataDirectory worldCacheDirectory,
-            IReadOnlyList<LedgerPlacement> placements, TerrainTileVisualProvider tileVisualProvider)
+            TerrainGenerationConfig config, TerrainLayer[] terrainLayers,
+            TileVisualBaker visualBaker, List<DetailPrototype> detailPrototypes)
         {
             _config = config;
             _terrainLayers = terrainLayers;
-            _worldCacheDirectory = worldCacheDirectory;
-            _placements = placements;
-            _tileVisualProvider = tileVisualProvider;
+            _visualBaker = visualBaker;
+            _detailPrototypes = detailPrototypes;
         }
 
         public static async UniTask<GeneratedTerrainSource> CreateAsync(
@@ -76,6 +71,10 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);
             var visualSections = BiomeVisualSectionTable.Resolve(selectedGeneration, biomeTypes);
 
+            // 台帳への変換は移設期間だけの橋渡し(WireLayoutLedgerAdapter)を1回だけ通す
+            // The conversion to the ledger runs once through the migration-only bridge (WireLayoutLedgerAdapter)
+            var ledger = WireLayoutLedgerAdapter.Build(mapObjects);
+
             // 木の根元のレイヤーは有効バイオームの樹種から集める。列を確保しないまま塗るとインデックスが引けない
             // The tree root layers are gathered from the enabled biomes' species; painting without reserving their columns would find no index
             var treeSurroundSpecies = TreeSurroundSpeciesTable.Build(new BiomePlacementHelper(config), biomeTypes);
@@ -91,7 +90,6 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 visualSections.SurroundTextureConfigs, treeSurroundSpecies, debugLayerAddresses);
 
             var terrainLayers = await TerrainLayerAssetLoader.LoadAsync(layerTable.OrderedLayerAddresses);
-            await DetailAssetResolver.ResolveAsync(visualSections.DetailConfigs);
 
             var worldCacheDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(terrainMeta.WorldId));
 
@@ -100,18 +98,18 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             var visualCache = new TerrainVisualCache(worldCacheDirectory, TerrainVisualCacheKey.Compute(
                 MasterHolder.GenerationMaster.SourceJsonText, terrainHash,
                 new Vector2(config.worldOffsetX, config.worldOffsetZ), config.seed,
-                MapObjectsDigest.Compute(mapObjects)));
+                PlacementLedgerDigest.Compute(ledger.Placements)));
 
-            // 台帳への変換は移設期間だけの橋渡し(WireLayoutLedgerAdapter)を1回だけ通す
-            // The conversion to the ledger runs once through the migration-only bridge (WireLayoutLedgerAdapter)
-            var placements = WireLayoutLedgerAdapter.Build(mapObjects).Placements;
+            var visualBaker = new TileVisualBaker(
+                config, biomeTypes, visualSections, layerTable, treeSurroundSpecies, ledger,
+                worldCacheDirectory, visualCache);
 
-            var tileVisualProvider = new TerrainTileVisualProvider(
-                config, biomeTypes, visualSections, layerTable, terrainLayers, treeSurroundSpecies,
-                placements, worldCacheDirectory, visualCache);
+            // detailプロトタイプの解決とUnity DetailPrototypeへの組み立てはここで一度だけ行う
+            // Resolving the detail assets and assembling the Unity DetailPrototypes happens once, right here
+            var resolvedDetailAssets = await DetailAssetResolver.ResolveAsync(visualBaker.DetailPrototypes);
+            var detailPrototypes = TerrainDetailPrototypeList.Build(visualBaker.DetailPrototypes, resolvedDetailAssets);
 
-            return new GeneratedTerrainSource(
-                config, terrainLayers, worldCacheDirectory, placements, tileVisualProvider);
+            return new GeneratedTerrainSource(config, terrainLayers, visualBaker, detailPrototypes);
         }
 
         // 割り当ての式はサーバーと同一の TerrainGenerationConfig 側に1本だけ置く。別式だと片方だけ隣タイルへずれる
@@ -122,35 +120,20 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             return new Vector3(tileScene.x, 0f, tileScene.y);
         }
 
-        // visualCacheHitは呼び出し側の計測用。1枚ごとに再構築を省けたかを返す
-        // visualCacheHit reports, tile by tile, whether the rebuild was skipped, for the caller's measurement
-        public async UniTask<(TerrainData TerrainData, bool VisualCacheHit)> CreateTerrainDataAsync(int tileX, int tileZ)
+        public async UniTask<TerrainData> CreateTerrainDataAsync(int tileX, int tileZ)
         {
-            // 転送された高さは木の摂動前が正本（R12）。splatとdetail密度はこの値を読み、表示だけが摂動後を使う
-            // The transferred heights are pre-tree by definition (R12): splat and detail density read them and only the display uses the perturbed ones
-            var preHeights = HeightFileLoader.LoadHeights(_worldCacheDirectory, tileX, tileZ, _config.Resolution);
-
-            // サーバーのタイルループと同じ1本の式でずらす。窓が1枚ぶんずれないと全25タイルが同じ地形として分類される
-            // Shifted by the very formula the server's tile loop uses; without the per-tile shift all 25 tiles classify as the same terrain
-            var tileConfig = _config.CreateTileConfig(tileX, tileZ);
-
-            var tileWorldPosition = TileWorldPosition(tileX, tileZ);
-            var postHeights = TreePerturbationApplier.Apply(
-                preHeights, tileConfig, tileWorldPosition, _placements);
-
-            var (tileVisual, visualCacheHit) = _tileVisualProvider.Resolve(
-                tileX, tileZ, tileConfig, tileWorldPosition, preHeights, postHeights);
+            var bakedTile = _visualBaker.Bake(tileX, tileZ);
 
             // 密度マップはプロトタイプと1対1。数が食い違ったまま流すとSetDetailLayerが別の草を描く
             // Density maps pair one-to-one with prototypes; letting a mismatched count through would make SetDetailLayer draw the wrong plant
-            var detailPrototypes = _tileVisualProvider.DetailPrototypes;
-            if (detailPrototypes.Count != tileVisual.DetailMaps.Count)
+            if (_detailPrototypes.Count != bakedTile.DetailMaps.Count)
                 throw new InvalidOperationException(
-                    $"[GeneratedTerrainSource] Tile ({tileX}, {tileZ}) has {tileVisual.DetailMaps.Count} detail maps for {detailPrototypes.Count} prototypes.");
+                    $"[GeneratedTerrainSource] Tile ({tileX}, {tileZ}) has {bakedTile.DetailMaps.Count} detail maps for {_detailPrototypes.Count} prototypes.");
 
-            var terrainData = await TerrainDataAssembler.AssembleAsync(
-                tileConfig, postHeights, tileVisual, detailPrototypes, _terrainLayers);
-            return (terrainData, visualCacheHit);
+            var tileConfig = _config.CreateTileConfig(tileX, tileZ);
+            var tileVisual = new TerrainTileVisual(bakedTile.Alphamap, bakedTile.DetailMaps);
+            return await TerrainDataAssembler.AssembleAsync(
+                tileConfig, bakedTile.Heights, tileVisual, _detailPrototypes, _terrainLayers);
         }
     }
 }

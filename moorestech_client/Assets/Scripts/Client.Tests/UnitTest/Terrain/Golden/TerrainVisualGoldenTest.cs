@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
-using Client.Game.InGame.Environment.Terrain.Build;
-using Client.Game.InGame.Environment.Terrain.Build.Placement;
+using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Cache;
 using Game.MapGeneration.Pipeline.Visual.Splat;
@@ -46,10 +45,6 @@ namespace Client.Tests.UnitTest.Terrain.Golden
             {
                 TerrainFileWriter.Write(worldDirectory, output);
 
-                // 台帳は生成パイプラインが既に組んでいる。ワイヤへ往復させる必要はない
-                // The ledger is already assembled by the generation pipeline; there is no need to round-trip it over the wire
-                var placements = output.Ledger.Placements;
-
                 var gridConfig = config.ShallowCopy();
                 gridConfig.worldOffsetX = output.NoiseOrigin.x;
                 gridConfig.worldOffsetZ = output.NoiseOrigin.y;
@@ -57,22 +52,16 @@ namespace Client.Tests.UnitTest.Terrain.Golden
                 var species = TreeSurroundSpeciesTable.Build(helper, TerrainVisualGoldenFixture.BiomeTypes);
                 var layerTable = SplatLayerTable.Build("addr/beach", "addr/rock", sections.MainLayerAddresses, sections.TextureConfigs,
                     sections.SurroundTextureConfigs, species, System.Array.Empty<string>());
-                var provider = new TerrainTileVisualProvider(gridConfig, TerrainVisualGoldenFixture.BiomeTypes, sections, layerTable,
-                    new TerrainLayer[layerTable.OrderedLayerAddresses.Count], species, placements, worldDirectory,
-                    new TerrainVisualCache(worldDirectory, new string('0', 64)));
+                var baker = new TileVisualBaker(gridConfig, TerrainVisualGoldenFixture.BiomeTypes, sections, layerTable,
+                    species, output.Ledger, worldDirectory, new TerrainVisualCache(worldDirectory, new string('0', 64)));
 
                 foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(output.Tiles.Count))
                 {
-                    var tileConfig = gridConfig.CreateTileConfig(tileX, tileZ);
-                    var tileScene = config.TileScenePosition(tileX, tileZ);
-                    var tileWorld = new Vector3(tileScene.x, 0f, tileScene.y);
-                    var pre = HeightFileLoader.LoadHeights(worldDirectory, tileX, tileZ, config.Resolution);
-                    var post = TreePerturbationApplier.Apply(pre, tileConfig, tileWorld, placements);
-                    var (visual, _) = provider.Resolve(tileX, tileZ, tileConfig, tileWorld, pre, post);
-                    actual[$"alphamap_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(visual.Alphamap);
-                    actual[$"heights_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(post);
-                    for (var d = 0; d < visual.DetailMaps.Count; d++)
-                        actual[$"detail_{tileX}_{tileZ}_{d}"] = TerrainVisualGoldenFixture.Sha256(visual.DetailMaps[d]);
+                    var baked = baker.Bake(tileX, tileZ);
+                    actual[$"alphamap_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(baked.Alphamap);
+                    actual[$"heights_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(baked.Heights);
+                    for (var d = 0; d < baked.DetailMaps.Count; d++)
+                        actual[$"detail_{tileX}_{tileZ}_{d}"] = TerrainVisualGoldenFixture.Sha256(baked.DetailMaps[d]);
                 }
             }
             finally

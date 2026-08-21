@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Environment.Terrain.Visual;
 using Game.MapGeneration.Pipeline.Visual.Detail;
 using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
+using Tests.UnitTest.Game.MapGeneration.Visual.Detail;
 using UnityEngine;
 
 namespace Client.Tests.UnitTest
@@ -136,7 +136,7 @@ namespace Client.Tests.UnitTest
             return DetailRuntimeGenerator.GenerateForBiome(
                 mask, new float[HeightmapResolution, HeightmapResolution], slopes,
                 DetailTestConfigBuilder.CreateDimensions(), detailConfig, new System.Random(1),
-                null, null, null, null);
+                null, null, null);
         }
     }
 }

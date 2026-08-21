@@ -17,17 +17,18 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail.Filter
         /// </summary>
         public class TextureFilterEntry
         {
-            // どのTerrainLayerを指すかはこのアドレスだけが知っている。落とすとlayerを解決する手がかりが消える
-            // Only this address knows which TerrainLayer is meant; dropping it removes every clue for resolving layer
+            // どのレイヤーを指すかはこのアドレスだけが知っている。落とすとlayerIndexを解決する手がかりが消える
+            // Only this address knows which layer is meant; dropping it removes every clue for resolving layerIndex
             public string layerAddressablePath;
-            public TerrainLayer layer;
             public float weight;
 
-            // レイヤーはAddressablesの非同期ロード結果なので、ファクトリではなく解決後に差し込む
-            // The layer comes from an async Addressables load, so it is injected after resolution rather than by the factory
-            public void SetLayer(TerrainLayer resolvedLayer)
+            // alphamapの列。SplatLayerTableが確定したあと呼び出し側が差し込む。-1は未解決
+            // The alphamap column, injected by the caller once SplatLayerTable settles; -1 means unresolved
+            public int layerIndex = -1;
+
+            public void SetLayerIndex(int resolvedLayerIndex)
             {
-                layer = resolvedLayer;
+                layerIndex = resolvedLayerIndex;
             }
         }
 
@@ -46,12 +47,12 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail.Filter
             if (!enabled || entries == null || entries.Length == 0) return;
 
             foreach (var entry in entries)
-                if (entry.layer == null)
+                if (entry.layerIndex < 0)
                     throw new InvalidOperationException(
-                        $"Detail texture filter layer '{entry.layerAddressablePath}' was not resolved before detail generation.");
+                        $"Detail texture filter layer '{entry.layerAddressablePath}' has no alphamap column.");
         }
 
-        public float Evaluate(float[,,] splatmap, int z, int x, TerrainLayer[] terrainLayers)
+        public float Evaluate(float[,,] splatmap, int z, int x)
         {
             if (!enabled || entries == null || entries.Length == 0) return 1f;
 
@@ -68,8 +69,7 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail.Filter
                 var layerFactor = otherTextureWeight;
                 for (var e = 0; e < entries.Length; e++)
                 {
-                    if (entries[e].layer != null && i < terrainLayers.Length
-                        && ReferenceEquals(entries[e].layer, terrainLayers[i]))
+                    if (entries[e].layerIndex == i)
                     {
                         layerFactor = entries[e].weight;
                         break;
