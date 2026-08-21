@@ -79,8 +79,8 @@ namespace Client.WebUiHost.Game
                 _pngCache[fluidGuid] = cached;
             }
 
-            // アイコン内容の変化に ETag 再検証で追随する
-            // Follow icon-content changes via ETag revalidation
+            // ETag再検証で内容変化に追随
+            // Follow content changes via ETag revalidation
             context.Response.Headers["ETag"] = cached.ETag;
             context.Response.Headers["Cache-Control"] = "no-cache";
 

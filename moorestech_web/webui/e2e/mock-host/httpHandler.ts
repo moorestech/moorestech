@@ -10,7 +10,7 @@ import { send, clone } from "./wire";
 import { received, state, connections, subscribersOf } from "./state";
 import { applyTopicControl, serveDictionary } from "./topics/topicControls";
 import { applyPresentationControl } from "./topics/presentationControls";
-import { contentType, fluidIconSeed, injectDemoBackground, placeholderIcon, realFluidIconFor, realIconFor } from "./assets/demoAssets";
+import { contentType, fluidIconDirectory, fluidIconFiles, fluidIconSeed, iconDirectory, iconFiles, injectDemoBackground, placeholderIcon, realIconFor } from "./assets/demoAssets";
 import { serveLanguageCatalog } from "./localization/transport";
 export { injectDemoBackground } from "./assets/demoAssets";
 
@@ -162,7 +162,7 @@ export function createMockHttpServer(): Server {
         const id = Number(url.split("/").pop()?.replace(".png", "")) || 0;
         // ブロック画像は実アセットが無いため常にプレースホルダ（実ホストはBlockImageContainerのPNG）
         // Block images have no real asset so always use the placeholder (the real host renders BlockImageContainer PNGs)
-        const real = isBlockIcon ? null : realIconFor(id);
+        const real = isBlockIcon ? null : realIconFor(id, iconDirectory, iconFiles);
         if (real) {
           res.setHeader("content-type", "image/jpeg");
           res.end(real);
@@ -176,14 +176,19 @@ export function createMockHttpServer(): Server {
       res.end();
       return;
     }
-    // 液体アイコンはitem/blockと同経路構造・guidベースで別配信する
-    // Fluid icons follow the same item/block path structure but key off a guid
+    // 液体アイコンはguidベースで別配信
+    // Fluid icons are served separately, keyed by guid
     if (url.startsWith(FLUID_ICON_PREFIX)) {
-      // DEMO時は実流体アイコン(無ければプレースホルダ)、通常時は404で背面フィルフォールバック
-      // DEMO serves real fluid icons (placeholder if absent); otherwise 404 for the fill-only fallback
+      // DEMOは実/プレースホルダ、他は404
+      // DEMO: real/placeholder icon; otherwise 404
       if (DEMO) {
         const guid = url.split("/").pop()?.replace(".png", "") ?? "";
-        const real = realFluidIconFor(guid);
+        if (!guid) {
+          res.statusCode = 404;
+          res.end();
+          return;
+        }
+        const real = realIconFor(fluidIconSeed(guid), fluidIconDirectory, fluidIconFiles);
         if (real) {
           res.setHeader("content-type", "image/jpeg");
           res.end(real);

@@ -49,10 +49,13 @@ test("通常のe2eでは液体アイコンが404になり背面フィルが残�
   await setBlock(page, "tank");
   await page.goto("/");
   await expect(page.getByTestId("generic-block-fluids")).toBeVisible();
-  // DEMOでない通常実行では /api/fluid-icons/ が404となり、height/background-colorのフィルだけが残る
-  // Outside DEMO the /api/fluid-icons/ request 404s, leaving only the height/background-color fill
+  // 非DEMOでは404、フィルのみ残る
+  // Outside DEMO it 404s, only the fill remains
   const slot = page.getByTestId("fluid-slot").filter({ hasText: "500" });
   const fill = slot.locator("> div").first();
   await expect(fill).toHaveAttribute("style", /height:\s*50%/);
   await expect(fill).toHaveAttribute("style", /background-color/);
+  // 404時はimg/#idどちらも出ない
+  // On 404 neither img nor #id text appears
+  await expect(slot.locator("img")).toHaveCount(0);
 });
