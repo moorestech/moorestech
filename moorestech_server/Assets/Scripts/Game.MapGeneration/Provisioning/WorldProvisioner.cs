@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Core.Master;
 using Game.MapGeneration.Export;
+using Game.MapGeneration.Identity;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
@@ -40,7 +41,22 @@ namespace Game.MapGeneration.Provisioning
             {
                 // 版照合はTerrainTransferMetaReaderが唯一持つ。ハンドシェイクまで遅らせるとcatch-allに握り潰されクライアントが無言でハングする
                 // TerrainTransferMetaReader owns the sole version check; deferring it to the handshake lets a catch-all swallow it and hang the client silently
-                TerrainTransferMetaReader.Read(worldDataDirectory);
+                var existingTerrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
+
+                // 指紋不一致は台帳がサーバー正本とずれる合図。バージョンと同じくここでfail-fastする
+                // A fingerprint mismatch signals the ledger has drifted from the server's truth; fail fast here just as for the version
+                if (!existingTerrainMeta.IsTemplate)
+                {
+                    var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
+                    var currentFingerprint = GenerationMasterFingerprint.Compute(
+                        MasterHolder.GenerationMaster.SourceJsonText, selectedGeneration, settings.ServerDataDirectory);
+                    if (currentFingerprint != existingTerrainMeta.GenerationMasterFingerprint)
+                        throw new InvalidOperationException(
+                            $"World '{worldDataDirectory.Root}' was generated with generation master fingerprint " +
+                            $"'{existingTerrainMeta.GenerationMasterFingerprint}', but this build's is '{currentFingerprint}'. " +
+                            "Delete the world directory and generate the world again.");
+                }
+
                 return;
             }
 
@@ -104,6 +120,9 @@ namespace Game.MapGeneration.Provisioning
                     TerrainNoiseOriginZ = output.NoiseOrigin.y,
                     TerrainSceneOriginX = output.SceneOrigin.x,
                     TerrainSceneOriginZ = output.SceneOrigin.y,
+
+                    GenerationMasterFingerprint = GenerationMasterFingerprint.Compute(
+                        MasterHolder.GenerationMaster.SourceJsonText, selected, settings.ServerDataDirectory),
                 };
             }
 

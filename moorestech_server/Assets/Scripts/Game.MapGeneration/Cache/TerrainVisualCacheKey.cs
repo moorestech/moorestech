@@ -2,13 +2,13 @@ using System;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using UnityEngine;
+using Game.MapGeneration.Transfer;
 
 namespace Game.MapGeneration.Cache
 {
     /// <summary>
-    ///     見た目キャッシュの有効性を1本の文字列に畳み込む。splatmap/detailの導出元が1つでも動けば別のキーになる
-    ///     Folds the visual cache's validity into one string; any change to a splatmap/detail input yields a different key
+    ///     見た目キャッシュの有効性を1本の文字列に畳み込む。生成の入力が1つでも動けば別のキーになる
+    ///     Folds the visual cache's validity into one string; any change to generation's own inputs yields a different key
     /// </summary>
     public static class TerrainVisualCacheKey
     {
@@ -16,38 +16,27 @@ namespace Game.MapGeneration.Cache
         // Floats use round-trippable "R"; truncating digits would treat a different window as the same key
         private const string RoundTripFormat = "R";
 
-        // 導出元は5つ: マスタ原文・地形バイナリのハッシュ・ノイズ窓原点・seed・mapObject配置のダイジェスト
-        // splatmapはSplatmapJobにworldOffsetとseedを直接渡すため、terrainHash(高さとバイオームのみ)では覆えない
-        // Five inputs: the master text, the terrain binaries' hash, the noise window origin, the seed, and the map object digest
-        // The splatmap feeds worldOffset and seed straight into SplatmapJob, which terrainHash (heights and biomes only) cannot cover
-        // シーン原点は含めない。Terrainの設置座標にしか効かず、画素の中身を1つも変えないため
-        // The scene origin is left out: it only moves where the Terrain stands and changes no pixel of the content
-        public static string Compute(
-            string generationMasterJsonText, string terrainHash, Vector2 noiseOrigin, int seed, byte[] mapObjectsDigest)
+        // 導出元は生成の入力だけ: 生成マスタ指紋（JSON原文＋PNG）・seed・2原点・解像度・生成器の版。配置は同じ入力から決定論で出るので鍵に入れない
+        // The inputs are generation's own: the master fingerprint (JSON text + PNGs), seed, the two origins, resolution and generator version; placements derive deterministically from them and stay out of the key
+        public static string Compute(string generationMasterFingerprint, int seed, TerrainOrigins origins, int terrainResolution, string generatorVersion)
         {
-            // 空ダイジェストは「mapObjectが0本」と区別できない。木の摂動と距離場が丸ごと抜けた見た目が焼き付く
-            // An empty digest is indistinguishable from "zero map objects", baking in visuals that lost the tree perturbation and distance fields entirely
-            if (mapObjectsDigest == null || mapObjectsDigest.Length == 0)
+            if (string.IsNullOrEmpty(generationMasterFingerprint))
                 throw new InvalidOperationException(
-                    "[TerrainVisualCacheKey] The map objects digest is empty: MapObjectsDigest always folds even an empty layout into a hash.");
+                    "[TerrainVisualCacheKey] The generation master fingerprint is empty: a generated world always owns one.");
 
-            if (string.IsNullOrEmpty(generationMasterJsonText))
+            if (string.IsNullOrEmpty(generatorVersion))
                 throw new InvalidOperationException(
-                    "[TerrainVisualCacheKey] The generation master JSON text is empty: a generated world always owns one.");
+                    "[TerrainVisualCacheKey] The generator version is empty: a generated world always declares one.");
 
-            if (string.IsNullOrEmpty(terrainHash))
-                throw new InvalidOperationException(
-                    "[TerrainVisualCacheKey] The terrain hash is empty: a generated world always declares one.");
-
-            // マスタ原文だけが可変長。先に固定長へ畳んでおかないと、区切りを跨いだ別の組み合わせが同じ連結文字列になる
-            // The master text is the only variable-length input; folding it first stops a different split from forming the same joined string
             var keySource = string.Join("|",
-                ToSha256Hex(generationMasterJsonText),
-                terrainHash,
+                generationMasterFingerprint,
                 seed.ToString(CultureInfo.InvariantCulture),
-                noiseOrigin.x.ToString(RoundTripFormat, CultureInfo.InvariantCulture),
-                noiseOrigin.y.ToString(RoundTripFormat, CultureInfo.InvariantCulture),
-                ToHex(mapObjectsDigest));
+                origins.NoiseOrigin.x.ToString(RoundTripFormat, CultureInfo.InvariantCulture),
+                origins.NoiseOrigin.y.ToString(RoundTripFormat, CultureInfo.InvariantCulture),
+                origins.SceneOrigin.x.ToString(RoundTripFormat, CultureInfo.InvariantCulture),
+                origins.SceneOrigin.y.ToString(RoundTripFormat, CultureInfo.InvariantCulture),
+                terrainResolution.ToString(CultureInfo.InvariantCulture),
+                generatorVersion);
 
             return ToSha256Hex(keySource);
 
@@ -56,11 +45,7 @@ namespace Game.MapGeneration.Cache
             string ToSha256Hex(string text)
             {
                 using var sha256 = SHA256.Create();
-                return ToHex(sha256.ComputeHash(Encoding.UTF8.GetBytes(text)));
-            }
-
-            string ToHex(byte[] bytes)
-            {
+                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(text));
                 return BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
             }
 

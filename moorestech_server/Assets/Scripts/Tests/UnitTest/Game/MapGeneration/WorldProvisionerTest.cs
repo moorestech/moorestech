@@ -12,6 +12,7 @@ using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Mooresmaster.Model.MapModule;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -157,6 +158,23 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             Assert.IsFalse(Directory.Exists(_worldDataDirectory.ProvisioningTempDirectory));
             Assert.IsTrue(File.Exists(_worldDataDirectory.WorldMetaFilePath));
+        }
+
+        // 指紋不一致は台帳がサーバー正本とずれる合図。バージョン不一致と同じくfail-fastで検出せねばならない
+        // A fingerprint mismatch signals the ledger has drifted from the server's truth; it must fail fast just like a version mismatch
+        [Test]
+        public void 生成マスタ指紋が不一致な既存ワールドはEnsureWorldが例外を投げる()
+        {
+            LoadMasterHolderForGeneration();
+
+            var settings = new WorldProvisionSettings(_worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, "generated", 12345);
+            WorldProvisioner.EnsureWorld(settings);
+
+            var worldMeta = JObject.Parse(File.ReadAllText(_worldDataDirectory.WorldMetaFilePath));
+            worldMeta["generationMasterFingerprint"] = "tampered-fingerprint";
+            File.WriteAllText(_worldDataDirectory.WorldMetaFilePath, worldMeta.ToString());
+
+            Assert.Throws<InvalidOperationException>(() => WorldProvisioner.EnsureWorld(settings));
         }
 
         [Test]

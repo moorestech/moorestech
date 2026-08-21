@@ -20,10 +20,12 @@ namespace Client.Starter.Initialization
     public class MainGameInitializationFinalizer
     {
         private readonly ServerConnectionResult _serverResult;
+        private readonly string _serverDataDirectory;
 
-        public MainGameInitializationFinalizer(ServerConnectionResult serverResult)
+        public MainGameInitializationFinalizer(ServerConnectionResult serverResult, string serverDataDirectory)
         {
             _serverResult = serverResult;
+            _serverDataDirectory = serverDataDirectory;
         }
 
         public async UniTask RunAsync()
@@ -54,7 +56,7 @@ namespace Client.Starter.Initialization
 
             // 露頭を含むワールドオブジェクトの生成前にTerrainを構築する
             // Build Terrain before instantiating world objects including outcrops
-            await TerrainRuntimeBuilder.BuildAsync(_serverResult.HandshakeResponse.MapLayout, starter.EnvironmentRoot.transform);
+            await TerrainRuntimeBuilder.BuildAsync(_serverResult.HandshakeResponse.MapLayout, starter.EnvironmentRoot.transform, _serverDataDirectory);
 
             // 露頭生成はTerrain完成後に明示開始する。完了待ちは下の待機境界が一括で担う（ADR#15）
             // Outcrop instantiation starts explicitly after the terrain is ready; the wait boundary below waits for it with the rest (ADR#15)

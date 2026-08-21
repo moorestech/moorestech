@@ -66,6 +66,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [TestCase("terrainNoiseOriginZ")]
         [TestCase("terrainSceneOriginX")]
         [TestCase("terrainSceneOriginZ")]
+        [TestCase("generationMasterFingerprint")]
         public void generatedのworld_jsonに原点キーが欠けていたら0で補わず例外を投げる(string missingKey)
         {
             var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);

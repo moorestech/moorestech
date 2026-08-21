@@ -35,6 +35,10 @@ namespace Server.Protocol.PacketResponse.MapData
         // Scene origin of the generated tile; placing the terrain there aligns it with the MapObjects/MapVeins coordinates
         [Key(8)] public Vector2MessagePack SceneOrigin { get; set; }
 
+        // 生成マスタの指紋。templateは空文字
+        // Generation master fingerprint; empty for template
+        [Key(9)] public string GenerationMasterFingerprint { get; set; }
+
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public TerrainTransferMetaMessagePack() { }
 
@@ -49,6 +53,7 @@ namespace Server.Protocol.PacketResponse.MapData
             WorldSeed = terrainMeta.WorldSeed;
             NoiseOrigin = new Vector2MessagePack(terrainMeta.Origins.NoiseOrigin);
             SceneOrigin = new Vector2MessagePack(terrainMeta.Origins.SceneOrigin);
+            GenerationMasterFingerprint = terrainMeta.GenerationMasterFingerprint;
         }
 
         // ワイヤ値から転送メタを組み直す唯一の入口。モード解釈を各所へ散らさない
@@ -59,7 +64,7 @@ namespace Server.Protocol.PacketResponse.MapData
             if (MapMode == WorldProvisioner.GeneratedMapMode)
                 return TerrainTransferMeta.CreateGenerated(
                     WorldId, TerrainResolution, TerrainTileCount, TerrainChunkTotal, WorldSeed,
-                    new TerrainOrigins(noiseOrigin: NoiseOrigin, sceneOrigin: SceneOrigin));
+                    new TerrainOrigins(noiseOrigin: NoiseOrigin, sceneOrigin: SceneOrigin), GenerationMasterFingerprint);
             throw new InvalidOperationException($"[TerrainTransferMetaMessagePack] Unknown map mode '{MapMode}'.");
         }
     }

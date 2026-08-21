@@ -186,6 +186,10 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TerrainNoiseOriginZ = 0f,
                 TerrainSceneOriginX = 0f,
                 TerrainSceneOriginZ = 0f,
+
+                // generatedのworld.jsonは指紋を必ず持つ契約。この値自体はチャンク読み出しテストの対象外
+                // A generated world.json always carries a fingerprint by contract; the value itself is out of scope for this chunk-reading test
+                GenerationMasterFingerprint = "synthetic-fingerprint",
             };
             File.WriteAllText(worldDataDirectory.WorldMetaFilePath, JsonConvert.SerializeObject(worldMeta, Formatting.Indented));
             return worldDataDirectory;

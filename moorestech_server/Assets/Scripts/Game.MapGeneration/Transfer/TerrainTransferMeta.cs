@@ -32,8 +32,12 @@ namespace Game.MapGeneration.Transfer
         // The generation-time noise window origin and scene origin; like the seed, they exist only at generation and cannot be recovered from the master
         public readonly TerrainOrigins Origins;
 
+        // 生成マスタの指紋(JSON原文+配置ノイズPNG)。templateは空文字。ワールド作成時のマスタとの一致検査に使う
+        // The generation master's fingerprint (JSON text + placement-noise PNGs); empty for template. Used to check agreement with the master at world creation
+        public readonly string GenerationMasterFingerprint;
+
         private TerrainTransferMeta(string mapMode, string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed,
-            TerrainOrigins origins)
+            TerrainOrigins origins, string generationMasterFingerprint)
         {
             MapMode = mapMode;
             IsTemplate = mapMode == WorldProvisioner.TemplateMapMode;
@@ -43,19 +47,22 @@ namespace Game.MapGeneration.Transfer
             TerrainChunkTotal = terrainChunkTotal;
             WorldSeed = worldSeed;
             Origins = origins;
+            GenerationMasterFingerprint = generationMasterFingerprint;
         }
 
         public static TerrainTransferMeta CreateGenerated(
-            string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed, TerrainOrigins origins)
+            string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed, TerrainOrigins origins,
+            string generationMasterFingerprint)
         {
             return new TerrainTransferMeta(
-                WorldProvisioner.GeneratedMapMode, worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed, origins);
+                WorldProvisioner.GeneratedMapMode, worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed, origins,
+                generationMasterFingerprint);
         }
 
         public static TerrainTransferMeta CreateTemplate(string worldId, int worldSeed)
         {
             return new TerrainTransferMeta(
-                WorldProvisioner.TemplateMapMode, worldId, 0, 0, 0, worldSeed, TerrainOrigins.WithoutTerrain());
+                WorldProvisioner.TemplateMapMode, worldId, 0, 0, 0, worldSeed, TerrainOrigins.WithoutTerrain(), string.Empty);
         }
 
         // generatedなのにチャンク0本は生成失敗かファイル切り詰め。地形なしと同一視すると壊れたワールドを正常として配る

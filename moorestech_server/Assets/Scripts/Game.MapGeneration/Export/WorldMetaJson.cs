@@ -25,5 +25,9 @@ namespace Game.MapGeneration.Export
         // Scene-space origin of the generated tile; map.json coordinates share this origin and the terrain is placed there
         [JsonProperty("terrainSceneOriginX")] public float? TerrainSceneOriginX;
         [JsonProperty("terrainSceneOriginZ")] public float? TerrainSceneOriginZ;
+
+        // 生成マスタの指紋(JSON原文+配置ノイズPNG)。generatedのみ書く。templateはnullで「概念自体が無い」を表明する
+        // The generation master's fingerprint (JSON text + placement-noise PNGs), written only for generated; null for template declares the concept itself is absent
+        [JsonProperty("generationMasterFingerprint")] public string GenerationMasterFingerprint;
     }
 }

@@ -17,7 +17,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.IsTrue(template.ToTerrainTransferMeta().IsTemplate);
 
             var generated = new TerrainTransferMetaMessagePack(
-                TerrainTransferMeta.CreateGenerated("world-b", 513, 4, 3, 42, new TerrainOrigins(Vector2.zero, Vector2.zero)), "hash");
+                TerrainTransferMeta.CreateGenerated("world-b", 513, 4, 3, 42, new TerrainOrigins(Vector2.zero, Vector2.zero), "fingerprint"), "hash");
             Assert.IsFalse(generated.ToTerrainTransferMeta().IsTemplate);
         }
 

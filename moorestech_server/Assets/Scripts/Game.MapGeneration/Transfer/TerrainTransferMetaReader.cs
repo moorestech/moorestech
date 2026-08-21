@@ -1,9 +1,8 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using Game.MapGeneration.Export;
+using Game.MapGeneration.Identity;
 using Game.MapGeneration.Provisioning;
 using Game.Paths;
 using Newtonsoft.Json;
@@ -15,8 +14,6 @@ namespace Game.MapGeneration.Transfer
     // Build terrain metadata from world files
     public static class TerrainTransferMetaReader
     {
-        private const int WorldIdHexDigits = 16;
-
         public static TerrainTransferMeta Read(WorldDataDirectory worldDataDirectory)
         {
             // Rootがnullなのはワールドディレクトリを持たない構成という宣言であり、欠損の補完ではない
@@ -40,9 +37,9 @@ namespace Game.MapGeneration.Transfer
                         $"but this build is '{WorldProvisioner.GeneratorVersion}'. Terrain height's source of truth changed between versions " +
                         "(pre- vs post-tree-perturbation), so applying the perturbation here could double it. Delete the world directory and generate the world again."),
                 WorldProvisioner.GeneratedMapMode => TerrainTransferMeta.CreateGenerated(
-                    CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount,
-                    CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedOrigins()),
-                WorldProvisioner.TemplateMapMode => TerrainTransferMeta.CreateTemplate(CalculateWorldId(), worldMeta.Seed),
+                    WorldIdentity.Calculate(worldMeta.Seed, worldMeta.CreatedAt), worldMeta.TerrainResolution, worldMeta.TerrainTileCount,
+                    CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedOrigins(), ReadGenerationMasterFingerprint()),
+                WorldProvisioner.TemplateMapMode => TerrainTransferMeta.CreateTemplate(WorldIdentity.Calculate(worldMeta.Seed, worldMeta.CreatedAt), worldMeta.Seed),
                 _ => throw new InvalidOperationException($"Unknown map mode in world.json: '{worldMeta.MapMode}'")
             };
 
@@ -63,6 +60,17 @@ namespace Game.MapGeneration.Transfer
                     sceneOrigin: new Vector2(worldMeta.TerrainSceneOriginX.Value, worldMeta.TerrainSceneOriginZ.Value));
             }
 
+            // 指紋はマスタからは復元できず、原点と同じく生成時にしか決まらない。旧world.jsonはキーごと欠けるので作り直しを促す
+            // The fingerprint cannot be recovered from the master and, like the origins, exists only at generation; older world.json files lack the key entirely, so demand a regeneration
+            string ReadGenerationMasterFingerprint()
+            {
+                if (worldMeta.GenerationMasterFingerprint == null)
+                    throw new InvalidOperationException(
+                        $"Generated world.json '{worldDataDirectory.WorldMetaFilePath}' has no generationMasterFingerprint key. " +
+                        "It predates the generation master fingerprint; delete the world directory and generate the world again.");
+                return worldMeta.GenerationMasterFingerprint;
+            }
+
             int CalculateChunkTotal()
             {
                 // 論理ストリームそのものの列挙で総バイトを出す。terrain/内の無関係ファイルは数えない
@@ -70,15 +78,6 @@ namespace Game.MapGeneration.Transfer
                 var totalBytes = TerrainTransferMeta.EnumerateStreamFilePaths(worldDataDirectory, worldMeta.TerrainTileCount)
                     .Sum(filePath => new FileInfo(filePath).Length);
                 return (int)((totalBytes + TerrainTransferMeta.ChunkByteSize - 1) / TerrainTransferMeta.ChunkByteSize);
-            }
-
-            string CalculateWorldId()
-            {
-                // seedとcreatedAtで識別する。同じseedを再生成したワールドも別IDになる
-                // Identify by seed and createdAt, so regenerating the same seed still yields a distinct id
-                using var sha256 = SHA256.Create();
-                var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes($"{worldMeta.Seed}:{worldMeta.CreatedAt}"));
-                return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant().Substring(0, WorldIdHexDigits);
             }
 
             #endregion

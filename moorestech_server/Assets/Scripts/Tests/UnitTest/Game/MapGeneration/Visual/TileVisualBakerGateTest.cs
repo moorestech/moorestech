@@ -18,9 +18,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
 {
     /// <summary>
     ///     generateTexture / generateDetail が見た目の再構築を切ることを検証する。detailはプロトタイプと密度マップが
-    ///     必ず同数でなければならず、片方だけ止めた実装はGeneratedTerrainSourceの数一致検査で落ちる
+    ///     必ず同数でなければならず、片方だけ止めた実装はDetailPrototypeAssetResolverの数一致検査で落ちる
     ///     Verifies generateTexture and generateDetail gate the visual rebuild; detail prototypes and density maps must
-    ///     always match in count, and gating only one of them trips GeneratedTerrainSource's count check
+    ///     always match in count, and gating only one of them trips DetailPrototypeAssetResolver's count check
     /// </summary>
     public class TileVisualBakerGateTest
     {
@@ -80,8 +80,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             var baker = CreateBaker(true, false);
             var baked = baker.Bake(TileX, TileZ);
 
-            // 片方だけ止めるとGeneratedTerrainSourceの数一致検査で落ちる。同数であることが本体の要求
-            // Gating only one side trips GeneratedTerrainSource's count check; matching counts are what production demands
+            // 片方だけ止めるとDetailPrototypeAssetResolverの数一致検査で落ちる。同数であることが本体の要求
+            // Gating only one side trips DetailPrototypeAssetResolver's count check; matching counts are what production demands
             Assert.That(baked.DetailMaps.Count, Is.EqualTo(baker.DetailPrototypes.Count), "プロトタイプと密度マップは同数");
             Assert.That(baker.DetailPrototypes.Count, Is.EqualTo(0));
         }

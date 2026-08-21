@@ -125,8 +125,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
             };
         }
 
-        // TerrainDetailPrototypeList.Buildが要る解決済みアセット辞書。CreateEntryが積むアドレスを1本だけ満たす
-        // The resolved asset dictionary TerrainDetailPrototypeList.Build needs; it satisfies the single address CreateEntry sets
+        // DetailPrototypeAssetResolverが要る解決済みアセット。CreateEntryが積むアドレスを1本だけ満たす
+        // The resolved asset DetailPrototypeAssetResolver needs; it satisfies the single address CreateEntry sets
         public static Dictionary<string, Object> CreateResolvedAssets()
         {
             return new Dictionary<string, Object> { [PrototypeTextureAddress] = new Texture2D(1, 1) };
