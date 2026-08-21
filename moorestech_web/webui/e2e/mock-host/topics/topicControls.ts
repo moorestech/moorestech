@@ -65,13 +65,11 @@ const controls = {
   miningHidden: () => control(Topics.progress, { visible: false, progress: 0 }),
   tooltip: () => control(Topics.tooltip, {
     visible: true,
-    textKey: L.ui.tooltip.worldTarget,
-    textParams: [],
+    lines: [{ textKey: L.ui.tooltip.worldTarget, textParams: [] }],
   }),
   tooltipHidden: () => control(Topics.tooltip, {
     visible: false,
-    textKey: "",
-    textParams: [],
+    lines: [],
   }),
   pauseConnected: () => control(Topics.pauseMenu, { disconnected: false }),
   pauseDisconnected: () => control(Topics.pauseMenu, { disconnected: true }),

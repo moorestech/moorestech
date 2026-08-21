@@ -8,8 +8,7 @@ const testState = vi.hoisted(() => ({
   locale: "english",
   data: {
     visible: true,
-    textKey: "ui.mainMenu.playLocally",
-    textParams: [] as string[],
+    lines: [{ textKey: "ui.mainMenu.playLocally", textParams: [] as string[] }],
   },
   clamp: vi.fn(() => ({ x: 12, y: 12 })),
 }));
@@ -34,7 +33,7 @@ vi.mock("@/shared/i18n", async (importOriginal) => {
 });
 vi.mock("./tooltipPosition", () => ({ clampTooltipPosition: testState.clamp }));
 
-import { CursorTooltip, resolveTooltipText } from "./CursorTooltip";
+import { CursorTooltip, resolveTooltipLines } from "./CursorTooltip";
 
 const ironIngotGuid = "5c2e4d9a-1b3f-4a7c-8d6e-0f1a2b3c4d5e";
 
@@ -43,8 +42,7 @@ describe("CursorTooltip", () => {
     testState.locale = "english";
     testState.data = {
       visible: true,
-      textKey: "ui.mainMenu.playLocally",
-      textParams: [],
+      lines: [{ textKey: "ui.mainMenu.playLocally", textParams: [] }],
     };
     testState.clamp.mockClear();
     vi.restoreAllMocks();
@@ -53,23 +51,36 @@ describe("CursorTooltip", () => {
   it("interpolates textParams into the localized template", () => {
     setDictionaries("english", { [L.ui.tooltip.requiredItems]: "Requires: {p0}" }, {}, {});
 
-    expect(resolveTooltipText({
+    expect(resolveTooltipLines({
       visible: true,
-      textKey: L.ui.tooltip.requiredItems,
-      textParams: ["Iron Pickaxe, Stone Pickaxe"],
-    }, createTranslator(getI18nSnapshot()))).toBe("Requires: Iron Pickaxe, Stone Pickaxe");
+      lines: [{ textKey: L.ui.tooltip.requiredItems, textParams: ["Iron Pickaxe, Stone Pickaxe"] }],
+    }, createTranslator(getI18nSnapshot()))).toEqual(["Requires: Iron Pickaxe, Stone Pickaxe"]);
   });
 
   it("resolves a content key from the dictionary without a raw-text fallback", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     setDictionaries("english", { [itemNameKey(ironIngotGuid)]: "Iron Ingot" }, {}, {});
 
-    expect(resolveTooltipText({
+    expect(resolveTooltipLines({
       visible: true,
-      textKey: itemNameKey(ironIngotGuid),
-      textParams: [],
-    }, createTranslator(getI18nSnapshot()))).toBe("Iron Ingot");
+      lines: [{ textKey: itemNameKey(ironIngotGuid), textParams: [] }],
+    }, createTranslator(getI18nSnapshot()))).toEqual(["Iron Ingot"]);
     expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("renders every line in order", () => {
+    setDictionaries("english", {
+      [L.ui.tooltip.placeBlockedByTerrain]: "Blocked by terrain",
+      [L.ui.tooltip.placeMaterialShortage]: "{p0} {p1}/{p2}",
+    }, {}, {});
+
+    expect(resolveTooltipLines({
+      visible: true,
+      lines: [
+        { textKey: L.ui.tooltip.placeBlockedByTerrain, textParams: [] },
+        { textKey: L.ui.tooltip.placeMaterialShortage, textParams: ["Iron Plate", "3", "10"] },
+      ],
+    }, createTranslator(getI18nSnapshot()))).toEqual(["Blocked by terrain", "Iron Plate 3/10"]);
   });
 
   it("shows a loud marker for an unknown localized key", () => {
@@ -77,12 +88,11 @@ describe("CursorTooltip", () => {
     setDictionaries("english", {}, {}, {});
     const data = {
       visible: true,
-      textKey: "ui.tooltip.unknown",
-      textParams: [],
+      lines: [{ textKey: "ui.tooltip.unknown", textParams: [] }],
     };
 
-    expect(resolveTooltipText(data, vi.fn())).toBe("[!ui.tooltip.unknown]");
-    expect(resolveTooltipText(data, vi.fn())).toBe("[!ui.tooltip.unknown]");
+    expect(resolveTooltipLines(data, vi.fn())).toEqual(["[!ui.tooltip.unknown]"]);
+    expect(resolveTooltipLines(data, vi.fn())).toEqual(["[!ui.tooltip.unknown]"]);
     expect(warn).toHaveBeenCalledOnce();
     expect(warn).toHaveBeenCalledWith("[i18n] Unknown localized external key: ui.tooltip.unknown");
   });

@@ -58,6 +58,7 @@ import type {
   CrosshairDataSchema,
   UiVisibilityDataSchema,
   TooltipDataSchema,
+  TooltipLineSchema,
   GameStateDataSchema,
   TutorialPresentationDataSchema,
   WorldPinPresentationDataSchema,
@@ -86,6 +87,7 @@ export type PlacementModeData = z.infer<typeof PlacementModeDataSchema>;
 export type CrosshairData = z.infer<typeof CrosshairDataSchema>;
 export type UiVisibilityData = z.infer<typeof UiVisibilityDataSchema>;
 export type TooltipData = z.infer<typeof TooltipDataSchema>;
+export type TooltipLine = z.infer<typeof TooltipLineSchema>;
 export type GameStateData = z.infer<typeof GameStateDataSchema>;
 export type TutorialPresentationData = z.infer<typeof TutorialPresentationDataSchema>;
 export type WorldPinPresentationData = z.infer<typeof WorldPinPresentationDataSchema>;
