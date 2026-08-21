@@ -62,9 +62,18 @@ const topicSchemas = {
   [Topics.notification]: NotificationDataSchema,
 } satisfies TopicSchemaRegistry;
 
-// 既知topicはsafeParseで検証し、未知topicは従来どおり素通しする
-// Validate known topics with safeParse and preserve pass-through for unknown topics
-export function validateTopicPayload(topic: string, data: unknown): boolean {
+// 既知topicは検証と同時に変換後の値を返す。判別union化したスキーマは変換結果こそが正
+// Known topics return the transformed value alongside validation; for discriminated-union schemas the transformed value is the real one
+// 未知topicは従来どおり素通しする
+// Unknown topics still pass through unchanged
+export function parseTopicPayload(topic: string, data: unknown): { valid: true; value: unknown } | { valid: false } {
   const schema = topicSchemas[topic as keyof typeof topicSchemas];
-  return schema === undefined || schema.safeParse(data).success;
+  if (schema === undefined) return { valid: true, value: data };
+
+  const result = schema.safeParse(data);
+  return result.success ? { valid: true, value: result.data } : { valid: false };
+}
+
+export function validateTopicPayload(topic: string, data: unknown): boolean {
+  return parseTopicPayload(topic, data).valid;
 }
