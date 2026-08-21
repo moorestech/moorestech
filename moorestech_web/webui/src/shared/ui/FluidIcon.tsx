@@ -11,5 +11,13 @@ type Props = {
 // Fluid icon; on load failure it falls back to nothing since the fill behind it already conveys the state
 export default function FluidIcon({ fluidGuid, className }: Props) {
   const { t } = useI18n();
-  return <GameIcon id={fluidGuid} src={fluidIconUrl(fluidGuid)} alt={t(fluidNameKey(fluidGuid))} fallback={null} className={className} />;
+  return (
+    <GameIcon
+      id={fluidGuid}
+      src={fluidIconUrl(fluidGuid)}
+      alt={t(fluidNameKey(fluidGuid))}
+      fallback={{ kind: "none" }}
+      className={className}
+    />
+  );
 }

@@ -27,9 +27,9 @@ namespace Core.Master.Validator
                 .OrderBy(e => e.FluidGuid)
                 .ToList();
 
-            // 予約されている混ざった液体を追加
-            // Add reserved mixed fluid
-            sortedFluidElements.Add(new FluidMasterElement(0, "MixedFluid", mixedFluidGuid));
+            // 予約されている混ざった液体を追加。マスタJSONに実体を持たない予約要素のため色もここに直書きする
+            // Add reserved mixed fluid; a reserved element with no JSON entry, so its color is hardcoded here too
+            sortedFluidElements.Add(new FluidMasterElement(0, "MixedFluid", mixedFluidGuid, "#808080"));
 
             // FluidID 0は空の液体として予約しているので、1から始める
             // Fluid ID 0 is reserved for empty fluid, so start from 1

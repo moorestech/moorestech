@@ -3,17 +3,20 @@
     {
       "name": "Water",
       "fluidGuid": "00000000-0000-0000-1234-000000000001",
-      "imagePath": ""
+      "imagePath": "",
+      "color": "#3399FF"
     },
     {
       "name": "Steam",
       "fluidGuid": "00000000-0000-0000-1234-000000000002",
-      "imagePath": ""
+      "imagePath": "",
+      "color": "#F0F0F0"
     },
     {
       "name": "TestFluid1",
       "fluidGuid": "00000000-0000-0000-1234-000000000003",
-      "imagePath": ""
+      "imagePath": "",
+      "color": "#FF00FF"
     }
   ]
 }

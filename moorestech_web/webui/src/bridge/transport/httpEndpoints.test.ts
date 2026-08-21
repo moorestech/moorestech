@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   blockIconUrl,
   fluidIconUrl,
+  fluidMasterUrl,
   itemIconUrl,
   itemMasterUrl,
   localizationDictionaryUrl,
@@ -22,6 +23,10 @@ describe("httpEndpoints", () => {
 
   it("既存のアイテムマスタURLを維持する", () => {
     expect(itemMasterUrl).toBe("/api/master/items");
+  });
+
+  it("液体マスタURLを維持する", () => {
+    expect(fluidMasterUrl).toBe("/api/master/fluids");
   });
 
   it("辞書URLへ期待revisionを含める", () => {

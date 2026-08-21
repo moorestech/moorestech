@@ -110,43 +110,11 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
-                if (path.StartsWith(Game.ItemIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.ItemIconEndpoint.PathSuffix, StringComparison.Ordinal))
+                if (Game.Icons.IconEndpoint.TryGetSource(path, out var iconSource))
                 {
-                    // アイテムアイコンの PNG 配信
-                    // Serve item icon PNGs
-                    await Game.ItemIconEndpoint.HandleAsync(context, path);
-                    return;
-                }
-
-                if (path.StartsWith(Game.BlockIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.BlockIconEndpoint.PathSuffix, StringComparison.Ordinal))
-                {
-                    // ブロックアイコンの PNG 配信
-                    // Serve block icon PNGs
-                    await Game.BlockIconEndpoint.HandleAsync(context, path);
-                    return;
-                }
-
-                if (path.StartsWith(Game.TrainCarIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.TrainCarIconEndpoint.PathSuffix, StringComparison.Ordinal))
-                {
-                    // 車両アイコンの PNG 配信
-                    // Serve train-car icon PNGs
-                    await Game.TrainCarIconEndpoint.HandleAsync(context, path);
-                    return;
-                }
-
-                if (path.StartsWith(Game.ConnectToolIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.ConnectToolIconEndpoint.PathSuffix, StringComparison.Ordinal))
-                {
-                    // 接続ツールアイコンの PNG 配信
-                    // Serve connect-tool icon PNGs
-                    await Game.ConnectToolIconEndpoint.HandleAsync(context, path);
-                    return;
-                }
-
-                if (path.StartsWith(Game.FluidIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.FluidIconEndpoint.PathSuffix, StringComparison.Ordinal))
-                {
-                    // 液体アイコンの PNG 配信
-                    // Serve fluid icon PNGs
-                    await Game.FluidIconEndpoint.HandleAsync(context, path);
+                    // Item/Block/TrainCar/ConnectTool/Fluid アイコンの PNG 配信を一本化
+                    // Unify Item/Block/TrainCar/ConnectTool/Fluid icon PNG delivery into one path
+                    await Game.Icons.IconEndpoint.HandleAsync(context, path, iconSource);
                     return;
                 }
 
@@ -161,6 +129,14 @@ namespace Client.WebUiHost.Boot
                     // アイテムマスタの JSON 配信
                     // Serve item master JSON
                     await Game.ItemMasterEndpoint.HandleAsync(context);
+                    return;
+                }
+
+                if (path == Game.FluidMasterEndpoint.Path)
+                {
+                    // 液体マスタ（背面フィル色含む）の JSON 配信
+                    // Serve fluid master JSON, including fill color
+                    await Game.FluidMasterEndpoint.HandleAsync(context);
                     return;
                 }
 

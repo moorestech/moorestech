@@ -1,6 +1,7 @@
 import { createElement } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
+import type { FluidMasterEntry } from "@/bridge";
 import { fluidNameKey } from "@/shared/i18n";
 import { setDictionaries } from "@/shared/i18n/i18nStore";
 
@@ -8,10 +9,19 @@ vi.mock("@mantine/core", () => ({
   Tooltip: (props: object) => createElement("mock-tooltip", props),
 }));
 
-import FluidSlot from "./index";
-
 const FLUID_GUID = "60000000-0000-4000-8000-000000000001";
-const filled = { fluidId: 10, amount: 500, capacity: 1000, fluidGuid: FLUID_GUID };
+const mockState = vi.hoisted(() => {
+  const guid = "60000000-0000-4000-8000-000000000001";
+  return { master: new Map([[guid, { fluidId: 10, fluidGuid: guid, color: "#2A6FE0" } satisfies FluidMasterEntry]]) };
+});
+
+vi.mock("@/bridge", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/bridge")>(),
+  useFluidMaster: () => mockState.master,
+}));
+
+import FluidSlot from "./index";
+const filled = { kind: "filled" as const, fluidId: 10, amount: 500, capacity: 1000, fluidGuid: FLUID_GUID };
 
 function tooltipProps(renderer: ReactTestRenderer) {
   return renderer.root.findByType("mock-tooltip" as never).props as { label: string; disabled: boolean };
@@ -38,16 +48,18 @@ describe("FluidSlot localization", () => {
     act(() => renderer.unmount());
   });
 
-  it("空流体はGuid空文字なのでラベルを出さずTooltipを無効化する", () => {
+  it("空スロット(kind: empty)はTooltip自体を描かない", () => {
     act(() => setDictionaries("japanese", {}, {}, {}));
     let renderer: ReactTestRenderer;
     act(() => {
       renderer = create(createElement(FluidSlot, {
-        fluid: { fluidId: 0, amount: 0, capacity: 1000, fluidGuid: "" },
+        fluid: { kind: "empty", capacity: 1000 },
       }));
     });
 
-    expect(tooltipProps(renderer!).label).toBe("");
-    expect(tooltipProps(renderer!).disabled).toBe(true);
+    // 空スロットは名前を持たないのでTooltipを一切マウントしない
+    // An empty slot has no name, so no tooltip is mounted at all
+    expect(renderer!.root.findAllByType("mock-tooltip" as never)).toHaveLength(0);
+    act(() => renderer.unmount());
   });
 });
