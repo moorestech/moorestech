@@ -5,7 +5,7 @@
 **本planは `2026-08-16-mapmaking-visual-parity.md`（origin/master側）を置き換える。** 旧planは 8/16 時点のmaster（PR #1145 未マージ）前提で書かれたが、その後の状況変化で前提が3点崩れた:
 
 1. **旧Phase A（Task 1〜4: Transform貫通）はPR #1145 が実装済み。** `PlacedMapObject` のRotation(四元数)/Scale、`MapInfoJson` の rotationX..W/scaleX..Z（`Required.Always`）、`MapObjectLayoutMessagePack` Key(5)〜(14)、クライアントInstantiate適用、MapAuthoring exporter/importer往復、テンプレmap.json必須キー移行、転記テスト（MapInfoJsonBuilderTest/GetMapDataProtocolTest）まで全て完了。ワイヤ形式は旧planのオイラー6フィールドでなく**四元数4成分＋スケール3軸が正**（ADR-0010の「Transform相当の3要素」を満たす実装済み形式に合わせる）
-2. **旧Phase C（Task 9: クライアント側距離場）はADR-0012で棄却対象。** 草密度はサーバーが焼いてチャンク配信する方針（[ADR-0012](../../adr/0012-server-baked-terrain-visuals.md)）のため、距離フィルタの有効化は焼く場所＝サーバー側（bd `moorestech-pt8`）で行う。クライアント距離場は「後で捨てる過渡実装」でありADR-0012がクラスタ再導出案を棄却したのと同じ理由で作らない
+2. **旧Phase C（Task 9: クライアント側距離場）はADR-0012で棄却対象。** 草密度はサーバーが焼いてチャンク配信する方針（[ADR-0012](../../adr/0012-server-baked-terrain-visuals.md)）のため、距離フィルタの有効化は焼く場所＝サーバー側（bd `moorestech-a3x`（旧称pt8））で行う。クライアント距離場は「後で捨てる過渡実装」でありADR-0012がクラスタ再導出案を棄却したのと同じ理由で作らない
 3. **旧Task 10（generateDetail/generateTexture削除）は前提が偽になった。** 「参照0件の死にフラグ」はmaster時点の話で、PR #1145 では `TerrainTileVisualProvider` が両フラグを生きたゲートとして使う（裁定 2026-08-14/15 で generateDetail=true 化済み）。削除はpt8でビジュアル生成がサーバーへ移る時に自然死させる
 
 AB比較実験（`docs/research/2026-08-16-impl-model-comparison.md`）は一旦見送り（裁定: `.decisions/2026-08-17-AB比較実験は一旦見送り計画のみ作り直す.md`）。本planは通常のSDDで実施する。
@@ -21,10 +21,10 @@ Phase 0（前提・本planの管轄外）: PR #1145 のwip整理→レビュー�
 Phase 1（本plan Task 1）      : Phase A残差の消化（HPバー逆スケール補正）
 Phase 2（本plan Task 2〜5）    : 樹種・岩登録（旧Task 5〜8のリベース）
 Phase 3（本plan Task 6〜7）    : 視覚検収（樹種・岩のみ）+ moores-code-review
-Phase 4（別plan・bd moorestech-pt8）: 地形見た目のサーバー焼き移行。着手時 grill-first（HARD GATE）。
+Phase 4（別plan・bd moorestech-a3x（旧称pt8））: 地形見た目のサーバー焼き移行 → **2026-08-21 grill で「転送せずロジックを生成システムに閉じる」へ転換（ADR-0025）**。草距離フィルタのマスタ値同一化・視覚検収は bd moorestech-f2j へ分離。
     旧Task 9（草距離場）・旧Task 10（generateDetail/generateTexture削除）・クラスタ3キー削除・
-    terrainSurroundEffectType削除・草分布の視覚検収はここへ吸収。前提調査だったbd moorestech-7pkは解明済み（下記「planning後の判明事項」）。
-    実データ是正はbd moorestech-iiu（クラスタ配置の復元）が担い、surround移設の実機検証はこれが前提になる
+    terrainSurroundEffectType削除・草分布の視覚検収はここへ吸収。前提調査だったbd moorestech-7pk（未起票のまま解明済み）は解明済み（下記「planning後の判明事項」）。
+    実データ是正はbd moorestech-585（旧称iiu・完了）が担い、surround移設の実機検証はこれが前提になる
 ```
 
 ## Requirements
@@ -305,10 +305,10 @@ if __name__ == "__main__":
 
 | 旧タスク | 委譲先 | 根拠 |
 |---|---|---|
-| Task 9: クライアント側草距離場（DetailDistanceFieldBuilder等） | bd `moorestech-pt8`（サーバー焼きのdetail密度計算内で距離フィルタを有効化） | ADR-0012。クライアント距離場は「後で捨てる過渡実装」 |
-| Task 10: generateDetail/generateTexture削除 | bd `moorestech-pt8`（ビジュアル生成のサーバー移設でゲートごと自然死） | PR #1145 で生きたゲートになった。死にフラグ前提が偽 |
-| クラスタ3キー（ClusterId/ClusterCenterX/Z）の転送・永続化削除 | bd `moorestech-pt8`（surround描画のサーバー移設と同時） | ADR-0012 過渡措置裁定 |
-| map.yml `terrainSurroundEffectType` の削除（スキーマ・全map.json・`MapObjectKindSplitter`） | bd `moorestech-pt8`（サーバー焼き移設でクライアント側分類＝Splitterごと自然死。サーバーは生成時に配置元prototype/objectConfigを知るためマスタ分類が不要になる） | 転送レイアウトがGUIDのみのため、pt8まではマスタが分類正本として必須。裁定: `.decisions/2026-08-18-terrainSurroundEffectTypeの削除はpt8送りにする.md` |
+| Task 9: クライアント側草距離場（DetailDistanceFieldBuilder等） | bd `moorestech-a3x`（旧称pt8）（サーバー焼きのdetail密度計算内で距離フィルタを有効化） | ADR-0012。クライアント距離場は「後で捨てる過渡実装」 |
+| Task 10: generateDetail/generateTexture削除 | bd `moorestech-a3x`（旧称pt8）（ビジュアル生成のサーバー移設でゲートごと自然死） | PR #1145 で生きたゲートになった。死にフラグ前提が偽 |
+| クラスタ3キー（ClusterId/ClusterCenterX/Z）の転送・永続化削除 | bd `moorestech-a3x`（旧称pt8）（surround描画のサーバー移設と同時） | ADR-0012 過渡措置裁定 |
+| map.yml `terrainSurroundEffectType` の削除（スキーマ・全map.json・`MapObjectKindSplitter`） | bd `moorestech-a3x`（旧称pt8）（サーバー焼き移設でクライアント側分類＝Splitterごと自然死。サーバーは生成時に配置元prototype/objectConfigを知るためマスタ分類が不要になる） | 転送レイアウトがGUIDのみのため、pt8まではマスタが分類正本として必須。裁定: `.decisions/2026-08-18-terrainSurroundEffectTypeの削除はpt8送りにする.md` |
 | 草分布の視覚検収 | pt8完了後の検収 | 距離フィルタ実装がpt8側のため |
 
 pt8は着手時に **grill-first（HARD GATE）**。
@@ -316,8 +316,8 @@ pt8は着手時に **grill-first（HARD GATE）**。
 ## planning後の判明事項（2026-08-17 追記）
 
 - **ADR-0012の未解決事項「勾配依存テクスチャの高さ基準」は解消済み。** MapMaking原本 `TerrainGenerator.cs` の実測で「①splatは摂動前高さで焼く → ②木の高さ摂動 → ③木の根元テクスチャをsplatへ追い焼き → ④detail用slopesは摂動後高さ」の4段ルールと確定。PR #1145 のR12（`2026-08-14-map-autogen-5x5-and-visual-restore.md`）が既に文書化・実装済み（`TreePerturbationApplier` / `TreeSurroundTexturePainter`）。pt8のサーバー焼きも同ルールを踏襲するだけでよい（摂動は決定論のためサーバーで再現可能）
-- **bd `moorestech-7pk`（ClusterId>=0が0件）は原因特定済みでクローズ。** コード経路（スキーマ→ランタイム変換・useClusterMode分岐・ClusterId採番・転記）は健全で、原因はv8実データの2欠陥: ①`algorithmParam.generateObject: false` でオブジェクト配置ステージ全体がスキップ（`TilePlacementRunner.cs:104`、2026-07-24導入） ②grassland/forestの `objectConfig` 16エントリが `prefabs: []`（移植時のGUID変換落ちの疑い）。是正は bd `moorestech-iiu`（generateObject有効化・prefabs復元・実データバリデーションテスト）へ。クラスタ描画・surround経路の実機検証はこの是正が前提
-- **要確認:** masterデータの `generateDetail` も false であることを調査中に確認。裁定 2026-08-14/15「generateDetailをtrueにする」との食い違いの可能性があるため、moorestech-iiu 着手時にピンと突き合わせて確認する
+- **bd `moorestech-7pk`（未起票のまま解明済み）（ClusterId>=0が0件）は原因特定済みでクローズ。** コード経路（スキーマ→ランタイム変換・useClusterMode分岐・ClusterId採番・転記）は健全で、原因はv8実データの2欠陥: ①`algorithmParam.generateObject: false` でオブジェクト配置ステージ全体がスキップ（`TilePlacementRunner.cs:104`、2026-07-24導入） ②grassland/forestの `objectConfig` 16エントリが `prefabs: []`（移植時のGUID変換落ちの疑い）。是正は bd `moorestech-585`（旧称iiu・完了）（generateObject有効化・prefabs復元・実データバリデーションテスト）へ。クラスタ描画・surround経路の実機検証はこの是正が前提
+- **要確認:** masterデータの `generateDetail` も false であることを調査中に確認。裁定 2026-08-14/15「generateDetailをtrueにする」との食い違いの可能性があるため、moorestech-585（旧称iiu・完了済み）の成果とピンと突き合わせて確認する
 
 ## 判断記録（ADR）
 
