@@ -1,4 +1,4 @@
-using Game.MapGeneration.Pipeline.Generators.Util;
+using Core.Master;
 using NUnit.Framework;
 
 namespace Tests.UnitTest.Game.MapGeneration.Placement
@@ -62,6 +62,39 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
             Assert.IsTrue(ring.Contains(349.9f));
             Assert.IsFalse(ring.Contains(350f));
             Assert.IsFalse(ring.Contains(249.9f));
+        }
+
+        [Test]
+        public void 妥当な外半径列は診断を出さない()
+        {
+            Assert.IsEmpty(SpawnDistanceRingPlanner.Diagnose(new[] { 250f, 350f, -1f }));
+        }
+
+        [Test]
+        public void 帯が無い外半径列は診断される()
+        {
+            var problems = SpawnDistanceRingPlanner.Diagnose(new float[0]);
+
+            Assert.AreEqual(1, problems.Count);
+            Assert.IsTrue(problems[0].Contains("no spawn-distance bands"));
+        }
+
+        [Test]
+        public void マイナス1以外の負の外半径は診断される()
+        {
+            var problems = SpawnDistanceRingPlanner.Diagnose(new[] { -5f, 250f });
+
+            Assert.AreEqual(1, problems.Count);
+            Assert.IsTrue(problems[0].Contains("negative outer radius"));
+        }
+
+        [Test]
+        public void 重複した外半径は診断される()
+        {
+            var problems = SpawnDistanceRingPlanner.Diagnose(new[] { 250f, 250f });
+
+            Assert.AreEqual(1, problems.Count);
+            Assert.IsTrue(problems[0].Contains("duplicate outer radius"));
         }
     }
 }

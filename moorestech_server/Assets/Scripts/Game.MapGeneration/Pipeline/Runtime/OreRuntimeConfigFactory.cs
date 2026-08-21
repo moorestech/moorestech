@@ -59,7 +59,6 @@ namespace Game.MapGeneration.Pipeline.Runtime
             Func<T, float> outer, Func<T, float> density, Func<T, int> maxObjects,
             Func<T, float> clusterRadius, Func<T, float> minBetween, Func<T, int> retries)
         {
-            if (bands == null) return new OreBand[0];
             var result = new OreBand[bands.Length];
             for (int i = 0; i < bands.Length; i++)
             {

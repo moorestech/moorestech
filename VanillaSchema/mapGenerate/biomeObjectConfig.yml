@@ -131,9 +131,9 @@ properties:
             foreignKeyIdPath: /mapObjects/[*]/mapObjectGuid
             displayElementPath: /mapObjects/[*]/mapObjectName
     # スポーン地点中心の距離帯。outerRadiusMeters 昇順のリングで、負値は無限（最外周）。
-    # density は非クラスタ散布の1haあたり密度、clusterCount はクラスタモードのクラスタ数上限。
+    # density は1haあたりの量で、非クラスタでは点数、クラスタモードではクラスタ中心数を決める。
     # Spawn-centred distance bands: rings in ascending outerRadiusMeters, negative = infinite (outermost).
-    # density is the per-hectare scatter density; clusterCount caps cluster-mode clusters.
+    # density is the per-hectare amount: scattered points in scatter mode, cluster centres in cluster mode.
     - key: bands
       type: array
       overrideCodeGeneratePropertyName: ObjectScatterBandElement
@@ -146,9 +146,6 @@ properties:
         - key: density
           type: number
           default: 1
-        - key: clusterCount
-          type: integer
-          default: 8
     - key: scaleRange
       type: vector2
     - key: slopeAlignment

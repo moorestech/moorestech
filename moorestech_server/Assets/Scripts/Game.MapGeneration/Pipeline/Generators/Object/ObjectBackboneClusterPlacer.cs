@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
 using UnityEngine;
@@ -6,10 +7,10 @@ using UnityEngine;
 namespace Game.MapGeneration.Pipeline.Generators
 {
     // 旧バックボーンクラスター（clusterMode互換）。
-    // ・リング毎にclusterCountを上限に中心を選ぶ
+    // ・リング毎にリング面積×densityで中心数を決める
     // ・中心がリング内の候補のみ採用
     // Legacy backbone clusters (clusterMode).
-    // - Pick centres per ring, capped at that ring's clusterCount
+    // - Centre count per ring comes from the ring area times that ring's density
     // - Keep only centres inside the ring
     internal static class ObjectBackboneClusterPlacer
     {
@@ -21,18 +22,23 @@ namespace Game.MapGeneration.Pipeline.Generators
         {
             float w = dims.TerrainWidth, l = dims.TerrainLength;
 
-            foreach (var ring in SpawnDistanceRingPlanner.BuildRings(ObjectScatterBand.OuterRadiiOf(entry.bands)))
+            foreach (var ring in SpawnDistanceRingPlanner.BuildRings(SpawnDistanceBand.OuterRadiiOf(entry.bands)))
             {
                 var band = entry.bands[ring.BandIndex];
-                if (band.clusterCount <= 0) continue;
-                float centerMinDist = Mathf.Sqrt(w * l / band.clusterCount * objAlgCfg.clusterSpacingFactor);
+
+                // 中心数はリング面積×density（1haあたり）で決める。面積非依存の個数だと近傍リングでほぼ0個になるため。
+                // The centre count is ring area times density (per hectare); an area-independent count would yield almost none in a near ring.
+                float ringArea = RingAreaWithinTile(ring);
+                int desiredCenters = Mathf.RoundToInt(band.density * ringArea / 10000f);
+                if (desiredCenters <= 0) continue;
+
+                // Poissonはタイル全面に撒いてリングで絞るため、間隔はリング面積あたりdesiredCenters個になる密度で決める。
+                // Poisson covers the whole tile and is then filtered by the ring, so the spacing targets desiredCenters points per ring area.
+                float centerMinDist = Mathf.Sqrt(ringArea / desiredCenters * objAlgCfg.clusterSpacingFactor);
                 var centers = PoissonDiskSampler.Generate(w, l, centerMinDist, rng.Next());
 
-                int placed = 0;
                 foreach (var center in centers)
                 {
-                    if (band.clusterCount <= placed) break;
-
                     // リング判定はクラスタ中心のワールド座標距離（鉱脈 OreEntryPlacer と同じ）。
                     // The ring test uses the cluster centre's world-space distance (as in OreEntryPlacer).
                     if (!ring.Contains(dims.DistanceFromSpawnXz(center.x, center.y))) continue;
@@ -49,10 +55,22 @@ namespace Game.MapGeneration.Pipeline.Generators
                         if (noise < entry.noiseThreshold) continue;
                     }
 
-                    placed++;
                     PlaceBackbone(entry, center, cx, cz, dims, heights, hRes, rng, placements, nextClusterId++);
                 }
             }
+
+            #region Internal
+
+            // リングとタイル矩形の交差面積は解析が重いため、円環面積とタイル面積の小さい方で近似する。
+            // The exact ring-tile intersection is heavy to derive, so approximate it with the smaller of the annulus area and the tile area.
+            float RingAreaWithinTile(SpawnDistanceRing targetRing)
+            {
+                if (float.IsPositiveInfinity(targetRing.Outer)) return w * l;
+                float annulusArea = Mathf.PI * (targetRing.Outer * targetRing.Outer - targetRing.Inner * targetRing.Inner);
+                return Mathf.Min(annulusArea, w * l);
+            }
+
+            #endregion
         }
 
         // クラスタ中心から背骨状にメンバーを配置。

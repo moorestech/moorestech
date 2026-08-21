@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.UnitTest.Game.MapGeneration;
 
 namespace Tests.UnitTest.Core.MapGeneration
 {
@@ -77,6 +78,44 @@ namespace Tests.UnitTest.Core.MapGeneration
             Assert.IsEmpty(logs);
         }
 
+        [Test]
+        public void 鉱脈帯の外半径が重複するとバリデーションで失敗する()
+        {
+            // 重複外半径は後続バンドがリングにならず黙って消えるため、マスタロード時に弾く
+            // A duplicate outer radius silently drops the later band, so it is rejected at master load
+            var json = LoadGenerationJson();
+            var bands = (JArray)json["algorithmParam"]!["oreConfig"]!["entries"]![0]!["bands"]!;
+            bands.Add(bands[0]!.DeepClone());
+
+            var master = new GenerationMaster(json, "test");
+
+            Assert.IsFalse(master.Validate(out var logs));
+            Assert.IsTrue(logs.Contains("duplicate outer radius"));
+        }
+
+        [Test]
+        public void 散布entryの帯が空だとバリデーションで失敗する()
+        {
+            var json = LoadGenerationJsonWithGrasslandScatterBands(new JArray());
+
+            var master = new GenerationMaster(json, "test");
+
+            Assert.IsFalse(master.Validate(out var logs));
+            Assert.IsTrue(logs.Contains("grassland.objectConfig.entries[0] has no spawn-distance bands"));
+        }
+
+        [Test]
+        public void 散布帯のマイナス1以外の負の外半径はバリデーションで失敗する()
+        {
+            var json = LoadGenerationJsonWithGrasslandScatterBands(new JArray(
+                new JObject { ["outerRadiusMeters"] = -5.0, ["density"] = 1.0 }));
+
+            var master = new GenerationMaster(json, "test");
+
+            Assert.IsFalse(master.Validate(out var logs));
+            Assert.IsTrue(logs.Contains("negative outer radius"));
+        }
+
         private static JToken LoadGenerationJson()
         {
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "generation.json");
@@ -94,6 +133,36 @@ namespace Tests.UnitTest.Core.MapGeneration
         {
             var json = LoadGenerationJson();
             json["algorithmParam"]!["oreConfig"]!["fluidEntries"]![0]!["veinGuid"] = veinGuid.ToString();
+            return json;
+        }
+
+        // grasslandへ散布entryを1件足し、bandsだけを検証対象として差し替える
+        // Append one scatter entry to grassland, swapping in the bands under test
+        private static JToken LoadGenerationJsonWithGrasslandScatterBands(JArray bands)
+        {
+            var json = LoadGenerationJson();
+            var entry = new JObject
+            {
+                ["prefabs"] = new JArray(new JObject { ["mapObjectGuid"] = TestGenerationConfigFactory.TestMapObjectGuid }),
+                ["bands"] = bands,
+                ["scaleRange"] = new JArray(1.0, 1.0),
+                ["slopeAlignment"] = 0.0,
+                ["sinkRange"] = new JArray(0.0, 0.0),
+                ["noiseType"] = "None",
+                ["noiseFrequency"] = 10.0,
+                ["noiseAmplitude"] = 1.0,
+                ["noiseThreshold"] = 0.5,
+                ["useSlopeFilter"] = false,
+                ["slopeMin"] = 0.0,
+                ["slopeMax"] = 90.0,
+                ["slopeSmoothness"] = 4.0,
+                ["useClusterMode"] = false,
+                ["objectsPerCluster"] = 4,
+                ["clusterRadius"] = 12.0,
+                ["minDistanceFromTree"] = 0.0,
+                ["maxDistanceFromTree"] = 0.0,
+            };
+            ((JArray)json["algorithmParam"]!["grassland"]!["objectConfig"]!["entries"]!).Add(entry);
             return json;
         }
     }

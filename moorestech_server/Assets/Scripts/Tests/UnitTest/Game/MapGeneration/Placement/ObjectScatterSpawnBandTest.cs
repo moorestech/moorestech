@@ -24,15 +24,14 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
             Assert.AreEqual(1, entry.bands.Length);
             Assert.AreEqual(-1f, entry.bands[0].outerRadiusMeters);
             Assert.AreEqual(1f, entry.bands[0].density);
-            Assert.AreEqual(8, entry.bands[0].clusterCount);
         }
 
         [Test]
         public void 近傍帯だけ密度を持つ散布はスポーンから近傍半径未満にのみ置かれる()
         {
             var output = GenerateScatter(gridSide: 1, useClusterMode: false,
-                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 30f, clusterCount = 0 },
-                new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f, clusterCount = 0 });
+                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 30f },
+                new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f });
 
             Assert.IsNotEmpty(output.MapObjects);
             foreach (var mapObject in output.MapObjects)
@@ -43,8 +42,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         public void 最外周だけ密度を持つ散布はスポーンから近傍半径以上にのみ置かれる()
         {
             var output = GenerateScatter(gridSide: 1, useClusterMode: false,
-                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 0f, clusterCount = 0 },
-                new ObjectScatterBand { outerRadiusMeters = -1f, density = 30f, clusterCount = 0 });
+                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 0f },
+                new ObjectScatterBand { outerRadiusMeters = -1f, density = 30f });
 
             Assert.IsNotEmpty(output.MapObjects);
             foreach (var mapObject in output.MapObjects)
@@ -55,8 +54,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         public void クラスタモードは近傍帯のクラスタ中心だけをスポーン近傍に置く()
         {
             var output = GenerateScatter(gridSide: 1, useClusterMode: true,
-                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 0f, clusterCount = 400 },
-                new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f, clusterCount = 0 });
+                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 30f },
+                new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f });
 
             Assert.IsNotEmpty(output.MapObjects);
             foreach (var mapObject in output.MapObjects)
@@ -75,8 +74,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         public void 複数タイルでも近傍帯はワールド座標のスポーン距離で判定される()
         {
             var output = GenerateScatter(gridSide: 3, useClusterMode: false,
-                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 30f, clusterCount = 0 },
-                new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f, clusterCount = 0 });
+                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 30f },
+                new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f });
 
             Assert.IsNotEmpty(output.MapObjects);
             foreach (var mapObject in output.MapObjects)
@@ -87,8 +86,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         public void 複数タイルでもクラスタ中心はワールド座標のスポーン距離で判定される()
         {
             var output = GenerateScatter(gridSide: 3, useClusterMode: true,
-                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 0f, clusterCount = 400 },
-                new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f, clusterCount = 0 });
+                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 30f },
+                new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f });
 
             Assert.IsNotEmpty(output.MapObjects);
             foreach (var mapObject in output.MapObjects)

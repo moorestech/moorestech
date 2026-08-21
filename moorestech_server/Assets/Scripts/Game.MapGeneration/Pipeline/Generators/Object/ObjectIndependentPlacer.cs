@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
 using UnityEngine;
@@ -20,7 +21,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             float w = dims.TerrainWidth, l = dims.TerrainLength;
             float area = w * l;
 
-            foreach (var ring in SpawnDistanceRingPlanner.BuildRings(ObjectScatterBand.OuterRadiiOf(entry.bands)))
+            foreach (var ring in SpawnDistanceRingPlanner.BuildRings(SpawnDistanceBand.OuterRadiiOf(entry.bands)))
             {
                 var band = entry.bands[ring.BandIndex];
                 int desiredCount = Mathf.RoundToInt(band.density * area / 10000f);

@@ -163,7 +163,6 @@ namespace Tests.UnitTest.Game.MapGeneration
                     {
                         ["outerRadiusMeters"] = -1,
                         ["density"] = 1.0,
-                        ["clusterCount"] = 8,
                     }),
                     ["scaleRange"] = new JArray(1.0, 1.0),
                     ["slopeAlignment"] = 0.0,

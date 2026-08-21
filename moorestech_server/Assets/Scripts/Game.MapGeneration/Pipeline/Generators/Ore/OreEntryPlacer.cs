@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
 using Game.MapGeneration.Pipeline.Tiling;
@@ -27,29 +28,12 @@ namespace Game.MapGeneration.Pipeline.Generators
             PlacementHaloChannel centerHalo,
             List<PlacementEntry> result)
         {
-            // バンド未設定は生成器側で警告してスキップ（SpawnDistanceRingPlanner は純粋関数のため）。
-            // Warn and skip when bands are missing (SpawnDistanceRingPlanner stays a pure function).
-            if (entry.bands == null || entry.bands.Length == 0)
-            {
-                Debug.LogWarning($"[OrePlacement] vein '{entry.veinGuid}' has no distance bands; skipping.");
-                return;
-            }
-            var seenKeys = new HashSet<float>();
-            foreach (var b in entry.bands)
-            {
-                if (b.outerRadiusMeters < 0f && b.outerRadiusMeters != -1f)
-                    Debug.LogWarning($"[OrePlacement] '{entry.veinGuid}' has a negative outer radius ({b.outerRadiusMeters}) other than -1; treated as infinite.");
-                float key = b.outerRadiusMeters < 0f ? float.PositiveInfinity : b.outerRadiusMeters;
-                if (!seenKeys.Add(key))
-                    Debug.LogWarning($"[OrePlacement] '{entry.veinGuid}' has bands with duplicate outer radius ({b.outerRadiusMeters}); later ones degenerate.");
-            }
-
             float w = dims.TerrainWidth;
             float l = dims.TerrainLength;
             int hRes = dims.Resolution;
             float minDist = entry.minDistanceFromOthers;
 
-            var rings = SpawnDistanceRingPlanner.BuildRings(OreBand.OuterRadiiOf(entry.bands));
+            var rings = SpawnDistanceRingPlanner.BuildRings(SpawnDistanceBand.OuterRadiiOf(entry.bands));
 
             foreach (var range in rings)
             {

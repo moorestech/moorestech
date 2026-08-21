@@ -94,8 +94,7 @@ namespace Game.MapGeneration.Pipeline.Runtime
                     bands[i] = new ObjectScatterBand
                     {
                         outerRadiusMeters = e.Bands[i].OuterRadiusMeters,
-                        density = e.Bands[i].Density,
-                        clusterCount = e.Bands[i].ClusterCount
+                        density = e.Bands[i].Density
                     };
 
                 entries.Add(new BiomeObjectConfig.ObjectEntry

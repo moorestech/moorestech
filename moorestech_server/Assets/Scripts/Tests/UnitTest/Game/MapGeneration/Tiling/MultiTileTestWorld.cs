@@ -101,14 +101,14 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
                     new BiomeObjectConfig.ObjectEntry
                     {
                         mapObjectGuids = new[] { TestGenerationConfigFactory.TestMapObjectGuid },
-                        bands = new[] { new ObjectScatterBand { outerRadiusMeters = -1f, density = 1f, clusterCount = 8 } },
+                        bands = new[] { new ObjectScatterBand { outerRadiusMeters = -1f, density = 1f } },
                         useClusterMode = true,
                         scaleRange = new Vector2(0.5f, 2f),
                     },
                     new BiomeObjectConfig.ObjectEntry
                     {
                         mapObjectGuids = new[] { IndependentMapObjectGuid },
-                        bands = new[] { new ObjectScatterBand { outerRadiusMeters = -1f, density = 1f, clusterCount = 8 } },
+                        bands = new[] { new ObjectScatterBand { outerRadiusMeters = -1f, density = 1f } },
                         useClusterMode = false,
                         scaleRange = new Vector2(0.5f, 2f),
                     },
