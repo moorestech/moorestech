@@ -66,8 +66,8 @@ namespace Client.Tests.PlaceSystem
             CreateServer();
             var requiredItems = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).RequiredItems;
             var factory = ServerContext.ItemStackFactory;
-            // 素材は2セット分、残り設置数1 → 1 + 2×3 = 7
-            // Materials cover two sets and one placement remains → 1 + 2×3 = 7
+            // GearBeltConveyorのRequiredItemsは1セット=Material1×1+Material2×1（N=3）。素材は2セット分、残り設置数1 → 1 + 2×3 = 7
+            // GearBeltConveyor's RequiredItems is 1 set = Material1×1 + Material2×1 (N=3); materials cover two sets, one placement remains → 1 + 2×3 = 7
             var inventory = new List<global::Core.Item.Interface.IItemStack>
             {
                 factory.Create(MasterHolder.ItemMaster.GetItemId(Material1Guid), 2),
