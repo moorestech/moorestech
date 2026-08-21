@@ -152,24 +152,27 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 var targetTrainUnitInstanceId = TrainUnitInstanceId.Empty;
                 var attachCarFacingForward = true;
                 var attachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
+                var blockReason = TrainCarPlacementBlockReason.None;
                 var isPlaceable = TryBuildRailPosition(
-                    centerRailPosition, 
-                    trainLength, 
-                    out railPosition, 
-                    out overlapTrainUnitInstanceIds, 
-                    out placementMode, 
-                    out targetTrainUnitInstanceId, 
-                    out attachCarFacingForward, 
-                    out attachTargetEndpoint
+                    centerRailPosition,
+                    trainLength,
+                    out railPosition,
+                    out overlapTrainUnitInstanceIds,
+                    out placementMode,
+                    out targetTrainUnitInstanceId,
+                    out attachCarFacingForward,
+                    out attachTargetEndpoint,
+                    out blockReason
                     );
                 result = new TrainCarPlacementHit(
-                    isPlaceable, 
-                    railPosition, 
-                    overlapTrainUnitInstanceIds, 
-                    placementMode, 
-                    targetTrainUnitInstanceId, 
-                    attachCarFacingForward, 
-                    attachTargetEndpoint
+                    isPlaceable,
+                    railPosition,
+                    overlapTrainUnitInstanceIds,
+                    placementMode,
+                    targetTrainUnitInstanceId,
+                    attachCarFacingForward,
+                    attachTargetEndpoint,
+                    blockReason
                     );
                 return;
 
@@ -183,7 +186,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     out TrainCarPlacementMode placementMode,
                     out TrainUnitInstanceId targetTrainUnitInstanceId,
                     out bool attachCarFacingForward,
-                    out TrainCarAttachTargetEndpoint attachTargetEndpoint)
+                    out TrainCarAttachTargetEndpoint attachTargetEndpoint,
+                    out TrainCarPlacementBlockReason blockReason)
                 {
                     railPosition = null;
                     overlapTrainUnitInstanceIds = Array.Empty<TrainUnitInstanceId>();
@@ -191,8 +195,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     targetTrainUnitInstanceId = TrainUnitInstanceId.Empty;
                     attachCarFacingForward = true;
                     attachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
+                    blockReason = TrainCarPlacementBlockReason.None;
                     if (trainLength < 0)
                     {
+                        blockReason = TrainCarPlacementBlockReason.NoRouteForTrainLength;
                         return false;
                     }
                     
@@ -306,6 +312,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     // Rebuild requirement-4 candidates (front/rear) every frame
                     if (!TrainCarPlacementRouteService.TryBuildCarPlacementSelectionCandidates(centerRailPosition, trainLength, _pathTracer, out var frontRoutes, out var rearRoutes))
                     {
+                        blockReason = TrainCarPlacementBlockReason.NoRouteForTrainLength;
                         return false;
                     }
 
@@ -313,10 +320,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     // Requirement 4: test overlap between selected v from V and all existing train units
                     if (!TrainCarPlacementRouteService.TryBuildSelectedCarPlacement(frontRoutes, rearRoutes, _selectionStep, out railPosition))
                     {
+                        blockReason = TrainCarPlacementBlockReason.NoRouteForTrainLength;
                         return false;
                     }
                     if (RailPositionOverlapDetector.HasOverlap(railPosition, allTrainUnitOverlapIndex))
                     {
+                        blockReason = TrainCarPlacementBlockReason.OverlapsExistingTrainUnit;
                         return false;
                     }
                     return true;

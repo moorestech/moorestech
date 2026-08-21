@@ -26,7 +26,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             TrainCarPlacementMode placementMode,
             TrainUnitInstanceId targetTrainUnitInstanceId,
             bool attachCarFacingForward,
-            TrainCarAttachTargetEndpoint attachTargetEndpoint)
+            TrainCarAttachTargetEndpoint attachTargetEndpoint,
+            TrainCarPlacementBlockReason blockReason)
         {
             IsPlaceable = isPlaceable;
             RailPosition = railPosition;
@@ -35,6 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             TargetTrainUnitInstanceId = targetTrainUnitInstanceId;
             AttachCarFacingForward = attachCarFacingForward;
             AttachTargetEndpoint = attachTargetEndpoint;
+            BlockReason = blockReason;
         }
 
         public bool IsPlaceable { get; }
@@ -44,5 +46,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         public TrainUnitInstanceId TargetTrainUnitInstanceId { get; }
         public bool AttachCarFacingForward { get; }
         public TrainCarAttachTargetEndpoint AttachTargetEndpoint { get; }
+        public TrainCarPlacementBlockReason BlockReason { get; }
     }
 }

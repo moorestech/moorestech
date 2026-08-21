@@ -8,6 +8,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.Train.View.Object.Material;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
@@ -75,6 +76,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             _previewController.SetActive(hasPreview);
             if (!hit.IsPlaceable)
             {
+                // 候補が立たない理由をツールチップへ積む
+                // Push why no placement candidate holds into the tooltip
+                feedback.Add(new TooltipLine(TrainCarPlacementBlockReasonTooltipKey.ToKey(hit.BlockReason)));
                 return;
             }
 
