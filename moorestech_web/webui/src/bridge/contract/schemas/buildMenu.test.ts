@@ -9,6 +9,8 @@ describe("BuildMenuEntryDataSchema", () => {
       categoryGuid: "10000000-0000-4000-8000-000000000001",
       subCategoryGuid: "20000000-0000-4000-8000-000000000001",
       requiredItems: [],
+      placementsPerCost: 1,
+      remainingPlacementCount: 0,
     });
     expect(entry.id).toBe("3f8f6de0-0000-4000-8000-000000000001");
   });
@@ -57,6 +59,22 @@ describe("BuildMenuEntryDataSchema", () => {
       categoryGuid: "10000000-0000-4000-8000-000000000001",
       subCategoryGuid: "20000000-0000-4000-8000-000000000001",
       requiredItems: [],
+      placementsPerCost: 1,
+      remainingPlacementCount: 0,
     }).label).toBe("starter-base");
+  });
+
+  it("placementsPerCost と remainingPlacementCount を必須で受理する", () => {
+    const entry = BuildMenuEntryDataSchema.parse({
+      id: "30000000-0000-4000-8000-000000000001",
+      kind: "block",
+      categoryGuid: "10000000-0000-4000-8000-000000000001",
+      subCategoryGuid: "20000000-0000-4000-8000-000000000001",
+      requiredItems: [{ itemId: 3, count: 1 }],
+      placementsPerCost: 3,
+      remainingPlacementCount: 2,
+    });
+    expect(entry.placementsPerCost).toBe(3);
+    expect(() => BuildMenuEntryDataSchema.parse({ ...entry, placementsPerCost: 0 })).toThrow();
   });
 });

@@ -21,7 +21,7 @@ const connectToolGuid = "40000000-0000-4000-8000-000000000001";
 const trainCarGuid = "8f9c2a51-0000-4000-8000-000000000001";
 
 const blockEntry = (id: string, categoryGuid: string, subCategoryGuid: string): BuildMenuEntryData => ({
-  kind: "block", id, categoryGuid, subCategoryGuid, requiredItems: [],
+  kind: "block", id, categoryGuid, subCategoryGuid, requiredItems: [], placementsPerCost: 1, remainingPlacementCount: 0,
 });
 
 const categories: BuildMenuCategory[] = [
@@ -108,6 +108,8 @@ describe("localizeBuildMenuEntries", () => {
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
+      placementsPerCost: 1,
+      remainingPlacementCount: 0,
     };
 
     expect(localizeBuildMenuEntries([blueprintCopy], () => expected)[0].displayLabel).toBe(expected);
@@ -121,6 +123,8 @@ describe("localizeBuildMenuEntries", () => {
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
+      placementsPerCost: 1,
+      remainingPlacementCount: 0,
     };
     expect(localizeBuildMenuEntries([blueprint], () => "unused")[0].displayLabel).toBe("starter-base");
   });
@@ -132,6 +136,8 @@ describe("localizeBuildMenuEntries", () => {
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
+      placementsPerCost: 1,
+      remainingPlacementCount: 0,
     };
 
     const displayLabel = localizeBuildMenuEntries(
@@ -148,6 +154,8 @@ describe("localizeBuildMenuEntries", () => {
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
+      placementsPerCost: 1,
+      remainingPlacementCount: 0,
     };
 
     const displayLabel = localizeBuildMenuEntries(

@@ -22,12 +22,21 @@ export function BuildMenuDetailSidebar({ entry }: Props) {
           <FadeRule />
           {entry.requiredItems.length > 0 && (
             <>
-              <span className={styles.detailCostLabel}>{t(L.ui.buildMenu.requiredItems)}</span>
+              <span className={styles.detailCostLabel}>
+                {entry.placementsPerCost > 1
+                  ? t(L.ui.buildMenu.requiredItemsPerSet, { count: entry.placementsPerCost })
+                  : t(L.ui.buildMenu.requiredItems)}
+              </span>
               <SlotGrid cols={3}>
                 {entry.requiredItems.map((item) => (
                   <ItemSlot key={item.itemId} itemId={item.itemId} count={item.count} />
                 ))}
               </SlotGrid>
+              {entry.placementsPerCost > 1 && (
+                <span className={styles.detailCostLabel} data-testid="build-menu-remaining-placements">
+                  {t(L.ui.buildMenu.remainingPlacementCount, { count: entry.remainingPlacementCount })}
+                </span>
+              )}
             </>
           )}
         </>

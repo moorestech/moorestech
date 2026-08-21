@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.Construction;
 using Game.PlacementTarget;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
@@ -42,7 +43,7 @@ namespace Client.Tests.WebUi
                 .UnlockedEntries(unlockState, false, new[] { (blueprintGuid, "starter-base") })
                 .Select(PlacementTargetFactory.Create)
                 .ToList();
-            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets);
+            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets, new ClientRemainingPlacementCountDatastore());
 
             // 実マスタ規模で複数エントリが返ること（空リストでは以降の検証が無意味）
             // Multiple entries must come back at real-master scale (an empty list would make the rest of this test meaningless)

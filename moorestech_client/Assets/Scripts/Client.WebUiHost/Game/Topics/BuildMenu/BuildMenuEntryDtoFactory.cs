@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.Construction;
 using Core.Master;
+using Game.Construction;
 using Game.PlacementTarget;
 using Mooresmaster.Model.BuildMenuModule;
 
@@ -16,12 +18,12 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     {
         // 解放判定はResolverが持つ唯一の供給点へ委ね、ここは変換だけを担う
         // Delegates the unlock decision to the resolver's single supply point; this file only converts
-        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver)
+        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver, ClientRemainingPlacementCountDatastore remainingPlacementCountDatastore)
         {
-            return CreateDtos(placementTargetResolver.CreateUnlockedTargets());
+            return CreateDtos(placementTargetResolver.CreateUnlockedTargets(), remainingPlacementCountDatastore);
         }
 
-        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets)
+        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets, ClientRemainingPlacementCountDatastore remainingPlacementCountDatastore)
         {
             var dtos = new List<BuildMenuEntryDto>();
             var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
@@ -43,6 +45,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     CategoryGuid = categoryGuid.ToString("D"),
                     SubCategoryGuid = subCategoryGuid.ToString("D"),
                     RequiredItems = CreateRequiredItemDtos(target),
+                    PlacementsPerCost = ResolvePlacementsPerCost(target),
+                    RemainingPlacementCount = ResolveRemainingPlacementCount(target),
                     IconUrl = ResolveIconUrl(target),
                 });
             }
@@ -80,6 +84,21 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     itemDtos.Add(new BuildMenuRequiredItemDto { ItemId = MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive(), Count = count });
                 }
                 return itemDtos;
+            }
+
+            // 設置数/1セットはブロックのマスタ値、それ以外は常に1セットに1個
+            // Placements per cost set comes from the block master; every other kind is one-per-set
+            int ResolvePlacementsPerCost(IPlacementTarget target)
+            {
+                return target is BlockPlacementTarget block ? MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).PlacementsPerCost : 1;
+            }
+
+            // 残り設置数は財布キー正規化後にクライアント参照モデルから引く。ブロック以外は常に0
+            // Remaining placements come from the client model keyed by the normalized wallet id; every other kind is always 0
+            int ResolveRemainingPlacementCount(IPlacementTarget target)
+            {
+                if (target is not BlockPlacementTarget block) return 0;
+                return remainingPlacementCountDatastore.GetRemainingCount(ConstructionWalletUtil.ResolveWalletBlockId(block.BlockId));
             }
 
             #endregion

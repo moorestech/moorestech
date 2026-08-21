@@ -56,6 +56,8 @@ ui.buildMenu.title,Build Menu,Build Menu,ビルドメニュー
 ui.buildMenu.noResults,No results,No results,該当なし
 ui.buildMenu.searchPlaceholder,Search,Search,検索
 ui.buildMenu.requiredItems,Required Items,Required Items,必要素材
+ui.buildMenu.requiredItemsPerSet,Required Items (per {count}),Required Items (per {count}),必要素材（{count}個分）
+ui.buildMenu.remainingPlacementCount,Remaining placements: {count},Remaining placements: {count},残り設置数: {count}
 ui.challenge.stateLocked,Locked,Locked,未解放
 ui.challenge.stateCurrent,In Progress,In Progress,進行中
 ui.challenge.stateCompleted,Completed,Completed,完了
