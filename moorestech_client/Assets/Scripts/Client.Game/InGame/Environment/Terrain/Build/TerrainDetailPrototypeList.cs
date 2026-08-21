@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Environment.Terrain.Visual.Source;
+using Game.MapGeneration.Pipeline.Visual.Source;
 using Game.MapGeneration.Pipeline.Biomes;
 using UnityEngine;
 

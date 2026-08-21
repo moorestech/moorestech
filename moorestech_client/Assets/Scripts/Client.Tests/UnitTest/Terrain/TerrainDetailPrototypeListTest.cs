@@ -1,7 +1,7 @@
 using Client.Game.InGame.Environment.Terrain.Build;
-using Client.Game.InGame.Environment.Terrain.Visual.Detail;
-using Client.Game.InGame.Environment.Terrain.Visual.Source;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat;
+using Game.MapGeneration.Pipeline.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Source;
+using Game.MapGeneration.Pipeline.Visual.Splat;
 using Game.MapGeneration.Pipeline.Biomes;
 using NUnit.Framework;
 

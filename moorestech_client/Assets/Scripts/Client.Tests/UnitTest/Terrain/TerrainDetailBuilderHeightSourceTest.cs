@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Client.Game.InGame.Environment.Terrain.Visual;
-using Client.Game.InGame.Environment.Terrain.Visual.Detail;
-using Client.Game.InGame.Environment.Terrain.Visual.Source;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat;
+using Game.MapGeneration.Pipeline.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
+using Game.MapGeneration.Pipeline.Visual.Placement;
+using Game.MapGeneration.Pipeline.Visual.Source;
+using Game.MapGeneration.Pipeline.Visual.Splat;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
-using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Tests.UnitTest.Terrain
@@ -70,7 +71,7 @@ namespace Client.Tests.UnitTest.Terrain
         {
             return TerrainDetailBuilder.Build(
                 CreateConfig(), BiomeTypes, visualSections, preHeights, postHeights, CreateWinnerMasks(), null, null,
-                new MapObjectLayoutMessagePack[0], Vector3.zero, 0, 0);
+                new LedgerPlacement[0], Vector3.zero, 0, 0);
         }
 
         private static BiomeVisualSections CreateSlopeFilteredSections()

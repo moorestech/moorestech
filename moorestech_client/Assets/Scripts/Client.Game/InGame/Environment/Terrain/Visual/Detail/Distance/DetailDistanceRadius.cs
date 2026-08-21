@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.MapGeneration.Pipeline.Visual.Detail;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Detail.Distance

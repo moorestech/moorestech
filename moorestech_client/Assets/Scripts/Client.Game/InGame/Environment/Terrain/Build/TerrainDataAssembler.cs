@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Client.Game.InGame.Environment.Terrain.Visual.Cache;
+using Game.MapGeneration.Cache;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Pipeline.Config;
 using UnityEngine;

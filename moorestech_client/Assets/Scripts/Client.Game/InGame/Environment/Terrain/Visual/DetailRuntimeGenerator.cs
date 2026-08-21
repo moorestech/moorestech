@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Client.Game.InGame.Environment.Terrain.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
 using UnityEngine;

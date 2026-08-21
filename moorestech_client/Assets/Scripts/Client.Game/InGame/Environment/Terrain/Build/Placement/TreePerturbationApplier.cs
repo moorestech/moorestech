@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Stages;
-using Server.Protocol.PacketResponse.MapData;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Build.Placement
@@ -21,7 +21,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
         // The slice lives here too: away from the guid map the reach is derived from, a caller narrowing the window would go unnoticed
         public static float[,] Apply(
             float[,] preHeights, TerrainGenerationConfig tileConfig,
-            Vector3 tileWorldPosition, IReadOnlyList<MapObjectLayoutMessagePack> mapObjects)
+            Vector3 tileWorldPosition, IReadOnlyList<LedgerPlacement> placements)
         {
             // guidマップは有効バイオームのtreePlacementだけから建つ。岩や鉱脈のguidは載らず Apply 側の引きで落ちる
             // The guid map is built only from the enabled biomes' treePlacement, so rock and vein guids miss Apply's own lookup
@@ -43,8 +43,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
             for (var x = 0; x < resolution; x++)
                 flatHeights[z * resolution + x] = preHeights[z, x];
 
-            var tileLocalObjects = TileMapObjectSlicer.SliceWithHalo(
-                mapObjects, tileWorldPosition, tileConfig.terrainWidth, tileConfig.terrainLength, halo);
+            var tileLocalObjects = TilePlacementSlicer.SliceWithHalo(
+                placements, tileWorldPosition, tileConfig.terrainWidth, tileConfig.terrainLength, halo);
 
             TreeHeightModifier.Apply(
                 flatHeights, tileConfig, ToPlacementEntries(tileLocalObjects), guidModMap);
@@ -60,7 +60,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
 
             // WorldPositionはタイルローカル。halo内のタイル外の木は負値やtileWidth超で入り、TreeHeightModifierが格子外の画素を捨てる
             // WorldPosition is tile-local; trees inside the halo but outside the tile arrive negative or past tileWidth and TreeHeightModifier drops the off-lattice pixels
-            List<PlacementEntry> ToPlacementEntries(IReadOnlyList<TileLocalMapObject> haloObjects)
+            List<PlacementEntry> ToPlacementEntries(IReadOnlyList<TileLocalPlacement> haloObjects)
             {
                 var entries = new List<PlacementEntry>(haloObjects.Count);
                 foreach (var mapObject in haloObjects)

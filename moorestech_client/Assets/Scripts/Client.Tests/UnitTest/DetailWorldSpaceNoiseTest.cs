@@ -1,5 +1,6 @@
 using Client.Game.InGame.Environment.Terrain.Visual;
-using Client.Game.InGame.Environment.Terrain.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
 using NUnit.Framework;

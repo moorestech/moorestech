@@ -1,16 +1,16 @@
 using System;
 using System.IO;
 using Client.Game.InGame.Environment.Terrain.Build;
-using Client.Game.InGame.Environment.Terrain.Visual.Cache;
-using Client.Game.InGame.Environment.Terrain.Visual.Detail;
-using Client.Game.InGame.Environment.Terrain.Visual.Source;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
+using Game.MapGeneration.Cache;
+using Game.MapGeneration.Pipeline.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Placement;
+using Game.MapGeneration.Pipeline.Visual.Source;
+using Game.MapGeneration.Pipeline.Visual.Splat;
+using Game.MapGeneration.Pipeline.Visual.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.Paths;
 using NUnit.Framework;
-using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Tests.UnitTest.Terrain.Build
@@ -34,7 +34,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
         private const string CacheKey = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
         private static readonly BiomeType[] BiomeTypes = { BiomeType.Grassland };
-        private static readonly MapObjectLayoutMessagePack[] NoMapObjects = new MapObjectLayoutMessagePack[0];
+        private static readonly LedgerPlacement[] NoMapObjects = new LedgerPlacement[0];
 
         private TerrainGenerationConfig _tileConfig;
         private WorldDataDirectory _worldCacheDirectory;

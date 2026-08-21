@@ -1,6 +1,7 @@
-using Client.Game.InGame.Environment.Terrain.Visual.Detail;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
-using Client.Tests.UnitTest.Terrain.Surround;
+using Game.MapGeneration.Pipeline.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
+using Game.MapGeneration.Pipeline.Visual.Surround;
+using Tests.UnitTest.Game.MapGeneration.Visual.Surround;
 using Game.MapGeneration.Pipeline.Config;
 using UnityEngine;
 

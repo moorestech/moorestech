@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
-using Client.Game.InGame.Environment.Terrain;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Client.Game.InGame.Environment.Terrain.Build.Placement;
-using Client.Game.InGame.Environment.Terrain.Visual.Cache;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
+using Game.MapGeneration.Pipeline.Visual.Placement;
+using Game.MapGeneration.Cache;
+using Game.MapGeneration.Pipeline.Visual.Splat;
+using Game.MapGeneration.Pipeline.Visual.Surround;
 using Game.MapGeneration.Export;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Transfer;
@@ -13,7 +13,6 @@ using Game.Paths;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Server.Boot;
-using Server.Protocol.PacketResponse.MapData;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -28,8 +27,8 @@ namespace Client.Tests.UnitTest.Terrain.Golden
         [SetUp]
         public void SetUp()
         {
-            // MapObjectKindSplitterがguidの種別をMasterHolder経由で引く。ロードしないとNREで落ちる
-            // MapObjectKindSplitter resolves a guid's kind through MasterHolder; without loading it this throws an NRE
+            // VanillaGeneratorの配置段がMasterHolder経由でMapObjectMasterを引く。ロードしないとNREで落ちる
+            // VanillaGenerator's placement stages resolve MapObjectMaster through MasterHolder; without loading it this throws an NRE
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
         }
 
@@ -47,18 +46,9 @@ namespace Client.Tests.UnitTest.Terrain.Golden
             {
                 TerrainFileWriter.Write(worldDirectory, output);
 
-                // 転送DTOは生成出力から組む。InstanceIdは見た目に効かないので連番
-                // Build the wire DTOs from the generation output; InstanceId does not affect visuals, so it is sequential
-                var mapObjects = new List<MapObjectLayoutMessagePack>();
-                for (var i = 0; i < output.MapObjects.Count; i++)
-                {
-                    var placed = output.MapObjects[i];
-                    mapObjects.Add(new MapObjectLayoutMessagePack(i, placed.MapObjectGuid,
-                        placed.Position.x, placed.Position.y, placed.Position.z,
-                        placed.Rotation.x, placed.Rotation.y, placed.Rotation.z, placed.Rotation.w,
-                        placed.Scale.x, placed.Scale.y, placed.Scale.z,
-                        placed.ClusterId, placed.ClusterCenter.x, placed.ClusterCenter.y));
-                }
+                // 台帳は生成パイプラインが既に組んでいる。ワイヤへ往復させる必要はない
+                // The ledger is already assembled by the generation pipeline; there is no need to round-trip it over the wire
+                var placements = output.Ledger.Placements;
 
                 var gridConfig = config.ShallowCopy();
                 gridConfig.worldOffsetX = output.NoiseOrigin.x;
@@ -68,7 +58,7 @@ namespace Client.Tests.UnitTest.Terrain.Golden
                 var layerTable = SplatLayerTable.Build("addr/beach", "addr/rock", sections.MainLayerAddresses, sections.TextureConfigs,
                     sections.SurroundTextureConfigs, species, System.Array.Empty<string>());
                 var provider = new TerrainTileVisualProvider(gridConfig, TerrainVisualGoldenFixture.BiomeTypes, sections, layerTable,
-                    new TerrainLayer[layerTable.OrderedLayerAddresses.Count], species, mapObjects, worldDirectory,
+                    new TerrainLayer[layerTable.OrderedLayerAddresses.Count], species, placements, worldDirectory,
                     new TerrainVisualCache(worldDirectory, new string('0', 64)));
 
                 foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(output.Tiles.Count))
@@ -76,8 +66,8 @@ namespace Client.Tests.UnitTest.Terrain.Golden
                     var tileConfig = gridConfig.CreateTileConfig(tileX, tileZ);
                     var tileScene = config.TileScenePosition(tileX, tileZ);
                     var tileWorld = new Vector3(tileScene.x, 0f, tileScene.y);
-                    var pre = TerrainFileLoader.LoadHeights(worldDirectory, tileX, tileZ, config.Resolution);
-                    var post = TreePerturbationApplier.Apply(pre, tileConfig, tileWorld, mapObjects);
+                    var pre = HeightFileLoader.LoadHeights(worldDirectory, tileX, tileZ, config.Resolution);
+                    var post = TreePerturbationApplier.Apply(pre, tileConfig, tileWorld, placements);
                     var (visual, _) = provider.Resolve(tileX, tileZ, tileConfig, tileWorld, pre, post);
                     actual[$"alphamap_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(visual.Alphamap);
                     actual[$"heights_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(post);

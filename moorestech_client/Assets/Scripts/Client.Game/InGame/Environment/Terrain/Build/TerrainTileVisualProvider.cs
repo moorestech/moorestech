@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.Environment.Terrain.Build.Placement;
-using Client.Game.InGame.Environment.Terrain.Visual.Cache;
-using Client.Game.InGame.Environment.Terrain.Visual.Source;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
+using Game.MapGeneration.Pipeline.Visual;
+using Game.MapGeneration.Pipeline.Visual.Placement;
+using Game.MapGeneration.Cache;
+using Game.MapGeneration.Pipeline.Visual.Source;
+using Game.MapGeneration.Pipeline.Visual.Splat;
+using Game.MapGeneration.Pipeline.Visual.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.Paths;
-using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Build
@@ -24,7 +24,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         private readonly BiomeType[] _biomeTypes;
         private readonly TerrainGenerationConfig _config;
         private readonly SplatLayerTable _layerTable;
-        private readonly IReadOnlyList<MapObjectLayoutMessagePack> _mapObjects;
+        private readonly IReadOnlyList<LedgerPlacement> _placements;
         private readonly TerrainLayer[] _terrainLayers;
         private readonly TreeSurroundSpeciesTable _treeSurroundSpecies;
         private readonly TerrainVisualCache _visualCache;
@@ -38,7 +38,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         public TerrainTileVisualProvider(
             TerrainGenerationConfig config, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
             SplatLayerTable layerTable, TerrainLayer[] terrainLayers, TreeSurroundSpeciesTable treeSurroundSpecies,
-            IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, WorldDataDirectory worldCacheDirectory,
+            IReadOnlyList<LedgerPlacement> placements, WorldDataDirectory worldCacheDirectory,
             TerrainVisualCache visualCache)
         {
             _config = config;
@@ -47,7 +47,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             _layerTable = layerTable;
             _terrainLayers = terrainLayers;
             _treeSurroundSpecies = treeSurroundSpecies;
-            _mapObjects = mapObjects;
+            _placements = placements;
             _worldCacheDirectory = worldCacheDirectory;
             _visualCache = visualCache;
 
@@ -92,7 +92,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             {
                 // 分類はタイル1枚につき1回。splatのブレンド入力とDetailの勝者マスクを同じパディング窓から採る
                 // One classification per tile, so splat's blend inputs and detail's winner masks come from the same padded window
-                using var classification = new TerrainClassificationContext(tileConfig, _biomeTypes);
+                using var classification = new TileClassificationContext(tileConfig, _biomeTypes);
                 classification.Initialize();
 
                 // 移植元はSplatmapJobそのものをフラグで飛ばす（TerrainGenerator.cs:792）。alphamapが無ければDetailのテクスチャフィルタも休む
@@ -111,24 +111,24 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             // splatも岩の裸地でmapObjectを読むようになったので、Detailと同じく全タイルぶんを渡してhaloで切らせる
             // The splat now reads map objects for the rocks' bare ground too, so it takes the whole layout and slices its own halo, as detail does
-            float[,,] BuildAlphamap(TerrainClassificationContext classification)
+            float[,,] BuildAlphamap(TileClassificationContext classification)
             {
-                var transferredBiomeIndices = TerrainFileLoader.LoadBiomeIndices(
+                var transferredBiomeIndices = HeightFileLoader.LoadBiomeIndices(
                     _worldCacheDirectory, tileX, tileZ, _config.Resolution);
 
-                return SplatmapRuntimeGenerator.Generate(
+                return SplatmapStage.Generate(
                     tileConfig, _biomeTypes, classification, _layerTable, _visualSections, _treeSurroundSpecies,
                     preHeights, transferredBiomeIndices, _config.AlphamapResolution,
-                    _mapObjects, tileWorldPosition);
+                    _placements, tileWorldPosition);
             }
 
             // 距離場はタイル境界の外まで見るため、切り出し済みのタイル内mapObjectではなく全タイルぶんを渡す
             // The distance fields look past the tile boundary, so the whole layout goes in rather than the tile's own slice
-            List<int[,]> BuildDetailMaps(TerrainClassificationContext classification, float[,,] alphamap)
+            List<int[,]> BuildDetailMaps(TileClassificationContext classification, float[,,] alphamap)
             {
                 return TerrainDetailBuilder.Build(
                     tileConfig, _biomeTypes, _visualSections, preHeights, postHeights, classification.WinnerMasks,
-                    alphamap, _terrainLayers, _mapObjects, tileWorldPosition, tileX, tileZ);
+                    alphamap, _terrainLayers, _placements, tileWorldPosition, tileX, tileZ);
             }
 
             #endregion

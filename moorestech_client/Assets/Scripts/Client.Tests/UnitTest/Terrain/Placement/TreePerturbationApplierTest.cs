@@ -1,7 +1,7 @@
 using Client.Game.InGame.Environment.Terrain.Build.Placement;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
-using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Tests.UnitTest.Terrain.Placement
@@ -125,11 +125,12 @@ namespace Client.Tests.UnitTest.Terrain.Placement
             Assert.That(originTile[2, Resolution - 1], Is.GreaterThan(FlatHeight + 1e-4f));
         }
 
-        private static MapObjectLayoutMessagePack CreateMapObject(string mapObjectGuid, float sceneX, float sceneZ)
+        private static LedgerPlacement CreateMapObject(string mapObjectGuid, float sceneX, float sceneZ)
         {
-            return new MapObjectLayoutMessagePack(
-                1, mapObjectGuid, sceneX, 0f, sceneZ,
-                0f, 0f, 0f, 1f, 1f, 1f, 1f, -1, 0f, 0f);
+            // 摂動はguidマップだけを読みSurroundEffectを見ないので、種別は任意の値でよい
+            // The perturbation reads only the guid map and never SurroundEffect, so the kind here is arbitrary
+            return new LedgerPlacement(mapObjectGuid, new Vector3(sceneX, 0f, sceneZ), Quaternion.identity,
+                Vector3.one, TerrainSurroundEffectType.treeRootPatch, -1, Vector2.zero);
         }
 
         private static float[,] CreateFlatHeights()

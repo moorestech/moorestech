@@ -1,12 +1,13 @@
 using Client.Game.InGame.Environment.Terrain.Build;
 using Client.Game.InGame.Environment.Terrain.Visual;
-using Client.Game.InGame.Environment.Terrain.Visual.Detail;
-using Client.Game.InGame.Environment.Terrain.Visual.Source;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat;
+using Game.MapGeneration.Pipeline.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
+using Game.MapGeneration.Pipeline.Visual.Placement;
+using Game.MapGeneration.Pipeline.Visual.Source;
+using Game.MapGeneration.Pipeline.Visual.Splat;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
-using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Tests.UnitTest.Terrain
@@ -35,7 +36,7 @@ namespace Client.Tests.UnitTest.Terrain
 
         // 距離フィルタを有効にしていないので距離場は作られない。MasterHolder無しで回せる
         // No distance filter is enabled here, so no field is built and the fixture runs without MasterHolder
-        private static readonly MapObjectLayoutMessagePack[] NoMapObjects = new MapObjectLayoutMessagePack[0];
+        private static readonly LedgerPlacement[] NoMapObjects = new LedgerPlacement[0];
 
         [Test]
         public void KeepsPrototypesAndMapsAlignedAcrossBiomes()

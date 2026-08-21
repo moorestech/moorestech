@@ -1,12 +1,11 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Environment.Terrain.Build.Placement;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using Client.Game.InGame.Environment.Terrain.Visual;
 using Client.Game.InGame.Environment.Terrain.Visual.Detail.Distance;
-using Client.Game.InGame.Environment.Terrain.Visual.Source;
+using Game.MapGeneration.Pipeline.Visual.Source;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
-using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Build
@@ -32,7 +31,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             TerrainGenerationConfig config, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
             float[,] preHeights, float[,] postHeights, bool[][,] winnerMasks, float[,,] alphamap,
             TerrainLayer[] terrainLayers,
-            IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, Vector3 tileWorldPosition,
+            IReadOnlyList<LedgerPlacement> placements, Vector3 tileWorldPosition,
             int tileIndexX, int tileIndexZ)
         {
             var slopes = TerrainSlopeCalculator.Compute(postHeights, config);
@@ -78,8 +77,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 // With no distance filter enabled nobody reads the fields, so the point sets are never built
                 if (halo <= 0f) return;
 
-                TileMapObjectSlicer.SliceKindsWithHalo(
-                    mapObjects, tileWorldPosition, config.terrainWidth, config.terrainLength, halo,
+                TilePlacementSlicer.SliceKindsWithHalo(
+                    placements, tileWorldPosition, config.terrainWidth, config.terrainLength, halo,
                     out var trees, out var stones, out _);
 
                 treeGrid = CreateGrid(trees);
@@ -88,7 +87,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             // セルサイズは移植元と同じ。halo内の点はタイル外の座標を持つがSpatialGridが端セルへ寄せ、距離は真値で測られる
             // The cell size matches the source; halo points lie outside the tile and SpatialGrid folds them into the edge cells at true distance
-            SpatialGrid CreateGrid(List<TileLocalMapObject> kindObjects)
+            SpatialGrid CreateGrid(List<TileLocalPlacement> kindObjects)
             {
                 var grid = new SpatialGrid(
                     config.terrainWidth, config.terrainLength, Mathf.Max(config.terrainWidth / 50f, 5f));

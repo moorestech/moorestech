@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Build;
-using Client.Game.InGame.Environment.Terrain.Visual.Detail;
-using Client.Game.InGame.Environment.Terrain.Visual.Source;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat;
+using Game.MapGeneration.Pipeline.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
+using Game.MapGeneration.Pipeline.Visual.Placement;
+using Game.MapGeneration.Pipeline.Visual.Source;
+using Game.MapGeneration.Pipeline.Visual.Splat;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Server.Boot;
-using Server.Protocol.PacketResponse.MapData;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -47,14 +48,14 @@ namespace Client.Tests.UnitTest.Terrain.DistanceField
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
         }
 
-        public static List<int[,]> Build(BiomeVisualSections visualSections, params MapObjectLayoutMessagePack[] mapObjects)
+        public static List<int[,]> Build(BiomeVisualSections visualSections, params LedgerPlacement[] placements)
         {
             var config = CreateConfig();
             var heights = new float[Resolution, Resolution];
 
             return TerrainDetailBuilder.Build(
                 config, BiomeTypes, visualSections, heights, heights, CreateWinnerMasks(), null, null,
-                mapObjects, TilePosition, 0, 0);
+                placements, TilePosition, 0, 0);
         }
 
         public static BiomeVisualSections TreeDistanceSections()
@@ -73,11 +74,17 @@ namespace Client.Tests.UnitTest.Terrain.DistanceField
 
         // 引数はタイルローカル。シーン絶対座標へ戻して渡し、切り出しのローカル化まで通しで検証する
         // The arguments are tile-local and get pushed back to scene-absolute, exercising the slicer's rebasing end to end
-        public static MapObjectLayoutMessagePack CreateMapObject(string mapObjectGuid, float localX, float localZ)
+        public static LedgerPlacement CreateMapObject(string mapObjectGuid, float localX, float localZ)
         {
-            return new MapObjectLayoutMessagePack(
-                1, mapObjectGuid, TilePosition.x + localX, 0f, TilePosition.z + localZ,
-                0f, 0f, 0f, 1f, 1f, 1f, 1f, -1, 0f, 0f);
+            // 種別はguidから直接決める。台帳はマスタ参照済みで既に種別を運んでいるため
+            // The kind is decided straight from the guid; the ledger already carries it, having resolved the master itself
+            var effect = mapObjectGuid == TreeGuid
+                ? TerrainSurroundEffectType.treeRootPatch
+                : TerrainSurroundEffectType.rockBareGround;
+
+            return new LedgerPlacement(mapObjectGuid,
+                new Vector3(TilePosition.x + localX, 0f, TilePosition.z + localZ),
+                Quaternion.identity, Vector3.one, effect, -1, Vector2.zero);
         }
 
         // detail画素xのワールド座標。SdfMapGeneratorの割り付けと同じ式で、距離の期待値を式で書けるようにする

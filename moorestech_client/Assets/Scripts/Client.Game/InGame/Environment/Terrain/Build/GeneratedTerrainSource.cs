@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.Environment.Terrain.Build.Placement;
-using Client.Game.InGame.Environment.Terrain.Visual.Cache;
 using Client.Game.InGame.Environment.Terrain.Visual.Source;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
+using Client.Game.InGame.Environment.Terrain.Build.Placement;
+using Game.MapGeneration.Pipeline.Visual.Placement;
+using Game.MapGeneration.Cache;
+using Game.MapGeneration.Pipeline.Visual.Source;
+using Game.MapGeneration.Pipeline.Visual.Splat;
+using Game.MapGeneration.Pipeline.Visual.Surround;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Pipeline.Biomes;
@@ -34,18 +36,20 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         // The config whose noise window origin sits on the index (0,0) tile; every other tile shifts off it by its tile coordinate
         private readonly TerrainGenerationConfig _config;
 
-        // シーン絶対座標のまま全タイルぶんを持つ。切り出しはタイル毎にTileMapObjectSlicerが行う
-        // Held whole in scene-absolute coordinates; TileMapObjectSlicer carves out each tile's share
-        private readonly IReadOnlyList<MapObjectLayoutMessagePack> _mapObjects;
+        // シーン絶対座標のまま全タイルぶんを持つ。切り出しはタイル毎にTilePlacementSlicerが行う
+        // Held whole in scene-absolute coordinates; TilePlacementSlicer carves out each tile's share
+        // ワイヤ形式はMapObjectsDigestの入力としてのみ残す。台帳への変換はWireLayoutLedgerAdapterへ一本化する
+        // The wire shape survives only as MapObjectsDigest's input; the conversion to the ledger is centralized in WireLayoutLedgerAdapter
+        private readonly IReadOnlyList<LedgerPlacement> _placements;
 
         private GeneratedTerrainSource(
             TerrainGenerationConfig config, TerrainLayer[] terrainLayers, WorldDataDirectory worldCacheDirectory,
-            IReadOnlyList<MapObjectLayoutMessagePack> mapObjects, TerrainTileVisualProvider tileVisualProvider)
+            IReadOnlyList<LedgerPlacement> placements, TerrainTileVisualProvider tileVisualProvider)
         {
             _config = config;
             _terrainLayers = terrainLayers;
             _worldCacheDirectory = worldCacheDirectory;
-            _mapObjects = mapObjects;
+            _placements = placements;
             _tileVisualProvider = tileVisualProvider;
         }
 
@@ -98,12 +102,16 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 new Vector2(config.worldOffsetX, config.worldOffsetZ), config.seed,
                 MapObjectsDigest.Compute(mapObjects)));
 
+            // 台帳への変換は移設期間だけの橋渡し(WireLayoutLedgerAdapter)を1回だけ通す
+            // The conversion to the ledger runs once through the migration-only bridge (WireLayoutLedgerAdapter)
+            var placements = WireLayoutLedgerAdapter.Build(mapObjects).Placements;
+
             var tileVisualProvider = new TerrainTileVisualProvider(
                 config, biomeTypes, visualSections, layerTable, terrainLayers, treeSurroundSpecies,
-                mapObjects, worldCacheDirectory, visualCache);
+                placements, worldCacheDirectory, visualCache);
 
             return new GeneratedTerrainSource(
-                config, terrainLayers, worldCacheDirectory, mapObjects, tileVisualProvider);
+                config, terrainLayers, worldCacheDirectory, placements, tileVisualProvider);
         }
 
         // 割り当ての式はサーバーと同一の TerrainGenerationConfig 側に1本だけ置く。別式だと片方だけ隣タイルへずれる
@@ -120,7 +128,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
         {
             // 転送された高さは木の摂動前が正本（R12）。splatとdetail密度はこの値を読み、表示だけが摂動後を使う
             // The transferred heights are pre-tree by definition (R12): splat and detail density read them and only the display uses the perturbed ones
-            var preHeights = TerrainFileLoader.LoadHeights(_worldCacheDirectory, tileX, tileZ, _config.Resolution);
+            var preHeights = HeightFileLoader.LoadHeights(_worldCacheDirectory, tileX, tileZ, _config.Resolution);
 
             // サーバーのタイルループと同じ1本の式でずらす。窓が1枚ぶんずれないと全25タイルが同じ地形として分類される
             // Shifted by the very formula the server's tile loop uses; without the per-tile shift all 25 tiles classify as the same terrain
@@ -128,7 +136,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             var tileWorldPosition = TileWorldPosition(tileX, tileZ);
             var postHeights = TreePerturbationApplier.Apply(
-                preHeights, tileConfig, tileWorldPosition, _mapObjects);
+                preHeights, tileConfig, tileWorldPosition, _placements);
 
             var (tileVisual, visualCacheHit) = _tileVisualProvider.Resolve(
                 tileX, tileZ, tileConfig, tileWorldPosition, preHeights, postHeights);

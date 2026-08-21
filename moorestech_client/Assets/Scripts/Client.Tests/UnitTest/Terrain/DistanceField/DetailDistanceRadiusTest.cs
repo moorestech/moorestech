@@ -1,4 +1,4 @@
-using Client.Game.InGame.Environment.Terrain.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail;
 using Client.Game.InGame.Environment.Terrain.Visual.Detail.Distance;
 using NUnit.Framework;
 using UnityEngine;

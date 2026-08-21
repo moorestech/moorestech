@@ -1,3 +1,4 @@
+using Game.MapGeneration.Pipeline.Visual.Detail;
 using Game.MapGeneration.Pipeline.Generators.Util;
 using UnityEngine;
 

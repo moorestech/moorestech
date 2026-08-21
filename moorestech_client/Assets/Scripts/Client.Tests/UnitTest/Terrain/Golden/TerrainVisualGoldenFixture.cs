@@ -1,10 +1,11 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
-using Client.Game.InGame.Environment.Terrain.Visual.Detail;
-using Client.Game.InGame.Environment.Terrain.Visual.Source;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
+using Game.MapGeneration.Pipeline.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
+using Game.MapGeneration.Pipeline.Visual.Source;
+using Game.MapGeneration.Pipeline.Visual.Splat;
+using Game.MapGeneration.Pipeline.Visual.Surround;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
@@ -46,8 +47,13 @@ namespace Client.Tests.UnitTest.Terrain.Golden
 
             // EnableObjectsのguidはmap.json上で木扱いのため、実測で確認した岩guidへ差し替える(objectDistanceMap飽和対策)
             // EnableObjects's guids classify as trees in map.json, so swap in the measured rock guid to unsaturate objectDistanceMap
+            // 種別は配置元エントリの値が正本(PlacementLedgerTest参照)。guidだけ差し替えても既定のtreeRootPatchのままでは岩に化けない
+            // The kind is authoritative from the source entry (see PlacementLedgerTest); swapping only the guid leaves the default treeRootPatch, so it never becomes a rock
             foreach (var entry in config.grassland.objectConfig.entries)
+            {
                 entry.mapObjectGuids = new[] { RockMapObjectGuid };
+                entry.terrainSurroundEffectType = TerrainSurroundEffectType.rockBareGround;
+            }
 
             // 木の根元を塗る樹種にする。塗らないと surround 経路がゴールデンに含まれない
             // Make the species paint its root patch; otherwise the surround path never enters the golden

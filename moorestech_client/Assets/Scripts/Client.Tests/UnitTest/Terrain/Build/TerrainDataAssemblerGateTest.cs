@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Build;
-using Client.Game.InGame.Environment.Terrain.Visual.Cache;
+using Game.MapGeneration.Cache;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
