@@ -13,6 +13,7 @@ namespace Core.Master.Validator
             errorLogs = "";
             errorLogs += BlockParamValidation();
             errorLogs += BlockRequiredItemsValidation();
+            errorLogs += PlacementsPerCostValidation();
             errorLogs += GearConsumptionValidation();
             errorLogs += BlockDestructionCategoryValidation();
             errorLogs += BlockCategoryReferenceValidation();
@@ -208,6 +209,19 @@ namespace Core.Master.Validator
                     }
                 }
 
+                return logs;
+            }
+
+            string PlacementsPerCostValidation()
+            {
+                // 0以下は設置ごとの消費が定義できないためマスタエラー
+                // Non-positive values cannot define per-placement consumption, so treat them as master errors
+                var logs = "";
+                foreach (var block in blocks.Data)
+                {
+                    if (block.PlacementsPerCost <= 0)
+                        logs += $"[BlockMaster] Name:{block.Name} has invalid PlacementsPerCost:{block.PlacementsPerCost}\n";
+                }
                 return logs;
             }
 
