@@ -18,7 +18,7 @@ test("採掘進捗は対象名を出さずホットバー全幅の12px上に1本
 
   // 採掘HUD一本化の回帰を検証
   // Verify unified mining HUD regressions
-  const wrapper = page.locator('[data-tutorial-anchor="mining.hud"]');
+  const wrapper = page.locator('[data-tutorial-anchor~="mining.hud"]');
   const gauge = page.getByTestId("progress-gauge");
   const hotbar = page.getByTestId("hotbar-grid");
   const firstNumberTab = hotbar.locator("> div").first().locator("> span").first();

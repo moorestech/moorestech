@@ -12,6 +12,7 @@ const mockState = vi.hoisted(() => ({
   // anchorId -> このanchorを購読しているリスナー集合
   // anchorId -> the set of listeners subscribed to it
   listeners: new Map<string, Set<(value: ResolvedAnchor) => void>>(),
+  itemMaster: new Map<number, unknown>() as Map<number, unknown> | null,
 }));
 
 vi.mock("@/bridge", async (importOriginal) => {
@@ -19,6 +20,7 @@ vi.mock("@/bridge", async (importOriginal) => {
   return {
     ...actual,
     useTopic: () => mockState.presentation,
+    useItemMaster: () => mockState.itemMaster,
     dispatchAction: vi.fn(),
   };
 });
@@ -121,7 +123,32 @@ describe("TutorialOverlay anchor resolution", () => {
   afterEach(() => {
     mockState.presentation = null;
     mockState.listeners.clear();
+    mockState.itemMaster = new Map<number, unknown>();
     vi.mocked(dispatchAction).mockClear();
+  });
+
+  // master未ロード中のmissingは「未所持」ではなく未確定。サーバのチュートリアル条件へ流さない
+  // A missing resolved before the master loads is indeterminate, not "unowned", so it must not reach the server's tutorial conditions
+  it("item master未ロード中は所持アンカーのackを送らず、到着後に送り直す", () => {
+    const ownedAnchorId = "inventory.item-a0000000-0000-4000-8000-000000000001";
+    mockState.itemMaster = null;
+    mockState.presentation = presentation(7, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", ownedAnchorId)] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = create(createElement(TutorialOverlay)); });
+
+    pushAnchor(ownedAnchorId, { status: "not-found", reason: "missing" });
+    expect(vi.mocked(dispatchAction)).not.toHaveBeenCalled();
+
+    mockState.itemMaster = new Map<number, unknown>();
+    act(() => { renderer.update(createElement(TutorialOverlay)); });
+    pushAnchor(ownedAnchorId, { status: "not-found", reason: "missing" });
+
+    expect(vi.mocked(dispatchAction).mock.calls.map(([, payload]) => payload)).toEqual([
+      { tutorialSessionId: "s1", revision: 7, elementId: "highlight-1", anchorId: ownedAnchorId,
+        status: "not-found", reason: "missing" },
+    ]);
   });
 
   // 同一anchorを指す複数highlightが全てackされる（先着1件で潰さない）

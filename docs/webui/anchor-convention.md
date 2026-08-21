@@ -8,14 +8,18 @@
 - Separate words inside a segment with `-`: `inventory.close-button`.
 - Name the element by its player-facing role, not its component, CSS class, DOM position, or current copy.
 - Keep an ID stable across refactors. Renaming is a tutorial contract migration.
-- An ID must resolve to at most one mounted element. Repeated list rows need a stable identity suffix defined by their domain contract before they become tutorial targets.
+- A single anchor ID must resolve to at most one mounted element. Repeated list rows need a stable identity suffix defined by their domain contract before they become tutorial targets. One element may declare more than one anchor ID at once (see below); that does not relax this rule per-ID.
+- An anchor ID must never contain whitespace — `data-tutorial-anchor` is a whitespace-separated token list (see below), so a whitespace-containing ID would silently fail to match any token.
 
-Use the typed helper:
+`data-tutorial-anchor` holds one or more whitespace-separated anchor IDs. Resolution matches by token (`~=`), not by exact attribute-value equality, so an element can declare several anchors without any of them shadowing the others:
 
 ```tsx
 import { tutorialAnchor } from "@/shared/tutorialAnchor";
 
 <button {...tutorialAnchor("inventory.close-button")}>...</button>
+
+// An element that is simultaneously the equipment slot and the current selection:
+<div {...tutorialAnchor("equipment.slot-1", "equipment.selected-slot")}>...</div>
 ```
 
 ## Why this is separate from `data-testid`

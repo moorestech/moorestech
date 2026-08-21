@@ -1034,7 +1034,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `tutorialAnchor(...anchorIds: TutorialAnchorId[]): TutorialAnchorAttributes`（0個は禁止・1個は従来どおり、複数は空白結合）；`tutorialAnchorSelector(anchorId: string): string`（`[data-tutorial-anchor~="…"]` を返す。resolveAnchor / registry 共通）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `tutorialAnchor.test.ts`:
 
@@ -1058,12 +1058,12 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
   });
 ```
 
-- [ ] **Step 2: 実行して失敗を確認する**
+- [x] **Step 2: 実行して失敗を確認する**
 
 Run: `npx vitest run src/shared/tutorialAnchor`
 Expected: FAIL（2件）。
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `tutorialAnchor.ts`:
 
@@ -1093,12 +1093,12 @@ export function tutorialAnchorSelector(anchorId: string): string {
 
 `resolveAnchor.ts` の 9-11 行を `const matches = document.querySelectorAll<HTMLElement>(tutorialAnchorSelector(anchorId));` にし、`import { tutorialAnchorSelector } from "./tutorialAnchor";` を追加。`anchorRegistry.ts` 47-48 行も `tutorialAnchorSelector(anchorId)` に置換。`index.ts` に `tutorialAnchorSelector` を export 追加。
 
-- [ ] **Step 4: テスト**
+- [x] **Step 4: テスト**
 
 Run: `npx vitest run src/shared/tutorialAnchor src/features/tutorial && npx tsc -b && npm run lint`
 Expected: PASS。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/shared/tutorialAnchor
@@ -1117,12 +1117,12 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `TutorialAnchorIds.equipmentSelectedSlot = "equipment.selected-slot"`；`TutorialAnchorDynamicPrefixes.inventoryItem = "inventory.item-"`、`.equipmentSlot = "equipment.slot-"`；`inventoryItemAnchorId(itemGuid: string)`（小文字化）、`equipmentSlotAnchorId(index: number)`。
 
-- [ ] **Step 1: フィクスチャを更新する（テストが先に失敗する）**
+- [x] **Step 1: フィクスチャを更新する（テストが先に失敗する）**
 
 `tutorial_anchor_ids.json` の `staticIds` 末尾に `"equipment.selected-slot"`、`dynamicPrefixes` に `"inventoryItem": "inventory.item-"`, `"equipmentSlot": "equipment.slot-"` を追加。
 Run: `npx vitest run src/shared/tutorialAnchor/anchorIds.test.ts` → FAIL（Web側未追加）。
 
-- [ ] **Step 2: anchorIds.ts を更新する**
+- [x] **Step 2: anchorIds.ts を更新する**
 
 ```ts
   hotbarHud: "hotbar.hud",
@@ -1153,11 +1153,11 @@ export function equipmentSlotAnchorId(index: number): DynamicTutorialAnchorId {
 
 `index.ts` の export に `inventoryItemAnchorId, equipmentSlotAnchorId` を追加。
 
-- [ ] **Step 3: テスト**
+- [x] **Step 3: テスト**
 
 Run: `npx vitest run src/shared/tutorialAnchor`（PASS）。Unity側: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "TutorialAnchorContractTest"`（PASS。`AllModAnchorIdsResolveToWebVocabulary` は sibling master が古いと Ignore になる）。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/shared/tutorialAnchor moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/tutorial_anchor_ids.json
@@ -1176,7 +1176,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `firstSlotIndexByItemId(slots: ReadonlyArray<{ itemId: number }>): Map<number, number>`（itemId>0 の各アイテムについて先頭のスロットindex）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -1192,9 +1192,9 @@ describe("firstSlotIndexByItemId", () => {
 });
 ```
 
-- [ ] **Step 2: 実行して失敗を確認する** — `npx vitest run src/features/inventory/inventoryItemAnchors.test.ts` → FAIL。
+- [x] **Step 2: 実行して失敗を確認する** — `npx vitest run src/features/inventory/inventoryItemAnchors.test.ts` → FAIL。
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `inventoryItemAnchors.ts`:
 
@@ -1235,9 +1235,9 @@ export function firstSlotIndexByItemId(slots: ReadonlyArray<{ itemId: number }>)
 
 `SlotGrid` の子が `div > ItemSlot` になっても寸法が崩れないことを確認する（`ItemListPanel` が同構造で運用中）。崩れる場合は `display: contents` を使わず（zero-area で hidden 扱いになる）、ラッパー div に `className={styles.slotCell}`（`display:block`）を足す。
 
-- [ ] **Step 4: テスト・lint・型** — `npx vitest run src/features/inventory && npx tsc -b && npm run lint` → PASS。
+- [x] **Step 4: テスト・lint・型** — `npx vitest run src/features/inventory && npx tsc -b && npm run lint` → PASS。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/features/inventory
@@ -1252,7 +1252,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Modify: `moorestech_web/webui/src/features/inventory/EquipmentPanel/index.tsx:91-108`
 - Test: `moorestech_web/webui/src/features/inventory/EquipmentPanel/index.test.ts`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `index.test.ts` の既存 describe（`beforeEach` が `host.inventory` に `mainSlots/grab/equipment/selectedEquipment/equipmentSelectionConfirmationRevision` を入れる）に追加。`slot(itemId,count)` ヘルパは既存:
 
@@ -1271,9 +1271,9 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
   });
 ```
 
-- [ ] **Step 2: 実行して失敗を確認する** — `npx vitest run src/features/inventory/EquipmentPanel` → FAIL。
+- [x] **Step 2: 実行して失敗を確認する** — `npx vitest run src/features/inventory/EquipmentPanel` → FAIL。
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 import に `import { equipmentSlotAnchorId, tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";` を追加し、map 内を:
 
@@ -1303,9 +1303,9 @@ import に `import { equipmentSlotAnchorId, tutorialAnchor, TutorialAnchorIds } 
 
 `.equipmentArea` は `display:flex; flex-direction:column` なのでラッパー div は自然に縦並びになる（`--slot-size` は継承）。
 
-- [ ] **Step 4: テスト・lint・型** — `npx vitest run src/features/inventory && npx tsc -b && npm run lint` → PASS。e2e のスクリーンショット比較spec（inventory/hotbar 系）がある場合は `npm run test:e2e -- e2e/tests/system/inventory*.spec.ts` 相当で DOM 変更による退行が無いことを確認する。
+- [x] **Step 4: テスト・lint・型** — `npx vitest run src/features/inventory && npx tsc -b && npm run lint` → PASS。e2e のスクリーンショット比較spec（inventory/hotbar 系）がある場合は `npm run test:e2e -- e2e/tests/system/inventory*.spec.ts` 相当で DOM 変更による退行が無いことを確認する。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/features/inventory/EquipmentPanel
@@ -1316,9 +1316,9 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 ### Task B5: PR-B 全ブランチレビュー（必須）
 
-- [ ] **Step 1:** `npx vitest run`、`npm run lint`、`npx tsc -b`、`uloop run-tests ... "TutorialAnchorContractTest"` を再確認。
-- [ ] **Step 2:** 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（moores-code-review・自動実行・ゴール文言による省略不可）。
-- [ ] **Step 3:** pr-create で PR 作成（`feat(webui): チュートリアルアンカー語彙にインベントリ所持スロットと装備スロットを追加`）。
+- [x] **Step 1:** `npx vitest run`、`npm run lint`、`npx tsc -b`、`uloop run-tests ... "TutorialAnchorContractTest"` を再確認。
+- [x] **Step 2:** 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（moores-code-review・自動実行・ゴール文言による省略不可）。
+- [x] **Step 3:** pr-create で PR 作成（`feat(webui): チュートリアルアンカー語彙にインベントリ所持スロットと装備スロットを追加`）。→ PR #1207
 
 ---
 
@@ -1338,11 +1338,11 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: Addressable address `Vanilla/Item/StoneAxe`（GameObject）。マスタ `石の斧.addressablePaths.handGrabModel` から参照する。
 
-- [ ] **Step 1: 元プレハブの構造を確認する**
+- [x] **Step 1: 元プレハブの構造を確認する**（実測で判明: Sketchfab `StoneAxe.prefab` はメッシュ参照が全てNULLで描画されない。FBX側は3メッシュとも正常なので、StoneTool と同じくFBXを直接ネストする形に変更）
 
 `Assets/Dependencies/Sketchfab/StoneAxe/StoneAxe.prefab`（guid `ba793c97a36087e48872b232c94bce98`）のルート名 `StoneAxe`、子 `Cylinder`（scale 0.0629）・`Circle`（scale 0.0185）。`StoneTool.prefab` は Sketchfab FBX をネストし `m_LocalScale 0.0025 / position (-0.534, 0.083, -0.137) / yaw 90°` を焼き込んでいる。
 
-- [ ] **Step 2: uloop execute-dynamic-code でラッパーを生成し登録する**
+- [x] **Step 2: uloop execute-dynamic-code でラッパーを生成し登録する**（FBX直ネスト・scale=0.05702・pos=(-0.2510, 0.1170, -0.0823)・rot=identity。実メッシュboundsで石器へ合わせた）
 
 worktree の Editor に対して次のC#を実行する（`uloop-execute-dynamic-code` スキル参照）。初期値は StoneTool と同じ姿勢から始める:
 
@@ -1375,11 +1375,11 @@ Debug.Log("StoneAxe registered: " + entry.address);
 
 Run 後: `grep -n "Vanilla/Item/StoneAxe" "moorestech_client/Assets/AddressableAssetsData/AssetGroups/Vanilla Asset Group.asset"` で1件、`ls moorestech_client/Assets/AddressableResources/Item/StoneAxe.prefab*` で prefab と meta が存在。
 
-- [ ] **Step 3: PlayMode で見た目を確認して姿勢を調整する**
+- [ ] **Step 3: PlayMode で見た目を確認して姿勢を調整する**（**未実施**: この環境ではPlayModeが通らず、Scene Viewのスクリーンショットも更新されなかった。ユーザー裁定 2026-08-21「登録だけして姿勢は未検証のままPRにする」。手持ちの向き・握り位置は別セッションで確認する）
 
 masterピンworktree（`moorestech-master-worktrees/pin-*`）の `items.json` ではなく、検証用に `../moorestech_master` 側で PR #22 のブランチ `feature/tutorial-master-tweaks-20260820` を使い、石の斧の `addressablePaths.handGrabModel` を一時的に `Vanilla/Item/StoneAxe` にしてPlayMode起動（unity-playmode-recorded-playtest のDSLで 石の斧を所持→装備スロットへ移動→装備選択→`uloop screenshot` Game View）。モデルの向き・大きさが石器と同程度になるまで Step 2 の scale/position/rotation を変えて再保存する（`PrefabUtility.SaveAsPrefabAsset` を再実行。Addressable登録は再実行不要）。最終値を commit message に記す。一時変更したマスタは `git -C ../moorestech_master checkout -- server_v8/...items.json` で戻す（値の恒久反映はマスタPRで行う）。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**（PR #1207 に含める。ユーザー裁定 2026-08-21）
 
 ```bash
 git add moorestech_client/Assets/AddressableResources/Item/StoneAxe.prefab moorestech_client/Assets/AddressableResources/Item/StoneAxe.prefab.meta "moorestech_client/Assets/AddressableAssetsData/AssetGroups/Vanilla Asset Group.asset"
@@ -1390,9 +1390,9 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 ### Task C2: PR-C 全ブランチレビュー（必須）
 
-- [ ] **Step 1:** `uloop compile` errors 0。
+- [x] **Step 1:** `uloop compile` errors 0。
 - [ ] **Step 2:** 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（moores-code-review・自動実行・ゴール文言による省略不可）。
-- [ ] **Step 3:** pr-create で PR 作成（`feat(asset): 石の斧の手持ちモデルを Addressable 登録`）。
+- [x] **Step 3:** 単独PRは作らず PR #1207 に含めた（ユーザー裁定 2026-08-21「現在のPRにふくめていい」）。
 
 ---
 

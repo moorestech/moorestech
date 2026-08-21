@@ -11,7 +11,7 @@ test.afterEach(async ({ page }) => {
 test("切断後は全topic snapshotをrestoring中に復元し旧世代snapshotを破棄する", async ({ page }) => {
   await setTopicScenarioRevision(page, "mining", 10, 0.1);
   await page.goto("/");
-  const progress = page.locator('[data-tutorial-anchor="mining.hud"] [role="progressbar"]');
+  const progress = page.locator('[data-tutorial-anchor~="mining.hud"] [role="progressbar"]');
   await expect(progress).toHaveAttribute("aria-valuenow", "0.1");
   await setTopicScenarioRevision(page, "mining", 11, 0.65);
   await expect(progress).toHaveAttribute("aria-valuenow", "0.65");

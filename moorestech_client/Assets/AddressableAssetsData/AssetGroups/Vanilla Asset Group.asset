@@ -240,6 +240,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 194720b8c346548fdab7623dd5d1e3f3
+    m_Address: Vanilla/Item/StoneAxe
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 19d0fd83682574f808ae8b05e94b3b29
     m_Address: Vanilla/Environment/Vein/Item/Coal
     m_ReadOnly: 0

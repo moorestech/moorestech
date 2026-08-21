@@ -45,6 +45,7 @@ ADR 0016 でチュートリアル提示を WebUI 経路へ統一し、枠線ハ�
 - 動的 prefix `inventory.item-` … `inventory.item-<itemGuid>`。メインインベントリで該当アイテムを持つ先頭スロット。guid→itemId は Web 側で item master topic から解決（Unity は無変換。2026-08-19 裁定どおり）
 - 動的 prefix `equipment.slot-` … `equipment.slot-<index>`
 - 静的 `equipment.selected-slot` … 選択中の装備枠（ホイールで動く）
+- 静的 `equipment.hud` … 装備HUDのルート（常時マウント）。素手（`selectedEquipment === -1`）のとき `equipment.selected-slot` はどの要素にも付かないため、`equipment.hud` が解決するのに `equipment.selected-slot` が missing なら「HUDはあるが素手」と判別できる（レビュー指摘 D3 起点のユーザー裁定 2026-08-21。逐語のユーザー発言引用は無く、案の提示と採否だけが記録されている。`.decisions/2026-08-21-PR-Bレビュー裁定3件.md` D3）
 - 出所: ユーザー裁定 2026-08-20（復唱確認）（`.decisions/2026-08-20-アンカー語彙にインベントリ所持スロットと装備スロットを足す.md`）
 - agent前提: 同一要素が複数アンカー（`equipment.slot-0` と `equipment.selected-slot`）を持つため、`data-tutorial-anchor` を空白区切りトークン列にし、解決セレクタを `[data-tutorial-anchor~="…"]` にする（アンカーIDに空白は無い）。Unity 側フィクスチャ `tutorial_anchor_ids.json` と `TutorialAnchorContractTest` / `anchorIds.test.ts` を同時更新。
 
