@@ -42,13 +42,15 @@
 - `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementFeedback.cs` — 1フレーム分の行集合と、設置不可理由/案内の追加メソッド。
 - `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenter.cs` — `PlacementFeedback` → `MouseCursorTooltip` へ Show/Hide。
 - `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementCursorCellResolver.cs` — ドラッグ列からカーソル下セルのindexを解く。
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementCellReasonReporter.cs` — カーソルセルの地形干渉・既存ブロック重複を `PlacementFeedback` へ積む（通常設置・ベルト共用。両ファイルの200行超過を避ける）。
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/CommonBlockPlaceCostMarker.cs` — 通常設置の建設コスト判定＋素材不足プッシュ（`CommonBlockPlaceSystem.cs` は現状240行で規約超過のため無条件に切り出す。`BeltConveyorCostPreviewMarker` と同形）。
 - `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/ConstructionMaterialShortage.cs` — 素材1種の所持/必要。
 - `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/ConstructionCostShortageCalculator.cs` — エンティティ列の建設コストと所持から不足一覧を算出。
 - `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/ElectricWireConnect/Parts/ElectricWirePlacementFailureTooltipKey.cs` — enum→LocalizationKey（`ElectricWirePlacementFailureText` を置換）。
 - `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/GearChainPoleConnect/Parts/GearChainPlacementFailureTooltipKey.cs` — 文字列定数→LocalizationKey。
 - `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/TrainRailConnect/TrainRailPlacementFailureTooltipKey.cs` — `RailConnectionEditFailureReason`→LocalizationKey。
-- `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/TrainCar/TrainCarPlacementBlockReason.cs` — 列車配置不可理由enum＋LocalizationKey写像。
-- テスト: `Client.Tests/PlaceSystem/ConstructionCostShortageCalculatorTest.cs`、`Client.Tests/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenterTest.cs`、`Client.Tests/PlaceSystem/Feedback/PlacementCursorCellResolverTest.cs`、`Client.Tests/PlaceSystem/ElectricWireConnect/ElectricWirePlacementFailureTooltipKeyTest.cs`（旧Textテストを置換）、`Client.Tests/PlaceSystem/GearChainPoleConnect/GearChainPlacementFailureTooltipKeyTest.cs`、`Client.Tests/PlaceSystem/TrainRailConnect/TrainRailPlacementFailureTooltipKeyTest.cs`。
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/TrainCar/Parts/TrainCarPlacementBlockReason.cs` — 列車配置不可理由enum＋LocalizationKey写像（`TrainCar/` 直下は既に12ファイルで10ファイル規約超過のため新設は `Parts/` へ）。
+- テスト: `Client.Tests/PlaceSystem/Util/ConstructionCostShortageCalculatorTest.cs`、`Client.Tests/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenterTest.cs`、`Client.Tests/PlaceSystem/Feedback/PlacementCursorCellResolverTest.cs`、`Client.Tests/PlaceSystem/ElectricWireConnect/ElectricWirePlacementFailureTooltipKeyTest.cs`（旧Textテストを置換）、`Client.Tests/PlaceSystem/GearChainPoleConnect/GearChainPlacementFailureTooltipKeyTest.cs`、`Client.Tests/PlaceSystem/TrainRailConnect/TrainRailPlacementFailureTooltipKeyTest.cs`。
 
 変更（主要）:
 - `Localization/localization.csv`（キー追加）、`Client.Localization/_CompileRequester.cs`、`moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts`（gen）。
@@ -87,9 +89,9 @@
 - Test: `moorestech_web/webui/src/shared/i18n/localizationKeysFreshness.test.ts`（既存）
 
 **Interfaces:**
-- Produces: C#側 `Mooresmaster.Localization.Generated.LocalizationKeys.Ui.Tooltip.{PlaceBlockedByTerrain, PlaceBlockedByExistingBlock, PlaceTooFar, PlaceMaterialShortage, PlaceWireCost, PlaceWireOutOfRangeNotice, PlaceWireNoWireItem, PlaceWireOutOfRange, PlaceWireAlreadyConnected, PlaceWireConnectionLimit, PlaceWireNoPoleItem, PlaceWireInvalidTarget, PlaceWireInventoryFull, PlaceWireNotConnected, PlaceWireNotUnlocked, PlaceWireInsufficientItems, PlaceWireFailed, PlaceGearChainTooFar, PlaceGearChainAlreadyConnected, PlaceGearChainConnectionLimit, PlaceGearChainNoItem, PlaceGearChainFailed, PlaceRailLengthExceeded, PlaceRailNotEnoughRailItem, PlaceRailCurveTooTight, PlaceRailFailed, PlaceTrainCarNoRoute, PlaceTrainCarOverlapsTrain}`（各 `LocalizationKey`）。Web側 `L.ui.tooltip.placeXxx`。
+- Produces: C#側 `Mooresmaster.Localization.Generated.LocalizationKeys.Ui.Tooltip.{PlaceBlockedByTerrain, PlaceBlockedByExistingBlock, PlaceTooFar, PlaceMaterialShortage, PlaceWireCost, PlaceWireOutOfRangeNotice, PlaceWireNoWireItem, PlaceWireOutOfRange, PlaceWireAlreadyConnected, PlaceWireConnectionLimit, PlaceWireInvalidTarget, PlaceWireFailed, PlaceGearChainTooFar, PlaceGearChainAlreadyConnected, PlaceGearChainConnectionLimit, PlaceGearChainNoItem, PlaceGearChainFailed, PlaceRailLengthExceeded, PlaceRailNotEnoughRailItem, PlaceRailCurveTooTight, PlaceRailFailed, PlaceTrainCarNoRoute, PlaceTrainCarOverlapsTrain}`（各 `LocalizationKey`）。Web側 `L.ui.tooltip.placeXxx`。
 
-- [ ] **Step 1: csv に28行を追記する**
+- [ ] **Step 1: csv に23行を追記する**
 
 `Localization/localization.csv` の末尾（現在の最終行 `ui.delete.unknownError,...` の後）に以下を追記（ヘッダ `key,Source,english,japanese`、Source=english と同文）:
 
@@ -104,12 +106,7 @@ ui.tooltip.placeWireNoWireItem,Not enough wire,Not enough wire,電線が足り�
 ui.tooltip.placeWireOutOfRange,Out of connection range,Out of connection range,接続範囲外です
 ui.tooltip.placeWireAlreadyConnected,Already connected,Already connected,接続済みです
 ui.tooltip.placeWireConnectionLimit,Connection limit reached,Connection limit reached,接続上限です
-ui.tooltip.placeWireNoPoleItem,Not enough poles,Not enough poles,電柱が足りません
 ui.tooltip.placeWireInvalidTarget,Cannot connect to this target,Cannot connect to this target,接続できない対象です
-ui.tooltip.placeWireInventoryFull,Inventory is full,Inventory is full,インベントリがいっぱいです
-ui.tooltip.placeWireNotConnected,Not connected,Not connected,接続されていません
-ui.tooltip.placeWireNotUnlocked,Not unlocked,Not unlocked,未解放です
-ui.tooltip.placeWireInsufficientItems,Not enough materials,Not enough materials,素材が足りません
 ui.tooltip.placeWireFailed,Cannot place,Cannot place,設置できません
 ui.tooltip.placeGearChainTooFar,Out of connection range,Out of connection range,接続範囲外です
 ui.tooltip.placeGearChainAlreadyConnected,Already connected,Already connected,接続済みです
@@ -131,7 +128,7 @@ ui.tooltip.placeTrainCarOverlapsTrain,Overlaps an existing train,Overlaps an exi
 - [ ] **Step 3: Web側キー定数を再生成し鮮度テストを通す**
 
 Run: `cd moorestech_web/webui && pnpm gen:i18n && pnpm test -- src/shared/i18n/localizationKeysFreshness.test.ts`
-Expected: PASS。`git diff src/shared/i18n/generated/localizationKeys.ts` に `placeBlockedByTerrain` 等28キーが増えている。
+Expected: PASS。`git diff src/shared/i18n/generated/localizationKeys.ts` に `placeBlockedByTerrain` 等23キーが増えている。
 
 - [ ] **Step 4: Unity コンパイルでキーが生成されることを確認する**
 
@@ -696,14 +693,12 @@ Expected: 全PASS（`wireContract.test.ts` が Task 3 の fixture を受理す�
 Run: `pnpm test:e2e -- e2e/tests/system/commonHud.spec.ts`
 Expected: PASS（`getByText("世界の対象", { exact: true })` は行 div に一致する）。ポート衝突の偽失敗が出たら `webui-e2e-port-collision-across-sessions` メモリに従い再実行。
 
-- [ ] **Step 7: プロダクション dist の反映**
+- [ ] **Step 7: コミット**
 
-`git log --oneline -5 -- moorestech_client/Assets/StreamingAssets/WebUi/dist` で直近の dist 更新コミットの手順（ビルド→コピー→manifest更新）を確認し、同じ手順で `pnpm build` 成果物を `moorestech_client/Assets/StreamingAssets/WebUi/dist` へ反映して `webui-manifest.json` を更新する。手順が自動スクリプト化されていればそれを使う。
-
-- [ ] **Step 8: コミット**
+（`moorestech_client/Assets/StreamingAssets/WebUi/` は `.gitignore:128-130` で除外され、ビルド時に `WebUiProductionArtifactBuilder` が再生成する生成物なのでコミット対象外。dist の手動反映は不要）
 
 ```bash
-git add moorestech_web/webui moorestech_client/Assets/StreamingAssets/WebUi
+git add moorestech_web/webui
 git commit -m "feat(webui): CursorTooltip を lines 契約で複数行描画する"
 ```
 
@@ -714,7 +709,7 @@ git commit -m "feat(webui): CursorTooltip を lines 契約で複数行描画す�
 **Files:**
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/ConstructionMaterialShortage.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/ConstructionCostShortageCalculator.cs`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/ConstructionCostShortageCalculatorTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Util/ConstructionCostShortageCalculatorTest.cs`（`Client.Tests/PlaceSystem/` 直下は既に10ファイルなので `Util/` サブディレクトリへ）
 
 **Interfaces:**
 - Produces:
@@ -731,7 +726,7 @@ git commit -m "feat(webui): CursorTooltip を lines 契約で複数行描画す�
 
 - [ ] **Step 1: 失敗するテストを書く**
 
-`Client.Tests/PlaceSystem/ConstructionCostShortageCalculatorTest.cs`（`ConstructionCostPreviewCalculatorTest` と同じ土台: `CreateServer()` で MasterHolder をロード、`ForUnitTestModBlockId.BlockId` の RequiredItems は Material1(Test3, コスト×2) / Material2(Test4, コスト×1)）:
+`Client.Tests/PlaceSystem/Util/ConstructionCostShortageCalculatorTest.cs`（namespace は `Client.Tests.PlaceSystem.Util`。`ConstructionCostPreviewCalculatorTest` と同じ土台: `CreateServer()` で MasterHolder をロード、`ForUnitTestModBlockId.BlockId` の RequiredItems は Material1(Test3, コスト×2) / Material2(Test4, コスト×1)）:
 
 ```csharp
 using System;
@@ -743,7 +738,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 
-namespace Client.Tests.PlaceSystem
+namespace Client.Tests.PlaceSystem.Util
 {
     public class ConstructionCostShortageCalculatorTest
     {
@@ -930,7 +925,7 @@ Expected: 4件PASS。
 - [ ] **Step 5: コミット**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/ConstructionMaterialShortage.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/ConstructionCostShortageCalculator.cs moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/ConstructionCostShortageCalculatorTest.cs
+git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/ConstructionMaterialShortage.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/ConstructionCostShortageCalculator.cs moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Util/ConstructionCostShortageCalculatorTest.cs
 git commit -m "feat(place): 建設コストの素材別不足(所持/必要)を算出する計算機を追加"
 ```
 
@@ -942,6 +937,7 @@ git commit -m "feat(place): 建設コストの素材別不足(所持/必要)を�
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementFeedback.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenter.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementCursorCellResolver.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementCellReasonReporter.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/IPlaceSystem.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/PlaceSystemBase.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/PlaceSystemStateController.cs`
@@ -968,6 +964,7 @@ git commit -m "feat(place): 建設コストの素材別不足(所持/必要)を�
     }
     public class PlacementFeedbackTooltipPresenter { public void Present(PlacementFeedback feedback); public void Hide(); }
     public static class PlacementCursorCellResolver { public static int Resolve(IReadOnlyList<PlaceInfo> placeInfos, Vector3Int cursorCell); } // 一致セル、無ければ末尾、空なら-1
+    public static class PlacementCellReasonReporter { public static void Report(int cursorIndex, bool cursorOverlapsExistingBlock, IReadOnlyList<bool> groundOverlaps, PlacementFeedback feedback); } // 地形→重複の順で積む。cursorIndex<0 なら何もしない
   }
   // PlaceSystemUpdateContext(IPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback) ; public readonly PlacementFeedback Feedback;
   // PlaceSystemBase<T>: protected abstract void ManualUpdate(TTarget target, bool isSelectionChanged, PlacementFeedback feedback);
@@ -1113,7 +1110,7 @@ namespace Client.Tests.PlaceSystem.Feedback
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `PlacementFeedback` 等未定義エラー。
 
-- [ ] **Step 3: Feedback 3ファイルを作成する**
+- [ ] **Step 3: Feedback 4ファイルを作成する**
 
 `Feedback/PlacementFeedback.cs`:
 ```csharp
@@ -1200,6 +1197,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
             if (!_isShown) return;
             MouseCursorTooltip.Instance.Hide();
             _isShown = false;
+        }
+    }
+}
+```
+
+`Feedback/PlacementCellReasonReporter.cs`:
+```csharp
+using System.Collections.Generic;
+
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
+{
+    /// <summary>
+    /// カーソル下セルのローカル理由（地形干渉・既存ブロック重複）をこの順でツールチップ行に積む。通常設置・ベルト共用
+    /// Pushes the cursor cell's local reasons (terrain overlap, existing-block overlap) in that order; shared by normal and belt placement
+    /// </summary>
+    public static class PlacementCellReasonReporter
+    {
+        public static void Report(int cursorIndex, bool cursorOverlapsExistingBlock, IReadOnlyList<bool> groundOverlaps, PlacementFeedback feedback)
+        {
+            if (cursorIndex < 0) return;
+            if (groundOverlaps[cursorIndex]) feedback.AddBlockedByTerrain();
+            if (cursorOverlapsExistingBlock) feedback.AddBlockedByExistingBlock();
         }
     }
 }
@@ -1347,6 +1366,7 @@ git commit -m "feat(place): PlacementFeedback と TooltipPresenter を追加し�
 
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/CommonBlockPlaceSystem.cs:44-50,110-172,214-235`
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/CommonBlockPlaceCostMarker.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/ElectricWireAutoConnect/ElectricWireAutoConnectPreview.cs:40-48,53,106-145`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/ElectricWireAutoConnect/AutoConnectWirePreviewRenderer.cs`
 - Test（手動・unityプレイ録画テストは Task 14）: コンパイル＋既存テスト `ConstructionCostPreviewCalculatorTest|ElectricWireAutoConnect`
@@ -1448,12 +1468,11 @@ git commit -m "feat(place): PlacementFeedback と TooltipPresenter を追加し�
 
             // カーソルセルのローカル理由（地形干渉・既存ブロック重複）を積む
             // Push the cursor cell's local reasons (terrain overlap, existing-block overlap)
-            if (cursorIndex >= 0 && blockGroundOverlapList[cursorIndex]) feedback.AddBlockedByTerrain();
-            if (cursorOverlapsExistingBlock) feedback.AddBlockedByExistingBlock();
+            PlacementCellReasonReporter.Report(cursorIndex, cursorOverlapsExistingBlock, blockGroundOverlapList, feedback);
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったブロックがアイテム枠を消費しないようにする）
             // Check item count after ground filtering (so ground-blocked cells don't consume item quota)
-            MarkInsufficientItemPreviewsAsNotPlaceable();
+            CommonBlockPlaceCostMarker.MarkInsufficientCellsAsNotPlaceable(_currentPlaceInfos, target.BlockId, _localPlayerInventory, feedback);
 
             // 各セルの自動接続を評価し表示更新
             // Evaluate auto-connect per cell and update the preview
@@ -1467,37 +1486,52 @@ git commit -m "feat(place): PlacementFeedback と TooltipPresenter を追加し�
             // send block place info to server
             PlaceBlock();
 ```
-- `MarkInsufficientItemPreviewsAsNotPlaceable()` を以下に置換:
+- `CommonBlockPlaceSystem` 内のローカル関数 `MarkInsufficientItemPreviewsAsNotPlaceable()` は削除し、`Common/CommonBlockPlaceCostMarker.cs` を新規作成する（ファイルは現状240行で200行規約超過のため、切り出しは無条件）:
 ```csharp
-            void MarkInsufficientItemPreviewsAsNotPlaceable()
+using System.Collections.Generic;
+using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Common.Debug;
+using Core.Item.Interface;
+using Core.Master;
+using Server.Protocol.PacketResponse;
+
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
+{
+    /// <summary>
+    /// 通常設置のセル列のうち所持素材で賄えない後続分をPlaceable=falseへ書き換え、不足素材をツールチップへ積む
+    /// Marks normal-placement cells beyond what the held materials can afford as Placeable=false and pushes the short materials to the tooltip
+    /// </summary>
+    public static class CommonBlockPlaceCostMarker
+    {
+        public static void MarkInsufficientCellsAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, BlockId blockId, IEnumerable<IItemStack> inventoryItems, PlacementFeedback feedback)
+        {
+            // 無料設置モードでは所持数による制限をかけない
+            // In free placement mode, do not limit by held item count
+            if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement)) return;
+
+            // 今回置こうとしている（地形・重複で落ちていない）セル数ぶんの不足素材をツールチップへ積む
+            // Push the materials short for the cells actually being placed (not dropped by terrain/overlap)
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            var placeableCellCount = currentPlaceInfos.Count(info => info.Placeable);
+            feedback.AddMaterialShortages(ConstructionCostShortageCalculator.Calculate(blockMaster.RequiredItems, placeableCellCount, inventoryItems));
+
+            // 建設コストで賄えるセル数まで設置可にする
+            // Allow placement up to the affordable cell count
+            var affordableCellCount = ConstructionCostPreviewCalculator.CalculateAffordableCellCount(blockMaster.RequiredItems, inventoryItems);
+            var placeableCount = 0;
+            for (var i = 0; i < currentPlaceInfos.Count; i++)
             {
-                // 無料設置モードでは所持数による制限をかけない
-                // In free placement mode, do not limit by held item count
-                if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement)) return;
-
-                // 今回置こうとしている（地形・重複で落ちていない）セル数ぶんの不足素材をツールチップへ積む
-                // Push the materials short for the cells actually being placed (not dropped by terrain/overlap)
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
-                var placeableCellCount = _currentPlaceInfos.Count(info => info.Placeable);
-                feedback.AddMaterialShortages(ConstructionCostShortageCalculator.Calculate(blockMaster.RequiredItems, placeableCellCount, _localPlayerInventory));
-
-                // 建設コストで賄えるセル数まで設置可にする
-                // Allow placement up to the affordable cell count
-                var affordableCellCount = ConstructionCostPreviewCalculator.CalculateAffordableCellCount(blockMaster.RequiredItems, _localPlayerInventory);
-
-                var placeableCount = 0;
-                for (var i = 0; i < _currentPlaceInfos.Count; i++)
-                {
-                    if (!_currentPlaceInfos[i].Placeable) continue;
-                    placeableCount++;
-                    if (placeableCount > affordableCellCount)
-                    {
-                        _currentPlaceInfos[i].Placeable = false;
-                    }
-                }
+                if (!currentPlaceInfos[i].Placeable) continue;
+                placeableCount++;
+                if (placeableCount > affordableCellCount) currentPlaceInfos[i].Placeable = false;
             }
+        }
+    }
+}
 ```
-（`using System.Linq;` と `using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;` を追加。ファイルが200行を超える場合は `MarkInsufficientItemPreviewsAsNotPlaceable` と `IsBlockPlaceableDistance` を `Common/CommonBlockPlaceCostMarker.cs`（static、`BeltConveyorCostPreviewMarker` 同形）へ切り出す）
+`CommonBlockPlaceSystem.cs` からは `Common.Debug`・`DebugParameterKeys`（他で未使用なら）と `ConstructionCostPreviewCalculator` の参照が消える。`using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;` を追加。切り出し後に `wc -l` で200行以下を確認する（超えるなら `PlaceBlock()` ローカル関数を `Common/CommonBlockPlaceSender.cs`（static）へ移す）。
 
 - [ ] **Step 4: コンパイル＆既存テスト**
 
@@ -1546,9 +1580,9 @@ git commit -m "feat(place): 通常設置の不可理由・素材不足・電線�
 ```
 - 地面ループの後に
 ```csharp
-            if (cursorIndex >= 0 && blockGroundOverlapList[cursorIndex]) feedback.AddBlockedByTerrain();
-            if (cursorOverlapsExistingBlock) feedback.AddBlockedByExistingBlock();
+            PlacementCellReasonReporter.Report(cursorIndex, cursorOverlapsExistingBlock, blockGroundOverlapList, feedback);
 ```
+- `BeltConveyorPlaceSystem.cs` は現状200行ちょうどなので、上記追加後に `wc -l` で超過したら `IsBlockPlaceableDistance` と `PlaceBlock()` ローカル関数を `BeltConveyor/Parts/BeltConveyorPlaceSender.cs`（static）へ移して200行以下にする。
 - `BeltConveyorCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(_currentPlaceInfos, _localPlayerInventory, feedback);`
 
 - [ ] **Step 3: コンパイル＆テスト**
@@ -1583,7 +1617,7 @@ git commit -m "feat(place): ベルトコンベア設置の不可理由・素材�
 **Interfaces:**
 - Produces:
   ```csharp
-  public static class ElectricWirePlacementFailureTooltipKey { public static LocalizationKey ToKey(ElectricWirePlacementFailureReason reason); } // None/InvalidMode 等の未定義は PlaceWireFailed
+  public static class ElectricWirePlacementFailureTooltipKey { public static LocalizationKey ToKey(ElectricWirePlacementFailureReason reason); } // クライアント判定が返す6種以外（None/InvalidMode/NoPoleItem/InventoryFull/NotConnected/NotUnlocked/InsufficientItems）は PlaceWireFailed
   public class ElectricWireExtendPreviewObject { public ElectricWireExtendPreviewObject(); public void Show(Vector3 startWorldPos, Vector3 endWorldPos, bool placeable); public void SetActive(bool active); }
   public readonly struct ElectricWirePoleGhostEvaluation { List<PlaceInfo> PlaceInfos; BlockMasterElement PoleMaster; BlockId PoleBlockId; bool IsGroundClear; bool IsPositionFree; IReadOnlyList<ConstructionMaterialShortage> MaterialShortages; bool CanAffordPole => MaterialShortages.Count == 0; PlaceInfo PlaceInfo; ElectricPoleBlockParam PoleParam; }
   public class ElectricWirePoleGhostPart { public ElectricWirePoleGhostPart(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory inventory, CommonBlockPlacePointCalculator pointCalculator); public bool TryEvaluateGhost(ElectricWirePoleSelection selection, PlacementFeedback feedback, out ElectricWirePoleGhostEvaluation evaluation); } // SetNameLabelActive は削除
@@ -1611,20 +1645,19 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireAlreadyConnected.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.AlreadyConnected).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireConnectionLimit.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.ConnectionLimit).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireNoWireItem.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.NoWireItem).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireNoPoleItem.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.NoPoleItem).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireInvalidTarget.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.InvalidTarget).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.PositionOccupied).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireInventoryFull.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.InventoryFull).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireNotConnected.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.NotConnected).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireNotUnlocked.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.NotUnlocked).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireInsufficientItems.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.InsufficientItems).Key);
         }
 
         [Test]
-        public void 未定義の理由は既定キーにフォールバックする()
+        public void クライアント判定が返さない理由は既定キーにフォールバックする()
         {
+            // クライアント側のExtendPreviewCalculator/Evaluatorが返すのは OutOfRange/AlreadyConnected/ConnectionLimit/InvalidTarget/NoWireItem/PositionOccupied のみ
+            // The client-side calculator/evaluator only yields OutOfRange/AlreadyConnected/ConnectionLimit/InvalidTarget/NoWireItem/PositionOccupied
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireFailed.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.InvalidMode).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireFailed.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.None).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireFailed.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.NoPoleItem).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireFailed.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.InsufficientItems).Key);
         }
     }
 }
@@ -1658,13 +1691,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
                 ElectricWirePlacementFailureReason.AlreadyConnected => LocalizationKeys.Ui.Tooltip.PlaceWireAlreadyConnected,
                 ElectricWirePlacementFailureReason.ConnectionLimit => LocalizationKeys.Ui.Tooltip.PlaceWireConnectionLimit,
                 ElectricWirePlacementFailureReason.NoWireItem => LocalizationKeys.Ui.Tooltip.PlaceWireNoWireItem,
-                ElectricWirePlacementFailureReason.NoPoleItem => LocalizationKeys.Ui.Tooltip.PlaceWireNoPoleItem,
                 ElectricWirePlacementFailureReason.InvalidTarget => LocalizationKeys.Ui.Tooltip.PlaceWireInvalidTarget,
                 ElectricWirePlacementFailureReason.PositionOccupied => LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock,
-                ElectricWirePlacementFailureReason.InventoryFull => LocalizationKeys.Ui.Tooltip.PlaceWireInventoryFull,
-                ElectricWirePlacementFailureReason.NotConnected => LocalizationKeys.Ui.Tooltip.PlaceWireNotConnected,
-                ElectricWirePlacementFailureReason.NotUnlocked => LocalizationKeys.Ui.Tooltip.PlaceWireNotUnlocked,
-                ElectricWirePlacementFailureReason.InsufficientItems => LocalizationKeys.Ui.Tooltip.PlaceWireInsufficientItems,
+                // 上記以外（切断系・未解放・サーバー側のみの理由）はクライアントの設置判定では発生しないため既定文言へ
+                // Everything else (disconnect-side, not-unlocked, server-only reasons) never arises in client placement judgement, so fall back
                 _ => LocalizationKeys.Ui.Tooltip.PlaceWireFailed,
             };
         }
@@ -2057,7 +2087,7 @@ git commit -m "feat(place): ギアチェーンポール接続の不可理由を�
 - Test: `Client.Tests/PlaceSystem/TrainRailConnect/TrainRailPlacementFailureTooltipKeyTest.cs`（新規）
 
 **Interfaces:**
-- Produces: `TrainRailPlacementFailureTooltipKey.ToKey(RailConnectionEditProtocol.RailConnectionEditFailureReason reason)`（RailLengthExceeded→PlaceRailLengthExceeded、NotEnoughRailItem→PlaceRailNotEnoughRailItem、その他→PlaceRailFailed）。`TrainRailConnectPreviewData` に `RailConnectionEditFailureReason FailureReason` と `bool IsCurvePlaceable` を追加。
+- Produces: `TrainRailPlacementFailureTooltipKey.ToKey(RailConnectionEditProtocol.RailConnectionEditFailureReason reason)`（RailLengthExceeded→PlaceRailLengthExceeded、NotEnoughRailItem→PlaceRailNotEnoughRailItem、その他→PlaceRailFailed）、`TrainRailPlacementFailureTooltipKey.Report(TrainRailConnectPreviewData previewData, PlacementFeedback feedback)`。`TrainRailConnectPreviewData` に `RailConnectionEditFailureReason FailureReason` と `bool IsCurvePlaceable` を追加。
 
 - [ ] **Step 1: 失敗するテストを書く**
 
@@ -2116,14 +2146,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 
 `TrainRailConnectSystem`:
 - `ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)`
-- `ShowPreview(TrainRailConnectPreviewData previewData)` ローカル関数の末尾（`_previewObject.ShowPreview(previewData);` の後）に:
+- `ShowPreview(TrainRailConnectPreviewData previewData)` ローカル関数の末尾（`_previewObject.ShowPreview(previewData);` の後）に1行: `TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);`（`TrainRailConnectSystem.cs` は198行のため、プッシュ本体は写像クラス側へ置く）。`TrainRailPlacementFailureTooltipKey` に以下を追加（using に `Client.Game.InGame.BlockSystem.PlaceSystem.Feedback`・`Client.Game.InGame.UI.Tooltip` を足す）:
 ```csharp
-                // 判定の失敗理由とカーブ半径不足を個別行でツールチップへ積む
-                // Push the judgement failure reason and the too-tight curve as separate tooltip lines
-                if (previewData.FailureReason != RailConnectionEditProtocol.RailConnectionEditFailureReason.None) feedback.Add(new TooltipLine(TrainRailPlacementFailureTooltipKey.ToKey(previewData.FailureReason)));
-                if (!previewData.IsCurvePlaceable) feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceRailCurveTooTight));
+        // 判定の失敗理由とカーブ半径不足を個別行でツールチップへ積む
+        // Push the judgement failure reason and the too-tight curve as separate tooltip lines
+        public static void Report(TrainRailConnectPreviewData previewData, PlacementFeedback feedback)
+        {
+            if (previewData.FailureReason != RailConnectionEditProtocol.RailConnectionEditFailureReason.None) feedback.Add(new TooltipLine(ToKey(previewData.FailureReason)));
+            if (!previewData.IsCurvePlaceable) feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceRailCurveTooTight));
+        }
 ```
-（using: `Client.Game.InGame.BlockSystem.PlaceSystem.Feedback`, `Client.Game.InGame.UI.Tooltip`, `Mooresmaster.Localization.Generated`）
 
 - [ ] **Step 4: コンパイル＆テスト**
 
@@ -2143,7 +2175,7 @@ git commit -m "feat(place): レール接続の失敗理由とカーブ半径不�
 ### Task 12: 列車配置（TrainCar）— 不可理由の分離と行化
 
 **Files:**
-- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/TrainCar/TrainCarPlacementBlockReason.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/TrainCar/Parts/TrainCarPlacementBlockReason.cs`（新サブディレクトリ `TrainCar/Parts/`。名前空間は `Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar` のまま）
 - Modify: `PlaceSystem/TrainCar/TrainCarPlacementHit.cs`
 - Modify: `PlaceSystem/TrainCar/TrainCarPlacementDetector.cs:143-200,300-320`
 - Modify: `PlaceSystem/TrainCar/TrainCarPlaceSystem.cs:42,73-78`
@@ -2159,7 +2191,7 @@ git commit -m "feat(place): レール接続の失敗理由とカーブ半径不�
 
 - [ ] **Step 1: enum と写像を作る**
 
-`TrainCar/TrainCarPlacementBlockReason.cs`:
+`TrainCar/Parts/TrainCarPlacementBlockReason.cs`:
 ```csharp
 using Mooresmaster.Localization.Generated;
 
@@ -2295,7 +2327,7 @@ planning中に新たに生じた判断:
 4. **セルローカル理由はカーソル下セル（無ければ末尾）、ドラッグ全体の理由は全セル集計。** 出所: agent前提（`ElectricWireAutoConnectPreview` の cursorIndex 解決と同じ規則）。
 5. **素材不足の「必要」は地形・重複フィルタ後の Placeable セル数×コスト（ベルトはエンティティ列の合算）。** 出所: ユーザー裁定 2026-08-21「必要は今回の設置全セル分」＋既存「地面フィルタ後にアイテム数チェック」コメントの規則。
 6. **電柱（電線ツール）の建設コスト不足は `PlaceWireInsufficientItems` ではなく素材別「名前 所持/必要」行で出す。** 出所: ユーザー裁定 2026-08-21（素材不足文言形式）の適用。`ElectricWirePlacementFailureReason.InsufficientItems`（サーバー評価由来）のキー写像は残す。
-7. **`ElectricWirePlacementFailureText` は削除し `ElectricWirePlacementFailureTooltipKey`（enum→LocalizationKey）へ置換。`PositionOccupied` は `placeBlockedByExistingBlock` を共用。`None`/`InvalidMode` は `placeWireFailed`。** 出所: agent前提（[[.decisions/2026-08-14-手掘り不可と道具不足は別文言にする.md]] 理由種別ごとに別キー）。
+7. **`ElectricWirePlacementFailureText` は削除し `ElectricWirePlacementFailureTooltipKey`（enum→LocalizationKey）へ置換。キーはクライアント判定が実際に返す理由（OutOfRange/AlreadyConnected/ConnectionLimit/InvalidTarget/NoWireItem/PositionOccupied）だけ作り、`PositionOccupied` は `placeBlockedByExistingBlock` を共用、その他は `placeWireFailed` へフォールバック（旧Textの全列挙パリティは取らない＝到達不能な死にキーを作らない）。wire/gearChain で同文言の理由（接続範囲外・接続済み・接続上限）は系統別キーのまま（将来の文言差に備える）。キー名前空間は採掘・クラフトと同じ `ui.tooltip.*` を採り、`ui.delete.*` 型の系統別名前空間にはしない。** 出所: agent前提（[[.decisions/2026-08-14-手掘り不可と道具不足は別文言にする.md]] 理由種別ごとに別キー／シミュレーター予測→agent採用: 死にキー5件の削減）。
 8. **ギアチェーンの `Decide` 純関数は `GearChainPoleFrameResult.FeedbackLines` に行を返し、system がプッシュ（純関数性を維持）。Preview struct には文言を持たせない。** 出所: agent前提（`GearChainPolePreviewCommand` の「表示側から判断材料は返さない」設計を守る）。
 9. **列車配置の理由は `TrainCarPlacementBlockReason {None, NoRouteForTrainLength, OverlapsExistingTrainUnit}` の2種に畳む（要件1〜3のスナップ不成立は最終的に要件4の判定へ落ちるため、その結果で分類）。** 出所: agent前提。
 10. **BP貼り付けは全セル重複のときのみ `placeBlockedByExistingBlock`。部分重複の案内行は出さない。** 出所: agent前提（ADR0026 agent前提の転記）。
@@ -2303,4 +2335,5 @@ planning中に新たに生じた判断:
 12. **uGUI側 `MouseCursorTooltip.itemName.text` は行を改行連結して維持（uGUI廃止Phase1のため描画は停止中だが、Web側と同じ文言が組めるようにしておく）。** 出所: agent前提。
 13. **Webの `CursorTooltip` は行ごとに `<div>` で描画（`white-space: pre-line` のまま）。書式トークンは不変。** 出所: ADR0019 の帰結（agent前提）。
 14. **unityプレイ録画テストを Task 14 として含める（ランタイムUI挙動の変更のため）。** 出所: writing-plans（moorestech）必須検討の結果。
-15. **Web dist（StreamingAssets）の更新は Task 4 Step 7 で前例手順に従う。** 出所: agent前提（`docs/superpowers/plans/2026-07-23-electric-wire-mutual-range.md` の同手順）。
+15. **Web のプロダクション dist（`Assets/StreamingAssets/WebUi/`）はビルド時生成物（`WebUiProductionArtifactBuilder`・`.gitignore` 済み）でコミット対象外。本planでは触らない。Editor は Vite dev モードで即反映。** 出所: agent前提（判事の前提検証で「git log が空・ディレクトリ不在」を確認）。
+16. **user-simulator review（Fable判事・2026-08-21）の適用:** ①Web dist（StreamingAssets）反映Stepを削除（`.gitignore` 済み生成物・前例不在を判事が検証）。②10ファイル/200行規約への自己違反を修正（`TrainCar/Parts/`・`Client.Tests/PlaceSystem/Util/`・`CommonBlockPlaceCostMarker` 無条件切り出し・`PlacementCellReasonReporter` 共用・レールのReportを写像クラス側へ）。③電線ツールの到達不能キー5件（NoPoleItem/InventoryFull/NotConnected/NotUnlocked/InsufficientItems）を削除し23キーに。見送り: キー名前空間 `ui.place.*` 化（採掘・クラフトと同じ `ui.tooltip.*` を維持）、wire/gearChain 同文言キーの統合（系統別のまま）、電線不足の所持/必要表示（裁定時プレビューどおり定型行）。出所: シミュレーター予測→agent採用（Critical2件・Warning1件）／agent前提（見送り3件）。
