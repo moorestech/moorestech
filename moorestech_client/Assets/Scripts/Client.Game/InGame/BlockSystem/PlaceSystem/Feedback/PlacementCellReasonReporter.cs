@@ -8,6 +8,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
     /// </summary>
     public static class PlacementCellReasonReporter
     {
+        // cursorIndexはPlacementCursorCellResolverがgroundOverlapsと同じplaceInfos列から解決した添字であること（呼び出し側の不変条件）
+        // cursorIndex must come from PlacementCursorCellResolver over the same placeInfos list that produced groundOverlaps (caller's invariant)
         public static void Report(int cursorIndex, bool cursorOverlapsExistingBlock, IReadOnlyList<bool> groundOverlaps, PlacementFeedback feedback)
         {
             if (cursorIndex < 0) return;

@@ -12,6 +12,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
     {
         public static int Resolve(IReadOnlyList<PlaceInfo> placeInfos, Vector3Int cursorCell)
         {
+            if (placeInfos.Count == 0) return -1;
+
             for (var i = 0; i < placeInfos.Count; i++)
             {
                 if (placeInfos[i].Position == cursorCell) return i;

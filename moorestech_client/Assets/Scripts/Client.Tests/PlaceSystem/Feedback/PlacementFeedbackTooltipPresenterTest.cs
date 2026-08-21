@@ -5,6 +5,7 @@ using Client.Localization;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using TMPro;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.Feedback
@@ -84,6 +85,29 @@ namespace Client.Tests.PlaceSystem.Feedback
             presenter.Present(new PlacementFeedback());
 
             Assert.IsTrue(MouseCursorTooltip.Instance.GetPresentation().Visible);
+        }
+
+        [Test]
+        public void 同じFeedbackを積み直した再Presentが購読側へ届く()
+        {
+            var presenter = new PlacementFeedbackTooltipPresenter();
+            var feedback = new PlacementFeedback();
+            feedback.AddBlockedByTerrain();
+            presenter.Present(feedback);
+
+            // 表示中に理由行が入れ替わるケース。使い回しバッファを直接渡すと同値判定で通知が止まる
+            // Reason lines swap while shown; passing the reused buffer directly would stall the change notification
+            var notifiedCount = 0;
+            using var subscription = MouseCursorTooltip.Instance.OnPresentationChanged.Skip(1).Subscribe(_ => notifiedCount++);
+
+            feedback.Clear();
+            feedback.AddTooFar();
+            presenter.Present(feedback);
+
+            Assert.AreEqual(1, notifiedCount);
+            var presentation = MouseCursorTooltip.Instance.GetPresentation();
+            Assert.AreEqual(1, presentation.Lines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceTooFar.Key, presentation.Lines[0].TextKey);
         }
 
         [Test]

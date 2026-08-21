@@ -1,3 +1,4 @@
+using System.Linq;
 using Client.Game.InGame.UI.Tooltip;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
@@ -18,7 +19,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
                 return;
             }
 
-            MouseCursorTooltip.Instance.Show(feedback.Lines);
+            // TooltipPresentationは不変スナップショット前提のため、使い回しバッファではなく複製を渡す
+            // TooltipPresentation assumes an immutable snapshot, so hand it a copy instead of the reused buffer
+            MouseCursorTooltip.Instance.Show(feedback.Lines.ToArray());
             _isShown = true;
         }
 
