@@ -2,6 +2,7 @@
 using Game.Blueprint;
 using Game.Challenge;
 using Game.CleanRoom.Save;
+using Game.Construction;
 using Game.Entity.Interface;
 using Game.Hotbar;
 using Game.Map.Interface.Json;
@@ -34,6 +35,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             List<PlayerRidingSaveData> playerRidingStates,
             List<BlueprintJsonObject> blueprints,
             List<PlayerHotbarSaveJsonObject> hotbarAssignments,
+            List<PlayerRemainingPlacementCountSaveJsonObject> remainingPlacementCounts,
             Dictionary<string, int> itemStackLevels,
             int inventorySlotLevel,
             List<CleanRoomSaveData> cleanRoomRooms)
@@ -51,6 +53,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             PlayerRidingStates = playerRidingStates ?? new List<PlayerRidingSaveData>();
             Blueprints = blueprints ?? new List<BlueprintJsonObject>();
             HotbarAssignments = hotbarAssignments ?? new List<PlayerHotbarSaveJsonObject>();
+            RemainingPlacementCounts = remainingPlacementCounts ?? new List<PlayerRemainingPlacementCountSaveJsonObject>();
             ItemStackLevels = itemStackLevels ?? new Dictionary<string, int>();
             InventorySlotLevel = inventorySlotLevel;
             CleanRoomRooms = cleanRoomRooms ?? new List<CleanRoomSaveData>();
@@ -70,6 +73,7 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("playerRidingStates")] public List<PlayerRidingSaveData> PlayerRidingStates { get; }
         [JsonProperty("blueprints")] public List<BlueprintJsonObject> Blueprints { get; set; }
         [JsonProperty("hotbarAssignments")] public List<PlayerHotbarSaveJsonObject> HotbarAssignments { get; set; }
+        [JsonProperty("remainingPlacementCounts")] public List<PlayerRemainingPlacementCountSaveJsonObject> RemainingPlacementCounts { get; set; }
         [JsonProperty("itemStackLevels")] public Dictionary<string, int> ItemStackLevels { get; }
         [JsonProperty("inventorySlotLevel")] public int InventorySlotLevel { get; }
         [JsonProperty("cleanRoomRooms")] public List<CleanRoomSaveData> CleanRoomRooms { get; }

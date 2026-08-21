@@ -12,6 +12,7 @@ using Game.Block.Interface.Event;
 using Game.Blueprint;
 using Game.Challenge;
 using Game.CleanRoom;
+using Game.Construction;
 using Game.Context;
 using Game.Crafting.Interface;
 using Game.EnergySystem;
@@ -198,6 +199,9 @@ namespace Server.Boot
             services.AddSingleton<HotbarAssignmentDatastore>();
             services.AddSingleton<IHotbarAssignmentLookup>(provider => provider.GetRequiredService<HotbarAssignmentDatastore>());
             services.AddSingleton<IHotbarAssignmentMutation>(provider => provider.GetRequiredService<HotbarAssignmentDatastore>());
+            services.AddSingleton<RemainingPlacementCountDataStore>();
+            services.AddSingleton<IRemainingPlacementCountLookup>(provider => provider.GetRequiredService<RemainingPlacementCountDataStore>());
+            services.AddSingleton<IRemainingPlacementCountMutation>(provider => provider.GetRequiredService<RemainingPlacementCountDataStore>());
 
             services.AddSingleton<ResearchEvent>();
 
