@@ -90,7 +90,7 @@
       "veinParam": {
         "itemGuid": "00000000-0000-0000-1234-000000000001"
       },
-      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Iron",
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/VeinPrefab_Iron",
       "soundEffectType": "stone",
       "handMiningType": "minable",
       "handMiningParam": {
@@ -135,7 +135,7 @@
       "veinParam": {
         "itemGuid": "00000000-0000-0000-1234-000000000003"
       },
-      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Stone",
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/VeinPrefab_Stone",
       "soundEffectType": "stone",
       "handMiningType": "none",
       "handMiningParam": null
