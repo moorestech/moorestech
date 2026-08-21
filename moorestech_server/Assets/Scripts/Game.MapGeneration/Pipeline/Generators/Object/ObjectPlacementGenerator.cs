@@ -85,9 +85,13 @@ namespace Game.MapGeneration.Pipeline.Generators
                         continue;
                     }
 
+                    // 不正な外半径を警告する（鉱脈 OreEntryPlacer と同じ判定・同じ文言）。
+                    // Warn on invalid outer radii (same check and wording as OreEntryPlacer for veins).
+                    ValidateBandRadii(entry);
+
                     if (entry.useClusterMode)
                         ObjectBackboneClusterPlacer.Generate(entry, dims, heights, hRes,
-                            mask, borderMarginPx, rng, noiseOffsets, placements, treeSpatialGrid, objAlgCfg, ref nextClusterId);
+                            mask, borderMarginPx, rng, noiseOffsets, placements, objAlgCfg, ref nextClusterId);
                     else
                         ObjectIndependentPlacer.GenerateIndependent(entry, dims, heights, hRes,
                             mask, borderMarginPx, rng, noiseOffsets, placements, treeSpatialGrid);
@@ -95,6 +99,21 @@ namespace Game.MapGeneration.Pipeline.Generators
             }
 
             return placements;
+        }
+
+        // 不正な外半径（-1以外の負値・重複）を警告する（鉱脈 OreEntryPlacer.Place と同じ判定・文言）。
+        // Warn on invalid outer radii (negative other than -1, duplicates) — mirrors OreEntryPlacer.Place.
+        static void ValidateBandRadii(BiomeObjectConfig.ObjectEntry entry)
+        {
+            var seenKeys = new HashSet<float>();
+            foreach (var b in entry.bands)
+            {
+                if (b.outerRadiusMeters < 0f && b.outerRadiusMeters != -1f)
+                    Debug.LogWarning($"[ObjectPlacement] '{entry.mapObjectGuids[0]}' has a negative outer radius ({b.outerRadiusMeters}) other than -1; treated as infinite.");
+                float key = b.outerRadiusMeters < 0f ? float.PositiveInfinity : b.outerRadiusMeters;
+                if (!seenKeys.Add(key))
+                    Debug.LogWarning($"[ObjectPlacement] '{entry.mapObjectGuids[0]}' has bands with duplicate outer radius ({b.outerRadiusMeters}); later ones degenerate.");
+            }
         }
     }
 }

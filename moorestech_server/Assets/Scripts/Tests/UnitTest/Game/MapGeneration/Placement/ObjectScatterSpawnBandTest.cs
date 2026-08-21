@@ -11,6 +11,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
     // Pins that object-scatter spawn-distance bands flow from JSON into runtime config and that placement stays inside the ring.
     public class ObjectScatterSpawnBandTest
     {
+        private const int Seed = 11;
+        private const float NearRadius = 60f;
+
         [Test]
         public void JSONのbandsが実行時ObjectEntryへ写る()
         {
@@ -23,9 +26,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
             Assert.AreEqual(1f, entry.bands[0].density);
             Assert.AreEqual(8, entry.bands[0].clusterCount);
         }
-
-        private const int Seed = 11;
-        private const float NearRadius = 60f;
 
         [Test]
         public void 近傍帯だけ密度を持つ散布はスポーンから近傍半径未満にのみ置かれる()

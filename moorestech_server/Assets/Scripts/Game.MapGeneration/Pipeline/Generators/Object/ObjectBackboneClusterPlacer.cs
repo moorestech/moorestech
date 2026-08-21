@@ -15,7 +15,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             BiomeObjectConfig.ObjectEntry entry, TerrainDimensions dims,
             float[,] heights, int hRes, bool[,] mask, float borderMarginPx,
             System.Random rng, Vector2[] noiseOffsets, List<PlacementEntry> placements,
-            SpatialGrid treeSpatialGrid, ObjectAlgorithmConfig objAlgCfg, ref int nextClusterId)
+            ObjectAlgorithmConfig objAlgCfg, ref int nextClusterId)
         {
             float w = dims.TerrainWidth, l = dims.TerrainLength;
 

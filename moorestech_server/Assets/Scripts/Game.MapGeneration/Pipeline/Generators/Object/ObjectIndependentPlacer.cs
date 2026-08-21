@@ -6,7 +6,9 @@ using UnityEngine;
 namespace Game.MapGeneration.Pipeline.Generators
 {
     // 独立散布（Poisson）。スポーン距離リングごとにそのリングの density で Poisson を回し、リング内の候補だけ採用する。
+    // リングをまたぐ点同士の最小間隔は保証されない（リングごとに独立したPoissonのため）。
     // Independent scatter (Poisson): one Poisson pass per spawn-distance ring at that ring's density, keeping only in-ring candidates.
+    // Minimum spacing across ring boundaries is not guaranteed, since each ring runs its own independent Poisson pass.
     internal static class ObjectIndependentPlacer
     {
         public static void GenerateIndependent(
