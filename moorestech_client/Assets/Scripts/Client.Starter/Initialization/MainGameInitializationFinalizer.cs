@@ -4,6 +4,7 @@ using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Environment.Terrain;
+using Client.Game.InGame.Construction;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Player;
@@ -43,6 +44,10 @@ namespace Client.Starter.Initialization
             // ホットバー初期割当はhandshakeへ同梱済み。メインインベントリと同様イベント購読開始前に適用する
             // The initial hotbar assignments ride along with the handshake; applied before event dispatch starts, same as the main inventory
             resolver.Resolve<ClientHotbarDatastore>().ApplyAssignments(_serverResult.HandshakeResponse.HotbarAssignments);
+
+            // 残り設置数もhandshake同梱。イベント購読開始前に適用する
+            // Remaining placements ride along with the handshake too; applied before event dispatch starts
+            resolver.Resolve<ClientRemainingPlacementCountDatastore>().ApplyAll(_serverResult.HandshakeResponse.RemainingPlacementCounts);
 
             // BP割当の解決元をログイン時に1度満たす。ビルドメニュー入場までBP枠が未解決に見えるのを防ぐ
             // Fill the blueprint assignments' resolution source once at login so blueprint slots are not unresolved until the build menu is opened

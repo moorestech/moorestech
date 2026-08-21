@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.PlayerRiding.Interface;
 using Game.Research;
+using Server.Event.EventReceive;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.GetMapDataProtocol;
 using static Server.Protocol.PacketResponse.GetMapObjectInfoProtocol;
@@ -27,6 +28,9 @@ namespace Client.Network.API
         // ログイン時のホットバー9枠。初期データ同梱のため追加の往復も未取得状態も無い
         // The login-time hotbar slots; bundled as initial data, so there is no extra round trip and no unfetched state
         public Guid[] HotbarAssignments { get; }
+        // 残り設置数の全財布。handshake同梱のため追加往復は無い
+        // All wallets' remaining-placement counts; bundled as initial data, so no extra round trip is needed
+        public RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] RemainingPlacementCounts { get; }
 
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
@@ -52,6 +56,7 @@ namespace Client.Network.API
             RidingSeatIndex = initialHandshake.RidingSeatIndex;
             MapLayout = responses.mapLayout;
             HotbarAssignments = initialHandshake.HotbarAssignments;
+            RemainingPlacementCounts = initialHandshake.RemainingPlacementCounts;
         }
     }
 }

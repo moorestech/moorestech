@@ -24,6 +24,7 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
+using Client.Game.InGame.Construction;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Map.MapVein;
@@ -181,6 +182,10 @@ namespace Client.Starter
             // Hotbar's 9-slot assignment-reference model and its update-event subscription
             builder.Register<ClientHotbarDatastore>(Lifetime.Singleton);
             builder.RegisterEntryPoint<HotbarNetworkEventHandler>();
+            // 残り設置数モデルと更新購読
+            // Remaining-placement model and its update-event subscription
+            builder.Register<ClientRemainingPlacementCountDatastore>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<RemainingPlacementCountEventHandler>();
             // 装備モデルと、その選択に追従する手持ち3Dモデル
             // Equipment model and the held 3D model that follows its selection
             builder.Register<LocalPlayerEquipment>(Lifetime.Singleton);
