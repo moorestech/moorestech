@@ -1,81 +1,40 @@
 using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
-using TMPro;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
 {
     /// <summary>
-    /// 設置プレビュー中に自動接続される複数ワイヤーと合計消費電線数を半透明で描画する
-    /// Renders multiple auto-connect wires and total wire cost semi-transparently during placement preview
+    /// 設置プレビュー中に自動接続される複数ワイヤーを半透明で描画する
+    /// Renders multiple auto-connect wires semi-transparently during placement preview
     /// </summary>
     public class AutoConnectWirePreviewRenderer
     {
         // 端点はElectricWireEndpointResolver、垂れ量はCatenaryWireMeshBuilder.Buildが内部で決め、実描画と同一計算になる
         // Endpoints come from ElectricWireEndpointResolver and the sag is decided inside CatenaryWireMeshBuilder.Build, matching the actual rendering
         private const float WireAlpha = 0.5f;
-        private const float CostLabelFontSize = 3f;
-        private static readonly Vector3 CostLabelOffset = new(0f, 0.8f, 0f);
 
-        private readonly Camera _mainCamera;
         private readonly Transform _root;
         private readonly List<WireLine> _wireLines = new();
-        private readonly TextMeshPro _costLabel;
 
-        public AutoConnectWirePreviewRenderer(Camera mainCamera)
+        public AutoConnectWirePreviewRenderer()
         {
-            _mainCamera = mainCamera;
-
-            // 線とラベルの親を構築
-            // Build a parent GameObject grouping wire lines and the label
+            // 線の親を構築
+            // Build a parent GameObject grouping wire lines
             var rootObject = new GameObject("AutoConnectWirePreview");
             _root = rootObject.transform;
-
-            // 合計コストのラベルを子生成
-            // Create a world-space total wire cost label as a child
-            var labelObject = new GameObject("AutoConnectWireCostLabel");
-            labelObject.transform.SetParent(_root, false);
-            _costLabel = labelObject.AddComponent<TextMeshPro>();
-            _costLabel.fontSize = CostLabelFontSize;
-            _costLabel.alignment = TextAlignmentOptions.Center;
 
             _root.gameObject.SetActive(false);
         }
 
         /// <summary>
-        /// 起点端点から各接続先端点へワイヤーを張り、合計消費電線数を表示する
-        /// Draws wires from the origin endpoint to each target endpoint and shows the total wire cost
+        /// 起点端点から各接続先端点へワイヤーを張る。不可時は不可色。文言はカーソルツールチップ側が持つ
+        /// Draws wires from the origin endpoint to each target endpoint, in the failure color when not placeable; text lives in the cursor tooltip
         /// </summary>
-        public void ShowCost(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, int totalWireCost)
+        public void Show(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, bool isFailure)
         {
-            DrawWires(originEndpoint, targetEndpoints, false);
-            if (totalWireCost <= 0)
-            {
-                _costLabel.gameObject.SetActive(false);
-                return;
-            }
-            PlaceLabel(originEndpoint, $"電線 x{totalWireCost}", false);
-        }
-
-        /// <summary>
-        /// 設置を拒否した理由を不可色で表示する。線は拒否時も参考として描画する
-        /// Shows the rejection reason in the failure color; the wires stay drawn for reference
-        /// </summary>
-        public void ShowFailure(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, string reasonText)
-        {
-            DrawWires(originEndpoint, targetEndpoints, true);
-            PlaceLabel(originEndpoint, reasonText, true);
-        }
-
-        /// <summary>
-        /// 設置は許可したまま、配線が起きない事情を情報色で案内する
-        /// Keeps placement allowed while explaining in the info color why no wire is drawn
-        /// </summary>
-        public void ShowNotice(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, string noticeText)
-        {
-            DrawWires(originEndpoint, targetEndpoints, false);
-            PlaceLabel(originEndpoint, noticeText, false);
+            DrawWires(originEndpoint, targetEndpoints, isFailure);
         }
 
         // 必要数のワイヤー線を確保し、各ターゲットへ可否色でカテナリーを張る
@@ -96,19 +55,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 _wireLines[i].SetColor(isFailure);
                 _wireLines[i].Draw(originEndpoint, targetEndpoints[i]);
             }
-        }
-
-        // ラベルを起点上へ配置しカメラへ向ける。可否で色を切り替える
-        // Place the label above the origin, billboarded to the camera, colored by failure state
-        private void PlaceLabel(Vector3 originEndpoint, string text, bool isFailure)
-        {
-            _costLabel.gameObject.SetActive(true);
-            _costLabel.text = text;
-            _costLabel.color = WithAlpha(isFailure ? MaterialConst.NotPlaceableColor : MaterialConst.PlaceableColor);
-
-            var labelTransform = _costLabel.transform;
-            labelTransform.position = originEndpoint + CostLabelOffset;
-            labelTransform.rotation = Quaternion.LookRotation(labelTransform.position - _mainCamera.transform.position);
         }
 
         public void Hide()
