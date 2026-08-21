@@ -5,6 +5,7 @@ using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Construction;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.Train.RailPositions;
@@ -23,12 +24,16 @@ namespace Server.Protocol.PacketResponse
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly TrainRailPositionManager _railPositionManager;
-        
-        
+        private readonly IRemainingPlacementCountLookup _remainingPlacementCountLookup;
+        private readonly IRemainingPlacementCountMutation _remainingPlacementCountMutation;
+
+
         public RemoveBlockProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
+            _remainingPlacementCountLookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
+            _remainingPlacementCountMutation = serviceProvider.GetService<IRemainingPlacementCountMutation>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -46,6 +51,11 @@ namespace Server.Protocol.PacketResponse
             // 削除処理
             // Deletion process
             ServerContext.WorldBlockDatastore.RemoveBlock(data.Pos, BlockRemoveReason.ManualRemove);
+
+            // 撤去確定後に財布へ1戻す（凝縮時は0へ戻り、返却分は上で確保済み）
+            // After removal is final, return one to the wallet (condensing resets it; the refund was reserved above)
+            RemainingPlacementChargeService.ReturnOne(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), data.PlayerId, _remainingPlacementCountMutation);
+
             InsertItemsToPlayerInventory(refundItems);
             
             return RemoveBlockResponseMessagePack.CreateSuccess();
@@ -90,10 +100,11 @@ namespace Server.Protocol.PacketResponse
             {
                 var result = new List<IItemStack>();
                 
-                // requiredItems定義ブロックのみ建設コストを全額返却する（未定義は本体返却なし）
-                // Refund the full construction cost only when requiredItems is defined; otherwise no body refund
+                // 建設コストは財布が1セット分に達する撤去でのみ返る（設置数/1セット=1は毎回）
+                // The construction cost returns only when this removal completes one set's worth in the wallet (every time when placementsPerCost==1)
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
-                if (blockMaster.RequiredItems != null && blockMaster.RequiredItems.Length != 0)
+                if (blockMaster.RequiredItems != null && blockMaster.RequiredItems.Length != 0
+                    && RemainingPlacementChargeService.WouldCondenseOnReturn(blockMaster, data.PlayerId, _remainingPlacementCountLookup))
                 {
                     result.AddRange(ConstructionCostService.CreateRefundItems(ConstructionCostService.ToItemCounts(blockMaster.RequiredItems)));
                 }

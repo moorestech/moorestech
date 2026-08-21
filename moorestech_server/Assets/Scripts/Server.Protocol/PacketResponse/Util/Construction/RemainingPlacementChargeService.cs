@@ -37,5 +37,25 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             if (0 < costToConsume.Count) mutation.Refill(playerId, walletBlockId, blockMaster.PlacementsPerCost);
             mutation.TryConsumeOne(playerId, walletBlockId);
         }
+
+        // 撤去がこのセルで素材1セットの返却になるか。設置数/1セット=1は常に全額返却
+        // Whether this removal refunds one set of materials; placementsPerCost==1 always refunds in full
+        public static bool WouldCondenseOnReturn(BlockMasterElement blockMaster, int playerId, IRemainingPlacementCountLookup lookup)
+        {
+            if (blockMaster.PlacementsPerCost <= 1) return true;
+
+            var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid));
+            return blockMaster.PlacementsPerCost <= lookup.GetRemainingCount(playerId, walletBlockId) + 1;
+        }
+
+        // 撤去確定後にのみ呼ぶこと。設置数/1セット=1は財布を素通りする
+        // Call only after removal is final; placementsPerCost==1 bypasses the wallet
+        public static void ReturnOne(BlockMasterElement blockMaster, int playerId, IRemainingPlacementCountMutation mutation)
+        {
+            if (blockMaster.PlacementsPerCost <= 1) return;
+
+            var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid));
+            mutation.ReturnOne(playerId, walletBlockId, blockMaster.PlacementsPerCost);
+        }
     }
 }
