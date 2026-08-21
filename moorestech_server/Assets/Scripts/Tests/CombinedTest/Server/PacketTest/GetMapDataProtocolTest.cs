@@ -115,10 +115,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, response.TerrainMeta.WorldSeed);
         }
 
-        // 姿勢・スケール・クラスタ情報は見た目の入力。ワイヤで落ちるとクライアントだけが見た目を再現できない
-        // Rotation, scale and cluster info feed the visuals; dropping them on the wire leaves only the client unable to reproduce them
+        // 姿勢・スケールは見た目の入力。ワイヤで落ちるとクライアントだけが見た目を再現できない
+        // Rotation and scale feed the visuals; dropping them on the wire leaves only the client unable to reproduce them
         [Test]
-        public void MapObjectsの転送に姿勢とスケールとクラスタ情報が含まれる()
+        public void MapObjectsの転送に姿勢とスケールが含まれる()
         {
             var (packet, _) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -133,7 +133,6 @@ namespace Tests.CombinedTest.Server.PacketTest
                 Assert.Greater(mapObject.ScaleX, 0f);
                 Assert.Greater(mapObject.ScaleY, 0f);
                 Assert.Greater(mapObject.ScaleZ, 0f);
-                Assert.GreaterOrEqual(mapObject.ClusterId, -1);
             }
 
             // 3軸を取り違えても通らないよう、map.jsonで軸ごとに違う値を持たせた1件を突き合わせる
@@ -150,17 +149,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(1.5f, scaled.ScaleX);
             Assert.AreEqual(2.0f, scaled.ScaleY);
             Assert.AreEqual(2.5f, scaled.ScaleZ);
-
-            // 独立配置は-1のまま届き、重心を持たない
-            // An independent placement arrives as -1 and owns no centroid
-            Assert.AreEqual(-1, scaled.ClusterId);
-            Assert.AreEqual(0f, scaled.ClusterCenterX);
-            Assert.AreEqual(0f, scaled.ClusterCenterZ);
-
-            var clustered = response.MapObjects[5];
-            Assert.AreEqual(7, clustered.ClusterId);
-            Assert.AreEqual(100.5f, clustered.ClusterCenterX);
-            Assert.AreEqual(-100.25f, clustered.ClusterCenterZ);
         }
     }
 }

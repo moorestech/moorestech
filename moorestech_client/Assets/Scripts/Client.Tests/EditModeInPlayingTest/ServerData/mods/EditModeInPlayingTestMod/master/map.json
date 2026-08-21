@@ -15,7 +15,6 @@
       ],
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "soundEffectType": "stone",
-      "terrainSurroundEffectType": "rockBareGround",
       "miningType": "PickUp",
       "miningParam": {}
     },
@@ -28,7 +27,6 @@
       "sortPriority": 100,
       "maxStack": 100,
       "soundEffectType": "tree",
-      "terrainSurroundEffectType": "treeRootPatch",
       "miningType": "Mining",
       "earnItems": [
         {
@@ -91,8 +89,7 @@
         ]
       },
       "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b",
-      "soundEffectType": "tree",
-      "terrainSurroundEffectType": "treeRootPatch"
+      "soundEffectType": "tree"
     },
     {
       "earnItemHpInterval": 10,
@@ -101,7 +98,6 @@
       "addressablePath": "Vanilla/Environment/StoneVein",
       "miningType": "Mining",
       "soundEffectType": "stone",
-      "terrainSurroundEffectType": "rockBareGround",
       "miningParam": {
         "miningTools": [
           {

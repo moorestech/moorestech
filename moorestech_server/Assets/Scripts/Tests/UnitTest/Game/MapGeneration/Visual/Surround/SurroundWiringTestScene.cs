@@ -63,8 +63,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Surround
 
         private static readonly BiomeType[] BiomeTypes = { BiomeType.Grassland };
 
-        // MapObjectKindSplitterがterrainSurroundEffectTypeを引くためMasterHolderが要る
-        // MapObjectKindSplitter reads terrainSurroundEffectType, so MasterHolder must be loaded
+        // 塗り分けがMapObjectMasterのaddressablePath等を引くためMasterHolderが要る
+        // The painting stage reads MapObjectMaster's addressablePath and the like, so MasterHolder must be loaded
         public static void LoadMasterData()
         {
             new MoorestechServerDIContainerGenerator()

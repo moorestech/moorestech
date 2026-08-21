@@ -145,8 +145,6 @@ namespace Game.MapGeneration.Pipeline.Tiling
                         Position = entry.WorldPosition,
                         Rotation = entry.Rotation,
                         Scale = entry.Scale,
-                        ClusterId = clusterId,
-                        ClusterCenter = clusterCenter,
                     });
 
                     _ledger.Add(new LedgerPlacement(entry.MapObjectGuid, entry.WorldPosition, entry.Rotation, entry.Scale,

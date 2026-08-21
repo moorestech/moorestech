@@ -91,25 +91,17 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(mapInfoJson.MapObjects[1].Rotation, Is.EqualTo(Quaternion.identity));
         }
 
-        // スケールとクラスタ情報は岩周辺テクスチャの入力。map.jsonが落とすと再起動後だけ見た目が変わる。
-        // Scale and cluster info feed the rock surround texture; dropping them in map.json changes the visuals only after a restart.
+        // スケールは岩周辺テクスチャの入力。map.jsonが落とすと再起動後だけ見た目が変わる。
+        // Scale feeds the rock surround texture; dropping it in map.json changes the visuals only after a restart.
         [Test]
-        public void ScaleAndClusterInfoAreTranscribed()
+        public void ScaleIsTranscribed()
         {
             var output = CreateDummyOutput();
 
             var mapInfoJson = MapInfoJsonBuilder.Build(output);
 
-            var clustered = mapInfoJson.MapObjects[0];
-            Assert.That(clustered.Scale, Is.EqualTo(new Vector3(1.5f, 2f, 2.5f)));
-            Assert.That(clustered.ClusterId, Is.EqualTo(4));
-            Assert.That(clustered.ClusterCenterX, Is.EqualTo(11f));
-            Assert.That(clustered.ClusterCenterZ, Is.EqualTo(12f));
-
-            var independent = mapInfoJson.MapObjects[1];
-            Assert.That(independent.ClusterId, Is.EqualTo(-1));
-            Assert.That(independent.ClusterCenterX, Is.EqualTo(0f));
-            Assert.That(independent.ClusterCenterZ, Is.EqualTo(0f));
+            var first = mapInfoJson.MapObjects[0];
+            Assert.That(first.Scale, Is.EqualTo(new Vector3(1.5f, 2f, 2.5f)));
         }
 
         [Test]
@@ -136,8 +128,6 @@ namespace Tests.UnitTest.Game.MapGeneration
                         Position = new Vector3(1, 1, 1),
                         Rotation = DummyRotation,
                         Scale = new Vector3(1.5f, 2f, 2.5f),
-                        ClusterId = 4,
-                        ClusterCenter = new Vector2(11f, 12f),
                     },
                     new()
                     {
@@ -145,7 +135,6 @@ namespace Tests.UnitTest.Game.MapGeneration
                         Position = new Vector3(2, 2, 2),
                         Rotation = Quaternion.identity,
                         Scale = Vector3.one,
-                        ClusterId = -1,
                     },
                     new()
                     {
@@ -153,7 +142,6 @@ namespace Tests.UnitTest.Game.MapGeneration
                         Position = new Vector3(3, 3, 3),
                         Rotation = Quaternion.identity,
                         Scale = Vector3.one,
-                        ClusterId = -1,
                     },
                 },
                 ItemVeins = new List<PlacedVein>
