@@ -39,47 +39,56 @@ namespace Client.Tests.UnitTest.Terrain.Golden
             var (config, sections, output) = TerrainVisualGoldenFixture.Build();
             var worldRoot = Path.Combine(Path.GetTempPath(), $"moorestech_golden_{System.Guid.NewGuid()}");
             var worldDirectory = WorldDataDirectory.FromWorldRoot(worldRoot);
-            TerrainFileWriter.Write(worldDirectory, output);
-
-            // 転送DTOは生成出力から組む。InstanceIdは見た目に効かないので連番
-            // Build the wire DTOs from the generation output; InstanceId does not affect visuals, so it is sequential
-            var mapObjects = new List<MapObjectLayoutMessagePack>();
-            for (var i = 0; i < output.MapObjects.Count; i++)
-            {
-                var placed = output.MapObjects[i];
-                mapObjects.Add(new MapObjectLayoutMessagePack(i, placed.MapObjectGuid,
-                    placed.Position.x, placed.Position.y, placed.Position.z,
-                    placed.Rotation.x, placed.Rotation.y, placed.Rotation.z, placed.Rotation.w,
-                    placed.Scale.x, placed.Scale.y, placed.Scale.z,
-                    placed.ClusterId, placed.ClusterCenter.x, placed.ClusterCenter.y));
-            }
-
-            var gridConfig = config.ShallowCopy();
-            gridConfig.worldOffsetX = output.NoiseOrigin.x;
-            gridConfig.worldOffsetZ = output.NoiseOrigin.y;
-            var helper = new BiomePlacementHelper(gridConfig);
-            var species = TreeSurroundSpeciesTable.Build(helper, TerrainVisualGoldenFixture.BiomeTypes);
-            var layerTable = SplatLayerTable.Build("addr/beach", "addr/rock", sections.MainLayerAddresses, sections.TextureConfigs,
-                sections.SurroundTextureConfigs, species, System.Array.Empty<string>());
-            var provider = new TerrainTileVisualProvider(gridConfig, TerrainVisualGoldenFixture.BiomeTypes, sections, layerTable,
-                new TerrainLayer[layerTable.OrderedLayerAddresses.Count], species, mapObjects, worldDirectory,
-                new TerrainVisualCache(worldDirectory, new string('0', 64)));
-
             var actual = new Dictionary<string, string>();
-            foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(output.Tiles.Count))
+
+            // finallyで一時ディレクトリを必ず片付ける。途中でResolveが例外を投げても取り残さない
+            // The finally block always cleans the temp directory, even if Resolve throws partway through
+            try
             {
-                var tileConfig = gridConfig.CreateTileConfig(tileX, tileZ);
-                var tileScene = config.TileScenePosition(tileX, tileZ);
-                var tileWorld = new Vector3(tileScene.x, 0f, tileScene.y);
-                var pre = TerrainFileLoader.LoadHeights(worldDirectory, tileX, tileZ, config.Resolution);
-                var post = TreePerturbationApplier.Apply(pre, tileConfig, tileWorld, mapObjects);
-                var (visual, _) = provider.Resolve(tileX, tileZ, tileConfig, tileWorld, pre, post);
-                actual[$"alphamap_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(visual.Alphamap);
-                actual[$"heights_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(post);
-                for (var d = 0; d < visual.DetailMaps.Count; d++)
-                    actual[$"detail_{tileX}_{tileZ}_{d}"] = TerrainVisualGoldenFixture.Sha256(visual.DetailMaps[d]);
+                TerrainFileWriter.Write(worldDirectory, output);
+
+                // 転送DTOは生成出力から組む。InstanceIdは見た目に効かないので連番
+                // Build the wire DTOs from the generation output; InstanceId does not affect visuals, so it is sequential
+                var mapObjects = new List<MapObjectLayoutMessagePack>();
+                for (var i = 0; i < output.MapObjects.Count; i++)
+                {
+                    var placed = output.MapObjects[i];
+                    mapObjects.Add(new MapObjectLayoutMessagePack(i, placed.MapObjectGuid,
+                        placed.Position.x, placed.Position.y, placed.Position.z,
+                        placed.Rotation.x, placed.Rotation.y, placed.Rotation.z, placed.Rotation.w,
+                        placed.Scale.x, placed.Scale.y, placed.Scale.z,
+                        placed.ClusterId, placed.ClusterCenter.x, placed.ClusterCenter.y));
+                }
+
+                var gridConfig = config.ShallowCopy();
+                gridConfig.worldOffsetX = output.NoiseOrigin.x;
+                gridConfig.worldOffsetZ = output.NoiseOrigin.y;
+                var helper = new BiomePlacementHelper(gridConfig);
+                var species = TreeSurroundSpeciesTable.Build(helper, TerrainVisualGoldenFixture.BiomeTypes);
+                var layerTable = SplatLayerTable.Build("addr/beach", "addr/rock", sections.MainLayerAddresses, sections.TextureConfigs,
+                    sections.SurroundTextureConfigs, species, System.Array.Empty<string>());
+                var provider = new TerrainTileVisualProvider(gridConfig, TerrainVisualGoldenFixture.BiomeTypes, sections, layerTable,
+                    new TerrainLayer[layerTable.OrderedLayerAddresses.Count], species, mapObjects, worldDirectory,
+                    new TerrainVisualCache(worldDirectory, new string('0', 64)));
+
+                foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(output.Tiles.Count))
+                {
+                    var tileConfig = gridConfig.CreateTileConfig(tileX, tileZ);
+                    var tileScene = config.TileScenePosition(tileX, tileZ);
+                    var tileWorld = new Vector3(tileScene.x, 0f, tileScene.y);
+                    var pre = TerrainFileLoader.LoadHeights(worldDirectory, tileX, tileZ, config.Resolution);
+                    var post = TreePerturbationApplier.Apply(pre, tileConfig, tileWorld, mapObjects);
+                    var (visual, _) = provider.Resolve(tileX, tileZ, tileConfig, tileWorld, pre, post);
+                    actual[$"alphamap_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(visual.Alphamap);
+                    actual[$"heights_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(post);
+                    for (var d = 0; d < visual.DetailMaps.Count; d++)
+                        actual[$"detail_{tileX}_{tileZ}_{d}"] = TerrainVisualGoldenFixture.Sha256(visual.DetailMaps[d]);
+                }
             }
-            Directory.Delete(worldRoot, true);
+            finally
+            {
+                Directory.Delete(worldRoot, true);
+            }
 
             var goldenPath = TerrainVisualGoldenFixture.GoldenJsonPath;
             if (!File.Exists(goldenPath))

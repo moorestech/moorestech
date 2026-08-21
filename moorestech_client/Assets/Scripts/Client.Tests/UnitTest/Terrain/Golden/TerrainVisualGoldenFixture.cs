@@ -25,6 +25,10 @@ namespace Client.Tests.UnitTest.Terrain.Golden
         public const int Seed = 4242;
         public static readonly BiomeType[] BiomeTypes = { BiomeType.Grassland };
 
+        // map.json の vanilla:TestMiningRock。terrainSurroundEffectType=rockBareGroundで実際に岩として振り分けられるguid
+        // map.json's vanilla:TestMiningRock; the one guid that actually classifies as rockBareGround
+        private const string RockMapObjectGuid = "00000000-0000-2222-0000-000000000001";
+
         public static string GoldenJsonPath =>
             Path.Combine(Application.dataPath, "Scripts/Client.Tests/UnitTest/Terrain/Golden/terrain_visual_golden.json");
 
@@ -36,11 +40,14 @@ namespace Client.Tests.UnitTest.Terrain.Golden
             config.generateTexture = true;
             config.generateDetail = true;
 
-            // テスト用modはGrassland/Forestの2バイオームを既定で持つが、ゴールデンはGrassland単独を固定値とする
-            // ため、Forestをここで無効化して分類段の出力を1バイオームへ揃える
-            // The test mod enables both Grassland and Forest by default, but the golden pins Grassland alone,
-            // so Forest is disabled here to keep the classification stage's output to a single biome
+            // ゴールデンはGrassland単独を固定値とするため、既定で有効なForestをここで無効化する
+            // The golden pins Grassland alone, so Forest, enabled by default, is disabled here
             config.forestEnabled = false;
+
+            // EnableObjectsのguidはmap.json上で木扱いのため、実測で確認した岩guidへ差し替える(objectDistanceMap飽和対策)
+            // EnableObjects's guids classify as trees in map.json, so swap in the measured rock guid to unsaturate objectDistanceMap
+            foreach (var entry in config.grassland.objectConfig.entries)
+                entry.mapObjectGuids = new[] { RockMapObjectGuid };
 
             // 木の根元を塗る樹種にする。塗らないと surround 経路がゴールデンに含まれない
             // Make the species paint its root patch; otherwise the surround path never enters the golden
