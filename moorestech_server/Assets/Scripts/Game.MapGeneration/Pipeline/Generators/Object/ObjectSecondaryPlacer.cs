@@ -49,6 +49,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                         Rotation = rot,
                         Scale = new Vector3(scale, scale, scale),
                         Sink = sink,
+                        SurroundEffect = sec.terrainSurroundEffectType,
                         Cluster = info
                     });
                 }
@@ -134,6 +135,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                             Rotation = Quaternion.Euler(0, yRot, 0),
                             Scale = new Vector3(scale, scale, scale),
                             Sink = sink,
+                            SurroundEffect = sec.terrainSurroundEffectType,
                             Cluster = info
                         });
                     }

@@ -160,6 +160,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                     Rotation = Quaternion.identity,
                     Scale = Vector3.one,
                     Sink = 0f,
+                    // 鉱脈は mapObject にならず見た目ステージへ渡らないため SurroundEffect は書かない（既定値のまま）
+                    // Veins never become mapObjects and never reach the visual stages, so SurroundEffect is left at its default
                     Cluster = new RockClusterInfo { ClusterId = clusterId }
                 });
 

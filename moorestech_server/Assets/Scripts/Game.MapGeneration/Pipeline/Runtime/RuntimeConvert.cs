@@ -22,6 +22,12 @@ namespace Game.MapGeneration.Pipeline.Runtime
             ParseEnum<SecondaryPlacementMode>(generatedMode, "secondaryPlacementMode");
         public static TextureChannel ToTextureChannel(string generatedChannel) =>
             ParseEnum<TextureChannel>(generatedChannel, "channel");
+        public static TerrainSurroundEffectType ToTerrainSurroundEffectType(string generatedName, string fieldPath)
+        {
+            if (Enum.TryParse<TerrainSurroundEffectType>(generatedName, out var parsed)) return parsed;
+            throw new InvalidOperationException(
+                $"[RuntimeConvert] '{fieldPath}' has an unrecognized terrainSurroundEffectType: '{generatedName}'.");
+        }
 
         static T ParseEnum<T>(string name, string fieldName) where T : struct
         {

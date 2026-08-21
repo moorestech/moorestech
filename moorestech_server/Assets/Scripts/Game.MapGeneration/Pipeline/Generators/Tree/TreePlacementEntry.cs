@@ -113,7 +113,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                 WorldPosition = new Vector3(point.x, height * dims.TerrainHeight, point.y),
                 Rotation = Quaternion.Euler(0, rotation, 0),
                 Scale = new Vector3(widthScale, heightScale, widthScale),
-                Sink = sinkNorm * dims.TerrainHeight
+                Sink = sinkNorm * dims.TerrainHeight,
+                SurroundEffect = entry.terrainSurroundEffectType
             });
             sharedGrid.Add(point.x, point.y);
         }

@@ -114,7 +114,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                                 Rotation = Quaternion.Euler(0,
                                     entry.randomRotation ? (float)rng.NextDouble() * 360f : 0f, 0),
                                 Scale = new Vector3(scale, scale, scale),
-                                Sink = entry.sink
+                                Sink = entry.sink,
+                                SurroundEffect = entry.terrainSurroundEffectType
                             });
                             sharedGrid.Add(tx, tz);
                         }

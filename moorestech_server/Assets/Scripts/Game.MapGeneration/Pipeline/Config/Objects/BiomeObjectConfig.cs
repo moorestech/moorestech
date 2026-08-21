@@ -11,6 +11,7 @@ namespace Game.MapGeneration.Pipeline.Config
         public class ObjectEntry
         {
             public string[] mapObjectGuids;
+            public TerrainSurroundEffectType terrainSurroundEffectType;
             public float density = 1f;
             public Vector2 scaleRange = new Vector2(0.8f, 1.2f);
             public float slopeAlignment = 0f;

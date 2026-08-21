@@ -14,5 +14,9 @@ namespace Game.MapGeneration.Pipeline.Config
         public Vector3 Scale;
         public float Sink;
         public RockClusterInfo? Cluster;
+
+        // 配置元エントリの terrainSurroundEffectType を写す。地形の見た目ステージだけが読む
+        // Copied from the source entry's terrainSurroundEffectType; only the terrain visual stages read it
+        public TerrainSurroundEffectType SurroundEffect;
     }
 }

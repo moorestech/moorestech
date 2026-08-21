@@ -155,6 +155,7 @@ namespace Tests.UnitTest.Game.MapGeneration
                 return new JObject
                 {
                     ["prefabs"] = new JArray(new JObject { ["mapObjectGuid"] = mapObjectGuid }),
+                    ["terrainSurroundEffectType"] = "rockNoBareGround",
                     ["density"] = 1.0,
                     ["scaleRange"] = new JArray(1.0, 1.0),
                     ["slopeAlignment"] = 0.0,

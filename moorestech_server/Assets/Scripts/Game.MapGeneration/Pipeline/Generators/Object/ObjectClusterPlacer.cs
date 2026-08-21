@@ -79,6 +79,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                         heroScale * (objAlgCfg.heroYScaleMin + (float)rng.NextDouble() * objAlgCfg.heroYScaleRange),
                         heroScale),
                     Sink = heroSink,
+                    SurroundEffect = cluster.terrainSurroundEffectType,
                     Cluster = new RockClusterInfo
                     {
                         ClusterId = clusterId,
@@ -139,6 +140,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                         Rotation = rot,
                         Scale = new Vector3(scale, yScale, scale),
                         Sink = sink,
+                        SurroundEffect = cluster.terrainSurroundEffectType,
                         Cluster = new RockClusterInfo
                         {
                             ClusterId = clusterId,

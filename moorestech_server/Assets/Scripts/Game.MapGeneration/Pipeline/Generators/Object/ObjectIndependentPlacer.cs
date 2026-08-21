@@ -74,6 +74,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                     Rotation = rot,
                     Scale = new Vector3(scale, scale, scale),
                     Sink = sink,
+                    SurroundEffect = entry.terrainSurroundEffectType,
                     Cluster = new RockClusterInfo { ClusterId = -1 }
                 });
             }
@@ -156,6 +157,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                         Rotation = rot,
                         Scale = new Vector3(scale, yScale, scale),
                         Sink = sink,
+                        SurroundEffect = entry.terrainSurroundEffectType,
                         Cluster = clusterInfo
                     });
                 }
