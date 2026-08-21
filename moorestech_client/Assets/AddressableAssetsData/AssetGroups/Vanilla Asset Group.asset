@@ -150,11 +150,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 11a1992a34e634165885d02b6f372a5e
-    m_Address: Vanilla/Environment/Vein/Item/Copper
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1239c6db1d5ff4cfe9f8a2349a3cc85b
     m_Address: Vanilla/Environment/Rock/MesaDesert/ThinMesa_1
     m_ReadOnly: 0
@@ -242,11 +237,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 194720b8c346548fdab7623dd5d1e3f3
     m_Address: Vanilla/Item/StoneAxe
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 19d0fd83682574f808ae8b05e94b3b29
-    m_Address: Vanilla/Environment/Vein/Item/Coal
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -641,7 +631,7 @@ MonoBehaviour:
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 45bd1c42410764c4baff0d3becb83757
-    m_Address: Vanilla/Environment/Vein/Item/VeinPrefab_Bronz
+    m_Address: Vanilla/Environment/Vein/Item/VeinPrefab_Bronze
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -935,11 +925,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 64b3a814a7a4c47c6882b438ad1feea6
-    m_Address: Vanilla/Environment/Vein/Item/Stone
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 657c06b71e51743e6a4c1f847aa3632f
     m_Address: Vanilla/Environment/Tree/Redwood/RedPine1
     m_ReadOnly: 0
@@ -1125,11 +1110,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7ab1ed06c5c0c457390dd26c2d94fc25
-    m_Address: Vanilla/Environment/Vein/Item/Iron
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7ab89c4d500216c4f837a2fe7be439af
     m_Address: Vanilla/Block/Old/pole
     m_ReadOnly: 0
@@ -1152,11 +1132,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7c4a142c292e9450fb9b6306dfc2e761
     m_Address: Vanilla/Environment/Tree/Redwood/RedFir3
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7ca897a22f2fc4b68b93d719a1c29e63
-    m_Address: Vanilla/Environment/Vein/Item/Tree
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1202,11 +1177,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 82c5a9bbcacd7407db450e1634f29464
     m_Address: Vanilla/Block/Chainer_Fast_BeltConveyor_Cross Variant
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 82d9cae2807d64a7d8344f4b0a4a83fb
-    m_Address: Vanilla/Environment/Vein/Item/Bronze
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1922,11 +1892,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c046183dce621409983886cf2752bfca
     m_Address: Vanilla/Block/gear belt conveyor splitter
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c0d5290809496402a813db693dbdb912
-    m_Address: Vanilla/Environment/Vein/Item/Clay
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
