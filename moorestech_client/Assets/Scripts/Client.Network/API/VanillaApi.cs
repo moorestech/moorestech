@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using Client.Network.Settings;
 using UniRx;
 using VContainer.Unity;
@@ -8,18 +7,15 @@ namespace Client.Network.API
 {
     public class VanillaApi : IInitializable
     {
-        private readonly Process _localServerProcess;
-        
         private readonly ServerCommunicator _serverCommunicator;
         public readonly IVanillaApiEvent Event;
         public readonly VanillaApiWithResponse Response;
         public readonly VanillaApiSendOnly SendOnly;
-        
-        public VanillaApi(PacketExchangeManager packetExchangeManager, PacketSender packetSender, ServerCommunicator serverCommunicator, PlayerConnectionSetting playerConnectionSetting, Process localServerProcess)
+
+        public VanillaApi(PacketExchangeManager packetExchangeManager, PacketSender packetSender, ServerCommunicator serverCommunicator, PlayerConnectionSetting playerConnectionSetting)
         {
             _serverCommunicator = serverCommunicator;
-            _localServerProcess = localServerProcess;
-            
+
             Event = new VanillaApiEvent(packetExchangeManager);
             Response = new VanillaApiWithResponse(packetExchangeManager, playerConnectionSetting);
             SendOnly = new VanillaApiSendOnly(packetSender, playerConnectionSetting);
@@ -34,7 +30,6 @@ namespace Client.Network.API
         public void Disconnect()
         {
             _serverCommunicator.Close();
-            _localServerProcess?.Kill();
         }
     }
 }

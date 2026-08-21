@@ -28,6 +28,10 @@ namespace Tests.UnitTest.Game.MapGeneration
         // Fixed test map object GUID referenced by the ObjectEntry (vanilla:Tree in map.json).
         public const string TestMapObjectGuid = "8c0e1339-be75-4690-99cd-58b5385a17cd";
 
+        // 鉱脈が格子外へはみ出しうる量。ADR-0023 の仕様値で、実装定数を読まず独立に持つ。
+        // The overhang a vein may have past the grid: the ADR-0023 spec value, held independently of the implementation constant.
+        public const int VeinGridOverhang = 1;
+
         // スポーン探索の有無を選ぶ。探索有効時は本番解像度が必須（段2検証が overrideResolution を拒否する）。
         // Selects the spawn-search setup; enabling it requires the production resolution (stage 2 rejects overrideResolution).
         public enum SpawnSearchSetup
@@ -188,7 +192,7 @@ namespace Tests.UnitTest.Game.MapGeneration
                     ["density"] = 1.0,
                     ["maxObjectsPerCluster"] = 5,
                     ["clusterRadius"] = 6,
-                    ["minDistanceBetweenOres"] = 1,
+                    ["minDistanceBetweenOres"] = 4,
                     ["placementRetries"] = 10,
                 });
             }

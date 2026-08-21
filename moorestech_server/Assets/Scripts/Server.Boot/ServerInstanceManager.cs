@@ -11,6 +11,7 @@ using Core.Update;
 using Game.Context;
 using Game.MapGeneration.Provisioning;
 using Game.Paths;
+using Game.SaveLoad;
 using Game.SaveLoad.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Base;
@@ -33,6 +34,10 @@ namespace Server.Boot
         private CancellationTokenSource _cancellationTokenSource;
         private Socket _listener;
 
+        // 終了時に保留中の保存を消化するための保存調停役
+        // The save coordinator used to flush pending saves at shutdown
+        private WorldSaveCoordinator _worldSaveCoordinator;
+
         private readonly string[] _args;
 
         // 実際にバインドされた待ち受けポート。バインド前は0
@@ -44,12 +49,23 @@ namespace Server.Boot
             _args = args;
         }
 
+        // 要求済みの保存が書き出し待ちで残っているか
+        // Whether a requested save is still waiting to be written
+        public bool HasPendingSave => _worldSaveCoordinator != null && _worldSaveCoordinator.HasPendingSave;
+
         public void Start()
         {
-            (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource, _listener) = Start(_args);
+            (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource, _listener, _worldSaveCoordinator) = Start(_args);
         }
 
-        private static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource, Socket listener) Start(string[] args)
+        // 終了直前の保存を通信を介さず直接要求する。パケット到達待ちの競合を作らない
+        // Request the shutdown save in-process so no packet-arrival race is created
+        public void RequestSave()
+        {
+            _worldSaveCoordinator?.RequestSave();
+        }
+
+        private static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource, Socket listener, WorldSaveCoordinator worldSaveCoordinator) Start(string[] args)
         {
             // 起動引数からワールドディレクトリのルートを解決する
             // Resolve the world directory root from launch arguments
@@ -126,7 +142,7 @@ namespace Server.Boot
             gameUpdateThread.Name = "[moorestech]ゲームアップデートスレッド";
             gameUpdateThread.Start();
 
-            return (connectionUpdateThread, gameUpdateThread, cancellationToken, listener);
+            return (connectionUpdateThread, gameUpdateThread, cancellationToken, listener, serviceProvider.GetRequiredService<WorldSaveCoordinator>());
         }
         
         
