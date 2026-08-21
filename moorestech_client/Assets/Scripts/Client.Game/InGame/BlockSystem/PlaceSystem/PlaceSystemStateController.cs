@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using UniRx;
 
@@ -7,6 +8,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     public class PlaceSystemStateController
     {
         private readonly PlaceSystemSelector _placeSystemSelector;
+        private readonly PlacementFeedbackTooltipPresenter _feedbackPresenter;
+        private readonly PlacementFeedback _feedback = new();
 
         private IPlaceSystem _currentPlaceSystem;
         private IPlacementTarget _lastTarget;
@@ -27,9 +30,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public bool IsWheelOwnedByTool => _isWheelOwnedByTool.Value;
         public IObservable<bool> OnWheelOwnedByToolChanged => _isWheelOwnedByTool;
 
-        public PlaceSystemStateController(PlaceSystemSelector placeSystemSelector)
+        public PlaceSystemStateController(PlaceSystemSelector placeSystemSelector, PlacementFeedbackTooltipPresenter feedbackPresenter)
         {
             _placeSystemSelector = placeSystemSelector;
+            _feedbackPresenter = feedbackPresenter;
 
             _currentPlaceSystem = _placeSystemSelector.EmptyPlaceSystem;
             Disable();
@@ -55,6 +59,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _currentPlaceSystem.Disable();
             _currentPlaceSystem = _placeSystemSelector.EmptyPlaceSystem;
 
+            // 設置モード離脱時は理由表示も消す
+            // Leaving placement mode also clears the reason tooltip
+            _feedback.Clear();
+            _feedbackPresenter.Hide();
+
             // 選択の寿命はPlaceBlock滞在中のみ。離脱時にターゲットと由来を同時に破棄する
             // Selection lives only while in PlaceBlock; drop the target and its origin together on leave
             CurrentTarget = null;
@@ -69,7 +78,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             var isSelectionChanged = !Equals(_lastTarget, CurrentTarget);
             _lastTarget = CurrentTarget;
 
-            var updateContext = new PlaceSystemUpdateContext(CurrentTarget, isSelectionChanged);
+            // 理由はフレームごとに集め直す
+            // Reasons are re-collected every frame
+            _feedback.Clear();
+            var updateContext = new PlaceSystemUpdateContext(CurrentTarget, isSelectionChanged, _feedback);
             var nextPlaceSystem = _placeSystemSelector.GetCurrentPlaceSystem(updateContext);
 
             if (_currentPlaceSystem != nextPlaceSystem)
@@ -84,6 +96,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             // 消費の有無はドラッグ中など毎フレーム変わりうるため、更新後の実状態をここで取り込む
             // Whether the wheel is consumed can change per frame (e.g. mid-drag), so pull the post-update truth here
             SetWheelOwnedByTool(_currentPlaceSystem.OwnsWheelInput);
+
+            // 更新後に集まった理由・案内をカーソルツールチップへ反映する
+            // Push the reasons and notices collected during the update into the cursor tooltip
+            _feedbackPresenter.Present(_feedback);
         }
     }
 }

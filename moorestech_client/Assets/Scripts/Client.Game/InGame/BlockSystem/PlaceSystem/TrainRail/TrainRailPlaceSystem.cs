@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Control;
@@ -23,7 +24,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             _trainRailPlaceSystemService.Enable();
         }
 
-        protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             // ビルドメニュー選択のBlockIdでプレビュー・設置を駆動する
             // Drive preview and placement from the build-menu selected BlockId

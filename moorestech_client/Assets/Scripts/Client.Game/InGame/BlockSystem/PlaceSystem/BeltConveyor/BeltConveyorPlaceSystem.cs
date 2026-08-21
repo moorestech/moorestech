@@ -3,6 +3,7 @@ using System.Linq;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Control;
@@ -63,7 +64,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _currentPlaceInfos.Clear();
         }
 
-        protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             _heightOffset = BeltConveyorInputControl.AdjustHeightOffset(_heightOffset);
             _currentBlockDirection = BeltConveyorInputControl.RotateDirection(_currentBlockDirection);

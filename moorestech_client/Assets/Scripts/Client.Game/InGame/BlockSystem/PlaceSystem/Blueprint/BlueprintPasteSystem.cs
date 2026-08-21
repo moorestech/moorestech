@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Control;
@@ -46,7 +47,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             _previewController ??= new BlueprintPastePreviewController(new GameObject("BlueprintPastePreview").transform);
         }
 
-        protected override void ManualUpdate(BlueprintPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(BlueprintPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             // 選択変更時にBP実データを解決する
             // Resolve blueprint data when the selection changes

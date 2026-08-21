@@ -4,6 +4,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -57,7 +58,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             _context.PoleSelection.RefreshUnlockedPoles(_gameUnlockStateData);
         }
 
-        protected override void ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             // 選択変化時のみ解放済み電柱を再読込する（毎tickのLINQ再構築を避ける）
             // Reload unlocked poles only on selection change to avoid rebuilding the LINQ query every tick
@@ -95,7 +96,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
                 return;
             }
 
-            _extendMode.Update(new PlaceSystemUpdateContext(target, isSelectionChanged), _sourceBlock);
+            _extendMode.Update(new PlaceSystemUpdateContext(target, isSelectionChanged, feedback), _sourceBlock);
         }
 
         public override void Disable()

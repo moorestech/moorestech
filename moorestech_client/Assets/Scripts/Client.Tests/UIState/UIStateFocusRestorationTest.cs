@@ -1,6 +1,7 @@
 using System.Runtime.Serialization;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.UI.UIState;
@@ -96,7 +97,7 @@ namespace Client.Tests.UIState
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
             var dataStore = CreateComponent<BlockGameObjectDataStore>("BlockDataStore");
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
-            var placeStateController = new PlaceSystemStateController(selector);
+            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter());
             var pickService = new PlacementTargetPickService(null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
             return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier, viewModeController), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView(), hotbarInputService);

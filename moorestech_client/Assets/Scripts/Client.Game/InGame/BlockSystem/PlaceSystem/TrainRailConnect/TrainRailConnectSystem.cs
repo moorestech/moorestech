@@ -4,6 +4,7 @@ using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
@@ -43,7 +44,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
         public override void Enable() { _connectFromArea = null; }
-        protected override void ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             _trainRailPlaceSystemService.Disable();
             // 接続元が未選択なら接続元を選択する

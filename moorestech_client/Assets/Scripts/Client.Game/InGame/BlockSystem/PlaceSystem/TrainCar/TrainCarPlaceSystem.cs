@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
@@ -39,7 +40,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             _previewController.SetActive(true);
         }
 
-        protected override void ManualUpdate(TrainCarPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(TrainCarPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             // 選択変更時は候補選択を初期化する
             // Reset route selection when the build-menu selection changes
