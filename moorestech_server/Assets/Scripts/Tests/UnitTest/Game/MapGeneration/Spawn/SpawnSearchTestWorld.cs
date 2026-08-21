@@ -99,12 +99,16 @@ namespace Tests.UnitTest.Game.MapGeneration
             List<PlacedVein> veins, float minX, float maxX, float minZ, float maxZ)
         {
             Assert.That(veins, Is.Not.Empty);
+
+            // 鉱脈は格子外へ1ブロックはみ出しうるため、判定にその余白を持たせる。
+            // A vein may overhang the grid by one block, so the range check takes that margin.
+            const int margin = TestGenerationConfigFactory.VeinGridOverhang;
             foreach (var vein in veins)
             {
-                Assert.That(vein.Min.x, Is.InRange(minX, maxX));
-                Assert.That(vein.Max.x, Is.InRange(minX, maxX));
-                Assert.That(vein.Min.z, Is.InRange(minZ, maxZ));
-                Assert.That(vein.Max.z, Is.InRange(minZ, maxZ));
+                Assert.That(vein.Min.x, Is.InRange(minX - margin, maxX + margin));
+                Assert.That(vein.Max.x, Is.InRange(minX - margin, maxX + margin));
+                Assert.That(vein.Min.z, Is.InRange(minZ - margin, maxZ + margin));
+                Assert.That(vein.Max.z, Is.InRange(minZ - margin, maxZ + margin));
             }
         }
     }

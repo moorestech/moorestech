@@ -29,8 +29,8 @@ namespace Client.Game.InGame.Map.MapVein
 
         private readonly MapVeinRangeBoxMaterials _boxMaterials = new();
 
-        // 非表示になったボックスは破棄せずここへ戻す。veinは1772本規模なので毎回作り直すと生成破棄が延々続く
-        // Hidden boxes come back here instead of being destroyed; with ~1772 veins, rebuilding them would churn forever
+        // 非表示のボックスは破棄せず戻す。veinは鉱脈密度に比例して増えるため作り直すと生成破棄が延々続く
+        // Hidden boxes come back here instead of being destroyed; the vein count scales with vein density, so rebuilding would churn forever
         private readonly Stack<GameObject> _boxPool = new();
 
         private readonly List<VeinRangeEntry> _entries = new();
