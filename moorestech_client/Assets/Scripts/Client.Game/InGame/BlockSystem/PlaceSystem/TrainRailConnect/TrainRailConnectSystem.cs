@@ -135,6 +135,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 }
                 _previewObject.SetActive(true);
                 _previewObject.ShowPreview(previewData);
+                TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
             }
             void SendConnectRailProtocol(IRailNode from, IRailNode to, Guid railTypeGuid)
             {

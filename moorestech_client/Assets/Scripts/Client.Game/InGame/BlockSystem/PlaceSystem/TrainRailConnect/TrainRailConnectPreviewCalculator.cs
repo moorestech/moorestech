@@ -107,8 +107,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 
     public struct TrainRailConnectPreviewData : IEquatable<TrainRailConnectPreviewData>
     {
-        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Guid.Empty, false, false);
-        
+        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Guid.Empty, false, false, RailConnectionEditProtocol.RailConnectionEditFailureReason.None, true);
+
         public Vector3 StartPoint;
         public Vector3 StartControlPoint;
         public Vector3 EndControlPoint;
@@ -116,18 +116,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         public Guid RailTypeGuid;
         public bool IsValid;
         public bool IsPlaceable;
+        public RailConnectionEditProtocol.RailConnectionEditFailureReason FailureReason;
+        public bool IsCurvePlaceable;
 
-        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, RailPlacementJudgement judgement)
-            : this(startPoint, startControlPoint, endControlPoint, endPoint, judgement.SelectedRailTypeGuid, judgement.IsPlaceable, true)
-        {
-        }
-        
         public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, RailPlacementJudgement judgement, bool isClientCurvePlaceable)
-            : this(startPoint, startControlPoint, endControlPoint, endPoint, judgement.SelectedRailTypeGuid, judgement.IsPlaceable && isClientCurvePlaceable, true)
+            : this(startPoint, startControlPoint, endControlPoint, endPoint, judgement.SelectedRailTypeGuid, judgement.IsPlaceable && isClientCurvePlaceable, true, judgement.FailureReason, isClientCurvePlaceable)
         {
         }
 
-        private TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, Guid railTypeGuid, bool isPlaceable, bool isValid)
+        private TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, Guid railTypeGuid, bool isPlaceable, bool isValid, RailConnectionEditProtocol.RailConnectionEditFailureReason failureReason, bool isCurvePlaceable)
         {
             StartPoint = startPoint;
             StartControlPoint = startControlPoint;
@@ -136,10 +133,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             IsValid = isValid;
             RailTypeGuid = railTypeGuid;
             IsPlaceable = isPlaceable;
+            FailureReason = failureReason;
+            IsCurvePlaceable = isCurvePlaceable;
         }
         public bool Equals(TrainRailConnectPreviewData other)
         {
-            return StartPoint.Equals(other.StartPoint) && StartControlPoint.Equals(other.StartControlPoint) && EndControlPoint.Equals(other.EndControlPoint) && EndPoint.Equals(other.EndPoint) && RailTypeGuid.Equals(other.RailTypeGuid) && IsPlaceable == other.IsPlaceable;
+            return StartPoint.Equals(other.StartPoint) && StartControlPoint.Equals(other.StartControlPoint) && EndControlPoint.Equals(other.EndControlPoint) && EndPoint.Equals(other.EndPoint) && RailTypeGuid.Equals(other.RailTypeGuid) && IsPlaceable == other.IsPlaceable && FailureReason == other.FailureReason && IsCurvePlaceable == other.IsCurvePlaceable;
         }
         public override bool Equals(object obj)
         {
@@ -147,7 +146,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         }
         public override int GetHashCode()
         {
-            return HashCode.Combine(StartPoint, StartControlPoint, EndControlPoint, EndPoint, RailTypeGuid, IsPlaceable);
+            return HashCode.Combine(StartPoint, StartControlPoint, EndControlPoint, EndPoint, RailTypeGuid, IsPlaceable, FailureReason, IsCurvePlaceable);
         }
         public override string ToString()
         {
