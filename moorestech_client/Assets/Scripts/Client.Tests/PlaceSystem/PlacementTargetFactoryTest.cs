@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Core.Master;
+using Game.PlacementTarget;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;

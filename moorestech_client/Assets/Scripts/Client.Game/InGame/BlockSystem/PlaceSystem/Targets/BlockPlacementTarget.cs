@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Localization;
 using Core.Master;
 using Game.Block.Interface;
+using Game.PlacementTarget;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets

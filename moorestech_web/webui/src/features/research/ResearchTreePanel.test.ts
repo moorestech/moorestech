@@ -51,7 +51,11 @@ const node: ResearchNodeData = {
   prevGuids: [],
   consumeItems: [{ itemId: 1, count: 2 }],
   rewardItems: [],
-  unlockItemIds: [],
+  unlockItemRecipeViewItemIds: [],
+  unlockBlocks: [],
+  unlockMachineRecipes: [],
+  unlockConnectToolGuids: [],
+  unlockTrainCarGuids: [],
 };
 
 describe("ResearchTreePanel selection toggle", () => {
@@ -59,9 +63,7 @@ describe("ResearchTreePanel selection toggle", () => {
     mockState.tree = { nodes: [node] };
     mockState.inventory = {
       mainSlots: [{ itemId: 1, count: 1 }],
-      hotbarSlots: [],
       grab: { itemId: 0, count: 0 },
-      selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
       equipmentSelectionConfirmationRevision: 0,
@@ -88,5 +90,14 @@ describe("ResearchTreePanel selection toggle", () => {
     // Re-selecting the same node closes it
     act(() => selectedTree.props.renderNode(node, node.position).props.onSelect(node.guid));
     expect(renderer.root.findAllByType("mock-research-detail-pane" as never).length).toBe(0);
+  });
+
+  it("インベントリtopic未受信中は詳細ペインへ所持数をnullで渡す(D4)", () => {
+    mockState.inventory = null;
+    const renderer = create(createElement(ResearchTreePanel));
+    const tree = renderer.root.findByProps({ "data-testid": "mock-tree-view" }) as TreeViewInstance;
+    act(() => tree.props.renderNode(node, node.position).props.onSelect(node.guid));
+    const pane = renderer.root.findByType("mock-research-detail-pane" as never);
+    expect((pane.props as unknown as { owned: Map<number, number> | null }).owned).toBeNull();
   });
 });

@@ -17,6 +17,8 @@ namespace Game.MapGeneration.Pipeline.Jobs
         public float terrainWidth;
         public float terrainLength;
         public float terrainHeight;
+        public float worldOffsetX;
+        public float worldOffsetZ;
         // ノイズ強度（0=無し、0.5=中程度、1=強い）
         public float noiseStrength;
         // ノイズが効き始める勾配角度（度）。これ以上の急斜面にノイズが入る
@@ -65,9 +67,10 @@ namespace Game.MapGeneration.Pipeline.Jobs
                 float mask = math.smoothstep(slopeThreshold, slopeThreshold + smoothstepWidth, slopeAngle);
                 if (mask < 0.001f) continue;
 
-                // ワールド座標でのノイズ生成
-                float wx = (float)x / (resolution - 1) * terrainWidth;
-                float wz = (float)y / (resolution - 1) * terrainLength;
+                // ワールドオフセットを加算し、窓原点でなくワールド基準座標でノイズを生成する
+                // Add worldOffset so noise is generated on world-space coordinates, not the window origin
+                float wx = worldOffsetX + (float)x / (resolution - 1) * terrainWidth;
+                float wz = worldOffsetZ + (float)y / (resolution - 1) * terrainLength;
                 float2 noisePos = new float2(wx + seed, wz + seed * 0.7f);
 
                 // 2帯域ノイズ: 中周波（凹凸）+ 高周波（ザラつき）

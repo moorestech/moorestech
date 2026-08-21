@@ -30,7 +30,10 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                 if (entry.noiseType != MapNoiseType.None)
                 {
-                    float noise = ManagedNoise.SampleByType(entry.noiseType, point.x, point.y,
+                    // 位置は既にワールド座標へ直しているのにノイズだけタイルローカルだと、全タイルが同じ散布を反復する
+                    // The position is already world-space; leaving the noise tile-local would repeat one scatter on every tile
+                    float noise = ManagedNoise.SampleByType(entry.noiseType,
+                        point.x + dims.WorldOffsetX, point.y + dims.WorldOffsetZ,
                         entry.noiseFrequency, noiseOffsets) * entry.noiseAmplitude;
                     if (noise < entry.noiseThreshold) continue;
                 }
@@ -96,7 +99,8 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                 if (entry.noiseType != MapNoiseType.None)
                 {
-                    float noise = ManagedNoise.SampleByType(entry.noiseType, center.x, center.y,
+                    float noise = ManagedNoise.SampleByType(entry.noiseType,
+                        center.x + dims.WorldOffsetX, center.y + dims.WorldOffsetZ,
                         entry.noiseFrequency, noiseOffsets) * entry.noiseAmplitude;
                     if (noise < entry.noiseThreshold) continue;
                 }

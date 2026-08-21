@@ -18,6 +18,8 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 {
     // デバッグ環境を1行構築（無限落下防止の足場+ワープ+無料設置）。設定値は冒頭ログとTimelineに流れる
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    // 開幕スキットは全UI入力を塞ぐため必ず先に飛ばす（プレイテストのフレッシュワールドでは常に再生される）
+    await p.SkipOpeningSkit();
     p.Note("チェスト設置フェーズ開始");                       // AIナレーション（動画とTimelineに残る）
     // ...操作...
     p.Assert(条件, "ラベル");                                // 失敗しても続行し記録される
@@ -37,11 +39,11 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | API | 用途 |
 |---|---|
 | `SetupDebugEnvironment(config)` | **推奨の最初の1行**。足場生成+ワープ+無料設置トグルを`PlaytestEnvironmentConfig`で一括設定し、全設定値をログ/Timelineへ出力 |
+| `SkipOpeningSkit()` | 開幕スキットをSkipインテントで飛ばし`GameScreen`到達まで待つ。スキット中は全UI入力が塞がるため**`SetupDebugEnvironment`直後の定型2行目** |
 | `SetupFlatGround()` | 足場(50x4x50 @ y30、**上面y=32ちょうど**、`GroundGameObject`付与)生成+ワープのみ（旧API・互換） |
 | `WarpPlayer(pos)` / `PlayerPosition` | テレポート/現在地。UI設置前に対象範囲の中央へワープ推奨 |
 | `GiveItemDirect(name, count)` | サーバーインベントリ直挿入（即時） |
 | `GiveItem(name, count)` | 本番giveコマンド経路＋サーバー在庫反映待ち |
-| `GiveItemToHotbar(slot, name, count)` | **ホットバー特定スロット**(0始まり)へ直接セット＋クライアント同期待ち。HoldingItemId駆動システム用 |
 | `UnlockBlock(name)` | サーバー側アンロック→イベントでクライアント（ビルドメニュー）同期 |
 | `GiveConstructionCost(name, blockCount)` | マスタ`RequiredItems`×個数をgive経路で付与＋クライアント同期待ち |
 | `PrepareBlockForUiPlacement(name, blockCount)` | ↑2つの複合。**UI設置の前提はこれ1行** |
@@ -55,11 +57,20 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | `PlaceBlockViaUi(name, origin, dir)` | 単クリック設置の統合操作（**向きはNorth固定**）。設置反映Until込み |
 | `DragPlaceViaUi(name, from, to)` | ドラッグ設置（ベルト等）。**向きは経路から自動解決** |
 | `ExitToGameScreen()` | B注入でGameScreenへ（**place systemの内部状態をリセットする副作用**が重要。歯車ポールの延長起点等） |
-| `SelectHotbar(slot)` | 数字キー注入（slot 0→キー1）。HoldingItemIdが変わりplace systemが切り替わる |
+| `Hotbar.SelectHotbar(slot)` | 数字キー注入（slot 0→キー1）。建築モードのトグル: 割当済み対象を持って入り、同じ枠で抜ける |
+| `Hotbar.AssignHotbar(slot, targetName)` | ビルドメニューと同一供給源(`PlacementTargetCatalog.UnlockedEntries`)から表示名でホットバーへ割当てる |
+| `Hotbar.UnlockConnectTool(name)` | 接続ツール(電線/レール/歯車チェーン)のアンロック。ブロックとは別枠の状態で、`Hotbar.AssignHotbar`前に必要 |
 | `PressKey(key)` | 任意キーのタップ（UnityEngine.InputSystem.Key） |
 | `AimAt(worldPos)` / `AimAtPlaceOrigin(name, origin)` | マウス絶対座標照準（後者は設置原点→フットプリント中心の逆算込み） |
 | `ClickPlace()` | 左クリック（押下→2フレーム→解放。設置はGetKeyUpで確定するため解放必須） |
+| `MiddleClick()` | ミドルクリック（スポイト。押下→2フレーム→解放） |
+| `PickWithAltHold(worldPos)` | 通常モードのスポイト1組（左Alt押下→照準→ミドルクリック→解放）。**GameScreenでのスポイトは必ずこれを使う** |
 | `CurrentUiState` / `WaitUiState(state, timeout)` | UIState確認/遷移待ち |
+
+通常モード（GameScreen）の三人称照準は左Alt非押下中は画面中央に固定されるため、`AimAt`＋`MiddleClick`だけでは
+画面中央外の対象をスポイトできない（[docs/adr/0008](../../../../docs/adr/0008-aim-source-pushed-by-ui-state.md)）。
+シナリオ側でAltホールドを書き写さず`PickWithAltHold`を呼ぶこと（実体は`Client.Playtest.Operations.PlaytestPickOps`）。
+PlaceBlock中のスポイトは照準がカーソル追従のためAltは不要で、`AimAt`＋`MiddleClick`でよい。
 
 ### Web UI (CEF) 操作（web-ui系ブランチのReact画面向け。DOM座標を自動解決し通常マウス経路でクリック）
 | API | 用途 |
@@ -104,8 +115,8 @@ idは種別を問わず設置対象のGuid文字列。blockのtestidは`Playtest
    （＝そのブロックは搬入を受けない仕様。例: 素の木のチェスト→コンベアチェストを使う）
 5. **歯車ネットワークのassert**（連結検証の定石）:
    ```csharp
-   var nets = p.ServerService<Game.Gear.Common.GearNetworkDatastore>().GearNetworks;
-   // posのブロックの所属NW: 各netのGearTransformersからBlockInstanceId一致を探す
+   var gearNetworkDatastore = p.ServerService<Game.Gear.Common.GearNetworkDatastore>();
+   // posのブロックの所属NW: TryGetGearNetwork(blockInstanceId, out network)でnetwork.NetworkIdを取る
    ```
 6. 複数ブロック連結はYAMLの`inputConnects[].offset`/`outputConnects[].offset`を
    「OriginalPos + offset = 絶対座標」で先に表にする（手書き座標は「設置は成功するが繋がらない」を生む）

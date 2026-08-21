@@ -34,7 +34,7 @@ hooks:
 
 **最初に必ず実行（plan記述前）:** `git pull` を実行してプロジェクトを最新の状態にしてからplanを書き始める。古いコードを前提にしたplanは実装時に破綻するため、pullを省略しない。pullがコンフリクト等で失敗した場合は、planを書き始めずにその旨をユーザーに報告して指示を仰ぐ。
 
-**Context:** 独立したworktreeで作業する場合、実行時に`superpowers:using-git-worktrees`スキル経由で作成されているはず。
+**Context:** 独立したworktreeで作業する場合、plan作成前に作成されているはず。
 
 **plan保存先:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
 - （plan保存場所についてユーザーの指定がある場合はそちらを優先）
@@ -76,7 +76,7 @@ hooks:
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development（推奨）または superpowers:executing-plans を使い、このplanをタスクごとに実装すること。ステップはチェックボックス（`- [ ]`）記法で進捗管理する。
+> **For agentic workers:** REQUIRED SUB-SKILL: subagent-driven-development スキルを使い、このplanをタスクごとに実装すること。ステップはチェックボックス（`- [ ]`）記法で進捗管理する。
 
 **Goal:** [これが何を構築するかを1文で説明]
 
@@ -100,11 +100,18 @@ hooks:
 ---
 ```
 
-**Final task (moorestech, required):** every plan's task list ends with an
-explicit closing task — 「必ず最後にmoores-code-reviewスキルで全ブランチ
-レビューを実行すること（自動実行・ゴール文言による省略不可）」。実行者は
-これを無条件に実行する。planから省略してもゲートは免除されない
-（subagent-driven-developmentのmandatory-gateセクション参照）。
+**Final tasks (moorestech, required):** every plan's task list ends with an
+explicit closing task pair — 実行者はこれを無条件に実行する。planから省略しても
+ゲートは免除されない（subagent-driven-developmentのmandatory-gateセクション参照）:
+
+1. 「必ずmoores-code-reviewスキルで全ブランチレビューを実行すること
+   （自動実行・ゴール文言による省略不可）」
+2. 「セッション終了可能状態にすること: pr-createスキルでPRを作成し、
+   masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする
+   （解消の実作業はpr-create経由でopus subagentに委譲される）。
+   全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な
+   状態になっていることを確認して終える」。全実装タスク完了＝完了ではない。
+   PR未作成のまま終わるのはplan未完了である。
 
 **unityプレイ録画テストの実行を検討する（moorestech, required check）:** plan作成時、
 ランタイム挙動（ゲームプレイ・入力・カメラ・UI・エンティティ表示等）に触れる変更なら、
@@ -191,6 +198,10 @@ git commit -m "feat: add specific feature"
 
 **3. Type consistency:** 後段のタスクで使った型・メソッドシグネチャ・プロパティ名は、前段のタスクで定義したものと一致しているか？Task 3では`clearLayers()`、Task 7では`clearFullLayers()`という関数名になっているのはバグである。
 
+**4. 保留・縮退経路の解消可能性:** planが「保留して次ラウンド/リトライに任せる」「fail-closedで何もしない」経路を設計している場合、(a) 保留が解消される条件を仕様文に明記したか、(b) その条件が**到達不能になる入力状態が無いか**を要素数0・1の最小構成（空集合・単一要素・初回）で列挙したか、(c) テスト指定に最小構成ケースを含めたか。一時的な保留と構造的に永遠に解消しない保留を同じnil/falseに畳むのはplanの失敗である（実例2026-08-18: 保留設計のテスト指定が全ケース2要素以上で、単一要素の最小構成では保留が恒久化し機能が無音停止した — 気づいたのはユーザー）。
+
+**5. 「決定的にする」を根拠にした選択規則:** 同点・順序依存の選択を「決定的だから良い」で閉じていないか。決定性は再現性の保証であって選択の正しさの保証ではない。どの候補が選ばれても下流の結果が同型になる論証か、同点fixtureのテスト指定のどちらかを要求する（実例2026-08-18: 同点タイブレークのindex先勝ちが、同期先システムに別の構造を作り巻き戻しを誘発した）。
+
 問題を見つけたらその場で修正する。再レビューは不要 — 修正して次に進む。Requirementsの行に対応するタスクが見つからなければ、タスクを追加する。
 
 ## Simulator Review + 判断記録（ADR）— required, after Self-Review
@@ -220,7 +231,7 @@ Self-Review（内容）と spec-architecture-review（構造）を終えたら�
    - 作業場所: <ブランチ名>（worktreeの場合はそのパスも記載）
    - まずplan全文を読み、`## Requirements`・`## Global Constraints`・`## 判断記録（ADR）`を全タスク共通の制約として扱ってください
    - 進捗はplanのチェックボックス更新で管理してください
-   - planの最終タスク（moores-code-reviewによる全ブランチレビュー）は省略不可です
+   - planの最終タスク群（moores-code-reviewによる全ブランチレビュー→pr-createでPR作成・コンフリクト解消まで）は省略不可です。PRが作成されセッションを閉じられる状態になるまで完了扱いにしないでください
    ```
    ````
 

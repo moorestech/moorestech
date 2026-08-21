@@ -60,23 +60,6 @@ namespace Client.Playtest.Operations
             }
         }
 
-        public static async UniTask GiveItemToHotbar(int hotbarSlot, string itemName, int count, float timeoutSeconds)
-        {
-            // HoldingItemId駆動の設置システム用に、ホットバーの特定スロットへ直接セットする
-            // Set directly into a specific hotbar slot for HoldingItemId-driven place systems
-            var itemId = ResolveItemId(itemName);
-            var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-            var mainInventory = GetMainInventory(playerId);
-            var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(hotbarSlot, mainInventory.GetSlotSize());
-            var clientCountBefore = CountItemClientSide(itemId);
-
-            mainInventory.SetItem(inventorySlot, ServerContext.ItemStackFactory.Create(itemId, count));
-
-            // HotBarView.CurrentItemはクライアント側インベントリを読むため、反映を待つ
-            // HotBarView.CurrentItem reads the client-side inventory, so wait for the sync
-            await WaitClientItemCount(itemId, clientCountBefore + count, timeoutSeconds);
-        }
-
         public static async UniTask EquipItem(string itemName, int equipmentSlot, float timeoutSeconds)
         {
             // 持ち物から装備枠へ移して選択する。採掘はサーバー権威で選択中装備を見るため、両方揃って初めて成立する

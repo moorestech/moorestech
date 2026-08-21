@@ -74,6 +74,7 @@ properties:
           - createItem
           - inInventoryItem
           - blockPlace
+          - completeResearch
         - key: taskParam
           isDefaultOpen: true
           switch: ./taskCompletionType
@@ -111,6 +112,15 @@ properties:
             - key: itemCount
               type: integer
               default: 1
+          - when: completeResearch
+            type: object
+            properties:
+            - key: researchNodeGuid
+              type: uuid
+              foreignKey:
+                schemaId: research
+                foreignKeyIdPath: /data/[*]/researchNodeGuid
+                displayElementPath: /data/[*]/researchNodeName
         - key: tutorials
           type: array
           isDefaultOpen: true
@@ -125,10 +135,12 @@ properties:
               default: uiHighLight
               options:
               - mapObjectPin
+              - veinPin
               - keyControl
               - uiHighLight
               - itemViewHighLight
               - blockPlacePreview
+              - uiDragGuide
             - key: tutorialParam
               switch: ./tutorialType
               cases:
@@ -141,6 +153,18 @@ properties:
                     schemaId: map
                     foreignKeyIdPath: /mapObjects/[*]/mapObjectGuid
                     displayElementPath: /mapObjects/[*]/mapObjectName
+                - key: pinText
+                  type: string
+                  default: pin text
+              - when: veinPin
+                type: object
+                properties:
+                - key: veinGuid
+                  type: uuid
+                  foreignKey:
+                    schemaId: map
+                    foreignKeyIdPath: /mapVeins/[*]/veinGuid
+                    displayElementPath: /mapVeins/[*]/veinName
                 - key: pinText
                   type: string
                   default: pin text
@@ -164,9 +188,9 @@ properties:
               - when: uiHighLight
                 type: object
                 properties:
-                - key: highLightUIObjectId
+                - key: highLightAnchorId
                   type: string
-                  default: ui object id
+                  default: web anchor id
                 - key: highLightText
                   type: string
                   default: highlight text
@@ -213,6 +237,15 @@ properties:
                 - key: message
                   type: string
                   default: Place the block at the highlighted position
+              - when: uiDragGuide
+                type: object
+                properties:
+                - key: fromAnchorId
+                  type: string
+                  default: from web anchor id
+                - key: toAnchorId
+                  type: string
+                  default: to web anchor id
         - key: startedActions
           ref: gameAction
         - key: clearedActions

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mooresmaster.Model.ChallengesModule;
 using Mooresmaster.Model.GameActionModule;
+using Mooresmaster.Model.MapModule;
 
 namespace Core.Master.Validator
 {
@@ -70,6 +72,19 @@ namespace Core.Master.Validator
                                 }
                                 break;
                             }
+                            case CompleteResearchTaskParam completeResearch:
+                            {
+                                // 参照先研究ノードの実在を検証
+                                // Validate that the referenced research node exists
+                                if (MasterHolder.ResearchMaster.GetResearch(completeResearch.ResearchNodeGuid) == null)
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.ResearchNodeGuid:{completeResearch.ResearchNodeGuid}\n";
+                                }
+                                break;
+                            }
+                            default:
+                                logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated TaskParam type:{challenge.TaskParam?.GetType().Name}\n";
+                                break;
                         }
                     }
                 }
@@ -97,6 +112,21 @@ namespace Core.Master.Validator
                                     }
                                     break;
                                 }
+                                case VeinPinTutorialParam veinPin:
+                                {
+                                    var vein = MasterHolder.MapVeinMaster.GetElementOrNull(veinPin.VeinGuid);
+                                    if (vein == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.VeinGuid:{veinPin.VeinGuid}\n";
+                                    }
+                                    // 手掘りできない鉱脈を指すピンは達成不能なチュートリアルになる
+                                    // A pin aimed at an unmineable vein makes the tutorial impossible to complete
+                                    else if (vein.HandMiningParam is not MinableHandMiningParam)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} points Tutorial.VeinGuid:{veinPin.VeinGuid} which forbids hand mining\n";
+                                    }
+                                    break;
+                                }
                                 case ItemViewHighLightTutorialParam itemViewHighLight:
                                 {
                                     var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(itemViewHighLight.HighLightItemGuid);
@@ -117,6 +147,18 @@ namespace Core.Master.Validator
                                     }
                                     break;
                                 }
+                                case UiDragGuideTutorialParam:
+                                case UiHighLightTutorialParam:
+                                    // anchorIdはWeb側のDOM名乗りと突き合わせるだけなので検証しない（誤設定は表示されないだけ・設定者責任）
+                                    // Anchor IDs are only string-matched against web-side DOM declarations; missets simply don't render (configurer's responsibility)
+                                    break;
+                                case KeyControlTutorialParam:
+                                    // uiState/controlTextのみでマスタ参照を持たないため検証対象外
+                                    // No master reference to validate (uiState/controlText only)
+                                    break;
+                                default:
+                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated Tutorial type:{tutorial.TutorialParam?.GetType().Name}\n";
+                                    break;
                             }
                         }
                     }

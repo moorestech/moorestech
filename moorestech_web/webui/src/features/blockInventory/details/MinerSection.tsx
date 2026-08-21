@@ -1,6 +1,6 @@
 import { Group, Stack, Text } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
-import { ItemSlot, ProgressArrow } from "@/shared/ui";
+import { ItemSlot, ProgressArrowBar } from "@/shared/ui";
 import PowerRateText from "./PowerRateText";
 import { L, useI18n } from "@/shared/i18n";
 
@@ -11,7 +11,7 @@ export default function MinerSection({ data }: { data: BlockInventoryOpen }) {
   if (!data.miner) return null;
   return (
     <Stack gap="xs" data-testid="miner-section">
-      <ProgressArrow value={data.progress ?? 0} />
+      <ProgressArrowBar value={data.progress ?? 0} />
       <PowerRateText currentPower={data.miner.currentPower} requestPower={data.miner.requestPower} testId="miner-power-rate" />
       <Group gap="xs" data-testid="miner-mining-items">
         {data.miner.miningItems.map((m, i) => (

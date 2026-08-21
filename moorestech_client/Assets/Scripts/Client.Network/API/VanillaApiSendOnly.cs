@@ -19,13 +19,11 @@ namespace Client.Network.API
     public class VanillaApiSendOnly
     {
         private readonly PacketSender _packetSender;
-        private readonly PlayerConnectionSetting _playerConnectionSetting;
         private readonly int _playerId;
         
         public VanillaApiSendOnly(PacketSender packetSender, PlayerConnectionSetting playerConnectionSetting)
         {
             _packetSender = packetSender;
-            _playerConnectionSetting = playerConnectionSetting;
             _playerId = playerConnectionSetting.PlayerId;
         }
         
@@ -66,9 +64,15 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void AttackMapObject(int mapObjectInstanceId)
+        public void AttackMapObject(int instanceId)
         {
-            var request = new MapObjectAcquisitionProtocol.GetMapObjectProtocolProtocolMessagePack(_playerId, mapObjectInstanceId);
+            var request = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(_playerId, instanceId);
+            _packetSender.Send(request);
+        }
+
+        public void MineVein(Guid veinGuid, Vector3Int position)
+        {
+            var request = MiningProtocol.MiningProtocolMessagePack.CreateVeinRequest(_playerId, veinGuid, position);
             _packetSender.Send(request);
         }
         
@@ -169,6 +173,36 @@ namespace Client.Network.API
         public void DisconnectElectricWire(Vector3Int posA, Vector3Int posB)
         {
             var request = ElectricWireDisconnectProtocol.ElectricWireDisconnectRequest.CreateDisconnectRequest(posA, posB, _playerId);
+            _packetSender.Send(request);
+        }
+
+        /// <summary>
+        /// ホットバーの枠へ設置対象を割り当てる（結果はホットバー更新イベントで返る）
+        /// Assign a placement target to a hotbar slot; the result comes back through the hotbar update event
+        /// </summary>
+        public void AssignHotbar(int slot, Guid targetId)
+        {
+            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateAssignRequest(_playerId, slot, targetId);
+            _packetSender.Send(request);
+        }
+
+        /// <summary>
+        /// ホットバーの枠を空にする
+        /// Clear a hotbar slot
+        /// </summary>
+        public void ClearHotbar(int slot)
+        {
+            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateClearRequest(_playerId, slot);
+            _packetSender.Send(request);
+        }
+
+        /// <summary>
+        /// ホットバーの2枠を入れ替える
+        /// Swap two hotbar slots
+        /// </summary>
+        public void SwapHotbar(int slotA, int slotB)
+        {
+            var request = HotbarProtocol.HotbarProtocolMessagePack.CreateSwapRequest(_playerId, slotA, slotB);
             _packetSender.Send(request);
         }
     }

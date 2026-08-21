@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { Button, Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
-import { InventoryPanel, HotbarPanel, EquipmentPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
+import { InventoryPanel, EquipmentPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
+import { HotbarPanel } from "@/features/hotbar";
 import { RecipeViewer, ItemListPanel, RecipeSelectionKeyHandler } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
 import { NotificationHost } from "@/features/notification";
@@ -19,7 +20,7 @@ import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
-import { screenAllowsGrab, screenForUiState } from "@/shared/uiState";
+import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud } from "@/shared/uiState";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
 
@@ -81,16 +82,11 @@ export default function App() {
   return (
     <div className={styles.viewport} data-web-ui-transparent>
       {modalScreen && <div className={styles.backdrop} data-testid="screen-backdrop" />}
-      <div ref={stageRef} className={styles.stage} data-web-ui-transparent>
-        {inventoryScreen && <InventoryScreenChrome />}
-        {researchScreen && <ResearchScreenChrome />}
+      {/* 通知はstage背面へ置き、全画面UIと常駐HUDの裏へ沈める（ADR 0017） */}
+      {/* Notifications sit behind the stage so every screen and always-on HUD covers them (ADR 0017) */}
+      <NotificationHost />
+      <div ref={stageRef} className={`${styles.stage}${researchScreen ? ` ${styles.stageResearch}` : ""}`} data-testid="app-stage" data-web-ui-transparent>
         {screenAllowsGrab(screen) && <InventoryPanel />}
-        {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}
-        {/* The hotbar is an always-on HUD mirroring uGUI GameStateController (shown during GameScreen too) */}
-        <HotbarPanel />
-        {/* 装備HUDもホットバーと同じ常時表示族で、ホイールの持ち替え先を画面右端に見せる */}
-        {/* The equipment HUD belongs to the same always-on family, showing the wheel's switch target at the screen's right edge */}
-        <EquipmentPanel />
         {screen === "playerInventory" && <RecipeViewer />}
         {screen === "playerInventory" && <ItemListPanel />}
         {/* stage内オーバーレイを一様拡縮し、ModalはPortalでviewportへ描画する */}
@@ -110,10 +106,18 @@ export default function App() {
           {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
           {uiState === UiStateNames.deleteBar && <DeleteModeWarningBands />}
           <CurrentChallengeHud />
+          {inventoryScreen && <InventoryScreenChrome />}
+          {researchScreen && <ResearchScreenChrome />}
+          {/* 常時表示HUD族の可否は screenAllowsGrab と対称にここで合成する */}
+          {/* The always-on HUD family is gated here, symmetric with screenAllowsGrab */}
+          {screenShowsAlwaysOnHud(screen) && <HotbarPanel />}
+          {screenShowsAlwaysOnHud(screen) && <EquipmentPanel />}
+          {/* 採掘ゲージはホットバーの床を基準に積むため同じviewport族へ置く */}
+          {/* The mining gauge stacks on the hotbar's floor, so it belongs to the same viewport family */}
+          <ProgressBar />
           <SkitPresentation />
         </div>
         <ModalHost />
-        <ProgressBar />
         <BlockInventoryKeyHandler />
         <RecipeSelectionKeyHandler />
       </div>
@@ -122,7 +126,6 @@ export default function App() {
       <GrabOverlay />
       <Portal>
         <ToastHost />
-        <NotificationHost />
         <SkitTransition />
         <TutorialOverlay />
         <WorldPinOverlay />
@@ -131,7 +134,7 @@ export default function App() {
       {/* While reconnecting, a full-screen overlay blocks input (the Overlay itself captures pointers) */}
       {disconnected && (
         <Portal>
-          <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-reconnect)" data-testid="reconnect-overlay">
+          <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-portal-reconnect)" data-testid="reconnect-overlay">
             <Stack align="center" gap="sm">
               <Loader color="gray" />
               <Text c="white" fw={500}>{t(L.ui.error.reconnecting)}</Text>
@@ -143,7 +146,7 @@ export default function App() {
       {/* Surface dictionary load failures and offer reload to recover interaction */}
       {status === "error" && (
         <Portal>
-          <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-reconnect)" data-testid="dictionary-error-overlay">
+          <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-portal-reconnect)" data-testid="dictionary-error-overlay">
             <Stack align="center" gap="sm">
               <Text c="white" fw={500}>{DictionaryIndependentText.dictionaryLoadFailed}</Text>
               <Button color="red" onClick={() => location.reload()} data-testid="dictionary-error-reload">

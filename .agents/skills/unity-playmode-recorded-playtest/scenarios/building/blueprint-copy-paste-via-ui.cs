@@ -11,6 +11,7 @@
 // Sources: chest(2,32,2)North / stone kiln(4,32,2)East / chest(2,32,4)North, box (0,32,0)-(8,38,6)
 // Asserts exact offsets from anchor (4,32,3) and expected positions for one R rotation pasted at anchor (14,32,14)
 using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Blueprint;
@@ -53,12 +54,16 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     await p.WaitBlockGameObject(new Vector3Int(2, 32, 4));
     await p.Screenshot("01-source-blocks");
 
+    // BP機能を解放（未解放時メニュー非表示）
+    // Unlock the blueprint feature (otherwise it never appears in the build menu)
+    p.Hotbar.UnlockBlueprint();
+
     // BPコピーツールを選択（テキストスロット）
     // Select the blueprint copy tool (icon-less text slot)
     await OpenBuildMenuAndClickTextSlot("ブループリントコピー", "02-menu-copy-tool");
 
-    var hotBarView = UnityEngine.Object.FindFirstObjectByType<HotBarView>();
-    var hotbarBefore = hotBarView.SelectIndex;
+    var placeSystemStateController = ClientDIContext.DIContainer.DIContainerResolver.Resolve<PlaceSystemStateController>();
+    var hotbarBefore = placeSystemStateController.CurrentOrigin.TryGetHotbarSlot(out var hotbarSlotBefore) ? hotbarSlotBefore : -1;
 
     // XZドラッグ+スクロール+2で範囲選択
     // Build the selection box via XZ drag plus +2 scroll steps
@@ -85,10 +90,10 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     var nameInputView = UnityEngine.Object.FindFirstObjectByType<BlueprintNameInputView>(FindObjectsInactive.Include);
     await p.Until(() => nameInputView.gameObject.activeSelf, 10f, "ドラッグ解放で名前入力ダイアログが開く");
 
-    // ウォッチリスト2観察: ドラッグ中スクロールでホットバー選択が同時に動くか（観察のみ・失敗にしない）
-    // Watch-list 2 observation: whether the drag scroll also moved the hotbar selection (observe only)
-    var hotbarAfter = hotBarView.SelectIndex;
-    p.Assert(true, $"watchlist2-observe: ドラッグ中スクロールでホットバー選択 {hotbarBefore} -> {hotbarAfter}");
+    // BPコピー中のホイールは範囲調整が占有し、ホットバー選択を動かしてはならない
+    // The wheel is owned by range adjustment during a blueprint copy and must not move the hotbar selection
+    var hotbarAfter = placeSystemStateController.CurrentOrigin.TryGetHotbarSlot(out var hotbarSlotAfter) ? hotbarSlotAfter : -1;
+    p.Assert(hotbarAfter == hotbarBefore, $"ドラッグ中スクロールでホットバー選択が変わらない {hotbarBefore} -> {hotbarAfter}");
 
     // 名前入力中のB/G/V/Tabキー抑止を検証
     // Key suppression while naming: injecting B/G/V/Tab must not leave PlaceBlock nor close the dialog

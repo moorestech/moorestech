@@ -10,9 +10,7 @@ import { Topics } from "../transport/protocol";
 
 const validInventory = {
   mainSlots: [{ itemId: 1, count: 2 }],
-  hotbarSlots: [{ itemId: 0, count: 0 }],
   grab: { itemId: 0, count: 0 },
-  selectedHotbar: 0,
   equipment: [],
   selectedEquipment: -1,
   equipmentSelectionConfirmationRevision: 0,

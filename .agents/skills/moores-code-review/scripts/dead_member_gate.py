@@ -12,7 +12,8 @@
 """dead_member_gate.py — DeadMemberAudit(IL解析)の結果をpatchスコープへ絞る配線層。
 
 moores-code-review Step 2.5 から呼ばれる。tools/DeadMemberAudit を実行し、
-リスト1〜5（参照0・非production参照のみ・公開範囲過剰・サーバー配置ミス・CT未伝搬）の
+リスト1〜6（参照0・非production参照のみ・公開範囲過剰・サーバー配置ミス・CT未伝搬・
+単一呼び出し元ヘルパ・参照0private）の
 うち宣言場所がpatchの変更ファイルに含まれるものだけを candidates.dead_member として
 出力する（裁定はdead-member-verifier）。
 
@@ -21,9 +22,14 @@ ScriptAssemblies が無い環境（素のレビューworktree等）では status
 
 Wires DeadMemberAudit (IL analysis) into the review flow, scoped to the patch.
 """
+from __future__ import annotations
+
 import argparse
 import json
+import os
+import pwd
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -48,6 +54,8 @@ SECTION_RULES = (
     ("## リスト5-A", "ct-not-passed"),
     ("## リスト5-B", "ct-async-void"),
     ("## リスト5-C", "cts-not-released"),
+    ("## リスト6-A", "single-caller-helper"),
+    ("## リスト6-B", "dead-private-member"),
 )
 
 
@@ -79,8 +87,13 @@ def main() -> int:
         dll_mtimes = [d.stat().st_mtime for d in assemblies.glob("*.dll")]
         if cs_mtimes and dll_mtimes and max(cs_mtimes) > max(dll_mtimes):
             return emit("stale", "変更.csがDLLより新しい。uloop compile 後に再実行すること", [])
+        # dotnet未導入の環境ではTracebackでなく縮退として申告する（2026-08-20: 24/26runが無言縮退していた）
+        # Report a missing dotnet as a degradation, not a traceback (24/26 runs silently degraded)
+        dotnet = resolve_dotnet()
+        if dotnet is None:
+            return emit("skipped", "dotnet不在（SDK未導入 or PATH/DOTNET_ROOT/~/.dotnet に無い）。dead_member ゲートは縮退", [])
         run = subprocess.run(
-            ["dotnet", "run", "--project", str(root / TOOL_REL), "--", str(assemblies)],
+            [dotnet, "run", "--project", str(root / TOOL_REL), "--", str(assemblies)],
             capture_output=True, text=True, cwd=str(root), timeout=600)
         if run.returncode != 0:
             return emit("error", f"DeadMemberAudit失敗: {run.stderr.strip()[:300]}", [])
@@ -89,6 +102,25 @@ def main() -> int:
         return emit("error", "report.md が生成されていない", [])
     candidates = collect_candidates(report_path.read_text(encoding="utf-8"), changed)
     return emit("ok", f"patch内.cs {len(changed)}件と突き合わせ", candidates)
+
+
+def resolve_dotnet() -> str | None:
+    # PATH → DOTNET_ROOT → 既知のインストール先（HOME差し替え時は実ホームも）の順で実体を探す
+    # PATH first, then DOTNET_ROOT, then known install locations (real home too when HOME is swapped)
+    found = shutil.which("dotnet")
+    if found:
+        return found
+    candidates = []
+    if os.environ.get("DOTNET_ROOT"):
+        candidates.append(os.path.join(os.environ["DOTNET_ROOT"], "dotnet"))
+    candidates += ["/usr/local/share/dotnet/dotnet", "/opt/homebrew/bin/dotnet", "/usr/local/bin/dotnet"]
+    homes = [os.path.expanduser("~"), pwd.getpwuid(os.getuid()).pw_dir]
+    candidates += [os.path.join(h, ".dotnet", "dotnet") for h in dict.fromkeys(homes)]
+    for cand in candidates:
+        p = Path(cand)
+        if p.is_file() and os.access(p, os.X_OK):
+            return str(p)
+    return None
 
 
 def collect_candidates(report: str, changed: set) -> list:

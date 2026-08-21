@@ -36,11 +36,11 @@ export default function ItemListPanel() {
   const craftRecipes = useTopic(Topics.craftRecipes);
 
   // 素材所持数を制作可能数へ変換する
-  // Aggregate materials across main+hotbar, then derive craftable counts for catalog badges
-  const ownedCounts = useMemo(
-    () => buildOwnedCounts(inventory ? [...inventory.mainSlots, ...inventory.hotbarSlots] : []),
-    [inventory],
-  );
+  // Aggregate materials across the main inventory, then derive craftable counts for catalog badges
+  const ownedCounts = useMemo(() => buildOwnedCounts(inventory?.mainSlots ?? []), [inventory]);
+  // 3topic揃うまで描かない。0個バッジ非表示と読込中が見分けられなくなるため
+  // Wait for all three topics: otherwise loading looks identical to a genuine zero-craftable badge
+  const ready = itemList && craftRecipes && inventory;
   const craftableCounts = useMemo(
     () => craftableResultCounts(craftRecipes?.recipes ?? [], ownedCounts),
     [craftRecipes, ownedCounts],
@@ -52,7 +52,7 @@ export default function ItemListPanel() {
       title={t(L.ui.recipe.catalogTitle)}
       style={{ justifySelf: "end", alignSelf: "start", width: 378, minHeight: 452, "--panel-top": "-6.821px", "--panel-bottom": "-9.17px", "--panel-left": "-1.04px", "--title-shift-x": "1.57px", "--title-scale-x": 0.963, "--title-scale-y": 0.861 } as CSSProperties}
     >
-      {itemList ? (
+      {ready ? (
         // mahは7段が丸ごと収まりつつDEMO60件(10段)でノブ比が正本≈70%になる高さ。marginLeftはグリッド内側
         // インデント補正、marginTopはノブの縦位置合わせ。align-self:stretchだとmarginLeftだけでは右端(ノブ位置)が
         // 動かないためmarginRightで右端を別途詰める
@@ -65,18 +65,14 @@ export default function ItemListPanel() {
           scrollbarSize={4}
           className={styles.scrollArea}
           style={{ marginLeft: -3.561498, marginRight: 4.435, marginTop: 12 }}
-          // ドラッグ中だけカーソルを掴み表示にしテキスト選択を抑止する（touch-actionはCSS側）
-          // Only while dragging, show a grabbing cursor and suppress text selection (touch-action lives in CSS)
-          viewportProps={{ ...viewportHandlers, style: { cursor: dragging ? "grabbing" : undefined, userSelect: dragging ? "none" : undefined } }}
+          // ドラッグ中のみ掴みカーソル表示
+          // Grabbing cursor only while dragging
+          viewportProps={{ ...viewportHandlers, style: { cursor: dragging ? "grabbing" : undefined } }}
         >
           <SlotGrid cols={6} testId="item-list-grid" style={GRID_STYLE}>
             {itemList.itemIds.map((id) => (
               <div key={id} data-item-id={id} {...tutorialAnchor(recipeItemAnchorId(id))}>
-                <ItemSlot
-                  itemId={id}
-                  count={craftableCounts.get(id) ?? 0}
-                  catalog
-                />
+                <ItemSlot itemId={id} count={craftableCounts.get(id) ?? 0} catalog />
               </div>
             ))}
           </SlotGrid>

@@ -14,6 +14,8 @@
 | `ct-not-passed` | トークンを持つ呼び出し元がCTを渡していない | 伝搬 |
 | `ct-async-void` | `async void` | `UniTaskVoid` + `.Forget()` |
 | `cts-not-released` | CTSフィールドにCancel/Disposeが無い | 破棄経路の追加 |
+| `single-caller-helper` | 同一型の1メソッドからしか呼ばれていないprivateヘルパ | ローカル関数へ畳む |
+| `dead-private-member` | どこからも呼ばれていないprivateメソッド | 削除 |
 
 IL上の参照勘定は既に厳密（オーバーロード解決済み・interface実装/override/Unity関数/シリアライズ/DI生成は機械除外済み）。あなたが裁くのは **ILに現れない呼び出し経路の有無** と **規範上の扱い** だけ。
 
@@ -53,6 +55,27 @@ IL上の参照勘定は既に厳密（オーバーロード解決済み・interf
 1. `ct-not-passed` → 候補の `detail` に「呼び出し元がトークンを持っている根拠」（CT引数あり / CTSフィールド参照あり / Unityオブジェクト）が入っている。`Unityオブジェクト` 根拠のものは `this.GetCancellationTokenOnDestroy()` を出所にできるかをReadで確認してから裁く。**プロセス寿命と一致する起動時1回ロードは正当**（core-cs-async-cancellation「Criticalにしないもの」）
 2. `ct-async-void` → Unityイベント関数は機械除外済みなので、残っているものは原則Critical。デリゲート/`UnityEvent` のシグネチャ制約で `void` を強制されている場合だけ正当（`rg` でハンドラ登録側のdelegate型を確認する）
 3. `cts-not-released` → 破棄経路（`OnDestroy`/`Dispose`）にCancel→Disposeが無い。差し替え時の旧CTS未Cancelも同じ扱い。**IL上に現れない後始末は無い**ので、正当理由は「そのCTSがプロセス寿命と一致する」場合に限る
+
+## 参照0privateメソッドの裁定（`dead-private-member`）
+privateなので**同一型の外から呼びようがない**（リスト1のpublicより削除の確度が高い）。原則 **Critical: 削除**。
+
+1. ILに現れない経路だけをrgで確認する（手順は上の1と同じ。UnityEventのPrefab/シーン配線・文字列リフレクション・プレイテストDSL）。**実在すれば正当**
+2. `[MenuItem]`・`[ContextMenu]`・`[RuntimeInitializeOnLoadMethod]` 等のフレームワーク起動属性は機械除外済みだが、除外表に無い属性が付いていたら正当としてその属性名を報告に残す
+3. `#if UNITY_EDITOR`・`#if DEBUG` の中でだけ呼ばれている場合、DLLに条件付きコンパイルの片側しか入っていない可能性がある。**そのシンボルで囲まれた呼び出しが実在するかをReadで確認**してから裁く
+4. 1〜3のどれでもなければ削除。「将来使う」は無効な却下理由（AGENTS.md: 受益者なき抽象の禁止）
+
+## 単一呼び出し元privateヘルパの裁定（`single-caller-helper`）
+AGENTS.md「複雑なメソッドでは`#region Internal`とローカル関数を活用する」の候補。呼び出し元は候補の `detail`（唯一の呼び出し元メソッド）に入っている。
+
+1. 対象メソッドと呼び出し元メソッドを**両方Readする**（畳めるかは中身を見ないと分からない）
+2. patchが**新規に追加した**privateヘルパで、呼び出し元が1メソッドだけなら **Critical: 呼び出し元の `#region Internal` へ畳む**
+3. 次は **正当**（畳まない）:
+   - ヘルパが長く（目安30行超）、畳むと呼び出し元が200行/1ファイルの制限を破る
+   - 再帰・`yield return`・`ref struct`引数など、ローカル関数化でシグネチャが変わる形
+   - 同ディレクトリの姉妹クラスが同じ形のprivateヘルパで揃っている（規約として成立・Warningで1行残す）
+   - テスト・エディタコードから`InternalsVisibleTo`や`#if UNITY_EDITOR`経由で触られている（`rg`で実測する）
+4. 既存メソッドが偶々候補に載っただけならWarning止まり（patch外の畳み込みを要求しない）
+5. **呼び出し元自身が `dead-private-member` 候補**なら、畳む前に呼び出し元ごと消える。削除の裁定を先に決め、この候補は指摘しない
 
 ## 出力フォーマット
 候補ごとに1行:

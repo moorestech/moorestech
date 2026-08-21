@@ -26,6 +26,8 @@ namespace Server.Boot
 {
     public class ServerInstanceManager : IDisposable
     {
+        private const int DefaultGeneratedSeed = 196;
+
         private Thread _connectionUpdateThread;
         private Thread _gameUpdateThread;
         private CancellationTokenSource _cancellationTokenSource;
@@ -59,11 +61,11 @@ namespace Server.Boot
             var modResource = new ModsResource(Path.Combine(settings.ServerDataDirectory, "mods"));
             MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource)));
 
-            // generatedモードでシード未指定なら実行ごとに採番する
-            // Assign a fresh seed per run when generated mode leaves it unspecified
-            // 未指定(null)のときだけ採番する。明示指定なら0も含めそのまま使う(決定論)
-            // Assign a seed only when unspecified (null); an explicit value (0 included) is used as-is (determinism)
-            var seed = settings.Seed ?? (settings.MapMode == WorldProvisioner.GeneratedMapMode ? Guid.NewGuid().GetHashCode() : 0);
+            // generatedモードの未指定シードを固定し、同じマスタから常に同じワールドを生成する
+            // Fix the unspecified generated-mode seed so the same master always produces the same world
+            // 明示指定なら0も含めそのまま使い、templateモードの従来値0も維持する
+            // Preserve every explicit value including zero, as well as template mode's existing zero
+            var seed = settings.Seed ?? (settings.MapMode == WorldProvisioner.GeneratedMapMode ? DefaultGeneratedSeed : 0);
 
             // ワールドディレクトリをDI構築前に整備する（無ければ生成/テンプレートコピー）
             // Provision the world directory before DI container construction

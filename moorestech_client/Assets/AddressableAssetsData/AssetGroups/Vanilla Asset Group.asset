@@ -20,13 +20,48 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 00d3e489e4c7543e1acb9743df4c6ba2
+    m_Address: Vanilla/Environment/Rock/MesaDesert/StrateCliff_2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 00ed16108710d4d999be4a83809e2b92
+    m_Address: Vanilla/Environment/Tree/Savanna/Acacia8
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 02c740acc0bb54162ad10456d3af5b36
     m_Address: Vanilla/Skit/Environment/100_start_2_SpaceShip_Interior
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 032ebb9bf1ba14df1b4f9fc8cad9055f
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Saguaro3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 03c4fef0782cb468683652b10248f8f5
+    m_Address: Vanilla/Environment/Rock/Redwood/BigBoulders_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 03feec326e0b8426b9faf5b9b162b594
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Saguaro4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 04086b712784245edabb8cc70b56f27a
     m_Address: Vanilla/UI/Block/MinerBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 057051a57c09143b0a84db16550a5a75
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Cacactus4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 059732b0138374a66b2dd407da00506e
+    m_Address: Vanilla/Environment/Tree/Savanna/Baobab4
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -45,6 +80,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0672960d3b7784d0592eb6d3502f9cdc
+    m_Address: Vanilla/Environment/Rock/Mountains/Stone2b
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 06ec40813bb3d214c95767bf9c4f9999
     m_Address: Vanilla/Block/press machine
     m_ReadOnly: 0
@@ -57,6 +97,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 077f516b067a242fead900bf0680250a
     m_Address: Vanilla/Item/IronOre
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 07b0b4e0617f148a09e2a31711cbdc0e
+    m_Address: Vanilla/Environment/Rock/Redwood/BigBoulders_2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -100,8 +145,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 11874de97ff3c483390d7c445ceee60b
+    m_Address: Vanilla/Environment/Rock/Mountains/Stone1b
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 11a1992a34e634165885d02b6f372a5e
     m_Address: Vanilla/Environment/Vein/Item/Copper
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1239c6db1d5ff4cfe9f8a2349a3cc85b
+    m_Address: Vanilla/Environment/Rock/MesaDesert/ThinMesa_1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -130,8 +185,23 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 147fbdeda466a4af19abfe6383c48eac
+    m_Address: Vanilla/Environment/Tree/Savanna/Baobab3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1592a1e8aaf8d4e63809e36045f1c5e0
     m_Address: Vanilla/Environment/Terrain/Detail/Redwood/Grass1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 166a7432971504e0787409e22021260e
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertRock_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 16735aba3713c4e25af175c1c71ceadb
+    m_Address: Vanilla/Environment/Rock/MesaDesert/RubbleDense_2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -145,6 +215,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 16ede2bcfc8334b4db37c480b9b245cd
+    m_Address: Vanilla/Environment/Rock/MesaDesert/Strate_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1782756e47a574930b384a6a56b327c2
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Cacactus3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 186b231c7e36d2b4db90c4e2de5c1119
     m_Address: Vanilla/Block/Old/smelting
     m_ReadOnly: 0
@@ -155,8 +235,23 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 190852bf59a604035b009a86e743b19f
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Senita5
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 194720b8c346548fdab7623dd5d1e3f3
+    m_Address: Vanilla/Item/StoneAxe
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 19d0fd83682574f808ae8b05e94b3b29
     m_Address: Vanilla/Environment/Vein/Item/Coal
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1a76de895924b4f4f9377d554d2dd050
+    m_Address: Vanilla/Environment/Tree/Savanna/Bush3
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -172,6 +267,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1afaa129b8e3241af8a05447cdb40df0
     m_Address: Vanilla/Block/Iron_conveyor_mini_chest
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1b2af0018fd1a4e80b3e7a1ceaa74b20
+    m_Address: Vanilla/Environment/Prop/MesaDesert/CowSkull
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -220,8 +320,23 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 20610057e121e458dab7f6e14c754787
+    m_Address: Vanilla/Environment/Rock/Mountains/Stone1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 215d2b6ec27694a8db850ae36868eb28
+    m_Address: Vanilla/Environment/Tree/Savanna/Acacia5
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 21808017c1ff24c35a21821bcbde4e57
     m_Address: Vanilla/UI/Train/CommonTrainInventoryView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 22044e602b4f74864b915246cd97b937
+    m_Address: Vanilla/Environment/Rock/MesaDesert/StratMesaSharp_2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -240,6 +355,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 22ba084088d6a4b7e9540292c5a42675
+    m_Address: Vanilla/Environment/Tree/Redwood/Sequoia1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 235a3764eae124f51a59f372085a4ab8
     m_Address: Vanilla/Environment/Terrain/Detail/Redwood/Grass2
     m_ReadOnly: 0
@@ -255,8 +375,28 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 25663e82a2ef8411d8f1bd3a34500052
+    m_Address: Vanilla/Environment/Rock/MesaDesert/Boulders_2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 256d551412e04be438bfb4481298cfa5
     m_Address: Vanilla/Block/Old/Silicon processor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 25bb07b44b93e4248bfff5a45021629b
+    m_Address: Vanilla/Environment/Plant/MesaDesert/Brittlebush_2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 26e9b6c66d5514ebd9e14102167ef21b
+    m_Address: Vanilla/Environment/Tree/Redwood/Sequoia2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 26f6793c753934b9d80cc3001b08c438
+    m_Address: Vanilla/Environment/Rock/Mountains/Pebble2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -285,6 +425,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2a75c7994b991443186e91aebde335d1
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Senita4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2a8a673b3389afe41be6d69d8d8f7094
     m_Address: Vanilla/Block/Primitive_grinding_machine
     m_ReadOnly: 0
@@ -292,6 +437,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2be4fde42a4bf477fae4587b089f81f6
     m_Address: Vanilla/Block/iron_miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2d6a0f16fbcf949f1bf15b198937ba5e
+    m_Address: Vanilla/Environment/Rock/MesaDesert/StratMesaSharp_1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -305,8 +455,33 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2fb68cb5c868249c4a3b1595038bf961
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertRock_7
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2fda64207decf264c9a9430c59cfe575
     m_Address: Vanilla/Block/Old/miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3047b2db144c0432b844083bb5f8b3f3
+    m_Address: Vanilla/Environment/Plant/MesaDesert/Peanut1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 30fb3476121514f0887dabf1d407d2b0
+    m_Address: Vanilla/Environment/Rock/MesaDesert/BigMesa_3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 31921bb203774452b9150cc2fdd02a34
+    m_Address: Vanilla/Environment/Rock/MesaDesert/Strate_5
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 34085e491884c46d3b0c5effc9b179e4
+    m_Address: Vanilla/Environment/Rock/MesaDesert/ThinMesa_2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -320,13 +495,43 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 34fbf69cd7dd14798a9281ac5ee2c8fe
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Senita1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 35295104bd8894d7a944b5428e0f6465
+    m_Address: Vanilla/Environment/Tree/Savanna/Acacia7
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 35bb034950b8042a0953f3d9e18f86c0
+    m_Address: Vanilla/Environment/Rock/MesaDesert/Strate_2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 35e588632b9ea984baf4cb1175c069ee
     m_Address: Vanilla/Train/Locomotive_CombinedStaticMeshes
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 369544f261b5841f3ae46de2e26d2911
+    m_Address: Vanilla/Environment/Rock/Redwood/Boulder_3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 378bab6c515bb4252a5166202effa6fe
     m_Address: Vanilla/Item/Iron_Ingot_item
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 37bb2f84423574905ba3d77a6ac8e68c
+    m_Address: Vanilla/Environment/Plant/MesaDesert/WildflowersYellow3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 399d10fa456fc4d898574d0ead1b8ab0
+    m_Address: Vanilla/Environment/Tree/Mountains/Fir1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -340,6 +545,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 39ede154787c047cc90a52c01ef0eb56
+    m_Address: Vanilla/Environment/Tree/Jungle/Musa1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3a780be7e9c6046839cf1efccb22a9db
     m_Address: Vanilla/Block/Station_Fluid_Cargo
     m_ReadOnly: 0
@@ -350,8 +560,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3d5b3331cf6f74449983c2fea4f59653
+    m_Address: Vanilla/Environment/Rock/MesaDesert/Boulders_3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3e322023f82804c83a252459830ec557
     m_Address: Vanilla/Skit/Animations/anim_idle01_lp
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3ea01f15726aa4959bee63f8ed99ff84
+    m_Address: Vanilla/Environment/Rock/Mountains/Pebble3
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -365,6 +585,21 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 40264e614ca1d424bbb566749e0bd36c
+    m_Address: Vanilla/Environment/Rock/MesaDesert/Strate_3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4136f378ccfa14019bf435f45021713a
+    m_Address: Vanilla/Environment/Tree/Redwood/RedFir8
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 41ecfe171f35a4411b8f72ae3ededa6d
+    m_Address: Vanilla/Environment/Rock/Redwood/Boulder_2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 423d2d193601b4fbdaf6b98c437e9326
     m_Address: Vanilla/Block/Electric Mining Machine
     m_ReadOnly: 0
@@ -372,6 +607,26 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4330922e5f42eeb47a769eb9d3ef359f
     m_Address: Vanilla/Block/BeltConveyor_Down
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 43d3f1da7f086486f934b4158dc4b468
+    m_Address: Vanilla/Environment/Rock/Redwood/BigBoulders_3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4473041f2fac14a4092d143f0228e335
+    m_Address: Vanilla/Environment/Tree/Savanna/Acacia3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 457461b7f513b4ad0b0f975784351904
+    m_Address: Vanilla/Environment/Plant/MesaDesert/Brittlebush_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 46675d2b582c14b9d9842bc375ad0626
+    m_Address: Vanilla/Environment/Tree/Jungle/Tropica1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -395,6 +650,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 48b696134c0ef4e3aa215e7f65811c05
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Grocactus7
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 491af791451a0418f9fb3da96da78623
     m_Address: Vanilla/Environment/Terrain/Layer/Mountains/Mud01
     m_ReadOnly: 0
@@ -407,6 +667,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4aaaab3f7c9ac4027b6ee14114bb2b87
     m_Address: Vanilla/Block/bronze_bronze_miner Variant
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4b17e806031044e9bbe506caede4346f
+    m_Address: Vanilla/Environment/Tree/Savanna/Baobab1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -430,13 +695,33 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4dcc21f34746c4a98b3f6376016a7762
+    m_Address: Vanilla/Environment/Tree/Mountains/Pine3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4de48accd99c74e2eb6d961c7a5de6d4
     m_Address: Vanilla/Block/Primitive_Miner
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4e37d1f083c4543fcb75e5e436f999cb
+    m_Address: Vanilla/Environment/Tree/Savanna/Baobab2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4e8ce4cd36e9f4097a0268446762e672
     m_Address: Vanilla/Environment/Terrain/Layer/Mountains/Mud02
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4f082901141bc4bcfb2bbe9ef7e1610f
+    m_Address: Vanilla/Environment/Rock/Mountains/Pebble1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4f0d2de8ec01040d7b66b7b2131945e2
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertRock_3
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -450,6 +735,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 50e942548ca2e4622a9b008b325e2ce9
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Grocactus1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 51692cd4fd70e9b49b011b850ce0d9b3
     m_Address: Vanilla/Block/WeldingProcessingMachine
     m_ReadOnly: 0
@@ -457,6 +747,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 516f8de53af874646b49299ba2fca0b7
     m_Address: Vanilla/Environment/Terrain/Detail/Mountains/Lupin1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 527052de37ea74e89a2cc246dfe1a2bd
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Saguaro5
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -472,6 +767,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5453eb54061614ff28e9235819740d27
     m_Address: Vanilla/Block/BaseCamp2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 54cd06e78e7bd40179adebafb45139b1
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -515,8 +815,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5904601a1abde435e92d76aaa53a8307
+    m_Address: Vanilla/Environment/Rock/Mountains/Stone3b
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 592fd8fcf82bc49a483838eee4ff2b4b
     m_Address: Vanilla/Skit/Animations/anim_idle01_lp_fbx
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 59630a5621d4b4cd59cf918063efafbf
+    m_Address: Vanilla/Environment/Tree/Savanna/Baobab6
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -530,8 +840,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5c037e0bc54a049b79b875db5fcd0b06
+    m_Address: Vanilla/Environment/Tree/Redwood/Sequoia5
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5c41742aeff527340b758e7573cfcd16
     m_Address: Vanilla/UI/Block/ChestBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5cb2b320fbe9d4f75a0f03f2d3f82aab
+    m_Address: Vanilla/Environment/Tree/Base/BirchTree02
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -555,6 +875,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 60dc891e1c61f45198e3aa4d91232dac
+    m_Address: Vanilla/Environment/Tree/Oasis/Olivebush3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6116f4be4717f4a0f9bca68e1838654d
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 613544b674bb64ee79908ce25da2039d
     m_Address: Vanilla/Block/itemshooter merger
     m_ReadOnly: 0
@@ -570,6 +900,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 62fd0e5c97c404a428ae8e9f0050e4b1
+    m_Address: Vanilla/Environment/Rock/Mountains/Boulder2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6431fd7cbf635497fab8c926bb52c2f7
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_9
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 64343c606fc9fff41992f7bb60916462
     m_Address: Vanilla/Block/Old/miner mk2
     m_ReadOnly: 0
@@ -577,6 +917,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 64b3a814a7a4c47c6882b438ad1feea6
     m_Address: Vanilla/Environment/Vein/Item/Stone
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 657c06b71e51743e6a4c1f847aa3632f
+    m_Address: Vanilla/Environment/Tree/Redwood/RedPine1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -605,6 +950,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 67af1c6d37641420a9de4f07418912ee
+    m_Address: Vanilla/Environment/Rock/MesaDesert/Boulders_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 67d96bda08e374653ab88047084fe272
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Grocactus4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 681f8912a7727458189ceb6c498291b6
     m_Address: Vanilla/Environment/Terrain/Detail/Savanna/SavannaGrass2_green
     m_ReadOnly: 0
@@ -615,8 +970,23 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 69bff051f43e249698dd333128d43e16
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Opuntia4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6afff40c7cd46ae498e7793e39b21c8a
     m_Address: Vanilla/UI/ItemSlotView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6b2fefbc9afd1439eadf9d47d250addb
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Senita8
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6b7dd86a34cc84010b151c114f05c8f2
+    m_Address: Vanilla/Environment/Plant/MesaDesert/WildflowersYellow2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -625,8 +995,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6cc2c75ca5e884f129aac9999eec5651
+    m_Address: Vanilla/Environment/Tree/Mountains/Fir3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6cf497b4abc9242a9abec5053e4e76a9
     m_Address: Vanilla/Block/Old/3x3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6f610d170621d471b8853814e08b71ec
+    m_Address: Vanilla/Environment/Rock/Oasis/RubbleSparse_3
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -670,6 +1050,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7592e7d40fd87463a8c1174facc27344
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Senita2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 764764c4c5bb8b043a34afd794f9c161
     m_Address: Vanilla/Block/Old/generator mk3
     m_ReadOnly: 0
@@ -677,6 +1062,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 76d0d5e77d3be49169f9e44ff110372f
     m_Address: Vanilla/Environment/Terrain/Layer/Mountains/Grass01
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 76f3779bb169447e8a276ada99e0a7bc
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_0
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -725,8 +1115,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7b4da497c0c484dce8ade62fbd94dd24
+    m_Address: Vanilla/Environment/Tree/Savanna/Acacia4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7babaceddb1894be99847c82a77ef267
     m_Address: Vanilla/Environment/Terrain/Detail/Redwood/ThinFern3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7c4a142c292e9450fb9b6306dfc2e761
+    m_Address: Vanilla/Environment/Tree/Redwood/RedFir3
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -750,6 +1150,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7f7e92b6f67c74a73a3dae27b18a68c3
+    m_Address: Vanilla/Environment/Rock/MesaDesert/StratMesaSharp_4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7feb80a3971ba3c448413bf3080ecb47
     m_Address: Vanilla/Train/Locomotive_CombinedSkinnedMesh
     m_ReadOnly: 0
@@ -757,6 +1162,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7ff9d8ff6a11a80469efcac66b15bfe8
     m_Address: Vanilla/Block/Stone_oven
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8171a1f34bcd74f0696b7dec72f14760
+    m_Address: Vanilla/Environment/Rock/Oasis/RubbleSparse_1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -770,13 +1180,38 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 844d1f84c1c914964ae5f71f5308957f
+    m_Address: Vanilla/Environment/Tree/Mountains/Pine1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 846a5bc6a06334efc9b113e0d64fd129
+    m_Address: Vanilla/Environment/Tree/Savanna/Acacia2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 849dec7389c0341788dad48eedc10221
     m_Address: Vanilla/Block/CompactGearChainPole
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 84cc1f65afe0e449a804f961cb4b1d85
+    m_Address: Vanilla/Environment/Tree/Mountains/Spruce1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 84e767fb6361a4428ac8ff2de0c726b3
+    m_Address: Vanilla/Environment/Tree/Jungle/Banana1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 85fb7a241b50442c68029a0d9748bf56
     m_Address: Vanilla/Game/DefaultTrain
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 86c99c3fa28a146a3bea881585abccfe
+    m_Address: Vanilla/Environment/Rock/MesaDesert/RubbleDense_3
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -790,8 +1225,43 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 87e7dbf519c8b4f1cad853d830ca6f21
+    m_Address: Vanilla/Environment/Tree/Jungle/Kapokier2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 87eb280b518914b02988c11cd2159b65
+    m_Address: Vanilla/Environment/Tree/Savanna/Baobab7
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 88ac876f6799548dfb8f56b56a54517d
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8921b25d98e01426b8ef1e4aaf7e7bbd
+    m_Address: Vanilla/Environment/Rock/MesaDesert/BigMesa_5
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 89b34ca01ae804a65a6f52166ba3e95c
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertRock_6
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8a3e0eea8546c4da7a0e6f96b9f665d5
     m_Address: Vanilla/Block/Chainer_Fast_BeltConveyor_Up
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8a3f0ca16f5ad4d5bb27d0b48b019e8a
+    m_Address: Vanilla/Environment/Rock/MesaDesert/Strate_0
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8adbc3e01ebf44090b54863607f8a0ed
+    m_Address: Vanilla/Environment/Plant/MesaDesert/DryGrass4
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -800,8 +1270,23 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8b2f25da830e34912ab20095643ee975
+    m_Address: Vanilla/Environment/Tree/Redwood/RedFir4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8b93912ebc7204ea3ad9a8041ba3c28c
+    m_Address: Vanilla/Environment/Rock/Mountains/Boulder3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8cf55c07f16014690a41d5d8ecb00da2
     m_Address: Vanilla/Skit/skits/200_star_background
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8d3fd15524e20437697680f15abb0185
+    m_Address: Vanilla/Environment/Tree/Savanna/Baobab5
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -810,8 +1295,43 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8d93f09fbd8604df2af561d4e15fa814
+    m_Address: Vanilla/Environment/Plant/MesaDesert/DryGrass3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8ddc5fe3cf3ed4bb99265e9a31ca89f8
     m_Address: Vanilla/Skit/Animations/anim_wait01_lp_fbx
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8e4c523d0935f461cbe91b01c98c858e
+    m_Address: Vanilla/Environment/Tree/Redwood/Sequoia4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8f0dc2fef78be44ccab62952ea1e3308
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertRock_8
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8f1147c445d074f8a82174232bedfaef
+    m_Address: Vanilla/Environment/Tree/Savanna/Bush1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 900506f7965554d9a94fe4604059ed00
+    m_Address: Vanilla/Environment/Rock/MesaDesert/BigMesa_4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 904e9f242c01f4df6abaa76169d87431
+    m_Address: Vanilla/Environment/Rock/MesaDesert/BigMesa_2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 90ac56d7e07ed40b89ea3cf2542e7118
+    m_Address: Vanilla/Environment/Rock/MesaDesert/ThinMesa_3
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -840,8 +1360,23 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 921b1e8a26cc54ae9be28ae4514aee81
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_6
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 921d8d98340992f4aba03c52b5ac1a5a
     m_Address: "Vanilla/Block/Old/tmp \u77F3\u6CB9\u63A1\u6398"
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 924e26dfa82c84aed87db8a6c77cec7a
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertRock_9
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 92a4831244ea0448d8fe1a82bb13aacf
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Opuntia3
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -860,6 +1395,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 945f7cc2c3e47486b86128c7d99aca50
+    m_Address: Vanilla/Environment/Tree/Oasis/Olivebush2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 948c3f51e452d4eb4a8def7c80a18f61
     m_Address: Vanilla/Item/Precision_motor
     m_ReadOnly: 0
@@ -867,6 +1407,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 949b6c1afc6444d5bbb480710ca7a8f3
     m_Address: Vanilla/Block/Primitive_Windmill
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 949ffbc5d05fc4c11b0c03c7cc6b0299
+    m_Address: Vanilla/Environment/Rock/MesaDesert/RubbleSparse_1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -885,8 +1430,28 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 96bdf6cb6af79403896b59d94109a17a
+    m_Address: Vanilla/Environment/Plant/MesaDesert/Peanut2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 974009cc6c70f43538352f024470507b
+    m_Address: Vanilla/Environment/Tree/Mountains/Fir5
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 979dabeecaaee44a498ea6c3c3016d0c
+    m_Address: Vanilla/Environment/Tree/Redwood/RedFir1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 993e71dd9c6b24893b2ae97dfb5842d9
     m_Address: Vanilla/Block/OilWell
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9975904ff4e7b4ddaadc81100c19278a
+    m_Address: Vanilla/Environment/Rock/MesaDesert/StratMesaSharp_0
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -900,6 +1465,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9a2b7a204b7a64555847a35c2283332b
+    m_Address: Vanilla/Environment/Tree/Redwood/RedPine3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9ae146a9e49d94150bfc50e4a80ab109
     m_Address: Vanilla/Material/TutorialPreviewBlock
     m_ReadOnly: 0
@@ -910,8 +1480,28 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9cf5bcd57dce84555900af3794c1a851
+    m_Address: Vanilla/Environment/Rock/Redwood/Boulder_4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9dacb2faa2df0427f84e5c1062e97a6c
+    m_Address: Vanilla/Environment/Rock/MesaDesert/RubbleSparse_2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9dedbe59f17984baba2c1172bf3289d1
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Grocactus3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9eeb8bbe6d88443e9b523c4b3ed49807
     m_Address: Vanilla/UI/Block/GeneratorBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9f370d9abc50446f4b5254dd2b3bd596
+    m_Address: Vanilla/Environment/Tree/Redwood/RedFir5
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -920,8 +1510,23 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9fda307c0250749abb1edd1d38f9d224
+    m_Address: Vanilla/Environment/Tree/Base/PineTree01
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a22f794443335e74c82387a9f622ffcd
     m_Address: Vanilla/Block/gear belt conveyor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a25d1d5666a334710aea5a5304af4faf
+    m_Address: Vanilla/Environment/Rock/MesaDesert/Boulders_4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a334679ab510a4defa04e73186b5559d
+    m_Address: Vanilla/Environment/Tree/Redwood/RedFir6
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -930,8 +1535,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a3b8f48d3d4ad44b584eac4269199657
+    m_Address: Vanilla/Environment/Rock/MesaDesert/RubbleSparse_3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a46e19f67a9e4479587d8d33f50fe3c1
     m_Address: Vanilla/Environment/Terrain/Detail/Mountains/Fern1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a478b730dfa254b2aaf1d6e3ea644cf4
+    m_Address: Vanilla/Environment/Rock/Mountains/Stone4
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -990,13 +1605,43 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a81cee2ea1733410ba1140e6aa09d65d
+    m_Address: Vanilla/Environment/Rock/MesaDesert/StrateCliff_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a8e90be0980d847efb519965abf4c27e
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Grocactus8
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a908ab188a0fc4d869906b034cee290e
     m_Address: Vanilla/Block/Electric_miner
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a93c5ba9643a245bfb6fe60bc24c79dc
+    m_Address: Vanilla/Environment/Rock/MesaDesert/Boulders_5
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a9517533a59e349e58410e285b51ee0a
     m_Address: Vanilla/Block/Station_Locomotive
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a959cd94caaa14cea98132e7f2ecd069
+    m_Address: Vanilla/Environment/Plant/MesaDesert/WildflowersYellow4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a97e14b97f8b4432e97764d764e66cd7
+    m_Address: Vanilla/Environment/Rock/MesaDesert/RubbleDense_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a9b89daadca354dfb8b0ba2022c3480c
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Grocactus6
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1010,6 +1655,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aa43ecb3cae1b40a7b14d96bf94aeeae
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertRock_2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: aa6441e733fda49988fc9cb5b2717b66
     m_Address: Vanilla/Environment/LogVein
     m_ReadOnly: 0
@@ -1017,6 +1667,21 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: aa6c93f707827450ba679d52727164eb
     m_Address: Vanilla/Block/Electric_pole
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aa732a444cb3a4e85ab86a84232e1ad1
+    m_Address: Vanilla/Environment/Rock/MesaDesert/Boulders_0
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: abd7422bfa0c44539ae2532a7047bab5
+    m_Address: Vanilla/Environment/Rock/MesaDesert/ThinMesa_4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ac278f29bf1c04b04bff5f3f18d515ff
+    m_Address: Vanilla/Environment/Rock/Redwood/Boulder_5
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1030,6 +1695,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ad77d60060ab74d20ab844cf0da1f894
+    m_Address: Vanilla/Environment/Tree/Base/BirchTree01
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: addad9320f24544a69ad9f0ca74078b3
     m_Address: Vanilla/Block/Mining Machine Primitive
     m_ReadOnly: 0
@@ -1040,8 +1710,28 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: af45023326939474a98199bdee001a02
+    m_Address: Vanilla/Environment/Tree/Redwood/Sequoia3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: afdf32511134a431382b36284c50846b
+    m_Address: Vanilla/Environment/Tree/Savanna/Bush2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b0277322f588d40c09561e0211f97871
+    m_Address: Vanilla/Environment/Plant/MesaDesert/WildflowersYellow1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b0c6385732c7e5b439e621f7eb8b69f5
     m_Address: Vanilla/Block/Fuel_powered_windmill
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b140a339774784d48b897cfa82074b21
+    m_Address: Vanilla/Environment/Tree/Redwood/RedFir7
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1050,13 +1740,38 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b1a961189d05b435b92b4524acaaaf34
+    m_Address: Vanilla/Environment/Tree/Base/PineTree02
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b1ac0ba19863a4bc8b08c6d9b2b8c56f
     m_Address: Vanilla/Item/StoneHammer
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b1efb77b39fdd44a7aac3b7bd63e2cd3
+    m_Address: Vanilla/Environment/Tree/Redwood/RedPine2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b22059a566e9a4887963cfb103740f35
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Senita7
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b248626b6be8543bf90a9066d05596e4
+    m_Address: Vanilla/Environment/Rock/MesaDesert/StrateCliff_0
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b29f0181457b14246b619880e1f0950a
     m_Address: Vanilla/Block/WoodenFoundation
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b3bd7babaa62f45cc91d47710826252c
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Grocactus2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1075,8 +1790,33 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b7406ade1fcc749a7a707a21023a056a
+    m_Address: Vanilla/Environment/Rock/Mountains/Boulder1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b77a17a24c794490497d44b584e99453
     m_Address: Vanilla/Block/ElectricOven
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b7b85b476849147dfbd8e2e70fa669c2
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Senita3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b7c975a13cb47403f914d877da3c5119
+    m_Address: Vanilla/Environment/Tree/Oasis/Olivebush1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b89c5b11512e547eab248b65423f4d42
+    m_Address: Vanilla/Environment/Rock/MesaDesert/ThinMesa_5
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b9aaf7ad943d2471c983fd8d5a6ccb38
+    m_Address: Vanilla/Environment/Rock/Mountains/Stone2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1110,8 +1850,43 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bbfca150d4acd4897bb1cad5e84b9b94
+    m_Address: Vanilla/Environment/Tree/Savanna/Acacia6
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bd899b8fb31544d22b644d44a165e721
+    m_Address: Vanilla/Environment/Rock/Redwood/Boulder_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bdc36df5ea6e74299bd1e9be8cea8d3d
+    m_Address: Vanilla/Environment/Plant/MesaDesert/Brittlebush_4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: be001e39796204667a22083c529b07c2
+    m_Address: Vanilla/Environment/Tree/Redwood/RedPine4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: be1cc1e9fdfd54a8e8fd2b7b66118812
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Senita6
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: bf61998599293402a9a8317983fb6a09
     m_Address: Vanilla/Block/Station_Cargo
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bfea80fb35a70466d8d62c3cdf99da06
+    m_Address: Vanilla/Environment/Plant/MesaDesert/Brittlebush_3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bff84d278d14147f28a16ec5717804ab
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_5
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1145,6 +1920,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c303e5cad02924b93b78c140262eb860
+    m_Address: Vanilla/Environment/Rock/Redwood/BigBoulders_0
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c337d044e0b938b4986eee09c082e90c
     m_Address: Vanilla/Block/water wheel
     m_ReadOnly: 0
@@ -1160,8 +1940,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c5333f8d5a7574a7caa1451d5c8d74a3
+    m_Address: Vanilla/Environment/Tree/Jungle/Banana2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c6f72ec9de4f849b28ffae48ebaa7c23
     m_Address: Vanilla/UI/Block/ElectricToGearBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c75ab8b442ffe4cb19d51a98b8f4fa3d
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1170,8 +1960,18 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c81558eb500c149b9a0ed798987bc518
+    m_Address: Vanilla/Environment/Rock/MesaDesert/BigMesa_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c95e87d74013e4bc1898135420e4215b
     m_Address: Vanilla/Environment/Bush
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c9a082efb7d2e456491e40acad37733f
+    m_Address: Vanilla/Environment/Plant/MesaDesert/DryGrass2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1195,6 +1995,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cdfc5882737114b11b83c46dface3b08
+    m_Address: Vanilla/Environment/Tree/Savanna/Acacia1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ce51f836d08c549e88b58d9bd1256a60
     m_Address: Vanilla/Block/SmallGear_Iron
     m_ReadOnly: 0
@@ -1205,13 +2010,38 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cf27febaafbb14fb293fab7054fb0c45
+    m_Address: Vanilla/Environment/Rock/Mountains/Stone4b
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cf2b8b00a0d974671beb401f4f839e35
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_8
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cf999fe520b9e4ed9afb5f382737fd23
     m_Address: Vanilla/UI/Block/GearEnergyTransformerUI
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d16bec676401f4f7da395a06895f1199
+    m_Address: Vanilla/Environment/Tree/Mountains/Spruce4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d1962ee19d1234898b4c3faa248625cb
+    m_Address: Vanilla/Environment/Rock/MesaDesert/Strate_4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d258c65b476e14ad88d21bb0f9698544
     m_Address: Vanilla/Block/Old/4x4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d3beed8e21b4d44f8ae723a59b960e38
+    m_Address: Vanilla/Environment/Rock/Mountains/Stone5
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1285,8 +2115,28 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d96bc290d697f4b65a1e71febd26e5ec
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Opuntia2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: da3310fc15f3c4d93abc7e9d15a58a76
+    m_Address: Vanilla/Environment/Tree/Jungle/Kapokier1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: db1853b99a28e4b78b9ab01cc29d4859
     m_Address: Vanilla/Block/Iron_conveyor_chest
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: db2880700a63c46e39435bb02b907d45
+    m_Address: Vanilla/Environment/Plant/MesaDesert/Peanut3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: db3fa39ed19544f238f517d1f53b078e
+    m_Address: Vanilla/Environment/Rock/Redwood/BigBoulders_4
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1297,6 +2147,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: dc6116d42d12ea04c8eccb7c41618a1e
     m_Address: Vanilla/Block/Old/btc miner
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dcc1a5bb28c584ef18b865705db7561e
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Opuntia1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1325,8 +2180,33 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e3722a54cb9c14a84bc314b5fbad89b6
+    m_Address: Vanilla/Environment/Rock/Mountains/Stone3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e42e8d70d948d4223a5c2400103de6cd
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Cacactus1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e46a405f5daf14dd08cb51afd832624d
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_7
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e65306aa3dbc547918233b5f0d4cd006
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertRock_4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e74768bc4d07b46568fcf121544bb2d0
     m_Address: Vanilla/Block/Fast_BeltConveyor_Splitter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e7adbc81c2a464e0dbdae3f0705b85b0
+    m_Address: Vanilla/Environment/Rock/MesaDesert/StratMesaSharp_3
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1337,6 +2217,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e84dd0a45abe8724380d4a09a514d79e
     m_Address: Vanilla/Train/CargoCar_CombinedStaticMeshes
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e887dd67e63734bd78863aee4b753d28
+    m_Address: Vanilla/Environment/Tree/Redwood/RedPine5
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1365,8 +2250,33 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: eaf6b8ccc99284dde9febeba185740e3
+    m_Address: Vanilla/Environment/Tree/Savanna/Baobab8
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: eb13dc58daae64bf78b6824a6f7d9634
+    m_Address: Vanilla/Environment/Rock/Oasis/RubbleSparse_2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ec249701ac417437a8f945510002724b
     m_Address: Vanilla/Game/FreightCar
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ec56a04ac07554af59b8c7eb5f1102a5
+    m_Address: Vanilla/Environment/Rock/MesaDesert/BigMesa_0
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: eca2a3fadd7dc4a54b718b822ce5e15e
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Saguaro2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ecc16cb1d7cc94253827e77f5923e9d5
+    m_Address: Vanilla/Environment/Tree/Mountains/Bush1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1377,6 +2287,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: edb6fe869fe158a4ab9b4d1624436f1c
     m_Address: "Vanilla/Block/Old/tmp \u7CBE\u6CB9"
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: edd47e0ae60e2432fba475ec76ce5636
+    m_Address: Vanilla/Environment/Rock/Redwood/BigBoulders_5
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1400,8 +2315,23 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f21c91faeb6304b0eb1c7e3ac454eaa4
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Grocactus5
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f2f7fd421b939486b97d124721330725
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Saguaro1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f3871b76c69144b14afa50c75d6b7250
     m_Address: Vanilla/Block/3D Printer
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f397dd3cc22734cb8b2048a328906699
+    m_Address: Vanilla/Environment/Rock/Redwood/Boulder_0
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1417,6 +2347,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f486c00f78cea854cbe8bdf0fde2c47a
     m_Address: Vanilla/Block/Sieve
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f53ec95680643441eb0b19ddea728af9
+    m_Address: Vanilla/Environment/Rock/MesaDesert/ThinMesa_0
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1450,6 +2385,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f7b08a3e962014573aa3329c00295db3
+    m_Address: Vanilla/Environment/Tree/MesaDesert/Cacactus2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f93affa960fb94d4e98eee3e3bc78a4b
+    m_Address: Vanilla/Environment/Tree/Jungle/Tropica2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f992b7e8076e24bd89f9631bb1041d83
     m_Address: Vanilla/Environment/Pebble
     m_ReadOnly: 0
@@ -1470,8 +2415,23 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: faa35379911c3458fb725044465555f6
+    m_Address: Vanilla/Environment/Plant/MesaDesert/DryGrass1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fb080ef8775404578ae9a43cfc7a30d1
+    m_Address: Vanilla/Environment/Tree/Redwood/RedFir2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: fbe000f72185746d0a7c722fcc35f14e
     m_Address: Vanilla/Block/Antimatter_manufacturing_equipment
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fc69e3847799b42818b9884096dd54b8
+    m_Address: Vanilla/Environment/Rock/Oasis/DesertRock_5
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1492,6 +2452,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: fdc0ac0187b65452087a9b5568d41643
     m_Address: Vanilla/Skit/Animations/anim_idle01_st
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fdf59f0603ceb4dfd8a74d4339f90745
+    m_Address: Vanilla/Environment/Tree/Mountains/Bush3
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

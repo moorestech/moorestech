@@ -45,7 +45,7 @@ async function waitForExpectedState(page: Page, captureCase: CaptureCase): Promi
     const research = document.querySelector('[data-testid="research-tree"]');
     const buildMenu = document.querySelector('[data-testid="build-menu-panel"]');
     const pauseMenu = document.querySelector('[data-testid="pause-menu"]');
-    const placement = document.querySelector('[data-tutorial-anchor="placement.hud"]');
+    const placement = document.querySelector('[data-tutorial-anchor~="placement.hud"]');
     const deletion = document.querySelector('[data-testid="delete-mode-warning"]');
     const backgroundSkit = document.querySelector('[data-testid="background-skit"]');
     const blockingSkit = document.querySelector('[data-testid="blocking-skit"]');
@@ -98,6 +98,10 @@ async function measure(page: Page): Promise<unknown> {
   return page.evaluate(() => {
     const hud = document.querySelector<HTMLElement>('[data-testid="challenge-hud"]');
     const hudRect = hud?.getBoundingClientRect();
+    // 面は::beforeから読む
+    // Read the face from ::before
+    const hudFace = hud?.querySelector<HTMLElement>(':scope > [data-variant="hud"]') ?? null;
+    const hudFaceStyle = hudFace ? getComputedStyle(hudFace, "::before") : null;
     const objectives = Array.from(document.querySelectorAll<HTMLElement>('[data-testid="challenge-objective"]'));
     const operationHud = document.querySelector<HTMLElement>('[data-testid="placement-mode-hud"]');
     const operationHudRect = operationHud?.getBoundingClientRect();
@@ -114,7 +118,8 @@ async function measure(page: Page): Promise<unknown> {
     return {
       hud: hudRect ? { x: hudRect.x, y: hudRect.y, width: hudRect.width, height: hudRect.height } : null,
       label: hud?.getAttribute("aria-label") ?? null,
-      background: hud ? getComputedStyle(hud).backgroundColor : null,
+      background: hudFaceStyle?.backgroundColor ?? null,
+      backgroundMaskImage: hudFaceStyle ? hudFaceStyle.maskImage || hudFaceStyle.webkitMaskImage : null,
       pointerEvents: hud ? getComputedStyle(hud).pointerEvents : null,
       objectives: objectives.map((objective) => {
         const rect = objective.getBoundingClientRect();

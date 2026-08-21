@@ -97,6 +97,17 @@ describe("TreeView viewport state", () => {
     expect(canvasTransform(renderer)).toBe("translate(0px, -50px) scale(1)");
   });
 
+  it("centers when the focus point arrives after the first data push", () => {
+    // サーバー状態未着の初回配信は注目点を持たない（実ゲームの研究topic初回配信と同じ形）
+    // The first push carries no focus point, matching the real research topic's state-less first push
+    const renderer = mount({ viewportKey: "test-late-focus", initialFocus: null });
+    expect(canvasTransform(renderer)).toBe("translate(0px, 0px) scale(1)");
+
+    act(() => renderer.update(createElement(TreeView<TestNode>,
+      baseProps({ viewportKey: "test-late-focus", initialFocus: { x: 0, y: 0 } }))));
+    expect(canvasTransform(renderer)).toBe("translate(0px, -50px) scale(1)");
+  });
+
   it("prefers the stored viewport over initial-focus centering", () => {
     const first = mount({ viewportKey: "test-stored-wins" });
     pan(first, [{ x: 30, y: 40 }]);

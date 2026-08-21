@@ -8,7 +8,7 @@ namespace Game.MapGeneration.Pipeline.Stages
 {
     // 配置ステージの入力整形ヘルパー（重み2D化・高さ2D化・biomeインデックス・結果変換）。
     // Input-shaping helpers for placement stages (weights-to-2D, heights-to-2D, biome indices, result convert).
-    internal static class PlacementInputBuilder
+    public static class PlacementInputBuilder
     {
         // ジョブ出力の biomeWeights を旧形式(Ocean/Beach列付き)に変換する。配置処理が [idx,2+b] で参照するため。
         // Convert job-output biomeWeights to the legacy Ocean/Beach-column layout consumed by placement.

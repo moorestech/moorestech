@@ -7,6 +7,7 @@
 
 ```csharp
 await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());   // 足場+ワープ+無料設置を1行で
+await p.SkipOpeningSkit();                          // 開幕スキットは全UI入力を塞ぐため必ず先に飛ばす
 p.WarpPlayer(new Vector3(3.5f, 33.5f, -1f));       // 設置エリアの南側へ（設置カメラは北向き・浅ピッチ）
 
 // 遠いセルから設置する（手前の既設ブロックが奥セルへのレイを遮るため。単クリックは隣接が埋まる前に）
@@ -40,9 +41,11 @@ await p.ExitToGameScreen();
 - 照準は `PlaytestUiOps.PlaceAimPoint` = CalcPlacePointの逆算。**接地面上のフットプリント中心**
   （`origin + rotatedSize/2` のx,z、y=origin.y）を狙えば指定originに置かれる
 - クリックは押下→2フレーム→解放。**設置はScreenLeftClickのGetKeyUp（解放）で確定**する
-- 設置システムの選択優先度: HoldingItemId（ホットバー手持ち）のplaceSystemマスタ >
-  歯車チェーンポールのブロックアイテム > ビルドメニュー選択がベルトファミリー > 通常ブロック。
-  **ホットバーにplace mode系アイテムを持ったままだとメニュー選択が無視される**ので注意
+- 設置システムの選択は`context.Target`の型のみで決まる（`PlaceSystemSelector.GetCurrentPlaceSystem`）:
+  `BlockPlacementTarget`ならブロックの`BlockType`でベルト/レール/歯車ポール/通常ブロックへ分岐、
+  `ConnectToolPlacementTarget`なら接続ツール種別で3系統へ分岐。ホットバー割当・ビルドメニュー選択の
+  どちらもこの`Target`を差し替えるだけで、経路によって優先度が変わることはない（詳細は
+  [hotbar-driven-systems.md](hotbar-driven-systems.md)参照）
 
 ## 制約（現状の仕様）
 

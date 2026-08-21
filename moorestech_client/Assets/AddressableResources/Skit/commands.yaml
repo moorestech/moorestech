@@ -186,7 +186,7 @@ commands:
 
   - id: inGameObjectControl
     label: ゲーム内オブジェクト制御
-    commandListLabelFormat: "背景:{backgroundEnable} ブロック:{blockEnable} mapObject:{mapObjectEnable} エンティティ:{entityEnable}"
+    commandListLabelFormat: "背景:{backgroundEnable} ブロック:{blockEnable} 世界オブジェクト:{worldObjectEnable} エンティティ:{entityEnable}"
     category: ["環境"]
     defaultBackgroundColor: "#ffffff"
     properties:
@@ -196,7 +196,7 @@ commands:
       blockEnable:
         type: boolean
         required: true
-      mapObjectEnable:
+      worldObjectEnable:
         type: boolean
         required: true
       entityEnable:

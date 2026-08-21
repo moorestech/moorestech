@@ -16,6 +16,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         // 「今何を設置しようとしているか」の唯一の所有者。書き込みはSetTargetのみ
         // The single owner of "what is being placed now"; writes go through SetTarget only
         public IPlacementTarget CurrentTarget { get; private set; }
+
+        // 設置対象と同じ書き込み点でしか変わらない由来。両者は構造的に乖離しない
+        // The origin changes only at the same write point as the target, so the two cannot drift apart
+        public PlacementOrigin CurrentOrigin { get; private set; }
         public IObservable<IPlacementTarget> OnTargetChanged => _onTargetChanged;
 
         // ホイールを実際に消費している設置系がここへプッシュする。消費側は種別から再導出しない
@@ -31,10 +35,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             Disable();
         }
 
-        public void SetTarget(IPlacementTarget target)
+        // 対象同一でも由来変化で通知する
+        // Notifies even for an identical target when only the origin differs
+        public void SetTarget(IPlacementTarget target, PlacementOrigin origin)
         {
-            if (Equals(CurrentTarget, target)) return;
+            if (Equals(CurrentTarget, target) && CurrentOrigin.Equals(origin)) return;
             CurrentTarget = target;
+            CurrentOrigin = origin;
             _onTargetChanged.OnNext(target);
         }
 
@@ -48,9 +55,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _currentPlaceSystem.Disable();
             _currentPlaceSystem = _placeSystemSelector.EmptyPlaceSystem;
 
-            // 選択の寿命はPlaceBlock滞在中のみ。離脱時にターゲットも破棄する
-            // Selection lives only while in PlaceBlock; drop the target on leave
+            // 選択の寿命はPlaceBlock滞在中のみ。離脱時にターゲットと由来を同時に破棄する
+            // Selection lives only while in PlaceBlock; drop the target and its origin together on leave
             CurrentTarget = null;
+            CurrentOrigin = PlacementOrigin.NonHotbar;
             _onTargetChanged.OnNext(null);
             _lastTarget = null;
             _isWheelOwnedByTool.Value = false;

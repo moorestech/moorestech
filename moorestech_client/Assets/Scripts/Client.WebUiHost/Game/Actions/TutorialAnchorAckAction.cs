@@ -12,10 +12,10 @@ namespace Client.WebUiHost.Game.Actions
         {
             var sessionId = payload?.Value<string>("tutorialSessionId");
             var revision = payload?.Value<int>("revision") ?? -1;
-            var current = TutorialPresentationStateStore.Instance.GetCurrent();
-            if (sessionId != current.TutorialSessionId)
+            var store = TutorialPresentationStateStore.Instance;
+            if (!store.HasSessionId(sessionId))
                 return UniTask.FromResult(ActionResult.Fail("stale_session"));
-            if (revision != current.Revision)
+            if (revision != store.GetCurrent().Revision)
                 return UniTask.FromResult(ActionResult.Fail("stale_revision"));
             return UniTask.FromResult(ActionResult.Success());
         }

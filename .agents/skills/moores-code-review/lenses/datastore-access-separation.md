@@ -4,6 +4,12 @@ paths:
   - "Datastore"
 extensions:
   - .cs
+keywords:
+  - "public static"
+  - "void Set"
+  - ".Clear("
+  - ".Remove("
+  - ".Add("
 model: sonnet
 ---
 

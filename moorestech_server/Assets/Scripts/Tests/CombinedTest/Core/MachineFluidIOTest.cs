@@ -311,10 +311,15 @@ namespace Tests.CombinedTest.Core
             
             // 初期状態のBlockStateDetailsを確認
             var initialDetails = stateObservable.GetBlockStateDetails();
+            // マスタの型が変わったら欠損補完せず即座に落とす（フォールバック値でテストが空回りするのを防ぐ）
+            // Fail immediately if the master type changes instead of papering over it with fallback values
             var machineParam = blockMaster.BlockParam as ElectricMachineBlockParam;
-            var requiredPower = machineParam?.RequiredPower ?? 100;
-            // アイドル状態でも要求電力は表示される
-            ValidateMachineBlockStateDetails(initialDetails, "idle", 0f, requiredPower, 0f);
+            Assert.IsNotNull(machineParam, "機械ブロックのマスタがElectricMachineBlockParamではありません");
+            var requiredPower = machineParam.RequiredPower;
+            var idlePowerRate = machineParam.IdlePowerRate;
+            // idle中の要求電力は実効値（基礎×idlePowerRate）になる（ADR 0010）
+            // While idle the requested power is the effective value (base × idlePowerRate) per ADR 0010
+            ValidateMachineBlockStateDetails(initialDetails, "idle", 0f, requiredPower * idlePowerRate, 0f);
             
             // 電力を供給（アイドル状態でも通知が発生するはず）
             Debug.Log("Supplying power in idle state...");
@@ -356,9 +361,12 @@ namespace Tests.CombinedTest.Core
                 recipes = MasterHolder.MachineRecipesMaster.MachineRecipes.Data
                     .Where(r => r.BlockGuid == blockMaster.BlockGuid).ToList();
                 
-                // 初期状態の確認を再度実行
+                // 初期状態の確認を再度実行（要求電力とアイドル率は差し替えたブロックのマスタから取り直す）
+                // Re-read both the required power and the idle rate from the replacement block's master
                 machineParam = blockMaster.BlockParam as ElectricMachineBlockParam;
-                requiredPower = machineParam?.RequiredPower ?? 100;
+                Assert.IsNotNull(machineParam, "差し替えた機械ブロックのマスタがElectricMachineBlockParamではありません");
+                requiredPower = machineParam.RequiredPower;
+                idlePowerRate = machineParam.IdlePowerRate;
             }
             
             var recipe = recipes.First();
@@ -480,27 +488,35 @@ namespace Tests.CombinedTest.Core
             // Verify continuous state changes during processing (threshold adjusted for tick-based updates)
             Assert.Greater(stateChangeCount, previousCount + 1, "処理中の継続的なOnChangeBlockStateが発火していません");
             
-            // 電力供給なしで処理が開始しないことを確認
+            // 電力供給なしでは加工が進まないことを確認
             Debug.Log("Testing without power supply...");
             previousCount = stateChangeCount;
-            
-            // 再度材料を投入
-            var inputItem2 = itemStackFactory.Create(recipe.InputItems[0].ItemGuid, recipe.InputItems[0].Count);
-            inventoryComponent.InsertItem(inputItem2);
-            
+
+            // レシピ1回分の材料をすべて投入する（1種類だけでは加工条件を満たさず、以降の検証が空回りする）
+            // Insert one full set of the recipe's inputs; a single item type never satisfies the start condition and would leave the checks below dead
+            foreach (var inputItemInfo in recipe.InputItems)
+            {
+                inventoryComponent.InsertItem(itemStackFactory.Create(inputItemInfo.ItemGuid, inputItemInfo.Count));
+            }
+            InsertRecipeFluids();
+
             // 電力供給なしでアップデート
             for (int i = 0; i < 5; i++)
             {
                 GameUpdater.UpdateOneTick();
             }
-            
-            // 状態がアイドルのままであることを確認
+
+            // 状態遷移自体は電力に依存しないため、進捗と電力が0で止まることを固定する
+            // The state transition itself does not depend on power, so pin down that progress and power stay at zero
             var noPowerDetails = stateObservable.GetBlockStateDetails();
-            var (noPowerState, _, _, _) = ExtractMachineDetails(noPowerDetails);
-            Assert.AreEqual("idle", noPowerState, "電力供給なしで処理が開始されています");
+            var (_, noPowerCurrent, _, noPowerRate) = ExtractMachineDetails(noPowerDetails);
+            Assert.AreEqual(0f, noPowerCurrent, 0.01f, "電力供給なしで電力が計上されています");
+            Assert.AreEqual(0f, noPowerRate, 0.01f, "電力供給なしで加工が進んでいます");
             
             // 部分的な電力供給でも動作することを確認
             Debug.Log("Testing with partial power supply...");
+            var reachedProcessing = false;
+            var processingRateBefore = 0f;
             for (int i = 0; i < 20; i++)
             {
                 machineComponent.SupplyExternalPower(requiredPower / 2); // 半分の電力
@@ -509,18 +525,47 @@ namespace Tests.CombinedTest.Core
                 var details = stateObservable.GetBlockStateDetails();
                 var (state, current, requested, rate) = ExtractMachineDetails(details);
                 
-                if (state == "processing")
-                {
-                    Debug.Log($"Processing with partial power: Current={current}, Requested={requested}, Rate={rate}");
-                    Assert.AreEqual(requiredPower / 2, current, 1f, "部分的な電力供給が正しく反映されていません");
-                    Assert.AreEqual(requiredPower, requested, 1f, "要求電力が正しくありません");
-                    Assert.Greater(rate, 0f, "部分的な電力でも処理が進んでいません");
-                    Assert.Less(rate, 1f, "部分的な電力で最大速度になっています");
-                    break;
-                }
+                if (state != "processing") continue;
+
+                Debug.Log($"Processing with partial power: Current={current}, Requested={requested}, Rate={rate}");
+                Assert.AreEqual(requiredPower / 2, current, 1f, "部分的な電力供給が正しく反映されていません");
+                // 分母は加工基準の実効要求電力（モジュール未装着なので基礎値）。期待値はマスタ値からの独立計算
+                // The denominator is the processing-basis effective request power (the base value with no modules); the expectation comes from master values
+                Assert.AreEqual(requiredPower, requested, 1f, "加工中の要求電力が実効値になっていません");
+                Assert.Less(rate, 1f, "部分的な電力で最大速度になっています");
+                reachedProcessing = true;
+                processingRateBefore = rate;
+                break;
             }
+
+            // 加工へ入らないまま抜けるとアサートが1つも走らないため、到達自体を固定する
+            // Pin down that processing was actually reached; otherwise none of the assertions above would run
+            Assert.IsTrue(reachedProcessing, "部分的な電力供給で加工状態へ到達していません");
+
+            // 半分の電力でも進捗は前進する（確率的丸めのため複数tickで判定する）
+            // Half power still advances progress; judge over several ticks because the rounding is probabilistic
+            for (int i = 0; i < 20; i++)
+            {
+                machineComponent.SupplyExternalPower(requiredPower / 2);
+                GameUpdater.UpdateOneTick();
+            }
+            var (_, _, _, advancedRate) = ExtractMachineDetails(stateObservable.GetBlockStateDetails());
+            Assert.Greater(advancedRate, processingRateBefore, "部分的な電力でも処理が進んでいません");
             
             #region Internal
+
+            // レシピが要求する液体を入力タンクへ1回分投入する（液体を使わないレシピでは何もしない）
+            // Insert one recipe's worth of required fluids into the input tanks (no-op for recipes without fluids)
+            void InsertRecipeFluids()
+            {
+                if (recipe.InputFluids == null || recipe.InputFluids.Length == 0) return;
+                var containers = GetInputFluidContainers(inventoryComponent);
+                for (var i = 0; i < recipe.InputFluids.Length; i++)
+                {
+                    var inputFluid = recipe.InputFluids[i];
+                    containers[i].AddLiquid(new FluidStack(inputFluid.Amount, MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid)));
+                }
+            }
             
             void ValidateMachineBlockStateDetails(BlockStateDetail[] details, string expectedState,
                 float expectedCurrentPower, float expectedRequestedPower, float expectedProcessingRate)

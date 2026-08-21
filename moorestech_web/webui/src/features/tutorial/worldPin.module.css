@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: var(--z-world-pin);
+  z-index: var(--z-portal-world-pin);
   pointer-events: none;
 }
 

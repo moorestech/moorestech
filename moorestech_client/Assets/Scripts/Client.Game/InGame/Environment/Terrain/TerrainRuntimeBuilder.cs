@@ -54,58 +54,59 @@ namespace Client.Game.InGame.Environment.Terrain
             var wireMeta = mapLayout.TerrainMeta;
             var terrainMeta = wireMeta.ToTerrainTransferMeta();
             if (terrainMeta.IsTemplate)
-                await BuildTemplateTerrainAsync(environmentRoot, terrainMaterial);
+                await BuildTemplateTerrainAsync();
             else
-                await BuildGeneratedTerrainAsync(terrainMeta, wireMeta.TerrainHash, environmentRoot, terrainMaterial);
+                await BuildGeneratedTerrainAsync();
 
-            // 露頭生成はこの直後に地表へレイキャストを飛ばす。新しいコライダーを物理シーンへ確実に反映させる
-            // Outcrop instantiation raycasts the ground right after this, so the new colliders are pushed into the physics scene
-            Physics.SyncTransforms();
-        }
+            #region Internal
 
-        // templateは地形バイナリを持たないワールド。見た目は従来どおりオーサリング済みTerrainDataのまま
-        // A template world owns no terrain binary; its look stays exactly the authored TerrainData as before
-        private static async UniTask BuildTemplateTerrainAsync(Transform environmentRoot, Material terrainMaterial)
-        {
-            var templateTerrainData = await AddressableLoader.LoadAsyncDefault<TerrainData>(TemplateTerrainDataAddress);
-            if (templateTerrainData == null)
-                throw new InvalidOperationException(
-                    $"[TerrainRuntimeBuilder] Template TerrainData '{TemplateTerrainDataAddress}' could not be loaded from Addressables.");
-
-            TerrainObjectFactory.Create(
-                environmentRoot, TerrainObjectName, TemplateTerrainOrigin, templateTerrainData, terrainMaterial,
-                TemplateDetailObjectDistance, TemplateDetailObjectDensity);
-        }
-
-        private static async UniTask BuildGeneratedTerrainAsync(
-            TerrainTransferMeta terrainMeta, string terrainHash, Transform environmentRoot, Material terrainMaterial)
-        {
-            var buildStopwatch = Stopwatch.StartNew();
-            var terrainSource = await GeneratedTerrainSource.CreateAsync(terrainMeta, terrainHash);
-            var terrainsByTileCoordinate = new Dictionary<Vector2Int, UnityEngine.Terrain>();
-            var visualCacheHitCount = 0;
-
-            // タイルの並びは転送ストリームの定義（正方格子・z行→x列）をそのまま使う
-            // The tile order reuses the transfer stream's own definition: a square grid scanned row (z) then column (x)
-            foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount))
+            // templateは地形バイナリを持たないワールド。見た目は従来どおりオーサリング済みTerrainDataのまま
+            // A template world owns no terrain binary; its look stays exactly the authored TerrainData as before
+            async UniTask BuildTemplateTerrainAsync()
             {
-                var (terrainData, visualCacheHit) = await terrainSource.CreateTerrainDataAsync(tile.TileX, tile.TileZ);
-                if (visualCacheHit) visualCacheHitCount++;
+                var templateTerrainData = await AddressableLoader.LoadAsyncDefault<TerrainData>(TemplateTerrainDataAddress);
+                if (templateTerrainData == null)
+                    throw new InvalidOperationException(
+                        $"[TerrainRuntimeBuilder] Template TerrainData '{TemplateTerrainDataAddress}' could not be loaded from Addressables.");
 
-                var terrain = TerrainObjectFactory.Create(
-                    environmentRoot, $"{TerrainObjectName}_{tile.TileX}_{tile.TileZ}",
-                    terrainSource.TileWorldPosition(tile.TileX, tile.TileZ), terrainData, terrainMaterial,
-                    GeneratedDetailObjectDistance, GeneratedDetailObjectDensity);
-
-                terrainsByTileCoordinate[new Vector2Int(tile.TileX, tile.TileZ)] = terrain;
+                TerrainObjectFactory.Create(
+                    environmentRoot, TerrainObjectName, TemplateTerrainOrigin, templateTerrainData, terrainMaterial,
+                    TemplateDetailObjectDistance, TemplateDetailObjectDensity);
             }
 
-            TerrainNeighborLinker.Link(terrainsByTileCoordinate);
+            // mapObjectsはシーン絶対座標の全タイルぶん。木の高さ摂動が転送高さの意味(R12)を表示用へ戻すのに要る
+            // The map objects arrive scene-absolute for every tile; the tree height perturbation needs them to turn the transferred meaning (R12) back into display heights
+            async UniTask BuildGeneratedTerrainAsync()
+            {
+                var buildStopwatch = Stopwatch.StartNew();
+                var terrainSource = await GeneratedTerrainSource.CreateAsync(terrainMeta, wireMeta.TerrainHash, mapLayout.MapObjects);
+                var terrainsByTileCoordinate = new Dictionary<Vector2Int, UnityEngine.Terrain>();
+                var visualCacheHitCount = 0;
 
-            // 見た目キャッシュの効きは1行で測る。初回と2回目の差はこのヒット数と所要時間に出る
-            // One line measures how well the visual cache works; the first and second runs differ in this hit count and elapsed time
-            Debug.Log($"[TerrainRuntimeBuilder] Generated terrain built: tiles={terrainsByTileCoordinate.Count} " +
-                      $"visualCacheHits={visualCacheHitCount} elapsedMs={buildStopwatch.ElapsedMilliseconds}");
+                // タイルの並びは転送ストリームの定義（正方格子・z行→x列）をそのまま使う
+                // The tile order reuses the transfer stream's own definition: a square grid scanned row (z) then column (x)
+                foreach (var tile in TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount))
+                {
+                    var (terrainData, visualCacheHit) = await terrainSource.CreateTerrainDataAsync(tile.TileX, tile.TileZ);
+                    if (visualCacheHit) visualCacheHitCount++;
+
+                    var terrain = TerrainObjectFactory.Create(
+                        environmentRoot, $"{TerrainObjectName}_{tile.TileX}_{tile.TileZ}",
+                        terrainSource.TileWorldPosition(tile.TileX, tile.TileZ), terrainData, terrainMaterial,
+                        GeneratedDetailObjectDistance, GeneratedDetailObjectDensity);
+
+                    terrainsByTileCoordinate[new Vector2Int(tile.TileX, tile.TileZ)] = terrain;
+                }
+
+                TerrainNeighborLinker.Link(terrainsByTileCoordinate);
+
+                // 見た目キャッシュの効きは1行で測る。初回と2回目の差はこのヒット数と所要時間に出る
+                // One line measures how well the visual cache works; the first and second runs differ in this hit count and elapsed time
+                Debug.Log($"[TerrainRuntimeBuilder] Generated terrain built: tiles={terrainsByTileCoordinate.Count} " +
+                          $"visualCacheHits={visualCacheHitCount} elapsedMs={buildStopwatch.ElapsedMilliseconds}");
+            }
+
+            #endregion
         }
     }
 }

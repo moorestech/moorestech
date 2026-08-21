@@ -3,9 +3,7 @@ import { GuidSchema, SlotDataSchema } from "./common";
 
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
-  hotbarSlots: z.array(SlotDataSchema),
   grab: SlotDataSchema,
-  selectedHotbar: z.number(),
   // 装備枠は可変長、-1は素手
   // Equipment is variable-length; -1 means bare hands
   equipment: z.array(SlotDataSchema),
@@ -22,13 +20,14 @@ export const FluidSlotDataSchema = z.object({
   fluidGuid: GuidSchema.or(z.literal("")),
 }).strict();
 
+export const MachineProcessStateSchema = z.enum(["idle", "processing", "halted"]);
 export const MachineDetailDataSchema = z.object({
   recipeGuid: GuidSchema,
   selectedRecipeGuid: GuidSchema,
   blockGuid: GuidSchema,
   recipeTime: z.number(),
   outputItems: z.array(z.object({ itemId: z.number(), count: z.number() })),
-  currentState: z.string(),
+  currentState: MachineProcessStateSchema,
   currentPower: z.number(),
   requestPower: z.number(),
   slotLayout: z.object({ input: z.number(), output: z.number(), module: z.number() }),

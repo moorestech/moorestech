@@ -4,6 +4,7 @@ using System.Linq;
 using Game.Block.Interface;
 using Game.Blueprint;
 using Game.Context;
+using Game.UnlockState;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -24,8 +25,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void CreateGetAllDeleteFlowTest()
         {
-            var (packet, _) = new MoorestechServerDIContainerGenerator()
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlueprint();
 
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
@@ -65,10 +67,50 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
+        public void 未解放時はCreateとDeleteが拒否されGetAllは成功する()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            // 未解放: Create/DeleteはNotUnlocked、GetAllは読み取り専用のため成功
+            // Locked: Create/Delete fail with NotUnlocked while the read-only GetAll succeeds
+            var createResponse = Send(BlueprintRequest.CreateCreateRequest("base", new Vector3Int(0, 0, 0), new Vector3Int(5, 2, 5)));
+            Assert.IsFalse(createResponse.Success);
+            Assert.AreEqual(BlueprintFailureReason.NotUnlocked, createResponse.FailureReason);
+
+            var deleteResponse = Send(BlueprintRequest.CreateDeleteRequest(Guid.NewGuid()));
+            Assert.IsFalse(deleteResponse.Success);
+            Assert.AreEqual(BlueprintFailureReason.NotUnlocked, deleteResponse.FailureReason);
+
+            var getAllResponse = Send(BlueprintRequest.CreateGetAllRequest());
+            Assert.IsTrue(getAllResponse.Success);
+
+            // 解放後はCreateが通る
+            // After unlocking, Create succeeds
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlueprint();
+            var unlockedCreate = Send(BlueprintRequest.CreateCreateRequest("base", new Vector3Int(0, 0, 0), new Vector3Int(5, 2, 5)));
+            Assert.IsTrue(unlockedCreate.Success);
+
+            #region Internal
+
+            BlueprintResponse Send(BlueprintRequest request)
+            {
+                var payload = MessagePackSerializer.Serialize(request);
+                var responses = packet.GetPacketResponse(payload, new PacketResponseContext(null));
+                return MessagePackSerializer.Deserialize<BlueprintResponse>(responses[0]);
+            }
+
+            #endregion
+        }
+
+        [Test]
         public void ToJsonObjectはBlueprintGuidを保持するTest()
         {
-            var (packet, _) = new MoorestechServerDIContainerGenerator()
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlueprint();
 
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
@@ -94,8 +136,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void CreateFailuresTest()
         {
-            var (packet, _) = new MoorestechServerDIContainerGenerator()
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlueprint();
 
             // 空範囲→EmptyArea
             // 空文字名→InvalidName
@@ -128,8 +171,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 同名BPをパケットで2件作成しGuid指定で片方だけパケット削除できるTest()
         {
-            var (packet, _) = new MoorestechServerDIContainerGenerator()
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlueprint();
 
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 

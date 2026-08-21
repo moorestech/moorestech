@@ -38,6 +38,9 @@
   /* ホットバーと同じ床に揃えて右端へ寄せる。上へ伸ばすと持ち物画面の一覧パネルへ食い込むため下詰めが必須 */
   /* Share the hotbar's floor at the right edge; the column grows upward, so bottom-anchoring is what keeps it clear of the inventory screen's list panel */
   --equipment-bottom: var(--hotbar-bottom);
+  /* 半透明ネイビー族の基底面色。uGUI原画像 invebtory_bg_base #0a0e1b をα0.8で使う */
+  /* Base face color of the translucent navy family: the uGUI source invebtory_bg_base #0a0e1b at alpha 0.8 */
+  --surface-navy: rgb(10 14 27 / 80%);
   /* 面の左右フェード幅。%指定はパネル幅で伸びるため固定長で統一 */
   /* Horizontal face-fade span; fixed length so it never scales with panel width */
   --panel-edge-fade: 12px;
@@ -47,27 +50,29 @@
   --craft-grip-inset: 6.98px;
   --craft-grip-offset: 0.4px;
   --craft-grip-face: rgb(134 136 152 / 98%);
-  /* クラフトタブの正本寸法、パネル原点からの位置、各層色を一元化する */
-  /* Centralize the craft tab's reference size, panel-relative placement, and layer colors */
-  --craft-tab-width: 64.978px;
-  --craft-tab-height: 27.397px;
-  --craft-tab-margin-top: -37.18px;
-  --craft-tab-margin-left: -11px;
-  --craft-tab-margin-bottom: 6.46px;
-  --craft-tab-back: rgb(51 43 40);
-  --craft-tab-side: rgb(16 15 21);
-  --craft-tab-face: rgb(58 59 72);
-  --craft-tab-edge: rgb(73 75 120);
-  --craft-tab-hammer: rgb(75 75 75);
   --font-ui: "MooresUI", "MooresUI JP", sans-serif;
-  /* 画面レイヤーの層序を一元化し、各オーバーレイの前後関係を固定する */
-  /* Centralize the screen layer order to keep every overlay's stacking relationship fixed */
-  --z-screen: 20;
-  --z-overlay-panel: 30;
-  --z-grab: 40;
-  --z-modal: 200;
-  --z-toast: 300;
-  --z-reconnect: 2000;
+  /* z層は互いに比較できない3つのスタッキングコンテキスト別に接頭辞で分け、文脈をまたぐ比較を名前で防ぐ */
+  /* Split z-layers by their incomparable stacking context via a name prefix, so cross-context comparisons read as wrong at a glance */
+  /* .viewport直下の層序。通知はディムより前・stageより後ろの背面層へ沈める（ADR 0017） */
+  /* Order directly under .viewport; notifications sink into a layer ahead of the dim and behind the stage (ADR 0017) */
+  --z-viewport-backdrop: 0;
+  --z-viewport-behind-stage: 1;
+  --z-viewport-stage: 2;
+  --z-viewport-grab: 40;
+  /* .stage内部の層序。stageの一様拡縮に追従する常駐HUD・ツールチップ間の前後関係 */
+  /* Order inside .stage; governs always-on HUDs and the tooltip that follow the stage's uniform scaling */
+  --z-stage-screen: 20;
+  --z-stage-overlay-panel: 30;
+  /* 研究パネル(--z-stage-overlay-panel)の上へ出す.viewportOverlay一式: チャレンジHUD・画面キーヒント・採掘進捗バー */
+  /* Everything in .viewportOverlay, raised above the research panel (--z-stage-overlay-panel): the challenge HUD, screen key hints, and the mining progress bar */
+  --z-stage-overlay-panel-chrome: 31;
+  --z-stage-tooltip: 250;
+  /* body直下Portal層の層序。stageの外へ抜けて実画面全体を覆う要素間の前後関係 */
+  /* Order in the body-level Portal layer; governs elements that escape the stage to cover the whole real screen */
+  --z-portal-modal: 200;
+  --z-portal-toast: 300;
+  --z-portal-tutorial: 900;
+  --z-portal-reconnect: 2000;
   --text-default: #eee;
   --text-high-contrast: #fff;
   /* 従属テキストには通常テキストより抑えた寒色グレーを使う */
@@ -78,16 +83,56 @@
   --text-insufficient: #ff7878;
   --color-content-primary: #f2f3f7;
   --recipe-action-background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
-  /* メニュー内容を常駐HUDの下からホットバー手前までに収める */
-  /* Keep menu content between the resident HUD and the hotbar */
-  --menu-upper-safe-area: 128px;
-  --menu-content-height: 525px;
+  /* メニュー内容を面付き常駐HUDの下からホットバー帯の手前までに収める */
+  /* Keep menu content between the faced resident HUD and the hotbar band */
+  --menu-upper-safe-area: 168px;
+  /* 床はホットバー帯の占有高(bottom2+slot51.68+数字タブ16≒69.68px)を切り上げた単一の正 */
+  /* The floor is the hotbar band's footprint (bottom 2 + slot 51.68 + number tab 16 = 69.68px) rounded up */
+  --menu-lower-safe-area: 70px;
+  --menu-content-height: calc(var(--ui-stage-height) - var(--menu-upper-safe-area) - var(--menu-lower-safe-area));
+  /* 持ち物グリッドの基準寸法。InventoryPanelのインラインstyleが同じトークンをvar()で参照し二重著述を避ける */
+  /* Base inventory grid dimensions; InventoryPanel's inline style references these same tokens via var() to avoid dual authorship */
+  /* 端数の由来: 9列45スロット(PlayerInventoryConst.MainInventoryColumns)を6列時と同じ319.6pxの専有幅へ収めるため実測ピッチを×0.6603した値。枠:間隔比と正本の左右余白が壊れるので単独で丸めない */
+  /* Where the fractions come from: the measured pitch scaled by x0.6603 so 9 columns of the 45-slot main inventory (PlayerInventoryConst.MainInventoryColumns) occupy the same 319.6px as the 6-column layout; do not round them individually, it breaks the frame:gap ratio and the reference side margins */
+  --inventory-slot-base-size: 30.123px;
+  --inventory-slot-base-gap: 6.064px;
+  --inventory-count-base-font-size: 10.565px;
+  --inventory-slot-scale: 1.3;
+  --inventory-columns: 9;
+  /* 持ち物パネルの幅。InventoryPanelのインラインstyleと研究パネルの左端導出が同じ値を見る */
+  /* The inventory panel width; InventoryPanel's inline style and the research panel's left edge share this one value */
+  /* 378pxは1.0倍時の実測。スロット1.3倍化で9列グリッドが伸びた分を足す（ユーザー裁定 2026-08-20） */
+  /* 378px is the measured 1.0x width; the 1.3x slots stretch the 9-column grid, and that growth is added here (user ruling 2026-08-20) */
+  --inventory-panel-width: calc(378px + (var(--inventory-columns) * var(--inventory-slot-base-size) + (var(--inventory-columns) - 1) * var(--inventory-slot-base-gap)) * (var(--inventory-slot-scale) - 1));
+  /* stageの左右余白。stage幅の連立式（全幅 - 左右padding - 持ち物幅 - 列gap = 機械パネル幅）の項なので、
+     App.module.cssとblockInventoryの両方がこの1個を見る。片方だけ動かすと機械パネルが枠外へ溢れる */
+  /* The stage's side padding; it is a term of the width equation (full width - side padding - inventory - column gap
+     = machine panel width), so App.module.css and blockInventory both read this one value. Moving only one overflows the panel */
+  --stage-padding-left: 40px;
+  --stage-padding-right: 10px;
+  /* stage上段3カラムの列間隔。研究パネルはこの間隔を挟んで持ち物の右へ並ぶ */
+  /* The gap between the stage's three upper columns; the research panel sits to the inventory's right across it */
+  /* 持ち物1.3倍で広がった約96pxをこの間隔とstage左右余白から取り戻す。基準stageを広げる案は--ui-scaleが下がり全体が7%縮むため不採用 */
+  /* The ~96px the 1.3x inventory added is reclaimed from this gap and the stage's side padding; widening the reference stage instead lowers --ui-scale and shrinks everything by 7% */
+  --stage-column-gap: 1rem;
+  /* パネル付随の副次アクションボタン。正本の整理ボタン実測寸法を固定長で持つ */
+  /* Panel-attached secondary action button; fixed lengths taken from the reference sort button */
+  --panel-action-button-width: 87px;
+  --panel-action-button-height: 28.609px;
+  --panel-action-button-font-size: 15px;
+  --panel-action-button-hover-mix: 22%;
+  /* HUD面の安全帯。フェード帯を超える余白で、チャレンジHUDの面幅導出とも共有する */
+  /* HUD face safe area: padding wider than the fade band, shared with the challenge HUD's width derivation */
+  --hud-panel-padding: 14px;
   /* 常駐チャレンジHUDは左上へ固定し、本文と罫線の幅を分離する */
   /* Keep the resident challenge HUD top-left with independent content and rule widths */
   --challenge-hud-left: 24px;
   --challenge-hud-top: 24px;
-  --challenge-hud-width: 520px;
-  --challenge-hud-rule-width: 176px;
+  /* 面幅は本文の折返し幅にGamePanel hud variantの安全帯paddingを左右分足して導く */
+  /* Derive the face width from the text-wrap width plus the hud variant's safe-area padding on each side */
+  --challenge-hud-content-width: 250px;
+  --challenge-hud-width: calc(var(--challenge-hud-content-width) + var(--hud-panel-padding) * 2);
+  --challenge-hud-rule-width: 88px;
   --challenge-hud-label-font-size: 12px;
   --challenge-hud-objective-font-size: 14px;
   --challenge-hud-label-rule-gap: 5px;
@@ -95,7 +140,7 @@
   --challenge-hud-objective-gap: 2px;
   --challenge-hud-letter-spacing: 1px;
   --challenge-hud-objective-line-height: 20px;
-  --challenge-hud-text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
+  --challenge-hud-text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
   /* 配置モード情報を右上のクラフト枠へ固定長で配置する */
   /* Place placement-mode information in the top-right craft frame with fixed lengths */
   --operation-hud-right: 24px;
@@ -108,6 +153,12 @@
   --operation-hud-detail-gap: 5px;
   --operation-hud-letter-spacing: 1px;
   --operation-hud-detail-line-height: 25px;
+  /* カーソル追従ツールチップの書式はWeb側が唯一の値源。ホストから寸法は受け取らない */
+  /* The cursor tooltip's format is owned solely by the web side; the host sends no sizes */
+  --cursor-tooltip-font-size: 18px;
+  --cursor-tooltip-padding-block: 6px;
+  --cursor-tooltip-padding-inline: 10px;
+  --cursor-tooltip-max-width: 320px;
   /* uGUIの削除バーを1280基準へ縮尺し、上下端に見える半幅と斜線周期を固定する */
   /* Scale the uGUI deletion bar to the 1280 baseline and lock its visible half-height and stripe period */
   --delete-mode-warning-band-height: 20px;
@@ -117,7 +168,7 @@
   --delete-mode-warning-black: rgb(0 0 0);
   /* ゲージの溝は世界が透ける半透明ネイビー面にする */
   /* Use a translucent navy face for gauge tracks so the world remains visible */
-  --gauge-track: rgb(10 14 27 / 80%);
+  --gauge-track: var(--surface-navy);
   /* ゲージの充填は主要アクションと競合しない寒色グレーにする */
   /* Use a cool gray for gauge fills so they do not compete with primary actions */
   --gauge-fill: rgb(104 106 120);
@@ -139,20 +190,22 @@
   /* Mantineのオーバーレイ縦スクロールバー実寸(--scrollarea-scrollbar-size = 0.75rem)をグリッド右へ予約する */
   /* Reserves the measured width of Mantine's overlay vertical scrollbar (--scrollarea-scrollbar-size = 0.75rem) to the right of the grid */
   --build-menu-grid-scrollbar-reserve: 12px;
-  /* 中央3カラムの固定寸法（§8.11・目視QAで確定）。886px=中央列452pxで予約12pxを引いた440pxに8列431.6pxが収まり、36px×10+gap4px×9=396pxが利用可能高415pxに収まる */
-  /* Fixed dimensions of the centered three columns (§8.11, settled by visual QA): 886px gives a 452px center column whose 440px remainder after the 12px reserve holds the 431.6px eight columns, and 36px x 10 + 4px gap x 9 = 396px fits the 415px available height */
+  /* 中央3カラムの固定寸法（§8.11・目視QAで確定）。886px=中央列452pxで予約12pxを引いた440pxに8列431.6pxが収まる */
+  /* Fixed dimensions of the centered three columns (§8.11, settled by visual QA): 886px gives a 452px center column whose 440px remainder after the 12px reserve holds the 431.6px eight columns */
   --build-menu-panel-width: 886px;
   --build-menu-detail-width: 11.75rem;
-  --build-menu-category-height: 2.25rem;
+  /* 床の明示でバンドが482pxへ縮んだため、33px×10+gap4px×9=366pxを利用可能高372.6pxへ収め直した */
+  /* The explicit floor shrank the band to 482px, so 33px x 10 + 4px gap x 9 = 366px now fits the 372.6px available height */
+  --build-menu-category-height: 2.0625rem;
   /* 閉じる✕は詳細列の右上に重なるため、1行目を✕の下端より下へ逃がす安全帯（✕上端 --bevel-3 + ✕実寸 --icon-button-size + 縦積みgap 8px） */
   /* Safe area dropping the detail column's first line below the close cross that overlaps its top-right (cross top --bevel-3 + cross size --icon-button-size + the 8px stack gap) */
   --build-menu-detail-top-safe-area: calc(var(--bevel-3) + var(--icon-button-size) + 8px);
-  /* ワールドピンHUDの層。パネル面より下に置き、開いたパネルの背後に隠れる */
-  /* World-pin HUD layer; kept below panel faces so open panels cover it */
-  --z-world-pin: 10;
+  /* ワールドピンHUDの層。body直下Portalの一員（TutorialOverlayと同じ描画位置） */
+  /* World-pin HUD layer; a member of the body-level Portal group (rendered alongside TutorialOverlay) */
+  --z-portal-world-pin: 10;
   /* ワールドピンのラベル・マーカー面は半透明ネイビー族に揃える */
   /* World-pin label and marker faces share the translucent navy family */
-  --world-pin-face: rgb(10 14 27 / 80%);
+  --world-pin-face: var(--surface-navy);
   /* 画面外矢印は旧シェブロンの2倍幅にし、チュートリアル誘導として見落としにくくする */
   /* Double the old chevron size so the off-screen tutorial cue is hard to miss */
   --world-pin-arrow-size: 56px;
@@ -162,6 +215,16 @@
   /* 画面外矢印を画面端からこの固定長だけ内側にクランプする */
   /* Clamp off-screen arrows this fixed length inside the screen edge */
   --world-pin-edge-margin: 40px;
+  /* D&D説明のドラッグガイド矢印の寸法と1周期の長さ（webui-design §8.17） */
+  /* Size and one-cycle duration of the D&D drag guide arrow (webui-design §8.17) */
+  --tutorial-drag-guide-size: 28px;
+  --tutorial-drag-guide-duration: 1600ms;
+  /* ドラッグガイド矢印を世界背景から分離する最小限の影（world-pin矢印と同族） */
+  /* Minimal shadow separating the drag guide arrow from the world background, same family as the world-pin arrow */
+  --tutorial-drag-guide-shadow: rgb(0 0 0 / 65%);
+  /* ハイライト枠の外側グロー幅。clip-pathの計算もこの値を読むため単一の値源として扱う */
+  /* Outer glow width of the highlight frame; the clip-path math also reads this value as the single source */
+  --tutorial-highlight-glow: 4px;
   /* モード選択肢を独立したボタンとして見せる間隔を確保する */
   /* Separates mode options so each reads as an independent button */
   --mode-switch-gap: 4px;
@@ -187,20 +250,22 @@
   /* Craft-arrow render size, carried over as fixed lengths from the reference white arrow */
   --craft-arrow-width: 53.622px;
   --craft-arrow-height: 30.53px;
-  /* 行のcenter揃えに対する矢印の上寄せ量。正本の矢印位置を保つ固定長 */
-  /* Upward nudge against the row's center alignment; a fixed length that holds the reference arrow position */
-  --craft-arrow-offset-y: -12.218px;
   /* 研究ノードカードの面と枠（GamePanelのネイビー族に揃える） */
   /* Research node card face and border, matching the GamePanel navy family */
-  --research-node-face: rgb(10 14 27 / 80%);
+  --research-node-face: var(--surface-navy);
   --research-node-border: rgb(104 106 120);
   /* 通知行の面と枠（研究ノードカードと同族の半透明ネイビー+寒色枠） */
   /* Notification row face and border, same navy-family face and cool border as research node cards */
-  --notification-face: rgb(10 14 27 / 80%);
+  --notification-face: var(--surface-navy);
   --notification-border: rgb(104 106 120);
   /* 通知の最大幅は画面幅の20%（ユーザー裁定）。画面比例が要件のため例外的に%を使う */
   /* Notification max width is 20% of the screen width (user ruling); % is intentional because the cap must scale with the screen */
   --notification-max-width: 20vw;
+  /* 通知の出入り。左から固定長で滑り込み、退場は生存尺から逆算した遅延で逆再生する */
+  /* Notification enter/exit: slides in from the left by a fixed length; the exit mirrors it after a lifetime-derived delay */
+  --notification-enter-duration: 160ms;
+  --notification-exit-duration: 200ms;
+  --notification-shift: 12px;
   /* 選択・強調のシアン（uGUI frame_select.png / nav_arrow.png 由来）。スロット選択枠とスキットの強調に限る */
   /* Selection cyan from uGUI frame_select.png / nav_arrow.png; limited to slot selection frames and skit highlights */
   --select-cyan: rgb(0 221 255);
@@ -208,4 +273,47 @@
   /* Default size of the shared faceless icon button; each use overrides it locally */
   --icon-button-size: calc(var(--slot-size) / 2);
   --icon-button-icon-size: calc(var(--slot-size) / 3);
+  /* レシピビューア単一リストの最大高とエントリ間隔（ADR 0011・§8.17） */
+  /* Max height and entry gap for the recipe viewer single list (ADR 0011, §8.17) */
+  --recipe-list-max-height: 352px;
+  --recipe-entry-gap: 10px;
+  /* クラフトボタンと機械情報行が共有する行高。片方だけ変わると単一リストの縦リズムが崩れる */
+  /* Row height shared by the craft button and the machine info row; changing one alone breaks the list rhythm */
+  --recipe-action-button-height: 19px;
+  /* クラフトボタンの幅。矢印を枠の中心へ固定したまま素材2点をフルサイズで置ける上限が矢印幅の1.5倍
+     （ユーザー裁定 2026-08-20）。広げると左右の枠が痩せて素材が縮むため、単独で上げてはいけない */
+  /* Craft button width; 1.5x the arrow is the widest that still fits two full-size material slots while the
+     arrow stays centered (user ruling 2026-08-20). Raising it alone starves the side tracks and shrinks slots */
+  --recipe-craft-button-width: calc(var(--craft-arrow-width) * 1.5);
+  /* 矢印の真上に置く所要秒数の文字寸法 */
+  /* Font size of the duration text sitting above the arrow */
+  --recipe-duration-text-size: 13px;
+  /* レシピリストのスクロールバー実寸。CSSの予約幅とScrollAreaのscrollbarSizeが同じ値を引く */
+  /* Measured scrollbar width of the recipe list; both the CSS reserve and ScrollArea's scrollbarSize read it */
+  --recipe-list-scrollbar-reserve: 4px;
+  /* エントリ枠が外側へはみ出す量（四隅ブラケット3px+外周リング1.2px）。リスト側の余白がこれを下回ると
+     ブラケットがScrollAreaにクリップされ、はみ出しぶんで不要なスクロールが生まれる */
+  /* How far an entry frame bleeds outward (3px corner brackets + 1.2px outer ring); if the list's padding is
+     smaller, the ScrollArea clips the brackets and the bleed creates a needless scroll */
+  --recipe-entry-bleed: 5px;
+  /* 機械表示の文字・アイコン寸法。アイコンは素材スロットと同寸にして矢印の下で対になるようにする */
+  /* Machine display text and icon sizes; the icon matches the material slot so it pairs under the arrow */
+  --recipe-info-text-size: 12px;
+  --recipe-info-icon-size: 2.3rem;
+  /* レシピ行のスロット間隔。所持/必要テキストはスロットの右下へ外側にはみ出して描かれるため、
+     スロット幅ではなくそのテキストが隣へ届かない距離で決める（8pxでは"0/2"と"100/1"が接触した） */
+  /* Gap between recipe-row slots; the owned/required text bleeds outside each slot's bottom-right, so the
+     distance is set by that text's reach rather than the slot width (at 8px "0/2" and "100/1" touched) */
+  --recipe-slot-gap: 10px;
+  /* レシピ行スロットの上限寸法。実寸は点数と枠幅から算出され、点数が増えるほどこの値未満へ縮む */
+  /* Upper bound for a recipe-row slot; the real size is derived from the count and track width, shrinking below this as the count grows */
+  --recipe-slot-size-max: 2.3rem;
+  /* 素材列・中央列・結果列の間隔。0だと素材の所持/必要テキスト(スロット右へ2pxはみ出す)が
+     クラフトボタンの真上に乗る */
+  /* Gap between the material, center, and result columns; at 0 the owned/required text (which bleeds 2px past
+     the slot) lands right on top of the craft button */
+  --recipe-column-gap: 8px;
+  /* 個数バッジの黒（ユーザー裁定 2026-08-17。バッジが出るのは明色面のみが前提） */
+  /* Black used by count badges (user ruling 2026-08-17; badges only appear on light faces) */
+  --count-text: #111;
 }

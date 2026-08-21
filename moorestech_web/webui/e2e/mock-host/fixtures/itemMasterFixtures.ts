@@ -6,6 +6,7 @@ export const STONE_ITEM_GUID = "00000000-0000-4000-8000-000000000002";
 export const TIMBER_ITEM_GUID = "00000000-0000-4000-8000-000000000003";
 export const PLANK_ITEM_GUID = "00000000-0000-4000-8000-000000000100";
 export const IMPOSSIBLE_PLANK_ITEM_GUID = "00000000-0000-4000-8000-000000000101";
+export const TWIN_RECIPE_PLANK_ITEM_GUID = "00000000-0000-4000-8000-000000000102";
 
 export const itemMaster = {
   items: [
@@ -13,6 +14,7 @@ export const itemMaster = {
     { itemId: 2, itemGuid: STONE_ITEM_GUID, maxStack: 100 },
     { itemId: 100, itemGuid: PLANK_ITEM_GUID, maxStack: 100 },
     { itemId: 101, itemGuid: IMPOSSIBLE_PLANK_ITEM_GUID, maxStack: 100 },
+    { itemId: 102, itemGuid: TWIN_RECIPE_PLANK_ITEM_GUID, maxStack: 100 },
   ],
 } satisfies ItemMasterData;
 
@@ -35,6 +37,7 @@ function createItemNameDictionaries(): Record<string, Record<string, string>> {
     [TIMBER_ITEM_GUID, "Timber"],
     [PLANK_ITEM_GUID, "Plank"],
     [IMPOSSIBLE_PLANK_ITEM_GUID, "Impossible Plank"],
+    [TWIN_RECIPE_PLANK_ITEM_GUID, "Twin Recipe Plank"],
   ] as const;
   const demoNames = Array.from({ length: 120 }, (_, index) => [
     demoItemGuid(index + 1),

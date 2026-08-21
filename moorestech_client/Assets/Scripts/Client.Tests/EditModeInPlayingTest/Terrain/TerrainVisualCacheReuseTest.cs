@@ -101,8 +101,10 @@ namespace Client.Tests.EditModeInPlayingTest
             // Builds one tile through the same entry point the boot uses and reports whether the visuals were reused
             async UniTask<bool> CreateTileAndReportCacheHit(int tileX, int tileZ)
             {
-                var wireMeta = (await ClientContext.VanillaApi.Response.GetMapData(default)).TerrainMeta;
-                var terrainSource = await GeneratedTerrainSource.CreateAsync(wireMeta.ToTerrainTransferMeta(), wireMeta.TerrainHash);
+                var freshMapLayout = await ClientContext.VanillaApi.Response.GetMapData(default);
+                var wireMeta = freshMapLayout.TerrainMeta;
+                var terrainSource = await GeneratedTerrainSource.CreateAsync(
+                    wireMeta.ToTerrainTransferMeta(), wireMeta.TerrainHash, freshMapLayout.MapObjects);
                 var (terrainData, visualCacheHit) = await terrainSource.CreateTerrainDataAsync(tileX, tileZ);
 
                 UnityEngine.Object.DestroyImmediate(terrainData);

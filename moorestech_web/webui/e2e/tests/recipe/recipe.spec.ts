@@ -1,28 +1,20 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { expectCraftGrip } from "../../support/craftChromeAssertions";
 
-const CRAFT_TAB_PATHS = [
-  "M15 0H125L166 72H0V10H15Z",
-  "M25 10H115L129 73H25Z",
-  "M25 10H115L129 73H25Z",
-  "M117 9H126L142 73H134ZM15 9H24V73H15Z",
-  "M78 20H80V22H78ZM76 22H82V24H76ZM74 24H84V26H74ZM72 26H84V28H72ZM74 28H88V30H74ZM76 30H90V32H76ZM80 32H92V34H80ZM80 34H94V36H80ZM78 36H96V38H78ZM76 38H98V42H76ZM78 42H100V44H78ZM72 44H76V46H72ZM80 44H86V46H80ZM90 44H100V46H90ZM70 46H78V48H70ZM82 46H84V48H82ZM92 46H100V48H92ZM68 48H80V50H68ZM92 48H100V50H92ZM66 50H78V52H66ZM94 50H100V52H94ZM66 52H76V54H66ZM96 52H100V54H96ZM60 54H64V56H60ZM68 54H74V56H68ZM96 54H100V56H96ZM58 56H66V58H58ZM70 56H72V58H70ZM56 58H68V60H56ZM54 60H70V62H54ZM52 62H68V64H52ZM50 64H66V66H50ZM48 66H64V68H48ZM46 68H62V70H46ZM44 70H60V72H44Z",
-];
+// GUID単位で前方一致に束ねる
+// Group testIds by prefix per recipe GUID
+const craftEntry = (page: Page) => page.locator('[data-testid^="craft-recipe-entry"]');
 
-test("正本どおりクラフト時間を選択枠内に置き、中央プレビューを表示しない", async ({ page }) => {
+test("秒数は矢印の上に出し、クラフトボタンは秒数を持たない", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
-  // クラフト時間は素材行と同じ選択枠の内側に表示する
-  // Show the craft time inside the same selection frame as the material row
-  const recipeBox = page.getByTestId("craft-recipe-box");
-  await expect(recipeBox.getByText("0.2秒")).toBeVisible();
-
-  // 正本に存在しない完成品プレビュー要素を中央余白へ追加しない
-  // Do not add a crafted-result preview element to the center space absent from the reference
-  await expect(page.locator('[class*="_craftPreview_"]')).toHaveCount(0);
+  // 秒数は矢印上、ボタンは操作名のみ
+  // The duration sits above the arrow and the button carries only the action name
+  await expect(craftEntry(page).locator('[data-testid$="-duration"]')).toHaveText("0.2秒");
+  await expect(craftEntry(page).getByRole("button")).toHaveText("クラフト");
 });
 
 test("正本のヘッダ装飾、常時スクロールバー、主要構造を保つ", async ({ page }) => {
@@ -39,53 +31,15 @@ test("正本のヘッダ装飾、常時スクロールバー、主要構造を�
 
   // 選択枠DOMを画像測定用に保つ
   // Keep the selection-frame DOM available for image measurement
-  const recipeBox = page.getByTestId("craft-recipe-box");
+  const recipeBox = page.locator('[data-testid^="craft-recipe-box"]');
   const craftPanel = recipeBox.locator('xpath=ancestor::*[@data-variant="craft"][1]');
   await expect(craftPanel).toBeVisible();
   await expectCraftGrip(craftPanel, false);
-  // クラフトタブのSVG構造と寸法を固定する
-  // Lock craft-tab SVG structure and dimensions
-  const craftTab = page.getByTestId("craft-tab");
-  await expect(craftTab).toHaveAttribute("viewBox", "0 0 166 70");
-  await expect(craftTab).toHaveAttribute("aria-hidden", "true");
-  await expect(craftTab.locator("path")).toHaveCount(5);
-  const tabStyle = await craftTab.evaluate((element) => {
-    const style = getComputedStyle(element);
-    const renderedBounds = element.getBoundingClientRect();
-    return {
-      authoredWidth: style.getPropertyValue("--craft-tab-width"),
-      authoredHeight: style.getPropertyValue("--craft-tab-height"),
-      renderedWidth: renderedBounds.width,
-      renderedHeight: renderedBounds.height,
-      backgroundImage: style.backgroundImage,
-      marginTop: style.marginTop,
-      marginLeft: style.marginLeft,
-      marginBottom: style.marginBottom,
-    };
-  });
-  expect(tabStyle.authoredWidth).toBe("64.978px");
-  expect(tabStyle.authoredHeight).toBe("27.397px");
-  expect(tabStyle.renderedWidth).toBeCloseTo(64.96875, 5);
-  expect(tabStyle.renderedHeight).toBeCloseTo(27.390625, 5);
-  expect(tabStyle.backgroundImage).toBe("none");
-  expect(tabStyle.marginTop).toBe("-37.18px");
-  expect(tabStyle.marginLeft).toBe("-11px");
-  expect(tabStyle.marginBottom).toBe("6.46px");
-  // 全レイヤーの形状と色を固定する
-  // Lock every layer's geometry and color
-  const tabLayers = await craftTab.locator("path").evaluateAll((paths) => paths.map((path) => {
-    const style = getComputedStyle(path);
-    return { d: path.getAttribute("d"), fill: style.fill, stroke: style.stroke, strokeWidth: style.strokeWidth };
-  }));
-  expect(tabLayers.map((layer) => layer.d)).toEqual(CRAFT_TAB_PATHS);
-  expect(tabLayers).toMatchObject([
-    { fill: "rgb(51, 43, 40)", stroke: "none", strokeWidth: "1px" },
-    { fill: "rgb(58, 59, 72)", stroke: "none", strokeWidth: "1px" },
-    { fill: "none", stroke: "rgb(73, 75, 120)", strokeWidth: "1px" },
-    { fill: "rgb(16, 15, 21)", stroke: "none", strokeWidth: "1px" },
-    { fill: "rgb(75, 75, 75)", stroke: "none", strokeWidth: "1px" },
-  ]);
-  await expect(page.getByRole("button", { name: "Craft" })).toBeVisible();
+  await expect(craftEntry(page).getByRole("button")).toBeVisible();
+
+  // 装飾タブは完全に廃止され存在しない
+  // The decorative tab was fully removed and must not exist
+  await expect(page.getByTestId("craft-tab")).toHaveCount(0);
 
   // 短いfixtureでも縦バーを保つ
   // Preserve the vertical scrollbar even with a short fixture
@@ -102,7 +56,7 @@ test("アイテム選択でレシピ表示、長押しで素材が尽きるま�
   // Select the first item Plank(100) in the right list
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
-  const craftButton = page.getByRole("button", { name: "Craft" });
+  const craftButton = craftEntry(page).getByRole("button");
   await expect(craftButton).toBeEnabled();
 
   // ボタンを押し下げ保持して連続クラフトを発火させる
@@ -160,7 +114,7 @@ test("押下後にボタンから外れるとクラフトが止まり経過時�
   await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
-  const craftButton = page.getByRole("button", { name: "Craft" });
+  const craftButton = craftEntry(page).getByRole("button");
   await expect(craftButton).toBeEnabled();
   const box = await craftButton.boundingBox();
   if (box === null) throw new Error("craft button has no bounding box");
@@ -182,4 +136,55 @@ test("押下後にボタンから外れるとクラフトが止まり経過時�
   await page.mouse.up();
   const after = (await payloadsOf(page, "craft.execute")).length;
   expect(after).toBe(before);
+});
+
+test("複数レシピはクラフト優先の単一リストで同時に表示される", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  // Plank100はクラフト/機械両方
+  // Plank(100) has both craft and machine recipes
+  await page.getByTestId("item-list-grid").locator("> div").first().click();
+
+  const list = page.getByTestId("recipe-entry-list");
+  const entries = list.locator('[data-testid*="-recipe-entry-"]');
+
+  // 先頭は常にcraftエントリ
+  // Leading entry is always craft
+  await expect(entries.first()).toHaveAttribute("data-testid", /^craft-recipe-entry-/);
+  // 機械エントリも同一リストに存在
+  // Machine entry exists in the same list
+  await expect(list.locator('[data-testid^="machine-recipe-entry"]').first()).toBeVisible();
+
+  // タブ・ページャは廃止され存在しない
+  // The tab/pager UI was removed and must not exist
+  await expect(page.locator(".mantine-Tabs-root")).toHaveCount(0);
+});
+
+test("クラフトエントリが複数でもチュートリアルアンカーは1件だけ付く", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  // Plank102はクラフト2件持つ
+  // Plank(102) has two craft recipes
+  await page.getByTestId("item-list-grid").locator('[data-item-id="102"]').click();
+
+  const list = page.getByTestId("recipe-entry-list");
+  await expect(list.locator('[data-testid^="craft-recipe-entry"]')).toHaveCount(2);
+  await expect(list.locator('[data-tutorial-anchor~="recipe.craft-button"]')).toHaveCount(1);
+
+  // GUID単位で2件目を厳密指定
+  // Exact-match the second recipe by its GUID testId
+  const secondEntry = list.getByTestId("craft-recipe-entry-83000000-0000-4000-8000-000000000004");
+  await expect(secondEntry.locator('[data-testid$="-duration"]')).toHaveText("0.4秒");
+  await expect(secondEntry.getByRole("button")).toHaveText("クラフト");
+});
+
+test("クラフト可能数0のアイテムは個数バッジを出さない", async ({ page }) => {
+  await page.goto("/");
+  const grid = page.getByTestId("item-list-grid");
+  await expect(grid).toBeVisible();
+
+  // 101は常に0個、100はバッジ出る
+  // 101 always yields 0; 100 shows the count badge
+  await expect(grid.locator('[data-item-id="101"]').locator('[class*="_count_"]')).toHaveCount(0);
+  await expect(grid.locator('[data-item-id="100"]').locator('[class*="_count_"]')).toHaveCount(1);
 });

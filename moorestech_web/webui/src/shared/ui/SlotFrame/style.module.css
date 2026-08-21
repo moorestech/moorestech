@@ -29,28 +29,16 @@
     var(--bevel-inset, ) 0 0 0 var(--bevel-1) var(--bevel-c1),
     var(--bevel-inset, ) 0 0 0 var(--bevel-2) var(--bevel-c2),
     var(--bevel-inset, ) 0 0 0 var(--bevel-3) var(--bevel-c3);
-  user-select: none;
 }
 
 /* カタログ（レシピ一覧）の未所持セルは中間グレー面。所持セルは白面で上書きする */
 /* Catalog (recipe list) unowned cells use a mid-gray face; owned cells are overridden white below */
-/* iter6: 正本のギャップ断面実測(黒4px→暗2px→中間2px→パネル色可視)は3層とも別色。旧実装はbevel-3を
-   bevel-2と同値にして外層を無効化していたが、実測では外側にもう1段(中間トーン)が存在するため独立させる */
-/* iter6: The reference's gap cross-section (black 4px → dark 2px → mid 2px → panel color) uses three
-   distinct colors. The old bevel-3 was nulled to match bevel-2, but the true measurement shows a third,
-   lighter mid-tone ring further out, so it now gets its own width/color */
+/* リングは持ち物と同じ既定の2層（slotTokens.css）に戻す。カタログだけ暗リング(rgb(20 22 29))を
+   足していたため、白面のアイコンが黒枠に囲まれて見えていた（ユーザー指摘 2026-08-20） */
+/* The ring reverts to the shared 2-layer default (slotTokens.css). Only the catalog added a dark ring
+   (rgb(20 22 29)), which read as a black frame around every white icon face (user report 2026-08-20) */
 .slot[data-catalog="true"] {
-  /* 半透明insetを除き、正本の外向き4・6・8物理px断面を不透明色で固定する */
-  /* Remove the translucent inset and fix the reference's outward 4, 6, and 8-device-pixel profile with opaque colors */
   --face-inset: 0px;
-  --bevel-1: 1.565749px;
-  --bevel-2: 2.348624px;
-  --bevel-3: 3.131498px;
-  /* リング3層も暖色を排し、uGUIスロット原色(#323443系)の同輝度寒色へ置き換える */
-  /* Recolor the 3 bevel rings from warm tones to the uGUI slot family (#323443) at the same luminance */
-  --bevel-c1: rgb(20 22 29);
-  --bevel-c2: rgb(44 46 56);
-  --bevel-c3: rgb(51 53 64);
   background-color: rgb(124 126 136);
 }
 

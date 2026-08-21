@@ -8,9 +8,10 @@ using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Game.PlacementTarget;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
@@ -23,8 +24,10 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
+using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Map.MapVein;
+using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Player.StateController;
@@ -56,6 +59,7 @@ using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Inventory.Craft;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
+using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
@@ -63,12 +67,14 @@ using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Skit.UI;
+using CommandForgeGenerator.Command;
 using Core.Item.Interface;
 using Game.Context;
 using Game.PlayerRiding.Interface;
 using Game.Train.Unit;
 using Game.UnlockState;
 using UnityEngine;
+using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
@@ -91,15 +97,17 @@ namespace Client.Starter
         [SerializeField] private GameStateController gameStateController;
         [SerializeField] private BlockGameObjectDataStore blockGameObjectDataStore;
         [SerializeField] private MapObjectGameObjectDatastore mapObjectGameObjectDatastore;
-        [SerializeField] private MapVeinObjectDatastore mapVeinObjectDatastore;
+        [SerializeField] private OutcropGameObjectDatastore outcropGameObjectDatastore;
         [SerializeField] private EnvironmentRoot environmentRoot;
 
         // 地形の実行時構築はDIの外（Finalizer）で走るため、マウント先だけを読み取り専用で公開する
         // Runtime terrain construction runs outside DI in the finalizer, so only read access to the mount point is exposed
         public EnvironmentRoot EnvironmentRoot => environmentRoot;
         
-        [SerializeField] private HotBarView hotBarView;
-        [SerializeField] private MapObjectMiningController mapObjectMiningController;
+        // 対象非依存へrename済み。prefabに残る旧キーからそのまま引き継ぐ
+        // Renamed to a target-agnostic name; the old key still in the prefab carries over as is
+        [FormerlySerializedAs("mapObjectMiningController")]
+        [SerializeField] private MiningController miningController;
         [SerializeField] private PlayerSystemContainer playerSystemContainer;
         
         [SerializeField] private EntityObjectDatastore entityObjectDatastore;
@@ -120,10 +128,12 @@ namespace Client.Starter
         [SerializeField] private ResearchTreeViewManager researchTreeViewManager;
 
         [SerializeField] private MapObjectPin mapObjectPin;
+        [SerializeField] private VeinPin veinPin;
         [SerializeField] private UIHighlightTutorialManager uiHighlightTutorialManager;
         [SerializeField] private KeyControlTutorialManager keyControlTutorialManager;
         [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
         [SerializeField] private BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager;
+        [SerializeField] private UiDragGuideTutorialManager uiDragGuideTutorialManager;
         
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
@@ -167,6 +177,10 @@ namespace Client.Starter
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
+            // ホットバー割当モデルと更新購読
+            // Hotbar's 9-slot assignment-reference model and its update-event subscription
+            builder.Register<ClientHotbarDatastore>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<HotbarNetworkEventHandler>();
             // 装備モデルと、その選択に追従する手持ち3Dモデル
             // Equipment model and the held 3D model that follows its selection
             builder.Register<LocalPlayerEquipment>(Lifetime.Singleton);
@@ -211,6 +225,12 @@ namespace Client.Starter
             builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
+            // 設置対象解決・キー判別・タップ振り分け
+            // Placement-target resolution, digit-key press classification, and hotbar tap routing
+            builder.Register<PlacementTargetResolver>(Lifetime.Singleton);
+            builder.Register<HotbarKeyInput>(Lifetime.Singleton);
+            builder.Register<HotbarTapInputService>(Lifetime.Singleton);
+            builder.Register<HotbarSelectionReconciler>(Lifetime.Singleton);
 
             // UI非依存の視点モード処理
             // UI-independent view-mode processing
@@ -278,13 +298,12 @@ namespace Client.Starter
             // register component on hierarchy
             builder.RegisterComponent(gameStateController);
             builder.RegisterComponent(blockGameObjectDataStore);
-            builder.RegisterComponent(mapObjectGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
-            builder.RegisterComponent(mapVeinObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
+            builder.RegisterComponent(mapObjectGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>().As<ISkitWorldObjectControl>();
+            builder.RegisterComponent(outcropGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>().As<ISkitWorldObjectControl>();
             builder.RegisterComponent(environmentRoot);
             
             builder.RegisterComponent(mainCamera);
-            builder.RegisterComponent(hotBarView);
-            
+
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
@@ -293,10 +312,10 @@ namespace Client.Starter
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(networkDisconnectPresenter);
-            builder.RegisterComponent(mapObjectMiningController);
+            builder.RegisterComponent(miningController);
             
             builder.RegisterComponent(entityObjectDatastore);
-            builder.RegisterComponent(trainCarObjectDatastore);
+            builder.RegisterComponent(trainCarObjectDatastore).AsSelf().As<ISkitWorldObjectControl>();
             builder.RegisterComponent(playerInventoryViewController);
             builder.RegisterComponent(challengeManager);
             builder.RegisterComponent(craftInventoryView);
@@ -307,11 +326,13 @@ namespace Client.Starter
             builder.RegisterComponent(challengeListView);
             builder.RegisterComponent(researchTreeViewManager);
 
-            builder.RegisterComponent<IMapObjectPin>(mapObjectPin);
+            builder.RegisterComponent(mapObjectPin).AsSelf().As<ITutorialWorldPin>();
+            builder.RegisterComponent(veinPin).AsSelf().As<ITutorialWorldPin>();
             builder.RegisterComponent(uiHighlightTutorialManager);
             builder.RegisterComponent(keyControlTutorialManager);
             builder.RegisterComponent(itemViewHighLightTutorialManager);
             builder.RegisterComponent(blockPlacePreviewTutorialManager);
+            builder.RegisterComponent(uiDragGuideTutorialManager);
             
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager).As<IInitializable>();
@@ -322,7 +343,7 @@ namespace Client.Starter
             
             builder.RegisterComponent<IPlacementPreviewBlockGameObjectController>(previewBlockController);
             builder.RegisterComponent(railConnectPreviewObject);
-            builder.RegisterComponent(trainRailObjectManager);
+            builder.RegisterComponent(trainRailObjectManager).AsSelf().As<ISkitWorldObjectControl>();
             builder.RegisterComponent(trainCarObjectPreviewController);
             
             builder.RegisterBuildCallback(objectResolver => { });
@@ -331,13 +352,17 @@ namespace Client.Starter
             // resolve dependency
             _resolver = builder.Build();
             _resolver.Resolve<BlockGameObjectDataStore>();
-            _resolver.Resolve<MapVeinObjectDatastore>();
+            _resolver.Resolve<OutcropGameObjectDatastore>();
             _resolver.Resolve<UIStateControl>();
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<TrainCarObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();
             _resolver.Resolve<PlayerSystemContainer>();
             _resolver.Resolve<SkitUI>();
+
+            // 購読で成立するため生成しておく。割当変更に選択枠を追従させる
+            // Instantiated because it only works through its subscription, keeping the selected slot in step with assignments
+            _resolver.Resolve<HotbarSelectionReconciler>();
 
             return _resolver;
         }

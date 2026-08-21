@@ -10,7 +10,7 @@ test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "japanese");
 });
 
-test("進行中チャレンジを内部キーやカード面なしで表示する", async ({ page }) => {
+test("進行中チャレンジを内部キーを出さずインベントリ同族の面付きで表示する", async ({ page }) => {
   await setTopicScenario(page, "challengeJapanese");
   await setUiState(page, "GameScreen");
   await page.goto("/");
@@ -19,29 +19,47 @@ test("進行中チャレンジを内部キーやカード面なしで表示す�
   await expect(hud).toContainText("石を採掘する");
   await expect(hud).not.toContainText("challenge.current");
   await expect(hud).toHaveCSS("pointer-events", "none");
-  await expect(hud).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 
   // 左上固定の寸法と短い罫線を検証する
   // Verify top-left fixed dimensions and the shortened rule
   await expect(hud).toHaveCSS("top", "24px");
   await expect(hud).toHaveCSS("left", "24px");
-  await expect(hud).toHaveCSS("width", "520px");
-  await expect(hud).toHaveCSS("text-shadow", "rgba(0, 0, 0, 0.85) 0px 1px 2px");
+  await expect(hud).toHaveCSS("width", "560px");
+  await expect(hud).toHaveCSS("text-shadow", "rgba(0, 0, 0, 0.8) 0.35px 0.35px 0px");
   const rule = hud.locator('[aria-hidden="true"]');
   await expect(rule).toHaveCount(1);
   await expect(rule).toHaveCSS("width", "176px");
 
-  // 面装飾と文字階層をスタイル検証する
-  // Verify surface decoration and type hierarchy through styles
+  // hud variantの面と安全帯pad
+  // Face + safe-area padding, from hud variant
+  const face = hud.locator('[data-variant="hud"]');
+  await expect(face).toHaveCount(1);
+  await expect(face).toHaveCSS("padding", "20px");
+  const faceLayer = await face.evaluate((element) => {
+    const before = getComputedStyle(element, "::before");
+    return { background: before.backgroundColor, maskImage: before.maskImage || before.webkitMaskImage };
+  });
+  expect(faceLayer.background).toBe("rgba(10, 14, 27, 0.8)");
+  // 横縦2枚で4辺フェード成立
+  // Both axes' gradients complete the fade
+  // 既定角度は省略され得る
+  // Default angle may be omitted by the browser
+  expect(faceLayer.maskImage).toContain("90deg");
+  expect(faceLayer.maskImage.match(/linear-gradient\(/g)).toHaveLength(2);
+
+  // 面と影はGamePanel側で持つ
+  // Face and shadow live in GamePanel
   const visualContract = await hud.evaluate((element) => {
     const hudStyle = getComputedStyle(element);
-    const labelStyle = getComputedStyle(element.firstElementChild!);
+    const labelStyle = getComputedStyle(element.querySelector('[data-testid="challenge-hud-label"]')!);
     const objectiveStyle = getComputedStyle(element.querySelector('[data-testid="challenge-objective"]')!);
     return {
       animationName: hudStyle.animationName,
+      background: hudStyle.backgroundColor,
       borderRadius: hudStyle.borderRadius,
       borderWidth: hudStyle.borderWidth,
       boxShadow: hudStyle.boxShadow,
+      objectiveColor: objectiveStyle.color,
       fontWeight: objectiveStyle.fontWeight,
       labelLetterSpacing: labelStyle.letterSpacing,
       objectiveLineHeight: objectiveStyle.lineHeight,
@@ -49,13 +67,37 @@ test("進行中チャレンジを内部キーやカード面なしで表示す�
   });
   expect(visualContract).toEqual({
     animationName: "none",
+    background: "rgba(0, 0, 0, 0)",
     borderRadius: "0px",
     borderWidth: "0px",
     boxShadow: "none",
+    // hud variantはcolor: inheritなので、HUD側の--text-high-contrastがGamePanel既定色に潰されない
+    // The hud variant inherits color, so the HUD's --text-high-contrast survives GamePanel's default
+    objectiveColor: "rgb(255, 255, 255)",
     fontWeight: "400",
     labelLetterSpacing: "1px",
     objectiveLineHeight: "20px",
   });
+});
+
+test("面付きHUDは目標3件でもメニュー上端の安全帯に収まる", async ({ page }) => {
+  await setTopicScenario(page, "challengeMultiple");
+  await setUiState(page, "PlayerInventory");
+  await page.goto("/");
+
+  const hud = page.getByTestId("challenge-hud");
+  await expect(page.getByTestId("challenge-objective")).toHaveCount(3);
+
+  // 安全帯はstage座標のトークンなので、HUD下端もoffsetでstage座標へ揃えて比べる
+  // The safe area is a stage-space token, so the HUD's bottom is measured via offsets in the same space
+  const layout = await hud.evaluate((element: HTMLElement) => {
+    const overlay = element.offsetParent as HTMLElement;
+    return {
+      bottom: overlay.offsetTop + element.offsetTop + element.offsetHeight,
+      safeArea: Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--menu-upper-safe-area")),
+    };
+  });
+  expect(layout.bottom).toBeLessThanOrEqual(layout.safeArea);
 });
 
 test("横長画面で進行HUDを実画面左上へ置き罫線を約3分の1へ縮める", async ({ page }) => {
@@ -70,7 +112,7 @@ test("横長画面で進行HUDを実画面左上へ置き罫線を約3分の1へ
   const ruleBox = await hud.locator('[aria-hidden="true"]').boundingBox();
   expect(hudBox).not.toBeNull();
   expect(ruleBox).not.toBeNull();
-  expect(hudBox!.width).toBeCloseTo(520 * 786 / 720, 1);
+  expect(hudBox!.width).toBeCloseTo(560 * 786 / 720, 1);
   expect(ruleBox!.width).toBeCloseTo(176 * 786 / 720, 1);
 });
 

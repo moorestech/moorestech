@@ -46,7 +46,8 @@ namespace Client.Tests.UnitTest.Terrain
             // The prototype path reads only DetailConfigs; the other two exist solely to keep the arrays parallel
             return new BiomeVisualSections(
                 new string[BiomeTypes.Length], new BiomeTextureConfig[BiomeTypes.Length],
-                new[] { CreateDetailConfig(), CreateDetailConfig(1f, 2f) });
+                new[] { CreateDetailConfig(), CreateDetailConfig(1f, 2f) },
+                DetailTestConfigBuilder.CreateDisabledSurroundConfigs(BiomeTypes.Length));
         }
 
         private static BiomeDetailConfig CreateDetailConfig(params float[] entryMinWidths)

@@ -1,5 +1,9 @@
 ---
 keywords:
+  - "[0]"
+  - ".First("
+  - ".Single("
+keywords_all:
   - "MasterHolder"
 extensions:
   - .cs

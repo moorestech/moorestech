@@ -8,7 +8,6 @@
   border-radius: var(--mantine-radius-sm);
   background-color: var(--mantine-color-dark-8);
   overflow: hidden;
-  user-select: none;
 }
 
 .fill {

@@ -23,7 +23,11 @@ Usage:
         "comment_length":       [...],  # post-checks/comment-convention-guard.md(sonnet)で裁定
         "region_internal":      [...],  # core-cs-region-internal reviewer の裏付けデータ
         "schema_optional_true": [...],  # master-data-defense レンズの裏付けデータ
-        "event_tag_sync":       [...]   # server-state-sync レンズの裏付けデータ
+        "event_tag_sync":       [...],  # server-state-sync レンズの裏付けデータ
+        "guid_literal":         [...],  # hardcoded-content-enumeration レンズの裏付けデータ
+        "event_action":         [...],  # domain-boundary レンズの裏付けデータ（UniRx規約）
+        "mutable_auto_property":[...],  # redundant-member-duplication レンズの裏付けデータ
+        "passthrough_property": [...]   # redundant-member-duplication レンズの裏付けデータ
       }
     }
 
@@ -42,6 +46,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import checks_comment_length
 import checks_comparison
+import checks_lens_evidence
 import checks_moores
 import checks_region
 import checks_static
@@ -72,6 +77,10 @@ def main(argv: list[str]) -> int:
             "region_internal": checks_region.run(files, repo_root),
             "schema_optional_true": checks_moores.schema_optional_true(files),
             "event_tag_sync": checks_moores.event_tag_sync(files, patch_text, repo_root),
+            "guid_literal": checks_lens_evidence.guid_literal(files),
+            "event_action": checks_lens_evidence.event_action(files),
+            "mutable_auto_property": checks_lens_evidence.mutable_auto_property(files),
+            "passthrough_property": checks_lens_evidence.passthrough_property(files),
         },
     }
     json.dump(result, sys.stdout, ensure_ascii=False, indent=2)

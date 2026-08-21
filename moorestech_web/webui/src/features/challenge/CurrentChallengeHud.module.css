@@ -1,10 +1,10 @@
-/* 世界上へ文字だけを重ね、操作やカード面を持たない常駐HUDにする */
-/* Overlay text directly on the world as a resident HUD without interaction or a card face */
+/* 世界上へ面付きで重ねる常駐HUD。位置決めだけを持ち、面はGamePanelのhud variantが供給する */
+/* Resident HUD overlaid on the world with a face; this file only positions it, GamePanel supplies the face */
 .hud {
   position: absolute;
   top: var(--challenge-hud-top);
   left: var(--challenge-hud-left);
-  z-index: var(--z-overlay-panel);
+  z-index: var(--z-stage-overlay-panel);
   width: var(--challenge-hud-width);
   color: var(--text-high-contrast);
   pointer-events: none;

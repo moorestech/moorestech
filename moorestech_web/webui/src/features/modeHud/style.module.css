@@ -4,7 +4,7 @@
   position: absolute;
   top: var(--operation-hud-top);
   right: var(--operation-hud-right);
-  z-index: var(--z-overlay-panel);
+  z-index: var(--z-stage-overlay-panel);
   width: var(--operation-hud-width);
   pointer-events: none;
 }
@@ -54,7 +54,7 @@
 .deleteModeWarning {
   position: absolute;
   inset: 0;
-  z-index: var(--z-overlay-panel);
+  z-index: var(--z-stage-overlay-panel);
   pointer-events: none;
 }
 

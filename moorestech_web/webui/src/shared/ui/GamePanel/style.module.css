@@ -18,7 +18,7 @@
 /* Side panels use the uGUI source (invebtory_bg_base #0a0e1b at α0.8) translucent navy. The old brown gradient
    was the baked-in blend of the orange world through the reference screenshot; the real alpha lets the world
    show through and recreate that vertical gradient naturally */
-.panel:not(.craft):not(.skit)::before {
+.panel[data-variant="default"]::before {
   position: absolute;
   z-index: 0;
   /* 実測で10物理px遅かったフェード全体を上へ送り、開始267・完了297付近へ合わせる */
@@ -29,7 +29,7 @@
   left: var(--panel-left, -3px);
   /* 正本の上端断面に合わせ、側面パネルだけ約30物理pxで透明から面色へ遷移させる */
   /* Match the reference top cross-section by fading only side panels from transparent to the face over about 30 device pixels */
-  background: linear-gradient(180deg, rgb(10 14 27 / 0%) 0, rgb(10 14 27 / 80%) 11.742px, rgb(10 14 27 / 80%) 100%);
+  background: linear-gradient(180deg, rgb(10 14 27 / 0%) 0, var(--surface-navy) 11.742px, var(--surface-navy) 100%);
   box-shadow: 0 0 12px 7px rgb(9 11 20 / 45%);
   /* 左右に加え下端も上端フェードと同尺(約12CSSpx)で世界背景へ溶かす */
   /* Fade the bottom edge into the world over the same span as the top (~12 CSS px), in addition to the L/R ends */
@@ -45,7 +45,7 @@
    (このルールがposition:relativeで上書きすると38px分フローを占有し、パネル下端へ張り付かなくなる) */
 /* Keep panel content in front of the shading layer, but leave bottomDeco absolutely positioned out of
    flow (this rule overriding it to position:relative used to eat 38px of flow and detach it from the panel's bottom edge) */
-.panel:not(.craft):not(.skit) > *:not(.bottomDeco) {
+.panel > *:not(.bottomDeco) {
   position: relative;
   z-index: 1;
 }
@@ -74,11 +74,6 @@
   pointer-events: none;
 }
 
-.skit > * {
-  position: relative;
-  z-index: 1;
-}
-
 /* 正本は太い外周帯でなく硬い遷移と細い内周線だけのため、二層クロームを維持する */
 /* Preserve two-layer chrome because the reference uses a hard transition and thin inner line instead of a thick outer band */
 .craft {
@@ -92,8 +87,11 @@
 
 /* 右下グリップは固定寸法の単色三角形として枠内に収める */
 /* Keep the bottom-right grip as one fixed-size, single-color triangle inside the frame */
+/* 子要素は.panel > *で z-index 1 に上がるため、グリップは2を明示して常にその前面へ出す */
+/* Children are lifted to z-index 1 by .panel > *, so the grip states 2 to stay in front of them */
 .craft::after {
   position: absolute;
+  z-index: 2;
   right: var(--craft-grip-inset);
   bottom: var(--craft-grip-inset);
   width: var(--craft-grip-size);
@@ -131,6 +129,15 @@
   white-space: nowrap;
 }
 
+/* 副次アクションはタイトル行の右端へ寄せ、行の固定高とタイトルのtransformへ影響させない */
+/* The secondary action hugs the title row's right end without affecting its fixed height or the title's transform */
+.titleAction {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
 /* 上下罫線は中央を保ちつつ両端を世界背景へフェードさせる */
 /* Keep the middle of both rules while fading their ends into the world */
 .decoLine {
@@ -155,9 +162,18 @@
   background: linear-gradient(90deg, transparent 0%, rgb(128 132 159 / 30%) 5%, rgb(128 132 159 / 42%) 11%, rgb(128 132 159 / 42%) 89%, rgb(128 132 159 / 26%) 95%, transparent 100%);
 }
 
+/* 全パネル共通でbasisを0%へ固定し、bodyの高さを子孫の内容サイズへ一切依存させない
+   (viewport=TreeView.module.cssと同じ方針)。autoだと内容サイズが最初のレイアウトパスだけ上へ漏れ、
+   height固定パネル(研究/ビルドメニュー)ではheader/decoLineが一時的に縮んで初期中央寄せの測定と
+   レースし数px級のズレを生む。内容量で高さが決まるパネルでもbasis 0%で従来と同じ結果になる */
+/* Every panel pins basis to 0%, so .body's height never depends on descendant content size
+   (the same policy as .viewport in TreeView.module.css). With auto, content size leaks upward during
+   only the first layout pass; in height-pinned panels (research/build menu) that transiently shrinks
+   header/decoLine and races the initial-centering measurement into a several-px error.
+   Content-sized panels reach the same result under basis 0% as they did before */
 .body {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   flex-direction: column;
   min-height: 0;
 }

@@ -6,13 +6,18 @@ import { expectNoVerticalOverflow } from "../../support/layoutAssertions";
 import { setTopicScenario, setUiState } from "../../support/mockControl";
 import { buildMenuCategoryIds } from "../../mock-host/fixtures";
 
-// 視覚寸法トークンをpx化(remは:root基準)
-// Resolves a token to px (rem via :root)
+// 視覚寸法トークンをpx化する。calc()やremのまま返る生値を避け、実要素へ載せて解決させる
+// Resolves a dimension token to px by letting a probe element compute it, since raw values may be calc() or rem
 async function tokenPixels(page: import("@playwright/test").Page, name: string) {
   return page.evaluate((tokenName) => {
-    const rootStyle = getComputedStyle(document.documentElement);
-    const raw = rootStyle.getPropertyValue(tokenName).trim();
-    return raw.endsWith("rem") ? parseFloat(raw) * parseFloat(rootStyle.fontSize) : parseFloat(raw);
+    const probe = document.createElement("div");
+    probe.style.position = "absolute";
+    probe.style.visibility = "hidden";
+    probe.style.height = `var(${tokenName})`;
+    document.body.appendChild(probe);
+    const pixels = probe.getBoundingClientRect().height;
+    probe.remove();
+    return pixels;
   }, name);
 }
 

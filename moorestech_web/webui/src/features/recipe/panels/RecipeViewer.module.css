@@ -1,12 +1,26 @@
-/* タブ見出し内のブロックアイコン（20px） */
-/* Block icon inside the tab label (20px) */
-.tabIcon {
-  width: 1.25rem;
-  height: 1.25rem;
-  object-fit: contain;
-}
-
 .recipeContent {
   flex: 1;
   min-height: 0;
+}
+
+/* リストのスクロールバーは§8.10のネイビートーンへ統一する */
+/* Unify the list scrollbar with the §8.10 navy tone */
+.recipeListScroll :global(.mantine-ScrollArea-scrollbar) {
+  background: var(--gauge-track);
+}
+
+.recipeListScroll :global(.mantine-ScrollArea-thumb) {
+  background: var(--bevel-c2);
+  border-radius: 0;
+}
+
+.recipeList {
+  /* 四隅ブラケットと外周リングが枠の外側へ出るため、全周にその分の余白を取る。
+     0だとScrollAreaに切られて左のブラケットが消え、はみ出し数pxで不要なスクロールが出る */
+  /* The corner brackets and outer ring sit outside the frame, so pad every side by that bleed; at 0 the
+     ScrollArea clips the left brackets and the few overflowing px create a needless scroll */
+  padding: var(--recipe-entry-bleed);
+  /* 右だけはスクロールバー実寸も足し、エントリとつまみを重ねない（ScrollAreaのscrollbarSizeと同一トークン） */
+  /* Only the right adds the measured scrollbar width so entries never sit under the thumb (same token as ScrollArea's scrollbarSize) */
+  padding-right: calc(var(--recipe-entry-bleed) + var(--recipe-list-scrollbar-reserve));
 }

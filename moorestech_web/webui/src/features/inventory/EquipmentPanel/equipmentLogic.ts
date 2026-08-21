@@ -15,17 +15,24 @@ export function cycleEquipment(current: number, delta: number, slotCount: number
   return ((((ordinal + delta) % period) + period) % period) + BARE_HANDS_INDEX;
 }
 
-// wheel/100を累積し整数分だけを消費する（uGUI HotBarView の刻みをそのまま装備側へ引き継ぐ）
-// Accumulate wheel/100 and consume only crossed integer steps, carrying over uGUI HotBarView's granularity
-export function accumulateWheelSteps(remainder: number, delta: number): { remainder: number; steps: number } {
-  const total = remainder + delta / 100;
-  if (total >= 1) {
-    const steps = Math.floor(total);
-    return { remainder: total - steps, steps };
-  }
-  if (total <= -1) {
-    const steps = Math.ceil(total);
-    return { remainder: total - steps, steps };
-  }
+// deltaModeごとのノッチ換算量。OSやデバイスでdelta値の桁が変わるため単位側で正規化する
+// Per-deltaMode notch scale; delta magnitude varies by OS and device, so normalize at the unit level
+const WHEEL_NOTCH_UNIT: Record<number, number> = {
+  0: 100, // pixel
+  1: 3, // line
+  2: 1, // page
+};
+
+// ホイールを累積し、閾値を越えたら段数に関わらず1段だけ進める（スクロール加速で1ノッチが多段化しないように）
+// Accumulate the wheel and advance exactly one step past the threshold, so scroll acceleration cannot turn one notch into many
+export function accumulateWheelSteps(remainder: number, delta: number, deltaMode: number): { remainder: number; steps: number } {
+  const unit = WHEEL_NOTCH_UNIT[deltaMode] ?? WHEEL_NOTCH_UNIT[0];
+  const normalized = delta / unit;
+  // 逆回転では溜まっていた順方向の端数を捨て、直前の回転の残りで即発火させない
+  // On a reversal, discard the opposite-signed leftover so the previous rotation cannot fire immediately
+  const base = remainder * normalized < 0 ? 0 : remainder;
+  const total = base + normalized;
+  if (total >= 1) return { remainder: 0, steps: 1 };
+  if (total <= -1) return { remainder: 0, steps: -1 };
   return { remainder: total, steps: 0 };
 }

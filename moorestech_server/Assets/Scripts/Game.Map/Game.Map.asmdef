@@ -5,6 +5,7 @@
     "Game.Map.Interface",
     "Core.Item.Interface",
     "Core.Item",
+    "Core.Inventory",
     "Game.Base",
     "Game.SaveLoad.Interface",
     "Game.SaveLoad",

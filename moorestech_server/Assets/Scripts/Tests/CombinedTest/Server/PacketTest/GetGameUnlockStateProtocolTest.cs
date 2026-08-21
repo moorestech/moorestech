@@ -102,5 +102,26 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.True(response.UnlockedConnectToolGuids.Contains(electricWireGuid));
             Assert.False(response.LockedConnectToolGuids.Contains(electricWireGuid));
         }
+
+        [Test]
+        public void GetBlueprintUnlockState()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var unlockStateDatastore = serviceProvider.GetService<IGameUnlockStateDataController>();
+
+            // 初期ハンドシェイクでロック確認
+            // Verify it is locked in the initial handshake
+            var messagePack = new RequestGameUnlockStateProtocolMessagePack();
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext(null))[0];
+            var response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
+            Assert.False(response.IsBlueprintUnlocked);
+
+            // 解放後のハンドシェイクで解放状態を確認
+            // Verify the unlocked state is included in the handshake after unlocking
+            unlockStateDatastore.UnlockBlueprint();
+            responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext(null))[0];
+            response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
+            Assert.True(response.IsBlueprintUnlocked);
+        }
     }
 }

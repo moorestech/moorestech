@@ -1,7 +1,7 @@
-import { SlotFrame } from "@/shared/ui";
+import { PlacementTargetFace, SlotFrame } from "@/shared/ui";
 import { tutorialAnchor, buildMenuEntryAnchorId } from "@/shared/tutorialAnchor";
+import { useHotbarDragSource } from "@/features/hotbar";
 import type { BuildMenuDisplayEntry } from "./buildMenuGrouping";
-import styles from "./style.module.css";
 
 type Props = {
   entry: BuildMenuDisplayEntry;
@@ -12,23 +12,22 @@ type Props = {
   onHoverChange: (hovering: boolean) => void;
 };
 
-// アイコン有無で画像/テキストを出し分けるビルドメニュー1スロット
-// One build-menu slot, rendering an image or a text label depending on icon presence
+// アイコン有無で画像/テキストを出し分け
+// 左押下はホットバーD&D共通制御を通す
+// One build-menu slot, rendering an image or a text label depending on icon presence.
+// The left press routes through the shared hotbar-D&D pointer control (tap = select, past-threshold drag = a hotbar-assign drag source)
 export function BuildMenuSlot({ entry, onLeftClick, onRightClick, onHoverChange }: Props) {
+  const dragHandlers = useHotbarDragSource({ kind: "buildMenuEntry", id: entry.id }, onLeftClick);
   return (
     <SlotFrame
       filled
       testId={`build-menu-entry-${entry.kind}-${entry.id}`}
-      onLeftDown={onLeftClick}
       onRightDown={onRightClick}
       onHoverChange={onHoverChange}
+      {...dragHandlers}
       {...tutorialAnchor(buildMenuEntryAnchorId(entry.kind, entry.id))}
     >
-      {entry.iconUrl ? (
-        <img className={styles.slotIcon} src={entry.iconUrl} alt={entry.displayLabel} draggable={false} />
-      ) : (
-        <span className={styles.slotLabel}>{entry.displayLabel}</span>
-      )}
+      <PlacementTargetFace iconUrl={entry.iconUrl} displayName={entry.displayLabel} />
     </SlotFrame>
   );
 }

@@ -23,9 +23,9 @@ namespace Game.PlayerInventory.Interface
             var index = Math.Clamp(level, 0, levels.Length - 1);
             var slotCount = levels[index].SlotCount;
 
-            // ホットバー分未満・前レベル未満のマスタ値は設定ミスなので明示的に失敗させる
-            // Values below the hotbar size or the previous level are configuration errors, so fail explicitly
-            if (slotCount < PlayerInventoryConst.HotBarSlotCount) throw new Exception($"playerInventorySlotLevels[{index}].slotCount ({slotCount}) はホットバー数 {PlayerInventoryConst.HotBarSlotCount} 以上が必要です");
+            // 1未満・前レベル未満のマスタ値は設定ミスなので明示的に失敗させる
+            // Values below 1 or below the previous level are configuration errors, so fail explicitly
+            if (slotCount < 1) throw new Exception($"playerInventorySlotLevels[{index}].slotCount ({slotCount}) は1以上が必要です");
             if (0 < index && slotCount < levels[index - 1].SlotCount) throw new Exception($"playerInventorySlotLevels[{index}].slotCount ({slotCount}) は前レベルの {levels[index - 1].SlotCount} 以上が必要です");
             return slotCount;
         }

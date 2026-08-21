@@ -29,8 +29,10 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
                 && BiomeMaskBuilder.IsNearMaskEdge(context.Mask, heightmapX, heightmapZ, context.HeightmapResolution, context.BorderMarginPixels))
                 return false;
 
-            var worldX = (float)x / context.DetailResolution * context.TerrainWidth;
-            var worldZ = (float)z / context.DetailResolution * context.TerrainLength;
+            // ノイズはワールド座標で引く。SplatmapJob と同じくタイル原点を足してから正規化位置を進める
+            // The noise is drawn in world space: as in SplatmapJob the tile origin comes first, then the normalized step
+            var worldX = context.WorldOffsetX + (float)x / context.DetailResolution * context.TerrainWidth;
+            var worldZ = context.WorldOffsetZ + (float)z / context.DetailResolution * context.TerrainLength;
             var rejectThreshold = context.FilterRejectThreshold;
 
             // エントリ重みへ各フィルタを乗算

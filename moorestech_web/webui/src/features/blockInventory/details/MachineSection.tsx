@@ -1,33 +1,39 @@
 import { useState } from "react";
 import { Group, Stack } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
-import type { BlockInventoryOpen } from "@/bridge";
+import type { BlockInventoryOpen, MachineDetailData } from "@/bridge";
 import { ItemSlot, ModeSwitch } from "@/shared/ui";
 import { L, useI18n } from "@/shared/i18n";
+import LackHighlightText from "./LackHighlightText";
 import PowerRateText from "./PowerRateText";
+import { machineStateDisplay } from "./detailLogic";
 import MachineInventoryBody from "./machine/MachineInventoryBody";
 import MachineRecipeSelectionTab from "./machine/MachineRecipeSelectionTab";
-import { buildMachineRecipeSelectionRows } from "./machine/machineRecipeSelectionLogic";
+import { buildMachineRecipeSelectionRows, machineInitialTab } from "./machine/machineRecipeSelectionLogic";
 
 // 機械: レシピ有りはインベントリ/レシピ選択の2タブ、レシピ無しは従来スタック
 // Machine: recipe-capable machines get inventory/recipe tabs; others keep the plain stack
-export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
+export default function MachineSection({ data, machine }: { data: BlockInventoryOpen; machine: MachineDetailData }) {
   const machineRecipes = useTopic(Topics.machineRecipes);
-  const [tab, setTab] = useState("inventory");
+  const [tab, setTab] = useState<string>(() => machineInitialTab(machine.selectedRecipeGuid));
   const { t } = useI18n();
-  if (!data.machine) return null;
-  const machine = data.machine;
 
   const rows = buildMachineRecipeSelectionRows(
     machineRecipes?.recipes ?? [],
     machine.blockGuid,
     machine.selectedRecipeGuid,
   );
-  // 電力率は稼働状態の常時視認のため、タブの外の共通フッタとして中央揃えで表示する
-  // The power rate stays visible on both tabs as a centered common footer for at-a-glance status
+  // 状態ラベル+充足率を共通フッタに表示
+  // The state label and satisfaction rate stay visible on both tabs as the shared footer (ADR 0010)
+  const stateDisplay = machineStateDisplay(machine.currentState);
   const powerRate = (
-    <Group justify="center">
-      <PowerRateText currentPower={machine.currentPower} requestPower={machine.requestPower} testId="machine-power-rate" />
+    <Group justify="center" gap="xs">
+      <LackHighlightText insufficient={stateDisplay.insufficient} size="sm" testId="machine-state-label">
+        {t(stateDisplay.labelKey)}
+      </LackHighlightText>
+      {stateDisplay.showPowerRate && (
+        <PowerRateText currentPower={machine.currentPower} requestPower={machine.requestPower} testId="machine-power-rate" />
+      )}
     </Group>
   );
 
@@ -50,8 +56,8 @@ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
         value={tab}
         onChange={setTab}
         options={[
-          { value: "inventory", label: t(L.ui.blockInventory.inventoryTab), testId: "machine-tab-inventory" },
           { value: "recipes", label: t(L.ui.blockInventory.recipeSelectionTab), testId: "machine-tab-recipes" },
+          { value: "inventory", label: t(L.ui.blockInventory.inventoryTab), testId: "machine-tab-inventory" },
         ]}
         testId="machine-tab-switch"
       />

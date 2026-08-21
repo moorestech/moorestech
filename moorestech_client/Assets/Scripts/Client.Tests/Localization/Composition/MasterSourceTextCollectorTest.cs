@@ -120,9 +120,9 @@ namespace Client.Tests.Localization.Composition
                     expected.Add($"challenge.{challenge.ChallengeGuid:D}.summary", challenge.Summary);
                     foreach (var tutorial in challenge.Tutorials)
                     {
-                        expected.Add(
-                            $"challengeTutorial.{tutorial.TutorialGuid:D}.text",
-                            GetExpectedTutorialText(tutorial));
+                        var expectedText = GetExpectedTutorialText(tutorial);
+                        if (expectedText == null) continue;
+                        expected.Add($"challengeTutorial.{tutorial.TutorialGuid:D}.text", expectedText);
                     }
                 }
             }
@@ -158,10 +158,12 @@ namespace Client.Tests.Localization.Composition
             return tutorial.TutorialParam switch
             {
                 MapObjectPinTutorialParam mapObjectPin => mapObjectPin.PinText,
+                VeinPinTutorialParam veinPin => veinPin.PinText,
                 KeyControlTutorialParam keyControl => keyControl.ControlText,
                 UiHighLightTutorialParam uiHighLight => uiHighLight.HighLightText,
                 ItemViewHighLightTutorialParam itemViewHighLight => itemViewHighLight.HighLightText,
                 BlockPlacePreviewTutorialParam blockPlacePreview => blockPlacePreview.Message,
+                UiDragGuideTutorialParam => null,
                 _ => throw new System.InvalidOperationException($"Unknown tutorial type: {tutorial.TutorialType}"),
             };
         }

@@ -4,9 +4,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
-using Common.Debug;
 using Cysharp.Threading.Tasks;
-using Game.UnlockState;
 using Newtonsoft.Json.Linq;
 
 namespace Client.WebUiHost.Game.Actions
@@ -20,17 +18,13 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "build_menu.select";
 
         private readonly UIStateControl _uiStateControl;
-        private readonly IGameUnlockStateData _unlockState;
-        private readonly ClientBlueprintLibrary _blueprintLibrary;
-        private readonly PlacementTargetCatalog _placementTargetCatalog;
+        private readonly PlacementTargetResolver _placementTargetResolver;
         private readonly BuildMenuView _buildMenuView;
 
-        public BuildMenuSelectActionHandler(UIStateControl uiStateControl, IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary, PlacementTargetCatalog placementTargetCatalog, BuildMenuView buildMenuView)
+        public BuildMenuSelectActionHandler(UIStateControl uiStateControl, PlacementTargetResolver placementTargetResolver, BuildMenuView buildMenuView)
         {
             _uiStateControl = uiStateControl;
-            _unlockState = unlockState;
-            _blueprintLibrary = blueprintLibrary;
-            _placementTargetCatalog = placementTargetCatalog;
+            _placementTargetResolver = placementTargetResolver;
             _buildMenuView = buildMenuView;
         }
 
@@ -44,19 +38,9 @@ namespace Client.WebUiHost.Game.Actions
             // Reject stale arrivals outside BuildMenu (the Unity side closed the menu first)
             if (_uiStateControl.CurrentState != UIStateEnum.BuildMenu) return UniTask.FromResult(ActionResult.Fail("invalid_state"));
 
-            // 現在のカタログ（未解放を除外済み）とIdで照合し、削除済みBP等へのstaleクリックを弾く
-            // Match by id against the current catalog (locked entries already excluded), rejecting stale clicks such as deleted blueprints
-            // Idはカタログ内で一意のため最初の一致で足りる（複数一致はそもそも起こり得ない）
-            // Id is unique within the catalog, so the first match suffices (multiple matches can never occur)
-            var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
-            IPlacementTarget target = null;
-            foreach (var entry in _placementTargetCatalog.UnlockedEntries(_unlockState, showAllPlaceable, _blueprintLibrary.BlueprintEntries))
-            {
-                if (entry.Id != targetId) continue;
-                target = PlacementTargetFactory.Create(entry);
-                break;
-            }
-            if (target == null) return UniTask.FromResult(ActionResult.Fail("unknown_entry"));
+            // 現在解決できる設置対象（未解放を除外済み）とIdで照合し、削除済みBP等へのstaleクリックを弾く
+            // Match by id against the currently resolvable targets (locked entries already excluded), rejecting stale clicks such as deleted blueprints
+            if (!_placementTargetResolver.TryResolve(targetId, out var target)) return UniTask.FromResult(ActionResult.Fail("unknown_entry"));
 
             // uGUIの消費キューへはターゲットのみ渡す（uGUI表示は使われない）
             // Feed only the target into the uGUI consume queue (its visual display is unused)
@@ -93,6 +77,7 @@ namespace Client.WebUiHost.Game.Actions
             {
                 BlueprintDeleteResult.Success => ActionResult.Success(),
                 BlueprintDeleteResult.NotFound => ActionResult.Fail("blueprint_delete_not_found"),
+                BlueprintDeleteResult.NotUnlocked => ActionResult.Fail("blueprint_delete_not_unlocked"),
                 _ => ActionResult.Fail("blueprint_delete_request_failed"),
             };
         }

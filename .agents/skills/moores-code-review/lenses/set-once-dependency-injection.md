@@ -3,7 +3,7 @@ extensions:
   - .cs
 keywords:
   - "public void Set"
-model: opus
+model: sonnet
 ---
 
 # Lens: set-once依存の可変setter注入（PR1027由来）

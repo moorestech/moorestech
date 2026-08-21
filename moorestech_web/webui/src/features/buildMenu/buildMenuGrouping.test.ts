@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { BuildMenuCategory, BuildMenuEntryData } from "../../bridge/contract/payloadTypes";
-import { blockNameKey, connectToolNameKey, trainCarNameKey, L } from "@/shared/i18n";
+import { connectToolNameKey, trainCarNameKey } from "@/shared/i18n";
 import {
   localizeBuildMenuEntries,
-  localizeSelectableTargetName,
   resolveSelectedCategory,
   searchSections,
   sectionsForCategory,
@@ -156,41 +155,5 @@ describe("localizeBuildMenuEntries", () => {
       (key) => (key === trainCarNameKey(trainCarGuid) ? "蒸気機関車" : "unused"),
     )[0].displayLabel;
     expect(displayLabel).toBe("蒸気機関車");
-  });
-});
-
-describe("localizeSelectableTargetName", () => {
-  it("blockはblockNameKeyで解決する", () => {
-    const blockGuid = "30000000-0000-4000-8000-000000000001";
-    expect(localizeSelectableTargetName(
-      { type: "block", guid: blockGuid },
-      (key) => (key === blockNameKey(blockGuid) ? "木のチェスト" : "unused"),
-    )).toBe("木のチェスト");
-  });
-
-  it("connectToolはconnectToolNameKeyで解決する", () => {
-    expect(localizeSelectableTargetName(
-      { type: "connectTool", guid: connectToolGuid },
-      (key) => (key === connectToolNameKey(connectToolGuid) ? "電線ツール" : "unused"),
-    )).toBe("電線ツール");
-  });
-
-  it("trainCarはtrainCarNameKeyで解決する", () => {
-    expect(localizeSelectableTargetName(
-      { type: "trainCar", guid: trainCarGuid },
-      (key) => (key === trainCarNameKey(trainCarGuid) ? "蒸気機関車" : "unused"),
-    )).toBe("蒸気機関車");
-  });
-
-  it("blueprintCopyはtyped UI keyで解決する", () => {
-    expect(localizeSelectableTargetName(
-      { type: "blueprintCopy" },
-      (key) => (key === L.ui.buildMenu.blueprintCopy ? "ブループリントコピー" : "unused"),
-    )).toBe("ブループリントコピー");
-  });
-
-  it("rawはユーザー命名文字列をそのまま返す", () => {
-    expect(localizeSelectableTargetName({ type: "raw", label: "starter-base" }, () => "unused"))
-      .toBe("starter-base");
   });
 });

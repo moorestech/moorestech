@@ -35,7 +35,7 @@ namespace Game.Map
                 }
 
                 var itemId = MasterHolder.ItemMaster.GetItemId(itemVeinParam.ItemGuid);
-                var vein = new ItemMapVein(itemId, veinJson.MinPosition, veinJson.MaxPosition);
+                var vein = new ItemMapVein(veinJson.VeinGuid, itemId, veinJson.MinPosition, veinJson.MaxPosition);
                 _mapVeins.Add(vein);
             }
         }

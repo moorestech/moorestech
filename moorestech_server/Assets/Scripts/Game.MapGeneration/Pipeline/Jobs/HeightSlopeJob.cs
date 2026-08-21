@@ -24,6 +24,8 @@ namespace Game.MapGeneration.Pipeline.Jobs
         public float slopeBlendStrength;
         public float terrainWidth;
         public float terrainLength;
+        public float worldOffsetX;
+        public float worldOffsetZ;
 
         [ReadOnly] public NativeArray<float> blurTemp;
 
@@ -60,8 +62,10 @@ namespace Game.MapGeneration.Pipeline.Jobs
                 int idx = y * resolution + x;
                 float original = blurTemp[idx];
 
-                float worldX = (float)x / (resolution - 1) * terrainWidth;
-                float worldZ = (float)y / (resolution - 1) * terrainLength;
+                // ワールドオフセットを加算し、窓原点でなくワールド基準座標でハッシュ格子を引く
+                // Add worldOffset so the hash grid anchors to world-space, not the window origin
+                float worldX = worldOffsetX + (float)x / (resolution - 1) * terrainWidth;
+                float worldZ = worldOffsetZ + (float)y / (resolution - 1) * terrainLength;
 
                 // このピクセルが属するグリッドセル
                 int gridX = (int)math.floor(worldX / safeCellSize);

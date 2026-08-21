@@ -752,6 +752,8 @@ properties:
       - key: boundaryGaussSigma
         type: number
         default: 1.8
+      # 単位はメートルあたり。移植元はピクセルあたりだったので、Alpine を有効化するときは再較正する
+      # Counted per meter, whereas the source counted per pixel, so recalibrate this when Alpine is enabled
       - key: boundaryNoiseFrequency
         type: number
         default: 0.08

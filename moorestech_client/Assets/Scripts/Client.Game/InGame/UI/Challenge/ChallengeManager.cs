@@ -24,25 +24,30 @@ namespace Client.Game.InGame.UI.Challenge
         
         [Inject] private TutorialManager _tutorialManager;
         private ChallengeListView _challengeListView;
-        
+        private List<ChallengeMasterElement> _initialCurrentChallenges;
+
         [Inject]
         public void Construct(ChallengeListView challengeListView, InitialHandshakeResponse initialHandshakeResponse)
         {
-            foreach (var challengeCategory in initialHandshakeResponse.Challenges)
-            {
-                // チュートリアルの適用
-                // Apply tutorial
-                challengeCategory.CurrentChallenges.ForEach(c => _tutorialManager.ApplyTutorial(c.ChallengeGuid));
-            }
-            
             var currentChallenges = initialHandshakeResponse.Challenges.SelectMany(c => c.CurrentChallenges).ToList();
+            _initialCurrentChallenges = currentChallenges;
             currentChallengeHudView.SetCurrentChallenge(currentChallenges);
             _challengeListView = challengeListView;
             _challengeListView.SetUI(initialHandshakeResponse.Challenges);
             
             ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
         }
-        
+
+        /// <summary>
+        ///     初期チャレンジのチュートリアルを適用する
+        ///     Apply the tutorials for the initial challenges
+        /// </summary>
+        public void ApplyInitialTutorials()
+        {
+            _initialCurrentChallenges.ForEach(c => _tutorialManager.ApplyTutorial(c.ChallengeGuid));
+        }
+
+
         private void OnCompletedChallenge(byte[] packet)
         {
             var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(packet);

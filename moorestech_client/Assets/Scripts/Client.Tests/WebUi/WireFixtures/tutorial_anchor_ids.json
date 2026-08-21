@@ -12,12 +12,17 @@
     "recipe.craft-button",
     "mining.hud",
     "challenge.panel",
-    "challenge.categories"
+    "challenge.categories",
+    "hotbar.hud",
+    "equipment.hud",
+    "equipment.selected-slot"
   ],
   "dynamicPrefixes": {
     "researchNode": "research.node-",
     "recipeItem": "recipe.item-",
     "buildMenuEntry": "build-menu.entry-",
-    "challengeNode": "challenge.node-"
+    "challengeNode": "challenge.node-",
+    "inventoryItem": "inventory.item-",
+    "equipmentSlot": "equipment.slot-"
   }
 }

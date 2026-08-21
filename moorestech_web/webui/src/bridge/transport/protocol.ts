@@ -2,7 +2,7 @@ import type {
   PlayerInventoryData, CraftRecipesData, MachineRecipesData,
   RecipeViewerItemListData,
   ModalData, ProgressData, BlockInventoryData,
-  UiStateData, ResearchTreeData, BuildMenuData,
+  UiStateData, ResearchTreeData, BuildMenuData, HotbarData,
   LocalizationData, ChallengeTreeData,
   ChallengeCurrentData, PauseMenuData, PlacementModeData,
   CrosshairData,
@@ -52,6 +52,7 @@ export const Topics = {
   uiState: "ui_state.current",
   researchTree: "research.tree",
   buildMenu: "build_menu.entries",
+  hotbar: "local_player.hotbar",
   localization: "localization.current",
   challengeTree: "challenge.tree",
   challengeCurrent: "challenge.current",
@@ -86,6 +87,7 @@ export type TopicPayloads = {
   [Topics.uiState]: UiStateData;
   [Topics.researchTree]: ResearchTreeData;
   [Topics.buildMenu]: BuildMenuData;
+  [Topics.hotbar]: HotbarData;
   [Topics.localization]: LocalizationData;
   [Topics.challengeTree]: ChallengeTreeData;
   [Topics.challengeCurrent]: ChallengeCurrentData;

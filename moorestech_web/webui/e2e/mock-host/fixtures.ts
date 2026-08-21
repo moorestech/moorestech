@@ -21,26 +21,34 @@ export * from "./fixtures/itemMasterFixtures";
 export * from "./fixtures/blockLocalizationFixtures";
 export * from "./fixtures/contentLocalizationFixtures";
 export * from "./fixtures/buildMenuFixtures";
+export * from "./fixtures/hotbarFixtures";
 
 const empty = () => ({ itemId: 0, count: 0 });
 
-// 9列×4行のメイン + 9列ホットバー。Wood を2スロットに分けて collect の集約を観測可能にする
-// 9x4 main + 9 hotbar; Wood is split across two slots so collect's consolidation is observable
+// 9x5メインインベントリ(旧行込み)
+// 9x5 main inventory (the former hotbar row is now part of it); Wood is split across two slots so collect's consolidation is observable
 export const inventory = {
   mainSlots: [
     { itemId: 1, count: 10 },
     { itemId: 2, count: 10 },
     { itemId: 1, count: 5 },
     ...Array.from({ length: 33 }, empty),
+    { itemId: 2, count: 3 },
+    ...Array.from({ length: 8 }, empty),
   ],
-  hotbarSlots: [{ itemId: 2, count: 3 }, ...Array.from({ length: 8 }, empty)],
   grab: empty(),
-  selectedHotbar: 0,
   // 3装備枠、初期選択は素手
   // Three slots, bare hands selected
   equipment: [{ itemId: 1, count: 1 }, ...Array.from({ length: 2 }, empty)],
   selectedEquipment: -1,
   equipmentSelectionConfirmationRevision: 0,
+} satisfies PlayerInventoryData;
+
+// 全9列×5行の各行に1つ以上アイテムが載る持ち物。層序specが通知と必ず重なる不透明スロットを得るために使う
+// An inventory with at least one item per row of the 9x5 grid, so the layering spec always finds an opaque slot overlapping the notification
+export const inventoryEveryRowFilled = {
+  ...inventory,
+  mainSlots: Array.from({ length: 45 }, (_, i) => (i % 9 === 0 ? { itemId: 1, count: 10 } : empty())),
 } satisfies PlayerInventoryData;
 
 // BLK-1 チェスト: 9 スロット(uGUI IChestParam.ItemSlotCount 相当)、一部にアイテム
@@ -57,8 +65,8 @@ export const blockChest = {
   fluidSlots: [],
 } satisfies BlockInventoryData;
 
-// INV-6 タンク機械: 液体スロット + 製作進捗(ProgressArrow 用)
-// INV-6 tank machine: fluid slots + processing progress (for ProgressArrow)
+// INV-6 タンク機械: 液体スロット + 製作進捗(ProgressArrowBar 用)
+// INV-6 tank machine: fluid slots + processing progress (for ProgressArrowBar)
 export const blockTank = {
   open: true,
   source: "block",
@@ -131,8 +139,8 @@ export const uiState = { state: "PlayerInventory" } satisfies UiStateData;
 // DEMO (scoring): 60 items = 10 rows; 7 visible + overflow puts the thumb ratio at the reference's ~70%
 export const demoItemList = { itemIds: [100, ...Array.from({ length: 59 }, (_, i) => i + 1)] } satisfies RecipeViewerItemListData;
 
-// 正本スクショと同じ充填パターン（1段目6・2段目3・3段目空・4段目末尾のみ・5-6段目12・ホットバー9）
-// Mirror the reference screenshot fill pattern (row1 x6, row2 x3, row3 empty, row4 last only, rows5-6 x12, hotbar x9)
+// 正本スクショと同じ充填パターン
+// Mirror the reference screenshot fill pattern (row1 x6, row2 x3, row3 empty, row4 last only, rows5-6 x12, former hotbar row x9)
 export const demoInventory = {
   mainSlots: [
     ...[100, 100, 100, 27, 3, 62].map((count, i) => ({ itemId: i + 3, count })),
@@ -142,17 +150,14 @@ export const demoInventory = {
     ...Array.from({ length: 14 }, empty),
     { itemId: 12, count: 35 },
     ...[63, 100, 100, 100, 100, 100, 100, 100, 53, 23, 11, 100].map((count, i) => ({ itemId: (i % 8) + 13, count })),
-  ],
-  hotbarSlots: [
     { itemId: 2, count: 100 },
     // hue=(itemId*47)%360が青緑域(160-290)のIDを避ける（選択枠のシアン検出を汚染しないため）
     // Avoid ids whose hue lands in cyan-blue (160-290) so they don't pollute cyan ring detection
     ...[100, 100, 92, 100, 100, 32, 100, 8].map((count, i) => ({ itemId: [23, 24, 16, 22, 15, 17, 18, 14][i], count })),
   ],
   grab: empty(),
-  selectedHotbar: 0,
-  // 採点用スクショでも装備HUDが右端に写るよう、ホットバーと同じ非シアン系IDで埋める
-  // Fill with the same non-cyan ids as the hotbar so the equipment HUD shows at the right edge in scoring screenshots
+  // 装備HUDが写るIDで充填
+  // Fill with the same non-cyan ids as the former hotbar row so the equipment HUD shows at the right edge in scoring screenshots
   equipment: [{ itemId: 23, count: 100 }, { itemId: 24, count: 100 }, empty()],
   selectedEquipment: 0,
   equipmentSelectionConfirmationRevision: 0,

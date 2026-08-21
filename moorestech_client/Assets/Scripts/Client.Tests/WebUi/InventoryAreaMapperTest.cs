@@ -19,9 +19,7 @@ namespace Client.Tests.WebUi
         }
 
         [TestCase("main", 0, LocalMoveInventoryType.MainOrSub, 0)]
-        [TestCase("main", 44, LocalMoveInventoryType.MainOrSub, 44)]
-        [TestCase("hotbar", 0, LocalMoveInventoryType.MainOrSub, 45)]
-        [TestCase("hotbar", 8, LocalMoveInventoryType.MainOrSub, 53)]
+        [TestCase("main", 53, LocalMoveInventoryType.MainOrSub, 53)]
         [TestCase("grab", 0, LocalMoveInventoryType.Grab, 0)]
         [TestCase("equipment", 0, LocalMoveInventoryType.Equipment, 0)]
         [TestCase("equipment", 2, LocalMoveInventoryType.Equipment, 2)]
@@ -34,9 +32,7 @@ namespace Client.Tests.WebUi
         }
 
         [TestCase("main", -1)]
-        [TestCase("main", 45)]
-        [TestCase("hotbar", -1)]
-        [TestCase("hotbar", 9)]
+        [TestCase("main", 54)]
         [TestCase("equipment", -1)]
         [TestCase("equipment", 3)]
         [TestCase("sub", 0)]
@@ -47,8 +43,7 @@ namespace Client.Tests.WebUi
             Assert.IsFalse(ok);
         }
 
-        [TestCase(@"{""area"":""main"",""slot"":44}", LocalMoveInventoryType.MainOrSub, 44)]
-        [TestCase(@"{""area"":""hotbar"",""slot"":8}", LocalMoveInventoryType.MainOrSub, 53)]
+        [TestCase(@"{""area"":""main"",""slot"":53}", LocalMoveInventoryType.MainOrSub, 53)]
         [TestCase(@"{""area"":""grab""}", LocalMoveInventoryType.Grab, 0)]
         [TestCase(@"{""area"":""equipment"",""slot"":2}", LocalMoveInventoryType.Equipment, 2)]
         public void ValidSlotRefTokenParses(string json, LocalMoveInventoryType expectedType, int expectedSlot)
@@ -65,7 +60,7 @@ namespace Client.Tests.WebUi
         [TestCase(@"{""area"":{},""slot"":3}")]
         [TestCase(@"{""area"":""main"",""slot"":""abc""}")]
         [TestCase(@"{""area"":""main"",""slot"":1.5}")]
-        [TestCase(@"{""area"":""main"",""slot"":45}")]
+        [TestCase(@"{""area"":""main"",""slot"":54}")]
         [TestCase(@"{""area"":""equipment"",""slot"":3}")]
         [TestCase(@"{""area"":""equipment""}")]
         public void InvalidSlotRefTokenReturnsFalse(string json)

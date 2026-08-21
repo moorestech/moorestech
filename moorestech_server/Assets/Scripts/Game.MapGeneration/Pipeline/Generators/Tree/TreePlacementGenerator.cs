@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
+using Game.MapGeneration.Pipeline.Tiling;
 using Unity.Collections;
 using UnityEngine;
 
@@ -19,13 +20,22 @@ namespace Game.MapGeneration.Pipeline.Generators
             float[] heights,
             TerrainDimensions dims,
             TreePlacementConfig treeConfig,
-            System.Random rng)
+            System.Random rng,
+            int noiseSeed,
+            PlacementHaloChannel treeHalo,
+            float haloRadius)
         {
             var placements = new List<PlacementEntry>();
             if (treeConfig?.prototypes == null) return placements;
             int res = dims.Resolution;
 
             var sharedGrid = new SpatialGrid(dims.TerrainWidth, dims.TerrainLength, 3f);
+
+            // 確定済みの隣タイルの木を先に入れる。入れないと境界の帯だけ sharedGridMinDistance が効かない。
+            // The already-confirmed neighbouring trees go in first; without them the seam band ignores sharedGridMinDistance.
+            treeHalo.SeedGrid(sharedGrid, dims.WorldOffsetX, dims.WorldOffsetZ,
+                dims.TerrainWidth, dims.TerrainLength, haloRadius);
+
             var curvatureMap = TreePlacementCommon.ComputeCurvatureMap(heights, res);
             var nativeHeights = new NativeArray<float>(heights, Allocator.Temp);
 
@@ -44,8 +54,9 @@ namespace Game.MapGeneration.Pipeline.Generators
 
             try
             {
-                foreach (var entry in treeConfig.prototypes)
+                for (int entryIndex = 0; entryIndex < treeConfig.prototypes.Length; entryIndex++)
                 {
+                    var entry = treeConfig.prototypes[entryIndex];
                     if (entry == null || entry.disabled || entry.mapObjectGuids == null) continue;
                     bool hasValid = false;
                     foreach (var g in entry.mapObjectGuids) if (!string.IsNullOrEmpty(g)) { hasValid = true; break; }
@@ -63,7 +74,11 @@ namespace Game.MapGeneration.Pipeline.Generators
                     var densityOffsets = ManagedNoise.GenerateOffsets(new System.Random(dims.Seed + 500), 4);
                     var detailOffsets = ManagedNoise.GenerateOffsets(new System.Random(dims.Seed + 600), 4);
                     var islandOffsets = ManagedNoise.GenerateOffsets(new System.Random(dims.Seed + 700), 4);
-                    var noiseOffsets = ManagedNoise.GenerateOffsets(new System.Random(rng.Next()), 8);
+                    // ノイズオフセットだけは rng から採らない。rng にはタイルが混ざっており、混ざったまま
+                    // 引くとクラスターノイズの場がタイルごとに別物になって境目に直線が立つ。
+                    // The noise offsets alone never come from rng: it carries the tile term, and drawing them through it
+                    // would give each tile a different cluster-noise field and stand a straight line on the seam.
+                    var noiseOffsets = ManagedNoise.GenerateOffsets(new System.Random(noiseSeed + entryIndex), 8);
 
                     float distScale = Mathf.Sqrt(activeEntryCount);
                     int beforeCount = placements.Count;
@@ -75,7 +90,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                         dims.TerrainWidth, dims.TerrainLength, denseMinDist, rng.Next()))
                     {
                         if (!TreePlacementCommon.CheckMask(mask, point, dims, res, borderMarginPx)) continue;
-                        float dn = TreePlacementCommon.SampleDensityNoise(point.x, point.y,
+                        float dn = TreePlacementCommon.SampleDensityNoise(
+                            point.x + dims.WorldOffsetX, point.y + dims.WorldOffsetZ,
                             densityOffsets, detailOffsets, islandOffsets, densityCfg);
                         if (dn < densityCfg.denseMinThreshold) continue;
                         TreePlacementEntry.TryPlaceEntry(entry, point, dims, heights, curvatureMap, nativeHeights,
@@ -89,7 +105,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                         dims.TerrainWidth, dims.TerrainLength, transMinDist, rng.Next()))
                     {
                         if (!TreePlacementCommon.CheckMask(mask, point, dims, res, borderMarginPx)) continue;
-                        float dn = TreePlacementCommon.SampleDensityNoise(point.x, point.y,
+                        float dn = TreePlacementCommon.SampleDensityNoise(
+                            point.x + dims.WorldOffsetX, point.y + dims.WorldOffsetZ,
                             densityOffsets, detailOffsets, islandOffsets, densityCfg);
                         if (dn >= densityCfg.denseMinThreshold || dn < densityCfg.transitionMinThreshold)
                             continue;
@@ -109,7 +126,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                         dims.TerrainWidth, dims.TerrainLength, sparseMinDist, rng.Next()))
                     {
                         if (!TreePlacementCommon.CheckMask(mask, point, dims, res, borderMarginPx)) continue;
-                        float dn = TreePlacementCommon.SampleDensityNoise(point.x, point.y,
+                        float dn = TreePlacementCommon.SampleDensityNoise(
+                            point.x + dims.WorldOffsetX, point.y + dims.WorldOffsetZ,
                             densityOffsets, detailOffsets, islandOffsets, densityCfg);
                         if (dn >= densityCfg.transitionMinThreshold) continue;
                         float openRatio = 1f - dn / densityCfg.transitionMinThreshold;
@@ -124,7 +142,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                         densityCfg.scatterPassMinDistance * distScale, rng.Next()))
                     {
                         if (!TreePlacementCommon.CheckMask(mask, point, dims, res, borderMarginPx)) continue;
-                        float dn = TreePlacementCommon.SampleDensityNoise(point.x, point.y,
+                        float dn = TreePlacementCommon.SampleDensityNoise(
+                            point.x + dims.WorldOffsetX, point.y + dims.WorldOffsetZ,
                             densityOffsets, detailOffsets, islandOffsets, densityCfg);
                         if (dn >= densityCfg.transitionMinThreshold) continue;
                         float scatterProb = dn / densityCfg.transitionMinThreshold

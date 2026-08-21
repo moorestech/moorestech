@@ -4,6 +4,7 @@ using Game.Challenge;
 using Game.CleanRoom;
 using Game.Context;
 using Game.Entity.Interface;
+using Game.Hotbar;
 using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
 using Game.Research;
@@ -27,6 +28,7 @@ namespace Game.SaveLoad.Json
         private readonly RailGraphSaveLoadService _railGraphSaveLoadService;
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
         private readonly IBlueprintDatastore _blueprintDatastore;
+        private readonly HotbarAssignmentDatastore _hotbarAssignmentDatastore;
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
@@ -42,6 +44,7 @@ namespace Game.SaveLoad.Json
             RailGraphSaveLoadService railGraphSaveLoadService,
             IPlayerRidingDatastore playerRidingDatastore,
             IBlueprintDatastore blueprintDatastore,
+            HotbarAssignmentDatastore hotbarAssignmentDatastore,
             ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore,
             CleanRoomDatastore cleanRoomDatastore)
@@ -56,6 +59,7 @@ namespace Game.SaveLoad.Json
             _railGraphSaveLoadService = railGraphSaveLoadService;
             _playerRidingDatastore = playerRidingDatastore;
             _blueprintDatastore = blueprintDatastore;
+            _hotbarAssignmentDatastore = hotbarAssignmentDatastore;
             _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
             _cleanRoomDatastore = cleanRoomDatastore;
@@ -79,6 +83,7 @@ namespace Game.SaveLoad.Json
                 _railGraphSaveLoadService.GetSaveData(),
                 _playerRidingDatastore.GetSaveData(),
                 _blueprintDatastore.GetSaveJsonObject(),
+                _hotbarAssignmentDatastore.GetSaveJsonObject(),
                 _itemStackLevelDataStore.GetSaveJsonObject(),
                 _playerInventorySlotLevelDataStore.GetSaveLevel(),
                 _cleanRoomDatastore.GetSaveData()

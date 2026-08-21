@@ -237,6 +237,7 @@ MCPツールまたは`unity-test.sh`でコンパイルを確認。
 - `[Obsolete]`付き引数なしコンストラクタは省略不可
 - イベント購読はUniRxの`.Subscribe()`を使用
 - コードのコメントは日本語・英語の2行セット
+- payloadの`PlayerId`自己申告（無検証）は既存多数派の許容パターン。検証追加や`context.PlayerId`への是正はリポジトリ全体の一括改修案件であり、個別プロトコルで独自対応しない（裁定: `.decisions/2026-08-14-プロトコルのplayerId自己申告は既存多数派として放置する.md`）
 
 ## Request/Response メッセージ設計原則
 

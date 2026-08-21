@@ -9,7 +9,7 @@
   display: flex;
   justify-content: center;
   pointer-events: none;
-  z-index: var(--z-screen);
+  z-index: var(--z-stage-screen);
 }
 
 .panel {
@@ -25,7 +25,7 @@
   position: absolute;
   top: var(--bevel-3);
   right: var(--panel-edge-fade);
-  z-index: var(--z-overlay-panel);
+  z-index: var(--z-stage-overlay-panel);
 }
 
 /* カテゴリ | 検索+グリッド | 詳細 の3列（§8.11） */

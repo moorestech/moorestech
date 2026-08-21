@@ -19,7 +19,8 @@ const styles = {
   panel: read("./style.module.css"),
   gaugeBar: read("../../shared/ui/GaugeBar/style.module.css"),
   modeSwitch: read("../../shared/ui/ModeSwitch/style.module.css"),
-  progressArrow: read("../../shared/ui/ProgressArrow/style.module.css"),
+  progressArrow: read("../../shared/ui/ProgressArrowBar/style.module.css"),
+  progressArrowGlyph: read("../../shared/ui/ProgressArrowGlyph/style.module.css"),
   machineInventoryBody: read("./details/machine/machineInventoryBody.module.css"),
 };
 
@@ -77,6 +78,9 @@ describe("block inventory design whitelist", () => {
     expect(styles.progressArrow).toContain("var(--gauge-outline-width)");
     expect(styles.progressArrow).not.toContain("--mantine-");
     expect(styles.progressArrow).not.toContain("green");
+    expect(styles.progressArrowGlyph).toContain("var(--gauge-track)");
+    expect(styles.progressArrowGlyph).not.toContain("--mantine-");
+    expect(styles.progressArrowGlyph).not.toContain("green");
   });
 
   it("モード切替の間隔と選択面を専用トークンで制御する", () => {

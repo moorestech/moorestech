@@ -3,6 +3,7 @@ using Game.Blueprint;
 using Game.Challenge;
 using Game.CleanRoom.Save;
 using Game.Entity.Interface;
+using Game.Hotbar;
 using Game.Map.Interface.Json;
 using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
@@ -32,6 +33,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             List<RailSegmentSaveData> railSegments,
             List<PlayerRidingSaveData> playerRidingStates,
             List<BlueprintJsonObject> blueprints,
+            List<PlayerHotbarSaveJsonObject> hotbarAssignments,
             Dictionary<string, int> itemStackLevels,
             int inventorySlotLevel,
             List<CleanRoomSaveData> cleanRoomRooms)
@@ -48,6 +50,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             RailSegments = railSegments ?? new List<RailSegmentSaveData>();
             PlayerRidingStates = playerRidingStates ?? new List<PlayerRidingSaveData>();
             Blueprints = blueprints ?? new List<BlueprintJsonObject>();
+            HotbarAssignments = hotbarAssignments ?? new List<PlayerHotbarSaveJsonObject>();
             ItemStackLevels = itemStackLevels ?? new Dictionary<string, int>();
             InventorySlotLevel = inventorySlotLevel;
             CleanRoomRooms = cleanRoomRooms ?? new List<CleanRoomSaveData>();
@@ -66,6 +69,7 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("railSegments")] public List<RailSegmentSaveData> RailSegments { get; }
         [JsonProperty("playerRidingStates")] public List<PlayerRidingSaveData> PlayerRidingStates { get; }
         [JsonProperty("blueprints")] public List<BlueprintJsonObject> Blueprints { get; set; }
+        [JsonProperty("hotbarAssignments")] public List<PlayerHotbarSaveJsonObject> HotbarAssignments { get; set; }
         [JsonProperty("itemStackLevels")] public Dictionary<string, int> ItemStackLevels { get; }
         [JsonProperty("inventorySlotLevel")] public int InventorySlotLevel { get; }
         [JsonProperty("cleanRoomRooms")] public List<CleanRoomSaveData> CleanRoomRooms { get; }

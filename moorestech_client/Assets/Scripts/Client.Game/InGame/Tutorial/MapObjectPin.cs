@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Map.MapObject;
@@ -11,12 +9,7 @@ using VContainer;
 
 namespace Client.Game.InGame.Tutorial
 {
-    public interface IMapObjectPin : ITutorialViewManager, ITutorialView
-    {
-        public void SetActive(bool active);
-    }
-    
-    public class MapObjectPin : MonoBehaviour, IMapObjectPin
+    public class MapObjectPin : MonoBehaviour, ITutorialWorldPin
     {
         // WebオーバーレイでのピンID。MapObjectPinはシーンに1つなので固定IDでよい
         // World-pin id on the web overlay; a single scene instance suffices, so the id is fixed
@@ -24,6 +17,11 @@ namespace Client.Game.InGame.Tutorial
 
         private InGameCameraController _inGameCameraController;
         private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
+        private TutorialWorldPinVisibility _visibility;
+
+        // ピンは非活性で置かれAwakeが走らないまま表示要求が届くため、初回要求時に組み立てる
+        // A pin can sit inactive with no Awake yet still receive a visibility request, so build it on first use
+        private TutorialWorldPinVisibility Visibility => _visibility ??= new TutorialWorldPinVisibility(gameObject, nameof(MapObjectPin));
 
         private MapObjectPinTutorialParam _currentTutorialParam;
         private string _pinTutorialGuid = "";
@@ -66,19 +64,19 @@ namespace Client.Game.InGame.Tutorial
                 // 近くのMapObjectを探してピンを表示
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
                 var mapObject = _mapObjectGameObjectDatastore.SearchNearestMapObject(_currentTutorialParam.MapObjectGuid, playerPos);
-                
+
                 if (mapObject == null)
                 {
                     Debug.LogError($"未破壊のMapObject {_currentTutorialParam.MapObjectGuid} が存在しません");
                     return;
                 }
-                
+
                 transform.position = mapObject.GetPosition();
             }
-            
+
             #endregion
         }
-        
+
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
             _currentTutorialParam = (MapObjectPinTutorialParam)tutorial.TutorialParam;
@@ -98,13 +96,25 @@ namespace Client.Game.InGame.Tutorial
             WorldPinStateStore.Instance.RemovePin(WebPinId);
         }
 
+        public string TutorialType => TutorialsElement.TutorialTypeConst.mapObjectPin;
+
         public void SetActive(bool active)
         {
-            gameObject.SetActive(active);
+            Visibility.SetActive(active);
         }
 
-        // SkitManager等の外部SetActive(false)でもWebピンを確実に消す（RemovePinは冪等）
-        // External SetActive(false) (e.g. SkitManager) must also clear the web pin; RemovePin is idempotent
+        public void BeginSkitSuppress()
+        {
+            Visibility.BeginSkitSuppress();
+        }
+
+        public void EndSkitSuppress()
+        {
+            Visibility.EndSkitSuppress();
+        }
+
+        // スキットの一時抑止でもWebピンを確実に消す（RemovePinは冪等）
+        // Temporary skit suppression must also clear the web pin; RemovePin is idempotent
         private void OnDisable()
         {
             WorldPinStateStore.Instance.RemovePin(WebPinId);

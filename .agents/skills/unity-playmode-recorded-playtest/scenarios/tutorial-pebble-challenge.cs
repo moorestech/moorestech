@@ -15,6 +15,7 @@ var challenge2 = new Guid("7bafc2cf-d55c-5141-805f-99e0b78a9945"); // 石器を�
 var challenge3 = new Guid("fb529cac-5358-57fa-bd0a-08f3a6bb43c4"); // 木を伐採して原木を入手する
 var stoneToolRecipe = new Guid("9c20aa73-1877-4e0e-adcc-9f725c9377da"); // 石器クラフトレシピ(小石x3)
 var treeMapObject = new Guid("6a53fef8-2cf5-41fe-9922-21fd7dd4ab6c"); // mapObject「木」
+var treePinTutorial = "a0e8917b-83d2-5cf6-84da-f45ea20fb298"; // チャレンジ#3のmapObjectPin tutorialGuid
 var stoneToolAttackSpeedSeconds = 2.1f; // 石器のattackSpeed=2。サーバーのクールダウン許容率を越える間隔で打つ
 var stoneToolMaxHits = 6; // 1打あたりの原木は1〜4個で乱数のため、3個に届くまでの上限打撃数
 
@@ -61,7 +62,7 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
     if (pinShown)
     {
         var pin = pinStore.GetCurrent().Pins.First(x => x.PinId == "map-object-pin");
-        p.Note($"pin text='{pin.Text}' onScreen={pin.OnScreen}");
+        p.Note($"pin tutorialGuid='{pin.TutorialGuid}' onScreen={pin.OnScreen}");
     }
     var pinOverlay = await PollUntilAsync(async () =>
         (await Client.Playtest.WebUi.PlaytestDomQuery.Query("world-pin-overlay", 1f)).Found, 15);
@@ -96,10 +97,10 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
     p.Assert(c3Unlocked, "チャレンジ#3(伐採)が解放された");
 
     p.Note("木ピンの表示を待つ(mapObject「木」の解決検証)");
-    // ピンIDは全mapObjectPin共通の固定値のため、小石ピン残留と区別するテキストも照合する
-    // The pin id is shared by every mapObjectPin, so also match the text to rule out a stale pebble pin
-    var treePinShown = await PollUntil(() => pinStore.GetCurrent().Pins.Any(x => x.PinId == "map-object-pin" && x.Text.Contains("伐採")), 30);
-    p.Assert(treePinShown, "木ピン(map-object-pin)が伐採テキストで表示された");
+    // ピンIDは全mapObjectPin共通の固定値のため、小石ピン残留と区別するtutorialGuidも照合する
+    // The pin id is shared by every mapObjectPin, so also match tutorialGuid to rule out a stale pebble pin
+    var treePinShown = await PollUntil(() => pinStore.GetCurrent().Pins.Any(x => x.PinId == "map-object-pin" && x.TutorialGuid == treePinTutorial), 30);
+    p.Assert(treePinShown, "木ピン(map-object-pin)が伐採のtutorialGuidで表示された");
     await p.Screenshot("04-tree-pin");
 
     // 検証6: 実際に木を攻撃して原木ドロップ→#3完了（サーバー側VanillaStaticMapObjectの解決検証）

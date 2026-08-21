@@ -1,11 +1,21 @@
-/* ホットバー同様に面を持たない浮遊HUD。stage右端へ絶対配置し、枠数が増えても上へ伸びる */
-/* A faceless floating HUD like the hotbar; anchored absolutely to the stage's right edge and growing upward as slots increase */
+/* ホットバー同様に面を持たない浮遊HUD。実画面右端(viewportOverlay)へ絶対配置し、枠数が増えても上へ伸びる */
+/* A faceless floating HUD like the hotbar; anchored absolutely to the real viewport's right edge and growing upward as slots increase */
+/* 常駐HUD族の他メンバー(ホットバー等)と同格のz層。無指定(auto)だとscreenレベルの面の下へ沈む */
+/* Same z-tier as the rest of the resident-HUD family (the hotbar, etc.); without it, screen-level faces would cover it */
+/* viewportOverlayはpointer-events:noneのため、クリック選択を受けるこの列は明示で拾い直す */
+/* The viewportOverlay is pointer-events:none, so this click-selectable column re-enables input explicitly */
 .equipmentArea {
   position: absolute;
+  z-index: var(--z-stage-overlay-panel);
+  pointer-events: auto;
   right: var(--equipment-right);
   bottom: var(--equipment-bottom);
   display: flex;
   flex-direction: column;
   gap: var(--equipment-slot-gap);
+  /* 寸法は子のスロット任せのため、枠0だと0x0になりHUDのアンカーがzero-areaで解決しない */
+  /* The size follows its slot children, so with zero slots it collapses to 0x0 and the HUD anchor never resolves (zero-area) */
+  min-width: var(--equipment-slot-size);
+  min-height: var(--equipment-slot-size);
   --slot-size: var(--equipment-slot-size);
 }

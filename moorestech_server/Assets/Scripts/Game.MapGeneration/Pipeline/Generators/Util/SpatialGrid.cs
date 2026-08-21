@@ -115,20 +115,56 @@ namespace Game.MapGeneration.Pipeline.Generators.Util
             int cy = Mathf.FloorToInt(y / _cellSize);
             int searchCells = Mathf.CeilToInt(maxRadius / _cellSize);
 
-            for (int dx = -searchCells; dx <= searchCells; dx++)
-            for (int dy = -searchCells; dy <= searchCells; dy++)
+            // 中心セルから同心リング順に見る。全面走査だと alphamap 全画素ぶんの呼び出しで生成が固まる
+            // Walk concentric rings outward; a full sweep stalls generation when called once per alphamap pixel
+            for (int ring = 0; ring <= searchCells; ring++)
             {
-                int gx = cx + dx, gy = cy + dy;
-                if (gx < 0 || gx >= _gridW || gy < 0 || gy >= _gridH) continue;
+                ScanRing(ring);
+
+                // リング ring+1 以降の点はどれも ring*_cellSize 以上離れるので、そこ以下なら最小値は確定
+                // Every point beyond ring lies at least ring*_cellSize away, so a minimum at or below that is already final
+                float unreachable = ring * _cellSize;
+                if (minDistSq <= unreachable * unreachable) break;
+            }
+            return Mathf.Sqrt(minDistSq);
+
+            #region Internal
+
+            void ScanRing(int ring)
+            {
+                if (ring == 0)
+                {
+                    ScanCell(cx, cy);
+                    return;
+                }
+
+                for (int d = -ring; d <= ring; d++)
+                {
+                    ScanCell(cx + d, cy - ring);
+                    ScanCell(cx + d, cy + ring);
+                }
+                for (int d = -ring + 1; d <= ring - 1; d++)
+                {
+                    ScanCell(cx - ring, cy + d);
+                    ScanCell(cx + ring, cy + d);
+                }
+            }
+
+            // 距離式は全面走査時と同一。式を変えると最小値が浮動小数の下位ビットで動く
+            // The distance expression is the sweep's own; changing it would move the minimum in the low bits
+            void ScanCell(int gx, int gy)
+            {
+                if (gx < 0 || gx >= _gridW || gy < 0 || gy >= _gridH) return;
                 var cell = _cells[gx, gy];
-                if (cell == null) continue;
+                if (cell == null) return;
                 foreach (var p in cell)
                 {
                     float distSq = (p.x - x) * (p.x - x) + (p.y - y) * (p.y - y);
                     if (distSq < minDistSq) minDistSq = distSq;
                 }
             }
-            return Mathf.Sqrt(minDistSq);
+
+            #endregion
         }
 
         // PlacementEntry 配列から SpatialGrid を構築する。cellSize<=0 で自動決定。

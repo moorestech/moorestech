@@ -7,7 +7,7 @@
   display: flex;
   flex-direction: column-reverse;
   gap: 10px;
-  z-index: var(--z-toast);
+  z-index: var(--z-viewport-behind-stage);
   pointer-events: none;
 }
 
@@ -29,6 +29,11 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
+  /* 入場は即時、退場は生存尺の終端に合わせる。退場をbothにすると遅延中に前方適用され入場が消える */
+  /* The enter runs immediately and the exit lands at the end of the lifetime; both-fill would back-fill the exit and erase the enter */
+  animation:
+    notificationEnter var(--notification-enter-duration) ease-out both,
+    notificationExit var(--notification-exit-duration) ease-in calc(var(--notification-lifetime) - var(--notification-exit-duration)) forwards;
 }
 
 /* 操作拒否は共通の警告色で区別する */
@@ -43,4 +48,28 @@
   width: 22px;
   height: 22px;
   flex-shrink: 0;
+}
+
+@keyframes notificationEnter {
+  from {
+    opacity: 0;
+    transform: translateX(calc(-1 * var(--notification-shift)));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes notificationExit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(calc(-1 * var(--notification-shift)));
+  }
 }

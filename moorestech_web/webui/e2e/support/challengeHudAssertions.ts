@@ -17,7 +17,7 @@ export async function readChallengeHudPresentation(page: Page): Promise<Challeng
   await expect(hud).toBeVisible();
   return hud.evaluate((element) => {
     const rect = element.getBoundingClientRect();
-    const label = element.firstElementChild!;
+    const label = element.querySelector<HTMLElement>('[data-testid="challenge-hud-label"]')!;
     const objectives = Array.from(element.querySelectorAll<HTMLElement>('[data-testid="challenge-objective"]'));
     const objectiveContainer = objectives[0]?.parentElement!;
     return {

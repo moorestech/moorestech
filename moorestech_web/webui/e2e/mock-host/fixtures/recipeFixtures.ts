@@ -19,11 +19,37 @@ export const craftRecipes = {
       craftTime: 0.2,
       requiredItems: [{ itemId: 1, count: 999 }],
     },
+    // クラフト2件でアンカーは1件固定
+    // Two craft recipes; anchor stays pinned to one
+    {
+      recipeGuid: "83000000-0000-4000-8000-000000000003",
+      resultItemId: 102,
+      resultCount: 1,
+      craftTime: 0.2,
+      requiredItems: [{ itemId: 1, count: 999 }],
+    },
+    {
+      recipeGuid: "83000000-0000-4000-8000-000000000004",
+      resultItemId: 102,
+      resultCount: 2,
+      craftTime: 0.4,
+      requiredItems: [{ itemId: 2, count: 999 }],
+    },
   ],
 } satisfies CraftRecipesData;
 
 export const machineRecipes = {
   recipes: [
+    {
+      // Plankはクラフト・機械両方で作れる
+      // 既存3件カウント維持のため追加
+      // Plank has both a craft and a machine recipe.
+      // Added on the gear-machine block so the existing electric-machine recipe-count test stays at 3
+      recipeGuid: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+      blockGuid: GEAR_MACHINE_BLOCK_GUID,
+      blockId: 4, time: 8,
+      inputItems: [{ itemId: 2, count: 1 }], outputItems: [{ itemId: 100, count: 1 }],
+    },
     {
       recipeGuid: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
       blockGuid: ELECTRIC_MACHINE_BLOCK_GUID,
@@ -51,4 +77,4 @@ export const machineRecipes = {
   ],
 } satisfies MachineRecipesData;
 
-export const itemList = { itemIds: [100, 101, 1, 2] } satisfies RecipeViewerItemListData;
+export const itemList = { itemIds: [100, 101, 102, 1, 2] } satisfies RecipeViewerItemListData;

@@ -29,14 +29,7 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
 
     // 開幕スキット(Story)中はポーズメニューもビルドメニューも開けないためSkipインテントで抜ける
     // The opening skit (Story) blocks both the pause menu and the build menu, so skip it via the intent path
-    p.Note("開幕スキットをSkipインテントで飛ばす");
-    var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
-    await p.Until(() =>
-    {
-        var current = skitStore.GetCurrent();
-        return current != null && skitStore.TrySkip(current.SessionId, current.SceneRevision).Ok;
-    }, 30f, "開幕スキットのSkipインテントが受理される");
-    await p.WaitUiState(UIStateEnum.GameScreen, 15f);
+    await p.SkipOpeningSkit();
 
     // ロケールはPlayerPrefsへ永続化されるため、前回ランの残留を潰してから日本語で始める
     // The locale persists in PlayerPrefs, so clear any carry-over from the previous run and start in Japanese

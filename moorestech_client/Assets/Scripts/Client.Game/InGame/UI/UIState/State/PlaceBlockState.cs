@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
+using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.Skit;
 using Client.Input;
@@ -25,12 +25,21 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly UiStateCameraPolicyService _cameraPolicyService;
         private readonly BuildUndoService _buildUndoService;
         private readonly IMapVeinRangeView _mapVeinRangeView;
+        private readonly HotbarTapInputService _hotbarInputService;
         private readonly ReactiveProperty<int> _placementHeight = new(0);
 
         public IObservable<int> OnPlacementHeightChanged => _placementHeight;
         public int GetPlacementHeight() => _placementHeight.Value;
 
-        public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, UiStateCameraPolicyService cameraPolicyService, BuildUndoService buildUndoService, IMapVeinRangeView mapVeinRangeView)
+        public PlaceBlockState(
+            SkitManager skitManager,
+            BlockGameObjectDataStore blockGameObjectDataStore,
+            PlaceSystemStateController placeSystemStateController,
+            PlacementTargetPickService placementTargetPickService,
+            UiStateCameraPolicyService cameraPolicyService,
+            BuildUndoService buildUndoService,
+            IMapVeinRangeView mapVeinRangeView,
+            HotbarTapInputService hotbarInputService)
         {
             _skitManager = skitManager;
             _blockGameObjectDataStore = blockGameObjectDataStore;
@@ -39,14 +48,19 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraPolicyService = cameraPolicyService;
             _buildUndoService = buildUndoService;
             _mapVeinRangeView = mapVeinRangeView;
+            _hotbarInputService = hotbarInputService;
         }
 
         public void OnEnter(UITransitContext context)
         {
+            // 他UIState滞在中は数字キーがpollされないため、復帰直後の古い押下状態を破棄する
+            // Digit keys aren't polled while another UIState is active, so discard any stale press state on return
+            _hotbarInputService.ResetKeyState();
+
             _placementHeight.Value = 0;
-            // 遷移payloadから設置ターゲットを受け取り所有者へ渡す（無ければEmptyに落ちる）
-            // Take the placement target from the transition payload and hand it to the owner (falls back to Empty when absent)
-            if (context.TryGetContext<IPlacementTarget>(out var target)) _placeSystemStateController.SetTarget(target);
+            // 遷移payloadから設置対象と由来を1組で受け取り所有者へ渡す（無ければEmptyに落ちる）
+            // Take the placement target and its origin as one pair from the transition payload and hand them to the owner (falls back to Empty when absent)
+            if (context.TryGetContext<PlacementSelection>(out var selection)) _placeSystemStateController.SetTarget(selection.Target, selection.Origin);
 
             // 対象未選択でも滞在中は範囲表示を出す。遷移元(BuildMenuState/GameScreenState)が必ずtargetを載せる
             // Show the range view for the whole stay even without a target; both entries (BuildMenuState/GameScreenState) always carry one
@@ -90,10 +104,30 @@ namespace Client.Game.InGame.UI.UIState.State
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
 
+            // キー/Web選択を共通3分岐へ
+            // Route a digit-key or web-originated tap into the shared 3-way branch (same slot / different slot / empty slot)
+            var hotbarTapOutcome = _hotbarInputService.ResolveBuildModeTap(out var hotbarTapTransit);
+            switch (hotbarTapOutcome)
+            {
+                case HotbarTapOutcome.ExitBuildMode: return hotbarTapTransit;
+                // 持ち替えは同一画面で完結するため遷移しない
+                // A swap completes within this screen, so no transition is returned
+                case HotbarTapOutcome.SwappedTarget:
+                case HotbarTapOutcome.None: break;
+                // 建築モード中に建築モードへ入る分類は起こりえない
+                // Entering build mode cannot be produced while already in build mode
+                case HotbarTapOutcome.EnterBuildMode:
+                default: throw new ArgumentOutOfRangeException(nameof(hotbarTapOutcome), hotbarTapOutcome, null);
+            }
+
+            // 長押しで設置対象を枠へ割当
+            // A long press assigns the current placement target to that slot
+            _hotbarInputService.ApplyLongPressAssign();
+
             // TPSのみ右ドラッグで設置照準回転
             // TPS rotates the placement aim only during right-drag
             _cameraPolicyService.UpdateRotationInput();
-            if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget);
+            if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget, PlacementOrigin.NonHotbar);
 
             _placeSystemStateController.ManualUpdate();
 
@@ -116,7 +150,14 @@ namespace Client.Game.InGame.UI.UIState.State
         public void OnExit()
         {
             _cameraPolicyService.ExitToNeutral();
+
+            // 設置対象と由来枠はここで同時に落ちる。由来枠だけの明示リセットは持たない
+            // The placement target and its origin drop together here; no separate origin reset is needed
             _placeSystemStateController.Disable();
+
+            // 離脱時点の押下状態を持ち越さない。復帰後の誤長押し判定を防ぐ
+            // Discard the press state as of this exit so a later re-entry can't misfire a long press
+            _hotbarInputService.ResetKeyState();
 
             // 配置モード離脱で範囲表示も畳む。破棄漏れがそのまま残存ボックスになる
             // Leaving placement mode folds the range view too; a missed destroy would linger as a stray box

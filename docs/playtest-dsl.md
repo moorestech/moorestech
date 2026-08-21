@@ -87,9 +87,18 @@ await p.ExitToGameScreen();
 分解して使う場合: `UnlockBlock(name)`（サーバー側アンロック→イベントでクライアント同期）と
 `GiveConstructionCost(name, blockCount)`（RequiredItems解決＋give経路＋クライアント同期待ち）。
 
-低レベルAPI: `PressKey(Key)` / `SelectHotbar(slot)`(0始まり=キー1) / `AimAt(worldPos)` /
-`ClickPlace()` / `WaitUiState(UIStateEnum, timeout)` / `CurrentUiState` /
+低レベルAPI: `PressKey(Key)` / `AimAt(worldPos)` / `ClickPlace()` /
+`WaitUiState(UIStateEnum, timeout)` / `CurrentUiState` /
 `PlaytestUiOps.OpenBuildMenuAndSelectBlock(blockName)`（ビルドメニューのスロットはEventSystem直叩きでクリック）。
+
+ホットバー系は`p.Hotbar`サブファサード: `AssignHotbar(slot, targetName)`（ビルドメニューと同一供給源の表示名で
+設置対象を枠へ割当て、サーバーエコーを待つ） / `EnterBuildMode(slot)` / `ExitBuildMode(slot)`(0始まり=キー1。
+持ち替えではなく建築モードのトグルで、入場と同じ枠を叩いて抜ける) /
+`UnlockConnectTool(toolName)`（接続ツールはブロックと別枠のアンロック）。
+入出場は遷移完了待ちまで内包するため、呼び出し側で`WaitUiState`を並べる必要はない。
+
+開幕スキットはホットバー入力・ビルドメニュー・ポーズメニューをすべて塞ぐため、`await p.SkipOpeningSkit()`を
+シナリオ冒頭に置いてGameScreenまで抜ける。
 
 - 設置原点の照準は`PlaytestUiOps.PlaceAimPoint`がCalcPlacePointを逆算（接地面上のフットプリント中心）
 - 足場は上面がy=32ちょうど（`SetupFlatGround`が保証）。プレビューの`Floor(hit.y)`がブロックグリッドと一致する条件
@@ -125,10 +134,10 @@ await p.ExitToGameScreen();
 5. **サーバーポート11564は固定**: 他worktreeのPlayModeが占有していると起動が「Address already in use」で
    無言死する（ready 300秒タイムアウト）。さらにPlayMode停止後もソケットがリークして残ることがあり、その場合は
    当該Editorへ`UnityEditor.EditorUtility.RequestScriptReload()`を打つと解放される。preflight [5/5]が事前検出する。
-6. **HoldingItemId駆動の設置（歯車チェーンポール等）**: ビルドメニュー選択でなく「ホットバーの手持ちアイテム」で
-   place systemが切り替わる。`GiveItemToHotbar(slot,...)`→`SelectHotbar(slot)`で手持ちにし、UI stateは
-   ビルドメニュー経由でPlaceBlockに入れておく（例: `gear-chain-pole-via-ui.cs`。連続延長の起点は
-   `ExitToGameScreen()`でリセットでき、セグメントを分離できる）。
+6. **ホットバー割当駆動の設置（歯車チェーンポール等）**: ビルドメニューを開かず、割当てた設置対象で
+   place systemが切り替わる。`p.Hotbar.AssignHotbar(slot, 対象名)`→`p.Hotbar.EnterBuildMode(slot)`で
+   建築モードへ入る（例: `gear-chain-pole-via-ui.cs`。連続延長の起点は`ExitBuildMode(slot)`で
+   リセットでき、セグメントを分離できる）。接続ツールは`UnlockConnectTool`が先に必要。
 
 ## 今後 / Next
 

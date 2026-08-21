@@ -1,5 +1,5 @@
 import { Topics, useTopic, type PlacementModeData } from "@/bridge";
-import { localizeSelectableTargetName, type SelectableTarget } from "@/features/buildMenu";
+import { localizeSelectableTargetName, type SelectableTarget } from "@/shared/placementTarget";
 import { L, useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { FadeRule, GamePanel } from "@/shared/ui";

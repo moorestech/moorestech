@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { exceededThreshold, nextScrollTop } from "./dragScrollMath";
+import { asElement, exceededThreshold, nextScrollTop } from "@/shared/pointerGesture/dragThreshold";
 
 // 進行中ジェスチャの押下時スナップショット。移動量とタップ判定の基準にする
 // Snapshot of a gesture at press time; the baseline for movement and tap detection
@@ -18,12 +18,6 @@ type Options = {
   // On release without dragging, hand the press-point DOM up so the caller can commit selection
   onTap: (target: HTMLElement) => void;
 };
-
-// 押下点が要素なら返す。closestを持つかで判定しinstanceofのグローバル依存を避ける
-// Return the press target when it is an element; probe for closest to avoid a global instanceof dependency
-function asElement(target: EventTarget | null): HTMLElement | null {
-  return target && typeof (target as HTMLElement).closest === "function" ? (target as HTMLElement) : null;
-}
 
 // ScrollAreaのviewportに配線し、掴んで上下ドラッグで縦スクロールさせる
 // Wire onto a ScrollArea viewport to scroll vertically by grabbing and dragging up/down

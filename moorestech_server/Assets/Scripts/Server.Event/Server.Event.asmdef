@@ -16,11 +16,13 @@
     "Game.Challenge",
     "Game.Challenge.Interface",
     "Core.Master",
+    "Core.Update",
     "Game.UnlockState",
     "Game.Research",
     "Game.Train",
     "Game.Entity.Interface",
-    "Game.PlayerRiding.Interface"
+    "Game.PlayerRiding.Interface",
+    "Game.Hotbar"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

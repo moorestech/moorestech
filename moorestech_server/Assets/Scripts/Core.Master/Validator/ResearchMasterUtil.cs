@@ -94,7 +94,13 @@ namespace Core.Master.Validator
                         }
                         case UnlockItemRecipeViewGameActionParam unlockItemRecipeView:
                         {
-                            if (unlockItemRecipeView.UnlockItemGuids == null) break;
+                            // nullだとDTO生成側が無ガードで走査し実行時NREになるため検証で弾く
+                            // A null list would NRE the unguarded DTO-side foreach, so reject it in validation
+                            if (unlockItemRecipeView.UnlockItemGuids == null)
+                            {
+                                localErrors += $"[ResearchMaster] Research:{researchName} has invalid (null) ClearedAction.UnlockItemGuids\n";
+                                break;
+                            }
                             foreach (var itemGuid in unlockItemRecipeView.UnlockItemGuids)
                             {
                                 var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(itemGuid);
@@ -107,7 +113,13 @@ namespace Core.Master.Validator
                         }
                         case UnlockMachineRecipeGameActionParam unlockMachineRecipe:
                         {
-                            if (unlockMachineRecipe.UnlockMachineRecipeGuids == null) break;
+                            // nullだとDTO生成側が無ガードで走査し実行時NREになるため検証で弾く
+                            // A null list would NRE the unguarded DTO-side foreach, so reject it in validation
+                            if (unlockMachineRecipe.UnlockMachineRecipeGuids == null)
+                            {
+                                localErrors += $"[ResearchMaster] Research:{researchName} has invalid (null) ClearedAction.UnlockMachineRecipeGuids\n";
+                                break;
+                            }
                             foreach (var machineRecipeGuid in unlockMachineRecipe.UnlockMachineRecipeGuids)
                             {
                                 // 機械レシピの参照先が存在することを検証
@@ -122,7 +134,13 @@ namespace Core.Master.Validator
                         }
                         case GiveItemGameActionParam giveItem:
                         {
-                            if (giveItem.RewardItems == null) break;
+                            // nullだとDTO生成側が無ガードで走査し実行時NREになるため検証で弾く
+                            // A null list would NRE the unguarded DTO-side foreach, so reject it in validation
+                            if (giveItem.RewardItems == null)
+                            {
+                                localErrors += $"[ResearchMaster] Research:{researchName} has invalid (null) ClearedAction.RewardItems\n";
+                                break;
+                            }
                             foreach (var rewardItem in giveItem.RewardItems)
                             {
                                 var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(rewardItem.ItemGuid);
@@ -166,7 +184,13 @@ namespace Core.Master.Validator
                         }
                         case UnlockBlockGameActionParam unlockBlock:
                         {
-                            if (unlockBlock.UnlockBlockGuids == null) break;
+                            // nullだとDTO生成側が無ガードで走査し実行時NREになるため検証で弾く
+                            // A null list would NRE the unguarded DTO-side foreach, so reject it in validation
+                            if (unlockBlock.UnlockBlockGuids == null)
+                            {
+                                localErrors += $"[ResearchMaster] Research:{researchName} has invalid (null) ClearedAction.UnlockBlockGuids\n";
+                                break;
+                            }
                             foreach (var blockGuid in unlockBlock.UnlockBlockGuids)
                             {
                                 var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid);
@@ -177,9 +201,25 @@ namespace Core.Master.Validator
                             }
                             break;
                         }
+                        case UnlockConnectToolGameActionParam unlockConnectTool:
+                        {
+                            // nullだとDTO生成側が無ガードで走査し実行時NREになるため検証で弾く
+                            // A null list would NRE the unguarded DTO-side foreach, so reject it in validation
+                            if (unlockConnectTool.UnlockConnectToolGuids == null)
+                            {
+                                localErrors += $"[ResearchMaster] Research:{researchName} has invalid (null) ClearedAction.UnlockConnectToolGuids\n";
+                            }
+                            break;
+                        }
                         case UnlockTrainCarGameActionParam unlockTrainCar:
                         {
-                            if (unlockTrainCar.UnlockTrainCarGuids == null) break;
+                            // nullだとDTO生成側が無ガードで走査し実行時NREになるため検証で弾く
+                            // A null list would NRE the unguarded DTO-side foreach, so reject it in validation
+                            if (unlockTrainCar.UnlockTrainCarGuids == null)
+                            {
+                                localErrors += $"[ResearchMaster] Research:{researchName} has invalid (null) ClearedAction.UnlockTrainCarGuids\n";
+                                break;
+                            }
                             foreach (var trainCarGuid in unlockTrainCar.UnlockTrainCarGuids)
                             {
                                 if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainCarGuid, out _))

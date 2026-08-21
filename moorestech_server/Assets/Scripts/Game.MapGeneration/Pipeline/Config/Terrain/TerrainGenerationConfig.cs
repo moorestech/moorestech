@@ -99,6 +99,27 @@ namespace Game.MapGeneration.Pipeline.Config
         public JungleBiomeConfig jungle = new JungleBiomeConfig();
         public WoodsBiomeConfig woods = new WoodsBiomeConfig();
 
+        // 格子index(0,0)タイルの窓原点を持つ config から、指定タイルの窓へずらした複製を作る。
+        // サーバーとクライアントがこの1式を共有しないと、割り当てを変えた瞬間に片方だけ隣タイルを引く。
+        // Shifts a config whose noise window sits on the index (0,0) tile onto the requested tile's window.
+        // Unless the server and the client share this single formula, changing the assignment moves only one of them.
+        public TerrainGenerationConfig CreateTileConfig(int tileIndexX, int tileIndexZ)
+        {
+            var tileConfig = ShallowCopy();
+            tileConfig.worldOffsetX = worldOffsetX + tileIndexX * terrainWidth;
+            tileConfig.worldOffsetZ = worldOffsetZ + tileIndexZ * terrainLength;
+            return tileConfig;
+        }
+
+        // 0始まりタイルindexをシーン座標へ写す。格子の中心タイルがシーン原点に来る。
+        // Maps a zero-based tile index into scene space, landing the grid's center tile on the scene origin.
+        public Vector2 TileScenePosition(int tileIndexX, int tileIndexZ)
+        {
+            return new Vector2(
+                (tileIndexX - gridSizeX / 2) * terrainWidth,
+                (tileIndexZ - gridSizeZ / 2) * terrainLength);
+        }
+
         // スポーン窓分類のため寸法・解像度・オフセットだけ差し替えた浅い複製を作る。
         // ネストした Config 参照は読み取り専用に共有され、複製側が汚さない前提。
         // Shallow copy overriding only size/resolution/offset for the spawn-window classification;

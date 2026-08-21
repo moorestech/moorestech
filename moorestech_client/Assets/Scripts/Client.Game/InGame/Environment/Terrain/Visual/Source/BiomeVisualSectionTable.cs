@@ -1,9 +1,11 @@
 using System;
 using Client.Game.InGame.Environment.Terrain.Visual.Detail;
 using Client.Game.InGame.Environment.Terrain.Visual.Splat;
+using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Mooresmaster.Model.GenerationModule;
 using GenDetailConfig = Mooresmaster.Model.BiomeDetailConfigModule.BiomeDetailConfig;
+using GenObjectConfig = Mooresmaster.Model.BiomeObjectConfigModule.BiomeObjectConfig;
 using GenTextureConfig = Mooresmaster.Model.BiomeTextureConfigModule.BiomeTextureConfig;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Source
@@ -27,33 +29,42 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Source
             var mainLayerAddresses = new string[biomeTypes.Length];
             var textureConfigs = new BiomeTextureConfig[biomeTypes.Length];
             var detailConfigs = new BiomeDetailConfig[biomeTypes.Length];
+            var surroundTextureConfigs = new SurroundTextureConfig[biomeTypes.Length];
 
             for (var index = 0; index < biomeTypes.Length; index++)
                 switch (biomeTypes[index])
                 {
                     case BiomeType.Grassland:
-                        Fill(index, vanillaParam.Grassland.TerrainLayerAddressablePath, vanillaParam.Grassland.TextureConfig, vanillaParam.Grassland.DetailConfig);
+                        Fill(index, vanillaParam.Grassland.TerrainLayerAddressablePath, vanillaParam.Grassland.TextureConfig,
+                            vanillaParam.Grassland.DetailConfig, vanillaParam.Grassland.ObjectConfig);
                         break;
                     case BiomeType.Forest:
-                        Fill(index, vanillaParam.Forest.TerrainLayerAddressablePath, vanillaParam.Forest.TextureConfig, vanillaParam.Forest.DetailConfig);
+                        Fill(index, vanillaParam.Forest.TerrainLayerAddressablePath, vanillaParam.Forest.TextureConfig,
+                            vanillaParam.Forest.DetailConfig, vanillaParam.Forest.ObjectConfig);
                         break;
                     case BiomeType.Savanna:
-                        Fill(index, vanillaParam.Savanna.TerrainLayerAddressablePath, vanillaParam.Savanna.TextureConfig, vanillaParam.Savanna.DetailConfig);
+                        Fill(index, vanillaParam.Savanna.TerrainLayerAddressablePath, vanillaParam.Savanna.TextureConfig,
+                            vanillaParam.Savanna.DetailConfig, vanillaParam.Savanna.ObjectConfig);
                         break;
                     case BiomeType.Desert:
-                        Fill(index, vanillaParam.Desert.TerrainLayerAddressablePath, vanillaParam.Desert.TextureConfig, vanillaParam.Desert.DetailConfig);
+                        Fill(index, vanillaParam.Desert.TerrainLayerAddressablePath, vanillaParam.Desert.TextureConfig,
+                            vanillaParam.Desert.DetailConfig, vanillaParam.Desert.ObjectConfig);
                         break;
                     case BiomeType.Mesa:
-                        Fill(index, vanillaParam.Mesa.TerrainLayerAddressablePath, vanillaParam.Mesa.TextureConfig, vanillaParam.Mesa.DetailConfig);
+                        Fill(index, vanillaParam.Mesa.TerrainLayerAddressablePath, vanillaParam.Mesa.TextureConfig,
+                            vanillaParam.Mesa.DetailConfig, vanillaParam.Mesa.ObjectConfig);
                         break;
                     case BiomeType.Alpine:
-                        Fill(index, vanillaParam.Alpine.TerrainLayerAddressablePath, vanillaParam.Alpine.TextureConfig, vanillaParam.Alpine.DetailConfig);
+                        Fill(index, vanillaParam.Alpine.TerrainLayerAddressablePath, vanillaParam.Alpine.TextureConfig,
+                            vanillaParam.Alpine.DetailConfig, vanillaParam.Alpine.ObjectConfig);
                         break;
                     case BiomeType.Jungle:
-                        Fill(index, vanillaParam.Jungle.TerrainLayerAddressablePath, vanillaParam.Jungle.TextureConfig, vanillaParam.Jungle.DetailConfig);
+                        Fill(index, vanillaParam.Jungle.TerrainLayerAddressablePath, vanillaParam.Jungle.TextureConfig,
+                            vanillaParam.Jungle.DetailConfig, vanillaParam.Jungle.ObjectConfig);
                         break;
                     case BiomeType.Woods:
-                        Fill(index, vanillaParam.Woods.TerrainLayerAddressablePath, vanillaParam.Woods.TextureConfig, vanillaParam.Woods.DetailConfig);
+                        Fill(index, vanillaParam.Woods.TerrainLayerAddressablePath, vanillaParam.Woods.TextureConfig,
+                            vanillaParam.Woods.DetailConfig, vanillaParam.Woods.ObjectConfig);
                         break;
 
                     // Ocean/Beachは構造バイオームで有効バイオーム列には現れない。届いたなら分類側の契約が壊れている
@@ -63,15 +74,18 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Source
                             $"[BiomeVisualSectionTable] '{biomeTypes[index]}' has no visual section in generation master.");
                 }
 
-            return new BiomeVisualSections(mainLayerAddresses, textureConfigs, detailConfigs);
+            return new BiomeVisualSections(mainLayerAddresses, textureConfigs, detailConfigs, surroundTextureConfigs);
 
             #region Internal
 
-            void Fill(int index, string terrainLayerAddress, GenTextureConfig generatedTextureConfig, GenDetailConfig generatedDetailConfig)
+            void Fill(
+                int index, string terrainLayerAddress, GenTextureConfig generatedTextureConfig,
+                GenDetailConfig generatedDetailConfig, GenObjectConfig generatedObjectConfig)
             {
                 mainLayerAddresses[index] = terrainLayerAddress;
                 textureConfigs[index] = SplatTextureConfigFactory.Build(generatedTextureConfig);
                 detailConfigs[index] = DetailRuntimeConfigFactory.Build(generatedDetailConfig);
+                surroundTextureConfigs[index] = SurroundTextureConfigFactory.Build(generatedObjectConfig);
             }
 
             #endregion

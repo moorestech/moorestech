@@ -1,3 +1,4 @@
+using System;
 using Game.MapGeneration.Pipeline.Config;
 using UnityEngine;
 using GenNoise = Mooresmaster.Model.PlacementNoiseModule.PlacementNoise;
@@ -5,21 +6,30 @@ using GenFilter = Mooresmaster.Model.PlacementFilterModule.PlacementFilter;
 
 namespace Game.MapGeneration.Pipeline.Runtime
 {
-    // 生成型 PlacementNoise/PlacementFilter → 実行時 POCO 変換。texture/channel はスキーマ化で
-    // 未使用のため写さない。curve は keyframe 配列から AnimationCurve を再構築する。
-    // Converts generated PlacementNoise/PlacementFilter to runtime POCOs. texture/channel are
-    // unused post-migration and skipped; curve is rebuilt into an AnimationCurve from keyframes.
+    // 生成型 PlacementNoise/PlacementFilter → 実行時 POCO 変換。texturePngPath は文字列のまま写し、
+    // 画素への展開は生成直前の PlacementNoiseTextureResolver が行う。curve は keyframe 配列から再構築。
+    // Converts generated PlacementNoise/PlacementFilter to runtime POCOs; texturePngPath is copied as a
+    // string and expanded to pixels later by PlacementNoiseTextureResolver. curve is rebuilt from keyframes.
     internal static class PlacementRefConvert
     {
         public static PlacementNoise ToPlacementNoise(GenNoise gen)
         {
+            // 源は手続きかテクスチャのどちらか一方。両指定は展開後にテクスチャが黙って勝ち、frequency が無言で捨てられる。
+            // A source is procedural or texture, never both: specifying both silently lets the texture win and drops frequency.
+            var noiseType = RuntimeConvert.ToMapNoiseType(gen.NoiseType);
+            if (!string.IsNullOrEmpty(gen.TexturePngPath) && noiseType != MapNoiseType.None)
+                throw new InvalidOperationException(
+                    $"[PlacementRefConvert] placementNoise specifies texturePngPath '{gen.TexturePngPath}' together with noiseType {noiseType}.");
+
             return new PlacementNoise
             {
-                noiseType = RuntimeConvert.ToMapNoiseType(gen.NoiseType),
+                noiseType = noiseType,
                 frequency = gen.Frequency,
                 amplitude = gen.Amplitude,
                 offset = gen.Offset,
-                balance = gen.Balance
+                balance = gen.Balance,
+                texturePngPath = gen.TexturePngPath,
+                channel = RuntimeConvert.ToTextureChannel(gen.Channel)
             };
         }
 

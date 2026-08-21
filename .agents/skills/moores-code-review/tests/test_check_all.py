@@ -54,16 +54,18 @@ def trigger_patch() -> str:
 
 class VerifierPlanTest(unittest.TestCase):
     def test_all_four_kinds_are_planned(self):
-        # 4種の候補が全てverifier起動計画に載ること / All four kinds must be planned
+        # 全種の候補がverifier起動計画に載ること / Every candidate kind must be planned
         result = {
             "deterministic": {"candidates": {
                 "comparison_operator": [{}], "try_catch_boundary": [{}],
                 "server_elapsed_time": [{}, {}]}},
             "dead_member": {"status": "ok", "candidates": [{}]},
+            "ts_dead_code": {"status": "ok", "candidates": [{}, {}]},
         }
         plans = {p["candidate_kind"]: p["count"] for p in check_all.plan_verifiers(result)}
         self.assertEqual(plans, {"comparison_operator": 1, "try_catch_boundary": 1,
-                                 "server_elapsed_time": 2, "dead_member": 1})
+                                 "server_elapsed_time": 2, "dead_member": 1,
+                                 "ts_dead_code": 2})
 
     def test_zero_candidates_launch_nothing(self):
         result = {"deterministic": {"candidates": {}},

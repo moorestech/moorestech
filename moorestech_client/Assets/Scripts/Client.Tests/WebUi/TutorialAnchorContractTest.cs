@@ -9,24 +9,10 @@ using UnityEngine;
 
 namespace Client.Tests.WebUi
 {
-    // TutorialAnchorIdMapper・Web側単一ソース・マスタchallenges.jsonの三者を突合する
-    // Cross-checks TutorialAnchorIdMapper, the Web-side single source, and master challenges.json
+    // マスタchallenges.jsonのanchorId直書き値とWeb側単一ソース（フィクスチャ）を突合する設定者向けツールテスト
+    // Configurer-facing tool test cross-checking anchorIds written in master challenges.json against the Web-side single source (fixture)
     public class TutorialAnchorContractTest
     {
-        // マッパーの静的出力アンカーID全件がWeb側フィクスチャに存在すること
-        // Every statically mapped anchor ID must exist in the Web-side fixture
-        [Test]
-        public void MapperStaticAnchorIdsExistInWebFixture()
-        {
-            var fixture = LoadFixture();
-            var staticIds = fixture["staticIds"].Select(t => t.Value<string>()).ToHashSet();
-
-            foreach (var anchorId in TutorialAnchorIdMapper.AllMappedAnchorIds)
-            {
-                Assert.IsTrue(staticIds.Contains(anchorId), $"'{anchorId}' is missing from tutorial_anchor_ids.json staticIds");
-            }
-        }
-
         // FromItemIdが生成するprefixがWeb側の動的prefix定義と一致すること
         // FromItemId's generated prefix must match the Web-side dynamic prefix definition
         [Test]
@@ -39,10 +25,10 @@ namespace Client.Tests.WebUi
             Assert.IsTrue(TutorialAnchorIdMapper.FromItemId(42).StartsWith(expectedPrefix));
         }
 
-        // 全modのchallenges.jsonが宣言するhighLightUIObjectIdが、マッパーの辞書キーに存在すること
-        // Every highLightUIObjectId declared across all mods' challenges.json must be a known mapper key
+        // 全modのchallenges.jsonが直書きするanchorIdが、Web側の静的ID一覧か動的prefixに解決すること
+        // Every anchorId written across all mods' challenges.json must resolve to a Web-side static ID or dynamic prefix
         [Test]
-        public void AllModHighLightUIObjectIdsAreKnownToMapper()
+        public void AllModAnchorIdsResolveToWebVocabulary()
         {
             var masterRoot = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../../moorestech_master"));
             if (!Directory.Exists(masterRoot))
@@ -51,16 +37,59 @@ namespace Client.Tests.WebUi
                 return;
             }
 
-            var uiObjectIds = CollectHighLightUIObjectIds(masterRoot);
-            Assert.IsNotEmpty(uiObjectIds, "No highLightUIObjectId found across any mod's challenges.json");
-
-            foreach (var uiObjectId in uiObjectIds)
+            var anchorIds = CollectAnchorIds(masterRoot);
+            if (anchorIds.Count == 0)
             {
-                Assert.IsTrue(TutorialAnchorIdMapper.IsKnownUiObjectId(uiObjectId), $"'{uiObjectId}' is not a known key in TutorialAnchorIdMapper");
+                // 兄弟checkoutが別セッションにより互換外コミットへ移動している場合があるため、空は環境要因としてスキップする
+                // The sibling checkout may have been moved to an incompatible commit by another session, so treat empty as environmental
+                Assert.Ignore("No anchorId found across any mod's challenges.json (sibling checkout may be on an unrelated commit)");
+                return;
+            }
+
+            var fixture = LoadFixture();
+            var staticIds = fixture["staticIds"].Select(t => t.Value<string>()).ToHashSet();
+            var dynamicPrefixes = ((JObject)fixture["dynamicPrefixes"]).Properties()
+                .ToDictionary(p => p.Name, p => p.Value.Value<string>());
+
+            foreach (var anchorId in anchorIds)
+            {
+                // 解決セレクタが空白区切りトークン一致のため、空白入りIDはどの要素にも当たらない
+                // The resolver matches whitespace-separated tokens, so a whitespace-bearing ID can never hit an element
+                Assert.IsFalse(anchorId.Any(char.IsWhiteSpace), $"'{anchorId}' must not contain whitespace");
+
+                if (staticIds.Contains(anchorId)) continue;
+
+                var matched = dynamicPrefixes.FirstOrDefault(entry => anchorId.StartsWith(entry.Value, StringComparison.Ordinal));
+                Assert.IsNotNull(matched.Value, $"'{anchorId}' does not resolve to any Web-side static anchor ID or dynamic prefix");
+                AssertSuffix(matched.Key, anchorId.Substring(matched.Value.Length), anchorId);
             }
         }
 
-        #region Internal
+        // 動的prefixごとに接尾辞の種別（guid/整数/小文字自由語）を検査する。Web側生成関数の書式と揃える
+        // Check each dynamic prefix's suffix kind (guid / integer / lowercase free word) to match the Web-side generators
+        private static void AssertSuffix(string prefixKey, string suffix, string anchorId)
+        {
+            switch (prefixKey)
+            {
+                case "researchNode":
+                case "challengeNode":
+                case "inventoryItem":
+                    Assert.IsTrue(Guid.TryParseExact(suffix, "D", out _), $"'{anchorId}' must end with a guid");
+                    Assert.AreEqual(suffix.ToLowerInvariant(), suffix, $"'{anchorId}' must be lowercased");
+                    break;
+                case "recipeItem":
+                case "equipmentSlot":
+                    Assert.IsTrue(int.TryParse(suffix, out _), $"'{anchorId}' must end with an integer");
+                    break;
+                case "buildMenuEntry":
+                    Assert.IsTrue(suffix.Length > 0, $"'{anchorId}' must have a suffix");
+                    Assert.AreEqual(suffix.ToLowerInvariant(), suffix, $"'{anchorId}' must be lowercased");
+                    break;
+                default:
+                    Assert.Fail($"unknown dynamic prefix '{prefixKey}' has no suffix rule");
+                    break;
+            }
+        }
 
         private static JObject LoadFixture()
         {
@@ -68,7 +97,7 @@ namespace Client.Tests.WebUi
             return JObject.Parse(File.ReadAllText(path));
         }
 
-        private static List<string> CollectHighLightUIObjectIds(string masterRoot)
+        private static List<string> CollectAnchorIds(string masterRoot)
         {
             var result = new List<string>();
             foreach (var serverDir in Directory.GetDirectories(masterRoot, "server*"))
@@ -82,13 +111,13 @@ namespace Client.Tests.WebUi
                     if (!File.Exists(challengesPath)) continue;
 
                     var json = JToken.Parse(File.ReadAllText(challengesPath));
-                    result.AddRange(json.SelectTokens("$..highLightUIObjectId").Select(t => t.Value<string>()));
+                    result.AddRange(json.SelectTokens("$..highLightAnchorId").Select(t => t.Value<string>()));
+                    result.AddRange(json.SelectTokens("$..fromAnchorId").Select(t => t.Value<string>()));
+                    result.AddRange(json.SelectTokens("$..toAnchorId").Select(t => t.Value<string>()));
                 }
             }
 
             return result;
         }
-
-        #endregion
     }
 }

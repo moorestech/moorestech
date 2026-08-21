@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Game.PlacementTarget;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Game.Actions;
@@ -35,10 +36,13 @@ namespace Client.Tests.WebUi
             var unlockState = new AllPlacementTargetsUnlockedStateData();
             var blueprintGuid = Guid.Parse("70000000-0000-4000-8000-000000000001");
 
-            var dtos = BuildMenuEntryDtoFactory.CreateDtos(
-                unlockState,
-                new PlacementTargetCatalog(),
-                new[] { (blueprintGuid, "starter-base") });
+            // 解放判定はResolverの責務のため、変換対象の設置対象一覧を直接渡して変換だけを検証する
+            // The unlock decision belongs to the resolver, so hand the targets in directly and verify only the conversion
+            var targets = new PlacementTargetCatalog()
+                .UnlockedEntries(unlockState, false, new[] { (blueprintGuid, "starter-base") })
+                .Select(PlacementTargetFactory.Create)
+                .ToList();
+            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets);
 
             // 実マスタ規模で複数エントリが返ること（空リストでは以降の検証が無意味）
             // Multiple entries must come back at real-master scale (an empty list would make the rest of this test meaningless)
@@ -105,7 +109,7 @@ namespace Client.Tests.WebUi
             {
                 SetCurrentState(control, UIStateEnum.BuildMenu);
                 var handler = new BuildMenuSelectActionHandler(
-                    control, unlocked, new ClientBlueprintLibrary(), catalog, view);
+                    control, new PlacementTargetResolver(catalog, new ClientBlueprintLibrary(), unlocked), view);
                 var entry = catalog.UnlockedEntries(
                     unlocked, false, Array.Empty<(Guid, string)>()).First();
 
@@ -147,6 +151,7 @@ namespace Client.Tests.WebUi
 
         [TestCase(BlueprintDeleteResult.Success, true, null)]
         [TestCase(BlueprintDeleteResult.NotFound, false, "blueprint_delete_not_found")]
+        [TestCase(BlueprintDeleteResult.NotUnlocked, false, "blueprint_delete_not_unlocked")]
         [TestCase(BlueprintDeleteResult.RequestFailed, false, "blueprint_delete_request_failed")]
         public void BlueprintDeleteActionは削除結果をエラー契約へ変換する(
             BlueprintDeleteResult deleteResult, bool expectedOk, string expectedError)
@@ -195,6 +200,8 @@ namespace Client.Tests.WebUi
                 MasterHolder.TrainUnitMaster.Train.TrainCars.ToDictionary(
                     trainCar => trainCar.TrainCarGuid,
                     trainCar => new TrainCarUnlockStateInfo(trainCar.TrainCarGuid, true));
+
+            public bool IsBlueprintUnlocked => true;
         }
     }
 }

@@ -105,35 +105,47 @@ namespace Client.Network.API
     
     public class UnlockStateResponse
     {
-        public readonly List<Guid> LockedCraftRecipeGuids;
-        public readonly List<Guid> UnlockedCraftRecipeGuids;
-        
-        public readonly List<ItemId> LockedItemIds;
-        public readonly List<ItemId> UnlockedItemIds;
+        // 全項目必須・構築後不変。同型のList<Guid>が並ぶため呼び出し側は名前付き引数で渡す
+        // Every field is required and immutable after construction; callers pass named arguments since same-typed lists line up
+        public List<Guid> LockedCraftRecipeGuids { get; }
+        public List<Guid> UnlockedCraftRecipeGuids { get; }
 
-        public readonly List<Guid> LockedChallengeCategoryGuids;
-        public readonly List<Guid> UnlockedChallengeCategoryGuids;
+        public List<ItemId> LockedItemIds { get; }
+        public List<ItemId> UnlockedItemIds { get; }
 
-        public readonly List<Guid> LockedMachineRecipeGuids;
-        public readonly List<Guid> UnlockedMachineRecipeGuids;
+        public List<Guid> LockedChallengeCategoryGuids { get; }
+        public List<Guid> UnlockedChallengeCategoryGuids { get; }
 
-        public readonly List<Guid> LockedBlockGuids;
-        public readonly List<Guid> UnlockedBlockGuids;
+        public List<Guid> LockedMachineRecipeGuids { get; }
+        public List<Guid> UnlockedMachineRecipeGuids { get; }
 
-        public readonly List<Guid> LockedTrainCarGuids;
-        public readonly List<Guid> UnlockedTrainCarGuids;
+        public List<Guid> LockedBlockGuids { get; }
+        public List<Guid> UnlockedBlockGuids { get; }
 
-        public readonly List<Guid> LockedConnectToolGuids;
-        public readonly List<Guid> UnlockedConnectToolGuids;
+        public List<Guid> LockedTrainCarGuids { get; }
+        public List<Guid> UnlockedTrainCarGuids { get; }
+
+        public List<Guid> LockedConnectToolGuids { get; }
+        public List<Guid> UnlockedConnectToolGuids { get; }
+
+        public bool IsBlueprintUnlocked { get; }
 
         public UnlockStateResponse(
-            List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids,
-            List<ItemId> lockedItemIds, List<ItemId> unlockedItemIds,
-            List<Guid> lockedChallengeCategoryGuids, List<Guid> unlockedChallengeCategoryGuids,
-            List<Guid> lockedMachineRecipeGuids, List<Guid> unlockedMachineRecipeGuids,
-            List<Guid> lockedBlockGuids, List<Guid> unlockedBlockGuids,
-            List<Guid> lockedTrainCarGuids, List<Guid> unlockedTrainCarGuids,
-            List<Guid> lockedConnectToolGuids, List<Guid> unlockedConnectToolGuids)
+            List<Guid> lockedCraftRecipeGuids,
+            List<Guid> unlockedCraftRecipeGuids,
+            List<ItemId> lockedItemIds,
+            List<ItemId> unlockedItemIds,
+            List<Guid> lockedChallengeCategoryGuids,
+            List<Guid> unlockedChallengeCategoryGuids,
+            List<Guid> lockedMachineRecipeGuids,
+            List<Guid> unlockedMachineRecipeGuids,
+            List<Guid> lockedBlockGuids,
+            List<Guid> unlockedBlockGuids,
+            List<Guid> lockedTrainCarGuids,
+            List<Guid> unlockedTrainCarGuids,
+            List<Guid> lockedConnectToolGuids,
+            List<Guid> unlockedConnectToolGuids,
+            bool isBlueprintUnlocked)
         {
             LockedCraftRecipeGuids = lockedCraftRecipeGuids;
             UnlockedCraftRecipeGuids = unlockedCraftRecipeGuids;
@@ -149,9 +161,10 @@ namespace Client.Network.API
             UnlockedTrainCarGuids = unlockedTrainCarGuids;
             LockedConnectToolGuids = lockedConnectToolGuids;
             UnlockedConnectToolGuids = unlockedConnectToolGuids;
+            IsBlueprintUnlocked = isBlueprintUnlocked;
         }
     }
-    
+
     // 列車スナップショット取得時のレスポンス
     // Response wrapper for the initial train unit snapshot payload
     public class TrainUnitSnapshotResponse

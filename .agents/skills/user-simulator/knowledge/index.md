@@ -15,10 +15,14 @@
 
 ## 過去裁定コーパス
 
+**コーパス2本の実体は private ログrepo にある**（コミット `53e9363d9` でrepo外へ移設済み。
+パスは moorestech リポジトリルートからの相対で `../moorestech_logs/harness/user-simulator/knowledge/`）。
+このディレクトリ内には存在しないので、下表のファイル名だけで探して「無い」と諦めないこと。
+
 | ファイル | 開くトリガー |
 |---|---|
-| adjudications.md | 常時（薄いので毎回読む。ユーザーの裁定傾向の第一参照） |
-| deviation-cases.md | 質問がプレイヤー操作/UI/UX・定数や個数の置き場・無効データの扱い・ID/キー体系・作業分割/先送りに触れるとき（推奨逸脱の具体事例＋確信度規律。深層） |
+| ../moorestech_logs/harness/user-simulator/knowledge/adjudications.md | 常時（薄いので毎回読む。ユーザーの裁定傾向の第一参照） |
+| ../moorestech_logs/harness/user-simulator/knowledge/deviation-cases.md | 質問がプレイヤー操作/UI/UX・定数や個数の置き場・無効データの扱い・ID/キー体系・作業分割/先送りに触れるとき（推奨逸脱の具体事例＋確信度規律。深層） |
 
 ## 既存資産へのポインタ（複製しない）
 

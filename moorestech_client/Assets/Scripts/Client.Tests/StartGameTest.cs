@@ -2,7 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using Client.Game.InGame.Map.MapVein;
+using Client.Game.InGame.Map.Outcrop;
+using Client.Game.InGame.Tutorial;
 using Client.Localization;
 using Client.Starter;
 using Client.Tests.Playtest;
@@ -129,7 +130,7 @@ namespace Client.Tests
                     actualKeys.Add(serializedText.FindProperty("key").stringValue);
                 }
 
-                var veinDatastores = UnityEngine.Object.FindObjectsByType<MapVeinObjectDatastore>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                var veinDatastores = UnityEngine.Object.FindObjectsByType<OutcropGameObjectDatastore>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 var sceneHasVeinDatastore = false;
                 foreach (var veinDatastore in veinDatastores)
                 {
@@ -138,11 +139,42 @@ namespace Client.Tests
 
                 Assert.That(actualKeys.IsSupersetOf(expectedKeys), Is.True);
                 Assert.That(sceneHasVeinDatastore, Is.True);
+
+                // 両pin配線と欠損を検証
+                // Verify both pin wiring and absence
+                var mapPins = FindSceneComponents<MapObjectPin>(scene);
+                var veinPins = FindSceneComponents<VeinPin>(scene);
+                var starters = FindSceneComponents<MainGameStarter>(scene);
+                Assert.AreEqual(1, mapPins.Count);
+                Assert.AreEqual(1, veinPins.Count);
+                Assert.AreNotSame(mapPins[0].gameObject, veinPins[0].gameObject);
+                Assert.IsFalse(veinPins[0].gameObject.activeSelf);
+                Assert.AreEqual(1, starters.Count);
+
+                var serializedStarter = new SerializedObject(starters[0]);
+                Assert.AreSame(mapPins[0], serializedStarter.FindProperty("mapObjectPin").objectReferenceValue);
+                Assert.AreSame(veinPins[0], serializedStarter.FindProperty("veinPin").objectReferenceValue);
+                foreach (var root in scene.GetRootGameObjects())
+                    Assert.AreEqual(0, GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(root), root.name);
             }
             finally
             {
                 EditorSceneManager.CloseScene(scene, true);
             }
+
+            #region Internal
+
+            List<T> FindSceneComponents<T>(Scene targetScene) where T : Component
+            {
+                var result = new List<T>();
+                foreach (var component in UnityEngine.Object.FindObjectsByType<T>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                {
+                    if (component.gameObject.scene == targetScene) result.Add(component);
+                }
+                return result;
+            }
+
+            #endregion
         }
     }
 }

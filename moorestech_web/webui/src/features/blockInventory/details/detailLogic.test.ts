@@ -5,6 +5,7 @@ import {
   splitSlotIndices,
   fuelRatio,
   itemsPerMinute,
+  machineStateDisplay,
   stopReasonTranslationKey,
 } from "./detailLogic";
 
@@ -40,5 +41,24 @@ describe("detailLogic", () => {
     expect(stopReasonTranslationKey("overRequirePower")).toBe(
       L.ui.blockInventory.stopReasonInsufficientPower,
     );
+  });
+
+  describe("machineStateDisplay", () => {
+    // ラベル・不足トーン・充足率の表示可否を1枚のテーブルで確定する（判別子はstateのみ）
+    // One table settles label, insufficient tone, and rate visibility, keyed solely by the state
+    it.each([
+      { state: "idle", key: L.ui.blockInventory.machineStateIdle, insufficient: false, showPowerRate: true },
+      { state: "processing", key: L.ui.blockInventory.machineStateProcessing, insufficient: false, showPowerRate: true },
+      { state: "halted", key: L.ui.blockInventory.machineStateHalted, insufficient: true, showPowerRate: false },
+    ] as const)("$state の表示を確定する", ({ state, key, insufficient, showPowerRate }) => {
+      expect(machineStateDisplay(state)).toEqual({ labelKey: key, insufficient, showPowerRate });
+    });
+
+    // 要求電力0で稼働する機械（石窯・ボイラー）は停止中と同一表示に潰さない
+    // Machines that operate at zero request power (kiln, boiler) must not collapse into the halted display
+    it("要求電力0でも稼働状態なら充足率を表示する", () => {
+      expect(machineStateDisplay("idle").showPowerRate).toBe(true);
+      expect(machineStateDisplay("processing").showPowerRate).toBe(true);
+    });
   });
 });

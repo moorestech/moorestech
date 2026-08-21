@@ -1,14 +1,15 @@
+import { ancestorClipRect, type ClipRect } from "./ancestorClip";
+import { tutorialAnchorSelector } from "./tutorialAnchor";
+
 export type AnchorReason = "mounted" | "missing" | "duplicate-anchor" | "display-none" |
   "visibility-hidden" | "aria-hidden" | "zero-area" | "outside-viewport";
 export type ResolvedAnchor =
-  | { status: "ready"; reason: "mounted"; rect: DOMRectReadOnly }
+  | { status: "ready"; reason: "mounted"; rect: DOMRectReadOnly; clip: ClipRect }
   | { status: "not-found"; reason: "missing" | "duplicate-anchor" }
   | { status: "hidden"; reason: Exclude<AnchorReason, "mounted" | "missing" | "duplicate-anchor"> };
 
 export function resolveTutorialAnchor(anchorId: string): ResolvedAnchor {
-  const escaped = globalThis.CSS?.escape ? globalThis.CSS.escape(anchorId) : anchorId.replaceAll('"', '\\"');
-  const selector = `[data-tutorial-anchor="${escaped}"]`;
-  const matches = document.querySelectorAll<HTMLElement>(selector);
+  const matches = document.querySelectorAll<HTMLElement>(tutorialAnchorSelector(anchorId));
   if (matches.length === 0) return { status: "not-found", reason: "missing" };
   if (matches.length > 1) return { status: "not-found", reason: "duplicate-anchor" };
   const element = matches[0];
@@ -21,5 +22,5 @@ export function resolveTutorialAnchor(anchorId: string): ResolvedAnchor {
   if (rect.bottom <= 0 || rect.right <= 0 || rect.top >= innerHeight || rect.left >= innerWidth) {
     return { status: "hidden", reason: "outside-viewport" };
   }
-  return { status: "ready", reason: "mounted", rect };
+  return { status: "ready", reason: "mounted", rect, clip: ancestorClipRect(element) };
 }

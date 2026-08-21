@@ -35,10 +35,8 @@ namespace Client.Tests.WebUi
         {
             var dto = new PlayerInventoryDto
             {
-                MainSlots = new List<SlotDto> { new SlotDto { ItemId = 1, Count = 10 }, new SlotDto { ItemId = 2, Count = 5 } },
-                HotbarSlots = new List<SlotDto> { new SlotDto { ItemId = 3, Count = 1 } },
+                MainSlots = new List<SlotDto> { new SlotDto { ItemId = 1, Count = 10 }, new SlotDto { ItemId = 2, Count = 5 }, new SlotDto { ItemId = 3, Count = 1 } },
                 Grab = new SlotDto { ItemId = 0, Count = 0 },
-                SelectedHotbar = 2,
                 Equipment = new List<SlotDto> { new SlotDto { ItemId = 4, Count = 1 }, new SlotDto { ItemId = 0, Count = 0 } },
                 // 素手(-1)を正準形に含め、負値がそのまま配信されることを固定する
                 // Include bare hands (-1) in the canonical form, pinning that the negative value ships as-is
@@ -133,7 +131,7 @@ namespace Client.Tests.WebUi
                 "invalid_guid", "research_failed", "block_not_open",
                 "invalid_direction", "filter_request_failed", "unknown_entry", "unknown_locale",
                 "stale_session", "stale_revision", "intent_not_allowed", "unknown_choice",
-                "blueprint_delete_not_found", "blueprint_delete_request_failed",
+                "blueprint_delete_not_found", "blueprint_delete_not_unlocked", "blueprint_delete_request_failed",
             };
 
             var shared = JObject.Parse(LoadFixture("error_codes.json"))["codes"].ToObject<List<string>>();

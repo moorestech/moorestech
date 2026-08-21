@@ -5,6 +5,7 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
+using Game.PlacementTarget;
 using UniRx;
 
 namespace Client.WebUiHost.Game.Topics

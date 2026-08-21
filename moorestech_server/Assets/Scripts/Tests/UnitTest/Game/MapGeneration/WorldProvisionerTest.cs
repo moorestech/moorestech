@@ -5,7 +5,10 @@ using System.IO;
 using System.Linq;
 using Core.Master;
 using Game.Map.Interface.Json;
+using Game.MapGeneration.Export;
+using Game.MapGeneration.Pipeline.Runtime;
 using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Mooresmaster.Model.MapModule;
 using Newtonsoft.Json;
@@ -98,6 +101,35 @@ namespace Tests.UnitTest.Game.MapGeneration
             }
 
             #endregion
+        }
+
+        // 定数同士の比較はどんな版でも通るトートロジーになるため、版そのものをリテラルで固定する
+        // Comparing the constant to itself is a tautology regardless of value, so pin the version as a literal
+        [Test]
+        public void GeneratorVersion定数は2_0_0に固定されている()
+        {
+            Assert.AreEqual("2.0.0", WorldProvisioner.GeneratorVersion);
+        }
+
+        [Test]
+        public void 生成ワールドはグリッド積のタイル数と版定数を記録し全タイルのファイルを書き出す()
+        {
+            LoadMasterHolderForGeneration();
+
+            var settings = new WorldProvisionSettings(_worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, "generated", 12345);
+            WorldProvisioner.EnsureWorld(settings);
+
+            var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(_worldDataDirectory.WorldMetaFilePath));
+            var config = GenerationRuntimeConfigFactory.Build(MasterHolder.GenerationMaster.SelectedGeneration);
+            Assert.AreEqual(config.gridSizeX * config.gridSizeZ, worldMeta.TerrainTileCount);
+            Assert.AreEqual(WorldProvisioner.GeneratorVersion, worldMeta.GeneratorVersion);
+
+            // 全タイルのファイルが存在する / every tile's files exist
+            foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(worldMeta.TerrainTileCount))
+            {
+                Assert.IsTrue(File.Exists(_worldDataDirectory.TerrainHeightFilePath(tileX, tileZ)));
+                Assert.IsTrue(File.Exists(_worldDataDirectory.TerrainBiomeFilePath(tileX, tileZ)));
+            }
         }
 
         [Test]

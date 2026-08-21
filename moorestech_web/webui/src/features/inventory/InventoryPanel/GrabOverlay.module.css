@@ -4,7 +4,7 @@
   --slot-size: 3rem;
   pointer-events: none;
   position: fixed;
-  z-index: var(--z-grab);
+  z-index: var(--z-viewport-grab);
   width: 3rem;
   height: 3rem;
   transform: scale(var(--ui-scale, 1));

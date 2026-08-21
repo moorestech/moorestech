@@ -12,6 +12,29 @@ namespace Game.MapGeneration.Pipeline.Stages
     // The texture (splatmap) path is not run (server-irrelevant).
     public static class HeightmapStage
     {
+        // 高さ1画素が分類チャネルの何画素外まで依存するか。後段カーネルは直列に掛かるので半径は合算になる。
+        // AlpinePlateauStage は到達を一切計上していない。連結領域解析が無制限なだけでなく、有界カーネルぶんも未計上（別途裁定・bd moorestech-edd.8）。
+        // How far beyond a classification pixel one height pixel depends; the later kernels chain in series so their radii add up.
+        // AlpinePlateauStage contributes no reach at all: not only is its connected-region analysis unbounded, its bounded kernels are uncounted too (adjudicated separately, bd moorestech-edd.8).
+        public static int MaxReachPixels(TerrainGenerationConfig config, NativeArray<BiomeParams> biomeParams)
+        {
+            // CoastalSmoothJob の 3x3 平均
+            // CoastalSmoothJob's 3x3 average
+            var reach = 1;
+            reach += GetHeightBlurRadius(biomeParams);
+
+            // 走らない設定で窓を広げないよう、加算条件は RunHeightPostProcess のゲートと同じにする
+            // Match RunHeightPostProcess's gate exactly so a config that never runs the job does not widen the window
+            var slope = GetSlopeParams(biomeParams);
+            if (0f < slope.Density && 0 < slope.Radius && 0f < slope.BlendStrength) reach += slope.Radius;
+
+            // BoundaryNoiseJob は隣接1画素の勾配を読む
+            // BoundaryNoiseJob reads a one-pixel gradient
+            if (config.jungleEnabled && 0f < config.jungle.boundaryNoiseStrength) reach += 1;
+
+            return reach;
+        }
+
         public static void Run(TerrainGenerationConfig config, int biomeCount, JobBuffers buffers)
         {
             int res = config.Resolution;
@@ -98,6 +121,8 @@ namespace Game.MapGeneration.Pipeline.Stages
                     slopeBlendStrength = slope.BlendStrength,
                     terrainWidth = config.terrainWidth,
                     terrainLength = config.terrainLength,
+                    worldOffsetX = config.worldOffsetX,
+                    worldOffsetZ = config.worldOffsetZ,
                     blurTemp = buffers.blurTemp,
                     heights = buffers.heights
                 }.Schedule(res, 1).Complete();
@@ -114,6 +139,8 @@ namespace Game.MapGeneration.Pipeline.Stages
                     terrainWidth = config.terrainWidth,
                     terrainLength = config.terrainLength,
                     terrainHeight = config.terrainHeight,
+                    worldOffsetX = config.worldOffsetX,
+                    worldOffsetZ = config.worldOffsetZ,
                     noiseStrength = config.jungle.boundaryNoiseStrength,
                     slopeThreshold = config.jungle.boundaryNoiseSlopeThreshold,
                     noiseFrequency = config.jungle.boundaryNoiseFrequency,

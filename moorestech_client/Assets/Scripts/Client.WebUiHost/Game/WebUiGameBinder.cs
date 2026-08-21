@@ -1,6 +1,6 @@
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Game.PlacementTarget;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory;
@@ -10,12 +10,14 @@ using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.Hotbar;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
 using Game.UnlockState;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.Tooltip;
 using VContainer;
@@ -45,15 +47,14 @@ namespace Client.WebUiHost.Game
             // Resolve the inventory controller and UI components from DI
             var resolver = ClientDIContext.DIContainer.DIContainerResolver;
             var controller = resolver.Resolve<LocalPlayerInventoryController>();
-            var hotBarView = resolver.Resolve<HotBarView>();
             var uiStateControl = resolver.Resolve<UIStateControl>();
             var subInventoryState = resolver.Resolve<SubInventoryState>();
             var trainHudState = resolver.Resolve<TrainHUDScreenState>();
             var localPlayerEquipment = resolver.Resolve<LocalPlayerEquipment>();
 
-            // インベントリトピックを生成して Hub に登録（選択状態用に HotBarView と装備モデルを渡す）
-            // Create inventory topic and register it (HotBarView and the equipment model supply the selection state)
-            var inventoryTopic = new InventoryTopic(hub, controller, hotBarView, localPlayerEquipment);
+            // インベントリトピックを生成・登録
+            // Create inventory topic and register it (the equipment model supplies the selection state)
+            var inventoryTopic = new InventoryTopic(hub, controller, localPlayerEquipment);
             hub.RegisterTopic(InventoryTopic.TopicName, inventoryTopic);
 
             // モーダルブリッジサービスを生成（topic と action で共有）
@@ -132,9 +133,9 @@ namespace Client.WebUiHost.Game
             var itemListTopic = new RecipeViewerItemListTopic(hub, recipeContainer);
             hub.RegisterTopic(RecipeViewerItemListTopic.TopicName, itemListTopic);
 
-            // 研究ツリートピックを登録（表示可否は ui_state.current 側で判定）
-            // Register the research-tree topic (visibility is decided by ui_state.current)
-            var researchTopic = new ResearchTopic(hub, uiStateControl);
+            // 研究ツリートピックを登録（充足の正本はサーバーstateなので所持変化でも取り直す）
+            // Register the research-tree topic (server state owns sufficiency, so inventory moves refetch too)
+            var researchTopic = new ResearchTopic(hub, uiStateControl, controller);
             hub.RegisterTopic(ResearchTopic.TopicName, researchTopic);
 
             // チャレンジツリーと常駐HUDは同じイベント駆動状態を共有する
@@ -147,12 +148,17 @@ namespace Client.WebUiHost.Game
             // ビルドメニュートピックを登録（BP名入力ブリッジも同時に張る）
             // Register the build-menu topic (also wires the blueprint-name input bridge)
             var blueprintLibrary = resolver.Resolve<ClientBlueprintLibrary>();
-            var placementTargetCatalog = resolver.Resolve<PlacementTargetCatalog>();
+            var placementTargetResolver = resolver.Resolve<PlacementTargetResolver>();
             var buildMenuView = resolver.Resolve<BuildMenuView>();
             var blueprintNameInputView = resolver.Resolve<BlueprintNameInputView>();
-            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, unlockStateData, blueprintLibrary, placementTargetCatalog);
+            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver);
             hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
             new BlueprintNameInputWebBridge(blueprintNameInputView, modalService);
+
+            // ホットバーのtopic/actionをまとめて登録（前例 C4WebUiRegistration）
+            // Register the hotbar topic/actions together (precedent: C4WebUiRegistration)
+            var clientHotbarDatastore = resolver.Resolve<ClientHotbarDatastore>();
+            HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, placementTargetResolver, blueprintLibrary, resolver.Resolve<PlaceSystemStateController>(), uiStateControl);
 
             // action ハンドラ登録
             // Register action handlers
@@ -168,7 +174,6 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new CollectActionHandler(controller));
             hub.RegisterAction(new SortInventoryActionHandler(controller));
             hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));
-            hub.RegisterAction(new SelectHotbarActionHandler(hotBarView));
             hub.RegisterAction(new SelectEquipmentActionHandler(localPlayerEquipment));
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
             hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));
@@ -181,7 +186,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));
             hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));
             hub.RegisterAction(new TrainPlatformSetTransferModeActionHandler(subInventoryState));
-            hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, unlockStateData, blueprintLibrary, placementTargetCatalog, buildMenuView));
+            hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, placementTargetResolver, buildMenuView));
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<SaveButton>()));
             hub.RegisterAction(new PauseMenuBackToMainMenuActionHandler(resolver.Resolve<BackToMainMenu>()));

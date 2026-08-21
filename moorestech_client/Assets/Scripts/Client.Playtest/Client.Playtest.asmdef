@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "Client.Game",
+        "Client.Skit",
         "Client.Starter",
         "Client.Common",
         "Client.Network",
@@ -19,6 +20,7 @@
         "Game.Context",
         "Game.World.Interface",
         "Game.UnlockState",
+        "Game.PlacementTarget",
         "Game.MapGeneration",
         "Game.Block.Interface",
         "Game.PlayerInventory.Interface",

@@ -42,6 +42,7 @@ namespace Client.Game.InGame.Environment.Terrain.Visual
                 splatmap, terrainLayers, ManagedNoise.GenerateOffsets(rng, NoiseOffsetCount),
                 heightmapResolution, detailResolution, splatmap != null ? splatmap.GetLength(0) : 0,
                 dimensions.TerrainWidth, dimensions.TerrainLength,
+                dimensions.WorldOffsetX, dimensions.WorldOffsetZ,
                 detailConfig.filterRejectThreshold,
                 BiomeMaskBuilder.MetersToPixels(detailConfig.borderMargin, dimensions.TerrainWidth, heightmapResolution));
 

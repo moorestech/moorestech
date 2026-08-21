@@ -20,8 +20,10 @@ namespace Game.MapGeneration.Pipeline.Generators
             return true;
         }
 
-        // 3スケール密度ノイズ + 島変調を合成する。
-        // Combine 3-scale density noise with island modulation.
+        // 3スケール密度ノイズ + 島変調を合成する。worldX/worldZ はワールド座標で、タイルローカルを渡すと
+        // 全タイルが同じ密度分布を反復する。
+        // Combine 3-scale density noise with island modulation. worldX/worldZ are world-space; feeding tile-local
+        // coordinates makes every tile repeat the same density distribution.
         public static float SampleDensityNoise(float worldX, float worldZ,
             Vector2[] densityOffsets, Vector2[] detailOffsets, Vector2[] islandOffsets,
             TreeDensityConfig cfg)
@@ -57,11 +59,11 @@ namespace Game.MapGeneration.Pipeline.Generators
         }
 
         public static float SampleFilterNoise(PlacementNoise noise, float worldX, float worldZ,
-            Vector2[] offsets, float terrainWidth, float terrainLength)
+            Vector2[] offsets, TerrainDimensions dims)
         {
-            if (noise.noiseType == MapNoiseType.None) return 0f;
+            if (!noise.IsActive) return 0f;
             return ManagedNoise.SamplePlacementNoise(noise, worldX, worldZ, offsets,
-                terrainWidth, terrainLength);
+                dims.GridOriginX, dims.GridOriginZ, dims.GridWidth, dims.GridLength);
         }
 
         // mapObjectGuid 群から等確率で1件を選ぶ（空エントリは除外）。

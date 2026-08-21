@@ -1,7 +1,7 @@
 import { Group } from "@mantine/core";
 import type { FluidSlotData } from "@/bridge";
 import FluidSlot from "../FluidSlot";
-import ProgressArrow from "../ProgressArrow";
+import ProgressArrowBar from "../ProgressArrowBar";
 
 type Props = {
   fluids: FluidSlotData[];
@@ -20,7 +20,7 @@ export default function FluidSlotRow({ fluids, progress, testId }: Props) {
       {fluids.map((fluid, i) => (
         <FluidSlot key={i} fluid={fluid} />
       ))}
-      {progress != null ? <ProgressArrow value={progress} /> : null}
+      {progress != null ? <ProgressArrowBar value={progress} /> : null}
     </Group>
   );
 }

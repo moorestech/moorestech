@@ -10,12 +10,12 @@
 /* レシピ有り機械: 研究パネル同系の大型面。viewer〜items2列を占有し下端はホットバー手前(y640)で止める */
 /* Recipe-capable machines: research-sized panel spanning viewer..items, stopping short of the hotbar (y640) */
 /* SubInventoryではitems列が空でauto列が収縮するため、幅は明示する */
-/* 1280 - padding(59.7+48) - 持ち物378 - 列gap35 = 759.3 */
-/* The items column collapses in SubInventory, so state the width: 1280 - padding(59.7+48) - inventory 378 - gap 35 */
+/* stage連立式から導出: 全幅 - 左右padding - 持ち物パネル幅 - 列gap */
+/* The items column collapses in SubInventory, so state the width, derived from the stage's own equation: full width minus paddings, the inventory panel width, and the column gap */
 .panelLarge {
   grid-column: viewer-start / items-end;
   grid-row: 1;
-  width: 759.3px;
+  width: calc(var(--ui-stage-width) - var(--stage-padding-left) - var(--stage-padding-right) - var(--inventory-panel-width) - var(--stage-column-gap));
   height: var(--menu-content-height);
   min-width: 0;
 }
@@ -26,5 +26,5 @@
   position: absolute;
   top: var(--bevel-3);
   right: var(--panel-edge-fade);
-  z-index: var(--z-overlay-panel);
+  z-index: var(--z-stage-overlay-panel);
 }

@@ -1,3 +1,4 @@
+import { Tooltip } from "@mantine/core";
 import BlockIcon from "../BlockIcon";
 import SlotFrame from "../SlotFrame";
 import styles from "./style.module.css";
@@ -8,14 +9,16 @@ type Props = {
   testId?: string;
 };
 
-// 機械レシピの従来どおり暗面を維持するブロックスロット
-// Block slot that preserves the machine recipe's existing dark face
+// 暗面維持ブロックスロット。ホバー名はTooltip表示
+// Block slot preserving the dark face; hover name via Tooltip
 export default function BlockSlot({ blockId, name, testId }: Props) {
   // 白面化は後続較正へ送る
   // Defer the white face to uGUI comparison and omit data-filled here
   return (
-    <SlotFrame testId={testId}>
-      <BlockIcon blockId={blockId} alt={name} className={styles.icon} />
-    </SlotFrame>
+    <Tooltip label={name} disabled={!name}>
+      <SlotFrame testId={testId}>
+        <BlockIcon blockId={blockId} alt={name} className={styles.icon} />
+      </SlotFrame>
+    </Tooltip>
   );
 }

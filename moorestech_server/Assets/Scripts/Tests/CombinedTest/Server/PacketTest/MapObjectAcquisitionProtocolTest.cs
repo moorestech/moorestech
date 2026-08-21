@@ -13,7 +13,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
 using Tests.Module.TestMod;
-using static Server.Protocol.PacketResponse.MapObjectAcquisitionProtocol;
+using Server.Protocol.PacketResponse;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -165,9 +165,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 対象変更後もプレイヤー単位で待機
             // Cooldown remains player-wide after changing targets
             Assert.AreEqual(MiningAttackResult.Success,
-                miningService.TryAttack(PlayerId, first, playerInventory.EquipmentInventory.GetSelectedItem(), out _));
+                miningService.TryAttack(PlayerId, first, playerInventory.EquipmentInventory.GetSelectedItem(), playerInventory.MainOpenableInventory, out _));
             Assert.AreEqual(MiningAttackResult.CooldownNotElapsed,
-                miningService.TryAttack(PlayerId, second, playerInventory.EquipmentInventory.GetSelectedItem(), out _));
+                miningService.TryAttack(PlayerId, second, playerInventory.EquipmentInventory.GetSelectedItem(), playerInventory.MainOpenableInventory, out _));
             Assert.AreEqual(secondInitialHp, second.CurrentHp);
         }
 
@@ -220,7 +220,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private void SendAttack(PacketResponseCreator packet, int instanceId)
         {
-            var messagePack = new GetMapObjectProtocolProtocolMessagePack(PlayerId, instanceId);
+            var messagePack = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(PlayerId, instanceId);
             packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext(null));
         }
 

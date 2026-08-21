@@ -6,7 +6,6 @@ using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
-using Game.UnlockState;
 using UniRx;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
@@ -21,20 +20,18 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
-        private readonly IGameUnlockStateData _unlockState;
         private readonly ClientBlueprintLibrary _blueprintLibrary;
-        private readonly PlacementTargetCatalog _placementTargetCatalog;
+        private readonly PlacementTargetResolver _placementTargetResolver;
         private readonly IDisposable _librarySubscription;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public BuildMenuTopic(WebSocketHub hub, UIStateControl uiStateControl, IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary, PlacementTargetCatalog placementTargetCatalog)
+        public BuildMenuTopic(WebSocketHub hub, UIStateControl uiStateControl, ClientBlueprintLibrary blueprintLibrary, PlacementTargetResolver placementTargetResolver)
         {
             _hub = hub;
             _uiStateControl = uiStateControl;
-            _unlockState = unlockState;
             _blueprintLibrary = blueprintLibrary;
-            _placementTargetCatalog = placementTargetCatalog;
+            _placementTargetResolver = placementTargetResolver;
 
             // BuildMenu入場で再配信、BPライブラリ更新でも再配信する
             // Republish on BuildMenu entry and on blueprint-library updates
@@ -90,7 +87,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             var dto = new BuildMenuTopicDto
             {
                 Categories = BuildMenuEntryDtoFactory.CreateCategoryDtos(),
-                Entries = BuildMenuEntryDtoFactory.CreateDtos(_unlockState, _placementTargetCatalog, _blueprintLibrary.BlueprintEntries),
+                Entries = BuildMenuEntryDtoFactory.CreateDtos(_placementTargetResolver),
             };
             return WebUiJson.Serialize(dto);
         }

@@ -67,7 +67,7 @@ namespace Game.Block.Blocks.Gear
         // Calculate output scaling for the current RPM and torque
         public virtual float GetCurrentOperatingRate()
         {
-            return _consumption == null ? 0f : GearConsumptionCalculator.CalcOperatingRate(_consumption, CurrentRpm, CurrentTorque);
+            return _consumption == null ? 0f : GearConsumptionCalculator.CalcOperatingRate(_consumption, CurrentRpm, CurrentTorque, _torqueRequestRate);
         }
 
         // 基準電力に稼働率を乗じた現在供給電力を返す

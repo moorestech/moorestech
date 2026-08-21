@@ -14,6 +14,7 @@
 1コマンドで機械チェック全観点を同時に実行し、単一JSONに束ねる:
   - deterministic_checks.py  (confirmed/candidates: 規約の機械判定)
   - dead_member_gate.py      (IL解析: 参照0・非production参照のみ)
+  - ts_dead_code_gate.py     (knip: webui死コード・テスト専用参照)
   - select_lenses.py / select_reviewers.py (発火する観点とモデル)
 さらに candidates の件数から「起動すべきverifier」を計算して明示する。
 オーケストレータはこの出力だけでStep 2〜4の全機械層を把握できる。
@@ -39,6 +40,7 @@ VERIFIER_MAP = {
     "try_catch_boundary": ("verifiers/try-catch-boundary-verifier.md", "opus"),
     "server_elapsed_time": ("verifiers/server-elapsed-time-verifier.md", "sonnet"),
     "dead_member": ("verifiers/dead-member-verifier.md", "sonnet"),
+    "ts_dead_code": ("verifiers/ts-dead-code-verifier.md", "sonnet"),
 }
 
 
@@ -54,6 +56,7 @@ def main() -> int:
     result = {
         "deterministic": run_deterministic(args),
         "dead_member": run_dead_member(args),
+        "ts_dead_code": run_ts_dead_code(args),
         "lenses": run_selector("select_lenses.py", args.patch),
         "reviewers": run_selector("select_reviewers.py", args.patch),
     }
@@ -77,6 +80,12 @@ def run_dead_member(args) -> dict:
     cmd = [sys.executable, str(SCRIPTS / "dead_member_gate.py"),
            args.patch, "--repo-root", args.repo_root]
     return run_json(cmd, "dead_member_gate")
+
+
+def run_ts_dead_code(args) -> dict:
+    cmd = [sys.executable, str(SCRIPTS / "ts_dead_code_gate.py"),
+           args.patch, "--repo-root", args.repo_root]
+    return run_json(cmd, "ts_dead_code_gate")
 
 
 def run_selector(script: str, patch: str) -> list:
@@ -109,8 +118,8 @@ def plan_verifiers(result: dict) -> list:
     plans = []
     candidates = result["deterministic"].get("candidates", {})
     for kind, (path, model) in VERIFIER_MAP.items():
-        if kind == "dead_member":
-            count = len(result["dead_member"].get("candidates", []))
+        if kind in ("dead_member", "ts_dead_code"):
+            count = len((result.get(kind) or {}).get("candidates", []))
         else:
             count = len(candidates.get(kind, []))
         if count > 0:
@@ -126,11 +135,16 @@ def summarize(result: dict) -> dict:
         "candidates_total": sum(len(v) for v in det.get("candidates", {}).values()),
         "dead_member_status": result["dead_member"].get("status", "error"),
         "dead_member_candidates": len(result["dead_member"].get("candidates", [])),
+        "ts_dead_code_status": result["ts_dead_code"].get("status", "error"),
+        "ts_dead_code_candidates": len(result["ts_dead_code"].get("candidates", [])),
         "lenses": len([l for l in result["lenses"] if "path" in l]),
         "reviewers": len([r for r in result["reviewers"] if "path" in r]),
         "verifiers_to_launch": len(result["verifiers_to_launch"]),
+        # セレクタの失敗（error 行）も errors へ集約する。落とすと「レビュアー0体」が成功として通る（2026-08-20 C3）
+        # Selector failures are collected too; otherwise a zero-reviewer review passes as success
         "errors": [v.get("error") for v in
-                   (det, result["dead_member"]) if v.get("error")],
+                   (det, result["dead_member"], result["ts_dead_code"]) if v.get("error")]
+                  + [row["error"] for key in ("lenses", "reviewers") for row in result[key] if "error" in row],
     }
 
 

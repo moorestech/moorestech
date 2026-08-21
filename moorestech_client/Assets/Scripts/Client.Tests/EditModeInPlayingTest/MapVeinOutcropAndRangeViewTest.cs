@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapVein;
+using Client.Game.InGame.Map.Outcrop;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse.MapData;
@@ -18,22 +18,18 @@ namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
     /// テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する
-    /// 鉱脈の露頭が全vein分だけ地表に立つことと、設置プレビュー範囲表示が再入しても溜まらず消えることを実機検証する
+    /// 鉱脈の露頭が全vein分だけAABB中心へ立つことと、設置プレビュー範囲表示が再入しても溜まらず消えることを実機検証する
     /// This test runs in EditMode but switches to PlayMode during execution.
-    /// Verifies that one outcrop per vein stands on the surface and that the placement range view never accumulates or lingers.
+    /// Verifies that one outcrop per vein sits at its AABB center and that the placement range view never accumulates or lingers.
     /// </summary>
     public class MapVeinOutcropAndRangeViewTest
     {
-        // 露頭が地表に接しているとみなす許容差。真上から短いレイを落として接地を確かめる
-        // Tolerance for treating an outcrop as standing on the surface, checked by a short ray dropped from just above it
-        private const float GroundContactTolerance = 0.05f;
-
         // 本番の毎フレーム駆動を模して範囲表示をこのフレーム数だけ連続で叩く
         // Mimic production's per-frame driving by hitting the range view for this many consecutive frames
         private const int DrivenFrameCount = 3;
 
         [UnityTest]
-        public IEnumerator OutcropsStandOnSurfaceAndRangeViewIsReleasedOnEveryPreviewExit()
+        public IEnumerator OutcropsSitAtVeinAabbCenterAndRangeViewIsReleasedOnEveryPreviewExit()
         {
             EnterPlayModeUtil();
 
@@ -64,14 +60,14 @@ namespace Client.Tests.EditModeInPlayingTest
                 // With zero veins every later assertion would pass vacuously, so fail here first
                 Assert.IsNotEmpty(veinLayouts, "test world has no mapVeins");
 
-                await AssertOutcropsStandOnSurface(veinLayouts);
+                await AssertOutcropsSitAtVeinAabbCenter(veinLayouts);
                 await AssertRangeViewAppearsAndIsReleased(resolver.Resolve<IMapVeinRangeView>(), veinLayouts);
             }
 
-            async UniTask AssertOutcropsStandOnSurface(IReadOnlyList<VeinLayoutMessagePack> veinLayouts)
+            async UniTask AssertOutcropsSitAtVeinAabbCenter(IReadOnlyList<VeinLayoutMessagePack> veinLayouts)
             {
-                var datastore = Object.FindFirstObjectByType<MapVeinObjectDatastore>(FindObjectsInactive.Include);
-                Assert.IsNotNull(datastore, "MapVeinObjectDatastore was not found in scene");
+                var datastore = Object.FindFirstObjectByType<OutcropGameObjectDatastore>(FindObjectsInactive.Include);
+                Assert.IsNotNull(datastore, "OutcropGameObjectDatastore was not found in scene");
 
                 // 初期化と同じawait経路を通し、生成例外がfire-and-forgetへ逃げないことも固定する
                 // Use the same await path as startup, also pinning that generation exceptions cannot escape into fire-and-forget
@@ -82,20 +78,17 @@ namespace Client.Tests.EditModeInPlayingTest
                 {
                     // veinGuid名でひもづけ、どのveinの露頭がどこに立ったかを個別に突き合わせる
                     // Match by the veinGuid-based name so each vein's outcrop is checked against its own vein
-                    var outcrop = datastore.transform.Find($"{MapVeinObjectDatastore.OutcropObjectNamePrefix}{layout.VeinGuid}");
+                    var outcrop = datastore.transform.Find($"{OutcropGameObjectDatastore.OutcropObjectNamePrefix}{layout.VeinGuid}");
                     Assert.IsNotNull(outcrop, $"outcrop for veinGuid {layout.VeinGuid} was not instantiated");
 
-                    // ①AABB中心XZに立っていること。min/maxの取り違えやvein同士の取り違えはここで落ちる
-                    // (1) It stands at the AABB center XZ; a min/max mix-up or a vein mix-up fails here
+                    // AABB中心XYZに立っていること。min/maxの取り違えやvein同士の取り違えはここで落ちる
+                    // It sits at the AABB center XYZ; a min/max mix-up or a vein mix-up fails here
                     Assert.AreEqual((layout.MinX + layout.MaxX + 1) * 0.5f, outcrop.position.x, 0.001f, $"outcrop X for {layout.VeinGuid}");
                     Assert.AreEqual((layout.MinZ + layout.MaxZ + 1) * 0.5f, outcrop.position.z, 0.001f, $"outcrop Z for {layout.VeinGuid}");
 
-                    // 真上の短いレイで接地を確かめる。Y=0や鉱脈Yへのフォールバックはここで落ちる
-                    // A short ray from just above confirms ground contact; a Y=0 or vein-Y fallback fails here
-                    var probeOrigin = outcrop.position + Vector3.up;
-                    var isHit = Physics.Raycast(probeOrigin, Vector3.down, out var hit, 2f);
-                    Assert.IsTrue(isHit && hit.transform.TryGetComponent<GroundGameObject>(out _), $"outcrop for {layout.VeinGuid} is not standing on ground");
-                    Assert.AreEqual(outcrop.position.y, hit.point.y, GroundContactTolerance, $"outcrop Y for {layout.VeinGuid} is off the surface");
+                    // 地表Raycastを持たない裁定どおり、Yも地形ではなくAABB中心で決まる
+                    // Per the ruling that drops the ground raycast, Y is decided by the AABB center too, not by terrain
+                    Assert.AreEqual((layout.MinY + layout.MaxY + 1) * 0.5f, outcrop.position.y, 0.001f, $"outcrop Y for {layout.VeinGuid}");
                 }
             }
 

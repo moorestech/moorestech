@@ -16,14 +16,21 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
         // Floats use round-trippable "R"; truncating digits would treat a different window as the same key
         private const string RoundTripFormat = "R";
 
-        // 導出元は4つ: マスタ原文・地形バイナリのハッシュ・ノイズ窓原点・seed
+        // 導出元は5つ: マスタ原文・地形バイナリのハッシュ・ノイズ窓原点・seed・mapObject配置のダイジェスト
         // splatmapはSplatmapJobにworldOffsetとseedを直接渡すため、terrainHash(高さとバイオームのみ)では覆えない
-        // Four inputs: the master text, the terrain binaries' hash, the noise window origin, and the seed
+        // Five inputs: the master text, the terrain binaries' hash, the noise window origin, the seed, and the map object digest
         // The splatmap feeds worldOffset and seed straight into SplatmapJob, which terrainHash (heights and biomes only) cannot cover
         // シーン原点は含めない。Terrainの設置座標にしか効かず、画素の中身を1つも変えないため
         // The scene origin is left out: it only moves where the Terrain stands and changes no pixel of the content
-        public static string Compute(string generationMasterJsonText, string terrainHash, Vector2 noiseOrigin, int seed)
+        public static string Compute(
+            string generationMasterJsonText, string terrainHash, Vector2 noiseOrigin, int seed, byte[] mapObjectsDigest)
         {
+            // 空ダイジェストは「mapObjectが0本」と区別できない。木の摂動と距離場が丸ごと抜けた見た目が焼き付く
+            // An empty digest is indistinguishable from "zero map objects", baking in visuals that lost the tree perturbation and distance fields entirely
+            if (mapObjectsDigest == null || mapObjectsDigest.Length == 0)
+                throw new InvalidOperationException(
+                    "[TerrainVisualCacheKey] The map objects digest is empty: MapObjectsDigest always folds even an empty layout into a hash.");
+
             if (string.IsNullOrEmpty(generationMasterJsonText))
                 throw new InvalidOperationException(
                     "[TerrainVisualCacheKey] The generation master JSON text is empty: a generated world always owns one.");
@@ -39,16 +46,25 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Cache
                 terrainHash,
                 seed.ToString(CultureInfo.InvariantCulture),
                 noiseOrigin.x.ToString(RoundTripFormat, CultureInfo.InvariantCulture),
-                noiseOrigin.y.ToString(RoundTripFormat, CultureInfo.InvariantCulture));
+                noiseOrigin.y.ToString(RoundTripFormat, CultureInfo.InvariantCulture),
+                ToHex(mapObjectsDigest));
 
             return ToSha256Hex(keySource);
-        }
 
-        private static string ToSha256Hex(string text)
-        {
-            using var sha256 = SHA256.Create();
-            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(text));
-            return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
+            #region Internal
+
+            string ToSha256Hex(string text)
+            {
+                using var sha256 = SHA256.Create();
+                return ToHex(sha256.ComputeHash(Encoding.UTF8.GetBytes(text)));
+            }
+
+            string ToHex(byte[] bytes)
+            {
+                return BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
+            }
+
+            #endregion
         }
     }
 }

@@ -1,12 +1,15 @@
+using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Map.MapObject;
+using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Skit;
 using Client.Game.InGame.Tutorial;
 using Client.Game.Skit;
 using Client.Skit.Skit;
 using Client.Skit.UI;
+using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
 using Server.Boot;
 using UnityEngine;
@@ -41,16 +44,20 @@ namespace Client.DebugSystem.Skit
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(environmentRoot);
             builder.RegisterComponent(skitUI);
-            builder.RegisterInstance<IMapObjectPin>(new MapObjectTest());
+            // SkitManagerはIReadOnlyList<ITutorialWorldPin>でピンをまとめて抑止する
+            // SkitManager suppresses pins as a whole through IReadOnlyList<ITutorialWorldPin>
+            builder.RegisterInstance<IReadOnlyList<ITutorialWorldPin>>(new List<ITutorialWorldPin> { new MapObjectTest() });
 
-            // テストシーンにmapObject/エンティティは存在しないのでSetActive先の空オブジェクトだけ用意する
-            // The test scene has no map objects or entities, so provide empty objects purely as SetActive targets
+            // テストシーンに実体が無いためSetActive先の空ダミーのみ用意
+            // The test scene has no real objects, so provide empty dummies purely as SetActive targets
             var mapObjectDatastore = CreateChildComponent<MapObjectGameObjectDatastore>();
+            var outcropDatastore = CreateChildComponent<OutcropGameObjectDatastore>();
             var entityObjectDatastore = CreateChildComponent<EntityObjectDatastore>();
 
             // RegisterComponentはビルド時に強制Resolveしサーバ応答必須のConstructを走らせるためRegisterInstanceを使う
             // RegisterComponent force-resolves at build time and would run Construct, which needs a server response, so use RegisterInstance
-            builder.RegisterInstance(mapObjectDatastore);
+            builder.RegisterInstance(mapObjectDatastore).AsSelf().As<ISkitWorldObjectControl>();
+            builder.RegisterInstance(outcropDatastore).AsSelf().As<ISkitWorldObjectControl>();
             builder.RegisterInstance(entityObjectDatastore);
 
             // 依存関係を解決

@@ -59,15 +59,16 @@ export default function TreeView<T>(props: Props<T>) {
     </>
   ), [bounds, byId, getId, getPosition, getPrevIds, nodes, renderNode]);
 
-  // 保存が無い初回のみ、最初のデータ到着時に注目点を中央へ据える（以後の状態変化で視界を飛ばさない）
-  // Center once when data first arrives without a stored viewport (later state changes never jump the view)
+  // 保存が無い初回のみ、注目点が定まった最初の機会に中央へ据える（以後の状態変化で視界を飛ばさない）
+  // Center once when a focus point first exists without a stored viewport (later state changes never jump the view)
+  // サーバー状態未着のtopic初回配信は注目点を持たないため、届くまで一度きりの権利を消費しない
+  // The first topic push lacks server states and thus a focus point, so don't burn the one-shot before it arrives
   const hasCentered = useRef(false);
   useLayoutEffect(() => {
-    if (hasCentered.current || storedAtMount || nodes.length === 0) return;
+    if (hasCentered.current || storedAtMount || nodes.length === 0 || !initialFocus) return;
     const element = viewportElement.current;
     if (!element || element.offsetWidth === 0) return;
     hasCentered.current = true;
-    if (!initialFocus) return;
     // データ到着前にズーム済みの場合もあるため現在のscaleを保つ
     // Keep the current scale in case the user zoomed before data arrived
     setViewport((current) => centerViewportOn(toTreeCanvasPoint(initialFocus, bounds),

@@ -33,6 +33,9 @@ ui.blockInventory.gearNetworkSummary,Supply {generated} / required {required},Su
 ui.blockInventory.stopReasonLocked,Locked,Locked,ロック
 ui.blockInventory.stopReasonInsufficientPower,Insufficient power,Insufficient power,パワー不足
 ui.blockInventory.powerRateSummary,Power {rate}% ({current}/{required}),Power {rate}% ({current}/{required}),電力 {rate}% ({current}/{required})
+ui.blockInventory.machineStateIdle,Standby,Standby,待機中
+ui.blockInventory.machineStateProcessing,Operating,Operating,稼働中
+ui.blockInventory.machineStateHalted,Halted,Halted,停止中
 ui.blockInventory.trainPlatformLoad,Load,Load,積込
 ui.blockInventory.trainPlatformUnload,Unload,Unload,卸し
 ui.blockInventory.trainPlatformCapacity,Capacity: {capacity},Capacity: {capacity},容量: {capacity}
@@ -74,10 +77,13 @@ ui.notification.unlockedMachineRecipe,New machine recipe unlocked,New machine re
 ui.notification.unlockedBlock,New block unlocked,New block unlocked,新しいブロックを解放しました
 ui.notification.unlockedTrainCar,New train car unlocked,New train car unlocked,新しい車両を解放しました
 ui.notification.unlockedConnectTool,New connect tool unlocked,New connect tool unlocked,新しい接続ツールを解放しました
+ui.notification.unlockedBlueprint,Blueprint unlocked,Blueprint unlocked,ブループリントが解放されました
+ui.notification.blueprintNotUnlocked,Blueprint failed: blueprint is not unlocked,Blueprint failed: blueprint is not unlocked,ブループリント操作に失敗しました: ブループリントが未解放です
 ui.notification.researchNotCompletable,Cannot complete research (prerequisites or materials missing),Cannot complete research (prerequisites or materials missing),研究を完了できません（前提条件または素材が不足しています）
 ui.notification.craftResultFull,Cannot craft: inventory is full,Cannot craft: inventory is full,クラフトできません: インベントリが満杯です
 ui.notification.craftMaterialShortage,Cannot craft: not enough materials,Cannot craft: not enough materials,クラフトできません: 素材が不足しています
 ui.notification.removeTrainCarInventoryFull,Cannot remove train car: inventory is full,Cannot remove train car: inventory is full,車両を取り外せません: インベントリが満杯です
+ui.notification.miningInventoryFull,Some mined items were lost: inventory is full,Some mined items were lost: inventory is full,採掘したアイテムを一部失いました: インベントリが満杯です
 ui.notification.placeBlockNotUnlocked,Some blocks were not placed: not unlocked yet,Some blocks were not placed: not unlocked yet,一部のブロックを設置できませんでした: 未解放です
 ui.notification.placeBlockCostShortage,Some blocks were not placed: not enough materials,Some blocks were not placed: not enough materials,一部のブロックを設置できませんでした: 素材が不足しています
 ui.notification.placeBlockWireShortage,Some blocks were not placed: not enough wires,Some blocks were not placed: not enough wires,一部のブロックを設置できませんでした: 電線が不足しています
@@ -103,6 +109,7 @@ ui.notification.electricWireExtendFailed,Wiring failed,Wiring failed,配線に�
 ui.notification.electricWireDisconnectNotConnected,Disconnect failed: not connected,Disconnect failed: not connected,接続されていないため切断できませんでした
 ui.notification.electricWireDisconnectInventoryFull,Disconnect failed: inventory is full,Disconnect failed: inventory is full,インベントリが満杯のため切断できませんでした
 ui.notification.electricWireDisconnectFailed,Disconnect failed,Disconnect failed,切断に失敗しました
+ui.notification.itemEarned,+{count},+{count},+{count}
 ui.notification.unknownMessage,Unknown notification: {messageId},Unknown notification: {messageId},不明な通知: {messageId}
 ui.pauseMenu.title,Pause Menu,Pause Menu,ポーズメニュー
 ui.pauseMenu.disconnected,Disconnected from server,Disconnected from server,サーバーから切断されました
@@ -113,14 +120,8 @@ ui.recipe.materialTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCo
 ui.recipe.itemCountSummary,{ownedCount}/{requiredCount},{ownedCount}/{requiredCount},{ownedCount}/{requiredCount}
 ui.recipe.duration,{seconds} seconds,{seconds} seconds,{seconds}秒
 ui.recipe.holdToCraft,Hold to craft (keep holding to craft continuously),Hold to craft (keep holding to craft continuously),長押しでクラフト（押し続けで連続クラフト）
-ui.recipe.craft,Craft,Craft,クラフト
+ui.recipe.craftButtonLabel,Craft,Craft,クラフト
 ui.recipe.noRecipes,There are no recipes for this item,There are no recipes for this item,このアイテムのレシピはありません
-ui.recipe.previousRecipe,Previous recipe,Previous recipe,前のレシピ
-ui.recipe.previousSymbol,<,<,<
-ui.recipe.pageIndicator,{current}/{count},{current}/{count},{current}/{count}
-ui.recipe.nextRecipe,Next recipe,Next recipe,次のレシピ
-ui.recipe.nextSymbol,>,>,>
-ui.recipe.craftTab,Craft,Craft,クラフト
 ui.research.closeSymbol,×,×,×
 ui.research.completed,Researched,Researched,研究済み
 ui.research.action,Research,Research,研究
@@ -131,6 +132,14 @@ ui.research.missingItemsAndPrerequisites,Not enough research items.\nPrerequisit
 ui.research.inventoryHint,{shortcut}: Inventory,{shortcut}: Inventory,{shortcut}: インベントリ
 ui.research.closeHint,{shortcut}: Close,{shortcut}: Close,{shortcut}: 閉じる
 ui.research.title,Research,Research,研究
+ui.research.consumeItemsLabel,Required items,Required items,必要アイテム
+ui.research.consumeItemTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount}
+ui.research.unlockBlocksLabel,Unlocks: Blocks,Unlocks: Blocks,解放: ブロック
+ui.research.unlockMachineRecipesLabel,Unlocks: Machine recipes,Unlocks: Machine recipes,解放: 機械レシピ
+ui.research.unlockItemsLabel,Unlocks: Items,Unlocks: Items,解放: アイテム
+ui.research.rewardItemsLabel,Reward items,Reward items,報酬アイテム
+ui.research.unlockOthersLabel,Unlocks: Others,Unlocks: Others,解放: その他
+ui.research.unlockFluidSummary,{fluidName} {amount},{fluidName} {amount},{fluidName} {amount}
 ui.skit.auto,Auto,Auto,自動
 ui.skit.skip,Skip,Skip,スキップ
 ui.skit.hideUi,Hide UI,Hide UI,UIを非表示
@@ -153,6 +162,7 @@ ui.blueprint.webModalMessage,Enter a name for the blueprint you want to save,Ent
 ui.blueprint.webModalConfirm,Save,Save,保存
 ui.tooltip.pickUpLeftClick,Left-click to pick up,Left-click to pick up,左クリックで取得
 ui.tooltip.requiredItems,Requires: {p0},Requires: {p0},このアイテムが必要です: {p0}
+ui.tooltip.cannotHandMine,Cannot be mined by hand,Cannot be mined by hand,手掘りできません
 ui.tooltip.craftCannotByItemShortage,Not enough items to craft,Not enough items to craft,アイテムが足りないためクラフトできません
 ui.tooltip.retiredUguiSlotText,{p0},{p0},{p0}
 ui.delete.differentCategorySelection,Blocks from different categories cannot be selected at the same time.,Blocks from different categories cannot be selected at the same time.,別カテゴリーのブロックは同時に選択できません。

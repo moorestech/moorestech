@@ -42,7 +42,7 @@ async function main() {
   // レシピを1件選択して選択枠を表示させる（状態パリティの要件）
   // Select one recipe so the selection frame is visible (state-parity requirement)
   await page.getByTestId("item-list-grid").locator("> div").first().click();
-  await page.locator('[class*="_recipeBox_"]').waitFor();
+  await page.locator('[class*="_recipeBox_"]').first().waitFor();
 
   // Webフォントのロード完了を待ち、主要要素の実効フォントを記録する（フォント未適用の撮影を防ぐ）
   // Wait for web fonts and log effective fonts on key elements (prevents capturing with fallback fonts)

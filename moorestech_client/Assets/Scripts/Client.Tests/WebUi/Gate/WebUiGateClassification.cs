@@ -66,7 +66,6 @@ namespace Client.Tests.WebUi.Gate
         public static readonly IReadOnlyList<Rule> Rules = new List<Rule>
         {
             // --- ゲートルート（ゲート参照必須） / Gated roots (gate reference required)
-            new Rule("Client.Game/InGame/UI/Inventory/HotBarView.cs", Category.GatedRoot, "常駐ホットバーHUD"),
             new Rule("Client.Game/InGame/UI/Inventory/Main/PlayerInventoryViewController.cs", Category.GatedRoot, "インベントリ"),
             new Rule("Client.Game/InGame/UI/Inventory/RecipeViewer/RecipeViewerView.cs", Category.GatedRoot, "レシピビューア/クラフト"),
             new Rule("Client.Game/InGame/UI/Inventory/Block/Research/ResearchTreeViewManager.cs", Category.GatedRoot, "研究ツリー"),
@@ -107,9 +106,12 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/Mining", Category.Excluded, "ワールド空間表示のためUnity残置。画面固定進捗は既存ui.progressへ統合 (C2)"),
             new Rule("Client.Game/InGame/Tutorial/UIHighlight", Category.Infra, "uGUIフォールバック撤去済み・DOMハイライト一本化 (C4/T3)"),
             new Rule("Client.Game/InGame/Tutorial/MapObjectPin.cs", Category.Excluded, "ワールド座標ピンのためUnity残置"),
+            new Rule("Client.Game/InGame/Tutorial/VeinPin.cs", Category.Excluded, "鉱脈露頭を指すワールド座標ピンのためUnity残置"),
             new Rule("Client.Game/InGame/Tutorial/BlockPlacePreviewTutorialManager.cs", Category.Excluded, "3D配置previewのためUnity残置"),
             new Rule("Client.Game/InGame/Tutorial/TutorialBlock", Category.Excluded, "3D配置preview配下"),
             new Rule("Client.Game/InGame/Tutorial", Category.Infra, "challenge lifecycle・presentation state・interface"),
+            new Rule("Client.Game/Skit/SkitWorldObjectControlGroup.cs", Category.Excluded, "Environment外のワールド表示物を束ねる切替でスクリーンUIを持たない"),
+            new Rule("Client.Game/Skit/SkitVisibilityLedger.cs", Category.Excluded, "スキットが消したワールド表示の復元台帳でスクリーンUIを持たない"),
             new Rule("Client.Skit", Category.CoveredByRoot, "SkitManagerがUI Toolkit rootをWebモード時に抑止 (C4/S2-S3)"),
             new Rule("Client.CutScene", Category.Pending, "C4: カットシーン退避（GameStateType Topic化）"),
         };

@@ -60,6 +60,21 @@ describe("WebSocket bridge initialization", () => {
     expect(openedUrls).toEqual(["ws://example.test/ws"]);
   });
 
+  // https配信でws:のままだとmixed contentでブラウザが接続を拒否し、UIが何も描画されないまま止まる
+  // Keeping ws: under https makes the browser refuse the connection outright, leaving the UI blank
+  it("initBridge はページのスキームに合わせ https では wss を使う", async () => {
+    const { initBridge } = await import("./webSocketClient");
+
+    const original = location.protocol;
+    Object.defineProperty(location, "protocol", { value: "https:", configurable: true });
+    try {
+      initBridge();
+      expect(openedUrls).toEqual(["wss://example.test/ws"]);
+    } finally {
+      Object.defineProperty(location, "protocol", { value: original, configurable: true });
+    }
+  });
+
   it("initBridge は命令的読み出し対象を pin し一時購読解除後も最新値を保持する", async () => {
     const { initBridge } = await import("./webSocketClient");
     const { subscriptions } = await import("./subscriptionManager");
@@ -125,5 +140,5 @@ function fixtureFor(topic: string) {
   if (topic === "ui.modal") return {};
   if (topic === "block_inventory.current") return { open: false };
   if (topic === "ui_state.current") return { state: "GameScreen" };
-  return { mainSlots: [], hotbarSlots: [], grab: { itemId: 0, count: 0 }, selectedHotbar: 0, equipment: [], selectedEquipment: -1, equipmentSelectionConfirmationRevision: 0 };
+  return { mainSlots: [], grab: { itemId: 0, count: 0 }, equipment: [], selectedEquipment: -1, equipmentSelectionConfirmationRevision: 0 };
 }

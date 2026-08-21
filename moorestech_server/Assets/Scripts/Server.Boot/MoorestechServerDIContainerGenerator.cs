@@ -18,10 +18,12 @@ using Game.EnergySystem;
 using Game.Entity;
 using Game.Entity.Interface;
 using Game.Gear.Common;
+using Game.Hotbar;
 using Game.Map;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
+using Game.PlacementTarget;
 using Game.Paths;
 using Game.PlayerConnection;
 using Game.PlayerInventory;
@@ -152,7 +154,9 @@ namespace Server.Boot
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();
+            services.AddSingleton<MiningCooldownService>();
             services.AddSingleton<MapObjectMiningService>();
+            services.AddSingleton<VeinHandMiningService>();
             // 具象はMasterTickUpdaterの再構築用、Lookup/Mutationは読み書きの契約別。全て同一インスタンスを共有する
             // The concrete type serves MasterTickUpdater's rebuild; Lookup/Mutation split read and write contracts. All share one instance
             services.AddSingleton<ElectricWireNetworkDatastore>();
@@ -181,12 +185,19 @@ namespace Server.Boot
             services.AddSingleton<IRailGraphNodeRemovalListener>(initializerProvider.GetService<TrainRailPositionManager>());
 
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
+            // 解放状態を読むだけの利用者へは操作APIを渡さない
+            // Consumers that only read the unlock state never receive the mutating API
+            services.AddSingleton<IGameUnlockStateData>(provider => provider.GetService<IGameUnlockStateDataController>());
             services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
             services.AddSingleton(itemStackLevelDataStore);
             services.AddSingleton<IItemStackLevelLookup>(itemStackLevelDataStore);
             services.AddSingleton<IItemStackLevelUnlocker>(itemStackLevelDataStore);
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
+            services.AddSingleton<PlacementTargetCatalog>();
+            services.AddSingleton<HotbarAssignmentDatastore>();
+            services.AddSingleton<IHotbarAssignmentLookup>(provider => provider.GetRequiredService<HotbarAssignmentDatastore>());
+            services.AddSingleton<IHotbarAssignmentMutation>(provider => provider.GetRequiredService<HotbarAssignmentDatastore>());
 
             services.AddSingleton<ResearchEvent>();
 
@@ -254,6 +265,7 @@ namespace Server.Boot
             services.AddSingleton<ItemStackLevelUnlockEventPacket>();
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
+            services.AddSingleton<HotbarUpdateEventPacket>();
             services.AddSingleton<UnlockedEventPacket>();
             services.AddSingleton<RailNodeCreatedEventPacket>();
             services.AddSingleton<RailConnectionCreatedEventPacket>();

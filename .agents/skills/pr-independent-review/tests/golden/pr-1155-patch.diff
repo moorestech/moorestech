@@ -1,0 +1,673 @@
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs
+index 401cc497c..666abe84f 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs
+@@ -26,16 +26,18 @@ namespace Game.Block.Blocks.CleanRoom.Machine
+         public ProcessState CurrentState { get; private set; }
+         public bool IsPolluting => CurrentState == ProcessState.Processing;
+ 
+-        // 停止中は要求電力を0にし、稼働中だけ通常機械と同じ倍率を適用する
++        // 停止中は0、稼働中は通常機械と同じ倍率
+         // Halted machines request no power; operating states use the same multipliers as normal machines
+-        public float EffectiveRequestPower => CurrentState switch
++        public float EffectiveRequestPowerRate => CurrentState switch
+         {
+             ProcessState.Halted => 0f,
+-            ProcessState.Processing => _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier,
+-            ProcessState.Idle => _context.RequestPower * _idlePowerRate,
++            ProcessState.Processing => _context.ProcessingPowerMultiplier,
++            ProcessState.Idle => _idlePowerRate,
+             _ => throw new ArgumentOutOfRangeException(),
+         };
+ 
++        public float EffectiveRequestPower => _context.RequestPower * EffectiveRequestPowerRate;
++
+         public IObservable<Unit> OnChangeBlockState => _changeState;
+         private readonly Subject<Unit> _changeState = new();
+ 
+@@ -50,6 +52,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine
+         private CleanRoomEffect _cleanRoomEffect = new(false, 0, 0);
+         private ProcessState _lastState = ProcessState.Idle;
+ 
++        // CurrentPowerのラッチと同位置で確定するstate公開用の要求電力（読み出し時の再導出による分子分母ズレを防ぐ）
++        // Request power for state publishing, latched at the same point as CurrentPower to avoid a numerator/denominator mismatch on readout
++        private float _publishedRequestPower;
++
+         public CleanRoomMachineProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
+         {
+             _blockInstanceId = blockInstanceId;
+@@ -66,13 +72,19 @@ namespace Game.Block.Blocks.CleanRoom.Machine
+                     _processingState,
+                     new HaltedMachineProcessState(_processingState, () => _cleanRoomEffect.CanOperate),
+                 }.ToDictionary(handler => handler.State);
++
++            // 初回GetBlockStateDetailsがUpdate前に呼ばれても妥当な値を返せるよう初期化する
++            // Initialize so GetBlockStateDetails returns a sane value even if called before the first Update
++            _publishedRequestPower = EffectiveRequestPower;
+         }
+ 
+         public BlockStateDetail[] GetBlockStateDetails()
+         {
+             BlockException.CheckDestroy(this);
+             var processingRate = Mathf.Clamp01(_processingState.TotalTicks > 0 ? 1f - (float)_processingState.RemainingTicks / _processingState.TotalTicks : 0f);
+-            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _context.RequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
++            // 充足率表示のためstateには基礎値でなく実効要求電力を載せる（ADR 0010）
++            // Publish the effective request power (not the base) so the client rate reads as satisfaction (ADR 0010)
++            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _publishedRequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
+             var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid, SelectedRecipeGuid);
+             return new[] { commonMachineBlock, machineBlock };
+         }
+@@ -134,6 +146,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
+             // Latch the previous tick's power before evaluating clean-room gated transitions
+             _context.CurrentPower = _context.SuppliedPower;
+             _context.SuppliedPower = 0f;
++            // 分子（CurrentPower）と同じ地点・同じ状態基準でstate公開用の要求電力を確定する
++            // Latch the state-published request power at the same point and state basis as CurrentPower
++            _publishedRequestPower = EffectiveRequestPower;
+             if (!_cleanRoomEffect.CanOperate && CurrentState != ProcessState.Halted)
+             {
+                 ForceHaltedWithoutCompletingJob();
+@@ -156,6 +171,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine
+                 // Processing.OnExit pays outputs, so a clean-room loss freezes without invoking it
+                 CurrentState = ProcessState.Halted;
+                 _stateHandlers[ProcessState.Halted].OnEnter();
++
++                // Halted中はSupplyExternalPowerの再通知が無く恒久固着するため、突入時に分子分母を0で確定する
++                // Halted never re-notifies via SupplyExternalPower, so pin both current and published power to zero on entry to avoid a permanent stale snapshot
++                _context.CurrentPower = 0f;
++                _publishedRequestPower = 0f;
+             }
+             void UpdateCurrentState()
+             {
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs
+index 466c1e54b..9dacbf791 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs
+@@ -22,6 +22,10 @@ namespace Game.Block.Blocks.Machine.State
+         public float SuppliedPower;
+         public float CurrentPower;
+ 
++        // 加工中の効果倍率を1箇所から取得し、processorのEffectiveRequestPowerRateと計算式を共有する
++        // Single source for the processing power multiplier so it stays in sync with the processor's EffectiveRequestPowerRate
++        public float ProcessingPowerMultiplier => EffectComponent.AggregateCurrent().PowerMultiplier;
++
+         public MachineProcessContext(
+             VanillaMachineInputInventory inputInventory,
+             VanillaMachineOutputInventory outputInventory,
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs
+index b7355455e..e8522f043 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs
+@@ -13,13 +13,11 @@ namespace Game.Block.Blocks.Machine
+     {
+         private readonly GearEnergyTransformer _gearEnergyTransformer;
+         private readonly VanillaMachineProcessorComponent _vanillaMachineProcessorComponent;
+-        private readonly float _idleTorqueRate;
+ 
+-        public VanillaGearMachineComponent(VanillaMachineProcessorComponent vanillaMachineProcessorComponent, GearEnergyTransformer gearEnergyTransformer, float idleTorqueRate)
++        public VanillaGearMachineComponent(VanillaMachineProcessorComponent vanillaMachineProcessorComponent, GearEnergyTransformer gearEnergyTransformer)
+         {
+             _vanillaMachineProcessorComponent = vanillaMachineProcessorComponent;
+             _gearEnergyTransformer = gearEnergyTransformer;
+-            _idleTorqueRate = idleTorqueRate;
+ 
+             // 加工状態の変化に応じて要求トルク倍率を変更要求する
+             // Push the torque request rate whenever the processing state changes
+@@ -37,8 +35,9 @@ namespace Game.Block.Blocks.Machine
+ 
+         private void UpdateTorqueRequestRate()
+         {
+-            var isProcessing = _vanillaMachineProcessorComponent.CurrentState == ProcessState.Processing;
+-            _gearEnergyTransformer.SetTorqueRequestRate(isProcessing ? 1f : _idleTorqueRate);
++            // 表示の分母・加工速度と同じ導出（EffectiveRequestPowerRate）をそのまま歯車網への要求へ反映する
++            // Feed the gear network the same derivation used for the display denominator and processing speed (EffectiveRequestPowerRate)
++            _gearEnergyTransformer.SetTorqueRequestRate(_vanillaMachineProcessorComponent.EffectiveRequestPowerRate);
+         }
+ 
+         public bool IsDestroy { get; private set; }
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs
+index 572825d8b..adbbb6869 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs
+@@ -24,10 +24,13 @@ namespace Game.Block.Blocks.Machine
+         public float CurrentPower => _context.CurrentPower;
+         public ProcessState CurrentState { get; private set; }
+ 
++        // 稼働状態に応じてアイドル倍率かモジュール倍率を選ぶ要求電力率。歯車機械の要求トルク率もここから導出する
++        // Requested power rate selecting the idle rate or module multiplier by state; the gear machine's requested torque rate also derives from here
++        public float EffectiveRequestPowerRate => CurrentState == ProcessState.Processing ? _context.ProcessingPowerMultiplier : _idlePowerRate;
++
+         // 稼働状態に応じてアイドル倍率かモジュール倍率を適用した要求電力
+         // Requested power applies the idle rate or module multiplier based on the active state
+-        public float EffectiveRequestPower => _context.RequestPower *
+-                                              (CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : _idlePowerRate);
++        public float EffectiveRequestPower => _context.RequestPower * EffectiveRequestPowerRate;
+ 
+         public IObservable<Unit> OnChangeBlockState => _changeState;
+         private readonly Subject<Unit> _changeState = new();
+@@ -36,9 +39,13 @@ namespace Game.Block.Blocks.Machine
+         private readonly Dictionary<ProcessState, IMachineProcessState> _stateHandlers;
+         private readonly ProcessingMachineProcessState _processingState;
+         private readonly float _idlePowerRate;
+-        
++
+         private ProcessState _lastState = ProcessState.Idle;
+ 
++        // CurrentPowerのラッチと同位置で確定するstate公開用の要求電力（読み出し時の再導出による分子分母ズレを防ぐ）
++        // Request power for state publishing, latched at the same point as CurrentPower to avoid a numerator/denominator mismatch on readout
++        private float _publishedRequestPower;
++
+         // 新規作成
+         // For new creation
+         public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
+@@ -76,6 +83,10 @@ namespace Game.Block.Blocks.Machine
+                     new IdleMachineProcessState(_context, _processingState),
+                     _processingState,
+                 }.ToDictionary(handler => handler.State);
++
++            // 初回GetBlockStateDetailsがUpdate前に呼ばれても妥当な値を返せるよう初期化する
++            // Initialize so GetBlockStateDetails returns a sane value even if called before the first Update
++            _publishedRequestPower = EffectiveRequestPower;
+         }
+ 
+         public BlockStateDetail[] GetBlockStateDetails()
+@@ -83,7 +94,9 @@ namespace Game.Block.Blocks.Machine
+             BlockException.CheckDestroy(this);
+ 
+             var processingRate = Mathf.Clamp01(_processingState.TotalTicks > 0 ? 1f - (float)_processingState.RemainingTicks / _processingState.TotalTicks : 0f);
+-            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _context.RequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
++            // 充足率表示のためstateには基礎値でなく実効要求電力を載せる（ADR 0010）
++            // Publish the effective request power (not the base) so the client rate reads as satisfaction (ADR 0010)
++            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _publishedRequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
+             
+             var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid, SelectedRecipeGuid);
+             return new[] { commonMachineBlock, machineBlock };
+@@ -153,6 +166,10 @@ namespace Game.Block.Blocks.Machine
+             _context.CurrentPower = _context.SuppliedPower;
+             _context.SuppliedPower = 0f;
+ 
++            // 分子（CurrentPower）と同じ地点・同じ状態基準でstate公開用の要求電力を確定する
++            // Latch the state-published request power at the same point and state basis as CurrentPower
++            _publishedRequestPower = EffectiveRequestPower;
++
+             // ステートのアップデートと変更処理
+             // State update and transition handling
+             var current = CurrentState;
+diff --git a/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomMachineTest.cs b/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomMachineTest.cs
+index c1fb1a3bc..13558f31e 100644
+--- a/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomMachineTest.cs
++++ b/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomMachineTest.cs
+@@ -7,10 +7,13 @@ using Game.Block.Blocks.Machine;
+ using Game.Block.Interface;
+ using Game.Block.Interface.Component;
+ using Game.Block.Interface.Extension;
++using Game.Block.Interface.State;
+ using Game.CleanRoom;
+ using Game.Context;
+ using Game.EnergySystem;
++using MessagePack;
+ using NUnit.Framework;
++using System.Linq;
+ using Tests.Module.TestMod;
+ using Tests.Util;
+ using UnityEngine;
+@@ -92,6 +95,12 @@ namespace Tests.CombinedTest.Core.CleanRoom
+             // Wait for purity convergence and explicitly prove the machine entered processing
+             for (var i = 0; i < 200 && processor.CurrentState != ProcessState.Processing; i++) TickRoom();
+             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
++            // state公開値は前tick基準でラッチされるため、遷移直後の1tickだけ古い値を挟んでから実効値に揃う
++            // The published state latches on the previous tick's basis, so it trails by one tick right after a transition before matching the effective value
++            TickRoom();
++            // state要求電力は基礎でなく実効値
++            // Lock in that the state carries the effective request power, not the raw base value
++            Assert.AreEqual(machineConsumer.EffectiveRequestPower, GetCommonMachineState(machine).RequestPower, 0.01f);
+ 
+             // 完了前の進捗を作ってから壁を壊し、途中停止の対象を明確にする
+             // Accumulate partial progress before breaking the wall so the freeze target is unambiguous
+@@ -104,6 +113,9 @@ namespace Tests.CombinedTest.Core.CleanRoom
+             for (var i = 0; i < 50 && processor.CurrentState != ProcessState.Halted; i++) TickRoom();
+             Assert.AreEqual(ProcessState.Halted, processor.CurrentState);
+             Assert.AreEqual(0, machineConsumer.EffectiveRequestPower);
++            // Halted中はstateの要求電力も0で張り付くこと（基礎値へ戻す退行を検出する）
++            // The state's request power must also latch to 0 while halted, catching a regression to the base value
++            Assert.AreEqual(0f, GetCommonMachineState(machine).RequestPower, 0.01f);
+ 
+             // 長い停止中も出力が生えず、処理が勝手に完了しないことを確認する
+             // During a long outage, output must not appear and processing must not complete silently
+@@ -209,6 +221,16 @@ namespace Tests.CombinedTest.Core.CleanRoom
+             }
+         }
+ 
++        // GetBlockStateDetails結果をデシリアライズ
++        // Deserialize the result of GetBlockStateDetails
++        private static CommonMachineBlockStateDetail GetCommonMachineState(IBlock machine)
++        {
++            var stateObservable = machine.GetComponent<IBlockStateObservable>();
++            var details = stateObservable.GetBlockStateDetails();
++            var detail = details.First(d => d.Key == CommonMachineBlockStateDetail.BlockStateDetailKey);
++            return MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(detail.Value);
++        }
++
+         #endregion
+     }
+ }
+diff --git a/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineFluidIOTest.cs b/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineFluidIOTest.cs
+index 3a88b2ce6..6f81570cd 100644
+--- a/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineFluidIOTest.cs
++++ b/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineFluidIOTest.cs
+@@ -313,8 +313,10 @@ namespace Tests.CombinedTest.Core
+             var initialDetails = stateObservable.GetBlockStateDetails();
+             var machineParam = blockMaster.BlockParam as ElectricMachineBlockParam;
+             var requiredPower = machineParam?.RequiredPower ?? 100;
+-            // アイドル状態でも要求電力は表示される
+-            ValidateMachineBlockStateDetails(initialDetails, "idle", 0f, requiredPower, 0f);
++            var idlePowerRate = machineParam?.IdlePowerRate ?? 0.2f;
++            // idle中の要求電力は実効値（基礎×idlePowerRate）になる（ADR 0010）
++            // While idle the requested power is the effective value (base × idlePowerRate) per ADR 0010
++            ValidateMachineBlockStateDetails(initialDetails, "idle", 0f, requiredPower * idlePowerRate, 0f);
+             
+             // 電力を供給（アイドル状態でも通知が発生するはず）
+             Debug.Log("Supplying power in idle state...");
+@@ -513,7 +515,7 @@ namespace Tests.CombinedTest.Core
+                 {
+                     Debug.Log($"Processing with partial power: Current={current}, Requested={requested}, Rate={rate}");
+                     Assert.AreEqual(requiredPower / 2, current, 1f, "部分的な電力供給が正しく反映されていません");
+-                    Assert.AreEqual(requiredPower, requested, 1f, "要求電力が正しくありません");
++                    Assert.AreEqual(machineComponent.EffectiveRequestPower, requested, 1f, "要求電力が正しくありません");
+                     Assert.Greater(rate, 0f, "部分的な電力でも処理が進んでいません");
+                     Assert.Less(rate, 1f, "部分的な電力で最大速度になっています");
+                     break;
+diff --git a/moorestech_web/webui/e2e/capture-machine-qa.ts b/moorestech_web/webui/e2e/capture-machine-qa.ts
+new file mode 100644
+index 000000000..0bea94b39
+--- /dev/null
++++ b/moorestech_web/webui/e2e/capture-machine-qa.ts
+@@ -0,0 +1,177 @@
++// Task 7 目視QA: 機械UI改修（ADR 0010）の矢印グリフ・中心線・フッタ・タブ順を撮影して実測する
++// Task 7 visual QA: capture and measure the machine UI refresh (ADR 0010) arrow glyph, center line, footer, and tab order
++
++import { createHash } from "node:crypto";
++import { mkdir, readFile, writeFile } from "node:fs/promises";
++import { join } from "node:path";
++import { chromium, type Page } from "@playwright/test";
++import { WebSocketServer } from "ws";
++
++const PORT = Number(process.env.CAPTURE_PORT ?? 5411);
++const OUT_DIR = process.env.CAPTURE_OUT_DIR ?? "/tmp/machine-qa";
++const VIEWPORT = { width: 1280, height: 720 } as const;
++const CROP_PADDING_PX = 40;
++
++async function shotWithBox(page: Page, name: string, box: { x: number; y: number; width: number; height: number } | null, padding = CROP_PADDING_PX) {
++  if (box === null) throw new Error(`${name}: bounding box missing`);
++  const x = Math.max(0, box.x - padding);
++  const y = Math.max(0, box.y - padding);
++  const width = Math.min(VIEWPORT.width - x, box.width + padding * 2);
++  const height = Math.min(VIEWPORT.height - y, box.height + padding * 2);
++  const path = join(OUT_DIR, name);
++  await page.screenshot({ path, clip: { x, y, width, height } });
++  return path;
++}
++
++async function main() {
++  process.env.MOCK_DEMO = "1";
++  const { createMockHttpServer } = await import("./mock-host/httpHandler");
++  const { attachWsHandlers } = await import("./mock-host/wsHandler");
++  const server = createMockHttpServer();
++  const wss = new WebSocketServer({ server, path: "/ws" });
++  await new Promise<void>((resolve) => server.listen(PORT, resolve));
++  attachWsHandlers(wss);
++  await mkdir(OUT_DIR, { recursive: true });
++
++  const browser = await chromium.launch();
++  const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 2 });
++  const manifest: Record<string, unknown> = {};
++
++  async function captureCraft() {
++    const page = await context.newPage();
++    await page.goto(`http://127.0.0.1:${PORT}/`);
++    await page.getByRole("heading", { name: "CRAFT RECIPE" }).waitFor();
++    await page.getByTestId("item-list-grid").locator("> div").first().click();
++    await page.locator('[class*="_recipeBox_"]').waitFor();
++    await page.evaluate("document.fonts.ready.then(() => undefined)");
++    await page.mouse.move(2, 2);
++    await page.waitForTimeout(300);
++    const arrow = page.getByTestId("craft-progress-arrow");
++    const arrowBox = await arrow.boundingBox();
++    await page.screenshot({ path: join(OUT_DIR, "craft-full.png") });
++    await shotWithBox(page, "craft-arrow-crop.png", arrowBox, 24);
++    manifest.craftArrowBox = arrowBox;
++    await page.close();
++  }
++
++  async function captureMachine() {
++    const page = await context.newPage();
++    await page.request.get(`http://127.0.0.1:${PORT}/__block?type=machine`);
++    await page.goto(`http://127.0.0.1:${PORT}/`);
++    await page.getByTestId("block-inventory").waitFor();
++    await page.evaluate("document.fonts.ready.then(() => undefined)");
++    await page.mouse.move(2, 2);
++    await page.waitForTimeout(300);
++
++    // タブ順・初期タブの実測（レシピ選択が先頭・選択済みなのでインベントリが初期表示）
++    // Measure tab order and initial tab (recipes first; selected recipe defaults to the inventory tab)
++    const tabButtons = page.getByTestId("machine-tab-switch").locator("button");
++    manifest.machineTabOrder = await tabButtons.evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")));
++    manifest.machineInitialTabPressed = await page.getByTestId("machine-tab-inventory").getAttribute("aria-pressed");
++
++    const panel = page.getByTestId("block-inventory");
++    const arrow = page.getByTestId("machine-progress-arrow");
++    const processRow = page.locator('[class*="_processRow_"]');
++    const inputSlots = page.getByTestId("machine-input-slots");
++    const outputSlots = page.getByTestId("machine-output-slots");
++    const stateLabel = page.getByTestId("machine-state-label");
++    const powerRate = page.getByTestId("machine-power-rate");
++
++    const [panelBox, arrowBox, processRowBox, inputBox, outputBox, stateLabelBox, powerRateBox] = await Promise.all([
++      panel.boundingBox(),
++      arrow.boundingBox(),
++      processRow.boundingBox(),
++      inputSlots.boundingBox(),
++      outputSlots.boundingBox(),
++      stateLabel.boundingBox(),
++      powerRate.boundingBox(),
++    ]);
++
++    await page.screenshot({ path: join(OUT_DIR, "machine-full.png") });
++    await shotWithBox(page, "machine-arrow-crop.png", arrowBox, 24);
++    await shotWithBox(page, "machine-processrow-crop.png", processRowBox, 16);
++    if (panelBox && stateLabelBox && powerRateBox) {
++      const footerTop = Math.min(stateLabelBox.y, powerRateBox.y) - 16;
++      await page.screenshot({
++        path: join(OUT_DIR, "machine-footer-crop.png"),
++        clip: { x: panelBox.x, y: footerTop, width: panelBox.width, height: panelBox.y + panelBox.height - footerTop },
++      });
++    }
++
++    manifest.machineArrowBox = arrowBox;
++    manifest.machineProcessRowBox = processRowBox;
++    manifest.machinePanelBox = panelBox;
++    manifest.machineInputBox = inputBox;
++    manifest.machineOutputBox = outputBox;
++    manifest.machineStateLabelText = await stateLabel.textContent();
++    manifest.machinePowerRateText = await powerRate.textContent();
++    if (arrowBox && processRowBox) {
++      manifest.machineArrowCenterX = arrowBox.x + arrowBox.width / 2;
++      manifest.processRowCenterX = processRowBox.x + processRowBox.width / 2;
++      manifest.centerDeltaPx = Math.abs((arrowBox.x + arrowBox.width / 2) - (processRowBox.x + processRowBox.width / 2));
++    }
++    if (panelBox && stateLabelBox) {
++      manifest.footerBottomMarginPx = panelBox.y + panelBox.height - (stateLabelBox.y + stateLabelBox.height);
++    }
++    await page.close();
++  }
++
++  async function captureGearMachine() {
++    const page = await context.newPage();
++    await page.request.get(`http://127.0.0.1:${PORT}/__block?type=gearMachine`);
++    await page.goto(`http://127.0.0.1:${PORT}/`);
++    await page.getByTestId("block-inventory").waitFor();
++    await page.evaluate("document.fonts.ready.then(() => undefined)");
++    await page.mouse.move(2, 2);
++    await page.waitForTimeout(300);
++
++    const tabButtons = page.getByTestId("machine-tab-switch").locator("button");
++    manifest.gearMachineTabOrder = await tabButtons.evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")));
++    manifest.gearMachineInitialTabPressed = await page.getByTestId("machine-tab-recipes").getAttribute("aria-pressed");
++    manifest.gearMachineRecipeSelectionVisible = await page.getByTestId("machine-recipe-selection").isVisible();
++
++    const stateLabel = page.getByTestId("machine-state-label");
++    const powerRate = page.getByTestId("machine-power-rate");
++    manifest.gearMachineStateLabelText = await stateLabel.textContent();
++    manifest.gearMachinePowerRateText = await powerRate.textContent();
++    const panel = page.getByTestId("block-inventory");
++    const [panelBox, stateLabelBox, powerRateBox] = await Promise.all([
++      panel.boundingBox(),
++      stateLabel.boundingBox(),
++      powerRate.boundingBox(),
++    ]);
++
++    await page.screenshot({ path: join(OUT_DIR, "gearmachine-full.png") });
++    if (panelBox && stateLabelBox && powerRateBox) {
++      const footerTop = Math.min(stateLabelBox.y, powerRateBox.y) - 16;
++      await page.screenshot({
++        path: join(OUT_DIR, "gearmachine-footer-crop.png"),
++        clip: { x: panelBox.x, y: footerTop, width: panelBox.width, height: panelBox.y + panelBox.height - footerTop },
++      });
++    }
++    await page.close();
++  }
++
++  await captureCraft();
++  await captureMachine();
++  await captureGearMachine();
++
++  const files = await Promise.all(
++    ["craft-full.png", "craft-arrow-crop.png", "machine-full.png", "machine-arrow-crop.png", "machine-processrow-crop.png", "machine-footer-crop.png", "gearmachine-full.png", "gearmachine-footer-crop.png"]
++      .map(async (name) => {
++        try {
++          const buf = await readFile(join(OUT_DIR, name));
++          return { name, sha256: createHash("sha256").update(buf).digest("hex") };
++        } catch {
++          return { name, sha256: null };
++        }
++      }),
++  );
++  await writeFile(join(OUT_DIR, "manifest.json"), `${JSON.stringify({ generatedAt: new Date().toISOString(), viewport: VIEWPORT, ...manifest, captures: files }, null, 2)}\n`);
++
++  await browser.close();
++  wss.close();
++  await new Promise<void>((resolve) => server.close(() => resolve()));
++}
++
++void main();
+diff --git a/moorestech_web/webui/src/features/blockInventory/details/MachineSection.tsx b/moorestech_web/webui/src/features/blockInventory/details/MachineSection.tsx
+index 999c6b398..ad6d7bc9b 100644
+--- a/moorestech_web/webui/src/features/blockInventory/details/MachineSection.tsx
++++ b/moorestech_web/webui/src/features/blockInventory/details/MachineSection.tsx
+@@ -4,16 +4,18 @@ import { Topics, useTopic } from "@/bridge";
+ import type { BlockInventoryOpen } from "@/bridge";
+ import { ItemSlot, ModeSwitch } from "@/shared/ui";
+ import { L, useI18n } from "@/shared/i18n";
++import LackHighlightText from "./LackHighlightText";
+ import PowerRateText from "./PowerRateText";
++import { isMachineStateInsufficient, isPowerRateMeaningful, machineStateTranslationKey } from "./detailLogic";
+ import MachineInventoryBody from "./machine/MachineInventoryBody";
+ import MachineRecipeSelectionTab from "./machine/MachineRecipeSelectionTab";
+-import { buildMachineRecipeSelectionRows } from "./machine/machineRecipeSelectionLogic";
++import { buildMachineRecipeSelectionRows, machineInitialTab } from "./machine/machineRecipeSelectionLogic";
+ 
+ // 機械: レシピ有りはインベントリ/レシピ選択の2タブ、レシピ無しは従来スタック
+ // Machine: recipe-capable machines get inventory/recipe tabs; others keep the plain stack
+ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
+   const machineRecipes = useTopic(Topics.machineRecipes);
+-  const [tab, setTab] = useState("inventory");
++  const [tab, setTab] = useState<string>(() => machineInitialTab(data.machine?.selectedRecipeGuid));
+   const { t } = useI18n();
+   if (!data.machine) return null;
+   const machine = data.machine;
+@@ -23,11 +25,17 @@ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
+     machine.blockGuid,
+     machine.selectedRecipeGuid,
+   );
+-  // 電力率は稼働状態の常時視認のため、タブの外の共通フッタとして中央揃えで表示する
+-  // The power rate stays visible on both tabs as a centered common footer for at-a-glance status
++  // 状態ラベル+充足率を共通フッタに表示
++  // The state label and satisfaction rate stay visible on both tabs as the shared footer (ADR 0010)
++  const stateKey = machineStateTranslationKey(machine.currentState);
+   const powerRate = (
+-    <Group justify="center">
+-      <PowerRateText currentPower={machine.currentPower} requestPower={machine.requestPower} testId="machine-power-rate" />
++    <Group justify="center" gap="xs">
++      <LackHighlightText insufficient={isMachineStateInsufficient(machine.currentState)} size="sm" testId="machine-state-label">
++        {t(stateKey)}
++      </LackHighlightText>
++      {isPowerRateMeaningful(machine.requestPower) && (
++        <PowerRateText currentPower={machine.currentPower} requestPower={machine.requestPower} testId="machine-power-rate" />
++      )}
+     </Group>
+   );
+ 
+@@ -50,8 +58,8 @@ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
+         value={tab}
+         onChange={setTab}
+         options={[
+-          { value: "inventory", label: t(L.ui.blockInventory.inventoryTab), testId: "machine-tab-inventory" },
+           { value: "recipes", label: t(L.ui.blockInventory.recipeSelectionTab), testId: "machine-tab-recipes" },
++          { value: "inventory", label: t(L.ui.blockInventory.inventoryTab), testId: "machine-tab-inventory" },
+         ]}
+         testId="machine-tab-switch"
+       />
+diff --git a/moorestech_web/webui/src/features/blockInventory/details/detailLogic.ts b/moorestech_web/webui/src/features/blockInventory/details/detailLogic.ts
+index a9dfc8c9b..3ca424093 100644
+--- a/moorestech_web/webui/src/features/blockInventory/details/detailLogic.ts
++++ b/moorestech_web/webui/src/features/blockInventory/details/detailLogic.ts
+@@ -1,4 +1,4 @@
+-import type { GearNetworkStopReason } from "@/bridge";
++import type { GearNetworkStopReason, MachineProcessState } from "@/bridge";
+ import { clamp01 } from "@/shared/clamp01";
+ import { L, type TranslationKey } from "@/shared/i18n";
+ 
+@@ -43,3 +43,33 @@ const GearStopReasonKeys: Record<GearNetworkStopReason, TranslationKey | null> =
+   rocked: L.ui.blockInventory.stopReasonLocked,
+   overRequirePower: L.ui.blockInventory.stopReasonInsufficientPower,
+ };
++
++// 機械の稼働状態→表示ラベル。%が待機を意味しなくなった分、状態はラベルで示す（ADR 0010）
++// Machine state → label key; the rate no longer encodes standby, so the state gets its own label (ADR 0010)
++export function machineStateTranslationKey(currentState: MachineProcessState): TranslationKey {
++  return MachineStateKeys[currentState];
++}
++
++const MachineStateKeys: Record<MachineProcessState, TranslationKey> = {
++  idle: L.ui.blockInventory.machineStateIdle,
++  processing: L.ui.blockInventory.machineStateProcessing,
++  halted: L.ui.blockInventory.machineStateHalted,
++};
++
++// haltedのみ不足トーン。語彙は上表と同じ集合を参照
++// Only halted gets the insufficient tone (--text-insufficient); shares the same state vocabulary as the table above
++export function isMachineStateInsufficient(currentState: MachineProcessState): boolean {
++  return MachineStateInsufficientTone[currentState];
++}
++
++const MachineStateInsufficientTone: Record<MachineProcessState, boolean> = {
++  idle: false,
++  processing: false,
++  halted: true,
++};
++
++// 要求電力0（停止中）は充足率が意味を持たないため、表示自体を出さない判断をここで確定する
++// A request power of 0 (halted) makes the satisfaction rate meaningless, so the decision to hide it is settled here
++export function isPowerRateMeaningful(requestPower: number): boolean {
++  return requestPower !== 0;
++}
+diff --git a/moorestech_web/webui/src/shared/ui/ProgressArrowGlyph/index.tsx b/moorestech_web/webui/src/shared/ui/ProgressArrowGlyph/index.tsx
+new file mode 100644
+index 000000000..c01faa88b
+--- /dev/null
++++ b/moorestech_web/webui/src/shared/ui/ProgressArrowGlyph/index.tsx
+@@ -0,0 +1,52 @@
++import { useId } from "react";
++import { clamp01 } from "@/shared/clamp01";
++import styles from "./style.module.css";
++
++// 矢印pathと水平範囲・viewBox
++// The arrow path, its horizontal extent, and viewBox size
++const ARROW_PATH = "M2 27H69V2L119 39L69 76V51H2Z";
++const ARROW_LEFT = 2;
++const ARROW_RIGHT = 119;
++const VIEWBOX_WIDTH = 121;
++const VIEWBOX_HEIGHT = 78;
++// clip矩形の幅はpath水平範囲から導き、path編集時のズレを防ぐ
++// Derive the clip width from the path extent so editing the path cannot desync it
++const ARROW_SPAN = ARROW_RIGHT - ARROW_LEFT;
++
++// 矢印がゲージ本体（§8.13）。寸法はトークン参照で自己保持
++// The arrow glyph itself is the progress gauge (webui-design §8.13); the default size is owned by this component via token references
++export default function ProgressArrowGlyph({ value, testId }: { value: number; testId: string }) {
++  const filled = clamp01(value);
++  // 矢印が並んでもclipが混線しないようidを一意化する
++  // Keep clip ids unique so several arrows never share one clip
++  const instanceId = useId();
++  // useIdのidは":r0:"形式で、コロンはurl(#…)参照を壊すため除去する
++  // useId returns ":r0:"-style ids and the colons break url(#…) references, so strip them
++  const clipId = `progress-arrow-fill-${instanceId.replace(/:/g, "")}`;
++
++  return (
++    <div
++      className={styles.arrow}
++      data-testid={testId}
++      role="progressbar"
++      aria-valuemin={0}
++      aria-valuemax={1}
++      aria-valuenow={filled}
++    >
++      {/* 溝→充填→輪郭の3層。充填だけを進捗幅で切り出す */}
++      {/* Track, fill, and outline layers; only the fill is clipped to the progress width */}
++      <svg className={styles.glyph} viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`} aria-hidden="true">
++        <defs>
++          <clipPath id={clipId}>
++            <rect x={ARROW_LEFT} y={0} width={ARROW_SPAN * filled} height={VIEWBOX_HEIGHT} />
++          </clipPath>
++        </defs>
++        <path className={styles.track} d={ARROW_PATH} />
++        <path className={styles.fill} d={ARROW_PATH} clipPath={`url(#${clipId})`} />
++        {/* 輪郭はclip外・最上層に置き、充填境界で形が途切れないようにする */}
++        {/* The outline skips the clip and sits on top so the silhouette never breaks at the fill edge */}
++        <path className={styles.outline} d={ARROW_PATH} />
++      </svg>
++    </div>
++  );
++}
+diff --git a/moorestech_web/webui/src/shared/ui/ProgressArrowGlyph/style.module.css b/moorestech_web/webui/src/shared/ui/ProgressArrowGlyph/style.module.css
+new file mode 100644
+index 000000000..9e69f0ffd
+--- /dev/null
++++ b/moorestech_web/webui/src/shared/ui/ProgressArrowGlyph/style.module.css
+@@ -0,0 +1,34 @@
++/* 既定寸法はクラフト矢印と同値のトークンを直接参照する。呼び出し側は寸法を持たない */
++/* Default size references the craft-arrow tokens directly; callers no longer size this themselves */
++.arrow {
++  width: var(--craft-arrow-width);
++  height: var(--craft-arrow-height);
++}
++/* 正本の柔らかな影を再現する（parity diff-inventory 項目32） */
++/* Reproduce the reference's soft shadow (parity diff-inventory item 32) */
++.glyph {
++  display: block;
++  width: 100%;
++  height: 100%;
++  overflow: visible;
++  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 45%));
++}
++/* 溝はGaugeBarと同じ--gauge-track。空の器であることが他のゲージと同じトーンで読める */
++/* The track reuses GaugeBar's --gauge-track so an empty vessel reads in the same tone as every other gauge */
++.track {
++  fill: var(--gauge-track);
++}
++/* 充填だけは--gauge-fillでなく正本の白を引き継ぐ。uGUI正本の白矢印がクラフト完了状態の見た目そのものであり、
++   value=1で正本と一致させるため（ユーザー裁定・webui-design §8.13） */
++/* The fill keeps the reference white instead of --gauge-fill: uGUI's white arrow *is* the completed-craft look,
++   so value=1 matches the reference (user ruling, webui-design §8.13) */
++.fill {
++  fill: var(--color-content-primary);
++}
++/* 輪郭は塗りを持たず、溝でも充填でも矢印の形が読めるようにする */
++/* The outline carries no fill so the silhouette stays readable over both track and fill */
++.outline {
++  fill: none;
++  stroke: var(--craft-arrow-outline);
++  stroke-width: 2px;
++}
+diff --git a/moorestech_web/webui/src/shared/ui/index.ts b/moorestech_web/webui/src/shared/ui/index.ts
+index 3fcb03438..61d320a1c 100644
+--- a/moorestech_web/webui/src/shared/ui/index.ts
++++ b/moorestech_web/webui/src/shared/ui/index.ts
+@@ -6,6 +6,7 @@ export { default as BlockSlot } from "./BlockSlot";
+ export { default as FluidSlot } from "./FluidSlot";
+ export { default as FluidSlotRow } from "./FluidSlotRow";
+ export { default as ProgressArrow } from "./ProgressArrow";
++export { default as ProgressArrowGlyph } from "./ProgressArrowGlyph";
+ export { default as SlotGrid } from "./SlotGrid";
+ export { useSlotMouse } from "./useSlotMouse";
+ export { default as GamePanel } from "./GamePanel";

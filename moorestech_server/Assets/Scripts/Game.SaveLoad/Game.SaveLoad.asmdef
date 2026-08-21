@@ -17,7 +17,8 @@
     "Game.Research",
     "Game.Train",
     "Game.PlayerRiding.Interface",
-    "Game.Blueprint"
+    "Game.Blueprint",
+    "Game.Hotbar"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

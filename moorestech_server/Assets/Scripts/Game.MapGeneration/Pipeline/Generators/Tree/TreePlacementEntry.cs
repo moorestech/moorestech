@@ -19,6 +19,12 @@ namespace Game.MapGeneration.Pipeline.Generators
             System.Random rng, List<PlacementEntry> placements)
         {
             int res = dims.Resolution;
+
+            // ノイズは全てワールド座標で引く。近傍グリッドと高さの添字だけがタイルローカルのまま。
+            // Every noise sample is world-space; only the neighbour grid and the heightmap index stay tile-local.
+            float worldX = point.x + dims.WorldOffsetX;
+            float worldZ = point.y + dims.WorldOffsetZ;
+
             float normX = point.x / dims.TerrainWidth;
             float normZ = point.y / dims.TerrainLength;
             int hx = Mathf.Clamp(Mathf.RoundToInt(normX * (res - 1)), 0, res - 1);
@@ -51,29 +57,27 @@ namespace Game.MapGeneration.Pipeline.Generators
             float weight = 1f;
             if (entry.slopeFilter.enabled)
             {
-                float n = TreePlacementCommon.SampleFilterNoise(entry.slopeFilter.noise, point.x, point.y, noiseOffsets,
-                    dims.TerrainWidth, dims.TerrainLength);
+                float n = TreePlacementCommon.SampleFilterNoise(entry.slopeFilter.noise, worldX, worldZ, noiseOffsets, dims);
                 weight *= entry.slopeFilter.Evaluate(slope, n);
             }
             if (entry.curvatureFilter.enabled)
             {
-                float n = TreePlacementCommon.SampleFilterNoise(entry.curvatureFilter.noise, point.x, point.y, noiseOffsets,
-                    dims.TerrainWidth, dims.TerrainLength);
+                float n = TreePlacementCommon.SampleFilterNoise(entry.curvatureFilter.noise, worldX, worldZ, noiseOffsets, dims);
                 weight *= entry.curvatureFilter.Evaluate(curvature, n);
             }
             if (weight <= 0f) return;
             if (weight < 1f && (float)rng.NextDouble() > weight) return;
 
-            // クラスタリングノイズ（texture ソースはスキーマ化で削除済み）。
-            // Clustering noise (texture source removed by schema migration).
-            if (entry.clusterNoise.noiseType != MapNoiseType.None)
+            // クラスタリングノイズ。ノイズタイプ None でもテクスチャ源があれば有効。
+            // Clustering noise; still active with noiseType None as long as a texture source is present.
+            if (entry.clusterNoise.IsActive)
             {
                 float noise1 = ManagedNoise.SamplePlacementNoise(entry.clusterNoise,
-                    point.x, point.y, noiseOffsets, dims.TerrainWidth, dims.TerrainLength);
-                if (entry.clusterNoise2.noiseType != MapNoiseType.None)
+                    worldX, worldZ, noiseOffsets, dims.GridOriginX, dims.GridOriginZ, dims.GridWidth, dims.GridLength);
+                if (entry.clusterNoise2.IsActive)
                 {
                     float noise2 = ManagedNoise.SamplePlacementNoise(entry.clusterNoise2,
-                        point.x, point.y, noiseOffsets, dims.TerrainWidth, dims.TerrainLength);
+                        worldX, worldZ, noiseOffsets, dims.GridOriginX, dims.GridOriginZ, dims.GridWidth, dims.GridLength);
                     noise1 = ManagedNoise.CombineNoise(noise1, noise2, entry.noise2Op);
                 }
                 float threshold = entry.clusterNoiseThreshold;

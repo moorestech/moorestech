@@ -23,7 +23,6 @@ export type ActionPayloads = {
   "inventory.collect": { slot: SlotRef };
   "inventory.split_drag": { slots: SlotRef[] };
   "inventory.sort": Record<string, never>;
-  "inventory.select_hotbar": { index: number };
   // index は -1（素手）から装備スロット数-1 まで
   // index ranges from -1 (bare hands) to the equipment slot count minus one
   "inventory.select_equipment": { index: number };
@@ -35,6 +34,12 @@ export type ActionPayloads = {
   // A placement target is addressed by a single GUID; build_menu.select and blueprint.delete share the id vocabulary
   "build_menu.select": { id: string };
   "blueprint.delete": { id: string };
+  // クリック選択のみ。数字キーはUnity側HotbarKeyInputに一本化する(二重経路禁止)
+  // Click selection only; digit keys are unified into the Unity-side HotbarKeyInput (no dual path)
+  "hotbar.select": { index: number };
+  "hotbar.assign": { slot: number; id: string };
+  "hotbar.clear": { slot: number };
+  "hotbar.swap": { from: number; to: number };
   "block_inventory.move_item": { from: BlockSlotRef; to: BlockSlotRef; count: number };
   "block_inventory.split": { from: BlockSlotRef };
   "block_inventory.collect": { slot: BlockSlotRef };
@@ -52,7 +57,7 @@ export type ActionPayloads = {
   "train_platform.set_transfer_mode": { mode: "loadToTrain" | "unloadToPlatform" };
   "debug.echo": { hello: string };
   "tutorial.anchor_ack": {
-    tutorialSessionId: string; revision: number; highlightId: string; anchorId: string;
+    tutorialSessionId: string; revision: number; elementId: string; anchorId: string;
     status: "ready" | "not-found" | "hidden";
     reason: "mounted" | "missing" | "duplicate-anchor" | "display-none" | "visibility-hidden" | "aria-hidden" | "zero-area" | "outside-viewport";
   };
@@ -71,12 +76,15 @@ export const ACTION_TYPES = [
   "inventory.collect",
   "inventory.split_drag",
   "inventory.sort",
-  "inventory.select_hotbar",
   "inventory.select_equipment",
   "craft.execute",
   "ui.modal.respond",
   "build_menu.select",
   "blueprint.delete",
+  "hotbar.select",
+  "hotbar.assign",
+  "hotbar.clear",
+  "hotbar.swap",
   "block_inventory.move_item",
   "block_inventory.split",
   "block_inventory.collect",

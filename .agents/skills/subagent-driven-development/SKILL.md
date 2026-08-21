@@ -15,31 +15,53 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 **継続実行:** タスクの合間に人間パートナーへ確認を取るために止まらない。計画の全タスクを止まらずに実行する。止まってよい理由は、解決できないBLOCKED状態、真に進行を妨げる曖昧さ、または全タスク完了のみ。「続けてよいですか？」という確認や進捗サマリーは相手の時間の無駄になる — 彼らは計画の実行を依頼したのだから、実行せよ。
 
+## 規模ゲート: 既定はインライン実装（2026-08-18 実測に基づく）
+
+計画があっても、**規模が閾値未満ならこのスキルを使わずインラインで実装するのが既定**である。SDDの実装subagent自体は安いが、派遣往復によるコントローラーの肥大とタスクごとのレビューゲートが固定費として乗る（実測: 1計画あたり$40〜90相当 + 本体ループ肥大。実装subagentは大型セッション総額の6〜25%に過ぎなかった）。
+
+**インラインで実装する条件（すべて満たすならインライン。AND）:**
+
+1. **予想変更が約15ファイル以下**、かつ
+2. **予想変更が全体で約1,000行以下**、かつ
+3. **計画の独立タスクが7個以下**、かつ
+4. 実装と並行した**長いデバッグ・実機e2e往復が見込まれない**（調査churnがコンテキストを食う）、かつ
+5. **並列実行したい独立タスク群が無い**
+
+**この5つを全部満たすならSDDを使わずインラインで実装する。** 1つでも外れた場合（約15ファイル超／約1,000行超／独立タスク8個以上／長いデバッグ往復あり／並列実行したい）だけSDDを発動する。インラインの場合も最終レビュー1本（moores-code-review）は省略しない。worktree隔離が必要なだけならworktree + インラインでよく、SDDの理由にはならない。
+
+**タスク数の数え方:** 数えるのは**実装タスク**である。実サービス・実機での動作確認タスク、最終レビュータスク、コミット/PR作成タスクのような、コードを書かない末尾の定型タスクは数に含めない。計画のタスク見出しを機械的に数えて発動判定をしないこと（2026-08-20: 実装4タスク・4ファイルの計画を「タスク6個」と数えてSDDを発動した実例がある）。
+
+**閾値の根拠（両Mac 130+セッションのtranscript実測、2026-08-18）:** インライン実装は編集約20ファイル・読み書き合計約45ファイルまでcompaction発生ゼロで完走している（25〜32ファイルも読み込みが少なければ可）。編集25〜30ファイル超または長いデバッグ往復を伴うと高頻度でcompactionし、文脈喪失は「完了済みタスクの再派遣」級の最も高くつく失敗につながる。15ファイルはこの実測限界に対する安全マージンである。
+
+**判定は必ず声に出す。** 最初のsubagent派遣より前に、数えた実装タスク数・予想ファイル数・判定結果を1行でユーザーへ出す（例:「実装4タスク・4ファイル → インライン」）。黙って派遣を始めると、誤判定はsubagentが1本走り終えるまで是正されない（2026-08-20の実例）。
+
+**ユーザーがスキル名を明示して起動した場合もゲートは評価する。** 閾値未満なら「この規模ならインラインが既定です」と1行述べてから指示に従う。名指し起動はゲートの免除ではない。
+
+**途中切替:** インラインで始めて、半分に達する前にコンテキスト残量が3割を切ったら、そこで止めて残りのタスクをこのスキル（subagent派遣）に切り替える。進捗台帳（下記）に切替点を記録する。
+
 ## 使用場面
 
 ```dot
 digraph when_to_use {
     "Have implementation plan?" [shape=diamond];
+    "Over size gate? (>~15 files / >~1000 lines / 8+ impl tasks / long debug loop / want parallel)" [shape=diamond];
     "Tasks mostly independent?" [shape=diamond];
-    "Stay in this session?" [shape=diamond];
     "subagent-driven-development" [shape=box];
-    "executing-plans" [shape=box];
+    "Parallel session execution" [shape=box];
     "Manual execution or brainstorm first" [shape=box];
+    "Inline implementation + final review" [shape=box];
+    "Stay in this session?" [shape=diamond];
 
-    "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
+    "Have implementation plan?" -> "Over size gate? (>~15 files / >~1000 lines / 8+ impl tasks / long debug loop / want parallel)" [label="yes"];
     "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
+    "Over size gate? (>~15 files / >~1000 lines / 8+ impl tasks / long debug loop / want parallel)" -> "Tasks mostly independent?" [label="yes"];
+    "Over size gate? (>~15 files / >~1000 lines / 8+ impl tasks / long debug loop / want parallel)" -> "Inline implementation + final review" [label="no - below gate"];
     "Tasks mostly independent?" -> "Stay in this session?" [label="yes"];
     "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
     "Stay in this session?" -> "subagent-driven-development" [label="yes"];
-    "Stay in this session?" -> "executing-plans" [label="no - parallel session"];
+    "Stay in this session?" -> "Parallel session execution" [label="no - parallel session"];
 }
 ```
-
-**vs. Executing Plans（並列セッション）:**
-- 同一セッション（コンテキスト切り替えなし）
-- タスクごとに新規subagent（コンテキスト汚染なし）
-- 各タスク後にレビュー（spec準拠＋コード品質）、最後に広範なレビュー
-- 高速なイテレーション（タスク間でhuman-in-loopなし）
 
 ## ワークスペース隔離（タスク1派遣前・必須）
 
@@ -119,7 +141,7 @@ digraph process {
     "Read plan, note context and global constraints, create todos" [shape=box];
     "More tasks remain?" [shape=diamond];
     "Run final whole-branch review: moores-code-review skill" [shape=box];
-    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+    "Finish branch (commit, create PR via pr-create, resolve conflicts vs master)" [shape=box style=filled fillcolor=lightgreen];
 
     "Ensure isolated worktree (create, or verify already inside one)" -> "Read plan, note context and global constraints, create todos";
     "Read plan, note context and global constraints, create todos" -> "Dispatch implementer subagent (./implementer-prompt.md)";
@@ -135,7 +157,7 @@ digraph process {
     "Mark task complete in todo list and progress ledger" -> "More tasks remain?";
     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
     "More tasks remain?" -> "Run final whole-branch review: moores-code-review skill" [label="no"];
-    "Run final whole-branch review: moores-code-review skill" -> "Use superpowers:finishing-a-development-branch";
+    "Run final whole-branch review: moores-code-review skill" -> "Finish branch (commit, create PR via pr-create, resolve conflicts vs master)";
 }
 ```
 
@@ -149,6 +171,15 @@ digraph process {
 - スキップできる唯一の方法は、人間がこのセッション内で自分の言葉で明示的にスキップを指示した場合のみ。その指示を進捗台帳に記録すること。
 - 計画を書く・レビューする際は、タスクリストの末尾に明示的な最終タスクがあることを確認する: 「必ず最後にmoores-code-reviewスキルで全ブランチ
   レビューを実行する」。計画にこれが無い場合は自分のtodoリストに追加すること — タスク行の欠落はゲートを免除しない。
+
+## セッション終了可能化（PR作成）も必須の自動ゲートである
+
+最終レビュー完了後、**pr-createスキルでPRを作成し、セッションをそのまま閉じられる状態にする**ところまでがこのプロセスの一部である。「全タスク完了」はPR未作成なら完了ではない:
+
+- 全作業をコミット・pushし、pr-createスキルでPRを作成する（既存PRがあればpushで更新する）。
+- masterとのコンフリクトがある場合は、masterをブランチへマージして解消し、コンパイル（.cs変更時）を確認してからpushする。解消の実作業は**opus subagent**へ委譲する（pr-createスキルのステップ5がこの委譲を含む）。解消内容が設計判断を伴う場合のみユーザーに諮る。
+- 「実装は完了しました。PRが必要なら作成します」という言葉でセッションを終えてはならない — それはPR作成をスキップしたことになる。
+- スキップできる唯一の方法は、人間がこのセッション内で明示的に「PRは不要」と指示した場合のみ。その指示を進捗台帳に記録すること。計画にこのタスク行が無くてもゲートは免除されない。
 
 ## 事前計画レビュー
 
@@ -215,9 +246,10 @@ Implementer subagentは4つのステータスのいずれかを報告する。�
 - レビュアーに渡すglobal-constraintsブロックは彼らの注意のレンズである。計画のGlobal Constraintsセクションまたはspecから、拘束力ある要件を逐語的にコピーすること: 正確な値、正確なフォーマット、コンポーネント間で述べられている関係性（「Xと同じレイアウト」「Yと一致」）。レビュアーのテンプレートにはすでにプロセスのルール（YAGNI、テスト衛生、レビュー手法）が含まれている — constraintsブロックはこのプロジェクトのspecが要求する内容のためのものである。
 - レビュアーにはdiffをファイルとして渡すこと: このスキルの`scripts/review-package BASE HEAD`を実行し、表示されたファイルパスをレビュアーに渡す（bashが無い場合は`git log --oneline`、`git diff --stat`、範囲に対する`git diff -U10`を、一意な名前の1ファイルにリダイレクトする）。出力は自分自身のコンテキストには一切入らず、レビュアーはコミット一覧・stat要約・コンテキスト付き全diffを1回のRead呼び出しで見られる。implementerを派遣する前に記録したBASEを使うこと — 決して`HEAD~1`ではない。これは複数コミットタスクを無言で切り詰める。
 - 派遣プロンプトは1つのタスクを記述するものであり、セッションの履歴ではない。蓄積された前タスクの要約（「タスク1〜3後の状態」）を後続の派遣に貼り付けないこと — 実セッションのある派遣は42k文字に達し、その99%が貼り付けられた履歴だった。新規subagentが必要とするのは自分のタスク、触れるインターフェース、global constraintsだけである。それ以外は不要。
-- Critical・Important所見にはfix subagentを派遣すること。Minor所見は進捗台帳に記録し、最終ブランチ全体レビューにそのリストを参照させ、マージ前に修正すべきものを判定させる。誰も読まないロールアップは無言の握りつぶしである。
+- Critical・Important所見にはfix subagentを派遣すること。fix派遣にはレビュー報告ファイルのパスを渡し、所見の転記はしない。Minor所見は進捗台帳に記録し、最終ブランチ全体レビューにそのリストを参照させ、マージ前に修正すべきものを判定させる。誰も読まないロールアップは無言の握りつぶしである。
 - plan-mandatedとラベル付けされた所見 — あるいは計画のテキストが要求する内容と矛盾する所見 — は、あらゆる計画との矛盾と同様に人間の判断事項である: 所見と計画テキストを提示し、どちらを優先するか尋ねる。計画が義務付けているという理由で所見を却下したり、計画と矛盾する修正を確認なしに派遣したりしないこと。
 - 最終ブランチ全体レビューは**moores-code-reviewスキル**である（単一のレビュアーsubagentではなくSkillツール経由で呼び出す）。これは必須の自動ゲートである — 上記「最終ブランチ全体レビューは必須の自動ゲートである」を参照。決定論チェックとmoorestech設計レンズを並列実行し、所見を統合する。まずブランチdiffを`scripts/review-package MERGE_BASE HEAD`で生成し（MERGE_BASE = ブランチが分岐したコミット、例: `git merge-base main HEAD`）、表示されたファイルをスキルのPATCH_PATHとして使う。Minor所見台帳をレンズエージェント群の4カテゴリコンテキストに投入し、トリアージさせること。
+- fix派遣プロンプトには`implementer-contract.md`の**絶対パス**も含める（fixはimplementer契約を担うが、fix subagentは契約ファイルの場所を自力では知らない）。
 - すべてのfix派遣はimplementer契約を担う: fix subagentは自分の変更をカバーするテストを再実行し結果を報告する。派遣時にカバーするテストファイル名を挙げること — 1行の修正にスイート全体は不要。レビュアーを再派遣する前に、fix報告にカバーするテスト・実行したコマンド・出力が含まれていることを確認し、この3つが揃ってから再レビューを派遣する。
 - 最終ブランチ全体レビューで所見が返ってきた場合、所見1件につき1体ではなく、完全な所見リストを持った**単一の**fix subagentを派遣すること。所見ごとのfixerはそれぞれコンテキストを再構築しスイートを再実行するため、実セッションのある最終レビューのfix waveは全タスク合計より高コストになった。
 
@@ -227,8 +259,10 @@ Implementer subagentは4つのステータスのいずれかを報告する。�
 
 - **タスクブリーフ:** implementerを派遣する前に、このスキルの`scripts/task-brief PLAN_FILE N`を実行する — タスクの全文を一意な名前のファイルに抽出し、パスを表示する。ブリーフを唯一の要件ソースとして保つよう派遣を組み立てる。派遣内容には次を含めること: (1) このタスクがプロジェクトのどこに位置するかの1行、(2) ブリーフのパス（「まずこれを読め — あなたの要件であり、値はそのまま使うこと」として紹介）、(3) ブリーフが知り得ない、前タスクからのインターフェースと決定事項、(4) ブリーフで気づいた曖昧さに対する自分の解消、(5) 報告ファイルのパスと報告契約。正確な値（数値、マジックストリング、シグネチャ、テストケース）はブリーフにのみ現れる。
 - **報告ファイル:** implementerの報告ファイルはブリーフに合わせた名前にし（ブリーフ`…/task-N-brief.md` → 報告`…/task-N-report.md`）、派遣プロンプトに記載する。implementerは完全な報告をそこに書き、返答ではステータス・コミット・1行のテスト要約・懸念のみを返す。
-- **レビュアーの入力:** タスクレビュアーには3つのパス — 同じブリーフファイル、報告ファイル、レビューパッケージ — に加え、タスクを拘束するglobal constraintsを渡す。
+- **レビュアーの入力:** タスクレビュアーには4つのパス — 同じブリーフファイル、報告ファイル、レビューパッケージ、レビュー報告ファイル（書き先） — に加え、タスクを拘束するglobal constraintsを渡す。
+- **レビュー報告ファイル:** レビュアーは所見全文を`…/task-N-review.md`に書き、返答は判定サマリーのみ（Spec判定・⚠️項目全文・quality判定・Critical/Important各1行・Minor件数・ファイルパス）。fix subagentにはこのファイルのパスを渡す — コントローラーが所見を転記しない。
 - fix派遣は同じ報告ファイルにfix報告（テスト結果込み）を追記し、短い要約を返す。再レビューは更新されたファイルを読む。
+- **契約ファイル:** implementer/レビュアーの定型指示は`implementer-contract.md`・`task-reviewer-contract.md`にあり、subagentが自分で読む。派遣プロンプトには契約ファイルの絶対パスとタスク固有情報だけを書く — 定型文を派遣プロンプトへ展開しない（派遣プロンプトはコントローラーのコンテキストに残り続ける）。
 
 ## 永続的な進捗管理
 
@@ -243,9 +277,9 @@ Implementer subagentは4つのステータスのいずれかを報告する。�
 
 ## プロンプトテンプレート
 
-- [implementer-prompt.md](implementer-prompt.md) - implementer subagentの派遣
-- [task-reviewer-prompt.md](task-reviewer-prompt.md) - タスクレビュアーsubagentの派遣（spec準拠＋コード品質）
-- 最終ブランチ全体レビュー: superpowers:requesting-code-reviewの[code-reviewer.md](../requesting-code-review/code-reviewer.md)を使用
+- [implementer-prompt.md](implementer-prompt.md) - implementer subagentの派遣（タスク固有情報のみ。定型は[implementer-contract.md](implementer-contract.md)をsubagentが読む）
+- [task-reviewer-prompt.md](task-reviewer-prompt.md) - タスクレビュアーsubagentの派遣（同上。定型は[task-reviewer-contract.md](task-reviewer-contract.md)）
+- 最終ブランチ全体レビュー: moores-code-review スキル（Skillツール経由で呼び出す。プロンプトテンプレートは持たない）
 
 ## ワークフロー例
 
@@ -382,12 +416,8 @@ Final reviewer: 全要件を満たし、マージ可能
 
 **必須のワークフロースキル:**
 - **ワークスペース隔離** - 上記「ワークスペース隔離（タスク1派遣前・必須）」がこのスキル内で手順を持つ。外部スキルへは委譲しない
-- **superpowers:writing-plans** - このスキルが実行する計画を作成する
-- **superpowers:requesting-code-review** - 最終ブランチ全体レビュー用のコードレビューテンプレート
-- **superpowers:finishing-a-development-branch** - 全タスク完了後の開発を仕上げる
-
-**Subagentが使うべきもの:**
-- **superpowers:test-driven-development** - Subagentは各タスクでTDDに従う
+- **writing-plans** - このスキルが実行する計画を作成する
+- **moores-code-review** - 最終ブランチ全体レビューの実体（Skillツール経由）
 
 **代替ワークフロー:**
-- **superpowers:executing-plans** - 同一セッション実行の代わりに並列セッションで使用する
+- **並列セッション実行** - 同一セッション実行の代わりに、タスクごとに別セッションを立てて進める

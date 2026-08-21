@@ -77,12 +77,14 @@ namespace Client.Game.Localization
                     sourceTexts[ContentLocalizationKeys.ChallengeSummary(challengeMaster.ChallengeGuid).Key] =
                         challengeMaster.Summary;
 
-                    // tutorial文言もGuidで収集
-                    // Collect tutorial texts by GUID
+                    // tutorial文言もGuidで収集（文言フィールドの無い種別はnullを返しスキップ）
+                    // Collect tutorial texts by GUID (types with no text field return null and are skipped)
                     foreach (var tutorial in challengeMaster.Tutorials)
                     {
+                        var displayText = GetTutorialDisplayText(tutorial);
+                        if (displayText == null) continue;
                         sourceTexts[ContentLocalizationKeys.ChallengeTutorialText(tutorial.TutorialGuid).Key] =
-                            GetTutorialDisplayText(tutorial);
+                            displayText;
                     }
                 }
             }
@@ -121,10 +123,14 @@ namespace Client.Game.Localization
                 return tutorial.TutorialParam switch
                 {
                     MapObjectPinTutorialParam mapObjectPin => mapObjectPin.PinText,
+                    VeinPinTutorialParam veinPin => veinPin.PinText,
                     KeyControlTutorialParam keyControl => keyControl.ControlText,
                     UiHighLightTutorialParam uiHighLight => uiHighLight.HighLightText,
                     ItemViewHighLightTutorialParam itemViewHighLight => itemViewHighLight.HighLightText,
                     BlockPlacePreviewTutorialParam blockPlacePreview => blockPlacePreview.Message,
+                    // uiDragGuideはfrom/toのanchorIdのみで表示文言フィールドを持たない
+                    // uiDragGuide has only from/to anchorIds and no display-text field
+                    UiDragGuideTutorialParam => null,
                     _ => throw new InvalidOperationException(
                         $"Unknown tutorial type: {tutorial.TutorialType}"),
                 };

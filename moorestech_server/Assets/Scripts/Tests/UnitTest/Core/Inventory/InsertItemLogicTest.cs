@@ -13,36 +13,6 @@ namespace Tests.UnitTest.Core.Inventory
     public class InsertItemLogicTest
     {
         [Test]
-        public void InsertItemWithPrioritySlotTest()
-        {
-            var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            
-            var toInventory = new OpenableInventoryItemDataStoreService((_, _) => { }, itemStackFactory, 10);
-            
-            
-            // 8,9番目のスロットに優先的にアイテムを入れるようにする
-            var insertItem = itemStackFactory.Create(new ItemId(1), 10);
-            toInventory.InsertItemWithPrioritySlot(insertItem, new[] { 8, 9 });
-            //8番目に入っているか確認
-            Assert.AreEqual(insertItem, toInventory.GetItem(8));
-            
-            //ID2を入れて、9番目に入っているかを確認する
-            insertItem = itemStackFactory.Create(new ItemId(2), 10);
-            toInventory.InsertItemWithPrioritySlot(insertItem, new[] { 8, 9 });
-            //9番目に入っているか確認
-            Assert.AreEqual(insertItem, toInventory.GetItem(9));
-            
-            //ID3を入れて、8,9番目に入らないので0番目に入ることを確認する
-            insertItem = itemStackFactory.Create(new ItemId(3), 10);
-            toInventory.InsertItemWithPrioritySlot(insertItem, new[] { 8, 9 });
-            //0番目に入っているか確認
-            Assert.AreEqual(insertItem, toInventory.GetItem(0));
-        }
-
-        [Test]
         public void AllowMultipleStacksTest_DefaultBehavior()
         {
             var (_, serviceProvider) =
@@ -209,32 +179,6 @@ namespace Tests.UnitTest.Core.Inventory
             Assert.AreEqual(new ItemId(1), toInventory.GetItem(2).Id);
             Assert.AreEqual(10, remainItem.Count);
             Assert.AreEqual(new ItemId(1), remainItem.Id);
-        }
-
-        [Test]
-        public void InsertItemWithPrioritySlot_OverflowRespectsNearestSlot()
-        {
-            var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            var itemStackFactory = ServerContext.ItemStackFactory;
-            var toInventory = new OpenableInventoryItemDataStoreService((_, _) => { }, itemStackFactory, 10);
-
-            // 優先スロット内に既存スタックを配置する
-            // Place an existing stack within priority slots
-            toInventory.SetItem(7, itemStackFactory.Create(new ItemId(1), 90));
-
-            // 過剰投入で隣接スロットへの展開を検証する
-            // Insert enough items to validate the overflow spreading behavior
-            var remain = toInventory.InsertItemWithPrioritySlot(itemStackFactory.Create(new ItemId(1), 20), new[] { 7, 2 });
-
-            // 優先スロットが満杯になり別の優先スロットへ展開したことを確認
-            // Ensure the primary priority slot is full and overflow moved to the next priority slot
-            Assert.AreEqual(100, toInventory.GetItem(7).Count);
-            Assert.AreEqual(new ItemId(1), toInventory.GetItem(7).Id);
-            Assert.AreEqual(10, toInventory.GetItem(2).Count);
-            Assert.AreEqual(new ItemId(1), toInventory.GetItem(2).Id);
-            Assert.IsTrue(remain.Equals(itemStackFactory.CreatEmpty()));
         }
     }
 }

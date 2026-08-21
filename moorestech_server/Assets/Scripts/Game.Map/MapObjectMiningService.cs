@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using Common.Debug;
+using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
-using Core.Update;
+using Game.Context;
 using Game.Map.Interface.MapObject;
 using Mooresmaster.Model.MapModule;
 
@@ -15,6 +16,10 @@ namespace Game.Map
         NoTool,
         ToolMismatch,
         CooldownNotElapsed,
+
+        // 取得物を受け取れないため採掘を成立させない
+        // Mining is refused because the drops could not be received
+        InventoryFull,
     }
 
     /// <summary>
@@ -23,15 +28,14 @@ namespace Game.Map
     /// </summary>
     public class MapObjectMiningService
     {
-        // クールダウン判定の許容率。クライアントはattackSpeed間隔ちょうどで送るためジッタ余裕を持たせる
-        // Cooldown tolerance; clients send at exactly attackSpeed intervals, so allow jitter
-        private const double CooldownMarginRate = 0.9;
+        private readonly MiningCooldownService _cooldownService;
 
-        // 1プレイヤー1振りを保証する最終打撃tick
-        // Last-hit ticks enforcing one swing at a time per player
-        private readonly Dictionary<int, ulong> _lastAttackTicks = new();
+        public MapObjectMiningService(MiningCooldownService cooldownService)
+        {
+            _cooldownService = cooldownService;
+        }
 
-        public MiningAttackResult TryAttack(int playerId, IMapObject mapObject, IItemStack equippedItem, out List<IItemStack> earnedItems)
+        public MiningAttackResult TryAttack(int playerId, IMapObject mapObject, IItemStack equippedItem, IOpenableInventory earnedItemsDestination, out List<IItemStack> earnedItems)
         {
             earnedItems = null;
 
@@ -39,9 +43,13 @@ namespace Game.Map
             // A hit on an already destroyed object does nothing; this also cuts off the debug flag file IO
             if (mapObject.IsDestroyed) return MiningAttackResult.AlreadyDestroyed;
 
+            // 受け取れない取得物は消滅するので、対象を削る前に空きを確かめる
+            // Undeliverable drops would vanish, so verify the free space before wearing the target down
+            var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObject.MapObjectGuid);
+            if (!CanReceiveEarnItems(mapObjectElement)) return MiningAttackResult.InventoryFull;
+
             // PickUpと高速採掘デバッグはツール照合もクールダウンも介さず一撃で破壊する
             // PickUp and the debug super-mine destroy in one hit without tool matching or cooldown
-            var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObject.MapObjectGuid);
             if (mapObjectElement.MiningType == MapObjectMasterElement.MiningTypeConst.PickUp ||
                 DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.MapObjectSuperMine))
             {
@@ -61,18 +69,26 @@ namespace Game.Map
 
             // 前回打撃からattackSpeed×許容率tick未満の連打は捨てる
             // Drop repeat hits that arrive within attackSpeed * tolerance ticks of the previous one
-            if (IsInCooldown(usableTool)) return MiningAttackResult.CooldownNotElapsed;
+            if (_cooldownService.IsInCooldown(playerId, usableTool.AttackSpeed)) return MiningAttackResult.CooldownNotElapsed;
 
-            _lastAttackTicks[playerId] = GameUpdater.CurrentTick;
+            _cooldownService.RecordAttack(playerId);
             earnedItems = mapObject.Attack(usableTool.Damage);
             return MiningAttackResult.Success;
 
             #region Internal
 
-            bool IsInCooldown(MiningToolsElement miningTool)
+            bool CanReceiveEarnItems(MapObjectMasterElement element)
             {
-                if (!_lastAttackTicks.TryGetValue(playerId, out var lastAttackTick)) return false;
-                return GameUpdater.CurrentTick - lastAttackTick < GameUpdater.SecondsToTicks(miningTool.AttackSpeed * CooldownMarginRate);
+                // 実際の取得は閾値通過時のみだが、通過し得る最大量で見ておけば消滅は起きない
+                // The real drop happens only on a threshold crossing, but checking the largest possible amount rules out any loss
+                var maximumEarnItems = new List<IItemStack>();
+                foreach (var earnItem in element.EarnItems)
+                {
+                    var itemId = MasterHolder.ItemMaster.GetItemId(earnItem.ItemGuid);
+                    maximumEarnItems.AddRange(ServerContext.ItemStackFactory.CreateSplitStacks(itemId, earnItem.MaxCount));
+                }
+
+                return earnedItemsDestination.InsertionCheck(maximumEarnItems);
             }
 
             #endregion

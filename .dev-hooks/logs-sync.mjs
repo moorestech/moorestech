@@ -52,17 +52,23 @@ function findLogsRepo() {
   return existsSync(join(candidate, ".git")) ? candidate : null;
 }
 
-// ~/.claude/projects のmoorestech系スラグ配下のJSONLを増分コピーする
-// Incrementally copy JSONL under moorestech-ish slugs in ~/.claude/projects.
+// ~/.claude/projects のmoorestech系スラグ配下を丸ごと増分コピーする（subagents/・tool-results/含む）
+// Incrementally mirror everything under moorestech-ish slugs in ~/.claude/projects (incl. subagents/ and tool-results/).
 function syncClaudeTranscripts() {
   const projectsDir = join(homedir(), ".claude", "projects");
   for (const slug of safeReaddir(projectsDir)) {
     if (!slug.includes("moorestech")) continue;
-    const srcDir = join(projectsDir, slug);
-    for (const file of safeReaddir(srcDir)) {
-      if (!file.endsWith(".jsonl")) continue;
-      copyIfUpdated(join(srcDir, file), join(logsRepo, "claude", slug, file));
-    }
+    syncTree(join(projectsDir, slug), join(logsRepo, "claude", slug));
+  }
+}
+
+// srcDir以下の全ファイルを再帰的に増分コピーする
+// Recursively copy every file under srcDir, incrementally.
+function syncTree(srcDir, destDir) {
+  for (const entry of safeReaddir(srcDir)) {
+    const src = join(srcDir, entry);
+    if (isDirectory(src)) syncTree(src, join(destDir, entry));
+    else copyIfUpdated(src, join(destDir, entry));
   }
 }
 
@@ -172,6 +178,18 @@ function readCwdOfRollout(path) {
     return firstLine.match(/"cwd":"([^"]+)"/)?.[1] ?? "";
   } catch {
     return "";
+  }
+}
+
+// ディレクトリならtrue（stat失敗はfalse）
+// True for directories; stat failures yield false.
+function isDirectory(path) {
+  // 外部境界: 他プロセス管理下のためstat失敗は握りつぶす
+  // External boundary: swallow stat failures on files owned by other processes.
+  try {
+    return statSync(path).isDirectory();
+  } catch {
+    return false;
   }
 }
 

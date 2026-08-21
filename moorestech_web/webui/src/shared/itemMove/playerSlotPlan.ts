@@ -1,4 +1,4 @@
-import type { InventoryArea, PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
+import type { PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
 import { planDirectMoves } from "./planDirectMoves";
 import type { PlannedAction } from "./plannedAction";
 
@@ -12,14 +12,21 @@ export type PlayerSlotContext = {
   blockItemSlots: SlotData[] | null;
 };
 
-// 左クリック: grab保持なら全量置き / Shiftなら配分移動 / 中身ありなら全量掴み
-// Left click: place all while holding grab / allocate on Shift / pick the whole stack when filled
-export function planPlayerLeftClick(ref: SlotRef, slot: SlotData, shiftKey: boolean, ctx: PlayerSlotContext): PlannedAction[] {
+// 左クリックの帰結。actionsは送信するプラン、beginSplitDragは呼び出し側にドラッグ開始を促す合図
+// Left-click outcome: actions carries the plan to dispatch, beginSplitDrag signals the caller to start the drag
+export type PlayerLeftClickPlan = { kind: "actions"; actions: PlannedAction[] } | { kind: "beginSplitDrag" };
+
+// 左クリック: grab保持中の空スロットはsplitDrag開始 / 全量置き / Shiftなら配分移動 / 中身ありなら全量掴み
+// Left click: an empty slot while holding grab begins split-drag / place-all / allocate on Shift / pick the whole stack when filled
+export function planPlayerLeftClick(ref: SlotRef, slot: SlotData, shiftKey: boolean, ctx: PlayerSlotContext): PlayerLeftClickPlan {
   const grabCount = ctx.inventory.grab.count;
-  if (grabCount > 0) return [{ type: "inventory.move_item", payload: { from: GRAB, to: ref, count: grabCount } }];
-  if (slot.count === 0) return [];
-  if (shiftKey) return planShiftMove(ref, slot, ctx);
-  return [{ type: "inventory.move_item", payload: { from: ref, to: GRAB, count: slot.count } }];
+  if (grabCount > 0) {
+    if (!shiftKey && slot.count === 0) return { kind: "beginSplitDrag" };
+    return { kind: "actions", actions: [{ type: "inventory.move_item", payload: { from: GRAB, to: ref, count: grabCount } }] };
+  }
+  if (slot.count === 0) return { kind: "actions", actions: [] };
+  if (shiftKey) return { kind: "actions", actions: planShiftMove(ref, slot, ctx) };
+  return { kind: "actions", actions: [{ type: "inventory.move_item", payload: { from: ref, to: GRAB, count: slot.count } }] };
 }
 
 // 右クリック: grab保持なら1個置き / 空手なら inventory.split（半分掴みはホスト計算。stale な client 数量に依存しない）
@@ -36,8 +43,8 @@ export function planPlayerDoubleClick(ref: SlotRef): PlannedAction[] {
   return [{ type: "inventory.collect", payload: { slot: ref } }];
 }
 
-// Shift+クリック: ブロックUIが開いていれば block へ、閉なら反対エリアへ配分する（uGUI DirectMover 準拠）
-// Shift-click: allocate into the block while its UI is open, else into the opposite area (mirrors uGUI DirectMover)
+// Shift+クリックでblockへ配分
+// Shift-click: allocate into the block while its UI is open; shift from equipment returns the stack to the main area (the old main<->hotbar swap is gone)
 function planShiftMove(from: SlotRef, slot: SlotData, ctx: PlayerSlotContext): PlannedAction[] {
   if (ctx.blockItemSlots) {
     return planDirectMoves(slot.count, slot.itemId, ctx.maxStack, ctx.blockItemSlots).map((m) => ({
@@ -45,12 +52,9 @@ function planShiftMove(from: SlotRef, slot: SlotData, ctx: PlayerSlotContext): P
       payload: { from, to: { area: "block", slot: m.slot }, count: m.count },
     }));
   }
-  // 装備からの Shift は持ち物本体へ戻す。main/hotbar 同士は従来どおり反対エリアへ振る
-  // Shift from equipment returns the stack to the main area; main/hotbar still swap into each other
-  const targetArea: InventoryArea = from.area === "main" ? "hotbar" : "main";
-  const targetSlots = targetArea === "main" ? ctx.inventory.mainSlots : ctx.inventory.hotbarSlots;
-  return planDirectMoves(slot.count, slot.itemId, ctx.maxStack, targetSlots).map((m) => ({
+  if (from.area !== "equipment") return [];
+  return planDirectMoves(slot.count, slot.itemId, ctx.maxStack, ctx.inventory.mainSlots).map((m) => ({
     type: "inventory.move_item",
-    payload: { from, to: { area: targetArea, slot: m.slot }, count: m.count },
+    payload: { from, to: { area: "main", slot: m.slot }, count: m.count },
   }));
 }

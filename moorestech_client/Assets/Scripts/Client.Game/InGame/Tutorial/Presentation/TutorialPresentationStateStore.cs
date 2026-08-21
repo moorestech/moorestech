@@ -8,7 +8,13 @@ namespace Client.Game.InGame.Tutorial
     public class TutorialPresentationStateStore
     {
         private readonly Subject<TutorialPresentationData> _onChanged = new();
+        private readonly List<TutorialSessionData> _sessions = new();
         private TutorialPresentationData _current = CreateIdle();
+        private int _revision;
+
+        // 追加先は直近にBeginSessionしたchallenge。TutorialManagerが1challengeずつ同期適用する
+        // Elements attach to the most recently begun challenge; TutorialManager applies one challenge synchronously
+        private string _applyTargetChallengeId = "";
 
         public static readonly TutorialPresentationStateStore Instance = new();
 
@@ -22,17 +28,19 @@ namespace Client.Game.InGame.Tutorial
             return _current;
         }
 
-        // challenge適用ごとに新sessionを発行し、前challengeのDOM宣言を切り離す
-        // Issue a new session per challenge application to detach prior DOM declarations
+        // challengeごとに独立したsessionを持ち、複数challengeが同時currentでも先行提示を消さない
+        // Keep one session per challenge so simultaneous current challenges never erase each other's presentation
         public void BeginSession(Guid challengeId)
         {
-            _current = new TutorialPresentationData
+            var challengeKey = challengeId.ToString();
+            _sessions.RemoveAll(session => session.ChallengeId == challengeKey);
+            _sessions.Add(new TutorialSessionData
             {
                 TutorialSessionId = Guid.NewGuid().ToString(),
-                Revision = 0,
-                ChallengeId = challengeId.ToString(),
-                Highlights = Array.Empty<TutorialHighlightData>(),
-            };
+                ChallengeId = challengeKey,
+                Elements = Array.Empty<TutorialOverlayElementData>(),
+            });
+            _applyTargetChallengeId = challengeKey;
             Publish();
         }
 
@@ -40,90 +48,104 @@ namespace Client.Game.InGame.Tutorial
         // Expose only the outline use case to prevent removed kinds from returning
         public ITutorialView AddOutlineHighlight(string anchorId)
         {
-            var highlight = new TutorialHighlightData
+            return AddElement(new TutorialOutlineElementData
             {
-                HighlightId = Guid.NewGuid().ToString(),
+                ElementId = Guid.NewGuid().ToString(),
                 AnchorId = anchorId,
-                Kind = "outline",
                 PaddingPx = 8,
                 BlocksPointerInput = false,
-            };
-            var highlights = new List<TutorialHighlightData>(_current.Highlights) { highlight };
-            SetHighlights(highlights.ToArray());
-            return new TutorialPresentationView(this, _current.TutorialSessionId, highlight.HighlightId);
+            });
         }
 
-        // 過去challengeの完了通知は現在sessionへ波及させない
-        // Prevent completion of an older challenge from mutating the current session
+        // D&D操作の説明矢印。from→toのanchor間ループはWeb側が描く
+        // D&D guide arrow; the web side draws the looping motion between the anchors
+        public ITutorialView AddDragGuide(string fromAnchorId, string toAnchorId)
+        {
+            return AddElement(new TutorialDragGuideElementData
+            {
+                ElementId = Guid.NewGuid().ToString(),
+                FromAnchorId = fromAnchorId,
+                ToAnchorId = toAnchorId,
+            });
+        }
+
+        // 完了したchallengeのsessionだけを畳み、他challengeの提示は残す
+        // Drop only the completed challenge's session and leave the other challenges' presentation intact
         public void EndSession(Guid challengeId)
         {
-            if (_current.ChallengeId != challengeId.ToString()) return;
-            if (_current.Highlights.Length == 0) return;
-            SetHighlights(Array.Empty<TutorialHighlightData>());
+            var challengeKey = challengeId.ToString();
+            if (_sessions.RemoveAll(session => session.ChallengeId == challengeKey) == 0) return;
+            if (_applyTargetChallengeId == challengeKey) _applyTargetChallengeId = "";
+            Publish();
         }
 
-        public bool Matches(string sessionId, int revision)
+        public bool HasSession(Guid challengeId)
         {
-            return sessionId == _current.TutorialSessionId && revision == _current.Revision;
+            var challengeKey = challengeId.ToString();
+            return _sessions.Any(session => session.ChallengeId == challengeKey);
         }
 
-        public bool IsCurrentChallenge(Guid challengeId)
+        public bool HasSessionId(string sessionId)
         {
-            return _current.ChallengeId == challengeId.ToString();
+            return _sessions.Any(session => session.TutorialSessionId == sessionId);
         }
 
-        public void RemoveHighlight(string sessionId, string highlightId)
+        public void RemoveElement(string sessionId, string elementId)
         {
-            if (sessionId != _current.TutorialSessionId) return;
-            var highlights = _current.Highlights.Where(value => value.HighlightId != highlightId).ToArray();
-            if (highlights.Length == _current.Highlights.Length) return;
-            SetHighlights(highlights);
+            var session = _sessions.Find(value => value.TutorialSessionId == sessionId);
+            if (session == null) return;
+            var elements = session.Elements.Where(value => value.ElementId != elementId).ToArray();
+            if (elements.Length == session.Elements.Length) return;
+            ReplaceSession(session, elements);
         }
 
-        private void SetHighlights(TutorialHighlightData[] highlights)
+        private ITutorialView AddElement(TutorialOverlayElementData element)
         {
-            _current = new TutorialPresentationData
+            var session = GetOrCreateApplyTarget();
+            var elements = new List<TutorialOverlayElementData>(session.Elements) { element };
+            ReplaceSession(session, elements.ToArray());
+            return new TutorialOverlayElementView(this, session.TutorialSessionId, element.ElementId);
+        }
+
+        // WebUIモード外ではBeginSessionを経ず追加されるため、challenge無しsessionで受ける
+        // Outside web UI mode elements arrive without BeginSession, so accept them into a challenge-less session
+        private TutorialSessionData GetOrCreateApplyTarget()
+        {
+            var session = _sessions.Find(value => value.ChallengeId == _applyTargetChallengeId);
+            if (session != null) return session;
+            session = new TutorialSessionData
             {
-                TutorialSessionId = _current.TutorialSessionId,
-                Revision = _current.Revision + 1,
-                ChallengeId = _current.ChallengeId,
-                Highlights = highlights,
+                TutorialSessionId = Guid.NewGuid().ToString(),
+                ChallengeId = _applyTargetChallengeId,
+                Elements = Array.Empty<TutorialOverlayElementData>(),
+            };
+            _sessions.Add(session);
+            return session;
+        }
+
+        // 公開済みsnapshotを書き換えないよう、session単位でも差し替える
+        // Replace the session object as well so an already published snapshot is never mutated
+        private void ReplaceSession(TutorialSessionData session, TutorialOverlayElementData[] elements)
+        {
+            _sessions[_sessions.IndexOf(session)] = new TutorialSessionData
+            {
+                TutorialSessionId = session.TutorialSessionId,
+                ChallengeId = session.ChallengeId,
+                Elements = elements,
             };
             Publish();
         }
 
         private void Publish()
         {
+            _revision++;
+            _current = new TutorialPresentationData { Revision = _revision, Sessions = _sessions.ToArray() };
             _onChanged.OnNext(_current);
         }
 
         private static TutorialPresentationData CreateIdle()
         {
-            return new TutorialPresentationData
-            {
-                TutorialSessionId = "", Revision = 0, ChallengeId = "",
-                Highlights = Array.Empty<TutorialHighlightData>(),
-            };
-        }
-    }
-
-    public class TutorialPresentationView : ITutorialView
-    {
-        private readonly TutorialPresentationStateStore _store;
-        private readonly string _sessionId;
-        private readonly string _highlightId;
-
-        public TutorialPresentationView(
-            TutorialPresentationStateStore store, string sessionId, string highlightId)
-        {
-            _store = store;
-            _sessionId = sessionId;
-            _highlightId = highlightId;
-        }
-
-        public void CompleteTutorial()
-        {
-            _store.RemoveHighlight(_sessionId, _highlightId);
+            return new TutorialPresentationData { Revision = 0, Sessions = Array.Empty<TutorialSessionData>() };
         }
     }
 }

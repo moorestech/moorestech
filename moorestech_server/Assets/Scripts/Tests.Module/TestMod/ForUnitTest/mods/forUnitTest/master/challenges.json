@@ -21,8 +21,16 @@
               "tutorialGuid": "00000000-0000-0000-8901-000000000001",
               "tutorialType": "uiHighLight",
               "tutorialParam": {
-                "highLightUIObjectId": "testHighLightUIObject",
+                "highLightAnchorId": "recipe.craft-button",
                 "highLightText": "テストチュートリアル1"
+              }
+            },
+            {
+              "tutorialGuid": "00000000-0000-0000-8901-000000000002",
+              "tutorialType": "veinPin",
+              "tutorialParam": {
+                "veinGuid": "11111111-0000-0000-0000-000000000001",
+                "pinText": "テスト鉱脈ピン"
               }
             }
           ],
@@ -186,6 +194,32 @@
           "initialUnlocked": false,
           "unlockAllPreviousChallengeComplete": true,
           "startedActions": []
+        },
+        {
+          "challengeGuid": "00000000-0000-0000-4567-000000000101",
+          "title": "研究1を完了する",
+          "summary": "研究1を完了する",
+          "unlockAllPreviousChallengeComplete": true,
+          "prevChallengeGuids": [],
+          "taskCompletionType": "completeResearch",
+          "taskParam": {
+            "researchNodeGuid": "cd05e30d-d599-46d3-a079-769113cbbf17"
+          },
+          "tutorials": [],
+          "startedActions": [],
+          "clearedActions": [],
+          "displayListParam": {
+            "UIPosition": [
+              0,
+              900
+            ],
+            "UIScale": [
+              0,
+              0,
+              0
+            ],
+            "IconItem": "00000000-0000-0000-1234-000000000001"
+          }
         }
       ]
     },

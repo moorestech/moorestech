@@ -15,6 +15,9 @@ export const BENIGN_ERRORS: Partial<Record<keyof ActionPayloads, ReadonlySet<str
   // メニューが先に閉じた/BPが先に消えた stale クリックはトースト不要
   // Stale clicks (menu already closed / BP already deleted) need no error toast
   "build_menu.select": new Set(["invalid_state", "unknown_entry"]),
+  // ゲーム画面以外でHUDを叩いた良性の空振りはトースト不要
+  // A benign miss from clicking the HUD outside the game screen needs no toast
+  "hotbar.select": new Set(["invalid_state"]),
   // 二重右クリック等でサーバーが既にNotFoundを返す stale 削除はトースト不要（通信失敗は別コードで従来通りトーストする）
   // A stale delete where the server already returns NotFound (e.g. double right-click) needs no toast; communication failure keeps toasting under a separate code
   "blueprint.delete": new Set(["blueprint_delete_not_found"]),

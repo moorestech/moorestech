@@ -10,6 +10,7 @@ namespace Client.Tests.ViewMode
         public void TearDown()
         {
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
+            AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.ScreenCenter);
         }
 
         [Test]
@@ -25,14 +26,31 @@ namespace Client.Tests.ViewMode
         public void FirstPersonUsesScreenCenterAim()
         {
             AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
-            Assert.AreEqual(AimPointMode.ScreenCenter, AimPointProvider.GetCurrentMode());
+            Assert.AreEqual(ThirdPersonAimSource.ScreenCenter, AimPointProvider.GetEffectiveAimSource());
         }
 
         [Test]
-        public void ThirdPersonUsesMouseAim()
+        public void FirstPersonIgnoresCursorAimSource()
+        {
+            AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
+            AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.Cursor);
+            Assert.AreEqual(ThirdPersonAimSource.ScreenCenter, AimPointProvider.GetEffectiveAimSource());
+        }
+
+        [Test]
+        public void ThirdPersonWithScreenCenterSourceUsesScreenCenter()
         {
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
-            Assert.AreEqual(AimPointMode.Mouse, AimPointProvider.GetCurrentMode());
+            AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.ScreenCenter);
+            Assert.AreEqual(ThirdPersonAimSource.ScreenCenter, AimPointProvider.GetEffectiveAimSource());
+        }
+
+        [Test]
+        public void ThirdPersonWithCursorSourceUsesMouseAim()
+        {
+            AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
+            AimPointProvider.SetThirdPersonAimSource(ThirdPersonAimSource.Cursor);
+            Assert.AreEqual(ThirdPersonAimSource.Cursor, AimPointProvider.GetEffectiveAimSource());
         }
     }
 }

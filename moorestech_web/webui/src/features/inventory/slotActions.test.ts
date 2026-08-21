@@ -29,9 +29,7 @@ describe("slotActions", () => {
     bridge.dispatchAction.mockReset();
     bridge.inventory = {
       mainSlots: [slot(1, 5)],
-      hotbarSlots: [slot(0, 0)],
       grab: slot(0, 0),
-      selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
       equipmentSelectionConfirmationRevision: 0,
@@ -45,9 +43,7 @@ describe("slotActions", () => {
     // Simulate post-render updates so only the latest values determine distribution counts
     bridge.inventory = {
       mainSlots: [slot(1, 5)],
-      hotbarSlots: [slot(0, 0)],
       grab: slot(0, 0),
-      selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
       equipmentSelectionConfirmationRevision: 0,
@@ -80,9 +76,7 @@ describe("slotActions", () => {
   it("右クリック時の最新 grab 数で分割操作を選ぶ", () => {
     bridge.inventory = {
       mainSlots: [slot(1, 5)],
-      hotbarSlots: [],
       grab: slot(9, 3),
-      selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
       equipmentSelectionConfirmationRevision: 0,
@@ -103,9 +97,7 @@ describe("slotActions", () => {
 
     bridge.inventory = {
       mainSlots: [slot(0, 0)],
-      hotbarSlots: [],
       grab: slot(9, 3),
-      selectedHotbar: 0,
       equipment: [],
       selectedEquipment: -1,
       equipmentSelectionConfirmationRevision: 0,
@@ -119,15 +111,82 @@ describe("slotActions", () => {
     });
   });
 
+  // grab中左クリックは中身有無で分岐(uGUI同等)
+  // A grab-held left click branches on the target slot's contents, matching uGUI
+  describe("grab保持中の左クリック", () => {
+    const grabbing = (target: { itemId: number; count: number }): PlayerInventoryData => ({
+      mainSlots: [target],
+      grab: slot(9, 4),
+      equipment: [],
+      selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
+    });
+
+    // 裁定「対象範囲は全スロット共通」の装備枠検証
+    // Covers the equipment area under the all-areas ruling
+    it("装備枠の中身ありスロットへも全量moveを送る", () => {
+      bridge.inventory = {
+        mainSlots: [slot(0, 0)],
+        grab: slot(9, 4),
+        equipment: [slot(1, 5)],
+        selectedEquipment: -1,
+        equipmentSelectionConfirmationRevision: 0,
+      };
+
+      slotActions.onLeftDown({ area: "equipment", slot: 0 }, false);
+
+      expect(bridge.dispatchAction).toHaveBeenCalledTimes(1);
+      expect(bridge.dispatchAction).toHaveBeenCalledWith("inventory.move_item", {
+        from: { area: "grab", slot: 0 },
+        to: { area: "equipment", slot: 0 },
+        count: 4,
+      });
+    });
+
+    it("別IDの中身ありスロットへは全量moveを送る（サーバーが入れ替える）", () => {
+      bridge.inventory = grabbing(slot(1, 5));
+
+      slotActions.onLeftDown({ area: "main", slot: 0 }, false);
+
+      expect(bridge.dispatchAction).toHaveBeenCalledTimes(1);
+      expect(bridge.dispatchAction).toHaveBeenCalledWith("inventory.move_item", {
+        from: { area: "grab", slot: 0 },
+        to: { area: "main", slot: 0 },
+        count: 4,
+      });
+    });
+
+    it("同IDの中身ありスロットへも全量moveを送る", () => {
+      bridge.inventory = grabbing(slot(9, 5));
+
+      slotActions.onLeftDown({ area: "main", slot: 0 }, false);
+
+      expect(bridge.dispatchAction).toHaveBeenCalledTimes(1);
+      expect(bridge.dispatchAction).toHaveBeenCalledWith("inventory.move_item", {
+        from: { area: "grab", slot: 0 },
+        to: { area: "main", slot: 0 },
+        count: 4,
+      });
+    });
+
+    // 空スロットsplitDragは即時送信なし
+    // An empty slot starts split-drag and sends nothing yet; distribution is covered by splitDrag.test.ts
+    it("空スロットは従来どおりスプリットドラッグを開始し何も送らない", () => {
+      bridge.inventory = grabbing(slot(0, 0));
+
+      slotActions.onLeftDown({ area: "main", slot: 0 }, false);
+
+      expect(bridge.dispatchAction).not.toHaveBeenCalled();
+    });
+  });
+
   // 枠数が縮んだ直後のクリックは描画済みの ref だけが残り、最新 snapshot には対象が無い
   // Right after the slot count shrinks, only the rendered ref survives while the latest snapshot has no such slot
   describe("範囲外スロットへの操作", () => {
     beforeEach(() => {
       bridge.inventory = {
         mainSlots: [slot(1, 5)],
-        hotbarSlots: [slot(1, 5)],
         grab: slot(0, 0),
-        selectedHotbar: 0,
         equipment: [],
         selectedEquipment: -1,
         equipmentSelectionConfirmationRevision: 0,
@@ -137,7 +196,6 @@ describe("slotActions", () => {
     it.each([
       ["equipment", { area: "equipment", slot: 0 } as const],
       ["main", { area: "main", slot: 9 } as const],
-      ["hotbar", { area: "hotbar", slot: 9 } as const],
     ])("%s の範囲外 ref は例外を投げず何も送らない", (_, ref) => {
       expect(() => slotActions.onLeftDown(ref, false)).not.toThrow();
       expect(() => slotActions.onLeftDown(ref, true)).not.toThrow();
@@ -151,9 +209,7 @@ describe("slotActions", () => {
     it("grab 保持中でも範囲外スロットへは何も送らない", () => {
       bridge.inventory = {
         mainSlots: [slot(0, 0)],
-        hotbarSlots: [slot(0, 0)],
         grab: slot(9, 4),
-        selectedHotbar: 0,
         equipment: [],
         selectedEquipment: -1,
         equipmentSelectionConfirmationRevision: 0,

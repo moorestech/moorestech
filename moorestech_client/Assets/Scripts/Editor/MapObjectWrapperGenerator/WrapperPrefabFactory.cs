@@ -1,0 +1,167 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Client.Common;
+using Client.Game.InGame.Map.MapObject;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+// BKへアウトライン・レイターゲット・HPバーを付与
+// Builds one wrapper prefab: BK plus its outline, ray target, and HP bar
+public static class WrapperPrefabFactory
+{
+    private const string HpBarPrefabPath = "Assets/Asset/Environment/Prefab/MapObjectHpBar.prefab";
+    private const string OutlineMaterialPath = "Assets/Asset/Common/Shader/Outline/Outline.mat";
+    private const string OutlineObjectName = "Outline";
+
+    // HPバーが樹冠へ埋まらないよう頂部から離す高さ
+    // Height that lifts the HP bar clear of the canopy top
+    private const float HpBarHeightMargin = 0.5f;
+
+    // kind値。HPバー分岐に唯一使う
+    // The kind value; the sole consumer that branches HP bar necessity on it
+    private const string PebbleKind = "pebble";
+
+    public static void CreateWrapperPrefab(MapObjectWrapperSpecies species, Scene workScene)
+    {
+        var sourcePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(species.prefabPath);
+        if (sourcePrefab == null) throw new InvalidOperationException($"BK prefab not found: {species.prefabPath}");
+        if (LayerConst.MapObjectLayer < 0 || LayerConst.OutlineLayer < 0) throw new InvalidOperationException("MapObject or Outline layer is not defined in this project");
+
+        // BKプレハブのインスタンスをルートにするので、保存結果はBKプレハブのバリアントになる（Bush.prefabと同じ形）
+        // The root is an instance of the BK prefab, so the saved asset is a variant of it, exactly like Bush.prefab
+        var root = (GameObject)PrefabUtility.InstantiatePrefab(sourcePrefab, workScene);
+        root.name = species.mapObjectName;
+        root.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+        var localBounds = CalculateLocalBounds(root);
+        var nearestLodRenderers = CollectNearestLodRenderers(root);
+        ApplyMapObjectLayer(root);
+        var mapObject = root.AddComponent<MapObjectGameObject>();
+        var outlineObject = CreateOutline(root, nearestLodRenderers);
+
+        // レイターゲットはBKの当たり判定を測るので、後から足す物を巻き込まないようHPバーより先に作る
+        // The ray target measures BK's own colliders, so it is built before the HP bar and never sees anything added later
+        WrapperRayTargetBuilder.Create(root, localBounds, nearestLodRenderers);
+
+        // HPバーの高さは見た目の外接、レイターゲットは幹の太さと、参照する外接を分ける
+        // The HP bar rides the visual bounds while the ray target follows the trunk, so the two use different bounds
+        // PickUp種(小石)は既存Pebble.prefab前例に倣いHPバーを持たない（1操作で消えるのでHP表示が不要）
+        // PickUp species (pebbles) carry no HP bar, matching the existing Pebble.prefab precedent (they vanish in one action, so HP display is meaningless)
+        var hpBarView = species.kind == PebbleKind ? null : CreateHpBar(root, localBounds);
+
+        var serializedMapObject = new SerializedObject(mapObject);
+        serializedMapObject.FindProperty("outlineObject").objectReferenceValue = outlineObject;
+        serializedMapObject.FindProperty("hpBarView").objectReferenceValue = hpBarView;
+        serializedMapObject.FindProperty("mapObjectGuid").stringValue = species.mapObjectGuid;
+        serializedMapObject.ApplyModifiedPropertiesWithoutUndo();
+
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(species.wrapperPath)));
+        PrefabUtility.SaveAsPrefabAsset(root, species.wrapperPath);
+        UnityEngine.Object.DestroyImmediate(root);
+    }
+
+    // BKが持つ当たり判定がDefaultレイヤーに残ると設置レイなど汎用レイキャストが樹木へ刺さるので、既存Tree.prefabと同じくMapObjectへ寄せる
+    // BK's own colliders left on the Default layer would catch generic raycasts such as block placement, so move them to MapObject like the existing Tree.prefab
+    private static void ApplyMapObjectLayer(GameObject root)
+    {
+        foreach (var child in root.GetComponentsInChildren<Transform>(true)) child.gameObject.layer = LayerConst.MapObjectLayer;
+    }
+
+    private static GameObject CreateOutline(GameObject root, List<Renderer> nearestLodRenderers)
+    {
+        var outlineMaterial = AssetDatabase.LoadAssetAtPath<Material>(OutlineMaterialPath);
+        if (outlineMaterial == null) throw new InvalidOperationException($"outline material not found: {OutlineMaterialPath}");
+
+        var outlineRoot = new GameObject(OutlineObjectName) { layer = LayerConst.OutlineLayer };
+        SceneManager.MoveGameObjectToScene(outlineRoot, root.scene);
+        outlineRoot.transform.SetParent(root.transform, false);
+
+        foreach (var sourceRenderer in nearestLodRenderers)
+        {
+            var sourceFilter = sourceRenderer.GetComponent<MeshFilter>();
+            if (sourceFilter == null || sourceFilter.sharedMesh == null) continue;
+
+            var outlineMesh = new GameObject(sourceRenderer.name) { layer = LayerConst.OutlineLayer };
+            outlineMesh.transform.SetParent(outlineRoot.transform, false);
+            CopyWorldTransform(sourceRenderer.transform, outlineMesh.transform);
+
+            outlineMesh.AddComponent<MeshFilter>().sharedMesh = sourceFilter.sharedMesh;
+            outlineMesh.AddComponent<MeshRenderer>().sharedMaterials = FillOutlineMaterials(sourceRenderer.sharedMaterials.Length, outlineMaterial);
+        }
+
+        if (outlineRoot.transform.childCount == 0) throw new InvalidOperationException($"no outline mesh could be built for {root.name}");
+
+        // フォーカス時にMapObjectGameObjectが点ける
+        // MapObjectGameObject turns this on while the object is focused
+        outlineRoot.SetActive(false);
+        return outlineRoot;
+    }
+
+    private static MapObjectHpBarView CreateHpBar(GameObject root, Bounds localBounds)
+    {
+        var hpBarPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(HpBarPrefabPath);
+        if (hpBarPrefab == null) throw new InvalidOperationException($"hp bar prefab not found: {HpBarPrefabPath}");
+
+        // HPバーの高さ(localBounds.max.y)はルートローカル空間の値なので、ルート直下に置いてそのまま渡す
+        // The HP bar height (localBounds.max.y) is expressed in the root's local space, so it sits directly under the root to consume that value as-is
+        var hpBar = (GameObject)PrefabUtility.InstantiatePrefab(hpBarPrefab, root.transform);
+        hpBar.transform.localPosition = new Vector3(0f, localBounds.max.y + HpBarHeightMargin, 0f);
+
+        var hpBarView = hpBar.GetComponent<MapObjectHpBarView>();
+        if (hpBarView == null) throw new InvalidOperationException($"hp bar prefab has no MapObjectHpBarView: {HpBarPrefabPath}");
+        return hpBarView;
+    }
+
+    // 見た目の外接をルートのローカル空間で求める。ルートに拡縮が入っていても子のlocalPositionへそのまま渡せる
+    // Computes the visual bounds in the root's local space so it can be handed straight to a child's local transform even when the root is scaled
+    private static Bounds CalculateLocalBounds(GameObject root)
+    {
+        var localBounds = new WrapperLocalBoundsAccumulator(root.transform);
+        foreach (var renderer in root.GetComponentsInChildren<Renderer>(true)) localBounds.AddWorldBounds(renderer.bounds);
+        if (!localBounds.HasPoint) throw new InvalidOperationException($"no renderer under {root.name}");
+
+        return localBounds.GetBounds();
+    }
+
+    // 最近接LODのレンダラーだけをアウトライン化する。遠景LODまで複製すると輪郭が二重になる
+    // Only the nearest LOD is outlined; duplicating the far LODs too would double the silhouette
+    private static List<Renderer> CollectNearestLodRenderers(GameObject root)
+    {
+        var renderers = new List<Renderer>();
+        var lodGroup = root.GetComponentInChildren<LODGroup>(true);
+        if (lodGroup == null)
+        {
+            renderers.AddRange(root.GetComponentsInChildren<MeshRenderer>(true));
+            return renderers;
+        }
+
+        foreach (var renderer in lodGroup.GetLODs()[0].renderers)
+            if (renderer != null)
+                renderers.Add(renderer);
+        return renderers;
+    }
+
+    private static void CopyWorldTransform(Transform source, Transform target)
+    {
+        target.SetPositionAndRotation(source.position, source.rotation);
+
+        // localScaleは親の合成拡縮を打ち消してから入れる
+        // Cancel out the parent's accumulated scale before assigning localScale
+        var parentScale = target.parent.lossyScale;
+        if (parentScale.x == 0f || parentScale.y == 0f || parentScale.z == 0f) throw new InvalidOperationException($"parent of {target.name} is flattened to zero scale, so world scale cannot be reproduced");
+
+        var sourceScale = source.lossyScale;
+        target.localScale = new Vector3(sourceScale.x / parentScale.x, sourceScale.y / parentScale.y, sourceScale.z / parentScale.z);
+    }
+
+    private static Material[] FillOutlineMaterials(int sourceMaterialCount, Material outlineMaterial)
+    {
+        // サブメッシュごとにスロットが要るので、元と同数（最低1枚）を全部アウトラインで埋める
+        // Every submesh needs a slot, so fill as many as the source had, never fewer than one
+        var materials = new Material[Mathf.Max(1, sourceMaterialCount)];
+        for (var index = 0; index < materials.Length; index++) materials[index] = outlineMaterial;
+        return materials;
+    }
+}

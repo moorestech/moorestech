@@ -1,101 +1,34 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using Core.Inventory;
 using Core.Item.Interface;
-using Core.Master;
-using Game.Context;
 using Game.PlayerInventory.Event;
-using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 
 namespace Game.PlayerInventory.ItemManaged
 {
-    public class MainOpenableInventoryData : IOpenableInventory
+    public class MainOpenableInventoryData : PlayerOpenableInventoryDataBase
     {
-        public IReadOnlyList<IItemStack> InventoryItems => _openableInventoryService.InventoryItems;
-        
         private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
-        private readonly OpenableInventoryItemDataStoreService _openableInventoryService;
-        private readonly int _playerId;
-        
-        public MainOpenableInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent, int slotCount)
+
+        public MainOpenableInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent, int slotCount) : base(playerId, slotCount)
         {
-            _playerId = playerId;
             _mainInventoryUpdateEvent = mainInventoryUpdateEvent;
-            _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotCount);
         }
 
         public MainOpenableInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent, int slotCount, List<IItemStack> itemStacks) : this(playerId, mainInventoryUpdateEvent, slotCount)
         {
-            for (var i = 0; i < itemStacks.Count; i++) _openableInventoryService.SetItemWithoutEvent(i, itemStacks[i]);
+            for (var i = 0; i < itemStacks.Count; i++) OpenableInventoryService.SetItemWithoutEvent(i, itemStacks[i]);
         }
 
+        // 所持枠だけが研究で拡張される
+        // Only the main inventory grows through research
         public void ExpandSlots(int newSlotCount)
         {
-            _openableInventoryService.ExpandSlots(newSlotCount);
-        }
-        
-        public IItemStack GetItem(int slot)
-        {
-            return _openableInventoryService.GetItem(slot);
-        }
-        
-        public void SetItem(int slot, IItemStack itemStack)
-        {
-            _openableInventoryService.SetItem(slot, itemStack);
-        }
-        
-        public void SetItem(int slot, ItemId itemId, int count)
-        {
-            _openableInventoryService.SetItem(slot, itemId, count);
-        }
-        
-        public IItemStack ReplaceItem(int slot, IItemStack itemStack)
-        {
-            return _openableInventoryService.ReplaceItem(slot, itemStack);
-        }
-        
-        public IItemStack ReplaceItem(int slot, ItemId itemId, int count)
-        {
-            return _openableInventoryService.ReplaceItem(slot, itemId, count);
-        }
-        
-        /// <summary>
-        ///     プレイヤーのメインインベントリの場合はホットバーを優先的にInsertする
-        /// </summary>
-        public IItemStack InsertItem(IItemStack itemStack)
-        {
-            return _openableInventoryService.InsertItemWithPrioritySlot(itemStack, PlayerInventoryConst.GetHotBarSlots(GetSlotSize()));
+            OpenableInventoryService.ExpandSlots(newSlotCount);
         }
 
-        public IItemStack InsertItem(ItemId itemId, int count)
+        protected override void InvokeInventoryUpdateEvent(PlayerInventoryUpdateEventProperties properties)
         {
-            return _openableInventoryService.InsertItemWithPrioritySlot(itemId, count, PlayerInventoryConst.GetHotBarSlots(GetSlotSize()));
-        }
-        
-        public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
-        {
-            return _openableInventoryService.InsertItem(itemStacks);
-        }
-        
-        public bool InsertionCheck(List<IItemStack> itemStacks)
-        {
-            return _openableInventoryService.InsertionCheck(itemStacks);
-        }
-        
-        public int GetSlotSize()
-        {
-            return _openableInventoryService.GetSlotSize();
-        }
-        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
-        {
-            return _openableInventoryService.CreateCopiedItems();
-        }
-        
-        private void InvokeEvent(int slot, IItemStack itemStack)
-        {
-            _mainInventoryUpdateEvent.OnInventoryUpdateInvoke(new PlayerInventoryUpdateEventProperties(
-                _playerId, slot, itemStack));
+            _mainInventoryUpdateEvent.OnInventoryUpdateInvoke(properties);
         }
     }
 }

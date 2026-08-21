@@ -17,9 +17,11 @@
 | Driver API | 中身 |
 |---|---|
 | `PressKey(Key key)` | KeyDown→2フレーム→KeyUp（押下と解放を別フレームに分離。GetKeyDown/Up両方を確実に発火） |
-| `SelectHotbar(slot)` | `Key.Digit1 + slot` のタップ（0始まり） |
+| `Hotbar.SelectHotbar(slot)` | `Key.Digit1 + slot` のタップ（0始まり） |
 | `AimAt(worldPos)` | `Camera.main.WorldToScreenPoint`→`MouseMoveTo`（**delta=0で注入**しカメラLook入力へ波及させない）→3フレーム待ち |
 | `ClickPlace()` | 左ボタン押下→2フレーム→解放（設置はGetKeyUpで確定するため解放必須） |
+| `MiddleClick()` | 中ボタン押下→2フレーム→解放（スポイト） |
+| `PickWithAltHold(worldPos)` | `Key.LeftAlt`押下→3フレーム→`AimAt`→`MiddleClick`→解放（通常モードのスポイトはAlt中だけ照準がカーソルに乗る） |
 
 低レベルには `SemanticInput.KeyDown/KeyUp/MouseMoveTo/MouseButtonDown/MouseButtonUp/Click/TapKey/EnsureDevices` がある。
 KeyboardStateは**全量スナップショット**なので押下中キー集合を毎回詰め直す実装になっている（部分更新不可）。

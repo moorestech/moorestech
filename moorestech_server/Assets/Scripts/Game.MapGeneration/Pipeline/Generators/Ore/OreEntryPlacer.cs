@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
+using Game.MapGeneration.Pipeline.Tiling;
 using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Generators
@@ -23,6 +24,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             SpatialGrid oreGrid,
             SpatialGrid clusterCenterGrid,
             float centerSpacing,
+            PlacementHaloChannel centerHalo,
             List<PlacementEntry> result,
             ref int nextClusterId)
         {
@@ -102,6 +104,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                     }
 
                     clusterCenterGrid.Add(localX, localZ);
+                    centerHalo.Add(localX + dims.WorldOffsetX, localZ + dims.WorldOffsetZ);
 
                     // 1クラスターに一意な id を割り当て、メンバー座標群を AABB へ束ねる鍵にする。
                     // Assign a unique id per cluster; it is the key that binds member coords into one AABB.

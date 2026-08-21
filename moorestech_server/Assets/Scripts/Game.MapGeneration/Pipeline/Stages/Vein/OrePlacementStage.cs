@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
+using Game.MapGeneration.Pipeline.Tiling;
 
 namespace Game.MapGeneration.Pipeline.Stages
 {
@@ -12,14 +13,16 @@ namespace Game.MapGeneration.Pipeline.Stages
 
         public static List<PlacedVein> Generate(
             TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
-            float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements)
+            float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
+            TilePlacementContext tile)
         {
             var ore = config.oreConfig;
             if (!config.generateOre || ore.entries.Length == 0) return new List<PlacedVein>();
             return VeinPlacementCore.Generate(
                 ore.entries, ore.borderMargin,
                 config, masks, biomeTypes, heights2D, treeEntries, objectPlacements,
-                ItemVeinRngSeedOffset, System.Array.Empty<PlacedVein>());
+                ItemVeinRngSeedOffset, System.Array.Empty<PlacedVein>(),
+                tile, tile.Halo.ItemVeinMembers, tile.Halo.ItemVeinCenters);
         }
     }
 }

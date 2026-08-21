@@ -14,11 +14,11 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void SameSeedProducesIdenticalOutput()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var a = MapGenerationPipeline.Generate(config, 12345);
-            var b = MapGenerationPipeline.Generate(config, 12345);
+            var a = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var b = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
 
-            Assert.That(a.Heights, Is.EqualTo(b.Heights));
-            Assert.That(a.BiomeIndices, Is.EqualTo(b.BiomeIndices));
+            Assert.That(a.Tiles[0].Heights, Is.EqualTo(b.Tiles[0].Heights));
+            Assert.That(a.Tiles[0].BiomeIndices, Is.EqualTo(b.Tiles[0].BiomeIndices));
             Assert.That(a.MapObjects.Count, Is.EqualTo(b.MapObjects.Count));
             Assert.That(a.ItemVeins.Count, Is.EqualTo(b.ItemVeins.Count));
 
@@ -38,16 +38,16 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void DifferentSeedProducesDifferentHeights()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var a = MapGenerationPipeline.Generate(config, 1);
-            var b = MapGenerationPipeline.Generate(config, 2);
-            Assert.That(a.Heights.SequenceEqual(b.Heights), Is.False);
+            var a = MapGenerationPipeline.Generate(config, 1, TestGenerationConfigFactory.ServerDataDirectory);
+            var b = MapGenerationPipeline.Generate(config, 2, TestGenerationConfigFactory.ServerDataDirectory);
+            Assert.That(a.Tiles[0].Heights.SequenceEqual(b.Tiles[0].Heights), Is.False);
         }
 
         [Test]
         public void VeinAabbIsIntegerSnappedAndNonEmpty()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var output = MapGenerationPipeline.Generate(config, 12345);
+            var output = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
 
             Assert.That(output.ItemVeins, Is.Not.Empty);
             foreach (var vein in output.ItemVeins)

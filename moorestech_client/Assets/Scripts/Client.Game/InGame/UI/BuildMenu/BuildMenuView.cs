@@ -9,6 +9,7 @@ using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.UIState;
 using Client.Localization;
 using Cysharp.Threading.Tasks;
+using Game.PlacementTarget;
 using Game.UnlockState;
 using UniRx;
 using UnityEngine;
@@ -26,7 +27,7 @@ namespace Client.Game.InGame.UI.BuildMenu
 
         [Inject] private IGameUnlockStateData _gameUnlockStateData;
         [Inject] private ClientBlueprintLibrary _blueprintLibrary;
-        [Inject] private PlacementTargetCatalog _placementTargetCatalog;
+        [Inject] private PlacementTargetResolver _placementTargetResolver;
 
         private readonly List<ItemSlotView> _slotViews = new();
         private readonly List<Guid> _displayedBlueprintGuids = new();
@@ -113,7 +114,7 @@ namespace Client.Game.InGame.UI.BuildMenu
 
             // カタログが組み立てたエントリ一覧からスロットを生成する
             // Create slots from the entries assembled by the catalog
-            var entries = BuildMenuEntryCatalog.CreateEntries(_gameUnlockStateData, _placementTargetCatalog, _blueprintLibrary.BlueprintEntries);
+            var entries = BuildMenuEntryCatalog.CreateEntries(_placementTargetResolver);
             foreach (var entry in entries)
             {
                 var slotView = Instantiate(ItemSlotView.Prefab, blockListContainer);

@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>独立レビュー: PR #1155 機械UI改修: 進捗矢印の共通化・タブ入替/未選択時レシピ表示・電力の充足率化（ADR 0010）</title>
+<style>
+  :root{
+    --surface:#FFFFFF;
+    --bg:#FFFFFF;
+    --border:#E2E8F0;
+    --text:#0F172A;
+    --text-muted:#475569;
+    --text-subtle:#64748B;
+    --engine:#2563EB;
+    --danger:#DC2626;
+    --amber:#F59E0B;
+    --amber-bg:#FFFBEB;
+    --amber-border:#FDE68A;
+    --shadow-rgb:15,23,42;
+    --code-bg:#F6F8FA;
+    --code-border:#D0D7DE;
+    --code-fg:#24292F;
+    --code-ln:#8B949E;
+    --diff-add-bg:#DAFBE1;
+    --diff-add-fg:#1A7F37;
+    --diff-del-bg:#FFEBE9;
+    --diff-del-fg:#CF222E;
+    --badge-new-bg:#DDF4FF;
+    --badge-new-fg:#0969DA;
+    --badge-sup-bg:#FFF1E5;
+    --badge-sup-fg:#BC4C00;
+    --surface-alt:#F8FAFC;
+    --surface-alt2:#F1F5F9;
+    --surface-inset:#FCFCFD;
+    --surface-info:#EFF6FF;
+    --border-strong:#94A3B8;
+    --border-focus:#93C5FD;
+    --on-accent:#FFFFFF;
+    --engine-hover:#1D4ED8;
+    --btn-disabled:#CBD5E1;
+    --focus-ring:#FCD34D;
+    --focus-outline:#BFDBFE;
+    --mark-bg:#FEF08A;
+    --mark-fg:#0F172A;
+    --fab-bg:#0F172A;
+    --fab-fg:#FFFFFF;
+    --fab-hover:#1E293B;
+    --pre-bg:#0F172A;
+    --pre-fg:#E2E8F0;
+    --pre-anchor:#F59E0B;
+    --pre-ctrl:#93C5FD;
+    --pre-head:#86EFAC;
+    --tag-blue-bg:#DBEAFE;
+    --tag-blue-fg:#1D4ED8;
+    --tag-green-bg:#DCFCE7;
+    --tag-green-fg:#166534;
+    --tag-amber-bg:#FEF3C7;
+    --tag-amber-fg:#92400E;
+    --tag-red-bg:#FEE2E2;
+    --tag-red-fg:#B91C1C;
+    --tag-indigo-bg:#EEF2FF;
+    --tag-indigo-fg:#4338CA;
+    --tag-violet-bg:#EDE9FE;
+    --tag-violet-fg:#6D28D9;
+  }
+  /* OS設定に追従するダーク配色。切替UIは持たない（毎run使い捨てで状態を引き継がないため） / follows the OS setting; no toggle since each run is disposable */
+  @media (prefers-color-scheme: dark){
+  :root{
+    --surface:#0D1117;
+    --bg:#010409;
+    --border:#30363D;
+    --text:#E6EDF3;
+    --text-muted:#B1BAC4;
+    --text-subtle:#8B949E;
+    --engine:#58A6FF;
+    --danger:#FF7B72;
+    --amber:#D29922;
+    --amber-bg:#2B2513;
+    --amber-border:#5A431A;
+    --shadow-rgb:0,0,0;
+    --code-bg:#161B22;
+    --code-border:#30363D;
+    --code-fg:#E6EDF3;
+    --code-ln:#6E7681;
+    --diff-add-bg:#12261E;
+    --diff-add-fg:#3FB950;
+    --diff-del-bg:#25171C;
+    --diff-del-fg:#F85149;
+    --badge-new-bg:#12283F;
+    --badge-new-fg:#58A6FF;
+    --badge-sup-bg:#3A2413;
+    --badge-sup-fg:#DB8B4E;
+    --surface-alt:#161B22;
+    --surface-alt2:#1C2128;
+    --surface-inset:#12171F;
+    --surface-info:#12283F;
+    --border-strong:#484F58;
+    --border-focus:#316DCA;
+    --on-accent:#0D1117;
+    --engine-hover:#388BFD;
+    --btn-disabled:#30363D;
+    --focus-ring:#D29922;
+    --focus-outline:#1F6FEB;
+    --mark-bg:#9E6A03;
+    --mark-fg:#E6EDF3;
+    --fab-bg:#30363D;
+    --fab-fg:#E6EDF3;
+    --fab-hover:#3C444D;
+    --pre-bg:#161B22;
+    --pre-fg:#E6EDF3;
+    --pre-anchor:#D29922;
+    --pre-ctrl:#79C0FF;
+    --pre-head:#7EE787;
+    --tag-blue-bg:#12283F;
+    --tag-blue-fg:#58A6FF;
+    --tag-green-bg:#12261E;
+    --tag-green-fg:#3FB950;
+    --tag-amber-bg:#2B2513;
+    --tag-amber-fg:#D29922;
+    --tag-red-bg:#25171C;
+    --tag-red-fg:#F85149;
+    --tag-indigo-bg:#1C1E3A;
+    --tag-indigo-fg:#A5A6F6;
+    --tag-violet-bg:#241A3C;
+    --tag-violet-fg:#C297FF;
+  }
+  }
+  *{box-sizing:border-box;}
+  /* リンク色を指定しないとダークで既定の濃紺のまま沈むので、必ずトークンから引く / without this, links keep the UA's dark navy and vanish on dark */
+  a{ color:var(--engine); }
+  html,body{
+    margin:0;
+    width:100%;
+    background:var(--bg);
+    color:var(--text);
+    overflow-x:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans",system-ui,sans-serif;
+    line-height:1.75;
+  }
+  h1,h2,h3,h4,p,li,td,th,.file-path,.lead-item,.callout,.compare-col,.ci-body,.panel-empty{
+    overflow-wrap:anywhere;
+  }
+  main{
+    max-width:880px;
+    margin:0 auto;
+    padding:0 20px 96px;
+  }
+  main>*{min-width:0;}
+  pre,.code-card,.table-wrap{max-width:100%;}
+  .hero{
+    background:linear-gradient(180deg,var(--surface-alt) 0%,var(--surface) 100%);
+    border-bottom:1px solid var(--border);
+    padding:52px 20px 34px;
+    text-align:center;
+  }
+  .hero h1{
+    font-size:26px;
+    margin:0 0 10px;
+    letter-spacing:0.01em;
+  }
+  .hero .meta{
+    font-size:13px;
+    color:var(--text-subtle);
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .pill{
+    display:inline-block;
+    border-radius:999px;
+    padding:3px 12px;
+    font-weight:600;
+    font-size:12px;
+  }
+  .pill.date{ background:var(--tag-indigo-bg); color:var(--tag-indigo-fg); }
+  .pill.review{ background:var(--tag-amber-bg); color:var(--tag-amber-fg); }
+  .pill.status{ background:var(--tag-green-bg); color:var(--tag-green-fg); }
+
+  section{ margin-top:52px; }
+  h2{
+    font-size:20px;
+    border-left:5px solid var(--engine);
+    padding-left:12px;
+    margin:0 0 18px;
+  }
+  h3{
+    font-size:16px;
+    margin:28px 0 10px;
+    color:var(--text);
+  }
+  h3 .num{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:22px;height:22px;
+    border-radius:999px;
+    background:var(--engine);
+    color:var(--on-accent);
+    font-size:12px;
+    margin-right:8px;
+  }
+
+  /* ---- lead ---- */
+  .lead-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:grid;
+    gap:12px;
+  }
+  .lead-item{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:14.5px;
+  }
+  .lead-item .badge{
+    flex:0 0 auto;
+    width:26px;height:26px;
+    border-radius:999px;
+    background:var(--engine);
+    color:var(--on-accent);
+    font-size:13px;
+    font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  /* ---- figure wrapper (comment target) ---- */
+  .figure{ position:relative; margin:18px 0; }
+  .figure-caption{
+    font-size:12.5px;
+    color:var(--text-subtle);
+    margin:8px 2px 0;
+  }
+  .figure[data-has-comment]{
+    outline:2px solid var(--focus-ring);
+    outline-offset:6px;
+    border-radius:16px;
+  }
+  .figure-comment-btn{
+    position:absolute;
+    top:-14px;
+    right:6px;
+    z-index:20;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    background:var(--fab-bg);
+    color:var(--fab-fg);
+    border:none;
+    border-radius:999px;
+    padding:6px 11px;
+    font-size:11.5px;
+    font-weight:600;
+    font-family:inherit;
+    cursor:pointer;
+    opacity:0;
+    transition:opacity .15s;
+    box-shadow:0 4px 14px rgba(var(--shadow-rgb),.25);
+  }
+  .figure:hover .figure-comment-btn,
+  .figure-comment-btn:focus-visible{ opacity:1; }
+  @media (hover:none){
+    .figure-comment-btn{ opacity:1; position:static; margin-bottom:8px; }
+  }
+
+  /* ---- compare (before/after) ---- */
+  .compare{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .compare-col h4{
+    margin:0 0 6px;
+    font-size:13px;
+  }
+  .compare-col.before h4{ color:var(--danger); }
+  .compare-col.after h4{ color:var(--tag-green-fg); }
+  pre{
+    background:var(--pre-bg);
+    color:var(--pre-fg);
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:12.5px;
+    line-height:1.7;
+    white-space:pre;
+    overflow-x:auto;
+    margin:0;
+  }
+  pre .anchor{ color:var(--pre-anchor); }
+  pre .ctrl{ color:var(--pre-ctrl); }
+  pre .head{ color:var(--pre-head); }
+
+  /* ---- callouts ---- */
+  .callout{
+    border-left:5px solid var(--amber);
+    background:var(--amber-bg);
+    border:1px solid var(--amber-border);
+    border-left-width:5px;
+    border-radius:10px;
+    padding:16px 18px;
+    font-size:14px;
+  }
+  .callout h4{
+    margin:0 0 10px;
+    font-size:14.5px;
+    color:var(--tag-amber-fg);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout.plain{
+    border-left-color:var(--border-strong);
+    background:var(--surface-alt);
+    border-color:var(--border);
+  }
+  .callout.plain h4{ color:var(--text); }
+  .callout ul{ margin:6px 0; padding-left:20px; }
+  .callout li{ margin:4px 0; }
+
+  /* ---- alignment diagram ---- */
+  .align-diagram{
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+    background:var(--surface-inset);
+  }
+  .align-head{
+    display:grid;
+    grid-template-columns:1fr 140px 1fr;
+    background:var(--surface-alt2);
+    font-size:12px;
+    font-weight:700;
+    color:var(--text-muted);
+    padding:8px 12px;
+    border-bottom:1px solid var(--border);
+  }
+  .align-sync{
+    background:var(--surface-info);
+    color:var(--tag-blue-fg);
+    font-size:12.5px;
+    font-weight:600;
+    padding:8px 14px;
+    border-top:1px dashed var(--border-focus);
+    border-bottom:1px dashed var(--border-focus);
+  }
+  .align-row{
+    display:grid;
+    grid-template-columns:1fr 140px 1fr;
+    gap:8px;
+    align-items:center;
+    padding:8px 12px;
+    border-bottom:1px solid var(--border);
+    font-size:12.5px;
+  }
+  .align-cell{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:6px 8px;
+    min-height:16px;
+  }
+  .align-cell.empty{ background:var(--surface-alt); border-style:dashed; color:var(--text-subtle); }
+  .align-tag{
+    text-align:center;
+    font-size:11px;
+    font-weight:700;
+    border-radius:999px;
+    padding:4px 6px;
+  }
+  .align-row.match .align-tag{ background:var(--tag-green-bg); color:var(--tag-green-fg); }
+  .align-row.update .align-tag{ background:var(--tag-amber-bg); color:var(--tag-amber-fg); }
+  .align-row.insert .align-tag{ background:var(--tag-blue-bg); color:var(--tag-blue-fg); }
+  .align-row.delete .align-tag{ background:var(--tag-red-bg); color:var(--tag-red-fg); }
+  .align-note{
+    font-size:12px;
+    color:var(--text-subtle);
+    padding:10px 14px;
+    background:var(--surface-alt);
+  }
+
+  /* ---- table ---- */
+  .table-wrap{ overflow-x:auto; border:1px solid var(--border); border-radius:12px; }
+  table{ border-collapse:collapse; width:100%; font-size:13px; min-width:560px; }
+  th,td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+  thead th{ background:var(--surface-alt2); font-size:12.5px; color:var(--text-muted); }
+  tbody tr:last-child td{ border-bottom:none; }
+  td code, li code, p code{
+    background:var(--surface-alt2);
+    border-radius:5px;
+    padding:1px 6px;
+    font-size:12px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  .kind-tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    border-radius:999px;
+    padding:2px 8px;
+  }
+  .kind-tag.new{ background:var(--tag-blue-bg); color:var(--tag-blue-fg); }
+  .kind-tag.mod{ background:var(--tag-amber-bg); color:var(--tag-amber-fg); }
+  .kind-tag.keep{ background:var(--surface-alt2); color:var(--text-muted); }
+
+  ul.plain{ padding-left:22px; margin:8px 0; }
+  ul.plain li{ margin:6px 0; font-size:14px; }
+  .options-head{ margin:12px 0 4px; font-size:13px; color:var(--text-muted); }
+  ul.options-list li{ line-height:1.7; }
+  /* 推奨マークは案キーの直後に置く。裁定サイトの推奨一括採用と同じ案を指す / the mark points at the same option the site bulk-accepts */
+  .opt-recommended{ display:inline-block; margin-left:6px; padding:1px 6px; border-radius:8px;
+    font-size:11px; font-weight:600; background:var(--badge-new-bg); color:var(--badge-new-fg); }
+
+  .ref-list{ list-style:none; padding:0; margin:0; display:grid; gap:6px; }
+  .ref-list li{ font-size:13px; }
+  .ref-list code{ background:var(--surface-alt2); border-radius:5px; padding:2px 6px; }
+
+  footer{
+    text-align:center;
+    font-size:12px;
+    color:var(--text-subtle);
+    padding:40px 20px 120px;
+  }
+
+  @media (max-width:640px){
+    body{ font-size:14.5px; line-height:1.7; }
+    /* ノッチ端末でも本文を安全領域へ収める / Keep content inside notched-device safe areas */
+    main{ padding:0 max(14px,env(safe-area-inset-right,0px)) 96px max(14px,env(safe-area-inset-left,0px)); }
+    .hero{ padding:calc(40px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 26px max(14px,env(safe-area-inset-left,0px)); }
+    .hero h1{ font-size:21px; }
+    h2{ font-size:19px; line-height:1.4; }
+    h3{ font-size:15.5px; line-height:1.45; }
+    .compare{ grid-template-columns:1fr; }
+    .align-head,.align-row{ grid-template-columns:1fr; gap:4px; }
+    .align-tag{ justify-self:start; }
+    section{ margin-top:40px; }
+  }
+
+  /* ================= comment feature ================= */
+  ::highlight(review-comment){ background-color:var(--mark-bg); color:var(--mark-fg); }
+
+  .comment-fab{
+    position:absolute; z-index:9000;
+    display:flex; align-items:center; gap:6px;
+    background:var(--fab-bg); color:var(--fab-fg); border:none;
+    border-radius:999px; padding:8px 14px;
+    font-size:12.5px; font-weight:600; font-family:inherit;
+    cursor:pointer; box-shadow:0 6px 20px rgba(var(--shadow-rgb),.28);
+  }
+  .comment-fab:hover{ background:var(--fab-hover); }
+  .comment-fab[hidden]{ display:none; }
+
+  .comment-composer{
+    position:absolute; z-index:9000;
+    width:320px; background:var(--surface);
+    border:1px solid var(--border); border-radius:12px;
+    padding:14px; box-shadow:0 12px 32px rgba(var(--shadow-rgb),.22);
+  }
+  .comment-composer[hidden]{ display:none; }
+  .composer-quote{
+    font-size:12px; color:var(--text-subtle); line-height:1.6;
+    margin-bottom:9px; max-height:56px; overflow:hidden;
+    border-left:3px solid var(--focus-ring); padding-left:8px;
+  }
+  .composer-input{
+    width:100%; min-height:76px; resize:vertical;
+    border:1px solid var(--border); border-radius:8px;
+    padding:9px 10px; font-size:13px; font-family:inherit;
+    line-height:1.6; color:var(--text);
+  }
+  .composer-input:focus{ outline:2px solid var(--focus-outline); border-color:var(--engine); }
+  .composer-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:10px; }
+
+  .btn-primary,.btn-ghost{
+    font-family:inherit; font-size:12.5px; font-weight:600;
+    border-radius:8px; padding:7px 14px; cursor:pointer; border:1px solid transparent;
+  }
+  .btn-primary{ background:var(--engine); color:var(--on-accent); }
+  .btn-primary:hover{ background:var(--engine-hover); }
+  .btn-primary:disabled{ background:var(--btn-disabled); cursor:not-allowed; }
+  .btn-primary.wide{ width:100%; padding:10px; font-size:13px; }
+  .btn-ghost{ background:var(--surface); color:var(--text-muted); border-color:var(--border); }
+  .btn-ghost:hover{ background:var(--surface-alt2); }
+
+  .comment-panel{
+    position:fixed; left:22px; bottom:22px; z-index:8500;
+    display:flex; flex-direction:column;
+  }
+  .comment-panel.open{ width:350px; }
+  .panel-toggle{
+    display:flex; align-items:center; gap:7px; margin-right:auto;
+    background:var(--fab-bg); color:var(--fab-fg); border:none; border-radius:999px;
+    padding:11px 17px; font-size:13px; font-weight:600; font-family:inherit;
+    cursor:pointer; box-shadow:0 8px 24px rgba(var(--shadow-rgb),.26);
+  }
+  .panel-toggle:hover{ background:var(--fab-hover); }
+  .panel-count{
+    background:var(--engine); color:var(--on-accent); font-size:11px; font-weight:700;
+    border-radius:999px; min-width:19px; height:19px;
+    display:inline-flex; align-items:center; justify-content:center; padding:0 5px;
+  }
+  .panel-caret{ font-size:11px; opacity:.8; }
+  .panel-body{
+    margin-bottom:10px; background:var(--surface); border:1px solid var(--border);
+    border-radius:14px; box-shadow:0 16px 40px rgba(var(--shadow-rgb),.18); overflow:hidden;
+  }
+  .panel-body[hidden]{ display:none; }
+  .panel-empty{ font-size:13px; line-height:1.75; color:var(--text-muted); padding:18px 16px; margin:0; }
+  .comment-list{ list-style:none; margin:0; padding:8px; max-height:46vh; overflow-y:auto; }
+  .comment-item{
+    border:1px solid var(--border); border-radius:10px; padding:10px 11px; margin:6px 0;
+    background:var(--surface-inset); cursor:pointer; transition:border-color .12s, background .12s;
+  }
+  .comment-item:hover{ border-color:var(--border-focus); background:var(--surface-info); }
+  .ci-head{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .ci-num{ font-size:11px; font-weight:700; color:var(--engine); }
+  .ci-act{
+    display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700;
+    font-family:inherit; background:var(--engine); color:var(--on-accent); border:none;
+    border-radius:6px; padding:4px 10px; cursor:pointer;
+  }
+  .ci-act:hover{ background:var(--engine-hover); }
+  .ci-del{
+    margin-left:auto; font-size:14px; line-height:1; background:none; border:none;
+    color:var(--text-subtle); cursor:pointer; padding:2px 6px; border-radius:6px;
+  }
+  .ci-del:hover{ background:var(--tag-red-bg); color:var(--danger); }
+  .ci-quote{
+    font-size:11.5px; color:var(--text-subtle); line-height:1.55;
+    border-left:3px solid var(--focus-ring); padding-left:7px; margin-bottom:6px;
+  }
+  .ci-body{ font-size:13px; line-height:1.65; color:var(--text); white-space:pre-wrap; }
+  .ci-edit{ margin-bottom:0; }
+  .ci-edit-label{ font-size:11px; font-weight:700; color:var(--engine); margin:2px 0 6px; }
+  .panel-foot{ border-top:1px solid var(--border); padding:10px; background:var(--surface-alt); }
+
+  .kind-pill{ display:inline-block; font-size:10px; font-weight:700; border-radius:999px; padding:2px 7px; letter-spacing:.02em; }
+  .kind-pill.fig{ background:var(--tag-violet-bg); color:var(--tag-violet-fg); }
+  .kind-pill.txt{ background:var(--tag-blue-bg); color:var(--tag-blue-fg); }
+  .composer-quote .kind-pill{ margin-right:6px; }
+
+  @media (hover:none){
+    .comment-composer{
+      position:fixed; left:50% !important; top:calc(12px + env(safe-area-inset-top,0px)) !important;
+      transform:translateX(-50%) !important;
+      width:min(360px,calc(100vw - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));max-width:none;
+    }
+    .composer-input{ font-size:16px; }
+  }
+  @media (max-width:640px){
+    .comment-composer{width:calc(100vw - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));}
+    .comment-panel{ left:max(12px,env(safe-area-inset-left,0px)); right:max(12px,env(safe-area-inset-right,0px)); width:auto; bottom:calc(18px + env(safe-area-inset-bottom,0px)); }
+    .comment-panel.open{ width:auto; }
+    .panel-body{ display:flex; flex-direction:column; max-height:70vh; }
+    .comment-list{ flex:1 1 auto; min-height:0; max-height:none; }
+    .panel-foot{ flex:0 0 auto; }
+  }
+
+  /* ================= digest components ================= */
+  .verdict-header { border-left: 4px solid var(--engine); padding-left: 16px; margin-bottom: 24px; }
+  .file-path code { font-size: 12px; color: var(--text-subtle); }
+  .verdict-card h2, .suppressed-card h2 { font-size: 18px; }
+  /* colorは必須: 素のpreが暗背景用の明色文字なので明背景では読めなくなる / color is required: bare pre uses light text for dark bg */
+  .code-card { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 6px; padding: 12px 0; overflow-x: auto; font-size: 13px; line-height: 1.6; color: var(--code-fg); }
+  /* min-width:100%で横スクロール時も行の帯が途切れないようにする / min-width keeps the row band intact while scrolling horizontally */
+  .code-card code { display: inline-block; min-width: 100%; }
+  .code-card .cl { display: block; white-space: pre; }
+  /* 行番号と記号は横スクロールしても左端へ貼り付ける（注目行バーもここに載るため逃がせない） / the gutter sticks while the code scrolls; the highlight bar rides on it */
+  .code-card .ln, .code-card .sign { position: sticky; background: inherit; user-select: none; }
+  .code-card .ln { left: 0; display: inline-block; width: 4.2em; text-align: right; padding-right: .7em; color: var(--code-ln); }
+  /* 記号列は色が潰れても差分を読ませる最後の砦なので必ず等幅で確保する / the sign column is the last line of defense when colors wash out */
+  .code-card .sign { left: 4.2em; display: inline-block; width: 1.2em; color: var(--code-ln); }
+  .code-card .cl { background: var(--code-bg); }
+  .code-card .cl.add { background: var(--diff-add-bg); }
+  .code-card .cl.add .sign { color: var(--diff-add-fg); }
+  .code-card .cl.del { background: var(--diff-del-bg); }
+  .code-card .cl.del .sign { color: var(--diff-del-fg); }
+  /* 注目行は背景を使わない（追加/削除の背景と3層に重なるため）。左縁バーと字の太さで示す / no background here: it would stack on the add/del bands */
+  /* バーは貼り付く行番号側に載せる。行そのものへ inset で引くと横スクロールで視界外へ逃げる / the bar rides the sticky gutter; on the row itself it would scroll away */
+  .code-card .cl.hl { font-weight: 600; }
+  .code-card .cl.hl .ln { box-shadow: inset 4px 0 0 var(--amber); }
+  /* vendorの.lead-item .badgeと衝突するためカード内に限定 / scoped to cards to avoid clashing with vendor .lead-item .badge */
+  .verdict-card .badge, .suppressed-card .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-right: 8px; }
+  .badge-new { background: var(--badge-new-bg); color: var(--badge-new-fg); }
+  .badge-sup { background: var(--badge-sup-bg); color: var(--badge-sup-fg); }
+
+  /* カード境界を明示する枠線と背景 / explicit card boundary */
+  .verdict-card, .suppressed-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--engine);
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(var(--shadow-rgb),.06);
+  }
+  .verdict-card.critical { border-left-color: var(--danger); }
+  .verdict-card.ruling { border-left-color: var(--amber); }
+  .summary-line { font-size: 14.5px; font-weight: 700; color: var(--tag-amber-fg); margin: 4px 0 12px; }
+  details { border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin: 12px 0; background: var(--surface-inset); }
+  details summary { cursor: pointer; font-weight: 700; font-size: 14px; }
+  details ul { padding-left: 20px; }
+  details li { font-size: 13px; margin: 5px 0; }
+  /* ---- highlight.js テーマ（ライト） / highlight.js theme (light) ---- */
+pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5px}/*!
+  Theme: GitHub
+  Description: Light theme as seen on github.com
+  Author: github.com
+  Maintainer: @Hirse
+  Updated: 2021-05-15
+
+  Outdated base version: https://github.com/primer/github-syntax-light
+  Current colors taken from GitHub's CSS
+*/.hljs{color:#24292e;background:#fff}.hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-template-tag,.hljs-template-variable,.hljs-type,.hljs-variable.language_{color:#d73a49}.hljs-title,.hljs-title.class_,.hljs-title.class_.inherited__,.hljs-title.function_{color:#6f42c1}.hljs-attr,.hljs-attribute,.hljs-literal,.hljs-meta,.hljs-number,.hljs-operator,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-id,.hljs-variable{color:#005cc5}.hljs-meta .hljs-string,.hljs-regexp,.hljs-string{color:#032f62}.hljs-built_in,.hljs-symbol{color:#e36209}.hljs-code,.hljs-comment,.hljs-formula{color:#6a737d}.hljs-name,.hljs-quote,.hljs-selector-pseudo,.hljs-selector-tag{color:#22863a}.hljs-subst{color:#24292e}.hljs-section{color:#005cc5;font-weight:700}.hljs-bullet{color:#735c0f}.hljs-emphasis{color:#24292e;font-style:italic}.hljs-strong{color:#24292e;font-weight:700}.hljs-addition{color:#22863a;background-color:#f0fff4}.hljs-deletion{color:#b31d28;background-color:#ffeef0}
+  @media (prefers-color-scheme: dark) {
+pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5px}/*!
+  Theme: GitHub Dark
+  Description: Dark theme as seen on github.com
+  Author: github.com
+  Maintainer: @Hirse
+  Updated: 2021-05-15
+
+  Outdated base version: https://github.com/primer/github-syntax-dark
+  Current colors taken from GitHub's CSS
+*/.hljs{color:#c9d1d9;background:#0d1117}.hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-template-tag,.hljs-template-variable,.hljs-type,.hljs-variable.language_{color:#ff7b72}.hljs-title,.hljs-title.class_,.hljs-title.class_.inherited__,.hljs-title.function_{color:#d2a8ff}.hljs-attr,.hljs-attribute,.hljs-literal,.hljs-meta,.hljs-number,.hljs-operator,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-id,.hljs-variable{color:#79c0ff}.hljs-meta .hljs-string,.hljs-regexp,.hljs-string{color:#a5d6ff}.hljs-built_in,.hljs-symbol{color:#ffa657}.hljs-code,.hljs-comment,.hljs-formula{color:#8b949e}.hljs-name,.hljs-quote,.hljs-selector-pseudo,.hljs-selector-tag{color:#7ee787}.hljs-subst{color:#c9d1d9}.hljs-section{color:#1f6feb;font-weight:700}.hljs-bullet{color:#f2cc60}.hljs-emphasis{color:#c9d1d9;font-style:italic}.hljs-strong{color:#c9d1d9;font-weight:700}.hljs-addition{color:#aff5b4;background-color:#033a16}.hljs-deletion{color:#ffdcd7;background-color:#67060c}
+  }
+  /* テーマ側の .hljs 背景はカードの帯を潰すので無効化する / the theme's .hljs background would hide the diff bands */
+  .code-card .hljs, .code-card .code { background: transparent !important; }
+  @media (max-width:640px){
+    .verdict-header{padding-left:10px;margin-bottom:18px;}
+    .verdict-card,.suppressed-card{padding:12px 10px;}
+    .verdict-card h2,.suppressed-card h2{font-size:16px;}
+    .code-card{font-size:12px;padding:10px 0;}
+    .callout,.lead-item{padding:12px;}
+    .table-wrap{-webkit-overflow-scrolling:touch;}
+    .figure-comment-btn,.comment-fab,.panel-toggle,.btn-primary,.btn-ghost,.ci-act,.ci-del{
+      min-height:44px;
+    }
+    .ci-act,.ci-del{min-width:44px;}
+    footer{padding-bottom:calc(132px + env(safe-area-inset-bottom,0px));}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>独立レビュー: PR #1155 機械UI改修: 進捗矢印の共通化・タブ入替/未選択時レシピ表示・電力の充足率化（ADR 0010）</h1>
+  <div class="meta">
+    <span class="pill date">2026-08-18</span>
+    <span class="pill review">verdict: Critical差し戻し</span>
+  </div>
+</header>
+
+<main>
+
+  <section class="verdict-header" data-verdict="reject">
+    <h2>verdict: Critical差し戻し</h2>
+    <p class="verdict-line"><strong>verdict: Critical差し戻し</strong> — Critical 8 / Warning 30 / Info 20 / suppressed 0 / 新形 0。対象 ad35195a8（base 9631e8e1f）。report-only のため修正の適用は行っていない。</p>
+  </section>
+
+  <section id="you-decide">
+    <h2>あなたが判断すること</h2>
+    <ul class="lead-list">
+      <li class="lead-item"><span class="badge">1</span><div><strong>必読の設計判断 3件</strong> — <a href="#f03">F03 歯車機械に倍率を効かせるか（案A/案Bは排他）</a> ／ <a href="#f04">F04 実効率導出の集約先の選択（ChangeSelectionの再ラッチ判断が従属する）</a> ／ <a href="#f08">F08 充足率を隠す判断の正本を state に置くか実効要求値に置くか</a></div></li>
+      <li class="lead-item"><span class="badge">2</span><div><strong>suppressed 0件</strong> — <a href="#suppressed">suppressedセクション</a></div></li>
+      <li class="lead-item"><span class="badge">3</span><div><strong>新形の入国審査 0件</strong> — <a href="#new-shape">新形セクション</a></div></li>
+      <li class="lead-item"><span class="badge">4</span><div><strong>裁定不要</strong>: <a href="#criticals">Critical要点</a>（<a href="#f01">F01</a>・<a href="#f02">F02</a>・<a href="#f05">F05</a>・<a href="#f06">F06</a>・<a href="#f07">F07</a>）</div></li>
+    </ul>
+  </section>
+
+  <section id="must-read">
+    <h2>必読の設計判断</h2>
+    <p>なぜ必読か: この3件はゲームプレイの方向・実マスタでの誤表示・他Criticalの直し方を決めるため、裁定なしには修正に着手できない。</p>
+    <div class="figure" data-label="歯車機械の要求トルク率に上限なしの電力倍率を流し込む変更の設計判断カード（実コード抜粋つき）">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <section class="verdict-card ruling" id="f03" data-finding-id="F03">
+        <h2><span class="badge badge-new">設計判断</span> <strong>VanillaGearMachineComponent.cs</strong></h2>
+        <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs:40</code></p>
+        <p class="summary-line">需要だけ1.5倍に膨らみ、供給も速度も増えない。</p>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">        private void UpdateTorqueRequestRate()</span></span>
+<span class="cl ctx"><span class="ln">37</span><span class="sign"> </span><span class="code">        {</span></span>
+<span class="cl del"><span class="ln">40</span><span class="sign">-</span><span class="code">            var isProcessing = _vanillaMachineProcessorComponent.CurrentState == ProcessState.Processing;</span></span>
+<span class="cl del"><span class="ln">41</span><span class="sign">-</span><span class="code">            _gearEnergyTransformer.SetTorqueRequestRate(isProcessing ? 1f : _idleTorqueRate);</span></span>
+<span class="cl add"><span class="ln">38</span><span class="sign">+</span><span class="code">            // 表示の分母・加工速度と同じ導出（EffectiveRequestPowerRate）をそのまま歯車網への要求へ反映する</span></span>
+<span class="cl add"><span class="ln">39</span><span class="sign">+</span><span class="code">            // Feed the gear network the same derivation used for the display denominator and processing speed (EffectiveRequestPowerRate)</span></span>
+<span class="cl add hl"><span class="ln">40</span><span class="sign">+</span><span class="code">            _gearEnergyTransformer.SetTorqueRequestRate(_vanillaMachineProcessorComponent.EffectiveRequestPowerRate);</span></span>
+<span class="cl ctx"><span class="ln">41</span><span class="sign"> </span><span class="code">        }</span></span></code></pre>
+        <p><strong>PR側の主張:</strong> 歯車機械の要求トルクにもモジュール倍率を反映し、表示分母・加工速度・歯車網要求を一致させる <code>[agent前提]</code>（PR本文「レビュー裁定」／PR内新設 <code>.decisions/2026-08-17-歯車機械の需要にもモジュール倍率を載せる.md</code>・免責力なし）。Fable も「意図どおり」と判定した。</p>
+        <p><strong>独立レビューの実測:</strong> <code>MachineModuleEffect.cs:75</code> の倍率は下限のみで上限クランプがない。一方 <code>GearConsumptionCalculator.cs:41-52</code> の <code>required</code> は rate を掛けない素の値で <code>Mathf.Min(currentTorque / required, 1f)</code> により rate&gt;1 分を必ず捨て、<code>CalcCurrentPower</code> は <code>_torqueRequestRate</code> を参照しない。結果、<code>GearNetworkPowerCalculator.cs:44-47</code> で <code>demandPower &gt; availablePower</code> となり <strong>同一歯車網の全消費者が <code>OverRequirePower</code> で停止</strong>し、停止しない場合も充足率は恒久的に 67%（赤固定）になる。5系統がこの二択を提示し、Fable の「意図どおり」判定は供給側の導出を読んでいない。</p>
+        <p><strong>併用推奨（案C相当）:</strong> <code>readonly struct TorqueRequestRate</code> を切り、定義域 [0,∞) の <code>PowerMultiplier</code> と <code>float</code> 取り違えを型で止める。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — GearConsumptionCalculator.CalcOperatingRate / CalcCurrentPower に requestRate 引数を足し、required と供給の両方へ倍率を反映して要求と供給を一致させる（推奨）</li>
+          <li><strong>案B</strong> — SetTorqueRequestRate を Processing ? 1f : idleRate へ戻し、歯車機械では PowerMultiplier を要求側に載せない（表示分母も基礎値へ戻す）</li>
+        </ul>
+      </section>
+    </div>
+    <div class="figure" data-label="2つのprocessorへ逐語コピーされた実効率導出とラッチ手続きの集約先を選ぶ設計判断カード（実コード抜粋つき）">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <section class="verdict-card ruling" id="f04" data-finding-id="F04">
+        <h2><span class="badge badge-new">設計判断</span> <strong>VanillaMachineProcessorComponent.cs</strong> / <strong>CleanRoomMachineProcessorComponent.cs</strong></h2>
+        <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:29</code>（＋ <code>moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:31</code>）</p>
+        <p class="summary-line">同じ導出が2箇所に写され、既に食い違っている。</p>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl add"><span class="ln">27</span><span class="sign">+</span><span class="code">        // 稼働状態に応じてアイドル倍率かモジュール倍率を選ぶ要求電力率。歯車機械の要求トルク率もここから導出する</span></span>
+<span class="cl add"><span class="ln">28</span><span class="sign">+</span><span class="code">        // Requested power rate selecting the idle rate or module multiplier by state; the gear machine&#39;s requested torque rate also derives from here</span></span>
+<span class="cl add hl"><span class="ln">29</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState == ProcessState.Processing ? _context.ProcessingPowerMultiplier : _idlePowerRate;</span></span>
+<span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl ctx"><span class="ln">31</span><span class="sign"> </span><span class="code">        // 稼働状態に応じてアイドル倍率かモジュール倍率を適用した要求電力</span></span>
+<span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        // Requested power applies the idle rate or module multiplier based on the active state</span></span>
+<span class="cl del"><span class="ln">29</span><span class="sign">-</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower *</span></span>
+<span class="cl del"><span class="ln">30</span><span class="sign">-</span><span class="code">                                              (CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : _idlePowerRate);</span></span>
+<span class="cl add"><span class="ln">33</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</span></span></code></pre>
+        <p>同概念の写し（CleanRoom 側・<code>Halted</code> の扱いだけ既に食い違っている）:</p>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl del"><span class="ln">29</span><span class="sign">-</span><span class="code">        // 停止中は要求電力を0にし、稼働中だけ通常機械と同じ倍率を適用する</span></span>
+<span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
+<span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code">        // Halted machines request no power; operating states use the same multipliers as normal machines</span></span>
+<span class="cl del"><span class="ln">31</span><span class="sign">-</span><span class="code">        public float EffectiveRequestPower =&gt; CurrentState switch</span></span>
+<span class="cl add hl"><span class="ln">31</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState switch</span></span>
+<span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        {</span></span>
+<span class="cl ctx hl"><span class="ln">33</span><span class="sign"> </span><span class="code">            ProcessState.Halted =&gt; 0f,</span></span>
+<span class="cl del"><span class="ln">34</span><span class="sign">-</span><span class="code">            ProcessState.Processing =&gt; _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier,</span></span>
+<span class="cl del"><span class="ln">35</span><span class="sign">-</span><span class="code">            ProcessState.Idle =&gt; _context.RequestPower * _idlePowerRate,</span></span>
+<span class="cl add"><span class="ln">34</span><span class="sign">+</span><span class="code">            ProcessState.Processing =&gt; _context.ProcessingPowerMultiplier,</span></span>
+<span class="cl add"><span class="ln">35</span><span class="sign">+</span><span class="code">            ProcessState.Idle =&gt; _idlePowerRate,</span></span>
+<span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">            _ =&gt; throw new ArgumentOutOfRangeException(),</span></span>
+<span class="cl ctx"><span class="ln">37</span><span class="sign"> </span><span class="code">        };</span></span>
+<span class="cl ctx"><span class="ln">38</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl add"><span class="ln">39</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</span></span></code></pre>
+        <p><strong>PR側の主張:</strong> <code>ProcessingPowerMultiplier</code> を <code>MachineProcessContext</code> へ寄せて「1箇所から取得」した <code>[agent前提]</code>（コード内コメント）。集約はそこで止まっている。</p>
+        <p><strong>独立レビューの実測:</strong> フィールド宣言・ctor 初期ラッチ・<code>GetBlockStateDetails</code> の公開・Update 冒頭3文が<strong>日英2行コメントごと逐語一致</strong>で両クラスに存在し、率だけ Vanilla=三項（<code>Halted</code> が無言で <code>_idlePowerRate</code> に落ちる）／CleanRoom=網羅switch（<code>Halted =&gt; 0f</code>）と<strong>既に食い違っている</strong>。両ファイルは 217行 / 222行で200行上限を超過。故障は仮定でなく patch 内で既に1回起きており（CleanRoom の Halted 固着を <code>:177-178</code> の手動0埋めで塞いだ）、同型の <code>ChangeSelection</code> 2件（<a href="#f02">F02</a>）では漏れている。4系統一致。</p>
+        <p><strong>裁定ポイント:</strong> ラッチの置き場所は <code>MachineProcessContext</code> 一択で拮抗しない。選択は「率の分岐を context の網羅switch+throw に置くか、<code>IMachineProcessState</code> の実装へ分散させるか」だけ。どちらでも <a href="#f02">F02</a> の直し方（<code>ChangeSelection</code> 直後の再ラッチを1行で呼ぶ）が決まるため、<strong><a href="#f02">F02</a> より先に決める必要がある</strong>。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — MachineProcessContext へ率の網羅switchとラッチ手続きを集約する（推奨・ChangeSelectionの再ラッチ修正と同一編集）</li>
+          <li><strong>案B</strong> — 率は IMachineProcessState に float RequestPowerRate を足して実装側へ散らし、状態追加をコンパイルエラーで検知させる（ラッチのみ context へ集約）</li>
+        </ul>
+      </section>
+    </div>
+    <div class="figure" data-label="充足率の表示可否を requestPower !== 0 の数値センチネルで判定している箇所の設計判断カード（実コード抜粋つき）">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <section class="verdict-card ruling" id="f08" data-finding-id="F08">
+        <h2><span class="badge badge-new">設計判断</span> <strong>detailLogic.ts</strong></h2>
+        <p class="file-path"><code>moorestech_web/webui/src/features/blockInventory/details/detailLogic.ts:73</code></p>
+        <p class="summary-line">石窯とボイラーで電力行が丸ごと消える。</p>
+        <pre class="code-card" data-lang="typescript"><code><span class="cl add"><span class="ln">71</span><span class="sign">+</span><span class="code">// 要求電力0（停止中）は充足率が意味を持たないため、表示自体を出さない判断をここで確定する</span></span>
+<span class="cl add"><span class="ln">72</span><span class="sign">+</span><span class="code">// A request power of 0 (halted) makes the satisfaction rate meaningless, so the decision to hide it is settled here</span></span>
+<span class="cl add hl"><span class="ln">73</span><span class="sign">+</span><span class="code">export function isPowerRateMeaningful(requestPower: number): boolean {</span></span>
+<span class="cl add hl"><span class="ln">74</span><span class="sign">+</span><span class="code">  return requestPower !== 0;</span></span>
+<span class="cl add"><span class="ln">75</span><span class="sign">+</span><span class="code">}</span></span></code></pre>
+        <p><strong>PR側の主張:</strong> 実効要求0の機械は充足率を表示せず停止中ラベルのみ出す <code>[agent前提]</code>（PR内新設ADR 0010・PR本文R4。免責力なし）。</p>
+        <p><strong>独立レビューの実測:</strong> 実マスタ <code>../moorestech_master/server_v8/.../blocks.json</code> に <strong>石窯（L94・<code>requiredPower: 0</code>）とボイラー（L1937・同）</strong>が実在し、<code>EffectiveRequestPower = 0 × rate = 0</code> が常に成立する。よって<strong>正常稼働中でも電力行が消え</strong>、「電力が来ていない」のか「需要が0」なのかユーザーが区別できない。判別子 <code>currentState</code> は本PRで <code>z.enum([&quot;idle&quot;,&quot;processing&quot;,&quot;halted&quot;])</code> に narrowing 済みで<strong>ワイヤ上に既に存在する</strong>のに使っていない。<code>requestPower === 0</code> の解釈は現状4通りに分裂（<code>detailLogic.ts:74</code>＝表示可否 ／ <code>detailLogic.ts:8</code>＝100%充足 ／ <code>CommonMachineBlockStateDetail.cs:35</code>＝同上 ／ <code>MinerSection.tsx:15</code>＝判定なしで常時表示）。7系統一致。</p>
+        <p><strong>決着に要る追加の裁定:</strong> 石窯・ボイラーを「需要なし」と明示表示するか（<code>L.ui.blockInventory.noDemand</code> の前例が <code>NetworkSections.tsx:16</code> にある）／<code>MinerSection</code> の既存表示も揃えて消すか。<code>CommonMachineBlockStateDetail</code> に判別共用体を持たせる案はMessagePackワイヤ変更を伴うため非推奨。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — state 由来の1枚テーブルへ集約し、MachineStateKeys / MachineStateInsufficientTone も統合する（状態追加が必ずコンパイルエラーになる・推奨）</li>
+          <li><strong>案B</strong> — 「0 なら描画しない」を所有者 PowerRateText の early return へ移し computePowerRate の 0→1 を撤去する（MinerSection の既存表示も変わる）</li>
+        </ul>
+      </section>
+    </div>
+  </section>
+
+  <section id="other-rulings">
+    <h2>残りの設計判断（推奨案どおりで良ければ一言で足りる）</h2>
+    <p>推奨案どおりで良ければ一言で足りる3件。</p>
+    <div class="figure" data-label="ProcessingPowerMultiplierを毎回集計するかtickスナップショットにするかの設計判断カード（実コード抜粋つき）">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <section class="verdict-card ruling" id="f09" data-finding-id="F09">
+        <h2><span class="badge badge-new">設計判断</span> <strong>MachineProcessContext.cs</strong></h2>
+        <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs:26</code></p>
+        <p class="summary-line">同一tick内で別インスタンスの倍率を読む。</p>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl ctx"><span class="ln">22</span><span class="sign"> </span><span class="code">        public float SuppliedPower;</span></span>
+<span class="cl ctx"><span class="ln">23</span><span class="sign"> </span><span class="code">        public float CurrentPower;</span></span>
+<span class="cl ctx"><span class="ln">24</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl add"><span class="ln">25</span><span class="sign">+</span><span class="code">        // 加工中の効果倍率を1箇所から取得し、processorのEffectiveRequestPowerRateと計算式を共有する</span></span>
+<span class="cl add hl"><span class="ln">26</span><span class="sign">+</span><span class="code">        public float ProcessingPowerMultiplier =&gt; EffectComponent.AggregateCurrent().PowerMultiplier;</span></span></code></pre>
+        <p><strong>PR側の主張:</strong> 倍率の単一取得点を作り、加工速度・表示分母・歯車要求で式を共有する <code>[agent前提]</code>（コード内コメント）。式の一致という点では改善している。</p>
+        <p><strong>独立レビューの実測:</strong> 非キャッシュ getter のため同一tick内で同じモジュール集計を3〜4回作り直す（<code>AggregateCurrent()</code> は毎回 List 確保＋<code>MasterHolder.ItemMaster</code> 参照。Processing中1台あたり電気/CleanRoom 60→80回/秒、歯車 20→60回/秒）。性能だけの話ではなく、<code>EnergySegment.SettleTick</code> が読んだ倍率と <code>Update()</code> がラッチする倍率が<strong>別インスタンス</strong>のため、PRの掲げた「基準一致」が tick 内で完全には成立していない。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — GameUpdater.CurrentTick スタンプ付きスナップショットにする。モジュール着脱の反映が最大1tick遅れる代わりに基準一致が構造的に保証される（推奨）</li>
+          <li><strong>案B</strong> — 現状維持（毎回 AggregateCurrent。1tickに機械あたり3〜4回のList確保とMasterHolder参照が走る）</li>
+        </ul>
+      </section>
+    </div>
+    <div class="figure" data-label="ProgressArrowGlyphが参照する既定寸法トークンの命名に関する設計判断カード（実コード抜粋つき）">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <section class="verdict-card ruling" id="f10" data-finding-id="F10">
+        <h2><span class="badge badge-new">設計判断</span> <strong>style.module.css</strong></h2>
+        <p class="file-path"><code>moorestech_web/webui/src/shared/ui/ProgressArrowGlyph/style.module.css:4</code></p>
+        <p class="summary-line">汎用部品がcraftドメインの語彙を参照する。</p>
+        <pre class="code-card" data-lang="css"><code><span class="cl add"><span class="ln">1</span><span class="sign">+</span><span class="code">/* 既定寸法はクラフト矢印と同値のトークンを直接参照する。呼び出し側は寸法を持たない */</span></span>
+<span class="cl add"><span class="ln">2</span><span class="sign">+</span><span class="code">/* Default size references the craft-arrow tokens directly; callers no longer size this themselves */</span></span>
+<span class="cl add"><span class="ln">3</span><span class="sign">+</span><span class="code">.arrow {</span></span>
+<span class="cl add hl"><span class="ln">4</span><span class="sign">+</span><span class="code">  width: var(--craft-arrow-width);</span></span>
+<span class="cl add hl"><span class="ln">5</span><span class="sign">+</span><span class="code">  height: var(--craft-arrow-height);</span></span>
+<span class="cl add"><span class="ln">6</span><span class="sign">+</span><span class="code">}</span></span></code></pre>
+        <p><strong>PR側の主張:</strong> 矢印の既定寸法は部品CSSがトークンを1箇所参照して持つ（<strong>別名トークンを増やさない</strong>） <code>[agent前提]</code>（PR内新設 <code>.decisions/2026-08-17-矢印グリフの既定寸法は部品がトークン参照で持つ.md</code>。免責力なし）。前例として <code>shared/ui/GamePanel/style.module.css:97-103</code> が <code>--craft-grip-*</code> を参照している［検証済み］。</p>
+        <p><strong>独立レビューの実測:</strong> 兄弟の <code>ProgressArrow</code> は中立名 <code>--progress-arrow-*</code>（<code>tokens.css:179,182</code>）を使っており、<code>shared/ui</code> 内で語彙が割れている。<code>[ADR: AGENTS.md#設計原則]</code>（汎用基盤にドメイン語彙を持ち込まない）に抵触。PR内新設 <code>.decisions</code> は「別名トークン新設」案しか検討しておらず、<strong>改名案は検討されていない</strong>。改名は別名追加ではないので同文書の方針とも矛盾しない。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — 現状維持。前例 GamePanel の --craft-grip-* 参照と同形で、追加トークンも増えていない（推奨）</li>
+          <li><strong>案B</strong> — tokens.css の3トークンを --progress-arrow-glyph-* へ改名し参照3箇所を差し替える（兄弟 ProgressArrow の中立名と揃う）</li>
+        </ul>
+      </section>
+    </div>
+    <div class="figure" data-label="ProgressArrowとProgressArrowGlyphが同一責務で並立している状態の解消方針を選ぶ設計判断カード（実コード抜粋つき）">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <section class="verdict-card ruling" id="f11" data-finding-id="F11">
+        <h2><span class="badge badge-new">設計判断</span> <strong>index.ts</strong></h2>
+        <p class="file-path"><code>moorestech_web/webui/src/shared/ui/index.ts:8</code></p>
+        <p class="summary-line">同じ機械パネル内で矢印表現が2種混在する。</p>
+        <pre class="code-card" data-lang="typescript"><code><span class="cl ctx"><span class="ln">5</span><span class="sign"> </span><span class="code">export { default as BlockSlot } from &quot;./BlockSlot&quot;;</span></span>
+<span class="cl ctx"><span class="ln">6</span><span class="sign"> </span><span class="code">export { default as FluidSlot } from &quot;./FluidSlot&quot;;</span></span>
+<span class="cl ctx"><span class="ln">7</span><span class="sign"> </span><span class="code">export { default as FluidSlotRow } from &quot;./FluidSlotRow&quot;;</span></span>
+<span class="cl ctx hl"><span class="ln">8</span><span class="sign"> </span><span class="code">export { default as ProgressArrow } from &quot;./ProgressArrow&quot;;</span></span>
+<span class="cl add hl"><span class="ln">9</span><span class="sign">+</span><span class="code">export { default as ProgressArrowGlyph } from &quot;./ProgressArrowGlyph&quot;;</span></span>
+<span class="cl ctx"><span class="ln">10</span><span class="sign"> </span><span class="code">export { default as SlotGrid } from &quot;./SlotGrid&quot;;</span></span></code></pre>
+        <p><strong>PR側の主張:</strong> 進捗矢印を <code>shared/ui/ProgressArrowGlyph</code> へ昇格し、クラフト画面と機械の加工行で同一部品・同一寸法にする <code>[agent前提]</code>（PR本文R1・PR内新設ADR。免責力なし）。</p>
+        <p><strong>独立レビューの実測:</strong> 移したのは craft / machine の2箇所のみで、<code>MinerSection.tsx:14</code> と <code>FluidSlotRow/index.tsx:23</code> は旧型（div幅%の矩形バー）のまま。<strong>同じ機械パネル内で矢印表現が2種混在</strong>し、目標「同一部品・同一寸法」が半分しか達成されていない。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — 見た目は変えず ProgressArrow → ProgressArrowBar へクロスファイル改名し、2部品の役割差を名前に出す（推奨）</li>
+          <li><strong>案B</strong> — MinerSection と FluidSlotRow も Glyph へ寄せ、旧 ProgressArrow とトークンを削除する（採掘機・流体行の見た目が矩形バー→矢印グリフに変わる）</li>
+        </ul>
+      </section>
+    </div>
+  </section>
+
+  <section id="suppressed">
+    <h2>suppressed（判断台帳で免責された指摘）</h2>
+    <p>該当なし（0件）。全観点が <code>[agent前提]</code> は免責力を持たないと明記して返しており、contract.md の規定と整合する。</p>
+  </section>
+
+  <section id="new-shape">
+    <h2>新形（このリポジトリに前例のない形）</h2>
+    <p>該当なし（0件）。新規性ゲートL1で asmdef 参照追加・新文法ともに 0件。参考扱いの <code>new_edges</code> 1件は折りたたみ参考④にある。</p>
+  </section>
+
+  <section id="criticals">
+    <h2>Critical要点（裁定不要の修正リスト）</h2>
+    <p>ここに載る5件は具体名・行・直し方が一意で、判断は要らない。残る Critical 3件（<a href="#f03">F03</a> / <a href="#f04">F04</a> / <a href="#f08">F08</a>）は上の設計判断カードにある。</p>
+    <div class="figure" data-label="CleanRoomMachineProcessorComponentのEffectiveRequestPowerRateが参照0のままpublicになっているCriticalカード（実コード抜粋つき）">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <section class="verdict-card critical" id="f01" data-finding-id="F01">
+        <h2><span class="badge badge-sup">Critical</span> <strong>CleanRoomMachineProcessorComponent.cs</strong></h2>
+        <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:31</code></p>
+        <p class="summary-line">外部参照0のpublicが残っている。</p>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl del"><span class="ln">29</span><span class="sign">-</span><span class="code">        // 停止中は要求電力を0にし、稼働中だけ通常機械と同じ倍率を適用する</span></span>
+<span class="cl add"><span class="ln">29</span><span class="sign">+</span><span class="code">        // 停止中は0、稼働中は通常機械と同じ倍率</span></span>
+<span class="cl ctx"><span class="ln">30</span><span class="sign"> </span><span class="code">        // Halted machines request no power; operating states use the same multipliers as normal machines</span></span>
+<span class="cl del"><span class="ln">31</span><span class="sign">-</span><span class="code">        public float EffectiveRequestPower =&gt; CurrentState switch</span></span>
+<span class="cl add hl"><span class="ln">31</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPowerRate =&gt; CurrentState switch</span></span>
+<span class="cl ctx"><span class="ln">32</span><span class="sign"> </span><span class="code">        {</span></span>
+<span class="cl ctx"><span class="ln">33</span><span class="sign"> </span><span class="code">            ProcessState.Halted =&gt; 0f,</span></span>
+<span class="cl del"><span class="ln">34</span><span class="sign">-</span><span class="code">            ProcessState.Processing =&gt; _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier,</span></span>
+<span class="cl del"><span class="ln">35</span><span class="sign">-</span><span class="code">            ProcessState.Idle =&gt; _context.RequestPower * _idlePowerRate,</span></span>
+<span class="cl add"><span class="ln">34</span><span class="sign">+</span><span class="code">            ProcessState.Processing =&gt; _context.ProcessingPowerMultiplier,</span></span>
+<span class="cl add"><span class="ln">35</span><span class="sign">+</span><span class="code">            ProcessState.Idle =&gt; _idlePowerRate,</span></span>
+<span class="cl ctx"><span class="ln">36</span><span class="sign"> </span><span class="code">            _ =&gt; throw new ArgumentOutOfRangeException(),</span></span>
+<span class="cl ctx"><span class="ln">37</span><span class="sign"> </span><span class="code">        };</span></span>
+<span class="cl ctx"><span class="ln">38</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl add"><span class="ln">39</span><span class="sign">+</span><span class="code">        public float EffectiveRequestPower =&gt; _context.RequestPower * EffectiveRequestPowerRate;</span></span></code></pre>
+        <p><strong>PR側の主張:</strong> Vanilla 側と同じ形で率を切り出した <code>[agent前提]</code>（差分実体から観測）。</p>
+        <p><strong>独立レビューの実測:</strong> <code>rg</code> 実測で CleanRoom 側の参照は<strong>自ファイル <code>:39</code> のみ</strong>（プロダクション・テストとも他ファイル0件）。Vanilla 側は <code>VanillaGearMachineComponent.cs:40</code> という実消費者を持つので非対称で、CleanRoom には歯車消費者が構造的に存在しない。<code>[ADR: AGENTS.md#その他の規約]</code>「デバッグ/テスト専用publicを残さない」の隣接規約に抵触。なお死にメンバーゲート（IL解析）はレビューworktree未コンパイルのため<strong>skipped</strong>で、本件は <code>rg</code> 実測で代替検出した。</p>
+        <p><strong>修正方針:</strong> <code>public</code> → <code>private</code>。<a href="#f04">F04</a> の集約を採る場合は context 側へ移って本メンバー自体が消えるため、<strong><a href="#f04">F04</a> と一括で処理する</strong>。同型掃引済み・残り0件。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — private へ落とす（実効率導出の集約を採るなら context へ移動して消滅）</li>
+        </ul>
+      </section>
+    </div>
+    <div class="figure" data-label="ChangeSelectionが状態遷移後に_publishedRequestPowerを再ラッチしないCriticalカード（実コード抜粋つき）">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <section class="verdict-card critical" id="f02" data-finding-id="F02">
+        <h2><span class="badge badge-sup">Critical</span> <strong>CleanRoomMachineProcessorComponent.cs</strong> / <strong>VanillaMachineProcessorComponent.cs</strong></h2>
+        <p class="file-path"><code>moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:216</code>（＋ <code>moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:137</code>）</p>
+        <p class="summary-line">レシピ切替のたび偽の赤が出る。</p>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl ctx"><span class="ln">135</span><span class="sign"> </span><span class="code">            }</span></span>
+<span class="cl ctx"><span class="ln">136</span><span class="sign"> </span><span class="code"></span></span>
+<span class="cl ctx hl"><span class="ln">137</span><span class="sign"> </span><span class="code">            if (CurrentState == ProcessState.Processing) CurrentState = ProcessState.Idle;</span></span>
+<span class="cl ctx"><span class="ln">138</span><span class="sign"> </span><span class="code">            _context.SelectedRecipe = recipe;</span></span>
+<span class="cl ctx hl"><span class="ln">139</span><span class="sign"> </span><span class="code">            _changeState.OnNext(Unit.Default);</span></span>
+<span class="cl ctx"><span class="ln">140</span><span class="sign"> </span><span class="code">            return MachineRecipeSelectionResult.Success;</span></span></code></pre>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl add"><span class="ln">214</span><span class="sign">+</span><span class="code">            // Halted含む非IdleはIdleへ戻し、次Updateで清浄室条件が再評価される</span></span>
+<span class="cl add"><span class="ln">215</span><span class="sign">+</span><span class="code">            // Non-Idle including Halted returns to Idle so the next Update re-evaluates clean-room conditions</span></span>
+<span class="cl ctx hl"><span class="ln">216</span><span class="sign"> </span><span class="code">            if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;</span></span>
+<span class="cl ctx"><span class="ln">217</span><span class="sign"> </span><span class="code">            _context.SelectedRecipe = recipe;</span></span>
+<span class="cl ctx hl"><span class="ln">218</span><span class="sign"> </span><span class="code">            _changeState.OnNext(Unit.Default);</span></span></code></pre>
+        <p><strong>PR側の主張:</strong> 表示用要求電力を <code>CurrentPower</code> と同位置でラッチし、分子分母の基準ずれによる偽の赤/500%表示を解消する <code>[agent前提]</code>（PR本文「レビュー裁定」）。実際のラッチ点は Update 冒頭（<code>:171</code> / <code>:151</code>）の1箇所のみ。</p>
+        <p><strong>独立レビューの実測:</strong> 両メソッドとも <code>CurrentState</code> を書き換えた直後に <code>_changeState.OnNext</code> を発火するが、<code>_publishedRequestPower</code> の再確定がない。<code>BlockSystem.cs:44</code> の購読が同期的に <code>GetBlockStateDetails()</code> を呼ぶため、<code>currentState:&quot;idle&quot;</code> に Processing 基準の高い分母が同梱され、次 Update まで<strong>「待機中なのに加工基準の低い充足率（偽の赤）」</strong>が出る。レシピ変更のたびに毎回起こりうる。3系統一致。</p>
+        <p><strong>修正方針:</strong> <code>CurrentState</code> 書き換えの直後・<code>_changeState.OnNext</code> の<strong>前</strong>に <code>_publishedRequestPower = EffectiveRequestPower;</code> を置く。<a href="#f04">F04</a> の集約を採る場合は <code>_context.LatchTickPower(CurrentState);</code> の1行に畳み、2ファイルで同じ形にする（<strong><a href="#f04">F04</a> と同一 surface のため1つの編集にまとめること</strong>）。同型掃引済み・残り0件。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — ChangeSelection の2箇所で状態書き換え直後に再ラッチする（実効率導出の集約と同一編集にまとめる）</li>
+        </ul>
+      </section>
+    </div>
+    <div class="figure" data-label="中核変更がmutationで死なずテストが自己参照化しているCriticalカード（実コード抜粋つき）">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <section class="verdict-card critical" id="f05" data-finding-id="F05">
+        <h2><span class="badge badge-sup">Critical</span> <strong>CleanRoomMachineTest.cs</strong> / <strong>MachineFluidIOTest.cs</strong></h2>
+        <p class="file-path"><code>moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Machine/CleanRoomMachineTest.cs:103</code>（＋ <code>moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineFluidIOTest.cs:316</code>）</p>
+        <p class="summary-line">旧実装へ戻しても全テストが緑になる。</p>
+        <pre class="code-card" data-lang="csharp"><code><span class="cl ctx"><span class="ln">96</span><span class="sign"> </span><span class="code">            for (var i = 0; i &lt; 200 &amp;&amp; processor.CurrentState != ProcessState.Processing; i++) TickRoom();</span></span>
+<span class="cl ctx"><span class="ln">97</span><span class="sign"> </span><span class="code">            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);</span></span>
+<span class="cl add"><span class="ln">98</span><span class="sign">+</span><span class="code">            // state公開値は前tick基準でラッチされるため、遷移直後の1tickだけ古い値を挟んでから実効値に揃う</span></span>
+<span class="cl add"><span class="ln">99</span><span class="sign">+</span><span class="code">            // The published state latches on the previous tick&#39;s basis, so it trails by one tick right after a transition before matching the effective value</span></span>
+<span class="cl add hl"><span class="ln">100</span><span class="sign">+</span><span class="code">            TickRoom();</span></span>
+<span class="cl add"><span class="ln">101</span><span class="sign">+</span><span class="code">            // state要求電力は基礎でなく実効値</span></span>
+<span class="cl add"><span class="ln">102</span><span class="sign">+</span><span class="code">            // Lock in that the state carries the effective request power, not the raw base value</span></span>
+<span class="cl add hl"><span class="ln">103</span><span class="sign">+</span><span class="code">            Assert.AreEqual(machineConsumer.EffectiveRequestPower, GetCommonMachineState(machine).RequestPower, 0.01f);</span></span></code></pre>
+        <p><strong>PR側の主張:</strong> state の <code>RequestPower</code> を基礎値で検証していた既存テストは実効値前提へ書き換える <code>[agent前提]</code>（PR内新設ADR 0010#影響）。</p>
+        <p><strong>独立レビューの実測:</strong> <code>:103</code> は期待値を被検証コード <code>machineConsumer.EffectiveRequestPower</code> から取る<strong>トートロジー</strong>で、モジュールを1個も装着しないため <code>PowerMultiplier == 1</code> となり「基礎値でなく実効値」を数値上区別できない。加えて <code>:100</code> の <code>TickRoom()</code> が<strong>ラッチ機構が守る当のtickを意図的に読み飛ばしている</strong>。<code>MachineFluidIOTest.cs:518</code> もリテラル期待を production 式へ置換した弱体化で、<code>:316</code> の <code>machineParam?.IdlePowerRate ?? 0.2f</code> は <code>as</code> キャストが null に落ちても自己整合値で緑になる。<code>VanillaGearMachineComponent.cs:40</code> の歯車率・<code>detailLogic.ts:73</code> の <code>isPowerRateMeaningful</code>・<code>BlockInventoryPanel.tsx:63</code> の <code>key={data.identifier}</code> を守るテストは<strong>1本も存在せず、旧実装へ戻しても全テストが緑</strong>。<code>currentState: &quot;halted&quot;</code> を通す webui テスト／fixture もコードベース全体に0件。3系統一致。</p>
+        <p><strong>修正方針:</strong> ①モジュール装着機械（<code>MachineModuleSlotTest</code> の装着ユーティリティ）で期待値を <code>base × 倍率</code> の独立計算で書き、<code>:103</code> と <code>MachineFluidIOTest.cs:518</code> の自己参照を置換。②<code>:98-100</code> の読み飛ばしをやめ遷移直後1tickで整合を検証し、電気機械側にも同型テストを新設。③<code>:315-316</code> の <code>?? 100</code>/<code>?? 0.2f</code> を廃し <code>Assert.IsNotNull(machineParam)</code> を先に置く。④歯車機械の要求トルクを固定するテストを追加（<strong>期待値が変わるため <a href="#f03">F03</a> の裁定後に書く</strong>）。⑤<code>detailLogic.test.ts</code> に述語の <code>it.each</code> を追加し、gearMachine e2e に <code>toHaveCount(0)</code> を1行足す（<strong><a href="#f08">F08</a> の裁定で述語が state 由来へ変わる場合はそれに追随</strong>）。⑥<code>identifier</code> 差し替えでタブ再評価を検証。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — 自己参照アサートを独立計算の期待値に置換し、死んでいる中核5件に1対1でテストを追加する（推奨）</li>
+        </ul>
+      </section>
+    </div>
+    <div class="figure" data-label="capture-machine-qa.tsがgearMachineで必ずタイムアウト死するCriticalカード（実コード抜粋つき）">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <section class="verdict-card critical" id="f06" data-finding-id="F06">
+        <h2><span class="badge badge-sup">Critical</span> <strong>capture-machine-qa.ts</strong></h2>
+        <p class="file-path"><code>moorestech_web/webui/e2e/capture-machine-qa.ts:136</code></p>
+        <p class="summary-line">QAスクリプトが必ず落ちて撮影物が残らない。</p>
+        <pre class="code-card" data-lang="typescript"><code><span class="cl add"><span class="ln">133</span><span class="sign">+</span><span class="code">    const stateLabel = page.getByTestId(&quot;machine-state-label&quot;);</span></span>
+<span class="cl add"><span class="ln">134</span><span class="sign">+</span><span class="code">    const powerRate = page.getByTestId(&quot;machine-power-rate&quot;);</span></span>
+<span class="cl add"><span class="ln">135</span><span class="sign">+</span><span class="code">    manifest.gearMachineStateLabelText = await stateLabel.textContent();</span></span>
+<span class="cl add hl"><span class="ln">136</span><span class="sign">+</span><span class="code">    manifest.gearMachinePowerRateText = await powerRate.textContent();</span></span>
+<span class="cl add"><span class="ln">137</span><span class="sign">+</span><span class="code">    const panel = page.getByTestId(&quot;block-inventory&quot;);</span></span>
+<span class="cl add"><span class="ln">138</span><span class="sign">+</span><span class="code">    const [panelBox, stateLabelBox, powerRateBox] = await Promise.all([</span></span>
+<span class="cl add"><span class="ln">139</span><span class="sign">+</span><span class="code">      panel.boundingBox(),</span></span>
+<span class="cl add"><span class="ln">140</span><span class="sign">+</span><span class="code">      stateLabel.boundingBox(),</span></span>
+<span class="cl add hl"><span class="ln">141</span><span class="sign">+</span><span class="code">      powerRate.boundingBox(),</span></span>
+<span class="cl add"><span class="ln">142</span><span class="sign">+</span><span class="code">    ]);</span></span></code></pre>
+        <p><strong>PR側の主張:</strong> ADR 0010 の矢印グリフ・中心線・フッタ・タブ順を撮影して実測する目視QA <code>[agent前提]</code>（ファイル冒頭コメント）。</p>
+        <p><strong>独立レビューの実測:</strong> <code>e2e/mock-host/blockDetailFixtures.ts:50-51</code> の <code>blockGearMachine</code> は <code>currentPower: 0.0</code> / <code>requestPower: 0.0</code> で、同PRが入れた <code>isPowerRateMeaningful(machine.requestPower)</code>（<code>MachineSection.tsx:36</code>）が false になるため <code>machine-power-rate</code> が <strong>DOM に出ない</strong>。<code>locator.textContent</code> が30秒タイムアウト → <code>void main()</code> の未処理 rejection でプロセスが落ち、<code>manifest.json</code>・<code>gearmachine-*.png</code> が一切生成されず、<code>browser.close()</code>/<code>wss.close()</code>/<code>server.close()</code> も走らず Chromium とポート5411が残留する。<strong>ADR 0010 の「実効要求0の機械は充足率を出さない」を検証するはずのQAが、まさにその状態のブロックで死ぬ。</strong>3系統一致。</p>
+        <p><strong>修正方針（4点セット）:</strong> ① <code>:136</code> を <code>(await powerRate.count()) === 0 ? null : await powerRate.textContent()</code> にし、<code>:138-142</code> の <code>Promise.all</code> から <code>powerRate.boundingBox()</code> を外して <code>:144</code> 以降のクロップ基準を <code>stateLabelBox</code> 単独へ切り替える。② <code>:159-175</code> の <code>try { readFile } catch { sha256: null }</code> を撤去し前例 <code>capture-mining-progress.ts:97-101</code> どおり素の <code>await readFile</code> にする <code>[ADR: AGENTS.md#設計原則]</code>。③ <code>:34</code> の <code>mkdir</code> 直後に <code>rm(join(OUT_DIR, &quot;manifest.json&quot;), { force: true })</code> を足す（前例 <code>capture-mining-progress.ts:27</code>）。④ <code>:15</code> の <code>padding = CROP_PADDING_PX</code> を必須引数へ <code>[ADR: AGENTS.md#その他の規約]</code>。同型掃引済み・残り0件。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — 「要求0で率が非表示」を manifest に記録する形へ直し、try-catch・旧manifest残置・デフォルト引数の3点も前例どおりに整える（推奨）</li>
+        </ul>
+      </section>
+    </div>
+    <div class="figure" data-label="MachineSectionの初期タブがmachine未着時にrecipesで固着するCriticalカード（実コード抜粋つき）">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <section class="verdict-card critical" id="f07" data-finding-id="F07">
+        <h2><span class="badge badge-sup">Critical</span> <strong>MachineSection.tsx</strong></h2>
+        <p class="file-path"><code>moorestech_web/webui/src/features/blockInventory/details/MachineSection.tsx:18</code></p>
+        <p class="summary-line">選択済み機械でもレシピタブに固まる。</p>
+        <pre class="code-card" data-lang="typescript"><code><span class="cl ctx"><span class="ln">16</span><span class="sign"> </span><span class="code">export default function MachineSection({ data }: { data: BlockInventoryOpen }) {</span></span>
+<span class="cl ctx"><span class="ln">17</span><span class="sign"> </span><span class="code">  const machineRecipes = useTopic(Topics.machineRecipes);</span></span>
+<span class="cl del"><span class="ln">17</span><span class="sign">-</span><span class="code">  const [tab, setTab] = useState(&quot;inventory&quot;);</span></span>
+<span class="cl add hl"><span class="ln">18</span><span class="sign">+</span><span class="code">  const [tab, setTab] = useState&lt;string&gt;(() =&gt; machineInitialTab(data.machine?.selectedRecipeGuid));</span></span>
+<span class="cl ctx"><span class="ln">19</span><span class="sign"> </span><span class="code">  const { t } = useI18n();</span></span>
+<span class="cl ctx"><span class="ln">20</span><span class="sign"> </span><span class="code">  if (!data.machine) return null;</span></span>
+<span class="cl ctx"><span class="ln">21</span><span class="sign"> </span><span class="code">  const machine = data.machine;</span></span></code></pre>
+        <p><strong>PR側の主張:</strong> レシピ未選択で開いた場合の初期タブをレシピ選択にし、開いた後の手動切替は尊重する <code>[agent前提]</code>（PR本文R2/R3）。</p>
+        <p><strong>独立レビューの実測:</strong> <code>SectionStackView.tsx:50</code> は <code>&lt;MachineSection data={data} /&gt;</code> を<strong>無条件にマウント</strong>し、lazy initializer（マウント時1回のみ）が <code>if (!data.machine) return null</code>（<code>:20</code>）<strong>より前</strong>に走る。<code>machineInitialTab</code> は <code>isEmptyGuid(undefined) === true</code> で <code>&quot;recipes&quot;</code> を返し、再評価の契機は <code>key={data.identifier}</code> のみで同一ブロックでは変化しない。ブロック生成直後（<code>BlockGameObject</code> の state 未着）に開くと <code>BlockDetailDtoBuilder.cs:29</code> の <code>common != null &amp;&amp; machineState != null</code> が偽で初回 publish に <code>machine</code> が乗らず、<strong>レシピ選択済みでもタブが recipes に確定して閉じるまで是正されない</strong>。e2e <code>machineRecipe.spec.ts</code> は <code>setBlock</code> を <code>page.goto</code> の前に行うためこのレースを1本もカバーしていない。4系統一致。</p>
+        <p><strong>修正方針:</strong> マウント境界を machine 到着に合わせる。<code>SectionStackView.tsx:50</code> を <code>{data.machine ? &lt;MachineSection machine={data.machine} data={data} /&gt; : null}</code> にし、<code>MachineSection</code> の引数を <code>machine: MachineDetailData</code> 込みへ変えて内部の null 分岐（<code>:20-21</code>）を削除。併せて <code>machineInitialTab(selectedRecipeGuid: string)</code> を非nullableへ絞り、到達不能状態を固定していた <code>machineRecipeSelectionLogic.test.ts:46-47</code> の <code>null</code>/<code>undefined</code> 2ケースを削除する。<code>useEffect</code> による後追い同期は派生stateのアンチパターンかつ「開いた後の手動切替を尊重する」目標と衝突するため採らない。</p>
+        <p class="options-head"><strong>選べる案</strong></p>
+        <ul class="plain options-list">
+          <li><strong>案A</strong><span class="opt-recommended">推奨</span> — SectionStackView でマウント境界を machine 到着へ合わせ、machineInitialTab を非nullable に絞る（推奨）</li>
+          <li><strong>案B</strong> — userTab: string | null を持ち、描画時に userTab ?? machineInitialTab(...) で解決する</li>
+        </ul>
+      </section>
+    </div>
+  </section>
+
+  <section id="ledger">
+    <h2>判断台帳</h2>
+    <h3>ユーザー裁定（免責力あり）</h3>
+    <ul class="plain">
+      <li><code>[ADR: AGENTS.md#コーディングにおける重要な原則]</code> 1ファイル200行以下・1ディレクトリ10ファイルまで・<code>partial</code>禁止・<code>Func&lt;&gt;</code>禁止・try-catch は外部境界のみ</li>
+      <li><code>[ADR: AGENTS.md#その他の規約]</code> デフォルト引数禁止（引数追加は呼び出し側を全部変更）・単純 getter/setter 禁止・デバッグ/テスト専用publicを残さない</li>
+      <li><code>[ADR: AGENTS.md#設計原則]</code> 汎用基盤にドメイン語彙を持ち込まない・<code>?? Default</code> で欠損を吸収しない・状態変化の検知は購読で行う</li>
+      <li><code>[ADR: AGENTS.md#コメント]</code> 日本語→英語の2行セット・字数目安 ／ <code>[ADR: AGENTS.md#時間に関して]</code> 経過時間は <code>GameUpdater</code> のティックのみ</li>
+      <li><code>[ADR: webui-design §8.13]</code> 矢印の充填は <code>--gauge-fill</code> でなく正本の白を引き継ぐ（既存のユーザー裁定。ただし本PRは当該 SKILL.md 自体を変更しているため、<strong>変更後の規範は <code>[agent前提]</code> 扱い</strong>）</li>
+    </ul>
+    <h3>agent前提（免責力なし）</h3>
+    <ul class="plain">
+      <li>PR本文 R1〜R4 と「レビュー裁定」節に書かれた目標（矢印共通化・タブ入替・充足率化・歯車への倍率反映・ラッチ）</li>
+      <li>independent session からの推測・コード内コメントによる自己申告（<code>ProcessingPowerMultiplier</code> の「1箇所から取得」等）</li>
+      <li>非目標の申告（uGUI 非改修・e2e 既存赤10件の別issue分離）</li>
+    </ul>
+    <h3>PR内新設ADR（降格済み・要検証）</h3>
+    <p>以下は<strong>本PR自身が新設した判断台帳</strong>であり、独立セッションからは承認の実在を検証できないため<strong>免責力なしへ降格</strong>した。ここに実際のユーザー裁定が含まれるなら教えてほしい（含まれる場合、対応する指摘の格が下がる）。</p>
+    <ul class="plain">
+      <li><code>docs/adr/0010-machine-power-display-as-satisfaction-rate.md</code>（決定1〜3・代替案B却下・影響）</li>
+      <li><code>docs/adr/0011-recipe-viewer-single-list.md</code>（本PRに実装を伴わない）</li>
+      <li><code>.decisions/2026-08-17-*</code> 16件 — stateのRequestPowerは実効要求電力を送る ／ 歯車機械の需要にもモジュール倍率を載せる ／ 表示用要求電力は供給と同位置でラッチする ／ 要求0の機械は充足率を出さず停止中のみ表示する ／ 電力表示は充足率と稼働状態ラベルに分離する ／ 矢印グリフの既定寸法は部品がトークン参照で持つ ／ 機械レシピの素材は必要数のみで所持数チェックしない ／ 機械レシピエントリはブロックアイコン名前秒数を表示 ／ レシピ単一リストはクラフトレシピを優先表示する ／ クラフトエントリはレシピ行の下に全幅実行ボタン ／ クラフトUI改修はWebUI専任でuGUIは今後見ない ／ アイテム一覧のクラフト可能数0はバッジ非表示 ／ 装飾タブ削除後もアイテム名ヘッダーは残す ／ worktreeはタスク毎使い捨てでメインのUnity起動は日次Library生成のみ ／ 日次Library温めはbatchModeで行いsupervisorで回す ／ ローカルプレイは接続試行フォールバックを廃し必ず内蔵サーバーを起動する</li>
+      <li><code>docs/superpowers/plans/2026-08-17-machine-ui-refresh.md</code> ／ <code>docs/superpowers/plans/2026-08-17-recipe-viewer-single-list.md</code>（780行の未実装plan）</li>
+    </ul>
+    <p>なお下位3群（レシピビューア系7件・worktree運用/Library温め2件・ローカルプレイ1件・ADR 0011・plan 2本）は<strong>本PRのスコープ外の文書</strong>であり、PR本文に同梱理由の説明がない（Warning に計上）。</p>
+  </section>
+
+  <section id="appendix">
+    <h2>折りたたみ参考</h2>
+    <details>
+      <summary>① Critical の修正方針詳細（適用区分つき）</summary>
+      <ul>
+        <li><strong><a href="#f03">F03</a></strong>: 設計判断。案A採用時の波及は <code>GearEnergyTransformerComponent.GetCurrentOperatingRate</code> / <code>GetCurrentSuppliedPower</code>（デフォルト引数禁止のため呼び出し側を明示更新）と gear 系需給テスト群の再検証。案B採用時は歯車機械の表示分母も基礎値へ戻すところまで一貫させる必要がある。同型掃引: <code>SetTorqueRequestRate</code> の全6呼び出しを実測し、1を超え得るのは本件のみ・残り0件。</li>
+        <li><strong><a href="#f08">F08</a></strong>: 設計判断。案A採用時は <code>MachineStateKeys</code>・<code>MachineStateInsufficientTone</code>・<code>isPowerRateMeaningful</code> を1枚のテーブルへ統合し <code>MachineSection.tsx:36</code> を <code>view.showPowerRate &amp;&amp; (...)</code> にする。<code>requestPower === 0</code> の4解釈を1つの述語へ寄せること。</li>
+        <li><strong><a href="#f04">F04</a></strong>: 自動適用可（集約先が拮抗しない）。<code>MachineProcessContext</code> に <code>IdlePowerRate</code>・<code>EffectiveRequestPowerRate(state)</code>・<code>EffectiveRequestPower(state)</code>・<code>PublishedRequestPower { get; private set; }</code>・<code>LatchTickPower(state)</code>・<code>PinPowerToZero()</code> を追加。両processorのフィールド（<code>_idlePowerRate</code>・<code>_publishedRequestPower</code>）を削除し、Update 冒頭3文を1行へ、CleanRoom <code>:175-178</code> を <code>PinPowerToZero()</code> へ、<code>ProcessingMachineProcessState.cs:87</code> を <code>_context.EffectiveRequestPower(ProcessState.Processing)</code> へ。公開APIのシグネチャは維持されるため各Componentr/Template/既存テストは無変更で通る。副次効果として両ファイルが200行以内へ戻る。</li>
+        <li><strong><a href="#f02">F02</a></strong>: 自動適用可。<a href="#f04">F04</a> と同一 surface のため1編集にまとめる。</li>
+        <li><strong><a href="#f01">F01</a></strong>: 自動適用可（単独系統cosmetic相当・照合済み）。<a href="#f04">F04</a> と一括。</li>
+        <li><strong><a href="#f06">F06</a></strong>: 自動適用可（1は挙動一意、2〜4は前例踏襲の規約整形）。</li>
+        <li><strong><a href="#f07">F07</a></strong>: 自動適用可（3系統が同一の修正形＝マウント境界の narrowing を推しており選択の余地が実質ない）。</li>
+        <li><strong><a href="#f05">F05</a></strong>: 自動適用可。ただし修正方針④は <a href="#f03">F03</a> の、⑤は <a href="#f08">F08</a> の裁定確定後に着手する。</li>
+      </ul>
+    </details>
+    <details>
+      <summary>② Warning 全件（1件1行・出所系統つき）</summary>
+      <p>integrated.md の Warning 節に列挙されている行は26行（ヘッダ件数の「30」はレンズ横断の重複計上を含むため一致しない）。以下は落とさず全件。</p>
+      <ul>
+        <li><code>VanillaMachineProcessorComponent.cs:29</code>［rev-core-cs 系］: 三項が <code>Halted</code> を無言で <code>_idlePowerRate</code> に落とす（CleanRoom は <code>Halted =&gt; 0f</code>）。<code>_stateHandlers</code>(:81-85) に Halted ハンドラが無く <code>State:2</code> のセーブ復元で <code>KeyNotFoundException</code> になる一方、要求電力だけ idle 需要を返す。</li>
+        <li><code>VanillaMachineProcessorComponent.cs:171</code> / <code>CleanRoomMachineProcessorComponent.cs:151</code>［inv 系］: ラッチは状態遷移の前、同じ payload の <code>CurrentState.ToStr()</code> は遷移後。1スナップショットが2つの状態基準の混成になる。<code>CleanRoomMachineTest.cs:98-100</code> がこのズレを仕様として固定している。</li>
+        <li><code>VanillaElectricMachineComponent.cs:31</code> / <code>CleanRoomMachineComponent.cs:21</code>［lens-domain-boundary］: 電力網はライブの <code>EffectiveRequestPower</code> を読み state はラッチ済み値を出す。「要求電力」の真実源が2つに分かれ1tickずれ得る。</li>
+        <li><code>Blocks/Miner/VanillaMinerProcessorComponent.cs:258,30</code>［rev-core-cs-result-state-propagation］: 3人目の生産者である採掘機は <code>RequestEnergy</code> を読み出し時に再導出し未ラッチ。遷移tickで <code>PowerRate = 5.0</code>（500%）や 20% の偽赤が残る。</li>
+        <li><code>MinerSection.tsx:15</code>［rev-core-ts_tsx 系］: 採掘機フッタが今回の様式から取り残され <code>PowerRateText</code> 無条件表示のまま。風力掘削機（<code>requiredPower: 0</code> 実測）が「電力 100% (0/0)」をラベル無しで出す。</li>
+        <li><code>UI/Inventory/Block/MachineBlockInventoryView.cs:150-155</code>［rev-core-cs-callsite-tracer］: uGUI の分母が黙って変化し、Halted（要求0）で <code>PowerRate == 1.0</code> となり完全停止中を「エネルギー 100.00% 0.00/0.00」と表示（PR前は 0.00% の赤）。非推奨サーフェスのため Warning。</li>
+        <li><code>Game.Block.Interface/State/CommonMachineBlockStateDetail.cs:30,36</code>［lens-type-driven-structure］: <code>RequestPower</code> の意味が破壊的に変わったのにフィールド名も XML doc も未更新。同名・異義が3つ並ぶ（ワイヤ側 <code>EffectiveRequestPower</code> / サーバ側 <code>BaseRequestPower</code> への改名で解消）。</li>
+        <li><code>MachineProcessContext.cs:26</code>［lens-domain-boundary］: <code>ProcessingPowerMultiplier</code> が名前に反して状態非依存。「Processing のときの値」という文脈が呼び出し側の三項にしか無く Idle 経路での誤参照を誘う（<code>ModulePowerMultiplier</code> 等へ）。</li>
+        <li><code>MachineProcessContext.cs:25-27</code>［rev-core-any-efficiency］: 非キャッシュ getter で同一tick内に3〜4回集計。<code>SettleTick</code> と <code>Update()</code> で別インスタンスを見るため「基準一致」が tick 内で成立していない（→ <a href="#f09">F09</a>）。</li>
+        <li><code>bridge/contract/schemas/inventory.ts:23,30</code>［rev-core-ts_tsx-single-source-of-truth］: enum 化により4つ目の <code>ProcessState</code> 追加で <code>topicStore.ts:65-71</code> の safeParse が <code>block_inventory</code> を丸ごと破棄しパネルが stale で固まる（故障モードが全損）。C#との同値性契約テストが必要。</li>
+        <li><code>MachineSection.tsx:18,60-63,66,79</code> ＋ <code>machineRecipeSelectionLogic.ts:42</code>［rev-core-ts_tsx-type-driven-structure］: タブID union を <code>useState&lt;string&gt;</code> で広げリテラルが4箇所に散る。<code>ModeSwitch</code> のジェネリック化で <code>FilterSplitterInventory.tsx:38</code> / <code>TrainPlatformSection.tsx:33</code> の同型2件も同時に消える。</li>
+        <li><code>MachineSection.tsx:24,78</code> / <code>BlockInventoryPanel.tsx:38</code>［rev-core-ts_tsx-result-state-propagation］: <code>machineRecipes?.recipes ?? []</code> が「トピック未着」を「0件」へ畳む既存形。本PRがその帰結を拡大し、未着中はタブ列が描画されず <code>isLargeMachinePanel</code> も false になりパネル寸法が跳ねる。</li>
+        <li><code>shared/ui/index.ts:8-9</code>［rev-core-ts_tsx-centralization-duplication］: <code>ProgressArrow</code> と <code>ProgressArrowGlyph</code> の並立（→ <a href="#f11">F11</a>）。</li>
+        <li><code>shared/ui/ProgressArrowGlyph/style.module.css:4,5,32</code>［lens-precedent-alignment］: craft ドメイン語彙のトークン参照（→ <a href="#f10">F10</a>）。</li>
+        <li><code>shared/ui/ProgressArrowGlyph/style.module.css:20-22</code>［Fable］: 充填色の根拠コメントが「クラフト完了状態」のまま。共有部品になったのに複製元のクラフト限定説明が残る。</li>
+        <li><code>shared/ui/</code> 直下［決定論・lens-precedent-alignment］: エントリ22件で「1ディレクトリ10ファイルまで」を大幅超過（本PRで <code>ProgressArrowGlyph/</code> を追加しさらに悪化）。<code>shared/ui/gauge/</code>・<code>shared/ui/slot/</code> 等の役割別分割が前例どおりの形。</li>
+        <li><code>MachineInventoryBody.tsx:40</code>（＋ <code>MinerSection.tsx:14</code> / <code>FluidSlotRow/index.tsx:23</code>）［rev-core-ts_tsx-default-resolution-ownership］: 同じ optional な <code>progress</code> に「未指定→0／未指定→0／未指定→非表示」の3規則が散在。所有者が <code>clamp01(value ?? 0)</code> で1回だけ解決するのが最小修正。</li>
+        <li><code>detailLogic.ts:53,65</code>［rev-core-ts_tsx-centralization-duplication］: <code>MachineStateKeys</code> と <code>MachineStateInsufficientTone</code> が同じキー集合の並行テーブル2枚（<a href="#f08">F08</a> 案A に併合）。</li>
+        <li><code>detailLogic.ts:61-70</code>［rev-core-ts_tsx-speculative-abstraction］: 真偽値テーブルは同ファイルの「union→翻訳キー」規約の外側の新形で、受益者は1式のみ・テストも無い。<a href="#f08">F08</a> 案A で統合するか <code>insufficient={machine.currentState === &quot;halted&quot;}</code> へ落とす。</li>
+        <li><code>capture-machine-qa.ts:166</code> 付近［rev-core-ts_tsx-ai-recurring-mistakes］: 撮影ファイル名の配列が撮影側とマニフェスト側で二重管理。片方だけ追加すると <code>sha256: null</code> で静かに落ちる。</li>
+        <li><code>capture-machine-qa.ts</code>［同上］: <code>void main()</code> のため失敗時のサーバ後始末・非0終了が無い（<a href="#f06">F06</a> の故障と複合）。</li>
+        <li><code>docs/adr/0011</code> / <code>plans/2026-08-17-recipe-viewer-single-list.md</code>（780行の未実装plan）/ レシピビューア系 <code>.decisions/</code> 7件 / worktree運用・Library温め <code>.decisions/</code> 2件［lens-precedent-alignment］: 機械UI改修PRに設計文書のみが同梱。出所は <code>[agent前提]</code> のみで免責力なし。</li>
+        <li><code>.agents/skills/webui-design/SKILL.md</code> §8.13［post-check 系］: 残存行「構造はインラインSVGの3層（<code>CraftProgressArrow</code>）」が本PRで削除された旧コンポーネント名を指したまま。</li>
+        <li><code>MachineFluidIOTest.cs:518</code>［rev-core-any-test-mutation-effectiveness］: ライブ再導出値とラッチ値の突き合わせのため、idle→processing 遷移tickを観測すると ±1f では通らない。逆に一度も入らないなら死んだ検証。<code>CleanRoomMachineTest.cs:99-103</code> は「1tick余分に回す」で回避しており非対称。</li>
+        <li><code>CleanRoomMachineProcessorComponent.cs:177</code>［rev-core-cs-caller-orchestration-minimization］: <code>_context.CurrentPower = 0f</code> が「CurrentPower は Update 冒頭のラッチ以外で書き換えない」という単一書き込み点の不変条件を破る。現状実害なし（<a href="#f04">F04</a> の <code>PinPowerToZero()</code> で1箇所へ戻る）。</li>
+        <li>決定論 confirmed（file-too-long・努力目標のため Critical に数えず）: <code>CleanRoomMachineProcessorComponent.cs</code> 222行 / <code>VanillaMachineProcessorComponent.cs</code> 217行（上限200）。<a href="#f04">F04</a> の集約で両方とも上限内へ戻る。</li>
+      </ul>
+    </details>
+    <details>
+      <summary>③ Info 全件（圧縮列挙）</summary>
+      <p>integrated.md の Info 節に列挙されている行は17行（ヘッダ件数の「20」は重複計上を含むため一致しない）。</p>
+      <ul>
+        <li><code>MachineProcessStateSchema</code> の3値はサーバ <code>VanillaMachineBlockStateConst.cs:5-7</code> と完全一致。<code>ToCamelCase</code> はこの3値では恒等。採掘機は <code>dto.Machine</code> に流入しないため enum 化は現時点で安全。</li>
+        <li><code>key={data.identifier}</code> の値は <code>BlockInventoryTopic.cs:139</code> の <code>BlockPosition.ToString()</code> で publish 毎に不変。毎フレーム再マウント事故は起きない。</li>
+        <li>歯車機械の idle 挙動はビット同値（旧 <code>idleTorqueRate</code> の実引数と新経路の <code>_idlePowerRate</code> が同値）。</li>
+        <li><code>ProcessingPowerMultiplier</code> への一本化で加工速度・表示分母・歯車要求の「式」は同一になった（値の再計算タイミングは別＝<a href="#f09">F09</a>）。方向としては改善。</li>
+        <li><code>_publishedRequestPower</code> は new/load とも単一の実体ctor末尾で初期化され、load 経路の未初期化は無い。</li>
+        <li><code>CraftProgressArrow.{tsx,module.css,test.ts}</code> の不変条件（3層構造・clip矩形 x=2/width=117/height=78・<code>useId</code> のコロン除去・トークン参照）は <code>ProgressArrowGlyph/</code> で再確立済み。残存参照0件。</li>
+        <li><code>ProgressArrowGlyph/index.test.ts</code> は本PRで最も mutation 耐性が高く、他テストの水準の基準にできる。</li>
+        <li>ローカライズ3キーは CSV・<code>localizationKeys.ts</code>・<code>VanillaLocalizationKeys</code>・<code>_CompileRequester.cs</code> の4点で揃っている。</li>
+        <li><code>.cs</code> 差分に <code>async</code>/<code>await</code>/<code>UniTask</code>/<code>CancellationToken</code> の追加0件。実時間APIの導入も0件で <code>[ADR: AGENTS.md#時間に関して]</code> と整合。</li>
+        <li><code>#region Internal</code> の誤用なし。<code>partial</code>・<code>Func&lt;&gt;</code>・デフォルト引数の新設は <code>.cs</code> 側に0件。</li>
+        <li><code>VanillaSchema/*.yml</code> の変更0件・<code>optional</code> 文字列0件のため master-data-defense の対象は構造的に発生しない。</li>
+        <li><code>machineRecipeSelectionLogic.ts:25</code> の代表1件への縮約は本patchが触っていない既存行。</li>
+        <li><code>MachineInventoryBody.tsx</code> 内の <code>output</code> シャドウは変更範囲外の既存コード。</li>
+        <li><code>isPowerRateMeaningful</code> のゲートにより <code>computePowerRate</code> の <code>0 → 1</code> 分岐は機械経路では到達不能（死に分岐化）。<code>MinerSection</code> からは今も到達する。</li>
+        <li>post-check <code>comment-rationale-guard</code>: Critical 0件。削除コメント28行を全数追跡し根拠の逐語保存を確認。</li>
+        <li>決定論 <code>comment_length</code> 候補27件は <code>[ADR: AGENTS.md#コメント]</code> の目安であり、convention-guard の自己裁定領域。Critical/Warning に計上しない。</li>
+        <li>新規性ゲートL1: 新規エッジ1件・asmdef 参照追加0・新文法0。</li>
+      </ul>
+    </details>
+    <details>
+      <summary>④ 参考扱いの new_edges 1件</summary>
+      <ul>
+        <li><code>CleanRoomMachineTest.cs</code> → <code>Game.Block.Interface.State</code>（<code>generic_origin=false</code> / <code>dir_is_new: false</code>）。テストが <code>CommonMachineBlockStateDetail</code> をデシリアライズするための参照で、入国審査は不要。</li>
+      </ul>
+    </details>
+    <details>
+      <summary>⑤ 系統別の生所見要約（縮退・事故の申告を含む）</summary>
+      <ul>
+        <li><strong>決定論チェック</strong>: confirmed 2（file-too-long ×2＝努力目標）／候補27（全て comment_length）。</li>
+        <li><strong>死にメンバーゲート（IL解析）</strong>: <strong>skipped＝縮退</strong>。<code>moorestech_client/Library/ScriptAssemblies</code> 不在（レビューworktreeはUnity未コンパイル）。新設 public の死活は <code>rg</code> 実測で代替し <a href="#f01">F01</a> を検出。</li>
+        <li><strong>ts 死コードゲート（knip）</strong>: <strong>skipped＝縮退</strong>。knip 未インストール（webui で <code>pnpm install</code> が必要）。TS の未参照シンボルは参照表で部分的に代替。</li>
+        <li><strong>moores設計レンズ ×7</strong>: 7起動7回収。domain-boundary が <a href="#f03">F03</a>、type-driven-structure が <a href="#f04">F04</a>・<a href="#f08">F08</a> へ併合。default-resolution-ownership / precedent-alignment / redundant-member-duplication / master-data-defense / hardcoded-content-enumeration は Critical なし。</li>
+        <li><strong>汎用reviewer ×25</strong>: 25起動25回収・欠員なし。Critical あり10本 / なし15本。</li>
+        <li><strong>investigator ×6</strong>: 6起動6回収だが<strong>二重起動事故により5本のレポートが2回目の実行で上書きされ、1回目の詳細（行番号・根拠）が失われている</strong>。<code>ORCHESTRATOR-NOTE-superseded-first-run.md</code> の逐語控えを1系統として扱い全件を実コードで裏取りした結果、<a href="#f03">F03</a>・<a href="#f02">F02</a>・<a href="#f08">F08</a> へ併合、<strong>4件を事実誤りとして棄却</strong>（<code>machineStateType</code> 必須追加による parse 全損／CleanRoom Halted の非0 publish／倍率の分子分母二重適用／<code>?? 0</code> による電力行消失。いずれも該当行を引用して否定）。5件目は <a href="#f08">F08</a> と同一指摘のため重複排除で併合。</li>
+        <li><strong>Fable 全般レビュー</strong>: Critical なし／Warning 2。<code>[検証済み]</code> 9項目を spot-check し、「歯車の rate&gt;1 は裁定どおり」という判定のみ <a href="#f03">F03</a> と真っ向から矛盾。実コード検証の結果 <strong>Fable の Info 判定は採らない</strong>（供給側 <code>GearConsumptionCalculator</code> の導出を読んでいない）。</li>
+        <li><strong>post-checks</strong>: <code>comment-rationale-guard</code> は起動・回収とも1で Critical なし。<code>comment-convention-guard</code> は <code>select_post_checks.py</code> が発火条件未達と判定しスキップ（縮退ではなく設計どおり）。</li>
+        <li><strong>Codex 外部監査 ×3（俯瞰・バグ狩り・設計整合）</strong>: <strong>0起動・全欠員＝縮退</strong>。<code>which codex</code> が失敗し CLI 不在のため3本ともスキップされ、<code>codex-audit.out.md</code> / <code>codex-bughunt.out.md</code> / <code>codex-design.out.md</code> は生成されていない。<strong>別モデルによる独立第三者視点がこの run には一切入っていない。</strong></li>
+      </ul>
+    </details>
+  </section>
+
+</main>
+
+<footer>独立レビュー: PR #1155 機械UI改修: 進捗矢印の共通化・タブ入替/未選択時レシピ表示・電力の充足率化（ADR 0010） / 2026-08-18 / レビュー用ペライチ</footer>
+
+<!-- ============== comment feature (vanilla JS port) ============== -->
+<div id="comment-ui-root" data-comment-ui>
+  <button id="comment-fab" class="comment-fab" hidden>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    コメントを追加
+  </button>
+
+  <div id="comment-composer" class="comment-composer" hidden>
+    <div class="composer-quote" id="composer-quote"></div>
+    <textarea id="composer-textarea" class="composer-input" placeholder="この範囲へのコメントを入力…（Cmd/Ctrl + Enter で保存）"></textarea>
+    <div class="composer-actions">
+      <button class="btn-ghost" id="composer-cancel">キャンセル</button>
+      <button class="btn-primary" id="composer-save" disabled>保存</button>
+    </div>
+  </div>
+
+  <div class="comment-panel" id="comment-panel">
+    <div class="panel-body" id="panel-body" hidden>
+      <div id="panel-list-wrap"></div>
+      <div class="panel-foot">
+        <button class="btn-primary wide" id="copy-all-btn" disabled>すべてコピー（0件）</button>
+      </div>
+    </div>
+    <button class="panel-toggle" id="panel-toggle">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      コメント
+      <span class="panel-count" id="panel-count">0</span>
+      <span class="panel-caret" id="panel-caret">&#9652;</span>
+    </button>
+  </div>
+</div>
+
+<script id="hljs-bundle">[BUNDLE]</script>
+<script>
+(function () {
+  'use strict';
+
+  // ===== 設定 / このページ固有の値 =====
+  <!-- CONFIG: ページごとに必ず固有の値へ変更すること。他ページと同じキーだと localStorage 上でコメントが混ざる -->
+  var STORAGE_KEY = 'pr-review-1155-comments-v1';
+  <!-- CONFIG: コピー出力（Markdown化）の見出し。ページの内容に合わせて変更すること -->
+  var COPY_TITLE = 'PR #1155 独立レビュー裁定';
+  var HIGHLIGHT_NAME = 'review-comment';
+
+  // ---- state ----
+  var comments = loadComments();
+  var rangeMap = new Map(); // id -> Range（テキストコメントのみ・セッション内限定）
+  var draftRange = null;
+  var pending = null; // {anchor:{x,y}, place, quote, kind, figureKey}
+  var composerOpen = false;
+  var editingId = null;
+  var editBody = '';
+
+  // ---- DOM refs ----
+  var fab = document.getElementById('comment-fab');
+  var composer = document.getElementById('comment-composer');
+  var quoteEl = document.getElementById('composer-quote');
+  var textarea = document.getElementById('composer-textarea');
+  var saveBtn = document.getElementById('composer-save');
+  var cancelBtn = document.getElementById('composer-cancel');
+  var panel = document.getElementById('comment-panel');
+  var panelBody = document.getElementById('panel-body');
+  var panelToggle = document.getElementById('panel-toggle');
+  var panelCount = document.getElementById('panel-count');
+  var panelCaret = document.getElementById('panel-caret');
+  var listWrap = document.getElementById('panel-list-wrap');
+  var copyAllBtn = document.getElementById('copy-all-btn');
+  var panelOpen = false;
+  var copiedTimer = null;
+
+  function loadComments() {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    try {
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function persist() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+  }
+
+  function refreshHighlights() {
+    if (!window.CSS || !CSS.highlights || typeof Highlight === 'undefined') return;
+    var hl = new Highlight();
+    rangeMap.forEach(function (r) { hl.add(r); });
+    CSS.highlights.set(HIGHLIGHT_NAME, hl);
+  }
+
+  function markFigureComments() {
+    var keyed = {};
+    comments.forEach(function (c) { if (c.kind === 'figure') keyed[c.figureKey] = true; });
+    document.querySelectorAll('[data-figure-key]').forEach(function (el) {
+      var key = el.getAttribute('data-figure-key');
+      if (keyed[key]) el.setAttribute('data-has-comment', '');
+      else el.removeAttribute('data-has-comment');
+    });
+  }
+
+  // ===== figure 初期化: .figure[data-label] に figureKey を付与し、既存ボタンへ配線 =====
+  document.querySelectorAll('.figure[data-label]').forEach(function (fig) {
+    var label = fig.getAttribute('data-label');
+    fig.setAttribute('data-figure-key', label);
+    var btn = fig.querySelector('.figure-comment-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var rect = fig.getBoundingClientRect();
+      draftRange = null;
+      pending = {
+        anchor: { x: rect.left + window.scrollX + rect.width / 2, y: rect.top + window.scrollY + 44 },
+        place: 'below',
+        quote: label,
+        kind: 'figure',
+        figureKey: label
+      };
+      hideFab();
+      openComposer();
+    });
+  });
+
+  // ===== テキスト選択監視（selectionchange をデバウンス。mouseup 非依存） =====
+  var isTouch = window.matchMedia('(hover: none)').matches;
+  var selTimer = null;
+
+  document.addEventListener('selectionchange', function () {
+    if (composerOpen) return;
+    window.clearTimeout(selTimer);
+    selTimer = window.setTimeout(function () {
+      var sel = window.getSelection();
+      var text = sel ? sel.toString().trim() : '';
+      if (!sel || sel.isCollapsed || !text) {
+        hideFab();
+        return;
+      }
+      var node = sel.anchorNode;
+      var host = node instanceof Element ? node : (node ? node.parentElement : null);
+      if (host && host.closest('[data-comment-ui]')) return;
+
+      var range = sel.getRangeAt(0);
+      var rect = range.getBoundingClientRect();
+      draftRange = range.cloneRange();
+      pending = {
+        anchor: { x: rect.left + window.scrollX + rect.width / 2, y: rect.top + window.scrollY },
+        place: 'above',
+        quote: text,
+        kind: 'text'
+      };
+      if (isTouch) {
+        openComposer();
+      } else {
+        showFab();
+      }
+    }, 350);
+  });
+
+  function applyAnchor(el) {
+    el.style.left = pending.anchor.x + 'px';
+    el.style.top = pending.anchor.y + 'px';
+    el.style.transform = pending.place === 'below'
+      ? 'translate(-50%, 10px)'
+      : 'translate(-50%, calc(-100% - 9px))';
+  }
+
+  function showFab() {
+    if (!pending) return;
+    applyAnchor(fab);
+    fab.hidden = false;
+  }
+  function hideFab() { fab.hidden = true; }
+
+  fab.addEventListener('mousedown', function (e) { e.preventDefault(); });
+  fab.addEventListener('click', function () {
+    hideFab();
+    openComposer();
+  });
+
+  function openComposer() {
+    if (!pending) return;
+    composerOpen = true;
+    quoteEl.innerHTML = (pending.kind === 'figure' ? '<span class="kind-pill fig">図</span>' : '')
+      + '「' + escapeHtml(pending.quote) + '」';
+    textarea.value = '';
+    saveBtn.disabled = true;
+    applyAnchor(composer);
+    composer.hidden = false;
+    window.setTimeout(function () { textarea.focus(); }, 0);
+  }
+
+  function closeComposer() {
+    pending = null;
+    composerOpen = false;
+    composer.hidden = true;
+    textarea.value = '';
+  }
+
+  textarea.addEventListener('input', function () {
+    saveBtn.disabled = textarea.value.trim().length === 0;
+  });
+  textarea.addEventListener('keydown', function (e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); saveComment(); }
+    if (e.key === 'Escape') closeComposer();
+  });
+  cancelBtn.addEventListener('click', closeComposer);
+  saveBtn.addEventListener('click', saveComment);
+  composer.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+
+  function genId() {
+    return 'c-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+  }
+
+  function saveComment() {
+    var body = textarea.value.trim();
+    if (!pending || !body) return;
+    var id = genId();
+    if (pending.kind === 'text' && draftRange) {
+      rangeMap.set(id, draftRange);
+      refreshHighlights();
+    }
+    comments.push({
+      id: id,
+      kind: pending.kind,
+      quote: pending.quote,
+      body: body,
+      createdAt: Date.now(),
+      figureKey: pending.figureKey
+    });
+    persist();
+    renderPanel();
+    markFigureComments();
+    closeComposer();
+    var s = window.getSelection();
+    if (s) s.removeAllRanges();
+  }
+
+  function deleteComment(id) {
+    rangeMap.delete(id);
+    refreshHighlights();
+    comments = comments.filter(function (c) { return c.id !== id; });
+    persist();
+    if (editingId === id) editingId = null;
+    renderPanel();
+    markFigureComments();
+  }
+
+  function startEdit(id, body) {
+    editingId = id;
+    editBody = body;
+    renderPanel();
+  }
+
+  function saveEdit() {
+    if (!editingId) return;
+    var body = editBody.trim();
+    if (body) {
+      comments = comments.map(function (c) {
+        return c.id === editingId ? Object.assign({}, c, { body: body }) : c;
+      });
+      persist();
+    }
+    editingId = null;
+    editBody = '';
+    renderPanel();
+  }
+
+  function jumpTo(c) {
+    if (c.kind === 'figure' && c.figureKey) {
+      var target = null;
+      document.querySelectorAll('[data-figure-key]').forEach(function (el) {
+        if (el.getAttribute('data-figure-key') === c.figureKey) target = el;
+      });
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    var r = rangeMap.get(c.id);
+    var el = r ? r.startContainer.parentElement : null;
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (ch) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+  }
+
+  function renderPanel() {
+    panelCount.textContent = comments.length;
+    copyAllBtn.disabled = comments.length === 0;
+    if (!copiedTimer) copyAllBtn.textContent = 'すべてコピー（' + comments.length + '件）';
+
+    if (comments.length === 0) {
+      listWrap.innerHTML = '<p class="panel-empty">本文中のテキストを選択すると「コメントを追加」ボタンが出ます。図は右上の「コメント」ボタンから。書いたコメントはここに集まります。</p>';
+      return;
+    }
+
+    var html = '<ul class="comment-list">';
+    comments.forEach(function (c, i) {
+      var isEditing = editingId === c.id;
+      html += '<li class="comment-item" data-id="' + c.id + '" data-idx="' + i + '">';
+      html += '<div class="ci-head">';
+      html += '<span class="ci-num">#' + (i + 1) + '</span>';
+      html += '<span class="kind-pill ' + (c.kind === 'figure' ? 'fig' : 'txt') + '">' + (c.kind === 'figure' ? '図' : '本文') + '</span>';
+      if (!isEditing) {
+        html += '<button class="ci-act" data-act="edit" data-id="' + c.id + '">編集</button>';
+      }
+      html += '<button class="ci-del" data-act="del" data-id="' + c.id + '">&times;</button>';
+      html += '</div>';
+      html += '<div class="ci-quote">「' + escapeHtml(c.quote) + '」</div>';
+      if (isEditing) {
+        html += '<div class="ci-edit-box" data-noselect>';
+        html += '<div class="ci-edit-label">コメントを編集</div>';
+        html += '<textarea class="composer-input ci-edit" data-act="edit-input">' + escapeHtml(editBody) + '</textarea>';
+        html += '<div class="composer-actions">';
+        html += '<button class="btn-ghost" data-act="edit-cancel">キャンセル</button>';
+        html += '<button class="btn-primary" data-act="edit-save"' + (editBody.trim() ? '' : ' disabled') + '>更新</button>';
+        html += '</div></div>';
+      } else {
+        html += '<div class="ci-body">' + escapeHtml(c.body) + '</div>';
+      }
+      html += '</li>';
+    });
+    html += '</ul>';
+    listWrap.innerHTML = html;
+
+    // イベント配線（再描画のたびに張り直す）
+    listWrap.querySelectorAll('.comment-item').forEach(function (li) {
+      var id = li.getAttribute('data-id');
+      li.addEventListener('click', function (e) {
+        if (editingId === id) return;
+        if (e.target.closest('[data-act]')) return;
+        var c = comments.find(function (x) { return x.id === id; });
+        if (c) jumpTo(c);
+      });
+    });
+    listWrap.querySelectorAll('[data-act="edit"]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var id = btn.getAttribute('data-id');
+        var c = comments.find(function (x) { return x.id === id; });
+        if (c) startEdit(id, c.body);
+      });
+    });
+    listWrap.querySelectorAll('[data-act="del"]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        deleteComment(btn.getAttribute('data-id'));
+      });
+    });
+    var editInput = listWrap.querySelector('[data-act="edit-input"]');
+    if (editInput) {
+      editInput.addEventListener('click', function (e) { e.stopPropagation(); });
+      editInput.addEventListener('input', function () {
+        editBody = editInput.value;
+        var saveBtnEl = listWrap.querySelector('[data-act="edit-save"]');
+        if (saveBtnEl) saveBtnEl.disabled = editBody.trim().length === 0;
+      });
+      editInput.addEventListener('keydown', function (e) {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); saveEdit(); }
+        if (e.key === 'Escape') { editingId = null; renderPanel(); }
+      });
+    }
+    var editCancel = listWrap.querySelector('[data-act="edit-cancel"]');
+    if (editCancel) editCancel.addEventListener('click', function (e) {
+      e.stopPropagation();
+      editingId = null;
+      renderPanel();
+    });
+    var editSave = listWrap.querySelector('[data-act="edit-save"]');
+    if (editSave) editSave.addEventListener('click', function (e) {
+      e.stopPropagation();
+      saveEdit();
+    });
+  }
+
+  panelToggle.addEventListener('click', function () {
+    panelOpen = !panelOpen;
+    panel.classList.toggle('open', panelOpen);
+    panelBody.hidden = !panelOpen;
+    panelCaret.innerHTML = panelOpen ? '&#9662;' : '&#9652;';
+  });
+
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    done();
+  }
+
+  copyAllBtn.addEventListener('click', function () {
+    if (comments.length === 0) return;
+    var lines = ['# ' + COPY_TITLE + '（' + comments.length + '件）', ''];
+    comments.forEach(function (c, i) {
+      lines.push('## コメント ' + (i + 1) + '（' + (c.kind === 'figure' ? '図' : '本文') + '）');
+      lines.push('> ' + c.quote.replace(/\n+/g, ' '));
+      lines.push('');
+      lines.push(c.body);
+      lines.push('');
+    });
+    var text = lines.join('\n');
+
+    function done() {
+      window.clearTimeout(copiedTimer);
+      copyAllBtn.textContent = 'コピーしました';
+      copiedTimer = window.setTimeout(function () {
+        copiedTimer = null;
+        copyAllBtn.textContent = 'すべてコピー（' + comments.length + '件）';
+      }, 2000);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+  });
+
+  // ---- 初期描画 ----
+  markFigureComments();
+  renderPanel();
+  // コードカードを行ごとに構文着色する（行番号・差分グリフの構造を壊さないため行単位で当てる）
+  // Highlight code cards line by line so the gutter and diff signs stay intact
+  function highlightCodeCards() {
+    if (!window.hljs) return;
+    var cards = document.querySelectorAll('pre.code-card[data-lang]');
+    for (var i = 0; i < cards.length; i++) {
+      var lang = cards[i].getAttribute('data-lang');
+      if (!hljs.getLanguage(lang)) continue;
+      var codes = cards[i].querySelectorAll('span.code');
+      for (var j = 0; j < codes.length; j++) {
+        codes[j].innerHTML = hljs.highlight(codes[j].textContent, { language: lang, ignoreIllegals: true }).value;
+      }
+    }
+  }
+  highlightCodeCards();
+})();
+</script>
+
+</body>
+</html>

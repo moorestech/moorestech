@@ -32,14 +32,15 @@ export const slotActions: SlotActions = {
     if (!inventory) return;
     const slot = resolveSlot(inventory, ref);
     if (!slot) return;
-    if (!shiftKey && inventory.grab.count > 0) { splitDrag.begin(ref, true); return; }
     const block = readTopic(Topics.blockInventory);
     const ctx: PlayerSlotContext = {
       inventory,
       maxStack: readItemMaster()?.get(slot.itemId)?.maxStack,
       blockItemSlots: block?.open ? block.itemSlots : null,
     };
-    dispatchPlanned(planPlayerLeftClick(ref, slot, shiftKey, ctx));
+    const plan = planPlayerLeftClick(ref, slot, shiftKey, ctx);
+    if (plan.kind === "beginSplitDrag") { splitDrag.begin(ref); return; }
+    dispatchPlanned(plan.actions);
   },
 
   onRightDown: (ref) => {
@@ -78,5 +79,5 @@ export const slotActions: SlotActions = {
 function resolveSlot(inventory: PlayerInventoryData, ref: SlotRef): SlotData | undefined {
   if (ref.area === "grab") return inventory.grab;
   if (ref.area === "equipment") return inventory.equipment[ref.slot];
-  return ref.area === "main" ? inventory.mainSlots[ref.slot] : inventory.hotbarSlots[ref.slot];
+  return inventory.mainSlots[ref.slot];
 }

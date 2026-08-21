@@ -23,14 +23,7 @@ return PlaytestRunner.Run("electric-wire-mutual-range-via-ui", options, async p 
 
     // 開幕スキット(Story)を表示中はビルドメニューが開けないためSkipインテントで飛ばしGameScreenへ抜ける
     // The opening skit (Story) blocks the build menu, so skip it via the intent path and reach GameScreen
-    p.Note("開幕スキットをSkipインテントで飛ばす");
-    var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
-    await p.Until(() =>
-    {
-        var s = skitStore.GetCurrent();
-        return s != null && skitStore.TrySkip(s.SessionId, s.SceneRevision).Ok;
-    }, 30f, "開幕スキットのSkipインテントが受理される");
-    await p.WaitUiState(UIStateEnum.GameScreen, 15f);
+    await p.SkipOpeningSkit();
 
     // 電柱のUI設置前提を整える: アンロック＋建設コスト
     // Prepare UI placement of poles: unlock + construction cost

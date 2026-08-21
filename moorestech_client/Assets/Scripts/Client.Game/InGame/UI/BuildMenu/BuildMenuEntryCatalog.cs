@@ -7,8 +7,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Client.Localization;
 using Client.Mod.Texture;
-using Common.Debug;
-using Game.UnlockState;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.UI.BuildMenu
@@ -19,19 +17,14 @@ namespace Client.Game.InGame.UI.BuildMenu
     /// </summary>
     public static class BuildMenuEntryCatalog
     {
-        public static List<BuildMenuEntry> CreateEntries(IGameUnlockStateData unlockState, PlacementTargetCatalog placementTargetCatalog, IReadOnlyList<(Guid id, string name)> blueprintEntries)
+        public static List<BuildMenuEntry> CreateEntries(PlacementTargetResolver placementTargetResolver)
         {
             var entries = new List<BuildMenuEntry>();
 
-            // 無料設置デバッグ時は未解放も含め設置可能な全ブロック/車両を表示する
-            // In free-placement debug mode, show every placeable block/train car including locked ones
-            var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
-
             // 共有カタログの列挙順（ブロック→車両→接続ツール→BPコピー→BP）がそのまま表示順
             // The shared catalog's order (blocks, train cars, connect tools, blueprint copy, blueprints) is the display order
-            foreach (var entry in placementTargetCatalog.UnlockedEntries(unlockState, showAllPlaceable, blueprintEntries))
+            foreach (var target in placementTargetResolver.CreateUnlockedTargets())
             {
-                var target = PlacementTargetFactory.Create(entry);
                 entries.Add(new BuildMenuEntry(target, ResolveIconView(target), CreateToolTip(target)));
             }
 

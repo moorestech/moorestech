@@ -10,6 +10,10 @@ namespace Tests.UnitTest.Game.MapGeneration
     // Verify MapInfoJsonBuilder assigns sequential instanceIds and transcribes mapVeins correctly.
     public class MapInfoJsonBuilderTest
     {
+        // 4成分すべてが違う姿勢。成分を取り違える転記が通らない値にしてある
+        // A rotation with four distinct components, chosen so a transcription that swaps them cannot pass
+        private static readonly Quaternion DummyRotation = new(0.0381346f, 0.1893079f, 0.2392983f, 0.9515485f);
+
         [Test]
         public void MapObjectsGetSequentialInstanceIds()
         {
@@ -76,6 +80,38 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(fluid.MaxZ, Is.EqualTo(18));
         }
 
+        // 姿勢は配置器が斜面法線とランダムYから計算する。map.jsonが落とすと全個体が同じ向きで直立する。
+        // The placers derive the rotation from the slope normal and a random yaw; dropping it in map.json stands every instance up alike.
+        [Test]
+        public void RotationIsTranscribed()
+        {
+            var mapInfoJson = MapInfoJsonBuilder.Build(CreateDummyOutput());
+
+            Assert.That(mapInfoJson.MapObjects[0].Rotation, Is.EqualTo(DummyRotation));
+            Assert.That(mapInfoJson.MapObjects[1].Rotation, Is.EqualTo(Quaternion.identity));
+        }
+
+        // スケールとクラスタ情報は岩周辺テクスチャの入力。map.jsonが落とすと再起動後だけ見た目が変わる。
+        // Scale and cluster info feed the rock surround texture; dropping them in map.json changes the visuals only after a restart.
+        [Test]
+        public void ScaleAndClusterInfoAreTranscribed()
+        {
+            var output = CreateDummyOutput();
+
+            var mapInfoJson = MapInfoJsonBuilder.Build(output);
+
+            var clustered = mapInfoJson.MapObjects[0];
+            Assert.That(clustered.Scale, Is.EqualTo(new Vector3(1.5f, 2f, 2.5f)));
+            Assert.That(clustered.ClusterId, Is.EqualTo(4));
+            Assert.That(clustered.ClusterCenterX, Is.EqualTo(11f));
+            Assert.That(clustered.ClusterCenterZ, Is.EqualTo(12f));
+
+            var independent = mapInfoJson.MapObjects[1];
+            Assert.That(independent.ClusterId, Is.EqualTo(-1));
+            Assert.That(independent.ClusterCenterX, Is.EqualTo(0f));
+            Assert.That(independent.ClusterCenterZ, Is.EqualTo(0f));
+        }
+
         [Test]
         public void SpawnPointIsTranscribed()
         {
@@ -88,17 +124,37 @@ namespace Tests.UnitTest.Game.MapGeneration
 
         private static MapGenerationOutput CreateDummyOutput()
         {
-            return new MapGenerationOutput
+            var output = new MapGenerationOutput
             {
-                Heights = new float[4],
-                BiomeIndices = new byte[4],
                 Resolution = 2,
                 SpawnPoint = new Vector3(10, 20, 30),
                 MapObjects = new List<PlacedMapObject>
                 {
-                    new() { MapObjectGuid = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", Position = new Vector3(1, 1, 1) },
-                    new() { MapObjectGuid = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", Position = new Vector3(2, 2, 2) },
-                    new() { MapObjectGuid = "cccccccc-cccc-cccc-cccc-cccccccccccc", Position = new Vector3(3, 3, 3) },
+                    new()
+                    {
+                        MapObjectGuid = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                        Position = new Vector3(1, 1, 1),
+                        Rotation = DummyRotation,
+                        Scale = new Vector3(1.5f, 2f, 2.5f),
+                        ClusterId = 4,
+                        ClusterCenter = new Vector2(11f, 12f),
+                    },
+                    new()
+                    {
+                        MapObjectGuid = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+                        Position = new Vector3(2, 2, 2),
+                        Rotation = Quaternion.identity,
+                        Scale = Vector3.one,
+                        ClusterId = -1,
+                    },
+                    new()
+                    {
+                        MapObjectGuid = "cccccccc-cccc-cccc-cccc-cccccccccccc",
+                        Position = new Vector3(3, 3, 3),
+                        Rotation = Quaternion.identity,
+                        Scale = Vector3.one,
+                        ClusterId = -1,
+                    },
                 },
                 ItemVeins = new List<PlacedVein>
                 {
@@ -116,6 +172,8 @@ namespace Tests.UnitTest.Game.MapGeneration
                     },
                 },
             };
+            output.Tiles.Add(new TerrainTileOutput { TileX = 0, TileZ = 0, Heights = new float[4], BiomeIndices = new byte[4] });
+            return output;
         }
     }
 }

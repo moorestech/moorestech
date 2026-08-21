@@ -31,6 +31,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^10.7.0",
     "globals": "^17.7.0",
+    "knip": "^6.32.2",
     "postcss": "^8.4.49",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",

@@ -5,6 +5,7 @@ import { ItemSlot } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
 import { accumulateWheelSteps, cycleEquipment } from "./equipmentLogic";
 import { slotActions } from "../slotActions";
+import { equipmentSlotAnchorId, tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import styles from "./style.module.css";
 
 // 装備スロットの常時表示HUD。枠数はトピックの equipment 長がそのまま正となる
@@ -64,7 +65,7 @@ export default function EquipmentPanel() {
 
     const latest = readTopic(Topics.inventory);
     if (!latest || latest.equipment.length === 0) return;
-    const accumulated = accumulateWheelSteps(wheelRemainder.current, e.deltaY);
+    const accumulated = accumulateWheelSteps(wheelRemainder.current, e.deltaY, e.deltaMode);
     wheelRemainder.current = accumulated.remainder;
     if (accumulated.steps === 0) return;
     // 未反映の送信値を起点にし、高速な連続ノッチが古いtopicへ巻き戻されないようにする
@@ -85,18 +86,32 @@ export default function EquipmentPanel() {
   // Hide the whole HUD until the first snapshot, matching HotbarPanel
   if (!inventory) return null;
 
+  // 素手でも解決するHUD自体のアンカーを常時出す
+  // The HUD's own anchor stays mounted so it resolves even with bare hands
   // クリックは他のスロットと同じアイテム移動。装備の選択はホイール専用にする
   // Clicks are ordinary item moves like every other slot; equipment selection belongs to the wheel alone
   return (
-    <div className={styles.equipmentArea} data-testid="equipment-slots" data-wheel-passthrough>
+    <div
+      className={styles.equipmentArea}
+      data-testid="equipment-slots"
+      data-wheel-passthrough
+      {...tutorialAnchor(TutorialAnchorIds.equipmentHud)}
+    >
       {inventory.equipment.map((slot, i) => {
         const ref: SlotRef = { area: "equipment", slot: i };
+        // 選択枠は動くので選択アンカーも同居
+        // The selected slot moves with the wheel, so it also declares the selection anchor
+        const selected = i === inventory.selectedEquipment;
+        const anchor = selected
+          ? tutorialAnchor(equipmentSlotAnchorId(i), TutorialAnchorIds.equipmentSelectedSlot)
+          : tutorialAnchor(equipmentSlotAnchorId(i));
         return (
           <ItemSlot
             key={`equipment-${i}`}
+            {...anchor}
             itemId={slot.itemId}
             count={slot.count}
-            selected={i === inventory.selectedEquipment}
+            selected={selected}
             onLeftDown={grabInteractive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
             onRightDown={grabInteractive ? () => slotActions.onRightDown(ref) : undefined}
             onRightEnter={grabInteractive ? () => slotActions.onRightEnter(ref) : undefined}

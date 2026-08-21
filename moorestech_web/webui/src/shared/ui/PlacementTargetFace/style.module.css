@@ -1,0 +1,16 @@
+/* アイコンは枠内へ収め、比率を保つ */
+/* The icon fits inside the frame while keeping its aspect ratio */
+.icon {
+  width: calc(var(--slot-size) - 8px);
+  height: calc(var(--slot-size) - 8px);
+  object-fit: contain;
+}
+
+/* アイコンを持たない対象(BP・BPコピー)は名前を面中央へ収める */
+/* Targets without an icon (blueprints and the copy tool) center their name on the face */
+.label {
+  font-size: 10px;
+  color: var(--text-default);
+  word-break: break-all;
+  text-align: center;
+}
