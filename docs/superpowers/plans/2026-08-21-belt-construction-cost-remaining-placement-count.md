@@ -1353,7 +1353,7 @@ git commit -m "feat(server): 撤去時に残り設置数を戻し1セット分�
   - `ClientRemainingPlacementCountDatastore { int GetRemainingCount(BlockId walletBlockId); IObservable<Unit> OnChanged; void ApplyAll(RemainingPlacementCountMessagePack[]); void Apply(int walletBlockId, int remainingCount); }`
   - `InitialHandshakeResponse.RemainingPlacementCounts : RemainingPlacementCountMessagePack[]`
 
-- [ ] **Step 1: 実装（表示モデルのため単体テストは Task 7 の計算テストで担保）**
+- [x] **Step 1: 実装（表示モデルのため単体テストは Task 7 の計算テストで担保）**
 
 `ClientRemainingPlacementCountDatastore.cs`:
 
@@ -1457,11 +1457,11 @@ namespace Client.Game.InGame.Construction
 
 `BlockId` は `Core.Master` 名前空間の struct（`Core.Master/BlockMaster.cs:15`、`new BlockId(int)` 前例 `Client.Tests/.../GearChainPolePlaceExtendModeTest.cs:155`）。
 
-- [ ] **Step 2: コンパイル**
+- [x] **Step 2: コンパイル**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0
 
-- [ ] **Step 3: コミット**
+- [x] **Step 3: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game moorestech_client/Assets/Scripts/Client.Network moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.Tests/Tests.asmdef
