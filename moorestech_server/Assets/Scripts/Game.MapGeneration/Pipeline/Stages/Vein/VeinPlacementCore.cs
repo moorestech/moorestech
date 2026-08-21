@@ -46,7 +46,34 @@ namespace Game.MapGeneration.Pipeline.Stages
 
             // 点ごとに固定サイズの鉱脈を生成。
             // Emit one fixed-size vein per point.
-            return BuildVeins(members, excludedVeins);
+            return BuildVeins(members);
+
+            #region Internal
+
+            List<PlacedVein> BuildVeins(List<PlacementEntry> placedMembers)
+            {
+                // 配置順をそのまま出力順にする
+                // The placement order becomes the output order
+                var veins = new List<PlacedVein>();
+                foreach (var member in placedMembers)
+                {
+                    var vein = VeinAabbBuilder.Build(member.MapObjectGuid, member.WorldPosition);
+                    if (!OverlapsExcludedVein(vein)) veins.Add(vein);
+                }
+                return veins;
+            }
+
+            bool OverlapsExcludedVein(PlacedVein candidate)
+            {
+                foreach (var excluded in excludedVeins)
+                    if (candidate.Min.x <= excluded.Max.x && excluded.Min.x <= candidate.Max.x &&
+                        candidate.Min.y <= excluded.Max.y && excluded.Min.y <= candidate.Max.y &&
+                        candidate.Min.z <= excluded.Max.z && excluded.Min.z <= candidate.Max.z)
+                        return true;
+                return false;
+            }
+
+            #endregion
         }
 
         static bool[][,] BuildEntryMasks(
@@ -80,34 +107,6 @@ namespace Game.MapGeneration.Pipeline.Stages
             foreach (var obj in objects)
                 grid.Add(obj.Position.x - config.worldOffsetX, obj.Position.z - config.worldOffsetZ);
             return grid;
-        }
-
-        static List<PlacedVein> BuildVeins(
-            List<PlacementEntry> members, IReadOnlyList<PlacedVein> excludedVeins)
-        {
-            // 配置順をそのまま出力順にする。順序は同一 seed の再現性の一部。
-            // The placement order becomes the output order; that order is part of same-seed reproducibility.
-            var veins = new List<PlacedVein>();
-            foreach (var member in members)
-            {
-                var vein = VeinAabbBuilder.Build(member.MapObjectGuid, member.WorldPosition);
-                if (!OverlapsExcludedVein(vein)) veins.Add(vein);
-            }
-            return veins;
-
-            #region Internal
-
-            bool OverlapsExcludedVein(PlacedVein candidate)
-            {
-                foreach (var excluded in excludedVeins)
-                    if (candidate.Min.x <= excluded.Max.x && excluded.Min.x <= candidate.Max.x &&
-                        candidate.Min.y <= excluded.Max.y && excluded.Min.y <= candidate.Max.y &&
-                        candidate.Min.z <= excluded.Max.z && excluded.Min.z <= candidate.Max.z)
-                        return true;
-                return false;
-            }
-
-            #endregion
         }
     }
 }
