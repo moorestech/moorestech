@@ -792,7 +792,7 @@ git commit -m "feat(server): 残り設置数DataStoreと財布util（Game.Constr
   - `RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack { [Key(0)] int WalletBlockId; [Key(1)] int RemainingCount; }`
   - `InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack.RemainingPlacementCounts : RemainingPlacementCountMessagePack[]`（`[Key(8)]`、ctor末尾引数）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `Tests/CombinedTest/Server/PacketTest/RemainingPlacementCountEventPacketTest.cs`:
 
@@ -851,11 +851,11 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 注: 前例 `InitialHandshakeProtocolTest.cs:36`（`GetPacketResponse(...)[0]` をキャスト、`PacketResponseContext(null)` で可）。
 
-- [ ] **Step 2: コンパイルエラーで失敗を確認**
+- [x] **Step 2: コンパイルエラーで失敗を確認**
 
 Run: `uloop compile --project-path ./moorestech_client` → `RemainingPlacementCountChangedEventPacket` 未定義
 
-- [ ] **Step 3: イベントパケット実装**
+- [x] **Step 3: イベントパケット実装**
 
 `Server.Event/EventReceive/RemainingPlacementCountChangedEventPacket.cs`:
 
@@ -922,7 +922,7 @@ namespace Server.Event.EventReceive
 
 `MoorestechServerDIContainerGenerator.cs`: `services.AddSingleton<HotbarUpdateEventPacket>();` の直後に `services.AddSingleton<RemainingPlacementCountChangedEventPacket>();`。eager init が `IBootInitializable` 登録の列挙で行われているか（`:305` 付近）を確認し、Hotbar と同じ経路で `Load()` が呼ばれることを確かめる。
 
-- [ ] **Step 4: handshake同梱**
+- [x] **Step 4: handshake同梱**
 
 `InitialHandshakeProtocol.cs`:
 - フィールド `private readonly IRemainingPlacementCountLookup _remainingPlacementCountLookup;` とctorで `serviceProvider.GetService<IRemainingPlacementCountLookup>()`。
@@ -941,13 +941,13 @@ namespace Server.Event.EventReceive
 - `ResponseInitialHandshakeMessagePack` に `[Key(8)] public RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] RemainingPlacementCounts { get; set; }` とctor末尾引数 `RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] remainingPlacementCounts` を追加し代入。`using Server.Event.EventReceive;` を追加（既に `ItemStackLevelMessagePack` で参照しているはずなので確認）。
 - `CharacterTestDebug.cs:46` のctor呼び出し末尾に `Array.Empty<RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack>()` を追加。
 
-- [ ] **Step 5: コンパイル → テスト**
+- [x] **Step 5: コンパイル → テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "RemainingPlacementCountEventPacketTest|HotbarProtocolTest|InitialHandshake"`
 Expected: 全PASS
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Server.Event moorestech_server/Assets/Scripts/Server.Protocol moorestech_server/Assets/Scripts/Server.Boot moorestech_client/Assets/Scripts/Client.DebugSystem moorestech_server/Assets/Scripts/Tests
