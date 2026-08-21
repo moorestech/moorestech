@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline
@@ -24,6 +25,10 @@ namespace Game.MapGeneration.Pipeline
         public List<PlacedMapObject> MapObjects = new List<PlacedMapObject>();
         public List<PlacedVein> ItemVeins = new List<PlacedVein>();
         public List<PlacedVein> FluidVeins = new List<PlacedVein>();
+
+        // pass-1(配置)からpass-2(見た目)への内部受け渡し専用。結果出力(MapInfoJsonBuilder等)には一切写さない。
+        // Internal pass-1(placement) to pass-2(visuals) handoff only; never copied into result output (MapInfoJsonBuilder etc.).
+        public PlacementLedger Ledger;
     }
 
     public class PlacedMapObject

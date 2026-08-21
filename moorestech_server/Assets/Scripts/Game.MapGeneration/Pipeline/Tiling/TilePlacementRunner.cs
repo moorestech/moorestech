@@ -4,6 +4,7 @@ using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
 using Game.MapGeneration.Pipeline.Jobs;
 using Game.MapGeneration.Pipeline.Stages;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Tiling
@@ -20,6 +21,10 @@ namespace Game.MapGeneration.Pipeline.Tiling
         private readonly Vector3 _sceneSpawn;
         private readonly MapGenerationOutput _output;
 
+        // pass-2(見た目)へ渡す配置台帳。生成システムの外へは出ない
+        // The placement ledger handed to pass-2 (visuals); it never leaves the generation system
+        private readonly PlacementLedger _ledger;
+
         // 格子で1つの halo 帳面。タイルを順に回す間、確定済みの配置を持ち回して次のタイルの近傍判定へ渡す。
         // One halo ledger for the whole grid, carried through the tile loop so confirmed placements reach the next tile's neighbour tests.
         private readonly PlacementHaloStore _halo;
@@ -31,7 +36,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
         public TilePlacementRunner(
             BiomePlacementHelper helper, BiomeType[] biomeTypes,
             Vector2 noiseToSceneShift, Vector3 sceneSpawn, MapGenerationOutput output,
-            PlacementHaloStore halo)
+            PlacementHaloStore halo, PlacementLedger ledger)
         {
             _helper = helper;
             _biomeTypes = biomeTypes;
@@ -39,6 +44,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
             _sceneSpawn = sceneSpawn;
             _output = output;
             _halo = halo;
+            _ledger = ledger;
         }
 
         // buffers は PaddedWindowStage がクロップ済みの分類で、ここで分類を回し直すと転送する分類と境界で食い違う。
@@ -142,6 +148,9 @@ namespace Game.MapGeneration.Pipeline.Tiling
                         ClusterId = clusterId,
                         ClusterCenter = clusterCenter,
                     });
+
+                    _ledger.Add(new LedgerPlacement(entry.MapObjectGuid, entry.WorldPosition, entry.Rotation, entry.Scale,
+                        entry.SurroundEffect, clusterId, clusterCenter));
                 }
 
                 if (0 <= maxLocalClusterId) _nextClusterIdOffset = offset + maxLocalClusterId + 1;

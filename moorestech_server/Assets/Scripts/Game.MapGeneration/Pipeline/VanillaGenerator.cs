@@ -5,6 +5,7 @@ using Game.MapGeneration.Pipeline.Jobs;
 using Game.MapGeneration.Pipeline.Spawn;
 using Game.MapGeneration.Pipeline.Stages;
 using Game.MapGeneration.Pipeline.Tiling;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Transfer;
 using Unity.Collections;
 using UnityEngine;
@@ -42,6 +43,10 @@ namespace Game.MapGeneration.Pipeline
             int halfX = config.gridSizeX / 2;
             int halfZ = config.gridSizeZ / 2;
             var sceneOrigin = config.TileScenePosition(0, 0);
+
+            // pass-2(見た目焼き)へ渡す配置台帳。生成システムの外(結果出力)へは絶対に写さない。
+            // The ledger handed to pass-2 (visual bake); never copy it into the result output outside the generation system.
+            var ledger = new PlacementLedger();
             var output = new MapGenerationOutput
             {
                 Resolution = config.Resolution,
@@ -50,6 +55,7 @@ namespace Game.MapGeneration.Pipeline
                 // Clients re-run the classification stage, needing the noise window origin, and place the terrain at the scene origin.
                 NoiseOrigin = noiseToSceneShift + sceneOrigin,
                 SceneOrigin = sceneOrigin,
+                Ledger = ledger,
             };
 
             // スポーンのXZはタイル生成前に確定する（高さYだけ中心タイル生成後に採取する）。
@@ -60,7 +66,7 @@ namespace Game.MapGeneration.Pipeline
             var helper = new BiomePlacementHelper(config);
             var halo = new PlacementHaloStore(PlacementHaloRadius.Resolve(config, biomeTypes, helper));
             var runner = new TilePlacementRunner(helper, biomeTypes,
-                noiseToSceneShift, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output, halo);
+                noiseToSceneShift, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output, halo, ledger);
 
             // タイル窓の基準はindex(0,0)タイル。config.worldOffset は中心タイル基準なのでそのままでは基準にできない。
             // The tile windows are based on the index (0,0) tile; config.worldOffset is center-tile based and cannot serve as one.
