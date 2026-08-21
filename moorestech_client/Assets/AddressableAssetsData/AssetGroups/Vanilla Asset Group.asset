@@ -330,6 +330,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1f9e7411df63240d994142b1ccb1b971
+    m_Address: Vanilla/Environment/Vein/Item/VeinPrefab_Stone
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 20610057e121e458dab7f6e14c754787
     m_Address: Vanilla/Environment/Rock/Mountains/Stone1
     m_ReadOnly: 0
