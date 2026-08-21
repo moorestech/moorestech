@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Common.Debug;
 using Core.Item.Interface;
@@ -9,12 +10,12 @@ using Server.Protocol.PacketResponse;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 {
     /// <summary>
-    /// ベルトセル列のうち所持素材で賄えない後続分をPlaceable=falseへ書き換える
-    /// Marks belt cells beyond what the held materials can afford as Placeable=false
+    /// ベルトセル列のうち所持素材で賄えない後続分をPlaceable=falseへ書き換え、不足素材をツールチップへ積む
+    /// Marks belt cells beyond what the held materials can afford as Placeable=false and pushes the short materials to the tooltip
     /// </summary>
     public static class BeltConveyorCostPreviewMarker
     {
-        public static void MarkInsufficientEntitiesAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, IEnumerable<IItemStack> inventoryItems)
+        public static void MarkInsufficientEntitiesAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, IEnumerable<IItemStack> inventoryItems, PlacementFeedback feedback)
         {
             // 無料設置デバッグ中はコストによる設置不可判定を行わない（CommonBlockPlaceSystemと同一のスキップ）
             // Skip cost-based unplaceable marking during free-placement debug (same skip as CommonBlockPlaceSystem)
@@ -28,6 +29,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
                 if (!currentPlaceInfos[i].Placeable) continue;
                 entityCosts.Add(MasterHolder.BlockMaster.GetBlockMaster(currentPlaceInfos[i].BlockId).RequiredItems);
             }
+
+            // 今回置こうとしているエンティティ列ぶんの不足素材をツールチップへ積む
+            // Push the materials short for the entities actually being placed
+            feedback.AddMaterialShortages(ConstructionCostShortageCalculator.Calculate(entityCosts, inventoryItems));
 
             // 建設コストで賄えるエンティティ数まで設置可にする
             // Allow placement up to the affordable entity count
