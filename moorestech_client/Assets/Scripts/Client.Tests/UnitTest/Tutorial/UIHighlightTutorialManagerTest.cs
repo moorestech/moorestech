@@ -12,11 +12,12 @@ using UnityEngine;
 
 namespace Client.Tests.UnitTest.Tutorial
 {
-    // 空判定→labelGuid有無へ正しく反映
-    // Pins that the empty check maps to labelGuid's presence
+    // マスタanchorIdの無変換受け渡しとtutorialGuid同梱を固定
+    // Pins the verbatim anchorId hand-off and the tutorialGuid carried alongside
     public class UIHighlightTutorialManagerTest
     {
         private static readonly Guid ChallengeGuid = Guid.Parse("00000000-0000-0000-4567-000000000001");
+        private const string AnchorId = "recipe.craft-button";
 
         private ChallengeMaster _originalChallengeMaster;
         private GameObject _root;
@@ -37,30 +38,20 @@ namespace Client.Tests.UnitTest.Tutorial
             SetChallengeMaster(_originalChallengeMaster);
         }
 
+        // ラベル有無はWeb側のt()解決で決まるため、ここではguidが常に載ることだけを保証する
+        // Label presence is decided by the web-side t() result, so this only guarantees the guid always rides along
         [Test]
-        public void 文言ありならlabelTutorialGuidにtutorialGuidが入る()
+        public void アンカーIdを無変換で渡しtutorialGuidを載せる()
         {
-            SetChallengeMaster(CreateUiHighLightChallengeMaster("照準に合わせる"));
+            SetChallengeMaster(CreateUiHighLightChallengeMaster());
             var manager = _root.AddComponent<UIHighlightTutorialManager>();
             var tutorial = MasterHolder.ChallengeMaster.GetChallenge(ChallengeGuid).Tutorials[0];
 
             manager.ApplyTutorial(tutorial);
 
             var outline = LatestOutline();
+            Assert.AreEqual(AnchorId, outline.AnchorId);
             Assert.AreEqual(tutorial.TutorialGuid.ToString(), outline.LabelTutorialGuid);
-        }
-
-        [Test]
-        public void 文言が空ならlabelTutorialGuidはnull()
-        {
-            SetChallengeMaster(CreateUiHighLightChallengeMaster(""));
-            var manager = _root.AddComponent<UIHighlightTutorialManager>();
-            var tutorial = MasterHolder.ChallengeMaster.GetChallenge(ChallengeGuid).Tutorials[0];
-
-            manager.ApplyTutorial(tutorial);
-
-            var outline = LatestOutline();
-            Assert.IsNull(outline.LabelTutorialGuid);
         }
 
         private static TutorialOutlineElementData LatestOutline()
@@ -70,7 +61,7 @@ namespace Client.Tests.UnitTest.Tutorial
                 .OfType<TutorialOutlineElementData>().Last();
         }
 
-        private static ChallengeMaster CreateUiHighLightChallengeMaster(string highLightText)
+        private static ChallengeMaster CreateUiHighLightChallengeMaster()
         {
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
                 "mods", "forUnitTest", "master", "challenges.json");
@@ -82,8 +73,8 @@ namespace Client.Tests.UnitTest.Tutorial
             tutorial["tutorialType"] = "uiHighLight";
             tutorial["tutorialParam"] = new JObject
             {
-                ["highLightAnchorId"] = "recipe.craft-button",
-                ["highLightText"] = highLightText,
+                ["highLightAnchorId"] = AnchorId,
+                ["highLightText"] = "照準に合わせる",
             };
             var master = new ChallengeMaster(json);
             master.Initialize();

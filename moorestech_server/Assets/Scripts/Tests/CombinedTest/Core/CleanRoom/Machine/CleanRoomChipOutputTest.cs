@@ -18,6 +18,10 @@ namespace Tests.CombinedTest.Core.CleanRoom
 {
     public class CleanRoomChipOutputTest
     {
+        // EUV抽選のシードは未シードのBlockInstanceId.Create()由来で実行毎に変わるため、全滅確率で枚数を決める
+        // The EUV seed comes from the unseeded BlockInstanceId.Create() and differs per run, so the count is sized by all-fail odds
+        private const int WaferCount = 20;
+
         [Test]
         public void CompletedCycleOutputsOneOfTheChipLevelsTest()
         {
@@ -25,11 +29,11 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var filter = BuildSmallCleanRoomWithFilter();
             var machine = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomMachineId, new Vector3Int(2, 1, 1));
 
-            // EUV失敗を許容するため複数枚を投入し、成功したチップ出力だけを待つ
-            // Insert several wafers to tolerate EUV failures and wait only for successful chip output
+            // 成功率0.8で20枚なら全滅は0.2^20（約1e-14）まで下がる。5枚では0.032%で実際にCIが落ちた
+            // At 0.8 success and 20 wafers, an all-fail run drops to 0.2^20 (~1e-14); at 5 wafers it was 0.032% and CI did fail
             var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(System.Guid.Parse("19b0d248-0ce5-4e5f-b59c-5897177b6268"));
             MachineRecipeSelectTestUtil.SelectRecipe(machine, recipe);
-            machine.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestChipRawWafer, 5);
+            machine.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestChipRawWafer, WaferCount);
             IOpenableInventory inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
 
             for (var i = 0; i < 800 && CountChipOutputs(inventory) == 0; i++)
@@ -41,7 +45,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             // Class-A rooms draw uniformly across four levels, so this intentionally does not assert Lv1
             var outputCount = CountChipOutputs(inventory);
             Assert.Greater(outputCount, 0);
-            Assert.LessOrEqual(outputCount, 5);
+            Assert.LessOrEqual(outputCount, WaferCount);
         }
 
         [Test]

@@ -12,8 +12,8 @@ using UnityEngine;
 
 namespace Client.Tests.UnitTest.Tutorial
 {
-    // 空判定→labelGuidへ反映を保証
-    // Pins the empty check maps to labelGuid
+    // itemGuid→itemId動的アンカーの導出とtutorialGuid同梱を固定
+    // Pins the itemGuid to itemId dynamic-anchor derivation and the tutorialGuid carried alongside
     public class ItemViewHighLightTutorialManagerTest
     {
         private static readonly Guid ChallengeGuid = Guid.Parse("00000000-0000-0000-4567-000000000001");
@@ -38,30 +38,21 @@ namespace Client.Tests.UnitTest.Tutorial
             SetChallengeMaster(_originalChallengeMaster);
         }
 
+        // ラベル有無はWeb側のt()解決で決まるため、ここではguidが常に載ることだけを保証する
+        // Label presence is decided by the web-side t() result, so this only guarantees the guid always rides along
         [Test]
-        public void 文言ありならlabelTutorialGuidにtutorialGuidが入る()
+        public void itemIdからアンカーIdを導出しtutorialGuidを載せる()
         {
-            SetChallengeMaster(CreateItemViewHighLightChallengeMaster("照準に合わせる"));
+            SetChallengeMaster(CreateItemViewHighLightChallengeMaster());
             var manager = _root.AddComponent<ItemViewHighLightTutorialManager>();
             var tutorial = MasterHolder.ChallengeMaster.GetChallenge(ChallengeGuid).Tutorials[0];
+            var itemId = MasterHolder.ItemMaster.GetItemId(Guid.Parse(ItemGuid)).AsPrimitive();
 
             manager.ApplyTutorial(tutorial);
 
             var outline = LatestOutline();
+            Assert.AreEqual(TutorialAnchorIdMapper.FromItemId(itemId), outline.AnchorId);
             Assert.AreEqual(tutorial.TutorialGuid.ToString(), outline.LabelTutorialGuid);
-        }
-
-        [Test]
-        public void 文言が空ならlabelTutorialGuidはnull()
-        {
-            SetChallengeMaster(CreateItemViewHighLightChallengeMaster(""));
-            var manager = _root.AddComponent<ItemViewHighLightTutorialManager>();
-            var tutorial = MasterHolder.ChallengeMaster.GetChallenge(ChallengeGuid).Tutorials[0];
-
-            manager.ApplyTutorial(tutorial);
-
-            var outline = LatestOutline();
-            Assert.IsNull(outline.LabelTutorialGuid);
         }
 
         private static TutorialOutlineElementData LatestOutline()
@@ -71,7 +62,7 @@ namespace Client.Tests.UnitTest.Tutorial
                 .OfType<TutorialOutlineElementData>().Last();
         }
 
-        private static ChallengeMaster CreateItemViewHighLightChallengeMaster(string highLightText)
+        private static ChallengeMaster CreateItemViewHighLightChallengeMaster()
         {
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
                 "mods", "forUnitTest", "master", "challenges.json");
@@ -84,7 +75,7 @@ namespace Client.Tests.UnitTest.Tutorial
             tutorial["tutorialParam"] = new JObject
             {
                 ["highLightItemGuid"] = ItemGuid,
-                ["highLightText"] = highLightText,
+                ["highLightText"] = "照準に合わせる",
             };
             var master = new ChallengeMaster(json);
             master.Initialize();
