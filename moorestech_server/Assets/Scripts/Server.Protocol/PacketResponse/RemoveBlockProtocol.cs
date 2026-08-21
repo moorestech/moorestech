@@ -43,7 +43,11 @@ namespace Server.Protocol.PacketResponse
             var block = ServerContext.WorldBlockDatastore.GetBlock(data.Pos);
             if (block == null) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
             if (!CanManualRemoveBlock(block)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.NodeInUseByTrain);
-                
+
+            // 撤去判定・財布更新の双方で同じマスタを使い回す
+            // Reuse the same block master for both the removal check and the wallet update
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
+
             // 破壊した後のアイテムをインベントリに挿入できるかチェック
             // Check if items after destruction can be inserted into inventory
             if (!TryInsertRefundItems(out var refundItems)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
@@ -54,7 +58,7 @@ namespace Server.Protocol.PacketResponse
 
             // 撤去確定後に財布へ1戻す（凝縮時は0へ戻り、返却分は上で確保済み）
             // After removal is final, return one to the wallet (condensing resets it; the refund was reserved above)
-            RemainingPlacementChargeService.ReturnOne(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), data.PlayerId, _remainingPlacementCountMutation);
+            RemainingPlacementChargeService.ReturnOne(blockMaster, data.PlayerId, _remainingPlacementCountMutation);
 
             InsertItemsToPlayerInventory(refundItems);
             
@@ -102,7 +106,6 @@ namespace Server.Protocol.PacketResponse
                 
                 // 建設コストは財布が1セット分に達する撤去でのみ返る（設置数/1セット=1は毎回）
                 // The construction cost returns only when this removal completes one set's worth in the wallet (every time when placementsPerCost==1)
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
                 if (blockMaster.RequiredItems != null && blockMaster.RequiredItems.Length != 0
                     && RemainingPlacementChargeService.WouldCondenseOnReturn(blockMaster, data.PlayerId, _remainingPlacementCountLookup))
                 {

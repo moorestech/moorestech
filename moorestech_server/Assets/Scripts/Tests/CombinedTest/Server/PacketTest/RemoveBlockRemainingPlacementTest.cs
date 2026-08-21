@@ -51,6 +51,33 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
+        public void 一本だけ設置した直後に一本撤去すると建設コスト1セットが戻る()
+        {
+            var (packet, serviceProvider) = CreateServer();
+            var inventory = GetInventory(serviceProvider);
+            var belt = ForUnitTestModBlockId.GearBeltConveyor;
+            UnlockBlock(serviceProvider, belt);
+            SetItem(inventory, 0, Material1Guid, 1);
+            SetItem(inventory, 1, Material2Guid, 1);
+            packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), new PacketResponseContext(null));
+            var lookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
+
+            // 1本設置で素材1セットを消費し、財布は残り設置数/1セット-1になる
+            // Placing one belt consumes one material set, leaving wallet at count-per-set minus one
+            Assert.AreEqual(0, GetItemCount(inventory, Material1Guid));
+            Assert.AreEqual(0, GetItemCount(inventory, Material2Guid));
+            Assert.AreEqual(2, lookup.GetRemainingCount(PlayerId, belt));
+
+            Remove(packet, new Vector3Int(10, 0));
+
+            // 部分消費状態からの1回撤去で財布が設置数/1セットへ到達し、素材が増減なく1セット戻る
+            // A single removal from the partially-consumed wallet reaches the per-set count and refunds one set with zero net material change
+            Assert.AreEqual(1, GetItemCount(inventory, Material1Guid));
+            Assert.AreEqual(1, GetItemCount(inventory, Material2Guid));
+            Assert.AreEqual(0, lookup.GetRemainingCount(PlayerId, belt));
+        }
+
+        [Test]
         public void 凝縮返却が入り切らなければ撤去も財布も変わらない()
         {
             var (packet, serviceProvider) = CreateServer();

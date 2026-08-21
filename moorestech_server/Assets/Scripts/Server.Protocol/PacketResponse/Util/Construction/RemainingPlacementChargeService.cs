@@ -8,8 +8,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Server.Protocol.PacketResponse.Util.Construction
 {
     /// <summary>
-    /// 残り設置数の財布を見て、このセルで実際に消費する建設コストを決め、設置後に財布と素材を更新する（ADR 0026）
-    /// Decides the construction cost actually consumed for a cell from the remaining-placement wallet, then updates wallet and materials after placement (ADR 0026)
+    /// 残り設置数の財布を見て、このセルで実際に消費する建設コストを決め、設置・撤去で財布と素材を更新する（ADR 0026）
+    /// Decides the construction cost actually consumed for a cell from the remaining-placement wallet, then updates wallet and materials on both placement and removal (ADR 0026)
     /// </summary>
     public static class RemainingPlacementChargeService
     {
