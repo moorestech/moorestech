@@ -72,7 +72,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             // ゴースト位置を算出し距離内か確認
             // Calculate ghost position and ensure it is within placeable distance
             if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, 0, BlockDirection.North, poleBlockMaster, out var placePos, out _)) return input;
-            if (PlaceableMaxDistance < Vector3.Distance(_mainCamera.transform.position, placePos)) return input;
+            if (PlaceableMaxDistance < Vector3.Distance(_mainCamera.transform.position, placePos))
+            {
+                input.GhostTooFar = true;
+                return input;
+            }
 
             input.HasGhost = true;
             // BlockId未設定だとプレビュー生成がBlockElement not foundで毎フレーム死ぬ（セル毎BlockId化への追従漏れ）
