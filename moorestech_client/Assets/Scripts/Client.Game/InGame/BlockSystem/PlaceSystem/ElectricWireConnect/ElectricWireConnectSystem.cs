@@ -38,7 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
         {
             _gameUnlockStateData = gameUnlockStateData;
 
-            var wirePreview = new ElectricWireExtendPreviewObject(mainCamera);
+            var wirePreview = new ElectricWireExtendPreviewObject();
             var requestSender = new ElectricWireExtendRequestSender(blockGameObjectDataStore);
             var poleSelection = new ElectricWirePoleSelection();
             var pointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
@@ -86,7 +86,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             // No origin: select, disconnect or isolated-place; with origin: connect or extend
             if (_sourceBlock == null)
             {
-                _sourceBlock = _editMode.Update();
+                _sourceBlock = _editMode.Update(feedback);
 
                 // 明示選択した起点は、応答待ちの孤立設置が後から返す終点に黙って上書きさせない
                 // （上書きされるとプレイヤーが選んだブロックではなく新設電柱から配線され、電線が実消費される）
@@ -107,7 +107,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             _context.RequestSender.Invalidate();
             _context.WirePreview.SetActive(false);
             _context.PreviewBlockController.SetActive(false);
-            _context.PoleGhostPart.SetNameLabelActive(false);
         }
     }
 }
