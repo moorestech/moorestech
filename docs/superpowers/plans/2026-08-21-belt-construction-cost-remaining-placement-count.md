@@ -93,7 +93,7 @@
 **Interfaces:**
 - Produces: 生成物 `BlockMasterElement.PlacementsPerCost : int`
 
-- [ ] **Step 1: スキーマ追加**
+- [x] **Step 1: スキーマ追加**
 
 `VanillaSchema/blocks.yml` の `requiredItems` ブロック（`- key: count / type: integer / default: 1` の直後、`- key: imagePath` の直前）に追加:
 
@@ -107,7 +107,7 @@
 
 `_CompileRequester.cs:8` の `dummyText` を新しいランダム文字列に変える（edit-schema スキル手順）。
 
-- [ ] **Step 2: 全 blocks.json を一括更新（スクリプト）**
+- [x] **Step 2: 全 blocks.json を一括更新（スクリプト）**
 
 ```bash
 cd "$(git rev-parse --show-toplevel)"  # 自worktreeのroot
@@ -153,7 +153,7 @@ EOF
 Expected 出力末尾: forUnitTest `3 blocks >1`、EditModeInPlaying `0`、SandBox `0`、alpha `12 blocks >1`。
 注意: 既存ファイルのインデント/改行末尾が変わっていないか `git diff --stat` で確認し、差分がフィールド追加のみであること。
 
-- [ ] **Step 3: 失敗するバリデータテストを書く**
+- [x] **Step 3: 失敗するバリデータテストを書く**
 
 `Tests/UnitTest/Game/BeltConveyorFamilyTest.cs` に追加（既存の `LoadBlocksJson`/`FindBlock` を使う）:
 
@@ -212,13 +212,13 @@ namespace Tests.UnitTest.Game
 }
 ```
 
-- [ ] **Step 4: コンパイルして生成物を確認 → テストが失敗することを確認**
+- [x] **Step 4: コンパイルして生成物を確認 → テストが失敗することを確認**
 
 Run: `uloop compile --project-path ./moorestech_client`（SourceGenerator再生成で `PlacementsPerCost` が生えること。エラー0）
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "BeltConveyorFamilyTest|BlockPlacementsPerCostValidationTest"`
 Expected: 新規3本 FAIL（文字列が含まれない）
 
-- [ ] **Step 5: バリデータ実装**
+- [x] **Step 5: バリデータ実装**
 
 `BlockMasterUtil.Validate` に `errorLogs += PlacementsPerCostValidation();` を `BlockRequiredItemsValidation()` の直後に追加し、ローカル関数を追加:
 
@@ -283,13 +283,13 @@ Expected: 新規3本 FAIL（文字列が含まれない）
 
 ファイルが200行を超える場合は `SameRequiredItems` を同ディレクトリの `ConstructionRequiredItemsEquality.cs`（static）へ出す。
 
-- [ ] **Step 6: コンパイル → テストが通ることを確認**
+- [x] **Step 6: コンパイル → テストが通ることを確認**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "BeltConveyorFamilyTest|BlockPlacementsPerCostValidationTest|PlaceBlockProtocolTest"`
 Expected: 全PASS（既存PlaceBlockProtocolTestもマスタロード成功で緑）
 
-- [ ] **Step 7: moorestech_master をコミットし、ピンを更新**
+- [x] **Step 7: moorestech_master をコミットし、ピンを更新**
 
 ```bash
 cd ../moorestech_master && git add server_v8/mods/moorestechAlphaMod_8/master/blocks.json && git commit -m "feat(master): blocks に placementsPerCost を追加しベルトを3/5にする（ADR 0026）" && git push && git rev-parse HEAD
@@ -305,7 +305,7 @@ EOF
 
 注意: masterブランチがpush保護ならブランチを切ってpushし、そのSHAをピンに書く（ピンSHAは必ずpush済みであること）。
 
-- [ ] **Step 8: コミット**
+- [x] **Step 8: コミット**
 
 ```bash
 git add VanillaSchema/blocks.yml moorestech_server/Assets/Scripts/Core.Master moorestech_server/Assets/Scripts/Tests.Module moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest mooresmaster/mooresmaster.SandBox/TestMod/blocks.json .moorestech-external-revisions.json moorestech_server/Assets/Scripts/Tests/UnitTest/Game
