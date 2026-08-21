@@ -78,7 +78,9 @@ test("削除モードをuGUI準拠の上下警告帯だけで表示する", asyn
   await expect(bands).toHaveCount(2);
   await expect(bands.first()).toHaveCSS("top", "0px");
   await expect(bands.last()).toHaveCSS("bottom", "0px");
-  await expect(bands.last()).toHaveAttribute("data-tutorial-anchor", "delete.hud");
+  // アンカーはトークン列なので and() でトークン一致を見る
+  // The anchor attribute is a token list, so match by token via and()
+  await expect(bands.last().and(page.locator('[data-tutorial-anchor~="delete.hud"]'))).toHaveCount(1);
   await expect(bands.last()).not.toHaveAttribute("aria-hidden");
   const expectedPattern = "repeating-linear-gradient(117deg, rgb(255, 187, 36) 0px, rgb(255, 187, 36) 32px, rgb(0, 0, 0) 32px, rgb(0, 0, 0) 64px)";
   for (const band of await bands.all()) {

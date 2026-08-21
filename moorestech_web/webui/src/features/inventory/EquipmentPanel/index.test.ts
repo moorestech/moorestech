@@ -56,6 +56,15 @@ function renderSlots() {
   return renderer.root.findAllByProps({ "data-mock": "item-slot" });
 }
 
+// アンカーはコンポーネント要素と実DOM要素の双方に載るため、実DOM要素側だけを数える
+// The anchor prop appears on both the component element and the host element, so count only the host elements
+function renderAnchors() {
+  const renderer = create(createElement(EquipmentPanel));
+  return renderer.root
+    .findAll((node) => typeof node.type === "string" && typeof node.props["data-tutorial-anchor"] === "string")
+    .map((node) => node.props["data-tutorial-anchor"] as string);
+}
+
 describe("EquipmentPanel のクリック受付", () => {
   beforeEach(() => {
     host.dispatchAction.mockReset();
@@ -82,6 +91,36 @@ describe("EquipmentPanel のクリック受付", () => {
     expect(slots[0].props.onRightDown).toBeUndefined();
     expect(slots[0].props.onDoubleClick).toBeUndefined();
     expect(host.dispatchAction).not.toHaveBeenCalled();
+  });
+
+  // 選択中の枠だけ選択アンカーを併せて名乗る
+  // Only the selected slot also declares the selection anchor
+  it("装備枠がアンカーを名乗り、選択中の枠には選択アンカーも付く", () => {
+    host.uiState = { state: "GameScreen" };
+    host.inventory = {
+      mainSlots: [slot(0, 0)],
+      grab: slot(0, 0),
+      equipment: [slot(0, 0), slot(0, 0)],
+      selectedEquipment: 1,
+      equipmentSelectionConfirmationRevision: 0,
+    };
+
+    expect(renderAnchors()).toEqual(["equipment.hud", "equipment.slot-0", "equipment.slot-1 equipment.selected-slot"]);
+  });
+
+  // 素手は「選択アンカーがどこにも無い」ことで表す。どこかの枠に付いたら素手と判別できなくなる
+  // Bare hands are expressed by the selection anchor existing nowhere; a slot claiming it would make bare hands indistinguishable
+  it("素手(-1)では選択アンカーがどの枠にも付かない", () => {
+    host.uiState = { state: "GameScreen" };
+    host.inventory = {
+      mainSlots: [slot(0, 0)],
+      grab: slot(0, 0),
+      equipment: [slot(0, 0), slot(0, 0)],
+      selectedEquipment: -1,
+      equipmentSelectionConfirmationRevision: 0,
+    };
+
+    expect(renderAnchors()).toEqual(["equipment.hud", "equipment.slot-0", "equipment.slot-1"]);
   });
 
   it("GameScreen 中も同様にクリックを受けない", () => {

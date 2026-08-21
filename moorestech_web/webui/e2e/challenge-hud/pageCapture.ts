@@ -45,7 +45,7 @@ async function waitForExpectedState(page: Page, captureCase: CaptureCase): Promi
     const research = document.querySelector('[data-testid="research-tree"]');
     const buildMenu = document.querySelector('[data-testid="build-menu-panel"]');
     const pauseMenu = document.querySelector('[data-testid="pause-menu"]');
-    const placement = document.querySelector('[data-tutorial-anchor="placement.hud"]');
+    const placement = document.querySelector('[data-tutorial-anchor~="placement.hud"]');
     const deletion = document.querySelector('[data-testid="delete-mode-warning"]');
     const backgroundSkit = document.querySelector('[data-testid="background-skit"]');
     const blockingSkit = document.querySelector('[data-testid="blocking-skit"]');

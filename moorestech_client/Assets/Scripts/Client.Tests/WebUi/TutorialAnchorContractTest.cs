@@ -48,12 +48,46 @@ namespace Client.Tests.WebUi
 
             var fixture = LoadFixture();
             var staticIds = fixture["staticIds"].Select(t => t.Value<string>()).ToHashSet();
-            var dynamicPrefixes = ((JObject)fixture["dynamicPrefixes"]).Properties().Select(p => p.Value.Value<string>()).ToArray();
+            var dynamicPrefixes = ((JObject)fixture["dynamicPrefixes"]).Properties()
+                .ToDictionary(p => p.Name, p => p.Value.Value<string>());
 
             foreach (var anchorId in anchorIds)
             {
-                var resolves = staticIds.Contains(anchorId) || dynamicPrefixes.Any(prefix => anchorId.StartsWith(prefix, StringComparison.Ordinal));
-                Assert.IsTrue(resolves, $"'{anchorId}' does not resolve to any Web-side static anchor ID or dynamic prefix");
+                // 解決セレクタが空白区切りトークン一致のため、空白入りIDはどの要素にも当たらない
+                // The resolver matches whitespace-separated tokens, so a whitespace-bearing ID can never hit an element
+                Assert.IsFalse(anchorId.Any(char.IsWhiteSpace), $"'{anchorId}' must not contain whitespace");
+
+                if (staticIds.Contains(anchorId)) continue;
+
+                var matched = dynamicPrefixes.FirstOrDefault(entry => anchorId.StartsWith(entry.Value, StringComparison.Ordinal));
+                Assert.IsNotNull(matched.Value, $"'{anchorId}' does not resolve to any Web-side static anchor ID or dynamic prefix");
+                AssertSuffix(matched.Key, anchorId.Substring(matched.Value.Length), anchorId);
+            }
+        }
+
+        // 動的prefixごとに接尾辞の種別（guid/整数/小文字自由語）を検査する。Web側生成関数の書式と揃える
+        // Check each dynamic prefix's suffix kind (guid / integer / lowercase free word) to match the Web-side generators
+        private static void AssertSuffix(string prefixKey, string suffix, string anchorId)
+        {
+            switch (prefixKey)
+            {
+                case "researchNode":
+                case "challengeNode":
+                case "inventoryItem":
+                    Assert.IsTrue(Guid.TryParseExact(suffix, "D", out _), $"'{anchorId}' must end with a guid");
+                    Assert.AreEqual(suffix.ToLowerInvariant(), suffix, $"'{anchorId}' must be lowercased");
+                    break;
+                case "recipeItem":
+                case "equipmentSlot":
+                    Assert.IsTrue(int.TryParse(suffix, out _), $"'{anchorId}' must end with an integer");
+                    break;
+                case "buildMenuEntry":
+                    Assert.IsTrue(suffix.Length > 0, $"'{anchorId}' must have a suffix");
+                    Assert.AreEqual(suffix.ToLowerInvariant(), suffix, $"'{anchorId}' must be lowercased");
+                    break;
+                default:
+                    Assert.Fail($"unknown dynamic prefix '{prefixKey}' has no suffix rule");
+                    break;
             }
         }
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { dispatchAction, Topics, useTopic, type TutorialPresentationData } from "@/bridge";
-import { TutorialAnchorRegistry, clipPathInset, type ClipRect, type ResolvedAnchor } from "@/shared/tutorialAnchor";
+import { dispatchAction, Topics, useItemMaster, useTopic, type TutorialPresentationData } from "@/bridge";
+import { TutorialAnchorRegistry, TutorialAnchorDynamicPrefixes, clipPathInset, type ClipRect, type ResolvedAnchor } from "@/shared/tutorialAnchor";
 import { readTutorialHighlightGlowPx } from "./highlightGlowToken";
 import styles from "./style.module.css";
 
@@ -11,6 +11,9 @@ type AckTarget = { tutorialSessionId: string; elementId: string };
 
 export function TutorialOverlay() {
   const presentation = useTopic(Topics.tutorialPresentation);
+  // 所持アンカーはguid→itemIdの解決にitem masterが要る。未ロード中の解決結果は所持有無を表さない
+  // Owned-item anchors need the item master to resolve guid to itemId, so a resolution taken before it loads says nothing about ownership
+  const itemMasterLoaded = useItemMaster() !== null;
   const registry = useRef<TutorialAnchorRegistry | null>(null);
   const lastAck = useRef<Record<string, string>>({});
   // ハイライト/ガイドを統合state化
@@ -58,6 +61,10 @@ export function TutorialOverlay() {
           return { ...current, [anchorId]: value };
         });
 
+        // item master未ロード中の所持アンカーは未確定であり、missingを「未所持」としてサーバへ流さない
+        // While the item master is unloaded an owned-item anchor is indeterminate, so its missing must not reach the server as "unowned"
+        if (!itemMasterLoaded && anchorId.startsWith(TutorialAnchorDynamicPrefixes.inventoryItem)) return;
+
         // ackはhighlightのみ送る。同一anchorを指す全highlightへ配る
         // Only highlights send an ack, and it fans out to every highlight pointing at that anchor
         const ackKey = `${value.status}:${value.reason}`;
@@ -72,7 +79,9 @@ export function TutorialOverlay() {
           });
         }
       })));
-  }, [presentation]);
+    // master到着で購読を張り直し、抑止していた所持アンカーのackを確定値で送り直す
+    // Re-subscribing when the master arrives resends the suppressed owned-item acks with settled values
+  }, [presentation, itemMasterLoaded]);
 
   if (!presentation) return null;
   return <div className={styles.overlay} data-testid="tutorial-overlay">
