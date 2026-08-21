@@ -18,8 +18,9 @@ namespace Client.Game.InGame.UI.Tooltip
         public void Hide();
         public void Show(LocalizationKey key);
         public void Show(LocalizationKey key, IReadOnlyList<string> textParams);
+        public void Show(IReadOnlyList<TooltipLine> lines);
     }
-    
+
     /// <summary>
     ///     マウスカーソルのそばにアイテム名やTips、その他文章を表示するシステム
     /// </summary>
@@ -28,20 +29,20 @@ namespace Client.Game.InGame.UI.Tooltip
         [SerializeField] private GameObject itemNameBar;
         [SerializeField] private TMP_Text itemName;
         [SerializeField] private CanvasGroup canvasGroup;
-        
-        
+
+
         public static MouseCursorTooltip Instance { get; private set; }
         private readonly ReactiveProperty<TooltipPresentation> _presentation =
             new(TooltipPresentation.Hidden);
 
         public IObservable<TooltipPresentation> OnPresentationChanged => _presentation;
         public TooltipPresentation GetPresentation() => _presentation.Value;
-        
+
         private void Awake()
         {
             Instance = this;
         }
-        
+
         public void Show(LocalizationKey key)
         {
             Show(key, Array.Empty<string>());
@@ -49,17 +50,24 @@ namespace Client.Game.InGame.UI.Tooltip
 
         public void Show(LocalizationKey key, IReadOnlyList<string> textParams)
         {
-            canvasGroup.alpha = WebUiScreenGate.IsWebUiMode ? 0 : 1;
-            itemName.text = InterpolateTextParams(Localize.Get(key), textParams);
-            _presentation.Value = new TooltipPresentation(true, key.Key, textParams);
+            Show(new[] { new TooltipLine(key, textParams) });
         }
-        
+
+        public void Show(IReadOnlyList<TooltipLine> lines)
+        {
+            canvasGroup.alpha = WebUiScreenGate.IsWebUiMode ? 0 : 1;
+            // uGUI側は行を改行で連結して描く（Web側は行ごとに辞書解決する）
+            // The uGUI side joins lines with newlines; the web side resolves each line separately
+            itemName.text = string.Join("\n", lines.Select(line => InterpolateTextParams(Localize.GetLegacy(line.TextKey), line.TextParams)));
+            _presentation.Value = new TooltipPresentation(true, lines);
+        }
+
         public void Hide()
         {
             canvasGroup.alpha = 0;
             _presentation.Value = TooltipPresentation.Hidden;
         }
-        
+
         // 辞書テンプレートの{p0}プレースホルダを埋める（Web側translatorと同じ規約）
         // Fill the {p0} placeholders of the dictionary template, matching the web translator convention
         private static string InterpolateTextParams(string template, IReadOnlyList<string> textParams)
@@ -69,7 +77,7 @@ namespace Client.Game.InGame.UI.Tooltip
             {
                 text = text.Replace($"{{p{index}}}", textParams[index]);
             }
-            
+
             return text;
         }
     }
@@ -80,23 +88,20 @@ namespace Client.Game.InGame.UI.Tooltip
     /// </summary>
     public readonly struct TooltipPresentation : IEquatable<TooltipPresentation>
     {
-        public static readonly TooltipPresentation Hidden =
-            new(false, "", Array.Empty<string>());
+        public static readonly TooltipPresentation Hidden = new(false, Array.Empty<TooltipLine>());
 
         public readonly bool Visible;
-        public readonly string TextKey;
-        public readonly IReadOnlyList<string> TextParams;
+        public readonly IReadOnlyList<TooltipLine> Lines;
 
-        public TooltipPresentation(bool visible, string textKey, IReadOnlyList<string> textParams)
+        public TooltipPresentation(bool visible, IReadOnlyList<TooltipLine> lines)
         {
             Visible = visible;
-            TextKey = textKey;
-            TextParams = textParams;
+            Lines = lines;
         }
 
         public bool Equals(TooltipPresentation other)
         {
-            return Visible == other.Visible && TextKey == other.TextKey && TextParams.SequenceEqual(other.TextParams);
+            return Visible == other.Visible && Lines.SequenceEqual(other.Lines);
         }
 
         public override bool Equals(object obj)
@@ -106,8 +111,8 @@ namespace Client.Game.InGame.UI.Tooltip
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(Visible, TextKey, TextParams.Count);
-            foreach (var textParam in TextParams) hash = HashCode.Combine(hash, textParam);
+            var hash = HashCode.Combine(Visible, Lines.Count);
+            foreach (var line in Lines) hash = HashCode.Combine(hash, line);
             return hash;
         }
     }

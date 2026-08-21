@@ -1,46 +1,47 @@
 using Client.Game.InGame.UI.Tooltip;
+using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UniRx;
 
 namespace Client.Tests.Tooltip
 {
-    /// <summary>
-    ///     提示内容が同じなら配列インスタンスが違っても変化通知が出ないことを固定する
-    ///     Pins that identical presentation content raises no change notification even with a fresh array instance
-    /// </summary>
     public class TooltipPresentationEqualityTest
     {
+        private static TooltipPresentation RequiredItems(string itemName)
+        {
+            return new TooltipPresentation(true, new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.RequiredItems, new[] { itemName }) });
+        }
+
         [Test]
         public void SameContentWithDifferentArrayInstancesComparesEqual()
         {
-            var first = new TooltipPresentation(true, "ui.tooltip.requiredItems", new[] { "Iron Pickaxe" });
-            var second = new TooltipPresentation(true, "ui.tooltip.requiredItems", new[] { "Iron Pickaxe" });
+            var first = RequiredItems("Iron Pickaxe");
+            var second = RequiredItems("Iron Pickaxe");
 
             Assert.AreEqual(first, second);
             Assert.AreEqual(first.GetHashCode(), second.GetHashCode());
         }
 
         [Test]
-        public void DifferentKeyOrParamsComparesUnequal()
+        public void DifferentKeyParamsLineCountOrVisibilityComparesUnequal()
         {
-            var baseline = new TooltipPresentation(true, "ui.tooltip.requiredItems", new[] { "Iron Pickaxe" });
+            var baseline = RequiredItems("Iron Pickaxe");
 
-            Assert.AreNotEqual(baseline, new TooltipPresentation(true, "ui.tooltip.holdToGet", new[] { "Iron Pickaxe" }));
-            Assert.AreNotEqual(baseline, new TooltipPresentation(true, "ui.tooltip.requiredItems", new[] { "Stone Pickaxe" }));
-            Assert.AreNotEqual(baseline, new TooltipPresentation(false, "ui.tooltip.requiredItems", new[] { "Iron Pickaxe" }));
+            Assert.AreNotEqual(baseline, new TooltipPresentation(true, new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.HoldToGet, new[] { "Iron Pickaxe" }) }));
+            Assert.AreNotEqual(baseline, RequiredItems("Stone Pickaxe"));
+            Assert.AreNotEqual(baseline, new TooltipPresentation(false, baseline.Lines));
+            Assert.AreNotEqual(baseline, new TooltipPresentation(true, new[] { baseline.Lines[0], new TooltipLine(LocalizationKeys.Ui.Tooltip.HoldToGet) }));
         }
 
         [Test]
         public void RepeatedIdenticalPresentationPublishesOnce()
         {
-            // ツール不足ブロック注視中は毎フレーム同内容が入るため、購読時の現在値1件＋実変化1件で止まる
-            // Staring at a tool-gated block pushes the same content every frame, so it stops at the initial value plus one real change
             var presentation = new ReactiveProperty<TooltipPresentation>(TooltipPresentation.Hidden);
             var publishCount = 0;
             presentation.Subscribe(_ => publishCount++);
 
-            presentation.Value = new TooltipPresentation(true, "ui.tooltip.requiredItems", new[] { "Iron Pickaxe" });
-            presentation.Value = new TooltipPresentation(true, "ui.tooltip.requiredItems", new[] { "Iron Pickaxe" });
+            presentation.Value = RequiredItems("Iron Pickaxe");
+            presentation.Value = RequiredItems("Iron Pickaxe");
 
             Assert.AreEqual(2, publishCount);
         }
