@@ -969,7 +969,7 @@ git commit -m "feat(server): 残り設置数のイベントパケットとhandsh
   - `static (ItemId itemId, int count)[] RemainingPlacementChargeService.ResolveCostToConsume(BlockMasterElement blockMaster, int playerId, IRemainingPlacementCountLookup lookup)` — 財布で賄えるなら空配列
   - `static void RemainingPlacementChargeService.Charge(BlockMasterElement blockMaster, int playerId, IRemainingPlacementCountMutation mutation, IReadOnlyList<(ItemId itemId, int count)> costToConsume, IOpenableInventory inventory)` — 素材消費＋財布更新
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 新規 `Tests/CombinedTest/Server/PacketTest/PlaceBlockRemainingPlacementTest.cs`:
 
@@ -1075,11 +1075,11 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 注: `UnlockBlock` はファミリー直線を解放する（上り下りは直線のunlock状態で判定される）。`ForUnitTestModBlockId.GearBeltConveyor` が `initialUnlocked` ならUnlockは冪等で問題ない。
 
-- [ ] **Step 2: 実行して失敗を確認**
+- [x] **Step 2: 実行して失敗を確認**
 
 Run: `uloop compile --project-path ./moorestech_client` → PASS、Run tests → `一本ずつ3回置いても…` が素材消費3セットでFAIL
 
-- [ ] **Step 3: サービス実装**
+- [x] **Step 3: サービス実装**
 
 `Server.Protocol/PacketResponse/Util/Construction/RemainingPlacementChargeService.cs`:
 
@@ -1140,13 +1140,13 @@ namespace Server.Protocol.PacketResponse.Util.Construction
 （`costItemCounts` は従来どおり電線自動接続の予約に渡る。財布で賄うセルは空配列なので予約なし）
 - `ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);` を `RemainingPlacementChargeService.Charge(blockMaster, data.PlayerId, _remainingPlacementCountMutation, costItemCounts, inventory);` に置換。
 
-- [ ] **Step 4: コンパイル → テスト**
+- [x] **Step 4: コンパイル → テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlaceBlockRemainingPlacementTest|PlaceBlockProtocolTest|ElectricWireAutoConnectPlaceTest"`
 Expected: 全PASS（既存テストは placementsPerCost=1 のブロックなので挙動不変）
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Server.Protocol moorestech_server/Assets/Scripts/Tests
