@@ -78,6 +78,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             var placeableFlags = placements.Select(IsPlaceable).ToList();
             _previewController.UpdatePreview(placements, placeableFlags);
 
+            // 全セルが既存ブロックと重なるときだけ理由を出す（部分重複は除外送信の既存挙動のまま）
+            // Report the reason only when every cell overlaps an existing block (partial overlap keeps the existing filtered send)
+            BlueprintPasteOverlapReasonReporter.Report(placeableFlags, feedback);
+
             // 左クリックで設置可能セルのみ送信
             // Left click sends placeable cells only; server allows partial success
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp && !UiPointerHitTest.IsPointerOverAnyUi()) SendPlace(placements, placeableFlags);
