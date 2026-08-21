@@ -1167,7 +1167,7 @@ git commit -m "feat(server): 設置時に残り設置数の財布で建設コス
   - `static bool RemainingPlacementChargeService.WouldCondenseOnReturn(BlockMasterElement blockMaster, int playerId, IRemainingPlacementCountLookup lookup)` — 撤去すると1セット返却になるか（N==1は常にtrue）
   - `static void RemainingPlacementChargeService.ReturnOne(BlockMasterElement blockMaster, int playerId, IRemainingPlacementCountMutation mutation)` — N>1のときだけ財布+1（凝縮時は0へ）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `Tests/CombinedTest/Server/PacketTest/RemoveBlockRemainingPlacementTest.cs`:
 
@@ -1271,11 +1271,11 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 注: `RemoveBlockProtocolMessagePack` のctorシグネチャは `RemoveBlockProtocolTest.cs` の `RemoveBlock(new Vector3Int(0, 0), PlayerId)` ヘルパ（同ファイル末尾）に倣い、実際の引数順を確認して合わせる。
 
-- [ ] **Step 2: 失敗確認**
+- [x] **Step 2: 失敗確認**
 
 Run tests → `三本置いて三本壊すと…` が1本目で全額返却されFAIL
 
-- [ ] **Step 3: 実装**
+- [x] **Step 3: 実装**
 
 `RemainingPlacementChargeService.cs` に追加:
 
@@ -1322,13 +1322,13 @@ Run tests → `三本置いて三本壊すと…` が1本目で全額返却さ�
 
 `RemoveBlockProtocol.cs` が200行を超える場合は `GetRefundItems` を `Util/Construction/BlockRefundItemsCollector.cs`（static）へ切り出す。
 
-- [ ] **Step 4: コンパイル → テスト**
+- [x] **Step 4: コンパイル → テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "RemoveBlockRemainingPlacementTest|RemoveBlockProtocolTest|PlaceBlockRemainingPlacementTest"`
 Expected: 全PASS
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Server.Protocol moorestech_server/Assets/Scripts/Tests
