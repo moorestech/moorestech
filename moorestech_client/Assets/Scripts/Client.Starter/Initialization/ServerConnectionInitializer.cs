@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Client.Game.Common;
 using Client.Network;
 using Client.Network.API;
 using Client.Network.Settings;
@@ -8,6 +9,7 @@ using Cysharp.Threading.Tasks;
 using Server.Boot;
 using Server.Boot.Args;
 using TMPro;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Starter.Initialization
@@ -22,10 +24,6 @@ namespace Client.Starter.Initialization
         private readonly TMP_Text _loadingLog;
         private readonly System.Diagnostics.Stopwatch _loadingStopwatch;
         private readonly PlayerConnectionSetting _playerConnectionSetting;
-
-        // 起動した内蔵サーバー。リモート接続では起動しないためnullのまま
-        // The embedded server that was started; stays null for remote connections
-        public ServerStarter EmbeddedServer { get; private set; }
 
         public ServerConnectionInitializer(InitializeProprieties proprieties, TMP_Text loadingLog, System.Diagnostics.Stopwatch loadingStopwatch, PlayerConnectionSetting playerConnectionSetting)
         {
@@ -56,7 +54,7 @@ namespace Client.Starter.Initialization
 
             _loadingLog.text += $"\n初期データ取得完了  {_loadingStopwatch.Elapsed}";
 
-            return new ServerConnectionResult { VanillaApi = vanillaApi, HandshakeResponse = handshakeResponse, EmbeddedServer = EmbeddedServer };
+            return new ServerConnectionResult { VanillaApi = vanillaApi, HandshakeResponse = handshakeResponse };
 
             #region Internal
 
@@ -68,15 +66,23 @@ namespace Client.Starter.Initialization
                 // Remote uses only the explicit destination and never falls back to the embedded server (ADR 0013)
                 if (_proprieties.IsRemoteConnection)
                 {
-                    var serverProperties = new ConnectionServerProperties(_proprieties.ServerIp, _proprieties.RemoteServerPort);
-                    return await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
+                    var serverProperties = new ConnectionServerProperties(_proprieties.ServerIp, _proprieties.RemoteServerPort.Value);
+
+                    // タイムアウト時に接続タスクとソケットを道連れに畳む
+                    // Fold the connection task and its socket together on timeout
+                    using var remoteConnectWait = new CancellationTokenSource();
+                    return await ServerCommunicator.CreateConnectedInstance(serverProperties, remoteConnectWait.Token)
+                        .Timeout(timeOut, taskCancellationTokenSource: remoteConnectWait);
                 }
 
                 // ローカルは試行せず内蔵サーバー起動
                 // Local boots the embedded server without probing
                 var serverInstanceGameObject = new GameObject("ServerInstance");
                 var serverStarter = serverInstanceGameObject.AddComponent<ServerStarter>();
-                EmbeddedServer = serverStarter;
+
+                // 生成した内蔵サーバーは自分で終了イベントを購読して自壊する。所有ハンドルを外へ配らない
+                // The embedded server subscribes to shutdown and folds itself, so no ownership handle leaves this scope
+                GameShutdownEvent.OnGameShutdown.Subscribe(_ => serverStarter.ShutdownAsync().Forget()).AddTo(serverInstanceGameObject);
 
                 // 0でOS自動割り当てさせる
                 // 0 means OS auto-assigns the port
@@ -92,7 +98,11 @@ namespace Client.Starter.Initialization
                     .Timeout(TimeSpan.FromSeconds(60), taskCancellationTokenSource: boundPortWait);
                 var localServerProperties = new ConnectionServerProperties(_proprieties.ServerIp, serverStarter.BoundPort);
 
-                return await ServerCommunicator.CreateConnectedInstance(localServerProperties).Timeout(timeOut);
+                // ローカル接続も同じくタイムアウトでタスクとソケットを残さない
+                // The local connection likewise leaves no task or socket behind on timeout
+                using var localConnectWait = new CancellationTokenSource();
+                return await ServerCommunicator.CreateConnectedInstance(localServerProperties, localConnectWait.Token)
+                    .Timeout(timeOut, taskCancellationTokenSource: localConnectWait);
             }
 
             #endregion
@@ -107,9 +117,5 @@ namespace Client.Starter.Initialization
     {
         public VanillaApi VanillaApi;
         public InitialHandshakeResponse HandshakeResponse;
-
-        // 内蔵サーバー。リモート接続時はnullで、破棄責務は受け取った上位が持つ
-        // The embedded server; null for remote connections, and the receiving upper layer owns its destruction
-        public ServerStarter EmbeddedServer;
     }
 }

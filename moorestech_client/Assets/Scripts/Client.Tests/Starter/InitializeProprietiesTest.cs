@@ -18,7 +18,7 @@ namespace Client.Tests.Starter
 
             // ローカルは宛先ポートを持たない。11564等の固定値へ戻す退行を落とす
             // Local carries no destination port; a regression back to a fixed value such as 11564 fails here
-            Assert.That(proprieties.RemoteServerPort, Is.EqualTo(0));
+            Assert.That(proprieties.RemoteServerPort, Is.Null);
 
             // 未指定時の既定プレイヤーはInitializeProprietiesが解決する
             // InitializeProprieties resolves the default player when unspecified

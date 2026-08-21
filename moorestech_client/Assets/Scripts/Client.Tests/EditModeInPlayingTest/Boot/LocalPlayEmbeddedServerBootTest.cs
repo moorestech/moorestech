@@ -2,6 +2,7 @@ using System.Collections;
 using System.Net;
 using System.Net.Sockets;
 using Client.Common;
+using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Starter;
 using Cysharp.Threading.Tasks;
@@ -28,9 +29,17 @@ namespace Client.Tests.EditModeInPlayingTest
         // The pre-inversion local default port; any connection here means the probe came back
         private const int LegacyDefaultServerPort = 11564;
 
+        // 内蔵サーバーの破棄を待つ上限フレーム数
+        // Frame budget for waiting on the embedded server teardown
+        private const int ShutdownWaitFrameLimit = 600;
+
         [UnityTest]
-        public IEnumerator LocalBoot_NeverProbesLegacyPort_AndStartsEmbeddedServer()
+        public IEnumerator LocalBoot_NeverProbesLegacyPort_AndShutdownFoldsEmbeddedServer()
         {
+            // 占有判定はPlayMode突入前に済ませる。PlayMode中のIgnoreはExitPlayModeへ到達できずEditorを固着させる
+            // Decide occupancy before entering PlayMode; an Ignore inside PlayMode never reaches ExitPlayMode and sticks the Editor
+            if (IsLegacyPortOccupied()) Assert.Ignore($"{LegacyDefaultServerPort} が他プロセスに使用中のため検証をスキップ");
+
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode　は必ず[UnityTest]関数の直下で呼び出すこと。そうでないとなぜかわからないがプレイモードに入らない
@@ -55,8 +64,8 @@ namespace Client.Tests.EditModeInPlayingTest
             {
                 // 旧既定ポートに別サーバーが居座る状況を作る。acceptしないので接続要求は保留のまま残る
                 // Simulate a foreign server squatting on the legacy port; requests stay pending because nothing accepts them
-                var legacyPortListener = StartLegacyPortListener();
-                if (legacyPortListener == null) Assert.Ignore($"{LegacyDefaultServerPort} が他プロセスに使用中のため検証をスキップ");
+                var legacyPortListener = new TcpListener(IPAddress.Loopback, LegacyDefaultServerPort);
+                legacyPortListener.Start();
 
                 // 失敗しても待ち受けを必ず畳む。開きっぱなしだと後続の全ローカル起動を汚染する
                 // Always tear the listener down; leaving it open would poison every later local boot
@@ -67,12 +76,24 @@ namespace Client.Tests.EditModeInPlayingTest
                     // 内蔵サーバーが起動し、その実ポートで世界が立ち上がっている
                     // The embedded server started and the world came up on its actual port
                     Assert.IsNotNull(ClientContext.VanillaApi, "ワールドが起動していない");
-                    Assert.IsNotNull(ClientContext.EmbeddedServer, "内蔵サーバーが起動していない");
-                    Assert.AreNotEqual(LegacyDefaultServerPort, ClientContext.EmbeddedServer.BoundPort);
+                    var embeddedServer = Object.FindFirstObjectByType<ServerStarter>();
+                    Assert.IsNotNull(embeddedServer, "内蔵サーバーが起動していない");
+                    Assert.AreNotEqual(LegacyDefaultServerPort, embeddedServer.BoundPort);
 
                     // 誰も11564へ接続していない＝接続試行フォールバックが無い
                     // Nobody connected to 11564, which is the absence of the probe-and-fallback path
                     Assert.IsFalse(legacyPortListener.Pending(), "ローカル起動が11564へ接続を試みた");
+
+                    // 終了通知1本で内蔵サーバーが畳まれる。破棄経路を消すとここが赤くなる
+                    // A single shutdown notification folds the embedded server; deleting the teardown path turns this red
+                    GameShutdownEvent.FireGameShutdown();
+                    var foldedEmbeddedServer = false;
+                    for (var frame = 0; frame < ShutdownWaitFrameLimit && !foldedEmbeddedServer; frame++)
+                    {
+                        foldedEmbeddedServer = Object.FindFirstObjectByType<ServerStarter>() == null;
+                        await UniTask.Yield();
+                    }
+                    Assert.IsTrue(foldedEmbeddedServer, "終了通知後も内蔵サーバーが残っている");
                 }
                 finally
                 {
@@ -80,20 +101,21 @@ namespace Client.Tests.EditModeInPlayingTest
                 }
             }
 
-            // 待ち受け開始はソケット境界。開発機の実サーバーが握っていると必ず失敗するのでnullで占有を伝える
-            // Starting the listener is a socket boundary; a real server on a dev machine always fails it, so null reports occupancy
-            TcpListener StartLegacyPortListener()
+            // 待ち受け開始はソケット境界。開発機の実サーバーが握っているかを他プロセス占有だけで判定する
+            // Starting the listener is a socket boundary; only an in-use address counts as occupancy by another process
+            bool IsLegacyPortOccupied()
             {
-                var listener = new TcpListener(IPAddress.Loopback, LegacyDefaultServerPort);
+                var occupancyProbe = new TcpListener(IPAddress.Loopback, LegacyDefaultServerPort);
                 try
                 {
-                    listener.Start();
+                    occupancyProbe.Start();
                 }
-                catch (SocketException)
+                catch (SocketException e) when (e.SocketErrorCode == SocketError.AddressAlreadyInUse)
                 {
-                    return null;
+                    return true;
                 }
-                return listener;
+                occupancyProbe.Stop();
+                return false;
             }
 
             #endregion

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using Client.Common;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Modal;
@@ -15,7 +16,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using Debug = UnityEngine.Debug;
 
 namespace Client.Starter
@@ -30,30 +30,12 @@ namespace Client.Starter
         [SerializeField] private BlockGameObject missingBlockIdObject;
 
         [SerializeField] private TMP_Text loadingLog;
-        [SerializeField] private Button backToMainMenuButton;
 
         private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer(null);
-
-        // 起動中の内蔵サーバーを中断ボタンから落とすために保持する
-        // Held so the abort button can take the booting embedded server down
-        private ServerConnectionInitializer _serverInitializer;
 
         public void SetProperty(InitializeProprieties proprieties)
         {
             _proprieties = proprieties;
-        }
-
-        private void Awake()
-        {
-            backToMainMenuButton.onClick.AddListener(BackToMainMenuFromLoading);
-        }
-
-        // ロード中の中断もメインメニュー復帰なので内蔵サーバーを道連れにする
-        // Aborting mid-load also returns to the main menu, so it takes the embedded server down too
-        private void BackToMainMenuFromLoading()
-        {
-            if (_serverInitializer != null && _serverInitializer.EmbeddedServer != null) Destroy(_serverInitializer.EmbeddedServer.gameObject);
-            SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
         }
 
         private void Start()
@@ -63,6 +45,10 @@ namespace Client.Starter
 
         private async UniTask Initialize()
         {
+            // 新しい起動シーケンスの開始。前回セッションの終了ガードをここで戻す
+            // A new boot sequence begins; clear the previous session's shutdown guard here
+            GameShutdownEvent.ResetForNewSession();
+
             // ---- Web UI サーバーの起動（最序盤）----
             // GameShutdownEvent の購読は WebUiHost 側で 1 度だけ張られる
             // ---- Web UI server bootstrap (earliest phase) ----
@@ -130,7 +116,6 @@ namespace Client.Starter
             // サーバー接続とアセットロードを並列実行し結果を受け取る
             // Run server connection and asset load in parallel and collect results
             var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingLog, loadingStopwatch, playerConnectionSetting);
-            _serverInitializer = serverInitializer;
             var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, trainCarIconTargets, loadingLog, loadingStopwatch);
 
             ServerConnectionResult serverResult;
@@ -148,9 +133,9 @@ namespace Client.Starter
                 // Log the failure, surface it in the UI, and return to the main menu after the message is readable
                 Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
 
-                // 起動済みの内蔵サーバーを道連れに破棄する。残すと同一セーブへ書く権威が二重になる
-                // Destroy the embedded server that already started; leaving it doubles the authority writing the same save
-                if (serverInitializer.EmbeddedServer != null) Destroy(serverInitializer.EmbeddedServer.gameObject);
+                // 起動済みの内蔵サーバーを道連れに畳む。残すと同一セーブへ書く権威が二重になる
+                // Fold the embedded server that already started; leaving it doubles the authority writing the same save
+                GameShutdownEvent.FireGameShutdown();
 
                 loadingLog.text += "\n初期化に失敗しました。メインメニューに戻ります。";
                 await UniTask.Delay(2000);
@@ -161,7 +146,7 @@ namespace Client.Starter
             // 取得結果から通信フォーマッタと静的コンテキストを初期化する
             // Initialize the message formatter and static context from the collected results
             MessagePackInitializer.Initialize();
-            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi, modalManager, serverResult.EmbeddedServer);
+            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi, modalManager);
 
             // シーンロードは全アセットロード完了後に直列実行する
             // Load the scene serially, after every asset load has finished
@@ -194,7 +179,7 @@ namespace Client.Starter
 
                     // メインメニューへ戻る経路はすべて内蔵サーバーを道連れにする
                     // Every path back to the main menu takes the embedded server down with it
-                    if (serverResult.EmbeddedServer != null) Destroy(serverResult.EmbeddedServer.gameObject);
+                    GameShutdownEvent.FireGameShutdown();
 
                     SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 });

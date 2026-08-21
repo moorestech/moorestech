@@ -12,14 +12,14 @@ namespace Client.Starter
         public readonly bool IsRemoteConnection;
         public readonly string ServerIp;
 
-        // リモート接続専用の宛先ポート。ローカルは内蔵サーバーの実バインドポートを使う
-        // Destination port for remote connections only; local uses the embedded server's actual bound port
-        public readonly int RemoteServerPort;
+        // リモート接続専用の宛先ポート。ローカルは宛先を持たないためnull
+        // Destination port for remote connections only; null for local, which has no destination
+        public readonly int? RemoteServerPort;
         public readonly int PlayerId;
 
         public string[] CreateLocalServerArgs { get; set; } = Array.Empty<string>();
 
-        private InitializeProprieties(bool isRemoteConnection, string serverIp, int remoteServerPort, int playerId)
+        private InitializeProprieties(bool isRemoteConnection, string serverIp, int? remoteServerPort, int playerId)
         {
             IsRemoteConnection = isRemoteConnection;
             ServerIp = serverIp;
@@ -31,7 +31,7 @@ namespace Client.Starter
         // Local play always boots the embedded server without probing (ADR 0013)
         public static InitializeProprieties CreateLocalServer(int? playerId)
         {
-            return new InitializeProprieties(false, ServerConst.LocalServerIp, 0, playerId ?? DefaultPlayerId);
+            return new InitializeProprieties(false, ServerConst.LocalServerIp, null, playerId ?? DefaultPlayerId);
         }
 
         // 明示IP:ポート指定のみ。フォールバック無し
