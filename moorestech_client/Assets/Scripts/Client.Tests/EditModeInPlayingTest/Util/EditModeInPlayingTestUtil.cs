@@ -75,7 +75,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
                 SceneManager.sceneLoaded -= SetInitializeProperty;
                 
                 // 既存のセーブデータをロードさせず、オートセーブもしないようにする
-                var defaultProperties = InitializeProprieties.CreateDefault();
+                var localProperties = InitializeProprieties.CreateLocalServer(null);
                 var properties = new StartServerSettings
                 {
                     WorldDirectory = worldDirectory,
@@ -83,10 +83,10 @@ namespace Client.Tests.EditModeInPlayingTest.Util
                     ServerDataDirectory = serverDirectory,
                     MapMode = mapMode,
                 };
-                defaultProperties.CreateLocalServerArgs = CliConvert.Serialize(properties);
-                
+                localProperties.CreateLocalServerArgs = CliConvert.Serialize(properties);
+
                 var starter = GameObject.FindObjectOfType<InitializeScenePipeline>();
-                starter.SetProperty(defaultProperties);
+                starter.SetProperty(localProperties);
             }
             
             async UniTask WaitStartServer()
