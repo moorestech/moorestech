@@ -45,9 +45,9 @@ namespace Game.Construction
         public bool ReturnOne(int playerId, BlockId walletBlockId, int placementsPerCost)
         {
             var returned = GetRemainingCount(playerId, walletBlockId) + 1;
-            // 設置数/1セットを超えた分は素材へ凝縮されるので財布からは消える（＝1セット分は財布へ残る）
-            // Exceeding one set's worth condenses into materials, so it leaves the wallet (a full set may sit in the wallet)
-            var condensed = placementsPerCost < returned;
+            // 設置数/1セットに達した分は素材へ凝縮されるので財布からは消える
+            // Reaching one set's worth condenses into materials, so it leaves the wallet
+            var condensed = placementsPerCost <= returned;
             Set(playerId, walletBlockId, condensed ? 0 : returned);
             return condensed;
         }

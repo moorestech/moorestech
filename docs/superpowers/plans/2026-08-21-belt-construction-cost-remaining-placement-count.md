@@ -392,11 +392,15 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(store.TryConsumeOne(PlayerId, wallet));
             Assert.AreEqual(2, store.GetRemainingCount(PlayerId, wallet));
 
-            // 返却は+1、Nに達したら0へ戻りtrue（凝縮返却の合図）
-            // Return adds one; reaching N resets to zero and returns true (signal to refund one set)
-            Assert.IsFalse(store.ReturnOne(PlayerId, wallet, 3));
+            // 返却は+1、Nに達したら0へ戻りtrue（凝縮返却の合図。設置と撤去が完全な逆操作になる閾値）
+            // Return adds one; reaching N resets to zero and returns true (refund signal; the threshold that makes removal the exact inverse of placement)
             Assert.IsTrue(store.ReturnOne(PlayerId, wallet, 3));
             Assert.AreEqual(0, store.GetRemainingCount(PlayerId, wallet));
+
+            // Nに達していなければ加算するだけでfalse
+            // Below N it simply accumulates and returns false
+            Assert.IsFalse(store.ReturnOne(PlayerId, wallet, 3));
+            Assert.AreEqual(1, store.GetRemainingCount(PlayerId, wallet));
             Assert.AreEqual(4, changes);
         }
 
@@ -1783,3 +1787,4 @@ unity-playmode-recorded-playtest スキルのDSLで: 歯車ベルト（青銅シ
   - `CalculateAffordableEntityCount` はファミリー内コスト一致の検証導入により不要となるため削除。出所: agent前提
   - webui DTO の2フィールドは全kind共通（非ブロックは 1/0）。zodの `.strict()` とC#単一DTOの整合のため。出所: agent前提
   - 旧セーブに `remainingPlacementCounts` が無い場合は空で起動（`?? new` は `hotbarAssignments` と同じ既存パターン）。移行スクリプトは書かない。出所: agent前提（AGENTS.md 後方互換不要）
+  - `ReturnOne` の凝縮閾値は N 到達（`<=`）。計画のサンプルテストが N+1 到達（`<`）を期待していたのは誤り。出所: ユーザー裁定 2026-08-21

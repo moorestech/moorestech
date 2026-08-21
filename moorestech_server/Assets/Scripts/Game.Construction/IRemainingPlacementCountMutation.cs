@@ -14,8 +14,8 @@ namespace Game.Construction
         // Refills one set's worth of placements after one construction-cost set was consumed
         void Refill(int playerId, BlockId walletBlockId, int placementsPerCost);
 
-        // 撤去で1戻す。設置数/1セットを超えたら0へ戻しtrue（呼び手が1セット返却する）
-        // Returns one on removal; exceeding placementsPerCost resets to zero and returns true (caller refunds one set)
+        // 撤去で1戻す。設置数/1セットに達したら0へ戻しtrue（呼び手が1セット返却する）
+        // Returns one on removal; reaching placementsPerCost resets to zero and returns true (caller refunds one set)
         bool ReturnOne(int playerId, BlockId walletBlockId, int placementsPerCost);
     }
 }
