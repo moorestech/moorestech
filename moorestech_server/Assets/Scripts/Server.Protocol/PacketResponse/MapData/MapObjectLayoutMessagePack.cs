@@ -26,10 +26,8 @@ namespace Server.Protocol.PacketResponse.MapData
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public MapObjectLayoutMessagePack() { }
 
-        // 引数順はKey昇順(X,Y,Z→Scale→Rotation)に揃える。MessagePackの生成コンストラクタ解決が
-        // 引数順とKey順の一致に依存しており、ずれると値が別フィールドへ取り違えられる
-        // Argument order mirrors ascending Key order (X,Y,Z -> Scale -> Rotation); MessagePack's generated
-        // constructor resolution relies on that alignment, and drifting from it swaps values across fields
+        // 引数順はKey昇順(X,Y,Z→Scale→Rotation)に揃えてある。読み違いを防ぐための整列
+        // Argument order mirrors ascending Key order (X,Y,Z -> Scale -> Rotation), kept aligned to avoid misreading
         public MapObjectLayoutMessagePack(
             int instanceId, string mapObjectGuid, float x, float y, float z,
             float scaleX, float scaleY, float scaleZ,
