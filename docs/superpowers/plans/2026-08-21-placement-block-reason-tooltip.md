@@ -91,7 +91,7 @@
 **Interfaces:**
 - Produces: C#側 `Mooresmaster.Localization.Generated.LocalizationKeys.Ui.Tooltip.{PlaceBlockedByTerrain, PlaceBlockedByExistingBlock, PlaceTooFar, PlaceMaterialShortage, PlaceWireCost, PlaceWireOutOfRangeNotice, PlaceWireNoWireItem, PlaceWireOutOfRange, PlaceWireAlreadyConnected, PlaceWireConnectionLimit, PlaceWireInvalidTarget, PlaceWireFailed, PlaceGearChainTooFar, PlaceGearChainAlreadyConnected, PlaceGearChainConnectionLimit, PlaceGearChainNoItem, PlaceGearChainFailed, PlaceRailLengthExceeded, PlaceRailNotEnoughRailItem, PlaceRailCurveTooTight, PlaceRailFailed, PlaceTrainCarNoRoute, PlaceTrainCarOverlapsTrain}`（各 `LocalizationKey`）。Web側 `L.ui.tooltip.placeXxx`。
 
-- [ ] **Step 1: csv に23行を追記する**
+- [x] **Step 1: csv に23行を追記する**
 
 `Localization/localization.csv` の末尾（現在の最終行 `ui.delete.unknownError,...` の後）に以下を追記（ヘッダ `key,Source,english,japanese`、Source=english と同文）:
 
@@ -121,21 +121,21 @@ ui.tooltip.placeTrainCarNoRoute,No rail for the train length,No rail for the tra
 ui.tooltip.placeTrainCarOverlapsTrain,Overlaps an existing train,Overlaps an existing train,既存の列車と重なります
 ```
 
-- [ ] **Step 2: `_CompileRequester.cs` の `dummyText` を変更して再コンパイルを誘発する**
+- [x] **Step 2: `_CompileRequester.cs` の `dummyText` を変更して再コンパイルを誘発する**
 
 `moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs` を開き、`dummyText` 定数の値を別の文字列（例: 現在値の末尾に `_placeTooltip` を付ける）へ変える。
 
-- [ ] **Step 3: Web側キー定数を再生成し鮮度テストを通す**
+- [x] **Step 3: Web側キー定数を再生成し鮮度テストを通す**
 
 Run: `cd moorestech_web/webui && pnpm gen:i18n && pnpm test -- src/shared/i18n/localizationKeysFreshness.test.ts`
 Expected: PASS。`git diff src/shared/i18n/generated/localizationKeys.ts` に `placeBlockedByTerrain` 等23キーが増えている。
 
-- [ ] **Step 4: Unity コンパイルでキーが生成されることを確認する**
+- [x] **Step 4: Unity コンパイルでキーが生成されることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0。（`LocalizationKeys.Ui.Tooltip.PlaceTooFar` 等が後続タスクで参照可能になる）
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add Localization/localization.csv moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts
@@ -170,7 +170,7 @@ git commit -m "feat(i18n): 設置不可理由・設置案内のツールチッ�
   }
   ```
 
-- [ ] **Step 1: 失敗するテストを書く（同値比較を lines 形に更新）**
+- [x] **Step 1: 失敗するテストを書く（同値比較を lines 形に更新）**
 
 `Client.Tests/Tooltip/TooltipPresentationEqualityTest.cs` の本文を以下に置き換える（using は既存のまま＋`using Client.Game.InGame.UI.Tooltip;` `using Mooresmaster.Localization.Generated;` `using UniRx;` `using NUnit.Framework;`）:
 
@@ -221,12 +221,12 @@ namespace Client.Tests.Tooltip
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `TooltipLine` 未定義 / `TooltipPresentation` のコンストラクタ不一致のコンパイルエラー。
 
-- [ ] **Step 3: `TooltipLine.cs` を新規作成する**
+- [x] **Step 3: `TooltipLine.cs` を新規作成する**
 
 ```csharp
 using System;
@@ -275,7 +275,7 @@ namespace Client.Game.InGame.UI.Tooltip
 }
 ```
 
-- [ ] **Step 4: `MouseCursorTooltip.cs` を lines 化する**
+- [x] **Step 4: `MouseCursorTooltip.cs` を lines 化する**
 
 `IMouseCursorTooltip` に `public void Show(IReadOnlyList<TooltipLine> lines);` を追加。クラス本体の `Show`/`Hide`/`InterpolateTextParams` と `TooltipPresentation` を以下に置き換える（ファイル先頭のuGUI廃止コメント・using・`Instance`・`_presentation`・`OnPresentationChanged`・`GetPresentation`・`Awake` はそのまま）:
 
@@ -358,18 +358,18 @@ namespace Client.Game.InGame.UI.Tooltip
 
 注: `Localize.GetLegacy(string rawKey)` は `Client.Localization/Localize.cs:49` に既存。`TooltipLine.TextKey` は string なので legacy 解決を使う。
 
-- [ ] **Step 5: `MiningFocusStateTest.cs` の `TextKey` 参照を更新する**
+- [x] **Step 5: `MiningFocusStateTest.cs` の `TextKey` 参照を更新する**
 
 `MouseCursorTooltip.Instance.GetPresentation().TextKey` の3箇所（行90・100・110付近）を `MouseCursorTooltip.Instance.GetPresentation().Lines[0].TextKey` に置換する。
 
-- [ ] **Step 6: コンパイル＆テスト**
+- [x] **Step 6: コンパイル＆テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0（`TooltipTopic.cs` も `presentation.TextKey` を参照しているためここでエラーになる。Task 3 で直すので、**本Stepでは Task 3 Step 3 の DTO 変更を先取りして同時に適用してよい**。その場合 Task 3 のテスト/fixture更新は Task 3 で行う）。
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "TooltipPresentationEqualityTest|MiningFocusStateTest"`
 Expected: 全PASS。
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip moorestech_client/Assets/Scripts/Client.Tests/Tooltip moorestech_client/Assets/Scripts/Client.Tests/Mining/MiningFocusStateTest.cs
@@ -388,7 +388,7 @@ git commit -m "feat(tooltip): カーソルツールチップを複数行(Tooltip
 **Interfaces:**
 - Produces: JSON `{"visible":bool,"lines":[{"textKey":string,"textParams":string[]}]}`（CamelCase、`lines` は常に配列で送る）。DTO: `TooltipDto { bool Visible; IReadOnlyList<TooltipLineDto> Lines; }`, `TooltipLineDto { string TextKey; IReadOnlyList<string> TextParams; }`。
 
-- [ ] **Step 1: fixture と契約テストを先に更新する（失敗を作る）**
+- [x] **Step 1: fixture と契約テストを先に更新する（失敗を作る）**
 
 `Client.Tests/WebUi/WireFixtures/tooltip.json` を1行で:
 ```json
@@ -439,12 +439,12 @@ git commit -m "feat(tooltip): カーソルツールチップを複数行(Tooltip
 ```
 ファイル先頭に `using Client.Game.InGame.UI.Tooltip;` を追加。
 
-- [ ] **Step 2: コンパイルして失敗を確認**
+- [x] **Step 2: コンパイルして失敗を確認**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `TooltipLineDto` / `TooltipTopic.ToDto` 未定義エラー。
 
-- [ ] **Step 3: `TooltipTopic.cs` を書き換える**
+- [x] **Step 3: `TooltipTopic.cs` を書き換える**
 
 ```csharp
 using System;
@@ -504,13 +504,13 @@ namespace Client.WebUiHost.Game.Topics
 }
 ```
 
-- [ ] **Step 4: コンパイル＆テスト**
+- [x] **Step 4: コンパイル＆テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "WireContractC2Test"`
 Expected: 全PASS（`tooltip.json` は Web 側 `wireContract.test.ts` も読む。Task 4 で Web 側を合わせるまで Web テストは赤）。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/C2/TooltipTopic.cs moorestech_client/Assets/Scripts/Client.Tests/WebUi
@@ -533,7 +533,7 @@ git commit -m "feat(webui-host): ui.tooltip topic を lines 配列契約へ拡�
 **Interfaces:**
 - Produces: `TooltipLineSchema`, `TooltipDataSchema = {visible, lines: TooltipLine[]}`、`resolveTooltipLines(data, translate): string[]`。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `validators.test.ts` の `describe("tooltip schema", ...)` を置換:
 ```ts
@@ -586,12 +586,12 @@ describe("tooltip schema", () => {
 ```
 unknown-key テストは `lines: [{ textKey: "ui.tooltip.unknown", textParams: [] }]` にし、期待値を `["[!ui.tooltip.unknown]"]`、warn 1回のまま。
 
-- [ ] **Step 2: テスト実行で失敗を確認**
+- [x] **Step 2: テスト実行で失敗を確認**
 
 Run: `cd moorestech_web/webui && pnpm test -- src/shared/tooltip src/bridge/contract`
 Expected: FAIL（schema mismatch / `resolveTooltipLines` 未定義）。
 
-- [ ] **Step 3: スキーマを変更する**
+- [x] **Step 3: スキーマを変更する**
 
 `schemas/ui.ts:69-75` を:
 ```ts
@@ -609,7 +609,7 @@ export const TooltipDataSchema = z.object({
 ```
 `payloadTypes.ts` に `export type TooltipLine = z.infer<typeof TooltipLineSchema>;` を `TooltipData` の隣に追加し、schemas の index / `@/bridge` barrel が `TooltipLineSchema` を再エクスポートするようにする（`TooltipDataSchema` と同じ経路）。
 
-- [ ] **Step 4: `CursorTooltip.tsx` を複数行描画にする**
+- [x] **Step 4: `CursorTooltip.tsx` を複数行描画にする**
 
 ```tsx
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -668,7 +668,7 @@ export function resolveTooltipLines(
 ```
 `index.ts` のエクスポートは変更不要（`CursorTooltip` のみ）。`resolveTooltipText` を参照している箇所があれば grep して `resolveTooltipLines` へ置換する。
 
-- [ ] **Step 5: mock-host を更新する**
+- [x] **Step 5: mock-host を更新する**
 
 `e2e/mock-host/topics/topicControls.ts:66-75`:
 ```ts
@@ -686,14 +686,14 @@ export function resolveTooltipLines(
   [Topics.tooltip]: () => ({ visible: false, lines: [] }),
 ```
 
-- [ ] **Step 6: テスト・型検査・e2e**
+- [x] **Step 6: テスト・型検査・e2e**
 
 Run: `cd moorestech_web/webui && pnpm test && pnpm lint && tsc -p e2e/tsconfig.json --noEmit`
 Expected: 全PASS（`wireContract.test.ts` が Task 3 の fixture を受理する）。
 Run: `pnpm test:e2e -- e2e/tests/system/commonHud.spec.ts`
 Expected: PASS（`getByText("世界の対象", { exact: true })` は行 div に一致する）。ポート衝突の偽失敗が出たら `webui-e2e-port-collision-across-sessions` メモリに従い再実行。
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 （`moorestech_client/Assets/StreamingAssets/WebUi/` は `.gitignore:128-130` で除外され、ビルド時に `WebUiProductionArtifactBuilder` が再生成する生成物なのでコミット対象外。dist の手動反映は不要）
 
@@ -724,7 +724,7 @@ git commit -m "feat(webui): CursorTooltip を lines 契約で複数行描画す�
   }
   ```
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `Client.Tests/PlaceSystem/Util/ConstructionCostShortageCalculatorTest.cs`（namespace は `Client.Tests.PlaceSystem.Util`。`ConstructionCostPreviewCalculatorTest` と同じ土台: `CreateServer()` で MasterHolder をロード、`ForUnitTestModBlockId.BlockId` の RequiredItems は Material1(Test3, コスト×2) / Material2(Test4, コスト×1)）:
 
@@ -820,12 +820,12 @@ namespace Client.Tests.PlaceSystem.Util
 ```
 注: `ForUnitTestModBlockId.BlockId` の RequiredItems 素材順が Material1→Material2 でない場合は `ConstructionCostPreviewCalculatorTest` と同じ GUID を使いつつ期待順序を実データに合わせる（順序は RequiredItems の初出順）。
 
-- [ ] **Step 2: コンパイルして失敗を確認**
+- [x] **Step 2: コンパイルして失敗を確認**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `ConstructionCostShortageCalculator` 未定義エラー。
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `ConstructionMaterialShortage.cs`:
 ```csharp
@@ -916,13 +916,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 }
 ```
 
-- [ ] **Step 4: コンパイル＆テスト**
+- [x] **Step 4: コンパイル＆テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "ConstructionCostShortageCalculatorTest"`
 Expected: 4件PASS。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/ConstructionMaterialShortage.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/ConstructionCostShortageCalculator.cs moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Util/ConstructionCostShortageCalculatorTest.cs
@@ -971,7 +971,7 @@ git commit -m "feat(place): 建設コストの素材別不足(所持/必要)を�
   // PlaceSystemStateController(PlaceSystemSelector placeSystemSelector, PlacementFeedbackTooltipPresenter feedbackPresenter)
   ```
 
-- [ ] **Step 1: 失敗するテストを書く（Presenter・CursorCellResolver）**
+- [x] **Step 1: 失敗するテストを書く（Presenter・CursorCellResolver）**
 
 `Client.Tests/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenterTest.cs`（`MiningFocusStateTest` と同じ方法で `MouseCursorTooltip` シングルトンを作る。リフレクションヘルパは同テストの private static 実装をそのまま複製する）:
 
@@ -1105,12 +1105,12 @@ namespace Client.Tests.PlaceSystem.Feedback
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認**
+- [x] **Step 2: コンパイルして失敗を確認**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `PlacementFeedback` 等未定義エラー。
 
-- [ ] **Step 3: Feedback 4ファイルを作成する**
+- [x] **Step 3: Feedback 4ファイルを作成する**
 
 `Feedback/PlacementFeedback.cs`:
 ```csharp
@@ -1250,7 +1250,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
 }
 ```
 
-- [ ] **Step 4: Context / Base / Controller / DI を配線する**
+- [x] **Step 4: Context / Base / Controller / DI を配線する**
 
 `IPlaceSystem.cs` の `PlaceSystemUpdateContext` を:
 ```csharp
@@ -1339,21 +1339,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
 
 `MainGameStarter.cs:227` の直前に `builder.Register<PlacementFeedbackTooltipPresenter>(Lifetime.Singleton);` を追加（using 追加）。
 
-- [ ] **Step 5: 全PlaceSystemの抽象メソッドシグネチャを更新する（動作は変えない）**
+- [x] **Step 5: 全PlaceSystemの抽象メソッドシグネチャを更新する（動作は変えない）**
 
 各クラスの `protected override void ManualUpdate(XxxTarget target, bool isSelectionChanged)` を `protected override void ManualUpdate(XxxTarget target, bool isSelectionChanged, PlacementFeedback feedback)` にし、`using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;` を追加する: `CommonBlockPlaceSystem`, `BeltConveyorPlaceSystem`, `TrainRailPlaceSystem`, `TrainRailConnectSystem`, `TrainCarPlaceSystem`, `ElectricWireConnectSystem`, `BlueprintPasteSystem`, `BlueprintCopySystem`。`ElectricWireConnectSystem.cs:98` の `new PlaceSystemUpdateContext(target, isSelectionChanged)` は `new PlaceSystemUpdateContext(target, isSelectionChanged, feedback)` にする。`EmptyPlaceSystem`・`GearChainPoleConnectSystem` は `IPlaceSystem` 直実装で context を受けるため変更不要。
 
-- [ ] **Step 6: UIState テストのctorを更新する**
+- [x] **Step 6: UIState テストのctorを更新する**
 
 `UIStateCameraInteractionTest.cs:133` と `UIStateFocusRestorationTest.cs:99` を `new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter());` に変更（using 追加）。
 
-- [ ] **Step 7: コンパイル＆テスト**
+- [x] **Step 7: コンパイル＆テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlacementFeedbackTooltipPresenterTest|PlacementCursorCellResolverTest|UIStateCameraInteractionTest|UIStateFocusRestorationTest"`
 Expected: 全PASS。
 
-- [ ] **Step 8: コミット**
+- [x] **Step 8: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem moorestech_client/Assets/Scripts/Client.Starter/MainGameStarter.cs moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Feedback moorestech_client/Assets/Scripts/Client.Tests/UIState
@@ -1375,7 +1375,7 @@ git commit -m "feat(place): PlacementFeedback と TooltipPresenter を追加し�
 - Consumes: `PlacementFeedback`（Task 6）、`ConstructionCostShortageCalculator.Calculate(requiredItems, entityCount, inventory)`（Task 5）、`PlacementCursorCellResolver.Resolve`。
 - Produces: `ElectricWireAutoConnectPreview(BlockGameObjectDataStore, IPlacementPreviewBlockGameObjectController, IGameUnlockStateData)`（`Camera` 引数を削除）、`bool ApplyAutoConnect(List<PlaceInfo> placeInfos, BlockId blockId, BlockDirection direction, ILocalPlayerInventory inventory, Vector3Int cursorCell, PlacementFeedback feedback)`、`AutoConnectWirePreviewRenderer()` / `void Show(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, bool isFailure)` / `void Hide()`。
 
-- [ ] **Step 1: `AutoConnectWirePreviewRenderer` からラベルを削除する**
+- [x] **Step 1: `AutoConnectWirePreviewRenderer` からラベルを削除する**
 
 - `using TMPro;` を削除。`CostLabelFontSize`・`CostLabelOffset`・`_mainCamera`・`_costLabel` フィールドを削除。
 - コンストラクタを `public AutoConnectWirePreviewRenderer()` にし、ラベル生成（`labelObject` ～ `_costLabel.alignment`）を削除。root 生成と `SetActive(false)` は残す。
@@ -1392,7 +1392,7 @@ git commit -m "feat(place): PlacementFeedback と TooltipPresenter を追加し�
 ```
 - クラス summary コメントを「合計消費電線数を半透明で描画」から「複数ワイヤーを半透明で描画」に直す。`DrawWires`・`Hide`・`WithAlpha`・`WireLine` は無変更。
 
-- [ ] **Step 2: `ElectricWireAutoConnectPreview` を feedback プッシュに変える**
+- [x] **Step 2: `ElectricWireAutoConnectPreview` を feedback プッシュに変える**
 
 - ctor: `public ElectricWireAutoConnectPreview(BlockGameObjectDataStore blockDataStore, IPlacementPreviewBlockGameObjectController previewBlockController, IGameUnlockStateData gameUnlockStateData)`、`_renderer = new AutoConnectWirePreviewRenderer();`。
 - `ApplyAutoConnect` の末尾引数に `PlacementFeedback feedback` を追加し、`using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;` を追加。`ElectricWireConnect.Parts` の using（`ElectricWirePlacementFailureText` 用）は不要になるので削除。
@@ -1425,7 +1425,7 @@ git commit -m "feat(place): PlacementFeedback と TooltipPresenter を追加し�
             }
 ```
 
-- [ ] **Step 3: `CommonBlockPlaceSystem` を更新する**
+- [x] **Step 3: `CommonBlockPlaceSystem` を更新する**
 
 - ctor の `_autoConnectPreview = new ElectricWireAutoConnectPreview(blockGameObjectDataStore, previewBlockController, gameUnlockStateData);`。
 - `ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)` から `GroundClickControl(target, feedback);` を呼ぶ。
@@ -1533,13 +1533,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 ```
 `CommonBlockPlaceSystem.cs` からは `Common.Debug`・`DebugParameterKeys`（他で未使用なら）と `ConstructionCostPreviewCalculator` の参照が消える。`using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;` を追加。切り出し後に `wc -l` で200行以下を確認する（超えるなら `PlaceBlock()` ローカル関数を `Common/CommonBlockPlaceSender.cs`（static）へ移す）。
 
-- [ ] **Step 4: コンパイル＆既存テスト**
+- [x] **Step 4: コンパイル＆既存テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "ConstructionCostPreviewCalculatorTest|ElectricWireAutoConnect|CommonBlockPlacePointCalculator"`
 Expected: エラー0・全PASS。`grep -rn "ShowCost\|ShowFailure\|ShowNotice\|ElectricWirePlacementFailureText" moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common` が0件。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common
@@ -1557,7 +1557,7 @@ git commit -m "feat(place): 通常設置の不可理由・素材不足・電線�
 **Interfaces:**
 - Produces: `BeltConveyorCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, IEnumerable<IItemStack> inventoryItems, PlacementFeedback feedback)`。
 
-- [ ] **Step 1: マーカーに不足素材プッシュを足す**
+- [x] **Step 1: マーカーに不足素材プッシュを足す**
 
 `BeltConveyorCostPreviewMarker.cs` のシグネチャに `PlacementFeedback feedback` を追加し、`entityCosts` 構築直後（`affordableEntityCount` 計算の前）に:
 ```csharp
@@ -1567,7 +1567,7 @@ git commit -m "feat(place): 通常設置の不可理由・素材不足・電線�
 ```
 （`using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;`）
 
-- [ ] **Step 2: `BeltConveyorPlaceSystem.GroundClickControl` に理由を足す**
+- [x] **Step 2: `BeltConveyorPlaceSystem.GroundClickControl` に理由を足す**
 
 `ManualUpdate(..., PlacementFeedback feedback)` → `GroundClickControl(target, feedback)`。`GroundClickControl(BlockPlacementTarget target, PlacementFeedback feedback)` 内:
 - 距離: `if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) { feedback.AddTooFar(); return; }`
@@ -1585,13 +1585,13 @@ git commit -m "feat(place): 通常設置の不可理由・素材不足・電線�
 - `BeltConveyorPlaceSystem.cs` は現状200行ちょうどなので、上記追加後に `wc -l` で超過したら `IsBlockPlaceableDistance` と `PlaceBlock()` ローカル関数を `BeltConveyor/Parts/BeltConveyorPlaceSender.cs`（static）へ移して200行以下にする。
 - `BeltConveyorCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(_currentPlaceInfos, _localPlayerInventory, feedback);`
 
-- [ ] **Step 3: コンパイル＆テスト**
+- [x] **Step 3: コンパイル＆テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "BeltConveyor"`
 Expected: 全PASS。
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor
@@ -1625,7 +1625,7 @@ git commit -m "feat(place): ベルトコンベア設置の不可理由・素材�
   public class ElectricWireExtendMode { public void Update(PlaceSystemUpdateContext ctx, BlockGameObject source); } // ctx.Feedback を使う
   ```
 
-- [ ] **Step 1: 失敗するテストを書く（理由→キー写像）**
+- [x] **Step 1: 失敗するテストを書く（理由→キー写像）**
 
 `Client.Tests/PlaceSystem/ElectricWireConnect/ElectricWirePlacementFailureTooltipKeyTest.cs`:
 ```csharp
@@ -1664,11 +1664,11 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
 ```
 `ElectricWirePlacementFailureTextTest.cs` は削除する。
 
-- [ ] **Step 2: コンパイルして失敗を確認**
+- [x] **Step 2: コンパイルして失敗を確認**
 
 Run: `uloop compile --project-path ./moorestech_client` → `ElectricWirePlacementFailureTooltipKey` 未定義。
 
-- [ ] **Step 3: 写像クラスを作り旧Textクラスを削除する**
+- [x] **Step 3: 写像クラスを作り旧Textクラスを削除する**
 
 `Parts/ElectricWirePlacementFailureTooltipKey.cs`:
 ```csharp
@@ -1703,12 +1703,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 ```
 `ElectricWirePlacementFailureText.cs` と `.meta` を `git rm` する。
 
-- [ ] **Step 4: `ElectricWireExtendPreviewObject` からラベルを削除する**
+- [x] **Step 4: `ElectricWireExtendPreviewObject` からラベルを削除する**
 
 - `using TMPro;`・`CostLabelFontSize`・`CostLabelOffset`・`_mainCamera`・`_costLabel` を削除。ctor を `public ElectricWireExtendPreviewObject()` にし、ラベル生成を削除。
 - `Show(Vector3 startWorldPos, Vector3 endWorldPos, bool placeable)` とし、`UpdateCostLabel()` 呼び出しとローカル関数・`#region Internal` を削除。summary を「可否色で表示する」に修正。
 
-- [ ] **Step 5: `ElectricWirePoleGhostEvaluation` を地形/重複/素材に分割する**
+- [x] **Step 5: `ElectricWirePoleGhostEvaluation` を地形/重複/素材に分割する**
 
 ```csharp
 using System.Collections.Generic;
@@ -1759,7 +1759,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 ```
 （`Feedback.PlacementFeedback` は `using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;` を足して `PlacementFeedback` と書く）
 
-- [ ] **Step 6: `ElectricWirePoleGhostPart` から電柱名ラベルを削除し、距離・地形・重複・素材を分けて返す**
+- [x] **Step 6: `ElectricWirePoleGhostPart` から電柱名ラベルを削除し、距離・地形・重複・素材を分けて返す**
 
 - `using TMPro;`・`NameLabelFontSize`・`NameLabelOffset`・`_nameLabel`・ラベル生成・`ShowNameLabel()`・`SetNameLabelActive()` を削除。
 - `TryEvaluateGhost(ElectricWirePoleSelection selection, PlacementFeedback feedback, out ElectricWirePoleGhostEvaluation evaluation)`:
@@ -1792,7 +1792,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 ```
 （`Fail()` ローカル関数は不要になるので削除。`using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;` 追加）
 
-- [ ] **Step 7: `ElectricWireEditMode` / `ElectricWireExtendMode` / `ElectricWireConnectSystem` を更新する**
+- [x] **Step 7: `ElectricWireEditMode` / `ElectricWireExtendMode` / `ElectricWireConnectSystem` を更新する**
 
 `ElectricWireEditMode.Update(PlacementFeedback feedback)`:
 - `TryEvaluateGhost(_context.PoleSelection, feedback, out var evaluation)`
@@ -1830,13 +1830,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 - `ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)`: `_sourceBlock = _editMode.Update(feedback);`、`_extendMode.Update(new PlaceSystemUpdateContext(target, isSelectionChanged, feedback), _sourceBlock);`
 - `Disable()` の `_context.PoleGhostPart.SetNameLabelActive(false);` を削除。
 
-- [ ] **Step 8: コンパイル＆テスト**
+- [x] **Step 8: コンパイル＆テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "ElectricWire"`
 Expected: 全PASS。`grep -rn "SetNameLabelActive\|ElectricWirePlacementFailureText\b\|using TMPro" moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem` が0件。
 
-- [ ] **Step 9: コミット**
+- [x] **Step 9: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/ElectricWireConnect moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/ElectricWireConnect
@@ -1867,7 +1867,7 @@ git commit -m "feat(place): 電線ツールの理由・コストをカーソル�
   // GearChainPolePlaceExtendInput: public bool GhostTooFar;
   ```
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `GearChainPlacementFailureTooltipKeyTest.cs`:
 ```csharp
@@ -1965,9 +1965,9 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
 ```
 （`CreateConnectablePairInput` は同テストファイル141行目の既存ヘルパ）
 
-- [ ] **Step 2: コンパイルして失敗を確認** — `uloop compile` → 未定義エラー。
+- [x] **Step 2: コンパイルして失敗を確認** — `uloop compile` → 未定義エラー。
 
-- [ ] **Step 3: 写像クラス・PreviewData・FrameResult・Input を実装する**
+- [x] **Step 3: 写像クラス・PreviewData・FrameResult・Input を実装する**
 
 `Parts/GearChainPlacementFailureTooltipKey.cs`:
 ```csharp
@@ -2033,7 +2033,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 `GearChainPolePlaceExtendInput`: `public bool GhostTooFar;`（`HasGhost` の隣、コメント「距離超過でゴーストを出さなかった / No ghost because the cursor is beyond the placeable distance」）。
 `GearChainPoleFrameInputCollector.cs:75`: `if (PlaceableMaxDistance < Vector3.Distance(_mainCamera.transform.position, placePos)) { input.GhostTooFar = true; return input; }`
 
-- [ ] **Step 4: モードに行を持たせ、system でプッシュする**
+- [x] **Step 4: モードに行を持たせ、system でプッシュする**
 
 `GearChainPolePlaceExtendMode`:
 - `if (!input.HasGhost) return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Hidden, input.GhostTooFar ? new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceTooFar) } : Array.Empty<TooltipLine>());`
@@ -2063,13 +2063,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
             foreach (var line in result.FeedbackLines) context.Feedback.Add(line);
 ```
 
-- [ ] **Step 5: コンパイル＆テスト**
+- [x] **Step 5: コンパイル＆テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "GearChain"`
 Expected: 全PASS。
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/GearChainPoleConnect moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/GearChainPoleConnect
@@ -2089,7 +2089,7 @@ git commit -m "feat(place): ギアチェーンポール接続の不可理由を�
 **Interfaces:**
 - Produces: `TrainRailPlacementFailureTooltipKey.ToKey(RailConnectionEditProtocol.RailConnectionEditFailureReason reason)`（RailLengthExceeded→PlaceRailLengthExceeded、NotEnoughRailItem→PlaceRailNotEnoughRailItem、その他→PlaceRailFailed）、`TrainRailPlacementFailureTooltipKey.Report(TrainRailConnectPreviewData previewData, PlacementFeedback feedback)`。`TrainRailConnectPreviewData` に `RailConnectionEditFailureReason FailureReason` と `bool IsCurvePlaceable` を追加。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
@@ -2112,9 +2112,9 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認** — `uloop compile` → 未定義。
+- [x] **Step 2: コンパイルして失敗を確認** — `uloop compile` → 未定義。
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `TrainRailPlacementFailureTooltipKey.cs`:
 ```csharp
@@ -2157,13 +2157,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         }
 ```
 
-- [ ] **Step 4: コンパイル＆テスト**
+- [x] **Step 4: コンパイル＆テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "TrainRail"`
 Expected: 全PASS。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/TrainRailConnect moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/TrainRailConnect
@@ -2189,7 +2189,7 @@ git commit -m "feat(place): レール接続の失敗理由とカーブ半径不�
   // TrainCarPlacementHit: 追加 public TrainCarPlacementBlockReason BlockReason { get; }（ctor末尾引数）
   ```
 
-- [ ] **Step 1: enum と写像を作る**
+- [x] **Step 1: enum と写像を作る**
 
 `TrainCar/Parts/TrainCarPlacementBlockReason.cs`:
 ```csharp
@@ -2220,16 +2220,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 }
 ```
 
-- [ ] **Step 2: `TrainCarPlacementHit` に理由を載せる**
+- [x] **Step 2: `TrainCarPlacementHit` に理由を載せる**
 
 ctor末尾に `TrainCarPlacementBlockReason blockReason` を追加し `BlockReason = blockReason;`、プロパティ `public TrainCarPlacementBlockReason BlockReason { get; }` を追加。
 
-- [ ] **Step 3: 検出器で理由を出す**
+- [x] **Step 3: 検出器で理由を出す**
 
 `TrainCarPlacementDetector.BuildPlacement`: `var blockReason = TrainCarPlacementBlockReason.None;` を宣言し、`TryBuildRailPosition(..., out attachTargetEndpoint, out blockReason)` に `out TrainCarPlacementBlockReason blockReason` を追加。`result = new TrainCarPlacementHit(isPlaceable, ..., attachTargetEndpoint, blockReason);`。
 `TryBuildRailPosition` 内: 先頭で `blockReason = TrainCarPlacementBlockReason.None;`。`if (trainLength < 0) { blockReason = TrainCarPlacementBlockReason.NoRouteForTrainLength; return false; }`。要件4の `TryBuildCarPlacementSelectionCandidates` 失敗と `TryBuildSelectedCarPlacement` 失敗は `blockReason = TrainCarPlacementBlockReason.NoRouteForTrainLength; return false;`。`HasOverlap` は `blockReason = TrainCarPlacementBlockReason.OverlapsExistingTrainUnit; return false;`。
 
-- [ ] **Step 4: 設置システムでプッシュする**
+- [x] **Step 4: 設置システムでプッシュする**
 
 `TrainCarPlaceSystem.ManualUpdate(TrainCarPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)` の
 ```csharp
@@ -2242,13 +2242,13 @@ ctor末尾に `TrainCarPlacementBlockReason blockReason` を追加し `BlockReas
             }
 ```
 
-- [ ] **Step 5: コンパイル＆テスト**
+- [x] **Step 5: コンパイル＆テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "TrainCar"`
 Expected: 全PASS（`new TrainCarPlacementHit(` を組むテストがあれば末尾引数を追加）。
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/TrainCar moorestech_client/Assets/Scripts/Client.Tests
@@ -2262,7 +2262,7 @@ git commit -m "feat(place): 列車配置の不可理由（経路無し/既存列
 **Files:**
 - Modify: `PlaceSystem/Blueprint/BlueprintPasteSystem.cs:49,76-78`
 
-- [ ] **Step 1: 実装**
+- [x] **Step 1: 実装**
 
 `ManualUpdate(BlueprintPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)`。`_previewController.UpdatePreview(placements, placeableFlags);` の直後に:
 ```csharp
@@ -2272,11 +2272,11 @@ git commit -m "feat(place): 列車配置の不可理由（経路無し/既存列
 ```
 （`System.Linq` は既に using 済み。`Feedback` の using 追加）
 
-- [ ] **Step 2: コンパイル**
+- [x] **Step 2: コンパイル**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0。
 
-- [ ] **Step 3: コミット**
+- [x] **Step 3: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Blueprint
@@ -2290,7 +2290,7 @@ git commit -m "feat(place): BP貼り付けが全セル重複で置けないと�
 **Files:**
 - 検証のみ（`unity-playmode-recorded-playtest` スキルの手順に従い、必要な録画・ログは `../moorestech_logs` 側へ）
 
-- [ ] **Step 1: シナリオを実行する**
+- [x] **Step 1: シナリオを実行する**
 
 `unity-playmode-recorded-playtest` スキルを起動し、以下を1本の録画で確認する:
 1. ビルドメニューから建設コストのあるブロックを選び、素材を1セル分だけ持って3セルドラッグ → ツールチップに「素材名 所持/必要」行（例: `鉄板 2/6`）。
@@ -2300,7 +2300,7 @@ git commit -m "feat(place): BP貼り付けが全セル重複で置けないと�
 5. 電線ツールで電柱延長 → ワイヤー中間点に文字ラベルが出ない・ゴースト上に電柱名が出ない・ツールチップに理由/コストが出る。
 6. 設置モードを抜ける（Esc等）→ ツールチップが消える。採掘ツールチップ（左クリック長押しで取得）が従来どおり出る。
 
-- [ ] **Step 2: 結果をplanの判断記録へ1行追記し、録画パスを `bd note moorestech-7wl8` に残す**
+- [x] **Step 2: 結果をplanの判断記録へ1行追記し、録画パスを `bd note moorestech-7wl8` に残す**
 
 ---
 
@@ -2337,3 +2337,6 @@ planning中に新たに生じた判断:
 14. **unityプレイ録画テストを Task 14 として含める（ランタイムUI挙動の変更のため）。** 出所: writing-plans（moorestech）必須検討の結果。
 15. **Web のプロダクション dist（`Assets/StreamingAssets/WebUi/`）はビルド時生成物（`WebUiProductionArtifactBuilder`・`.gitignore` 済み）でコミット対象外。本planでは触らない。Editor は Vite dev モードで即反映。** 出所: agent前提（判事の前提検証で「git log が空・ディレクトリ不在」を確認）。
 16. **user-simulator review（Fable判事・2026-08-21）の適用:** ①Web dist（StreamingAssets）反映Stepを削除（`.gitignore` 済み生成物・前例不在を判事が検証）。②10ファイル/200行規約への自己違反を修正（`TrainCar/Parts/`・`Client.Tests/PlaceSystem/Util/`・`CommonBlockPlaceCostMarker` 無条件切り出し・`PlacementCellReasonReporter` 共用・レールのReportを写像クラス側へ）。③電線ツールの到達不能キー5件（NoPoleItem/InventoryFull/NotConnected/NotUnlocked/InsufficientItems）を削除し23キーに。見送り: キー名前空間 `ui.place.*` 化（採掘・クラフトと同じ `ui.tooltip.*` を維持）、wire/gearChain 同文言キーの統合（系統別のまま）、電線不足の所持/必要表示（裁定時プレビューどおり定型行）。出所: シミュレーター予測→agent採用（Critical2件・Warning1件）／agent前提（見送り3件）。
+
+
+17. **Task 14 実測（2026-08-22）**: プレイ録画1本で 14 assert中 13 PASS。素材不足「Iron Plate 1/3」・既存ブロック重複・電線不足・電線 xN・接続範囲外案内・遠すぎます・空で無表示・世界ラベル撤去・設置モード脱出で消灯 を実機確認。**地形干渉行のみランタイム未到達**（`GroundCollisionDetector` を持つprefabが5件しかなく現行マスタの `blockPrefabAddressablesPath` がどれも参照していないため `blockGroundOverlapList` が常にfalse。本planの実装ではなくprefab側の既存ギャップ・後続bd）。採掘ツールチップはDSLで照準再現できず未実施（EditMode `MiningFocusStateTest` で代替担保）。録画: `moorestech_client/PlaytestResults/20260822_024209/placement-reason-tooltip/recording.mp4`
