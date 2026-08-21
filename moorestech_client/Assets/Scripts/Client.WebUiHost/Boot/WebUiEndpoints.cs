@@ -142,6 +142,14 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
+                if (path.StartsWith(Game.FluidIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.FluidIconEndpoint.PathSuffix, StringComparison.Ordinal))
+                {
+                    // 液体アイコンの PNG 配信
+                    // Serve fluid icon PNGs
+                    await Game.FluidIconEndpoint.HandleAsync(context, path);
+                    return;
+                }
+
                 if (path.StartsWith(GenericImageAssetEndpoint.PathPrefix, StringComparison.Ordinal))
                 {
                     await GenericImageAssetEndpoint.HandleAsync(context, path);

@@ -44,3 +44,15 @@ test("progress-arrow-bar のフィル幅が 50% になる", async ({ page }) => 
   const fill = page.getByTestId("progress-arrow-bar").locator("> div");
   await expect(fill).toHaveAttribute("style", /50%/);
 });
+
+test("通常のe2eでは液体アイコンが404になり背面フィルが残る", async ({ page }) => {
+  await setBlock(page, "tank");
+  await page.goto("/");
+  await expect(page.getByTestId("generic-block-fluids")).toBeVisible();
+  // DEMOでない通常実行では /api/fluid-icons/ が404となり、height/background-colorのフィルだけが残る
+  // Outside DEMO the /api/fluid-icons/ request 404s, leaving only the height/background-color fill
+  const slot = page.getByTestId("fluid-slot").filter({ hasText: "500" });
+  const fill = slot.locator("> div").first();
+  await expect(fill).toHaveAttribute("style", /height:\s*50%/);
+  await expect(fill).toHaveAttribute("style", /background-color/);
+});

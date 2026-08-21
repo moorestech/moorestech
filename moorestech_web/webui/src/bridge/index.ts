@@ -3,7 +3,7 @@
 export { useTopic, useTopicSelector, useTopicEvents, useConnectionStatus, readTopic } from "./store/useTopic";
 export { useItemMaster, readItemMaster } from "./store/useItemMaster";
 export { dispatchAction } from "./transport/actions";
-export { blockIconUrl, itemIconUrl, itemMasterUrl, localizationDictionaryUrl, localizationLanguagesUrl } from "./transport/httpEndpoints";
+export { blockIconUrl, itemIconUrl, fluidIconUrl, itemMasterUrl, localizationDictionaryUrl, localizationLanguagesUrl } from "./transport/httpEndpoints";
 export { setToastSink } from "./transport/notify";
 export type { NotifyVariant } from "./transport/notify";
 export { Topics, UiStateNames } from "./transport/protocol";

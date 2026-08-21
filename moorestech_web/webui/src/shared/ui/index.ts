@@ -1,6 +1,7 @@
 export { default as ItemSlot } from "./ItemSlot";
 export { default as ItemIcon } from "./ItemIcon";
 export { default as BlockIcon } from "./BlockIcon";
+export { default as FluidIcon } from "./FluidIcon";
 export { default as SlotFrame } from "./SlotFrame";
 export { default as BlockSlot } from "./BlockSlot";
 export { default as FluidSlot } from "./FluidSlot";

@@ -8,6 +8,11 @@ const iconDirectory = process.env.MOCK_ICON_DIR
 const iconFiles = existsSync(iconDirectory)
   ? readdirSync(iconDirectory).filter((file) => file.endsWith(".jpeg") || file.endsWith(".jpg")).sort()
   : [];
+const fluidIconDirectory = process.env.MOCK_FLUID_ICON_DIR
+  ?? resolve(process.cwd(), "../../../moorestech_master/server_v8/mods/moorestechAlphaMod_8/assets/fluid");
+const fluidIconFiles = existsSync(fluidIconDirectory)
+  ? readdirSync(fluidIconDirectory).filter((file) => file.endsWith(".jpeg") || file.endsWith(".jpg")).sort()
+  : [];
 const mimeTypes: Record<string, string> = {
   ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png",
 };
@@ -25,6 +30,19 @@ export function placeholderIcon(itemId: number): string {
 export function realIconFor(itemId: number): Buffer | null {
   if (iconFiles.length === 0) return null;
   return readFileSync(join(iconDirectory, iconFiles[itemId % iconFiles.length]));
+}
+
+// guidの各文字コードを合算し、ファイル選択とプレースホルダ色相の共通の種にする
+// Sum the guid's char codes as a shared seed for file selection and placeholder hue
+export function fluidIconSeed(fluidGuid: string): number {
+  let seed = 0;
+  for (let i = 0; i < fluidGuid.length; i++) seed += fluidGuid.charCodeAt(i);
+  return seed;
+}
+
+export function realFluidIconFor(fluidGuid: string): Buffer | null {
+  if (fluidIconFiles.length === 0) return null;
+  return readFileSync(join(fluidIconDirectory, fluidIconFiles[fluidIconSeed(fluidGuid) % fluidIconFiles.length]));
 }
 
 export function contentType(extension: string): string {

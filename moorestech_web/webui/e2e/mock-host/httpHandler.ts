@@ -3,14 +3,14 @@ import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Topics } from "../../src/bridge/transport/protocol";
-import { BLOCK_ICON_PREFIX, ITEM_ICON_PREFIX } from "../../src/bridge/transport/httpEndpoints";
+import { BLOCK_ICON_PREFIX, FLUID_ICON_PREFIX, ITEM_ICON_PREFIX } from "../../src/bridge/transport/httpEndpoints";
 import type { BlockInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
 import { received, state, connections, subscribersOf } from "./state";
 import { applyTopicControl, serveDictionary } from "./topics/topicControls";
 import { applyPresentationControl } from "./topics/presentationControls";
-import { contentType, injectDemoBackground, placeholderIcon, realIconFor } from "./assets/demoAssets";
+import { contentType, fluidIconSeed, injectDemoBackground, placeholderIcon, realFluidIconFor, realIconFor } from "./assets/demoAssets";
 import { serveLanguageCatalog } from "./localization/transport";
 export { injectDemoBackground } from "./assets/demoAssets";
 
@@ -170,6 +170,27 @@ export function createMockHttpServer(): Server {
         }
         res.setHeader("content-type", "image/svg+xml");
         res.end(placeholderIcon(id));
+        return;
+      }
+      res.statusCode = 404;
+      res.end();
+      return;
+    }
+    // 液体アイコンはitem/blockと同経路構造・guidベースで別配信する
+    // Fluid icons follow the same item/block path structure but key off a guid
+    if (url.startsWith(FLUID_ICON_PREFIX)) {
+      // DEMO時は実流体アイコン(無ければプレースホルダ)、通常時は404で背面フィルフォールバック
+      // DEMO serves real fluid icons (placeholder if absent); otherwise 404 for the fill-only fallback
+      if (DEMO) {
+        const guid = url.split("/").pop()?.replace(".png", "") ?? "";
+        const real = realFluidIconFor(guid);
+        if (real) {
+          res.setHeader("content-type", "image/jpeg");
+          res.end(real);
+          return;
+        }
+        res.setHeader("content-type", "image/svg+xml");
+        res.end(placeholderIcon(fluidIconSeed(guid)));
         return;
       }
       res.statusCode = 404;
