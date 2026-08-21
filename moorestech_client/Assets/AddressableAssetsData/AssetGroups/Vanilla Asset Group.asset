@@ -250,6 +250,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 19d78660b83304b7393b0f7aebc2fb03
+    m_Address: Vanilla/Environment/Vein/Item/VeinPrefab_Copper
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1a76de895924b4f4f9377d554d2dd050
     m_Address: Vanilla/Environment/Tree/Savanna/Bush3
     m_ReadOnly: 0
@@ -287,6 +292,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1cf601f7c10835f4790932aad2abdb25
     m_Address: Vanilla/Block/Old/IC chip assembler
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1df27d00e9d6b46ea8535b047020338c
+    m_Address: Vanilla/Environment/Vein/Item/VeinPrefab_Iron
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -622,6 +632,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 457461b7f513b4ad0b0f975784351904
     m_Address: Vanilla/Environment/Plant/MesaDesert/Brittlebush_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 45bd1c42410764c4baff0d3becb83757
+    m_Address: Vanilla/Environment/Vein/Item/VeinPrefab_Bronz
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1040,6 +1055,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 748a5d3a11124487b94c9f886e929dc7
+    m_Address: Vanilla/Environment/Vein/Item/VeinPrefab_Tree
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 74c661b69539b4646b58bacbc3365a30
     m_Address: Vanilla/Block/PipeStraightWindow
     m_ReadOnly: 0
@@ -1132,6 +1152,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7ca897a22f2fc4b68b93d719a1c29e63
     m_Address: Vanilla/Environment/Vein/Item/Tree
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7cf40dd9ee7c343cdbe4920821c3a812
+    m_Address: Vanilla/Environment/Vein/Item/VeinPrefab_Clay
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -2167,6 +2192,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e039e23dd6ec87742ac59a0964a66fa0
     m_Address: Vanilla/Block/iron furnace with bellows
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e1ac52bd224134096b414e2a37f5a747
+    m_Address: Vanilla/Environment/Vein/Item/VeinPrefab_Coal
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
