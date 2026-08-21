@@ -33,6 +33,11 @@ namespace Client.Starter
         [SerializeField] private Button backToMainMenuButton;
 
         private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer(null);
+
+        // 起動中の内蔵サーバーを中断ボタンから落とすために保持する
+        // Held so the abort button can take the booting embedded server down
+        private ServerConnectionInitializer _serverInitializer;
+
         public void SetProperty(InitializeProprieties proprieties)
         {
             _proprieties = proprieties;
@@ -40,7 +45,15 @@ namespace Client.Starter
 
         private void Awake()
         {
-            backToMainMenuButton.onClick.AddListener(() => SceneManager.LoadScene(SceneConstant.MainMenuSceneName));
+            backToMainMenuButton.onClick.AddListener(BackToMainMenuFromLoading);
+        }
+
+        // ロード中の中断もメインメニュー復帰なので内蔵サーバーを道連れにする
+        // Aborting mid-load also returns to the main menu, so it takes the embedded server down too
+        private void BackToMainMenuFromLoading()
+        {
+            if (_serverInitializer != null && _serverInitializer.EmbeddedServer != null) Destroy(_serverInitializer.EmbeddedServer.gameObject);
+            SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
         }
 
         private void Start()
@@ -117,6 +130,7 @@ namespace Client.Starter
             // サーバー接続とアセットロードを並列実行し結果を受け取る
             // Run server connection and asset load in parallel and collect results
             var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingLog, loadingStopwatch, playerConnectionSetting);
+            _serverInitializer = serverInitializer;
             var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, trainCarIconTargets, loadingLog, loadingStopwatch);
 
             ServerConnectionResult serverResult;
