@@ -102,6 +102,7 @@ public class BadExample
 # 関連リポジトリ
 - `../moorestech_master` — マスターデータ（JSON）とアセット画像のリポジトリ。テストプレイ用Modは`../moorestech_master/server_v8/mods`からロード
 - `./moorestech_client/Assets/PersonalAssets/moorestech-client-private` — クライアント側の非公開アセット（有料アセット等）
+- **別リポジトリ（`moorestech_master`等）に変更が及ぶ場合も、本repoと同様にpushしてPRを作る（必須）。** ローカルコミット止まりや「pushだけしてPR無し」は禁止。本repoの`.moorestech-external-revisions.json`のピンは、その別repoのPRが指すpush済みコミットを指すこと
 
 # テスト・コンパイルの実行
 
