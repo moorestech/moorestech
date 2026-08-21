@@ -14,7 +14,7 @@
 
 設計セッション（2026-08-21 grill）の裁定。詳細は [ADR-0025](../../adr/0025-generation-system-exposes-results-only.md) と `.decisions/2026-08-21-*.md` 4件。
 
-- R1 見た目生成ロジック（splat／surround／detail／距離場／分類コンテキスト／木摂動／見た目キャッシュ）は全て `Game.MapGeneration` に置く。受け入れ基準: `moorestech_client/Assets/Scripts/Client.Game/InGame/Environment/Terrain/` 配下に `Visual/`・`Build/Placement/`・`Visual/Cache/` が存在せず、クライアントの非テストコードに `using Game.MapGeneration.Pipeline` が0件（scanテストで機械判定）。許可されるusingは `Game.MapGeneration.Facade` と `Game.MapGeneration.Transfer` のみ
+- R1 見た目生成ロジック（splat／surround／detail／距離場／分類コンテキスト／木摂動／見た目キャッシュ）は全て `Game.MapGeneration` に置く。受け入れ基準: `moorestech_client/Assets/Scripts/Client.Game/InGame/Environment/Terrain/` 配下に `Visual/`・`Build/Placement/`・`Visual/Cache/` が存在せず、クライアントの非テストコードに `using Game.MapGeneration.Pipeline` が0件（scanテストで機械判定）。許可されるusingは `Game.MapGeneration.Facade`・`Game.MapGeneration.Transfer`・起動引数の語彙として `Game.MapGeneration.Provisioning`（`WorldProvisioner.GeneratedMapMode/TemplateMapMode` 定数のみ）
 - R2 生成システムの外に出る結果は ADR-0025 の列挙どおり（表示用高さ／テクスチャ2Dマップ＋並び／detail密度＋プロトタイプ並び／mapObject／鉱脈／スポーン／不透明メタ）。受け入れ基準: `Game.MapGeneration/Facade/` の型だけで `TerrainRuntimeBuilder` が組める。BiomeType・TerrainGenerationConfig・JobBuffers・クラスタ・generate系フラグはファサード型のシグネチャに現れない
 - R3 岩クラスタ（ClusterId／ClusterCenterX／Z）は配置器内部に閉じる。受け入れ基準: `PlacedMapObject`・`MapInfoJson`（map.json 3キー）・`MapObjectLayoutMessagePack` Key8〜10・クライアントの4段から削除され、全 map.json（server TestMod×3・client EditModeInPlaying×2・`../moorestech_master/server_v8`×2）から `clusterId/clusterCenterX/clusterCenterZ` が消えている
 - R4 `biome_x_z.bin` は出力も転送も廃止。受け入れ基準: `TerrainFileWriter` は高さのみ書き、`TerrainTransferMeta` の論理ストリームは `height_*.r16` のみ、`WorldDataDirectory.TerrainBiomeFilePath` が存在しない。`GeneratorVersion` を `3.0.0` へ上げる
@@ -47,7 +47,7 @@ moorestech_server/Assets/Scripts/Game.MapGeneration/
 ├── Facade/                                  ← 外に見せる唯一の面（新規）
 │   ├── WorldTerrainSession.cs               Open / Layout / BakeTile
 │   ├── WorldTerrainLayout.cs                Kind・タイル座標・テクスチャ並び・detailプロトタイプ並び・描画距離
-│   ├── TerrainLayoutKind.cs                 Authored | Baked
+│   ├── TerrainLayoutKind.cs                 TerrainAsset | TileMaps（結果の形で名付ける。生成したか固定かの出自は名前に出さない）
 │   ├── BakedTerrainTile.cs                  表示用高さ・alphamap・detail密度・シーン位置
 │   ├── DetailPrototypeSpec.cs               prefab/テクスチャのアドレス＋描画パラメータ（旧 DetailPrototypeConfig からアセット実体を除いたもの）
 │   └── TerrainRenderingDefaults.cs          template/生成それぞれの detailObjectDistance/Density・templateアセットアドレス・原点
@@ -543,7 +543,7 @@ git commit -m "feat(mapgen): terrainSurroundEffectType を生成マスタの配�
 **Files:**
 - Create: `Game.MapGeneration/Pipeline/Visual/Placement/LedgerPlacement.cs`・`PlacementLedger.cs`
 - Modify: `Game.MapGeneration/Pipeline/Tiling/TilePlacementRunner.cs:96-125`（AppendMapObjects が台帳にも積む）
-- Modify: `Game.MapGeneration/Pipeline/VanillaGenerator.cs`（`Generate(config)` に加え `Generate(config, out PlacementLedger ledger)`）・`Pipeline/IMapGenerator.cs`・`Pipeline/MapGenerationPipeline.cs`
+- Modify: `Game.MapGeneration/Pipeline/MapGenerationOutput.cs`（`PlacementLedger Ledger` を追加）・`Pipeline/VanillaGenerator.cs`（台帳を output に載せる）・`Pipeline/MapGenerationPipeline.cs`（`BuildConfig` を切り出し、`Generate(selected, config)` を追加。`IMapGenerator` のシグネチャは不変）
 - Test: `Tests/UnitTest/Game/MapGeneration/Visual/Placement/PlacementLedgerTest.cs`
 
 **Interfaces:**
@@ -551,10 +551,13 @@ git commit -m "feat(mapgen): terrainSurroundEffectType を生成マスタの配�
   ```csharp
   public readonly struct LedgerPlacement { string Guid; Vector3 ScenePosition; Quaternion Rotation; Vector3 Scale; TerrainSurroundEffectType SurroundEffect; int ClusterId; Vector2 ClusterCenter; }
   public class PlacementLedger { IReadOnlyList<LedgerPlacement> Placements; void Add(LedgerPlacement); }
-  MapGenerationOutput VanillaGenerator.Generate(TerrainGenerationConfig config, out PlacementLedger ledger);
-  MapGenerationOutput MapGenerationPipeline.Generate(Generation selected, int seed, string serverDataDirectory, out PlacementLedger ledger);
+  // MapGenerationOutput に追加。生成システム内部の pass-1→pass-2 受け渡し専用で、MapInfoJsonBuilder 等の結果出力には一切写さない
+  public PlacementLedger Ledger;
+  // MapGenerationPipeline（サーバーの唯一の入口。セッションも同じ入口を使う）
+  public static TerrainGenerationConfig BuildConfig(Generation selected, int seed, string serverDataDirectory);   // RuntimeConfigFactory + seed + PlacementNoiseTextureResolver
+  public static MapGenerationOutput Generate(Generation selected, TerrainGenerationConfig config);                // MapGenerationAlgorithmTable.Resolve(selected.Algorithm).Generate(config)
+  public static MapGenerationOutput Generate(Generation selected, int seed, string serverDataDirectory);          // 既存。BuildConfig → Generate(selected, config) の転送
   ```
-  既存の `Generate(config)` は `out` 版を呼んで台帳を捨てる薄い転送にする。
 
 - [ ] **Step 1: 台帳型を書く**
 
@@ -610,9 +613,9 @@ ctor に `PlacementLedger ledger` を追加し、`AppendMapObjects` のループ
 ```
 （`clusterId`/`clusterCenter` は既存ローカル。Task 7 で `PlacedMapObject` 側からは消えるが台帳には残る）
 
-- [ ] **Step 3: VanillaGenerator / IMapGenerator / MapGenerationPipeline に out 版を通す**
+- [ ] **Step 3: VanillaGenerator が台帳を output に載せ、MapGenerationPipeline に BuildConfig / Generate(selected, config) を切り出す**
 
-`IMapGenerator` に `MapGenerationOutput Generate(TerrainGenerationConfig config, out PlacementLedger ledger);` を追加し、既存シグネチャは削除（呼び出し側 `MapGenerationPipeline.Generate` と テストを out 版に揃える。`MapGenerationPipeline.Generate(selected, seed, dir)` は残し内部で `out _`）。`VanillaGenerator.Generate` 内で `var ledger = new PlacementLedger();` を作り `TilePlacementRunner` に渡す。
+`VanillaGenerator.Generate` 内で `var ledger = new PlacementLedger();` を作り `output.Ledger = ledger;` として `TilePlacementRunner` に渡す。`MapGenerationPipeline` は現行の `Generate(selected, seed, serverDataDirectory)` 本体を `BuildConfig`（config 組立・seed 代入・PNG 展開）と `Generate(selected, config)`（`MapGenerationAlgorithmTable.Resolve(selected.Algorithm).Generate(config)`）の2段に分け、既存3引数版はその転送にする。セッション（Task 6）はこの2段を呼ぶ＝サーバーと同じ入口・同じアルゴリズム選択を通る。
 
 - [ ] **Step 4: 決定論テストと台帳テスト**
 
@@ -635,8 +638,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
             var config = MultiTileTestWorld.BuildConfig(2, 99);
             MultiTileTestWorld.EnableTrees(config);
             MultiTileTestWorld.EnableObjects(config);
-            new VanillaGenerator().Generate(config, out var first);
-            new VanillaGenerator().Generate(config, out var second);
+            var first = new VanillaGenerator().Generate(config).Ledger;
+            var second = new VanillaGenerator().Generate(config).Ledger;
             Assert.That(first.Placements.Count, Is.GreaterThan(0));
             Assert.That(first.Placements.Count, Is.EqualTo(second.Placements.Count));
             for (var i = 0; i < first.Placements.Count; i++)
@@ -657,7 +660,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
             MultiTileTestWorld.EnableTrees(config);
             MultiTileTestWorld.EnableObjects(config);
             config.grassland.objectConfig.entries[0].terrainSurroundEffectType = TerrainSurroundEffectType.rockBareGround;
-            var output = new VanillaGenerator().Generate(config, out var ledger);
+            var output = new VanillaGenerator().Generate(config);
+            var ledger = output.Ledger;
             Assert.That(ledger.Placements.Count, Is.EqualTo(output.MapObjects.Count));
             for (var i = 0; i < ledger.Placements.Count; i++)
             {
@@ -892,14 +896,14 @@ git commit -am "refactor(mapgen): surround/detail/配置切り出し/Baker をGa
 ```csharp
 namespace Game.MapGeneration.Facade
 {
-    public enum TerrainLayoutKind { Authored, Baked }
+    public enum TerrainLayoutKind { TerrainAsset, TileMaps }
 
     public sealed class WorldTerrainLayout
     {
         public TerrainLayoutKind Kind { get; }
-        public string AuthoredTerrainDataAddress { get; }      // Authored のみ。Baked は空文字
-        public Vector3 AuthoredOrigin { get; }                 // Authored のみ
-        public IReadOnlyList<(int TileX, int TileZ)> TileCoordinates { get; }   // Baked のみ。Authored は空
+        public string AuthoredTerrainDataAddress { get; }      // TerrainAsset のみ。TileMaps は空文字
+        public Vector3 AuthoredOrigin { get; }                 // TerrainAsset のみ
+        public IReadOnlyList<(int TileX, int TileZ)> TileCoordinates { get; }   // TileMaps のみ。TerrainAsset は空
         public Vector3 TileSize { get; }                        // (terrainWidth, terrainHeight, terrainLength)
         public int HeightmapResolution { get; }
         public IReadOnlyList<string> TextureLayerAddresses { get; }        // alphamap 第3軸の並び
@@ -929,10 +933,41 @@ namespace Game.MapGeneration.Facade
     {
         public static WorldTerrainSession Open(TerrainTransferMeta terrainMeta, string serverDataDirectory);
         public WorldTerrainLayout Layout { get; }
-        public BakedTerrainTile BakeTile(int tileX, int tileZ);   // Authored では InvalidOperationException
+        public BakedTerrainTile BakeTile(int tileX, int tileZ);   // TerrainAsset では InvalidOperationException
     }
 }
 ```
+
+- [ ] **Step 0: GenerationMasterFingerprint を world.json・転送メタに通す**
+
+`Identity/GenerationMasterFingerprint.cs`:
+```csharp
+    // 生成マスタの指紋。JSON原文と、treePlacement の texturePngPath が指す全PNGのバイト列を連結した SHA256
+    // The generation master's fingerprint: SHA256 over the JSON text plus the bytes of every PNG the treePlacement texturePngPaths point at
+    public static class GenerationMasterFingerprint
+    {
+        public static string Compute(string generationMasterJsonText, Generation selected, string serverDataDirectory)
+        {
+            using var sha256 = SHA256.Create();
+            var textBytes = Encoding.UTF8.GetBytes(generationMasterJsonText);
+            sha256.TransformBlock(textBytes, 0, textBytes.Length, null, 0);
+            // PNG の列挙は PlacementNoiseTextureResolver と同じ走査（全バイオームの treePlacement.prototypes の4ノイズ）。空パスは読まない
+            // PNG enumeration mirrors PlacementNoiseTextureResolver (the four noises of every biome's treePlacement prototypes); empty paths are skipped
+            foreach (var pngPath in PlacementNoiseTextureResolver.EnumerateTexturePngPaths(GenerationRuntimeConfigFactory.Build(selected)))
+            {
+                var pngBytes = File.ReadAllBytes(Path.Combine(serverDataDirectory, pngPath));
+                sha256.TransformBlock(pngBytes, 0, pngBytes.Length, null, 0);
+            }
+            sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+            return BitConverter.ToString(sha256.Hash).Replace("-", string.Empty).ToLowerInvariant();
+        }
+    }
+```
+（`PlacementNoiseTextureResolver` に `EnumerateTexturePngPaths(TerrainGenerationConfig)` を切り出し、`Resolve` もそれを使う。並び順は決定的＝enum順・prototypes順・4ノイズ固定順）
+- `Export/WorldMetaJson.cs` に `GenerationMasterFingerprint`（string、template は null）。`WorldProvisioner.BuildGenerated` が `GenerationMasterFingerprint.Compute(MasterHolder.GenerationMaster.SourceJsonText, selected, settings.ServerDataDirectory)` を書く
+- `WorldProvisioner.EnsureWorld` の既存ワールド分岐（`TerrainTransferMetaReader.Read` の直後）で generated かつ指紋不一致なら例外（文言は GeneratorVersion 不一致と同型「ワールドを消して作り直せ」）。サーバー起動時の fail-fast
+- `TerrainTransferMeta` に `GenerationMasterFingerprint`（readonly string。template は空文字）、`TerrainTransferMetaReader` が world.json から写す（旧 world.json にキーが無ければ原点欠落と同じく例外）。`TerrainTransferMetaMessagePack` に `[Key(9)] string GenerationMasterFingerprint` を追加し `ToTerrainTransferMeta` で戻す
+- テスト: `Tests/UnitTest/Game/MapGeneration/Identity/GenerationMasterFingerprintTest.cs`（同入力同値・JSON1文字差で別値・PNGパス列挙順が決定的）、`WorldProvisionerTest` に「指紋不一致の既存ワールドは EnsureWorld が例外」を追加
 
 - [ ] **Step 1: WorldIdentity と SharedWorldCache**
 
@@ -972,11 +1007,11 @@ namespace Game.MapGeneration.Cache
 - [ ] **Step 2: TerrainVisualCacheKey を新式に**
 
 ```csharp
-        // 導出元は生成の入力だけ: マスタ原文・seed・2原点・解像度・生成器の版。配置は同じ入力から決定論で出るので鍵に入れない
-        // The inputs are generation's own: master text, seed, the two origins, resolution and generator version; placements derive deterministically from them and stay out of the key
-        public static string Compute(string generationMasterJsonText, int seed, TerrainOrigins origins, int terrainResolution, string generatorVersion)
+        // 導出元は生成の入力だけ: 生成マスタ指紋（JSON原文＋PNG）・seed・2原点・解像度・生成器の版。配置は同じ入力から決定論で出るので鍵に入れない
+        // The inputs are generation's own: the master fingerprint (JSON text + PNGs), seed, the two origins, resolution and generator version; placements derive deterministically from them and stay out of the key
+        public static string Compute(string generationMasterFingerprint, int seed, TerrainOrigins origins, int terrainResolution, string generatorVersion)
 ```
-（`terrainHash`・`mapObjectsDigest` 引数を削除。`FormatVersion` を 10 へ bump。テスト `TerrainVisualCacheKeyTest` を新式で書き直す: 同入力→同鍵、seed/原点/解像度/版/マスタ原文のどれか1つが違えば別鍵）
+（`terrainHash`・`mapObjectsDigest` 引数を削除。旧鍵の mapObjectsDigest が拾っていた PNG 改変は指紋が拾う。`FormatVersion` を 10 へ bump。テスト `TerrainVisualCacheKeyTest` を新式で書き直す: 同入力→同鍵、seed/原点/解像度/版/マスタ原文のどれか1つが違えば別鍵）
 
 - [ ] **Step 3: WorldTerrainSession を書く**
 
@@ -1019,14 +1054,19 @@ namespace Game.MapGeneration.Facade
 
         public static WorldTerrainSession Open(TerrainTransferMeta terrainMeta, string serverDataDirectory)
         {
-            if (terrainMeta.IsTemplate) return new WorldTerrainSession(WorldTerrainLayout.CreateAuthored(), null);
+            if (terrainMeta.IsTemplate) return new WorldTerrainSession(WorldTerrainLayout.CreateTerrainAsset(), null);
 
-            // 生成時と同じ手順でConfigを組む。seedと原点は転送メタから、PNGはサーバーデータから
-            // Rebuild the config as generation did: seed and origins from the transfer meta, PNGs from the server data
+            // 生成マスタ（JSON原文＋配置ノイズPNG）がワールド作成時と違えば台帳がサーバー正本とずれる。版・解像度と同じく例外で止める
+            // If the generation master (JSON text + placement-noise PNGs) differs from world creation, the ledger drifts from the server's truth; fail as for version and resolution
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
-            var config = GenerationRuntimeConfigFactory.Build(selectedGeneration);
-            config.seed = terrainMeta.WorldSeed;
-            PlacementNoiseTextureResolver.Resolve(config, serverDataDirectory);
+            var fingerprint = GenerationMasterFingerprint.Compute(MasterHolder.GenerationMaster.SourceJsonText, selectedGeneration, serverDataDirectory);
+            if (fingerprint != terrainMeta.GenerationMasterFingerprint)
+                throw new InvalidOperationException(
+                    $"[WorldTerrainSession] Generation master fingerprint {fingerprint} differs from the world's {terrainMeta.GenerationMasterFingerprint}. Delete the world and generate it again.");
+
+            // サーバーの唯一の入口と同じ2段（config組立→アルゴリズム選択→生成）を通る。手で組み直さない
+            // Go through the very two steps of the server's single entry (build config, pick algorithm, generate); never hand-assemble
+            var config = MapGenerationPipeline.BuildConfig(selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory);
             if (config.Resolution != terrainMeta.TerrainResolution)
                 throw new InvalidOperationException(
                     $"[WorldTerrainSession] Generation master resolution {config.Resolution} disagrees with the transferred terrain resolution {terrainMeta.TerrainResolution}.");
@@ -1034,7 +1074,7 @@ namespace Game.MapGeneration.Facade
             // pass-1: サーバーと同じ生成を丸ごと回し、配置台帳（クラスタ・種別込み）を得る。高さは捨てて転送値を正本にする
             // pass-1: run the very same generation to obtain the placement ledger (clusters and kinds); its heights are dropped in favour of the transferred ones
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            new VanillaGenerator().Generate(config, out var ledger);
+            var ledger = MapGenerationPipeline.Generate(selectedGeneration, config).Ledger;
             Debug.Log($"[WorldTerrainSession] pass-1 placement regeneration: {stopwatch.ElapsedMilliseconds}ms, placements={ledger.Placements.Count}");
 
             var gridConfig = config.ShallowCopy();
@@ -1048,11 +1088,11 @@ namespace Game.MapGeneration.Facade
                 visualSections.MainLayerAddresses, visualSections.TextureConfigs, visualSections.SurroundTextureConfigs, treeSurroundSpecies, debugLayerAddresses);
 
             var sharedCache = SharedWorldCache.For(terrainMeta.WorldId);
-            var cacheKey = TerrainVisualCacheKey.Compute(MasterHolder.GenerationMaster.SourceJsonText, config.seed, terrainMeta.Origins,
+            var cacheKey = TerrainVisualCacheKey.Compute(fingerprint, config.seed, terrainMeta.Origins,
                 terrainMeta.TerrainResolution, WorldProvisioner.GeneratorVersion);
             var baker = new TileVisualBaker(gridConfig, biomeTypes, visualSections, layerTable, treeSurroundSpecies, ledger,
                 sharedCache, new TerrainVisualCache(sharedCache, cacheKey));
-            var layout = WorldTerrainLayout.CreateBaked(
+            var layout = WorldTerrainLayout.CreateTileMaps(
                 TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount),
                 new Vector3(gridConfig.terrainWidth, gridConfig.terrainHeight, gridConfig.terrainLength), gridConfig.Resolution,
                 layerTable.OrderedLayerAddresses, baker.DetailPrototypes);
@@ -1061,7 +1101,7 @@ namespace Game.MapGeneration.Facade
 
         public BakedTerrainTile BakeTile(int tileX, int tileZ)
         {
-            if (Layout.Kind != TerrainLayoutKind.Baked)
+            if (Layout.Kind != TerrainLayoutKind.TileMaps)
                 throw new InvalidOperationException("[WorldTerrainSession] An authored terrain owns no tile to bake.");
             return _baker.Bake(tileX, tileZ);
         }
@@ -1070,7 +1110,7 @@ namespace Game.MapGeneration.Facade
 ```
 注意: 高さ源は `sharedCache`（= `cache/worlds/<id>/terrain`、`TerrainDataFetcher` が復元する場所）。`VanillaGenerator.Generate` は `config`（中心タイル基準の worldOffset）で回す＝サーバーと同一呼び出し。このとき `RunSpawnSearch` がログを出し G を書き戻すが、`config.useSpawnOffsetSearch` が true なら探索も再現される（決定論）。pass-1 の所要時間はログに残す（判定点: 25タイル実機で **10秒超なら** 後続タスク「高さのr16往復を生成側で行い pass-1 の HeightmapStage を省く」を bd に起票。本planでは実装しない）。
 
-`WorldTerrainLayout.CreateAuthored()` は `TerrainRenderingDefaults` の template 定数を詰め、`CreateBaked(...)` は Baked 定数を詰める（static factory。コンストラクタは private）。
+`WorldTerrainLayout.CreateTerrainAsset()` は `TerrainRenderingDefaults` の template 定数を詰め、`CreateTileMaps(...)` は生成側の定数を詰める（static factory。コンストラクタは private）。
 
 - [ ] **Step 4: クライアント TerrainRuntimeBuilder を書き換える**
 
@@ -1086,14 +1126,14 @@ namespace Game.MapGeneration.Facade
             var layout = session.Layout;
             switch (layout.Kind)
             {
-                case TerrainLayoutKind.Authored: await BuildAuthoredAsync(); break;
-                case TerrainLayoutKind.Baked: await BuildBakedAsync(); break;
+                case TerrainLayoutKind.TerrainAsset: await BuildTerrainAssetAsync(); break;
+                case TerrainLayoutKind.TileMaps: await BuildTileMapsAsync(); break;
                 default: throw new InvalidOperationException($"[TerrainRuntimeBuilder] Unknown layout kind {layout.Kind}.");
             }
 
             #region Internal
 
-            async UniTask BuildAuthoredAsync()
+            async UniTask BuildTerrainAssetAsync()
             {
                 var terrainData = await AddressableLoader.LoadAsyncDefault<TerrainData>(layout.AuthoredTerrainDataAddress);
                 if (terrainData == null) throw new InvalidOperationException($"[TerrainRuntimeBuilder] TerrainData '{layout.AuthoredTerrainDataAddress}' could not be loaded from Addressables.");
@@ -1101,7 +1141,7 @@ namespace Game.MapGeneration.Facade
                     layout.DetailObjectDistance, layout.DetailObjectDensity);
             }
 
-            async UniTask BuildBakedAsync()
+            async UniTask BuildTileMapsAsync()
             {
                 var buildStopwatch = Stopwatch.StartNew();
                 var terrainLayers = await TerrainLayerAssetLoader.LoadAsync(layout.TextureLayerAddresses);
@@ -1165,20 +1205,20 @@ namespace Client.Tests.UnitTest.Terrain
 
 - [ ] **Step 6: ゴールデンテストを server 側へ移し `TileVisualBaker` 直叩きにする**
 
-fixture の `Build()` は不変。テスト本体は `TerrainFileWriter.Write(worldDirectory, output)` → `new VanillaGenerator().Generate(config, out var ledger)`（fixture の output 生成と同じ呼び出しに統合: `Build()` が `ledger` も返す）→ `new TileVisualBaker(gridConfig, BiomeTypes, sections, layerTable, species, ledger, worldDirectory, new TerrainVisualCache(worldDirectory, new string('0', 64)))` → 各タイル `Bake` → `DisplayHeights`／`Alphamap`／`DetailMaps` をハッシュ。json は `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Visual/Golden/terrain_visual_golden.json`（中身はクライアントから移したもの、書き換え禁止）。`GoldenJsonPath` は `Application.dataPath` 基準でなく `TestModDirectory` と同じ相対解決（`Path.GetFullPath(Path.Combine(Application.dataPath, "../../moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Visual/Golden/terrain_visual_golden.json"))`）にする。
+fixture の `Build()` は不変。テスト本体は `TerrainFileWriter.Write(worldDirectory, output)` → 台帳は fixture の `output.Ledger`（`Build()` の戻り値に含まれる）→ `new TileVisualBaker(gridConfig, BiomeTypes, sections, layerTable, species, ledger, worldDirectory, new TerrainVisualCache(worldDirectory, new string('0', 64)))` → 各タイル `Bake` → `DisplayHeights`／`Alphamap`／`DetailMaps` をハッシュ。json は `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Visual/Golden/terrain_visual_golden.json`（中身はクライアントから移したもの、書き換え禁止）。`GoldenJsonPath` は `Application.dataPath` 基準でなく `TestModDirectory` と同じ相対解決（`Path.GetFullPath(Path.Combine(Application.dataPath, "../../moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Visual/Golden/terrain_visual_golden.json"))`）にする。
 
 - [ ] **Step 7: WorldTerrainSessionTest**
 
 ```csharp
     public class WorldTerrainSessionTest
     {
-        // templateは固定地形の結果を返し、タイルを焼かせない
+        // templateは固定地形アセットの結果を返し、タイルを焼かせない
         // A template world returns the authored result and refuses to bake tiles
         [Test]
-        public void TemplateOpensAsAuthoredLayout()
+        public void TemplateOpensAsTerrainAssetLayout()
         {
             var session = WorldTerrainSession.Open(TerrainTransferMeta.CreateTemplate("0123456789abcdef", 0), TestModDirectory.ForUnitTestModDirectory);
-            Assert.That(session.Layout.Kind, Is.EqualTo(TerrainLayoutKind.Authored));
+            Assert.That(session.Layout.Kind, Is.EqualTo(TerrainLayoutKind.TerrainAsset));
             Assert.That(session.Layout.AuthoredTerrainDataAddress, Is.EqualTo(TerrainRenderingDefaults.TemplateTerrainDataAddress));
             Assert.That(session.Layout.TileCoordinates, Is.Empty);
             Assert.Throws<InvalidOperationException>(() => session.BakeTile(0, 0));
@@ -1196,7 +1236,7 @@ fixture の `Build()` は不変。テスト本体は `TerrainFileWriter.Write(wo
             var shared = SharedWorldCache.For(meta.WorldId);
             CopyDirectory(worldDirectory.TerrainDirectory, shared.TerrainDirectory);
             var session = WorldTerrainSession.Open(meta, TestModDirectory.ForUnitTestModDirectory);
-            Assert.That(session.Layout.Kind, Is.EqualTo(TerrainLayoutKind.Baked));
+            Assert.That(session.Layout.Kind, Is.EqualTo(TerrainLayoutKind.TileMaps));
             foreach (var (x, z) in session.Layout.TileCoordinates)
             {
                 var tile = session.BakeTile(x, z);
@@ -1281,22 +1321,24 @@ git commit -am "refactor(mapgen): biome_x_z.bin の出力と転送を廃止し G
 
 **Files:**
 - Create: `Game.MapGeneration/Provisioning/TerrainVisualPrebake.cs`
-- Modify: `Game.MapGeneration/Provisioning/WorldProvisioner.cs`（`BuildGenerated` が `createdAt` を先に確定して `WorldIdentity.Calculate(seed, createdAt)` を求め、`MapGenerationPipeline.Generate(..., out ledger)` を呼び、`Directory.Move` の後で `TerrainVisualPrebake.BakeAll(...)`）
+- Modify: `Game.MapGeneration/Provisioning/WorldProvisioner.cs`（`BuildGenerated` が `createdAt` を先に確定して `WorldIdentity.Calculate(seed, createdAt)` を求め、`MapGenerationPipeline.Generate(...)` の `output.Ledger` を持ち、`Directory.Move` の後で `TerrainVisualPrebake.BakeAll(...)`）
 - Test: `Tests/UnitTest/Game/MapGeneration/Facade/TerrainVisualPrebakeTest.cs`
 
 **Interfaces:**
 ```csharp
 public static class TerrainVisualPrebake
 {
-    // ワールド生成直後に共有キャッシュへ全タイルを焼く。クライアントが同じPCなら初回起動で再計算もpass-1も要らない
-    // Bakes every tile into the shared cache right after world generation; a client on the same PC needs neither recomputation nor pass-1 at first start
-    public static void BakeAll(WorldDataDirectory worldDataDirectory, TerrainTransferMeta terrainMeta, TerrainGenerationConfig config, PlacementLedger ledger, Generation selectedGeneration);
+    // ワールド生成直後に共有キャッシュへ全タイルを焼く。同じPCのクライアントは初回起動で pass-2（splat/detailの再計算）を省ける
+    // pass-1（配置台帳）と表示用高さの木摂動は Open/Bake が毎回計算する。ここまでキャッシュに含める案は実測10秒ゲート後の後続候補
+    // Bakes every tile into the shared cache right after world generation; a same-PC client skips pass-2 (splat/detail) at first start
+    // pass-1 (the ledger) and the tree perturbation of display heights are still computed by Open/Bake; caching those too is a follow-up behind the 10s gate
+    public static void BakeAll(WorldDataDirectory worldDataDirectory, TerrainTransferMeta terrainMeta, TerrainGenerationConfig config, PlacementLedger ledger, Generation selectedGeneration, string generationMasterFingerprint);
 }
 ```
 実装は `WorldTerrainSession.Open` の後半（gridConfig〜baker 生成）と同じ手順なので、その部分を `Pipeline/Visual/TileVisualBakerFactory.Create(config, terrainMeta, ledger, heightSource, selectedGeneration)` に切り出して両者から呼ぶ（重複禁止）。先焼きの高さ源は `worldDataDirectory`（ワールド本体の terrain/）、キャッシュ先は `SharedWorldCache.For(terrainMeta.WorldId)`。全タイルを `Bake` して捨てる（書き戻しは cache 内部）。
 
 - [ ] **Step 1: 実装**（`WorldProvisioner.EnsureWorld` の `Directory.Move` の直後、generated のときだけ `TerrainTransferMetaReader.Read(worldDataDirectory)` でメタを読み `BakeAll`）
-- [ ] **Step 2: テスト**: 一時ワールドをプロビジョニングし、`SharedWorldCache.For(worldId).TerrainVisualCacheFilePath(x,z)` が全タイル存在すること。続けて同じメタで `WorldTerrainSession.Open` → `BakeTile` し、pass-1 ログは出るが `TerrainVisualCacheReader.TryRead` が成功する（内部テストとしてファイルの mtime が変わらないことで確認）
+- [ ] **Step 2: テスト**: 一時ワールドをプロビジョニングし、`SharedWorldCache.For(worldId).TerrainVisualCacheFilePath(x,z)` が全タイル存在すること。続けて同じメタで `WorldTerrainSession.Open` → `BakeTile` し、pass-1 は走るが pass-2 はキャッシュから読まれる（内部テストとして visual ファイルの mtime が変わらないことで確認）
 - [ ] **Step 3: コミット**
 
 ```bash
@@ -1317,9 +1359,12 @@ git commit -am "feat(mapgen): ワールド生成時に共有キャッシュへ�
 ## 判断記録（ADR）
 
 - 設計裁定: [ADR-0025](../../adr/0025-generation-system-exposes-results-only.md)、`.decisions/2026-08-21-地形見た目はサーバーasmのロジックをクライアントが呼んで手元で焼く.md`、`…-クラスタは生成ロジック内部に閉じクライアントは配置まで再生成して見た目を焼く.md`、`…-生成システムの外に出るのは結果だけ.md`、`…-地形キャッシュは生成システム内部の共通基盤として残す.md`（すべてユーザー裁定 2026-08-21）
-- **terrainSurroundEffectType の正本を生成マスタの配置エントリへ移す**（treePlacement prototype／objectConfig entries・clusterEntries・secondaries の4箇所に同一enum）: agent前提。根拠: v8実データで rockNoBareGround 27件が treePlacement 由来（Boulder1〜3/Stone/BigBoulders）のため「配置器の出自」だけでは木と岩を区別できず、MapMaking原本の「prefab名に Boulder/Cliff」判定も再現不能。種別は生成ドメインの語彙なので生成マスタが持つ（08-18裁定「マスタ側の分類フィールド自体が不要になる」は map.yml 側についてのみ成立し、生成マスタ側には残る、と読み替える）。**ユーザー確認事項**: この読み替えに異論があれば Task 2 着手前に裁定を仰ぐ
+- **terrainSurroundEffectType の正本を生成マスタの配置エントリへ移す**（treePlacement prototype／objectConfig entries・clusterEntries・secondaries の4箇所に同一enum）: agent前提。根拠: v8実データで rockNoBareGround の treePlacement 由来が 11 prototype／44 参照（Boulder1〜3/Stone/BigBoulders 等。rockBareGround は全て objectConfig 由来・混在0・未解決GUID0。prefabs が空のエントリ19件にはスクリプトが既定値を入れるが配置0件で不活性）のため「配置器の出自」だけでは木と岩を区別できず、MapMaking原本の「prefab名に Boulder/Cliff」判定も再現不能。種別は生成ドメインの語彙なので生成マスタが持つ（08-18裁定「マスタ側の分類フィールド自体が不要になる」は map.yml 側についてのみ成立し、生成マスタ側には残る、と読み替える）。**ユーザー確認事項**: この読み替えに異論があれば Task 2 着手前に裁定を仰ぐ
 - **pass-1 でクライアントが `VanillaGenerator.Generate` を丸ごと回す**（分類＋高さ＋配置）: agent前提。配置はサーバーと同じ浮動小数の高さを読まないと同値にならないため、転送r16を配置に流用しない。コストは実測し10秒超で後続起票（判定点は Task 6 Step 3）
-- **キャッシュ鍵から terrainHash・mapObjectDigest を外す**: agent前提。両方とも同じ入力（マスタ・seed・原点・版）から決定論で導かれるため冗長
+- **キャッシュ鍵から terrainHash・mapObjectDigest を外し、生成マスタ指紋（JSON原文＋PNG）を入れる**: agent前提。両方とも同じ入力から決定論で導かれるため冗長。PNG 改変は指紋が拾う
+- **生成マスタ指紋を world.json・転送メタに記録し、不一致はサーバー起動（EnsureWorld）とセッション Open の両方で例外にする**: シミュレーター予測→適用（agent前提）。根拠: 「同じパラメータ」前提が破れると台帳がサーバー正本 map.json と無言でずれる（裸地が物の無い場所に出る）。GeneratorVersion・解像度と同じ fail-fast に揃える
+- **セッションは `MapGenerationPipeline.BuildConfig/Generate(selected, config)` を通す（VanillaGenerator 直呼び禁止）**: シミュレーター予測→適用（agent前提）。根拠: ユーザー裁定「同じコード・同じパラメータ」と、入口の真実源 `MapGenerationAlgorithmTable`
+- **結果種別の命名は出自でなく形（TerrainAsset | TileMaps）**: シミュレーター予測→適用（agent前提）。根拠: ADR-0025「結果型の種別（配列か、アセットのアドレス＋原点か）で外が受ける」
 - **サーバー先焼きは world.json コミット後に同期実行**: agent前提。先焼き中のクラッシュでもワールドは完成済みで、キャッシュはクライアントが埋め直せる。専用サーバー（ヘッドレス）でも焼く（見た目を使わないサーバーにも焼き時間が乗る。不要なら後続で起動引数ゲート）
 - **`Game.MapGeneration` 内部型の `internal` 化はしない**（scanテストで境界を担保）: agent前提。InternalsVisibleTo と公開型の大量変更を避ける。後続候補
 - **generateTexture/generateDetail を残す**: ユーザー黙認の agent前提（ADR-0025）
