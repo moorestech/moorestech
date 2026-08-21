@@ -1484,7 +1484,7 @@ git commit -m "feat(client): 残り設置数モデルとイベント購読・han
 - Produces: `static int ConstructionCostPreviewCalculator.CalculateAffordablePlacementCount(ConstructionRequiredItemElement[] requiredItems, int placementsPerCost, int remainingCount, IEnumerable<IItemStack> inventoryItems)`
 - Removes: `CalculateAffordableEntityCount`（ファミリー内コスト一致が保証されたため不要。既存テストがあれば置き換える）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `ConstructionCostPreviewCalculatorTest.cs` に追加:
 
@@ -1532,9 +1532,9 @@ git commit -m "feat(client): 残り設置数モデルとイベント購読・han
 
 （`CreateServer()` ヘルパが同ファイルに既にある前提。無ければ `new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));` を呼ぶローカル関数を追加）
 
-- [ ] **Step 2: 失敗確認** — コンパイルエラー（メソッド未定義）
+- [x] **Step 2: 失敗確認** — コンパイルエラー（メソッド未定義）
 
-- [ ] **Step 3: 計算メソッド実装**
+- [x] **Step 3: 計算メソッド実装**
 
 `ConstructionCostPreviewCalculator.cs` に追加（`CalculateAffordableEntityCount` は削除。参照が残っていれば次ステップで置換）:
 
@@ -1555,7 +1555,7 @@ git commit -m "feat(client): 残り設置数モデルとイベント購読・han
         }
 ```
 
-- [ ] **Step 4: 設置システム2経路に配線**
+- [x] **Step 4: 設置システム2経路に配線**
 
 `CommonBlockPlaceSystem.cs`: ctorに `ClientRemainingPlacementCountDatastore remainingPlacementCountDatastore` を追加しフィールド保持（VContainerが解決）。`MarkInsufficientItemPreviewsAsNotPlaceable` を:
 
@@ -1595,13 +1595,13 @@ git commit -m "feat(client): 残り設置数モデルとイベント購読・han
 
 `using Client.Game.InGame.Construction; using Game.Construction;` を各ファイルに追加。`ElectricWirePoleGhostPart.cs:58` 等 `CalculateAffordableCellCount` の既存利用は電柱（N=1）なのでそのまま。
 
-- [ ] **Step 5: コンパイル → テスト**
+- [x] **Step 5: コンパイル → テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "ConstructionCostPreviewCalculatorTest|BeltConveyor"`
 Expected: 全PASS
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game moorestech_client/Assets/Scripts/Client.Tests
