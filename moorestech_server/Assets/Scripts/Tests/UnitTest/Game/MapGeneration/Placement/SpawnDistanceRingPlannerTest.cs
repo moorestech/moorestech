@@ -3,8 +3,8 @@ using NUnit.Framework;
 
 namespace Tests.UnitTest.Game.MapGeneration.Placement
 {
-    // 鉱脈とmapObject散布が共有するスポーン距離リング化の規則（昇順・負値は無限・重複縮退）を固定する。
-    // Pins the spawn-distance ring rules shared by veins and object scatter (ascending, negative = infinite, duplicates degenerate).
+    // 鉱脈と散布共有のリング化規則を固定するテスト。
+    // Pins the spawn-distance ring rules shared by veins and object scatter.
     public class SpawnDistanceRingPlannerTest
     {
         [Test]
@@ -37,6 +37,20 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         public void 空配列はリングを作らない()
         {
             Assert.AreEqual(0, SpawnDistanceRingPlanner.BuildRings(new float[0]).Count);
+        }
+
+        [Test]
+        public void NaN外半径は当該バンドだけ除外され他バンドを汚染しない()
+        {
+            var rings = SpawnDistanceRingPlanner.BuildRings(new[] { float.NaN, 250f, -1f });
+
+            Assert.AreEqual(2, rings.Count);
+            Assert.AreEqual(1, rings[0].BandIndex);
+            Assert.AreEqual(0f, rings[0].Inner);
+            Assert.AreEqual(250f, rings[0].Outer);
+            Assert.AreEqual(2, rings[1].BandIndex);
+            Assert.AreEqual(250f, rings[1].Inner);
+            Assert.AreEqual(float.PositiveInfinity, rings[1].Outer);
         }
 
         [Test]

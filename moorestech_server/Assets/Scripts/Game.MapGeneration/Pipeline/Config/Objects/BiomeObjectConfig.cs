@@ -6,14 +6,14 @@ namespace Game.MapGeneration.Pipeline.Config
     // Per-biome rock/prop placement; clusterEntries do hierarchical placement, entries do scatter.
     public class BiomeObjectConfig
     {
-        // 独立散布エントリ（prefabs は mapObjectGuid 配列へ置換・量は bands で指定）。
-        // Independent scatter entry (prefabs replaced by mapObjectGuid array; quantity comes from bands).
+        // 独立散布エントリ（量はbandsで指定）。
+        // Independent scatter entry; quantity comes from bands.
         public class ObjectEntry
         {
             public string[] mapObjectGuids;
 
-            // スポーン距離帯。非クラスタ時は density、クラスタモード時は clusterCount をリングごとに使う。
-            // Spawn-distance bands; scatter uses density, cluster mode uses clusterCount, per ring.
+            // スポーン距離帯（モードで用途分岐）。
+            // Spawn-distance bands; usage depends on mode.
             public ObjectScatterBand[] bands = new ObjectScatterBand[0];
 
             public Vector2 scaleRange = new Vector2(0.8f, 1.2f);

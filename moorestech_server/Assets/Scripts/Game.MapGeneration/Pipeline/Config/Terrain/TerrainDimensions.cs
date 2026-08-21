@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Game.MapGeneration.Pipeline.Config
 {
     // ジェネレーターに渡す地形寸法の値型。Config 全体を渡さず必要な寸法だけ切り出す。
@@ -50,6 +52,15 @@ namespace Game.MapGeneration.Pipeline.Config
             GridOriginZ = worldOffsetZ - tileIndexZ * terrainLength;
             GridWidth = gridSizeX * terrainWidth;
             GridLength = gridSizeZ * terrainLength;
+        }
+
+        // タイルローカル座標をワールド座標へ直しスポーンXZとの距離を返す（鉱脈・散布・クラスタで共通の基準）。
+        // Converts tile-local coordinates to world space and returns the XZ distance to spawn (shared basis for veins, scatter, and clusters).
+        public float DistanceFromSpawnXz(float localX, float localZ)
+        {
+            float dx = localX + WorldOffsetX - SpawnWorldX;
+            float dz = localZ + WorldOffsetZ - SpawnWorldZ;
+            return Mathf.Sqrt(dx * dx + dz * dz);
         }
 
         // TerrainGenerationConfig + 共通 waterMargin + タイル位置からファクトリ生成する。

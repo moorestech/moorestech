@@ -5,10 +5,12 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Generators
 {
-    // 旧バックボーンクラスター（clusterMode 互換）。スポーン距離リングごとにそのリングの clusterCount を上限に
-    // クラスタ中心を Poisson で選び、中心がリング内のものだけ採用する（鉱脈と同じくクラスタ中心で判定）。
-    // Legacy backbone clusters (clusterMode): per spawn-distance ring, Poisson-pick cluster centres up to that ring's
-    // clusterCount and keep only centres inside the ring (centre-based, like veins).
+    // 旧バックボーンクラスター（clusterMode互換）。
+    // ・リング毎にclusterCountを上限に中心を選ぶ
+    // ・中心がリング内の候補のみ採用
+    // Legacy backbone clusters (clusterMode).
+    // - Pick centres per ring, capped at that ring's clusterCount
+    // - Keep only centres inside the ring
     internal static class ObjectBackboneClusterPlacer
     {
         public static void Generate(
@@ -29,13 +31,11 @@ namespace Game.MapGeneration.Pipeline.Generators
                 int placed = 0;
                 foreach (var center in centers)
                 {
-                    if (placed >= band.clusterCount) break;
+                    if (band.clusterCount <= placed) break;
 
                     // リング判定はクラスタ中心のワールド座標距離（鉱脈 OreEntryPlacer と同じ）。
                     // The ring test uses the cluster centre's world-space distance (as in OreEntryPlacer).
-                    float dx = (center.x + dims.WorldOffsetX) - dims.SpawnWorldX;
-                    float dz = (center.y + dims.WorldOffsetZ) - dims.SpawnWorldZ;
-                    if (!ring.Contains(Mathf.Sqrt(dx * dx + dz * dz))) continue;
+                    if (!ring.Contains(dims.DistanceFromSpawnXz(center.x, center.y))) continue;
 
                     int cx = Mathf.Clamp(Mathf.RoundToInt(center.x / w * (hRes - 1)), 0, hRes - 1);
                     int cz = Mathf.Clamp(Mathf.RoundToInt(center.y / l * (hRes - 1)), 0, hRes - 1);
@@ -55,8 +55,8 @@ namespace Game.MapGeneration.Pipeline.Generators
             }
         }
 
-        // クラスタ中心から背骨状にメンバーを並べる（旧 GenerateClusterObjects の内側ループ）。
-        // Lay members along a backbone from the cluster centre (the inner loop of the old GenerateClusterObjects).
+        // クラスタ中心から背骨状にメンバーを配置。
+        // Lay members along a backbone from the cluster centre.
         static void PlaceBackbone(
             BiomeObjectConfig.ObjectEntry entry, Vector2 center, int cx, int cz,
             TerrainDimensions dims, float[,] heights, int hRes, System.Random rng,
@@ -87,7 +87,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                 float latJit = ((float)rng.NextDouble() - 0.5f) * halfLen * 0.3f;
                 float ox = center.x + axisOff * Mathf.Cos(backboneAngle) - latJit * Mathf.Sin(backboneAngle);
                 float oz = center.y + axisOff * Mathf.Sin(backboneAngle) + latJit * Mathf.Cos(backboneAngle);
-                if (ox < 0 || ox > w || oz < 0 || oz > l) continue;
+                if (ox < 0 || w < ox || oz < 0 || l < oz) continue;
 
                 int hx = Mathf.Clamp(Mathf.RoundToInt(ox / w * (hRes - 1)), 0, hRes - 1);
                 int hz = Mathf.Clamp(Mathf.RoundToInt(oz / l * (hRes - 1)), 0, hRes - 1);
@@ -99,7 +99,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                     : scale * (0.45f + (float)rng.NextDouble() * 0.25f);
                 float yRotDeg = backboneAngle * Mathf.Rad2Deg + ((float)rng.NextDouble() - 0.5f) * 30f;
                 var rot = Quaternion.Euler(0, yRotDeg, 0);
-                if (entry.slopeAlignment > 0.001f)
+                if (0.001f < entry.slopeAlignment)
                     rot = ObjectPlacementMath.ApplySlopeAlignment(rot, heights, ox, oz, w, l, hRes,
                         dims.TerrainHeight, entry.slopeAlignment);
 

@@ -48,8 +48,6 @@ namespace Game.MapGeneration.Pipeline.Generators
             float l = dims.TerrainLength;
             int hRes = dims.Resolution;
             float minDist = entry.minDistanceFromOthers;
-            float sx = dims.SpawnWorldX;
-            float sz = dims.SpawnWorldZ;
 
             var rings = SpawnDistanceRingPlanner.BuildRings(OreBand.OuterRadiiOf(entry.bands));
 
@@ -70,10 +68,7 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                     // リング判定（ワールド座標距離・クラスター中心のみ）。
                     // Ring test (world-distance of the cluster center only).
-                    float dx = (localX + dims.WorldOffsetX) - sx;
-                    float dz = (localZ + dims.WorldOffsetZ) - sz;
-                    float dist = Mathf.Sqrt(dx * dx + dz * dz);
-                    if (!range.Contains(dist)) continue;
+                    if (!range.Contains(dims.DistanceFromSpawnXz(localX, localZ))) continue;
 
                     int px = Mathf.Clamp(Mathf.RoundToInt(localX / w * (hRes - 1)), 0, hRes - 1);
                     int pz = Mathf.Clamp(Mathf.RoundToInt(localZ / l * (hRes - 1)), 0, hRes - 1);

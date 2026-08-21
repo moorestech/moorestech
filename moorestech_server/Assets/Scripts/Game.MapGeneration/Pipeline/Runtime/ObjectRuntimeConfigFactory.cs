@@ -87,8 +87,8 @@ namespace Game.MapGeneration.Pipeline.Runtime
                         e.Prefabs[i].MapObjectGuid,
                         "objectConfig.entries.prefabs.mapObjectGuid");
 
-                // スポーン距離帯を並び順のまま写す。リング化は配置時に行う。
-                // Copy spawn-distance bands in order; ring construction happens at placement time.
+                // bandsを並び順のまま写す。
+                // Copy bands in order.
                 var bands = new ObjectScatterBand[e.Bands.Length];
                 for (var i = 0; i < e.Bands.Length; i++)
                     bands[i] = new ObjectScatterBand

@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration.Placement
 {
-    // 独立散布entriesのスポーン距離帯（bands）がJSONから実行時設定へ写り、配置がリング内に収まることを固定する。
-    // Pins that object-scatter spawn-distance bands flow from JSON into runtime config and that placement stays inside the ring.
+    // bandsのJSON→ランタイム反映とリング内配置を固定するテスト。
+    // Pins that bands flow from JSON into runtime config and placement stays inside the ring.
     public class ObjectScatterSpawnBandTest
     {
         private const int Seed = 11;
@@ -30,7 +30,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         [Test]
         public void 近傍帯だけ密度を持つ散布はスポーンから近傍半径未満にのみ置かれる()
         {
-            var output = GenerateScatter(useClusterMode: false,
+            var output = GenerateScatter(gridSide: 1, useClusterMode: false,
                 new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 30f, clusterCount = 0 },
                 new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f, clusterCount = 0 });
 
@@ -42,7 +42,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         [Test]
         public void 最外周だけ密度を持つ散布はスポーンから近傍半径以上にのみ置かれる()
         {
-            var output = GenerateScatter(useClusterMode: false,
+            var output = GenerateScatter(gridSide: 1, useClusterMode: false,
                 new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 0f, clusterCount = 0 },
                 new ObjectScatterBand { outerRadiusMeters = -1f, density = 30f, clusterCount = 0 });
 
@@ -54,7 +54,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         [Test]
         public void クラスタモードは近傍帯のクラスタ中心だけをスポーン近傍に置く()
         {
-            var output = GenerateScatter(useClusterMode: true,
+            var output = GenerateScatter(gridSide: 1, useClusterMode: true,
                 new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 0f, clusterCount = 400 },
                 new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f, clusterCount = 0 });
 
@@ -67,11 +67,43 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
             }
         }
 
-        // 1タイル・Grassland/Forest 両方に同じ散布エントリを置き、木は出さずに生成する。
-        // Generate one tile with the same scatter entry in Grassland and Forest, with no trees.
-        private static MapGenerationOutput GenerateScatter(bool useClusterMode, params ObjectScatterBand[] bands)
+        // 複数タイル（中心タイルにスポーン）でも、近傍帯の判定がタイルローカルではなく世界座標のスポーン距離で効くことを固定する。
+        // WorldOffset加算が落ちると、各タイルが自タイルのローカル原点をスポーンとみなし、全タイルの同じ相対位置に湧いてしまう回帰を検知する。
+        // Pins that the near-band test uses the world-space distance to spawn even across multiple tiles (spawn sits in the centre tile).
+        // If the WorldOffset addition is dropped, every tile treats its own local origin as spawn and objects reappear at the same relative spot on all tiles.
+        [Test]
+        public void 複数タイルでも近傍帯はワールド座標のスポーン距離で判定される()
         {
-            var config = MultiTileTestWorld.BuildConfig(1, Seed);
+            var output = GenerateScatter(gridSide: 3, useClusterMode: false,
+                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 30f, clusterCount = 0 },
+                new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f, clusterCount = 0 });
+
+            Assert.IsNotEmpty(output.MapObjects);
+            foreach (var mapObject in output.MapObjects)
+                Assert.Less(DistanceFromSpawnXz(mapObject.Position, output.SpawnPoint), NearRadius);
+        }
+
+        [Test]
+        public void 複数タイルでもクラスタ中心はワールド座標のスポーン距離で判定される()
+        {
+            var output = GenerateScatter(gridSide: 3, useClusterMode: true,
+                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 0f, clusterCount = 400 },
+                new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f, clusterCount = 0 });
+
+            Assert.IsNotEmpty(output.MapObjects);
+            foreach (var mapObject in output.MapObjects)
+            {
+                Assert.GreaterOrEqual(mapObject.ClusterId, 0);
+                var center = new Vector3(mapObject.ClusterCenter.x, 0f, mapObject.ClusterCenter.y);
+                Assert.Less(DistanceFromSpawnXz(center, output.SpawnPoint), NearRadius);
+            }
+        }
+
+        // gridSide四方に散布entryを生成、木は出さない。
+        // Generate a gridSide-by-gridSide grid with the scatter entry and no trees.
+        private static MapGenerationOutput GenerateScatter(int gridSide, bool useClusterMode, params ObjectScatterBand[] bands)
+        {
+            var config = MultiTileTestWorld.BuildConfig(gridSide, Seed);
             config.generateObject = true;
             config.grassland.objectConfig = BuildScatterConfig(useClusterMode, bands);
             config.forest.objectConfig = BuildScatterConfig(useClusterMode, bands);

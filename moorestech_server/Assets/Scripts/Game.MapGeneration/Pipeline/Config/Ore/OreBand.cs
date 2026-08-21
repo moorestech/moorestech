@@ -13,9 +13,9 @@ namespace Game.MapGeneration.Pipeline.Config
         public float minDistanceBetweenOres = 1.5f;
         public int placementRetries = 10;
 
-        // リングプランナーへ渡す外半径列。バンドの並び順をそのまま保つ。
-        // The outer-radius sequence handed to the ring planner, keeping band order.
-        public static float[] OuterRadiiOf(OreBand[] bands)
+        // リング用外半径列（並び順保持）。
+        // Outer radii for the ring planner (order preserved).
+        internal static float[] OuterRadiiOf(OreBand[] bands)
         {
             var radii = new float[bands.Length];
             for (var i = 0; i < bands.Length; i++) radii[i] = bands[i].outerRadiusMeters;

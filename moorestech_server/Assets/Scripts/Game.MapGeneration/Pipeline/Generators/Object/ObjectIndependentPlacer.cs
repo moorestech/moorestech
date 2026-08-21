@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Generators
 {
-    // 独立散布（Poisson）。スポーン距離リングごとにそのリングの density で Poisson を回し、リング内の候補だけ採用する。
+    // 独立散布（Poisson）。リング毎にdensityで実行し内側の候補だけ採用。
     // リングをまたぐ点同士の最小間隔は保証されない（リングごとに独立したPoissonのため）。
-    // Independent scatter (Poisson): one Poisson pass per spawn-distance ring at that ring's density, keeping only in-ring candidates.
+    // Independent scatter (Poisson); runs per ring at that ring's density, keeping only in-ring candidates.
     // Minimum spacing across ring boundaries is not guaranteed, since each ring runs its own independent Poisson pass.
     internal static class ObjectIndependentPlacer
     {
@@ -32,7 +32,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                 {
                     // リング判定は候補点そのもののワールド座標距離で行う（鉱脈はクラスタ中心、散布は点）。
                     // The ring test uses the candidate's own world-space distance (veins test the cluster centre, scatter the point).
-                    if (!ring.Contains(DistanceFromSpawn(point.x, point.y))) continue;
+                    if (!ring.Contains(dims.DistanceFromSpawnXz(point.x, point.y))) continue;
 
                     int hx = Mathf.Clamp(Mathf.RoundToInt(point.x / w * (hRes - 1)), 0, hRes - 1);
                     int hz = Mathf.Clamp(Mathf.RoundToInt(point.y / l * (hRes - 1)), 0, hRes - 1);
@@ -50,10 +50,10 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                     if (treeSpatialGrid != null)
                     {
-                        if (entry.minDistanceFromTree > 0f &&
+                        if (0f < entry.minDistanceFromTree &&
                             treeSpatialGrid.HasNeighborWithin(point.x, point.y, entry.minDistanceFromTree))
                             continue;
-                        if (entry.maxDistanceFromTree > 0f &&
+                        if (0f < entry.maxDistanceFromTree &&
                             !treeSpatialGrid.HasNeighborWithin(point.x, point.y, entry.maxDistanceFromTree))
                             continue;
                     }
@@ -65,7 +65,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                         float slope = ObjectPlacementMath.ComputeSlopeAngle(heights, hx, hz, hRes, w, dims.TerrainHeight, l);
                         float sw = ObjectPlacementMath.EvaluateSlopeFilter(slope, entry.slopeMin, entry.slopeMax, entry.slopeSmoothness);
                         if (sw <= 0f) continue;
-                        if (sw < 1f && (float)rng.NextDouble() > sw) continue;
+                        if (sw < 1f && sw < (float)rng.NextDouble()) continue;
                     }
 
                     float scale = Mathf.Lerp(entry.scaleRange.x, entry.scaleRange.y, (float)rng.NextDouble());
@@ -88,19 +88,6 @@ namespace Game.MapGeneration.Pipeline.Generators
                     });
                 }
             }
-
-            #region Internal
-
-            // タイルローカル座標をワールド座標へ直してスポーンXZとの距離を取る（鉱脈 OreEntryPlacer と同じ基準）。
-            // Convert tile-local to world and measure the XZ distance to spawn (same basis as OreEntryPlacer).
-            float DistanceFromSpawn(float localX, float localZ)
-            {
-                float dx = (localX + dims.WorldOffsetX) - dims.SpawnWorldX;
-                float dz = (localZ + dims.WorldOffsetZ) - dims.SpawnWorldZ;
-                return Mathf.Sqrt(dx * dx + dz * dz);
-            }
-
-            #endregion
         }
     }
 }

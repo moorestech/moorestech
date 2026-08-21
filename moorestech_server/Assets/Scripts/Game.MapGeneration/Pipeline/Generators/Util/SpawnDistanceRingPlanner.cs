@@ -2,8 +2,12 @@ using System.Collections.Generic;
 
 namespace Game.MapGeneration.Pipeline.Generators.Util
 {
-    // 1つのスポーン距離リング [Inner, Outer)（Outer は +infinity あり）。BandIndex は元バンド配列の添字。
-    // One spawn-distance ring [Inner, Outer) (Outer may be +infinity); BandIndex points back into the source band array.
+    // スポーン距離リング [Inner, Outer)。
+    // ・Outerは+infinity可
+    // ・BandIndexは元配列の添字
+    // A spawn-distance ring [Inner, Outer).
+    // - Outer may be +infinity
+    // - BandIndex points back into the source array
     public readonly struct SpawnDistanceRing
     {
         public readonly int BandIndex;
@@ -20,9 +24,9 @@ namespace Game.MapGeneration.Pipeline.Generators.Util
         public bool Contains(float distance) => Inner <= distance && distance < Outer;
     }
 
-    // 外半径列を outerRadiusMeters 昇順（負値=無限は末尾・安定ソート）のリングへ変換する純粋関数。
+    // 外半径列を昇順リングへ変換する純粋関数。
     // 鉱脈帯と mapObject 散布帯の両方が使う。バンド型に依存しないよう外半径だけを受け取る。
-    // Pure function turning outer radii into rings sorted ascending (negative = infinite last, stable).
+    // Pure function turning outer radii into ascending rings.
     // Shared by vein bands and object-scatter bands; takes only the radii so it stays independent of the band type.
     public static class SpawnDistanceRingPlanner
     {
@@ -31,19 +35,24 @@ namespace Game.MapGeneration.Pipeline.Generators.Util
             var rings = new List<SpawnDistanceRing>();
             if (outerRadiusMeters == null || outerRadiusMeters.Length == 0) return rings;
 
-            // 添字を保持したまま安定ソートする。同じ外半径は元の並び順を保つ。
-            // Sort stably while keeping the index; equal radii keep their original order.
+            // 添字保持のまま安定ソート。
+            // Sort stably while keeping the index.
             var indexed = new List<(float key, int idx)>();
             for (var i = 0; i < outerRadiusMeters.Length; i++)
+            {
+                // NaN混入バンドは汚染源になるため個別にスキップする（他バンドの生成を道連れにしない）。
+                // Skip a NaN band individually so it doesn't poison the sort key for every other band.
+                if (float.IsNaN(outerRadiusMeters[i])) continue;
                 indexed.Add((ToSortKey(outerRadiusMeters[i]), i));
+            }
             indexed.Sort((a, b) =>
             {
                 var c = a.key.CompareTo(b.key);
                 return c != 0 ? c : a.idx.CompareTo(b.idx);
             });
 
-            // 内側から順に [inner, outer) を切る。幅0（重複外半径）はリングにしない。
-            // Cut [inner, outer) from the inside out; zero-width rings (duplicate radii) are dropped.
+            // 内側から[inner,outer)を切る。
+            // Cut [inner, outer) from the inside out.
             var inner = 0f;
             foreach (var (key, idx) in indexed)
             {
@@ -51,9 +60,13 @@ namespace Game.MapGeneration.Pipeline.Generators.Util
                 inner = key;
             }
             return rings;
-        }
 
-        static float ToSortKey(float outerRadiusMeters)
-            => outerRadiusMeters < 0f ? float.PositiveInfinity : outerRadiusMeters;
+            #region Internal
+
+            float ToSortKey(float outerRadius)
+                => outerRadius < 0f ? float.PositiveInfinity : outerRadius;
+
+            #endregion
+        }
     }
 }
