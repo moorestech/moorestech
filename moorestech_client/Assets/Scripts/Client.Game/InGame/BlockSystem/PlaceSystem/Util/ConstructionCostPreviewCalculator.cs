@@ -35,42 +35,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         }
 
         /// <summary>
-        /// エンティティ列の先頭から所持素材で賄える個数を返す
-        /// Returns how many leading entities the inventory can afford
+        /// 残り設置数 + 所持素材で買えるセット数×設置数/1セット を返す（ADR 0026）
+        /// Returns remaining placements + affordable sets × placementsPerCost (ADR 0026)
         /// </summary>
-        public static int CalculateAffordableEntityCount(IReadOnlyList<ConstructionRequiredItemElement[]> entityCosts, IEnumerable<IItemStack> inventoryItems)
+        public static int CalculateAffordablePlacementCount(ConstructionRequiredItemElement[] requiredItems, int placementsPerCost, int remainingCount, IEnumerable<IItemStack> inventoryItems)
         {
-            var remaining = new Dictionary<ItemId, int>();
-            foreach (var stack in inventoryItems)
-            {
-                remaining.TryGetValue(stack.Id, out var current);
-                remaining[stack.Id] = current + stack.Count;
-            }
+            var affordableSets = CalculateAffordableCellCount(requiredItems, inventoryItems);
+            if (affordableSets == int.MaxValue) return int.MaxValue;
 
-            var affordableCount = 0;
-            foreach (var cost in entityCosts)
-            {
-                if (cost == null || cost.Length == 0) { affordableCount++; continue; }
-
-                // 全素材が足りる場合のみ消費を確定して次へ
-                // Advance only when every material of this entity is affordable, then commit consumption
-                var canAfford = true;
-                foreach (var requiredItem in cost)
-                {
-                    var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
-                    remaining.TryGetValue(itemId, out var held);
-                    if (held < requiredItem.Count) { canAfford = false; break; }
-                }
-                if (!canAfford) break;
-
-                foreach (var requiredItem in cost)
-                {
-                    var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
-                    remaining[itemId] -= requiredItem.Count;
-                }
-                affordableCount++;
-            }
-            return affordableCount;
+            // 大量所持でのオーバーフローを避ける
+            // Avoid overflow on very large holdings
+            var total = remainingCount + (long)affordableSets * placementsPerCost;
+            return total > int.MaxValue ? int.MaxValue : (int)total;
         }
     }
 }

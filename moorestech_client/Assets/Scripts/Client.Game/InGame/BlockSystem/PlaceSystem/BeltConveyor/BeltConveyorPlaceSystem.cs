@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.Construction;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -29,6 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private const float PlaceableMaxDistance = 100f;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly ILocalPlayerInventory _localPlayerInventory;
+        private readonly ClientRemainingPlacementCountDatastore _remainingPlacementCountDatastore;
         private readonly Camera _mainCamera;
         private readonly BeltConveyorPlacePointCalculator _blockPlacePointCalculator;
 
@@ -41,11 +43,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
         private int _heightOffset;
 
-        public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory)
+        public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, ClientRemainingPlacementCountDatastore remainingPlacementCountDatastore)
         {
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
+            _remainingPlacementCountDatastore = remainingPlacementCountDatastore;
             _blockPlacePointCalculator = new BeltConveyorPlacePointCalculator(blockGameObjectDataStore);
         }
 
@@ -124,7 +127,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
             // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
-            BeltConveyorCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(_currentPlaceInfos, _localPlayerInventory);
+            BeltConveyorCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(_currentPlaceInfos, _localPlayerInventory, _remainingPlacementCountDatastore);
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state

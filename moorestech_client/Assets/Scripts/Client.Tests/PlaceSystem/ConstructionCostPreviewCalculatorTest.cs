@@ -60,6 +60,46 @@ namespace Client.Tests.PlaceSystem
             Assert.AreEqual(0, ConstructionCostPreviewCalculator.CalculateAffordableCellCount(requiredItems, inventory));
         }
 
+        [Test]
+        public void 残り設置数と買えるセット数から置ける数を算出する()
+        {
+            CreateServer();
+            var requiredItems = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).RequiredItems;
+            var factory = ServerContext.ItemStackFactory;
+            // 素材は2セット分、残り設置数1 → 1 + 2×3 = 7
+            // Materials cover two sets and one placement remains → 1 + 2×3 = 7
+            var inventory = new List<global::Core.Item.Interface.IItemStack>
+            {
+                factory.Create(MasterHolder.ItemMaster.GetItemId(Material1Guid), 2),
+                factory.Create(MasterHolder.ItemMaster.GetItemId(Material2Guid), 2),
+            };
+
+            Assert.AreEqual(7, ConstructionCostPreviewCalculator.CalculateAffordablePlacementCount(requiredItems, 3, 1, inventory));
+        }
+
+        [Test]
+        public void 設置数1なら従来のセル数計算と一致する()
+        {
+            CreateServer();
+            var requiredItems = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BlockId).RequiredItems;
+            var factory = ServerContext.ItemStackFactory;
+            var inventory = new List<global::Core.Item.Interface.IItemStack>
+            {
+                factory.Create(MasterHolder.ItemMaster.GetItemId(Material1Guid), 5),
+                factory.Create(MasterHolder.ItemMaster.GetItemId(Material2Guid), 2),
+            };
+
+            Assert.AreEqual(2, ConstructionCostPreviewCalculator.CalculateAffordablePlacementCount(requiredItems, 1, 0, inventory));
+        }
+
+        [Test]
+        public void コスト未定義なら残り設置数に関わらずMaxValue()
+        {
+            CreateServer();
+            var requiredItems = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).RequiredItems;
+            Assert.AreEqual(int.MaxValue, ConstructionCostPreviewCalculator.CalculateAffordablePlacementCount(requiredItems, 1, 0, new List<global::Core.Item.Interface.IItemStack>()));
+        }
+
         private static void CreateServer()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
