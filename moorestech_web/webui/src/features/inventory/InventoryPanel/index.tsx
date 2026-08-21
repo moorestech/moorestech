@@ -1,9 +1,11 @@
 import type { CSSProperties } from "react";
-import { dispatchAction, useTopic, Topics } from "@/bridge";
+import { dispatchAction, useItemMaster, useTopic, Topics } from "@/bridge";
 import { ConnectingPlaceholder, ItemSlot, PanelActionButton, SlotGrid, GamePanel } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
 import { slotActions } from "../slotActions";
 import { L, useI18n } from "@/shared/i18n";
+import { inventoryItemAnchorId, tutorialAnchor } from "@/shared/tutorialAnchor";
+import { firstSlotIndexByItemId } from "@/shared/ownedCounts";
 
 // 固定pxでピッチの端数ドリフトを防ぐ
 // Use fixed-pixel slots and gaps to prevent fractional drift from the 140px screenshot pitch
@@ -29,6 +31,7 @@ const GRID_STYLE = {
 export default function InventoryPanel() {
   const { t } = useI18n();
   const inventory = useTopic(Topics.inventory);
+  const itemMaster = useItemMaster();
   if (!inventory) {
     return <ConnectingPlaceholder style={{ gridArea: "inv" }} />;
   }
@@ -40,14 +43,20 @@ export default function InventoryPanel() {
     </PanelActionButton>
   );
 
+  // 所持スロットを指すアンカー
+  // Anchors for "the slot holding this item"
+  const firstSlots = firstSlotIndexByItemId(inventory.mainSlots);
+
   return (
     <GamePanel gridArea="inv" title={t(L.ui.inventory.title)} titleAction={sortAction} style={{ justifySelf: "start", alignSelf: "start", width: "var(--inventory-panel-width)", minHeight: 452.391, transform: "translate(0.783px, 0.783px)", "--panel-left": "-2.22px", "--panel-right": "-2.22px", "--title-shift-x": "-1.96px", "--title-scale-x": 0.919, "--title-scale-y": 0.924 } as CSSProperties}>
       <SlotGrid testId="main-grid" cols={9} style={GRID_STYLE}>
         {inventory.mainSlots.map((slot, i) => {
           const ref: SlotRef = { area: "main", slot: i };
+          const itemGuid = firstSlots.get(slot.itemId) === i ? itemMaster?.get(slot.itemId)?.itemGuid : undefined;
           return (
             <ItemSlot
               key={`main-${i}`}
+              {...(itemGuid ? tutorialAnchor(inventoryItemAnchorId(itemGuid)) : {})}
               itemId={slot.itemId}
               count={slot.count}
               onLeftDown={(shiftKey) => slotActions.onLeftDown(ref, shiftKey)}

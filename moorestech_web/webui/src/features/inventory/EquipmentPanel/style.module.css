@@ -13,5 +13,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--equipment-slot-gap);
+  /* 寸法は子のスロット任せのため、枠0だと0x0になりHUDのアンカーがzero-areaで解決しない */
+  /* The size follows its slot children, so with zero slots it collapses to 0x0 and the HUD anchor never resolves (zero-area) */
+  min-width: var(--equipment-slot-size);
+  min-height: var(--equipment-slot-size);
   --slot-size: var(--equipment-slot-size);
 }

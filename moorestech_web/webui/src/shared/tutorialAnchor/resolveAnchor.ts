@@ -1,4 +1,5 @@
 import { ancestorClipRect, type ClipRect } from "./ancestorClip";
+import { tutorialAnchorSelector } from "./tutorialAnchor";
 
 export type AnchorReason = "mounted" | "missing" | "duplicate-anchor" | "display-none" |
   "visibility-hidden" | "aria-hidden" | "zero-area" | "outside-viewport";
@@ -8,9 +9,7 @@ export type ResolvedAnchor =
   | { status: "hidden"; reason: Exclude<AnchorReason, "mounted" | "missing" | "duplicate-anchor"> };
 
 export function resolveTutorialAnchor(anchorId: string): ResolvedAnchor {
-  const escaped = globalThis.CSS?.escape ? globalThis.CSS.escape(anchorId) : anchorId.replaceAll('"', '\\"');
-  const selector = `[data-tutorial-anchor="${escaped}"]`;
-  const matches = document.querySelectorAll<HTMLElement>(selector);
+  const matches = document.querySelectorAll<HTMLElement>(tutorialAnchorSelector(anchorId));
   if (matches.length === 0) return { status: "not-found", reason: "missing" };
   if (matches.length > 1) return { status: "not-found", reason: "duplicate-anchor" };
   const element = matches[0];

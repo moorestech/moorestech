@@ -169,7 +169,7 @@ test("クラフトエントリが複数でもチュートリアルアンカー�
 
   const list = page.getByTestId("recipe-entry-list");
   await expect(list.locator('[data-testid^="craft-recipe-entry"]')).toHaveCount(2);
-  await expect(list.locator('[data-tutorial-anchor="recipe.craft-button"]')).toHaveCount(1);
+  await expect(list.locator('[data-tutorial-anchor~="recipe.craft-button"]')).toHaveCount(1);
 
   // GUID単位で2件目を厳密指定
   // Exact-match the second recipe by its GUID testId

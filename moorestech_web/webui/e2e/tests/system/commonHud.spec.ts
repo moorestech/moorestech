@@ -13,7 +13,7 @@ test("設置情報と削除警告帯を操作モードへ反映する", async ({
   await setTopicScenario(page, "placement");
   await setUiState(page, "PlaceBlock");
   await page.goto("/");
-  const placement = page.locator('[data-tutorial-anchor="placement.hud"]');
+  const placement = page.locator('[data-tutorial-anchor~="placement.hud"]');
   await expect(placement).toContainText("Assembler");
   await expect(placement).toContainText("3");
 
@@ -21,7 +21,7 @@ test("設置情報と削除警告帯を操作モードへ反映する", async ({
   const deletion = page.getByTestId("delete-mode-warning");
   await expect(deletion).toHaveAttribute("aria-label", "Delete Mode");
   await expect(deletion.getByTestId("delete-mode-warning-band")).toHaveCount(2);
-  await expect(page.locator('[data-tutorial-anchor="delete.hud"]')).toHaveCSS("bottom", "0px");
+  await expect(page.locator('[data-tutorial-anchor~="delete.hud"]')).toHaveCSS("bottom", "0px");
 });
 
 test("横長画面でビネットを実viewportの四辺へ沿わせる", async ({ page }) => {
@@ -57,11 +57,11 @@ test("採掘進捗・クロスヘア・tooltipのtopic eventを表示する", as
   await setTopicScenario(page, "mining");
   await setTopicScenario(page, "tooltip");
 
-  const miningProgress = page.locator('[data-tutorial-anchor="mining.hud"] [role="progressbar"]');
+  const miningProgress = page.locator('[data-tutorial-anchor~="mining.hud"] [role="progressbar"]');
   await expect(miningProgress).toHaveAttribute("aria-valuenow", "0.65");
   await expect(page.getByText(/Mining Target/i)).toHaveCount(0);
   await expect(page.getByText("Iron Ore", { exact: true })).toHaveCount(0);
-  await expect(page.locator('[data-tutorial-anchor="game.crosshair"]')).toBeVisible();
+  await expect(page.locator('[data-tutorial-anchor~="game.crosshair"]')).toBeVisible();
   await expect(page.getByText("世界の対象", { exact: true })).toBeVisible();
 
   // 書式はWeb側トークンが唯一の値源。ホスト由来の寸法へ戻らないよう実測で固定する
@@ -73,7 +73,7 @@ test("採掘進捗・クロスヘア・tooltipのtopic eventを表示する", as
   expect(tooltipStyle).toEqual({ fontSize: "18px", padding: "6px 10px", maxWidth: "320px" });
 
   await setTopicScenario(page, "crosshairHidden");
-  await expect(page.locator('[data-tutorial-anchor="game.crosshair"]')).toBeHidden();
+  await expect(page.locator('[data-tutorial-anchor~="game.crosshair"]')).toBeHidden();
 });
 
 test("ui.visibility=falseでPortalを含む全UIを退避し復帰する", async ({ page }) => {
