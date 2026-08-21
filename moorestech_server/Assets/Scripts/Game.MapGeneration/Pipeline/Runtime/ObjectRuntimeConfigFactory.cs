@@ -87,10 +87,21 @@ namespace Game.MapGeneration.Pipeline.Runtime
                         e.Prefabs[i].MapObjectGuid,
                         "objectConfig.entries.prefabs.mapObjectGuid");
 
+                // スポーン距離帯を並び順のまま写す。リング化は配置時に行う。
+                // Copy spawn-distance bands in order; ring construction happens at placement time.
+                var bands = new ObjectScatterBand[e.Bands.Length];
+                for (var i = 0; i < e.Bands.Length; i++)
+                    bands[i] = new ObjectScatterBand
+                    {
+                        outerRadiusMeters = e.Bands[i].OuterRadiusMeters,
+                        density = e.Bands[i].Density,
+                        clusterCount = e.Bands[i].ClusterCount
+                    };
+
                 entries.Add(new BiomeObjectConfig.ObjectEntry
                 {
                     mapObjectGuids = entryGuids,
-                    density = e.Density,
+                    bands = bands,
                     scaleRange = e.ScaleRange,
                     slopeAlignment = e.SlopeAlignment,
                     sinkRange = e.SinkRange,
@@ -103,7 +114,6 @@ namespace Game.MapGeneration.Pipeline.Runtime
                     slopeMax = e.SlopeMax,
                     slopeSmoothness = e.SlopeSmoothness,
                     useClusterMode = e.UseClusterMode,
-                    clusterCount = e.ClusterCount,
                     objectsPerCluster = e.ObjectsPerCluster,
                     clusterRadius = e.ClusterRadius,
                     minDistanceFromTree = e.MinDistanceFromTree,

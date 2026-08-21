@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
+using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Generators
 {
@@ -74,9 +75,18 @@ namespace Game.MapGeneration.Pipeline.Generators
             {
                 foreach (var entry in objConfig.entries)
                 {
-                    if (entry.mapObjectGuids == null || entry.mapObjectGuids.Length == 0 || entry.density <= 0.001f) continue;
+                    if (entry.mapObjectGuids == null || entry.mapObjectGuids.Length == 0) continue;
+
+                    // バンド未設定は警告してスキップ（鉱脈 OreEntryPlacer と同じ扱い）。
+                    // Warn and skip entries without bands (same treatment as OreEntryPlacer).
+                    if (entry.bands == null || entry.bands.Length == 0)
+                    {
+                        Debug.LogWarning($"[ObjectPlacement] scatter entry '{entry.mapObjectGuids[0]}' has no spawn-distance bands; skipping.");
+                        continue;
+                    }
+
                     if (entry.useClusterMode)
-                        ObjectIndependentPlacer.GenerateClusterObjects(entry, dims, heights, hRes,
+                        ObjectBackboneClusterPlacer.Generate(entry, dims, heights, hRes,
                             mask, borderMarginPx, rng, noiseOffsets, placements, treeSpatialGrid, objAlgCfg, ref nextClusterId);
                     else
                         ObjectIndependentPlacer.GenerateIndependent(entry, dims, heights, hRes,

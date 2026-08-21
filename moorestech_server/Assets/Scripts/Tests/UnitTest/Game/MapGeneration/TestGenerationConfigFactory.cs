@@ -159,7 +159,12 @@ namespace Tests.UnitTest.Game.MapGeneration
                 return new JObject
                 {
                     ["prefabs"] = new JArray(new JObject { ["mapObjectGuid"] = mapObjectGuid }),
-                    ["density"] = 1.0,
+                    ["bands"] = new JArray(new JObject
+                    {
+                        ["outerRadiusMeters"] = -1,
+                        ["density"] = 1.0,
+                        ["clusterCount"] = 8,
+                    }),
                     ["scaleRange"] = new JArray(1.0, 1.0),
                     ["slopeAlignment"] = 0.0,
                     ["sinkRange"] = new JArray(0.0, 0.0),
@@ -172,7 +177,6 @@ namespace Tests.UnitTest.Game.MapGeneration
                     ["slopeMax"] = 90.0,
                     ["slopeSmoothness"] = 4.0,
                     ["useClusterMode"] = false,
-                    ["clusterCount"] = 8,
                     ["objectsPerCluster"] = 4,
                     ["clusterRadius"] = 12.0,
                     ["minDistanceFromTree"] = 0.0,
