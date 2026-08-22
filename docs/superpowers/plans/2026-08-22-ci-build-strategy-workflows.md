@@ -60,7 +60,7 @@
 - Consumes: なし
 - Produces: なし（後段タスクは変更後のファイルを前提に編集する）
 
-- [ ] **Step 1: `actions/cache@v3` と `actions/checkout@v3` の参照箇所を洗い出す**
+- [x] **Step 1: `actions/cache@v3` と `actions/checkout@v3` の参照箇所を洗い出す**
 
 Run:
 ```bash
@@ -68,7 +68,7 @@ grep -rn "actions/cache@v3\|actions/checkout@v3\|setup-python@v4" .github/workfl
 ```
 Expected: `run_test.yml` と `build.yml` に `actions/cache@v3` が計3箇所、`notion_tickets.yml` に `actions/checkout@v3` が1箇所。
 
-- [ ] **Step 2: バージョンを上げる**
+- [x] **Step 2: バージョンを上げる**
 
 `.github/workflows/run_test.yml` と `.github/workflows/build.yml` の `uses: actions/cache@v3` をすべて `uses: actions/cache@v4` へ置換する。
 `.github/workflows/notion_tickets.yml` の `uses: actions/checkout@v3` を `uses: actions/checkout@v4` へ置換する。
@@ -78,7 +78,7 @@ sed -i '' 's#actions/cache@v3#actions/cache@v4#g' .github/workflows/run_test.yml
 sed -i '' 's#actions/checkout@v3#actions/checkout@v4#g' .github/workflows/notion_tickets.yml
 ```
 
-- [ ] **Step 3: Windows で空になる `CURRENT_DATETIME` を直す**
+- [x] **Step 3: Windows で空になる `CURRENT_DATETIME` を直す**
 
 `.github/workflows/run_test.yml` の日時取得ステップに `shell: bash` を追加する。`windows-latest` の `run:` は既定 pwsh のため、`date +'%Y-%m'` と `>> $GITHUB_ENV` が意図どおり動かず、キャッシュキーが `Library_`（日付なし）になっていた。
 
@@ -103,7 +103,7 @@ sed -i '' 's#actions/checkout@v3#actions/checkout@v4#g' .github/workflows/notion
 
 `.github/workflows/build.yml` にも同じステップが2箇所（server-build / client-build）あるので、同様に `shell: bash` を追加する。※ Task 3 で build.yml のキャッシュ自体を削除するため、このステップも Task 3 で消える。ここでは一旦揃えておく。
 
-- [ ] **Step 4: Linux除外コメントを実態に合わせて訂正する**
+- [x] **Step 4: Linux除外コメントを実態に合わせて訂正する**
 
 `.github/workflows/build.yml` の client-build matrix にある誤ったコメントを直す。真因は容量ではなく CEF ネイティブランタイム不在（`.decisions/2026-08-02-Linuxビルド入口は意図的失敗として残す.md`）。
 
@@ -118,7 +118,7 @@ sed -i '' 's#actions/checkout@v3#actions/checkout@v4#g' .github/workflows/notion
           # The Linux client is excluded because the CEF native runtime does not exist for it (.decisions/2026-08-02)
 ```
 
-- [ ] **Step 5: 全ワークフローがYAMLとして妥当か確認する**
+- [x] **Step 5: 全ワークフローがYAMLとして妥当か確認する**
 
 Run:
 ```bash
@@ -131,7 +131,7 @@ for f in sorted(glob.glob('.github/workflows/*.yml')):
 ```
 Expected: 全8ファイルに `ok` が出る。
 
-- [ ] **Step 6: 是正が効いているか確認する**
+- [x] **Step 6: 是正が効いているか確認する**
 
 Run:
 ```bash
@@ -140,7 +140,7 @@ grep -c "ランナーの容量が足りない" .github/workflows/build.yml || tr
 ```
 Expected: 1行目は `0`。2行目は `0`（grep がヒット0で終了コード1を返すため `|| true` を付けている）。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add .github/workflows/run_test.yml .github/workflows/build.yml .github/workflows/notion_tickets.yml
@@ -160,7 +160,7 @@ git commit -m "chore(ci): actions/cacheをv4へ上げ、Windowsで空になる�
 - Consumes: なし
 - Produces: なし
 
-- [ ] **Step 1: 現在の失敗シグネチャを確認する**
+- [x] **Step 1: 現在の失敗シグネチャを確認する**
 
 Run:
 ```bash
@@ -168,7 +168,7 @@ gh run view 32398363972 --log-failed 2>&1 | grep -a "docker API"
 ```
 Expected: `failed to connect to the docker API at npipe:////./pipe/docker_engine; ...` が1行出る。（このrunが期限切れで取得できない場合は、`gh run list --workflow="Unity Build" --limit 40 --json databaseId,conclusion --jq '.[]|select(.conclusion=="failure")|.databaseId'` で直近の失敗runを探して同じ grep を当てる）
 
-- [ ] **Step 2: 待機ステップを追加する**
+- [x] **Step 2: 待機ステップを追加する**
 
 `.github/workflows/build.yml` の server-build ジョブで、`Enable long paths (Windows)` ステップの直後に以下を挿入する。
 
@@ -192,11 +192,11 @@ Expected: `failed to connect to the docker API at npipe:////./pipe/docker_engine
           exit 1
 ```
 
-- [ ] **Step 3: client-build ジョブにも同じステップを追加する**
+- [x] **Step 3: client-build ジョブにも同じステップを追加する**
 
 client-build ジョブの `Enable long paths (Windows)` の直後にも、Step 2 と同一のステップを挿入する。
 
-- [ ] **Step 4: YAML の妥当性と挿入位置を確認する**
+- [x] **Step 4: YAML の妥当性と挿入位置を確認する**
 
 Run:
 ```bash
@@ -213,7 +213,7 @@ for job in ('server-build', 'client-build'):
 ```
 Expected: 両ジョブで `before build step: True`。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add .github/workflows/build.yml
@@ -231,7 +231,7 @@ git commit -m "fix(ci): WindowsビルドでDockerデーモンの起動を待っ�
 - Consumes: なし
 - Produces: ワークフロー名 `Unity Build`（Task 6 の `ci-auto-rerun.yml` と Task 7 の Issue 起票が `workflow_run` でこの名前を参照する。**変更しないこと**）
 
-- [ ] **Step 1: トリガーを差し替える**
+- [x] **Step 1: トリガーを差し替える**
 
 `.github/workflows/build.yml` 冒頭の `on:` ブロックを次に置き換える。
 
@@ -251,7 +251,7 @@ on:
   workflow_dispatch: {}
 ```
 
-- [ ] **Step 2: concurrency をラベル発火に合わせる**
+- [x] **Step 2: concurrency をラベル発火に合わせる**
 
 `concurrency` ブロックを次に置き換える。日次（`schedule`）は互いにキャンセルし合わない。
 
@@ -265,7 +265,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 ```
 
-- [ ] **Step 3: 両ジョブにラベル条件を付ける**
+- [x] **Step 3: 両ジョブにラベル条件を付ける**
 
 `server-build` と `client-build` の両方に、`runs-on` の直前へ次を追加する。`pull_request` 以外（schedule / workflow_dispatch）では常に実行する。
 
@@ -275,7 +275,7 @@ concurrency:
     if: github.event_name != 'pull_request' || github.event.label.name == 'ビルド検証'
 ```
 
-- [ ] **Step 4: 直列化を外す**
+- [x] **Step 4: 直列化を外す**
 
 `server-build` の `strategy` から `max-parallel: 1` の行を削除する。
 `client-build` の `strategy` から `max-parallel: 1` の行を削除し、さらに `needs: server-build` の行も削除する。あわせて client-build 冒頭の説明コメントを実態に合わせる。
@@ -287,7 +287,7 @@ client-build のヘッダコメントを次に置き換える:
   # The client does not consume the server's artifacts, so there is no dependency; all four jobs run in parallel (ADR 0028)
 ```
 
-- [ ] **Step 5: キャッシュを外す**
+- [x] **Step 5: キャッシュを外す**
 
 `build.yml` から次の3種のステップをすべて削除する（server-build / client-build の両方）:
 - `- name: Set current datetime as env variable`（`CURRENT_DATETIME` を作るステップ）
@@ -300,7 +300,7 @@ client-build のヘッダコメントを次に置き換える:
       # The daily build runs cold so the 10GB cache budget goes to PR-side jobs (ADR 0028)
 ```
 
-- [ ] **Step 6: 変更が要件どおりか機械的に検証する**
+- [x] **Step 6: 変更が要件どおりか機械的に検証する**
 
 Run:
 ```bash
@@ -321,7 +321,7 @@ print('all checks passed')
 ```
 Expected: `all checks passed`
 
-- [ ] **Step 7: Linux行が有効化されていないことを確認する**
+- [x] **Step 7: Linux行が有効化されていないことを確認する**
 
 Run:
 ```bash
@@ -336,7 +336,7 @@ for job in ('server-build', 'client-build'):
 ```
 Expected: 両ジョブとも `['StandaloneWindows64', 'StandaloneOSX']`
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add .github/workflows/build.yml
@@ -360,7 +360,7 @@ Unity は `-executeMethod` を実行する前に全アセンブリをコンパ�
   - ワークフロー名 `Platform Compile Check` — Task 6 の `ci-auto-rerun.yml` の監視対象に加える。
   - キャッシュキー接頭辞 `Library_compile_server_<target>-` — Task 5 の `cache-warm.yml` が同じ接頭辞で保存する。
 
-- [ ] **Step 1: 既存のEditorスクリプトの流儀を確認する**
+- [x] **Step 1: 既存のEditorスクリプトの流儀を確認する**
 
 Run:
 ```bash
@@ -371,7 +371,7 @@ Expected: `BuildPipeline` はグローバル名前空間の `public class`、`Un
 
 > **注意**: `BuildPipeline.cs` の CI エントリポイントは名前空間なしのグローバル `BuildPipeline` クラスである（`build.yml` の `buildMethod: BuildPipeline.WindowsBuildFromGithubAction` がその証拠）。新規ファイルは名前空間 `Server.Editor` を付けるため、`buildMethod` は `Server.Editor.PlatformCompileCheck.RunFromGithubAction` になる。
 
-- [ ] **Step 2: Editorスクリプトを作成する**
+- [x] **Step 2: Editorスクリプトを作成する**
 
 Create `moorestech_server/Assets/Scripts/Editor/PlatformCompileCheck.cs`:
 
@@ -424,7 +424,7 @@ namespace Server.Editor
 }
 ```
 
-- [ ] **Step 3: サーバープロジェクトのUnityを立ち上げてコンパイルする**
+- [x] **Step 3: サーバープロジェクトのUnityを立ち上げてコンパイルする**
 
 Run:
 ```bash
@@ -435,7 +435,7 @@ Expected: `Errors: 0`。`UnityEditor.Build.NamedBuildTarget` が解決できな�
 
 > ドメインリロード中で `uloop` が「Unity is reloading」を返す場合は45秒待ってリトライする。
 
-- [ ] **Step 4: `.meta` が生成されたことを確認する**
+- [x] **Step 4: `.meta` が生成されたことを確認する**
 
 Run:
 ```bash
@@ -443,7 +443,7 @@ ls moorestech_server/Assets/Scripts/Editor/PlatformCompileCheck.cs.meta
 ```
 Expected: ファイルが存在する（Unity が自動生成したもの。**手動作成は禁止**）。生成されていなければ Unity にフォーカスを当てて再インポートを待つ。
 
-- [ ] **Step 5: ワークフローを作成する**
+- [x] **Step 5: ワークフローを作成する**
 
 Create `.github/workflows/platform-compile.yml`:
 
@@ -513,7 +513,7 @@ jobs:
 
 > `versioning: None` を指定しているのは、この検査でバージョン採番が不要であり、`Semantic` のまま走らせると git 履歴に依存する処理が増えるため。**`build.yml` 側の `versioning` は触らない**（保留事項）。
 
-- [ ] **Step 6: YAML の妥当性と要件を検証する**
+- [x] **Step 6: YAML の妥当性と要件を検証する**
 
 Run:
 ```bash
@@ -532,7 +532,7 @@ print('ok')
 ```
 Expected: `ok`
 
-- [ ] **Step 7: 検査が実際にPF固有の破壊を捕まえることを確認する（手動スパイク）**
+- [x] **Step 7: 検査が実際にPF固有の破壊を捕まえることを確認する（手動スパイク）**
 
 `moorestech_server/Assets/Scripts/Server.Boot/ServerDirectory.cs` の `#elif UNITY_STANDALONE_OSX` ブロック内に、一時的に構文エラー（例: `var broken = ;`）を入れてコミットし、PR 上で `Platform Compile Check` を走らせる。
 
@@ -540,7 +540,7 @@ Expected: `Compile - StandaloneOSX` が失敗し、`Compile - StandaloneWindows6
 
 > このスパイクは実際に GitHub 上で走らせないと検証できない。ローカルでは代替できないため省略しないこと。スパイク用のコミットはブランチ履歴に残してよいが、修正コミットを必ず後続に積む。
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Editor/PlatformCompileCheck.cs \
@@ -566,7 +566,7 @@ Actions のキャッシュスコープは「自分の ref とベースブラン�
   - `Library_compile_server_StandaloneWindows64-<sha>`（`moorestech_server/Library`・約1.17GB）
   - `Library_compile_server_StandaloneOSX-<sha>`（同・約1.17GB）
 
-- [ ] **Step 1: 現在のキャッシュ状況を記録する**
+- [x] **Step 1: 現在のキャッシュ状況を記録する**
 
 Run:
 ```bash
@@ -575,7 +575,7 @@ gh api "repos/:owner/:repo/actions/caches?per_page=100" --jq '.actions_caches[]|
 ```
 Expected: `active_caches_size_in_bytes` が 10GB 前後で、`ref` が全て `refs/pull/*`（master のキャッシュが存在しない）。この出力を後の比較用に控える。
 
-- [ ] **Step 2: 既存のPR側キャッシュを一掃する**
+- [x] **Step 2: 既存のPR側キャッシュを一掃する**
 
 古いキー（`Library_`, `Library_Test_`, `Server_Library_`）は新方式と混在すると10GB枠を圧迫するため削除する。
 
@@ -587,7 +587,7 @@ gh api repos/:owner/:repo/actions/cache/usage
 ```
 Expected: 最後の `active_caches_size_in_bytes` が 0 に近い値。
 
-- [ ] **Step 3: キャッシュ焼きワークフローを作成する**
+- [x] **Step 3: キャッシュ焼きワークフローを作成する**
 
 Create `.github/workflows/cache-warm.yml`:
 
@@ -726,7 +726,7 @@ jobs:
           versioning: None
 ```
 
-- [ ] **Step 4: run_test.yml のキャッシュキーを新方式へ揃える**
+- [x] **Step 4: run_test.yml のキャッシュキーを新方式へ揃える**
 
 `.github/workflows/run_test.yml` の日時取得ステップ（Task 1 で `shell: bash` を足したもの）とキャッシュステップを、次に置き換える。
 
@@ -758,7 +758,7 @@ jobs:
             Library_Test_client-
 ```
 
-- [ ] **Step 5: キー接頭辞が3ファイルで一致していることを検証する**
+- [x] **Step 5: キー接頭辞が3ファイルで一致していることを検証する**
 
 Run:
 ```bash
@@ -769,7 +769,7 @@ grep -h "Library_Test_client-\|Library_compile_server_" \
 ```
 Expected: `Library_Test_client-` が `cache-warm.yml` と `run_test.yml` の双方に（key と restore-keys で計4行）、`Library_compile_server_${{ matrix.target }}-` が `cache-warm.yml` と `platform-compile.yml` の双方に（計4行）現れる。接頭辞の綴りが3ファイルで完全一致していること。
 
-- [ ] **Step 6: 手動でキャッシュ焼きを実行して結果を確認する**
+- [ ] **Step 6: 手動でキャッシュ焼きを実行して結果を確認する** — **マージ前は実行不能（2026-08-22 実測）**。GitHubは既定ブランチに存在しないワークフローを `workflow_dispatch` で発火できず、`gh workflow run "Cache Warm" --ref feature/ci-build-strategy` も API の dispatches 直叩きも 404 を返す。masterマージ後に実施する（bdへ起票済み）
 
 Run:
 ```bash
@@ -785,7 +785,7 @@ gh api "repos/:owner/:repo/actions/caches?per_page=100" --jq '.actions_caches[]|
 ```
 Expected: 3件のキャッシュが `Library_Test_client-*` と `Library_compile_server_*-*` のキーで保存され、合計が **6.5GB 以下**（10GB枠に収まる）。超えている場合は Task 5 を止めてユーザーへ報告する（枠設計の前提が崩れているため）。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add .github/workflows/cache-warm.yml .github/workflows/run_test.yml
@@ -809,7 +809,7 @@ git commit -m "feat(ci): masterでLibraryキャッシュを焼くワークフロ
   - GitHub ラベル `日次ビルド失敗` を持つ Issue。本文には `<!-- daily-build-issue -->` マーカー、`前回グリーン: <sha>`、`容疑者PR:` 見出しの箇条書き、`失敗ジョブ:` 見出しとログ抜粋を含む。**別 plan（poller 側）はこのマーカーとラベルで Issue を識別する。**
   - `.github/scripts/daily-build-issue.cjs` は `module.exports = async ({ github, context, core }) => {...}` を default export する（`ci-auto-rerun.cjs` と同形式）。
 
-- [ ] **Step 1: 既存の再実行スクリプトの契約を読む**
+- [x] **Step 1: 既存の再実行スクリプトの契約を読む**
 
 Run:
 ```bash
@@ -818,7 +818,7 @@ grep -n "module.exports" .github/scripts/ci-auto-rerun.cjs
 ```
 Expected: `module.exports = async ({ github, context, core }) => {...}` の形式。この形式に合わせて新スクリプトを書く。
 
-- [ ] **Step 2: ci-auto-rerun の発火条件を広げる**
+- [x] **Step 2: ci-auto-rerun の発火条件を広げる**
 
 `.github/workflows/ci-auto-rerun.yml` の `if` を次に置き換える。
 
@@ -843,7 +843,7 @@ Expected: `module.exports = async ({ github, context, core }) => {...}` の形�
 
 あわせて `on.workflow_run.workflows` のリストに `- "Platform Compile Check"` を追加する。
 
-- [ ] **Step 3: 日次失敗をIssue化するスクリプトを作成する**
+- [x] **Step 3: 日次失敗をIssue化するスクリプトを作成する**
 
 Create `.github/scripts/daily-build-issue.cjs`:
 
@@ -963,7 +963,7 @@ module.exports = async ({ github, context, core }) => {
 };
 ```
 
-- [ ] **Step 4: Issue起票ワークフローを作成する**
+- [x] **Step 4: Issue起票ワークフローを作成する**
 
 Create `.github/workflows/daily-build-issue.yml`:
 
@@ -1007,7 +1007,7 @@ jobs:
             await fileDailyBuildIssue({ github, context, core });
 ```
 
-- [ ] **Step 5: スクリプトが構文として妥当か確認する**
+- [x] **Step 5: スクリプトが構文として妥当か確認する**
 
 Run:
 ```bash
@@ -1016,7 +1016,7 @@ node -e "const m = require('./.github/scripts/daily-build-issue.cjs'); console.l
 ```
 Expected: `syntax ok` と `export ok`
 
-- [ ] **Step 6: ラベルをリポジトリに作成する**
+- [x] **Step 6: ラベルをリポジトリに作成する**
 
 Run:
 ```bash
@@ -1026,7 +1026,7 @@ gh label list --limit 100 | grep -E "ビルド検証|日次ビルド失敗"
 ```
 Expected: 2つのラベルが一覧に出る（既存なら `|| true` で握りつぶされる）。
 
-- [ ] **Step 7: YAML の妥当性と発火条件を検証する**
+- [x] **Step 7: YAML の妥当性と発火条件を検証する**
 
 Run:
 ```bash
@@ -1044,7 +1044,7 @@ print('ok')
 ```
 Expected: `ok`
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add .github/workflows/ci-auto-rerun.yml .github/workflows/daily-build-issue.yml .github/scripts/daily-build-issue.cjs
