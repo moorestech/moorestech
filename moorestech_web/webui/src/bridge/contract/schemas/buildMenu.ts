@@ -17,10 +17,20 @@ const BuildMenuEntryCommonFields = {
   iconUrl: z.string().optional(),
 };
 
+// 設置数系フィールドはブロック専用
+// Placement-count fields belong to blocks alone
+const BuildMenuBlockEntryDataSchema = z.object({
+  kind: z.literal("block"),
+  ...BuildMenuEntryCommonFields,
+  placementsPerCost: z.number().int().min(1),
+  remainingPlacementCount: z.number().int().min(0),
+  label: z.never().optional(),
+}).strict();
+
 // マスタ由来名はGuid導出キーで解決し、ホストから表示名を運ばない
 // Resolve master-derived names through GUID-derived keys without host-provided labels
 const BuildMenuDictionaryResolvedEntryDataSchema = z.object({
-  kind: z.enum(["block", "trainCar", "connectTool"]),
+  kind: z.enum(["trainCar", "connectTool"]),
   ...BuildMenuEntryCommonFields,
   label: z.never().optional(),
 }).strict();
@@ -38,6 +48,7 @@ const BuildMenuBlueprintEntryDataSchema = z.object({
 }).strict();
 
 export const BuildMenuEntryDataSchema = z.discriminatedUnion("kind", [
+  BuildMenuBlockEntryDataSchema,
   BuildMenuDictionaryResolvedEntryDataSchema,
   BuildMenuBlueprintCopyEntryDataSchema,
   BuildMenuBlueprintEntryDataSchema,

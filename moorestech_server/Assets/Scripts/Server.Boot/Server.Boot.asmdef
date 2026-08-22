@@ -44,6 +44,7 @@
         "Game.Blueprint",
         "Game.PlacementTarget",
         "Game.Hotbar",
+        "Game.Construction",
         "UniRx",
         "UniTask"
     ],

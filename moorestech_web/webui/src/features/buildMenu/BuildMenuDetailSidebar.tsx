@@ -9,6 +9,11 @@ type Props = { entry: BuildMenuDisplayEntry | null };
 // §8.11 sticky detail sidebar; shows a hint when nothing is selected
 export function BuildMenuDetailSidebar({ entry }: Props) {
   const { t } = useI18n();
+
+  // 複数設置はブロックのみ、絞り込んで読む
+  // Only blocks carry multi-placement sets; narrow to that shape before reading
+  const setPlacementBlock = entry !== null && entry.kind === "block" && entry.placementsPerCost > 1 ? entry : null;
+
   return (
     <div className={styles.detail} data-testid="build-menu-detail">
       {entry === null ? (
@@ -22,13 +27,22 @@ export function BuildMenuDetailSidebar({ entry }: Props) {
           <FadeRule />
           {entry.requiredItems.length > 0 && (
             <>
-              <span className={styles.detailCostLabel}>{t(L.ui.buildMenu.requiredItems)}</span>
+              <span className={styles.detailCostLabel}>
+                {setPlacementBlock !== null
+                  ? t(L.ui.buildMenu.requiredItemsPerSet, { count: setPlacementBlock.placementsPerCost })
+                  : t(L.ui.buildMenu.requiredItems)}
+              </span>
               <SlotGrid cols={3}>
                 {entry.requiredItems.map((item) => (
                   <ItemSlot key={item.itemId} itemId={item.itemId} count={item.count} />
                 ))}
               </SlotGrid>
             </>
+          )}
+          {setPlacementBlock !== null && (
+            <span className={styles.detailCostLabel} data-testid="build-menu-remaining-placements">
+              {t(L.ui.buildMenu.remainingPlacementCount, { count: setPlacementBlock.remainingPlacementCount })}
+            </span>
           )}
         </>
       )}

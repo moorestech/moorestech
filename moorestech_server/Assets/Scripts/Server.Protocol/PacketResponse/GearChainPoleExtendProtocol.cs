@@ -30,11 +30,13 @@ namespace Server.Protocol.PacketResponse
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
+        private readonly ConstructionWalletService _constructionWallet;
 
         public GearChainPoleExtendProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
+            _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -58,9 +60,10 @@ namespace Server.Protocol.PacketResponse
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             if (blockMaster.BlockParam is not GearChainPoleBlockParam poleParam) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.NoPoleItemError);
 
-            // 建設コストの充足を検証する
-            // Validate the construction cost
-            var costItemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
+            // 建設コストは財布に問い合わせる。残りで賄えるなら素材を要求しない
+            // Ask the wallet for the construction cost; when the remainder covers it no materials are demanded
+            var placementPlan = _constructionWallet.PlanPlacement(blockMaster, request.PlayerId);
+            var costItemCounts = placementPlan.ItemsToConsume;
             if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.InsufficientItemsError);
 
             // 起点ありの場合は接続可否を設置前にすべて検証する
@@ -98,7 +101,8 @@ namespace Server.Protocol.PacketResponse
 
             // 建設コストを消費する（チェーン消費後のインベントリから減算する）
             // Consume the construction cost (subtract from the inventory after chain consumption)
-            ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
+            _constructionWallet.CommitPlacement(placementPlan, inventory, block.BlockInstanceId);
+            _constructionWallet.FlushRemainingCountChanges();
 
             return GearChainPoleExtendResponse.CreateSuccess(placePosition, block.BlockInstanceId.AsPrimitive());
         }

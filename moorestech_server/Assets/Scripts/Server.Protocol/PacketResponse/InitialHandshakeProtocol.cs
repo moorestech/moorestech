@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
+using Game.Construction;
 using Game.Entity.Interface;
 using Game.Hotbar;
 using Game.PlayerConnection;
@@ -10,6 +11,7 @@ using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
+using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using UnityEngine;
 using static Server.Event.EventReceive.ItemStackLevelUnlockEventPacket;
@@ -28,6 +30,7 @@ namespace Server.Protocol.PacketResponse
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IItemStackLevelLookup _itemStackLevelLookup;
         private readonly IHotbarAssignmentLookup _hotbarAssignmentLookup;
+        private readonly IRemainingPlacementCountLookup _remainingPlacementCountLookup;
 
         public InitialHandshakeProtocol(ServiceProvider serviceProvider)
         {
@@ -39,6 +42,7 @@ namespace Server.Protocol.PacketResponse
             _playerRidingDatastore = serviceProvider.GetService<IPlayerRidingDatastore>();
             _eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             _hotbarAssignmentLookup = serviceProvider.GetService<IHotbarAssignmentLookup>();
+            _remainingPlacementCountLookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -85,7 +89,13 @@ namespace Server.Protocol.PacketResponse
                 // Bundle the hotbar assignments too, removing the extra post-login round trip and its null path
                 var hotbarAssignments = _hotbarAssignmentLookup.GetAssignments(data.PlayerId).ToArray();
 
-                return new ResponseInitialHandshakeMessagePack(playerPos, ridingTarget, ridingSeatIndex, itemStackLevels, hotbarAssignments);
+                // 残り設置数も初期データとして同梱し、ログイン直後からプレビュー・表示に使えるようにする
+                // Bundle remaining placements as initial data so previews and displays work right after login
+                var remainingPlacementCounts = _remainingPlacementCountLookup.GetRemainingCounts(data.PlayerId)
+                    .Select(pair => new RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack(pair.walletBlockId.AsPrimitive(), pair.remainingCount))
+                    .ToArray();
+
+                return new ResponseInitialHandshakeMessagePack(playerPos, ridingTarget, ridingSeatIndex, itemStackLevels, hotbarAssignments, remainingPlacementCounts);
             }
             
             Vector3MessagePack GetPlayerPosition(EntityInstanceId playerId)
@@ -134,6 +144,7 @@ namespace Server.Protocol.PacketResponse
             [Key(5)] public int RidingSeatIndex { get; set; }
             [Key(6)] public ItemStackLevelMessagePack[] ItemStackLevels { get; set; }
             [Key(7)] public Guid[] HotbarAssignments { get; set; }
+            [Key(8)] public RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] RemainingPlacementCounts { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseInitialHandshakeMessagePack() { }
@@ -143,7 +154,8 @@ namespace Server.Protocol.PacketResponse
                 RidableIdentifierMessagePack ridingTarget,
                 int ridingSeatIndex,
                 ItemStackLevelMessagePack[] itemStackLevels,
-                Guid[] hotbarAssignments)
+                Guid[] hotbarAssignments,
+                RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] remainingPlacementCounts)
             {
                 Tag = ProtocolTag;
                 PlayerPos = playerPos;
@@ -152,6 +164,7 @@ namespace Server.Protocol.PacketResponse
                 RidingSeatIndex = ridingSeatIndex;
                 ItemStackLevels = itemStackLevels;
                 HotbarAssignments = hotbarAssignments;
+                RemainingPlacementCounts = remainingPlacementCounts;
             }
 
             [IgnoreMember] public bool HasRidingState => RidingStateType == InitialHandshakeRidingStateType.Restored;

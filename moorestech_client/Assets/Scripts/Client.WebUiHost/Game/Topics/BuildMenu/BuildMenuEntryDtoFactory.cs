@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.Construction;
 using Client.WebUiHost.Game.Icons;
 using Core.Master;
 using Game.PlacementTarget;
@@ -17,12 +18,12 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     {
         // 解放判定はResolverが持つ唯一の供給点へ委ね、ここは変換だけを担う
         // Delegates the unlock decision to the resolver's single supply point; this file only converts
-        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver)
+        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver, ClientRemainingPlacementCountDatastore remainingPlacementCountDatastore)
         {
-            return CreateDtos(placementTargetResolver.CreateUnlockedTargets());
+            return CreateDtos(placementTargetResolver.CreateUnlockedTargets(), remainingPlacementCountDatastore);
         }
 
-        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets)
+        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets, ClientRemainingPlacementCountDatastore remainingPlacementCountDatastore)
         {
             var dtos = new List<BuildMenuEntryDto>();
             var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
@@ -44,6 +45,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     CategoryGuid = categoryGuid.ToString("D"),
                     SubCategoryGuid = subCategoryGuid.ToString("D"),
                     RequiredItems = CreateRequiredItemDtos(target),
+                    PlacementsPerCost = ResolvePlacementsPerCost(target),
+                    RemainingPlacementCount = ResolveRemainingPlacementCount(target),
                     IconUrl = ResolveIconUrl(target),
                 });
             }
@@ -81,6 +84,29 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     itemDtos.Add(new BuildMenuRequiredItemDto { ItemId = MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive(), Count = count });
                 }
                 return itemDtos;
+            }
+
+            // ブロックかどうかの供給源はKindのenum一本に揃える
+            // The single supply point for "is this a block" is the Kind enum
+            BlockPlacementTarget ResolveBlockTarget(IPlacementTarget target)
+            {
+                return target.Kind == PlacementTargetKind.Block ? (BlockPlacementTarget)target : null;
+            }
+
+            // 設置数/1セットはブロックのマスタ値、他は配信しない
+            // Placements per cost set comes from the block master; no other kind carries it
+            int? ResolvePlacementsPerCost(IPlacementTarget target)
+            {
+                var block = ResolveBlockTarget(target);
+                return block == null ? null : MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).PlacementsPerCost;
+            }
+
+            // 残り設置数は財布へ問い合わせる。他は配信しない
+            // Remaining placements come from the client-side wallet; no other kind carries it
+            int? ResolveRemainingPlacementCount(IPlacementTarget target)
+            {
+                var block = ResolveBlockTarget(target);
+                return block == null ? null : remainingPlacementCountDatastore.GetRemainingCount(block.BlockId);
             }
 
             #endregion

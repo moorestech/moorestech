@@ -68,7 +68,8 @@
         "Unity.InputSystem",
         "Game.Blueprint",
         "Game.PlacementTarget",
-        "Game.Hotbar"
+        "Game.Hotbar",
+        "Game.Construction"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

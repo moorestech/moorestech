@@ -40,7 +40,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/campfier",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
       "category": "テスト",
-      "subCategory": "ElectricMachine"
+      "subCategory": "ElectricMachine",
+      "placementsPerCost": 1
     },
     {
       "initialUnlocked": true,
@@ -132,7 +133,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/SmallGear",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
       "category": "テスト",
-      "subCategory": "Gear"
+      "subCategory": "Gear",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -196,7 +198,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/Primitive_Windmill",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
       "category": "テスト",
-      "subCategory": "SimpleGearGenerator"
+      "subCategory": "SimpleGearGenerator",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -342,7 +345,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/Sieve",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
       "category": "テスト",
-      "subCategory": "GearMachine"
+      "subCategory": "GearMachine",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -488,7 +492,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/Primitive Centrifuge",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
       "category": "テスト",
-      "subCategory": "GearMachine"
+      "subCategory": "GearMachine",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -527,7 +532,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/Charcoal_Kiln",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
       "category": "テスト",
-      "subCategory": "ElectricMachine"
+      "subCategory": "ElectricMachine",
+      "placementsPerCost": 1
     },
     {
       "initialUnlocked": true,
@@ -590,7 +596,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
       "category": "テスト",
-      "subCategory": "Shaft"
+      "subCategory": "Shaft",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -653,7 +660,8 @@
       "blockGuid": "6fc49eb9-d2d7-4ab9-ba0e-17a210719a28",
       "blockPrefabAddressablesPath": "Vanilla/Block/Primitive_Windmill blue",
       "category": "テスト",
-      "subCategory": "SimpleGearGenerator"
+      "subCategory": "SimpleGearGenerator",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -763,7 +771,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/press machine",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
       "category": "テスト",
-      "subCategory": "GearMachine"
+      "subCategory": "GearMachine",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -909,7 +918,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/stone crasher",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
       "category": "テスト",
-      "subCategory": "GearMachine"
+      "subCategory": "GearMachine",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -1063,7 +1073,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
       "category": "テスト",
-      "subCategory": "GearBeltConveyor"
+      "subCategory": "GearBeltConveyor",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -1167,7 +1178,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor up",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
       "category": "テスト",
-      "subCategory": "GearBeltConveyor"
+      "subCategory": "GearBeltConveyor",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -1276,7 +1288,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor down",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
       "category": "テスト",
-      "subCategory": "GearBeltConveyor"
+      "subCategory": "GearBeltConveyor",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -1405,7 +1418,8 @@
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
       "blockPrefabAddressablesPath": "Vanilla/Block/BigGear",
       "category": "テスト",
-      "subCategory": "Gear"
+      "subCategory": "Gear",
+      "placementsPerCost": 1
     },
     {
       "sortPriority": 100,
@@ -1505,7 +1519,8 @@
       "blockGuid": "af2cd6cf-7e39-4411-be31-06ab32cea073",
       "name": "原始的な採掘機",
       "category": "テスト",
-      "subCategory": "GearMiner"
+      "subCategory": "GearMiner",
+      "placementsPerCost": 1
     },
     {
       "initialUnlocked": true,
@@ -1618,7 +1633,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/rolling mill",
       "blockGuid": "bc45f10a-9f12-4514-affc-45229bd62676",
       "category": "テスト",
-      "subCategory": "GearMachine"
+      "subCategory": "GearMachine",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -1734,7 +1750,8 @@
       },
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
       "category": "テスト",
-      "subCategory": "GearMachine"
+      "subCategory": "GearMachine",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -1784,7 +1801,8 @@
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
       "blockPrefabAddressablesPath": "Vanilla/Block/iron furnace with bellows",
       "category": "テスト",
-      "subCategory": "GearMachine"
+      "subCategory": "GearMachine",
+      "placementsPerCost": 1
     },
     {
       "initialUnlocked": true,
@@ -1842,7 +1860,8 @@
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
       "blockGuid": "0ab4b8c3-6f23-47bc-9b58-bb90def565fe",
       "category": "テスト",
-      "subCategory": "Shaft"
+      "subCategory": "Shaft",
+      "placementsPerCost": 1
     },
     {
       "blockSize": [
@@ -1917,7 +1936,8 @@
       "blockGuid": "b1bddbd5-85c7-4c09-a539-646c34ce9afd",
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box",
       "category": "テスト",
-      "subCategory": "Shaft"
+      "subCategory": "Shaft",
+      "placementsPerCost": 1
     },
     {
       "blockGuid": "3a3804bb-30d8-4864-a798-ca67f0057a6c",
@@ -1932,7 +1952,8 @@
       "blockUIAddressablesPath": "",
       "blockParam": {},
       "category": "テスト",
-      "subCategory": "Block"
+      "subCategory": "Block",
+      "placementsPerCost": 1
     },
     {
       "blockGuid": "1833dd62-501a-403d-812f-334ecdc47fd0",
@@ -2017,7 +2038,8 @@
         }
       },
       "category": "テスト",
-      "subCategory": "BeltConveyor"
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1
     },
     {
       "blockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0",
@@ -2077,7 +2099,8 @@
         }
       },
       "category": "テスト",
-      "subCategory": "BeltConveyor"
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1
     },
     {
       "blockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f",
@@ -2137,7 +2160,8 @@
         }
       },
       "category": "テスト",
-      "subCategory": "BeltConveyor"
+      "subCategory": "BeltConveyor",
+      "placementsPerCost": 1
     },
     {
       "blockGuid": "1438c454-8951-422b-9257-e6d7f129ae32",
@@ -2220,7 +2244,8 @@
         }
       },
       "category": "テスト",
-      "subCategory": "Chest"
+      "subCategory": "Chest",
+      "placementsPerCost": 1
     },
     {
       "blockGuid": "a770e482-6336-431a-ba13-98558fa56276",
@@ -2290,7 +2315,8 @@
         "baseDestructionProbability": 0
       },
       "category": "テスト",
-      "subCategory": "SimpleGearGenerator"
+      "subCategory": "SimpleGearGenerator",
+      "placementsPerCost": 1
     },
     {
       "blockGuid": "3cfe932a-668b-4191-b864-0e5d8cd60da2",
@@ -2318,7 +2344,8 @@
         }
       },
       "category": "テスト",
-      "subCategory": "BaseCamp"
+      "subCategory": "BaseCamp",
+      "placementsPerCost": 1
     },
     {
       "blockGuid": "30ae60be-6dfa-4a6d-9e3e-32bc70bc2e11",
@@ -2346,7 +2373,8 @@
         }
       },
       "category": "テスト",
-      "subCategory": "BaseCamp"
+      "subCategory": "BaseCamp",
+      "placementsPerCost": 1
     },
     {
       "initialUnlocked": true,
@@ -2433,7 +2461,8 @@
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box",
       "blockUIAddressablesPath": "Vanilla/UI/Block/ElectricToGearBlockInventory",
       "category": "テスト",
-      "subCategory": "ElectricToGearGenerator"
+      "subCategory": "ElectricToGearGenerator",
+      "placementsPerCost": 1
     }
   ],
   "beltConveyorFamilies": [

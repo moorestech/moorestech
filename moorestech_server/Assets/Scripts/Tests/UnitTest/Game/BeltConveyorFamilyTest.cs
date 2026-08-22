@@ -83,6 +83,30 @@ namespace Tests.UnitTest.Game
             StringAssert.DoesNotContain("belongs to no beltConveyorFamily", logs);
         }
 
+        [Test]
+        public void ファミリー内でplacementsPerCostが異なれば検証エラーになる()
+        {
+            var blocksJToken = LoadBlocksJson();
+            var upBlockGuid = blocksJToken["beltConveyorFamilies"][2]["upBlockGuid"].Value<string>();
+            FindBlock(blocksJToken, upBlockGuid)["placementsPerCost"] = 1;
+
+            var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
+
+            StringAssert.Contains("placementsPerCost must match the family's straight block", logs);
+        }
+
+        [Test]
+        public void ファミリー内でrequiredItemsが異なれば検証エラーになる()
+        {
+            var blocksJToken = LoadBlocksJson();
+            var downBlockGuid = blocksJToken["beltConveyorFamilies"][2]["downBlockGuid"].Value<string>();
+            FindBlock(blocksJToken, downBlockGuid)["requiredItems"][0]["count"] = 2;
+
+            var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
+
+            StringAssert.Contains("requiredItems must match the family's straight block", logs);
+        }
+
         private static JToken LoadBlocksJson()
         {
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "blocks.json");

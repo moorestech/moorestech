@@ -142,6 +142,25 @@ test("閉じて開き直すとタブ・検索・スクロール・詳細sticky�
     .toBe(40);
 });
 
+test("残り設置数は1セット複数個のエントリだけに表示される", async ({ page }) => {
+  await setUiState(page, "BuildMenu");
+  await page.goto("/");
+
+  // beltはN=3。残数と1セット何個分かのラベルを表示
+  // beltConveyor has placementsPerCost=3; both the remaining count and the per-set cost label must show
+  await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.beltConveyor}`).hover();
+  await expect(page.getByTestId("build-menu-remaining-placements")).toBeVisible();
+  await expect(page.getByTestId("build-menu-remaining-placements")).toContainText("2");
+  await expect(page.getByTestId("build-menu-detail")).toContainText("必要素材（3個分）");
+
+  // woodChestはN=1で残数非表示、素材ラベルもセット表記にならない
+  // woodChest has placementsPerCost=1, so remaining-placements is hidden and the cost label never becomes the per-set one
+  await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`).hover();
+  await expect(page.getByTestId("build-menu-remaining-placements")).toBeHidden();
+  await expect(page.getByTestId("build-menu-detail")).toContainText("必要素材");
+  await expect(page.getByTestId("build-menu-detail")).not.toContainText("個分");
+});
+
 test("検索文字列も閉じて開き直すと復元される", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
