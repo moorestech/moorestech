@@ -36,7 +36,7 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
     p.Assert(mapObjectDatastore != null, "MapObjectGameObjectDatastoreが起動した");
     await p.Until(() => mapObjectDatastore.WaitForInitialApplyAsync().Status.IsCompletedSuccessfully(), 180f, "mapObject生成ループが完走する");
 
-    var pebble = mapObjectDatastore.SearchNearestMapObject(pebbleMapObject, p.PlayerPosition);
+    var pebble = mapObjectDatastore.SearchNearestMapObject(new[] { pebbleMapObject }, p.PlayerPosition);
     p.Assert(pebble != null, "最寄りの小石mapObjectを解決できる");
     var pebbleCollider = pebble.GetComponentInChildren<Collider>(true);
     p.Assert(pebbleCollider != null, "小石に照準用Colliderがある");

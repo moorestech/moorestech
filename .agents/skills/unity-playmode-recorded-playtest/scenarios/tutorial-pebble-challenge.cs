@@ -112,7 +112,7 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
 
     p.Note("最寄りの木をAttackMapObjectで伐採して原木を得る");
     var mapObjectDatastore = UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.Map.MapObject.MapObjectGameObjectDatastore>();
-    var nearestTree = mapObjectDatastore.SearchNearestMapObject(treeMapObject, p.PlayerPosition);
+    var nearestTree = mapObjectDatastore.SearchNearestMapObject(new[] { treeMapObject }, p.PlayerPosition);
     p.Assert(nearestTree != null, "最寄りの未破壊の木がクライアントで見つかった");
     if (nearestTree != null)
     {

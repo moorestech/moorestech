@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Map.MapObject;
@@ -24,6 +26,7 @@ namespace Client.Game.InGame.Tutorial
         private TutorialWorldPinVisibility Visibility => _visibility ??= new TutorialWorldPinVisibility(gameObject, nameof(MapObjectPin));
 
         private MapObjectPinTutorialParam _currentTutorialParam;
+        private IReadOnlyList<Guid> _targetMapObjectGuids = Array.Empty<Guid>();
         private string _pinTutorialGuid = "";
 
         [Inject]
@@ -61,13 +64,14 @@ namespace Client.Game.InGame.Tutorial
 
             void NearestPinMapObject()
             {
-                // 近くのMapObjectを探してピンを表示
+                // 候補GUID集合のうち最寄りの未破壊MapObjectへピンする
+                // Pin the nearest undestroyed MapObject among the candidate GUIDs
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                var mapObject = _mapObjectGameObjectDatastore.SearchNearestMapObject(_currentTutorialParam.MapObjectGuid, playerPos);
+                var mapObject = _mapObjectGameObjectDatastore.SearchNearestMapObject(_targetMapObjectGuids, playerPos);
 
                 if (mapObject == null)
                 {
-                    Debug.LogError($"未破壊のMapObject {_currentTutorialParam.MapObjectGuid} が存在しません");
+                    Debug.LogError($"未破壊のMapObject（pinTargetType={_currentTutorialParam.PinTargetType}）が存在しません");
                     return;
                 }
 
@@ -80,6 +84,7 @@ namespace Client.Game.InGame.Tutorial
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
             _currentTutorialParam = (MapObjectPinTutorialParam)tutorial.TutorialParam;
+            _targetMapObjectGuids = MapObjectPinTargetResolver.ResolveMapObjectGuids(_currentTutorialParam);
             _pinTutorialGuid = tutorial.TutorialGuid.ToString("D");
 
             // 追跡と射影配信のみ行う（表示はWebオーバーレイが担う）
@@ -93,6 +98,7 @@ namespace Client.Game.InGame.Tutorial
         {
             SetActive(false);
             _currentTutorialParam = null;
+            _targetMapObjectGuids = Array.Empty<Guid>();
             WorldPinStateStore.Instance.RemovePin(WebPinId);
         }
 

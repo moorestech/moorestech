@@ -84,7 +84,7 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
             MapObjectGameObject SearchInstance(MapObjectGameObjectDatastore datastore, MapObjectLayoutMessagePack layout)
             {
                 var instance = datastore.SearchNearestMapObject(
-                    new Guid(layout.MapObjectGuid), new Vector3(layout.X, layout.Y, layout.Z));
+                    new[] { new Guid(layout.MapObjectGuid) }, new Vector3(layout.X, layout.Y, layout.Z));
 
                 Assert.IsNotNull(instance, $"map object {layout.InstanceId} was not instantiated");
                 return instance;

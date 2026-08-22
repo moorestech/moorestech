@@ -75,6 +75,7 @@ properties:
           - inInventoryItem
           - blockPlace
           - completeResearch
+          - equipItem
         - key: taskParam
           isDefaultOpen: true
           switch: ./taskCompletionType
@@ -121,6 +122,15 @@ properties:
                 schemaId: research
                 foreignKeyIdPath: /data/[*]/researchNodeGuid
                 displayElementPath: /data/[*]/researchNodeName
+          - when: equipItem
+            type: object
+            properties:
+            - key: itemGuid
+              type: uuid
+              foreignKey:
+                schemaId: items
+                foreignKeyIdPath: /data/[*]/itemGuid
+                displayElementPath: /data/[*]/name
         - key: tutorials
           type: array
           isDefaultOpen: true
@@ -147,12 +157,35 @@ properties:
               - when: mapObjectPin
                 type: object
                 properties:
-                - key: mapObjectGuid
-                  type: uuid
-                  foreignKey:
-                    schemaId: map
-                    foreignKeyIdPath: /mapObjects/[*]/mapObjectGuid
-                    displayElementPath: /mapObjects/[*]/mapObjectName
+                # ピン先の指定方法。mapObject=GUID直指定、earnItem=そのアイテムを落とす全mapObjectのうち最寄り
+                # How the pin target is chosen: mapObject=direct GUID, earnItem=nearest of every mapObject dropping that item
+                - key: pinTargetType
+                  type: enum
+                  options:
+                  - mapObject
+                  - earnItem
+                  default: mapObject
+                - key: pinTargetParam
+                  switch: ./pinTargetType
+                  cases:
+                  - when: mapObject
+                    type: object
+                    properties:
+                    - key: mapObjectGuid
+                      type: uuid
+                      foreignKey:
+                        schemaId: map
+                        foreignKeyIdPath: /mapObjects/[*]/mapObjectGuid
+                        displayElementPath: /mapObjects/[*]/mapObjectName
+                  - when: earnItem
+                    type: object
+                    properties:
+                    - key: itemGuid
+                      type: uuid
+                      foreignKey:
+                        schemaId: items
+                        foreignKeyIdPath: /data/[*]/itemGuid
+                        displayElementPath: /data/[*]/name
                 - key: pinText
                   type: string
                   default: pin text

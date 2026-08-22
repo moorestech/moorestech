@@ -174,17 +174,17 @@ namespace Client.Game.InGame.Map.MapObject
             gameObject.SetActive(enable);
         }
 
-        public MapObjectGameObject SearchNearestMapObject(Guid mapObjectGuid, Vector3 position)
+        public MapObjectGameObject SearchNearestMapObject(IReadOnlyList<Guid> mapObjectGuids, Vector3 position)
         {
             MapObjectGameObject nearestMapObject = null;
             var maxMagnitude = float.MaxValue;
 
             foreach (var mapObject in _allMapObjects.Values)
             {
-                // 指定されているmapObjectか破壊されていないかチェック
-                if (mapObject.MapObjectGuid != mapObjectGuid || mapObject.IsDestroyed) continue;
+                // 候補GUIDに含まれ、かつ未破壊のものだけを距離比較する
+                // Compare distance only for undestroyed objects whose GUID is in the candidate set
+                if (mapObject.IsDestroyed || !mapObjectGuids.Contains(mapObject.MapObjectGuid)) continue;
 
-                // 距離をチェック
                 var magnitude = (position - mapObject.GetPosition()).magnitude;
                 if (maxMagnitude < magnitude) continue;
 

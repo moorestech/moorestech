@@ -82,6 +82,15 @@ namespace Core.Master.Validator
                                 }
                                 break;
                             }
+                            case EquipItemTaskParam equipItem:
+                            {
+                                var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(equipItem.ItemGuid);
+                                if (itemId == null)
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.ItemGuid:{equipItem.ItemGuid}\n";
+                                }
+                                break;
+                            }
                             default:
                                 logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated TaskParam type:{challenge.TaskParam?.GetType().Name}\n";
                                 break;
@@ -105,10 +114,25 @@ namespace Core.Master.Validator
                             {
                                 case MapObjectPinTutorialParam mapObjectPin:
                                 {
-                                    var mapObject = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(mapObjectPin.MapObjectGuid);
-                                    if (mapObject == null)
+                                    // ピン先はGUID直指定とドロップ品指定の2系統。どちらも参照先の実在だけを検証する
+                                    // Two target kinds: direct GUID and drop item; both only verify the referenced master exists
+                                    switch (mapObjectPin.PinTargetParam)
                                     {
-                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.MapObjectGuid:{mapObjectPin.MapObjectGuid}\n";
+                                        case MapObjectPinTargetParam byMapObject:
+                                            if (MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(byMapObject.MapObjectGuid) == null)
+                                            {
+                                                logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.MapObjectGuid:{byMapObject.MapObjectGuid}\n";
+                                            }
+                                            break;
+                                        case EarnItemPinTargetParam byEarnItem:
+                                            if (MasterHolder.ItemMaster.GetItemIdOrNull(byEarnItem.ItemGuid) == null)
+                                            {
+                                                logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.PinTarget.ItemGuid:{byEarnItem.ItemGuid}\n";
+                                            }
+                                            break;
+                                        default:
+                                            logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated PinTargetParam type:{mapObjectPin.PinTargetParam?.GetType().Name}\n";
+                                            break;
                                     }
                                     break;
                                 }
