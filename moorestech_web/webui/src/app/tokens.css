@@ -307,10 +307,10 @@
   /* Measured bleed of the item-list count badge (absolutely placed at bottom:-1px) below the last row's slots;
      unless the ScrollArea reserves it, even a single row yields a phantom overflow and a needless bar */
   --item-list-count-bleed: 5px;
-  /* ハイライト枠がアンカーの外へ張り出す量。正本はマスタのpaddingPxで、TutorialOverlayが
-     実測値の最大をこの変数へ実行時に書き戻す。ここの8pxは初回描画までの想定値にすぎない */
-  /* How far the highlight ring extends beyond its anchor. The master's paddingPx is the authority and
-     TutorialOverlay writes the observed maximum back into this variable; the 8px here is only the first-paint assumption */
+  /* ハイライト枠がアンカーの外へ張り出す量。逃げはスクロール領域の高さを変え段数の溢れ閾値を動かすため、
+     このトークンがWeb側の正本であり実行時に書き換えない。マスタのpaddingPxはこれを超えない前提 */
+  /* How far the highlight ring extends beyond its anchor. The clearance changes a scroller's height and thus its
+     overflow threshold, so this token is the web-side authority and is never rewritten at runtime; the master's paddingPx must not exceed it */
   --tutorial-anchor-padding: 8px;
   /* スクロール領域の内側に確保する、チュートリアルハイライトの逃げ。
      これを下回るとセルがクリップ端に密着し、枠の該当辺が削られて「コ」の字に欠ける */

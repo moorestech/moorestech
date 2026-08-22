@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { dispatchAction, Topics, useItemMaster, useTopic } from "@/bridge";
 import { challengeTutorialTextKey, useI18n, type TranslationKey } from "@/shared/i18n";
 import { TutorialAnchorRegistry, TutorialAnchorDynamicPrefixes, clipPathInset, type ClipRect, type ResolvedAnchor } from "@/shared/tutorialAnchor";
-import { publishTutorialAnchorPaddingPx } from "./anchorPaddingToken";
 import DragGuide from "./DragGuide";
 import HighlightLabel from "./HighlightLabel";
 import { readTutorialHighlightGlowPx } from "./highlightGlowToken";
@@ -55,9 +54,6 @@ export function TutorialOverlay() {
             continue;
           case "outline": {
             anchorIds.add(element.anchorId);
-            // 逃げ量の正本はマスタのpaddingPx。スクロール領域がこれを読めるようCSS変数へ書き戻す
-            // The master's paddingPx owns the clearance, so write it back into the CSS variable for scrollers to read
-            publishTutorialAnchorPaddingPx(element.paddingPx);
             const targets = ackTargetsByAnchorId.get(element.anchorId) ?? [];
             targets.push({ tutorialSessionId: session.tutorialSessionId, elementId: element.elementId });
             ackTargetsByAnchorId.set(element.anchorId, targets);

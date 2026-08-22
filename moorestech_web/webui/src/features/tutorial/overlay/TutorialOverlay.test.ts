@@ -53,16 +53,20 @@ vi.mock("@/shared/i18n", async (importOriginal) => {
 vi.mock("./highlightGlowToken", () => ({
   readTutorialHighlightGlowPx: () => 4,
 }));
-vi.mock("./anchorPaddingToken", () => ({
-  publishTutorialAnchorPaddingPx: () => {},
+vi.mock("./labelGapToken", () => ({
+  readTutorialHighlightLabelGapPx: () => 4,
 }));
 
 import { TutorialOverlay } from "./TutorialOverlay";
 
-// ラベルは自分の高さを実測して配置側を決めるため、host refに矩形を持つノードを与える
-// The label measures its own height to pick a side, so give host refs a node that reports a rect
+// ラベルは自分の寸法を実測して配置側を決めるため、host refに矩形を持つノードを与える
+// The label measures its own size to pick a side, so give host refs a node that reports a rect
 const LABEL_HEIGHT_PX = 20;
-const nodeMock = { getBoundingClientRect: () => ({ height: LABEL_HEIGHT_PX }) };
+const LABEL_WIDTH_PX = 60;
+// mockした labelGapToken と同値。判定・描画の両方に効くため定数で持つ
+// The same value the mocked labelGapToken returns; it feeds both the test and the placement, so keep it as a constant
+const LABEL_GAP_PX = 4;
+const nodeMock = { getBoundingClientRect: () => ({ height: LABEL_HEIGHT_PX, width: LABEL_WIDTH_PX }) };
 const renderOverlay = () => create(createElement(TutorialOverlay), { createNodeMock: () => nodeMock });
 
 const FULL_CLIP = { left: -100, top: -100, right: 1280, bottom: 820 };
@@ -260,9 +264,9 @@ describe("TutorialOverlay outline labels", () => {
     const labels = renderer.root.findAllByProps({ "data-testid": "tutorial-highlight-label" });
     expect(labels.length).toBe(1);
     expect(labels[0].children).toEqual(["T:challengeTutorial.11111111-1111-4111-8111-111111111111.text"]);
-    // top=枠線下辺+padding
-    // top = outline bottom + padding
-    expect(labels[0].props.style.top).toBe(10);
+    // top=枠線下辺+隙間
+    // top = outline bottom + gap
+    expect(labels[0].props.style.top).toBe(10 + LABEL_GAP_PX);
     expect(labels[0].props.style.left).toBe(10);
   });
 
@@ -279,11 +283,37 @@ describe("TutorialOverlay outline labels", () => {
 
     // アンカーは 0..10。下端がラベル高より近いclipでは上へ、余裕があるclipでは下へ置く
     // The anchor spans 0..10; a clip whose bottom is nearer than the label height flips it up, a roomy one keeps it down
-    pushAnchor("recipe.craft-button", ready(10, { ...FULL_CLIP, bottom: 10 + LABEL_HEIGHT_PX - 1 }));
-    expect(renderer.root.findByProps({ "data-testid": "tutorial-highlight-label" }).props.style.top).toBe(-LABEL_HEIGHT_PX);
+    pushAnchor("recipe.craft-button", ready(10, { ...FULL_CLIP, bottom: 10 + LABEL_GAP_PX + LABEL_HEIGHT_PX - 1 }));
+    expect(renderer.root.findByProps({ "data-testid": "tutorial-highlight-label" }).props.style.top).toBe(-LABEL_GAP_PX - LABEL_HEIGHT_PX);
 
-    pushAnchor("recipe.craft-button", ready(10, { ...FULL_CLIP, bottom: 10 + LABEL_HEIGHT_PX }));
-    expect(renderer.root.findByProps({ "data-testid": "tutorial-highlight-label" }).props.style.top).toBe(10);
+    pushAnchor("recipe.craft-button", ready(10, { ...FULL_CLIP, bottom: 10 + LABEL_GAP_PX + LABEL_HEIGHT_PX }));
+    expect(renderer.root.findByProps({ "data-testid": "tutorial-highlight-label" }).props.style.top).toBe(10 + LABEL_GAP_PX);
+  });
+
+  // 右端寄りのアンカーではラベルを器の内側へ押し戻す（clipとの突き合わせが無いと素通しで外へ延びる）
+  // A near-right anchor pushes the label back inside the container; with no clip check it would run straight past it
+  it("ラベルが右端を越える時はclip内へ押し戻し、器より広い時は折り返して左端に収まる", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        { ...outline("h1", "recipe.craft-button"), labelTutorialGuid: "11111111-1111-4111-8111-111111111111" },
+      ] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+    const label = () => renderer.root.findByProps({ "data-testid": "tutorial-highlight-label" });
+
+    // 右端から実測幅ぶん内側へ寄せる。折り返し上限は常に器の幅
+    // Tuck it inward from the right edge by the measured width; the wrap limit is always the container width
+    const narrowClip = { left: 0, top: -100, right: 100, bottom: 820 };
+    pushAnchor("recipe.craft-button", ready(80, narrowClip));
+    expect(label().props.style.left).toBe(narrowClip.right - LABEL_WIDTH_PX);
+    expect(label().props.style.maxWidth).toBe(narrowClip.right - narrowClip.left);
+
+    // 器がラベルより狭い時は左端へ揃え、折り返しに任せる
+    // When the container is narrower than the label, align to its left edge and let it wrap
+    const tinyClip = { left: 0, top: -100, right: LABEL_WIDTH_PX - 20, bottom: 820 };
+    pushAnchor("recipe.craft-button", ready(10, tinyClip));
+    expect(label().props.style.left).toBe(tinyClip.left);
   });
 
   it("anchor未解決の枠線はラベルも描かない", () => {
