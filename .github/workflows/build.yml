@@ -53,6 +53,24 @@ jobs:
         shell: bash
         run: git config --global core.longpaths true
 
+      # WindowsのUnity Builderはコンテナで動くため、デーモンの起動を待つ
+      # Unity Builder runs in a container on Windows, so wait for the daemon startup
+      - name: Wait for Docker daemon (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $deadline = 30
+          for ($i = 0; $i -lt $deadline; $i++) {
+            docker info 2>&1 | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "docker daemon ready after $($i * 10) seconds"
+              exit 0
+            }
+            Start-Sleep -Seconds 10
+          }
+          Write-Error "docker daemon did not become ready within $($deadline * 10) seconds"
+          exit 1
+
       # Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -155,6 +173,24 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: git config --global core.longpaths true
+
+      # WindowsのUnity Builderはコンテナで動くため、デーモンの起動を待つ
+      # Unity Builder runs in a container on Windows, so wait for the daemon startup
+      - name: Wait for Docker daemon (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $deadline = 30
+          for ($i = 0; $i -lt $deadline; $i++) {
+            docker info 2>&1 | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "docker daemon ready after $($i * 10) seconds"
+              exit 0
+            }
+            Start-Sleep -Seconds 10
+          }
+          Write-Error "docker daemon did not become ready within $($deadline * 10) seconds"
+          exit 1
 
       # Checkout
       - name: Checkout repository
