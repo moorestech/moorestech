@@ -155,9 +155,7 @@ namespace Client.WebUiHost.Boot
             // Drop icon caches in case the save data / mod set changes
             try
             {
-                Game.ItemIconEndpoint.ClearCache();
-                Game.BlockIconEndpoint.ClearCache();
-                Game.TrainCarIconEndpoint.ClearCache();
+                Game.Icons.IconEndpoint.ClearAllCaches();
             }
             catch (Exception e) { Debug.LogWarning($"[WebUiHost] icon cache clear failed: {e.GetBaseException().Message}"); }
 

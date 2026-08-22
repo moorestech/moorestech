@@ -9,8 +9,16 @@ namespace Core.Master.Validator
     {
         public static bool Validate(Fluids fluids, out string errorLogs)
         {
-            // FluidMasterは外部キー依存がないため、バリデーション成功を返す
-            // FluidMaster has no external key dependencies, so return success
+            // 予約MixedFluidはマスタJSONが定義を持つ前提。欠落を補完せずロード失敗として報告する
+            // The reserved MixedFluid must be defined in the master JSON; a missing entry fails the load instead of being filled in
+            if (fluids.Data.All(e => e.FluidGuid != FluidMaster.MixedFluidGuid))
+            {
+                errorLogs = $"fluids.json does not define the reserved MixedFluid ({FluidMaster.MixedFluidGuid})";
+                return false;
+            }
+
+            // 外部キー依存はこれ以外に無い
+            // There are no other external key dependencies
             errorLogs = "";
             return true;
         }
@@ -21,15 +29,17 @@ namespace Core.Master.Validator
             out Dictionary<FluidId, FluidMasterElement> fluidElementTableById,
             out Dictionary<Guid, FluidId> fluidGuidToFluidId)
         {
-            // guidでソート
-            // Sort by GUID
+            // 予約液体を除いてguidでソート
+            // Sort by GUID, excluding the reserved fluid
             var sortedFluidElements = fluids.Data
+                .Where(e => e.FluidGuid != mixedFluidGuid)
                 .OrderBy(e => e.FluidGuid)
                 .ToList();
 
-            // 予約されている混ざった液体を追加
-            // Add reserved mixed fluid
-            sortedFluidElements.Add(new FluidMasterElement(0, "MixedFluid", mixedFluidGuid));
+            // 予約されている混ざった液体はマスタJSONが定義を持ち、ここでは末尾固定の順序だけを担う
+            // The reserved mixed fluid is defined in the master JSON; here we only pin it to the last position
+            var mixedFluidElement = fluids.Data.First(e => e.FluidGuid == mixedFluidGuid);
+            sortedFluidElements.Add(mixedFluidElement);
 
             // FluidID 0は空の液体として予約しているので、1から始める
             // Fluid ID 0 is reserved for empty fluid, so start from 1

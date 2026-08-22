@@ -2,7 +2,7 @@ import type {
   PlayerInventoryData,
   SkitPresentationData,
   RecipeViewerItemListData,
-  BlockInventoryData,
+  BlockInventoryWireData,
   ModalRequest,
   ProgressData,
   UiStateData,
@@ -18,6 +18,7 @@ export * from "./researchFixtures";
 export * from "./fixtures/presentationFixtures";
 export * from "./fixtures/recipeFixtures";
 export * from "./fixtures/itemMasterFixtures";
+export * from "./fixtures/fluidMasterFixtures";
 export * from "./fixtures/blockLocalizationFixtures";
 export * from "./fixtures/contentLocalizationFixtures";
 export * from "./fixtures/buildMenuFixtures";
@@ -63,7 +64,7 @@ export const blockChest = {
   blockGuid: CHEST_BLOCK_GUID,
   itemSlots: [{ itemId: 1, count: 7 }, { itemId: 2, count: 4 }, ...Array.from({ length: 7 }, empty)],
   fluidSlots: [],
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 // INV-6 タンク機械: 液体スロット + 製作進捗(ProgressArrowBar 用)
 // INV-6 tank machine: fluid slots + processing progress (for ProgressArrowBar)
@@ -79,13 +80,13 @@ export const blockTank = {
     { fluidId: 0, amount: 0, capacity: 1000, fluidGuid: "" },
   ],
   progress: 0.5,
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 // 閉状態は本番ワイヤ同様 open:false のみ（他キーは C# 側で省略される）
 // Closed matches the production wire: only open:false (the C# side omits every other key)
 export const blockClosed = {
   open: false,
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 export const trainCargo = {
   open: true,
@@ -94,7 +95,7 @@ export const trainCargo = {
   identifier: "train:101",
   itemSlots: [{ itemId: 1, count: 24 }, { itemId: 2, count: 8 }, ...Array.from({ length: 7 }, empty)],
   fluidSlots: [],
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 export const trainContainerMissing = {
   open: true,
@@ -104,7 +105,7 @@ export const trainContainerMissing = {
   itemSlots: [],
   fluidSlots: [],
   error: "containerMissing",
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 // 新topicの既定snapshotは必ず非乗車にし、再接続復元でHUDを残留させない
 // The new topic always defaults to not riding so reconnect restoration cannot retain the HUD.
