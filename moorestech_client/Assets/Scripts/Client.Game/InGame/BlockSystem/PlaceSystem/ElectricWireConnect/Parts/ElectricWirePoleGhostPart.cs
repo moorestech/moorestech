@@ -1,6 +1,7 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.Construction;
 using Client.Game.InGame.UI.Inventory.Main;
 using TMPro;
 using UnityEngine;
@@ -55,7 +56,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
             // 建設コストを賄えるかを所持素材から判定する
             // Judge from owned materials whether the construction cost is affordable
-            var canAffordPole = 1 <= ConstructionCostPreviewCalculator.CalculateAffordableCellCount(poleMaster.RequiredItems, _inventory);
+            var canAffordPole = 1 <= ConstructionMaterialAffordability.CalculateAffordableCellCount(poleMaster.RequiredItems, _inventory);
 
             // 電柱の設置座標を地面レイキャストから求め、設置可能距離を超えていたらゴーストを出さない
             // Compute the pole placement position from a ground raycast and drop the ghost beyond the placeable distance
