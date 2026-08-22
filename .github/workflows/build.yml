@@ -1,17 +1,23 @@
 name: Unity Build
 
 on:
+  # 「ビルド検証」ラベルを付けたPRだけビルドする（全PRでは回さない。ADR 0028）
+  # Only build PRs that carry the "ビルド検証" label; do not run on every PR (ADR 0028)
   pull_request:
-    paths-ignore:
-      - '**/*.md'
+    types: [labeled]
+
+  # 日次フルビルド。UTC 19:00 = JST 翌04:00
+  # Daily full build. 19:00 UTC equals 04:00 JST the next day
+  schedule:
+    - cron: '0 19 * * *'
 
   # 手動実行デバッグ用
   workflow_dispatch: {}
 
-# PR更新時に同一PRの古い実行をキャンセルする（groupはworkflow×ref単位。PRのrefはrefs/pull/N/mergeでPRごとに一意）。
-# cancel-in-progressをPRイベント限定にしているため、手動実行(workflow_dispatch)が実行中にキャンセルされることはない。
-# Cancel outdated runs of the same PR on update (the group is per workflow and ref; a PR's ref is unique per PR).
-# cancel-in-progress only applies to PR events, so manual workflow_dispatch runs are never cancelled mid-run.
+# PR更新時に同一PRの古い実行をキャンセルする（groupはworkflow×ref単位）。
+# 日次(schedule)と手動(workflow_dispatch)は実行中にキャンセルされない。
+# Cancel outdated runs of the same PR on update (the group is per workflow and ref).
+# Scheduled and manual runs are never cancelled mid-run.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -23,11 +29,13 @@ jobs:
   # そのためサーバーとクライアントを別ジョブに分割している。
   server-build:
     name: Server Build - ${{ matrix.platform.name }}
+    # ラベル発火のときは「ビルド検証」ラベルのみ通す。日次・手動は無条件で通す
+    # On label events only "ビルド検証" passes; scheduled and manual runs always proceed
+    if: github.event_name != 'pull_request' || github.event.label.name == 'ビルド検証'
     runs-on: ${{ matrix.platform.runner }}
 
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix:
         platform:
           # ==========================================
@@ -82,20 +90,6 @@ jobs:
           git submodule sync --recursive
           git submodule update --init --recursive
 
-      # windows-latestのrunは既定でpwshのため、bashを明示しないとキーが空になる
-      # windows-latest defaults run to pwsh, so bash must be explicit or the key ends up empty
-      - name: Set current datetime as env variable
-        shell: bash
-        env:
-          TZ: 'Asia/Tokyo'
-        run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
-
-      # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
-      - uses: actions/cache@v4
-        with:
-          path: moorestech_server/Library
-          key: "Server_Library_${{ env.CURRENT_DATETIME }}"
-
       # アーティファクト名を設定（GUI版とDedicated Serverで区別）
       - name: Set artifact name
         id: artifact
@@ -109,6 +103,8 @@ jobs:
             echo "path=moorestech_server/Output_${{ matrix.platform.name }}" >> $GITHUB_OUTPUT
           fi
 
+      # 日次ビルドはキャッシュ枠(10GB)をPR側へ譲るためコールドで回す（ADR 0028）
+      # The daily build runs cold so the 10GB cache budget goes to PR-side jobs (ADR 0028)
       # Build
       - name: Server Build - ${{ matrix.platform.name }}
         uses: game-ci/unity-builder@v4
@@ -145,15 +141,17 @@ jobs:
           path: ./server_output.tar.gz
 
   # ===== クライアントビルド =====
-  # サーバービルド完了後に実行される
+  # サーバービルドのartifactは消費しないため依存は無い。4ジョブを並列に走らせる（ADR 0028）
+  # The client does not consume the server's artifacts, so there is no dependency; all four jobs run in parallel (ADR 0028)
   client-build:
     name: Client Build - ${{ matrix.platform.name }}
-    needs: server-build
+    # ラベル発火のときは「ビルド検証」ラベルのみ通す。日次・手動は無条件で通す
+    # On label events only "ビルド検証" passes; scheduled and manual runs always proceed
+    if: github.event_name != 'pull_request' || github.event.label.name == 'ビルド検証'
     runs-on: ${{ matrix.platform.runner }}
 
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix:
         platform:
           # ==========================================
@@ -247,20 +245,8 @@ jobs:
           fi
           "$pnpm_binary" --dir webui install --frozen-lockfile
 
-      # windows-latestのrunは既定でpwshのため、bashを明示しないとキーが空になる
-      # windows-latest defaults run to pwsh, so bash must be explicit or the key ends up empty
-      - name: Set current datetime as env variable
-        shell: bash
-        env:
-          TZ: 'Asia/Tokyo'
-        run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
-
-      # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
-      - uses: actions/cache@v4
-        with:
-          path: moorestech_client/Library
-          key: "Library_${{ env.CURRENT_DATETIME }}"
-
+      # 日次ビルドはキャッシュ枠(10GB)をPR側へ譲るためコールドで回す（ADR 0028）
+      # The daily build runs cold so the 10GB cache budget goes to PR-side jobs (ADR 0028)
       # Build
       - name: Client Build - ${{ matrix.platform.name }}
         uses: game-ci/unity-builder@v4
