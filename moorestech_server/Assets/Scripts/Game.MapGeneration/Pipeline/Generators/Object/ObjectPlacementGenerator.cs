@@ -74,10 +74,11 @@ namespace Game.MapGeneration.Pipeline.Generators
             {
                 foreach (var entry in objConfig.entries)
                 {
-                    if (entry.mapObjectGuids == null || entry.mapObjectGuids.Length == 0 || entry.density <= 0.001f) continue;
+                    if (entry.mapObjectGuids == null || entry.mapObjectGuids.Length == 0) continue;
+
                     if (entry.useClusterMode)
-                        ObjectIndependentPlacer.GenerateClusterObjects(entry, dims, heights, hRes,
-                            mask, borderMarginPx, rng, noiseOffsets, placements, treeSpatialGrid, objAlgCfg, ref nextClusterId);
+                        ObjectBackboneClusterPlacer.Generate(entry, dims, heights, hRes,
+                            mask, borderMarginPx, rng, noiseOffsets, placements, objAlgCfg, ref nextClusterId);
                     else
                         ObjectIndependentPlacer.GenerateIndependent(entry, dims, heights, hRes,
                             mask, borderMarginPx, rng, noiseOffsets, placements, treeSpatialGrid);

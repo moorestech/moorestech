@@ -1,13 +1,15 @@
 using System.Linq;
 using Game.MapGeneration.Pipeline;
 using NUnit.Framework;
+using Tests.UnitTest.Game.MapGeneration.Tiling;
+using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration
 {
     // 生成パイプラインの決定論を検証する。同一 seed は完全同一出力、異なる seed は異なる高さ、
-    // 鉱脈 AABB は整数スナップ済みで空でないこと。
+    // 鉱脈 AABB は配置点中心の固定サイズであること。
     // Verify pipeline determinism: same seed => identical output, different seed => different heights,
-    // vein AABBs are integer-snapped and non-empty.
+    // vein AABBs stay a fixed size centred on their placement point.
     public class MapGenerationPipelineTest
     {
         [Test]
@@ -22,8 +24,8 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(a.MapObjects.Count, Is.EqualTo(b.MapObjects.Count));
             Assert.That(a.ItemVeins.Count, Is.EqualTo(b.ItemVeins.Count));
 
-            // クラスター採番リセットが効いていれば鉱脈 AABB も要素単位で一致する（NextClusterId 危険の検出）。
-            // With the cluster-id reset in place the vein AABBs match element-wise (catches the NextClusterId hazard).
+            // 鉱脈 AABB は配置点から一意に決まるため、同一 seed では要素単位でも一致する。
+            // A vein AABB is derived solely from its placement point, so it matches element-wise for the same seed.
             for (int i = 0; i < a.ItemVeins.Count; i++)
             {
                 Assert.That(a.ItemVeins[i].VeinGuid, Is.EqualTo(b.ItemVeins[i].VeinGuid));
@@ -44,18 +46,32 @@ namespace Tests.UnitTest.Game.MapGeneration
         }
 
         [Test]
-        public void VeinAabbIsIntegerSnappedAndNonEmpty()
+        public void VeinAabbIsFixedSizeAndNonEmpty()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
             var output = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
 
             Assert.That(output.ItemVeins, Is.Not.Empty);
+            Assert.That(output.FluidVeins, Is.Not.Empty);
+
+            // 変換後も鉱脈は Max-Min = 2 の固定AABB
+            // After the transform, every vein keeps a fixed AABB whose Max-Min is 2
             foreach (var vein in output.ItemVeins)
-            {
-                Assert.That(vein.Min.x, Is.LessThanOrEqualTo(vein.Max.x));
-                Assert.That(vein.Min.y, Is.LessThanOrEqualTo(vein.Max.y));
-                Assert.That(vein.Min.z, Is.LessThanOrEqualTo(vein.Max.z));
-            }
+                Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 2, 2)));
+            foreach (var vein in output.FluidVeins)
+                Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 2, 2)));
+        }
+
+        [Test]
+        public void VeinAabbsDoNotOverlap()
+        {
+            var config = TestGenerationConfigFactory.CreateSmall();
+            var output = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+
+            // 鉱脈の重なりは産出だけ倍にする不具合の再発検知
+            // Regression guard: an overlap doubles only the yield
+            MultiTileTestWorld.AssertNoOverlappingVeins(output.ItemVeins);
+            MultiTileTestWorld.AssertNoOverlappingVeins(output.FluidVeins);
         }
     }
 }

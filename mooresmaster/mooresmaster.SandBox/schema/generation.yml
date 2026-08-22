@@ -215,7 +215,7 @@ properties:
                 default: 8
               - key: minDistanceBetweenOres
                 type: number
-                default: 1.5
+                default: 4
               - key: placementRetries
                 type: integer
                 default: 10
@@ -279,7 +279,7 @@ properties:
                 default: 8
               - key: minDistanceBetweenOres
                 type: number
-                default: 1.5
+                default: 4
               - key: placementRetries
                 type: integer
                 default: 10

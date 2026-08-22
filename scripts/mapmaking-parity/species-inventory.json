@@ -3605,7 +3605,12 @@
         "entries": [
           {
             "prefabs": [],
-            "density": 0.6,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.06
+              }
+            ],
             "scaleRange": [
               2,
               4
@@ -3624,7 +3629,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 6,
             "objectsPerCluster": 3,
             "clusterRadius": 15,
             "minDistanceFromTree": 3,
@@ -3632,7 +3636,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.6,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.06
+              }
+            ],
             "scaleRange": [
               2,
               4
@@ -3651,7 +3660,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 6,
             "objectsPerCluster": 3,
             "clusterRadius": 15,
             "minDistanceFromTree": 3,
@@ -3659,7 +3667,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.6,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.06
+              }
+            ],
             "scaleRange": [
               2,
               4
@@ -3678,7 +3691,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 6,
             "objectsPerCluster": 3,
             "clusterRadius": 15,
             "minDistanceFromTree": 3,
@@ -3686,7 +3698,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.6,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.06
+              }
+            ],
             "scaleRange": [
               2,
               4
@@ -3705,7 +3722,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 6,
             "objectsPerCluster": 3,
             "clusterRadius": 15,
             "minDistanceFromTree": 3,
@@ -3713,7 +3729,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.6,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.06
+              }
+            ],
             "scaleRange": [
               2,
               4
@@ -3732,7 +3753,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 6,
             "objectsPerCluster": 3,
             "clusterRadius": 15,
             "minDistanceFromTree": 3,
@@ -3740,7 +3760,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.6,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.06
+              }
+            ],
             "scaleRange": [
               2,
               4
@@ -3759,7 +3784,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 6,
             "objectsPerCluster": 3,
             "clusterRadius": 15,
             "minDistanceFromTree": 3,
@@ -3767,7 +3791,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.8,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.08
+              }
+            ],
             "scaleRange": [
               1,
               2.5
@@ -3786,7 +3815,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 8,
             "objectsPerCluster": 4,
             "clusterRadius": 12,
             "minDistanceFromTree": 2,
@@ -3794,7 +3822,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.8,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.08
+              }
+            ],
             "scaleRange": [
               1,
               2.5
@@ -3813,7 +3846,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 8,
             "objectsPerCluster": 4,
             "clusterRadius": 12,
             "minDistanceFromTree": 2,
@@ -3821,7 +3853,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.8,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.08
+              }
+            ],
             "scaleRange": [
               1,
               2.5
@@ -3840,7 +3877,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 8,
             "objectsPerCluster": 4,
             "clusterRadius": 12,
             "minDistanceFromTree": 2,
@@ -3848,7 +3884,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.8,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.08
+              }
+            ],
             "scaleRange": [
               1,
               2.5
@@ -3867,7 +3908,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 8,
             "objectsPerCluster": 4,
             "clusterRadius": 12,
             "minDistanceFromTree": 2,
@@ -3875,7 +3915,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.8,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.08
+              }
+            ],
             "scaleRange": [
               1,
               2.5
@@ -3894,7 +3939,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 8,
             "objectsPerCluster": 4,
             "clusterRadius": 12,
             "minDistanceFromTree": 2,
@@ -3902,7 +3946,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.8,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.08
+              }
+            ],
             "scaleRange": [
               1,
               2.5
@@ -3921,7 +3970,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 8,
             "objectsPerCluster": 4,
             "clusterRadius": 12,
             "minDistanceFromTree": 2,
@@ -7680,7 +7728,12 @@
         "entries": [
           {
             "prefabs": [],
-            "density": 1,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.03
+              }
+            ],
             "scaleRange": [
               0.669375,
               1.1475
@@ -7699,7 +7752,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 3,
             "objectsPerCluster": 5,
             "clusterRadius": 12,
             "minDistanceFromTree": 0,
@@ -7707,7 +7759,12 @@
           },
           {
             "prefabs": [],
-            "density": 1,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.03
+              }
+            ],
             "scaleRange": [
               0.57375,
               1.0518751
@@ -7726,7 +7783,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 3,
             "objectsPerCluster": 5,
             "clusterRadius": 12,
             "minDistanceFromTree": 0,
@@ -7734,7 +7790,12 @@
           },
           {
             "prefabs": [],
-            "density": 1,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.03
+              }
+            ],
             "scaleRange": [
               0.76500005,
               1.33875
@@ -7753,7 +7814,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 3,
             "objectsPerCluster": 5,
             "clusterRadius": 15,
             "minDistanceFromTree": 0,
@@ -7761,7 +7821,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.5,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.03
+              }
+            ],
             "scaleRange": [
               0.478125,
               0.86062497
@@ -7780,7 +7845,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": true,
-            "clusterCount": 3,
             "objectsPerCluster": 5,
             "clusterRadius": 12,
             "minDistanceFromTree": 0,
@@ -7788,7 +7852,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.6,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.6
+              }
+            ],
             "scaleRange": [
               2,
               4
@@ -7807,7 +7876,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": false,
-            "clusterCount": 8,
             "objectsPerCluster": 4,
             "clusterRadius": 12,
             "minDistanceFromTree": 0,
@@ -7815,7 +7883,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.45000002,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.45000002
+              }
+            ],
             "scaleRange": [
               1.5,
               3
@@ -7834,7 +7907,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": false,
-            "clusterCount": 8,
             "objectsPerCluster": 4,
             "clusterRadius": 12,
             "minDistanceFromTree": 0,
@@ -7842,7 +7914,12 @@
           },
           {
             "prefabs": [],
-            "density": 0.90000004,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.90000004
+              }
+            ],
             "scaleRange": [
               1,
               2
@@ -7861,7 +7938,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": false,
-            "clusterCount": 8,
             "objectsPerCluster": 4,
             "clusterRadius": 12,
             "minDistanceFromTree": 0,
@@ -8862,7 +8938,12 @@
                 "mapObjectGuid": "91f2d423-1595-502e-9477-6234b55f8b54"
               }
             ],
-            "density": 0.2,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.08
+              }
+            ],
             "scaleRange": [
               2.5,
               5.5
@@ -8881,7 +8962,6 @@
             "slopeMax": 20,
             "slopeSmoothness": 3,
             "useClusterMode": true,
-            "clusterCount": 8,
             "objectsPerCluster": 2,
             "clusterRadius": 15,
             "minDistanceFromTree": 0,
@@ -8908,7 +8988,12 @@
                 "mapObjectGuid": "f3fa7890-dc42-559f-afe6-bdec756e6239"
               }
             ],
-            "density": 2,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 2
+              }
+            ],
             "scaleRange": [
               2,
               4
@@ -8927,7 +9012,6 @@
             "slopeMax": 25,
             "slopeSmoothness": 3,
             "useClusterMode": false,
-            "clusterCount": 25,
             "objectsPerCluster": 6,
             "clusterRadius": 8,
             "minDistanceFromTree": 0,
@@ -8945,7 +9029,12 @@
                 "mapObjectGuid": "d78a0aae-362d-53e5-b820-d4f2e348adca"
               }
             ],
-            "density": 8,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 8
+              }
+            ],
             "scaleRange": [
               0.6,
               1.8
@@ -8964,7 +9053,6 @@
             "slopeMax": 30,
             "slopeSmoothness": 3,
             "useClusterMode": false,
-            "clusterCount": 35,
             "objectsPerCluster": 8,
             "clusterRadius": 6,
             "minDistanceFromTree": 0,
@@ -8982,7 +9070,12 @@
                 "mapObjectGuid": "c1bd590d-e126-52f5-98c0-9c846b60be98"
               }
             ],
-            "density": 2,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 2
+              }
+            ],
             "scaleRange": [
               0.5,
               1.5
@@ -9001,7 +9094,6 @@
             "slopeMax": 25,
             "slopeSmoothness": 3,
             "useClusterMode": false,
-            "clusterCount": 15,
             "objectsPerCluster": 4,
             "clusterRadius": 10,
             "minDistanceFromTree": 0,
@@ -9028,7 +9120,12 @@
                 "mapObjectGuid": "173366a5-bd87-5183-9b47-f8d5960d6cd4"
               }
             ],
-            "density": 0,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0
+              }
+            ],
             "scaleRange": [
               1.5,
               3
@@ -9047,7 +9144,6 @@
             "slopeMax": 70,
             "slopeSmoothness": 2,
             "useClusterMode": false,
-            "clusterCount": 12,
             "objectsPerCluster": 3,
             "clusterRadius": 15,
             "minDistanceFromTree": 0,
@@ -9065,7 +9161,12 @@
                 "mapObjectGuid": "0a32478f-ba41-5100-af41-df4ea3bf91e3"
               }
             ],
-            "density": 0,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0
+              }
+            ],
             "scaleRange": [
               3.5,
               7
@@ -9084,7 +9185,6 @@
             "slopeMax": 80,
             "slopeSmoothness": 2,
             "useClusterMode": false,
-            "clusterCount": 0,
             "objectsPerCluster": 0,
             "clusterRadius": 0,
             "minDistanceFromTree": 0,
@@ -9108,7 +9208,12 @@
                 "mapObjectGuid": "61f9d17e-1810-57b8-aeb6-368d0151fb9d"
               }
             ],
-            "density": 0.3,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.3
+              }
+            ],
             "scaleRange": [
               1.5,
               4
@@ -9127,7 +9232,6 @@
             "slopeMax": 65,
             "slopeSmoothness": 2,
             "useClusterMode": false,
-            "clusterCount": 10,
             "objectsPerCluster": 3,
             "clusterRadius": 12,
             "minDistanceFromTree": 0,
@@ -9154,7 +9258,12 @@
                 "mapObjectGuid": "6ad3879b-3ee2-52ee-bf8d-d73d449933cc"
               }
             ],
-            "density": 0.4,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0.4
+              }
+            ],
             "scaleRange": [
               2,
               5
@@ -9173,7 +9282,6 @@
             "slopeMax": 55,
             "slopeSmoothness": 3,
             "useClusterMode": false,
-            "clusterCount": 10,
             "objectsPerCluster": 3,
             "clusterRadius": 14,
             "minDistanceFromTree": 0,
@@ -9194,7 +9302,12 @@
                 "mapObjectGuid": "17884ab6-424f-5abd-a6c5-716f57b63894"
               }
             ],
-            "density": 0,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0
+              }
+            ],
             "scaleRange": [
               0.8,
               1.5
@@ -9213,7 +9326,6 @@
             "slopeMax": 10,
             "slopeSmoothness": 3,
             "useClusterMode": false,
-            "clusterCount": 0,
             "objectsPerCluster": 0,
             "clusterRadius": 0,
             "minDistanceFromTree": 0,
@@ -9234,7 +9346,12 @@
                 "mapObjectGuid": "1cd9482e-efaf-51bd-8289-2bbb0fffe1c2"
               }
             ],
-            "density": 0,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0
+              }
+            ],
             "scaleRange": [
               0.5,
               1
@@ -9253,7 +9370,6 @@
             "slopeMax": 12,
             "slopeSmoothness": 3,
             "useClusterMode": false,
-            "clusterCount": 0,
             "objectsPerCluster": 0,
             "clusterRadius": 0,
             "minDistanceFromTree": 0,
@@ -9265,7 +9381,12 @@
                 "mapObjectGuid": "6b86b191-161d-591b-96c5-e8e1465fd0d1"
               }
             ],
-            "density": 0,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0
+              }
+            ],
             "scaleRange": [
               0.8,
               1.2
@@ -9284,7 +9405,6 @@
             "slopeMax": 0,
             "slopeSmoothness": 0,
             "useClusterMode": false,
-            "clusterCount": 0,
             "objectsPerCluster": 0,
             "clusterRadius": 0,
             "minDistanceFromTree": 0,
@@ -9305,7 +9425,12 @@
                 "mapObjectGuid": "6284620c-0c8a-57bc-ad69-c859f17fda5a"
               }
             ],
-            "density": 0,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0
+              }
+            ],
             "scaleRange": [
               0.6,
               1.1
@@ -9324,7 +9449,6 @@
             "slopeMax": 10,
             "slopeSmoothness": 3,
             "useClusterMode": false,
-            "clusterCount": 0,
             "objectsPerCluster": 0,
             "clusterRadius": 0,
             "minDistanceFromTree": 0,
@@ -9342,7 +9466,12 @@
                 "mapObjectGuid": "b124fd06-ea0c-504b-848d-19fd00c5f371"
               }
             ],
-            "density": 0,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0
+              }
+            ],
             "scaleRange": [
               0.6,
               1.2
@@ -9361,7 +9490,6 @@
             "slopeMax": 12,
             "slopeSmoothness": 3,
             "useClusterMode": false,
-            "clusterCount": 0,
             "objectsPerCluster": 0,
             "clusterRadius": 0,
             "minDistanceFromTree": 0,
@@ -9388,7 +9516,12 @@
                 "mapObjectGuid": "f3fa7890-dc42-559f-afe6-bdec756e6239"
               }
             ],
-            "density": 0,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 0
+              }
+            ],
             "scaleRange": [
               1,
               2.2
@@ -9407,7 +9540,6 @@
             "slopeMax": 12,
             "slopeSmoothness": 3,
             "useClusterMode": false,
-            "clusterCount": 15,
             "objectsPerCluster": 4,
             "clusterRadius": 10,
             "minDistanceFromTree": 0,
@@ -9719,7 +9851,12 @@
                 "mapObjectGuid": "885447ef-e227-51bf-82ad-75e4bc5df8e4"
               }
             ],
-            "density": 3,
+            "bands": [
+              {
+                "outerRadiusMeters": -1,
+                "density": 3
+              }
+            ],
             "scaleRange": [
               0.4,
               1.2
@@ -9738,7 +9875,6 @@
             "slopeMax": 90,
             "slopeSmoothness": 4,
             "useClusterMode": false,
-            "clusterCount": 8,
             "objectsPerCluster": 4,
             "clusterRadius": 12,
             "minDistanceFromTree": 0,
