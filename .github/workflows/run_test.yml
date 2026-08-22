@@ -110,7 +110,9 @@ jobs:
 
       # masterのcache-warmが焼いたキャッシュをrestore-keysの前方一致で拾う（ADR 0028）
       # Pick up whatever master's cache-warm produced via the restore-keys prefix (ADR 0028)
-      - uses: actions/cache@v4
+      # 保存はmasterのcache-warm.ymlだけが行う（PR側で焼くと10GB枠を食い潰すため。裁定 2026-08-22）
+      # Only master's cache-warm.yml writes caches; saving from PRs would exhaust the 10GB budget (ruling 2026-08-22)
+      - uses: actions/cache/restore@v4
         with:
           path: moorestech/moorestech_client/Library
           key: Library_Test_client-${{ github.sha }}
