@@ -57,7 +57,7 @@
   `status: "success"` は `verified: true`（ビルド検証ラベルで緑を確認済み）のときだけ許される。`timeout` のときは `remaining` に残作業を書く。poller（Task 3/4）はこのファイルの出現をフェーズ完了の合図にする。
   スキルは環境変数 `PR_REVIEW_RUNDIR_BASE`（既定値は上記）を読んで書き先を決める。
 
-- [ ] **Step 1: 既存スキルの構成を確認する**
+- [x] **Step 1: 既存スキルの構成を確認する**
 
 Run:
 ```bash
@@ -66,7 +66,7 @@ ls .agents/skills/pr-adjudicated-apply/
 ```
 Expected: frontmatter（`name` / `description`）を持つ Markdown。出力契約（`apply-result.json`）が Step として明記されている。
 
-- [ ] **Step 2: スキルを作成する**
+- [x] **Step 2: スキルを作成する**
 
 Create `.agents/skills/daily-build-repair/SKILL.md`。以下を必ず含める:
 
@@ -84,7 +84,7 @@ Create `.agents/skills/daily-build-repair/SKILL.md`。以下を必ず含める:
 
 > 修復対象は日次ビルドを赤くしている原因のみ。ついでのリファクタ・無関係な改善・他の不具合修正は一切行わない。見つけた別の問題は Issue へコメントで残すだけにする。
 
-- [ ] **Step 3: symlink 経由でスキルが見えることを確認する**
+- [x] **Step 3: symlink 経由でスキルが見えることを確認する**
 
 Run:
 ```bash
@@ -93,7 +93,7 @@ ls .claude/skills/daily-build-repair/SKILL.md
 ```
 Expected: `.claude/skills` が `.agents/skills` への symlink で、新スキルがそこから見える。**symlink の実体を複製してはならない。**
 
-- [ ] **Step 4: frontmatter が妥当か確認する**
+- [x] **Step 4: frontmatter が妥当か確認する**
 
 Run:
 ```bash
@@ -113,7 +113,7 @@ print('ok')
 ```
 Expected: `ok`
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add .agents/skills/daily-build-repair/SKILL.md
@@ -140,7 +140,7 @@ git commit -m "feat(skill): 日次ビルド失敗Issueから前方修正しPRを
   - 既存ヘルパ `gh_edit_labels(number, add, remove, description)` と `gh_comment(number, body, description)` に **`kind: str = "pr"` 引数を追加**して `gh pr` / `gh issue` を出し分ける。既定値が `"pr"` なので既存の呼び出し側は一切変更しない
   - 既存ヘルパ `has_marker(number, name)` / `set_marker(number, name)` にも同様に `kind: str = "pr"` を追加し、marker の置き先を `pr_state_dir` / `issue_state_dir` で切り替える
 
-- [ ] **Step 1: バックアップを取る**
+- [x] **Step 1: バックアップを取る**
 
 Run:
 ```bash
@@ -151,7 +151,7 @@ ls -la poller.py.bak-* | tail -2
 ```
 Expected: 新しい `.bak-` ファイルが2つできている。
 
-- [ ] **Step 2: 既存テストが今すべて通ることを記録する**
+- [x] **Step 2: 既存テストが今すべて通ることを記録する**
 
 Run:
 ```bash
@@ -159,7 +159,7 @@ cd ~/hermes-agent/data/services/pr-review && /opt/homebrew/bin/python3 -m unitte
 ```
 Expected: `OK`（件数を控えておく。Task 6 でこの件数を下回っていないことを確認する）
 
-- [ ] **Step 3: 失敗するテストを書く**
+- [x] **Step 3: 失敗するテストを書く**
 
 `test_poller.py` の末尾に追加:
 
@@ -188,7 +188,7 @@ class IssueDispatchTest(unittest.TestCase):
         self.assertNotIn("pr-42", poller.issue_state_dir(42))
 ```
 
-- [ ] **Step 4: テストを実行して失敗を確認する**
+- [x] **Step 4: テストを実行して失敗を確認する**
 
 Run:
 ```bash
@@ -196,7 +196,7 @@ cd ~/hermes-agent/data/services/pr-review && /opt/homebrew/bin/python3 -m unitte
 ```
 Expected: FAIL — `AttributeError: module 'poller' has no attribute 'LABEL_REPAIR_WAITING'`
 
-- [ ] **Step 5: 定数と関数を実装する**
+- [x] **Step 5: 定数と関数を実装する**
 
 `poller.py` の既存ラベル定数（`LABEL_DONE = "独立レビュー&対応完了"` の直後）に追加:
 
@@ -248,7 +248,7 @@ def fetch_open_issues() -> list[dict]:
 
 > `fetch_open_prs`（`poller.py:746`）の実装を読み、同じヘルパ・同じ例外の投げ方に揃えること。
 
-- [ ] **Step 5.5: 既存ヘルパに `kind` 引数を足して Issue でも使えるようにする**
+- [x] **Step 5.5: 既存ヘルパに `kind` 引数を足して Issue でも使えるようにする**
 
 `gh_edit_labels`（`poller.py:329`）/ `gh_comment`（`:338`）/ `has_marker`（`:215`）/ `set_marker`（`:219`）に `kind: str = "pr"` を追加する。**既定値が `"pr"` なので既存の呼び出し側は1行も変えない。**
 
@@ -270,7 +270,7 @@ def has_marker(number: int, name: str, kind: str = "pr") -> bool:
 
 **既存呼び出しの挙動が変わっていないことを、既存テスト全通過（Step 7）で確認する。**
 
-- [ ] **Step 6: テストを実行して通ることを確認する**
+- [x] **Step 6: テストを実行して通ることを確認する**
 
 Run:
 ```bash
@@ -278,7 +278,7 @@ cd ~/hermes-agent/data/services/pr-review && /opt/homebrew/bin/python3 -m unitte
 ```
 Expected: `OK`（4 tests）
 
-- [ ] **Step 7: 既存テストが壊れていないことを確認する**
+- [x] **Step 7: 既存テストが壊れていないことを確認する**
 
 Run:
 ```bash
@@ -302,7 +302,7 @@ Expected: `OK`（Step 2 で控えた件数 + 4）
   - `in_repair_window(now: datetime) -> bool` — 引数の `now` は JST の naive datetime。**テスト可能にするため必ず引数で受ける**（内部で `datetime.now()` を呼ばない）
   - `handle_repair_waiting(issue: dict, now: datetime, repair_budget: list[int]) -> None`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `test_poller.py` の末尾に追加:
 
@@ -327,7 +327,7 @@ class RepairWindowTest(unittest.TestCase):
         self.assertFalse(poller.in_repair_window(datetime.datetime(2026, 8, 22, 14, 0)))
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run:
 ```bash
@@ -335,7 +335,7 @@ cd ~/hermes-agent/data/services/pr-review && /opt/homebrew/bin/python3 -m unitte
 ```
 Expected: FAIL — `module 'poller' has no attribute 'in_repair_window'`
 
-- [ ] **Step 3: 枠判定を実装する**
+- [x] **Step 3: 枠判定を実装する**
 
 `poller.py` の定数群（`MAX_CONCURRENT_REVIEWS = 2` の近く）に追加:
 
@@ -359,7 +359,7 @@ def in_repair_window(now: datetime) -> bool:
 `poller.py` は既に `from datetime import datetime, timezone`（`poller.py:25`）を持っているので、**import の追加は不要**。型注釈は `datetime.datetime` ではなく `datetime` と書くこと（`import datetime` 形式ではないため）。
 テスト側（`test_poller.py`）にだけ `import datetime` を追加し、テストコードでは `datetime.datetime(2026, 8, 22, 4, 0)` の形で構築する。
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run:
 ```bash
@@ -367,7 +367,7 @@ cd ~/hermes-agent/data/services/pr-review && /opt/homebrew/bin/python3 -m unitte
 ```
 Expected: `OK`（5 tests）
 
-- [ ] **Step 5: 起動ハンドラの失敗するテストを書く**
+- [x] **Step 5: 起動ハンドラの失敗するテストを書く**
 
 `test_poller.py` の末尾に追加。既存の `LaunchClaudeTest` / `ReviewConcurrencyCapTest` のモック手法をそのまま踏襲すること（`unittest.mock.patch` で `cmux` と `run_gh` を差し替える形）。
 
@@ -396,7 +396,7 @@ class RepairWaitingTest(unittest.TestCase):
         self.assertEqual(budget[0], 0)
 ```
 
-- [ ] **Step 6: テストを実行して失敗を確認する**
+- [x] **Step 6: テストを実行して失敗を確認する**
 
 Run:
 ```bash
@@ -404,7 +404,7 @@ cd ~/hermes-agent/data/services/pr-review && /opt/homebrew/bin/python3 -m unitte
 ```
 Expected: FAIL — `handle_repair_waiting` が存在しない
 
-- [ ] **Step 7: 起動ハンドラを実装する**
+- [x] **Step 7: 起動ハンドラを実装する**
 
 既存の `handle_waiting` を手本にする（ラベル付替え → 開始コメント → cmux ワークスペース作成 → state ファイル書き出し、の順序と marker による重複コメント防止）。
 
@@ -456,7 +456,7 @@ def launch_repair_session(issue: dict) -> None:
 >
 > `cmux` は poller 内でのモジュール別名（テストが `patch.object(poller.cmux, ...)` で差し替えている）。`cmux_launcher` という名前で参照しない。
 
-- [ ] **Step 8: テストを実行して通ることを確認する**
+- [x] **Step 8: テストを実行して通ることを確認する**
 
 Run:
 ```bash
@@ -464,7 +464,7 @@ cd ~/hermes-agent/data/services/pr-review && /opt/homebrew/bin/python3 -m unitte
 ```
 Expected: `OK`（3 tests）
 
-- [ ] **Step 9: 既存テストが壊れていないことを確認する**
+- [x] **Step 9: 既存テストが壊れていないことを確認する**
 
 Run:
 ```bash
@@ -485,7 +485,7 @@ Expected: `OK`
 - Produces: `handle_repair_running(issue: dict, now: datetime) -> bool` — 戻り値は「このtickで飛行中と確定したか」。既存 `handle_running` の戻り値の意味と揃える。
 - Produces: `REPAIR_STOP_PROMPT: str` — `## 停止指示` を含む本文。Task 1 のスキル Step 8 がこの見出しで停止を認識する。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 既存 `ReviewRunningTest`（`test_poller.py:257`）の `setUp` をそのまま踏襲する（`tempfile` で `STATE_DIR` / `RUNDIR_BASE` を差し替え、`poller.cmux` と `poller.probe` を patch する形）。
 
@@ -587,7 +587,7 @@ class RepairRunningTest(unittest.TestCase):
 >
 > `_added_labels` が引数の位置とキーワードの両方に対応しているのは、`gh_edit_labels` の呼び出し形をここで決め打ちにしないため。実装側は既存 PR 側の呼び出しと同じ形に揃えること。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run:
 ```bash
@@ -595,7 +595,7 @@ cd ~/hermes-agent/data/services/pr-review && /opt/homebrew/bin/python3 -m unitte
 ```
 Expected: FAIL — `handle_repair_running` が存在しない
 
-- [ ] **Step 3: 停止指示プロンプトを定義する**
+- [x] **Step 3: 停止指示プロンプトを定義する**
 
 `poller.py` の既存プロンプト定数群（`RESUME_PROMPT` の近く）に追加:
 
@@ -611,7 +611,7 @@ REPAIR_STOP_PROMPT = (
 )
 ```
 
-- [ ] **Step 4: 監視ハンドラを実装する**
+- [x] **Step 4: 監視ハンドラを実装する**
 
 既存 `handle_running`（`poller.py:894`）を手本にする。観測点は既存と同じ3つ（`session_alive` による生死、`transcript_probe` による活動状況、成果物ファイルの出現）。
 
@@ -623,7 +623,7 @@ REPAIR_STOP_PROMPT = (
 5. session limit / weekly limit の扱いは既存 `handle_running` と同じ分岐をそのまま流用する。
 6. 生存していれば `True` を返す。
 
-- [ ] **Step 5: テストを実行して通ることを確認する**
+- [x] **Step 5: テストを実行して通ることを確認する**
 
 Run:
 ```bash
@@ -631,7 +631,7 @@ cd ~/hermes-agent/data/services/pr-review && /opt/homebrew/bin/python3 -m unitte
 ```
 Expected: `OK`（8 tests）
 
-- [ ] **Step 6: `run_once` に Issue 系統を組み込む**
+- [x] **Step 6: `run_once` に Issue 系統を組み込む**
 
 `run_once`（`poller.py:1414`）の PR 処理の後に、Issue 処理を追加する。**PR 側の処理を一切変更しない**こと。
 
@@ -661,7 +661,7 @@ Expected: `OK`（8 tests）
 
 > **実行中を先に処理してから待ちを処理する**（既存 PR 側と同じ順序）。飛行中の本数を確定させてから予算を計算しないと、同一 tick で2本起動してしまう。
 
-- [ ] **Step 7: 全テストが通ることを確認する**
+- [x] **Step 7: 全テストが通ることを確認する**
 
 Run:
 ```bash
@@ -669,7 +669,7 @@ cd ~/hermes-agent/data/services/pr-review && /opt/homebrew/bin/python3 -m unitte
 ```
 Expected: `OK`
 
-- [ ] **Step 8: DRYRUN で1tick 空回しして例外が出ないことを確認する**
+- [x] **Step 8: DRYRUN で1tick 空回しして例外が出ないことを確認する**
 
 Run:
 ```bash
@@ -688,7 +688,7 @@ Expected: 例外なく終了する。ログに `管理対象PR` の行と、修�
 - Consumes: Task 1〜4 のすべて
 - Produces: 稼働中の修復パイプライン
 
-- [ ] **Step 1: 修復系統のラベルを作成する**
+- [x] **Step 1: 修復系統のラベルを作成する**
 
 Run:
 ```bash
@@ -700,7 +700,7 @@ gh label list --limit 100 | grep "日次ビルド"
 ```
 Expected: `日次ビルド失敗`（Plan A で作成済み）を含む4つのラベルが出る。
 
-- [ ] **Step 2: README の状態遷移図に修復系統を追記する**
+- [x] **Step 2: README の状態遷移図に修復系統を追記する**
 
 `~/hermes-agent/data/services/pr-review/README.md` に、既存の PR 状態遷移図の下へ修復系統の遷移図を追加する。
 
@@ -720,7 +720,7 @@ Expected: `日次ビルド失敗`（Plan A で作成済み）を含む4つのラ
     │ 日次が緑に戻ると daily-build-issue.cjs がIssueを自動クローズする
 ```
 
-- [ ] **Step 3: supervisor が新しい poller を読み込んでいることを確認する**
+- [x] **Step 3: supervisor が新しい poller を読み込んでいることを確認する**
 
 `poller.py` は periodic サービスなので、ファイルを書き換えれば次の tick（120秒後）から新コードで走る。supervisor の再起動は不要。
 
@@ -731,7 +731,7 @@ tail -20 ~/hermes-agent/data/services/pr-review/state/poller.log
 ```
 Expected: 直近2分以内のタイムスタンプで tick のログが出ており、例外のトレースバックが無い。
 
-- [ ] **Step 4: 実地スモークテスト（枠外での不発火を確認）**
+- [x] **Step 4: 実地スモークテスト（枠外での不発火を確認）**
 
 現在時刻が 04:00〜09:00 JST の**枠外**であることを確認したうえで、テスト用の Issue を立てる。
 
@@ -746,7 +746,7 @@ grep "issue-" ~/hermes-agent/data/services/pr-review/state/poller.log | tail -5
 ```
 Expected: `issue-<N>: 深夜枠外のため起動見送り (outside repair window ...)` のログが出て、**セッションは起動しない**。cmux にワークスペースが増えていないことも確認する。
 
-- [ ] **Step 5: 実地スモークテスト（枠内での発火を確認）**
+- [x] **Step 5: 実地スモークテスト（枠内での発火を確認）**
 
 `REPAIR_WINDOW_START_HOUR` / `REPAIR_WINDOW_END_HOUR` を一時的に現在時刻を含む値へ書き換え、次の tick で起動することを確認する。
 
@@ -760,7 +760,7 @@ Expected: `修復セッション起動 (launched repair session ...)` のログ�
 
 確認後、**必ず時刻定数を 4 / 9 へ戻す**。
 
-- [ ] **Step 6: スモークテストの後始末**
+- [x] **Step 6: スモークテストの後始末**
 
 Run:
 ```bash
@@ -771,7 +771,7 @@ grep -n "REPAIR_WINDOW_START_HOUR\|REPAIR_WINDOW_END_HOUR" ~/hermes-agent/data/s
 ```
 Expected: 定数が `4` と `9` に戻っている。起動してしまった cmux ワークスペースがあれば閉じる。修復エージェントが作った worktree があれば `moores-wt rm` で削除する。
 
-- [ ] **Step 7: リポジトリ側の変更をコミットする**
+- [x] **Step 7: リポジトリ側の変更をコミットする**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/ci-build-strategy
