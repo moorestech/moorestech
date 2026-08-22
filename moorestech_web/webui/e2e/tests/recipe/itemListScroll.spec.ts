@@ -94,18 +94,24 @@ test("クリップ境界はグリッドからハイライトの逃げぶん離�
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
 
-  // 逃げ = マスタのpaddingPx + グロー。下回るとセルがクリップ端に密着し枠が「コ」の字に欠ける
-  // The clearance is the master's paddingPx + glow; below it the cell hugs the clip edge and the ring is notched
+  // 逃げはマスタのpaddingPx + グロー以上。下回るとセルがクリップ端に密着し枠が「コ」の字に欠ける
+  // The clearance is at least the master's paddingPx + glow; below it the cell hugs the clip edge and the ring is notched
+  // リテラルでなく関係式で見る。マスタのpaddingPxが変わってもこの検査が番人であり続けるため
+  // Assert the relation rather than literals so this stays a guard even when the master's paddingPx changes
   const clearance = await viewport(page).evaluate((element) => {
     const grid = element.querySelector('[data-testid="item-list-grid"]')!.getBoundingClientRect();
     const clip = element.getBoundingClientRect();
-    const inset = getComputedStyle(document.documentElement).getPropertyValue("--tutorial-anchor-clip-inset");
-    return { top: grid.top - clip.top, left: grid.left - clip.left, right: clip.right - grid.right, inset };
+    const root = getComputedStyle(document.documentElement);
+    const readPx = (name: string) => Number.parseFloat(root.getPropertyValue(name));
+    return {
+      top: grid.top - clip.top, left: grid.left - clip.left, right: clip.right - grid.right,
+      required: readPx("--tutorial-anchor-padding") + readPx("--tutorial-highlight-glow"),
+    };
   });
-  expect(clearance.inset.trim()).toBe("calc(8px + 4px)");
-  expect(clearance.top).toBeGreaterThanOrEqual(12);
-  expect(clearance.left).toBeGreaterThanOrEqual(12);
-  expect(clearance.right).toBeGreaterThanOrEqual(12);
+  expect(clearance.required).toBeGreaterThan(0);
+  expect(clearance.top).toBeGreaterThanOrEqual(clearance.required);
+  expect(clearance.left).toBeGreaterThanOrEqual(clearance.required);
+  expect(clearance.right).toBeGreaterThanOrEqual(clearance.required);
 
   // 枠は四辺とも削られない(insetは負=グロー分だけ外側へ出る)
   // No side of the ring is shaved; a negative inset means it extends outward by the glow

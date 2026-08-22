@@ -48,13 +48,22 @@ vi.mock("@/shared/i18n", async (importOriginal) => {
   return { ...actual, useI18n: () => ({ t: (key: string) => `T:${key}` }) };
 });
 
-// vitestはnode環境でdocumentを持たないため、CSS変数読み取りをテスト用の固定値へ差し替える
-// vitest runs in a node environment with no document, so the CSS variable read is swapped for a fixed test value
+// vitestはnode環境でdocumentを持たないため、CSS変数の読み書きをテスト用へ差し替える
+// vitest runs in a node environment with no document, so the CSS variable reads and writes are swapped out for tests
 vi.mock("./highlightGlowToken", () => ({
   readTutorialHighlightGlowPx: () => 4,
 }));
+vi.mock("./anchorPaddingToken", () => ({
+  publishTutorialAnchorPaddingPx: () => {},
+}));
 
 import { TutorialOverlay } from "./TutorialOverlay";
+
+// ラベルは自分の高さを実測して配置側を決めるため、host refに矩形を持つノードを与える
+// The label measures its own height to pick a side, so give host refs a node that reports a rect
+const LABEL_HEIGHT_PX = 20;
+const nodeMock = { getBoundingClientRect: () => ({ height: LABEL_HEIGHT_PX }) };
+const renderOverlay = () => create(createElement(TutorialOverlay), { createNodeMock: () => nodeMock });
 
 const FULL_CLIP = { left: -100, top: -100, right: 1280, bottom: 820 };
 const ready = (left: number, clip = FULL_CLIP): ResolvedAnchor => ({
@@ -91,7 +100,7 @@ describe("TutorialOverlay drag guides", () => {
       { tutorialSessionId: "s1", challengeId: "c1", elements: [dragGuide("guide-1", "hotbar.hud", "recipe.craft-button")] },
     ]);
     let renderer!: ReturnType<typeof create>;
-    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    act(() => { renderer = renderOverlay(); });
 
     expect(renderer.root.findAllByProps({ "data-testid": "tutorial-drag-guide" }).length).toBe(0);
 
@@ -109,7 +118,7 @@ describe("TutorialOverlay drag guides", () => {
       { tutorialSessionId: "s1", challengeId: "c1", elements: [dragGuide("guide-1", "hotbar.hud", "recipe.craft-button")] },
     ]);
     let renderer!: ReturnType<typeof create>;
-    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    act(() => { renderer = renderOverlay(); });
     pushAnchor("hotbar.hud", ready(10));
     pushAnchor("recipe.craft-button", ready(100));
     expect(renderer.root.findAllByProps({ "data-testid": "tutorial-drag-guide" }).length).toBe(1);
@@ -136,7 +145,7 @@ describe("TutorialOverlay anchor resolution", () => {
       { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", ownedAnchorId)] },
     ]);
     let renderer!: ReturnType<typeof create>;
-    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    act(() => { renderer = renderOverlay(); });
 
     pushAnchor(ownedAnchorId, { status: "not-found", reason: "missing" });
     expect(vi.mocked(dispatchAction)).not.toHaveBeenCalled();
@@ -158,7 +167,7 @@ describe("TutorialOverlay anchor resolution", () => {
       { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "recipe.craft-button")] },
       { tutorialSessionId: "s2", challengeId: "c2", elements: [outline("highlight-2", "recipe.craft-button")] },
     ]);
-    act(() => { create(createElement(TutorialOverlay)); });
+    act(() => { renderOverlay(); });
 
     pushAnchor("recipe.craft-button", ready(10));
 
@@ -178,7 +187,7 @@ describe("TutorialOverlay anchor resolution", () => {
       { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "recipe.craft-button")] },
     ]);
     let renderer!: ReturnType<typeof create>;
-    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    act(() => { renderer = renderOverlay(); });
     pushAnchor("recipe.craft-button", ready(10));
     expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(1);
 
@@ -200,7 +209,7 @@ describe("TutorialOverlay anchor resolution", () => {
       { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "recipe.craft-button")] },
     ]);
     let renderer!: ReturnType<typeof create>;
-    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    act(() => { renderer = renderOverlay(); });
     pushAnchor("recipe.craft-button", ready(10));
 
     mockState.presentation = presentation(2, [
@@ -218,7 +227,7 @@ describe("TutorialOverlay anchor resolution", () => {
       { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "recipe.craft-button")] },
     ]);
     let renderer!: ReturnType<typeof create>;
-    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    act(() => { renderer = renderOverlay(); });
     pushAnchor("recipe.craft-button", ready(10));
     const styleBefore = renderer.root.findByProps({ "data-kind": "outline" }).props.style;
 
@@ -244,7 +253,7 @@ describe("TutorialOverlay outline labels", () => {
       ] },
     ]);
     let renderer!: ReturnType<typeof create>;
-    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    act(() => { renderer = renderOverlay(); });
     pushAnchor("recipe.craft-button", ready(10));
     pushAnchor("hotbar.hud", ready(100));
 
@@ -257,6 +266,26 @@ describe("TutorialOverlay outline labels", () => {
     expect(labels[0].props.style.left).toBe(10);
   });
 
+  // 下に収まらない時だけ枠線の上へ反転する（下端でラベルがクリップ外へ被る症状の是正・裁定 2026-08-22）
+  // Flips above the ring only when it does not fit below, curing the label overhanging the clip at the bottom edge (ruling 2026-08-22)
+  it("ラベルが下に収まらない時は枠線の上へ反転する", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        { ...outline("h1", "recipe.craft-button"), labelTutorialGuid: "11111111-1111-4111-8111-111111111111" },
+      ] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+
+    // アンカーは 0..10。下端がラベル高より近いclipでは上へ、余裕があるclipでは下へ置く
+    // The anchor spans 0..10; a clip whose bottom is nearer than the label height flips it up, a roomy one keeps it down
+    pushAnchor("recipe.craft-button", ready(10, { ...FULL_CLIP, bottom: 10 + LABEL_HEIGHT_PX - 1 }));
+    expect(renderer.root.findByProps({ "data-testid": "tutorial-highlight-label" }).props.style.top).toBe(-LABEL_HEIGHT_PX);
+
+    pushAnchor("recipe.craft-button", ready(10, { ...FULL_CLIP, bottom: 10 + LABEL_HEIGHT_PX }));
+    expect(renderer.root.findByProps({ "data-testid": "tutorial-highlight-label" }).props.style.top).toBe(10);
+  });
+
   it("anchor未解決の枠線はラベルも描かない", () => {
     mockState.presentation = presentation(1, [
       { tutorialSessionId: "s1", challengeId: "c1", elements: [
@@ -264,7 +293,7 @@ describe("TutorialOverlay outline labels", () => {
       ] },
     ]);
     let renderer!: ReturnType<typeof create>;
-    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    act(() => { renderer = renderOverlay(); });
     pushAnchor("recipe.craft-button", hidden);
     expect(renderer.root.findAllByProps({ "data-testid": "tutorial-highlight-label" }).length).toBe(0);
   });
@@ -282,7 +311,7 @@ describe("TutorialOverlay keyControl exclusion", () => {
       ] },
     ]);
     let renderer!: ReturnType<typeof create>;
-    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    act(() => { renderer = renderOverlay(); });
     pushAnchor("recipe.craft-button", ready(10));
 
     expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(1);
@@ -301,7 +330,7 @@ describe("TutorialOverlay outline clipping", () => {
       { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "research.node-a")] },
     ]);
     let renderer!: ReturnType<typeof create>;
-    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    act(() => { renderer = renderOverlay(); });
 
     // rectは left:100 top:0 の 10x10、paddingPx:0 なのでboxは 100..110 / 0..10。右辺だけがclipに掛かる
     // The rect is 10x10 at left:100 top:0 with paddingPx:0 so the box spans 100..110 / 0..10; only the right side clips
@@ -317,7 +346,7 @@ describe("TutorialOverlay outline clipping", () => {
       { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "research.node-a")] },
     ]);
     let renderer!: ReturnType<typeof create>;
-    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    act(() => { renderer = renderOverlay(); });
 
     pushAnchor("research.node-a", ready(100, { left: -100, top: -100, right: 50, bottom: 820 }));
 
@@ -331,7 +360,7 @@ describe("TutorialOverlay outline clipping", () => {
       { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "research.node-a")] },
     ]);
     let renderer!: ReturnType<typeof create>;
-    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    act(() => { renderer = renderOverlay(); });
 
     // boxは100..110。clip.rightが99なので実際は完全にclipの外だが、-4pxクランプ後の和では素通りしうる
     // box spans 100..110; clip.right=99 puts it fully outside, but the -4px-clamped sum could let it through
@@ -347,7 +376,7 @@ describe("TutorialOverlay outline clipping", () => {
       { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "research.node-a")] },
     ]);
     let renderer!: ReturnType<typeof create>;
-    act(() => { renderer = create(createElement(TutorialOverlay)); });
+    act(() => { renderer = renderOverlay(); });
 
     // クリップが遠い＝どの辺も切らない。グロー4pxを残すため全辺 -4px になる
     // A far-away clip cuts no side, so every side is -4px to preserve the 4px glow

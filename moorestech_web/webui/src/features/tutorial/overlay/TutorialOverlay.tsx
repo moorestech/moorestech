@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { dispatchAction, Topics, useItemMaster, useTopic } from "@/bridge";
 import { challengeTutorialTextKey, useI18n, type TranslationKey } from "@/shared/i18n";
 import { TutorialAnchorRegistry, TutorialAnchorDynamicPrefixes, clipPathInset, type ClipRect, type ResolvedAnchor } from "@/shared/tutorialAnchor";
+import { publishTutorialAnchorPaddingPx } from "./anchorPaddingToken";
+import DragGuide from "./DragGuide";
+import HighlightLabel from "./HighlightLabel";
 import { readTutorialHighlightGlowPx } from "./highlightGlowToken";
 import styles from "./style.module.css";
-import { anchoredSubscriptionSignature, assertNever, tutorialElementKey, type TutorialOverlayElement } from "./tutorialElement";
+import { anchoredSubscriptionSignature, assertNever, tutorialElementKey, type TutorialOverlayElement } from "../tutorialElement";
 
 type TutorialOutlineElement = Extract<TutorialOverlayElement, { kind: "outline" }>;
 type AckTarget = { tutorialSessionId: string; elementId: string };
@@ -52,6 +55,9 @@ export function TutorialOverlay() {
             continue;
           case "outline": {
             anchorIds.add(element.anchorId);
+            // 逃げ量の正本はマスタのpaddingPx。スクロール領域がこれを読めるようCSS変数へ書き戻す
+            // The master's paddingPx owns the clearance, so write it back into the CSS variable for scrollers to read
+            publishTutorialAnchorPaddingPx(element.paddingPx);
             const targets = ackTargetsByAnchorId.get(element.anchorId) ?? [];
             targets.push({ tutorialSessionId: session.tutorialSessionId, elementId: element.elementId });
             ackTargetsByAnchorId.set(element.anchorId, targets);
@@ -109,7 +115,7 @@ export function TutorialOverlay() {
         case "outline":
           return renderOutline(key, element, resolved[element.anchorId], t);
         case "dragGuide":
-          return renderDragGuide(key, resolved[element.fromAnchorId], resolved[element.toAnchorId]);
+          return <DragGuide key={key} from={resolved[element.fromAnchorId]} to={resolved[element.toAnchorId]} />;
         case "keyControl":
           // keyControlはanchorを持たず下中央HUDが描画する
           // keyControl has no anchor and is rendered by the bottom-center HUD
@@ -149,28 +155,7 @@ function renderOutline(key: string, element: TutorialOutlineElement, value: Reso
   // An empty dictionary result renders no label face at all
   const labelText = t(challengeTutorialTextKey(element.labelTutorialGuid));
   if (!labelText) return outline;
-  // ラベルは枠線下辺外側左揃え配置
-  // Label sits left-aligned below the outline
-  const label = <div key={`${key}:label`} className={styles.highlightLabel} data-testid="tutorial-highlight-label"
-    style={{ left: box.left, top: box.bottom }}>
-    {labelText}
-  </div>;
-  return [outline, label];
-}
-
-function renderDragGuide(key: string, from: ResolvedAnchor | undefined, to: ResolvedAnchor | undefined) {
-  if (!from || from.status !== "ready" || !to || to.status !== "ready") return null;
-  const fromX = from.rect.left + from.rect.width / 2;
-  const fromY = from.rect.top + from.rect.height / 2;
-  const toX = to.rect.left + to.rect.width / 2;
-  const toY = to.rect.top + to.rect.height / 2;
-  const dragGuideVars = { "--drag-guide-dx": `${toX - fromX}px`, "--drag-guide-dy": `${toY - fromY}px` } as CSSProperties;
-  return <div key={key} className={styles.dragGuide} data-testid="tutorial-drag-guide"
-    style={{ left: fromX, top: fromY, ...dragGuideVars }}>
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M6 3 L18 12 L11 13.5 L13.5 20 L10.5 21 L8 14.5 L3 18 Z" />
-    </svg>
-  </div>;
+  return [outline, <HighlightLabel key={`${key}:label`} box={box} clip={value.clip} text={labelText} />];
 }
 
 // ラベルはclip-pathを持たないため、アンカーが一部でも隠れている時点で描かない判定に使う

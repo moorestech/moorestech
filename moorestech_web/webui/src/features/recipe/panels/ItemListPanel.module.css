@@ -46,10 +46,12 @@
   touch-action: none;
 }
 
-/* 最終段の個数バッジがはみ出す分を内側に確保する。0だと1段しかなくても偽の溢れで縦バーが立つ
-   （前例: RecipeViewer.module.css の --recipe-entry-bleed。同じ「装飾のはみ出しが偽スクロールを生む」問題） */
-/* Reserve the last row's count-badge bleed inside the scroller; at 0 even a single row raises a phantom
-   overflow and a bar (precedent: --recipe-entry-bleed in RecipeViewer.module.css, the same bleed-becomes-scroll problem) */
+/* 最終段の個数バッジがはみ出す分を内側に確保する。0にすると溢れる直前の7段で偽の溢れが立ち、
+   バーの出る段数が1段早まる（2026-08-22 ablation実測。7段のe2eが赤くなる）
+   前例: RecipeViewer.module.css の --recipe-entry-bleed。同じ「装飾のはみ出しが偽スクロールを生む」問題 */
+/* Reserve the last row's count-badge bleed inside the scroller; at 0 the last non-overflowing count (seven rows)
+   raises a phantom overflow and the bar appears one row early (measured by ablation 2026-08-22: the seven-row e2e goes red).
+   Precedent: --recipe-entry-bleed in RecipeViewer.module.css, the same bleed-becomes-scroll problem */
 .scrollArea :global(.mantine-ScrollArea-content) {
   padding-bottom: var(--item-list-count-bleed);
 }

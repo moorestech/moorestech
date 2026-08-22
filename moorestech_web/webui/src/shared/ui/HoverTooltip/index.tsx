@@ -5,7 +5,7 @@ import styles from "./style.module.css";
 type Props = {
   label: ReactNode;
   disabled?: boolean;
-  children: ReactElement;
+  children: ReactElement<{ ref?: Ref<HTMLElement> }>;
 };
 
 // スロット共通のホバーツールチップ。Portalへ出るためスクロール祖先のクリップが一切効かず、
@@ -57,14 +57,23 @@ export default function HoverTooltip({ label, disabled, children }: Props) {
   // Subscribe only while hovering; capture is required because scroll does not bubble
   useEffect(() => {
     if (!hovering) return;
-    const dismiss = () => setDismissed(true);
+    // 引っ込めるのはターゲットを含む器がスクロールした時だけ。無関係な別パネルの
+    // スクロールでは引っ込めない（documentはターゲットを含むので頁ごとの移動は対象）
+    // Retract only when a container holding the target scrolls, never when an unrelated
+    // panel does; document holds the target, so a page-level scroll still counts
+    const dismiss = (event: Event) => {
+      const node = targetRef.current;
+      if (!node) return;
+      if (!(event.target instanceof Node) || !event.target.contains(node)) return;
+      setDismissed(true);
+    };
     document.addEventListener("scroll", dismiss, true);
     return () => document.removeEventListener("scroll", dismiss, true);
   }, [hovering]);
 
   return (
     <Tooltip classNames={{ tooltip: styles.tooltip }} label={label} disabled={disabled} opened={hovering && !dismissed}>
-      {cloneElement(children as ReactElement<{ ref?: Ref<HTMLElement> }>, { ref: targetRef })}
+      {cloneElement(children, { ref: targetRef })}
     </Tooltip>
   );
 }
