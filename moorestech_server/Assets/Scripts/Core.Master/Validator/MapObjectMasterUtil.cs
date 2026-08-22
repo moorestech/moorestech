@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Mooresmaster.Model.MapModule;
 
@@ -71,10 +73,24 @@ namespace Core.Master.Validator
             #endregion
         }
 
-        public static void Initialize(Map map)
+        public static void Initialize(Map map, out Dictionary<Guid, List<Guid>> mapObjectGuidsByEarnItem)
         {
-            // MapObjectMasterは追加の初期化処理がないため、空実装
-            // MapObjectMaster has no additional initialization, so empty implementation
+            // ドロップアイテムからmapObjectを逆引きする索引を構築する
+            // Build the reverse index from an earn item to the map objects dropping it
+            mapObjectGuidsByEarnItem = new Dictionary<Guid, List<Guid>>();
+            foreach (var mapObjectElement in map.MapObjects)
+            {
+                foreach (var itemGuid in mapObjectElement.EarnItems.Select(earnItem => earnItem.ItemGuid).Distinct())
+                {
+                    if (!mapObjectGuidsByEarnItem.TryGetValue(itemGuid, out var mapObjectGuids))
+                    {
+                        mapObjectGuids = new List<Guid>();
+                        mapObjectGuidsByEarnItem.Add(itemGuid, mapObjectGuids);
+                    }
+
+                    mapObjectGuids.Add(mapObjectElement.MapObjectGuid);
+                }
+            }
         }
     }
 }

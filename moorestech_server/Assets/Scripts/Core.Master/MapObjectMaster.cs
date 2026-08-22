@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Core.Master.Validator;
 using Mooresmaster.Loader.MapModule;
 using Mooresmaster.Model.MapModule;
@@ -9,6 +10,10 @@ namespace Core.Master
     public class MapObjectMaster : IMasterValidator
     {
         public readonly Map Map;
+
+        // ドロップアイテムGUID→そのアイテムを落とすmapObjectGuidの索引
+        // earn item GUID → mapObjectGuids dropping that item
+        private Dictionary<Guid, List<Guid>> _mapObjectGuidsByEarnItem;
 
         public MapObjectMaster(JToken jToken)
         {
@@ -22,7 +27,18 @@ namespace Core.Master
 
         public void Initialize()
         {
-            MapObjectMasterUtil.Initialize(Map);
+            MapObjectMasterUtil.Initialize(Map, out _mapObjectGuidsByEarnItem);
+        }
+
+        /// <summary>
+        ///     そのアイテムをドロップする全マップオブジェクトのGUIDを取得（該当なしなら空）
+        ///     Gets the GUIDs of every map object dropping the item (empty when none drops it).
+        /// </summary>
+        public IReadOnlyList<Guid> GetMapObjectGuidsByEarnItem(Guid itemGuid)
+        {
+            if (!_mapObjectGuidsByEarnItem.TryGetValue(itemGuid, out var mapObjectGuids)) return Array.Empty<Guid>();
+
+            return mapObjectGuids;
         }
 
         /// <summary>

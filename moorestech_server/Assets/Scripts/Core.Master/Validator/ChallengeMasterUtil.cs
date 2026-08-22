@@ -129,6 +129,12 @@ namespace Core.Master.Validator
                                             {
                                                 logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.PinTarget.ItemGuid:{byEarnItem.ItemGuid}\n";
                                             }
+                                            // 誰も落とさないアイテムを指すピンは解決先が空になり達成不能なチュートリアルになる
+                                            // A pin aimed at an item nothing drops resolves to nothing, making the tutorial impossible to complete
+                                            else if (MasterHolder.MapObjectMaster.GetMapObjectGuidsByEarnItem(byEarnItem.ItemGuid).Count == 0)
+                                            {
+                                                logs += $"[ChallengeMaster] Challenge:{challenge.Title} points Tutorial.PinTarget.ItemGuid:{byEarnItem.ItemGuid} which no MapObject earns\n";
+                                            }
                                             break;
                                         default:
                                             logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated PinTargetParam type:{mapObjectPin.PinTargetParam?.GetType().Name}\n";

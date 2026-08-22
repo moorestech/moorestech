@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Client.Game.InGame.Tutorial;
 using Mooresmaster.Model.ChallengesModule;
 using NUnit.Framework;
@@ -15,8 +14,11 @@ namespace Client.Tests.UnitTest.Tutorial
         private static readonly Guid TreeTestGuid = Guid.Parse("00000000-0000-1111-0000-000000000001");
         private static readonly Guid MiningRockGuid = Guid.Parse("00000000-0000-2222-0000-000000000001");
         private static readonly Guid RubbleRockGuid = Guid.Parse("00000000-0000-3333-0000-000000000001");
-        private static readonly Guid VanillaTreeGuid = Guid.Parse("8c0e1339-be75-4690-99cd-58b5385a17cd");
         private static readonly Guid Item2Guid = Guid.Parse("00000000-0000-0000-1234-000000000002");
+
+        // Test3はitems.jsonに実在するがどのmapObjectのearnItemsにも無い
+        // Test3 exists in items.json but no mapObject earns it
+        private static readonly Guid NobodyEarnsItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000003");
 
         [SetUp]
         public void SetUp()
@@ -49,7 +51,19 @@ namespace Client.Tests.UnitTest.Tutorial
             var result = MapObjectPinTargetResolver.ResolveMapObjectGuids(param);
 
             CollectionAssert.AreEquivalent(new[] { TreeTestGuid, MiningRockGuid, RubbleRockGuid }, result);
-            Assert.IsFalse(result.Contains(VanillaTreeGuid));
+        }
+
+        [Test]
+        public void EarnItem指定が誰も落とさないアイテムなら空へ解決される()
+        {
+            var param = new MapObjectPinTutorialParam(
+                MapObjectPinTutorialParam.PinTargetTypeConst.earnItem,
+                new EarnItemPinTargetParam(NobodyEarnsItemGuid),
+                "pin");
+
+            var result = MapObjectPinTargetResolver.ResolveMapObjectGuids(param);
+
+            CollectionAssert.IsEmpty(result);
         }
     }
 }
