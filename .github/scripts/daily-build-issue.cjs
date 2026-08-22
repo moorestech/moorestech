@@ -11,6 +11,13 @@ module.exports = async ({ github, context, core }) => {
   const run = context.payload.workflow_run;
   const { owner, repo } = context.repo;
 
+  // Unity Buildの初回失敗はci-auto-rerunが無条件で再実行するため無視し、再実行後(attempt2以降)の失敗だけを見る。成功は何attempt目でも即クローズ対象にする
+  // Ignore first-attempt failures since ci-auto-rerun always retries them; only observe failures from attempt 2 onward. A success closes the issue regardless of attempt number
+  if (run.conclusion !== 'success' && run.run_attempt < 2) {
+    core.info(`ignoring attempt ${run.run_attempt} failure for run ${run.id}; waiting for ci-auto-rerun`);
+    return;
+  }
+
   const existing = await findExistingIssue();
 
   if (run.conclusion === 'success') {
@@ -46,6 +53,8 @@ module.exports = async ({ github, context, core }) => {
   });
   core.info(`created issue #${created.data.number}`);
 
+  // ラベル一致のopen issueのうち本文にマーカーを含むものだけを対象にする（ラベル流用の無関係issueを除外）
+  // Among open issues with the label, only ones whose body carries the marker count (excludes unrelated issues reusing the label)
   async function findExistingIssue() {
     const issues = await github.rest.issues.listForRepo({
       owner, repo, state: 'open', labels: LABEL, per_page: 20,
@@ -53,6 +62,8 @@ module.exports = async ({ github, context, core }) => {
     return issues.data.find((i) => (i.body || '').includes(MARKER)) || null;
   }
 
+  // 直近の日次(schedule)成功runのhead_shaを「前回グリーン」として取得する
+  // Fetches the head_sha of the most recent successful scheduled run as the "last green" baseline
   async function findLastGreenSha() {
     const runs = await github.rest.actions.listWorkflowRuns({
       owner, repo, workflow_id: run.workflow_id,
@@ -61,6 +72,8 @@ module.exports = async ({ github, context, core }) => {
     return runs.data.workflow_runs.length > 0 ? runs.data.workflow_runs[0].head_sha : null;
   }
 
+  // 前回グリーンから今回headまでのコミットログを走査し、マージPRを容疑者として抽出する
+  // Scans commits between the last green baseline and the current head to extract merged PRs as suspects
   async function listMergedPullRequests(baseSha, headSha) {
     if (!baseSha) return [];
     const compare = await github.rest.repos.compareCommits({
@@ -68,7 +81,9 @@ module.exports = async ({ github, context, core }) => {
     });
     const seen = new Map();
     for (const commit of compare.data.commits) {
-      const matched = /^Merge pull request #(\d+)|\(#(\d+)\)$/m.exec(commit.commit.message);
+      // 「Merge pull request #N」形式か、末尾「(#N)」形式（squash merge）のどちらかにマッチさせる
+      // Matches either the "Merge pull request #N" form or a trailing "(#N)" form (squash merge)
+      const matched = /(?:^Merge pull request #(\d+))|(?:\(#(\d+)\)$)/m.exec(commit.commit.message);
       if (!matched) continue;
       const number = matched[1] || matched[2];
       if (!seen.has(number)) {
@@ -78,6 +93,8 @@ module.exports = async ({ github, context, core }) => {
     return [...seen.entries()].map(([number, title]) => ({ number, title }));
   }
 
+  // 今回runのジョブ一覧から失敗ジョブだけを抽出する
+  // Extracts only the failed jobs from this run's job list
   async function listFailedJobs() {
     const jobs = await github.rest.actions.listJobsForWorkflowRun({
       owner, repo, run_id: run.id, per_page: 50,
@@ -87,6 +104,8 @@ module.exports = async ({ github, context, core }) => {
       .map((j) => ({ name: j.name, url: j.html_url }));
   }
 
+  // Issue本文（前回グリーン・失敗ジョブ・容疑者PR）を組み立てる
+  // Assembles the issue body (last green, failed jobs, suspect PRs)
   function renderBody({ run, lastGreenSha, suspects, failedJobs }) {
     const lines = [MARKER, ''];
     lines.push(`日次ビルドが自動再実行後も失敗しました。`);

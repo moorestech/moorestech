@@ -1,7 +1,7 @@
 # 日次(schedule)のUnity Buildの結末を受けて、専用ラベルIssueを起票・更新・クローズする（ADR 0028）。
-# ci-auto-rerunによる再実行のあとの最終的な結末だけを見るため、workflow_runの完了を待って動く。
+# workflow_runの完了イベントで動くが、失敗はrun_attempt2以降(ci-auto-rerunの再実行後)だけを見る。成功はattemptを問わず即クローズする。
 # Reacts to the outcome of the daily (scheduled) Unity Build to file, update, or close a labelled issue (ADR 0028).
-# It runs on workflow_run completion so it only observes the final outcome after ci-auto-rerun has retried.
+# It fires on workflow_run completion, but only observes failures from run_attempt 2 onward (after ci-auto-rerun has retried); a success closes the issue regardless of attempt.
 name: Daily Build Issue
 
 on:
