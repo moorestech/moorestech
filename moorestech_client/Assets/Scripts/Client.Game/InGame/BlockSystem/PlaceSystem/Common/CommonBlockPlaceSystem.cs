@@ -122,8 +122,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
 
-            // この時点のPlaceable=falseは既存ブロックとの重なり（CommonBlockPlacePointCalculator）。地面との接触反映とカーソルセルの理由集約を1回で行う
-            // Placeable=false at this point means overlap with an existing block (CommonBlockPlacePointCalculator); apply ground overlaps and report the cursor cell's reasons in one call
+            // この時点の不可原因はExistingBlockのみ（CommonBlockPlacePointCalculator）。地面との接触反映とカーソルセルの理由集約を1回で行う
+            // ExistingBlock is the only cause set by this point (CommonBlockPlacePointCalculator); apply ground overlaps and report the cursor cell's reasons in one call
             var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placePoint, blockGroundOverlapList, feedback);
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったブロックがアイテム枠を消費しないようにする）

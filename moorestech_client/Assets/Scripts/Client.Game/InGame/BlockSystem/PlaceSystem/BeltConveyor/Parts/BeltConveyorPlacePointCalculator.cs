@@ -40,7 +40,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             // Keep the infeasibility flag the Raiser set for an impossible overpass, then AND in occupancy.
             foreach (var info in placeInfos)
             {
-                info.Placeable = info.Placeable && isNotExistBlock(info, straightBlockMaster);
+                if (!info.Placeable || isNotExistBlock(info, straightBlockMaster)) continue;
+
+                info.Placeable = false;
+                info.BlockCause = PlacementBlockCause.ExistingBlock;
             }
 
             return placeInfos;

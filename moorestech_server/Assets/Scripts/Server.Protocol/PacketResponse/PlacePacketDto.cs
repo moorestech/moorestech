@@ -52,6 +52,18 @@ namespace Server.Protocol.PacketResponse
         }
     }
 
+    /// <summary>
+    ///     セルが設置不可になった原因。判定した側が立て、表示側が文言へ写像する
+    ///     Why a cell became unplaceable; set by whoever judged it and mapped to wording by the presentation side
+    /// </summary>
+    public enum PlacementBlockCause
+    {
+        None,
+        ExistingBlock,
+        ImpossibleOverpass,
+        SlopeBlockMissing,
+    }
+
     public class PlaceInfo
     {
         public Vector3Int Position { get; set; }
@@ -60,6 +72,10 @@ namespace Server.Protocol.PacketResponse
         public BlockId BlockId;
 
         public bool Placeable { get; set; }
+
+        // Placeableをfalseにした原因（クライアント表示専用。Placeable=trueのときは常にNone）
+        // The cause that set Placeable to false (client display only; always None while Placeable is true)
+        public PlacementBlockCause BlockCause { get; set; }
 
         public BlockCreateParam[] CreateParams { get; set; } = Array.Empty<BlockCreateParam>();
 

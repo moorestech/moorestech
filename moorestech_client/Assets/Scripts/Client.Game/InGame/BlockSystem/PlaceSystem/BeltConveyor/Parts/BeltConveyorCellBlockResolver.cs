@@ -26,13 +26,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             {
                 var blockId = family.StraightBlockId;
                 var placeable = cell.Placeable;
+                var blockCause = cell.BlockCause;
 
                 // 傾斜方向に対応する坂がなければ設置不可にする
                 // Mark the cell unplaceable when its slope block is unavailable
                 if (cell.VerticalDirection == BlockVerticalDirection.Up)
-                    ResolveSlope(family.UpBlockId, ref blockId, ref placeable);
+                    ResolveSlope(family.UpBlockId, ref blockId, ref placeable, ref blockCause);
                 if (cell.VerticalDirection == BlockVerticalDirection.Down)
-                    ResolveSlope(family.DownBlockId, ref blockId, ref placeable);
+                    ResolveSlope(family.DownBlockId, ref blockId, ref placeable, ref blockCause);
 
                 return new PlaceInfo
                 {
@@ -40,11 +41,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
                     Direction = cell.Direction,
                     VerticalDirection = cell.VerticalDirection,
                     Placeable = placeable,
+                    BlockCause = blockCause,
                     BlockId = blockId,
                 };
             }
 
-            void ResolveSlope(BlockId? slopeBlockId, ref BlockId blockId, ref bool placeable)
+            void ResolveSlope(BlockId? slopeBlockId, ref BlockId blockId, ref bool placeable, ref PlacementBlockCause blockCause)
             {
                 if (slopeBlockId.HasValue)
                 {
@@ -52,6 +54,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
                     return;
                 }
 
+                // 先に立った原因を優先する（先に不可なら坂欠落は後追いの理由でしかない）
+                // The earlier cause wins; an already-blocked cell only gains the slope gap as a follow-on reason
+                if (placeable) blockCause = PlacementBlockCause.SlopeBlockMissing;
                 placeable = false;
             }
 

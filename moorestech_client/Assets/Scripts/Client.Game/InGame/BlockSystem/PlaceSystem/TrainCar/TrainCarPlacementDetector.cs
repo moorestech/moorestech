@@ -142,7 +142,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             void BuildPlacement(RailPosition centerRailPosition, TrainCarMasterElement trainCarMasterElement, out TrainCarPlacementHit result)
             {
-                result = default;
                 // 列車長とレール位置スナップショットを組み立てる
                 // Compose train length and rail position snapshot
                 var trainLength = TrainLengthConverter.ToRailUnits(trainCarMasterElement.Length);
@@ -153,7 +152,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 var attachCarFacingForward = true;
                 var attachTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
                 var blockReason = TrainCarPlacementBlockReason.None;
-                var isPlaceable = TryBuildRailPosition(
+                BuildRailPosition(
                     centerRailPosition,
                     trainLength,
                     out railPosition,
@@ -165,7 +164,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     out blockReason
                     );
                 result = new TrainCarPlacementHit(
-                    isPlaceable,
                     railPosition,
                     overlapTrainUnitInstanceIds,
                     placementMode,
@@ -178,7 +176,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                 #region Internal
 
-                bool TryBuildRailPosition(
+                // 可否は返さず、不可のときだけblockReasonを立てる（可否は呼び出し先で理由から導出する）
+                // Returns nothing: it only raises blockReason when blocked, and placeability is derived from that reason
+                void BuildRailPosition(
                     RailPosition centerRailPosition,
                     int trainLength,
                     out RailPosition railPosition,
@@ -199,7 +199,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     if (trainLength < 0)
                     {
                         blockReason = TrainCarPlacementBlockReason.NoRouteForTrainLength;
-                        return false;
+                        return;
                     }
                     
                     // Rキー反転をここで適応
@@ -255,7 +255,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                                     // Base facing uses nearest center direction and flips when R-reverse is selected
                                     attachCarFacingForward = attachSnapFacingForward;
                                     attachTargetEndpoint = attachSnapTargetEndpoint;
-                                    return true;
+                                    return;
                                 }
                             }
                         }
@@ -280,7 +280,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                                     stationSnapFromCenterForward,
                                     out railPosition))
                             {
-                                return true;
+                                return;
                             }
                         }
                     }
@@ -303,7 +303,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                                     railEndSnapFromCenterForward,
                                     out railPosition))
                             {
-                                return true;
+                                return;
                             }
                         }
                     }
@@ -313,7 +313,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     if (!TrainCarPlacementRouteService.TryBuildCarPlacementSelectionCandidates(centerRailPosition, trainLength, _pathTracer, out var frontRoutes, out var rearRoutes))
                     {
                         blockReason = TrainCarPlacementBlockReason.NoRouteForTrainLength;
-                        return false;
+                        return;
                     }
 
                     // 要件4: Vから選択したvと既存TrainUnit全体を重複検査する
@@ -321,14 +321,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     if (!TrainCarPlacementRouteService.TryBuildSelectedCarPlacement(frontRoutes, rearRoutes, _selectionStep, out railPosition))
                     {
                         blockReason = TrainCarPlacementBlockReason.NoRouteForTrainLength;
-                        return false;
+                        return;
                     }
                     if (RailPositionOverlapDetector.HasOverlap(railPosition, allTrainUnitOverlapIndex))
                     {
                         blockReason = TrainCarPlacementBlockReason.OverlapsExistingTrainUnit;
-                        return false;
+                        return;
                     }
-                    return true;
+                    return;
                 }
 
                 // 要件1-4共通: 既存TrainUnitのRailPosition一覧を生成する

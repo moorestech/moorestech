@@ -120,7 +120,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                     }
 
                     //TODO ブロックの数が足りているかどうか
-                    info.Placeable = info.Placeable && isNotExistBlock(info, holdingBlockMasterElement);
+                    if (info.Placeable && !isNotExistBlock(info, holdingBlockMasterElement))
+                    {
+                        info.Placeable = false;
+                        info.BlockCause = PlacementBlockCause.ExistingBlock;
+                    }
                 }
 
                 return infos;

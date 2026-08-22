@@ -100,8 +100,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
 
-            // Placeable=false=既存重複/立体交差不能（BeltConveyorPlacePointCalculator）
-            // Placeable=false means an existing overlap or an impossible overpass (BeltConveyorPlacePointCalculator)
+            // 各セルの不可原因はBlockCauseに立っている（既存重複・立体交差不能・坂ブロック欠落）
+            // Each cell carries its block cause (existing overlap, impossible overpass, missing slope block)
             PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placePoint, blockGroundOverlapList, feedback);
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
