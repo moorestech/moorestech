@@ -31,17 +31,25 @@ STALE_MISSING_OBJECT_FIELDS = frozenset({"clusterEntries", "algorithmConfig", "s
 # The source ObjectEntry has no distance bands: it holds the amount as a flat density (per hectare) plus clusterCount in cluster mode
 LEGACY_AMOUNT_FIELDS = frozenset({"density", "clusterCount"})
 
+# クラスタモードでのみ意味を持ち、現行スキーマでは placementParam.cluster 側だけが持つフィールド
+# Fields meaningful only in cluster mode, which the current schema keeps solely under placementParam's cluster case
+LEGACY_CLUSTER_FIELDS = frozenset({"objectsPerCluster", "clusterRadius"})
+
 # clusterCount（タイル1枚あたりの個数）を1haあたりのdensityへ直す係数。タイル1000x1000m = 100ha
 # Converts clusterCount (per 1000x1000m tile) into a per-hectare density; one tile is 100 hectares
 CLUSTER_COUNT_PER_HECTARE = 100.0
 
 
 class ObjectConfigConverter(PrototypeConverter):
-    """移植元のflatな量指定を、現行スキーマの単一無限バンドへ畳んで写す変換器。
-    Converter folding the source's flat amount fields into the current schema's single infinite band."""
+    """移植元のflatな量指定を、現行スキーマの配置方式別パラメータ（単一無限バンド）へ畳んで写す変換器。
+    Converter folding the source's flat amount fields into the current schema's per-mode placement parameters with a single infinite band."""
 
     def _derived_field_value(self, key, node, unity_value, location):
-        if key != "bands":
+        if key == "placementMode":
+            return ("cluster" if _require_boolean(unity_value, "useClusterMode", location) else "scatter"),\
+                {"useClusterMode"}
+
+        if key != "placementParam":
             return None
 
         missing = sorted(LEGACY_AMOUNT_FIELDS - set(unity_value))
@@ -50,10 +58,16 @@ class ObjectConfigConverter(PrototypeConverter):
 
         # クラスタモードは中心数（clusterCount）、非クラスタは点数（density）が量。density統一の換算はADR-0027参照
         # In cluster mode the amount is the centre count (clusterCount); otherwise it is the point count (density). See ADR-0027 for the unification
-        cluster_mode = _require_boolean(unity_value, "useClusterMode", location)
-        density = unity_value["clusterCount"] / CLUSTER_COUNT_PER_HECTARE if cluster_mode \
-            else unity_value["density"]
-        return [{"outerRadiusMeters": -1, "density": density}], LEGACY_AMOUNT_FIELDS
+        if _require_boolean(unity_value, "useClusterMode", location):
+            band = {"outerRadiusMeters": -1,
+                    "clusterCentersPerHectare": unity_value["clusterCount"] / CLUSTER_COUNT_PER_HECTARE}
+            param = {"bands": [band],
+                     "objectsPerCluster": unity_value["objectsPerCluster"],
+                     "clusterRadius": unity_value["clusterRadius"]}
+            return param, LEGACY_AMOUNT_FIELDS | LEGACY_CLUSTER_FIELDS
+
+        band = {"outerRadiusMeters": -1, "pointsPerHectare": unity_value["density"]}
+        return {"bands": [band]}, LEGACY_AMOUNT_FIELDS | LEGACY_CLUSTER_FIELDS
 
 
 def _require_boolean(unity_value: dict, key: str, location: str) -> bool:

@@ -76,11 +76,11 @@ namespace Game.MapGeneration.Pipeline.Generators
                 {
                     if (entry.mapObjectGuids == null || entry.mapObjectGuids.Length == 0) continue;
 
-                    if (entry.useClusterMode)
-                        ObjectBackboneClusterPlacer.Generate(entry, dims, heights, hRes,
+                    if (entry.placement is ObjectClusterParam cluster)
+                        ObjectBackboneClusterPlacer.Generate(entry, cluster, dims, heights, hRes,
                             mask, borderMarginPx, rng, noiseOffsets, placements, objAlgCfg, ref nextClusterId);
                     else
-                        ObjectIndependentPlacer.GenerateIndependent(entry, dims, heights, hRes,
+                        ObjectIndependentPlacer.GenerateIndependent(entry, (ObjectScatterParam)entry.placement, dims, heights, hRes,
                             mask, borderMarginPx, rng, noiseOffsets, placements, treeSpatialGrid);
                 }
             }

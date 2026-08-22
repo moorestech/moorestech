@@ -13,7 +13,7 @@ namespace Game.MapGeneration.Pipeline.Generators
     internal static class ObjectIndependentPlacer
     {
         public static void GenerateIndependent(
-            BiomeObjectConfig.ObjectEntry entry, TerrainDimensions dims,
+            BiomeObjectConfig.ObjectEntry entry, ObjectScatterParam scatter, TerrainDimensions dims,
             float[,] heights, int hRes, bool[,] mask, float borderMarginPx,
             System.Random rng, Vector2[] noiseOffsets,
             List<PlacementEntry> placements, SpatialGrid treeSpatialGrid)
@@ -22,9 +22,9 @@ namespace Game.MapGeneration.Pipeline.Generators
             float area = w * l;
             dims.SpawnDistanceRangeXz(out var tileNearestDistance, out var tileFarthestDistance);
 
-            foreach (var ring in SpawnDistanceRingPlanner.BuildRings(entry.bands))
+            foreach (var ring in SpawnDistanceRingPlanner.BuildRings(scatter.bands))
             {
-                int desiredCount = Mathf.RoundToInt(ring.Band.density * area / 10000f);
+                int desiredCount = Mathf.RoundToInt(ring.Band.pointsPerHectare * area / 10000f);
                 if (desiredCount <= 0) continue;
 
                 // タイルに掛からないリングは全候補が捨てられるだけなので、種だけ引いて飛ばす（乱数消費数＝出力を変えない）。

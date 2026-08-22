@@ -108,7 +108,7 @@ namespace Tests.UnitTest.Core.MapGeneration
         public void 散布帯のマイナス1以外の負の外半径はバリデーションで失敗する()
         {
             var json = LoadGenerationJsonWithGrasslandScatterBands(new JArray(
-                new JObject { ["outerRadiusMeters"] = -5.0, ["density"] = 1.0 }));
+                new JObject { ["outerRadiusMeters"] = -5.0, ["pointsPerHectare"] = 1.0 }));
 
             var master = new GenerationMaster(json, "test");
 
@@ -144,7 +144,8 @@ namespace Tests.UnitTest.Core.MapGeneration
             var entry = new JObject
             {
                 ["prefabs"] = new JArray(new JObject { ["mapObjectGuid"] = TestGenerationConfigFactory.TestMapObjectGuid }),
-                ["bands"] = bands,
+                ["placementMode"] = "scatter",
+                ["placementParam"] = new JObject { ["bands"] = bands },
                 ["scaleRange"] = new JArray(1.0, 1.0),
                 ["slopeAlignment"] = 0.0,
                 ["sinkRange"] = new JArray(0.0, 0.0),
@@ -156,9 +157,6 @@ namespace Tests.UnitTest.Core.MapGeneration
                 ["slopeMin"] = 0.0,
                 ["slopeMax"] = 90.0,
                 ["slopeSmoothness"] = 4.0,
-                ["useClusterMode"] = false,
-                ["objectsPerCluster"] = 4,
-                ["clusterRadius"] = 12.0,
                 ["minDistanceFromTree"] = 0.0,
                 ["maxDistanceFromTree"] = 0.0,
             };

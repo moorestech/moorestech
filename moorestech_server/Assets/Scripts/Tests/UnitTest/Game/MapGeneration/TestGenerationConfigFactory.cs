@@ -161,17 +161,21 @@ namespace Tests.UnitTest.Game.MapGeneration
                     ["prefabs"] = new JArray(new JObject { ["mapObjectGuid"] = mapObjectGuid }),
                     // 外半径・densityが互いに違う2帯にして、帯とリングの対応が入れ替わる改変を転写テストで捕まえる
                     // Two bands differing in both radius and density, so a mix-up between bands and rings fails the transcription test
-                    ["bands"] = new JArray(
-                        new JObject
-                        {
-                            ["outerRadiusMeters"] = 250.0,
-                            ["density"] = 2.0,
-                        },
-                        new JObject
-                        {
-                            ["outerRadiusMeters"] = -1,
-                            ["density"] = 1.0,
-                        }),
+                    ["placementMode"] = "scatter",
+                    ["placementParam"] = new JObject
+                    {
+                        ["bands"] = new JArray(
+                            new JObject
+                            {
+                                ["outerRadiusMeters"] = 250.0,
+                                ["pointsPerHectare"] = 2.0,
+                            },
+                            new JObject
+                            {
+                                ["outerRadiusMeters"] = -1,
+                                ["pointsPerHectare"] = 1.0,
+                            }),
+                    },
                     ["scaleRange"] = new JArray(1.0, 1.0),
                     ["slopeAlignment"] = 0.0,
                     ["sinkRange"] = new JArray(0.0, 0.0),
@@ -183,9 +187,6 @@ namespace Tests.UnitTest.Game.MapGeneration
                     ["slopeMin"] = 0.0,
                     ["slopeMax"] = 90.0,
                     ["slopeSmoothness"] = 4.0,
-                    ["useClusterMode"] = false,
-                    ["objectsPerCluster"] = 4,
-                    ["clusterRadius"] = 12.0,
                     ["minDistanceFromTree"] = 0.0,
                     ["maxDistanceFromTree"] = 0.0,
                 };

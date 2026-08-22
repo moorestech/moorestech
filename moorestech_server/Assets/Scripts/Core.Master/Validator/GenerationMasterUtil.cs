@@ -111,7 +111,15 @@ namespace Core.Master.Validator
 
                 foreach (var (biomeName, objectConfig) in GenerationBiomeObjectConfigCatalog.Of(vanillaGenerator))
                 for (var i = 0; i < objectConfig.Entries.Length; i++)
-                    logs += DiagnoseBands($"{biomeName}.objectConfig.entries[{i}]", OuterRadiiOf(objectConfig.Entries[i].Bands));
+                {
+                    // 帯は配置方式ごとのパラメータが持つため、方式で取り出し先を選ぶ
+                    // The bands live inside the per-mode placement parameters, so the mode decides where to read them from
+                    var placementParam = objectConfig.Entries[i].PlacementParam;
+                    var radii = placementParam is ClusterPlacementParam cluster
+                        ? OuterRadiiOf(cluster.Bands)
+                        : OuterRadiiOf(((ScatterPlacementParam)placementParam).Bands);
+                    logs += DiagnoseBands($"{biomeName}.objectConfig.entries[{i}]", radii);
+                }
 
                 return logs;
             }
@@ -144,6 +152,13 @@ namespace Core.Master.Validator
         }
 
         private static float[] OuterRadiiOf(ObjectScatterBandElement[] bands)
+        {
+            var radii = new float[bands.Length];
+            for (var i = 0; i < bands.Length; i++) radii[i] = bands[i].OuterRadiusMeters;
+            return radii;
+        }
+
+        private static float[] OuterRadiiOf(ObjectClusterBandElement[] bands)
         {
             var radii = new float[bands.Length];
             for (var i = 0; i < bands.Length; i++) radii[i] = bands[i].OuterRadiusMeters;

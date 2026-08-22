@@ -15,7 +15,7 @@ namespace Game.MapGeneration.Pipeline.Generators
     internal static class ObjectBackboneClusterPlacer
     {
         public static void Generate(
-            BiomeObjectConfig.ObjectEntry entry, TerrainDimensions dims,
+            BiomeObjectConfig.ObjectEntry entry, ObjectClusterParam cluster, TerrainDimensions dims,
             float[,] heights, int hRes, bool[,] mask, float borderMarginPx,
             System.Random rng, Vector2[] noiseOffsets, List<PlacementEntry> placements,
             ObjectAlgorithmConfig objAlgCfg, ref int nextClusterId)
@@ -24,13 +24,13 @@ namespace Game.MapGeneration.Pipeline.Generators
             float area = w * l;
             dims.SpawnDistanceRangeXz(out var tileNearestDistance, out var tileFarthestDistance);
 
-            foreach (var ring in SpawnDistanceRingPlanner.BuildRings(entry.bands))
+            foreach (var ring in SpawnDistanceRingPlanner.BuildRings(cluster.bands))
             {
                 // 中心数はタイル面積×density（1haあたり）で決める。母数を非クラスタ側と揃えないと、
                 // 同じdensityでもモードによって近傍リングだけ0個になる。
                 // The centre count is tile area times density (per hectare); using a different denominator from scatter mode
                 // would zero out only the near rings for the very same density.
-                int desiredCenters = Mathf.RoundToInt(ring.Band.density * area / 10000f);
+                int desiredCenters = Mathf.RoundToInt(ring.Band.clusterCentersPerHectare * area / 10000f);
                 if (desiredCenters <= 0) continue;
 
                 // タイルに掛からないリングは全中心が捨てられるだけなので、種だけ引いて飛ばす（乱数消費数＝出力を変えない）。
@@ -68,7 +68,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                     }
 
                     adoptedCenters++;
-                    PlaceBackbone(entry, center, cx, cz, dims, heights, hRes, rng, placements, nextClusterId++);
+                    PlaceBackbone(entry, cluster, center, cx, cz, dims, heights, hRes, rng, placements, nextClusterId++);
                 }
             }
         }
@@ -76,14 +76,14 @@ namespace Game.MapGeneration.Pipeline.Generators
         // クラスタ中心から背骨状にメンバーを配置。
         // Lay members along a backbone from the cluster centre.
         static void PlaceBackbone(
-            BiomeObjectConfig.ObjectEntry entry, Vector2 center, int cx, int cz,
+            BiomeObjectConfig.ObjectEntry entry, ObjectClusterParam cluster, Vector2 center, int cx, int cz,
             TerrainDimensions dims, float[,] heights, int hRes, System.Random rng,
             List<PlacementEntry> placements, int clusterId)
         {
             float w = dims.TerrainWidth, l = dims.TerrainLength;
-            int boneCount = Mathf.Min(3 + rng.Next(3), entry.objectsPerCluster);
+            int boneCount = Mathf.Min(3 + rng.Next(3), cluster.objectsPerCluster);
             float backboneAngle = (float)rng.NextDouble() * Mathf.PI;
-            float halfLen = entry.clusterRadius * 0.5f;
+            float halfLen = cluster.clusterRadius * 0.5f;
 
             float centerWorldX = center.x + dims.WorldOffsetX;
             float centerWorldZ = center.y + dims.WorldOffsetZ;
@@ -94,8 +94,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                 Center = new Vector3(centerWorldX, centerHt, centerWorldZ),
                 HeroCenter = new Vector3(centerWorldX, centerHt, centerWorldZ),
                 Angle = backboneAngle,
-                Length = entry.clusterRadius,
-                FootprintRadius = entry.clusterRadius
+                Length = cluster.clusterRadius,
+                FootprintRadius = cluster.clusterRadius
             };
 
             for (int i = 0; i < boneCount; i++)
