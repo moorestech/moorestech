@@ -130,9 +130,56 @@ properties:
             schemaId: map
             foreignKeyIdPath: /mapObjects/[*]/mapObjectGuid
             displayElementPath: /mapObjects/[*]/mapObjectName
-    - key: density
-      type: number
-      default: 1
+    # 配置方式。scatter は点を直接撒き、cluster は中心を撒いて背骨状にメンバーを並べる。
+    # 方式ごとに要るパラメータが違うため、量の単位も含めて placementParam 側で分ける。
+    # The placement mode: scatter drops points directly, cluster drops centres and lays members along a backbone.
+    # Each mode needs different parameters, so placementParam separates them down to the unit of the amount.
+    - key: placementMode
+      type: enum
+      options:
+      - scatter
+      - cluster
+    # スポーン地点中心の距離帯。outerRadiusMeters 昇順のリングで、負値は無限（最外周）。
+    # Spawn-centred distance bands: rings in ascending outerRadiusMeters, negative = infinite (outermost).
+    - key: placementParam
+      switch: ./placementMode
+      cases:
+      - when: scatter
+        type: object
+        properties:
+        - key: bands
+          type: array
+          overrideCodeGeneratePropertyName: ObjectScatterBandElement
+          items:
+            type: object
+            properties:
+            - key: outerRadiusMeters
+              type: number
+              default: -1
+            - key: pointsPerHectare
+              type: number
+              default: 1
+      - when: cluster
+        type: object
+        properties:
+        - key: bands
+          type: array
+          overrideCodeGeneratePropertyName: ObjectClusterBandElement
+          items:
+            type: object
+            properties:
+            - key: outerRadiusMeters
+              type: number
+              default: -1
+            - key: clusterCentersPerHectare
+              type: number
+              default: 1
+        - key: objectsPerCluster
+          type: integer
+          default: 4
+        - key: clusterRadius
+          type: number
+          default: 12
     - key: scaleRange
       type: vector2
     - key: slopeAlignment
@@ -169,18 +216,6 @@ properties:
     - key: slopeSmoothness
       type: number
       default: 4
-    - key: useClusterMode
-      type: boolean
-      default: false
-    - key: clusterCount
-      type: integer
-      default: 8
-    - key: objectsPerCluster
-      type: integer
-      default: 4
-    - key: clusterRadius
-      type: number
-      default: 12
     - key: minDistanceFromTree
       type: number
       default: 0

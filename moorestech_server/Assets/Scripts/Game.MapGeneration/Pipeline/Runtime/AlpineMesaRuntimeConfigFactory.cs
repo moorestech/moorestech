@@ -4,7 +4,9 @@ using GenVanilla = Mooresmaster.Model.GenerationModule.VanillaGeneratorAlgorithm
 namespace Game.MapGeneration.Pipeline.Runtime
 {
     // Alpine/Mesa は台地検出・段彩フィールドが多いため BiomeRuntimeConfigFactory から分離した。
+    // objectConfig は全バイオーム共通で BiomeObjectConfigRuntimeApplier が写す。
     // Alpine/Mesa carry many plateau/terrace fields, so they are split out from BiomeRuntimeConfigFactory.
+    // objectConfig is transcribed for every biome by BiomeObjectConfigRuntimeApplier.
     internal static class AlpineMesaRuntimeConfigFactory
     {
         public static void Apply(TerrainGenerationConfig cfg, GenVanilla vp)
@@ -47,7 +49,6 @@ namespace Game.MapGeneration.Pipeline.Runtime
             ac.debugTerrainLayerAddressablePaths = a.DebugTerrainLayerAddressablePaths;
             ac.terrainLayerAddressablePath = a.TerrainLayerAddressablePath;
             ac.treePlacement = TreeRuntimeConfigFactory.Build(a.TreePlacement);
-            ac.objectConfig = ObjectRuntimeConfigFactory.Build(a.ObjectConfig);
 
             var m = vp.Mesa; var mc = cfg.mesa;
             mc.elevationThreshold = m.ElevationThreshold;
@@ -76,7 +77,6 @@ namespace Game.MapGeneration.Pipeline.Runtime
             mc.amplitude = m.Amplitude;
             mc.terrainLayerAddressablePath = m.TerrainLayerAddressablePath;
             mc.treePlacement = TreeRuntimeConfigFactory.Build(m.TreePlacement);
-            mc.objectConfig = ObjectRuntimeConfigFactory.Build(m.ObjectConfig);
         }
     }
 }

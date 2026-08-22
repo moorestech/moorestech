@@ -68,6 +68,11 @@ class PrototypeConverter:
         for key, child in node.properties:
             unity_field = UNITY_FIELD_OVERRIDES.get(key, key)
             if unity_field not in unity_value:
+                derived = self._derived_field_value(key, child, unity_value, f"{location}.{key}")
+                if derived is not None:
+                    converted[key], derived_from = derived
+                    consumed.update(derived_from)
+                    continue
                 converted[key] = self._missing_field_value(key, child, f"{location}.{key}")
                 continue
 
@@ -77,6 +82,14 @@ class PrototypeConverter:
 
         self._reject_unmapped(set(unity_value) - consumed, location)
         return converted
+
+    def _derived_field_value(self, key: str, node: schema_spec.SchemaNode, unity_value: dict,
+                             location: str):
+        """スキーマにあってUnityに無いフィールドを、同じ情報を持つ旧フィールドから導出する。
+        戻り値は (値, 消費した旧フィールド名の集合)。導出規則が無ければNone。
+        Derives a schema field absent from Unity out of the legacy fields carrying the same information.
+        Returns (value, consumed legacy field names), or None when no rule applies."""
+        return None
 
     def _missing_field_value(self, key: str, node: schema_spec.SchemaNode, location: str):
         """宣言済みの欠落フィールドに限り、Unityが与えるのと同じ既定値で補う。
