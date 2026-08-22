@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration.Tiling.Seam
 {
-    // 隣接タイル境界の height/biome 不一致を集める共有ヘルパー。呼び出し側は境界位置を1組ずつ渡すだけでよい。
-    // Shared helper collecting height/biome mismatches at adjacent tile borders; the caller only feeds one border pair at a time.
+    // 隣接タイル境界のheight/biome不一致を集める共有ヘルパー
+    // Shared helper collecting height/biome mismatches at adjacent tile borders
     public static class TileBorderMismatchCollector
     {
         // 左タイルの最右列と右タイルの最左列は同一ワールドXをサンプルする

@@ -125,10 +125,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Surround
                 ? TerrainSurroundEffectType.rockNoBareGround
                 : TerrainSurroundEffectType.rockBareGround;
 
+            PlacementCluster? cluster = clusterId < 0
+                ? null
+                : new PlacementCluster(clusterId, new Vector2(RockLocalPosition, RockLocalPosition));
+
             return new LedgerPlacement(mapObjectGuid,
-                new Vector3(RockLocalPosition, 0f, RockLocalPosition), Quaternion.identity, new Vector3(2f, 2f, 2f),
-                effect, clusterId,
-                clusterId < 0 ? Vector2.zero : new Vector2(RockLocalPosition, RockLocalPosition));
+                new Vector3(RockLocalPosition, 0f, RockLocalPosition), new Vector3(2f, 2f, 2f),
+                effect, cluster);
         }
 
         // 指定バイオームだけが重み1を持つ配置用重み。列オフセット+2はOcean/Beach列ぶん

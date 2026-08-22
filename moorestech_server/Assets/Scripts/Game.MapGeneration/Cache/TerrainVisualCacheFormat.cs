@@ -12,8 +12,8 @@ namespace Game.MapGeneration.Cache
         // "MTVC" = Moorestech Terrain Visual Cache; the identifier keeping a foreign file from being misread
         public const int MagicNumber = 0x4D545643;
 
-        // 見た目の導出が変わるたびに1ずつbumpしてきた現在値。直近の10はキー鍵の導出元を生成マスタ指紋方式へ刷新した回
-        // The running value, bumped by one whenever the visual derivation changed; the latest step to 10 moved the key's inputs to the generation master fingerprint scheme
+        // 見た目導出変更ごとにbumpする現在値
+        // The running value, bumped whenever the visual derivation changes
         // 据え置くと旧鍵で焼いたキャッシュファイルが新鍵と衝突する可能性が残る
         // Holding it back would risk cache files baked under the old key colliding with the new one
         public const int FormatVersion = 10;

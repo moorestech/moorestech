@@ -22,8 +22,8 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail.Filter
             public string layerAddressablePath;
             public float weight;
 
-            // alphamapの列。SplatLayerTableが確定したあと呼び出し側が差し込む。-1は未解決
-            // The alphamap column, injected by the caller once SplatLayerTable settles; -1 means unresolved
+            // alphamapの列番号（-1は未解決）
+            // The alphamap column index (-1 means unresolved)
             public int layerIndex = -1;
 
             public void SetLayerIndex(int resolvedLayerIndex)

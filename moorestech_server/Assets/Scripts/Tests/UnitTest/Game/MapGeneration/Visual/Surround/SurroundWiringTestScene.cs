@@ -104,17 +104,17 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Surround
             var worldX = TileWorldPosition.x + localX;
             var worldZ = TileWorldPosition.z + localZ;
 
-            return new LedgerPlacement(StoneGuid, new Vector3(worldX, 0f, worldZ), Quaternion.identity, Vector3.one,
-                TerrainSurroundEffectType.rockBareGround, ClusterId, new Vector2(worldX, worldZ));
+            return new LedgerPlacement(StoneGuid, new Vector3(worldX, 0f, worldZ), Vector3.one,
+                TerrainSurroundEffectType.rockBareGround, new PlacementCluster(ClusterId, new Vector2(worldX, worldZ)));
         }
 
-        // 木もタイルローカルで書いてシーン絶対座標へ戻す。クラスタは持たないので独立配置(-1)で置く
-        // A tree is written tile-local and pushed back to scene-absolute too; it owns no cluster and goes in as an independent placement (-1)
+        // 木もタイルローカルで書いてシーン絶対座標へ戻す。クラスタは持たないので独立配置(null)で置く
+        // A tree is written tile-local and pushed back to scene-absolute too; it owns no cluster and goes in as an independent placement (null)
         public static LedgerPlacement CreateTree(float localX, float localZ)
         {
             return new LedgerPlacement(TreeGuid,
                 new Vector3(TileWorldPosition.x + localX, 0f, TileWorldPosition.z + localZ),
-                Quaternion.identity, Vector3.one, TerrainSurroundEffectType.treeRootPatch, -1, Vector2.zero);
+                Vector3.one, TerrainSurroundEffectType.treeRootPatch, null);
         }
 
         public static SurroundTextureConfig CreateSurroundConfig()

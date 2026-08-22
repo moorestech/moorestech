@@ -53,11 +53,7 @@ namespace Game.MapGeneration.Provisioning
                     var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
                     var currentFingerprint = GenerationMasterFingerprint.Compute(
                         MasterHolder.GenerationMaster.SourceJsonText, selectedGeneration, settings.ServerDataDirectory);
-                    if (currentFingerprint != existingTerrainMeta.GenerationMasterFingerprint)
-                        throw new InvalidOperationException(
-                            $"World '{worldDataDirectory.Root}' was generated with generation master fingerprint " +
-                            $"'{existingTerrainMeta.GenerationMasterFingerprint}', but this build's is '{currentFingerprint}'. " +
-                            "Delete the world directory and generate the world again.");
+                    existingTerrainMeta.ThrowIfGenerationMasterFingerprintDiffers(currentFingerprint);
                 }
 
                 return;

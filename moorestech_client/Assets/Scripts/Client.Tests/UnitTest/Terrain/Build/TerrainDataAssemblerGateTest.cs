@@ -10,10 +10,10 @@ using UnityEngine.TestTools;
 namespace Client.Tests.UnitTest.Terrain.Build
 {
     /// <summary>
-    ///     BakedTerrainTileの中身(Alphamapがnull・DetailMapsが空)だけがTerrainDataへの適用を切ることを検証する。
+    ///     BakedTerrainTileの中身のみが適用可否を決めることを検証
     ///     高さはファサードが常に持つ値なので必ず適用され、器の寸法もWorldTerrainLayoutから常に設定される
-    ///     Verifies only the baked tile's own contents (a null Alphamap, an empty DetailMaps) gate what reaches the
-    ///     TerrainData; heights always apply since the facade always carries them, and the terrain's dimensions always come from WorldTerrainLayout
+    ///     Verifies only the baked tile's own contents gate what reaches the TerrainData
+    ///     Heights always apply since the facade always carries them, and dimensions always come from WorldTerrainLayout
     /// </summary>
     public class TerrainDataAssemblerGateTest
     {
@@ -85,7 +85,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
             var layout = WorldTerrainLayout.CreateTileMaps(
                 new List<(int TileX, int TileZ)> { (0, 0) }, new Vector3(TerrainWidth, TerrainHeight, TerrainWidth), Resolution,
                 new List<string>(), new List<DetailPrototypeSpec>());
-            var tile = new BakedTerrainTile(0, 0, Vector3.zero, CreateHeights(), alphamap, new List<int[,]>());
+            var tile = new BakedTerrainTile(Vector3.zero, CreateHeights(), alphamap, new List<int[,]>());
 
             var assembleTask = TerrainDataAssembler.AssembleAsync(layout, tile, new List<DetailPrototype>(), _terrainLayers);
 

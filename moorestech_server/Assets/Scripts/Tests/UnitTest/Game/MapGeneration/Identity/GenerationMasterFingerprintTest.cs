@@ -8,17 +8,17 @@ using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Game.MapGeneration.Identity
 {
-    // 生成マスタ指紋は「同入力なら同値・1文字でも違えば別値」を守らないと、
-    // WorldTerrainSessionのfail-fastが誤検知(過検知/見逃し)を起こす
-    // The fingerprint must hold "same input -> same value, one differing char -> a different value";
-    // otherwise WorldTerrainSession's fail-fast either false-positives or misses drift
+    // 生成マスタ指紋は「同入力なら同値・1文字でも違えば別値」を守らないと
+    // fail-fastの誤検知(過検知/見逃し)有無を検証
+    // The fingerprint must hold "same input -> same value, one differing char -> a different value"
+    // Verifies fail-fast has no false positives/negatives
     public class GenerationMasterFingerprintTest
     {
         [SetUp]
         public void SetUp()
         {
-            // generated modeと同じ経路でMasterHolder.GenerationMasterを実データからロードする
-            // Load MasterHolder.GenerationMaster from real data via the same path as generated mode
+            // generatedと同じ経路でGenerationMasterをロード
+            // Loads GenerationMaster via the same path as generated mode
             new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
         }

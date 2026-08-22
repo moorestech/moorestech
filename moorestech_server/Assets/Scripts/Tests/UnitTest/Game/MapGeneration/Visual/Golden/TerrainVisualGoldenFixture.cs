@@ -17,9 +17,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
 {
     /// <summary>
     ///     移設前後で同じ入力を組むための固定フィクスチャ。MultiTileTestWorld の2×2格子に木と岩（クラスタ）を有効化し、
-    ///     detail はノイズ変調1エントリ（distanceフィルタ有効・textureフィルタ無効）で端数の重みを作る
+    ///     detailはノイズ変調1エントリで端数の重みを作る
     ///     The fixed fixture both sides of the migration build from: MultiTileTestWorld's 2x2 grid with trees and clustered rocks,
-    ///     plus one noise-modulated detail entry (distance filter on, texture filter off) to produce fractional weights
+    ///     plus one noise-modulated detail entry to produce fractional weights
     /// </summary>
     public static class TerrainVisualGoldenFixture
     {
@@ -27,8 +27,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
         public const int Seed = 4242;
         public static readonly BiomeType[] BiomeTypes = { BiomeType.Grassland };
 
-        // map.json の vanilla:TestMiningRock。terrainSurroundEffectType=rockBareGroundで実際に岩として振り分けられるguid
-        // map.json's vanilla:TestMiningRock; the one guid that actually classifies as rockBareGround
+        // 岩として振り分けられるguid（vanilla:TestMiningRock）
+        // The guid that classifies as a rock (vanilla:TestMiningRock)
         private const string RockMapObjectGuid = "00000000-0000-2222-0000-000000000001";
 
         // 実行中のプロジェクトがclient/serverどちらでもリポジトリルート経由で同じファイルへ辿り着く(TestModDirectoryと同じ流儀)
@@ -73,8 +73,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
                 new[] { CreateDetailConfig() },
                 new[] { CreateSurroundConfig() });
 
-            // 出力は生成そのもの。木・岩の位置とクラスタは VanillaGenerator が決める
-            // The output is generation itself; tree and rock positions and clusters come from VanillaGenerator
+            // 木・岩の位置とクラスタはVanillaGeneratorが決める
+            // Tree and rock positions and clusters come from VanillaGenerator
             var output = new VanillaGenerator().Generate(config);
             return (config, sections, output);
         }

@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Export
 {
-    // 生成パイプライン出力をterrainバイナリ(height)とcache READMEへ書き出す。
-    // Writes pipeline output to terrain binaries (height) and the cache README.
+    // 生成出力をterrainバイナリとcache READMEへ書き出す
+    // Writes generation output to terrain binaries and the cache README
     public static class TerrainFileWriter
     {
         private const string CacheReadmeText = "このディレクトリは削除可能です。削除しても次回起動時に自動で再構築されます。";

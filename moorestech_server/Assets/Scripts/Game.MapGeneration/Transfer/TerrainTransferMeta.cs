@@ -74,6 +74,25 @@ namespace Game.MapGeneration.Transfer
                 $"Generated world '{WorldId}' owns zero terrain chunk: the terrain files are missing or truncated.");
         }
 
+        // 指紋照合はこのメソッドだけが持つ。3箇所へ独立実装させると条件変更(templateも持つ等)の直し忘れが起きる
+        // Only this method owns the fingerprint check; three independent copies would risk a missed update when the condition changes (e.g. templates gaining one)
+        public void ThrowIfGenerationMasterFingerprintDiffers(string currentFingerprint)
+        {
+            if (currentFingerprint == GenerationMasterFingerprint) return;
+            throw new InvalidOperationException(
+                $"Generation master fingerprint '{currentFingerprint}' differs from the world's '{GenerationMasterFingerprint}'. " +
+                "Delete the world directory and generate the world again.");
+        }
+
+        // 解像度照合も同様に唯一の実装へ集約する
+        // The resolution check is likewise consolidated into the single implementation
+        public void ThrowIfTerrainResolutionDiffers(int currentResolution)
+        {
+            if (currentResolution == TerrainResolution) return;
+            throw new InvalidOperationException(
+                $"Generation master resolution {currentResolution} disagrees with the transferred terrain resolution {TerrainResolution}.");
+        }
+
         // 論理ストリームを構成するタイルの並び順。一辺√TileCountの正方格子をz行→x列で走査する
         // Tile order composing the logical stream: a square grid of side sqrt(TileCount), scanned row (z) then column (x)
         public static List<(int TileX, int TileZ)> EnumerateTileCoordinates(int terrainTileCount)

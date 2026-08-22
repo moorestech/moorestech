@@ -129,8 +129,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
         {
             // 摂動はguidマップだけを読みSurroundEffectを見ないので、種別は任意の値でよい
             // The perturbation reads only the guid map and never SurroundEffect, so the kind here is arbitrary
-            return new LedgerPlacement(mapObjectGuid, new Vector3(sceneX, 0f, sceneZ), Quaternion.identity,
-                Vector3.one, TerrainSurroundEffectType.treeRootPatch, -1, Vector2.zero);
+            return new LedgerPlacement(mapObjectGuid, new Vector3(sceneX, 0f, sceneZ),
+                Vector3.one, TerrainSurroundEffectType.treeRootPatch, null);
         }
 
         private static float[,] CreateFlatHeights()

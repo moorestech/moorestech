@@ -34,8 +34,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
 
         // 内陸(Margin)の外側、窓端の影響が届く外周帯だけを走査する
         // Scans only the outer band beyond the interior (Margin) that the window edge reaches
-        // TileClassificationContextTest.CountMaskMismatchesが見る内陸の裏返し
-        // The mirror image of the interior that TileClassificationContextTest.CountMaskMismatches scans
+        // CountMaskMismatchesが見る内陸の裏返し
+        // The mirror image of the interior that CountMaskMismatches scans
         private static int CountMaskMismatchesInEdgeBand(bool[][,] expected, bool[][,] actual)
         {
             var resolution = TileClassificationContextTest.Resolution;

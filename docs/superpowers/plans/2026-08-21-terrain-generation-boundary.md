@@ -1337,9 +1337,9 @@ public static class TerrainVisualPrebake
 ```
 実装は `WorldTerrainSession.Open` の後半（gridConfig〜baker 生成）と同じ手順なので、その部分を `Pipeline/Visual/TileVisualBakerFactory.Create(config, terrainMeta, ledger, heightSource, selectedGeneration)` に切り出して両者から呼ぶ（重複禁止）。先焼きの高さ源は `worldDataDirectory`（ワールド本体の terrain/）、キャッシュ先は `SharedWorldCache.For(terrainMeta.WorldId)`。全タイルを `Bake` して捨てる（書き戻しは cache 内部）。
 
-- [ ] **Step 1: 実装**（`WorldProvisioner.EnsureWorld` の `Directory.Move` の直後、generated のときだけ `TerrainTransferMetaReader.Read(worldDataDirectory)` でメタを読み `BakeAll`）
-- [ ] **Step 2: テスト**: 一時ワールドをプロビジョニングし、`SharedWorldCache.For(worldId).TerrainVisualCacheFilePath(x,z)` が全タイル存在すること。続けて同じメタで `WorldTerrainSession.Open` → `BakeTile` し、pass-1 は走るが pass-2 はキャッシュから読まれる（内部テストとして visual ファイルの mtime が変わらないことで確認）
-- [ ] **Step 3: コミット**
+- [x] **Step 1: 実装**（`WorldProvisioner.EnsureWorld` の `Directory.Move` の直後、generated のときだけ `TerrainTransferMetaReader.Read(worldDataDirectory)` でメタを読み `BakeAll`）
+- [x] **Step 2: テスト**: 一時ワールドをプロビジョニングし、`SharedWorldCache.For(worldId).TerrainVisualCacheFilePath(x,z)` が全タイル存在すること。続けて同じメタで `WorldTerrainSession.Open` → `BakeTile` し、pass-1 は走るが pass-2 はキャッシュから読まれる（内部テストとして visual ファイルの mtime が変わらないことで確認）
+- [x] **Step 3: コミット**
 
 ```bash
 git commit -am "feat(mapgen): ワールド生成時に共有キャッシュへ見た目を先焼きし同一PCのクライアントが再利用できるようにする"

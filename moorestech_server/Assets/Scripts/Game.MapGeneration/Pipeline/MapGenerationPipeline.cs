@@ -11,7 +11,7 @@ namespace Game.MapGeneration.Pipeline
     // The algorithm is dispatched via the table and the runtime config is handed to the generator.
     public static class MapGenerationPipeline
     {
-        // マスタ要素・シード・サーバーデータディレクトリから実行時 Config を組み立てる。
+        // マスタ・シード・データディレクトリから実行時Configを組立
         // サーバーの入口とセッション(クライアント側の再現)が同じ組み立てを通るための切り出し。
         // Builds the runtime config from the master element, seed, and server data directory.
         // Split out so both the server entry point and sessions (client-side reproduction) go through the same assembly.
@@ -32,12 +32,6 @@ namespace Game.MapGeneration.Pipeline
         {
             var generator = MapGenerationAlgorithmTable.Resolve(selected.Algorithm);
             return generator.Generate(config);
-        }
-
-        public static MapGenerationOutput Generate(Generation selected, int seed, string serverDataDirectory)
-        {
-            var config = BuildConfig(selected, seed, serverDataDirectory);
-            return Generate(selected, config);
         }
     }
 }

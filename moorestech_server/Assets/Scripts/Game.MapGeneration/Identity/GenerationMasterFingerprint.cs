@@ -26,11 +26,15 @@ namespace Game.MapGeneration.Identity
 
             sha256.TransformFinalBlock(new byte[0], 0, 0);
             return BitConverterHex(sha256.Hash);
-        }
 
-        private static string BitConverterHex(byte[] hash)
-        {
-            return System.BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
+            #region Internal
+
+            string BitConverterHex(byte[] hash)
+            {
+                return System.BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
+            }
+
+            #endregion
         }
     }
 }

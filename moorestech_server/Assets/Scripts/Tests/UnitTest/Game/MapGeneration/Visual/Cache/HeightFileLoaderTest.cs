@@ -11,8 +11,8 @@ using UnityEngine;
 namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
 {
     /// <summary>
-    ///     HeightFileLoader が P1 TerrainFileWriter の出力を元の高さ・バイオームへ復元することを検証する。
-    ///     Verifies HeightFileLoader restores the original heights and biomes from P1 TerrainFileWriter's output.
+    ///     TerrainFileWriter出力からの復元を検証
+    ///     Verifies restoration from TerrainFileWriter's output
     /// </summary>
     public class HeightFileLoaderTest
     {

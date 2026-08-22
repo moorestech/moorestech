@@ -82,38 +82,33 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
             var sliced = Slice(CreateClusteredPlacement(1250f, 0f, -1750f, 7, 1300f, -1700f));
 
             Assert.That(sliced.Count, Is.EqualTo(1));
-            Assert.That(sliced[0].ClusterId, Is.EqualTo(7));
-            Assert.That(sliced[0].LocalClusterCenter.x, Is.EqualTo(300f).Within(1e-3f));
-            Assert.That(sliced[0].LocalClusterCenter.y, Is.EqualTo(300f).Within(1e-3f));
+            Assert.That(sliced[0].LocalCluster.HasValue, Is.True);
+            Assert.That(sliced[0].LocalCluster.Value.Id, Is.EqualTo(7));
+            Assert.That(sliced[0].LocalCluster.Value.Center.x, Is.EqualTo(300f).Within(1e-3f));
+            Assert.That(sliced[0].LocalCluster.Value.Center.y, Is.EqualTo(300f).Within(1e-3f));
         }
 
-        // 独立配置(-1)の重心は未使用値(0,0)のまま。ここへシフトを適用すると意味の無い非ゼロ値へ化ける
-        // An independent placement's (-1) centroid stays the unused (0,0) sentinel; shifting it would turn it into a meaningless non-zero value
+        // 独立配置はクラスタ無し(null)のまま。番兵ではないのでシフトを適用する対象自体が無い
+        // An independent placement stays clusterless (null); with no sentinel there is nothing to shift at all
         [Test]
-        public void LeavesTheIndependentPlacementsClusterCenterAtTheSentinel()
+        public void LeavesTheIndependentPlacementsClusterNull()
         {
             var sliced = Slice(CreatePlacement(1250f, 0f, -1750f));
 
-            Assert.That(sliced[0].ClusterId, Is.EqualTo(-1));
-            Assert.That(sliced[0].LocalClusterCenter.x, Is.EqualTo(0f));
-            Assert.That(sliced[0].LocalClusterCenter.y, Is.EqualTo(0f));
+            Assert.That(sliced[0].LocalCluster, Is.Null);
         }
 
-        // 姿勢もスケールもタイル格子の軸ではないので素通しする。落とすと切り出した瞬間に向きが消え全配置物が0倍になる
-        // Neither rotation nor scale is an axis of the tile lattice; dropping them loses the orientation and zeroes every placement as it is sliced
+        // スケールはタイル格子の軸ではないので素通しする。落とすと切り出した瞬間に全配置物が0倍になる
+        // Scale is not an axis of the tile lattice; dropping it would zero every placement as it is sliced
         [Test]
-        public void CarriesTheRotationAndTheScaleThroughUnchanged()
+        public void CarriesTheScaleThroughUnchanged()
         {
             var scaled = new LedgerPlacement(MapObjectGuid,
-                new Vector3(1250f, 0f, -1750f), new Quaternion(0.1f, 0.2f, 0.3f, 0.4f), new Vector3(1.5f, 2f, 2.5f),
-                TerrainSurroundEffectType.rockBareGround, -1, Vector2.zero);
+                new Vector3(1250f, 0f, -1750f), new Vector3(1.5f, 2f, 2.5f),
+                TerrainSurroundEffectType.rockBareGround, null);
 
             var sliced = Slice(scaled);
 
-            Assert.That(sliced[0].Rotation.x, Is.EqualTo(0.1f));
-            Assert.That(sliced[0].Rotation.y, Is.EqualTo(0.2f));
-            Assert.That(sliced[0].Rotation.z, Is.EqualTo(0.3f));
-            Assert.That(sliced[0].Rotation.w, Is.EqualTo(0.4f));
             Assert.That(sliced[0].Scale.x, Is.EqualTo(1.5f));
             Assert.That(sliced[0].Scale.y, Is.EqualTo(2f));
             Assert.That(sliced[0].Scale.z, Is.EqualTo(2.5f));
@@ -189,15 +184,16 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
 
         private static LedgerPlacement CreatePlacement(string guid, float x, float y, float z)
         {
-            return new LedgerPlacement(guid, new Vector3(x, y, z), Quaternion.identity, Vector3.one,
-                TerrainSurroundEffectType.rockBareGround, -1, Vector2.zero);
+            return new LedgerPlacement(guid, new Vector3(x, y, z), Vector3.one,
+                TerrainSurroundEffectType.rockBareGround, null);
         }
 
         private static LedgerPlacement CreateClusteredPlacement(
             float x, float y, float z, int clusterId, float clusterCenterX, float clusterCenterZ)
         {
-            return new LedgerPlacement(MapObjectGuid, new Vector3(x, y, z), Quaternion.identity, Vector3.one,
-                TerrainSurroundEffectType.rockBareGround, clusterId, new Vector2(clusterCenterX, clusterCenterZ));
+            return new LedgerPlacement(MapObjectGuid, new Vector3(x, y, z), Vector3.one,
+                TerrainSurroundEffectType.rockBareGround,
+                new PlacementCluster(clusterId, new Vector2(clusterCenterX, clusterCenterZ)));
         }
     }
 }

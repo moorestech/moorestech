@@ -14,10 +14,10 @@ using Stopwatch = System.Diagnostics.Stopwatch;
 namespace Client.Game.InGame.Environment.Terrain
 {
     /// <summary>
-    ///     ワールドの地形をシーンへ建てる唯一の入口。生成システムのファサード(WorldTerrainSession)が返す
-    ///     結果だけを見て建てる。TerrainAsset/TileMapsのどちらであっても同じTerrain GameObjectとして生える
-    ///     The single entry point standing a world's terrain up in the scene, reading only the result the
-    ///     generation system's facade (WorldTerrainSession) returns; TerrainAsset and TileMaps both become the same Terrain object
+    ///     ワールドの地形をシーンへ建てる唯一の入口。生成システムのファサード(WorldTerrainSession)が返す結果を建てる
+    ///     結果種別によらず同じTerrain GameObjectを生成
+    ///     The single entry point standing a world's terrain up in the scene from what the generation system's facade (WorldTerrainSession) returns
+    ///     Produces the same Terrain GameObject regardless of the result kind
     /// </summary>
     public static class TerrainRuntimeBuilder
     {

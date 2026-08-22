@@ -34,16 +34,12 @@ namespace Game.MapGeneration.Facade
             // If the generation master (JSON text + placement-noise PNGs) differs from world creation, the ledger drifts from the server's truth; fail as for version and resolution
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var fingerprint = GenerationMasterFingerprint.Compute(MasterHolder.GenerationMaster.SourceJsonText, selectedGeneration, serverDataDirectory);
-            if (fingerprint != terrainMeta.GenerationMasterFingerprint)
-                throw new InvalidOperationException(
-                    $"[WorldTerrainSession] Generation master fingerprint {fingerprint} differs from the world's {terrainMeta.GenerationMasterFingerprint}. Delete the world and generate it again.");
+            terrainMeta.ThrowIfGenerationMasterFingerprintDiffers(fingerprint);
 
             // サーバーの唯一の入口と同じ2段（config組立→アルゴリズム選択→生成）を通る。手で組み直さない
             // Go through the very two steps of the server's single entry (build config, pick algorithm, generate); never hand-assemble
             var config = MapGenerationPipeline.BuildConfig(selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory);
-            if (config.Resolution != terrainMeta.TerrainResolution)
-                throw new InvalidOperationException(
-                    $"[WorldTerrainSession] Generation master resolution {config.Resolution} disagrees with the transferred terrain resolution {terrainMeta.TerrainResolution}.");
+            terrainMeta.ThrowIfTerrainResolutionDiffers(config.Resolution);
 
             // pass-1: サーバーと同じ生成を丸ごと回し、配置台帳（クラスタ・種別込み）を得る。高さは捨てて転送値を正本にする
             // pass-1: run the very same generation to obtain the placement ledger (clusters and kinds); its heights are dropped in favour of the transferred ones
@@ -51,8 +47,8 @@ namespace Game.MapGeneration.Facade
             var ledger = MapGenerationPipeline.Generate(selectedGeneration, config).Ledger;
             Debug.Log($"[WorldTerrainSession] pass-1 placement regeneration: {stopwatch.ElapsedMilliseconds}ms, placements={ledger.Placements.Count}");
 
-            // クライアントの高さ源は共有キャッシュ(同PCのサーバー先焼き/自分の受信分が置かれる場所)。組み立て自体はサーバー先焼きと共有する
-            // The client's height source is the shared cache (where a same-PC server prebake or its own received data lands); the assembly itself is shared with the server prebake
+            // 高さ源は共有キャッシュ。組み立てはサーバー先焼きと共有
+            // The height source is the shared cache; assembly is shared with the server prebake
             var heightSource = SharedWorldCache.For(terrainMeta.WorldId);
             var factoryResult = TileVisualBakerFactory.Create(config, terrainMeta, ledger, heightSource, selectedGeneration);
             var baker = factoryResult.Baker;

@@ -10,9 +10,9 @@ using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration.Visual
 {
-    // 可視化パス(TileVisualBaker/TileClassificationContext)側で、多バイオーム構成のタイル境界一致を検証する。
+    // 可視化パス側の多バイオームタイル境界一致を検証
     // 生成パス(VanillaGenerator)側は TileBoundarySeamTest が既に見ており、本テストはその対の可視化パス側を埋める。
-    // Verifies multi-biome tile-border agreement on the visualization path (TileVisualBaker/TileClassificationContext).
+    // Verifies multi-biome tile-border agreement on the visualization path
     // The generation path (VanillaGenerator) is already covered by TileBoundarySeamTest; this fills its visualization-path counterpart.
     public class TileVisualBakerBoundaryTest
     {

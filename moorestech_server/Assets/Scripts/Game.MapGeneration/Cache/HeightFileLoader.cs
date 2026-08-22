@@ -5,8 +5,8 @@ using Game.Paths;
 namespace Game.MapGeneration.Cache
 {
     /// <summary>
-    ///     キャッシュ済みterrainバイナリ(height r16)を2次元配列へ復元する。TerrainFileWriterの逆変換
-    ///     Restores cached terrain binaries (height r16) into 2D arrays; the inverse of TerrainFileWriter
+    ///     height r16バイナリを2次元配列へ復元（TerrainFileWriterの逆変換）
+    ///     Restores a height r16 binary into a 2D array (the inverse of TerrainFileWriter)
     /// </summary>
     public static class HeightFileLoader
     {

@@ -128,10 +128,11 @@ namespace Game.MapGeneration.Pipeline.Tiling
                     // 独立配置は Cluster を -1 の空情報で持つため、オフセットを掛けると隣タイルの実クラスタIDへ化ける。
                     // An independent placement carries an empty -1 Cluster, so offsetting it would morph into a neighbouring tile's real id.
                     var hasCluster = entry.Cluster.HasValue && 0 <= entry.Cluster.Value.ClusterId;
-                    var clusterId = hasCluster ? entry.Cluster.Value.ClusterId + offset : -1;
-                    var clusterCenter = hasCluster
-                        ? new Vector2(entry.Cluster.Value.Center.x, entry.Cluster.Value.Center.z)
-                        : Vector2.zero;
+                    PlacementCluster? cluster = hasCluster
+                        ? new PlacementCluster(
+                            entry.Cluster.Value.ClusterId + offset,
+                            new Vector2(entry.Cluster.Value.Center.x, entry.Cluster.Value.Center.z))
+                        : null;
                     if (hasCluster) maxLocalClusterId = Mathf.Max(maxLocalClusterId, entry.Cluster.Value.ClusterId);
 
                     _output.MapObjects.Add(new PlacedMapObject
@@ -142,8 +143,8 @@ namespace Game.MapGeneration.Pipeline.Tiling
                         Scale = entry.Scale,
                     });
 
-                    _ledger.Add(new LedgerPlacement(entry.MapObjectGuid, entry.WorldPosition, entry.Rotation, entry.Scale,
-                        entry.SurroundEffect, clusterId, clusterCenter));
+                    _ledger.Add(new LedgerPlacement(entry.MapObjectGuid, entry.WorldPosition, entry.Scale,
+                        entry.SurroundEffect, cluster));
                 }
 
                 if (0 <= maxLocalClusterId) _nextClusterIdOffset = offset + maxLocalClusterId + 1;

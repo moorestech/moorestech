@@ -17,9 +17,9 @@ using UnityEngine;
 namespace Tests.UnitTest.Game.MapGeneration.Visual
 {
     /// <summary>
-    ///     generateTexture / generateDetail が見た目の再構築を切ることを検証する。detailはプロトタイプと密度マップが
+    ///     generateTexture / generateDetail / generateHeightmap が見た目の再構築を切ることを検証する。detailはプロトタイプと密度マップが
     ///     必ず同数でなければならず、片方だけ止めた実装はDetailPrototypeAssetResolverの数一致検査で落ちる
-    ///     Verifies generateTexture and generateDetail gate the visual rebuild; detail prototypes and density maps must
+    ///     Verifies generateTexture, generateDetail, and generateHeightmap gate the visual rebuild; detail prototypes and density maps must
     ///     always match in count, and gating only one of them trips DetailPrototypeAssetResolver's count check
     /// </summary>
     public class TileVisualBakerGateTest
@@ -58,9 +58,31 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         }
 
         [Test]
+        public void AppliesTheTransferredHeightsWhenTheHeightmapFlagIsOn()
+        {
+            // 全画素0xFFFF=正規化高さ1.0。木の摂動が無いEmptyLedgerでは転送値がそのまま表示へ通る
+            // Every pixel is 0xFFFF, normalized height 1.0; with EmptyLedger no tree perturbation runs, so the transferred value passes straight through
+            WriteMaxHeightFile();
+            var baked = CreateBaker(true, true, true).Bake(TileX, TileZ);
+
+            Assert.That(baked.DisplayHeights[4, 4], Is.EqualTo(1f).Within(0.001f));
+        }
+
+        [Test]
+        public void LeavesTheTerrainFlatWhenTheHeightmapFlagIsOff()
+        {
+            // 転送値は1.0だが平坦配列に差し替わることだけを見る。生成データ側は変わらず読める
+            // The transferred value is 1.0 but only the flat replacement should reach display; the generation-side data itself is unaffected
+            WriteMaxHeightFile();
+            var baked = CreateBaker(true, true, false).Bake(TileX, TileZ);
+
+            Assert.That(baked.DisplayHeights[4, 4], Is.EqualTo(0f).Within(0.001f));
+        }
+
+        [Test]
         public void BuildsThePrototypesAndTheDensityMapsTogetherWhenDetailGenerationIsOn()
         {
-            var baker = CreateBaker(true, true);
+            var baker = CreateBaker(true, true, true);
             var baked = baker.Bake(TileX, TileZ);
 
             Assert.That(baked.DetailMaps.Count, Is.EqualTo(baker.DetailPrototypes.Count), "プロトタイプと密度マップは同数");
@@ -70,7 +92,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         [Test]
         public void DropsThePrototypesAndTheDensityMapsTogetherWhenDetailGenerationIsOff()
         {
-            var baker = CreateBaker(true, false);
+            var baker = CreateBaker(true, true, false);
             var baked = baker.Bake(TileX, TileZ);
 
             // 片方だけ止めるとDetailPrototypeAssetResolverの数一致検査で落ちる。同数であることが本体の要求
@@ -82,7 +104,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         [Test]
         public void BuildsTheAlphamapWhenTextureGenerationIsOn()
         {
-            var baked = CreateBaker(true, true).Bake(TileX, TileZ);
+            var baked = CreateBaker(true, true, true).Bake(TileX, TileZ);
 
             Assert.That(baked.Alphamap, Is.Not.Null);
             Assert.That(baked.Alphamap.GetLength(0), Is.EqualTo(AlphamapResolution));
@@ -91,7 +113,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         [Test]
         public void LeavesTheAlphamapUnbuiltWhenTextureGenerationIsOff()
         {
-            var baked = CreateBaker(false, true).Bake(TileX, TileZ);
+            var baked = CreateBaker(true, false, true).Bake(TileX, TileZ);
 
             // alphamapが無いことがSplatmapRuntimeGenerateを通っていない唯一の観測点
             // The absent alphamap is the single observable telling SplatmapRuntimeGenerator never ran
@@ -102,7 +124,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         [Test]
         public void ReusesTheCachedVisualOnASecondBakeWhenTextureGenerationIsOn()
         {
-            var baker = CreateBaker(true, true);
+            var baker = CreateBaker(true, true, true);
             baker.Bake(TileX, TileZ);
 
             var cacheFilePath = _worldCacheDirectory.TerrainVisualCacheFilePath(TileX, TileZ);
@@ -121,16 +143,25 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         {
             // キャッシュ形式はalphamapを必ず1枚要求する。テクスチャ無しの見た目は書き出せない
             // The cache format always demands one alphamap, so a texture-less visual cannot be written at all
-            var baker = CreateBaker(false, true);
+            var baker = CreateBaker(true, false, true);
             baker.Bake(TileX, TileZ);
             baker.Bake(TileX, TileZ);
 
             Assert.That(File.Exists(_worldCacheDirectory.TerrainVisualCacheFilePath(TileX, TileZ)), Is.False);
         }
 
-        private TileVisualBaker CreateBaker(bool generateTexture, bool generateDetail)
+        // 全画素を0xFFFFで埋める。正規化高さ1.0はゲート判定と区別できる非平坦値になる
+        // Fills every pixel with 0xFFFF; normalized height 1.0 is a non-flat value distinguishable from the gate's off-state
+        private void WriteMaxHeightFile()
         {
-            var config = CreateConfig(generateTexture, generateDetail);
+            var bytes = new byte[Resolution * Resolution * 2];
+            for (var i = 0; i < bytes.Length; i++) bytes[i] = 0xFF;
+            File.WriteAllBytes(_worldCacheDirectory.TerrainHeightFilePath(TileX, TileZ), bytes);
+        }
+
+        private TileVisualBaker CreateBaker(bool generateTexture, bool generateDetail, bool generateHeightmap)
+        {
+            var config = CreateConfig(generateTexture, generateDetail, generateHeightmap);
             var visualSections = CreateVisualSections();
             var treeSurroundSpecies = TreeSurroundSpeciesTable.Build(new BiomePlacementHelper(config), BiomeTypes);
             var layerTable = SplatLayerTable.Build(
@@ -142,7 +173,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
                 _worldCacheDirectory, new TerrainVisualCache(_worldCacheDirectory, CacheKey));
         }
 
-        private static TerrainGenerationConfig CreateConfig(bool generateTexture, bool generateDetail)
+        private static TerrainGenerationConfig CreateConfig(bool generateTexture, bool generateDetail, bool generateHeightmap)
         {
             return new TerrainGenerationConfig
             {
@@ -153,6 +184,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
                 terrainHeight = 600f,
                 generateTexture = generateTexture,
                 generateDetail = generateDetail,
+                generateHeightmap = generateHeightmap,
                 grasslandEnabled = true,
                 forestEnabled = false,
                 savannaEnabled = false,

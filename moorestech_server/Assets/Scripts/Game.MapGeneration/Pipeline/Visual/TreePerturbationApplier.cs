@@ -68,6 +68,9 @@ namespace Game.MapGeneration.Pipeline.Visual
                     {
                         MapObjectGuid = mapObject.Guid,
                         WorldPosition = mapObject.LocalPosition,
+                        // TreeHeightModifierはSurroundEffectを読まないが、none番兵のまま台帳へは戻さず台帳の値をそのまま運ぶ
+                        // TreeHeightModifier never reads SurroundEffect, but this carries the ledger's own value through rather than leaving the none sentinel
+                        SurroundEffect = mapObject.SurroundEffect,
                     });
 
                 return entries;

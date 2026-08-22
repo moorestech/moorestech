@@ -5,8 +5,8 @@ using Unity.Collections;
 namespace Game.MapGeneration.Pipeline.Visual.Splat
 {
     /// <summary>
-    ///     再計算したwinnerBiomeIndexを、Ocean/Beach折り込み済みのbiomeバイト列で上書きする
-    ///     Overwrites the recomputed winnerBiomeIndex with the Ocean/Beach-folded biome bytes
+    ///     winnerBiomeIndexをOcean/Beach折込済みバイト列で上書き
+    ///     Overwrites winnerBiomeIndex with the Ocean/Beach-folded bytes
     /// </summary>
     public static class WinnerBiomeIndexWriter
     {

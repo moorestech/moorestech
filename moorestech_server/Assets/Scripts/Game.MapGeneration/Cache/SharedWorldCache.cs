@@ -2,8 +2,8 @@ using Game.Paths;
 
 namespace Game.MapGeneration.Cache
 {
-    // 生成システムの共有キャッシュ。同一PCならサーバーの先焼きもクライアントの焼きも同じ場所へ落ちる
-    // The generation system's shared cache; on one PC the server's prebake and the client's bake land in the same place
+    // 生成システムの共有キャッシュ。同一PCで先焼き/クライアント焼きが共有
+    // The generation system's shared cache, shared by the prebake and client bake on one PC
     public static class SharedWorldCache
     {
         public static WorldDataDirectory For(string worldId)

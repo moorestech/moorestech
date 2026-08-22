@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
 {
     /// <summary>
-    ///     キーが生成の入力5つ(指紋・seed・2原点・解像度・生成器版)すべてに反応することを検証する。
+    ///     キーが入力5項目全てに反応することを検証
     ///     1つでも取りこぼすと、入力が動いたのにキャッシュがヒットして古いsplatmap/detailが描かれる
     ///     Verifies the key reacts to all five generation inputs (fingerprint, seed, two origins, resolution, generator version);
     ///     missing even one would let the cache hit after an input moved, drawing a stale splatmap and detail

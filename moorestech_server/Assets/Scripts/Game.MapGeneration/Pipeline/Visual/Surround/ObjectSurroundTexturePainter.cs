@@ -60,8 +60,8 @@ namespace Game.MapGeneration.Pipeline.Visual.Surround
             foreach (var clusterGroup in clusterGroups)
             {
                 var members = clusterGroup.Value;
-                var surroundConfig = ResolveSurroundConfig(
-                    members[0].LocalClusterCenter.x, members[0].LocalClusterCenter.y);
+                var clusterCenter = members[0].LocalCluster.Value.Center;
+                var surroundConfig = ResolveSurroundConfig(clusterCenter.x, clusterCenter.y);
                 if (!surroundConfig.enabled) continue;
 
                 SurroundClusterPainter.Paint(
@@ -84,16 +84,17 @@ namespace Game.MapGeneration.Pipeline.Visual.Surround
             {
                 foreach (var stoneObject in bareGroundStoneObjects)
                 {
-                    if (stoneObject.ClusterId < 0)
+                    if (!stoneObject.LocalCluster.HasValue)
                     {
                         nonClusterObjects.Add(stoneObject);
                         continue;
                     }
 
-                    if (!clusterGroups.TryGetValue(stoneObject.ClusterId, out var members))
+                    var clusterId = stoneObject.LocalCluster.Value.Id;
+                    if (!clusterGroups.TryGetValue(clusterId, out var members))
                     {
                         members = new List<TileLocalPlacement>();
-                        clusterGroups[stoneObject.ClusterId] = members;
+                        clusterGroups[clusterId] = members;
                     }
 
                     members.Add(stoneObject);

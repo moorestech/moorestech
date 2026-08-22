@@ -160,8 +160,9 @@ namespace Game.MapGeneration.Pipeline.Generators
                     Rotation = Quaternion.identity,
                     Scale = Vector3.one,
                     Sink = 0f,
-                    // 鉱脈は mapObject にならず見た目ステージへ渡らないため SurroundEffect は書かない（既定値のまま）
-                    // Veins never become mapObjects and never reach the visual stages, so SurroundEffect is left at its default
+                    // 鉱脈は見た目ステージへ渡らず未使用だが、岩に近い性質なのでrockNoBareGroundを明示する（none番兵に頼らない）
+                    // Veins never reach the visual stages so this goes unused, but rockNoBareGround names its rock-like nature explicitly instead of relying on the none sentinel
+                    SurroundEffect = TerrainSurroundEffectType.rockNoBareGround,
                     Cluster = new RockClusterInfo { ClusterId = clusterId }
                 });
 

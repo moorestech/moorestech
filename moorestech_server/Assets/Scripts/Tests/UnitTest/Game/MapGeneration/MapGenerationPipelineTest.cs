@@ -14,8 +14,10 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void SameSeedProducesIdenticalOutput()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var a = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
-            var b = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfigA = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var a = MapGenerationPipeline.Generate(config, runtimeConfigA);
+            var runtimeConfigB = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var b = MapGenerationPipeline.Generate(config, runtimeConfigB);
 
             Assert.That(a.Tiles[0].Heights, Is.EqualTo(b.Tiles[0].Heights));
             Assert.That(a.MapObjects.Count, Is.EqualTo(b.MapObjects.Count));
@@ -37,8 +39,10 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void DifferentSeedProducesDifferentHeights()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var a = MapGenerationPipeline.Generate(config, 1, TestGenerationConfigFactory.ServerDataDirectory);
-            var b = MapGenerationPipeline.Generate(config, 2, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfigA = MapGenerationPipeline.BuildConfig(config, 1, TestGenerationConfigFactory.ServerDataDirectory);
+            var a = MapGenerationPipeline.Generate(config, runtimeConfigA);
+            var runtimeConfigB = MapGenerationPipeline.BuildConfig(config, 2, TestGenerationConfigFactory.ServerDataDirectory);
+            var b = MapGenerationPipeline.Generate(config, runtimeConfigB);
             Assert.That(a.Tiles[0].Heights.SequenceEqual(b.Tiles[0].Heights), Is.False);
         }
 
@@ -46,7 +50,8 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void VeinAabbIsIntegerSnappedAndNonEmpty()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var output = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfig = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var output = MapGenerationPipeline.Generate(config, runtimeConfig);
 
             Assert.That(output.ItemVeins, Is.Not.Empty);
             foreach (var vein in output.ItemVeins)

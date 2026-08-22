@@ -85,7 +85,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Distance
 
             return new LedgerPlacement(mapObjectGuid,
                 new Vector3(TilePosition.x + localX, 0f, TilePosition.z + localZ),
-                Quaternion.identity, Vector3.one, effect, -1, Vector2.zero);
+                Vector3.one, effect, null);
         }
 
         // detail画素xのワールド座標。SdfMapGeneratorの割り付けと同じ式で、距離の期待値を式で書けるようにする

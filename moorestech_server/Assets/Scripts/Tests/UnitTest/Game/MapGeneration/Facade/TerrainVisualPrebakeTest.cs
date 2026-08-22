@@ -8,10 +8,10 @@ using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Game.MapGeneration.Facade
 {
-    // ワールド生成直後の共有キャッシュ先焼き(TerrainVisualPrebake)を検証する。プロビジョニング自体が先焼きを起こすので
-    // TerrainTransferTestScope.ProvisionGeneratedWorldを呼ぶだけで検証対象が走る
-    // Verifies the shared-cache prebake (TerrainVisualPrebake) that runs right after world generation. Provisioning itself
-    // triggers the prebake, so calling TerrainTransferTestScope.ProvisionGeneratedWorld already exercises it
+    // ワールド生成直後の共有キャッシュ先焼き(TerrainVisualPrebake)を検証する
+    // ProvisionGeneratedWorld呼び出しだけで検証対象が走る
+    // Verifies the shared-cache prebake (TerrainVisualPrebake) that runs right after world generation
+    // Calling ProvisionGeneratedWorld alone already exercises the target
     public class TerrainVisualPrebakeTest
     {
         [Test]
@@ -34,10 +34,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
             }
         }
 
-        // pass-1(配置台帳の再生成)はOpenのたびに走るが、pass-2(splat/detail)は先焼き済みキャッシュを引くので
-        // 見た目ファイルのmtimeが変わらないことで検証する
-        // pass-1 (ledger regeneration) still runs on every Open, but pass-2 (splat/detail) hits the prebaked cache,
-        // verified by the visual file's mtime staying put
+        // pass-1(配置台帳の再生成)はOpenのたびに走るが、pass-2(splat/detail)は先焼き済みキャッシュを引く
+        // 見た目ファイルのmtime不変で検証
+        // pass-1 (ledger regeneration) runs on every Open, but pass-2 (splat/detail) hits the prebaked cache
+        // Verified by the visual file's mtime staying put
         [Test]
         public void 先焼き済みキャッシュはOpen_BakeTileで再構築されずmtimeが変わらない()
         {

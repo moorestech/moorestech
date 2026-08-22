@@ -24,7 +24,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
             {
                 Assert.That(second.Placements[i].Guid, Is.EqualTo(first.Placements[i].Guid), $"#{i}");
                 Assert.That(second.Placements[i].ScenePosition, Is.EqualTo(first.Placements[i].ScenePosition), $"#{i}");
-                Assert.That(second.Placements[i].ClusterId, Is.EqualTo(first.Placements[i].ClusterId), $"#{i}");
+                Assert.That(second.Placements[i].Cluster, Is.EqualTo(first.Placements[i].Cluster), $"#{i}");
                 Assert.That(second.Placements[i].SurroundEffect, Is.EqualTo(first.Placements[i].SurroundEffect), $"#{i}");
             }
         }
@@ -38,8 +38,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
             MultiTileTestWorld.EnableTrees(config);
             MultiTileTestWorld.EnableObjects(config);
 
-            // entries[1] が独立散布(IndependentMapObjectGuid)。entries[0] はクラスタ採番側(TestMapObjectGuid)で別GUIDのため
-            // Entry index 1 is the independently scattered one (IndependentMapObjectGuid); index 0 is the cluster-numbered one with a different guid
+            // entries[0]=クラスタ採番、entries[1]=独立散布（別GUID）
+            // entries[0] is cluster-numbered, entries[1] is independently scattered (different guid)
             config.grassland.objectConfig.entries[1].terrainSurroundEffectType = TerrainSurroundEffectType.rockBareGround;
             var output = new VanillaGenerator().Generate(config);
             var ledger = output.Ledger;
@@ -51,6 +51,60 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
             }
             Assert.That(ledger.Placements.Any(p => p.Guid == MultiTileTestWorld.IndependentMapObjectGuid
                                                    && p.SurroundEffect == TerrainSurroundEffectType.rockBareGround), Is.True);
+        }
+
+        // 木のterrainSurroundEffectTypeが台帳へ転記される。既定値(treeRootPatch)以外を指定し、
+        // 転記が抜けて既定値のまま残る退行をゼロ以外の期待値で検出できるようにする
+        // A tree's terrainSurroundEffectType is transcribed to the ledger. A non-default value is used
+        // so a dropped transcription (silently left at the default treeRootPatch) shows up as a mismatch
+        [Test]
+        public void TreePrototypeSurroundEffectIsTranscribedToLedger()
+        {
+            var config = MultiTileTestWorld.BuildConfig(1, 11);
+            MultiTileTestWorld.EnableTrees(config);
+            config.grassland.treePlacement.prototypes[0].terrainSurroundEffectType = TerrainSurroundEffectType.rockNoBareGround;
+            config.forest.treePlacement.prototypes[0].terrainSurroundEffectType = TerrainSurroundEffectType.rockNoBareGround;
+
+            var ledger = new VanillaGenerator().Generate(config).Ledger;
+
+            Assert.That(ledger.Placements.Count, Is.GreaterThan(0));
+            Assert.That(ledger.Placements.All(p => p.SurroundEffect == TerrainSurroundEffectType.rockNoBareGround), Is.True);
+        }
+
+        // primary/secondary双方が独立に転記されることを検証
+        // Verifies both primary and secondary are transcribed independently
+        [Test]
+        public void ClusterPrimaryAndSecondarySurroundEffectAreTranscribedToLedger()
+        {
+            var config = MultiTileTestWorld.BuildConfig(1, 13);
+            var objectConfig = new BiomeObjectConfig
+            {
+                clusterEntries = new[]
+                {
+                    new ObjectClusterEntry
+                    {
+                        primary = new[] { TestGenerationConfigFactory.TestMapObjectGuid },
+                        terrainSurroundEffectType = TerrainSurroundEffectType.rockBareGround,
+                        secondaries = new[]
+                        {
+                            new ObjectClusterSecondary
+                            {
+                                mapObjectGuids = new[] { MultiTileTestWorld.IndependentMapObjectGuid },
+                                terrainSurroundEffectType = TerrainSurroundEffectType.rockNoBareGround,
+                            },
+                        },
+                    },
+                },
+            };
+            config.grassland.objectConfig = objectConfig;
+            config.forest.objectConfig = objectConfig;
+
+            var ledger = new VanillaGenerator().Generate(config).Ledger;
+
+            Assert.That(ledger.Placements.Any(p => p.Guid == TestGenerationConfigFactory.TestMapObjectGuid
+                                                   && p.SurroundEffect == TerrainSurroundEffectType.rockBareGround), Is.True);
+            Assert.That(ledger.Placements.Any(p => p.Guid == MultiTileTestWorld.IndependentMapObjectGuid
+                                                   && p.SurroundEffect == TerrainSurroundEffectType.rockNoBareGround), Is.True);
         }
     }
 }

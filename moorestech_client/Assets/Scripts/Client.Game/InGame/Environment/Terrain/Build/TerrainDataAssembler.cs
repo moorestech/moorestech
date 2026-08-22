@@ -7,10 +7,10 @@ using UnityEngine;
 namespace Client.Game.InGame.Environment.Terrain.Build
 {
     /// <summary>
-    ///     出来上がった高さ・splatmap・detail密度をTerrainDataへ載せる最終段。Unityの設定順どおりに流し込みつつ、
-    ///     どれを実際に適用するかはBakedTerrainTileの中身が決める（alphamapがnull・detailMapsが空ならその段は素通しする）
-    ///     The final stage mounting finished heights, splatmap and detail densities onto a TerrainData in Unity's required
-    ///     order, with the baked tile's own contents deciding what applies at all (a null alphamap or empty detail maps skip that stage)
+    ///     出来上がった高さ・splatmap・detail密度をTerrainDataへ載せる最終段。Unityの設定順どおりに流し込む
+    ///     適用可否はBakedTerrainTileの中身が決める
+    ///     The final stage mounting finished heights, splatmap and detail densities onto a TerrainData in Unity's required order
+    ///     What applies is decided by the baked tile's own contents
     /// </summary>
     public static class TerrainDataAssembler
     {
@@ -41,8 +41,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             async UniTask ApplySplatmapAsync()
             {
-                // テクスチャを作らない設定ではalphamapが存在しない。Unity既定のalphamapのままにする
-                // A config building no texture owns no alphamap, so Unity's default one is left in place
+                // 非生成時はUnity既定のalphamapを維持
+                // When not generating, Unity's default alphamap is kept
                 if (tile.Alphamap == null) return;
 
                 terrainData.alphamapResolution = tile.Alphamap.GetLength(0);
@@ -52,9 +52,15 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             void ApplyDetail()
             {
-                if (detailPrototypes.Count == 0) return;
-
                 var detailMaps = tile.DetailMaps;
+                if (detailMaps.Count == 0) return;
+
+                // プロトタイプ数と密度マップ本数は生成側の1:1対応が保証しているだけで、ここは知らない前提で組む
+                // The prototype count and density-map count agree only because the generator guarantees it 1:1; this stage assumes nothing on its own
+                if (detailPrototypes.Count != detailMaps.Count)
+                    throw new System.InvalidOperationException(
+                        $"[TerrainDataAssembler] Detail prototype count {detailPrototypes.Count} does not match detail map count {detailMaps.Count}.");
+
                 terrainData.SetDetailResolution(detailMaps[0].GetLength(0), DetailResolutionPerPatch);
 
                 // CoverageModeではメッシュDetailが描画されないことがあるため移植元と同じくInstanceCountModeにする

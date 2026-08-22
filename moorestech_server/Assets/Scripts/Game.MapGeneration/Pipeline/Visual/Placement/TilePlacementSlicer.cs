@@ -6,10 +6,10 @@ using UnityEngine;
 namespace Game.MapGeneration.Pipeline.Visual.Placement
 {
     /// <summary>
-    ///     シーン絶対座標で届く配置台帳から1タイルぶんを切り出し、タイルローカル座標へ寄せ直す。
-    ///     タイル単位で回る見た目の再構築（木の高さ摂動・距離場・根元テクスチャ）が共通で必要とする前処理
-    ///     Slices one tile out of the scene-absolute placement ledger and rebases it to tile-local coordinates;
-    ///     the shared preprocessing every per-tile visual rebuild needs (tree height perturbation, distance fields, root textures)
+    ///     絶対座標の配置台帳を1タイル分・ローカル座標へ切り出す
+    ///     タイル単位の見た目再構築が共通で使う前処理
+    ///     Slices the absolute-coordinate placement ledger into one tile at tile-local coordinates
+    ///     Shared preprocessing used by every per-tile visual rebuild
     /// </summary>
     public static class TilePlacementSlicer
     {
@@ -34,19 +34,21 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
 
                 // Yはタイル格子の軸ではないので絶対高さのまま残す。XZだけがタイル原点基準へ移る
                 // Y is not an axis of the tile lattice and stays an absolute height; only XZ move onto the tile origin
-                // クラスタ重心も位置と同じくタイルローカル化する。独立配置(-1)は未使用値(0,0)のまま据え置く
-                // The cluster centroid is rebased the same as position; an independent placement (-1) keeps its unused (0,0)
-                var hasCluster = 0 <= placement.ClusterId;
-                var localClusterCenterX = hasCluster ? placement.ClusterCenter.x - tileWorldPosition.x : placement.ClusterCenter.x;
-                var localClusterCenterZ = hasCluster ? placement.ClusterCenter.y - tileWorldPosition.z : placement.ClusterCenter.y;
+                // クラスタ重心もローカル化。独立配置(null)はそのままnull
+                // The cluster centroid is rebased too; an independent placement (null) stays null
+                PlacementCluster? localCluster = null;
+                if (placement.Cluster.HasValue)
+                {
+                    var cluster = placement.Cluster.Value;
+                    localCluster = new PlacementCluster(
+                        cluster.Id, new Vector2(cluster.Center.x - tileWorldPosition.x, cluster.Center.y - tileWorldPosition.z));
+                }
 
-                // 姿勢はタイル格子と無関係なのでそのまま運ぶ。落とすと切り出し後の見た目が向きを失う
-                // The rotation is unrelated to the tile lattice and rides along untouched; dropping it loses the orientation downstream
                 tileLocalPlacements.Add(new TileLocalPlacement(
                     placement.Guid,
                     new Vector3(localX, placement.ScenePosition.y, localZ),
-                    placement.Rotation, placement.Scale, placement.SurroundEffect,
-                    placement.ClusterId, new Vector2(localClusterCenterX, localClusterCenterZ)));
+                    placement.Scale, placement.SurroundEffect,
+                    localCluster));
             }
 
             return tileLocalPlacements;
@@ -69,8 +71,8 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
             // 岩周辺の裸地テクスチャは岩側だけを読むため、混ざるとどちらの規則も相手側へ漏れる
             // The single place splitting tile-local placements by how they affect the terrain's look; the detail distance filters read
             // the two as separate fields and the bare-ground texture reads only the rocks, so mixing them leaks each rule onto the other
-            // stonesは岩用距離場を担う全岩、bareGroundStonesはその中で裸地を塗る岩だけ（移植元はBoulder/Cliff名の岩のみ裸地化する）
-            // stones carries every rock for the rock distance field; bareGroundStones is the subset that paints bare ground (the source repaints only Boulder/Cliff rocks)
+            // stones=岩用距離場の全岩、bareGroundStones=裸地化する岩のみ
+            // stones = every rock for the distance field, bareGroundStones = only the ones painting bare ground
             void Split(
                 IReadOnlyList<TileLocalPlacement> tileLocal,
                 out List<TileLocalPlacement> treeList, out List<TileLocalPlacement> stoneList,
@@ -83,6 +85,11 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
                 foreach (var placement in tileLocal)
                     switch (placement.SurroundEffect)
                     {
+                        // 代入漏れは既定値0=noneのまま台帳へ来る。到達時点で即例外にし木の根元扱いへの取り違えを防ぐ
+                        // An unassigned SurroundEffect stays at its default 0=none through to the ledger; throw on arrival instead of silently drawing a tree root
+                        case TerrainSurroundEffectType.none:
+                            throw new InvalidOperationException(
+                                $"[TilePlacementSlicer] Placement {placement.Guid} reached the ledger with an unset (none) SurroundEffect.");
                         case TerrainSurroundEffectType.treeRootPatch:
                             treeList.Add(placement);
                             break;

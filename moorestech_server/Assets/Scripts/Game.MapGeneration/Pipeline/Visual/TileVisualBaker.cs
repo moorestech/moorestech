@@ -32,8 +32,8 @@ namespace Game.MapGeneration.Pipeline.Visual
         private readonly BiomeVisualSections _visualSections;
         private readonly WorldDataDirectory _heightSource;
 
-        // detailプロトタイプ仕様の並びはタイルに依らない。密度マップと同じ規則で一度だけ決める
-        // The detail prototype spec order does not vary by tile and is decided once by the same rule as the density maps
+        // detail仕様の並びはタイルに依らず一度だけ決める
+        // The detail spec order does not vary by tile and is decided once
         public IReadOnlyList<DetailPrototypeSpec> DetailPrototypes { get; }
 
         public TileVisualBaker(
@@ -96,7 +96,20 @@ namespace Game.MapGeneration.Pipeline.Visual
             var postHeights = TreePerturbationApplier.Apply(preHeights, tileConfig, tileWorldPosition, _ledger.Placements);
 
             var tileVisual = ResolveVisual(tileX, tileZ, tileConfig, tileWorldPosition, preHeights, postHeights);
-            return new BakedTerrainTile(tileX, tileZ, tileWorldPosition, postHeights, tileVisual.Alphamap, tileVisual.DetailMaps);
+
+            // generateTexture/generateDetailと同型の内側ゲート。offなら平坦配列を表示用に渡し、地形本体の起伏を止める
+            // The same inner gate shape as generateTexture/generateDetail; off feeds a flat array so the terrain itself stays flat
+            var displayHeights = _gridConfig.generateHeightmap ? postHeights : CreateFlatHeights(_gridConfig.Resolution);
+            return new BakedTerrainTile(tileWorldPosition, displayHeights, tileVisual.Alphamap, tileVisual.DetailMaps);
+
+            #region Internal
+
+            float[,] CreateFlatHeights(int resolution)
+            {
+                return new float[resolution, resolution];
+            }
+
+            #endregion
         }
 
         // splatもdetailも作らない設定では分類の結果を誰も読まない。パディング窓を回さずに空で返す
@@ -119,8 +132,8 @@ namespace Game.MapGeneration.Pipeline.Visual
                 DetailPrototypes.Count, out var tileVisual);
             if (cacheHit) return tileVisual;
 
-            // 取り逃したタイルだけをその場で作り直し、次回のために書き戻す
-            // Only the missed tiles are rebuilt on the spot and written back for next time
+            // 取り逃しタイルのみ作り直し書き戻す
+            // Only the missed tiles are rebuilt and written back
             var rebuilt = Rebuild();
             _visualCache.Save(tileX, tileZ, rebuilt);
             return rebuilt;

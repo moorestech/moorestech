@@ -68,12 +68,16 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
                         mapObjectGuids = new[] { TestGenerationConfigFactory.TestMapObjectGuid },
                         useClusterMode = true,
                         scaleRange = new Vector2(0.5f, 2f),
+                        // どちらも岩として使う固定値。GoldenFixtureは自分でrockBareGroundへ上書きするため既定値自体は無害
+                        // A fixed value for a rock; TerrainVisualGoldenFixture overwrites it to rockBareGround itself, so this default is harmless there
+                        terrainSurroundEffectType = TerrainSurroundEffectType.rockBareGround,
                     },
                     new BiomeObjectConfig.ObjectEntry
                     {
                         mapObjectGuids = new[] { IndependentMapObjectGuid },
                         useClusterMode = false,
                         scaleRange = new Vector2(0.5f, 2f),
+                        terrainSurroundEffectType = TerrainSurroundEffectType.rockBareGround,
                     },
                 },
             };
@@ -88,6 +92,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
                     new TreePrototypeEntry
                     {
                         mapObjectGuids = new[] { TestGenerationConfigFactory.TestMapObjectGuid },
+                        // 木の根元パッチを明示する。既定値はnone(番兵)へ変わったため、木としての値を自分で持つ
+                        // States the tree root patch explicitly; the implicit default became none (a sentinel), so a tree must carry its own value
+                        terrainSurroundEffectType = TerrainSurroundEffectType.treeRootPatch,
                     },
                 },
             };

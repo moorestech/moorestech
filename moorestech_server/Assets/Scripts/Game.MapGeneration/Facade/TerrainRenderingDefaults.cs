@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Facade
 {
-    // オーサリング済みTerrainData(template)の見た目定数。生成側のタイルはWorldTerrainLayout.CreateTileMapsが持つ実値を使う
-    // Visual constants for the authored TerrainData (template); generated tiles use the real values WorldTerrainLayout.CreateTileMaps carries
+    // template専用の見た目定数。生成タイルはCreateTileMapsの実値を使う
+    // Visual constants for template only; generated tiles use CreateTileMaps' real values
     public static class TerrainRenderingDefaults
     {
         public const string TemplateTerrainDataAddress = "Vanilla/Environment/TemplateTerrainData";

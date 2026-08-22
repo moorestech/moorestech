@@ -160,8 +160,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Surround
 
         private static LedgerPlacement CreateTreeAt(string mapObjectGuid, float localX, float localZ)
         {
-            return new LedgerPlacement(mapObjectGuid, new Vector3(localX, 0f, localZ), Quaternion.identity,
-                Vector3.one, TerrainSurroundEffectType.treeRootPatch, -1, Vector2.zero);
+            return new LedgerPlacement(mapObjectGuid, new Vector3(localX, 0f, localZ),
+                Vector3.one, TerrainSurroundEffectType.treeRootPatch, null);
         }
 
         private static void Paint(

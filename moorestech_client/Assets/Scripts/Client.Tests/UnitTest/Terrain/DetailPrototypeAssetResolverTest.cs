@@ -11,10 +11,10 @@ using UnityEngine.TestTools;
 namespace Client.Tests.UnitTest.Terrain
 {
     /// <summary>
-    ///     detailプロトタイプ仕様のアドレスをAddressablesで解決し、値をUnity DetailPrototypeへ写すことを検証する。
+    ///     アドレス解決からDetailPrototypeへの変換を検証
     ///     並びを決める側(DetailPrototypeSpecCollector)の検証はサーバー側のDetailPrototypeSpecCollectorTestが持つ
-    ///     Verifies a detail prototype spec's address resolves via Addressables and its values land on the Unity DetailPrototype;
-    ///     the side deciding the order (DetailPrototypeSpecCollector) is covered by the server-side DetailPrototypeSpecCollectorTest
+    ///     Verifies address resolution through conversion to DetailPrototype
+    ///     Verifying the side deciding order (DetailPrototypeSpecCollector) is covered by the server-side test
     /// </summary>
     public class DetailPrototypeAssetResolverTest
     {

@@ -8,10 +8,10 @@ using UnityEngine;
 namespace Client.Game.InGame.Environment.Terrain.Build
 {
     /// <summary>
-    ///     detailプロトタイプ仕様のアドレスをAddressablesで解決し、Unity DetailPrototypeへ組み立てる。
-    ///     並びの決定自体はGame.MapGeneration.Pipeline.Visual.Detail.DetailPrototypeSpecCollectorが担う
-    ///     Resolves a detail prototype spec's address via Addressables and assembles a Unity DetailPrototype;
-    ///     deciding the order itself belongs to Game.MapGeneration.Pipeline.Visual.Detail.DetailPrototypeSpecCollector
+    ///     detail仕様のアドレスをAddressablesで解決しDetailPrototypeへ変換する
+    ///     並びの決定はDetailPrototypeSpecCollectorが担う
+    ///     Resolves a detail spec's address via Addressables and converts it to a DetailPrototype
+    ///     Deciding the order belongs to DetailPrototypeSpecCollector
     /// </summary>
     public static class DetailPrototypeAssetResolver
     {
@@ -22,38 +22,38 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 detailPrototypes.Add(await ResolveOneAsync(spec));
 
             return detailPrototypes;
-        }
-
-        private static async UniTask<DetailPrototype> ResolveOneAsync(DetailPrototypeSpec spec)
-        {
-            var detailPrototype = new DetailPrototype
-            {
-                renderMode = spec.renderMode,
-                minWidth = spec.minWidth,
-                maxWidth = spec.maxWidth,
-                minHeight = spec.minHeight,
-                maxHeight = spec.maxHeight,
-                noiseSeed = spec.noiseSeed,
-                noiseSpread = spec.noiseSpread,
-                dryColor = spec.dryColor,
-                healthyColor = spec.healthyColor,
-                useInstancing = spec.useInstancing,
-                usePrototypeMesh = spec.usePrototypeMesh,
-                alignToGround = spec.alignToGround,
-                positionJitter = spec.positionJitter,
-                targetCoverage = spec.targetCoverage,
-                holeEdgePadding = spec.holeEdgePadding,
-                useDensityScaling = spec.useDensityScaling,
-            };
-
-            if (spec.usePrototypeMesh)
-                detailPrototype.prototype = await LoadAsync<GameObject>(spec.prototypeMeshAddressablePath);
-            else
-                detailPrototype.prototypeTexture = await LoadAsync<Texture2D>(spec.prototypeTextureAddressablePath);
-
-            return detailPrototype;
 
             #region Internal
+
+            async UniTask<DetailPrototype> ResolveOneAsync(DetailPrototypeSpec spec)
+            {
+                var detailPrototype = new DetailPrototype
+                {
+                    renderMode = spec.renderMode,
+                    minWidth = spec.minWidth,
+                    maxWidth = spec.maxWidth,
+                    minHeight = spec.minHeight,
+                    maxHeight = spec.maxHeight,
+                    noiseSeed = spec.noiseSeed,
+                    noiseSpread = spec.noiseSpread,
+                    dryColor = spec.dryColor,
+                    healthyColor = spec.healthyColor,
+                    useInstancing = spec.useInstancing,
+                    usePrototypeMesh = spec.usePrototypeMesh,
+                    alignToGround = spec.alignToGround,
+                    positionJitter = spec.positionJitter,
+                    targetCoverage = spec.targetCoverage,
+                    holeEdgePadding = spec.holeEdgePadding,
+                    useDensityScaling = spec.useDensityScaling,
+                };
+
+                if (spec.usePrototypeMesh)
+                    detailPrototype.prototype = await LoadAsync<GameObject>(spec.prototypeMeshAddressablePath);
+                else
+                    detailPrototype.prototypeTexture = await LoadAsync<Texture2D>(spec.prototypeTextureAddressablePath);
+
+                return detailPrototype;
+            }
 
             // 未解決のエントリを読み飛ばすとアドレス整備漏れが「草が生えない」形でしか現れない。ここで落とす
             // Skipping an unresolved entry would surface a missing address only as absent grass, so it fails here instead

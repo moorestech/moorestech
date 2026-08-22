@@ -9,12 +9,12 @@ using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Game.MapGeneration.Facade
 {
-    // 生成システムの唯一の入口。templateとgeneratedそれぞれの結果契約を検証する
-    // The generation system's single entry; verifies the result contract for both template and generated worlds
+    // template/generated双方の結果契約を検証
+    // Verifies the result contract for both template and generated worlds
     public class WorldTerrainSessionTest
     {
-        // templateは固定地形アセットの結果を返し、タイルを焼かせない
-        // A template world returns the authored result and refuses to bake tiles
+        // templateは固定地形の結果のみ返す
+        // A template world returns only the authored result
         [Test]
         public void TemplateOpensAsTerrainAssetLayout()
         {
@@ -26,8 +26,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
             Assert.Throws<InvalidOperationException>(() => session.BakeTile(0, 0));
         }
 
-        // generatedはプロビジョニング済みワールドのメタから開き、全タイルの結果が寸法どおりに返る（TerrainTransferTestScope で一時ワールドを作る）
-        // A generated world opens from a provisioned world's meta and every tile returns results of the declared dimensions
+        // generatedはプロビジョニング済みメタから開き全タイルが寸法通り返る
+        // A generated world opens from a provisioned meta and every tile returns results of the declared dimensions
         [Test]
         public void GeneratedWorldBakesEveryTile()
         {

@@ -15,29 +15,25 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
     {
         public readonly string Guid;
         public readonly Vector3 LocalPosition;
-        public readonly Quaternion Rotation;
         public readonly Vector3 Scale;
 
-        // 地形の見た目への効き方。台帳が既に持つ種別をそのまま運び、Splitはこの値だけで振り分ける
-        // How the placement affects the terrain's look; carried straight from the ledger so Split sorts on this value alone
+        // 地形の見た目への効き方（台帳の種別をそのまま運ぶ）
+        // How the placement affects the terrain's look (carried straight from the ledger)
         public readonly TerrainSurroundEffectType SurroundEffect;
 
-        // クラスタ識別子と重心。-1は独立配置で、そのとき重心は未使用値(0,0)のまま据え置かれる
-        // The cluster identifier and its centroid; -1 is an independent placement whose centroid keeps its unused (0,0)
-        public readonly int ClusterId;
-        public readonly Vector2 LocalClusterCenter;
+        // クラスタ識別子と重心（タイルローカル化済み）。独立配置はnull
+        // The cluster identifier and its centroid, rebased onto the tile-local frame; an independent placement is null
+        public readonly PlacementCluster? LocalCluster;
 
         public TileLocalPlacement(
-            string guid, Vector3 localPosition, Quaternion rotation, Vector3 scale,
-            TerrainSurroundEffectType surroundEffect, int clusterId, Vector2 localClusterCenter)
+            string guid, Vector3 localPosition, Vector3 scale,
+            TerrainSurroundEffectType surroundEffect, PlacementCluster? localCluster)
         {
             Guid = guid;
             LocalPosition = localPosition;
-            Rotation = rotation;
             Scale = scale;
             SurroundEffect = surroundEffect;
-            ClusterId = clusterId;
-            LocalClusterCenter = localClusterCenter;
+            LocalCluster = localCluster;
         }
     }
 }

@@ -9,22 +9,21 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
     {
         public readonly string Guid;
         public readonly Vector3 ScenePosition;
-        public readonly Quaternion Rotation;
         public readonly Vector3 Scale;
         public readonly TerrainSurroundEffectType SurroundEffect;
-        public readonly int ClusterId;
-        public readonly Vector2 ClusterCenter;
 
-        public LedgerPlacement(string guid, Vector3 scenePosition, Quaternion rotation, Vector3 scale,
-            TerrainSurroundEffectType surroundEffect, int clusterId, Vector2 clusterCenter)
+        // クラスタ無しはnull。-1番兵＋未使用重心は使わない
+        // "No cluster" is null; no -1 sentinel plus an unused centroid
+        public readonly PlacementCluster? Cluster;
+
+        public LedgerPlacement(string guid, Vector3 scenePosition, Vector3 scale,
+            TerrainSurroundEffectType surroundEffect, PlacementCluster? cluster)
         {
             Guid = guid;
             ScenePosition = scenePosition;
-            Rotation = rotation;
             Scale = scale;
             SurroundEffect = surroundEffect;
-            ClusterId = clusterId;
-            ClusterCenter = clusterCenter;
+            Cluster = cluster;
         }
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Visual;
@@ -24,9 +23,7 @@ namespace Game.MapGeneration.Provisioning
         {
             // 台帳・configは同じ生成呼び出し由来。fingerprintが転送メタと食い違うのはその前提が崩れた合図で、無言のまま焼き続けない
             // The ledger and config come from the very same generation call; a fingerprint disagreeing with the transfer meta signals that premise broke, so this never bakes on in silence
-            if (generationMasterFingerprint != terrainMeta.GenerationMasterFingerprint)
-                throw new InvalidOperationException(
-                    $"[TerrainVisualPrebake] Generation master fingerprint {generationMasterFingerprint} differs from the world's {terrainMeta.GenerationMasterFingerprint}.");
+            terrainMeta.ThrowIfGenerationMasterFingerprintDiffers(generationMasterFingerprint);
 
             // 先焼きの高さ源はワールド本体のterrain/(生成した本人が唯一の正)。共有キャッシュへの複製は要らない
             // The prebake's height source is the world's own terrain/ (the generator itself is the sole truth); no copy into the shared cache is needed

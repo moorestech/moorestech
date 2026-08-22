@@ -11,8 +11,8 @@ using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration.Tiling.Seam
 {
-    // VanillaGeneratorのタイルループを分類だけ独立に再現するテストヘルパー。
-    // Test helper that reruns VanillaGenerator's tile loop for classification only.
+    // 分類だけを独立再現するテストヘルパー
+    // Test helper that reruns classification alone
     public static class TileBiomeIndexComputer
     {
         // 格子全体のタイルぶんをまとめて計算する。biomeParams/noiseOffsets は格子で1組だけ作って使い回す
@@ -58,8 +58,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling.Seam
             }
         }
 
-        // タイル窓の基準はindex(0,0)タイル。output.NoiseOrigin がその原点そのもの（VanillaGenerator参照）
-        // The tile windows are based on the index (0,0) tile; output.NoiseOrigin is exactly that origin (see VanillaGenerator)
+        // 基準はindex(0,0)。NoiseOriginが原点
+        // The basis is index (0,0); NoiseOrigin is that origin
         private static TerrainGenerationConfig BuildGridConfig(TerrainGenerationConfig config, MapGenerationOutput output)
         {
             var gridConfig = config.ShallowCopy();

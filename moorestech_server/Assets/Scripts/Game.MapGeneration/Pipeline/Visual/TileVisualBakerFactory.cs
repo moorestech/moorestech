@@ -29,7 +29,9 @@ namespace Game.MapGeneration.Pipeline.Visual
             public readonly TerrainGenerationConfig GridConfig;
             public readonly IReadOnlyList<string> OrderedLayerAddresses;
 
-            public Result(TileVisualBaker baker, TerrainGenerationConfig gridConfig, IReadOnlyList<string> orderedLayerAddresses)
+            // privateだと入れ子先のTileVisualBakerFactory自身からもコンストラクトできない(private accessibility domainはネスト型自身の中だけ)。internalで閉じる
+            // private would block even the enclosing TileVisualBakerFactory from constructing it (a private member's accessibility domain is only the nested type itself); internal closes it correctly
+            internal Result(TileVisualBaker baker, TerrainGenerationConfig gridConfig, IReadOnlyList<string> orderedLayerAddresses)
             {
                 Baker = baker;
                 GridConfig = gridConfig;
@@ -37,8 +39,8 @@ namespace Game.MapGeneration.Pipeline.Visual
             }
         }
 
-        // heightSourceは呼び出し側が選ぶ: サーバー先焼きはワールド本体のterrain/、クライアントは共有キャッシュに複製された分
-        // heightSource is the caller's choice: the server prebake reads the world's own terrain/, the client reads its shared-cache copy
+        // heightSourceは呼び出し側指定（先焼き=terrain/、クライアント=共有キャッシュ）
+        // heightSource is caller-specified (prebake = terrain/, client = shared cache)
         public static Result Create(
             TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, PlacementLedger ledger,
             WorldDataDirectory heightSource, Generation selectedGeneration)

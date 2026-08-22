@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration.Tiling
 {
-    // 多タイル生成が MapObjects へ載せるスケールと、台帳(PlacementLedger)へ載せるクラスタID・クラスタ重心を検証する。
-    // Verifies the scale multi-tile generation puts onto MapObjects, and the cluster id/centroid it puts onto the PlacementLedger.
+    // MapObjectsのスケールと台帳のクラスタ情報を検証
+    // Verifies the scale on MapObjects and the cluster info on the ledger
     public class MultiTileMapObjectTransferTest
     {
         private const int GridSide = 3;
@@ -27,16 +27,17 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             for (var i = 0; i < output.MapObjects.Count; i++)
             {
                 var placement = output.Ledger.Placements[i];
-                if (placement.ClusterId < 0) continue;
+                if (!placement.Cluster.HasValue) continue;
+                var clusterId = placement.Cluster.Value.Id;
                 var tile = MultiTileTestWorld.TileBucket(output.MapObjects[i].Position.x, output.MapObjects[i].Position.z, config);
                 tilesWithCluster.Add(tile);
-                if (!tileOfClusterId.TryGetValue(placement.ClusterId, out var owner))
+                if (!tileOfClusterId.TryGetValue(clusterId, out var owner))
                 {
-                    tileOfClusterId[placement.ClusterId] = tile;
+                    tileOfClusterId[clusterId] = tile;
                     continue;
                 }
 
-                Assert.AreEqual(owner, tile, $"ClusterId {placement.ClusterId} が別タイルと共有されている");
+                Assert.AreEqual(owner, tile, $"ClusterId {clusterId} が別タイルと共有されている");
             }
 
             // 1タイルぶんしかクラスタが出ていないと、重複が起きえない設定を検証したことになる。
@@ -44,10 +45,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             Assert.Less(1, tilesWithCluster.Count, "クラスタを持つタイルが1枚しかない");
         }
 
-        // 独立配置は ClusterId=-1 の空クラスタ情報を持つ。一意化のオフセットを掛けると実クラスタIDへ化ける。
-        // An independent placement carries an empty ClusterId=-1; applying the uniquifying offset would morph it into a real cluster id.
+        // 独立配置はクラスタ情報を持たない(null)。一意化のオフセットを掛けると実クラスタIDへ化ける。
+        // An independent placement carries no cluster info (null); applying the uniquifying offset would morph it into a real cluster id.
         [Test]
-        public void 独立散布の岩はタイルをまたいでもクラスタIDが_1のまま残る()
+        public void 独立散布の岩はタイルをまたいでもクラスタ無しのまま残る()
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
             var output = GenerateWithObjects(config);
@@ -59,12 +60,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
                 var mapObject = output.MapObjects[i];
                 var placement = output.Ledger.Placements[i];
                 var tile = MultiTileTestWorld.TileBucket(mapObject.Position.x, mapObject.Position.z, config);
-                if (0 <= placement.ClusterId) tilesWithCluster.Add(tile);
+                if (placement.Cluster.HasValue) tilesWithCluster.Add(tile);
                 if (mapObject.MapObjectGuid != MultiTileTestWorld.IndependentMapObjectGuid) continue;
 
                 tilesWithIndependent.Add(tile);
-                Assert.AreEqual(-1, placement.ClusterId, "独立散布の岩がクラスタIDを持っている");
-                Assert.AreEqual(Vector2.zero, placement.ClusterCenter, "独立散布の岩が重心を持っている");
+                Assert.That(placement.Cluster, Is.Null, "独立散布の岩がクラスタ情報を持っている");
             }
 
             // 一意化のオフセットが積み上がった後のタイルにも独立散布が出ていないと、化けようがない設定を検証したことになる。
@@ -76,7 +76,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         // 木はクラスタ情報そのものを持たない。null を素通しできていないと0番クラスタとして届く。
         // Trees own no cluster info at all; failing to pass the null through would deliver them as cluster zero.
         [Test]
-        public void 木はクラスタIDが_1で届く()
+        public void 木はクラスタ無しで届く()
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
             MultiTileTestWorld.EnableTrees(config);
@@ -85,10 +85,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
 
             Assert.IsNotEmpty(output.MapObjects);
             foreach (var placement in output.Ledger.Placements)
-            {
-                Assert.AreEqual(-1, placement.ClusterId);
-                Assert.AreEqual(Vector2.zero, placement.ClusterCenter);
-            }
+                Assert.That(placement.Cluster, Is.Null);
         }
 
         // 重心がノイズ座標のまま残ると、位置だけがシーン座標という別フレームの組になり岩の周囲を外して塗る。
@@ -101,16 +98,17 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
 
             var clustered = new List<LedgerPlacement>();
             for (var i = 0; i < output.MapObjects.Count; i++)
-                if (0 <= output.Ledger.Placements[i].ClusterId)
+                if (output.Ledger.Placements[i].Cluster.HasValue)
                     clustered.Add(output.Ledger.Placements[i]);
 
             Assert.IsNotEmpty(clustered, "クラスタを持つ配置物が1件も無い");
             foreach (var placement in clustered)
             {
-                MultiTileTestWorld.AssertInsideGrid(placement.ClusterCenter.x, placement.ClusterCenter.y, config);
+                var clusterCenter = placement.Cluster.Value.Center;
+                MultiTileTestWorld.AssertInsideGrid(clusterCenter.x, clusterCenter.y, config);
                 Assert.AreEqual(
                     MultiTileTestWorld.TileBucket(placement.ScenePosition.x, placement.ScenePosition.z, config),
-                    MultiTileTestWorld.TileBucket(placement.ClusterCenter.x, placement.ClusterCenter.y, config),
+                    MultiTileTestWorld.TileBucket(clusterCenter.x, clusterCenter.y, config),
                     "重心が配置物と別タイルにある");
             }
         }

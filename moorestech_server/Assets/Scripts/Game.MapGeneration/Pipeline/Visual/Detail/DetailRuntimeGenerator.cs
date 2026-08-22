@@ -8,9 +8,9 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail
 {
     /// <summary>
     ///     バイオームのDetail密度マップを生成する。MapMaking DetailPlacementGenerator の移植で、
-    ///     対応するプロトタイプの並びはDetailPrototypeSpecCollectorが持つ
+    ///     並びの正本はDetailPrototypeSpecCollector
     ///     Builds a biome's detail density maps, ported from MapMaking's DetailPlacementGenerator;
-    ///     the matching prototype order lives in DetailPrototypeSpecCollector
+    ///     the order's source of truth is DetailPrototypeSpecCollector
     /// </summary>
     public static class DetailRuntimeGenerator
     {

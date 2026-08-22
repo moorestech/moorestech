@@ -20,8 +20,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
         public const int HeightmapResolution = 5;
         public const int DetailResolution = HeightmapResolution - 1;
 
-        // プロトタイプ仕様が指すアドレス。CreateResolvedAssetsが同じキーでテクスチャを解決する
-        // The address a prototype spec points at; CreateResolvedAssets resolves a texture under the same key
+        // プロトタイプ仕様が指すアドレス（解決はCreateResolvedAssets）
+        // The address a prototype spec points at (resolved by CreateResolvedAssets)
         public const string PrototypeTextureAddress = "Test/DetailPrototypeTexture";
 
         public static TerrainDimensions CreateDimensions()
@@ -125,8 +125,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
             };
         }
 
-        // DetailPrototypeAssetResolverが要る解決済みアセット。CreateEntryが積むアドレスを1本だけ満たす
-        // The resolved asset DetailPrototypeAssetResolver needs; it satisfies the single address CreateEntry sets
+        // Resolverが要る解決済みアセット（アドレス1本のみ満たす）
+        // The resolved asset the Resolver needs (satisfies a single address only)
         public static Dictionary<string, Object> CreateResolvedAssets()
         {
             return new Dictionary<string, Object> { [PrototypeTextureAddress] = new Texture2D(1, 1) };
