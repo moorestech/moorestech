@@ -1,8 +1,7 @@
-using Client.Game.InGame.Context;
+using Client.Game.Skit;
 using Client.Skit.Context;
 using UnityEditor;
 using UnityEngine;
-using VContainer;
 
 /// <summary>
 ///     スキット執筆ツールが実行時と同一のSkitOriginを引く窓口（ADR 0029）
@@ -15,18 +14,19 @@ public static class SkitAuthoringOriginResolver
     public static bool TryResolve(out SkitOrigin origin)
     {
         origin = null;
-        if (Application.isPlaying && ClientDIContext.DIContainer != null)
+        // 本編もSkitTestもシーン上のSkitManagerが原点を持つため、DIコンテナではなく実体から引く
+        // Both the main game and SkitTest keep the origin on the scene's SkitManager, so read it from the instance instead of the DI container
+        if (Application.isPlaying)
         {
-            // MainGameStarterがコンテナ構築時に必ずSkitOriginを登録するため直接Resolveできる
-            // MainGameStarter always registers SkitOrigin when building the container, so resolve directly
-            origin = ClientDIContext.DIContainer.DIContainerResolver.Resolve<SkitOrigin>();
+            var skitManager = Object.FindFirstObjectByType<SkitManager>();
+            if (skitManager != null) origin = skitManager.GetSkitOrigin();
         }
         
         if (origin == null)
         {
             EditorUtility.DisplayDialog(
                 "スキット座標コピー",
-                "スポーン原点を実行時DIから解決できませんでした。PlayModeでゲーム開始後にコピーしてください（ADR 0029: JSONは相対座標）",
+                "スポーン原点を解決できませんでした。PlayModeでスキットシーンを再生してからコピーしてください（ADR 0029: JSONは相対座標）",
                 "OK");
             return false;
         }
