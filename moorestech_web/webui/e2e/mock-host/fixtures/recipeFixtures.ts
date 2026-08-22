@@ -77,6 +77,20 @@ export const machineRecipes = {
   ],
 } satisfies MachineRecipesData;
 
+// レシピ単一リストをパネル本文から溢れさせる件数。器が高さを決める規則の番人としてe2eから使う
+// Enough entries to overflow the recipe list out of the panel body; the e2e uses it to guard the container-decides-height rule
+export const overflowingMachineRecipes = {
+  recipes: [
+    ...machineRecipes.recipes,
+    ...Array.from({ length: 12 }, (_, index) => ({
+      recipeGuid: `f0000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+      blockGuid: ELECTRIC_MACHINE_BLOCK_GUID,
+      blockId: 3, time: index + 1,
+      inputItems: [{ itemId: 2, count: index + 1 }], outputItems: [{ itemId: 100, count: 1 }],
+    })),
+  ],
+} satisfies MachineRecipesData;
+
 export const itemList = { itemIds: [100, 101, 102, 1, 2] } satisfies RecipeViewerItemListData;
 // チュートリアル指名の対象。1段目のセルで、ScrollAreaの上端クリップに最も晒される位置
 // The tutorial's named target: a first-row cell, the position most exposed to the ScrollArea's top clip

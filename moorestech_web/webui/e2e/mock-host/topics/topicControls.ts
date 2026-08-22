@@ -145,6 +145,10 @@ const controls = {
   itemListLarge: () => control(Topics.itemList, clone(fx.demoItemList)),
   itemListSevenRows: () => control(Topics.itemList, clone(fx.sevenRowItemList)),
   itemListDefault: () => clearingControl(Topics.itemList, clone(fx.itemList)),
+  // レシピ単一リストを溢れさせる/既定へ戻す。器が高さを決める規則を実データ件数で検証するため
+  // Overflow the recipe list / restore the default, so the container-decides-height rule is verified with a real recipe count
+  machineRecipesOverflow: () => control(Topics.machineRecipes, clone(fx.overflowingMachineRecipes)),
+  machineRecipesDefault: () => clearingControl(Topics.machineRecipes, clone(fx.machineRecipes)),
   tutorialEmpty: () => control(Topics.tutorialPresentation, { revision: 0, sessions: [] }),
   tutorialOutlineWithLabel: () => control(Topics.tutorialPresentation, {
     revision: 2,
