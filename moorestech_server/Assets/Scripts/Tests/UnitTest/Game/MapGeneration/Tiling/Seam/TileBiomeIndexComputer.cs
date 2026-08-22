@@ -11,11 +11,8 @@ using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration.Tiling.Seam
 {
-    // VanillaGenerator のタイルループを分類だけ独立に再現する共有テストヘルパー。転送されなくなった
-    // biome_x_z.bin の代わりに、生成側と同じ公開API(PaddedWindowStage→PlacementInputBuilder.BuildBiomeIndices)を直接呼ぶ。
-    // Shared test helper that re-runs VanillaGenerator's tile loop for classification only. In place of the
-    // no-longer-transferred biome_x_z.bin, it calls the same public API the generator uses (PaddedWindowStage
-    // then PlacementInputBuilder.BuildBiomeIndices) directly.
+    // VanillaGeneratorのタイルループを分類だけ独立に再現するテストヘルパー。
+    // Test helper that reruns VanillaGenerator's tile loop for classification only.
     public static class TileBiomeIndexComputer
     {
         // 格子全体のタイルぶんをまとめて計算する。biomeParams/noiseOffsets は格子で1組だけ作って使い回す

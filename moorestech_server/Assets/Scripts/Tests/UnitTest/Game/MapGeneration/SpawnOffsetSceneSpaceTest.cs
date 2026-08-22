@@ -141,12 +141,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         }
 
         // スポーン地点のシーン座標を中心タイルのハイトマップ格子へ写し、その画素のバイオームを返す。
-        // 中心タイルはシーン (0,W)x(0,L) を占めるので、格子の原点は SceneOrigin ではなく 0 である。
-        // biome_x_z.bin の転送廃止後は TileBiomeIndexComputer 経由で生成側の公開APIを直接呼んで得る。
         // Maps the spawn scene position onto the center tile's heightmap lattice and returns that pixel's biome.
-        // The center tile occupies scene (0,W)x(0,L), so the lattice origin is 0, not SceneOrigin.
-        // After biome_x_z.bin's transfer was dropped, this comes from TileBiomeIndexComputer calling the
-        // generator's own public API directly.
         private static BiomeType BiomeAtSpawn(MapGenerationOutput output, Generation generation, TerrainGenerationConfig config)
         {
             var vp = (VanillaGeneratorAlgorithmParam)generation.AlgorithmParam;
