@@ -110,13 +110,9 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
-                if (Game.Icons.IconEndpoint.TryGetSource(path, out var iconSource))
-                {
-                    // Item/Block/TrainCar/ConnectTool/Fluid アイコンの PNG 配信を一本化
-                    // Unify Item/Block/TrainCar/ConnectTool/Fluid icon PNG delivery into one path
-                    await Game.Icons.IconEndpoint.HandleAsync(context, path, iconSource);
-                    return;
-                }
+                // Item/Block/TrainCar/ConnectTool/Fluid アイコンの PNG 配信を一本化
+                // Unify Item/Block/TrainCar/ConnectTool/Fluid icon PNG delivery into one path
+                if (await Game.Icons.IconEndpoint.TryHandleAsync(context, path)) return;
 
                 if (path.StartsWith(GenericImageAssetEndpoint.PathPrefix, StringComparison.Ordinal))
                 {

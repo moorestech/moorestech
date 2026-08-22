@@ -48,7 +48,19 @@ namespace Client.WebUiHost.Game.Icons
             _pngCache.Clear();
         }
 
-        public static bool TryGetSource(string path, out IIconTextureSource source)
+        /// <summary>
+        /// アイコン経路なら配信まで行い true を返す。判定と実行を1本にして呼び違いを起こせなくする
+        /// Serves the icon and returns true when the path is an icon route; routing and delivery are one call so they cannot be mispaired
+        /// </summary>
+        public static async Task<bool> TryHandleAsync(HttpContext context, string path)
+        {
+            if (!TryGetSource(path, out var source)) return false;
+
+            await HandleAsync(context, path, source);
+            return true;
+        }
+
+        private static bool TryGetSource(string path, out IIconTextureSource source)
         {
             source = null;
             if (!path.EndsWith(PathSuffix, StringComparison.Ordinal)) return false;
@@ -62,10 +74,18 @@ namespace Client.WebUiHost.Game.Icons
             return false;
         }
 
-        public static async Task HandleAsync(HttpContext context, string path, IIconTextureSource source)
+        private static async Task HandleAsync(HttpContext context, string path, IIconTextureSource source)
         {
             var ct = context.RequestAborted;
             var keyText = path.Substring(source.PathPrefix.Length, path.Length - source.PathPrefix.Length - PathSuffix.Length);
+
+            // ID書式として解釈できないキーは解決も負キャッシュもせず即404（任意文字列でキャッシュが際限なく増えるのを防ぐ）
+            // A key that is not a valid id gets an immediate 404 with no resolve and no negative cache entry, so arbitrary strings cannot grow the cache
+            if (!source.IsValidKey(keyText))
+            {
+                context.Response.StatusCode = 404;
+                return;
+            }
 
             // ゲーム起動完了前は対応する ImageContainer が未生成のため 503
             // Return 503 while game startup has not yet created the backing ImageContainer

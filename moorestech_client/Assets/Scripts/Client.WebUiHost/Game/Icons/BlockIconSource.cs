@@ -16,6 +16,11 @@ namespace Client.WebUiHost.Game.Icons
 
         public bool IsReady => ClientContext.BlockImageContainer != null;
 
+        public bool IsValidKey(string keyText)
+        {
+            return int.TryParse(keyText, out _);
+        }
+
         public Texture2D ResolveOrNull(string keyText)
         {
             if (!int.TryParse(keyText, out var blockIdValue)) return null;

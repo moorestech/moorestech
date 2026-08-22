@@ -16,6 +16,11 @@ namespace Client.WebUiHost.Game.Icons
 
         public bool IsReady => ClientContext.FluidImageContainer != null;
 
+        public bool IsValidKey(string keyText)
+        {
+            return Guid.TryParse(keyText, out _);
+        }
+
         public Texture2D ResolveOrNull(string keyText)
         {
             if (!Guid.TryParse(keyText, out var fluidGuid)) return null;
