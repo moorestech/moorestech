@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { validateTopicPayload } from "../contract/validators";
+import { parseTopicPayload } from "../contract/validators";
 import { notify } from "../transport/notify";
 
 // 接続状態。connecting=初回接続前, open=接続中, reconnecting=一度接続した後の切断中
@@ -63,10 +63,13 @@ export function clearTopic(topic: string) {
 // WS 受信の唯一の書き込み口。バリデーション通過時のみストアへ反映し、違反は警告+toastで破棄する
 // The sole write path for WS input; store only on valid payloads, drop violations with a warn + toast
 export function deliverTopicPayload(topic: string, revision: number, data: unknown): boolean {
-  if (!validateTopicPayload(topic, data)) {
+  const parsed = parseTopicPayload(topic, data);
+  if (!parsed.valid) {
     console.warn(`[topicStore] dropped invalid payload for topic ${topic}`, data);
     notify(`Invalid data received for ${topic}`, "error");
     return false;
   }
-  return useTopicStore.getState().setTopic(topic, revision, data);
+  // ストアへ入れるのはワイヤ生値ではなく変換後の値（型が名乗る形と実体を一致させる）
+  // Store the transformed value, not the raw wire payload, so the runtime shape matches the declared type
+  return useTopicStore.getState().setTopic(topic, revision, parsed.value);
 }

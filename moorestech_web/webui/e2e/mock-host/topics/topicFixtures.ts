@@ -1,6 +1,6 @@
 import { Topics } from "../../../src/bridge/transport/protocol";
 import type { TopicPayloads } from "../../../src/bridge/transport/protocol";
-import type { PlayerInventoryData } from "../../../src/bridge/contract/payloadTypes";
+import type { PlayerInventoryData, BlockInventoryWireData } from "../../../src/bridge/contract/payloadTypes";
 import * as fx from "../fixtures";
 import { state } from "../state";
 
@@ -11,9 +11,11 @@ export const demoMode = process.env.MOCK_DEMO === "1";
 type SnapshotContext = { inventory: PlayerInventoryData; demo: boolean };
 
 // topic → snapshot 生成の型付きレジストリ。mock fixture の形状ずれをコンパイル時に検出する
+// blockInventoryだけはクライアント側パース前のワイヤ形式を送るため、そこだけ型を差し替える
 // Typed topic → snapshot registry; makes mock fixture shape drift a compile error
+// blockInventory alone sends the pre-parse wire shape, so it overrides the payload type
 type TopicFixtureRegistry = {
-  [K in keyof TopicPayloads]: (context: SnapshotContext) => TopicPayloads[K];
+  [K in keyof TopicPayloads]: (context: SnapshotContext) => K extends typeof Topics.blockInventory ? BlockInventoryWireData : TopicPayloads[K];
 };
 
 const topicFixtures: TopicFixtureRegistry = {

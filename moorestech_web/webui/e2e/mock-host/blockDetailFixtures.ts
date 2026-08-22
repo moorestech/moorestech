@@ -1,4 +1,4 @@
-import type { BlockInventoryData } from "../../src/bridge/contract/payloadTypes";
+import type { BlockInventoryWireData } from "../../src/bridge/contract/payloadTypes";
 import * as BlockGuids from "./fixtures/blockLocalizationFixtures";
 import { WATER_FLUID_GUID } from "./fixtures/contentLocalizationFixtures";
 
@@ -27,7 +27,7 @@ export const blockMachine = {
     slotLayout: { input: 2, output: 1, module: 1 },
   },
   electricNetwork: { totalGeneratePower: 500.0, totalRequiredPower: 300.0, consumerCount: 4, powerRate: 1.0 },
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 // BLK-3 ギア機械: machine + gear/gearNetwork capability
 // BLK-3 gear machine: machine + gear/gearNetwork capabilities
@@ -53,7 +53,7 @@ export const blockGearMachine = {
   },
   gear: { isClockwise: true, currentRpm: 12.5, currentTorque: 3.0, baseRpm: 20.0, baseTorque: 5.0 },
   gearNetwork: { totalRequiredGearPower: 60.0, totalGenerateGearPower: 100.0, stopReason: "none" },
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 // BLK-4 発電機: 燃料スロットと generator/electricNetwork capability
 // BLK-4 generator: fuel slot with generator/electricNetwork capabilities
@@ -67,7 +67,7 @@ export const blockGenerator = {
   fluidSlots: [],
   generator: { remainingFuelTime: 12.5, currentFuelTime: 30.0, operatingRate: 0.75 },
   electricNetwork: { totalGeneratePower: 200.0, totalRequiredPower: 150.0, consumerCount: 2, powerRate: 1.0 },
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 // BLK-5 採掘機: miner/electricNetwork capability と採掘アイテム毎分
 // BLK-5 miner: miner/electricNetwork capabilities with mined items per minute
@@ -82,7 +82,7 @@ export const blockMiner = {
   progress: 0.66,
   miner: { currentPower: 50.0, requestPower: 100.0, miningItems: [{ itemId: 11, itemsPerMinute: 12.0 }] },
   electricNetwork: { totalGeneratePower: 100.0, totalRequiredPower: 100.0, consumerCount: 1, powerRate: 1.0 },
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 // BLK-6 ギア採掘機: miner/gear/gearNetwork の複合表示を検証する
 // BLK-6 gear miner: exercises the combined miner/gear/gearNetwork stack
@@ -98,7 +98,7 @@ export const blockGearMiner = {
   miner: { currentPower: 20.0, requestPower: 40.0, miningItems: [{ itemId: 11, itemsPerMinute: 6.0 }] },
   gear: { isClockwise: false, currentRpm: 8.0, currentTorque: 2.0, baseRpm: 12.0, baseTorque: 3.0 },
   gearNetwork: { totalRequiredGearPower: 24.0, totalGenerateGearPower: 40.0, stopReason: "none" },
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 // BLK-7 未登録種別: generic fallback の item/fluid 表示を検証する
 // BLK-7 unregistered type: exercises the generic item/fluid fallback
@@ -111,7 +111,7 @@ export const blockGeneric = {
   itemSlots: [{ itemId: 1, count: 1 }],
   fluidSlots: [{ fluidId: 1, amount: 10, capacity: 20, fluidGuid: WATER_FLUID_GUID }],
   progress: 0.5,
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 // BLK-8 フィルタ分岐器: 3方向×2フィルタスロットの filterSplitter capability
 // BLK-8 filter splitter: filterSplitter capability with 3 directions x 2 filter slots
@@ -132,7 +132,7 @@ export const blockFilterSplitter = {
       { mode: "blacklist", filterItemIds: [7, 8] },
     ],
   },
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 // 回転生成機の動的fixture
 // B1 electric-to-gear converter: master-ordered modes and dynamic StateDetail values
@@ -153,7 +153,7 @@ export const blockElectricToGear = {
       { rpm: 20, torque: 20, requiredPower: 10 },
     ],
   },
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 // B2 列車PFのスロットとモード
 // B2 train platform: item slots and transfer mode
@@ -166,7 +166,7 @@ export const blockTrainPlatform = {
   itemSlots: [{ itemId: 3, count: 12 }, empty()],
   fluidSlots: [],
   trainPlatform: { mode: "loadToTrain", itemSlotCount: 2 },
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 // B2 液体PFのマスタ容量
 // B2 fluid platform: the same master capacity shown by uGUI
@@ -179,7 +179,7 @@ export const blockTrainFluidPlatform = {
   itemSlots: [],
   fluidSlots: [],
   trainPlatform: { mode: "unloadToPlatform", fluidCapacity: 1000 },
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
 
 // B2 電柱の電力集約値
 // B2 electric pole: electric-network aggregates sampled every second
@@ -192,4 +192,4 @@ export const blockElectricPole = {
   itemSlots: [],
   fluidSlots: [],
   electricNetwork: { totalGeneratePower: 240, totalRequiredPower: 180, consumerCount: 3, powerRate: 1 },
-} satisfies BlockInventoryData;
+} satisfies BlockInventoryWireData;
