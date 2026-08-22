@@ -9,7 +9,7 @@
 `MapObjectPin` はプレイヤー最寄りの該当 GUID を探すだけで、存在しなければ LogError になる。
 
 一方、鉱脈には既にスポーン地点中心の距離帯がある。`OreEntry.bands[]`（`OreBand.outerRadiusMeters` 昇順、-1 は無限）を
-`OreBandPlanner.BuildRanges` がリング `[Inner, Outer)` へ変換し、`OreEntryPlacer` がリングごとに Poisson 散布を回して
+`SpawnDistanceRingPlanner.BuildRings` がリング `[Inner, Outer)` へ変換し、`OreEntryPlacer` がリングごとに Poisson 散布を回して
 クラスタ中心のスポーン距離（`TerrainDimensions.SpawnWorldX/Z` 基準のワールド座標距離）でリング判定する。
 
 mapObject の独立散布（`BiomeObjectConfig.ObjectEntry`）は flat な `density`（非クラスタ時・1ha あたり）と
@@ -19,12 +19,16 @@ mapObject の独立散布（`BiomeObjectConfig.ObjectEntry`）は flat な `dens
 
 `biomeObjectConfig.entries[]` に鉱脈と同型の `bands[]` を導入し、flat な `density` と `clusterCount` を bands 内へ移す。
 
-- `bands[]` の各要素: `outerRadiusMeters`（-1 = 無限・最外周）、`density`（非クラスタ時・1ha あたり）、
-  `clusterCount`（クラスタモード時）。`outerRadiusMeters` 昇順でリング化し、リングごとに Poisson を回してリング内の候補だけ採用する
+- `bands[]` の各要素: `outerRadiusMeters`（-1 = 無限・最外周）と `density`（1ha あたり）。
+  `outerRadiusMeters` 昇順でリング化し、リングごとに Poisson を回してリング内の候補だけ採用する
+- 量の指定は `density` 1本へ統一し `clusterCount` は持たせない。クラスタモードの中心数も同じ `density` から決める
+  （面積非依存の個数指定は近傍リングでほぼ 0 個に丸まり、本 ADR の目的が達成できないため）。
+  [[2026-08-21-散布バンドの量指定はdensityへ統一しclusterCountを廃止する]] が本節のこの点を上書きする
 - リング判定の基準点: 非クラスタ散布は各候補点そのもの、クラスタモードはクラスタ中心（鉱脈と同じ）
 - その他のパラメータ（noise・slope・scale・sink・objectsPerCluster・clusterRadius・木距離）はエントリ共通のまま
 - `clusterEntries`（階層岩クラスタ）と `treePlacement` は変更しない
-- 既存 master の全 entries（8 バイオーム）を `bands=[{outerRadiusMeters:-1, density:現値, clusterCount:現値}]` へ機械変換する。
+- 既存 master の全 entries（8 バイオーム）を `bands=[{outerRadiusMeters:-1, density:現値}]` へ機械変換する。
+  クラスタモードの entry は `density = clusterCount / 100` 相当へ換算する。
   スキーマ上 flat `density`/`clusterCount` は削除し、optional や既定値フォールバックで吸収しない
 - 小石は grassland と forest の entries に `prefabs=[小石]`、`bands=[{近傍リング, density>0}, {-1, density 0}]` で追加する。
   近傍リングの半径・密度の具体値は master 上の調整値（agent 前提・初期値は plan に記載）
@@ -51,7 +55,9 @@ mapObject の独立散布（`BiomeObjectConfig.ObjectEntry`）は flat な `dens
 
 ## Consequences
 
-- 量の意味が「全域一様」から「スポーン距離リングごと」へ変わる。既存エントリは単一無限リングへ機械変換するため挙動は不変
+- 量の意味が「全域一様」から「スポーン距離リングごと」へ変わる。既存エントリは単一無限リングへ機械変換するため、
+  非クラスタ散布の挙動は不変。クラスタモードは `clusterCount`（面積非依存の個数）から `density`（1ha あたり）への
+  換算を挟むため厳密には不変でなく、タイル面積 1000x1000m の想定で一致する換算値になる
 - 5x5 タイル生成ではリング判定がワールド座標距離なので、タイルをまたぐリングも鉱脈と同じく正しく切れる
 - 小石は近傍リング内でも 15m クリアランス・バイオームマスク・ノイズで間引かれるため、実数は密度から目減りする。
   チュートリアルが要求する 3 個を下回らないよう密度は余裕を持たせる

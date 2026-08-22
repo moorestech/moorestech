@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
 using Game.MapGeneration.Pipeline.Tiling;
@@ -27,39 +28,32 @@ namespace Game.MapGeneration.Pipeline.Generators
             PlacementHaloChannel centerHalo,
             List<PlacementEntry> result)
         {
-            // バンド未設定は生成器側で警告してスキップ（OreBandPlanner は純粋関数のため）。
-            // Warn and skip when bands are missing (OreBandPlanner stays a pure function).
-            if (entry.bands == null || entry.bands.Length == 0)
-            {
-                Debug.LogWarning($"[OrePlacement] vein '{entry.veinGuid}' has no distance bands; skipping.");
-                return;
-            }
-            var seenKeys = new HashSet<float>();
-            foreach (var b in entry.bands)
-            {
-                if (b == null) continue;
-                if (b.outerRadiusMeters < 0f && b.outerRadiusMeters != -1f)
-                    Debug.LogWarning($"[OrePlacement] '{entry.veinGuid}' has a negative outer radius ({b.outerRadiusMeters}) other than -1; treated as infinite.");
-                float key = b.outerRadiusMeters < 0f ? float.PositiveInfinity : b.outerRadiusMeters;
-                if (!seenKeys.Add(key))
-                    Debug.LogWarning($"[OrePlacement] '{entry.veinGuid}' has bands with duplicate outer radius ({b.outerRadiusMeters}); later ones degenerate.");
-            }
-
             float w = dims.TerrainWidth;
             float l = dims.TerrainLength;
             int hRes = dims.Resolution;
             float minDist = entry.minDistanceFromOthers;
-            float sx = dims.SpawnWorldX;
-            float sz = dims.SpawnWorldZ;
 
-            var ranges = OreBandPlanner.BuildRanges(entry.bands);
+            var rings = SpawnDistanceRingPlanner.BuildRings(entry.bands);
+            dims.SpawnDistanceRangeXz(out var tileNearestDistance, out var tileFarthestDistance);
 
-            foreach (var range in ranges)
+            foreach (var range in rings)
             {
                 var band = range.Band;
 
+                // density<=0は「この帯には置かない」宣言。Maxクランプで拾うと1個分の間隔が残り黙って湧く。
+                // A density of zero or less declares "place nothing in this band"; the Max clamp would leave one cluster's spacing and spawn silently.
+                if (band.density <= 0f) continue;
+
+                // タイルに掛からないリングは全中心が捨てられるだけなので、種だけ引いて飛ばす（乱数消費数＝出力を変えない）。
+                // A ring that misses this tile would have every centre discarded, so draw the seed and skip (output and RNG consumption stay identical).
+                if (!range.OverlapsDistanceRange(tileNearestDistance, tileFarthestDistance))
+                {
+                    rng.Next();
+                    continue;
+                }
+
                 float poissonArea = w * l;
-                float adjustedMinDist = Mathf.Sqrt(poissonArea / Mathf.Max(band.density * 100f, 1f));
+                float adjustedMinDist = Mathf.Sqrt(poissonArea / (band.density * 100f));
                 adjustedMinDist = Mathf.Max(adjustedMinDist, band.clusterRadius * 2.5f);
 
                 var candidates = PoissonDiskSampler.Generate(w, l, adjustedMinDist, rng.Next());
@@ -71,10 +65,7 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                     // リング判定（ワールド座標距離・クラスター中心のみ）。
                     // Ring test (world-distance of the cluster center only).
-                    float dx = (localX + dims.WorldOffsetX) - sx;
-                    float dz = (localZ + dims.WorldOffsetZ) - sz;
-                    float dist = Mathf.Sqrt(dx * dx + dz * dz);
-                    if (!range.Contains(dist)) continue;
+                    if (!range.Contains(dims.DistanceFromSpawnXz(localX, localZ))) continue;
 
                     int px = Mathf.Clamp(Mathf.RoundToInt(localX / w * (hRes - 1)), 0, hRes - 1);
                     int pz = Mathf.Clamp(Mathf.RoundToInt(localZ / l * (hRes - 1)), 0, hRes - 1);

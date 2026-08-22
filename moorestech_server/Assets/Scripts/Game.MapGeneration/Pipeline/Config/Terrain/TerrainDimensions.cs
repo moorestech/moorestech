@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Game.MapGeneration.Pipeline.Config
 {
     // ジェネレーターに渡す地形寸法の値型。Config 全体を渡さず必要な寸法だけ切り出す。
@@ -50,6 +52,37 @@ namespace Game.MapGeneration.Pipeline.Config
             GridOriginZ = worldOffsetZ - tileIndexZ * terrainLength;
             GridWidth = gridSizeX * terrainWidth;
             GridLength = gridSizeZ * terrainLength;
+        }
+
+        // タイルローカル座標をワールド座標へ直しスポーンXZとの距離を返す（鉱脈・散布・クラスタで共通の基準）。
+        // Converts tile-local coordinates to world space and returns the XZ distance to spawn (shared basis for veins, scatter, and clusters).
+        public float DistanceFromSpawnXz(float localX, float localZ)
+        {
+            float dx = localX + WorldOffsetX - SpawnWorldX;
+            float dz = localZ + WorldOffsetZ - SpawnWorldZ;
+            return Mathf.Sqrt(dx * dx + dz * dz);
+        }
+
+        // このタイル矩形がスポーン地点から取りうる距離の最小・最大（リングが掛かるか判定するため）。
+        // The minimum and maximum spawn distance this tile's rectangle can span, used to test whether a ring reaches it.
+        public void SpawnDistanceRangeXz(out float nearestDistance, out float farthestDistance)
+        {
+            AxisRange(WorldOffsetX - SpawnWorldX, WorldOffsetX + TerrainWidth - SpawnWorldX, out var nearX, out var farX);
+            AxisRange(WorldOffsetZ - SpawnWorldZ, WorldOffsetZ + TerrainLength - SpawnWorldZ, out var nearZ, out var farZ);
+            nearestDistance = Mathf.Sqrt(nearX * nearX + nearZ * nearZ);
+            farthestDistance = Mathf.Sqrt(farX * farX + farZ * farZ);
+
+            #region Internal
+
+            // スポーンを跨ぐ軸は最短0。跨がなければ近い端が最短で、遠い端が最長。
+            // An axis straddling spawn has a zero minimum; otherwise the nearer edge is the minimum and the farther edge the maximum.
+            void AxisRange(float low, float high, out float nearest, out float farthest)
+            {
+                nearest = low <= 0f && 0f <= high ? 0f : Mathf.Min(Mathf.Abs(low), Mathf.Abs(high));
+                farthest = Mathf.Max(Mathf.Abs(low), Mathf.Abs(high));
+            }
+
+            #endregion
         }
 
         // TerrainGenerationConfig + 共通 waterMargin + タイル位置からファクトリ生成する。
