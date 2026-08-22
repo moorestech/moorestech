@@ -57,19 +57,12 @@ export default function ItemListPanel() {
       style={{ justifySelf: "end", alignSelf: "start", width: 378, height: 452, "--panel-top": "-6.821px", "--panel-bottom": "-9.17px", "--panel-left": "-1.04px", "--title-shift-x": "1.57px", "--title-scale-x": 0.963, "--title-scale-y": 0.861 } as CSSProperties}
     >
       {ready ? (
-        // 各マージンからclip逃げpaddingを差し引いてクリップ領域だけ外へ広げ、グリッド本体とノブの絶対位置は動かさない
-        // Each margin subtracts the clip-clearance padding so only the clipping region grows while the grid and knob stay put
-        // 基底値は正本合わせの実測: marginLeftの-3.561498pxはグリッド内側インデント補正、+3.131498pxは旧viewport padding-leftの打ち消し
-        // Reference-matched bases: marginLeft's -3.561498px corrects the grid inset and +3.131498px cancels the old viewport padding-left
-        // marginTopの12pxはノブの縦位置合わせ。stretch下ではmarginLeftだけで右端が動かないためmarginRightで別途ノブ位置を詰める
-        // marginTop's 12px aligns the knob vertically; under stretch marginLeft alone cannot move the right edge, so marginRight tucks the knob
         // typeはauto。alwaysは溢れが無くてもつまみ幅0の水平バーが黒帯として残る（ユーザー裁定 2026-08-17）
         // type stays auto: always leaves a zero-thumb horizontal bar as a black band even with no overflow (user ruling 2026-08-17)
         <ScrollArea
           type="auto"
           scrollbarSize={4}
           className={styles.scrollArea}
-          style={{ marginLeft: "calc(-3.561498px - var(--tutorial-anchor-clip-inset) + 3.131498px)", marginRight: 4.435, marginTop: "calc(12px - var(--tutorial-anchor-clip-inset))", marginBottom: "calc(-1 * var(--tutorial-anchor-clip-inset))" }}
           // ドラッグ中のみ掴みカーソル表示
           // Grabbing cursor only while dragging
           viewportProps={{ ...viewportHandlers, style: { cursor: dragging ? "grabbing" : undefined } }}

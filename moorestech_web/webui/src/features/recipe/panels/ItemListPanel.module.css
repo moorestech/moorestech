@@ -25,6 +25,18 @@
   flex: 1;
   flex-direction: column;
   min-height: 0;
+  /* 各マージンからclip逃げpaddingを差し引いてクリップ領域だけ外へ広げ、グリッド本体とノブの絶対位置は動かさない */
+  /* Each margin subtracts the clip-clearance padding so only the clipping region grows while the grid and knob stay put */
+  /* 基底値は正本合わせの実測: -3.561498pxはグリッド内側インデント補正、+3.131498pxは旧viewport padding-leftの打ち消し */
+  /* Reference-matched bases: -3.561498px corrects the grid inset and +3.131498px cancels the old viewport padding-left */
+  margin-left: calc(-3.561498px - var(--tutorial-anchor-clip-inset) + 3.131498px);
+  /* stretch下ではmargin-leftだけで右端が動かないため、右は別途ノブ位置を詰める */
+  /* Under stretch margin-left alone cannot move the right edge, so the right side tucks the knob on its own */
+  margin-right: 4.435px;
+  /* 12pxはノブの縦位置合わせ */
+  /* The 12px aligns the knob vertically */
+  margin-top: calc(12px - var(--tutorial-anchor-clip-inset));
+  margin-bottom: calc(-1 * var(--tutorial-anchor-clip-inset));
 }
 
 /* 上下端と左端のクリップ領域をチュートリアル枠の逃げぶん広げ、グリッド本体の絶対位置は維持する
