@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Paper, Portal } from "@mantine/core";
-import { Topics, useTopic, type TooltipData } from "@/bridge";
+import { Topics, useTopic, type TooltipData, type TooltipLine } from "@/bridge";
 import { buildPositionalInterpolationValues, translateExternalKey, useI18n, type InterpolationValues, type TranslationKey } from "@/shared/i18n";
 import { clampTooltipPosition } from "./tooltipPosition";
 import styles from "./style.module.css";
@@ -18,7 +18,8 @@ export function CursorTooltip() {
     return () => window.removeEventListener("pointermove", move);
   }, []);
 
-  const text = data?.visible ? resolveTooltipText(data, t) : "";
+  const lines = data?.visible ? resolveTooltipLines(data, t) : [];
+  const text = lines.join("\n");
 
   useLayoutEffect(() => {
     const element = elementRef.current;
@@ -26,25 +27,27 @@ export function CursorTooltip() {
     setPosition(clampTooltipPosition(pointer.x, pointer.y, element.offsetWidth, element.offsetHeight, window.innerWidth, window.innerHeight));
   }, [pointer, data, text, locale]);
 
-  if (!data?.visible) return null;
+  if (!data?.visible || lines.length === 0) return null;
   return (
     <Portal>
       <Paper ref={elementRef} className={styles.tooltip} data-testid="cursor-tooltip" style={{ left: position.x, top: position.y }}>
-        {text}
+        {lines.map((line, index) => (
+          <div key={index} data-testid="cursor-tooltip-line">{line}</div>
+        ))}
       </Paper>
     </Portal>
   );
 }
 
-// ホストはキーと位置パラメータだけを送るため、常に辞書解決＋{p0}補間で表示文字列を作る
-// The host sends only a key and positional params, so the display text is always dictionary-resolved and interpolated
-export function resolveTooltipText(
+// ホストは行ごとにキーと位置パラメータだけを送るため、各行を辞書解決＋{p0}補間して表示文字列にする
+// The host sends only a key and positional params per line, so each line is dictionary-resolved and interpolated
+export function resolveTooltipLines(
   data: TooltipData,
   translate: (key: TranslationKey, values: InterpolationValues) => string,
-): string {
-  return translateExternalKey(
-    data.textKey,
+): string[] {
+  return data.lines.map((line: TooltipLine) => translateExternalKey(
+    line.textKey,
     translate,
-    buildPositionalInterpolationValues(data.textParams),
-  );
+    buildPositionalInterpolationValues(line.textParams),
+  ));
 }

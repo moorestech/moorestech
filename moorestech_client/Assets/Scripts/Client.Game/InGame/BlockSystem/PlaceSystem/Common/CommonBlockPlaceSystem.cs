@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
-using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
@@ -26,20 +26,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     /// </summary>
     public class CommonBlockPlaceSystem : PlaceSystemBase<BlockPlacementTarget>
     {
-        private const float PlaceableMaxDistance = 100f;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
         private readonly CommonBlockPlacePointCalculator _blockPlacePointCalculator;
         private readonly ElectricWireAutoConnectPreview _autoConnectPreview;
 
-        private BlockDirection _currentBlockDirection = BlockDirection.North;
-        private Vector3Int? _clickStartPosition;
-        private int _clickStartHeightOffset;
-        private List<PlaceInfo> _currentPlaceInfos = new();
-        private BlockId? _previousSelectedBlockId;
+        private readonly CommonBlockPlaceDragState _dragState = new();
 
-        private int _heightOffset;
+        private BlockDirection _currentBlockDirection = BlockDirection.North;
+        private List<PlaceInfo> _currentPlaceInfos = new();
 
         public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData)
         {
@@ -47,12 +43,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
-            _autoConnectPreview = new ElectricWireAutoConnectPreview(mainCamera, blockGameObjectDataStore, previewBlockController, gameUnlockStateData);
+            _autoConnectPreview = new ElectricWireAutoConnectPreview(blockGameObjectDataStore, previewBlockController, gameUnlockStateData);
         }
         
         public override void Enable()
         {
-            _clickStartHeightOffset = -1;
+            _dragState.SetClickStartHeightOffset(-1);
         }
         public override void Disable()
         {
@@ -65,16 +61,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             }
 
             // 連続設置状態をリセット
-            _clickStartPosition = null;
+            _dragState.ClearDrag();
             _currentPlaceInfos.Clear();
         }
         
-        protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             ApplyPickedDirection();
-            UpdateHeightOffset();
+            _dragState.UpdateHeightOffsetByInput();
             BlockDirectionControl();
-            GroundClickControl(target);
+            GroundClickControl(target, feedback);
 
             #region Internal
 
@@ -85,13 +81,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 if (isSelectionChanged && target.PickedDirection.HasValue) _currentBlockDirection = target.PickedDirection.Value;
             }
 
-            void UpdateHeightOffset()
-            {
-                if (HybridInput.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
-                    _heightOffset--;
-                else if (HybridInput.GetKeyDown(KeyCode.E)) _heightOffset++;
-            }
-            
             void BlockDirectionControl()
             {
                 if (InputManager.Playable.BlockPlaceRotation.GetKeyDown)
@@ -107,61 +96,43 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         }
         
         
-        private void GroundClickControl(BlockPlacementTarget target)
+        private void GroundClickControl(BlockPlacementTarget target, PlacementFeedback feedback)
         {
-            // ビルドメニューの選択ブロックが変わったら連続設置状態をリセット
-            // Reset the continuous placement state when the build-menu selected block changes
-            if (_previousSelectedBlockId != target.BlockId)
-            {
-                _clickStartPosition = null;
-                _clickStartHeightOffset = _heightOffset;
-            }
-            _previousSelectedBlockId = target.BlockId;
+            _dragState.SyncSelectedBlock(target.BlockId);
 
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
-            if (!TryGetRayHitBlockPosition(_mainCamera, _heightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) { _autoConnectPreview.Hide(); return; }
+            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) { _autoConnectPreview.Hide(); return; }
 
-            // 設置可能な距離かどうか
-            if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) { _autoConnectPreview.Hide(); return; }
-            
+            // 距離外なら理由のみ出しプレビュー無し
+            // Beyond range, show only the reason and no preview
+            if (!IsPlaceableFromPlayer(placePoint, PlaceableMaxDistance)) { _autoConnectPreview.Hide(); feedback.AddTooFar(); return; }
+
             _previewBlockController.SetActive(true);
-            
+
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
-            {
-                _clickStartPosition = placePoint;
-                _clickStartHeightOffset = _heightOffset;
-            }
-            
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint);
+
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
             SetCurrentPlaceInfo();
 
             var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
 
-            // 地面との接触でPlaceableを更新
-            // Update placeable based on ground collision
-            for (var i = 0; i < blockGroundOverlapList.Count; i++)
-            {
-                // 地面と接触していたら設置不可
-                // if collision with ground, cannot place
-                if (blockGroundOverlapList[i])
-                {
-                    _currentPlaceInfos[i].Placeable = false;
-                }
-            }
+            // この時点の不可原因はExistingBlockのみ（CommonBlockPlacePointCalculator）。地面との接触反映とカーソルセルの理由集約を1回で行う
+            // ExistingBlock is the only cause set by this point (CommonBlockPlacePointCalculator); apply ground overlaps and report the cursor cell's reasons in one call
+            var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placePoint, blockGroundOverlapList, feedback);
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったブロックがアイテム枠を消費しないようにする）
             // Check item count after ground filtering (so ground-blocked cells don't consume item quota)
-            MarkInsufficientItemPreviewsAsNotPlaceable();
+            CommonBlockPlaceCostMarker.MarkInsufficientCellsAsNotPlaceable(_currentPlaceInfos, target.BlockId, _localPlayerInventory, feedback);
 
-            // 各セルの自動接続を評価し表示更新
-            // Evaluate auto-connect per cell and update the preview
-            var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, target.BlockId, _currentBlockDirection, _localPlayerInventory, placePoint);
+            // 各セルの自動接続を評価し表示更新。cursorIndexは上で解決済みのため再解決しない
+            // Evaluate auto-connect per cell and update the preview; cursorIndex is already resolved above so it is not re-resolved
+            var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, target.BlockId, _currentBlockDirection, _localPlayerInventory, cursorIndex, feedback);
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state
@@ -170,21 +141,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             // 設置するブロックをサーバーに送信
             // send block place info to server
             PlaceBlock();
-            
+
             #region Internal
-            
-            bool IsBlockPlaceableDistance(float maxDistance)
-            {
-                var placePosition = (Vector3)placePoint;
-                var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                
-                return Vector3.Distance(playerPosition, placePosition) <= maxDistance;
-            }
-            
+
             void SetCurrentPlaceInfo()
             {
-                var startPoint = _clickStartPosition ?? placePoint;
-                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(startPoint, placePoint, _currentBlockDirection, holdingBlockMaster);
+                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_dragState.ResolveDragStartPoint(placePoint), placePoint, _currentBlockDirection, holdingBlockMaster);
             }
             
             void PlaceBlock()
@@ -197,41 +159,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // マウスを離したので連続設置状態は解除する（設置有無に関わらず）
                 // Clear the continuous-placement state on mouse release (regardless of whether we place)
-                _heightOffset = _clickStartHeightOffset;
-                _clickStartPosition = null;
-
-                // UI上か電線不足なら設置しない
-                // Do not place over UI or without enough wire
-                if (UiPointerHitTest.IsPointerOverAnyUi() || !wirePlaceable) return;
-
-                SendPlaceBlockProtocol(_currentPlaceInfos);
+                _dragState.EndDrag();
 
                 // 設置でワールドとインベントリが変わるため、自動接続の評価キャッシュを破棄する
                 // Placement changes the world and inventory, so drop the auto-connect evaluation cache
-                _autoConnectPreview.Hide();
-            }
-
-            void MarkInsufficientItemPreviewsAsNotPlaceable()
-            {
-                // 無料設置モードでは所持数による制限をかけない
-                // In free placement mode, do not limit by held item count
-                if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement)) return;
-
-                // 建設コストで賄えるセル数まで設置可にする
-                // Allow placement up to the affordable cell count
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
-                var affordableCellCount = ConstructionCostPreviewCalculator.CalculateAffordableCellCount(blockMaster.RequiredItems, _localPlayerInventory);
-
-                var placeableCount = 0;
-                for (var i = 0; i < _currentPlaceInfos.Count; i++)
-                {
-                    if (!_currentPlaceInfos[i].Placeable) continue;
-                    placeableCount++;
-                    if (placeableCount > affordableCellCount)
-                    {
-                        _currentPlaceInfos[i].Placeable = false;
-                    }
-                }
+                if (CommonBlockPlaceSender.TrySendOnClickRelease(_currentPlaceInfos, wirePlaceable)) _autoConnectPreview.Hide();
             }
 
             #endregion

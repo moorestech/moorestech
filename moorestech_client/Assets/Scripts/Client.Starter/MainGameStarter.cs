@@ -10,6 +10,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Game.PlacementTarget;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
@@ -216,6 +217,7 @@ namespace Client.Starter
             builder.Register<TrainRailConnectSystem>(Lifetime.Singleton);
             builder.Register<GearChainPoleConnectSystem>(Lifetime.Singleton);
             builder.Register<ElectricWireConnectSystem>(Lifetime.Singleton);
+            builder.Register<PlacementFeedbackTooltipPresenter>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
             builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);

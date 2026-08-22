@@ -20,29 +20,32 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
     public readonly struct TrainCarPlacementHit
     {
         public TrainCarPlacementHit(
-            bool isPlaceable,
             RailPosition railPosition,
             IReadOnlyList<TrainUnitInstanceId> overlapTrainUnitInstanceIds,
             TrainCarPlacementMode placementMode,
             TrainUnitInstanceId targetTrainUnitInstanceId,
             bool attachCarFacingForward,
-            TrainCarAttachTargetEndpoint attachTargetEndpoint)
+            TrainCarAttachTargetEndpoint attachTargetEndpoint,
+            TrainCarPlacementBlockReason blockReason)
         {
-            IsPlaceable = isPlaceable;
             RailPosition = railPosition;
             OverlapTrainUnitInstanceIds = overlapTrainUnitInstanceIds ?? Array.Empty<TrainUnitInstanceId>();
             PlacementMode = placementMode;
             TargetTrainUnitInstanceId = targetTrainUnitInstanceId;
             AttachCarFacingForward = attachCarFacingForward;
             AttachTargetEndpoint = attachTargetEndpoint;
+            BlockReason = blockReason;
         }
 
-        public bool IsPlaceable { get; }
+        // 可否は理由から導出する（「不可なのに理由None」「可なのに理由あり」を表現不能にする）
+        // Placeability is derived from the reason, so "blocked with no reason" and "placeable with a reason" cannot be expressed
+        public bool IsPlaceable => BlockReason == TrainCarPlacementBlockReason.None;
         public RailPosition RailPosition { get; }
         public IReadOnlyList<TrainUnitInstanceId> OverlapTrainUnitInstanceIds { get; }
         public TrainCarPlacementMode PlacementMode { get; }
         public TrainUnitInstanceId TargetTrainUnitInstanceId { get; }
         public bool AttachCarFacingForward { get; }
         public TrainCarAttachTargetEndpoint AttachTargetEndpoint { get; }
+        public TrainCarPlacementBlockReason BlockReason { get; }
     }
 }

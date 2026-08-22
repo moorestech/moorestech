@@ -44,17 +44,21 @@ describe("common HUD schemas", () => {
 });
 
 describe("tooltip schema", () => {
-  it("requires a complete cursor-tooltip snapshot", () => {
+  it("requires a complete cursor-tooltip snapshot with lines", () => {
     expect(validateTopicPayload(Topics.tooltip, {
-      visible: true, textKey: "ui.tooltip.requiredItems", textParams: ["Iron Pickaxe"],
+      visible: true, lines: [{ textKey: "ui.tooltip.requiredItems", textParams: ["Iron Pickaxe"] }],
     })).toBe(true);
+    expect(validateTopicPayload(Topics.tooltip, { visible: false, lines: [] })).toBe(true);
     expect(validateTopicPayload(Topics.tooltip, {
-      visible: true, textKey: "Cannot remove",
+      visible: true, textKey: "ui.tooltip.requiredItems", textParams: [],
+    })).toBe(false);
+    expect(validateTopicPayload(Topics.tooltip, {
+      visible: true, lines: [{ textKey: "Cannot remove" }],
     })).toBe(false);
   });
-  it("rejects sizes smuggled in alongside the dictionary key", () => {
+  it("rejects sizes smuggled in alongside the lines", () => {
     expect(validateTopicPayload(Topics.tooltip, {
-      visible: true, textKey: "ui.tooltip.requiredItems", textParams: [], width: 240,
+      visible: true, lines: [{ textKey: "ui.tooltip.requiredItems", textParams: [] }], width: 240,
     })).toBe(false);
   });
 });

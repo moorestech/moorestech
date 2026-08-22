@@ -36,7 +36,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
                 info.Position = pos;
 
                 if (NeighborhoodChanged(i)) info.VerticalDirection = ResolveVertical(i);
-                if (!feasible[i]) info.Placeable = false;
+
+                // 端点を固定できず立体交差が組めないセル（セル自体は空でも置けない）
+                // Cells where the endpoints cannot be pinned, so no overpass fits (unplaceable even on an empty cell)
+                if (info.Placeable && !feasible[i])
+                {
+                    info.Placeable = false;
+                    info.BlockCause = PlacementBlockCause.ImpossibleOverpass;
+                }
             }
 
             #region Internal

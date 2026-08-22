@@ -65,13 +65,20 @@ const controls = {
   miningHidden: () => control(Topics.progress, { visible: false, progress: 0 }),
   tooltip: () => control(Topics.tooltip, {
     visible: true,
-    textKey: L.ui.tooltip.worldTarget,
-    textParams: [],
+    lines: [{ textKey: L.ui.tooltip.worldTarget, textParams: [] }],
+  }),
+  // 複数行縦積み(順序保持)検証シナリオ
+  // Scenario verifying multi-line stacked rendering (order preserved)
+  tooltipMultiLine: () => control(Topics.tooltip, {
+    visible: true,
+    lines: [
+      { textKey: L.ui.tooltip.placeBlockedByTerrain, textParams: [] },
+      { textKey: L.ui.tooltip.placeTooFar, textParams: [] },
+    ],
   }),
   tooltipHidden: () => control(Topics.tooltip, {
     visible: false,
-    textKey: "",
-    textParams: [],
+    lines: [],
   }),
   pauseConnected: () => control(Topics.pauseMenu, { disconnected: false }),
   pauseDisconnected: () => control(Topics.pauseMenu, { disconnected: true }),

@@ -1,4 +1,6 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
+using Client.Game.InGame.UI.Tooltip;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 {
@@ -44,7 +46,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             // Send the connect protocol when clicked in a connectable state
             if (input.PoleToPolePreview.IsPlaceable && input.Clicked) return GearChainPoleFrameResult.SendChainConnect(new GearChainConnectSendCommand(input.SourcePolePos, input.HitPolePos, input.ConnectToolGuid));
 
-            return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Line(input.PoleToPolePreview.StartPoint, input.PoleToPolePreview.EndPoint, input.PoleToPolePreview.IsPlaceable));
+            // 接続不可なら判定の理由を行にする
+            // Turn the judgement reason into a line when the connection is not possible
+            var lines = input.PoleToPolePreview.IsPlaceable ? Array.Empty<TooltipLine>() : new[] { new TooltipLine(GearChainPlacementFailureTooltipKey.ToKey(input.PoleToPolePreview.FailureReason)) };
+            return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Line(input.PoleToPolePreview.StartPoint, input.PoleToPolePreview.EndPoint, input.PoleToPolePreview.IsPlaceable), lines);
         }
     }
 }

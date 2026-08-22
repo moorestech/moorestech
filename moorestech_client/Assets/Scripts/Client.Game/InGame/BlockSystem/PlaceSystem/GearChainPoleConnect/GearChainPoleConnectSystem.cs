@@ -85,6 +85,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             // Render: apply the preview command
             _previewObject.Apply(result.Preview);
 
+            // 不可理由の行をツールチップへ積む
+            // Pushes the reason lines into the tooltip
+            foreach (var line in result.FeedbackLines) context.Feedback.Add(line);
+
             // 送る: 無効化と送信指示を実行する
             // Send: execute invalidation and send commands
             if (result.InvalidatePendingRequest) _requestSender.Invalidate();

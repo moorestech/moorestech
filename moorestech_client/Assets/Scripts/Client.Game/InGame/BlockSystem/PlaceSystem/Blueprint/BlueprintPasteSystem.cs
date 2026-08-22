@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Control;
@@ -46,7 +47,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             _previewController ??= new BlueprintPastePreviewController(new GameObject("BlueprintPastePreview").transform);
         }
 
-        protected override void ManualUpdate(BlueprintPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(BlueprintPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             // 選択変更時にBP実データを解決する
             // Resolve blueprint data when the selection changes
@@ -76,6 +77,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             var placements = BlueprintPasteCalculator.CalculatePlacements(_currentBlueprint, anchor, _rotationStep);
             var placeableFlags = placements.Select(IsPlaceable).ToList();
             _previewController.UpdatePreview(placements, placeableFlags);
+
+            // 全セル重複時のみ理由を出す
+            // Report the reason only when every cell overlaps
+            BlueprintPasteOverlapReasonReporter.Report(placeableFlags, feedback);
 
             // 左クリックで設置可能セルのみ送信
             // Left click sends placeable cells only; server allows partial success

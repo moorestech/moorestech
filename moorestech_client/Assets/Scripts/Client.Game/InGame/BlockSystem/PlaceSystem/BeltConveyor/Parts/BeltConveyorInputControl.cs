@@ -10,14 +10,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
     /// </summary>
     public static class BeltConveyorInputControl
     {
-        public static int AdjustHeightOffset(int heightOffset)
-        {
-            //TODO InputManagerに移す
-            if (HybridInput.GetKeyDown(KeyCode.Q)) return heightOffset - 1;
-            if (HybridInput.GetKeyDown(KeyCode.E)) return heightOffset + 1;
-            return heightOffset;
-        }
-
         public static BlockDirection RotateDirection(BlockDirection currentDirection)
         {
             if (!InputManager.Playable.BlockPlaceRotation.GetKeyDown) return currentDirection;

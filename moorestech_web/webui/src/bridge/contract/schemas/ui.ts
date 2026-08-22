@@ -66,12 +66,16 @@ export const PlacementModeDataSchema = z.discriminatedUnion("selectedTargetType"
 ]);
 export const CrosshairDataSchema = z.object({ visible: z.boolean() });
 export const UiVisibilityDataSchema = z.object({ visible: z.boolean() });
-// tooltipは辞書キーと{p0}補間パラメータのみを受け取り、生の表示文字列も寸法値も受け付けない
-// Tooltips accept only a dictionary key and {p0} interpolation params — never raw display text, never sizes
-export const TooltipDataSchema = z.object({
-  visible: z.boolean(),
+// tooltipは辞書キーと{p0}補間パラメータの行配列のみを受け取り、生の表示文字列も寸法値も受け付けない
+// Tooltips accept only an array of lines (dictionary key + {p0} params) — never raw display text, never sizes
+export const TooltipLineSchema = z.object({
   textKey: z.string(),
   textParams: z.array(z.string()),
+}).strict();
+
+export const TooltipDataSchema = z.object({
+  visible: z.boolean(),
+  lines: z.array(TooltipLineSchema),
 }).strict();
 
 // itemIdはアイテム無し時にキー自体が省略される（NullValueHandling.Ignore）想定だがnullableも許容する
