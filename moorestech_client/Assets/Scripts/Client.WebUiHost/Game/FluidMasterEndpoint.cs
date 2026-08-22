@@ -40,9 +40,13 @@ namespace Client.WebUiHost.Game
             foreach (var fluidId in MasterHolder.FluidMaster.GetAllFluidIds())
             {
                 var master = MasterHolder.FluidMaster.GetFluidMaster(fluidId);
+
+                // 予約MixedFluidはUI表示対象外。guidがRFC4122の版・変種を満たさず境界の厳格な検証を通せない
+                // The reserved MixedFluid is never shown in the UI and its guid violates the RFC 4122 version/variant the boundary schema requires
+                if (master.FluidGuid == FluidMaster.MixedFluidGuid) continue;
+
                 dto.Fluids.Add(new FluidMasterDto
                 {
-                    FluidId = fluidId.AsPrimitive(),
                     FluidGuid = master.FluidGuid.ToString("D"),
                     Color = master.Color,
                 });
@@ -62,7 +66,6 @@ namespace Client.WebUiHost.Game
 
     public class FluidMasterDto
     {
-        public int FluidId;
         public string FluidGuid;
         public string Color;
     }
