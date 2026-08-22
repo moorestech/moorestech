@@ -785,15 +785,15 @@ git commit -m "docs(skill): daily-build-repairの手順をスモークテスト�
 
 ### Task 6: 全ブランチレビュー（省略不可）
 
-- [ ] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
+- [x] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
 
 `moores-code-review` スキルを起動し、`master...feature/ci-build-strategy` の差分全体をレビューする。あわせて **git 管理外の `poller.py` の差分**（`diff poller.py.bak-* poller.py`）もレビュー対象として明示的に渡す。
 
 **このタスクは自動実行であり、ゴール文言による省略はできない。**
 
-- [ ] **Step 2: 指摘のうち機械的修正を適用し、設計判断は AskUserQuestion でユーザーへ諮る**
+- [x] **Step 2: 指摘のうち機械的修正を適用し、設計判断は AskUserQuestion でユーザーへ諮る**
 
-- [ ] **Step 3: 修正をコミットする**
+- [x] **Step 3: 修正をコミットする**
 
 ```bash
 git add -A
