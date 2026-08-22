@@ -12,14 +12,9 @@
 
 ---
 
-## 🚨 最初に決めること（未裁定・ブロッカー）
+## 適用範囲（確定）
 
-**適用範囲がまだ決まっていない。** 2026-08-22 に2回質問したが未回答のまま。着手前にユーザーへ確認すること。
-
-- **案1（agent推奨）**: 本ブランチでやりきる。PRは大きくなるが、財布は今まさに導入している新機構なので、漏れたまま出すと後から6か所以上の呼び出し側を追いかけ直すことになる
-- **案2**: 本ブランチは D2（凝縮判定の集約）＋ D3案A（Lookup入口で正規化）の最小限に留め、カプセル化の刷新は次ブランチ
-
-案2を選んだ場合、本計画の Task 2〜4 は次ブランチへ送る（Task 1 と Task 5 のみ実施）。
+**案1（本ブランチでやりきる）で実施した。** 2026-08-22 15:00 時点、適用範囲の質問は2回とも未回答のままユーザーから「タスクを続けて」の指示があったため、agent推奨の案1を明示して着手した（案2＝最小限に留めて次ブランチ、は不採用）。
 
 ---
 
@@ -112,8 +107,8 @@ moores-code-review の Apply フェーズが Critical 10件（C1,C2,C4,C6,C8,C10
 
 ## Task 0: 未コミット変更の確定（着手前・必須）
 
-- [ ] レビュー自動適用分（約25ファイル）を確認しコミットする。混ざる前に切る
-- [ ] `git status` がクリーンな状態から Task 1 を始める
+- [x] レビュー自動適用分（32ファイル）を確認しコミットする（`9b43ab129`）
+- [x] `git status` がクリーンな状態から Task 1 を始める
 
 参考コミットメッセージ: `fix: 全ブランチレビューのCritical 10件を適用する`
 
@@ -128,11 +123,11 @@ moores-code-review の Apply フェーズが Critical 10件（C1,C2,C4,C6,C8,C10
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/Construction/RemainingPlacementChargeService.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/RemainingPlacementCountDataStoreTest.cs`
 
-- [ ] `ConstructionWalletUtil.WouldCondense(int remaining, int placementsPerCost) => placementsPerCost <= remaining + 1` を追加
-- [ ] `RemainingPlacementChargeService.WouldCondenseOnReturn` と `RemainingPlacementCountDataStore.ReturnOne` の双方がこれを呼ぶ
-- [ ] `ReturnOne` の未使用 `bool` 戻り値を `void` へ落とす（`IRemainingPlacementCountMutation` も更新）
-- [ ] コンパイル → `RemainingPlacementCountDataStoreTest|RemoveBlockRemainingPlacementTest|PlaceBlockRemainingPlacementTest` で緑
-- [ ] コミット
+- [x] `ConstructionWalletUtil.WouldCondense(int remaining, int placementsPerCost) => placementsPerCost <= remaining + 1` を追加
+- [x] `RemainingPlacementChargeService.WouldCondenseOnReturn` と `RemainingPlacementCountDataStore.ReturnOne` の双方がこれを呼ぶ
+- [x] `ReturnOne` の未使用 `bool` 戻り値を `void` へ落とす（`IRemainingPlacementCountMutation` も更新）
+- [x] コンパイル 0 error → 対象テスト 11/11 緑
+- [x] コミット（`040c48d86`）
 
 **注意:** 現状の2式は `placementsPerCost <= remaining + 1`（サービス側）と `placementsPerCost <= returned`（DataStore側・`returned = remaining + 1`）で**値としては等価**。挙動を変えずに式の出所を1本にするのが目的。ユーザー裁定で確定した意味論（N到達で凝縮）を動かさないこと。
 
@@ -166,12 +161,12 @@ if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.Inventor
 RemainingPlacementChargeService.Charge(blockMaster, data.PlayerId, _remainingPlacementCountMutation, costItemCounts, inventory);
 ```
 
-- [ ] **撤去側を設置側と対称にする。** `bool` ではなく**返却アイテム列**を返す問い合わせにする（返さないなら空）。`RequiredItems` の空判定もサービス内部へ
-- [ ] **`ResolveCostToConsume` の空配列の二義性を解消する**（「財布が肩代わり」と「コスト未定義」が区別できない）。指示を型で明示する（例: 消費物＋財布使用有無を持つ計画型）。※ C2 適用で `requiredItems` 空 + `placementsPerCost>1` はマスタ検証で弾かれるようになったが、意味の二義性自体は残っている
-- [ ] **呼び出し側から Lookup/Mutation の2ハンドルを外す。** サービス1つを注入し、段取りはサービス内部へ
-- [ ] `ResolveWalletBlockId` の呼び出しをサービス内部（または datastore 入口）へ寄せ、サーバー4か所の重複を消す
-- [ ] R5（失敗時に財布も素材も変えない・事前判定→確定後更新）を崩していないことをテストで確認
-- [ ] コンパイル → 関連テスト緑 → コミット
+- [x] **撤去側を設置側と対称にする。** `bool` ではなく**返却アイテム列**を返す問い合わせにする（返さないなら空）。`RequiredItems` の空判定もサービス内部へ
+- [x] **`ResolveCostToConsume` の空配列の二義性を解消する**（「財布が肩代わり」と「コスト未定義」が区別できない）。指示を型で明示する（例: 消費物＋財布使用有無を持つ計画型）。※ C2 適用で `requiredItems` 空 + `placementsPerCost>1` はマスタ検証で弾かれるようになったが、意味の二義性自体は残っている
+- [x] **呼び出し側から Lookup/Mutation の2ハンドルを外す。** サービス1つを注入し、段取りはサービス内部へ
+- [x] `ResolveWalletBlockId` の呼び出しをサービス内部へ寄せ、サーバー4か所の重複を消す
+- [x] R5（失敗時に財布も素材も変えない・事前判定→確定後更新）を崩していないことをテストで確認
+- [x] コンパイル 0 error → EditMode 40/40 緑 → コミット（`7c9c3834d`）
 
 **設計の注意:** 撤去は「インベントリに入り切るか」を**撤去確定前に**知る必要があるため、判定と確定の2フェーズは構造的に必要。打ち消し方式（先に `ReturnOne` して失敗時に戻す）は禁止（残り設置数の変更イベントが2回飛びクライアントが誤った値を見る）。
 
@@ -196,10 +191,10 @@ var affordableCount = CalculateAffordablePlacementCount(blockMaster.RequiredItem
 return remainingPlacementCountDatastore.GetRemainingCount(ConstructionWalletUtil.ResolveWalletBlockId(block.BlockId));
 ```
 
-- [ ] クライアント datastore の `GetRemainingCount` が生の `BlockId` を受け、内部で正規化する（`ResolveWalletBlockId` は冪等なので二重解決は無害）。引数名も `walletBlockId` → `blockId` へ
-- [ ] 「置けるセル数」の算術（`remaining + sets×N`）を呼び出し側から財布側へ移す。プレビューは「何セル置けるか」を問い合わせて従うだけにする
-- [ ] ビルドメニューDTOも同様に、残数の取得を問い合わせ1回に畳む（表示すること自体は可）
-- [ ] コンパイル → 関連テスト緑 → コミット
+- [x] クライアント datastore の `GetRemainingCount` が生の `BlockId` を受け、内部で正規化する（`ResolveWalletBlockId` は冪等なので二重解決は無害）。引数名も `walletBlockId` → `blockId` へ
+- [x] 「置けるセル数」の算術（`remaining + sets×N`）を呼び出し側から財布側へ移す。プレビューは「何セル置けるか」を問い合わせて従うだけにする
+- [x] ビルドメニューDTOも同様に、残数の取得を問い合わせ1回に畳む（表示すること自体は可）
+- [x] コンパイル 0 error → EditMode 43/43 緑 → コミット（`c687a8c0b`）
 
 ---
 
@@ -212,18 +207,18 @@ return remainingPlacementCountDatastore.GetRemainingCount(ConstructionWalletUtil
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BuildMenu/BuildMenuEntryDtoFactory.cs`
 - Test: `buildMenu.test.ts` / `buildMenuGrouping.test.ts` / e2e `buildMenuFixtures.ts` / `WireContractTest.cs` / `build_menu_snapshot.json`
 
-- [ ] `placementsPerCost` / `remainingPlacementCount` を `BuildMenuEntryCommonFields` から **block variant** へ移す
-- [ ] C# 側は `int?` ＋ `NullValueHandling.Ignore`（キー省略）。前例は同一DTOの `Label`/`IconUrl`
-- [ ] 利用側は `entry.kind === "block" && entry.placementsPerCost > 1`
-- [ ] `{ kind:"trainCar", placementsPerCost:3 }` が `.strict()` で弾かれることをテストで縛る
-- [ ] 検証: `npx tsc -p e2e/tsconfig.json --noEmit`（0エラー）→ `npx vitest run`（全緑）→ `npm run build` → Unity compile → `WireContractTest|BuildMenuEntryDtoFactoryTest`
-- [ ] コミット
+- [x] `placementsPerCost` / `remainingPlacementCount` を `BuildMenuEntryCommonFields` から **block variant** へ移す
+- [x] C# 側は `int?` ＋ `NullValueHandling.Ignore`（キー省略）
+- [x] 利用側は `entry.kind === "block" && entry.placementsPerCost > 1`
+- [x] `{ kind:"trainCar", placementsPerCost:3 }` が `.strict()` で弾かれることをテストで縛る（欠損側も追加）
+- [x] 検証: e2e tsc 0エラー / vitest 724/724 / `npm run build` 成功 / Unity compile 0 error / EditMode 43/43
+- [x] コミット（`8cbc2fa89`）
 
 ---
 
 ## Task 5: 検証・レビュー・PR
 
-- [ ] **R1 の grep 検証**: プロダクションコードの呼び出し側に `placementsPerCost` / 残数 / `ResolveWalletBlockId` / N到達判定 / `RequiredItems` 空判定 が残っていないことを確認し、結果を報告に残す
+- [x] **R1 の grep 検証**: プロダクションコードの呼び出し側に `placementsPerCost` / 残数 / `ResolveWalletBlockId` / N到達判定 / `RequiredItems` 空判定 が残っていないことを確認し、結果を報告に残す
 - [ ] 関連テスト一式（サーバー財布系・クライアントプレビュー・webui）を緑にする
 - [ ] **Unity 検証の再挑戦**: 環境が復旧していれば全EditModeスイートと unityプレイ録画テストを実施。ダメなら未取得であることを明示してPR本文に書く（隠さない）
 - [ ] `moores-code-review` でブランチ全体を再レビュー（**省略不可**）。前回 run は `2026-08-22-0254`
