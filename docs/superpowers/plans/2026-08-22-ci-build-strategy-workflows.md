@@ -256,13 +256,13 @@ on:
 `concurrency` ブロックを次に置き換える。日次（`schedule`）は互いにキャンセルし合わない。
 
 ```yaml
-# PR更新時に同一PRの古い実行をキャンセルする（groupはworkflow×ref単位）。
-# 日次(schedule)と手動(workflow_dispatch)は実行中にキャンセルされない。
-# Cancel outdated runs of the same PR on update (the group is per workflow and ref).
-# Scheduled and manual runs are never cancelled mid-run.
+# 「ビルド検証」ラベルの再付与時のみ同一PRの古い実行をキャンセルする（groupはworkflow×ref単位）。
+# 無関係なラベル付与はjob if で全skipの空runになるため、cancel対象から外す。
+# Cancel outdated runs only when the "ビルド検証" label is re-applied to the same PR (group is per workflow and ref).
+# Unrelated label events produce an all-skip empty run via job if, so exclude them from cancellation.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.label.name == 'ビルド検証' }}
 ```
 
 - [x] **Step 3: 両ジョブにラベル条件を付ける**

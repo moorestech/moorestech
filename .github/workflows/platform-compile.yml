@@ -33,7 +33,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          fetch-depth: 0
 
       # PF固有アセットの再インポートを避けるためターゲットごとにLibraryを分けて復元する
       # Restore a separate Library per target so platform-specific assets are not reimported

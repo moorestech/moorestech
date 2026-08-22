@@ -6,11 +6,11 @@ using UnityEngine;
 namespace Server.Editor
 {
     /// <summary>
-    /// プレイヤービルドを行わず、対象プラットフォームのdefineでスクリプトが通るかだけをCIで検査する。
+    /// プレイヤービルドせずdefineのみCI検査する。
     /// Unityは-executeMethodの実行前に全アセンブリをコンパイルするため、このメソッドに到達できた時点で
     /// コンパイルは成功している。到達後はアセンブリ一覧が空でないことだけ追加で確かめる。
     ///
-    /// Verifies in CI that scripts compile under the target platform's defines, without building a player.
+    /// CI checks compilation under the target platform's defines only, without a player build.
     /// Unity compiles every assembly before running -executeMethod, so reaching this method already proves
     /// compilation succeeded; afterwards it only additionally checks that the assembly list is not empty.
     /// </summary>
@@ -23,8 +23,11 @@ namespace Server.Editor
             var activeTarget = EditorUserBuildSettings.activeBuildTarget;
             Debug.Log($"[PlatformCompileCheck] activeBuildTarget={activeTarget}");
 
-            var defines = PlayerSettings.GetScriptingDefineSymbols(
-                UnityEditor.Build.NamedBuildTarget.Standalone);
+            // 同プロジェクトにグローバル名前空間のBuildPipelineクラスがあり修飾しないとそちらが優先される
+            // The project declares a global BuildPipeline class that wins over UnityEditor's unless qualified
+            var namedTarget = UnityEditor.Build.NamedBuildTarget.FromBuildTargetGroup(
+                UnityEditor.BuildPipeline.GetBuildTargetGroup(activeTarget));
+            var defines = PlayerSettings.GetScriptingDefineSymbols(namedTarget);
             Debug.Log($"[PlatformCompileCheck] defines={defines}");
 
             var assemblies = CompilationPipeline.GetAssemblies(AssembliesType.PlayerWithoutTestAssemblies);

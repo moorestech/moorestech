@@ -11,9 +11,17 @@ module.exports = async ({ github, context, core }) => {
   const run = context.payload.workflow_run;
   const { owner, repo } = context.repo;
 
+  // cancelled/skipped/neutral等はfailureではないため無視し、failure/timed_outだけを対象にする
+  // Ignores cancelled/skipped/neutral etc. as non-failures; only failure/timed_out are treated as build failures
+  const isFailure = run.conclusion === 'failure' || run.conclusion === 'timed_out';
+  if (!isFailure && run.conclusion !== 'success') {
+    core.info(`ignoring non-terminal conclusion "${run.conclusion}" for run ${run.id}`);
+    return;
+  }
+
   // Unity Buildの初回失敗はci-auto-rerunが無条件で再実行するため無視し、再実行後(attempt2以降)の失敗だけを見る。成功は何attempt目でも即クローズ対象にする
   // Ignore first-attempt failures since ci-auto-rerun always retries them; only observe failures from attempt 2 onward. A success closes the issue regardless of attempt number
-  if (run.conclusion !== 'success' && run.run_attempt < 2) {
+  if (isFailure && run.run_attempt < 2) {
     core.info(`ignoring attempt ${run.run_attempt} failure for run ${run.id}; waiting for ci-auto-rerun`);
     return;
   }
@@ -56,10 +64,10 @@ module.exports = async ({ github, context, core }) => {
   // ラベル一致のopen issueのうち本文にマーカーを含むものだけを対象にする（ラベル流用の無関係issueを除外）
   // Among open issues with the label, only ones whose body carries the marker count (excludes unrelated issues reusing the label)
   async function findExistingIssue() {
-    const issues = await github.rest.issues.listForRepo({
-      owner, repo, state: 'open', labels: LABEL, per_page: 20,
+    const issues = await github.paginate(github.rest.issues.listForRepo, {
+      owner, repo, state: 'open', labels: LABEL, per_page: 100,
     });
-    return issues.data.find((i) => (i.body || '').includes(MARKER)) || null;
+    return issues.find((i) => i.pull_request === undefined && (i.body || '').includes(MARKER)) || null;
   }
 
   // 直近の日次(schedule)成功runのhead_shaを「前回グリーン」として取得する
@@ -93,15 +101,33 @@ module.exports = async ({ github, context, core }) => {
     return [...seen.entries()].map(([number, title]) => ({ number, title }));
   }
 
-  // 今回runのジョブ一覧から失敗ジョブだけを抽出する
-  // Extracts only the failed jobs from this run's job list
+  // 今回runのジョブ一覧から失敗ジョブだけを抽出し、各ジョブのログ末尾を添える
+  // Extracts only the failed jobs from this run's job list, attaching a tail excerpt of each job's log
   async function listFailedJobs() {
     const jobs = await github.rest.actions.listJobsForWorkflowRun({
       owner, repo, run_id: run.id, per_page: 50,
     });
-    return jobs.data.jobs
-      .filter((j) => j.conclusion === 'failure')
-      .map((j) => ({ name: j.name, url: j.html_url }));
+    const failed = jobs.data.jobs.filter((j) => j.conclusion === 'failure' || j.conclusion === 'timed_out');
+    return Promise.all(failed.map(async (j) => ({
+      name: j.name, url: j.html_url, logExcerpt: await fetchJobLogExcerpt(j.id),
+    })));
+  }
+
+  // ジョブログの末尾4000文字を取得する。取得失敗時は空文字を返す
+  // Fetches the last 4000 characters of a job's log; returns an empty string on fetch failure
+  async function fetchJobLogExcerpt(jobId) {
+    const LOG_TAIL_CHARS = 4000;
+    // GitHub APIとの境界。ログ取得の失敗でIssue起票そのものを落とさないため、ここだけtry-catchで隔離する
+    // This is the GitHub API boundary; isolate it so a log fetch failure cannot abort the issue filing itself
+    let log = '';
+    try {
+      const response = await github.rest.actions.downloadJobLogsForWorkflowRun({ owner, repo, job_id: jobId });
+      log = typeof response.data === 'string' ? response.data : '';
+    } catch (error) {
+      core.info(`failed to fetch logs for job ${jobId}: ${error.message}`);
+      return '';
+    }
+    return log.length > LOG_TAIL_CHARS ? log.slice(-LOG_TAIL_CHARS) : log;
   }
 
   // Issue本文（前回グリーン・失敗ジョブ・容疑者PR）を組み立てる
@@ -116,6 +142,11 @@ module.exports = async ({ github, context, core }) => {
     lines.push('## 失敗ジョブ:');
     for (const job of failedJobs) {
       lines.push(`- [${job.name}](${job.url})`);
+      if (job.logExcerpt) {
+        lines.push('```');
+        lines.push(job.logExcerpt);
+        lines.push('```');
+      }
     }
     lines.push('');
     lines.push('## 容疑者PR:');
