@@ -1,20 +1,28 @@
 name: Unity Build
 
 on:
+  # 「ビルド検証」ラベルを付けたPRだけビルドする（全PRでは回さない。ADR 0028）
+  # Only build PRs that carry the "ビルド検証" label; do not run on every PR (ADR 0028)
   pull_request:
-    paths-ignore:
-      - '**/*.md'
+    types: [labeled]
+
+  # 日次フルビルド。UTC 19:00 = JST 翌04:00
+  # Daily full build. 19:00 UTC equals 04:00 JST the next day
+  schedule:
+    - cron: '0 19 * * *'
 
   # 手動実行デバッグ用
   workflow_dispatch: {}
 
-# PR更新時に同一PRの古い実行をキャンセルする（groupはworkflow×ref単位。PRのrefはrefs/pull/N/mergeでPRごとに一意）。
-# cancel-in-progressをPRイベント限定にしているため、手動実行(workflow_dispatch)が実行中にキャンセルされることはない。
-# Cancel outdated runs of the same PR on update (the group is per workflow and ref; a PR's ref is unique per PR).
-# cancel-in-progress only applies to PR events, so manual workflow_dispatch runs are never cancelled mid-run.
+# 「ビルド検証」ラベルの再付与時のみ同一PRの古い実行をキャンセルする（groupはworkflow×ref単位）。
+# 無関係なラベル付与はjob if で全skipの空runになるため、cancel対象から外す。
+# Cancel outdated runs only when the "ビルド検証" label is re-applied to the same PR (group is per workflow and ref).
+# Unrelated label events produce an all-skip empty run via job if, so exclude them from cancellation.
+# 手動実行(workflow_dispatch)と日次(schedule)は条件が偽になるため実行中にキャンセルされない
+# The condition is false for workflow_dispatch and schedule, so neither is cancelled mid-run
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.label.name == 'ビルド検証' }}
 
 jobs:
   # ===== サーバービルド =====
@@ -23,11 +31,21 @@ jobs:
   # そのためサーバーとクライアントを別ジョブに分割している。
   server-build:
     name: Server Build - ${{ matrix.platform.name }}
+    # ラベル発火のときは「ビルド検証」ラベルのみ通す。日次・手動は無条件で通す
+    # On label events only "ビルド検証" passes; scheduled and manual runs always proceed
+    if: github.event_name != 'pull_request' || github.event.label.name == 'ビルド検証'
     runs-on: ${{ matrix.platform.runner }}
+
+    # macOSのunity-builderはネイティブ実行のため、Server/Clientが同時にアクティベーションするとライセンス認証が落ちる
+    # (コミット55b9aa971の再発。裁定2026-08-22でmacOSだけ直列化し、Windowsは並列のまま残す)
+    # unity-builder runs natively on macOS, so a simultaneous Server/Client activation fails license validation
+    # (a regression of commit 55b9aa971; adjudicated 2026-08-22 to serialize macOS only, leaving Windows parallel)
+    concurrency:
+      group: ${{ startsWith(matrix.platform.runner, 'macos') && format('unity-license-mac-{0}', github.run_id) || format('unity-license-{0}-{1}-{2}', github.job, matrix.platform.name, github.run_id) }}
+      cancel-in-progress: false
 
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix:
         platform:
           # ==========================================
@@ -53,6 +71,26 @@ jobs:
         shell: bash
         run: git config --global core.longpaths true
 
+      # WindowsのUnity Builderはコンテナで動くため、デーモンの起動を待つ
+      # Unity Builder runs in a container on Windows, so wait for the daemon startup
+      - name: Wait for Docker daemon (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $PSNativeCommandUseErrorActionPreference = $false
+          $deadline = 30
+          for ($i = 0; $i -lt $deadline; $i++) {
+            docker info 2>&1 | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "docker daemon ready after $($i * 10) seconds"
+              exit 0
+            }
+            Start-Sleep -Seconds 10
+          }
+          Write-Error "docker daemon did not become ready within $($deadline * 10) seconds"
+          exit 1
+
       # Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -63,18 +101,6 @@ jobs:
         run: |
           git submodule sync --recursive
           git submodule update --init --recursive
-
-      # 年月日を取得　キャッシュのkeyに利用
-      - name: Set current datetime as env variable
-        env:
-          TZ: 'Asia/Tokyo'
-        run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
-
-      # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
-      - uses: actions/cache@v3
-        with:
-          path: moorestech_server/Library
-          key: "Server_Library_${{ env.CURRENT_DATETIME }}"
 
       # アーティファクト名を設定（GUI版とDedicated Serverで区別）
       - name: Set artifact name
@@ -89,6 +115,8 @@ jobs:
             echo "path=moorestech_server/Output_${{ matrix.platform.name }}" >> $GITHUB_OUTPUT
           fi
 
+      # 日次ビルドはキャッシュ枠(10GB)をPR側へ譲るためコールドで回す（ADR 0028）
+      # The daily build runs cold so the 10GB cache budget goes to PR-side jobs (ADR 0028)
       # Build
       - name: Server Build - ${{ matrix.platform.name }}
         uses: game-ci/unity-builder@v4
@@ -125,20 +153,31 @@ jobs:
           path: ./server_output.tar.gz
 
   # ===== クライアントビルド =====
-  # サーバービルド完了後に実行される
+  # サーバービルドのartifactは消費しないため依存は無い。4ジョブを並列に走らせる（ADR 0028）
+  # The client does not consume the server's artifacts, so there is no dependency; all four jobs run in parallel (ADR 0028)
   client-build:
     name: Client Build - ${{ matrix.platform.name }}
-    needs: server-build
+    # ラベル発火のときは「ビルド検証」ラベルのみ通す。日次・手動は無条件で通す
+    # On label events only "ビルド検証" passes; scheduled and manual runs always proceed
+    if: github.event_name != 'pull_request' || github.event.label.name == 'ビルド検証'
     runs-on: ${{ matrix.platform.runner }}
+
+    # macOSのunity-builderはネイティブ実行のため、Server/Clientが同時にアクティベーションするとライセンス認証が落ちる
+    # (コミット55b9aa971の再発。裁定2026-08-22でmacOSだけ直列化し、Windowsは並列のまま残す)
+    # unity-builder runs natively on macOS, so a simultaneous Server/Client activation fails license validation
+    # (a regression of commit 55b9aa971; adjudicated 2026-08-22 to serialize macOS only, leaving Windows parallel)
+    concurrency:
+      group: ${{ startsWith(matrix.platform.runner, 'macos') && format('unity-license-mac-{0}', github.run_id) || format('unity-license-{0}-{1}-{2}', github.job, matrix.platform.name, github.run_id) }}
+      cancel-in-progress: false
 
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix:
         platform:
           # ==========================================
           # プラットフォームの追加/削除でビルド対象を切り替え可能
-          # Linux はランナーの容量が足りないためクライアントビルドは除外
+          # LinuxクライアントはCEFネイティブランタイム不在で必ず失敗するため除外（.decisions/2026-08-02）
+          # The Linux client is excluded because the CEF native runtime does not exist for it (.decisions/2026-08-02)
           # ==========================================
           - name: StandaloneWindows64
             buildMethod: Client.Editor.Build.BuildPipeline.WindowsBuildFromGithubAction
@@ -152,6 +191,26 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: git config --global core.longpaths true
+
+      # WindowsのUnity Builderはコンテナで動くため、デーモンの起動を待つ
+      # Unity Builder runs in a container on Windows, so wait for the daemon startup
+      - name: Wait for Docker daemon (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $PSNativeCommandUseErrorActionPreference = $false
+          $deadline = 30
+          for ($i = 0; $i -lt $deadline; $i++) {
+            docker info 2>&1 | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "docker daemon ready after $($i * 10) seconds"
+              exit 0
+            }
+            Start-Sleep -Seconds 10
+          }
+          Write-Error "docker daemon did not become ready within $($deadline * 10) seconds"
+          exit 1
 
       # Checkout
       - name: Checkout repository
@@ -208,18 +267,8 @@ jobs:
           fi
           "$pnpm_binary" --dir webui install --frozen-lockfile
 
-      # 年月日を取得　キャッシュのkeyに利用
-      - name: Set current datetime as env variable
-        env:
-          TZ: 'Asia/Tokyo'
-        run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
-
-      # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
-      - uses: actions/cache@v3
-        with:
-          path: moorestech_client/Library
-          key: "Library_${{ env.CURRENT_DATETIME }}"
-
+      # 日次ビルドはキャッシュ枠(10GB)をPR側へ譲るためコールドで回す（ADR 0028）
+      # The daily build runs cold so the 10GB cache budget goes to PR-side jobs (ADR 0028)
       # Build
       - name: Client Build - ${{ matrix.platform.name }}
         uses: game-ci/unity-builder@v4

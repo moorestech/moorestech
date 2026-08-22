@@ -5,5 +5,5 @@ public class CompileRequester
 {
 // スキーマ更新時はこの印もcommit
 // Commit this marker with schema changes
-    private const string dummyText = "placementsPerCost-schema-add-1A2B3C4D5E6F7081";
+    private const string dummyText = "04-77-BC-C2-A7-1D-ED-51-A1-13-FE-FB-D6-23-A3-8C";
 }

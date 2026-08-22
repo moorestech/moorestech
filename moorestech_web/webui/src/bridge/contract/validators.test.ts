@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateTopicPayload } from "./validators";
+import { parseTopicPayload } from "./validators";
 import { Topics } from "../transport/protocol";
 
 const openBase = {
@@ -9,63 +9,63 @@ const openBase = {
 
 describe("placement mode schema", () => {
   it("accepts master identities without raw labels", () => {
-    expect(validateTopicPayload(Topics.placementMode, {
+    expect(parseTopicPayload(Topics.placementMode, {
       selectedTargetType: "block", selectedBlockGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefab",
       height: 2, unavailableReason: "", wheelOwnedByTool: false,
-    })).toBe(true);
-    expect(validateTopicPayload(Topics.placementMode, {
+    }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.placementMode, {
       selectedTargetType: "trainCar", selectedTrainCarGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefad",
       height: 2, unavailableReason: "", wheelOwnedByTool: false,
-    })).toBe(true);
-    expect(validateTopicPayload(Topics.placementMode, {
+    }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.placementMode, {
       selectedTargetType: "blueprintCopy", height: 2, unavailableReason: "", wheelOwnedByTool: false,
-    })).toBe(true);
+    }).valid).toBe(true);
   });
   it("accepts raw labels only for user-authored targets", () => {
-    expect(validateTopicPayload(Topics.placementMode, {
+    expect(parseTopicPayload(Topics.placementMode, {
       selectedTargetType: "raw", selectedName: "My Blueprint", height: 2, unavailableReason: "", wheelOwnedByTool: false,
-    })).toBe(true);
-    expect(validateTopicPayload(Topics.placementMode, {
+    }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.placementMode, {
       selectedTargetType: "block", selectedBlockGuid: "abcdefab-cdef-4bcd-8fab-cdefabcdefab",
       selectedName: "Conveyor Belt", height: 2, unavailableReason: "", wheelOwnedByTool: false,
-    })).toBe(false);
-    expect(validateTopicPayload(Topics.placementMode, {
+    }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.placementMode, {
       selectedTargetType: "raw", selectedName: "Conveyor Belt",
-    })).toBe(false);
+    }).valid).toBe(false);
   });
 });
 
 describe("common HUD schemas", () => {
   it("accepts crosshair and visibility state", () => {
-    expect(validateTopicPayload(Topics.crosshair, { visible: true })).toBe(true);
-    expect(validateTopicPayload(Topics.uiVisibility, { visible: false })).toBe(true);
-    expect(validateTopicPayload(Topics.crosshair, {})).toBe(false);
+    expect(parseTopicPayload(Topics.crosshair, { visible: true }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.uiVisibility, { visible: false }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.crosshair, {}).valid).toBe(false);
   });
 });
 
 describe("tooltip schema", () => {
   it("requires a complete cursor-tooltip snapshot", () => {
-    expect(validateTopicPayload(Topics.tooltip, {
+    expect(parseTopicPayload(Topics.tooltip, {
       visible: true, textKey: "ui.tooltip.requiredItems", textParams: ["Iron Pickaxe"],
-    })).toBe(true);
-    expect(validateTopicPayload(Topics.tooltip, {
+    }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.tooltip, {
       visible: true, textKey: "Cannot remove",
-    })).toBe(false);
+    }).valid).toBe(false);
   });
   it("rejects sizes smuggled in alongside the dictionary key", () => {
-    expect(validateTopicPayload(Topics.tooltip, {
+    expect(parseTopicPayload(Topics.tooltip, {
       visible: true, textKey: "ui.tooltip.requiredItems", textParams: [], width: 240,
-    })).toBe(false);
+    }).valid).toBe(false);
   });
 });
 
 describe("localization.current schema", () => {
   it("requires locale and dictionary revision", () => {
-    expect(validateTopicPayload(Topics.localization, { locale: "japanese", revision: 42 })).toBe(true);
-    expect(validateTopicPayload(Topics.localization, { locale: "japanese" })).toBe(false);
-    expect(validateTopicPayload(Topics.localization, { locale: "" })).toBe(false);
-    expect(validateTopicPayload(Topics.localization, { locale: "japanese", revision: -1 })).toBe(false);
-    expect(validateTopicPayload(Topics.localization, { locale: "japanese", revision: 1.5 })).toBe(false);
+    expect(parseTopicPayload(Topics.localization, { locale: "japanese", revision: 42 }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.localization, { locale: "japanese" }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.localization, { locale: "" }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.localization, { locale: "japanese", revision: -1 }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.localization, { locale: "japanese", revision: 1.5 }).valid).toBe(false);
   });
 });
 
@@ -77,11 +77,11 @@ describe("validBlockInventory capability details", () => {
       machine: { recipeGuid: "50000000-0000-4000-8000-000000000001", selectedRecipeGuid: "50000000-0000-4000-8000-000000000002", blockGuid: "40000000-0000-4000-8000-000000000001", recipeTime: 15, outputItems: [{ itemId: 2, count: 3 }], currentState: "processing", currentPower: 10, requestPower: 20, slotLayout: { input: 2, output: 1, module: 1 } },
       electricNetwork: { totalGeneratePower: 100, totalRequiredPower: 50, consumerCount: 3, powerRate: 1 },
     };
-    expect(validateTopicPayload(Topics.blockInventory, d)).toBe(true);
-    expect(validateTopicPayload(Topics.blockInventory, {
+    expect(parseTopicPayload(Topics.blockInventory, d).valid).toBe(true);
+    expect(parseTopicPayload(Topics.blockInventory, {
       ...d,
       machine: { ...d.machine, selectedRecipeGuid: undefined, blockGuid: undefined },
-    })).toBe(false);
+    }).valid).toBe(false);
   });
   it("accepts gear + gearNetwork + generator + miner + filterSplitter + electricToGear details", () => {
     const d = {
@@ -98,11 +98,11 @@ describe("validBlockInventory capability details", () => {
         outputModes: [{ rpm: 10, torque: 10, requiredPower: 10 }, { rpm: 20, torque: 20, requiredPower: 10 }],
       },
     };
-    expect(validateTopicPayload(Topics.blockInventory, d)).toBe(true);
+    expect(parseTopicPayload(Topics.blockInventory, d).valid).toBe(true);
   });
 
   it("rejects electricToGear without output mode power", () => {
-    expect(validateTopicPayload(Topics.blockInventory, {
+    expect(parseTopicPayload(Topics.blockInventory, {
       ...openBase,
       electricToGear: {
         selectedIndex: 0,
@@ -110,16 +110,16 @@ describe("validBlockInventory capability details", () => {
         consumedElectricPower: 10,
         outputModes: [{ rpm: 10, torque: 10 }],
       },
-    })).toBe(false);
+    }).valid).toBe(false);
   });
   it("rejects malformed details", () => {
-    expect(validateTopicPayload(Topics.blockInventory, { ...openBase, machine: { recipeGuid: 1 } })).toBe(false);
-    expect(validateTopicPayload(Topics.blockInventory, { ...openBase, gearNetwork: { totalRequiredGearPower: 1, totalGenerateGearPower: 2, stopReason: 3 } })).toBe(false);
-    expect(validateTopicPayload(Topics.blockInventory, { ...openBase, filterSplitter: { directionCount: 1, filterSlotCountPerDirection: 1, directions: [{ mode: "whitelist" }] } })).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, { ...openBase, machine: { recipeGuid: 1 } }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, { ...openBase, gearNetwork: { totalRequiredGearPower: 1, totalGenerateGearPower: 2, stopReason: 3 } }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, { ...openBase, filterSplitter: { directionCount: 1, filterSlotCountPerDirection: 1, directions: [{ mode: "whitelist" }] } }).valid).toBe(false);
   });
   it("still accepts details-less open and closed payloads", () => {
-    expect(validateTopicPayload(Topics.blockInventory, openBase)).toBe(true);
-    expect(validateTopicPayload(Topics.blockInventory, { open: false })).toBe(true);
+    expect(parseTopicPayload(Topics.blockInventory, openBase).valid).toBe(true);
+    expect(parseTopicPayload(Topics.blockInventory, { open: false }).valid).toBe(true);
   });
 });
 
@@ -131,12 +131,12 @@ describe("validResearchTree", () => {
     unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [],
   };
   it("accepts nodes payload", () => {
-    expect(validateTopicPayload(Topics.researchTree, { nodes: [node] })).toBe(true);
-    expect(validateTopicPayload(Topics.researchTree, { nodes: [] })).toBe(true);
+    expect(parseTopicPayload(Topics.researchTree, { nodes: [node] }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.researchTree, { nodes: [] }).valid).toBe(true);
   });
   it("rejects malformed node", () => {
-    expect(validateTopicPayload(Topics.researchTree, { nodes: [{ ...node, position: { x: "0", y: 0 } }] })).toBe(false);
-    expect(validateTopicPayload(Topics.researchTree, {})).toBe(false);
+    expect(parseTopicPayload(Topics.researchTree, { nodes: [{ ...node, position: { x: "0", y: 0 } }] }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.researchTree, {}).valid).toBe(false);
   });
 });
 
@@ -147,13 +147,13 @@ describe("validMachineRecipes", () => {
   };
 
   it("accepts BlockId and rejects the removed blockItemId contract", () => {
-    expect(validateTopicPayload(Topics.machineRecipes, { recipes: [recipe] })).toBe(true);
-    expect(validateTopicPayload(Topics.machineRecipes, {
+    expect(parseTopicPayload(Topics.machineRecipes, { recipes: [recipe] }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.machineRecipes, {
       recipes: [{ ...recipe, blockId: undefined, blockItemId: 12 }],
-    })).toBe(false);
-    expect(validateTopicPayload(Topics.machineRecipes, {
+    }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.machineRecipes, {
       recipes: [{ ...recipe, blockGuid: undefined }],
-    })).toBe(false);
+    }).valid).toBe(false);
   });
 });
 
@@ -164,17 +164,17 @@ describe("validCraftRecipes", () => {
   };
 
   it("accepts complete recipe elements", () => {
-    expect(validateTopicPayload(Topics.craftRecipes, { recipes: [recipe] })).toBe(true);
+    expect(parseTopicPayload(Topics.craftRecipes, { recipes: [recipe] }).valid).toBe(true);
   });
 
   it("rejects recipe elements with a missing required field", () => {
     const { craftTime: _, ...missingCraftTime } = recipe;
-    expect(validateTopicPayload(Topics.craftRecipes, { recipes: [missingCraftTime] })).toBe(false);
+    expect(parseTopicPayload(Topics.craftRecipes, { recipes: [missingCraftTime] }).valid).toBe(false);
   });
 
   it("rejects recipe elements with an invalid nested item type", () => {
     const invalid = { ...recipe, requiredItems: [{ itemId: "1", count: 3 }] };
-    expect(validateTopicPayload(Topics.craftRecipes, { recipes: [invalid] })).toBe(false);
+    expect(parseTopicPayload(Topics.craftRecipes, { recipes: [invalid] }).valid).toBe(false);
   });
 
   it.each([
@@ -184,16 +184,16 @@ describe("validCraftRecipes", () => {
     ["完成数が負", { ...recipe, resultCount: -1 }],
     ["craftTime が負", { ...recipe, craftTime: -0.1 }],
   ])("React へ危険値を渡さない（%s）", (_label, invalid) => {
-    expect(validateTopicPayload(Topics.craftRecipes, { recipes: [invalid] })).toBe(false);
+    expect(parseTopicPayload(Topics.craftRecipes, { recipes: [invalid] }).valid).toBe(false);
   });
 });
 
 describe("validModal input flag", () => {
   const base = { id: "m1", title: "t", message: "m", buttonText: "OK", variant: "confirm" };
   it("accepts input:true", () => {
-    expect(validateTopicPayload(Topics.modal, { modal: { ...base, input: true } })).toBe(true);
+    expect(parseTopicPayload(Topics.modal, { modal: { ...base, input: true } }).valid).toBe(true);
   });
   it("rejects a non-bool input", () => {
-    expect(validateTopicPayload(Topics.modal, { modal: { ...base, input: "yes" } })).toBe(false);
+    expect(parseTopicPayload(Topics.modal, { modal: { ...base, input: "yes" } }).valid).toBe(false);
   });
 });

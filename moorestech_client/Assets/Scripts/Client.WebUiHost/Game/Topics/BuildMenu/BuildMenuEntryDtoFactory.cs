@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Construction;
+using Client.WebUiHost.Game.Icons;
 using Core.Master;
 using Game.PlacementTarget;
 using Mooresmaster.Model.BuildMenuModule;
@@ -142,17 +143,17 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     var block = (BlockPlacementTarget)target;
                     // block-icons はblock inventoryトピックのBlockIconと共有するため揮発BlockIdのまま（Guid化はplan Aのスコープ外）
                     // block-icons is shared with the block inventory topic's BlockIcon, so it stays volatile BlockId (GUID conversion is out of plan A's scope)
-                    return $"{BlockIconEndpoint.PathPrefix}{block.BlockId.AsPrimitive()}{BlockIconEndpoint.PathSuffix}";
+                    return $"{BlockIconSource.PathPrefixConst}{block.BlockId.AsPrimitive()}{IconEndpoint.PathSuffix}";
                 }
                 case PlacementTargetKind.TrainCar:
                 {
                     var trainCar = (TrainCarPlacementTarget)target;
-                    return $"{TrainCarIconEndpoint.PathPrefix}{trainCar.TrainCarGuid}{TrainCarIconEndpoint.PathSuffix}";
+                    return $"{TrainCarIconSource.PathPrefixConst}{trainCar.TrainCarGuid}{IconEndpoint.PathSuffix}";
                 }
                 case PlacementTargetKind.ConnectTool:
                 {
                     var connectTool = (ConnectToolPlacementTarget)target;
-                    return $"{ConnectToolIconEndpoint.PathPrefix}{connectTool.ConnectToolGuid}{ConnectToolIconEndpoint.PathSuffix}";
+                    return $"{ConnectToolIconSource.PathPrefixConst}{connectTool.ConnectToolGuid}{IconEndpoint.PathSuffix}";
                 }
                 case PlacementTargetKind.BlueprintCopy:
                 case PlacementTargetKind.Blueprint:

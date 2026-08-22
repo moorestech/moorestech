@@ -1,7 +1,7 @@
 // 機械レシピ選択Actionがモックblock状態へ反映される契約を検証する
 // Verifies that machine recipe selection actions update mock block state
 import { describe, expect, it } from "vitest";
-import type { BlockInventoryData } from "../../src/bridge/contract/payloadTypes";
+import type { BlockInventoryWireData } from "../../src/bridge/contract/payloadTypes";
 import type { ActionPayloads } from "../../src/bridge/transport/protocol";
 import { applyMachineRecipeSelect } from "./detailActions";
 
@@ -35,7 +35,7 @@ describe("applyMachineRecipeSelect", () => {
   });
 });
 
-function machineBlock(): BlockInventoryData {
+function machineBlock(): BlockInventoryWireData {
   return {
     open: true,
     source: "block",
@@ -58,6 +58,6 @@ function machineBlock(): BlockInventoryData {
   };
 }
 
-function selectedRecipeGuid(block: BlockInventoryData): string | undefined {
+function selectedRecipeGuid(block: BlockInventoryWireData): string | undefined {
   return block.open && "machine" in block ? block.machine?.selectedRecipeGuid : undefined;
 }

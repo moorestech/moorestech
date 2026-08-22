@@ -27,8 +27,11 @@ namespace Client.Game.InGame.Context
         
         public FluidViewData GetItemView(Guid fluidGuid)
         {
-            var fluidId = MasterHolder.FluidMaster.GetFluidId(fluidGuid);
-            return GetItemView(fluidId);
+            // 外部入力のGuidを受けるため投げないAPIで解決する
+            // Resolve via the non-throwing API since this accepts an externally supplied Guid
+            var fluidId = MasterHolder.FluidMaster.GetFluidIdOrNull(fluidGuid);
+            if (fluidId == null) return null;
+            return GetItemView(fluidId.Value);
         }
         
         public FluidViewData GetItemView(FluidId fluidId)

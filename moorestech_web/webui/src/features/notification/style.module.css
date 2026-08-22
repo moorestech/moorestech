@@ -9,6 +9,9 @@
   gap: 10px;
   z-index: var(--z-viewport-behind-stage);
   pointer-events: none;
+  /* stretchだと行が親のshrink-to-fit幅に揃い固定幅が最長行に負ける */
+  /* Stretch would align rows to the parent's shrink-to-fit width, letting the longest row override the fixed width */
+  align-items: flex-start;
 }
 
 /* 研究ノードカード同族の半透明ネイビー面+1px寒色枠（直角・影なし）。文字影は世界が透ける面上の可読性補助 */
@@ -18,7 +21,8 @@
   align-items: center;
   gap: 8px;
   padding: 5px 12px;
-  max-width: var(--notification-max-width);
+  width: var(--notification-width);
+  box-sizing: border-box;
   background: var(--notification-face);
   border: 1px solid var(--notification-border);
   font-size: 15px;
@@ -40,6 +44,13 @@
 /* Denied operations use the shared warning color */
 .notification[data-category="operationDenied"] {
   color: var(--text-insufficient);
+}
+
+/* 固定幅に収まらない長い文言は折り返す。省略記号だとアイテム名が読めなくなる */
+/* Text too long for the fixed width wraps; an ellipsis would make the item name unreadable */
+.text {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* アイテムアイコンは1行の文字高に収める */

@@ -20,6 +20,12 @@ export function useWebInputExclusivity() {
     const onFocusIn = (event: FocusEvent) => update({ textInputFocused: isTextInputElement(event.target) });
     const onFocusOut = () => queueMicrotask(() => update({ textInputFocused: isTextInputElement(document.activeElement) }));
     const onKeyDown = (event: KeyboardEvent) => {
+      // ブラウザのTabフォーカス移動はWeb UIの選択表示とUnityのTab操作の双方と衝突するので既定動作ごと封じる
+      // Native Tab traversal fights both the web UI's own selection rendering and Unity's Tab binding, so its default is suppressed
+      if (event.key === "Tab") {
+        event.preventDefault();
+        return;
+      }
       if (event.key !== "Escape" || !state.textInputFocused) return;
       (document.activeElement as HTMLElement | null)?.blur();
       event.preventDefault();
