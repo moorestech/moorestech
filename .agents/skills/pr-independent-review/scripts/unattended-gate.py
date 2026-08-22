@@ -28,6 +28,7 @@ RUNDIR_BASE = os.environ.get(
 )
 REVIEW_PROMPT_RE = re.compile(r"/pr-independent-review\D+(\d+)")
 APPLY_PROMPT_RE = re.compile(r"/pr-adjudicated-apply\s+(\d+)")
+REPAIR_PROMPT_RE = re.compile(r"/daily-build-repair\s+(\d+)")
 
 
 def first_user_text(transcript_path: str) -> str:
@@ -114,22 +115,38 @@ def main() -> int:
     if mode != "stop":
         return 0
 
-    pattern = APPLY_PROMPT_RE if job == "apply" else REVIEW_PROMPT_RE
+    if job == "apply":
+        pattern = APPLY_PROMPT_RE
+    elif job == "repair":
+        pattern = REPAIR_PROMPT_RE
+    else:
+        pattern = REVIEW_PROMPT_RE
     match = pattern.search(prompt)
     if not match:
         return 0
-    run = resolve_rundir(match.group(1))
-    goal = "apply-result.json" if job == "apply" else "session-done.marker"
+    # repairはissue系統でreview系の再レビュー(-rN)解決が無いため issue-<N> 固定で解く
+    # repair belongs to the issue lineage with no re-review resolution, so pin issue-<N> directly
+    if job == "repair":
+        run = os.path.join(RUNDIR_BASE, f"issue-{match.group(1)}")
+    else:
+        run = resolve_rundir(match.group(1))
+    if job == "apply":
+        goal = "apply-result.json"
+    elif job == "repair":
+        goal = "repair-result.json"
+    else:
+        goal = "session-done.marker"
     if os.path.exists(os.path.join(run, goal)) or os.path.exists(os.path.join(run, "abort.json")):
         return 0
     if block_count_exceeded(session_id, f"stop-{job or 'review'}"):
         return 0
 
-    tail = (
-        "SKILL.md の手順を最後まで走り切って apply-result.json を書く"
-        if job == "apply"
-        else "SKILL.md の Step 7.5（findings.json）から Step 8 まで走り切って session-done.marker を書く"
-    )
+    if job == "apply":
+        tail = "SKILL.md の手順を最後まで走り切って apply-result.json を書く"
+    elif job == "repair":
+        tail = "SKILL.md の手順を最後まで走り切って repair-result.json を書く"
+    else:
+        tail = "SKILL.md の Step 7.5（findings.json）から Step 8 まで走り切って session-done.marker を書く"
     sys.stderr.write(
         f"無人実行の成果物がまだありません（{run}/ に {goal} も abort.json も無い）。"
         "ここでターンを終えても対話モードなのでプロセスは死なず、pollerはtranscript停止として扱います。"

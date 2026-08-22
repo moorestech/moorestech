@@ -10,5 +10,13 @@ type Props = {
 
 export default function ItemIcon({ itemId, alt, className }: Props) {
   const { t } = useI18n();
-  return <GameIcon id={itemId} src={itemIconUrl(itemId)} alt={alt ?? t(L.ui.common.itemFallback, { itemId })} className={className} />;
+  return (
+    <GameIcon
+      id={itemId}
+      src={itemIconUrl(itemId)}
+      alt={alt ?? t(L.ui.common.itemFallback, { itemId })}
+      className={className}
+      fallback={{ kind: "idText" }}
+    />
+  );
 }

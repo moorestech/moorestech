@@ -11,7 +11,7 @@ export const PlayerInventoryDataSchema = z.object({
   equipmentSelectionConfirmationRevision: z.number().int().nonnegative(),
 });
 
-export const FluidSlotDataSchema = z.object({
+const FluidSlotWireSchema = z.object({
   fluidId: z.number(),
   amount: z.number(),
   capacity: z.number(),
@@ -19,6 +19,26 @@ export const FluidSlotDataSchema = z.object({
   // The display name resolves from the guid-derived key; only the empty fluid carries an empty string
   fluidGuid: GuidSchema.or(z.literal("")),
 }).strict();
+
+// 空/充填のkindは境界で判別し、guid欠落payloadを「名無しの色ブロック」として通さない
+// The empty/filled kind is discriminated at the boundary so a guid-less payload never slips through as a nameless color block
+// amountは判別に使わない。液体を出し切った直後のamount 0はサーバの正常な過渡状態であり弾いてはいけない
+// amount is not part of the discrimination: amount 0 right after a drain is a legitimate transient server state and must be accepted
+export const FluidSlotDataSchema = FluidSlotWireSchema
+  .superRefine((slot, ctx) => {
+    const hasGuid = slot.fluidGuid !== "";
+    const hasFluidId = slot.fluidId > 0;
+    if (hasGuid === hasFluidId) return;
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "fluidGuid/fluidId の空・充填状態が一致しません",
+    });
+  })
+  .transform((slot) =>
+    slot.fluidGuid === ""
+      ? ({ kind: "empty" as const, capacity: slot.capacity })
+      : ({ kind: "filled" as const, fluidGuid: slot.fluidGuid, amount: slot.amount, capacity: slot.capacity })
+  );
 
 export const MachineProcessStateSchema = z.enum(["idle", "processing", "halted"]);
 export const MachineDetailDataSchema = z.object({

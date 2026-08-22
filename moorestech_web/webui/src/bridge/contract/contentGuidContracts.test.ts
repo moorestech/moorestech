@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Topics } from "../transport/protocol";
-import { validateTopicPayload } from "./validators";
+import { parseTopicPayload } from "./validators";
 
 const machineRecipe = {
   recipeGuid: "50000000-0000-4000-8000-000000000001",
@@ -23,8 +23,8 @@ describe("content Guid contracts", () => {
     };
 
     const guidPayload = { ...payload, blockGuid: "40000000-0000-4000-8000-000000000001" };
-    expect(validateTopicPayload(Topics.blockInventory, guidPayload)).toBe(true);
-    expect(validateTopicPayload(Topics.blockInventory, { ...guidPayload, blockName: "炉" })).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, guidPayload).valid).toBe(true);
+    expect(parseTopicPayload(Topics.blockInventory, { ...guidPayload, blockName: "炉" }).valid).toBe(false);
   });
 
   it("fluid slotはfluidGuidを必須にし、旧nameの同居を拒否する", () => {
@@ -38,38 +38,38 @@ describe("content Guid contracts", () => {
       itemSlots: [],
     };
 
-    expect(validateTopicPayload(Topics.blockInventory, {
+    expect(parseTopicPayload(Topics.blockInventory, {
       ...payload,
       fluidSlots: [{ ...fluidSlot, fluidGuid: "60000000-0000-4000-8000-000000000001" }],
-    })).toBe(true);
-    expect(validateTopicPayload(Topics.blockInventory, {
+    }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.blockInventory, {
       ...payload,
       fluidSlots: [{ ...fluidSlot, fluidGuid: "60000000-0000-4000-8000-000000000001", name: "水" }],
-    })).toBe(false);
-    expect(validateTopicPayload(Topics.blockInventory, {
+    }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, {
       ...payload,
       fluidSlots: [{ ...fluidSlot, name: "水" }],
-    })).toBe(false);
+    }).valid).toBe(false);
 
     // 空流体だけがGuid空文字を許される
     // Only the empty fluid may carry an empty GUID string
-    expect(validateTopicPayload(Topics.blockInventory, {
+    expect(parseTopicPayload(Topics.blockInventory, {
       ...payload,
       fluidSlots: [{ fluidId: 0, amount: 0, capacity: 1000, fluidGuid: "" }],
-    })).toBe(true);
-    expect(validateTopicPayload(Topics.blockInventory, {
+    }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.blockInventory, {
       ...payload,
       fluidSlots: [{ ...fluidSlot, fluidGuid: "not-a-guid" }],
-    })).toBe(false);
+    }).valid).toBe(false);
   });
 
   it("machine recipeはblockGuidを保持し、旧blockNameの同居を拒否する", () => {
-    expect(validateTopicPayload(Topics.machineRecipes, { recipes: [machineRecipe] })).toBe(true);
-    expect(validateTopicPayload(Topics.machineRecipes, {
+    expect(parseTopicPayload(Topics.machineRecipes, { recipes: [machineRecipe] }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.machineRecipes, {
       recipes: [{ ...machineRecipe, blockId: undefined, blockItemId: 12 }],
-    })).toBe(false);
-    expect(validateTopicPayload(Topics.machineRecipes, {
+    }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.machineRecipes, {
       recipes: [{ ...machineRecipe, blockName: "炉" }],
-    })).toBe(false);
+    }).valid).toBe(false);
   });
 });
