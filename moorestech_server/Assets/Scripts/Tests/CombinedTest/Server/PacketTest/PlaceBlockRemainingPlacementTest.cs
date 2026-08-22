@@ -72,8 +72,10 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(11, 0)));
             Assert.AreEqual(0, GetItemCount(inventory, Material1Guid));
+            // 生のBlockIdで引いても財布キーへ正規化されるので上りは直線と同じ残数を返す
+            // A raw BlockId is normalized to the wallet key, so the slope reads the same remainder as the straight block
             Assert.AreEqual(1, lookup.GetRemainingCount(PlayerId, straight));
-            Assert.AreEqual(0, lookup.GetRemainingCount(PlayerId, ForUnitTestModBlockId.TestGearBeltConveyorUp));
+            Assert.AreEqual(1, lookup.GetRemainingCount(PlayerId, ForUnitTestModBlockId.TestGearBeltConveyorUp));
         }
 
         [Test]

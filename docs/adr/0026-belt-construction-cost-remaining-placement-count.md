@@ -19,6 +19,7 @@
   出所: ユーザー裁定 2026-08-21「クレジット+1、N貯まったら素材に凝縮して返却」選択
 - 財布キーは beltConveyorFamilies 所属なら straightBlockGuid へ正規化（unlock判定 `PlaceBlockProtocol.cs:120` と同じ前例）、非所属は自分の blockGuid。バリデータでファミリー内の requiredItems と placementsPerCost の一致を検証する。
   出所: ユーザー裁定 2026-08-21 原文「クレジットの合算をどう定義するかが迷い中」→ 選択「beltConveyorFamilies をそのまま財布境界に使う」
+- 財布キーの解決（`ConstructionWalletUtil`）はベルトファミリーを直接知る。共有単位が2系統目に増えるまではこの据え置きを前提とし、増えた時点で解決規則を汎用化する。
 - クライアント同期は規約どおり3点セット（`RemainingPlacementCountChangedEventPacket`＋初期データ＋購読）。UIはビルドメニュー詳細のコスト欄に「この素材でN個」と残り設置数を表示。HUD・カーソルツールチップには出さない。
   出所: ユーザー裁定 2026-08-21「ビルドメニューのコスト欄に『N個分』＋残クレジット」選択
 - プレイヤー向け文言・コード・スキーマとも「クレジット」「支払い」を使わず、用語集（CONTEXT.md: 建設コスト／設置数/1セット／残り設置数／財布）に揃える。

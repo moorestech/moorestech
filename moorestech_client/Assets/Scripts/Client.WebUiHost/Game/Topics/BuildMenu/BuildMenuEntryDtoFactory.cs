@@ -86,19 +86,27 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 return itemDtos;
             }
 
+            // ブロックかどうかの供給源はKindのenum一本に揃える
+            // The single supply point for "is this a block" is the Kind enum
+            BlockPlacementTarget ResolveBlockTarget(IPlacementTarget target)
+            {
+                return target.Kind == PlacementTargetKind.Block ? (BlockPlacementTarget)target : null;
+            }
+
             // 設置数/1セットはブロックのマスタ値、他は配信しない
             // Placements per cost set comes from the block master; no other kind carries it
             int? ResolvePlacementsPerCost(IPlacementTarget target)
             {
-                return target is BlockPlacementTarget block ? MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).PlacementsPerCost : null;
+                var block = ResolveBlockTarget(target);
+                return block == null ? null : MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).PlacementsPerCost;
             }
 
             // 残り設置数は財布へ問い合わせる。他は配信しない
             // Remaining placements come from the client-side wallet; no other kind carries it
             int? ResolveRemainingPlacementCount(IPlacementTarget target)
             {
-                if (target is not BlockPlacementTarget block) return null;
-                return remainingPlacementCountDatastore.GetRemainingCount(block.BlockId);
+                var block = ResolveBlockTarget(target);
+                return block == null ? null : remainingPlacementCountDatastore.GetRemainingCount(block.BlockId);
             }
 
             #endregion

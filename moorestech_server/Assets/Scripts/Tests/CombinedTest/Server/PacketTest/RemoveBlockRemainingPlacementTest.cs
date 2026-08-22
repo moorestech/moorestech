@@ -88,7 +88,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             SetItem(inventory, 1, Material2Guid, 1);
             packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), new PacketResponseContext(null));
             var mutation = serviceProvider.GetService<IRemainingPlacementCountMutation>();
-            mutation.TryConsumeOne(PlayerId, belt); mutation.TryConsumeOne(PlayerId, belt); // 残り0にする
+            mutation.ConsumeOne(PlayerId, belt); mutation.ConsumeOne(PlayerId, belt); // 残り0にする
 
             // 全スロット別アイテムで埋め返却不能に
             // Fill every slot with another item so the refund cannot fit

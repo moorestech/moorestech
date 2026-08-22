@@ -23,7 +23,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             var wallet = ForUnitTestModBlockId.GearBeltConveyor;
 
-            serviceProvider.GetService<IRemainingPlacementCountMutation>().Refill(PlayerId, wallet, 3);
+            var mutation = serviceProvider.GetService<IRemainingPlacementCountMutation>();
+            mutation.Refill(PlayerId, wallet, 3);
+            mutation.FlushChanges();
 
             var events = sink.TakeAll().Where(e => e.Tag == RemainingPlacementCountChangedEventPacket.EventTag).ToList();
             Assert.AreEqual(1, events.Count);

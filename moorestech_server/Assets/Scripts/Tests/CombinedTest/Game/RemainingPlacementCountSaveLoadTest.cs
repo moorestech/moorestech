@@ -19,7 +19,7 @@ namespace Tests.CombinedTest.Game
             var store = serviceProvider.GetService<RemainingPlacementCountDataStore>();
             var wallet = ForUnitTestModBlockId.GearBeltConveyor;
             store.Refill(PlayerId, wallet, 3);
-            store.TryConsumeOne(PlayerId, wallet);
+            store.ConsumeOne(PlayerId, wallet);
             var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));

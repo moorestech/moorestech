@@ -95,7 +95,7 @@ export const buildMenu = {
     { id: buildMenuEntryIds.ironChest, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [], ...defaultBlockPlacementFields, iconUrl: blockIconUrl(2) },
     // 唯一の複数設置エントリ。財布正規化も検証
     // The sole multi-placement entry; also verifies wallet-key normalization
-    { id: buildMenuEntryIds.beltConveyor, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000002", requiredItems: [], placementsPerCost: 3, remainingPlacementCount: 2, iconUrl: blockIconUrl(3) },
+    { id: buildMenuEntryIds.beltConveyor, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000002", requiredItems: [{ itemId: 1, count: 1 }], placementsPerCost: 3, remainingPlacementCount: 2, iconUrl: blockIconUrl(3) },
     { id: buildMenuEntryIds.rail, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], ...defaultBlockPlacementFields, iconUrl: blockIconUrl(4) },
     { id: buildMenuEntryIds.cargoCar, kind: "trainCar", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000004", requiredItems: [], iconUrl: blockIconUrl(5) },
     { id: buildMenuEntryIds.wireConnectTool, kind: "connectTool", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: blockIconUrl(6) },
