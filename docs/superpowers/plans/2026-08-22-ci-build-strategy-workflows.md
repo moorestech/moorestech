@@ -1055,15 +1055,15 @@ git commit -m "feat(ci): 日次ビルドをフレーク再実行の対象に加�
 
 ### Task 7: 全ブランチレビュー（省略不可）
 
-- [ ] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
+- [x] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
 
 `moores-code-review` スキルを起動し、`master...feature/ci-build-strategy` の差分全体をレビューする。
 
 **このタスクは自動実行であり、ゴール文言（「全部できた」等）による省略はできない。** plan から省略してもゲートは免除されない。
 
-- [ ] **Step 2: 指摘のうち機械的修正を適用し、設計判断は AskUserQuestion でユーザーへ諮る**
+- [x] **Step 2: 指摘のうち機械的修正を適用し、設計判断は AskUserQuestion でユーザーへ諮る**
 
-- [ ] **Step 3: 修正をコミットする**
+- [x] **Step 3: 修正をコミットする**
 
 ```bash
 git add -A
