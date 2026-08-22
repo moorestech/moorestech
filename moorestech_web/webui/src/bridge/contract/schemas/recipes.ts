@@ -31,7 +31,6 @@ export const ItemMasterDataSchema = z.object({ items: z.array(ItemMasterEntrySch
 // colorはfluids.ymlのRRGGBB(#付き)を素通しする。D8: 背面フィル色はマスタ定義であり導出しない
 // color passes through fluids.yml's #RRGGBB verbatim; per D8 the fill color is master-defined, never derived
 export const FluidMasterEntrySchema = z.object({
-  fluidId: z.number(),
   fluidGuid: GuidSchema,
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
 });

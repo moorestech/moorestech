@@ -14,7 +14,7 @@ afterEach(() => {
 
 const WATER_GUID = "54000000-0000-4000-8000-000000000001";
 const REPAINTED_WATER_GUID = "54000000-0000-4000-8000-000000000002";
-const masterJson = { fluids: [{ fluidId: 1, fluidGuid: WATER_GUID, color: "#2A6FE0" }] };
+const masterJson = { fluids: [{ fluidGuid: WATER_GUID, color: "#2A6FE0" }] };
 
 describe("ensureFluidMasterLoaded", () => {
   it("初回成功で master がストアへ反映される", async () => {
@@ -74,9 +74,10 @@ describe("ensureFluidMasterLoaded", () => {
   it.each([
     ["fluids キー欠落", {}],
     ["fluids が配列でない", { fluids: "invalid" }],
-    ["fluidId が number でない", { fluids: [{ fluidId: "1", fluidGuid: WATER_GUID, color: "#2A6FE0" }] }],
-    ["fluidGuid が string でない", { fluids: [{ fluidId: 1, fluidGuid: null, color: "#2A6FE0" }] }],
-    ["color が string でない", { fluids: [{ fluidId: 1, fluidGuid: WATER_GUID, color: 123 }] }],
+    ["fluidGuid が string でない", { fluids: [{ fluidGuid: null, color: "#2A6FE0" }] }],
+    ["fluidGuid が uuid 書式でない", { fluids: [{ fluidGuid: "not-a-guid", color: "#2A6FE0" }] }],
+    ["color が string でない", { fluids: [{ fluidGuid: WATER_GUID, color: 123 }] }],
+    ["color が #RRGGBB 書式でない", { fluids: [{ fluidGuid: WATER_GUID, color: "2A6FE0" }] }],
   ])("不正 shape（%s）の後も自動再試行して反映される", async (_label, invalidData) => {
     const fetchMock = vi
       .fn()
@@ -105,7 +106,7 @@ describe("ensureFluidMasterLoaded", () => {
   });
 
   it("WS 再接続開始時に成功済み master を再取得する", async () => {
-    const refreshedJson = { fluids: [{ fluidId: 1, fluidGuid: REPAINTED_WATER_GUID, color: "#00AAFF" }] };
+    const refreshedJson = { fluids: [{ fluidGuid: REPAINTED_WATER_GUID, color: "#00AAFF" }] };
     const fetchMock = vi.fn()
       .mockResolvedValueOnce({ ok: true, json: async () => masterJson })
       .mockResolvedValueOnce({ ok: true, json: async () => refreshedJson });

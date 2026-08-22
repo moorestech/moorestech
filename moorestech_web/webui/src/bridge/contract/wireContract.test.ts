@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { validateTopicPayload } from "./validators";
+import { parseTopicPayload } from "./validators";
 import { loadFixture } from "./wireFixtures.test-helper";
 import { BENIGN_ERRORS } from "../transport/actions";
 import { TopicEnvelopeSchema, Topics } from "../transport/protocol";
@@ -13,19 +13,19 @@ describe("wire contract fixtures (shared with C#)", () => {
   });
 
   it("accepts Phase C4 presentation fixtures", () => {
-    expect(validateTopicPayload(Topics.gameState, loadFixture("game_state.json"))).toBe(true);
-    expect(validateTopicPayload(Topics.tutorialPresentation, loadFixture("tutorial_presentation.json"))).toBe(true);
-    expect(validateTopicPayload(Topics.worldPins, loadFixture("world_pins.json"))).toBe(true);
-    expect(validateTopicPayload(Topics.skitPresentation, loadFixture("skit_presentation.json"))).toBe(true);
+    expect(parseTopicPayload(Topics.gameState, loadFixture("game_state.json")).valid).toBe(true);
+    expect(parseTopicPayload(Topics.tutorialPresentation, loadFixture("tutorial_presentation.json")).valid).toBe(true);
+    expect(parseTopicPayload(Topics.worldPins, loadFixture("world_pins.json")).valid).toBe(true);
+    expect(parseTopicPayload(Topics.skitPresentation, loadFixture("skit_presentation.json")).valid).toBe(true);
   });
   it("topic envelope requires a non-negative revision", () => {
     const envelope = TopicEnvelopeSchema.parse(loadFixture("topic_envelope.json"));
     expect(envelope.revision).toBe(42);
-    expect(validateTopicPayload(envelope.topic, envelope.data)).toBe(true);
+    expect(parseTopicPayload(envelope.topic, envelope.data).valid).toBe(true);
   });
   it("inventory_snapshot が受理され型消費できる", () => {
     const data = loadFixture("inventory_snapshot.json");
-    expect(validateTopicPayload(Topics.inventory, data)).toBe(true);
+    expect(parseTopicPayload(Topics.inventory, data).valid).toBe(true);
     const inv = data as PlayerInventoryData;
     expect(inv.mainSlots.length).toBe(3);
     expect(inv.grab.count).toBe(0);
@@ -38,8 +38,8 @@ describe("wire contract fixtures (shared with C#)", () => {
   it("block_inventory は open(presence)/closed(omission) の両方が受理される", () => {
     const open = loadFixture("block_inventory_open.json");
     const closed = loadFixture("block_inventory_closed.json");
-    expect(validateTopicPayload(Topics.blockInventory, open)).toBe(true);
-    expect(validateTopicPayload(Topics.blockInventory, closed)).toBe(true);
+    expect(parseTopicPayload(Topics.blockInventory, open).valid).toBe(true);
+    expect(parseTopicPayload(Topics.blockInventory, closed).valid).toBe(true);
 
     const openData = open as BlockInventoryData;
     expect(openData.open).toBe(true);
@@ -57,15 +57,15 @@ describe("wire contract fixtures (shared with C#)", () => {
   });
 
   it("train.riding と貨車inventory fixtureを受理する", () => {
-    expect(validateTopicPayload(Topics.trainRiding, loadFixture("train_riding.json"))).toBe(true);
-    expect(validateTopicPayload(Topics.blockInventory, loadFixture("train_inventory.json"))).toBe(true);
+    expect(parseTopicPayload(Topics.trainRiding, loadFixture("train_riding.json")).valid).toBe(true);
+    expect(parseTopicPayload(Topics.blockInventory, loadFixture("train_inventory.json")).valid).toBe(true);
   });
 
   it("progress は label あり(presence)/なし(omission) の両方が受理される", () => {
     const withLabel = loadFixture("progress_with_label.json");
     const noLabel = loadFixture("progress_no_label.json");
-    expect(validateTopicPayload(Topics.progress, withLabel)).toBe(true);
-    expect(validateTopicPayload(Topics.progress, noLabel)).toBe(true);
+    expect(parseTopicPayload(Topics.progress, withLabel).valid).toBe(true);
+    expect(parseTopicPayload(Topics.progress, noLabel).valid).toBe(true);
     expect((withLabel as ProgressData).label).toBe("Crafting");
     expect((noLabel as ProgressData).label).toBeUndefined();
   });
@@ -73,15 +73,15 @@ describe("wire contract fixtures (shared with C#)", () => {
   it("modal は open(presence)/none(omission) の両方が受理される", () => {
     const open = loadFixture("modal_open.json");
     const none = loadFixture("modal_none.json");
-    expect(validateTopicPayload(Topics.modal, open)).toBe(true);
-    expect(validateTopicPayload(Topics.modal, none)).toBe(true);
+    expect(parseTopicPayload(Topics.modal, open).valid).toBe(true);
+    expect(parseTopicPayload(Topics.modal, none).valid).toBe(true);
     expect((open as ModalData).modal?.id).toBe("m1");
     expect((none as ModalData).modal).toBeUndefined();
   });
 
   it("build_menu_snapshot が受理され型消費できる", () => {
     const d = loadFixture("build_menu_snapshot.json");
-    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(true);
+    expect(parseTopicPayload(Topics.buildMenu, d).valid).toBe(true);
     const typed = d as BuildMenuData;
     expect(typed.entries[0].kind).toBe("block");
     expect(typed.entries[0].id).toBe("30000000-0000-4000-8000-000000000001");
@@ -93,20 +93,20 @@ describe("wire contract fixtures (shared with C#)", () => {
 
   it("modal_input が受理され input フラグを型消費できる", () => {
     const d = loadFixture("modal_input.json");
-    expect(validateTopicPayload(Topics.modal, d)).toBe(true);
+    expect(parseTopicPayload(Topics.modal, d).valid).toBe(true);
     const typed = d as ModalData;
     expect(typed.modal?.input).toBe(true);
   });
 
   it("ui_state が受理され型消費できる", () => {
     const data = loadFixture("ui_state.json");
-    expect(validateTopicPayload(Topics.uiState, data)).toBe(true);
+    expect(parseTopicPayload(Topics.uiState, data).valid).toBe(true);
     expect((data as UiStateData).state).toBe("PlayerInventory");
   });
 
   it("pause_menu が切断状態を受理する", () => {
     const data = loadFixture("pause_menu.json");
-    expect(validateTopicPayload(Topics.pauseMenu, data)).toBe(true);
+    expect(parseTopicPayload(Topics.pauseMenu, data).valid).toBe(true);
     expect((data as PauseMenuData).disconnected).toBe(true);
   });
 
@@ -119,14 +119,14 @@ describe("wire contract fixtures (shared with C#)", () => {
       [Topics.uiVisibility, "visibility.json"],
       [Topics.tooltip, "tooltip.json"],
     ] as const;
-    for (const [topic, fixture] of cases) expect(validateTopicPayload(topic, loadFixture(fixture))).toBe(true);
+    for (const [topic, fixture] of cases) expect(parseTopicPayload(topic, loadFixture(fixture)).valid).toBe(true);
   });
 
   it("契約違反 payload はバリデータで破棄される", () => {
-    expect(validateTopicPayload(Topics.inventory, { mainSlots: "nope" })).toBe(false);
-    expect(validateTopicPayload(Topics.progress, { visible: true })).toBe(false);
-    expect(validateTopicPayload(Topics.blockInventory, { open: true })).toBe(false);
-    expect(validateTopicPayload(Topics.modal, { modal: { id: "x" } })).toBe(false);
+    expect(parseTopicPayload(Topics.inventory, { mainSlots: "nope" }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.progress, { visible: true }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, { open: true }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.modal, { modal: { id: "x" } }).valid).toBe(false);
   });
 });
 
@@ -145,7 +145,7 @@ describe("block detail fixtures", () => {
   for (const file of cases) {
     it(`accepts ${file} and types it as open`, () => {
       const data = loadFixture(file);
-      expect(validateTopicPayload(Topics.blockInventory, data)).toBe(true);
+      expect(parseTopicPayload(Topics.blockInventory, data).valid).toBe(true);
       const payload = data as BlockInventoryData;
       if (!payload.open) throw new Error("fixture must be open");
       expect(payload.blockType.length).toBeGreaterThan(0);
@@ -169,8 +169,8 @@ describe("challenge fixtures", () => {
   it("accepts tree and current payloads", () => {
     const tree = loadFixture("challenge_tree.json");
     const current = loadFixture("challenge_current.json");
-    expect(validateTopicPayload(Topics.challengeTree, tree)).toBe(true);
-    expect(validateTopicPayload(Topics.challengeCurrent, current)).toBe(true);
+    expect(parseTopicPayload(Topics.challengeTree, tree).valid).toBe(true);
+    expect(parseTopicPayload(Topics.challengeCurrent, current).valid).toBe(true);
     expect((tree as ChallengeTreeData).categories[0].nodes[0].state).toBe("current");
     expect((current as ChallengeCurrentData).completedChallengeGuid).toBeUndefined();
   });
@@ -179,7 +179,7 @@ describe("challenge fixtures", () => {
 describe("notification fixture", () => {
   it("itemEarned payloadのcategory/messageId/countをC#側と一致させる", () => {
     const data = loadFixture("notification_item_earned.json");
-    expect(validateTopicPayload(Topics.notification, data)).toBe(true);
+    expect(parseTopicPayload(Topics.notification, data).valid).toBe(true);
     // countを持つのは獲得variantだけなので、その型で受けて読む
     // Only the earned variant carries a count, so the fixture is read through that variant
     const notification = data as Extract<NotificationData, { category: "itemEarned" }>;

@@ -73,7 +73,3 @@ export function parseTopicPayload(topic: string, data: unknown): { valid: true; 
   const result = schema.safeParse(data);
   return result.success ? { valid: true, value: result.data } : { valid: false };
 }
-
-export function validateTopicPayload(topic: string, data: unknown): boolean {
-  return parseTopicPayload(topic, data).valid;
-}

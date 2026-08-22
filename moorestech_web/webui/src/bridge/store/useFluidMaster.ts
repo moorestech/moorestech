@@ -10,9 +10,3 @@ export function useFluidMaster(): Map<string, FluidMasterEntry> | null {
   }, []);
   return useFluidMasterStore((s) => s.master);
 }
-
-// イベントハンドラから購読せず最新マスタを読む
-// Read the latest master from event handlers without subscribing
-export function readFluidMaster(): Map<string, FluidMasterEntry> | null {
-  return useFluidMasterStore.getState().master;
-}

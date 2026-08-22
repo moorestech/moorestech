@@ -23,7 +23,7 @@ import FluidSlot from "./index";
 
 describe("FluidSlot icon", () => {
   beforeEach(() => {
-    mockState.master = new Map([[FLUID_GUID, { fluidId: 10, fluidGuid: FLUID_GUID, color: "#2A6FE0" }]]);
+    mockState.master = new Map([[FLUID_GUID, { fluidGuid: FLUID_GUID, color: "#2A6FE0" }]]);
   });
 
   it("満タンでない液体スロットはフィルとアイコンの両方を描く", () => {
@@ -31,7 +31,7 @@ describe("FluidSlot icon", () => {
     let renderer: ReactTestRenderer;
     act(() => {
       renderer = create(createElement(FluidSlot, {
-        fluid: { kind: "filled", fluidId: 10, amount: 500, capacity: 1000, fluidGuid: FLUID_GUID },
+        fluid: { kind: "filled", amount: 500, capacity: 1000, fluidGuid: FLUID_GUID },
       }));
     });
 
@@ -51,7 +51,7 @@ describe("FluidSlot icon", () => {
     let renderer: ReactTestRenderer;
     act(() => {
       renderer = create(createElement(FluidSlot, {
-        fluid: { kind: "filled", fluidId: 10, amount: 500, capacity: 1000, fluidGuid: FLUID_GUID },
+        fluid: { kind: "filled", amount: 500, capacity: 1000, fluidGuid: FLUID_GUID },
       }));
     });
 
@@ -85,7 +85,7 @@ describe("FluidSlot icon", () => {
     let renderer: ReactTestRenderer;
     act(() => {
       renderer = create(createElement(FluidSlot, {
-        fluid: { kind: "filled", fluidId: 10, amount: 500, capacity: 1000, fluidGuid: FLUID_GUID },
+        fluid: { kind: "filled", amount: 500, capacity: 1000, fluidGuid: FLUID_GUID },
       }));
     });
 

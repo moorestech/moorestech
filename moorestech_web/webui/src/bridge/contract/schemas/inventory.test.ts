@@ -9,9 +9,9 @@ describe("FluidSlotDataSchema", () => {
     expect(slot).toEqual({ kind: "empty", capacity: 1000 });
   });
 
-  it("充填済み流体はkind: filledへ変換し全フィールドを保持する", () => {
+  it("充填済み流体はkind: filledへ変換し表示に使うフィールドを保持する", () => {
     const slot = FluidSlotDataSchema.parse({ fluidId: 10, amount: 500, capacity: 1000, fluidGuid: FLUID_GUID });
-    expect(slot).toEqual({ kind: "filled", fluidId: 10, amount: 500, capacity: 1000, fluidGuid: FLUID_GUID });
+    expect(slot).toEqual({ kind: "filled", amount: 500, capacity: 1000, fluidGuid: FLUID_GUID });
   });
 
   it("fluidGuidが空文字なのにfluidIdが正の値のpayloadは境界で弾く", () => {
@@ -22,7 +22,8 @@ describe("FluidSlotDataSchema", () => {
     expect(() => FluidSlotDataSchema.parse({ fluidId: 0, amount: 500, capacity: 1000, fluidGuid: FLUID_GUID })).toThrow();
   });
 
-  it("fluidGuidとfluidIdは揃っているがamountが0のpayloadは境界で弾く", () => {
-    expect(() => FluidSlotDataSchema.parse({ fluidId: 10, amount: 0, capacity: 1000, fluidGuid: FLUID_GUID })).toThrow();
+  it("液体を出し切った直後のamount 0はサーバの正常な過渡状態として受理する", () => {
+    const slot = FluidSlotDataSchema.parse({ fluidId: 10, amount: 0, capacity: 1000, fluidGuid: FLUID_GUID });
+    expect(slot).toEqual({ kind: "filled", amount: 0, capacity: 1000, fluidGuid: FLUID_GUID });
   });
 });

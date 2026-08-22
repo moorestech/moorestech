@@ -12,7 +12,7 @@ vi.mock("@mantine/core", () => ({
 const FLUID_GUID = "60000000-0000-4000-8000-000000000001";
 const mockState = vi.hoisted(() => {
   const guid = "60000000-0000-4000-8000-000000000001";
-  return { master: new Map([[guid, { fluidId: 10, fluidGuid: guid, color: "#2A6FE0" } satisfies FluidMasterEntry]]) };
+  return { master: new Map([[guid, { fluidGuid: guid, color: "#2A6FE0" } satisfies FluidMasterEntry]]) };
 });
 
 vi.mock("@/bridge", async (importOriginal) => ({
@@ -21,7 +21,7 @@ vi.mock("@/bridge", async (importOriginal) => ({
 }));
 
 import FluidSlot from "./index";
-const filled = { kind: "filled" as const, fluidId: 10, amount: 500, capacity: 1000, fluidGuid: FLUID_GUID };
+const filled = { kind: "filled" as const, amount: 500, capacity: 1000, fluidGuid: FLUID_GUID };
 
 function tooltipProps(renderer: ReactTestRenderer) {
   return renderer.root.findByType("mock-tooltip" as never).props as { label: string; disabled: boolean };
