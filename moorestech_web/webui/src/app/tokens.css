@@ -295,6 +295,11 @@
   /* Default size of the shared faceless icon button; each use overrides it locally */
   --icon-button-size: calc(var(--slot-size) / 2);
   --icon-button-icon-size: calc(var(--slot-size) / 3);
+  /* アイテム一覧の個数バッジ（絶対配置・bottom:-1px）が最終段のスロット下端からはみ出す実測量。
+     ScrollAreaの内側でこの分を確保しないと、1段しかなくても偽の溢れが立ち不要な縦バーが出る */
+  /* Measured bleed of the item-list count badge (absolutely placed at bottom:-1px) below the last row's slots;
+     unless the ScrollArea reserves it, even a single row yields a phantom overflow and a needless bar */
+  --item-list-count-bleed: 5px;
   /* レシピビューア単一リストの最大高とエントリ間隔（ADR 0011・§8.17） */
   /* Max height and entry gap for the recipe viewer single list (ADR 0011, §8.17) */
   --recipe-list-max-height: 352px;

@@ -23,6 +23,66 @@ description: |
 
 ---
 
+## 0. 実装フロー（Web UIの作業はこれで回す）
+
+Web UI は Unity を経由せず HMR で即反映でき、Playwright で画素・レイアウトを実測できる。
+**この速さを使い切ることが前提であり、「Unityを立てて目視する」「コードを読んで推測する」で済ませてはいけない。**
+
+### 0.1 worktree を切る
+
+```bash
+moores-wt new <branch> --no-editor
+cd <worktree>/moorestech_web/webui && pnpm install
+```
+
+Web UI だけなら Unity Editor は不要（`--no-editor`）。`node_modules` は worktree に付いてこないので `pnpm install` する（storeが温まっていれば数秒）。
+
+### 0.2 mock-host + vite dev を上げる（Unity不要・HMR有効）
+
+```bash
+MOCK_PORT=<port_a> MOORESTECH_E2E=true node --import tsx e2e/mock-host/server.ts
+MOORESTECH_E2E=true MOORESTECH_BACKEND_PORT=<port_a> MOORESTECH_VITE_PORT=<port_b> pnpm dev
+```
+
+`vite.config.ts` が `/api` `/ws` `/__` を backend ポートへプロキシするので、mock-host が Unity サーバーの代わりになる。
+画面状態は mock の制御エンドポイントで作る（`/__uistate` `/__block` `/__modal` `/__topic-control` 等・`e2e/support/mockControl.ts` が窓口）。
+
+**ポートはセッション固有に振る。** Playwright既定の 5273 を使い回すと並列セッションで衝突し、無関係な spec が落ちて原因調査が空転する。
+
+### 0.3 cloudflared quick tunnel で人間に見せる
+
+```bash
+cloudflared tunnel --url http://127.0.0.1:<port_b> --http-host-header 127.0.0.1:<port_b>
+```
+
+`--http-host-header` は必須。無いと vite の allowedHosts 検査が `*.trycloudflare.com` を弾き "Blocked request" になる（`vite.config.ts` は無変更で通せる）。
+URLはDNS伝播に十数秒かかる。HMRが効くので、修正はそのURLへ即反映される＝ユーザーと同じ画面を見ながら詰められる。
+
+### 0.4 直す前に、症状の出所を実測で特定する（最重要）
+
+**見た目の症状は必ず数値の出所へ落としてから直す。** スクショだけを見て原因を決めない。
+
+Playwright スクリプトで次を出力する:
+- `getBoundingClientRect()` … 位置・寸法のズレ
+- `scrollHeight` vs `clientHeight` / `scrollWidth` vs `clientWidth` … 溢れの有無と量
+- `getComputedStyle()` … 実際に効いている値（トークンの解決結果）
+- `dataset.state` / `display` … Mantineの内部状態（スクロールバー等）
+
+原因候補が複数あるときは **ablation** で切る。要素を1つずつ `display:none` にする／変数を1つずつ変える／値を0.1px刻みでスイープして、症状が消える点を見つける。
+
+> 実例（2026-08-22 CRAFT RECIPE一覧）: 「黒い枠線」は `type="always"` が描いた**つまみ幅0の水平スクロールバー**（`scrollWidth === clientWidth` で溢れゼロ）、「不要なスクロール」は個数バッジの5px はみ出し（`.count` を消すと `scrollHeight - clientHeight` が 5→0）だった。どちらも見ただけでは特定できず、実測とablationで初めて確定した。
+
+### 0.5 確定したらテストと目視QA
+
+`pnpm lint` / `pnpm test` / `pnpm test:e2e` を通し、§10 の目視QAチェック項目を実施する。
+**挙動を固定していた既存 e2e があれば、裁定に合わせて反転させる**（古い assertion を残したまま実装だけ変えない）。
+
+### 0.6 後片付け
+
+tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除する。
+
+---
+
 ## 1. 画面構成
 
 - **全画面UIは作らない。** すべてフローティングパネルまたはモーダル形式。
@@ -217,9 +277,13 @@ description: |
 
 ## 8.10 カスタムスクロールバー
 
-- Mantine `ScrollArea` の `:global(.mantine-ScrollArea-*)` セレクタで上書きする（前例: `ItemListPanel.module.css:10-30`）。ScrollArea自体は使ってよいが、既定の白ノブ/透明トラックのまま出さない。
-- トラックは `var(--gauge-track)`、ノブは `var(--bevel-c2)` を基調にしたネイビートーンへ統一する（ItemListPanelの白ノブは持ち物一覧固有の正本合わせであり、他パネルではこのネイビートーンに従う）。
+- Mantine `ScrollArea` の `:global(.mantine-ScrollArea-*)` セレクタで上書きする（前例: `ItemListPanel.module.css`）。ScrollArea自体は使ってよいが、既定の白ノブ/透明トラックのまま出さない。
+- トラックは `var(--gauge-track)`、ノブは `var(--bevel-c2)` を基調にしたネイビートーンへ統一する（ItemListPanelの白ノブ＋透明トラックは持ち物一覧固有の正本合わせ／裁定であり、他パネルではこのネイビートーンに従う）。
 - ノブ寸法はコンテンツ量から自然算出させ、固定pxで決め打ちしない。
+- **`type` は `auto` を既定とし、`always` を使わない。** `always` は水平バーも常時描画するため、横に溢れていない場面で**つまみ幅0の黒帯**が内容の直下に敷かれる（2026-08-22に CRAFT RECIPE 一覧で実害。ユーザー裁定 2026-08-17 で `ItemListPanel` を `auto` + トラック透明へ変更）。
+- **ScrollArea に入れる中身は、外へはみ出す装飾の分だけ内側に余白を確保する。** 確保しないと数pxの偽の溢れが立ち、スクロール不要な件数でもスクロールバーが出る（そして装飾はクリップされて欠ける）。はみ出す装飾の例＝スロットの外側ベベルリング・個数バッジ・エントリ枠の四隅ブラケット。余白は固定長トークンで持つ。
+  - 前例: `--recipe-entry-bleed`（レシピ単一リスト・四隅ブラケット+外周リング）、`--item-list-count-bleed`（アイテム一覧・個数バッジ）。
+  - 上限高（`mah`）を持つ場合、その値は「N段+bleed」が丸ごと収まる高さである必要がある。段数だけ数えて bleed を忘れると境界の段数でだけバーが出る。
 
 ## 8.11 建設メニュー
 
@@ -466,7 +530,9 @@ description: |
 ## 10. 実装後の目視QA（必須）
 
 パネルの新設・寸法変更・レイアウト変更をしたら、コードレビューだけで終えず**mockホストのスクリーンショットで実画面を確認する**
-（`e2e/capture-eval.ts` の様式でmock-hostを起動し、`/__block` `/__uistate` で対象画面を再現して撮影する）。
+（§0 の実装フローで上げた mock-host + vite dev を使う。単発なら `e2e/capture-eval.ts` の様式でも可。`/__block` `/__uistate` で対象画面を再現して撮影する）。
+
+**目視は最終確認であって原因特定の手段ではない。** 症状を見つけたら §0.4 の実測・ablationへ戻る。
 
 チェック項目:
 1. **端**: 内容（タブバー・ボタン・グリッド）がパネル面のフェード帯に載って「はみ出て」見えないか。逆に、内容の直後で面が途切れて「切れて」見えないか（内容の縁〜フェード開始の余白が左右で対称か）。拡大クロップで**4辺すべて**確認する。内容量でサイズが決まるパネルは特に右端・下端が危ない（共通paddingがフェード幅未満の辺）

@@ -17,7 +17,7 @@ test("秒数は矢印の上に出し、クラフトボタンは秒数を持た�
   await expect(craftEntry(page).getByRole("button")).toHaveText("クラフト");
 });
 
-test("正本のヘッダ装飾、常時スクロールバー、主要構造を保つ", async ({ page }) => {
+test("正本のヘッダ装飾、1段時の無スクロールバー、主要構造を保つ", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
   await page.getByTestId("item-list-grid").locator("> div").first().click();
@@ -41,12 +41,41 @@ test("正本のヘッダ装飾、常時スクロールバー、主要構造を�
   // The decorative tab was fully removed and must not exist
   await expect(page.getByTestId("craft-tab")).toHaveCount(0);
 
-  // 短いfixtureでも縦バーを保つ
-  // Preserve the vertical scrollbar even with a short fixture
+  // 短いfixture(5件=1段)ではどちらのバーも出さない。個数バッジのはみ出しを内側で吸収し偽の溢れを作らない
+  // A short fixture (5 items = 1 row) shows neither bar: the count badge's bleed is reserved inside, so no phantom overflow
   const scrollRoot = page.getByTestId("item-list-grid").locator("xpath=ancestor::*[contains(@class, 'mantine-ScrollArea-root')][1]");
-  const viewport = scrollRoot.locator(".mantine-ScrollArea-viewport");
-  await expect(viewport).toHaveCSS("overflow-y", "scroll");
-  await expect(scrollRoot.locator('.mantine-ScrollArea-scrollbar[data-orientation="vertical"]')).toBeVisible();
+  await expect(scrollRoot.locator('.mantine-ScrollArea-scrollbar[data-orientation="vertical"]')).toBeHidden();
+  await expect(scrollRoot.locator('.mantine-ScrollArea-scrollbar[data-orientation="horizontal"]')).toBeHidden();
+  const overflow = await scrollRoot.locator(".mantine-ScrollArea-viewport").evaluate((el) => ({
+    y: el.scrollHeight - el.clientHeight, x: el.scrollWidth - el.clientWidth,
+  }));
+  expect(overflow).toEqual({ y: 0, x: 0 });
+});
+
+test("アイテム一覧は7段まで溢れず、8段目で縦バーだけが出る", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  const grid = page.getByTestId("item-list-grid");
+  const scrollRoot = grid.locator("xpath=ancestor::*[contains(@class, 'mantine-ScrollArea-root')][1]");
+  const verticalBar = scrollRoot.locator('.mantine-ScrollArea-scrollbar[data-orientation="vertical"]');
+  const horizontalBar = scrollRoot.locator('.mantine-ScrollArea-scrollbar[data-orientation="horizontal"]');
+
+  // mah=381.2 の境界を押さえる。DOM複製で段数だけを動かし、fixture件数に依存させない
+  // Pin the mah=381.2 boundary by cloning cells so only the row count varies, independent of fixture size
+  const fillRows = (rows: number) => grid.evaluate((el, target: number) => {
+    const proto = el.children[0];
+    while (el.children.length < target * 6) el.appendChild(proto.cloneNode(true));
+  }, rows);
+
+  await fillRows(7);
+  await expect(verticalBar).toBeHidden();
+  await expect(horizontalBar).toBeHidden();
+
+  await fillRows(8);
+  await expect(verticalBar).toBeVisible();
+  // 横は常に溢れないので8段目でも水平バーは出さない
+  // Horizontal never overflows, so the eighth row must not raise a horizontal bar
+  await expect(horizontalBar).toBeHidden();
 });
 
 test("アイテム選択でレシピ表示、長押しで素材が尽きるまで連続クラフトする", async ({ page }) => {
