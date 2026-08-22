@@ -57,8 +57,8 @@ namespace CommandForgeGenerator.Command
                 return;
             
             var instance = Object.Instantiate(loadedAsset.Asset, _environmentParent);
-            instance.transform.localPosition = position;
-            instance.transform.localRotation = Quaternion.Euler(rotation);
+            instance.transform.position = position;
+            instance.transform.rotation = Quaternion.Euler(rotation);
             _loadedEnvironments[addressablePath] = instance;
         }
         

@@ -23,3 +23,9 @@
 - [x] Task 2: DI配線（SkitManager / MainGameStarter / SkitTester）（コンパイル・SkitWorldObjectRegistrationTest）
 - [x] Task 3: JSON焼き直し（スクリプトで一括減算、差分を目視）
 - [ ] Task 4: generatedモードで録画確認（船がスポーン脇に出る）、8/20裁定ファイルのsuperseded追記、PR
+
+## 判断台帳（ADR）
+- Requirements: 原点はスポーン地点そのものXYZ（ユーザー裁定 AskUserQuestion 2026-08-22「スポーン地点そのもの XYZ（推奨）」）
+- Requirements: 4種コマンドすべて常に原点加算・フラグ無し（ユーザー裁定 AskUserQuestion 2026-08-22「4種すべて常に原点加算（推奨）」）
+- Requirements: 傾斜対策は範囲外・起動して見てから別タスク（ユーザー裁定 AskUserQuestion 2026-08-22「今回は相対化のみ（推奨）」）
+- Requirements: JSONは(500, 15.6462908, 500)減算で焼き直し（ADR 0029・.decisions/2026-08-22）

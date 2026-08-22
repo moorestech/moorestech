@@ -8,16 +8,21 @@ namespace Client.Skit.Context
     /// </summary>
     public class SkitOrigin
     {
-        public Vector3 Position { get; }
-        
+        private readonly Vector3 _position;
+
         public SkitOrigin(Vector3 position)
         {
-            Position = position;
+            _position = position;
         }
-        
+
         public Vector3 ToWorld(Vector3 relativePosition)
         {
-            return Position + relativePosition;
+            return _position + relativePosition;
+        }
+        
+        public Vector3 ToRelative(Vector3 worldPosition)
+        {
+            return worldPosition - _position;
         }
     }
 }
