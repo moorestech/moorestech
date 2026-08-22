@@ -143,6 +143,7 @@ const controls = {
   // 一覧を溢れさせる/既定へ戻す。スクロール時の挙動を実データ件数で検証するため
   // Overflow the list / restore the default, so scrolling behavior is verified with a real item count
   itemListLarge: () => control(Topics.itemList, clone(fx.demoItemList)),
+  itemListSevenRows: () => control(Topics.itemList, clone(fx.sevenRowItemList)),
   itemListDefault: () => clearingControl(Topics.itemList, clone(fx.itemList)),
   tutorialEmpty: () => control(Topics.tutorialPresentation, { revision: 0, sessions: [] }),
   tutorialOutlineWithLabel: () => control(Topics.tutorialPresentation, {

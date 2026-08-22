@@ -304,6 +304,11 @@
   /* Measured bleed of the item-list count badge (absolutely placed at bottom:-1px) below the last row's slots;
      unless the ScrollArea reserves it, even a single row yields a phantom overflow and a needless bar */
   --item-list-count-bleed: 5px;
+  /* スクロール領域の内側に確保する、チュートリアルハイライトの逃げ。内訳はマスタのpaddingPx(実測8px)と
+     --tutorial-highlight-glow。これを下回るとセルがクリップ端に密着し、枠の該当辺が削られて「コ」の字に欠ける */
+  /* Clearance reserved inside a scroller for the tutorial highlight: the master's paddingPx (measured 8px) plus
+     --tutorial-highlight-glow. Below this the cell hugs the clip edge and that side of the ring is shaved away */
+  --tutorial-anchor-clip-inset: calc(8px + var(--tutorial-highlight-glow));
   /* レシピビューア単一リストのエントリ間隔（ADR 0011・§8.17）。
      最大高はパネル本文が決めるためトークンを持たない（ユーザー裁定 2026-08-22） */
   /* Entry gap for the recipe viewer single list (ADR 0011, §8.17);

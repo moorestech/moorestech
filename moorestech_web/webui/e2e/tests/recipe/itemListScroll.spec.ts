@@ -22,20 +22,22 @@ test("スクロール領域はパネル本文いっぱいで、既定件数で�
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
 
-  // クリップ境界(viewport)がパネル本文の下端まで届いていること。内容1段ぶんで止まっていないこと
-  // The clip edge (viewport) reaches the panel body's bottom instead of stopping at the single content row
+  // クリップ境界(viewport)がパネル本文いっぱいまで届いていること。内容1段ぶんで止まっていないこと
+  // 下端は逃げ(--tutorial-anchor-clip-inset)ぶんだけ本文の外へ出る
+  // The clip edge (viewport) spans the whole panel body instead of stopping at the single content row;
+  // its bottom sits outside the body by the clearance (--tutorial-anchor-clip-inset)
   const geometry = await viewport(page).evaluate((element) => {
     const body = element.closest("[data-variant='default']")!.querySelector("[class*='_body_']")!;
     return {
       viewportBottom: element.getBoundingClientRect().bottom,
       bodyBottom: body.getBoundingClientRect().bottom,
-      contentHeight: element.firstElementChild!.getBoundingClientRect().height,
+      gridBottom: element.querySelector('[data-testid="item-list-grid"]')!.getBoundingClientRect().bottom,
       overflowY: element.scrollHeight - element.clientHeight,
       overflowX: element.scrollWidth - element.clientWidth,
     };
   });
-  expect(geometry.viewportBottom).toBeCloseTo(geometry.bodyBottom, 0);
-  expect(geometry.viewportBottom - geometry.contentHeight).toBeGreaterThan(100);
+  expect(geometry.viewportBottom - geometry.bodyBottom).toBeCloseTo(12, 0);
+  expect(geometry.viewportBottom - geometry.gridBottom).toBeGreaterThan(100);
   expect(geometry).toMatchObject({ overflowY: 0, overflowX: 0 });
   await expect(verticalBar(page)).toBeHidden();
   await expect(horizontalBar(page)).toBeHidden();
@@ -86,4 +88,50 @@ test("アンカーがスクロールで隠れ始めたらラベルを引っ込�
   // Once fully hidden the outline is not drawn at all (ADR 0024)
   await scrollTo(300);
   await expect(outline).toHaveCount(0);
+});
+
+test("クリップ境界はグリッドからハイライトの逃げぶん離れ、枠が削られない", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+
+  // 逃げ = マスタのpaddingPx + グロー。下回るとセルがクリップ端に密着し枠が「コ」の字に欠ける
+  // The clearance is the master's paddingPx + glow; below it the cell hugs the clip edge and the ring is notched
+  const clearance = await viewport(page).evaluate((element) => {
+    const grid = element.querySelector('[data-testid="item-list-grid"]')!.getBoundingClientRect();
+    const clip = element.getBoundingClientRect();
+    const inset = getComputedStyle(document.documentElement).getPropertyValue("--tutorial-anchor-clip-inset");
+    return { top: grid.top - clip.top, left: grid.left - clip.left, right: clip.right - grid.right, inset };
+  });
+  expect(clearance.inset.trim()).toBe("calc(8px + 4px)");
+  expect(clearance.top).toBeGreaterThanOrEqual(12);
+  expect(clearance.left).toBeGreaterThanOrEqual(12);
+  expect(clearance.right).toBeGreaterThanOrEqual(12);
+
+  // 枠は四辺とも削られない(insetは負=グロー分だけ外側へ出る)
+  // No side of the ring is shaved; a negative inset means it extends outward by the glow
+  await setTopicScenario(page, "tutorialRecipeItem");
+  const outline = page.locator('[data-testid="tutorial-overlay"] [data-kind="outline"]');
+  await expect(outline).toBeVisible();
+  await expect(outline).toHaveCSS("clip-path", "inset(-4px)");
+});
+
+test("7段は溢れず、最下段までスクロールしても最終段に逃げが残る", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+
+  // 溢れる直前の7段でもバーを出さない
+  // Seven rows is the last non-overflowing count and must not raise a bar
+  await setTopicScenario(page, "itemListSevenRows");
+  await expect(verticalBar(page)).toBeHidden();
+
+  // 溢れる件数で最下段までスクロールしても、最終段の下に逃げが残り枠が削られない
+  // Even scrolled to the end of an overflowing list the last row keeps its clearance so the ring survives
+  await setTopicScenario(page, "itemListLarge");
+  await expect(verticalBar(page)).toBeVisible();
+  await viewport(page).evaluate((element) => { element.scrollTop = element.scrollHeight; });
+  const bottom = await viewport(page).evaluate((element) => {
+    const cells = element.querySelectorAll("[data-item-id]");
+    return element.getBoundingClientRect().bottom - cells[cells.length - 1].getBoundingClientRect().bottom;
+  });
+  expect(bottom).toBeGreaterThanOrEqual(12);
 });

@@ -27,15 +27,20 @@
   min-height: 0;
 }
 
-/* 左端のクリップ領域だけ3層リング分広げ、グリッド本体の絶対位置は維持する */
-/* Widen only the left clipping region by the three-layer ring while preserving the grid's absolute position */
+/* 上下端と左端のクリップ領域をチュートリアル枠の逃げぶん広げ、グリッド本体の絶対位置は維持する
+   （広げたぶんはScrollArea側の負マージンで相殺し、内容box寸法も不変にする。右端は既に15.95pxの逃げがあり不要） */
+/* Widen the top, bottom and left clipping region by the tutorial ring's clearance while preserving the grid's
+   absolute position (negative margins on the ScrollArea cancel it and keep the content box size unchanged;
+   the right edge already has 15.95px) */
 .scrollArea :global(.mantine-ScrollArea-viewport) {
   box-sizing: border-box;
   /* クリップ境界をパネル本文いっぱいまで伸ばす。Mantine既定のheight:100%は解決できず内容なりに潰れる */
   /* Stretch the clip edge to the full panel body; Mantine's default height:100% cannot resolve and collapses to the content */
   flex: 1;
   min-height: 0;
-  padding-left: 3.131498px;
+  padding-top: var(--tutorial-anchor-clip-inset);
+  padding-bottom: var(--tutorial-anchor-clip-inset);
+  padding-left: var(--tutorial-anchor-clip-inset);
   /* 掴みドラッグを自前で処理するため、タッチの既定スクロールを無効化する */
   /* Disable native touch scrolling since we handle grab-drag ourselves */
   touch-action: none;
@@ -47,6 +52,15 @@
    overflow and a bar (precedent: --recipe-entry-bleed in RecipeViewer.module.css, the same bleed-becomes-scroll problem) */
 .scrollArea :global(.mantine-ScrollArea-content) {
   padding-bottom: var(--item-list-count-bleed);
+}
+
+/* 上下へ広げたクリップ領域のぶんトラックを詰め、ノブの位置と長さを正本合わせのまま保つ */
+/* Inset the track by the clip widening above and below so the knob keeps its reference-matched position and length */
+.scrollArea :global(.mantine-ScrollArea-scrollbar[data-orientation="vertical"]) {
+  top: var(--tutorial-anchor-clip-inset);
+  /* Mantine既定の bottom は --sa-corner-width。丸ごと置き換えるとトラックが4px伸びるため足し込む */
+  /* Mantine's default bottom is --sa-corner-width; replacing it outright lengthens the track by 4px, so add onto it */
+  bottom: calc(var(--tutorial-anchor-clip-inset) + var(--sa-corner-width));
 }
 
 /* ノブ寸法はコンテンツ量から自然算出させる（DEMOは60件=10段で正本のトラック比≈70%になる） */

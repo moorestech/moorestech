@@ -81,3 +81,6 @@ export const itemList = { itemIds: [100, 101, 102, 1, 2] } satisfies RecipeViewe
 // チュートリアル指名の対象。1段目のセルで、ScrollAreaの上端クリップに最も晒される位置
 // The tutorial's named target: a first-row cell, the position most exposed to the ScrollArea's top clip
 export const TUTORIAL_RECIPE_ITEM_ID = 100;
+// 溢れる直前の段数(6列x7段)。スクロール領域へちょうど収まる境界を押さえる用
+// Exactly the last non-overflowing row count (6 cols x 7 rows), pinning the boundary that just fits the scroller
+export const sevenRowItemList = { itemIds: [100, ...Array.from({ length: 41 }, (_, i) => i + 1)] } satisfies RecipeViewerItemListData;
