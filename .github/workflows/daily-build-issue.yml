@@ -1,0 +1,37 @@
+# 日次(schedule)のUnity Buildの結末を受けて、専用ラベルIssueを起票・更新・クローズする（ADR 0028）。
+# ci-auto-rerunによる再実行のあとの最終的な結末だけを見るため、workflow_runの完了を待って動く。
+# Reacts to the outcome of the daily (scheduled) Unity Build to file, update, or close a labelled issue (ADR 0028).
+# It runs on workflow_run completion so it only observes the final outcome after ci-auto-rerun has retried.
+name: Daily Build Issue
+
+on:
+  workflow_run:
+    workflows:
+      - "Unity Build"
+    types:
+      - completed
+
+permissions:
+  issues: write
+  actions: read
+  contents: read
+
+jobs:
+  file-issue:
+    runs-on: ubuntu-latest
+    # 日次(schedule)起因のrunだけを対象にする。ラベル発火や手動実行では起票しない
+    # Only scheduled runs are eligible; label-triggered and manual runs never file an issue
+    if: github.event.workflow_run.event == 'schedule'
+    steps:
+      - name: Checkout issue script
+        uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: .github/scripts
+
+      - name: File or update the daily build issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fileDailyBuildIssue = require('./.github/scripts/daily-build-issue.cjs');
+            await fileDailyBuildIssue({ github, context, core });
