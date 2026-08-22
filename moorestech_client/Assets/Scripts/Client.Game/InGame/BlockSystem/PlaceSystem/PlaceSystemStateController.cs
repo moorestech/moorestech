@@ -7,8 +7,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     public class PlaceSystemStateController
     {
-        private readonly PlaceSystemSelector _placeSystemSelector;
-        private readonly PlacementFeedbackTooltipPresenter _feedbackPresenter;
+        private readonly IPlaceSystemSelector _placeSystemSelector;
+        private readonly IPlacementFeedbackPresenter _feedbackPresenter;
         private readonly PlacementFeedback _feedback = new();
 
         private IPlaceSystem _currentPlaceSystem;
@@ -30,13 +30,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public bool IsWheelOwnedByTool => _isWheelOwnedByTool.Value;
         public IObservable<bool> OnWheelOwnedByToolChanged => _isWheelOwnedByTool;
 
-        public PlaceSystemStateController(PlaceSystemSelector placeSystemSelector, PlacementFeedbackTooltipPresenter feedbackPresenter)
+        // 表示面へ触るのは初期化ではなくManualUpdate/Disableの仕事。ctorはフィールドを埋めるだけにする
+        // Touching the view is ManualUpdate/Disable's job, not construction; the ctor only fills fields
+        public PlaceSystemStateController(IPlaceSystemSelector placeSystemSelector, IPlacementFeedbackPresenter feedbackPresenter)
         {
             _placeSystemSelector = placeSystemSelector;
             _feedbackPresenter = feedbackPresenter;
 
             _currentPlaceSystem = _placeSystemSelector.EmptyPlaceSystem;
-            Disable();
+            CurrentOrigin = PlacementOrigin.NonHotbar;
         }
 
         // 対象同一でも由来変化で通知する

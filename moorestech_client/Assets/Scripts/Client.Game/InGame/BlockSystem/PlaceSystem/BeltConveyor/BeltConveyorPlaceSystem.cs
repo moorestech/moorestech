@@ -8,6 +8,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Common.Debug;
 using Core.Master;
@@ -87,7 +88,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out _)) return;
 
             // 設置可能な距離かどうか
-            if (!IsPlaceableFromPlayer(placePoint, PlaceableMaxDistance)) { feedback.AddTooFar(); return; }
+            if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return; }
 
             _previewBlockController.SetActive(true);
 
@@ -96,17 +97,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
-            SetCurrentPlaceInfo();
+            var (placeCauses, beltReasons) = UpdateCurrentPlaceInfos();
 
             var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
 
-            // 各セルの不可原因はBlockCauseに立っている（既存重複・立体交差不能・坂ブロック欠落）
-            // Each cell carries its block cause (existing overlap, impossible overpass, missing slope block)
-            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placePoint, blockGroundOverlapList, feedback);
+            // 共有の不可原因（既存重複）は共通Reporterが積む
+            // The shared block cause (existing overlap) is pushed by the shared reporter
+            var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
+
+            // ベルト固有の理由（立体交差不能・坂ブロック欠落）はベルト側が積む
+            // Belt-specific reasons (impossible overpass, missing slope block) are pushed here on the belt side
+            PushBeltReason();
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
             // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
-            BeltConveyorCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(_currentPlaceInfos, _localPlayerInventory, feedback);
+            PlacementCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(_currentPlaceInfos, _localPlayerInventory, feedback);
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state
@@ -118,7 +123,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             #region Internal
 
-            void SetCurrentPlaceInfo()
+            void PushBeltReason()
+            {
+                if (cursorIndex < 0) return;
+
+                var beltReason = beltReasons[cursorIndex];
+                if (beltReason == BeltConveyorPlacementBlockReason.None) return;
+
+                feedback.Add(new TooltipLine(BeltConveyorPlacementBlockReasonTooltipKey.ToKey(beltReason)));
+            }
+
+            // 設置点列を更新し、セル毎の共有原因とベルト固有理由の列を返す（PlaceInfo列と同じ添字）
+            // Updates the placement point list and returns the per-cell shared cause and belt reason columns (indexed like the PlaceInfo list)
+            (List<PlacementBlockCause> placeCauses, List<BeltConveyorPlacementBlockReason> beltReasons) UpdateCurrentPlaceInfos()
             {
                 var dragStartPoint = _dragState.ResolveDragStartPoint(placePoint);
                 if (dragStartPoint == placePoint)
@@ -127,14 +144,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 }
                 else if (!_isStartZDirection.HasValue)
                 {
-                    _isStartZDirection = Mathf.Abs(placePoint.z - dragStartPoint.z) > Mathf.Abs(placePoint.x - dragStartPoint.x);
+                    _isStartZDirection = Mathf.Abs(placePoint.x - dragStartPoint.x) < Mathf.Abs(placePoint.z - dragStartPoint.z);
                 }
 
-                var cellInfos = _blockPlacePointCalculator.CalculatePoint(dragStartPoint, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster);
+                var cellInfos = _blockPlacePointCalculator.CalculatePoint(dragStartPoint, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster, out var cellCauses, out var cellBeltReasons);
 
-                // セル列へ直線・坂ブロックを1対1で割り当てる
-                // Assign straight and slope blocks to cells one-to-one
-                _currentPlaceInfos = BeltConveyorCellBlockResolver.Resolve(cellInfos, family);
+                // セル列へ直線・坂ブロックを1対1で割り当てる（坂欠落はベルト固有理由の列へ書き戻される）
+                // Assign straight and slope blocks to cells one-to-one (a missing slope is written back into the belt reason column)
+                _currentPlaceInfos = BeltConveyorCellBlockResolver.Resolve(cellInfos, family, cellBeltReasons);
+
+                return (cellCauses, cellBeltReasons);
             }
 
             void PlaceBlock()
@@ -145,11 +164,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 // Skip sending in debug mode
                 if (DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) return;
 
-                // マウスを離したので連続設置状態は解除する（設置有無に関わらず）
-                // Clear the continuous-placement state on mouse release (regardless of whether we place)
-                _dragState.EndDrag();
+                // マウスを離したので連続設置状態は解除する（押下未登録の解放はここで打ち切る）
+                // Clear the continuous-placement state on mouse release (a release without a registered press stops here)
+                if (!_dragState.EndDrag()) return;
 
-                BeltConveyorPlaceSender.TrySendOnClickRelease(_currentPlaceInfos);
+                // ベルトは電線を伴わないためワイヤー判定は常に許可
+                // Belts never carry wires, so the wire check is always allowed
+                TrySendOnClickRelease(_currentPlaceInfos, true);
             }
 
             #endregion

@@ -27,8 +27,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         }
 
         /// <summary>
-        /// 電柱ゴーストを計算表示。出せない場合は理由のみ積みfalse
-        /// Computes and shows the pole ghost; on failure pushes only the reason and returns false
+        /// 電柱ゴーストを計算表示し、可否に関わらず不可理由をfeedbackへ積む
+        /// Computes and shows the pole ghost, pushing block reasons into the feedback either way
         /// </summary>
         public bool TryEvaluateGhost(ElectricWirePoleSelection selection, PlacementFeedback feedback, out ElectricWirePoleGhostEvaluation evaluation)
         {
@@ -43,7 +43,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             // 地面レイキャストで座標算出。距離超過は理由のみ出す
             // Computes the position via ground raycast; beyond range shows only the reason
             if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, 0, selection.CurrentDirection, poleMaster, out var placePoint, out _)) return false;
-            if (!PlaceSystemUtil.IsPlaceableFromPlayer(placePoint, PlaceSystemUtil.PlaceableMaxDistance))
+            if (!PlaceSystemUtil.IsPlaceableFromPlayer(placePoint))
             {
                 feedback.AddTooFar();
                 return false;
@@ -51,7 +51,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
             // 通常設置と同じ計算でPlaceInfo生成。この時点のPlaceable=falseは既存ブロック重複
             // Build the pole PlaceInfo like normal placement; Placeable=false here means existing-block overlap
-            var placeInfos = _pointCalculator.CalculatePoint(placePoint, placePoint, selection.CurrentDirection, poleMaster);
+            var placeInfos = _pointCalculator.CalculatePoint(placePoint, placePoint, selection.CurrentDirection, poleMaster, out _);
             var isPositionFree = placeInfos[0].Placeable;
 
             // 地面判定はゴーストの物理接触を読むため、判定前に有効化する（前例: GearChainPoleExtendPreviewObject.PositionGhost）
@@ -63,6 +63,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             if (!isGroundClear) placeInfos[0].Placeable = false;
 
             evaluation = new ElectricWirePoleGhostEvaluation(placeInfos, poleMaster, poleBlockId, isGroundClear, isPositionFree, materialShortages);
+
+            // ゴーストを出せた時点でその不可理由を積む。呼び出し元は表示と送信だけを担う
+            // Push the ghost's block reasons as soon as it is shown; callers only handle display and sending
+            evaluation.PushBlockReasons(feedback);
             return true;
         }
     }

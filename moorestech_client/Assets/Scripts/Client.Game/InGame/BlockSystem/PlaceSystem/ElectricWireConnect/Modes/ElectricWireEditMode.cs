@@ -58,7 +58,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             }
 
             var placeable = evaluation.IsGhostPlaceable;
-            evaluation.PushBlockReasons(feedback);
             evaluation.PlaceInfo.Placeable = placeable;
             _context.PreviewBlockController.UpdatePlaceableColors(evaluation.PlaceInfos);
 

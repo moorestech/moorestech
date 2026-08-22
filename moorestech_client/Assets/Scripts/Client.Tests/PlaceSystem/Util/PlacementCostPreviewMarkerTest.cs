@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Localization;
 using Core.Item.Interface;
 using Core.Master;
-using Game.Block.Interface;
 using Game.Context;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
@@ -14,13 +13,13 @@ using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
 
-namespace Client.Tests.PlaceSystem.BeltConveyor
+namespace Client.Tests.PlaceSystem.Util
 {
     /// <summary>
-    ///     素材不足の必要数が地形干渉・重複を除いたセル数ぶんであり、賄えないセルが設置不可になることを検証（CommonBlockPlaceCostMarkerTestのベルト対称形）
-    ///     Verify the required count covers only the cells left after terrain/overlap filtering, and unaffordable cells become not placeable (belt-side counterpart to CommonBlockPlaceCostMarkerTest)
+    ///     必要数は不可セルを除いた設置予定セル数分であり、賄えないセルが設置不可になることを検証（通常設置とベルトの共通マーカー）
+    ///     Verify the required count excludes blocked cells and unaffordable cells become not placeable (marker shared by normal and belt placement)
     /// </summary>
-    public class BeltConveyorCostPreviewMarkerTest
+    public class PlacementCostPreviewMarkerTest
     {
         private static readonly Guid Material1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003"); // Test3(コスト×2)
         private static readonly Guid Material2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004"); // Test4(コスト×1)
@@ -30,14 +29,14 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         {
             CreateServer();
 
-            // 5セルのうち2セルは地形干渉・重複で既に不可。残り3セル分のみ必要数に数える
-            // 2 of the 5 cells are already blocked by terrain/overlap; only the remaining 3 count toward the required amount
+            // 5セル中2セルは既に不可、残り3セル分のみ算入
+            // 2 of 5 cells are already blocked; only the remaining 3 count
             var placeInfos = BuildDragCells(5);
             placeInfos[1].Placeable = false;
             placeInfos[3].Placeable = false;
             var feedback = new PlacementFeedback();
 
-            BeltConveyorCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(placeInfos, BuildInventory(3, 10), feedback);
+            PlacementCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(placeInfos, BuildInventory(3, 10), feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
@@ -54,9 +53,9 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             placeInfos[1].Placeable = false;
             placeInfos[3].Placeable = false;
 
-            // 所持3枚ではコスト2のセルを1つしか賄えないため、残る設置可セルは先頭のみ
-            // 3 held items afford only one cell costing 2, so the first cell is the only one left placeable
-            BeltConveyorCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(placeInfos, BuildInventory(3, 10), new PlacementFeedback());
+            // 所持3・コスト2は1セルのみ賄え、残りは先頭だけ可
+            // 3 held items afford only one cost-2 cell, leaving only the first placeable
+            PlacementCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(placeInfos, BuildInventory(3, 10), new PlacementFeedback());
 
             CollectionAssert.AreEqual(new[] { true, false, false, false, false }, placeInfos.ConvertAll(info => info.Placeable));
         }
@@ -69,10 +68,27 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             var placeInfos = BuildDragCells(3);
             var feedback = new PlacementFeedback();
 
-            BeltConveyorCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(placeInfos, BuildInventory(6, 3), feedback);
+            PlacementCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(placeInfos, BuildInventory(6, 3), feedback);
 
             Assert.IsEmpty(feedback.Lines);
             CollectionAssert.AreEqual(new[] { true, true, true }, placeInfos.ConvertAll(info => info.Placeable));
+        }
+
+        [Test]
+        public void セル毎に異なるブロックのコストで判定する()
+        {
+            CreateServer();
+
+            // ベルト設置は直線と坂で異なるブロックが混ざるため、セル毎のBlockIdでコストを引く
+            // Belt placement mixes straight and slope blocks, so each cell's cost comes from its own BlockId
+            var placeInfos = BuildDragCells(3);
+            placeInfos[1].BlockId = ForUnitTestModBlockId.BeltConveyorId;
+
+            // 所持3ではコスト2のブロックを1つだけ賄え、コスト無しのセルは消費しないので通る
+            // 3 held items afford only one cost-2 block, while the costless cell consumes nothing and passes
+            PlacementCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(placeInfos, BuildInventory(3, 10), new PlacementFeedback());
+
+            CollectionAssert.AreEqual(new[] { true, true, false }, placeInfos.ConvertAll(info => info.Placeable));
         }
 
         private static List<PlaceInfo> BuildDragCells(int cellCount)

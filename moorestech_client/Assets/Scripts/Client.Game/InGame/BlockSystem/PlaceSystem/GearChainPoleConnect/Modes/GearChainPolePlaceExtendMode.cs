@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
-using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 {
@@ -29,7 +29,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             // Shows nothing without a position; reports a reason only when out of range
             if (!input.HasGhost)
             {
-                var noGhostLines = input.GhostTooFar ? new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceTooFar) } : Array.Empty<TooltipLine>();
+                var noGhostLines = input.GhostTooFar ? new[] { PlacementFeedback.TooFarLine() } : Array.Empty<TooltipLine>();
                 return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Hidden, noGhostLines);
             }
 
@@ -72,8 +72,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         private static IReadOnlyList<TooltipLine> BuildLines(bool ghostGroundClear, GearChainPoleExtendPreviewData extendPreview)
         {
             var lines = new List<TooltipLine>();
-            if (!ghostGroundClear) lines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain));
-            if (extendPreview.IsValid && !extendPreview.IsPlaceable) lines.Add(new TooltipLine(GearChainPlacementFailureTooltipKey.ToKey(extendPreview.FailureReason)));
+            if (!ghostGroundClear) lines.Add(PlacementFeedback.BlockedByTerrainLine());
+            if (extendPreview.IsValid) lines.AddRange(GearChainPlacementFailureTooltipKey.BuildFailureLines(extendPreview.IsPlaceable, extendPreview.FailureReason));
             return lines;
         }
 

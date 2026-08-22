@@ -6,8 +6,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     /// <summary>
     /// ドラッグ状態と高さオフセットを保持
-    /// 終了時に高さは開始値へ戻す
     /// Holds the drag state and height offset
+    /// 終了時に高さは開始値へ戻す
     /// Ending a drag restores the starting height
     /// </summary>
     public class CommonBlockPlaceDragState
@@ -58,12 +58,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             return _clickStartPosition ?? placePoint;
         }
 
-        // マウスアップで連続設置解除、高さを開始時へ戻す
-        // Clears the drag state on mouse-up and restores the starting height
-        public void EndDrag()
+        // マウスアップで連続設置解除、高さを開始時へ戻す。戻り値は押下が登録されていたか
+        // Clears the drag state on mouse-up and restores the starting height; returns whether a press was registered
+        public bool EndDrag()
         {
+            // 押下未登録の解放は無視する（ビルドメニュー選択クリックの解放が漏れ、Enableのセンチネル-1を高さへ書き込むのを防ぐ）
+            // Ignore releases without a registered press (a leaked build-menu click release would write Enable's -1 sentinel into the height)
+            if (!_clickStartPosition.HasValue) return false;
+
             HeightOffset = _clickStartHeightOffset;
             _clickStartPosition = null;
+            return true;
         }
     }
 }

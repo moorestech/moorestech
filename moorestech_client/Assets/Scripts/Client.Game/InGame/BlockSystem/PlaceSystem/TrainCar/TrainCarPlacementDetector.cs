@@ -164,6 +164,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     out blockReason
                     );
                 result = new TrainCarPlacementHit(
+                    hitPosition,
                     railPosition,
                     overlapTrainUnitInstanceIds,
                     placementMode,

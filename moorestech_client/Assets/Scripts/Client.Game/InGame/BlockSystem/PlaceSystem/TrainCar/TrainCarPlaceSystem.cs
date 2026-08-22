@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.Train.View.Object.Material;
@@ -62,6 +63,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             if (!_detector.TryDetect(target.TrainCarGuid, out var hit))
             {
                 _previewController.SetActive(false);
+                return;
+            }
+
+            // 距離外なら理由のみ出しプレビュー無し
+            // Beyond range, show only the reason and no preview
+            if (!PlaceSystemUtil.IsPlaceableFromPlayer(PlaceSystemUtil.SnapHitPointToCell(hit.HitPosition)))
+            {
+                _previewController.SetActive(false);
+                feedback.AddTooFar();
                 return;
             }
 

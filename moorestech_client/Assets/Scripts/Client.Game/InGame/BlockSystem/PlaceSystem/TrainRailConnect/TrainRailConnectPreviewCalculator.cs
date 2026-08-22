@@ -107,7 +107,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 
     public struct TrainRailConnectPreviewData : IEquatable<TrainRailConnectPreviewData>
     {
-        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Guid.Empty, true, RailConnectionEditProtocol.RailConnectionEditFailureReason.None, true);
+        // ノード解決に失敗した状態を表すため、名前付き引数で「無効かつ設置不可」を明示する
+        // Represents a node resolution failure, so named arguments state "invalid and not placeable" explicitly
+        public static TrainRailConnectPreviewData Invalid => new(
+            startPoint: Vector3.zero,
+            startControlPoint: Vector3.zero,
+            endControlPoint: Vector3.zero,
+            endPoint: Vector3.zero,
+            railTypeGuid: Guid.Empty,
+            isValid: false,
+            failureReason: RailConnectionEditProtocol.RailConnectionEditFailureReason.InvalidNode,
+            isCurvePlaceable: false);
 
         public Vector3 StartPoint;
         public Vector3 StartControlPoint;

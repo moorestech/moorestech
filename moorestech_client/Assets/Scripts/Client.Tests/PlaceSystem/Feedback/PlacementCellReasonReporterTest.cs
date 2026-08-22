@@ -70,20 +70,6 @@ namespace Client.Tests.PlaceSystem.Feedback
         }
 
         [Test]
-        public void 立体交差不能と坂ブロック欠落は既存重複と別の文言になる()
-        {
-            var overpassFeedback = new PlacementFeedback();
-            PlacementCellReasonReporter.Report(0, PlacementBlockCause.ImpossibleOverpass, new[] { false }, overpassFeedback);
-            Assert.AreEqual(1, overpassFeedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBeltOverpassInfeasible.Key, overpassFeedback.Lines[0].Key.Key);
-
-            var slopeFeedback = new PlacementFeedback();
-            PlacementCellReasonReporter.Report(0, PlacementBlockCause.SlopeBlockMissing, new[] { false }, slopeFeedback);
-            Assert.AreEqual(1, slopeFeedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBeltNoSlopeBlock.Key, slopeFeedback.Lines[0].Key.Key);
-        }
-
-        [Test]
         public void 原因が無ければ地形干渉行だけを積む()
         {
             var feedback = new PlacementFeedback();
@@ -95,17 +81,29 @@ namespace Client.Tests.PlaceSystem.Feedback
         }
 
         [Test]
-        public void カーソルセルの原因がそのまま行になる()
+        public void カーソルセルと同じ添字の原因がそのまま行になる()
         {
             var placeInfos = BuildDragCells(3);
             placeInfos[1].Placeable = false;
-            placeInfos[1].BlockCause = PlacementBlockCause.ImpossibleOverpass;
+            var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.ExistingBlock, PlacementBlockCause.None };
             var feedback = new PlacementFeedback();
 
-            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, new Vector3Int(1, 0, 0), new List<bool> { false, false, false }, feedback);
+            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new List<bool> { false, false, false }, feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBeltOverpassInfeasible.Key, feedback.Lines[0].Key.Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].Key.Key);
+        }
+
+        [Test]
+        public void カーソルセル以外の原因は行にならない()
+        {
+            var placeInfos = BuildDragCells(3);
+            var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.ExistingBlock, PlacementBlockCause.None, PlacementBlockCause.None };
+            var feedback = new PlacementFeedback();
+
+            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new List<bool> { false, false, false }, feedback);
+
+            Assert.IsEmpty(feedback.Lines);
         }
 
         private static List<PlaceInfo> BuildDragCells(int cellCount)

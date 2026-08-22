@@ -5,8 +5,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
     /// <summary>
     /// 列車配置不可理由を保持
-    /// 検出器が判定、systemが行を積む
     /// Holds the reason a train placement candidate fails
+    /// 検出器が判定、systemが行を積む
     /// Judged by the detector, turned into a line by the system
     /// </summary>
     public enum TrainCarPlacementBlockReason

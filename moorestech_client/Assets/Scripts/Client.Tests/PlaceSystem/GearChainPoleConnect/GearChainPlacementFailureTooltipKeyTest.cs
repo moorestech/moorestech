@@ -31,5 +31,37 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.NotUnlockedError).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(string.Empty).Key);
         }
+
+        [Test]
+        // 接続可なら行なし、不可なら理由キー1行を返す
+        // Returns no line when placeable and one reason-key line otherwise
+        public void BuildFailureLinesReturnsLineOnlyWhenNotPlaceableTest()
+        {
+            var cases = new (bool IsPlaceable, string FailureReason, string ExpectedKey)[]
+            {
+                (true, GearChainPlacementEvaluator.TooFarError, null),
+                (true, string.Empty, null),
+                (false, GearChainPlacementEvaluator.TooFarError, LocalizationKeys.Ui.Tooltip.PlaceGearChainTooFar.Key),
+                (false, GearChainPlacementEvaluator.AlreadyConnectedError, LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected.Key),
+                (false, GearChainPlacementEvaluator.ConnectionLimitError, LocalizationKeys.Ui.Tooltip.PlaceGearChainConnectionLimit.Key),
+                (false, GearChainPlacementEvaluator.NoItemError, LocalizationKeys.Ui.Tooltip.PlaceGearChainNoItem.Key),
+                (false, GearChainPlacementEvaluator.NotUnlockedError, LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key),
+            };
+
+            foreach (var testCase in cases)
+            {
+                var lines = GearChainPlacementFailureTooltipKey.BuildFailureLines(testCase.IsPlaceable, testCase.FailureReason);
+                var message = $"isPlaceable={testCase.IsPlaceable} failureReason={testCase.FailureReason}";
+                if (testCase.IsPlaceable)
+                {
+                    Assert.AreEqual(0, lines.Count, message);
+                    continue;
+                }
+
+                Assert.AreEqual(1, lines.Count, message);
+                Assert.AreEqual(testCase.ExpectedKey, lines[0].Key.Key, message);
+                Assert.AreEqual(0, lines[0].TextParams.Count, message);
+            }
+        }
     }
 }

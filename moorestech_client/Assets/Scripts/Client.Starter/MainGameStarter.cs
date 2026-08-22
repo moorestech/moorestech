@@ -217,9 +217,9 @@ namespace Client.Starter
             builder.Register<TrainRailConnectSystem>(Lifetime.Singleton);
             builder.Register<GearChainPoleConnectSystem>(Lifetime.Singleton);
             builder.Register<ElectricWireConnectSystem>(Lifetime.Singleton);
-            builder.Register<PlacementFeedbackTooltipPresenter>(Lifetime.Singleton);
+            builder.Register<IPlacementFeedbackPresenter, PlacementFeedbackTooltipPresenter>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
-            builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
+            builder.Register<IPlaceSystemSelector, PlaceSystemSelector>(Lifetime.Singleton);
             builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
             // 設置プレビュー中の鉱脈範囲表示。設置側はIMapVeinRangeView越しにプッシュするだけ
             // Vein range view during placement preview; the placement side only pushes through IMapVeinRangeView

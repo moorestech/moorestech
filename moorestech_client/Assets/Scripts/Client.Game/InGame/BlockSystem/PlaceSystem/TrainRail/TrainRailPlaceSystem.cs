@@ -29,7 +29,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             // ビルドメニュー選択のBlockIdでプレビュー・設置を駆動する
             // Drive preview and placement from the build-menu selected BlockId
             var blockId = target.BlockId;
-            var placeInfo = _trainRailPlaceSystemService.ManualUpdate(blockId);
+            var placeInfo = _trainRailPlaceSystemService.ManualUpdate(blockId, feedback);
+
+            // 距離外・地面干渉で設置不可なセルは送信しない
+            // Do not send a cell blocked by range or terrain
+            if (placeInfo == null || !placeInfo.Placeable) return;
             if (!InputManager.Playable.ScreenLeftClick.GetKeyUp || UiPointerHitTest.IsPointerOverAnyUi()) return;
 
             PlaceSystemUtil.SendPlaceBlockProtocol(new List<PlaceInfo> { placeInfo });

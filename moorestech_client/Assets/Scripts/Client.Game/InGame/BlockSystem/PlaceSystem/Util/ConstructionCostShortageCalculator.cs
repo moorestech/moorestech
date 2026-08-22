@@ -7,8 +7,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 {
     /// <summary>
     /// コストを素材ごとに合算
-    /// 不足素材のみ返す
     /// Sums construction costs per material
+    /// 不足素材のみ返す
     /// Returns only the ones falling short
     /// </summary>
     public static class ConstructionCostShortageCalculator

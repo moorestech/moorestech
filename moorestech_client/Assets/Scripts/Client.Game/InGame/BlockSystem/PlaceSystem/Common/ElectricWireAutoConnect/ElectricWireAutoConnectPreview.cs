@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
-using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -109,39 +109,26 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             var cursorInfo = placeInfos[cursorIndex];
             var originEndpoint = ResolveOriginEndpoint(cursorIndex, cursorInfo);
             var cursorTargets = cursorInfo.Placeable ? ResolveTargetEndpoints(cursorInfo.Position) : EmptyTargets;
-            ShowCursorNotice();
+
+            // 近傍走査は全ブロック走査で重いため、案内に必要なときだけ実行する
+            // The neighbor scan walks every block, so run it only when the notice actually needs it
+            var hasOutOfRangeNeighbor = AutoConnectNoticeLines.NeedsOutOfRangeProbe(cursorWirePlaceable, cursorRawTargetCount) &&
+                                        ClientElectricWireAutoConnectCollector.ExistsElectricNeighborOutOfConnectionRange(blockId, cursorInfo.Position, direction, _blockDataStore);
+
+            // どの案内行を積むかの判断は純関数へ委ね、線描画だけここに残す
+            // The notice-line judgement lives in the pure helper; only the wire drawing stays here
+            var isWireShortage = AutoConnectNoticeLines.Report(cursorWirePlaceable, cursorRawTargetCount, hasOutOfRangeNeighbor, totalCost, feedback);
+
+            // 電線不足時のみ「足りていればどこへ張られたか」を不可色の線で見せる
+            // Only on wire shortage, failure-colored wires show where they would have run
+            if (isWireShortage) _renderer.Show(originEndpoint, ResolveTargetEndpoints(cursorInfo.Position), true);
+            else _renderer.Show(originEndpoint, cursorTargets, false);
 
             // 設置可能なセルが1つでも残っていればクリック許可（不可セルはサーバーが個別に拒否する既存方針に揃える）
             // Allow the click when any cell remains placeable (bad cells are rejected per-cell by the server, matching existing policy)
             return anyPlaceable;
 
             #region Internal
-
-            // カーソルセル状態に応じ線描画とツールチップ行を積む
-            // Draws wires per cursor-cell state and pushes tooltip lines
-            void ShowCursorNotice()
-            {
-                // 電線不足は自動接続プレビューが唯一拒否する理由。不可色の線で「足りていればどこへ張られたか」を見せる
-                // Insufficient wire is the only rejection reason here; the failure-colored wires show where they would have run
-                if (!cursorWirePlaceable)
-                {
-                    _renderer.Show(originEndpoint, ResolveTargetEndpoints(cursorInfo.Position), true);
-                    feedback.Add(ElectricWireFeedbackLines.WireShortage());
-                    return;
-                }
-
-                // 1件も配線されず、かつ範囲判定で落ちた近傍が実在するときだけ、設置許可のまま範囲外を案内する
-                // Only when nothing gets wired and a neighbor actually failed the range check, keep placement allowed and report out-of-range
-                if (cursorRawTargetCount == 0 && ClientElectricWireAutoConnectCollector.ExistsElectricNeighborOutOfConnectionRange(blockId, cursorInfo.Position, direction, _blockDataStore))
-                {
-                    _renderer.Show(originEndpoint, cursorTargets, false);
-                    feedback.Add(ElectricWireFeedbackLines.WireOutOfRangeNotice());
-                    return;
-                }
-
-                _renderer.Show(originEndpoint, cursorTargets, false);
-                if (ElectricWireFeedbackLines.TryWireCost(totalCost, out var costLine)) feedback.Add(costLine);
-            }
 
             void InvalidateCacheOnKeyChange()
             {

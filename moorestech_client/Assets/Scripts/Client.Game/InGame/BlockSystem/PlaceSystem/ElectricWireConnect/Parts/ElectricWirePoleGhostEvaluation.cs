@@ -9,8 +9,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 {
     /// <summary>
     /// 電柱ゴースト評価結果を保持
-    /// 不可理由を個別にツールチップへ
     /// Holds a pole-ghost evaluation result
+    /// 不可理由を個別にツールチップへ
     /// Each block reason is pushed to the tooltip separately
     /// </summary>
     public readonly struct ElectricWirePoleGhostEvaluation
@@ -44,7 +44,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
         // ゴーストの不可理由をプッシュ順（地形 → 重複 → 素材）でツールチップへ積む
         // Push the ghost's block reasons in order (terrain → overlap → materials) into the tooltip
-        public void PushBlockReasons(PlacementFeedback feedback)
+        // 積み忘れ・二重積みを防ぐため唯一の呼び出し元はTryEvaluateGhostに限る
+        // TryEvaluateGhost is the only caller so callers can neither forget nor duplicate the push
+        internal void PushBlockReasons(PlacementFeedback feedback)
         {
             if (!IsGroundClear) feedback.AddBlockedByTerrain();
             if (!IsPositionFree) feedback.AddBlockedByExistingBlock();

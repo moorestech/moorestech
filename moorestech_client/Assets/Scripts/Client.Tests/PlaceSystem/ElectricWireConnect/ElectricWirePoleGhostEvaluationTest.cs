@@ -16,8 +16,8 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
 {
     /// <summary>
     ///     地形→重複→素材の順で行になる
-    ///     不可セルは素材行なし
     ///     Verify lines follow terrain→overlap→material order
+    ///     不可セルは素材行なし
     ///     A blocked cell has no material line
     /// </summary>
     public class ElectricWirePoleGhostEvaluationTest

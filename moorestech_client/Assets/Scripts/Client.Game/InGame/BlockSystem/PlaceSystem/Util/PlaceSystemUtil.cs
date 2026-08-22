@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
@@ -20,16 +22,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
     {
         // 全PlaceSystem共通の設置距離
         // Placement distance shared by all PlaceSystems
-        public const float PlaceableMaxDistance = 100f;
+        private const float PlaceableMaxDistance = 100f;
 
         // プレイヤー位置基準で設置距離を判定する（起点をカメラ位置にすると視点の引き方で判定が食い違う）
         // Judge placeable distance from the player position (a camera-based origin would disagree as the view is pulled back)
-        public static bool IsPlaceableFromPlayer(Vector3Int placePoint, float maxDistance)
+        public static bool IsPlaceableFromPlayer(Vector3Int placePoint)
         {
             var placePosition = (Vector3)placePoint;
             var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
 
-            return Vector3.Distance(playerPosition, placePosition) <= maxDistance;
+            return Vector3.Distance(playerPosition, placePosition) <= PlaceableMaxDistance;
         }
 
         public static bool TryGetRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
@@ -174,6 +176,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             if (record.HasCells) ClientDIContext.BuildOperationHistory.Push(record);
 
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
+        }
+
+        // 左クリック解放時の設置送信。UI上か電線不足なら送らない。戻り値は送信したか
+        // Sends the placement on left-click release; skipped over UI or when wire is short. Returns whether it sent
+        public static bool TrySendOnClickRelease(List<PlaceInfo> currentPlaceInfos, bool wirePlaceable)
+        {
+            if (UiPointerHitTest.IsPointerOverAnyUi() || !wirePlaceable) return false;
+
+            // 設置可能セルだけを送る（不可セルはサーバーでも拒否されるため送らない）
+            // Send only placeable cells; blocked cells would be rejected by the server anyway
+            SendPlaceBlockProtocol(currentPlaceInfos.Where(info => info.Placeable).ToList());
+            return true;
         }
     }
 }

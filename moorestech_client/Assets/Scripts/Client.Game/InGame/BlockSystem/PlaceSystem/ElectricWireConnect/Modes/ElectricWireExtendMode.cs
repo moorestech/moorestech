@@ -106,9 +106,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 _ = _context.PreviewBlockController.TryGetPreviewBlock(0, out var poleGhost);
                 var endEndpoint = ElectricWireEndpointResolver.ResolveFromGhost(poleGhost, evaluation.PlaceInfo, evaluation.PoleMaster);
 
-                // ゴーストの不可理由（地形・重複・素材）→ ワイヤー判定の理由 → 消費電線数 の順で積む
-                // Push ghost block reasons (terrain/overlap/materials), then the wire judgement reason, then the wire cost
-                evaluation.PushBlockReasons(feedback);
+                // ゴーストの不可理由はTryEvaluateGhostが積み済みなので、続けてワイヤー判定の理由と消費電線数を積む
+                // TryEvaluateGhost already pushed the ghost reasons, so push the wire judgement reason and cost next
                 ElectricWirePlacementFailureTooltipKey.Report(judgement, connectToolGuid, distance, feedback);
                 _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), endEndpoint, placeable);
 

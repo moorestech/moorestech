@@ -20,8 +20,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
         public void Clear() => _lines.Clear();
         public void Add(TooltipLine line) => _lines.Add(line);
 
-        public void AddBlockedByTerrain() => _lines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain));
-        public void AddBlockedByExistingBlock() => _lines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock));
-        public void AddTooFar() => _lines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceTooFar));
+        public void AddBlockedByTerrain() => _lines.Add(BlockedByTerrainLine());
+        public void AddBlockedByExistingBlock() => _lines.Add(BlockedByExistingBlockLine());
+        public void AddTooFar() => _lines.Add(TooFarLine());
+
+        // 共通不可理由の行を生成する。シンクを持たない純関数の判断側もここからキーを得る
+        // Builds the shared block-reason lines so sink-less pure decision code takes its keys from here too
+        public static TooltipLine BlockedByTerrainLine() => new(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain);
+        public static TooltipLine BlockedByExistingBlockLine() => new(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock);
+        public static TooltipLine TooFarLine() => new(LocalizationKeys.Ui.Tooltip.PlaceTooFar);
     }
 }

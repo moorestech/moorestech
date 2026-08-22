@@ -74,6 +74,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             // Snap to the cursor cell with the convention shared with the copy side
             var anchor = PlaceSystemUtil.SnapHitPointToCell(hitPoint);
 
+            // 距離外なら理由のみ出しゴースト無し
+            // Beyond range, show only the reason and no ghost
+            if (!PlaceSystemUtil.IsPlaceableFromPlayer(anchor))
+            {
+                _previewController.Hide();
+                feedback.AddTooFar();
+                return;
+            }
+
             var placements = BlueprintPasteCalculator.CalculatePlacements(_currentBlueprint, anchor, _rotationStep);
             var placeableFlags = placements.Select(IsPlaceable).ToList();
             _previewController.UpdatePreview(placements, placeableFlags);

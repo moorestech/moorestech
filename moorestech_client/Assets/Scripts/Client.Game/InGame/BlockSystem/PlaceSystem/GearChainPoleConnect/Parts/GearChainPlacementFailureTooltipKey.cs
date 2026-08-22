@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using Client.Game.InGame.UI.Tooltip;
 using Mooresmaster.Localization.Generated;
 using Server.Protocol.PacketResponse.Util.GearChain;
 
@@ -9,6 +12,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
     /// </summary>
     public static class GearChainPlacementFailureTooltipKey
     {
+        // 接続判定の結果を行へ変換する。可なら行なし、不可なら理由キー1行
+        // Turns a connection judgement into lines: none when placeable, one reason-key line otherwise
+        public static IReadOnlyList<TooltipLine> BuildFailureLines(bool isPlaceable, string failureReason)
+        {
+            if (isPlaceable) return Array.Empty<TooltipLine>();
+            return new[] { new TooltipLine(ToKey(failureReason)) };
+        }
+
         public static LocalizationKey ToKey(string failureReason)
         {
             return failureReason switch

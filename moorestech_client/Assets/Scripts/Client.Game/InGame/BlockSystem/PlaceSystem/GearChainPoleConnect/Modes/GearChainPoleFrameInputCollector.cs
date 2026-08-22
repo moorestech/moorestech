@@ -68,7 +68,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             // ゴースト位置を算出し距離内か確認
             // Calculate ghost position and ensure it is within placeable distance
             if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, 0, BlockDirection.North, poleBlockMaster, out var placePos, out _)) return input;
-            if (!PlaceSystemUtil.IsPlaceableFromPlayer(placePos, PlaceSystemUtil.PlaceableMaxDistance))
+            if (!PlaceSystemUtil.IsPlaceableFromPlayer(placePos))
             {
                 input.GhostTooFar = true;
                 return input;
