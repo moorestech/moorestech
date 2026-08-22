@@ -25,6 +25,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private const string Challenge3Guid = "00000000-0000-0000-4567-000000000003";
         private const string Challenge4Guid = "00000000-0000-0000-4567-000000000004";
         private const string Challenge5Guid = "00000000-0000-0000-4567-000000000005";
+        private const string EquipItemChallengeGuid = "00000000-0000-0000-4567-000000000102";
         
         private const string Category1Guid = "03ca4ded-3b2b-4e7f-bb6e-430f060c4ed1";
         private const string Category2Guid = "35330f9d-f44f-493d-a6bc-07ae6413d7c4";
@@ -43,8 +44,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             challengeDatastore.InitializeCurrentChallenges();
             var currentChallengeInfo = challengeDatastore.CurrentChallengeInfo;
             
-            // 最初は4つのチャレンジがあるはず（1、2、3、101）
-            Assert.AreEqual(4, currentChallengeInfo.CurrentChallenges.Count);
+            // 最初は5つのチャレンジがあるはず（1、2、3、101、102）
+            Assert.AreEqual(5, currentChallengeInfo.CurrentChallenges.Count);
             
             // チャレンジ1だけをクリア
             var challenge1 = currentChallengeInfo.CurrentChallenges.First(c => c.ChallengeMasterElement.ChallengeGuid == Guid.Parse(Challenge1Guid));
@@ -66,10 +67,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(allCompletedChallenges.Contains(Guid.Parse(Challenge1Guid)));
             
             // チャレンジ1がクリアされたので、チャレンジ4が開始されているはず
-            // まだチャレンジ2・3・101が残っているので、合計で4つのCurrentChallengeがあるはず
+            // まだチャレンジ2・3・101・102が残っているので、合計で5つのCurrentChallengeがあるはず
             // Categories内のすべてのCurrentChallengeを集計
             var allCurrentChallenges = challengeInfo.Categories.SelectMany(c => c.CurrentChallengeGuids).ToList();
-            Assert.AreEqual(4, allCurrentChallenges.Count);
+            Assert.AreEqual(5, allCurrentChallenges.Count);
             Assert.IsTrue(allCurrentChallenges.Contains(Guid.Parse(Challenge4Guid)));
             Assert.IsTrue(allCurrentChallenges.Contains(Guid.Parse(Challenge2Guid)));
             Assert.IsTrue(allCurrentChallenges.Contains(Guid.Parse(Challenge3Guid)));
@@ -109,10 +110,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(allCompletedChallenges.Contains(Guid.Parse(Challenge3Guid)));
             Assert.IsTrue(allCompletedChallenges.Contains(Guid.Parse(Challenge4Guid)));
             
-            // チャレンジ5と101（prevなしで未クリア）が現在のチャレンジとして残っているはず
+            // チャレンジ5と101、102（prevなしで未クリア）が現在のチャレンジとして残っているはず
             allCurrentChallenges = challengeInfo.Categories.SelectMany(c => c.CurrentChallengeGuids).ToList();
-            Assert.AreEqual(2, allCurrentChallenges.Count);
+            Assert.AreEqual(3, allCurrentChallenges.Count);
             Assert.IsTrue(allCurrentChallenges.Contains(Guid.Parse(Challenge5Guid)));
+            Assert.IsTrue(allCurrentChallenges.Contains(Guid.Parse(EquipItemChallengeGuid)));
         }
         
         [Test]
