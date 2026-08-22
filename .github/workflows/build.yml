@@ -64,14 +64,16 @@ jobs:
           git submodule sync --recursive
           git submodule update --init --recursive
 
-      # 年月日を取得　キャッシュのkeyに利用
+      # windows-latestのrunは既定でpwshのため、bashを明示しないとキーが空になる
+      # windows-latest defaults run to pwsh, so bash must be explicit or the key ends up empty
       - name: Set current datetime as env variable
+        shell: bash
         env:
           TZ: 'Asia/Tokyo'
         run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
 
       # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: moorestech_server/Library
           key: "Server_Library_${{ env.CURRENT_DATETIME }}"
@@ -138,7 +140,8 @@ jobs:
         platform:
           # ==========================================
           # プラットフォームの追加/削除でビルド対象を切り替え可能
-          # Linux はランナーの容量が足りないためクライアントビルドは除外
+          # LinuxクライアントはCEFネイティブランタイム不在で必ず失敗するため除外（.decisions/2026-08-02）
+          # The Linux client is excluded because the CEF native runtime does not exist for it (.decisions/2026-08-02)
           # ==========================================
           - name: StandaloneWindows64
             buildMethod: Client.Editor.Build.BuildPipeline.WindowsBuildFromGithubAction
@@ -208,14 +211,16 @@ jobs:
           fi
           "$pnpm_binary" --dir webui install --frozen-lockfile
 
-      # 年月日を取得　キャッシュのkeyに利用
+      # windows-latestのrunは既定でpwshのため、bashを明示しないとキーが空になる
+      # windows-latest defaults run to pwsh, so bash must be explicit or the key ends up empty
       - name: Set current datetime as env variable
+        shell: bash
         env:
           TZ: 'Asia/Tokyo'
         run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
 
       # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: moorestech_client/Library
           key: "Library_${{ env.CURRENT_DATETIME }}"

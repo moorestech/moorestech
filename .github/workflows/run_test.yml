@@ -108,14 +108,16 @@ jobs:
           fi
           "$pnpm_binary" --dir webui install --frozen-lockfile
 
-      # 年月日を取得　キャッシュのkeyに利用
+      # windows-latestのrunは既定でpwshのため、bashを明示しないとキーが空になる
+      # windows-latest defaults run to pwsh, so bash must be explicit or the key ends up empty
       - name: Set current datetime as env variable
+        shell: bash
         env:
           TZ: 'Asia/Tokyo'
         run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
 
       # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: moorestech/moorestech_client/Library
           key: "Library_Test_${{ env.CURRENT_DATETIME }}"
