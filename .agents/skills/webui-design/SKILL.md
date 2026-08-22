@@ -447,7 +447,7 @@ description: |
 
 - `tutorial.presentation` の kind `keyControl`（tutorialGuid / keyName / uiState）を `KeyControlHintHud` が描く。表示は `ui_state.current` の `state` が `uiState` と一致する間だけで、blockingスキット中は出さない（ユーザー裁定 2026-08-20）。
 - 配置は常時表示HUD族の `.viewportOverlay` 内・画面下中央で、ホットバーの床（`--hotbar-floor-offset`）から `--tutorial-key-hint-hotbar-gap` だけ上に置き、採掘ゲージと重ねない。複数は `--tutorial-key-hint-gap` で縦積み。床位置の計算式（`--hotbar-floor-offset` + 各HUD固有のgap）は採掘プログレスバー（§8.18）と共有する。
-- 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。実装は `LocalizedShortcutHint`（`shared/i18n`）を `layout="prefix"` で再利用する（kbdを常に先頭へ置く様式を型で表明し、`layout="inline"` の文言中マーカー差し込みと識別可能にする）。文字様式はInventoryScreenChrome/ResearchScreenChromeのkeyHintsと共有する `keyHintText` クラス（§7）、kbdとの間隔・縦積み間隔は `--tutorial-key-hint-*` 固定長トークン。面・枠・光彩・アニメーションは持たず `pointer-events: none`。
+- 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。実装は `LocalizedShortcutHint`（`shared/i18n`）を `layout="prefix"` で再利用する（kbdを常に先頭へ置く様式を型で表明し、`layout="inline"` の文言中マーカー差し込みと識別可能にする）。文字様式はInventoryScreenChrome/ResearchScreenChromeのkeyHintsと共有する `keyHintText` クラス（§7）、kbdとの間隔・縦積み間隔は `--tutorial-key-hint-*` 固定長トークン。**文字色だけは `--tutorial-key-hint-color`（共通の赤 `--text-insufficient` を参照）で上書きする**: 面を持たずワールド上に浮くため白文字では埋もれる（ユーザー裁定 2026-08-22）。新しい色相は増やさない。面・枠・光彩・アニメーションは持たず `pointer-events: none`。
 
 ## 9. やらないことリスト（再掲・明示）
 

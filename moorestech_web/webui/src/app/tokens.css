@@ -227,8 +227,8 @@
   --world-pin-edge-margin: 40px;
   /* D&D説明のドラッグガイド矢印の寸法と1周期の長さ（webui-design §8.17） */
   /* Size and one-cycle duration of the D&D drag guide arrow (webui-design §8.17) */
-  --tutorial-drag-guide-size: 28px;
-  --tutorial-drag-guide-duration: 1600ms;
+  --tutorial-drag-guide-size: 56px;
+  --tutorial-drag-guide-duration: 3200ms;
   /* 枠線ハイライトの文言ラベルの間隔（webui-design §8.17） */
   /* Gap for an outline highlight's text label (webui-design §8.17) */
   --tutorial-highlight-label-gap: 4px;
@@ -241,6 +241,9 @@
   --tutorial-key-hint-hotbar-gap: 72px;
   --tutorial-key-hint-gap: 6px;
   --tutorial-key-hint-kbd-gap: 10px;
+  /* keyControlヒントはワールド上に面無しで浮くため白では埋もれる。共通の赤で文字色を立てる（webui-design §8.19） */
+  /* The keyControl hint floats faceless over the world and drowns in white, so it uses the shared red (webui-design §8.19) */
+  --tutorial-key-hint-color: var(--text-insufficient);
   /* ドラッグガイド矢印を世界背景から分離する最小限の影（world-pin矢印と同族） */
   /* Minimal shadow separating the drag guide arrow from the world background, same family as the world-pin arrow */
   --tutorial-drag-guide-shadow: rgb(0 0 0 / 65%);
