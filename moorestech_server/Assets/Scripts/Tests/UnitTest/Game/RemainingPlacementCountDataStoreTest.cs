@@ -41,14 +41,16 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(store.TryConsumeOne(PlayerId, wallet));
             Assert.AreEqual(2, store.GetRemainingCount(PlayerId, wallet));
 
-            // 返却は+1、Nに達したら0へ戻りtrue（凝縮返却の合図。設置と撤去が完全な逆操作になる閾値）
-            // Return adds one; reaching N resets to zero and returns true (refund signal; the threshold that makes removal the exact inverse of placement)
-            Assert.IsTrue(store.ReturnOne(PlayerId, wallet, 3));
+            // 返却は+1、Nに達したら0へ戻る（凝縮返却。設置と撤去が完全な逆操作になる閾値）
+            // Return adds one; reaching N resets to zero (condensed refund; the threshold that makes removal the exact inverse of placement)
+            Assert.IsTrue(ConstructionWalletUtil.WouldCondense(store.GetRemainingCount(PlayerId, wallet), 3));
+            store.ReturnOne(PlayerId, wallet, 3);
             Assert.AreEqual(0, store.GetRemainingCount(PlayerId, wallet));
 
-            // N未達なら加算のみでfalse
-            // Below N it simply accumulates and returns false
-            Assert.IsFalse(store.ReturnOne(PlayerId, wallet, 3));
+            // N未達なら加算のみ
+            // Below N it simply accumulates
+            Assert.IsFalse(ConstructionWalletUtil.WouldCondense(store.GetRemainingCount(PlayerId, wallet), 3));
+            store.ReturnOne(PlayerId, wallet, 3);
             Assert.AreEqual(1, store.GetRemainingCount(PlayerId, wallet));
             Assert.AreEqual(4, changes);
         }

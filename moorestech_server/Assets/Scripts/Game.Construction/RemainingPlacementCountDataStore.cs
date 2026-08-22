@@ -42,14 +42,13 @@ namespace Game.Construction
             Set(playerId, walletBlockId, GetRemainingCount(playerId, walletBlockId) + placementsPerCost);
         }
 
-        public bool ReturnOne(int playerId, BlockId walletBlockId, int placementsPerCost)
+        public void ReturnOne(int playerId, BlockId walletBlockId, int placementsPerCost)
         {
-            var returned = GetRemainingCount(playerId, walletBlockId) + 1;
+            var remaining = GetRemainingCount(playerId, walletBlockId);
             // Nに達した分は素材へ凝縮し財布から消える
             // Reaching one set's worth condenses into materials, so it leaves the wallet
-            var condensed = placementsPerCost <= returned;
-            Set(playerId, walletBlockId, condensed ? 0 : returned);
-            return condensed;
+            var condensed = ConstructionWalletUtil.WouldCondense(remaining, placementsPerCost);
+            Set(playerId, walletBlockId, condensed ? 0 : remaining + 1);
         }
 
         public List<PlayerRemainingPlacementCountSaveJsonObject> GetSaveJsonObject()

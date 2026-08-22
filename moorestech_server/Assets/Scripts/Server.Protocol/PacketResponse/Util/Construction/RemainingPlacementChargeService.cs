@@ -45,7 +45,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             if (blockMaster.PlacementsPerCost <= 1) return true;
 
             var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid));
-            return blockMaster.PlacementsPerCost <= lookup.GetRemainingCount(playerId, walletBlockId) + 1;
+            return ConstructionWalletUtil.WouldCondense(lookup.GetRemainingCount(playerId, walletBlockId), blockMaster.PlacementsPerCost);
         }
 
         // 撤去確定後にのみ呼ぶこと。設置数/1セット=1は財布を素通りする
