@@ -90,8 +90,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var mutation = serviceProvider.GetService<IRemainingPlacementCountMutation>();
             mutation.TryConsumeOne(PlayerId, belt); mutation.TryConsumeOne(PlayerId, belt); // 残り0にする
 
-            // 全スロットを別アイテムで埋め返却不能にする
-            // Fill every slot with another item so the refund cannot be inserted
+            // 全スロット別アイテムで埋め返却不能に
+            // Fill every slot with another item so the refund cannot fit
             var filler = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000005"));
             for (var i = 0; i < inventory.GetSlotSize(); i++) inventory.SetItem(i, ServerContext.ItemStackFactory.Create(filler, 1));
             mutation.Refill(PlayerId, belt, 2); // 残り2 → 次の撤去で凝縮

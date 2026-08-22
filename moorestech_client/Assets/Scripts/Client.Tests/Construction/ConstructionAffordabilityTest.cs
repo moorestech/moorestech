@@ -6,6 +6,7 @@ using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UniRx;
 
 namespace Client.Tests.Construction
 {
@@ -20,8 +21,8 @@ namespace Client.Tests.Construction
             CreateServer();
             var requiredItems = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BlockId).RequiredItems;
 
-            // Test3=5個(2セル半) Test4=2個(2セル) → 賄えるのは2セル
-            // Test3=5 (2.5 cells) and Test4=2 (2 cells) afford exactly 2 cells
+            // 5個+2個→賄えるのは2セル
+            // 5 + 2 afford exactly 2 cells
             var inventory = CreateInventory(5, 2);
 
             Assert.AreEqual(2, ConstructionMaterialAffordability.CalculateAffordableCellCount(requiredItems, inventory));
@@ -87,9 +88,26 @@ namespace Client.Tests.Construction
             var datastore = new ClientRemainingPlacementCountDatastore();
             datastore.ApplyAll(new Dictionary<BlockId, int> { { ForUnitTestModBlockId.GearBeltConveyor, 2 } });
 
-            // 呼び出し側は財布キーを知らずに坂ベルトのIDをそのまま渡せる
-            // A caller can hand over the slope belt id directly without knowing anything about wallet keys
+            // 財布キーを知らずに坂ベルトIDを渡せる
+            // Slope belt id can be passed without knowing wallet keys
             Assert.AreEqual(2, datastore.GetRemainingCount(ForUnitTestModBlockId.TestGearBeltConveyorUp));
+        }
+
+        [Test]
+        public void ApplyAllとApplyは購読者へ変化通知を送る()
+        {
+            CreateServer();
+            var datastore = new ClientRemainingPlacementCountDatastore();
+
+            var changedCount = 0;
+            using (datastore.OnRemainingPlacementCountChanged.Subscribe(_ => changedCount++))
+            {
+                datastore.ApplyAll(new Dictionary<BlockId, int> { { ForUnitTestModBlockId.GearBeltConveyor, 1 } });
+                datastore.Apply(ForUnitTestModBlockId.GearBeltConveyor, 2);
+            }
+
+            Assert.AreEqual(2, changedCount);
+            Assert.AreEqual(2, datastore.GetRemainingCount(ForUnitTestModBlockId.GearBeltConveyor));
         }
 
         private static List<global::Core.Item.Interface.IItemStack> CreateInventory(int material1Count, int material2Count)

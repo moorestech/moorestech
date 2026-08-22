@@ -41,8 +41,8 @@ namespace Server.Protocol.PacketResponse
             if (block == null) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
             if (!CanManualRemoveBlock(block)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.NodeInUseByTrain);
 
-            // 財布に返却物を問い合わせる（撤去の確定は後段）
-            // Ask the wallet what this removal hands back; the removal itself is finalized further down
+            // 財布に返却物を問い合わせ（確定は後段）
+            // Ask the wallet what to refund (finalized further down)
             var removalPlan = _constructionWallet.PlanRemoval(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), data.PlayerId);
 
             // 破壊した後のアイテムをインベントリに挿入できるかチェック

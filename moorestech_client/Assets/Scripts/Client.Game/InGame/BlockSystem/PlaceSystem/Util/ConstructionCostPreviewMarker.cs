@@ -11,7 +11,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
     /// 財布に置ける数を問い合わせ、超えたセルをfalse化
     /// Asks the wallet how many cells are placeable and marks the ones beyond that as Placeable=false
     /// </summary>
-    public static class ConstructionCostPreviewCalculator
+    public static class ConstructionCostPreviewMarker
     {
         public static void MarkUnaffordableCellsAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, BlockId representativeBlockId, ClientRemainingPlacementCountDatastore remainingPlacementCountDatastore, IEnumerable<IItemStack> inventoryItems)
         {

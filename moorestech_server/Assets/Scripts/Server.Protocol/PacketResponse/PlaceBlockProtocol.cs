@@ -90,8 +90,8 @@ namespace Server.Protocol.PacketResponse
                 // Skip locked cells and resolve belt slopes through their family straight block
                 if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) { notUnlockedCount++; return; }
 
-                // 財布に消費すべき素材を問い合わせ、賄えないセルはスキップ
-                // Ask the wallet what to consume for this cell and skip the ones we cannot cover
+                // 財布に問い合わせ、賄えないセルはスキップ
+                // Ask the wallet; skip cells it cannot cover
                 var inventory = inventoryData.MainOpenableInventory;
                 var placementPlan = _constructionWallet.PlanPlacement(blockMaster, data.PlayerId);
                 if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; return; }

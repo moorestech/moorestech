@@ -14,8 +14,8 @@ namespace Game.Construction
             return BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family) ? family.StraightBlockId : blockId;
         }
 
-        // 撤去で+1した結果がNに達するか（達すれば素材1セットへ凝縮し財布は0へ戻る）
-        // Whether returning one reaches placementsPerCost, condensing into one material set and resetting the wallet to zero
+        // 撤去+1がNに達するか（達すれば凝縮し財布0へ）
+        // Whether returning one reaches placementsPerCost (condenses and resets wallet to zero)
         public static bool WouldCondense(int remaining, int placementsPerCost)
         {
             return placementsPerCost <= remaining + 1;

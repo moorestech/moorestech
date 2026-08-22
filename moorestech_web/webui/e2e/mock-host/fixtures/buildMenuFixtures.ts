@@ -60,8 +60,8 @@ const buildMenuExtraCategorySpecs = [
   { categoryGuid: buildMenuCategoryIds.buildingMaterial, subCategoryGuid: buildMenuSubCategoryIds.interiorPanel, entryId: "53000000-0000-4000-8000-000000000011" },
 ] as const;
 
-// 1セット複数設置でないブロックの既定値。1個/残0
-// Default wallet fields for blocks that are not placed several per set: one placement per set, zero remaining
+// 非複数設置ブロックの既定値。1個/残0
+// Default wallet fields for non-multi-placement blocks: one per set, zero remaining
 const defaultBlockPlacementFields = { placementsPerCost: 1, remainingPlacementCount: 0 } as const;
 
 // スクロール/グリッドQA用量産エントリ
@@ -93,8 +93,8 @@ export const buildMenu = {
   entries: [
     { id: buildMenuEntryIds.woodChest, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [{ itemId: 1, count: 4 }], ...defaultBlockPlacementFields, iconUrl: blockIconUrl(1) },
     { id: buildMenuEntryIds.ironChest, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [], ...defaultBlockPlacementFields, iconUrl: blockIconUrl(2) },
-    // 唯一の「1セット複数個」エントリ。財布正規化も検証
-    // The sole "multiple placements per set" entry, used to verify the remaining-placement UI and (via the wallet key) slope-belt normalization
+    // 唯一の複数設置エントリ。財布正規化も検証
+    // The sole multi-placement entry; also verifies wallet-key normalization
     { id: buildMenuEntryIds.beltConveyor, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000002", requiredItems: [], placementsPerCost: 3, remainingPlacementCount: 2, iconUrl: blockIconUrl(3) },
     { id: buildMenuEntryIds.rail, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], ...defaultBlockPlacementFields, iconUrl: blockIconUrl(4) },
     { id: buildMenuEntryIds.cargoCar, kind: "trainCar", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000004", requiredItems: [], iconUrl: blockIconUrl(5) },

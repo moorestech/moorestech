@@ -7,8 +7,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Client.Game.InGame.Construction
 {
     /// <summary>
-    /// 所持素材だけで建設コスト何セット分を賄えるかを数える。財布は関与しない
-    /// Counts how many construction-cost sets the held materials cover; the wallet plays no part here
+    /// 建設コスト何セット分賄えるかを数える（財布は関与しない）
+    /// Counts how many construction-cost sets are coverable (wallet not involved)
     /// </summary>
     public static class ConstructionMaterialAffordability
     {

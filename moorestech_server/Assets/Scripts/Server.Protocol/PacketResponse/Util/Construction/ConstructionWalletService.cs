@@ -23,15 +23,15 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             _mutation = mutation;
         }
 
-        // 設置前に問い合わせ、設置が確定したら CommitPlacement を呼ぶ
-        // Ask before placing, then call CommitPlacement once the placement is final
+        // 問い合わせ後、確定でCommitPlacementを呼ぶ
+        // Ask, then call CommitPlacement once final
         public IConstructionPlacementPlan PlanPlacement(BlockMasterElement blockMaster, int playerId)
         {
             var fullCost = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
             if (blockMaster.PlacementsPerCost <= 1) return new PlacementPlan(fullCost);
 
-            // 残りがあるセルは素材を消費せず財布から1引くだけ
-            // A cell covered by the wallet consumes no materials and only draws one from the wallet
+            // 残りありは素材消費せず財布から1引く
+            // A cell covered by the wallet draws one from the wallet, no materials consumed
             var walletBlockId = ResolveWalletBlockId(blockMaster);
             var covered = 0 < _lookup.GetRemainingCount(playerId, walletBlockId);
             return new PlacementPlan(covered ? Array.Empty<(ItemId, int)>() : fullCost, playerId, walletBlockId, blockMaster.PlacementsPerCost, !covered);
@@ -51,8 +51,8 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             _mutation.TryConsumeOne(placement.PlayerId, placement.WalletBlockId);
         }
 
-        // 撤去前に問い合わせ、撤去が確定したら CommitRemoval を呼ぶ
-        // Ask before removing, then call CommitRemoval once the removal is final
+        // 問い合わせ後、確定でCommitRemovalを呼ぶ
+        // Ask, then call CommitRemoval once final
         public IConstructionRemovalPlan PlanRemoval(BlockMasterElement blockMaster, int playerId)
         {
             var fullCost = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
@@ -87,18 +87,18 @@ namespace Server.Protocol.PacketResponse.Util.Construction
         private class PlacementPlan : IConstructionPlacementPlan
         {
             public IReadOnlyList<(ItemId itemId, int count)> ItemsToConsume { get; }
-            public bool UsesWallet { get; }
-            public bool RefillsWallet { get; }
-            public int PlayerId { get; }
-            public BlockId WalletBlockId { get; }
-            public int PlacementsPerCost { get; }
+            internal bool UsesWallet { get; }
+            internal bool RefillsWallet { get; }
+            internal int PlayerId { get; }
+            internal BlockId WalletBlockId { get; }
+            internal int PlacementsPerCost { get; }
 
-            public PlacementPlan(IReadOnlyList<(ItemId itemId, int count)> itemsToConsume)
+            internal PlacementPlan(IReadOnlyList<(ItemId itemId, int count)> itemsToConsume)
             {
                 ItemsToConsume = itemsToConsume;
             }
 
-            public PlacementPlan(IReadOnlyList<(ItemId itemId, int count)> itemsToConsume, int playerId, BlockId walletBlockId, int placementsPerCost, bool refillsWallet)
+            internal PlacementPlan(IReadOnlyList<(ItemId itemId, int count)> itemsToConsume, int playerId, BlockId walletBlockId, int placementsPerCost, bool refillsWallet)
             {
                 ItemsToConsume = itemsToConsume;
                 UsesWallet = true;
@@ -112,17 +112,17 @@ namespace Server.Protocol.PacketResponse.Util.Construction
         private class RemovalPlan : IConstructionRemovalPlan
         {
             public IReadOnlyList<IItemStack> ItemsToRefund { get; }
-            public bool UsesWallet { get; }
-            public int PlayerId { get; }
-            public BlockId WalletBlockId { get; }
-            public int PlacementsPerCost { get; }
+            internal bool UsesWallet { get; }
+            internal int PlayerId { get; }
+            internal BlockId WalletBlockId { get; }
+            internal int PlacementsPerCost { get; }
 
-            public RemovalPlan(IReadOnlyList<IItemStack> itemsToRefund)
+            internal RemovalPlan(IReadOnlyList<IItemStack> itemsToRefund)
             {
                 ItemsToRefund = itemsToRefund;
             }
 
-            public RemovalPlan(IReadOnlyList<IItemStack> itemsToRefund, int playerId, BlockId walletBlockId, int placementsPerCost)
+            internal RemovalPlan(IReadOnlyList<IItemStack> itemsToRefund, int playerId, BlockId walletBlockId, int placementsPerCost)
             {
                 ItemsToRefund = itemsToRefund;
                 UsesWallet = true;

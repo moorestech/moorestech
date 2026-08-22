@@ -121,7 +121,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             var representativeIndex = _currentPlaceInfos.FindIndex(info => info.Placeable);
             if (0 <= representativeIndex)
             {
-                ConstructionCostPreviewCalculator.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, _currentPlaceInfos[representativeIndex].BlockId, _remainingPlacementCountDatastore, _localPlayerInventory);
+                ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, _currentPlaceInfos[representativeIndex].BlockId, _remainingPlacementCountDatastore, _localPlayerInventory);
             }
 
             // 最終的なPlaceable状態でプレビュー色を更新

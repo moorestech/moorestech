@@ -4,8 +4,8 @@ using Core.Item.Interface;
 namespace Server.Protocol.PacketResponse.Util.Construction
 {
     /// <summary>
-    /// 撤去時に財布が返す指示。呼び出し側に見えるのは返却すべきアイテム列だけ
-    /// The removal instruction from the wallet; all a caller can see is which items to hand back
+    /// 財布が返す撤去指示。見えるのは返却アイテム列のみ
+    /// The removal instruction from the wallet; only the items to hand back are visible
     /// </summary>
     public interface IConstructionRemovalPlan
     {

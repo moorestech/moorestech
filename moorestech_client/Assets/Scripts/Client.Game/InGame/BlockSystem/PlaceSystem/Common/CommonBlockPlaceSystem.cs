@@ -161,7 +161,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったブロックがアイテム枠を消費しないようにする）
             // Check item count after ground filtering (so ground-blocked cells don't consume item quota)
-            MarkInsufficientItemPreviewsAsNotPlaceable();
+            ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, target.BlockId, _remainingPlacementCountDatastore, _localPlayerInventory);
 
             // 各セルの自動接続を評価し表示更新
             // Evaluate auto-connect per cell and update the preview
@@ -213,11 +213,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // 設置でワールドとインベントリが変わるため、自動接続の評価キャッシュを破棄する
                 // Placement changes the world and inventory, so drop the auto-connect evaluation cache
                 _autoConnectPreview.Hide();
-            }
-
-            void MarkInsufficientItemPreviewsAsNotPlaceable()
-            {
-                ConstructionCostPreviewCalculator.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, target.BlockId, _remainingPlacementCountDatastore, _localPlayerInventory);
             }
 
             #endregion

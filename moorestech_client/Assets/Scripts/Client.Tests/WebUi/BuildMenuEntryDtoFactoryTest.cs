@@ -81,8 +81,8 @@ namespace Client.Tests.WebUi
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 直線と坂は同一ファミリー。財布キーは直線正規化
-            // Straight and slope share a family; the wallet key normalizes to straight
+            // 直線と坂族は同一。キー正規化は直線
+            // Straight and slope share a family; key normalizes to straight
             var straightGuid = Guid.Parse("00000000-0000-0000-0000-000000000015");
             var upGuid = Guid.Parse("00000000-0000-0000-0000-0000000000a1");
             var straightBlockId = MasterHolder.BlockMaster.GetBlockId(straightGuid);

@@ -37,7 +37,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             _placementTargetResolver = placementTargetResolver;
             _remainingPlacementCountDatastore = remainingPlacementCountDatastore;
 
-            // BuildMenu入場・BP更新・残数変化で再配信
+            // 入場・BP更新・残数変化で再配信
             // Republish on entry, BP updates, and remaining-count changes
             _uiStateControl.OnStateChanged += OnStateChanged;
             _librarySubscription = _blueprintLibrary.OnChanged.Subscribe(_ => SchedulePublish());

@@ -13,7 +13,7 @@ using Tests.Module.TestMod;
 // Match the namespace of sibling tests such as CommonBlockPlacePointCalculatorTest
 namespace Client.Tests.PlaceSystem
 {
-    public class ConstructionCostPreviewCalculatorTest
+    public class ConstructionCostPreviewMarkerTest
     {
         private static readonly Guid Material1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003"); // Test3(コスト×2)
         private static readonly Guid Material2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004"); // Test4(コスト×1)
@@ -31,12 +31,12 @@ namespace Client.Tests.PlaceSystem
             };
             var datastore = new ClientRemainingPlacementCountDatastore();
 
-            // 財布0・素材1セットのみ→1セット×N=3
-            // Empty wallet, materials for exactly one set → affords one set × N = 3 placements
+            // 財布0・素材1セット→1セット×N=3
+            // Empty wallet, one set of materials → one set × N = 3 placements
             var placeInfos = new List<PlaceInfo>();
             for (var i = 0; i < 5; i++) placeInfos.Add(new PlaceInfo { BlockId = blockId, Placeable = true });
 
-            ConstructionCostPreviewCalculator.MarkUnaffordableCellsAsNotPlaceable(placeInfos, blockId, datastore, inventory);
+            ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(placeInfos, blockId, datastore, inventory);
 
             Assert.IsTrue(placeInfos[0].Placeable);
             Assert.IsTrue(placeInfos[1].Placeable);

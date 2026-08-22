@@ -152,8 +152,8 @@ test("残り設置数は1セット複数個のエントリだけに表示され�
   await expect(page.getByTestId("build-menu-remaining-placements")).toBeVisible();
   await expect(page.getByTestId("build-menu-remaining-placements")).toContainText("2");
 
-  // woodChestはN=1のため残数を表示しない
-  // woodChest has placementsPerCost=1, so the remaining-placements row must not show
+  // woodChestはN=1で残数非表示
+  // woodChest has placementsPerCost=1, so remaining-placements is hidden
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`).hover();
   await expect(page.getByTestId("build-menu-remaining-placements")).toBeHidden();
 });

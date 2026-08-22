@@ -17,8 +17,8 @@ const BuildMenuEntryCommonFields = {
   iconUrl: z.string().optional(),
 };
 
-// 1セットの設置数と財布の残り設置数はブロックだけが持つ
-// Placements per set and the unplaced count held in the wallet belong to blocks alone
+// 設置数系フィールドはブロック専用
+// Placement-count fields belong to blocks alone
 const BuildMenuBlockEntryDataSchema = z.object({
   kind: z.literal("block"),
   ...BuildMenuEntryCommonFields,

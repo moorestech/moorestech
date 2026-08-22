@@ -28,8 +28,8 @@ namespace Client.Network.API
         // ログイン時のホットバー9枠。初期データ同梱のため追加の往復も未取得状態も無い
         // The login-time hotbar slots; bundled as initial data, so there is no extra round trip and no unfetched state
         public Guid[] HotbarAssignments { get; }
-        // 全財布の残り設置数。handshake同梱
-        // All wallets' remaining-placement counts; bundled with the handshake
+        // 全財布の残り設置数。同梱
+        // All wallets' remaining-placement counts; bundled
         public RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] RemainingPlacementCounts { get; }
 
         public InitialHandshakeResponse(
