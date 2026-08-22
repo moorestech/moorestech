@@ -3,6 +3,18 @@ name: daily-build-repair
 description: |
   日次ビルド失敗Issueを起点に前方修正しPRを作る無人スキル。
   Use When: `/daily-build-repair <Issue番号>` で起動された時
+hooks:
+  # 無人実行の関所。スキル発動中だけ有効（repo横断のsettings.jsonに置くと開発者の通常セッションまで巻き込む）
+  # Gate for unattended runs; active only while this skill runs, unlike a repo-wide settings.json hook
+  PreToolUse:
+    - matcher: "AskUserQuestion"
+      hooks:
+        - type: command
+          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py ask"
+  Stop:
+    - hooks:
+        - type: command
+          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py stop repair"
 ---
 
 # daily-build-repair — 日次ビルド失敗の前方修正（無人実行）
@@ -15,6 +27,23 @@ description: |
 
 **修復対象は日次ビルドを赤くしている原因のみ。** ついでのリファクタ・無関係な改善・
 他の不具合修正は一切行わない。見つけた別の問題は Issue へコメントで残すだけにする。
+
+## 最重要: 無人起動でも「repair-result.json で終える」
+
+このスキルは poller から `launch_claude` 経由で cmux ワークスペース上の**対話モード** claude で
+フォアグラウンド起動される（`pr-adjudicated-apply` と同形）。対話モードではターンを終えても
+プロセスは消えない。**poller は `repair-result.json` の存在とプロセス生存で監視している**だけなので、
+ターンを閉じただけでは何も終わらない。
+
+- **ターンを終える前に必ず `repair-result.json` を書くこと。** 「後で確認します」と述べて
+  ターンを閉じてはいけない。スケジュールされた再開はこの実行環境に存在しない
+- Step 6 のビルド待ちのように結果が返るまで数分〜数十分かかる処理は、**同一ターン内で
+  ブロッキングして待つ**。待つこと自体がこのスキルの仕事である
+- 終了は `repair-result.json` を書いた直後だけ。書く前に終わる終わり方は、成功・失敗
+  いずれの意図であってもバグである
+- リトライは**1回のみ**（`pr-adjudicated-apply` の `MAX_APPLY_RETRY=1` と同じ思想）。
+  プロセスが死んで `repair-result.json` も無ければ、poller が新しいセッションで
+  1回だけ作り直す。それ以上の救済は無い
 
 ## Issue本文の形（Plan Aが起票する形式）
 
@@ -66,13 +95,32 @@ moores-wt new fix/daily-build-<N> --no-editor
 
 ## Step 6: ビルド検証
 
-作成したPRに以下を実行し、`Unity Build` の結果を待つ。
-
 ```bash
 gh pr edit <PR番号> --add-label "ビルド検証"
 ```
 
-`Unity Build` が緑なら `verified: true`。
+ラベル付与だけでは緑/赤を判定できない。`gh pr checks <PR番号> --watch` は「ビルド検証」
+ラベル発火のrunがまだ登録されていない間は空振りしうるため使わない。代わりに以下の手順で
+runを特定してからポーリングする。
+
+```bash
+# run登録待ち: ラベル発火のrunがGitHub Actions側に現れるまで数十秒〜数分かかることがある
+# Wait for the run to register; the label-triggered run can take up to a few minutes to appear
+gh run list --workflow="Unity Build" --branch <ブランチ名> --limit 1 --json databaseId,status,conclusion
+```
+
+`databaseId` が取れたら、その run の `status` が `completed` になるまでポーリングで待つ。
+
+```bash
+gh run watch <databaseId> --exit-status
+```
+
+`Unity Build` は4ジョブ並列で1時間前後かかりうる。**同一ターン内でブロッキングして待つ**
+（「最重要」節参照）。ポーリング中に深夜枠（09:00 JST）の停止指示（`## 停止指示`）が
+届いた場合は、待機を打ち切りStep 8の停止手順へ移る。
+
+- `conclusion == "success"` なら `verified: true`
+- `conclusion` が `failure`/`cancelled` 等なら `verified: false`（Step 7参照）
 
 ## Step 7: 結果の書き出し
 
@@ -88,7 +136,14 @@ gh pr edit <PR番号> --add-label "ビルド検証"
 
 - `status: "success"` は `verified: true`（Step 6でビルド検証ラベルにより緑を確認済み）
   のときだけ許される。
-- `status: "timeout"` のときは `remaining` に残作業を書く（Step 8参照）。
+- `status: "failure"` は次のいずれかで使う。`summary` に何が起きたかを書き、`remaining` に
+  残作業を書く:
+  - 原因を特定できず修正に至らなかった
+  - 修正したが `uloop compile` 等のローカル検証が通らなかった
+  - PRは作れたが Step 6 のビルド検証が赤のまま（`verified: false`）だった
+- `status: "timeout"` は深夜枠の打ち切りによる中断で使う（Step 8参照）。`failure` との違いは、
+  `timeout` は翌朝 `remaining` を元にセッションを継続できる中断であり、`failure` は
+  このIssueに対する試行を打ち切る終端であること。
 - **このファイルを書くまでセッションを終えない。**
 
 poller（Task 3/4）はこのファイルの出現をフェーズ完了の合図にする。
