@@ -109,7 +109,7 @@ namespace Core.Master.Validator
                 foreach (var fluidEntry in vanillaGenerator.OreConfig.FluidEntries)
                     logs += DiagnoseBands($"FluidVeinEntry VeinGuid:{fluidEntry.VeinGuid}", OuterRadiiOf(fluidEntry.Bands));
 
-                foreach (var (biomeName, objectConfig) in ObjectConfigsOf(vanillaGenerator))
+                foreach (var (biomeName, objectConfig) in GenerationBiomeObjectConfigCatalog.Of(vanillaGenerator))
                 for (var i = 0; i < objectConfig.Entries.Length; i++)
                     logs += DiagnoseBands($"{biomeName}.objectConfig.entries[{i}]", OuterRadiiOf(objectConfig.Entries[i].Bands));
 
@@ -117,23 +117,6 @@ namespace Core.Master.Validator
             }
 
             #endregion
-        }
-
-        // バイオームごとのobjectConfigは共通の型を持たないため、名前を添えて1列に並べる
-        // Per-biome objectConfigs share no common type, so they are lined up here with their names
-        private static (string BiomeName, BiomeObjectConfig ObjectConfig)[] ObjectConfigsOf(VanillaGeneratorAlgorithmParam vanillaGenerator)
-        {
-            return new[]
-            {
-                ("grassland", vanillaGenerator.Grassland.ObjectConfig),
-                ("forest", vanillaGenerator.Forest.ObjectConfig),
-                ("savanna", vanillaGenerator.Savanna.ObjectConfig),
-                ("desert", vanillaGenerator.Desert.ObjectConfig),
-                ("jungle", vanillaGenerator.Jungle.ObjectConfig),
-                ("woods", vanillaGenerator.Woods.ObjectConfig),
-                ("alpine", vanillaGenerator.Alpine.ObjectConfig),
-                ("mesa", vanillaGenerator.Mesa.ObjectConfig),
-            };
         }
 
         private static string DiagnoseBands(string subject, float[] outerRadiusMeters)

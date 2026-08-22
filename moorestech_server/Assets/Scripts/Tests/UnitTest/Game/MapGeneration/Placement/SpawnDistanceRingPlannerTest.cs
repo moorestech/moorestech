@@ -1,4 +1,5 @@
 using Core.Master;
+using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
 
 namespace Tests.UnitTest.Game.MapGeneration.Placement
@@ -10,16 +11,17 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         [Test]
         public void 外半径昇順に並び負値は無限の最外周になる()
         {
-            var rings = SpawnDistanceRingPlanner.BuildRings(new[] { 350f, 250f, -1f });
+            var bands = BandsOf(350f, 250f, -1f);
+            var rings = SpawnDistanceRingPlanner.BuildRings(bands);
 
             Assert.AreEqual(3, rings.Count);
-            Assert.AreEqual(1, rings[0].BandIndex);
+            Assert.AreSame(bands[1], rings[0].Band);
             Assert.AreEqual(0f, rings[0].Inner);
             Assert.AreEqual(250f, rings[0].Outer);
-            Assert.AreEqual(0, rings[1].BandIndex);
+            Assert.AreSame(bands[0], rings[1].Band);
             Assert.AreEqual(250f, rings[1].Inner);
             Assert.AreEqual(350f, rings[1].Outer);
-            Assert.AreEqual(2, rings[2].BandIndex);
+            Assert.AreSame(bands[2], rings[2].Band);
             Assert.AreEqual(350f, rings[2].Inner);
             Assert.AreEqual(float.PositiveInfinity, rings[2].Outer);
         }
@@ -27,28 +29,30 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         [Test]
         public void 重複した外半径の後者は縮退してリングにならない()
         {
-            var rings = SpawnDistanceRingPlanner.BuildRings(new[] { 250f, 250f });
+            var bands = BandsOf(250f, 250f);
+            var rings = SpawnDistanceRingPlanner.BuildRings(bands);
 
             Assert.AreEqual(1, rings.Count);
-            Assert.AreEqual(0, rings[0].BandIndex);
+            Assert.AreSame(bands[0], rings[0].Band);
         }
 
         [Test]
         public void 空配列はリングを作らない()
         {
-            Assert.AreEqual(0, SpawnDistanceRingPlanner.BuildRings(new float[0]).Count);
+            Assert.AreEqual(0, SpawnDistanceRingPlanner.BuildRings(new ObjectScatterBand[0]).Count);
         }
 
         [Test]
         public void NaN外半径は当該バンドだけ除外され他バンドを汚染しない()
         {
-            var rings = SpawnDistanceRingPlanner.BuildRings(new[] { float.NaN, 250f, -1f });
+            var bands = BandsOf(float.NaN, 250f, -1f);
+            var rings = SpawnDistanceRingPlanner.BuildRings(bands);
 
             Assert.AreEqual(2, rings.Count);
-            Assert.AreEqual(1, rings[0].BandIndex);
+            Assert.AreSame(bands[1], rings[0].Band);
             Assert.AreEqual(0f, rings[0].Inner);
             Assert.AreEqual(250f, rings[0].Outer);
-            Assert.AreEqual(2, rings[1].BandIndex);
+            Assert.AreSame(bands[2], rings[1].Band);
             Assert.AreEqual(250f, rings[1].Inner);
             Assert.AreEqual(float.PositiveInfinity, rings[1].Outer);
         }
@@ -56,12 +60,23 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         [Test]
         public void リング判定は内側を含み外側を含まない()
         {
-            var ring = new SpawnDistanceRing(0, 250f, 350f);
+            var ring = new SpawnDistanceRing<ObjectScatterBand>(new ObjectScatterBand(), 250f, 350f);
 
             Assert.IsTrue(ring.Contains(250f));
             Assert.IsTrue(ring.Contains(349.9f));
             Assert.IsFalse(ring.Contains(350f));
             Assert.IsFalse(ring.Contains(249.9f));
+        }
+
+        [Test]
+        public void 距離範囲と重ならないリングは重なり判定で落ちる()
+        {
+            var ring = new SpawnDistanceRing<ObjectScatterBand>(new ObjectScatterBand(), 250f, 350f);
+
+            Assert.IsTrue(ring.OverlapsDistanceRange(0f, 250f));
+            Assert.IsTrue(ring.OverlapsDistanceRange(349f, 900f));
+            Assert.IsFalse(ring.OverlapsDistanceRange(0f, 249f));
+            Assert.IsFalse(ring.OverlapsDistanceRange(350f, 900f));
         }
 
         [Test]
@@ -94,7 +109,35 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
             var problems = SpawnDistanceRingPlanner.Diagnose(new[] { 250f, 250f });
 
             Assert.AreEqual(1, problems.Count);
-            Assert.IsTrue(problems[0].Contains("duplicate outer radius"));
+            Assert.IsTrue(problems[0].Contains("bands[1]"));
+        }
+
+        // BuildRingsがリングにしない帯は全て診断へ出す（規則を二重に書くと片方だけ取り残される）。
+        // Every band BuildRings drops must show up in the diagnosis; restating the rules would leave one side behind.
+        [Test]
+        public void NaN外半径はリングにならないので診断される()
+        {
+            var problems = SpawnDistanceRingPlanner.Diagnose(new[] { 250f, float.NaN });
+
+            Assert.AreEqual(1, problems.Count);
+            Assert.IsTrue(problems[0].Contains("bands[1]"));
+        }
+
+        [Test]
+        public void 外半径0はリングにならないので診断される()
+        {
+            var problems = SpawnDistanceRingPlanner.Diagnose(new[] { 0f, 250f });
+
+            Assert.AreEqual(1, problems.Count);
+            Assert.IsTrue(problems[0].Contains("bands[0]"));
+        }
+
+        private static ObjectScatterBand[] BandsOf(params float[] outerRadiusMeters)
+        {
+            var bands = new ObjectScatterBand[outerRadiusMeters.Length];
+            for (var i = 0; i < outerRadiusMeters.Length; i++)
+                bands[i] = new ObjectScatterBand { outerRadiusMeters = outerRadiusMeters[i] };
+            return bands;
         }
     }
 }

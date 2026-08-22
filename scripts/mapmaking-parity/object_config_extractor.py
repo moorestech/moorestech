@@ -27,6 +27,41 @@ REMOVED_OBJECT_ENTRY_FIELDS = frozenset({"role", "countPerCluster", "minParentDi
 # Fields absent from stale presets that may be filled from the schema default (the C# initializer)
 STALE_MISSING_OBJECT_FIELDS = frozenset({"clusterEntries", "algorithmConfig", "surroundTextureConfig", "borderMargin"})
 
+# 移植元ObjectEntryは距離帯を持たず、量をflatなdensity（1haあたり）とclusterCount（クラスタモード時の個数）で持つ
+# The source ObjectEntry has no distance bands: it holds the amount as a flat density (per hectare) plus clusterCount in cluster mode
+LEGACY_AMOUNT_FIELDS = frozenset({"density", "clusterCount"})
+
+# clusterCount（タイル1枚あたりの個数）を1haあたりのdensityへ直す係数。タイル1000x1000m = 100ha
+# Converts clusterCount (per 1000x1000m tile) into a per-hectare density; one tile is 100 hectares
+CLUSTER_COUNT_PER_HECTARE = 100.0
+
+
+class ObjectConfigConverter(PrototypeConverter):
+    """移植元のflatな量指定を、現行スキーマの単一無限バンドへ畳んで写す変換器。
+    Converter folding the source's flat amount fields into the current schema's single infinite band."""
+
+    def _derived_field_value(self, key, node, unity_value, location):
+        if key != "bands":
+            return None
+
+        missing = sorted(LEGACY_AMOUNT_FIELDS - set(unity_value))
+        if missing:
+            raise KeyError(f"{location}: bandsへ畳む旧フィールドが無い {missing}")
+
+        # クラスタモードは中心数（clusterCount）、非クラスタは点数（density）が量。density統一の換算はADR-0027参照
+        # In cluster mode the amount is the centre count (clusterCount); otherwise it is the point count (density). See ADR-0027 for the unification
+        cluster_mode = _require_boolean(unity_value, "useClusterMode", location)
+        density = unity_value["clusterCount"] / CLUSTER_COUNT_PER_HECTARE if cluster_mode \
+            else unity_value["density"]
+        return [{"outerRadiusMeters": -1, "density": density}], LEGACY_AMOUNT_FIELDS
+
+
+def _require_boolean(unity_value: dict, key: str, location: str) -> bool:
+    value = unity_value.get(key)
+    if value not in (0, 1):
+        raise ValueError(f"{location}: {key} は0/1のみ許容 ({value!r})")
+    return bool(value)
+
 
 def object_config_schema(schema_dir) -> schema_spec.SchemaNode:
     return schema_spec.load_schema(schema_dir, "biomeObjectConfig")
@@ -55,7 +90,7 @@ def convert_object_config(schema: schema_spec.SchemaNode, object_config: dict, b
     """1バイオームのobjectConfigをスキーマ順dictへ写す。未再保存プリセットは宣言済みの欠落・残存のみ許す。
     Transcribes one biome's objectConfig into a schema-ordered dict; stale presets get only the declared gaps and leftovers."""
     stale = biome_name in STALE_OBJECT_CONFIG_BIOMES
-    converter = PrototypeConverter(map_object_guid_by_prefab_guid, stale,
+    converter = ObjectConfigConverter(map_object_guid_by_prefab_guid, stale,
                                    REMOVED_OBJECT_ENTRY_FIELDS, STALE_MISSING_OBJECT_FIELDS,
                                    OBJECT_SURROUND_FALLBACK_ADDRESS)
     converted = converter.convert(schema, object_config, f"{biome_name}.objectConfig")

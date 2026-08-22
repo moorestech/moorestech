@@ -90,7 +90,7 @@ namespace Tests.UnitTest.Core.MapGeneration
             var master = new GenerationMaster(json, "test");
 
             Assert.IsFalse(master.Validate(out var logs));
-            Assert.IsTrue(logs.Contains("duplicate outer radius"));
+            Assert.IsTrue(logs.Contains("produces no ring"));
         }
 
         [Test]

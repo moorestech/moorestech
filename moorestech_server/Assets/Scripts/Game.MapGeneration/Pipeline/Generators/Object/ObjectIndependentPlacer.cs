@@ -20,12 +20,21 @@ namespace Game.MapGeneration.Pipeline.Generators
         {
             float w = dims.TerrainWidth, l = dims.TerrainLength;
             float area = w * l;
+            dims.SpawnDistanceRangeXz(out var tileNearestDistance, out var tileFarthestDistance);
 
-            foreach (var ring in SpawnDistanceRingPlanner.BuildRings(SpawnDistanceBand.OuterRadiiOf(entry.bands)))
+            foreach (var ring in SpawnDistanceRingPlanner.BuildRings(entry.bands))
             {
-                var band = entry.bands[ring.BandIndex];
-                int desiredCount = Mathf.RoundToInt(band.density * area / 10000f);
+                int desiredCount = Mathf.RoundToInt(ring.Band.density * area / 10000f);
                 if (desiredCount <= 0) continue;
+
+                // タイルに掛からないリングは全候補が捨てられるだけなので、種だけ引いて飛ばす（乱数消費数＝出力を変えない）。
+                // A ring that misses this tile would have every candidate discarded, so draw the seed and skip (output and RNG consumption stay identical).
+                if (!ring.OverlapsDistanceRange(tileNearestDistance, tileFarthestDistance))
+                {
+                    rng.Next();
+                    continue;
+                }
+
                 float minDist = Mathf.Sqrt(area / desiredCount * 0.8f);
                 var points = PoissonDiskSampler.Generate(w, l, minDist, rng.Next());
 

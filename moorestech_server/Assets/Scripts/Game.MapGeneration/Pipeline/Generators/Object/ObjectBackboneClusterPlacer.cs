@@ -7,11 +7,11 @@ using UnityEngine;
 namespace Game.MapGeneration.Pipeline.Generators
 {
     // 旧バックボーンクラスター（clusterMode互換）。
-    // ・リング毎にリング面積×densityで中心数を決める
-    // ・中心がリング内の候補のみ採用
+    // ・リング毎にタイル面積×densityで中心数を決める（母数は非クラスタ散布と共通）
+    // ・中心がリング内の候補のみ、公称の中心数まで採用
     // Legacy backbone clusters (clusterMode).
-    // - Centre count per ring comes from the ring area times that ring's density
-    // - Keep only centres inside the ring
+    // - Centre count per ring comes from the tile area times that ring's density (the same denominator as scatter mode)
+    // - Keep centres inside the ring, up to the nominal centre count
     internal static class ObjectBackboneClusterPlacer
     {
         public static void Generate(
@@ -21,24 +21,36 @@ namespace Game.MapGeneration.Pipeline.Generators
             ObjectAlgorithmConfig objAlgCfg, ref int nextClusterId)
         {
             float w = dims.TerrainWidth, l = dims.TerrainLength;
+            float area = w * l;
+            dims.SpawnDistanceRangeXz(out var tileNearestDistance, out var tileFarthestDistance);
 
-            foreach (var ring in SpawnDistanceRingPlanner.BuildRings(SpawnDistanceBand.OuterRadiiOf(entry.bands)))
+            foreach (var ring in SpawnDistanceRingPlanner.BuildRings(entry.bands))
             {
-                var band = entry.bands[ring.BandIndex];
-
-                // 中心数はリング面積×density（1haあたり）で決める。面積非依存の個数だと近傍リングでほぼ0個になるため。
-                // The centre count is ring area times density (per hectare); an area-independent count would yield almost none in a near ring.
-                float ringArea = RingAreaWithinTile(ring);
-                int desiredCenters = Mathf.RoundToInt(band.density * ringArea / 10000f);
+                // 中心数はタイル面積×density（1haあたり）で決める。母数を非クラスタ側と揃えないと、
+                // 同じdensityでもモードによって近傍リングだけ0個になる。
+                // The centre count is tile area times density (per hectare); using a different denominator from scatter mode
+                // would zero out only the near rings for the very same density.
+                int desiredCenters = Mathf.RoundToInt(ring.Band.density * area / 10000f);
                 if (desiredCenters <= 0) continue;
 
-                // 間隔式はリング面積が約分で消えるため実質desiredCentersのみで決まり、ringAreaはdesiredCenters<=0のスキップ判定にのみ効く。
-                // The spacing formula cancels ringArea out algebraically and is driven by desiredCenters alone; ringArea only gates the desiredCenters<=0 skip.
-                float centerMinDist = Mathf.Sqrt(ringArea / desiredCenters * objAlgCfg.clusterSpacingFactor);
+                // タイルに掛からないリングは全中心が捨てられるだけなので、種だけ引いて飛ばす（乱数消費数＝出力を変えない）。
+                // A ring that misses this tile would have every centre discarded, so draw the seed and skip (output and RNG consumption stay identical).
+                if (!ring.OverlapsDistanceRange(tileNearestDistance, tileFarthestDistance))
+                {
+                    rng.Next();
+                    continue;
+                }
+
+                float centerMinDist = Mathf.Sqrt(area / desiredCenters * objAlgCfg.clusterSpacingFactor);
                 var centers = PoissonDiskSampler.Generate(w, l, centerMinDist, rng.Next());
 
+                // Poissonはリング外の中心も返すため、採用数を数えて公称値で打ち切る。
+                // Poisson also returns centres outside the ring, so count adoptions and stop at the nominal figure.
+                int adoptedCenters = 0;
                 foreach (var center in centers)
                 {
+                    if (desiredCenters <= adoptedCenters) break;
+
                     // リング判定はクラスタ中心のワールド座標距離（鉱脈 OreEntryPlacer と同じ）。
                     // The ring test uses the cluster centre's world-space distance (as in OreEntryPlacer).
                     if (!ring.Contains(dims.DistanceFromSpawnXz(center.x, center.y))) continue;
@@ -55,22 +67,10 @@ namespace Game.MapGeneration.Pipeline.Generators
                         if (noise < entry.noiseThreshold) continue;
                     }
 
+                    adoptedCenters++;
                     PlaceBackbone(entry, center, cx, cz, dims, heights, hRes, rng, placements, nextClusterId++);
                 }
             }
-
-            #region Internal
-
-            // リングとタイル矩形の交差面積は解析が重いため、円環面積とタイル面積の小さい方で近似する。
-            // The exact ring-tile intersection is heavy to derive, so approximate it with the smaller of the annulus area and the tile area.
-            float RingAreaWithinTile(SpawnDistanceRing targetRing)
-            {
-                if (float.IsPositiveInfinity(targetRing.Outer)) return w * l;
-                float annulusArea = Mathf.PI * (targetRing.Outer * targetRing.Outer - targetRing.Inner * targetRing.Inner);
-                return Mathf.Min(annulusArea, w * l);
-            }
-
-            #endregion
         }
 
         // クラスタ中心から背骨状にメンバーを配置。

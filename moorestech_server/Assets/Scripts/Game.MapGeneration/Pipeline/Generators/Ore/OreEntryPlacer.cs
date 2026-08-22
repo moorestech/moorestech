@@ -33,14 +33,27 @@ namespace Game.MapGeneration.Pipeline.Generators
             int hRes = dims.Resolution;
             float minDist = entry.minDistanceFromOthers;
 
-            var rings = SpawnDistanceRingPlanner.BuildRings(SpawnDistanceBand.OuterRadiiOf(entry.bands));
+            var rings = SpawnDistanceRingPlanner.BuildRings(entry.bands);
+            dims.SpawnDistanceRangeXz(out var tileNearestDistance, out var tileFarthestDistance);
 
             foreach (var range in rings)
             {
-                var band = entry.bands[range.BandIndex];
+                var band = range.Band;
+
+                // density<=0は「この帯には置かない」宣言。Maxクランプで拾うと1個分の間隔が残り黙って湧く。
+                // A density of zero or less declares "place nothing in this band"; the Max clamp would leave one cluster's spacing and spawn silently.
+                if (band.density <= 0f) continue;
+
+                // タイルに掛からないリングは全中心が捨てられるだけなので、種だけ引いて飛ばす（乱数消費数＝出力を変えない）。
+                // A ring that misses this tile would have every centre discarded, so draw the seed and skip (output and RNG consumption stay identical).
+                if (!range.OverlapsDistanceRange(tileNearestDistance, tileFarthestDistance))
+                {
+                    rng.Next();
+                    continue;
+                }
 
                 float poissonArea = w * l;
-                float adjustedMinDist = Mathf.Sqrt(poissonArea / Mathf.Max(band.density * 100f, 1f));
+                float adjustedMinDist = Mathf.Sqrt(poissonArea / (band.density * 100f));
                 adjustedMinDist = Mathf.Max(adjustedMinDist, band.clusterRadius * 2.5f);
 
                 var candidates = PoissonDiskSampler.Generate(w, l, adjustedMinDist, rng.Next());

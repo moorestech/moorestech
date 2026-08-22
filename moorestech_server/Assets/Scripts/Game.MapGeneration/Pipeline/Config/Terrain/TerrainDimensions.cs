@@ -63,6 +63,28 @@ namespace Game.MapGeneration.Pipeline.Config
             return Mathf.Sqrt(dx * dx + dz * dz);
         }
 
+        // このタイル矩形がスポーン地点から取りうる距離の最小・最大（リングが掛かるか判定するため）。
+        // The minimum and maximum spawn distance this tile's rectangle can span, used to test whether a ring reaches it.
+        public void SpawnDistanceRangeXz(out float nearestDistance, out float farthestDistance)
+        {
+            AxisRange(WorldOffsetX - SpawnWorldX, WorldOffsetX + TerrainWidth - SpawnWorldX, out var nearX, out var farX);
+            AxisRange(WorldOffsetZ - SpawnWorldZ, WorldOffsetZ + TerrainLength - SpawnWorldZ, out var nearZ, out var farZ);
+            nearestDistance = Mathf.Sqrt(nearX * nearX + nearZ * nearZ);
+            farthestDistance = Mathf.Sqrt(farX * farX + farZ * farZ);
+
+            #region Internal
+
+            // スポーンを跨ぐ軸は最短0。跨がなければ近い端が最短で、遠い端が最長。
+            // An axis straddling spawn has a zero minimum; otherwise the nearer edge is the minimum and the farther edge the maximum.
+            void AxisRange(float low, float high, out float nearest, out float farthest)
+            {
+                nearest = low <= 0f && 0f <= high ? 0f : Mathf.Min(Mathf.Abs(low), Mathf.Abs(high));
+                farthest = Mathf.Max(Mathf.Abs(low), Mathf.Abs(high));
+            }
+
+            #endregion
+        }
+
         // TerrainGenerationConfig + 共通 waterMargin + タイル位置からファクトリ生成する。
         // Factory from TerrainGenerationConfig, the common waterMargin, and the tile's slot in the grid.
         public static TerrainDimensions From(

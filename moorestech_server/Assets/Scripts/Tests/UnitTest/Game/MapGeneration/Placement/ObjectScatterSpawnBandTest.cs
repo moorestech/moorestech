@@ -22,9 +22,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
             var config = GenerationRuntimeConfigFactory.Build(generation);
 
             var entry = config.grassland.objectConfig.entries[0];
-            Assert.AreEqual(1, entry.bands.Length);
-            Assert.AreEqual(-1f, entry.bands[0].outerRadiusMeters);
-            Assert.AreEqual(1f, entry.bands[0].density);
+            Assert.AreEqual(2, entry.bands.Length);
+            Assert.AreEqual(250f, entry.bands[0].outerRadiusMeters);
+            Assert.AreEqual(2f, entry.bands[0].density);
+            Assert.AreEqual(-1f, entry.bands[1].outerRadiusMeters);
+            Assert.AreEqual(1f, entry.bands[1].density);
         }
 
         [Test]
@@ -106,6 +108,39 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
 
             // 近傍リングは中心タイルの内側にほぼ収まるため、単一タイルと同じ桁の中心数が出るはず。
             // The near ring sits almost entirely inside the centre tile, so the centre count should land in the same order as the single-tile case.
+            AssertClusterCenterCountMatchesDensity(output, density);
+        }
+
+        // 宣言順が外半径の降順でも、リングは帯の実体で対応する（添字前提の実装だと近傍帯と最外周帯が入れ替わる）。
+        // Even when bands are declared in descending radius order, rings map to the band objects themselves; an index-based implementation would swap the near and outer bands.
+        [Test]
+        public void 降順に宣言しても近傍帯の密度が近傍リングへ効く()
+        {
+            var output = GenerateScatter(gridSide: 1, useClusterMode: false,
+                new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f },
+                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = 30f });
+
+            Assert.IsNotEmpty(output.MapObjects);
+            foreach (var mapObject in output.MapObjects)
+                Assert.Less(DistanceFromSpawnXz(mapObject.Position, output.SpawnPoint), NearRadius);
+        }
+
+        [Test]
+        public void 降順に宣言してもクラスタモードの近傍帯が近傍リングへ効く()
+        {
+            const float density = 30f;
+            var output = GenerateScatter(gridSide: 1, useClusterMode: true,
+                new ObjectScatterBand { outerRadiusMeters = -1f, density = 0f },
+                new ObjectScatterBand { outerRadiusMeters = NearRadius, density = density });
+
+            Assert.IsNotEmpty(output.MapObjects);
+            foreach (var mapObject in output.MapObjects)
+            {
+                Assert.GreaterOrEqual(mapObject.ClusterId, 0);
+                var center = new Vector3(mapObject.ClusterCenter.x, 0f, mapObject.ClusterCenter.y);
+                Assert.Less(DistanceFromSpawnXz(center, output.SpawnPoint), NearRadius);
+            }
+
             AssertClusterCenterCountMatchesDensity(output, density);
         }
 

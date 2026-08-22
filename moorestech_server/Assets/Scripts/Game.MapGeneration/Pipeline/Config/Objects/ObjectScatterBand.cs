@@ -1,3 +1,5 @@
+using Core.Master;
+
 namespace Game.MapGeneration.Pipeline.Config
 {
     // 独立散布の1スポーン距離バンド（同心円リング）。量は非クラスタ・クラスタとも density で決める。

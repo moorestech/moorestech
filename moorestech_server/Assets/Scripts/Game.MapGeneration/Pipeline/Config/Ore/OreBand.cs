@@ -1,3 +1,5 @@
+using Core.Master;
+
 namespace Game.MapGeneration.Pipeline.Config
 {
     // 鉱脈エントリ内の1つの距離バンド（スポーン地点中心の同心円リング）。
