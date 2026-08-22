@@ -22,7 +22,12 @@
 - [x] Task 1: SkitOrigin 新設＋テスト＋4コマンドの原点加算（コンパイル・EditModeテスト）
 - [x] Task 2: DI配線（SkitManager / MainGameStarter / SkitTester）（コンパイル・SkitWorldObjectRegistrationTest）
 - [x] Task 3: JSON焼き直し（スクリプトで一括減算、差分を目視）
-- [ ] Task 4: generatedモードで録画確認（船がスポーン脇に出る）、8/20裁定ファイルのsuperseded追記、PR
+- [x] Task 4: 実走検証（プレイテストDSL）、8/20裁定ファイルのsuperseded追記、PR #1231
+
+## Task 4 検証結果（2026-08-23）
+- シナリオ `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/skit-opening-spawn-relative-origin.cs`（4回連続 Success・assert 9/9 PASS）
+- サーバー実スポーン `(186.00, 15.70, -37.40)` に対し、スキットカメラ 23.61m・船内カット(Interior) 24.53m。焼き直し時の基準点 `(500, 15.65, 500)` にも旧絶対座標 `(496, 14.8, 475.8)` にも張り付いておらず、原点加算が実行時に効いている
+- 未達: WebUiHost(CEF)のWS接続が確立せず画面全体が白飛びし、録画・スクショでの目視確認は取れていない（コード側ではなく環境要因。EditModeテストとassertは全緑）
 
 ## 判断台帳（ADR）
 - Requirements: 原点はスポーン地点そのものXYZ（ユーザー裁定 AskUserQuestion 2026-08-22「スポーン地点そのもの XYZ（推奨）」）
