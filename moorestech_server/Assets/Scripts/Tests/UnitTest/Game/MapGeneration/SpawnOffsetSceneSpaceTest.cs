@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Game.MapGeneration.Pipeline;
+using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Runtime;
 using Game.MapGeneration.Pipeline.Spawn;
@@ -8,6 +9,7 @@ using Game.MapGeneration.Pipeline.Stages;
 using Mooresmaster.Model.GenerationModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Tests.UnitTest.Game.MapGeneration.Tiling.Seam;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -36,6 +38,11 @@ namespace Tests.UnitTest.Game.MapGeneration
             LogAssert.Expect(LogType.Log, new Regex(@"\[SpawnSearch\] 成功\n.+"));
 
             var output = SpawnSearchTestWorld.AssertOutputIsInsideGrid(generation, Seed);
+
+            // 探索が選んだ良地が実際に生成されていれば、スポーン地点の分類は Grassland になる。
+            // If the region the search chose was really generated, the spawn point classifies as Grassland.
+            var config = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory);
+            Assert.That(BiomeAtSpawn(output, generation, config), Is.EqualTo(BiomeType.Grassland));
 
             // world.json へ永続化されクライアントの分類段が使う値。index(0,0)タイルの窓原点は G + SceneOrigin。
             // These are persisted to world.json and drive the client's classification stage: the index(0,0) tile's window origin is G + SceneOrigin.
@@ -131,6 +138,27 @@ namespace Tests.UnitTest.Game.MapGeneration
             var config = GenerationRuntimeConfigFactory.Build(generation);
             config.seed = Seed;
             return SpawnRegionFinder.Find(config, ClassificationStage.GetEnabledBiomeTypes(config));
+        }
+
+        // スポーン地点のシーン座標を中心タイルのハイトマップ格子へ写し、その画素のバイオームを返す。
+        // 中心タイルはシーン (0,W)x(0,L) を占めるので、格子の原点は SceneOrigin ではなく 0 である。
+        // biome_x_z.bin の転送廃止後は TileBiomeIndexComputer 経由で生成側の公開APIを直接呼んで得る。
+        // Maps the spawn scene position onto the center tile's heightmap lattice and returns that pixel's biome.
+        // The center tile occupies scene (0,W)x(0,L), so the lattice origin is 0, not SceneOrigin.
+        // After biome_x_z.bin's transfer was dropped, this comes from TileBiomeIndexComputer calling the
+        // generator's own public API directly.
+        private static BiomeType BiomeAtSpawn(MapGenerationOutput output, Generation generation, TerrainGenerationConfig config)
+        {
+            var vp = (VanillaGeneratorAlgorithmParam)generation.AlgorithmParam;
+            int res = output.Resolution;
+            int px = Mathf.RoundToInt(output.SpawnPoint.x / vp.TerrainWidth * (res - 1));
+            int pz = Mathf.RoundToInt(output.SpawnPoint.z / vp.TerrainLength * (res - 1));
+
+            // 中心タイルは index (half, half)。Tiles[0] は隅タイルなので添字が範囲外になる
+            // The center tile is index (half, half); Tiles[0] is a corner tile and the index would run past its end
+            int half = SpawnSearchTestWorld.GridSide / 2;
+            var biomeIndices = TileBiomeIndexComputer.ComputeForTile(config, output, half, half);
+            return (BiomeType)biomeIndices[pz * res + px];
         }
     }
 }

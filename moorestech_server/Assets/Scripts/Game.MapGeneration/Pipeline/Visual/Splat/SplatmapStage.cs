@@ -27,7 +27,7 @@ namespace Game.MapGeneration.Pipeline.Visual.Splat
             TerrainGenerationConfig config, BiomeType[] biomeTypes, TileClassificationContext classification,
             SplatLayerTable layerTable, BiomeVisualSections visualSections,
             TreeSurroundSpeciesTable treeSurroundSpecies,
-            float[,] transferredHeights, byte[,] transferredBiomeIndices, int alphamapResolution,
+            float[,] transferredHeights, byte[,] biomeIndices, int alphamapResolution,
             IReadOnlyList<LedgerPlacement> placements, Vector3 tileWorldPosition)
         {
             var biomeTextureConfigs = visualSections.TextureConfigs;
@@ -90,15 +90,15 @@ namespace Game.MapGeneration.Pipeline.Visual.Splat
                 }
             }
 
-            // 高さとwinnerは転送データが権威。重みは触らないのでcontextのWinnerMasksはこの上書きの影響を受けない
-            // Heights and winner come from the authoritative transferred data; the weights stay untouched, so the context's WinnerMasks are unaffected
+            // 高さは転送データが権威、winnerはOcean/Beach折り込み済みのbiomeIndicesで補正する。重みは触らないのでcontextのWinnerMasksはこの上書きの影響を受けない
+            // Heights come from the authoritative transferred data and winner is corrected from the Ocean/Beach-folded biomeIndices; the weights stay untouched, so the context's WinnerMasks are unaffected
             void OverwriteWithTransferredTerrain()
             {
                 for (var z = 0; z < resolution; z++)
                 for (var x = 0; x < resolution; x++)
                     buffers.heights[z * resolution + x] = transferredHeights[z, x];
 
-                WinnerBiomeIndexWriter.Overwrite(buffers.winnerBiomeIndex, transferredBiomeIndices, biomeTypes, resolution);
+                WinnerBiomeIndexWriter.Overwrite(buffers.winnerBiomeIndex, biomeIndices, biomeTypes, resolution);
             }
 
             void RunSplatmapJob()

@@ -5,8 +5,8 @@ using Unity.Collections;
 namespace Game.MapGeneration.Pipeline.Visual.Splat
 {
     /// <summary>
-    ///     再計算したwinnerBiomeIndexを、権威である転送済みbiomeバイト列で上書きする
-    ///     Overwrites the recomputed winnerBiomeIndex with the authoritative transferred biome bytes
+    ///     再計算したwinnerBiomeIndexを、Ocean/Beach折り込み済みのbiomeバイト列で上書きする
+    ///     Overwrites the recomputed winnerBiomeIndex with the Ocean/Beach-folded biome bytes
     /// </summary>
     public static class WinnerBiomeIndexWriter
     {
@@ -17,25 +17,25 @@ namespace Game.MapGeneration.Pipeline.Visual.Splat
         private const int SeaWinnerIndex = -1;
 
         public static void Overwrite(
-            NativeArray<int> winnerBiomeIndex, byte[,] transferredBiomeIndices, BiomeType[] biomeTypes, int resolution)
+            NativeArray<int> winnerBiomeIndex, byte[,] biomeIndices, BiomeType[] biomeTypes, int resolution)
         {
             var winnerIndexByBiomeTypeValue = BuildLookup(biomeTypes);
 
             for (var z = 0; z < resolution; z++)
             for (var x = 0; x < resolution; x++)
             {
-                var transferredBiomeType = transferredBiomeIndices[z, x];
+                var biomeType = biomeIndices[z, x];
 
-                // Beachだけは転送データに答えが無い。PlacementInputBuilder.BuildBiomeIndices が
+                // BeachだけはbiomeIndicesに答えが無い。PlacementInputBuilder.BuildBiomeIndices が
                 // beachFactor>0.2 のピクセルを Beach で塗り潰し、元のwinnerを捨てているため。
-                // ここだけ再計算値を残すのは一貫性の欠如ではなく、権威データが情報を持たないことへの対応
-                // Beach alone has no answer in the transferred data: PlacementInputBuilder.BuildBiomeIndices
+                // ここだけ再計算値を残すのは一貫性の欠如ではなく、biomeIndices側が情報を持たないことへの対応
+                // Beach alone has no answer in biomeIndices: PlacementInputBuilder.BuildBiomeIndices
                 // overwrites pixels with beachFactor>0.2 as Beach and discards the original winner.
                 // Keeping the recomputed value here is not an inconsistency but the only source that still knows
-                if (transferredBiomeType == (byte)BiomeType.Beach) continue;
+                if (biomeType == (byte)BiomeType.Beach) continue;
 
                 var pixelIndex = z * resolution + x;
-                if (transferredBiomeType == (byte)BiomeType.Ocean)
+                if (biomeType == (byte)BiomeType.Ocean)
                 {
                     winnerBiomeIndex[pixelIndex] = SeaWinnerIndex;
                     continue;
@@ -43,10 +43,10 @@ namespace Game.MapGeneration.Pipeline.Visual.Splat
 
                 // 有効バイオーム一覧に無い値は、サーバーとクライアントで有効バイオームが食い違っている証拠
                 // A value outside the enabled biome list proves the server and client disagree on which biomes are enabled
-                var mappedWinner = winnerIndexByBiomeTypeValue[transferredBiomeType];
+                var mappedWinner = winnerIndexByBiomeTypeValue[biomeType];
                 if (mappedWinner == UnmappedBiomeType)
                     throw new InvalidOperationException(
-                        $"[WinnerBiomeIndexWriter] Transferred biome '{(BiomeType)transferredBiomeType}' is not among the enabled biomes.");
+                        $"[WinnerBiomeIndexWriter] Biome '{(BiomeType)biomeType}' is not among the enabled biomes.");
 
                 winnerBiomeIndex[pixelIndex] = mappedWinner;
             }

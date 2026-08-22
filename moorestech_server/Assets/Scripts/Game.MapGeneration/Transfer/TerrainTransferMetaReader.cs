@@ -25,10 +25,8 @@ namespace Game.MapGeneration.Transfer
             // terrainと原点を持つのはgeneratedのみ。未知のmapModeはフォールバックせず例外にする
             // Only generated worlds own terrain and origins; an unknown map mode throws instead of falling back
             //
-            // generatedはgeneratorVersion不一致を明示拒否する。biome_{x}_{z}.binの出力・転送が廃止されクラスタも
-            // 生成システムの外に出なくなったため、旧バージョンの転送ファイル構成では新クライアントが読めない。
-            // Generated worlds explicitly reject a generatorVersion mismatch: biome_{x}_{z}.bin's output and transfer
-            // were dropped and clusters no longer leave the generation system, so an older transfer layout is unreadable by a new client.
+            // generatedはgeneratorVersion不一致を明示拒否する。旧バージョンの転送ファイル構成は新クライアントが読めない
+            // Generated worlds explicitly reject a generatorVersion mismatch; an older transfer layout is unreadable by a new client
             return worldMeta.MapMode switch
             {
                 WorldProvisioner.GeneratedMapMode when worldMeta.GeneratorVersion != WorldProvisioner.GeneratorVersion =>
