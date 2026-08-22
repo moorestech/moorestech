@@ -1,8 +1,10 @@
 using Client.Game.InGame.Train.RailGraph;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
+using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Input;
 using UnityEngine;
@@ -13,16 +15,18 @@ namespace Client.Game.InGame.UI.UIState.State
     {
         private readonly DeleteBarObject _deleteBarObject;
         private readonly UiStateCameraPolicyService _cameraPolicyService;
+        private readonly PlacementTargetPickService _placementTargetPickService;
 
         private readonly DeleteObjectService _deleteObjectService;
         private readonly BuildUndoService _buildUndoService;
 
-        public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, UiStateCameraPolicyService cameraPolicyService, BuildOperationHistory buildOperationHistory, BuildUndoService buildUndoService)
+        public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, UiStateCameraPolicyService cameraPolicyService, BuildOperationHistory buildOperationHistory, BuildUndoService buildUndoService, PlacementTargetPickService placementTargetPickService)
         {
             _deleteBarObject = deleteBarObject;
             _cameraPolicyService = cameraPolicyService;
             _deleteObjectService = new DeleteObjectService(buildOperationHistory);
             _buildUndoService = buildUndoService;
+            _placementTargetPickService = placementTargetPickService;
             deleteBarObject.gameObject.SetActive(false);
         }
 
@@ -33,7 +37,7 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraPolicyService.EnterBuildMode();
 
             _deleteBarObject.gameObject.SetActive(!WebUiScreenGate.IsWebUiMode);
-            KeyControlDescription.Instance.SetText("ドラッグ: まとめて選択\n離す: まとめて削除\nV: 視点切替\nESC: 選択キャンセル\nG: 破壊モード終了\nB: 設置モード\nTab: インベントリ\nCtrl+Z: 元に戻す");
+            KeyControlDescription.Instance.SetText("ドラッグ: まとめて選択\n離す: まとめて削除\nV: 視点切替\nESC: 選択キャンセル\nG: 破壊モード終了\nB: 設置モード\nミドルクリック: 設置物をスポイト\nTab: インベントリ\nCtrl+Z: 元に戻す");
         }
 
         public UITransitContext GetNextUpdate()
@@ -73,6 +77,12 @@ namespace Client.Game.InGame.UI.UIState.State
                 {
                     return new UITransitContext(UIStateEnum.GameScreen);
                 }
+
+                // ミドルクリックで設置物をスポイトし設置モードへ移る
+                // Middle-click eyedrops a placed object and switches to placement mode
+                if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget))
+                    return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(pickedTarget, PlacementOrigin.NonHotbar)));
+
                 return null;
             }
 

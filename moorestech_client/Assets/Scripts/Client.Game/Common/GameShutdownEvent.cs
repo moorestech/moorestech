@@ -12,16 +12,16 @@ namespace Client.Game.Common
         private static readonly Subject<Unit> _onGameShutdown = new();
         private static bool _fired;
 
-        static GameShutdownEvent()
-        {
-            // 新しいゲームセッション開始でガードをリセット。同一ドメインで連続プレイするケースに対応
-            // Reset the guard when a new game session starts; handles consecutive plays without domain reload
-            GameInitializedEvent.OnGameInitialized.Subscribe(_ => _fired = false);
-        }
-
         // ゲーム終了時に発火するイベント
         // Event fired when game shutdown begins
         public static IObservable<Unit> OnGameShutdown => _onGameShutdown;
+
+        // 起動シーケンスの開始でガードを戻す。初期化失敗が続いても各回の終了通知を落とさない
+        // Reset the guard when a boot sequence starts, so repeated initialization failures never drop a shutdown
+        public static void ResetForNewSession()
+        {
+            _fired = false;
+        }
 
         public static void FireGameShutdown()
         {

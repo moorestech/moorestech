@@ -33,7 +33,7 @@ namespace Client.Network
         
         public IObservable<Unit> OnDisconnect => _onDisconnect;
         
-        public static async UniTask<ServerCommunicator> CreateConnectedInstance(ConnectionServerProperties connectionServerProperties)
+        public static async UniTask<ServerCommunicator> CreateConnectedInstance(ConnectionServerProperties connectionServerProperties, CancellationToken connectCancellation)
         {
             //IPアドレスやポートを設定
             if (!IPAddress.TryParse(connectionServerProperties.IP, out var ipAddress)) throw new ArgumentException("IP解析失敗");
@@ -43,8 +43,10 @@ namespace Client.Network
             //接続を行う
             socket.Connect(ipAddress, connectionServerProperties.Port);
             
-            // 接続に10秒かかったらエラーを出す
-            await UniTask.WaitUntil(() => socket.Connected).Timeout(TimeSpan.FromSeconds(10));
+            // 呼び出し側が接続待ちを打ち切ったらソケットも閉じ、待ちとソケットを残さない
+            // Close the socket when the caller abandons the wait, leaving neither the wait nor the socket behind
+            using var connectCancellationRegistration = connectCancellation.Register(() => socket.Close());
+            await UniTask.WaitUntil(() => socket.Connected, PlayerLoopTiming.Update, connectCancellation);
             
             Debug.Log("サーバーに接続しました");
             

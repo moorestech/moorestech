@@ -17,8 +17,7 @@ v8マスタは `maxObjectsPerCluster: 1〜2` / `clusterRadius: 10` なので、�
 鉱脈の生成を MapMaking と同じ点単位へ戻し、AABBは点を中心とした固定サイズにする。
 
 - メンバー点1個につき `PlacedVein` を1件出す（クラスター畳み込みを廃止）
-- `Min = p - (1,1,1)` / `Max = p + (1,1,1)`。MapMaking の `MapVeinGameObjectService` が
-  `size 2 / center 0` の bounds から作る Min/Max と同じ式で、点はAABBの中心に来る
+- `Min = p - (1,1,1)` / `Max = p + (1,1,1)`。inclusive なので `Max - Min = 2`・実体は1辺3セルで、点はAABBの中心に来る
 - 全 vein 一律。MapMaking で `VeinSet_Stone` だけ 3×1×3 だった例外は再現しない
 - `maxObjectsPerCluster` / `clusterRadius` / `minDistanceBetweenOres` は MapMaking の値のまま据え置く
 
@@ -37,7 +36,7 @@ v8マスタは `maxObjectsPerCluster: 1〜2` / `clusterRadius: 10` なので、�
 ## Consequences
 
 - `ItemMapVeinDatastore.GetOverVeins` の判定は inclusive なので、1鉱脈が覆うブロック座標は 3×3×3 = 27セルになる。
-  「bounds のサイズは2だが覆うセルは3」というズレは MapMaking の Min/Max 変換式が元から持っていたものを引き継ぐ
+  `Max - Min = 2` と1辺3セルは同じAABBの別表記であり、以後もこの2語で表す
 - クラスター内の点が2個あるバンドでは鉱脈が2件出るため、鉱脈数と露頭数が現状（v8で約1775本）の最大2倍近くになる。
   まず MapMaking 忠実な状態で見た目と本数バランスを実機確認したいので、マスタ側で本数を絞る調整はしない
   （出所: ユーザー裁定 2026-08-20 原文「今はまず見た目と鉱脈自体の数のゲーム上のバランスを見たいから正確さ優先」）
@@ -45,6 +44,9 @@ v8マスタは `maxObjectsPerCluster: 1〜2` / `clusterRadius: 10` なので、�
   露頭の位置は生成された点そのものになる
 - 非ジェネレーター層（`Game.Map` の Datastore、`VeinLayoutMessagePack`、クライアント露頭、手動オーサリング）は
   `veinGuid` + Min/Max しか知らないため無改修。変更はジェネレーター内に閉じる
+- 同一点から±1広がる以上、非重なりは `minDistanceBetweenOres` が支える。スキーマ既定値を 1.5 から 4 へ上げ、
+  `GenerationMasterUtil` が 4 未満の帯をロード時に弾く（出荷JSONは全件4のため実データの変更は無い）
 - `PlacementSceneOffset.ToSceneSpace(List<PlacedVein>, ...)` は Min と Max を独立に `RoundToInt` しており、
-  `Mathf.Round` の round-half-to-even により半整数シフトでサイズが1ずれうる。サイズ固定を不変条件にするため
-  Min だけ丸めて Max を導出する形へ直す（出所: agent前提・既存バグの是正）
+  `Mathf.Round` の round-half-to-even により半整数シフトでサイズが1ずれうる。サイズ固定と非重なりの双方を
+  不変条件にするため、窓原点シフトを整数へ1度だけ丸めて全veinへ同じ値を引く形へ直す
+  （vein ごとに丸め直すと隣接AABBの間隔が1縮み、ノイズ空間で確立した非重なりが壊れるため。出所: agent前提・既存バグの是正）

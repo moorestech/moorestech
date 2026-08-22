@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Runtime;
 using NUnit.Framework;
@@ -49,10 +51,43 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
 
         public static void AssertInsideGrid(float x, float z, TerrainGenerationConfig config)
         {
+            AssertInsideGridWithMargin(x, z, config, 0f, 0f);
+        }
+
+        // 鉱脈は格子外へ1ブロックはみ出すため両隅を余白ぶん緩める
+        // A vein overhangs the grid by one block, so both corners take that margin
+        public static void AssertVeinInsideGrid(PlacedVein vein, TerrainGenerationConfig config)
+        {
+            const int margin = TestGenerationConfigFactory.VeinGridOverhang;
+            AssertInsideGridWithMargin(vein.Min.x, vein.Min.z, config, margin, margin);
+            AssertInsideGridWithMargin(vein.Max.x, vein.Max.z, config, margin, margin);
+        }
+
+        // 全ペアをinclusive判定し最初の重なりを報告する
+        // Brute-forces every pair inclusively and reports the first overlap
+        public static void AssertNoOverlappingVeins(List<PlacedVein> veins)
+        {
+            for (int i = 0; i < veins.Count; i++)
+            for (int j = i + 1; j < veins.Count; j++)
+            {
+                var a = veins[i];
+                var b = veins[j];
+
+                bool overlaps = a.Min.x <= b.Max.x && b.Min.x <= a.Max.x &&
+                                a.Min.y <= b.Max.y && b.Min.y <= a.Max.y &&
+                                a.Min.z <= b.Max.z && b.Min.z <= a.Max.z;
+                Assert.That(overlaps, Is.False,
+                    $"鉱脈が重複: A(guid={a.VeinGuid}, Min={a.Min}, Max={a.Max}) vs B(guid={b.VeinGuid}, Min={b.Min}, Max={b.Max})");
+            }
+        }
+
+        static void AssertInsideGridWithMargin(
+            float x, float z, TerrainGenerationConfig config, float marginX, float marginZ)
+        {
             var minX = -(config.gridSizeX / 2) * config.terrainWidth;
             var minZ = -(config.gridSizeZ / 2) * config.terrainLength;
-            Assert.That(x, Is.InRange(minX, minX + config.gridSizeX * config.terrainWidth));
-            Assert.That(z, Is.InRange(minZ, minZ + config.gridSizeZ * config.terrainLength));
+            Assert.That(x, Is.InRange(minX - marginX, minX + config.gridSizeX * config.terrainWidth + marginX));
+            Assert.That(z, Is.InRange(minZ - marginZ, minZ + config.gridSizeZ * config.terrainLength + marginZ));
         }
 
         // クラスタ採番を通る岩と、ClusterId=-1 を持つ独立散布の岩を1つずつ。両方が同じタイルに出るのが要点。

@@ -42,8 +42,8 @@ namespace Client.Game.InGame.Presenter.PauseMenu
             ClientContext.VanillaApi.SendOnly.Save();
             Thread.Sleep(50);
             ClientContext.VanillaApi.Disconnect();
-            // Web UI 等、ゲーム終了に同期したい購読者へ通知
-            // Notify subscribers tied to game shutdown (e.g. Web UI)
+            // Web UI と内蔵サーバーへゲーム終了を通知する。内蔵サーバーは保存を消化してから自壊する
+            // Notify the Web UI and the embedded server; the server folds itself after flushing pending saves
             GameShutdownEvent.FireGameShutdown();
         }
     }
