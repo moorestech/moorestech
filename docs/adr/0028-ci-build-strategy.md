@@ -45,6 +45,18 @@ Linuxは、クライアントがCEFネイティブランタイム不在で原理
   プレイヤービルドは行わない。`StandaloneLinux64` は既存のEditMode Testが実質カバー済みのため追加しない
 - 既存の `Web UI Test` / `EditMode Test` / `Check invalid characters` / `Mooresmaster Test` は維持する
 
+**PF別コンパイル検査の検出範囲（2026-08-22 実測）**
+
+PR #1220 で実際に構文エラーを注入して測った結果、この検査はEditorとしてのコンパイルであるため次の非対称性がある。
+
+- 検出できる: `#if UNITY_STANDALONE_OSX` のように、先行する `#if UNITY_EDITOR` に隠れていないPF分岐。
+  `OsDefaultOpener.cs` のOSXブランチへ構文エラーを入れると `Compile - StandaloneOSX` だけが `error CS1525` で落ち、
+  `Compile - StandaloneWindows64` は成功した
+- 検出できない: `#if UNITY_EDITOR` → `#elif UNITY_STANDALONE_OSX` の形で、Editor分岐に先取りされたブランチ。
+  Editor実行時は常に先頭の `UNITY_EDITOR` が真になるため、後続ブランチはコンパイル対象にならない。
+  `ServerDirectory.cs` のOSXブランチへ構文エラーを入れても両ジョブとも成功した
+- したがって「Editor分岐に隠れたPF分岐」の担保は、依然として日次のプレイヤービルドが担う
+
 ### 日次（04:00 JST・打ち切り09:00 JST）
 
 - Client Win/Mac + Server Win/Mac の4ジョブを**並列**・キャッシュ無しで実行する。Linux は戻さない

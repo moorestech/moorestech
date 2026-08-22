@@ -33,7 +33,6 @@ namespace Tests.Watchdog
             });
                 
 #elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
-                var broken = ;
                 // macOS: open コマンド
                 Process.Start("open", $"\"{path}\"");
                 
