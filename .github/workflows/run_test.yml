@@ -108,17 +108,18 @@ jobs:
           fi
           "$pnpm_binary" --dir webui install --frozen-lockfile
 
-      # 年月日を取得　キャッシュのkeyに利用
-      - name: Set current datetime as env variable
-        env:
-          TZ: 'Asia/Tokyo'
-        run: echo "CURRENT_DATETIME=$(date +'%Y-%m')" >> $GITHUB_ENV
-
-      # キャッシュ keyを月跨ぎで更新することで定期的にキャッシュ自体の更新を行う
-      - uses: actions/cache@v3
+      # masterのcache-warmが焼いたキャッシュをrestore-keysの前方一致で拾う（ADR 0028）
+      # Pick up whatever master's cache-warm produced via the restore-keys prefix (ADR 0028)
+      # 保存はmasterのcache-warm.ymlだけが行う（PR側で焼くと10GB枠を食い潰すため。裁定 2026-08-22）
+      # Only master's cache-warm.yml writes caches; saving from PRs would exhaust the 10GB budget (ruling 2026-08-22)
+      # 接頭辞はcache-warm.yml(warm-client-test)と逐語一致が必須。片側だけ改名するとエラー無しで全PRがコールドへ戻る
+      # The prefix must match cache-warm.yml (warm-client-test) verbatim; renaming one side silently sends every PR back to cold
+      - uses: actions/cache/restore@v4
         with:
           path: moorestech/moorestech_client/Library
-          key: "Library_Test_${{ env.CURRENT_DATETIME }}"
+          key: Library_Test_client-${{ github.sha }}
+          restore-keys: |
+            Library_Test_client-
 
       # GameCI の Test runner を利用して
       # EditMode のテストを実行する

@@ -33,6 +33,7 @@
 | 汎用基盤コンポーネントへの状態伝達 | 基盤（基底コンポーネント・共通サービス・Template）はドメイン語彙・`Func<bool>`述語を持たず、具体側が `SetHoge(値)` でプッシュする。状態変化の検知はUniRx購読か操作直後プッシュ（`Update()`毎tickポーリング禁止） | `GearEnergyTransformer.SetTorqueRequestRate`＋`VanillaGearMachineComponent`の`OnChangeBlockState.Subscribe`（PR978で`_isActive`/`AlwaysActive`注入が全面reverted） |
 | スキーマ変更 | edit-schema スキル必須（csc.rsp / _CompileRequester / JSON更新箇所） | edit-schema スキル |
 | UIステート連動コンポーネント | ステートの挙動に**参加する**もの（カメラ・カーソル・設置等の制御）はステートから明示駆動（`OnEnter`/`GetNextUpdate`/`OnExit` から呼ぶ）。`UIStateControl.OnStateChanged` 購読は**表示専用オブザーバ**に限る | 駆動: `PlaceBlockState`→`PlaceSystemStateController.ManualUpdate()/Disable()`、購読（表示のみ）: `DisplayEnergizedRange` |
+| 判断を内包する新設サービス（財布・課金・返却判定・権限判定など。クライアント/サーバー問わず）のAPI形状 | 呼び出し側には「従うだけの指示」を返す — 消費すべきアイテム列・返却すべきアイテム列・適用すべき変更（該当なしなら空）。bool/閾値判定・残数を返して呼び出し側にアイテム組み立て・キー正規化・`Lookup→Mutation`の段取り順序を残さない。**対になる操作（設置/撤去・取得/適用・入/出）は同じ形の指示で対称にする**（片方がアイテム列・片方がboolは漏出のサイン）。呼び出し側が知ってよいのは「サービスの存在・問い合わせること・指示に従うこと」まで。`TryGet`型bool戻り値が正当なのは「判定だけで共有状態を書かず、呼び出し側に後始末が発生しない」サービスに限る | 2026-08-22財布事案: 設置は`(ItemId,int)[] ResolveCostToConsume`（指示型）なのに撤去は`bool WouldCondenseOnReturn`＋呼び出し側で`CreateRefundItems`組み立て、財布キー正規化が呼び出し側6か所に散在。計画は両シグネチャを同じ表に並べていたが非対称を問う検査が無く、レビュー後のユーザー裁定で初めて「指示を返すサービス」へ（`.decisions/2026-08-22-財布システムは指示を返すサービスとしてカプセル化する.md`）。下行のスポイト事案は同じ失敗クラスのクライアント入力変種 |
 | 共有選択モデル（`PlacementSelection`等）を書き換える入力サービス | UIステートから**毎フレーム`ManualUpdate()`型で駆動**し、入力検知（クリック等）と対象検知（レイキャスト・解決）をサービス内部に閉じる（ステート側に入力判定や`TryXxx()` bool戻り値の分岐を書かない）。反映は共有選択モデルへの書き込み**一本**にし、遷移が必要ならステートが選択モデルの変化から導出する。選択モデルを迂回する直接セッター経路（各システムへの`SetXxx`直呼び）の新設は、選択モデルの拡張（フィールド追加＋変化検知比較への追加）で足りない理由を示せた場合のみ | 駆動同族: `PlaceSystemStateController.ManualUpdate()`、`BuildViewModeController.ManualUpdate()`。2026-07-08スポイト設計で「Try-bool型＋ステート側クリック判定＋向きの`SetPlaceDirection`直呼び」を提示し、ユーザーに「UIステートから毎フレーム駆動するサービス＋`PlacementSelection`一本化」へ修正された実績 |
 
 ## 前例を探す Grep 例
@@ -59,6 +60,7 @@ grep -rn "GameActionTypeConst" moorestech_server/Assets/Scripts --include="*.cs"
 - セーブJSONへのマスタ由来値（スロット数・容量）の保存 → レベル・GUID等の最小状態のみ保存
 - 制御コンポーネントのライフサイクルを `OnStateChanged` 購読で作る → ステート駆動へ（購読は表示オブザーバ限定）。発火タイミング（`OnEnter`より後）への回避策が設計に現れたら機構選定ミスのサイン
 - 既存コンポーネントを置換・吸収する設計で駆動機構を無言変更 → 置換対象の機構が第一の前例。変えるなら新規パターンとして注目点へ
+- 判断を内包する新設サービスが bool/残数だけ返し、アイテム組み立て・キー正規化・呼び出し順序が呼び出し側コードに現れる → 「消費せよ/返却せよ」の指示（アイテム列等）を返す形へ。対操作の戻り値形状が非対称（片方アイテム列・片方bool）なら漏出のサイン。前例に呼び出し側正規化（`PlaceBlockProtocol`のunlock判定等）があっても、それは「前例の形」であって「役割として正しい形」の根拠にならない（前例は役割で選ぶ）
 - 入力→選択反映サービスを`TryXxx()` bool戻り値で作り、ステート側にクリック判定・遷移分岐を書く → 毎フレーム`ManualUpdate`駆動＋選択モデル書き込み一本へ。`TryGet`型bool戻り値の前例（`GameScreenSubInventoryInteractService`等）は「遷移コンテキストを**生成するだけで共有状態を書かない**」判定サービス限定であり、共有選択モデルを書き換えるサービスの前例にならない
 - 「同一対象の再選択で`IsSelectionChanged`が発火しない」を理由に選択モデル外の直接セッターを新設 → 選択モデルの比較対象へフィールドを足せば解決する。直接セッター新設の理由にならない
 - 「既存JSONを壊さないため」のoptional化・`?? Default`・ローダーでのプリフィル → 後方互換はプロジェクト方針として考慮不要（AGENTS.md）。必須化して全JSONを一括更新するのが正規手順

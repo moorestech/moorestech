@@ -77,3 +77,34 @@ describe("topic revision ordering", () => {
     expect(useTopicStore.getState().status).toBe("open");
   });
 });
+
+describe("deliverTopicPayload はワイヤ値でなく変換後の値を格納する", () => {
+  beforeEach(() => {
+    useTopicStore.setState({ topics: {}, status: "connecting" });
+    vi.mocked(notify).mockClear();
+  });
+
+  // 検証だけして生値を格納すると、判別union化した型が実体と食い違い空スロットが「0」を描く
+  // Validating but storing the raw payload makes the discriminated-union type lie, and an empty slot renders "0"
+  it("blockInventory の fluidSlots が kind 付きへ変換されている", () => {
+    const wire = {
+      open: true,
+      source: "block",
+      blockType: "tank",
+      identifier: "block:2",
+      blockGuid: "22222222-2222-4222-8222-222222222222",
+      itemSlots: [],
+      fluidSlots: [
+        { fluidId: 10, amount: 500, capacity: 1000, fluidGuid: "60000000-0000-4000-8000-000000000001" },
+        { fluidId: 0, amount: 0, capacity: 1000, fluidGuid: "" },
+      ],
+    };
+
+    expect(deliverTopicPayload(Topics.blockInventory, 1, wire)).toBe(true);
+
+    const stored = useTopicStore.getState().topics[Topics.blockInventory] as {
+      fluidSlots: Array<{ kind: string }>;
+    };
+    expect(stored.fluidSlots.map((slot) => slot.kind)).toEqual(["filled", "empty"]);
+  });
+});

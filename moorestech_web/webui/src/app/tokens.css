@@ -231,8 +231,8 @@
   --world-pin-edge-margin: 40px;
   /* D&D説明のドラッグガイド矢印の寸法と1周期の長さ（webui-design §8.17） */
   /* Size and one-cycle duration of the D&D drag guide arrow (webui-design §8.17) */
-  --tutorial-drag-guide-size: 28px;
-  --tutorial-drag-guide-duration: 1600ms;
+  --tutorial-drag-guide-size: 56px;
+  --tutorial-drag-guide-duration: 3200ms;
   /* 枠線ハイライトの文言ラベルの間隔（webui-design §8.17） */
   /* Gap for an outline highlight's text label (webui-design §8.17) */
   --tutorial-highlight-label-gap: 4px;
@@ -245,6 +245,9 @@
   --tutorial-key-hint-hotbar-gap: 72px;
   --tutorial-key-hint-gap: 6px;
   --tutorial-key-hint-kbd-gap: 10px;
+  /* keyControlヒントはワールド上に面無しで浮くため白では埋もれる。共通の赤で文字色を立てる（webui-design §8.19） */
+  /* The keyControl hint floats faceless over the world and drowns in white, so it uses the shared red (webui-design §8.19) */
+  --tutorial-key-hint-color: var(--text-insufficient);
   /* ドラッグガイド矢印を世界背景から分離する最小限の影（world-pin矢印と同族） */
   /* Minimal shadow separating the drag guide arrow from the world background, same family as the world-pin arrow */
   --tutorial-drag-guide-shadow: rgb(0 0 0 / 65%);
@@ -284,9 +287,9 @@
   /* Notification row face and border, same navy-family face and cool border as research node cards */
   --notification-face: var(--surface-navy);
   --notification-border: rgb(104 106 120);
-  /* 通知の最大幅は画面幅の20%（ユーザー裁定）。画面比例が要件のため例外的に%を使う */
-  /* Notification max width is 20% of the screen width (user ruling); % is intentional because the cap must scale with the screen */
-  --notification-max-width: 20vw;
+  /* 通知の幅は画面幅20%の固定値。可変だと同時表示中の最長行に全行が引き伸ばされ増減のたびに幅が動く */
+  /* Notification width is fixed at 20% of the screen; a fluid width stretches every row to the longest visible one and shifts as rows come and go */
+  --notification-width: 20vw;
   /* 通知の出入り。左から固定長で滑り込み、退場は生存尺から逆算した遅延で逆再生する */
   /* Notification enter/exit: slides in from the left by a fixed length; the exit mirrors it after a lifetime-derived delay */
   --notification-enter-duration: 160ms;

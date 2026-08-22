@@ -72,6 +72,16 @@ Playwright スクリプトで次を出力する:
 
 > 実例（2026-08-22 CRAFT RECIPE一覧）: 「黒い枠線」は `type="always"` が描いた**つまみ幅0の水平スクロールバー**（`scrollWidth === clientWidth` で溢れゼロ）、「不要なスクロール」は個数バッジの5px はみ出し（`.count` を消すと `scrollHeight - clientHeight` が 5→0）だった。どちらも見ただけでは特定できず、実測とablationで初めて確定した。
 
+### 0.4.5 実装前の前提審査（症状を直す前に器と箱・既存定数を審査する）
+
+**既存の寸法定数を据え置く前に、責務と前例を1行で書く（実測の直後・plan 確定前に必ず）。**
+
+- 実測は症状の値（溢れ量・色・はみ出し px）だけでなく**器の値**（パネル本文の高さ・親の rect）を同じ出力に並べ、症状箇所の箱（スクロール領域・クリップ矩形）の大きさが器と一致しているかを**先に**読む。箱が器より小さく一致していないなら、症状を追う前に「この箱の大きさは何が決めるべきか（器／中身／正本）」を plan の項目にする。症状は箱の大きさの帰結であることが多く、箱を直せば複数症状が同時に落ちる。
+- コード内コメントや過去イテレーションで正当化された既存定数（`mah`・固定 px・`--*-max-height`・`minHeight`）は**審査対象**であって所与ではない。据え置くなら plan に「責務＝○○が決めるべき値だから据え置き」と1行書く。「総スクロール範囲が不変」「N段が収まる」「ノブ比が正本と一致」は中身の量・見た目の根拠であり、箱の大きさの責務の根拠にはならない。
+- 同形の兄弟（同じ機構を使う他パネル・同じ DOM に刺さる Portal オーバーレイ）を `grep` で列挙し、一括適用するか、外すなら理由を plan に書く。**理由無しの「別issue」外出しは禁止**。前例（§8.10 の前例パネル等）と形が違うなら、違う理由を plan に書く。
+
+> 実例（2026-08-22 CRAFT RECIPE 一覧）: 初回計測の同じ出力に `panel.height 452` と `viewport.height 46 / scrollHeight 51` が並んでいたのに溢れ 5px だけを読み、既存の `mah={381.2}` を「7段が収まり総スクロール範囲が不変だから据え置きで正しい」と通して、黒帯→偽の溢れ→領域の大きさ→ハイライトのラベルと症状ごとに4回パッチした。問うべきは「スクロール領域は器（パネル本文）が決める」の一問で、それで4症状は同時に落ちた。同形の中央レシピビューアを「別issue」に外して戻らなかった。
+
 ### 0.5 確定したらテストと目視QA
 
 `pnpm lint` / `pnpm test` / `pnpm test:e2e` を通し、§10 の目視QAチェック項目を実施する。
@@ -147,6 +157,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   - 並べるのは `SlotGrid`（既定9列）。独自の grid CSS でスロットを並べない。
   - **ただしパネル内のスロット群に限る。常時表示HUD族（ホットバー・装備HUD）は `SlotGrid` の対象外**で、HUD自身の固定長トークンで組んだ1列のflexに並べる（前例: `HotbarPanel` / `EquipmentPanel`）。折返しの無い1列にグリッドの列数概念を持ち込まないため。
   - **もう1つの例外はレシピ行（§8.17）**。素材・結果のスロット寸法はコンテナクエリ（`container-type: inline-size` + `cqw`）から引くため `SlotGrid` の既定 `grid-template-columns` を必ず上書きすることになる。`--slot-size` を要素自身の `grid-template-columns` で使うと `cqw` が祖先コンテナへ解決して失敗する（実測でスロットが縮まず溢れた）ため、`RecipeRow` は独自gridを持つ。ユーザー裁定 2026-08-20。
+  - **`FluidSlot` は「背面に amount/capacity の縦フィル ＋ 前面に液体アイコン ＋ 右下に量バッジ」の3層。** 背面フィルの色は`GET /api/master/fluids`で配信される液体マスタの色（fluidGuid解決）であり、クライアント側で導出しない。マスタ未取得中はフィルを描かない（フォールバック色でごまかさない）。アイコン取得に失敗した液体は背面フィルだけが残る（`ItemSlot`/`BlockSlot` が使う `#id` テキストフォールバックは液体では使わない）。
 - スロット寸法は `--slot-size`、間隔は `--slot-grid-gap` の局所上書きで調整する。コンポーネント内にpx直書きしない。
 - スロットの状態表現は data属性（`data-selected` / `data-filled` / `data-catalog` / `data-insufficient`）に統一。新しい状態が要るなら data属性を追加する。
 - マウス操作の契約は `useSlotMouse`（左押下・右押下・ドラッグ進入・ダブルクリック）。スロットに生の onClick を生やさない。
@@ -515,7 +526,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 
 - `tutorial.presentation` の kind `keyControl`（tutorialGuid / keyName / uiState）を `KeyControlHintHud` が描く。表示は `ui_state.current` の `state` が `uiState` と一致する間だけで、blockingスキット中は出さない（ユーザー裁定 2026-08-20）。
 - 配置は常時表示HUD族の `.viewportOverlay` 内・画面下中央で、ホットバーの床（`--hotbar-floor-offset`）から `--tutorial-key-hint-hotbar-gap` だけ上に置き、採掘ゲージと重ねない。複数は `--tutorial-key-hint-gap` で縦積み。床位置の計算式（`--hotbar-floor-offset` + 各HUD固有のgap）は採掘プログレスバー（§8.18）と共有する。
-- 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。実装は `LocalizedShortcutHint`（`shared/i18n`）を `layout="prefix"` で再利用する（kbdを常に先頭へ置く様式を型で表明し、`layout="inline"` の文言中マーカー差し込みと識別可能にする）。文字様式はInventoryScreenChrome/ResearchScreenChromeのkeyHintsと共有する `keyHintText` クラス（§7）、kbdとの間隔・縦積み間隔は `--tutorial-key-hint-*` 固定長トークン。面・枠・光彩・アニメーションは持たず `pointer-events: none`。
+- 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。実装は `LocalizedShortcutHint`（`shared/i18n`）を `layout="prefix"` で再利用する（kbdを常に先頭へ置く様式を型で表明し、`layout="inline"` の文言中マーカー差し込みと識別可能にする）。文字様式はInventoryScreenChrome/ResearchScreenChromeのkeyHintsと共有する `keyHintText` クラス（§7）、kbdとの間隔・縦積み間隔は `--tutorial-key-hint-*` 固定長トークン。**文字色だけは `--tutorial-key-hint-color`（共通の赤 `--text-insufficient` を参照）で上書きする**: 面を持たずワールド上に浮くため白文字では埋もれる（ユーザー裁定 2026-08-22）。新しい色相は増やさない。面・枠・光彩・アニメーションは持たず `pointer-events: none`。
 
 ## 9. やらないことリスト（再掲・明示）
 

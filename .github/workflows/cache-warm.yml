@@ -1,0 +1,131 @@
+# master上でLibraryキャッシュを焼く。Actionsのキャッシュスコープは「自分のref＋ベースブランチ」なので、
+# masterに焼かない限りPR側は永遠にコールドで走る（ADR 0028）。日次ビルドの1時間前に回す。
+# Warm the Library caches on master. Actions cache scope is "own ref plus base branch", so PRs stay
+# cold forever unless master has them (ADR 0028). Runs one hour before the daily build.
+# 消費側(run_test.yml / platform-compile.yml)とジョブ定義が重複している。matrix・unityVersion・キャッシュのpath/key/restore-keysを変えるときは必ず両方を直す
+# The job definitions are duplicated with the consumers (run_test.yml / platform-compile.yml); change matrix, unityVersion, and the cache path/key/restore-keys in both
+name: Cache Warm
+
+on:
+  # UTC 18:00 = JST 翌03:00（日次ビルドの1時間前）
+  # 18:00 UTC equals 03:00 JST the next day, one hour before the daily build
+  schedule:
+    - cron: '0 18 * * *'
+
+  # 手動実行デバッグ用
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  # EditMode Testが使うclient Libraryを焼く
+  # Warm the client Library used by the EditMode Test
+  warm-client-test:
+    name: Warm client Library (EditMode Test)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out my unity project.
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          path: moorestech
+
+      - name: Read pinned master repository revision.
+        id: master_revision
+        shell: bash
+        working-directory: moorestech
+        run: |
+          commit_hash=$(jq -er '.repositories[] | select(.key == "moorestech_master") | .commitHash' .moorestech-external-revisions.json)
+          echo "commit_hash=$commit_hash" >> "$GITHUB_OUTPUT"
+
+      - name: Generate github token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.PRIVATE_KEY }}
+
+      - name: Check out pinned master repository.
+        uses: actions/checkout@v4
+        with:
+          repository: moorestech/moorestech_master
+          token: ${{ steps.generate_token.outputs.token }}
+          ref: ${{ steps.master_revision.outputs.commit_hash }}
+          path: moorestech_master
+
+      # 約20分のwarm成果を1ステップの失敗で捨てないよう、restoreとsaveを分けてsaveをif: always()にする
+      # Splitting restore from an always-run save keeps ~20 minutes of warming from being discarded by one failed step
+      - uses: actions/cache/restore@v4
+        with:
+          path: moorestech/moorestech_client/Library
+          key: Library_Test_client-${{ github.sha }}
+          restore-keys: |
+            Library_Test_client-
+
+      # テストを1本も実行せずインポートだけ済ませる（Libraryを作るのが目的）
+      # Import only, without running any test, since the goal is to produce the Library
+      - name: Warm Library
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: moorestech/moorestech_client/
+          githubToken: ${{ steps.generate_token.outputs.token }}
+          unityVersion: 6000.3.8f1
+          testMode: editmode
+          customParameters: '-testFilter __cache_warm_matches_nothing__'
+
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: moorestech/moorestech_client/Library
+          key: Library_Test_client-${{ github.sha }}
+
+  # PF別コンパイル検査が使うserver Libraryをターゲットごとに焼く
+  # Warm the server Library per target for the platform compile check
+  warm-server-compile:
+    name: Warm server Library - ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - StandaloneWindows64
+          - StandaloneOSX
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/cache/restore@v4
+        with:
+          path: moorestech_server/Library
+          key: Library_compile_server_${{ matrix.target }}-${{ github.sha }}
+          restore-keys: |
+            Library_compile_server_${{ matrix.target }}-
+
+      - name: Warm Library - ${{ matrix.target }}
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.3.8f1
+          buildMethod: Server.Editor.PlatformCompileCheck.RunFromGithubAction
+          targetPlatform: ${{ matrix.target }}
+          allowDirtyBuild: true
+          projectPath: moorestech_server/
+          versioning: None
+          customParameters: '-expectedBuildTarget ${{ matrix.target }}'
+
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: moorestech_server/Library
+          key: Library_compile_server_${{ matrix.target }}-${{ github.sha }}
