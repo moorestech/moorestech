@@ -1,4 +1,4 @@
-import { Tooltip } from "@mantine/core";
+import HoverTooltip from "../HoverTooltip";
 import type { FluidSlotData } from "@/bridge";
 import { fluidNameKey, useI18n } from "@/shared/i18n";
 import { formatAmount, fillRatio } from "./fluidLogic";
@@ -21,7 +21,7 @@ export default function FluidSlot({ fluid }: { fluid: FluidSlotData }) {
   const name = fluid.fluidGuid ? t(fluidNameKey(fluid.fluidGuid)) : "";
 
   return (
-    <Tooltip label={name} disabled={!hasFluid || !name}>
+    <HoverTooltip label={name} disabled={!hasFluid || !name}>
       <div data-testid="fluid-slot" className={styles.slot}>
         {hasFluid ? (
           <>
@@ -35,6 +35,6 @@ export default function FluidSlot({ fluid }: { fluid: FluidSlotData }) {
           </>
         ) : null}
       </div>
-    </Tooltip>
+    </HoverTooltip>
   );
 }

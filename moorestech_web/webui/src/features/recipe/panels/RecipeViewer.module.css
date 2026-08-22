@@ -3,6 +3,22 @@
   min-height: 0;
 }
 
+/* スクロール領域の大きさは器（パネル本文）が決める。中身ぴったりに縮めない（§8.10・ユーザー裁定 2026-08-22） */
+/* The scroller's size comes from its container (the panel body), never from its content (§8.10, user ruling 2026-08-22) */
+.recipeListScroll {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Mantine既定のheight:100%はflex由来の親高に対して解決できず内容なりに潰れるためflexで伸ばす */
+/* Mantine's default height:100% cannot resolve against a flex-derived parent height, so stretch it with flex */
+.recipeListScroll :global(.mantine-ScrollArea-viewport) {
+  flex: 1;
+  min-height: 0;
+}
+
 /* リストのスクロールバーは§8.10のネイビートーンへ統一する */
 /* Unify the list scrollbar with the §8.10 navy tone */
 .recipeListScroll :global(.mantine-ScrollArea-scrollbar) {

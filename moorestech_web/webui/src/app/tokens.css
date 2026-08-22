@@ -163,12 +163,16 @@
   --operation-hud-detail-gap: 5px;
   --operation-hud-letter-spacing: 1px;
   --operation-hud-detail-line-height: 25px;
-  /* カーソル追従ツールチップの書式はWeb側が唯一の値源。ホストから寸法は受け取らない */
-  /* The cursor tooltip's format is owned solely by the web side; the host sends no sizes */
-  --cursor-tooltip-font-size: 18px;
-  --cursor-tooltip-padding-block: 6px;
-  --cursor-tooltip-padding-inline: 10px;
-  --cursor-tooltip-max-width: 320px;
+  /* ツールチップの書式はWeb側が唯一の値源。ホストから寸法は受け取らない。
+     カーソル追従(CursorTooltip)とスロットのホバー(HoverTooltip)が同じ見た目を共有する */
+  /* The tooltip format is owned solely by the web side and the host sends no sizes;
+     the cursor-following CursorTooltip and the slot HoverTooltip share one look */
+  --tooltip-font-size: 18px;
+  --tooltip-padding-block: 6px;
+  --tooltip-padding-inline: 10px;
+  --tooltip-max-width: 320px;
+  --tooltip-face: rgb(16 20 28 / 94%);
+  --tooltip-border: 1px solid rgb(255 255 255 / 22%);
   /* uGUIの削除バーを1280基準へ縮尺し、上下端に見える半幅と斜線周期を固定する */
   /* Scale the uGUI deletion bar to the 1280 baseline and lock its visible half-height and stripe period */
   --delete-mode-warning-band-height: 20px;
@@ -300,9 +304,10 @@
   /* Measured bleed of the item-list count badge (absolutely placed at bottom:-1px) below the last row's slots;
      unless the ScrollArea reserves it, even a single row yields a phantom overflow and a needless bar */
   --item-list-count-bleed: 5px;
-  /* レシピビューア単一リストの最大高とエントリ間隔（ADR 0011・§8.17） */
-  /* Max height and entry gap for the recipe viewer single list (ADR 0011, §8.17) */
-  --recipe-list-max-height: 352px;
+  /* レシピビューア単一リストのエントリ間隔（ADR 0011・§8.17）。
+     最大高はパネル本文が決めるためトークンを持たない（ユーザー裁定 2026-08-22） */
+  /* Entry gap for the recipe viewer single list (ADR 0011, §8.17);
+     its max height comes from the panel body, so no token holds it (user ruling 2026-08-22) */
   --recipe-entry-gap: 10px;
   /* クラフトボタンと機械情報行が共有する行高。片方だけ変わると単一リストの縦リズムが崩れる */
   /* Row height shared by the craft button and the machine info row; changing one alone breaks the list rhythm */

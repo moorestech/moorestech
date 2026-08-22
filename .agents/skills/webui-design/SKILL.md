@@ -191,6 +191,8 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 
 ## 8. 通知・情報表示
 
+- **要素に紐づくPortalオーバーレイ（ツールチップ・チュートリアルのハイライト）は、祖先スクローラに対する扱いを必ず決める。** Portalへ出る以上CSSのクリップは一切効かないので、放置すると内容と一緒に滑ってパネルの外へ出る。既存の答えは2つで、どちらかに寄せる: ハイライトは祖先の実クリップ矩形でマスクし完全に隠れたら描かない（ADR 0024・`ancestorClipRect`）／スロットのツールチップは祖先がスクロールしたら引っ込め、ポインタが動いたら開き直す（`shared/ui/HoverTooltip`・ユーザー指摘 2026-08-22）。
+- **スロットのホバーツールチップは `shared/ui/HoverTooltip` だけを使う。** Mantine `Tooltip` を機能側から直接使わない。面・書式は `--tooltip-*` トークンで `CursorTooltip` と共有し、Mantine既定の白い角丸を出さない（§9）。
 - 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・7秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
 - **`CursorTooltip` の書式はWeb側トークンが唯一の正**（ADR 0019）: フォント18px・padding 6/10px・max-width 320px。ホストは辞書キーと位置パラメータだけを送り、寸法値（fontSize等）はwireに載せない。
 - **NotificationHostは背面viewport族**（§1.5・`--z-viewport-behind-stage`）。stage族でもviewport族でもなく、`--ui-scale` に追従しない。
