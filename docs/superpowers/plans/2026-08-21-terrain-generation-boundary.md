@@ -1251,7 +1251,7 @@ fixture の `Build()` は不変。テスト本体は `TerrainFileWriter.Write(wo
 ```
 （`TerrainTransferTestScope` の払い出しAPI名は実装時に `Tests.Module/TerrainTransferTestScope.cs` で確認し、無ければ `WorldProvisioner.EnsureWorld` を直接呼ぶ。テスト用 generation master は `TestGenerationConfigFactory` 系が使う ForUnitTest mod）
 
-- [ ] **Step 8: 不要コード削除・コンパイル・全テスト・実機確認**
+- [x] **Step 8: 不要コード削除・コンパイル・全テスト・実機確認**
 
 Run: `uloop compile` → `uloop run-tests ... --filter-value "Terrain|MapGeneration|ClientTerrainUsingScanTest"` → PASS。次に unity-playmode-recorded-playtest で `PlayerStartsOnBuiltTerrainTest` を含む EditModeInPlaying を1本実行し、generated ワールドが起動して地形が見えることと、ログ `[WorldTerrainSession] pass-1 placement regeneration: ...ms` の値を記録する（10秒超なら bd 起票）。
 ```bash
@@ -1349,10 +1349,10 @@ git commit -am "feat(mapgen): ワールド生成時に共有キャッシュへ�
 
 ### Task 10: 仕上げ（ドキュメント・bd・全ブランチレビュー）
 
-- [ ] **Step 1: ADR-0025 の「実装タスク」行と v2 plan の委譲先テーブルを実態（PR番号）に更新。`docs/adr/0012` は変更不要**
-- [ ] **Step 2: bd `moorestech-a3x` に pass-1 実測値・削除ファイル数・判定結果を note。10秒超なら「高さのr16往復を生成側で行い pass-1 の HeightmapStage を省く」を `bd create --parent moorestech-a3x`**
-- [ ] **Step 3: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（moores-code-review・自動実行・ゴール文言による省略不可）**
-- [ ] **Step 4: pr-create（本repo）＋ master repo の PR（`feat/terrain-generation-boundary`）。PR本文に「見た目は1ピクセルも変わらない（ゴールデン同値）」「GeneratorVersion 3.0.0 のため既存 generated ワールドは作り直し」を明記**
+- [x] **Step 1: ADR-0025 の「実装タスク」行と v2 plan の委譲先テーブルを実態（PR番号）に更新。`docs/adr/0012` は変更不要**
+- [x] **Step 2: bd `moorestech-a3x` に pass-1 実測値・削除ファイル数・判定結果を note。10秒超なら「高さのr16往復を生成側で行い pass-1 の HeightmapStage を省く」を `bd create --parent moorestech-a3x`**
+- [x] **Step 3: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（moores-code-review・自動実行・ゴール文言による省略不可）**
+- [x] **Step 4: pr-create（本repo）＋ master repo の PR（`feat/terrain-generation-boundary`）。PR本文に「見た目は1ピクセルも変わらない（ゴールデン同値）」「GeneratorVersion 3.0.0 のため既存 generated ワールドは作り直し」を明記**
 
 ---
 
