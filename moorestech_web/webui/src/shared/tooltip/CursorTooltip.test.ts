@@ -87,8 +87,8 @@ describe("CursorTooltip", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     setDictionaries("english", {}, {}, {});
     const data = {
-      visible: true,
-      lines: [{ textKey: "ui.tooltip.unknown", textParams: [] }],
+      visible: true as const,
+      lines: [{ textKey: "ui.tooltip.unknown", textParams: [] as string[] }],
     };
 
     expect(resolveTooltipLines(data, vi.fn())).toEqual(["[!ui.tooltip.unknown]"]);

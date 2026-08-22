@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Paper, Portal } from "@mantine/core";
-import { Topics, useTopic, type TooltipData, type TooltipLine } from "@/bridge";
+import { Topics, useTopic, type TooltipLine, type VisibleTooltipData } from "@/bridge";
 import { buildPositionalInterpolationValues, translateExternalKey, useI18n, type InterpolationValues, type TranslationKey } from "@/shared/i18n";
 import { clampTooltipPosition } from "./tooltipPosition";
 import styles from "./style.module.css";
@@ -18,6 +18,8 @@ export function CursorTooltip() {
     return () => window.removeEventListener("pointermove", move);
   }, []);
 
+  // visibleがtrueの契約は1行以上を保証するため、行の有無での二重判定は行わない
+  // The visible:true contract guarantees at least one line, so line emptiness is not re-checked
   const lines = data?.visible ? resolveTooltipLines(data, t) : [];
   const text = lines.join("\n");
 
@@ -27,7 +29,7 @@ export function CursorTooltip() {
     setPosition(clampTooltipPosition(pointer.x, pointer.y, element.offsetWidth, element.offsetHeight, window.innerWidth, window.innerHeight));
   }, [pointer, data, text, locale]);
 
-  if (!data?.visible || lines.length === 0) return null;
+  if (!data?.visible) return null;
   return (
     <Portal>
       <Paper ref={elementRef} className={styles.tooltip} data-testid="cursor-tooltip" style={{ left: position.x, top: position.y }}>
@@ -42,7 +44,7 @@ export function CursorTooltip() {
 // ホストは行ごとにキーと位置パラメータだけを送るため、各行を辞書解決＋{p0}補間して表示文字列にする
 // The host sends only a key and positional params per line, so each line is dictionary-resolved and interpolated
 export function resolveTooltipLines(
-  data: TooltipData,
+  data: VisibleTooltipData,
   translate: (key: TranslationKey, values: InterpolationValues) => string,
 ): string[] {
   return data.lines.map((line: TooltipLine) => translateExternalKey(

@@ -73,10 +73,18 @@ export const TooltipLineSchema = z.object({
   textParams: z.array(z.string()),
 }).strict();
 
-export const TooltipDataSchema = z.object({
-  visible: z.boolean(),
-  lines: z.array(TooltipLineSchema),
-}).strict();
+// 表示状態は行から導出されるものなので、表示なら1行以上・非表示なら0行という対応をスキーマ側で固定する
+// Visibility is derived from the lines, so the schema pins the pairing: visible means at least one line, hidden means none
+export const TooltipDataSchema = z.discriminatedUnion("visible", [
+  z.object({
+    visible: z.literal(false),
+    lines: z.array(TooltipLineSchema).max(0),
+  }).strict(),
+  z.object({
+    visible: z.literal(true),
+    lines: z.array(TooltipLineSchema).min(1),
+  }).strict(),
+]);
 
 // itemIdはアイテム無し時にキー自体が省略される（NullValueHandling.Ignore）想定だがnullableも許容する
 // itemId is normally omitted (not sent as null) when there is no item, but nullable is accepted too

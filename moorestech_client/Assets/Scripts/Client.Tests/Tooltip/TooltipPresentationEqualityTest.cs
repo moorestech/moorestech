@@ -9,7 +9,7 @@ namespace Client.Tests.Tooltip
     {
         private static TooltipPresentation RequiredItems(string itemName)
         {
-            return new TooltipPresentation(true, new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.RequiredItems, new[] { itemName }) });
+            return new TooltipPresentation(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.RequiredItems, new[] { itemName }) });
         }
 
         [Test]
@@ -23,14 +23,24 @@ namespace Client.Tests.Tooltip
         }
 
         [Test]
-        public void DifferentKeyParamsLineCountOrVisibilityComparesUnequal()
+        public void DifferentKeyParamsOrLineCountComparesUnequal()
         {
             var baseline = RequiredItems("Iron Pickaxe");
 
-            Assert.AreNotEqual(baseline, new TooltipPresentation(true, new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.HoldToGet, new[] { "Iron Pickaxe" }) }));
+            Assert.AreNotEqual(baseline, new TooltipPresentation(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.HoldToGet, new[] { "Iron Pickaxe" }) }));
             Assert.AreNotEqual(baseline, RequiredItems("Stone Pickaxe"));
-            Assert.AreNotEqual(baseline, new TooltipPresentation(false, baseline.Lines));
-            Assert.AreNotEqual(baseline, new TooltipPresentation(true, new[] { baseline.Lines[0], new TooltipLine(LocalizationKeys.Ui.Tooltip.HoldToGet) }));
+            Assert.AreNotEqual(baseline, TooltipPresentation.Hidden);
+            Assert.AreNotEqual(baseline, new TooltipPresentation(new[] { baseline.Lines[0], new TooltipLine(LocalizationKeys.Ui.Tooltip.HoldToGet) }));
+        }
+
+        // 表示状態は独立したフラグではなく行から導出されるため、行が無い＝非表示になる
+        // Visibility is not an independent flag but derived from the lines, so no lines means hidden
+        [Test]
+        public void VisibilityIsDerivedFromLines()
+        {
+            Assert.IsTrue(RequiredItems("Iron Pickaxe").Visible);
+            Assert.IsFalse(TooltipPresentation.Hidden.Visible);
+            Assert.IsFalse(new TooltipPresentation(System.Array.Empty<TooltipLine>()).Visible);
         }
 
         [Test]

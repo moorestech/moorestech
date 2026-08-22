@@ -44,6 +44,9 @@ namespace Client.Game.InGame.UI.Tooltip
         private void Awake()
         {
             Instance = this;
+            // Webモードではこのビューは恒久非表示。以後uGUIへは一切書き込まないためここで一度だけ消す
+            // In web mode this view stays hidden forever, so it is cleared once here and never written again
+            if (WebUiScreenGate.IsWebUiMode) canvasGroup.alpha = 0;
         }
 
         public void Show(TooltipOwner owner, LocalizationKey key)
@@ -60,12 +63,25 @@ namespace Client.Game.InGame.UI.Tooltip
         // What is shown belongs to the last caller; ownership moves to whoever showed it
         public void Show(TooltipOwner owner, IReadOnlyList<TooltipLine> lines)
         {
+            // 行が無い表示要求は非表示と同義（表示状態は行の有無から導出されるため）
+            // A show request without lines means hidden, because visibility is derived from the lines
+            if (lines.Count == 0)
+            {
+                Hide(owner);
+                return;
+            }
+
             _currentOwner = owner;
-            canvasGroup.alpha = WebUiScreenGate.IsWebUiMode ? 0 : 1;
+            _presentation.Value = new TooltipPresentation(lines);
+
+            // Webモードでは描画されないTMPへ表示文字列を組み立てない（毎フレーム呼ばれる経路のため）
+            // In web mode no display string is built for the TMP that never renders, since this runs every frame
+            if (WebUiScreenGate.IsWebUiMode) return;
+
+            canvasGroup.alpha = 1;
             // uGUI側は行を改行連結して描画
             // The uGUI side joins lines with newlines
             itemName.text = string.Join("\n", lines.Select(line => InterpolateTextParams(Localize.Get(line.Key), line.TextParams)));
-            _presentation.Value = new TooltipPresentation(true, lines);
         }
 
         // 自分が出していない表示は消さない（毎フレームHideする書き手が他者の表示を潰さないため）
@@ -75,8 +91,9 @@ namespace Client.Game.InGame.UI.Tooltip
             if (_currentOwner != owner) return;
 
             _currentOwner = null;
-            canvasGroup.alpha = 0;
             _presentation.Value = TooltipPresentation.Hidden;
+
+            if (!WebUiScreenGate.IsWebUiMode) canvasGroup.alpha = 0;
         }
 
         // 辞書テンプレートの{p0}プレースホルダを埋める（Web側translatorと同じ規約）
@@ -99,20 +116,22 @@ namespace Client.Game.InGame.UI.Tooltip
     /// </summary>
     public readonly struct TooltipPresentation : IEquatable<TooltipPresentation>
     {
-        public static readonly TooltipPresentation Hidden = new(false, Array.Empty<TooltipLine>());
+        public static readonly TooltipPresentation Hidden = new(Array.Empty<TooltipLine>());
 
-        public readonly bool Visible;
         public readonly IReadOnlyList<TooltipLine> Lines;
 
-        public TooltipPresentation(bool visible, IReadOnlyList<TooltipLine> lines)
+        // 表示状態は行から導出する（行が無いのに表示中という矛盾した状態を作らせない）
+        // Visibility is derived from the lines, so a contradictory "visible with no lines" state cannot exist
+        public bool Visible => 0 < Lines.Count;
+
+        public TooltipPresentation(IReadOnlyList<TooltipLine> lines)
         {
-            Visible = visible;
             Lines = lines;
         }
 
         public bool Equals(TooltipPresentation other)
         {
-            return Visible == other.Visible && Lines.SequenceEqual(other.Lines);
+            return Lines.SequenceEqual(other.Lines);
         }
 
         public override bool Equals(object obj)
@@ -122,7 +141,7 @@ namespace Client.Game.InGame.UI.Tooltip
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(Visible, Lines.Count);
+            var hash = Lines.Count;
             foreach (var line in Lines) hash = HashCode.Combine(hash, line);
             return hash;
         }

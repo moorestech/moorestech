@@ -56,6 +56,14 @@ describe("tooltip schema", () => {
       visible: true, lines: [{ textKey: "Cannot remove" }],
     }).valid).toBe(false);
   });
+  // 表示状態はホスト側で行から導出されるため、行と食い違うスナップショットは境界で弾く
+  // Visibility is derived from the lines on the host, so a snapshot disagreeing with them is rejected at the boundary
+  it("rejects a visibility flag that disagrees with the lines", () => {
+    expect(parseTopicPayload(Topics.tooltip, { visible: true, lines: [] }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.tooltip, {
+      visible: false, lines: [{ textKey: "ui.tooltip.requiredItems", textParams: [] }],
+    }).valid).toBe(false);
+  });
   it("rejects sizes smuggled in alongside the lines", () => {
     expect(parseTopicPayload(Topics.tooltip, {
       visible: true, lines: [{ textKey: "ui.tooltip.requiredItems", textParams: [] }], width: 240,
