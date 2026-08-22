@@ -13,6 +13,7 @@ using Game.Blueprint;
 using Game.Challenge;
 using Game.CleanRoom;
 using Game.Construction;
+using Server.Protocol.PacketResponse.Util.Construction;
 using Game.Context;
 using Game.Crafting.Interface;
 using Game.EnergySystem;
@@ -202,6 +203,7 @@ namespace Server.Boot
             services.AddSingleton<RemainingPlacementCountDataStore>();
             services.AddSingleton<IRemainingPlacementCountLookup>(provider => provider.GetRequiredService<RemainingPlacementCountDataStore>());
             services.AddSingleton<IRemainingPlacementCountMutation>(provider => provider.GetRequiredService<RemainingPlacementCountDataStore>());
+            services.AddSingleton<ConstructionWalletService>();
 
             services.AddSingleton<ResearchEvent>();
 

@@ -5,7 +5,6 @@ using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
-using Game.Construction;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.UnlockState;
@@ -30,16 +29,14 @@ namespace Server.Protocol.PacketResponse
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly NotificationService _notificationService;
-        private readonly IRemainingPlacementCountLookup _remainingPlacementCountLookup;
-        private readonly IRemainingPlacementCountMutation _remainingPlacementCountMutation;
+        private readonly ConstructionWalletService _constructionWallet;
 
         public PlaceBlockProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
             _notificationService = serviceProvider.GetService<NotificationService>();
-            _remainingPlacementCountLookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
-            _remainingPlacementCountMutation = serviceProvider.GetService<IRemainingPlacementCountMutation>();
+            _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -93,11 +90,11 @@ namespace Server.Protocol.PacketResponse
                 // Skip locked cells and resolve belt slopes through their family straight block
                 if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) { notUnlockedCount++; return; }
 
-                // 財布分は無償消費、残りは全額。不足はスキップ
-                // Wallet-covered cells consume nothing, others the full cost; skip cells that cannot be covered
+                // 財布に消費すべき素材を問い合わせ、賄えないセルはスキップ
+                // Ask the wallet what to consume for this cell and skip the ones we cannot cover
                 var inventory = inventoryData.MainOpenableInventory;
-                var costItemCounts = RemainingPlacementChargeService.ResolveCostToConsume(blockMaster, data.PlayerId, _remainingPlacementCountLookup);
-                if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) { costShortageCount++; return; }
+                var placementPlan = _constructionWallet.PlanPlacement(blockMaster, data.PlayerId);
+                if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; return; }
 
                 // 電気なら自動接続を事前検証
                 // For electric blocks, validate the auto-connect plan before placement; skip when wires are insufficient
@@ -107,7 +104,7 @@ namespace Server.Protocol.PacketResponse
                 {
                     // 建設コストで消費予定の素材を予約として渡し、電線の所持数判定から除外する
                     // Pass construction-cost materials as reservations to exclude them from wire availability
-                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, costItemCounts, inventory.InventoryItems);
+                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, placementPlan.ItemsToConsume, inventory.InventoryItems);
                     if (!plan.IsPlaceable) { wireShortageCount++; return; }
                 }
 
@@ -115,7 +112,7 @@ namespace Server.Protocol.PacketResponse
                 // Do not consume the cost when placement fails
                 if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) return;
 
-                RemainingPlacementChargeService.Charge(blockMaster, data.PlayerId, _remainingPlacementCountMutation, costItemCounts, inventory);
+                _constructionWallet.CommitPlacement(placementPlan, inventory);
 
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items

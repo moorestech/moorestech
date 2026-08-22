@@ -5,7 +5,6 @@ using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Construction;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.Train.RailPositions;
@@ -24,16 +23,14 @@ namespace Server.Protocol.PacketResponse
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly TrainRailPositionManager _railPositionManager;
-        private readonly IRemainingPlacementCountLookup _remainingPlacementCountLookup;
-        private readonly IRemainingPlacementCountMutation _remainingPlacementCountMutation;
+        private readonly ConstructionWalletService _constructionWallet;
 
 
         public RemoveBlockProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
-            _remainingPlacementCountLookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
-            _remainingPlacementCountMutation = serviceProvider.GetService<IRemainingPlacementCountMutation>();
+            _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -44,9 +41,9 @@ namespace Server.Protocol.PacketResponse
             if (block == null) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
             if (!CanManualRemoveBlock(block)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.NodeInUseByTrain);
 
-            // 撤去判定・財布更新で同じマスタを再利用
-            // Reuse the same block master for both the removal check and the wallet update
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
+            // 財布に返却物を問い合わせる（撤去の確定は後段）
+            // Ask the wallet what this removal hands back; the removal itself is finalized further down
+            var removalPlan = _constructionWallet.PlanRemoval(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), data.PlayerId);
 
             // 破壊した後のアイテムをインベントリに挿入できるかチェック
             // Check if items after destruction can be inserted into inventory
@@ -56,9 +53,9 @@ namespace Server.Protocol.PacketResponse
             // Deletion process
             ServerContext.WorldBlockDatastore.RemoveBlock(data.Pos, BlockRemoveReason.ManualRemove);
 
-            // 撤去確定後に財布へ1戻す（凝縮時は0へ戻り、返却分は上で確保済み）
-            // After removal is final, return one to the wallet (condensing resets it; the refund was reserved above)
-            RemainingPlacementChargeService.ReturnOne(blockMaster, data.PlayerId, _remainingPlacementCountMutation);
+            // 撤去確定後に財布へ知らせる
+            // Tell the wallet once the removal is final
+            _constructionWallet.CommitRemoval(removalPlan);
 
             InsertItemsToPlayerInventory(refundItems);
             
@@ -104,13 +101,9 @@ namespace Server.Protocol.PacketResponse
             {
                 var result = new List<IItemStack>();
                 
-                // 建設コストは財布が1セット到達する撤去でのみ返る
-                // The construction cost returns only when this removal completes one set's worth in the wallet (every time when placementsPerCost==1)
-                if (blockMaster.RequiredItems != null && blockMaster.RequiredItems.Length != 0
-                    && RemainingPlacementChargeService.WouldCondenseOnReturn(blockMaster, data.PlayerId, _remainingPlacementCountLookup))
-                {
-                    result.AddRange(ConstructionCostService.CreateRefundItems(ConstructionCostService.ToItemCounts(blockMaster.RequiredItems)));
-                }
+                // 建設コストの返却は財布の指示に従うだけ
+                // The construction-cost refund simply follows the wallet's instruction
+                result.AddRange(removalPlan.ItemsToRefund);
                 
                 // インベントリのアイテムを取得
                 // Get items from block inventory
