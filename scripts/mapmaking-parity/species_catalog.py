@@ -24,6 +24,10 @@ ADDRESS_CATEGORY_BY_KIND = {"tree": "Tree", "rock": "Rock", "pebble": "Rock", "p
 # The source TerrainGenerator.ApplyObjectSurroundTexture repaints bare ground only under objectConfig placements whose name contains one of these
 BARE_GROUND_NAME_MARKERS = ("Boulder", "Cliff")
 
+# kind=treeのうち幹を持たないサボテン・低木の名前（小文字比較）。木用の描画・音とは別軸なのでkindに相乗りさせない
+# Names (compared lowercase) of kind=tree species without a trunk; a separate axis from the tree rendering and sound kind
+NON_TIMBER_NAME_MARKERS = ("cactus", "opuntia", "saguaro", "senita", "bush")
+
 
 class Species:
     def __init__(self, prefab_guid: str, prefab_path: str):
@@ -42,6 +46,15 @@ class Species:
         # Only species referenced from objectConfig can become true; rocks placed via treePlacement are never repainted in the source
         self.referenced_by_object_config = False
 
+    # 幹から原木が採れる樹種か。サボテン・低木・草花は木のように描画・発音されても原木を落とさない
+    # Whether the trunk yields logs; cacti, shrubs and grasses look and sound like trees but drop no logs
+    @property
+    def timber(self) -> bool:
+        if self.kind != "tree":
+            return False
+        lowered = self.name.lower()
+        return not any(marker in lowered for marker in NON_TIMBER_NAME_MARKERS)
+
     @property
     def bare_ground(self) -> bool:
         return self.referenced_by_object_config and any(
@@ -58,6 +71,7 @@ class Species:
             "mapObjectGuid": self.map_object_guid,
             "mapObjectName": self.name,
             "bareGround": self.bare_ground,
+            "timber": self.timber,
         }
 
 

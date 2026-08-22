@@ -39,16 +39,25 @@ def terrain_surround_effect_type(species: dict) -> str:
     return "rockBareGround" if species["bareGround"] else "rockNoBareGround"
 
 
+# 原木を落とすのは幹を持つ樹種(timber)だけ。サボテン・低木・草花は植生なので石も落とさず、既存「ブッシュ」に倣い空にする
+# Only trunked species (timber) drop logs; cacti, shrubs and grasses are vegetation, so they drop nothing like the existing bush
+def earn_items(species: dict) -> list:
+    if species["timber"]:
+        return [{"itemGuid": WOOD_ITEM, "minCount": 1, "maxCount": 4}]
+    if species["kind"] in ("tree", "plant"):
+        return []
+    return [{"itemGuid": STONE_ITEM, "minCount": 1, "maxCount": 1 if species["kind"] == "pebble" else 4}]
+
+
 def build_entry(species: dict) -> dict:
     kind = species["kind"]
     if kind not in KIND_SOUND_EFFECTS:
         raise ValueError(f"unknown kind: {kind} ({species['key']})")
     sound_effect_type = KIND_SOUND_EFFECTS[kind]
 
-    # 小石はPickUp（HP1・道具不要）、樹木・低木と岩・小物はMining（既存「木」の設定を複製）。ドロップは木・低木が原木、他は石
-    # Pebbles are picked up bare-handed; trees/plants and rocks/props are mined with the existing tree's settings. Trees/plants drop logs, the rest stone
+    # 小石はPickUp（HP1・道具不要）、樹木・低木と岩・小物はMining（既存「木」の設定を複製）
+    # Pebbles are picked up bare-handed; trees/plants and rocks/props are mined with the existing tree's settings
     is_pebble = kind == "pebble"
-    earn_item = WOOD_ITEM if kind in ("tree", "plant") else STONE_ITEM
     entry = {
         "mapObjectGuid": species["mapObjectGuid"],
         "mapObjectName": species["mapObjectName"],
@@ -57,7 +66,7 @@ def build_entry(species: dict) -> dict:
         "earnItemHpInterval": 1 if is_pebble else 10,
         "soundEffectType": sound_effect_type,
         "terrainSurroundEffectType": terrain_surround_effect_type(species),
-        "earnItems": [{"itemGuid": earn_item, "minCount": 1, "maxCount": 1 if is_pebble else 4}],
+        "earnItems": earn_items(species),
         "miningType": "PickUp" if is_pebble else "Mining",
         "miningParam": {} if is_pebble else {"miningTools": [dict(t) for t in MINING_TOOLS]},
     }

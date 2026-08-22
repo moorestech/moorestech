@@ -11,9 +11,12 @@ MapMaking プロジェクト（`TmpUnityPjt/MapMaking`）のバイオームプ�
 `terrainSurroundEffectType` は kind と `bareGround` から機械決定する。移植元は objectConfig 配置のうち
 名前に Boulder/Cliff を含む岩だけ裸地化するため、それ以外の岩・小物は `rockNoBareGround`（距離場のみ）になる。
 
+`earnItems` のドロップは kind ではなく `timber`（幹から原木が採れる樹種か）で決まる。kind=tree でも
+サボテン・低木は `timber: false` で原木を落とさず、既存「ブッシュ」に倣い `earnItems` は空になる。
+
 This directory extracts the tree/rock inventory and `treePlacement` settings from the MapMaking biome
 presets into `species-inventory.json`, the sole input for the follow-up map.json, wrapper prefab, and
-generation.json work.
+generation.json work. Log drops follow the `timber` flag rather than `kind`, so cacti and shrubs drop nothing.
 
 ## 依存
 
