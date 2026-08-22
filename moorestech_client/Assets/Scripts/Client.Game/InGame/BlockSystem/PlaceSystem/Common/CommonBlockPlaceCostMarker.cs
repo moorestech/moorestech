@@ -27,7 +27,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             // Push short materials for the placeable cells
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             var placeableCellCount = currentPlaceInfos.Count(info => info.Placeable);
-            feedback.AddMaterialShortages(ConstructionCostShortageCalculator.Calculate(blockMaster.RequiredItems, placeableCellCount, inventoryItems));
+            foreach (var shortage in ConstructionCostShortageCalculator.Calculate(blockMaster.RequiredItems, placeableCellCount, inventoryItems)) feedback.Add(ConstructionMaterialShortageLine.ToLine(shortage));
 
             // 建設コストで賄えるセル数まで設置可にする
             // Allow placement up to the affordable cell count

@@ -7,7 +7,7 @@ namespace Client.Game.InGame.Mining
     {
         public MiningIdleState()
         {
-            MouseCursorTooltip.Instance.Hide();
+            MouseCursorTooltip.Instance.Hide(MiningControllerContext.TooltipOwner);
         }
 
         public IMiningState GetNextUpdate(MiningControllerContext context, float dt)

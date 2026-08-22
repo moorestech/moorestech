@@ -51,7 +51,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
             // 地形干渉・重複で既に不可のセルは「今回の設置セル」に数えないため素材行も出さない（前例: CommonBlockPlaceCostMarker）
             // A cell already blocked by terrain/overlap is not a placing cell, so no material line either (precedent: CommonBlockPlaceCostMarker)
-            if (IsGroundClear && IsPositionFree) feedback.AddMaterialShortages(MaterialShortages);
+            if (!IsGroundClear || !IsPositionFree) return;
+            foreach (var shortage in MaterialShortages) feedback.Add(ConstructionMaterialShortageLine.ToLine(shortage));
         }
     }
 }

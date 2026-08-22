@@ -9,7 +9,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
     /// </summary>
     public class PlacementFeedbackTooltipPresenter
     {
-        private bool _isShown;
+        private readonly TooltipOwner _tooltipOwner = new();
 
         public void Present(PlacementFeedback feedback)
         {
@@ -21,15 +21,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
 
             // TooltipPresentationは不変スナップショット前提のため、使い回しバッファではなく複製を渡す
             // TooltipPresentation assumes an immutable snapshot, so hand it a copy instead of the reused buffer
-            MouseCursorTooltip.Instance.Show(feedback.Lines.ToArray());
-            _isShown = true;
+            MouseCursorTooltip.Instance.Show(_tooltipOwner, feedback.Lines.ToArray());
         }
 
         public void Hide()
         {
-            if (!_isShown) return;
-            MouseCursorTooltip.Instance.Hide();
-            _isShown = false;
+            MouseCursorTooltip.Instance.Hide(_tooltipOwner);
         }
     }
 }

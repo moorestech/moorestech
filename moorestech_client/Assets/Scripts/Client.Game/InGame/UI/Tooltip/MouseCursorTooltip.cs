@@ -14,11 +14,12 @@ namespace Client.Game.InGame.UI.Tooltip
 {
     public interface IMouseCursorTooltip
     {
-        // TODO hotbarから毎フレーム呼び出されると常にfalseになってしまうので、何か実装方法を考えたいな、、
-        public void Hide();
-        public void Show(LocalizationKey key);
-        public void Show(LocalizationKey key, IReadOnlyList<string> textParams);
-        public void Show(IReadOnlyList<TooltipLine> lines);
+        // 表示も非表示も所有者トークン付きで呼ぶ（現所有者以外のHideは他者の表示を消さない）
+        // Both show and hide carry an owner token, so a Hide from anyone else never clears the current tooltip
+        public void Hide(TooltipOwner owner);
+        public void Show(TooltipOwner owner, LocalizationKey key);
+        public void Show(TooltipOwner owner, LocalizationKey key, IReadOnlyList<string> textParams);
+        public void Show(TooltipOwner owner, IReadOnlyList<TooltipLine> lines);
     }
 
     /// <summary>
@@ -35,6 +36,8 @@ namespace Client.Game.InGame.UI.Tooltip
         private readonly ReactiveProperty<TooltipPresentation> _presentation =
             new(TooltipPresentation.Hidden);
 
+        private TooltipOwner _currentOwner;
+
         public IObservable<TooltipPresentation> OnPresentationChanged => _presentation;
         public TooltipPresentation GetPresentation() => _presentation.Value;
 
@@ -43,18 +46,21 @@ namespace Client.Game.InGame.UI.Tooltip
             Instance = this;
         }
 
-        public void Show(LocalizationKey key)
+        public void Show(TooltipOwner owner, LocalizationKey key)
         {
-            Show(key, Array.Empty<string>());
+            Show(owner, key, Array.Empty<string>());
         }
 
-        public void Show(LocalizationKey key, IReadOnlyList<string> textParams)
+        public void Show(TooltipOwner owner, LocalizationKey key, IReadOnlyList<string> textParams)
         {
-            Show(new[] { new TooltipLine(key, textParams) });
+            Show(owner, new[] { new TooltipLine(key, textParams) });
         }
 
-        public void Show(IReadOnlyList<TooltipLine> lines)
+        // 表示したものは最後に呼んだ主体のものになる（所有権は毎回Showした側へ移る）
+        // What is shown belongs to the last caller; ownership moves to whoever showed it
+        public void Show(TooltipOwner owner, IReadOnlyList<TooltipLine> lines)
         {
+            _currentOwner = owner;
             canvasGroup.alpha = WebUiScreenGate.IsWebUiMode ? 0 : 1;
             // uGUI側は行を改行連結して描画
             // The uGUI side joins lines with newlines
@@ -62,8 +68,13 @@ namespace Client.Game.InGame.UI.Tooltip
             _presentation.Value = new TooltipPresentation(true, lines);
         }
 
-        public void Hide()
+        // 自分が出していない表示は消さない（毎フレームHideする書き手が他者の表示を潰さないため）
+        // Never clear a tooltip shown by someone else, so writers that hide every frame cannot stomp on others
+        public void Hide(TooltipOwner owner)
         {
+            if (_currentOwner != owner) return;
+
+            _currentOwner = null;
             canvasGroup.alpha = 0;
             _presentation.Value = TooltipPresentation.Hidden;
         }

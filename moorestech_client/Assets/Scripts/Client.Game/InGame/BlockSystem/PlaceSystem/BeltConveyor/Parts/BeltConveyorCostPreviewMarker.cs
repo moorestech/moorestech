@@ -34,7 +34,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 
             // 今回置こうとしているエンティティ列ぶんの不足素材をツールチップへ積む
             // Push the materials short for the entities actually being placed
-            feedback.AddMaterialShortages(ConstructionCostShortageCalculator.Calculate(entityCosts, inventoryItems));
+            foreach (var shortage in ConstructionCostShortageCalculator.Calculate(entityCosts, inventoryItems)) feedback.Add(ConstructionMaterialShortageLine.ToLine(shortage));
 
             // 建設コストで賄えるエンティティ数まで設置可にする
             // Allow placement up to the affordable entity count

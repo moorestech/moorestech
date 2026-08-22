@@ -23,6 +23,7 @@ namespace Client.Game.InGame.UI.Inventory.Craft
         
         public IObservable<Unit> OnCraftFinish => _onCraftFinishSubject;
         private readonly Subject<Unit> _onCraftFinishSubject = new();
+        private readonly TooltipOwner _tooltipOwner = new();
         
         private float _currentCraftTime;
         private float _buttonDownElapsed;
@@ -121,7 +122,7 @@ namespace Client.Game.InGame.UI.Inventory.Craft
         {
             if (!_isInteractable)
             {
-                MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.CraftCannotByItemShortage);
+                MouseCursorTooltip.Instance.Show(_tooltipOwner, LocalizationKeys.Ui.Tooltip.CraftCannotByItemShortage);
             }
             
             if (restartElapsedTimeUpdateOnPointerEnter) _isCursorStay = true;
@@ -129,7 +130,7 @@ namespace Client.Game.InGame.UI.Inventory.Craft
         
         public void OnPointerExit(PointerEventData eventData)
         {
-            MouseCursorTooltip.Instance.Hide();
+            MouseCursorTooltip.Instance.Hide(_tooltipOwner);
             if (resetElapsedTimeOnPointerExit) _buttonDownElapsed = 0;
             if (stopElapsedTimeUpdateOnPointerExit) _isCursorStay = false;
         }
@@ -141,7 +142,7 @@ namespace Client.Game.InGame.UI.Inventory.Craft
         
         private void ResetButton()
         {
-            MouseCursorTooltip.Instance.Hide();
+            MouseCursorTooltip.Instance.Hide(_tooltipOwner);
             _buttonDownElapsed = 0;
             _isCursorStay = false;
             _isButtonDown = false;

@@ -4,7 +4,7 @@ using Client.Game.InGame.UI.Tooltip;
 using Mooresmaster.Localization.Generated;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.Feedback
 {
     /// <summary>
     /// 電線失敗理由をツールチップキーへ写像
@@ -33,7 +33,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         public static void Report(ElectricWirePlacementJudgement judgement, Guid connectToolGuid, float distance, PlacementFeedback feedback)
         {
             if (!judgement.IsPlaceable) feedback.Add(new TooltipLine(ToKey(judgement.FailureReason)));
-            feedback.AddWireCost(ResolveCostCount(judgement, connectToolGuid, distance));
+            if (ElectricWireFeedbackLines.TryWireCost(ResolveCostCount(judgement, connectToolGuid, distance), out var costLine)) feedback.Add(costLine);
         }
 
         // 成功/失敗どちらもコストを返す(失敗時は距離算出)

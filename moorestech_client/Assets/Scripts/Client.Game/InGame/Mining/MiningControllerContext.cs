@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.Inventory.Equipment;
+using Client.Game.InGame.UI.Tooltip;
 
 namespace Client.Game.InGame.Mining
 {
@@ -8,6 +9,10 @@ namespace Client.Game.InGame.Mining
     /// </summary>
     public class MiningControllerContext
     {
+        // 採掘ステートは遷移ごとに作り直されるため、系統で1つの所有トークンを共有する
+        // Mining states are recreated on every transition, so the whole flow shares one owner token
+        public static readonly TooltipOwner TooltipOwner = new();
+
         public IMiningTargetObject CurrentFocusTarget { get; private set; }
 
         public readonly LocalPlayerEquipment LocalPlayerEquipment;

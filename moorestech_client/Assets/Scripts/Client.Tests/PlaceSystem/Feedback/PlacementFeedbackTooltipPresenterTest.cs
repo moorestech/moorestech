@@ -1,4 +1,5 @@
 using System.Reflection;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Localization;
@@ -61,7 +62,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             var presenter = new PlacementFeedbackTooltipPresenter();
             var feedback = new PlacementFeedback();
             feedback.AddBlockedByTerrain();
-            feedback.AddWireShortage();
+            feedback.Add(ElectricWireFeedbackLines.WireShortage());
 
             presenter.Present(feedback);
 
@@ -79,12 +80,30 @@ namespace Client.Tests.PlaceSystem.Feedback
         [Test]
         public void 自分が表示していないときの空Presentは他者のツールチップを消さない()
         {
-            MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.HoldToGet);
+            MouseCursorTooltip.Instance.Show(new TooltipOwner(), LocalizationKeys.Ui.Tooltip.HoldToGet);
             var presenter = new PlacementFeedbackTooltipPresenter();
 
             presenter.Present(new PlacementFeedback());
 
             Assert.IsTrue(MouseCursorTooltip.Instance.GetPresentation().Visible);
+        }
+
+        [Test]
+        public void 表示中に他者へ上書きされたあとの空Presentは他者のツールチップを消さない()
+        {
+            var presenter = new PlacementFeedbackTooltipPresenter();
+            var feedback = new PlacementFeedback();
+            feedback.AddBlockedByTerrain();
+            presenter.Present(feedback);
+
+            // 設置理由を出したあと別の書き手が所有権を取る。以降のPresenterのHideは無効
+            // Another writer takes ownership after the placement reason is shown, so the presenter's Hide is inert
+            MouseCursorTooltip.Instance.Show(new TooltipOwner(), LocalizationKeys.Ui.Tooltip.HoldToGet);
+            presenter.Present(new PlacementFeedback());
+
+            var presentation = MouseCursorTooltip.Instance.GetPresentation();
+            Assert.IsTrue(presentation.Visible);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.HoldToGet.Key, presentation.Lines[0].Key.Key);
         }
 
         [Test]
@@ -108,18 +127,6 @@ namespace Client.Tests.PlaceSystem.Feedback
             var presentation = MouseCursorTooltip.Instance.GetPresentation();
             Assert.AreEqual(1, presentation.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceTooFar.Key, presentation.Lines[0].Key.Key);
-        }
-
-        [Test]
-        public void 電線コスト0は行を追加しない()
-        {
-            var feedback = new PlacementFeedback();
-            feedback.AddWireCost(0);
-            feedback.AddWireCost(3);
-
-            Assert.AreEqual(1, feedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireCost.Key, feedback.Lines[0].Key.Key);
-            CollectionAssert.AreEqual(new[] { "3" }, feedback.Lines[0].TextParams);
         }
     }
 }

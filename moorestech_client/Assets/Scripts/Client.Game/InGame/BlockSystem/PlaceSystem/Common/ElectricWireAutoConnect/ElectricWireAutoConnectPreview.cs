@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -125,7 +126,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 if (!cursorWirePlaceable)
                 {
                     _renderer.Show(originEndpoint, ResolveTargetEndpoints(cursorInfo.Position), true);
-                    feedback.AddWireShortage();
+                    feedback.Add(ElectricWireFeedbackLines.WireShortage());
                     return;
                 }
 
@@ -134,12 +135,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 if (cursorRawTargetCount == 0 && ClientElectricWireAutoConnectCollector.ExistsElectricNeighborOutOfConnectionRange(blockId, cursorInfo.Position, direction, _blockDataStore))
                 {
                     _renderer.Show(originEndpoint, cursorTargets, false);
-                    feedback.AddWireOutOfRangeNotice();
+                    feedback.Add(ElectricWireFeedbackLines.WireOutOfRangeNotice());
                     return;
                 }
 
                 _renderer.Show(originEndpoint, cursorTargets, false);
-                feedback.AddWireCost(totalCost);
+                if (ElectricWireFeedbackLines.TryWireCost(totalCost, out var costLine)) feedback.Add(costLine);
             }
 
             void InvalidateCacheOnKeyChange()
