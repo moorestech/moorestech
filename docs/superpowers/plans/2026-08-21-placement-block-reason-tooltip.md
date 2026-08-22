@@ -2306,12 +2306,12 @@ git commit -m "feat(place): BP貼り付けが全セル重複で置けないと�
 
 ### Task 15: moores-code-review による全ブランチレビュー（省略不可）
 
-- [ ] 必ず moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。指摘はこのplanのタスクとして追記・対応し、再レビューまで行う。
+- [x] 必ず moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。指摘はこのplanのタスクとして追記・対応し、再レビューまで行う。
 
 ### Task 16: PR作成とセッション終了可能状態の確立（省略不可）
 
-- [ ] pr-create スキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える。PR未作成のまま終わるのはplan未完了。
-- [ ] `bd close moorestech-7wl8 --reason="PR作成済み"`（PR番号を添える）。後続タスクとして「ギアチェーンポールの建設コスト判定がクライアント未実装（設置不可にも素材不足行にもならない）」「TrainRailPlaceSystem のレイ未ヒット時に null PlaceInfo を送信しうる」を `bd create` で積む（discovered-from: moorestech-7wl8）。
+- [x] pr-create スキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える。PR未作成のまま終わるのはplan未完了。
+- [x] `bd close moorestech-7wl8 --reason="PR作成済み"`（PR番号を添える）。後続タスクとして「ギアチェーンポールの建設コスト判定がクライアント未実装（設置不可にも素材不足行にもならない）」「TrainRailPlaceSystem のレイ未ヒット時に null PlaceInfo を送信しうる」を `bd create` で積む（discovered-from: moorestech-7wl8）。
 
 ---
 
@@ -2340,3 +2340,5 @@ planning中に新たに生じた判断:
 
 
 17. **Task 14 実測（2026-08-22）**: プレイ録画1本で 14 assert中 13 PASS。素材不足「Iron Plate 1/3」・既存ブロック重複・電線不足・電線 xN・接続範囲外案内・遠すぎます・空で無表示・世界ラベル撤去・設置モード脱出で消灯 を実機確認。**地形干渉行のみランタイム未到達**（`GroundCollisionDetector` を持つprefabが5件しかなく現行マスタの `blockPrefabAddressablesPath` がどれも参照していないため `blockGroundOverlapList` が常にfalse。本planの実装ではなくprefab側の既存ギャップ・後続bd）。採掘ツールチップはDSLで照準再現できず未実施（EditMode `MiningFocusStateTest` で代替担保）。録画: `moorestech_client/PlaytestResults/20260822_024209/placement-reason-tooltip/recording.mp4`
+
+18. **Task 15/16 実測（2026-08-22）**: moores-code-review を55系統＋Codex外部監査3本で実行（欠員ゼロ）。Critical 17 / Warning 57 / Info 34 / suppressed 2。確定分73件（機械的12＋コメント規約61）を自動適用。設計判断8件をユーザー裁定し `.decisions/2026-08-22-*.md` 6件へ記録（電線専用APIの移設・素材名解決の切り出し・ツールチップ所有者トークン・ベルトの不可原因enum・列車の可否導出を採用、空行の型防御と配線テストは見送り）。ギアチェーンポールの重複判定欠落は横展開調査のうえ GitHub issue #1221 へ（レール橋脚は4判定すべて欠落と判明）。所有者トークンで解消しないツールチップのちらつきは #1222 へ。master をマージして検証（compile 0 errors / EditMode 227/227 / webui 722/722 / tsc clean）し、PR #1224 を作成した。
