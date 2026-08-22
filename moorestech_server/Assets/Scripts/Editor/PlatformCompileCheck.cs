@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Compilation;
@@ -18,10 +19,20 @@ namespace Server.Editor
     {
         public static void RunFromGithubAction()
         {
-            // 実際に切り替わったターゲットを記録する（unity-builderの指定と食い違えば検査が無意味になる）
-            // Record the target actually in effect; a mismatch with unity-builder's request would void the check
+            // 実際に切り替わったターゲットを、ワークフローが渡した期待値と突合する
+            // Compare the target actually in effect against the expected value passed by the workflow
             var activeTarget = EditorUserBuildSettings.activeBuildTarget;
             Debug.Log($"[PlatformCompileCheck] activeBuildTarget={activeTarget}");
+
+            // 期待値はmatrixが正本。食い違ったまま緑になると検査が無意味になるので落とす
+            // The matrix owns the expected value; going green on a mismatch would void the check, so fail instead
+            var expectedTarget = ReadCommandLineValue("-expectedBuildTarget");
+            if (expectedTarget != activeTarget.ToString())
+            {
+                Debug.LogError($"[PlatformCompileCheck] expected {expectedTarget} but the active target is {activeTarget}");
+                EditorApplication.Exit(1);
+                return;
+            }
 
             // 同プロジェクトにグローバル名前空間のBuildPipelineクラスがあり修飾しないとそちらが優先される
             // The project declares a global BuildPipeline class that wins over UnityEditor's unless qualified
@@ -44,6 +55,22 @@ namespace Server.Editor
 
             Debug.Log("[PlatformCompileCheck] " + string.Join(", ", assemblies.Select(a => a.name)));
             EditorApplication.Exit(0);
+
+            #region Internal
+
+            // -executeMethodへ渡されたフラグの次の要素を返す。未指定なら空文字
+            // Returns the element following the given flag in the command line, or an empty string when absent
+            string ReadCommandLineValue(string flag)
+            {
+                var args = Environment.GetCommandLineArgs();
+                for (var i = 0; i < args.Length - 1; i++)
+                {
+                    if (args[i] == flag) return args[i + 1];
+                }
+                return string.Empty;
+            }
+
+            #endregion
         }
     }
 }

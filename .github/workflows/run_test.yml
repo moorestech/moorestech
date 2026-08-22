@@ -112,6 +112,8 @@ jobs:
       # Pick up whatever master's cache-warm produced via the restore-keys prefix (ADR 0028)
       # 保存はmasterのcache-warm.ymlだけが行う（PR側で焼くと10GB枠を食い潰すため。裁定 2026-08-22）
       # Only master's cache-warm.yml writes caches; saving from PRs would exhaust the 10GB budget (ruling 2026-08-22)
+      # 接頭辞はcache-warm.yml(warm-client-test)と逐語一致が必須。片側だけ改名するとエラー無しで全PRがコールドへ戻る
+      # The prefix must match cache-warm.yml (warm-client-test) verbatim; renaming one side silently sends every PR back to cold
       - uses: actions/cache/restore@v4
         with:
           path: moorestech/moorestech_client/Library

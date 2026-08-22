@@ -2,6 +2,8 @@
 # Linuxは既存のEditMode Test(ubuntuランナー)が実質カバーしているため対象に含めない。
 # Per PR, check only whether scripts compile per platform, without building a player (ADR 0028).
 # Linux is omitted because the existing EditMode Test already runs on an ubuntu runner.
+# 生成側のcache-warm.yml(warm-server-compile)とジョブ定義が重複している。matrix・unityVersion・キャッシュのpath/key/restore-keysを変えるときは必ず両方を直す
+# The job definition is duplicated with the producer cache-warm.yml (warm-server-compile); change matrix, unityVersion, and the cache path/key/restore-keys in both
 name: Platform Compile Check
 
 on:
@@ -60,3 +62,6 @@ jobs:
           allowDirtyBuild: true
           projectPath: moorestech_server/
           versioning: None
+          # 切替が成立せず別ターゲットのdefineで緑になるのを防ぐため、期待値をmatrixから渡す
+          # Pass the expected target from the matrix so a failed switch cannot go green under another platform's defines
+          customParameters: '-expectedBuildTarget ${{ matrix.target }}'

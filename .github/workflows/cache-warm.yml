@@ -2,6 +2,8 @@
 # masterに焼かない限りPR側は永遠にコールドで走る（ADR 0028）。日次ビルドの1時間前に回す。
 # Warm the Library caches on master. Actions cache scope is "own ref plus base branch", so PRs stay
 # cold forever unless master has them (ADR 0028). Runs one hour before the daily build.
+# 消費側(run_test.yml / platform-compile.yml)とジョブ定義が重複している。matrix・unityVersion・キャッシュのpath/key/restore-keysを変えるときは必ず両方を直す
+# The job definitions are duplicated with the consumers (run_test.yml / platform-compile.yml); change matrix, unityVersion, and the cache path/key/restore-keys in both
 name: Cache Warm
 
 on:
@@ -128,3 +130,4 @@ jobs:
           allowDirtyBuild: true
           projectPath: moorestech_server/
           versioning: None
+          customParameters: '-expectedBuildTarget ${{ matrix.target }}'

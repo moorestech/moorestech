@@ -19,9 +19,9 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  // Unity Buildの初回失敗はci-auto-rerunが無条件で再実行するため無視し、再実行後(attempt2以降)の失敗だけを見る。成功は何attempt目でも即クローズ対象にする
-  // Ignore first-attempt failures since ci-auto-rerun always retries them; only observe failures from attempt 2 onward. A success closes the issue regardless of attempt number
-  if (isFailure && run.run_attempt < 2) {
+  // 初回失敗はci-auto-rerunが再実行するので待つが、再実行されなかったなら初回失敗でも起票する。成功は何attempt目でもクローズ対象
+  // Wait out a first failure while ci-auto-rerun retries it, but file it when no retry happened; a success closes the issue at any attempt
+  if (isFailure && run.run_attempt < 2 && !(await isFinalAttempt())) {
     core.info(`ignoring attempt ${run.run_attempt} failure for run ${run.id}; waiting for ci-auto-rerun`);
     return;
   }
@@ -60,6 +60,23 @@ module.exports = async ({ github, context, core }) => {
     body,
   });
   core.info(`created issue #${created.data.number}`);
+
+  // ci-auto-rerunがattemptを上げるまで待って観測する。上がらなければ再実行は行われなかったと判定する
+  // Watches until ci-auto-rerun bumps the attempt; if it never does, no retry happened
+  async function isFinalAttempt() {
+    const POLL_INTERVAL_MS = 15000;
+    const POLL_COUNT = 12;
+    for (let i = 0; i < POLL_COUNT; i++) {
+      await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+      const latest = await github.rest.actions.getWorkflowRun({ owner, repo, run_id: run.id });
+      if (latest.data.run_attempt > run.run_attempt) {
+        core.info(`ci-auto-rerun started attempt ${latest.data.run_attempt}; leaving this run to it`);
+        return false;
+      }
+    }
+    core.info(`no rerun observed within ${(POLL_INTERVAL_MS * POLL_COUNT) / 1000}s; treating attempt ${run.run_attempt} as final`);
+    return true;
+  }
 
   // ラベル一致のopen issueのうち本文にマーカーを含むものだけを対象にする（ラベル流用の無関係issueを除外）
   // Among open issues with the label, only ones whose body carries the marker count (excludes unrelated issues reusing the label)
