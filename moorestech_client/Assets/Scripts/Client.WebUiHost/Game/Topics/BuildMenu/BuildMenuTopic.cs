@@ -37,11 +37,11 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             _placementTargetResolver = placementTargetResolver;
             _remainingPlacementCountDatastore = remainingPlacementCountDatastore;
 
-            // BuildMenu入場で再配信、BPライブラリ更新・残り設置数変化でも再配信する
-            // Republish on BuildMenu entry, on blueprint-library updates, and on remaining-placement-count changes
+            // BuildMenu入場・BP更新・残数変化で再配信
+            // Republish on entry, BP updates, and remaining-count changes
             _uiStateControl.OnStateChanged += OnStateChanged;
             _librarySubscription = _blueprintLibrary.OnChanged.Subscribe(_ => SchedulePublish());
-            _remainingSubscription = _remainingPlacementCountDatastore.OnChanged.Subscribe(_ => SchedulePublish());
+            _remainingSubscription = _remainingPlacementCountDatastore.OnRemainingPlacementCountChanged.Subscribe(_ => SchedulePublish());
         }
 
         public UniTask<string> GetSnapshotJsonAsync()

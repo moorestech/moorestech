@@ -142,6 +142,22 @@ test("閉じて開き直すとタブ・検索・スクロール・詳細sticky�
     .toBe(40);
 });
 
+test("残り設置数は1セット複数個のエントリだけに表示される", async ({ page }) => {
+  await setUiState(page, "BuildMenu");
+  await page.goto("/");
+
+  // beltはN=3。残数を常時表示
+  // beltConveyor has placementsPerCost=3 with empty requiredItems; remaining placements must show regardless of required items
+  await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.beltConveyor}`).hover();
+  await expect(page.getByTestId("build-menu-remaining-placements")).toBeVisible();
+  await expect(page.getByTestId("build-menu-remaining-placements")).toContainText("2");
+
+  // woodChestはN=1のため残数を表示しない
+  // woodChest has placementsPerCost=1, so the remaining-placements row must not show
+  await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`).hover();
+  await expect(page.getByTestId("build-menu-remaining-placements")).toBeHidden();
+});
+
 test("検索文字列も閉じて開き直すと復元される", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");

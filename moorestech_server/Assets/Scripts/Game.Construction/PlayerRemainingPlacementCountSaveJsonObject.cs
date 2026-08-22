@@ -12,7 +12,7 @@ namespace Game.Construction
         {
         }
 
-        public PlayerRemainingPlacementCountSaveJsonObject(int playerId, List<RemainingPlacementCountEntrySaveJsonObject> entries)
+        internal PlayerRemainingPlacementCountSaveJsonObject(int playerId, List<RemainingPlacementCountEntrySaveJsonObject> entries)
         {
             PlayerId = playerId;
             Entries = entries;

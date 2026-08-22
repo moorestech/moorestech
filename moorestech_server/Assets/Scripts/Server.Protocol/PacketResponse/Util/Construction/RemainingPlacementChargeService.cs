@@ -8,17 +8,17 @@ using Mooresmaster.Model.BlocksModule;
 namespace Server.Protocol.PacketResponse.Util.Construction
 {
     /// <summary>
-    /// 残り設置数の財布を見て、このセルで実際に消費する建設コストを決め、設置・撤去で財布と素材を更新する（ADR 0026）
-    /// Decides the construction cost actually consumed for a cell from the remaining-placement wallet, then updates wallet and materials on both placement and removal (ADR 0026)
+    /// 財布から実消費コストを決め設置・撤去で更新
+    /// Decides the construction cost actually consumed for a cell from the remaining-placement wallet, then updates wallet and materials on both placement and removal
     /// </summary>
-    public static class RemainingPlacementChargeService
+    internal static class RemainingPlacementChargeService
     {
-        // 設置数/1セット=1は財布を素通りし全額消費、財布に残りがあれば消費ゼロ
+        // N=1は財布を素通りし全額消費、残ありは消費ゼロ
         // placementsPerCost==1 bypasses the wallet and consumes the full cost; a non-empty wallet consumes nothing
         public static (ItemId itemId, int count)[] ResolveCostToConsume(BlockMasterElement blockMaster, int playerId, IRemainingPlacementCountLookup lookup)
         {
             var fullCost = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
-            if (blockMaster.PlacementsPerCost <= 1 || fullCost.Length == 0) return fullCost;
+            if (blockMaster.PlacementsPerCost <= 1) return fullCost;
 
             var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid));
             return 0 < lookup.GetRemainingCount(playerId, walletBlockId) ? Array.Empty<(ItemId, int)>() : fullCost;
@@ -38,7 +38,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             mutation.TryConsumeOne(playerId, walletBlockId);
         }
 
-        // 撤去がこのセルで素材1セットの返却になるか。設置数/1セット=1は常に全額返却
+        // 撤去がセルで素材1セット返却になるか判定
         // Whether this removal refunds one set of materials; placementsPerCost==1 always refunds in full
         public static bool WouldCondenseOnReturn(BlockMasterElement blockMaster, int playerId, IRemainingPlacementCountLookup lookup)
         {

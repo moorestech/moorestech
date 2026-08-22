@@ -77,6 +77,40 @@ namespace Client.Tests.WebUi
         }
 
         [Test]
+        public void CreateDtosは財布キー正規化後の残り設置数を直線と坂の両方へ反映する()
+        {
+            var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // 直線と坂は同一ファミリー。財布キーは直線正規化
+            // Straight and slope share a family; the wallet key normalizes to straight
+            var straightGuid = Guid.Parse("00000000-0000-0000-0000-000000000015");
+            var upGuid = Guid.Parse("00000000-0000-0000-0000-0000000000a1");
+            var straightBlockId = MasterHolder.BlockMaster.GetBlockId(straightGuid);
+
+            var datastore = new ClientRemainingPlacementCountDatastore();
+            datastore.Apply(straightBlockId, 2);
+
+            var targets = new IPlacementTarget[]
+            {
+                new BlockPlacementTarget(straightGuid, null),
+                new BlockPlacementTarget(upGuid, null),
+                new TrainCarPlacementTarget(MasterHolder.TrainUnitMaster.Train.TrainCars[0].TrainCarGuid),
+            };
+            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets, datastore);
+
+            var straightDto = dtos.Single(dto => dto.Id == straightGuid.ToString("D"));
+            var upDto = dtos.Single(dto => dto.Id == upGuid.ToString("D"));
+            var trainCarDto = dtos.Single(dto => dto.Kind == "trainCar");
+
+            Assert.AreEqual(3, straightDto.PlacementsPerCost);
+            Assert.AreEqual(2, straightDto.RemainingPlacementCount);
+            Assert.AreEqual(3, upDto.PlacementsPerCost);
+            Assert.AreEqual(2, upDto.RemainingPlacementCount);
+            Assert.AreEqual(1, trainCarDto.PlacementsPerCost);
+            Assert.AreEqual(0, trainCarDto.RemainingPlacementCount);
+        }
+
+        [Test]
         public void CreateCategoryDtosはマスタ定義順のGuidを維持する()
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(

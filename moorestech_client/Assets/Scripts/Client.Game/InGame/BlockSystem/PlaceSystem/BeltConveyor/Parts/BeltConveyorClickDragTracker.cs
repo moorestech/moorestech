@@ -7,10 +7,10 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 {
     /// <summary>
-    /// クリック開始位置から現在位置までの連続設置状態を追跡し、セル列を算出する
-    /// Tracks the continuous-placement drag state from click-start to current position and computes the cell sequence
+    /// ドラッグ設置の連続状態を追跡しセル列を算出する
+    /// Tracks the drag placement state and computes the cell sequence
     /// </summary>
-    public class BeltConveyorClickDragTracker
+    internal class BeltConveyorClickDragTracker
     {
         private Vector3Int? _clickStartPosition;
         private int _clickStartHeightOffset;
@@ -54,7 +54,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
                 }
                 else if (!_isStartZDirection.HasValue)
                 {
-                    _isStartZDirection = Mathf.Abs(placePoint.z - _clickStartPosition.Value.z) > Mathf.Abs(placePoint.x - _clickStartPosition.Value.x);
+                    _isStartZDirection = Mathf.Abs(placePoint.x - _clickStartPosition.Value.x) < Mathf.Abs(placePoint.z - _clickStartPosition.Value.z);
                 }
 
                 return calculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, currentBlockDirection, holdingBlockMaster);
@@ -64,8 +64,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             return calculator.CalculatePoint(placePoint, placePoint, true, currentBlockDirection, holdingBlockMaster);
         }
 
-        // マウス解放時に連続設置状態を解除し、復元すべき高さオフセットを返す
-        // Clear the continuous-placement state on mouse release and return the height offset to restore
+        // マウス解放で連続設置状態を解除し高さ差分を返す
+        // Clear the state on mouse release and return the height offset
         public int ConsumeRelease()
         {
             var restoredHeightOffset = _clickStartHeightOffset;

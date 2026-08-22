@@ -15,7 +15,7 @@ using static Tests.CombinedTest.Server.PacketTest.PlaceBlockProtocolTestSupport;
 namespace Tests.CombinedTest.Server.PacketTest
 {
     /// <summary>
-    /// 設置数/1セット=3の歯車ベルトで撤去時の凝縮返却（ADR 0026）を検証する
+    /// N=3の歯車ベルトで凝縮返却を検証
     /// Verifies condensed refund on removal (ADR 0026) with the gear belt whose placementsPerCost is 3
     /// </summary>
     public class RemoveBlockRemainingPlacementTest
@@ -43,7 +43,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(2, lookup.GetRemainingCount(PlayerId, belt));
             Remove(packet, new Vector3Int(12, 0));
 
-            // 3本目で設置数/1セットに達し、素材1セットへ凝縮して返る
+            // 3本目でNに達し素材1セットへ凝縮返却
             // The third removal reaches one set's worth and condenses into one set of materials
             Assert.AreEqual(1, GetItemCount(inventory, Material1Guid));
             Assert.AreEqual(1, GetItemCount(inventory, Material2Guid));
@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), new PacketResponseContext(null));
             var lookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
 
-            // 1本設置で素材1セットを消費し、財布は残り設置数/1セット-1になる
+            // 1本設置で素材1セット消費、財布はN-1
             // Placing one belt consumes one material set, leaving wallet at count-per-set minus one
             Assert.AreEqual(0, GetItemCount(inventory, Material1Guid));
             Assert.AreEqual(0, GetItemCount(inventory, Material2Guid));
@@ -70,7 +70,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             Remove(packet, new Vector3Int(10, 0));
 
-            // 部分消費状態からの1回撤去で財布が設置数/1セットへ到達し、素材が増減なく1セット戻る
+            // 部分消費から1回撤去でNへ到達、増減なく1セット戻る
             // A single removal from the partially-consumed wallet reaches the per-set count and refunds one set with zero net material change
             Assert.AreEqual(1, GetItemCount(inventory, Material1Guid));
             Assert.AreEqual(1, GetItemCount(inventory, Material2Guid));
@@ -90,7 +90,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var mutation = serviceProvider.GetService<IRemainingPlacementCountMutation>();
             mutation.TryConsumeOne(PlayerId, belt); mutation.TryConsumeOne(PlayerId, belt); // 残り0にする
 
-            // 全スロットを別アイテムで埋めて返却不能にする
+            // 全スロットを別アイテムで埋め返却不能にする
             // Fill every slot with another item so the refund cannot be inserted
             var filler = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000005"));
             for (var i = 0; i < inventory.GetSlotSize(); i++) inventory.SetItem(i, ServerContext.ItemStackFactory.Create(filler, 1));

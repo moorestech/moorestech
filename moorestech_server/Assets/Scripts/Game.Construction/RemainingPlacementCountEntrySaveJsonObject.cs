@@ -13,7 +13,7 @@ namespace Game.Construction
         {
         }
 
-        public RemainingPlacementCountEntrySaveJsonObject(string blockGuid, int count)
+        internal RemainingPlacementCountEntrySaveJsonObject(string blockGuid, int count)
         {
             BlockGuid = blockGuid;
             Count = count;

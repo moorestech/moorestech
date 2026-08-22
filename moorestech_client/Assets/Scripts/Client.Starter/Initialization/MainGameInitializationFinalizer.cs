@@ -11,6 +11,7 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.Presenter.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Network.API;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using UnityEngine;
@@ -45,9 +46,14 @@ namespace Client.Starter.Initialization
             // The initial hotbar assignments ride along with the handshake; applied before event dispatch starts, same as the main inventory
             resolver.Resolve<ClientHotbarDatastore>().ApplyAssignments(_serverResult.HandshakeResponse.HotbarAssignments);
 
-            // 残り設置数もhandshake同梱。イベント購読開始前に適用する
-            // Remaining placements ride along with the handshake too; applied before event dispatch starts
-            resolver.Resolve<ClientRemainingPlacementCountDatastore>().ApplyAll(_serverResult.HandshakeResponse.RemainingPlacementCounts);
+            // 残り設置数もhandshake同梱。イベント購読開始前に適用する。生intからtyped BlockIdへの変換はここ(ワイヤ境界)で行う
+            // Remaining placements ride along with the handshake too; applied before event dispatch starts. Raw int → typed BlockId conversion happens here, at the wire boundary
+            var remainingPlacementCounts = new Dictionary<BlockId, int>();
+            foreach (var count in _serverResult.HandshakeResponse.RemainingPlacementCounts)
+            {
+                remainingPlacementCounts[new BlockId(count.WalletBlockId)] = count.RemainingCount;
+            }
+            resolver.Resolve<ClientRemainingPlacementCountDatastore>().ApplyAll(remainingPlacementCounts);
 
             // BP割当の解決元をログイン時に1度満たす。ビルドメニュー入場までBP枠が未解決に見えるのを防ぐ
             // Fill the blueprint assignments' resolution source once at login so blueprint slots are not unresolved until the build menu is opened

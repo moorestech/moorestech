@@ -116,7 +116,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
             // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
-            BeltConveyorCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(_currentPlaceInfos, _localPlayerInventory, _remainingPlacementCountDatastore);
+            // ファミリー内は建設コストと設置数/1セットが一致する（マスタ検証済み）ので先頭の設置可セルを代表にする
+            // Cost and placementsPerCost match within a family (validated at master load), so the first placeable cell is representative
+            var representativeIndex = _currentPlaceInfos.FindIndex(info => info.Placeable);
+            if (0 <= representativeIndex)
+            {
+                ConstructionCostPreviewCalculator.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, _currentPlaceInfos[representativeIndex].BlockId, _remainingPlacementCountDatastore, _localPlayerInventory);
+            }
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state

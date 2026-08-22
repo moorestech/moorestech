@@ -12,7 +12,7 @@ using static Tests.CombinedTest.Server.PacketTest.PlaceBlockProtocolTestSupport;
 namespace Tests.CombinedTest.Server.PacketTest
 {
     /// <summary>
-    /// 設置数/1セット=3の歯車ベルトで財布課金（ADR 0026）を検証する
+    /// N=3の歯車ベルトで財布課金を検証
     /// Verifies wallet charging (ADR 0026) with the gear belt whose placementsPerCost is 3
     /// </summary>
     public class PlaceBlockRemainingPlacementTest
@@ -88,7 +88,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0), (11, 0), (12, 0), (13, 0), (14, 0)), new PacketResponseContext(null));
 
-            // 5本 = 1セット(3本) + 2本目のセット開始 → 素材2セット消費・残り1
+            // 5本=1セット+2本目開始→2セット消費・残1
             // Five cells = one full set (3) + the start of a second set → two sets consumed, one remaining
             Assert.AreEqual(0, GetItemCount(inventory, Material1Guid));
             Assert.AreEqual(1, serviceProvider.GetService<IRemainingPlacementCountLookup>().GetRemainingCount(PlayerId, belt));

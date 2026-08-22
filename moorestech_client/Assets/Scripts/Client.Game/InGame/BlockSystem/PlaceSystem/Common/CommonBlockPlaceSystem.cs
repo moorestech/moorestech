@@ -217,26 +217,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             void MarkInsufficientItemPreviewsAsNotPlaceable()
             {
-                // 無料設置モードでは所持数による制限をかけない
-                // In free placement mode, do not limit by held item count
-                if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement)) return;
-
-                // 建設コストで賄えるセル数まで設置可にする（残り設置数込み）
-                // Allow placement up to the affordable cell count (including remaining placements)
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
-                var remaining = _remainingPlacementCountDatastore.GetRemainingCount(ConstructionWalletUtil.ResolveWalletBlockId(target.BlockId));
-                var affordableCellCount = ConstructionCostPreviewCalculator.CalculateAffordablePlacementCount(blockMaster.RequiredItems, blockMaster.PlacementsPerCost, remaining, _localPlayerInventory);
-
-                var placeableCount = 0;
-                for (var i = 0; i < _currentPlaceInfos.Count; i++)
-                {
-                    if (!_currentPlaceInfos[i].Placeable) continue;
-                    placeableCount++;
-                    if (placeableCount > affordableCellCount)
-                    {
-                        _currentPlaceInfos[i].Placeable = false;
-                    }
-                }
+                ConstructionCostPreviewCalculator.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, target.BlockId, _remainingPlacementCountDatastore, _localPlayerInventory);
             }
 
             #endregion

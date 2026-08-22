@@ -44,7 +44,7 @@ namespace Server.Protocol.PacketResponse
             if (block == null) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
             if (!CanManualRemoveBlock(block)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.NodeInUseByTrain);
 
-            // 撤去判定・財布更新の双方で同じマスタを使い回す
+            // 撤去判定・財布更新で同じマスタを再利用
             // Reuse the same block master for both the removal check and the wallet update
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
 
@@ -104,7 +104,7 @@ namespace Server.Protocol.PacketResponse
             {
                 var result = new List<IItemStack>();
                 
-                // 建設コストは財布が1セット分に達する撤去でのみ返る（設置数/1セット=1は毎回）
+                // 建設コストは財布が1セット到達する撤去でのみ返る
                 // The construction cost returns only when this removal completes one set's worth in the wallet (every time when placementsPerCost==1)
                 if (blockMaster.RequiredItems != null && blockMaster.RequiredItems.Length != 0
                     && RemainingPlacementChargeService.WouldCondenseOnReturn(blockMaster, data.PlayerId, _remainingPlacementCountLookup))

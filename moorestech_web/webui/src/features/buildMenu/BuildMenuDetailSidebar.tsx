@@ -20,25 +20,32 @@ export function BuildMenuDetailSidebar({ entry }: Props) {
           )}
           <span className={styles.detailName}>{entry.displayLabel}</span>
           <FadeRule />
-          {entry.requiredItems.length > 0 && (
-            <>
-              <span className={styles.detailCostLabel}>
-                {entry.placementsPerCost > 1
-                  ? t(L.ui.buildMenu.requiredItemsPerSet, { count: entry.placementsPerCost })
-                  : t(L.ui.buildMenu.requiredItems)}
-              </span>
-              <SlotGrid cols={3}>
-                {entry.requiredItems.map((item) => (
-                  <ItemSlot key={item.itemId} itemId={item.itemId} count={item.count} />
-                ))}
-              </SlotGrid>
-              {entry.placementsPerCost > 1 && (
-                <span className={styles.detailCostLabel} data-testid="build-menu-remaining-placements">
-                  {t(L.ui.buildMenu.remainingPlacementCount, { count: entry.remainingPlacementCount })}
-                </span>
-              )}
-            </>
-          )}
+          {(() => {
+            const isSetPlacement = entry.placementsPerCost > 1;
+            return (
+              <>
+                {entry.requiredItems.length > 0 && (
+                  <>
+                    <span className={styles.detailCostLabel}>
+                      {isSetPlacement
+                        ? t(L.ui.buildMenu.requiredItemsPerSet, { count: entry.placementsPerCost })
+                        : t(L.ui.buildMenu.requiredItems)}
+                    </span>
+                    <SlotGrid cols={3}>
+                      {entry.requiredItems.map((item) => (
+                        <ItemSlot key={item.itemId} itemId={item.itemId} count={item.count} />
+                      ))}
+                    </SlotGrid>
+                  </>
+                )}
+                {isSetPlacement && (
+                  <span className={styles.detailCostLabel} data-testid="build-menu-remaining-placements">
+                    {t(L.ui.buildMenu.remainingPlacementCount, { count: entry.remainingPlacementCount })}
+                  </span>
+                )}
+              </>
+            );
+          })()}
         </>
       )}
     </div>

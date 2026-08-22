@@ -4,7 +4,7 @@ using Core.Master;
 
 namespace Game.Construction
 {
-    // 残り設置数の読み取り口。配信・初期データ同梱・返却判定はこちらへ依存する
+    // 残り設置数の読み取り口
     // The read side of remaining placements; publishers, initial-data bundlers, and refund checks depend on this
     public interface IRemainingPlacementCountLookup
     {

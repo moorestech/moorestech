@@ -7,7 +7,7 @@ using UniRx;
 namespace Server.Event.EventReceive
 {
     /// <summary>
-    /// 残り設置数の変更を該当プレイヤーへ通知する。財布1件の最新値だけを送る
+    /// 残り設置数の変更を該当プレイヤーへ通知
     /// Notifies the owning player of a remaining-placement change; carries the latest value of one wallet
     /// </summary>
     public class RemainingPlacementCountChangedEventPacket : IBootInitializable

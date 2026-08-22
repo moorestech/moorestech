@@ -7,13 +7,13 @@ using static Server.Event.EventReceive.RemainingPlacementCountChangedEventPacket
 namespace Client.Game.InGame.Construction
 {
     /// <summary>
-    ///     残り設置数の参照モデル(非MonoBehaviour)。購読・初期データからのみ更新する（前例 ClientHotbarDatastore）
-    ///     Client-side model of remaining placements; updated only from the subscription/initial data (precedent: ClientHotbarDatastore)
+    ///     残り設置数の参照モデル。購読/初期データのみ更新
+    ///     Remaining-placement model; updated only via subscription/initial data
     /// </summary>
     public class ClientRemainingPlacementCountDatastore
     {
-        public IObservable<Unit> OnChanged => _onChanged;
-        private readonly Subject<Unit> _onChanged = new();
+        public IObservable<Unit> OnRemainingPlacementCountChanged => _onRemainingPlacementCountChanged;
+        private readonly Subject<Unit> _onRemainingPlacementCountChanged = new();
         private readonly Dictionary<BlockId, int> _remainingCounts = new();
 
         public int GetRemainingCount(BlockId walletBlockId)
@@ -21,17 +21,17 @@ namespace Client.Game.InGame.Construction
             return _remainingCounts.TryGetValue(walletBlockId, out var remaining) ? remaining : 0;
         }
 
-        public void ApplyAll(RemainingPlacementCountMessagePack[] counts)
+        public void ApplyAll(IReadOnlyDictionary<BlockId, int> counts)
         {
             _remainingCounts.Clear();
-            foreach (var count in counts) _remainingCounts[new BlockId(count.WalletBlockId)] = count.RemainingCount;
-            _onChanged.OnNext(Unit.Default);
+            foreach (var (walletBlockId, remainingCount) in counts) _remainingCounts[walletBlockId] = remainingCount;
+            _onRemainingPlacementCountChanged.OnNext(Unit.Default);
         }
 
-        public void Apply(int walletBlockId, int remainingCount)
+        internal void Apply(BlockId walletBlockId, int remainingCount)
         {
-            _remainingCounts[new BlockId(walletBlockId)] = remainingCount;
-            _onChanged.OnNext(Unit.Default);
+            _remainingCounts[walletBlockId] = remainingCount;
+            _onRemainingPlacementCountChanged.OnNext(Unit.Default);
         }
     }
 }

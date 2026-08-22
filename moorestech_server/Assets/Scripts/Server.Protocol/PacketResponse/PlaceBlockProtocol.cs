@@ -93,7 +93,7 @@ namespace Server.Protocol.PacketResponse
                 // Skip locked cells and resolve belt slopes through their family straight block
                 if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) { notUnlockedCount++; return; }
 
-                // 財布で賄えるセルは消費ゼロ、それ以外は全額。不足セルはスキップ
+                // 財布分は無償消費、残りは全額。不足はスキップ
                 // Wallet-covered cells consume nothing, others the full cost; skip cells that cannot be covered
                 var inventory = inventoryData.MainOpenableInventory;
                 var costItemCounts = RemainingPlacementChargeService.ResolveCostToConsume(blockMaster, data.PlayerId, _remainingPlacementCountLookup);

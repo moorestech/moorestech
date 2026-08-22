@@ -14,8 +14,8 @@ const BuildMenuEntryCommonFields = {
   categoryGuid: z.string().uuid(),
   subCategoryGuid: z.string().uuid(),
   requiredItems: z.array(BuildMenuRequiredItemSchema),
-  // 建設コスト1セットで置ける数と、財布に残っている未設置の数（用語集: 設置数/1セット・残り設置数）
-  // Placements per one cost set and the unplaced count still held in the wallet (glossary: 設置数/1セット / 残り設置数)
+  // 1セットの設置数と財布の残り設置数
+  // Placements per set and the unplaced count held in the wallet
   placementsPerCost: z.number().int().min(1),
   remainingPlacementCount: z.number().int().min(0),
   iconUrl: z.string().optional(),

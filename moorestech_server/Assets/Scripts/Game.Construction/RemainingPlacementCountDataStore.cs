@@ -26,7 +26,7 @@ namespace Game.Construction
         public IReadOnlyList<(BlockId walletBlockId, int remainingCount)> GetRemainingCounts(int playerId)
         {
             if (!_remainingCounts.TryGetValue(playerId, out var wallets)) return Array.Empty<(BlockId, int)>();
-            return wallets.Where(pair => pair.Value > 0).Select(pair => (pair.Key, pair.Value)).ToList();
+            return wallets.Where(pair => 0 < pair.Value).Select(pair => (pair.Key, pair.Value)).ToList();
         }
 
         public bool TryConsumeOne(int playerId, BlockId walletBlockId)
@@ -45,7 +45,7 @@ namespace Game.Construction
         public bool ReturnOne(int playerId, BlockId walletBlockId, int placementsPerCost)
         {
             var returned = GetRemainingCount(playerId, walletBlockId) + 1;
-            // 設置数/1セットに達した分は素材へ凝縮されるので財布からは消える
+            // Nに達した分は素材へ凝縮し財布から消える
             // Reaching one set's worth condenses into materials, so it leaves the wallet
             var condensed = placementsPerCost <= returned;
             Set(playerId, walletBlockId, condensed ? 0 : returned);
@@ -56,10 +56,10 @@ namespace Game.Construction
         {
             return _remainingCounts
                 .Select(player => new PlayerRemainingPlacementCountSaveJsonObject(player.Key, player.Value
-                    .Where(wallet => wallet.Value > 0)
+                    .Where(wallet => 0 < wallet.Value)
                     .Select(wallet => new RemainingPlacementCountEntrySaveJsonObject(MasterHolder.BlockMaster.GetBlockMaster(wallet.Key).BlockGuid.ToString(), wallet.Value))
                     .ToList()))
-                .Where(player => player.Entries.Count > 0)
+                .Where(player => 0 < player.Entries.Count)
                 .ToList();
         }
 

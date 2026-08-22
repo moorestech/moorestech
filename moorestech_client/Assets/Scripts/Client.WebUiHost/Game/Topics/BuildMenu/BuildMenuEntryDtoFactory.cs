@@ -86,14 +86,14 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 return itemDtos;
             }
 
-            // 設置数/1セットはブロックのマスタ値、それ以外は常に1セットに1個
+            // 設置数/1セットはブロックのマスタ値、他は1
             // Placements per cost set comes from the block master; every other kind is one-per-set
             int ResolvePlacementsPerCost(IPlacementTarget target)
             {
                 return target is BlockPlacementTarget block ? MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).PlacementsPerCost : 1;
             }
 
-            // 残り設置数は財布キー正規化後にクライアント参照モデルから引く。ブロック以外は常に0
+            // 残り設置数は正規化後の財布キーで参照。他は0
             // Remaining placements come from the client model keyed by the normalized wallet id; every other kind is always 0
             int ResolveRemainingPlacementCount(IPlacementTarget target)
             {

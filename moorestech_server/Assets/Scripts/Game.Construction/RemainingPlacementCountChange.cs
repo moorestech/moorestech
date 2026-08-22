@@ -10,7 +10,7 @@ namespace Game.Construction
         public readonly BlockId WalletBlockId;
         public readonly int RemainingCount;
 
-        public RemainingPlacementCountChange(int playerId, BlockId walletBlockId, int remainingCount)
+        internal RemainingPlacementCountChange(int playerId, BlockId walletBlockId, int remainingCount)
         {
             PlayerId = playerId;
             WalletBlockId = walletBlockId;

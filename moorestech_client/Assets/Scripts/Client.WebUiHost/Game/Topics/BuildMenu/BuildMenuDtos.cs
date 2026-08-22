@@ -32,8 +32,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         public string SubCategoryGuid;
         public List<BuildMenuRequiredItemDto> RequiredItems;
 
-        // 設置数/1セットと残り設置数。ブロック以外は常に 1 / 0
-        // Placements per cost set and remaining placements; always 1 / 0 for non-block entries
+        // N/1セットと残り設置数。非ブロックは1/0
+        // PlacementsPerCost and remaining; 1/0 for non-block
         public int PlacementsPerCost;
         public int RemainingPlacementCount;
 

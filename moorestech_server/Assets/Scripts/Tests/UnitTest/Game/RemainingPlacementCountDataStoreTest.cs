@@ -46,7 +46,7 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(store.ReturnOne(PlayerId, wallet, 3));
             Assert.AreEqual(0, store.GetRemainingCount(PlayerId, wallet));
 
-            // Nに達していなければ加算するだけでfalse
+            // N未達なら加算のみでfalse
             // Below N it simply accumulates and returns false
             Assert.IsFalse(store.ReturnOne(PlayerId, wallet, 3));
             Assert.AreEqual(1, store.GetRemainingCount(PlayerId, wallet));
