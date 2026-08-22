@@ -14,6 +14,7 @@ on:
       - "Unity Test"
       - "Unity Build"
       - "Mooresmaster Test"
+      - "Platform Compile Check"
     types:
       - completed
 
@@ -26,10 +27,11 @@ permissions:
 jobs:
   auto-rerun:
     runs-on: ubuntu-latest
-    # pull_request 起因の run で、かつ結論が failure / timed_out のときだけ動かす。
-    # Only act on pull_request runs that concluded as failure or timed_out.
+    # pull_request 起因の run、または日次(schedule)へ移したUnity Buildで、かつ結論が failure / timed_out のときだけ動かす（ADR 0028）。
+    # The daily (scheduled) Unity Build is also eligible for flaky reruns (ADR 0028).
     if: >-
-      github.event.workflow_run.event == 'pull_request' &&
+      (github.event.workflow_run.event == 'pull_request' ||
+       github.event.workflow_run.event == 'schedule') &&
       (github.event.workflow_run.conclusion == 'failure' ||
        github.event.workflow_run.conclusion == 'timed_out')
     steps:
