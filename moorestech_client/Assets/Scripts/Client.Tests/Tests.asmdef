@@ -63,6 +63,7 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll",
+        "DOTween.dll",
         "MessagePack.dll",
         "MessagePack.Annotations.dll",
         "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
