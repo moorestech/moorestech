@@ -19,17 +19,25 @@ namespace Server.Editor
     {
         public static void RunFromGithubAction()
         {
-            // 実際に切り替わったターゲットを、ワークフローが渡した期待値と突合する
-            // Compare the target actually in effect against the expected value passed by the workflow
+            // 実際のターゲットを期待値と突合
+            // Compare the active target against the expected value
             var activeTarget = EditorUserBuildSettings.activeBuildTarget;
             Debug.Log($"[PlatformCompileCheck] activeBuildTarget={activeTarget}");
 
             // 期待値はmatrixが正本。食い違ったまま緑になると検査が無意味になるので落とす
             // The matrix owns the expected value; going green on a mismatch would void the check, so fail instead
             var expectedTarget = ReadCommandLineValue("-expectedBuildTarget");
-            if (expectedTarget != activeTarget.ToString())
+            if (!Enum.TryParse<BuildTarget>(expectedTarget, out var expected))
             {
-                Debug.LogError($"[PlatformCompileCheck] expected {expectedTarget} but the active target is {activeTarget}");
+                // 綴りミス・フラグ未指定は切替失敗と原因が別
+                // A typo or a missing flag has a different cause than a failed switch
+                Debug.LogError($"[PlatformCompileCheck] -expectedBuildTarget is missing or unknown: '{expectedTarget}'");
+                EditorApplication.Exit(1);
+                return;
+            }
+            if (expected != activeTarget)
+            {
+                Debug.LogError($"[PlatformCompileCheck] expected {expected} but the active target is {activeTarget}");
                 EditorApplication.Exit(1);
                 return;
             }
@@ -58,8 +66,8 @@ namespace Server.Editor
 
             #region Internal
 
-            // -executeMethodへ渡されたフラグの次の要素を返す。未指定なら空文字
-            // Returns the element following the given flag in the command line, or an empty string when absent
+            // フラグの次要素を返す。無指定なら空文字
+            // Returns the element following the flag; empty string when absent.
             string ReadCommandLineValue(string flag)
             {
                 var args = Environment.GetCommandLineArgs();

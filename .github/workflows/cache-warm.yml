@@ -55,23 +55,9 @@ jobs:
           ref: ${{ steps.master_revision.outputs.commit_hash }}
           path: moorestech_master
 
-      - name: Setup Web UI toolchain
-        shell: bash
-        working-directory: moorestech/moorestech_web
-        env:
-          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
-        run: |
-          bash setup.sh
-          shopt -s nullglob
-          candidates=(node/*/pnpm)
-          pnpm_binary="$PWD/${candidates[0]}"
-          if [ ! -f "$pnpm_binary" ]; then
-            echo "pnpm not found after setup: $pnpm_binary" >&2
-            exit 1
-          fi
-          "$pnpm_binary" --dir webui install --frozen-lockfile
-
-      - uses: actions/cache@v4
+      # 約20分のwarm成果を1ステップの失敗で捨てないよう、restoreとsaveを分けてsaveをif: always()にする
+      # Splitting restore from an always-run save keeps ~20 minutes of warming from being discarded by one failed step
+      - uses: actions/cache/restore@v4
         with:
           path: moorestech/moorestech_client/Library
           key: Library_Test_client-${{ github.sha }}
@@ -93,6 +79,12 @@ jobs:
           testMode: editmode
           customParameters: '-testFilter __cache_warm_matches_nothing__'
 
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: moorestech/moorestech_client/Library
+          key: Library_Test_client-${{ github.sha }}
+
   # PF別コンパイル検査が使うserver Libraryをターゲットごとに焼く
   # Warm the server Library per target for the platform compile check
   warm-server-compile:
@@ -110,7 +102,7 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
         with:
           path: moorestech_server/Library
           key: Library_compile_server_${{ matrix.target }}-${{ github.sha }}
@@ -131,3 +123,9 @@ jobs:
           projectPath: moorestech_server/
           versioning: None
           customParameters: '-expectedBuildTarget ${{ matrix.target }}'
+
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: moorestech_server/Library
+          key: Library_compile_server_${{ matrix.target }}-${{ github.sha }}

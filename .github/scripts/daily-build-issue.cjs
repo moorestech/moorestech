@@ -78,11 +78,11 @@ module.exports = async ({ github, context, core }) => {
     return true;
   }
 
-  // ラベル一致のopen issueのうち本文にマーカーを含むものだけを対象にする（ラベル流用の無関係issueを除外）
-  // Among open issues with the label, only ones whose body carries the marker count (excludes unrelated issues reusing the label)
+  // 識別は本文マーカーが正。ラベルで絞るとpollerが修復開始時にLABELを剥がした瞬間に見失い、Issueが毎日増える
+  // The body marker owns identity; filtering by label loses the issue the moment the poller strips LABEL at repair start, spawning one issue per day
   async function findExistingIssue() {
     const issues = await github.paginate(github.rest.issues.listForRepo, {
-      owner, repo, state: 'open', labels: LABEL, per_page: 100,
+      owner, repo, state: 'open', per_page: 100,
     });
     return issues.find((i) => i.pull_request === undefined && (i.body || '').includes(MARKER)) || null;
   }

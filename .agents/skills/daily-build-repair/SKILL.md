@@ -95,18 +95,30 @@ moores-wt new fix/daily-build-<N> --no-editor
 
 ## Step 6: ビルド検証
 
+既に「ビルド検証」ラベルが付いている場合は `--add-label` の再実行ではイベントが発火しない。
+一度 `--remove-label` してから `--add-label` し直す（remove→addのトグル）。
+
 ```bash
-gh pr edit <PR番号> --add-label "ビルド検証"
+gh pr edit <PR番号> --remove-label "ビルド検証" 2>/dev/null; gh pr edit <PR番号> --add-label "ビルド検証"
 ```
 
 ラベル付与だけでは緑/赤を判定できない。`gh pr checks <PR番号> --watch` は「ビルド検証」
 ラベル発火のrunがまだ登録されていない間は空振りしうるため使わない。代わりに以下の手順で
 runを特定してからポーリングする。
 
+`build.yml` は `pull_request: types: [labeled]` で発火するため、無関係なラベル付与
+（poller が付ける `独立レビュー:実行中` 等）でも空run（`conclusion: skipped`）が生成されうる。
+`--limit 1` はこの空runを掴む恐れがあるため、複数件取得して `skipped` を除外する。
+# `build.yml` triggers on `pull_request: types: [labeled]`, so any unrelated label
+# (e.g. poller's `独立レビュー:実行中`) also spawns a run that completes as `skipped`.
+# Fetch several runs and discard `skipped` ones instead of trusting `--limit 1`.
+
 ```bash
 # run登録待ち: ラベル発火のrunがGitHub Actions側に現れるまで数十秒〜数分かかることがある
 # Wait for the run to register; the label-triggered run can take up to a few minutes to appear
-gh run list --workflow="Unity Build" --branch <ブランチ名> --limit 1 --json databaseId,status,conclusion
+gh run list --workflow="Unity Build" --branch <ブランチ名> --limit 10 \
+  --json databaseId,status,conclusion,event \
+  --jq '[.[] | select(.conclusion != "skipped")][0]'
 ```
 
 `databaseId` が取れたら、その run の `status` が `completed` になるまでポーリングで待つ。

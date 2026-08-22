@@ -18,6 +18,8 @@ on:
 # 無関係なラベル付与はjob if で全skipの空runになるため、cancel対象から外す。
 # Cancel outdated runs only when the "ビルド検証" label is re-applied to the same PR (group is per workflow and ref).
 # Unrelated label events produce an all-skip empty run via job if, so exclude them from cancellation.
+# 手動実行(workflow_dispatch)と日次(schedule)は条件が偽になるため実行中にキャンセルされない
+# The condition is false for workflow_dispatch and schedule, so neither is cancelled mid-run
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.label.name == 'ビルド検証' }}
@@ -33,6 +35,14 @@ jobs:
     # On label events only "ビルド検証" passes; scheduled and manual runs always proceed
     if: github.event_name != 'pull_request' || github.event.label.name == 'ビルド検証'
     runs-on: ${{ matrix.platform.runner }}
+
+    # macOSのunity-builderはネイティブ実行のため、Server/Clientが同時にアクティベーションするとライセンス認証が落ちる
+    # (コミット55b9aa971の再発。裁定2026-08-22でmacOSだけ直列化し、Windowsは並列のまま残す)
+    # unity-builder runs natively on macOS, so a simultaneous Server/Client activation fails license validation
+    # (a regression of commit 55b9aa971; adjudicated 2026-08-22 to serialize macOS only, leaving Windows parallel)
+    concurrency:
+      group: ${{ startsWith(matrix.platform.runner, 'macos') && format('unity-license-mac-{0}', github.run_id) || format('unity-license-{0}-{1}-{2}', github.job, matrix.platform.name, github.run_id) }}
+      cancel-in-progress: false
 
     strategy:
       fail-fast: false
@@ -151,6 +161,14 @@ jobs:
     # On label events only "ビルド検証" passes; scheduled and manual runs always proceed
     if: github.event_name != 'pull_request' || github.event.label.name == 'ビルド検証'
     runs-on: ${{ matrix.platform.runner }}
+
+    # macOSのunity-builderはネイティブ実行のため、Server/Clientが同時にアクティベーションするとライセンス認証が落ちる
+    # (コミット55b9aa971の再発。裁定2026-08-22でmacOSだけ直列化し、Windowsは並列のまま残す)
+    # unity-builder runs natively on macOS, so a simultaneous Server/Client activation fails license validation
+    # (a regression of commit 55b9aa971; adjudicated 2026-08-22 to serialize macOS only, leaving Windows parallel)
+    concurrency:
+      group: ${{ startsWith(matrix.platform.runner, 'macos') && format('unity-license-mac-{0}', github.run_id) || format('unity-license-{0}-{1}-{2}', github.job, matrix.platform.name, github.run_id) }}
+      cancel-in-progress: false
 
     strategy:
       fail-fast: false
