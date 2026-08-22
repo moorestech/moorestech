@@ -108,8 +108,6 @@ describe("localizeBuildMenuEntries", () => {
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
-      placementsPerCost: 1,
-      remainingPlacementCount: 0,
     };
 
     expect(localizeBuildMenuEntries([blueprintCopy], () => expected)[0].displayLabel).toBe(expected);
@@ -123,8 +121,6 @@ describe("localizeBuildMenuEntries", () => {
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
-      placementsPerCost: 1,
-      remainingPlacementCount: 0,
     };
     expect(localizeBuildMenuEntries([blueprint], () => "unused")[0].displayLabel).toBe("starter-base");
   });
@@ -136,8 +132,6 @@ describe("localizeBuildMenuEntries", () => {
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
-      placementsPerCost: 1,
-      remainingPlacementCount: 0,
     };
 
     const displayLabel = localizeBuildMenuEntries(
@@ -154,8 +148,6 @@ describe("localizeBuildMenuEntries", () => {
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
-      placementsPerCost: 1,
-      remainingPlacementCount: 0,
     };
 
     const displayLabel = localizeBuildMenuEntries(

@@ -21,14 +21,16 @@ export function BuildMenuDetailSidebar({ entry }: Props) {
           <span className={styles.detailName}>{entry.displayLabel}</span>
           <FadeRule />
           {(() => {
-            const isSetPlacement = entry.placementsPerCost > 1;
+            // 1セット複数設置はブロックだけが持つので、その形に絞り込んでから読む
+            // Only blocks carry multi-placement sets, so narrow to that shape before reading the fields
+            const setPlacementBlock = entry.kind === "block" && entry.placementsPerCost > 1 ? entry : null;
             return (
               <>
                 {entry.requiredItems.length > 0 && (
                   <>
                     <span className={styles.detailCostLabel}>
-                      {isSetPlacement
-                        ? t(L.ui.buildMenu.requiredItemsPerSet, { count: entry.placementsPerCost })
+                      {setPlacementBlock !== null
+                        ? t(L.ui.buildMenu.requiredItemsPerSet, { count: setPlacementBlock.placementsPerCost })
                         : t(L.ui.buildMenu.requiredItems)}
                     </span>
                     <SlotGrid cols={3}>
@@ -38,9 +40,9 @@ export function BuildMenuDetailSidebar({ entry }: Props) {
                     </SlotGrid>
                   </>
                 )}
-                {isSetPlacement && (
+                {setPlacementBlock !== null && (
                   <span className={styles.detailCostLabel} data-testid="build-menu-remaining-placements">
-                    {t(L.ui.buildMenu.remainingPlacementCount, { count: entry.remainingPlacementCount })}
+                    {t(L.ui.buildMenu.remainingPlacementCount, { count: setPlacementBlock.remainingPlacementCount })}
                   </span>
                 )}
               </>

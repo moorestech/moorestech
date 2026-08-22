@@ -4,7 +4,6 @@ using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Construction;
 using Core.Master;
-using Game.Construction;
 using Game.PlacementTarget;
 using Mooresmaster.Model.BuildMenuModule;
 
@@ -86,19 +85,19 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 return itemDtos;
             }
 
-            // 設置数/1セットはブロックのマスタ値、他は1
-            // Placements per cost set comes from the block master; every other kind is one-per-set
-            int ResolvePlacementsPerCost(IPlacementTarget target)
+            // 設置数/1セットはブロックのマスタ値、他は配信しない
+            // Placements per cost set comes from the block master; no other kind carries it
+            int? ResolvePlacementsPerCost(IPlacementTarget target)
             {
-                return target is BlockPlacementTarget block ? MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).PlacementsPerCost : 1;
+                return target is BlockPlacementTarget block ? MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).PlacementsPerCost : null;
             }
 
-            // 残り設置数は正規化後の財布キーで参照。他は0
-            // Remaining placements come from the client model keyed by the normalized wallet id; every other kind is always 0
-            int ResolveRemainingPlacementCount(IPlacementTarget target)
+            // 残り設置数は財布へ問い合わせる。他は配信しない
+            // Remaining placements come from the client-side wallet; no other kind carries it
+            int? ResolveRemainingPlacementCount(IPlacementTarget target)
             {
-                if (target is not BlockPlacementTarget block) return 0;
-                return remainingPlacementCountDatastore.GetRemainingCount(ConstructionWalletUtil.ResolveWalletBlockId(block.BlockId));
+                if (target is not BlockPlacementTarget block) return null;
+                return remainingPlacementCountDatastore.GetRemainingCount(block.BlockId);
             }
 
             #endregion

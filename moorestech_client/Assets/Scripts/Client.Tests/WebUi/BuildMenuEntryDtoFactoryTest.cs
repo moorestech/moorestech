@@ -106,8 +106,10 @@ namespace Client.Tests.WebUi
             Assert.AreEqual(2, straightDto.RemainingPlacementCount);
             Assert.AreEqual(3, upDto.PlacementsPerCost);
             Assert.AreEqual(2, upDto.RemainingPlacementCount);
-            Assert.AreEqual(1, trainCarDto.PlacementsPerCost);
-            Assert.AreEqual(0, trainCarDto.RemainingPlacementCount);
+            // 非ブロックは設置数フィールドを持たない（配信時にキーごと省略される）
+            // Non-block kinds carry no placement fields at all, so the keys are omitted on the wire
+            Assert.IsNull(trainCarDto.PlacementsPerCost);
+            Assert.IsNull(trainCarDto.RemainingPlacementCount);
         }
 
         [Test]

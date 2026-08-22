@@ -32,10 +32,10 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         public string SubCategoryGuid;
         public List<BuildMenuRequiredItemDto> RequiredItems;
 
-        // N/1セットと残り設置数。非ブロックは1/0
-        // PlacementsPerCost and remaining; 1/0 for non-block
-        public int PlacementsPerCost;
-        public int RemainingPlacementCount;
+        // 設置数/1セットと残り設置数はブロック専用。非ブロックは null でキー省略される
+        // Placements per set and the remaining count are block-only; null (thus key-omitted) for every other kind
+        public int? PlacementsPerCost;
+        public int? RemainingPlacementCount;
 
         // アイコン無し（BP・BPコピー）は null でキー省略される
         // Null (thus key-omitted) for icon-less entries: blueprints and the copy tool
