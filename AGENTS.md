@@ -166,6 +166,7 @@ partialは禁止。如何なる条件でもpartialを絶対に使ってはいけ
 - イベント発火のためにActionを使わない。UniRxを使う。
 
 # タスク管理 (Beads)
+treeにログを残すためにマージは通常のマージコミットを使うSquash and mergeは使用しない
 本repoはbd(Beads)でタスク・設計検討・学びを管理する。セッション開始時にhookが概況を注入する（詳細ワークフローは`.agents/skills/beads/SKILL.md`）。
 - タスクは着手前に`bd create`で積み、`bd update <id> --claim`で着手、`bd close <id> --reason="..."`で完了。派生発見は`--parent`や`bd dep`で系譜を残す
 - 設計メモ・経緯・失敗は`bd note <id> "..."`へ。応答末尾に`LEARN: <一行>`と書くとhookが自動でnoteに保存する
