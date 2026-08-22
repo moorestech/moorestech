@@ -3,15 +3,7 @@ using Core.Master;
 using Game.MapGeneration.Cache;
 using Game.MapGeneration.Identity;
 using Game.MapGeneration.Pipeline;
-using Game.MapGeneration.Pipeline.Biomes;
-using Game.MapGeneration.Pipeline.Config;
-using Game.MapGeneration.Pipeline.Runtime;
-using Game.MapGeneration.Pipeline.Stages;
 using Game.MapGeneration.Pipeline.Visual;
-using Game.MapGeneration.Pipeline.Visual.Source;
-using Game.MapGeneration.Pipeline.Visual.Splat;
-using Game.MapGeneration.Pipeline.Visual.Surround;
-using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using UnityEngine;
 
@@ -59,25 +51,16 @@ namespace Game.MapGeneration.Facade
             var ledger = MapGenerationPipeline.Generate(selectedGeneration, config).Ledger;
             Debug.Log($"[WorldTerrainSession] pass-1 placement regeneration: {stopwatch.ElapsedMilliseconds}ms, placements={ledger.Placements.Count}");
 
-            var gridConfig = config.ShallowCopy();
-            gridConfig.worldOffsetX = terrainMeta.Origins.NoiseOrigin.x;
-            gridConfig.worldOffsetZ = terrainMeta.Origins.NoiseOrigin.y;
-            var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(gridConfig);
-            var visualSections = BiomeVisualSectionTable.Resolve(selectedGeneration, biomeTypes);
-            var treeSurroundSpecies = TreeSurroundSpeciesTable.Build(new BiomePlacementHelper(gridConfig), biomeTypes);
-            var debugLayerAddresses = PlateauDebugOverlayGate.IsEnabled(gridConfig) ? gridConfig.alpine.debugTerrainLayerAddressablePaths : Array.Empty<string>();
-            var layerTable = SplatLayerTable.Build(gridConfig.shoreConfig.beachLayerAddressablePath, gridConfig.rockLayerAddressablePath,
-                visualSections.MainLayerAddresses, visualSections.TextureConfigs, visualSections.SurroundTextureConfigs, treeSurroundSpecies, debugLayerAddresses);
-
-            var sharedCache = SharedWorldCache.For(terrainMeta.WorldId);
-            var cacheKey = TerrainVisualCacheKey.Compute(fingerprint, config.seed, terrainMeta.Origins,
-                terrainMeta.TerrainResolution, WorldProvisioner.GeneratorVersion);
-            var baker = new TileVisualBaker(gridConfig, biomeTypes, visualSections, layerTable, treeSurroundSpecies, ledger,
-                sharedCache, new TerrainVisualCache(sharedCache, cacheKey));
+            // クライアントの高さ源は共有キャッシュ(同PCのサーバー先焼き/自分の受信分が置かれる場所)。組み立て自体はサーバー先焼きと共有する
+            // The client's height source is the shared cache (where a same-PC server prebake or its own received data lands); the assembly itself is shared with the server prebake
+            var heightSource = SharedWorldCache.For(terrainMeta.WorldId);
+            var factoryResult = TileVisualBakerFactory.Create(config, terrainMeta, ledger, heightSource, selectedGeneration);
+            var baker = factoryResult.Baker;
+            var gridConfig = factoryResult.GridConfig;
             var layout = WorldTerrainLayout.CreateTileMaps(
                 TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount),
                 new Vector3(gridConfig.terrainWidth, gridConfig.terrainHeight, gridConfig.terrainLength), gridConfig.Resolution,
-                layerTable.OrderedLayerAddresses, baker.DetailPrototypes);
+                factoryResult.OrderedLayerAddresses, baker.DetailPrototypes);
             return new WorldTerrainSession(layout, baker);
         }
 

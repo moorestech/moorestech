@@ -4,8 +4,11 @@ using Core.Master;
 using Game.MapGeneration.Export;
 using Game.MapGeneration.Identity;
 using Game.MapGeneration.Pipeline;
+using Game.MapGeneration.Pipeline.Config;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
+using Mooresmaster.Model.GenerationModule;
 using Newtonsoft.Json;
 
 namespace Game.MapGeneration.Provisioning
@@ -69,9 +72,15 @@ namespace Game.MapGeneration.Provisioning
             var tempDataDirectory = WorldDataDirectory.FromWorldRoot(worldDataDirectory.ProvisioningTempDirectory);
             Directory.CreateDirectory(tempDataDirectory.Root);
 
+            PlacementLedger generatedLedger = null;
+            TerrainGenerationConfig generatedConfig = null;
+            Generation generatedSelectedGeneration = null;
+            string generatedFingerprint = null;
+
             var metaJson = settings.MapMode switch
             {
-                GeneratedMapMode => BuildGenerated(tempDataDirectory, settings),
+                GeneratedMapMode => BuildGenerated(
+                    tempDataDirectory, settings, out generatedLedger, out generatedConfig, out generatedSelectedGeneration, out generatedFingerprint),
                 TemplateMapMode => BuildTemplate(tempDataDirectory, settings),
                 _ => throw new ArgumentException($"Unknown map mode: '{settings.MapMode}'"),
             };
@@ -84,22 +93,38 @@ namespace Game.MapGeneration.Provisioning
             // Renaming temp dir -> real root makes the commit atomic
             Directory.Move(tempDataDirectory.Root, worldDataDirectory.Root);
 
+            // 先焼きはワールド確定後(コミット済み)にだけ行う。クラッシュしてもワールドは完成済みでキャッシュはクライアントが埋め直せる
+            // The prebake runs only after the world is committed; a crash still leaves a complete world, and a client can refill the cache itself
+            if (settings.MapMode == GeneratedMapMode)
+            {
+                var generatedTerrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
+                TerrainVisualPrebake.BakeAll(
+                    worldDataDirectory, generatedTerrainMeta, generatedConfig, generatedLedger, generatedSelectedGeneration, generatedFingerprint);
+            }
+
             #region Internal
 
-            static WorldMetaJson BuildGenerated(WorldDataDirectory tempDataDirectory, WorldProvisionSettings settings)
+            static WorldMetaJson BuildGenerated(
+                WorldDataDirectory tempDataDirectory, WorldProvisionSettings settings,
+                out PlacementLedger ledger, out TerrainGenerationConfig config, out Generation selected, out string generationMasterFingerprint)
             {
                 // 優先度解決済みの1件が未定義ならgenerated modeは実行不能
                 // A priority-resolved candidate must exist; generated mode cannot run without it
-                var selected = MasterHolder.GenerationMaster.SelectedGeneration;
+                selected = MasterHolder.GenerationMaster.SelectedGeneration;
                 if (selected == null)
                     throw new InvalidOperationException(
                         "Cannot provision a generated world: MasterHolder.GenerationMaster.SelectedGeneration is undefined.");
 
-                var output = MapGenerationPipeline.Generate(selected, settings.Seed, settings.ServerDataDirectory);
+                config = MapGenerationPipeline.BuildConfig(selected, settings.Seed, settings.ServerDataDirectory);
+                var output = MapGenerationPipeline.Generate(selected, config);
+                ledger = output.Ledger;
 
                 var mapInfoJson = MapInfoJsonBuilder.Build(output);
                 File.WriteAllText(tempDataDirectory.MapJsonFilePath, JsonConvert.SerializeObject(mapInfoJson, Formatting.Indented));
                 TerrainFileWriter.Write(tempDataDirectory, output);
+
+                generationMasterFingerprint = GenerationMasterFingerprint.Compute(
+                    MasterHolder.GenerationMaster.SourceJsonText, selected, settings.ServerDataDirectory);
 
                 return new WorldMetaJson
                 {
@@ -121,8 +146,7 @@ namespace Game.MapGeneration.Provisioning
                     TerrainSceneOriginX = output.SceneOrigin.x,
                     TerrainSceneOriginZ = output.SceneOrigin.y,
 
-                    GenerationMasterFingerprint = GenerationMasterFingerprint.Compute(
-                        MasterHolder.GenerationMaster.SourceJsonText, selected, settings.ServerDataDirectory),
+                    GenerationMasterFingerprint = generationMasterFingerprint,
                 };
             }
 
