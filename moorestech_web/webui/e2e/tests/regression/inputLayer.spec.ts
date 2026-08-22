@@ -19,6 +19,21 @@ test("block inventory上のEscapeはGameScreen遷移を要求する", async ({ p
   await expect(page.getByTestId("block-inventory")).toBeHidden();
 });
 
+test("Tabはブラウザのフォーカスを動かさない", async ({ page }) => {
+  await setUiState(page, "PlayerInventory");
+  await page.goto("/");
+  await expect(page.getByTestId("app-stage")).toBeVisible();
+  const activeTagName = () => page.evaluate(() => document.activeElement?.tagName ?? null);
+  const before = await activeTagName();
+
+  // 前進・後退どちらのフォーカス移動もWeb UIの選択表示と競合するため封じる
+  // Both forward and backward traversal fight the web UI's selection rendering, so both are suppressed
+  await page.keyboard.press("Tab");
+  expect(await activeTagName()).toBe(before);
+  await page.keyboard.press("Shift+Tab");
+  expect(await activeTagName()).toBe(before);
+});
+
 test("GameScreenのホイールは最新equipment値から次スロットを選ぶ", async ({ page }) => {
   await setUiState(page, "GameScreen");
   await page.goto("/");

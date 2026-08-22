@@ -280,9 +280,9 @@
   /* Notification row face and border, same navy-family face and cool border as research node cards */
   --notification-face: var(--surface-navy);
   --notification-border: rgb(104 106 120);
-  /* 通知の最大幅は画面幅の20%（ユーザー裁定）。画面比例が要件のため例外的に%を使う */
-  /* Notification max width is 20% of the screen width (user ruling); % is intentional because the cap must scale with the screen */
-  --notification-max-width: 20vw;
+  /* 通知の幅は画面幅20%の固定値。可変だと同時表示中の最長行に全行が引き伸ばされ増減のたびに幅が動く */
+  /* Notification width is fixed at 20% of the screen; a fluid width stretches every row to the longest visible one and shifts as rows come and go */
+  --notification-width: 20vw;
   /* 通知の出入り。左から固定長で滑り込み、退場は生存尺から逆算した遅延で逆再生する */
   /* Notification enter/exit: slides in from the left by a fixed length; the exit mirrors it after a lifetime-derived delay */
   --notification-enter-duration: 160ms;
