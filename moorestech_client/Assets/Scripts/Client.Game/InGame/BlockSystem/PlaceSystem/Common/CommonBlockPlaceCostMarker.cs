@@ -10,19 +10,21 @@ using Server.Protocol.PacketResponse;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     /// <summary>
-    /// 通常設置のセル列のうち所持素材で賄えない後続分をPlaceable=falseへ書き換え、不足素材をツールチップへ積む
-    /// Marks normal-placement cells beyond what the held materials can afford as Placeable=false and pushes the short materials to the tooltip
+    /// 後続不足セルをPlaceable=falseに
+    /// 不足素材をツールチップへ積む
+    /// Marks cells beyond affordability as Placeable=false
+    /// Pushes the short materials to the tooltip
     /// </summary>
     public static class CommonBlockPlaceCostMarker
     {
         public static void MarkInsufficientCellsAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, BlockId blockId, IEnumerable<IItemStack> inventoryItems, PlacementFeedback feedback)
         {
-            // 無料設置モードでは所持数による制限をかけない
-            // In free placement mode, do not limit by held item count
+            // 無料モードは所持数制限なし
+            // Free mode has no held-count limit
             if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement)) return;
 
-            // 今回置こうとしている（地形・重複で落ちていない）セル数ぶんの不足素材をツールチップへ積む
-            // Push the materials short for the cells actually being placed (not dropped by terrain/overlap)
+            // 設置可能セル分の不足素材を積む
+            // Push short materials for the placeable cells
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             var placeableCellCount = currentPlaceInfos.Count(info => info.Placeable);
             feedback.AddMaterialShortages(ConstructionCostShortageCalculator.Calculate(blockMaster.RequiredItems, placeableCellCount, inventoryItems));
@@ -35,7 +37,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             {
                 if (!currentPlaceInfos[i].Placeable) continue;
                 placeableCount++;
-                if (placeableCount > affordableCellCount) currentPlaceInfos[i].Placeable = false;
+                if (affordableCellCount < placeableCount) currentPlaceInfos[i].Placeable = false;
             }
         }
     }

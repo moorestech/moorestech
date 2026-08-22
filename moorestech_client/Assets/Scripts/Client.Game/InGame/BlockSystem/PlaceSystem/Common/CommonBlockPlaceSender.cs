@@ -6,13 +6,13 @@ using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     /// <summary>
-    /// 通常設置の左クリック解放時に、UI上か電線不足かを見て設置プロトコルを送る
-    /// Sends the placement protocol on left-click release for normal placement, unless the pointer is over UI or wire is short
+    /// 左クリック解放時、UI/電線不足を見て設置送信
+    /// Sends the placement protocol on release, unless over UI or wire is short
     /// </summary>
     public static class CommonBlockPlaceSender
     {
-        // 送信できたときだけtrue（呼び出し側は自動接続の評価キャッシュを破棄する）
-        // True only when actually sent (the caller then drops its auto-connect evaluation cache)
+        // true=送信成功。呼び出し側が自動接続キャッシュを破棄
+        // True only when actually sent; the caller then drops its auto-connect cache
         public static bool TrySendOnClickRelease(List<PlaceInfo> currentPlaceInfos, bool wirePlaceable)
         {
             if (UiPointerHitTest.IsPointerOverAnyUi() || !wirePlaceable) return false;

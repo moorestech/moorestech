@@ -151,7 +151,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             var result = GearChainPoleChainConnectMode.Decide(input);
 
             Assert.AreEqual(1, result.FeedbackLines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected.Key, result.FeedbackLines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected.Key, result.FeedbackLines[0].Key.Key);
         }
 
         [Test]

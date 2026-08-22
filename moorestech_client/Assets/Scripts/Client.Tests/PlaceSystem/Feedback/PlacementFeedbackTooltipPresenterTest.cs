@@ -11,8 +11,8 @@ using UnityEngine;
 namespace Client.Tests.PlaceSystem.Feedback
 {
     /// <summary>
-    ///     設置理由の行がカーソルツールチップへプッシュ順で出ることを検証
-    ///     Verify placement reason lines reach the cursor tooltip in push order
+    ///     理由行がプッシュ順で出ることを検証
+    ///     Verify reason lines appear in push order
     /// </summary>
     public class PlacementFeedbackTooltipPresenterTest
     {
@@ -68,8 +68,8 @@ namespace Client.Tests.PlaceSystem.Feedback
             var presentation = MouseCursorTooltip.Instance.GetPresentation();
             Assert.IsTrue(presentation.Visible);
             Assert.AreEqual(2, presentation.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, presentation.Lines[0].TextKey);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireNoWireItem.Key, presentation.Lines[1].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, presentation.Lines[0].Key.Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireNoWireItem.Key, presentation.Lines[1].Key.Key);
 
             feedback.Clear();
             presenter.Present(feedback);
@@ -107,7 +107,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             Assert.AreEqual(1, notifiedCount);
             var presentation = MouseCursorTooltip.Instance.GetPresentation();
             Assert.AreEqual(1, presentation.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceTooFar.Key, presentation.Lines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceTooFar.Key, presentation.Lines[0].Key.Key);
         }
 
         [Test]
@@ -118,7 +118,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             feedback.AddWireCost(3);
 
             Assert.AreEqual(1, feedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireCost.Key, feedback.Lines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireCost.Key, feedback.Lines[0].Key.Key);
             CollectionAssert.AreEqual(new[] { "3" }, feedback.Lines[0].TextParams);
         }
     }

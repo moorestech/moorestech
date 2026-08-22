@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 {
     /// <summary>
-    /// 起点と接続先を結ぶプレビュー用ワイヤーをランタイム生成し、可否色で表示する
-    /// Runtime-built preview wire connecting origin and target, colored by placeability
+    /// 起点-接続先間のワイヤーを可否色で生成表示
+    /// Runtime wire between origin and target, colored by placeability
     /// </summary>
     public class ElectricWireExtendPreviewObject
     {
@@ -48,8 +48,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         }
 
         /// <summary>
-        /// 解決済みのワールド端点からワイヤープレビューを可否色で表示する
-        /// Show the wire preview from resolved world-space endpoints, colored by placeability
+        /// 端点からワイヤーを可否色で表示
+        /// Shows the wire from endpoints, colored by placeability
         /// </summary>
         public void Show(Vector3 startWorldPos, Vector3 endWorldPos, bool placeable)
         {

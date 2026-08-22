@@ -8,8 +8,10 @@ using Server.Protocol.PacketResponse;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 {
     /// <summary>
-    /// 電柱ゴースト評価の結果をまとめた型。不可理由を個別に持ち、ツールチップ行へ写す
-    /// Result of a pole-ghost evaluation, holding each block reason separately so it can be pushed as tooltip lines
+    /// 電柱ゴースト評価結果を保持
+    /// 不可理由を個別にツールチップへ
+    /// Holds a pole-ghost evaluation result
+    /// Each block reason is pushed to the tooltip separately
     /// </summary>
     public readonly struct ElectricWirePoleGhostEvaluation
     {
@@ -25,6 +27,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         public bool CanAffordPole => MaterialShortages.Count == 0;
         public PlaceInfo PlaceInfo => PlaceInfos[0];
         public ElectricPoleBlockParam PoleParam => (ElectricPoleBlockParam)PoleMaster.BlockParam;
+
+        // 電柱ゴースト自体の設置可否（孤立設置・延長設置の両呼び出し元で共有する判定）
+        // The pole ghost's own placeability (the judgement both isolated and extend placement callers shared)
+        public bool IsGhostPlaceable => IsGroundClear && IsPositionFree && CanAffordPole;
 
         public ElectricWirePoleGhostEvaluation(List<PlaceInfo> placeInfos, BlockMasterElement poleMaster, BlockId poleBlockId, bool isGroundClear, bool isPositionFree, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
         {

@@ -3,11 +3,9 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.Control;
-using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Game.Block.Interface;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
-using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
@@ -70,10 +68,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
                 _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), ElectricWireEndpointResolver.Resolve(targetBlock), judgement.IsPlaceable);
 
-                // 不可理由と消費電線数をツールチップ行へ積む
-                // Push the failure reason and the wire cost as tooltip lines
-                if (!judgement.IsPlaceable) feedback.Add(new TooltipLine(ElectricWirePlacementFailureTooltipKey.ToKey(judgement.FailureReason)));
-                feedback.AddWireCost(ResolveCostCount(judgement, distance));
+                // 不可理由と電線消費数を積む
+                // Pushes the failure reason and wire cost
+                ElectricWirePlacementFailureTooltipKey.Report(judgement, connectToolGuid, distance, feedback);
 
                 // 可否OK かつクリックで接続する。起点は応答確認後に接続先へ移る
                 // The origin moves to the target after the response confirms
@@ -96,7 +93,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 var poleGhostInfo = new BlockPositionInfo(evaluation.PlaceInfo.Position, _context.PoleSelection.CurrentDirection, evaluation.PoleMaster.BlockSize);
                 var distance = Vector3Int.Distance(fromPos, evaluation.PlaceInfo.Position);
                 var judgement = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, evaluation.PoleParam, poleGhostInfo, distance, connectToolGuid, _context.Inventory);
-                var placeable = evaluation.IsGroundClear && evaluation.IsPositionFree && judgement.IsPlaceable && evaluation.CanAffordPole;
+                var placeable = evaluation.IsGhostPlaceable && judgement.IsPlaceable;
 
                 // ゴーストとワイヤー線を可否色で表示する
                 // Show the ghost and wire line colored by placeability
@@ -111,8 +108,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 // ゴーストの不可理由（地形・重複・素材）→ ワイヤー判定の理由 → 消費電線数 の順で積む
                 // Push ghost block reasons (terrain/overlap/materials), then the wire judgement reason, then the wire cost
                 evaluation.PushBlockReasons(feedback);
-                if (!judgement.IsPlaceable) feedback.Add(new TooltipLine(ElectricWirePlacementFailureTooltipKey.ToKey(judgement.FailureReason)));
-                feedback.AddWireCost(ResolveCostCount(judgement, distance));
+                ElectricWirePlacementFailureTooltipKey.Report(judgement, connectToolGuid, distance, feedback);
                 _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), endEndpoint, placeable);
 
                 // 可否OK かつクリックで延長設置する。応答待ち中は多重送信を防ぐため送信しない
@@ -123,14 +119,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                     _context.PreviewBlockController.SetActive(false);
                     _context.RequestSender.SendExtend(fromPos, evaluation.PoleBlockId, evaluation.PlaceInfo, connectToolGuid);
                 }
-            }
-
-            int ResolveCostCount(ElectricWirePlacementJudgement judgement, float distance)
-            {
-                // 成功時は判定結果のコストを、失敗時も距離から算出したコストを表示する
-                // Show the judgement cost on success, or the distance-derived cost even on failure
-                if (judgement.IsPlaceable) return judgement.WireCost.TotalCount;
-                return ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, distance, out var cost) ? cost.TotalCount : 0;
             }
 
             void HidePreview()

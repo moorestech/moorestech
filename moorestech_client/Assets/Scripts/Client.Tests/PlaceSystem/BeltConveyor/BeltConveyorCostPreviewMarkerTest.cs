@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Localization;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Interface;
 using Game.Context;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
@@ -13,15 +14,13 @@ using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
 
-namespace Client.Tests.PlaceSystem.Common
+namespace Client.Tests.PlaceSystem.BeltConveyor
 {
     /// <summary>
-    ///     必要数は不可セル除外の設置予定セル数分
-    ///     賄えないセルは不可に
-    ///     Verify the required count excludes blocked cells
-    ///     Unaffordable cells become not placeable
+    ///     素材不足の必要数が地形干渉・重複を除いたセル数ぶんであり、賄えないセルが設置不可になることを検証（CommonBlockPlaceCostMarkerTestのベルト対称形）
+    ///     Verify the required count covers only the cells left after terrain/overlap filtering, and unaffordable cells become not placeable (belt-side counterpart to CommonBlockPlaceCostMarkerTest)
     /// </summary>
-    public class CommonBlockPlaceCostMarkerTest
+    public class BeltConveyorCostPreviewMarkerTest
     {
         private static readonly Guid Material1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003"); // Test3(コスト×2)
         private static readonly Guid Material2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004"); // Test4(コスト×1)
@@ -31,14 +30,14 @@ namespace Client.Tests.PlaceSystem.Common
         {
             CreateServer();
 
-            // 5セル中2セルは既に不可、残り3セル分のみ算入
-            // 2 of 5 cells are already blocked; only the remaining 3 count
+            // 5セルのうち2セルは地形干渉・重複で既に不可。残り3セル分のみ必要数に数える
+            // 2 of the 5 cells are already blocked by terrain/overlap; only the remaining 3 count toward the required amount
             var placeInfos = BuildDragCells(5);
             placeInfos[1].Placeable = false;
             placeInfos[3].Placeable = false;
             var feedback = new PlacementFeedback();
 
-            CommonBlockPlaceCostMarker.MarkInsufficientCellsAsNotPlaceable(placeInfos, ForUnitTestModBlockId.BlockId, BuildInventory(3, 10), feedback);
+            BeltConveyorCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(placeInfos, BuildInventory(3, 10), feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
@@ -55,9 +54,9 @@ namespace Client.Tests.PlaceSystem.Common
             placeInfos[1].Placeable = false;
             placeInfos[3].Placeable = false;
 
-            // 所持3・コスト2は1セルのみ賄え、残りは先頭だけ可
-            // 3 held items afford only one cost-2 cell, leaving only the first placeable
-            CommonBlockPlaceCostMarker.MarkInsufficientCellsAsNotPlaceable(placeInfos, ForUnitTestModBlockId.BlockId, BuildInventory(3, 10), new PlacementFeedback());
+            // 所持3枚ではコスト2のセルを1つしか賄えないため、残る設置可セルは先頭のみ
+            // 3 held items afford only one cell costing 2, so the first cell is the only one left placeable
+            BeltConveyorCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(placeInfos, BuildInventory(3, 10), new PlacementFeedback());
 
             CollectionAssert.AreEqual(new[] { true, false, false, false, false }, placeInfos.ConvertAll(info => info.Placeable));
         }
@@ -70,7 +69,7 @@ namespace Client.Tests.PlaceSystem.Common
             var placeInfos = BuildDragCells(3);
             var feedback = new PlacementFeedback();
 
-            CommonBlockPlaceCostMarker.MarkInsufficientCellsAsNotPlaceable(placeInfos, ForUnitTestModBlockId.BlockId, BuildInventory(6, 3), feedback);
+            BeltConveyorCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(placeInfos, BuildInventory(6, 3), feedback);
 
             Assert.IsEmpty(feedback.Lines);
             CollectionAssert.AreEqual(new[] { true, true, true }, placeInfos.ConvertAll(info => info.Placeable));
@@ -79,7 +78,7 @@ namespace Client.Tests.PlaceSystem.Common
         private static List<PlaceInfo> BuildDragCells(int cellCount)
         {
             var placeInfos = new List<PlaceInfo>(cellCount);
-            for (var i = 0; i < cellCount; i++) placeInfos.Add(new PlaceInfo { Position = new Vector3Int(i, 0, 0), Placeable = true });
+            for (var i = 0; i < cellCount; i++) placeInfos.Add(new PlaceInfo { Position = new Vector3Int(i, 0, 0), Placeable = true, BlockId = ForUnitTestModBlockId.BlockId });
             return placeInfos;
         }
 

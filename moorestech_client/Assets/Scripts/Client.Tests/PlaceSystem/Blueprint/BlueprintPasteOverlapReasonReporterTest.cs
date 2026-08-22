@@ -7,8 +7,8 @@ using NUnit.Framework;
 namespace Client.Tests.PlaceSystem.Blueprint
 {
     /// <summary>
-    ///     BP貼り付けの重複理由が「全セル重複のときだけ」出て、部分重複では出ないことを検証
-    ///     Verify the BP paste overlap reason appears only when every cell overlaps, and never on partial overlap
+    ///     全セル重複時のみ理由が出ることを検証
+    ///     Verify the reason appears only on full overlap
     /// </summary>
     public class BlueprintPasteOverlapReasonReporterTest
     {
@@ -20,14 +20,14 @@ namespace Client.Tests.PlaceSystem.Blueprint
             BlueprintPasteOverlapReasonReporter.Report(new[] { false, false, false }, feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].Key.Key);
         }
 
         [Test]
         public void 一部のセルだけ重複していても何も積まない()
         {
-            // 部分重複は設置可能セルだけを送る既存挙動のままで、案内行は出さない
-            // Partial overlap keeps the existing placeable-cells-only send and produces no line
+            // 部分重複は既存どおり送信し案内行は出さない
+            // Partial overlap sends as before and produces no line
             var feedback = new PlacementFeedback();
 
             BlueprintPasteOverlapReasonReporter.Report(new[] { true, false, false }, feedback);
@@ -48,8 +48,8 @@ namespace Client.Tests.PlaceSystem.Blueprint
         [Test]
         public void セルが空なら何も積まない()
         {
-            // 未解決BP等でセルが0件のときに空のBPを埋まっている扱いにしない
-            // Zero cells (e.g. an unresolved blueprint) must not be reported as fully occupied
+            // セル0件を埋まっている扱いにしない
+            // Zero cells must not be reported as fully occupied
             var feedback = new PlacementFeedback();
 
             BlueprintPasteOverlapReasonReporter.Report(new List<bool>(), feedback);

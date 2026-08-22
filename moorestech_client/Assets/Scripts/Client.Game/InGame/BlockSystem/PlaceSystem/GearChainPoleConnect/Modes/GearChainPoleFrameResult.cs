@@ -17,8 +17,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         public readonly GearChainPoleExtendSendCommand? ExtendSend;
         public readonly GearChainConnectSendCommand? ChainConnectSend;
 
-        // このフレームの設置不可理由の行。プッシュはsystemが行う
-        // This frame's placement-block reason lines; the system does the pushing
+        // このフレームの不可理由行。プッシュはsystem側
+        // This frame's block-reason lines; the system pushes them
         public readonly IReadOnlyList<TooltipLine> FeedbackLines;
 
         /// <summary>

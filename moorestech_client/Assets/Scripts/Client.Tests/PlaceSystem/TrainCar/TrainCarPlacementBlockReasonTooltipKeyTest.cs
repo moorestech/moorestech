@@ -18,11 +18,11 @@ namespace Client.Tests.PlaceSystem.TrainCar
         }
 
         [Test]
-        // Noneはコンパイル・保守のため用意された既定値であり、来ないという前提で経路無しへフォールバックする
-        // None exists as a default value for compilation/maintenance; it falls back to no-route since it never actually arrives
-        public void Noneは経路無しへフォールバックする()
+        // Noneは理由未設定を表す既定値で、来ない前提のため黙ってフォールバックせず例外にする（未知理由の追加漏れも同様）
+        // None represents an unset reason and never actually arrives, so it throws instead of silently falling back (same for an added-but-unmapped reason)
+        public void Noneは例外になる()
         {
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceTrainCarNoRoute.Key, TrainCarPlacementBlockReasonTooltipKey.ToKey(TrainCarPlacementBlockReason.None).Key);
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => TrainCarPlacementBlockReasonTooltipKey.ToKey(TrainCarPlacementBlockReason.None));
         }
     }
 }

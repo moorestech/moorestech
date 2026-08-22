@@ -10,8 +10,10 @@ using Server.Protocol.PacketResponse;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 {
     /// <summary>
-    /// ベルトセル列のうち所持素材で賄えない後続分をPlaceable=falseへ書き換え、不足素材をツールチップへ積む
-    /// Marks belt cells beyond what the held materials can afford as Placeable=false and pushes the short materials to the tooltip
+    /// 後続不足セルをPlaceable=falseに
+    /// 不足素材をツールチップへ積む
+    /// Marks cells beyond affordability as Placeable=false
+    /// Pushes the short materials to the tooltip
     /// </summary>
     public static class BeltConveyorCostPreviewMarker
     {

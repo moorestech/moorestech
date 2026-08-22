@@ -25,8 +25,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
                 return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Hidden);
             }
 
-            // ゴースト位置なしは何も表示しない。距離外のときだけ理由を出す
-            // Show nothing when there is no ghost position, reporting a reason only when out of range
+            // 位置なしは非表示。距離外のみ理由を出す
+            // Shows nothing without a position; reports a reason only when out of range
             if (!input.HasGhost)
             {
                 var noGhostLines = input.GhostTooFar ? new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceTooFar) } : Array.Empty<TooltipLine>();

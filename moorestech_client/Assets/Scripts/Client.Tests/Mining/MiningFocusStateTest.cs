@@ -87,7 +87,7 @@ namespace Client.Tests.Mining
             // 掘れないことを示す文言が本PRの目的なので、キーごと固定する
             // Declaring it unmineable is this PR's goal, so pin the very key
             Assert.AreSame(focusState, next);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.CannotHandMine.Key, MouseCursorTooltip.Instance.GetPresentation().Lines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.CannotHandMine.Key, MouseCursorTooltip.Instance.GetPresentation().Lines[0].Key.Key);
         }
 
         [Test]
@@ -97,7 +97,7 @@ namespace Client.Tests.Mining
             var next = RunFocusState(MiningStartOutcome.ToolMismatch, focusState);
 
             Assert.AreSame(focusState, next);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.RequiredItems.Key, MouseCursorTooltip.Instance.GetPresentation().Lines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.RequiredItems.Key, MouseCursorTooltip.Instance.GetPresentation().Lines[0].Key.Key);
         }
 
         [Test]
@@ -107,7 +107,7 @@ namespace Client.Tests.Mining
             var next = RunFocusState(MiningStartOutcome.Ready, focusState);
 
             Assert.AreSame(focusState, next);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.HoldToGet.Key, MouseCursorTooltip.Instance.GetPresentation().Lines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.HoldToGet.Key, MouseCursorTooltip.Instance.GetPresentation().Lines[0].Key.Key);
         }
 
         private IMiningState RunFocusState(MiningStartOutcome outcome)

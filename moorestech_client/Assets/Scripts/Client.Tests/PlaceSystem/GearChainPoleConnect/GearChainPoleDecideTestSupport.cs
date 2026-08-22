@@ -27,8 +27,8 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
     }
 
     /// <summary>
-    /// ポールアイテム手持ちモードDecideの入力スナップショットを組み立てる、テスト共通のビルダー
-    /// Shared test builder for the pole-item mode Decide input snapshot
+    /// 手持ちモードDecide入力を組み立てる共通ビルダー
+    /// Shared builder for the held-mode Decide input
     /// </summary>
     public static class GearChainPoleDecideInputs
     {
@@ -36,8 +36,8 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
 
         public static GearChainPolePlaceExtendInput CreateGhostReadyInput(FakeGearChainPole sourcePole)
         {
-            // ゴースト有効・地面クリア・設置可評価済みの標準入力を作る
-            // Build a standard input with a valid ghost, clear ground and placeable judgement
+            // 標準の評価済み入力を作る
+            // Builds a standard, already-evaluated input
             var placePos = new Vector3Int(3, 0, 3);
             var input = new GearChainPolePlaceExtendInput
             {

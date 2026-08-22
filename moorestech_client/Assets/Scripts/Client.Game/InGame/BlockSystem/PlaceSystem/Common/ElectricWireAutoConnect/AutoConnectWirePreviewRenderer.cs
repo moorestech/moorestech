@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
 {
     /// <summary>
-    /// 設置プレビュー中に自動接続される複数ワイヤーを半透明で描画する
-    /// Renders multiple auto-connect wires semi-transparently during placement preview
+    /// 自動接続ワイヤーを半透明でプレビュー描画
+    /// Renders auto-connect wires semi-transparently
     /// </summary>
     public class AutoConnectWirePreviewRenderer
     {
@@ -29,8 +29,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         }
 
         /// <summary>
-        /// 起点端点から各接続先端点へワイヤーを張る。不可時は不可色。文言はカーソルツールチップ側が持つ
-        /// Draws wires from the origin endpoint to each target endpoint, in the failure color when not placeable; text lives in the cursor tooltip
+        /// 起点から各接続先へワイヤー表示。文言はツールチップ側が持つ
+        /// Draws wires from origin to each target; text lives in the tooltip
         /// </summary>
         public void Show(Vector3 originEndpoint, IReadOnlyList<Vector3> targetEndpoints, bool isFailure)
         {

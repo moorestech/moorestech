@@ -6,8 +6,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
     /// <summary>
-    /// レール接続判定の失敗理由をカーソルツールチップの辞書キーへ写像する
-    /// Maps a rail connection failure reason to a cursor-tooltip dictionary key
+    /// レール失敗理由をツールチップキーへ写像
+    /// Maps a rail failure reason to a tooltip key
     /// </summary>
     public static class TrainRailPlacementFailureTooltipKey
     {

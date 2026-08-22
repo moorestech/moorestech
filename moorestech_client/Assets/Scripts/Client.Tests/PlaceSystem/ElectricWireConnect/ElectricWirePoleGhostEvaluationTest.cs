@@ -15,8 +15,10 @@ using UnityEngine;
 namespace Client.Tests.PlaceSystem.ElectricWireConnect
 {
     /// <summary>
-    ///     電柱ゴーストの不可理由が地形→重複→素材の順で個別行になり、不可セルでは素材行を出さないことを検証
-    ///     Verify the pole ghost pushes terrain/overlap/material as separate lines in order, with no material line on an already blocked cell
+    ///     地形→重複→素材の順で行になる
+    ///     不可セルは素材行なし
+    ///     Verify lines follow terrain→overlap→material order
+    ///     A blocked cell has no material line
     /// </summary>
     public class ElectricWirePoleGhostEvaluationTest
     {
@@ -32,7 +34,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             BuildEvaluation(false, true, BuildShortages()).PushBlockReasons(feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, feedback.Lines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, feedback.Lines[0].Key.Key);
         }
 
         [Test]
@@ -44,7 +46,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             BuildEvaluation(true, false, BuildShortages()).PushBlockReasons(feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].Key.Key);
         }
 
         [Test]
@@ -56,8 +58,8 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             BuildEvaluation(false, false, BuildShortages()).PushBlockReasons(feedback);
 
             Assert.AreEqual(2, feedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, feedback.Lines[0].TextKey);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[1].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, feedback.Lines[0].Key.Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[1].Key.Key);
         }
 
         [Test]
@@ -69,7 +71,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             BuildEvaluation(true, true, BuildShortages()).PushBlockReasons(feedback);
 
             Assert.AreEqual(2, feedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
             Assert.AreEqual("1", feedback.Lines[0].TextParams[1]);
             Assert.AreEqual("2", feedback.Lines[0].TextParams[2]);
             Assert.AreEqual("0", feedback.Lines[1].TextParams[1]);

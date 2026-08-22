@@ -115,8 +115,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         public readonly bool IsPlaceable;
         public readonly bool IsValid;
 
-        // 不可時の理由（GearChainPlacementEvaluatorの定数）。可なら空
-        // Failure reason (GearChainPlacementEvaluator constant) when not placeable; empty when placeable
+        // 不可理由(Evaluator定数)。可なら空
+        // Failure reason (Evaluator constant); empty when placeable
         public readonly string FailureReason;
 
         public GearChainPoleExtendPreviewData(Vector3 startPoint, Vector3 endPoint, GearChainPlacementJudgement judgement) : this(startPoint, endPoint, judgement.IsPlaceable, true, judgement.FailureReason)

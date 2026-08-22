@@ -50,7 +50,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         /// 電気系なら各セルの自動接続を評価してPlaceableを上書きし、表示を更新する。戻り値は設置クリック可否
         /// For electric blocks, evaluates auto-connect per cell, overrides Placeable and updates visuals. Returns click placeability
         /// </summary>
-        public bool ApplyAutoConnect(List<PlaceInfo> placeInfos, BlockId blockId, BlockDirection direction, ILocalPlayerInventory inventory, Vector3Int cursorCell, PlacementFeedback feedback)
+        // cursorIndexは呼び出し側がPlacementCursorCellResolverで解決済み（このメソッド内では再解決しない）
+        // cursorIndex is already resolved by the caller via PlacementCursorCellResolver (not re-resolved here)
+        public bool ApplyAutoConnect(List<PlaceInfo> placeInfos, BlockId blockId, BlockDirection direction, ILocalPlayerInventory inventory, int cursorIndex, PlacementFeedback feedback)
         {
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
 
@@ -75,7 +77,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             var virtualInventory = new ElectricWireAutoConnectVirtualInventory(inventory, blockMaster.RequiredItems);
             var totalCost = 0;
             var anyPlaceable = false;
-            var cursorIndex = -1;
             var cursorWirePlaceable = true;
             var cursorRawTargetCount = 0;
             for (var i = 0; i < placeInfos.Count; i++)
@@ -91,11 +92,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                     totalCost += cellCost;
                     anyPlaceable = true;
                 }
-                // カーソルセルが確定するまでは毎セル上書きし、一致セルが無い末尾フォールバック時も通知が末尾セルの値になるようにする
-                // Overwrite every cell until the cursor cell is fixed, so the last-cell fallback also carries that cell's values
-                if (cursorIndex < 0 || placeInfo.Position == cursorCell)
+                // カーソルセル添字のときだけ記録
+                // Records the notice only for the cursor cell index
+                if (i == cursorIndex)
                 {
-                    if (placeInfo.Position == cursorCell) cursorIndex = i;
                     cursorWirePlaceable = wirePlaceable;
                     // 地形干渉や建設コスト不足によるPlaceable=falseと無関係な、生の接続候補数
                     // Raw candidate count, independent of Placeable=false caused by ground/build-cost issues
@@ -105,7 +105,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
             // ワイヤー線はカーソルセル分のみ描画し（全セル分は過剰）、コスト行は全セル合計を表示する
             // Draw wires only for the cursor cell (all cells would be excessive); the cost line shows the drag-wide total
-            if (cursorIndex < 0) cursorIndex = placeInfos.Count - 1;
             var cursorInfo = placeInfos[cursorIndex];
             var originEndpoint = ResolveOriginEndpoint(cursorIndex, cursorInfo);
             var cursorTargets = cursorInfo.Placeable ? ResolveTargetEndpoints(cursorInfo.Position) : EmptyTargets;
@@ -117,8 +116,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
             #region Internal
 
-            // カーソルセルの状態に応じてワイヤー線を描き、理由・案内をツールチップ行として積む
-            // Draws the wires for the cursor cell and pushes the reason / notice as tooltip lines
+            // カーソルセル状態に応じ線描画とツールチップ行を積む
+            // Draws wires per cursor-cell state and pushes tooltip lines
             void ShowCursorNotice()
             {
                 // 電線不足は自動接続プレビューが唯一拒否する理由。不可色の線で「足りていればどこへ張られたか」を見せる

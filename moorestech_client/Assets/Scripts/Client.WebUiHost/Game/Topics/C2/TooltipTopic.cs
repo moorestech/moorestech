@@ -36,7 +36,7 @@ namespace Client.WebUiHost.Game.Topics
             return new TooltipDto
             {
                 Visible = presentation.Visible,
-                Lines = presentation.Lines.Select(line => new TooltipLineDto { TextKey = line.TextKey, TextParams = line.TextParams }).ToArray(),
+                Lines = presentation.Lines.Select(line => new TooltipLineDto { TextKey = line.Key.Key, TextParams = line.TextParams }).ToArray(),
             };
         }
     }

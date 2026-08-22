@@ -21,8 +21,10 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         [Test]
         public void クライアント判定が返さない理由は既定キーにフォールバックする()
         {
-            // クライアント側が返すのは ExtendPreviewCalculator の OutOfRange/InvalidTarget と Evaluator の AlreadyConnected/ConnectionLimit/NoWireItem のみ
-            // The client yields only OutOfRange/InvalidTarget from the calculator and AlreadyConnected/ConnectionLimit/NoWireItem from the evaluator
+            // Extend由来: OutOfRange/InvalidTarget
+            // Evaluator由来: AlreadyConnected/ConnectionLimit/NoWireItem
+            // From Extend: OutOfRange/InvalidTarget
+            // From Evaluator: AlreadyConnected/ConnectionLimit/NoWireItem
             // PositionOccupied はサーバー応答用の写像で、電線ツールの重複理由は電柱ゴーストのIsPositionFree行が担う
             // PositionOccupied is mapped for server responses; the wire tool's overlap reason comes from the pole ghost's IsPositionFree line
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireFailed.Key, ElectricWirePlacementFailureTooltipKey.ToKey(ElectricWirePlacementFailureReason.InvalidMode).Key);

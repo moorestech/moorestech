@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Paper, Portal } from "@mantine/core";
-import { Topics, useTopic, type TooltipData } from "@/bridge";
+import { Topics, useTopic, type TooltipData, type TooltipLine } from "@/bridge";
 import { buildPositionalInterpolationValues, translateExternalKey, useI18n, type InterpolationValues, type TranslationKey } from "@/shared/i18n";
 import { clampTooltipPosition } from "./tooltipPosition";
 import styles from "./style.module.css";
@@ -45,7 +45,7 @@ export function resolveTooltipLines(
   data: TooltipData,
   translate: (key: TranslationKey, values: InterpolationValues) => string,
 ): string[] {
-  return data.lines.map((line) => translateExternalKey(
+  return data.lines.map((line: TooltipLine) => translateExternalKey(
     line.textKey,
     translate,
     buildPositionalInterpolationValues(line.textParams),

@@ -97,8 +97,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             // Whether the wheel is consumed can change per frame (e.g. mid-drag), so pull the post-update truth here
             SetWheelOwnedByTool(_currentPlaceSystem.OwnsWheelInput);
 
-            // 更新後に集まった理由・案内をカーソルツールチップへ反映する
-            // Push the reasons and notices collected during the update into the cursor tooltip
+            // 更新後の理由・案内をツールチップへ反映
+            // Pushes the collected reasons/notices to the tooltip
             _feedbackPresenter.Present(_feedback);
         }
     }

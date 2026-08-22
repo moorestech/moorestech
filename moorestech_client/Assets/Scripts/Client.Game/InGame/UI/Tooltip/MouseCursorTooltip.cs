@@ -56,9 +56,9 @@ namespace Client.Game.InGame.UI.Tooltip
         public void Show(IReadOnlyList<TooltipLine> lines)
         {
             canvasGroup.alpha = WebUiScreenGate.IsWebUiMode ? 0 : 1;
-            // uGUI側は行を改行で連結して描く（Web側は行ごとに辞書解決する）
-            // The uGUI side joins lines with newlines; the web side resolves each line separately
-            itemName.text = string.Join("\n", lines.Select(line => InterpolateTextParams(Localize.GetLegacy(line.TextKey), line.TextParams)));
+            // uGUI側は行を改行連結して描画
+            // The uGUI side joins lines with newlines
+            itemName.text = string.Join("\n", lines.Select(line => InterpolateTextParams(Localize.Get(line.Key), line.TextParams)));
             _presentation.Value = new TooltipPresentation(true, lines);
         }
 

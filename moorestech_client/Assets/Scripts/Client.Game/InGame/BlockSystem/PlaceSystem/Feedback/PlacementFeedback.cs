@@ -8,8 +8,10 @@ using Mooresmaster.Localization.Generated;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
 {
     /// <summary>
-    ///     1フレーム分の設置不可理由・設置案内の行。各PlaceSystemが判定直後にプッシュし、Presenterが表示する
-    ///     One frame's placement-block reasons and notices; each PlaceSystem pushes right after judging, the presenter shows them
+    ///     1フレーム分の不可理由/案内行を保持
+    ///     PlaceSystemがプッシュ、Presenterが表示
+    ///     Holds one frame's block-reason/notice lines
+    ///     Each PlaceSystem pushes them, the presenter shows them
     ///     行の順序はプッシュ順（地形干渉・重複 → 距離 → 素材 → 電線 → 案内）
     ///     Line order is push order (terrain/overlap → distance → materials → wire → notices)
     /// </summary>
@@ -35,8 +37,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
             _lines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceWireCost, new[] { totalWireCost.ToString() }));
         }
 
-        // 不足素材ごとに「素材名 所持/必要」を1行ずつ積む。名前は表示言語で解決する
-        // One "name held/required" line per short material, with the name resolved in the display language
+        // 不足素材ごとに「名前 所持/必要」を1行積む(表示言語で解決)
+        // One "name held/required" line per short material (name resolved in display language)
         public void AddMaterialShortages(IReadOnlyList<ConstructionMaterialShortage> shortages)
         {
             foreach (var shortage in shortages)

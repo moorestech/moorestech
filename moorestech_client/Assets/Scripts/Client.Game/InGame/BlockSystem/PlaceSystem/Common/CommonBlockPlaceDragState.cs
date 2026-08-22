@@ -5,8 +5,10 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     /// <summary>
-    /// 通常設置の連続設置（ドラッグ）状態と設置高さオフセットを保持する。ドラッグ終了で高さは開始時の値へ戻る
-    /// Holds normal placement's continuous-placement (drag) state and the height offset; ending a drag restores the height it started at
+    /// ドラッグ状態と高さオフセットを保持
+    /// 終了時に高さは開始値へ戻す
+    /// Holds the drag state and height offset
+    /// Ending a drag restores the starting height
     /// </summary>
     public class CommonBlockPlaceDragState
     {
@@ -33,8 +35,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             else if (HybridInput.GetKeyDown(KeyCode.E)) HeightOffset++;
         }
 
-        // ビルドメニューの選択ブロックが変わったら連続設置状態をリセットし、高さの戻り先を現在値にする
-        // Reset the continuous placement state when the build-menu selected block changes, and re-anchor the height offset to the current one
+        // 選択ブロック変更時に連続設置状態と高さ基準をリセット
+        // Resets drag state and the height anchor when the selected block changes
         public void SyncSelectedBlock(BlockId blockId)
         {
             if (_previousSelectedBlockId != blockId)
@@ -56,8 +58,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             return _clickStartPosition ?? placePoint;
         }
 
-        // マウスを離したので連続設置状態は解除し、高さをドラッグ開始時へ戻す
-        // Clear the continuous-placement state on mouse release and restore the height offset from the drag start
+        // マウスアップで連続設置解除、高さを開始時へ戻す
+        // Clears the drag state on mouse-up and restores the starting height
         public void EndDrag()
         {
             HeightOffset = _clickStartHeightOffset;

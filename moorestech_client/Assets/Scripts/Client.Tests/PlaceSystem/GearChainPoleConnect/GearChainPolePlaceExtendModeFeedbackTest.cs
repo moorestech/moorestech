@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Client.Tests.PlaceSystem.GearChainPoleConnect
 {
     /// <summary>
-    /// ポールアイテム手持ちモードDecideが返すツールチップ行のテスト
-    /// Tests for the tooltip lines returned by the pole-item mode Decide
+    /// 手持ちモードDecideのツールチップ行テスト
+    /// Tests tooltip lines from the held-mode Decide
     /// </summary>
     public class GearChainPolePlaceExtendModeFeedbackTest
     {
@@ -25,7 +25,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
 
             Assert.IsFalse(result.Preview.GhostPlaceable);
             Assert.AreEqual(1, result.FeedbackLines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, result.FeedbackLines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, result.FeedbackLines[0].Key.Key);
         }
 
         [Test]
@@ -40,7 +40,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             var result = GearChainPolePlaceExtendMode.Decide(input);
 
             Assert.AreEqual(1, result.FeedbackLines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainTooFar.Key, result.FeedbackLines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainTooFar.Key, result.FeedbackLines[0].Key.Key);
         }
 
         [Test]
@@ -56,8 +56,8 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             var result = GearChainPolePlaceExtendMode.Decide(input);
 
             Assert.AreEqual(2, result.FeedbackLines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, result.FeedbackLines[0].TextKey);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainNoItem.Key, result.FeedbackLines[1].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, result.FeedbackLines[0].Key.Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainNoItem.Key, result.FeedbackLines[1].Key.Key);
         }
 
         [Test]
@@ -102,7 +102,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
 
             Assert.IsFalse(result.Preview.GhostVisible);
             Assert.AreEqual(1, result.FeedbackLines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceTooFar.Key, result.FeedbackLines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceTooFar.Key, result.FeedbackLines[0].Key.Key);
         }
 
         [Test]

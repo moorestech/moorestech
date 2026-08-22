@@ -23,8 +23,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public readonly IPlacementTarget Target;
         public readonly bool IsSelectionChanged;
 
-        // このフレームの設置不可理由・設置案内の書き込み先
-        // Sink for this frame's placement-block reasons and notices
+        // このフレームの不可理由/案内の書き込み先
+        // Sink for this frame's block reasons/notices
         public readonly PlacementFeedback Feedback;
 
         public PlaceSystemUpdateContext(IPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)

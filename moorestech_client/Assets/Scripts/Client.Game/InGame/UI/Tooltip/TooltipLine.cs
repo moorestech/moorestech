@@ -11,12 +11,12 @@ namespace Client.Game.InGame.UI.Tooltip
     /// </summary>
     public readonly struct TooltipLine : IEquatable<TooltipLine>
     {
-        public readonly string TextKey;
+        public readonly LocalizationKey Key;
         public readonly IReadOnlyList<string> TextParams;
 
         public TooltipLine(LocalizationKey key, IReadOnlyList<string> textParams)
         {
-            TextKey = key.Key;
+            Key = key;
             TextParams = textParams;
         }
 
@@ -26,7 +26,7 @@ namespace Client.Game.InGame.UI.Tooltip
 
         public bool Equals(TooltipLine other)
         {
-            return TextKey == other.TextKey && TextParams.SequenceEqual(other.TextParams);
+            return Key.Key == other.Key.Key && TextParams.SequenceEqual(other.TextParams);
         }
 
         public override bool Equals(object obj)
@@ -36,7 +36,7 @@ namespace Client.Game.InGame.UI.Tooltip
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(TextKey, TextParams.Count);
+            var hash = HashCode.Combine(Key.Key, TextParams.Count);
             foreach (var textParam in TextParams) hash = HashCode.Combine(hash, textParam);
             return hash;
         }

@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control.ViewMode;
+using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
 using Core.Master;
 using Game.Block.Interface;
@@ -17,6 +18,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 {
     public class PlaceSystemUtil
     {
+        // 全PlaceSystem共通の設置距離
+        // Placement distance shared by all PlaceSystems
+        public const float PlaceableMaxDistance = 100f;
+
+        // プレイヤー位置基準で設置距離を判定する（起点をカメラ位置にすると視点の引き方で判定が食い違う）
+        // Judge placeable distance from the player position (a camera-based origin would disagree as the view is pulled back)
+        public static bool IsPlaceableFromPlayer(Vector3Int placePoint, float maxDistance)
+        {
+            var placePosition = (Vector3)placePoint;
+            var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
+
+            return Vector3.Distance(playerPosition, placePosition) <= maxDistance;
+        }
+
         public static bool TryGetRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
         {
             pos = Vector3Int.zero;

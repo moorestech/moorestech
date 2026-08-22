@@ -7,7 +7,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
-using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
@@ -27,7 +26,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     /// </summary>
     public class CommonBlockPlaceSystem : PlaceSystemBase<BlockPlacementTarget>
     {
-        private const float PlaceableMaxDistance = 100f;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
@@ -109,9 +107,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
             if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) { _autoConnectPreview.Hide(); return; }
 
-            // 設置可能な距離でなければ理由だけ出してプレビューは出さない
-            // Beyond the placeable distance, show only the reason and no preview
-            if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) { _autoConnectPreview.Hide(); feedback.AddTooFar(); return; }
+            // 距離外なら理由のみ出しプレビュー無し
+            // Beyond range, show only the reason and no preview
+            if (!IsPlaceableFromPlayer(placePoint, PlaceableMaxDistance)) { _autoConnectPreview.Hide(); feedback.AddTooFar(); return; }
 
             _previewBlockController.SetActive(true);
 
@@ -122,31 +120,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             //display preview and get collision with ground
             SetCurrentPlaceInfo();
 
-            // この時点のPlaceable=falseは既存ブロックとの重なり（CommonBlockPlacePointCalculator）
-            // Placeable=false at this point means overlap with an existing block (CommonBlockPlacePointCalculator)
-            var cursorIndex = PlacementCursorCellResolver.Resolve(_currentPlaceInfos, placePoint);
-            var cursorOverlapsExistingBlock = cursorIndex >= 0 && !_currentPlaceInfos[cursorIndex].Placeable;
-
             var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
 
-            // 地面との接触でPlaceableを更新
-            // Update placeable based on ground collision
-            for (var i = 0; i < blockGroundOverlapList.Count; i++)
-            {
-                if (blockGroundOverlapList[i]) _currentPlaceInfos[i].Placeable = false;
-            }
-
-            // カーソルセルのローカル理由（地形干渉・既存ブロック重複）を積む
-            // Push the cursor cell's local reasons (terrain overlap, existing-block overlap)
-            PlacementCellReasonReporter.Report(cursorIndex, cursorOverlapsExistingBlock, blockGroundOverlapList, feedback);
+            // この時点のPlaceable=falseは既存ブロックとの重なり（CommonBlockPlacePointCalculator）。地面との接触反映とカーソルセルの理由集約を1回で行う
+            // Placeable=false at this point means overlap with an existing block (CommonBlockPlacePointCalculator); apply ground overlaps and report the cursor cell's reasons in one call
+            var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placePoint, blockGroundOverlapList, feedback);
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったブロックがアイテム枠を消費しないようにする）
             // Check item count after ground filtering (so ground-blocked cells don't consume item quota)
             CommonBlockPlaceCostMarker.MarkInsufficientCellsAsNotPlaceable(_currentPlaceInfos, target.BlockId, _localPlayerInventory, feedback);
 
-            // 各セルの自動接続を評価し表示更新
-            // Evaluate auto-connect per cell and update the preview
-            var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, target.BlockId, _currentBlockDirection, _localPlayerInventory, placePoint, feedback);
+            // 各セルの自動接続を評価し表示更新。cursorIndexは上で解決済みのため再解決しない
+            // Evaluate auto-connect per cell and update the preview; cursorIndex is already resolved above so it is not re-resolved
+            var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, target.BlockId, _currentBlockDirection, _localPlayerInventory, cursorIndex, feedback);
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state
@@ -157,15 +143,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             PlaceBlock();
 
             #region Internal
-            
-            bool IsBlockPlaceableDistance(float maxDistance)
-            {
-                var placePosition = (Vector3)placePoint;
-                var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                
-                return Vector3.Distance(playerPosition, placePosition) <= maxDistance;
-            }
-            
+
             void SetCurrentPlaceInfo()
             {
                 _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_dragState.ResolveDragStartPoint(placePoint), placePoint, _currentBlockDirection, holdingBlockMaster);

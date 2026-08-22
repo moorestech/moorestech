@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
@@ -25,20 +26,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
     /// </summary>
     public class BeltConveyorPlaceSystem : PlaceSystemBase<BlockPlacementTarget>
     {
-        private const float PlaceableMaxDistance = 100f;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
         private readonly BeltConveyorPlacePointCalculator _blockPlacePointCalculator;
 
+        private readonly CommonBlockPlaceDragState _dragState = new();
+
         private BlockDirection _currentBlockDirection = BlockDirection.North;
-        private Vector3Int? _clickStartPosition;
-        private int _clickStartHeightOffset;
         private bool? _isStartZDirection;
         private List<PlaceInfo> _currentPlaceInfos = new();
-        private BlockId? _previousSelectedBlockId;
-
-        private int _heightOffset;
 
         public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory)
         {
@@ -48,7 +45,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _blockPlacePointCalculator = new BeltConveyorPlacePointCalculator(blockGameObjectDataStore);
         }
 
-        public override void Enable() => _clickStartHeightOffset = -1;
+        public override void Enable()
+        {
+            _dragState.SetClickStartHeightOffset(-1);
+        }
 
         public override void Disable()
         {
@@ -57,14 +57,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             if (!DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) _previewBlockController.SetActive(false);
 
             // 連続設置状態をリセット
-            _clickStartPosition = null;
+            _dragState.ClearDrag();
             _isStartZDirection = null;
             _currentPlaceInfos.Clear();
         }
 
         protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
-            _heightOffset = BeltConveyorInputControl.AdjustHeightOffset(_heightOffset);
+            _dragState.UpdateHeightOffsetByInput();
             _currentBlockDirection = BeltConveyorInputControl.RotateDirection(_currentBlockDirection);
             GroundClickControl(target, feedback);
         }
@@ -73,12 +73,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         {
             // ビルドメニューの選択ブロックが変わったら連続設置状態をリセット
             // Reset the continuous placement state when the build-menu selected block changes
-            if (_previousSelectedBlockId != target.BlockId)
-            {
-                _clickStartPosition = null;
-                _clickStartHeightOffset = _heightOffset;
-            }
-            _previousSelectedBlockId = target.BlockId;
+            _dragState.SyncSelectedBlock(target.BlockId);
 
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
@@ -89,46 +84,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId);
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
-            if (!TryGetRayHitBlockPosition(_mainCamera, _heightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out _)) return;
+            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out _)) return;
 
             // 設置可能な距離かどうか
-            if (!BeltConveyorPlaceSender.IsPlaceableDistance(placePoint, PlaceableMaxDistance)) { feedback.AddTooFar(); return; }
+            if (!IsPlaceableFromPlayer(placePoint, PlaceableMaxDistance)) { feedback.AddTooFar(); return; }
 
             _previewBlockController.SetActive(true);
 
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
-            {
-                _clickStartPosition = placePoint;
-                _clickStartHeightOffset = _heightOffset;
-            }
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint);
 
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
             SetCurrentPlaceInfo();
 
-            // この時点のPlaceable=falseは既存ブロック重複または立体交差不能（BeltConveyorPlacePointCalculator）
-            // Placeable=false at this point means existing-block overlap or an impossible overpass (BeltConveyorPlacePointCalculator)
-            var cursorIndex = PlacementCursorCellResolver.Resolve(_currentPlaceInfos, placePoint);
-            var cursorOverlapsExistingBlock = cursorIndex >= 0 && !_currentPlaceInfos[cursorIndex].Placeable;
-
             var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
 
-            // 地面との接触でPlaceableを更新
-            // Update placeable based on ground collision
-            for (var i = 0; i < blockGroundOverlapList.Count; i++)
-            {
-                // 地面と接触していたら設置不可
-                // if collision with ground, cannot place
-                if (blockGroundOverlapList[i])
-                {
-                    _currentPlaceInfos[i].Placeable = false;
-                }
-            }
-
-            // カーソルセルのローカル理由（地形干渉・既存ブロック重複）を積む
-            // Push the cursor cell's local reasons (terrain overlap, existing-block overlap)
-            PlacementCellReasonReporter.Report(cursorIndex, cursorOverlapsExistingBlock, blockGroundOverlapList, feedback);
+            // Placeable=false=既存重複/立体交差不能（BeltConveyorPlacePointCalculator）
+            // Placeable=false means an existing overlap or an impossible overpass (BeltConveyorPlacePointCalculator)
+            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placePoint, blockGroundOverlapList, feedback);
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
             // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
@@ -140,35 +114,42 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             // 設置するブロックをサーバーに送信
             // send block place info to server
-            BeltConveyorPlaceSender.HandleClickRelease(_currentPlaceInfos, ref _clickStartPosition, ref _heightOffset, _clickStartHeightOffset);
+            PlaceBlock();
 
             #region Internal
 
             void SetCurrentPlaceInfo()
             {
-                List<PlaceInfo> cellInfos;
-                if (_clickStartPosition.HasValue)
-                {
-                    if (_clickStartPosition.Value == placePoint)
-                    {
-                        _isStartZDirection = null;
-                    }
-                    else if (!_isStartZDirection.HasValue)
-                    {
-                        _isStartZDirection = Mathf.Abs(placePoint.z - _clickStartPosition.Value.z) > Mathf.Abs(placePoint.x - _clickStartPosition.Value.x);
-                    }
-
-                    cellInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster);
-                }
-                else
+                var dragStartPoint = _dragState.ResolveDragStartPoint(placePoint);
+                if (dragStartPoint == placePoint)
                 {
                     _isStartZDirection = null;
-                    cellInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockMaster);
                 }
+                else if (!_isStartZDirection.HasValue)
+                {
+                    _isStartZDirection = Mathf.Abs(placePoint.z - dragStartPoint.z) > Mathf.Abs(placePoint.x - dragStartPoint.x);
+                }
+
+                var cellInfos = _blockPlacePointCalculator.CalculatePoint(dragStartPoint, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster);
 
                 // セル列へ直線・坂ブロックを1対1で割り当てる
                 // Assign straight and slope blocks to cells one-to-one
                 _currentPlaceInfos = BeltConveyorCellBlockResolver.Resolve(cellInfos, family);
+            }
+
+            void PlaceBlock()
+            {
+                if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
+
+                // デバッグモード時は送信しない
+                // Skip sending in debug mode
+                if (DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) return;
+
+                // マウスを離したので連続設置状態は解除する（設置有無に関わらず）
+                // Clear the continuous-placement state on mouse release (regardless of whether we place)
+                _dragState.EndDrag();
+
+                BeltConveyorPlaceSender.TrySendOnClickRelease(_currentPlaceInfos);
             }
 
             #endregion

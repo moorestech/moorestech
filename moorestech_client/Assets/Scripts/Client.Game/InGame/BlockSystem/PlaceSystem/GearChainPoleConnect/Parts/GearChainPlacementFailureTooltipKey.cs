@@ -4,8 +4,8 @@ using Server.Protocol.PacketResponse.Util.GearChain;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 {
     /// <summary>
-    /// 歯車チェーン接続判定の失敗理由（文字列定数）をカーソルツールチップの辞書キーへ写像する
-    /// Maps a gear chain placement failure reason (string constant) to a cursor-tooltip dictionary key
+    /// 歯車チェーン失敗理由をツールチップキーへ写像
+    /// Maps a gear chain failure reason to a tooltip key
     /// </summary>
     public static class GearChainPlacementFailureTooltipKey
     {

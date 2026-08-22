@@ -23,10 +23,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
     /// </summary>
     public class GearChainPoleFrameInputCollector
     {
-        // 通常ブロック設置と同等の設置可能距離
-        // Placeable distance equivalent to common block placement
-        private const float PlaceableMaxDistance = 100f;
-
         private readonly Camera _mainCamera;
         private readonly ILocalPlayerInventory _playerInventory;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
@@ -72,7 +68,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             // ゴースト位置を算出し距離内か確認
             // Calculate ghost position and ensure it is within placeable distance
             if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, 0, BlockDirection.North, poleBlockMaster, out var placePos, out _)) return input;
-            if (PlaceableMaxDistance < Vector3.Distance(_mainCamera.transform.position, placePos))
+            if (!PlaceSystemUtil.IsPlaceableFromPlayer(placePos, PlaceSystemUtil.PlaceableMaxDistance))
             {
                 input.GhostTooFar = true;
                 return input;

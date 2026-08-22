@@ -10,8 +10,8 @@ using UnityEngine;
 namespace Client.Tests.PlaceSystem.TrainRailConnect
 {
     /// <summary>
-    /// レール接続失敗理由→ツールチップキー写像とReportの行順序のテスト
-    /// Tests for the rail connection failure reason to tooltip key mapping and Report's line order
+    /// 失敗理由→キー写像と行順序のテスト
+    /// Tests the failure-reason-to-key mapping and line order
     /// </summary>
     public class TrainRailPlacementFailureTooltipKeyTest
     {
@@ -34,7 +34,7 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
             TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailLengthExceeded.Key, feedback.Lines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailLengthExceeded.Key, feedback.Lines[0].Key.Key);
         }
 
         [Test]
@@ -48,8 +48,8 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
             TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
 
             Assert.AreEqual(2, feedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailNotEnoughRailItem.Key, feedback.Lines[0].TextKey);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailCurveTooTight.Key, feedback.Lines[1].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailNotEnoughRailItem.Key, feedback.Lines[0].Key.Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailCurveTooTight.Key, feedback.Lines[1].Key.Key);
         }
 
         [Test]
@@ -63,7 +63,7 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
             TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailCurveTooTight.Key, feedback.Lines[0].TextKey);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailCurveTooTight.Key, feedback.Lines[0].Key.Key);
         }
 
         [Test]
@@ -79,8 +79,8 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
             Assert.AreEqual(0, feedback.Lines.Count);
         }
 
-        // テスト用にジャッジメントとカーブ可否からPreviewDataを組み立てる
-        // Build a PreviewData from a judgement and curve viability for testing
+        // テスト用にPreviewDataを組み立てる
+        // Builds a PreviewData for testing
         private static TrainRailConnectPreviewData CreatePreviewData(RailConnectionEditProtocol.RailConnectionEditFailureReason failureReason, bool isCurvePlaceable)
         {
             var judgement = new RailPlacementJudgement(failureReason, Guid.NewGuid(), Array.Empty<ConnectToolMaterialCost>());

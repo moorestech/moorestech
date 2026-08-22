@@ -13,10 +13,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
     /// </summary>
     public class ElectricWirePoleGhostPart
     {
-        // 通常ブロック設置と同等の設置可能距離（前例: GearChainPoleFrameInputCollector）
-        // Placeable distance equivalent to common block placement (precedent: GearChainPoleFrameInputCollector)
-        private const float PlaceableMaxDistance = 100f;
-
         private readonly Camera _mainCamera;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly ILocalPlayerInventory _inventory;
@@ -31,8 +27,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         }
 
         /// <summary>
-        /// カーソル位置に選択中の電柱ゴーストを計算・表示する。ゴーストを出せないときは理由だけ積みfalseを返す
-        /// Compute and show the selected pole's ghost at the cursor; on failure push only the reason and return false
+        /// 電柱ゴーストを計算表示。出せない場合は理由のみ積みfalse
+        /// Computes and shows the pole ghost; on failure pushes only the reason and returns false
         /// </summary>
         public bool TryEvaluateGhost(ElectricWirePoleSelection selection, PlacementFeedback feedback, out ElectricWirePoleGhostEvaluation evaluation)
         {
@@ -40,14 +36,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
             if (!selection.TryGetSelectedPole(out var poleBlockId, out var poleMaster)) return false;
 
-            // 電柱1本分の建設コスト不足を所持素材から求める（空なら賄える）
-            // Compute the construction shortages for one pole from owned materials (empty means affordable)
+            // 電柱1本分のコスト不足を所持素材から算出
+            // Computes one pole's cost shortage from owned materials
             var materialShortages = ConstructionCostShortageCalculator.Calculate(poleMaster.RequiredItems, 1, _inventory);
 
-            // 電柱の設置座標を地面レイキャストから求める。距離超過は理由だけ出してゴーストは出さない
-            // Compute the pole position from a ground raycast; beyond the placeable distance show only the reason and no ghost
+            // 地面レイキャストで座標算出。距離超過は理由のみ出す
+            // Computes the position via ground raycast; beyond range shows only the reason
             if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, 0, selection.CurrentDirection, poleMaster, out var placePoint, out _)) return false;
-            if (PlaceableMaxDistance < Vector3.Distance(_mainCamera.transform.position, placePoint))
+            if (!PlaceSystemUtil.IsPlaceableFromPlayer(placePoint, PlaceSystemUtil.PlaceableMaxDistance))
             {
                 feedback.AddTooFar();
                 return false;

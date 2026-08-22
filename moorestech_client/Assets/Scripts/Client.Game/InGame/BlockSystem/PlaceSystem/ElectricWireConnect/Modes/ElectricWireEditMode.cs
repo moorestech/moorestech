@@ -57,7 +57,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 return null;
             }
 
-            var placeable = evaluation.IsGroundClear && evaluation.IsPositionFree && evaluation.CanAffordPole;
+            var placeable = evaluation.IsGhostPlaceable;
             evaluation.PushBlockReasons(feedback);
             evaluation.PlaceInfo.Placeable = placeable;
             _context.PreviewBlockController.UpdatePlaceableColors(evaluation.PlaceInfos);

@@ -27,8 +27,8 @@ namespace Client.Tests.PlaceSystem.Util
                 ServerContext.ItemStackFactory.Create(material2Id, 10),
             };
 
-            // 5セル: Material1 は 2×5=10 必要で所持3、Material2 は 1×5=5 必要で所持10（足りている）
-            // 5 cells: Material1 needs 2x5=10 with 3 held; Material2 needs 1x5=5 with 10 held (enough)
+            // 5セル: Material1不足(所持3<必要10)、Material2は充足
+            // 5 cells: Material1 short (3<10 needed), Material2 sufficient
             var shortages = ConstructionCostShortageCalculator.Calculate(requiredItems, 5, inventory);
 
             Assert.AreEqual(1, shortages.Count);

@@ -6,8 +6,10 @@ using Mooresmaster.Model.BlocksModule;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 {
     /// <summary>
-    /// 設置予定エンティティ列の建設コストを素材ごとに合算し、所持数が足りない素材だけを返す
-    /// Sums construction costs per material over the entities about to be placed and returns only the short ones
+    /// コストを素材ごとに合算
+    /// 不足素材のみ返す
+    /// Sums construction costs per material
+    /// Returns only the ones falling short
     /// </summary>
     public static class ConstructionCostShortageCalculator
     {
