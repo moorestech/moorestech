@@ -64,6 +64,7 @@ using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
+using Client.Skit.Context;
 using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Skit.UI;
@@ -276,6 +277,9 @@ namespace Client.Starter
             var skitActionContext = new SkitActionContext();
             builder.RegisterInstance<ISkitActionContext>(skitActionContext);
             builder.RegisterInstance<ISkitActionController>(skitActionContext);
+            // スキットJSONの位置はスポーン地点基準の相対座標（ADR 0029）
+            // Skit JSON positions are relative to the spawn point (ADR 0029)
+            builder.RegisterInstance(new SkitOrigin(initialHandshakeResponse.MapLayout.Spawn));
             
             // その他インスタンス
             // register other instance

@@ -20,7 +20,10 @@ namespace CommandForgeGenerator.Command
             
             if (Action == "Add")
             {
-                await environmentManager.AddEnvironmentAsync(SkitEnvironmentAddressablePath, Position, Rotation);
+                // JSONの位置はスポーン基準の相対値なので原点を足してワールド座標へ
+                // JSON positions are spawn-relative, so add the origin to reach world space
+                var origin = storyContext.GetSkitOrigin();
+                await environmentManager.AddEnvironmentAsync(SkitEnvironmentAddressablePath, origin.ToWorld(Position), Rotation);
             }
             else if (Action == "Remove")
             {
@@ -54,8 +57,8 @@ namespace CommandForgeGenerator.Command
                 return;
             
             var instance = Object.Instantiate(loadedAsset.Asset, _environmentParent);
-            instance.transform.localPosition = position;
-            instance.transform.localRotation = Quaternion.Euler(rotation);
+            instance.transform.position = position;
+            instance.transform.rotation = Quaternion.Euler(rotation);
             _loadedEnvironments[addressablePath] = instance;
         }
         

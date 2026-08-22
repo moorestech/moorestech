@@ -76,6 +76,9 @@ namespace Client.Game.InGame.BackgroundSkit
                 builder.RegisterInstance(backgroundSkitUI);
                 builder.RegisterInstance(voiceDefine);
                 builder.RegisterInstance<ISkitLocalizationResolver>(localizationResolver);
+                // 背景スキットは位置コマンドを使わない裁定を原点ゼロの明示登録で残す（ADR 0029）
+                // Record the ruling that background skits use no positional commands by explicitly registering a zero origin (ADR 0029)
+                builder.RegisterInstance(new SkitOrigin(Vector3.zero));
 
                 return new StoryContext(builder.Build());
             }

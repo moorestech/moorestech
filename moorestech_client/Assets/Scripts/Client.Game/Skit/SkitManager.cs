@@ -37,6 +37,7 @@ namespace Client.Game.Skit
         [Inject] private EntityObjectDatastore entityObjectDatastore;
         [Inject] private IReadOnlyList<ITutorialWorldPin> worldPins;
         [Inject] private IReadOnlyList<ISkitWorldObjectControl> worldObjectControls;
+        [Inject] private SkitOrigin skitOrigin;
         
         public bool IsPlayingSkit { get; private set; }
         private bool _isSkip;
@@ -168,6 +169,7 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitWorldObjectControl>(visibilityLedger);
                 builder.RegisterInstance<ISkitEntityObjectControl>(visibilityLedger);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
+                builder.RegisterInstance(skitOrigin);
                 builder.RegisterInstance<ISkitActionContext>(_skitActionController);
                 builder.RegisterInstance(new SkitPresentationMode(webUiMode));
                 builder.RegisterInstance<ISkitLocalizationResolver>(localizationResolver);
