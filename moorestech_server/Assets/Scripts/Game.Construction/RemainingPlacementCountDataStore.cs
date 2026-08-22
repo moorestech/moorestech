@@ -17,10 +17,16 @@ namespace Game.Construction
 
         private readonly Dictionary<int, Dictionary<BlockId, int>> _remainingCounts = new();
 
-        public int GetRemainingCount(int playerId, BlockId walletBlockId)
+        // 変更は溜めてFlushで吐く。1設置あたり2通・ドラッグでセル数分に増幅させないため
+        // Changes accumulate and leave on Flush, so one placement never emits two notifications nor a drag one per cell
+        private readonly HashSet<(int playerId, BlockId walletBlockId)> _dirtyWallets = new();
+
+        // 生のBlockIdを受け取り財布キーへの正規化は内側で行う（クライアント側と同一契約）
+        // Takes a raw BlockId and normalizes it to the wallet key inside, the same contract as the client side
+        public int GetRemainingCount(int playerId, BlockId blockId)
         {
             if (!_remainingCounts.TryGetValue(playerId, out var wallets)) return 0;
-            return wallets.TryGetValue(walletBlockId, out var remaining) ? remaining : 0;
+            return wallets.TryGetValue(ConstructionWalletUtil.ResolveWalletBlockId(blockId), out var remaining) ? remaining : 0;
         }
 
         public IReadOnlyList<(BlockId walletBlockId, int remainingCount)> GetRemainingCounts(int playerId)
@@ -29,12 +35,11 @@ namespace Game.Construction
             return wallets.Where(pair => 0 < pair.Value).Select(pair => (pair.Key, pair.Value)).ToList();
         }
 
-        public bool TryConsumeOne(int playerId, BlockId walletBlockId)
+        public void ConsumeOne(int playerId, BlockId walletBlockId)
         {
             var remaining = GetRemainingCount(playerId, walletBlockId);
-            if (remaining <= 0) return false;
+            if (remaining <= 0) throw new InvalidOperationException($"Wallet is empty. playerId:{playerId} walletBlockId:{walletBlockId.AsPrimitive()}");
             Set(playerId, walletBlockId, remaining - 1);
-            return true;
         }
 
         public void Refill(int playerId, BlockId walletBlockId, int placementsPerCost)
@@ -42,13 +47,20 @@ namespace Game.Construction
             Set(playerId, walletBlockId, GetRemainingCount(playerId, walletBlockId) + placementsPerCost);
         }
 
-        public void ReturnOne(int playerId, BlockId walletBlockId, int placementsPerCost)
+        public void ApplyReturn(int playerId, BlockId walletBlockId, bool condensed)
         {
-            var remaining = GetRemainingCount(playerId, walletBlockId);
             // Nに達した分は素材へ凝縮し財布から消える
-            // Reaching one set's worth condenses into materials, so it leaves the wallet
-            var condensed = ConstructionWalletUtil.WouldCondense(remaining, placementsPerCost);
-            Set(playerId, walletBlockId, condensed ? 0 : remaining + 1);
+            // The portion that reached one set's worth condenses into materials and leaves the wallet
+            Set(playerId, walletBlockId, condensed ? 0 : GetRemainingCount(playerId, walletBlockId) + 1);
+        }
+
+        public void FlushChanges()
+        {
+            foreach (var (playerId, walletBlockId) in _dirtyWallets)
+            {
+                _onRemainingCountChanged.OnNext(new RemainingPlacementCountChange(playerId, walletBlockId, GetRemainingCount(playerId, walletBlockId)));
+            }
+            _dirtyWallets.Clear();
         }
 
         public List<PlayerRemainingPlacementCountSaveJsonObject> GetSaveJsonObject()
@@ -65,24 +77,56 @@ namespace Game.Construction
         public void LoadRemainingCounts(List<PlayerRemainingPlacementCountSaveJsonObject> saveData)
         {
             _remainingCounts.Clear();
+            _dirtyWallets.Clear();
             foreach (var player in saveData)
             {
-                foreach (var entry in player.Entries)
+                foreach (var entry in player.Entries) AddLoadedEntry(player.PlayerId, entry);
+                ClampLoadedWallets(player.PlayerId);
+            }
+
+            #region Internal
+
+            void AddLoadedEntry(int playerId, RemainingPlacementCountEntrySaveJsonObject entry)
+            {
+                // マスタから消えたブロックの財布は捨てる（形状不正で全体を落とさない）
+                // Drop wallets whose block vanished from the master so a stale save never aborts the load
+                if (!Guid.TryParse(entry.BlockGuid, out var blockGuid)) return;
+                var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid);
+                if (blockId == null) return;
+
+                // 財布を使わないブロックと定義域(0 < count < N)の外は破損値として捨てる
+                // Blocks that never use the wallet, and counts outside the domain (0 < count < N), are corrupt values and get dropped
+                var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(blockId.Value);
+                var placementsPerCost = MasterHolder.BlockMaster.GetBlockMaster(walletBlockId).PlacementsPerCost;
+                if (!ConstructionWalletUtil.UsesWallet(placementsPerCost)) return;
+                if (entry.Count <= 0 || placementsPerCost <= entry.Count) return;
+
+                // 正規化で同じ財布へ重なったキーは合算する
+                // Keys that collapse onto the same wallet after normalization are summed
+                var wallets = GetOrCreate(playerId);
+                wallets[walletBlockId] = wallets.TryGetValue(walletBlockId, out var current) ? current + entry.Count : entry.Count;
+            }
+
+            void ClampLoadedWallets(int playerId)
+            {
+                // 合算でNに達した財布は1セット分が素材へ凝縮済みのはずなので定義域内へ丸める
+                // A summed wallet that reached one set's worth should already have condensed into materials, so clamp it back into the domain
+                if (!_remainingCounts.TryGetValue(playerId, out var wallets)) return;
+                foreach (var walletBlockId in wallets.Keys.ToList())
                 {
-                    // マスタから消えたブロックの財布は捨てる（形状不正で全体を落とさない）
-                    // Drop wallets whose block vanished from the master so a stale save never aborts the load
-                    if (!Guid.TryParse(entry.BlockGuid, out var blockGuid)) continue;
-                    var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid);
-                    if (blockId == null || entry.Count <= 0) continue;
-                    GetOrCreate(player.PlayerId)[blockId.Value] = entry.Count;
+                    var placementsPerCost = MasterHolder.BlockMaster.GetBlockMaster(walletBlockId).PlacementsPerCost;
+                    if (placementsPerCost <= wallets[walletBlockId]) wallets[walletBlockId] = placementsPerCost - 1;
                 }
             }
+
+            #endregion
         }
 
-        private void Set(int playerId, BlockId walletBlockId, int remaining)
+        private void Set(int playerId, BlockId blockId, int remaining)
         {
+            var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(blockId);
             GetOrCreate(playerId)[walletBlockId] = remaining;
-            _onRemainingCountChanged.OnNext(new RemainingPlacementCountChange(playerId, walletBlockId, remaining));
+            _dirtyWallets.Add((playerId, walletBlockId));
         }
 
         private Dictionary<BlockId, int> GetOrCreate(int playerId)

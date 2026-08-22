@@ -33,14 +33,9 @@ namespace Client.Game.InGame.Construction
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             var affordableSets = ConstructionMaterialAffordability.CalculateAffordableCellCount(blockMaster.RequiredItems, inventoryItems);
 
-            // 設置数/1セット=1は財布を素通りし、セル数がそのまま置ける数になる
-            // placementsPerCost==1 bypasses the wallet, so the set count is the placement count
-            if (blockMaster.PlacementsPerCost <= 1 || affordableSets == int.MaxValue) return affordableSets;
-
-            // 大量所持でのオーバーフローを避ける
-            // Avoid overflow on very large holdings
-            var total = GetRemainingCount(blockId) + (long)affordableSets * blockMaster.PlacementsPerCost;
-            return int.MaxValue < total ? int.MaxValue : (int)total;
+            // 設置数の算術はサーバーと同じ一箇所に置く（1セット1個は財布を素通りする）
+            // The arithmetic lives in the same single place as the server's (one placement per set bypasses the wallet)
+            return ConstructionWalletUtil.CalculatePlaceableCount(GetRemainingCount(blockId), affordableSets, blockMaster.PlacementsPerCost);
         }
 
         public void ApplyAll(IReadOnlyDictionary<BlockId, int> counts)
