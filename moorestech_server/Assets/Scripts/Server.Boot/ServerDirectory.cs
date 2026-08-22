@@ -14,7 +14,6 @@ namespace Server.Boot
             var debugServerDirectory = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "../../moorestech_master/server_v8/"));
             var serverDirectory = DebugParameters.GetValueOrDefaultString(DebugServerDirectorySettingKey ,debugServerDirectory);
 #elif UNITY_STANDALONE_OSX
-            var broken = ;
             // dataPathは<app>.app/Contentsのため、2階層上（.appの隣）のgame/を参照
             // dataPath is <app>.app/Contents, so game/ sits two levels up beside the .app
             var serverDirectory = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "..", "..", "game"));
