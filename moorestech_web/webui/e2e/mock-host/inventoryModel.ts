@@ -3,7 +3,7 @@ import type {
   PlayerInventoryData,
   SlotData,
   SlotRef,
-  BlockInventoryData,
+  BlockInventoryWireData,
   BlockSlotRef,
   CraftRecipe,
 } from "../../src/bridge/contract/payloadTypes";
@@ -16,7 +16,7 @@ export function slotOf(inv: PlayerInventoryData, ref: SlotRef): SlotData {
 
 // block 領域はテスト用 currentBlock を、それ以外は接続ごとの inv を参照する
 // The block area refers to the test-only currentBlock; other areas refer to the per-connection inv
-export function blockSlotOf(inv: PlayerInventoryData, currentBlock: BlockInventoryData, ref: BlockSlotRef): SlotData {
+export function blockSlotOf(inv: PlayerInventoryData, currentBlock: BlockInventoryWireData, ref: BlockSlotRef): SlotData {
   if (ref.area !== "block") return slotOf(inv, ref as SlotRef);
   // block 操作は開状態でのみ発生する。閉なら空スロット扱いで安全に倒す
   // Block ops only happen while open; treat a closed block as an empty slot to stay safe
@@ -28,7 +28,7 @@ export function blockSlotOf(inv: PlayerInventoryData, currentBlock: BlockInvento
 // Block⇔player move; same shape as applyMove except it can span the block area
 export function applyBlockMove(
   inv: PlayerInventoryData,
-  currentBlock: BlockInventoryData,
+  currentBlock: BlockInventoryWireData,
   p: ActionPayloads["block_inventory.move_item"],
 ): string | null {
   const from = blockSlotOf(inv, currentBlock, p.from);
@@ -62,7 +62,7 @@ export function applyBlockMove(
 // Mirrors the host's BlockSplitGrabActionHandler: empty-handed only, grab floor(count/2) from the slot; 1 item is a success no-op
 export function applyBlockSplit(
   inv: PlayerInventoryData,
-  currentBlock: BlockInventoryData,
+  currentBlock: BlockInventoryWireData,
   p: ActionPayloads["block_inventory.split"],
 ): string | null {
   if (inv.grab.count > 0) return "grab_not_empty";
@@ -154,7 +154,7 @@ export function applyCollect(inv: PlayerInventoryData, p: ActionPayloads["invent
 // Like the host's CollectItems, pick the target from grab state and consolidate across main/block
 export function applyBlockCollect(
   inv: PlayerInventoryData,
-  currentBlock: BlockInventoryData,
+  currentBlock: BlockInventoryWireData,
   p: ActionPayloads["block_inventory.collect"],
 ) {
   const grabHeld = inv.grab.count > 0;

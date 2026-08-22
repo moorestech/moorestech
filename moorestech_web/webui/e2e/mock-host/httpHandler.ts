@@ -1,22 +1,22 @@
-import { createServer, type Server } from "node:http";
+import { createServer, type Server, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Topics } from "../../src/bridge/transport/protocol";
-import { BLOCK_ICON_PREFIX, ITEM_ICON_PREFIX } from "../../src/bridge/transport/httpEndpoints";
-import type { BlockInventoryData } from "../../src/bridge/contract/payloadTypes";
+import { BLOCK_ICON_PREFIX, FLUID_ICON_PREFIX, ITEM_ICON_PREFIX } from "../../src/bridge/transport/httpEndpoints";
+import type { BlockInventoryWireData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
 import { received, state, connections, subscribersOf } from "./state";
 import { applyTopicControl, serveDictionary } from "./topics/topicControls";
 import { applyPresentationControl } from "./topics/presentationControls";
-import { contentType, injectDemoBackground, placeholderIcon, realIconFor } from "./assets/demoAssets";
+import { contentType, fluidIconDirectory, fluidIconFiles, fluidIconSeed, iconDirectory, iconFiles, injectDemoBackground, placeholderIcon, realIconFor } from "./assets/demoAssets";
 import { serveLanguageCatalog } from "./localization/transport";
 export { injectDemoBackground } from "./assets/demoAssets";
 
 // /__block?type=X で差し替える種別マップ。既定は chest（open な panel を確実に出す）
 // Type map switched via /__block?type=X; defaults to chest (reliably shows an open panel)
-const BLOCK_FIXTURES: Record<string, BlockInventoryData> = {
+const BLOCK_FIXTURES: Record<string, BlockInventoryWireData> = {
   chest: fx.blockChest,
   tank: fx.blockTank,
   closed: fx.blockClosed,
@@ -38,6 +38,24 @@ const DIST = fileURLToPath(new URL("../../dist", import.meta.url));
 // DEMO(採点用): 高密度データとプレースホルダアイコンを配信
 // DEMO (scoring): serve dense data and placeholder icons
 const DEMO = process.env.MOCK_DEMO === "1";
+
+// item/block/fluidの3分岐が共有する「実アセット→placeholder→404」の3段だけを括る(D9)
+// Consolidates only the shared real-asset -> placeholder -> 404 fallback chain across the item/block/fluid branches (D9)
+function respondGameIcon(res: ServerResponse, real: Buffer | null, placeholderSeed: number): void {
+  if (!DEMO) {
+    res.statusCode = 404;
+    res.end();
+    return;
+  }
+  if (real) {
+    res.setHeader("content-type", "image/jpeg");
+    res.end(real);
+    return;
+  }
+  res.setHeader("content-type", "image/svg+xml");
+  res.end(placeholderIcon(placeholderSeed));
+}
+
 export function createMockHttpServer(): Server {
   return createServer(async (req, res) => {
     const url = req.url ?? "/";
@@ -49,6 +67,11 @@ export function createMockHttpServer(): Server {
     if (url === "/api/master/items") {
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify(DEMO ? fx.demoItemMaster : state.itemMaster));
+      return;
+    }
+    if (url === "/api/master/fluids") {
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify(fx.fluidMaster));
       return;
     }
     if (url === "/__actions") {
@@ -158,22 +181,27 @@ export function createMockHttpServer(): Server {
     if (url.startsWith(ITEM_ICON_PREFIX) || isBlockIcon) {
       // DEMO時は実ゲームアイコン(無ければプレースホルダ)、通常時は404で#idフォールバック
       // DEMO serves real game icons (placeholder if absent); otherwise 404 for the #id fallback
-      if (DEMO) {
-        const id = Number(url.split("/").pop()?.replace(".png", "")) || 0;
-        // ブロック画像は実アセットが無いため常にプレースホルダ（実ホストはBlockImageContainerのPNG）
-        // Block images have no real asset so always use the placeholder (the real host renders BlockImageContainer PNGs)
-        const real = isBlockIcon ? null : realIconFor(id);
-        if (real) {
-          res.setHeader("content-type", "image/jpeg");
-          res.end(real);
-          return;
-        }
-        res.setHeader("content-type", "image/svg+xml");
-        res.end(placeholderIcon(id));
+      const id = Number(url.split("/").pop()?.replace(".png", "")) || 0;
+      // ブロック画像は実アセットが無いため常にプレースホルダ（実ホストはBlockImageContainerのPNG）
+      // Block images have no real asset so always use the placeholder (the real host renders BlockImageContainer PNGs)
+      const real = DEMO && !isBlockIcon ? realIconFor(id, iconDirectory, iconFiles) : null;
+      respondGameIcon(res, real, id);
+      return;
+    }
+    // 液体アイコンはguidベースで別配信
+    // Fluid icons are served separately, keyed by guid
+    if (url.startsWith(FLUID_ICON_PREFIX)) {
+      // DEMOは実/プレースホルダ、他は404。guid欠落は即404
+      // DEMO: real/placeholder icon; otherwise 404. A missing guid is an immediate 404
+      const guid = url.split("/").pop()?.replace(".png", "") ?? "";
+      if (!guid) {
+        res.statusCode = 404;
+        res.end();
         return;
       }
-      res.statusCode = 404;
-      res.end();
+      const seed = fluidIconSeed(guid);
+      const real = DEMO ? realIconFor(seed, fluidIconDirectory, fluidIconFiles) : null;
+      respondGameIcon(res, real, seed);
       return;
     }
     // 静的配信（SPA なので未知パスは index.html）

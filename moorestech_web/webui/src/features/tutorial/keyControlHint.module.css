@@ -13,8 +13,13 @@
   z-index: var(--z-stage-overlay-panel);
 }
 
-/* 文字様式は共有の keyHintText が持ち、ここはkbdとの間隔だけを決める（§7） */
-/* The shared keyHintText class owns the text style; this rule only sets the gap to the kbd (§7) */
+/* 文字様式は共有の keyHintText が持ち、ここはkbdとの間隔と視認性用の文字色だけを決める（§7・§8.19） */
+/* The shared keyHintText class owns the text style; this rule only sets the kbd gap and the legibility color (§7, §8.19) */
+.hint,
+.hint kbd {
+  color: var(--tutorial-key-hint-color);
+}
+
 .hint {
   display: flex;
   align-items: center;

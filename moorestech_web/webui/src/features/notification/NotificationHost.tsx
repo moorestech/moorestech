@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { useTopicEvents, Topics } from "@/bridge";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
 import ItemIcon from "@/shared/ui/ItemIcon";
 import { NOTIFICATION_DISPLAY_MS, useNotificationStore } from "./notificationStore";
 import type { GameNotification } from "./notificationStore";
@@ -52,7 +52,10 @@ export default function NotificationHost() {
 function NotificationRow({ notification, onRemove }: { notification: GameNotification; onRemove: (id: number) => void }) {
   const { t } = useI18n();
   const rowRef = useRef<HTMLDivElement>(null);
-  const { key, values } = resolveNotificationText(notification, t);
+  // itemMasterは非同期ロードなので未着時はid表示へ落とす
+  // The item master loads asynchronously, so an unresolved name falls back to the id
+  const resolveItemName = useItemNameResolver();
+  const { key, values } = resolveNotificationText(notification, t, (itemId) => resolveItemName(itemId) ?? t(L.ui.common.itemFallback, { itemId }));
   const lifetimeStyle = { "--notification-lifetime": `${NOTIFICATION_DISPLAY_MS}ms` } as CSSProperties;
 
   // 初回描画の入場は宣言側が回すので、epochが進んだときだけ再生し直す
@@ -79,7 +82,7 @@ function NotificationRow({ notification, onRemove }: { notification: GameNotific
       onAnimationEnd={(event) => { if (event.animationName === styles.notificationExit) onRemove(notification.id); }}
     >
       {notification.itemId != null && <ItemIcon itemId={notification.itemId} className={styles.icon} />}
-      {t(key, values)}
+      <span className={styles.text}>{t(key, values)}</span>
     </div>
   );
 }

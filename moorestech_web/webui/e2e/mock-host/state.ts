@@ -1,5 +1,5 @@
 import type { WebSocket } from "ws";
-import type { BlockInventoryData, ModalRequest, UiStateData, ResearchTreeData, GameStateData, SkitPresentationData, TrainRidingData, PlayerInventoryData, WorldPinPresentationData } from "../../src/bridge/contract/payloadTypes";
+import type { BlockInventoryWireData, ModalRequest, UiStateData, ResearchTreeData, GameStateData, SkitPresentationData, TrainRidingData, PlayerInventoryData, WorldPinPresentationData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { clone } from "./wire";
 
@@ -16,7 +16,7 @@ export const subscribersOf = (topic: string) => topicSubscribers.get(topic) ?? n
 export const state = {
   // 既定は閉ブロック。開いた panel が他テスト画面を覆う干渉を避ける
   // Default closed so an opened panel never overlays and interferes with other tests
-  currentBlock: clone(fx.blockClosed) as BlockInventoryData,
+  currentBlock: clone(fx.blockClosed) as BlockInventoryWireData,
   // 既定は非表示モーダル。全面 backdrop の干渉を避ける opt-in
   // Default hidden modal; opt-in to avoid the full-screen backdrop interfering
   currentModal: null as ModalRequest | null,

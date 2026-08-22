@@ -18,6 +18,8 @@ import type {
   FilterSplitterDataSchema,
   FilterSplitterDirectionDataSchema,
   FilterSplitterModeSchema,
+  FluidMasterDataSchema,
+  FluidMasterEntrySchema,
   FluidSlotDataSchema,
   GearDetailDataSchema,
   GearNetworkDataSchema,
@@ -115,6 +117,9 @@ export type FilterSplitterData = z.infer<typeof FilterSplitterDataSchema>;
 export type BlockInventoryOpen = z.infer<typeof BlockInventoryOpenSchema>;
 export type BlockInventoryClosed = z.infer<typeof BlockInventoryClosedSchema>;
 export type BlockInventoryData = z.infer<typeof BlockInventoryDataSchema>;
+// パース前のワイヤ形式（fluidSlotsはkind変換前のfluidId/amount/capacity/fluidGuid）。e2eモックサーバ専用
+// The pre-parse wire shape (fluidSlots before the kind transform); used only by the e2e mock server
+export type BlockInventoryWireData = z.input<typeof BlockInventoryDataSchema>;
 export type RequiredItem = z.infer<typeof RequiredItemSchema>;
 export type CraftRecipe = z.infer<typeof CraftRecipeSchema>;
 export type CraftRecipesData = z.infer<typeof CraftRecipesDataSchema>;
@@ -124,6 +129,8 @@ export type MachineRecipesData = z.infer<typeof MachineRecipesDataSchema>;
 export type RecipeViewerItemListData = z.infer<typeof RecipeViewerItemListDataSchema>;
 export type ItemMasterEntry = z.infer<typeof ItemMasterEntrySchema>;
 export type ItemMasterData = z.infer<typeof ItemMasterDataSchema>;
+export type FluidMasterEntry = z.infer<typeof FluidMasterEntrySchema>;
+export type FluidMasterData = z.infer<typeof FluidMasterDataSchema>;
 export type ResearchNodeState = z.infer<typeof ResearchNodeStateSchema>;
 export type ResearchNodeData = z.infer<typeof ResearchNodeDataSchema>;
 export type ResearchTreeData = z.infer<typeof ResearchTreeDataSchema>;

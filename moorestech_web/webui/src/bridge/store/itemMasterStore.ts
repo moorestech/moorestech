@@ -18,9 +18,57 @@ export const useItemMasterStore = create<ItemMasterState>((set) => ({
 // ゲーム起動前の 503 やネットワーク断は、マウントに依存せず一定間隔で自動再試行する
 // Retry on a fixed interval independent of mounts (e.g. 503 before game start, network drop)
 const RETRY_INTERVAL_MS = 3000;
-let started = false;
-let loading = false;
-let reconnectObserved = false;
+
+type MasterLoader<T> = {
+  url: string;
+  // 受信JSONを検証し、不正なら null を返す
+  // Validates the received JSON and returns null when it is malformed
+  parse: (data: unknown) => T | null;
+  apply: (parsed: T) => void;
+};
+
+// マスタHTTPロードの再試行と再接続追従を1本にまとめる。液体マスタもこのローダーを使う
+// Bundles retry and reconnect follow-up for master HTTP loads; the fluid master uses this loader too
+export function createMasterLoader<T>(loader: MasterLoader<T>): () => void {
+  let started = false;
+  let loading = false;
+  let reconnectObserved = false;
+
+  async function loadWithRetry(): Promise<void> {
+    for (;;) {
+      const res = await fetch(loader.url).catch(() => null);
+      if (res?.ok) {
+        const data: unknown = await res.json().catch(() => null);
+        const parsed = loader.parse(data);
+        if (parsed !== null) {
+          loader.apply(parsed);
+          return;
+        }
+      }
+      await new Promise((resolve) => setTimeout(resolve, RETRY_INTERVAL_MS));
+    }
+  }
+
+  async function requestLoad(): Promise<void> {
+    if (loading) return;
+    loading = true;
+    await loadWithRetry();
+    loading = false;
+  }
+
+  return function ensureLoaded(): void {
+    if (started) return;
+    started = true;
+    useTopicStore.subscribe((state) => {
+      if (state.status === "reconnecting") reconnectObserved = true;
+      if (state.status === "restoring" && reconnectObserved) {
+        reconnectObserved = false;
+        void requestLoad();
+      }
+    });
+    void requestLoad();
+  };
+}
 
 // HTTP 由来の各アイテムに必須フィールド型が揃うことを検証する
 // Validate required field types for each item received over HTTP
@@ -39,46 +87,18 @@ function isItemMasterEntry(item: unknown): item is ItemMasterEntry {
 
 // コンテナ形状と全要素を検証して不正データの流入を防ぐ
 // Validate the container and every entry to keep malformed data out of the store
-function isItemMasterData(data: unknown): data is ItemMasterData {
-  return (
+function parseItemMasterData(data: unknown): ItemMasterData | null {
+  const valid =
     typeof data === "object" &&
     data !== null &&
     "items" in data &&
     Array.isArray(data.items) &&
-    data.items.every(isItemMasterEntry)
-  );
+    data.items.every(isItemMasterEntry);
+  return valid ? (data as ItemMasterData) : null;
 }
 
-export function ensureItemMasterLoaded(): void {
-  if (started) return;
-  started = true;
-  useTopicStore.subscribe((state) => {
-    if (state.status === "reconnecting") reconnectObserved = true;
-    if (state.status === "restoring" && reconnectObserved) {
-      reconnectObserved = false;
-      void requestLoad();
-    }
-  });
-  void requestLoad();
-}
-
-async function requestLoad(): Promise<void> {
-  if (loading) return;
-  loading = true;
-  await loadWithRetry();
-  loading = false;
-}
-
-async function loadWithRetry(): Promise<void> {
-  for (;;) {
-    const res = await fetch(itemMasterUrl).catch(() => null);
-    if (res?.ok) {
-      const data: unknown = await res.json().catch(() => null);
-      if (isItemMasterData(data)) {
-        useItemMasterStore.getState().setMaster(new Map(data.items.map((i) => [i.itemId, i])));
-        return;
-      }
-    }
-    await new Promise((resolve) => setTimeout(resolve, RETRY_INTERVAL_MS));
-  }
-}
+export const ensureItemMasterLoaded = createMasterLoader<ItemMasterData>({
+  url: itemMasterUrl,
+  parse: parseItemMasterData,
+  apply: (data) => useItemMasterStore.getState().setMaster(new Map(data.items.map((i) => [i.itemId, i]))),
+});

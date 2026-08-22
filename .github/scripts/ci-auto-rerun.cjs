@@ -19,9 +19,11 @@ const CODE_KEYWORDS = [
   'assert', 'analyze', 'analysis', 'format', 'validate',
 ];
 
-// Unity Test / Unity Build はログ本文なしでは flaky と実装バグを区別できないため、初回失敗のみ無条件で再実行する。
-// Unity Test / Unity Build cannot distinguish flaky failures from real bugs without log bodies, so rerun their first failure.
-const RERUN_ON_FIRST_FAILURE_WORKFLOWS = ['Unity Test', 'Unity Build'];
+// Unityジョブはログ本文なしでは flaky と実装バグを区別できないため、初回失敗のみ無条件で再実行する。
+// Platform Compile Check はPRレーンで Unity Build を置換した後継なので、同じフレーク耐性を引き継ぐ（裁定 2026-08-22）。
+// Unity jobs cannot distinguish flaky failures from real bugs without log bodies, so rerun their first failure.
+// Platform Compile Check succeeds Unity Build on the PR lane, so it inherits the same flake tolerance (adjudicated 2026-08-22).
+const RERUN_ON_FIRST_FAILURE_WORKFLOWS = ['Unity Test', 'Unity Build', 'Platform Compile Check'];
 
 module.exports = async ({ github, context, core }) => {
   const run = context.payload.workflow_run;
@@ -177,7 +179,9 @@ module.exports = async ({ github, context, core }) => {
     // head が進んでいても新しい run が無ければ（paths-ignore 等）この run が最新の CI 結果なので再実行してよい。
     // Even when the head moved, rerun if no newer run exists (e.g. paths-ignore) because this run is still the latest CI.
     const laterRuns = await github.rest.actions.listWorkflowRuns({
-      owner, repo, workflow_id: run.workflow_id, branch: run.head_branch, event: 'pull_request', per_page: 30,
+      // event を固定すると schedule run に対してガードが常に空振りする（fail-open になる）
+      // Pinning the event makes the guard silently miss every schedule run (it would fail open)
+      owner, repo, workflow_id: run.workflow_id, branch: run.head_branch, per_page: 30,
     }).catch((error) => error);
     if (!laterRuns.data) {
       core.warning(`listWorkflowRuns failed (status=${laterRuns.status}) / head が進んでいるため安全側でスキップします (fail closed).`);
