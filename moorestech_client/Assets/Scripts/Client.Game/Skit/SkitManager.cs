@@ -42,6 +42,13 @@ namespace Client.Game.Skit
         public bool IsPlayingSkit { get; private set; }
         private bool _isSkip;
         
+        // 執筆ツールが本編・SkitTestの双方で同じ原点を引けるよう、シーン上の実体から公開する
+        // Expose the origin from the scene instance so authoring tools read the same value in both the main game and SkitTest
+        public SkitOrigin GetSkitOrigin()
+        {
+            return skitOrigin;
+        }
+        
         private void Awake()
         {
             skitUI.SetActive(false);
@@ -132,6 +139,7 @@ namespace Client.Game.Skit
                         var characterInstance = Instantiate(characterPrefab);
                         var skitCharacter = characterInstance.GetComponent<SkitCharacter>();
                         skitCharacter.Initialize(transform);
+                        skitCharacter.SetSkitOrigin(skitOrigin);
                         characters.Add(characterElement.CharacterId, skitCharacter);
                     }
                     else
@@ -152,6 +160,10 @@ namespace Client.Game.Skit
                 }
 
                 // DIコンテナをセットアップ
+                // 位置を書き込む3つのsinkへ原点を押し込み、加算を各コマンドから引き上げる（ADR 0029）
+                // Push the origin into the three sinks that write positions, lifting the addition out of every command (ADR 0029)
+                skitCamera.SetSkitOrigin(skitOrigin);
+                
                 var builder = new ContainerBuilder();
                 builder.RegisterInstance(skitUI);
                 builder.RegisterInstance<ISkitCamera>(skitCamera);
@@ -168,7 +180,7 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitBlockObjectControl>(visibilityLedger);
                 builder.RegisterInstance<ISkitWorldObjectControl>(visibilityLedger);
                 builder.RegisterInstance<ISkitEntityObjectControl>(visibilityLedger);
-                builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
+                builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform, skitOrigin));
                 builder.RegisterInstance(skitOrigin);
                 builder.RegisterInstance<ISkitActionContext>(_skitActionController);
                 builder.RegisterInstance(new SkitPresentationMode(webUiMode));

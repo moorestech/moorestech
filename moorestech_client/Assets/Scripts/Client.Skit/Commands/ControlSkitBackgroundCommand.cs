@@ -8,7 +8,9 @@ namespace CommandForgeGenerator.Command
 {
     public interface ISkitEnvironmentManager
     {
-        UniTask AddEnvironmentAsync(string addressablePath, Vector3 position, Vector3 rotation);
+        // 受け口を相対位置型に限定し、原点加算の抜けをコンパイルエラーへ落とす（ADR 0029）
+        // Accept only the relative-position type so a missing origin addition becomes a compile error (ADR 0029)
+        UniTask AddEnvironmentAsync(string addressablePath, SkitRelativePosition position, Vector3 rotation);
         void RemoveEnvironment(string addressablePath);
     }
     
@@ -20,10 +22,7 @@ namespace CommandForgeGenerator.Command
             
             if (Action == "Add")
             {
-                // JSONの位置はスポーン基準の相対値なので原点を足してワールド座標へ
-                // JSON positions are spawn-relative, so add the origin to reach world space
-                var origin = storyContext.GetSkitOrigin();
-                await environmentManager.AddEnvironmentAsync(SkitEnvironmentAddressablePath, origin.ToWorld(Position), Rotation);
+                await environmentManager.AddEnvironmentAsync(SkitEnvironmentAddressablePath, new SkitRelativePosition(Position), Rotation);
             }
             else if (Action == "Remove")
             {
@@ -38,13 +37,15 @@ namespace CommandForgeGenerator.Command
     {
         private readonly Dictionary<string, GameObject> _loadedEnvironments = new();
         private readonly Transform _environmentParent;
+        private readonly SkitOrigin _skitOrigin;
         
-        public SkitEnvironmentManager(Transform environmentParent)
+        public SkitEnvironmentManager(Transform environmentParent, SkitOrigin skitOrigin)
         {
             _environmentParent = environmentParent;
+            _skitOrigin = skitOrigin;
         }
         
-        public async UniTask AddEnvironmentAsync(string addressablePath, Vector3 position, Vector3 rotation)
+        public async UniTask AddEnvironmentAsync(string addressablePath, SkitRelativePosition position, Vector3 rotation)
         {
             if (string.IsNullOrEmpty(addressablePath))
                 return;
@@ -57,9 +58,16 @@ namespace CommandForgeGenerator.Command
                 return;
             
             var instance = Object.Instantiate(loadedAsset.Asset, _environmentParent);
-            instance.transform.position = position;
-            instance.transform.rotation = Quaternion.Euler(rotation);
+            PlaceInWorld(instance.transform, position.ToWorld(_skitOrigin), rotation);
             _loadedEnvironments[addressablePath] = instance;
+        }
+        
+        // 親追従はやめてワールド固定にする。位置はSkitOriginで解決済みで、親を二重に効かせるとカメラ・キャラとずれる
+        // Drop parent-following and fix in world space; positions are already resolved by SkitOrigin, and letting the parent apply twice would desync from camera and characters
+        public static void PlaceInWorld(Transform instance, Vector3 worldPosition, Vector3 rotation)
+        {
+            instance.position = worldPosition;
+            instance.rotation = Quaternion.Euler(rotation);
         }
         
         public void RemoveEnvironment(string addressablePath)

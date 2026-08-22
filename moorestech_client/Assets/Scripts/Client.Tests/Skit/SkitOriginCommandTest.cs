@@ -18,11 +18,12 @@ namespace Client.Tests.Skit
     public class SkitOriginCommandTest
     {
         private static readonly Vector3 Origin = new(500f, 15.5f, 500f);
+        private const float WorldPlacementTolerance = 0.001f;
         
         [Test]
         public void CameraWarpAddsOriginToPosition()
         {
-            var camera = new RecordingSkitCamera();
+            var camera = new RecordingSkitCamera(new SkitOrigin(Origin));
             var context = BuildContext(camera);
             var commands = CommandForgeLoader.LoadCommands(JToken.Parse(
                 "{\"commands\":[{\"type\":\"cameraWarp\",\"id\":1,\"fieldOfView\":60,\"Position\":[1,2,3],\"Rotation\":[10,20,30]}]}"));
@@ -36,7 +37,7 @@ namespace Client.Tests.Skit
         [Test]
         public void CameraworkAddsOriginToStartAndEnd()
         {
-            var camera = new RecordingSkitCamera();
+            var camera = new RecordingSkitCamera(new SkitOrigin(Origin));
             var context = BuildContext(camera);
             var commands = CommandForgeLoader.LoadCommands(JToken.Parse(
                 "{\"commands\":[{\"type\":\"camerawork\",\"id\":1,\"duration\":1,\"easing\":\"Linear\",\"StartPosition\":[1,0,0],\"StartRotation\":[0,0,0],\"EndPosition\":[0,0,2],\"EndRotation\":[0,0,0]}]}"));
@@ -50,7 +51,7 @@ namespace Client.Tests.Skit
         [Test]
         public void CameraworkOnSkipAddsOriginToEnd()
         {
-            var camera = new RecordingSkitCamera();
+            var camera = new RecordingSkitCamera(new SkitOrigin(Origin));
             var builder = new ContainerBuilder();
             builder.RegisterInstance<ISkitCamera>(camera);
             builder.RegisterInstance(new SkitOrigin(Origin));
@@ -68,6 +69,7 @@ namespace Client.Tests.Skit
         public void CharacterTransformAddsOriginToPosition()
         {
             var character = new GameObject().AddComponent<SkitCharacter>();
+            character.SetSkitOrigin(new SkitOrigin(Origin));
             var container = new CharacterObjectContainer(new Dictionary<string, SkitCharacter> { { "chr_001", character } });
             var builder = new ContainerBuilder();
             builder.RegisterInstance(container);
@@ -86,7 +88,7 @@ namespace Client.Tests.Skit
         [Test]
         public void ControlSkitBackgroundAddsOriginToPosition()
         {
-            var environmentManager = new RecordingEnvironmentManager();
+            var environmentManager = new RecordingEnvironmentManager(new SkitOrigin(Origin));
             var builder = new ContainerBuilder();
             builder.RegisterInstance<ISkitEnvironmentManager>(environmentManager);
             builder.RegisterInstance(new SkitOrigin(Origin));
@@ -100,6 +102,48 @@ namespace Client.Tests.Skit
             Assert.AreEqual(Origin + new Vector3(1f, 2f, 3f), environmentManager.LastPosition);
         }
 
+        // 執筆ツールが使う逆変換。符号を反転させたら落ちる
+        // The inverse used by authoring tools; flipping the sign must fail here
+        [Test]
+        public void ToRelativeSubtractsOrigin()
+        {
+            var origin = new SkitOrigin(Origin);
+
+            Assert.AreEqual(new Vector3(1f, 2f, 3f), origin.ToRelative(Origin + new Vector3(1f, 2f, 3f)));
+        }
+
+        [Test]
+        public void ToWorldAndToRelativeRoundTripToTheSameValue()
+        {
+            var origin = new SkitOrigin(Origin);
+            var relative = new Vector3(-12.5f, 4f, 0.25f);
+
+            Assert.AreEqual(relative, origin.ToRelative(origin.ToWorld(relative)));
+            Assert.AreEqual(Origin, origin.ToWorld(origin.ToRelative(Origin)));
+        }
+
+        // 背景は親のTransformへ追従せずワールド固定になる（親を非identityにしても位置が変わらない）
+        // Backgrounds ignore the parent transform and stay fixed in world space, even under a non-identity parent
+        [Test]
+        public void BackgroundIsPlacedInWorldSpaceUnderNonIdentityParent()
+        {
+            var parent = new GameObject("SkitRoot").transform;
+            parent.position = new Vector3(100f, 7f, -40f);
+            parent.rotation = Quaternion.Euler(0f, 90f, 0f);
+            var instance = new GameObject("Environment").transform;
+            instance.SetParent(parent);
+
+            var worldPosition = Origin + new Vector3(1f, 2f, 3f);
+            SkitEnvironmentManager.PlaceInWorld(instance, worldPosition, new Vector3(0f, 30f, 0f));
+
+            // 回転した親のローカル座標を経由するぶん誤差が乗るので許容差で見る
+            // Going through a rotated parent's local space introduces error, so compare with a tolerance
+            Assert.AreEqual(worldPosition.x, instance.position.x, WorldPlacementTolerance);
+            Assert.AreEqual(worldPosition.y, instance.position.y, WorldPlacementTolerance);
+            Assert.AreEqual(worldPosition.z, instance.position.z, WorldPlacementTolerance);
+            Assert.AreEqual(30f, instance.eulerAngles.y, WorldPlacementTolerance);
+        }
+
         private static StoryContext BuildContext(ISkitCamera camera)
         {
             var builder = new ContainerBuilder();
@@ -109,22 +153,31 @@ namespace Client.Tests.Skit
             return new StoryContext(builder.Build());
         }
         
+        // sink側で加算する本番と同じ順序を再現するため、記録用も原点を持って変換する
+        // Reproduce production's sink-side addition by having the recorder hold the origin and convert
         private sealed class RecordingSkitCamera : ISkitCamera
         {
+            private readonly SkitOrigin _skitOrigin;
+            
             public Vector3 LastPosition;
             public Vector3 LastRotation;
             public Vector3 TweenFrom;
             public Vector3 TweenTo;
             
-            public void TweenCamera(Vector3 fromPos, Vector3 fromRot, Vector3 toPos, Vector3 toRot, float duration, Ease easing)
+            public RecordingSkitCamera(SkitOrigin skitOrigin)
             {
-                TweenFrom = fromPos;
-                TweenTo = toPos;
+                _skitOrigin = skitOrigin;
             }
             
-            public void SetTransform(Vector3 pos, Vector3 rot)
+            public void TweenCamera(SkitRelativePosition fromPos, Vector3 fromRot, SkitRelativePosition toPos, Vector3 toRot, float duration, Ease easing)
             {
-                LastPosition = pos;
+                TweenFrom = fromPos.ToWorld(_skitOrigin);
+                TweenTo = toPos.ToWorld(_skitOrigin);
+            }
+            
+            public void SetTransform(SkitRelativePosition pos, Vector3 rot)
+            {
+                LastPosition = pos.ToWorld(_skitOrigin);
                 LastRotation = rot;
             }
             
@@ -147,12 +200,19 @@ namespace Client.Tests.Skit
 
         private sealed class RecordingEnvironmentManager : ISkitEnvironmentManager
         {
+            private readonly SkitOrigin _skitOrigin;
+            
             public Vector3 LastPosition;
             public Vector3 LastRotation;
-
-            public UniTask AddEnvironmentAsync(string addressablePath, Vector3 position, Vector3 rotation)
+            
+            public RecordingEnvironmentManager(SkitOrigin skitOrigin)
             {
-                LastPosition = position;
+                _skitOrigin = skitOrigin;
+            }
+
+            public UniTask AddEnvironmentAsync(string addressablePath, SkitRelativePosition position, Vector3 rotation)
+            {
+                LastPosition = position.ToWorld(_skitOrigin);
                 LastRotation = rotation;
                 return UniTask.CompletedTask;
             }
