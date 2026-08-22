@@ -136,9 +136,15 @@ function renderOutline(key: string, element: TutorialOutlineElement, value: Reso
   const outline = <div key={key} className={styles.highlight} data-kind={element.kind}
     style={{ left: box.left, top: box.top, width: box.right - box.left, height: box.bottom - box.top, clipPath }} />;
   if (!element.labelTutorialGuid) return outline;
-  // 枠線が祖先クリップで1pxでも削られるならラベルは出さない(半端に切れた文言より非表示が安全)
-  // Skip the label as soon as the ancestor clip shaves the outline at all; a half-cut sentence is worse than none
-  if (isClipped(box, value.clip)) return outline;
+  // 判定はアンカー実体で行う。boxで見るとpaddingPxのリングが削れただけでラベルが落ち、
+  // アンカーが完全に見えていてもクリップ端に接する最上段では必ず消える（ユーザー指摘 2026-08-22）
+  // Judge on the anchor itself: judging on box drops the label when only the paddingPx ring is shaved, so a
+  // fully visible top row that merely touches the clip edge always loses it (user report 2026-08-22)
+  const anchorBox = {
+    left: value.rect.left, top: value.rect.top,
+    right: value.rect.left + value.rect.width, bottom: value.rect.top + value.rect.height,
+  };
+  if (isClipped(anchorBox, value.clip)) return outline;
   // 辞書解決が空ならラベル面ごと出さない
   // An empty dictionary result renders no label face at all
   const labelText = t(challengeTutorialTextKey(element.labelTutorialGuid));
@@ -167,8 +173,8 @@ function renderDragGuide(key: string, from: ResolvedAnchor | undefined, to: Reso
   </div>;
 }
 
-// ラベルはclip-pathを持たないため、枠線がどこかで削られている時点で描かない判定に使う
-// The label carries no clip-path, so this decides to skip it the moment the outline is cut anywhere
+// ラベルはclip-pathを持たないため、アンカーが一部でも隠れている時点で描かない判定に使う
+// The label carries no clip-path, so this decides to skip it the moment the anchor is partly hidden
 function isClipped(box: ClipRect, clip: ClipRect): boolean {
   return clip.left > box.left || clip.top > box.top || clip.right < box.right || clip.bottom < box.bottom;
 }

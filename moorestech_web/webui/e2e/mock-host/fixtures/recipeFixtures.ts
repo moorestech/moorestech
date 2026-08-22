@@ -78,3 +78,6 @@ export const machineRecipes = {
 } satisfies MachineRecipesData;
 
 export const itemList = { itemIds: [100, 101, 102, 1, 2] } satisfies RecipeViewerItemListData;
+// チュートリアル指名の対象。1段目のセルで、ScrollAreaの上端クリップに最も晒される位置
+// The tutorial's named target: a first-row cell, the position most exposed to the ScrollArea's top clip
+export const TUTORIAL_RECIPE_ITEM_ID = 100;

@@ -10,10 +10,31 @@
   background: transparent;
 }
 
+/* スクロール領域はパネル本文いっぱいに広げる。内容ぴったりに縮めてはいけない（ユーザー裁定 2026-08-22）。
+   縮めると(1)溢れていないのに1段分の高さでスクロール扱いになり(2)viewportのoverflowクリップが
+   セル外周まで届かず、チュートリアルのハイライト枠が必ず削られてラベルが描画されない(ADR 0024) */
+/* The scroller fills the panel body and must never shrink to its content (user ruling 2026-08-22). Shrinking
+   (1) makes a single row behave as a scroller with no overflow and (2) pulls the viewport's overflow clip inside
+   the cell's surroundings, so the tutorial highlight is always shaved and its label never renders (ADR 0024) */
+/* 内側のviewportをflexで伸ばす。height:100%はflex由来の親高に対して解決できず内容なりに潰れる
+   （Mantineのスクロールバーはposition:absoluteなので、列にしても並びに入らない） */
+/* Stretch the inner viewport with flex; height:100% cannot resolve against a flex-derived parent height and
+   collapses to the content (Mantine's scrollbars are position:absolute, so the column never stacks them) */
+.scrollArea {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
 /* 左端のクリップ領域だけ3層リング分広げ、グリッド本体の絶対位置は維持する */
 /* Widen only the left clipping region by the three-layer ring while preserving the grid's absolute position */
 .scrollArea :global(.mantine-ScrollArea-viewport) {
   box-sizing: border-box;
+  /* クリップ境界をパネル本文いっぱいまで伸ばす。Mantine既定のheight:100%は解決できず内容なりに潰れる */
+  /* Stretch the clip edge to the full panel body; Mantine's default height:100% cannot resolve and collapses to the content */
+  flex: 1;
+  min-height: 0;
   padding-left: 3.131498px;
   /* 掴みドラッグを自前で処理するため、タッチの既定スクロールを無効化する */
   /* Disable native touch scrolling since we handle grab-drag ourselves */

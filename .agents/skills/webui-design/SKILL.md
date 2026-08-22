@@ -280,6 +280,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - Mantine `ScrollArea` の `:global(.mantine-ScrollArea-*)` セレクタで上書きする（前例: `ItemListPanel.module.css`）。ScrollArea自体は使ってよいが、既定の白ノブ/透明トラックのまま出さない。
 - トラックは `var(--gauge-track)`、ノブは `var(--bevel-c2)` を基調にしたネイビートーンへ統一する（ItemListPanelの白ノブ＋透明トラックは持ち物一覧固有の正本合わせ／裁定であり、他パネルではこのネイビートーンに従う）。
 - ノブ寸法はコンテンツ量から自然算出させ、固定pxで決め打ちしない。
+- **スクロール領域はパネル本文いっぱいに広げる。内容ぴったりに縮めない**（ユーザー裁定 2026-08-22）。`ScrollArea.Autosize` + `mah` は内容が少ないとき領域が1段分まで縮み、(1)溢れていないのにスクロール扱いになり (2)`overflow` のクリップ矩形がセルの外周へ届かず、**チュートリアルのハイライト枠が必ず削られてラベルが落ちる**（ADR 0024）。パネル側は `minHeight` ではなく `height` で高さを確定させ（floorだけだと件数でパネルごと伸びてスクロールが始まらない）、`ScrollArea` は `flex: 1; min-height: 0`、内側の `.mantine-ScrollArea-viewport` も `flex: 1; min-height: 0` で伸ばす（Mantine既定の `height: 100%` はflex由来の親高に対して解決できず内容なりに潰れる）。
 - **`type` は `auto` を既定とし、`always` を使わない。** `always` は水平バーも常時描画するため、横に溢れていない場面で**つまみ幅0の黒帯**が内容の直下に敷かれる（2026-08-22に CRAFT RECIPE 一覧で実害。ユーザー裁定 2026-08-17 で `ItemListPanel` を `auto` + トラック透明へ変更）。
 - **ScrollArea に入れる中身は、外へはみ出す装飾の分だけ内側に余白を確保する。** 確保しないと数pxの偽の溢れが立ち、スクロール不要な件数でもスクロールバーが出る（そして装飾はクリップされて欠ける）。はみ出す装飾の例＝スロットの外側ベベルリング・個数バッジ・エントリ枠の四隅ブラケット。余白は固定長トークンで持つ。
   - 前例: `--recipe-entry-bleed`（レシピ単一リスト・四隅ブラケット+外周リング）、`--item-list-count-bleed`（アイテム一覧・個数バッジ）。

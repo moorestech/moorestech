@@ -50,19 +50,20 @@ export default function ItemListPanel() {
     <GamePanel
       gridArea="items"
       title={t(L.ui.recipe.catalogTitle)}
-      style={{ justifySelf: "end", alignSelf: "start", width: 378, minHeight: 452, "--panel-top": "-6.821px", "--panel-bottom": "-9.17px", "--panel-left": "-1.04px", "--title-shift-x": "1.57px", "--title-scale-x": 0.963, "--title-scale-y": 0.861 } as CSSProperties}
+      // heightはminHeightではなく固定高。floorだけだと件数でパネルごと伸び、
+      // 「パネルからはみ出した時に初めてスクロール」が成立しない（ユーザー裁定 2026-08-22）
+      // A fixed height, not a floor: with only minHeight the panel grows with the item count and
+      // "scroll only once it overflows the panel" never holds (user ruling 2026-08-22)
+      style={{ justifySelf: "end", alignSelf: "start", width: 378, height: 452, "--panel-top": "-6.821px", "--panel-bottom": "-9.17px", "--panel-left": "-1.04px", "--title-shift-x": "1.57px", "--title-scale-x": 0.963, "--title-scale-y": 0.861 } as CSSProperties}
     >
       {ready ? (
-        // mahは7段+バッジbleedが丸ごと収まりつつDEMO60件(10段)でノブ比が正本≈70%になる高さ。marginLeftはグリッド内側
-        // インデント補正、marginTopはノブの縦位置合わせ。align-self:stretchだとmarginLeftだけでは右端(ノブ位置)が
-        // 動かないためmarginRightで右端を別途詰める
-        // mah fits 7 full rows plus the badge bleed while making the DEMO 60-item (10-row) thumb ratio match the
-        // reference ~70%. marginLeft corrects the grid inset; marginTop aligns the knob vertically. Under
-        // align-self:stretch, marginLeft alone doesn't move the right edge (knob position), so marginRight tucks it in
+        // marginLeftはグリッド内側インデント補正、marginTopはノブの縦位置合わせ。align-self:stretchだと
+        // marginLeftだけでは右端(ノブ位置)が動かないためmarginRightで右端を別途詰める
+        // marginLeft corrects the grid inset; marginTop aligns the knob vertically. Under align-self:stretch,
+        // marginLeft alone doesn't move the right edge (knob position), so marginRight tucks the right edge in
         // typeはauto。alwaysは溢れが無くてもつまみ幅0の水平バーが黒帯として残る（ユーザー裁定 2026-08-17）
         // type stays auto: always leaves a zero-thumb horizontal bar as a black band even with no overflow (user ruling 2026-08-17)
-        <ScrollArea.Autosize
-          mah={381.2}
+        <ScrollArea
           type="auto"
           scrollbarSize={4}
           className={styles.scrollArea}
@@ -78,7 +79,7 @@ export default function ItemListPanel() {
               </div>
             ))}
           </SlotGrid>
-        </ScrollArea.Autosize>
+        </ScrollArea>
       ) : (
         <ConnectingPlaceholder />
       )}

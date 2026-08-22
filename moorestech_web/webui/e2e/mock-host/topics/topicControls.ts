@@ -8,7 +8,7 @@ import { L } from "../../../src/shared/i18n/generated/localizationKeys";
 // The JavaScript codegen parser has no type declarations
 // @ts-expect-error Importing the plain ESM parser is intentional
 import { parseLocalizationCsv } from "../../../scripts/generate-localization-keys.mjs";
-import { researchNodeAnchorId } from "../../../src/shared/tutorialAnchor/anchorIds";
+import { recipeItemAnchorId, researchNodeAnchorId } from "../../../src/shared/tutorialAnchor/anchorIds";
 import * as fx from "../fixtures";
 import { state, topicSubscribers } from "../state";
 import { clone, send, setTopicRevision } from "../wire";
@@ -127,6 +127,23 @@ const controls = {
       }],
     }],
   }),
+  // アイテム一覧の1段目セルをラベル付きで指す。ScrollAreaのクリップでラベルが落ちないことの検証用
+  // Points at a first-row item-list cell with a label, to verify the ScrollArea clip does not drop it
+  tutorialRecipeItem: () => control(Topics.tutorialPresentation, {
+    revision: 4,
+    sessions: [{
+      tutorialSessionId: "tutorial-session-recipe-item", challengeId: "tutorial-challenge-recipe-item",
+      elements: [{
+        kind: "outline" as const, elementId: "tutorial-highlight-recipe-item",
+        anchorId: recipeItemAnchorId(fx.TUTORIAL_RECIPE_ITEM_ID),
+        paddingPx: 8, blocksPointerInput: false, labelTutorialGuid: fx.OUTLINE_LABEL_TUTORIAL_GUID,
+      }],
+    }],
+  }),
+  // 一覧を溢れさせる/既定へ戻す。スクロール時の挙動を実データ件数で検証するため
+  // Overflow the list / restore the default, so scrolling behavior is verified with a real item count
+  itemListLarge: () => control(Topics.itemList, clone(fx.demoItemList)),
+  itemListDefault: () => clearingControl(Topics.itemList, clone(fx.itemList)),
   tutorialEmpty: () => control(Topics.tutorialPresentation, { revision: 0, sessions: [] }),
   tutorialOutlineWithLabel: () => control(Topics.tutorialPresentation, {
     revision: 2,
