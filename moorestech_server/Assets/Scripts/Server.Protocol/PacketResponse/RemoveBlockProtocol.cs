@@ -43,7 +43,7 @@ namespace Server.Protocol.PacketResponse
 
             // 財布に返却物を問い合わせ（確定は後段）
             // Ask the wallet what to refund (finalized further down)
-            var removalPlan = _constructionWallet.PlanRemoval(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), data.PlayerId);
+            var removalPlan = _constructionWallet.PlanRemoval(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), block.BlockInstanceId, data.PlayerId);
 
             // 破壊した後のアイテムをインベントリに挿入できるかチェック
             // Check if items after destruction can be inserted into inventory
@@ -58,6 +58,10 @@ namespace Server.Protocol.PacketResponse
             _constructionWallet.CommitRemoval(removalPlan);
 
             InsertItemsToPlayerInventory(refundItems);
+
+            // 財布の変更通知は撤去1回につき1通へ集約する
+            // Collapse the wallet notifications into one per removal
+            _constructionWallet.FlushRemainingCountChanges();
             
             return RemoveBlockResponseMessagePack.CreateSuccess();
             

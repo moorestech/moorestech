@@ -59,6 +59,10 @@ namespace Server.Protocol.PacketResponse
                 PlaceBlock(placeInfo);
             }
 
+            // ドラッグ設置でセル数分に増幅させないため、財布の変更通知は最後に1通へ集約する
+            // Collapse the wallet notifications into one at the very end so a drag never amplifies them per cell
+            _constructionWallet.FlushRemainingCountChanges();
+
             if (0 < notUnlockedCount) _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockNotUnlocked", Array.Empty<string>()));
             if (0 < costShortageCount) _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockCostShortage", Array.Empty<string>()));
             if (0 < wireShortageCount) _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockWireShortage", Array.Empty<string>()));
@@ -112,7 +116,7 @@ namespace Server.Protocol.PacketResponse
                 // Do not consume the cost when placement fails
                 if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) return;
 
-                _constructionWallet.CommitPlacement(placementPlan, inventory);
+                _constructionWallet.CommitPlacement(placementPlan, inventory, block.BlockInstanceId);
 
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items

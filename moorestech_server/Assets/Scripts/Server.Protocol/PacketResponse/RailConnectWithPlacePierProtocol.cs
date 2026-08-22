@@ -34,6 +34,7 @@ namespace Server.Protocol.PacketResponse
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly RailConnectionCommandHandler _commandHandler;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
+        private readonly ConstructionWalletService _constructionWallet;
 
         public RailConnectWithPlacePierProtocol(ServiceProvider serviceProvider)
         {
@@ -41,6 +42,7 @@ namespace Server.Protocol.PacketResponse
             _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
             _commandHandler = serviceProvider.GetService<RailConnectionCommandHandler>();
             _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
+            _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -68,7 +70,8 @@ namespace Server.Protocol.PacketResponse
             var blockId = request.PierBlockId;
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             if (blockMaster.BlockParam is not TrainRailBlockParam) return RailConnectWithPlacePierResponse.CreateFailedResponse();
-            var pierItemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
+            var placementPlan = _constructionWallet.PlanPlacement(blockMaster, request.PlayerId);
+            var pierItemCounts = placementPlan.ItemsToConsume;
             if (!ConstructionCostService.HasRequiredItems(pierItemCounts, inventory.InventoryItems)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
 
             // 橋脚を設置する
@@ -113,7 +116,8 @@ namespace Server.Protocol.PacketResponse
 
             // 橋脚コストと接続に使ったレール素材を消費する
             // Consume the pier cost and the rail materials used by the connection
-            ConstructionCostService.ConsumeRequiredItems(pierItemCounts, inventory);
+            _constructionWallet.CommitPlacement(placementPlan, inventory, block.BlockInstanceId);
+            _constructionWallet.FlushRemainingCountChanges();
             if (railMaterials != null)
             {
                 ConnectToolMaterialConsumer.Consume(railMaterials, inventory);

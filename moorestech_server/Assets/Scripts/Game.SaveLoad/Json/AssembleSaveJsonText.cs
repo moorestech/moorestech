@@ -31,6 +31,7 @@ namespace Game.SaveLoad.Json
         private readonly IBlueprintDatastore _blueprintDatastore;
         private readonly HotbarAssignmentDatastore _hotbarAssignmentDatastore;
         private readonly RemainingPlacementCountDataStore _remainingPlacementCountDataStore;
+        private readonly ConstructionPayerDataStore _constructionPayerDataStore;
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
@@ -48,6 +49,7 @@ namespace Game.SaveLoad.Json
             IBlueprintDatastore blueprintDatastore,
             HotbarAssignmentDatastore hotbarAssignmentDatastore,
             RemainingPlacementCountDataStore remainingPlacementCountDataStore,
+            ConstructionPayerDataStore constructionPayerDataStore,
             ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore,
             CleanRoomDatastore cleanRoomDatastore)
@@ -64,6 +66,7 @@ namespace Game.SaveLoad.Json
             _blueprintDatastore = blueprintDatastore;
             _hotbarAssignmentDatastore = hotbarAssignmentDatastore;
             _remainingPlacementCountDataStore = remainingPlacementCountDataStore;
+            _constructionPayerDataStore = constructionPayerDataStore;
             _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
             _cleanRoomDatastore = cleanRoomDatastore;
@@ -89,6 +92,7 @@ namespace Game.SaveLoad.Json
                 _blueprintDatastore.GetSaveJsonObject(),
                 _hotbarAssignmentDatastore.GetSaveJsonObject(),
                 _remainingPlacementCountDataStore.GetSaveJsonObject(),
+                _constructionPayerDataStore.GetSaveJsonObject(),
                 _itemStackLevelDataStore.GetSaveJsonObject(),
                 _playerInventorySlotLevelDataStore.GetSaveLevel(),
                 _cleanRoomDatastore.GetSaveData()

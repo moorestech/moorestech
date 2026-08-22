@@ -47,6 +47,7 @@ namespace Game.SaveLoad.Json
         private readonly IBlueprintDatastore _blueprintDatastore;
         private readonly HotbarAssignmentDatastore _hotbarAssignmentDatastore;
         private readonly RemainingPlacementCountDataStore _remainingPlacementCountDataStore;
+        private readonly ConstructionPayerDataStore _constructionPayerDataStore;
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
@@ -55,7 +56,7 @@ namespace Game.SaveLoad.Json
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, MapInfoJson mapInfoJson,
             IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
-            IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, HotbarAssignmentDatastore hotbarAssignmentDatastore, RemainingPlacementCountDataStore remainingPlacementCountDataStore, ItemStackLevelDataStore itemStackLevelDataStore,
+            IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, HotbarAssignmentDatastore hotbarAssignmentDatastore, RemainingPlacementCountDataStore remainingPlacementCountDataStore, ConstructionPayerDataStore constructionPayerDataStore, ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
@@ -76,6 +77,7 @@ namespace Game.SaveLoad.Json
             _blueprintDatastore = blueprintDatastore;
             _hotbarAssignmentDatastore = hotbarAssignmentDatastore;
             _remainingPlacementCountDataStore = remainingPlacementCountDataStore;
+            _constructionPayerDataStore = constructionPayerDataStore;
             _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
             _cleanRoomDatastore = cleanRoomDatastore;
@@ -168,6 +170,10 @@ namespace Game.SaveLoad.Json
             // 残り設置数はマスタだけに依存するためロード順の制約なし
             // Remaining placements depend only on the master, so there is no load-order constraint
             _remainingPlacementCountDataStore.LoadRemainingCounts(load.RemainingPlacementCounts);
+
+            // 課金元プレイヤーはブロックインスタンスIDで持つためワールドのロード順に依存しない
+            // The paying player is keyed by block instance id, so it does not depend on the world load order
+            _constructionPayerDataStore.LoadPayers(load.ConstructionPayers);
         }
         
         public void WorldInitialize()
