@@ -1,7 +1,7 @@
 using System;
-using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
-using Client.Common;
+using Client.Game.Common;
 using Client.Network;
 using Client.Network.API;
 using Client.Network.Settings;
@@ -9,9 +9,8 @@ using Cysharp.Threading.Tasks;
 using Server.Boot;
 using Server.Boot.Args;
 using TMPro;
+using UniRx;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using Debug = UnityEngine.Debug;
 
 namespace Client.Starter.Initialization
 {
@@ -47,7 +46,7 @@ namespace Client.Starter.Initialization
             Task.Run(() => serverCommunicator.StartCommunicat(exchangeManager));
 
             //Vanilla APIの作成
-            var vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, _playerConnectionSetting, _proprieties.LocalServerProcess);
+            var vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, _playerConnectionSetting);
 
             //最初に必要なデータを取得
             // Fetch the initial data bundle
@@ -61,50 +60,49 @@ namespace Client.Starter.Initialization
 
             async UniTask<ServerCommunicator> ConnectionToServer()
             {
-                var serverProperties = new ConnectionServerProperties(_proprieties.ServerIp, _proprieties.ServerPort);
                 var timeOut = TimeSpan.FromSeconds(3);
-                // サーバー接続はネットワーク境界。失敗を捕捉してローカルサーバー起動へフォールバックする
-                // Server connect is a network boundary; catch failures to fall back to launching a local server
-                try
+
+                // リモートは明示指定の宛先のみ。失敗しても内蔵サーバーへフォールバックしない（ADR 0013）
+                // Remote uses only the explicit destination and never falls back to the embedded server (ADR 0013)
+                if (_proprieties.IsRemoteConnection)
                 {
-                    // 10秒以内にサーバー接続できなければタイムアウト
-                    var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(serverProperties).Timeout(timeOut);
-                    return serverCommunicator;
+                    var serverProperties = new ConnectionServerProperties(_proprieties.ServerIp, _proprieties.RemoteServerPort.Value);
+
+                    // タイムアウト時に接続タスクとソケットを道連れに畳む
+                    // Fold the connection task and its socket together on timeout
+                    using var remoteConnectWait = new CancellationTokenSource();
+                    return await ServerCommunicator.CreateConnectedInstance(serverProperties, remoteConnectWait.Token)
+                        .Timeout(timeOut, taskCancellationTokenSource: remoteConnectWait);
                 }
-                catch (SocketException)
-                {
-                    _loadingLog.text += "\nサーバーの接続が失敗しました。サーバーを起動します。";
-                    // ローカルサーバー起動と再接続もネットワーク/プロセス境界のため隔離する
-                    // Local server launch and reconnect are also network/process boundaries, so isolate them
-                    try
-                    {
-                        var serverInstanceGameObject = new GameObject("ServerInstance");
-                        var serverStarter = serverInstanceGameObject.AddComponent<ServerStarter>();
 
-                        // ポート未指定なら0(OS自動採番)を渡し、実行時に空きポートへバインドさせる
-                        // Pass 0 (OS auto-assign) when no port is specified, so the server binds a free port at runtime
-                        var localServerSettings = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs ?? Array.Empty<string>());
-                        localServerSettings.Port ??= 0;
-                        serverStarter.SetArgs(CliConvert.Serialize(localServerSettings));
-                        UnityEngine.Object.DontDestroyOnLoad(serverInstanceGameObject);
+                // ローカルは試行せず内蔵サーバー起動
+                // Local boots the embedded server without probing
+                var serverInstanceGameObject = new GameObject("ServerInstance");
+                var serverStarter = serverInstanceGameObject.AddComponent<ServerStarter>();
 
-                        // バインド完了を待ち、実際に割り当てられたポートへ接続する
-                        // Wait for binding to complete, then connect to the actually assigned port
-                        await UniTask.WaitUntil(() => serverStarter.BoundPort != 0).Timeout(TimeSpan.FromSeconds(60));
-                        var localServerProperties = new ConnectionServerProperties(_proprieties.ServerIp, serverStarter.BoundPort);
+                // 生成した内蔵サーバーは自分で終了イベントを購読して自壊する。所有ハンドルを外へ配らない
+                // The embedded server subscribes to shutdown and folds itself, so no ownership handle leaves this scope
+                GameShutdownEvent.OnGameShutdown.Subscribe(_ => serverStarter.ShutdownAsync().Forget()).AddTo(serverInstanceGameObject);
 
-                        var serverCommunicator = await ServerCommunicator.CreateConnectedInstance(localServerProperties).Timeout(timeOut);
-                        return serverCommunicator;
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogError($"サーバーへの接続に失敗しました: {e.Message}");
-                        _loadingLog.text += "\nサーバーへの接続に失敗しました。メインメニューに戻ります。";
-                        await UniTask.Delay(2000);
-                        SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
-                        throw;
-                    }
-                }
+                // 0でOS自動割り当てさせる
+                // 0 means OS auto-assigns the port
+                var localServerSettings = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
+                localServerSettings.Port ??= 0;
+                serverStarter.SetArgs(CliConvert.Serialize(localServerSettings));
+                UnityEngine.Object.DontDestroyOnLoad(serverInstanceGameObject);
+
+                // バインド後に実ポートへ接続。タイムアウト時も述語をPlayerLoopに残さない
+                // Connect to the assigned port after binding, leaving no predicate in the PlayerLoop on timeout
+                using var boundPortWait = new CancellationTokenSource();
+                await UniTask.WaitUntil(() => serverStarter.BoundPort != 0, PlayerLoopTiming.Update, boundPortWait.Token)
+                    .Timeout(TimeSpan.FromSeconds(60), taskCancellationTokenSource: boundPortWait);
+                var localServerProperties = new ConnectionServerProperties(_proprieties.ServerIp, serverStarter.BoundPort);
+
+                // ローカル接続も同じくタイムアウトでタスクとソケットを残さない
+                // The local connection likewise leaves no task or socket behind on timeout
+                using var localConnectWait = new CancellationTokenSource();
+                return await ServerCommunicator.CreateConnectedInstance(localServerProperties, localConnectWait.Token)
+                    .Timeout(timeOut, taskCancellationTokenSource: localConnectWait);
             }
 
             #endregion

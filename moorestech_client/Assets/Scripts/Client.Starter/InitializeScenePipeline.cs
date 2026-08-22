@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using Client.Common;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Modal;
@@ -15,7 +16,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using Debug = UnityEngine.Debug;
 
 namespace Client.Starter
@@ -30,17 +30,12 @@ namespace Client.Starter
         [SerializeField] private BlockGameObject missingBlockIdObject;
 
         [SerializeField] private TMP_Text loadingLog;
-        [SerializeField] private Button backToMainMenuButton;
 
-        private InitializeProprieties _proprieties = InitializeProprieties.CreateDefault();
+        private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer(null);
+
         public void SetProperty(InitializeProprieties proprieties)
         {
             _proprieties = proprieties;
-        }
-
-        private void Awake()
-        {
-            backToMainMenuButton.onClick.AddListener(() => SceneManager.LoadScene(SceneConstant.MainMenuSceneName));
         }
 
         private void Start()
@@ -50,6 +45,10 @@ namespace Client.Starter
 
         private async UniTask Initialize()
         {
+            // 新しい起動シーケンスの開始。前回セッションの終了ガードをここで戻す
+            // A new boot sequence begins; clear the previous session's shutdown guard here
+            GameShutdownEvent.ResetForNewSession();
+
             // ---- Web UI サーバーの起動（最序盤）----
             // GameShutdownEvent の購読は WebUiHost 側で 1 度だけ張られる
             // ---- Web UI server bootstrap (earliest phase) ----
@@ -73,13 +72,18 @@ namespace Client.Starter
             }
 
 #if UNITY_EDITOR
-            // ツールバーの専用再生ボタン経由なら、セーブデータをロード・保存しないよう起動引数を上書きする
-            // When launched via the dedicated toolbar play button, override launch args to skip loading/saving save data
-            Editor.SkipSaveLoadPlayModeSettings.ApplyIfNeeded(_proprieties);
+            // 起動引数は内蔵サーバー専用のためローカル接続時のみ上書きする
+            // Launch args belong to the embedded server, so override them only for local connections
+            if (!_proprieties.IsRemoteConnection)
+            {
+                // 専用再生ボタン時はセーブ無効化
+                // Skip save/load for the dedicated play button
+                Editor.SkipSaveLoadPlayModeSettings.ApplyIfNeeded(_proprieties);
 
-            // 生成ワールド起動引数を上書き
-            // Override launch args for the generated-world play button
-            Editor.GeneratedWorldPlayModeSettings.ApplyIfNeeded(_proprieties);
+                // 生成ワールド起動引数を上書き
+                // Override launch args for the generated-world play button
+                Editor.GeneratedWorldPlayModeSettings.ApplyIfNeeded(_proprieties);
+            }
 #endif
 
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
@@ -93,8 +97,6 @@ namespace Client.Starter
             var initializeHandle = Addressables.InitializeAsync();
             await initializeHandle.ToUniTask();
             await ModAssetLoader.PreloadCriticalAssetsAsync();
-
-            _proprieties ??= InitializeProprieties.CreateDefault();
 
             // DIコンテナによるServerContextの作成
             if (!ServerContext.IsInitialized)
@@ -127,7 +129,16 @@ namespace Client.Starter
             }
             catch (Exception e)
             {
+                // 失敗をログとUIへ出し、文言を読ませてからメインメニューへ戻す
+                // Log the failure, surface it in the UI, and return to the main menu after the message is readable
                 Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
+
+                // 起動済みの内蔵サーバーを道連れに畳む。残すと同一セーブへ書く権威が二重になる
+                // Fold the embedded server that already started; leaving it doubles the authority writing the same save
+                GameShutdownEvent.FireGameShutdown();
+
+                loadingLog.text += "\n初期化に失敗しました。メインメニューに戻ります。";
+                await UniTask.Delay(2000);
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 return;
             }
@@ -165,6 +176,11 @@ namespace Client.Starter
                 new MainGameInitializationFinalizer(serverResult).RunAsync().Forget(exception =>
                 {
                     Debug.LogError($"初期化処理中にエラーが発生しました: {exception.GetType()} {exception.Message}\n{exception.StackTrace}");
+
+                    // メインメニューへ戻る経路はすべて内蔵サーバーを道連れにする
+                    // Every path back to the main menu takes the embedded server down with it
+                    GameShutdownEvent.FireGameShutdown();
+
                     SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 });
             }

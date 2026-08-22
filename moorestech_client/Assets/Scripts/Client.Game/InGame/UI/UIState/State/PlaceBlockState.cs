@@ -62,8 +62,8 @@ namespace Client.Game.InGame.UI.UIState.State
             // Take the placement target and its origin as one pair from the transition payload and hand them to the owner (falls back to Empty when absent)
             if (context.TryGetContext<PlacementSelection>(out var selection)) _placeSystemStateController.SetTarget(selection.Target, selection.Origin);
 
-            // 対象未選択でも滞在中は範囲表示を出す。遷移元(BuildMenuState/GameScreenState)が必ずtargetを載せる
-            // Show the range view for the whole stay even without a target; both entries (BuildMenuState/GameScreenState) always carry one
+            // 対象未選択でも滞在中は範囲表示を出す。遷移元(BuildMenu/GameScreen/DeleteObject)が必ずtargetを載せる
+            // Show the range view for the whole stay even without a target; every entry (BuildMenu/GameScreen/DeleteObject) carries one
             _mapVeinRangeView.Show(true);
 
             // 視点別カーソル/回転ポリシーを適用
