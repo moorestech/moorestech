@@ -9,6 +9,7 @@ using Game.MapGeneration.Pipeline.Visual.Splat;
 using Game.MapGeneration.Pipeline.Visual.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
+using Game.MapGeneration.Pipeline.Stages;
 using Game.Paths;
 using UnityEngine;
 
@@ -151,12 +152,21 @@ namespace Game.MapGeneration.Pipeline.Visual
             // The splat now reads map objects for the rocks' bare ground too, so it takes the whole layout and slices its own halo, as detail does
             float[,,] BuildAlphamap(TileClassificationContext classification)
             {
-                var transferredBiomeIndices = HeightFileLoader.LoadBiomeIndices(
-                    _heightSource, tileX, tileZ, _gridConfig.Resolution);
+                var resolution = _gridConfig.Resolution;
+
+                // サーバーが転送していたbiome_x_z.binと同じ式。転送をやめても SplatmapJob が読む勝者は1ビットも変わらない
+                // The same formula that produced the transferred biome_x_z.bin; dropping the transfer changes no bit of the winner SplatmapJob reads
+                var biomeIndicesFlat = PlacementInputBuilder.BuildBiomeIndices(
+                    classification.Buffers.winnerBiomeIndex, classification.Buffers.landMask, classification.Buffers.beachFactor,
+                    _biomeTypes, resolution * resolution);
+                var biomeIndices = new byte[resolution, resolution];
+                for (var z = 0; z < resolution; z++)
+                for (var x = 0; x < resolution; x++)
+                    biomeIndices[z, x] = biomeIndicesFlat[z * resolution + x];
 
                 return SplatmapStage.Generate(
                     tileConfig, _biomeTypes, classification, _layerTable, _visualSections, _treeSurroundSpecies,
-                    preHeights, transferredBiomeIndices, _gridConfig.AlphamapResolution,
+                    preHeights, biomeIndices, _gridConfig.AlphamapResolution,
                     _ledger.Placements, tileWorldPosition);
             }
 

@@ -21,9 +21,9 @@ namespace Game.MapGeneration.Provisioning
         public const string TemplateMapMode = "template";
         public const string GeneratedMapMode = "generated";
 
-        // TerrainTransferMetaReaderが生成ワールドの版照合に参照する。高さの意味(木摂動前後)が変わるたび上げる
-        // Referenced by TerrainTransferMetaReader to gate generated worlds; bump whenever the height semantics (pre/post tree perturbation) change
-        public const string GeneratorVersion = "2.0.0";
+        // TerrainTransferMetaReaderが生成ワールドの版照合に参照する。転送するファイル構成が変わるたび上げる
+        // Referenced by TerrainTransferMetaReader to gate generated worlds; bump whenever the transferred file layout changes
+        public const string GeneratorVersion = "3.0.0";
         private const string CacheReadmeText = "このディレクトリは削除可能です。削除しても次回起動時に自動で再構築されます。";
 
         public static void EnsureWorld(WorldProvisionSettings settings)

@@ -49,7 +49,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             for (var x = 0; x < resolution; x++)
                 writtenHeights[z * resolution + x] = (x * 7 + z * 3) / 100f;
 
-            TerrainFileWriter.Write(worldDataDirectory, CreateOutput(resolution, writtenHeights, new byte[resolution * resolution]));
+            TerrainFileWriter.Write(worldDataDirectory, CreateOutput(resolution, writtenHeights));
 
             var loadedHeights = HeightFileLoader.LoadHeights(worldDataDirectory, 0, 0, resolution);
 
@@ -58,29 +58,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             for (var z = 0; z < resolution; z++)
             for (var x = 0; x < resolution; x++)
                 Assert.That(loadedHeights[z, x], Is.EqualTo(writtenHeights[z * resolution + x]).Within(QuantizationTolerance), $"z={z} x={x}");
-        }
-
-        [Test]
-        public void RestoresWriterBiomeIndicesIncludingTheirXzOrientation()
-        {
-            // バイオームは全ピクセルで異なる値にし、転置しても偶然一致しないようにする
-            // Give every pixel a distinct biome so a transposed read cannot coincidentally match
-            const int resolution = 5;
-            var worldDataDirectory = WorldDataDirectory.FromWorldRoot(_tempWorldRoot);
-            var writtenBiomeIndices = new byte[resolution * resolution];
-            for (var z = 0; z < resolution; z++)
-            for (var x = 0; x < resolution; x++)
-                writtenBiomeIndices[z * resolution + x] = (byte)(z * resolution + x + 1);
-
-            TerrainFileWriter.Write(worldDataDirectory, CreateOutput(resolution, new float[resolution * resolution], writtenBiomeIndices));
-
-            var loadedBiomeIndices = HeightFileLoader.LoadBiomeIndices(worldDataDirectory, 0, 0, resolution);
-
-            Assert.That(loadedBiomeIndices.GetLength(0), Is.EqualTo(resolution));
-            Assert.That(loadedBiomeIndices.GetLength(1), Is.EqualTo(resolution));
-            for (var z = 0; z < resolution; z++)
-            for (var x = 0; x < resolution; x++)
-                Assert.That(loadedBiomeIndices[z, x], Is.EqualTo(writtenBiomeIndices[z * resolution + x]), $"z={z} x={x}");
         }
 
         [Test]
@@ -110,15 +87,16 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             // Place a different file per tile coordinate to confirm only the requested tile's file is read
             const int resolution = 2;
             var worldDataDirectory = WorldDataDirectory.FromWorldRoot(_tempWorldRoot);
-            WriteRawTerrainFile(worldDataDirectory.TerrainBiomeFilePath(0, 0), new byte[] { 1, 1, 1, 1 });
-            WriteRawTerrainFile(worldDataDirectory.TerrainBiomeFilePath(1, 2), new byte[] { 9, 8, 7, 6 });
+            WriteRawTerrainFile(worldDataDirectory.TerrainHeightFilePath(0, 0), new byte[8]);
+            var otherTileBytes = new byte[] { 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF };
+            WriteRawTerrainFile(worldDataDirectory.TerrainHeightFilePath(1, 2), otherTileBytes);
 
-            var loadedBiomeIndices = HeightFileLoader.LoadBiomeIndices(worldDataDirectory, 1, 2, resolution);
+            var loadedHeights = HeightFileLoader.LoadHeights(worldDataDirectory, 1, 2, resolution);
 
-            Assert.That(loadedBiomeIndices[0, 0], Is.EqualTo(9));
-            Assert.That(loadedBiomeIndices[0, 1], Is.EqualTo(8));
-            Assert.That(loadedBiomeIndices[1, 0], Is.EqualTo(7));
-            Assert.That(loadedBiomeIndices[1, 1], Is.EqualTo(6));
+            Assert.That(loadedHeights[0, 0], Is.EqualTo(0f).Within(QuantizationTolerance));
+            Assert.That(loadedHeights[0, 1], Is.EqualTo(1f).Within(QuantizationTolerance));
+            Assert.That(loadedHeights[1, 0], Is.EqualTo(0f).Within(QuantizationTolerance));
+            Assert.That(loadedHeights[1, 1], Is.EqualTo(1f).Within(QuantizationTolerance));
         }
 
         [Test]
@@ -132,22 +110,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             Assert.Throws<InvalidOperationException>(() => HeightFileLoader.LoadHeights(worldDataDirectory, 0, 0, 2));
         }
 
-        [Test]
-        public void ThrowsWhenBiomeFileLengthDoesNotMatchResolution()
-        {
-            var worldDataDirectory = WorldDataDirectory.FromWorldRoot(_tempWorldRoot);
-            WriteRawTerrainFile(worldDataDirectory.TerrainBiomeFilePath(0, 0), new byte[2 * 2 + 1]);
-
-            Assert.Throws<InvalidOperationException>(() => HeightFileLoader.LoadBiomeIndices(worldDataDirectory, 0, 0, 2));
-        }
-
         private static void WriteRawTerrainFile(string filePath, byte[] bytes)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(filePath));
             File.WriteAllBytes(filePath, bytes);
         }
 
-        private static MapGenerationOutput CreateOutput(int resolution, float[] heights, byte[] biomeIndices)
+        private static MapGenerationOutput CreateOutput(int resolution, float[] heights)
         {
             var output = new MapGenerationOutput
             {
@@ -156,7 +125,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
                 MapObjects = new List<PlacedMapObject>(),
                 ItemVeins = new List<PlacedVein>(),
             };
-            output.Tiles.Add(new TerrainTileOutput { TileX = 0, TileZ = 0, Heights = heights, BiomeIndices = biomeIndices });
+            output.Tiles.Add(new TerrainTileOutput { TileX = 0, TileZ = 0, Heights = heights });
             return output;
         }
     }

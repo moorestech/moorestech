@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Game.MapGeneration.Pipeline;
-using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Runtime;
 using Game.MapGeneration.Pipeline.Spawn;
@@ -37,10 +36,6 @@ namespace Tests.UnitTest.Game.MapGeneration
             LogAssert.Expect(LogType.Log, new Regex(@"\[SpawnSearch\] 成功\n.+"));
 
             var output = SpawnSearchTestWorld.AssertOutputIsInsideGrid(generation, Seed);
-
-            // 探索が選んだ良地が実際に生成されていれば、スポーン地点の分類は Grassland になる。
-            // If the region the search chose was really generated, the spawn point classifies as Grassland.
-            Assert.That(BiomeAtSpawn(output, generation), Is.EqualTo(BiomeType.Grassland));
 
             // world.json へ永続化されクライアントの分類段が使う値。index(0,0)タイルの窓原点は G + SceneOrigin。
             // These are persisted to world.json and drive the client's classification stage: the index(0,0) tile's window origin is G + SceneOrigin.
@@ -136,24 +131,6 @@ namespace Tests.UnitTest.Game.MapGeneration
             var config = GenerationRuntimeConfigFactory.Build(generation);
             config.seed = Seed;
             return SpawnRegionFinder.Find(config, ClassificationStage.GetEnabledBiomeTypes(config));
-        }
-
-        // スポーン地点のシーン座標を中心タイルのハイトマップ格子へ写し、その画素のバイオームを返す。
-        // 中心タイルはシーン (0,W)x(0,L) を占めるので、格子の原点は SceneOrigin ではなく 0 である。
-        // Maps the spawn scene position onto the center tile's heightmap lattice and returns that pixel's biome.
-        // The center tile occupies scene (0,W)x(0,L), so the lattice origin is 0, not SceneOrigin.
-        private static BiomeType BiomeAtSpawn(MapGenerationOutput output, Generation generation)
-        {
-            var vp = (VanillaGeneratorAlgorithmParam)generation.AlgorithmParam;
-            int res = output.Resolution;
-            int px = Mathf.RoundToInt(output.SpawnPoint.x / vp.TerrainWidth * (res - 1));
-            int pz = Mathf.RoundToInt(output.SpawnPoint.z / vp.TerrainLength * (res - 1));
-
-            // 中心タイルは index (half, half)。Tiles[0] は隅タイルなので添字が範囲外になる
-            // The center tile is index (half, half); Tiles[0] is a corner tile and the index would run past its end
-            int half = SpawnSearchTestWorld.GridSide / 2;
-            var centerTile = output.Tiles.Find(tile => tile.TileX == half && tile.TileZ == half);
-            return (BiomeType)centerTile.BiomeIndices[pz * res + px];
         }
     }
 }

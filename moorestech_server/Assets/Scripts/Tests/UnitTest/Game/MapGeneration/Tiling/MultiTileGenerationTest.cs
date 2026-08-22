@@ -40,10 +40,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             Assert.IsTrue(indices.Contains(new Vector2Int(1, 1)), "中心タイルが無い");
 
             foreach (var tile in output.Tiles)
-            {
                 Assert.AreEqual(config.Resolution * config.Resolution, tile.Heights.Length);
-                Assert.AreEqual(config.Resolution * config.Resolution, tile.BiomeIndices.Length);
-            }
         }
 
         // 転送層のEnumerateTileCoordinatesは正方格子前提。非正方はindexとcoordの対応が崩れるので生成側で先に弾く

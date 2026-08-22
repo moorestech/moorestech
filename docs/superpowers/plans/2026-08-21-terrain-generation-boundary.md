@@ -1269,8 +1269,8 @@ git commit -am "feat(mapgen): WorldTerrainSession ファサードを新設しク
 - Modify tests: `Tests/CombinedTest/Server/PacketTest/GetMapDataProtocolTest.cs`・`Tests/UnitTest/Game/MapGeneration/{MapGenerationPipelineTest,MapInfoJsonBuilderTest}.cs`・`Tiling/{MultiTileMapObjectTransferTest,MultiTileTestWorld}.cs`（クラスタのアサートは台帳（`PlacementLedger`）へ移す）
 - Delete: `tools/migration/assign_terrain_surround_effect.py`（役目終了）
 
-- [ ] **Step 1: C# 側から3キーを外す（コンパイルが壊れる箇所を全部直す）**
-- [ ] **Step 2: map.yml から enum を消し、7つの map.json から4キーを落とすスクリプトを実行**
+- [x] **Step 1: C# 側から3キーを外す（コンパイルが壊れる箇所を全部直す）**
+- [x] **Step 2: map.yml から enum を消し、7つの map.json から4キーを落とすスクリプトを実行**
 
 ```python
 import json,sys
@@ -1283,7 +1283,7 @@ for p in sys.argv[1:]:
 ```
 （各ファイルの既存整形と diff を見比べ、キー削除以外の差分が出ないようにする。`map.json` の mapObjects 配列が `mapObjects` キー配下かトップレベルかはファイルごとに確認）
 
-- [ ] **Step 3: テスト修正（クラスタ検証は `PlacementLedger` へ）→ コンパイル → `uloop run-tests ... "MapData|MapGeneration|Terrain"` → PASS → master repo コミット＋pin更新 → コミット**
+- [x] **Step 3: テスト修正（クラスタ検証は `PlacementLedger` へ）→ コンパイル → `uloop run-tests ... "MapData|MapGeneration|Terrain"` → PASS → master repo コミット＋pin更新 → コミット**
 
 ```bash
 git commit -am "refactor(mapgen): クラスタ3キーと terrainSurroundEffectType を生成システムの外から削除する"
@@ -1307,9 +1307,9 @@ git commit -am "refactor(mapgen): クラスタ3キーと terrainSurroundEffectTy
   （`PlacementInputBuilder.BuildBiomeIndices` の引数順は現行 `TilePlacementRunner.Run` 末尾の呼び出しをそのまま写す）
 - Modify tests: `TerrainFileWriterTest`・`TerrainChunkReaderTest`・`TerrainTransferMetaReaderTest`・`WorldProvisionerTest`・`GetMapDataTerrainChunkTest`・`Tests.Module/TerrainTransferTestScope.cs`・client `EditModeInPlayingTest/Terrain/TerrainCacheFetchTest.cs`（biome ファイルの存在アサートを外す）・`TileVisualBakerCacheParityTest`（SetUp の biome ファイル書き込みを外す）
 
-- [ ] **Step 1: 実装**（上記）
-- [ ] **Step 2: ゴールデン確認（R8 の要）**: `uloop run-tests ... "TerrainVisualGoldenTest"` → PASS（転送 biome と自前 `BuildBiomeIndices` が同値である証明）
-- [ ] **Step 3: 全テスト → コミット**
+- [x] **Step 1: 実装**（上記）
+- [x] **Step 2: ゴールデン確認（R8 の要）**: `uloop run-tests ... "TerrainVisualGoldenTest"` → PASS（転送 biome と自前 `BuildBiomeIndices` が同値である証明）
+- [x] **Step 3: 全テスト → コミット**
 
 ```bash
 git commit -am "refactor(mapgen): biome_x_z.bin の出力と転送を廃止し GeneratorVersion を 3.0.0 へ上げる"

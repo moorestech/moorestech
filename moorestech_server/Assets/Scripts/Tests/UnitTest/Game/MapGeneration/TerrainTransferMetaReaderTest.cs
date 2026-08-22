@@ -144,7 +144,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         }
 
         [Test]
-        public void 論理ストリームのファイル列はタイル順にheightとbiomeを交互に並べる()
+        public void 論理ストリームのファイル列はタイル順にheightを並べる()
         {
             var worldDataDirectory = _testScope.CreateEmptyWorldDataDirectory();
 
@@ -152,10 +152,10 @@ namespace Tests.UnitTest.Game.MapGeneration
             // This order defines the chunk boundaries; a swap keeps the byte total identical, so pin it here
             var expectedFilePaths = new[]
             {
-                worldDataDirectory.TerrainHeightFilePath(0, 0), worldDataDirectory.TerrainBiomeFilePath(0, 0),
-                worldDataDirectory.TerrainHeightFilePath(1, 0), worldDataDirectory.TerrainBiomeFilePath(1, 0),
-                worldDataDirectory.TerrainHeightFilePath(0, 1), worldDataDirectory.TerrainBiomeFilePath(0, 1),
-                worldDataDirectory.TerrainHeightFilePath(1, 1), worldDataDirectory.TerrainBiomeFilePath(1, 1),
+                worldDataDirectory.TerrainHeightFilePath(0, 0),
+                worldDataDirectory.TerrainHeightFilePath(1, 0),
+                worldDataDirectory.TerrainHeightFilePath(0, 1),
+                worldDataDirectory.TerrainHeightFilePath(1, 1),
             };
 
             Assert.AreEqual(expectedFilePaths, TerrainTransferMeta.EnumerateStreamFilePaths(worldDataDirectory, 4).ToArray());

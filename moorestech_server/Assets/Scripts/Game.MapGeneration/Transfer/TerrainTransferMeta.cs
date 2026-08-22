@@ -96,8 +96,8 @@ namespace Game.MapGeneration.Transfer
             return tileCoordinates;
         }
 
-        // 論理ストリームを構成するファイルの並び。タイル順にheight→biomeを交互に並べる
-        // File order composing the logical stream: per tile, height then biome, interleaved
+        // 論理ストリームを構成するファイルの並び。タイル順にheightだけを並べる
+        // File order composing the logical stream: per tile, height only
         public static IEnumerable<string> EnumerateStreamFilePaths(WorldDataDirectory worldDataDirectory, int terrainTileCount)
         {
             foreach (var tile in EnumerateTileCoordinates(terrainTileCount))
@@ -115,12 +115,11 @@ namespace Game.MapGeneration.Transfer
                 yield return (tileFile.FilePath, (long)terrainResolution * terrainResolution * tileFile.BytesPerPixel);
         }
 
-        // タイル1枚が論理ストリームへ寄与するファイル。並び(height→biome)と1画素あたりのバイト数の唯一の定義
-        // The files one tile contributes: the single definition of both the order (height then biome) and bytes per pixel
+        // タイル1枚が論理ストリームへ寄与するファイル。1画素あたりのバイト数の唯一の定義
+        // The files one tile contributes: the single definition of the bytes-per-pixel
         private static IEnumerable<(string FilePath, int BytesPerPixel)> EnumerateTileFiles(WorldDataDirectory worldDataDirectory, int tileX, int tileZ)
         {
             yield return (worldDataDirectory.TerrainHeightFilePath(tileX, tileZ), 2);
-            yield return (worldDataDirectory.TerrainBiomeFilePath(tileX, tileZ), 1);
         }
 
         // ワールドディレクトリを持たない構成(テスト・クライアント単体デバッグ)用。地形もワールド同一性も存在しない

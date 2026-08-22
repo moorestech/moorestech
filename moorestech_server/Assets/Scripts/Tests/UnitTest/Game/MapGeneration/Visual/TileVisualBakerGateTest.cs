@@ -46,13 +46,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             _worldCacheDirectory = WorldDataDirectory.FromWorldRoot(worldRoot);
             Directory.CreateDirectory(_worldCacheDirectory.TerrainDirectory);
 
-            // 転送済みバイオームはsplat経路だけが読む。テクスチャONの側を実際に走らせるために置く
-            // The transferred biomes are read by the splat path alone and exist so the texture-on side actually runs
-            var transferredBiomeIndices = new byte[Resolution * Resolution];
-            for (var pixel = 0; pixel < transferredBiomeIndices.Length; pixel++)
-                transferredBiomeIndices[pixel] = (byte)BiomeType.Grassland;
-            File.WriteAllBytes(_worldCacheDirectory.TerrainBiomeFilePath(TileX, TileZ), transferredBiomeIndices);
-
             // 高さは全画素0でよい。木の摂動もHeightFileLoaderのr16読み出し長も、平坦な高さ配列で足りる
             // Flat zero heights suffice: neither the tree perturbation nor HeightFileLoader's r16 read length needs anything richer
             File.WriteAllBytes(_worldCacheDirectory.TerrainHeightFilePath(TileX, TileZ), new byte[Resolution * Resolution * 2]);

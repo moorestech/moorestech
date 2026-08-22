@@ -73,7 +73,6 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.IsNotNull(mapInfoJson);
             Assert.IsTrue(File.Exists(_worldDataDirectory.WorldMetaFilePath));
             Assert.IsTrue(File.Exists(_worldDataDirectory.TerrainHeightFilePath(0, 0)));
-            Assert.IsTrue(File.Exists(_worldDataDirectory.TerrainBiomeFilePath(0, 0)));
 
             // mapVeinsをveinGuid→MapVeinMasterのveinTypeで振り分け、item/fluid双方の非空を検証する
             // Classify mapVeins by veinType via veinGuid→MapVeinMaster lookup; verify both are non-empty
@@ -107,9 +106,9 @@ namespace Tests.UnitTest.Game.MapGeneration
         // 定数同士の比較はどんな版でも通るトートロジーになるため、版そのものをリテラルで固定する
         // Comparing the constant to itself is a tautology regardless of value, so pin the version as a literal
         [Test]
-        public void GeneratorVersion定数は2_0_0に固定されている()
+        public void GeneratorVersion定数は3_0_0に固定されている()
         {
-            Assert.AreEqual("2.0.0", WorldProvisioner.GeneratorVersion);
+            Assert.AreEqual("3.0.0", WorldProvisioner.GeneratorVersion);
         }
 
         [Test]
@@ -127,10 +126,7 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             // 全タイルのファイルが存在する / every tile's files exist
             foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(worldMeta.TerrainTileCount))
-            {
                 Assert.IsTrue(File.Exists(_worldDataDirectory.TerrainHeightFilePath(tileX, tileZ)));
-                Assert.IsTrue(File.Exists(_worldDataDirectory.TerrainBiomeFilePath(tileX, tileZ)));
-            }
         }
 
         [Test]

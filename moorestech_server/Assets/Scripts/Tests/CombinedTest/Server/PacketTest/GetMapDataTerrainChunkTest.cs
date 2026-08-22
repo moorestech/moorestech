@@ -112,13 +112,10 @@ namespace Tests.CombinedTest.Server.PacketTest
         // Spell the expected order out here; reusing the production enumerator would make the check circular
         private static List<string> ExpectedStreamFilePathsOfGeneratedWorld(WorldDataDirectory worldDataDirectory, int gridSide)
         {
-            var streamFilePaths = new List<string>(gridSide * gridSide * 2);
+            var streamFilePaths = new List<string>(gridSide * gridSide);
             for (var tileZ = 0; tileZ < gridSide; tileZ++)
             for (var tileX = 0; tileX < gridSide; tileX++)
-            {
                 streamFilePaths.Add(worldDataDirectory.TerrainHeightFilePath(tileX, tileZ));
-                streamFilePaths.Add(worldDataDirectory.TerrainBiomeFilePath(tileX, tileZ));
-            }
             return streamFilePaths;
         }
 

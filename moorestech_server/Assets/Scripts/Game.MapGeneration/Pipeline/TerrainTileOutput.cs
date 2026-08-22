@@ -7,6 +7,5 @@ namespace Game.MapGeneration.Pipeline
         public int TileX;
         public int TileZ;
         public float[] Heights;       // [Resolution*Resolution]
-        public byte[] BiomeIndices;   // [Resolution*Resolution]
     }
 }

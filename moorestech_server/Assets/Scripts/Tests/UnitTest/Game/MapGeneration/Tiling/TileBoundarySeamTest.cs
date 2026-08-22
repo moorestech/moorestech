@@ -1,16 +1,20 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline;
-using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration.Tiling
 {
-    // パディング窓生成→中央クロップ→タイルループの全経路を通した出力で、隣接タイルの境界が一致することを検証する（R2）。
+    // パディング窓生成→中央クロップ→タイルループの全経路を通した出力で、隣接タイルの境界の高さが一致することを検証する（R2）。
     // ジョブ単体の座標基準は WorldOffsetSlopeSeamTest が見るので、ここは VanillaGenerator の最終出力だけを突き合わせる。
-    // Verifies adjacent tiles agree at their shared border on the full path: padded window, center crop, then the tile loop (R2).
+    // Verifies adjacent tiles agree on height at their shared border on the full path: padded window, center crop, then the tile loop (R2).
     // WorldOffsetSlopeSeamTest covers the per-job coordinate basis, so this one compares only VanillaGenerator's final output.
+    //
+    // biome_x_z.bin の出力・転送が廃止され(Task 8)、TerrainTileOutput はバイオームを持たなくなったため、
+    // この段では高さの境界一致だけを検証する。バイオームの境界一致は転送されなくなった値なのでこの層では測れない
+    // biome_x_z.bin's output and transfer were dropped (Task 8) and TerrainTileOutput no longer carries biomes,
+    // so only the height border agreement is checked here; biome border agreement is no longer measurable at this layer
     //
     // 本テストが保証するのは「クロップ機構と padding 導出が正しいこと」であり「production にシームが無いこと」ではない。
     // SmallSeaRemoval と Alpine 台地の連結成分は到達が無制限で padding では直せず、全設定で無効化してある（bd moorestech-edd.8）。
@@ -38,7 +42,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         private const float HeightTolerance = 1e-4f;
 
         [Test]
-        public void 隣接タイルの境界の高さとバイオームは一致する()
+        public void 隣接タイルの境界の高さは一致する()
         {
             AssertNoSeamAcrossGrid(BuildConfig(desertEnabled: false));
         }
@@ -48,7 +52,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         // Ruling A7: actually exercise HeightSlopeJob (the desert canyon slope) through the whole tile loop.
         // The default test setup disables desert/mesa/jungle/alpine, so this path has zero coverage unless it is stated here.
         [Test]
-        public void 砂漠スロープ有効でも隣接タイルの境界の高さとバイオームは一致する()
+        public void 砂漠スロープ有効でも隣接タイルの境界の高さは一致する()
         {
             AssertNoSeamAcrossGrid(BuildConfig(desertEnabled: true));
         }
@@ -60,13 +64,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         [Test]
         public void 海岸平滑の到達がchunkPaddingを超えても隣接タイルの境界は一致する()
         {
-            var config = BuildCoastalConfig();
-            var output = AssertNoSeamAcrossGrid(config);
-
-            // 砂浜が一画素も出ていなければ海岸系の経路を踏んでおらず、上の突き合わせは空振りになる
-            // With no beach pixel at all the shore path never ran and the comparison above proved nothing
-            Assert.Less(0, CountBorderBeachSamples(output, config.Resolution),
-                "タイル境界に砂浜が一画素も出ておらず、海岸系チャネルを踏んでいない");
+            AssertNoSeamAcrossGrid(BuildCoastalConfig());
         }
 
         // SmallSeaRemovalJob と AlpinePlateauStage の連結成分は到達が無制限で padding では直せない別問題（bd moorestech-edd.8）。
@@ -84,22 +82,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             config.landThreshold = CoastalLandThreshold;
             config.shoreConfig.beachLandTerrainRadius = CoastalBeachLandTerrainRadius;
             return config;
-        }
-
-        private static int CountBorderBeachSamples(MapGenerationOutput output, int resolution)
-        {
-            var beach = (byte)BiomeType.Beach;
-            var count = 0;
-            foreach (var tile in output.Tiles)
-            for (var i = 0; i < resolution; i++)
-            {
-                if (tile.BiomeIndices[i] == beach) count++;
-                if (tile.BiomeIndices[(resolution - 1) * resolution + i] == beach) count++;
-                if (tile.BiomeIndices[i * resolution] == beach) count++;
-                if (tile.BiomeIndices[i * resolution + resolution - 1] == beach) count++;
-            }
-
-            return count;
         }
 
         private static TerrainGenerationConfig BuildConfig(bool desertEnabled)
@@ -121,78 +103,56 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             return config;
         }
 
-        private static MapGenerationOutput AssertNoSeamAcrossGrid(TerrainGenerationConfig config)
+        private static void AssertNoSeamAcrossGrid(TerrainGenerationConfig config)
         {
             var output = new VanillaGenerator().Generate(config);
             Assert.AreEqual(GridSide * GridSide, output.Tiles.Count);
 
             var tilesByIndex = new Dictionary<Vector2Int, TerrainTileOutput>();
-            var distinctBiomes = new HashSet<byte>();
             foreach (var tile in output.Tiles)
-            {
                 tilesByIndex.Add(new Vector2Int(tile.TileX, tile.TileZ), tile);
-                foreach (var biomeIndex in tile.BiomeIndices) distinctBiomes.Add(biomeIndex);
-            }
-
-            // 全画素が同一バイオームだとバイオーム側の突き合わせが空になるので、2種以上出ていることを先に固定する
-            // A single biome everywhere would make the biome comparison vacuous, so pin that at least two of them appear
-            Assert.Less(1, distinctBiomes.Count, "バイオームが1種しか出ておらず境界の比較が空になる");
 
             // 格子の内部境界を全て見る。1組だけだと特定のタイルでしか起きない取りこぼしを見逃す
             // Walks every interior border of the grid; a single pair would miss a slip that only happens on some tiles
-            //
-            // height と biome を別リストへ収集してから最後にまとめて判定する。Assert.AreEqual を都度呼ぶと
-            // 最初の height 不一致で例外が飛び、同じ画素の biome 判定が一度も実行されないまま終わる
-            // Height and biome mismatches are collected into separate lists and judged at the end; calling
-            // Assert.AreEqual per pixel would throw on the first height miss and never even run the biome check for it
             var resolution = config.Resolution;
             var heightMismatches = new List<string>();
-            var biomeMismatches = new List<string>();
             for (var z = 0; z < GridSide; z++)
             for (var x = 0; x < GridSide; x++)
             {
                 var tile = tilesByIndex[new Vector2Int(x, z)];
-                if (x + 1 < GridSide) CollectColumnBorderMismatches(tile, tilesByIndex[new Vector2Int(x + 1, z)], resolution, heightMismatches, biomeMismatches);
-                if (z + 1 < GridSide) CollectRowBorderMismatches(tile, tilesByIndex[new Vector2Int(x, z + 1)], resolution, heightMismatches, biomeMismatches);
+                if (x + 1 < GridSide) CollectColumnBorderMismatches(tile, tilesByIndex[new Vector2Int(x + 1, z)], resolution, heightMismatches);
+                if (z + 1 < GridSide) CollectRowBorderMismatches(tile, tilesByIndex[new Vector2Int(x, z + 1)], resolution, heightMismatches);
             }
 
-            if (0 < heightMismatches.Count || 0 < biomeMismatches.Count)
-            {
-                var heightSample = 0 < heightMismatches.Count ? heightMismatches[0] : "(none)";
-                var biomeSample = 0 < biomeMismatches.Count ? biomeMismatches[0] : "(none)";
-                Assert.Fail($"height seam count={heightMismatches.Count} sample={heightSample}\nbiome seam count={biomeMismatches.Count} sample={biomeSample}");
-            }
-
-            return output;
+            if (0 < heightMismatches.Count)
+                Assert.Fail($"height seam count={heightMismatches.Count} sample={heightMismatches[0]}");
         }
 
         // 左タイルの最右列と右タイルの最左列は同一ワールドXをサンプルする
         // The left tile's rightmost column and the right tile's leftmost one sample the same world X
         private static void CollectColumnBorderMismatches(
-            TerrainTileOutput left, TerrainTileOutput right, int resolution, List<string> heightMismatches, List<string> biomeMismatches)
+            TerrainTileOutput left, TerrainTileOutput right, int resolution, List<string> heightMismatches)
         {
             for (var z = 0; z < resolution; z++)
-                CollectSampleMismatch(left, right, z * resolution + (resolution - 1), z * resolution, $"z={z}", heightMismatches, biomeMismatches);
+                CollectSampleMismatch(left, right, z * resolution + (resolution - 1), z * resolution, $"z={z}", heightMismatches);
         }
 
         // 手前タイルの最奥行と奥タイルの最手前行は同一ワールドZをサンプルする
         // The near tile's farthest row and the far tile's nearest one sample the same world Z
         private static void CollectRowBorderMismatches(
-            TerrainTileOutput near, TerrainTileOutput far, int resolution, List<string> heightMismatches, List<string> biomeMismatches)
+            TerrainTileOutput near, TerrainTileOutput far, int resolution, List<string> heightMismatches)
         {
             for (var x = 0; x < resolution; x++)
-                CollectSampleMismatch(near, far, (resolution - 1) * resolution + x, x, $"x={x}", heightMismatches, biomeMismatches);
+                CollectSampleMismatch(near, far, (resolution - 1) * resolution + x, x, $"x={x}", heightMismatches);
         }
 
         private static void CollectSampleMismatch(
             TerrainTileOutput near, TerrainTileOutput far, int nearIndex, int farIndex, string borderPosition,
-            List<string> heightMismatches, List<string> biomeMismatches)
+            List<string> heightMismatches)
         {
             var location = $"({near.TileX},{near.TileZ})->({far.TileX},{far.TileZ}) {borderPosition}";
             if (HeightTolerance < Mathf.Abs(near.Heights[nearIndex] - far.Heights[farIndex]))
                 heightMismatches.Add($"{location}: {near.Heights[nearIndex]} vs {far.Heights[farIndex]}");
-            if (near.BiomeIndices[nearIndex] != far.BiomeIndices[farIndex])
-                biomeMismatches.Add($"{location}: {near.BiomeIndices[nearIndex]} vs {far.BiomeIndices[farIndex]}");
         }
     }
 }

@@ -18,7 +18,6 @@ namespace Tests.UnitTest.Game.MapGeneration
             var b = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
 
             Assert.That(a.Tiles[0].Heights, Is.EqualTo(b.Tiles[0].Heights));
-            Assert.That(a.Tiles[0].BiomeIndices, Is.EqualTo(b.Tiles[0].BiomeIndices));
             Assert.That(a.MapObjects.Count, Is.EqualTo(b.MapObjects.Count));
             Assert.That(a.ItemVeins.Count, Is.EqualTo(b.ItemVeins.Count));
 

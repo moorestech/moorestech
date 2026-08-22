@@ -160,7 +160,7 @@ namespace Tests.UnitTest.Game.MapGeneration
                     },
                 },
             };
-            output.Tiles.Add(new TerrainTileOutput { TileX = 0, TileZ = 0, Heights = new float[4], BiomeIndices = new byte[4] });
+            output.Tiles.Add(new TerrainTileOutput { TileX = 0, TileZ = 0, Heights = new float[4] });
             return output;
         }
     }

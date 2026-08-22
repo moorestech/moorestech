@@ -38,13 +38,8 @@ namespace Game.Paths
             return Path.Combine(TerrainDirectory, $"height_{tileX}_{tileZ}.r16");
         }
 
-        public string TerrainBiomeFilePath(int tileX, int tileZ)
-        {
-            return Path.Combine(TerrainDirectory, $"biome_{tileX}_{tileZ}.bin");
-        }
-
-        // 高さ・バイオームから再構築できる見た目(splatmap/detail)の置き場。terrainとは別に消せるよう分けてある
-        // Holds the visuals (splatmap/detail) rebuildable from heights and biomes, kept apart from terrain so it can be dropped alone
+        // 高さから再構築できる見た目(splatmap/detail)の置き場。terrainとは別に消せるよう分けてある
+        // Holds the visuals (splatmap/detail) rebuildable from heights, kept apart from terrain so it can be dropped alone
         public string TerrainVisualCacheFilePath(int tileX, int tileZ)
         {
             return Path.Combine(TerrainVisualDirectory, $"visual_{tileX}_{tileZ}.bin");

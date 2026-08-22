@@ -47,11 +47,9 @@ namespace Game.MapGeneration.Pipeline.Tiling
             _ledger = ledger;
         }
 
-        // buffers は PaddedWindowStage がクロップ済みの分類で、ここで分類を回し直すと転送する分類と境界で食い違う。
-        // 戻り値はこのタイルの biomeIndices（heights と同じくクロップ済み分類から作る）。
-        // buffers carry PaddedWindowStage's cropped classification; re-running it here would disagree with the transferred one at the borders.
-        // The return value is this tile's biomeIndices, built from that same cropped classification.
-        public byte[] Run(
+        // buffers は PaddedWindowStage がクロップ済みの分類。配置の絵合わせ(木・物体・鉱脈)にだけ使い、戻り値には出さない。
+        // buffers carry PaddedWindowStage's cropped classification, used only to place trees/objects/veins; nothing is returned from it.
+        public void Run(
             TerrainGenerationConfig tileConfig, JobBuffers buffers, float[] heights, Vector2 tileScene,
             int tileIndexX, int tileIndexZ)
         {
@@ -96,9 +94,6 @@ namespace Game.MapGeneration.Pipeline.Tiling
             AppendMapObjects(objectEntries);
             _output.ItemVeins.AddRange(itemVeins);
             _output.FluidVeins.AddRange(fluidVeins);
-
-            return PlacementInputBuilder.BuildBiomeIndices(
-                buffers.winnerBiomeIndex, buffers.landMask, buffers.beachFactor, _biomeTypes, res * res);
 
             #region Internal
 

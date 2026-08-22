@@ -115,9 +115,8 @@ namespace Game.MapGeneration.Pipeline
                     PaddedWindowStage.Run(tileConfig, biomeTypes, buffers);
                     var heights = buffers.heights.ToArray();
                     var tileScene = config.TileScenePosition(tileX, tileZ);
-                    var biomeIndices = runner.Run(tileConfig, buffers, heights, tileScene, tileX, tileZ);
-                    return new TerrainTileOutput
-                        { TileX = tileX, TileZ = tileZ, Heights = heights, BiomeIndices = biomeIndices };
+                    runner.Run(tileConfig, buffers, heights, tileScene, tileX, tileZ);
+                    return new TerrainTileOutput { TileX = tileX, TileZ = tileZ, Heights = heights };
                 }
                 finally
                 {
