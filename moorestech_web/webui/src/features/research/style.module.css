@@ -13,13 +13,14 @@
 }
 /* TreeViewのviewportはflex:1で高さを取る前提。ChallengePanel同様にflex列で包む */
 /* TreeView's viewport fills via flex:1; wrap it in a flex column like ChallengePanel */
+/* overflowは持たない。viewport自身が切るうえ、ここで切ると逃げのぶん広げたクリップ境界を内側へ戻してしまう */
+/* No overflow here: the viewport already clips, and clipping here would pull the widened clip edge back inside the clearance */
 .treeContainer {
   position: relative;
   display: flex;
   flex-direction: column;
   min-height: 0;
   height: 100%;
-  overflow: hidden;
 }
 /* ノードカード: 名前+アイコンの縦積み。面と枠はトークン、状態はdata属性 */
 /* Node card: name + icon stack; face/border via tokens, states via data attributes */
