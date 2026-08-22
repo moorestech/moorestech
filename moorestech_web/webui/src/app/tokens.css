@@ -61,6 +61,9 @@
   --key-hint-letter-spacing: 0.055em;
   --key-hint-font-weight: 500;
   --key-hint-text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
+  /* キー操作ヒントの文字色。白文字では世界背景に埋もれるため共有の赤で描く（ユーザー裁定 2026-08-22） */
+  /* Key-hint text color; white sinks into the world, so use the shared red (user ruling 2026-08-22) */
+  --key-hint-color: var(--text-insufficient);
   /* z層は互いに比較できない3つのスタッキングコンテキスト別に接頭辞で分け、文脈をまたぐ比較を名前で防ぐ */
   /* Split z-layers by their incomparable stacking context via a name prefix, so cross-context comparisons read as wrong at a glance */
   /* .viewport直下の層序。通知はディムより前・stageより後ろの背面層へ沈める（ADR 0017） */
@@ -225,10 +228,10 @@
   /* 画面外矢印を画面端からこの固定長だけ内側にクランプする */
   /* Clamp off-screen arrows this fixed length inside the screen edge */
   --world-pin-edge-margin: 40px;
-  /* D&D説明のドラッグガイド矢印の寸法と1周期の長さ（webui-design §8.17） */
-  /* Size and one-cycle duration of the D&D drag guide arrow (webui-design §8.17) */
-  --tutorial-drag-guide-size: 28px;
-  --tutorial-drag-guide-duration: 1600ms;
+  /* D&D説明のドラッグガイド矢印。寸法は旧28pxの2倍・周期は旧1600msの2倍（ユーザー裁定 2026-08-22。webui-design §8.17） */
+  /* D&D drag guide arrow: size is double the old 28px and the cycle double the old 1600ms (user ruling 2026-08-22; webui-design §8.17) */
+  --tutorial-drag-guide-size: 56px;
+  --tutorial-drag-guide-duration: 3200ms;
   /* 枠線ハイライトの文言ラベルの間隔（webui-design §8.17） */
   /* Gap for an outline highlight's text label (webui-design §8.17) */
   --tutorial-highlight-label-gap: 4px;
@@ -349,7 +352,7 @@
   line-height: var(--key-hint-line-height);
   letter-spacing: var(--key-hint-letter-spacing);
   font-weight: var(--key-hint-font-weight);
-  color: var(--text-high-contrast);
+  color: var(--key-hint-color);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   text-shadow: var(--key-hint-text-shadow);
@@ -357,5 +360,5 @@
 
 :where(.keyHintText) kbd {
   font: inherit;
-  color: var(--text-high-contrast);
+  color: var(--key-hint-color);
 }
