@@ -77,7 +77,7 @@
 - Produces: `public interface INearestSearchTarget { Vector3 Position { get; } }`
 - Produces: `public sealed class KdTree<T> where T : class, INearestSearchTarget` — `public KdTree(IReadOnlyList<T> targets)`（構築時に `Position` を焼き込む）／`public T SearchNearest(Vector3 query)`（空なら `null`）／`public int Count { get; }`
 
-- [ ] **Step 1: テスト用ターゲットと失敗するテストを書く**
+- [x] **Step 1: テスト用ターゲットと失敗するテストを書く**
 
 `Client.Tests/Map/NearestSearch/NearestSearchTestTarget.cs`:
 ```csharp
@@ -227,12 +227,12 @@ namespace Client.Tests.Map.NearestSearch
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗（型未定義）を確認する**
+- [x] **Step 2: コンパイルして失敗（型未定義）を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `INearestSearchTarget` / `KdTree` が見つからないエラー
 
-- [ ] **Step 3: `INearestSearchTarget` と `KdTree<T>` を実装する**
+- [x] **Step 3: `INearestSearchTarget` と `KdTree<T>` を実装する**
 
 `Client.Game/InGame/Map/NearestSearch/INearestSearchTarget.cs`:
 ```csharp
@@ -378,14 +378,14 @@ namespace Client.Game.InGame.Map.NearestSearch
 }
 ```
 
-- [ ] **Step 4: コンパイルしテストを実行して通ることを確認する**
+- [x] **Step 4: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "KdTreeTest"`
 Expected: 6件 PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Map/NearestSearch moorestech_client/Assets/Scripts/Client.Tests/Map/NearestSearch
@@ -405,7 +405,7 @@ git commit -m "feat(nearest-search): 静的点集合向けの3次元k-d treeを�
 - Consumes: Task 1 の `KdTree<T>`, `INearestSearchTarget`
 - Produces: `public sealed class NearestTargetIndex<T> where T : class, INearestSearchTarget` — `public void SetTargets(Guid key, IReadOnlyList<T> targets)`（同keyは上書き＝再構築）／`public T SearchNearest(Guid key, Vector3 position)`（key未登録・空なら `null`）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `Client.Tests/Map/NearestSearch/NearestTargetIndexTest.cs`:
 ```csharp
@@ -465,12 +465,12 @@ namespace Client.Tests.Map.NearestSearch
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗（型未定義）を確認する**
+- [x] **Step 2: コンパイルして失敗（型未定義）を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `NearestTargetIndex` が見つからないエラー
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `Client.Game/InGame/Map/NearestSearch/NearestTargetIndex.cs`:
 ```csharp
@@ -501,14 +501,14 @@ namespace Client.Game.InGame.Map.NearestSearch
 }
 ```
 
-- [ ] **Step 4: コンパイルしテストを実行して通ることを確認する**
+- [x] **Step 4: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "NearestTargetIndexTest|KdTreeTest"`
 Expected: 9件 PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Map/NearestSearch moorestech_client/Assets/Scripts/Client.Tests/Map/NearestSearch
@@ -527,7 +527,7 @@ git commit -m "feat(nearest-search): guid別k-d treeを束ねるNearestTargetInd
 **Interfaces:**
 - Produces: `MapObjectGameObject : MonoBehaviour, IMiningTargetObject, INearestSearchTarget` — `public Guid MapObjectGuid { get; }`（`SetRuntimeIdentity` で1回パース）／`public Vector3 Position => transform.position`（`GetPosition()` は削除）
 
-- [ ] **Step 1: `MapObjectGameObject` を変更する**
+- [x] **Step 1: `MapObjectGameObject` を変更する**
 
 クラス宣言・フィールド・プロパティ（`MapObjectGameObject.cs` 先頭部）:
 ```csharp
@@ -573,20 +573,20 @@ using Client.Game.InGame.Map.NearestSearch;
 
 `GetPosition()` メソッド（163-166行）は削除する。
 
-- [ ] **Step 2: 呼び出し側を `Position` へ置き換える**
+- [x] **Step 2: 呼び出し側を `Position` へ置き換える**
 
 `MapObjectPin.cs:74`: `transform.position = mapObject.GetPosition();` → `transform.position = mapObject.Position;`
 `MiningAimTest.cs:110`: `_playerObject.transform.position = expectedMapObject.GetPosition();` → `_playerObject.transform.position = expectedMapObject.Position;`
 （`MapObjectGameObjectDatastore.cs:188` の `GetPosition()` はTask 4で本体ごと消えるが、このタスクのコンパイルを通すため一旦 `mapObject.Position` に置き換える）
 
-- [ ] **Step 3: コンパイルと既存テストで回帰が無いことを確認する**
+- [x] **Step 3: コンパイルと既存テストで回帰が無いことを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MapObjectHpBarScaleTest|MiningAimTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectGameObject.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectGameObjectDatastore.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Tutorial/MapObjectPin.cs moorestech_client/Assets/Scripts/Client.Tests/Mining/MiningAimTest.cs
@@ -607,7 +607,7 @@ git commit -m "refactor(map-object): MapObjectGuidをパース済み保持にし
 - Produces: `public sealed class MapObjectNearestSearcher` — `public void Register(MapObjectGameObject mapObject)`（guid別リストへ追加しそのguidをdirty）／`public void MarkDirty(Guid mapObjectGuid)`／`public MapObjectGameObject SearchNearest(Guid mapObjectGuid, Vector3 position)`（dirtyなら `IsAvailable` な個体だけで再構築してから探索。該当なしは `null`）
 - Produces: `MapObjectGameObjectDatastore.SearchNearestMapObject(Guid, Vector3)` はシグネチャ不変で内部が `_nearestSearcher.SearchNearest` へ委譲
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `Client.Tests/Map/MapObjectNearestSearcherTest.cs`（`MapObjectHpBarScaleTest` と同じくサーバDI＋実在guidで実体を組む）:
 ```csharp
@@ -713,12 +713,12 @@ namespace Client.Tests.Map
 ```
 注: 2つのguidはどちらも `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/map.json` に実在する（マスタ欠落だと `Initialize` が `LogError` を出し `IsAvailable=false` になってテストの意図が崩れるため、実在guidであることが前提）。
 
-- [ ] **Step 2: コンパイルして失敗（型未定義）を確認する**
+- [x] **Step 2: コンパイルして失敗（型未定義）を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `MapObjectNearestSearcher` が見つからないエラー
 
-- [ ] **Step 3: `MapObjectNearestSearcher` を実装する**
+- [x] **Step 3: `MapObjectNearestSearcher` を実装する**
 
 `Client.Game/InGame/Map/MapObject/MapObjectNearestSearcher.cs`:
 ```csharp
@@ -785,7 +785,7 @@ namespace Client.Game.InGame.Map.MapObject
 }
 ```
 
-- [ ] **Step 4: `MapObjectGameObjectDatastore` を載せ替える**
+- [x] **Step 4: `MapObjectGameObjectDatastore` を載せ替える**
 
 フィールド（27-28行付近）:
 ```csharp
@@ -832,14 +832,14 @@ namespace Client.Game.InGame.Map.MapObject
 ```
 `using System.Linq;` は `ToDictionary` で引き続き使うため残す。
 
-- [ ] **Step 5: コンパイルしテストを実行して通ることを確認する**
+- [x] **Step 5: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0（`MapObjectGameObjectDatastore.cs` が200行以下であることも `wc -l` で確認）
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MapObjectNearestSearcherTest|MapObjectHpBarScaleTest|MiningAimTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject moorestech_client/Assets/Scripts/Client.Tests/Map/MapObjectNearestSearcherTest.cs*
@@ -860,7 +860,7 @@ git commit -m "feat(map-object): 最寄りmapObject探索をk-d tree索引に載
 - Produces: `OutcropGameObject : MonoBehaviour, IMiningTargetObject, INearestSearchTarget` — `public Vector3 Position => transform.position`
 - Produces: `OutcropGameObjectDatastore.SearchNearestOutcrop(Guid, Vector3)` はシグネチャ不変
 
-- [ ] **Step 1: `OutcropGameObject` に `INearestSearchTarget` を実装する**
+- [x] **Step 1: `OutcropGameObject` に `INearestSearchTarget` を実装する**
 
 ```csharp
 using Client.Game.InGame.Map.NearestSearch;
@@ -875,7 +875,7 @@ using Client.Game.InGame.Map.NearestSearch;
         public SoundEffectType DestroySoundType { get; private set; }
 ```
 
-- [ ] **Step 2: Datastoreを載せ替える**
+- [x] **Step 2: Datastoreを載せ替える**
 
 フィールド（31行）:
 ```csharp
@@ -920,21 +920,21 @@ using Client.Game.InGame.Map.NearestSearch;
 ```
 `using Client.Game.InGame.Map.NearestSearch;` を追加。
 
-- [ ] **Step 3: `OutcropGuidIndex` を削除する**
+- [x] **Step 3: `OutcropGuidIndex` を削除する**
 
 ```bash
 git rm moorestech_client/Assets/Scripts/Client.Game/InGame/Map/Outcrop/OutcropGuidIndex.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Map/Outcrop/OutcropGuidIndex.cs.meta
 grep -rn "OutcropGuidIndex" moorestech_client/Assets/Scripts   # 0件であること
 ```
 
-- [ ] **Step 4: コンパイルと既存テストで回帰が無いことを確認する**
+- [x] **Step 4: コンパイルと既存テストで回帰が無いことを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Outcrop|Vein"`
 Expected: 全件 PASS（`IgnoreCI` カテゴリは環境により skip 可）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/Map/Outcrop
@@ -953,7 +953,7 @@ git commit -m "refactor(outcrop): 最寄り露頭探索をNearestTargetIndexへ�
 - Consumes: `MapObjectGameObjectDatastore.SearchNearestMapObject` / `OutcropGameObjectDatastore.SearchNearestOutcrop`（不変）
 - Produces: `MapObjectPin.Construct(MapObjectGameObjectDatastore)` / `VeinPin.Initialize(OutcropGameObjectDatastore)`（`InGameCameraController` 依存を除去。VContainerの `[Inject]` メソッドなので登録側の変更は不要）
 
-- [ ] **Step 1: `MapObjectPin` を変更する**
+- [x] **Step 1: `MapObjectPin` を変更する**
 
 - `using Client.Game.InGame.Control;` とフィールド `_inGameCameraController` を削除、`Construct` から `InGameCameraController` 引数を外す
 - `Update` 冒頭の `transform.LookAt(...)`／`transform.rotation = Quaternion.Euler(...)` の2行とそのコメントを削除（ピンprefabにRendererが無く向きは無意味）
@@ -986,12 +986,12 @@ git commit -m "refactor(outcrop): 最寄り露頭探索をNearestTargetIndexへ�
 ```
 （`using System;` を追加）
 
-- [ ] **Step 2: `VeinPin` を変更する**
+- [x] **Step 2: `VeinPin` を変更する**
 
 - `using Client.Game.InGame.Control;` とフィールド `_inGameCameraController` を削除、`Initialize` から `InGameCameraController` 引数を外す
 - `Update` 内の `transform.LookAt(...)`／`transform.rotation = Quaternion.Euler(...)` の2行とそのコメントを削除
 
-- [ ] **Step 3: コンパイルとTutorial系テストで回帰が無いことを確認する**
+- [x] **Step 3: コンパイルとTutorial系テストで回帰が無いことを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
@@ -1000,7 +1000,7 @@ Expected: 0件
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Tutorial"`
 Expected: 全件 PASS
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Tutorial/MapObjectPin.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Tutorial/VeinPin.cs
@@ -1018,7 +1018,7 @@ git commit -m "refactor(tutorial-pin): 死コードのLookAtを削除しmapObjec
 **Interfaces:**
 - Consumes/Produces: 公開API不変（`SetPin`/`RemovePin`/`GetCurrent`/`ObserveChanged`）
 
-- [ ] **Step 1: `SetPin` の `FirstOrDefault` をループに置き換える**
+- [x] **Step 1: `SetPin` の `FirstOrDefault` をループに置き換える**
 
 ```csharp
         public void SetPin(string pinId, string tutorialGuid, WorldPinProjection projection)
@@ -1063,7 +1063,7 @@ git commit -m "refactor(tutorial-pin): 死コードのLookAtを削除しmapObjec
         }
 ```
 
-- [ ] **Step 2: `CreateData` の `Select().ToArray()` をループに置き換える**
+- [x] **Step 2: `CreateData` の `Select().ToArray()` をループに置き換える**
 
 ```csharp
         private WorldPinPresentationData CreateData()
@@ -1091,14 +1091,14 @@ git commit -m "refactor(tutorial-pin): 死コードのLookAtを削除しmapObjec
 ```
 `using System.Linq;` は `RemovePin` の `RemoveAll`（LINQではなく`List<T>`のメソッド）しか残らないので削除する。
 
-- [ ] **Step 3: コンパイルと既存テストで回帰が無いことを確認する**
+- [x] **Step 3: コンパイルと既存テストで回帰が無いことを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "WorldPinStateStoreTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Tutorial/Presentation/WorldPinStateStore.cs
