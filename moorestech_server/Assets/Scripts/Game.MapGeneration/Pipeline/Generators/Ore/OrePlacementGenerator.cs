@@ -36,8 +36,8 @@ namespace Game.MapGeneration.Pipeline.Generators
             int hRes = dims.Resolution;
             float borderPx = BiomeMaskBuilder.MetersToPixels(borderMargin, w, hRes);
 
-            // 鉱石メンバーの距離チェック用グリッド（全エントリ共有・minDistanceBetweenOres/minDistanceFromOthersが使う）。
-            // Shared grid for ore-member distance checks (used by minDistanceBetweenOres / minDistanceFromOthers across entries).
+            // 鉱石メンバー距離用の共有グリッド。
+            // Shared grid for ore-member distance checks.
             var oreGrid = new SpatialGrid(w, l, Mathf.Max(w / 50f, 5f));
 
             // 確定済みの隣タイルの鉱脈を先に入れる。木と同じく、入れないと境界の帯だけ最小距離が破られる。
@@ -55,7 +55,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                 float centerSpacing = 0f;
                 if (entry.bands != null)
                     foreach (var band in entry.bands)
-                        if (band != null) centerSpacing = Mathf.Max(centerSpacing, band.clusterRadius * 2.5f);
+                        if (band != null) centerSpacing = Mathf.Max(centerSpacing,
+                            OrePlacementMath.CalculateClusterCenterSpacing(band.clusterRadius));
 
                 var clusterCenterGrid = new SpatialGrid(w, l, Mathf.Max(w / 50f, 5f));
                 var centerHalo = centerHalos.Get(entry.veinGuid);

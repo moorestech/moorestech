@@ -11,117 +11,139 @@ using Mod.Config;
 using Mod.Loader;
 using NUnit.Framework;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration
 {
-    // クラスタ中心の排他がエントリ内に閉じることを検証する。共有グリッドだと先行エントリが後続を面で締め出す（2026-08-23のバグ）。
-    // Verifies cluster-center exclusion stays within an entry; a shared grid let the first entry blanket later ones out (2026-08-23 bug).
+    // クラスタ中心の排他がエントリ内に閉じることを検証する。
+    // Verifies cluster-center exclusion stays within each entry.
     public class VeinClusterCenterSeparationTest
     {
         private const string VeinGuidA = "11111111-0000-0000-0000-000000000001";
         private const string VeinGuidB = "11111111-0000-0000-0000-000000000004";
         private const string VeinGuidC = "11111111-0000-0000-0000-000000000003";
+        private const float MinimumRelativePlacementRatio = 0.4f;
+        private const float DefaultCenterSpacing = 15f;
         private const float TileSize = 250f;
         private const int HeightRes = 65;
+
+        [SetUp]
+        public void SetUp()
+        {
+            var modResource = new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods"));
+            MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource)));
+        }
 
         [Test]
         public void SecondEntryIsNotCrowdedOutByFirstEntry()
         {
-            // OreEntryPlacerがveinGuidでmapVeinsマスタを引くため先にロードする
-            // Load masters first because OreEntryPlacer resolves veinGuid against the mapVeins master
-            var modResource = new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods"));
-            MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource)));
-
-            var placements = Generate(worldOffsetX: 0f, halo: CreateHalo());
-
+            var placements = Generate(
+                new[] { CreateEntry(VeinGuidA), CreateEntry(VeinGuidB) }, 0f, CreateHalo(20f), 42);
             int countA = placements.Count(p => p.MapObjectGuid == VeinGuidA);
             int countB = placements.Count(p => p.MapObjectGuid == VeinGuidB);
 
-            // 同一設定の2エントリは同数オーダーで湧くはず。共有グリッド実装ではcountBがほぼ0になる。
-            // Two identical entries should yield the same order of counts; the shared-grid code drives countB to near zero.
+            // 同一設定なら同数オーダーで湧き、共有グリッドへの退行では後続だけが減る。
+            // Identical settings yield the same order of count; a shared-grid regression suppresses only the latter.
             Assert.That(countA, Is.GreaterThan(0));
             Assert.That(countB, Is.GreaterThan(0));
             int smaller = System.Math.Min(countA, countB);
             int larger = System.Math.Max(countA, countB);
-            Assert.That(smaller, Is.GreaterThanOrEqualTo(larger * 4 / 10),
+            Assert.That((float)smaller / larger, Is.GreaterThanOrEqualTo(MinimumRelativePlacementRatio),
                 $"countA={countA} countB={countB}");
         }
 
         [Test]
-        public void AdjacentTileWithSeededHaloStillPlacesBothEntries()
+        public void EntryMaximumSpacingDoesNotExpandToAnotherEntryMaximum()
         {
-            var modResource = new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods"));
-            MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource)));
+            var entryA = CreateEntry(VeinGuidA);
+            entryA.bands = new[] { CreateBand(120f, 4f, 100f), CreateBand(-1f, 2f, 100f) };
+            var entryB = CreateEntry(VeinGuidB);
+            entryB.bands = new[] { CreateBand(-1f, 12f, 100f) };
+            var halo = CreateHalo(40f);
 
-            // タイル0で溜めた中心haloを隣接タイル1に効かせても、エントリ間の締め出しが起きないこと。
-            // Even with tile 0's center haloes seeded into adjacent tile 1, no cross-entry crowd-out occurs.
-            var halo = CreateHalo();
-            Generate(worldOffsetX: 0f, halo: halo);
-            var secondTile = Generate(worldOffsetX: TileSize, halo: halo);
+            // 複数bandの中心をproduction経路で生成し、中心haloから実座標を読み戻す。
+            // Generates multiple bands through production and reads their actual coordinates back from the center halo.
+            Generate(new[] { entryA, entryB }, 0f, halo, 42);
+            var centers = ReadCenters(halo, VeinGuidA, 0f);
+            Assert.That(centers.Count, Is.GreaterThan(1));
+            float minimumDistance = MinimumPairDistance(centers);
 
-            Assert.That(secondTile.Count(p => p.MapObjectGuid == VeinGuidA), Is.GreaterThan(0));
-            Assert.That(secondTile.Count(p => p.MapObjectGuid == VeinGuidB), Is.GreaterThan(0));
+            Assert.That(minimumDistance, Is.GreaterThanOrEqualTo(10f));
+            Assert.That(minimumDistance, Is.LessThan(30f));
+        }
+
+        [Test]
+        public void AdjacentTileSeparatesOnlyTheSeededGuid()
+        {
+            var entries = new[] { CreateEntry(VeinGuidB), CreateEntry(VeinGuidA) };
+            var probeHalo = CreateHalo(20f);
+            Generate(entries, TileSize, probeHalo, 43);
+            var probeA = ReadCenters(probeHalo, VeinGuidA, TileSize);
+            var probeB = ReadCenters(probeHalo, VeinGuidB, TileSize);
+
+            // 隣タイル内の既知候補から、境界外の同GUID中心と別GUID中心の距離証人を固定する。
+            // Derives a fixed witness between a same-GUID center outside the seam and a different-GUID center inside.
+            var sameGuidCenter = probeA.First(point => point.x < DefaultCenterSpacing - 1f &&
+                probeB.Any(other => Vector2.Distance(other, new Vector2(-1f, point.y)) < DefaultCenterSpacing));
+            var seededCenter = new Vector2(-1f, sameGuidCenter.y);
+            var differentGuidCenter = probeB.First(point => Vector2.Distance(point, seededCenter) < DefaultCenterSpacing);
+            var seededHalo = CreateHalo(20f);
+            seededHalo.ItemVeinCenters.Get(VeinGuidA).Add(TileSize + seededCenter.x, seededCenter.y);
+
+            Generate(entries, TileSize, seededHalo, 43);
+            var generatedA = ReadCenters(seededHalo, VeinGuidA, TileSize).Where(point => 0f <= point.x).ToList();
+            var generatedB = ReadCenters(seededHalo, VeinGuidB, TileSize);
+
+            Assert.That(generatedA.All(point => DefaultCenterSpacing <= Vector2.Distance(point, seededCenter)), Is.True);
+            Assert.That(generatedB.Any(point => Vector2.Distance(point, differentGuidCenter) < 0.001f), Is.True);
+            Assert.That(Vector2.Distance(differentGuidCenter, seededCenter), Is.LessThan(DefaultCenterSpacing));
         }
 
         [Test]
         public void ThirdEntryWithHalfDensitySurvivesDenseFirstEntries()
         {
-            var modResource = new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods"));
-            MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource)));
-
-            // 実マスタと同じ構図: 高密度2エントリの後に半分密度のエントリ。共有グリッドでは3番手が全滅していた。
-            // Mirrors the live master: two dense entries then a half-density one; the shared grid wiped the third out.
             var entries = new[]
             {
                 CreateEntryWithDensity(VeinGuidA, 3.6f),
                 CreateEntryWithDensity(VeinGuidB, 3.6f),
                 CreateEntryWithDensity(VeinGuidC, 1.8f),
             };
-            var entryMasks = new[] { CreateFullMask(), CreateFullMask(), CreateFullMask() };
-            var heights = new float[HeightRes, HeightRes];
-            var dims = new TerrainDimensions(
-                TileSize, TileSize, 100f, 0f, 0f,
-                HeightRes, 0f, 0f, 123, 0f, 0f, 0, 0, 1, 1);
-            var halo = CreateHalo();
-
-            var placements = OrePlacementGenerator.GenerateForWorld(
-                entries, entryMasks, 0f, heights, dims, new System.Random(42),
-                null, null, halo.ItemVeinMembers, halo.ItemVeinCenters, halo.Radius);
+            var placements = Generate(entries, 0f, CreateHalo(20f), 42);
 
             Assert.That(placements.Count(p => p.MapObjectGuid == VeinGuidC), Is.GreaterThan(0),
                 "3番手のエントリ（半分密度）が全滅している");
+
+            #region Internal
+
+            OreEntry CreateEntryWithDensity(string veinGuid, float density)
+            {
+                var entry = CreateEntry(veinGuid);
+                entry.bands[0].density = density;
+                return entry;
+            }
+
+            #endregion
         }
 
-        #region Internal
-
-        static PlacementHaloStore CreateHalo()
+        private static PlacementHaloStore CreateHalo(float radius)
         {
-            // 半径はテスト設定の全制約最大（clusterRadius6*2.5=15）を上回る値で固定
-            // Fixed above the largest constraint in this test setup (clusterRadius 6 * 2.5 = 15)
-            return new PlacementHaloStore(20f);
+            return new PlacementHaloStore(radius);
         }
 
-        static List<PlacementEntry> Generate(float worldOffsetX, PlacementHaloStore halo)
+        private static List<PlacementEntry> Generate(
+            OreEntry[] entries, float worldOffsetX, PlacementHaloStore halo, int seed)
         {
-            var entries = new[] { CreateEntry(VeinGuidA), CreateEntry(VeinGuidB) };
-            var entryMasks = new[] { CreateFullMask(), CreateFullMask() };
-            var heights = new float[HeightRes, HeightRes];
-            int tileIndexX = (int)(worldOffsetX / TileSize);
+            var masks = entries.Select(_ => CreateFullMask()).ToArray();
             var dims = new TerrainDimensions(
-                TileSize, TileSize, 100f,
-                worldOffsetX, 0f,
-                HeightRes, 0f, 0f, 123,
-                0f, 0f,
-                tileIndexX, 0, 2, 1);
-            var rng = new System.Random(42 + tileIndexX);
-
+                TileSize, TileSize, 100f, worldOffsetX, 0f,
+                HeightRes, 0f, 0f, 123, 0f, 0f,
+                (int)(worldOffsetX / TileSize), 0, 2, 1);
             return OrePlacementGenerator.GenerateForWorld(
-                entries, entryMasks, 0f, heights, dims, rng,
-                null, null,
-                halo.ItemVeinMembers, halo.ItemVeinCenters, halo.Radius);
+                entries, masks, 0f, new float[HeightRes, HeightRes], dims, new System.Random(seed),
+                null, null, halo.ItemVeinMembers, halo.ItemVeinCenters, halo.Radius);
         }
 
-        static OreEntry CreateEntry(string veinGuid)
+        private static OreEntry CreateEntry(string veinGuid)
         {
             return new OreEntry
             {
@@ -129,29 +151,41 @@ namespace Tests.UnitTest.Game.MapGeneration
                 biomes = BiomeFlags.Grassland,
                 useSlopeFilter = false,
                 minDistanceFromOthers = 0f,
-                bands = new[]
-                {
-                    new OreBand
-                    {
-                        outerRadiusMeters = -1f,
-                        density = 3f,
-                        maxObjectsPerCluster = 1,
-                        clusterRadius = 6f,
-                        minDistanceBetweenOres = 0f,
-                        placementRetries = 10,
-                    },
-                },
+                bands = new[] { CreateBand(-1f, 6f, 3f) },
             };
         }
 
-        static OreEntry CreateEntryWithDensity(string veinGuid, float density)
+        private static OreBand CreateBand(float outerRadius, float clusterRadius, float density)
         {
-            var entry = CreateEntry(veinGuid);
-            entry.bands[0].density = density;
-            return entry;
+            return new OreBand
+            {
+                outerRadiusMeters = outerRadius,
+                density = density,
+                maxObjectsPerCluster = 1,
+                clusterRadius = clusterRadius,
+                minDistanceBetweenOres = 0f,
+                placementRetries = 10,
+            };
         }
 
-        static bool[,] CreateFullMask()
+        private static List<Vector2> ReadCenters(PlacementHaloStore halo, string veinGuid, float worldOffsetX)
+        {
+            var grid = new SpatialGrid(TileSize, TileSize, 5f);
+            halo.ItemVeinCenters.Get(veinGuid).SeedGrid(
+                grid, worldOffsetX, 0f, TileSize, TileSize, halo.Radius);
+            return grid.GetAllPoints();
+        }
+
+        private static float MinimumPairDistance(IReadOnlyList<Vector2> points)
+        {
+            float minimum = float.PositiveInfinity;
+            for (int first = 0; first < points.Count; first++)
+                for (int second = first + 1; second < points.Count; second++)
+                    minimum = Mathf.Min(minimum, Vector2.Distance(points[first], points[second]));
+            return minimum;
+        }
+
+        private static bool[,] CreateFullMask()
         {
             var mask = new bool[HeightRes, HeightRes];
             for (int z = 0; z < HeightRes; z++)
@@ -159,7 +193,5 @@ namespace Tests.UnitTest.Game.MapGeneration
                     mask[z, x] = true;
             return mask;
         }
-
-        #endregion
     }
 }

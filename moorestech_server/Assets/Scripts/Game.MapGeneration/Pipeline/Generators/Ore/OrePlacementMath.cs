@@ -6,6 +6,11 @@ namespace Game.MapGeneration.Pipeline.Generators
     // Shared height sampling and slope-filter math for ore placement.
     internal static class OrePlacementMath
     {
+        public static float CalculateClusterCenterSpacing(float clusterRadius)
+        {
+            return clusterRadius * 2.5f;
+        }
+
         public static float SampleHeight(float[,] heights, float localX, float localZ,
             float w, float l, int hRes)
         {

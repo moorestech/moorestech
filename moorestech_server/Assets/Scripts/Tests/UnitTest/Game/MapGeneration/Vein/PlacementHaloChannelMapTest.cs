@@ -3,8 +3,6 @@ using NUnit.Framework;
 
 namespace Tests.UnitTest.Game.MapGeneration
 {
-    // 中心haloのveinGuid別分離を検証する。同一キーは同一チャネル、別キーは別チャネル。
-    // Verifies per-veinGuid separation of center haloes: same key shares a channel, different keys do not.
     public class PlacementHaloChannelMapTest
     {
         [Test]

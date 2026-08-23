@@ -61,7 +61,8 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                 float poissonArea = w * l;
                 float adjustedMinDist = Mathf.Sqrt(poissonArea / (band.density * 100f));
-                adjustedMinDist = Mathf.Max(adjustedMinDist, band.clusterRadius * 2.5f);
+                adjustedMinDist = Mathf.Max(adjustedMinDist,
+                    OrePlacementMath.CalculateClusterCenterSpacing(band.clusterRadius));
 
                 var candidates = PoissonDiskSampler.Generate(w, l, adjustedMinDist, rng.Next());
 
