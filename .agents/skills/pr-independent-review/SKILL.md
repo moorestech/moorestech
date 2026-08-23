@@ -4,7 +4,7 @@ description: |
   実装セッションと完全に独立したセッションでPRをレビューする手動発火スキル。PR URLまたは番号を受け取り、
   レビュー専用worktreeにcheckoutして moores-code-review（report-only）＋新規性ゲートL1を実行し、
   実コード抜粋入りのインフォグラフィックHTMLダイジェスト（verdict/裁定カード/suppressed）と
-  シャドー台帳を出力し、ダイジェストはcloudflaredクイックトンネルで外部からも閲覧できるURLを毎回発行する。
+  シャドー台帳を出力する。ダイジェストの閲覧は裁定サイト（https://review.moores.tech/pr/<番号>）が担う。
   実装セッションの自己申告contextは一切受け取らない。
   レビューと指摘への対応が完了したPRには「独立レビュー&対応完了」ラベルを付与する。
   Use When:
@@ -522,7 +522,10 @@ sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させ
   何のキー・見出しが欠けているかを指すので、それに従ってdigest.mdを修正する）
 - コンバータは `$RUNDIR/patch.diff` を読む。Step 3 の生成物なので通常は存在するが、
   無い場合はエラーで落ちる（`patch.diff がありません`）
-- 成功したら `open <$RUNDIRの実値>/digest.html`
+- 成功したら `digest.html` はそのまま置いておくだけでよい。閲覧経路は裁定サイト（`https://review.moores.tech/pr/<番号>`）
+  だけであり、サイトは `$RUNDIR` の `digest.html` を直接読んで配信する。**`open` でローカル表示しない・
+  `http.server`＋トンネル等でこのセッションから別途公開しない**
+  （[[2026-08-23-レビューダイジェストの公開は裁定サイトへ一本化する]]）
 - **残す規約**（生成subagentへの指示として引き継ぐ）:
   - カードのトリアージ基準（`must_read: true` を付ける条件）: (a)指摘系統の一致数が多い
     (b)裁定がCriticalの直し方を左右する (c)ゲームプレイ・アーキテクチャの方向を変える
@@ -540,6 +543,8 @@ sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させ
   すべてコンバータの責務へ移っており、生成subagentへ指示する必要はない
 - **保存**: `digest.md` / `digest.html` / `findings.json` はいずれも `$RUNDIR` 直下に保存する。
   `/tmp` へは一切書かない。`$RUNDIR` 配下はStop/SessionEnd hookが自動でcommit・pushする
+- **`$RUNDIR` を消さない・移動しない** — 裁定サイトはここを配信実体として直接読む（`PR_REVIEW_DATA_ROOT` が
+  `runs/` を指し、`pr-<番号>` の最大 `-rN` を選ぶ）。消すとサイトから当該PRのダイジェストが消える
 
 ## Step 7.5: findings.json（コンバータ出力の確認）
 
@@ -577,51 +582,6 @@ sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させ
   `recommended` というキーを digest.md に書くとコンバータがエラーで落ちる（`recommended` を書く欄は存在しない）
 - **id採番規則**: コンバータがseverity降順（critical→high→medium→low）→ファイルパス昇順→行番号昇順で
   `F01` から連番を振る。digest.mdには `F01` のようなidを書かず、相互参照は `[F:slug]`（finding YAMLの `slug` を指す）で書く
-
-## Step 7.6: ダイジェストの外部公開（cloudflaredクイックトンネル）
-
-`open` によるローカル表示に加え、**毎回必ず**ダイジェストを外部からアクセス可能にしてURLを報告する
-（ユーザー裁定 2026-08-05・[[2026-08-05-レビューダイジェストの外部公開はcloudflaredクイックトンネルで行う]]）。
-方式はローカルHTTPサーバ＋クイックトンネル固定。named tunnel（`tar-atari.com` 配下の固定サブドメイン）を
-使ってはいけない — 恒久設定と常時公開になり「プロセスを止めれば失効する」という選択理由が失われる。
-
-1. **ポートを選ぶ** — `8791` を既定とし、`lsof -nP -iTCP:<port> -sTCP:LISTEN` が非空なら +1 して空くまでずらす
-   （同一マシンで複数PRのレビューが並走しうるため、決め打ちで潰さない）
-2. **静的配信を起動**（`run_in_background: true`）:
-
-       exec python3 -m http.server <port> --bind 127.0.0.1 --directory <$RUNDIRの実値>
-
-   `--bind 127.0.0.1` は省略禁止（LAN全体への無用な露出を避ける。外部到達はトンネルだけが担う）。
-   `exec` はシェルを置き換えてPIDを一致させ、後で確実に止められるようにするため
-3. **クイックトンネルを起動**（`run_in_background: true`）:
-
-       cloudflared tunnel --url http://127.0.0.1:<port> --no-autoupdate
-
-4. **URLを取り出す** — 起動ログから `https://<ランダム>.trycloudflare.com` を拾う。
-   **ログを読む前に「URLはこれだろう」と推測して報告してはいけない**（毎回変わる）。
-   報告するURLは `https://<ランダム>.trycloudflare.com/digest.html`（配信ルートは `$RUNDIR` なのでファイル名まで付ける）
-5. **到達確認（必須・省略禁止）** — 次が **HTTP 200 かつ `<title>` が当該PRのものである**ことを確かめる:
-
-       curl -s -o /tmp/tunnel-check-<番号>.html -w "%{http_code}\n" --max-time 25 https://<ランダム>.trycloudflare.com/digest.html
-       grep -o '<title>[^<]*</title>' /tmp/tunnel-check-<番号>.html
-
-   この一時ファイルは成果物ではないので `/tmp` でよい（`$RUNDIR` へ置くとhookが記録として拾ってしまう）。
-
-   確認せずURLを報告するのは禁止 — トンネル確立とオリジン到達は別物で、`cloudflared` はオリジンが死んでいても
-   URLを印字する。この確認だけが「本当に見える」ことの検知点である。
-   なお**サンドボックス環境では `curl http://127.0.0.1:<port>` が `000` を返すことがある**が、
-   トンネル側が200ならオリジンは生きている（ループバック直叩きの遮断であってサーバの故障ではない）
-6. **報告に必ず添える3点**:
-   - **URLは認証なし**で、知っている者全員がprivateリポジトリのソース抜粋を閲覧できる
-   - **配信ルートは `$RUNDIR` 全体**なので、`digest.html` 以外の中間生成物（`patch.diff`・`context.md`・
-     `findings.json`）も同じURL配下で読める。PRの差分が丸ごと出ることを承知のうえで渡す
-   - **寿命はプロセス生存中のみ**。セッション終了・`TaskStop`・マシン再起動で失効する
-7. **`$RUNDIR` を消さない・移動しない**（Step 7の成果物が配信実体。hookが自動commitする記録の正本でもある）
-
-- **公開URLを `$LOGS` の records・シャドー台帳へ書かない**。URLは毎回変わる使い捨てで台帳の再現性に寄与せず、
-  失効済みURLが記録に残ると後から「まだ見える」と誤読される。固定書式にフィールドを足すのも禁止（grep横断集計が壊れる）
-- 明示的に停止を求められたら、2つのバックグラウンドシェル（http.server と cloudflared）を両方止める。
-  **片方だけ止めない** — 配信だけ残るとLAN内に開いたまま、トンネルだけ残ると502を返し続ける
 
 ## Step 8: 記録
 
@@ -707,12 +667,14 @@ sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させ
   セッション側で `git commit` すると同一内容を二重に扱うことになる。**書いたら放置が正**
   （旧版の「正典treeへ書き込むが勝手にcommitしない」は記録先を `$LOGS` へ分離する前の記述。
   現在は正典tree＝コードrepoへは記録を一切書かない）
+- **完了報告には裁定サイトのURL `https://review.moores.tech/pr/<番号>` を1行で添える**
+  （無人起動ではpollerが同じURLをPRコメントへ投稿するが、手動起動にはpollerが介在しないためセッション側で出す）
 - **本Step完了の最後に `$RUNDIR/session-done.marker` を書く**（中身は空でよい）。
   pollerはcmuxワークスペースをフォアグラウンド起動しており「ターン終了＝プロセス終了」の合図を持たないため、
-  `findings.json` の生成だけでは Step 7.6/8 の完了を意味しない。このマーカーが「終了してよい」の唯一の合図であり、
+  `findings.json` の生成だけでは Step 8 の完了を意味しない。このマーカーが「終了してよい」の唯一の合図であり、
   pollerは `findings.json ∧ session-done.marker` の両方が揃うまでワークスペースを閉じない
   (This marker is the sole "safe to close" signal for the poller's foreground cmux launch — write it only
-  after Step 7.6/8 are truly done, since findings.json alone no longer implies the session has finished)
+  after Step 8 is truly done, since findings.json alone no longer implies the session has finished)
 
 ## Step 9: 修正モード（「修正して」と言われたときだけ）
 
@@ -862,7 +824,3 @@ sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させ
 - 新規性ゲート出力の受け取り検査失敗（JSONパース不能・3キーのいずれか欠落）: 即エラー終了・理由報告（Step 5参照）
 - 新規性ゲートが3系統全空（patchは非空）: `BASE_REF` の妥当性を確認してから継続（Step 5参照）
 - codex不在などmoores-code-review内の縮退: 本体規約に従いダイジェストの参考節に明記
-- Step 7.6の外部公開に失敗（`cloudflared` 不在・トンネル未確立・到達確認がHTTP 200以外またはtitle不一致）:
-  **レビュー自体はエラー終了させない**（ダイジェストとrecordsは既に手元にあり、成果物としては完成しているため）。
-  ローカルの `open` 済みパスを案内し、公開できなかった事実と理由を報告に1行明記する。
-  URLに触れないまま黙って完了報告するのは禁止
