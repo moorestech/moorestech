@@ -47,31 +47,21 @@ namespace Client.Game.InGame.Tutorial
 
         private void Update()
         {
+            if (_currentTutorialParam == null) return;
+
             // Y軸を常にカメラに向ける
+            // Face the camera on the Y axis only
             transform.LookAt(_inGameCameraController.Position);
             transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
 
-            // 最も近いMapObjectにピンする
-            NearestPinMapObject();
-
-            // Webへ射影配信する
-            // Project and publish to the web overlay
+            // 追えなければ非表示済みなので配信しない
+            // Nothing to publish once tracking failed and the pin got hidden
+            if (!TryTrackNearestMapObject()) return;
             PublishWebWorldPin();
 
             #region Internal
 
-            void PublishWebWorldPin()
-            {
-                if (!WebUiScreenGate.IsWebUiMode || _currentTutorialParam == null) return;
-
-                var camera = CameraManager.MainCamera.Camera;
-                if (!camera) return;
-
-                var projection = WorldPinScreenProjection.Project(camera, transform.position);
-                WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
-            }
-
-            void NearestPinMapObject()
+            bool TryTrackNearestMapObject()
             {
                 // 候補集合中の最寄り未破壊にピン
                 // Pin the nearest undestroyed candidate
@@ -81,10 +71,11 @@ namespace Client.Game.InGame.Tutorial
                 if (mapObject == null)
                 {
                     HideForMissingMapObject();
-                    return;
+                    return false;
                 }
 
                 transform.position = mapObject.GetPosition();
+                return true;
             }
 
             void HideForMissingMapObject()
@@ -94,21 +85,22 @@ namespace Client.Game.InGame.Tutorial
                 if (!_missingReported)
                 {
                     _missingReported = true;
-                    Debug.LogError($"未破壊のMapObject（{DescribeTarget()}、候補{_targetMapObjectGuids.Count}件）が存在しません");
+                    Debug.LogError($"未破壊のMapObject（tutorialGuid={_pinTutorialGuid}、候補{_targetMapObjectGuids.Count}件）が存在しません");
                 }
 
                 SetActive(false);
                 WorldPinStateStore.Instance.RemovePin(WebPinId);
             }
 
-            string DescribeTarget()
+            void PublishWebWorldPin()
             {
-                return _currentTutorialParam.PinTargetParam switch
-                {
-                    MapObjectPinTargetParam byMapObject => $"mapObjectGuid={byMapObject.MapObjectGuid}",
-                    EarnItemPinTargetParam byEarnItem => $"itemGuid={byEarnItem.ItemGuid}",
-                    _ => $"pinTargetType={_currentTutorialParam.PinTargetType}",
-                };
+                if (!WebUiScreenGate.IsWebUiMode) return;
+
+                var camera = CameraManager.MainCamera.Camera;
+                if (!camera) return;
+
+                var projection = WorldPinScreenProjection.Project(camera, transform.position);
+                WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
             }
 
             #endregion
@@ -117,7 +109,7 @@ namespace Client.Game.InGame.Tutorial
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
             _currentTutorialParam = (MapObjectPinTutorialParam)tutorial.TutorialParam;
-            _targetMapObjectGuids = MasterHolder.MapObjectMaster.ResolvePinTargets(_currentTutorialParam);
+            _targetMapObjectGuids = MasterHolder.ChallengeMaster.ResolvePinTargets(_currentTutorialParam);
             _pinTutorialGuid = tutorial.TutorialGuid.ToString("D");
             _missingReported = false;
 
