@@ -1,8 +1,8 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
-using Client.Game.InGame.Construction;
 using Client.Game.InGame.UI.Inventory.Main;
+using Game.Construction;
 using TMPro;
 using UnityEngine;
 
@@ -26,14 +26,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly ILocalPlayerInventory _inventory;
         private readonly CommonBlockPlacePointCalculator _pointCalculator;
+        private readonly ConstructionWalletQuery _walletQuery;
         private readonly TextMeshPro _nameLabel;
 
-        public ElectricWirePoleGhostPart(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory inventory, CommonBlockPlacePointCalculator pointCalculator)
+        public ElectricWirePoleGhostPart(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory inventory, CommonBlockPlacePointCalculator pointCalculator, ConstructionWalletQuery walletQuery)
         {
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
             _inventory = inventory;
             _pointCalculator = pointCalculator;
+            _walletQuery = walletQuery;
 
             // 選択中の電柱名を表示するワールド空間ラベル（ExtendPreviewObjectのコストラベルと同じ構成）
             // World-space label for the selected pole name, built the same way as ExtendPreviewObject's cost label
@@ -54,9 +56,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
             if (!selection.TryGetSelectedPole(out var poleBlockId, out var poleMaster)) return Fail();
 
-            // 建設コストを賄えるかを所持素材から判定する
-            // Judge from owned materials whether the construction cost is affordable
-            var canAffordPole = 1 <= ConstructionMaterialAffordability.CalculateAffordableCellCount(poleMaster.RequiredItems, _inventory);
+            // 財布に置ける数を問い合わせる。残りで賄えるなら素材ゼロでも置ける
+            // Ask the wallet how many cells fit; the remainder can cover a cell with zero materials held
+            var canAffordPole = 1 <= _walletQuery.GetAffordablePlacementCount(poleBlockId, _inventory);
 
             // 電柱の設置座標を地面レイキャストから求め、設置可能距離を超えていたらゴーストを出さない
             // Compute the pole placement position from a ground raycast and drop the ghost beyond the placeable distance

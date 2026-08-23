@@ -7,9 +7,9 @@ using Client.Input;
 using Client.Game.InGame.Control;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Construction;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
-using Server.Protocol.PacketResponse.Util.Construction;
 using UnityEngine;
 using static Client.Common.LayerConst;
 
@@ -31,23 +31,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         private readonly ILocalPlayerInventory _playerInventory;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly GearChainPoleExtendPreviewObject _previewObject;
+        private readonly ConstructionWalletQuery _walletQuery;
 
-        public GearChainPoleFrameInputCollector(Camera mainCamera, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, GearChainPoleExtendPreviewObject previewObject)
+        public GearChainPoleFrameInputCollector(Camera mainCamera, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, GearChainPoleExtendPreviewObject previewObject, ConstructionWalletQuery walletQuery)
         {
             _mainCamera = mainCamera;
             _playerInventory = playerInventory;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _previewObject = previewObject;
+            _walletQuery = walletQuery;
         }
 
         public GearChainPolePlaceExtendInput CollectPlaceExtend(IGearChainPoleConnectAreaCollider sourcePole, BlockMasterElement poleBlockMaster, bool isAwaitingResponse, Guid connectToolGuid)
         {
             var poleParam = (GearChainPoleBlockParam)poleBlockMaster.BlockParam;
 
-            // 選択中ポールのBlockIdと建設コストをマスタから解決する
-            // Resolve the selected pole's BlockId and construction cost from master
+            // 選択中ポールのBlockIdをマスタから解決する
+            // Resolve the selected pole's BlockId from master
             var poleBlockId = MasterHolder.BlockMaster.GetBlockId(poleBlockMaster.BlockGuid);
-            var reservedItemCounts = ConstructionCostService.ToItemCounts(poleBlockMaster.RequiredItems);
+
+            // 予約するのは「そのセルで実際に消費する建設コスト」。財布が賄うなら空
+            // Reserve what the cell actually consumes; empty when the wallet covers it
+            var reservedItemCounts = _walletQuery.GetItemsToConsume(poleBlockId);
 
             var input = new GearChainPolePlaceExtendInput
             {

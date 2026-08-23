@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Construction;
 using Common.Debug;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Construction;
 using Server.Protocol.PacketResponse;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
@@ -13,13 +13,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
     /// </summary>
     public static class ConstructionCostPreviewMarker
     {
-        public static void MarkUnaffordableCellsAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, BlockId representativeBlockId, ClientRemainingPlacementCountDatastore remainingPlacementCountDatastore, IEnumerable<IItemStack> inventoryItems)
+        public static void MarkUnaffordableCellsAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, BlockId representativeBlockId, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems)
         {
             // デバッグ中はコスト判定をスキップ
             // Skip cost checks during debug placement
             if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement)) return;
 
-            var affordableCount = remainingPlacementCountDatastore.GetAffordablePlacementCount(representativeBlockId, inventoryItems);
+            var affordableCount = walletQuery.GetAffordablePlacementCount(representativeBlockId, inventoryItems);
 
             var placeableCount = 0;
             for (var i = 0; i < currentPlaceInfos.Count; i++)
