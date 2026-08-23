@@ -27,6 +27,7 @@ namespace Client.Game.InGame.Map.MapObject
 
         private readonly Dictionary<int, MapObjectGameObject> _allMapObjects = new();
         private readonly Dictionary<Guid, GameObject> _prefabCacheByMapObjectGuid = new();
+        private readonly MapObjectNearestSearcher _nearestSearcher = new();
 
         // 生成ループの完了と例外を初期化パイプラインがawaitできる形で保持する
         // Retain the instantiation loop's completion and exceptions for the initialization pipeline to await
@@ -108,6 +109,10 @@ namespace Client.Game.InGame.Map.MapObject
                     // Apply the initial state (destroy/HP) from the snapshot after registration
                     mapObject.Initialize(snapshot);
 
+                    // 最寄り探索の候補へ登録する（初期破壊済みは探索時の生存フィルタで除かれる）
+                    // Register as a nearest-search candidate (ones destroyed in the snapshot drop out at the live filter on search)
+                    _nearestSearcher.Register(mapObject);
+
                     // フレーム分散でInstantiateし、起動時の描画スパイクを抑える
                     // Instantiate spread across frames to suppress the render spike at startup
                     processedCount++;
@@ -160,6 +165,9 @@ namespace Client.Game.InGame.Map.MapObject
             {
                 case MapObjectUpdateEventMessagePack.DestroyEventType:
                     mapObject.DestroyMapObject();
+                    // 破壊は索引へ即時反映せず、次の探索で該当guidだけ再構築する
+                    // Destruction isn't applied to the index immediately; the next search rebuilds just this guid
+                    _nearestSearcher.MarkDirty(mapObject.MapObjectGuid);
                     break;
                 case MapObjectUpdateEventMessagePack.HpUpdateEventType:
                     mapObject.UpdateHp(data.CurrentHp);
@@ -176,23 +184,7 @@ namespace Client.Game.InGame.Map.MapObject
 
         public MapObjectGameObject SearchNearestMapObject(Guid mapObjectGuid, Vector3 position)
         {
-            MapObjectGameObject nearestMapObject = null;
-            var maxMagnitude = float.MaxValue;
-
-            foreach (var mapObject in _allMapObjects.Values)
-            {
-                // 指定されているmapObjectか破壊されていないかチェック
-                if (mapObject.MapObjectGuid != mapObjectGuid || mapObject.IsDestroyed) continue;
-
-                // 距離をチェック
-                var magnitude = (position - mapObject.Position).magnitude;
-                if (maxMagnitude < magnitude) continue;
-
-                nearestMapObject = mapObject;
-                maxMagnitude = magnitude;
-            }
-
-            return nearestMapObject;
+            return _nearestSearcher.SearchNearest(mapObjectGuid, position);
         }
     }
 }
