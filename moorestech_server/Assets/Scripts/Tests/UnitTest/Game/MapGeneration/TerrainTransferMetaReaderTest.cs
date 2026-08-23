@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using Game.MapGeneration.Export;
-using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -66,6 +65,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [TestCase("terrainNoiseOriginZ")]
         [TestCase("terrainSceneOriginX")]
         [TestCase("terrainSceneOriginZ")]
+        [TestCase("generationMasterFingerprint")]
         public void generatedのworld_jsonに原点キーが欠けていたら0で補わず例外を投げる(string missingKey)
         {
             var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
@@ -115,7 +115,7 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             var meta = TerrainTransferMetaReader.Read(worldDataDirectory);
 
-            Assert.AreEqual(WorldProvisioner.TemplateMapMode, meta.MapMode);
+            Assert.AreEqual(WorldMapMode.Template, meta.MapMode);
             Assert.AreEqual(Vector2.zero, meta.Origins.NoiseOrigin);
             Assert.AreEqual(Vector2.zero, meta.Origins.SceneOrigin);
         }
@@ -143,7 +143,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         }
 
         [Test]
-        public void 論理ストリームのファイル列はタイル順にheightとbiomeを交互に並べる()
+        public void 論理ストリームのファイル列はタイル順にheightを並べる()
         {
             var worldDataDirectory = _testScope.CreateEmptyWorldDataDirectory();
 
@@ -151,10 +151,10 @@ namespace Tests.UnitTest.Game.MapGeneration
             // This order defines the chunk boundaries; a swap keeps the byte total identical, so pin it here
             var expectedFilePaths = new[]
             {
-                worldDataDirectory.TerrainHeightFilePath(0, 0), worldDataDirectory.TerrainBiomeFilePath(0, 0),
-                worldDataDirectory.TerrainHeightFilePath(1, 0), worldDataDirectory.TerrainBiomeFilePath(1, 0),
-                worldDataDirectory.TerrainHeightFilePath(0, 1), worldDataDirectory.TerrainBiomeFilePath(0, 1),
-                worldDataDirectory.TerrainHeightFilePath(1, 1), worldDataDirectory.TerrainBiomeFilePath(1, 1),
+                worldDataDirectory.TerrainHeightFilePath(0, 0),
+                worldDataDirectory.TerrainHeightFilePath(1, 0),
+                worldDataDirectory.TerrainHeightFilePath(0, 1),
+                worldDataDirectory.TerrainHeightFilePath(1, 1),
             };
 
             Assert.AreEqual(expectedFilePaths, TerrainTransferMeta.EnumerateStreamFilePaths(worldDataDirectory, 4).ToArray());

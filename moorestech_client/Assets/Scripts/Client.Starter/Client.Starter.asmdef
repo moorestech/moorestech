@@ -27,7 +27,7 @@
         "Game.PlayerRiding.Interface",
         "Core.Item.Interface",
         "Game.Paths",
-        "Game.MapGeneration",
+        "Game.MapGeneration.Contract",
         "Common.Debug",
         "Client.Localization",
         "Mod.Loader",

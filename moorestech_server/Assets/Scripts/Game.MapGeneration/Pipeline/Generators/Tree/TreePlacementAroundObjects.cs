@@ -26,8 +26,10 @@ namespace Game.MapGeneration.Pipeline.Generators
             var clusterGroups = new Dictionary<int, List<ObjectPlacementResult>>();
             foreach (var obj in objectPlacements)
             {
-                int cid = obj.ClusterInfo.ClusterId;
-                if (cid < 0) continue;
+                // クラスタを組まない配置は樹木パッチの芯にならないので飛ばす
+                // A placement without a cluster is no core for a tree patch, so it is skipped
+                if (!obj.ClusterInfo.HasValue) continue;
+                int cid = obj.ClusterInfo.Value.ClusterId;
                 if (!clusterGroups.ContainsKey(cid))
                     clusterGroups[cid] = new List<ObjectPlacementResult>();
                 clusterGroups[cid].Add(obj);
@@ -50,7 +52,9 @@ namespace Game.MapGeneration.Pipeline.Generators
                 {
                     var members = kvp.Value;
                     if (members.Count == 0) continue;
-                    var info = members[0].ClusterInfo;
+                    // グループ化でクラスタ有りだけを残しているので、代表メンバーは必ず値を持つ
+                    // Grouping kept only the clustered ones, so the representative member always has a value
+                    var info = members[0].ClusterInfo.Value;
                     float centroidX = info.Center.x - dims.WorldOffsetX;
                     float centroidZ = info.Center.z - dims.WorldOffsetZ;
 
@@ -107,15 +111,13 @@ namespace Game.MapGeneration.Pipeline.Generators
                                 proxCfg.scaleHighBase + (float)rng.NextDouble() * proxCfg.scaleHighRange,
                                 combined);
 
-                            placements.Add(new PlacementEntry
-                            {
-                                MapObjectGuid = TreePlacementCommon.PickRandomGuid(entry.mapObjectGuids, rng),
-                                WorldPosition = new Vector3(tx, height * dims.TerrainHeight, tz),
-                                Rotation = Quaternion.Euler(0,
-                                    entry.randomRotation ? (float)rng.NextDouble() * 360f : 0f, 0),
-                                Scale = new Vector3(scale, scale, scale),
-                                Sink = entry.sink
-                            });
+                            placements.Add(PlacementEntry.CreateTree(
+                                TreePlacementCommon.PickRandomGuid(entry.mapObjectGuids, rng),
+                                new Vector3(tx, height * dims.TerrainHeight, tz),
+                                Quaternion.Euler(0, entry.randomRotation ? (float)rng.NextDouble() * 360f : 0f, 0),
+                                new Vector3(scale, scale, scale),
+                                entry.sink,
+                                entry.terrainSurroundEffectType));
                             sharedGrid.Add(tx, tz);
                         }
                     }

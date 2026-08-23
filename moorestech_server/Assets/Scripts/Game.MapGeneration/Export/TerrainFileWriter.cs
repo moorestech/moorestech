@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Export
 {
-    // 生成パイプライン出力をterrainバイナリ(height/biome)とcache READMEへ書き出す。
-    // Writes pipeline output to terrain binaries (height/biome) and the cache README.
+    // 生成出力をterrainバイナリとcache READMEへ書き出す
+    // Writes generation output to terrain binaries and the cache README
     public static class TerrainFileWriter
     {
         private const string CacheReadmeText = "このディレクトリは削除可能です。削除しても次回起動時に自動で再構築されます。";
@@ -17,13 +17,10 @@ namespace Game.MapGeneration.Export
             Directory.CreateDirectory(worldDataDirectory.TerrainDirectory);
             Directory.CreateDirectory(worldDataDirectory.CacheDirectory);
 
-            // 全タイルのheight/biomeを書き出す。ファイル名の格子indexは転送層のEnumerateTileCoordinatesと同じ
-            // Write every tile's height/biome; grid indices in filenames match the transfer layer's enumeration
+            // 全タイルのheightを書き出す。ファイル名の格子indexは転送層のEnumerateTileCoordinatesと同じ
+            // Write every tile's height; grid indices in filenames match the transfer layer's enumeration
             foreach (var tile in output.Tiles)
-            {
                 WriteHeightFile(worldDataDirectory, tile, output.Resolution);
-                WriteBiomeFile(worldDataDirectory, tile);
-            }
             File.WriteAllText(worldDataDirectory.CacheReadmeFilePath, CacheReadmeText);
 
             #region Internal
@@ -50,12 +47,6 @@ namespace Game.MapGeneration.Export
                     buffer[i * 2 + 1] = (byte)(value >> 8);
                 }
                 File.WriteAllBytes(heightFilePath, buffer);
-            }
-
-            static void WriteBiomeFile(WorldDataDirectory worldDataDirectory, TerrainTileOutput tile)
-            {
-                var biomeFilePath = worldDataDirectory.TerrainBiomeFilePath(tile.TileX, tile.TileZ);
-                File.WriteAllBytes(biomeFilePath, tile.BiomeIndices);
             }
 
             #endregion

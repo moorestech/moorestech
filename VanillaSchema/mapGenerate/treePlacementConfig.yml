@@ -25,6 +25,13 @@ properties:
             schemaId: map
             foreignKeyIdPath: /mapObjects/[*]/mapObjectGuid
             displayElementPath: /mapObjects/[*]/mapObjectName
+    - key: terrainSurroundEffectType
+      type: enum
+      options:
+      - treeRootPatch
+      - rockNoBareGround
+      # 木配置器が置くものの地形への効き方。木は根元を塗り木の距離場へ、岩（Boulder1/Stone等）は裸地を塗らず物の距離場へ
+      # How a tree-placer placement affects the terrain: trees paint the root patch and feed the tree distance field; rocks paint nothing and feed the object field
     - key: scaleHeightRange
       type: vector2
     - key: scaleWidthRange

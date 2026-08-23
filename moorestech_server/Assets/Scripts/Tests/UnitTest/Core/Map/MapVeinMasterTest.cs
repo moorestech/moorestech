@@ -66,7 +66,7 @@ namespace Tests.UnitTest.Core.Map
             var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000001"",""veinName"":""bad"",""veinType"":""item"",
                  ""veinParam"":{""itemGuid"":""99999999-9999-9999-9999-999999999999""},
-                 ""outcropAddressablePath"":""Vanilla/Environment/Vein/Item/VeinPrefab_Stone"",""soundEffectType"":""stone"",
+                 ""outcropAddressablePath"":""Vanilla/Environment/Vein/Item/VeinPrefab_Stone"",""soundEffectType"":""stone"",""terrainSurroundEffectType"":""rockNoBareGround"",
                  ""handMiningType"":""none"",""handMiningParam"":null}]}");
             var master = new MapVeinMaster(json);
             Assert.IsFalse(master.Validate(out var logs));
@@ -81,7 +81,7 @@ namespace Tests.UnitTest.Core.Map
             var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000002"",""veinName"":""badTool"",""veinType"":""item"",
                  ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},
-                 ""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",
+                 ""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",""terrainSurroundEffectType"":""rockNoBareGround"",
                  ""handMiningType"":""minable"",
                  ""handMiningParam"":{""handMiningTools"":[{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":1},{""toolItemGuid"":""99999999-9999-9999-9999-999999999999"",""attackSpeed"":1}],
                  ""minCount"":1,""maxCount"":1}}]}");
@@ -98,7 +98,7 @@ namespace Tests.UnitTest.Core.Map
             var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000003"",""veinName"":""badFluid"",""veinType"":""fluid"",
                  ""veinParam"":{""fluidGuid"":""00000000-0000-0000-1234-000000000001""},
-                 ""outcropAddressablePath"":""Vanilla/Environment/WaterVein"",""soundEffectType"":""stone"",
+                 ""outcropAddressablePath"":""Vanilla/Environment/WaterVein"",""soundEffectType"":""stone"",""terrainSurroundEffectType"":""rockNoBareGround"",
                  ""handMiningType"":""minable"",
                  ""handMiningParam"":{""handMiningTools"":[{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":1}],""minCount"":1,""maxCount"":1}}]}");
             Assert.IsFalse(new MapVeinMaster(json).Validate(out var logs));
@@ -113,7 +113,7 @@ namespace Tests.UnitTest.Core.Map
             var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000004"",""veinName"":""noTools"",""veinType"":""item"",
                  ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},
-                 ""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",
+                 ""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",""terrainSurroundEffectType"":""rockNoBareGround"",
                  ""handMiningType"":""minable"",""handMiningParam"":{""handMiningTools"":[],""minCount"":1,""maxCount"":1}}]}");
             Assert.IsFalse(new MapVeinMaster(json).Validate(out var logs));
             Assert.IsTrue(logs.Contains("noTools"));
@@ -125,7 +125,7 @@ namespace Tests.UnitTest.Core.Map
         {
             var json = JToken.Parse($@"{{""mapObjects"":[],""mapVeins"":[
                 {{""veinGuid"":""33333333-0000-0000-0000-000000000007"",""veinName"":""badSpeed"",""veinType"":""item"",
-                 ""veinParam"":{{""itemGuid"":""00000000-0000-0000-1234-000000000001""}},""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",""handMiningType"":""minable"",
+                 ""veinParam"":{{""itemGuid"":""00000000-0000-0000-1234-000000000001""}},""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",""terrainSurroundEffectType"":""rockNoBareGround"",""handMiningType"":""minable"",
                  ""handMiningParam"":{{""handMiningTools"":[{{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":{attackSpeed}}}],""minCount"":1,""maxCount"":1}}}}]}}");
             Assert.IsFalse(new MapVeinMaster(json).Validate(out var logs));
             Assert.IsTrue(logs.Contains("attackSpeed"));
@@ -136,7 +136,7 @@ namespace Tests.UnitTest.Core.Map
         {
             var json = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000008"",""veinName"":""duplicateTool"",""veinType"":""item"",
-                 ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",""handMiningType"":""minable"",
+                 ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",""terrainSurroundEffectType"":""rockNoBareGround"",""handMiningType"":""minable"",
                  ""handMiningParam"":{""handMiningTools"":[{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":1},{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":2}],""minCount"":1,""maxCount"":1}}]}" );
             Assert.IsFalse(new MapVeinMaster(json).Validate(out var logs));
             Assert.IsTrue(logs.Contains("duplicate ToolItemGuid"));
@@ -150,7 +150,7 @@ namespace Tests.UnitTest.Core.Map
             var zeroMinJson = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000005"",""veinName"":""zeroMin"",""veinType"":""item"",
                  ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},
-                 ""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",
+                 ""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",""terrainSurroundEffectType"":""rockNoBareGround"",
                  ""handMiningType"":""minable"",""handMiningParam"":{""handMiningTools"":[{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":1}],""minCount"":0,""maxCount"":1}}]}");
             Assert.IsFalse(new MapVeinMaster(zeroMinJson).Validate(out var zeroMinLogs));
             Assert.IsTrue(zeroMinLogs.Contains("zeroMin"));
@@ -158,7 +158,7 @@ namespace Tests.UnitTest.Core.Map
             var reversedCountJson = JToken.Parse(@"{""mapObjects"":[],""mapVeins"":[
                 {""veinGuid"":""33333333-0000-0000-0000-000000000006"",""veinName"":""reversedCount"",""veinType"":""item"",
                  ""veinParam"":{""itemGuid"":""00000000-0000-0000-1234-000000000001""},
-                 ""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",
+                 ""outcropAddressablePath"":""Vanilla/Environment/StoneVein"",""soundEffectType"":""stone"",""terrainSurroundEffectType"":""rockNoBareGround"",
                  ""handMiningType"":""minable"",""handMiningParam"":{""handMiningTools"":[{""toolItemGuid"":""00000000-0000-0000-1234-000000000001"",""attackSpeed"":1}],""minCount"":3,""maxCount"":1}}]}");
             Assert.IsFalse(new MapVeinMaster(reversedCountJson).Validate(out var reversedCountLogs));
             Assert.IsTrue(reversedCountLogs.Contains("reversedCount"));

@@ -78,7 +78,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
                     },
                 },
             };
-            return new VanillaGenerator().Generate(config);
+            return new VanillaGenerator().Generate(config).Output;
         }
 
         // 鉱脈AABBの中心をスポーンXZ距離へ直す。

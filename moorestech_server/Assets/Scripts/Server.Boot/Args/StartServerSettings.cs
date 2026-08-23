@@ -1,5 +1,5 @@
 #nullable enable
-using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Server.Boot.Args;
 
@@ -15,7 +15,7 @@ namespace Server.Boot
         // ワールド新規作成時の生成モード（"template" | "generated"）
         // Provisioning mode for a fresh world ("template" | "generated")
         [Option(isFlag: false, "--mapMode")]
-        public string MapMode { get; set; } = WorldProvisioner.TemplateMapMode;
+        public string MapMode { get; set; } = WorldMapMode.Template;
 
         // generatedモードのシード。未指定(null)なら196を使い、0も有効なseed値として扱う
         // Seed for generated mode; an unspecified value (null) resolves to 196, while zero remains valid

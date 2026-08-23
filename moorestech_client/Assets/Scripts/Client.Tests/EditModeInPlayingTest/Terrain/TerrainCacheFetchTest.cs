@@ -6,7 +6,6 @@ using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Starter.Initialization;
 using Cysharp.Threading.Tasks;
-using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using NUnit.Framework;
@@ -45,10 +44,10 @@ namespace Client.Tests.EditModeInPlayingTest
             async UniTask TestBody()
             {
                 var worldDirectory = Path.Combine(Path.GetTempPath(), $"moorestech_terrain_cache_test_{Guid.NewGuid()}");
-                await LoadMainGameWithMapMode(null, worldDirectory, WorldProvisioner.GeneratedMapMode);
+                await LoadMainGameWithMapMode(null, worldDirectory, WorldMapMode.Generated);
 
                 var mapLayout = await ClientContext.VanillaApi.Response.GetMapData(default);
-                Assert.AreEqual(WorldProvisioner.GeneratedMapMode, mapLayout.TerrainMeta.MapMode, "generatedモードで起動していない");
+                Assert.AreEqual(WorldMapMode.Generated, mapLayout.TerrainMeta.MapMode, "generatedモードで起動していない");
                 Assert.Less(0, mapLayout.TerrainMeta.TerrainChunkTotal, "地形チャンクが1本も無い");
 
                 var terrainMeta = mapLayout.TerrainMeta.ToTerrainTransferMeta();

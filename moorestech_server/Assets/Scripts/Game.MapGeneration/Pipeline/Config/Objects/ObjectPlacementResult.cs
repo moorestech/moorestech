@@ -24,6 +24,9 @@ namespace Game.MapGeneration.Pipeline.Config
         public Vector3 Scale;
         public float Sink;
         public float MeshRadius;
-        public RockClusterInfo ClusterInfo;
+
+        // 所属クラスタ。クラスタを組まない配置はnull
+        // The owning cluster; a placement that forms no cluster is null
+        public RockClusterInfo? ClusterInfo;
     }
 }

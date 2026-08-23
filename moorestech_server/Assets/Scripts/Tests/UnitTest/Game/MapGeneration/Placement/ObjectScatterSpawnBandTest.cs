@@ -30,46 +30,46 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         [Test]
         public void 近傍帯だけ密度を持つ散布はスポーンから近傍半径未満にのみ置かれる()
         {
-            var output = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 1, useClusterMode: false,
+            var run = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 1, useClusterMode: false,
                 (NearRadius, 30f),
                 (-1f, 0f));
 
-            Assert.IsNotEmpty(output.MapObjects);
-            foreach (var mapObject in output.MapObjects)
-                Assert.Less(ObjectScatterBandTestWorld.DistanceFromSpawnXz(mapObject.Position, output.SpawnPoint), NearRadius);
+            Assert.IsNotEmpty(run.Output.MapObjects);
+            foreach (var mapObject in run.Output.MapObjects)
+                Assert.Less(ObjectScatterBandTestWorld.DistanceFromSpawnXz(mapObject.Position, run.Output.SpawnPoint), NearRadius);
         }
 
         [Test]
         public void 最外周だけ密度を持つ散布はスポーンから近傍半径以上にのみ置かれる()
         {
-            var output = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 1, useClusterMode: false,
+            var run = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 1, useClusterMode: false,
                 (NearRadius, 0f),
                 (-1f, 30f));
 
-            Assert.IsNotEmpty(output.MapObjects);
-            foreach (var mapObject in output.MapObjects)
-                Assert.GreaterOrEqual(ObjectScatterBandTestWorld.DistanceFromSpawnXz(mapObject.Position, output.SpawnPoint), NearRadius);
+            Assert.IsNotEmpty(run.Output.MapObjects);
+            foreach (var mapObject in run.Output.MapObjects)
+                Assert.GreaterOrEqual(ObjectScatterBandTestWorld.DistanceFromSpawnXz(mapObject.Position, run.Output.SpawnPoint), NearRadius);
         }
 
         [Test]
         public void クラスタモードは近傍帯のクラスタ中心だけをスポーン近傍に置く()
         {
             const float density = 30f;
-            var output = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 1, useClusterMode: true,
+            var run = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 1, useClusterMode: true,
                 (NearRadius, density),
                 (-1f, 0f));
 
-            Assert.IsNotEmpty(output.MapObjects);
-            foreach (var mapObject in output.MapObjects)
+            Assert.IsNotEmpty(run.Output.MapObjects);
+            foreach (var placement in run.Ledger.Placements)
             {
-                Assert.GreaterOrEqual(mapObject.ClusterId, 0);
-                var center = new Vector3(mapObject.ClusterCenter.x, 0f, mapObject.ClusterCenter.y);
-                Assert.Less(ObjectScatterBandTestWorld.DistanceFromSpawnXz(center, output.SpawnPoint), NearRadius);
+                Assert.IsTrue(placement.Cluster.HasValue);
+                var center = new Vector3(placement.Cluster.Value.Center.x, 0f, placement.Cluster.Value.Center.y);
+                Assert.Less(ObjectScatterBandTestWorld.DistanceFromSpawnXz(center, run.Output.SpawnPoint), NearRadius);
             }
 
             // 中心数はリング面積×density由来のはず。clusterCount固定実装ではこの桁に収まらない。
             // The centre count should track ring area times density; a fixed clusterCount implementation would miss this band.
-            ObjectScatterBandTestWorld.AssertClusterCenterCountMatchesDensity(output, density);
+            ObjectScatterBandTestWorld.AssertClusterCenterCountMatchesDensity(run, density);
         }
 
         // 複数タイル（中心タイルにスポーン）でも、近傍帯の判定がタイルローカルではなく世界座標のスポーン距離で効くことを固定する。
@@ -79,34 +79,34 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         [Test]
         public void 複数タイルでも近傍帯はワールド座標のスポーン距離で判定される()
         {
-            var output = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 3, useClusterMode: false,
+            var run = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 3, useClusterMode: false,
                 (NearRadius, 30f),
                 (-1f, 0f));
 
-            Assert.IsNotEmpty(output.MapObjects);
-            foreach (var mapObject in output.MapObjects)
-                Assert.Less(ObjectScatterBandTestWorld.DistanceFromSpawnXz(mapObject.Position, output.SpawnPoint), NearRadius);
+            Assert.IsNotEmpty(run.Output.MapObjects);
+            foreach (var mapObject in run.Output.MapObjects)
+                Assert.Less(ObjectScatterBandTestWorld.DistanceFromSpawnXz(mapObject.Position, run.Output.SpawnPoint), NearRadius);
         }
 
         [Test]
         public void 複数タイルでもクラスタ中心はワールド座標のスポーン距離で判定される()
         {
             const float density = 30f;
-            var output = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 3, useClusterMode: true,
+            var run = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 3, useClusterMode: true,
                 (NearRadius, density),
                 (-1f, 0f));
 
-            Assert.IsNotEmpty(output.MapObjects);
-            foreach (var mapObject in output.MapObjects)
+            Assert.IsNotEmpty(run.Output.MapObjects);
+            foreach (var placement in run.Ledger.Placements)
             {
-                Assert.GreaterOrEqual(mapObject.ClusterId, 0);
-                var center = new Vector3(mapObject.ClusterCenter.x, 0f, mapObject.ClusterCenter.y);
-                Assert.Less(ObjectScatterBandTestWorld.DistanceFromSpawnXz(center, output.SpawnPoint), NearRadius);
+                Assert.IsTrue(placement.Cluster.HasValue);
+                var center = new Vector3(placement.Cluster.Value.Center.x, 0f, placement.Cluster.Value.Center.y);
+                Assert.Less(ObjectScatterBandTestWorld.DistanceFromSpawnXz(center, run.Output.SpawnPoint), NearRadius);
             }
 
             // 近傍リングは中心タイルの内側にほぼ収まるため、単一タイルと同じ桁の中心数が出るはず。
             // The near ring sits almost entirely inside the centre tile, so the centre count should land in the same order as the single-tile case.
-            ObjectScatterBandTestWorld.AssertClusterCenterCountMatchesDensity(output, density);
+            ObjectScatterBandTestWorld.AssertClusterCenterCountMatchesDensity(run, density);
         }
 
         // 宣言順が外半径の降順でも、リングは帯の実体で対応する（添字前提の実装だと近傍帯と最外周帯が入れ替わる）。
@@ -114,32 +114,32 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         [Test]
         public void 降順に宣言しても近傍帯の密度が近傍リングへ効く()
         {
-            var output = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 1, useClusterMode: false,
+            var run = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 1, useClusterMode: false,
                 (-1f, 0f),
                 (NearRadius, 30f));
 
-            Assert.IsNotEmpty(output.MapObjects);
-            foreach (var mapObject in output.MapObjects)
-                Assert.Less(ObjectScatterBandTestWorld.DistanceFromSpawnXz(mapObject.Position, output.SpawnPoint), NearRadius);
+            Assert.IsNotEmpty(run.Output.MapObjects);
+            foreach (var mapObject in run.Output.MapObjects)
+                Assert.Less(ObjectScatterBandTestWorld.DistanceFromSpawnXz(mapObject.Position, run.Output.SpawnPoint), NearRadius);
         }
 
         [Test]
         public void 降順に宣言してもクラスタモードの近傍帯が近傍リングへ効く()
         {
             const float density = 30f;
-            var output = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 1, useClusterMode: true,
+            var run = ObjectScatterBandTestWorld.GenerateScatter(gridSide: 1, useClusterMode: true,
                 (-1f, 0f),
                 (NearRadius, density));
 
-            Assert.IsNotEmpty(output.MapObjects);
-            foreach (var mapObject in output.MapObjects)
+            Assert.IsNotEmpty(run.Output.MapObjects);
+            foreach (var placement in run.Ledger.Placements)
             {
-                Assert.GreaterOrEqual(mapObject.ClusterId, 0);
-                var center = new Vector3(mapObject.ClusterCenter.x, 0f, mapObject.ClusterCenter.y);
-                Assert.Less(ObjectScatterBandTestWorld.DistanceFromSpawnXz(center, output.SpawnPoint), NearRadius);
+                Assert.IsTrue(placement.Cluster.HasValue);
+                var center = new Vector3(placement.Cluster.Value.Center.x, 0f, placement.Cluster.Value.Center.y);
+                Assert.Less(ObjectScatterBandTestWorld.DistanceFromSpawnXz(center, run.Output.SpawnPoint), NearRadius);
             }
 
-            ObjectScatterBandTestWorld.AssertClusterCenterCountMatchesDensity(output, density);
+            ObjectScatterBandTestWorld.AssertClusterCenterCountMatchesDensity(run, density);
         }
 
     }

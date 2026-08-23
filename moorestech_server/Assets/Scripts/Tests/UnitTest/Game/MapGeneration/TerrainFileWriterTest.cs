@@ -40,12 +40,9 @@ namespace Tests.UnitTest.Game.MapGeneration
             TerrainFileWriter.Write(worldDataDirectory, CreateFlatOutput(resolution));
 
             var heightFilePath = worldDataDirectory.TerrainHeightFilePath(0, 0);
-            var biomeFilePath = worldDataDirectory.TerrainBiomeFilePath(0, 0);
 
             Assert.That(File.Exists(heightFilePath), Is.True);
-            Assert.That(File.Exists(biomeFilePath), Is.True);
             Assert.That(new FileInfo(heightFilePath).Length, Is.EqualTo(resolution * resolution * 2));
-            Assert.That(new FileInfo(biomeFilePath).Length, Is.EqualTo(resolution * resolution));
 
             Assert.That(File.Exists(worldDataDirectory.CacheReadmeFilePath), Is.True);
             var readmeText = File.ReadAllText(worldDataDirectory.CacheReadmeFilePath);
@@ -71,7 +68,6 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TileX = 0,
                 TileZ = 0,
                 Heights = new[] { 0f, 0.5f, 1.0f, 1.0000003f },
-                BiomeIndices = new byte[resolution * resolution],
             });
 
             TerrainFileWriter.Write(worldDataDirectory, output);
@@ -120,7 +116,6 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TileX = 0,
                 TileZ = 0,
                 Heights = new float[resolution * resolution],
-                BiomeIndices = new byte[resolution * resolution],
             });
             return output;
         }

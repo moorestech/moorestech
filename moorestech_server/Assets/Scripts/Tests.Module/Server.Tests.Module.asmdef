@@ -23,6 +23,7 @@
         "Game.Map",
         "Game.Map.Interface",
         "Game.MapGeneration",
+        "Game.MapGeneration.Contract",
         "Game.Paths",
         "Game.PlayerInventory",
         "Game.PlayerInventory.Interface",

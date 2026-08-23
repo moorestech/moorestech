@@ -25,6 +25,13 @@ properties:
             schemaId: map
             foreignKeyIdPath: /mapObjects/[*]/mapObjectGuid
             displayElementPath: /mapObjects/[*]/mapObjectName
+    - key: terrainSurroundEffectType
+      type: enum
+      options:
+      - rockBareGround
+      - rockNoBareGround
+      # Boulder/Cliff 系だけ裸地を塗る（MapMaking原本の prefab 名判定の置き換え）。瓦礫・メサは距離場だけに乗る
+      # Only Boulder/Cliff-type entries paint bare ground (replacing MapMaking's prefab-name check); rubble and mesas feed the distance field alone
     - key: density
       type: number
       default: 1
@@ -86,6 +93,13 @@ properties:
                 schemaId: map
                 foreignKeyIdPath: /mapObjects/[*]/mapObjectGuid
                 displayElementPath: /mapObjects/[*]/mapObjectName
+        - key: terrainSurroundEffectType
+          type: enum
+          options:
+          - rockBareGround
+          - rockNoBareGround
+          # Boulder/Cliff 系だけ裸地を塗る（MapMaking原本の prefab 名判定の置き換え）。瓦礫・メサは距離場だけに乗る
+          # Only Boulder/Cliff-type entries paint bare ground (replacing MapMaking's prefab-name check); rubble and mesas feed the distance field alone
         - key: scaleRange
           type: vector2
         - key: slopeAlignment
@@ -130,6 +144,13 @@ properties:
             schemaId: map
             foreignKeyIdPath: /mapObjects/[*]/mapObjectGuid
             displayElementPath: /mapObjects/[*]/mapObjectName
+    - key: terrainSurroundEffectType
+      type: enum
+      options:
+      - rockBareGround
+      - rockNoBareGround
+      # Boulder/Cliff 系だけ裸地を塗る（MapMaking原本の prefab 名判定の置き換え）。瓦礫・メサは距離場だけに乗る
+      # Only Boulder/Cliff-type entries paint bare ground (replacing MapMaking's prefab-name check); rubble and mesas feed the distance field alone
     # 配置方式。scatter は点を直接撒き、cluster は中心を撒いて背骨状にメンバーを並べる。
     # 方式ごとに要るパラメータが違うため、量の単位も含めて placementParam 側で分ける。
     # The placement mode: scatter drops points directly, cluster drops centres and lays members along a backbone.

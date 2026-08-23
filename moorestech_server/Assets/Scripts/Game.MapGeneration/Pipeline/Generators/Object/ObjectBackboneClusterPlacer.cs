@@ -123,15 +123,11 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                 float sink = Mathf.Lerp(entry.sinkRange.x, entry.sinkRange.y, (float)rng.NextDouble());
 
-                placements.Add(new PlacementEntry
-                {
-                    MapObjectGuid = ObjectPlacementMath.PickRandomGuid(entry.mapObjectGuids, rng),
-                    WorldPosition = new Vector3(ox + dims.WorldOffsetX, height * dims.TerrainHeight, oz + dims.WorldOffsetZ),
-                    Rotation = rot,
-                    Scale = new Vector3(scale, yScale, scale),
-                    Sink = sink,
-                    Cluster = clusterInfo
-                });
+                placements.Add(PlacementEntry.CreateObject(
+                    ObjectPlacementMath.PickRandomGuid(entry.mapObjectGuids, rng),
+                    new Vector3(ox + dims.WorldOffsetX, height * dims.TerrainHeight, oz + dims.WorldOffsetZ),
+                    rot, new Vector3(scale, yScale, scale), sink,
+                    clusterInfo, entry.terrainSurroundEffectType));
             }
         }
     }
