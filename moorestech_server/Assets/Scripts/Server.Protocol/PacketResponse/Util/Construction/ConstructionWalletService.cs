@@ -19,6 +19,10 @@ namespace Server.Protocol.PacketResponse.Util.Construction
         private readonly IRemainingPlacementCountMutation _mutation;
         private readonly ConstructionPayerDataStore _payers;
 
+        // プレイヤーごとの問い合わせ窓口は使い回す（ドラッグ1セルごとに作らない）
+        // Query windows are reused per player so a drag never allocates one per cell
+        private readonly Dictionary<int, ConstructionWalletQuery> _queries = new();
+
         public ConstructionWalletService(IRemainingPlacementCountLookup lookup, IRemainingPlacementCountMutation mutation, ConstructionPayerDataStore payers)
         {
             _lookup = lookup;
@@ -35,7 +39,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             // 消費素材と賄えるかの判断は共有の問い合わせ窓口に任せる
             // What to consume and whether the remainder covers it are both decided by the shared query window
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);
-            var query = new ConstructionWalletQuery(_lookup.GetReader(playerId));
+            var query = GetQuery(playerId);
             var usage = query.IsCoveredByWallet(blockId) ? ConstructionWalletUsage.CoveredByWallet : ConstructionWalletUsage.PaidAndRefilled;
             return new WalletPlacementPlan(query.GetItemsToConsume(blockId), _mutation, _payers, usage, playerId, ConstructionWalletUtil.ResolveWalletBlockId(blockId), blockMaster.PlacementsPerCost);
         }
@@ -67,6 +71,14 @@ namespace Server.Protocol.PacketResponse.Util.Construction
         public void CommitRemoval(IConstructionRemovalPlan plan)
         {
             plan.Commit();
+        }
+
+        private ConstructionWalletQuery GetQuery(int playerId)
+        {
+            if (_queries.TryGetValue(playerId, out var query)) return query;
+            query = new ConstructionWalletQuery(_lookup.GetReader(playerId));
+            _queries[playerId] = query;
+            return query;
         }
 
         // 設置・撤去1操作の末尾で呼び、溜まった残り設置数の変更を財布ごと1通へ集約する
