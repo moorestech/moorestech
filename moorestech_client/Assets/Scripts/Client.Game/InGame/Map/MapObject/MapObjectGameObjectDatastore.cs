@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Client.Common.Asset;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Network.API;
 using CommandForgeGenerator.Command;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using MessagePack;
 using Server.Event.EventReceive;
@@ -21,17 +19,23 @@ namespace Client.Game.InGame.Map.MapObject
     /// </summary>
     public class MapObjectGameObjectDatastore : MonoBehaviour, IInitialEventApplyWaitTarget, ISkitWorldObjectControl
     {
-        // 2011個規模の起動スパイクを避けるためこの個数ごとにフレームを跨ぐ
-        // Cross a frame every this many objects to avoid a startup spike at the ~2011-object scale
-        private const int FrameYieldObjectInterval = 100;
+        // 起動待機を解除する近傍の半径。残りはゲーム開始後に距離順で後着生成する（ADR 0030）
+        // Radius of the near field that releases the startup wait; the rest streams in by distance after the game starts (ADR 0030)
+        private const float NearFieldRadius = 150f;
+
+        // ローディング中（近傍）とゲーム開始後（後着）のフレームあたり生成時間予算
+        // Per-frame instantiation time budgets while loading (near field) and after the game starts (background)
+        private const double NearFieldFrameBudgetMilliseconds = 16.0;
+        private const double BackgroundFrameBudgetMilliseconds = 4.0;
 
         private readonly Dictionary<int, MapObjectGameObject> _allMapObjects = new();
-        private readonly Dictionary<Guid, GameObject> _prefabCacheByMapObjectGuid = new();
         private readonly MapObjectNearestSearcher _nearestSearcher = new();
+        private readonly MapObjectPendingStateLedger _pendingStateLedger = new();
 
-        // 生成ループの完了と例外を初期化パイプラインがawaitできる形で保持する
-        // Retain the instantiation loop's completion and exceptions for the initialization pipeline to await
+        // 近傍完了（起動待機の解除点）と全量完了を別々にawaitできる形で保持する
+        // Retain near-field completion (the startup wait release) and full completion as separately awaitable tasks
         private UniTask? _initialApplyTask;
+        private UniTask? _allInstantiatedTask;
 
         public UniTask WaitForInitialApplyAsync()
         {
@@ -42,112 +46,63 @@ namespace Client.Game.InGame.Map.MapObject
             return _initialApplyTask.Value;
         }
 
+        public UniTask WaitForAllInstantiatedAsync()
+        {
+            // 全量完了の正規待機API。全個体前提の検証・テストはこちらを待つ（ADR 0030）
+            // The official wait for full instantiation; checks and tests that assume every object await this (ADR 0030)
+            if (_allInstantiatedTask == null)
+                throw new InvalidOperationException("[MapObjectGameObjectDatastore] Construct前に全量待機が要求されました");
+            return _allInstantiatedTask.Value;
+        }
+
         [Inject]
         public void Construct(InitialHandshakeResponse handshakeResponse)
         {
-            // イベント購読は同期で確定させ、生成本体はフレーム分散の保持タスクへ委譲する
-            // Subscribe synchronously, then delegate the instantiation itself to a frame-distributed retained task
+            // イベント購読は同期で確定させ、生成本体は近傍→後着の2段の保持タスクへ委譲する
+            // Subscribe synchronously, then delegate instantiation to the two retained near-field → background tasks
             ClientContext.VanillaApi.Event.SubscribeEventResponse(MapObjectUpdateEventPacket.EventTag, OnUpdateMapObject);
-            _initialApplyTask = InstantiateMapObjectsFromLayoutAsync().Preserve();
+
+            // 破壊/HPの初期状態はva:mapObjectInfoスナップショットをinstanceIdで引く（Layoutと同一集合が前提）
+            // Initial destroy/HP state comes from the va:mapObjectInfo snapshot keyed by instanceId (same set as the layout)
+            var snapshotByInstanceId = handshakeResponse.MapObjects.ToDictionary(info => info.InstanceId);
+            var instantiator = new MapObjectLayoutInstantiator(transform, _allMapObjects, snapshotByInstanceId, _nearestSearcher, _pendingStateLedger);
+            var cancellationToken = this.GetCancellationTokenOnDestroy();
+
+            // 全layoutを一度だけPlayerPosからの距離順に並べ、近傍→遠方の順で生成する（ADR 0030）
+            // Sort every layout once by distance from PlayerPos and instantiate near to far (ADR 0030)
+            var sortedEntries = MapObjectLayoutDistanceOrder.Sort(handshakeResponse.MapLayout.MapObjects, handshakeResponse.PlayerPos);
+            var nearFieldCount = MapObjectLayoutDistanceOrder.CountWithinRadius(sortedEntries, NearFieldRadius);
+
+            _initialApplyTask = InstantiateRangeAsync(0, nearFieldCount, NearFieldFrameBudgetMilliseconds).Preserve();
+            _allInstantiatedTask = InstantiateBackgroundAsync().Preserve();
+
+            // 後着の失敗を誰もawaitしない起動経路でもConsoleへ出す
+            // Surface background failures in the Console even when nothing on the startup path awaits them
+            _allInstantiatedTask.Value.Forget();
 
             #region Internal
 
-            async UniTask InstantiateMapObjectsFromLayoutAsync()
+            async UniTask InstantiateBackgroundAsync()
             {
-                // 破壊/HPの初期状態はva:mapObjectInfoスナップショットをinstanceIdで引く（Layoutと同一集合が前提）
-                // Initial destroy/HP state comes from the va:mapObjectInfo snapshot keyed by instanceId (same set as the layout)
-                var snapshotByInstanceId = handshakeResponse.MapObjects.ToDictionary(info => info.InstanceId);
-                var cancellationToken = this.GetCancellationTokenOnDestroy();
-
-                var processedCount = 0;
-                foreach (var layout in handshakeResponse.MapLayout.MapObjects)
-                {
-                    // guidは正常データ前提でparseする（不正guidはT8のデータ修正対象・ここでの防御は過剰）
-                    // Parse guid assuming valid data (malformed guids are a T8 data fix; defending here is overkill)
-                    var mapObjectGuid = new Guid(layout.MapObjectGuid);
-
-                    // master欠落・load失敗はResolvePrefabOrNull内でLogError済み。個体だけskipし残りは生成しきる
-                    // Master-missing or load-failure is already logged inside; skip just this one and keep generating the rest
-                    var prefab = ResolvePrefabOrNull(mapObjectGuid);
-                    if (prefab == null) continue;
-
-                    // スナップショット欠落はInstantiate前に検出し、orphan instanceを作らずskipする
-                    // Detect a missing snapshot before Instantiate so no orphan instance is created, then skip
-                    if (!snapshotByInstanceId.TryGetValue(layout.InstanceId, out var snapshot))
-                    {
-                        Debug.LogError($"MapObject snapshot missing. InstanceId:{layout.InstanceId} MapObjectGuid:{mapObjectGuid}");
-                        continue;
-                    }
-
-                    // 生成時のRotation/Scaleを実インスタンスへ戻す。既定値のままだと全個体が同じ向きで直立し裸地も生成時サイズで広がる
-                    // Restore the generated rotation and scale; the defaults face every instance alike and spread bare ground at the generated size
-                    var rotation = new Quaternion(layout.RotationX, layout.RotationY, layout.RotationZ, layout.RotationW);
-                    var instance = Instantiate(prefab, new Vector3(layout.X, layout.Y, layout.Z), rotation, transform);
-                    instance.transform.localScale = new Vector3(layout.ScaleX, layout.ScaleY, layout.ScaleZ);
-
-                    // rootにMapObjectGameObjectが無いのはprefab authoring不正。生成物を破棄してskipする
-                    // Missing MapObjectGameObject on root is invalid prefab authoring; destroy the instance and skip
-                    var mapObject = instance.GetComponent<MapObjectGameObject>();
-                    if (mapObject == null)
-                    {
-                        Debug.LogError($"MapObject prefab has no MapObjectGameObject on root. MapObjectGuid:{mapObjectGuid}");
-                        Destroy(instance);
-                        continue;
-                    }
-
-                    // instanceId重複はTryAddで検出し、重複個体を破棄してskipする（Addのthrowは起動ハングを招くため不可）
-                    // Detect duplicate instanceId via TryAdd; destroy the duplicate and skip (Add's throw would hang startup)
-                    mapObject.SetRuntimeIdentity(layout.InstanceId, layout.MapObjectGuid);
-                    if (!_allMapObjects.TryAdd(layout.InstanceId, mapObject))
-                    {
-                        Debug.LogError($"MapObject duplicate InstanceId:{layout.InstanceId} MapObjectGuid:{mapObjectGuid}");
-                        Destroy(instance);
-                        continue;
-                    }
-
-                    // 登録後にスナップショットで初期状態（破壊/HP）を適用する
-                    // Apply the initial state (destroy/HP) from the snapshot after registration
-                    mapObject.Initialize(snapshot);
-
-                    // 最寄り探索の候補へ登録する（初期破壊済みは探索時の生存フィルタで除かれる）
-                    // Register as a nearest-search candidate (ones destroyed in the snapshot drop out at the live filter on search)
-                    _nearestSearcher.Register(mapObject);
-
-                    // フレーム分散でInstantiateし、起動時の描画スパイクを抑える
-                    // Instantiate spread across frames to suppress the render spike at startup
-                    processedCount++;
-                    if (processedCount % FrameYieldObjectInterval == 0) await UniTask.Yield(cancellationToken);
-                }
+                // 近傍の完了（と失敗）を引き継いでから残り全量を後着させる
+                // Take over near-field completion (and failure) before streaming in the remainder
+                await _initialApplyTask.Value;
+                await InstantiateRangeAsync(nearFieldCount, sortedEntries.Count, BackgroundFrameBudgetMilliseconds);
             }
 
-            GameObject ResolvePrefabOrNull(Guid mapObjectGuid)
+            async UniTask InstantiateRangeAsync(int startIndex, int endIndexExclusive, double frameBudgetMilliseconds)
             {
-                // 失敗もnullとしてキャッシュする。同一guidが千個規模で並ぶため同期loadとLogErrorはguidごと1回に抑える
-                // Failures are cached as null too; a guid can repeat by the thousand so keep the sync load and LogError once per guid
-                if (_prefabCacheByMapObjectGuid.TryGetValue(mapObjectGuid, out var cachedPrefab)) return cachedPrefab;
-
-                // master欠落はLogError+nullでskipさせる（サーバMapObjectDatastoreと対称）
-                // Master-missing returns null after LogError to skip (symmetric with server MapObjectDatastore)
-                var element = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(mapObjectGuid);
-                if (element == null)
+                // 時間予算を使い切るまで同一フレームで生成し続け、超えたらフレームを跨ぐ（ADR 0030）
+                // Keep instantiating within the frame until the time budget runs out, then cross a frame (ADR 0030)
+                var budget = new FrameTimeBudget(frameBudgetMilliseconds);
+                for (var index = startIndex; index < endIndexExclusive; index++)
                 {
-                    Debug.LogError($"MapObject master missing. MapObjectGuid:{mapObjectGuid}");
-                    _prefabCacheByMapObjectGuid[mapObjectGuid] = null;
-                    return null;
-                }
+                    instantiator.InstantiateFromLayout(sortedEntries[index].Layout);
 
-                // load失敗（有料アセット不在等）もLogError+nullでskipさせる
-                // Load failure (e.g. missing paid asset) also returns null after LogError to skip
-                var loaded = AddressableLoader.LoadDefault<GameObject>(element.AddressablePath);
-                if (loaded == null)
-                {
-                    Debug.LogError($"MapObject prefab load failed. MapObjectGuid:{mapObjectGuid} AddressablePath:{element.AddressablePath}");
-                    _prefabCacheByMapObjectGuid[mapObjectGuid] = null;
-                    return null;
+                    if (!budget.IsExhausted) continue;
+                    await UniTask.Yield(cancellationToken);
+                    budget.Restart();
                 }
-
-                _prefabCacheByMapObjectGuid[mapObjectGuid] = loaded;
-                return loaded;
             }
 
             #endregion
@@ -157,9 +112,24 @@ namespace Client.Game.InGame.Map.MapObject
         {
             var data = MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(payLoad);
 
-            // 非同期Instantiate進行中で該当個体が未生成ならスキップ（データ欠損の吸収ではなくロード順序の許容）
-            // Skip only while async instantiation hasn't reached this object yet (load-order tolerance, not data-defense)
-            if (!_allMapObjects.TryGetValue(data.InstanceId, out var mapObject)) return;
+            // 未生成宛は捨てず台帳へ保留し、後着生成時にスナップショットより優先して適用する（ADR 0030）
+            // Events for not-yet-instantiated objects are held in the ledger and override the snapshot at late instantiation (ADR 0030)
+            if (!_allMapObjects.TryGetValue(data.InstanceId, out var mapObject))
+            {
+                switch (data.EventType)
+                {
+                    case MapObjectUpdateEventMessagePack.DestroyEventType:
+                        _pendingStateLedger.RecordDestroy(data.InstanceId);
+                        break;
+                    case MapObjectUpdateEventMessagePack.HpUpdateEventType:
+                        _pendingStateLedger.RecordHp(data.InstanceId, data.CurrentHp);
+                        break;
+                    default:
+                        throw new Exception("MapObjectUpdateEventProtocol: EventTypeが不正か実装されていません");
+                }
+
+                return;
+            }
 
             switch (data.EventType)
             {

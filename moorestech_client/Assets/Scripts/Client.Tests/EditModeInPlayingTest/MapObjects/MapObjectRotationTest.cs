@@ -59,9 +59,9 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
                 var datastore = Object.FindFirstObjectByType<MapObjectGameObjectDatastore>(FindObjectsInactive.Include);
                 Assert.IsNotNull(datastore, "MapObjectGameObjectDatastore was not found in scene");
 
-                // 初期化と同じawait経路を通し、生成が終わってから姿勢とスケールを見る
-                // Use the same await path as startup so the facings and scales are read after instantiation finishes
-                await datastore.WaitForInitialApplyAsync();
+                // 任意の（遠方も含む）個体を突き合わせるため、近傍待機ではなく全量生成の完了を待つ（ADR 0030）
+                // Wait for full instantiation, not the near-field gate, since far objects are matched too (ADR 0030)
+                await datastore.WaitForAllInstantiatedAsync();
 
                 var turnedLayout = FindTurnedLayout();
                 var expectedRotation = new Quaternion(
