@@ -13,16 +13,23 @@ namespace Game.MapGeneration.Facade
         // Display heights (post-tree perturbation); [z, x]
         public float[,] DisplayHeights { get; }
 
-        public float[,,] Alphamap { get; }
+        // UnityのalphamapTexturesへそのまま載るRGBA8平面。並びは[z][x][rgba]で、1平面が4レイヤーを担う
+        // RGBA8 planes going straight onto Unity's alphamapTextures; ordered [z][x][rgba] with one plane per four layers
+        public IReadOnlyList<byte[]> AlphamapPlanes { get; }
+        public int AlphamapResolution { get; }
+        public int AlphamapLayerCount { get; }
+
         public IReadOnlyList<int[,]> DetailMaps { get; }
 
         public BakedTerrainTile(
-            Vector3 scenePosition,
-            float[,] displayHeights, float[,,] alphamap, IReadOnlyList<int[,]> detailMaps)
+            Vector3 scenePosition, float[,] displayHeights, IReadOnlyList<byte[]> alphamapPlanes,
+            int alphamapResolution, int alphamapLayerCount, IReadOnlyList<int[,]> detailMaps)
         {
             ScenePosition = scenePosition;
             DisplayHeights = displayHeights;
-            Alphamap = alphamap;
+            AlphamapPlanes = alphamapPlanes;
+            AlphamapResolution = alphamapResolution;
+            AlphamapLayerCount = alphamapLayerCount;
             DetailMaps = detailMaps;
         }
     }

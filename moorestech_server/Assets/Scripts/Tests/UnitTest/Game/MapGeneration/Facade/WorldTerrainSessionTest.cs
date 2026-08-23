@@ -53,7 +53,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
                 {
                     var tile = tiledSession.BakeTile(x, z);
                     Assert.That(tile.DisplayHeights.GetLength(0), Is.EqualTo(session.Layout.HeightmapResolution));
-                    Assert.That(tile.Alphamap.GetLength(2), Is.EqualTo(session.Layout.TextureLayerAddresses.Count));
+                    Assert.That(tile.AlphamapLayerCount, Is.EqualTo(session.Layout.TextureLayerAddresses.Count));
                     Assert.That(tile.DetailMaps.Count, Is.EqualTo(session.Layout.DetailPrototypes.Count));
                 }
             }

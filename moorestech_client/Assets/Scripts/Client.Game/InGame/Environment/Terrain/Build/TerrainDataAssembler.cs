@@ -29,7 +29,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             await ApplySplatmapAsync();
             var bootprofSplatMs = bootprofWatch.Elapsed.TotalMilliseconds; bootprofWatch.Restart();
             ApplyDetail();
-            Debug.Log($"[BOOTPROF] assemble height={bootprofHeightMs:F0}ms splat={bootprofSplatMs:F0}ms detail={bootprofWatch.Elapsed.TotalMilliseconds:F0}ms detailMaps={tile.DetailMaps.Count} alphaRes={(tile.Alphamap == null ? 0 : tile.Alphamap.GetLength(0))} layers={(tile.Alphamap == null ? 0 : tile.Alphamap.GetLength(2))}");
+            Debug.Log($"[BOOTPROF] assemble height={bootprofHeightMs:F0}ms splat={bootprofSplatMs:F0}ms detail={bootprofWatch.Elapsed.TotalMilliseconds:F0}ms detailMaps={tile.DetailMaps.Count} alphaRes={tile.AlphamapResolution} layers={tile.AlphamapLayerCount}");
             return terrainData;
 
             #region Internal
@@ -47,11 +47,17 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             {
                 // 非生成時はUnity既定のalphamapを維持
                 // When not generating, Unity's default alphamap is kept
-                if (tile.Alphamap == null) return;
+                if (tile.AlphamapLayerCount == 0) return;
 
-                terrainData.alphamapResolution = tile.Alphamap.GetLength(0);
+                // レイヤー表がalphamapのレイヤー数と食い違うとUnityが確保するテクスチャ枚数がずれ、載せる平面と対応しなくなる
+                // A layer table disagreeing with the alphamap's layer count changes how many textures Unity allocates, breaking the correspondence with the planes
+                if (terrainLayers.Length != tile.AlphamapLayerCount)
+                    throw new System.InvalidOperationException(
+                        $"[TerrainDataAssembler] {terrainLayers.Length} terrain layers were resolved but the tile was baked for {tile.AlphamapLayerCount}.");
+
+                terrainData.alphamapResolution = tile.AlphamapResolution;
                 terrainData.terrainLayers = terrainLayers;
-                await TerrainAlphamapApplier.ApplyAsync(terrainData, tile.Alphamap);
+                await TerrainAlphamapApplier.ApplyAsync(terrainData, tile.AlphamapPlanes, tile.AlphamapResolution);
             }
 
             void ApplyDetail()

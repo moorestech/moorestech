@@ -40,8 +40,12 @@ namespace Game.MapGeneration.Transfer
         // The transferred file layout's version, verbatim from the build that created the world; empty for template
         public readonly string GeneratorVersion;
 
+        // 配置台帳の指紋。ワールド作成時のpass-1でしか決まらず、クライアントはこれを鍵に使うことで自前のpass-1を省く
+        // The placement ledger's digest, settled only by the pass-1 at world creation; a client keys the cache on it and skips a pass-1 of its own
+        public readonly string PlacementLedgerDigest;
+
         private TerrainTransferMeta(string mapMode, string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed,
-            TerrainOrigins origins, string generationMasterFingerprint, string generatorVersion)
+            TerrainOrigins origins, string generationMasterFingerprint, string generatorVersion, string placementLedgerDigest)
         {
             MapMode = mapMode;
             IsTemplate = mapMode == WorldMapMode.Template;
@@ -53,33 +57,34 @@ namespace Game.MapGeneration.Transfer
             Origins = origins;
             GenerationMasterFingerprint = generationMasterFingerprint;
             GeneratorVersion = generatorVersion;
+            PlacementLedgerDigest = placementLedgerDigest;
         }
 
         public static TerrainTransferMeta CreateGenerated(
             string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed, TerrainOrigins origins,
-            string generationMasterFingerprint, string generatorVersion)
+            string generationMasterFingerprint, string generatorVersion, string placementLedgerDigest)
         {
             return new TerrainTransferMeta(
                 WorldMapMode.Generated, worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed, origins,
-                generationMasterFingerprint, generatorVersion);
+                generationMasterFingerprint, generatorVersion, placementLedgerDigest);
         }
 
         public static TerrainTransferMeta CreateTemplate(string worldId, int worldSeed)
         {
             return new TerrainTransferMeta(
-                WorldMapMode.Template, worldId, 0, 0, 0, worldSeed, TerrainOrigins.WithoutTerrain(), string.Empty, string.Empty);
+                WorldMapMode.Template, worldId, 0, 0, 0, worldSeed, TerrainOrigins.WithoutTerrain(), string.Empty, string.Empty, string.Empty);
         }
 
         // ワイヤ値をドメインへ戻す唯一の入口。モード文字列の解釈と未知モードの拒否はプロトコルDTOではなくこの型が持つ
         // The single entry restoring wire values into the domain; interpreting the mode string and rejecting unknown ones belongs here, not to the protocol DTO
         public static TerrainTransferMeta FromWire(
             string mapMode, string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed,
-            TerrainOrigins origins, string generationMasterFingerprint, string generatorVersion)
+            TerrainOrigins origins, string generationMasterFingerprint, string generatorVersion, string placementLedgerDigest)
         {
             if (mapMode == WorldMapMode.Template) return CreateTemplate(worldId, worldSeed);
             if (mapMode == WorldMapMode.Generated)
                 return CreateGenerated(worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed, origins,
-                    generationMasterFingerprint, generatorVersion);
+                    generationMasterFingerprint, generatorVersion, placementLedgerDigest);
             throw new InvalidOperationException($"[TerrainTransferMeta] Unknown map mode '{mapMode}'.");
         }
 

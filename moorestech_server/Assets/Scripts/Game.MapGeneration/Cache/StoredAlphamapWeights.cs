@@ -4,26 +4,33 @@ using static Game.MapGeneration.Cache.TerrainVisualCacheFormat;
 namespace Game.MapGeneration.Cache
 {
     /// <summary>
-    ///     保存と適用へ回すalphamapを、キャッシュ往復で1画素も動かない値へ畳む。
+    ///     再構築したalphamapを、保存と適用が共有するRGBA8平面へ畳む。
     ///     裸地の塗りは合計が1を超える画素を作る（移植元から引き継いだ性質・SurroundBlendWriter参照）が、
-    ///     キャッシュは1画素1バイトなので、そのまま焼くと再読込時だけ頭打ちして比率が変わる。
+    ///     平面は1画素1バイトなので、そのまま焼くと再読込時だけ頭打ちして比率が変わる。
     ///     合計が1を超える画素だけ比率を保ったまま合計1へ寄せ、全画素を1/255刻みへ量子化することで、
-    ///     初回生成の配列とキャッシュから読み戻した配列を完全に一致させる。
+    ///     初回生成の平面とキャッシュから読み戻した平面を完全に一致させる。
     ///     Terrainへ渡る重みはUnityが正規化して8bitへ焼くため、この畳み込みで見た目は変わらない。
-    ///     Folds the alphamap bound for storage and application into values a cache round trip cannot move.
+    ///     Folds a rebuilt alphamap into the RGBA8 planes that storage and application share.
     ///     Bare-ground painting produces pixels summing above one (a property inherited from the source; see
-    ///     SurroundBlendWriter), but the cache holds one byte per pixel, so baking those as-is clips only on
+    ///     SurroundBlendWriter), but a plane holds one byte per pixel, so baking those as-is clips only on
     ///     reload and shifts the ratio. Pixels above one are scaled back to a sum of one with their ratio intact
-    ///     and every pixel is quantized to 1/255 steps, making a freshly built array and a cache-loaded one identical.
+    ///     and every pixel is quantized to 1/255 steps, making a freshly built plane and a cache-loaded one identical.
     ///     Unity normalizes the weights it receives and bakes them to 8 bits, so this fold leaves the look unchanged.
     /// </summary>
     public static class StoredAlphamapWeights
     {
-        public static void Fold(float[,,] alphamap)
+        // 入力は[z, x, layer]。戻り値は平面ごとのRGBA8バイト列で、UnityのalphamapTexturesがそのまま受け取る並び
+        // The input is [z, x, layer]; the result is RGBA8 bytes per plane, in the very order Unity's alphamapTextures take
+        public static byte[][] ToPlanes(float[,,] alphamap)
         {
             var resolutionZ = alphamap.GetLength(0);
             var resolutionX = alphamap.GetLength(1);
             var layerCount = alphamap.GetLength(2);
+            var planeCount = AlphamapPlaneCount(layerCount);
+
+            var planes = new byte[planeCount][];
+            for (var planeIndex = 0; planeIndex < planeCount; planeIndex++)
+                planes[planeIndex] = new byte[resolutionZ * resolutionX * AlphamapPlaneBytesPerPixel];
 
             for (var z = 0; z < resolutionZ; z++)
             for (var x = 0; x < resolutionX; x++)
@@ -34,12 +41,16 @@ namespace Game.MapGeneration.Cache
                 for (var layer = 0; layer < layerCount; layer++) total += alphamap[z, x, layer];
                 var ratioScale = 1f < total ? 1f / total : 1f;
 
+                var pixelOffset = (z * resolutionX + x) * AlphamapPlaneBytesPerPixel;
                 for (var layer = 0; layer < layerCount; layer++)
                 {
                     var weight = Mathf.Clamp01(alphamap[z, x, layer] * ratioScale);
-                    alphamap[z, x, layer] = Mathf.RoundToInt(weight * WeightQuantizeScale) / WeightQuantizeScale;
+                    planes[layer / LayersPerAlphamapPlane][pixelOffset + layer % LayersPerAlphamapPlane] =
+                        (byte)Mathf.Clamp(Mathf.RoundToInt(weight * WeightQuantizeScale), 0, byte.MaxValue);
                 }
             }
+
+            return planes;
         }
     }
 }

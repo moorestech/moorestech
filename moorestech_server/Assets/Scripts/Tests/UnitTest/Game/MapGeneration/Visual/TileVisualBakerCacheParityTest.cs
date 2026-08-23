@@ -71,25 +71,25 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             // ヒットは書き戻さない。更新時刻が動いていないことが2回目がキャッシュを引いた証拠になる
             // A hit never writes back, so an unmoved timestamp is the evidence the second bake read the cache
             Assert.That(File.GetLastWriteTimeUtc(cacheFilePath), Is.EqualTo(writeTimeAfterFirstBake), "2回目がキャッシュを引かないと往復を検証できない");
-            Assert.That(HasFractionalWeight(first.Alphamap), Is.True, "0か1しかない盤面では量子化の有無が現れない");
+            Assert.That(HasFractionalWeight(first.AlphamapPlanes), Is.True, "0か1しかない盤面では量子化の有無が現れない");
 
-            for (var z = 0; z < AlphamapResolution; z++)
-            for (var x = 0; x < AlphamapResolution; x++)
-            for (var layer = 0; layer < first.Alphamap.GetLength(2); layer++)
-                Assert.That(
-                    second.Alphamap[z, x, layer], Is.EqualTo(first.Alphamap[z, x, layer]),
-                    $"z={z} x={x} layer={layer}");
+            Assert.That(second.AlphamapPlanes.Count, Is.EqualTo(first.AlphamapPlanes.Count));
+            for (var planeIndex = 0; planeIndex < first.AlphamapPlanes.Count; planeIndex++)
+                Assert.That(second.AlphamapPlanes[planeIndex], Is.EqualTo(first.AlphamapPlanes[planeIndex]), $"plane={planeIndex}");
+
+            // 表示用高さもキャッシュ往復の対象になったので、木の摂動ごと一致することを見る
+            // The display heights became part of the round trip too, so the tree perturbation must survive it as well
+            for (var z = 0; z < Resolution; z++)
+            for (var x = 0; x < Resolution; x++)
+                Assert.That(second.DisplayHeights[z, x], Is.EqualTo(first.DisplayHeights[z, x]).Within(1f / ushort.MaxValue),
+                    $"height z={z} x={x}");
         }
 
-        private static bool HasFractionalWeight(float[,,] alphamap)
+        private static bool HasFractionalWeight(System.Collections.Generic.IReadOnlyList<byte[]> alphamapPlanes)
         {
-            for (var z = 0; z < AlphamapResolution; z++)
-            for (var x = 0; x < AlphamapResolution; x++)
-            for (var layer = 0; layer < alphamap.GetLength(2); layer++)
-            {
-                var weight = alphamap[z, x, layer];
-                if (0f < weight && weight < 1f) return true;
-            }
+            foreach (var plane in alphamapPlanes)
+            foreach (var weight in plane)
+                if (0 < weight && weight < byte.MaxValue) return true;
 
             return false;
         }
@@ -104,7 +104,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
                 visualSections.SurroundTextureConfigs, treeSurroundSpecies, Array.Empty<string>());
 
             return new TileVisualBaker(
-                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, EmptyLedger,
+                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, new MaterializedPlacementLedgerSource(EmptyLedger),
                 _worldCacheDirectory, new TerrainVisualCache(_worldCacheDirectory, CacheKey));
         }
 

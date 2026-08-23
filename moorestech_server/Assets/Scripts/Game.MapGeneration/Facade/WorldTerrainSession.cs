@@ -1,6 +1,7 @@
 using Core.Master;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Visual;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Transfer;
 using UnityEngine;
 
@@ -35,29 +36,30 @@ namespace Game.MapGeneration.Facade
             // If the generation master (JSON text + placement-noise PNGs) differs from world creation, the ledger drifts from the server's truth; fail as for version and resolution
             terrainMeta.ThrowIfGenerationMasterDiffers(serverDataDirectory);
 
-            // サーバーの唯一の入口と同じ2段（config組立→アルゴリズム選択→生成）を通る。手で組み直さない
+            // サーバーの唯一の入口と同じconfig組立を通す。手で組み直さない
             // ただしスポーン探索だけは再計算せず、ワールド作成時に確定した原点を注入して同じ窓を指させる
-            // Go through the very two steps of the server's single entry (build config, pick algorithm, generate); never hand-assemble
+            // Go through the very config assembly of the server's single entry; never hand-assemble
             // The spawn search alone is not recomputed: the origins settled at world creation are injected so the same window is addressed
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
                 selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, terrainMeta.Origins);
             terrainMeta.ThrowIfTerrainResolutionDiffers(config.Resolution);
 
-            // pass-1: サーバーと同じ生成を丸ごと回し、配置台帳（クラスタ・種別込み）を得る。高さは捨てて転送値を正本にする
-            // pass-1: run the very same generation to obtain the placement ledger (clusters and kinds); its heights are dropped in favour of the transferred ones
-            UnityEngine.Debug.Log($"[BOOTPROF] session.open.pass1Start {System.DateTime.UtcNow:O}");
-            var bootprofPass1 = System.Diagnostics.Stopwatch.StartNew();
-            var run = MapGenerationPipeline.Generate(selectedGeneration, config);
-            Debug.Log($"[BOOTPROF] session.open.pass1End ms={bootprofPass1.Elapsed.TotalMilliseconds:F0} mapObjects={run.Output.MapObjects.Count} placements={run.Ledger.Placements.Count}");
+            // 原点は格子の寸法と注入したGだけで決まり、生成を回さなくても確かめられる
+            // 崩れた原点は別の窓を指しているので、その窓で焼いた見た目をキャッシュへ書き込む前に止める
+            // The origins follow from the grid dimensions and the injected G alone, so they are checkable without running generation
+            // Shifted origins address another window, so stop before visuals baked on that window can reach the cache
+            var sceneOrigin = config.TileScenePosition(0, 0);
+            var noiseOrigin = new Vector2(config.worldOffsetX, config.worldOffsetZ) + sceneOrigin;
+            terrainMeta.ThrowIfOriginsDiffer(noiseOrigin, sceneOrigin);
 
-            // 注入が効いていれば原点は構造的に一致する。崩れた台帳は別の窓の配置なので、台帳を取る前に止める
-            // The injection makes the origins agree structurally; a drifted ledger holds another window's placements, so stop before taking it
-            terrainMeta.ThrowIfOriginsDiffer(run.Output.NoiseOrigin, run.Output.SceneOrigin);
+            // 配置台帳（pass-1）はキャッシュを取り逃したタイルが出て初めて要る。鍵は転送メタの指紋で足りる
+            // The ledger (pass-1) is needed only once a tile misses the cache; the transfer meta's digest suffices for the key
+            var ledgerSource = new RegeneratedPlacementLedgerSource(selectedGeneration, config);
 
-            // 組み立てはサーバー先焼きと共有し、Configは生成が実際に使ったものを渡す。高さ源の決定はfactoryが持つ
-            // The assembly is shared with the server prebake and the config handed over is the one the run actually used; the factory owns the height-source decision
-            var factoryResult = TileVisualBakerFactory.CreateForClient(run.Config, terrainMeta, run.Ledger, selectedGeneration);
+            // 組み立てはサーバー先焼きと共有する。高さ源の決定はfactoryが持つ
+            // The assembly is shared with the server prebake; the factory owns the height-source decision
+            var factoryResult = TileVisualBakerFactory.CreateForClient(config, terrainMeta, ledgerSource, selectedGeneration);
             var gridConfig = factoryResult.GridConfig;
 
             // 生成内部のdetail設定は境界を越えない。並びを保ったまま公開仕様へ写す

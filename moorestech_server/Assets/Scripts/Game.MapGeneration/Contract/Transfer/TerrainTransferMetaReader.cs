@@ -36,7 +36,8 @@ namespace Game.MapGeneration.Transfer
                         "(biome_x_z.bin output/transfer removed, clusters no longer leave the generation system). Delete the world directory and generate the world again."),
                 WorldMapMode.Generated => TerrainTransferMeta.CreateGenerated(
                     CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount,
-                    CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedOrigins(), ReadGenerationMasterFingerprint(), worldMeta.GeneratorVersion),
+                    CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedOrigins(), ReadGenerationMasterFingerprint(), worldMeta.GeneratorVersion,
+                    ReadPlacementLedgerDigest()),
                 WorldMapMode.Template => TerrainTransferMeta.CreateTemplate(CalculateWorldId(), worldMeta.Seed),
                 _ => throw new InvalidOperationException($"Unknown map mode in world.json: '{worldMeta.MapMode}'")
             };
@@ -77,6 +78,17 @@ namespace Game.MapGeneration.Transfer
                         $"Generated world.json '{worldDataDirectory.WorldMetaFilePath}' has no generationMasterFingerprint key. " +
                         "It predates the generation master fingerprint; delete the world directory and generate the world again.");
                 return worldMeta.GenerationMasterFingerprint;
+            }
+
+            // 台帳の指紋も生成時にしか決まらない。欠けたまま鍵を作ると全タイルが取り逃しになり、静かに毎回焼き直す
+            // The ledger digest, too, exists only at generation; keying without it would miss every tile and silently rebake on every start
+            string ReadPlacementLedgerDigest()
+            {
+                if (worldMeta.PlacementLedgerDigest == null)
+                    throw new InvalidOperationException(
+                        $"Generated world.json '{worldDataDirectory.WorldMetaFilePath}' has no placementLedgerDigest key. " +
+                        "It predates the ledger digest transfer; delete the world directory and generate the world again.");
+                return worldMeta.PlacementLedgerDigest;
             }
 
             int CalculateChunkTotal()

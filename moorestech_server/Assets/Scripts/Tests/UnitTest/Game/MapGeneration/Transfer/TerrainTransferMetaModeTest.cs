@@ -41,7 +41,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         private static TerrainTransferMeta CreateGeneratedMeta()
         {
             return TerrainTransferMeta.CreateGenerated(
-                "world-b", 513, 4, 3, 42, new TerrainOrigins(Vector2.zero, Vector2.zero), "fingerprint", "9.9.9");
+                "world-b", 513, 4, 3, 42, new TerrainOrigins(Vector2.zero, Vector2.zero), "fingerprint", "9.9.9", "ledger-digest");
         }
     }
 }

@@ -45,7 +45,7 @@ namespace Game.MapGeneration.Provisioning
             ThrowIfMapObjectsMoved(worldDataDirectory, run.Output);
 
             DropSharedVisualCache(terrainMeta.WorldId);
-            AdvanceRecordedFingerprint(worldDataDirectory, currentFingerprint);
+            AdvanceRecordedFingerprint(worldDataDirectory, currentFingerprint, run.Ledger.ComputeDigest());
             Debug.Log(
                 $"[GenerationMasterDriftResolver] World '{terrainMeta.WorldId}' kept its placements across a generation master change; " +
                 "its shared visual cache was dropped and will be rebuilt.");
@@ -96,10 +96,15 @@ namespace Game.MapGeneration.Provisioning
 
             // world.jsonはコミットマーカーなので上書きしない。プロビジョニングと同じ一時ディレクトリへ書いてから置換する
             // world.json is the commit marker and is never overwritten in place: it is written into provisioning's own temp directory and then replaced
-            static void AdvanceRecordedFingerprint(WorldDataDirectory worldDataDirectory, string currentFingerprint)
+            static void AdvanceRecordedFingerprint(
+                WorldDataDirectory worldDataDirectory, string currentFingerprint, string currentPlacementLedgerDigest)
             {
                 var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
                 worldMeta.GenerationMasterFingerprint = currentFingerprint;
+
+                // 見た目が動いた台帳は指紋も動く。指紋を据え置くと、捨てたキャッシュを新しい見た目で焼き直せない
+                // A ledger whose visuals moved has a moved digest too; holding it back would keep the dropped cache from being rebaked with the new look
+                worldMeta.PlacementLedgerDigest = currentPlacementLedgerDigest;
 
                 var temporaryDataDirectory = WorldDataDirectory.FromWorldRoot(worldDataDirectory.ProvisioningTempDirectory);
                 Directory.CreateDirectory(temporaryDataDirectory.Root);

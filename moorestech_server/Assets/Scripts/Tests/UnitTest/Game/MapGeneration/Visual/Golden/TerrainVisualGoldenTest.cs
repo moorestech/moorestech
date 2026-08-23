@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Game.MapGeneration.Cache;
 using Game.MapGeneration.Export;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Visual;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Pipeline.Visual.Splat;
 using Game.MapGeneration.Pipeline.Visual.Surround;
 using Game.MapGeneration.Transfer;
@@ -54,12 +56,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
                 var layerTable = SplatLayerTable.Build("addr/beach", "addr/rock", sections.MainLayerAddresses, sections.TextureConfigs,
                     sections.SurroundTextureConfigs, species, System.Array.Empty<string>());
                 var baker = new TileVisualBaker(gridConfig, TerrainVisualGoldenFixture.BiomeTypes, sections, layerTable,
-                    species, run.Ledger, worldDirectory, new TerrainVisualCache(worldDirectory, new string('0', 64)));
+                    species, new MaterializedPlacementLedgerSource(run.Ledger), worldDirectory,
+                    new TerrainVisualCache(worldDirectory, new string('0', 64)));
 
                 foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(output.Tiles.Count))
                 {
                     var baked = baker.Bake(tileX, tileZ);
-                    actual[$"alphamap_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(baked.Alphamap);
+                    actual[$"alphamap_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(baked.AlphamapPlanes.SelectMany(plane => plane).ToArray());
                     actual[$"heights_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(baked.DisplayHeights);
                     for (var d = 0; d < baked.DetailMaps.Count; d++)
                         actual[$"detail_{tileX}_{tileZ}_{d}"] = TerrainVisualGoldenFixture.Sha256(baked.DetailMaps[d]);

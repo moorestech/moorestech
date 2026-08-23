@@ -4,9 +4,9 @@ using UnityEngine;
 namespace Game.MapGeneration.Cache
 {
     /// <summary>
-    ///     splatmapとdetailの再構築結果をワールドのキャッシュ配下へ溜める。導出元が動けばキーが変わり、
+    ///     表示用高さ・splatmap・detailの再構築結果をワールドのキャッシュ配下へ溜める。導出元が動けばキーが変わり、
     ///     取り逃した分だけ作り直して書き戻す（キャッシュが真実源になることは無い）
-    ///     Accumulates rebuilt splatmaps and details under the world's cache; any moved input changes the key and
+    ///     Accumulates rebuilt display heights, splatmaps and details under the world's cache; any moved input changes the key and
     ///     every miss is regenerated and written back, so the cache is never a source of truth
     /// </summary>
     public class TerrainVisualCache
@@ -23,13 +23,12 @@ namespace Game.MapGeneration.Cache
         // 期待寸法を渡して食い違いを検出する。キーが一致するのに寸法が合わないファイルは中身が信用できない
         // The expected dimensions are passed in to catch disagreement: a matching key over mismatched dimensions is untrustworthy content
         public bool TryLoad(
-            int tileX, int tileZ, int alphamapResolution, int layerCount, int detailResolution, int detailMapCount,
-            out TerrainTileVisual tileVisual)
+            int tileX, int tileZ, int heightmapResolution, int alphamapResolution, int layerCount, int detailResolution,
+            int detailMapCount, out TerrainTileVisual tileVisual)
         {
             var filePath = _worldCacheDirectory.TerrainVisualCacheFilePath(tileX, tileZ);
-            var bootprofWatch = System.Diagnostics.Stopwatch.StartNew();
             var loaded = TerrainVisualCacheReader.TryRead(
-                filePath, _cacheKey, alphamapResolution, layerCount, detailResolution, detailMapCount,
+                filePath, _cacheKey, heightmapResolution, alphamapResolution, layerCount, detailResolution, detailMapCount,
                 out tileVisual, out var brokenReason);
 
             // 壊れたキャッシュは黙って使わず、黙って捨てもしない。取り逃しとして作り直したうえで痕跡を残す
@@ -37,7 +36,6 @@ namespace Game.MapGeneration.Cache
             if (brokenReason != null)
                 Debug.LogWarning($"[TerrainVisualCache] Discarding '{filePath}': {brokenReason}.");
 
-            Debug.Log($"[BOOTPROF] cache.tryLoad tile={tileX}_{tileZ} hit={loaded} ms={bootprofWatch.Elapsed.TotalMilliseconds:F1}");
             return loaded;
         }
 
@@ -45,11 +43,9 @@ namespace Game.MapGeneration.Cache
         {
             var filePath = _worldCacheDirectory.TerrainVisualCacheFilePath(tileX, tileZ);
 
-            var bootprofSaveWatch = System.Diagnostics.Stopwatch.StartNew();
             // 書き手が保存先ディレクトリを用意する。それでも失敗する書き込みは隠さず呼び出し元へ返す
             // The writer provisions the destination directory; a write that still fails is surfaced instead of hidden
             TerrainVisualCacheWriter.Write(filePath, _cacheKey, tileVisual);
-            Debug.Log($"[BOOTPROF] cache.save tile={tileX}_{tileZ} ms={bootprofSaveWatch.Elapsed.TotalMilliseconds:F1}");
         }
     }
 }

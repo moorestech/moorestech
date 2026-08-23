@@ -7,54 +7,91 @@ using UnityEngine.TestTools;
 
 namespace Client.Tests.UnitTest.Terrain
 {
+    /// <summary>
+    ///     焼いたRGBA8平面がTerrainのalphamapへそのまま届くことを検証する。
+    ///     層はUnityのテクスチャ4枚組へ畳まれるため、平面と channel の対応が崩れると別のレイヤーが塗られる
+    ///     Verifies the baked RGBA8 planes reach the terrain's alphamap verbatim.
+    ///     Layers fold into Unity's four-per-texture groups, so a broken plane-and-channel mapping paints another layer
+    /// </summary>
     public class TerrainAlphamapApplierTest
     {
-        private const int AlphamapResolution = 128;
+        private const int AlphamapResolution = 64;
+
+        // 4の倍数から1つ外し、端数の層が最後の平面へ載ることまで含めて確かめる
+        // One off a multiple of four, so the trailing layers landing on the last plane are covered too
+        private const int LayerCount = 19;
+
         private TerrainData _terrainData;
-        private TerrainLayer _firstTerrainLayer;
-        private TerrainLayer _secondTerrainLayer;
+        private TerrainLayer[] _terrainLayers;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _terrainData = new TerrainData { alphamapResolution = AlphamapResolution };
+            _terrainLayers = new TerrainLayer[LayerCount];
+            for (var index = 0; index < LayerCount; index++) _terrainLayers[index] = new TerrainLayer();
+            _terrainData.terrainLayers = _terrainLayers;
+        }
 
         [TearDown]
         public void TearDown()
         {
             if (_terrainData != null) Object.DestroyImmediate(_terrainData);
-            if (_firstTerrainLayer != null) Object.DestroyImmediate(_firstTerrainLayer);
-            if (_secondTerrainLayer != null) Object.DestroyImmediate(_secondTerrainLayer);
+            if (_terrainLayers == null) return;
+            foreach (var terrainLayer in _terrainLayers) Object.DestroyImmediate(terrainLayer);
         }
 
         [UnityTest]
-        public IEnumerator ApplyAsync_大きいAlphamapを複数フレームへ分散する()
+        public IEnumerator ApplyAsync_平面をalphamapへ載せ複数フレームへ分散する()
         {
-            _terrainData = new TerrainData { alphamapResolution = AlphamapResolution };
-            _firstTerrainLayer = new TerrainLayer();
-            _secondTerrainLayer = new TerrainLayer();
-            _terrainData.terrainLayers = new[] { _firstTerrainLayer, _secondTerrainLayer };
-            var alphamap = CreateTwoLayerAlphamap();
+            var planes = CreatePlanes();
 
             // 一括適用でロード画面を止めず、少なくとも1度は次フレームへ制御を返す
             // Return control to a later frame at least once instead of stalling the loading screen with one bulk apply
-            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, alphamap);
+            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, planes, AlphamapResolution);
             Assert.That(applyTask.Status, Is.EqualTo(UniTaskStatus.Pending));
             yield return applyTask.ToCoroutine();
 
-            // 64行チャンクの前後と末尾を照合し、コピー元・適用先の行ずれを検出する
-            // Compare both sides of the 64-row boundary and the final row to detect source or destination offset mistakes
             var appliedAlphamap = _terrainData.GetAlphamaps(0, 0, AlphamapResolution, AlphamapResolution);
-            Assert.That(appliedAlphamap[63, 127, 0], Is.EqualTo(0.25f).Within(0.001f));
-            Assert.That(appliedAlphamap[64, 127, 0], Is.EqualTo(0.75f).Within(0.001f));
-            Assert.That(appliedAlphamap[127, 127, 0], Is.EqualTo(0.75f).Within(0.001f));
+
+            // 行の前後を照合し、平面のバイト列とalphamapのz行の向きが揃っていることを見る
+            // Compare both ends of the rows to confirm the plane's byte order and the alphamap's z rows point the same way
+            Assert.That(appliedAlphamap[0, 0, 0], Is.EqualTo(64 / 255f).Within(0.005f));
+            Assert.That(appliedAlphamap[0, 0, 1], Is.EqualTo(191 / 255f).Within(0.005f));
+            Assert.That(appliedAlphamap[63, 0, 0], Is.EqualTo(192 / 255f).Within(0.005f));
+            Assert.That(appliedAlphamap[63, 0, 1], Is.EqualTo(63 / 255f).Within(0.005f));
+
+            // 平面1以降へ触れていないことを、載せなかった層が0のままであることで見る
+            // The untouched later planes show up as layers that stayed at zero
+            Assert.That(appliedAlphamap[0, 0, 4], Is.EqualTo(0f).Within(0.005f));
         }
 
-        private static float[,,] CreateTwoLayerAlphamap()
+        [Test]
+        public void ApplyAsync_平面数がテクスチャ数と食い違えば落とす()
         {
-            var alphamap = new float[AlphamapResolution, AlphamapResolution, 2];
+            // 数が合わないまま載せると、余った層が既定値のまま描かれて原因の分からない見た目になる
+            // Uploading a mismatched count leaves the surplus layers at their defaults and yields an unexplainable look
+            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, new[] { new byte[AlphamapResolution * AlphamapResolution * 4] }, AlphamapResolution);
+            Assert.That(applyTask.Status, Is.EqualTo(UniTaskStatus.Faulted));
+        }
+
+        // 平面0のR(=layer0)に行番号由来の値、G(=layer1)にその補数を入れる
+        // Plane 0 gets a row-derived value in R (layer 0) and its complement in G (layer 1)
+        private static byte[][] CreatePlanes()
+        {
+            var planes = new byte[5][];
+            for (var planeIndex = 0; planeIndex < planes.Length; planeIndex++)
+                planes[planeIndex] = new byte[AlphamapResolution * AlphamapResolution * 4];
+
             for (var z = 0; z < AlphamapResolution; z++)
             for (var x = 0; x < AlphamapResolution; x++)
             {
-                alphamap[z, x, 0] = z < 64 ? 0.25f : 0.75f;
-                alphamap[z, x, 1] = z < 64 ? 0.75f : 0.25f;
+                var offset = (z * AlphamapResolution + x) * 4;
+                planes[0][offset] = (byte)(z < 32 ? 64 : 192);
+                planes[0][offset + 1] = (byte)(z < 32 ? 191 : 63);
             }
-            return alphamap;
+
+            return planes;
         }
     }
 }

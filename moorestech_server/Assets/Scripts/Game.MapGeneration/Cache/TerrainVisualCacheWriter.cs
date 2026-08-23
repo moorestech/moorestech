@@ -19,23 +19,25 @@ namespace Game.MapGeneration.Cache
                 throw new InvalidOperationException(
                     $"[TerrainVisualCacheWriter] The cache key must be {CacheKeyByteLength} hex characters but was {cacheKey.Length}.");
 
-            var alphamapResolution = tileVisual.Alphamap.GetLength(0);
-            var layerCount = tileVisual.Alphamap.GetLength(2);
+            var heightmapResolution = tileVisual.DisplayHeights.GetLength(0);
+            var alphamapResolution = tileVisual.AlphamapResolution;
+            var layerCount = tileVisual.LayerCount;
             var detailMapCount = tileVisual.DetailMaps.Count;
             var detailResolution = detailMapCount == 0 ? 0 : tileVisual.DetailMaps[0].GetLength(0);
 
             var headerBytes = new byte[HeaderByteLength];
             WriteHeader();
 
-            // payload全体を複製せず、行バッファと逐次SHAだけで一時ファイルへ書き出す
-            // Stream through row buffers and incremental SHA into the temporary file without duplicating the whole payload
+            // 平面はそのまま書けるので複製しない。高さとdetailだけ行バッファへ詰めて逐次SHAを回す
+            // The planes are written as they are with no copy; only heights and detail pass through a row buffer under the incremental SHA
             Directory.CreateDirectory(Path.GetDirectoryName(filePath));
             var temporaryFilePath = filePath + ".writing";
             using (var stream = new FileStream(temporaryFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
             using (var payloadHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256))
             {
                 stream.Write(headerBytes, 0, headerBytes.Length);
-                WriteAlphamap(stream, payloadHash);
+                WriteHeights(stream, payloadHash);
+                WriteAlphamapPlanes(stream, payloadHash);
                 WriteDetailMaps(stream, payloadHash);
 
                 var checksum = payloadHash.GetHashAndReset();
@@ -54,24 +56,48 @@ namespace Game.MapGeneration.Cache
                 WriteInt(headerBytes, 0, MagicNumber);
                 WriteInt(headerBytes, 4, FormatVersion);
                 Encoding.ASCII.GetBytes(cacheKey, 0, CacheKeyByteLength, headerBytes, 8);
+                WriteInt(headerBytes, HeightmapResolutionOffset, heightmapResolution);
                 WriteInt(headerBytes, AlphamapResolutionOffset, alphamapResolution);
                 WriteInt(headerBytes, LayerCountOffset, layerCount);
                 WriteInt(headerBytes, DetailResolutionOffset, detailResolution);
                 WriteInt(headerBytes, DetailMapCountOffset, detailMapCount);
             }
 
-            void WriteAlphamap(FileStream stream, IncrementalHash payloadHash)
+            void WriteHeights(FileStream stream, IncrementalHash payloadHash)
             {
-                var rowBytes = new byte[alphamapResolution * layerCount];
-                for (var z = 0; z < alphamapResolution; z++)
+                var rowBytes = new byte[heightmapResolution * HeightBytesPerPixel];
+                for (var z = 0; z < heightmapResolution; z++)
                 {
                     var rowOffset = 0;
-                    for (var x = 0; x < alphamapResolution; x++)
-                    for (var layer = 0; layer < layerCount; layer++)
-                        rowBytes[rowOffset++] = (byte)Mathf.Clamp(
-                            Mathf.RoundToInt(tileVisual.Alphamap[z, x, layer] * WeightQuantizeScale), 0, byte.MaxValue);
+                    for (var x = 0; x < heightmapResolution; x++)
+                    {
+                        var quantizedHeight = (ushort)Mathf.Clamp(
+                            Mathf.RoundToInt(tileVisual.DisplayHeights[z, x] * HeightQuantizeScale), 0, ushort.MaxValue);
+                        rowBytes[rowOffset++] = (byte)(quantizedHeight & 0xFF);
+                        rowBytes[rowOffset++] = (byte)((quantizedHeight >> 8) & 0xFF);
+                    }
                     stream.Write(rowBytes, 0, rowBytes.Length);
                     payloadHash.AppendData(rowBytes);
+                }
+            }
+
+            void WriteAlphamapPlanes(FileStream stream, IncrementalHash payloadHash)
+            {
+                var expectedPlaneByteLength = (int)AlphamapPlaneByteLength(alphamapResolution);
+                if (tileVisual.AlphamapPlanes.Count != AlphamapPlaneCount(layerCount))
+                    throw new InvalidOperationException(
+                        $"[TerrainVisualCacheWriter] {layerCount} layers need {AlphamapPlaneCount(layerCount)} planes " +
+                        $"but {tileVisual.AlphamapPlanes.Count} were given.");
+
+                foreach (var plane in tileVisual.AlphamapPlanes)
+                {
+                    if (plane.Length != expectedPlaneByteLength)
+                        throw new InvalidOperationException(
+                            $"[TerrainVisualCacheWriter] An alphamap plane holds {plane.Length} bytes but resolution " +
+                            $"{alphamapResolution} requires {expectedPlaneByteLength}.");
+
+                    stream.Write(plane, 0, plane.Length);
+                    payloadHash.AppendData(plane);
                 }
             }
 
