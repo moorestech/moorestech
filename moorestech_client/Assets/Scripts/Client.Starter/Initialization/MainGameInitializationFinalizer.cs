@@ -38,9 +38,11 @@ namespace Client.Starter.Initialization
 
         private async UniTask FinalizeAsync()
         {
+            UnityEngine.Debug.Log($"[BOOTPROF] client.finalizeStart {System.DateTime.UtcNow:O}");
             var starter = UnityEngine.Object.FindFirstObjectByType<MainGameStarter>();
 
             var resolver = starter.StartGame(_serverResult.HandshakeResponse);
+            UnityEngine.Debug.Log($"[BOOTPROF] client.startGameEnd {System.DateTime.UtcNow:O}");
             new ClientDIContext(new DIContainer(resolver));
             WebUiHost.Game.WebUiGameBinder.Bind();
 
@@ -60,6 +62,7 @@ namespace Client.Starter.Initialization
             // BP割当の解決元をログイン時に1度満たす。ビルドメニュー入場までBP枠が未解決に見えるのを防ぐ
             // Fill the blueprint assignments' resolution source once at login so blueprint slots are not unresolved until the build menu is opened
             await resolver.Resolve<ClientBlueprintLibrary>().Refresh(default);
+            UnityEngine.Debug.Log($"[BOOTPROF] client.blueprintRefreshed {System.DateTime.UtcNow:O}");
 
             // イベント適用開始を地形構築より前へ戻し、未生成個体宛イベントが捨てられる窓を地形構築時間分広げない（ADR#15）
             // Start event application before terrain build so the drop window for not-yet-spawned targets never widens by build time (ADR#15)
@@ -67,13 +70,17 @@ namespace Client.Starter.Initialization
 
             // 露頭を含むワールドオブジェクトの生成前にTerrainを構築する
             // Build Terrain before instantiating world objects including outcrops
+            UnityEngine.Debug.Log($"[BOOTPROF] client.terrainBuildStart {System.DateTime.UtcNow:O}");
             await TerrainRuntimeBuilder.BuildAsync(_serverResult.HandshakeResponse.MapLayout, starter.EnvironmentRoot.transform, _localMasterDirectory);
 
             // 露頭生成はTerrain完成後に明示開始する。完了待ちは下の待機境界が一括で担う（ADR#15）
             // Outcrop instantiation starts explicitly after the terrain is ready; the wait boundary below waits for it with the rest (ADR#15)
+            UnityEngine.Debug.Log($"[BOOTPROF] client.terrainBuildEnd {System.DateTime.UtcNow:O}");
             resolver.Resolve<OutcropGameObjectDatastore>().StartOutcropInstantiation();
 
+            UnityEngine.Debug.Log($"[BOOTPROF] client.initialApplyWaitStart {System.DateTime.UtcNow:O}");
             await InitialEventApplyWaiter.WaitAllAsync(resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>());
+            UnityEngine.Debug.Log($"[BOOTPROF] client.initialApplyWaitEnd {System.DateTime.UtcNow:O}");
 
             // ピンが探す対象の生成後に適用する
             // Apply only once the objects a pin searches for exist
@@ -85,6 +92,7 @@ namespace Client.Starter.Initialization
             resolver.Resolve<PlayerPositionSender>().StartSending();
 
             starter.RestoreLoginState(_serverResult.HandshakeResponse);
+            UnityEngine.Debug.Log($"[BOOTPROF] client.finalizeEnd {System.DateTime.UtcNow:O}");
         }
     }
 }

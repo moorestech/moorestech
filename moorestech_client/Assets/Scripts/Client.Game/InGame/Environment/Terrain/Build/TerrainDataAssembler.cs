@@ -23,9 +23,13 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             IReadOnlyList<DetailPrototype> detailPrototypes, TerrainLayer[] terrainLayers)
         {
             var terrainData = new TerrainData();
+            var bootprofWatch = System.Diagnostics.Stopwatch.StartNew();
             ApplyHeightmap();
+            var bootprofHeightMs = bootprofWatch.Elapsed.TotalMilliseconds; bootprofWatch.Restart();
             await ApplySplatmapAsync();
+            var bootprofSplatMs = bootprofWatch.Elapsed.TotalMilliseconds; bootprofWatch.Restart();
             ApplyDetail();
+            Debug.Log($"[BOOTPROF] assemble height={bootprofHeightMs:F0}ms splat={bootprofSplatMs:F0}ms detail={bootprofWatch.Elapsed.TotalMilliseconds:F0}ms detailMaps={tile.DetailMaps.Count} alphaRes={(tile.Alphamap == null ? 0 : tile.Alphamap.GetLength(0))} layers={(tile.Alphamap == null ? 0 : tile.Alphamap.GetLength(2))}");
             return terrainData;
 
             #region Internal

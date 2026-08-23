@@ -58,6 +58,8 @@ namespace Client.Game.InGame.Map.Outcrop
 
             async UniTask InstantiateOutcropsFromLayoutAsync()
             {
+                UnityEngine.Debug.Log($"[BOOTPROF] outcrop.instantiateStart {System.DateTime.UtcNow:O}");
+                var bootprofWatch = System.Diagnostics.Stopwatch.StartNew();
                 var cancellationToken = this.GetCancellationTokenOnDestroy();
                 var processedCount = 0;
 
@@ -78,6 +80,7 @@ namespace Client.Game.InGame.Map.Outcrop
                     processedCount++;
                     if (processedCount % FrameYieldObjectInterval == 0) await UniTask.Yield(cancellationToken);
                 }
+                Debug.Log($"[BOOTPROF] outcrop.instantiateEnd count={processedCount} wallMs={bootprofWatch.Elapsed.TotalMilliseconds:F0} {System.DateTime.UtcNow:O}");
             }
 
             GameObject ResolveOutcropPrefab(Guid veinGuid, MapVeinMasterElement element)

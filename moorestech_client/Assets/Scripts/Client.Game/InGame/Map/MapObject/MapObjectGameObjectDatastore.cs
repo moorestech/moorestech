@@ -58,6 +58,9 @@ namespace Client.Game.InGame.Map.MapObject
                 var snapshotByInstanceId = handshakeResponse.MapObjects.ToDictionary(info => info.InstanceId);
                 var cancellationToken = this.GetCancellationTokenOnDestroy();
 
+                UnityEngine.Debug.Log($"[BOOTPROF] mapObject.instantiateStart {System.DateTime.UtcNow:O}");
+                var bootprofWatch = System.Diagnostics.Stopwatch.StartNew();
+                var bootprofInstantiateMs = 0d;
                 var processedCount = 0;
                 foreach (var layout in handshakeResponse.MapLayout.MapObjects)
                 {
@@ -81,7 +84,9 @@ namespace Client.Game.InGame.Map.MapObject
                     // 生成時のRotation/Scaleを実インスタンスへ戻す。既定値のままだと全個体が同じ向きで直立し裸地も生成時サイズで広がる
                     // Restore the generated rotation and scale; the defaults face every instance alike and spread bare ground at the generated size
                     var rotation = new Quaternion(layout.RotationX, layout.RotationY, layout.RotationZ, layout.RotationW);
+                    var bootprofInstantiateWatch = System.Diagnostics.Stopwatch.StartNew();
                     var instance = Instantiate(prefab, new Vector3(layout.X, layout.Y, layout.Z), rotation, transform);
+                    bootprofInstantiateMs += bootprofInstantiateWatch.Elapsed.TotalMilliseconds;
                     instance.transform.localScale = new Vector3(layout.ScaleX, layout.ScaleY, layout.ScaleZ);
 
                     // rootにMapObjectGameObjectが無いのはprefab authoring不正。生成物を破棄してskipする
@@ -113,6 +118,7 @@ namespace Client.Game.InGame.Map.MapObject
                     processedCount++;
                     if (processedCount % FrameYieldObjectInterval == 0) await UniTask.Yield(cancellationToken);
                 }
+                Debug.Log($"[BOOTPROF] mapObject.instantiateEnd count={processedCount} layoutCount={handshakeResponse.MapLayout.MapObjects.Count} wallMs={bootprofWatch.Elapsed.TotalMilliseconds:F0} instantiateMs={bootprofInstantiateMs:F0} {System.DateTime.UtcNow:O}");
             }
 
             GameObject ResolvePrefabOrNull(Guid mapObjectGuid)

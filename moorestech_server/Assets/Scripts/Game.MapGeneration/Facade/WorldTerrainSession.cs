@@ -46,7 +46,10 @@ namespace Game.MapGeneration.Facade
 
             // pass-1: サーバーと同じ生成を丸ごと回し、配置台帳（クラスタ・種別込み）を得る。高さは捨てて転送値を正本にする
             // pass-1: run the very same generation to obtain the placement ledger (clusters and kinds); its heights are dropped in favour of the transferred ones
+            UnityEngine.Debug.Log($"[BOOTPROF] session.open.pass1Start {System.DateTime.UtcNow:O}");
+            var bootprofPass1 = System.Diagnostics.Stopwatch.StartNew();
             var run = MapGenerationPipeline.Generate(selectedGeneration, config);
+            Debug.Log($"[BOOTPROF] session.open.pass1End ms={bootprofPass1.Elapsed.TotalMilliseconds:F0} mapObjects={run.Output.MapObjects.Count} placements={run.Ledger.Placements.Count}");
 
             // 注入が効いていれば原点は構造的に一致する。崩れた台帳は別の窓の配置なので、台帳を取る前に止める
             // The injection makes the origins agree structurally; a drifted ledger holds another window's placements, so stop before taking it

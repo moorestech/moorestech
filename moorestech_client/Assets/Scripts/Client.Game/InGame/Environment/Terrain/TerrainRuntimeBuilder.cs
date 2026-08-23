@@ -35,7 +35,9 @@ namespace Client.Game.InGame.Environment.Terrain
 
             // 生成システムへはメタをそのまま戻す。中身（seed・原点）はここでは解釈しない
             // The meta goes straight back to the generation system; nothing here interprets its contents (seed, origins)
+            UnityEngine.Debug.Log($"[BOOTPROF] terrain.sessionOpenStart {System.DateTime.UtcNow:O}");
             var session = WorldTerrainSession.Open(mapLayout.TerrainMeta.ToTerrainTransferMeta(), localMasterDirectory);
+            UnityEngine.Debug.Log($"[BOOTPROF] terrain.sessionOpenEnd {System.DateTime.UtcNow:O}");
             var layout = session.Layout;
             switch (layout.Kind)
             {
@@ -64,14 +66,22 @@ namespace Client.Game.InGame.Environment.Terrain
                 var terrainLayers = await TerrainLayerAssetLoader.LoadAsync(layout.TextureLayerAddresses);
                 var detailPrototypes = await DetailPrototypeAssetResolver.ResolveAsync(layout.DetailPrototypes);
                 var terrainsByTileCoordinate = new Dictionary<Vector2Int, UnityEngine.Terrain>();
+                var bootprofBakeMs = 0d;
+                var bootprofAssembleMs = 0d;
+                var bootprofCreateMs = 0d;
                 foreach (var (tileX, tileZ) in layout.TileCoordinates)
                 {
+                    var bootprofWatch = Stopwatch.StartNew();
                     var tile = tiledSession.BakeTile(tileX, tileZ);
+                    bootprofBakeMs += bootprofWatch.Elapsed.TotalMilliseconds; bootprofWatch.Restart();
                     var terrainData = await TerrainDataAssembler.AssembleAsync(layout, tile, detailPrototypes, terrainLayers);
+                    bootprofAssembleMs += bootprofWatch.Elapsed.TotalMilliseconds; bootprofWatch.Restart();
                     var terrain = TerrainObjectFactory.Create(environmentRoot, $"{TerrainObjectName}_{tileX}_{tileZ}", tile.ScenePosition,
                         terrainData, terrainMaterial, layout.DetailObjectDistance, layout.DetailObjectDensity);
+                    bootprofCreateMs += bootprofWatch.Elapsed.TotalMilliseconds;
                     terrainsByTileCoordinate[new Vector2Int(tileX, tileZ)] = terrain;
                 }
+                Debug.Log($"[BOOTPROF] terrain.tiles bake={bootprofBakeMs:F0}ms assemble={bootprofAssembleMs:F0}ms create={bootprofCreateMs:F0}ms tiles={terrainsByTileCoordinate.Count}");
                 TerrainNeighborLinker.Link(terrainsByTileCoordinate);
                 Debug.Log($"[TerrainRuntimeBuilder] Terrain built: tiles={terrainsByTileCoordinate.Count} elapsedMs={buildStopwatch.ElapsedMilliseconds}");
             }

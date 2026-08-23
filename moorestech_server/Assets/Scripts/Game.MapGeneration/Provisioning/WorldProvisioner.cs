@@ -38,8 +38,10 @@ namespace Game.MapGeneration.Provisioning
 
                 // 指紋不一致は台帳がサーバー正本とずれる合図。ワールドごと作り直させるのは配置が動いたときだけで、見た目だけの差は解決させる
                 // A fingerprint mismatch signals the ledger has drifted from the server's truth; only moved placements force recreating the world, a visual-only difference is resolved
+                UnityEngine.Debug.Log($"[BOOTPROF] provision.existingWorld.driftResolveStart {System.DateTime.UtcNow:O}");
                 if (!existingTerrainMeta.IsTemplate)
                     GenerationMasterDriftResolver.Resolve(worldDataDirectory, settings.ServerDataDirectory, existingTerrainMeta);
+                UnityEngine.Debug.Log($"[BOOTPROF] provision.existingWorld.driftResolveEnd {System.DateTime.UtcNow:O}");
 
                 return;
             }

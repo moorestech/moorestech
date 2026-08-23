@@ -75,6 +75,7 @@ namespace Server.Boot
 
             // 生成設定はマスタなのでプロビジョニング前にマスタをロードする（Create()内の再ロードは冪等）
             // Generation config lives in master data, so load masters before provisioning (reload in Create() is idempotent)
+            UnityEngine.Debug.Log($"[BOOTPROF] server.start {System.DateTime.UtcNow:O}");
             var modResource = new ModsResource(Path.Combine(settings.ServerDataDirectory, "mods"));
             MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource)));
 
@@ -82,6 +83,7 @@ namespace Server.Boot
             // Fix the unspecified generated-mode seed so the same master always produces the same world
             // 明示指定なら0も含めそのまま使い、templateモードの従来値0も維持する
             // Preserve every explicit value including zero, as well as template mode's existing zero
+            UnityEngine.Debug.Log($"[BOOTPROF] server.masterLoaded {System.DateTime.UtcNow:O}");
             var seed = settings.Seed ?? (settings.MapMode == WorldMapMode.Generated ? DefaultGeneratedSeed : 0);
 
             // ワールドディレクトリをDI構築前に整備する（無ければ生成/テンプレートコピー）
@@ -89,6 +91,7 @@ namespace Server.Boot
             WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
                 worldDataDirectory, settings.ServerDataDirectory, settings.MapMode, seed));
 
+            UnityEngine.Debug.Log($"[BOOTPROF] server.worldEnsured {System.DateTime.UtcNow:O}");
             var serverDirectory = settings.ServerDataDirectory;
             var options = new MoorestechServerDIContainerOptions(serverDirectory)
                 {
@@ -99,13 +102,16 @@ namespace Server.Boot
             
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(options);
             
+            UnityEngine.Debug.Log($"[BOOTPROF] server.diCreated {System.DateTime.UtcNow:O}");
             //マップをロードする
             serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
 
+            UnityEngine.Debug.Log($"[BOOTPROF] server.saveLoaded {System.DateTime.UtcNow:O}");
             //初期ロード完了後にIPostLoadInitializableのLoadを一括で呼ぶ。ロード中の設置等はクライアントへ配信しない
             //Invoke Load on all IPostLoadInitializable implementations after initial load, so load-time placements etc. are not sent to clients
             foreach (var postLoadInitializable in serviceProvider.GetServices<IPostLoadInitializable>()) postLoadInitializable.Load();
 
+            UnityEngine.Debug.Log($"[BOOTPROF] server.postLoadInit {System.DateTime.UtcNow:O}");
             //modのOnLoadコードを実行する
             var modsResource = serviceProvider.GetService<ModsResource>();
             modsResource.Mods.ToList().ForEach(

@@ -27,6 +27,7 @@ namespace Game.MapGeneration.Cache
             out TerrainTileVisual tileVisual)
         {
             var filePath = _worldCacheDirectory.TerrainVisualCacheFilePath(tileX, tileZ);
+            var bootprofWatch = System.Diagnostics.Stopwatch.StartNew();
             var loaded = TerrainVisualCacheReader.TryRead(
                 filePath, _cacheKey, alphamapResolution, layerCount, detailResolution, detailMapCount,
                 out tileVisual, out var brokenReason);
@@ -36,6 +37,7 @@ namespace Game.MapGeneration.Cache
             if (brokenReason != null)
                 Debug.LogWarning($"[TerrainVisualCache] Discarding '{filePath}': {brokenReason}.");
 
+            Debug.Log($"[BOOTPROF] cache.tryLoad tile={tileX}_{tileZ} hit={loaded} ms={bootprofWatch.Elapsed.TotalMilliseconds:F1}");
             return loaded;
         }
 
@@ -43,9 +45,11 @@ namespace Game.MapGeneration.Cache
         {
             var filePath = _worldCacheDirectory.TerrainVisualCacheFilePath(tileX, tileZ);
 
+            var bootprofSaveWatch = System.Diagnostics.Stopwatch.StartNew();
             // 書き手が保存先ディレクトリを用意する。それでも失敗する書き込みは隠さず呼び出し元へ返す
             // The writer provisions the destination directory; a write that still fails is surfaced instead of hidden
             TerrainVisualCacheWriter.Write(filePath, _cacheKey, tileVisual);
+            Debug.Log($"[BOOTPROF] cache.save tile={tileX}_{tileZ} ms={bootprofSaveWatch.Elapsed.TotalMilliseconds:F1}");
         }
     }
 }
