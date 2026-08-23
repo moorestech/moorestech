@@ -41,7 +41,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
             var settings = ProvisionGeneratedWorld();
 
             var terrainMeta = TerrainTransferMetaReader.Read(_worldDataDirectory);
-            var currentFingerprint = terrainMeta.ComputeCurrentGenerationMasterFingerprint(TestModDirectory.ForUnitTestModDirectory);
+            var generatedPayload = terrainMeta.GeneratedPayload;
+            var currentFingerprint = generatedPayload.ComputeCurrentGenerationMasterFingerprint(TestModDirectory.ForUnitTestModDirectory);
             var sharedVisualDirectory = WorldDataDirectory.ForWorldCache(terrainMeta.WorldId).TerrainVisualDirectory;
             Assert.IsTrue(Directory.Exists(sharedVisualDirectory), "前提: 先焼きが共有キャッシュへ見た目を書き出している");
 

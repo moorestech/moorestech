@@ -58,11 +58,25 @@ namespace Server.Protocol.PacketResponse.MapData
             TerrainChunkTotal = terrainMeta.TerrainChunkTotal;
             TerrainHash = terrainHash;
             WorldSeed = terrainMeta.WorldSeed;
-            NoiseOrigin = new Vector2MessagePack(terrainMeta.Origins.NoiseOrigin);
-            SceneOrigin = new Vector2MessagePack(terrainMeta.Origins.SceneOrigin);
-            GenerationMasterFingerprint = terrainMeta.GenerationMasterFingerprint;
-            GeneratorVersion = terrainMeta.GeneratorVersion;
-            PlacementLedgerDigest = terrainMeta.PlacementLedgerDigest;
+
+            // templateは従来のワイヤ空値を保つが、ドメインに生成専用sentinelは持たせない
+            // Templates preserve established empty wire values without putting generated-only sentinels in the domain
+            var generatedPayload = terrainMeta.GeneratedPayload;
+            if (generatedPayload == null)
+            {
+                NoiseOrigin = new Vector2MessagePack(0f, 0f);
+                SceneOrigin = new Vector2MessagePack(0f, 0f);
+                GenerationMasterFingerprint = string.Empty;
+                GeneratorVersion = string.Empty;
+                PlacementLedgerDigest = string.Empty;
+                return;
+            }
+
+            NoiseOrigin = new Vector2MessagePack(generatedPayload.Origins.NoiseOrigin);
+            SceneOrigin = new Vector2MessagePack(generatedPayload.Origins.SceneOrigin);
+            GenerationMasterFingerprint = generatedPayload.GenerationMasterFingerprint;
+            GeneratorVersion = generatedPayload.GeneratorVersion;
+            PlacementLedgerDigest = generatedPayload.PlacementLedgerDigest;
         }
 
         // ワイヤ値を渡すだけ。モード解釈も未知モードの拒否もドメイン側(TerrainTransferMeta.FromWire)が持つ

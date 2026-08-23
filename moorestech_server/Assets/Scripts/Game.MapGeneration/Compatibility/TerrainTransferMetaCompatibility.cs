@@ -16,18 +16,20 @@ namespace Game.MapGeneration.Transfer
     {
         // 指紋の算出も照合もこのメソッドだけが持つ。呼び出し元にMasterHolderから組み直させると条件変更(templateも持つ等)の直し忘れが起きる
         // This method alone computes and matches the fingerprint; rebuilding it from MasterHolder at each caller would risk a missed update when the condition changes (e.g. templates gaining one)
-        public static void ThrowIfGenerationMasterDiffers(this TerrainTransferMeta terrainMeta, string serverDataDirectory)
+        public static void ThrowIfGenerationMasterDiffers(
+            this GeneratedTerrainTransferPayload generatedPayload, string serverDataDirectory)
         {
-            var currentFingerprint = terrainMeta.ComputeCurrentGenerationMasterFingerprint(serverDataDirectory);
-            if (currentFingerprint == terrainMeta.GenerationMasterFingerprint) return;
+            var currentFingerprint = generatedPayload.ComputeCurrentGenerationMasterFingerprint(serverDataDirectory);
+            if (currentFingerprint == generatedPayload.GenerationMasterFingerprint) return;
             throw new InvalidOperationException(
-                $"Generation master fingerprint '{currentFingerprint}' differs from the world's '{terrainMeta.GenerationMasterFingerprint}'. " +
+                $"Generation master fingerprint '{currentFingerprint}' differs from the world's '{generatedPayload.GenerationMasterFingerprint}'. " +
                 "Delete the world directory and generate the world again.");
         }
 
         // 現在の生成マスタの指紋。照合にも、ワールド側の記録を現在値へ進めるときの新しい値にも使う唯一の算出
         // The current generation master's fingerprint: the single computation used both for matching and as the new value when advancing the world's own record
-        public static string ComputeCurrentGenerationMasterFingerprint(this TerrainTransferMeta terrainMeta, string serverDataDirectory)
+        public static string ComputeCurrentGenerationMasterFingerprint(
+            this GeneratedTerrainTransferPayload generatedPayload, string serverDataDirectory)
         {
             return GenerationMasterFingerprint.Compute(
                 MasterHolder.GenerationMaster.SourceJsonText, MasterHolder.GenerationMaster.SelectedGeneration, serverDataDirectory);
@@ -37,11 +39,12 @@ namespace Game.MapGeneration.Transfer
         // A meta served by another build describes a different transfer layout, which skews every read below it
         // world.json側(サーバー自身のワールド)の版照合は、作り直しを促す文言でTerrainTransferMetaReaderが別に持つ
         // The world.json-side check (the server's own world) lives separately in TerrainTransferMetaReader, whose message demands a regeneration
-        public static void ThrowIfGeneratorVersionDiffers(this TerrainTransferMeta terrainMeta)
+        public static void ThrowIfGeneratorVersionDiffers(
+            this GeneratedTerrainTransferPayload generatedPayload, string worldId)
         {
-            if (terrainMeta.GeneratorVersion == WorldGeneratorVersion.Current) return;
+            if (generatedPayload.GeneratorVersion == WorldGeneratorVersion.Current) return;
             throw new InvalidOperationException(
-                $"Terrain transfer meta of world '{terrainMeta.WorldId}' was produced by generator '{terrainMeta.GeneratorVersion}', " +
+                $"Terrain transfer meta of world '{worldId}' was produced by generator '{generatedPayload.GeneratorVersion}', " +
                 $"but this build is '{WorldGeneratorVersion.Current}'. The transferred terrain file layout differs; connect to a server on the same build.");
         }
     }

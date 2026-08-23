@@ -43,29 +43,32 @@ namespace Game.MapGeneration.Pipeline.Visual
         // クライアントは自分の地形ファイルを持たない。高さ源は先焼きが書いた共有キャッシュで、その導出は呼び出し元に持たせない
         // A client owns no terrain files of its own: its height source is the shared cache the prebake wrote, and deriving it never falls to the caller
         public static Result CreateForClient(
-            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, Generation selectedGeneration)
+            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, GeneratedTerrainTransferPayload generatedPayload,
+            Generation selectedGeneration)
         {
             var ledgerSource = new RegeneratedPlacementLedgerSource(selectedGeneration, config);
-            return CreateWithHeightSource(config, terrainMeta, ledgerSource, selectedGeneration, SharedCacheOf(terrainMeta));
+            return CreateWithHeightSource(
+                config, terrainMeta, generatedPayload, ledgerSource, selectedGeneration, SharedCacheOf(terrainMeta));
         }
 
         // 先焼きの高さ源はワールド本体のterrain/(生成した本人が唯一の正)。共有キャッシュへの複製は要らない
         // The prebake's height source is the world's own terrain/ (the generator itself is the sole truth); no copy into the shared cache is needed
         public static Result CreateForPrebake(
-            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, PlacementLedger ledger,
-            Generation selectedGeneration, WorldDataDirectory worldDataDirectory)
+            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, GeneratedTerrainTransferPayload generatedPayload,
+            PlacementLedger ledger, Generation selectedGeneration, WorldDataDirectory worldDataDirectory)
         {
             var ledgerSource = new MaterializedPlacementLedgerSource(ledger);
-            return CreateWithHeightSource(config, terrainMeta, ledgerSource, selectedGeneration, worldDataDirectory);
+            return CreateWithHeightSource(
+                config, terrainMeta, generatedPayload, ledgerSource, selectedGeneration, worldDataDirectory);
         }
 
         private static Result CreateWithHeightSource(
-            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, IPlacementLedgerSource ledgerSource,
-            Generation selectedGeneration, WorldDataDirectory heightSource)
+            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, GeneratedTerrainTransferPayload generatedPayload,
+            IPlacementLedgerSource ledgerSource, Generation selectedGeneration, WorldDataDirectory heightSource)
         {
             var gridConfig = config.ShallowCopy();
-            gridConfig.worldOffsetX = terrainMeta.Origins.NoiseOrigin.x;
-            gridConfig.worldOffsetZ = terrainMeta.Origins.NoiseOrigin.y;
+            gridConfig.worldOffsetX = generatedPayload.Origins.NoiseOrigin.x;
+            gridConfig.worldOffsetZ = generatedPayload.Origins.NoiseOrigin.y;
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(gridConfig);
             var visualSections = BiomeVisualSectionTable.Resolve(selectedGeneration, biomeTypes);
             var treeSurroundSpecies = TreeSurroundSpeciesTable.Build(new BiomePlacementHelper(gridConfig), biomeTypes);
@@ -76,10 +79,11 @@ namespace Game.MapGeneration.Pipeline.Visual
 
             // 台帳の指紋はワールド作成時に確定して転送メタが運ぶ。鍵のためだけにpass-1を回さない
             // The ledger digest is settled at world creation and carried by the transfer meta, so the key alone never triggers a pass-1
-            var cacheKey = TerrainVisualCacheKey.Compute(terrainMeta.GenerationMasterFingerprint, config.seed, terrainMeta.Origins,
-                terrainMeta.TerrainResolution, WorldGeneratorVersion.Current, terrainMeta.PlacementLedgerDigest);
+            var cacheKey = TerrainVisualCacheKey.Compute(
+                generatedPayload.GenerationMasterFingerprint, config.seed, generatedPayload.Origins,
+                terrainMeta.TerrainResolution, generatedPayload.GeneratorVersion, generatedPayload.PlacementLedgerDigest);
             var baker = new TileVisualBaker(gridConfig, biomeTypes, visualSections, layerTable, treeSurroundSpecies, ledgerSource,
-                terrainMeta.PlacementLedgerDigest, heightSource, new TerrainVisualCache(SharedCacheOf(terrainMeta), cacheKey));
+                generatedPayload.PlacementLedgerDigest, heightSource, new TerrainVisualCache(SharedCacheOf(terrainMeta), cacheKey));
 
             return new Result(baker, gridConfig, layerTable.OrderedLayerAddresses);
         }

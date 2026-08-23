@@ -34,19 +34,20 @@ namespace Game.MapGeneration.Provisioning
         {
             // ここは指紋を突き合わせるだけでなく、進める新しい値としても要るので算出結果を手元に持つ
             // The fingerprint is needed here not only to match but as the new value to advance to, so the computation is kept at hand
-            var currentFingerprint = terrainMeta.ComputeCurrentGenerationMasterFingerprint(serverDataDirectory);
-            if (currentFingerprint == terrainMeta.GenerationMasterFingerprint) return;
+            var generatedPayload = terrainMeta.GeneratedPayload;
+            var currentFingerprint = generatedPayload.ComputeCurrentGenerationMasterFingerprint(serverDataDirectory);
+            if (currentFingerprint == generatedPayload.GenerationMasterFingerprint) return;
 
             // クライアントのOpenと同じ組み立てでpass-1を回し直す。ここを通れば、クライアントも同じ台帳へ辿り着く
             // Re-run pass-1 through the very assembly the client's Open uses, so passing here means the client reaches the same ledger
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
-                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, terrainMeta.Origins);
+                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, generatedPayload.Origins);
             var run = MapGenerationPipeline.Generate(selectedGeneration, config);
 
             // 窓が動いていたら配置以前に別のワールドなので、集合の比較より先に止める
             // A moved window is a different world before any placement is compared, so stop ahead of the set comparison
-            terrainMeta.ThrowIfOriginsDiffer(run.Output.NoiseOrigin, run.Output.SceneOrigin);
+            generatedPayload.ThrowIfOriginsDiffer(new TerrainOrigins(run.Output.NoiseOrigin, run.Output.SceneOrigin));
             ThrowIfMapObjectsMoved(worldDataDirectory, run.Output);
 
             DropSharedVisualCache(terrainMeta.WorldId);

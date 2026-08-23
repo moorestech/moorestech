@@ -30,11 +30,12 @@ namespace Game.MapGeneration.Facade
 
             // 転送メタは別ビルドのサーバーからも届く。転送ファイル構成の版が違えばこの先の読み出しが全部ずれるので冒頭で止める
             // The meta can arrive from a server on another build; a differing transfer-layout version skews every read below, so stop at the head
-            terrainMeta.ThrowIfGeneratorVersionDiffers();
+            var generatedPayload = terrainMeta.GeneratedPayload;
+            generatedPayload.ThrowIfGeneratorVersionDiffers(terrainMeta.WorldId);
 
             // 生成マスタ（JSON原文＋配置ノイズPNG）がワールド作成時と違えば台帳がサーバー正本とずれる。版・解像度と同じく例外で止める
             // If the generation master (JSON text + placement-noise PNGs) differs from world creation, the ledger drifts from the server's truth; fail as for version and resolution
-            terrainMeta.ThrowIfGenerationMasterDiffers(serverDataDirectory);
+            generatedPayload.ThrowIfGenerationMasterDiffers(serverDataDirectory);
 
             // サーバーの唯一の入口と同じconfig組立を通す。手で組み直さない
             // ただしスポーン探索だけは再計算せず、ワールド作成時に確定した原点を注入して同じ窓を指させる
@@ -42,7 +43,7 @@ namespace Game.MapGeneration.Facade
             // The spawn search alone is not recomputed: the origins settled at world creation are injected so the same window is addressed
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
-                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, terrainMeta.Origins);
+                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, generatedPayload.Origins);
             terrainMeta.ThrowIfTerrainResolutionDiffers(config.Resolution);
 
             // 原点は格子の寸法と注入したGだけで決まり、生成を回さなくても確かめられる
@@ -50,11 +51,11 @@ namespace Game.MapGeneration.Facade
             // The origins follow from the grid dimensions and the injected G alone, so they are checkable without running generation
             // Shifted origins address another window, so stop before visuals baked on that window can reach the cache
             var origins = MapGenerationPipeline.ResolveOrigins(config);
-            terrainMeta.ThrowIfOriginsDiffer(origins.NoiseOrigin, origins.SceneOrigin);
+            generatedPayload.ThrowIfOriginsDiffer(origins);
 
             // 組み立てはサーバー先焼きと共有し、高さ源と遅延台帳源の決定をfactoryへ閉じる
             // Share assembly with the server prebake and keep both height-source and lazy-ledger-source decisions in the factory
-            var factoryResult = TileVisualBakerFactory.CreateForClient(config, terrainMeta, selectedGeneration);
+            var factoryResult = TileVisualBakerFactory.CreateForClient(config, terrainMeta, generatedPayload, selectedGeneration);
             var gridConfig = factoryResult.GridConfig;
 
             // 生成内部のdetail設定は境界を越えない。並びを保ったまま公開仕様へ写す

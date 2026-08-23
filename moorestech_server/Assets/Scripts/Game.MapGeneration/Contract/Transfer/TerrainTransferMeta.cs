@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Game.Paths;
-using UnityEngine;
 
 namespace Game.MapGeneration.Transfer
 {
@@ -28,24 +27,12 @@ namespace Game.MapGeneration.Transfer
         // The world.json seed verbatim; clients reproduce the classification stage (land/sea, beach, biome weights) consistent with the transferred terrain from it
         public readonly int WorldSeed;
 
-        // 生成時のノイズ窓原点とシーン原点。seedと同じく生成時にしか決まらずマスタからは復元できない値
-        // The generation-time noise window origin and scene origin; like the seed, they exist only at generation and cannot be recovered from the master
-        public readonly TerrainOrigins Origins;
-
-        // 生成マスタの指紋(JSON原文+配置ノイズPNG)。templateは空文字。ワールド作成時のマスタとの一致検査に使う
-        // The generation master's fingerprint (JSON text + placement-noise PNGs); empty for template. Used to check agreement with the master at world creation
-        public readonly string GenerationMasterFingerprint;
-
-        // 転送ファイル構成の版。ワールドを作ったビルドの値そのもので、templateは空文字
-        // The transferred file layout's version, verbatim from the build that created the world; empty for template
-        public readonly string GeneratorVersion;
-
-        // 配置台帳の指紋。ワールド作成時のpass-1でしか決まらず、クライアントはこれを鍵に使うことで自前のpass-1を省く
-        // The placement ledger's digest, settled only by the pass-1 at world creation; a client keys the cache on it and skips a pass-1 of its own
-        public readonly string PlacementLedgerDigest;
+        // templateは生成専用値を保持できない。nullはtemplate、非nullはgeneratedの二状態に対応する
+        // A template cannot hold generated-only values; null maps to template and non-null maps to generated
+        public readonly GeneratedTerrainTransferPayload GeneratedPayload;
 
         private TerrainTransferMeta(string mapMode, string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed,
-            TerrainOrigins origins, string generationMasterFingerprint, string generatorVersion, string placementLedgerDigest)
+            GeneratedTerrainTransferPayload generatedPayload)
         {
             MapMode = mapMode;
             IsTemplate = mapMode == WorldMapMode.Template;
@@ -54,25 +41,22 @@ namespace Game.MapGeneration.Transfer
             TerrainTileCount = terrainTileCount;
             TerrainChunkTotal = terrainChunkTotal;
             WorldSeed = worldSeed;
-            Origins = origins;
-            GenerationMasterFingerprint = generationMasterFingerprint;
-            GeneratorVersion = generatorVersion;
-            PlacementLedgerDigest = placementLedgerDigest;
+            GeneratedPayload = generatedPayload;
         }
 
         public static TerrainTransferMeta CreateGenerated(
-            string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed, TerrainOrigins origins,
-            string generationMasterFingerprint, string generatorVersion, string placementLedgerDigest)
+            string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed,
+            GeneratedTerrainTransferPayload generatedPayload)
         {
+            if (generatedPayload == null) throw new ArgumentNullException(nameof(generatedPayload));
             return new TerrainTransferMeta(
-                WorldMapMode.Generated, worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed, origins,
-                generationMasterFingerprint, generatorVersion, placementLedgerDigest);
+                WorldMapMode.Generated, worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed, generatedPayload);
         }
 
         public static TerrainTransferMeta CreateTemplate(string worldId, int worldSeed)
         {
             return new TerrainTransferMeta(
-                WorldMapMode.Template, worldId, 0, 0, 0, worldSeed, TerrainOrigins.WithoutTerrain(), string.Empty, string.Empty, string.Empty);
+                WorldMapMode.Template, worldId, 0, 0, 0, worldSeed, null);
         }
 
         // ワイヤ値をドメインへ戻す唯一の入口。モード文字列の解釈と未知モードの拒否はプロトコルDTOではなくこの型が持つ
@@ -83,8 +67,9 @@ namespace Game.MapGeneration.Transfer
         {
             if (mapMode == WorldMapMode.Template) return CreateTemplate(worldId, worldSeed);
             if (mapMode == WorldMapMode.Generated)
-                return CreateGenerated(worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed, origins,
-                    generationMasterFingerprint, generatorVersion, placementLedgerDigest);
+                return CreateGenerated(
+                    worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed,
+                    new GeneratedTerrainTransferPayload(origins, generationMasterFingerprint, generatorVersion, placementLedgerDigest));
             throw new InvalidOperationException($"[TerrainTransferMeta] Unknown map mode '{mapMode}'.");
         }
 
@@ -107,23 +92,6 @@ namespace Game.MapGeneration.Transfer
             if (currentResolution == TerrainResolution) return;
             throw new InvalidOperationException(
                 $"Generation master resolution {currentResolution} disagrees with the transferred terrain resolution {TerrainResolution}.");
-        }
-
-        // 原点照合も同じく唯一の実装へ集約する。原点がずれた台帳は別の窓の配置なので、無言で見た目へ流さない
-        // The origin check is consolidated the same way; a ledger built on shifted origins holds another window's placements and must never reach the visuals silently
-        public void ThrowIfOriginsDiffer(Vector2 currentNoiseOrigin, Vector2 currentSceneOrigin)
-        {
-            // 原点はfloatでworld.jsonを往復し、注入時のG=NoiseOrigin-SceneOriginでも丸められる（数km地点のfloat刻みは約1mm）
-            // 実際にずれるときは窓1枚ぶん（数百m以上）動くので、ハイトマップ1サンプル(約4m)の400分の1を同一とみなす閾値にする
-            // The origins round-trip through world.json as floats and are rounded again by the injected G = NoiseOrigin - SceneOrigin (a float step is about 1mm several km out)
-            // A real disagreement moves by a whole window (hundreds of metres), so the threshold sits at a four-hundredth of one heightmap sample (about 4m)
-            const float toleranceMeters = 0.01f;
-            if (Vector2.Distance(currentNoiseOrigin, Origins.NoiseOrigin) <= toleranceMeters &&
-                Vector2.Distance(currentSceneOrigin, Origins.SceneOrigin) <= toleranceMeters) return;
-
-            throw new InvalidOperationException(
-                $"Regenerated origins (noise {currentNoiseOrigin}, scene {currentSceneOrigin}) disagree with the transferred origins " +
-                $"(noise {Origins.NoiseOrigin}, scene {Origins.SceneOrigin}).");
         }
 
         // 論理ストリームを構成するタイルの並び順。一辺√TileCountの正方格子をz行→x列で走査する

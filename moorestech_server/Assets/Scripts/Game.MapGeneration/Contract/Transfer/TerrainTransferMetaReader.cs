@@ -36,8 +36,7 @@ namespace Game.MapGeneration.Transfer
                         "(placementLedgerDigest now identifies the placement-dependent visual cache). Delete the world directory and generate the world again."),
                 WorldMapMode.Generated => TerrainTransferMeta.CreateGenerated(
                     CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount,
-                    CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedOrigins(), ReadGenerationMasterFingerprint(), worldMeta.GeneratorVersion,
-                    ReadPlacementLedgerDigest()),
+                    CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedPayload()),
                 WorldMapMode.Template => TerrainTransferMeta.CreateTemplate(CalculateWorldId(), worldMeta.Seed),
                 _ => throw new InvalidOperationException($"Unknown map mode in world.json: '{worldMeta.MapMode}'")
             };
@@ -52,6 +51,14 @@ namespace Game.MapGeneration.Transfer
                 using var sha256 = SHA256.Create();
                 var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes($"{worldMeta.Seed}:{worldMeta.CreatedAt}"));
                 return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant().Substring(0, worldIdHexDigits);
+            }
+
+            GeneratedTerrainTransferPayload ReadGeneratedPayload()
+            {
+                // generated専用値を1回だけ読み、欠損のないpayloadとしてドメインへ渡す
+                // Read generated-only values once and hand the domain one complete payload
+                return new GeneratedTerrainTransferPayload(
+                    ReadGeneratedOrigins(), ReadGenerationMasterFingerprint(), worldMeta.GeneratorVersion, ReadPlacementLedgerDigest());
             }
 
             // 原点は生成時にしか決まらず0でも補えない。旧バージョンのworld.jsonはキーごと欠けるので作り直しを促す
