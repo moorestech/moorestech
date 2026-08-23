@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.Construction;
 using Client.WebUiHost.Game.Icons;
 using Core.Master;
+using Game.Construction;
 using Game.PlacementTarget;
 using Mooresmaster.Model.BuildMenuModule;
 
@@ -18,12 +18,12 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     {
         // 解放判定はResolverが持つ唯一の供給点へ委ね、ここは変換だけを担う
         // Delegates the unlock decision to the resolver's single supply point; this file only converts
-        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver, ClientRemainingPlacementCountDatastore remainingPlacementCountDatastore)
+        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery walletQuery)
         {
-            return CreateDtos(placementTargetResolver.CreateUnlockedTargets(), remainingPlacementCountDatastore);
+            return CreateDtos(placementTargetResolver.CreateUnlockedTargets(), walletQuery);
         }
 
-        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets, ClientRemainingPlacementCountDatastore remainingPlacementCountDatastore)
+        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets, ConstructionWalletQuery walletQuery)
         {
             var dtos = new List<BuildMenuEntryDto>();
             var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
@@ -45,8 +45,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     CategoryGuid = categoryGuid.ToString("D"),
                     SubCategoryGuid = subCategoryGuid.ToString("D"),
                     RequiredItems = CreateRequiredItemDtos(target),
-                    PlacementsPerCost = ResolvePlacementsPerCost(target),
-                    RemainingPlacementCount = ResolveRemainingPlacementCount(target),
+                    SetPlacement = ResolveSetPlacement(target),
                     IconUrl = ResolveIconUrl(target),
                 });
             }
@@ -93,20 +92,16 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 return target.Kind == PlacementTargetKind.Block ? (BlockPlacementTarget)target : null;
             }
 
-            // 設置数/1セットはブロックのマスタ値、他は配信しない
-            // Placements per cost set comes from the block master; no other kind carries it
-            int? ResolvePlacementsPerCost(IPlacementTarget target)
+            // 財布の有無も残数も財布へ問い合わせる。非ブロックは財布を持たない
+            // Both whether a wallet exists and how much remains come from the wallet itself; non-block kinds have none
+            BuildMenuSetPlacementDto ResolveSetPlacement(IPlacementTarget target)
             {
                 var block = ResolveBlockTarget(target);
-                return block == null ? null : MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).PlacementsPerCost;
-            }
+                if (block == null) return null;
 
-            // 残り設置数は財布へ問い合わせる。他は配信しない
-            // Remaining placements come from the client-side wallet; no other kind carries it
-            int? ResolveRemainingPlacementCount(IPlacementTarget target)
-            {
-                var block = ResolveBlockTarget(target);
-                return block == null ? null : remainingPlacementCountDatastore.GetRemainingCount(block.BlockId);
+                var status = walletQuery.GetWalletStatus(block.BlockId);
+                if (status == null) return null;
+                return new BuildMenuSetPlacementDto { PerCost = status.Value.PlacementsPerCost, Remaining = status.Value.RemainingCount };
             }
 
             #endregion

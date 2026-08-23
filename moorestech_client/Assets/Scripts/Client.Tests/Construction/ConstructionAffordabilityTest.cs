@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Construction;
 using Core.Master;
+using Game.Construction;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -51,37 +52,6 @@ namespace Client.Tests.Construction
         }
 
         [Test]
-        public void 残り設置数と買えるセット数から置ける数を算出する()
-        {
-            CreateServer();
-            var blockId = ForUnitTestModBlockId.GearBeltConveyor;
-            var datastore = new ClientRemainingPlacementCountDatastore();
-            datastore.ApplyAll(new Dictionary<BlockId, int> { { blockId, 1 } });
-
-            // 素材2セット+残1 → 1+2×3=7
-            // Materials cover two sets and one placement remains in the wallet → 1 + 2x3 = 7
-            Assert.AreEqual(7, datastore.GetAffordablePlacementCount(blockId, CreateInventory(2, 2)));
-        }
-
-        [Test]
-        public void 設置数1なら素材セル数がそのまま置ける数になる()
-        {
-            CreateServer();
-            var datastore = new ClientRemainingPlacementCountDatastore();
-
-            Assert.AreEqual(2, datastore.GetAffordablePlacementCount(ForUnitTestModBlockId.BlockId, CreateInventory(5, 2)));
-        }
-
-        [Test]
-        public void コスト未定義なら残り設置数に関わらずMaxValue()
-        {
-            CreateServer();
-            var datastore = new ClientRemainingPlacementCountDatastore();
-
-            Assert.AreEqual(int.MaxValue, datastore.GetAffordablePlacementCount(ForUnitTestModBlockId.BeltConveyorId, new List<global::Core.Item.Interface.IItemStack>()));
-        }
-
-        [Test]
         public void 坂ベルトの残り設置数は直線代表の財布から引く()
         {
             CreateServer();
@@ -100,7 +70,7 @@ namespace Client.Tests.Construction
             var datastore = new ClientRemainingPlacementCountDatastore();
 
             var changedCount = 0;
-            using (datastore.OnRemainingPlacementCountChanged.Subscribe(_ => changedCount++))
+            using (datastore.OnWalletChanged.Subscribe(_ => changedCount++))
             {
                 datastore.ApplyAll(new Dictionary<BlockId, int> { { ForUnitTestModBlockId.GearBeltConveyor, 1 } });
                 datastore.Apply(ForUnitTestModBlockId.GearBeltConveyor, 2);

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
-using Mooresmaster.Model.BlocksModule;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
 {
@@ -14,7 +13,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         private readonly Dictionary<ItemId, int> _counts = new();
         private readonly Dictionary<ItemId, int> _constructionCostPerCell = new();
 
-        public ElectricWireAutoConnectVirtualInventory(ILocalPlayerInventory inventory, ConstructionRequiredItemElement[] requiredItems)
+        public ElectricWireAutoConnectVirtualInventory(ILocalPlayerInventory inventory, IReadOnlyList<(ItemId itemId, int count)> constructionCostPerCell)
         {
             // 所持アイテムをID別に合算する
             // Sum held items per item id
@@ -24,12 +23,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 _counts[itemStack.Id] = _counts.GetValueOrDefault(itemStack.Id) + itemStack.Count;
             }
 
-            // セル1つ分の建設コストをID別に合算する
-            // Sum one cell's construction cost per item id
-            foreach (var requiredItem in requiredItems)
+            // セル1つ分の建設コストをID別に合算する。財布が賄うセルでは空で渡される
+            // Sum one cell's construction cost per item id; a wallet-covered cell arrives empty
+            foreach (var (itemId, count) in constructionCostPerCell)
             {
-                var itemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
-                _constructionCostPerCell[itemId] = _constructionCostPerCell.GetValueOrDefault(itemId) + requiredItem.Count;
+                _constructionCostPerCell[itemId] = _constructionCostPerCell.GetValueOrDefault(itemId) + count;
             }
         }
 

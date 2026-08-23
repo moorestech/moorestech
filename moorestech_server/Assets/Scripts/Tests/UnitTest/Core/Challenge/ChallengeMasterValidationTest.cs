@@ -40,6 +40,33 @@ namespace Tests.UnitTest.Core.Challenge
         }
 
         [Test]
+        public void earnItemピンが誰も落とさないアイテムを参照すると失敗する()
+        {
+            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
+                "mods", "forUnitTest", "master", "challenges.json");
+            var json = JObject.Parse(File.ReadAllText(path));
+            var tutorial = (JObject)json["data"][0]["challenges"][0]["tutorials"][0];
+
+            // Test3はitems.jsonに実在するがどのmapObjectのearnItemsにも無い。実在するのに解決先が空になる形を突く
+            // Test3 exists in items.json but no mapObject earns it, hitting the "exists yet resolves to nothing" case
+            tutorial["tutorialType"] = "mapObjectPin";
+            tutorial["tutorialParam"] = new JObject
+            {
+                ["pinTargetType"] = "earnItem",
+                ["pinTargetParam"] = new JObject
+                {
+                    ["itemGuid"] = "00000000-0000-0000-1234-000000000003",
+                },
+                ["pinText"] = "nobody drops this",
+            };
+
+            var master = new ChallengeMaster(json);
+
+            Assert.IsFalse(master.Validate(out var logs));
+            StringAssert.Contains("resolving to no MapObject", logs);
+        }
+
+        [Test]
         public void completeResearchが存在しないresearchNodeGuidを参照すると失敗する()
         {
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,

@@ -56,7 +56,7 @@ return PlaytestRunner.Run("map-object-runtime-instantiate", options, async p =>
     // 検索APIが実体を引けること＝生成物がワールド座標に正しく配置されていることの確認
     // The search API returning a hit means instances are placed at correct world positions
     var sampleGuid = serverDatastore.MapObjects.First().MapObjectGuid;
-    var nearest = clientDatastore.SearchNearestMapObject(sampleGuid, p.PlayerPosition);
+    var nearest = clientDatastore.SearchNearestMapObject(new HashSet<Guid> { sampleGuid }, p.PlayerPosition);
     p.Assert(nearest != null, "SearchNearestMapObjectが生成済みmapObjectを引ける");
 
     await p.WaitSeconds(1f);

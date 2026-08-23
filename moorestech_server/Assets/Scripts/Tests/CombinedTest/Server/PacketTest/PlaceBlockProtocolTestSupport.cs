@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Core.Inventory;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Construction;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.UnlockState;
@@ -79,7 +80,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var inventory = GetInventory(serviceProvider);
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            var itemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
+            var itemCounts = ConstructionCostItems.ToItemCounts(blockMaster.RequiredItems);
             foreach (var (itemId, count) in itemCounts)
             {
                 inventory.InsertItem(itemId, count * costSets);

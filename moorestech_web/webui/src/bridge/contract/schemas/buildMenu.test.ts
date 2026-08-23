@@ -60,39 +60,36 @@ describe("BuildMenuEntryDataSchema", () => {
     }).label).toBe("starter-base");
   });
 
-  it("blockはplacementsPerCostとremainingPlacementCountを必須で受理する", () => {
-    const entry = BuildMenuEntryDataSchema.parse({
+  it("blockはsetPlacementを任意で受理し、perCostが1以下なら弾く", () => {
+    const blockEntryBase = {
       id: "30000000-0000-4000-8000-000000000001",
-      kind: "block",
+      kind: "block" as const,
       categoryGuid: "10000000-0000-4000-8000-000000000001",
       subCategoryGuid: "20000000-0000-4000-8000-000000000001",
       requiredItems: [{ itemId: 3, count: 1 }],
-      placementsPerCost: 3,
-      remainingPlacementCount: 2,
-    });
+    };
+
+    const entry = BuildMenuEntryDataSchema.parse({ ...blockEntryBase, setPlacement: { perCost: 3, remaining: 2 } });
     assert(entry.kind === "block");
-    expect(entry.placementsPerCost).toBe(3);
-    expect(() => BuildMenuEntryDataSchema.parse({ ...entry, placementsPerCost: 0 })).toThrow();
+    expect(entry.setPlacement).toEqual({ perCost: 3, remaining: 2 });
+
+    // 財布を使わないブロックはキーごと省略されて届く
+    // Blocks that bypass the wallet arrive with the key omitted entirely
+    const walletlessEntry = BuildMenuEntryDataSchema.parse(blockEntryBase);
+    assert(walletlessEntry.kind === "block");
+    expect(walletlessEntry.setPlacement).toBeUndefined();
+
+    expect(() => BuildMenuEntryDataSchema.parse({ ...blockEntryBase, setPlacement: { perCost: 1, remaining: 0 } })).toThrow();
   });
 
-  it("block以外へ設置数フィールドを載せたpayloadは拒否する", () => {
+  it("block以外へsetPlacementを載せたpayloadは拒否する", () => {
     expect(() => BuildMenuEntryDataSchema.parse({
       id: "8f9c2a51-0000-4000-8000-000000000001",
       kind: "trainCar",
       categoryGuid: "10000000-0000-4000-8000-000000000001",
       subCategoryGuid: "20000000-0000-4000-8000-000000000001",
       requiredItems: [],
-      placementsPerCost: 3,
-    })).toThrow();
-  });
-
-  it("blockは設置数フィールドを欠いたpayloadを拒否する", () => {
-    expect(() => BuildMenuEntryDataSchema.parse({
-      id: "30000000-0000-4000-8000-000000000001",
-      kind: "block",
-      categoryGuid: "10000000-0000-4000-8000-000000000001",
-      subCategoryGuid: "20000000-0000-4000-8000-000000000001",
-      requiredItems: [],
+      setPlacement: { perCost: 3, remaining: 2 },
     })).toThrow();
   });
 });
