@@ -139,8 +139,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             var output = new VanillaGenerator().Generate(config).Output;
 
             Assert.IsNotEmpty(output.ItemVeins);
-            MultiTileTestWorld.AssertNoOverlappingVeins(output.ItemVeins);
-            MultiTileTestWorld.AssertNoOverlappingVeins(output.FluidVeins);
+            MultiTileTestWorld.AssertNoOverlappingVeins(
+                output.ItemVeins.Concat(output.FluidVeins).ToList());
         }
 
         // シーン座標化の基準が探索の戻り値(探索無効なら0)だと、地形の窓原点だけが master worldOffset ぶん進む。
