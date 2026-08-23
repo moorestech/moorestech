@@ -87,6 +87,10 @@ namespace Tests.UnitTest.Game.MapGeneration
             // Make a small, fast single-tile map (bypass preset, set resolution directly).
             ap["overrideResolution"] = spawnSearchSetup == SpawnSearchSetup.Disabled ? 129 : 0;
 
+            // detail解像度はheightmapとは独立なので、解像度を落としたら一緒に落とす。masterの値のままだとheightmapより細かくなる
+            // The detail resolution is independent of the heightmap, so lowering one lowers the other; the master's value would otherwise out-resolve the heightmap
+            if (spawnSearchSetup == SpawnSearchSetup.Disabled) ap["detailResolution"] = 128;
+
             // forUnitTest の generation.json は 5x5 なので、多タイルを要らないテストのために 1x1 へ落とす。
             // 5x5 を要るテスト（スポーン探索系）は algorithmParamOverrides で明示的に戻すこと。
             // The forUnitTest generation.json ships 5x5, so drop to 1x1 for tests that do not need multiple tiles.

@@ -120,7 +120,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Distance
         {
             return new TerrainGenerationConfig
             {
-                overrideResolution = Resolution, seed = 4321,
+                overrideResolution = Resolution, detailResolution = Resolution - 1, seed = 4321,
                 terrainWidth = TileSize, terrainLength = TileSize, terrainHeight = 50f,
             };
         }

@@ -28,6 +28,12 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail
         {
             var heightmapResolution = dimensions.Resolution;
             var detailResolution = dimensions.DetailResolution;
+
+            // 密度はheightmapのセルを引いて決まるので、heightmapより細かいdetailは引く先が無い。添字外れではなく設定の誤りとして落とす
+            // Density is sampled from heightmap cells, so a detail finer than the heightmap has nothing to sample; fail as a misconfiguration rather than an index error
+            if (heightmapResolution - 1 < detailResolution)
+                throw new System.InvalidOperationException(
+                    $"[DetailRuntimeGenerator] Detail resolution {detailResolution} exceeds what heightmap resolution {heightmapResolution} can sample.");
             var maps = new List<int[,]>();
 
             // 曲率・方位角は使うフィルタが1つでもある時だけ計算する

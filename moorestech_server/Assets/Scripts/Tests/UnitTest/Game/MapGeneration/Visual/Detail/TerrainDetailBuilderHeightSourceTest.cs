@@ -112,7 +112,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
         {
             return new TerrainGenerationConfig
             {
-                overrideResolution = Resolution, seed = 4321,
+                overrideResolution = Resolution, detailResolution = Resolution - 1, seed = 4321,
                 terrainWidth = 100f, terrainLength = 100f, terrainHeight = 50f,
             };
         }

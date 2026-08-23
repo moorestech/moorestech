@@ -81,15 +81,17 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
         {
             // 平面と channel の割り当てが崩れると、層の入れ替わりが起きても合計だけは合ってしまう
             // A broken plane-and-channel assignment still keeps the sums right while the layers swap places
+            // 合計1に収めて畳み込みの正規化を挟ませない。ここで見たいのは層と channel の対応だけ
+            // Keep the sum at one so the fold's normalization stays out of it; only the layer-to-channel mapping is under test
             var alphamap = new float[1, 1, 6];
-            alphamap[0, 0, 0] = 1f;
-            alphamap[0, 0, 5] = 1f;
+            alphamap[0, 0, 0] = 0.25f;
+            alphamap[0, 0, 5] = 0.75f;
 
             var planes = StoredAlphamapWeights.ToPlanes(alphamap);
 
             Assert.That(planes.Length, Is.EqualTo(2), "6層はRGBA2枚に載る");
-            Assert.That(planes[0][0], Is.EqualTo(byte.MaxValue), "layer0は平面0のR");
-            Assert.That(planes[1][1], Is.EqualTo(byte.MaxValue), "layer5は平面1のG");
+            Assert.That(planes[0][0], Is.EqualTo(64), "layer0は平面0のR");
+            Assert.That(planes[1][1], Is.EqualTo(191), "layer5は平面1のG");
         }
 
         // クラスタ経路と単体岩経路の両方が同じ画素へ書く配置。2回目の書き込みは書き込み先に重みがある状態で走る
