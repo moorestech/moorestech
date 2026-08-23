@@ -50,7 +50,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _localPlayerInventory = localPlayerInventory;
             _constructionWalletQuery = constructionWalletQuery;
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
-            _autoConnectPreview = new ElectricWireAutoConnectPreview(mainCamera, blockGameObjectDataStore, previewBlockController, gameUnlockStateData);
+            _autoConnectPreview = new ElectricWireAutoConnectPreview(mainCamera, blockGameObjectDataStore, previewBlockController, gameUnlockStateData, constructionWalletQuery);
         }
         
         public override void Enable()
