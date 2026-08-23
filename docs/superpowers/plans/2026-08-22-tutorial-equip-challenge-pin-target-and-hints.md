@@ -1070,7 +1070,7 @@ git commit -m "data(localization): 装備チャレンジ/木ピン文言と研�
 
 ```bash
 for f in server_v8/mods/moorestechAlphaMod_8/master/challenges.json server_v8/mods/moorestechAlphaMod_8/master/research.json server/mods/moorestechAlphaMod_3/master/challenges.json; do python3 -m json.tool "$f" > /dev/null && echo "ok $f"; done
-grep -rn $'​' server_v8/mods/moorestechAlphaMod_8/master/challenges.json server_v8/mods/moorestechAlphaMod_8/localization/localization.csv; echo "zero-width check exit=$?"
+grep -rn $'\u200b' server_v8/mods/moorestechAlphaMod_8/master/challenges.json server_v8/mods/moorestechAlphaMod_8/localization/localization.csv; echo "zero-width check exit=$?"
 grep -rc '"mapObjectGuid"' server_v8/mods/moorestechAlphaMod_8/master/challenges.json server/mods/moorestechAlphaMod_3/master/challenges.json
 ```
 Expected: 3ファイル ok、zero-width は 1（不一致）、`mapObjectGuid` は v8 1件・mod_3 4件（すべて `pinTargetParam` 配下）。
