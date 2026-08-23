@@ -32,16 +32,56 @@ namespace Client.Game.InGame.Map.MapObject
             _snapshotByInstanceId = snapshotByInstanceId;
         }
 
-        public async UniTask InstantiateFromLayoutAsync(MapObjectLayoutMessagePack layout, CancellationToken cancellationToken)
+        /// <summary>
+        ///     prefabロードだけを分離し、awaitを跨ぐ判断（活性ゲート・キャンセル）を呼び出しループへ返す
+        ///     Isolates the prefab load so the caller's loop owns every decision that straddles the await (activity gate, cancellation)
+        /// </summary>
+        public async UniTask<GameObject> ResolvePrefabOrNullAsync(MapObjectLayoutMessagePack layout, CancellationToken cancellationToken)
         {
             // guidは正常データ前提でparseする（不正guidはT8のデータ修正対象・ここでの防御は過剰）
             // Parse guid assuming valid data (malformed guids are a T8 data fix; defending here is overkill)
             var mapObjectGuid = new Guid(layout.MapObjectGuid);
 
-            // 失敗個体はskipし続行
-            // Skip this instance on failure and keep going
-            var prefab = await ResolvePrefabOrNullAsync(mapObjectGuid);
+            // 失敗もnullとしてキャッシュする。同一guidが千個規模で並ぶためloadとLogErrorはguidごと1回に抑える
+            // Failures are cached as null too; a guid can repeat by the thousand so keep the load and LogError once per guid
+            if (_prefabCacheByMapObjectGuid.TryGetValue(mapObjectGuid, out var cachedPrefab)) return cachedPrefab;
+
+            // master欠落はskip対象
+            // Master-missing is skipped
+            var element = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(mapObjectGuid);
+            if (element == null)
+            {
+                Debug.LogError($"MapObject master missing. MapObjectGuid:{mapObjectGuid}");
+                _prefabCacheByMapObjectGuid[mapObjectGuid] = null;
+                return null;
+            }
+
+            // 同期loadはWaitForCompletionでメインスレッドを止め、後着中に数十〜数百msのヒッチを出すので非同期で待つ
+            // The sync load blocks the main thread via WaitForCompletion and would stutter background streaming, so await instead
+            var loaded = await AddressableLoader.LoadAsyncDefault<GameObject>(element.AddressablePath, cancellationToken);
+
+            // キャンセルはロード失敗ではない。null恒久キャッシュを書かず生成ループごと畳む
+            // Cancellation is not a load failure: fold the whole instantiation loop instead of caching null forever
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (loaded == null)
+            {
+                Debug.LogError($"MapObject prefab load failed. MapObjectGuid:{mapObjectGuid} AddressablePath:{element.AddressablePath}");
+                _prefabCacheByMapObjectGuid[mapObjectGuid] = null;
+                return null;
+            }
+
+            _prefabCacheByMapObjectGuid[mapObjectGuid] = loaded;
+            return loaded;
+        }
+
+        public void InstantiateFromLayout(MapObjectLayoutMessagePack layout, GameObject prefab)
+        {
+            // ロードに失敗した個体はskipし続行
+            // Skip instances whose prefab failed to load and keep going
             if (prefab == null) return;
+
+            var mapObjectGuid = new Guid(layout.MapObjectGuid);
 
             // スナップショット欠落はInstantiate前に検出し、orphan instanceを作らずskipする
             // Detect a missing snapshot before Instantiate so no orphan instance is created, then skip
@@ -79,40 +119,6 @@ namespace Client.Game.InGame.Map.MapObject
                 Debug.LogError($"MapObject duplicate InstanceId:{layout.InstanceId} MapObjectGuid:{mapObjectGuid}");
                 Object.Destroy(instance);
             }
-
-            #region Internal
-
-            async UniTask<GameObject> ResolvePrefabOrNullAsync(Guid guid)
-            {
-                // 失敗もnullとしてキャッシュする。同一guidが千個規模で並ぶためloadとLogErrorはguidごと1回に抑える
-                // Failures are cached as null too; a guid can repeat by the thousand so keep the load and LogError once per guid
-                if (_prefabCacheByMapObjectGuid.TryGetValue(guid, out var cachedPrefab)) return cachedPrefab;
-
-                // master欠落はskip対象
-                // Master-missing is skipped
-                var element = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(guid);
-                if (element == null)
-                {
-                    Debug.LogError($"MapObject master missing. MapObjectGuid:{guid}");
-                    _prefabCacheByMapObjectGuid[guid] = null;
-                    return null;
-                }
-
-                // 同期loadはWaitForCompletionでメインスレッドを止め、後着中に数十〜数百msのヒッチを出すので非同期で待つ
-                // The sync load blocks the main thread via WaitForCompletion and would stutter background streaming, so await instead
-                var loaded = await AddressableLoader.LoadAsyncDefault<GameObject>(element.AddressablePath, cancellationToken);
-                if (loaded == null)
-                {
-                    Debug.LogError($"MapObject prefab load failed. MapObjectGuid:{guid} AddressablePath:{element.AddressablePath}");
-                    _prefabCacheByMapObjectGuid[guid] = null;
-                    return null;
-                }
-
-                _prefabCacheByMapObjectGuid[guid] = loaded;
-                return loaded;
-            }
-
-            #endregion
         }
     }
 }

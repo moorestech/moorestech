@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Network.API;
@@ -36,10 +37,10 @@ namespace Client.Game.InGame.Map.MapObject
 
         public IReadOnlyReactiveProperty<bool> IsAllInstantiated => _isAllInstantiated;
 
-        // 近傍/全量完了を別々に保持
-        // Retain near-field and full completion separately
-        private UniTask? _initialApplyTask;
-        private UniTask? _allInstantiatedTask;
+        // 近傍/全量完了を別々に保持する。待機側が複数同時に付くのでTaskで持つ（UniTask.Preserveは未完了中の同時awaitを支えず例外になる）
+        // Near-field and full completion are retained separately as Tasks because several awaiters attach at once (UniTask.Preserve throws on concurrent awaits while pending)
+        private Task _initialApplyTask;
+        private Task _allInstantiatedTask;
 
         public UniTask WaitForInitialApplyAsync()
         {
@@ -47,7 +48,7 @@ namespace Client.Game.InGame.Map.MapObject
             // Waiting before the start is an ordering bug; never let the default (completed) task slip through
             if (_initialApplyTask == null)
                 throw new InvalidOperationException("[MapObjectGameObjectDatastore] Construct前に待機が要求されました");
-            return _initialApplyTask.Value;
+            return _initialApplyTask.AsUniTask();
         }
 
         public UniTask WaitForAllInstantiatedAsync()
@@ -56,7 +57,7 @@ namespace Client.Game.InGame.Map.MapObject
             // The official wait for full instantiation (used by tests); it stays awaitable even before the game starts
             if (_allInstantiatedTask == null)
                 throw new InvalidOperationException("[MapObjectGameObjectDatastore] Construct前に全量待機が要求されました");
-            return _allInstantiatedTask.Value;
+            return _allInstantiatedTask.AsUniTask();
         }
 
         [Inject]
@@ -76,46 +77,65 @@ namespace Client.Game.InGame.Map.MapObject
             // Order by distance and settle the near-field boundary in one call
             var nearFieldOrder = MapObjectLayoutDistanceOrder.SortNearFieldFirst(handshakeResponse.MapLayout.MapObjects, handshakeResponse.PlayerPos);
 
-            _initialApplyTask = InstantiateRangeAsync(0, nearFieldOrder.NearFieldCount, NearFieldFrameBudgetMilliseconds).Preserve();
-            _allInstantiatedTask = InstantiateBackgroundAsync().Preserve();
+            _initialApplyTask = InstantiateRangeAsync(0, nearFieldOrder.NearFieldCount, NearFieldFrameBudgetMilliseconds, waitsForWorldObjectActive: false).AsTask();
+            _allInstantiatedTask = InstantiateBackgroundAsync().AsTask();
+
+            // 後着の唯一の観測点。失敗をConsoleへ出し、例外時も完了フラグを確定させる（欠落報告の抑止を永久に残さない）
+            // The sole observer of the background stream: it reports failures to the Console and settles the completion flag even on failure, so the missing-target report never stays suppressed
+            _allInstantiatedTask.ContinueWith(SettleAllInstantiated, TaskScheduler.FromCurrentSynchronizationContext());
 
             #region Internal
+
+            void SettleAllInstantiated(Task backgroundTask)
+            {
+                // 破棄によるキャンセルは完了ではない
+                // Cancellation from destruction is not a completion
+                if (backgroundTask.IsCanceled) return;
+
+                if (backgroundTask.IsFaulted) Debug.LogError($"MapObject background instantiation failed. {backgroundTask.Exception}");
+                _isAllInstantiated.Value = true;
+            }
 
             async UniTask InstantiateBackgroundAsync()
             {
                 // 近傍完了後、さらにゲーム開始まで待つ。露頭生成・チュートリアル適用の最中に予算を奪わない（ADR 0030 R2）
                 // Wait for the near field and then for the game to start, so the background stream never steals budget during startup (ADR 0030 R2)
-                await _initialApplyTask.Value;
+                await _initialApplyTask.AsUniTask();
                 await GameInitializedEvent.OnGameInitialized.Take(1).ToUniTask(cancellationToken: cancellationToken);
 
-                // 後着レンジだけを観測対象にし、近傍の例外はWaitForInitialApplyAsync側の1系統のみが報告する
-                // Scope the Forget() observer to the background range only, so near-field failures are reported once via WaitForInitialApplyAsync
-                var backgroundTask = InstantiateRangeAsync(nearFieldOrder.NearFieldCount, nearFieldOrder.Entries.Count, BackgroundFrameBudgetMilliseconds).Preserve();
-                backgroundTask.Forget();
-                await backgroundTask;
-
-                _isAllInstantiated.Value = true;
+                await InstantiateRangeAsync(nearFieldOrder.NearFieldCount, nearFieldOrder.Entries.Count, BackgroundFrameBudgetMilliseconds, waitsForWorldObjectActive: true);
             }
 
-            async UniTask InstantiateRangeAsync(int startIndex, int endIndexExclusive, double frameBudgetMilliseconds)
+            async UniTask InstantiateRangeAsync(int startIndex, int endIndexExclusive, double frameBudgetMilliseconds, bool waitsForWorldObjectActive)
             {
                 // 予算内は同一フレームで生成継続
                 // Keep instantiating within the frame while budget remains
                 var budget = new FrameTimeBudget(frameBudgetMilliseconds);
                 for (var index = startIndex; index < endIndexExclusive; index++)
                 {
-                    // 活性復帰は購読で待つ。待っている間に経過時間が積み上がるので復帰時に予算を仕切り直す
-                    // Reactivation is awaited via subscription; elapsed time piles up while waiting, so the budget restarts on return
-                    if (!_isWorldObjectActive.Value)
-                    {
-                        await _isWorldObjectActive.Where(static isActive => isActive).ToUniTask(true, cancellationToken);
-                        budget.Restart();
-                    }
+                    // prefabロードのawaitを跨いで非活性化されうるので、ロードの前後で活性を確かめてからInstantiateする
+                    // Deactivation can slip across the prefab-load await, so activity is confirmed on both sides of it before instantiating
+                    var layout = nearFieldOrder.Entries[index].Layout;
+                    await WaitForWorldObjectActiveAsync();
+                    var prefab = await instantiator.ResolvePrefabOrNullAsync(layout, cancellationToken);
+                    await WaitForWorldObjectActiveAsync();
 
-                    await instantiator.InstantiateFromLayoutAsync(nearFieldOrder.Entries[index].Layout, cancellationToken);
+                    instantiator.InstantiateFromLayout(layout, prefab);
 
                     if (!budget.IsExhausted) continue;
                     await UniTask.Yield(cancellationToken);
+                    budget.Restart();
+                }
+
+                async UniTask WaitForWorldObjectActiveAsync()
+                {
+                    // 近傍生成はローディング内で完結するので待たない。開幕スキットと同時に走るため、待つと無人実行で永久停止する
+                    // Near-field instantiation completes within loading and never waits; it runs alongside the opening skit, where waiting would stall an unattended run forever
+                    if (!waitsForWorldObjectActive || _isWorldObjectActive.Value) return;
+
+                    // 活性復帰は購読で待つ。待っている間に経過時間が積み上がるので復帰時に予算を仕切り直す
+                    // Reactivation is awaited via subscription; elapsed time piles up while waiting, so the budget restarts on return
+                    await _isWorldObjectActive.Where(static isActive => isActive).ToUniTask(true, cancellationToken);
                     budget.Restart();
                 }
             }
@@ -129,24 +149,15 @@ namespace Client.Game.InGame.Map.MapObject
 
             // 未生成宛は台帳へ保留し生成時に優先適用
             // Not-yet-instantiated targets are held in the ledger and applied first at instantiation
-            var isInstantiated = _registry.TryGet(data.InstanceId, out var mapObject);
-
             switch (data.EventType)
             {
                 case MapObjectUpdateEventMessagePack.DestroyEventType:
-                    if (!isInstantiated)
-                    {
-                        _registry.RecordPendingDestroy(data.InstanceId);
-                        break;
-                    }
-
-                    // 破壊は次回探索時にguid単位で再構築
-                    // Destruction rebuilds just this guid at the next search
-                    mapObject.DestroyMapObject();
-                    _registry.MarkDirty(mapObject.MapObjectGuid);
+                    // 破壊と探索索引の無効化は登録簿の中で対のまま実行される
+                    // Destruction and the search-index invalidation stay paired inside the registry
+                    if (!_registry.TryDestroy(data.InstanceId)) _registry.RecordPendingDestroy(data.InstanceId);
                     break;
                 case MapObjectUpdateEventMessagePack.HpUpdateEventType:
-                    if (isInstantiated) mapObject.UpdateHp(data.CurrentHp);
+                    if (_registry.TryGet(data.InstanceId, out var mapObject)) mapObject.UpdateHp(data.CurrentHp);
                     else _registry.RecordPendingHp(data.InstanceId, data.CurrentHp);
                     break;
                 default:

@@ -44,17 +44,25 @@ namespace Client.Game.InGame.Tutorial
         private void Update()
         {
             // 最も近いMapObjectにピンする
-            NearestPinMapObject();
+            var isTargetResolved = TryPinNearestMapObject();
 
             // Webへ射影配信する
             // Project and publish to the web overlay
-            PublishWebWorldPin();
+            PublishWebWorldPin(isTargetResolved);
 
             #region Internal
 
-            void PublishWebWorldPin()
+            void PublishWebWorldPin(bool isResolved)
             {
                 if (!WebUiScreenGate.IsWebUiMode || _currentTutorialParam == null) return;
+
+                // 未解決の間に配信すると前回チュートリアルの座標を指し続ける。消してから解決を待つ
+                // Publishing while unresolved keeps pointing at the previous tutorial's position, so clear the pin and wait for a resolution
+                if (!isResolved)
+                {
+                    WorldPinStateStore.Instance.RemovePin(WebPinId);
+                    return;
+                }
 
                 var camera = CameraManager.MainCamera.Camera;
                 if (!camera) return;
@@ -63,7 +71,7 @@ namespace Client.Game.InGame.Tutorial
                 WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
             }
 
-            void NearestPinMapObject()
+            bool TryPinNearestMapObject()
             {
                 // 近くのMapObjectを探してピンを表示
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
@@ -73,17 +81,18 @@ namespace Client.Game.InGame.Tutorial
                 {
                     // 後着途中の空振りは欠落ではないので報告もラッチもしない。誤報でラッチを消費すると本物の欠落が二度と出なくなる
                     // A miss mid-stream is not a missing target: reporting it would burn the latch and silence the real absence forever
-                    if (!_isAllMapObjectInstantiated) return;
+                    if (!_isAllMapObjectInstantiated) return false;
 
                     if (_reportedMissingMapObjectGuid != _currentTutorialParam.MapObjectGuid)
                     {
                         _reportedMissingMapObjectGuid = _currentTutorialParam.MapObjectGuid;
                         Debug.LogError($"未破壊のMapObject {_currentTutorialParam.MapObjectGuid} が存在しません");
                     }
-                    return;
+                    return false;
                 }
 
                 transform.position = mapObject.Position;
+                return true;
             }
 
             #endregion

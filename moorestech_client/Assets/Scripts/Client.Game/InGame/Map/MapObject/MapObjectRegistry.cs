@@ -35,9 +35,15 @@ namespace Client.Game.InGame.Map.MapObject
             return _mapObjectsByInstanceId.TryGetValue(instanceId, out mapObject);
         }
 
-        public void MarkDirty(Guid mapObjectGuid)
+        public bool TryDestroy(int instanceId)
         {
-            _nearestSearcher.MarkDirty(mapObjectGuid);
+            // 破壊とdirtyは対でしか成立しない。外へ出して手組みさせると片方を落とした呼び出しを型が拒めない
+            // Destruction and the dirty mark hold only as a pair; exposing them lets a caller drop one and the type cannot refuse it
+            if (!_mapObjectsByInstanceId.TryGetValue(instanceId, out var mapObject)) return false;
+
+            mapObject.DestroyMapObject();
+            _nearestSearcher.MarkDirty(mapObject.MapObjectGuid);
+            return true;
         }
 
         public void RecordPendingDestroy(int instanceId)
