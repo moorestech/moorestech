@@ -66,7 +66,7 @@
 - Consumes: なし
 - Produces: `public sealed class FrameTimeBudget` — `public FrameTimeBudget(double budgetMilliseconds)` ／ `public bool IsExhausted { get; }`（Restart/生成からの経過実時間が予算以上でtrue）／ `public void Restart()`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using Client.Game.InGame.Map.MapObject;
@@ -105,12 +105,12 @@ namespace Client.Tests.Map
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `FrameTimeBudget` が存在しないエラー
 
-- [ ] **Step 3: 最小限の実装を書く**
+- [x] **Step 3: 最小限の実装を書く**
 
 ```csharp
 using System.Diagnostics;
@@ -143,12 +143,12 @@ namespace Client.Game.InGame.Map.MapObject
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "FrameTimeBudgetTest"`
 Expected: 3件PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/FrameTimeBudget.cs* moorestech_client/Assets/Scripts/Client.Tests/Map/FrameTimeBudgetTest.cs*
