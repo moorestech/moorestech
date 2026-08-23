@@ -22,11 +22,11 @@ namespace Client.Tests.Map
                 CreateLayout(3, 50f, 0f, 0f),
             };
 
-            var sorted = MapObjectLayoutDistanceOrder.Sort(layouts, Vector3.zero);
+            var order = MapObjectLayoutDistanceOrder.SortNearFieldFirst(layouts, Vector3.zero);
 
-            Assert.AreEqual(2, sorted[0].Layout.InstanceId);
-            Assert.AreEqual(3, sorted[1].Layout.InstanceId);
-            Assert.AreEqual(1, sorted[2].Layout.InstanceId);
+            Assert.AreEqual(2, order.Entries[0].Layout.InstanceId);
+            Assert.AreEqual(3, order.Entries[1].Layout.InstanceId);
+            Assert.AreEqual(1, order.Entries[2].Layout.InstanceId);
         }
 
         [Test]
@@ -38,8 +38,8 @@ namespace Client.Tests.Map
                 CreateLayout(2, 20f, 0f, 0f),
             };
 
-            var sorted = MapObjectLayoutDistanceOrder.Sort(layouts, Vector3.zero);
-            Assert.AreEqual(2, sorted[0].Layout.InstanceId);
+            var order = MapObjectLayoutDistanceOrder.SortNearFieldFirst(layouts, Vector3.zero);
+            Assert.AreEqual(2, order.Entries[0].Layout.InstanceId);
         }
 
         [Test]
@@ -47,12 +47,12 @@ namespace Client.Tests.Map
         {
             var layouts = new List<MapObjectLayoutMessagePack>
             {
-                CreateLayout(1, 150f, 0f, 0f),
-                CreateLayout(2, 150.001f, 0f, 0f),
+                CreateLayout(1, MapObjectLayoutDistanceOrder.NearFieldRadius, 0f, 0f),
+                CreateLayout(2, MapObjectLayoutDistanceOrder.NearFieldRadius + 0.001f, 0f, 0f),
             };
 
-            var sorted = MapObjectLayoutDistanceOrder.Sort(layouts, Vector3.zero);
-            Assert.AreEqual(1, MapObjectLayoutDistanceOrder.CountWithinRadius(sorted, 150f));
+            var order = MapObjectLayoutDistanceOrder.SortNearFieldFirst(layouts, Vector3.zero);
+            Assert.AreEqual(1, order.NearFieldCount);
         }
 
         [Test]
@@ -64,16 +64,32 @@ namespace Client.Tests.Map
                 CreateLayout(2, 2f, 0f, 0f),
             };
 
-            var sorted = MapObjectLayoutDistanceOrder.Sort(layouts, Vector3.zero);
-            Assert.AreEqual(2, MapObjectLayoutDistanceOrder.CountWithinRadius(sorted, 150f));
+            var order = MapObjectLayoutDistanceOrder.SortNearFieldFirst(layouts, Vector3.zero);
+            Assert.AreEqual(2, order.NearFieldCount);
         }
 
         [Test]
         public void 空のlayoutでも成立する()
         {
-            var sorted = MapObjectLayoutDistanceOrder.Sort(new List<MapObjectLayoutMessagePack>(), Vector3.zero);
-            Assert.AreEqual(0, sorted.Count);
-            Assert.AreEqual(0, MapObjectLayoutDistanceOrder.CountWithinRadius(sorted, 150f));
+            var order = MapObjectLayoutDistanceOrder.SortNearFieldFirst(new List<MapObjectLayoutMessagePack>(), Vector3.zero);
+            Assert.AreEqual(0, order.Entries.Count);
+            Assert.AreEqual(0, order.NearFieldCount);
+        }
+
+        [Test]
+        public void 近傍件数は入力順ではなく距離順の先頭から数える()
+        {
+            // 入力先頭が遠方でも近傍が0件にならないこと。SortとCountが1呼び出しに畳まれている根拠を突く
+            // A distant first input must not zero the near field; this pins the fold of sorting and counting into one call
+            var layouts = new List<MapObjectLayoutMessagePack>
+            {
+                CreateLayout(1, MapObjectLayoutDistanceOrder.NearFieldRadius + 100f, 0f, 0f),
+                CreateLayout(2, 10f, 0f, 0f),
+                CreateLayout(3, 20f, 0f, 0f),
+            };
+
+            var order = MapObjectLayoutDistanceOrder.SortNearFieldFirst(layouts, Vector3.zero);
+            Assert.AreEqual(2, order.NearFieldCount);
         }
 
         private static MapObjectLayoutMessagePack CreateLayout(int instanceId, float x, float y, float z)

@@ -10,6 +10,8 @@ namespace Client.Game.Common
     {
         // DI登録された全対象の完了を初期化パイプラインが待つ。失敗は例外として待機境界へ届く
         // The init pipeline awaits every registered target; failures reach the waiting boundary as exceptions
+        // 完了の範囲は実装が決める（mapObjectは近傍のみで明け、遠方は起動後に後着する）
+        // Each implementation decides how much counts as complete (map objects clear on the near field alone and stream the rest in after startup)
         UniTask WaitForInitialApplyAsync();
     }
 }

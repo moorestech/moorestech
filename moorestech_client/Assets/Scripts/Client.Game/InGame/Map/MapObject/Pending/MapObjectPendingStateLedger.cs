@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Client.Game.InGame.Map.MapObject
+namespace Client.Game.InGame.Map.MapObject.Pending
 {
     /// <summary>
     ///     未生成宛の破壊/HPを保留する台帳

@@ -1,7 +1,7 @@
-using Client.Game.InGame.Map.MapObject;
+using Client.Game.InGame.Map.MapObject.Pending;
 using NUnit.Framework;
 
-namespace Client.Tests.Map
+namespace Client.Tests.Map.Pending
 {
     /// <summary>
     ///     未生成個体宛イベントの保留台帳を検証

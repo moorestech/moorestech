@@ -4,6 +4,7 @@ using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
 using Mooresmaster.Model.ChallengesModule;
+using UniRx;
 using UnityEngine;
 using VContainer;
 
@@ -29,10 +30,15 @@ namespace Client.Game.InGame.Tutorial
         // Reporting a missing target every frame would bury the log, so report once per target (same as VeinPin)
         private Guid _reportedMissingMapObjectGuid;
 
+        // 起動待機は近傍だけで明けるため、後着完了までは探索の空振りが「まだ生成されていない」を意味する
+        // The startup wait only covers the near field, so until the background stream finishes a miss means "not yet instantiated"
+        private bool _isAllMapObjectInstantiated;
+
         [Inject]
         public void Construct(MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
         {
             _mapObjectGameObjectDatastore = mapObjectGameObjectDatastore;
+            mapObjectGameObjectDatastore.IsAllInstantiated.Subscribe(isAllInstantiated => _isAllMapObjectInstantiated = isAllInstantiated).AddTo(this);
         }
 
         private void Update()
@@ -65,6 +71,10 @@ namespace Client.Game.InGame.Tutorial
 
                 if (mapObject == null)
                 {
+                    // 後着途中の空振りは欠落ではないので報告もラッチもしない。誤報でラッチを消費すると本物の欠落が二度と出なくなる
+                    // A miss mid-stream is not a missing target: reporting it would burn the latch and silence the real absence forever
+                    if (!_isAllMapObjectInstantiated) return;
+
                     if (_reportedMissingMapObjectGuid != _currentTutorialParam.MapObjectGuid)
                     {
                         _reportedMissingMapObjectGuid = _currentTutorialParam.MapObjectGuid;

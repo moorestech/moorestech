@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Client.Common.Asset;
 using Core.Master;
+using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
@@ -10,33 +12,27 @@ using Object = UnityEngine.Object;
 namespace Client.Game.InGame.Map.MapObject
 {
     /// <summary>
-    ///     layoutから個体生成しスナップショット適用・索引登録
-    ///     Instantiates a map object from a layout, applies its snapshot, and registers it for search
+    ///     layoutから個体生成しスナップショット適用・登録簿への登録を行う
+    ///     Instantiates a map object from a layout, applies its snapshot, and hands it to the registry
     /// </summary>
     public sealed class MapObjectLayoutInstantiator
     {
         private readonly Transform _parent;
-        private readonly Dictionary<int, MapObjectGameObject> _allMapObjects;
+        private readonly MapObjectRegistry _registry;
         private readonly Dictionary<int, GetMapObjectInfoProtocol.MapObjectsInfoMessagePack> _snapshotByInstanceId;
-        private readonly MapObjectNearestSearcher _nearestSearcher;
-        private readonly MapObjectPendingStateLedger _pendingStateLedger;
         private readonly Dictionary<Guid, GameObject> _prefabCacheByMapObjectGuid = new();
 
         public MapObjectLayoutInstantiator(
             Transform parent,
-            Dictionary<int, MapObjectGameObject> allMapObjects,
-            Dictionary<int, GetMapObjectInfoProtocol.MapObjectsInfoMessagePack> snapshotByInstanceId,
-            MapObjectNearestSearcher nearestSearcher,
-            MapObjectPendingStateLedger pendingStateLedger)
+            MapObjectRegistry registry,
+            Dictionary<int, GetMapObjectInfoProtocol.MapObjectsInfoMessagePack> snapshotByInstanceId)
         {
             _parent = parent;
-            _allMapObjects = allMapObjects;
+            _registry = registry;
             _snapshotByInstanceId = snapshotByInstanceId;
-            _nearestSearcher = nearestSearcher;
-            _pendingStateLedger = pendingStateLedger;
         }
 
-        public void InstantiateFromLayout(MapObjectLayoutMessagePack layout)
+        public async UniTask InstantiateFromLayoutAsync(MapObjectLayoutMessagePack layout, CancellationToken cancellationToken)
         {
             // guidは正常データ前提でparseする（不正guidはT8のデータ修正対象・ここでの防御は過剰）
             // Parse guid assuming valid data (malformed guids are a T8 data fix; defending here is overkill)
@@ -44,7 +40,7 @@ namespace Client.Game.InGame.Map.MapObject
 
             // 失敗個体はskipし続行
             // Skip this instance on failure and keep going
-            var prefab = ResolvePrefabOrNull(mapObjectGuid);
+            var prefab = await ResolvePrefabOrNullAsync(mapObjectGuid);
             if (prefab == null) return;
 
             // スナップショット欠落はInstantiate前に検出し、orphan instanceを作らずskipする
@@ -71,38 +67,25 @@ namespace Client.Game.InGame.Map.MapObject
                 return;
             }
 
-            // instanceId重複はTryAddで検出し、重複個体を破棄してskipする（Addのthrowは起動ハングを招くため不可）
-            // Detect duplicate instanceId via TryAdd; destroy the duplicate and skip (Add's throw would hang startup)
+            // 登録簿へ渡す前に初期状態を当てる。保留イベントの優先適用は登録簿側の不変条件が担う（ADR 0030）
+            // Apply the initial state before handing it over; overriding it with pending events is the registry's own invariant (ADR 0030)
             mapObject.SetRuntimeIdentity(layout.InstanceId, layout.MapObjectGuid);
-            if (!_allMapObjects.TryAdd(layout.InstanceId, mapObject))
+            mapObject.Initialize(snapshot);
+
+            // instanceId重複は登録簿が検出する。重複個体を破棄してskipする（例外は起動ハングを招くため不可）
+            // The registry detects duplicate instanceIds; destroy the duplicate and skip (throwing would hang startup)
+            if (!_registry.TryRegister(mapObject))
             {
                 Debug.LogError($"MapObject duplicate InstanceId:{layout.InstanceId} MapObjectGuid:{mapObjectGuid}");
                 Object.Destroy(instance);
-                return;
             }
-
-            // 登録後に初期状態を適用
-            // Apply the initial state after registration
-            mapObject.Initialize(snapshot);
-
-            // 生成前に届いた破壊/HPイベントをスナップショットより優先して適用する（ADR 0030）
-            // Apply destroy/HP events that arrived before instantiation, overriding the snapshot (ADR 0030)
-            if (_pendingStateLedger.TryConsume(layout.InstanceId, out var pendingState))
-            {
-                if (pendingState.HasHp) mapObject.UpdateHp(pendingState.Hp);
-                if (pendingState.IsDestroyed && !mapObject.IsDestroyed) mapObject.DestroyMapObject();
-            }
-
-            // 最寄り探索の候補へ登録
-            // Register as a nearest-search candidate
-            _nearestSearcher.Register(mapObject);
 
             #region Internal
 
-            GameObject ResolvePrefabOrNull(Guid guid)
+            async UniTask<GameObject> ResolvePrefabOrNullAsync(Guid guid)
             {
-                // 失敗もnullとしてキャッシュする。同一guidが千個規模で並ぶため同期loadとLogErrorはguidごと1回に抑える
-                // Failures are cached as null too; a guid can repeat by the thousand so keep the sync load and LogError once per guid
+                // 失敗もnullとしてキャッシュする。同一guidが千個規模で並ぶためloadとLogErrorはguidごと1回に抑える
+                // Failures are cached as null too; a guid can repeat by the thousand so keep the load and LogError once per guid
                 if (_prefabCacheByMapObjectGuid.TryGetValue(guid, out var cachedPrefab)) return cachedPrefab;
 
                 // master欠落はskip対象
@@ -115,9 +98,9 @@ namespace Client.Game.InGame.Map.MapObject
                     return null;
                 }
 
-                // load失敗もskip対象
-                // Load failure is also skipped
-                var loaded = AddressableLoader.LoadDefault<GameObject>(element.AddressablePath);
+                // 同期loadはWaitForCompletionでメインスレッドを止め、後着中に数十〜数百msのヒッチを出すので非同期で待つ
+                // The sync load blocks the main thread via WaitForCompletion and would stutter background streaming, so await instead
+                var loaded = await AddressableLoader.LoadAsyncDefault<GameObject>(element.AddressablePath, cancellationToken);
                 if (loaded == null)
                 {
                     Debug.LogError($"MapObject prefab load failed. MapObjectGuid:{guid} AddressablePath:{element.AddressablePath}");

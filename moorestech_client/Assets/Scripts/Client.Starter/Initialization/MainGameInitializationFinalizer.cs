@@ -73,8 +73,8 @@ namespace Client.Starter.Initialization
 
             await InitialEventApplyWaiter.WaitAllAsync(resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>());
 
-            // ピンが探す対象の生成後に適用する
-            // Apply only once the objects a pin searches for exist
+            // ピンが探す対象は近傍分だけ揃っている。遠方分の後着完了はピン側がdatastoreの完了通知を購読して待つ
+            // Only the near-field share of a pin's targets exists here; the pin itself subscribes to the datastore's completion for the rest
             resolver.Resolve<ChallengeManager>().ApplyInitialTutorials();
 
             // 車両の生成まで終えてから自機を保存座標へ置く。乗車セーブの復帰先が未生成だと支えが無く落下する（ADR#16）
