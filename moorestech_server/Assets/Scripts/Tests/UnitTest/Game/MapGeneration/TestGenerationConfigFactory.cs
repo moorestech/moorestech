@@ -157,48 +157,8 @@ namespace Tests.UnitTest.Game.MapGeneration
 
                 // 独立散布オブジェクトを Grassland に1種置き、MapObjects が空にならないようにする。
                 // Place one independently scattered object in Grassland so MapObjects is never empty.
-                ((JArray)((JObject)((JObject)ap["grassland"])["objectConfig"])["entries"]).Add(BuildObjectEntry(mapObjectGuid));
-            }
-
-            // ノイズ・傘フィルタを全て無効にした素の散布エントリ。スキーマ既定値と同値でも明示的に埋める。
-            // A bare scatter entry with every noise/slope filter off; fields are written out even when equal to the schema defaults.
-            static JObject BuildObjectEntry(string mapObjectGuid)
-            {
-                return new JObject
-                {
-                    ["prefabs"] = new JArray(new JObject { ["mapObjectGuid"] = mapObjectGuid }),
-                    ["terrainSurroundEffectType"] = "rockNoBareGround",
-                    // 外半径・densityが互いに違う2帯にして、帯とリングの対応が入れ替わる改変を転写テストで捕まえる
-                    // Two bands differing in both radius and density, so a mix-up between bands and rings fails the transcription test
-                    ["placementMode"] = "scatter",
-                    ["placementParam"] = new JObject
-                    {
-                        ["bands"] = new JArray(
-                            new JObject
-                            {
-                                ["outerRadiusMeters"] = 250.0,
-                                ["pointsPerHectare"] = 2.0,
-                            },
-                            new JObject
-                            {
-                                ["outerRadiusMeters"] = -1,
-                                ["pointsPerHectare"] = 1.0,
-                            }),
-                    },
-                    ["scaleRange"] = new JArray(1.0, 1.0),
-                    ["slopeAlignment"] = 0.0,
-                    ["sinkRange"] = new JArray(0.0, 0.0),
-                    ["noiseType"] = "None",
-                    ["noiseFrequency"] = 10.0,
-                    ["noiseAmplitude"] = 1.0,
-                    ["noiseThreshold"] = 0.5,
-                    ["useSlopeFilter"] = false,
-                    ["slopeMin"] = 0.0,
-                    ["slopeMax"] = 90.0,
-                    ["slopeSmoothness"] = 4.0,
-                    ["minDistanceFromTree"] = 0.0,
-                    ["maxDistanceFromTree"] = 0.0,
-                };
+                ((JArray)((JObject)((JObject)ap["grassland"])["objectConfig"])["entries"])
+                    .Add(TestMapObjectEntryFactory.Create(mapObjectGuid));
             }
 
             static void ConfigureVeinEntry(JObject entry, string veinGuid)
