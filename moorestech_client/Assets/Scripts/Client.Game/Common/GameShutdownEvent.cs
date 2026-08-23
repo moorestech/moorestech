@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UniRx;
 
 namespace Client.Game.Common
@@ -10,6 +12,7 @@ namespace Client.Game.Common
     public static class GameShutdownEvent
     {
         private static readonly Subject<Unit> _onGameShutdown = new();
+        private static readonly List<UniTask> _shutdownTasks = new();
         private static bool _fired;
 
         // ゲーム終了時に発火するイベント
@@ -21,6 +24,14 @@ namespace Client.Game.Common
         public static void ResetForNewSession()
         {
             _fired = false;
+            _shutdownTasks.Clear();
+        }
+
+        // 終了通知を受けた側が「完了まで待たせたい処理」を預ける。待ち上限は預ける側が持つ
+        // Subscribers hand over the work the shutdown must wait for; the time budget belongs to the registrant
+        public static void RegisterShutdownTask(UniTask shutdownTask)
+        {
+            _shutdownTasks.Add(shutdownTask);
         }
 
         public static void FireGameShutdown()
@@ -30,6 +41,19 @@ namespace Client.Game.Common
             if (_fired) return;
             _fired = true;
             _onGameShutdown.OnNext(Unit.Default);
+        }
+
+        // 発火して登録された終了処理の完了まで待つ。アプリ終了経路はこちらを通す
+        // Fire and await every registered shutdown task; the app-exit path goes through here
+        public static async UniTask FireGameShutdownAsync()
+        {
+            FireGameShutdown();
+
+            // 購読中に積まれた分を取り切ってから待つ。UniTaskは二度awaitできないためリストは先に空にする
+            // Take what the subscribers just queued and clear first, since a UniTask cannot be awaited twice
+            var pendingTasks = _shutdownTasks.ToArray();
+            _shutdownTasks.Clear();
+            await UniTask.WhenAll(pendingTasks);
         }
     }
 }

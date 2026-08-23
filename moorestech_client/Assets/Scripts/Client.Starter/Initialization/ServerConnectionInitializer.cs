@@ -82,7 +82,9 @@ namespace Client.Starter.Initialization
 
                 // 生成した内蔵サーバーは自分で終了イベントを購読して自壊する。所有ハンドルを外へ配らない
                 // The embedded server subscribes to shutdown and folds itself, so no ownership handle leaves this scope
-                GameShutdownEvent.OnGameShutdown.Subscribe(_ => serverStarter.ShutdownAsync().Forget()).AddTo(serverInstanceGameObject);
+                // 自壊はセーブflushを含むため、終了側が完了を待てるようタスクとして預ける
+                // The fold includes the save flush, so hand it over as a task the shutdown path can await
+                GameShutdownEvent.OnGameShutdown.Subscribe(_ => GameShutdownEvent.RegisterShutdownTask(serverStarter.ShutdownAsync())).AddTo(serverInstanceGameObject);
 
                 // 0でOS自動割り当てさせる
                 // 0 means OS auto-assigns the port

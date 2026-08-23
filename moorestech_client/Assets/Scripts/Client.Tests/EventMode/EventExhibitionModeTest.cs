@@ -6,22 +6,22 @@ namespace Client.Tests.EventMode
     public class EventExhibitionModeTest
     {
         [Test]
-        public void IsEnabledValue_AcceptsOnlyOne()
+        public void Parse_IsEnabled_AcceptsOnlyOne()
         {
-            Assert.IsTrue(EventExhibitionMode.IsEnabledValue("1"));
-            Assert.IsFalse(EventExhibitionMode.IsEnabledValue(null));
-            Assert.IsFalse(EventExhibitionMode.IsEnabledValue(""));
-            Assert.IsFalse(EventExhibitionMode.IsEnabledValue("true"));
+            Assert.IsTrue(EventExhibitionSettings.Parse("1", null).IsEnabled);
+            Assert.IsFalse(EventExhibitionSettings.Parse(null, null).IsEnabled);
+            Assert.IsFalse(EventExhibitionSettings.Parse("", null).IsEnabled);
+            Assert.IsFalse(EventExhibitionSettings.Parse("true", null).IsEnabled);
         }
 
         [Test]
-        public void ParseIdleTimeoutSeconds_AcceptsOnlyPositiveInt_DefaultsTo180()
+        public void Parse_IdleTimeoutSeconds_AcceptsOnlyPositiveInt_DefaultsTo180()
         {
-            Assert.AreEqual(180, EventExhibitionMode.ParseIdleTimeoutSeconds(null));
-            Assert.AreEqual(60, EventExhibitionMode.ParseIdleTimeoutSeconds("60"));
-            Assert.AreEqual(180, EventExhibitionMode.ParseIdleTimeoutSeconds("0"));
-            Assert.AreEqual(180, EventExhibitionMode.ParseIdleTimeoutSeconds("-5"));
-            Assert.AreEqual(180, EventExhibitionMode.ParseIdleTimeoutSeconds("abc"));
+            Assert.AreEqual(180, EventExhibitionSettings.Parse("1", null).IdleTimeoutSeconds);
+            Assert.AreEqual(60, EventExhibitionSettings.Parse("1", "60").IdleTimeoutSeconds);
+            Assert.AreEqual(180, EventExhibitionSettings.Parse("1", "0").IdleTimeoutSeconds);
+            Assert.AreEqual(180, EventExhibitionSettings.Parse("1", "-5").IdleTimeoutSeconds);
+            Assert.AreEqual(180, EventExhibitionSettings.Parse("1", "abc").IdleTimeoutSeconds);
         }
     }
 }

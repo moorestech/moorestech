@@ -68,6 +68,16 @@ namespace Game.Paths
             #endregion
         }
 
+        // 既定ワールドを丸ごと消す。パスの正本と削除手順を同居させ、リセット経路ごとの二重実装を防ぐ
+        // Wipe the default world here so deletion lives with the canonical path, never duplicated per reset path
+        public static bool DeleteDefaultWorldDirectory()
+        {
+            var worldDirectory = DefaultWorldDirectory;
+            if (!Directory.Exists(worldDirectory)) return false;
+            Directory.Delete(worldDirectory, true);
+            return true;
+        }
+
         public static string GetExtractedModDirectory(string folderName)
         {
             return Path.Combine(ExtractedModDirectory, folderName);

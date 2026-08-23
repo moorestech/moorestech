@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using Client.Game.Common;
 using Client.Game.InGame.Context;
@@ -35,10 +34,10 @@ namespace Client.Game.InGame.Presenter.PauseMenu
 
             async UniTask SaveAndQuitAsync()
             {
+                // 最終セーブの要求と書き出し完了待ちを終了イベントに任せ、完了後に切断してから終了する
+                // Delegate the final save request and its flush wait to the shutdown event, then disconnect and exit
+                await GameShutdownEvent.FireGameShutdownAsync();
                 Disconnect();
-                // サーバーのflush完了を待って終了
-                // Wait for the server-side save flush before exit
-                await UniTask.Delay(TimeSpan.FromSeconds(2), true);
                 Application.Quit();
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
