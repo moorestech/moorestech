@@ -5,6 +5,7 @@ using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Construction;
+using Game.Construction;
 using Game.PlacementTarget;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
@@ -43,7 +44,7 @@ namespace Client.Tests.WebUi
                 .UnlockedEntries(unlockState, false, new[] { (blueprintGuid, "starter-base") })
                 .Select(PlacementTargetFactory.Create)
                 .ToList();
-            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets, new ClientRemainingPlacementCountDatastore());
+            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets, new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore()));
 
             // 実マスタ規模で複数エントリが返ること（空リストでは以降の検証が無意味）
             // Multiple entries must come back at real-master scale (an empty list would make the rest of this test meaningless)
@@ -89,6 +90,7 @@ namespace Client.Tests.WebUi
 
             var datastore = new ClientRemainingPlacementCountDatastore();
             datastore.Apply(straightBlockId, 2);
+            var walletQuery = new ConstructionWalletQuery(datastore);
 
             var targets = new IPlacementTarget[]
             {
@@ -96,20 +98,33 @@ namespace Client.Tests.WebUi
                 new BlockPlacementTarget(upGuid, null),
                 new TrainCarPlacementTarget(MasterHolder.TrainUnitMaster.Train.TrainCars[0].TrainCarGuid),
             };
-            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets, datastore);
+            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets, walletQuery);
 
             var straightDto = dtos.Single(dto => dto.Id == straightGuid.ToString("D"));
             var upDto = dtos.Single(dto => dto.Id == upGuid.ToString("D"));
             var trainCarDto = dtos.Single(dto => dto.Kind == "trainCar");
 
-            Assert.AreEqual(3, straightDto.PlacementsPerCost);
-            Assert.AreEqual(2, straightDto.RemainingPlacementCount);
-            Assert.AreEqual(3, upDto.PlacementsPerCost);
-            Assert.AreEqual(2, upDto.RemainingPlacementCount);
-            // 非ブロックは設置数フィールドを持たない（配信時にキーごと省略される）
-            // Non-block kinds carry no placement fields at all, so the keys are omitted on the wire
-            Assert.IsNull(trainCarDto.PlacementsPerCost);
-            Assert.IsNull(trainCarDto.RemainingPlacementCount);
+            Assert.AreEqual(3, straightDto.SetPlacement.PerCost);
+            Assert.AreEqual(2, straightDto.SetPlacement.Remaining);
+            Assert.AreEqual(3, upDto.SetPlacement.PerCost);
+            Assert.AreEqual(2, upDto.SetPlacement.Remaining);
+            // 非ブロックは財布を持たない（配信時にキーごと省略される）
+            // Non-block kinds have no wallet at all, so the key is omitted on the wire
+            Assert.IsNull(trainCarDto.SetPlacement);
+        }
+
+        [Test]
+        public void 財布を使わないブロックはSetPlacementを持たない()
+        {
+            var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var walletQuery = new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore());
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BlockId).BlockGuid;
+            var targets = new IPlacementTarget[] { new BlockPlacementTarget(blockGuid, null) };
+
+            var dto = BuildMenuEntryDtoFactory.CreateDtos(targets, walletQuery)[0];
+
+            Assert.IsNull(dto.SetPlacement);
         }
 
         [Test]

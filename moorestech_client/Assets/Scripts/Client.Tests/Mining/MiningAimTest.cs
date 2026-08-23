@@ -107,7 +107,7 @@ namespace Client.Tests.Mining
             var mousePoint = new Vector2(Screen.width / 2f + 200f, Screen.height / 2f + 100f);
             Set(_mouse.position, mousePoint);
             var expectedMapObject = CreateTarget(camera.ScreenPointToRay(mousePoint));
-            _playerObject.transform.position = expectedMapObject.Position;
+            _playerObject.transform.position = expectedMapObject.transform.position;
             var controller = CreateMiningController();
             // このテストは照準/フォーカス判定のみを検証し装備は参照しないためnullで良い
             // This test only verifies aim/focus logic and never touches equipment, so null is fine here

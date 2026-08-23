@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Collections;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
+using Game.Context;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEditor;
@@ -93,7 +95,7 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
             MapObjectGameObject SearchInstance(MapObjectGameObjectDatastore datastore, MapObjectLayoutMessagePack layout)
             {
                 var instance = datastore.SearchNearestMapObject(
-                    new Guid(layout.MapObjectGuid), new Vector3(layout.X, layout.Y, layout.Z));
+                    new HashSet<Guid> { new(layout.MapObjectGuid) }, new Vector3(layout.X, layout.Y, layout.Z));
 
                 Assert.IsNotNull(instance, $"map object {layout.InstanceId} was not instantiated");
                 return instance;

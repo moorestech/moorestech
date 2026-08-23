@@ -38,14 +38,6 @@ namespace Game.MapGeneration.Pipeline
         // 配置時の姿勢。斜面法線への傾きとランダムYを配置器が計算しており、落とすと全個体が同じ向きで直立する。
         // The placement rotation; the placers derive the slope tilt and random yaw, and dropping it stands every instance up alike.
         public Quaternion Rotation;
-
-        // 所属する岩クラスターの識別子。格子全体で一意で、-1 は独立配置（クラスターに属さない）。
-        // Identifier of the owning rock cluster, unique across the grid; -1 marks an independent placement.
-        public int ClusterId;
-
-        // クラスターの重心をシーン座標のXZで持つ。ClusterId が -1 のときは中心を持たず (0,0)。
-        // The cluster centroid as scene-space XZ; a ClusterId of -1 owns no center and stays at (0,0).
-        public Vector2 ClusterCenter;
     }
 
     // 配置点1件ぶんの鉱脈（mapVeins マスタの veinGuid + 点中心の整数 AABB）。

@@ -46,5 +46,8 @@
 - k-d tree索引は後着Registerのたびdirtyになり、ピン探索中のguidは後着期間中毎フレーム再構築される
   （最大7,000点規模で概算1〜2ms/回）。許容の可否と間引きはk-d treeセッション側へ申し送り（agent前提）
 - k-d側plan/ADRの前提文「点集合は起動後静的・追加なし」は本決定で崩れるため、当該文書の更新が必要（agent前提）
+- `feature/nearest-search-kd-tree`統合後、破壊の索引反映は`MapObjectGameObject.OnDestroyMapObject`購読で
+  索引側が受ける形になり、D6の`MapObjectRegistry`から`MarkDirty`は消えた。D6の不変条件
+  （TryAdd重複検出→保留適用→索引Register）は維持しており、保留破壊済み個体は索引の`IsSearchable`墓標で除かれる
 - 開幕スキット中も後着生成は継続する。`ISkitWorldObjectControl.SetActive(false)`はdatastore rootごと
   非活性化するため、後着個体もroot配下として一括で隠れる（agent前提）

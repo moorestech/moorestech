@@ -26,7 +26,12 @@ namespace Client.Game.InGame.Tutorial
 
         // 露頭不在は毎フレーム出すとログを埋めるので、対象1件につき1回だけ報告する
         // Reporting a missing outcrop every frame would bury the log, so report once per target
+        private bool _hasReportedMissingOutcropVeinGuid;
         private Guid _reportedMissingOutcropVeinGuid;
+
+        // 配信中かどうか。露頭を失った後にRemovePinを毎フレーム叩き続けないための番人
+        // Whether a pin is being published; guards RemovePin from running every frame after the outcrop is lost
+        private bool _publishing;
 
         [Inject]
         public void Initialize(OutcropGameObjectDatastore outcropGameObjectDatastore)
@@ -55,22 +60,26 @@ namespace Client.Game.InGame.Tutorial
                     return false;
                 }
 
+                _hasReportedMissingOutcropVeinGuid = false;
                 transform.position = outcrop.transform.position;
                 return true;
             }
 
             void HideForMissingOutcrop()
             {
-                // 指す先が無いピンは隠し、報告は対象ごとに初回だけにする
-                // Hide a pin with nothing to point at, and report only the first time per target
-                if (_reportedMissingOutcropVeinGuid != _currentTutorialParam.VeinGuid)
+                // 指す先が無いピンは配信を止め、報告は対象ごとに初回だけにする
+                // Stop publishing a pin with nothing to point at, and report only the first time per target
+                if (!_hasReportedMissingOutcropVeinGuid || _reportedMissingOutcropVeinGuid != _currentTutorialParam.VeinGuid)
                 {
+                    _hasReportedMissingOutcropVeinGuid = true;
                     _reportedMissingOutcropVeinGuid = _currentTutorialParam.VeinGuid;
                     Debug.LogError($"veinGuid:{_currentTutorialParam.VeinGuid}の露頭が存在しません");
                 }
 
-                SetActive(false);
-                WorldPinStateStore.Instance.RemovePin(WebPinId);
+                // SetActive(false)はUpdateごと止めて対象が戻っても復帰できないため、配信の停止だけに留める
+                // SetActive(false) would stop Update itself and never recover when a target returns, so only publishing is stopped
+                if (!_publishing) return;
+                RemoveWorldPin();
             }
 
             void PublishWebWorldPin()
@@ -81,6 +90,7 @@ namespace Client.Game.InGame.Tutorial
 
                 var projection = WorldPinScreenProjection.Project(camera, transform.position);
                 WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
+                _publishing = true;
             }
 
             #endregion
@@ -98,6 +108,12 @@ namespace Client.Game.InGame.Tutorial
         {
             SetActive(false);
             _currentTutorialParam = null;
+            RemoveWorldPin();
+        }
+
+        private void RemoveWorldPin()
+        {
+            _publishing = false;
             WorldPinStateStore.Instance.RemovePin(WebPinId);
         }
 
@@ -120,12 +136,12 @@ namespace Client.Game.InGame.Tutorial
 
         private void OnDisable()
         {
-            WorldPinStateStore.Instance.RemovePin(WebPinId);
+            RemoveWorldPin();
         }
 
         private void OnDestroy()
         {
-            WorldPinStateStore.Instance.RemovePin(WebPinId);
+            RemoveWorldPin();
         }
     }
 }

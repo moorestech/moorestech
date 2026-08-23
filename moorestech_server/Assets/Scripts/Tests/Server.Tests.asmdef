@@ -22,6 +22,8 @@
         "Game.Map",
         "Game.Map.Interface",
         "Game.MapGeneration",
+        "Game.MapGeneration.Contract",
+        "Game.MapGeneration.Facade",
         "Game.Paths",
         "Game.PlayerInventory",
         "Game.PlayerInventory.Interface",

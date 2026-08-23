@@ -516,7 +516,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   何も描かない。「対象UIを開くまでの誘導」はチャレンジsummary文言の責務。
 - 図像は `--text-high-contrast` の塗り+世界分離用の最小限の固定長ドロップシャドウ（§8.12ツールボタンと同族）。
   新しい色相・光彩は使わない。寸法 `--tutorial-drag-guide-size`、周期 `--tutorial-drag-guide-duration` の
-  固定長トークンで管理する。移動はCSS keyframesのtranslateで、ease-in-out・無限ループ・終端で不透明度を
+  固定長トークンで管理する（現在値 56px / 3200ms。ユーザー裁定 2026-08-22『速度半分・大きさ2倍』）。移動はCSS keyframesのtranslateで、ease-in-out・無限ループ・終端で不透明度を
   落として先頭へ戻る。
 - `pointer-events: none` を維持し、z層は既存の tutorial overlay 内（新しい `--z-*` を増やさない）。
 - e2e/スクリーンショット検証はアニメーション非同期のため座標一致を要求しない（表示有無のみ検証する）。

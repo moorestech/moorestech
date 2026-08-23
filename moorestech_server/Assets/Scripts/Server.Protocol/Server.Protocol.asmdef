@@ -34,7 +34,7 @@
     "Game.PlayerRiding.Interface",
     "Game.Blueprint",
     "Game.Paths",
-    "Game.MapGeneration",
+    "Game.MapGeneration.Contract",
     "Game.Hotbar",
     "Game.Construction"
   ],

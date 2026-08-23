@@ -27,8 +27,16 @@ namespace Client.Game.InGame.Map.Outcrop
         private readonly List<ItemId> _usableToolItemIds = new();
 
         public GameObject GameObject => gameObject;
-        public Vector3 Position => transform.position;
         public SoundEffectType DestroySoundType { get; private set; }
+
+        // 露頭は破壊されないので常に指す先になる
+        // An outcrop is never destroyed, so it always remains something to point at
+        public bool IsSearchable => true;
+
+        public Vector3 GetIndexPosition()
+        {
+            return transform.position;
+        }
 
         public void Initialize(MapVeinMasterElement element, Guid veinGuid, Vector3Int minePosition)
         {

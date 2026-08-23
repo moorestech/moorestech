@@ -29,6 +29,7 @@ namespace Game.MapGeneration.Pipeline.Runtime
                 var entry = new TreePrototypeEntry
                 {
                     mapObjectGuids = mapObjectGuids,
+                    terrainSurroundEffectType = RuntimeConvert.ToTerrainSurroundEffectType(p.TerrainSurroundEffectType, "treePlacement.prototypes.terrainSurroundEffectType"),
                     scaleHeightRange = p.ScaleHeightRange,
                     scaleWidthRange = p.ScaleWidthRange,
                     lockWidthHeight = p.LockWidthHeight,

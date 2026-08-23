@@ -220,6 +220,32 @@
             ],
             "IconItem": "00000000-0000-0000-1234-000000000001"
           }
+        },
+        {
+          "challengeGuid": "00000000-0000-0000-4567-000000000102",
+          "title": "Test1を装備する",
+          "summary": "Test1を装備する",
+          "unlockAllPreviousChallengeComplete": true,
+          "prevChallengeGuids": [],
+          "taskCompletionType": "equipItem",
+          "taskParam": {
+            "itemGuid": "00000000-0000-0000-1234-000000000001"
+          },
+          "tutorials": [],
+          "startedActions": [],
+          "clearedActions": [],
+          "displayListParam": {
+            "UIPosition": [
+              0,
+              1200
+            ],
+            "UIScale": [
+              0,
+              0,
+              0
+            ],
+            "IconItem": "00000000-0000-0000-1234-000000000001"
+          }
         }
       ]
     },

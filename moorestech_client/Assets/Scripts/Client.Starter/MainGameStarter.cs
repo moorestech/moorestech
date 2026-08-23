@@ -74,6 +74,7 @@ using Core.Item.Interface;
 using Game.Context;
 using Game.PlayerRiding.Interface;
 using Game.Train.Unit;
+using Game.Construction;
 using Game.UnlockState;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -185,8 +186,11 @@ namespace Client.Starter
             builder.RegisterEntryPoint<HotbarNetworkEventHandler>();
             // 残り設置数モデルと更新購読
             // Remaining-placement model and its update-event subscription
-            builder.Register<ClientRemainingPlacementCountDatastore>(Lifetime.Singleton);
+            builder.Register<ClientRemainingPlacementCountDatastore>(Lifetime.Singleton).AsSelf().As<IRemainingPlacementCountReader>();
             builder.RegisterEntryPoint<RemainingPlacementCountEventHandler>();
+            // 財布への問い合わせ窓口。クライアント側の判断はすべてここを通す
+            // The wallet's query window; every client-side judgement goes through it
+            builder.Register<ConstructionWalletQuery>(Lifetime.Singleton);
             // 装備モデルと、その選択に追従する手持ち3Dモデル
             // Equipment model and the held 3D model that follows its selection
             builder.Register<LocalPlayerEquipment>(Lifetime.Singleton);

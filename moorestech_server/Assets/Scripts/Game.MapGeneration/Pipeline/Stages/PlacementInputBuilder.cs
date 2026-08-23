@@ -93,7 +93,7 @@ namespace Game.MapGeneration.Pipeline.Stages
                     Rotation = e.Rotation,
                     Scale = e.Scale,
                     Sink = e.Sink,
-                    ClusterInfo = e.Cluster ?? new RockClusterInfo { ClusterId = -1 }
+                    ClusterInfo = e.Cluster
                 });
             }
             return result;

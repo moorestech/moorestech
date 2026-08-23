@@ -44,6 +44,8 @@
         "Common.Debug",
         "Game.Paths",
         "Game.MapGeneration",
+        "Game.MapGeneration.Contract",
+        "Game.MapGeneration.Facade",
         "Unity.Mathematics",
         "Game.PlayerRiding.Interface",
         "Game.Research",
@@ -54,7 +56,8 @@
         "Unity.TextMeshPro",
         "Game.Hotbar",
         "Game.PlacementTarget",
-        "Game.Construction"
+        "Game.Construction",
+        "Game.Map.Interface"
     ],
     "includePlatforms": [
         "Editor"

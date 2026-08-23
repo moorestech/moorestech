@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Client.Game.Common;
@@ -152,8 +153,8 @@ namespace Client.Game.InGame.Map.MapObject
             switch (data.EventType)
             {
                 case MapObjectUpdateEventMessagePack.DestroyEventType:
-                    // 破壊と探索索引の無効化は登録簿の中で対のまま実行される
-                    // Destruction and the search-index invalidation stay paired inside the registry
+                    // 索引へは個体の破壊通知が届くので、登録簿は生成済みかどうかだけを裁く
+                    // The index hears about this through the object's own destroy notification, so the registry only judges whether it exists yet
                     if (!_registry.TryDestroy(data.InstanceId)) _registry.RecordPendingDestroy(data.InstanceId);
                     break;
                 case MapObjectUpdateEventMessagePack.HpUpdateEventType:
@@ -174,9 +175,9 @@ namespace Client.Game.InGame.Map.MapObject
             _isWorldObjectActive.Value = enable;
         }
 
-        public MapObjectGameObject SearchNearestMapObject(Guid mapObjectGuid, Vector3 position)
+        public MapObjectGameObject SearchNearestMapObject(HashSet<Guid> mapObjectGuids, Vector3 position)
         {
-            return _registry.SearchNearest(mapObjectGuid, position);
+            return _registry.SearchNearest(mapObjectGuids, position);
         }
     }
 }

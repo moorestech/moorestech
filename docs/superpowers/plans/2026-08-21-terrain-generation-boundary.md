@@ -137,7 +137,7 @@ moorestech_client/Assets/Scripts/Client.Game/InGame/Environment/Terrain/
 **Interfaces:**
 - Produces: `TerrainVisualGoldenFixture.Build()` → `(TerrainGenerationConfig config, BiomeType[] biomeTypes, BiomeVisualSections sections, MapGenerationOutput output)`／`TerrainVisualGoldenFixture.Sha256(float[,,]|int[,]|float[,])`／`TerrainVisualGoldenFixture.GoldenJsonPath`。Task 6 で同じ fixture を `TileVisualBaker` へ付け替える
 
-- [ ] **Step 1: fixture を書く（2×2タイル・木＋クラスタ岩＋detail 1エントリ・textureFilter無効）**
+- [x] **Step 1: fixture を書く（2×2タイル・木＋クラスタ岩＋detail 1エントリ・textureFilter無効）**
 
 ```csharp
 using System;
@@ -260,7 +260,7 @@ namespace Client.Tests.UnitTest.Terrain.Golden
 
 `MultiTileTestWorld` は `Tests.UnitTest.Game.MapGeneration.Tiling` 名前空間（server Tests asm）。client Tests asm から参照できない場合は `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Tiling/MultiTileTestWorld.cs` の `BuildConfig/EnableTrees/EnableObjects` 本体をこの fixture へ複製する（同一値であることをコメントで明記。Task 6 で server 側へ移る際に複製は消える）。
 
-- [ ] **Step 2: ゴールデンテストを書く（golden json が無ければ書き出し、あれば比較）**
+- [x] **Step 2: ゴールデンテストを書く（golden json が無ければ書き出し、あれば比較）**
 
 ```csharp
 using System.Collections.Generic;
@@ -348,12 +348,12 @@ namespace Client.Tests.UnitTest.Terrain.Golden
 }
 ```
 
-- [ ] **Step 3: 2回連続で実行し、2回目が同値であることを確認する（決定論の前提確認）**
+- [x] **Step 3: 2回連続で実行し、2回目が同値であることを確認する（決定論の前提確認）**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "TerrainVisualGoldenTest"`
 Expected: 1回目 Inconclusive（json 書き出し）、2回目 PASS。3回目も PASS
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Tests/UnitTest/Terrain/Golden
@@ -378,7 +378,7 @@ git commit -m "test(terrain): 移設前の見た目をゴールデンハッシ�
 **Interfaces:**
 - Produces: `enum TerrainSurroundEffectType { treeRootPatch, rockBareGround, rockNoBareGround }`（`Game.MapGeneration.Pipeline.Config`）／`PlacementEntry.SurroundEffect`／`TreePrototypeEntry.terrainSurroundEffectType`／`BiomeObjectConfig.ObjectEntry.terrainSurroundEffectType`／`ObjectClusterEntry.terrainSurroundEffectType`／`ObjectClusterSecondary.terrainSurroundEffectType`／`RuntimeConvert.ToTerrainSurroundEffectType(string)`
 
-- [ ] **Step 1: edit-schema スキルを読み、yml に必須enumを追加する**
+- [x] **Step 1: edit-schema スキルを読み、yml に必須enumを追加する**
 
 `treePlacementConfig.yml` の prototypes item（`mapObjects` の直後）:
 ```yaml
@@ -402,7 +402,7 @@ git commit -m "test(terrain): 移設前の見た目をゴールデンハッシ�
 ```
 インデントは各ファイルの既存 item 定義に合わせる。`optional` は付けない。
 
-- [ ] **Step 2: 移行スクリプトで3つの generation.json へ値を入れる**
+- [x] **Step 2: 移行スクリプトで3つの generation.json へ値を入れる**
 
 ```python
 #!/usr/bin/env python3
@@ -453,7 +453,7 @@ python3 tools/migration/assign_terrain_surround_effect.py moorestech_client/Asse
 ```
 Expected: 3回とも `ok`。「混在」で止まったら、その entry の prefab 構成を列挙してユーザーに裁定を仰ぐ（勝手に片側へ寄せない）。JSON の整形（indent/キー順）が元ファイルと異なる場合は `git diff` が該当キー追加だけになるよう、元の整形規則（2スペース・配列の改行）に合わせてスクリプトを直す。
 
-- [ ] **Step 3: 実行時 enum と Config フィールド、RuntimeConvert を書く**
+- [x] **Step 3: 実行時 enum と Config フィールド、RuntimeConvert を書く**
 
 ```csharp
 namespace Game.MapGeneration.Pipeline.Config
@@ -481,11 +481,11 @@ namespace Game.MapGeneration.Pipeline.Config
 ```
 `TreeRuntimeConfigFactory`（`new TreePrototypeEntry {` の初期化子）に `terrainSurroundEffectType = RuntimeConvert.ToTerrainSurroundEffectType(p.TerrainSurroundEffectType, "treePlacement.prototypes.terrainSurroundEffectType"),`。`ObjectRuntimeConfigFactory` の3箇所（cluster／secondary／entry）にも同様（生成プロパティ名は `TerrainSurroundEffectType`。生成型のプロパティ名は SourceGenerator 後に確認）。
 
-- [ ] **Step 4: 配置器が PlacementEntry.SurroundEffect を写す**
+- [x] **Step 4: 配置器が PlacementEntry.SurroundEffect を写す**
 
 7ファイルの `new PlacementEntry { ... }` に `SurroundEffect = <元エントリ>.terrainSurroundEffectType,` を追加。元エントリは: Tree系3ファイル → `TreePrototypeEntry`（ローカル変数名は各ファイルで確認）、`ObjectClusterPlacer` → `ObjectClusterEntry`、`ObjectSecondaryPlacer` → `ObjectClusterSecondary`、`ObjectIndependentPlacer` → `ObjectEntry`。`OreEntryPlacer` は鉱脈なので `SurroundEffect` を書かない（default=treeRootPatch だが鉱脈は mapObject にならず見た目ステージへ渡らない。この事実をコメントで1行残す）。
 
-- [ ] **Step 5: テストを書く**
+- [x] **Step 5: テストを書く**
 
 ```csharp
 using System.Linq;
@@ -522,12 +522,12 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
 ```
 （Task 3 で台帳アサートへ強化する。ここでは SourceGenerator と JSON 必須化が通ることの煙テスト）
 
-- [ ] **Step 6: コンパイル→全 MapGeneration テスト＋ゴールデン**
+- [x] **Step 6: コンパイル→全 MapGeneration テスト＋ゴールデン**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MapGeneration|TerrainVisualGoldenTest"`
 Expected: PASS（JSON 必須キー欠落があれば `MooresmasterLoaderException` で落ちる→該当 generation.json を直す）
 
-- [ ] **Step 7: master repo をコミットし pin を更新、本repo をコミット**
+- [x] **Step 7: master repo をコミットし pin を更新、本repo をコミット**
 
 ```bash
 (cd ../moorestech_master && git checkout -b feat/terrain-generation-boundary && git add server_v8/mods/moorestechAlphaMod_8/master/generation.json && git commit -m "feat(generation): 配置エントリへ terrainSurroundEffectType を移す" && git rev-parse HEAD)
@@ -559,7 +559,7 @@ git commit -m "feat(mapgen): terrainSurroundEffectType を生成マスタの配�
   public static MapGenerationOutput Generate(Generation selected, int seed, string serverDataDirectory);          // 既存。BuildConfig → Generate(selected, config) の転送
   ```
 
-- [ ] **Step 1: 台帳型を書く**
+- [x] **Step 1: 台帳型を書く**
 
 ```csharp
 using Game.MapGeneration.Pipeline.Config;
@@ -604,7 +604,7 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
 }
 ```
 
-- [ ] **Step 2: TilePlacementRunner が台帳にも積む**
+- [x] **Step 2: TilePlacementRunner が台帳にも積む**
 
 ctor に `PlacementLedger ledger` を追加し、`AppendMapObjects` のループ内で `_output.MapObjects.Add(...)` の直後に
 ```csharp
@@ -613,11 +613,11 @@ ctor に `PlacementLedger ledger` を追加し、`AppendMapObjects` のループ
 ```
 （`clusterId`/`clusterCenter` は既存ローカル。Task 7 で `PlacedMapObject` 側からは消えるが台帳には残る）
 
-- [ ] **Step 3: VanillaGenerator が台帳を output に載せ、MapGenerationPipeline に BuildConfig / Generate(selected, config) を切り出す**
+- [x] **Step 3: VanillaGenerator が台帳を output に載せ、MapGenerationPipeline に BuildConfig / Generate(selected, config) を切り出す**
 
 `VanillaGenerator.Generate` 内で `var ledger = new PlacementLedger();` を作り `output.Ledger = ledger;` として `TilePlacementRunner` に渡す。`MapGenerationPipeline` は現行の `Generate(selected, seed, serverDataDirectory)` 本体を `BuildConfig`（config 組立・seed 代入・PNG 展開）と `Generate(selected, config)`（`MapGenerationAlgorithmTable.Resolve(selected.Algorithm).Generate(config)`）の2段に分け、既存3引数版はその転送にする。セッション（Task 6）はこの2段を呼ぶ＝サーバーと同じ入口・同じアルゴリズム選択を通る。
 
-- [ ] **Step 4: 決定論テストと台帳テスト**
+- [x] **Step 4: 決定論テストと台帳テスト**
 
 ```csharp
 using System.Linq;
@@ -676,7 +676,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
 ```
 Task 2 の `PlacementSurroundEffectTest` はこのテストに吸収して削除する。
 
-- [ ] **Step 5: コンパイル→テスト→コミット**
+- [x] **Step 5: コンパイル→テスト→コミット**
 
 Run: `uloop run-tests ... --filter-value "MapGeneration|TerrainVisualGoldenTest"` → PASS
 ```bash
@@ -707,7 +707,7 @@ git commit -am "feat(mapgen): pass-1 配置台帳 PlacementLedger を追加し�
 **Interfaces:**
 - Produces: `SplatmapStage.Generate(...)`（シグネチャは旧 `SplatmapRuntimeGenerator.Generate` と同一。Task 5 で mapObjects 引数が台帳へ変わる）、`WinnerBiomeIndexWriter.Overwrite(NativeArray<int> winnerBiomeIndex, byte[,] biomeIndices, BiomeType[] biomeTypes, int resolution)`（中身不変）、`HeightFileLoader.LoadHeights(WorldDataDirectory, int, int, int)`
 
-- [ ] **Step 1: git mv でファイルを移し名前空間・クラス名を書き換える（.meta は Unity が再生成するので `git mv` は .cs と .meta を対で動かす）**
+- [x] **Step 1: git mv でファイルを移し名前空間・クラス名を書き換える（.meta は Unity が再生成するので `git mv` は .cs と .meta を対で動かす）**
 
 ```bash
 C=moorestech_client/Assets/Scripts/Client.Game/InGame/Environment/Terrain; S=moorestech_server/Assets/Scripts/Game.MapGeneration
@@ -765,7 +765,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
 ```
 `TileMapObjectSlicer.SliceWithHalo`／`SliceKindsWithHalo` の入力も `IReadOnlyList<LedgerPlacement>` に変え、`TileLocalMapObject` に `SurroundEffect` を足し、`MapObjectKindSplitter.Split` を「`SurroundEffect` で振り分ける」実装に置き換える（マスタ参照を削除）。この時点で `MapObjectKindSplitter` はマスタを読まなくなる（Task 5 でファイルごと消す）。
 
-- [ ] **Step 2: テストを移す（Splat 4本・Cache 5本）。fixture の `CreateRock` 等は `LedgerPlacement` を返す形に変える**
+- [x] **Step 2: テストを移す（Splat 4本・Cache 5本）。fixture の `CreateRock` 等は `LedgerPlacement` を返す形に変える**
 
 `SurroundTestFixtures.CreateRock(int clusterId, string guid)`:
 ```csharp
@@ -779,7 +779,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build.Placement
 ```
 （`NoBareGroundStoneGuid` を使うテストは `TerrainSurroundEffectType.rockNoBareGround` を渡す overload を追加）
 
-- [ ] **Step 3: コンパイル→ゴールデン＋移した全テスト→コミット**
+- [x] **Step 3: コンパイル→ゴールデン＋移した全テスト→コミット**
 
 Run: `uloop run-tests ... --filter-value "Terrain|MapGeneration"` → PASS
 ```bash
@@ -824,7 +824,7 @@ git commit -am "refactor(mapgen): splat/source/cache/高さローダをGame.MapG
   ```
   `BakedTerrainTile` は Task 6 で `Facade/` に作るので、Task 5 では一時的に `Pipeline/Visual/BakedTerrainTile.cs` に置き Task 6 で `git mv`。
 
-- [ ] **Step 1: DetailTextureFilter を index ベースにする**
+- [x] **Step 1: DetailTextureFilter を index ベースにする**
 
 ```csharp
         public class TextureFilterEntry
@@ -852,7 +852,7 @@ git commit -am "refactor(mapgen): splat/source/cache/高さローダをGame.MapG
 ```
 index の差し込みは `TileVisualBaker` ctor で `visualSections.DetailConfigs` を走査し `layerTable.LayerIndexByAddress[entry.layerAddressablePath]` を `SetLayerIndex`（enabled な filter のみ。未登録アドレスは例外）。旧 `DetailAssetResolver.ResolveTextureFilterAsync` は削除。
 
-- [ ] **Step 2: TileVisualBaker を書く（旧 TerrainTileVisualProvider.Resolve を Bake へ）**
+- [x] **Step 2: TileVisualBaker を書く（旧 TerrainTileVisualProvider.Resolve を Bake へ）**
 
 ```csharp
         public BakedTerrainTile Bake(int tileX, int tileZ)
@@ -868,9 +868,9 @@ index の差し込みは `TileVisualBaker` ctor で `visualSections.DetailConfig
 ```
 `ResolveVisual` は旧 `Resolve` 本体（generateTexture/generateDetail ゲート・cache TryLoad/Save・Rebuild）をそのまま。`BuildAlphamap` 内の `HeightFileLoader.LoadBiomeIndices` 呼び出しは Task 8 で自前分類からの `PlacementInputBuilder.BuildBiomeIndices` に置き換える（Task 5 では据え置き）。戻り値の CacheHit は外へ出さない（ログ計測用の `bool` も削除）。
 
-- [ ] **Step 3: クライアント `GeneratedTerrainSource` を Baker 利用へ書き換え（`WireLayoutLedgerAdapter` で台帳を組み、`TerrainDataAssembler` へ `BakedTerrainTile` と `DetailPrototype[]` を渡す）。`TerrainDetailPrototypeList.Build` は `IReadOnlyList<DetailPrototypeSpec>` + 解決済みアセット辞書から `DetailPrototype` を組む形へ**
+- [x] **Step 3: クライアント `GeneratedTerrainSource` を Baker 利用へ書き換え（`WireLayoutLedgerAdapter` で台帳を組み、`TerrainDataAssembler` へ `BakedTerrainTile` と `DetailPrototype[]` を渡す）。`TerrainDetailPrototypeList.Build` は `IReadOnlyList<DetailPrototypeSpec>` + 解決済みアセット辞書から `DetailPrototype` を組む形へ**
 
-- [ ] **Step 4: テスト移設・fixture 修正、コンパイル→ゴールデン＋全 Terrain/MapGeneration テスト→コミット**
+- [x] **Step 4: テスト移設・fixture 修正、コンパイル→ゴールデン＋全 Terrain/MapGeneration テスト→コミット**
 
 ```bash
 git commit -am "refactor(mapgen): surround/detail/配置切り出し/Baker をGame.MapGenerationへ移設し MapObjectKindSplitter を廃止する"
@@ -938,7 +938,7 @@ namespace Game.MapGeneration.Facade
 }
 ```
 
-- [ ] **Step 0: GenerationMasterFingerprint を world.json・転送メタに通す**
+- [x] **Step 0: GenerationMasterFingerprint を world.json・転送メタに通す**
 
 `Identity/GenerationMasterFingerprint.cs`:
 ```csharp
@@ -969,7 +969,7 @@ namespace Game.MapGeneration.Facade
 - `TerrainTransferMeta` に `GenerationMasterFingerprint`（readonly string。template は空文字）、`TerrainTransferMetaReader` が world.json から写す（旧 world.json にキーが無ければ原点欠落と同じく例外）。`TerrainTransferMetaMessagePack` に `[Key(9)] string GenerationMasterFingerprint` を追加し `ToTerrainTransferMeta` で戻す
 - テスト: `Tests/UnitTest/Game/MapGeneration/Identity/GenerationMasterFingerprintTest.cs`（同入力同値・JSON1文字差で別値・PNGパス列挙順が決定的）、`WorldProvisionerTest` に「指紋不一致の既存ワールドは EnsureWorld が例外」を追加
 
-- [ ] **Step 1: WorldIdentity と SharedWorldCache**
+- [x] **Step 1: WorldIdentity と SharedWorldCache**
 
 ```csharp
 namespace Game.MapGeneration.Identity
@@ -1004,7 +1004,7 @@ namespace Game.MapGeneration.Cache
 }
 ```
 
-- [ ] **Step 2: TerrainVisualCacheKey を新式に**
+- [x] **Step 2: TerrainVisualCacheKey を新式に**
 
 ```csharp
         // 導出元は生成の入力だけ: 生成マスタ指紋（JSON原文＋PNG）・seed・2原点・解像度・生成器の版。配置は同じ入力から決定論で出るので鍵に入れない
@@ -1013,7 +1013,7 @@ namespace Game.MapGeneration.Cache
 ```
 （`terrainHash`・`mapObjectsDigest` 引数を削除。旧鍵の mapObjectsDigest が拾っていた PNG 改変は指紋が拾う。`FormatVersion` を 10 へ bump。テスト `TerrainVisualCacheKeyTest` を新式で書き直す: 同入力→同鍵、seed/原点/解像度/版/マスタ原文のどれか1つが違えば別鍵）
 
-- [ ] **Step 3: WorldTerrainSession を書く**
+- [x] **Step 3: WorldTerrainSession を書く**
 
 ```csharp
 using System;
@@ -1112,7 +1112,7 @@ namespace Game.MapGeneration.Facade
 
 `WorldTerrainLayout.CreateTerrainAsset()` は `TerrainRenderingDefaults` の template 定数を詰め、`CreateTileMaps(...)` は生成側の定数を詰める（static factory。コンストラクタは private）。
 
-- [ ] **Step 4: クライアント TerrainRuntimeBuilder を書き換える**
+- [x] **Step 4: クライアント TerrainRuntimeBuilder を書き換える**
 
 ```csharp
         public static async UniTask BuildAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot, string serverDataDirectory)
@@ -1168,7 +1168,7 @@ namespace Game.MapGeneration.Facade
 
 `MainGameInitializationFinalizer(ServerConnectionResult serverResult, string serverDataDirectory)`；`InitializeScenePipeline` の `new MainGameInitializationFinalizer(serverResult, serverDirectory)`。
 
-- [ ] **Step 5: using スキャンテスト**
+- [x] **Step 5: using スキャンテスト**
 
 ```csharp
 using System.IO;
@@ -1203,11 +1203,11 @@ namespace Client.Tests.UnitTest.Terrain
 ```
 `Client.Starter/Editor/GeneratedWorldPlayModeSettings.cs`・`StandaloneQa/StandaloneTerrainQaSettings.cs`・`Client.Playtest/PlaytestBootLifecycle.cs` の `using Game.MapGeneration.Provisioning`（`WorldProvisioner.GeneratedMapMode` 定数）は起動引数の語彙として許容（ForbiddenUsings に含めない）。
 
-- [ ] **Step 6: ゴールデンテストを server 側へ移し `TileVisualBaker` 直叩きにする**
+- [x] **Step 6: ゴールデンテストを server 側へ移し `TileVisualBaker` 直叩きにする**
 
 fixture の `Build()` は不変。テスト本体は `TerrainFileWriter.Write(worldDirectory, output)` → 台帳は fixture の `output.Ledger`（`Build()` の戻り値に含まれる）→ `new TileVisualBaker(gridConfig, BiomeTypes, sections, layerTable, species, ledger, worldDirectory, new TerrainVisualCache(worldDirectory, new string('0', 64)))` → 各タイル `Bake` → `DisplayHeights`／`Alphamap`／`DetailMaps` をハッシュ。json は `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Visual/Golden/terrain_visual_golden.json`（中身はクライアントから移したもの、書き換え禁止）。`GoldenJsonPath` は `Application.dataPath` 基準でなく `TestModDirectory` と同じ相対解決（`Path.GetFullPath(Path.Combine(Application.dataPath, "../../moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Visual/Golden/terrain_visual_golden.json"))`）にする。
 
-- [ ] **Step 7: WorldTerrainSessionTest**
+- [x] **Step 7: WorldTerrainSessionTest**
 
 ```csharp
     public class WorldTerrainSessionTest
@@ -1251,7 +1251,7 @@ fixture の `Build()` は不変。テスト本体は `TerrainFileWriter.Write(wo
 ```
 （`TerrainTransferTestScope` の払い出しAPI名は実装時に `Tests.Module/TerrainTransferTestScope.cs` で確認し、無ければ `WorldProvisioner.EnsureWorld` を直接呼ぶ。テスト用 generation master は `TestGenerationConfigFactory` 系が使う ForUnitTest mod）
 
-- [ ] **Step 8: 不要コード削除・コンパイル・全テスト・実機確認**
+- [x] **Step 8: 不要コード削除・コンパイル・全テスト・実機確認**
 
 Run: `uloop compile` → `uloop run-tests ... --filter-value "Terrain|MapGeneration|ClientTerrainUsingScanTest"` → PASS。次に unity-playmode-recorded-playtest で `PlayerStartsOnBuiltTerrainTest` を含む EditModeInPlaying を1本実行し、generated ワールドが起動して地形が見えることと、ログ `[WorldTerrainSession] pass-1 placement regeneration: ...ms` の値を記録する（10秒超なら bd 起票）。
 ```bash
@@ -1269,8 +1269,8 @@ git commit -am "feat(mapgen): WorldTerrainSession ファサードを新設しク
 - Modify tests: `Tests/CombinedTest/Server/PacketTest/GetMapDataProtocolTest.cs`・`Tests/UnitTest/Game/MapGeneration/{MapGenerationPipelineTest,MapInfoJsonBuilderTest}.cs`・`Tiling/{MultiTileMapObjectTransferTest,MultiTileTestWorld}.cs`（クラスタのアサートは台帳（`PlacementLedger`）へ移す）
 - Delete: `tools/migration/assign_terrain_surround_effect.py`（役目終了）
 
-- [ ] **Step 1: C# 側から3キーを外す（コンパイルが壊れる箇所を全部直す）**
-- [ ] **Step 2: map.yml から enum を消し、7つの map.json から4キーを落とすスクリプトを実行**
+- [x] **Step 1: C# 側から3キーを外す（コンパイルが壊れる箇所を全部直す）**
+- [x] **Step 2: map.yml から enum を消し、7つの map.json から4キーを落とすスクリプトを実行**
 
 ```python
 import json,sys
@@ -1283,7 +1283,7 @@ for p in sys.argv[1:]:
 ```
 （各ファイルの既存整形と diff を見比べ、キー削除以外の差分が出ないようにする。`map.json` の mapObjects 配列が `mapObjects` キー配下かトップレベルかはファイルごとに確認）
 
-- [ ] **Step 3: テスト修正（クラスタ検証は `PlacementLedger` へ）→ コンパイル → `uloop run-tests ... "MapData|MapGeneration|Terrain"` → PASS → master repo コミット＋pin更新 → コミット**
+- [x] **Step 3: テスト修正（クラスタ検証は `PlacementLedger` へ）→ コンパイル → `uloop run-tests ... "MapData|MapGeneration|Terrain"` → PASS → master repo コミット＋pin更新 → コミット**
 
 ```bash
 git commit -am "refactor(mapgen): クラスタ3キーと terrainSurroundEffectType を生成システムの外から削除する"
@@ -1307,9 +1307,9 @@ git commit -am "refactor(mapgen): クラスタ3キーと terrainSurroundEffectTy
   （`PlacementInputBuilder.BuildBiomeIndices` の引数順は現行 `TilePlacementRunner.Run` 末尾の呼び出しをそのまま写す）
 - Modify tests: `TerrainFileWriterTest`・`TerrainChunkReaderTest`・`TerrainTransferMetaReaderTest`・`WorldProvisionerTest`・`GetMapDataTerrainChunkTest`・`Tests.Module/TerrainTransferTestScope.cs`・client `EditModeInPlayingTest/Terrain/TerrainCacheFetchTest.cs`（biome ファイルの存在アサートを外す）・`TileVisualBakerCacheParityTest`（SetUp の biome ファイル書き込みを外す）
 
-- [ ] **Step 1: 実装**（上記）
-- [ ] **Step 2: ゴールデン確認（R8 の要）**: `uloop run-tests ... "TerrainVisualGoldenTest"` → PASS（転送 biome と自前 `BuildBiomeIndices` が同値である証明）
-- [ ] **Step 3: 全テスト → コミット**
+- [x] **Step 1: 実装**（上記）
+- [x] **Step 2: ゴールデン確認（R8 の要）**: `uloop run-tests ... "TerrainVisualGoldenTest"` → PASS（転送 biome と自前 `BuildBiomeIndices` が同値である証明）
+- [x] **Step 3: 全テスト → コミット**
 
 ```bash
 git commit -am "refactor(mapgen): biome_x_z.bin の出力と転送を廃止し GeneratorVersion を 3.0.0 へ上げる"
@@ -1337,9 +1337,9 @@ public static class TerrainVisualPrebake
 ```
 実装は `WorldTerrainSession.Open` の後半（gridConfig〜baker 生成）と同じ手順なので、その部分を `Pipeline/Visual/TileVisualBakerFactory.Create(config, terrainMeta, ledger, heightSource, selectedGeneration)` に切り出して両者から呼ぶ（重複禁止）。先焼きの高さ源は `worldDataDirectory`（ワールド本体の terrain/）、キャッシュ先は `SharedWorldCache.For(terrainMeta.WorldId)`。全タイルを `Bake` して捨てる（書き戻しは cache 内部）。
 
-- [ ] **Step 1: 実装**（`WorldProvisioner.EnsureWorld` の `Directory.Move` の直後、generated のときだけ `TerrainTransferMetaReader.Read(worldDataDirectory)` でメタを読み `BakeAll`）
-- [ ] **Step 2: テスト**: 一時ワールドをプロビジョニングし、`SharedWorldCache.For(worldId).TerrainVisualCacheFilePath(x,z)` が全タイル存在すること。続けて同じメタで `WorldTerrainSession.Open` → `BakeTile` し、pass-1 は走るが pass-2 はキャッシュから読まれる（内部テストとして visual ファイルの mtime が変わらないことで確認）
-- [ ] **Step 3: コミット**
+- [x] **Step 1: 実装**（`WorldProvisioner.EnsureWorld` の `Directory.Move` の直後、generated のときだけ `TerrainTransferMetaReader.Read(worldDataDirectory)` でメタを読み `BakeAll`）
+- [x] **Step 2: テスト**: 一時ワールドをプロビジョニングし、`SharedWorldCache.For(worldId).TerrainVisualCacheFilePath(x,z)` が全タイル存在すること。続けて同じメタで `WorldTerrainSession.Open` → `BakeTile` し、pass-1 は走るが pass-2 はキャッシュから読まれる（内部テストとして visual ファイルの mtime が変わらないことで確認）
+- [x] **Step 3: コミット**
 
 ```bash
 git commit -am "feat(mapgen): ワールド生成時に共有キャッシュへ見た目を先焼きし同一PCのクライアントが再利用できるようにする"
@@ -1349,10 +1349,10 @@ git commit -am "feat(mapgen): ワールド生成時に共有キャッシュへ�
 
 ### Task 10: 仕上げ（ドキュメント・bd・全ブランチレビュー）
 
-- [ ] **Step 1: ADR-0025 の「実装タスク」行と v2 plan の委譲先テーブルを実態（PR番号）に更新。`docs/adr/0012` は変更不要**
-- [ ] **Step 2: bd `moorestech-a3x` に pass-1 実測値・削除ファイル数・判定結果を note。10秒超なら「高さのr16往復を生成側で行い pass-1 の HeightmapStage を省く」を `bd create --parent moorestech-a3x`**
-- [ ] **Step 3: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（moores-code-review・自動実行・ゴール文言による省略不可）**
-- [ ] **Step 4: pr-create（本repo）＋ master repo の PR（`feat/terrain-generation-boundary`）。PR本文に「見た目は1ピクセルも変わらない（ゴールデン同値）」「GeneratorVersion 3.0.0 のため既存 generated ワールドは作り直し」を明記**
+- [x] **Step 1: ADR-0025 の「実装タスク」行と v2 plan の委譲先テーブルを実態（PR番号）に更新。`docs/adr/0012` は変更不要**
+- [x] **Step 2: bd `moorestech-a3x` に pass-1 実測値・削除ファイル数・判定結果を note。10秒超なら「高さのr16往復を生成側で行い pass-1 の HeightmapStage を省く」を `bd create --parent moorestech-a3x`**
+- [x] **Step 3: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（moores-code-review・自動実行・ゴール文言による省略不可）**
+- [x] **Step 4: pr-create（本repo）＋ master repo の PR（`feat/terrain-generation-boundary`）。PR本文に「見た目は1ピクセルも変わらない（ゴールデン同値）」「GeneratorVersion 3.0.0 のため既存 generated ワールドは作り直し」を明記**
 
 ---
 

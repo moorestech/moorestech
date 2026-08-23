@@ -1,4 +1,4 @@
-using Client.Game.InGame.Environment.Terrain.Visual.Source;
+using Game.MapGeneration.Pipeline.Visual.Source;
 using Core.Master;
 using Game.MapGeneration.Pipeline.Biomes;
 using NUnit.Framework;

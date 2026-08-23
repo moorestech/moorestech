@@ -33,9 +33,8 @@ namespace Client.Game.InGame.Map.Outcrop
         // Several veins share one address, so cache by address rather than by guid
         private readonly Dictionary<string, GameObject> _prefabCacheByAddress = new();
 
-        // 露頭は破壊されないので生成完了時に1回だけ索引を組む
-        // Outcrops are never destroyed, so the index is built once when instantiation completes
-        private readonly Dictionary<Guid, List<OutcropGameObject>> _outcropsByVeinGuid = new();
+        // 露頭は破壊されないので、生成のたび索引へ登録すれば最初の探索で1回だけ木が焼かれる
+        // Outcrops are never destroyed, so registering each one as it spawns bakes the tree exactly once, on the first search
         private readonly NearestTargetIndex<OutcropGameObject> _nearestIndex = new();
         private InitialHandshakeResponse _handshakeResponse;
         private UniTask? _initializationTask;
@@ -83,10 +82,6 @@ namespace Client.Game.InGame.Map.Outcrop
                     processedCount++;
                     if (processedCount % FrameYieldObjectInterval == 0) await UniTask.Yield(cancellationToken);
                 }
-
-                // 全露頭が出揃ってから鉱脈ごとに索引を焼く
-                // Bake one index per vein once every outcrop exists
-                foreach (var pair in _outcropsByVeinGuid) _nearestIndex.SetTargets(pair.Key, pair.Value);
             }
 
             GameObject ResolveOutcropPrefab(Guid veinGuid, MapVeinMasterElement element)
@@ -118,12 +113,7 @@ namespace Client.Game.InGame.Map.Outcrop
 
                 var outcrop = instance.GetComponent<OutcropGameObject>();
                 if (outcrop == null) outcrop = instance.AddComponent<OutcropGameObject>();
-                if (!_outcropsByVeinGuid.TryGetValue(veinGuid, out var outcrops))
-                {
-                    outcrops = new List<OutcropGameObject>();
-                    _outcropsByVeinGuid.Add(veinGuid, outcrops);
-                }
-                outcrops.Add(outcrop);
+                _nearestIndex.Register(veinGuid, outcrop);
 
                 // 不可の鉱脈も提示対象なので初期化する
                 // An unmineable vein still has to say so
@@ -163,7 +153,7 @@ namespace Client.Game.InGame.Map.Outcrop
 
         public OutcropGameObject SearchNearestOutcrop(Guid veinGuid, Vector3 position)
         {
-            return _nearestIndex.SearchNearest(veinGuid, position);
+            return _nearestIndex.TrySearchNearest(veinGuid, position, out var outcrop, out _) ? outcrop : null;
         }
 
         public void SetActive(bool enable)

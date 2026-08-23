@@ -96,9 +96,8 @@ namespace Client.Tests.Map
         {
             return new MapObjectLayoutMessagePack(
                 instanceId, "00000000-0000-0000-0000-000000000001", x, y, z,
-                0f, 0f, 0f, 1f,
                 1f, 1f, 1f,
-                -1, 0f, 0f);
+                0f, 0f, 0f, 1f);
         }
     }
 }

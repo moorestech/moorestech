@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration.Tiling
 {
-    // 多タイル生成が MapObjects へ載せるスケール・クラスタID・クラスタ重心を検証する。
-    // Verifies the scale, cluster id, and cluster centroid that multi-tile generation puts onto MapObjects.
+    // MapObjectsのスケールと台帳のクラスタ情報を検証
+    // Verifies the scale on MapObjects and the cluster info on the ledger
     public class MultiTileMapObjectTransferTest
     {
         private const int GridSide = 3;
@@ -19,22 +20,24 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         public void 岩クラスタのIDはタイルをまたいで重複しない()
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
-            var output = GenerateWithObjects(config);
+            var run = GenerateWithObjects(config);
 
             var tileOfClusterId = new Dictionary<int, Vector2Int>();
             var tilesWithCluster = new HashSet<Vector2Int>();
-            foreach (var mapObject in output.MapObjects)
+            for (var i = 0; i < run.Output.MapObjects.Count; i++)
             {
-                if (mapObject.ClusterId < 0) continue;
-                var tile = MultiTileTestWorld.TileBucket(mapObject.Position.x, mapObject.Position.z, config);
+                var placement = run.Ledger.Placements[i];
+                if (!placement.Cluster.HasValue) continue;
+                var clusterId = placement.Cluster.Value.Id;
+                var tile = MultiTileTestWorld.TileBucket(run.Output.MapObjects[i].Position.x, run.Output.MapObjects[i].Position.z, config);
                 tilesWithCluster.Add(tile);
-                if (!tileOfClusterId.TryGetValue(mapObject.ClusterId, out var owner))
+                if (!tileOfClusterId.TryGetValue(clusterId, out var owner))
                 {
-                    tileOfClusterId[mapObject.ClusterId] = tile;
+                    tileOfClusterId[clusterId] = tile;
                     continue;
                 }
 
-                Assert.AreEqual(owner, tile, $"ClusterId {mapObject.ClusterId} が別タイルと共有されている");
+                Assert.AreEqual(owner, tile, $"ClusterId {clusterId} が別タイルと共有されている");
             }
 
             // 1タイルぶんしかクラスタが出ていないと、重複が起きえない設定を検証したことになる。
@@ -42,25 +45,26 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             Assert.Less(1, tilesWithCluster.Count, "クラスタを持つタイルが1枚しかない");
         }
 
-        // 独立配置は ClusterId=-1 の空クラスタ情報を持つ。一意化のオフセットを掛けると実クラスタIDへ化ける。
-        // An independent placement carries an empty ClusterId=-1; applying the uniquifying offset would morph it into a real cluster id.
+        // 独立配置はクラスタ情報を持たない(null)。一意化のオフセットを掛けると実クラスタIDへ化ける。
+        // An independent placement carries no cluster info (null); applying the uniquifying offset would morph it into a real cluster id.
         [Test]
-        public void 独立散布の岩はタイルをまたいでもクラスタIDが_1のまま残る()
+        public void 独立散布の岩はタイルをまたいでもクラスタ無しのまま残る()
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
-            var output = GenerateWithObjects(config);
+            var run = GenerateWithObjects(config);
 
             var tilesWithCluster = new HashSet<Vector2Int>();
             var tilesWithIndependent = new HashSet<Vector2Int>();
-            foreach (var mapObject in output.MapObjects)
+            for (var i = 0; i < run.Output.MapObjects.Count; i++)
             {
+                var mapObject = run.Output.MapObjects[i];
+                var placement = run.Ledger.Placements[i];
                 var tile = MultiTileTestWorld.TileBucket(mapObject.Position.x, mapObject.Position.z, config);
-                if (0 <= mapObject.ClusterId) tilesWithCluster.Add(tile);
+                if (placement.Cluster.HasValue) tilesWithCluster.Add(tile);
                 if (mapObject.MapObjectGuid != MultiTileTestWorld.IndependentMapObjectGuid) continue;
 
                 tilesWithIndependent.Add(tile);
-                Assert.AreEqual(-1, mapObject.ClusterId, "独立散布の岩がクラスタIDを持っている");
-                Assert.AreEqual(Vector2.zero, mapObject.ClusterCenter, "独立散布の岩が重心を持っている");
+                Assert.That(placement.Cluster, Is.Null, "独立散布の岩がクラスタ情報を持っている");
             }
 
             // 一意化のオフセットが積み上がった後のタイルにも独立散布が出ていないと、化けようがない設定を検証したことになる。
@@ -72,19 +76,16 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         // 木はクラスタ情報そのものを持たない。null を素通しできていないと0番クラスタとして届く。
         // Trees own no cluster info at all; failing to pass the null through would deliver them as cluster zero.
         [Test]
-        public void 木はクラスタIDが_1で届く()
+        public void 木はクラスタ無しで届く()
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
             MultiTileTestWorld.EnableTrees(config);
 
-            var output = new VanillaGenerator().Generate(config);
+            var run = new VanillaGenerator().Generate(config);
 
-            Assert.IsNotEmpty(output.MapObjects);
-            foreach (var mapObject in output.MapObjects)
-            {
-                Assert.AreEqual(-1, mapObject.ClusterId);
-                Assert.AreEqual(Vector2.zero, mapObject.ClusterCenter);
-            }
+            Assert.IsNotEmpty(run.Output.MapObjects);
+            foreach (var placement in run.Ledger.Placements)
+                Assert.That(placement.Cluster, Is.Null);
         }
 
         // 重心がノイズ座標のまま残ると、位置だけがシーン座標という別フレームの組になり岩の周囲を外して塗る。
@@ -93,16 +94,21 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         public void クラスタ重心は配置物と同じタイルのシーン座標に乗る()
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
-            var output = GenerateWithObjects(config);
+            var run = GenerateWithObjects(config);
 
-            var clustered = output.MapObjects.FindAll(mapObject => 0 <= mapObject.ClusterId);
+            var clustered = new List<LedgerPlacement>();
+            for (var i = 0; i < run.Output.MapObjects.Count; i++)
+                if (run.Ledger.Placements[i].Cluster.HasValue)
+                    clustered.Add(run.Ledger.Placements[i]);
+
             Assert.IsNotEmpty(clustered, "クラスタを持つ配置物が1件も無い");
-            foreach (var mapObject in clustered)
+            foreach (var placement in clustered)
             {
-                MultiTileTestWorld.AssertInsideGrid(mapObject.ClusterCenter.x, mapObject.ClusterCenter.y, config);
+                var clusterCenter = placement.Cluster.Value.Center;
+                MultiTileTestWorld.AssertInsideGrid(clusterCenter.x, clusterCenter.y, config);
                 Assert.AreEqual(
-                    MultiTileTestWorld.TileBucket(mapObject.Position.x, mapObject.Position.z, config),
-                    MultiTileTestWorld.TileBucket(mapObject.ClusterCenter.x, mapObject.ClusterCenter.y, config),
+                    MultiTileTestWorld.TileBucket(placement.ScenePosition.x, placement.ScenePosition.z, config),
+                    MultiTileTestWorld.TileBucket(clusterCenter.x, clusterCenter.y, config),
                     "重心が配置物と別タイルにある");
             }
         }
@@ -112,10 +118,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         [Test]
         public void 配置物のスケールが出力へ写る()
         {
-            var output = GenerateWithObjects(MultiTileTestWorld.BuildConfig(GridSide, Seed));
+            var run = GenerateWithObjects(MultiTileTestWorld.BuildConfig(GridSide, Seed));
 
-            Assert.IsNotEmpty(output.MapObjects);
-            foreach (var mapObject in output.MapObjects)
+            Assert.IsNotEmpty(run.Output.MapObjects);
+            foreach (var mapObject in run.Output.MapObjects)
             {
                 Assert.Greater(mapObject.Scale.x, 0f);
                 Assert.Greater(mapObject.Scale.y, 0f);
@@ -123,7 +129,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             }
         }
 
-        private static MapGenerationOutput GenerateWithObjects(TerrainGenerationConfig config)
+        private static GenerationRun GenerateWithObjects(TerrainGenerationConfig config)
         {
             MultiTileTestWorld.EnableObjects(config);
             return new VanillaGenerator().Generate(config);

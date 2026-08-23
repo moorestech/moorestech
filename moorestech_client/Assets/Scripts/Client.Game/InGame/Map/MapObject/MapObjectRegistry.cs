@@ -21,8 +21,8 @@ namespace Client.Game.InGame.Map.MapObject
             // Duplicate instanceIds are rejected here; the raw indexes never leave, so no caller can reorder the registration steps
             if (!_mapObjectsByInstanceId.TryAdd(mapObject.InstanceId, mapObject)) return false;
 
-            // 生成前に届いた破壊/HPを最寄り索引へ載せる前に当てる。順序が逆だと破壊済み個体がdirty無しで探索候補に残る
-            // Pending destroy/HP lands before the nearest index takes the object; the reverse order would leave a destroyed object searchable without a dirty mark
+            // 生成前に届いた破壊/HPは最寄り索引へ載せる前に当てる。索引は登録時点の座標を焼き込むので、破壊済みは最初の構築から外す
+            // Pending destroy/HP lands before the nearest index takes the object: the index bakes the position at registration, so a destroyed one stays out of the very first build
             if (_pendingStateLedger.TryConsume(mapObject.InstanceId, out var pendingState))
                 MapObjectPendingStateApplier.Apply(mapObject, pendingState);
 
@@ -37,12 +37,11 @@ namespace Client.Game.InGame.Map.MapObject
 
         public bool TryDestroy(int instanceId)
         {
-            // 破壊とdirtyは対でしか成立しない。外へ出して手組みさせると片方を落とした呼び出しを型が拒めない
-            // Destruction and the dirty mark hold only as a pair; exposing them lets a caller drop one and the type cannot refuse it
+            // 索引への反映は個体の破壊通知が運ぶ。登録簿は未生成宛（保留行き）との分岐だけを返す
+            // The destroy notification carries this into the index; the registry only reports whether the target was already instantiated
             if (!_mapObjectsByInstanceId.TryGetValue(instanceId, out var mapObject)) return false;
 
             mapObject.DestroyMapObject();
-            _nearestSearcher.MarkDirty(mapObject.MapObjectGuid);
             return true;
         }
 
@@ -56,9 +55,9 @@ namespace Client.Game.InGame.Map.MapObject
             _pendingStateLedger.RecordHp(instanceId, hp);
         }
 
-        public MapObjectGameObject SearchNearest(Guid mapObjectGuid, Vector3 position)
+        public MapObjectGameObject SearchNearest(HashSet<Guid> mapObjectGuids, Vector3 position)
         {
-            return _nearestSearcher.SearchNearest(mapObjectGuid, position);
+            return _nearestSearcher.SearchNearest(mapObjectGuids, position);
         }
     }
 }

@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Environment.Terrain.Visual;
-using Client.Game.InGame.Environment.Terrain.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
+using Tests.UnitTest.Game.MapGeneration.Visual.Detail;
 using UnityEngine;
 
 namespace Client.Tests.UnitTest
@@ -111,8 +112,8 @@ namespace Client.Tests.UnitTest
         [Test]
         public void KeepsMapsInTheEntryOrder()
         {
-            // mapsの並びはentriesの並びそのもの。TerrainDetailPrototypeListが同じ並びでプロトタイプを組む前提
-            // The map order is exactly the entry order, the premise TerrainDetailPrototypeList builds its prototypes on
+            // mapsの並びはentriesの並びそのもの。DetailPrototypeAssetResolverが同じ並びでプロトタイプを組む前提
+            // The map order is exactly the entry order, the premise DetailPrototypeAssetResolver builds its prototypes on
             var firstEntry = DetailTestConfigBuilder.CreateEntry(1f, 16);
             var secondEntry = DetailTestConfigBuilder.CreateEntry(0.5f, 16);
 
@@ -135,7 +136,7 @@ namespace Client.Tests.UnitTest
             return DetailRuntimeGenerator.GenerateForBiome(
                 mask, new float[HeightmapResolution, HeightmapResolution], slopes,
                 DetailTestConfigBuilder.CreateDimensions(), detailConfig, new System.Random(1),
-                null, null, null, null);
+                null, null, null);
         }
     }
 }

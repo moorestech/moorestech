@@ -6,7 +6,7 @@ using Client.Playtest.Core;
 using Client.Starter;
 using Client.Starter.Editor;
 using Common.Debug;
-using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Args;
@@ -35,8 +35,8 @@ namespace Client.Tests.Playtest
             DebugParametersCacheDirectory.SetOverride(_previousDebugCacheOverride);
         }
 
-        [TestCase(WorldProvisioner.GeneratedMapMode, 3, 0)]
-        [TestCase(WorldProvisioner.TemplateMapMode, 2, 12345)]
+        [TestCase(WorldMapMode.Generated, 3, 0)]
+        [TestCase(WorldMapMode.Template, 2, 12345)]
         public void PrepareWorldBootSession_mapMode別の隔離環境を構成する(string mapMode, int expectedEnvironmentType, int seed)
         {
             PlaytestBootLifecycle.PrepareWorldBootSession("/master/server_v8", "/tmp/fixed-world", mapMode, seed);

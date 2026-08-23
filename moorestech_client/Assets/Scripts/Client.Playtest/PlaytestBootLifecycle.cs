@@ -4,7 +4,7 @@ using Client.Playtest.Core;
 using Client.Starter;
 using Client.Starter.Editor;
 using Common.Debug;
-using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
 using Server.Boot;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -61,8 +61,8 @@ namespace Client.Playtest
             // Generated excludes every authored terrain, while template preserves existing terrain with outer map objects
             var environmentType = mapMode switch
             {
-                WorldProvisioner.GeneratedMapMode => DebugEnvironmentType.Runtime,
-                WorldProvisioner.TemplateMapMode => DebugEnvironmentType.Other,
+                WorldMapMode.Generated => DebugEnvironmentType.Runtime,
+                WorldMapMode.Template => DebugEnvironmentType.Other,
                 _ => throw new System.ArgumentException($"Unknown map mode: '{mapMode}'", nameof(mapMode)),
             };
 
@@ -161,7 +161,7 @@ namespace Client.Playtest
 
         private static void ValidateMapMode(string mapMode)
         {
-            if (mapMode == WorldProvisioner.GeneratedMapMode || mapMode == WorldProvisioner.TemplateMapMode) return;
+            if (mapMode == WorldMapMode.Generated || mapMode == WorldMapMode.Template) return;
             throw new System.ArgumentException($"Unknown map mode: '{mapMode}'", nameof(mapMode));
         }
 

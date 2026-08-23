@@ -1,9 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Build;
-using Client.Game.InGame.Environment.Terrain.Visual.Cache;
 using Cysharp.Threading.Tasks;
-using Game.MapGeneration.Pipeline.Config;
+using Game.MapGeneration.Facade;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -11,16 +10,17 @@ using UnityEngine.TestTools;
 namespace Client.Tests.UnitTest.Terrain.Build
 {
     /// <summary>
-    ///     generateHeightmap / generateTexture がTerrainDataへの適用だけを切ることを検証する。
-    ///     器の寸法は移植元と違い常に設定し、テクスチャOFFではalphamapに一切触れないことをnull入力で固定する
-    ///     Verifies generateHeightmap and generateTexture gate only what reaches the TerrainData: the terrain's own
-    ///     dimensions are always set unlike the source, and a null input pins that the alphamap is untouched when texture is off
+    ///     BakedTerrainTileの中身のみが適用可否を決めることを検証
+    ///     高さはファサードが常に持つ値なので必ず適用され、器の寸法もWorldTerrainLayoutから常に設定される
+    ///     Verifies only the baked tile's own contents gate what reaches the TerrainData
+    ///     Heights always apply since the facade always carries them, and dimensions always come from WorldTerrainLayout
     /// </summary>
     public class TerrainDataAssemblerGateTest
     {
         // Unityはheightmapを33未満へ落とせない。既定の513と区別できる最小値がこれ
         // Unity refuses a heightmap below 33, which is the smallest value still distinguishable from the default 513
         private const int Resolution = 33;
+
         // Unityはalphamapを16未満へ落とせない。4を渡すと黙って16へ切り上げられ寸法の照合が空振りする
         // Unity refuses an alphamap below 16: passing 4 is silently rounded up and the dimension check watches nothing
         private const int AlphamapResolution = 16;
@@ -47,31 +47,20 @@ namespace Client.Tests.UnitTest.Terrain.Build
         }
 
         [UnityTest]
-        public IEnumerator AppliesTheHeightsWhenTheHeightmapFlagIsOn()
+        public IEnumerator AppliesTheHeightsAlways()
         {
-            yield return Assemble(CreateConfig(true, true));
+            yield return Assemble(CreateAlphamap());
 
             var appliedHeights = _terrainData.GetHeights(0, 0, Resolution, Resolution);
             Assert.That(appliedHeights[2, 2], Is.EqualTo(NormalizedHeight).Within(0.001f));
-        }
-
-        [UnityTest]
-        public IEnumerator LeavesTheTerrainFlatWhenTheHeightmapFlagIsOff()
-        {
-            yield return Assemble(CreateConfig(false, true));
-
-            // 平坦のままであることだけがSetHeightsを通っていない証拠。器の寸法は落ちてはならない
-            // Staying flat is the only evidence SetHeights was skipped, and the terrain's own dimensions must survive it
-            var appliedHeights = _terrainData.GetHeights(0, 0, Resolution, Resolution);
-            Assert.That(appliedHeights[2, 2], Is.EqualTo(0f).Within(0.001f));
             Assert.That(_terrainData.heightmapResolution, Is.EqualTo(Resolution));
             Assert.That(_terrainData.size, Is.EqualTo(new Vector3(TerrainWidth, TerrainHeight, TerrainWidth)));
         }
 
         [UnityTest]
-        public IEnumerator AppliesTheSplatmapWhenTheTextureFlagIsOn()
+        public IEnumerator AppliesTheSplatmapWhenTheAlphamapIsPresent()
         {
-            yield return Assemble(CreateConfig(true, true));
+            yield return Assemble(CreateAlphamap());
 
             Assert.That(_terrainData.terrainLayers.Length, Is.EqualTo(LayerCount));
             Assert.That(_terrainData.alphamapResolution, Is.EqualTo(AlphamapResolution));
@@ -81,9 +70,9 @@ namespace Client.Tests.UnitTest.Terrain.Build
         }
 
         [UnityTest]
-        public IEnumerator LeavesTheDefaultAlphamapWhenTheTextureFlagIsOff()
+        public IEnumerator LeavesTheDefaultAlphamapWhenTheAlphamapIsNull()
         {
-            yield return Assemble(CreateConfig(true, false));
+            yield return Assemble(null);
 
             // レイヤーが1本も載らないことが、alphamapへ触れていない唯一の観測点になる
             // No layer being mounted is the single observable telling the alphamap was never touched
@@ -91,29 +80,16 @@ namespace Client.Tests.UnitTest.Terrain.Build
             Assert.That(_terrainData.alphamapResolution, Is.Not.EqualTo(AlphamapResolution));
         }
 
-        private IEnumerator Assemble(TerrainGenerationConfig config)
+        private IEnumerator Assemble(float[,,] alphamap)
         {
-            // テクスチャOFFではproviderがalphamapをnullで返す。本番と同じ形を渡してassemblerがそこへ触れないことを固定する
-            // With the texture off the provider hands back a null alphamap, so production's own shape goes in and pins that the assembler never touches it
-            var tileVisual = new TerrainTileVisual(config.generateTexture ? CreateAlphamap() : null, new int[0][,]);
-            var assembleTask = TerrainDataAssembler.AssembleAsync(
-                config, CreateHeights(), tileVisual,
-                new List<DetailPrototype>(), _terrainLayers);
+            var layout = WorldTerrainLayout.CreateTileMaps(
+                new List<(int TileX, int TileZ)> { (0, 0) }, new Vector3(TerrainWidth, TerrainHeight, TerrainWidth), Resolution,
+                new List<string>(), new List<DetailPrototypeSpec>());
+            var tile = new BakedTerrainTile(Vector3.zero, CreateHeights(), alphamap, new List<int[,]>());
+
+            var assembleTask = TerrainDataAssembler.AssembleAsync(layout, tile, new List<DetailPrototype>(), _terrainLayers);
 
             yield return assembleTask.ToCoroutine(terrainData => _terrainData = terrainData);
-        }
-
-        private static TerrainGenerationConfig CreateConfig(bool generateHeightmap, bool generateTexture)
-        {
-            return new TerrainGenerationConfig
-            {
-                overrideResolution = Resolution,
-                terrainWidth = TerrainWidth,
-                terrainLength = TerrainWidth,
-                terrainHeight = TerrainHeight,
-                generateHeightmap = generateHeightmap,
-                generateTexture = generateTexture,
-            };
         }
 
         private static float[,] CreateHeights()

@@ -10,6 +10,7 @@ using Game.PlayerConnection;
 using Core.Update;
 using Game.Context;
 using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Game.SaveLoad;
 using Game.SaveLoad.Interface;
@@ -81,7 +82,7 @@ namespace Server.Boot
             // Fix the unspecified generated-mode seed so the same master always produces the same world
             // 明示指定なら0も含めそのまま使い、templateモードの従来値0も維持する
             // Preserve every explicit value including zero, as well as template mode's existing zero
-            var seed = settings.Seed ?? (settings.MapMode == WorldProvisioner.GeneratedMapMode ? DefaultGeneratedSeed : 0);
+            var seed = settings.Seed ?? (settings.MapMode == WorldMapMode.Generated ? DefaultGeneratedSeed : 0);
 
             // ワールドディレクトリをDI構築前に整備する（無ければ生成/テンプレートコピー）
             // Provision the world directory before DI container construction

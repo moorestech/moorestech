@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -55,12 +56,12 @@ namespace Tests.Module
             new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            return Provision(WorldProvisioner.GeneratedMapMode, seed);
+            return Provision(WorldMapMode.Generated, seed);
         }
 
         public WorldDataDirectory ProvisionTemplateWorld(int seed)
         {
-            return Provision(WorldProvisioner.TemplateMapMode, seed);
+            return Provision(WorldMapMode.Template, seed);
         }
 
         // チャンクペイロードの圧縮形式はTerrainChunkReaderと対で決まるので、解凍側もここで一本化する

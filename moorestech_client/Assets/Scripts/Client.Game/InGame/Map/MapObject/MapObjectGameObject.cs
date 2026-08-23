@@ -38,11 +38,19 @@ namespace Client.Game.InGame.Map.MapObject
         public Guid MapObjectGuid { get; private set; }
         public MapObjectMasterElement MapObjectMasterElement { get; private set; }
         public GameObject GameObject => gameObject;
-        public Vector3 Position => transform.position;
+
+        // 破壊済みは指す先にならない。索引が墓標として飛ばす条件そのもの
+        // A destroyed object is nothing to point at; this is exactly what the index skips as a tombstone
+        public bool IsSearchable => !IsDestroyed;
 
         // マスタ欠損時は対象として扱わない
         // A master-less object is not a target
         public bool IsAvailable => !IsDestroyed && MapObjectMasterElement != null;
+
+        public Vector3 GetIndexPosition()
+        {
+            return transform.position;
+        }
 
         public SoundEffectType DestroySoundType
         {

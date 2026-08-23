@@ -5,6 +5,7 @@ using Game.MapGeneration.Pipeline.Jobs;
 using Game.MapGeneration.Pipeline.Spawn;
 using Game.MapGeneration.Pipeline.Stages;
 using Game.MapGeneration.Pipeline.Tiling;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Transfer;
 using Unity.Collections;
 using UnityEngine;
@@ -15,7 +16,7 @@ namespace Game.MapGeneration.Pipeline
     // The VanillaGenerator algorithm body: generates one independent tile per gridSizeX/Z cell into a single output.
     public class VanillaGenerator : IMapGenerator
     {
-        public MapGenerationOutput Generate(TerrainGenerationConfig sourceConfig)
+        public GenerationRun Generate(TerrainGenerationConfig sourceConfig)
         {
             // 探索結果を config へ書き戻すため作業コピーで通す。引数を汚すと同じ config での再実行が別地形になる。
             // Work on a copy since the search result is written back; mutating the argument would make a re-run differ.
@@ -42,6 +43,10 @@ namespace Game.MapGeneration.Pipeline
             int halfX = config.gridSizeX / 2;
             int halfZ = config.gridSizeZ / 2;
             var sceneOrigin = config.TileScenePosition(0, 0);
+
+            // pass-2(見た目焼き)へ渡す配置台帳。結果出力ではなく GenerationRun の別枠で運ぶ。
+            // The ledger handed to pass-2 (visual bake); it travels in its own GenerationRun slot, not in the result output.
+            var ledger = new PlacementLedger();
             var output = new MapGenerationOutput
             {
                 Resolution = config.Resolution,
@@ -60,7 +65,7 @@ namespace Game.MapGeneration.Pipeline
             var helper = new BiomePlacementHelper(config);
             var halo = new PlacementHaloStore(PlacementHaloRadius.Resolve(config, biomeTypes, helper));
             var runner = new TilePlacementRunner(helper, biomeTypes,
-                noiseToSceneShift, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output, halo);
+                noiseToSceneShift, new Vector3(sceneSpawnXz.x, 0f, sceneSpawnXz.y), output, halo, ledger);
 
             // タイル窓の基準はindex(0,0)タイル。config.worldOffset は中心タイル基準なのでそのままでは基準にできない。
             // The tile windows are based on the index (0,0) tile; config.worldOffset is center-tile based and cannot serve as one.
@@ -89,7 +94,10 @@ namespace Game.MapGeneration.Pipeline
             }
 
             output.SpawnPoint = ComputeSpawn(config, centerTileHeights, sceneSpawnXz);
-            return output;
+
+            // 返す config は探索結果を書き戻した作業コピー。pass-2 が入力側を読むと探索前のスポーン座標を掴む。
+            // The returned config is the working copy carrying the search write-back; reading the input side would hand pass-2 the pre-search spawn position.
+            return new GenerationRun(output, ledger, config);
 
             #region Internal
 
@@ -109,9 +117,8 @@ namespace Game.MapGeneration.Pipeline
                     PaddedWindowStage.Run(tileConfig, biomeTypes, buffers);
                     var heights = buffers.heights.ToArray();
                     var tileScene = config.TileScenePosition(tileX, tileZ);
-                    var biomeIndices = runner.Run(tileConfig, buffers, heights, tileScene, tileX, tileZ);
-                    return new TerrainTileOutput
-                        { TileX = tileX, TileZ = tileZ, Heights = heights, BiomeIndices = biomeIndices };
+                    runner.Run(tileConfig, buffers, heights, tileScene, tileX, tileZ);
+                    return new TerrainTileOutput { TileX = tileX, TileZ = tileZ, Heights = heights };
                 }
                 finally
                 {

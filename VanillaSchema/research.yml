@@ -20,7 +20,6 @@ properties:
       default: New Research
     - key: researchNodeDescription
       type: string
-      default: New Research Description
     - key: consumeItems
       type: array
       items:

@@ -70,23 +70,21 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                 float heroSink = Mathf.Lerp(cluster.sinkRange.x, cluster.sinkRange.y, (float)rng.NextDouble());
 
-                placements.Add(new PlacementEntry
-                {
-                    MapObjectGuid = ObjectPlacementMath.PickRandomGuid(cluster.primary, rng),
-                    WorldPosition = heroWorldPos,
-                    Rotation = heroRot,
-                    Scale = new Vector3(heroScale,
+                placements.Add(PlacementEntry.CreateObject(
+                    ObjectPlacementMath.PickRandomGuid(cluster.primary, rng),
+                    heroWorldPos, heroRot,
+                    new Vector3(heroScale,
                         heroScale * (objAlgCfg.heroYScaleMin + (float)rng.NextDouble() * objAlgCfg.heroYScaleRange),
                         heroScale),
-                    Sink = heroSink,
-                    Cluster = new RockClusterInfo
+                    heroSink,
+                    new RockClusterInfo
                     {
                         ClusterId = clusterId,
                         Center = new Vector3(centerWorldX, centerHt, centerWorldZ),
                         HeroCenter = heroWorldPos,
                         Angle = 0, Length = radius, FootprintRadius = radius
-                    }
-                });
+                    },
+                    cluster.terrainSurroundEffectType));
 
                 var placedAngles = new List<float>();
                 for (int i = 1; i < memberCount; i++)
@@ -131,22 +129,18 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                     float sink = Mathf.Lerp(cluster.sinkRange.x, cluster.sinkRange.y, (float)rng.NextDouble());
 
-                    placements.Add(new PlacementEntry
-                    {
-                        MapObjectGuid = ObjectPlacementMath.PickRandomGuid(cluster.primary, rng),
-                        WorldPosition = new Vector3(ox + dims.WorldOffsetX,
-                            ht * dims.TerrainHeight, oz + dims.WorldOffsetZ),
-                        Rotation = rot,
-                        Scale = new Vector3(scale, yScale, scale),
-                        Sink = sink,
-                        Cluster = new RockClusterInfo
+                    placements.Add(PlacementEntry.CreateObject(
+                        ObjectPlacementMath.PickRandomGuid(cluster.primary, rng),
+                        new Vector3(ox + dims.WorldOffsetX, ht * dims.TerrainHeight, oz + dims.WorldOffsetZ),
+                        rot, new Vector3(scale, yScale, scale), sink,
+                        new RockClusterInfo
                         {
                             ClusterId = clusterId,
                             Center = new Vector3(centerWorldX, centerHt, centerWorldZ),
                             HeroCenter = heroWorldPos,
                             Angle = angle, Length = radius, FootprintRadius = radius
-                        }
-                    });
+                        },
+                        cluster.terrainSurroundEffectType));
                 }
 
                 clusterInfos.Add(new RockClusterInfo

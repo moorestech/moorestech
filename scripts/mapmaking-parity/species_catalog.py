@@ -5,6 +5,8 @@ Builds tree/rock inventory entries (key, kind, address, deterministic guid) from
 
 from __future__ import annotations
 
+import json
+import pathlib
 import uuid
 
 # 決定論採番の名前空間。再実行でmapObjectGuidを不変に保つため固定値とする
@@ -24,6 +26,41 @@ ADDRESS_CATEGORY_BY_KIND = {"tree": "Tree", "rock": "Rock", "pebble": "Rock", "p
 # The source TerrainGenerator.ApplyObjectSurroundTexture repaints bare ground only under objectConfig placements whose name contains one of these
 BARE_GROUND_NAME_MARKERS = ("Boulder", "Cliff")
 
+# 原木を落とす樹種の宣言表。プレハブ名からの推測は誤分類が静かに通るため持たない（ユーザー裁定 2026-08-23）
+# Declared table of log-dropping species; names are never guessed, since a misread would pass silently (user adjudication 2026-08-23)
+TIMBER_SPECIES_PATH = pathlib.Path(__file__).with_name("timber-species.json")
+
+
+def _load_timber_declaration() -> tuple[frozenset[str], frozenset[str]]:
+    document = json.loads(TIMBER_SPECIES_PATH.read_text(encoding="utf-8"))
+    timber = frozenset(document["timber"])
+    non_timber = frozenset(document["nonTimber"])
+
+    overlap = timber & non_timber
+    if overlap:
+        raise ValueError(f"timberとnonTimberの両方に宣言された樹種: {sorted(overlap)}")
+
+    return timber, non_timber
+
+
+TIMBER_KEYS, NON_TIMBER_KEYS = _load_timber_declaration()
+
+# ドロップ軸の値。earn_itemsはこの値だけを見て落とし物を決める
+# Drop-axis values; earn_items decides drops from this value alone
+DROP_CLASS_LOG = "log"
+DROP_CLASS_STONE = "stone"
+DROP_CLASS_NONE = "none"
+
+
+def declared_drop_class(key: str) -> str | None:
+    """宣言表が定めるドロップ軸を返す（未宣言はNone）。生成器と検証で同じ規則を共有する。
+    Returns the drop class the declaration assigns, or None when undeclared; shared by the generator and its validation."""
+    if key in TIMBER_KEYS:
+        return DROP_CLASS_LOG
+    if key in NON_TIMBER_KEYS:
+        return DROP_CLASS_NONE
+    return None
+
 
 class Species:
     def __init__(self, prefab_guid: str, prefab_path: str):
@@ -42,6 +79,24 @@ class Species:
         # Only species referenced from objectConfig can become true; rocks placed via treePlacement are never repainted in the source
         self.referenced_by_object_config = False
 
+    # 何を落とす種か。原木を落とすかは宣言表だけが決め、kind推測との食い違いは静かに通さず止める
+    # What the species drops; only the declaration decides the log axis, and a mismatch with the kind guess stops generation
+    @property
+    def drop_class(self) -> str:
+        declared = declared_drop_class(self.key)
+        if declared is not None:
+            if self.kind != "tree":
+                raise ValueError(
+                    f"{TIMBER_SPECIES_PATH.name} は kind=tree の宣言表だが {self.key} の kind は {self.kind}")
+            return declared
+
+        if self.kind == "tree":
+            raise ValueError(
+                f"timber未宣言の樹種 {self.key}: {TIMBER_SPECIES_PATH.name} の timber / nonTimber のどちらかへ足すこと")
+        if self.kind == "plant":
+            return DROP_CLASS_NONE
+        return DROP_CLASS_STONE
+
     @property
     def bare_ground(self) -> bool:
         return self.referenced_by_object_config and any(
@@ -58,6 +113,7 @@ class Species:
             "mapObjectGuid": self.map_object_guid,
             "mapObjectName": self.name,
             "bareGround": self.bare_ground,
+            "dropClass": self.drop_class,
         }
 
 

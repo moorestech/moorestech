@@ -5,7 +5,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
-using Client.Game.InGame.Construction;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -14,6 +13,7 @@ using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
+using Game.Construction;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
@@ -30,7 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private const float PlaceableMaxDistance = 100f;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly ILocalPlayerInventory _localPlayerInventory;
-        private readonly ClientRemainingPlacementCountDatastore _remainingPlacementCountDatastore;
+        private readonly ConstructionWalletQuery _constructionWalletQuery;
         private readonly Camera _mainCamera;
         private readonly BeltConveyorPlacePointCalculator _blockPlacePointCalculator;
 
@@ -41,12 +41,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
         private int _heightOffset;
 
-        public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, ClientRemainingPlacementCountDatastore remainingPlacementCountDatastore)
+        public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, ConstructionWalletQuery constructionWalletQuery)
         {
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
-            _remainingPlacementCountDatastore = remainingPlacementCountDatastore;
+            _constructionWalletQuery = constructionWalletQuery;
             _blockPlacePointCalculator = new BeltConveyorPlacePointCalculator(blockGameObjectDataStore);
         }
 
@@ -121,7 +121,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             var representativeIndex = _currentPlaceInfos.FindIndex(info => info.Placeable);
             if (0 <= representativeIndex)
             {
-                ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, _currentPlaceInfos[representativeIndex].BlockId, _remainingPlacementCountDatastore, _localPlayerInventory);
+                ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, _currentPlaceInfos[representativeIndex].BlockId, _constructionWalletQuery, _localPlayerInventory);
             }
 
             // 最終的なPlaceable状態でプレビュー色を更新

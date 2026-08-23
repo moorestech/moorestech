@@ -23,6 +23,7 @@
         "Game.Map.Interface",
         "Game.Map",
         "Game.MapGeneration",
+        "Game.MapGeneration.Contract",
         "Game.SaveLoad",
         "Mod.Base",
         "Core.Update",
