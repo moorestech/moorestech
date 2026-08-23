@@ -10,9 +10,9 @@ type Props = { entry: BuildMenuDisplayEntry | null };
 export function BuildMenuDetailSidebar({ entry }: Props) {
   const { t } = useI18n();
 
-  // 複数設置はブロックのみ、絞り込んで読む
-  // Only blocks carry multi-placement sets; narrow to that shape before reading
-  const setPlacementBlock = entry !== null && entry.kind === "block" && entry.placementsPerCost > 1 ? entry : null;
+  // 複数設置はホストが財布判定済みの setPlacement で届く。有無だけで分岐する
+  // Multi-placement arrives as the host's already-decided setPlacement; branch on presence alone
+  const setPlacement = entry !== null && entry.kind === "block" ? entry.setPlacement ?? null : null;
 
   return (
     <div className={styles.detail} data-testid="build-menu-detail">
@@ -28,8 +28,8 @@ export function BuildMenuDetailSidebar({ entry }: Props) {
           {entry.requiredItems.length > 0 && (
             <>
               <span className={styles.detailCostLabel}>
-                {setPlacementBlock !== null
-                  ? t(L.ui.buildMenu.requiredItemsPerSet, { count: setPlacementBlock.placementsPerCost })
+                {setPlacement !== null
+                  ? t(L.ui.buildMenu.requiredItemsPerSet, { count: setPlacement.perCost })
                   : t(L.ui.buildMenu.requiredItems)}
               </span>
               <SlotGrid cols={3}>
@@ -39,9 +39,9 @@ export function BuildMenuDetailSidebar({ entry }: Props) {
               </SlotGrid>
             </>
           )}
-          {setPlacementBlock !== null && (
+          {setPlacement !== null && (
             <span className={styles.detailCostLabel} data-testid="build-menu-remaining-placements">
-              {t(L.ui.buildMenu.remainingPlacementCount, { count: setPlacementBlock.remainingPlacementCount })}
+              {t(L.ui.buildMenu.remainingPlacementCount, { count: setPlacement.remaining })}
             </span>
           )}
         </>
