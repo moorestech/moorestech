@@ -92,7 +92,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         [Test]
         public void DropsThePrototypesAndTheDensityMapsTogetherWhenDetailGenerationIsOff()
         {
-            var baker = CreateBaker(true, true, false);
+            var baker = CreateBaker(true, false, true);
             var baked = baker.Bake(TileX, TileZ);
 
             // 片方だけ止めるとDetailPrototypeAssetResolverの数一致検査で落ちる。同数であることが本体の要求
@@ -113,7 +113,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         [Test]
         public void LeavesTheAlphamapUnbuiltWhenTextureGenerationIsOff()
         {
-            var baked = CreateBaker(true, false, true).Bake(TileX, TileZ);
+            var baked = CreateBaker(false, true, true).Bake(TileX, TileZ);
 
             // alphamapが無いことがSplatmapRuntimeGenerateを通っていない唯一の観測点
             // The absent alphamap is the single observable telling SplatmapRuntimeGenerator never ran
@@ -143,7 +143,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         {
             // キャッシュ形式はalphamapを必ず1枚要求する。テクスチャ無しの見た目は書き出せない
             // The cache format always demands one alphamap, so a texture-less visual cannot be written at all
-            var baker = CreateBaker(true, false, true);
+            var baker = CreateBaker(false, true, true);
             baker.Bake(TileX, TileZ);
             baker.Bake(TileX, TileZ);
 
