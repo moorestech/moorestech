@@ -38,11 +38,9 @@ namespace Client.Starter.Initialization
 
         private async UniTask FinalizeAsync()
         {
-            System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] client.finalizeStart {System.DateTime.UtcNow:O}\n");
             var starter = UnityEngine.Object.FindFirstObjectByType<MainGameStarter>();
 
             var resolver = starter.StartGame(_serverResult.HandshakeResponse);
-            System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] client.startGameEnd {System.DateTime.UtcNow:O}\n");
             new ClientDIContext(new DIContainer(resolver));
             WebUiHost.Game.WebUiGameBinder.Bind();
 
@@ -62,7 +60,6 @@ namespace Client.Starter.Initialization
             // BP割当の解決元をログイン時に1度満たす。ビルドメニュー入場までBP枠が未解決に見えるのを防ぐ
             // Fill the blueprint assignments' resolution source once at login so blueprint slots are not unresolved until the build menu is opened
             await resolver.Resolve<ClientBlueprintLibrary>().Refresh(default);
-            System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] client.blueprintRefreshed {System.DateTime.UtcNow:O}\n");
 
             // イベント適用開始を地形構築より前へ戻し、未生成個体宛イベントが捨てられる窓を地形構築時間分広げない（ADR#15）
             // Start event application before terrain build so the drop window for not-yet-spawned targets never widens by build time (ADR#15)
@@ -70,17 +67,13 @@ namespace Client.Starter.Initialization
 
             // 露頭を含むワールドオブジェクトの生成前にTerrainを構築する
             // Build Terrain before instantiating world objects including outcrops
-            System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] client.terrainBuildStart {System.DateTime.UtcNow:O}\n");
             await TerrainRuntimeBuilder.BuildAsync(_serverResult.HandshakeResponse.MapLayout, starter.EnvironmentRoot.transform, _localMasterDirectory);
 
             // 露頭生成はTerrain完成後に明示開始する。完了待ちは下の待機境界が一括で担う（ADR#15）
             // Outcrop instantiation starts explicitly after the terrain is ready; the wait boundary below waits for it with the rest (ADR#15)
-            System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] client.terrainBuildEnd {System.DateTime.UtcNow:O}\n");
             resolver.Resolve<OutcropGameObjectDatastore>().StartOutcropInstantiation();
 
-            System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] client.initialApplyWaitStart {System.DateTime.UtcNow:O}\n");
             await InitialEventApplyWaiter.WaitAllAsync(resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>());
-            System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] client.initialApplyWaitEnd {System.DateTime.UtcNow:O}\n");
 
             // ピンが探す対象の生成後に適用する
             // Apply only once the objects a pin searches for exist
@@ -92,7 +85,6 @@ namespace Client.Starter.Initialization
             resolver.Resolve<PlayerPositionSender>().StartSending();
 
             starter.RestoreLoginState(_serverResult.HandshakeResponse);
-            System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] client.finalizeEnd {System.DateTime.UtcNow:O}\n");
         }
     }
 }
