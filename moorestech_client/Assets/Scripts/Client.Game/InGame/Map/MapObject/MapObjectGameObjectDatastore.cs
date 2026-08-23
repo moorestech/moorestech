@@ -185,7 +185,7 @@ namespace Client.Game.InGame.Map.MapObject
                 if (mapObject.MapObjectGuid != mapObjectGuid || mapObject.IsDestroyed) continue;
 
                 // 距離をチェック
-                var magnitude = (position - mapObject.GetPosition()).magnitude;
+                var magnitude = (position - mapObject.Position).magnitude;
                 if (maxMagnitude < magnitude) continue;
 
                 nearestMapObject = mapObject;

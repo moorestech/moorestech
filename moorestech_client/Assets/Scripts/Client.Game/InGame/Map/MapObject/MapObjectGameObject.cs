@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Map.NearestSearch;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
 using Core.Master;
@@ -16,7 +17,7 @@ namespace Client.Game.InGame.Map.MapObject
     ///     MapObjectのGameObjectを表すクラス
     ///     TODO 今はUnity上に直接おいているので、今後はちゃんとサーバーからデータを受け取って生成するようにする
     /// </summary>
-    public class MapObjectGameObject : MonoBehaviour, IMiningTargetObject
+    public class MapObjectGameObject : MonoBehaviour, IMiningTargetObject, INearestSearchTarget
     {
         [SerializeField] private GameObject outlineObject;
         [SerializeField] private MapObjectHpBarView hpBarView;
@@ -26,14 +27,18 @@ namespace Client.Game.InGame.Map.MapObject
         // ツール不要の対象では推奨ツールが空になるため、毎回の確保を避けて共有する
         // Targets that need no tool return an empty recommendation, so share one instance instead of allocating
         private static readonly List<ItemId> EmptyToolItemIds = new();
-        
+
         public bool IsDestroyed { get; private set; }
         public int CurrentHp { get; private set; }
-        
+
         public int InstanceId => instanceId;
-        public Guid MapObjectGuid => new(mapObjectGuid);
+
+        // 最寄り探索が毎フレーム比較するため、文字列guidは注入時に1回だけパースして保持する
+        // Nearest search compares this every frame, so parse the string guid once at injection and keep it
+        public Guid MapObjectGuid { get; private set; }
         public MapObjectMasterElement MapObjectMasterElement { get; private set; }
         public GameObject GameObject => gameObject;
+        public Vector3 Position => transform.position;
 
         // マスタ欠損時は対象として扱わない
         // A master-less object is not a target
@@ -66,6 +71,7 @@ namespace Client.Game.InGame.Map.MapObject
         {
             this.instanceId = instanceId;
             this.mapObjectGuid = mapObjectGuid;
+            MapObjectGuid = new Guid(mapObjectGuid);
         }
 
         public void Initialize(GetMapObjectInfoProtocol.MapObjectsInfoMessagePack mapObjectInfo)
@@ -158,11 +164,6 @@ namespace Client.Game.InGame.Map.MapObject
             }
             
             _onDestroyMapObject.OnNext(Unit.Default);
-        }
-        
-        public Vector3 GetPosition()
-        {
-            return transform.position;
         }
         
         public void UpdateHp(int newHp)

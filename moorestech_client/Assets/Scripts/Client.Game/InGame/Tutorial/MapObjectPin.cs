@@ -71,7 +71,7 @@ namespace Client.Game.InGame.Tutorial
                     return;
                 }
 
-                transform.position = mapObject.GetPosition();
+                transform.position = mapObject.Position;
             }
 
             #endregion
