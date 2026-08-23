@@ -17,7 +17,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
             float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
             int rngSeedOffset, IReadOnlyList<PlacedVein> excludedVeins,
-            TilePlacementContext tile, PlacementHaloChannel memberHalo, PlacementHaloChannel centerHalo)
+            TilePlacementContext tile, PlacementHaloChannel memberHalo, PlacementHaloChannelMap centerHalos)
         {
             if (entries.Length == 0) return new List<PlacedVein>();
 
@@ -42,7 +42,7 @@ namespace Game.MapGeneration.Pipeline.Stages
                 config.seed + rngSeedOffset, tile.TileIndexX, tile.TileIndexZ));
             var members = OrePlacementGenerator.GenerateForWorld(
                 entries, entryMasks, borderMargin, heights2D, dims, rng, treeGrid, objectGrid,
-                memberHalo, centerHalo, tile.Halo.Radius);
+                memberHalo, centerHalos, tile.Halo.Radius);
 
             // 点ごとに固定サイズの鉱脈を生成。
             // Emit one fixed-size vein per point.
