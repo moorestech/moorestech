@@ -6,6 +6,7 @@ using System.Linq;
 using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
+using Newtonsoft.Json.Linq;
 using Server.Boot;
 using Tests.Module.TestMod;
 
@@ -21,6 +22,7 @@ namespace Tests.Module
     {
         private readonly string _label;
         private readonly List<WorldDataDirectory> _createdWorldDataDirectories = new();
+        private readonly List<string> _createdServerDataDirectories = new();
 
         public TerrainTransferTestScope(string label)
         {
@@ -33,10 +35,22 @@ namespace Tests.Module
         {
             foreach (var worldDataDirectory in _createdWorldDataDirectories)
             {
+                // 確定メタの共有cacheを失敗時も回収
+                // Remove the shared cache referenced by committed metadata even when provisioning fails partway through
+                if (File.Exists(worldDataDirectory.WorldMetaFilePath))
+                {
+                    var meta = TerrainTransferMetaReader.Read(worldDataDirectory);
+                    var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
+                    if (Directory.Exists(shared.Root)) Directory.Delete(shared.Root, true);
+                }
                 if (Directory.Exists(worldDataDirectory.Root)) Directory.Delete(worldDataDirectory.Root, true);
                 if (Directory.Exists(worldDataDirectory.ProvisioningTempDirectory)) Directory.Delete(worldDataDirectory.ProvisioningTempDirectory, true);
             }
             _createdWorldDataDirectories.Clear();
+
+            foreach (var serverDataDirectory in _createdServerDataDirectories)
+                if (Directory.Exists(serverDataDirectory)) Directory.Delete(serverDataDirectory, true);
+            _createdServerDataDirectories.Clear();
         }
 
         // ディスク上には何も作らずワールドパスだけを払い出す。合成ワールドを手で組むテスト用
@@ -60,12 +74,33 @@ namespace Tests.Module
             new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            return Provision(WorldMapMode.Generated, seed);
+            return Provision(WorldMapMode.Generated, seed, TestModDirectory.ForUnitTestModDirectory);
+        }
+
+        // 全タイル用modで1x1既定値を維持
+        // Creates a dedicated low-resolution mod for all-tile traversal without changing the shared test mod's fast 1x1 default
+        public WorldDataDirectory ProvisionGeneratedWorld(int seed, int gridSide, int heightmapResolution)
+        {
+            var serverDataDirectory = Path.Combine(Path.GetTempPath(), $"{_label}_ServerData_{Guid.NewGuid()}");
+            _createdServerDataDirectories.Add(serverDataDirectory);
+            CopyDirectory(TestModDirectory.ForUnitTestModDirectory, serverDataDirectory);
+
+            var generationJsonPath = Path.Combine(serverDataDirectory, "mods", "forUnitTest", "master", "generation.json");
+            var generationJson = JObject.Parse(File.ReadAllText(generationJsonPath));
+            var algorithmParam = (JObject)generationJson["algorithmParam"];
+            algorithmParam["gridSizeX"] = gridSide;
+            algorithmParam["gridSizeZ"] = gridSide;
+            algorithmParam["overrideResolution"] = heightmapResolution;
+            File.WriteAllText(generationJsonPath, generationJson.ToString());
+
+            new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(serverDataDirectory));
+            return Provision(WorldMapMode.Generated, seed, serverDataDirectory);
         }
 
         public WorldDataDirectory ProvisionTemplateWorld(int seed)
         {
-            return Provision(WorldMapMode.Template, seed);
+            return Provision(WorldMapMode.Template, seed, TestModDirectory.ForUnitTestModDirectory);
         }
 
         // チャンクペイロードの圧縮形式はTerrainChunkReaderと対で決まるので、解凍側もここで一本化する
@@ -85,11 +120,22 @@ namespace Tests.Module
             return filePaths.SelectMany(File.ReadAllBytes).ToArray();
         }
 
-        private WorldDataDirectory Provision(string mapMode, int seed)
+        // 実ディレクトリだけを再帰コピー
+        // Recursively copies only real directories handed out by tests; symbolic links are not supported
+        public static void CopyDirectory(string sourceDirectory, string destinationDirectory)
+        {
+            Directory.CreateDirectory(destinationDirectory);
+            foreach (var filePath in Directory.GetFiles(sourceDirectory))
+                File.Copy(filePath, Path.Combine(destinationDirectory, Path.GetFileName(filePath)), true);
+            foreach (var subDirectory in Directory.GetDirectories(sourceDirectory))
+                CopyDirectory(subDirectory, Path.Combine(destinationDirectory, Path.GetFileName(subDirectory)));
+        }
+
+        private WorldDataDirectory Provision(string mapMode, int seed, string serverDataDirectory)
         {
             var worldDataDirectory = CreateEmptyWorldDataDirectory();
             WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
-                worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, mapMode, seed));
+                worldDataDirectory, serverDataDirectory, mapMode, seed));
             return worldDataDirectory;
         }
     }

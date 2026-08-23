@@ -151,8 +151,8 @@ jobs:
           restore-keys: |
             Library_Test_client-
 
-      # 全assemblyを完全修飾名だけで分割し、新規assemblyやfixture移動でもテストを欠落させない。
-      # Partition all assemblies only by fully qualified name so new assemblies and moved fixtures remain covered.
+      # 専用fixtureはFQNだけ、残余は検証済みassemblyも併用し、網羅性を保って探索固定費を抑える。
+      # Use FQNs alone for dedicated fixtures and verified assemblies for remainders to retain coverage with lower discovery overhead.
       - name: Run Unity Test - ${{ matrix.shard }}
         uses: game-ci/unity-test-runner@v4
         env:
@@ -166,6 +166,7 @@ jobs:
           unityVersion: 6000.3.8f1
           testMode: editmode
           customParameters: >-
+            ${{ steps.shard.outputs.use_assembly_filter == 'true' && format('-assemblyNames "{0}"', steps.shard.outputs.assembly_names) || '' }}
             -testFilter "${{ steps.shard.outputs.test_filter }}"
             -testCategory "!IgnoreCI"
 

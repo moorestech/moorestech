@@ -12,6 +12,32 @@ if [[ -z "${GITHUB_OUTPUT:-}" ]]; then
   exit 2
 fi
 
+# project所有のtest asmdefをallowlistと照合し、新規assemblyを無音で検査対象外にしない。
+# Compare project-owned test asmdefs with the allowlist so a new assembly cannot silently escape CI coverage.
+client_test_assembly='Client.Tests'
+server_test_assembly='Server.Tests'
+addressables_test_assembly='Unity.Addressables.DocExampleCode.Editor.Tests'
+known_project_test_assemblies=";${client_test_assembly};${server_test_assembly};"
+repo_root=$(cd "$(dirname "$0")/../.." && pwd)
+project_test_assemblies=$(
+  find "$repo_root/moorestech_client/Assets" "$repo_root/moorestech_server/Assets" -name '*.asmdef' -type f -print0 |
+    while IFS= read -r -d '' asmdef; do
+      jq -r 'select((([.references[]?] | any(. == "UnityEngine.TestRunner" or . == "UnityEditor.TestRunner"))) or (([.precompiledReferences[]?] | any(. == "nunit.framework.dll"))) or (([.optionalUnityReferences[]?] | any(. == "TestAssemblies")))) | .name' "$asmdef"
+    done |
+    sort -u
+)
+unexpected_test_assemblies=''
+while IFS= read -r assembly_name; do
+  if [[ -n "$assembly_name" && "$known_project_test_assemblies" != *";${assembly_name};"* ]]; then
+    unexpected_test_assemblies+="${assembly_name}"$'\n'
+  fi
+done <<< "$project_test_assemblies"
+if [[ -n "$unexpected_test_assemblies" ]]; then
+  echo "new Unity test assemblies must be assigned to a remainder shard:" >&2
+  printf '%s' "$unexpected_test_assemblies" >&2
+  exit 2
+fi
+
 # PR #1256のCI実測を基に、PlayMode遷移を伴うClient fixtureを約3分ずつへ均等化する。
 # Balance Client fixtures that transition PlayMode into roughly three-minute groups using PR #1256 CI timings.
 client_play_1='Client\.Tests\.EditModeInPlayingTest\.MapObjects\.MapObjectNearestSearchTest|Client\.Tests\.EditModeInPlayingTest\.PlayerStartsOnBuiltTerrainTest|Client\.Tests\.EditModeInPlayingTest\.MachineModuleSlotUITest|Client\.Tests\.EditModeInPlayingTest\.MapObjects\.MapObjectRotationTest|Client\.Tests\.EditModeInPlayingTest\.DebugParametersIsolationAcrossDomainReloadTest|Client\.Tests\.EditModeInPlayingTest\.OsInputSpoofTest'
@@ -25,22 +51,25 @@ server_map_1='Tests\.UnitTest\.Game\.MapGeneration\.Tiling\.MultiTileGenerationT
 server_map_2='Tests\.UnitTest\.Game\.MapGeneration\.Tiling\.MultiTileMapObjectTransferTest|Tests\.UnitTest\.Game\.MapGeneration\.SpawnSearchDiagnosticsLogTest|Tests\.UnitTest\.Game\.MapGeneration\.Tiling\.TilePlacementWorldSpaceTest|Tests\.UnitTest\.Game\.MapGeneration\.Facade\.TerrainVisualPrebakeTest|Tests\.UnitTest\.Game\.MapGeneration\.MapGenerationPipelineTest|Tests\.UnitTest\.Game\.MapGeneration\.Visual\.Golden\.TerrainVisualGoldenTest'
 server_map_3='Tests\.UnitTest\.Game\.MapGeneration\.Visual\.TileVisualBakerBoundaryTest|Tests\.UnitTest\.Game\.MapGeneration\.TerrainTransferMetaReaderTest|Tests\.UnitTest\.Game\.MapGeneration\.Placement\.ObjectScatterSpawnBandTest|Tests\.UnitTest\.Game\.MapGeneration\.Visual\.Placement\.PlacementLedgerTest|Tests\.UnitTest\.Game\.MapGeneration\.WorldProvisionerTest|Tests\.UnitTest\.Game\.MapGeneration\.Facade\.WorldTerrainSessionTest|Tests\.UnitTest\.Game\.MapGeneration\.TerrainChunkReaderTest'
 server_dedicated="${server_map_1}|${server_map_2}|${server_map_3}"
+all_dedicated="${client_dedicated}|${server_dedicated}"
 
-# 全assemblyを完全修飾名だけで排他的に分割し、fixtureのassembly移動でも検査漏れを作らない。
-# Partition every assembly exclusively by fully qualified name so moving a fixture between assemblies cannot create coverage gaps.
+# 専用FQNはassembly横断で拾い、残余だけ既知assemblyへ絞って探索固定費を抑える。
+# Match dedicated FQNs across assemblies, while scoping only remainders to known assemblies to reduce discovery overhead.
 case "$1" in
-  client-play-1) test_filter="^(${client_play_1})(\\.|$)"; needs_webui='true' ;;
-  client-play-2) test_filter="^(${client_play_2})(\\.|$)"; needs_webui='true' ;;
-  client-play-3) test_filter="^(${client_play_3})(\\.|$)"; needs_webui='true' ;;
-  client-remainder) test_filter="^(?!(${client_dedicated})(\\.|$))Client\\."; needs_webui='true' ;;
-  server-map-1) test_filter="^(${server_map_1})(\\.|$)"; needs_webui='false' ;;
-  server-map-2) test_filter="^(${server_map_2})(\\.|$)"; needs_webui='false' ;;
-  server-map-3) test_filter="^(${server_map_3})(\\.|$)"; needs_webui='false' ;;
-  server-remainder) test_filter="!^(Client\\.|(${server_dedicated})(\\.|$))"; needs_webui='false' ;;
+  client-play-1) use_assembly_filter='false'; assembly_names='all'; test_filter="^(${client_play_1})(\\.|$)"; needs_webui='true' ;;
+  client-play-2) use_assembly_filter='false'; assembly_names='all'; test_filter="^(${client_play_2})(\\.|$)"; needs_webui='true' ;;
+  client-play-3) use_assembly_filter='false'; assembly_names='all'; test_filter="^(${client_play_3})(\\.|$)"; needs_webui='true' ;;
+  client-remainder) use_assembly_filter='true'; assembly_names="$client_test_assembly"; test_filter="!^(${all_dedicated})(\\.|$)"; needs_webui='true' ;;
+  server-map-1) use_assembly_filter='false'; assembly_names='all'; test_filter="^(${server_map_1})(\\.|$)"; needs_webui='false' ;;
+  server-map-2) use_assembly_filter='false'; assembly_names='all'; test_filter="^(${server_map_2})(\\.|$)"; needs_webui='false' ;;
+  server-map-3) use_assembly_filter='false'; assembly_names='all'; test_filter="^(${server_map_3})(\\.|$)"; needs_webui='false' ;;
+  server-remainder) use_assembly_filter='true'; assembly_names="${server_test_assembly};${addressables_test_assembly}"; test_filter="!^(${all_dedicated})(\\.|$)"; needs_webui='false' ;;
   *) echo "unknown Unity test shard: $1" >&2; exit 2 ;;
 esac
 
 # GitHub Actionsの単一行outputとして安全に受け渡す。
 # Emit values as single-line GitHub Actions outputs.
+printf 'use_assembly_filter=%s\n' "$use_assembly_filter" >> "$GITHUB_OUTPUT"
+printf 'assembly_names=%s\n' "$assembly_names" >> "$GITHUB_OUTPUT"
 printf 'test_filter=%s\n' "$test_filter" >> "$GITHUB_OUTPUT"
 printf 'needs_webui=%s\n' "$needs_webui" >> "$GITHUB_OUTPUT"

@@ -10,8 +10,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
 {
     // template/generated双方の結果契約を検証
     // Verifies the result contract for both template and generated worlds
-    // session結合の実生成は1x1固定
-    // Session integration does not verify a multi-tile count, so keep using the test master's 1x1 for real generation
+    // 通常1x1、全タイル走査だけ低解像度2x2
+    // Keep ordinary real generation at 1x1 and use a dedicated low-resolution 2x2 only for all-tile traversal
     public class WorldTerrainSessionTest
     {
         // templateは固定地形の結果のみ返す
@@ -35,46 +35,45 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
         [Test]
         public void GeneratedWorldBakesEveryTile()
         {
+            const int MultiTileGridSide = 2;
+            const int MultiTileResolution = 129;
             var scope = new TerrainTransferTestScope(nameof(GeneratedWorldBakesEveryTile));
-            var worldDirectory = scope.ProvisionGeneratedWorld(5);
-            var meta = TerrainTransferMetaReader.Read(worldDirectory);
-
-            // 高さ源は共有キャッシュなので、転送後と同じ状態を作る: world dir の terrain/ を cache/worlds/<id>/terrain へ複製
-            // The height source is the shared cache, so replicate the post-transfer state: copy the world dir's terrain/ into cache/worlds/<id>/terrain
-            var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
-            CopyDirectory(worldDirectory.TerrainDirectory, shared.TerrainDirectory);
             try
             {
-                var session = WorldTerrainSession.Open(meta, TestModDirectory.ForUnitTestModDirectory);
-                Assert.That(session.Layout.Kind, Is.EqualTo(TerrainLayoutKind.TileMaps));
+                var worldDirectory = scope.ProvisionGeneratedWorld(5, MultiTileGridSide, MultiTileResolution);
+                var meta = TerrainTransferMetaReader.Read(worldDirectory);
+                var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
 
-                // 生成ワールドは焼けるセッションで開く。KindがTileMapsなら型もTiledTerrainSessionで対になる
-                // A generated world opens as a bakeable session: a TileMaps kind and the TiledTerrainSession type always arrive as a pair
-                var tiledSession = (TiledTerrainSession)session;
-                foreach (var (x, z) in session.Layout.TileCoordinates)
+                // 転送後と同じ高さ源で全4座標を焼く
+                // Copy heights into the shared cache and bake all four coordinates in the post-transfer state
+                TerrainTransferTestScope.CopyDirectory(worldDirectory.TerrainDirectory, shared.TerrainDirectory);
+                try
                 {
-                    var tile = tiledSession.BakeTile(x, z);
-                    Assert.That(tile.DisplayHeights.GetLength(0), Is.EqualTo(session.Layout.HeightmapResolution));
-                    Assert.That(tile.Alphamap.GetLength(2), Is.EqualTo(session.Layout.TextureLayerAddresses.Count));
-                    Assert.That(tile.DetailMaps.Count, Is.EqualTo(session.Layout.DetailPrototypes.Count));
+                    var session = WorldTerrainSession.Open(meta, TestModDirectory.ForUnitTestModDirectory);
+                    Assert.That(session.Layout.Kind, Is.EqualTo(TerrainLayoutKind.TileMaps));
+                    Assert.That(session.Layout.HeightmapResolution, Is.EqualTo(MultiTileResolution));
+                    Assert.That(session.Layout.TileCoordinates, Is.EquivalentTo(new[] { (0, 0), (1, 0), (0, 1), (1, 1) }));
+
+                    // 各座標の焼成出力寸法を検証
+                    // Open the generated world as its bakeable type and verify each coordinate's output dimensions
+                    var tiledSession = (TiledTerrainSession)session;
+                    foreach (var (x, z) in session.Layout.TileCoordinates)
+                    {
+                        var tile = tiledSession.BakeTile(x, z);
+                        Assert.That(tile.DisplayHeights.GetLength(0), Is.EqualTo(MultiTileResolution));
+                        Assert.That(tile.Alphamap.GetLength(2), Is.EqualTo(session.Layout.TextureLayerAddresses.Count));
+                        Assert.That(tile.DetailMaps.Count, Is.EqualTo(session.Layout.DetailPrototypes.Count));
+                    }
+                }
+                finally
+                {
+                    if (Directory.Exists(shared.Root)) Directory.Delete(shared.Root, true);
                 }
             }
             finally
             {
-                Directory.Delete(shared.Root, true);
                 scope.End();
             }
-        }
-
-        // テストが払い出した実ディレクトリ間だけを想定した単純な再帰コピー。シンボリックリンクは扱わない
-        // A simple recursive copy meant only for real directories this test hands out; symlinks are not handled
-        private static void CopyDirectory(string sourceDirectory, string destinationDirectory)
-        {
-            Directory.CreateDirectory(destinationDirectory);
-            foreach (var filePath in Directory.GetFiles(sourceDirectory))
-                File.Copy(filePath, Path.Combine(destinationDirectory, Path.GetFileName(filePath)), true);
-            foreach (var subDirectory in Directory.GetDirectories(sourceDirectory))
-                CopyDirectory(subDirectory, Path.Combine(destinationDirectory, Path.GetFileName(subDirectory)));
         }
     }
 }

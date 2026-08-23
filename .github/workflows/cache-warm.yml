@@ -27,11 +27,11 @@ on:
   # 手動実行デバッグ用
   workflow_dispatch: {}
 
-# master pushが続いたときは古いwarmだけを止め、scheduleと手動実行は独立させる。
-# Cancel only stale master-push warms while keeping scheduled and manual runs independent.
+# 全warmを直列化し、古いrunのcleanupが新しいrunのcacheを削除する競合を防ぐ。
+# Serialize every warm so cleanup from an older run cannot delete a cache produced by a newer run.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'push' && 'master-push' || github.run_id }}
-  cancel-in-progress: ${{ github.event_name == 'push' }}
+  group: cache-warm
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -73,8 +73,8 @@ jobs:
           ref: ${{ steps.master_revision.outputs.commit_hash }}
           path: moorestech_master
 
-      # 約20分のwarm成果を1ステップの失敗で捨てないよう、restoreとsaveを分けてsaveをif: always()にする
-      # Splitting restore from an always-run save keeps ~20 minutes of warming from being discarded by one failed step
+      # restoreとsaveを分離し、warmが完了したLibraryだけを公開する。
+      # Separate restore and save so only a successfully warmed Library is published.
       - uses: actions/cache/restore@v4
         with:
           path: moorestech/moorestech_client/Library
@@ -100,7 +100,7 @@ jobs:
 
       - uses: actions/cache/save@v4
         id: save
-        if: always()
+        if: steps.warm.outcome == 'success'
         with:
           path: moorestech/moorestech_client/Library
           key: Library_Test_client-${{ github.sha }}
@@ -108,17 +108,32 @@ jobs:
       # 最新cacheの保存成功後だけmaster上の旧client cacheを消し、10GB枠内に保つ。
       # Delete old master client caches only after a successful warm and save to stay within the 10GB budget.
       - name: Delete older client test caches.
-        if: steps.warm.outcome == 'success' && steps.save.outcome == 'success'
+        if: github.ref == 'refs/heads/master' && steps.warm.outcome == 'success' && steps.save.outcome == 'success'
         shell: bash
+        working-directory: moorestech
         env:
           GH_TOKEN: ${{ github.token }}
           CURRENT_CACHE_KEY: Library_Test_client-${{ github.sha }}
+          CACHE_DELETE_BATCH_SIZE: 100
         run: |
-          gh cache list --key 'Library_Test_client-' --ref 'refs/heads/master' --limit 100 --json id,key --jq ".[] | select(.key != \"$CURRENT_CACHE_KEY\") | .id" |
-          while IFS= read -r cache_id; do
-            if [[ -n "$cache_id" ]]; then
-              gh cache delete "$cache_id"
+          # save actionが警告終了しても旧cacheを消さないよう、現commitのcache実在を先に確認する。
+          # Verify the current commit's cache first so a warning-only save cannot cause deletion of every old cache.
+          current_cache_ids=$(gh cache list --key "$CURRENT_CACHE_KEY" --ref 'refs/heads/master' --limit "$CACHE_DELETE_BATCH_SIZE" --json id,key --jq ".[] | select(.key == \"$CURRENT_CACHE_KEY\") | .id")
+          if [[ -z "$current_cache_ids" ]]; then
+            echo "Current cache was not created: $CURRENT_CACHE_KEY" >&2
+            exit 1
+          fi
+
+          # 名前付き件数ずつ再取得し、上限で古いcacheが残らないよう空になるまで削除する。
+          # Re-fetch named-size batches until empty so a listing limit cannot leave older caches behind.
+          while true; do
+            cache_ids=$(gh cache list --key 'Library_Test_client-' --ref 'refs/heads/master' --limit "$CACHE_DELETE_BATCH_SIZE" --json id,key --jq ".[] | select(.key != \"$CURRENT_CACHE_KEY\") | .id")
+            if [[ -z "$cache_ids" ]]; then
+              break
             fi
+            while IFS= read -r cache_id; do
+              gh cache delete "$cache_id"
+            done <<< "$cache_ids"
           done
 
   # PF別コンパイル検査が使うserver Libraryをターゲットごとに焼く
@@ -147,6 +162,7 @@ jobs:
             Library_compile_server_${{ matrix.target }}-
 
       - name: Warm Library - ${{ matrix.target }}
+        id: warm
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -162,7 +178,7 @@ jobs:
           customParameters: '-expectedBuildTarget ${{ matrix.target }}'
 
       - uses: actions/cache/save@v4
-        if: always()
+        if: steps.warm.outcome == 'success'
         with:
           path: moorestech_server/Library
           key: Library_compile_server_${{ matrix.target }}-${{ github.sha }}
