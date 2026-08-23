@@ -22,6 +22,7 @@ namespace Tests.Module
     {
         private readonly string _label;
         private readonly List<WorldDataDirectory> _createdWorldDataDirectories = new();
+        private readonly List<WorldDataDirectory> _createdSharedCacheDirectories = new();
         private readonly List<string> _createdServerDataDirectories = new();
 
         public TerrainTransferTestScope(string label)
@@ -33,16 +34,14 @@ namespace Tests.Module
         // Deletes every world handed out by this scope; call it from TearDown only
         public void End()
         {
+            // 記録済みcacheだけを回収
+            // Delete only caches recorded during provisioning, without re-reading intentionally corrupted metadata in teardown
+            foreach (var sharedCacheDirectory in _createdSharedCacheDirectories)
+                if (Directory.Exists(sharedCacheDirectory.Root)) Directory.Delete(sharedCacheDirectory.Root, true);
+            _createdSharedCacheDirectories.Clear();
+
             foreach (var worldDataDirectory in _createdWorldDataDirectories)
             {
-                // 確定メタの共有cacheを失敗時も回収
-                // Remove the shared cache referenced by committed metadata even when provisioning fails partway through
-                if (File.Exists(worldDataDirectory.WorldMetaFilePath))
-                {
-                    var meta = TerrainTransferMetaReader.Read(worldDataDirectory);
-                    var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
-                    if (Directory.Exists(shared.Root)) Directory.Delete(shared.Root, true);
-                }
                 if (Directory.Exists(worldDataDirectory.Root)) Directory.Delete(worldDataDirectory.Root, true);
                 if (Directory.Exists(worldDataDirectory.ProvisioningTempDirectory)) Directory.Delete(worldDataDirectory.ProvisioningTempDirectory, true);
             }
@@ -134,9 +133,22 @@ namespace Tests.Module
         private WorldDataDirectory Provision(string mapMode, int seed, string serverDataDirectory)
         {
             var worldDataDirectory = CreateEmptyWorldDataDirectory();
-            WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
-                worldDataDirectory, serverDataDirectory, mapMode, seed));
-            return worldDataDirectory;
+            try
+            {
+                WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
+                    worldDataDirectory, serverDataDirectory, mapMode, seed));
+                return worldDataDirectory;
+            }
+            finally
+            {
+                // 確定メタのcacheを失敗時も登録
+                // Register a shared cache from committed metadata even when provisioning fails afterward
+                if (File.Exists(worldDataDirectory.WorldMetaFilePath))
+                {
+                    var meta = TerrainTransferMetaReader.Read(worldDataDirectory);
+                    _createdSharedCacheDirectories.Add(WorldDataDirectory.ForWorldCache(meta.WorldId));
+                }
+            }
         }
     }
 }
