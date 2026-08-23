@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Map.NearestSearch;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
 using Core.Master;
@@ -14,7 +15,7 @@ namespace Client.Game.InGame.Map.Outcrop
     ///     鉱脈AABBごとに生成されるクライアント専用の手掘り対象
     ///     Client-only hand-mining target instantiated for each vein AABB
     /// </summary>
-    public class OutcropGameObject : MonoBehaviour, IMiningTargetObject
+    public class OutcropGameObject : MonoBehaviour, IMiningTargetObject, INearestSearchTarget
     {
         private static readonly HandMiningToolsElement[] NoHandMiningTools = Array.Empty<HandMiningToolsElement>();
 
@@ -26,6 +27,7 @@ namespace Client.Game.InGame.Map.Outcrop
         private readonly List<ItemId> _usableToolItemIds = new();
 
         public GameObject GameObject => gameObject;
+        public Vector3 Position => transform.position;
         public SoundEffectType DestroySoundType { get; private set; }
 
         public void Initialize(MapVeinMasterElement element, Guid veinGuid, Vector3Int minePosition)
