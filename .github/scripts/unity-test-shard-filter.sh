@@ -40,15 +40,14 @@ fi
 
 # PR #1256のCI実測を基に、PlayMode遷移を伴うClient fixtureを約3分ずつへ均等化する。
 # Balance Client fixtures that transition PlayMode into roughly three-minute groups using PR #1256 CI timings.
-client_play_1='Client\.Tests\.EditModeInPlayingTest\.MapObjects\.MapObjectNearestSearchTest|Client\.Tests\.EditModeInPlayingTest\.PlayerStartsOnBuiltTerrainTest|Client\.Tests\.EditModeInPlayingTest\.MachineModuleSlotUITest|Client\.Tests\.EditModeInPlayingTest\.MapObjects\.MapObjectRotationTest|Client\.Tests\.EditModeInPlayingTest\.DebugParametersIsolationAcrossDomainReloadTest|Client\.Tests\.EditModeInPlayingTest\.OsInputSpoofTest'
+client_play_1='Client\.Tests\.EditModeInPlayingTest\.MapObjects\.MapObjectNearestSearchTest|Client\.Tests\.EditModeInPlayingTest\.PlayerStartsOnBuiltTerrainTest|Client\.Tests\.EditModeInPlayingTest\.MachineModuleSlotUITest|Client\.Tests\.EditModeInPlayingTest\.MapObjects\.MapObjectRotationTest|Client\.Tests\.EditModeInPlayingTest\.DebugParametersIsolationAcrossDomainReloadTest|Client\.Tests\.EditModeInPlayingTest\.OsInputSpoofTest|Client\.Tests\.StartGameTest\.StartGameCheckTest'
 client_play_2='Client\.Tests\.EditModeInPlayingTest\.ElectricToGearModeSelectUITest|Client\.Tests\.EditModeInPlayingTest\.TerrainCacheFetchTest|Client\.Tests\.EditModeInPlayingTest\.MachineRecipeSelectionUITest|Client\.Tests\.EditModeInPlayingTest\.MapVeinOutcropAndRangeViewTest|Client\.Tests\.EditModeInPlayingTest\.Skit\.SkitWorldObjectRegistrationTest'
 client_play_3='Client\.Tests\.EditModeInPlayingTest\.LocalPlayEmbeddedServerBootTest|Client\.Tests\.EditModeInPlayingTest\.BlockClickColliderTest|Client\.Tests\.EditModeInPlayingTest\.ChallengeListUITest|Client\.Tests\.EditModeInPlayingTest\.MachineRecipeSelectionGearUITest|Client\.Tests\.EditModeInPlayingTest\.EquipmentSelectionSynchronizationTest'
 
-# 残余shardで連続すると不安定な起動fixtureを各1本へ隔離する。
-# Isolate startup fixtures that become unstable when run sequentially in the remainder shard.
+# 残余で不安定なnear-field起動を隔離し、単独実行不能なstart-gameはPlayMode群へ含める。
+# Isolate near-field startup from the remainder while keeping start-game in a PlayMode group because it cannot run alone.
 client_near_field_startup='Client\.Tests\.EditModeInPlayingTest\.MapObjects\.MapObjectNearFieldStartupTest'
-client_start_game='Client\.Tests\.StartGameTest\.StartGameCheckTest'
-client_dedicated="${client_play_1}|${client_play_2}|${client_play_3}|${client_near_field_startup}|${client_start_game}"
+client_dedicated="${client_play_1}|${client_play_2}|${client_play_3}|${client_near_field_startup}"
 
 # MapGenerationの重量fixtureだけを専用化し、未列挙テストは必ずServer残余へ流す。
 # Dedicate only heavy MapGeneration fixtures so every unlisted test always flows into the Server remainder.
@@ -65,7 +64,6 @@ case "$1" in
   client-play-2) use_assembly_filter='false'; assembly_names='all'; test_filter="^(${client_play_2})(\\.|$)"; needs_webui='true' ;;
   client-play-3) use_assembly_filter='false'; assembly_names='all'; test_filter="^(${client_play_3})(\\.|$)"; needs_webui='true' ;;
   client-near-field-startup) use_assembly_filter='false'; assembly_names='all'; test_filter="^(${client_near_field_startup})(\\.|$)"; needs_webui='true' ;;
-  client-start-game) use_assembly_filter='false'; assembly_names='all'; test_filter="^(${client_start_game})(\\.|$)"; needs_webui='true' ;;
   client-remainder) use_assembly_filter='true'; assembly_names="$client_test_assembly"; test_filter="!^(${all_dedicated})(\\.|$)"; needs_webui='true' ;;
   server-map-1) use_assembly_filter='false'; assembly_names='all'; test_filter="^(${server_map_1})(\\.|$)"; needs_webui='false' ;;
   server-map-2) use_assembly_filter='false'; assembly_names='all'; test_filter="^(${server_map_2})(\\.|$)"; needs_webui='false' ;;
