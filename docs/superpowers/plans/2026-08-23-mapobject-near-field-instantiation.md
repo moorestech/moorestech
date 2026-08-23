@@ -669,7 +669,7 @@ git commit -m "refactor(map-object): 個体生成の本体をMapObjectLayoutInst
 - Consumes: Task 1 `FrameTimeBudget`、Task 3 `MapObjectLayoutDistanceOrder`、Task 4 `MapObjectLayoutInstantiator`、Task 2 `MapObjectPendingStateLedger`
 - Produces: `MapObjectGameObjectDatastore` に `public UniTask WaitForAllInstantiatedAsync()` を追加。`WaitForInitialApplyAsync()` の意味が「近傍のみ完了」に変わる（シグネチャ不変）
 
-- [ ] **Step 1: Datastoreを書き換える（全文）**
+- [x] **Step 1: Datastoreを書き換える（全文）** — 実装 `ef6b3dcf3`。160行（200行以下のため縮小策は未適用）
 
 ```csharp
 using System;
@@ -836,7 +836,7 @@ namespace Client.Game.InGame.Map.MapObject
 
 書き換え後に `wc -l` で200行以下を確認する（超えたらコメントの冗長箇所を削るのではなく、`OnUpdateMapObject` の台帳分岐を `MapObjectPendingStateLedger` 側の `Record(MapObjectUpdateEventMessagePack)` へ寄せて縮める）。
 
-- [ ] **Step 2: `MapObjectRotationTest` を全量待機へ切り替える**
+- [x] **Step 2: `MapObjectRotationTest` を全量待機へ切り替える** — 一度切替後、全量待機が実測30分超で運用不能のため近傍待機へ差し戻し（裁定 `936aa7a30`）
 
 `MapObjectRotationTest.cs` の以下を置換:
 
@@ -854,7 +854,7 @@ namespace Client.Game.InGame.Map.MapObject
                 await datastore.WaitForAllInstantiatedAsync();
 ```
 
-- [ ] **Step 3: 近傍先行の実機テストを書く**
+- [x] **Step 3: 近傍先行の実機テストを書く** — 作成後、レビュー指摘によりInstanceId集合の包含検査へ差し替え（裁定 `936aa7a30`）
 
 `MapObjectNearFieldStartupTest.cs`（`MapObjectRotationTest` と同じboot型。`EnterPlayModeUtil()`→`EnterPlayMode`→`LogAssert.ignoreFailingMessages = true`→`Body().ToCoroutine()`→`ExitPlayMode`→`SessionState.SetBool("DebugObjectsBootstrap_Disabled", false)` の枠組みをそのまま使う）:
 
@@ -952,22 +952,22 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 
 （注: テストワールドに初期破壊済み個体がある場合 `SearchNearestMapObject` がnullを返しうる。落ちたら破壊済みlayoutをスキップする条件を足す — スナップショットは `handshake.MapObjects` の `IsDestroyed` で引ける）
 
-- [ ] **Step 4: コンパイルする**
+- [x] **Step 4: コンパイルする** — Error 0 / Warning 0
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 
-- [ ] **Step 5: テストを実行して通ることを確認する**
+- [ ] **Step 5: テストを実行して通ることを確認する** — ⚠️ 未実行。Editor固着でPlayMode遷移テストが起動しない（bd moorestech-4z88.2）。`ef6b3dcf3` 時点では2/2 PASS済みだが、その後のテスト変更 `936aa7a30` は未検証
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MapObjectRotationTest|MapObjectNearFieldStartupTest"`
 Expected: 2件PASS（PlayMode遷移テストなので実行後のドメインリロードエラーは45秒待ってリトライ）
 
-- [ ] **Step 6: 既存の待機境界・mapObject系テストの回帰を確認する**
+- [x] **Step 6: 既存の待機境界・mapObject系テストの回帰を確認する** — `ef6b3dcf3` 時点で11/11 PASS（4クラス実在確認済み）
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "InitialEventApplyWaiterTest|MapObjectNearestSearcherTest|MiningAimTest|MapObjectHpBarScaleTest"`
 Expected: 全PASS
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする** — `ef6b3dcf3` + fix `936aa7a30`
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectGameObjectDatastore.cs moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/MapObjects/
@@ -978,6 +978,8 @@ git commit -m "feat(map-object): 起動待機を近傍150mに限定し残りを�
 
 ### Task 6: `MapObjectGameObject.Initialize` 走査の計測と条件付き是正
 
+> ⚠️ **保留（bd moorestech-4z88.3）**: 計測にPlayMode実行が必要だが、Task 5 Step 5と同一のEditor固着で起動できない。R8の30%判定は未実施。
+
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectGameObject.cs`（是正時のみ）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectRayTarget.cs`（是正時のみ）
@@ -986,7 +988,7 @@ git commit -m "feat(map-object): 起動待機を近傍150mに限定し残りを�
 - Consumes: Task 5完了後のdatastore
 - Produces: 是正時 `MapObjectRayTarget.MapObjectGameObject` はlazy解決（`GetComponentInParent`を初回参照時に1回）になる。`Initialize(MapObjectGameObject)` は露頭経路（`OutcropMiningAimTest.cs:112` 参照）のため残す
 
-- [ ] **Step 1: 計測用の一時コードを入れて測る（コミットしない）**
+- [ ] ⚠️保留 **Step 1: 計測用の一時コードを入れて測る（コミットしない）**
 
 `MapObjectLayoutInstantiator.InstantiateFromLayout` 内の `mapObject.Initialize(snapshot)` を一時的に挟み込みで計測する:
 
@@ -1005,12 +1007,12 @@ if (_initializedCount % 500 == 0)
 
 同様に `InstantiateFromLayout` 全体を測る第2のStopwatchを入れ、`uloop run-tests ... --filter-value "MapObjectRotationTest"` を1回実行して `uloop get-logs --project-path ./moorestech_client --log-type Log` の `[Measure]` 行から **Initialize比率（Initialize平均µs ÷ 全体平均µs）** を読む。
 
-- [ ] **Step 2: 判定して記録する**
+- [ ] ⚠️保留 **Step 2: 判定して記録する**
 
 - 比率が30%以下 → 一時コードを `git checkout -- <file>` で戻し、このタスクはここで完了。計測値をこのplanのチェックボックス横に追記する
 - 比率が30%超 → Step 3へ
 
-- [ ] **Step 3: （支配的な場合のみ）lazy解決へ是正する**
+- [ ] ⚠️保留 **Step 3: （支配的な場合のみ）lazy解決へ是正する**
 
 `MapObjectRayTarget.cs` を以下へ変更:
 
@@ -1055,13 +1057,13 @@ namespace Client.Game.InGame.Map.MapObject
             }
 ```
 
-- [ ] **Step 4: （是正した場合のみ）コンパイル・テスト**
+- [ ] ⚠️保留 **Step 4: （是正した場合のみ）コンパイル・テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MiningAimTest|MiningEquipmentSwitchTest|OutcropMiningAimTest|MapObjectRayTargetTest"`
 Expected: 全PASS
 
-- [ ] **Step 5: （是正した場合のみ）コミットする**
+- [ ] ⚠️保留 **Step 5: （是正した場合のみ）コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectGameObject.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectRayTarget.cs
