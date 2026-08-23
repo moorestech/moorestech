@@ -151,8 +151,8 @@ jobs:
           restore-keys: |
             Library_Test_client-
 
-      # assemblyと完全修飾名regexを同時指定し、各test-caseをちょうど1 shardで実行する。
-      # Select both assembly and fully-qualified-name regex so every test case runs in exactly one shard.
+      # 専用shardだけassemblyを絞り、全assemblyを受ける残余shardで将来のtest assemblyも欠落させない。
+      # Scope only dedicated shards by assembly; all-assembly remainder shards retain future test assemblies without gaps.
       - name: Run Unity Test - ${{ matrix.shard }}
         uses: game-ci/unity-test-runner@v4
         env:
@@ -166,7 +166,7 @@ jobs:
           unityVersion: 6000.3.8f1
           testMode: editmode
           customParameters: >-
-            -assemblyNames "${{ steps.shard.outputs.assembly_names }}"
+            ${{ steps.shard.outputs.assembly_names != '' && format('-assemblyNames "{0}"', steps.shard.outputs.assembly_names) || '' }}
             -testFilter "${{ steps.shard.outputs.test_filter }}"
             -testCategory "!IgnoreCI"
 

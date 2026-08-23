@@ -26,17 +26,17 @@ server_map_2='Tests\.UnitTest\.Game\.MapGeneration\.Tiling\.MultiTileMapObjectTr
 server_map_3='Tests\.UnitTest\.Game\.MapGeneration\.Visual\.TileVisualBakerBoundaryTest|Tests\.UnitTest\.Game\.MapGeneration\.TerrainTransferMetaReaderTest|Tests\.UnitTest\.Game\.MapGeneration\.Placement\.ObjectScatterSpawnBandTest|Tests\.UnitTest\.Game\.MapGeneration\.Visual\.Placement\.PlacementLedgerTest|Tests\.UnitTest\.Game\.MapGeneration\.WorldProvisionerTest|Tests\.UnitTest\.Game\.MapGeneration\.Facade\.WorldTerrainSessionTest|Tests\.UnitTest\.Game\.MapGeneration\.TerrainChunkReaderTest'
 server_dedicated="${server_map_1}|${server_map_2}|${server_map_3}"
 
-# 正の専用filterと同じ集合から残余filterを合成し、二重管理による検査漏れを防ぐ。
-# Derive remainder filters from the same positive sets to prevent coverage gaps caused by duplicated lists.
+# 専用fixtureはassemblyで絞り、残余は全assemblyを名前空間で排他的に分割して将来のtest assemblyも回収する。
+# Scope dedicated fixtures by assembly, then partition all assemblies exclusively by namespace so future test assemblies are retained.
 case "$1" in
   client-play-1) assembly_names='Client.Tests'; test_filter="^(${client_play_1})(\\.|$)"; needs_webui='true' ;;
   client-play-2) assembly_names='Client.Tests'; test_filter="^(${client_play_2})(\\.|$)"; needs_webui='true' ;;
   client-play-3) assembly_names='Client.Tests'; test_filter="^(${client_play_3})(\\.|$)"; needs_webui='true' ;;
-  client-remainder) assembly_names='Client.Tests'; test_filter="!^(${client_dedicated})(\\.|$)"; needs_webui='true' ;;
+  client-remainder) assembly_names=''; test_filter="^(?!(${client_dedicated})(\\.|$))Client\\."; needs_webui='true' ;;
   server-map-1) assembly_names='Server.Tests'; test_filter="^(${server_map_1})(\\.|$)"; needs_webui='false' ;;
   server-map-2) assembly_names='Server.Tests'; test_filter="^(${server_map_2})(\\.|$)"; needs_webui='false' ;;
   server-map-3) assembly_names='Server.Tests'; test_filter="^(${server_map_3})(\\.|$)"; needs_webui='false' ;;
-  server-remainder) assembly_names='Server.Tests;Unity.Addressables.DocExampleCode.Editor.Tests'; test_filter="!^(${server_dedicated})(\\.|$)"; needs_webui='false' ;;
+  server-remainder) assembly_names=''; test_filter="!^(Client\\.|(${server_dedicated})(\\.|$))"; needs_webui='false' ;;
   *) echo "unknown Unity test shard: $1" >&2; exit 2 ;;
 esac
 

@@ -15,7 +15,9 @@ on:
     paths:
       - 'moorestech_client/**'
       - 'moorestech_server/**'
+      - '.moorestech-external-revisions.json'
       - '.github/workflows/cache-warm.yml'
+      - '.github/workflows/run_test.yml'
 
   # UTC 18:00 = JST 翌03:00（日次ビルドの1時間前）
   # 18:00 UTC equals 03:00 JST the next day, one hour before the daily build
