@@ -13,6 +13,7 @@ namespace Core.Master.Validator
             errorLogs = "";
             errorLogs += BlockParamValidation();
             errorLogs += BlockRequiredItemsValidation();
+            errorLogs += PlacementsPerCostValidation();
             errorLogs += GearConsumptionValidation();
             errorLogs += BlockDestructionCategoryValidation();
             errorLogs += BlockCategoryReferenceValidation();
@@ -208,6 +209,24 @@ namespace Core.Master.Validator
                     }
                 }
 
+                return logs;
+            }
+
+            string PlacementsPerCostValidation()
+            {
+                // 0以下は設置ごとの消費が定義できないためマスタエラー
+                // Non-positive values cannot define per-placement consumption, so treat them as master errors
+                var logs = "";
+                foreach (var block in blocks.Data)
+                {
+                    if (block.PlacementsPerCost <= 0)
+                        logs += $"[BlockMaster] Name:{block.Name} has invalid PlacementsPerCost:{block.PlacementsPerCost}\n";
+
+                    // 財布方式が働くには消費対象の素材が要る。RequiredItemsが空だと「財布が肩代わりした」と「そもそも消費が無い」が区別できなくなるためマスタエラー
+                    // The wallet mechanism needs items to consume; an empty RequiredItems would make "wallet covered it" indistinguishable from "nothing to consume", so treat it as a master error
+                    if (1 < block.PlacementsPerCost && (block.RequiredItems == null || block.RequiredItems.Length == 0))
+                        logs += $"[BlockMaster] Name:{block.Name} has PlacementsPerCost:{block.PlacementsPerCost} but no RequiredItems\n";
+                }
                 return logs;
             }
 

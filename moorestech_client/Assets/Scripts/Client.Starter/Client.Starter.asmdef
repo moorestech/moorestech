@@ -30,7 +30,8 @@
         "Common.Debug",
         "Client.Localization",
         "Mod.Loader",
-        "Game.PlacementTarget"
+        "Game.PlacementTarget",
+        "Server.Event"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.Block.Interface;
@@ -34,7 +35,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             // Shared values settled by the placement validation; valid only after TryValidatePolePlacement passes
             BlockMasterElement blockMaster = null;
             ElectricPoleBlockParam poleParam = null;
-            (ItemId itemId, int count)[] costItemCounts = null;
+            IConstructionPlacementPlan placementPlan = null;
+            IReadOnlyList<(ItemId itemId, int count)> costItemCounts = null;
+            var constructionWallet = ServerContext.GetService<ConstructionWalletService>();
 
             // Operationごとの経路をこの1箇所で振り分ける。外部入力由来の列挙域外は不正Modeとして拒否する
             // All per-operation branching lives here; out-of-range values from external input are rejected as an invalid mode
@@ -86,9 +89,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 if (blockMaster.BlockParam is not ElectricPoleBlockParam requestedPoleParam) return false;
                 poleParam = requestedPoleParam;
 
-                // 建設コストの充足を検証する
-                // Validate the construction cost
-                costItemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
+                // 建設コストは財布に問い合わせる。残りで賄えるセルは素材を要求しない
+                // Ask the wallet for the construction cost; a cell covered by the remainder demands no materials
+                placementPlan = constructionWallet.PlanPlacement(blockMaster, playerId);
+                costItemCounts = placementPlan.ItemsToConsume;
                 failureReason = ElectricWirePlacementFailureReason.InsufficientItems;
                 if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return false;
 
@@ -152,7 +156,8 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 // 電線素材と建設コストを消費する（dirty化は接続処理内で行われる）
                 // Consume the wire materials and the construction cost; the connection mutation itself marks the topology dirty
                 ConnectToolMaterialConsumer.Consume(wireCost.Materials, inventory);
-                ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
+                constructionWallet.CommitPlacement(placementPlan, inventory, selfConnector.BlockInstanceId);
+                constructionWallet.FlushRemainingCountChanges();
 
                 return ElectricWireExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
             }
@@ -181,7 +186,8 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
                 // 建設コストのみ消費する
                 // Consume only the construction cost
-                ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
+                constructionWallet.CommitPlacement(placementPlan, inventory, selfConnector.BlockInstanceId);
+                constructionWallet.FlushRemainingCountChanges();
 
                 return ElectricWireExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
             }

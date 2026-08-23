@@ -35,7 +35,8 @@
     "Game.Blueprint",
     "Game.Paths",
     "Game.MapGeneration",
-    "Game.Hotbar"
+    "Game.Hotbar",
+    "Game.Construction"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
