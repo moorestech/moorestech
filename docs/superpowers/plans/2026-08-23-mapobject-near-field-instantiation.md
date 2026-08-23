@@ -508,7 +508,7 @@ git commit -m "feat(map-object): layoutの距離順ソートと近傍境界算�
 
 **注意:** 生成ロジックは現行 `MapObjectGameObjectDatastore.Construct` 内のローカル関数群からの**移動**であり、コメント含め挙動を変えない（保留台帳の適用のみ新規）。このタスク時点ではdatastoreは旧実装のままでよい（新クラスは未使用でもコンパイルは通る）。
 
-- [ ] **Step 1: 実装を書く**
+- [x] **Step 1: 実装を書く**
 
 ```csharp
 using System;
@@ -644,12 +644,12 @@ namespace Client.Game.InGame.Map.MapObject
 }
 ```
 
-- [ ] **Step 2: コンパイルする**
+- [x] **Step 2: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0（新クラスは未使用でも可）
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectLayoutInstantiator.cs*
