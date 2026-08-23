@@ -65,14 +65,16 @@ jobs:
           - client-play-1
           - client-play-2
           - client-play-3
+          - client-near-field-startup
+          - client-start-game
           - client-remainder
           - server-map-1
           - server-map-2
           - server-map-3
           - server-remainder
     steps:
-      # HEADしか参照しないテストなので履歴を取得せず、8 shard共通のcheckout固定費を抑える。
-      # Tests only inspect HEAD, so skip history to reduce checkout overhead paid by all eight shards.
+      # HEADしか参照しないテストなので履歴を取得せず、10 shard共通のcheckout固定費を抑える。
+      # Tests only inspect HEAD, so skip history to reduce checkout overhead paid by all ten shards.
       - name: Check out my unity project.
         uses: actions/checkout@v4
         with:

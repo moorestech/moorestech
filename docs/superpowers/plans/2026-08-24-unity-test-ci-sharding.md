@@ -2,21 +2,21 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: subagent-driven-development スキルを使い、このplanをタスクごとに実装すること。ステップはチェックボックス（`- [ ]`）記法で進捗管理する。
 
-**Goal:** PRのUnity EditModeテスト2152件を削らず、実測31分02秒のCI wall timeを、重量クラスの8並列shardと最新Libraryキャッシュで大幅に短縮する。
+**Goal:** PRのUnity EditModeテスト（現行2186件、着手時2152件）を削らず、実測31分02秒のCI wall timeを、重量クラスの10並列shardと最新Libraryキャッシュで大幅に短縮する。
 
-**Architecture:** `.github/scripts/unity-test-shard-filter.sh` がshard名からassembly・正規表現filter・WebUI要否を一意に解決し、`.github/workflows/run_test.yml` のmatrix jobが8 shardを並列実行する。専用FQNはassembly横断で拾い、残余だけ既知assemblyへ絞って固定費を抑える。新しいproject-owned test asmdefはallowlist guardで即失敗させ、無音漏れを防ぐ。`.github/workflows/cache-warm.yml` はmaster更新時にclient Libraryを焼き、成功後に旧client cacheだけを削除して10GB枠を維持する。
+**Architecture:** `.github/scripts/unity-test-shard-filter.sh` がshard名からassembly・正規表現filter・WebUI要否を一意に解決し、`.github/workflows/run_test.yml` のmatrix jobが10 shardを並列実行する。専用FQNはassembly横断で拾い、残余だけ既知assemblyへ絞って固定費を抑える。新しいproject-owned test asmdefはallowlist guardで即失敗させ、無音漏れを防ぐ。`.github/workflows/cache-warm.yml` はmaster更新時にclient Libraryを焼き、成功後に旧client cacheだけを削除して10GB枠を維持する。
 
 **Tech Stack:** GitHub Actions / Bash / game-ci unity-test-runner@v4 / actions/cache@v4 / Unity Test Framework 1.6.0
 
 ## Requirements
 
-- **R1.** ClientとServerの全EditModeテストを同一ジョブで直列実行しない。**受け入れ基準:** `run_test.yml` が8要素のmatrixを持ち、`Client.Tests` 4 shardと`Server.Tests` 4 shardが`fail-fast: false`で並列実行される。
-- **R2.** 2026-08-23のPR #1256 XMLで支配的だったClient EditModeInPlaying群を3 shardへ均等化する。**受け入れ基準:** 専用3 shardの実測test-case duration合計が188.248秒・212.767秒・204.477秒で、残余Clientテストはclient-remainderへ流れる。
+- **R1.** ClientとServerの全EditModeテストを同一ジョブで直列実行しない。**受け入れ基準:** `run_test.yml` が10要素のmatrixを持ち、`Client.Tests` 6 shardと`Server.Tests` 4 shardが`fail-fast: false`で並列実行される。
+- **R2.** 2026-08-23のPR #1256 XMLで支配的だったClient EditModeInPlaying群を分離する。**受け入れ基準:** 専用3 shardの実測test-case duration合計が188.248秒・212.767秒・204.477秒で、残余内の起動fixture 40.084秒・35.428秒も各1 shardへ隔離し、その他はclient-remainderへ流れる。
 - **R3.** 同XMLで約8分だったServer MapGeneration重量fixtureを3 shardへ均等化する。**受け入れ基準:** 専用3 shardの実測test-case duration合計が152.594秒・153.247秒・156.512秒で、未列挙のMapGenerationおよび全Server残余はserver-remainderへ流れる。
 - **R4.** テスト範囲を削らない。**受け入れ基準:** 専用filterはassemblyを問わない正の完全修飾クラス名regex、2個のremainderは既知assembly内で全専用集合だけを除く。現行CIに含まれる`Unity.Addressables.DocExampleCode.Editor.Tests`の1件はserver-remainderへ含め、すべてのshardに`!IgnoreCI` category除外が適用される。
 - **R5.** 将来fixture・test assemblyを追加・移動してもCIから無音で漏れない。**受け入れ基準:** 専用FQNはassembly移動後も専用shardへ残り、新しいproject-owned test asmdefはallowlist guardが全shardを実行前に失敗させて割当更新を要求する。
 - **R6.** shard失敗を既存の必須チェック名で集約する。**受け入れ基準:** 全matrix jobに依存する集約jobの表示名が既存と同じ`EditMode Test (Client + Server)`で、1 shardでも失敗・cancelなら集約jobが失敗する。
-- **R7.** shardごとの結果を衝突させない。**受け入れ基準:** GameCI `checkName`とupload artifact名がshard名を含み、8件すべて一意である。
+- **R7.** shardごとの結果を衝突させない。**受け入れ基準:** GameCI `checkName`とupload artifact名がshard名を含み、10件すべて一意である。
 - **R8.** CI固定費を削る。**受け入れ基準:** test checkoutは`fetch-depth: 1`、Server shardはWebUIセットアップをskipし、GameCI結果投稿は1時間App tokenでなくjob寿命の`github.token`を使う。
 - **R9.** master更新後のPRが古いLibraryを長期間使わない。**受け入れ基準:** `cache-warm.yml`はUnity関連pathのmaster pushでclient warmだけを起動し、定期・手動時だけ既存server platform cacheもwarmする。
 - **R10.** GitHub Actions cache 10GB枠を守る。**受け入れ基準:** client warm成功・保存成功後、現在key以外の`Library_Test_client-` cacheを削除し、server cacheを削除しない。
@@ -44,25 +44,25 @@
 - Produces: `use_assembly_filter`、`assembly_names`、`test_filter`、`needs_webui`のGitHub step output
 
 - [x] **Step 1:** Client/Serverの実測重量クラスを各3群の完全修飾名として定義し、専用FQN全体の否定を既知assemblyの残余へ流す。
-- [x] **Step 2:** 未知shard、引数不足、`GITHUB_OUTPUT`未設定を非0終了にし、8 shardすべての出力を一時outputへ解決するshell検査で成功を確認する。
-- [x] **Step 3:** 正filter 6本のクラス集合が重複せず、変更前XML 2152件が8 shardのちょうど1つへ割り当たることを検査する。
+- [x] **Step 2:** 未知shard、引数不足、`GITHUB_OUTPUT`未設定を非0終了にし、10 shardすべての出力を一時outputへ解決するshell検査で成功を確認する。
+- [x] **Step 3:** 正filter 8本のクラス集合が重複せず、現行XML 2186件が10 shardのちょうど1つへ割り当たることを検査する。
 - [x] **Step 4:** `git add .github/scripts/unity-test-shard-filter.sh docs/superpowers/plans/2026-08-24-unity-test-ci-sharding.md && git commit -m "perf(ci): Unityテストのshard filterを定義"`でcommitする。
 
-### Task 2: Unity Testを8並列matrixへ変更
+### Task 2: Unity Testを10並列matrixへ変更
 
 **Files:**
 - Modify: `.github/workflows/run_test.yml`
 
 **Interfaces:**
 - Consumes: Task 1のresolver outputs
-- Produces: 8個の`Unity Test - <shard>` check、8個の`Test results - <shard>` artifact、集約check`EditMode Test (Client + Server)`
+- Produces: 10個の`Unity Test - <shard>` check、10個の`Test results - <shard>` artifact、集約check`EditMode Test (Client + Server)`
 
-- [x] **Step 1:** 既存test jobの共通setupをmatrix jobへ移し、8 shardを`fail-fast: false`で並列実行する。
+- [x] **Step 1:** 既存test jobの共通setupをmatrix jobへ移し、10 shardを`fail-fast: false`で並列実行する。
 - [x] **Step 2:** resolverの`test_filter`と残余用`assembly_names`を条件付きで渡し、全shardに`-testCategory "!IgnoreCI"`を渡す。
 - [x] **Step 3:** Client shardだけWebUI toolchainを準備し、全shardでshallow checkout・job token・一意check/artifact名を使う。
 - [x] **Step 4:** `if: always()`の集約jobでmatrix resultがsuccessのときだけ成功させ、既存check表示名を維持する。
-- [x] **Step 5:** Ruby YAML parseと構造assertionでmatrix 8件、一意名、resolver利用、`fetch-depth: 0`消滅を確認する。
-- [x] **Step 6:** `git add .github/workflows/run_test.yml && git commit -m "perf(ci): Unity EditModeテストを8並列化"`でcommitする。
+- [x] **Step 5:** Ruby YAML parseと構造assertionでmatrix 10件、一意名、resolver利用、`fetch-depth: 0`消滅を確認する。
+- [x] **Step 6:** `run_test.yml`のmatrix並列化をcommitし、実測で残った起動fixtureも追加shardへ隔離する。
 
 ### Task 3: master pushで最新client Libraryをwarm
 
@@ -87,9 +87,9 @@
 - Consumes: GitHub Actions run artifacts
 - Produces: 全shard件数合計、wall time、変更前比較
 
-- [x] **Step 1:** shell syntax、変更workflowのactionlint・YAML parse、resolver 8 shard、変更前2152件の一意割当、git diff whitespace checkを実行する。
-- [ ] **Step 2:** branchをpushし、PR #1256の全8 shardと集約checkの完走を待つ。失敗時はartifact/logから前方修正する。
-- [ ] **Step 3:** shard artifact XMLの`total`合計が変更前2152件で、test-case `fullname`の多重集合が変更前と一致することを確認する（現行結果には同一fullnameが2組あるため単純集合比較は不可）。
+- [x] **Step 1:** shell syntax、変更workflowのactionlint・YAML parse、resolver 10 shard、現行2186件の一意割当、git diff whitespace checkを実行する。
+- [ ] **Step 2:** branchをpushし、PR #1256の全10 shardと集約checkの完走を待つ。失敗時はartifact/logから前方修正する。
+- [ ] **Step 3:** shard artifact XMLの`total`合計が現行2186件で、test-case `fullname`の多重集合が現行基準と一致することを確認する（同一fullnameがあるため単純集合比較は不可）。
 - [ ] **Step 4:** test job開始から集約完了までのwall timeを記録し、変更前31分02秒から短縮したことを確認する。
 - [ ] **Step 5:** 必ずmoores-code-reviewスキルで全ブランチレビューを実行し、確定指摘を修正・再検証する。
 - [ ] **Step 6:** セッション終了可能状態にする。既存PR #1256を更新するためpr-createスキルで差分・PR状態を確認し、master conflictがあれば通常mergeで解消、全作業commit・push済みかつPRがmerge可能な状態で終える。
@@ -102,11 +102,11 @@
 | 2 | parallel matrix | `.github/workflows/run_test.yml` | 既存`platform-compile.yml`のmatrix + `fail-fast: false`前例に合わせる。 |
 | 3 | cache lifecycle | `.github/workflows/cache-warm.yml` | ADR 0028のmaster-only writerを維持し、PR workflowはrestore-onlyのままにする。 |
 
-データフロー: `PR更新 → shard resolver → 8 matrix jobs → 一意XML/artifact → 集約check → merge可否`。resolverはworkflowの設定値を書くだけで、テストランナーやゲームコードへ逆流しない。
+データフロー: `PR更新 → shard resolver → 10 matrix jobs → 一意XML/artifact → 集約check → merge可否`。resolverはworkflowの設定値を書くだけで、テストランナーやゲームコードへ逆流しない。
 
 ## 判断記録（ADR）
 
-- **agent前提（拒否権つき）:** 2分割は固定費込み約20分なので、短さ最優先というユーザー要求に合わせ8 shardを選ぶ。Actions消費量よりwall timeを優先する。
+- **agent前提（拒否権つき）:** 2分割は固定費込み約20分なので、短さ最優先というユーザー要求に合わせ10 shardを選ぶ。Actions消費量よりwall timeを優先する。
 - **agent前提（拒否権つき）:** 専用FQNはassembly横断、残余はallowlist検証済みassemblyに限定し、無音漏れ防止と固定費短縮を両立する。
 - **agent前提（拒否権つき）:** master pushでplatform compile cacheまで毎回焼くと10GB枠と実行量を圧迫するため、push時はclient test cacheだけ、schedule/manualでは従来3系統を維持する。
 - **ユーザー裁定（2026-08-24）:** grill不要、計測を先に行い、短ければ短いほど良い。PR #1256実測後にCI側施策も実施する。
